@@ -58,7 +58,7 @@ isc_counter_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_counter_create(mctx, 0, &counter);
+	result = isc_counter_create(test_mctx, 0, &counter);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (i = 0; i < 10; i++) {

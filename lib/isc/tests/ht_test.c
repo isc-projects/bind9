@@ -31,16 +31,37 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include "isctest.h"
+
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = isc_test_begin(NULL, true, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	isc_test_end();
+
+	return (0);
+}
+
+
 static void
 test_ht_full(int bits, uintptr_t count) {
 	isc_ht_t *ht = NULL;
 	isc_result_t result;
-	isc_mem_t *mctx = NULL;
 	uintptr_t i;
 
-	isc_mem_create(&mctx);
-
-	result = isc_ht_init(&ht, mctx, bits);
+	result = isc_ht_init(&ht, test_mctx, bits);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(ht);
 
@@ -174,15 +195,12 @@ test_ht_full(int bits, uintptr_t count) {
 
 	isc_ht_destroy(&ht);
 	assert_null(ht);
-
-	isc_mem_detach(&mctx);
 }
 
 static void
 test_ht_iterator() {
 	isc_ht_t *ht = NULL;
 	isc_result_t result;
-	isc_mem_t *mctx = NULL;
 	isc_ht_iter_t * iter = NULL;
 	uintptr_t i;
 	uintptr_t count = 10000;
@@ -190,9 +208,7 @@ test_ht_iterator() {
 	unsigned char key[16];
 	size_t tksize;
 
-	isc_mem_create(&mctx);
-
-	result = isc_ht_init(&ht, mctx, 16);
+	result = isc_ht_init(&ht, test_mctx, 16);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(ht);
 	for (i = 1; i <= count; i++) {
@@ -293,8 +309,6 @@ test_ht_iterator() {
 
 	isc_ht_destroy(&ht);
 	assert_null(ht);
-
-	isc_mem_detach(&mctx);
 }
 
 /* 20 bit, 200K elements test */
@@ -335,7 +349,7 @@ main(void) {
 		cmocka_unit_test(isc_ht_iterator_test),
 	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	return (cmocka_run_group_tests(tests, _setup, _teardown));
 }
 
 #else /* HAVE_CMOCKA */

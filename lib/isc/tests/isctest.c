@@ -28,8 +28,8 @@
 
 #include "isctest.h"
 
-isc_mem_t *mctx = NULL;
-isc_log_t *lctx = NULL;
+isc_mem_t *test_mctx = NULL;
+isc_log_t *test_lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
@@ -56,9 +56,6 @@ static isc_logcategory_t categories[] = {
 
 static void
 cleanup_managers(void) {
-	if (netmgr != NULL) {
-		isc_nm_detach(&netmgr);
-	}
 	if (maintask != NULL) {
 		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
@@ -71,6 +68,9 @@ cleanup_managers(void) {
 	}
 	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
+	}
+	if (netmgr != NULL) {
+		isc_nm_detach(&netmgr);
 	}
 }
 
@@ -88,13 +88,13 @@ create_managers(unsigned int workers) {
 		workers = atoi(p);
 	}
 
-	CHECK(isc_taskmgr_create(mctx, workers, 0, NULL, &taskmgr));
+	netmgr = isc_nm_start(test_mctx, workers);
+	CHECK(isc_taskmgr_create(test_mctx, workers, 0, netmgr, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 
-	CHECK(isc_timermgr_create(mctx, &timermgr));
-	CHECK(isc_socketmgr_create(mctx, &socketmgr));
-	netmgr = isc_nm_start(mctx, 3);
+	CHECK(isc_timermgr_create(test_mctx, &timermgr));
+	CHECK(isc_socketmgr_create(test_mctx, &socketmgr));
 	return (ISC_R_SUCCESS);
 
  cleanup:
@@ -113,18 +113,18 @@ isc_test_begin(FILE *logfile, bool start_managers,
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 
-	INSIST(mctx == NULL);
-	isc_mem_create(&mctx);
+	INSIST(test_mctx == NULL);
+	isc_mem_create(&test_mctx);
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
 		isc_logconfig_t *logconfig = NULL;
 
-		INSIST(lctx == NULL);
-		CHECK(isc_log_create(mctx, &lctx, &logconfig));
+		INSIST(test_lctx == NULL);
+		CHECK(isc_log_create(test_mctx, &test_lctx, &logconfig));
 
-		isc_log_registercategories(lctx, categories);
-		isc_log_setcontext(lctx);
+		isc_log_registercategories(test_lctx, categories);
+		isc_log_setcontext(test_lctx);
 
 		destination.file.stream = logfile;
 		destination.file.name = NULL;
@@ -161,11 +161,11 @@ isc_test_end(void) {
 
 	cleanup_managers();
 
-	if (lctx != NULL) {
-		isc_log_destroy(&lctx);
+	if (test_lctx != NULL) {
+		isc_log_destroy(&test_lctx);
 	}
-	if (mctx != NULL) {
-		isc_mem_destroy(&mctx);
+	if (test_mctx != NULL) {
+		isc_mem_destroy(&test_mctx);
 	}
 
 	test_running = false;

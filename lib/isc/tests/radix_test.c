@@ -63,7 +63,7 @@ isc_radix_search_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_radix_create(mctx, &radix, 32);
+	result = isc_radix_create(test_mctx, &radix, 32);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	in_addr.s_addr = inet_addr("3.3.3.0");

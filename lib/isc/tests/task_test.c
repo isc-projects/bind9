@@ -167,14 +167,14 @@ all_events(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* First event */
-	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task, ISC_TASKEVENT_TEST,
 				   set, &a, sizeof (isc_event_t));
 	assert_non_null(event);
 
 	assert_int_equal(atomic_load(&a), 0);
 	isc_task_send(task, &event);
 
-	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task, ISC_TASKEVENT_TEST,
 				   set, &b, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -229,7 +229,7 @@ privileged_events(void **state) {
 	assert_false(isc_task_privilege(task2));
 
 	/* First event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,
 				   set, &a, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -237,7 +237,7 @@ privileged_events(void **state) {
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task2, ISC_TASKEVENT_TEST,
 				   set, &b, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -245,7 +245,7 @@ privileged_events(void **state) {
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,
 				   set, &c, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -253,7 +253,7 @@ privileged_events(void **state) {
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,
 				   set, &d, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -261,7 +261,7 @@ privileged_events(void **state) {
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task2, ISC_TASKEVENT_TEST,
 				   set, &e, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -350,7 +350,7 @@ privilege_drop(void **state) {
 	assert_false(isc_task_privilege(task2));
 
 	/* First event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &a, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -358,7 +358,7 @@ privilege_drop(void **state) {
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task2, ISC_TASKEVENT_TEST,
 				   set_and_drop, &b, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -366,7 +366,7 @@ privilege_drop(void **state) {
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &c, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -374,7 +374,7 @@ privilege_drop(void **state) {
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &d, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -382,7 +382,7 @@ privilege_drop(void **state) {
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(test_mctx, task2, ISC_TASKEVENT_TEST,
 				   set_and_drop, &e, sizeof (isc_event_t));
 	assert_non_null(event);
 
@@ -551,7 +551,7 @@ basic(void **state) {
 		 * structure (socket, timer, task, etc) but this is just a
 		 * test program.
 		 */
-		event = isc_event_allocate(mctx, (void *)1, 1, basic_cb,
+		event = isc_event_allocate(test_mctx, (void *)1, 1, basic_cb,
 					   testarray[i], sizeof(*event));
 		assert_non_null(event);
 		isc_task_send(task1, &event);
@@ -653,12 +653,12 @@ task_exclusive(void **state) {
 			isc_taskmgr_setexcltask(taskmgr, tasks[6]);
 		}
 
-		v = isc_mem_get(mctx, sizeof *v);
+		v = isc_mem_get(test_mctx, sizeof *v);
 		assert_non_null(v);
 
 		*v = i;
 
-		event = isc_event_allocate(mctx, NULL, 1, exclusive_cb,
+		event = isc_event_allocate(test_mctx, NULL, 1, exclusive_cb,
 					   v, sizeof(*event));
 		assert_non_null(event);
 
@@ -718,6 +718,7 @@ maxtask_cb(isc_task_t *task, isc_event_t *event) {
 
 static void
 manytasks(void **state) {
+	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	isc_event_t *event = NULL;
 	uintptr_t ntasks = 10000;
@@ -851,7 +852,7 @@ shutdown(void **state) {
 	/*
 	 * This event causes the task to wait on cv.
 	 */
-	event = isc_event_allocate(mctx, &senders[1], event_type, sd_event1,
+	event = isc_event_allocate(test_mctx, &senders[1], event_type, sd_event1,
 				   NULL, sizeof(*event));
 	assert_non_null(event);
 	isc_task_send(task, &event);
@@ -860,7 +861,7 @@ shutdown(void **state) {
 	 * Now we fill up the task's event queue with some events.
 	 */
 	for (i = 0; i < 256; ++i) {
-		event = isc_event_allocate(mctx, &senders[1], event_type,
+		event = isc_event_allocate(test_mctx, &senders[1], event_type,
 					   sd_event2, NULL, sizeof(*event));
 		assert_non_null(event);
 		isc_task_send(task, &event);
@@ -942,7 +943,7 @@ post_shutdown(void **state) {
 	/*
 	 * This event causes the task to wait on cv.
 	 */
-	event = isc_event_allocate(mctx, &senders[1], event_type, psd_event1,
+	event = isc_event_allocate(test_mctx, &senders[1], event_type, psd_event1,
 				   NULL, sizeof(*event));
 	assert_non_null(event);
 	isc_task_send(task, &event);
@@ -1083,7 +1084,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 	/*
 	 * Block the task on cv.
 	 */
-	event = isc_event_allocate(mctx, (void *)1, 9999,
+	event = isc_event_allocate(test_mctx, (void *)1, 9999,
 				   pg_event1, NULL, sizeof(*event));
 
 	assert_non_null(event);
@@ -1098,7 +1099,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 		for (type_cnt = 0; type_cnt < TYPECNT; ++type_cnt) {
 			for (tag_cnt = 0; tag_cnt < TAGCNT; ++tag_cnt) {
 				eventtab[event_cnt] =
-					isc_event_allocate(mctx,
+					isc_event_allocate(test_mctx,
 					    &senders[sender + sender_cnt],
 					    (isc_eventtype_t)(type + type_cnt),
 					    pg_event2, NULL, sizeof(*event));
@@ -1382,12 +1383,12 @@ try_purgeevent(bool purgeable) {
 	/*
 	 * Block the task on cv.
 	 */
-	event1 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
+	event1 = isc_event_allocate(test_mctx, (void *)1, (isc_eventtype_t)1,
 				    pge_event1, NULL, sizeof(*event1));
 	assert_non_null(event1);
 	isc_task_send(task, &event1);
 
-	event2 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
+	event2 = isc_event_allocate(test_mctx, (void *)1, (isc_eventtype_t)1,
 				    pge_event2, NULL, sizeof(*event2));
 	assert_non_null(event2);
 

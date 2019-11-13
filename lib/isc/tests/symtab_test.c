@@ -55,8 +55,8 @@ undefine(char *key, unsigned int type, isc_symvalue_t value, void *arg) {
 	UNUSED(arg);
 
 	assert_int_equal(type, 1);
-	isc_mem_free(mctx, key);
-	isc_mem_free(mctx, value.as_pointer);
+	isc_mem_free(test_mctx, key);
+	isc_mem_free(test_mctx, value.as_pointer);
 }
 
 /* test symbol table growth */
@@ -70,7 +70,7 @@ symtab_grow(void **state) {
 
 	UNUSED(state);
 
-	result = isc_symtab_create(mctx, 3, undefine, NULL, false, &st);
+	result = isc_symtab_create(test_mctx, 3, undefine, NULL, false, &st);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(st);
 
@@ -84,9 +84,9 @@ symtab_grow(void **state) {
 		char str[16], *key;
 
 		snprintf(str, sizeof(str), "%04x", i);
-		key = isc_mem_strdup(mctx, str);
+		key = isc_mem_strdup(test_mctx, str);
 		assert_non_null(key);
-		value.as_pointer = isc_mem_strdup(mctx, str);
+		value.as_pointer = isc_mem_strdup(test_mctx, str);
 		assert_non_null(value.as_pointer);
 		result = isc_symtab_define(st, key, 1, value, policy);
 		assert_int_equal(result, ISC_R_SUCCESS);
@@ -101,9 +101,9 @@ symtab_grow(void **state) {
 		char str[16], *key;
 
 		snprintf(str, sizeof(str), "%04x", i);
-		key = isc_mem_strdup(mctx, str);
+		key = isc_mem_strdup(test_mctx, str);
 		assert_non_null(key);
-		value.as_pointer = isc_mem_strdup(mctx, str);
+		value.as_pointer = isc_mem_strdup(test_mctx, str);
 		assert_non_null(value.as_pointer);
 		result = isc_symtab_define(st, key, 1, value, policy);
 		assert_int_equal(result, ISC_R_EXISTS);

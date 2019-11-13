@@ -28,10 +28,32 @@
 #include <isc/mem.h>
 #include <isc/util.h>
 
+#include "isctest.h"
+
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = isc_test_begin(NULL, true, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	isc_test_end();
+
+	return (0);
+}
+
 /* check handling of 0xff */
 static void
 lex_0xff(void **state) {
-	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
 	isc_buffer_t death_buf;
@@ -41,9 +63,7 @@ lex_0xff(void **state) {
 
 	UNUSED(state);
 
-	isc_mem_create(&mctx);
-
-	result = isc_lex_create(mctx, 1024, &lex);
+	result = isc_lex_create(test_mctx, 1024, &lex);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&death_buf, &death[0], sizeof(death));
@@ -56,14 +76,11 @@ lex_0xff(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_lex_destroy(&lex);
-
-	isc_mem_destroy(&mctx);
 }
 
 /* check setting of source line */
 static void
 lex_setline(void **state) {
-	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
 	unsigned char text[] = "text\nto\nbe\nprocessed\nby\nlexer";
@@ -74,9 +91,7 @@ lex_setline(void **state) {
 
 	UNUSED(state);
 
-	isc_mem_create(&mctx);
-
-	result = isc_lex_create(mctx, 1024, &lex);
+	result = isc_lex_create(test_mctx, 1024, &lex);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&buf, &text[0], sizeof(text));
@@ -103,8 +118,6 @@ lex_setline(void **state) {
 	assert_int_equal(line, 105U);
 
 	isc_lex_destroy(&lex);
-
-	isc_mem_destroy(&mctx);
 }
 
 int
@@ -114,7 +127,7 @@ main(void) {
 		cmocka_unit_test(lex_setline),
 	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	return (cmocka_run_group_tests(tests, _setup, _teardown));
 }
 
 #else /* HAVE_CMOCKA */

@@ -39,6 +39,8 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
+#include "isctest.h"
+
 #define REPS 25000
 
 typedef double (pvalue_func_t)(isc_mem_t *mctx,
@@ -73,6 +75,27 @@ typedef enum {
 	ISC_RANDOM_UNIFORM,
 	ISC_NONCE_BYTES
 } isc_random_func;
+
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = isc_test_begin(NULL, true, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	isc_test_end();
+
+	return (0);
+}
 
 static double
 igamc(double a, double x) {
@@ -272,7 +295,6 @@ matrix_binaryrank(uint32_t *bits, size_t rows, size_t cols) {
 
 static void
 random_test(pvalue_func_t *func, isc_random_func test_func) {
-	isc_mem_t *mctx = NULL;
 	uint32_t m;
 	uint32_t j;
 	uint32_t histogram[11] = { 0 };
@@ -285,8 +307,6 @@ random_test(pvalue_func_t *func, isc_random_func test_func) {
 	double alpha;
 
 	tables_init();
-
-	isc_mem_create(&mctx);
 
 	m = 1000;
 	passed = 0;
@@ -334,7 +354,7 @@ random_test(pvalue_func_t *func, isc_random_func test_func) {
 			break;
 		}
 
-		p_value = (*func)(mctx, (uint16_t *)values, REPS * 2);
+		p_value = (*func)(test_mctx, (uint16_t *)values, REPS * 2);
 		if (p_value >= 0.01) {
 			passed++;
 		}
@@ -841,7 +861,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	return (cmocka_run_group_tests(tests, _setup, _teardown));
 }
 
 #else /* HAVE_CMOCKA */
