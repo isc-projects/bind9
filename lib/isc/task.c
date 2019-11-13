@@ -1190,7 +1190,11 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 						finished = true;
 						task->state = task_state_done;
 					} else {
-						task->state = task_state_idle;
+						/* It might be paused */
+						if (task->state ==
+						    task_state_running) {
+							task->state = task_state_idle;
+						}
 					}
 					done = true;
 				} else if (dispatch_count >= task->quantum) {
@@ -1205,8 +1209,14 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					 * so the minimum quantum is one.
 					 */
 					XTRACE("quantum");
-					task->state = task_state_ready;
-					requeue = true;
+					if (task->state == task_state_running) {
+						/*
+						 * We requeue only if it's
+						 * not paused.
+						 */
+						task->state = task_state_ready;
+						requeue = true;
+					}
 					done = true;
 				}
 			} while (!done);
