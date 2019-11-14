@@ -122,7 +122,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom1.example' from catalog 'catalog1.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "zone_shutdown: zone dom1.example/IN: shutting down" > /dev/null && {
 	ret=0
 	break
     }
@@ -417,7 +417,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom5.example' from catalog 'catalog1.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "zone_shutdown: zone dom5.example/IN: shutting down" > /dev/null && {
 	ret=0
 	break
     }
@@ -514,7 +514,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom6.example' from catalog 'catalog1.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "zone_shutdown: zone dom6.example/IN: shutting down" > /dev/null && {
 	ret=0
 	break
     }
@@ -594,7 +594,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom6.example' from catalog 'catalog1.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom6.example' from catalog 'catalog1.example' - success" > /dev/null && {
 	ret=0
 	break
     }
@@ -927,7 +927,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom9.example' from catalog 'catalog1.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom9.example' from catalog 'catalog1.example' - success" > /dev/null && {
 	ret=0
 	break
     }
@@ -1118,7 +1118,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'this.is.a.very.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example' from catalog 'catalog1.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "zone_shutdown: zone this.is.a.very.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example/IN: shutting down" > /dev/null && {
 	ret=0
 	break
     }
@@ -1322,7 +1322,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom11.example' from catalog 'catalog1.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "zone_shutdown: zone dom11.example/IN: shutting down" > /dev/null && {
 	ret=0
 	break
     }
@@ -1365,7 +1365,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'subdomain.of.dom11.example' from catalog 'catalog1.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "zone_shutdown: zone subdomain.of.dom11.example/IN: shutting down" > /dev/null && {
 	ret=0
 	break
     }
