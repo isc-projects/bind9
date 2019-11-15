@@ -116,8 +116,11 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		handle = isc__nmhandle_get(sock, NULL, NULL);
 		req->cb.connect(handle, ISC_R_SUCCESS, req->cbarg);
 	} else {
-		/* TODO handle it properly, free sock, translate code */
-		req->cb.connect(NULL, ISC_R_FAILURE, req->cbarg);
+		/*
+		 * TODO:
+		 * Handle the connect error properly and free the socket.
+		 */
+		req->cb.connect(NULL, isc__nm_uverr2result(status), req->cbarg);
 	}
 
 	isc__nm_uvreq_put(&req, sock);
@@ -367,8 +370,9 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
 
 	/*
-	 * XXXWPK TODO clean up handles, close the connection,
-	 * reclaim quota
+	 * We don't need to clean up now; the socket will be closed and
+	 * resources and quota reclaimed when handle is freed in
+	 * isc__nm_tcp_close().
 	 */
 }
 
@@ -453,13 +457,10 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 		if (result == ISC_R_QUOTA || result == ISC_R_SOFTQUOTA) {
 			ssock->overquota = true;
 		}
-		/* XXXWPK TODO LOG */
+		/* TODO: Log the error. */
 	}
 }
 
-/*
- * isc__nm_tcp_send sends buf to a peer on a socket.
- */
 isc_result_t
 isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region,
 		 isc_nm_cb_t cb, void *cbarg)
@@ -579,7 +580,6 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		isc_quota_detach(&sock->quota);
 
 		if (ssock->overquota) {
-			/* XXXWPK TODO we should loop here */
 			isc_result_t result = accept_connection(ssock);
 			if (result != ISC_R_QUOTA && result != ISC_R_SOFTQUOTA)
 			{

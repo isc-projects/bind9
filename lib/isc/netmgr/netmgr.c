@@ -136,9 +136,6 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 
 /*
  * Free the resources of the network manager.
- *
- * TODO we need to clean up properly - launch all missing callbacks,
- * destroy all listeners, etc.
  */
 static void
 nm_destroy(isc_nm_t **mgr0) {
@@ -351,14 +348,16 @@ nm_thread(void *worker0) {
 		UNLOCK(&worker->lock);
 
 		if (worker->finished) {
-			/* TODO walk the handles and free them! */
 			/*
 			 * We need to launch the loop one more time
-			 * to make sure that worker->async is closed,
-			 * so that we can close the loop cleanly.
-			 * We don't care about the callback as in this
-			 * case we can be certain that uv_run will
-			 * eat this event.
+			 * in UV_RUN_NOWAIT mode to make sure that
+			 * worker->async is closed, so that we can
+			 * close the loop cleanly.  We don't care
+			 * about the callback, as in this case we can
+			 * be certain that uv_run() will eat the event.
+			 *
+			 * XXX: We may need to take steps here to ensure
+			 * that all netmgr handles are freed.
 			 */
 			uv_close((uv_handle_t *)&worker->async, NULL);
 			uv_run(&worker->loop, UV_RUN_NOWAIT);
@@ -367,8 +366,13 @@ nm_thread(void *worker0) {
 
 		if (r == 0) {
 			/*
-			 * TODO it should never happen - we don't have
-			 * any sockets we're listening on?
+			 * XXX: uv_run() in UV_RUN_DEFAULT mode returns
+			 * zero if there are still active uv_handles.
+			 * This shouldn't happen, but if it does, we just
+			 * to keep checking until they're done. We nap for a
+			 * tenth of a second on each loop so as not to burn
+			 * CPU. (We do a conditional wait instead, but it
+			 * seems like overkill for this case.)
 			 */
 #ifdef WIN32
 			_sleep(100);
@@ -460,7 +464,7 @@ isc__nm_get_ievent(isc_nm_t *mgr, isc__netievent_type type) {
 	isc__netievent_storage_t *event =
 		isc_mem_get(mgr->mctx, sizeof(isc__netievent_storage_t));
 
-	/* XXX: use a memory pool? */
+	/* XXX: Use a memory pool? */
 	*event = (isc__netievent_storage_t) {
 		.ni.type = type
 	};
@@ -732,12 +736,11 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(size <= 65536);
 
-	/* TODO that's for UDP only! */
 	worker = &sock->mgr->workers[sock->tid];
-	INSIST(!worker->udprecvbuf_inuse);
+	INSIST(!worker->recvbuf_inuse);
 
-	buf->base = worker->udprecvbuf;
-	worker->udprecvbuf_inuse = true;
+	buf->base = worker->recvbuf;
+	worker->recvbuf_inuse = true;
 	buf->len = size;
 }
 
@@ -752,10 +755,10 @@ isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf) {
 	}
 	worker = &sock->mgr->workers[sock->tid];
 
-	REQUIRE(worker->udprecvbuf_inuse);
-	REQUIRE(buf->base == worker->udprecvbuf);
+	REQUIRE(worker->recvbuf_inuse);
+	REQUIRE(buf->base == worker->recvbuf);
 
-	worker->udprecvbuf_inuse = false;
+	worker->recvbuf_inuse = false;
 }
 
 static isc_nmhandle_t *

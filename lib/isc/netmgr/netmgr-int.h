@@ -49,8 +49,8 @@ typedef struct isc__networker {
 	isc_queue_t		   *ievents;     /* incoming async events */
 	isc_refcount_t		   references;
 	atomic_int_fast64_t	   pktcount;
-	char			   udprecvbuf[65536];
-	bool			   udprecvbuf_inuse;
+	char			   recvbuf[65536];
+	bool			   recvbuf_inuse;
 } isc__networker_t;
 
 /*
@@ -362,8 +362,9 @@ struct isc_nmsocket {
 	 *  - ah_frees[--ah] = x
 	 *  - ah_handles[x] = NULL;
 	 *
-	 * XXXWPK for now this is locked with socket->lock, but we
-	 * might want to change it to something lockless
+	 * XXX: for now this is locked with socket->lock, but we
+	 * might want to change it to something lockless in the
+	 * future.
 	 */
 	size_t			ah;
 	size_t			ah_size;
