@@ -9,7 +9,9 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
+#include <isc/util.h>
+
+#if HAVE_CMOCKA && !__SANITIZE_ADDRESS__
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -23,8 +25,6 @@
 
 #define UNIT_TESTING
 #include <cmocka.h>
-
-#include <isc/util.h>
 
 #include <dns/badcache.h>
 #include <dns/view.h>
@@ -598,25 +598,25 @@ main(void) {
 						_setup, _teardown),
 	};
 
-	/*
-	 * We disable this test when the address sanitizer is in
-	 * the use, as libuv will trigger errors.
-	 */
-	if (getenv("ASAN_OPTIONS") != NULL) {
-		printf("1..0 # Skip ASAN is in use\n");
-		return (0);
-	}
-
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
-#else /* HAVE_CMOCKA */
+
+#else /* HAVE_CMOCKA && !__SANITIZE_ADDRESS__ */
 
 #include <stdio.h>
 
 int
 main(void) {
+#if __SANITIZE_ADDRESS__
+	/*
+	 * We disable this test when the address sanitizer is in
+	 * the use, as libuv will trigger errors.
+	 */
+	printf("1..0 # Skip ASAN is in use\n");
+#else /* ADDRESS_SANIZITER */
 	printf("1..0 # Skip cmocka not available\n");
+#endif /* __SANITIZE_ADDRESS__ */
 	return (0);
 }
 
-#endif /* HAVE_CMOCKA */
+#endif /* HAVE_CMOCKA && !__SANITIZE_ADDRESS__ */
