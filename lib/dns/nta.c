@@ -320,8 +320,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 
 isc_result_t
 dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name,
-		 bool force, isc_stdtime_t now,
-		 uint32_t lifetime)
+		 bool force, isc_stdtime_t now, uint32_t lifetime)
 {
 	isc_result_t result;
 	dns_nta_t *nta = NULL;

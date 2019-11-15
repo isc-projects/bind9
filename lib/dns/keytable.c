@@ -47,8 +47,8 @@ struct dns_keynode {
 	unsigned int            magic;
 	isc_refcount_t          refcount;
 	dst_key_t *             key;
-	bool           managed;
-	bool		initial;
+	bool			managed;
+	bool			initial;
 	struct dns_keynode *    next;
 };
 

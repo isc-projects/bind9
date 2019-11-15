@@ -128,7 +128,6 @@ struct dns_validator {
 	dns_validator_t *		subvalidator;
 	dns_validator_t *		parent;
 	dns_keytable_t *		keytable;
-	dns_keynode_t *			keynode;
 	dst_key_t *			key;
 	dns_rdata_rrsig_t *		siginfo;
 	isc_task_t *			task;
@@ -136,18 +135,12 @@ struct dns_validator {
 	void *				arg;
 	unsigned int			labels;
 	dns_rdataset_t *		currentset;
-	bool			seensig;
 	dns_rdataset_t *		keyset;
 	dns_rdataset_t *		dsset;
-	dns_rdataset_t *		soaset;
-	dns_rdataset_t *		nsecset;
-	dns_rdataset_t *		nsec3set;
-	dns_name_t *			soaname;
 	dns_rdataset_t			frdataset;
 	dns_rdataset_t			fsigrdataset;
 	dns_fixedname_t			fname;
 	dns_fixedname_t			wild;
-	dns_fixedname_t			nearest;
 	dns_fixedname_t			closest;
 	ISC_LINK(dns_validator_t)	link;
 	bool				mustbesecure;
