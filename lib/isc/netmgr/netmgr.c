@@ -174,6 +174,8 @@ nm_destroy(isc_nm_t **mgr0) {
 			isc_mem_put(mgr->mctx, ievent,
 				    sizeof(isc__netievent_storage_t));
 		}
+		int r = uv_loop_close(&mgr->workers[i].loop);
+		INSIST(r == 0);
 		isc_queue_destroy(mgr->workers[i].ievents);
 		isc_mempool_destroy(&mgr->workers[i].mpool_bufs);
 	}
@@ -350,6 +352,16 @@ nm_thread(void *worker0) {
 
 		if (worker->finished) {
 			/* TODO walk the handles and free them! */
+			/*
+			 * We need to launch the loop one more time
+			 * to make sure that worker->async is closed,
+			 * so that we can close the loop cleanly.
+			 * We don't care about the callback as in this
+			 * case we can be certain that uv_run will
+			 * eat this event.
+			 */
+			uv_close((uv_handle_t *)&worker->async, NULL);
+			uv_run(&worker->loop, UV_RUN_NOWAIT);
 			break;
 		}
 
