@@ -49,8 +49,8 @@ typedef struct isc__networker {
 	isc_queue_t		   *ievents;     /* incoming async events */
 	isc_refcount_t		   references;
 	atomic_int_fast64_t	   pktcount;
-	char			   udprecvbuf[65536];
-	bool			   udprecvbuf_inuse;
+	char			   recvbuf[65536];
+	bool			   recvbuf_inuse;
 } isc__networker_t;
 
 /*
@@ -89,8 +89,8 @@ struct isc_nmhandle {
 
 	isc_sockaddr_t		peer;
 	isc_sockaddr_t		local;
-	isc_nm_opaquecb		doreset; /* reset extra callback, external */
-	isc_nm_opaquecb		dofree;  /* free extra callback, external */
+	isc_nm_opaquecb_t	doreset; /* reset extra callback, external */
+	isc_nm_opaquecb_t	dofree;  /* free extra callback, external */
 	void *			opaque;
 	char			extra[];
 };
@@ -312,14 +312,27 @@ struct isc_nmsocket {
 	isc_refcount_t	      	references;
 
 	/*%
-	 * TCPDNS socket is not pipelining.
+	 * TCPDNS socket has been set not to pipeliine.
 	 */
 	atomic_bool		sequential;
+
+	/*%
+	 * TCPDNS socket has exceeded the maximum number of
+	 * simultaneous requests per connecton, so will be temporarily
+	 * restricted from pipelining.
+	 */
+	atomic_bool		overlimit;
+
 	/*%
 	 * TCPDNS socket in sequential mode is currently processing a packet,
 	 * we need to wait until it finishes.
 	 */
 	atomic_bool		processing;
+
+	/*%
+	 * A TCP socket has had isc_nm_pauseread() called.
+	 */
+	atomic_bool		readpaused;
 
 	/*%
 	 * 'spare' handles for that can be reused to avoid allocations,
@@ -334,24 +347,27 @@ struct isc_nmsocket {
 
 	/*%
 	 * List of active handles.
-	 * ah_size - size of ah_frees and ah_handles
-	 * ah_cpos - current position in ah_frees;
-	 * ah_handles - array of *handles.
+	 * ah - current position in 'ah_frees'; this represents the
+	 *	current number of active handles;
+	 * ah_size - size of the 'ah_frees' and 'ah_handles' arrays
+	 * ah_handles - array pointers to active handles
+	 *
 	 * Adding a handle
-	 *  - if ah_cpos == ah_size, realloc
-	 *  - x = ah_frees[ah_cpos]
-	 *  - ah_frees[ah_cpos++] = 0;
+	 *  - if ah == ah_size, reallocate
+	 *  - x = ah_frees[ah]
+	 *  - ah_frees[ah++] = 0;
 	 *  - ah_handles[x] = handle
 	 *  - x must be stored with the handle!
 	 * Removing a handle:
-	 *  - ah_frees[--ah_cpos] = x
+	 *  - ah_frees[--ah] = x
 	 *  - ah_handles[x] = NULL;
 	 *
-	 * XXXWPK for now this is locked with socket->lock, but we might want
-	 * to change it to something lockless
+	 * XXX: for now this is locked with socket->lock, but we
+	 * might want to change it to something lockless in the
+	 * future.
 	 */
+	size_t			ah;
 	size_t			ah_size;
-	size_t			ah_cpos;
 	size_t			*ah_frees;
 	isc_nmhandle_t		**ah_handles;
 
@@ -359,6 +375,13 @@ struct isc_nmsocket {
 	size_t			buf_size;
 	size_t			buf_len;
 	unsigned char		*buf;
+
+	/*
+	 * This function will be called with handle->sock
+	 * as the argument whenever a handle's references drop
+	 * to zero, after its reset callback has been called.
+	 */
+	isc_nm_opaquecb_t	closehandle_cb;
 
 	isc__nm_readcb_t	rcb;
 	void			*rcbarg;

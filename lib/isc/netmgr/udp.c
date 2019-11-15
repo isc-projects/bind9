@@ -277,7 +277,11 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	REQUIRE(VALID_NMSOCK(sock));
 
-	/* XXXWPK TODO handle it! */
+	/*
+	 * We can ignore the flags; currently the only one in use by libuv
+	 * is UV_UDP_PARTIAL, which only occurs if the receive buffer is
+	 * too small, which can't happen here.
+	 */
 	UNUSED(flags);
 
 	/*

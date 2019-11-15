@@ -2473,7 +2473,6 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 
 	MTRACE("destroy");
 
-	/* XXXWPK TODO we need to pause netmgr here */
 	/*
 	 * Check for success because we may already be task-exclusive
 	 * at this point.  Only if we succeed at obtaining an exclusive
