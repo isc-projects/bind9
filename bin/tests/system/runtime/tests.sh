@@ -118,24 +118,22 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that named refuses to start if working directory is not writable ($n)"
 ret=0
-cd ns2
-$NAMED -c named-alt4.conf -D runtime-ns2-extra-4 -d 99 -g > named4.run 2>&1 &
+(cd ns2 && $NAMED -c named-alt4.conf -D runtime-ns2-extra-4 -d 99 -g > named4.run 2>&1 &)
 sleep 2
-grep "exiting (due to fatal error)" named4.run > /dev/null || ret=1
-kill_named named.pid && ret=1
-cd ..
+grep "[^-]directory './nope' is not writable" ns2/named4.run > /dev/null 2>&1 || ret=1
+grep "exiting (due to fatal error)" ns2/named4.run > /dev/null || ret=1
+kill_named ns2/named.pid && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "checking that named refuses to start if managed-keys-directory is not writable ($n)"
 ret=0
-cd ns2
-$NAMED -c named-alt5.conf -D runtime-ns2-extra-5 -d 99 -g > named5.run 2>&1 &
+(cd ns2 && $NAMED -c named-alt5.conf -D runtime-ns2-extra-5 -d 99 -g > named5.run 2>&1 &)
 sleep 2
-grep "exiting (due to fatal error)" named5.run > /dev/null || ret=1
+grep "managed-keys-directory './nope' is not writable" ns2/named5.run > /dev/null 2>&1 || ret=1
+grep "exiting (due to fatal error)" ns2/named5.run > /dev/null || ret=1
 kill_named named.pid && ret=1
-cd ..
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -144,6 +142,7 @@ echo_i "checking that named refuses to start if new-zones-directory is not writa
 ret=0
 (cd ns2 && $NAMED -c named-alt6.conf -D runtime-ns2-extra-6 -d 99 -g > named6.run 2>&1 &)
 sleep 2
+grep "new-zones-directory './nope' is not writable" ns2/named6.run > /dev/null 2>&1 || ret=1
 grep "exiting (due to fatal error)" ns2/named6.run > /dev/null || ret=1
 kill_named ns2/named.pid && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
