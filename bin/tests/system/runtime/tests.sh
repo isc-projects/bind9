@@ -180,7 +180,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking that named logs an ellipsis when the command line is larger than 8k bytes ($n)"
 ret=0
-LONG_CMD_LINE=$(yes "-m usage" | head -1000 | tr '\n' ' ')
+LONG_CMD_LINE=$(cat long-cmd-line)
 copy_setports ns2/named-alt7.conf.in "ns2/named-alt7.conf"
 # shellcheck disable=SC2086
 (cd ns2 && $NAMED $LONG_CMD_LINE -c "named-alt7.conf" -g > named9.run 2>&1 &)
