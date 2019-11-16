@@ -155,11 +155,10 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that named starts if managed-keys-directory is writable and working directory is not writable ($n)"
 ret=0
-cd ns2
-$NAMED -c named-alt6.conf -D runtime-ns2-extra-6 -d 99 -g > named6.run 2>&1 &
+cd ns2/nope
+$NAMED -c ../named-alt6.conf -D runtime-ns2-extra-6 -d 99 -g > ../named6.run 2>&1 &
 sleep 2
-grep "exiting (due to fatal error)" named6.run > /dev/null || ret=1
-kill_named named.pid && ret=1
+kill_named ../named.pid || ret=1
 cd ..
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
