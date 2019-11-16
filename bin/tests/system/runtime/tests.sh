@@ -14,9 +14,6 @@ SYSTEMTESTTOP=..
 
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
-status=0
-n=0
-
 kill_named() {
 	pidfile="${1}"
 	if [ ! -r "${pidfile}" ]; then
@@ -44,6 +41,9 @@ kill_named() {
 	return 0
 }
 
+status=0
+n=0
+
 n=`expr $n + 1`
 echo_i "verifying that named started normally ($n)"
 ret=0
@@ -59,7 +59,6 @@ ret=0
 (cd ns2; $NAMED -c named-alt2.conf -D runtime-ns2-extra-2 -X named.lock -m record,size,mctx -d 99 -g -U 4 >> named3.run 2>&1 & )
 sleep 2
 grep "another named process" ns2/named3.run > /dev/null || ret=1
-kill_named ns2/named3.pid && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -69,7 +68,7 @@ ret=0
 (cd ns2; $NAMED -c named-alt3.conf -D runtime-ns2-extra-3 -m record,size,mctx -d 99 -g -U 4 >> named4.run 2>&1 & )
 sleep 2
 grep "another named process" ns2/named4.run > /dev/null && ret=1
-kill_named ns2/named4.pid || ret=1
+kill_named ns2/named-alt3.pid || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -103,6 +102,7 @@ $RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1
 grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
 sleep 1
 grep "new-zones-directory './nope' is not writable" ns2/named.run > /dev/null 2>&1 || ret=1
+kill_named ns2/named.pid || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -140,7 +140,7 @@ cd ns2
 $NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named6.run 2>&1 &
 sleep 2
 grep 'running as.*\\177\\033' named6.run > /dev/null || ret=1
-kill_named named7.pid || ret=1
+kill_named named.pid || ret=1
 cd ..
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -155,7 +155,7 @@ cd ns2
 $NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named7.run 2>&1 &
 sleep 2
 grep 'running as.*\\$\\;' named7.run > /dev/null || ret=1
-kill_named named7.pid || ret=1
+kill_named named.pid || ret=1
 cd ..
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -168,7 +168,7 @@ cd ns2
 $NAMED -c "$SPEC_DIR/named-alt7.conf" -g > named8.run 2>&1 &
 sleep 2
 grep "running as.*\.\.\.$" named8.run > /dev/null || ret=1
-kill_named named7.pid || ret=1
+kill_named named.pid || ret=1
 cd ..
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
