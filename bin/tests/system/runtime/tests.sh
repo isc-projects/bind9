@@ -102,6 +102,15 @@ $RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1
 grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
 sleep 1
 grep "new-zones-directory './nope' is not writable" ns2/named.run > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that named recovers when configuration file is valid again ($n)"
+ret=0
+copy_setports ns2/named1.conf.in ns2/named.conf
+$RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1 || ret=1
+[ -s ns2/named.pid ] || ret=1
 kill_named ns2/named.pid || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -127,6 +136,16 @@ sleep 2
 grep "exiting (due to fatal error)" named5.run > /dev/null || ret=1
 kill_named named.pid && ret=1
 cd ..
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that named refuses to start if new-zones-directory is not writable ($n)"
+ret=0
+(cd ns2 && $NAMED -c named-alt6.conf -D runtime-ns2-extra-6 -d 99 -g > named6.run 2>&1 &)
+sleep 2
+grep "exiting (due to fatal error)" ns2/named6.run > /dev/null || ret=1
+kill_named ns2/named.pid && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
