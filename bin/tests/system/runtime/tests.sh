@@ -182,14 +182,13 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that named logs an ellipsis when the command line is larger than 8k bytes ($n)"
 ret=0
-SPEC_DIR=`yes | head -10000 | tr -d '\n'`
-cd ns2
-$NAMED -c "$SPEC_DIR/named-alt7.conf" -g > named8.run 2>&1 &
+LONG_CMD_LINE=`yes "-m usage" | head -1000 | tr '\n' ' '`
+copy_setports ns2/named-alt7.conf.in "ns2/named-alt7.conf"
+(cd ns2 && $NAMED $LONG_CMD_LINE -c "named-alt7.conf" -g > named8.run 2>&1 &)
 sleep 2
 #grep "running as.*\.\.\.$" named8.run > /dev/null || ret=1
 echo_i "skipped - the ellipsis is currently not printed"
-kill_named named.pid || ret=1
-cd ..
+kill_named ns2/named.pid || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
