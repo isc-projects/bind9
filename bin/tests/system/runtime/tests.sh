@@ -100,7 +100,7 @@ then
     ret=0
     copy_setports ns2/named-alt4.conf.in ns2/named.conf
     $RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1
-    grep "failed:" rndc.out.$n > /dev/null 2>&1 || ret=1
+    grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
     sleep 1
     grep "managed-keys-directory '.*' is not writable" ns2/named.run > /dev/null 2>&1 || ret=1
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -111,7 +111,7 @@ then
     ret=0
     copy_setports ns2/named-alt5.conf.in ns2/named.conf
     $RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1
-    grep "failed:" rndc.out.$n > /dev/null 2>&1 || ret=1
+    grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
     sleep 1
     grep "working directory '.*' is not writable" ns2/named.run > /dev/null 2>&1 || ret=1
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -122,7 +122,7 @@ then
     ret=0
     copy_setports ns2/named-alt6.conf.in ns2/named.conf
     $RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1
-    grep "failed:" rndc.out.$n > /dev/null 2>&1 && ret=1
+    grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 && ret=1
     kill_named ns2/named.pid || ret=1
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
@@ -131,24 +131,22 @@ fi
 n=`expr $n + 1`
 echo_i "checking that named refuses to start if managed-keys-directory is set and not writable ($n)"
 ret=0
-cd ns2
-$NAMED -c named-alt4.conf -D runtime-ns2-extra-4 -d 99 -g > named4.run 2>&1 &
+(cd ns2 && $NAMED -c named-alt4.conf -D runtime-ns2-extra-4 -d 99 -g > named4.run 2>&1 &)
 sleep 2
-grep "exiting (due to fatal error)" named4.run > /dev/null || ret=1
-kill_named named.pid && ret=1
-cd ..
+grep "managed-keys-directory '.*' is not writable" ns2/named4.run > /dev/null 2>&1 || ret=1
+grep "exiting (due to fatal error)" ns2/named4.run > /dev/null || ret=1
+kill_named ns2/named.pid && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "checking that named refuses to start if managed-keys-directory is unset and working directory is not writable ($n)"
 ret=0
-cd ns2
-$NAMED -c named-alt5.conf -D runtime-ns2-extra-5 -d 99 -g > named5.run 2>&1 &
+(cd ns2 && $NAMED -c named-alt5.conf -D runtime-ns2-extra-5 -d 99 -g > named5.run 2>&1 &)
 sleep 2
-grep "exiting (due to fatal error)" named5.run > /dev/null || ret=1
-kill_named named.pid && ret=1
-cd ..
+grep "working directory '.*' is not writable" ns2/named5.run > /dev/null 2>&1 || ret=1
+grep "exiting (due to fatal error)" ns2/named5.run > /dev/null || ret=1
+kill_named ns2/named.pid && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
