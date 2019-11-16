@@ -9,8 +9,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+# shellcheck source=conf.sh
 SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. "$SYSTEMTESTTOP/conf.sh"
+
+set -e
 
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
@@ -44,68 +47,68 @@ kill_named() {
 status=0
 n=0
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "verifying that named started normally ($n)"
 ret=0
 [ -s ns2/named.pid ] || ret=1
 grep "unable to listen on any configured interface" ns2/named.run > /dev/null && ret=1
 grep "another named process" ns2/named.run > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "verifying that named checks for conflicting named processes ($n)"
 ret=0
-(cd ns2; $NAMED -c named-alt2.conf -D runtime-ns2-extra-2 -X named.lock -m record,size,mctx -d 99 -g -U 4 >> named3.run 2>&1 & )
+(cd ns2 && $NAMED -c named-alt2.conf -D runtime-ns2-extra-2 -X named.lock -m record,size,mctx -d 99 -g -U 4 >> named3.run 2>&1 & )
 sleep 2
 grep "another named process" ns2/named3.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "verifying that 'lock-file none' disables process check ($n)"
 ret=0
-(cd ns2; $NAMED -c named-alt3.conf -D runtime-ns2-extra-3 -m record,size,mctx -d 99 -g -U 4 >> named4.run 2>&1 & )
+(cd ns2 && $NAMED -c named-alt3.conf -D runtime-ns2-extra-3 -m record,size,mctx -d 99 -g -U 4 >> named4.run 2>&1 & )
 sleep 2
 grep "another named process" ns2/named4.run > /dev/null && ret=1
 kill_named ns2/named-alt3.pid || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named refuses to reconfigure if working directory is not writable ($n)"
 ret=0
 copy_setports ns2/named-alt4.conf.in ns2/named.conf
-$RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1
+$RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1 && ret=1
 grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
 sleep 1
 grep "[^-]directory './nope' is not writable" ns2/named.run > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named refuses to reconfigure if managed-keys-directory is not writable ($n)"
 ret=0
 copy_setports ns2/named-alt5.conf.in ns2/named.conf
-$RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1
+$RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1 && ret=1
 grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
 sleep 1
 grep "managed-keys-directory './nope' is not writable" ns2/named.run > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named refuses to reconfigure if new-zones-directory is not writable ($n)"
 ret=0
 copy_setports ns2/named-alt6.conf.in ns2/named.conf
-$RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1
+$RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1 && ret=1
 grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
 sleep 1
 grep "new-zones-directory './nope' is not writable" ns2/named.run > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named recovers when configuration file is valid again ($n)"
 ret=0
 copy_setports ns2/named1.conf.in ns2/named.conf
@@ -113,9 +116,9 @@ $RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1 || ret=1
 [ -s ns2/named.pid ] || ret=1
 kill_named ns2/named.pid || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named refuses to start if working directory is not writable ($n)"
 ret=0
 (cd ns2 && $NAMED -c named-alt4.conf -D runtime-ns2-extra-4 -d 99 -g > named4.run 2>&1 &)
@@ -124,9 +127,9 @@ grep "[^-]directory './nope' is not writable" ns2/named4.run > /dev/null 2>&1 ||
 grep "exiting (due to fatal error)" ns2/named4.run > /dev/null || ret=1
 kill_named ns2/named.pid && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named refuses to start if managed-keys-directory is not writable ($n)"
 ret=0
 (cd ns2 && $NAMED -c named-alt5.conf -D runtime-ns2-extra-5 -d 99 -g > named5.run 2>&1 &)
@@ -135,9 +138,9 @@ grep "managed-keys-directory './nope' is not writable" ns2/named5.run > /dev/nul
 grep "exiting (due to fatal error)" ns2/named5.run > /dev/null || ret=1
 kill_named named.pid && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named refuses to start if new-zones-directory is not writable ($n)"
 ret=0
 (cd ns2 && $NAMED -c named-alt6.conf -D runtime-ns2-extra-6 -d 99 -g > named6.run 2>&1 &)
@@ -146,50 +149,47 @@ grep "new-zones-directory './nope' is not writable" ns2/named6.run > /dev/null 2
 grep "exiting (due to fatal error)" ns2/named6.run > /dev/null || ret=1
 kill_named ns2/named.pid && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named logs control characters in octal notation ($n)"
 ret=0
-SPEC_DIR=`cat ctrl-char-dir-name`
+SPEC_DIR=$(cat ctrl-char-dir-name)
 mkdir "ns2/${SPEC_DIR}"
 copy_setports ns2/named-alt7.conf.in "ns2/${SPEC_DIR}/named.conf"
-cd ns2
-$NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named6.run 2>&1 &
+(cd ns2 && $NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named7.run 2>&1 &)
 sleep 2
-grep 'running as.*\\177\\033' named6.run > /dev/null || ret=1
-kill_named named.pid || ret=1
-cd ..
+grep 'running as.*\\177\\033' ns2/named7.run > /dev/null || ret=1
+kill_named ns2/named.pid || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named escapes special characters in the logs ($n)"
 ret=0
 SPEC_DIR="$;"
 mkdir "ns2/${SPEC_DIR}"
 copy_setports ns2/named-alt7.conf.in "ns2/${SPEC_DIR}/named.conf"
-cd ns2
-$NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named7.run 2>&1 &
+(cd ns2 && $NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named8.run 2>&1 &)
 sleep 2
-grep 'running as.*\\$\\;' named7.run > /dev/null || ret=1
-kill_named named.pid || ret=1
-cd ..
+grep 'running as.*\\$\\;' ns2/named8.run > /dev/null || ret=1
+kill_named ns2/named.pid || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking that named logs an ellipsis when the command line is larger than 8k bytes ($n)"
 ret=0
-LONG_CMD_LINE=`yes "-m usage" | head -1000 | tr '\n' ' '`
+LONG_CMD_LINE=$(yes "-m usage" | head -1000 | tr '\n' ' ')
 copy_setports ns2/named-alt7.conf.in "ns2/named-alt7.conf"
-(cd ns2 && $NAMED $LONG_CMD_LINE -c "named-alt7.conf" -g > named8.run 2>&1 &)
+# shellcheck disable=SC2086
+(cd ns2 && $NAMED $LONG_CMD_LINE -c "named-alt7.conf" -g > named9.run 2>&1 &)
 sleep 2
-#grep "running as.*\.\.\.$" named8.run > /dev/null || ret=1
+#grep "running as.*\.\.\.$" ns2/named9.run > /dev/null || ret=1
 echo_i "skipped - the ellipsis is currently not printed"
 kill_named ns2/named.pid || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
 n=`expr $n + 1`
 echo_i "verifying that named switches UID ($n)"
