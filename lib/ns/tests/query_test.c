@@ -35,6 +35,7 @@
 
 #include "nstest.h"
 
+#if defined(USE_LIBTOOL) || LD_WRAP
 static int
 _setup(void **state) {
 	isc_result_t result;
@@ -588,9 +589,11 @@ ns__query_start_test(void **state) {
 		run_start_test(&tests[i]);
 	}
 }
+#endif
 
 int
 main(void) {
+#if defined(USE_LIBTOOL) || LD_WRAP
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(ns__query_sfcache_test,
 						_setup, _teardown),
@@ -599,6 +602,9 @@ main(void) {
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
+#else
+	print_message("1..0 # Skip query_test requires libtool or LD_WRAP\n");
+#endif
 }
 
 #else /* HAVE_CMOCKA && !__SANITIZE_ADDRESS__ */
