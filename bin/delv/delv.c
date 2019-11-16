@@ -33,8 +33,10 @@
 #include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/hex.h>
 #include <isc/lib.h>
 #include <isc/log.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #ifdef WIN32
 #include <isc/ntpaths.h>
@@ -608,11 +610,12 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 
 static isc_result_t
 key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
-	dns_rdata_dnskey_t keystruct;
-	uint32_t flags, proto, alg;
-	const char *keystr, *keynamestr;
-	unsigned char keydata[4096];
-	isc_buffer_t keydatabuf;
+	dns_rdata_dnskey_t dnskey;
+	dns_rdata_ds_t ds;
+	uint32_t n1, n2, n3;
+	const char *datastr = NULL, *keynamestr = NULL, *atstr = NULL;
+	unsigned char data[4096];
+	isc_buffer_t databuf;
 	unsigned char rrdata[4096];
 	isc_buffer_t rrdatabuf;
 	isc_region_t r;
@@ -620,6 +623,13 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	dns_name_t *keyname;
 	isc_result_t result;
 	bool match_root = false;
+	enum {
+		INITIAL_KEY,
+		STATIC_KEY,
+		INITIAL_DS,
+		STATIC_DS,
+		TRUSTED
+	} anchortype;
 
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 	CHECK(convert_name(&fkeyname, &keyname, keynamestr));
@@ -642,46 +652,118 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 
 	delv_log(ISC_LOG_DEBUG(3), "adding trust anchor %s", trust_anchor);
 
-	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
-	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
-	alg = cfg_obj_asuint32(cfg_tuple_get(key, "algorithm"));
+	/* if DNSKEY, flags; if DS, key tag */
+	n1 = cfg_obj_asuint32(cfg_tuple_get(key, "n1"));
 
-	keystruct.common.rdclass = dns_rdataclass_in;
-	keystruct.common.rdtype = dns_rdatatype_dnskey;
-	/*
-	 * The key data in keystruct is not dynamically allocated.
-	 */
-	keystruct.mctx = NULL;
+	/* if DNSKEY, protocol; if DS, algorithm */
+	n2 = cfg_obj_asuint32(cfg_tuple_get(key, "n2"));
 
-	ISC_LINK_INIT(&keystruct.common, link);
+	/* if DNSKEY, algorithm; if DS, digest type */
+	n3 = cfg_obj_asuint32(cfg_tuple_get(key, "n3"));
 
-	if (flags > 0xffff)
-		CHECK(ISC_R_RANGE);
-	if (proto > 0xff)
-		CHECK(ISC_R_RANGE);
-	if (alg > 0xff)
-		CHECK(ISC_R_RANGE);
+	/* What type of trust anchor is this? */
+	atstr = cfg_obj_asstring(cfg_tuple_get(key, "anchortype"));
+	if (strcasecmp(atstr, "static-key") == 0) {
+		anchortype = STATIC_KEY;
+	} else if (strcasecmp(atstr, "static-ds") == 0) {
+		anchortype = STATIC_DS;
+	} else if (strcasecmp(atstr, "initial-key") == 0) {
+		anchortype = INITIAL_KEY;
+	} else if (strcasecmp(atstr, "initial-ds") == 0) {
+		anchortype = INITIAL_DS;
+	} else {
+		delv_log(ISC_LOG_ERROR,
+			 "key '%s': invalid initialization method '%s'",
+			 keynamestr, atstr);
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
 
-	keystruct.flags = (uint16_t)flags;
-	keystruct.protocol = (uint8_t)proto;
-	keystruct.algorithm = (uint8_t)alg;
-
-	isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
+	isc_buffer_init(&databuf, data, sizeof(data));
 	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
 
-	keystr = cfg_obj_asstring(cfg_tuple_get(key, "key"));
-	CHECK(isc_base64_decodestring(keystr, &keydatabuf));
-	isc_buffer_usedregion(&keydatabuf, &r);
-	keystruct.datalen = r.length;
-	keystruct.data = r.base;
+	if (n1 > 0xffff) {
+		CHECK(ISC_R_RANGE);
+	}
+	if (n2 > 0xff) {
+		CHECK(ISC_R_RANGE);
+	}
+	if (n3 > 0xff) {
+		CHECK(ISC_R_RANGE);
+	}
 
-	CHECK(dns_rdata_fromstruct(NULL,
-				   keystruct.common.rdclass,
-				   keystruct.common.rdtype,
-				   &keystruct, &rrdatabuf));
+	switch (anchortype) {
+	case STATIC_KEY:
+	case INITIAL_KEY:
+	case TRUSTED:
+		dnskey.common.rdclass = dns_rdataclass_in;
+		dnskey.common.rdtype = dns_rdatatype_dnskey;
+		dnskey.mctx = NULL;
 
-	CHECK(dns_client_addtrustedkey(client, dns_rdataclass_in,
-				       keyname, &rrdatabuf));
+		ISC_LINK_INIT(&dnskey.common, link);
+
+		dnskey.flags = (uint16_t)n1;
+		dnskey.protocol = (uint8_t)n2;
+		dnskey.algorithm = (uint8_t)n3;
+
+		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
+		CHECK(isc_base64_decodestring(datastr, &databuf));
+		isc_buffer_usedregion(&databuf, &r);
+		dnskey.datalen = r.length;
+		dnskey.data = r.base;
+
+		CHECK(dns_rdata_fromstruct(NULL, dnskey.common.rdclass,
+					   dnskey.common.rdtype,
+					   &dnskey, &rrdatabuf));
+		CHECK(dns_client_addtrustedkey(client, dns_rdataclass_in,
+					       dns_rdatatype_dnskey,
+					       keyname, &rrdatabuf));
+		break;
+	case INITIAL_DS:
+	case STATIC_DS:
+		ds.common.rdclass = dns_rdataclass_in;
+		ds.common.rdtype = dns_rdatatype_ds;
+		ds.mctx = NULL;
+
+		ISC_LINK_INIT(&ds.common, link);
+
+		ds.key_tag = (uint16_t)n1;
+		ds.algorithm = (uint8_t)n2;
+		ds.digest_type = (uint8_t)n3;
+
+		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
+		CHECK(isc_hex_decodestring(datastr, &databuf));
+		isc_buffer_usedregion(&databuf, &r);
+
+		switch (ds.digest_type) {
+		case DNS_DSDIGEST_SHA1:
+			if (r.length != ISC_SHA1_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+		case DNS_DSDIGEST_SHA256:
+			if (r.length != ISC_SHA256_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+		case DNS_DSDIGEST_SHA384:
+			if (r.length != ISC_SHA384_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+		}
+
+		ds.length = r.length;
+		ds.digest = r.base;
+
+		CHECK(dns_rdata_fromstruct(NULL, ds.common.rdclass,
+					   ds.common.rdtype,
+					   &ds, &rrdatabuf));
+		CHECK(dns_client_addtrustedkey(client, dns_rdataclass_in,
+					       dns_rdatatype_ds,
+					       keyname, &rrdatabuf));
+	};
+
 	num_keys++;
 
  cleanup:

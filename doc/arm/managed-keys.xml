@@ -25,8 +25,8 @@
     <para>To configure a validating resolver to use RFC 5011 to
     maintain a trust anchor, configure the trust anchor using a
     <command>dnssec-keys</command> statement and the
-    <command>initial-key</command> keyword. Information about
-    this can be found in
+    <command>initial-key</command> or <command>initial-ds</command>
+    keyword. Information about this can be found in
     <xref linkend="dnssec-keys"/>.</para>
   </section>
   <section><info><title>Authoritative Server</title></info>

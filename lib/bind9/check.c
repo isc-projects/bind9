@@ -40,6 +40,7 @@
 #include <dns/acl.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
+#include <dns/keyvalues.h>
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
@@ -48,6 +49,7 @@
 #include <dns/ssu.h>
 
 #include <dst/dst.h>
+#include <dst/result.h>
 
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
@@ -3117,28 +3119,128 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 #define ROOT_KSK_2017		0x08
 
 static isc_result_t
-check_trusted_key(const cfg_obj_t *key, bool managed,
-		  unsigned int *keyflags, isc_log_t *logctx)
+check_trust_anchor(const cfg_obj_t *key, bool managed,
+		   unsigned int *flagsp, isc_log_t *logctx)
 {
-	const char *keystr, *keynamestr;
+	const char *str = NULL, *namestr = NULL;
 	dns_fixedname_t fkeyname;
-	dns_name_t *keyname;
+	dns_name_t *keyname = NULL;
 	isc_buffer_t b;
 	isc_region_t r;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
-	uint32_t flags, proto, alg;
-	unsigned char keydata[4096];
+	uint32_t n1, n2, n3;
+	unsigned char data[4096];
+	const char *atstr = NULL;
+	enum {
+		INIT_DNSKEY,
+		STATIC_DNSKEY,
+		INIT_DS,
+		STATIC_DS,
+		TRUSTED
+	} anchortype;
 
-	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
-	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
-	alg = cfg_obj_asuint32(cfg_tuple_get(key, "algorithm"));
+	/*
+	 * The 2010 and 2017 IANA root keys - these are used below
+	 * to check the contents of trusted, initial and
+	 * static trust anchor configurations.
+	 */
+	static const unsigned char root_ksk_2010[] = {
+		0x03, 0x01, 0x00, 0x01, 0xa8, 0x00, 0x20, 0xa9,
+		0x55, 0x66, 0xba, 0x42, 0xe8, 0x86, 0xbb, 0x80,
+		0x4c, 0xda, 0x84, 0xe4, 0x7e, 0xf5, 0x6d, 0xbd,
+		0x7a, 0xec, 0x61, 0x26, 0x15, 0x55, 0x2c, 0xec,
+		0x90, 0x6d, 0x21, 0x16, 0xd0, 0xef, 0x20, 0x70,
+		0x28, 0xc5, 0x15, 0x54, 0x14, 0x4d, 0xfe, 0xaf,
+		0xe7, 0xc7, 0xcb, 0x8f, 0x00, 0x5d, 0xd1, 0x82,
+		0x34, 0x13, 0x3a, 0xc0, 0x71, 0x0a, 0x81, 0x18,
+		0x2c, 0xe1, 0xfd, 0x14, 0xad, 0x22, 0x83, 0xbc,
+		0x83, 0x43, 0x5f, 0x9d, 0xf2, 0xf6, 0x31, 0x32,
+		0x51, 0x93, 0x1a, 0x17, 0x6d, 0xf0, 0xda, 0x51,
+		0xe5, 0x4f, 0x42, 0xe6, 0x04, 0x86, 0x0d, 0xfb,
+		0x35, 0x95, 0x80, 0x25, 0x0f, 0x55, 0x9c, 0xc5,
+		0x43, 0xc4, 0xff, 0xd5, 0x1c, 0xbe, 0x3d, 0xe8,
+		0xcf, 0xd0, 0x67, 0x19, 0x23, 0x7f, 0x9f, 0xc4,
+		0x7e, 0xe7, 0x29, 0xda, 0x06, 0x83, 0x5f, 0xa4,
+		0x52, 0xe8, 0x25, 0xe9, 0xa1, 0x8e, 0xbc, 0x2e,
+		0xcb, 0xcf, 0x56, 0x34, 0x74, 0x65, 0x2c, 0x33,
+		0xcf, 0x56, 0xa9, 0x03, 0x3b, 0xcd, 0xf5, 0xd9,
+		0x73, 0x12, 0x17, 0x97, 0xec, 0x80, 0x89, 0x04,
+		0x1b, 0x6e, 0x03, 0xa1, 0xb7, 0x2d, 0x0a, 0x73,
+		0x5b, 0x98, 0x4e, 0x03, 0x68, 0x73, 0x09, 0x33,
+		0x23, 0x24, 0xf2, 0x7c, 0x2d, 0xba, 0x85, 0xe9,
+		0xdb, 0x15, 0xe8, 0x3a, 0x01, 0x43, 0x38, 0x2e,
+		0x97, 0x4b, 0x06, 0x21, 0xc1, 0x8e, 0x62, 0x5e,
+		0xce, 0xc9, 0x07, 0x57, 0x7d, 0x9e, 0x7b, 0xad,
+		0xe9, 0x52, 0x41, 0xa8, 0x1e, 0xbb, 0xe8, 0xa9,
+		0x01, 0xd4, 0xd3, 0x27, 0x6e, 0x40, 0xb1, 0x14,
+		0xc0, 0xa2, 0xe6, 0xfc, 0x38, 0xd1, 0x9c, 0x2e,
+		0x6a, 0xab, 0x02, 0x64, 0x4b, 0x28, 0x13, 0xf5,
+		0x75, 0xfc, 0x21, 0x60, 0x1e, 0x0d, 0xee, 0x49,
+		0xcd, 0x9e, 0xe9, 0x6a, 0x43, 0x10, 0x3e, 0x52,
+		0x4d, 0x62, 0x87, 0x3d
+	};
+	static const unsigned char root_ksk_2017[] = {
+		0x03, 0x01, 0x00, 0x01, 0xac, 0xff, 0xb4, 0x09,
+		0xbc, 0xc9, 0x39, 0xf8, 0x31, 0xf7, 0xa1, 0xe5,
+		0xec, 0x88, 0xf7, 0xa5, 0x92, 0x55, 0xec, 0x53,
+		0x04, 0x0b, 0xe4, 0x32, 0x02, 0x73, 0x90, 0xa4,
+		0xce, 0x89, 0x6d, 0x6f, 0x90, 0x86, 0xf3, 0xc5,
+		0xe1, 0x77, 0xfb, 0xfe, 0x11, 0x81, 0x63, 0xaa,
+		0xec, 0x7a, 0xf1, 0x46, 0x2c, 0x47, 0x94, 0x59,
+		0x44, 0xc4, 0xe2, 0xc0, 0x26, 0xbe, 0x5e, 0x98,
+		0xbb, 0xcd, 0xed, 0x25, 0x97, 0x82, 0x72, 0xe1,
+		0xe3, 0xe0, 0x79, 0xc5, 0x09, 0x4d, 0x57, 0x3f,
+		0x0e, 0x83, 0xc9, 0x2f, 0x02, 0xb3, 0x2d, 0x35,
+		0x13, 0xb1, 0x55, 0x0b, 0x82, 0x69, 0x29, 0xc8,
+		0x0d, 0xd0, 0xf9, 0x2c, 0xac, 0x96, 0x6d, 0x17,
+		0x76, 0x9f, 0xd5, 0x86, 0x7b, 0x64, 0x7c, 0x3f,
+		0x38, 0x02, 0x9a, 0xbd, 0xc4, 0x81, 0x52, 0xeb,
+		0x8f, 0x20, 0x71, 0x59, 0xec, 0xc5, 0xd2, 0x32,
+		0xc7, 0xc1, 0x53, 0x7c, 0x79, 0xf4, 0xb7, 0xac,
+		0x28, 0xff, 0x11, 0x68, 0x2f, 0x21, 0x68, 0x1b,
+		0xf6, 0xd6, 0xab, 0xa5, 0x55, 0x03, 0x2b, 0xf6,
+		0xf9, 0xf0, 0x36, 0xbe, 0xb2, 0xaa, 0xa5, 0xb3,
+		0x77, 0x8d, 0x6e, 0xeb, 0xfb, 0xa6, 0xbf, 0x9e,
+		0xa1, 0x91, 0xbe, 0x4a, 0xb0, 0xca, 0xea, 0x75,
+		0x9e, 0x2f, 0x77, 0x3a, 0x1f, 0x90, 0x29, 0xc7,
+		0x3e, 0xcb, 0x8d, 0x57, 0x35, 0xb9, 0x32, 0x1d,
+		0xb0, 0x85, 0xf1, 0xb8, 0xe2, 0xd8, 0x03, 0x8f,
+		0xe2, 0x94, 0x19, 0x92, 0x54, 0x8c, 0xee, 0x0d,
+		0x67, 0xdd, 0x45, 0x47, 0xe1, 0x1d, 0xd6, 0x3a,
+		0xf9, 0xc9, 0xfc, 0x1c, 0x54, 0x66, 0xfb, 0x68,
+		0x4c, 0xf0, 0x09, 0xd7, 0x19, 0x7c, 0x2c, 0xf7,
+		0x9e, 0x79, 0x2a, 0xb5, 0x01, 0xe6, 0xa8, 0xa1,
+		0xca, 0x51, 0x9a, 0xf2, 0xcb, 0x9b, 0x5f, 0x63,
+		0x67, 0xe9, 0x4c, 0x0d, 0x47, 0x50, 0x24, 0x51,
+		0x35, 0x7b, 0xe1, 0xb5
+	};
+	static const unsigned char root_ds_1_2017[] = {
+		0xae, 0x1e, 0xa5, 0xb9, 0x74, 0xd4, 0xc8, 0x58,
+		0xb7, 0x40, 0xbd, 0x03, 0xe3, 0xce, 0xd7, 0xeb,
+		0xfc, 0xbd, 0x17, 0x24
+	};
+	static const unsigned char root_ds_2_2017[] = {
+		0xe0, 0x6d, 0x44, 0xb8, 0x0b, 0x8f, 0x1d, 0x39,
+		0xa9, 0x5c, 0x0b, 0x0d, 0x7c, 0x65, 0xd0, 0x84,
+		0x58, 0xe8, 0x80, 0x40, 0x9b, 0xbc, 0x68, 0x34,
+		0x57, 0x10, 0x42, 0x37, 0xc7, 0xf8, 0xec, 0x8D
+	};
+
+	/* if DNSKEY, flags; if DS, key tag */
+	n1 = cfg_obj_asuint32(cfg_tuple_get(key, "n1"));
+
+	/* if DNSKEY, protocol; if DS, algorithm */
+	n2 = cfg_obj_asuint32(cfg_tuple_get(key, "n2"));
+
+	/* if DNSKEY, algorithm; if DS, digest type */
+	n3 = cfg_obj_asuint32(cfg_tuple_get(key, "n3"));
+
+	namestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 
 	keyname = dns_fixedname_initname(&fkeyname);
-	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
-
-	isc_buffer_constinit(&b, keynamestr, strlen(keynamestr));
-	isc_buffer_add(&b, strlen(keynamestr));
+	isc_buffer_constinit(&b, namestr, strlen(namestr));
+	isc_buffer_add(&b, strlen(namestr));
 	result = dns_name_fromtext(keyname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(key, logctx, ISC_LOG_WARNING, "bad key name: %s\n",
@@ -3146,151 +3248,169 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 		result = ISC_R_FAILURE;
 	}
 
-	if (flags > 0xffff) {
-		cfg_obj_log(key, logctx, ISC_LOG_WARNING,
-			    "flags too big: %u\n", flags);
-		result = ISC_R_FAILURE;
-	}
-	if (proto > 0xff) {
-		cfg_obj_log(key, logctx, ISC_LOG_WARNING,
-			    "protocol too big: %u\n", proto);
-		result = ISC_R_FAILURE;
-	}
-	if (alg > 0xff) {
-		cfg_obj_log(key, logctx, ISC_LOG_WARNING,
-			    "algorithm too big: %u\n", alg);
-		result = ISC_R_FAILURE;
-	}
-
 	if (managed) {
-		const char *initmethod;
-		initmethod = cfg_obj_asstring(cfg_tuple_get(key, "init"));
+		atstr = cfg_obj_asstring(cfg_tuple_get(key, "anchortype"));
 
-		if (strcasecmp(initmethod, "static-key") == 0) {
+		if (strcasecmp(atstr, "static-key") == 0) {
 			managed = false;
-		} else if (strcasecmp(initmethod, "initial-key") != 0) {
+			anchortype = STATIC_DNSKEY;
+		} else if (strcasecmp(atstr, "static-ds") == 0) {
+			managed = false;
+			anchortype = STATIC_DS;
+		} else if (strcasecmp(atstr, "initial-key") == 0) {
+			anchortype = INIT_DNSKEY;
+		} else if (strcasecmp(atstr, "initial-ds") == 0) {
+			anchortype = INIT_DS;
+		} else {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "managed key '%s': "
+				    "key '%s': "
 				    "invalid initialization method '%s'",
-				    keynamestr, initmethod);
+				    namestr, atstr);
+			result = ISC_R_FAILURE;
+
+			/*
+			 * We can't interpret the trust anchor, so
+			 * we skip all other checks.
+			 */
+			goto cleanup;
+		}
+	} else {
+		atstr = "trusted-key";
+		anchortype = TRUSTED;
+	}
+
+	switch(anchortype) {
+	case INIT_DNSKEY:
+	case STATIC_DNSKEY:
+	case TRUSTED:
+		if (n1 > 0xffff) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "flags too big: %u", n1);
+			result = ISC_R_RANGE;
+		}
+		if (n1 & DNS_KEYFLAG_REVOKE) {
+			cfg_obj_log(key, logctx, ISC_LOG_WARNING,
+				    "key flags revoke bit set");
+		}
+		if (n2 > 0xff)  {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "protocol too big: %u", n2);
+			result = ISC_R_RANGE;
+		}
+		if (n3 > 0xff) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "algorithm too big: %u\n", n3);
+			result = ISC_R_RANGE;
+		}
+
+		isc_buffer_init(&b, data, sizeof(data));
+
+		str = cfg_obj_asstring(cfg_tuple_get(key, "data"));
+		tresult = isc_base64_decodestring(str, &b);
+
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "%s", isc_result_totext(tresult));
+			result = ISC_R_FAILURE;
+		} else {
+			isc_buffer_usedregion(&b, &r);
+
+			if ((n3 == DST_ALG_RSASHA1) &&
+			    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
+			{
+				cfg_obj_log(key, logctx, ISC_LOG_WARNING,
+					    "%s '%s' has a weak exponent",
+					    atstr, namestr);
+			}
+		}
+
+		if (result == ISC_R_SUCCESS &&
+		    dns_name_equal(keyname, dns_rootname)) {
+			/*
+			 * Flag any use of a root key, regardless of content.
+			 */
+			*flagsp |=
+				(managed ? ROOT_KSK_MANAGED : ROOT_KSK_STATIC);
+
+
+			if (n1 == 257 && n2 == 3 && n3 == 8 &&
+			    (isc_buffer_usedlength(&b) ==
+			     sizeof(root_ksk_2010)) &&
+			    memcmp(data, root_ksk_2010,
+				   sizeof(root_ksk_2010)) == 0)
+			{
+				*flagsp |= ROOT_KSK_2010;
+			}
+
+			if (n1 == 257 && n2 == 3 && n3 == 8 &&
+			    (isc_buffer_usedlength(&b) ==
+			     sizeof(root_ksk_2017)) &&
+			    memcmp(data, root_ksk_2017,
+				   sizeof(root_ksk_2017)) == 0)
+			{
+				*flagsp |= ROOT_KSK_2017;
+			}
+		}
+		break;
+
+	case INIT_DS:
+	case STATIC_DS:
+		if (n1 > 0xffff) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "key tag too big: %u", n1);
+			result = ISC_R_RANGE;
+		}
+		if (n2 > 0xff) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "algorithm too big: %u\n", n2);
+			result = ISC_R_RANGE;
+		}
+		if (n3 > 0xff) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "digest type too big: %u", 32);
+			result = ISC_R_RANGE;
+		}
+
+		isc_buffer_init(&b, data, sizeof(data));
+
+		str = cfg_obj_asstring(cfg_tuple_get(key, "data"));
+		tresult = isc_hex_decodestring(str, &b);
+
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "%s", isc_result_totext(tresult));
 			result = ISC_R_FAILURE;
 		}
+		if (result == ISC_R_SUCCESS &&
+		    dns_name_equal(keyname, dns_rootname)) {
+			/*
+			 * Flag any use of a root key, regardless of content.
+			 */
+			*flagsp |=
+				(managed ? ROOT_KSK_MANAGED : ROOT_KSK_STATIC);
+
+			if (n1 == 20326 && n2 == 8 && n3 == 1 &&
+			    (isc_buffer_usedlength(&b) ==
+			     sizeof(root_ds_1_2017)) &&
+			    memcmp(data, root_ds_1_2017,
+				   sizeof(root_ds_1_2017)) == 0)
+			{
+				*flagsp |= ROOT_KSK_2017;
+			}
+
+			if (n1 == 20326 && n2 == 8 && n3 == 2 &&
+			    (isc_buffer_usedlength(&b) ==
+			     sizeof(root_ds_2_2017)) &&
+			    memcmp(data, root_ds_2_2017,
+				   sizeof(root_ds_2_2017)) == 0)
+			{
+				*flagsp |= ROOT_KSK_2017;
+			}
+		}
+		break;
 	}
 
-	isc_buffer_init(&b, keydata, sizeof(keydata));
-
-	keystr = cfg_obj_asstring(cfg_tuple_get(key, "key"));
-	tresult = isc_base64_decodestring(keystr, &b);
-
-	if (tresult != ISC_R_SUCCESS) {
-		cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-			    "%s", isc_result_totext(tresult));
-		result = ISC_R_FAILURE;
-	} else {
-		isc_buffer_usedregion(&b, &r);
-
-		if ((alg == DST_ALG_RSASHA1) &&
-		    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
-		{
-			cfg_obj_log(key, logctx, ISC_LOG_WARNING,
-				    "%s key '%s' has a weak exponent",
-				    managed ? "initializing" : "static",
-				    keynamestr);
-		}
-	}
-
-	if (result == ISC_R_SUCCESS && dns_name_equal(keyname, dns_rootname)) {
-		static const unsigned char root_ksk_2010[] = {
-			0x03, 0x01, 0x00, 0x01, 0xa8, 0x00, 0x20, 0xa9,
-			0x55, 0x66, 0xba, 0x42, 0xe8, 0x86, 0xbb, 0x80,
-			0x4c, 0xda, 0x84, 0xe4, 0x7e, 0xf5, 0x6d, 0xbd,
-			0x7a, 0xec, 0x61, 0x26, 0x15, 0x55, 0x2c, 0xec,
-			0x90, 0x6d, 0x21, 0x16, 0xd0, 0xef, 0x20, 0x70,
-			0x28, 0xc5, 0x15, 0x54, 0x14, 0x4d, 0xfe, 0xaf,
-			0xe7, 0xc7, 0xcb, 0x8f, 0x00, 0x5d, 0xd1, 0x82,
-			0x34, 0x13, 0x3a, 0xc0, 0x71, 0x0a, 0x81, 0x18,
-			0x2c, 0xe1, 0xfd, 0x14, 0xad, 0x22, 0x83, 0xbc,
-			0x83, 0x43, 0x5f, 0x9d, 0xf2, 0xf6, 0x31, 0x32,
-			0x51, 0x93, 0x1a, 0x17, 0x6d, 0xf0, 0xda, 0x51,
-			0xe5, 0x4f, 0x42, 0xe6, 0x04, 0x86, 0x0d, 0xfb,
-			0x35, 0x95, 0x80, 0x25, 0x0f, 0x55, 0x9c, 0xc5,
-			0x43, 0xc4, 0xff, 0xd5, 0x1c, 0xbe, 0x3d, 0xe8,
-			0xcf, 0xd0, 0x67, 0x19, 0x23, 0x7f, 0x9f, 0xc4,
-			0x7e, 0xe7, 0x29, 0xda, 0x06, 0x83, 0x5f, 0xa4,
-			0x52, 0xe8, 0x25, 0xe9, 0xa1, 0x8e, 0xbc, 0x2e,
-			0xcb, 0xcf, 0x56, 0x34, 0x74, 0x65, 0x2c, 0x33,
-			0xcf, 0x56, 0xa9, 0x03, 0x3b, 0xcd, 0xf5, 0xd9,
-			0x73, 0x12, 0x17, 0x97, 0xec, 0x80, 0x89, 0x04,
-			0x1b, 0x6e, 0x03, 0xa1, 0xb7, 0x2d, 0x0a, 0x73,
-			0x5b, 0x98, 0x4e, 0x03, 0x68, 0x73, 0x09, 0x33,
-			0x23, 0x24, 0xf2, 0x7c, 0x2d, 0xba, 0x85, 0xe9,
-			0xdb, 0x15, 0xe8, 0x3a, 0x01, 0x43, 0x38, 0x2e,
-			0x97, 0x4b, 0x06, 0x21, 0xc1, 0x8e, 0x62, 0x5e,
-			0xce, 0xc9, 0x07, 0x57, 0x7d, 0x9e, 0x7b, 0xad,
-			0xe9, 0x52, 0x41, 0xa8, 0x1e, 0xbb, 0xe8, 0xa9,
-			0x01, 0xd4, 0xd3, 0x27, 0x6e, 0x40, 0xb1, 0x14,
-			0xc0, 0xa2, 0xe6, 0xfc, 0x38, 0xd1, 0x9c, 0x2e,
-			0x6a, 0xab, 0x02, 0x64, 0x4b, 0x28, 0x13, 0xf5,
-			0x75, 0xfc, 0x21, 0x60, 0x1e, 0x0d, 0xee, 0x49,
-			0xcd, 0x9e, 0xe9, 0x6a, 0x43, 0x10, 0x3e, 0x52,
-			0x4d, 0x62, 0x87, 0x3d
-		};
-		static const unsigned char root_ksk_2017[] = {
-			0x03, 0x01, 0x00, 0x01, 0xac, 0xff, 0xb4, 0x09,
-			0xbc, 0xc9, 0x39, 0xf8, 0x31, 0xf7, 0xa1, 0xe5,
-			0xec, 0x88, 0xf7, 0xa5, 0x92, 0x55, 0xec, 0x53,
-			0x04, 0x0b, 0xe4, 0x32, 0x02, 0x73, 0x90, 0xa4,
-			0xce, 0x89, 0x6d, 0x6f, 0x90, 0x86, 0xf3, 0xc5,
-			0xe1, 0x77, 0xfb, 0xfe, 0x11, 0x81, 0x63, 0xaa,
-			0xec, 0x7a, 0xf1, 0x46, 0x2c, 0x47, 0x94, 0x59,
-			0x44, 0xc4, 0xe2, 0xc0, 0x26, 0xbe, 0x5e, 0x98,
-			0xbb, 0xcd, 0xed, 0x25, 0x97, 0x82, 0x72, 0xe1,
-			0xe3, 0xe0, 0x79, 0xc5, 0x09, 0x4d, 0x57, 0x3f,
-			0x0e, 0x83, 0xc9, 0x2f, 0x02, 0xb3, 0x2d, 0x35,
-			0x13, 0xb1, 0x55, 0x0b, 0x82, 0x69, 0x29, 0xc8,
-			0x0d, 0xd0, 0xf9, 0x2c, 0xac, 0x96, 0x6d, 0x17,
-			0x76, 0x9f, 0xd5, 0x86, 0x7b, 0x64, 0x7c, 0x3f,
-			0x38, 0x02, 0x9a, 0xbd, 0xc4, 0x81, 0x52, 0xeb,
-			0x8f, 0x20, 0x71, 0x59, 0xec, 0xc5, 0xd2, 0x32,
-			0xc7, 0xc1, 0x53, 0x7c, 0x79, 0xf4, 0xb7, 0xac,
-			0x28, 0xff, 0x11, 0x68, 0x2f, 0x21, 0x68, 0x1b,
-			0xf6, 0xd6, 0xab, 0xa5, 0x55, 0x03, 0x2b, 0xf6,
-			0xf9, 0xf0, 0x36, 0xbe, 0xb2, 0xaa, 0xa5, 0xb3,
-			0x77, 0x8d, 0x6e, 0xeb, 0xfb, 0xa6, 0xbf, 0x9e,
-			0xa1, 0x91, 0xbe, 0x4a, 0xb0, 0xca, 0xea, 0x75,
-			0x9e, 0x2f, 0x77, 0x3a, 0x1f, 0x90, 0x29, 0xc7,
-			0x3e, 0xcb, 0x8d, 0x57, 0x35, 0xb9, 0x32, 0x1d,
-			0xb0, 0x85, 0xf1, 0xb8, 0xe2, 0xd8, 0x03, 0x8f,
-			0xe2, 0x94, 0x19, 0x92, 0x54, 0x8c, 0xee, 0x0d,
-			0x67, 0xdd, 0x45, 0x47, 0xe1, 0x1d, 0xd6, 0x3a,
-			0xf9, 0xc9, 0xfc, 0x1c, 0x54, 0x66, 0xfb, 0x68,
-			0x4c, 0xf0, 0x09, 0xd7, 0x19, 0x7c, 0x2c, 0xf7,
-			0x9e, 0x79, 0x2a, 0xb5, 0x01, 0xe6, 0xa8, 0xa1,
-			0xca, 0x51, 0x9a, 0xf2, 0xcb, 0x9b, 0x5f, 0x63,
-			0x67, 0xe9, 0x4c, 0x0d, 0x47, 0x50, 0x24, 0x51,
-			0x35, 0x7b, 0xe1, 0xb5
-		};
-
-		/*
-		 * Flag any use of a root key, regardless of content.
-		 */
-		*keyflags |= (managed ? ROOT_KSK_MANAGED : ROOT_KSK_STATIC);
-
-		if (flags == 257 && proto == 3 && alg == 8 &&
-		    isc_buffer_usedlength(&b) == sizeof(root_ksk_2010) &&
-		    !memcmp(keydata, root_ksk_2010, sizeof(root_ksk_2010)))
-		{
-			*keyflags |= ROOT_KSK_2010;
-		}
-
-		if (flags == 257 && proto == 3 && alg == 8 &&
-		    isc_buffer_usedlength(&b) == sizeof(root_ksk_2017) &&
-		    !memcmp(keydata, root_ksk_2017, sizeof(root_ksk_2017)))
-		{
-			*keyflags |= ROOT_KSK_2017;
-		}
-	}
-
+ cleanup:
 	return (result);
 }
 
@@ -3322,10 +3442,14 @@ record_static_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 			continue;
 		}
 
-		init = cfg_tuple_get(obj, "init");
+		init = cfg_tuple_get(obj, "anchortype");
 		if (!cfg_obj_isvoid(init)) {
 			initmethod = cfg_obj_asstring(init);
 			if (strcasecmp(initmethod, "initial-key") == 0) {
+				/* initializing key, skip it */
+				continue;
+			}
+			if (strcasecmp(initmethod, "initial-ds") == 0) {
 				/* initializing key, skip it */
 				continue;
 			}
@@ -3346,7 +3470,7 @@ record_static_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 
 		if (autovalidation && dns_name_equal(name, dns_rootname)) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "static key for root zone "
+				    "static trust anchor for root zone "
 				    "cannot be used with "
 				    "'dnssec-validation auto'.");
 			ret = ISC_R_FAILURE;
@@ -3378,9 +3502,10 @@ check_initializing_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
 		const char *str;
 		isc_symvalue_t symvalue;
 
-		init = cfg_tuple_get(obj, "init");
+		init = cfg_tuple_get(obj, "anchortype");
 		if (cfg_obj_isvoid(init) ||
-		    strcasecmp(cfg_obj_asstring(init), "static-key") == 0)
+		    strcasecmp(cfg_obj_asstring(init), "static-key") == 0 ||
+		    strcasecmp(cfg_obj_asstring(init), "static-ds") == 0)
 		{
 			/* static key, skip it */
 			continue;
@@ -3414,6 +3539,118 @@ check_initializing_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
 	return (ret);
 }
 
+static isc_result_t
+record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx, const cfg_obj_t *keylist)
+{
+	isc_result_t result, ret = ISC_R_SUCCESS;
+	const cfg_listelt_t *elt;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	char namebuf[DNS_NAME_FORMATSIZE], *p = NULL;
+
+	name = dns_fixedname_initname(&fixed);
+
+	for (elt = cfg_list_first(keylist);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		const char *initmethod;
+		const cfg_obj_t *init = NULL;
+		const cfg_obj_t *obj = cfg_listelt_value(elt);
+		const char *str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+		isc_symvalue_t symvalue;
+
+		result = dns_name_fromstring(name, str, 0, NULL);
+		if (result != ISC_R_SUCCESS) {
+			continue;
+		}
+
+		init = cfg_tuple_get(obj, "anchortype");
+		if (!cfg_obj_isvoid(init)) {
+			initmethod = cfg_obj_asstring(init);
+			if (strcasecmp(initmethod, "initial-key") == 0 ||
+			    strcasecmp(initmethod, "static-key") == 0)
+			{
+				/* Key-style key, skip it */
+				continue;
+			}
+		}
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		symvalue.as_cpointer = obj;
+		p = isc_mem_strdup(mctx, namebuf);
+		result = isc_symtab_define(symtab, p, 1, symvalue,
+					   isc_symexists_reject);
+		if (result == ISC_R_EXISTS) {
+			isc_mem_free(mctx, p);
+		} else if (result != ISC_R_SUCCESS) {
+			isc_mem_free(mctx, p);
+			ret = result;
+			continue;
+		}
+	}
+
+	return (ret);
+}
+
+static isc_result_t
+check_non_ds_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
+		  isc_log_t *logctx)
+{
+	isc_result_t result, ret = ISC_R_SUCCESS;
+	const cfg_listelt_t *elt;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	char namebuf[DNS_NAME_FORMATSIZE];
+
+	name = dns_fixedname_initname(&fixed);
+
+	for (elt = cfg_list_first(keylist);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		const cfg_obj_t *obj = cfg_listelt_value(elt);
+		const cfg_obj_t *init = NULL;
+		const char *str;
+		isc_symvalue_t symvalue;
+
+		init = cfg_tuple_get(obj, "anchortype");
+		if (cfg_obj_isvoid(init) ||
+		    strcasecmp(cfg_obj_asstring(init), "static-ds") == 0 ||
+		    strcasecmp(cfg_obj_asstring(init), "initial-ds") == 0)
+		{
+			/* DS-style entry, skip it */
+			continue;
+		}
+
+		str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+		result = dns_name_fromstring(name, str, 0, NULL);
+		if (result != ISC_R_SUCCESS) {
+			continue;
+		}
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		result = isc_symtab_lookup(symtab, namebuf, 1, &symvalue);
+		if (result == ISC_R_SUCCESS) {
+			const char *file = cfg_obj_file(symvalue.as_cpointer);
+			unsigned int line = cfg_obj_line(symvalue.as_cpointer);
+			if (file == NULL) {
+				file = "<unknown file>";
+			}
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "ds-style and key-style keys "
+				    "cannot be used for the "
+				    "same domain. "
+				    "ds-style defined at "
+				    "%s:%u", file, line);
+
+			ret = ISC_R_FAILURE;
+		}
+	}
+
+	return (ret);
+}
+
 /*
  * Check for conflicts between static and initialiizing keys.
  */
@@ -3425,24 +3662,35 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	isc_result_t result, tresult;
 	const cfg_listelt_t *elt = NULL;
 	const cfg_obj_t *keylist = NULL;
-	isc_symtab_t *symtab = NULL;
+	isc_symtab_t *statictab = NULL, *dstab = NULL;
 
-	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
+	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &statictab);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &dstab);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
 	/*
 	 * First we record all the static keys (i.e., old-style
-	 * trusted-keys and dnssec-keys configured with "static-key")
+	 * trusted-keys and dnssec-keys configured with "static-key"),
+	 * and all the DS-style trust anchors.
 	 */
 	for (elt = cfg_list_first(global_dkeys);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, mctx, keylist,
+		tresult = record_static_keys(statictab, mctx, keylist,
 					     logctx, autovalidation);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+
+		tresult = record_ds_keys(dstab, mctx, keylist);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3453,8 +3701,13 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, mctx, keylist,
+		tresult = record_static_keys(statictab, mctx, keylist,
 					     logctx, autovalidation);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+
+		tresult = record_ds_keys(dstab, mctx, keylist);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3465,7 +3718,7 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, mctx, keylist,
+		tresult = record_static_keys(statictab, mctx, keylist,
 					     logctx, autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
@@ -3477,24 +3730,29 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, mctx, keylist,
+		tresult = record_static_keys(statictab, mctx, keylist,
 					     logctx, autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
 	}
 
-
 	/*
 	 * Next, ensure that there's no conflict between the
-	 * static keys and the dnssec-keys configured with "initial-key"
+	 * static keys and the dnssec-keys configured with "initial-key",
+	 * or between DS-style and DNSKEY-style dnssec-keys.
 	 */
 	for (elt = cfg_list_first(global_dkeys);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = check_initializing_keys(symtab, keylist, logctx);
+		tresult = check_initializing_keys(statictab, keylist, logctx);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+
+		tresult = check_non_ds_keys(dstab, keylist, logctx);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3505,15 +3763,23 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = check_initializing_keys(symtab, keylist, logctx);
+		tresult = check_initializing_keys(statictab, keylist, logctx);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+
+		tresult = check_non_ds_keys(dstab, keylist, logctx);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
 	}
 
  cleanup:
-	if (symtab != NULL) {
-		isc_symtab_destroy(&symtab);
+	if (statictab != NULL) {
+		isc_symtab_destroy(&statictab);
+	}
+	if (dstab != NULL) {
+		isc_symtab_destroy(&dstab);
 	}
 	return (result);
 }
@@ -3898,8 +4164,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				     element2 = cfg_list_next(element2))
 				{
 					obj = cfg_listelt_value(element2);
-					tresult = check_trusted_key(obj,
-								    false,
+					tresult = check_trust_anchor(obj, false,
 								    &flags,
 								    logctx);
 					if (tresult != ISC_R_SUCCESS) {
@@ -3914,7 +4179,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    "trusted-keys entry for the root "
 					    "zone WILL FAIL after key "
 					    "rollover - use dnssec-keys "
-					    "with initial-key instead.");
+					    "with initial-key "
+					    "or initial-ds instead.");
 			}
 
 			tflags |= flags;
@@ -3958,8 +4224,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				     element2 = cfg_list_next(element2))
 				{
 					obj = cfg_listelt_value(element2);
-					tresult = check_trusted_key(obj,
-								    true,
+					tresult = check_trust_anchor(obj, true,
 								    &flags,
 								    logctx);
 					if (tresult != ISC_R_SUCCESS) {
@@ -3971,10 +4236,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			if ((flags & ROOT_KSK_STATIC) != 0) {
 				cfg_obj_log(check_keys[i], logctx,
 					    ISC_LOG_WARNING,
-					    "static-key entry for the root "
+					    "static entry for the root "
 					    "zone WILL FAIL after key "
 					    "rollover - use dnssec-keys "
-					    "with initial-key instead.");
+					    "with initial-key "
+					    "or initial-ds instead.");
 			}
 
 			if ((flags & ROOT_KSK_2010) != 0 &&
@@ -4001,7 +4267,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if ((dflags & ROOT_KSK_ANY) == ROOT_KSK_ANY) {
 		keys = (view_dkeys != NULL) ? view_dkeys : global_dkeys;
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "both initial-key and static-key entries for the "
+			    "both initial and static entries for the "
 			    "root zone are present");
 	}
 

@@ -162,6 +162,7 @@ set_key(dns_client_t *client, char *keynamestr, char *keystr,
 		exit(1);
 	}
 	result = dns_client_addtrustedkey(client, dns_rdataclass_in,
+					  dns_rdatatype_dnskey,
 					  keyname, &rrdatabuf);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "failed to add key for %s\n",

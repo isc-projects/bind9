@@ -2230,13 +2230,14 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	  The keys specified in <command>dnssec-keys</command>
 	  copies of DNSKEY RRs for zones that are used to form the
 	  first link in the cryptographic chain of trust.  Keys configured
-	  with the keyword <command>static-key</command> are loaded directly
+	  with the keyword <command>static-key</command> or
+	  <command>static-ds</command> are loaded directly
 	  into the table of trust anchors, and can only be changed by
 	  altering the configuration. Keys configured with
-	  <command>initial-key</command> are used to initialize
-	  RFC 5011 trust anchor maintenance, and will be kept up to
-	  date automatically after the first time <command>named</command>
-	  runs.
+	  <command>initial-key</command> or <command>initial-ds</command>
+	  are used to initialize RFC 5011 trust anchor maintenance, and
+	  will be kept up to date automatically after the first time
+	  <command>named</command> runs.
 	</para>
 
 	<para>
@@ -2276,17 +2277,7 @@ dnssec-keys {
 				 97S+LKUTpQcq27R7AT3/V5hRQxScINqwcz4jYqZD2fQ
 				 dgxbcDTClU0CRBdiieyLMNzXG3";
 	/* Key for our organization's forward zone */
-	example.com. static-key 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
-			      5KbhTjrW1ZaARmPhEZZe3Y9ifgEuq7vZ/z
-			      GZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb
-			      4JKUbbOTcM8pwXlj0EiX3oDFVmjHO444gL
-			      kBOUKUf/mC7HvfwYH/Be22GnClrinKJp1O
-			      g4ywzO9WglMk7jbfW33gUKvirTHr25GL7S
-			      TQUzBb5Usxt8lgnyTUHs1t3JwCY5hKZ6Cq
-			      FxmAVZP20igTixin/1LcrgX/KMEGd/biuv
-			      F4qJCyduieHukuY3H4XMAcR+xia2nIUPvm
-			      /oyWR8BW/hWdzOvnSCThlHf3xiYleDbt/o
-			      1OTQ09A0=";
+	example.com. static-ds 54135 5 2 "8EF922C97F1D07B23134440F19682E7519ADDAE180E20B1B1EC52E7F58B2831D"
 
 	/* Key for our reverse zone. */
 	2.0.192.IN-ADDRPA.NET. static-key 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
@@ -3215,11 +3206,14 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	      </entry>
 	      <entry colname="2">
 		<para>
-		  defines DNSSEC keys: if used with the
-		  <command>initial-key</command> keyword,
-		  keys are kept up to date using RFC 5011
-		  trust anchor maintenance, and if used with
-		  <command>static-key</command>, keys are permanent.
+		  defines DNSSEC trust anchors: if used with
+		  the <command>initial-key</command> or
+		  <command>initial-ds</command> keyword,
+		  trust anchors are kept up to date using RFC
+		  5011 trust anchor maintenance, and if used with
+		  <command>static-key</command> or
+		  <command>static-ds</command>, trust anchors
+		  are permanent.
 		</para>
 	      </entry>
 	    </row>
@@ -4628,7 +4622,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	      <para>
 		Specifies the directory in which to store the files that
 		track managed DNSSEC keys (i.e., those configured using
-		the <command>initial-key</command> keyword in a
+		the <command>initial-key</command> or
+		<command>initial-ds</command> keywords in a
 		<command>dnssec-keys</command> statement).  By default,
 		this is the working directory.  The directory
 		<emphasis>must</emphasis> be writable by the effective
@@ -10864,12 +10859,12 @@ example.com                 CNAME   rpz-tcp-only.
 	    trust anchors.  DNSSEC is described in <xref linkend="DNSSEC"/>.
 	  </para>
 	  <para>
-	    A trust anchor is defined when the public key for
-	    a non-authoritative zone is known, but cannot be securely
-	    obtained through DNS, either because it is the DNS root zone
-	    or because its parent zone is unsigned.  Once a key has been
-	    configured as a trust anchor, it is treated as if it had
-	    been validated and proven secure.
+	    A trust anchor is defined when the public key or public key
+	    digest for a non-authoritative zone is known, but cannot be
+	    securely obtained through DNS, either because it is the DNS
+	    root zone or because its parent zone is unsigned.  Once a key
+	    or digest has been configured as a trust anchor, it is treated
+	    as if it had been validated and proven secure.
 	  </para>
 	  <para>
 	    The resolver attempts DNSSEC validation on all DNS data
@@ -10881,19 +10876,9 @@ example.com                 CNAME   rpz-tcp-only.
 	  <para>
 	    All keys listed in <command>dnssec-keys</command>, and
 	    their corresponding zones, are deemed to exist regardless
-	    of what parent zones say.   Only keys configured as trust anchors
+	    of what parent zones say.  Only keys configured as trust anchors
 	    are used to validate the DNSKEY RRset for the corresponding
-	    name.  The parent's DS RRset will not be used.
-	  </para>
-	  <para>
-	    The <command>dnssec-keys</command> statement can contain
-	    multiple key entries, each consisting of the key's
-	    domain name, followed by the <command>static-key</command> or
-	    <command>initial-key</command> keyword, then the key's flags,
-	    protocol, algorithm, and the Base64 representation of the key
-	    data.  Spaces, tabs, newlines and carriage returns are ignored
-	    in the key data, so the configuration may be split up into
-	    multiple lines.
+	    name. The parent's DS RRset will not be used.
 	  </para>
 	  <para>
 	    <command>dnssec-keys</command> may be set at the top level
@@ -10903,11 +10888,33 @@ example.com                 CNAME   rpz-tcp-only.
 	    defined in a view are only used within that view.
 	  </para>
 	  <para>
-	    <command>dnssec-keys</command> entries can be configured with
-	    two keywords: <command>static-key</command> or
-	    <command>initial-key</command>.  Keys configured with
-	    <command>static-key</command> are immutable,
-	    while keys configured with <command>initial-key</command>
+	    The <command>dnssec-keys</command> statement can contain
+	    multiple trust anchor entries, each consisting of a
+	    domain name, followed by an "anchor type" keyword indicating
+	    the trust anchor's format, followed by the key or digest data.
+	  </para>
+	  <para>
+	    If the anchor type is <command>static-key</command> or
+	    <command>initial-key</command>, then it is followed with the
+	    key's flags, protocol, algorithm, and the Base64 representation
+	    of the public key data. This is identical to the text
+	    representation of a DNSKEY record.  Spaces, tabs, newlines and
+	    carriage returns are ignored in the key data, so the
+	    configuration may be split up into multiple lines.
+	  </para>
+	  <para>
+	    If the anchor type is <command>static-ds</command> or
+	    <command>initial-ds</command>, then it is followed with the
+	    key tag, algorithm, digest type, and the hexidecimal
+	    representation of the key digest. This is identical to the
+	    text representation of a DS record.  Spaces, tabs, newlines
+	    and carriage returns are ignored.
+	  </para>
+	  <para>
+	    Trust anchors configured with the
+	    <command>static-key</command> or <command>static-ds</command>
+	    anchor types are immutable, while keys configured with
+	    <command>initial-key</command> or <command>initial-ds</command>
 	    can be kept up to date automatically, without intervention
 	    from the resolver operator. (<command>static-key</command>
 	    keys are identical to keys configured using the deprecated
@@ -10917,45 +10924,55 @@ example.com                 CNAME   rpz-tcp-only.
 	    Suppose, for example, that a zone's key-signing
 	    key was compromised, and the zone owner had to revoke and
 	    replace the key.  A resolver which had the original key
-	    configured as a <command>static-key</command> would be
-	    unable to validate this zone any longer; it would
-	    reply with a SERVFAIL response code.  This would
-	    continue until the resolver operator had updated the
-	    <command>dnssec-keys</command> statement with the new key.
+	    configured using <command>static-key</command> or
+	    <command>static-ds</command> would be unable to validate
+	    this zone any longer; it would reply with a SERVFAIL response
+	    code.  This would continue until the resolver operator had
+	    updated the <command>dnssec-keys</command> statement with
+	    the new key.
 	  </para>
 	  <para>
 	    If, however, the trust anchor had been configured with
-	    <command>initial-key</command> instead, then the
-	    zone owner could add a "stand-by" key to their zone in advance.
-	    <command>named</command> would store the stand-by key, and
-	    when the original key was revoked, <command>named</command>
-	    would be able to transition smoothly to the new key.  It would
-	    also recognize that the old key had been revoked, and cease
-	    using that key to validate answers, minimizing the damage that
-	    the compromised key could do. This is the process used to
-	    keep the ICANN root DNSSEC key up to date.
+	    <command>initial-key</command> or <command>initial-ds</command>
+	    instead, then the zone owner could add a "stand-by" key to
+	    their zone in advance.  <command>named</command> would store
+	    the stand-by key, and when the original key was revoked,
+	    <command>named</command> would be able to transition smoothly
+	    to the new key.  It would also recognize that the old key had
+	    been revoked, and cease using that key to validate answers,
+	    minimizing the damage that the compromised key could do.
+	    This is the process used to keep the ICANN root DNSSEC key
+	    up to date.
 	  </para>
 	  <para>
-	    Whereas <command>static-key</command>
-	    keys continue to be trusted until they are removed from
+	    Whereas <command>static-key</command> and
+	    <command>static-ds</command> trust anchors continue
+	    to be trusted until they are removed from
 	    <filename>named.conf</filename>, an
-	    <command>initial-key</command> is only trusted
-	    <emphasis>once</emphasis>: for as long as it
+	    <command>initial-key</command> or <command>initial-ds</command>
+	    is only trusted <emphasis>once</emphasis>: for as long as it
 	    takes to load the managed key database and start the RFC 5011
 	    key maintenance process.
 	  </para>
 	  <para>
+	    It is not possible to mix static with initial trust anchors
+	    for the same domain name. It is also not possible to mix
+	    <command>key</command> with <command>ds</command> trust anchors.
+	  </para>
+	  <para>
 	    The first time <command>named</command> runs with an
-	    <command>initial-key</command> configured in
-	    <filename>named.conf</filename>, it fetches the
+	    <command>initial-key</command> or <command>initial-ds</command>
+	    configured in <filename>named.conf</filename>, it fetches the
 	    DNSKEY RRset directly from the zone apex, and validates it
-	    using the key specified in <command>dnssec-keys</command>.
-	    If the DNSKEY RRset is validly signed, then it is
-	    used as the basis for a new managed keys database.
+	    using the trust anchor specified in <command>dnssec-keys</command>.
+	    If the DNSKEY RRset is validly signed by a key matching
+	    the trust anchor, then it is used as the basis for a new
+	    managed keys database.
 	  </para>
 	  <para>
 	    From that point on, whenever <command>named</command> runs, it
-	    sees the <command>initial-key</command> listed in
+	    sees the <command>initial-key</command> or
+	    <command>initial-ds</command> listed in
 	    <command>dnssec-keys</command>, checks to
 	    make sure RFC 5011 key maintenance has already been initialized
 	    for the specified domain, and if so, it simply moves on.  The
@@ -10966,13 +10983,13 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	  <para>
 	    The next time <command>named</command> runs after an
-	    <command>initial-key</command> has been
-	    <emphasis>removed</emphasis> from the
+	    <command>initial-key</command> or <command>initial-ds</command>
+	    trust anchor has been <emphasis>removed</emphasis> from the
 	    <command>dnssec-keys</command> statement (or changed to
-	    a <command>static-key</command>), the corresponding
-	    zone will be removed from the managed keys database,
-	    and RFC 5011 key maintenance will no longer be used for that
-	    domain.
+	    a <command>static-key</command> or <command>static-ds</command>),
+	    the corresponding keys will be removed from the managed keys
+	    database, and RFC 5011 key maintenance will no longer be used
+	    for that domain.
 	  </para>
 	  <para>
 	    In the current implementation, the managed keys database

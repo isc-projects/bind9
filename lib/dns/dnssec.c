@@ -2270,3 +2270,53 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
  failure:
 	return (result);
 }
+
+isc_result_t
+dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
+		      dns_rdataset_t *keyset, dns_rdata_t *keyrdata)
+{
+	isc_result_t result;
+	unsigned char buf[DNS_DS_BUFFERSIZE];
+	dns_keytag_t keytag;
+	dns_rdata_dnskey_t key;
+	dns_rdata_ds_t ds;
+	isc_region_t r;
+
+	result = dns_rdata_tostruct(dsrdata, &ds, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	for (result = dns_rdataset_first(keyset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(keyset))
+	{
+		dns_rdata_t newdsrdata = DNS_RDATA_INIT;
+
+		dns_rdata_reset(keyrdata);
+		dns_rdataset_current(keyset, keyrdata);
+
+		result = dns_rdata_tostruct(keyrdata, &key, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		dns_rdata_toregion(keyrdata, &r);
+		keytag = dst_region_computeid(&r);
+
+		if (ds.key_tag != keytag || ds.algorithm != key.algorithm) {
+			continue;
+		}
+
+		result = dns_ds_buildrdata(name, keyrdata, ds.digest_type,
+					   buf, &newdsrdata);
+		if (result != ISC_R_SUCCESS) {
+			continue;
+		}
+
+		if (dns_rdata_compare(dsrdata, &newdsrdata) == 0) {
+			break;
+		}
+	}
+	if (result == ISC_R_NOMORE) {
+		result = ISC_R_NOTFOUND;
+	}
+
+	return (result);
+}

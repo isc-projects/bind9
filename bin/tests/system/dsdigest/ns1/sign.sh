@@ -29,7 +29,7 @@ cat $infile $key1.key $key2.key > $zonefile
 $SIGNER -P -g -o $zone $zonefile > /dev/null
 
 # Configure the resolving server with a static key.
-keyfile_to_static_keys $key2 > trusted.conf
+keyfile_to_static_ds $key2 > trusted.conf
 cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf

@@ -301,7 +301,7 @@ status=`expr $status + $ret`
 echo_i "reinitialize trust anchors, add second key to bind.keys"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns2
 rm -f ns2/managed-keys.bind*
-keyfile_to_initial_keys ns1/$original ns1/$standby1 > ns2/managed.conf
+keyfile_to_initial_ds ns1/$original ns1/$standby1 > ns2/managed.conf
 nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns2
 

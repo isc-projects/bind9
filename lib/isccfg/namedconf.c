@@ -445,11 +445,11 @@ static cfg_type_t cfg_type_category = {
  */
 static cfg_tuplefielddef_t dnsseckey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
-	{ "init", &cfg_type_void, 0 },
-	{ "flags", &cfg_type_uint32, 0 },
-	{ "protocol", &cfg_type_uint32, 0 },
-	{ "algorithm", &cfg_type_uint32, 0 },
-	{ "key", &cfg_type_qstring, 0 },
+	{ "anchortype", &cfg_type_void, 0 },
+	{ "n1", &cfg_type_uint32, 0 },
+	{ "n2", &cfg_type_uint32, 0 },
+	{ "n3", &cfg_type_uint32, 0 },
+	{ "data", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_dnsseckey = {
@@ -461,19 +461,20 @@ static cfg_type_t cfg_type_dnsseckey = {
  * A key initialization specifier, as used in the
  * "dnssec-keys" (or synonymous "managed-keys") statement.
  */
-static const char *init_enums[] = { "static-key", "initial-key", NULL };
-static cfg_type_t cfg_type_keyinit = {
-	"keyinit", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
-	&cfg_rep_string, &init_enums
+static const char *anchortype_enums[] = {
+	"static-key", "initial-key", "static-ds", "initial-ds", NULL
 };
-
+static cfg_type_t cfg_type_anchortype = {
+	"anchortype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, anchortype_enums
+};
 static cfg_tuplefielddef_t managedkey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
-	{ "init", &cfg_type_keyinit, 0 },
-	{ "flags", &cfg_type_uint32, 0 },
-	{ "protocol", &cfg_type_uint32, 0 },
-	{ "algorithm", &cfg_type_uint32, 0 },
-	{ "key", &cfg_type_qstring, 0 },
+	{ "anchortype", &cfg_type_anchortype, 0 },
+	{ "n1", &cfg_type_uint32, 0 },
+	{ "n2", &cfg_type_uint32, 0 },
+	{ "n3", &cfg_type_uint32, 0 },
+	{ "data", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_managedkey = {
@@ -692,10 +693,9 @@ static cfg_type_t cfg_type_trustedkeys = {
 };
 
 /*%
- * A list of key entries, as in "trusted-keys".  This has a format similar
- * to dnssec keys, except the keyname is followed by keyword, either
- * "initial-key" or "static-key". If "initial-key", then the key is
- * RFC 5011 managed; if "static-key", then the key never changes.
+ * A list of managed trust anchors.  Each entry contains a name, a keyword
+ * ("static-key", initial-key", "static-ds" or "initial-ds"), and the
+ * fields associated with either a DNSKEY or a DS record.
  */
 static cfg_type_t cfg_type_dnsseckeys = {
 	"dnsseckeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,

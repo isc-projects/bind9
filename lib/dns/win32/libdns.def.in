@@ -320,6 +320,7 @@ dns_dnssec_get_hints
 dns_dnssec_keyactive
 dns_dnssec_keyfromrdata
 dns_dnssec_keylistfromrdataset
+dns_dnssec_matchdskey
 dns_dnssec_selfsigns
 dns_dnssec_sign
 dns_dnssec_signmessage
@@ -462,6 +463,7 @@ dns_keynode_attach
 dns_keynode_create
 dns_keynode_detach
 dns_keynode_detachall
+dns_keynode_dsset
 dns_keynode_initial
 dns_keynode_key
 dns_keynode_managed

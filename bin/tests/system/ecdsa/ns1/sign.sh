@@ -25,5 +25,5 @@ cat $infile $key1.key $key2.key > $zonefile
 $SIGNER -P -g -o $zone $zonefile > /dev/null 2> signer.err || cat signer.err
 
 # Configure the resolving server with a static key.
-keyfile_to_static_keys $key1 > trusted.conf
+keyfile_to_static_ds $key1 > trusted.conf
 cp trusted.conf ../ns2/trusted.conf

@@ -21,13 +21,13 @@ zskkeyname=`$KEYGEN -a rsasha256 -q $zone`
 $SIGNER -Sg -o $zone $zonefile > /dev/null 2>/dev/null
 
 # Configure the resolving server with an initializing key.
-keyfile_to_initial_keys $keyname > managed.conf
+keyfile_to_initial_ds $keyname > managed.conf
 cp managed.conf ../ns2/managed.conf
 cp managed.conf ../ns4/managed.conf
 cp managed.conf ../ns5/managed.conf
 
 # Configure a static key to be used by delv.
-keyfile_to_static_keys $keyname > trusted.conf
+keyfile_to_static_ds $keyname > trusted.conf
 
 # Prepare an unsupported algorithm key.
 unsupportedkey=Kunknown.+255+00000
