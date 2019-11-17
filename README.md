@@ -129,25 +129,29 @@ include:
 
 * New "dnssec-policy" statement to configure a key and signing policy
   for zones, enabling automatic key regeneration and rollover.
-* A new network manager based on libuv.
+* New new network manager based on libuv.
 * Support for the new GeoIP2 geolocation API
-* Improved DNSSEC trust anchor configuration using `dnssec-keys`
+* Improved DNSSEC trust anchor configuration using `dnssec-keys`,
+  permitting configuration of trust anchors in DS as well as
+  DNSKEY format.
 * YAML output for `dig`, `mdig`, and `delv`.
 
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
-basic POSIX support, and a 64-bit integer type. Successful builds have been
-observed on many versions of Linux and UNIX, including RHEL/CentOS, Fedora,
-Debian, Ubuntu, SLES, openSUSE, Slackware, Alpine, FreeBSD, NetBSD,
-OpenBSD, macOS, Solaris, OpenIndiana, OmniOS CE, HP-UX, and OpenWRT.
+basic POSIX support, and a 64-bit integer type.  BIND also requires the
+`libuv` asynchronous I/O library, and a cryptography provider library
+such as OpenSSL or a hardware service module supporting PKCS#11. On
+Linux, BIND requires the `libcap` library to set process privileges,
+though this requirement can be overridden by disabling capability
+support at compile time. See [Compile-time options](#opts) below
+for details on other libraries that may be required to support
+optional features.
 
-BIND requires a cryptography provider library such as OpenSSL or a
-hardware service module supporting PKCS#11. On Linux, BIND requires
-the `libcap` library to set process privileges, though this requirement
-can be overridden by disabling capability support at compile time.
-See [Compile-time options](#opts) below for details on other libraries
-that may be required to support optional features.
+Successful builds have been observed on many versions of Linux and
+UNIX, including RHEL/CentOS, Fedora, Debian, Ubuntu, SLES, openSUSE,
+Slackware, Alpine, FreeBSD, NetBSD, OpenBSD, macOS, Solaris,
+OpenIndiana, OmniOS CE, HP-UX, and OpenWRT.
 
 BIND is also available for Windows Server 2008 and higher.  See
 `win32utils/build.txt` for details on building for Windows

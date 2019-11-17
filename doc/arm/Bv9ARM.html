@@ -32,7 +32,7 @@
 <div>
 <div><h1 class="title">
 <a name="id-1"></a>BIND 9 Administrator Reference Manual</h1></div>
-<div><p class="releaseinfo">BIND Version 9.15.5</p></div>
+<div><p class="releaseinfo">BIND Version 9.15.6</p></div>
 <div><p class="copyright">Copyright © 2000-2019 Internet Systems Consortium, Inc. ("ISC")</p></div>
 </div>
 <hr>
@@ -109,18 +109,18 @@
 <dt><span class="section"><a href="Bv9ARM.ch04.html#dnssec.dynamic.zones">DNSSEC, Dynamic Zones, and Automatic Signing</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.2">Converting from insecure to secure</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.7">Dynamic DNS update method</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.15">Fully automatic zone signing</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.24">Private-type records</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.31">DNSKEY rollovers</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.33">Dynamic DNS update method</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.38">Automatic key rollovers</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.40">NSEC3PARAM rollovers via UPDATE</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.42">Converting from NSEC to NSEC3</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.44">Converting from NSEC3 to NSEC</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.46">Converting from secure to insecure</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.50">Periodic re-signing</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.52">NSEC3 and OPTOUT</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.9">Dynamic DNS update method</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.17">Fully automatic zone signing</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.27">Private-type records</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.34">DNSKEY rollovers</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.36">Dynamic DNS update method</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.41">Automatic key rollovers</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.43">NSEC3PARAM rollovers via UPDATE</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.45">Converting from NSEC to NSEC3</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.48">Converting from NSEC3 to NSEC</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.50">Converting from secure to insecure</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.54">Periodic re-signing</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.10.56">NSEC3 and OPTOUT</a></span></dt>
 </dl></dd>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#rfc5011.support">Dynamic Trust Anchor Management</a></span></dt>
 <dd><dl>
@@ -195,6 +195,9 @@
 <dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_keys"><span class="command"><strong>dnssec-keys</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec-keys"><span class="command"><strong>dnssec-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_policy_grammar"><span class="command"><strong>dnssec-policy</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_policy"><span class="command"><strong>dnssec-policy</strong></span> Statement Definition
+            and Usage</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#managed-keys"><span class="command"><strong>managed-keys</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#managed_keys"><span class="command"><strong>managed-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
@@ -245,17 +248,19 @@
 </dl></dd>
 <dt><span class="appendix"><a href="Bv9ARM.ch08.html">A. Release Notes</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.5</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.6</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_platforms">Supported Platforms</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_download">Download</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_security">Security Fixes</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_features">New Features</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_removed">Removed Features</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_changes">Feature Changes</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_bugs">Bug Fixes</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.6">Notes for BIND 9.15.6</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.5">Notes for BIND 9.15.5</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.4">Notes for BIND 9.15.4</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.3">Notes for BIND 9.15.3</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.2">Notes for BIND 9.15.2</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.1">Notes for BIND 9.15.1</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.0">Notes for BIND 9.15.0</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_license">License</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#end_of_life">End of Life</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_thanks">Thank You</a></span></dt>
@@ -443,6 +448,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.5 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.6 (Development Release)</p>
 </body>
 </html>

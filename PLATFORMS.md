@@ -12,10 +12,10 @@
 
 In general, this version of BIND will build and run on any POSIX-compliant
 system with a C11-compliant C compiler, BSD-style sockets with RFC-compliant
-IPv6 support, POSIX-compliant threads, and the OpenSSL cryptography library.
-Atomic operations support from the compiler is needed, either in the form of
-builtin operations, C11 atomics or the Interlocked family of functions on
-Windows.
+IPv6 support, POSIX-compliant threads, the `libuv` asynchronous I/O library,
+and the OpenSSL cryptography library.  Atomic operations support from the
+compiler is needed, either in the form of builtin operations, C11 atomics,
+or the `Interlocked` family of functions on Windows.
 
 BIND 9.15 requires fairly recent version of libuv library to run (>= 1.x).  For
 some of the older systems listed below, you will have to install updated libuv
