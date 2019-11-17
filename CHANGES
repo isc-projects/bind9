@@ -1,3 +1,5 @@
+	--- 9.15.6 released ---
+
 5319.	[func]		Trust anchors can now be configured using DS
 			format to represent a key digest, by using the
 			new "initial-ds" or "static-ds" keywords in

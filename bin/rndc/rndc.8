@@ -276,7 +276,8 @@ See also
 Fetch all DNSSEC keys for the given zone from the key directory\&. If they are within their publication period, merge them into the zone\*(Aqs DNSKEY RRset\&. Unlike
 \fBrndc sign\fR, however, the zone is not immediately re\-signed by the new keys, but is allowed to incrementally re\-sign over time\&.
 .sp
-This command requires that the
+This command requires that the zone is configured with a
+\fBdnssec\-policy\fR, or that the
 \fBauto\-dnssec\fR
 zone option be set to
 maintain, and also requires the zone to be configured to allow dynamic DNS\&. (See "Dynamic Update Policies" in the Administrator Reference Manual for more details\&.)
@@ -566,7 +567,8 @@ Fetch all DNSSEC keys for the given zone from the key directory (see the
 \fBkey\-directory\fR
 option in the BIND 9 Administrator Reference Manual)\&. If they are within their publication period, merge them into the zone\*(Aqs DNSKEY RRset\&. If the DNSKEY RRset is changed, then the zone is automatically re\-signed with the new key set\&.
 .sp
-This command requires that the
+This command requires that the zone is configured with a
+\fBdnssec\-policy\fR, or that the
 \fBauto\-dnssec\fR
 zone option be set to
 allow
@@ -702,7 +704,7 @@ in each view\&. The list includes both statically configured keys and dynamic TK
 .PP
 \fBvalidation ( on | off | status ) \fR\fB[\fIview \&.\&.\&.\fR]\fR\fB \fR
 .RS 4
-Enable, disable, or check the current status of DNSSEC validation\&. By default, validation is enabled\&.
+Enable, disable, or check the current status of DNSSEC validation\&. By default, validation is enabled\&. The cache is flushed when validation is turned on or off to avoid using data that might differ between states\&.
 .RE
 .PP
 \fBzonestatus \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR
