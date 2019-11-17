@@ -1501,23 +1501,27 @@ check_apex_rrsets(vctx_t *vctx) {
  */
 static void
 check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
-		  dns_rdata_t *rdata, bool is_ksk)
+		  dns_rdata_t *keyrdata, bool is_ksk)
 {
 	unsigned char *active_keys = NULL, *standby_keys = NULL;
 	dns_keynode_t *keynode = NULL;
 	bool *goodkey = NULL;
 	dst_key_t *key = NULL;
 	isc_result_t result;
+	dns_rdataset_t *dsset = NULL;
 
 	active_keys = (is_ksk ? vctx->ksk_algorithms : vctx->zsk_algorithms);
 	standby_keys = (is_ksk ? vctx->standby_ksk : vctx->standby_zsk);
 	goodkey = (is_ksk ? &vctx->goodksk : &vctx->goodzsk);
 
-	if (!dns_dnssec_selfsigns(rdata, vctx->origin, &vctx->keyset,
+	/*
+	 * First, does this key sign the DNSKEY rrset?
+	 */
+	if (!dns_dnssec_selfsigns(keyrdata, vctx->origin, &vctx->keyset,
 				 &vctx->keysigs, false, vctx->mctx))
 	{
 		if (!is_ksk &&
-		    dns_dnssec_signs(rdata, vctx->origin, &vctx->soaset,
+		    dns_dnssec_signs(keyrdata, vctx->origin, &vctx->soaset,
 				     &vctx->soasigs, false, vctx->mctx))
 		{
 			if (active_keys[dnskey->algorithm] != 255) {
@@ -1545,25 +1549,86 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 	}
 
 	/*
-	 * Look up the supplied key in the trust anchor table.
+	 * Convert the supplied key rdata to dst_key_t. (If this
+	 * fails we can't go further.)
 	 */
-	result = dns_dnssec_keyfromrdata(vctx->origin, rdata, vctx->mctx,
-					 &key);
+	result = dns_dnssec_keyfromrdata(vctx->origin, keyrdata,
+					 vctx->mctx, &key);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	/*
+	 * Look up the supplied key in the trust anchor table.
+	 * If we don't find an exact match, or if the keynode data
+	 * is NULL, then we have neither a DNSKEY nor a DS format
+	 * trust anchor, and can give up.
+	 */
+	result = dns_keytable_find(vctx->secroots, vctx->origin, &keynode);
 	if (result != ISC_R_SUCCESS) {
+		/* No such trust anchor */
 		goto cleanup;
 	}
 
+	/*
+	 * If the keynode has any DS format trust anchors, that means
+	 * it doesn't have any DNSKEY ones. So, we can check for a DS
+	 * match and then stop.
+	 */
+	if ((dsset = dns_keynode_dsset(keynode)) != NULL) {
+		for (result = dns_rdataset_first(dsset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(dsset))
+		{
+			dns_rdata_t dsrdata = DNS_RDATA_INIT;
+			dns_rdata_t newdsrdata = DNS_RDATA_INIT;
+			unsigned char buf[DNS_DS_BUFFERSIZE];
+			dns_rdata_ds_t ds;
+
+			dns_rdata_reset(&dsrdata);
+			dns_rdataset_current(dsset, &dsrdata);
+			result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+			if (ds.key_tag != dst_key_id(key) ||
+			    ds.algorithm != dst_key_alg(key))
+			{
+				continue;
+			}
+
+			result = dns_ds_buildrdata(vctx->origin, keyrdata,
+						   ds.digest_type, buf,
+						   &newdsrdata);
+			if (result != ISC_R_SUCCESS) {
+				continue;
+			}
+
+			if (dns_rdata_compare(&dsrdata, &newdsrdata) == 0) {
+				dns_rdataset_settrust(&vctx->keyset,
+						      dns_trust_secure);
+				dns_rdataset_settrust(&vctx->keysigs,
+						      dns_trust_secure);
+				*goodkey = true;
+				break;
+			}
+		}
+
+		goto cleanup;
+	}
+
+	/*
+	 * The keynode didn't have any DS trust anchors, so we now try to
+	 * find a matching DNSKEY trust anchor.
+	 */
 	result = dns_keytable_findkeynode(vctx->secroots, vctx->origin,
 					  dst_key_alg(key), dst_key_id(key),
 					  &keynode);
-
-	/*
-	 * No such trust anchor.
-	 */
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
+	/*
+	 * Walk the keynode list until we find a matching key or
+	 * reach the end.
+	 */
 	while (result == ISC_R_SUCCESS) {
 		dns_keynode_t *nextnode = NULL;
 
