@@ -57,6 +57,9 @@
 #include <gperftools/profiler.h>
 #endif
 
+#ifdef HAVE_GEOIP2
+#include <maxminddb.h>
+#endif
 
 /*
  * Defining NS_MAIN provides storage declarations (rather than extern)
@@ -492,6 +495,11 @@ printversion(bool verbose) {
 #if defined(HAVE_ZLIB) && defined(ZLIB_VERSION)
 	printf("compiled with zlib version: %s\n", ZLIB_VERSION);
 	printf("linked to zlib version: %s\n", zlibVersion());
+#endif
+#if defined(HAVE_GEOIP2)
+	/* Unfortunately, no version define on link time */
+	printf("linked to maxminddb version: %s\n",
+	       MMDB_lib_version());
 #endif
 #ifdef ISC_PLATFORM_USETHREADS
 	printf("threads support is enabled\n");
