@@ -1277,7 +1277,10 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 
 		dns_adb_adjustsrtt(fctx->adb, query->addrinfo, rtt, factor);
 	}
-	dns_adb_endudpfetch(fctx->adb, query->addrinfo);
+	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+		/* Inform the ADB that we're ending a UDP fetch */
+		dns_adb_endudpfetch(fctx->adb, query->addrinfo);
+	}
 
 	/*
 	 * Age RTTs of servers not tried.
@@ -2140,7 +2143,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		if (dns_adbentry_overquota(addrinfo->entry))
 			goto cleanup_dispatch;
 
-		/* Inform the ADB that we're starting a fetch */
+		/* Inform the ADB that we're starting a UDP fetch */
 		dns_adb_beginudpfetch(fctx->adb, addrinfo);
 
 		result = resquery_send(query);
