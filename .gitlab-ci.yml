@@ -309,6 +309,7 @@ misc:sid:amd64:
 
 🐞:sid:amd64:
   <<: *precheck_job
+  <<: *debian_buster_amd64_image
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
