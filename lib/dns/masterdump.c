@@ -98,6 +98,7 @@ typedef struct dns_totext_ctx {
 	uint32_t 		current_ttl;
 	bool 			current_ttl_valid;
 	dns_ttl_t		serve_stale_ttl;
+	dns_indent_t		indent;
 } dns_totext_ctx_t;
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
@@ -175,7 +176,7 @@ dns_master_style_debug = {
 };
 
 /*%
- * Similar, but indented (i.e., prepended with dns_master_indentstr).
+ * Similar, but indented (i.e., prepended with msg->indent.string).
  */
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_indent = {
@@ -206,12 +207,6 @@ dns_master_style_yaml = {
 	DNS_STYLEFLAG_INDENT,
 	24, 32, 40, 48, 80, 8, UINT_MAX
 };
-
-/*%
- * Default indent string.
- */
-LIBDNS_EXTERNAL_DATA const char *dns_master_indentstr = "\t";
-LIBDNS_EXTERNAL_DATA unsigned int dns_master_indent = 1;
 
 #define N_SPACES 10
 static char spaces[N_SPACES+1] = "          ";
@@ -250,6 +245,8 @@ struct dns_dumpctx {
 };
 
 #define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
+
+static const dns_indent_t default_indent = { "\t", 1 };
 
 /*%
  * Output tabs and spaces to go from column '*current' to
@@ -317,7 +314,9 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 }
 
 static isc_result_t
-totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
+totext_ctx_init(const dns_master_style_t *style, const dns_indent_t *indentctx,
+		dns_totext_ctx_t *ctx)
+{
 	isc_result_t result;
 
 	REQUIRE(style->tab_width != 0);
@@ -347,11 +346,14 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
 		    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
 		{
-			unsigned int i, len = strlen(dns_master_indentstr);
-			for (i = 0; i < dns_master_indent; i++) {
+			if (indentctx == NULL) {
+				indentctx = &default_indent;
+			}
+			unsigned int i, len = strlen(indentctx->string);
+			for (i = 0; i < indentctx->count; i++) {
 				if (isc_buffer_availablelength(&buf) < len)
 					return (DNS_R_TEXTTOOLONG);
-				isc_buffer_putstr(&buf, dns_master_indentstr);
+				isc_buffer_putstr(&buf, indentctx->string);
 			}
 		}
 
@@ -392,6 +394,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 	ctx->current_ttl = 0;
 	ctx->current_ttl_valid = false;
 	ctx->serve_stale_ttl = 0;
+	ctx->indent = indentctx ? *indentctx : default_indent;
 
 	return (ISC_R_SUCCESS);
 }
@@ -445,8 +448,8 @@ ncache_summary(dns_rdataset_t *rdataset, bool omit_final_dot,
 			    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
 			{
 				unsigned int i;
-				for (i = 0; i < dns_master_indent; i++) {
-					CHECK(str_totext(dns_master_indentstr,
+				for (i = 0; i < ctx->indent.count; i++) {
+					CHECK(str_totext(ctx->indent.string,
 							 target));
 				}
 			}
@@ -534,8 +537,8 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
 		    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
 		{
-			for (i = 0; i < dns_master_indent; i++)
-				RETERR(str_totext(dns_master_indentstr,
+			for (i = 0; i < ctx->indent.count; i++)
+				RETERR(str_totext(ctx->indent.string,
 						  target));
 		}
 
@@ -801,7 +804,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 {
 	dns_totext_ctx_t ctx;
 	isc_result_t result;
-	result = totext_ctx_init(&dns_master_style_debug, &ctx);
+	result = totext_ctx_init(&dns_master_style_debug, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "could not set master file style");
@@ -829,11 +832,11 @@ isc_result_t
 dns_master_rdatasettotext(const dns_name_t *owner_name,
 			  dns_rdataset_t *rdataset,
 			  const dns_master_style_t *style,
-			  isc_buffer_t *target)
+			  dns_indent_t *indent, isc_buffer_t *target)
 {
 	dns_totext_ctx_t ctx;
 	isc_result_t result;
-	result = totext_ctx_init(style, &ctx);
+	result = totext_ctx_init(style, indent, &ctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "could not set master file style");
@@ -852,7 +855,7 @@ dns_master_questiontotext(const dns_name_t *owner_name,
 {
 	dns_totext_ctx_t ctx;
 	isc_result_t result;
-	result = totext_ctx_init(style, &ctx);
+	result = totext_ctx_init(style, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "could not set master file style");
@@ -1039,8 +1042,8 @@ dump_rdatasets_text(isc_mem_t *mctx, const dns_name_t *name,
 			    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
 			{
 				unsigned int j;
-				for (j = 0; j < dns_master_indent; j++)
-					fprintf(f, "%s", dns_master_indentstr);
+				for (j = 0; j < ctx->indent.count; j++)
+					fprintf(f, "%s", ctx->indent.string);
 			}
 			fprintf(f, "; %s\n", dns_trust_totext(rds->trust));
 		}
@@ -1072,8 +1075,8 @@ dump_rdatasets_text(isc_mem_t *mctx, const dns_name_t *name,
 			    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
 			{
 				unsigned int j;
-				for (j = 0; j < dns_master_indent; j++)
-					fprintf(f, "%s", dns_master_indentstr);
+				for (j = 0; j < ctx->indent.count; j++)
+					fprintf(f, "%s", ctx->indent.string);
 			}
 			fprintf(f, "; resign=%s\n", buf);
 		}
@@ -1493,7 +1496,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		ISC_UNREACHABLE();
 	}
 
-	result = totext_ctx_init(style, &dctx->tctx);
+	result = totext_ctx_init(style, NULL, &dctx->tctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "could not set master file style");
@@ -1935,7 +1938,7 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 	dns_totext_ctx_t ctx;
 	dns_rdatasetiter_t *rdsiter = NULL;
 
-	result = totext_ctx_init(style, &ctx);
+	result = totext_ctx_init(style, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "could not set master file style");

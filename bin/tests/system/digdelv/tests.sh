@@ -752,6 +752,7 @@ if [ -x "$DIG" ] ; then
     status=$((status+ret))
   fi
 
+  n=$((n+1))
   echo_i "check that dig +unexpected works ($n)"
   ret=0
   dig_with_opts @10.53.0.6 +unexpected a a.example > dig.out.test$n || ret=1

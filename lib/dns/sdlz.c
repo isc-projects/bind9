@@ -1086,7 +1086,7 @@ modrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		goto cleanup;
 
 	result = dns_master_rdatasettotext(sdlznode->name, rdataset,
-					   style, buffer);
+					   style, NULL, buffer);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 

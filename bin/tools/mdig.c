@@ -248,9 +248,9 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (yaml) {
-		dns_master_indentstr = "  ";
-		dns_master_indent = 3;
 		styleflags |= DNS_STYLEFLAG_YAML;
+		response->indent.string = "  ";
+		response->indent.count = 3;
 	} else {
 		if (display_comments) {
 			styleflags |= DNS_STYLEFLAG_COMMENT;

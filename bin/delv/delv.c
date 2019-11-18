@@ -498,14 +498,17 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 				dns_rdata_reset(&rdata);
 			}
 		} else {
+			dns_indent_t indent = { "  ", 2 };
 			if (!yaml && (rdataset->attributes &
 				      DNS_RDATASETATTR_NEGATIVE) != 0)
 			{
 				isc_buffer_putstr(&target, "; ");
 			}
-
 			result = dns_master_rdatasettotext(owner, rdataset,
-							   style, &target);
+							   style,
+							   yaml ? &indent :
+								  NULL,
+							   &target);
 		}
 
 		if (result == ISC_R_NOSPACE) {
@@ -537,8 +540,6 @@ setup_style(dns_master_style_t **stylep) {
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (yaml) {
 		styleflags |= DNS_STYLEFLAG_YAML;
-		dns_master_indentstr = "  ";
-		dns_master_indent = 2;
 	} else {
 		if (showcomments) {
 			styleflags |= DNS_STYLEFLAG_COMMENT;

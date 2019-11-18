@@ -291,6 +291,8 @@ print_yaml(dns_dtdata_t *dt) {
 	}
 
 	if (dt->msg != NULL) {
+		dt->msg->indent.count = 2;
+		dt->msg->indent.string = "  ";
 		printf("  %s:\n", ((dt->type & DNS_DTTYPE_QUERY) != 0)
 				     ? "query_message_data"
 				     : "response_message_data");
@@ -327,8 +329,6 @@ main(int argc, char *argv[]) {
 				break;
 			case 'y':
 				yaml = true;
-				dns_master_indentstr = "  ";
-				dns_master_indent = 2;
 				break;
 			default:
 				usage();
