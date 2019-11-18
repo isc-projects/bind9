@@ -558,6 +558,12 @@ OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 	printf("linked to maxminddb version: %s\n",
 	       MMDB_lib_version());
 #endif
+#if defined(HAVE_DNSTAP)
+	printf("compiled with protobuf-c version: %s\n",
+	       PROTOBUF_C_VERSION);
+	printf("linked to protobuf-c version: %s\n",
+	       protobuf_c_version());
+#endif
 	printf("threads support is enabled\n\n");
 
 
