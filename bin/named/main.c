@@ -501,6 +501,12 @@ printversion(bool verbose) {
 	printf("linked to maxminddb version: %s\n",
 	       MMDB_lib_version());
 #endif
+#if defined(HAVE_DNSTAP)
+	printf("compiled with protobuf-c version: %s\n",
+	       PROTOBUF_C_VERSION);
+	printf("linked to protobuf-c version: %s\n",
+	       protobuf_c_version());
+#endif
 #ifdef ISC_PLATFORM_USETHREADS
 	printf("threads support is enabled\n");
 #else
