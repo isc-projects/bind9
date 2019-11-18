@@ -19,6 +19,8 @@ variables:
   CONFIGURE: ./configure
   SCAN_BUILD: scan-build-9
 
+  CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
+
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
   ASAN_OPTIONS_COMMON: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
 
@@ -426,7 +428,7 @@ push:docs:sid:amd64:
 gcc:alpine3.10:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-dnstap"
   <<: *alpine_3_10_amd64_image
   <<: *build_job
@@ -450,7 +452,7 @@ unit:gcc:alpine3.10:amd64:
 gcc:centos6:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
   <<: *centos_centos6_amd64_image
   <<: *build_job
@@ -474,7 +476,7 @@ unit:gcc:centos6:amd64:
 gcc:centos7:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
   <<: *centos_centos7_amd64_image
   <<: *build_job
@@ -498,7 +500,7 @@ unit:gcc:centos7:amd64:
 gcc:centos8:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *centos_centos8_amd64_image
   <<: *build_job
@@ -522,7 +524,7 @@ unit:gcc:centos8:amd64:
 gcc:jessie:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON} -O2"
     EXTRA_CONFIGURE: "--without-cmocka --with-python --disable-geoip"
   <<: *debian_jessie_amd64_image
   <<: *build_job
@@ -546,7 +548,7 @@ unit:gcc:jessie:amd64:
 gcc:stretch:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON} -O2"
   <<: *debian_stretch_amd64_image
   <<: *build_job
 
@@ -569,7 +571,7 @@ unit:gcc:stretch:amd64:
 gcc:buster:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
   <<: *debian_buster_amd64_image
   <<: *build_job
 
@@ -603,7 +605,7 @@ scan-build:buster:amd64:
   stage: postcheck
   variables:
     CC: clang-9
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
     CONFIGURE: "${SCAN_BUILD} ./configure"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
   script:
@@ -624,7 +626,7 @@ scan-build:buster:amd64:
 gcc:sid:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O3 -g"
+    CFLAGS: "${CFLAGS_COMMON} -O3"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
     RUN_MAKE_INSTALL: 1
     MAKE: bear make
@@ -699,7 +701,7 @@ unit:tarball:sid:amd64:
 gcc:sid:i386:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O3 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2 --without-python"
   <<: *debian_sid_i386_image
   <<: *build_job
@@ -723,7 +725,7 @@ unit:gcc:sid:i386:
 gcc:fedora31:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON} -O1"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *fedora_31_amd64_image
   <<: *build_job
@@ -747,7 +749,7 @@ unit:gcc:fedora31:amd64:
 gcc:xenial:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON} -O2"
     EXTRA_CONFIGURE: "--disable-geoip"
   <<: *ubuntu_xenial_amd64_image
   <<: *build_job
@@ -771,7 +773,7 @@ unit:gcc:xenial:amd64:
 gcc:bionic:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *ubuntu_bionic_amd64_image
   <<: *build_job
@@ -795,7 +797,7 @@ unit:gcc:bionic:amd64:
 asan:sid:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_amd64_image
@@ -824,7 +826,7 @@ unit:asan:sid:amd64:
 clang:stretch:amd64:
   variables:
     CC: clang
-    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
     EXTRA_CONFIGURE: "--with-python=python3"
   <<: *debian_stretch_amd64_image
   <<: *build_job
@@ -841,7 +843,7 @@ unit:clang:stretch:amd64:
 clang:stretch:i386:
   variables:
     CC: clang
-    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
     EXTRA_CONFIGURE: "--with-python=python2"
   <<: *debian_stretch_i386_image
   <<: *build_job
@@ -851,7 +853,7 @@ clang:stretch:i386:
 pkcs11:sid:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so"
   <<: *debian_sid_amd64_image
   <<: *build_job
@@ -874,7 +876,7 @@ unit:pkcs11:sid:amd64:
 
 clang:freebsd11.3:amd64:
   variables:
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
   <<: *freebsd_amd64
   <<: *build_job
 
@@ -896,7 +898,7 @@ unit:clang:freebsd11.3:amd64:
 
 clang:freebsd12.0:amd64:
   variables:
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-dnstap"
   <<: *freebsd_amd64
   <<: *build_job
@@ -938,7 +940,7 @@ system:clang:openbsd6.5:amd64:
 nolibtool:sid:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -Og -g"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2 --without-libtool --with-dlopen"
   <<: *debian_sid_amd64_image
   <<: *build_job
