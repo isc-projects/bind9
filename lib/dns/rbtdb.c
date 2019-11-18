@@ -5798,6 +5798,7 @@ update_recordsandbytes(bool add, rbtdb_version_t *rbtversion,
 	unsigned char *hdr = (unsigned char *)header;
 	size_t hdrsize = sizeof (*header);
 
+	RWLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 	if (add) {
 		rbtversion->records += dns_rdataslab_count(hdr, hdrsize);
 		rbtversion->bytes += dns_rdataslab_size(hdr, hdrsize);
@@ -5805,6 +5806,7 @@ update_recordsandbytes(bool add, rbtdb_version_t *rbtversion,
 		rbtversion->records -= dns_rdataslab_count(hdr, hdrsize);
 		rbtversion->bytes -= dns_rdataslab_size(hdr, hdrsize);
 	}
+	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 }
 
 static isc_result_t
@@ -6191,12 +6193,8 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				rbtnode->data = newheader;
 			newheader->next = topheader->next;
 			if (rbtversion != NULL && !header_nx) {
-				RWLOCK(&rbtversion->rwlock,
-				       isc_rwlocktype_write);
 				update_recordsandbytes(false, rbtversion,
 						       header);
-				RWUNLOCK(&rbtversion->rwlock,
-					 isc_rwlocktype_write);
 			}
 			free_rdataset(rbtdb, rbtdb->common.mctx, header);
 		} else {
@@ -6246,12 +6244,8 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				}
 			}
 			if (rbtversion != NULL && !header_nx) {
-				RWLOCK(&rbtversion->rwlock,
-				       isc_rwlocktype_write);
 				update_recordsandbytes(false, rbtversion,
 						       header);
-				RWUNLOCK(&rbtversion->rwlock,
-					 isc_rwlocktype_write);
 			}
 		}
 	} else {
@@ -6325,9 +6319,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	}
 
 	if (rbtversion != NULL && !newheader_nx) {
-		RWLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 		update_recordsandbytes(true, rbtversion, newheader);
-		RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 	}
 
 	/*
@@ -7134,8 +7126,11 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 		unsigned char *p = (unsigned char *) header;
 		size_t size = dns_rdataslab_size(p, sizeof(*header));
 		unsigned int count = dns_rdataslab_count(p, sizeof(*header));;
+		RWLOCK(&rbtdb->current_version->rwlock, isc_rwlocktype_write);
 		rbtdb->current_version->records += count;
 		rbtdb->current_version->bytes += size;
+		RWUNLOCK(&rbtdb->current_version->rwlock,
+			 isc_rwlocktype_write);
 		isc_crc64_update(crc, p, size);
 #ifdef DEBUG
 		hexdump("hashing header", p, sizeof(rdatasetheader_t));
