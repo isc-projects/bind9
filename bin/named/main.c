@@ -59,6 +59,10 @@
 #include <json_c_version.h>
 #endif /* HAVE_JSON_C */
 
+#ifdef HAVE_GEOIP2
+#include <maxminddb.h>
+#endif
+
 /*
  * Defining NAMED_MAIN provides storage declarations (rather than extern)
  * for variables in named/globals.h.
@@ -548,6 +552,11 @@ OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 	       ZLIB_VERSION);
 	printf("linked to zlib version: %s\n",
 	       zlibVersion());
+#endif
+#if defined(HAVE_GEOIP2)
+	/* Unfortunately, no version define on link time */
+	printf("linked to maxminddb version: %s\n",
+	       MMDB_lib_version());
 #endif
 	printf("threads support is enabled\n\n");
 
