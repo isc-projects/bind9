@@ -82,7 +82,7 @@ wait_for_log() {
 	msg=$1
 	file=$2
 	for _ in 1 2 3 4 5 6 7 8 9 10; do
-		nextpart "$file" | grep "$msg" > /dev/null && return
+		nextpartpeek "$file" | grep "$msg" > /dev/null && return
 		sleep 1
 	done
 	echo_i "exceeded time limit waiting for '$msg' in $file"
@@ -94,16 +94,19 @@ send_command() {
 	nextpart ans6/ans.run > /dev/null
 	echo "$*" | "${PERL}" "${SYSTEMTESTTOP}/send.pl" 10.53.0.6 "${CONTROLPORT}"
 	wait_for_log "result=" ans6/ans.run
+	if ! nextpartpeek ans6/ans.run | grep -qF "result=OK"; then
+		return 1
+	fi
 }
 
 # Instructs ans6 to open $1 TCP connections to 10.53.0.5.
 open_connections() {
-	send_command "open" "${1}" 10.53.0.5 "${PORT}"
+	send_command "open" "${1}" 10.53.0.5 "${PORT}" || return 1
 }
 
 # Instructs ans6 to close $1 TCP connections to 10.53.0.5.
 close_connections() {
-	send_command "close" "${1}"
+	send_command "close" "${1}" || return 1
 }
 
 # Check TCP statistics after server startup before using them as a baseline for
@@ -123,7 +126,7 @@ echo_i "TCP high-water: check value after some TCP connections are established (
 ret=0
 OLD_TCP_CUR="${TCP_CUR}"
 TCP_ADDED=9
-open_connections "${TCP_ADDED}"
+open_connections "${TCP_ADDED}" || ret=1
 check_stats_added() {
 	refresh_tcp_stats
 	assert_int_equal "${TCP_CUR}" $((OLD_TCP_CUR + TCP_ADDED)) "current TCP clients count" || return 1
@@ -141,7 +144,7 @@ ret=0
 OLD_TCP_CUR="${TCP_CUR}"
 OLD_TCP_HIGH="${TCP_HIGH}"
 TCP_REMOVED=5
-close_connections "${TCP_REMOVED}"
+close_connections "${TCP_REMOVED}" || ret=1
 check_stats_removed() {
 	refresh_tcp_stats
 	assert_int_equal "${TCP_CUR}" $((OLD_TCP_CUR - TCP_REMOVED)) "current TCP clients count" || return 1
@@ -156,14 +159,14 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "TCP high-water: ensure tcp-clients is an upper bound ($n)"
 ret=0
-open_connections $((TCP_LIMIT + 1))
+open_connections $((TCP_LIMIT + 1)) || ret=1
 check_stats_limit() {
 	refresh_tcp_stats
 	assert_int_equal "${TCP_CUR}" "${TCP_LIMIT}" "current TCP clients count" || return 1
 	assert_int_equal "${TCP_HIGH}" "${TCP_LIMIT}" "TCP high-water value" || return 1
 }
 retry 2 check_stats_limit || ret=1
-close_connections $((TCP_LIMIT + 1))
+close_connections $((TCP_LIMIT + 1)) || :
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
