@@ -33,10 +33,10 @@ isc_astack_new(isc_mem_t *mctx, size_t size) {
 		isc_mem_get(mctx,
 			    sizeof(isc_astack_t) + size * sizeof(uintptr_t));
 
-	stack->mctx = NULL;
+	*stack = (isc_astack_t){
+		.size = size,
+	};
 	isc_mem_attach(mctx, &stack->mctx);
-	stack->size = size;
-	stack->pos = 0;
 	memset(stack->nodes, 0, size * sizeof(uintptr_t));
 	isc_mutex_init(&stack->lock);
 	return (stack);
@@ -46,11 +46,11 @@ bool
 isc_astack_trypush(isc_astack_t *stack, void *obj) {
 	if (isc_mutex_trylock(&stack->lock) == false) {
 		if (stack->pos >= stack->size) {
-			isc_mutex_unlock(&stack->lock);
+			UNLOCK(&stack->lock);
 			return (false);
 		}
 		stack->nodes[stack->pos++] = (uintptr_t) obj;
-		isc_mutex_unlock(&stack->lock);
+		UNLOCK(&stack->lock);
 		return (true);
 	} else {
 		return (false);
@@ -59,20 +59,24 @@ isc_astack_trypush(isc_astack_t *stack, void *obj) {
 
 void *
 isc_astack_pop(isc_astack_t *stack) {
-	isc_mutex_lock(&stack->lock);
+	LOCK(&stack->lock);
 	uintptr_t rv;
 	if (stack->pos == 0) {
 		rv = 0;
 	} else {
 		rv = stack->nodes[--stack->pos];
 	}
-	isc_mutex_unlock(&stack->lock);
+	UNLOCK(&stack->lock);
 	return ((void*) rv);
 }
 
 void
 isc_astack_destroy(isc_astack_t *stack) {
+	LOCK(&stack->lock);
 	REQUIRE(stack->pos == 0);
+	UNLOCK(&stack->lock);
+
+	isc_mutex_destroy(&stack->lock);
 
 	isc_mem_putanddetach(&stack->mctx, stack,
 			     sizeof(struct isc_astack) +
