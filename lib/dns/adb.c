@@ -2785,9 +2785,8 @@ dns_adb_detach(dns_adb_t **adbx) {
 	adb = *adbx;
 	*adbx = NULL;
 
-	INSIST(adb->erefcnt > 0);
-
 	LOCK(&adb->reflock);
+	INSIST(adb->erefcnt > 0);
 	adb->erefcnt--;
 	need_exit_check = (adb->erefcnt == 0 && adb->irefcnt == 0);
 	UNLOCK(&adb->reflock);
@@ -3393,10 +3392,13 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 	fprintf(f, "; [edns success/4096 timeout/1432 timeout/1232 timeout/"
 		"512 timeout]\n");
 	fprintf(f, "; [plain success/timeout]\n;\n");
-	if (debug)
+	if (debug) {
+		LOCK(&adb->reflock);
 		fprintf(f, "; addr %p, erefcnt %u, irefcnt %u, finds out %u\n",
 			adb, adb->erefcnt, adb->irefcnt,
 			isc_mempool_getallocated(adb->nhmp));
+		UNLOCK(&adb->reflock);
+	}
 
 /*
  * In TSAN mode we need to lock the locks individually, as TSAN
