@@ -253,106 +253,6 @@ main(int argc, char **argv) {
 #define CMDLINE_FLAGS "A:D:d:E:fg:hI:i:K:k:L:P:p:R:r:S:suv:Vz:"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
-		case 'E':
-			engine = isc_commandline_argument;
-			break;
-		case 'f':
-			force = true;
-			break;
-		case 'p':
-			p = isc_commandline_argument;
-			if (!strcasecmp(p, "all")) {
-				printcreate = true;
-				printpub = true;
-				printact = true;
-				printrev = true;
-				printinact = true;
-				printdel = true;
-				printsyncadd = true;
-				printsyncdel = true;
-				break;
-			}
-
-			do {
-				switch (*p++) {
-				case 'C':
-					printcreate = true;
-					break;
-				case 'P':
-					if (!strncmp(p, "sync", 4)) {
-						p += 4;
-						printsyncadd = true;
-						break;
-					}
-					printpub = true;
-					break;
-				case 'A':
-					printact = true;
-					break;
-				case 'R':
-					printrev = true;
-					break;
-				case 'I':
-					printinact = true;
-					break;
-				case 'D':
-					if (!strncmp(p, "sync", 4)) {
-						p += 4;
-						printsyncdel = true;
-						break;
-					}
-					printdel = true;
-					break;
-				case ' ':
-					break;
-				default:
-					usage();
-					break;
-				}
-			} while (*p != '\0');
-			break;
-		case 'u':
-			epoch = true;
-			break;
-		case 'K':
-			/*
-			 * We don't have to copy it here, but do it to
-			 * simplify cleanup later
-			 */
-			directory = isc_mem_strdup(mctx,
-						   isc_commandline_argument);
-			break;
-		case 'L':
-			ttl = strtottl(isc_commandline_argument);
-			setttl = true;
-			break;
-		case 'v':
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0')
-				fatal("-v must be followed by a number");
-			break;
-		case 'P':
-			/* -Psync ? */
-			if (isoptarg("sync", argv, usage)) {
-				if (unsetsyncadd || setsyncadd)
-					fatal("-P sync specified more than "
-					      "once");
-
-				changed = true;
-				syncadd = strtotime(isc_commandline_argument,
-						   now, now, &setsyncadd);
-				unsetsyncadd = !setsyncadd;
-				break;
-			}
-			(void)isoptarg("dnskey", argv, usage);
-			if (setpub || unsetpub)
-				fatal("-P specified more than once");
-
-			changed = true;
-			pub = strtotime(isc_commandline_argument,
-					now, now, &setpub);
-			unsetpub = !setpub;
-			break;
 		case 'A':
 			if (setact || unsetact)
 				fatal("-A specified more than once");
@@ -361,24 +261,6 @@ main(int argc, char **argv) {
 			act = strtotime(isc_commandline_argument,
 					now, now, &setact);
 			unsetact = !setact;
-			break;
-		case 'R':
-			if (setrev || unsetrev)
-				fatal("-R specified more than once");
-
-			changed = true;
-			rev = strtotime(isc_commandline_argument,
-					now, now, &setrev);
-			unsetrev = !setrev;
-			break;
-		case 'I':
-			if (setinact || unsetinact)
-				fatal("-I specified more than once");
-
-			changed = true;
-			inact = strtotime(isc_commandline_argument,
-					now, now, &setinact);
-			unsetinact = !setinact;
 			break;
 		case 'D':
 			/* -Dsync ? */
@@ -403,14 +285,23 @@ main(int argc, char **argv) {
 					now, now, &setdel);
 			unsetdel = !setdel;
 			break;
-		case 'S':
-			predecessor = isc_commandline_argument;
+		case 'd':
+			if (setds) {
+				fatal("-d specified more than once");
+			}
+
+			ds = strtokeystate(isc_commandline_argument);
+			setds = true;
+			/* time */
+			(void)isoptarg(isc_commandline_argument, argv, usage);
+			dstime = strtotime(isc_commandline_argument,
+					   now, now, &setdstime);
 			break;
-		case 'i':
-			prepub = strtottl(isc_commandline_argument);
+		case 'E':
+			engine = isc_commandline_argument;
 			break;
-		case 's':
-			write_state = true;
+		case 'f':
+			force = true;
 			break;
 		case 'g':
 			if (setgoal) {
@@ -426,17 +317,33 @@ main(int argc, char **argv) {
 			}
 			setgoal = true;
 			break;
-		case 'd':
-			if (setds) {
-				fatal("-d specified more than once");
-			}
+		case '?':
+			if (isc_commandline_option != '?')
+				fprintf(stderr, "%s: invalid argument -%c\n",
+					program, isc_commandline_option);
+			/* FALLTHROUGH */
+		case 'h':
+			/* Does not return. */
+			usage();
+		case 'I':
+			if (setinact || unsetinact)
+				fatal("-I specified more than once");
 
-			ds = strtokeystate(isc_commandline_argument);
-			setds = true;
-			/* time */
-			(void)isoptarg(isc_commandline_argument, argv, usage);
-			dstime = strtotime(isc_commandline_argument,
-					   now, now, &setdstime);
+			changed = true;
+			inact = strtotime(isc_commandline_argument,
+					now, now, &setinact);
+			unsetinact = !setinact;
+			break;
+		case 'i':
+			prepub = strtottl(isc_commandline_argument);
+			break;
+		case 'K':
+			/*
+			 * We don't have to copy it here, but do it to
+			 * simplify cleanup later
+			 */
+			directory = isc_mem_strdup(mctx,
+						   isc_commandline_argument);
 			break;
 		case 'k':
 			if (setdnskey) {
@@ -450,6 +357,93 @@ main(int argc, char **argv) {
 			dnskeytime = strtotime(isc_commandline_argument,
 					       now, now, &setdnskeytime);
 			break;
+		case 'L':
+			ttl = strtottl(isc_commandline_argument);
+			setttl = true;
+			break;
+		case 'P':
+			/* -Psync ? */
+			if (isoptarg("sync", argv, usage)) {
+				if (unsetsyncadd || setsyncadd)
+					fatal("-P sync specified more than "
+					      "once");
+
+				changed = true;
+				syncadd = strtotime(isc_commandline_argument,
+						   now, now, &setsyncadd);
+				unsetsyncadd = !setsyncadd;
+				break;
+			}
+			(void)isoptarg("dnskey", argv, usage);
+			if (setpub || unsetpub)
+				fatal("-P specified more than once");
+
+			changed = true;
+			pub = strtotime(isc_commandline_argument,
+					now, now, &setpub);
+			unsetpub = !setpub;
+			break;
+		case 'p':
+			p = isc_commandline_argument;
+			if (!strcasecmp(p, "all")) {
+				printcreate = true;
+				printpub = true;
+				printact = true;
+				printrev = true;
+				printinact = true;
+				printdel = true;
+				printsyncadd = true;
+				printsyncdel = true;
+				break;
+			}
+
+			do {
+				switch (*p++) {
+				case 'A':
+					printact = true;
+					break;
+				case 'C':
+					printcreate = true;
+					break;
+				case 'D':
+					if (!strncmp(p, "sync", 4)) {
+						p += 4;
+						printsyncdel = true;
+						break;
+					}
+					printdel = true;
+					break;
+				case 'I':
+					printinact = true;
+					break;
+				case 'P':
+					if (!strncmp(p, "sync", 4)) {
+						p += 4;
+						printsyncadd = true;
+						break;
+					}
+					printpub = true;
+					break;
+				case 'R':
+					printrev = true;
+					break;
+				case ' ':
+					break;
+				default:
+					usage();
+					break;
+				}
+			} while (*p != '\0');
+			break;
+		case 'R':
+			if (setrev || unsetrev)
+				fatal("-R specified more than once");
+
+			changed = true;
+			rev = strtotime(isc_commandline_argument,
+					now, now, &setrev);
+			unsetrev = !setrev;
+			break;
 		case 'r':
 			if (setkrrsig) {
 				fatal("-r specified more than once");
@@ -462,6 +456,23 @@ main(int argc, char **argv) {
 			krrsigtime = strtotime(isc_commandline_argument,
 					       now, now, &setkrrsigtime);
 			break;
+		case 'S':
+			predecessor = isc_commandline_argument;
+			break;
+		case 's':
+			write_state = true;
+			break;
+		case 'u':
+			epoch = true;
+			break;
+		case 'V':
+			/* Does not return. */
+			version(program);
+		case 'v':
+			verbose = strtol(isc_commandline_argument, &endp, 0);
+			if (*endp != '\0')
+				fatal("-v must be followed by a number");
+			break;
 		case 'z':
 			if (setzrrsig) {
 				fatal("-z specified more than once");
@@ -473,18 +484,6 @@ main(int argc, char **argv) {
 			zrrsigtime = strtotime(isc_commandline_argument,
 					       now, now, &setzrrsigtime);
 			break;
-		case '?':
-			if (isc_commandline_option != '?')
-				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
-			/* FALLTHROUGH */
-		case 'h':
-			/* Does not return. */
-			usage();
-
-		case 'V':
-			/* Does not return. */
-			version(program);
 
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n",
