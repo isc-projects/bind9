@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/atomic.h>
 #include <isc/crc64.h>
 #include <isc/event.h>
 #include <isc/heap.h>
@@ -221,13 +222,11 @@ typedef struct rdatasetheader {
 	 * this rdataset.
 	 */
 
-	uint32_t                    count;
+	atomic_uint_fast32_t		count;
 	/*%<
 	 * Monotonously increased every time this rdataset is bound so that
 	 * it is used as the base of the starting point in DNS responses
-	 * when the "cyclic" rrset-order is required.  Since the ordering
-	 * should not be so crucial, no lock is set for the counter for
-	 * performance reasons.
+	 * when the "cyclic" rrset-order is required.
 	 */
 
 	dns_rbtnode_t                   *node;
@@ -2984,7 +2983,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	rdataset->private2 = node;
 	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
-	rdataset->count = header->count++;
+	rdataset->count = atomic_fetch_add_relaxed(&header->count, 1);
 	if (rdataset->count == UINT32_MAX)
 		rdataset->count = 0;
 
@@ -6469,7 +6468,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		newheader->attributes |= RDATASET_ATTR_ZEROTTL;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = atomic_fetch_add(&init_count, 1);
+	atomic_init(&newheader->count,
+		    atomic_fetch_add_relaxed(&init_count, 1));
 	newheader->trust = rdataset->trust;
 	newheader->last_used = now;
 	newheader->node = rbtnode;
@@ -6656,7 +6656,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->trust = 0;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = atomic_fetch_add(&init_count, 1);
+	atomic_init(&newheader->count,
+		    atomic_fetch_add_relaxed(&init_count, 1));
 	newheader->last_used = 0;
 	newheader->node = rbtnode;
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
@@ -6763,7 +6764,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->serial = rbtversion->serial;
 			newheader->noqname = NULL;
 			newheader->closest = NULL;
-			newheader->count = 0;
+			atomic_init(&newheader->count, 0);
 			newheader->node = rbtnode;
 			newheader->resign = 0;
 			newheader->resign_lsb = 0;
@@ -6854,7 +6855,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		newheader->serial = rbtversion->serial;
 	else
 		newheader->serial = 0;
-	newheader->count = 0;
+	atomic_init(&newheader->count, 0);
 	newheader->last_used = 0;
 	newheader->node = rbtnode;
 
@@ -7040,7 +7041,8 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	newheader->serial = 1;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = atomic_fetch_add(&init_count, 1);
+	atomic_init(&newheader->count,
+		    atomic_fetch_add_relaxed(&init_count, 1));
 	newheader->last_used = 0;
 	newheader->node = node;
 	setownercase(newheader, name);
