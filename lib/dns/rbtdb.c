@@ -7125,12 +7125,6 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 	for (header = rbtnode->data; header != NULL; header = header->next) {
 		unsigned char *p = (unsigned char *) header;
 		size_t size = dns_rdataslab_size(p, sizeof(*header));
-		unsigned int count = dns_rdataslab_count(p, sizeof(*header));;
-		RWLOCK(&rbtdb->current_version->rwlock, isc_rwlocktype_write);
-		rbtdb->current_version->records += count;
-		rbtdb->current_version->bytes += size;
-		RWUNLOCK(&rbtdb->current_version->rwlock,
-			 isc_rwlocktype_write);
 		isc_crc64_update(crc, p, size);
 #ifdef DEBUG
 		hexdump("hashing header", p, sizeof(rdatasetheader_t));
@@ -7162,6 +7156,7 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 			    (header->next > (rdatasetheader_t *) limit))
 				return (ISC_R_INVALIDFILE);
 		}
+		update_recordsandbytes(true, rbtdb->current_version, header);
 	}
 
 	return (ISC_R_SUCCESS);
