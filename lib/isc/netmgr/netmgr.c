@@ -450,12 +450,15 @@ async_cb(uv_async_t *handle) {
 		case netievent_tcpclose:
 			isc__nm_async_tcpclose(worker, ievent);
 			break;
+		case netievent_closecb:
+			isc__nm_async_closecb(worker, ievent);
+			break;
 		default:
 			INSIST(0);
 			ISC_UNREACHABLE();
 		}
-		isc_mem_put(worker->mgr->mctx, ievent,
-			    sizeof(isc__netievent_storage_t));
+
+		isc__nm_put_ievent(worker->mgr, ievent);
 	}
 }
 
@@ -469,6 +472,11 @@ isc__nm_get_ievent(isc_nm_t *mgr, isc__netievent_type type) {
 		.ni.type = type
 	};
 	return (event);
+}
+
+void
+isc__nm_put_ievent(isc_nm_t *mgr, void *ievent) {
+	isc_mem_put(mgr->mctx, ievent, sizeof(isc__netievent_storage_t));
 }
 
 void
@@ -552,6 +560,11 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 		isc_quota_detach(&sock->quota);
 	}
 
+	if (sock->timer_initialized) {
+		uv_close((uv_handle_t *)&sock->timer, NULL);
+		sock->timer_initialized = false;
+	}
+
 	isc_astack_destroy(sock->inactivehandles);
 
 	while ((uvreq = isc_astack_pop(sock->inactivereqs)) != NULL) {
@@ -570,7 +583,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 	} else {
 		isc_nm_detach(&sock->mgr);
 	}
-
 }
 
 static void
@@ -596,11 +608,11 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 	 * accept destruction.
 	 */
 	LOCK(&sock->lock);
-	active_handles += sock->ah;
+	active_handles += atomic_load(&sock->ah);
 	if (sock->children != NULL) {
 		for (int i = 0; i < sock->nchildren; i++) {
 			LOCK(&sock->children[i].lock);
-			active_handles += sock->children[i].ah;
+			active_handles += atomic_load(&sock->children[i].ah);
 			UNLOCK(&sock->children[i].lock);
 		}
 	}
@@ -780,6 +792,7 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		  isc_sockaddr_t *local)
 {
 	isc_nmhandle_t *handle = NULL;
+	size_t handlenum;
 	int pos;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -812,7 +825,7 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 
 	LOCK(&sock->lock);
 	/* We need to add this handle to the list of active handles */
-	if (sock->ah == sock->ah_size) {
+	if ((size_t) atomic_load(&sock->ah) == sock->ah_size) {
 		sock->ah_frees =
 			isc_mem_reallocate(sock->mgr->mctx, sock->ah_frees,
 					   sock->ah_size * 2 *
@@ -831,7 +844,9 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		sock->ah_size *= 2;
 	}
 
-	pos = sock->ah_frees[sock->ah++];
+	handlenum = atomic_fetch_add(&sock->ah, 1);
+	pos = sock->ah_frees[handlenum];
+
 	INSIST(sock->ah_handles[pos] == NULL);
 	sock->ah_handles[pos] = handle;
 	handle->ah_pos = pos;
@@ -875,62 +890,85 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	*handle = (isc_nmhandle_t) {
 		.magic = 0
 	};
+
 	isc_mem_put(sock->mgr->mctx, handle, sizeof(isc_nmhandle_t) + extra);
 }
 
 void
 isc_nmhandle_unref(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+	size_t handlenum;
+	bool reuse = false;
 	int refs;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	refs = isc_refcount_decrement(&handle->references);
 	INSIST(refs > 0);
-	if (refs == 1) {
-		isc_nmsocket_t *sock = handle->sock;
-		bool reuse = false;
+	if (refs > 1) {
+		return;
+	}
 
-		handle->sock = NULL;
-		if (handle->doreset != NULL) {
-			handle->doreset(handle->opaque);
-		}
+	sock = handle->sock;
+	handle->sock = NULL;
 
-		/*
-		 * We do it all under lock to avoid races with socket
-		 * destruction.
-		 */
-		LOCK(&sock->lock);
-		INSIST(sock->ah_handles[handle->ah_pos] == handle);
-		INSIST(sock->ah_size > handle->ah_pos);
-		INSIST(sock->ah > 0);
-		sock->ah_handles[handle->ah_pos] = NULL;
-		sock->ah_frees[--sock->ah] = handle->ah_pos;
-		handle->ah_pos = 0;
+	if (handle->doreset != NULL) {
+		handle->doreset(handle->opaque);
+	}
 
-		if (atomic_load(&sock->active)) {
-			reuse = isc_astack_trypush(sock->inactivehandles,
-						   handle);
-		}
-		UNLOCK(&sock->lock);
+	/*
+	 * We do all of this under lock to avoid races with socket
+	 * destruction.
+	 */
+	LOCK(&sock->lock);
 
-		/*
-		 * Handle is closed. If the socket has a callback
-		 * configured for that (e.g., to perform cleanup after
-		 * request processing), call it now.
-		 */
-		if (sock->closehandle_cb != NULL) {
+	INSIST(sock->ah_handles[handle->ah_pos] == handle);
+	INSIST(sock->ah_size > handle->ah_pos);
+	INSIST(atomic_load(&sock->ah) > 0);
+
+	sock->ah_handles[handle->ah_pos] = NULL;
+	handlenum = atomic_fetch_sub(&sock->ah, 1) - 1;
+	sock->ah_frees[handlenum] = handle->ah_pos;
+	handle->ah_pos = 0;
+
+	if (atomic_load(&sock->active)) {
+		reuse = isc_astack_trypush(sock->inactivehandles,
+					   handle);
+	}
+
+	UNLOCK(&sock->lock);
+
+	if (!reuse) {
+		nmhandle_free(sock, handle);
+	}
+
+	/*
+	 * The handle is closed. If the socket has a callback configured
+	 * for that (e.g., to perform cleanup after request processing),
+	 * call it now.
+	 */
+	if (sock->closehandle_cb != NULL) {
+		if (sock->tid == isc_nm_tid()) {
 			sock->closehandle_cb(sock);
-		}
 
-		if (!reuse) {
-			nmhandle_free(sock, handle);
-		}
+			/*
+			 * If we do this asynchronously then
+			 * the async event will clean it up.
+			 */
+			if (sock->ah == 0 &&
+			    !atomic_load(&sock->active) &&
+			    !atomic_load(&sock->destroying))
+			{
+				nmsocket_maybe_destroy(sock);
+			}
+		} else {
 
-		if (sock->ah == 0 &&
-		    !atomic_load(&sock->active) &&
-		    !atomic_load(&sock->destroying))
-		{
-			nmsocket_maybe_destroy(sock);
+			isc__netievent_closecb_t * event =
+				isc__nm_get_ievent(sock->mgr,
+						   netievent_closecb);
+			isc_nmsocket_attach(sock, &event->sock);
+			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+					       (isc__netievent_t *) event);
 		}
 	}
 }
@@ -1053,6 +1091,21 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region,
 		INSIST(0);
 		ISC_UNREACHABLE();
 	}
+}
+
+void
+isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0) {
+	isc__netievent_closecb_t *ievent =
+		(isc__netievent_closecb_t *) ievent0;
+
+	REQUIRE(VALID_NMSOCK(ievent->sock));
+	REQUIRE(ievent->sock->tid == isc_nm_tid());
+	REQUIRE(ievent->sock->closehandle_cb != NULL);
+
+	UNUSED(worker);
+
+	ievent->sock->closehandle_cb(ievent->sock);
+	isc_nmsocket_detach(&ievent->sock);
 }
 
 bool

@@ -116,6 +116,7 @@ typedef enum isc__netievent_type {
 	netievent_tcplisten,
 	netievent_tcpstoplisten,
 	netievent_tcpclose,
+	netievent_closecb,
 } isc__netievent_type;
 
 typedef struct isc__netievent_stop {
@@ -186,6 +187,7 @@ typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
 typedef isc__netievent__socket_t isc__netievent_resumeread_t;
+typedef isc__netievent__socket_t isc__netievent_closecb_t;
 
 typedef struct isc__netievent__socket_req {
 	isc__netievent_type	type;
@@ -268,6 +270,9 @@ struct isc_nmsocket {
 	isc_nmsocket_t		*parent;
 	isc_quota_t		*quota;
 	bool			overquota;
+	uv_timer_t		timer;
+	bool			timer_initialized;
+	uint64_t		read_timeout;
 
 	/*% outer socket is for 'wrapped' sockets - e.g. tcpdns in tcp */
 	isc_nmsocket_t		*outer;
@@ -366,7 +371,7 @@ struct isc_nmsocket {
 	 * might want to change it to something lockless in the
 	 * future.
 	 */
-	size_t			ah;
+	atomic_int_fast32_t     ah;
 	size_t			ah_size;
 	size_t			*ah_frees;
 	isc_nmhandle_t		**ah_handles;
@@ -398,6 +403,8 @@ isc__nm_get_ievent(isc_nm_t *mgr, isc__netievent_type type);
 /*%<
  * Allocate an ievent and set the type.
  */
+void
+isc__nm_put_ievent(isc_nm_t *mgr, void *ievent);
 
 void
 isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event);
@@ -469,6 +476,12 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock);
 /*%<
  * Market 'sock' as inactive, close it if necessary, and destroy it
  * if there are no remaining references or active handles.
+ */
+
+void
+isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0);
+/*%<
+ * Issue a 'handle closed' callback on the socket.
  */
 
 isc_result_t
