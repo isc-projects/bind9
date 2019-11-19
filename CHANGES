@@ -1,3 +1,6 @@
+5321.	[bug]		Obtain write lock before updating version->records
+			and version->bytes. [GL #1341]
+
 5320.	[cleanup]	Silence TSAN on header->count. [GL #1344]
 
 5319.	[func]		Trust anchors can now be configured using DS
