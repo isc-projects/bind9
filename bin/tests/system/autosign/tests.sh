@@ -103,7 +103,7 @@ checkjitter () {
 	_low=$((_mean-_limit))
 	_high=$((_mean+_limit))
 	# Find outliers.
-	echo_i "checking whether all frequencies falls into <$_low;$_high> interval"
+	echo_i "checking whether all frequencies fall into <$_low;$_high> range"
 	for _num in $_expiretimes
 	do
 		if [ $_num -gt $_high ] || [ $_num -lt $_low ]; then
@@ -1027,19 +1027,14 @@ $KEYGEN -a rsasha1 -3 -q -K ns3 jitter.nsec3.example > /dev/null
 # Trigger zone signing.
 $RNDCCMD 10.53.0.3 sign jitter.nsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i
 # Wait until zone has been signed.
-i=0
-while [ "$i" -lt 20 ]; do
-	failed=0
-	$DIG $DIGOPTS axfr jitter.nsec3.example @10.53.0.3 > dig.out.ns3.test$n || failed=1
-	grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null || failed=1
-	[ $failed -eq 0 ] && break
-	echo_i "waiting ... ($i)"
-	sleep $((i/5))
-	i=$((i+1))
-done
-[ $failed != 0 ] && echo_i "error: no NSEC3PARAM found in AXFR" && ret=1
+check_if_nsec3param_exists() {
+	$DIG $DIGOPTS NSEC3PARAM jitter.nsec3.example @10.53.0.3 > dig.out.ns3.1.test$n || return 1
+	grep -q "^jitter\.nsec3\.example\..*NSEC3PARAM" dig.out.ns3.1.test$n || return 1
+}
+retry_quiet 20 check_if_nsec3param_exists || ret=1
+$DIG $DIGOPTS AXFR jitter.nsec3.example @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
 # Check jitter distribution.
-checkjitter dig.out.ns3.test$n || ret=1
+checkjitter dig.out.ns3.2.test$n || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
