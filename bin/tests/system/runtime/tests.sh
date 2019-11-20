@@ -1,3 +1,5 @@
+#!/bin/sh
+#
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -112,6 +114,32 @@ test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
 cd ..
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "verifying that named switches UID ($n)"
+if [ "`id -u`" = 0 ] && [ ! "$CYGWIN" ]; then
+    ret=0
+    TEMP_NAMED_DIR=`mktemp -d`
+    if [ -d "${TEMP_NAMED_DIR}" ]; then
+        copy_setports ns2/named-alt9.conf.in "${TEMP_NAMED_DIR}/named-alt9.conf"
+        chown -R nobody "${TEMP_NAMED_DIR}"
+        chmod 0700 "${TEMP_NAMED_DIR}"
+        ( cd "${TEMP_NAMED_DIR}" && $NAMED -u nobody -c named-alt9.conf -d 99 -g -U 4 >> named9.run 2>&1 & )
+        sleep 2
+        [ -s "${TEMP_NAMED_DIR}/named9.pid" ] || ret=1
+        grep "loading configuration: permission denied" "${TEMP_NAMED_DIR}/named9.run" > /dev/null && ret=1
+        pid=`cat "${TEMP_NAMED_DIR}/named9.pid" 2>/dev/null`
+        test "${pid:+set}" = set && $KILL -15 "${pid}" >/dev/null 2>&1
+        mv "${TEMP_NAMED_DIR}" ns2/
+    else
+        echo_i "mktemp failed"
+        ret=1
+    fi
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=`expr $status + $ret`
+else
+    echo_i "skipped, not running as root or running on Windows"
+fi
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

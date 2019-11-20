@@ -17,6 +17,9 @@
 # Find the top of the BIND9 tree.
 TOP=@abs_top_builddir@
 
+# Provide TMPDIR variable for tests that need it.
+TMPDIR=${TMPDIR:-/tmp}
+
 # This is not the windows build.
 CYGWIN=""
 

@@ -526,5 +526,6 @@ export RRCHECKER
 export SAMPLEUPDATE
 export SIGNER
 export SUBDIRS
+export TMPDIR
 export TSIGKEYGEN
 export WIRETEST
