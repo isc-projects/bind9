@@ -95,7 +95,8 @@ dlz <em class="replaceable"><code>string</code></em> {<br>
 <a name="id-1.11"></a><h2>DNSSEC-KEYS</h2>
     <div class="literallayout"><p><br>
 dnssec-keys { <em class="replaceable"><code>string</code></em> ( static-key |<br>
-    initial-key ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
+    initial-key | static-ds | initial-ds )<br>
+    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
     <em class="replaceable"><code>quoted_string</code></em>; ... };<br>
 </p></div>
   </div>
@@ -144,9 +145,9 @@ logging {<br>
   <p>Deprecated - see DNSSEC-KEYS.</p>
     <div class="literallayout"><p><br>
 managed-keys { <em class="replaceable"><code>string</code></em> ( static-key<br>
-    | initial-key ) <em class="replaceable"><code>integer</code></em><br>
-    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
-    <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated<br>
+    | initial-key | static-ds |<br>
+    initial-ds ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
+    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated<br>
 </p></div>
   </div>
 
@@ -196,7 +197,7 @@ options {<br>
 	    [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port<br>
 	    <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key<br>
 	    <em class="replaceable"><code>string</code></em> ]; ... } ] [ zone-directory <em class="replaceable"><code>quoted_string</code></em> ] [<br>
-	    in-memory <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>ttlval</code></em> ]; ... };<br>
+	    in-memory <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>duration</code></em> ]; ... };<br>
 	check-dup-records ( fail | warn | ignore );<br>
 	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
 	check-mx ( fail | warn | ignore );<br>
@@ -278,18 +279,18 @@ options {<br>
 	fstrm-set-output-notify-threshold <em class="replaceable"><code>integer</code></em>;<br>
 	fstrm-set-output-queue-model ( mpsc | spsc );<br>
 	fstrm-set-output-queue-size <em class="replaceable"><code>integer</code></em>;<br>
-	fstrm-set-reopen-interval <em class="replaceable"><code>ttlval</code></em>;<br>
+	fstrm-set-reopen-interval <em class="replaceable"><code>duration</code></em>;<br>
 	geoip-directory ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
 	glue-cache <em class="replaceable"><code>boolean</code></em>;<br>
 	heartbeat-interval <em class="replaceable"><code>integer</code></em>;<br>
 	hostname ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
 	inline-signing <em class="replaceable"><code>boolean</code></em>;<br>
-	interface-interval <em class="replaceable"><code>ttlval</code></em>;<br>
+	interface-interval <em class="replaceable"><code>duration</code></em>;<br>
 	ixfr-from-differences ( primary | master | secondary | slave |<br>
 	    <em class="replaceable"><code>boolean</code></em> );<br>
 	keep-response-order { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
-	lame-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	lame-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	listen-on [ port <em class="replaceable"><code>integer</code></em> ] [ dscp<br>
 	    <em class="replaceable"><code>integer</code></em> ] {<br>
 	    <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -303,28 +304,28 @@ options {<br>
 	masterfile-style ( full | relative );<br>
 	match-mapped-addresses <em class="replaceable"><code>boolean</code></em>;<br>
 	max-cache-size ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> | <em class="replaceable"><code>percentage</code></em> );<br>
-	max-cache-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	max-cache-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	max-clients-per-query <em class="replaceable"><code>integer</code></em>;<br>
 	max-journal-size ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );<br>
-	max-ncache-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	max-ncache-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	max-records <em class="replaceable"><code>integer</code></em>;<br>
 	max-recursion-depth <em class="replaceable"><code>integer</code></em>;<br>
 	max-recursion-queries <em class="replaceable"><code>integer</code></em>;<br>
 	max-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 	max-retry-time <em class="replaceable"><code>integer</code></em>;<br>
 	max-rsa-exponent-size <em class="replaceable"><code>integer</code></em>;<br>
-	max-stale-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	max-stale-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	max-transfer-idle-in <em class="replaceable"><code>integer</code></em>;<br>
 	max-transfer-idle-out <em class="replaceable"><code>integer</code></em>;<br>
 	max-transfer-time-in <em class="replaceable"><code>integer</code></em>;<br>
 	max-transfer-time-out <em class="replaceable"><code>integer</code></em>;<br>
 	max-udp-size <em class="replaceable"><code>integer</code></em>;<br>
-	max-zone-ttl ( unlimited | <em class="replaceable"><code>ttlval</code></em> );<br>
+	max-zone-ttl ( unlimited | <em class="replaceable"><code>duration</code></em> );<br>
 	memstatistics <em class="replaceable"><code>boolean</code></em>;<br>
 	memstatistics-file <em class="replaceable"><code>quoted_string</code></em>;<br>
 	message-compression <em class="replaceable"><code>boolean</code></em>;<br>
-	min-cache-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
-	min-ncache-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	min-cache-ttl <em class="replaceable"><code>duration</code></em>;<br>
+	min-ncache-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 	min-retry-time <em class="replaceable"><code>integer</code></em>;<br>
 	minimal-any <em class="replaceable"><code>boolean</code></em>;<br>
@@ -341,8 +342,8 @@ options {<br>
 	notify-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ]<br>
 	    [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 	notify-to-soa <em class="replaceable"><code>boolean</code></em>;<br>
-	nta-lifetime <em class="replaceable"><code>ttlval</code></em>;<br>
-	nta-recheck <em class="replaceable"><code>ttlval</code></em>;<br>
+	nta-lifetime <em class="replaceable"><code>duration</code></em>;<br>
+	nta-recheck <em class="replaceable"><code>duration</code></em>;<br>
 	nxdomain-redirect <em class="replaceable"><code>string</code></em>;<br>
 	pid-file ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
 	port <em class="replaceable"><code>integer</code></em>;<br>
@@ -389,13 +390,13 @@ options {<br>
 	response-padding { <em class="replaceable"><code>address_match_element</code></em>; ... } block-size<br>
 	    <em class="replaceable"><code>integer</code></em>;<br>
 	response-policy { zone <em class="replaceable"><code>string</code></em> [ add-soa <em class="replaceable"><code>boolean</code></em> ] [ log<br>
-	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [ min-update-interval<br>
-	    <em class="replaceable"><code>ttlval</code></em> ] [ policy ( cname | disabled | drop | given | no-op |<br>
+	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [ min-update-interval<br>
+	    <em class="replaceable"><code>duration</code></em> ] [ policy ( cname | disabled | drop | given | no-op |<br>
 	    nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [<br>
 	    recursive-only <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    nsdname-enable <em class="replaceable"><code>boolean</code></em> ]; ... } [ add-soa <em class="replaceable"><code>boolean</code></em> ] [<br>
-	    break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [<br>
-	    min-update-interval <em class="replaceable"><code>ttlval</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [<br>
+	    break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [<br>
+	    min-update-interval <em class="replaceable"><code>duration</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [<br>
 	    nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ]<br>
 	    [ recursive-only <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    nsdname-enable <em class="replaceable"><code>boolean</code></em> ] [ dnsrps-enable <em class="replaceable"><code>boolean</code></em> ] [<br>
@@ -409,7 +410,7 @@ options {<br>
 	serial-query-rate <em class="replaceable"><code>integer</code></em>;<br>
 	serial-update-method ( date | increment | unixtime );<br>
 	server-id ( <em class="replaceable"><code>quoted_string</code></em> | none | hostname );<br>
-	servfail-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	servfail-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	session-keyalg <em class="replaceable"><code>string</code></em>;<br>
 	session-keyfile ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
 	session-keyname <em class="replaceable"><code>string</code></em>;<br>
@@ -420,7 +421,7 @@ options {<br>
 	sortlist { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	stacksize ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );<br>
 	stale-answer-enable <em class="replaceable"><code>boolean</code></em>;<br>
-	stale-answer-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	stale-answer-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	startup-notify-rate <em class="replaceable"><code>integer</code></em>;<br>
 	statistics-file <em class="replaceable"><code>quoted_string</code></em>;<br>
 	synth-from-dnssec <em class="replaceable"><code>boolean</code></em>;<br>
@@ -557,7 +558,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port<br>
 	    <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key<br>
 	    <em class="replaceable"><code>string</code></em> ]; ... } ] [ zone-directory <em class="replaceable"><code>quoted_string</code></em> ] [<br>
-	    in-memory <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>ttlval</code></em> ]; ... };<br>
+	    in-memory <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>duration</code></em> ]; ... };<br>
 	check-dup-records ( fail | warn | ignore );<br>
 	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
 	check-mx ( fail | warn | ignore );<br>
@@ -600,8 +601,9 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	dnssec-accept-expired <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-dnskey-kskonly <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-keys { <em class="replaceable"><code>string</code></em> ( static-key |<br>
-	    initial-key ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
-	    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };<br>
+	    initial-key | static-ds | initial-ds<br>
+	    ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
+	    <em class="replaceable"><code>quoted_string</code></em>; ... };<br>
 	dnssec-loadkeys-interval <em class="replaceable"><code>integer</code></em>;<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
@@ -635,10 +637,11 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		secret <em class="replaceable"><code>string</code></em>;<br>
 	};<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
-	lame-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	lame-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	lmdb-mapsize <em class="replaceable"><code>sizeval</code></em>;<br>
 	managed-keys { <em class="replaceable"><code>string</code></em> (<br>
 	    static-key | initial-key<br>
+	    | static-ds | initial-ds<br>
 	    ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
 	    <em class="replaceable"><code>integer</code></em><br>
 	    <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated<br>
@@ -648,25 +651,25 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	match-destinations { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	match-recursive-only <em class="replaceable"><code>boolean</code></em>;<br>
 	max-cache-size ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> | <em class="replaceable"><code>percentage</code></em> );<br>
-	max-cache-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	max-cache-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	max-clients-per-query <em class="replaceable"><code>integer</code></em>;<br>
 	max-journal-size ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );<br>
-	max-ncache-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	max-ncache-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	max-records <em class="replaceable"><code>integer</code></em>;<br>
 	max-recursion-depth <em class="replaceable"><code>integer</code></em>;<br>
 	max-recursion-queries <em class="replaceable"><code>integer</code></em>;<br>
 	max-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 	max-retry-time <em class="replaceable"><code>integer</code></em>;<br>
-	max-stale-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	max-stale-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	max-transfer-idle-in <em class="replaceable"><code>integer</code></em>;<br>
 	max-transfer-idle-out <em class="replaceable"><code>integer</code></em>;<br>
 	max-transfer-time-in <em class="replaceable"><code>integer</code></em>;<br>
 	max-transfer-time-out <em class="replaceable"><code>integer</code></em>;<br>
 	max-udp-size <em class="replaceable"><code>integer</code></em>;<br>
-	max-zone-ttl ( unlimited | <em class="replaceable"><code>ttlval</code></em> );<br>
+	max-zone-ttl ( unlimited | <em class="replaceable"><code>duration</code></em> );<br>
 	message-compression <em class="replaceable"><code>boolean</code></em>;<br>
-	min-cache-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
-	min-ncache-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	min-cache-ttl <em class="replaceable"><code>duration</code></em>;<br>
+	min-ncache-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 	min-retry-time <em class="replaceable"><code>integer</code></em>;<br>
 	minimal-any <em class="replaceable"><code>boolean</code></em>;<br>
@@ -682,8 +685,8 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	notify-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ]<br>
 	    [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 	notify-to-soa <em class="replaceable"><code>boolean</code></em>;<br>
-	nta-lifetime <em class="replaceable"><code>ttlval</code></em>;<br>
-	nta-recheck <em class="replaceable"><code>ttlval</code></em>;<br>
+	nta-lifetime <em class="replaceable"><code>duration</code></em>;<br>
+	nta-recheck <em class="replaceable"><code>duration</code></em>;<br>
 	nxdomain-redirect <em class="replaceable"><code>string</code></em>;<br>
 	plugin ( query ) <em class="replaceable"><code>string</code></em> [ {<br>
 	    <em class="replaceable"><code>unspecified-text</code></em> } ];<br>
@@ -725,13 +728,13 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	response-padding { <em class="replaceable"><code>address_match_element</code></em>; ... } block-size<br>
 	    <em class="replaceable"><code>integer</code></em>;<br>
 	response-policy { zone <em class="replaceable"><code>string</code></em> [ add-soa <em class="replaceable"><code>boolean</code></em> ] [ log<br>
-	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [ min-update-interval<br>
-	    <em class="replaceable"><code>ttlval</code></em> ] [ policy ( cname | disabled | drop | given | no-op |<br>
+	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [ min-update-interval<br>
+	    <em class="replaceable"><code>duration</code></em> ] [ policy ( cname | disabled | drop | given | no-op |<br>
 	    nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [<br>
 	    recursive-only <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    nsdname-enable <em class="replaceable"><code>boolean</code></em> ]; ... } [ add-soa <em class="replaceable"><code>boolean</code></em> ] [<br>
-	    break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [<br>
-	    min-update-interval <em class="replaceable"><code>ttlval</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [<br>
+	    break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [<br>
+	    min-update-interval <em class="replaceable"><code>duration</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [<br>
 	    nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ]<br>
 	    [ recursive-only <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    nsdname-enable <em class="replaceable"><code>boolean</code></em> ] [ dnsrps-enable <em class="replaceable"><code>boolean</code></em> ] [<br>
@@ -776,14 +779,14 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		    <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 		transfers <em class="replaceable"><code>integer</code></em>;<br>
 	};<br>
-	servfail-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	servfail-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	sig-signing-nodes <em class="replaceable"><code>integer</code></em>;<br>
 	sig-signing-signatures <em class="replaceable"><code>integer</code></em>;<br>
 	sig-signing-type <em class="replaceable"><code>integer</code></em>;<br>
 	sig-validity-interval <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ];<br>
 	sortlist { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	stale-answer-enable <em class="replaceable"><code>boolean</code></em>;<br>
-	stale-answer-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	stale-answer-ttl <em class="replaceable"><code>duration</code></em>;<br>
 	synth-from-dnssec <em class="replaceable"><code>boolean</code></em>;<br>
 	transfer-format ( many-answers | one-answer );<br>
 	transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [<br>
@@ -835,6 +838,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		dnskey-sig-validity <em class="replaceable"><code>integer</code></em>;<br>
 		dnssec-dnskey-kskonly <em class="replaceable"><code>boolean</code></em>;<br>
 		dnssec-loadkeys-interval <em class="replaceable"><code>integer</code></em>;<br>
+		dnssec-policy <em class="replaceable"><code>string</code></em>;<br>
 		dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
 		dnssec-update-mode ( maintain | no-resign );<br>
 		file <em class="replaceable"><code>quoted_string</code></em>;<br>
@@ -860,7 +864,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		max-transfer-idle-out <em class="replaceable"><code>integer</code></em>;<br>
 		max-transfer-time-in <em class="replaceable"><code>integer</code></em>;<br>
 		max-transfer-time-out <em class="replaceable"><code>integer</code></em>;<br>
-		max-zone-ttl ( unlimited | <em class="replaceable"><code>ttlval</code></em> );<br>
+		max-zone-ttl ( unlimited | <em class="replaceable"><code>duration</code></em> );<br>
 		min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 		min-retry-time <em class="replaceable"><code>integer</code></em>;<br>
 		multi-master <em class="replaceable"><code>boolean</code></em>;<br>
@@ -937,6 +941,7 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	dnskey-sig-validity <em class="replaceable"><code>integer</code></em>;<br>
 	dnssec-dnskey-kskonly <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-loadkeys-interval <em class="replaceable"><code>integer</code></em>;<br>
+	dnssec-policy <em class="replaceable"><code>string</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-update-mode ( maintain | no-resign );<br>
 	file <em class="replaceable"><code>quoted_string</code></em>;<br>
@@ -961,7 +966,7 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	max-transfer-idle-out <em class="replaceable"><code>integer</code></em>;<br>
 	max-transfer-time-in <em class="replaceable"><code>integer</code></em>;<br>
 	max-transfer-time-out <em class="replaceable"><code>integer</code></em>;<br>
-	max-zone-ttl ( unlimited | <em class="replaceable"><code>ttlval</code></em> );<br>
+	max-zone-ttl ( unlimited | <em class="replaceable"><code>duration</code></em> );<br>
 	min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 	min-retry-time <em class="replaceable"><code>integer</code></em>;<br>
 	multi-master <em class="replaceable"><code>boolean</code></em>;<br>
@@ -1003,14 +1008,35 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
   </div>
 
   <div class="refsection">
-<a name="id-1.24"></a><h2>FILES</h2>
+<a name="id-1.24"></a><h2>DNSSEC-POLICY</h2>
+
+    <div class="literallayout"><p><br>
+dnssec-policy <em class="replaceable"><code>string</code></em> {<br>
+	dnskey-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	keys { ( csk | ksk | zsk ) key-directory lifetime <em class="replaceable"><code>duration</code></em> algorithm <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ] ; ... };<br>
+	parent-ds-ttl <em class="replaceable"><code>duration</code></em>;<br>
+	parent-propagation-delay <em class="replaceable"><code>duration</code></em>;<br>
+	parent-registration-delay <em class="replaceable"><code>duration</code></em>;<br>
+	publish-safety <em class="replaceable"><code>duration</code></em>;<br>
+	retire-safety <em class="replaceable"><code>duration</code></em>;<br>
+	signatures-refresh <em class="replaceable"><code>duration</code></em>;<br>
+	signatures-validity <em class="replaceable"><code>duration</code></em>;<br>
+	signatures-validity-dnskey <em class="replaceable"><code>duration</code></em>;<br>
+	zone-max-ttl <em class="replaceable"><code>duration</code></em>;<br>
+	zone-propagation-delay <em class="replaceable"><code>duration</code></em>;<br>
+};<br>
+</p></div>
+  </div>
+
+  <div class="refsection">
+<a name="id-1.25"></a><h2>FILES</h2>
 
     <p><code class="filename">/etc/named.conf</code>
     </p>
   </div>
 
   <div class="refsection">
-<a name="id-1.25"></a><h2>SEE ALSO</h2>
+<a name="id-1.26"></a><h2>SEE ALSO</h2>
 
     <p><span class="citerefentry">
 	<span class="refentrytitle">ddns-confgen</span>(8)

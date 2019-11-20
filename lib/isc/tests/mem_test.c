@@ -511,20 +511,25 @@ main(void) {
 		cmocka_unit_test_setup_teardown(isc_mem_inuse_test,
 				_setup, _teardown),
 
-#if ISC_MEM_TRACKLINES
-		cmocka_unit_test_setup_teardown(isc_mem_noflags_test,
-				_setup, _teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_recordflag_test,
-				_setup, _teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_traceflag_test,
-				_setup, _teardown),
-#endif
 #if !defined(__SANITIZE_THREAD__)
 		cmocka_unit_test_setup_teardown(isc_mem_benchmark,
 						_setup, _teardown),
 		cmocka_unit_test_setup_teardown(isc_mempool_benchmark,
 						_setup, _teardown),
 #endif /* __SANITIZE_THREAD__ */
+#if ISC_MEM_TRACKLINES
+		cmocka_unit_test_setup_teardown(isc_mem_noflags_test,
+				_setup, _teardown),
+		cmocka_unit_test_setup_teardown(isc_mem_recordflag_test,
+				_setup, _teardown),
+		/*
+		 * traceflag_test closes stderr, which causes weird
+		 * side effects for any next test trying to use libuv.
+		 * This test has to be the last one to avoid problems.
+		 */
+		cmocka_unit_test_setup_teardown(isc_mem_traceflag_test,
+				_setup, _teardown),
+#endif
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));

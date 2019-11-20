@@ -48,7 +48,8 @@ the file HISTORY.
 For a detailed list of changes made throughout the history of BIND 9, see
 the file CHANGES. See below for details on the CHANGES file format.
 
-For up-to-date versions and release notes, see https://www.isc.org/download/.
+For up-to-date versions and release notes, see https://www.isc.org/
+download/.
 
 For information about supported platforms, see PLATFORMS.
 
@@ -110,25 +111,30 @@ BIND 9.15 features
 BIND 9.15 is the newest development branch of BIND 9. It includes a number
 of changes from BIND 9.14 and earlier releases. New features include:
 
+  * New "dnssec-policy" statement to configure a key and signing policy
+    for zones, enabling automatic key regeneration and rollover.
+  * New new network manager based on libuv.
   * Support for the new GeoIP2 geolocation API
-  * Improved DNSSEC key configuration using dnssec-keys
+  * Improved DNSSEC trust anchor configuration using dnssec-keys,
+    permitting configuration of trust anchors in DS as well as DNSKEY
+    format.
   * YAML output for dig, mdig, and delv.
 
 Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
-basic POSIX support, and a 64-bit integer type. Successful builds have
-been observed on many versions of Linux and UNIX, including RHEL/CentOS,
-Fedora, Debian, Ubuntu, SLES, openSUSE, Slackware, Alpine, FreeBSD,
-NetBSD, OpenBSD, macOS, Solaris, OpenIndiana, OmniOS CE, HP-UX, and
-OpenWRT.
+basic POSIX support, and a 64-bit integer type. BIND also requires the
+libuv asynchronous I/O library, and a cryptography provider library such
+as OpenSSL or a hardware service module supporting PKCS#11. On Linux, BIND
+requires the libcap library to set process privileges, though this
+requirement can be overridden by disabling capability support at compile
+time. See Compile-time options below for details on other libraries that
+may be required to support optional features.
 
-BIND requires a cryptography provider library such as OpenSSL or a
-hardware service module supporting PKCS#11. On Linux, BIND requires the
-libcap library to set process privileges, though this requirement can be
-overridden by disabling capability support at compile time. See
-Compile-time options below for details on other libraries that may be
-required to support optional features.
+Successful builds have been observed on many versions of Linux and UNIX,
+including RHEL/CentOS, Fedora, Debian, Ubuntu, SLES, openSUSE, Slackware,
+Alpine, FreeBSD, NetBSD, OpenBSD, macOS, Solaris, OpenIndiana, OmniOS CE,
+HP-UX, and OpenWRT.
 
 BIND is also available for Windows Server 2008 and higher. See win32utils/
 build.txt for details on building for Windows systems.
