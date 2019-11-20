@@ -357,9 +357,9 @@ nextpart () {
 	 END          { print NR > "/dev/stderr" }' $1 2> $1.prev
 }
 
-# retry: keep running a command until it succeeds, up to $1 times, with
-# one-second intervals
-retry() {
+# _retry: keep running a command until it succeeds, up to $1 times, with
+# one-second intervals, optionally printing a message upon every attempt
+_retry() {
 	__retries="${1}"
 	shift
 
@@ -369,12 +369,26 @@ retry() {
 		fi
 		__retries=$((__retries-1))
 		if [ "${__retries}" -gt 0 ]; then
-			echo_i "retrying"
+			if [ "${__retry_quiet}" -ne 1 ]; then
+				echo_i "retrying"
+			fi
 			sleep 1
 		else
 			return 1
 		fi
 	done
+}
+
+# retry: call _retry() in verbose mode
+retry() {
+	__retry_quiet=0
+	_retry "$@"
+}
+
+# retry_quiet: call _retry() in silent mode
+retry_quiet() {
+	__retry_quiet=1
+	_retry "$@"
 }
 
 # rndc_dumpdb: call "rndc dumpdb [...]" and wait until it completes
