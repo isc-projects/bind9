@@ -8470,8 +8470,8 @@ load_configuration(const char *filename, named_server_t *server,
 		advertised = MAX_TCP_TIMEOUT;
 	}
 
-	ns_server_settimeouts(named_g_server->sctx,
-			      initial, idle, keepalive, advertised);
+	isc_nm_tcp_settimeouts(named_g_nm, initial, idle,
+			       keepalive, advertised);
 
 	/*
 	 * Configure sets of UDP query source ports.
@@ -15405,8 +15405,8 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
-	ns_server_gettimeouts(named_g_server->sctx,
-			      &initial, &idle, &keepalive, &advertised);
+	isc_nm_tcp_gettimeouts(named_g_nm, &initial, &idle,
+			       &keepalive, &advertised);
 
 	/* Look for optional arguments. */
 	ptr = next_token(lex, NULL);
@@ -15445,7 +15445,7 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 		result = isc_task_beginexclusive(named_g_server->task);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		ns_server_settimeouts(named_g_server->sctx, initial, idle,
+		isc_nm_tcp_settimeouts(named_g_nm, initial, idle,
 				      keepalive, advertised);
 
 		isc_task_endexclusive(named_g_server->task);

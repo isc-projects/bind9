@@ -130,7 +130,7 @@ isc_result_t
 isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 		 isc_nm_cb_t cb, void *cbarg,
 		 size_t extrahandlesize, isc_quota_t *quota,
-		 isc_nmsocket_t **rv)
+		 isc_nmsocket_t **sockp)
 {
 	isc__netievent_tcplisten_t *ievent = NULL;
 	isc_nmsocket_t *nsock = NULL;
@@ -163,7 +163,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 	ievent->sock = nsock;
 	isc__nm_enqueue_ievent(&mgr->workers[nsock->tid],
 			       (isc__netievent_t *) ievent);
-	*rv = nsock;
+	*sockp = nsock;
 
 	return (ISC_R_SUCCESS);
 }
@@ -399,6 +399,11 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
 		INSIST(sock->rcb.recv != NULL);
 		sock->rcb.recv(sock->tcphandle, &region, sock->rcbarg);
+
+		sock->read_timeout = (atomic_load(&sock->keepalive)
+				      ? sock->mgr->keepalive
+				      : sock->mgr->idle);
+
 		if (sock->timer_initialized && sock->read_timeout != 0) {
 			/* The timer will be updated */
 			uv_timer_start(&sock->timer, readtimeout_cb,
@@ -485,7 +490,7 @@ accept_connection(isc_nmsocket_t *ssock) {
 	handle = isc__nmhandle_get(csock, NULL, &local);
 
 	INSIST(ssock->rcb.accept != NULL);
-	csock->read_timeout = 1000;
+	csock->read_timeout = ssock->mgr->init;
 	ssock->rcb.accept(handle, ISC_R_SUCCESS, ssock->rcbarg);
 	isc_nmsocket_detach(&csock);
 

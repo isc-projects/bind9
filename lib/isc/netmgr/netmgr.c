@@ -94,6 +94,15 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 	atomic_init(&mgr->paused, false);
 	atomic_init(&mgr->interlocked, false);
 
+	/*
+	 * Default TCP timeout values.
+	 * May be updated by isc_nm_listentcp().
+	 */
+	mgr->init = 30000;
+	mgr->idle = 30000;
+	mgr->keepalive = 30000;
+	mgr->advertised = 30000;
+
 	mgr->workers = isc_mem_get(mctx, workers * sizeof(isc__networker_t));
 	for (size_t i = 0; i < workers; i++) {
 		int r;
@@ -301,6 +310,41 @@ isc_nm_maxudp(isc_nm_t *mgr, uint32_t maxudp) {
 	REQUIRE(VALID_NM(mgr));
 
 	atomic_store(&mgr->maxudp, maxudp);
+}
+
+void
+isc_nm_tcp_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
+		       uint32_t keepalive, uint32_t advertised)
+{
+	REQUIRE(VALID_NM(mgr));
+
+	mgr->init = init * 100;
+	mgr->idle = idle * 100;
+	mgr->keepalive = keepalive * 100;
+	mgr->advertised = advertised * 100;
+}
+
+void
+isc_nm_tcp_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
+		       uint32_t *keepalive, uint32_t *advertised)
+{
+	REQUIRE(VALID_NM(mgr));
+
+	if (initial != NULL) {
+		*initial = mgr->init / 100;
+	}
+
+	if (idle != NULL) {
+		*idle = mgr->idle / 100;
+	}
+
+	if (keepalive != NULL) {
+		*keepalive = mgr->keepalive / 100;
+	}
+
+	if (advertised != NULL) {
+		*advertised = mgr->advertised / 100;
+	}
 }
 
 /*
@@ -712,7 +756,6 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 		.inactivehandles = isc_astack_new(mgr->mctx, 60),
 		.inactivereqs = isc_astack_new(mgr->mctx, 60)
 	};
-
 	isc_nm_attach(mgr, &sock->mgr);
 	sock->uv_handle.handle.data = sock;
 
@@ -950,26 +993,26 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	if (sock->closehandle_cb != NULL) {
 		if (sock->tid == isc_nm_tid()) {
 			sock->closehandle_cb(sock);
-
-			/*
-			 * If we do this asynchronously then
-			 * the async event will clean it up.
-			 */
-			if (sock->ah == 0 &&
-			    !atomic_load(&sock->active) &&
-			    !atomic_load(&sock->destroying))
-			{
-				nmsocket_maybe_destroy(sock);
-			}
 		} else {
-
 			isc__netievent_closecb_t * event =
 				isc__nm_get_ievent(sock->mgr,
 						   netievent_closecb);
 			isc_nmsocket_attach(sock, &event->sock);
 			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 					       (isc__netievent_t *) event);
+			/*
+			 * If we do this asynchronously then the async event
+			 * will clean the socket, so just exit.
+			 */
+			return;
 		}
+	}
+
+	if (atomic_load(&sock->ah) == 0 &&
+	    !atomic_load(&sock->active) &&
+	    !atomic_load(&sock->destroying))
+	{
+		nmsocket_maybe_destroy(sock);
 	}
 }
 
@@ -1010,6 +1053,14 @@ isc_nmhandle_localaddr(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	return (handle->local);
+}
+
+isc_nm_t *
+isc_nmhandle_netmgr(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	return (handle->sock->mgr);
 }
 
 isc__nm_uvreq_t *

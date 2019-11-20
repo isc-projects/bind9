@@ -457,7 +457,6 @@ static isc_result_t
 ns_interface_listentcp(ns_interface_t *ifp) {
 	isc_result_t result;
 
-	/* Reserve space for an ns_client_t with the netmgr handle */
 	result = isc_nm_listentcpdns(ifp->mgr->nm,
 				     (isc_nmiface_t *) &ifp->addr,
 				     ns__client_request, ifp,

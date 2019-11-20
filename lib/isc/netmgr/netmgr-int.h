@@ -243,6 +243,18 @@ struct isc_nm {
 	 * event or wait for the other one to finish if we want to pause.
 	 */
 	atomic_bool		interlocked;
+
+	/*
+	 * Timeout values for TCP connections, coresponding to
+	 * tcp-intiial-timeout, tcp-idle-timeout, tcp-keepalive-timeout,
+	 * and tcp-advertised-timeout. Note that these are stored in
+	 * milliseconds so they can be used directly with the libuv timer,
+	 * but they are configured in tenths of seconds.
+	 */
+	uint32_t		init;
+	uint32_t		idle;
+	uint32_t		keepalive;
+	uint32_t		advertised;
 };
 
 typedef enum isc_nmsocket_type {
@@ -338,6 +350,12 @@ struct isc_nmsocket {
 	 * A TCP socket has had isc_nm_pauseread() called.
 	 */
 	atomic_bool		readpaused;
+
+	/*%
+	 * A TCP or TCPDNS socket has been set to use the keepalive
+	 * timeout instead of the default idle timeout.
+	 */
+	atomic_bool		keepalive;
 
 	/*%
 	 * 'spare' handles for that can be reused to avoid allocations,
