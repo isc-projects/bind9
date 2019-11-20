@@ -1,6 +1,8 @@
 5321.	[bug]		Obtain write lock before updating version->records
 			and version->bytes. [GL #1341]
 
+	--- 9.11.13 released ---
+
 5315.	[bug]		Apply the inital RRSIG expiration spread fixed
 			to all dynamically created records in the zone
 			including NSEC3. Also fix the signature clusters
@@ -25,6 +27,9 @@
 
 5307.	[bug]		Fix hang when named-compilezone output is sent to pipe.
 			Thanks to Tony Finch. [GL !2481]
+
+5306.	[security]	Set a limit on the number of concurrently served
+			pipelined TCP queries. (CVE-2019-6477) [GL #1264]
 
 5302.	[bug]		Fix checking that "dnstap-output" is defined when
 			"dnstap" is specified in a view. [GL #1281]

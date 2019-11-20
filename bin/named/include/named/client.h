@@ -80,7 +80,10 @@
 
 /*% reference-counted TCP connection object */
 typedef struct ns_tcpconn {
-	isc_refcount_t		refs;
+	isc_refcount_t		clients;	/* Number of clients using
+						 * this connection. Conn can
+						 * be freed if goes to 0
+						 */
 	isc_quota_t		*tcpquota;
 	bool			pipelined;
 } ns_tcpconn_t;

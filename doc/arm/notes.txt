@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.12
+Release Notes for BIND Version 9.11.13
 
 Introduction
 
@@ -38,7 +38,16 @@ https://www.isc.org/mission/contact/.
 
 Notes for BIND 9.11.13
 
-None.
+Security Fixes
+
+  * Set a limit on the number of concurrently served pipelined TCP
+    queries. This flaw is disclosed in CVE-2019-6477. [GL #1264]
+
+New Features
+
+  * Added a new statistics variable tcp-highwater that reports the maximum
+    number of simultaneous TCP clients BIND has handled while running. [GL
+    #1206]
 
 Notes for BIND 9.11.12
 
