@@ -103,7 +103,7 @@ entropy_add(const void *buf, int num, double entropy) {
 }
 #endif
 
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L && OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static void
 lock_callback(int mode, int type, const char *file, int line) {
 	UNUSED(file);
