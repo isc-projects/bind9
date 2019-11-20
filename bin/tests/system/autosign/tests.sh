@@ -387,20 +387,26 @@ $RNDCCMD 10.53.0.1 sync 2>&1 | sed 's/^/ns1 /' | cat_i
 $RNDCCMD 10.53.0.2 sync 2>&1 | sed 's/^/ns2 /' | cat_i
 $RNDCCMD 10.53.0.3 sync 2>&1 | sed 's/^/ns3 /' | cat_i
 
+now="$(TZ=UTC date +%Y%m%d%H%M%S)"
+check_expiry() (
+	$DIG $DIGOPTS AXFR oldsigs.example @10.53.0.3 > dig.out.test$n
+	nearest_expiration="$(awk '$4 == "RRSIG" { print $9 }' < dig.out.test$n | sort -n | head -1)"
+	if [ "$nearest_expiration" -le "$now" ]; then
+		echo_i "failed: $nearest_expiration <= $now"
+		return 1
+	fi
+)
+
 echo_i "checking expired signatures were updated ($n)"
-for i in 1 2 3 4 5 6 7 8 9
-do
-	ret=0
-	$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
-	$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-        digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-	grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
-	[ $ret = 0 ] && break
-	sleep 1
-done
+retry 10 check_expiry || ret=1
+$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
 # Check jitter distribution.
 echo_i "checking expired signatures were jittered correctly ($n)"
 ret=0
