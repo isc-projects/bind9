@@ -40,11 +40,8 @@ ISC_LANG_BEGINDECLS
 
 #define DNS_RBT_USEMAGIC 1
 
-/*
- * These should add up to 30.
- */
-#define DNS_RBT_LOCKLENGTH                      10
-#define DNS_RBT_REFLENGTH                       20
+#define DNS_RBT_LOCKLENGTH		(sizeof(((dns_rbtnode_t *)0)->locknum)*8)
+#define DNS_RBT_REFLENGTH		20
 
 #define DNS_RBTNODE_MAGIC               ISC_MAGIC('R','B','N','O')
 #if DNS_RBT_USEMAGIC
@@ -154,12 +151,12 @@ struct dns_rbtnode {
 	 * separate region of memory.
 	 */
 	void *data;
-	unsigned int :0;                /* start of bitfields c/o node lock */
-	unsigned int dirty:1;
-	unsigned int wild:1;
-	unsigned int locknum:DNS_RBT_LOCKLENGTH;
-	unsigned int :0;                /* end of bitfields c/o node lock */
-	isc_refcount_t references; /* note that this is not in the bitfield */
+	uint8_t :0;                /* start of bitfields c/o node lock */
+	uint8_t dirty:1;
+	uint8_t wild:1;
+	uint8_t :0;                /* end of bitfields c/o node lock */
+	uint16_t locknum;	   /* note that this is not in the bitfield */
+	isc_refcount_t references;
 	/*@}*/
 };
 
