@@ -190,6 +190,8 @@ zone "oldsigs.example" {
 	allow-update { any; };
 	auto-dnssec maintain;
 	sig-validity-interval 10 2;
+	sig-signing-nodes 1000;
+	sig-signing-signatures 100;
 };
 
 zone "prepub.example" {
