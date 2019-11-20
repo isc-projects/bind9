@@ -1,3 +1,8 @@
+5322.	[bug]		Conditional compilation of lock_callback was
+			inconsistent with conditional use of the function
+			when forcing BIND to build with older and unsupported
+			versions of OpenSSL. [GL #1386]
+
 5321.	[bug]		Obtain write lock before updating version->records
 			and version->bytes. [GL #1341]
 
