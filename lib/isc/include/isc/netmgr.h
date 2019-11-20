@@ -95,7 +95,7 @@ isc_nmhandle_getdata(isc_nmhandle_t *handle);
 void *
 isc_nmhandle_getextra(isc_nmhandle_t *handle);
 
-typedef void (*isc_nm_opaquecb)(void *arg);
+typedef void (*isc_nm_opaquecb_t)(void *arg);
 
 bool
 isc_nmhandle_is_stream(isc_nmhandle_t *handle);
@@ -109,7 +109,7 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle);
  */
 void
 isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
-		     isc_nm_opaquecb doreset, isc_nm_opaquecb dofree);
+		     isc_nm_opaquecb_t doreset, isc_nm_opaquecb_t dofree);
 
 isc_sockaddr_t
 isc_nmhandle_peeraddr(isc_nmhandle_t *handle);
@@ -273,7 +273,17 @@ isc_nm_tcpdns_sequential(isc_nmhandle_t *handle);
  * Disable pipelining on this connection. Each DNS packet
  * will be only processed after the previous completes.
  *
- * This cannot be reversed once set for a given connection
+ * The socket must be unpaused after the query is processed.
+ * This is done the response is sent, or if we're dropping the
+ * query, it will be done when a handle is fully dereferenced
+ * by calling the socket's closehandle_cb callback.
+ *
+ * Note: This can only be run while a message is being processed;
+ * if it is run before any messages are read, no messages will
+ * be read.
+ *
+ * Also note: once this has been set, it cannot be reversed for a
+ * given connection.
  */
 
 void

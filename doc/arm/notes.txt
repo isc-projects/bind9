@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.15.5
+Release Notes for BIND Version 9.15.6
 
 Introduction
 
@@ -64,12 +64,35 @@ New Features
     that the syntax for this statement differs from the DNSSEC policy used
     by dnssec-keymgr.) [GL #1134]
 
+  * Two new keywords have been added to the dnssec-keys statement:
+    initial-ds and static-ds. These allow the use of trust anchors in DS
+    format instead of DNSKEY format. DS format allows trust anchors to be
+    configured for keys that have not yet been published; this is the
+    format used by IANA when announcing future root keys.
+
+    As with the initial-key and static-key keywords, initial-ds configures
+    a dynamic trust anchor to be maintained via RFC 5011, and static-ds
+    configures a permanent trust anchor.
+
+    (Note: Currently, DNSKEY-format and DS-format trust anchors cannot
+    both be used for the same domain name.) [GL #6] [GL #622]
+
 Feature Changes
 
   * NSEC Aggressive Cache (synth-from-dnssec) has been disabled by default
     because it was found to have a significant performance impact on the
     recursive service. The NSEC Aggressive Cache will be enable by default
     in the future releases. [GL #1265]
+
+  * The DNSSEC validation code has been refactored for clarity and to
+    reduce code duplication. [GL #622]
+
+Security Fixes
+
+  * Too many simultaneous pipelined TCP queries could cause resource
+    overuse. We now prevent this by enforcing a limit on the number of
+    simultaneous requests per active connection. This flaw`is disclosed in
+    CVE-2019-6477. [GL #1264]
 
 Notes for BIND 9.15.5
 

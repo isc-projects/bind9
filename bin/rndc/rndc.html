@@ -366,7 +366,8 @@
 	    allowed to incrementally re-sign over time.
 	  </p>
 	  <p>
-	    This command requires that the
+	    This command requires that the zone is configured with a
+	    <span class="command"><strong>dnssec-policy</strong></span>, or that the
 	    <span class="command"><strong>auto-dnssec</strong></span> zone option
 	    be set to <code class="literal">maintain</code>,
 	    and also requires the zone to be configured to
@@ -721,7 +722,8 @@
 	    re-signed with the new key set.
 	  </p>
 	  <p>
-	    This command requires that the
+	    This command requires that the zone is configured with a
+	    <span class="command"><strong>dnssec-policy</strong></span>, or that the
 	    <span class="command"><strong>auto-dnssec</strong></span> zone option be set
 	    to <code class="literal">allow</code> or
 	    <code class="literal">maintain</code>,
@@ -914,6 +916,8 @@
 	  <p>
 	    Enable, disable, or check the current status of
 	    DNSSEC validation.  By default, validation is enabled.
+	    The cache is flushed when validation is turned on or off
+	    to avoid using data that might differ between states.
 	  </p>
 	</dd>
 <dt><span class="term"><strong class="userinput"><code>zonestatus <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
