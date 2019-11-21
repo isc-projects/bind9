@@ -1384,24 +1384,23 @@ $DIG $DIGOPTS @10.53.0.3 sync.example cdnskey > dig.out.ns3.cdnskeytest$n
 grep -i "sync.example.*in.cds.*[1-9][0-9]* " dig.out.ns3.cdstest$n > /dev/null || ret=1
 grep -i "sync.example.*in.cdnskey.*257 " dig.out.ns3.cdnskeytest$n > /dev/null || ret=1
 n=`expr $n + 1`
-if [ "$lret" != 0 ]; then ret=$lret; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "setting CDS and CDNSKEY deletion times and calling 'rndc loadkeys'"
-$SETTIME -D sync now `cat sync.key` > settime.out.test$n || ret=1
+$SETTIME -D sync now+2 `cat sync.key` > settime.out.test$n || ret=1
 ($RNDCCMD 10.53.0.3 loadkeys sync.example | sed 's/^/ns3 /' | cat_i) || ret=1
-echo_i "waiting for deletion to occur"
-sleep 3
 
 echo_i "checking that the CDS and CDNSKEY are deleted ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.3 sync.example cds > dig.out.ns3.cdstest$n
-$DIG $DIGOPTS @10.53.0.3 sync.example cdnskey > dig.out.ns3.cdnskeytest$n
-grep -i "sync.example.*in.cds.*[1-9][0-9]* " dig.out.ns3.cdstest$n > /dev/null && ret=1
-grep -i "sync.example.*in.cdnskey.*257 " dig.out.ns3.cdnskeytest$n > /dev/null && ret=1
+ensure_cds_and_cdnskey_are_deleted() {
+	$DIG $DIGOPTS @10.53.0.3 sync.example. CDS > dig.out.ns3.cdstest$n || return 1
+	awk '$1 == "sync.example." && $4 == "CDS" { exit 1; }' dig.out.ns3.cdstest$n || return 1
+	$DIG $DIGOPTS @10.53.0.3 sync.example. CDNSKEY > dig.out.ns3.cdnskeytest$n || return 1
+	awk '$1 == "sync.example." && $4 == "CDNSKEY" { exit 1; }' dig.out.ns3.cdnskeytest$n || return 1
+}
+retry 10 ensure_cds_and_cdnskey_are_deleted || ret=1
 n=`expr $n + 1`
-if [ "$lret" != 0 ]; then ret=$lret; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1410,7 +1409,6 @@ ret=0
 $SETTIME -p Dsync `cat sync.key` > settime.out.test$n || ret=1
 grep "SYNC Delete:" settime.out.test$n >/dev/null || ret=1
 n=`expr $n + 1`
-if [ "$lret" != 0 ]; then ret=$lret; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1419,7 +1417,6 @@ ret=0
 $SETTIME -p Psync `cat sync.key` > settime.out.test$n || ret=1
 grep "SYNC Publish:" settime.out.test$n >/dev/null || ret=1
 n=`expr $n + 1`
-if [ "$lret" != 0 ]; then ret=$lret; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
