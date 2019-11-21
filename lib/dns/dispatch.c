@@ -1334,11 +1334,11 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 	qid = disp->qid;
 
+	LOCK(&disp->lock);
+
 	dispatch_log(disp, LVL(90),
 		     "got TCP packet: requests %d, buffers %d, recvs %d",
 		     disp->requests, disp->tcpbuffers, disp->recv_pending);
-
-	LOCK(&disp->lock);
 
 	INSIST(disp->recv_pending != 0);
 	disp->recv_pending = 0;
