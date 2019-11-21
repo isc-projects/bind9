@@ -1,3 +1,6 @@
+5324.	[bug]		Change the category of some log messages from general
+			to the more appopriate catergory of xfer-in. [GL #1394]
+
 5323.	[bug]		Fix a bug in DNSSEC trust anchor verification.
 			[GL !2609]
 
