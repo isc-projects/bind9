@@ -9911,9 +9911,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				break;
 			}
 		}
-
-		dns_keytable_detachkeynode(secroots, &keynode);
 		goto anchors_done;
+	} else {
+		dns_keytable_detachkeynode(secroots, &keynode);
 	}
 
 	/*
@@ -9924,6 +9924,10 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(dnskeysigs))
 	{
+		result = dns_keytable_find(secroots, keyname, &keynode);
+		if (result != ISC_R_SUCCESS) {
+			goto anchors_done;
+		}
 		dns_rdata_reset(&sigrr);
 		dns_rdataset_current(dnskeysigs, &sigrr);
 		result = dns_rdata_tostruct(&sigrr, &sig, NULL);
@@ -9971,7 +9975,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				keynode = nextnode;
 			}
 		}
-
+		dns_keytable_detachkeynode(secroots, &keynode);
 		if (secure) {
 			break;
 		}
