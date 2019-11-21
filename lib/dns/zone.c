@@ -15960,8 +15960,8 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	dns_zone_log(zone, ISC_LOG_DEBUG(1),
-		     "zone transfer finished: %s", dns_result_totext(result));
+	dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_DEBUG(1),
+		      "zone transfer finished: %s", dns_result_totext(result));
 
 	/*
 	 * Obtaining a lock on the zone->secure (see zone_send_secureserial)
@@ -16067,9 +16067,9 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 					 namebuf);
 			} else
 				buf[0] = '\0';
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "transferred serial %u%s",
-				     serial, buf);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_INFO, "transferred serial %u%s",
+				      serial, buf);
 			if (inline_raw(zone))
 				zone_send_secureserial(zone, serial);
 		}
@@ -16099,11 +16099,12 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			    zone->masterfile != NULL)
 				zone_needdump(zone, delay);
 			else if (result != ISC_R_SUCCESS)
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "transfer: could not set file "
-					     "modification time of '%s': %s",
-					     zone->masterfile,
-					     dns_result_totext(result));
+				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+					      ISC_LOG_ERROR,
+					      "transfer: could not set file "
+					      "modification time of '%s': %s",
+					      zone->masterfile,
+					      dns_result_totext(result));
 		}
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NODELAY);
 		inc_stats(zone, dns_zonestatscounter_xfrsuccess);
@@ -16419,10 +16420,10 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 				    &zone->sourceaddr, &now))
 	{
 		isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "got_transfer_quota: skipping zone transfer as "
-			     "master %s (source %s) is unreachable (cached)",
-			     master, source);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "got_transfer_quota: skipping zone transfer as "
+			      "master %s (source %s) is unreachable (cached)",
+			      master, source);
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -16440,19 +16441,19 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
 	if (!loaded) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(1),
-			     "no database exists yet, requesting AXFR of "
-			     "initial version from %s", master);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_DEBUG(1),
+			      "no database exists yet, requesting AXFR of "
+			      "initial version from %s", master);
 		xfrtype = dns_rdatatype_axfr;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER)) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(1),
-			     "forced reload, requesting AXFR of "
-			     "initial version from %s", master);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_DEBUG(1),
+			      "forced reload, requesting AXFR of "
+			      "initial version from %s", master);
 		xfrtype = dns_rdatatype_axfr;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLAG_NOIXFR)) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(1),
-			     "retrying with AXFR from %s due to "
-			     "previous IXFR failure", master);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_DEBUG(1),
+			      "retrying with AXFR from %s due to "
+			      "previous IXFR failure", master);
 		xfrtype = dns_rdatatype_axfr;
 		LOCK_ZONE(zone);
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLAG_NOIXFR);
@@ -16464,16 +16465,18 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		if (peer == NULL || result != ISC_R_SUCCESS)
 			use_ixfr = zone->requestixfr;
 		if (use_ixfr == false) {
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "IXFR disabled, requesting %sAXFR from %s",
-				     soa_before, master);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_DEBUG(1), "IXFR disabled, "
+				      "requesting %sAXFR from %s",
+				      soa_before, master);
 			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR))
 				xfrtype = dns_rdatatype_soa;
 			else
 				xfrtype = dns_rdatatype_axfr;
 		} else {
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "requesting IXFR from %s", master);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_DEBUG(1),
+				      "requesting IXFR from %s", master);
 			xfrtype = dns_rdatatype_ixfr;
 		}
 	}
@@ -16498,9 +16501,9 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 					      &zone->tsigkey);
 
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "could not get TSIG key for zone transfer: %s",
-			     isc_result_totext(result));
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
+			      "could not get TSIG key for zone transfer: %s",
+			      isc_result_totext(result));
 	}
 
 	if (zone->masterdscps != NULL)
@@ -17320,9 +17323,10 @@ zmgr_resume_xfrs(dns_zonemgr_t *zmgr, bool multi) {
 			 */
 			continue;
 		} else {
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "starting zone transfer: %s",
-				     isc_result_totext(result));
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_DEBUG(1),
+				      "starting zone transfer: %s",
+				      isc_result_totext(result));
 			break;
 		}
 	}
@@ -17422,7 +17426,8 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	ISC_LIST_APPEND(zmgr->xfrin_in_progress, zone, statelink);
 	zone->statelist = &zmgr->xfrin_in_progress;
 	isc_task_send(zone->task, &e);
-	dns_zone_log(zone, ISC_LOG_INFO, "Transfer started.");
+	dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+		      "Transfer started.");
 	UNLOCK_ZONE(zone);
 
 	return (ISC_R_SUCCESS);
