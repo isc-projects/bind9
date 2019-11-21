@@ -1,3 +1,6 @@
+5323.	[bug]		Fix a bug in DNSSEC trust anchor verification.
+			[GL !2609]
+
 5322.	[placeholder]
 
 5321.	[bug]		Obtain write lock before updating version->records
