@@ -96,12 +96,29 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 
 	/*
 	 * Default TCP timeout values.
-	 * May be updated by isc_nm_listentcp().
+	 * May be updated by isc_nm_tcptimeouts().
 	 */
 	mgr->init = 30000;
 	mgr->idle = 30000;
 	mgr->keepalive = 30000;
 	mgr->advertised = 30000;
+
+	isc_mutex_init(&mgr->reqlock);
+	isc_mempool_create(mgr->mctx, sizeof(isc__nm_uvreq_t), &mgr->reqpool);
+	isc_mempool_setname(mgr->reqpool, "nm_reqpool");
+	isc_mempool_setmaxalloc(mgr->reqpool, 32768);
+	isc_mempool_setfreemax(mgr->reqpool, 32768);
+	isc_mempool_associatelock(mgr->reqpool, &mgr->reqlock);
+	isc_mempool_setfillcount(mgr->reqpool, 32);
+
+	isc_mutex_init(&mgr->evlock);
+	isc_mempool_create(mgr->mctx, sizeof(isc__netievent_storage_t),
+			   &mgr->evpool);
+	isc_mempool_setname(mgr->evpool, "nm_evpool");
+	isc_mempool_setmaxalloc(mgr->evpool, 32768);
+	isc_mempool_setfreemax(mgr->evpool, 32768);
+	isc_mempool_associatelock(mgr->evpool, &mgr->evlock);
+	isc_mempool_setfillcount(mgr->evpool, 32);
 
 	mgr->workers = isc_mem_get(mctx, workers * sizeof(isc__networker_t));
 	for (size_t i = 0; i < workers; i++) {
@@ -123,7 +140,6 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 		isc_mutex_init(&worker->lock);
 		isc_condition_init(&worker->cond);
 
-		isc_mempool_create(mgr->mctx, 65536, &worker->mpool_bufs);
 		worker->ievents = isc_queue_new(mgr->mctx, 128);
 
 		/*
@@ -177,17 +193,22 @@ nm_destroy(isc_nm_t **mgr0) {
 		while ((ievent = (isc__netievent_t *)
 			isc_queue_dequeue(mgr->workers[i].ievents)) != NULL)
 		{
-			isc_mem_put(mgr->mctx, ievent,
-				    sizeof(isc__netievent_storage_t));
+			isc_mempool_put(mgr->evpool, ievent);
 		}
 		int r = uv_loop_close(&mgr->workers[i].loop);
 		INSIST(r == 0);
 		isc_queue_destroy(mgr->workers[i].ievents);
-		isc_mempool_destroy(&mgr->workers[i].mpool_bufs);
 	}
 
 	isc_condition_destroy(&mgr->wkstatecond);
 	isc_mutex_destroy(&mgr->lock);
+
+	isc_mempool_destroy(&mgr->evpool);
+	isc_mutex_destroy(&mgr->evlock);
+
+	isc_mempool_destroy(&mgr->reqpool);
+	isc_mutex_destroy(&mgr->reqlock);
+
 	isc_mem_put(mgr->mctx, mgr->workers,
 		    mgr->nworkers * sizeof(isc__networker_t));
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
@@ -413,7 +434,7 @@ nm_thread(void *worker0) {
 			 * XXX: uv_run() in UV_RUN_DEFAULT mode returns
 			 * zero if there are still active uv_handles.
 			 * This shouldn't happen, but if it does, we just
-			 * to keep checking until they're done. We nap for a
+			 * keep checking until they're done. We nap for a
 			 * tenth of a second on each loop so as not to burn
 			 * CPU. (We do a conditional wait instead, but it
 			 * seems like overkill for this case.)
@@ -440,29 +461,23 @@ nm_thread(void *worker0) {
 }
 
 /*
- * async_cb is an universal callback for 'async' events sent to event loop.
- * It's the only way to safely pass data to libuv event loop. We use a single
- * async event and a lockless queue of 'isc__netievent_t' structures passed
- * from other threads.
+ * async_cb is a universal callback for 'async' events sent to event loop.
+ * It's the only way to safely pass data to the libuv event loop. We use a
+ * single async event and a lockless queue of 'isc__netievent_t' structures
+ * passed from other threads.
  */
 static void
 async_cb(uv_async_t *handle) {
 	isc__networker_t *worker = (isc__networker_t *) handle->loop->data;
 	isc__netievent_t *ievent;
 
-	/*
-	 * We only try dequeue to not waste time, libuv guarantees
-	 * that if someone calls uv_async_send -after- async_cb was called
-	 * then async_cb will be called again, we won't loose any signals.
-	 */
 	while ((ievent = (isc__netievent_t *)
 		isc_queue_dequeue(worker->ievents)) != NULL)
 	{
 		switch (ievent->type) {
 		case netievent_stop:
 			uv_stop(handle->loop);
-			isc_mem_put(worker->mgr->mctx, ievent,
-				    sizeof(isc__netievent_storage_t));
+			isc_mempool_put(worker->mgr->evpool, ievent);
 			return;
 		case netievent_udplisten:
 			isc__nm_async_udplisten(worker, ievent);
@@ -508,10 +523,8 @@ async_cb(uv_async_t *handle) {
 
 void *
 isc__nm_get_ievent(isc_nm_t *mgr, isc__netievent_type type) {
-	isc__netievent_storage_t *event =
-		isc_mem_get(mgr->mctx, sizeof(isc__netievent_storage_t));
+	isc__netievent_storage_t *event = isc_mempool_get(mgr->evpool);
 
-	/* XXX: Use a memory pool? */
 	*event = (isc__netievent_storage_t) {
 		.ni.type = type
 	};
@@ -520,7 +533,7 @@ isc__nm_get_ievent(isc_nm_t *mgr, isc__netievent_type type) {
 
 void
 isc__nm_put_ievent(isc_nm_t *mgr, void *ievent) {
-	isc_mem_put(mgr->mctx, ievent, sizeof(isc__netievent_storage_t));
+	isc_mempool_put(mgr->evpool, ievent);
 }
 
 void
@@ -612,7 +625,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 	isc_astack_destroy(sock->inactivehandles);
 
 	while ((uvreq = isc_astack_pop(sock->inactivereqs)) != NULL) {
-		isc_mem_put(sock->mgr->mctx, uvreq, sizeof(*uvreq));
+		isc_mempool_put(sock->mgr->reqpool, uvreq);
 	}
 
 	isc_astack_destroy(sock->inactivereqs);
@@ -1076,7 +1089,7 @@ isc__nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock) {
 	}
 
 	if (req == NULL) {
-		req = isc_mem_get(mgr->mctx, sizeof(isc__nm_uvreq_t));
+		req = isc_mempool_get(mgr->reqpool);
 	}
 
 	*req = (isc__nm_uvreq_t) {
@@ -1114,7 +1127,7 @@ isc__nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock) {
 	if (!atomic_load(&sock->active) ||
 	    !isc_astack_trypush(sock->inactivereqs, req))
 	{
-		isc_mem_put(sock->mgr->mctx, req, sizeof(isc__nm_uvreq_t));
+		isc_mempool_put(sock->mgr->reqpool, req);
 	}
 
 	if (handle != NULL) {

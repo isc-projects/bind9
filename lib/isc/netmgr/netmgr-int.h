@@ -41,7 +41,6 @@ typedef struct isc__networker {
 	uv_async_t		   async;       /* async channel to send
 						 * data to this networker */
 	isc_mutex_t		   lock;
-	isc_mempool_t		   *mpool_bufs;
 	isc_condition_t		   cond;
 	bool			   paused;
 	bool			   finished;
@@ -231,6 +230,13 @@ struct isc_nm {
 	isc_mutex_t		lock;
 	isc_condition_t		wkstatecond;
 	isc__networker_t	*workers;
+
+	isc_mempool_t		*reqpool;
+	isc_mutex_t		reqlock;
+
+	isc_mempool_t		*evpool;
+	isc_mutex_t		evlock;
+
 	atomic_uint_fast32_t	workers_running;
 	atomic_uint_fast32_t	workers_paused;
 	atomic_uint_fast32_t	maxudp;
