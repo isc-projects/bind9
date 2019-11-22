@@ -452,7 +452,7 @@ n=`expr $n + 1`
 echo_i "check prefetch (${n})"
 ret=0
 $DIG $DIGOPTS @10.53.0.5 fetch.tld txt > dig.out.1.${n} || ret=1
-ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 2 }' dig.out.1.${n}`
+ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 3 }' dig.out.1.${n}`
 # sleep so we are in prefetch range
 sleep ${ttl1:-0}
 # trigger prefetch
@@ -470,7 +470,7 @@ n=`expr $n + 1`
 echo_i "check prefetch of validated DS's RRSIG TTL is updated (${n})"
 ret=0
 $DIG $DIGOPTS +dnssec @10.53.0.5 ds.example.net ds > dig.out.1.${n} || ret=1
-dsttl1=`awk '$4 == "DS" && $7 == "2" { print $2 - 2 }' dig.out.1.${n}`
+dsttl1=`awk '$4 == "DS" && $7 == "2" { print $2 - 3 }' dig.out.1.${n}`
 # sleep so we are in prefetch range
 sleep ${dsttl1:-0}
 # trigger prefetch
@@ -517,7 +517,7 @@ n=`expr $n + 1`
 echo_i "check prefetch qtype * (${n})"
 ret=0
 $DIG $DIGOPTS @10.53.0.5 fetchall.tld any > dig.out.1.${n} || ret=1
-ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 2 }' dig.out.1.${n}`
+ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 3 }' dig.out.1.${n}`
 # sleep so we are in prefetch range
 sleep ${ttl1:-0}
 # trigger prefetch
