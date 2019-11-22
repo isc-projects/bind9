@@ -438,7 +438,9 @@ accept_connection(isc_nmsocket_t *ssock) {
 	REQUIRE(VALID_NMSOCK(ssock));
 	REQUIRE(ssock->tid == isc_nm_tid());
 
-	if (!atomic_load_relaxed(&ssock->active)) {
+	if (!atomic_load_relaxed(&ssock->active) ||
+	    atomic_load_relaxed(&ssock->mgr->closing))
+	{
 		/* We're closing, bail */
 		return (ISC_R_CANCELED);
 	}
@@ -693,5 +695,7 @@ void
 isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
-	sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
+	if (sock->type == isc_nm_tcpsocket && sock->tcphandle != NULL) {
+		sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
+	}
 }

@@ -182,7 +182,6 @@ typedef isc__netievent__socket_t isc__netievent_tcpstoplisten_t;
 typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
-typedef isc__netievent__socket_t isc__netievent_resumeread_t;
 typedef isc__netievent__socket_t isc__netievent_closecb_t;
 
 typedef struct isc__netievent__socket_req {
@@ -241,6 +240,12 @@ struct isc_nm {
 	atomic_uint_fast32_t	workers_paused;
 	atomic_uint_fast32_t	maxudp;
 	atomic_bool		paused;
+
+	/*
+	 * Acive connections are being closed and new connections are
+	 * no longer allowed.
+	 */
+	atomic_bool		closing;
 
 	/*
 	 * A worker is actively waiting for other workers, for example to
@@ -582,14 +587,11 @@ isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ievent0);
 void
 isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ievent0);
 void
-isc__nm_async_resumeread(isc__networker_t *worker, isc__netievent_t *ievent0);
-void
 isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ievent0);
 /*%<
  * Callback handlers for asynchronous TCP events (connect, listen,
- * stoplisten, send, read, pauseread, resumeread, close).
+ * stoplisten, send, read, pause, close).
  */
-
 
 isc_result_t
 isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,

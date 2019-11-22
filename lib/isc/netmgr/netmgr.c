@@ -297,26 +297,34 @@ isc_nm_detach(isc_nm_t **mgr0) {
 	}
 }
 
-
 void
-isc_nm_destroy(isc_nm_t **mgr0) {
-	isc_nm_t *mgr = NULL;
-	int references;
+isc_nm_closedown(isc_nm_t *mgr) {
+	REQUIRE(VALID_NM(mgr));
 
-	REQUIRE(mgr0 != NULL);
-	REQUIRE(VALID_NM(*mgr0));
-
-	mgr = *mgr0;
-	*mgr0 = NULL;
-
+	atomic_store(&mgr->closing, true);
 	for (size_t i = 0; i < mgr->nworkers; i++) {
 		isc__netievent_t *event = NULL;
 		event = isc__nm_get_ievent(mgr, netievent_shutdown);
 		isc__nm_enqueue_ievent(&mgr->workers[i], event);
 	}
+}
+
+void
+isc_nm_destroy(isc_nm_t **mgr0) {
+	isc_nm_t *mgr = NULL;
+
+	REQUIRE(mgr0 != NULL);
+	REQUIRE(VALID_NM(*mgr0));
+
+	mgr = *mgr0;
 
 	/*
-	 * Wait for the manager to be dereferenced elsehwere.
+	 * Close active connections.
+	 */
+	isc_nm_closedown(mgr);
+
+	/*
+	 * Wait for the manager to be dereferenced elsewhere.
 	 */
 	while (isc_refcount_current(&mgr->references) > 1) {
 #ifdef WIN32
@@ -325,11 +333,11 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 			usleep(1000000);
 #endif
 	}
-	references = isc_refcount_decrement(&mgr->references);
-	INSIST(references > 0);
-	if (references == 1) {
-		nm_destroy(&mgr);
-	}
+
+	/*
+	 * Detach final reference.
+	 */
+	isc_nm_detach(mgr0);
 }
 
 void
@@ -1185,8 +1193,6 @@ isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0) {
 
 static void
 shutdown_walk_cb(uv_handle_t *handle, void *arg) {
-	isc_nmsocket_t *sock = NULL;
-
 	UNUSED(arg);
 
 	switch(handle->type) {
