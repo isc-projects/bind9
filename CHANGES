@@ -1,3 +1,8 @@
+5325.	[bug]		Addressed several issues with TCP connections in
+			the netmgr: restored support for TCP connection
+			timeouts, restored TCP backlog support, actively
+			close all open sockets during shutdown. [GL #1312]
+
 5324.	[bug]		Change the category of some log messages from general
 			to the more appopriate catergory of xfer-in. [GL #1394]
 
