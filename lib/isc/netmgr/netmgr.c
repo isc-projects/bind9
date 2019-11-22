@@ -309,6 +309,12 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 	mgr = *mgr0;
 	*mgr0 = NULL;
 
+	for (size_t i = 0; i < mgr->nworkers; i++) {
+		isc__netievent_t *event = NULL;
+		event = isc__nm_get_ievent(mgr, netievent_shutdown);
+		isc__nm_enqueue_ievent(&mgr->workers[i], event);
+	}
+
 	/*
 	 * Wait for the manager to be dereferenced elsehwere.
 	 */
@@ -511,6 +517,9 @@ async_cb(uv_async_t *handle) {
 			break;
 		case netievent_closecb:
 			isc__nm_async_closecb(worker, ievent);
+			break;
+		case netievent_shutdown:
+			isc__nm_async_shutdown(worker, ievent);
 			break;
 		default:
 			INSIST(0);
@@ -1172,6 +1181,27 @@ isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0) {
 
 	ievent->sock->closehandle_cb(ievent->sock);
 	isc_nmsocket_detach(&ievent->sock);
+}
+
+static void
+shutdown_walk_cb(uv_handle_t *handle, void *arg) {
+	isc_nmsocket_t *sock = NULL;
+
+	UNUSED(arg);
+
+	switch(handle->type) {
+	case UV_TCP:
+		isc__nm_tcp_shutdown((isc_nmsocket_t *) handle->data);
+		break;
+	default:
+		break;
+	}
+}
+
+void
+isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ievent0) {
+	UNUSED(ievent0);
+	uv_walk(&worker->loop, shutdown_walk_cb, NULL);
 }
 
 bool

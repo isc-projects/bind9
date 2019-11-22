@@ -688,3 +688,10 @@ isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ievent0) {
 
 	tcp_close_direct(ievent->sock);
 }
+
+void
+isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
+}
