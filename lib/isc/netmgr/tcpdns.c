@@ -275,7 +275,8 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 		    isc_nm_recv_cb_t cb, void *cbarg,
-		    size_t extrahandlesize, isc_quota_t *quota,
+		    size_t extrahandlesize, int backlog,
+		    isc_quota_t *quota,
 		    isc_nmsocket_t **sockp)
 {
 	/* A 'wrapper' socket object with outer set to true TCP socket */
@@ -293,7 +294,7 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 
 	/* We set dnslistensock->outer to a true listening socket */
 	result = isc_nm_listentcp(mgr, iface, dnslisten_acceptcb,
-				  dnslistensock, extrahandlesize,
+				  dnslistensock, extrahandlesize, backlog,
 				  quota, &dnslistensock->outer);
 
 	atomic_store(&dnslistensock->listening, true);

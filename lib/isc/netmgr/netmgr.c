@@ -617,6 +617,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 		isc_quota_detach(&sock->quota);
 	}
 
+	sock->pquota = NULL;
+
 	if (sock->timer_initialized) {
 		uv_close((uv_handle_t *)&sock->timer, NULL);
 		sock->timer_initialized = false;

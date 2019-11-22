@@ -223,7 +223,8 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region,
 isc_result_t
 isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 		 isc_nm_cb_t cb, void *cbarg,
-		 size_t extrahandlesize, isc_quota_t *quota,
+		 size_t extrahandlesize, int backlog,
+		 isc_quota_t *quota,
 		 isc_nmsocket_t **sockp);
 /*%<
  * Start listening for raw messages over the TCP interface 'iface', using
@@ -255,7 +256,8 @@ isc_nm_tcp_stoplistening(isc_nmsocket_t *sock);
 isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 		     isc_nm_recv_cb_t cb, void *arg,
-		     size_t extrahandlesize, isc_quota_t *quota,
+		     size_t extrahandlesize, int backlog,
+		     isc_quota_t *quota,
 		     isc_nmsocket_t **sockp);
 /*%<
  * Start listening for DNS messages over the TCP interface 'iface', using

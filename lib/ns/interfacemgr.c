@@ -461,6 +461,7 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 				     (isc_nmiface_t *) &ifp->addr,
 				     ns__client_request, ifp,
 				     sizeof(ns_client_t),
+				     ifp->mgr->backlog,
 				     &ifp->mgr->sctx->tcpquota,
 				     &ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {

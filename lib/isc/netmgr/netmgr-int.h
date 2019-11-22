@@ -286,8 +286,20 @@ struct isc_nmsocket {
 	isc_nmsocket_type	type;
 	isc_nm_t		*mgr;
 	isc_nmsocket_t		*parent;
+
+	/*
+	 * quota is the TCP client, attached when a TCP connection
+	 * is established. pquota is a non-attached pointer to the
+	 * TCP client quota, stored in listening sockets but only
+	 * attached in connected sockets.
+	 */
 	isc_quota_t		*quota;
+	isc_quota_t		*pquota;
 	bool			overquota;
+
+	/*
+	 * TCP read timeout timer.
+	 */
 	uv_timer_t		timer;
 	bool			timer_initialized;
 	uint64_t		read_timeout;
@@ -306,6 +318,9 @@ struct isc_nmsocket {
 
 	/*% extra data allocated at the end of each isc_nmhandle_t */
 	size_t			extrahandlesize;
+
+	/*% TCP backlog */
+	int backlog;
 
 	/*% libuv data */
 	uv_os_sock_t		fd;

@@ -130,7 +130,8 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 isc_result_t
 isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 		 isc_nm_cb_t cb, void *cbarg,
-		 size_t extrahandlesize, isc_quota_t *quota,
+		 size_t extrahandlesize, int backlog,
+		 isc_quota_t *quota,
 		 isc_nmsocket_t **sockp)
 {
 	isc__netievent_tcplisten_t *ievent = NULL;
@@ -144,15 +145,13 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 	nsock->rcb.accept = cb;
 	nsock->rcbarg = cbarg;
 	nsock->extrahandlesize = extrahandlesize;
+	nsock->backlog = backlog;
 	if (quota != NULL) {
 		/*
-		 * We need to force it to make sure we get it attached.
-		 * An example failure mode would be server under attack
-		 * reconfiguring interfaces - that might cause weak attach
-		 * to fail and leave this listening socket without limits.
-		 * We can ignore the result.
+		 * We don't attach to quota, just assign - to avoid
+		 * increasing quota unnecesarily.
 		 */
-		isc_quota_force(quota, &nsock->quota);
+		nsock->pquota = quota;
 	}
 	nsock->tid = isc_random_uniform(mgr->nworkers);
 
@@ -185,7 +184,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	}
 
 	uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa, 0);
-	r = uv_listen((uv_stream_t *) &sock->uv_handle.tcp, 10,
+	r = uv_listen((uv_stream_t *) &sock->uv_handle.tcp, sock->backlog,
 		      tcp_connection_cb);
 	if (r != 0) {
 		return;
@@ -219,9 +218,7 @@ stoplistening_cb(uv_handle_t *handle) {
 	SIGNAL(&sock->cond);
 	UNLOCK(&sock->lock);
 
-	if (sock->quota != NULL) {
-		isc_quota_detach(&sock->quota);
-	}
+	sock->pquota = NULL;
 
 	isc_nmsocket_detach(&sock);
 }
@@ -446,8 +443,8 @@ accept_connection(isc_nmsocket_t *ssock) {
 		return (ISC_R_CANCELED);
 	}
 
-	if (ssock->quota != NULL) {
-		result = isc_quota_attach(ssock->quota, &quota);
+	if (ssock->pquota != NULL) {
+		result = isc_quota_attach(ssock->pquota, &quota);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}

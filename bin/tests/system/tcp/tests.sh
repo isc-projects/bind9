@@ -115,7 +115,7 @@ n=$((n + 1))
 echo_i "TCP high-water: check initial statistics ($n)"
 ret=0
 refresh_tcp_stats
-assert_int_equal "${TCP_CUR}" 1 "current TCP clients count" || ret=1
+assert_int_equal "${TCP_CUR}" 0 "current TCP clients count" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
