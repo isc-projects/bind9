@@ -15,6 +15,7 @@
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -500,15 +501,19 @@ accept_connection(isc_nmsocket_t *ssock) {
 static void
 tcp_connection_cb(uv_stream_t *server, int status) {
 	isc_nmsocket_t *ssock = server->data;
-	isc_result_t result = accept_connection(ssock);
+	isc_result_t result;
 
 	UNUSED(status);
 
+	result = accept_connection(ssock);
 	if (result != ISC_R_SUCCESS) {
 		if (result == ISC_R_QUOTA || result == ISC_R_SOFTQUOTA) {
 			ssock->overquota = true;
 		}
-		/* TODO: Log the error. */
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+			      "TCP connection failed: %s",
+			      isc_result_totext(result));
 	}
 }
 

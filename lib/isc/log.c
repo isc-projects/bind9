@@ -192,6 +192,7 @@ LIBISC_EXTERNAL_DATA isc_logmodule_t isc_modules[] = {
 	{ "interface", 0 },
 	{ "timer", 0 },
 	{ "file", 0 },
+	{ "netmgr", 0 },
 	{ "other", 0 },
 	{ NULL, 0 }
 };

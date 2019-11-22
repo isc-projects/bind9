@@ -177,7 +177,8 @@ LIBISC_EXTERNAL_DATA extern isc_logmodule_t isc_modules[];
 #define ISC_LOGMODULE_INTERFACE (&isc_modules[2])
 #define ISC_LOGMODULE_TIMER (&isc_modules[3])
 #define ISC_LOGMODULE_FILE (&isc_modules[4])
-#define ISC_LOGMODULE_OTHER (&isc_modules[5])
+#define ISC_LOGMODULE_NETMGR (&isc_modules[5])
+#define ISC_LOGMODULE_OTHER (&isc_modules[6])
 
 ISC_LANG_BEGINDECLS
 
