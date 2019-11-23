@@ -939,11 +939,23 @@ create_managers(void) {
 static void
 destroy_managers(void) {
 	/*
-	 * isc_taskmgr_destroy() will block until all tasks have exited,
+	 * isc_nm_closedown() closes all active connections, freeing
+	 * attached clients and other resources and preventing new
+	 * connections from being established, but it not does not
+	 * stop all processing or destroy the netmgr yet.
+	 */
+	isc_nm_closedown(named_g_nm);
+
+	/*
+	 * isc_taskmgr_destroy() will block until all tasks have exited.
 	 */
 	isc_taskmgr_destroy(&named_g_taskmgr);
 	isc_timermgr_destroy(&named_g_timermgr);
 	isc_socketmgr_destroy(&named_g_socketmgr);
+
+	/*
+	 * At this point is safe to destroy the netmgr.
+	 */
 	isc_nm_destroy(&named_g_nm);
 }
 

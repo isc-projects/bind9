@@ -41,7 +41,6 @@ typedef struct isc__networker {
 	uv_async_t		   async;       /* async channel to send
 						 * data to this networker */
 	isc_mutex_t		   lock;
-	isc_mempool_t		   *mpool_bufs;
 	isc_condition_t		   cond;
 	bool			   paused;
 	bool			   finished;
@@ -116,11 +115,9 @@ typedef enum isc__netievent_type {
 	netievent_tcplisten,
 	netievent_tcpstoplisten,
 	netievent_tcpclose,
+	netievent_closecb,
+	netievent_shutdown,
 } isc__netievent_type;
-
-typedef struct isc__netievent_stop {
-	isc__netievent_type        type;
-} isc__netievent_stop_t;
 
 /*
  * We have to split it because we can read and write on a socket
@@ -185,7 +182,7 @@ typedef isc__netievent__socket_t isc__netievent_tcpstoplisten_t;
 typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
-typedef isc__netievent__socket_t isc__netievent_resumeread_t;
+typedef isc__netievent__socket_t isc__netievent_closecb_t;
 
 typedef struct isc__netievent__socket_req {
 	isc__netievent_type	type;
@@ -208,10 +205,13 @@ typedef struct isc__netievent {
 	isc__netievent_type	type;
 } isc__netievent_t;
 
+typedef isc__netievent_t isc__netievent_shutdown_t;
+typedef isc__netievent_t isc__netievent_stop_t;
+
 typedef union {
 		isc__netievent_t		  ni;
-		isc__netievent_stop_t		  nis;
-		isc__netievent_udplisten_t	  niul;
+		isc__netievent__socket_t	  nis;
+		isc__netievent__socket_req_t	  nisr;
 		isc__netievent_udpsend_t	  nius;
 } isc__netievent_storage_t;
 
@@ -229,10 +229,23 @@ struct isc_nm {
 	isc_mutex_t		lock;
 	isc_condition_t		wkstatecond;
 	isc__networker_t	*workers;
+
+	isc_mempool_t		*reqpool;
+	isc_mutex_t		reqlock;
+
+	isc_mempool_t		*evpool;
+	isc_mutex_t		evlock;
+
 	atomic_uint_fast32_t	workers_running;
 	atomic_uint_fast32_t	workers_paused;
 	atomic_uint_fast32_t	maxudp;
 	atomic_bool		paused;
+
+	/*
+	 * Acive connections are being closed and new connections are
+	 * no longer allowed.
+	 */
+	atomic_bool		closing;
 
 	/*
 	 * A worker is actively waiting for other workers, for example to
@@ -241,6 +254,18 @@ struct isc_nm {
 	 * event or wait for the other one to finish if we want to pause.
 	 */
 	atomic_bool		interlocked;
+
+	/*
+	 * Timeout values for TCP connections, coresponding to
+	 * tcp-intiial-timeout, tcp-idle-timeout, tcp-keepalive-timeout,
+	 * and tcp-advertised-timeout. Note that these are stored in
+	 * milliseconds so they can be used directly with the libuv timer,
+	 * but they are configured in tenths of seconds.
+	 */
+	uint32_t		init;
+	uint32_t		idle;
+	uint32_t		keepalive;
+	uint32_t		advertised;
 };
 
 typedef enum isc_nmsocket_type {
@@ -266,8 +291,23 @@ struct isc_nmsocket {
 	isc_nmsocket_type	type;
 	isc_nm_t		*mgr;
 	isc_nmsocket_t		*parent;
+
+	/*
+	 * quota is the TCP client, attached when a TCP connection
+	 * is established. pquota is a non-attached pointer to the
+	 * TCP client quota, stored in listening sockets but only
+	 * attached in connected sockets.
+	 */
 	isc_quota_t		*quota;
+	isc_quota_t		*pquota;
 	bool			overquota;
+
+	/*
+	 * TCP read timeout timer.
+	 */
+	uv_timer_t		timer;
+	bool			timer_initialized;
+	uint64_t		read_timeout;
 
 	/*% outer socket is for 'wrapped' sockets - e.g. tcpdns in tcp */
 	isc_nmsocket_t		*outer;
@@ -283,6 +323,9 @@ struct isc_nmsocket {
 
 	/*% extra data allocated at the end of each isc_nmhandle_t */
 	size_t			extrahandlesize;
+
+	/*% TCP backlog */
+	int backlog;
 
 	/*% libuv data */
 	uv_os_sock_t		fd;
@@ -335,6 +378,12 @@ struct isc_nmsocket {
 	atomic_bool		readpaused;
 
 	/*%
+	 * A TCP or TCPDNS socket has been set to use the keepalive
+	 * timeout instead of the default idle timeout.
+	 */
+	atomic_bool		keepalive;
+
+	/*%
 	 * 'spare' handles for that can be reused to avoid allocations,
 	 * for UDP.
 	 */
@@ -366,7 +415,7 @@ struct isc_nmsocket {
 	 * might want to change it to something lockless in the
 	 * future.
 	 */
-	size_t			ah;
+	atomic_int_fast32_t     ah;
 	size_t			ah_size;
 	size_t			*ah_frees;
 	isc_nmhandle_t		**ah_handles;
@@ -398,6 +447,8 @@ isc__nm_get_ievent(isc_nm_t *mgr, isc__netievent_type type);
 /*%<
  * Allocate an ievent and set the type.
  */
+void
+isc__nm_put_ievent(isc_nm_t *mgr, void *ievent);
 
 void
 isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event);
@@ -471,6 +522,19 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock);
  * if there are no remaining references or active handles.
  */
 
+void
+isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0);
+/*%<
+ * Issue a 'handle closed' callback on the socket.
+ */
+
+void
+isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ievent0);
+/*%<
+ * Walk through all uv handles, get the underlying sockets and issue
+ * close on them.
+ */
+
 isc_result_t
 isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
 		 isc_nm_cb_t cb, void *cbarg);
@@ -504,6 +568,12 @@ isc__nm_tcp_close(isc_nmsocket_t *sock);
  */
 
 void
+isc__nm_tcp_shutdown(isc_nmsocket_t *sock);
+/*%<
+ * Called on shutdown to close and clean up a listening TCP socket.
+ */
+
+void
 isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ievent0);
 void
 isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0);
@@ -517,14 +587,11 @@ isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ievent0);
 void
 isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ievent0);
 void
-isc__nm_async_resumeread(isc__networker_t *worker, isc__netievent_t *ievent0);
-void
 isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ievent0);
 /*%<
  * Callback handlers for asynchronous TCP events (connect, listen,
- * stoplisten, send, read, pauseread, resumeread, close).
+ * stoplisten, send, read, pause, close).
  */
-
 
 isc_result_t
 isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,

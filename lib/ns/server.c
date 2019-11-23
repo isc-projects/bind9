@@ -87,11 +87,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpoutstats6,
 				    dns_sizecounter_out_max));
 
-	sctx->initialtimo = 300;
-	sctx->idletimo = 300;
-	sctx->keepalivetimo = 300;
-	sctx->advertisedtimo = 300;
-
 	sctx->udpsize = 4096;
 	sctx->transfer_tcp_message_size = 20480;
 
@@ -214,34 +209,6 @@ ns_server_setserverid(ns_server_t *sctx, const char *serverid) {
 	}
 
 	return (ISC_R_SUCCESS);
-}
-
-void
-ns_server_settimeouts(ns_server_t *sctx, unsigned int initial,
-		      unsigned int idle, unsigned int keepalive,
-		      unsigned int advertised)
-{
-	REQUIRE(SCTX_VALID(sctx));
-
-	sctx->initialtimo = initial;
-	sctx->idletimo = idle;
-	sctx->keepalivetimo = keepalive;
-	sctx->advertisedtimo = advertised;
-}
-
-void
-ns_server_gettimeouts(ns_server_t *sctx, unsigned int *initial,
-		      unsigned int *idle, unsigned int *keepalive,
-		      unsigned int *advertised)
-{
-	REQUIRE(SCTX_VALID(sctx));
-	REQUIRE(initial != NULL && idle != NULL &&
-		keepalive != NULL && advertised != NULL);
-
-	*initial = sctx->initialtimo;
-	*idle = sctx->idletimo;
-	*keepalive = sctx->keepalivetimo;
-	*advertised = sctx->advertisedtimo;
 }
 
 void

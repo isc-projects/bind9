@@ -115,7 +115,7 @@ n=$((n + 1))
 echo_i "TCP high-water: check initial statistics ($n)"
 ret=0
 refresh_tcp_stats
-assert_int_equal "${TCP_CUR}" 1 "current TCP clients count" || ret=1
+assert_int_equal "${TCP_CUR}" 0 "current TCP clients count" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -166,12 +166,8 @@ check_stats_limit() {
 	assert_int_equal "${TCP_HIGH}" "${TCP_LIMIT}" "TCP high-water value" || return 1
 }
 retry 2 check_stats_limit || ret=1
-close_connections $((TCP_LIMIT + 1)) || :
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
-
-# wait for connections to close
-sleep 5
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

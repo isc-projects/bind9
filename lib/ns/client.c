@@ -1023,12 +1023,14 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	}
 	if (TCP_CLIENT(client) && USEKEEPALIVE(client)) {
 		isc_buffer_t buf;
+		uint32_t adv;
 
 		INSIST(count < DNS_EDNSOPTIONS);
 
+		isc_nm_tcp_gettimeouts(isc_nmhandle_netmgr(client->handle),
+				       NULL, NULL, NULL, &adv);
 		isc_buffer_init(&buf, advtimo, sizeof(advtimo));
-		isc_buffer_putuint16(&buf,
-			     (uint16_t) client->sctx->advertisedtimo);
+		isc_buffer_putuint16(&buf, (uint16_t) adv);
 		ednsopts[count].code = DNS_OPT_TCP_KEEPALIVE;
 		ednsopts[count].length = 2;
 		ednsopts[count].value = advtimo;
@@ -2191,7 +2193,7 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 
 #if CLIENT_NMCTXS > 0
 	LOCK(&manager->lock);
-	if (isc_nm_tid()>=0) {
+	if (isc_nm_tid() >= 0) {
 		nextmctx = isc_nm_tid();
 	} else {
 		nextmctx = manager->nextmctx++;

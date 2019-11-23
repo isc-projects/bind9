@@ -92,11 +92,6 @@ struct ns_server {
 	uint32_t		options;
 	unsigned int		delay;
 
-	unsigned int		initialtimo;
-	unsigned int		idletimo;
-	unsigned int		keepalivetimo;
-	unsigned int		advertisedtimo;
-
 	dns_acl_t		*blackholeacl;
 	dns_acl_t		*keepresporder;
 	uint16_t		udpsize;
@@ -169,21 +164,6 @@ isc_result_t
 ns_server_setserverid(ns_server_t *sctx, const char *serverid);
 /*%<
  * Set sctx->server_id to 'serverid'. If it was set previously, free the memory.
- *
- * Requires:
- *\li	'sctx' is valid.
- */
-
-void
-ns_server_settimeouts(ns_server_t *sctx, unsigned int initial,
-		      unsigned int idle, unsigned int keepalive,
-		      unsigned int advertised);
-void
-ns_server_gettimeouts(ns_server_t *sctx, unsigned int *initial,
-		      unsigned int *idle, unsigned int *keepalive,
-		      unsigned int *advertised);
-/*%<
- * Set/get tcp-timeout values.
  *
  * Requires:
  *\li	'sctx' is valid.

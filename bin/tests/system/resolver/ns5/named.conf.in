@@ -22,6 +22,7 @@ options {
 	recursion yes;
 	dnssec-validation yes;
 	querylog yes;
+	prefetch 3 9;
 };
 
 server 10.53.0.7 {
