@@ -176,7 +176,7 @@ dns_master_style_debug = {
 };
 
 /*%
- * Similar, but indented (i.e., prepended with msg->indent.string).
+ * Similar, but indented (i.e., prepended with indentctx.string).
  */
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_indent = {
@@ -247,6 +247,7 @@ struct dns_dumpctx {
 #define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
 static const dns_indent_t default_indent = { "\t", 1 };
+static const dns_indent_t default_yamlindent = { "  ", 1 };
 
 /*%
  * Output tabs and spaces to go from column '*current' to
@@ -321,6 +322,14 @@ totext_ctx_init(const dns_master_style_t *style, const dns_indent_t *indentctx,
 
 	REQUIRE(style->tab_width != 0);
 
+	if (indentctx == NULL) {
+		if ((style->flags & DNS_STYLEFLAG_YAML) != 0) {
+			indentctx = &default_yamlindent;
+		} else {
+			indentctx = &default_indent;
+		}
+	}
+
 	ctx->style = *style;
 	ctx->class_printed = false;
 
@@ -346,9 +355,6 @@ totext_ctx_init(const dns_master_style_t *style, const dns_indent_t *indentctx,
 		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
 		    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
 		{
-			if (indentctx == NULL) {
-				indentctx = &default_indent;
-			}
 			unsigned int i, len = strlen(indentctx->string);
 			for (i = 0; i < indentctx->count; i++) {
 				if (isc_buffer_availablelength(&buf) < len)
