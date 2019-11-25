@@ -96,7 +96,7 @@ dnstcp_readtimeout(uv_timer_t *timer) {
 }
 
 /*
- * Accept callback for TCP-DNS connection
+ * Accept callback for TCP-DNS connection.
  */
 static void
 dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
@@ -111,10 +111,14 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		return;
 	}
 
+	if (dnslistensock->accept_cb.accept != NULL) {
+		dnslistensock->accept_cb.accept(handle, ISC_R_SUCCESS,
+						dnslistensock->accept_cbarg);
+	}
+
 	/* We need to create a 'wrapper' dnssocket for this connection */
 	dnssock = isc_mem_get(handle->sock->mgr->mctx, sizeof(*dnssock));
-	isc__nmsocket_init(dnssock, handle->sock->mgr,
-			   isc_nm_tcpdnssocket);
+	isc__nmsocket_init(dnssock, handle->sock->mgr, isc_nm_tcpdnssocket);
 
 	/* We need to copy read callbacks from outer socket */
 	dnssock->rcb.recv = dnslistensock->rcb.recv;
@@ -278,8 +282,8 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 		    isc_nm_recv_cb_t cb, void *cbarg,
-		    size_t extrahandlesize, int backlog,
-		    isc_quota_t *quota,
+		    isc_nm_cb_t accept_cb, void *accept_cbarg,
+		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
 		    isc_nmsocket_t **sockp)
 {
 	/* A 'wrapper' socket object with outer set to true TCP socket */
@@ -293,6 +297,8 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 	dnslistensock->iface = iface;
 	dnslistensock->rcb.recv = cb;
 	dnslistensock->rcbarg = cbarg;
+	dnslistensock->accept_cb.accept = accept_cb;
+	dnslistensock->accept_cbarg = accept_cbarg;
 	dnslistensock->extrahandlesize = extrahandlesize;
 
 	/* We set dnslistensock->outer to a true listening socket */

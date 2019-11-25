@@ -459,12 +459,12 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 
 static isc_result_t
 ns_interface_listentcp(ns_interface_t *ifp) {
-	unsigned int tcpquota;
 	isc_result_t result;
 
 	result = isc_nm_listentcpdns(ifp->mgr->nm,
 				     (isc_nmiface_t *) &ifp->addr,
 				     ns__client_request, ifp,
+				     ns__client_tcpconn, ifp->mgr->sctx,
 				     sizeof(ns_client_t),
 				     ifp->mgr->backlog,
 				     &ifp->mgr->sctx->tcpquota,
@@ -476,14 +476,11 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	}
 
 	/*
-	 * We update tcp-highwater stats here, since named itself adds to
-	 * the TCP quota when starting, as it ensures that at least one
-	 * client will be created for every interface it is listening to.
+	 * We call this now to update the tcp-highwater statistic:
+	 * this is necessary because we are adding to the TCP quota just
+	 * by listening.
 	 */
-	tcpquota = isc_quota_getused(&ifp->mgr->sctx->tcpquota);
-	ns_stats_update_if_greater(ifp->mgr->sctx->nsstats,
-				   ns_statscounter_tcphighwater,
-				   tcpquota);
+	ns__client_tcpconn(NULL, ISC_R_SUCCESS, ifp->mgr->sctx);
 
 #if 0
 #ifndef ISC_ALLOW_MAPPED

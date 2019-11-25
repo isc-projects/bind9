@@ -264,10 +264,10 @@ isc_nm_tcp_stoplistening(isc_nmsocket_t *sock);
 
 isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
-		     isc_nm_recv_cb_t cb, void *arg,
-		     size_t extrahandlesize, int backlog,
-		     isc_quota_t *quota,
-		     isc_nmsocket_t **sockp);
+		    isc_nm_recv_cb_t cb, void *cbarg,
+		    isc_nm_cb_t accept_cb, void *accept_cbarg,
+		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
+		    isc_nmsocket_t **sockp);
 /*%<
  * Start listening for DNS messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -280,6 +280,9 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
  *
  * When a complete DNS message is received on the socket, 'cb' will be
  * called with 'cbarg' as its argument.
+ *
+ * When a new TCP connection is accepted, 'accept_cb' will be called
+ * with 'accept_cbarg' as its argument.
  *
  * When handles are allocated for the socket, 'extrasize' additional bytes
  * will be allocated along with the handle for an associated object

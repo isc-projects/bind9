@@ -477,6 +477,9 @@ struct isc_nmsocket {
 
 	isc__nm_readcb_t	rcb;
 	void			*rcbarg;
+
+	isc__nm_cb_t		accept_cb;
+	void 			*accept_cbarg;
 };
 
 bool

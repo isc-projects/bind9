@@ -1657,11 +1657,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	}
 	if (isc_nmhandle_is_stream(handle)) {
 		client->attributes |= NS_CLIENTATTR_TCP;
-		unsigned int curr_tcpquota =
-			isc_quota_getused(&client->sctx->tcpquota);
-		ns_stats_update_if_greater(client->sctx->nsstats,
-					   ns_statscounter_tcphighwater,
-					   curr_tcpquota);
 	}
 
 	INSIST(client->recursionquota == NULL);
@@ -2183,6 +2178,20 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	}
 
 	isc_task_unpause(client->task);
+}
+
+void
+ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
+	ns_server_t *sctx = (ns_server_t *) arg;
+	unsigned int tcpquota;
+
+	UNUSED(handle);
+	UNUSED(result);
+
+	tcpquota = isc_quota_getused(&sctx->tcpquota);
+	ns_stats_update_if_greater(sctx->nsstats,
+				   ns_statscounter_tcphighwater,
+				   tcpquota);
 }
 
 static void
