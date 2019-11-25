@@ -191,9 +191,11 @@ or if you have Xcode already installed you can run `xcode-select --install`.
 
 Portions of BIND that are written in Python, including
 `dnssec-keymgr`, `dnssec-coverage`, `dnssec-checkds`, and some of the
-system tests, require the `argparse` and `ply` modules to be available.
+system tests, require the `argparse`, `ply` and `distutils.core` modules
+to be available.
 `argparse` is a standard module as of Python 2.7 and Python 3.2.
 `ply` is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
+`distutils.core` is required for installation.
 
 #### <a name="opts"/> Compile-time options
 
