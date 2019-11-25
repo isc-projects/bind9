@@ -1,3 +1,7 @@
+5326.	[bug]		Add python dependancy on 'distutils.core' to configure.
+			'distutils.core' is required for installation.
+			[GL #1397]
+
 5325.	[bug]		Addressed several issues with TCP connections in
 			the netmgr: restored support for TCP connection
 			timeouts, restored TCP backlog support, actively
