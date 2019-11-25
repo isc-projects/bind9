@@ -24,7 +24,7 @@ kill_named() {
 	fi
 
 	pid=`cat "${pidfile}" 2>/dev/null`
-	if test "${pid:+set}" = "set"; then
+	if [ "${pid:+set}" = "set" ]; then
 		$KILL -15 "${pid}" >/dev/null 2>&1
 		retries=10
 		while [ "$retries" -gt 0 ]; do
@@ -68,7 +68,7 @@ ret=0
 [ -s ns2/named.pid ] || ret=1
 grep "unable to listen on any configured interface" ns2/named.run > /dev/null && ret=1
 grep "another named process" ns2/named.run > /dev/null && ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 if [ ! "$CYGWIN" ]; then
@@ -79,7 +79,7 @@ if [ ! "$CYGWIN" ]; then
     wait_for_named "unable to listen on any configured interface" ns2/named$n.run || ret=1
     wait_for_named "exiting (due to fatal error)" ns2/named$n.run || ret=1
     kill_named named.pid && ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 fi
 
@@ -88,7 +88,7 @@ echo_i "verifying that named checks for conflicting named processes ($n)"
 ret=0
 (cd ns2 && $NAMED -c named-alt2.conf -D runtime-ns2-extra-2 -X named.lock -m record,size,mctx -d 99 -g -U 4 >> named$n.run 2>&1 & )
 wait_for_named "another named process" ns2/named$n.run || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
@@ -98,7 +98,7 @@ ret=0
 wait_for_named "running$" ns2/named$n.run || ret=1
 grep "another named process" ns2/named$n.run > /dev/null && ret=1
 kill_named ns2/named-alt3.pid || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 if $SHELL ../testcrypto.sh -q
@@ -110,7 +110,7 @@ then
     $RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1 && ret=1
     grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
     wait_for_named "managed-keys-directory '.*' is not writable" ns2/named.run || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 
     n=$((n+1))
@@ -120,7 +120,7 @@ then
     $RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1 && ret=1
     grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
     wait_for_named "working directory '.*' is not writable" ns2/named.run || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 
     n=$((n+1))
@@ -130,7 +130,7 @@ then
     $RNDCCMD 10.53.0.2 reconfig > rndc.out.$n 2>&1 || ret=1
     grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 && ret=1
     kill_named ns2/named.pid || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 fi
 
@@ -141,7 +141,7 @@ ret=0
 wait_for_named "exiting (due to fatal error)" ns2/named$n.run || ret=1
 grep "managed-keys-directory '.*' is not writable" ns2/named$n.run > /dev/null 2>&1 || ret=1
 kill_named ns2/named.pid && ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
@@ -151,7 +151,7 @@ ret=0
 wait_for_named "exiting (due to fatal error)" ns2/named$n.run || ret=1
 grep "working directory '.*' is not writable" ns2/named$n.run > /dev/null 2>&1 || ret=1
 kill_named ns2/named.pid && ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
@@ -160,12 +160,12 @@ ret=0
 (cd ns2/nope && $NAMED -c ../named-alt6.conf -D runtime-ns2-extra-6 -d 99 -g > ../named$n.run 2>&1 &)
 wait_for_named " running$" ns2/named$n.run || ret=1
 kill_named ns2/named.pid || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "verifying that named switches UID ($n)"
-if [ "`id -u`" = 0 ] && [ ! "$CYGWIN" ]; then
+if [ "`id -u`" -eq 0 ] && [ ! "$CYGWIN" ]; then
     ret=0
     TEMP_NAMED_DIR=`mktemp -d`
     if [ -d "${TEMP_NAMED_DIR}" ]; then
@@ -179,14 +179,14 @@ if [ "`id -u`" = 0 ] && [ ! "$CYGWIN" ]; then
         [ -s "${TEMP_NAMED_DIR}/named9.pid" ] || ret=1
         grep "loading configuration: permission denied" "${TEMP_NAMED_DIR}/named9.run" > /dev/null && ret=1
         pid=`cat "${TEMP_NAMED_DIR}/named9.pid" 2>/dev/null`
-        test "${pid:+set}" = set && $KILL -15 "${pid}" >/dev/null 2>&1
+        [ "${pid:+set}" = "set" ] && $KILL -15 "${pid}" >/dev/null 2>&1
         mv "${TEMP_NAMED_DIR}" ns2/
     else
         echo_i "mktemp failed"
         ret=1
     fi
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=`expr $status + $ret`
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
 else
     echo_i "skipped, not running as root or running on Windows"
 fi
