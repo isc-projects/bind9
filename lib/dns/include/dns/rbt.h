@@ -41,7 +41,6 @@ ISC_LANG_BEGINDECLS
 #define DNS_RBT_USEMAGIC 1
 
 #define DNS_RBT_LOCKLENGTH		(sizeof(((dns_rbtnode_t *)0)->locknum)*8)
-#define DNS_RBT_REFLENGTH		20
 
 #define DNS_RBTNODE_MAGIC               ISC_MAGIC('R','B','N','O')
 #if DNS_RBT_USEMAGIC
