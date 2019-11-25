@@ -1,3 +1,7 @@
+5326.	[bug]		Add python dependancy on 'distutils.core' to configure.
+			'distutils.core' is required for installation.
+			[GL #1397]
+
 5321.	[bug]		Obtain write lock before updating version->records
 			and version->bytes. [GL #1341]
 
