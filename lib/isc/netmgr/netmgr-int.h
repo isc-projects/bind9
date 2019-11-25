@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
+
 #include <unistd.h>
 #include <uv.h>
 

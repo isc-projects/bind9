@@ -43,6 +43,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma once
+
 #include <isc/atomic.h>
 #include <isc/string.h>
 #include <isc/mem.h>
