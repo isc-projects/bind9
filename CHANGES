@@ -1,3 +1,7 @@
+5326.	[bug]		Add python dependancy on 'distutils.core' to configure.
+			'distutils.core' is required for installation.
+			[GL #1397]
+
 5322.	[bug]		Conditional compilation of lock_callback was
 			inconsistent with conditional use of the function
 			when forcing BIND to build with older and unsupported
