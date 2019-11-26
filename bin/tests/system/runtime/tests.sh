@@ -164,22 +164,20 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "verifying that named switches UID ($n)"
-if [ "`id -u`" -eq 0 ] && [ ! "$CYGWIN" ]; then
+if [ "$(id -u)" -eq 0 ] && [ -z "$CYGWIN" ]; then
     ret=0
-    TEMP_NAMED_DIR=`mktemp -d`
-    if [ -d "${TEMP_NAMED_DIR}" ]; then
+    TEMP_NAMED_DIR=$(mktemp -d "$(pwd)/ns2/tmp.XXXXXXXX")
+    if [ "$?" -eq 0 ]; then
         copy_setports ns2/named-alt9.conf.in "${TEMP_NAMED_DIR}/named-alt9.conf"
         export SOFTHSM2_CONF="${TEMP_NAMED_DIR}/softhsm2.conf"
         sh "$TOP/bin/tests/prepare-softhsm2.sh"
-        chown -R nobody "${TEMP_NAMED_DIR}"
+        chown -R nobody: "${TEMP_NAMED_DIR}"
         chmod 0700 "${TEMP_NAMED_DIR}"
-        ( cd "${TEMP_NAMED_DIR}" && $NAMED -u nobody -c named-alt9.conf -d 99 -g -U 4 >> named9.run 2>&1 & )
-        sleep 2
+        ( cd "${TEMP_NAMED_DIR}" && $NAMED -u nobody -c named-alt9.conf -d 99 -g -U 4 >> named$n.run 2>&1 & ) || ret=1
+        wait_for_named "running$" "${TEMP_NAMED_DIR}/named$n.run" || ret=1
         [ -s "${TEMP_NAMED_DIR}/named9.pid" ] || ret=1
-        grep "loading configuration: permission denied" "${TEMP_NAMED_DIR}/named9.run" > /dev/null && ret=1
-        pid=`cat "${TEMP_NAMED_DIR}/named9.pid" 2>/dev/null`
-        [ "${pid:+set}" = "set" ] && $KILL -15 "${pid}" >/dev/null 2>&1
-        mv "${TEMP_NAMED_DIR}" ns2/
+        grep "loading configuration: permission denied" "${TEMP_NAMED_DIR}/named$n.run" > /dev/null && ret=1
+        kill_named "${TEMP_NAMED_DIR}/named9.pid" || ret=1
     else
         echo_i "mktemp failed"
         ret=1
