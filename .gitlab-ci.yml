@@ -205,7 +205,6 @@ stages:
 .system_test: &system_test_job
   <<: *default_triggering_rules
   stage: system
-  retry: 2
   before_script:
     - *setup_interfaces
     - *setup_softhsm
