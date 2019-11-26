@@ -201,8 +201,8 @@
 
 #define CHECKFATAL(op, msg) \
 	do { result = (op);					  \
-	       if (result != ISC_R_SUCCESS)			  \
-			fatal(msg, result);			  \
+		if (result != ISC_R_SUCCESS)			  \
+			fatal(server, msg, result);		  \
 	} while (0)						  \
 
 /*%
@@ -431,7 +431,8 @@ const char *empty_zones[] = {
 };
 
 ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *msg, isc_result_t result) ISC_PLATFORM_NORETURN_POST;
+fatal(named_server_t *server,const char *msg, isc_result_t result)
+ISC_PLATFORM_NORETURN_POST;
 
 static void
 named_server_reload(isc_task_t *task, isc_event_t *event);
@@ -9805,7 +9806,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	named_server_t *server = isc_mem_get(mctx, sizeof(*server));
 
 	if (server == NULL)
-		fatal("allocating server object", ISC_R_NOMEMORY);
+		fatal(server, "allocating server object", ISC_R_NOMEMORY);
 
 	server->mctx = mctx;
 	server->task = NULL;
@@ -10016,7 +10017,15 @@ named_server_destroy(named_server_t **serverp) {
 }
 
 static void
-fatal(const char *msg, isc_result_t result) {
+fatal(named_server_t *server, const char *msg, isc_result_t result) {
+	if (server != NULL) {
+		/*
+		 * Prevent races between the OpenSSL on_exit registered
+		 * function and any other OpenSSL calls from other tasks
+		 * by requesting exclusive access to the task manager.
+		 */
+		(void)isc_task_beginexclusive(server->task);
+	}
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_CRITICAL,
 		      "%s: %s", msg, isc_result_totext(result));
