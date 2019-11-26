@@ -246,7 +246,8 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 
 		for (;;) {
 			result = dns_master_rdatasettotext(name, &rds,
-							   masterstyle, buffer);
+							   masterstyle, NULL,
+							   buffer);
 			if (result != ISC_R_NOSPACE)
 				break;
 

@@ -388,6 +388,11 @@ typedef enum {
 	dns_stale_answer_conf
 } dns_stale_answer_t;
 
+typedef struct {
+	const char *string;
+	size_t	    count;
+} dns_indent_t;
+
 /*
  * Functions.
  */

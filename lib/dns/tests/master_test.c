@@ -429,8 +429,8 @@ totext_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&target, buf, BIGBUFLEN);
-	result = dns_master_rdatasettotext(dns_rootname,
-					   &rdataset, &dns_master_style_debug,
+	result = dns_master_rdatasettotext(dns_rootname, &rdataset,
+					   &dns_master_style_debug, NULL,
 					   &target);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_buffer_usedlength(&target), 0);

@@ -428,6 +428,8 @@ msginit(dns_message_t *m) {
 	m->tkey = 0;
 	m->rdclass_set = 0;
 	m->querytsig = NULL;
+	m->indent.string = "\t";
+	m->indent.count = 0;
 }
 
 static inline void
@@ -3259,8 +3261,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		if ((__flags & DNS_STYLEFLAG_INDENT) == 0ULL && \
 		    (__flags & DNS_STYLEFLAG_YAML) == 0ULL) \
 			break; \
-		for (__i = 0; __i < dns_master_indent; __i++) { \
-			ADD_STRING(target, dns_master_indentstr); \
+		for (__i = 0; __i < msg->indent.count; __i++) { \
+			ADD_STRING(target, msg->indent.string); \
 		} \
 	} while (0)
 
@@ -3268,23 +3270,26 @@ isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 			  const dns_master_style_t *style,
 			  dns_messagetextflag_t flags,
-			  isc_buffer_t *target) {
+			  isc_buffer_t *target)
+{
 	dns_name_t *name, empty_name;
 	dns_rdataset_t *rdataset;
 	isc_result_t result = ISC_R_SUCCESS;
 	bool seensoa = false;
-	unsigned int saveindent;
+	size_t saved_count;
 	dns_masterstyle_flags_t sflags;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 	REQUIRE(VALID_SECTION(section));
 
-	saveindent = dns_master_indent;
-	sflags = dns_master_styleflags(style);
-	if (ISC_LIST_EMPTY(msg->sections[section]))
-		goto cleanup;
+	saved_count = msg->indent.count;
 
+	if (ISC_LIST_EMPTY(msg->sections[section])) {
+		goto cleanup;
+	}
+
+	sflags = dns_master_styleflags(style);
 
 	INDENT(style);
 	if ((sflags & DNS_STYLEFLAG_YAML) != 0) {
@@ -3310,7 +3315,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		goto cleanup;
 	}
 	if ((sflags & DNS_STYLEFLAG_YAML) != 0) {
-		dns_master_indent++;
+		msg->indent.count++;
 	}
 	do {
 		name = NULL;
@@ -3342,6 +3347,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 				result = dns_master_rdatasettotext(name,
 								   rdataset,
 								   style,
+								   &msg->indent,
 								   target);
 			}
 			if (result != ISC_R_SUCCESS)
@@ -3350,7 +3356,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		result = dns_message_nextname(msg, section);
 	} while (result == ISC_R_SUCCESS);
 	if ((sflags & DNS_STYLEFLAG_YAML) != 0) {
-		dns_master_indent--;
+		msg->indent.count--;
 	}
 	if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 	    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0 &&
@@ -3363,7 +3369,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		result = ISC_R_SUCCESS;
 
  cleanup:
-	dns_master_indent = saveindent;
+	msg->indent.count = saved_count;
 	return (result);
 }
 
@@ -3479,12 +3485,14 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
 	uint16_t optcode, optlen;
+	size_t saved_count;
 	unsigned char *optdata;
-	unsigned int saveindent = dns_master_indent;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 	REQUIRE(VALID_PSEUDOSECTION(section));
+
+	saved_count = msg->indent.count;
 
 	switch (section) {
 	case DNS_PSEUDOSECTION_OPT:
@@ -3495,11 +3503,11 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 
 		INDENT(style);
 		ADD_STRING(target, "OPT_PSEUDOSECTION:\n");
-		dns_master_indent++;
+		msg->indent.count++;
 
 		INDENT(style);
 		ADD_STRING(target, "EDNS:\n");
-		dns_master_indent++;
+		msg->indent.count++;
 
 		INDENT(style);
 		ADD_STRING(target, "version: ");
@@ -3747,7 +3755,8 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 		}
 		INDENT(style);
 		ADD_STRING(target, "TSIG_PSEUDOSECTION:\n");
-		result = dns_master_rdatasettotext(name, ps, style, target);
+		result = dns_master_rdatasettotext(name, ps, style,
+						   &msg->indent, target);
 		ADD_STRING(target, "\n");
 		goto cleanup;
 	case DNS_PSEUDOSECTION_SIG0:
@@ -3758,7 +3767,8 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 		}
 		INDENT(style);
 		ADD_STRING(target, "SIG0_PSEUDOSECTION:\n");
-		result = dns_master_rdatasettotext(name, ps, style, target);
+		result = dns_master_rdatasettotext(name, ps, style,
+						   &msg->indent, target);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 		    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, "\n");
@@ -3768,7 +3778,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 	result = ISC_R_UNEXPECTED;
 
  cleanup:
-	dns_master_indent = saveindent;
+	msg->indent.count = saved_count;
 	return (result);
 }
 
@@ -3793,9 +3803,11 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	REQUIRE(target != NULL);
 	REQUIRE(VALID_PSEUDOSECTION(section));
 
-	if ((dns_master_styleflags(style) & DNS_STYLEFLAG_YAML) != 0)
+	if ((dns_master_styleflags(style) & DNS_STYLEFLAG_YAML) != 0) {
 		return (dns_message_pseudosectiontoyaml(msg, section, style,
 							flags, target));
+	}
+
 	switch (section) {
 	case DNS_PSEUDOSECTION_OPT:
 		ps = dns_message_getopt(msg);
@@ -4039,7 +4051,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		INDENT(style);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; TSIG PSEUDOSECTION:\n");
-		result = dns_master_rdatasettotext(name, ps, style, target);
+		result = dns_master_rdatasettotext(name, ps, style,
+						   &msg->indent, target);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 		    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, "\n");
@@ -4051,7 +4064,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		INDENT(style);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; SIG0 PSEUDOSECTION:\n");
-		result = dns_master_rdatasettotext(name, ps, style, target);
+		result = dns_master_rdatasettotext(name, ps, style,
+						   &msg->indent, target);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 		    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, "\n");

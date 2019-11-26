@@ -487,8 +487,8 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf,
 
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (yaml) {
-		dns_master_indentstr = "  ";
-		dns_master_indent = 3;
+		msg->indent.string = "  ";
+		msg->indent.count = 3;
 		styleflags |= DNS_STYLEFLAG_YAML;
 	} else {
 		if (query->lookup->comments) {

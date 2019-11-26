@@ -372,7 +372,7 @@ formatset(dns_rdataset_t *rdataset) {
 
 	result = isc_buffer_allocate(mctx, &buf, MAX_CDS_RDATA_TEXT_SIZE);
 	check_result(result, "printing DS records");
-	result = dns_master_rdatasettotext(name, rdataset, style, buf);
+	result = dns_master_rdatasettotext(name, rdataset, style, NULL, buf);
 
 	if ((result == ISC_R_SUCCESS) && isc_buffer_availablelength(buf) < 1) {
 		result = ISC_R_NOSPACE;
