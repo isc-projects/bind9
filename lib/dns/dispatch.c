@@ -927,6 +927,10 @@ allocate_udp_buffer(dns_dispatch_t *disp) {
 	void *temp;
 
 	LOCK(&disp->mgr->buffer_lock);
+	if (disp->mgr->buffers >= disp->mgr->maxbuffers) {
+		UNLOCK(&disp->mgr->buffer_lock);
+		return (NULL);
+	}
 	bpool = disp->mgr->bpool;
 	disp->mgr->buffers++;
 	UNLOCK(&disp->mgr->buffer_lock);
@@ -1058,9 +1062,11 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	mgr = disp->mgr;
 	qid = mgr->qid;
 
+	LOCK(&disp->mgr->buffer_lock);
 	dispatch_log(disp, LVL(90),
 		     "got packet: requests %d, buffers %d, recvs %d",
 		     disp->requests, disp->mgr->buffers, disp->recv_pending);
+	UNLOCK(&disp->mgr->buffer_lock);
 
 	if (dispsock == NULL && ev->ev_type == ISC_SOCKEVENT_RECVDONE) {
 		/*
@@ -1510,9 +1516,6 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 
 	if (disp->recv_pending != 0 && dispsock == NULL)
 		return (ISC_R_SUCCESS);
-
-	if (disp->mgr->buffers >= disp->mgr->maxbuffers)
-		return (ISC_R_NOMEMORY);
 
 	if ((disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) != 0 &&
 	    dispsock == NULL)
