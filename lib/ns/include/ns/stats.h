@@ -104,7 +104,9 @@ enum {
 
 	ns_statscounter_tcphighwater = 65,
 
-	ns_statscounter_max = 66,
+	ns_statscounter_reclimitdropped = 66,
+
+	ns_statscounter_max = 67,
 };
 
 void
