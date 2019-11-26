@@ -324,6 +324,9 @@ init_desc(void) {
 		       "QryUsedStale");
 	SET_NSSTATDESC(prefetch, "queries triggered prefetch", "Prefetch");
 	SET_NSSTATDESC(keytagopt, "Keytag option received", "KeyTagOpt");
+	SET_NSSTATDESC(reclimitdropped,
+		       "queries dropped due to recursive client limit",
+		       "RecLimitDropped");
 
 	INSIST(i == ns_statscounter_max);
 
