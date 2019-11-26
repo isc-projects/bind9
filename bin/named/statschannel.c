@@ -297,6 +297,9 @@ init_desc(void) {
 		"QryNXRedirRLookup");
 	SET_NSSTATDESC(badcookie, "sent badcookie response", "QryBADCOOKIE");
 	SET_NSSTATDESC(keytagopt, "Keytag option received", "KeyTagOpt");
+	SET_NSSTATDESC(reclimitdropped,
+		       "queries dropped due to recursive client limit",
+		       "RecLimitDropped");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */
