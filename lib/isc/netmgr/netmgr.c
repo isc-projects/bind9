@@ -198,6 +198,7 @@ nm_destroy(isc_nm_t **mgr0) {
 		int r = uv_loop_close(&mgr->workers[i].loop);
 		INSIST(r == 0);
 		isc_queue_destroy(mgr->workers[i].ievents);
+		isc_thread_join(mgr->workers[i].thread, NULL);
 	}
 
 	isc_condition_destroy(&mgr->wkstatecond);
@@ -424,9 +425,10 @@ nm_thread(void *worker0) {
 				atomic_store(&worker->mgr->paused, false);
 			}
 		}
+		bool finished = worker->finished;
 		UNLOCK(&worker->lock);
 
-		if (worker->finished) {
+		if (finished) {
 			/*
 			 * We need to launch the loop one more time
 			 * in UV_RUN_NOWAIT mode to make sure that
