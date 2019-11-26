@@ -155,8 +155,11 @@ ns_client_killoldestquery(ns_client_t *client) {
 		ISC_LIST_UNLINK(client->manager->recursing, oldest, rlink);
 		UNLOCK(&client->manager->reclock);
 		ns_query_cancel(oldest);
-	} else
+		ns_stats_increment(client->sctx->nsstats,
+				   ns_statscounter_reclimitdropped);
+	} else {
 		UNLOCK(&client->manager->reclock);
+	}
 }
 
 void
