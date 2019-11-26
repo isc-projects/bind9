@@ -62,7 +62,7 @@
  * Normal locks are too expensive to be used whenever a counter
  * is updated.
  */
-#if !ISC_STATS_HAVEATOMICQ && defined(ISC_RWLOCK_HAVEATOMIC)
+#if !ISC_STATS_HAVEATOMICQ && defined(ISC_RWLOCK_USEATOMIC)
 #define ISC_STATS_LOCKCOUNTERS 1
 #else
 #define ISC_STATS_LOCKCOUNTERS 0
@@ -77,22 +77,11 @@
  * Otherwise, just rely on standard 64-bit data types
  * and operations
  */
-#if !ISC_STATS_HAVEATOMICQ
-
-# if defined(ISC_PLATFORM_HAVESTDATOMIC)
-#  define ISC_STATS_USEMULTIFIELDS 1
-#  define ISC_STATS_HAVESTDATOMIC 1
-# else /* defined(ISC_PLATFORM_HAVESTDATOMIC) */
-#  if ISC_PLATFORM_HAVEXADD
+#if !defined(ISC_STATS_HAVEATOMICQ) && defined(ISC_PLATFORM_HAVEXADD)
 #   define ISC_STATS_USEMULTIFIELDS 1
-#  else
+#else
 #   define ISC_STATS_USEMULTIFIELDS 0
-#  endif
-# endif
-
-#else /* !ISC_STATS_HAVEATOMICQ */
-#define ISC_STATS_USEMULTIFIELDS 0
-#endif /* !ISC_STATS_HAVEATOMICQ */
+#endif
 
 #if ISC_STATS_USEMULTIFIELDS
 typedef struct {
@@ -363,10 +352,12 @@ copy_counters(isc_stats_t *stats) {
 #endif
 
 	for (i = 0; i < stats->ncounters; i++) {
+
 #if ISC_STATS_USEMULTIFIELDS
 		stats->copiedcounters[i] =
-			(uint64_t)(stats->counters[i].hi) << 32 |
-			stats->counters[i].lo;
+			((uint64_t)stats->counters[counter].hi << 32) |
+			stats->counters[counter].lo;
+
 #elif ISC_STATS_HAVEATOMICQ
 #if defined(ISC_STATS_HAVESTDATOMICQ)
 		stats->copiedcounters[i] =
@@ -466,6 +457,8 @@ void isc_stats_update_if_greater(isc_stats_t *stats,
 				 isc_statscounter_t counter,
 				 uint64_t value)
 {
+	uint64_t curr_value;
+
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
@@ -474,34 +467,29 @@ void isc_stats_update_if_greater(isc_stats_t *stats,
 #endif
 
 #if ISC_STATS_USEMULTIFIELDS
-	uint64_t curr_value = ((uint64_t)stats->counters[counter].hi << 32) &&
-		stats->counters[counter].lo;
-
+	curr_value = ((uint64_t)stats->counters[i].hi << 32) |
+				stats->counters[i].lo;
 	if (curr_value < value) {
-		stats->counters[counter].hi =
-			(uint32_t)((value >> 32) & 0xffffffff);
-		stats->counters[counter].lo =
-			(uint32_t)(value & 0xffffffff);
+		stats->counters[counter].hi = (uint32_t)((value >> 32) & 0xffffffff);
+		stats->counters[counter].lo = (uint32_t)(value & 0xffffffff);
 	}
-#elif ISC_STATS_HAVEATOMICQ
-#if defined(ISC_STATS_HAVESTDATOMICQ)
-	uint64_t curr_value = atomic_load_explicit(&stats->counters[counter],
-						   memory_order_relaxed);
+#elif defined(ISC_PLATFORM_HAVESTDATOMIC)
+	isc_statscounter_t *curr_value_ptr = (isc_statscounter_t *)&curr_value;
+	curr_value = (uint64_t)atomic_load_explicit(&stats->counters[counter],
+						    memory_order_relaxed);
 	do {
-		if (curr_value >= value) {
+		if (curr_value >= (uint64_t)value) {
 			break;
 		}
+
 	} while (!atomic_compare_exchange_strong(&stats->counters[counter],
-						 (int64_t *)&curr_value,
+						 curr_value_ptr,
 						 value));
 #else
-	/* This is not exactly thread safe, but we are ok with that on
-	 * platforms without stdatomic support.
-	 */
+	UNUSED(curr_value);
 	if (stats->counters[counter] < value) {
 		stats->counters[counter] = value;
 	}
-#endif
 #endif
 
 #if ISC_STATS_LOCKCOUNTERS
@@ -518,12 +506,12 @@ isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter)
 	uint64_t curr_value;
 
 #if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_read);
 #endif
 
 #if ISC_STATS_USEMULTIFIELDS
-	curr_value = ((uint64_t)stats->counters[counter].hi << 32) &&
-		stats->counters[counter].lo;
+	curr_value = ((uint64_t)stats->counters[counter].hi << 32) |
+			stats->counters[counter].lo;
 #elif ISC_STATS_HAVEATOMICQ
 #if defined(ISC_STATS_HAVESTDATOMICQ)
 	curr_value = atomic_load_explicit(&stats->counters[counter],
@@ -534,10 +522,12 @@ isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter)
 		(uint64_t)isc_atomic_xaddq((int64_t *)&stats->counters[counter],
 					   0);
 #endif
+#else
+	curr_value = stats->counters[counter];
 #endif
 
 #if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_read);
 #endif
 
 	return (curr_value);
