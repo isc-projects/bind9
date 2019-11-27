@@ -18,3 +18,4 @@ rm -f rndc.out*
 [ -d ns2/nope ] && chmod 755 ns2/nope
 rm -rf ns2/nope
 rm -f ns2/dir ns2/nopedir ns2/mkd ns2/nopemkd
+rm -rf ns2/tmp.*
