@@ -122,6 +122,8 @@ if [ "`id -u`" = 0 ] && [ ! "$CYGWIN" ]; then
     TEMP_NAMED_DIR=`mktemp -d`
     if [ -d "${TEMP_NAMED_DIR}" ]; then
         copy_setports ns2/named-alt9.conf.in "${TEMP_NAMED_DIR}/named-alt9.conf"
+        export SOFTHSM2_CONF="${TEMP_NAMED_DIR}/softhsm2.conf"
+        sh "$TOP/util/prepare-softhsm2.sh"
         chown -R nobody "${TEMP_NAMED_DIR}"
         chmod 0700 "${TEMP_NAMED_DIR}"
         ( cd "${TEMP_NAMED_DIR}" && $NAMED -u nobody -c named-alt9.conf -d 99 -g -U 4 >> named9.run 2>&1 & )
