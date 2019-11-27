@@ -1009,6 +1009,7 @@
 ./bin/tests/system/runtime/README		TXT.BRIEF	2014,2016,2018,2019
 ./bin/tests/system/runtime/clean.sh		SH	2014,2015,2016,2017,2018,2019
 ./bin/tests/system/runtime/ctrl-char-dir-name	X	2019
+./bin/tests/system/runtime/long-cmd-line	X	2019
 ./bin/tests/system/runtime/setup.sh		SH	2015,2016,2017,2018,2019
 ./bin/tests/system/runtime/tests.sh		SH	2014,2015,2016,2017,2018,2019
 ./bin/tests/system/send.pl			PERL	2001,2004,2007,2011,2012,2016,2018,2019
