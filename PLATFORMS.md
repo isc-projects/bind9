@@ -17,10 +17,16 @@ and the OpenSSL cryptography library.  Atomic operations support from the
 compiler is needed, either in the form of builtin operations, C11 atomics,
 or the `Interlocked` family of functions on Windows.
 
-BIND 9.15 requires fairly recent version of libuv library to run (>= 1.x).  For
-some of the older systems listed below, you will have to install updated libuv
-package from sources such as EPEL, PPA and other native sources for updated
-packages.  The other option is to install libuv from sources.
+BIND 9.15 requires a fairly recent version of `libuv` (at least 1.x).  For
+some of the older systems listed below, you will have to install an updated
+`libuv` package from sources such as EPEL, PPA, or other native sources for
+updated packages. The other option is to build and install `libuv` from
+source.
+
+Certain optional BIND features have additional library dependencies.
+These include `libxml2` and `libjson-c` for statistics, `libmaxminddb` for
+geolocation, `libfstrm` and `libprotobuf-c` for DNSTAP, and `libidn2` for
+internationalized domain name conversion.
 
 ISC regularly tests BIND on many operating systems and architectures, but
 lacks the resources to test all of them. Consequently, ISC is only able to
@@ -63,12 +69,13 @@ Server 2012 R2, none of these are tested regularly by ISC.
 
 ### Community maintained
 
-These systems may not all have easily available the required dependencies for
-building BIND although it will be possible in many cases to compile those
-directly from source. The community and interested parties may wish to help with
-maintenance and we welcome patch contributions, although we cannot guarantee
-that we will accept them.  All contributions will be assessed against the risk
-of adverse effect on officially supported platforms.
+These systems may not all have the required dependencies for building BIND
+easily available, although it will be possible in many cases to compile
+those directly from source. The community and interested parties may wish
+to help with maintenance, and we welcome patch contributions, although we
+cannot guarantee that we will accept them.  All contributions will be
+assessed against the risk of adverse effect on officially supported
+platforms.
 
 * Platforms past or close to their respective EOL dates, such as:
     * Ubuntu 14.04, 18.10
@@ -87,6 +94,4 @@ These are platforms on which BIND 9.15 is known *not* to build or run:
 * Platforms that don't support IPv6 Advanced Socket API (RFC 3542)
 * Platforms that don't support atomic operations (via compiler or library)
 * Linux without NPTL (Native POSIX Thread Library)
-* Platforms where libuv cannot be compiled
-
-## Platform quirks
+* Platforms on which `libuv` cannot be compiled
