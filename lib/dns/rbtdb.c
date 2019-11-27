@@ -1744,6 +1744,9 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		node->dirty = 0;
 }
 
+/*
+ * tree_lock(write) must be held.
+ */
 static void
 delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	dns_rbtnode_t *nsecnode;
@@ -2695,6 +2698,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
  * E.g. if the wildcard name is "*.sub.example." then we
  * must ensure that "sub.example." exists and is marked as
  * a wildcard level.
+ *
+ * tree_lock(write) must be held.
  */
 static isc_result_t
 add_wildcard_magic(dns_rbtdb_t *rbtdb, const dns_name_t *name) {
@@ -2719,6 +2724,9 @@ add_wildcard_magic(dns_rbtdb_t *rbtdb, const dns_name_t *name) {
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * tree_lock(write) must be held.
+ */
 static isc_result_t
 add_empty_wildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name) {
 	isc_result_t result;
