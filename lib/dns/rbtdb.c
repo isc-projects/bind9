@@ -6748,13 +6748,16 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(VALID_RBTDB(rbtdb));
 	INSIST(rbtversion == NULL || rbtversion->rbtdb == rbtdb);
 
-	if (rbtdb->common.methods == &zone_methods)
+	if (rbtdb->common.methods == &zone_methods) {
+		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 		REQUIRE(((rbtnode->nsec == DNS_RBT_NSEC_NSEC3 &&
 			  (rdataset->type == dns_rdatatype_nsec3 ||
 			   rdataset->covers == dns_rdatatype_nsec3)) ||
 			 (rbtnode->nsec != DNS_RBT_NSEC_NSEC3 &&
 			   rdataset->type != dns_rdatatype_nsec3 &&
 			   rdataset->covers != dns_rdatatype_nsec3)));
+		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	}
 
 	if (rbtversion == NULL) {
 		if (now == 0)
@@ -6846,11 +6849,15 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	/*
 	 * Add to the auxiliary NSEC tree if we're adding an NSEC record.
 	 */
+	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 	if (rbtnode->nsec != DNS_RBT_NSEC_HAS_NSEC &&
 	    rdataset->type == dns_rdatatype_nsec)
+	{
 		newnsec = true;
-	else
+	} else {
 		newnsec = false;
+	}
+	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 
 	/*
 	 * If we're adding a delegation type, adding to the auxiliary NSEC tree,
@@ -6951,13 +6958,16 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(rbtversion != NULL && rbtversion->rbtdb == rbtdb);
 
-	if (rbtdb->common.methods == &zone_methods)
+	if (rbtdb->common.methods == &zone_methods) {
+		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 		REQUIRE(((rbtnode->nsec == DNS_RBT_NSEC_NSEC3 &&
 			  (rdataset->type == dns_rdatatype_nsec3 ||
 			   rdataset->covers == dns_rdatatype_nsec3)) ||
 			 (rbtnode->nsec != DNS_RBT_NSEC_NSEC3 &&
 			   rdataset->type != dns_rdatatype_nsec3 &&
 			   rdataset->covers != dns_rdatatype_nsec3)));
+		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
 					    &region, sizeof(rdatasetheader_t));
