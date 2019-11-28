@@ -171,7 +171,7 @@ stoplistening(isc_nmsocket_t *sock) {
 	INSIST(sock->type == isc_nm_udplistener);
 
 	for (int i = 0; i < sock->nchildren; i++) {
-		isc__netievent_udplisten_t *event = NULL;
+		isc__netievent_udpstoplisten_t *event = NULL;
 
 		if (i == sock->tid) {
 			stop_udp_child(&sock->children[i]);

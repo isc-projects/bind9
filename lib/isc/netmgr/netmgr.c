@@ -42,6 +42,12 @@
 
 ISC_THREAD_LOCAL int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
 
+#ifdef WIN32
+#define NAMED_PIPE_PREFIX "\\\\.\\pipe\\named-ipc"
+#else
+#define NAMED_PIPE_PREFIX ".named-ipc"
+#endif
+
 static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock);
 static void
@@ -497,6 +503,9 @@ async_cb(uv_async_t *handle) {
 		case netievent_tcplisten:
 			isc__nm_async_tcplisten(worker, ievent);
 			break;
+		case netievent_tcpchildlisten:
+			isc__nm_async_tcpchildlisten(worker, ievent);
+			break;
 		case netievent_tcpstartread:
 			isc__nm_async_startread(worker, ievent);
 			break;
@@ -508,6 +517,9 @@ async_cb(uv_async_t *handle) {
 			break;
 		case netievent_tcpstoplisten:
 			isc__nm_async_tcpstoplisten(worker, ievent);
+			break;
+		case netievent_tcpstopchildlisten:
+			isc__nm_async_tcpstopchildlisten(worker, ievent);
 			break;
 		case netievent_tcpclose:
 			isc__nm_async_tcpclose(worker, ievent);
@@ -789,6 +801,16 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 		sock->ah_frees[i] = i;
 		sock->ah_handles[i] = NULL;
 	}
+
+	/*
+	 * XXXWPK Maybe it should be in tmp, maybe it should not
+	 * be random?
+	 */
+	strcpy(sock->ipc_pipe_name, NAMED_PIPE_PREFIX);
+	for (int i=strlen(sock->ipc_pipe_name); i<31; i++) {
+		sock->ipc_pipe_name[i] = isc_random8()%24 + 'a';
+	}
+	sock->ipc_pipe_name[31] = '\0';
 
 	isc_mutex_init(&sock->lock);
 	isc_condition_init(&sock->cond);

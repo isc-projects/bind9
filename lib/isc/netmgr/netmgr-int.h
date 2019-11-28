@@ -114,7 +114,9 @@ typedef enum isc__netievent_type {
 	netievent_tcpstartread,
 	netievent_tcppauseread,
 	netievent_tcplisten,
+	netievent_tcpchildlisten,
 	netievent_tcpstoplisten,
+	netievent_tcpstopchildlisten,
 	netievent_tcpclose,
 	netievent_closecb,
 	netievent_shutdown,
@@ -159,6 +161,7 @@ typedef struct isc__nm_uvreq {
 	isc_sockaddr_t		peer;	/* peer address */
 	isc__nm_cb_t		cb;	/* callback */
 	void *			cbarg;	/* callback argument */
+	uv_pipe_t		pipe;
 	union {
 		uv_req_t		req;
 		uv_getaddrinfo_t	getaddrinfo;
@@ -180,6 +183,7 @@ typedef struct isc__netievent__socket {
 typedef isc__netievent__socket_t isc__netievent_udplisten_t;
 typedef isc__netievent__socket_t isc__netievent_udpstoplisten_t;
 typedef isc__netievent__socket_t isc__netievent_tcpstoplisten_t;
+typedef isc__netievent__socket_t isc__netievent_tcpstopchildlisten_t;
 typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
@@ -193,6 +197,7 @@ typedef struct isc__netievent__socket_req {
 
 typedef isc__netievent__socket_req_t isc__netievent_tcpconnect_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcplisten_t;
+typedef isc__netievent__socket_req_t isc__netievent_tcpchildlisten_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcpsend_t;
 
 typedef struct isc__netievent_udpsend {
@@ -274,6 +279,7 @@ typedef enum isc_nmsocket_type {
 	isc_nm_udplistener, /* Aggregate of nm_udpsocks */
 	isc_nm_tcpsocket,
 	isc_nm_tcplistener,
+	isc_nm_tcpchildlistener,
 	isc_nm_tcpdnslistener,
 	isc_nm_tcpdnssocket
 } isc_nmsocket_type;
@@ -321,6 +327,11 @@ struct isc_nmsocket {
 	int			nchildren;
 	isc_nmiface_t		*iface;
 	isc_nmhandle_t		*tcphandle;
+
+	/* used to send listening TCP sockets to children */
+	uv_pipe_t		ipc;
+	char			ipc_pipe_name[32];
+	atomic_int_fast32_t	schildren;
 
 	/*% extra data allocated at the end of each isc_nmhandle_t */
 	size_t			extrahandlesize;
@@ -579,8 +590,13 @@ isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ievent0);
 void
 isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0);
 void
+isc__nm_async_tcpchildlisten(isc__networker_t *worker, isc__netievent_t *ievent0);
+void
 isc__nm_async_tcpstoplisten(isc__networker_t *worker,
 			    isc__netievent_t *ievent0);
+void
+isc__nm_async_tcpstopchildlisten(isc__networker_t *worker,
+				 isc__netievent_t *ievent0);
 void
 isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ievent0);
 void
