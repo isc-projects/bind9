@@ -1207,7 +1207,6 @@ detach(dns_db_t **dbp) {
 	*dbp = NULL;
 
 	if (isc_refcount_decrement(&rbtdb->references) == 1) {
-		(void)isc_refcount_current(&rbtdb->references);
 		maybe_free_rbtdb(rbtdb);
 	}
 }
@@ -1219,7 +1218,6 @@ currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	/* XXXOND: Is the lock needed here? */
 	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
 	version = rbtdb->current_version;
 	isc_refcount_increment(&version->references);
@@ -6823,8 +6821,11 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	 * Update the zone's secure status.  If version is non-NULL
 	 * this is deferred until closeversion() is called.
 	 */
-	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb))
+	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
+		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
 		iszonesecure(db, rbtdb->current_version, rbtdb->origin_node);
+		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+	}
 
 	return (result);
 }
@@ -6878,8 +6879,11 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	 * Update the zone's secure status.  If version is non-NULL
 	 * this is deferred until closeversion() is called.
 	 */
-	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb))
+	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
+		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
 		iszonesecure(db, rbtdb->current_version, rbtdb->origin_node);
+		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+	}
 
 	return (result);
 }
@@ -7305,14 +7309,14 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	rbtdb->attributes &= ~RBTDB_ATTR_LOADING;
 	rbtdb->attributes |= RBTDB_ATTR_LOADED;
 
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
-
 	/*
 	 * If there's a KEY rdataset at the zone origin containing a
 	 * zone key, we consider the zone secure.
 	 */
-	if (! IS_CACHE(rbtdb) && rbtdb->origin_node != NULL)
+	if (! IS_CACHE(rbtdb) && rbtdb->origin_node != NULL) {
 		iszonesecure(db, rbtdb->current_version, rbtdb->origin_node);
+	}
+	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	callbacks->add = NULL;
 	callbacks->add_private = NULL;
@@ -7578,9 +7582,9 @@ issecure(dns_db_t *db) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
 	secure = (rbtdb->current_version->secure == dns_db_secure);
-	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
 
 	return (secure);
 }
@@ -7594,9 +7598,9 @@ isdnssec(dns_db_t *db) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
 	dnssec = (rbtdb->current_version->secure != dns_db_insecure);
-	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
 
 	return (dnssec);
 }
@@ -7692,10 +7696,10 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *version, dns_hash_t *hash,
 	REQUIRE(VALID_RBTDB(rbtdb));
 	INSIST(rbtversion == NULL || rbtversion->rbtdb == rbtdb);
 
-	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-
-	if (rbtversion == NULL)
+	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
+	if (rbtversion == NULL) {
 		rbtversion = rbtdb->current_version;
+	}
 
 	if (rbtversion->havensec3) {
 		if (hash != NULL)
@@ -7713,7 +7717,7 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *version, dns_hash_t *hash,
 			*flags = rbtversion->flags;
 		result = ISC_R_SUCCESS;
 	}
-	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
 
 	return (result);
 }
@@ -7731,16 +7735,21 @@ getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
 	REQUIRE(VALID_RBTDB(rbtdb));
 	INSIST(rbtversion == NULL || rbtversion->rbtdb == rbtdb);
 
-	if (rbtversion == NULL)
+	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
+	if (rbtversion == NULL) {
 		rbtversion = rbtdb->current_version;
+	}
 
 	RWLOCK(&rbtversion->rwlock, isc_rwlocktype_read);
-	if (records != NULL)
+	if (records != NULL) {
 		*records = rbtversion->records;
+	}
 
-	if (bytes != NULL)
+	if (bytes != NULL) {
 		*bytes = rbtversion->bytes;
+	}
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_read);
+	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
 
 	return (result);
 }
