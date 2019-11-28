@@ -9344,11 +9344,18 @@ setownercase(rdatasetheader_t *header, const dns_name_t *name) {
 
 static void
 rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
+	dns_rbtdb_t *rbtdb = rdataset->private1;
+	dns_rbtnode_t *rbtnode = rdataset->private2;
 	unsigned char *raw = rdataset->private3;        /* RDATASLAB */
 	rdatasetheader_t *header;
 
 	header = (struct rdatasetheader *)(raw - sizeof(*header));
+
+	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_write);
 	setownercase(header, name);
+	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		    isc_rwlocktype_write);
 }
 
 static const unsigned char charmask[] = {
@@ -9423,6 +9430,8 @@ static const unsigned char maptolower[] = {
 
 static void
 rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
+	dns_rbtdb_t *rbtdb = rdataset->private1;
+	dns_rbtnode_t *rbtnode = rdataset->private2;
 	const unsigned char *raw = rdataset->private3;        /* RDATASLAB */
 	const rdatasetheader_t *header;
 	unsigned int i, j;
@@ -9431,8 +9440,12 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 
 	header = (const struct rdatasetheader *)(raw - sizeof(*header));
 
-	if (!CASESET(header))
-		return;
+	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_read);
+
+	if (!CASESET(header)) {
+		goto unlock;
+	}
 
 #if 0
 	/*
@@ -9445,10 +9458,13 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 		 */
 		if (name->ndata[i] >= 0x61 && name->ndata[i] <= 0x7a &&
 		    (header->upper[i/8] & (1 << (i%8))) != 0)
+		{
 			name->ndata[i] &= ~0x20; /* clear the lower case bit */
-		else if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a &&
-			 (header->upper[i/8] & (1 << (i%8))) == 0)
+		} else if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a &&
+			   (header->upper[i/8] & (1 << (i%8))) == 0)
+		{
 			name->ndata[i] |= 0x20; /* set the lower case bit */
+		}
 	}
 #else
 
@@ -9472,7 +9488,7 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 			c = *bp;
 			*bp++ = maptolower[c];
 		}
-		return;
+		goto unlock;
 	}
 
 	i = 0;
@@ -9493,8 +9509,9 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 		}
 	}
 
-	if (ISC_UNLIKELY(i == name->length))
-		return;
+	if (ISC_UNLIKELY(i == name->length)) {
+		goto unlock;
+	}
 
 	bits = ~(header->upper[j]);
 
@@ -9508,6 +9525,10 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 		bits >>= 1;
 	}
 #endif
+
+ unlock:
+	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		    isc_rwlocktype_read);
 }
 
 struct rbtdb_glue {
