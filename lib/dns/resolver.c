@@ -347,8 +347,8 @@ struct fetchctx {
 	/*%
 	 * Random numbers to use for mixing up server addresses.
 	 */
-	uint32_t                    rand_buf;
-	uint32_t                    rand_bits;
+	uint32_t                    	rand_buf;
+	uint32_t                    	rand_bits;
 
 	/*%
 	 * Fetch-local statistics for detailed logging.
@@ -358,7 +358,7 @@ struct fetchctx {
 	int				exitline;
 	isc_time_t			start;
 	uint64_t			duration;
-	bool			logged;
+	bool				logged;
 	unsigned int			querysent;
 	unsigned int			referrals;
 	unsigned int			lamecount;
@@ -368,9 +368,9 @@ struct fetchctx {
 	unsigned int			adberr;
 	unsigned int			findfail;
 	unsigned int			valfail;
-	bool			timeout;
+	bool				timeout;
 	dns_adbaddrinfo_t 		*addrinfo;
-	isc_sockaddr_t			*client;
+	const isc_sockaddr_t		*client;
 	unsigned int			depth;
 };
 
@@ -4246,7 +4246,6 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_sockaddr_t *client,
 	else
 		ISC_LIST_APPEND(fctx->events, event, ev_link);
 	fctx->references++;
-	fctx->client = client;
 
 	fetch->magic = DNS_FETCH_MAGIC;
 	fetch->private = fctx;
@@ -4271,8 +4270,9 @@ log_ns_ttl(fetchctx_t *fctx, const char *where) {
 static isc_result_t
 fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	    dns_name_t *domain, dns_rdataset_t *nameservers,
-	    unsigned int options, unsigned int bucketnum, unsigned int depth,
-	    isc_counter_t *qc, fetchctx_t **fctxp)
+	    const isc_sockaddr_t *client, unsigned int options,
+	    unsigned int bucketnum, unsigned int depth, isc_counter_t *qc,
+	    fetchctx_t **fctxp)
 {
 	fetchctx_t *fctx;
 	isc_result_t result;
@@ -4382,7 +4382,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->rand_bits = 0;
 	fctx->timeout = false;
 	fctx->addrinfo = NULL;
-	fctx->client = NULL;
+	fctx->client = client;
 	fctx->ns_ttl = 0;
 	fctx->ns_ttl_ok = false;
 
@@ -9586,7 +9586,8 @@ dns_resolver_createfetch3(dns_resolver_t *res, dns_name_t *name,
 
 	if (fctx == NULL) {
 		result = fctx_create(res, name, type, domain, nameservers,
-				     options, bucketnum, depth, qc, &fctx);
+				     client, options, bucketnum, depth, qc,
+				     &fctx);
 		if (result != ISC_R_SUCCESS)
 			goto unlock;
 		new_fctx = true;
