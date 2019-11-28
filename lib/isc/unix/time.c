@@ -36,8 +36,10 @@
 #define NS_PER_MS	1000000		/*%< Nanoseconds per millisecond. */
 #define US_PER_S	1000000		/*%< Microseconds per second. */
 
-#ifdef CLOCK_REALTIME_COARSE
+#if defined(CLOCK_REALTIME_COARSE)
 #define CLOCKSOURCE CLOCK_REALTIME_COARSE
+#elif defined(CLOCK_REALTIME_FAST)
+#define CLOCKSOURCE CLOCK_REALTIME_FAST
 #else
 #define CLOCKSOURCE CLOCK_REALTIME
 #endif
