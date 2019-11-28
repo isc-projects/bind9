@@ -47,6 +47,7 @@
 
 #include <isc/atomic.h>
 #include <isc/hp.h>
+#include <isc/once.h>
 #include <isc/string.h>
 #include <isc/mem.h>
 #include <isc/util.h>
@@ -61,8 +62,7 @@
 
 #define TID_UNKNOWN -1
 
-static atomic_int_fast32_t tid_v_base;
-static bool tid_v_initialized;
+static atomic_int_fast32_t tid_v_base = ATOMIC_VAR_INIT(0);
 
 #if defined(HAVE_TLS)
 #if defined(HAVE_THREAD_LOCAL)
@@ -94,10 +94,6 @@ struct isc_hp {
 
 static inline int
 tid() {
-	if (!tid_v_initialized) {
-		atomic_init(&tid_v_base, 0);
-		tid_v_initialized = true;
-	}
 	if (tid_v == TID_UNKNOWN) {
 		tid_v = atomic_fetch_add(&tid_v_base, 1);
 		REQUIRE(tid_v < HP_MAX_THREADS);
