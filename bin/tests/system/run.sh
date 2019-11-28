@@ -196,7 +196,7 @@ if [ $status != 0 ]; then
 else
     core_dumps="`find $systest/ -name 'core*' -or -name '*.core' | sort | tr '\n' ' '`"
     assertion_failures=`find $systest/ -name named.run | xargs grep "assertion failure" | wc -l`
-    sanitizer_summaries=`grep -r "SUMMARY: .*Sanitizer" $systest/ | wc -l`
+    sanitizer_summaries=`find $systest/ -type f | grep '^[-a-zA-Z0-9./_]*$' | xargs grep "SUMMARY: .*Sanitizer" | wc -l`
     if [ -n "$core_dumps" ]; then
         echoinfo "I:$systest:Test claims success despite crashes: $core_dumps"
         echofail "R:$systest:FAIL"
