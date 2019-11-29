@@ -191,8 +191,7 @@ LONG_CMD_LINE=$(cat long-cmd-line)
 # shellcheck disable=SC2086
 (cd ns2 && $NAMED $LONG_CMD_LINE -c "named-alt7.conf" -g > named$n.run 2>&1 &)
 wait_for_named "running$" ns2/named$n.run || ret=1
-#grep "running as.*\.\.\.$" ns2/named$n.run > /dev/null || ret=1
-echo_i "skipped - the ellipsis is currently not printed"
+grep "running as.*\.\.\.$" ns2/named$n.run > /dev/null || ret=1
 kill_named ns2/named.pid || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
