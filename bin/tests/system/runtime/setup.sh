@@ -22,6 +22,7 @@ copy_setports ns2/named-alt3.conf.in ns2/named-alt3.conf
 copy_setports ns2/named-alt4.conf.in ns2/named-alt4.conf
 copy_setports ns2/named-alt5.conf.in ns2/named-alt5.conf
 copy_setports ns2/named-alt6.conf.in ns2/named-alt6.conf
+copy_setports ns2/named-alt7.conf.in ns2/named-alt7.conf
 
 mkdir ns2/nope
 

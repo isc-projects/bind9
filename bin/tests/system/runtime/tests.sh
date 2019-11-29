@@ -165,10 +165,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking that named logs control characters in octal notation ($n)"
 ret=0
-SPEC_DIR=$(cat ctrl-char-dir-name)
-mkdir "ns2/${SPEC_DIR}"
-copy_setports ns2/named-alt7.conf.in "ns2/${SPEC_DIR}/named.conf"
-(cd ns2 && $NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named$n.run 2>&1 &)
+INSTANCE_NAME="runtime-ns2-extra-7-$(cat ctrl-chars)"
+(cd ns2 && $NAMED -c named-alt7.conf -D "${INSTANCE_NAME}" -d 99 -g > named$n.run 2>&1 &)
 wait_for_named "running$" ns2/named$n.run || ret=1
 grep 'running as.*\\177\\033' ns2/named$n.run > /dev/null || ret=1
 kill_named ns2/named.pid || ret=1
@@ -178,10 +176,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking that named escapes special characters in the logs ($n)"
 ret=0
-SPEC_DIR="$;"
-mkdir "ns2/${SPEC_DIR}"
-copy_setports ns2/named-alt7.conf.in "ns2/${SPEC_DIR}/named.conf"
-(cd ns2 && $NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named$n.run 2>&1 &)
+INSTANCE_NAME="runtime-ns2-extra-8-$;"
+(cd ns2 && $NAMED -c named-alt7.conf -D "${INSTANCE_NAME}" -d 99 -g > named$n.run 2>&1 &)
 wait_for_named "running$" ns2/named$n.run || ret=1
 grep 'running as.*\\$\\;' ns2/named$n.run > /dev/null || ret=1
 kill_named ns2/named.pid || ret=1
@@ -192,7 +188,6 @@ n=$((n+1))
 echo_i "checking that named logs an ellipsis when the command line is larger than 8k bytes ($n)"
 ret=0
 LONG_CMD_LINE=$(cat long-cmd-line)
-copy_setports ns2/named-alt7.conf.in "ns2/named-alt7.conf"
 # shellcheck disable=SC2086
 (cd ns2 && $NAMED $LONG_CMD_LINE -c "named-alt7.conf" -g > named$n.run 2>&1 &)
 wait_for_named "running$" ns2/named$n.run || ret=1

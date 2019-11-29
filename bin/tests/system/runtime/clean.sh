@@ -19,5 +19,3 @@ rm -f rndc.out*
 rm -rf ns2/nope
 rm -rf ns2/tmp.*
 rm -f ns*/managed-keys.bind*
-rm -rf "ns2/`cat ctrl-char-dir-name`"
-rm -rf "ns2/$;"
