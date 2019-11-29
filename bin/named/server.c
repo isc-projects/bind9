@@ -7403,7 +7403,7 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 		server->session_keyname = isc_mem_get(mctx,
 						      sizeof(dns_name_t));
 		dns_name_init(server->session_keyname, NULL);
-		CHECK(dns_name_dup(keyname, mctx, server->session_keyname));
+		dns_name_dup(keyname, mctx, server->session_keyname);
 
 		server->session_keyfile = isc_mem_strdup(mctx, keyfile);
 

@@ -53,7 +53,7 @@ while (<CHANGES>) {
 	       \.hints?\.in$ |  # zone files
 	       /hints$ |        # zone files
 	       \.zone$ |        # zone files
-	       \.spatch$ |	# coccinelle spatch files
+	       /cocci/.* |      # coccinelle spatch files
 	       \.conf$ |        # configuration files
 	       \.conf\.in$ |    # configuration files
 	       \.dir-locals\.el | # emacs local variables

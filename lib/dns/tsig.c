@@ -266,9 +266,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	tkey = isc_mem_get(mctx, sizeof(dns_tsigkey_t));
 
 	dns_name_init(&tkey->name, NULL);
-	ret = dns_name_dup(name, mctx, &tkey->name);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_key;
+	dns_name_dup(name, mctx, &tkey->name);
 	(void)dns_name_downcase(&tkey->name, &tkey->name, NULL);
 
 	/* Check against known algorithm names */
@@ -291,11 +289,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 		}
 		tmpname = isc_mem_get(mctx, sizeof(dns_name_t));
 		dns_name_init(tmpname, NULL);
-		ret = dns_name_dup(algorithm, mctx, tmpname);
-		if (ret != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, tmpname, sizeof(dns_name_t));
-			goto cleanup_name;
-		}
+		dns_name_dup(algorithm, mctx, tmpname);
 		(void)dns_name_downcase(tmpname, tmpname, NULL);
 		tkey->algorithm = tmpname;
 	}
@@ -303,11 +297,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	if (creator != NULL) {
 		tkey->creator = isc_mem_get(mctx, sizeof(dns_name_t));
 		dns_name_init(tkey->creator, NULL);
-		ret = dns_name_dup(creator, mctx, tkey->creator);
-		if (ret != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, tkey->creator, sizeof(dns_name_t));
-			goto cleanup_algorithm;
-		}
+		dns_name_dup(creator, mctx, tkey->creator);
 	} else
 		tkey->creator = NULL;
 
@@ -369,7 +359,6 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 		dns_name_free(tkey->creator, mctx);
 		isc_mem_put(mctx, tkey->creator, sizeof(dns_name_t));
 	}
- cleanup_algorithm:
 	if (dns__tsig_algallocated(tkey->algorithm)) {
 		dns_name_t *tmpname;
 		DE_CONST(tkey->algorithm, tmpname);
@@ -379,7 +368,6 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	}
  cleanup_name:
 	dns_name_free(&tkey->name, mctx);
- cleanup_key:
 	isc_mem_put(mctx, tkey, sizeof(dns_tsigkey_t));
 
 	return (ret);
@@ -1004,9 +992,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_rdata;
 	dns_name_init(owner, NULL);
-	ret = dns_name_dup(&key->name, msg->mctx, owner);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_owner;
+	dns_name_dup(&key->name, msg->mctx, owner);
 
 	datalist = NULL;
 	ret = dns_message_gettemprdatalist(msg, &datalist);

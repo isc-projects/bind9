@@ -6337,9 +6337,7 @@ addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	noqname->neg = NULL;
 	noqname->negsig = NULL;
 	noqname->type = neg.type;
-	result = dns_name_dup(&name, mctx, &noqname->name);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	dns_name_dup(&name, mctx, &noqname->name);
 	result = dns_rdataslab_fromrdataset(&neg, mctx, &r, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -6384,9 +6382,7 @@ addclosest(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	closest->neg = NULL;
 	closest->negsig = NULL;
 	closest->type = neg.type;
-	result = dns_name_dup(&name, mctx, &closest->name);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	dns_name_dup(&name, mctx, &closest->name);
 	result = dns_rdataslab_fromrdataset(&neg, mctx, &r, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;

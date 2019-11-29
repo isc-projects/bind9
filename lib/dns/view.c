@@ -1613,7 +1613,6 @@ dns_view_flushnode(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
-	isc_result_t result;
 	dns_name_t *item;
 	uint32_t hash;
 
@@ -1633,17 +1632,13 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 		return (ISC_R_SUCCESS);
 	item = isc_mem_get(view->mctx, sizeof(*item));
 	dns_name_init(item, NULL);
-	result = dns_name_dup(name, view->mctx, item);
-	if (result == ISC_R_SUCCESS)
-		ISC_LIST_APPEND(view->delonly[hash], item, link);
-	else
-		isc_mem_put(view->mctx, item, sizeof(*item));
-	return (result);
+	dns_name_dup(name, view->mctx, item);
+	ISC_LIST_APPEND(view->delonly[hash], item, link);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
 dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
-	isc_result_t result;
 	dns_name_t *item;
 	uint32_t hash;
 
@@ -1663,12 +1658,9 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 		return (ISC_R_SUCCESS);
 	item = isc_mem_get(view->mctx, sizeof(*item));
 	dns_name_init(item, NULL);
-	result = dns_name_dup(name, view->mctx, item);
-	if (result == ISC_R_SUCCESS)
-		ISC_LIST_APPEND(view->rootexclude[hash], item, link);
-	else
-		isc_mem_put(view->mctx, item, sizeof(*item));
-	return (result);
+	dns_name_dup(name, view->mctx, item);
+	ISC_LIST_APPEND(view->rootexclude[hash], item, link);
+	return (ISC_R_SUCCESS);
 }
 
 bool

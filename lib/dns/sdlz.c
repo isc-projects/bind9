@@ -663,8 +663,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 		node->name = isc_mem_get(sdlz->common.mctx,
 					 sizeof(dns_name_t));
 		dns_name_init(node->name, NULL);
-		result = dns_name_dup(name, sdlz->common.mctx, node->name);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		dns_name_dup(name, sdlz->common.mctx, node->name);
 	}
 
 	*nodep = node;
@@ -1950,8 +1949,7 @@ dns_sdlz_putnamedrr(dns_sdlzallnodes_t *allnodes, const char *name,
 			return (result);
 		sdlznode->name = isc_mem_get(mctx, sizeof(dns_name_t));
 		dns_name_init(sdlznode->name, NULL);
-		result = dns_name_dup(newname, mctx, sdlznode->name);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		dns_name_dup(newname, mctx, sdlznode->name);
 		ISC_LIST_PREPEND(allnodes->nodelist, sdlznode, link);
 		if (allnodes->origin == NULL &&
 		    dns_name_equal(newname, &sdlz->common.origin))

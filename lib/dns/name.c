@@ -2159,7 +2159,7 @@ dns_name_split(const dns_name_t *name, unsigned int suffixlabels,
 	return;
 }
 
-isc_result_t
+void
 dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
 	     dns_name_t *target)
 {
@@ -2193,8 +2193,6 @@ dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
 		else
 			set_offsets(target, target->offsets, NULL);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

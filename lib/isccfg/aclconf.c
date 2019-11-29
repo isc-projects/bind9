@@ -199,7 +199,8 @@ convert_keyname(const cfg_obj_t *keyobj, isc_log_t *lctx, isc_mem_t *mctx,
 			    txtname);
 		return (result);
 	}
-	return (dns_name_dup(dns_fixedname_name(&fixname), mctx, dnsname));
+	dns_name_dup(dns_fixedname_name(&fixname), mctx, dnsname);
+	return (ISC_R_SUCCESS);
 }
 
 /*

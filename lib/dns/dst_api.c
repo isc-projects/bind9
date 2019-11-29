@@ -1450,7 +1450,6 @@ get_key_struct(const dns_name_t *name, unsigned int alg,
 	       dns_ttl_t ttl, isc_mem_t *mctx)
 {
 	dst_key_t *key;
-	isc_result_t result;
 	int i;
 
 	key = isc_mem_get(mctx, sizeof(dst_key_t));
@@ -1460,12 +1459,7 @@ get_key_struct(const dns_name_t *name, unsigned int alg,
 	key->key_name = isc_mem_get(mctx, sizeof(dns_name_t));
 
 	dns_name_init(key->key_name, NULL);
-	result = dns_name_dup(name, mctx, key->key_name);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
-		isc_mem_put(mctx, key, sizeof(dst_key_t));
-		return (NULL);
-	}
+	dns_name_dup(name, mctx, key->key_name);
 
 	isc_refcount_init(&key->refs, 1);
 	isc_mem_attach(mctx, &key->mctx);

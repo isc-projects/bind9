@@ -135,7 +135,6 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 {
 	dns_ssurule_t *rule;
 	isc_mem_t *mctx;
-	isc_result_t result;
 
 	REQUIRE(VALID_SSUTABLE(table));
 	REQUIRE(dns_name_isabsolute(identity));
@@ -157,15 +156,11 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 
 	rule->identity = isc_mem_get(mctx, sizeof(dns_name_t));
 	dns_name_init(rule->identity, NULL);
-	result = dns_name_dup(identity, mctx, rule->identity);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	dns_name_dup(identity, mctx, rule->identity);
 
 	rule->name = isc_mem_get(mctx, sizeof(dns_name_t));
 	dns_name_init(rule->name, NULL);
-	result = dns_name_dup(name, mctx, rule->name);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	dns_name_dup(name, mctx, rule->name);
 
 	rule->matchtype = matchtype;
 
@@ -181,24 +176,6 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 	ISC_LIST_INITANDAPPEND(table->rules, rule, link);
 
 	return (ISC_R_SUCCESS);
-
- failure:
-	if (rule->identity != NULL) {
-		if (dns_name_dynamic(rule->identity))
-			dns_name_free(rule->identity, mctx);
-		isc_mem_put(mctx, rule->identity, sizeof(dns_name_t));
-	}
-	if (rule->name != NULL) {
-		if (dns_name_dynamic(rule->name))
-			dns_name_free(rule->name, mctx);
-		isc_mem_put(mctx, rule->name, sizeof(dns_name_t));
-	}
-	if (rule->types != NULL)
-		isc_mem_put(mctx, rule->types,
-			    ntypes * sizeof(dns_rdatatype_t));
-	isc_mem_put(mctx, rule, sizeof(dns_ssurule_t));
-
-	return (result);
 }
 
 static inline bool

@@ -131,10 +131,7 @@ configure_key(isc_mem_t *mctx, const cfg_obj_t *key, irs_dnsconf_t *conf,
 	}
 	keyname = isc_mem_get(mctx, sizeof(*keyname));
 	dns_name_init(keyname, NULL);
-	result = dns_name_dup(keyname_base, mctx, keyname);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_name_dup(keyname_base, mctx, keyname);
 
 	/* Add the key data to the list */
 	keyent = isc_mem_get(mctx, sizeof(*keyent));

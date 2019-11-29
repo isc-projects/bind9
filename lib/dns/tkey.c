@@ -172,7 +172,7 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 
 	RETERR(dns_message_gettempname(msg, &newname));
 	dns_name_init(newname, NULL);
-	RETERR(dns_name_dup(name, msg->mctx, newname));
+	dns_name_dup(name, msg->mctx, newname);
 
 	RETERR(dns_message_gettemprdatalist(msg, &newlist));
 	newlist->rdclass = newrdata->rdclass;

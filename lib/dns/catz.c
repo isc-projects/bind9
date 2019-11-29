@@ -200,7 +200,6 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
 		   dns_catz_entry_t **nentryp)
 {
 	dns_catz_entry_t *nentry;
-	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(nentryp != NULL && *nentryp == NULL);
@@ -209,9 +208,7 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
 
 	dns_name_init(&nentry->name, NULL);
 	if (domain != NULL) {
-		result = dns_name_dup(domain, mctx, &nentry->name);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		dns_name_dup(domain, mctx, &nentry->name);
 	}
 
 	dns_catz_options_init(&nentry->opts);
@@ -219,10 +216,6 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
 	nentry->magic = DNS_CATZ_ENTRY_MAGIC;
 	*nentryp = nentry;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	isc_mem_put(mctx, nentry, sizeof(dns_catz_entry_t));
-	return (result);
 }
 
 dns_name_t *
@@ -650,10 +643,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	memset(new_zone, 0, sizeof(*new_zone));
 
 	dns_name_init(&new_zone->name, NULL);
-
-	result = dns_name_dup(name, catzs->mctx, &new_zone->name);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_newzone;
+	dns_name_dup(name, catzs->mctx, &new_zone->name);
 
 	result = isc_ht_init(&new_zone->entries, catzs->mctx, 4);
 	if (result != ISC_R_SUCCESS)
@@ -688,7 +678,6 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	isc_ht_destroy(&new_zone->entries);
   cleanup_name:
 	dns_name_free(&new_zone->name, catzs->mctx);
-  cleanup_newzone:
 	isc_mem_put(catzs->mctx, new_zone, sizeof(*new_zone));
 
 	return (result);
@@ -960,12 +949,8 @@ catz_process_zones_entry(dns_catz_zone_t *zone, dns_rdataset_t *value,
 			dns_rdata_freestruct(&ptr);
 			return (ISC_R_FAILURE);
 		} else {
-			result = dns_name_dup(&ptr.ptr, zone->catzs->mctx,
-					      &entry->name);
-			if (result != ISC_R_SUCCESS) {
-				dns_rdata_freestruct(&ptr);
-				return (result);
-			}
+			dns_name_dup(&ptr.ptr, zone->catzs->mctx,
+				     &entry->name);
 		}
 	} else {
 		result = dns_catz_entry_new(zone->catzs->mctx, &ptr.ptr,
@@ -1166,15 +1151,7 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 			ipkl->labels[i] = isc_mem_get(mctx,
 						      sizeof(dns_name_t));
 			dns_name_init(ipkl->labels[i], NULL);
-			result = dns_name_dup(name, mctx, ipkl->labels[i]);
-			if (result != ISC_R_SUCCESS) {
-				if (keyname != NULL) {
-					dns_name_free(keyname, mctx);
-					isc_mem_put(mctx, keyname,
-						    sizeof(dns_name_t));
-				}
-				return (result);
-			}
+			dns_name_dup(name, mctx, ipkl->labels[i]);
 
 			if (value->type == dns_rdatatype_txt)
 				ipkl->keys[i] = keyname;

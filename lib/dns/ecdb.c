@@ -315,7 +315,6 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	dns_ecdb_t *ecdb = (dns_ecdb_t *)db;
 	isc_mem_t *mctx;
 	dns_ecdbnode_t *node;
-	isc_result_t result;
 
 	REQUIRE(VALID_ECDB(ecdb));
 	REQUIRE(nodep != NULL && *nodep == NULL);
@@ -333,12 +332,7 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	isc_mutex_init(&node->lock);
 
 	dns_name_init(&node->name, NULL);
-	result = dns_name_dup(name, mctx, &node->name);
-	if (result != ISC_R_SUCCESS) {
-		isc_mutex_destroy(&node->lock);
-		isc_mem_put(mctx, node, sizeof(*node));
-		return (result);
-	}
+	dns_name_dup(name, mctx, &node->name);
 
 	isc_refcount_init(&node->references, 1);
 	ISC_LIST_INIT(node->rdatasets);
