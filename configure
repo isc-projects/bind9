@@ -12565,6 +12565,7 @@ fi
 if test "$with_python" = "no"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Python support" >&5
 $as_echo_n "checking for Python support... " >&6; }
+       unset PYTHON
        { $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
 $as_echo "disabled" >&6; }
 else

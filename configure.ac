@@ -276,6 +276,7 @@ AS_IF([test "$with_python" = "yes"],
 
 AS_IF([test "$with_python" = "no"],
       [AC_MSG_CHECKING([for Python support])
+       unset PYTHON
        AC_MSG_RESULT([disabled])],
       [for p in $with_python
        do
