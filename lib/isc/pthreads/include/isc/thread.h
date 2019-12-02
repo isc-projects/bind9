@@ -30,7 +30,6 @@ typedef pthread_t isc_thread_t;
 typedef void * isc_threadresult_t;
 typedef void * isc_threadarg_t;
 typedef isc_threadresult_t (*isc_threadfunc_t)(isc_threadarg_t);
-typedef pthread_key_t isc_thread_key_t;
 
 void
 isc_thread_create(isc_threadfunc_t, isc_threadarg_t, isc_thread_t *);
@@ -52,11 +51,6 @@ isc_thread_setaffinity(int cpu);
 
 #define isc_thread_self \
 	(unsigned long)pthread_self
-
-#define isc_thread_key_create pthread_key_create
-#define isc_thread_key_getspecific pthread_getspecific
-#define isc_thread_key_setspecific pthread_setspecific
-#define isc_thread_key_delete pthread_key_delete
 
 /***
  *** Thread-Local Storage

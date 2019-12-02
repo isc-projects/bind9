@@ -61,7 +61,6 @@ typedef HANDLE isc_thread_t;
 typedef DWORD isc_threadresult_t;
 typedef void * isc_threadarg_t;
 typedef isc_threadresult_t (WINAPI *isc_threadfunc_t)(isc_threadarg_t);
-typedef DWORD isc_thread_key_t;
 
 #define isc_thread_self (unsigned long)GetCurrentThreadId
 
@@ -81,18 +80,6 @@ isc_thread_setname(isc_thread_t, const char *);
 
 isc_result_t
 isc_thread_setaffinity(int cpu);
-
-int
-isc_thread_key_create(isc_thread_key_t *key, void (*func)(void *));
-
-int
-isc_thread_key_delete(isc_thread_key_t key);
-
-void *
-isc_thread_key_getspecific(isc_thread_key_t);
-
-int
-isc_thread_key_setspecific(isc_thread_key_t key, void *value);
 
 #define isc_thread_yield() Sleep(0)
 

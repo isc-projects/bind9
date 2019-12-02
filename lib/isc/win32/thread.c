@@ -73,25 +73,3 @@ isc_thread_setaffinity(int cpu) {
 	/* no-op on Windows for now */
 	return (ISC_R_SUCCESS);
 }
-
-void *
-isc_thread_key_getspecific(isc_thread_key_t key) {
-	return(TlsGetValue(key));
-}
-
-int
-isc_thread_key_setspecific(isc_thread_key_t key, void *value) {
-	return (TlsSetValue(key, value) ? 0 : GetLastError());
-}
-
-int
-isc_thread_key_create(isc_thread_key_t *key, void (*func)(void *)) {
-	*key = TlsAlloc();
-
-	return ((*key != -1) ? 0 : GetLastError());
-}
-
-int
-isc_thread_key_delete(isc_thread_key_t key) {
-	return (TlsFree(key) ? 0 : GetLastError());
-}
