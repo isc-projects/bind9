@@ -3129,7 +3129,7 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 	isc_region_t r;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
-	uint32_t n1, n2, n3;
+	uint32_t rdata1, rdata2, rdata3;
 	unsigned char data[4096];
 	const char *atstr = NULL;
 	enum {
@@ -3228,13 +3228,13 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 	};
 
 	/* if DNSKEY, flags; if DS, key tag */
-	n1 = cfg_obj_asuint32(cfg_tuple_get(key, "n1"));
+	rdata1 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata1"));
 
 	/* if DNSKEY, protocol; if DS, algorithm */
-	n2 = cfg_obj_asuint32(cfg_tuple_get(key, "n2"));
+	rdata2 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata2"));
 
 	/* if DNSKEY, algorithm; if DS, digest type */
-	n3 = cfg_obj_asuint32(cfg_tuple_get(key, "n3"));
+	rdata3 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata3"));
 
 	namestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 
@@ -3283,23 +3283,23 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 	case INIT_DNSKEY:
 	case STATIC_DNSKEY:
 	case TRUSTED:
-		if (n1 > 0xffff) {
+		if (rdata1 > 0xffff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "flags too big: %u", n1);
+				    "flags too big: %u", rdata1);
 			result = ISC_R_RANGE;
 		}
-		if (n1 & DNS_KEYFLAG_REVOKE) {
+		if (rdata1 & DNS_KEYFLAG_REVOKE) {
 			cfg_obj_log(key, logctx, ISC_LOG_WARNING,
 				    "key flags revoke bit set");
 		}
-		if (n2 > 0xff)  {
+		if (rdata2 > 0xff)  {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "protocol too big: %u", n2);
+				    "protocol too big: %u", rdata2);
 			result = ISC_R_RANGE;
 		}
-		if (n3 > 0xff) {
+		if (rdata3 > 0xff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "algorithm too big: %u\n", n3);
+				    "algorithm too big: %u\n", rdata3);
 			result = ISC_R_RANGE;
 		}
 
@@ -3315,7 +3315,7 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 		} else {
 			isc_buffer_usedregion(&b, &r);
 
-			if ((n3 == DST_ALG_RSASHA1) &&
+			if ((rdata3 == DST_ALG_RSASHA1) &&
 			    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
 			{
 				cfg_obj_log(key, logctx, ISC_LOG_WARNING,
@@ -3333,7 +3333,7 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 				(managed ? ROOT_KSK_MANAGED : ROOT_KSK_STATIC);
 
 
-			if (n1 == 257 && n2 == 3 && n3 == 8 &&
+			if (rdata1 == 257 && rdata2 == 3 && rdata3 == 8 &&
 			    (isc_buffer_usedlength(&b) ==
 			     sizeof(root_ksk_2010)) &&
 			    memcmp(data, root_ksk_2010,
@@ -3342,7 +3342,7 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 				*flagsp |= ROOT_KSK_2010;
 			}
 
-			if (n1 == 257 && n2 == 3 && n3 == 8 &&
+			if (rdata1 == 257 && rdata2 == 3 && rdata3 == 8 &&
 			    (isc_buffer_usedlength(&b) ==
 			     sizeof(root_ksk_2017)) &&
 			    memcmp(data, root_ksk_2017,
@@ -3355,19 +3355,19 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 
 	case INIT_DS:
 	case STATIC_DS:
-		if (n1 > 0xffff) {
+		if (rdata1 > 0xffff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "key tag too big: %u", n1);
+				    "key tag too big: %u", rdata1);
 			result = ISC_R_RANGE;
 		}
-		if (n2 > 0xff) {
+		if (rdata2 > 0xff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "algorithm too big: %u\n", n2);
+				    "algorithm too big: %u\n", rdata2);
 			result = ISC_R_RANGE;
 		}
-		if (n3 > 0xff) {
+		if (rdata3 > 0xff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "digest type too big: %u", 32);
+				    "digest type too big: %u", rdata3);
 			result = ISC_R_RANGE;
 		}
 
@@ -3389,7 +3389,7 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 			*flagsp |=
 				(managed ? ROOT_KSK_MANAGED : ROOT_KSK_STATIC);
 
-			if (n1 == 20326 && n2 == 8 && n3 == 1 &&
+			if (rdata1 == 20326 && rdata2 == 8 && rdata3 == 1 &&
 			    (isc_buffer_usedlength(&b) ==
 			     sizeof(root_ds_1_2017)) &&
 			    memcmp(data, root_ds_1_2017,
@@ -3398,7 +3398,7 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 				*flagsp |= ROOT_KSK_2017;
 			}
 
-			if (n1 == 20326 && n2 == 8 && n3 == 2 &&
+			if (rdata1 == 20326 && rdata2 == 8 && rdata3 == 2 &&
 			    (isc_buffer_usedlength(&b) ==
 			     sizeof(root_ds_2_2017)) &&
 			    memcmp(data, root_ds_2_2017,

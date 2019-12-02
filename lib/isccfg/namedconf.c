@@ -446,9 +446,9 @@ static cfg_type_t cfg_type_category = {
 static cfg_tuplefielddef_t dnsseckey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "anchortype", &cfg_type_void, 0 },
-	{ "n1", &cfg_type_uint32, 0 },
-	{ "n2", &cfg_type_uint32, 0 },
-	{ "n3", &cfg_type_uint32, 0 },
+	{ "rdata1", &cfg_type_uint32, 0 },
+	{ "rdata2", &cfg_type_uint32, 0 },
+	{ "rdata3", &cfg_type_uint32, 0 },
 	{ "data", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -471,9 +471,9 @@ static cfg_type_t cfg_type_anchortype = {
 static cfg_tuplefielddef_t managedkey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "anchortype", &cfg_type_anchortype, 0 },
-	{ "n1", &cfg_type_uint32, 0 },
-	{ "n2", &cfg_type_uint32, 0 },
-	{ "n3", &cfg_type_uint32, 0 },
+	{ "rdata1", &cfg_type_uint32, 0 },
+	{ "rdata2", &cfg_type_uint32, 0 },
+	{ "rdata3", &cfg_type_uint32, 0 },
 	{ "data", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }
 };

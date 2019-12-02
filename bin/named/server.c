@@ -705,7 +705,7 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **keyp,
 {
 	dns_rdata_dnskey_t keystruct;
 	dns_rdata_ds_t *ds = NULL;
-	uint32_t n1, n2, n3;
+	uint32_t rdata1, rdata2, rdata3;
 	const char *datastr = NULL, *namestr = NULL;
 	unsigned char data[4096];
 	isc_buffer_t databuf;
@@ -731,13 +731,13 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **keyp,
 	REQUIRE(namestrp != NULL && *namestrp == NULL);
 
 	/* if DNSKEY, flags; if DS, key tag */
-	n1 = cfg_obj_asuint32(cfg_tuple_get(key, "n1"));
+	rdata1 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata1"));
 
 	/* if DNSKEY, protocol; if DS, algorithm */
-	n2 = cfg_obj_asuint32(cfg_tuple_get(key, "n2"));
+	rdata2 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata2"));
 
 	/* if DNSKEY, algorithm; if DS, digest type */
-	n3 = cfg_obj_asuint32(cfg_tuple_get(key, "n3"));
+	rdata3 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata3"));
 
 	namestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 	*namestrp = namestr;
@@ -793,22 +793,22 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **keyp,
 
 		ISC_LINK_INIT(&keystruct.common, link);
 
-		if (n1 > 0xffff) {
+		if (rdata1 > 0xffff) {
 			CHECKM(ISC_R_RANGE, "key flags");
 		}
-		if (n1 & DNS_KEYFLAG_REVOKE) {
+		if (rdata1 & DNS_KEYFLAG_REVOKE) {
 			CHECKM(DST_R_BADKEYTYPE, "key flags revoke bit set");
 		}
-		if (n2 > 0xff) {
+		if (rdata2 > 0xff) {
 			CHECKM(ISC_R_RANGE, "key protocol");
 		}
-		if (n3> 0xff) {
+		if (rdata3> 0xff) {
 			CHECKM(ISC_R_RANGE, "key algorithm");
 		}
 
-		keystruct.flags = (uint16_t)n1;
-		keystruct.protocol = (uint8_t)n2;
-		keystruct.algorithm = (uint8_t)n3;
+		keystruct.flags = (uint16_t)rdata1;
+		keystruct.protocol = (uint8_t)rdata2;
+		keystruct.algorithm = (uint8_t)rdata3;
 
 		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
 		CHECK(isc_base64_decodestring(datastr, &databuf));
@@ -834,19 +834,19 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **keyp,
 
 		ISC_LINK_INIT(&ds->common, link);
 
-		if (n1 > 0xffff) {
+		if (rdata1 > 0xffff) {
 			CHECKM(ISC_R_RANGE, "key tag");
 		}
-		if (n2 > 0xff) {
+		if (rdata2 > 0xff) {
 			CHECKM(ISC_R_RANGE, "key algorithm");
 		}
-		if (n3 > 0xff) {
+		if (rdata3 > 0xff) {
 			CHECKM(ISC_R_RANGE, "digest type");
 		}
 
-		ds->key_tag = (uint16_t)n1;
-		ds->algorithm = (uint8_t)n2;
-		ds->digest_type = (uint8_t)n3;
+		ds->key_tag = (uint16_t)rdata1;
+		ds->algorithm = (uint8_t)rdata2;
+		ds->digest_type = (uint8_t)rdata3;
 
 		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
 		CHECK(isc_hex_decodestring(datastr, &databuf));
@@ -867,6 +867,14 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **keyp,
 			if (r.length != ISC_SHA384_DIGESTLENGTH) {
 				CHECK(ISC_R_UNEXPECTEDEND);
 			}
+			break;
+		default:
+			cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
+				    "key '%s': "
+				    "unknown ds digest type %u",
+				    namestr, ds->digest_type);
+			result = ISC_R_FAILURE;
+			goto cleanup;
 			break;
 		}
 
