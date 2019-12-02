@@ -26,6 +26,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include "uv-compat.h"
 #include "netmgr-int.h"
 
 #define TCPDNS_CLIENTS_PER_CONN 23
@@ -76,7 +77,7 @@ alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 
 static void
 timer_close_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) handle->data;
+	isc_nmsocket_t *sock = (isc_nmsocket_t *) uv_handle_get_data(handle);
 	INSIST(VALID_NMSOCK(sock));
 	sock->timer_initialized = false;
 	atomic_store(&sock->closed, true);
@@ -85,7 +86,8 @@ timer_close_cb(uv_handle_t *handle) {
 
 static void
 dnstcp_readtimeout(uv_timer_t *timer) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) timer->data;
+	isc_nmsocket_t *sock;
+	sock = (isc_nmsocket_t *) uv_handle_get_data((uv_handle_t *)timer);
 
 	REQUIRE(VALID_NMSOCK(sock));
 

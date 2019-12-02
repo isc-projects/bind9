@@ -25,6 +25,8 @@
 #include <isc/sockaddr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+
+#include "uv-compat.h"
 #include "netmgr-int.h"
 
 static isc_result_t
@@ -123,7 +125,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	REQUIRE(sock->parent != NULL);
 
 	uv_udp_init(&worker->loop, &sock->uv_handle.udp);
-	sock->uv_handle.udp.data = NULL;
+	uv_handle_set_data(&sock->uv_handle.handle, NULL);
 	isc_nmsocket_attach(sock,
 			    (isc_nmsocket_t **)&sock->uv_handle.udp.data);
 
@@ -140,7 +142,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 
 static void
 udp_close_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = handle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	atomic_store(&sock->closed, true);
 
 	isc_nmsocket_detach((isc_nmsocket_t **)&sock->uv_handle.udp.data);
@@ -271,7 +273,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_sockaddr_t sockaddr;
 	isc_sockaddr_t localaddr;
 	struct sockaddr_storage laddr;
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) handle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc_region_t region;
 	uint32_t maxudp;
 

@@ -28,6 +28,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include "uv-compat.h"
 #include "netmgr-int.h"
 
 static int
@@ -86,7 +87,7 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 			return (r);
 		}
 	}
-	sock->uv_handle.tcp.data = sock;
+	uv_handle_set_data(&sock->uv_handle.handle, sock);
 	r = uv_tcp_connect(&req->uv_req.connect, &sock->uv_handle.tcp,
 			   &req->peer.type.sa, tcp_connect_cb);
 	return (r);
@@ -113,7 +114,8 @@ isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ievent0) {
 static void
 tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	isc__nm_uvreq_t *req = (isc__nm_uvreq_t *) uvreq->data;
-	isc_nmsocket_t *sock = uvreq->handle->data;
+	isc_nmsocket_t *sock;
+	sock = uv_handle_get_data((uv_handle_t *) uvreq->handle);
 
 	REQUIRE(VALID_UVREQ(req));
 
@@ -211,8 +213,11 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 		return;
 	}
 
-	uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa, 0);
-	sock->uv_handle.tcp.data = sock;
+	r = uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa, 0);
+	if (r != 0) {
+		return;
+	}
+	uv_handle_set_data(&sock->uv_handle.handle, sock);
 	/*
 	 * This is not properly documented in libuv, and the example
 	 * (benchmark-multi-accept) is wrong:
@@ -223,7 +228,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	 */
 	r = uv_pipe_init(&worker->loop, &sock->ipc, 0);
 	INSIST(r == 0);
-	sock->ipc.data = sock;
+	uv_handle_set_data((uv_handle_t *)&sock->ipc, sock);
 	r = uv_pipe_bind(&sock->ipc, sock->ipc_pipe_name);
 	INSIST(r == 0);
 	r = uv_listen((uv_stream_t *) &sock->ipc, sock->nchildren,
@@ -274,7 +279,7 @@ static void
 ipc_connection_cb(uv_stream_t *stream, int status) {
 	int r;
 	REQUIRE(status == 0);
-	isc_nmsocket_t *sock = stream->data;
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *) stream);
 	isc__networker_t *worker = &sock->mgr->workers[isc_nm_tid()];
 	isc__nm_uvreq_t *nreq = isc__nm_uvreq_get(sock->mgr, sock);
 	/*
@@ -283,7 +288,7 @@ ipc_connection_cb(uv_stream_t *stream, int status) {
 	 */
 	nreq->uvbuf = uv_buf_init((char *)nreq, 1);
 	uv_pipe_init(&worker->loop, &nreq->pipe, 1);
-	nreq->pipe.data = nreq;
+	uv_handle_set_data((uv_handle_t *)&nreq->pipe, nreq);
 
 	/* Failure here is critical */
 	r = uv_accept((uv_stream_t *) &sock->ipc,
@@ -315,7 +320,7 @@ ipc_write_cb(uv_write_t* uvreq, int status) {
 
 static void
 parent_pipe_close_cb(uv_handle_t *handle) {
-	isc__nm_uvreq_t *req = handle->data;
+	isc__nm_uvreq_t *req = uv_handle_get_data(handle);
 	isc__nm_uvreq_put(&req, req->sock);
 }
 
@@ -331,7 +336,7 @@ isc__nm_async_tcpchildlisten(isc__networker_t *worker, isc__netievent_t *ievent0
 
 	r = uv_pipe_init(&worker->loop, &sock->ipc, 1);
 	INSIST(r == 0);
-	sock->ipc.data = sock;
+	uv_handle_set_data((uv_handle_t *) &sock->ipc, sock);
 	isc__nm_uvreq_t * req = isc__nm_uvreq_get(sock->mgr, sock);
 
 	uv_pipe_connect(&req->uv_req.connect,
@@ -358,7 +363,7 @@ static void
 childlisten_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	UNUSED(nread);
 	int r;
-	isc_nmsocket_t *sock = stream->data;
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *) stream);
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(buf != NULL);
@@ -368,7 +373,7 @@ childlisten_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	isc__nm_free_uvbuf(sock, buf);
 	isc__networker_t * worker = &sock->mgr->workers[isc_nm_tid()];
 	uv_tcp_init(&worker->loop, (uv_tcp_t*) &sock->uv_handle.tcp);
-	sock->uv_handle.tcp.data = sock;
+	uv_handle_set_data(&sock->uv_handle.handle, sock);
 	uv_accept(stream, &sock->uv_handle.stream);
 	r = uv_listen((uv_stream_t *) &sock->uv_handle.tcp, sock->backlog,
 		      tcp_connection_cb);
@@ -489,7 +494,7 @@ isc__nm_async_tcpstopchildlisten(isc__networker_t *worker,
  */
 static void
 tcp_listenclose_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = handle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	isc_mutex_t * lock = (sock->parent != NULL) ?
 			      &sock->parent->lock : &sock->lock;
 	LOCK(lock);
@@ -502,7 +507,7 @@ tcp_listenclose_cb(uv_handle_t *handle) {
 
 static void
 readtimeout_cb(uv_timer_t *handle) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) handle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -563,7 +568,7 @@ isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	if (sock->read_timeout != 0) {
 		if (!sock->timer_initialized) {
 			uv_timer_init(&worker->loop, &sock->timer);
-			sock->timer.data = sock;
+			uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 			sock->timer_initialized = true;
 		}
 		uv_timer_start(&sock->timer, readtimeout_cb,
@@ -644,7 +649,7 @@ isc_nm_resumeread(isc_nmsocket_t *sock) {
 
 static void
 read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
-	isc_nmsocket_t *sock = stream->data;
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t*) stream);
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(buf != NULL);
@@ -759,7 +764,7 @@ accept_connection(isc_nmsocket_t *ssock) {
 
 static void
 tcp_connection_cb(uv_stream_t *server, int status) {
-	isc_nmsocket_t *ssock = server->data;
+	isc_nmsocket_t *ssock = uv_handle_get_data((uv_handle_t*) server);
 	isc_result_t result;
 
 	UNUSED(status);
@@ -875,7 +880,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 static void
 tcp_close_cb(uv_handle_t *uvhandle) {
-	isc_nmsocket_t *sock = uvhandle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data(uvhandle);
 
 	REQUIRE(VALID_NMSOCK(sock));
 
@@ -885,7 +890,7 @@ tcp_close_cb(uv_handle_t *uvhandle) {
 
 static void
 timer_close_cb(uv_handle_t *uvhandle) {
-	isc_nmsocket_t *sock = uvhandle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data(uvhandle);
 
 	REQUIRE(VALID_NMSOCK(sock));
 

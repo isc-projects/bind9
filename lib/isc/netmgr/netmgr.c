@@ -29,6 +29,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include "uv-compat.h"
 #include "netmgr-int.h"
 
 /*
@@ -827,7 +828,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 
 void
 isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) handle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -1208,7 +1209,7 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 
 	switch(handle->type) {
 	case UV_TCP:
-		isc__nm_tcp_shutdown((isc_nmsocket_t *) handle->data);
+		isc__nm_tcp_shutdown(uv_handle_get_data(handle));
 		break;
 	default:
 		break;
