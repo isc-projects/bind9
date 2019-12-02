@@ -42,11 +42,7 @@
 #define DNS_CONF "/etc/dns.conf"
 #endif
 
-static bool thread_key_initialized = false;
-static isc_mutex_t thread_key_mutex;
-static isc_thread_key_t irs_context_key;
-static isc_once_t once = ISC_ONCE_INIT;
-
+ISC_THREAD_LOCAL irs_context_t *irs_context = NULL;
 
 struct irs_context {
 	/*
@@ -119,68 +115,20 @@ ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp,
 	return (result);
 }
 
-static void
-free_specific_context(void *arg) {
-	irs_context_t *context = arg;
-
-	irs_context_destroy(&context);
-
-	isc_thread_key_setspecific(irs_context_key, NULL);
-}
-
-static void
-thread_key_mutex_init(void) {
-	isc_mutex_init(&thread_key_mutex);
-}
-
-static isc_result_t
-thread_key_init(void) {
-	isc_result_t result;
-
-	result = isc_once_do(&once, thread_key_mutex_init);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	if (!thread_key_initialized) {
-		LOCK(&thread_key_mutex);
-
-		if (!thread_key_initialized &&
-		    isc_thread_key_create(&irs_context_key,
-					  free_specific_context) != 0) {
-			result = ISC_R_FAILURE;
-		} else
-			thread_key_initialized = true;
-
-		UNLOCK(&thread_key_mutex);
-	}
-
-	return (result);
-}
-
 isc_result_t
 irs_context_get(irs_context_t **contextp) {
-	irs_context_t *context;
 	isc_result_t result;
 
 	REQUIRE(contextp != NULL && *contextp == NULL);
 
-	result = thread_key_init();
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	context = isc_thread_key_getspecific(irs_context_key);
-	if (context == NULL) {
-		result = irs_context_create(&context);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		result = isc_thread_key_setspecific(irs_context_key, context);
+	if (irs_context == NULL) {
+		result = irs_context_create(&irs_context);
 		if (result != ISC_R_SUCCESS) {
-			irs_context_destroy(&context);
 			return (result);
 		}
 	}
 
-	*contextp = context;
+	*contextp = irs_context;
 
 	return (ISC_R_SUCCESS);
 }
@@ -289,6 +237,7 @@ irs_context_destroy(irs_context_t **contextp) {
 	REQUIRE(contextp != NULL);
 	context = *contextp;
 	REQUIRE(IRS_CONTEXT_VALID(context));
+	*contextp = irs_context = NULL;
 
 	isc_task_detach(&context->task);
 	irs_dnsconf_destroy(&context->dnsconf);
@@ -302,9 +251,6 @@ irs_context_destroy(irs_context_t **contextp) {
 
 	isc_mem_putanddetach(&context->mctx, context, sizeof(*context));
 
-	*contextp = NULL;
-
-	(void)isc_thread_key_setspecific(irs_context_key, NULL);
 }
 
 isc_mem_t *
