@@ -877,9 +877,8 @@ resquery_destroy(resquery_t **queryp) {
 	res = fctx->res;
 	bucket = fctx->bucketnum;
 
-	fctx->nqueries--;
-
 	LOCK(&res->buckets[bucket].lock);
+	fctx->nqueries--;
 	empty = fctx_decreference(query->fctx);
 	UNLOCK(&res->buckets[bucket].lock);
 
@@ -1670,6 +1669,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	bool have_addr = false;
 	unsigned int srtt;
 	isc_dscp_t dscp = -1;
+	unsigned int bucketnum;
 
 	FCTXTRACE("query");
 
@@ -1895,7 +1895,10 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	fctx->querysent++;
 
 	ISC_LIST_APPEND(fctx->queries, query, link);
-	query->fctx->nqueries++;
+	bucketnum = fctx->bucketnum;
+	LOCK(&res->buckets[bucketnum].lock);
+	fctx->nqueries++;
+	UNLOCK(&res->buckets[bucketnum].lock);
 	if (isc_sockaddr_pf(&addrinfo->sockaddr) == PF_INET)
 		inc_stats(res, dns_resstatscounter_queryv4);
 	else
