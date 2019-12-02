@@ -9742,9 +9742,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		dns_tsigkey_detach(&named_g_sessionkey);
 		dns_name_free(&named_g_sessionkeyname, server->mctx);
 	}
-#ifdef HAVE_DNSTAP
-	dns_dt_shutdown();
-#endif
 #if defined(HAVE_GEOIP2)
 	named_geoip_shutdown();
 	dns_geoip_shutdown();

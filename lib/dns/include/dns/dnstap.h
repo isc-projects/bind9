@@ -268,13 +268,6 @@ dns_dt_getstats(dns_dtenv_t *env, isc_stats_t **statsp);
  */
 
 void
-dns_dt_shutdown(void);
-/*%<
- * Shuts down dnstap and frees global resources. This function must only
- * be called immediately before server shutdown.
- */
-
-void
 dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 	    isc_sockaddr_t *qaddr, isc_sockaddr_t *dstaddr,
 	    bool tcp, isc_region_t *zone, isc_time_t *qtime,
