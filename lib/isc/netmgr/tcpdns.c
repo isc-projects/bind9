@@ -298,11 +298,15 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 	result = isc_nm_listentcp(mgr, iface, dnslisten_acceptcb,
 				  dnslistensock, extrahandlesize, backlog,
 				  quota, &dnslistensock->outer);
-
-	atomic_store(&dnslistensock->listening, true);
-	*sockp = dnslistensock;
-
-	return (result);
+	if (result == ISC_R_SUCCESS) {
+		atomic_store(&dnslistensock->listening, true);
+		*sockp = dnslistensock;
+		return (ISC_R_SUCCESS);
+	} else {
+		atomic_store(&dnslistensock->closed, true);
+		isc_nmsocket_detach(&dnslistensock);
+		return (result);
+	}
 }
 
 void

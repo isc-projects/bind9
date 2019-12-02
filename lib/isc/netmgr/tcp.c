@@ -167,6 +167,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 	nsock->rcbarg = cbarg;
 	nsock->extrahandlesize = extrahandlesize;
 	nsock->backlog = backlog;
+	nsock->result = ISC_R_SUCCESS;
 	if (quota != NULL) {
 		/*
 		 * We don't attach to quota, just assign - to avoid
@@ -174,21 +175,32 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 		 */
 		nsock->pquota = quota;
 	}
-	nsock->tid = isc_random_uniform(mgr->nworkers);
 
-	/*
-	* Listening to TCP is rare enough not to care about the
-	* added overhead from passing this to another thread.
-	*/
-	isc__netievent_tcplisten_t *ievent = isc__nm_get_ievent(mgr, netievent_tcplisten);
+	isc__netievent_tcplisten_t *ievent;
+	ievent = isc__nm_get_ievent(mgr, netievent_tcplisten);
 	ievent->sock = nsock;
-	isc__nm_enqueue_ievent(&mgr->workers[nsock->tid],
-			       (isc__netievent_t *) ievent);
+	if (isc__nm_in_netthread()) {
+		nsock->tid = isc_nm_tid();
+		isc__nm_async_tcplisten(&mgr->workers[nsock->tid],
+				       (isc__netievent_t *) ievent);
+		isc__nm_put_ievent(mgr, ievent);
+	} else {
+		nsock->tid = isc_random_uniform(mgr->nworkers);
+		LOCK(&nsock->lock);
+		isc__nm_enqueue_ievent(&mgr->workers[nsock->tid],
+				       (isc__netievent_t *) ievent);
+		WAIT(&nsock->cond, &nsock->lock);
+		UNLOCK(&nsock->lock);
+	}
 
-
-	*sockp = nsock;
-
-	return (ISC_R_SUCCESS);
+	if (nsock->result == ISC_R_SUCCESS) {
+		*sockp = nsock;
+		return (ISC_R_SUCCESS);
+	} else {
+		isc_result_t result = nsock->result;
+		isc_nmsocket_detach(&nsock);
+		return (result);
+	}
 }
 
 /*
@@ -208,14 +220,37 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(sock->type == isc_nm_tcplistener);
 
+	/* Initialize children now to make cleaning up easier */
+	for (int i = 0; i < sock->nchildren; i++) {
+		isc_nmsocket_t *csock = &sock->children[i];
+
+		isc__nmsocket_init(csock, sock->mgr, isc_nm_tcpchildlistener);
+		csock->parent = sock;
+		csock->iface = sock->iface;
+		csock->tid = i;
+		csock->pquota = sock->pquota;
+		csock->backlog = sock->backlog;
+		csock->extrahandlesize = sock->extrahandlesize;
+
+		INSIST(csock->rcb.recv == NULL && csock->rcbarg == NULL);
+		csock->rcb.accept = sock->rcb.accept;
+		csock->rcbarg = sock->rcbarg;
+		csock->fd = -1;
+	}
+
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
 	if (r != 0) {
-		return;
+		/* It was never opened */
+		atomic_store(&sock->closed, true);
+		sock->result = isc__nm_uverr2result(r);
+		goto fini;
 	}
 
 	r = uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa, 0);
 	if (r != 0) {
-		return;
+		uv_close(&sock->uv_handle.handle, tcp_close_cb);
+		sock->result = isc__nm_uverr2result(r);
+		goto fini;
 	}
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
 	/*
@@ -240,22 +275,9 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	 * sockets to be listened on over ipc.
 	 */
 	for (int i = 0; i < sock->nchildren; i++) {
-		isc__netievent_tcpchildlisten_t *event = NULL;
 		isc_nmsocket_t *csock = &sock->children[i];
 
-		isc__nmsocket_init(csock, sock->mgr, isc_nm_tcpchildlistener);
-		csock->parent = sock;
-		csock->iface = sock->iface;
-		csock->tid = i;
-		csock->pquota = sock->pquota;
-		csock->backlog = sock->backlog;
-		csock->extrahandlesize = sock->extrahandlesize;
-
-		INSIST(csock->rcb.recv == NULL && csock->rcbarg == NULL);
-		csock->rcb.accept = sock->rcb.accept;
-		csock->rcbarg = sock->rcbarg;
-		csock->fd = -1;
-
+		isc__netievent_tcpchildlisten_t *event;
 		event = isc__nm_get_ievent(csock->mgr,
 					   netievent_tcpchildlisten);
 		event->sock = csock;
@@ -271,6 +293,10 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 
 	atomic_store(&sock->listening, true);
 
+fini:
+	LOCK(&sock->lock);
+	SIGNAL(&sock->cond);
+	UNLOCK(&sock->lock);
 	return;
 }
 

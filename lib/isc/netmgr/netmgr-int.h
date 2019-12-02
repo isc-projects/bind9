@@ -46,7 +46,11 @@ typedef struct isc__networker {
 	bool			   paused;
 	bool			   finished;
 	isc_thread_t		   thread;
-	isc_queue_t		   *ievents;     /* incoming async events */
+	isc_queue_t		   *ievents;      /* incoming async events */
+	isc_queue_t		   *ievents_prio; /* priority async events
+						   * used for listening etc.
+						   * can be processed while
+						   * worker is paused */
 	isc_refcount_t		   references;
 	atomic_int_fast64_t	   pktcount;
 	char			   recvbuf[65536];
@@ -103,9 +107,6 @@ struct isc_nmiface {
 };
 
 typedef enum isc__netievent_type {
-	netievent_stop,
-	netievent_udplisten,
-	netievent_udpstoplisten,
 	netievent_udpsend,
 	netievent_udprecv,
 	netievent_tcpconnect,
@@ -113,13 +114,17 @@ typedef enum isc__netievent_type {
 	netievent_tcprecv,
 	netievent_tcpstartread,
 	netievent_tcppauseread,
-	netievent_tcplisten,
 	netievent_tcpchildlisten,
-	netievent_tcpstoplisten,
 	netievent_tcpstopchildlisten,
-	netievent_tcpclose,
 	netievent_closecb,
 	netievent_shutdown,
+	netievent_stop,
+	netievent_udpstoplisten,
+	netievent_tcpstoplisten,
+	netievent_tcpclose,
+	netievent_prio = 0xff,
+	netievent_udplisten,
+	netievent_tcplisten,
 } isc__netievent_type;
 
 /*
@@ -402,9 +407,14 @@ struct isc_nmsocket {
 	isc_astack_t 		*inactivehandles;
 	isc_astack_t 		*inactivereqs;
 
-	/* Used for active/rchildren during shutdown */
+	/*
+	 * Used to wait for listening event to be done and active/rchildren
+	 * during shutdown.
+	 */
 	isc_mutex_t		lock;
 	isc_condition_t		cond;
+
+	isc_result_t		result;
 
 	/*%
 	 * List of active handles.

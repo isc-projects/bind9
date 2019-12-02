@@ -57,6 +57,8 @@ static void *
 nm_thread(void *worker0);
 static void
 async_cb(uv_async_t *handle);
+static void
+process_queue(isc__networker_t *worker, isc_queue_t *queue);
 
 int
 isc_nm_tid() {
@@ -135,6 +137,7 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 		isc_condition_init(&worker->cond);
 
 		worker->ievents = isc_queue_new(mgr->mctx, 128);
+		worker->ievents_prio = isc_queue_new(mgr->mctx, 128);
 
 		/*
 		 * We need to do this here and not in nm_thread to avoid a
@@ -182,17 +185,24 @@ nm_destroy(isc_nm_t **mgr0) {
 	UNLOCK(&mgr->lock);
 
 	for (size_t i = 0; i < mgr->nworkers; i++) {
+		isc__networker_t *worker = &mgr->workers[i];
 		/* Empty the async event queue */
 		isc__netievent_t *ievent;
 		while ((ievent = (isc__netievent_t *)
-			isc_queue_dequeue(mgr->workers[i].ievents)) != NULL)
+			isc_queue_dequeue(worker->ievents)) != NULL)
 		{
 			isc_mempool_put(mgr->evpool, ievent);
 		}
-		int r = uv_loop_close(&mgr->workers[i].loop);
+		while ((ievent = (isc__netievent_t *)
+			isc_queue_dequeue(worker->ievents_prio)) != NULL)
+		{
+			isc_mempool_put(mgr->evpool, ievent);
+		}
+		int r = uv_loop_close(&worker->loop);
 		INSIST(r == 0);
-		isc_queue_destroy(mgr->workers[i].ievents);
-		isc_thread_join(mgr->workers[i].thread, NULL);
+		isc_queue_destroy(worker->ievents);
+		isc_queue_destroy(worker->ievents_prio);
+		isc_thread_join(worker->thread, NULL);
 	}
 
 	isc_condition_destroy(&mgr->wkstatecond);
@@ -410,6 +420,9 @@ nm_thread(void *worker0) {
 			UNLOCK(&worker->mgr->lock);
 
 			WAIT(&worker->cond, &worker->lock);
+
+			/* Process priority events */
+			process_queue(worker, worker->ievents_prio);
 		}
 		if (pausing) {
 			uint32_t wp = atomic_fetch_sub_explicit(
@@ -459,7 +472,8 @@ nm_thread(void *worker0) {
 		/*
 		 * Empty the async queue.
 		 */
-		async_cb(&worker->async);
+		process_queue(worker, worker->ievents_prio);
+		process_queue(worker, worker->ievents);
 	}
 
 	LOCK(&worker->mgr->lock);
@@ -479,14 +493,20 @@ nm_thread(void *worker0) {
 static void
 async_cb(uv_async_t *handle) {
 	isc__networker_t *worker = (isc__networker_t *) handle->loop->data;
+	process_queue(worker, worker->ievents_prio);
+	process_queue(worker, worker->ievents);
+}
+
+static void
+process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 	isc__netievent_t *ievent;
 
 	while ((ievent = (isc__netievent_t *)
-		isc_queue_dequeue(worker->ievents)) != NULL)
+		isc_queue_dequeue(queue)) != NULL)
 	{
 		switch (ievent->type) {
 		case netievent_stop:
-			uv_stop(handle->loop);
+			uv_stop(&worker->loop);
 			isc_mempool_put(worker->mgr->evpool, ievent);
 			return;
 		case netievent_udplisten:
@@ -557,7 +577,18 @@ isc__nm_put_ievent(isc_nm_t *mgr, void *ievent) {
 
 void
 isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event) {
-	isc_queue_enqueue(worker->ievents, (uintptr_t)event);
+	if (event->type > netievent_prio) {
+		/*
+		 * We need to make sure this signal will be delivered and
+		 * the queue will be processed.
+		 */
+		LOCK(&worker->lock);
+		isc_queue_enqueue(worker->ievents_prio, (uintptr_t)event);
+		SIGNAL(&worker->cond);
+		UNLOCK(&worker->lock);
+	} else {
+		isc_queue_enqueue(worker->ievents, (uintptr_t)event);
+	}
 	uv_async_send(&worker->async);
 }
 
