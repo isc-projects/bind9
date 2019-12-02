@@ -244,6 +244,4 @@ named_geoip_shutdown(void) {
 		named_g_geoip->domain = NULL;
 	}
 #endif /* HAVE_GEOIP2 */
-
-	dns_geoip_shutdown();
 }
