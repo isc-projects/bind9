@@ -443,10 +443,13 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check prefetch (${n})"
 ret=0
+# read prefetch value from config.
+PREFETCH=`sed -n "s/[[:space:]]*prefetch \([0-9]\).*/\1/p" ns5/named.conf`
 $DIG $DIGOPTS @10.53.0.5 fetch.tld txt > dig.out.1.${n} || ret=1
-ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 2 }' dig.out.1.${n}`
+ttl1=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.1.${n}`
+interval=$((ttl1 - PREFETCH + 1))
 # sleep so we are in prefetch range
-sleep ${ttl1:-0}
+sleep ${interval:-0}
 # trigger prefetch
 $DIG $DIGOPTS @10.53.0.5 fetch.tld txt > dig.out.2.${n} || ret=1
 ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
@@ -462,9 +465,10 @@ n=`expr $n + 1`
 echo_i "check prefetch of validated DS's RRSIG TTL is updated (${n})"
 ret=0
 $DIG $DIGOPTS +dnssec @10.53.0.5 ds.example.net ds > dig.out.1.${n} || ret=1
-dsttl1=`awk '$4 == "DS" && $7 == "1" { print $2 - 2 }' dig.out.1.${n}`
+dsttl1=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.1.${n}`
 # sleep so we are in prefetch range
-sleep ${dsttl1:-0}
+interval=$((dsttl1 - PREFETCH + 1))
+sleep ${interval:-0}
 # trigger prefetch
 $DIG $DIGOPTS @10.53.0.5 ds.example.net ds > dig.out.2.${n} || ret=1
 dsttl2=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.2.${n}`

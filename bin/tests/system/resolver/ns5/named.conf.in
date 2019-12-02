@@ -21,6 +21,7 @@ options {
 	listen-on-v6 { none; };
 	recursion yes;
 	querylog yes;
+	prefetch 4 10;
 };
 
 server 10.53.0.7 {
