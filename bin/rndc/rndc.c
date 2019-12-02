@@ -1022,8 +1022,6 @@ main(int argc, char **argv) {
 	isc_mem_put(rndc_mctx, args, argslen);
 	isccc_ccmsg_invalidate(&ccmsg);
 
-	dns_name_destroy();
-
 	isc_buffer_free(&databuf);
 
 	if (show_final_mem)

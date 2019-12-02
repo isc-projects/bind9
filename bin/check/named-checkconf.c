@@ -709,8 +709,6 @@ main(int argc, char **argv) {
 
 	cfg_parser_destroy(&parser);
 
-	dns_name_destroy();
-
 	isc_log_destroy(&logc);
 
 	isc_mem_destroy(&mctx);

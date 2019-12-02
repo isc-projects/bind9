@@ -3210,9 +3210,6 @@ cleanup(void) {
 	ddebug("Shutting down timer manager");
 	isc_timermgr_destroy(&timermgr);
 
-	ddebug("Destroying name state");
-	dns_name_destroy();
-
 	ddebug("Removing log context");
 	isc_log_destroy(&glctx);
 

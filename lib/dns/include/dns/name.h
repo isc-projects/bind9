@@ -197,8 +197,8 @@ LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_wildcardname;
  * 'target' is the buffer to be converted.  The region to be converted
  * is from 'buffer'->base + 'used_org' to the end of the used region.
  */
-typedef isc_result_t (*dns_name_totextfilter_t)(isc_buffer_t *target,
-						unsigned int used_org);
+typedef isc_result_t (dns_name_totextfilter_t)(isc_buffer_t *target,
+					       unsigned int used_org);
 
 /***
  *** Initialization
@@ -1217,7 +1217,7 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
  */
 
 isc_result_t
-dns_name_settotextfilter(dns_name_totextfilter_t proc);
+dns_name_settotextfilter(dns_name_totextfilter_t *proc);
 /*%<
  * Set / clear a thread specific function 'proc' to be called at the
  * end of dns_name_totext().
@@ -1294,18 +1294,6 @@ dns_name_internalwildcard(const dns_name_t *name);
  *
  * Requires:
  * \li	'name' to be valid.
- */
-
-void
-dns_name_destroy(void);
-/*%<
- * Cleanup dns_name_settotextfilter() / dns_name_totext() state.
- *
- * This should be called as part of the final cleanup process.
- *
- * Note: dns_name_settotextfilter(NULL); should be called for all
- * threads which have called dns_name_settotextfilter() with a
- * non-NULL argument prior to calling dns_name_destroy();
  */
 
 bool

@@ -4252,7 +4252,6 @@ destroy_libs(void) {
 	result = dns_name_settotextfilter(NULL);
 	check_result(result, "dns_name_settotextfilter");
 #endif /* HAVE_LIBIDN2 */
-	dns_name_destroy();
 
 	if (commctx != NULL) {
 		debug("freeing commctx");
