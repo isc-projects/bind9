@@ -1104,6 +1104,7 @@ CPP
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
+PYTHON
 MAXMINDDB_CFLAGS
 MAXMINDDB_LIBS
 MAXMINDDB_PREFIX
@@ -1851,6 +1852,7 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  PYTHON      path to python executable
   MAXMINDDB_CFLAGS
               C compiler flags for MAXMINDDB, overriding pkg-config
   MAXMINDDB_LIBS
@@ -12540,6 +12542,8 @@ testsetup='try: from distutils.core import setup
 except: exit(1)'
 
 default_with_python="python python3 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
+
+
 
 
 # Check whether --with-python was given.
