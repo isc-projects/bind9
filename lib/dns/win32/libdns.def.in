@@ -384,7 +384,6 @@ dns_generalstats_dump
 dns_generalstats_increment
 @IF GEOIP
 dns_geoip_match
-dns_geoip_shutdown
 @END GEOIP
 dns_hashalg_fromtext
 dns_ipkeylist_clear
