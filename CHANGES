@@ -1,3 +1,6 @@
+5329.	[bug]		Reconfiguring named caused memory to be leaked when any
+			GeoIP2 database was in use. [GL #1445]
+
 5328.	[bug]		rbtdb.c:rdataset_{get,set}ownercase failed to obtain
 			a node lock. [GL #1417]
 
