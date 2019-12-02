@@ -266,9 +266,10 @@ struct fetchctx {
 
 	/*% Locked by appropriate bucket lock. */
 	fetchstate			state;
-	bool			want_shutdown;
-	bool			cloned;
-	bool			spilled;
+	bool				want_shutdown;
+	bool				cloned;
+	bool				spilled;
+	bool				shuttingdown;
 	unsigned int			references;
 	isc_event_t			control_event;
 	ISC_LINK(struct fetchctx)       link;
@@ -379,7 +380,6 @@ struct fetchctx {
 #define FCTX_ATTR_HAVEANSWER            0x0001
 #define FCTX_ATTR_GLUING                0x0002
 #define FCTX_ATTR_ADDRWAIT              0x0004
-#define FCTX_ATTR_SHUTTINGDOWN          0x0008
 #define FCTX_ATTR_WANTCACHE             0x0010
 #define FCTX_ATTR_WANTNCACHE            0x0020
 #define FCTX_ATTR_NEEDEDNS0             0x0040
@@ -392,8 +392,6 @@ struct fetchctx {
 				 0)
 #define ADDRWAIT(f)             (((f)->attributes & FCTX_ATTR_ADDRWAIT) != \
 				 0)
-#define SHUTTINGDOWN(f)         (((f)->attributes & FCTX_ATTR_SHUTTINGDOWN) \
-				 != 0)
 #define WANTCACHE(f)            (((f)->attributes & FCTX_ATTR_WANTCACHE) != 0)
 #define WANTNCACHE(f)           (((f)->attributes & FCTX_ATTR_WANTNCACHE) != 0)
 #define NEEDEDNS0(f)            (((f)->attributes & FCTX_ATTR_NEEDEDNS0) != 0)
@@ -2826,7 +2824,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * The fetch is waiting for a name to be found.
 		 */
-		INSIST(!SHUTTINGDOWN(fctx));
+		INSIST(!fctx->shuttingdown);
 		if (event->ev_type == DNS_EVENT_ADBMOREADDRESSES) {
 			fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 			want_try = true;
@@ -2842,7 +2840,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 				want_done = true;
 			}
 		}
-	} else if (SHUTTINGDOWN(fctx) && fctx->pending == 0 &&
+	} else if (fctx->shuttingdown && fctx->pending == 0 &&
 		   fctx->nqueries == 0 && ISC_LIST_EMPTY(fctx->validators)) {
 
 		if (fctx->references == 0) {
@@ -4091,7 +4089,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&res->buckets[bucketnum].lock);
 
-	fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
+	fctx->shuttingdown = true;
 
 	INSIST(fctx->state == fetchstate_active ||
 	       fctx->state == fetchstate_done);
@@ -4142,7 +4140,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		 * We haven't started this fctx yet, and we've been requested
 		 * to shut it down.
 		 */
-		fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
+		fctx->shuttingdown = true;
 		fctx->state = fetchstate_done;
 		fctx_sendevents(fctx, ISC_R_CANCELED, __LINE__);
 		/*
@@ -4374,6 +4372,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->logged = false;
 	fctx->attributes = 0;
 	fctx->spilled = false;
+	fctx->shuttingdown = false;
 	fctx->nqueries = 0;
 	fctx->reason = NULL;
 	fctx->rand_buf = 0;
@@ -4808,11 +4807,12 @@ maybe_destroy(fetchctx_t *fctx, bool locked) {
 	dns_validator_t *validator, *next_validator;
 	bool dodestroy = false;
 
-	REQUIRE(SHUTTINGDOWN(fctx));
-
 	bucketnum = fctx->bucketnum;
 	if (!locked)
 		LOCK(&res->buckets[bucketnum].lock);
+
+	REQUIRE(fctx->shuttingdown);
+
 	if (fctx->pending != 0 || fctx->nqueries != 0)
 		goto unlock;
 
@@ -4899,7 +4899,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 * done waiting for validator completions and ADB pending events; if
 	 * so, destroy the fctx.
 	 */
-	if (SHUTTINGDOWN(fctx) && !sentresponse) {
+	if (fctx->shuttingdown && !sentresponse) {
 		bool bucket_empty;
 		bucket_empty = maybe_destroy(fctx, true);
 		UNLOCK(&res->buckets[bucketnum].lock);
@@ -5135,11 +5135,13 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * the data, destroy now.
 		 */
 		dns_db_detachnode(fctx->cache, &node);
-		if (SHUTTINGDOWN(fctx))
+		if (fctx->shuttingdown) {
 			bucket_empty = maybe_destroy(fctx, true);
+		}
 		UNLOCK(&res->buckets[bucketnum].lock);
-		if (bucket_empty)
+		if (bucket_empty) {
 			empty_bucket(res);
+		}
 		goto cleanup_event;
 	}
 
@@ -7366,7 +7368,8 @@ fctx_decreference(fetchctx_t *fctx) {
 		 * No one cares about the result of this fetch anymore.
 		 */
 		if (fctx->pending == 0 && fctx->nqueries == 0 &&
-		    ISC_LIST_EMPTY(fctx->validators) && SHUTTINGDOWN(fctx)) {
+		    ISC_LIST_EMPTY(fctx->validators) && fctx->shuttingdown)
+		{
 			/*
 			 * This fctx is already shutdown; we were just
 			 * waiting for the last reference to go away.
