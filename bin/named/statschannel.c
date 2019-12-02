@@ -3588,10 +3588,6 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 
 	ISC_LIST_INIT(new_listeners);
 
-#ifdef HAVE_LIBXML2
-	xmlInitThreads();
-#endif /* HAVE_LIBXML2 */
-
 	/*
 	 * Get the list of named.conf 'statistics-channels' statements.
 	 */
@@ -3724,10 +3720,6 @@ named_statschannels_shutdown(named_server_t *server) {
 		ISC_LIST_UNLINK(server->statschannels, listener, link);
 		shutdown_listener(listener);
 	}
-
-#ifdef HAVE_LIBXML2
-	xmlCleanupThreads();
-#endif /* HAVE_LIBXML2 */
 }
 
 isc_result_t
