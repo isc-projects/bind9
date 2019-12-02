@@ -1443,6 +1443,10 @@ main(int argc, char *argv[]) {
 	setvbuf(stderr, NULL, _IOFBF, BUFSIZ);
 #endif
 
+#ifdef HAVE_LIBXML2
+	xmlInitThreads();
+#endif /* HAVE_LIBXML2 */
+
 	/*
 	 * Record version in core image.
 	 * strings named.core | grep "named version:"
@@ -1574,6 +1578,10 @@ main(int argc, char *argv[]) {
 	named_os_closedevnull();
 
 	named_os_shutdown();
+
+#ifdef HAVE_LIBXML2
+	xmlCleanupThreads();
+#endif /* HAVE_LIBXML2 */
 
 #ifdef HAVE_GPERFTOOLS_PROFILER
 	ProfilerStop();
