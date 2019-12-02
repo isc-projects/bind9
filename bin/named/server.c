@@ -68,6 +68,7 @@
 #include <dns/events.h>
 #include <dns/forward.h>
 #include <dns/fixedname.h>
+#include <dns/geoip.h>
 #include <dns/journal.h>
 #include <dns/kasp.h>
 #include <dns/keytable.h>
@@ -8339,6 +8340,10 @@ load_configuration(const char *filename, named_server_t *server,
 
 #if defined(HAVE_GEOIP2)
 	/*
+	 * Release any previously opened GeoIP2 databases.
+	 */
+	named_geoip_shutdown();
+	/*
 	 * Initialize GeoIP databases from the configured location.
 	 * This should happen before configuring any ACLs, so that we
 	 * know what databases are available and can reject any GeoIP
@@ -9742,6 +9747,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 #endif
 #if defined(HAVE_GEOIP2)
 	named_geoip_shutdown();
+	dns_geoip_shutdown();
 #endif /* HAVE_GEOIP2 */
 
 	dns_db_detach(&server->in_roothints);
