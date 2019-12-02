@@ -389,7 +389,7 @@ AC_CHECK_HEADERS([threads.h],
 			     AC_DEFINE([HAVE_THREAD_LOCAL],[1],[Define if thread_local keyword is available])
 			     AC_DEFINE([HAVE_TLS],[1],[Define if Thread-Local Storage is available])
 			 ],[
-			     AC_MSG_RESULT([no])
+			     AC_MSG_ERROR([Thread Local Storage support required, update your toolchain to build BIND 9])
 			 ])
 		 ],[
 		     AC_MSG_CHECKING([for Thread-Local Storage using __thread])
@@ -405,7 +405,7 @@ AC_CHECK_HEADERS([threads.h],
 			     AC_DEFINE([HAVE___THREAD],[1],[Define if __thread keyword is available])
 			     AC_DEFINE([HAVE_TLS],[1],[Define if Thread-Local Storage is available])
 			 ],[
-			     AC_MSG_RESULT([no])
+			     AC_MSG_ERROR([Thread Local Storage support required, update your toolchain to build BIND 9])
 			 ])
 		 ])
 

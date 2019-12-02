@@ -13616,8 +13616,7 @@ $as_echo "#define HAVE_TLS 1" >>confdefs.h
 
 else
 
-			     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+			     as_fn_error $? "Thread Local Storage support required, update your toolchain to build BIND 9" "$LINENO" 5
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
@@ -13655,8 +13654,7 @@ $as_echo "#define HAVE_TLS 1" >>confdefs.h
 
 else
 
-			     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+			     as_fn_error $? "Thread Local Storage support required, update your toolchain to build BIND 9" "$LINENO" 5
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext

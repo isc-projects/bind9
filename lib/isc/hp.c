@@ -51,6 +51,7 @@
 #include <isc/string.h>
 #include <isc/mem.h>
 #include <isc/util.h>
+#include <isc/thread.h>
 
 #define HP_MAX_THREADS 128
 #define HP_MAX_HPS 4			/* This is named 'K' in the HP paper */
@@ -64,20 +65,7 @@
 
 static atomic_int_fast32_t tid_v_base = ATOMIC_VAR_INIT(0);
 
-#if defined(HAVE_TLS)
-#if defined(HAVE_THREAD_LOCAL)
-#include <threads.h>
-static thread_local int tid_v = TID_UNKNOWN;
-#elif defined(HAVE___THREAD)
-static __thread int tid_v = TID_UNKNOWN;
-#elif defined(HAVE___DECLSPEC_THREAD)
-static __declspec( thread ) int tid_v = TID_UNKNOWN;
-#else  /* if defined(HAVE_THREAD_LOCAL) */
-#error "Unknown method for defining a TLS variable!"
-#endif /* if defined(HAVE_THREAD_LOCAL) */
-#else  /* if defined(HAVE_TLS) */
-#error "Thread-local storage support is required!"
-#endif /* if defined(HAVE_TLS) */
+ISC_THREAD_LOCAL int tid_v = TID_UNKNOWN;
 
 typedef struct retirelist {
 	int			size;

@@ -58,6 +58,23 @@ isc_thread_setaffinity(int cpu);
 #define isc_thread_key_setspecific pthread_setspecific
 #define isc_thread_key_delete pthread_key_delete
 
+/***
+ *** Thread-Local Storage
+ ***/
+
+#if defined(HAVE_TLS)
+#if defined(HAVE_THREAD_LOCAL)
+#include <threads.h>
+#define ISC_THREAD_LOCAL static thread_local
+#elif defined(HAVE___THREAD)
+#define ISC_THREAD_LOCAL static __thread
+#else  /* if defined(HAVE_THREAD_LOCAL) */
+#error "Unknown method for defining a TLS variable!"
+#endif /* if defined(HAVE_THREAD_LOCAL) */
+#else  /* if defined(HAVE_TLS) */
+#error "Thread-local storage support is required!"
+#endif /* if defined(HAVE_TLS) */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_THREAD_H */
