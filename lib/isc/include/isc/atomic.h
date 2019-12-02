@@ -56,10 +56,14 @@
 	atomic_store_explicit((o), (v), memory_order_release)
 #define atomic_load_acquire(o)						\
 	atomic_load_explicit((o), memory_order_acquire)
-#define atomic_fetch_add_acquire(o, v)					\
-	atomic_fetch_add_explicit((o), (v), memory_order_acquire)
+#define atomic_fetch_add_release(o, v)					\
+	atomic_fetch_add_explicit((o), (v), memory_order_release)
 #define atomic_fetch_sub_release(o, v)					\
 	atomic_fetch_sub_explicit((o), (v), memory_order_release)
+#define atomic_fetch_and_release(o, v)					\
+	atomic_fetch_and_explicit((o), (v), memory_order_release)
+#define atomic_fetch_or_release(o, v)					\
+	atomic_fetch_or_explicit((o), (v), memory_order_release)
 #define atomic_exchange_acq_rel(o, v)					\
 	atomic_exchange_explicit((o), (v), memory_order_acq_rel)
 #define atomic_compare_exchange_weak_acq_rel(o, e, d)			\
