@@ -1,3 +1,6 @@
+5330.	[bug]		'configure --without-python' was ineffective if
+			PYTHON was set in the environment. [GL #1434]
+
 5329.	[bug]		Reconfiguring named caused memory to be leaked when any
 			GeoIP2 database was in use. [GL #1445]
 
