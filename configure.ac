@@ -207,6 +207,8 @@ except: exit(1)'
 
 default_with_python="python python3 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
 
+AC_ARG_VAR([PYTHON], [path to python executable])
+
 AC_ARG_WITH([python],
 	    AS_HELP_STRING([--with-python=PATH],
 			   [specify path to Python interpreter]),
@@ -221,6 +223,7 @@ AS_IF([test "$with_python" = "yes"],
 
 AS_IF([test "$with_python" = "no"],
       [AC_MSG_CHECKING([for Python support])
+       unset PYTHON
        AC_MSG_RESULT([disabled])],
       [for p in $with_python
        do
