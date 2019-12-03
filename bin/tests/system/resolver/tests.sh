@@ -474,8 +474,8 @@ echo_i "check prefetch of validated DS's RRSIG TTL is updated (${n})"
 ret=0
 $DIG $DIGOPTS +dnssec @10.53.0.5 ds.example.net ds > dig.out.1.${n} || ret=1
 dsttl1=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.1.${n}`
-# sleep so we are in prefetch range
 interval=$((dsttl1 - PREFETCH + 1))
+# sleep so we are in prefetch range
 sleep ${interval:-0}
 # trigger prefetch
 $DIG $DIGOPTS @10.53.0.5 ds.example.net ds > dig.out.2.${n} || ret=1
@@ -496,25 +496,23 @@ echo_i "check prefetch disabled (${n})"
 ret=0
 $DIG $DIGOPTS @10.53.0.7 fetch.example.net txt > dig.out.1.${n} || ret=1
 ttl1=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.1.${n}`
-delay=$((ttl1 - 5))
+interval=$((ttl1 - PREFETCH + 1))
 # sleep so we are in expire range
-sleep ${delay:-0}
+sleep ${interval:-0}
 tmp_ttl=$ttl1
-# fetch record and ensure its ttl is in range 0 < ttl < tmp_ttl
-# since prefetch is disabled, updated ttl must be a lower value than
-# the previous one.
-for i in 0 1 3; do
-	$DIG $DIGOPTS @10.53.0.7 fetch.example.net txt > dig.out.2.${n} || ret=1
+no_prefetch() {
+	# fetch record and ensure its ttl is in range 0 < ttl < tmp_ttl.
+	# since prefetch is disabled, updated ttl must be a lower value than
+	# the previous one.
+	$DIG $DIGOPTS @10.53.0.7 fetch.example.net txt > dig.out.2.${n} || return 1
 	ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
         # check that prefetch has not occured
         if [ $ttl2 -ge $tmp_ttl ]; then
-                ret=1
-                break
+                return 1
         fi
         tmp_ttl=$ttl2
-	$PERL -e 'select(undef, undef, undef, 1);'
-done
-
+}
+retry_quiet 3 no_prefetch || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
