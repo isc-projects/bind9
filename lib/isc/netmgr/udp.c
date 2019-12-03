@@ -339,7 +339,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
 	isc_nmsocket_t *psock = NULL, *rsock = NULL;
 	isc_nmsocket_t *sock = handle->sock;
 	isc_sockaddr_t *peer = &handle->peer;
-	isc__netievent_udpsend_t *ievent;
+	isc__netievent_udpsend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 	int ntid;
 	uint32_t maxudp = atomic_load(&sock->mgr->maxudp);

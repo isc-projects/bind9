@@ -86,13 +86,13 @@ timer_close_cb(uv_handle_t *handle) {
 
 static void
 dnstcp_readtimeout(uv_timer_t *timer) {
-	isc_nmsocket_t *sock;
-	sock = (isc_nmsocket_t *) uv_handle_get_data((uv_handle_t *)timer);
+	isc_nmsocket_t *sock =
+		(isc_nmsocket_t *) uv_handle_get_data((uv_handle_t *) timer);
 
 	REQUIRE(VALID_NMSOCK(sock));
 
 	isc_nmsocket_detach(&sock->outer);
-	uv_close((uv_handle_t*) &sock->timer, timer_close_cb);
+	uv_close((uv_handle_t *) &sock->timer, timer_close_cb);
 }
 
 /*
@@ -494,5 +494,5 @@ isc__nm_tcpdns_close(isc_nmsocket_t *sock) {
 	if (sock->outer != NULL) {
 		isc_nmsocket_detach(&sock->outer);
 	}
-	uv_close((uv_handle_t*) &sock->timer, timer_close_cb);
+	uv_close((uv_handle_t *) &sock->timer, timer_close_cb);
 }

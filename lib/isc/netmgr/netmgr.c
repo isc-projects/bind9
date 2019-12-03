@@ -186,20 +186,25 @@ nm_destroy(isc_nm_t **mgr0) {
 
 	for (size_t i = 0; i < mgr->nworkers; i++) {
 		isc__networker_t *worker = &mgr->workers[i];
-		/* Empty the async event queue */
-		isc__netievent_t *ievent;
+		isc__netievent_t *ievent = NULL;
+		int r;
+
+		/* Empty the async event queues */
 		while ((ievent = (isc__netievent_t *)
 			isc_queue_dequeue(worker->ievents)) != NULL)
 		{
 			isc_mempool_put(mgr->evpool, ievent);
 		}
+
 		while ((ievent = (isc__netievent_t *)
 			isc_queue_dequeue(worker->ievents_prio)) != NULL)
 		{
 			isc_mempool_put(mgr->evpool, ievent);
 		}
-		int r = uv_loop_close(&worker->loop);
+
+		r = uv_loop_close(&worker->loop);
 		INSIST(r == 0);
+
 		isc_queue_destroy(worker->ievents);
 		isc_queue_destroy(worker->ievents_prio);
 		isc_thread_join(worker->thread, NULL);
@@ -499,7 +504,7 @@ async_cb(uv_async_t *handle) {
 
 static void
 process_queue(isc__networker_t *worker, isc_queue_t *queue) {
-	isc__netievent_t *ievent;
+	isc__netievent_t *ievent = NULL;
 
 	while ((ievent = (isc__netievent_t *)
 		isc_queue_dequeue(queue)) != NULL)
@@ -839,8 +844,8 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 	 * be random?
 	 */
 	strcpy(sock->ipc_pipe_name, NAMED_PIPE_PREFIX);
-	for (int i=strlen(sock->ipc_pipe_name); i<31; i++) {
-		sock->ipc_pipe_name[i] = isc_random8()%24 + 'a';
+	for (int i = strlen(sock->ipc_pipe_name); i < 31; i++) {
+		sock->ipc_pipe_name[i] = isc_random8() % 24 + 'a';
 	}
 	sock->ipc_pipe_name[31] = '\0';
 
