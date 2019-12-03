@@ -44,9 +44,9 @@
 ISC_THREAD_LOCAL int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
 
 #ifdef WIN32
-#define NAMED_PIPE_PREFIX "\\\\.\\pipe\\named-ipc"
+#define NAMED_PIPE_PATTERN "\\\\.\\pipe\\named-%d-%u.pipe"
 #else
-#define NAMED_PIPE_PREFIX ".named-ipc"
+#define NAMED_PIPE_PATTERN "/tmp/named-%d-%u.pipe"
 #endif
 
 static void
@@ -840,14 +840,14 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 	}
 
 	/*
-	 * XXXWPK Maybe it should be in tmp, maybe it should not
-	 * be random?
+	 * Use a random number in the named pipe name. Also add getpid()
+	 * to the name to make sure we don't get a conflict between
+	 * different unit tests running at the same time, where the PRNG
+	 * is initialized to a constant seed.
 	 */
-	strcpy(sock->ipc_pipe_name, NAMED_PIPE_PREFIX);
-	for (int i = strlen(sock->ipc_pipe_name); i < 31; i++) {
-		sock->ipc_pipe_name[i] = isc_random8() % 24 + 'a';
-	}
-	sock->ipc_pipe_name[31] = '\0';
+	snprintf(sock->ipc_pipe_name, sizeof(sock->ipc_pipe_name),
+		 NAMED_PIPE_PATTERN, getpid(), isc_random32());
+	sock->ipc_pipe_name[sizeof(sock->ipc_pipe_name) - 1] = '\0';
 
 	isc_mutex_init(&sock->lock);
 	isc_condition_init(&sock->cond);

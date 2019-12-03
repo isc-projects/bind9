@@ -339,7 +339,7 @@ struct isc_nmsocket {
 
 	/*% Used to transfer listening TCP sockets to children */
 	uv_pipe_t		ipc;
-	char			ipc_pipe_name[32];
+	char			ipc_pipe_name[64];
 	atomic_int_fast32_t	schildren;
 
 	/*% Extra data allocated at the end of each isc_nmhandle_t */

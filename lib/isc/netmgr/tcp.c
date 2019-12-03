@@ -10,6 +10,7 @@
  */
 
 #include <unistd.h>
+#include <libgen.h>
 #include <uv.h>
 
 #include <isc/atomic.h>
@@ -203,6 +204,25 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 	}
 }
 
+#ifndef WIN32
+/*
+ * Run fsync() on the directory containing a socket's IPC pipe, to
+ * ensure that all threads can see the pipe.
+ */
+static void
+syncdir(const isc_nmsocket_t *sock) {
+	 char *pipe = isc_mem_strdup(sock->mgr->mctx, sock->ipc_pipe_name);
+	 int fd = open(dirname(pipe), O_RDONLY);
+
+	 RUNTIME_CHECK(fd >= 0);
+
+	 isc_mem_free(sock->mgr->mctx, pipe);
+
+	 fsync(fd);
+	 close(fd);
+}
+#endif
+
 /*
  * For TCP listening, we create a single socket, bind it, and then
  * pass it to `ncpu` child sockets - the passing is done over IPC.
@@ -274,7 +294,17 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	r = uv_listen((uv_stream_t *) &sock->ipc, sock->nchildren,
 		      ipc_connection_cb);
 	INSIST(r == 0);
-
+#ifndef WIN32
+	/*
+	 * On Unices a child thread might not see the pipe yet;
+	 * that happened quite often in unit tests on FreeBSD.
+	 * Syncing the directory ensures that the pipe is visible
+	 * to everyone.
+	 * This isn't done on Windows because named pipes exist
+	 * within a different namespace, not on VFS.
+	 */
+	syncdir(sock);
+#endif
 	/*
 	 * We launch n 'tcpchildlistener' that will receive
 	 * sockets to be listened on over ipc.
