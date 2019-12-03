@@ -41,6 +41,8 @@
 #endif
 #endif
 
+#define ATOMIC_VAR_INIT(x)	x
+
 #ifndef __ATOMIC_RELAXED
 #define __ATOMIC_RELAXED        0
 #endif
@@ -78,6 +80,8 @@ typedef int_fast64_t	atomic_int_fast64_t;
 typedef uint_fast64_t	atomic_uint_fast64_t;
 typedef bool		atomic_bool;
 
+typedef uint_fast64_t	atomic_uintptr_t;
+
 #if defined(__CLANG_ATOMICS) /* __c11_atomic builtins */
 #define atomic_init(obj, desired)		\
 	__c11_atomic_init(obj, desired)
@@ -89,10 +93,16 @@ typedef bool		atomic_bool;
 	__c11_atomic_fetch_add(obj, arg, order)
 #define atomic_fetch_sub_explicit(obj, arg, order)	\
 	__c11_atomic_fetch_sub(obj, arg, order)
+#define atomic_fetch_and_explicit(obj, arg, order)	\
+	__c11_atomic_fetch_and(obj, arg, order)
+#define atomic_fetch_or_explicit(obj, arg, order)	\
+	__c11_atomic_fetch_or(obj, arg, order)
 #define atomic_compare_exchange_strong_explicit(obj, expected, desired, succ, fail)	\
 	__c11_atomic_compare_exchange_strong_explicit(obj, expected, desired, succ, fail)
 #define atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail)	\
 	__c11_atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail)
+#define atomic_exchange_explicit(obj, desired, order)	\
+	__c11_atomic_exchange_explicit(obj, expected, order)
 #elif defined(__GNUC_ATOMICS) /* __atomic builtins */
 #define atomic_init(obj, desired)			\
 	(*obj = desired)
@@ -104,10 +114,16 @@ typedef bool		atomic_bool;
 	__atomic_fetch_add(obj, arg, order)
 #define atomic_fetch_sub_explicit(obj, arg, order)	\
 	__atomic_fetch_sub(obj, arg, order)
+#define atomic_fetch_and_explicit(obj, arg, order)	\
+	__atomic_fetch_and(obj, arg, order)
+#define atomic_fetch_or_explicit(obj, arg, order)	\
+	__atomic_fetch_or(obj, arg, order)
 #define atomic_compare_exchange_strong_explicit(obj, expected, desired, succ, fail)	\
 	__atomic_compare_exchange_n(obj, expected, desired, 0, succ, fail)
 #define atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail)	\
 	__atomic_compare_exchange_n(obj, expected, desired, 1, succ, fail)
+#define atomic_exchange_explicit(obj, desired, order)	\
+	__atomic_exchange_n(obj, desired, order)
 #else /* __sync builtins */
 #define atomic_init(obj, desired)			\
 	(*obj = desired)
@@ -119,10 +135,14 @@ typedef bool		atomic_bool;
 		*obj = desired;				\
 		__sync_synchronize();			\
 	} while (0);
-#define atomic_fetch_add_explicit(obj, arg, order) \
+#define atomic_fetch_add_explicit(obj, arg, order)	\
 	__sync_fetch_and_add(obj, arg)
-#define atomic_fetch_sub_explicit(obj, arg, order) \
+#define atomic_fetch_sub_explicit(obj, arg, order)	\
 	__sync_fetch_and_sub(obj, arg, order)
+#define atomic_fetch_and_explicit(obj, arg, order)	\
+	__sync_fetch_and_and(obj, arg, order)
+#define atomic_fetch_or_explicit(obj, arg, order)	\
+	__sync_fetch_and_or(obj, arg, order)
 #define atomic_compare_exchange_strong_explicit(obj, expected, desired, succ, fail)	\
 	({									\
 		__typeof__(obj) __v;						\
@@ -136,6 +156,9 @@ typedef bool		atomic_bool;
 	})
 #define atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail)	\
 	atomic_compare_exchange_strong_explicit(obj, expected, desired, succ, fail)
+#define atomic_exchange_explicit(obj, desired, order) \
+	__sync_lock_test_and_set(obj, desired)
+
 #endif
 
 #define atomic_load(obj) \
@@ -146,7 +169,13 @@ typedef bool		atomic_bool;
 	atomic_fetch_add_explicit(obj, arg, memory_order_seq_cst)
 #define atomic_fetch_sub(obj, arg) \
 	atomic_fetch_sub_explicit(obj, arg, memory_order_seq_cst)
+#define atomic_fetch_and(obj, arg) \
+	atomic_fetch_and_explicit(obj, arg, memory_order_seq_cst)
+#define atomic_fetch_or(obj, arg) \
+	atomic_fetch_or_explicit(obj, arg, memory_order_seq_cst)
 #define atomic_compare_exchange_strong(obj, expected, desired)	\
 	atomic_compare_exchange_strong_explicit(obj, expected, desired, memory_order_seq_cst, memory_order_seq_cst)
 #define atomic_compare_exchange_weak(obj, expected, desired)	\
 	atomic_compare_exchange_weak_explicit(obj, expected, desired, memory_order_seq_cst, memory_order_seq_cst)
+#define atomic_exchange(obj, desired)	\
+	atomic_exchange_explicit(obj, desired, memory_order_seq_cst)
