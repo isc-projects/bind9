@@ -458,7 +458,7 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check that using dnssec-keys and managed-keys generates an error ($n)"
+echo_i "check that using trust-anchors and managed-keys generates an error ($n)"
 ret=0
 $CHECKCONF check-mixed-keys.conf > checkconf.out$n 2>/dev/null && ret=1
 grep "use of managed-keys is not allowed" checkconf.out$n > /dev/null || ret=1

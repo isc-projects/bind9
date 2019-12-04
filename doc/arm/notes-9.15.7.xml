@@ -1,0 +1,33 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.15.7"><info><title>Notes for BIND 9.15.7</title></info>
+
+  <section xml:id="relnotes-9.15.7-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+	  The <command>dnssec-keys</command> configuration statement,
+	  which was introduced in 9.15.1 and revised in 9.15.6, has now
+	  been renamed to the more descriptive
+	  <command>trust-anchors</command>.
+        </para>
+        <para>
+	  (See the sections on
+	  <xref linkend="relnotes-9.15.6" xrefstyle="template:9.15.6"/> and
+	  <xref linkend="relnotes-9.15.1" xrefstyle="template:9.15.1"/>
+	  for prior discussion of this feature.)
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>

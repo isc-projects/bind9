@@ -3655,7 +3655,7 @@ check_non_ds_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
  * Check for conflicts between static and initialiizing keys.
  */
 static isc_result_t
-check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
+check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 		   const cfg_obj_t *global_tkeys, const cfg_obj_t *view_tkeys,
 		   bool autovalidation, isc_mem_t *mctx, isc_log_t *logctx)
 {
@@ -3676,10 +3676,10 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 
 	/*
 	 * First we record all the static keys (i.e., old-style
-	 * trusted-keys and dnssec-keys configured with "static-key"),
+	 * trusted-keys and trust-anchors configured with "static-key"),
 	 * and all the DS-style trust anchors.
 	 */
-	for (elt = cfg_list_first(global_dkeys);
+	for (elt = cfg_list_first(global_ta);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
@@ -3696,7 +3696,7 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 		}
 	}
 
-	for (elt = cfg_list_first(view_dkeys);
+	for (elt = cfg_list_first(view_ta);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
@@ -3739,10 +3739,10 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 
 	/*
 	 * Next, ensure that there's no conflict between the
-	 * static keys and the dnssec-keys configured with "initial-key",
-	 * or between DS-style and DNSKEY-style dnssec-keys.
+	 * static keys and the trust-anchors configured with "initial-key",
+	 * or between DS-style and DNSKEY-style trust-anchors.
 	 */
-	for (elt = cfg_list_first(global_dkeys);
+	for (elt = cfg_list_first(global_ta);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
@@ -3758,7 +3758,7 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 		}
 	}
 
-	for (elt = cfg_list_first(view_dkeys);
+	for (elt = cfg_list_first(view_ta);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
@@ -3965,7 +3965,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *zones = NULL;
 	const cfg_obj_t *view_tkeys = NULL, *global_tkeys = NULL;
 	const cfg_obj_t *view_mkeys = NULL, *global_mkeys = NULL;
-	const cfg_obj_t *view_dkeys = NULL, *global_dkeys = NULL;
+	const cfg_obj_t *view_ta = NULL, *global_ta = NULL;
 	const cfg_obj_t *check_keys[2] = { NULL, NULL };
 	const cfg_obj_t *keys = NULL;
 #ifndef HAVE_DLOPEN
@@ -4137,11 +4137,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 */
 	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "trusted-keys", &view_tkeys);
-		(void)cfg_map_get(voptions, "dnssec-keys", &view_dkeys);
+		(void)cfg_map_get(voptions, "trust-anchors", &view_ta);
 		(void)cfg_map_get(voptions, "managed-keys", &view_mkeys);
 	}
 	(void)cfg_map_get(config, "trusted-keys", &global_tkeys);
-	(void)cfg_map_get(config, "dnssec-keys", &global_dkeys);
+	(void)cfg_map_get(config, "trust-anchors", &global_ta);
 	(void)cfg_map_get(config, "managed-keys", &global_mkeys);
 
 	/*
@@ -4178,7 +4178,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    ISC_LOG_WARNING,
 					    "trusted-keys entry for the root "
 					    "zone WILL FAIL after key "
-					    "rollover - use dnssec-keys "
+					    "rollover - use trust-anchors "
 					    "with initial-key "
 					    "or initial-ds instead.");
 			}
@@ -4191,24 +4191,24 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check dnssec/managed-keys. (Only one or the other can be used.)
 	 */
 	if ((view_mkeys != NULL || global_mkeys != NULL) &&
-	    (view_dkeys != NULL || global_dkeys != NULL))
+	    (view_ta != NULL || global_ta != NULL))
 	{
 		keys = (view_mkeys != NULL) ? view_mkeys : global_mkeys;
 
 		cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
 			    "use of managed-keys is not allowed when "
-			    "dnssec-keys is also in use");
+			    "trust-anchors is also in use");
 		result = ISC_R_FAILURE;
 
 	}
 
-	if (view_dkeys == NULL && global_dkeys == NULL) {
-		view_dkeys = view_mkeys;
-		global_dkeys = global_mkeys;
+	if (view_ta == NULL && global_ta == NULL) {
+		view_ta = view_mkeys;
+		global_ta = global_mkeys;
 	}
 
-	check_keys[0] = view_dkeys;
-	check_keys[1] = global_dkeys;
+	check_keys[0] = view_ta;
+	check_keys[1] = global_ta;
 	for (i = 0; i < 2; i++) {
 		if (check_keys[i] != NULL) {
 			unsigned int flags = 0;
@@ -4238,7 +4238,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    ISC_LOG_WARNING,
 					    "static entry for the root "
 					    "zone WILL FAIL after key "
-					    "rollover - use dnssec-keys "
+					    "rollover - use trust-anchors "
 					    "with initial-key "
 					    "or initial-ds instead.");
 			}
@@ -4258,14 +4258,14 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	}
 
 	if ((tflags & ROOT_KSK_ANY) != 0 && (dflags & ROOT_KSK_ANY) != 0) {
-		keys = (view_dkeys != NULL) ? view_dkeys : global_dkeys;
+		keys = (view_ta != NULL) ? view_ta : global_ta;
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "both trusted-keys and dnssec-keys "
+			    "both trusted-keys and trust-anchors "
 			    "for the root zone are present");
 	}
 
 	if ((dflags & ROOT_KSK_ANY) == ROOT_KSK_ANY) {
-		keys = (view_dkeys != NULL) ? view_dkeys : global_dkeys;
+		keys = (view_ta != NULL) ? view_ta : global_ta;
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
 			    "both initial and static entries for the "
 			    "root zone are present");
@@ -4282,7 +4282,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		autovalidation = true;
 	}
 
-	tresult = check_ta_conflicts(global_dkeys, view_dkeys,
+	tresult = check_ta_conflicts(global_ta, view_ta,
 				     global_tkeys, view_tkeys,
 				     autovalidation, mctx, logctx);
 	if (tresult != ISC_R_SUCCESS) {

@@ -198,7 +198,7 @@ configure_dnsseckeys(irs_dnsconf_t *conf, cfg_obj_t *cfgobj,
 	}
 
 	keys = NULL;
-	cfg_map_get(cfgobj, "dnssec-keys", &keys);
+	cfg_map_get(cfgobj, "trust-anchors", &keys);
 	if (keys == NULL) {
 		return (ISC_R_SUCCESS);
 	}

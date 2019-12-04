@@ -140,7 +140,7 @@ static dns_fixedname_t afn;
 static dns_name_t *anchor_name = NULL;
 
 /* Default bind.keys contents */
-static char anchortext[] = DNSSEC_KEYS;
+static char anchortext[] = TRUST_ANCHORS;
 
 /*
  * Static function prototypes
@@ -819,7 +819,7 @@ setup_dnsseckeys(dns_client_t *client) {
 	cfg_parser_t *parser = NULL;
 	const cfg_obj_t *trusted_keys = NULL;
 	const cfg_obj_t *managed_keys = NULL;
-	const cfg_obj_t *dnssec_keys = NULL;
+	const cfg_obj_t *trust_anchors = NULL;
 	cfg_obj_t *bindkeys = NULL;
 	const char *filename = anchorfile;
 
@@ -878,7 +878,7 @@ setup_dnsseckeys(dns_client_t *client) {
 	INSIST(bindkeys != NULL);
 	cfg_map_get(bindkeys, "trusted-keys", &trusted_keys);
 	cfg_map_get(bindkeys, "managed-keys", &managed_keys);
-	cfg_map_get(bindkeys, "dnssec-keys", &dnssec_keys);
+	cfg_map_get(bindkeys, "trust-anchors", &trust_anchors);
 
 	if (trusted_keys != NULL) {
 		CHECK(load_keys(trusted_keys, client));
@@ -886,8 +886,8 @@ setup_dnsseckeys(dns_client_t *client) {
 	if (managed_keys != NULL) {
 		CHECK(load_keys(managed_keys, client));
 	}
-	if (dnssec_keys != NULL) {
-		CHECK(load_keys(dnssec_keys, client));
+	if (trust_anchors != NULL) {
+		CHECK(load_keys(trust_anchors, client));
 	}
 	result = ISC_R_SUCCESS;
 

@@ -1417,7 +1417,6 @@
 ./doc/arm/controls.grammar.xml			SGML	2018,2019
 ./doc/arm/delegation-only.zoneopt.xml		SGML	2018,2019
 ./doc/arm/dlz.xml				SGML	2012,2013,2014,2015,2016,2018,2019
-./doc/arm/dnssec-keys.grammar.xml		SGML	2019
 ./doc/arm/dnssec-policy.grammar.xml		SGML	2019
 ./doc/arm/dnssec.xml				SGML	2010,2011,2015,2016,2017,2018,2019
 ./doc/arm/dyndb.xml				SGML	2015,2016,2018,2019
@@ -1478,6 +1477,7 @@
 ./doc/arm/notes-9.15.4.xml			SGML	2019
 ./doc/arm/notes-9.15.5.xml			SGML	2019
 ./doc/arm/notes-9.15.6.xml			SGML	2019
+./doc/arm/notes-9.15.7.xml			SGML	2019
 ./doc/arm/notes-download.xml			SGML	2019
 ./doc/arm/notes-eol.xml				SGML	2019
 ./doc/arm/notes-intro.xml			SGML	2019
@@ -1502,6 +1502,7 @@
 ./doc/arm/static-stub.zoneopt.xml		SGML	2018,2019
 ./doc/arm/statistics-channels.grammar.xml	SGML	2018,2019
 ./doc/arm/stub.zoneopt.xml			SGML	2018,2019
+./doc/arm/trust-anchors.grammar.xml		SGML	2019
 ./doc/arm/trusted-keys.grammar.xml		SGML	2018,2019
 ./doc/design/addressdb				TXT.BRIEF	2000,2001,2004,2016,2018,2019
 ./doc/design/cds-child				TXT.BRIEF	2015,2016,2018,2019

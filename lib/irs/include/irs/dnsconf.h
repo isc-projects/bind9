@@ -23,9 +23,9 @@
  * Notes:
  * This module is very experimental and the configuration syntax or library
  * interfaces may change in future versions.  Currently, only static
- * key configuration is supported; "trusted-keys" and "dnssec-keys"/
+ * key configuration is supported; "trusted-keys" and "trust-anchors"/
  * "managed-keys" statements will be parsed exactly as they are in
- * named.conf, except that "dnssec-keys" and "managed-keys" entries will
+ * named.conf, except that "trust-anchors" and "managed-keys" entries will
  * be treated as if they were configured with "static-key", even if they
  * were actually configured with "initial-key".
  */

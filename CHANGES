@@ -1,3 +1,6 @@
+5332.	[func]		Renamed "dnssec-keys" configuration statement
+			to the more descriptive "trust-anchors".
+
 5331.	[func]		Use compiler-provided mechanisms for thread local
 			storage, and make the requirement for such mechanisms
 			explicit in configure. [GL #1444]
