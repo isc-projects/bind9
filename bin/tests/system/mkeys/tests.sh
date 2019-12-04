@@ -390,28 +390,28 @@ ret=0
 standby3=$($KEYGEN -a rsasha256 -qfk -K ns1 .)
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
-mkeys_status_on 2 > rndc.out.a.$n 2>&1 || ret=1
+mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
 # four keys listed
-count=$(grep -c "keyid: " rndc.out.a.$n) || true
+count=$(grep -c "keyid: " rndc.out.1.$n) || true
 [ "$count" -eq 4 ] || { echo "keyid: count ($count) != 4"; ret=1; }
 # one revoked
-count=$(grep -c "trust revoked" rndc.out.a.$n) || true
+count=$(grep -c "trust revoked" rndc.out.1.$n) || true
 [ "$count" -eq 1 ] || { echo "trust revoked count ($count) != 1"; ret=1; }
 # two pending
-count=$(grep -c "trust pending" rndc.out.a.$n) || true
+count=$(grep -c "trust pending" rndc.out.1.$n) || true
 [ "$count" -eq 2 ] || { echo "trust pending count ($count) != 2"; ret=1; }
 $SETTIME -R now -K ns1 "$standby3" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
-mkeys_status_on 2 > rndc.out.b.$n 2>&1 || ret=1
+mkeys_status_on 2 > rndc.out.2.$n 2>&1 || ret=1
 # now three keys listed
-count=$(grep -c "keyid: " rndc.out.b.$n) || true
+count=$(grep -c "keyid: " rndc.out.2.$n) || true
 [ "$count" -eq 3 ] || { echo "keyid: count ($count) != 3"; ret=1; }
 # one revoked
-count=$(grep -c "trust revoked" rndc.out.b.$n) || true
+count=$(grep -c "trust revoked" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || { echo "trust revoked count ($count) != 1"; ret=1; }
 # one pending
-count=$(grep -c "trust pending" rndc.out.b.$n) || true
+count=$(grep -c "trust pending" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || { echo "trust pending count ($count) != 1"; ret=1; }
 $SETTIME -D now -K ns1 "$standby3" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
@@ -584,8 +584,8 @@ ret=0
 # (as calculated per rules listed in RFC 5011 section 2.3) minus an "hour" (as
 # set using -T mkeytimers).
 mkeys_refresh_on 2 || ret=1
-mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
-t1=$(grep 'next refresh:' rndc.out.$n)
+mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
+t1=$(grep 'next refresh:' rndc.out.1.$n)
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns1
 rm -f ns1/root.db.signed.jnl
 cp ns1/root.db ns1/root.db.signed
@@ -593,22 +593,22 @@ nextpart ns1/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns1
 wait_for_log "loaded serial" ns1/named.run || ret=1
 mkeys_refresh_on 2 || ret=1
-mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
+mkeys_status_on 2 > rndc.out.2.$n 2>&1 || ret=1
 # one key listed
-count=$(grep -c "keyid: " rndc.out.$n) || true
+count=$(grep -c "keyid: " rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # it's the original key id
-count=$(grep -c "keyid: $originalid" rndc.out.$n) || true
+count=$(grep -c "keyid: $originalid" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # not revoked
-count=$(grep -c "REVOKE" rndc.out.$n) || true
+count=$(grep -c "REVOKE" rndc.out.2.$n) || true
 [ "$count" -eq 0 ] || ret=1
 # trust is still current
-count=$(grep -c "trust" rndc.out.$n) || true
+count=$(grep -c "trust" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
-count=$(grep -c "trusted since" rndc.out.$n) || true
+count=$(grep -c "trusted since" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
-t2=$(grep 'next refresh:' rndc.out.$n)
+t2=$(grep 'next refresh:' rndc.out.2.$n)
 [ "$t1" = "$t2" ] && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -618,8 +618,8 @@ echo_i "reset the root server with no signatures, check for minimal update ($n)"
 ret=0
 # Refresh keys first to prevent previous checks from influencing this one
 mkeys_refresh_on 2 || ret=1
-mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
-t1=$(grep 'next refresh:' rndc.out.$n)
+mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
+t1=$(grep 'next refresh:' rndc.out.1.$n)
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns1
 rm -f ns1/root.db.signed.jnl
 cat ns1/K*.key >> ns1/root.db.signed
@@ -631,22 +631,22 @@ wait_for_log "loaded serial" ns1/named.run || ret=1
 # timestamp to prevent minimal update from resetting it to the same timestamp.
 sleep 1
 mkeys_refresh_on 2 || ret=1
-mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
+mkeys_status_on 2 > rndc.out.2.$n 2>&1 || ret=1
 # one key listed
-count=$(grep -c "keyid: " rndc.out.$n) || true
+count=$(grep -c "keyid: " rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # it's the original key id
-count=$(grep -c "keyid: $originalid" rndc.out.$n) || true
+count=$(grep -c "keyid: $originalid" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # not revoked
-count=$(grep -c "REVOKE" rndc.out.$n) || true
+count=$(grep -c "REVOKE" rndc.out.2.$n) || true
 [ "$count" -eq 0 ] || ret=1
 # trust is still current
-count=$(grep -c "trust" rndc.out.$n) || true
+count=$(grep -c "trust" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
-count=$(grep -c "trusted since" rndc.out.$n) || true
+count=$(grep -c "trusted since" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
-t2=$(grep 'next refresh:' rndc.out.$n)
+t2=$(grep 'next refresh:' rndc.out.2.$n)
 [ "$t1" = "$t2" ] && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -683,11 +683,11 @@ n=$((n+1))
 echo_i "check 'rndc-managed-keys destroy' ($n)"
 ret=0
 rndccmd 10.53.0.2 managed-keys destroy | sed 's/^/ns2 /' | cat_i
-mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
-grep "no views with managed keys" rndc.out.$n > /dev/null || ret=1
+mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
+grep "no views with managed keys" rndc.out.1.$n > /dev/null || ret=1
 mkeys_reconfig_on 2 || ret=1
-mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
-grep "name: \." rndc.out.$n > /dev/null || ret=1
+mkeys_status_on 2 > rndc.out.2.$n 2>&1 || ret=1
+grep "name: \." rndc.out.2.$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
