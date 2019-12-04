@@ -1,3 +1,7 @@
+5331.	[func]		Use compiler-provided mechanisms for thread local
+			storage, and make the requirement for such mechanisms
+			explicit in configure. [GL #1444]
+
 5330.	[bug]		'configure --without-python' was ineffective if
 			PYTHON was set in the environment. [GL #1434]
 
