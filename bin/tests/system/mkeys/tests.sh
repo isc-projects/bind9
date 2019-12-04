@@ -10,16 +10,25 @@
 # information regarding copyright ownership.
 
 SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+#shellcheck source=conf.sh
+. "$SYSTEMTESTTOP/conf.sh"
 
-DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p ${PORT}"
-DELVOPTS="-a ns1/trusted.conf -p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+dig_with_opts() (
+	"$DIG" +tcp +noadd +nosea +nostat +nocmd +dnssec -p "${PORT}" "$@"
+)
+
+delv_with_opts() (
+	"$DELV" -a ns1/trusted.conf -p "${PORT}" "$@"
+)
+
+rndccmd() (
+	"$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "${CONTROLPORT}" -s "$@"
+)
 
 search_log() (
 	msg=$1
 	file=$2
-	nextpart "$file" | grep "$msg" > /dev/null
+	nextpart "$file" | grep -F "$msg" > /dev/null
 )
 
 wait_for_log() (
@@ -30,30 +39,30 @@ wait_for_log() (
 	return 1
 )
 
-mkeys_reconfig_on() {
+mkeys_reconfig_on() (
 	nsidx=$1
-	$RNDCCMD 10.53.0.${nsidx} reconfig . | sed "s/^/ns${nsidx} /" | cat_i
-}
+	rndccmd "10.53.0.${nsidx}" reconfig . | sed "s/^/ns${nsidx} /" | cat_i
+)
 
 mkeys_reload_on() (
 	nsidx=$1
-	nextpart ns${nsidx}/named.run > /dev/null
-	$RNDCCMD 10.53.0.${nsidx} reload . | sed "s/^/ns${nsidx} /" | cat_i
-	wait_for_log "loaded serial" ns${nsidx}/named.run
+	nextpart "ns${nsidx}"/named.run > /dev/null
+	rndccmd "10.53.0.${nsidx}" reload . | sed "s/^/ns${nsidx} /" | cat_i
+	wait_for_log "loaded serial" "ns${nsidx}"/named.run
 )
 
 mkeys_loadkeys_on() (
 	nsidx=$1
-	nextpart ns${nsidx}/named.run > /dev/null
-	$RNDCCMD 10.53.0.${nsidx} loadkeys . | sed "s/^/ns${nsidx} /" | cat_i
-	wait_for_log "next key event" ns${nsidx}/named.run
+	nextpart "ns${nsidx}"/named.run > /dev/null
+	rndccmd "10.53.0.${nsidx}" loadkeys . | sed "s/^/ns${nsidx} /" | cat_i
+	wait_for_log "next key event" "ns${nsidx}"/named.run
 )
 
 mkeys_refresh_on() (
 	nsidx=$1
-	nextpart ns${nsidx}/named.run > /dev/null
-	$RNDCCMD 10.53.0.${nsidx} managed-keys refresh | sed "s/^/ns${nsidx} /" | cat_i
-	wait_for_log "Returned from key fetch in keyfetch_done()" ns${nsidx}/named.run
+	nextpart "ns${nsidx}"/named.run > /dev/null
+	rndccmd "10.53.0.${nsidx}" managed-keys refresh | sed "s/^/ns${nsidx} /" | cat_i
+	wait_for_log "Returned from key fetch in keyfetch_done()" "ns${nsidx}"/named.run
 )
 
 mkeys_sync_on() (
@@ -62,7 +71,7 @@ mkeys_sync_on() (
 	# managed-keys zone is already locked and the command below calls
 	# dns_zone_flush(), which also attempts to take that zone's lock
 	nsidx=$1
-	$RNDCCMD 10.53.0.${nsidx} managed-keys sync | sed "s/^/ns${nsidx} /" | cat_i
+	rndccmd "10.53.0.${nsidx}" managed-keys sync | sed "s/^/ns${nsidx} /" | cat_i
 )
 
 mkeys_status_on() (
@@ -72,17 +81,17 @@ mkeys_status_on() (
 	# mkey_status(), which in turn calls dns_zone_getrefreshkeytime(),
 	# which also attempts to take that zone's lock
 	nsidx=$1
-	$RNDCCMD 10.53.0.${nsidx} managed-keys status
+	rndccmd "10.53.0.${nsidx}" managed-keys status
 )
 
 mkeys_flush_on() (
 	nsidx=$1
-	$RNDCCMD 10.53.0.${nsidx} flush | sed "s/^/ns${nsidx} /" | cat_i
+	rndccmd "10.53.0.${nsidx}" flush | sed "s/^/ns${nsidx} /" | cat_i
 )
 
 mkeys_secroots_on() (
 	nsidx=$1
-	$RNDCCMD 10.53.0.${nsidx} secroots | sed "s/^/ns${nsidx} /" | cat_i
+	rndccmd "10.53.0.${nsidx}" secroots | sed "s/^/ns${nsidx} /" | cat_i
 )
 
 original=`cat ns1/managed.key`
@@ -95,16 +104,16 @@ rm -f dig.out.*
 
 echo_i "check for signed record ($n)"
 ret=0
-$DIG $DIGOPTS +norec example.  @10.53.0.1 TXT > dig.out.ns1.test$n || ret=1
-grep "^example\.[[:space:]]*[0-9].*[[:space:]]*IN[[:space:]]*TXT[[:space:]]*\"This is a test\.\"" dig.out.ns1.test$n > /dev/null || ret=1
-grep "^example\.[[:space:]]*[0-9].*[[:space:]]*IN[[:space:]]*RRSIG[[:space:]]*TXT[[:space:]]" dig.out.ns1.test$n > /dev/null || ret=1
+dig_with_opts +norec example.  @10.53.0.1 TXT > dig.out.ns1.test$n || ret=1
+grep "^example\.[[:space:]]*[0-9]*[[:space:]]*IN[[:space:]]*TXT[[:space:]]*\"This is a test\.\"" dig.out.ns1.test$n > /dev/null || ret=1
+grep "^example\.[[:space:]]*[0-9]*[[:space:]]*IN[[:space:]]*RRSIG[[:space:]]*TXT[[:space:]]" dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "check positive validation with valid trust anchor ($n)"
 ret=0
-$DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
+dig_with_opts +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -113,7 +122,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 ret=0
 echo_i "check positive validation using delv ($n)"
-$DELV $DELVOPTS @10.53.0.1 txt example > delv.out$n || ret=1
+delv_with_opts @10.53.0.1 txt example > delv.out$n || ret=1
 grep "; fully validated" delv.out$n > /dev/null || ret=1	# redundant
 grep "example..*TXT.*This is a test" delv.out$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" delv.out$n > /dev/null || ret=1
@@ -123,7 +132,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check for failed validation due to wrong key in managed-keys ($n)"
 ret=0
-$DIG $DIGOPTS +noauth example. @10.53.0.3 txt > dig.out.ns3.test$n || ret=1
+dig_with_opts +noauth example. @10.53.0.3 txt > dig.out.ns3.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null && ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns3.test$n > /dev/null && ret=1
 grep "opcode: QUERY, status: SERVFAIL, id" dig.out.ns3.test$n > /dev/null || ret=1
@@ -174,7 +183,7 @@ echo_i "remove untrusted standby key, check timer restarts ($n)"
 ret=0
 mkeys_sync_on 2 || ret=1
 t1=`grep "trust pending" ns2/managed-keys.bind`
-$SETTIME -D now -K ns1 $standby1 > /dev/null
+$SETTIME -D now -K ns1 "$standby1" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 # Less than a second may have passed since the last time ns2 received a
 # ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
@@ -194,8 +203,8 @@ n=`expr $n + 1`
 ret=0
 echo_i "restore untrusted standby key, revoke original key ($n)"
 t1=$t2
-$SETTIME -D none -K ns1 $standby1 > /dev/null
-$SETTIME -R now -K ns1 $original > /dev/null
+$SETTIME -D none -K ns1 "$standby1" > /dev/null
+$SETTIME -R now -K ns1 "$original" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 # Less than a second may have passed since the last time ns2 received a
 # ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
@@ -265,9 +274,9 @@ n=`expr $n + 1`
 ret=0
 echo_i "restore revoked key, ensure same result ($n)"
 t1=$t2
-$SETTIME -R none -D now -K ns1 $original > /dev/null
+$SETTIME -R none -D now -K ns1 "$original" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
-$SETTIME -D none -K ns1 $original > /dev/null
+$SETTIME -D none -K ns1 "$original" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 # Less than a second may have passed since the last time ns2 received a
 # ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
@@ -300,10 +309,10 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "reinitialize trust anchors"
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns2
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns2
 rm -f ns2/managed-keys.bind*
 nextpart ns2/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns2
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns2
 
 n=`expr $n + 1`
 echo_i "check that standby key is now trusted ($n)"
@@ -326,7 +335,7 @@ n=`expr $n + 1`
 echo_i "revoke original key, add new standby ($n)"
 ret=0
 standby2=`$KEYGEN -qfk -r $RANDFILE -K ns1 .`
-$SETTIME -R now -K ns1 $original > /dev/null
+$SETTIME -R now -K ns1 "$original" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
@@ -370,7 +379,7 @@ count=`grep -c "trust revoked" rndc.out.a.$n`
 # two pending
 count=`grep -c "trust pending" rndc.out.a.$n`
 [ "$count" -eq 2 ] || { echo "trust pending count ($count) != 2"; ret=1; }
-$SETTIME -R now -K ns1 $standby3 > /dev/null
+$SETTIME -R now -K ns1 "$standby3" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.b.$n 2>&1 || ret=1
@@ -383,7 +392,7 @@ count=`grep -c "trust revoked" rndc.out.b.$n`
 # one pending
 count=`grep -c "trust pending" rndc.out.b.$n`
 [ "$count" -eq 1 ] || { echo "trust pending count ($count) != 1"; ret=1; }
-$SETTIME -D now -K ns1 $standby3 > /dev/null
+$SETTIME -D now -K ns1 "$standby3" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -412,9 +421,9 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "revoke all keys, confirm roll to insecure ($n)"
 ret=0
-$SETTIME -D now -K ns1 $original > /dev/null
-$SETTIME -R now -K ns1 $standby1 > /dev/null
-$SETTIME -R now -K ns1 $standby2 > /dev/null
+$SETTIME -D now -K ns1 "$original" > /dev/null
+$SETTIME -R now -K ns1 "$standby1" > /dev/null
+$SETTIME -R now -K ns1 "$standby2" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
@@ -440,7 +449,7 @@ n=`expr $n + 1`
 echo_i "check for insecure response ($n)"
 ret=0
 mkeys_refresh_on 2 || ret=1
-$DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
+dig_with_opts +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null && ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
@@ -448,25 +457,25 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "reset the root server"
-$SETTIME -D none -R none -K ns1 $original > /dev/null
-$SETTIME -D now -K ns1 $standby1 > /dev/null
-$SETTIME -D now -K ns1 $standby2 > /dev/null
+$SETTIME -D none -R none -K ns1 "$original" > /dev/null
+$SETTIME -D now -K ns1 "$standby1" > /dev/null
+$SETTIME -D now -K ns1 "$standby2" > /dev/null
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>/dev/null
 copy_setports ns1/named2.conf.in ns1/named.conf
 rm -f ns1/root.db.signed.jnl
 mkeys_reconfig_on 1 || ret=1
 
 echo_i "reinitialize trust anchors"
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns2
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns2
 rm -f ns2/managed-keys.bind*
 nextpart ns2/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns2
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns2
 
 n=`expr $n + 1`
 echo_i "check positive validation ($n)"
 ret=0
 wait_for_log "Returned from key fetch in keyfetch_done()" ns2/named.run || ret=1
-$DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
+dig_with_opts +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -475,14 +484,14 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "revoke key with bad signature, check revocation is ignored ($n)"
 ret=0
-revoked=`$REVOKE -K ns1 $original`
-rkeyid=`keyfile_to_key_id $revoked`
+revoked=`$REVOKE -K ns1 "$original"`
+rkeyid=`keyfile_to_key_id "$revoked"`
 rm -f ns1/root.db.signed.jnl
 # We need to activate at least one valid DNSKEY to prevent dnssec-signzone from
 # failing.  Alternatively, we could use -P to disable post-sign verification,
 # but we actually do want post-sign verification to happen to ensure the zone
 # is correct before we break it on purpose.
-$SETTIME -R none -D none -K ns1 $standby1 > /dev/null
+$SETTIME -R none -D none -K ns1 "$standby1" > /dev/null
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -O full -o . -f signer.out.$n ns1/root.db > /dev/null 2>/dev/null
 cp -f ns1/root.db.signed ns1/root.db.tmp
 BADSIG="SVn2tLDzpNX2rxR4xRceiCsiTqcWNKh7NQ0EQfCrVzp9WEmLw60sQ5kP xGk4FS/xSKfh89hO2O/H20Bzp0lMdtr2tKy8IMdU/mBZxQf2PXhUWRkg V2buVBKugTiOPTJSnaqYCN3rSfV1o7NtC1VNHKKK/D5g6bpDehdn5Gaq kpBhN+MSCCh9OZP2IT20luS1ARXxLlvuSVXJ3JYuuhTsQXUbX/SQpNoB Lo6ahCE55szJnmAxZEbb2KOVnSlZRA6ZBHDhdtO0S4OkvcmTutvcVV+7 w53CbKdaXhirvHIh0mZXmYk2PbPLDY7PU9wSH40UiWPOB9f00wwn6hUe uEQ1Qg=="
@@ -517,7 +526,7 @@ n=`expr $n + 1`
 echo_i "check validation fails with bad DNSKEY rrset ($n)"
 ret=0
 mkeys_flush_on 2 || ret=1
-$DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
+dig_with_opts +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "status: SERVFAIL" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -525,10 +534,10 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "restore DNSKEY rrset, check validation succeeds again ($n)"
 ret=0
-rm -f ${revoked}.key ${revoked}.private
+rm -f "${revoked}."key "${revoked}".private
 rm -f ns1/root.db.signed.jnl
-$SETTIME -D none -R none -K ns1 $original > /dev/null
-$SETTIME -D now -K ns1 $standby1 > /dev/null
+$SETTIME -D none -R none -K ns1 "$original" > /dev/null
+$SETTIME -D now -K ns1 "$standby1" > /dev/null
 # Less than a second may have passed since ns1 was started.  If we call
 # dnssec-signzone immediately, ns1/root.db.signed will not be reloaded by the
 # subsequent "rndc reload ." call on platforms which do not set the
@@ -538,7 +547,7 @@ sleep 1
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>/dev/null
 mkeys_reload_on 1 || ret=1
 mkeys_flush_on 2 || ret=1
-$DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
+dig_with_opts +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -556,11 +565,11 @@ ret=0
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
 t1=`grep 'next refresh:' rndc.out.$n`
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns1
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns1
 rm -f ns1/root.db.signed.jnl
 cp ns1/root.db ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns1
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns1
 wait_for_log "loaded serial" ns1/named.run || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
@@ -590,11 +599,11 @@ ret=0
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
 t1=`grep 'next refresh:' rndc.out.$n`
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns1
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns1
 rm -f ns1/root.db.signed.jnl
 cat ns1/K*.key >> ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns1
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns1
 wait_for_log "loaded serial" ns1/named.run || ret=1
 # Less than a second may have passed since the last time ns2 received a
 # ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
@@ -629,7 +638,7 @@ $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>/dev/
 mkeys_reload_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
-$DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
+dig_with_opts +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -655,8 +664,8 @@ ret=0
 # convert the hexadecimal key from the TAT query into decimal and
 # compare against the known key.
 tathex=`grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $6; exit 0}' | sed -e 's/(_ta-\([0-9a-f][0-9a-f]*\)):/\1/'`
-tatkey=`$PERL -e 'printf("%d\n", hex(@ARGV[0]));' $tathex`
-realkey=`$RNDCCMD 10.53.0.2 secroots - | sed -n 's#.*SHA1/\([0-9][0-9]*\) ; .*managed.*#\1#p'`
+tatkey=`$PERL -e 'printf("%d\n", hex(@ARGV[0]));' "$tathex"`
+realkey=`rndccmd 10.53.0.2 secroots - | sed -n 's#.*SHA1/\([0-9][0-9]*\) ; .*managed.*#\1#p'`
 [ "$tatkey" -eq "$realkey" ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -670,31 +679,31 @@ ret=0
 # ensure key refresh retry will be scheduled to one actual hour after the first
 # key refresh failure instead of just a few seconds, in order to prevent races
 # between the next scheduled key refresh time and startup time of restarted ns5.
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns5
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns5
 nextpart ns5/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns5
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns5
 wait_for_log "Returned from key fetch in keyfetch_done()" ns5/named.run || ret=1
 # ns5/named.run will contain logs from both the old instance and the new
 # instance.  In order for the test to pass, both must attempt a fetch.
 count=`grep -c "Creating key fetch" ns5/named.run`
-[ $count -lt 2 ] && ret=1
+[ "$count" -lt 2 ] && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "check key refreshes are resumed after root servers become available ($n)"
 ret=0
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns5
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns5
 # Prevent previous check from affecting this one
 rm -f ns5/managed-keys.bind*
 # named2.args adds "-T mkeytimers=2/20/40" to named1.args as we need to wait for
 # an "hour" until keys are refreshed again after initial failure
 cp ns5/named2.args ns5/named.args
 nextpart ns5/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns5
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns5
 wait_for_log "Returned from key fetch in keyfetch_done() for '.': failure" ns5/named.run || ret=1
 # ns1 should still REFUSE queries from ns5, so resolving should be impossible
-$DIG $DIGOPTS +noauth example. @10.53.0.5 txt > dig.out.ns5.a.test$n || ret=1
+dig_with_opts +noauth example. @10.53.0.5 txt > dig.out.ns5.a.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns5.a.test$n > /dev/null && ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns5.a.test$n > /dev/null && ret=1
 grep "status: SERVFAIL" dig.out.ns5.a.test$n > /dev/null || ret=1
@@ -708,7 +717,7 @@ wait_for_log "Returned from key fetch in keyfetch_done() for '.': success" ns5/n
 #grep '; managed' ns5/named.secroots > /dev/null || ret=1
 # ns1 should not longer REFUSE queries from ns5, so managed keys should be
 # correctly refreshed and resolving should succeed
-$DIG $DIGOPTS +noauth example. @10.53.0.5 txt > dig.out.ns5.b.test$n || ret=1
+dig_with_opts +noauth example. @10.53.0.5 txt > dig.out.ns5.b.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns5.b.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns5.b.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns5.b.test$n > /dev/null || ret=1
@@ -718,12 +727,12 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "reinitialize trust anchors, add unsupported algorithm ($n)"
 ret=0
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns6
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns6
 rm -f ns6/managed-keys.bind*
 nextpart ns6/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns6
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns6
 # log when an unsupported algorithm is encountered during startup
-wait_for_log "skipping managed key for 'unsupported\.': algorithm is unsupported" ns6/named.run || ret=1
+wait_for_log "skipping managed key for 'unsupported.': algorithm is unsupported" ns6/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -745,8 +754,8 @@ cp ns1/root.db ns1/root.db.orig
 ksk=`cat ns1/managed.key`
 zsk=`cat ns1/zone.key`
 cat "ns1/${ksk}.key" "ns1/${zsk}.key" ns1/unsupported.key >> ns1/root.db
-grep "\..*IN.*DNSKEY.*257 3 255" ns1/root.db > /dev/null || ret=1
-$SIGNER -K ns1 -N unixtime -o . ns1/root.db $ksk $zsk > /dev/null 2>/dev/null || ret=1
+grep "\.[[:space:]]*IN[[:space:]]*DNSKEY[[:space:]]*257 3 255" ns1/root.db > /dev/null || ret=1
+$SIGNER -K ns1 -N unixtime -o . ns1/root.db "$ksk" "$zsk" > /dev/null 2>/dev/null || ret=1
 grep "DNSKEY.*257 3 255" ns1/root.db.signed > /dev/null || ret=1
 cp ns1/root.db.orig ns1/root.db
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -765,22 +774,22 @@ count=`grep -c "keyid: " rndc.out.$n`
 count=`grep -c "trust" rndc.out.$n`
 [ "$count" -eq 2 ] || ret=1
 # log when an unsupported algorithm is encountered during rollover
-wait_for_log "Cannot compute tag for key in zone \.: algorithm is unsupported" ns6/named.run || ret=1
+wait_for_log "Cannot compute tag for key in zone .: algorithm is unsupported" ns6/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "check 'rndc managed-keys' and views ($n)"
 ret=0
-$RNDCCMD 10.53.0.7 managed-keys refresh in view1 > rndc.out.ns7.view1.test$n || ret=1
+rndccmd 10.53.0.7 managed-keys refresh in view1 > rndc.out.ns7.view1.test$n || ret=1
 grep "refreshing managed keys for 'view1'" rndc.out.ns7.view1.test$n > /dev/null || ret=1
 lines=`wc -l < rndc.out.ns7.view1.test$n`
-[ $lines -eq 1 ] || ret=1
-$RNDCCMD 10.53.0.7 managed-keys refresh > rndc.out.ns7.view2.test$n || ret=1
+[ "$lines" -eq 1 ] || ret=1
+rndccmd 10.53.0.7 managed-keys refresh > rndc.out.ns7.view2.test$n || ret=1
 lines=`wc -l < rndc.out.ns7.view2.test$n`
 grep "refreshing managed keys for 'view1'" rndc.out.ns7.view2.test$n > /dev/null || ret=1
 grep "refreshing managed keys for 'view2'" rndc.out.ns7.view2.test$n > /dev/null || ret=1
-[ $lines -eq 2 ] || ret=1
+[ "$lines" -eq 2 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
