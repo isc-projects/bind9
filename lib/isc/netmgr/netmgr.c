@@ -53,8 +53,8 @@ static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock);
 static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle);
-static void *
-nm_thread(void *worker0);
+static isc_threadresult_t
+nm_thread(isc_threadarg_t worker0);
 static void
 async_cb(uv_async_t *handle);
 static void
@@ -406,8 +406,8 @@ isc_nm_tcp_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
  * nm_thread is a single worker thread, that runs uv_run event loop
  * until asked to stop.
  */
-static void *
-nm_thread(void *worker0) {
+static isc_threadresult_t
+nm_thread(isc_threadarg_t worker0) {
 	isc__networker_t *worker = (isc__networker_t *) worker0;
 
 	isc__nm_tid_v = worker->id;
@@ -496,7 +496,8 @@ nm_thread(void *worker0) {
 				  memory_order_relaxed);
 	SIGNAL(&worker->mgr->wkstatecond);
 	UNLOCK(&worker->mgr->lock);
-	return (NULL);
+
+	return ((isc_threadresult_t)0);
 }
 
 /*

@@ -380,8 +380,8 @@ isc_mem_traceflag_test(void **state) {
 #define NUM_ITEMS 1024 //768
 #define ITEM_SIZE 65534
 
-static void *
-mem_thread(void *arg) {
+static isc_threadresult_t
+mem_thread(isc_threadarg_t arg) {
 	void *items[NUM_ITEMS];
 	size_t size = *((size_t *)arg);
 
@@ -394,7 +394,7 @@ mem_thread(void *arg) {
 		}
 	}
 
-	return (NULL);
+	return ((isc_threadresult_t)0);
 }
 
 static void
@@ -430,8 +430,8 @@ isc_mem_benchmark(void **state) {
 	       (nthreads * ITERS * NUM_ITEMS) / (t / 1000000.0));
 }
 
-static void *
-mempool_thread(void *arg) {
+static isc_threadresult_t
+mempool_thread(isc_threadarg_t arg) {
 	isc_mempool_t *mp = (isc_mempool_t *)arg;
 	void *items[NUM_ITEMS];
 
@@ -444,7 +444,7 @@ mempool_thread(void *arg) {
 		}
 	}
 
-	return (NULL);
+	return ((isc_threadresult_t)0);
 }
 
 static void
