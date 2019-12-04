@@ -31,7 +31,6 @@
 #include <isc/util.h>
 
 #define ISC_NETMGR_TID_UNKNOWN -1
-#define ISC_NETMGR_TID_NOTLS -2
 
 /*
  * Single network event loop worker.

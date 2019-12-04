@@ -85,9 +85,9 @@ usage(void) {
 
 static void
 destroy(void) {
-	if (zone != NULL)
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
-	dns_name_destroy();
+	}
 }
 
 /*% main processing routine */

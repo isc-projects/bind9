@@ -40,20 +40,7 @@
  * request using async_cb.
  */
 
-#if defined(HAVE_TLS)
-#if defined(HAVE_THREAD_LOCAL)
-#include <threads.h>
-static thread_local int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
-#elif defined(HAVE___THREAD)
-static __thread int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
-#elif defined(HAVE___DECLSPEC_THREAD)
-static __declspec( thread ) int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
-#else  /* if defined(HAVE_THREAD_LOCAL) */
-#error "Unknown method for defining a TLS variable!"
-#endif /* if defined(HAVE_THREAD_LOCAL) */
-#else  /* if defined(HAVE_TLS) */
-static int isc__nm_tid_v = ISC_NETMGR_TID_NOTLS;
-#endif /* if defined(HAVE_TLS) */
+ISC_THREAD_LOCAL int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
 
 static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock);

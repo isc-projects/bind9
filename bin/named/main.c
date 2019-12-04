@@ -1329,8 +1329,6 @@ cleanup(void) {
 	dlz_dlopen_clear();
 #endif
 
-	dns_name_destroy();
-
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");

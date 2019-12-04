@@ -354,7 +354,6 @@ dns_dt_send
 dns_dt_setidentity
 dns_dt_setupfile
 dns_dt_setversion
-dns_dt_shutdown
 dns_dtdata_free
 @END NOTYET
 dns_dumpctx_attach
@@ -385,7 +384,6 @@ dns_generalstats_dump
 dns_generalstats_increment
 @IF GEOIP
 dns_geoip_match
-dns_geoip_shutdown
 @END GEOIP
 dns_hashalg_fromtext
 dns_ipkeylist_clear
@@ -584,7 +582,6 @@ dns_name_concatenate
 dns_name_copy
 dns_name_copynf
 dns_name_countlabels
-dns_name_destroy
 dns_name_digest
 dns_name_downcase
 dns_name_dup

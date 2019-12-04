@@ -132,8 +132,6 @@ create_test(void **state) {
 	}
 
 	cleanup();
-
-	dns_dt_shutdown();
 }
 
 /* send dnstap messages */
@@ -263,7 +261,6 @@ send_test(void **state) {
 
 	dns_dt_detach(&view->dtenv);
 	dns_dt_detach(&dtenv);
-	dns_dt_shutdown();
 	dns_view_detach(&view);
 
 	result = dns_dt_open(TAPFILE, dns_dtmode_file, dt_mctx, &handle);

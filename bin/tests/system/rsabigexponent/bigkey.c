@@ -145,7 +145,6 @@ main(int argc, char **argv) {
 	isc_log_setcontext(NULL);
 	dns_log_setcontext(NULL);
 	dst_lib_destroy();
-	dns_name_destroy();
 	isc_mem_destroy(&mctx);
 	return (0);
 #else /* !USE_PKCS11 */

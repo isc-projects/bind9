@@ -36,6 +36,7 @@
 #include <isc/platform.h>
 #include <isc/random.h>
 #include <isc/result.h>
+#include <isc/thread.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -60,20 +61,7 @@
  */
 #include "xoshiro128starstar.c"
 
-#if defined(HAVE_TLS)
-#if defined(HAVE_THREAD_LOCAL)
-#include <threads.h>
-static thread_local isc_once_t isc_random_once = ISC_ONCE_INIT;
-#elif defined(HAVE___THREAD)
-static __thread isc_once_t isc_random_once = ISC_ONCE_INIT;
-#elif defined(HAVE___DECLSPEC_THREAD)
-static __declspec( thread ) isc_once_t isc_random_once = ISC_ONCE_INIT;
-#else
-#error "Unknown method for defining a TLS variable!"
-#endif
-#else
-static isc_once_t isc_random_once = ISC_ONCE_INIT;
-#endif
+ISC_THREAD_LOCAL isc_once_t isc_random_once = ISC_ONCE_INIT;
 
 static void
 isc_random_initialize(void) {

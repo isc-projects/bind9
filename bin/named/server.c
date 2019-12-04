@@ -8342,7 +8342,8 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Release any previously opened GeoIP2 databases.
 	 */
-	named_geoip_shutdown();
+	named_geoip_unload();
+
 	/*
 	 * Initialize GeoIP databases from the configured location.
 	 * This should happen before configuring any ACLs, so that we
@@ -9742,12 +9743,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		dns_tsigkey_detach(&named_g_sessionkey);
 		dns_name_free(&named_g_sessionkeyname, server->mctx);
 	}
-#ifdef HAVE_DNSTAP
-	dns_dt_shutdown();
-#endif
 #if defined(HAVE_GEOIP2)
 	named_geoip_shutdown();
-	dns_geoip_shutdown();
 #endif /* HAVE_GEOIP2 */
 
 	dns_db_detach(&server->in_roothints);
@@ -9869,7 +9866,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	/*
 	 * GeoIP must be initialized before the interface
 	 * manager (which includes the ACL environment)
-	 * is created
+	 * is created.
 	 */
 	named_geoip_init();
 #endif /* HAVE_GEOIP2 */

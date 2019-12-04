@@ -19,14 +19,6 @@
  *****/
 
 /***
- *** Thread-Local Storage
- ***/
-
-#ifdef HAVE___THREAD
-#define thread_local __thread
-#endif
-
-/***
  *** Default strerror_r buffer size
  ***/
 

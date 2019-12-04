@@ -334,17 +334,17 @@ int
 main(void) {
 #if defined(HAVE_GEOIP2)
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(country, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(country_v6, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(city, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(city_v6, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(asnum, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(isp, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(org, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(domain, _setup, _teardown),
+		cmocka_unit_test(country),
+		cmocka_unit_test(country_v6),
+		cmocka_unit_test(city),
+		cmocka_unit_test(city_v6),
+		cmocka_unit_test(asnum),
+		cmocka_unit_test(isp),
+		cmocka_unit_test(org),
+		cmocka_unit_test(domain),
 	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	return (cmocka_run_group_tests(tests, _setup, _teardown));
 #else
 	print_message("1..0 # Skip GeoIP not enabled\n");
 #endif

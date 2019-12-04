@@ -20,4 +20,7 @@ void
 named_geoip_load(char *dir);
 
 void
+named_geoip_unload(void);
+
+void
 named_geoip_shutdown(void);
