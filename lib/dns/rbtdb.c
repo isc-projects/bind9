@@ -2117,6 +2117,10 @@ cleanup_dead_nodes(dns_rbtdb_t *rbtdb, int bucketnum) {
 		/*
 		 * Since we're holding a tree write lock, it should be
 		 * impossible for this node to be referenced by others.
+		 *
+		 * decrement_reference may not have tested node->down, as
+		 * the tree_lock was not held, before adding the node to
+		 * deadnodes so we test it here.
 		 */
 		INSIST(dns_rbtnode_refcurrent(node) == 0 &&
 		       node->data == NULL);
@@ -2132,18 +2136,24 @@ cleanup_dead_nodes(dns_rbtdb_t *rbtdb, int bucketnum) {
 						DNS_EVENT_RBTPRUNE,
 						prune_tree, node,
 						sizeof(isc_event_t));
-			if (ev != NULL) {
-				new_reference(rbtdb, node);
-				db = NULL;
-				attach((dns_db_t *)rbtdb, &db);
-				ev->ev_sender = db;
-				isc_task_send(rbtdb->task, &ev);
-			} else {
-				ISC_LIST_APPEND(rbtdb->deadnodes[bucketnum],
-						node, deadlink);
-			}
-		} else {
+			new_reference(rbtdb, node);
+			db = NULL;
+			attach((dns_db_t *)rbtdb, &db);
+			ev->ev_sender = db;
+			isc_task_send(rbtdb->task, &ev);
+		} else if (node->down == NULL && node->data == NULL) {
+			/*
+			 * Not a interior node and not needing to be
+			 * reactivated.
+			 */
 			delete_node(rbtdb, node);
+		} else if (node->data == NULL) {
+			/*
+			 * A interior node without data. Leave linked to
+			 * to be cleaned up when node->down becomes NULL.
+			 */
+			ISC_LIST_APPEND(rbtdb->deadnodes[bucketnum],
+					node, deadlink);
 		}
 		node = ISC_LIST_HEAD(rbtdb->deadnodes[bucketnum]);
 		count--;
@@ -2225,6 +2235,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 {
 	isc_result_t result;
 	bool write_locked;
+	bool locked = tlock != isc_rwlocktype_none;
 	rbtdb_nodelock_t *nodelock;
 	unsigned int refs, nrefs;
 	int bucket = node->locknum;
@@ -2232,19 +2243,21 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 	nodelock = &rbtdb->node_locks[bucket];
 
-#define KEEP_NODE(n, r) \
-	((n)->data != NULL || (n)->down != NULL || \
+#define KEEP_NODE(n, r, l) \
+	((n)->data != NULL || ((l) && (n)->down != NULL) || \
 	 (n) == (r)->origin_node || (n) == (r)->nsec3_origin_node)
 
 	/* Handle easy and typical case first. */
-	if (!node->dirty && KEEP_NODE(node, rbtdb)) {
+	if (!node->dirty && KEEP_NODE(node, rbtdb, locked)) {
 		dns_rbtnode_refdecrement(node, &nrefs);
 		INSIST((int)nrefs >= 0);
 		if (nrefs == 0) {
 			isc_refcount_decrement(&nodelock->references, &refs);
 			INSIST((int)refs >= 0);
+			return (true);
+		} else {
+			return (false);
 		}
-		return ((nrefs == 0) ? true : false);
 	}
 
 	/* Upgrade the lock? */
@@ -2306,8 +2319,9 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	isc_refcount_decrement(&nodelock->references, &refs);
 	INSIST((int)refs >= 0);
 
-	if (KEEP_NODE(node, rbtdb))
+	if (KEEP_NODE(node, rbtdb, locked || write_locked)) {
 		goto restore_locks;
+	}
 
 #undef KEEP_NODE
 
