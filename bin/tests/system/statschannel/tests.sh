@@ -181,10 +181,10 @@ echo_i "checking consistency between regular and compressed output ($n)"
 if [ "$HAVEXMLSTATS" ];
 then
 	URL=http://10.53.0.2:${EXTRAPORT1}/xml/v3/server
-	filter_str='s#<current-time>.*</current-time>##g'
+	filter_str='s#<current-time>.*</current-time>##g;s#<counter name="TreeMemTotal">[0-9]*</counter>##g'
 else
 	URL=http://10.53.0.2:${EXTRAPORT1}/json/v1/server
-	filter_str='s#"current-time.*",##g'
+	filter_str='s#"current-time.*",##g;s#TreeMemTotal.*##g'
 fi
 $CURL -D regular.headers $URL 2>/dev/null | \
 	sed -e "$filter_str" > regular.out
