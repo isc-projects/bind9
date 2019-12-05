@@ -638,7 +638,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		isc_refcount_decrement(&node->references);
+		isc_refcount_decrementz(&node->references);
 		destroynode(node);
 		return (result);
 	}
@@ -650,7 +650,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 				      sdlz->dbdata, node);
 		MAYBE_UNLOCK(sdlz->dlzimp);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
-			isc_refcount_decrement(&node->references);
+			isc_refcount_decrementz(&node->references);
 			destroynode(node);
 			return (result);
 		}
@@ -1299,7 +1299,7 @@ dbiterator_destroy(dns_dbiterator_t **iteratorp) {
 		dns_sdlznode_t *node;
 		node = ISC_LIST_HEAD(sdlziter->nodelist);
 		ISC_LIST_UNLINK(sdlziter->nodelist, node, link);
-		isc_refcount_decrement(&node->references);
+		isc_refcount_decrementz(&node->references);
 		destroynode(node);
 	}
 

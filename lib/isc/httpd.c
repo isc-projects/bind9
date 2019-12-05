@@ -381,7 +381,7 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 
 cleanup:
 	httpdmgr->magic = 0;
-	isc_refcount_decrement(&httpdmgr->references);
+	isc_refcount_decrementz(&httpdmgr->references);
 	isc_refcount_destroy(&httpdmgr->references);
 	isc_task_detach(&httpdmgr->task);
 	isc_socket_detach(&httpdmgr->sock);

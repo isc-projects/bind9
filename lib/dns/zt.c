@@ -375,8 +375,8 @@ asyncload(dns_zone_t *zone, void *zt_) {
 		 * Caller is holding a reference to zt->loads_pending
 		 * and zt->references so these can't decrement to zero.
 		 */
-		INSIST(isc_refcount_decrement(&zt->loads_pending) > 1);
-		INSIST(isc_refcount_decrement(&zt->references) > 1);
+		isc_refcount_decrement1(&zt->references);
+		isc_refcount_decrement1(&zt->loads_pending);
 	}
 	return (ISC_R_SUCCESS);
 }

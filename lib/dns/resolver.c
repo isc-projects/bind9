@@ -4497,7 +4497,7 @@ fctx_unlink(fetchctx_t *fctx) {
 
 	ISC_LIST_UNLINK(res->buckets[bucketnum].fctxs, fctx, link);
 
-	REQUIRE(atomic_fetch_sub_release(&res->nfctx, 1) > 0);
+	INSIST(atomic_fetch_sub_release(&res->nfctx, 1) > 0);
 
 	dec_stats(res, dns_resstatscounter_nfetch);
 
@@ -5197,7 +5197,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
 
-	REQUIRE(atomic_fetch_add_relaxed(&res->nfctx, 1) < UINT32_MAX);
+	INSIST(atomic_fetch_add_relaxed(&res->nfctx, 1) < UINT32_MAX);
 
 	inc_stats(res, dns_resstatscounter_nfetch);
 

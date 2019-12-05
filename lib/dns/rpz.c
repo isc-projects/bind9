@@ -1502,9 +1502,9 @@ cleanup_task:
 	dns_rbt_destroy(&zones->rbt);
 
 cleanup_rbt:
-	isc_refcount_decrement(&zones->irefs);
+	isc_refcount_decrementz(&zones->irefs);
 	isc_refcount_destroy(&zones->irefs);
-	isc_refcount_decrement(&zones->refs);
+	isc_refcount_decrementz(&zones->refs);
 	isc_refcount_destroy(&zones->refs);
 
 	isc_mutex_destroy(&zones->maint_lock);
@@ -1587,7 +1587,7 @@ cleanup_ht:
 	isc_timer_detach(&zone->updatetimer);
 
 cleanup_timer:
-	isc_refcount_decrement(&zone->refs);
+	isc_refcount_decrementz(&zone->refs);
 	isc_refcount_destroy(&zone->refs);
 
 	isc_mem_put(rpzs->mctx, zone, sizeof(*zone));
