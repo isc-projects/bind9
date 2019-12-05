@@ -2488,7 +2488,7 @@ SocketIoThread(LPVOID ThreadContext) {
 					closesocket(lpo->adev->newsocket->fd);
 					lpo->adev->newsocket->fd =
 						INVALID_SOCKET;
-					isc_refcount_decrement(
+					isc_refcount_decrementz(
 						&lpo->adev->newsocket
 							 ->references);
 					free_socket(&lpo->adev->newsocket,
@@ -3501,7 +3501,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 			next = ISC_LIST_NEXT(dev, ev_link);
 
 			if ((task == NULL) || (task == current_task)) {
-				isc_refcount_decrement(
+				isc_refcount_decrementz(
 					&dev->newsocket->references);
 				closesocket(dev->newsocket->fd);
 				dev->newsocket->fd = INVALID_SOCKET;

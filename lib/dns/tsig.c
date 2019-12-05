@@ -349,7 +349,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 cleanup_refs:
 	tkey->magic = 0;
 	while (refs-- > 0) {
-		isc_refcount_decrement(&tkey->refs);
+		isc_refcount_decrement0(&tkey->refs);
 	}
 	isc_refcount_destroy(&tkey->refs);
 

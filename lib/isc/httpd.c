@@ -236,7 +236,7 @@ isc_httpdmgr_create(isc_nm_t *nm, isc_mem_t *mctx, isc_sockaddr_t *addr,
 
 cleanup:
 	httpdmgr->magic = 0;
-	isc_refcount_decrement(&httpdmgr->references);
+	isc_refcount_decrementz(&httpdmgr->references);
 	isc_refcount_destroy(&httpdmgr->references);
 	isc_mem_detach(&httpdmgr->mctx);
 	isc_mutex_destroy(&httpdmgr->lock);
