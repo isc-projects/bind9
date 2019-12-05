@@ -4467,9 +4467,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		    The number of seconds to wait between attempts to
 		    reopen a closed output stream. The minimum is 1 second,
 		    the maximum is 600 seconds (10 minutes), and the default
-		    is 5 seconds.
-		    For convenience, TTL-style time unit suffixes may be
-		    used to specify the value.
+		    is 5 seconds.  For convenience, TTL-style time unit
+		    suffixes may be used to specify the value.  It also
+		    accepts ISO 8601 duration formats.
 		  </simpara>
 		</listitem>
 	      </itemizedlist>
@@ -5271,8 +5271,11 @@ options {
 		<para>
 		  For convenience, TTL-style time unit suffixes can be
 		  used to specify the NTA lifetime in seconds, minutes
-		  or hours.  <option>nta-lifetime</option> defaults to
-		  one hour.  It cannot exceed one week.
+		  or hours.  It also accepts ISO 8601 duration formats.
+		</para>
+		<para>
+		 <option>nta-lifetime</option> defaults to one hour.  It
+		 cannot exceed one week.
 		</para>
 	    </listitem>
 	  </varlistentry>
@@ -5305,9 +5308,13 @@ options {
 		<para>
 		  For convenience, TTL-style time unit suffixes can be
 		  used to specify the NTA recheck interval in seconds,
-		  minutes or hours.  The default is five minutes.  It
-		  cannot be longer than <option>nta-lifetime</option>
-		  (which cannot be longer than a week).
+		  minutes or hours.  It also accepts ISO 8601 duration
+		  formats.
+		</para>
+		<para>
+		  The default is five minutes.  It cannot be longer than
+		  <option>nta-lifetime</option> (which cannot be longer
+		  than a week).
 		</para>
 	    </listitem>
 	  </varlistentry>
@@ -5318,7 +5325,10 @@ options {
 	      <para>
 		Specifies a maximum permissible TTL value in seconds.
 		For convenience, TTL-style time unit suffixes may be
-		used to specify the maximum value.
+		used to specify the maximum value. It also
+                accepts ISO 8601 duration formats.
+	      </para>
+	      <para>
 		When loading a zone file using a
 		<option>masterfile-format</option> of
 		<constant>text</constant> or <constant>raw</constant>,
@@ -8463,7 +8473,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  <command>listen-on</command> configuration), and
 		  will stop listening on interfaces that have gone away.
 		  For convenience, TTL-style time unit suffixes may be
-		  used to specify the value.
+		  used to specify the value.  It also accepts ISO 8601
+		  duration formats.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8744,9 +8755,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  stores negative answers. <command>min-ncache-ttl</command> is
 		  used to set a minimum retention time for these answers in the
 		  server in seconds.  For convenience, TTL-style time unit
-		  suffixes may be used to specify the value.  The default
-		  <command>min-ncache-ttl</command> is <literal>0</literal>
-		  seconds.  <command>min-ncache-ttl</command> cannot exceed 90
+		  suffixes may be used to specify the value.  It also
+                  accepts ISO 8601 duration formats.
+		</para>
+		<para>
+		  The default <command>min-ncache-ttl</command> is
+		  <literal>0</literal> seconds.
+		  <command>min-ncache-ttl</command> cannot exceed 90
 		  seconds and will be truncated to 90 seconds if set to a
 		  greater value.
 		</para>
@@ -8758,10 +8773,14 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  Sets the minimum time for which the server will cache ordinary
-		  (positive) answers in seconds. For convenience, TTL-style time
-		  unit suffixes may be used to specify the value. The default
-		  <command>min-cache-ttl</command> is <literal>0</literal>
-		  seconds. <command>min-cache-ttl</command> cannot exceed 90
+		  (positive) answers in seconds.  For convenience, TTL-style
+		  time unit suffixes may be used to specify the value.  It also
+                  accepts ISO 8601 duration formats.
+		</para>
+		<para>
+		  The default <command>min-cache-ttl</command> is
+		  <literal>0</literal> seconds.
+		  <command>min-cache-ttl</command> cannot exceed 90
 		  seconds and will be truncated to 90 seconds if set to a
 		  greater value.
 		</para>
@@ -8773,15 +8792,19 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  To reduce network traffic and increase performance,
-		  the server stores negative answers. <command>max-ncache-ttl</command> is
+		  the server stores negative answers.
+		  <command>max-ncache-ttl</command> is
 		  used to set a maximum retention time for these answers in
-		  the server in seconds.
-		  For convenience, TTL-style time unit suffixes may be
-		  used to specify the value.  The default
-		  <command>max-ncache-ttl</command> is <literal>10800</literal> seconds (3 hours).
-		  <command>max-ncache-ttl</command> cannot exceed
-		  7 days and will
-		  be silently truncated to 7 days if set to a greater value.
+		  the server in seconds.  For convenience, TTL-style time unit
+		  suffixes may be used to specify the value.  It also accepts
+		  ISO 8601 duration formats.
+		</para>
+		<para>
+		  The default <command>max-ncache-ttl</command> is
+		  <literal>10800</literal> seconds (3 hours).
+		  <command>max-ncache-ttl</command> cannot exceed 7 days and
+		  will be silently truncated to 7 days if set to a greater
+		  value.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8793,7 +8816,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  Sets the maximum time for which the server will
 		  cache ordinary (positive) answers in seconds.
 		  For convenience, TTL-style time unit suffixes may be
-		  used to specify the value.
+		  used to specify the value.  It also accepts ISO 8601
+		  duration formats.
+		</para>
+		<para>
 		  The default is 604800 (one week).
 		  A value of zero may cause all queries to return
 		  SERVFAIL, because of lost caches of intermediate
@@ -10099,7 +10125,9 @@ deny-answer-aliases { "example.net"; };
 	    The <command>max-policy-ttl</command> clause changes the
 	    maximum seconds from its default of 5.
 	    For convenience, TTL-style time unit suffixes may be
-	    used to specify the value.
+	    used to specify the value.  It also accepts ISO 8601 duration
+	    formats.
+
 	  </para>
 
 	  <para>
@@ -10195,7 +10223,8 @@ example.com                 CNAME   rpz-tcp-only.
 	    recent update, then the changes will not be carried out until this
 	    interval has elapsed.  The default is <literal>60</literal> seconds.
 	    For convenience, TTL-style time unit suffixes may be
-	    used to specify the value.
+	    used to specify the value.  It also accepts ISO 8601 duration
+	    formats.
 	  </para>
 	</section>
 
@@ -12131,9 +12160,13 @@ view "external" {
 		<term><command>dnssec-policy</command></term>
 		<listitem>
 		  <para>
-		    The key and signing policy for this zone.  Set to
-		    <userinput>"default"</userinput> if you want to make use
-		    of the default policy.
+		    The key and signing policy for this zone.  This is a string
+		    referring to a <command>dnssec-policy</command> statement.
+		    There are two built-in policies:
+		    <userinput>"default"</userinput> allows you to use the
+		    default policy, and <userinput>"none"</userinput> means
+		    not to use any DNSSEC policy, keeping the zone unsigned.
+		    The default is <userinput>"none"</userinput>.
 		  </para>
 		</listitem>
 	      </varlistentry>
