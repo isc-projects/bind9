@@ -49,7 +49,8 @@ the file HISTORY.
 For a detailed list of changes made throughout the history of BIND 9, see
 the file CHANGES. See below for details on the CHANGES file format.
 
-For up-to-date versions and release notes, see https://www.isc.org/download/.
+For up-to-date versions and release notes, see https://www.isc.org/
+download/.
 
 Reporting bugs and getting help
 
@@ -347,6 +348,12 @@ BUILD_CPPFLAGS CPPFLAGS for the target system during cross-compiling.
 BUILD_LDFLAGS  LDFLAGS for the target system during cross-compiling.
 BUILD_LIBS     LIBS for the target system during cross-compiling.
 
+On platforms where neither C11 Atomic operations library nor custom ISC
+atomic operations are available, updating the statistics counters is not
+locked due to performance reasons and therefore the counters might be
+inaccurate. Anybody building BIND 9 is strongly advised to use a modern
+C11 compiler with C11 Atomic operations library support.
+
 macOS
 
 Building on macOS assumes that the "Command Tools for Xcode" is installed.
@@ -357,9 +364,10 @@ Dependencies
 
 Portions of BIND that are written in Python, including dnssec-keymgr,
 dnssec-coverage, dnssec-checkds, and some of the system tests, require the
-argparse and ply modules to be available. argparse is a standard module as
-of Python 2.7 and Python 3.2. ply is available from https://
-pypi.python.org/pypi/ply.
+argparse, ply and distutils.core modules to be available. argparse is a
+standard module as of Python 2.7 and Python 3.2. ply is available from
+https://pypi.python.org/pypi/ply. distutils.core is required for
+installation.
 
 Compile-time options
 
