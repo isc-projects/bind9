@@ -319,7 +319,7 @@ struct fetchctx {
 	/*%
 	 * The number of events we're waiting for.
 	 */
-	unsigned int			pending;
+	unsigned int			pending;	/* Bucket lock. */
 
 	/*%
 	 * The number of times we've "restarted" the current
@@ -348,7 +348,7 @@ struct fetchctx {
 	/*%
 	 * Number of queries that reference this context.
 	 */
-	unsigned int			nqueries;
+	unsigned int			nqueries;	/* Bucket lock. */
 
 	/*%
 	 * The reason to print when logging a successful
@@ -393,7 +393,7 @@ struct fetchctx {
 #define FCTX_ATTR_HAVEANSWER            0x0001
 #define FCTX_ATTR_GLUING                0x0002
 #define FCTX_ATTR_ADDRWAIT              0x0004
-#define FCTX_ATTR_SHUTTINGDOWN          0x0008
+#define FCTX_ATTR_SHUTTINGDOWN          0x0008		/* Bucket lock */
 #define FCTX_ATTR_WANTCACHE             0x0010
 #define FCTX_ATTR_WANTNCACHE            0x0020
 #define FCTX_ATTR_NEEDEDNS0             0x0040
@@ -5353,11 +5353,12 @@ maybe_destroy(fetchctx_t *fctx, bool locked) {
 	dns_validator_t *validator, *next_validator;
 	bool dodestroy = false;
 
-	REQUIRE(SHUTTINGDOWN(fctx));
-
 	bucketnum = fctx->bucketnum;
 	if (!locked)
 		LOCK(&res->buckets[bucketnum].lock);
+
+	REQUIRE(SHUTTINGDOWN(fctx));
+
 	if (fctx->pending != 0 || fctx->nqueries != 0)
 		goto unlock;
 
@@ -7064,6 +7065,9 @@ fctx_increference(fetchctx_t *fctx) {
 	UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 }
 
+/*
+ * Requires bucket lock to be held.
+ */
 static bool
 fctx_decreference(fetchctx_t *fctx) {
 	bool bucket_empty = false;
