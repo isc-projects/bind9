@@ -1825,6 +1825,31 @@ new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 }
 
 /*%
+ * The tree lock must be held for the result to be valid.
+ */
+static inline bool
+is_leaf(dns_rbtnode_t *node) {
+	return (node->parent != NULL && node->parent->down == node &&
+		node->left == NULL && node->right == NULL);
+}
+
+static inline void
+send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
+	isc_event_t *ev;
+	dns_db_t *db;
+
+	ev = isc_event_allocate(rbtdb->common.mctx, NULL,
+				DNS_EVENT_RBTPRUNE,
+				prune_tree, node,
+				sizeof(isc_event_t));
+	new_reference(rbtdb, node);
+	db = NULL;
+	attach((dns_db_t *)rbtdb, &db);
+	ev->ev_sender = db;
+	isc_task_send(rbtdb->task, &ev);
+}
+
+/*%
  * Clean up dead nodes.  These are nodes which have no references, and
  * have no data.  They are dead but we could not or chose not to delete
  * them when we deleted all the data at that node because we did not want
@@ -1852,22 +1877,8 @@ cleanup_dead_nodes(dns_rbtdb_t *rbtdb, int bucketnum) {
 		INSIST(isc_refcount_current(&node->references) == 0 &&
 		       node->data == NULL);
 
-		if (node->parent != NULL &&
-		    node->parent->down == node && node->left == NULL &&
-		    node->right == NULL && rbtdb->task != NULL)
-		{
-			isc_event_t *ev;
-			dns_db_t *db;
-
-			ev = isc_event_allocate(rbtdb->common.mctx, NULL,
-						DNS_EVENT_RBTPRUNE,
-						prune_tree, node,
-						sizeof(isc_event_t));
-			new_reference(rbtdb, node);
-			db = NULL;
-			attach((dns_db_t *)rbtdb, &db);
-			ev->ev_sender = db;
-			isc_task_send(rbtdb->task, &ev);
+		if (is_leaf(node) && rbtdb->task != NULL) {
+			send_to_prune_tree(rbtdb, node);
 		} else if (node->down == NULL && node->data == NULL) {
 			/*
 			 * Not a interior node and not needing to be
@@ -2067,21 +2078,8 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		 * it's their responsibility to purge stale leaves (e.g. by
 		 * periodic walk-through).
 		 */
-		if (!pruning && node->parent != NULL &&
-		    node->parent->down == node && node->left == NULL &&
-		    node->right == NULL && rbtdb->task != NULL) {
-			isc_event_t *ev;
-			dns_db_t *db;
-
-			ev = isc_event_allocate(rbtdb->common.mctx, NULL,
-						DNS_EVENT_RBTPRUNE,
-						prune_tree, node,
-						sizeof(isc_event_t));
-			new_reference(rbtdb, node);
-			db = NULL;
-			attach((dns_db_t *)rbtdb, &db);
-			ev->ev_sender = db;
-			isc_task_send(rbtdb->task, &ev);
+		if (!pruning && is_leaf(node) && rbtdb->task != NULL) {
+			send_to_prune_tree(rbtdb, node);
 			no_reference = false;
 		} else {
 			delete_node(rbtdb, node);
