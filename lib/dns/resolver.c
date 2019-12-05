@@ -307,7 +307,7 @@ struct fetchctx {
 	/*%
 	 * The number of events we're waiting for.
 	 */
-	unsigned int			pending;
+	unsigned int			pending;	/* Bucket lock. */
 
 	/*%
 	 * The number of times we've "restarted" the current
@@ -336,7 +336,7 @@ struct fetchctx {
 	/*%
 	 * Number of queries that reference this context.
 	 */
-	unsigned int			nqueries;
+	unsigned int			nqueries;	/* Bucket lock. */
 
 	/*%
 	 * The reason to print when logging a successful
