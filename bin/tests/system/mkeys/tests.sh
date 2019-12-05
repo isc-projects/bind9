@@ -591,7 +591,7 @@ rm -f ns1/root.db.signed.jnl
 cp ns1/root.db ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns1
-wait_for_log "loaded serial" ns1/named.run || ret=1
+wait_for_log "all zones loaded" ns1/named.run || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.2.$n 2>&1 || ret=1
 # one key listed
@@ -625,7 +625,7 @@ rm -f ns1/root.db.signed.jnl
 cat ns1/K*.key >> ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns1
-wait_for_log "loaded serial" ns1/named.run || ret=1
+wait_for_log "all zones loaded" ns1/named.run || ret=1
 # Less than a second may have passed since the last time ns2 received a
 # ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
 # timestamp to prevent minimal update from resetting it to the same timestamp.
