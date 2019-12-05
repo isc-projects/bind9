@@ -11146,8 +11146,8 @@ example.com                 CNAME   rpz-tcp-only.
 		<para>
 		  A margin that is added to the publish interval in key
 		  timing equations to give some extra time to cover
-		  unforeseen events.  Default is <constant>PT5M</constant>
-		  (5 minutes).
+		  unforeseen events.  Default is <constant>PT1H</constant>
+		  (1 hour).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11158,8 +11158,8 @@ example.com                 CNAME   rpz-tcp-only.
 		<para>
 		  A margin that is added to the retire interval in key
 		  timing equations to give some extra time to cover
-		  unforeseen events.  Default is <constant>PT5M</constant>
-		  (5 minutes).
+		  unforeseen events.  Default is <constant>PT1H</constant>
+		  (1 hour).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11251,7 +11251,7 @@ example.com                 CNAME   rpz-tcp-only.
 	      <listitem>
 		<para>
 		  The TTL of the DS RRset that the parent uses.  Default is
-		  <constant>PT1H</constant> (1 hour).
+		  <constant>P1D</constant> (1 day).
 		</para>
 	      </listitem>
 	    </varlistentry>

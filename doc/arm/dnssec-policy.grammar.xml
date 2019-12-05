@@ -13,7 +13,6 @@
 
 <programlisting>
 <command>dnssec-policy</command> <replaceable>string</replaceable> {
-<<<<<<< HEAD
     <command>dnskey-ttl</command> <replaceable>duration</replaceable>;
     <command>keys</command> { ( csk | ksk | zsk ) key-directory lifetime <replaceable>duration</replaceable> algorithm <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ] ; ... };
     <command>parent-ds-ttl</command> <replaceable>duration</replaceable>;
