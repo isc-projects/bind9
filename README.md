@@ -357,6 +357,12 @@ affect compilation:
 |`BUILD_LDFLAGS`|`LDFLAGS` for the target system during cross-compiling.|
 |`BUILD_LIBS`|`LIBS` for the target system during cross-compiling.|
 
+On platforms where neither C11 Atomic operations library nor custom ISC atomic
+operations are available, updating the statistics counters is not locked due to
+performance reasons and therefore the counters might be inaccurate.  Anybody
+building BIND 9 is strongly advised to use a modern C11 compiler with C11 Atomic
+operations library support.
+
 #### <a name="macos"> macOS
 
 Building on macOS assumes that the "Command Tools for Xcode" is installed.
