@@ -2212,7 +2212,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	  <userinput>yes</userinput>, DNSSEC validation will only occur
 	  if at least one trust anchor has been explicitly configured
 	  in <filename>named.conf</filename>
-	  using a <command>dnssec-keys</command> statement (or the
+	  using a <command>trust-anchors</command> statement (or the
 	  <command>managed-keys</command> and <command>trusted-keys</command>
 	  statements, both deprecated).
 	</para>
@@ -2227,7 +2227,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 	<para>
-	  The keys specified in <command>dnssec-keys</command>
+	  The keys specified in <command>trust-anchors</command>
 	  copies of DNSKEY RRs for zones that are used to form the
 	  first link in the cryptographic chain of trust.  Keys configured
 	  with the keyword <command>static-key</command> or
@@ -2241,7 +2241,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 	<para>
-	  <command>dnssec-keys</command> is described in more detail
+	  <command>trust-anchors</command> is described in more detail
 	  later in this document.
 	</para>
 
@@ -2264,7 +2264,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 <programlisting>
-dnssec-keys {
+trust-anchors {
 	/* Root Key */
 	"." initial-key 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
 				 JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
@@ -3202,7 +3202,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    </row>
 	    <row rowsep="0">
 	      <entry colname="1">
-		<para><command>dnssec-keys</command></para>
+		<para><command>trust-anchors</command></para>
 	      </entry>
 	      <entry colname="2">
 		<para>
@@ -3223,9 +3223,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	      </entry>
 	      <entry colname="2">
 		<para>
-		  is identical to <command>dnssec-keys</command>;
+		  is identical to <command>trust-anchors</command>;
 		  this option is deprecated in favor
-		  of <command>dnssec-keys</command> with
+		  of <command>trust-anchors</command> with
 		  the <command>initial-key</command> keyword,
 		  and may be removed in a future release.
 		</para>
@@ -3239,7 +3239,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		<para>
 		  defines permanent trusted DNSSEC keys;
 		  this option is deprecated in favor
-		  of <command>dnssec-keys</command> with
+		  of <command>trust-anchors</command> with
 		  the <command>static-key</command> keyword,
 		  and may be removed in a future release.
 		</para>
@@ -4624,7 +4624,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		track managed DNSSEC keys (i.e., those configured using
 		the <command>initial-key</command> or
 		<command>initial-ds</command> keywords in a
-		<command>dnssec-keys</command> statement).  By default,
+		<command>trust-anchors</command> statement).  By default,
 		this is the working directory.  The directory
 		<emphasis>must</emphasis> be writable by the effective
 		user ID of the <command>named</command> process.
@@ -5062,7 +5062,7 @@ options {
 		as insecure.
 	      </para>
 	      <para>
-		Configured trust anchors in <command>dnssec-keys</command>
+		Configured trust anchors in <command>trust-anchors</command>
 		(or <command>managed-keys</command> or
 		<command>trusted-keys</command>, both deprecated)
 		that match a disabled algorithm will be ignored and treated
@@ -5100,7 +5100,7 @@ options {
 		they are secure.  If <userinput>no</userinput>, then normal
 		DNSSEC validation applies allowing for insecure answers to
 		be accepted.  The specified domain must be defined as a
-		trust anchor, for instance in a <command>dnssec-keys</command>
+		trust anchor, for instance in a <command>trust-anchors</command>
 		statement, or <command>dnssec-validation auto</command> must
 		be active.
 	      </para>
@@ -6217,7 +6217,7 @@ options {
 		  Causes <command>named</command> to send specially-formed
 		  queries once per day to domains for which trust anchors
 		  have been configured via, e.g.,
-		  <command>dnssec-keys</command> or
+		  <command>trust-anchors</command> or
 		  <command>dnssec-validation auto</command>.
 		</para>
 		<para>
@@ -6432,7 +6432,7 @@ options {
 		<para>
 		  If set to <userinput>yes</userinput>, DNSSEC validation is
 		  enabled, but a trust anchor must be manually configured
-		  using a <command>dnssec-keys</command> statement (or
+		  using a <command>trust-anchors</command> statement (or
 		  the <command>managed-keys</command> or the
 		  <command>trusted-keys</command> statements, both deprecated).
 		  If there is no configured trust anchor, validation will
@@ -10848,14 +10848,14 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	</section>
 
-	<section xml:id="dnssec_keys"><info><title><command>dnssec-keys</command> Statement Grammar</title></info>
-	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="dnssec-keys.grammar.xml"/>
+	<section xml:id="trust_anchors"><info><title><command>trust-anchors</command> Statement Grammar</title></info>
+	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="trust-anchors.grammar.xml"/>
 	</section>
-	<section xml:id="dnssec-keys"><info><title><command>dnssec-keys</command> Statement Definition
+	<section xml:id="trust-anchors"><info><title><command>trust-anchors</command> Statement Definition
 	    and Usage</title></info>
 
 	  <para>
-	    The <command>dnssec-keys</command> statement defines DNSSEC
+	    The <command>trust-anchors</command> statement defines DNSSEC
 	    trust anchors.  DNSSEC is described in <xref linkend="DNSSEC"/>.
 	  </para>
 	  <para>
@@ -10874,21 +10874,21 @@ example.com                 CNAME   rpz-tcp-only.
 	    the <command>validate-except</command> option).
 	  </para>
 	  <para>
-	    All keys listed in <command>dnssec-keys</command>, and
+	    All keys listed in <command>trust-anchors</command>, and
 	    their corresponding zones, are deemed to exist regardless
 	    of what parent zones say.  Only keys configured as trust anchors
 	    are used to validate the DNSKEY RRset for the corresponding
 	    name. The parent's DS RRset will not be used.
 	  </para>
 	  <para>
-	    <command>dnssec-keys</command> may be set at the top level
+	    <command>trust-anchors</command> may be set at the top level
 	    of <filename>named.conf</filename> or within a view.  If it is
 	    set in both places, the configurations are additive: keys
 	    defined at the top level are inherited by all views, but keys
 	    defined in a view are only used within that view.
 	  </para>
 	  <para>
-	    The <command>dnssec-keys</command> statement can contain
+	    The <command>trust-anchors</command> statement can contain
 	    multiple trust anchor entries, each consisting of a
 	    domain name, followed by an "anchor type" keyword indicating
 	    the trust anchor's format, followed by the key or digest data.
@@ -10928,7 +10928,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    <command>static-ds</command> would be unable to validate
 	    this zone any longer; it would reply with a SERVFAIL response
 	    code.  This would continue until the resolver operator had
-	    updated the <command>dnssec-keys</command> statement with
+	    updated the <command>trust-anchors</command> statement with
 	    the new key.
 	  </para>
 	  <para>
@@ -10964,7 +10964,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    <command>initial-key</command> or <command>initial-ds</command>
 	    configured in <filename>named.conf</filename>, it fetches the
 	    DNSKEY RRset directly from the zone apex, and validates it
-	    using the trust anchor specified in <command>dnssec-keys</command>.
+	    using the trust anchor specified in <command>trust-anchors</command>.
 	    If the DNSKEY RRset is validly signed by a key matching
 	    the trust anchor, then it is used as the basis for a new
 	    managed keys database.
@@ -10973,10 +10973,10 @@ example.com                 CNAME   rpz-tcp-only.
 	    From that point on, whenever <command>named</command> runs, it
 	    sees the <command>initial-key</command> or
 	    <command>initial-ds</command> listed in
-	    <command>dnssec-keys</command>, checks to
+	    <command>trust-anchors</command>, checks to
 	    make sure RFC 5011 key maintenance has already been initialized
 	    for the specified domain, and if so, it simply moves on.  The
-	    key specified in the <command>dnssec-keys</command>
+	    key specified in the <command>trust-anchors</command>
 	    statement is not used to validate answers; it is
 	    superseded by the key or keys stored in the managed keys
 	    database.
@@ -10985,7 +10985,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    The next time <command>named</command> runs after an
 	    <command>initial-key</command> or <command>initial-ds</command>
 	    trust anchor has been <emphasis>removed</emphasis> from the
-	    <command>dnssec-keys</command> statement (or changed to
+	    <command>trust-anchors</command> statement (or changed to
 	    a <command>static-key</command> or <command>static-ds</command>),
 	    the corresponding keys will be removed from the managed keys
 	    database, and RFC 5011 key maintenance will no longer be used
@@ -11261,7 +11261,7 @@ example.com                 CNAME   rpz-tcp-only.
 
 	  <para>
 	    The <command>managed-keys</command> statement has been
-	    deprecated in favor of <xref linkend="dnssec_keys"/>
+	    deprecated in favor of <xref linkend="trust_anchors"/>
 	    with the <command>initial-key</command> keyword.
 	  </para>
 	</section>
@@ -11274,7 +11274,7 @@ example.com                 CNAME   rpz-tcp-only.
 
 	  <para>
 	    The <command>trusted-keys</command> statement has been
-	    deprecated in favor of <xref linkend="dnssec_keys"/>
+	    deprecated in favor of <xref linkend="trust_anchors"/>
 	    with the <command>static-key</command> keyword.
 	  </para>
 	</section>
@@ -11663,7 +11663,7 @@ view "external" {
 		        (KSK) for the zone must be configured as a trust
 		        anchor in <filename>named.conf</filename>: that
 		        is, a key for the zone must be specified in
-		        <command>dnssec-keys</command>.  In the case
+		        <command>trust-anchors</command>.  In the case
 		        of the root zone, you may also rely on the
 		        built-in root trust anchor, which is enabled
 			when <xref endterm="dnssec_validation_term"

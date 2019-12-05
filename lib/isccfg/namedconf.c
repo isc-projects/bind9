@@ -459,7 +459,7 @@ static cfg_type_t cfg_type_dnsseckey = {
 
 /*%
  * A key initialization specifier, as used in the
- * "dnssec-keys" (or synonymous "managed-keys") statement.
+ * "trust-anchors" (or synonymous "managed-keys") statement.
  */
 static const char *anchortype_enums[] = {
 	"static-key", "initial-key", "static-ds", "initial-ds", NULL
@@ -1056,11 +1056,11 @@ namedconf_or_view_clauses[] = {
 	{ "dlz", &cfg_type_dlz, CFG_CLAUSEFLAG_MULTI },
 	{ "dyndb", &cfg_type_dyndb, CFG_CLAUSEFLAG_MULTI },
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
-	{ "dnssec-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "managed-keys", &cfg_type_dnsseckeys,
 	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
 	{ "plugin", &cfg_type_plugin, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
+	{ "trust-anchors", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_trustedkeys,
 	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
@@ -1072,9 +1072,9 @@ namedconf_or_view_clauses[] = {
  */
 static cfg_clausedef_t
 bindkeys_clauses[] = {
-	{ "dnssec-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "managed-keys", &cfg_type_dnsseckeys,
 	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
+	{ "trust-anchors", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_trustedkeys,
 	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
 	{ NULL, NULL, 0 }
@@ -2389,7 +2389,7 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_namedconf = {
 	&cfg_rep_map, namedconf_clausesets
 };
 
-/*% The bind.keys syntax (dnssec-keys/managed-keys/trusted-keys only). */
+/*% The bind.keys syntax (trust-anchors/managed-keys/trusted-keys only). */
 static cfg_clausedef_t *
 bindkeys_clausesets[] = {
 	bindkeys_clauses,

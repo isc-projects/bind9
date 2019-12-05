@@ -264,31 +264,31 @@ keyfile_to_dskeys() {
 }
 
 # keyfile_to_static_keys: convert key data contained in the keyfile(s)
-# provided to a *static-key* "dnssec-keys" section suitable for including in a
-# resolver's configuration file
+# provided to a *static-key* "trust-anchors" section suitable for including in
+# a resolver's configuration file
 keyfile_to_static_keys() {
-    keyfile_to_keys "dnssec-keys" "static-key" $*
+    keyfile_to_keys "trust-anchors" "static-key" $*
 }
 
 # keyfile_to_initial_keys: convert key data contained in the keyfile(s)
-# provided to an *initial-key* "dnssec-keys" section suitable for including
+# provided to an *initial-key* "trust-anchors" section suitable for including
 # in a resolver's configuration file
 keyfile_to_initial_keys() {
-    keyfile_to_keys "dnssec-keys" "initial-key" $*
+    keyfile_to_keys "trust-anchors" "initial-key" $*
 }
 
 # keyfile_to_static_ds_keys: convert key data contained in the keyfile(s)
-# provided to a *static-ds* "dnssec-keys" section suitable for including in a
+# provided to a *static-ds* "trust-anchors" section suitable for including in a
 # resolver's configuration file
 keyfile_to_static_ds() {
-    keyfile_to_dskeys "dnssec-keys" "static-ds" $*
+    keyfile_to_dskeys "trust-anchors" "static-ds" $*
 }
 
 # keyfile_to_initial_ds_keys: convert key data contained in the keyfile(s)
-# provided to an *initial-ds* "dnssec-keys" section suitable for including
+# provided to an *initial-ds* "trust-anchors" section suitable for including
 # in a resolver's configuration file
 keyfile_to_initial_ds() {
-    keyfile_to_dskeys "dnssec-keys" "initial-ds" $*
+    keyfile_to_dskeys "trust-anchors" "initial-ds" $*
 }
 
 # keyfile_to_key_id: convert a key file name to a key ID

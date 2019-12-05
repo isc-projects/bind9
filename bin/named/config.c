@@ -296,7 +296,7 @@ view \"_bind\" chaos {\n\
 # BEGIN DNSSEC KEYS\n"
 
 /* Imported from bind.keys.h: */
-DNSSEC_KEYS
+TRUST_ANCHORS
 
 "# END MANAGED KEYS\n\
 \n\

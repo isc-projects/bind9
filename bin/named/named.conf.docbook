@@ -110,15 +110,6 @@ dlz <replaceable>string</replaceable> {
 </literallayout>
   </refsection>
 
-  <refsection><info><title>DNSSEC-KEYS</title></info>
-    <literallayout class="normal">
-dnssec-keys { <replaceable>string</replaceable> ( static-key |
-    initial-key | static-ds | initial-ds )
-    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-    <replaceable>quoted_string</replaceable>; ... };
-</literallayout>
-  </refsection>
-
   <refsection><info><title>DYNDB</title></info>
     <literallayout class="normal">
 dyndb <replaceable>string</replaceable> <replaceable>quoted_string</replaceable> {
@@ -156,7 +147,7 @@ logging {
   </refsection>
 
   <refsection><info><title>MANAGED-KEYS</title></info>
-  <para>Deprecated - see DNSSEC-KEYS.</para>
+  <para>Deprecated - see TRUST-ANCHORS.</para>
     <literallayout class="normal">
 managed-keys { <replaceable>string</replaceable> ( static-key
     | initial-key | static-ds |
@@ -527,8 +518,17 @@ statistics-channels {
 </literallayout>
   </refsection>
 
+  <refsection><info><title>TRUST-ANCHORS</title></info>
+    <literallayout class="normal">
+trust-anchors { <replaceable>string</replaceable> ( static-key |
+    initial-key | static-ds | initial-ds )
+    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>quoted_string</replaceable>; ... };
+</literallayout>
+  </refsection>
+
   <refsection><info><title>TRUSTED-KEYS</title></info>
-  <para>Deprecated - see DNSSEC-KEYS.</para>
+  <para>Deprecated - see TRUST-ANCHORS.</para>
     <literallayout class="normal">
 trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
     <replaceable>integer</replaceable> <replaceable>integer</replaceable>
@@ -607,10 +607,6 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	dnsrps-options { <replaceable>unspecified-text</replaceable> };
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
-	dnssec-keys { <replaceable>string</replaceable> ( static-key |
-	    initial-key | static-ds | initial-ds
-	    ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-	    <replaceable>quoted_string</replaceable>; ... };
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
@@ -801,6 +797,10 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
 	    ] [ dscp <replaceable>integer</replaceable> ];
 	trust-anchor-telemetry <replaceable>boolean</replaceable>; // experimental
+	trust-anchors { <replaceable>string</replaceable> ( static-key |
+	    initial-key | static-ds | initial-ds
+	    ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+	    <replaceable>quoted_string</replaceable>; ... };
 	trusted-keys { <replaceable>string</replaceable>
 	    <replaceable>integer</replaceable> <replaceable>integer</replaceable>
 	    <replaceable>integer</replaceable>

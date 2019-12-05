@@ -215,7 +215,7 @@
 	  </para>
 	  <para>
 	    Note: When reading the trust anchor file,
-	    <command>delv</command> treats <option>dnssec-keys</option>
+	    <command>delv</command> treats <option>trust-anchors</option>
 	    <option>initial-key</option> and <option>static-key</option>
 	    entries identically.  That is, even if a key is configured
 	    with <command>initial-key</command>, indicating that it is

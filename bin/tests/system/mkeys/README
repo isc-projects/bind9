@@ -11,7 +11,7 @@ ns2 is a validator that uses managed keys.  "-T mkeytimers=2/20/40"
 is used so it will attempt do automated updates frequently. "-T tat=1"
 is used so it will send TAT queries once per second.
 
-ns3 is a validator with a broken initializing key in dnssec-keys.
+ns3 is a validator with a broken initializing key in trust-anchors.
 
 ns4 is a validator with a deliberately broken managed-keys.bind and
 managed-keys.jnl, causing RFC 5011 initialization to fail.

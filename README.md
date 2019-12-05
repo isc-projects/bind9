@@ -131,8 +131,8 @@ include:
   for zones, enabling automatic key regeneration and rollover.
 * New new network manager based on libuv.
 * Support for the new GeoIP2 geolocation API
-* Improved DNSSEC trust anchor configuration using `dnssec-keys`,
-  permitting configuration of trust anchors in DS as well as
+* Improved DNSSEC trust anchor configuration using the `trust-anchors`
+  statement, permitting configuration of trust anchors in DS as well as
   DNSKEY format.
 * YAML output for `dig`, `mdig`, and `delv`.
 

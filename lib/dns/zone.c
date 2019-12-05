@@ -4300,10 +4300,10 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
  * statements with the set of trust anchors found in the managed-keys.bind
  * zone.  If a domain is no longer named in managed-keys, delete all keys
  * from that domain from the key zone.	If a domain is configured as an
- * initial-key in dnssec-keys, but there are no references to it in the
+ * initial-key in trust-anchors, but there are no references to it in the
  * key zone, load the key zone with the initializing key(s) for that
  * domain and schedule a key refresh. If a domain is configured as
- * an initial-ds in dnssec-keys, fetch the DNSKEY RRset, load the key
+ * an initial-ds in trust-anchors, fetch the DNSKEY RRset, load the key
  * zone with the matching key, and schedule a key refresh.
  */
 static isc_result_t
@@ -4335,7 +4335,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 
 	/*
 	 * Walk the zone DB.  If we find any keys whose names are no longer
-	 * in dnssec-keys, or which have been changed from initial to static,
+	 * in trust-anchors, or which have been changed from initial to static,
 	 * (meaning they are permanent and not RFC5011-maintained), delete
 	 * them from the zone.  Otherwise call load_secroots(), which
 	 * loads keys into secroots as appropriate.
