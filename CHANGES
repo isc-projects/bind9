@@ -1,3 +1,6 @@
+5333.	[bug]		Fix duration printing on Solaris when value is not
+			an ISO 8601 duration. [GL #1460]
+
 5332.	[func]		Renamed "dnssec-keys" configuration statement
 			to the more descriptive "trust-anchors".
 
