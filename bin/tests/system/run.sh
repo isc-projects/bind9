@@ -37,13 +37,12 @@ while getopts "knp:r-:" flag; do
 	k) stopservers=false ;;
 	n) clean=false ;;
 	p) baseport=$OPTARG ;;
-	r) runall="-r" ;;
     esac
 done
 shift `expr $OPTIND - 1`
 
 if [ $# -eq 0 ]; then
-    echofail "Usage: $0 [-k] [-n] [-p <PORT>] [-r] test-directory [test-options]" >&2;
+    echofail "Usage: $0 [-k] [-n] [-p <PORT>] test-directory [test-options]" >&2;
     exit 1
 fi
 
