@@ -486,8 +486,8 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		 * order.
 		 */
 #if defined(ISC_RWLOCK_USESTDATOMIC)
-		atomic_fetch_sub_explicit(&rwl->write_completions, 1,
-					  memory_order_relaxed);
+		(void)atomic_fetch_sub_explicit(&rwl->write_completions, 1,
+						memory_order_relaxed);
 #else
 		(void)isc_atomic_xadd(&rwl->write_completions, -1);
 #endif
@@ -527,11 +527,11 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 			 * We are the only reader and have been upgraded.
 			 * Now jump into the head of the writer waiting queue.
 			 */
-			atomic_fetch_sub_explicit(&rwl->write_completions, 1,
-						  memory_order_relaxed);
-		} else
+			(void)atomic_fetch_sub_explicit(&rwl->write_completions,
+						       1, memory_order_relaxed);
+		} else {
 			return (ISC_R_LOCKBUSY);
-
+		}
 	}
 #else
 	{
@@ -577,10 +577,11 @@ isc_rwlock_downgrade(isc_rwlock_t *rwl) {
 		INSIST((prev_readers & WRITER_ACTIVE) != 0);
 
 		/* Complete write */
-		atomic_fetch_sub_explicit(&rwl->cnt_and_flag, WRITER_ACTIVE,
-					  memory_order_relaxed);
-		atomic_fetch_add_explicit(&rwl->write_completions, 1,
-					  memory_order_relaxed);
+		(void)atomic_fetch_sub_explicit(&rwl->cnt_and_flag,
+						WRITER_ACTIVE,
+						memory_order_relaxed);
+		(void)atomic_fetch_add_explicit(&rwl->write_completions, 1,
+						memory_order_relaxed);
 	}
 #else
 	{
@@ -640,10 +641,11 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		 * we are done.
 		 */
 #if defined(ISC_RWLOCK_USESTDATOMIC)
-		atomic_fetch_sub_explicit(&rwl->cnt_and_flag, WRITER_ACTIVE,
-					  memory_order_relaxed);
-		atomic_fetch_add_explicit(&rwl->write_completions, 1,
-					  memory_order_relaxed);
+		(void)atomic_fetch_sub_explicit(&rwl->cnt_and_flag,
+						WRITER_ACTIVE,
+						memory_order_relaxed);
+		(void)atomic_fetch_add_explicit(&rwl->write_completions, 1,
+						memory_order_relaxed);
 #else
 		(void)isc_atomic_xadd(&rwl->cnt_and_flag, -WRITER_ACTIVE);
 		(void)isc_atomic_xadd(&rwl->write_completions, 1);

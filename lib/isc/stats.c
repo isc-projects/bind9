@@ -218,8 +218,8 @@ isc_stats_ncounters(isc_stats_t *stats) {
 static inline void
 incrementcounter(isc_stats_t *stats, int counter) {
 #if ISC_PLATFORM_HAVESTDATOMIC
-	atomic_fetch_add_explicit(&stats->counters[counter], 1,
-				  memory_order_relaxed);
+	(void)atomic_fetch_add_explicit(&stats->counters[counter], 1,
+					memory_order_relaxed);
 #elif ISC_STATS_HAVEATOMICQ
 	isc_atomic_xaddq((int64_t *)&stats->counters[counter], 1);
 #elif ISC_STATS_USEMULTIFIELDS
@@ -243,15 +243,16 @@ incrementcounter(isc_stats_t *stats, int counter) {
 static inline void
 decrementcounter(isc_stats_t *stats, int counter) {
 #if ISC_PLATFORM_HAVESTDATOMIC
-	atomic_fetch_sub_explicit(&stats->counters[counter], 1,
-				  memory_order_relaxed);
+	(void)atomic_fetch_sub_explicit(&stats->counters[counter], 1,
+					memory_order_relaxed);
 #elif ISC_STATS_HAVEATOMICQ
-	isc_atomic_xaddq((int64_t *)&stats->counters[counter], -1);
+	(void)isc_atomic_xaddq((int64_t *)&stats->counters[counter], -1);
 #elif ISC_STATS_USEMULTIFIELDS
 	int32_t prev =
 		isc_atomic_xadd((int32_t *)&stats->counters[counter].lo, -1);
 	if (prev == 0) {
-		isc_atomic_xadd((int32_t *)&stats->counters[counter].hi, -1);
+		(void)isc_atomic_xadd((int32_t *)&stats->counters[counter].hi,
+				      -1);
 	}
 #else
 	stats->counters[counter]--;
