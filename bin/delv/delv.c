@@ -614,7 +614,7 @@ static isc_result_t
 key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_ds_t ds;
-	uint32_t n1, n2, n3;
+	uint32_t rdata1, rdata2, rdata3;
 	const char *datastr = NULL, *keynamestr = NULL, *atstr = NULL;
 	unsigned char data[4096];
 	isc_buffer_t databuf;
@@ -655,13 +655,13 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	delv_log(ISC_LOG_DEBUG(3), "adding trust anchor %s", trust_anchor);
 
 	/* if DNSKEY, flags; if DS, key tag */
-	n1 = cfg_obj_asuint32(cfg_tuple_get(key, "n1"));
+	rdata1 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata1"));
 
 	/* if DNSKEY, protocol; if DS, algorithm */
-	n2 = cfg_obj_asuint32(cfg_tuple_get(key, "n2"));
+	rdata2 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata2"));
 
 	/* if DNSKEY, algorithm; if DS, digest type */
-	n3 = cfg_obj_asuint32(cfg_tuple_get(key, "n3"));
+	rdata3 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata3"));
 
 	/* What type of trust anchor is this? */
 	atstr = cfg_obj_asstring(cfg_tuple_get(key, "anchortype"));
@@ -684,13 +684,13 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	isc_buffer_init(&databuf, data, sizeof(data));
 	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
 
-	if (n1 > 0xffff) {
+	if (rdata1 > 0xffff) {
 		CHECK(ISC_R_RANGE);
 	}
-	if (n2 > 0xff) {
+	if (rdata2 > 0xff) {
 		CHECK(ISC_R_RANGE);
 	}
-	if (n3 > 0xff) {
+	if (rdata3 > 0xff) {
 		CHECK(ISC_R_RANGE);
 	}
 
@@ -704,9 +704,9 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 
 		ISC_LINK_INIT(&dnskey.common, link);
 
-		dnskey.flags = (uint16_t)n1;
-		dnskey.protocol = (uint8_t)n2;
-		dnskey.algorithm = (uint8_t)n3;
+		dnskey.flags = (uint16_t)rdata1;
+		dnskey.protocol = (uint8_t)rdata2;
+		dnskey.algorithm = (uint8_t)rdata3;
 
 		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
 		CHECK(isc_base64_decodestring(datastr, &databuf));
@@ -729,9 +729,9 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 
 		ISC_LINK_INIT(&ds.common, link);
 
-		ds.key_tag = (uint16_t)n1;
-		ds.algorithm = (uint8_t)n2;
-		ds.digest_type = (uint8_t)n3;
+		ds.key_tag = (uint16_t)rdata1;
+		ds.algorithm = (uint8_t)rdata2;
+		ds.digest_type = (uint8_t)rdata3;
 
 		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
 		CHECK(isc_hex_decodestring(datastr, &databuf));
