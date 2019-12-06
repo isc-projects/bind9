@@ -420,7 +420,6 @@
 ./bin/tests/system/checkconf/dnssec.2		X	2011,2016,2018,2019
 ./bin/tests/system/checkconf/dnssec.3		X	2011,2016,2017,2018,2019
 ./bin/tests/system/checkconf/good.zonelist	X	2016,2017,2018,2019
-./bin/tests/system/checkconf/setup.sh		SH	2019
 ./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019
 ./bin/tests/system/checkds/clean.sh		SH	2012,2013,2014,2016,2017,2018,2019
 ./bin/tests/system/checkds/dig.bat		BAT	2016,2018,2019
@@ -437,7 +436,6 @@
 ./bin/tests/system/checkds/ok.example.ds.db	X	2012,2018,2019
 ./bin/tests/system/checkds/prep.example.db	X	2017,2018,2019
 ./bin/tests/system/checkds/prep.example.ds.db	X	2017,2018,2019
-./bin/tests/system/checkds/setup.sh		SH	2012,2013,2014,2016,2018,2019
 ./bin/tests/system/checkds/tests.sh		SH	2012,2013,2014,2016,2017,2018,2019
 ./bin/tests/system/checkds/wrong.example.dlv.example.dlv.db	X	2012,2018,2019
 ./bin/tests/system/checkds/wrong.example.dnskey.db	X	2012,2018,2019
@@ -450,7 +448,6 @@
 ./bin/tests/system/checkzone/tests.sh		SH	2011,2012,2013,2014,2015,2016,2017,2018,2019
 ./bin/tests/system/checkzone/zones/.gitattributes	X	2015,2018,2019
 ./bin/tests/system/checkzone/zones/bad-badclass.raw	X	2015,2018,2019
-./bin/tests/system/clean.sh			SH	2015,2016,2018,2019
 ./bin/tests/system/cleanall.sh			SH	2000,2001,2004,2007,2012,2014,2015,2016,2017,2018,2019
 ./bin/tests/system/cleanpkcs11.sh		SH	2010,2012,2014,2016,2018,2019
 ./bin/tests/system/common/rndc.key		X	2011,2013,2016,2018,2019
@@ -495,7 +492,6 @@
 ./bin/tests/system/delzone/setup.sh		SH	2016,2018,2019
 ./bin/tests/system/delzone/tests.sh		SH	2016,2018,2019
 ./bin/tests/system/dialup/clean.sh		SH	2019
-./bin/tests/system/dialup/setup.sh		SH	2000,2001,2004,2007,2012,2016,2018,2019
 ./bin/tests/system/dialup/tests.sh		SH	2000,2001,2004,2007,2012,2016,2018,2019
 ./bin/tests/system/digcomp.pl			PERL	2000,2001,2004,2007,2012,2013,2016,2018,2019
 ./bin/tests/system/digdelv/ans4/startme		X	2017,2018,2019
@@ -985,7 +981,6 @@
 ./bin/tests/system/rrchecker/classlist.good	X	2013,2018,2019
 ./bin/tests/system/rrchecker/clean.sh		SH	2013,2014,2016,2017,2018,2019
 ./bin/tests/system/rrchecker/privatelist.good	X	2013,2018,2019
-./bin/tests/system/rrchecker/setup.sh		SH	2019
 ./bin/tests/system/rrchecker/tests.sh		SH	2013,2014,2015,2016,2017,2018,2019
 ./bin/tests/system/rrchecker/typelist.good	X	2013,2014,2015,2016,2017,2018,2019
 ./bin/tests/system/rrl/clean.sh			SH	2012,2013,2014,2016,2018,2019
@@ -1053,7 +1048,6 @@
 ./bin/tests/system/sfcache/setup.sh		SH	2014,2016,2017,2018,2019
 ./bin/tests/system/sfcache/tests.sh		SH	2014,2016,2017,2018,2019
 ./bin/tests/system/smartsign/clean.sh		SH	2010,2012,2014,2016,2018,2019
-./bin/tests/system/smartsign/setup.sh		SH	2010,2012,2014,2016,2017,2018,2019
 ./bin/tests/system/smartsign/tests.sh		SH	2010,2011,2012,2014,2016,2017,2018,2019
 ./bin/tests/system/sortlist/clean.sh		SH	2000,2001,2004,2007,2009,2012,2014,2015,2016,2018,2019
 ./bin/tests/system/sortlist/setup.sh		SH	2018,2019

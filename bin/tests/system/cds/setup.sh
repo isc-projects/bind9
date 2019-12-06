@@ -14,8 +14,6 @@ set -eu
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL clean.sh
-
 touch empty
 
 Z=cds.test
