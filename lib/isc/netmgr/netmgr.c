@@ -1039,9 +1039,38 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		handle->doreset(handle->opaque);
 	}
 
+
+
+	/*
+	 * The handle is closed. If the socket has a callback configured
+	 * for that (e.g., to perform cleanup after request processing),
+	 * call it now.
+	 */
+	bool do_close = true;
+	if (sock->closehandle_cb != NULL) {
+		if (sock->tid == isc_nm_tid()) {
+			sock->closehandle_cb(sock);
+		} else {
+			isc__netievent_closecb_t * event =
+				isc__nm_get_ievent(sock->mgr,
+						   netievent_closecb);
+			isc_nmsocket_attach(sock, &event->sock);
+			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+					       (isc__netievent_t *) event);
+			/*
+			 * If we do this asynchronously then the async event
+			 * will clean the socket, so clean up the handle from
+			 * socket and exit.
+			 */
+			do_close = false;
+		}
+	}
+
 	/*
 	 * We do all of this under lock to avoid races with socket
 	 * destruction.
+	 * We have to do this now otherwise we might race - at this point
+	 * the socket is either unused or attached to event->sock.
 	 */
 	LOCK(&sock->lock);
 
@@ -1058,35 +1087,16 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		reuse = isc_astack_trypush(sock->inactivehandles,
 					   handle);
 	}
-
-	UNLOCK(&sock->lock);
-
 	if (!reuse) {
 		nmhandle_free(sock, handle);
 	}
+	UNLOCK(&sock->lock);
 
-	/*
-	 * The handle is closed. If the socket has a callback configured
-	 * for that (e.g., to perform cleanup after request processing),
-	 * call it now.
-	 */
-	if (sock->closehandle_cb != NULL) {
-		if (sock->tid == isc_nm_tid()) {
-			sock->closehandle_cb(sock);
-		} else {
-			isc__netievent_closecb_t * event =
-				isc__nm_get_ievent(sock->mgr,
-						   netievent_closecb);
-			isc_nmsocket_attach(sock, &event->sock);
-			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-					       (isc__netievent_t *) event);
-			/*
-			 * If we do this asynchronously then the async event
-			 * will clean the socket, so just exit.
-			 */
-			return;
-		}
+	/* Close callback will clean everything up */
+	if (!do_close) {
+		return;
 	}
+
 
 	if (atomic_load(&sock->ah) == 0 &&
 	    !atomic_load(&sock->active) &&
