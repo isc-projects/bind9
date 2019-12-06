@@ -240,7 +240,9 @@ Re-Running the Tests
 ---
 If there is a requirement to re-run a test (or the entire test suite), the
 files produced by the tests should be deleted first.  Normally, these files are
-deleted if the test succeeds but are retained on error.
+deleted if the test succeeds but are retained on error.  The run.sh script
+automatically calls a given test's clean.sh script before invoking its setup.sh
+script.
 
 Deletion of the files produced by the set of tests (e.g. after the execution
 of "runall.sh") can be carried out using the command:

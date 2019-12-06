@@ -10,8 +10,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL clean.sh
-
 test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 cp ns1/root.db.in ns1/root.db
