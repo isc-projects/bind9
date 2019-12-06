@@ -29,7 +29,7 @@ _wait_for_message() (
 )
 
 wait_for_message() (
-	retry_quiet 10 _wait_for_message "$@"
+	retry_quiet 20 _wait_for_message "$@"
 )
 
 _wait_for_rcode() (
