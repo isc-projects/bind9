@@ -225,9 +225,12 @@ ret=0
 sleep 1
 cp -f ns1/redirect.db.2 ns1/redirect.db
 $RNDCCMD 10.53.0.1 reload -redirect > rndc.out.ns1.$n
-$RNDCCMD 10.53.0.1 zonestatus -redirect > zonestatus.out.ns1.$n
-grep "type: redirect" zonestatus.out.ns1.$n > /dev/null || ret=1
-grep "serial: 1" zonestatus.out.ns1.$n > /dev/null || ret=1
+_check_zonestatus() {
+    $RNDCCMD 10.53.0.1 zonestatus -redirect > zonestatus.out.ns1.$n || return 1
+    grep "type: redirect" zonestatus.out.ns1.$n > /dev/null || return 1
+    grep "serial: 1" zonestatus.out.ns1.$n > /dev/null || return 1
+}
+retry 5 _check_zonestatus || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
