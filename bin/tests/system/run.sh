@@ -202,7 +202,7 @@ else
         echopass "R:$systest:PASS"
         if $clean
         then
-            $SHELL clean.sh $runall $systest "$@"
+            ( cd $systest && $SHELL clean.sh "$@" )
             if test -d ../../../.git
             then
                 git status -su --ignored $systest 2>/dev/null | \
