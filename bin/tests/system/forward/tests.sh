@@ -19,8 +19,10 @@ f1=10.53.0.3
 f2=10.53.0.4
 
 status=0
+n=0
 
-echo_i "checking that a forward zone overrides global forwarders"
+n=`expr $n + 1`
+echo_i "checking that a forward zone overrides global forwarders ($n)"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example1. txt @$hidden > dig.out.hidden || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example1. txt @$f1 > dig.out.f1 || ret=1
@@ -28,7 +30,8 @@ digcomp dig.out.hidden dig.out.f1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that a forward first zone no forwarders recurses"
+n=`expr $n + 1`
+echo_i "checking that a forward first zone no forwarders recurses ($n)"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$root > dig.out.root || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$f1 > dig.out.f1 || ret=1
@@ -36,7 +39,8 @@ digcomp dig.out.root dig.out.f1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that a forward only zone no forwarders fails"
+n=`expr $n + 1`
+echo_i "checking that a forward only zone no forwarders fails ($n)"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$root > dig.out.root || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$f1 > dig.out.f1 || ret=1
@@ -44,7 +48,8 @@ digcomp dig.out.root dig.out.f1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that global forwarders work"
+n=`expr $n + 1`
+echo_i "checking that global forwarders work ($n)"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example4. txt @$hidden > dig.out.hidden || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example4. txt @$f1 > dig.out.f1 || ret=1
@@ -52,7 +57,8 @@ digcomp dig.out.hidden dig.out.f1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that a forward zone works"
+n=`expr $n + 1`
+echo_i "checking that a forward zone works ($n)"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example1. txt @$hidden > dig.out.hidden || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example1. txt @$f2 > dig.out.f2 || ret=1
@@ -60,7 +66,8 @@ digcomp dig.out.hidden dig.out.f2 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that forwarding doesn't spontaneously happen"
+n=`expr $n + 1`
+echo_i "checking that forwarding doesn't spontaneously happen ($n)"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$root > dig.out.root || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$f2 > dig.out.f2 || ret=1
@@ -68,7 +75,8 @@ digcomp dig.out.root dig.out.f2 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that a forward zone with no specified policy works"
+n=`expr $n + 1`
+echo_i "checking that a forward zone with no specified policy works ($n)"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example3. txt @$hidden > dig.out.hidden || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example3. txt @$f2 > dig.out.f2 || ret=1
@@ -76,14 +84,16 @@ digcomp dig.out.hidden dig.out.f2 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that a forward only doesn't recurse"
+n=`expr $n + 1`
+echo_i "checking that a forward only doesn't recurse ($n)"
 ret=0
 $DIG $DIGOPTS txt.example5. txt @$f2 > dig.out.f2 || ret=1
 grep "SERVFAIL" dig.out.f2 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking for negative caching of forwarder response"
+n=`expr $n + 1`
+echo_i "checking for negative caching of forwarder response ($n)"
 # prime the cache, shutdown the forwarder then check that we can
 # get the answer from the cache.  restart forwarder.
 ret=0
@@ -96,7 +106,8 @@ $PERL ../start.pl --restart --noclean --port ${PORT} forward ns4 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that forward only zone overrides empty zone"
+n=`expr $n + 1`
+echo_i "checking that forward only zone overrides empty zone ($n)"
 ret=0
 $DIG $DIGOPTS 1.0.10.in-addr.arpa TXT @10.53.0.4 > dig.out.f2
 grep "status: NOERROR" dig.out.f2 > /dev/null || ret=1
@@ -105,7 +116,8 @@ grep "status: NXDOMAIN" dig.out.f2 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that DS lookups for grafting forward zones are isolated"
+n=`expr $n + 1`
+echo_i "checking that DS lookups for grafting forward zones are isolated ($n)"
 ret=0
 $DIG $DIGOPTS grafted A @10.53.0.4 > dig.out.q1
 $DIG $DIGOPTS grafted DS @10.53.0.4 > dig.out.q2
@@ -118,21 +130,24 @@ grep "status: NOERROR" dig.out.q4 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that rfc1918 inherited 'forward first;' zones are warned about"
+n=`expr $n + 1`
+echo_i "checking that rfc1918 inherited 'forward first;' zones are warned about ($n)"
 ret=0
 $CHECKCONF rfc1918-inherited.conf | grep "forward first;" >/dev/null || ret=1
 $CHECKCONF rfc1918-notinherited.conf | grep "forward first;" >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that ULA inherited 'forward first;' zones are warned about"
+n=`expr $n + 1`
+echo_i "checking that ULA inherited 'forward first;' zones are warned about ($n)"
 ret=0
 $CHECKCONF ula-inherited.conf | grep "forward first;" >/dev/null || ret=1
 $CHECKCONF ula-notinherited.conf | grep "forward first;" >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that a forwarder timeout prevents it from being reused in the same fetch context"
+n=`expr $n + 1`
+echo_i "checking that a forwarder timeout prevents it from being reused in the same fetch context ($n)"
 ret=0
 # Make ans6 receive queries without responding to them.
 echo "//" | $SENDCMD
@@ -147,7 +162,8 @@ if [ $sent -ne 1 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that priming queries are not forwarded"
+n=`expr $n + 1`
+echo_i "checking that priming queries are not forwarded ($n)"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example1. txt @10.53.0.7 > dig.out.f7 || ret=1
 sent=`tr -d '\r' < ns7/named.run | sed -n '/sending packet to 10.53.0.1/,/^$/p' | grep ";.*IN.*NS" | wc -l`
