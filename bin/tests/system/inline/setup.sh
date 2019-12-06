@@ -10,8 +10,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL clean.sh
-
 cp ns1/root.db.in ns1/root.db
 
 touch ns2/trusted.conf
