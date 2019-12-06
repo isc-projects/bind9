@@ -154,6 +154,12 @@ else
     exit 0
 fi
 
+# Clean up files left from any potential previous runs
+if test -f $systest/clean.sh
+then
+   ( cd $systest && $SHELL clean.sh "$@" )
+fi
+
 # Set up any dynamically generated test data
 if test -f $systest/setup.sh
 then
