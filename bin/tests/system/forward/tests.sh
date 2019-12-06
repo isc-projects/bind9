@@ -157,6 +157,25 @@ $CHECKCONF ula-notinherited.conf | grep "forward first;" >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+count_sent() (
+	logfile="$1"
+	start_pattern="$2"
+	pattern="$3"
+	nextpartpeek "$logfile" | sed -n "/$start_pattern/,/^\$/p" | grep -c "$pattern"
+)
+
+check_sent() (
+	expected="$1"
+	shift
+	count=$(count_sent "$@")
+	[ "$expected" = "$count" ]
+)
+
+wait_for_log() (
+	nextpartpeek "$1" | grep "$2" >/dev/null
+
+)
+
 n=$((n+1))
 echo_i "checking that a forwarder timeout prevents it from being reused in the same fetch context ($n)"
 ret=0
@@ -166,19 +185,23 @@ echo "//" | sendcmd
 # and is delegated from the root to check whether the forwarder will be retried
 # when a delegation is encountered after falling back to full recursive
 # resolution.
+nextpart ns3/named.run >/dev/null
 dig_with_opts txt.example7. txt @$f1 > dig.out.$n.f1 || ret=1
 # The forwarder for the "example7" zone should only be queried once.
-sent=$(tr -d '\r' < ns3/named.run | sed -n '/sending packet to 10.53.0.6/,/^$/p' | grep -c ";txt.example7.*IN.*TXT")
-if [ "$sent" -ne 1 ]; then ret=1; fi
+start_pattern="sending packet to 10\.53\.0\.6"
+retry_quiet 5 wait_for_log ns3/named.run "$start_pattern"
+check_sent 1 ns3/named.run "$start_pattern" ";txt\.example7\.[[:space:]]*IN[[:space:]]*TXT$" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
 echo_i "checking that priming queries are not forwarded ($n)"
 ret=0
+nextpart ns7/named.run >/dev/null
 dig_with_opts +noadd +noauth txt.example1. txt @10.53.0.7 > dig.out.$n.f7 || ret=1
-sent=$(tr -d '\r' < ns7/named.run | sed -n '/sending packet to 10.53.0.1/,/^$/p' | grep -c ";.*IN.*NS")
-[ "$sent" -eq 1 ] || ret=1
+start_pattern="sending packet to 10\.53\.0\.1"
+retry_quiet 5 wait_for_log ns7/named.run "$start_pattern" || ret=1
+check_sent 1 ns7/named.run "$start_pattern" ";\.[[:space:]]*IN[[:space:]]*NS$" || ret=1
 sent=$(grep -c "10.53.0.7#.* (.): query '\./NS/IN' approved" ns4/named.run)
 [ "$sent" -eq 0 ] || ret=1
 sent=$(grep -c "10.53.0.7#.* (.): query '\./NS/IN' approved" ns1/named.run)
