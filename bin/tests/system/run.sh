@@ -37,13 +37,12 @@ while getopts "knp:r-:" flag; do
 	k) stopservers=false ;;
 	n) clean=false ;;
 	p) baseport=$OPTARG ;;
-	r) runall="-r" ;;
     esac
 done
 shift `expr $OPTIND - 1`
 
 if [ $# -eq 0 ]; then
-    echofail "Usage: $0 [-k] [-n] [-p <PORT>] [-r] test-directory [test-options]" >&2;
+    echofail "Usage: $0 [-k] [-n] [-p <PORT>] test-directory [test-options]" >&2;
     exit 1
 fi
 
@@ -155,6 +154,12 @@ else
     exit 0
 fi
 
+# Clean up files left from any potential previous runs
+if test -f $systest/clean.sh
+then
+   ( cd $systest && $SHELL clean.sh "$@" )
+fi
+
 # Set up any dynamically generated test data
 if test -f $systest/setup.sh
 then
@@ -219,7 +224,7 @@ else
         echopass "R:$systest:PASS"
         if $clean
         then
-            $SHELL clean.sh $runall $systest "$@"
+            ( cd $systest && $SHELL clean.sh "$@" )
             if test -d ../../../.git
             then
                 git status -su --ignored $systest 2>/dev/null | \

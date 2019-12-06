@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# Creates the system tests output file from the various test.output files.  It
+# Creates the system tests output file from the various test.output.* files.  It
 # then searches that file and prints the number of tests passed, failed, not
 # run.  It also checks whether the IP addresses 10.53.0.[1-8] were set up and,
 # if not, prints a warning.
@@ -17,7 +17,7 @@
 # Usage:
 #    testsummary.sh [-n]
 #
-# -n	Do NOT delete the individual test.output files after concatenating
+# -n	Do NOT delete the individual test.output.* files after concatenating
 #	them into systests.output.
 #
 # Status return:
@@ -35,13 +35,13 @@ while getopts "n" flag; do
     esac
 done
 
-if [ `ls */test.output 2> /dev/null | wc -l` -eq 0 ]; then
-    echowarn "I:No 'test.output' files were found."
+if [ `ls test.output.* 2> /dev/null | wc -l` -eq 0 ]; then
+    echowarn "I:No 'test.output.*' files were found."
     echowarn "I:Printing summary from pre-existing 'systests.output'."
 else
-    cat */test.output > systests.output
+    cat test.output.* > systests.output
     if [ $keepfile -eq 0 ]; then
-        rm -f */test.output
+        rm -f test.output.*
     fi
 fi
 
