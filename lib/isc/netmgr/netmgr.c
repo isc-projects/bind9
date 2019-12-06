@@ -550,6 +550,9 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcpclose:
 			isc__nm_async_tcpclose(worker, ievent);
 			break;
+		case netievent_tcpdnsclose:
+			isc__nm_async_tcpdnsclose(worker, ievent);
+			break;
 		case netievent_closecb:
 			isc__nm_async_closecb(worker, ievent);
 			break;
@@ -675,8 +678,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 	sock->pquota = NULL;
 
 	if (sock->timer_initialized) {
-		uv_close((uv_handle_t *)&sock->timer, NULL);
 		sock->timer_initialized = false;
+		uv_timer_stop(&sock->timer);
+		uv_close((uv_handle_t *)&sock->timer, NULL);
 	}
 
 	isc_astack_destroy(sock->inactivehandles);
@@ -1022,6 +1026,7 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;
 	size_t handlenum;
 	bool reuse = false;
+	bool do_close = true;
 	int refs;
 
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -1039,28 +1044,28 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		handle->doreset(handle->opaque);
 	}
 
-
-
 	/*
 	 * The handle is closed. If the socket has a callback configured
 	 * for that (e.g., to perform cleanup after request processing),
-	 * call it now.
+	 * call it now, or schedule it to run asynchronously.
 	 */
-	bool do_close = true;
 	if (sock->closehandle_cb != NULL) {
 		if (sock->tid == isc_nm_tid()) {
 			sock->closehandle_cb(sock);
 		} else {
-			isc__netievent_closecb_t * event =
+			isc__netievent_closecb_t *event =
 				isc__nm_get_ievent(sock->mgr,
 						   netievent_closecb);
 			isc_nmsocket_attach(sock, &event->sock);
 			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 					       (isc__netievent_t *) event);
+
 			/*
-			 * If we do this asynchronously then the async event
-			 * will clean the socket, so clean up the handle from
-			 * socket and exit.
+			 * If we're doing this asynchronously, then the
+			 * async event will take care of closing the
+			 * socket, so we can clean up the handle
+			 * from the socket, but skip calling
+			 * nmsocket_maybe_destory()
 			 */
 			do_close = false;
 		}
@@ -1068,9 +1073,8 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 
 	/*
 	 * We do all of this under lock to avoid races with socket
-	 * destruction.
-	 * We have to do this now otherwise we might race - at this point
-	 * the socket is either unused or attached to event->sock.
+	 * destruction.  We have to do this now, because at this point the
+	 * socket is either unused or still attached to event->sock.
 	 */
 	LOCK(&sock->lock);
 
@@ -1092,15 +1096,8 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	}
 	UNLOCK(&sock->lock);
 
-	/* Close callback will clean everything up */
-	if (!do_close) {
-		return;
-	}
-
-
-	if (atomic_load(&sock->ah) == 0 &&
-	    !atomic_load(&sock->active) &&
-	    !atomic_load(&sock->destroying))
+	if (do_close && atomic_load(&sock->ah) == 0 &&
+	    !atomic_load(&sock->active) && !atomic_load(&sock->destroying))
 	{
 		nmsocket_maybe_destroy(sock);
 	}

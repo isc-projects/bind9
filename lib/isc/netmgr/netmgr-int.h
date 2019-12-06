@@ -122,6 +122,7 @@ typedef enum isc__netievent_type {
 	netievent_udpstoplisten,
 	netievent_tcpstoplisten,
 	netievent_tcpclose,
+	netievent_tcpdnsclose,
 	netievent_prio = 0xff,	/* event type values higher than this
 				 * will be treated as high-priority
 				 * events, which can be processed
@@ -194,6 +195,7 @@ typedef isc__netievent__socket_t isc__netievent_udpstoplisten_t;
 typedef isc__netievent__socket_t isc__netievent_tcpstoplisten_t;
 typedef isc__netievent__socket_t isc__netievent_tcpstopchildlisten_t;
 typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
+typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
 typedef isc__netievent__socket_t isc__netievent_closecb_t;
@@ -643,6 +645,9 @@ isc__nm_tcpdns_close(isc_nmsocket_t *sock);
 /*%<
  * Close a TCPDNS socket.
  */
+
+void
+isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ievent0);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__)

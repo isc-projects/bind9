@@ -1003,8 +1003,9 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		}
 	}
 	if (sock->timer_initialized) {
-		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 		sock->timer_initialized = false;
+		uv_timer_stop(&sock->timer);
+		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 	} else {
 		isc_nmsocket_detach(&sock->server);
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);

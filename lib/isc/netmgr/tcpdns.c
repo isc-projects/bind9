@@ -79,7 +79,6 @@ static void
 timer_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = (isc_nmsocket_t *) uv_handle_get_data(handle);
 	INSIST(VALID_NMSOCK(sock));
-	sock->timer_initialized = false;
 	atomic_store(&sock->closed, true);
 	isc_nmsocket_detach(&sock);
 }
@@ -489,10 +488,42 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 }
 
 
-void
-isc__nm_tcpdns_close(isc_nmsocket_t *sock) {
+static void
+tcpdns_close_direct(isc_nmsocket_t *sock) {
 	if (sock->outer != NULL) {
 		isc_nmsocket_detach(&sock->outer);
 	}
-	uv_close((uv_handle_t *) &sock->timer, timer_close_cb);
+	/* We don't need atomics here, it's all in single network thread */
+	if (sock->timer_initialized) {
+		sock->timer_initialized = false;
+		uv_timer_stop(&sock->timer);
+		uv_close((uv_handle_t *) &sock->timer, timer_close_cb);
+	}
+}
+
+void
+isc__nm_tcpdns_close(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tcpdnssocket);
+
+	if (sock->tid == isc_nm_tid()) {
+		tcpdns_close_direct(sock);
+	} else {
+		isc__netievent_tcpdnsclose_t *ievent =
+			isc__nm_get_ievent(sock->mgr, netievent_tcpdnsclose);
+
+		ievent->sock = sock;
+		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+				       (isc__netievent_t *) ievent);
+	}
+}
+
+void
+isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ievent0) {
+	isc__netievent_tcpdnsclose_t *ievent =
+		(isc__netievent_tcpdnsclose_t *) ievent0;
+
+	REQUIRE(worker->id == ievent->sock->tid);
+
+	tcpdns_close_direct(ievent->sock);
 }
