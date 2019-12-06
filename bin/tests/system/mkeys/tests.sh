@@ -27,20 +27,6 @@ rndccmd() (
 	"$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "${CONTROLPORT}" -s "$@"
 )
 
-search_log() (
-	msg=$1
-	file=$2
-	nextpart "$file" | grep -F "$msg" > /dev/null
-)
-
-wait_for_log() (
-	msg="$1"
-	file="$2"
-	retry_quiet 20 search_log "$msg" "$file" && return 0
-	echo_i "exceeded time limit waiting for '$msg' in $file"
-	return 1
-)
-
 mkeys_reconfig_on() (
 	nsidx=$1
 	rndccmd "10.53.0.${nsidx}" reconfig . | sed "s/^/ns${nsidx} /" | cat_i
@@ -50,21 +36,21 @@ mkeys_reload_on() (
 	nsidx=$1
 	nextpart "ns${nsidx}"/named.run > /dev/null
 	rndc_reload "ns${nsidx}" "10.53.0.${nsidx}"
-	wait_for_log "loaded serial" "ns${nsidx}"/named.run
+	wait_for_log 20 "loaded serial" "ns${nsidx}"/named.run || return 1
 )
 
 mkeys_loadkeys_on() (
 	nsidx=$1
 	nextpart "ns${nsidx}"/named.run > /dev/null
 	rndccmd "10.53.0.${nsidx}" loadkeys . | sed "s/^/ns${nsidx} /" | cat_i
-	wait_for_log "next key event" "ns${nsidx}"/named.run
+	wait_for_log 20 "next key event" "ns${nsidx}"/named.run || return 1
 )
 
 mkeys_refresh_on() (
 	nsidx=$1
 	nextpart "ns${nsidx}"/named.run > /dev/null
 	rndccmd "10.53.0.${nsidx}" managed-keys refresh | sed "s/^/ns${nsidx} /" | cat_i
-	wait_for_log "Returned from key fetch in keyfetch_done()" "ns${nsidx}"/named.run
+	wait_for_log 20 "Returned from key fetch in keyfetch_done()" "ns${nsidx}"/named.run || return 1
 )
 
 mkeys_sync_on() (
@@ -75,7 +61,7 @@ mkeys_sync_on() (
 	nsidx=$1
 	nextpart "ns${nsidx}"/named.run > /dev/null
 	rndccmd "10.53.0.${nsidx}" managed-keys sync | sed "s/^/ns${nsidx} /" | cat_i
-	wait_for_log "dump_done" "ns${nsidx}"/named.run
+	wait_for_log 20 "dump_done" "ns${nsidx}"/named.run || return 1
 )
 
 mkeys_status_on() (
@@ -322,7 +308,7 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns2
 n=$((n+1))
 echo_i "check that no key from bind.keys is marked as an initializing key ($n)"
 ret=0
-wait_for_log "Returned from key fetch in keyfetch_done()" ns2/named.run || ret=1
+wait_for_log 20 "Returned from key fetch in keyfetch_done()" ns2/named.run || ret=1
 mkeys_secroots_on 2 || ret=1
 grep '; initializing' ns2/named.secroots > /dev/null 2>&1 && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -338,7 +324,7 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns2
 n=$((n+1))
 echo_i "check that standby key is now trusted ($n)"
 ret=0
-wait_for_log "Returned from key fetch in keyfetch_done()" ns2/named.run || ret=1
+wait_for_log 20 "Returned from key fetch in keyfetch_done()" ns2/named.run || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
 # two keys listed
 count=$(grep -c "keyid: " rndc.out.$n) || true
@@ -495,7 +481,7 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns2
 n=$((n+1))
 echo_i "check positive validation ($n)"
 ret=0
-wait_for_log "Returned from key fetch in keyfetch_done()" ns2/named.run || ret=1
+wait_for_log 20 "Returned from key fetch in keyfetch_done()" ns2/named.run || ret=1
 dig_with_opts +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
@@ -591,7 +577,7 @@ rm -f ns1/root.db.signed.jnl
 cp ns1/root.db ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns1
-wait_for_log "all zones loaded" ns1/named.run || ret=1
+wait_for_log 20 "all zones loaded" ns1/named.run || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.2.$n 2>&1 || ret=1
 # one key listed
@@ -625,7 +611,7 @@ rm -f ns1/root.db.signed.jnl
 cat ns1/K*.key >> ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns1
-wait_for_log "all zones loaded" ns1/named.run || ret=1
+wait_for_log 20 "all zones loaded" ns1/named.run || ret=1
 # Less than a second may have passed since the last time ns2 received a
 # ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
 # timestamp to prevent minimal update from resetting it to the same timestamp.
@@ -725,7 +711,7 @@ ret=0
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns5
 nextpart ns5/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns5
-wait_for_log "Returned from key fetch in keyfetch_done()" ns5/named.run || ret=1
+wait_for_log 20 "Returned from key fetch in keyfetch_done()" ns5/named.run || ret=1
 # ns5/named.run will contain logs from both the old instance and the new
 # instance.  In order for the test to pass, both must attempt a fetch.
 count=$(grep -c "Creating key fetch" ns5/named.run) || true
@@ -744,7 +730,7 @@ rm -f ns5/managed-keys.bind*
 cp ns5/named2.args ns5/named.args
 nextpart ns5/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns5
-wait_for_log "Returned from key fetch in keyfetch_done() for '.': failure" ns5/named.run || ret=1
+wait_for_log 20 "Returned from key fetch in keyfetch_done() for '.': failure" ns5/named.run || ret=1
 mkeys_secroots_on 5 || ret=1
 grep '; initializing managed' ns5/named.secroots > /dev/null 2>&1 || ret=1
 # ns1 should still REFUSE queries from ns5, so resolving should be impossible
@@ -757,7 +743,7 @@ copy_setports ns1/named3.conf.in ns1/named.conf
 rm -f ns1/root.db.signed.jnl
 nextpart ns5/named.run > /dev/null
 mkeys_reconfig_on 1 || ret=1
-wait_for_log "Returned from key fetch in keyfetch_done() for '.': success" ns5/named.run || ret=1
+wait_for_log 20 "Returned from key fetch in keyfetch_done() for '.': success" ns5/named.run || ret=1
 mkeys_secroots_on 5 || ret=1
 grep '; managed' ns5/named.secroots > /dev/null || ret=1
 # ns1 should not longer REFUSE queries from ns5, so managed keys should be
@@ -777,7 +763,7 @@ rm -f ns6/managed-keys.bind*
 nextpart ns6/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port "${PORT}" mkeys ns6
 # log when an unsupported algorithm is encountered during startup
-wait_for_log "ignoring initial-key for 'unsupported.': algorithm is unsupported" ns6/named.run || ret=1
+wait_for_log 20 "ignoring initial-key for 'unsupported.': algorithm is unsupported" ns6/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -819,7 +805,7 @@ count=$(grep -c "keyid: " rndc.out.$n) || true
 count=$(grep -c "trust" rndc.out.$n) || true
 [ "$count" -eq 2 ] || ret=1
 # log when an unsupported algorithm is encountered during rollover
-wait_for_log "Cannot compute tag for key in zone .: algorithm is unsupported" ns6/named.run || ret=1
+wait_for_log 20 "Cannot compute tag for key in zone .: algorithm is unsupported" ns6/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

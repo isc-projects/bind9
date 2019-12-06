@@ -40,25 +40,13 @@ rndccmd() {
     "$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "$CONTROLPORT" -s "$@"
 }
 
-# TODO: Move wait_for_log and loadkeys_on to conf.sh.common
-wait_for_log() {
-        msg=$1
-        file=$2
-
-        for i in 1 2 3 4 5 6 7 8 9 10; do
-                nextpart "$file" | grep "$msg" > /dev/null && return
-                sleep 1
-        done
-        echo_i "exceeded time limit waiting for '$msg' in $file"
-        ret=1
-}
-
+# TODO: Move loadkeys_on to conf.sh.common
 dnssec_loadkeys_on() {
 	nsidx=$1
 	zone=$2
 	nextpart ns${nsidx}/named.run > /dev/null
 	rndccmd 10.53.0.${nsidx} loadkeys ${zone} | sed "s/^/ns${nsidx} /" | cat_i
-	wait_for_log "next key event" ns${nsidx}/named.run
+	wait_for_log 20 "next key event" ns${nsidx}/named.run || return 1
 }
 
 # convert private-type records to readable form

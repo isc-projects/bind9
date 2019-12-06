@@ -78,22 +78,11 @@ refresh_tcp_stats() {
 	TCP_HIGH="$(sed -n "s/^TCP high-water: \([0-9][0-9]*\)/\1/p" rndc.out.$n)"
 }
 
-wait_for_log() {
-	msg=$1
-	file=$2
-	for _ in 1 2 3 4 5 6 7 8 9 10; do
-		nextpartpeek "$file" | grep "$msg" > /dev/null && return
-		sleep 1
-	done
-	echo_i "exceeded time limit waiting for '$msg' in $file"
-	ret=1
-}
-
 # Send a command to the tool script listening on 10.53.0.6.
 send_command() {
 	nextpart ans6/ans.run > /dev/null
 	echo "$*" | "${PERL}" "${SYSTEMTESTTOP}/send.pl" 10.53.0.6 "${CONTROLPORT}"
-	wait_for_log "result=" ans6/ans.run
+	wait_for_log_peek 10 "result=" ans6/ans.run || ret=1
 	if ! nextpartpeek ans6/ans.run | grep -qF "result=OK"; then
 		return 1
 	fi
