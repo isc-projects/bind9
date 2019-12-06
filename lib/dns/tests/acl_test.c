@@ -139,8 +139,8 @@ dns_acl_isinsecure_test(void **state) {
 	de->type = dns_aclelementtype_geoip;
 	de->negative = false;
 	assert_true(geoip->length < geoip->alloc);
-	geoip->node_count++;
-	de->node_num = geoip->node_count;
+	dns_acl_node_count(geoip)++;
+	de->node_num = dns_acl_node_count(geoip);
 	geoip->length++;
 
 	result = dns_acl_create(mctx, 1, &notgeoip);
