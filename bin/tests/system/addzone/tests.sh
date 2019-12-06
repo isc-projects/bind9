@@ -15,6 +15,12 @@ SYSTEMTESTTOP=..
 DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +dnssec -p ${PORT}"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
+check_zonestatus() (
+    $RNDCCMD "10.53.0.$1" zonestatus -redirect > "zonestatus.out.ns$1.$n" &&
+    grep "type: redirect" "zonestatus.out.ns$1.$n" > /dev/null &&
+    grep "serial: 1" "zonestatus.out.ns$1.$n" > /dev/null
+)
+
 status=0
 n=0
 
@@ -225,12 +231,7 @@ ret=0
 sleep 1
 cp -f ns1/redirect.db.2 ns1/redirect.db
 $RNDCCMD 10.53.0.1 reload -redirect > rndc.out.ns1.$n
-_check_zonestatus() {
-    $RNDCCMD 10.53.0.1 zonestatus -redirect > zonestatus.out.ns1.$n || return 1
-    grep "type: redirect" zonestatus.out.ns1.$n > /dev/null || return 1
-    grep "serial: 1" zonestatus.out.ns1.$n > /dev/null || return 1
-}
-retry 5 _check_zonestatus || ret=1
+retry 5 check_zonestatus 1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -381,9 +382,7 @@ ret=0
 sleep 1
 cp -f ns2/redirect.db.2 ns2/redirect.db
 $RNDCCMD 10.53.0.2 reload -redirect > rndc.out.ns2.$n
-$RNDCCMD 10.53.0.2 zonestatus -redirect > zonestatus.out.ns2.$n 2>&1 || ret=1
-grep "type: redirect" zonestatus.out.ns2.$n > /dev/null || ret=1
-grep "serial: 1" zonestatus.out.ns2.$n > /dev/null || ret=1
+retry_quiet 5 check_zonestatus 2 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
