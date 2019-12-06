@@ -14,8 +14,6 @@ SYSTEMTESTTOP=..
 
 KEYGEN="$KEYGEN -qr $RANDFILE"
 
-$SHELL clean.sh
-
 ln -s $CHECKZONE named-compilezone
 
 # Test 1: KSK goes inactive before successor is active

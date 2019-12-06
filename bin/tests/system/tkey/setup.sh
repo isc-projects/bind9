@@ -12,8 +12,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL clean.sh
-
 test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 cd ns1 && $SHELL setup.sh

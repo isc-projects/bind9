@@ -14,8 +14,6 @@ SYSTEMTESTTOP=..
 
 KEYGEN="$KEYGEN -qr $RANDFILE"
 
-$SHELL clean.sh
-
 # Test 1: KSK goes inactive before successor is active
 dir=01-ksk-inactive
 echo_i "set up $dir"

@@ -12,8 +12,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL clean.sh
-
 test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 $SHELL ../genzone.sh 2 >ns2/nil.db
