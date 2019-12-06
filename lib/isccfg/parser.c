@@ -1022,7 +1022,8 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 
 	/* If this is not an ISO 8601 duration, just print it as a number. */
 	if (!duration.iso8601) {
-		return (cfg_print_rawuint(pctx, duration.parts[6]));
+		cfg_print_rawuint(pctx, duration.parts[6]);
+		return;
 	}
 
 	/* Calculate length of string. */
