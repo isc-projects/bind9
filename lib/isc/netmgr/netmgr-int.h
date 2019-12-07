@@ -166,12 +166,13 @@ typedef struct isc__nm_uvreq {
 	isc_nmsocket_t *	sock;
 	isc_nmhandle_t *	handle;
 	uv_buf_t		uvbuf;	/* translated isc_region_t, to be
-					   sent or received */
+					 * sent or received */
 	isc_sockaddr_t		local;	/* local address */
 	isc_sockaddr_t		peer;	/* peer address */
 	isc__nm_cb_t		cb;	/* callback */
 	void *			cbarg;	/* callback argument */
-	uv_pipe_t		pipe;
+	uv_pipe_t		ipc;	/* used for sending socket
+					 * uv_handles to other threads */
 	union {
 		uv_req_t		req;
 		uv_getaddrinfo_t	getaddrinfo;

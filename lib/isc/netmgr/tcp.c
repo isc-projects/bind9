@@ -57,7 +57,7 @@ ipc_connection_cb(uv_stream_t *stream, int status);
 static void
 ipc_write_cb(uv_write_t *uvreq, int status);
 static void
-parent_pipe_close_cb(uv_handle_t *handle);
+ipc_close_cb(uv_handle_t *handle);
 static void
 childlisten_ipc_connect_cb(uv_connect_t *uvreq, int status);
 static void
@@ -149,8 +149,7 @@ isc_result_t
 isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 		 isc_nm_cb_t cb, void *cbarg,
 		 size_t extrahandlesize, int backlog,
-		 isc_quota_t *quota,
-		 isc_nmsocket_t **sockp)
+		 isc_quota_t *quota, isc_nmsocket_t **sockp)
 {
 	isc_nmsocket_t *nsock = NULL;
 	isc__netievent_tcplisten_t *ievent = NULL;
@@ -224,12 +223,15 @@ syncdir(const isc_nmsocket_t *sock) {
 #endif
 
 /*
- * For TCP listening, we create a single socket, bind it, and then
- * pass it to `ncpu` child sockets - the passing is done over IPC.
+ * For multi-threaded TCP listening, we create a single "parent" socket,
+ * bind to it, and then pass its uv_handle to a set of child sockets, one
+ * per worker. For thread safety, the passing of the socket's uv_handle has
+ * to be done via IPC socket.
  *
- * XXXWPK This design pattern is ugly but it's "the way to do it" recommended
- * by libuv documentation - which also mentions that there should be
- * uv_export/uv_import functions, which would simplify this greatly.
+ * This design pattern is ugly but it's what's recommended by the libuv
+ * documentation.  (A prior version of libuv had uv_export() and
+ * uv_import() functions which would have simplified this greatly, but
+ * they have been deprecated and removed.)
  */
 void
 isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
@@ -276,24 +278,26 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
 
 	/*
-	 * This is not properly documented in libuv, and the example
-	 * (benchmark-multi-accept) is wrong:
+	 * uv_pipe_init() is incorrectly documented in libuv, and the
+	 * example in benchmark-multi-accept.c is also wrong.
 	 *
-	 * 'ipc' parameter must be '0' for 'listening' IPC socket, '1'
-	 * only for the sockets are really passing the FDs between
-	 * threads. This works without any problems on Unices, but
-	 * breaks horribly on Windows.
+	 * The third parameter ('ipc') indicates that the pipe will be
+	 * used to *send* a handle to other threads. Therefore, it must
+	 * must be set to 0 for a 'listening' IPC socket, and 1
+	 * only for sockets that are really passing FDs between
+	 * threads.
 	 */
 	r = uv_pipe_init(&worker->loop, &sock->ipc, 0);
-	INSIST(r == 0);
+	RUNTIME_CHECK(r == 0);
 
 	uv_handle_set_data((uv_handle_t *)&sock->ipc, sock);
 	r = uv_pipe_bind(&sock->ipc, sock->ipc_pipe_name);
-	INSIST(r == 0);
+	RUNTIME_CHECK(r == 0);
 
 	r = uv_listen((uv_stream_t *) &sock->ipc, sock->nchildren,
 		      ipc_connection_cb);
-	INSIST(r == 0);
+	RUNTIME_CHECK(r == 0);
+
 #ifndef WIN32
 	/*
 	 * On Unices a child thread might not see the pipe yet;
@@ -305,9 +309,11 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	 */
 	syncdir(sock);
 #endif
+
 	/*
-	 * We launch n 'tcpchildlistener' that will receive
-	 * sockets to be listened on over ipc.
+	 * For each worker we send a 'tcpchildlisten' event. The child
+	 * listener will then receive its version of the socket
+	 * uv_handle via IPC in isc__nm_async_tcpchildlisten().
 	 */
 	for (int i = 0; i < sock->nchildren; i++) {
 		isc_nmsocket_t *csock = &sock->children[i];
@@ -336,7 +342,8 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 }
 
 /*
- * Parent received an IPC connection from child
+ * The parent received an IPC connection from a child and can now send
+ * the uv_handle to the child for listening.
  */
 static void
 ipc_connection_cb(uv_stream_t *stream, int status) {
@@ -352,21 +359,22 @@ ipc_connection_cb(uv_stream_t *stream, int status) {
 	 * be something that won't disappear.
 	 */
 	nreq->uvbuf = uv_buf_init((char *)nreq, 1);
-	uv_pipe_init(&worker->loop, &nreq->pipe, 1);
-	uv_handle_set_data((uv_handle_t *)&nreq->pipe, nreq);
+	uv_pipe_init(&worker->loop, &nreq->ipc, 1);
+	uv_handle_set_data((uv_handle_t *)&nreq->ipc, nreq);
 
-	/* Failure here is critical */
-	r = uv_accept((uv_stream_t *) &sock->ipc,
-		      (uv_stream_t *) &nreq->pipe);
-	INSIST(r == 0);
+	r = uv_accept((uv_stream_t *) &sock->ipc, (uv_stream_t *) &nreq->ipc);
+	RUNTIME_CHECK(r == 0);
 
 	r = uv_write2(&nreq->uv_req.write,
-		      (uv_stream_t *) &nreq->pipe, &nreq->uvbuf, 1,
-		      (uv_stream_t *) &sock->uv_handle.stream,
-		      ipc_write_cb);
-	INSIST(r == 0);
+		      (uv_stream_t *) &nreq->ipc, &nreq->uvbuf, 1,
+		      (uv_stream_t *) &sock->uv_handle.stream, ipc_write_cb);
+	RUNTIME_CHECK(r == 0);
 }
 
+/*
+ * The call to send a socket uv_handle is complete; we may be able
+ * to close the IPC connection.
+ */
 static void
 ipc_write_cb(uv_write_t *uvreq, int status) {
 	isc__nm_uvreq_t *req = uvreq->data;
@@ -374,23 +382,30 @@ ipc_write_cb(uv_write_t *uvreq, int status) {
 	UNUSED(status);
 
 	/*
-	 * We want all children to get the socket. If we're done, we
-	 * can stop listening on the IPC socket.
+	 * We want all children to get the socket. Once that's done,
+	 * we can stop listening on the IPC socket.
 	 */
 	if (atomic_fetch_add(&req->sock->schildren, 1) ==
 	    req->sock->nchildren - 1)
 	{
 		uv_close((uv_handle_t *) &req->sock->ipc, NULL);
 	}
-	uv_close((uv_handle_t *) &req->pipe, parent_pipe_close_cb);
+	uv_close((uv_handle_t *) &req->ipc, ipc_close_cb);
 }
 
+/*
+ * The IPC socket is closed: free its resources.
+ */
 static void
-parent_pipe_close_cb(uv_handle_t *handle) {
+ipc_close_cb(uv_handle_t *handle) {
 	isc__nm_uvreq_t *req = uv_handle_get_data(handle);
 	isc__nm_uvreq_put(&req, req->sock);
 }
 
+/*
+ * Connect to the parent socket and be ready to receive the uv_handle
+ * for the socket we'll be listening on.
+ */
 void
 isc__nm_async_tcpchildlisten(isc__networker_t *worker,
 			     isc__netievent_t *ievent0)
@@ -405,7 +420,7 @@ isc__nm_async_tcpchildlisten(isc__networker_t *worker,
 	REQUIRE(sock->type == isc_nm_tcpchildlistener);
 
 	r = uv_pipe_init(&worker->loop, &sock->ipc, 1);
-	INSIST(r == 0);
+	RUNTIME_CHECK(r == 0);
 
 	uv_handle_set_data((uv_handle_t *) &sock->ipc, sock);
 
@@ -415,7 +430,7 @@ isc__nm_async_tcpchildlisten(isc__networker_t *worker,
 			childlisten_ipc_connect_cb);
 }
 
-/* Child connected to parent over IPC */
+/* Child is now connected to parent via IPC and can begin reading. */
 static void
 childlisten_ipc_connect_cb(uv_connect_t *uvreq, int status) {
 	isc__nm_uvreq_t *req = uvreq->data;
@@ -428,10 +443,13 @@ childlisten_ipc_connect_cb(uv_connect_t *uvreq, int status) {
 
 	r = uv_read_start((uv_stream_t *) &sock->ipc, isc__nm_alloc_cb,
 			  childlisten_read_cb);
-	INSIST(r == 0);
+	RUNTIME_CHECK(r == 0);
 }
 
-/* Child received the socket via IPC */
+/*
+ * Child has received the socket uv_handle via IPC, and can now begin
+ * listening for connections and can close the IPC socket.
+ */
 static void
 childlisten_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *) stream);
@@ -459,7 +477,10 @@ childlisten_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 		      tcp_connection_cb);
 	uv_close((uv_handle_t *) ipc, NULL);
 	if (r != 0) {
-		/* XXX log it? */
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+			      "IPC socket close failed: %s",
+			      isc_result_totext(isc__nm_uverr2result(r)));
 		return;
 	}
 }

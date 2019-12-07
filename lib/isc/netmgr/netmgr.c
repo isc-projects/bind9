@@ -338,9 +338,9 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 	 */
 	while (isc_refcount_current(&mgr->references) > 1) {
 #ifdef WIN32
-			_sleep(1000);
+		_sleep(1000);
 #else
-			usleep(1000000);
+		usleep(1000000);
 #endif
 	}
 
