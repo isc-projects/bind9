@@ -89,6 +89,7 @@ dnstcp_readtimeout(uv_timer_t *timer) {
 		(isc_nmsocket_t *) uv_handle_get_data((uv_handle_t *) timer);
 
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_nm_tid());
 
 	isc_nmsocket_detach(&sock->outer);
 	uv_close((uv_handle_t *) &sock->timer, timer_close_cb);
@@ -202,6 +203,7 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 
 	REQUIRE(VALID_NMSOCK(dnssock));
 	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(dnssock->tid == isc_nm_tid());
 
 	if (region == NULL) {
 		/* Connection closed */
@@ -490,6 +492,7 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 
 static void
 tcpdns_close_direct(isc_nmsocket_t *sock) {
+	REQUIRE(sock->tid == isc_nm_tid());
 	if (sock->outer != NULL) {
 		isc_nmsocket_detach(&sock->outer);
 	}
