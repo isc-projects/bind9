@@ -494,6 +494,7 @@ static void
 tcpdns_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	if (sock->outer != NULL) {
+		sock->outer->rcb.recv = NULL;
 		isc_nmsocket_detach(&sock->outer);
 	}
 	/* We don't need atomics here, it's all in single network thread */

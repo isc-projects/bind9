@@ -765,10 +765,14 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 			.base = (unsigned char *) buf->base,
 			.length = nread
 		};
-
-		INSIST(sock->rcb.recv != NULL);
-		sock->rcb.recv(sock->tcphandle, &region, sock->rcbarg);
-
+		/*
+		 * This might happen if the inner socket is closing.
+		 * It means that it's detached, so the socket will
+		 * be closed.
+		 */
+		if (sock->rcb.recv != NULL) {
+			sock->rcb.recv(sock->tcphandle, &region, sock->rcbarg);
+		}
 		sock->read_timeout = (atomic_load(&sock->keepalive)
 				      ? sock->mgr->keepalive
 				      : sock->mgr->idle);
@@ -786,8 +790,14 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	if (sock->quota) {
 		isc_quota_detach(&sock->quota);
 	}
-	sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
-
+	/*
+	 * This might happen if the inner socket is closing.
+	 * It means that it's detached, so the socket will
+	 * be closed.
+	 */
+	if (sock->rcb.recv != NULL) {
+		sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
+	}
 	/*
 	 * We don't need to clean up now; the socket will be closed and
 	 * resources and quota reclaimed when handle is freed in
@@ -1067,7 +1077,9 @@ void
 isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
-	if (sock->type == isc_nm_tcpsocket && sock->tcphandle != NULL) {
+	if (sock->type == isc_nm_tcpsocket &&
+	    sock->tcphandle != NULL &&
+	    sock->rcb.recv != NULL) {
 		sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
 	}
 }
