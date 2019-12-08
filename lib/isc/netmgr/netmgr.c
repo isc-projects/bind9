@@ -337,6 +337,14 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 	 * Wait for the manager to be dereferenced elsewhere.
 	 */
 	while (isc_refcount_current(&mgr->references) > 1) {
+		/*
+		 * Sometimes libuv gets stuck, pausing and unpausing
+		 * netmgr goes over all events in async queue for all
+		 * the workers, and since it's done only on shutdown it
+		 * doesn't cost us anything.
+		 */
+		isc_nm_pause(mgr);
+		isc_nm_resume(mgr);
 #ifdef WIN32
 		_sleep(1000);
 #else
