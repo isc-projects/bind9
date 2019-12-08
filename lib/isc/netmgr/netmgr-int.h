@@ -199,7 +199,6 @@ typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
 typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
-typedef isc__netievent__socket_t isc__netievent_closecb_t;
 
 typedef struct isc__netievent__socket_req {
 	isc__netievent_type	type;
@@ -211,6 +210,15 @@ typedef isc__netievent__socket_req_t isc__netievent_tcpconnect_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcplisten_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcpchildlisten_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcpsend_t;
+
+typedef struct isc__netievent__socket_handle {
+	isc__netievent_type	type;
+	isc_nmsocket_t		*sock;
+	isc_nmhandle_t		*handle;
+} isc__netievent__socket_handle_t;
+
+typedef isc__netievent__socket_handle_t isc__netievent_closecb_t;
+
 
 typedef struct isc__netievent_udpsend {
 	isc__netievent_type	type;

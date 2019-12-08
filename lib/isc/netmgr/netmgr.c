@@ -713,10 +713,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 
 static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
-	int active_handles = 0;
+	int active_handles;
 	bool destroy = false;
-
-	REQUIRE(!isc__nmsocket_active(sock));
 
 	if (sock->parent != NULL) {
 		/*
@@ -734,7 +732,13 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 	 * accept destruction.
 	 */
 	LOCK(&sock->lock);
-	active_handles += atomic_load(&sock->ah);
+	if (atomic_load(&sock->active) || atomic_load(&sock->destroying) ||
+	    !atomic_load(&sock->closed) || atomic_load(&sock->references) != 0) {
+		UNLOCK(&sock->lock);
+		return;
+	}
+
+	active_handles = atomic_load(&sock->ah);
 	if (sock->children != NULL) {
 		for (int i = 0; i < sock->nchildren; i++) {
 			LOCK(&sock->children[i].lock);
@@ -743,9 +747,7 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 		}
 	}
 
-	if (atomic_load(&sock->closed) &&
-	    atomic_load(&sock->references) == 0 &&
-	    (active_handles == 0 || sock->tcphandle != NULL))
+	if (active_handles == 0 || sock->tcphandle != NULL)
 	{
 		destroy = true;
 	}
@@ -1029,12 +1031,37 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	isc_mem_put(sock->mgr->mctx, handle, sizeof(isc_nmhandle_t) + extra);
 }
 
+static void
+nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
+	/*
+	 * We do all of this under lock to avoid races with socket
+	 * destruction.  We have to do this now, because at this point the
+	 * socket is either unused or still attached to event->sock.
+	 */
+	LOCK(&sock->lock);
+
+	INSIST(sock->ah_handles[handle->ah_pos] == handle);
+	INSIST(sock->ah_size > handle->ah_pos);
+	INSIST(atomic_load(&sock->ah) > 0);
+
+	sock->ah_handles[handle->ah_pos] = NULL;
+	size_t handlenum = atomic_fetch_sub(&sock->ah, 1) - 1;
+	sock->ah_frees[handlenum] = handle->ah_pos;
+	handle->ah_pos = 0;
+	bool reuse = false;
+	if (atomic_load(&sock->active)) {
+		reuse = isc_astack_trypush(sock->inactivehandles,
+					   handle);
+	}
+	if (!reuse) {
+		nmhandle_free(sock, handle);
+	}
+	UNLOCK(&sock->lock);
+}
+
 void
 isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;
-	size_t handlenum;
-	bool reuse = false;
-	bool do_close = true;
 	int refs;
 
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -1065,50 +1092,21 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 				isc__nm_get_ievent(sock->mgr,
 						   netievent_closecb);
 			isc_nmsocket_attach(sock, &event->sock);
+			event->handle = handle;
 			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 					       (isc__netievent_t *) event);
 
 			/*
 			 * If we're doing this asynchronously, then the
-			 * async event will take care of closing the
-			 * socket, so we can clean up the handle
-			 * from the socket, but skip calling
-			 * nmsocket_maybe_destory()
+			 * async event will take care of cleaning up the
+			 * handle and closing the socket.
 			 */
-			do_close = false;
+			return;
 		}
 	}
 
-	/*
-	 * We do all of this under lock to avoid races with socket
-	 * destruction.  We have to do this now, because at this point the
-	 * socket is either unused or still attached to event->sock.
-	 */
-	LOCK(&sock->lock);
-
-	INSIST(sock->ah_handles[handle->ah_pos] == handle);
-	INSIST(sock->ah_size > handle->ah_pos);
-	INSIST(atomic_load(&sock->ah) > 0);
-
-	sock->ah_handles[handle->ah_pos] = NULL;
-	handlenum = atomic_fetch_sub(&sock->ah, 1) - 1;
-	sock->ah_frees[handlenum] = handle->ah_pos;
-	handle->ah_pos = 0;
-
-	if (atomic_load(&sock->active)) {
-		reuse = isc_astack_trypush(sock->inactivehandles,
-					   handle);
-	}
-	if (!reuse) {
-		nmhandle_free(sock, handle);
-	}
-	UNLOCK(&sock->lock);
-
-	if (do_close && atomic_load(&sock->ah) == 0 &&
-	    !atomic_load(&sock->active) && !atomic_load(&sock->destroying))
-	{
-		nmsocket_maybe_destroy(sock);
-	}
+	nmhandle_deactivate(sock, handle);
+	nmsocket_maybe_destroy(sock);
 }
 
 void *
@@ -1249,6 +1247,8 @@ isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	REQUIRE(ievent->sock->closehandle_cb != NULL);
 
 	UNUSED(worker);
+
+	nmhandle_deactivate(ievent->sock, ievent->handle);
 
 	ievent->sock->closehandle_cb(ievent->sock);
 	isc_nmsocket_detach(&ievent->sock);
