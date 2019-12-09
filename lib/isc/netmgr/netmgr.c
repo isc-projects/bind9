@@ -525,8 +525,8 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_udplisten:
 			isc__nm_async_udplisten(worker, ievent);
 			break;
-		case netievent_udpstoplisten:
-			isc__nm_async_udpstoplisten(worker, ievent);
+		case netievent_udpstop:
+			isc__nm_async_udpstop(worker, ievent);
 			break;
 		case netievent_udpsend:
 			isc__nm_async_udpsend(worker, ievent);
@@ -549,11 +549,11 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcpsend:
 			isc__nm_async_tcpsend(worker, ievent);
 			break;
-		case netievent_tcpstoplisten:
-			isc__nm_async_tcpstoplisten(worker, ievent);
+		case netievent_tcpstop:
+			isc__nm_async_tcpstop(worker, ievent);
 			break;
-		case netievent_tcpstopchildlisten:
-			isc__nm_async_tcpstopchildlisten(worker, ievent);
+		case netievent_tcpchildstop:
+			isc__nm_async_tcpchildstop(worker, ievent);
 			break;
 		case netievent_tcpclose:
 			isc__nm_async_tcpclose(worker, ievent);
@@ -1238,9 +1238,9 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region,
 }
 
 void
-isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_closecb_t *ievent =
-		(isc__netievent_closecb_t *) ievent0;
+		(isc__netievent_closecb_t *) ev0;
 
 	REQUIRE(VALID_NMSOCK(ievent->sock));
 	REQUIRE(ievent->sock->tid == isc_nm_tid());
@@ -1268,8 +1268,8 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 }
 
 void
-isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ievent0) {
-	UNUSED(ievent0);
+isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0) {
+	UNUSED(ev0);
 	uv_walk(&worker->loop, shutdown_walk_cb, NULL);
 }
 

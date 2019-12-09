@@ -523,9 +523,9 @@ isc__nm_tcpdns_close(isc_nmsocket_t *sock) {
 }
 
 void
-isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcpdnsclose_t *ievent =
-		(isc__netievent_tcpdnsclose_t *) ievent0;
+		(isc__netievent_tcpdnsclose_t *) ev0;
 
 	REQUIRE(worker->id == ievent->sock->tid);
 

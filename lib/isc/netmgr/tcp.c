@@ -95,9 +95,9 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 }
 
 void
-isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcpconnect_t *ievent =
-		(isc__netievent_tcpconnect_t *) ievent0;
+		(isc__netievent_tcpconnect_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 	isc__nm_uvreq_t *req = ievent->req;
 	int r;
@@ -234,9 +234,9 @@ syncdir(const isc_nmsocket_t *sock) {
  * they have been deprecated and removed.)
  */
 void
-isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcplisten_t *ievent =
-		(isc__netievent_tcplisten_t *) ievent0;
+		(isc__netievent_tcplisten_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 	int r;
 
@@ -407,11 +407,9 @@ ipc_close_cb(uv_handle_t *handle) {
  * for the socket we'll be listening on.
  */
 void
-isc__nm_async_tcpchildlisten(isc__networker_t *worker,
-			     isc__netievent_t *ievent0)
-{
-	isc__netievent_tcplisten_t *ievent =
-		(isc__netievent_tcplisten_t *) ievent0;
+isc__nm_async_tcpchildlisten(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpchildlisten_t *ievent =
+		(isc__netievent_tcpchildlisten_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 	isc__nm_uvreq_t *req = NULL;
 	int r;
@@ -488,23 +486,20 @@ childlisten_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
 void
 isc_nm_tcp_stoplistening(isc_nmsocket_t *sock) {
-	isc__netievent_tcpstoplisten_t *ievent = NULL;
+	isc__netievent_tcpstop_t *ievent = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(!isc__nm_in_netthread());
 
-	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpstoplisten);
+	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpstop);
 	isc_nmsocket_attach(sock, &ievent->sock);
 	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 			       (isc__netievent_t *) ievent);
 }
 
 void
-isc__nm_async_tcpstoplisten(isc__networker_t *worker,
-			    isc__netievent_t *ievent0)
-{
-	isc__netievent_tcpstoplisten_t *ievent =
-		(isc__netievent_tcpstoplisten_t *) ievent0;
+isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpstop_t *ievent = (isc__netievent_tcpstop_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	UNUSED(worker);
@@ -517,10 +512,10 @@ isc__nm_async_tcpstoplisten(isc__networker_t *worker,
 	 * If network manager is interlocked, re-enqueue the event for later.
 	 */
 	if (!isc__nm_acquire_interlocked(sock->mgr)) {
-		isc__netievent_tcpstoplisten_t *event = NULL;
+		isc__netievent_tcpstop_t *event = NULL;
 
 		event = isc__nm_get_ievent(sock->mgr,
-					   netievent_tcpstoplisten);
+					   netievent_tcpstop);
 		event->sock = sock;
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *) event);
@@ -533,20 +528,18 @@ isc__nm_async_tcpstoplisten(isc__networker_t *worker,
 static void
 stoplistening(isc_nmsocket_t *sock) {
 	for (int i = 0; i < sock->nchildren; i++) {
-		isc__netievent_tcpstopchildlisten_t *event = NULL;
+		isc__netievent_tcpchildstop_t *event = NULL;
 
 		/*
 		 * We can ignore the overhead of event allocation because
 		 * stoplistening is a rare event, and doing it this way
 		 * simplifies sock reference counting.
 		 */
-		event = isc__nm_get_ievent(sock->mgr,
-					   netievent_tcpstopchildlisten);
+		event = isc__nm_get_ievent(sock->mgr, netievent_tcpchildstop);
 		isc_nmsocket_attach(&sock->children[i], &event->sock);
 
 		if (i == sock->tid) {
-			isc__nm_async_tcpstopchildlisten(
-						   &sock->mgr->workers[i],
+			isc__nm_async_tcpchildstop(&sock->mgr->workers[i],
 						   (isc__netievent_t *) event);
 			isc__nm_put_ievent(sock->mgr, event);
 		} else {
@@ -564,11 +557,9 @@ stoplistening(isc_nmsocket_t *sock) {
 }
 
 void
-isc__nm_async_tcpstopchildlisten(isc__networker_t *worker,
-				 isc__netievent_t *ievent0)
-{
-	isc__netievent_tcpstoplisten_t *ievent =
-		(isc__netievent_tcpstoplisten_t *) ievent0;
+isc__nm_async_tcpchildstop(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpchildstop_t *ievent =
+		(isc__netievent_tcpchildstop_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	UNUSED(worker);
@@ -665,9 +656,9 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 }
 
 void
-isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_startread_t *ievent =
-		(isc__netievent_startread_t *) ievent0;
+		(isc__netievent_startread_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(worker->id == isc_nm_tid());
@@ -711,9 +702,9 @@ isc_nm_pauseread(isc_nmsocket_t *sock) {
 }
 
 void
-isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_pauseread_t *ievent =
-		(isc__netievent_pauseread_t *) ievent0;
+		(isc__netievent_pauseread_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -957,9 +948,9 @@ tcp_send_cb(uv_write_t *req, int status) {
  * Handle 'tcpsend' async event - send a packet on the socket
  */
 void
-isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_result_t result;
-	isc__netievent_tcpsend_t *ievent = (isc__netievent_tcpsend_t *) ievent0;
+	isc__netievent_tcpsend_t *ievent = (isc__netievent_tcpsend_t *) ev0;
 
 	REQUIRE(worker->id == ievent->sock->tid);
 
@@ -1064,9 +1055,8 @@ isc__nm_tcp_close(isc_nmsocket_t *sock) {
 }
 
 void
-isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ievent0) {
-	isc__netievent_tcpclose_t *ievent =
-		(isc__netievent_tcpclose_t *) ievent0;
+isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpclose_t *ievent = (isc__netievent_tcpclose_t *) ev0;
 
 	REQUIRE(worker->id == ievent->sock->tid);
 

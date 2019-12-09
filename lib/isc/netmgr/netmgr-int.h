@@ -115,12 +115,12 @@ typedef enum isc__netievent_type {
 	netievent_tcpstartread,
 	netievent_tcppauseread,
 	netievent_tcpchildlisten,
-	netievent_tcpstopchildlisten,
+	netievent_tcpchildstop,
 	netievent_closecb,
 	netievent_shutdown,
 	netievent_stop,
-	netievent_udpstoplisten,
-	netievent_tcpstoplisten,
+	netievent_udpstop,
+	netievent_tcpstop,
 	netievent_tcpclose,
 	netievent_tcpdnsclose,
 	netievent_prio = 0xff,	/* event type values higher than this
@@ -192,9 +192,9 @@ typedef struct isc__netievent__socket {
 } isc__netievent__socket_t;
 
 typedef isc__netievent__socket_t isc__netievent_udplisten_t;
-typedef isc__netievent__socket_t isc__netievent_udpstoplisten_t;
-typedef isc__netievent__socket_t isc__netievent_tcpstoplisten_t;
-typedef isc__netievent__socket_t isc__netievent_tcpstopchildlisten_t;
+typedef isc__netievent__socket_t isc__netievent_udpstop_t;
+typedef isc__netievent__socket_t isc__netievent_tcpstop_t;
+typedef isc__netievent__socket_t isc__netievent_tcpchildstop_t;
 typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
 typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
@@ -566,13 +566,13 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Issue a 'handle closed' callback on the socket.
  */
 
 void
-isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Walk through all uv handles, get the underlying sockets and issue
  * close on them.
@@ -586,13 +586,12 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
  */
 
 void
-isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
-isc__nm_async_udpstoplisten(isc__networker_t *worker,
-			    isc__netievent_t *ievent0);
+isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous UDP events (listen, stoplisten, send).
  */
@@ -617,26 +616,23 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcpchildlisten(isc__networker_t *worker,
-			     isc__netievent_t *ievent0);
+isc__nm_async_tcpchildlisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcpstoplisten(isc__networker_t *worker,
-			    isc__netievent_t *ievent0);
+isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcpstopchildlisten(isc__networker_t *worker,
-				 isc__netievent_t *ievent0);
+isc__nm_async_tcpchildstop(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous TCP events (connect, listen,
  * stoplisten, send, read, pause, close).
@@ -656,7 +652,7 @@ isc__nm_tcpdns_close(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__)

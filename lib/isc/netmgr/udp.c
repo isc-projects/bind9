@@ -115,9 +115,9 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface,
  * handle 'udplisten' async call - start listening on a socket.
  */
 void
-isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_udplisten_t *ievent =
-		(isc__netievent_udplisten_t *) ievent0;
+		(isc__netievent_udplisten_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(sock->type == isc_nm_udpsocket);
@@ -173,14 +173,14 @@ stoplistening(isc_nmsocket_t *sock) {
 	INSIST(sock->type == isc_nm_udplistener);
 
 	for (int i = 0; i < sock->nchildren; i++) {
-		isc__netievent_udpstoplisten_t *event = NULL;
+		isc__netievent_udpstop_t *event = NULL;
 
 		if (i == sock->tid) {
 			stop_udp_child(&sock->children[i]);
 			continue;
 		}
 
-		event = isc__nm_get_ievent(sock->mgr, netievent_udpstoplisten);
+		event = isc__nm_get_ievent(sock->mgr, netievent_udpstop);
 		event->sock = &sock->children[i];
 		isc__nm_enqueue_ievent(&sock->mgr->workers[i],
 				       (isc__netievent_t *) event);
@@ -198,7 +198,7 @@ stoplistening(isc_nmsocket_t *sock) {
 
 void
 isc_nm_udp_stoplistening(isc_nmsocket_t *sock) {
-	isc__netievent_udpstoplisten_t *ievent = NULL;
+	isc__netievent_udpstop_t *ievent = NULL;
 
 	/* We can't be launched from network thread, we'd deadlock */
 	REQUIRE(!isc__nm_in_netthread());
@@ -210,7 +210,7 @@ isc_nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	 * event. Otherwise, go ahead and stop listening right away.
 	 */
 	if (!isc__nm_acquire_interlocked(sock->mgr)) {
-		ievent = isc__nm_get_ievent(sock->mgr, netievent_udpstoplisten);
+		ievent = isc__nm_get_ievent(sock->mgr, netievent_udpstop);
 		ievent->sock = sock;
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *) ievent);
@@ -221,14 +221,11 @@ isc_nm_udp_stoplistening(isc_nmsocket_t *sock) {
 }
 
 /*
- * handle 'udpstoplisten' async call - stop listening on a socket.
+ * handle 'udpstop' async call - stop listening on a socket.
  */
 void
-isc__nm_async_udpstoplisten(isc__networker_t *worker,
-			    isc__netievent_t *ievent0)
-{
-	isc__netievent_udplisten_t *ievent =
-		(isc__netievent_udplisten_t *) ievent0;
+isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_udpstop_t *ievent = (isc__netievent_udpstop_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(sock->iface != NULL);
@@ -248,7 +245,7 @@ isc__nm_async_udpstoplisten(isc__networker_t *worker,
 	if (!isc__nm_acquire_interlocked(sock->mgr)) {
 		isc__netievent_udplisten_t *event = NULL;
 
-		event = isc__nm_get_ievent(sock->mgr, netievent_udpstoplisten);
+		event = isc__nm_get_ievent(sock->mgr, netievent_udpstop);
 		event->sock = sock;
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *) event);
@@ -407,9 +404,9 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
  * handle 'udpsend' async event - send a packet on the socket
  */
 void
-isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_udpsend_t *ievent =
-		(isc__netievent_udpsend_t *) ievent0;
+		(isc__netievent_udpsend_t *) ev0;
 
 	REQUIRE(worker->id == ievent->sock->tid);
 
