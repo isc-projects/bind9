@@ -240,13 +240,13 @@ key_states() {
 # KEY_FILE="${BASE_FILE}.key"
 # PRIVATE_FILE="${BASE_FILE}.private"
 # STATE_FILE="${BASE_FILE}.state"
-# KEY_ID=$(echo $1 | sed 's/^0*//')
+# KEY_ID=$(echo $1 | sed 's/^0\{0,4\}//')
 check_key() {
 	_dir="$DIR"
 	_zone="$ZONE"
 	_role=$(key_get "$1" ROLE)
 	_key_idpad="$2"
-	_key_id=$(echo "$_key_idpad" | sed 's/^0*//')
+	_key_id=$(echo "$_key_idpad" | sed 's/^0\{0,4\}//')
 	_alg_num=$(key_get "$1" ALG_NUM)
 	_alg_numpad=$(printf "%03d" "$_alg_num")
 	_alg_string=$(key_get "$1" ALG_STR)
@@ -288,7 +288,7 @@ check_key() {
 	PRIVATE_FILE="${BASE_FILE}.private"
 	STATE_FILE="${BASE_FILE}.state"
 	KEY_ID="${_key_id}"
-	
+
 	test $_log -eq 1 && echo_i "check key $BASE_FILE"
 
 	# Check the public key file.
@@ -409,12 +409,12 @@ check_key() {
 # KEY_FILE="${BASE_FILE}.key"
 # PRIVATE_FILE="${BASE_FILE}.private"
 # STATE_FILE="${BASE_FILE}.state"
-# KEY_ID=$(echo $1 | sed 's/^0*//')
+# KEY_ID=$(echo $1 | sed 's/^0\{0,4\}//')
 key_unused() {
 	_dir=$DIR
 	_zone=$ZONE
 	_key_idpad=$1
-	_key_id=$(echo "$_key_idpad" | sed 's/^0*//')
+	_key_id=$(echo "$_key_idpad" | sed 's/^0\{0,4\}//')
 	_alg_num=$(key_get KEY1 ALG_NUM)
         _alg_numpad=$(printf "%03d" "$_alg_num")
 
