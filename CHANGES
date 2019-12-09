@@ -1,3 +1,5 @@
+5335.	[func]		Make TCP listening code multithreaded. [GL !2659]
+
 5334.	[doc]		Update documentation with dnssec-policy clarifications.
 			Also change some defaults.
 
