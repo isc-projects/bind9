@@ -29,6 +29,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include "uv-compat.h"
 #include "netmgr-int.h"
 
 /*
@@ -42,6 +43,12 @@
 
 ISC_THREAD_LOCAL int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
 
+#ifdef WIN32
+#define NAMED_PIPE_PATTERN "\\\\.\\pipe\\named-%d-%u.pipe"
+#else
+#define NAMED_PIPE_PATTERN "/tmp/named-%d-%u.pipe"
+#endif
+
 static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock);
 static void
@@ -50,6 +57,8 @@ static void *
 nm_thread(void *worker0);
 static void
 async_cb(uv_async_t *handle);
+static void
+process_queue(isc__networker_t *worker, isc_queue_t *queue);
 
 int
 isc_nm_tid() {
@@ -128,6 +137,7 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 		isc_condition_init(&worker->cond);
 
 		worker->ievents = isc_queue_new(mgr->mctx, 128);
+		worker->ievents_prio = isc_queue_new(mgr->mctx, 128);
 
 		/*
 		 * We need to do this here and not in nm_thread to avoid a
@@ -175,17 +185,29 @@ nm_destroy(isc_nm_t **mgr0) {
 	UNLOCK(&mgr->lock);
 
 	for (size_t i = 0; i < mgr->nworkers; i++) {
-		/* Empty the async event queue */
-		isc__netievent_t *ievent;
+		isc__networker_t *worker = &mgr->workers[i];
+		isc__netievent_t *ievent = NULL;
+		int r;
+
+		/* Empty the async event queues */
 		while ((ievent = (isc__netievent_t *)
-			isc_queue_dequeue(mgr->workers[i].ievents)) != NULL)
+			isc_queue_dequeue(worker->ievents)) != NULL)
 		{
 			isc_mempool_put(mgr->evpool, ievent);
 		}
-		int r = uv_loop_close(&mgr->workers[i].loop);
+
+		while ((ievent = (isc__netievent_t *)
+			isc_queue_dequeue(worker->ievents_prio)) != NULL)
+		{
+			isc_mempool_put(mgr->evpool, ievent);
+		}
+
+		r = uv_loop_close(&worker->loop);
 		INSIST(r == 0);
-		isc_queue_destroy(mgr->workers[i].ievents);
-		isc_thread_join(mgr->workers[i].thread, NULL);
+
+		isc_queue_destroy(worker->ievents);
+		isc_queue_destroy(worker->ievents_prio);
+		isc_thread_join(worker->thread, NULL);
 	}
 
 	isc_condition_destroy(&mgr->wkstatecond);
@@ -315,10 +337,18 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 	 * Wait for the manager to be dereferenced elsewhere.
 	 */
 	while (isc_refcount_current(&mgr->references) > 1) {
+		/*
+		 * Sometimes libuv gets stuck, pausing and unpausing
+		 * netmgr goes over all events in async queue for all
+		 * the workers, and since it's done only on shutdown it
+		 * doesn't cost us anything.
+		 */
+		isc_nm_pause(mgr);
+		isc_nm_resume(mgr);
 #ifdef WIN32
-			_sleep(1000);
+		_sleep(1000);
 #else
-			usleep(1000000);
+		usleep(1000000);
 #endif
 	}
 
@@ -403,6 +433,9 @@ nm_thread(void *worker0) {
 			UNLOCK(&worker->mgr->lock);
 
 			WAIT(&worker->cond, &worker->lock);
+
+			/* Process priority events */
+			process_queue(worker, worker->ievents_prio);
 		}
 		if (pausing) {
 			uint32_t wp = atomic_fetch_sub_explicit(
@@ -452,7 +485,8 @@ nm_thread(void *worker0) {
 		/*
 		 * Empty the async queue.
 		 */
-		async_cb(&worker->async);
+		process_queue(worker, worker->ievents_prio);
+		process_queue(worker, worker->ievents);
 	}
 
 	LOCK(&worker->mgr->lock);
@@ -472,21 +506,27 @@ nm_thread(void *worker0) {
 static void
 async_cb(uv_async_t *handle) {
 	isc__networker_t *worker = (isc__networker_t *) handle->loop->data;
-	isc__netievent_t *ievent;
+	process_queue(worker, worker->ievents_prio);
+	process_queue(worker, worker->ievents);
+}
+
+static void
+process_queue(isc__networker_t *worker, isc_queue_t *queue) {
+	isc__netievent_t *ievent = NULL;
 
 	while ((ievent = (isc__netievent_t *)
-		isc_queue_dequeue(worker->ievents)) != NULL)
+		isc_queue_dequeue(queue)) != NULL)
 	{
 		switch (ievent->type) {
 		case netievent_stop:
-			uv_stop(handle->loop);
+			uv_stop(&worker->loop);
 			isc_mempool_put(worker->mgr->evpool, ievent);
 			return;
 		case netievent_udplisten:
 			isc__nm_async_udplisten(worker, ievent);
 			break;
-		case netievent_udpstoplisten:
-			isc__nm_async_udpstoplisten(worker, ievent);
+		case netievent_udpstop:
+			isc__nm_async_udpstop(worker, ievent);
 			break;
 		case netievent_udpsend:
 			isc__nm_async_udpsend(worker, ievent);
@@ -497,6 +537,9 @@ async_cb(uv_async_t *handle) {
 		case netievent_tcplisten:
 			isc__nm_async_tcplisten(worker, ievent);
 			break;
+		case netievent_tcpchildlisten:
+			isc__nm_async_tcpchildlisten(worker, ievent);
+			break;
 		case netievent_tcpstartread:
 			isc__nm_async_startread(worker, ievent);
 			break;
@@ -506,11 +549,17 @@ async_cb(uv_async_t *handle) {
 		case netievent_tcpsend:
 			isc__nm_async_tcpsend(worker, ievent);
 			break;
-		case netievent_tcpstoplisten:
-			isc__nm_async_tcpstoplisten(worker, ievent);
+		case netievent_tcpstop:
+			isc__nm_async_tcpstop(worker, ievent);
+			break;
+		case netievent_tcpchildstop:
+			isc__nm_async_tcpchildstop(worker, ievent);
 			break;
 		case netievent_tcpclose:
 			isc__nm_async_tcpclose(worker, ievent);
+			break;
+		case netievent_tcpdnsclose:
+			isc__nm_async_tcpdnsclose(worker, ievent);
 			break;
 		case netievent_closecb:
 			isc__nm_async_closecb(worker, ievent);
@@ -544,7 +593,18 @@ isc__nm_put_ievent(isc_nm_t *mgr, void *ievent) {
 
 void
 isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event) {
-	isc_queue_enqueue(worker->ievents, (uintptr_t)event);
+	if (event->type > netievent_prio) {
+		/*
+		 * We need to make sure this signal will be delivered and
+		 * the queue will be processed.
+		 */
+		LOCK(&worker->lock);
+		isc_queue_enqueue(worker->ievents_prio, (uintptr_t)event);
+		SIGNAL(&worker->cond);
+		UNLOCK(&worker->lock);
+	} else {
+		isc_queue_enqueue(worker->ievents, (uintptr_t)event);
+	}
 	uv_async_send(&worker->async);
 }
 
@@ -626,8 +686,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 	sock->pquota = NULL;
 
 	if (sock->timer_initialized) {
-		uv_close((uv_handle_t *)&sock->timer, NULL);
 		sock->timer_initialized = false;
+		uv_timer_stop(&sock->timer);
+		uv_close((uv_handle_t *)&sock->timer, NULL);
 	}
 
 	isc_astack_destroy(sock->inactivehandles);
@@ -652,10 +713,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 
 static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
-	int active_handles = 0;
+	int active_handles;
 	bool destroy = false;
-
-	REQUIRE(!isc__nmsocket_active(sock));
 
 	if (sock->parent != NULL) {
 		/*
@@ -673,7 +732,14 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 	 * accept destruction.
 	 */
 	LOCK(&sock->lock);
-	active_handles += atomic_load(&sock->ah);
+	if (atomic_load(&sock->active) || atomic_load(&sock->destroying) ||
+	    !atomic_load(&sock->closed) || atomic_load(&sock->references) != 0)
+	{
+		UNLOCK(&sock->lock);
+		return;
+	}
+
+	active_handles = atomic_load(&sock->ah);
 	if (sock->children != NULL) {
 		for (int i = 0; i < sock->nchildren; i++) {
 			LOCK(&sock->children[i].lock);
@@ -682,10 +748,7 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 		}
 	}
 
-	if (atomic_load(&sock->closed) &&
-	    atomic_load(&sock->references) == 0 &&
-	    (active_handles == 0 || sock->tcphandle != NULL))
-	{
+	if (active_handles == 0 || sock->tcphandle != NULL) {
 		destroy = true;
 	}
 	UNLOCK(&sock->lock);
@@ -790,6 +853,16 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 		sock->ah_handles[i] = NULL;
 	}
 
+	/*
+	 * Use a random number in the named pipe name. Also add getpid()
+	 * to the name to make sure we don't get a conflict between
+	 * different unit tests running at the same time, where the PRNG
+	 * is initialized to a constant seed.
+	 */
+	snprintf(sock->ipc_pipe_name, sizeof(sock->ipc_pipe_name),
+		 NAMED_PIPE_PATTERN, getpid(), isc_random32());
+	sock->ipc_pipe_name[sizeof(sock->ipc_pipe_name) - 1] = '\0';
+
 	isc_mutex_init(&sock->lock);
 	isc_condition_init(&sock->cond);
 	isc_refcount_init(&sock->references, 1);
@@ -805,7 +878,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 
 void
 isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) handle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -958,11 +1031,37 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	isc_mem_put(sock->mgr->mctx, handle, sizeof(isc_nmhandle_t) + extra);
 }
 
+static void
+nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
+	/*
+	 * We do all of this under lock to avoid races with socket
+	 * destruction.  We have to do this now, because at this point the
+	 * socket is either unused or still attached to event->sock.
+	 */
+	LOCK(&sock->lock);
+
+	INSIST(sock->ah_handles[handle->ah_pos] == handle);
+	INSIST(sock->ah_size > handle->ah_pos);
+	INSIST(atomic_load(&sock->ah) > 0);
+
+	sock->ah_handles[handle->ah_pos] = NULL;
+	size_t handlenum = atomic_fetch_sub(&sock->ah, 1) - 1;
+	sock->ah_frees[handlenum] = handle->ah_pos;
+	handle->ah_pos = 0;
+	bool reuse = false;
+	if (atomic_load(&sock->active)) {
+		reuse = isc_astack_trypush(sock->inactivehandles,
+					   handle);
+	}
+	if (!reuse) {
+		nmhandle_free(sock, handle);
+	}
+	UNLOCK(&sock->lock);
+}
+
 void
 isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;
-	size_t handlenum;
-	bool reuse = false;
 	int refs;
 
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -981,60 +1080,33 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	}
 
 	/*
-	 * We do all of this under lock to avoid races with socket
-	 * destruction.
-	 */
-	LOCK(&sock->lock);
-
-	INSIST(sock->ah_handles[handle->ah_pos] == handle);
-	INSIST(sock->ah_size > handle->ah_pos);
-	INSIST(atomic_load(&sock->ah) > 0);
-
-	sock->ah_handles[handle->ah_pos] = NULL;
-	handlenum = atomic_fetch_sub(&sock->ah, 1) - 1;
-	sock->ah_frees[handlenum] = handle->ah_pos;
-	handle->ah_pos = 0;
-
-	if (atomic_load(&sock->active)) {
-		reuse = isc_astack_trypush(sock->inactivehandles,
-					   handle);
-	}
-
-	UNLOCK(&sock->lock);
-
-	if (!reuse) {
-		nmhandle_free(sock, handle);
-	}
-
-	/*
 	 * The handle is closed. If the socket has a callback configured
 	 * for that (e.g., to perform cleanup after request processing),
-	 * call it now.
+	 * call it now, or schedule it to run asynchronously.
 	 */
 	if (sock->closehandle_cb != NULL) {
 		if (sock->tid == isc_nm_tid()) {
 			sock->closehandle_cb(sock);
 		} else {
-			isc__netievent_closecb_t * event =
+			isc__netievent_closecb_t *event =
 				isc__nm_get_ievent(sock->mgr,
 						   netievent_closecb);
 			isc_nmsocket_attach(sock, &event->sock);
+			event->handle = handle;
 			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 					       (isc__netievent_t *) event);
+
 			/*
-			 * If we do this asynchronously then the async event
-			 * will clean the socket, so just exit.
+			 * If we're doing this asynchronously, then the
+			 * async event will take care of cleaning up the
+			 * handle and closing the socket.
 			 */
 			return;
 		}
 	}
 
-	if (atomic_load(&sock->ah) == 0 &&
-	    !atomic_load(&sock->active) &&
-	    !atomic_load(&sock->destroying))
-	{
-		nmsocket_maybe_destroy(sock);
-	}
+	nmhandle_deactivate(sock, handle);
+	nmsocket_maybe_destroy(sock);
 }
 
 void *
@@ -1166,15 +1238,17 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region,
 }
 
 void
-isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_closecb_t *ievent =
-		(isc__netievent_closecb_t *) ievent0;
+		(isc__netievent_closecb_t *) ev0;
 
 	REQUIRE(VALID_NMSOCK(ievent->sock));
 	REQUIRE(ievent->sock->tid == isc_nm_tid());
 	REQUIRE(ievent->sock->closehandle_cb != NULL);
 
 	UNUSED(worker);
+
+	nmhandle_deactivate(ievent->sock, ievent->handle);
 
 	ievent->sock->closehandle_cb(ievent->sock);
 	isc_nmsocket_detach(&ievent->sock);
@@ -1186,7 +1260,7 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 
 	switch(handle->type) {
 	case UV_TCP:
-		isc__nm_tcp_shutdown((isc_nmsocket_t *) handle->data);
+		isc__nm_tcp_shutdown(uv_handle_get_data(handle));
 		break;
 	default:
 		break;
@@ -1194,8 +1268,8 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 }
 
 void
-isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ievent0) {
-	UNUSED(ievent0);
+isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0) {
+	UNUSED(ev0);
 	uv_walk(&worker->loop, shutdown_walk_cb, NULL);
 }
 

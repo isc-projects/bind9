@@ -25,6 +25,8 @@
 #include <isc/sockaddr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+
+#include "uv-compat.h"
 #include "netmgr-int.h"
 
 static isc_result_t
@@ -113,9 +115,9 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface,
  * handle 'udplisten' async call - start listening on a socket.
  */
 void
-isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_udplisten_t *ievent =
-		(isc__netievent_udplisten_t *) ievent0;
+		(isc__netievent_udplisten_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(sock->type == isc_nm_udpsocket);
@@ -123,7 +125,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 	REQUIRE(sock->parent != NULL);
 
 	uv_udp_init(&worker->loop, &sock->uv_handle.udp);
-	sock->uv_handle.udp.data = NULL;
+	uv_handle_set_data(&sock->uv_handle.handle, NULL);
 	isc_nmsocket_attach(sock,
 			    (isc_nmsocket_t **)&sock->uv_handle.udp.data);
 
@@ -140,7 +142,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
 
 static void
 udp_close_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = handle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	atomic_store(&sock->closed, true);
 
 	isc_nmsocket_detach((isc_nmsocket_t **)&sock->uv_handle.udp.data);
@@ -171,14 +173,14 @@ stoplistening(isc_nmsocket_t *sock) {
 	INSIST(sock->type == isc_nm_udplistener);
 
 	for (int i = 0; i < sock->nchildren; i++) {
-		isc__netievent_udplisten_t *event = NULL;
+		isc__netievent_udpstop_t *event = NULL;
 
 		if (i == sock->tid) {
 			stop_udp_child(&sock->children[i]);
 			continue;
 		}
 
-		event = isc__nm_get_ievent(sock->mgr, netievent_udpstoplisten);
+		event = isc__nm_get_ievent(sock->mgr, netievent_udpstop);
 		event->sock = &sock->children[i];
 		isc__nm_enqueue_ievent(&sock->mgr->workers[i],
 				       (isc__netievent_t *) event);
@@ -196,7 +198,7 @@ stoplistening(isc_nmsocket_t *sock) {
 
 void
 isc_nm_udp_stoplistening(isc_nmsocket_t *sock) {
-	isc__netievent_udpstoplisten_t *ievent = NULL;
+	isc__netievent_udpstop_t *ievent = NULL;
 
 	/* We can't be launched from network thread, we'd deadlock */
 	REQUIRE(!isc__nm_in_netthread());
@@ -208,7 +210,7 @@ isc_nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	 * event. Otherwise, go ahead and stop listening right away.
 	 */
 	if (!isc__nm_acquire_interlocked(sock->mgr)) {
-		ievent = isc__nm_get_ievent(sock->mgr, netievent_udpstoplisten);
+		ievent = isc__nm_get_ievent(sock->mgr, netievent_udpstop);
 		ievent->sock = sock;
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *) ievent);
@@ -219,14 +221,11 @@ isc_nm_udp_stoplistening(isc_nmsocket_t *sock) {
 }
 
 /*
- * handle 'udpstoplisten' async call - stop listening on a socket.
+ * handle 'udpstop' async call - stop listening on a socket.
  */
 void
-isc__nm_async_udpstoplisten(isc__networker_t *worker,
-			    isc__netievent_t *ievent0)
-{
-	isc__netievent_udplisten_t *ievent =
-		(isc__netievent_udplisten_t *) ievent0;
+isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_udpstop_t *ievent = (isc__netievent_udpstop_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(sock->iface != NULL);
@@ -246,7 +245,7 @@ isc__nm_async_udpstoplisten(isc__networker_t *worker,
 	if (!isc__nm_acquire_interlocked(sock->mgr)) {
 		isc__netievent_udplisten_t *event = NULL;
 
-		event = isc__nm_get_ievent(sock->mgr, netievent_udpstoplisten);
+		event = isc__nm_get_ievent(sock->mgr, netievent_udpstop);
 		event->sock = sock;
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *) event);
@@ -271,7 +270,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_sockaddr_t sockaddr;
 	isc_sockaddr_t localaddr;
 	struct sockaddr_storage laddr;
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) handle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc_region_t region;
 	uint32_t maxudp;
 
@@ -337,7 +336,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
 	isc_nmsocket_t *psock = NULL, *rsock = NULL;
 	isc_nmsocket_t *sock = handle->sock;
 	isc_sockaddr_t *peer = &handle->peer;
-	isc__netievent_udpsend_t *ievent;
+	isc__netievent_udpsend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 	int ntid;
 	uint32_t maxudp = atomic_load(&sock->mgr->maxudp);
@@ -405,9 +404,9 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
  * handle 'udpsend' async event - send a packet on the socket
  */
 void
-isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_udpsend_t *ievent =
-		(isc__netievent_udpsend_t *) ievent0;
+		(isc__netievent_udpsend_t *) ev0;
 
 	REQUIRE(worker->id == ievent->sock->tid);
 

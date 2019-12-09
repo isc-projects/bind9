@@ -10,6 +10,7 @@
  */
 
 #include <unistd.h>
+#include <libgen.h>
 #include <uv.h>
 
 #include <isc/atomic.h>
@@ -28,6 +29,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include "uv-compat.h"
 #include "netmgr-int.h"
 
 static int
@@ -50,9 +52,24 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 static void
 tcp_close_cb(uv_handle_t *uvhandle);
 
+static void
+ipc_connection_cb(uv_stream_t *stream, int status);
+static void
+ipc_write_cb(uv_write_t *uvreq, int status);
+static void
+ipc_close_cb(uv_handle_t *handle);
+static void
+childlisten_ipc_connect_cb(uv_connect_t *uvreq, int status);
+static void
+childlisten_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+static void
+stoplistening(isc_nmsocket_t *sock);
+static void
+tcp_listenclose_cb(uv_handle_t *handle);
+
 static int
 tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
-	isc__networker_t *worker;
+	isc__networker_t *worker = NULL;
 	int r;
 
 	REQUIRE(isc__nm_in_netthread());
@@ -71,16 +88,16 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 			return (r);
 		}
 	}
-
+	uv_handle_set_data(&sock->uv_handle.handle, sock);
 	r = uv_tcp_connect(&req->uv_req.connect, &sock->uv_handle.tcp,
 			   &req->peer.type.sa, tcp_connect_cb);
 	return (r);
 }
 
 void
-isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcpconnect_t *ievent =
-		(isc__netievent_tcpconnect_t *) ievent0;
+		(isc__netievent_tcpconnect_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 	isc__nm_uvreq_t *req = ievent->req;
 	int r;
@@ -98,7 +115,8 @@ isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ievent0) {
 static void
 tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	isc__nm_uvreq_t *req = (isc__nm_uvreq_t *) uvreq->data;
-	isc_nmsocket_t *sock = uvreq->handle->data;
+	isc_nmsocket_t *sock = NULL;
+	sock = uv_handle_get_data((uv_handle_t *) uvreq->handle);
 
 	REQUIRE(VALID_UVREQ(req));
 
@@ -131,21 +149,26 @@ isc_result_t
 isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 		 isc_nm_cb_t cb, void *cbarg,
 		 size_t extrahandlesize, int backlog,
-		 isc_quota_t *quota,
-		 isc_nmsocket_t **sockp)
+		 isc_quota_t *quota, isc_nmsocket_t **sockp)
 {
-	isc__netievent_tcplisten_t *ievent = NULL;
 	isc_nmsocket_t *nsock = NULL;
+	isc__netievent_tcplisten_t *ievent = NULL;
 
 	REQUIRE(VALID_NM(mgr));
 
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
 	isc__nmsocket_init(nsock, mgr, isc_nm_tcplistener);
 	nsock->iface = iface;
+	nsock->nchildren = mgr->nworkers;
+	atomic_init(&nsock->rchildren, mgr->nworkers);
+	nsock->children = isc_mem_get(mgr->mctx,
+				      mgr->nworkers * sizeof(*nsock));
+	memset(nsock->children, 0, mgr->nworkers * sizeof(*nsock));
 	nsock->rcb.accept = cb;
 	nsock->rcbarg = cbarg;
 	nsock->extrahandlesize = extrahandlesize;
 	nsock->backlog = backlog;
+	nsock->result = ISC_R_SUCCESS;
 	if (quota != NULL) {
 		/*
 		 * We don't attach to quota, just assign - to avoid
@@ -153,82 +176,330 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 		 */
 		nsock->pquota = quota;
 	}
-	nsock->tid = isc_random_uniform(mgr->nworkers);
 
-	/*
-	 * Listening to TCP is rare enough not to care about the
-	 * added overhead from passing this to another thread.
-	 */
 	ievent = isc__nm_get_ievent(mgr, netievent_tcplisten);
 	ievent->sock = nsock;
-	isc__nm_enqueue_ievent(&mgr->workers[nsock->tid],
-			       (isc__netievent_t *) ievent);
-	*sockp = nsock;
+	if (isc__nm_in_netthread()) {
+		nsock->tid = isc_nm_tid();
+		isc__nm_async_tcplisten(&mgr->workers[nsock->tid],
+				       (isc__netievent_t *) ievent);
+		isc__nm_put_ievent(mgr, ievent);
+	} else {
+		nsock->tid = isc_random_uniform(mgr->nworkers);
+		LOCK(&nsock->lock);
+		isc__nm_enqueue_ievent(&mgr->workers[nsock->tid],
+				       (isc__netievent_t *) ievent);
+		WAIT(&nsock->cond, &nsock->lock);
+		UNLOCK(&nsock->lock);
+	}
 
-	return (ISC_R_SUCCESS);
+	if (nsock->result == ISC_R_SUCCESS) {
+		*sockp = nsock;
+		return (ISC_R_SUCCESS);
+	} else {
+		isc_result_t result = nsock->result;
+		isc_nmsocket_detach(&nsock);
+		return (result);
+	}
 }
 
+#ifndef WIN32
+/*
+ * Run fsync() on the directory containing a socket's IPC pipe, to
+ * ensure that all threads can see the pipe.
+ */
+static void
+syncdir(const isc_nmsocket_t *sock) {
+	 char *pipe = isc_mem_strdup(sock->mgr->mctx, sock->ipc_pipe_name);
+	 int fd = open(dirname(pipe), O_RDONLY);
+
+	 RUNTIME_CHECK(fd >= 0);
+
+	 isc_mem_free(sock->mgr->mctx, pipe);
+
+	 fsync(fd);
+	 close(fd);
+}
+#endif
+
+/*
+ * For multi-threaded TCP listening, we create a single "parent" socket,
+ * bind to it, and then pass its uv_handle to a set of child sockets, one
+ * per worker. For thread safety, the passing of the socket's uv_handle has
+ * to be done via IPC socket.
+ *
+ * This design pattern is ugly but it's what's recommended by the libuv
+ * documentation.  (A prior version of libuv had uv_export() and
+ * uv_import() functions which would have simplified this greatly, but
+ * they have been deprecated and removed.)
+ */
 void
-isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcplisten_t *ievent =
-		(isc__netievent_tcplisten_t *) ievent0;
+		(isc__netievent_tcplisten_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 	int r;
 
 	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(sock->type == isc_nm_tcplistener);
 
-	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
-	if (r != 0) {
-		return;
+	/* Initialize children now to make cleaning up easier */
+	for (int i = 0; i < sock->nchildren; i++) {
+		isc_nmsocket_t *csock = &sock->children[i];
+
+		isc__nmsocket_init(csock, sock->mgr, isc_nm_tcpchildlistener);
+		csock->parent = sock;
+		csock->iface = sock->iface;
+		csock->tid = i;
+		csock->pquota = sock->pquota;
+		csock->backlog = sock->backlog;
+		csock->extrahandlesize = sock->extrahandlesize;
+
+		INSIST(csock->rcb.recv == NULL && csock->rcbarg == NULL);
+		csock->rcb.accept = sock->rcb.accept;
+		csock->rcbarg = sock->rcbarg;
+		csock->fd = -1;
 	}
 
-	uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa, 0);
-	r = uv_listen((uv_stream_t *) &sock->uv_handle.tcp, sock->backlog,
-		      tcp_connection_cb);
+	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
 	if (r != 0) {
-		return;
+		/* It was never opened */
+		atomic_store(&sock->closed, true);
+		sock->result = isc__nm_uverr2result(r);
+		goto done;
+	}
+
+	r = uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa, 0);
+	if (r != 0) {
+		uv_close(&sock->uv_handle.handle, tcp_close_cb);
+		sock->result = isc__nm_uverr2result(r);
+		goto done;
+	}
+	uv_handle_set_data(&sock->uv_handle.handle, sock);
+
+	/*
+	 * uv_pipe_init() is incorrectly documented in libuv, and the
+	 * example in benchmark-multi-accept.c is also wrong.
+	 *
+	 * The third parameter ('ipc') indicates that the pipe will be
+	 * used to *send* a handle to other threads. Therefore, it must
+	 * must be set to 0 for a 'listening' IPC socket, and 1
+	 * only for sockets that are really passing FDs between
+	 * threads.
+	 */
+	r = uv_pipe_init(&worker->loop, &sock->ipc, 0);
+	RUNTIME_CHECK(r == 0);
+
+	uv_handle_set_data((uv_handle_t *)&sock->ipc, sock);
+	r = uv_pipe_bind(&sock->ipc, sock->ipc_pipe_name);
+	RUNTIME_CHECK(r == 0);
+
+	r = uv_listen((uv_stream_t *) &sock->ipc, sock->nchildren,
+		      ipc_connection_cb);
+	RUNTIME_CHECK(r == 0);
+
+#ifndef WIN32
+	/*
+	 * On Unices a child thread might not see the pipe yet;
+	 * that happened quite often in unit tests on FreeBSD.
+	 * Syncing the directory ensures that the pipe is visible
+	 * to everyone.
+	 * This isn't done on Windows because named pipes exist
+	 * within a different namespace, not on VFS.
+	 */
+	syncdir(sock);
+#endif
+
+	/*
+	 * For each worker we send a 'tcpchildlisten' event. The child
+	 * listener will then receive its version of the socket
+	 * uv_handle via IPC in isc__nm_async_tcpchildlisten().
+	 */
+	for (int i = 0; i < sock->nchildren; i++) {
+		isc_nmsocket_t *csock = &sock->children[i];
+		isc__netievent_tcpchildlisten_t *event = NULL;
+
+		event = isc__nm_get_ievent(csock->mgr,
+					   netievent_tcpchildlisten);
+		event->sock = csock;
+		if (csock->tid == isc_nm_tid()) {
+			isc__nm_async_tcpchildlisten(&sock->mgr->workers[i],
+						  (isc__netievent_t *) event);
+			isc__nm_put_ievent(sock->mgr, event);
+		} else {
+			isc__nm_enqueue_ievent(&sock->mgr->workers[i],
+					       (isc__netievent_t *) event);
+		}
 	}
 
 	atomic_store(&sock->listening, true);
 
+ done:
+	LOCK(&sock->lock);
+	SIGNAL(&sock->cond);
+	UNLOCK(&sock->lock);
 	return;
 }
 
+/*
+ * The parent received an IPC connection from a child and can now send
+ * the uv_handle to the child for listening.
+ */
+static void
+ipc_connection_cb(uv_stream_t *stream, int status) {
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *) stream);
+	isc__networker_t *worker = &sock->mgr->workers[isc_nm_tid()];
+	isc__nm_uvreq_t *nreq = isc__nm_uvreq_get(sock->mgr, sock);
+	int r;
+
+	REQUIRE(status == 0);
+
+	/*
+	 * The buffer can be anything, it will be ignored, but it has to
+	 * be something that won't disappear.
+	 */
+	nreq->uvbuf = uv_buf_init((char *)nreq, 1);
+	uv_pipe_init(&worker->loop, &nreq->ipc, 1);
+	uv_handle_set_data((uv_handle_t *)&nreq->ipc, nreq);
+
+	r = uv_accept((uv_stream_t *) &sock->ipc, (uv_stream_t *) &nreq->ipc);
+	RUNTIME_CHECK(r == 0);
+
+	r = uv_write2(&nreq->uv_req.write,
+		      (uv_stream_t *) &nreq->ipc, &nreq->uvbuf, 1,
+		      (uv_stream_t *) &sock->uv_handle.stream, ipc_write_cb);
+	RUNTIME_CHECK(r == 0);
+}
+
+/*
+ * The call to send a socket uv_handle is complete; we may be able
+ * to close the IPC connection.
+ */
+static void
+ipc_write_cb(uv_write_t *uvreq, int status) {
+	isc__nm_uvreq_t *req = uvreq->data;
+
+	UNUSED(status);
+
+	/*
+	 * We want all children to get the socket. Once that's done,
+	 * we can stop listening on the IPC socket.
+	 */
+	if (atomic_fetch_add(&req->sock->schildren, 1) ==
+	    req->sock->nchildren - 1)
+	{
+		uv_close((uv_handle_t *) &req->sock->ipc, NULL);
+	}
+	uv_close((uv_handle_t *) &req->ipc, ipc_close_cb);
+}
+
+/*
+ * The IPC socket is closed: free its resources.
+ */
+static void
+ipc_close_cb(uv_handle_t *handle) {
+	isc__nm_uvreq_t *req = uv_handle_get_data(handle);
+	isc__nm_uvreq_put(&req, req->sock);
+}
+
+/*
+ * Connect to the parent socket and be ready to receive the uv_handle
+ * for the socket we'll be listening on.
+ */
+void
+isc__nm_async_tcpchildlisten(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpchildlisten_t *ievent =
+		(isc__netievent_tcpchildlisten_t *) ev0;
+	isc_nmsocket_t *sock = ievent->sock;
+	isc__nm_uvreq_t *req = NULL;
+	int r;
+
+	REQUIRE(isc__nm_in_netthread());
+	REQUIRE(sock->type == isc_nm_tcpchildlistener);
+
+	r = uv_pipe_init(&worker->loop, &sock->ipc, 1);
+	RUNTIME_CHECK(r == 0);
+
+	uv_handle_set_data((uv_handle_t *) &sock->ipc, sock);
+
+	req = isc__nm_uvreq_get(sock->mgr, sock);
+	uv_pipe_connect(&req->uv_req.connect, &sock->ipc,
+			sock->parent->ipc_pipe_name,
+			childlisten_ipc_connect_cb);
+}
+
+/* Child is now connected to parent via IPC and can begin reading. */
+static void
+childlisten_ipc_connect_cb(uv_connect_t *uvreq, int status) {
+	isc__nm_uvreq_t *req = uvreq->data;
+	isc_nmsocket_t *sock = req->sock;
+	int r;
+
+	UNUSED(status);
+
+	isc__nm_uvreq_put(&req, sock);
+
+	r = uv_read_start((uv_stream_t *) &sock->ipc, isc__nm_alloc_cb,
+			  childlisten_read_cb);
+	RUNTIME_CHECK(r == 0);
+}
+
+/*
+ * Child has received the socket uv_handle via IPC, and can now begin
+ * listening for connections and can close the IPC socket.
+ */
+static void
+childlisten_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *) stream);
+	isc__networker_t *worker = NULL;
+	uv_pipe_t *ipc = NULL;
+	uv_handle_type type;
+	int r;
+
+	UNUSED(nread);
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(buf != NULL);
+
+	ipc = (uv_pipe_t *) stream;
+	type = uv_pipe_pending_type(ipc);
+	INSIST(type == UV_TCP);
+
+	isc__nm_free_uvbuf(sock, buf);
+	worker = &sock->mgr->workers[isc_nm_tid()];
+	uv_tcp_init(&worker->loop, (uv_tcp_t *) &sock->uv_handle.tcp);
+	uv_handle_set_data(&sock->uv_handle.handle, sock);
+
+	uv_accept(stream, &sock->uv_handle.stream);
+	r = uv_listen((uv_stream_t *) &sock->uv_handle.tcp, sock->backlog,
+		      tcp_connection_cb);
+	uv_close((uv_handle_t *) ipc, NULL);
+	if (r != 0) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+			      "IPC socket close failed: %s",
+			      isc_result_totext(isc__nm_uverr2result(r)));
+		return;
+	}
+}
+
+
 void
 isc_nm_tcp_stoplistening(isc_nmsocket_t *sock) {
-	isc__netievent_tcpstoplisten_t *ievent = NULL;
+	isc__netievent_tcpstop_t *ievent = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(!isc__nm_in_netthread());
 
-	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpstoplisten);
+	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpstop);
 	isc_nmsocket_attach(sock, &ievent->sock);
 	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 			       (isc__netievent_t *) ievent);
 }
 
-static void
-stoplistening_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = handle->data;
-
-	LOCK(&sock->lock);
-	atomic_store(&sock->listening, false);
-	atomic_store(&sock->closed, true);
-	SIGNAL(&sock->cond);
-	UNLOCK(&sock->lock);
-
-	sock->pquota = NULL;
-
-	isc_nmsocket_detach(&sock);
-}
-
 void
-isc__nm_async_tcpstoplisten(isc__networker_t *worker,
-			    isc__netievent_t *ievent0)
-{
-	isc__netievent_tcpstoplisten_t *ievent =
-		(isc__netievent_tcpstoplisten_t *) ievent0;
+isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpstop_t *ievent = (isc__netievent_tcpstop_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	UNUSED(worker);
@@ -237,12 +508,103 @@ isc__nm_async_tcpstoplisten(isc__networker_t *worker,
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcplistener);
 
-	uv_close(&sock->uv_handle.handle, stoplistening_cb);
+	/*
+	 * If network manager is interlocked, re-enqueue the event for later.
+	 */
+	if (!isc__nm_acquire_interlocked(sock->mgr)) {
+		isc__netievent_tcpstop_t *event = NULL;
+
+		event = isc__nm_get_ievent(sock->mgr,
+					   netievent_tcpstop);
+		event->sock = sock;
+		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+				       (isc__netievent_t *) event);
+	} else {
+		stoplistening(sock);
+		isc__nm_drop_interlocked(sock->mgr);
+	}
+}
+
+static void
+stoplistening(isc_nmsocket_t *sock) {
+	for (int i = 0; i < sock->nchildren; i++) {
+		isc__netievent_tcpchildstop_t *event = NULL;
+
+		/*
+		 * We can ignore the overhead of event allocation because
+		 * stoplistening is a rare event, and doing it this way
+		 * simplifies sock reference counting.
+		 */
+		event = isc__nm_get_ievent(sock->mgr, netievent_tcpchildstop);
+		isc_nmsocket_attach(&sock->children[i], &event->sock);
+
+		if (i == sock->tid) {
+			isc__nm_async_tcpchildstop(&sock->mgr->workers[i],
+						   (isc__netievent_t *) event);
+			isc__nm_put_ievent(sock->mgr, event);
+		} else {
+			isc__nm_enqueue_ievent(&sock->mgr->workers[i],
+					       (isc__netievent_t *) event);
+		}
+	}
+
+	LOCK(&sock->lock);
+	while (atomic_load_relaxed(&sock->rchildren) > 0) {
+		WAIT(&sock->cond, &sock->lock);
+	}
+	UNLOCK(&sock->lock);
+	uv_close((uv_handle_t *) &sock->uv_handle.tcp, tcp_listenclose_cb);
+}
+
+void
+isc__nm_async_tcpchildstop(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpchildstop_t *ievent =
+		(isc__netievent_tcpchildstop_t *) ev0;
+	isc_nmsocket_t *sock = ievent->sock;
+
+	UNUSED(worker);
+
+	REQUIRE(isc_nm_tid() == sock->tid);
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tcpchildlistener);
+	REQUIRE(sock->parent != NULL);
+
+	/*
+	 * rchildren is atomic, but we still need to change it
+	 * under a lock because the parent is waiting on conditional
+	 * and without it we might deadlock.
+	 */
+	LOCK(&sock->parent->lock);
+	atomic_fetch_sub(&sock->parent->rchildren, 1);
+	UNLOCK(&sock->parent->lock);
+
+	uv_close((uv_handle_t *) &sock->uv_handle.tcp, tcp_listenclose_cb);
+	BROADCAST(&sock->parent->cond);
+}
+
+/*
+ * This callback is used for closing both child and parent listening
+ * sockets; that's why we need to choose the proper lock.
+ */
+static void
+tcp_listenclose_cb(uv_handle_t *handle) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+	isc_mutex_t *lock = ((sock->parent != NULL)
+			     ? &sock->parent->lock
+			     : &sock->lock);
+
+	LOCK(lock);
+	atomic_store(&sock->closed, true);
+	atomic_store(&sock->listening, false);
+	sock->pquota = NULL;
+	UNLOCK(lock);
+
+	isc_nmsocket_detach(&sock);
 }
 
 static void
 readtimeout_cb(uv_timer_t *handle) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) handle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -294,16 +656,16 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 }
 
 void
-isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_startread_t *ievent =
-		(isc__netievent_startread_t *) ievent0;
+		(isc__netievent_startread_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(worker->id == isc_nm_tid());
 	if (sock->read_timeout != 0) {
 		if (!sock->timer_initialized) {
 			uv_timer_init(&worker->loop, &sock->timer);
-			sock->timer.data = sock;
+			uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 			sock->timer_initialized = true;
 		}
 		uv_timer_start(&sock->timer, readtimeout_cb,
@@ -340,9 +702,9 @@ isc_nm_pauseread(isc_nmsocket_t *sock) {
 }
 
 void
-isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_pauseread_t *ievent =
-		(isc__netievent_pauseread_t *) ievent0;
+		(isc__netievent_pauseread_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -384,7 +746,7 @@ isc_nm_resumeread(isc_nmsocket_t *sock) {
 
 static void
 read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
-	isc_nmsocket_t *sock = stream->data;
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *) stream);
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(buf != NULL);
@@ -394,10 +756,14 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 			.base = (unsigned char *) buf->base,
 			.length = nread
 		};
-
-		INSIST(sock->rcb.recv != NULL);
-		sock->rcb.recv(sock->tcphandle, &region, sock->rcbarg);
-
+		/*
+		 * This might happen if the inner socket is closing.
+		 * It means that it's detached, so the socket will
+		 * be closed.
+		 */
+		if (sock->rcb.recv != NULL) {
+			sock->rcb.recv(sock->tcphandle, &region, sock->rcbarg);
+		}
 		sock->read_timeout = (atomic_load(&sock->keepalive)
 				      ? sock->mgr->keepalive
 				      : sock->mgr->idle);
@@ -415,8 +781,14 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	if (sock->quota) {
 		isc_quota_detach(&sock->quota);
 	}
-	sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
-
+	/*
+	 * This might happen if the inner socket is closing.
+	 * It means that it's detached, so the socket will
+	 * be closed.
+	 */
+	if (sock->rcb.recv != NULL) {
+		sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
+	}
 	/*
 	 * We don't need to clean up now; the socket will be closed and
 	 * resources and quota reclaimed when handle is freed in
@@ -499,7 +871,7 @@ accept_connection(isc_nmsocket_t *ssock) {
 
 static void
 tcp_connection_cb(uv_stream_t *server, int status) {
-	isc_nmsocket_t *ssock = server->data;
+	isc_nmsocket_t *ssock = uv_handle_get_data((uv_handle_t *) server);
 	isc_result_t result;
 
 	UNUSED(status);
@@ -576,9 +948,9 @@ tcp_send_cb(uv_write_t *req, int status) {
  * Handle 'tcpsend' async event - send a packet on the socket
  */
 void
-isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ievent0) {
+isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_result_t result;
-	isc__netievent_tcpsend_t *ievent = (isc__netievent_tcpsend_t *) ievent0;
+	isc__netievent_tcpsend_t *ievent = (isc__netievent_tcpsend_t *) ev0;
 
 	REQUIRE(worker->id == ievent->sock->tid);
 
@@ -615,7 +987,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 static void
 tcp_close_cb(uv_handle_t *uvhandle) {
-	isc_nmsocket_t *sock = uvhandle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data(uvhandle);
 
 	REQUIRE(VALID_NMSOCK(sock));
 
@@ -625,7 +997,7 @@ tcp_close_cb(uv_handle_t *uvhandle) {
 
 static void
 timer_close_cb(uv_handle_t *uvhandle) {
-	isc_nmsocket_t *sock = uvhandle->data;
+	isc_nmsocket_t *sock = uv_handle_get_data(uvhandle);
 
 	REQUIRE(VALID_NMSOCK(sock));
 
@@ -653,8 +1025,9 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		}
 	}
 	if (sock->timer_initialized) {
-		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 		sock->timer_initialized = false;
+		uv_timer_stop(&sock->timer);
+		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 	} else {
 		isc_nmsocket_detach(&sock->server);
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
@@ -682,9 +1055,8 @@ isc__nm_tcp_close(isc_nmsocket_t *sock) {
 }
 
 void
-isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ievent0) {
-	isc__netievent_tcpclose_t *ievent =
-		(isc__netievent_tcpclose_t *) ievent0;
+isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpclose_t *ievent = (isc__netievent_tcpclose_t *) ev0;
 
 	REQUIRE(worker->id == ievent->sock->tid);
 
@@ -695,7 +1067,10 @@ void
 isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
-	if (sock->type == isc_nm_tcpsocket && sock->tcphandle != NULL) {
+	if (sock->type == isc_nm_tcpsocket &&
+	    sock->tcphandle != NULL &&
+	    sock->rcb.recv != NULL)
+	{
 		sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
 	}
 }

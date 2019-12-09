@@ -46,7 +46,11 @@ typedef struct isc__networker {
 	bool			   paused;
 	bool			   finished;
 	isc_thread_t		   thread;
-	isc_queue_t		   *ievents;     /* incoming async events */
+	isc_queue_t		   *ievents;      /* incoming async events */
+	isc_queue_t		   *ievents_prio; /* priority async events
+						   * used for listening etc.
+						   * can be processed while
+						   * worker is paused */
 	isc_refcount_t		   references;
 	atomic_int_fast64_t	   pktcount;
 	char			   recvbuf[65536];
@@ -103,9 +107,6 @@ struct isc_nmiface {
 };
 
 typedef enum isc__netievent_type {
-	netievent_stop,
-	netievent_udplisten,
-	netievent_udpstoplisten,
 	netievent_udpsend,
 	netievent_udprecv,
 	netievent_tcpconnect,
@@ -113,11 +114,22 @@ typedef enum isc__netievent_type {
 	netievent_tcprecv,
 	netievent_tcpstartread,
 	netievent_tcppauseread,
-	netievent_tcplisten,
-	netievent_tcpstoplisten,
-	netievent_tcpclose,
+	netievent_tcpchildlisten,
+	netievent_tcpchildstop,
 	netievent_closecb,
 	netievent_shutdown,
+	netievent_stop,
+	netievent_udpstop,
+	netievent_tcpstop,
+	netievent_tcpclose,
+	netievent_tcpdnsclose,
+	netievent_prio = 0xff,	/* event type values higher than this
+				 * will be treated as high-priority
+				 * events, which can be processed
+				 * while the netmgr is paused.
+				 */
+	netievent_udplisten,
+	netievent_tcplisten,
 } isc__netievent_type;
 
 /*
@@ -154,11 +166,13 @@ typedef struct isc__nm_uvreq {
 	isc_nmsocket_t *	sock;
 	isc_nmhandle_t *	handle;
 	uv_buf_t		uvbuf;	/* translated isc_region_t, to be
-					   sent or received */
+					 * sent or received */
 	isc_sockaddr_t		local;	/* local address */
 	isc_sockaddr_t		peer;	/* peer address */
 	isc__nm_cb_t		cb;	/* callback */
 	void *			cbarg;	/* callback argument */
+	uv_pipe_t		ipc;	/* used for sending socket
+					 * uv_handles to other threads */
 	union {
 		uv_req_t		req;
 		uv_getaddrinfo_t	getaddrinfo;
@@ -178,12 +192,13 @@ typedef struct isc__netievent__socket {
 } isc__netievent__socket_t;
 
 typedef isc__netievent__socket_t isc__netievent_udplisten_t;
-typedef isc__netievent__socket_t isc__netievent_udpstoplisten_t;
-typedef isc__netievent__socket_t isc__netievent_tcpstoplisten_t;
+typedef isc__netievent__socket_t isc__netievent_udpstop_t;
+typedef isc__netievent__socket_t isc__netievent_tcpstop_t;
+typedef isc__netievent__socket_t isc__netievent_tcpchildstop_t;
 typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
+typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
-typedef isc__netievent__socket_t isc__netievent_closecb_t;
 
 typedef struct isc__netievent__socket_req {
 	isc__netievent_type	type;
@@ -193,7 +208,17 @@ typedef struct isc__netievent__socket_req {
 
 typedef isc__netievent__socket_req_t isc__netievent_tcpconnect_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcplisten_t;
+typedef isc__netievent__socket_req_t isc__netievent_tcpchildlisten_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcpsend_t;
+
+typedef struct isc__netievent__socket_handle {
+	isc__netievent_type	type;
+	isc_nmsocket_t		*sock;
+	isc_nmhandle_t		*handle;
+} isc__netievent__socket_handle_t;
+
+typedef isc__netievent__socket_handle_t isc__netievent_closecb_t;
+
 
 typedef struct isc__netievent_udpsend {
 	isc__netievent_type	type;
@@ -274,6 +299,7 @@ typedef enum isc_nmsocket_type {
 	isc_nm_udplistener, /* Aggregate of nm_udpsocks */
 	isc_nm_tcpsocket,
 	isc_nm_tcplistener,
+	isc_nm_tcpchildlistener,
 	isc_nm_tcpdnslistener,
 	isc_nm_tcpdnssocket
 } isc_nmsocket_type;
@@ -293,7 +319,7 @@ struct isc_nmsocket {
 	isc_nm_t		*mgr;
 	isc_nmsocket_t		*parent;
 
-	/*
+	/*%
 	 * quota is the TCP client, attached when a TCP connection
 	 * is established. pquota is a non-attached pointer to the
 	 * TCP client quota, stored in listening sockets but only
@@ -303,7 +329,7 @@ struct isc_nmsocket {
 	isc_quota_t		*pquota;
 	bool			overquota;
 
-	/*
+	/*%
 	 * TCP read timeout timer.
 	 */
 	uv_timer_t		timer;
@@ -316,13 +342,18 @@ struct isc_nmsocket {
 	/*% server socket for connections */
 	isc_nmsocket_t		*server;
 
-	/*% children sockets for multi-socket setups */
+	/*% Child sockets for multi-socket setups */
 	isc_nmsocket_t		*children;
 	int			nchildren;
 	isc_nmiface_t		*iface;
 	isc_nmhandle_t		*tcphandle;
 
-	/*% extra data allocated at the end of each isc_nmhandle_t */
+	/*% Used to transfer listening TCP sockets to children */
+	uv_pipe_t		ipc;
+	char			ipc_pipe_name[64];
+	atomic_int_fast32_t	schildren;
+
+	/*% Extra data allocated at the end of each isc_nmhandle_t */
 	size_t			extrahandlesize;
 
 	/*% TCP backlog */
@@ -332,16 +363,17 @@ struct isc_nmsocket {
 	uv_os_sock_t		fd;
 	union uv_any_handle	uv_handle;
 
+	/*% Peer address */
 	isc_sockaddr_t		peer;
 
 	/* Atomic */
-	/*% Number of running (e.g. listening) children sockets */
+	/*% Number of running (e.g. listening) child sockets */
 	atomic_int_fast32_t     rchildren;
 
 	/*%
-	 * Socket if active if it's listening, working, etc., if we're
-	 * closing a socket it doesn't make any sense to e.g. still
-	 * push handles or reqs for reuse
+	 * Socket is active if it's listening, working, etc. If it's
+	 * closing, then it doesn't make a sense, for example, to
+	 * push handles or reqs for reuse.
 	 */
 	atomic_bool        	active;
 	atomic_bool	   	destroying;
@@ -349,7 +381,8 @@ struct isc_nmsocket {
 	/*%
 	 * Socket is closed if it's not active and all the possible
 	 * callbacks were fired, there are no active handles, etc.
-	 * active==false, closed==false means the socket is closing.
+	 * If active==false but closed==false, that means the socket
+	 * is closing.
 	 */
 	atomic_bool	      	closed;
 	atomic_bool	      	listening;
@@ -391,9 +424,18 @@ struct isc_nmsocket {
 	isc_astack_t 		*inactivehandles;
 	isc_astack_t 		*inactivereqs;
 
-	/* Used for active/rchildren during shutdown */
+	/*%
+	 * Used to wait for TCP listening events to complete, and
+	 * for the number of running children to reach zero during
+	 * shutdown.
+	 */
 	isc_mutex_t		lock;
 	isc_condition_t		cond;
+
+	/*%
+	 * Used to pass a result back from TCP listening events.
+	 */
+	isc_result_t		result;
 
 	/*%
 	 * List of active handles.
@@ -421,12 +463,12 @@ struct isc_nmsocket {
 	size_t			*ah_frees;
 	isc_nmhandle_t		**ah_handles;
 
-	/* Buffer for TCPDNS processing, optional */
+	/*% Buffer for TCPDNS processing */
 	size_t			buf_size;
 	size_t			buf_len;
 	unsigned char		*buf;
 
-	/*
+	/*%
 	 * This function will be called with handle->sock
 	 * as the argument whenever a handle's references drop
 	 * to zero, after its reset callback has been called.
@@ -524,13 +566,13 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Issue a 'handle closed' callback on the socket.
  */
 
 void
-isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Walk through all uv handles, get the underlying sockets and issue
  * close on them.
@@ -544,13 +586,12 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
  */
 
 void
-isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
-isc__nm_async_udpstoplisten(isc__networker_t *worker,
-			    isc__netievent_t *ievent0);
+isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous UDP events (listen, stoplisten, send).
  */
@@ -575,20 +616,23 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcpstoplisten(isc__networker_t *worker,
-			    isc__netievent_t *ievent0);
+isc__nm_async_tcpchildlisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcpchildstop(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ievent0);
+isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ev0);
+void
+isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ev0);
+void
+isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous TCP events (connect, listen,
  * stoplisten, send, read, pause, close).
@@ -606,6 +650,9 @@ isc__nm_tcpdns_close(isc_nmsocket_t *sock);
 /*%<
  * Close a TCPDNS socket.
  */
+
+void
+isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__)

@@ -26,6 +26,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include "uv-compat.h"
 #include "netmgr-int.h"
 
 #define TCPDNS_CLIENTS_PER_CONN 23
@@ -76,21 +77,22 @@ alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 
 static void
 timer_close_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) handle->data;
+	isc_nmsocket_t *sock = (isc_nmsocket_t *) uv_handle_get_data(handle);
 	INSIST(VALID_NMSOCK(sock));
-	sock->timer_initialized = false;
 	atomic_store(&sock->closed, true);
 	isc_nmsocket_detach(&sock);
 }
 
 static void
 dnstcp_readtimeout(uv_timer_t *timer) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) timer->data;
+	isc_nmsocket_t *sock =
+		(isc_nmsocket_t *) uv_handle_get_data((uv_handle_t *) timer);
 
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_nm_tid());
 
 	isc_nmsocket_detach(&sock->outer);
-	uv_close((uv_handle_t*) &sock->timer, timer_close_cb);
+	uv_close((uv_handle_t *) &sock->timer, timer_close_cb);
 }
 
 /*
@@ -201,6 +203,7 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 
 	REQUIRE(VALID_NMSOCK(dnssock));
 	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(dnssock->tid == isc_nm_tid());
 
 	if (region == NULL) {
 		/* Connection closed */
@@ -296,11 +299,15 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 	result = isc_nm_listentcp(mgr, iface, dnslisten_acceptcb,
 				  dnslistensock, extrahandlesize, backlog,
 				  quota, &dnslistensock->outer);
-
-	atomic_store(&dnslistensock->listening, true);
-	*sockp = dnslistensock;
-
-	return (result);
+	if (result == ISC_R_SUCCESS) {
+		atomic_store(&dnslistensock->listening, true);
+		*sockp = dnslistensock;
+		return (ISC_R_SUCCESS);
+	} else {
+		atomic_store(&dnslistensock->closed, true);
+		isc_nmsocket_detach(&dnslistensock);
+		return (result);
+	}
 }
 
 void
@@ -483,10 +490,44 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 }
 
 
-void
-isc__nm_tcpdns_close(isc_nmsocket_t *sock) {
+static void
+tcpdns_close_direct(isc_nmsocket_t *sock) {
+	REQUIRE(sock->tid == isc_nm_tid());
 	if (sock->outer != NULL) {
+		sock->outer->rcb.recv = NULL;
 		isc_nmsocket_detach(&sock->outer);
 	}
-	uv_close((uv_handle_t*) &sock->timer, timer_close_cb);
+	/* We don't need atomics here, it's all in single network thread */
+	if (sock->timer_initialized) {
+		sock->timer_initialized = false;
+		uv_timer_stop(&sock->timer);
+		uv_close((uv_handle_t *) &sock->timer, timer_close_cb);
+	}
+}
+
+void
+isc__nm_tcpdns_close(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tcpdnssocket);
+
+	if (sock->tid == isc_nm_tid()) {
+		tcpdns_close_direct(sock);
+	} else {
+		isc__netievent_tcpdnsclose_t *ievent =
+			isc__nm_get_ievent(sock->mgr, netievent_tcpdnsclose);
+
+		ievent->sock = sock;
+		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+				       (isc__netievent_t *) ievent);
+	}
+}
+
+void
+isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpdnsclose_t *ievent =
+		(isc__netievent_tcpdnsclose_t *) ev0;
+
+	REQUIRE(worker->id == ievent->sock->tid);
+
+	tcpdns_close_direct(ievent->sock);
 }
