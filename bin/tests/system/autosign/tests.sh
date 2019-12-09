@@ -18,6 +18,17 @@ n=0
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p ${PORT}"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
+wait_for_log () {
+	msg=$1
+	file=$2
+	for i in 1 2 3 4 5 6 7 8 9 10; do
+		nextpart "$file" | grep "$msg" > /dev/null && return
+		sleep 1
+	done
+	echo_i "exceeded time limit waiting for '$msg' in $file"
+	ret=1
+}
+
 # convert private-type records to readable form
 showprivate () {
     echo "-- $@ --"
