@@ -14,7 +14,7 @@ rm -f */core
 rm -f */example.bk
 rm -f */named.conf
 rm -f */named.memstats
-rm -f */named.run
+rm -f */named.run*
 rm -f */trusted.conf */private.conf
 rm -f activate-now-publish-1day.key
 rm -f active.key inact.key del.key delzsk.key unpub.key standby.key rev.key
@@ -63,6 +63,7 @@ rm -f ns3/secure.nsec3.example.db
 rm -f ns3/secure.optout.example.db
 rm -f ns3/sync.example.db
 rm -f ns3/ttl*.db
+rm -f ns3/settime.out.*
 rm -f nsupdate.out
 rm -f settime.out.*
 rm -f signing.out.*
