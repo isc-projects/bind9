@@ -14,8 +14,8 @@ rm -f */core
 rm -f */example.bk
 rm -f */named.conf
 rm -f */named.memstats
-rm -f */named.run
-rm -f */named.conf
+rm -f */named.run*
+rm -f */trusted.conf */private.conf
 rm -f activate-now-publish-1day.key
 rm -f active.key inact.key del.key delzsk.key unpub.key standby.key rev.key
 rm -f delayksk.key delayzsk.key autoksk.key autozsk.key

@@ -61,6 +61,12 @@ checkprivate () {
     return 1
 }
 
+# wait until the next key event for zone $1 on server $2.
+wait_for_next_key_event () {
+	wait_for_log 10 "zone ${1}/IN: next key event:" "${2}/named.run" || return 1
+	return 0
+}
+
 # Check the signatures expiration times.  First check how many signatures
 # there are in total ($rrsigs).  Then see what the distribution of signature
 # expiration times is ($expiretimes).  Ignore the time part for a better
@@ -155,6 +161,9 @@ do
 	echo_i zone $z
 	$DIG $DIGOPTS $z @10.53.0.3 axfr | awk '$4 == "RRSIG" {print $9}' | sort | uniq -c | cat_i
 done
+
+# Set logfile offset for wait_for_log usage.
+nextpartreset ns3/named.run
 
 #
 # Check that DNSKEY is initially signed with a KSK and not a ZSK.
@@ -1172,12 +1181,14 @@ status=`expr $status + $ret`
 
 echo_i "checking scheduled key publication, not activation ($n)"
 ret=0
+# Ensure initial reconfiguring zone keys event has passed.
+wait_for_next_key_event "delay.example" "ns3" || ret=1
 $SETTIME -K ns3 -P now+3s -A none $zsk > settime.out.test$n.zsk
 $SETTIME -K ns3 -P now+3s -A none $ksk > settime.out.test$n.ksk
 $RNDCCMD 10.53.0.3 loadkeys delay.example. 2>&1 | sed 's/^/ns2 /' | cat_i
-
 echo_i "waiting for changes to take effect"
-sleep 5
+sleep 3
+wait_for_next_key_event "delay.example" "ns3" || ret=1
 
 $DIG $DIGOPTS +noall +answer dnskey delay.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
 # DNSKEY expected:
@@ -1193,9 +1204,9 @@ ret=0
 $SETTIME -K ns3 -A now+3s $zsk > settime.out.test$n.zsk
 $SETTIME -K ns3 -A now+3s $ksk > settime.out.test$n.ksk
 $RNDCCMD 10.53.0.3 loadkeys delay.example. 2>&1 | sed 's/^/ns2 /' | cat_i
-
 echo_i "waiting for changes to take effect"
-sleep 5
+sleep 3
+wait_for_next_key_event "delay.example" "ns3" || ret=1
 
 $DIG $DIGOPTS +noall +answer dnskey delay.example. @10.53.0.3 > dig.out.ns3.1.test$n || ret=1
 # DNSKEY expected:
