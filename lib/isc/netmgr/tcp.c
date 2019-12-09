@@ -1079,7 +1079,8 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 
 	if (sock->type == isc_nm_tcpsocket &&
 	    sock->tcphandle != NULL &&
-	    sock->rcb.recv != NULL) {
+	    sock->rcb.recv != NULL)
+	{
 		sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
 	}
 }

@@ -733,7 +733,8 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 	 */
 	LOCK(&sock->lock);
 	if (atomic_load(&sock->active) || atomic_load(&sock->destroying) ||
-	    !atomic_load(&sock->closed) || atomic_load(&sock->references) != 0) {
+	    !atomic_load(&sock->closed) || atomic_load(&sock->references) != 0)
+	{
 		UNLOCK(&sock->lock);
 		return;
 	}
@@ -747,8 +748,7 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 		}
 	}
 
-	if (active_handles == 0 || sock->tcphandle != NULL)
-	{
+	if (active_handles == 0 || sock->tcphandle != NULL) {
 		destroy = true;
 	}
 	UNLOCK(&sock->lock);
