@@ -724,7 +724,7 @@ status=$((status+ret))
 #
 zone_properties "ns3" "rsasha1.kasp" "rsasha1" "1234" "3" "10.53.0.3"
 key_properties "KEY1" "ksk" "315360000" "5" "RSASHA1" "2048" "no" "yes"
-key_properties "KEY2" "zsk" "157680000" "5" "RSASHA1" "1024" "yes" "no"
+key_properties "KEY2" "zsk" "157680000" "5" "RSASHA1" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "5" "RSASHA1" "2000" "yes" "no"
 # The first keys are immediately published and activated.
 # Because lifetime > 0, retired timing is also set.
@@ -997,7 +997,7 @@ check_subdomain
 #
 zone_properties "ns3" "inherit.kasp" "rsasha1" "1234" "3" "10.53.0.3"
 key_properties "KEY1" "ksk" "315360000" "5" "RSASHA1" "2048" "no" "yes"
-key_properties "KEY2" "zsk" "157680000" "5" "RSASHA1" "1024" "yes" "no"
+key_properties "KEY2" "zsk" "157680000" "5" "RSASHA1" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "5" "RSASHA1" "2000" "yes" "no"
 # The first keys are immediately published and activated.
 # Because lifetime > 0, retired timing is also set.
@@ -1107,7 +1107,7 @@ status=$((status+ret))
 #
 zone_properties "ns3" "rsasha1-nsec3.kasp" "rsasha1-nsec3" "1234" "3" "10.53.0.3"
 key_properties "KEY1" "ksk" "315360000" "7" "NSEC3RSASHA1" "2048" "no" "yes"
-key_properties "KEY2" "zsk" "157680000" "7" "NSEC3RSASHA1" "1024" "yes" "no"
+key_properties "KEY2" "zsk" "157680000" "7" "NSEC3RSASHA1" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "7" "NSEC3RSASHA1" "2000" "yes" "no"
 # key_timings and key_states same as above.
 check_keys
@@ -1120,7 +1120,7 @@ dnssec_verify
 #
 zone_properties "ns3" "rsasha256.kasp" "rsasha256" "1234" "3" "10.53.0.3"
 key_properties "KEY1" "ksk" "315360000" "8" "RSASHA256" "2048" "no" "yes"
-key_properties "KEY2" "zsk" "157680000" "8" "RSASHA256" "1024" "yes" "no"
+key_properties "KEY2" "zsk" "157680000" "8" "RSASHA256" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "8" "RSASHA256" "2000" "yes" "no"
 # key_timings and key_states same as above.
 check_keys
@@ -1133,7 +1133,7 @@ dnssec_verify
 #
 zone_properties "ns3" "rsasha512.kasp" "rsasha512" "1234" "3" "10.53.0.3"
 key_properties "KEY1" "ksk" "315360000" "10" "RSASHA512" "2048" "no" "yes"
-key_properties "KEY2" "zsk" "157680000" "10" "RSASHA512" "1024" "yes" "no"
+key_properties "KEY2" "zsk" "157680000" "10" "RSASHA512" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "10" "RSASHA512" "2000" "yes" "no"
 # key_timings and key_states same as above.
 check_keys

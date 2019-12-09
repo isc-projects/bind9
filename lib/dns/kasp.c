@@ -395,10 +395,8 @@ dns_kasp_key_size(dns_kasp_key_t *key) {
 			if (size > 4096) {
 				size = 4096;
 			}
-		} else if (key->role & DNS_KASP_KEY_ROLE_KSK) {
-			size = 2048;
 		} else {
-			size = 1024;
+			size = 2048;
 		}
 		break;
 	case DNS_KEYALG_ECDSA256:

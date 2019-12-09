@@ -1,3 +1,6 @@
+5334.	[doc]		Update documentation with dnssec-policy clarifications.
+			Also change some defaults.
+
 5333.	[bug]		Fix duration printing on Solaris when value is not
 			an ISO 8601 duration. [GL #1460]
 

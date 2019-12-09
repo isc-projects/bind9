@@ -14,7 +14,7 @@
 <programlisting>
 <command>dnssec-policy</command> <replaceable>string</replaceable> {
     <command>dnskey-ttl</command> <replaceable>duration</replaceable>;
-    <command>keys</command> { ( csk | ksk | zsk ) key-directory <replaceable>duration</replaceable> <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ] ; ... };
+    <command>keys</command> { ( csk | ksk | zsk ) key-directory lifetime <replaceable>duration</replaceable> algorithm <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ] ; ... };
     <command>parent-ds-ttl</command> <replaceable>duration</replaceable>;
     <command>parent-propagation-delay</command> <replaceable>duration</replaceable>;
     <command>parent-registration-delay</command> <replaceable>duration</replaceable>;
