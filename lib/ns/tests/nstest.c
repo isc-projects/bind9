@@ -75,8 +75,8 @@ static dns_zone_t *served_zone = NULL;
 /*
  * We don't want to use netmgr-based client accounting, we need to emulate it.
  */
-atomic_uint_fast32_t client_refs[16];
-atomic_uintptr_t client_addrs[16];
+atomic_uint_fast32_t client_refs[32];
+atomic_uintptr_t client_addrs[32];
 
 void
 __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle);
@@ -86,12 +86,12 @@ __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	ns_client_t *client = (ns_client_t *)handle;
 	int i;
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 32; i++) {
 		if (atomic_load(&client_addrs[i]) == (uintptr_t) client) {
 			break;
 		}
 	}
-	REQUIRE(i < 16);
+	REQUIRE(i < 32);
 
 	if (atomic_fetch_sub(&client_refs[i], 1) == 1) {
 		dns_view_detach(&client->view);
@@ -561,14 +561,14 @@ ns_test_getclient(ns_interface_t *ifp0, bool tcp,
 
 	result = ns__client_setup(client, clientmgr, true);
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 32; i++) {
 		if (atomic_load(&client_addrs[i]) == (uintptr_t) NULL ||
 		    atomic_load(&client_addrs[i]) == (uintptr_t) client)
 		{
 			break;
 		}
 	}
-	REQUIRE(i < 16);
+	REQUIRE(i < 32);
 
 	atomic_store(&client_refs[i], 2);
 	atomic_store(&client_addrs[i], (uintptr_t) client);
