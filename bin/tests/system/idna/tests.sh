@@ -252,16 +252,19 @@ idna_enabled_test() {
     #            is displayed as the corresponding A-label.
     #
     # The "+[no]idnout" flag has no effect in these cases.
+    saved_LC_ALL="${LC_ALL}"
+    LC_ALL="C"
     text="Checking valid A-label in C locale"
     label="xn--nxasmq6b.com"
-    if command -v idn2 >/dev/null && ! LC_ALL=C idn2 -d "$label" >/dev/null 2>/dev/null; then
-	LC_ALL=C idna_test "$text" ""                   "$label" "$label."
-	LC_ALL=C idna_test "$text" "+noidnin +noidnout" "$label" "$label."
-	LC_ALL=C idna_test "$text" "+noidnin +idnout"   "$label" "$label."
-	LC_ALL=C idna_test "$text" "+idnin +noidnout"   "$label" "$label."
-	LC_ALL=C idna_test "$text" "+idnin +idnout"     "$label" "$label."
-	LC_ALL=C idna_test "$text" "+noidnin +idnout"   "$label" "$label."
+    if command -v idn2 >/dev/null && ! idn2 -d "$label" >/dev/null 2>/dev/null; then
+	idna_test "$text" ""                   "$label" "$label."
+	idna_test "$text" "+noidnin +noidnout" "$label" "$label."
+	idna_test "$text" "+noidnin +idnout"   "$label" "$label."
+	idna_test "$text" "+idnin +noidnout"   "$label" "$label."
+	idna_test "$text" "+idnin +idnout"     "$label" "$label."
+	idna_test "$text" "+noidnin +idnout"   "$label" "$label."
     fi
+    LC_ALL="${saved_LC_ALL}"
 
 
 
@@ -318,11 +321,11 @@ idna_enabled_test() {
     # The +[no]idnout options should not have any effect on the test.
 
     text="Checking invalid input U-label"
-    idna_test "$text" ""                   "🧦.com" "\240\159\167\166.com."
-    idna_test "$text" "+noidnin +noidnout" "🧦.com" "\240\159\167\166.com."
-    idna_test "$text" "+noidnin +idnout"   "🧦.com" "\240\159\167\166.com."
-    idna_fail "$text" "+idnin   +noidnout" "🧦.com"
-    idna_fail "$text" "+idnin   +idnout"   "🧦.com"
+    idna_test "$text" ""                   "🟥.com" "\240\159\159\165.com."
+    idna_test "$text" "+noidnin +noidnout" "🟥.com" "\240\159\159\165.com."
+    idna_test "$text" "+noidnin +idnout"   "🟥.com" "\240\159\159\165.com."
+    idna_fail "$text" "+idnin   +noidnout" "🟥.com"
+    idna_fail "$text" "+idnin   +idnout"   "🟥.com"
 
     # Tests of a valid unicode string but an invalid U-label (output)
     #
