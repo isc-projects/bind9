@@ -431,14 +431,17 @@ fi
 n=`expr $n + 1`
 echo_i "test mapped zone with out of zone data ($n)"
 tmp=0
-$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.1.$n
-grep "status: NOERROR," dig.out.1.$n > /dev/null || tmp=1
+$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.1
+grep "status: NOERROR," dig.out.1 > /dev/null || tmp=1
 $PERL $SYSTEMTESTTOP/stop.pl xfer ns3
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} xfer ns3
-$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.2.$n
-grep "status: NOERROR," dig.out.2.$n > /dev/null || tmp=1
-$DIG -p ${PORT} axfr mapped @10.53.0.3 > dig.out.3.$n
-digcomp knowngood.mapped dig.out.3.$n || tmp=1
+$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.2
+grep "status: NOERROR," dig.out.2 > /dev/null || tmp=1
+if [ "$tmp" -eq 0 ]
+then
+	$DIG -p ${PORT} axfr mapped @10.53.0.3 > dig.out.3
+	digcomp knowngood.mapped dig.out.3 || tmp=1
+fi
 if test $tmp != 0 ; then echo_i "failed"; fi
 status=`expr $status + $tmp`
 
