@@ -10830,7 +10830,9 @@ zone_maintenance(dns_zone_t *zone) {
 	default:
 		break;
 	}
+	LOCK_ZONE(zone);
 	zone_settimer(zone, &now);
+	UNLOCK_ZONE(zone);
 }
 
 void
@@ -13659,6 +13661,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(LOCKED_ZONE(zone));
 	ENTER;
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
@@ -19038,6 +19041,7 @@ zone_rekey(dns_zone_t *zone) {
 		UNLOCK_ZONE(zone);
 	}
 
+	LOCK_ZONE(zone);
 	isc_time_settoepoch(&zone->refreshkeytime);
 
 	/*
@@ -19046,13 +19050,11 @@ zone_rekey(dns_zone_t *zone) {
 	if (kasp != NULL && nexttime > 0) {
 		isc_time_t timenext;
 
-		LOCK_ZONE(zone);
 		DNS_ZONE_TIME_ADD(&timenow, nexttime - now, &timenext);
 		zone->refreshkeytime = timenext;
-		UNLOCK_ZONE(zone);
-
 		zone_settimer(zone, &timenow);
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
+
 		dnssec_log(zone, ISC_LOG_DEBUG(3),
 			   "next key event in %u seconds: %s",
 			   (nexttime - now), timebuf);
@@ -19067,11 +19069,9 @@ zone_rekey(dns_zone_t *zone) {
 		isc_time_t timethen;
 		isc_stdtime_t then;
 
-		LOCK_ZONE(zone);
 		DNS_ZONE_TIME_ADD(&timenow, zone->refreshkeyinterval,
 				  &timethen);
 		zone->refreshkeytime = timethen;
-		UNLOCK_ZONE(zone);
 
 		for (key = ISC_LIST_HEAD(dnskeys);
 		     key != NULL;
@@ -19084,13 +19084,11 @@ zone_rekey(dns_zone_t *zone) {
 			}
 
 			DNS_ZONE_TIME_ADD(&timenow, then - now, &timethen);
-			LOCK_ZONE(zone);
 			if (isc_time_compare(&timethen,
 					     &zone->refreshkeytime) < 0)
 			{
 				zone->refreshkeytime = timethen;
 			}
-			UNLOCK_ZONE(zone);
 		}
 
 		zone_settimer(zone, &timenow);
@@ -19098,6 +19096,7 @@ zone_rekey(dns_zone_t *zone) {
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
 		dnssec_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
 	}
+	UNLOCK_ZONE(zone);
 
 	result = ISC_R_SUCCESS;
 
