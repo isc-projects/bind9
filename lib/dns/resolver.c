@@ -320,7 +320,7 @@ struct fetchctx {
 	/*%
 	 * The number of events we're waiting for.
 	 */
-	unsigned int			pending;
+	unsigned int			pending;	/* Bucket lock. */
 
 	/*%
 	 * The number of times we've "restarted" the current
@@ -349,7 +349,7 @@ struct fetchctx {
 	/*%
 	 * Number of queries that reference this context.
 	 */
-	unsigned int			nqueries;
+	unsigned int			nqueries;	/* Bucket lock. */
 
 	/*%
 	 * The reason to print when logging a successful
@@ -394,7 +394,7 @@ struct fetchctx {
 #define FCTX_ATTR_HAVEANSWER            0x0001
 #define FCTX_ATTR_GLUING                0x0002
 #define FCTX_ATTR_ADDRWAIT              0x0004
-#define FCTX_ATTR_SHUTTINGDOWN          0x0008
+#define FCTX_ATTR_SHUTTINGDOWN          0x0008		/* Bucket lock */
 #define FCTX_ATTR_WANTCACHE             0x0010
 #define FCTX_ATTR_WANTNCACHE            0x0020
 #define FCTX_ATTR_NEEDEDNS0             0x0040
@@ -1137,9 +1137,8 @@ resquery_destroy(resquery_t **queryp) {
 	res = fctx->res;
 	bucket = fctx->bucketnum;
 
-	fctx->nqueries--;
-
 	LOCK(&res->buckets[bucket].lock);
+	fctx->nqueries--;
 	empty = fctx_decreference(query->fctx);
 	UNLOCK(&res->buckets[bucket].lock);
 
@@ -1937,6 +1936,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	bool have_addr = false;
 	unsigned int srtt;
 	isc_dscp_t dscp = -1;
+	unsigned int bucketnum;
 
 	FCTXTRACE("query");
 
@@ -2158,7 +2158,10 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	fctx->querysent++;
 
 	ISC_LIST_APPEND(fctx->queries, query, link);
-	query->fctx->nqueries++;
+	bucketnum = fctx->bucketnum;
+	LOCK(&res->buckets[bucketnum].lock);
+	fctx->nqueries++;
+	UNLOCK(&res->buckets[bucketnum].lock);
 	if (isc_sockaddr_pf(&addrinfo->sockaddr) == PF_INET)
 		inc_stats(res, dns_resstatscounter_queryv4);
 	else
@@ -5288,11 +5291,12 @@ maybe_destroy(fetchctx_t *fctx, bool locked) {
 	dns_validator_t *validator, *next_validator;
 	bool dodestroy = false;
 
-	REQUIRE(SHUTTINGDOWN(fctx));
-
 	bucketnum = fctx->bucketnum;
 	if (!locked)
 		LOCK(&res->buckets[bucketnum].lock);
+
+	REQUIRE(SHUTTINGDOWN(fctx));
+
 	if (fctx->pending != 0 || fctx->nqueries != 0)
 		goto unlock;
 
@@ -6988,6 +6992,9 @@ fctx_increference(fetchctx_t *fctx) {
 	isc_refcount_increment(&fctx->references);
 }
 
+/*
+ * Requires bucket lock to be held.
+ */
 static bool
 fctx_decreference(fetchctx_t *fctx) {
 	bool bucket_empty = false;
