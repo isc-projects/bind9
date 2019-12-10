@@ -166,6 +166,8 @@ nm_destroy(isc_nm_t **mgr0) {
 
 	isc_nm_t *mgr = *mgr0;
 
+	isc_refcount_destroy(&mgr->references);
+
 	LOCK(&mgr->lock);
 	mgr->magic = 0;
 
@@ -1019,6 +1021,8 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	size_t extra = sock->extrahandlesize;
+
+	isc_refcount_destroy(&handle->references);
 
 	if (handle->dofree != NULL) {
 		handle->dofree(handle->opaque);

@@ -567,8 +567,8 @@ isc__nm_async_tcpchildstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	UNUSED(worker);
 
-	REQUIRE(isc_nm_tid() == sock->tid);
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(isc_nm_tid() == sock->tid);
 	REQUIRE(sock->type == isc_nm_tcpchildlistener);
 	REQUIRE(sock->parent != NULL);
 
