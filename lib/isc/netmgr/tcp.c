@@ -186,10 +186,13 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 		isc__nm_put_ievent(mgr, ievent);
 	} else {
 		nsock->tid = isc_random_uniform(mgr->nworkers);
-		LOCK(&nsock->lock);
 		isc__nm_enqueue_ievent(&mgr->workers[nsock->tid],
 				       (isc__netievent_t *) ievent);
-		WAIT(&nsock->cond, &nsock->lock);
+
+		LOCK(&nsock->lock);
+		while (!atomic_load(&nsock->listening)) {
+			WAIT(&nsock->cond, &nsock->lock);
+		}
 		UNLOCK(&nsock->lock);
 	}
 
