@@ -165,7 +165,7 @@ typedef isc_rwlock_t nodelock_t;
 #define NODE_LOCK(l, t)         RWLOCK((l), (t))
 #define NODE_UNLOCK(l, t)       RWUNLOCK((l), (t))
 #define NODE_TRYUPGRADE(l)      isc_rwlock_tryupgrade(l)
-#define NODE_DOWNGRADE(l)   isc_rwlock_downgrade(l)
+#define NODE_DOWNGRADE(l)       isc_rwlock_downgrade(l)
 
 /*%
  * Whether to rate-limit updating the LRU to avoid possible thread contention.
@@ -6877,9 +6877,10 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	 * this is deferred until closeversion() is called.
 	 */
 	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
-		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
-		iszonesecure(db, rbtdb->current_version, rbtdb->origin_node);
-		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
+		version = rbtdb->current_version;
+		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
+		iszonesecure(db, version, rbtdb->origin_node);
 	}
 
 	return (result);
@@ -6935,9 +6936,10 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	 * this is deferred until closeversion() is called.
 	 */
 	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
-		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
-		iszonesecure(db, rbtdb->current_version, rbtdb->origin_node);
-		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
+		version = rbtdb->current_version;
+		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
+		iszonesecure(db, version, rbtdb->origin_node);
 	}
 
 	return (result);
@@ -7363,9 +7365,12 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	 * zone key, we consider the zone secure.
 	 */
 	if (! IS_CACHE(rbtdb) && rbtdb->origin_node != NULL) {
-		iszonesecure(db, rbtdb->current_version, rbtdb->origin_node);
+		dns_dbversion_t *version = rbtdb->current_version;
+		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+		iszonesecure(db, version, rbtdb->origin_node);
+	} else {
+		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 	}
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	callbacks->add = NULL;
 	callbacks->add_private = NULL;
