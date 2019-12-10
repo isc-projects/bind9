@@ -321,11 +321,11 @@ idna_enabled_test() {
     # The +[no]idnout options should not have any effect on the test.
 
     text="Checking invalid input U-label"
-    idna_test "$text" ""                   "🧦.com" "\240\159\167\166.com."
-    idna_test "$text" "+noidnin +noidnout" "🧦.com" "\240\159\167\166.com."
-    idna_test "$text" "+noidnin +idnout"   "🧦.com" "\240\159\167\166.com."
-    idna_fail "$text" "+idnin   +noidnout" "🧦.com"
-    idna_fail "$text" "+idnin   +idnout"   "🧦.com"
+    idna_test "$text" ""                   "🟥.com" "\240\159\159\165.com."
+    idna_test "$text" "+noidnin +noidnout" "🟥.com" "\240\159\159\165.com."
+    idna_test "$text" "+noidnin +idnout"   "🟥.com" "\240\159\159\165.com."
+    idna_fail "$text" "+idnin   +noidnout" "🟥.com"
+    idna_fail "$text" "+idnin   +idnout"   "🟥.com"
 
     # Tests of a valid unicode string but an invalid U-label (output)
     #
