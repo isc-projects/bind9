@@ -140,12 +140,14 @@ stages:
     - merge_requests
     - tags
     - web
+    - schedules
 
 .release-branch-triggering-rules: &release_branch_triggering_rules
   only:
     - merge_requests
     - tags
     - web
+    - schedules
     - master@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
@@ -283,6 +285,7 @@ stages:
   only:
     - tags
     - web
+    - schedules
 
 .unit_test: &unit_test_job
   <<: *default_triggering_rules
@@ -945,6 +948,7 @@ system:clang:openbsd6.5:amd64:
     - clang:openbsd6.5:amd64
   needs: ["clang:openbsd6.5:amd64"]
   only:
+    - schedules
     - tags
     - web
 
@@ -993,6 +997,7 @@ msvc-debug:windows:amd64:
   variables:
     VSCONF: Debug
   only:
+    - schedules
     - tags
     - web
 
