@@ -166,6 +166,8 @@ nm_destroy(isc_nm_t **mgr0) {
 
 	isc_nm_t *mgr = *mgr0;
 
+	isc_refcount_destroy(&mgr->references);
+
 	LOCK(&mgr->lock);
 	mgr->magic = 0;
 
