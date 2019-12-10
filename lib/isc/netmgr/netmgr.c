@@ -1022,6 +1022,8 @@ static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	size_t extra = sock->extrahandlesize;
 
+	isc_refcount_destroy(&handle->references);
+
 	if (handle->dofree != NULL) {
 		handle->dofree(handle->opaque);
 	}
