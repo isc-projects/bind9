@@ -19,11 +19,18 @@ status=0
 n=0
 
 n=`expr $n + 1`
-echo_i "testing basic zone transfer functionality"
+echo_i "testing basic zone transfer functionality (from primary)"
+tmp=0
 $DIG $DIGOPTS example. \
-	@10.53.0.2 axfr > dig.out.ns2 || status=1
+	@10.53.0.2 axfr > dig.out.ns2 || tmp=1
 grep "^;" dig.out.ns2 | cat_i
 
+digcomp dig1.good dig.out.ns2 || tmp=1
+if test $tmp != 0 ; then echo_i "failed"; fi
+status=`expr $status + $tmp`
+
+n=`expr $n + 1`
+echo_i "testing basic zone transfer functionality (from secondary) ($n)"
 #
 # Spin to allow the zone to tranfer.
 #
@@ -32,17 +39,14 @@ do
 tmp=0
 $DIG $DIGOPTS example. \
 	@10.53.0.3 axfr > dig.out.ns3 || tmp=1
-	grep "^;" dig.out.ns3 > /dev/null
-	if test $? -ne 0 ; then break; fi
+	grep "^;" dig.out.ns3 > /dev/null || break
 	echo_i "plain zone re-transfer"
 	sleep 5
 done
-if test $tmp -eq 1 ; then status=1; fi
 grep "^;" dig.out.ns3 | cat_i
-
-digcomp dig1.good dig.out.ns2 || status=1
-
-digcomp dig1.good dig.out.ns3 || status=1
+digcomp dig1.good dig.out.ns3 || tmp=1
+if test $tmp != 0 ; then echo_i "failed"; fi
+status=`expr $status + $tmp`
 
 n=`expr $n + 1`
 echo_i "testing TSIG signed zone transfers"
