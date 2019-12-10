@@ -38,7 +38,7 @@ _wait_for_rcode() (
 	ns="$3"
 	qname="$4"
 	file="$5"
-	shift 4
+	shift 5
 	dig_with_opts "$ns" "$qtype" "$qname" "$@" >"$file" || return 1
 	grep "status: $rcode" "$file" >/dev/null
 )
