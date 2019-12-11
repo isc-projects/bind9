@@ -196,7 +196,7 @@ if [ $status != 0 ]; then
 else
     core_dumps="$(find $systest/ -name 'core*' -or -name '*.core' | sort | tr '\n' ' ')"
     assertion_failures=$(find $systest/ -name named.run | xargs grep "assertion failure" | wc -l)
-    sanitizer_summaries=$(find $systest/ -type f | grep '^[-a-zA-Z0-9./_]*$' | xargs grep "SUMMARY: .*Sanitizer" | wc -l)
+    sanitizer_summaries=$(find $systest/ -name 'tsan.*' | wc -l)
     if [ -n "$core_dumps" ]; then
         echoinfo "I:$systest:Test claims success despite crashes: $core_dumps"
         echofail "R:$systest:FAIL"
@@ -214,7 +214,9 @@ else
 		echoinfo "D:$systest:backtrace from $coredump end"
 	done
     elif [ $assertion_failures -ne 0 ]; then
+	SYSTESTDIR="$systest"
         echoinfo "I:$systest:Test claims success despite $assertion_failures assertion failure(s)"
+	grep "SUMMARY: " $(find $systest/ -name 'tsan.*') | sort -u | cat_d
         echofail "R:$systest:FAIL"
         # Do not clean up - we need the evidence.
     elif [ $sanitizer_summaries -ne 0 ]; then
