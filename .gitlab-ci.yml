@@ -30,6 +30,7 @@ stages:
   - docs
   - push
   - postcheck
+  - release
 
 ### Runner Tag Templates
 
@@ -980,3 +981,45 @@ system:msvc-debug:windows:amd64:
   dependencies:
     - msvc-debug:windows:amd64
   needs: ["msvc-debug:windows:amd64"]
+
+# Job producing a release tarball
+
+release:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: release
+  script:
+    # Determine BIND version
+    - source version
+    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
+    # Remove redundant files and system test utilities from Windows build artifacts
+    - find Build/Release/ -name "*.pdb" -print -delete
+    - find Build/Debug/ \( -name "*.bsc" -o -name "*.idb" \) -print -delete
+    - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
+    # Create Windows zips
+    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" | tee Build/Release/SHA256 Build/Debug/SHA256
+    - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
+    - ( cd Build/Debug; zip "../../BIND${BIND_DIRECTORY#bind-}.debug.x64.zip" * )
+    # Prepare release tarball contents (tarballs + zips + documentation)
+    - mkdir -p release/doc/arm
+    - pushd release
+    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
+    - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
+    - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
+    - mv "${BIND_DIRECTORY}"/doc/arm/{Bv9ARM{*.html,.pdf},man.*,notes.{html,pdf,txt}} doc/arm/
+    - rm -rf "${BIND_DIRECTORY}"
+    - cp doc/arm/notes.html "RELEASE-NOTES-${BIND_DIRECTORY}.html"
+    - cp doc/arm/notes.pdf "RELEASE-NOTES-${BIND_DIRECTORY}.pdf"
+    - cp doc/arm/notes.txt "RELEASE-NOTES-${BIND_DIRECTORY}.txt"
+    - popd
+    # Create release tarball
+    - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
+  dependencies:
+    - tarball-create:sid:amd64
+    - msvc:windows:amd64
+    - msvc-debug:windows:amd64
+  only:
+    - tags
+  artifacts:
+    paths:
+      - "*.tar.gz"
+    expire_in: "1 week"
