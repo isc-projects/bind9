@@ -1,3 +1,11 @@
 *.sln.in eol=crlf
 *.vcxproj.in eol=crlf
 *.vcxproj.filters.in eol=crlf
+
+.gitignore			 export-ignore
+/conftools			 export-ignore
+/doc/design			 export-ignore
+/doc/dev			 export-ignore
+/util/**			 export-ignore
+/util/bindkeys.pl		-export-ignore
+/util/mksymtbl.pl		-export-ignore
