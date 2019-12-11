@@ -19,6 +19,9 @@ variables:
   CONFIGURE: ./configure
   SCAN_BUILD: scan-build-9
 
+  TARBALL_COMPRESSOR: gzip
+  TARBALL_EXTENSION: gz
+
 stages:
   - precheck
   - build
@@ -27,6 +30,7 @@ stages:
   - docs
   - push
   - postcheck
+  - release
 
 ### Runner Tag Templates
 
@@ -191,6 +195,35 @@ stages:
     untracked: true
     expire_in: "1 week"
 
+.windows_build: &windows_build_job
+  stage: build
+  tags:
+    - windows
+    - amd64
+  script:
+    - 'Push-Location "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build"'
+    - '& cmd.exe /C "vcvarsall.bat x64 & set" | Foreach-Object { if ($_ -match "(.*?)=(.*)") { Set-Item -force -path "Env:\$($matches[1])" -value "$($matches[2])" } }'
+    - 'Pop-Location'
+    - 'Set-Location win32utils'
+    - '& "C:/Strawberry/perl/bin/perl.exe" Configure
+         "with-tools-version=15.0"
+         "with-platform-toolset=v141"
+         "with-platform-version=10.0.17763.0"
+         "with-vcredist=C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Redist/MSVC/14.16.27012/vcredist_x64.exe"
+         "with-openssl=C:/OpenSSL"
+         "with-libxml2=C:/libxml2"
+         "without-python"
+         "with-system-tests"
+         x64'
+    - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
+    - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
+  dependencies: []
+  needs:
+    - autoreconf:sid:amd64
+  artifacts:
+    untracked: true
+    expire_in: "1 week"
+
 .setup_interfaces: &setup_interfaces |
     if [ "$(id -u)" -eq "0" ]; then
       sh -x bin/tests/system/ifconfig.sh up;
@@ -199,7 +232,7 @@ stages:
     fi
 
 .setup_softhsm: &setup_softhsm |
-    sh -x util/prepare-softhsm2.sh
+    sh -x bin/tests/prepare-softhsm2.sh
 
 .system_test: &system_test_job
   <<: *default_triggering_rules
@@ -222,6 +255,29 @@ stages:
        --results-file "$KYUA_RESULT" \
        --results-filter "" \
        --output kyua_html
+
+.windows_system_test: &windows_system_test_job
+  stage: system
+  tags:
+    - windows
+    - amd64
+  script:
+    - 'Push-Location bin/tests/system'
+    - '$ifIndex = Get-NetIPInterface -AddressFamily IPv4 -InterfaceMetric 75 | Select-Object -ExpandProperty ifIndex'
+    - '& C:/tools/cygwin/bin/sed.exe -i "s/^exit.*/netsh interface ipv4 set dnsservers $ifIndex dhcp/; s/\(name\|interface\)=Loopback/$ifIndex/;" ifconfig.bat'
+    - '& C:/tools/cygwin/bin/sed.exe -i "s/kill -f/kill -W/;" conf.sh stop.pl'
+    - '& cmd.exe /C ifconfig.bat up; ""'
+    - 'Start-Sleep 2'
+    - '$Env:Path = "C:/tools/cygwin/bin;$Env:Path"'
+    - '& sh.exe runall.sh $TEST_PARALLEL_JOBS'
+    - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
+  artifacts:
+    untracked: true
+    expire_in: "1 week"
+    when: on_failure
+  only:
+    - tags
+    - web
 
 .unit_test: &unit_test_job
   <<: *default_triggering_rules
@@ -315,6 +371,23 @@ misc:sid:amd64:
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+
+tarball-create:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script:
+    - source version
+    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
+    - git archive --prefix="${BIND_DIRECTORY}/" --output="${BIND_DIRECTORY}.tar" HEAD
+    - mkdir "${BIND_DIRECTORY}"
+    - echo "SRCID=$(git rev-list --max-count=1 HEAD | cut -b1-7)" > "${BIND_DIRECTORY}/srcid"
+    - tar --append --file="${BIND_DIRECTORY}.tar" "${BIND_DIRECTORY}/srcid"
+    - ${TARBALL_COMPRESSOR} "${BIND_DIRECTORY}.tar"
+  artifacts:
+    paths:
+      - bind-*.tar.${TARBALL_EXTENSION}
+  only:
+    - tags
 
 # Jobs for doc builds on Debian Sid (amd64)
 
@@ -575,6 +648,48 @@ cppcheck:gcc:sid:amd64:
   dependencies:
     - gcc:sid:amd64
   needs: ["gcc:sid:amd64"]
+
+# Jobs for tarball GCC builds on Debian Sid (amd64)
+
+tarball:sid:amd64:
+  variables:
+    CC: gcc
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    RUN_MAKE_INSTALL: 1
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+  before_script:
+    - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
+    - rm -f bind-*.tar.${TARBALL_EXTENSION}
+    - cd bind-*
+  dependencies:
+    - tarball-create:sid:amd64
+  needs: ["tarball-create:sid:amd64"]
+  only:
+    - tags
+
+system:tarball:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  before_script:
+    - cd bind-*
+    - *setup_interfaces
+  dependencies:
+    - tarball:sid:amd64
+  needs: ["tarball:sid:amd64"]
+  only:
+    - tags
+
+unit:tarball:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  before_script:
+    - cd bind-*
+  dependencies:
+    - tarball:sid:amd64
+  needs: ["tarball:sid:amd64"]
+  only:
+    - tags
 
 # Jobs for regular GCC builds on Debian Sid (i386)
 
@@ -838,61 +953,73 @@ unit:nolibtool:sid:amd64:
 # Jobs for Visual Studio 2017 builds on Windows (amd64)
 
 msvc:windows:amd64:
+  <<: *windows_build_job
   <<: *default_triggering_rules
-  stage: build
-  tags:
-    - windows
-    - amd64
   variables:
     VSCONF: Release
-  script:
-    - 'Push-Location "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build"'
-    - '& cmd.exe /C "vcvarsall.bat x64 & set" | Foreach-Object { if ($_ -match "(.*?)=(.*)") { Set-Item -force -path "Env:\$($matches[1])" -value "$($matches[2])" } }'
-    - 'Pop-Location'
-    - 'Set-Location win32utils'
-    - '& "C:/Strawberry/perl/bin/perl.exe" Configure
-         "with-tools-version=15.0"
-         "with-platform-toolset=v141"
-         "with-platform-version=10.0.17763.0"
-         "with-vcredist=C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Redist/MSVC/14.16.27012/vcredist_x64.exe"
-         "with-openssl=C:/OpenSSL"
-         "with-libxml2=C:/libxml2"
-         "without-python"
-         "with-system-tests"
-         x64'
-    - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
-    - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
-  dependencies: []
-  needs:
-    - autoreconf:sid:amd64
-  artifacts:
-    untracked: true
-    expire_in: "1 week"
 
 system:msvc:windows:amd64:
-  stage: system
-  tags:
-    - windows
-    - amd64
+  <<: *windows_system_test_job
   variables:
     VSCONF: Release
-  script:
-    - 'Push-Location bin/tests/system'
-    - '$ifIndex = Get-NetIPInterface -AddressFamily IPv4 -InterfaceMetric 75 | Select-Object -ExpandProperty ifIndex'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/^exit.*/netsh interface ipv4 set dnsservers $ifIndex dhcp/; s/\(name\|interface\)=Loopback/$ifIndex/;" ifconfig.bat'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/kill -f/kill -W/;" conf.sh stop.pl'
-    - '& cmd.exe /C ifconfig.bat up; ""'
-    - 'Start-Sleep 2'
-    - '$Env:Path = "C:/tools/cygwin/bin;$Env:Path"'
-    - '& sh.exe runall.sh $TEST_PARALLEL_JOBS'
-    - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
   dependencies:
     - msvc:windows:amd64
   needs: ["msvc:windows:amd64"]
-  artifacts:
-    untracked: true
-    expire_in: "1 week"
-    when: on_failure
+
+msvc-debug:windows:amd64:
+  <<: *windows_build_job
+  variables:
+    VSCONF: Debug
   only:
     - tags
     - web
+
+system:msvc-debug:windows:amd64:
+  <<: *windows_system_test_job
+  variables:
+    VSCONF: Debug
+  dependencies:
+    - msvc-debug:windows:amd64
+  needs: ["msvc-debug:windows:amd64"]
+
+# Job producing a release tarball
+
+release:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: release
+  script:
+    # Determine BIND version
+    - source version
+    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
+    # Remove redundant files and system test utilities from Windows build artifacts
+    - find Build/Release/ -name "*.pdb" -print -delete
+    - find Build/Debug/ \( -name "*.bsc" -o -name "*.idb" \) -print -delete
+    - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
+    # Create Windows zips
+    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" | tee Build/Release/SHA256 Build/Debug/SHA256
+    - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
+    - ( cd Build/Debug; zip "../../BIND${BIND_DIRECTORY#bind-}.debug.x64.zip" * )
+    # Prepare release tarball contents (tarballs + zips + documentation)
+    - mkdir -p release/doc/arm
+    - pushd release
+    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
+    - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
+    - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
+    - mv "${BIND_DIRECTORY}"/doc/arm/{Bv9ARM{*.html,.pdf},man.*,notes.{html,pdf,txt}} doc/arm/
+    - rm -rf "${BIND_DIRECTORY}"
+    - cp doc/arm/notes.html "RELEASE-NOTES-${BIND_DIRECTORY}.html"
+    - cp doc/arm/notes.pdf "RELEASE-NOTES-${BIND_DIRECTORY}.pdf"
+    - cp doc/arm/notes.txt "RELEASE-NOTES-${BIND_DIRECTORY}.txt"
+    - popd
+    # Create release tarball
+    - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
+  dependencies:
+    - tarball-create:sid:amd64
+    - msvc:windows:amd64
+    - msvc-debug:windows:amd64
+  only:
+    - tags
+  artifacts:
+    paths:
+      - "*.tar.gz"
+    expire_in: "1 week"
