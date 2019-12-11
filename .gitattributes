@@ -3,3 +3,16 @@
 *.vcxproj.filters.in eol=crlf
 *.dsw eol=crlf
 win32utils/**.txt eol=crlf
+
+.gitignore			 export-ignore
+/EXCLUDED			 export-ignore
+/conftools			 export-ignore
+/doc/design			 export-ignore
+/doc/dev			 export-ignore
+/doc/draft			 export-ignore
+/doc/expired			 export-ignore
+/doc/rfc			 export-ignore
+/lib/lwres/man/resolver.5	 export-ignore
+/util/**			 export-ignore
+/util/bindkeys.pl		-export-ignore
+/util/mksymtbl.pl		-export-ignore
