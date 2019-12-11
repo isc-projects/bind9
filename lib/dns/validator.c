@@ -1356,22 +1356,12 @@ compute_keytag(dns_rdata_t *rdata) {
  */
 static bool
 selfsigned_dnskey(dns_validator_t *val) {
-	dns_rdataset_t *rdataset, *sigrdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_t sigrdata = DNS_RDATA_INIT;
-	dns_rdata_dnskey_t key;
-	dns_rdata_rrsig_t sig;
-	dns_keytag_t keytag;
-	dns_name_t *name;
+	dns_rdataset_t *rdataset = val->event->rdataset;
+	dns_rdataset_t *sigrdataset = val->event->sigrdataset;
+	dns_name_t *name = val->event->name;
 	isc_result_t result;
-	dst_key_t *dstkey;
-	isc_mem_t *mctx;
+	isc_mem_t *mctx = val->view->mctx;
 	bool answer = false;
-
-	rdataset = val->event->rdataset;
-	sigrdataset = val->event->sigrdataset;
-	name = val->event->name;
-	mctx = val->view->mctx;
 
 	if (rdataset->type != dns_rdatatype_dnskey) {
 		return (false);
@@ -1381,15 +1371,24 @@ selfsigned_dnskey(dns_validator_t *val) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))
 	{
-		dns_rdata_reset(&rdata);
-		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &key, NULL);
+		dns_rdata_t keyrdata = DNS_RDATA_INIT;
+		dns_rdata_t sigrdata = DNS_RDATA_INIT;
+		dns_rdata_dnskey_t key;
+		dns_rdata_rrsig_t sig;
+		dns_keytag_t keytag;
+
+		dns_rdata_reset(&keyrdata);
+		dns_rdataset_current(rdataset, &keyrdata);
+		result = dns_rdata_tostruct(&keyrdata, &key, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		keytag = compute_keytag(&rdata);
+		keytag = compute_keytag(&keyrdata);
+
 		for (result = dns_rdataset_first(sigrdataset);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(sigrdataset))
 		{
+			dst_key_t *dstkey = NULL;
+
 			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(sigrdataset, &sigrdata);
 			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
@@ -1402,8 +1401,7 @@ selfsigned_dnskey(dns_validator_t *val) {
 				continue;
 			}
 
-			dstkey = NULL;
-			result = dns_dnssec_keyfromrdata(name, &rdata, mctx,
+			result = dns_dnssec_keyfromrdata(name, &keyrdata, mctx,
 							 &dstkey);
 			if (result != ISC_R_SUCCESS) {
 				continue;
@@ -1417,11 +1415,13 @@ selfsigned_dnskey(dns_validator_t *val) {
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}
+
 			if ((key.flags & DNS_KEYFLAG_REVOKE) == 0) {
 				answer = true;
 				continue;
 			}
-			dns_view_untrust(val->view, name, &key, mctx);
+
+			dns_view_untrust(val->view, name, &key);
 		}
 	}
 

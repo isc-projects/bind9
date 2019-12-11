@@ -10173,7 +10173,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					 * Remove key from secroots.
 					 */
 					dns_view_untrust(zone->view, keyname,
-							 &dnskey, mctx);
+							 &dnskey);
 
 					/* If initializing, delete now */
 					if (keydata.addhd == 0) {

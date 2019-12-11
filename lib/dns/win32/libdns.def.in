@@ -472,7 +472,7 @@ dns_keytable_attach
 dns_keytable_attachkeynode
 dns_keytable_create
 dns_keytable_delete
-dns_keytable_deletekeynode
+dns_keytable_deletekey
 dns_keytable_detach
 dns_keytable_detachkeynode
 dns_keytable_dump

@@ -1864,14 +1864,14 @@ dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
 
 void
 dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
-		 dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx)
+		 dns_rdata_dnskey_t *dnskey)
 {
 	isc_result_t result;
-	unsigned char data[4096];
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_buffer_t buffer;
-	dst_key_t *key = NULL;
 	dns_keytable_t *sr = NULL;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(keyname != NULL);
+	REQUIRE(dnskey != NULL);
 
 	/*
 	 * Clear the revoke bit, if set, so that the key will match what's
@@ -1879,19 +1879,13 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 	 */
 	dnskey->flags &= ~DNS_KEYFLAG_REVOKE;
 
-	/* Convert dnskey to DST key. */
-	isc_buffer_init(&buffer, data, sizeof(data));
-	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
-			     dns_rdatatype_dnskey, dnskey, &buffer);
-
-	result = dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &key);
-	if (result != ISC_R_SUCCESS)
-		return;
-
 	result = dns_view_getsecroots(view, &sr);
-	if (result == ISC_R_SUCCESS) {
-		result = dns_keytable_deletekeynode(sr, key);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
 
+	result = dns_keytable_deletekey(sr, keyname, dnskey);
+	if (result == ISC_R_SUCCESS) {
 		/*
 		 * If key was found in secroots, then it was a
 		 * configured trust anchor, and we want to fail
@@ -1899,14 +1893,10 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 		 * then leave a null key so that we can't validate
 		 * anymore.
 		 */
-
-		if (result == ISC_R_SUCCESS)
-			dns_keytable_marksecure(sr, keyname);
-
-		dns_keytable_detach(&sr);
+		dns_keytable_marksecure(sr, keyname);
 	}
 
-	dst_key_free(&key);
+	dns_keytable_detach(&sr);
 }
 
 /*

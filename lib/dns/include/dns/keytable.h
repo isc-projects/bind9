@@ -185,7 +185,7 @@ dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name);
 isc_result_t
 dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname);
 /*%<
- * Delete node(s) from 'keytable' matching name 'keyname'
+ * Delete all trust anchors from 'keytable' matching name 'keyname'
  *
  * Requires:
  *
@@ -201,15 +201,16 @@ dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname);
  */
 
 isc_result_t
-dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey);
+dns_keytable_deletekey(dns_keytable_t *keytable, const dns_name_t *keyname,
+		       dns_rdata_dnskey_t *dnskey);
 /*%<
- * Delete node(s) from 'keytable' containing copies of the key pointed
- * to by 'dstkey'
+ * Remove the trust anchor matching the name 'keyname' and the DNSKEY
+ * rdata struct 'dnskey' from 'keytable'.
  *
  * Requires:
  *
  *\li	'keytable' points to a valid keytable.
- *\li	'dstkey' is not NULL
+ *\li	'dnskey' is not NULL
  *
  * Returns:
  *

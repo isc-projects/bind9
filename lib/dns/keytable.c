@@ -21,6 +21,7 @@
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
+#include <dns/dnssec.h>
 #include <dns/keytable.h>
 #include <dns/fixedname.h>
 #include <dns/rbt.h>
@@ -403,25 +404,40 @@ dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname) {
 }
 
 isc_result_t
-dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey) {
+dns_keytable_deletekey(dns_keytable_t *keytable, const dns_name_t *keyname,
+		       dns_rdata_dnskey_t *dnskey)
+{
 	isc_result_t result;
-	dns_name_t *keyname;
 	dns_rbtnode_t *node = NULL;
 	dns_keynode_t *knode = NULL, **kprev = NULL;
+	dst_key_t *dstkey = NULL;
+	unsigned char data[4096];
+	isc_buffer_t buffer;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	REQUIRE(VALID_KEYTABLE(keytable));
-	REQUIRE(dstkey != NULL);
+	REQUIRE(dnskey != NULL);
 
-	keyname = dst_key_name(dstkey);
+	/* Convert dnskey to DST key. */
+	isc_buffer_init(&buffer, data, sizeof(data));
+	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
+			     dns_rdatatype_dnskey, dnskey, &buffer);
+	result = dns_dnssec_keyfromrdata(keyname, &rdata, keytable->mctx,
+					 &dstkey);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_write);
 	result = dns_rbt_findnode(keytable->table, keyname, NULL, &node, NULL,
 				  DNS_RBTFIND_NOOPTIONS, NULL, NULL);
 
-	if (result == DNS_R_PARTIALMATCH)
+	if (result == DNS_R_PARTIALMATCH) {
 		result = ISC_R_NOTFOUND;
-	if (result != ISC_R_SUCCESS)
+	}
+	if (result != ISC_R_SUCCESS) {
 		goto finish;
+	}
 
 	if (node->data == NULL) {
 		result = ISC_R_NOTFOUND;
@@ -430,7 +446,7 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey) {
 
 	knode = node->data;
 	if (knode->next == NULL && knode->key != NULL &&
-	    dst_key_compare(knode->key, dstkey) == true)
+	    dst_key_compare(knode->key, dstkey))
 	{
 		result = dns_rbt_deletenode(keytable->table, node, false);
 		goto finish;
@@ -438,16 +454,19 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey) {
 
 	kprev = (dns_keynode_t **) &node->data;
 	while (knode != NULL) {
-		if (knode->key != NULL &&
-		    dst_key_compare(knode->key, dstkey) == true)
+		if (knode->key != NULL && dst_key_compare(knode->key, dstkey)) {
 			break;
+		}
+
 		kprev = &knode->next;
 		knode = knode->next;
 	}
 
 	if (knode != NULL) {
-		if (knode->key != NULL)
+		if (knode->key != NULL) {
 			dst_key_free(&knode->key);
+		}
+
 		/*
 		 * This is equivalent to:
 		 * dns_keynode_attach(knode->next, &tmp);
@@ -458,10 +477,13 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey) {
 		*kprev = knode->next;
 		knode->next = NULL;
 		dns_keynode_detach(keytable->mctx, &knode);
-	} else
+	} else {
 		result = DNS_R_PARTIALMATCH;
+	}
+
   finish:
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_write);
+	dst_key_free(&dstkey);
 	return (result);
 }
 
