@@ -33,8 +33,7 @@
 
 ## Before the ASN Deadline (for ASN Releases) or the Public Release Date (for Regular Releases)
 
- - [ ] ***(QA)*** Run the `make release` Jenkins jobs to produce the tarballs and zips.
- - [ ] ***(QA)*** Verify the results of `make release` Jenkins jobs and prepare a QA report for the releases to be published.
+ - [ ] ***(QA)*** Verify GitLab CI results for the tags created and prepare a QA report for the releases to be published.
  - [ ] ***(QA)*** Request signatures for the tarballs.
  - [ ] ***(Signers)*** Sign the tarballs.
  - [ ] ***(QA)*** Check tarball signatures.
