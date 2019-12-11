@@ -15,16 +15,17 @@
     <itemizedlist>
       <listitem>
         <para>
-	  The <command>dnssec-keys</command> configuration statement,
-	  which was introduced in 9.15.1 and revised in 9.15.6, has now
-	  been renamed to the more descriptive
-	  <command>trust-anchors</command>.
+          The <command>dnssec-keys</command> configuration statement,
+          which was introduced in 9.15.1 and revised in 9.15.6, has now
+          been renamed to the more descriptive
+          <command>trust-anchors</command>. [GL !2702]
         </para>
         <para>
-	  (See the sections on
-	  <xref linkend="relnotes-9.15.6" xrefstyle="template:9.15.6"/> and
-	  <xref linkend="relnotes-9.15.1" xrefstyle="template:9.15.1"/>
-	  for prior discussion of this feature.)
+          (See release notes for
+          <xref linkend="relnotes-9.15.1-new" xrefstyle="template:BIND 9.15.1"/>
+          and
+          <xref linkend="relnotes-9.15.6-new" xrefstyle="template:BIND 9.15.6"/>
+          for prior discussion of this feature.)
         </para>
       </listitem>
     </itemizedlist>
