@@ -512,15 +512,18 @@ struct dns_resolver {
 	unsigned int			spillatmax;
 	unsigned int			spillatmin;
 	isc_timer_t *			spillattimer;
-	bool			zero_no_soa_ttl;
+	bool				zero_no_soa_ttl;
 	unsigned int			query_timeout;
 	unsigned int			maxdepth;
 	unsigned int			maxqueries;
 	isc_result_t			quotaresp[2];
 
 	/* Additions for serve-stale feature. */
-	unsigned int			retryinterval; /* in milliseconds */
+	unsigned int			retryinterval;	/* in milliseconds */
 	unsigned int			nonbackofftries;
+
+	/* Atomic */
+	atomic_uint_fast32_t		zspill;		/* fetches-per-zone */
 
 	/* Locked by lock. */
 	unsigned int			references;
@@ -529,9 +532,8 @@ struct dns_resolver {
 	unsigned int			activebuckets;
 	bool			priming;
 	unsigned int			spillat;	/* clients-per-query */
-	unsigned int			zspill;		/* fetches-per-zone */
 
-	dns_badcache_t  * 		badcache;	 /* Bad cache. */
+	dns_badcache_t  *		badcache;	/* Bad cache. */
 
 	/* Locked by primelock. */
 	dns_fetch_t *			primefetch;
@@ -1511,7 +1513,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	isc_result_t result = ISC_R_SUCCESS;
 	zonebucket_t *dbucket;
 	fctxcount_t *counter;
-	unsigned int bucketnum, spill;
+	unsigned int bucketnum;
 
 	REQUIRE(fctx != NULL);
 	REQUIRE(fctx->res != NULL);
@@ -1519,10 +1521,6 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	INSIST(fctx->dbucketnum == RES_NOBUCKET);
 	bucketnum = dns_name_fullhash(&fctx->domain, false)
 			% RES_DOMAIN_BUCKETS;
-
-	LOCK(&fctx->res->lock);
-	spill = fctx->res->zspill;
-	UNLOCK(&fctx->res->lock);
 
 	dbucket = &fctx->res->dbuckets[bucketnum];
 
@@ -1550,6 +1548,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 			ISC_LIST_APPEND(dbucket->list, counter, link);
 		}
 	} else {
+		uint_fast32_t spill = atomic_load_acquire(&fctx->res->zspill);
 		if (!force && spill != 0 && counter->count >= spill) {
 			counter->dropped++;
 			fcount_logspill(fctx, counter);
@@ -10074,7 +10073,7 @@ dns_resolver_create(dns_view_t *view,
 	res->spillatmin = res->spillat = 10;
 	res->spillatmax = 100;
 	res->spillattimer = NULL;
-	res->zspill = 0;
+	atomic_init(&res->zspill, 0);
 	res->zero_no_soa_ttl = false;
 	res->retryinterval = 30000;
 	res->nonbackofftries = 3;
@@ -11410,9 +11409,7 @@ dns_resolver_setfetchesperzone(dns_resolver_t *resolver, uint32_t clients)
 {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	LOCK(&resolver->lock);
-	resolver->zspill = clients;
-	UNLOCK(&resolver->lock);
+	atomic_store_release(&resolver->zspill, clients);
 }
 
 
