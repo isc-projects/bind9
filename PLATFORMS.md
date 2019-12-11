@@ -47,7 +47,7 @@ following systems:
 
 * Debian 9, 10
 * Ubuntu LTS 16.04, 18.04
-* Fedora 30
+* Fedora 31
 * Red Hat Enterprise Linux / CentOS 7, 8
 * FreeBSD 11.3, 12.0
 * OpenBSD 6.5
