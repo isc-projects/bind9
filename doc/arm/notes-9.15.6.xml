@@ -34,25 +34,32 @@
         </para>
       </listitem>
       <listitem>
-	<para>
-	  Two new keywords have been added to the
-	  <command>dnssec-keys</command> statement:
-	  <command>initial-ds</command> and <command>static-ds</command>.
-	  These allow the use of trust anchors in DS format instead of
-	  DNSKEY format.  DS format allows trust anchors to be configured
-	  for keys that have not yet been published; this is the format
-	  used by IANA when announcing future root keys.
-	</para>
-	<para>
-	  As with the <command>initial-key</command> and
-	  <command>static-key</command> keywords, <command>initial-ds</command>
-	  configures a dynamic trust anchor to be maintained via RFC 5011, and
-	  <command>static-ds</command> configures a permanent trust anchor.
-	</para>
-	<para>
-	  (Note: Currently, DNSKEY-format and DS-format trust anchors
-	  cannot both be used for the same domain name.) [GL #6] [GL #622]
-	</para>
+        <para>
+          Two new keywords have been added to the
+          <command>dnssec-keys</command> statement:
+          <command>initial-ds</command> and <command>static-ds</command>.
+          These allow the use of trust anchors in DS format instead of
+          DNSKEY format.  DS format allows trust anchors to be configured
+          for keys that have not yet been published; this is the format
+          used by IANA when announcing future root keys.
+        </para>
+        <para>
+          As with the <command>initial-key</command> and
+          <command>static-key</command> keywords, <command>initial-ds</command>
+          configures a dynamic trust anchor to be maintained via RFC 5011, and
+          <command>static-ds</command> configures a permanent trust anchor.
+        </para>
+        <para>
+          (Note: Currently, DNSKEY-format and DS-format trust anchors
+          cannot both be used for the same domain name.) [GL #6] [GL #622]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Added a new statistics variable <command>tcp-highwater</command>
+          that reports the maximum number of simultaneous TCP clients BIND
+          has handled while running. [GL #1206]
+        </para>
       </listitem>
     </itemizedlist>
   </section>
@@ -68,10 +75,10 @@
         </para>
       </listitem>
       <listitem>
-	<para>
-	  The DNSSEC validation code has been refactored for clarity and to
-	  reduce code duplication.  [GL #622]
-	</para>
+        <para>
+          The DNSSEC validation code has been refactored for clarity and to
+          reduce code duplication.  [GL #622]
+        </para>
       </listitem>
     </itemizedlist>
   </section>
@@ -79,12 +86,10 @@
   <section xml:id="relnotes-9.15.6-security"><info><title>Security Fixes</title></info>
     <itemizedlist>
       <listitem>
-	<para>
-	  Too many simultaneous pipelined TCP queries could cause
-	  resource overuse. We now prevent this by enforcing a limit
-	  on the number of simultaneous requests per active connection.
-	  This flaw`is disclosed in CVE-2019-6477. [GL #1264]
-	</para>
+        <para>
+          Set a limit on the number of concurrently served pipelined TCP
+          queries. This flaw is disclosed in CVE-2019-6477. [GL #1264]
+        </para>
       </listitem>
     </itemizedlist>
   </section>
