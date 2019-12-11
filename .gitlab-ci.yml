@@ -19,6 +19,9 @@ variables:
   CONFIGURE: ./configure
   SCAN_BUILD: scan-build-9
 
+  TARBALL_COMPRESSOR: gzip
+  TARBALL_EXTENSION: gz
+
 stages:
   - precheck
   - build
@@ -314,6 +317,23 @@ misc:sid:amd64:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
+tarball-create:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script:
+    - source version
+    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
+    - git archive --prefix="${BIND_DIRECTORY}/" --output="${BIND_DIRECTORY}.tar" HEAD
+    - mkdir "${BIND_DIRECTORY}"
+    - echo "SRCID=$(git rev-list --max-count=1 HEAD | cut -b1-7)" > "${BIND_DIRECTORY}/srcid"
+    - tar --append --file="${BIND_DIRECTORY}.tar" "${BIND_DIRECTORY}/srcid"
+    - ${TARBALL_COMPRESSOR} "${BIND_DIRECTORY}.tar"
+  artifacts:
+    paths:
+      - bind-*.tar.${TARBALL_EXTENSION}
+  only:
+    - tags
+
 # Jobs for doc builds on Debian Sid (amd64)
 
 docs:sid:amd64:
@@ -573,6 +593,48 @@ cppcheck:gcc:sid:amd64:
   dependencies:
     - gcc:sid:amd64
   needs: ["gcc:sid:amd64"]
+
+# Jobs for tarball GCC builds on Debian Sid (amd64)
+
+tarball:sid:amd64:
+  variables:
+    CC: gcc
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    RUN_MAKE_INSTALL: 1
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+  before_script:
+    - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
+    - rm -f bind-*.tar.${TARBALL_EXTENSION}
+    - cd bind-*
+  dependencies:
+    - tarball-create:sid:amd64
+  needs: ["tarball-create:sid:amd64"]
+  only:
+    - tags
+
+system:tarball:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  before_script:
+    - cd bind-*
+    - *setup_interfaces
+  dependencies:
+    - tarball:sid:amd64
+  needs: ["tarball:sid:amd64"]
+  only:
+    - tags
+
+unit:tarball:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  before_script:
+    - cd bind-*
+  dependencies:
+    - tarball:sid:amd64
+  needs: ["tarball:sid:amd64"]
+  only:
+    - tags
 
 # Jobs for regular GCC builds on Debian Sid (i386)
 
