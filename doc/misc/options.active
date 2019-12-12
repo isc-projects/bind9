@@ -21,11 +21,6 @@ dlz <string> {
         search <boolean>;
 }; // may occur multiple times
 
-dnssec-keys { <string> ( static-key |
-    initial-key | static-ds | initial-ds )
-    <integer> <integer> <integer>
-    <quoted_string>; ... }; // may occur multiple times
-
 dnssec-policy <string> {
         dnskey-ttl <duration>;
         keys { ( csk | ksk | zsk ) ( key-directory ) lifetime <duration>
@@ -414,6 +409,11 @@ statistics-channels {
             } ]; // may occur multiple times
 }; // may occur multiple times
 
+trust-anchors { <string> ( static-key |
+    initial-key | static-ds | initial-ds )
+    <integer> <integer> <integer>
+    <quoted_string>; ... }; // may occur multiple times
+
 trusted-keys { <string> <integer>
     <integer> <integer>
     <quoted_string>; ... }; // may occur multiple times, deprecated
@@ -487,10 +487,6 @@ view <string> [ <class> ] {
         dnsrps-options { <unspecified-text> }; // not configured
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
-        dnssec-keys { <string> ( static-key |
-            initial-key | static-ds | initial-ds
-            ) <integer> <integer> <integer>
-            <quoted_string>; ... }; // may occur multiple times
         dnssec-loadkeys-interval <integer>;
         dnssec-must-be-secure <string> <boolean>; // may occur multiple times
         dnssec-policy <string>;
@@ -682,6 +678,10 @@ view <string> [ <class> ] {
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
         trust-anchor-telemetry <boolean>; // experimental
+        trust-anchors { <string> ( static-key |
+            initial-key | static-ds | initial-ds
+            ) <integer> <integer> <integer>
+            <quoted_string>; ... }; // may occur multiple times
         trusted-keys { <string>
             <integer> <integer>
             <integer>
