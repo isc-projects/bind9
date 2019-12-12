@@ -11,8 +11,22 @@
 
 <section xml:id="relnotes-9.14.9"><info><title>Notes for BIND 9.14.9</title></info>
 
-  <para>
-    None.
-  </para>
+  <section xml:id="relnotes-9.14.9-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Fixed a bug that caused <command>named</command> to leak memory
+          on reconfiguration when any GeoIP2 database was in use. [GL #1445]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Fixed several possible race conditions discovered by Thread
+          Sanitizer.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
 
 </section>
