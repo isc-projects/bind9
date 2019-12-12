@@ -1834,13 +1834,15 @@ destroy(isc__socket_t **sockp) {
 
 	socket_log(sock, NULL, CREATION, "destroying");
 
+	isc_refcount_destroy(&sock->references);
+
+	LOCK(&sock->lock);
 	INSIST(ISC_LIST_EMPTY(sock->connect_list));
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 	INSIST(sock->fd >= -1 && sock->fd < (int)manager->maxsocks);
 
-	LOCK(&sock->lock);
 	if (sock->fd >= 0) {
 		fd = sock->fd;
 		thread = &manager->threads[sock->threadid];
@@ -1932,12 +1934,14 @@ free_socket(isc__socket_t **socketp) {
 
 	INSIST(VALID_SOCKET(sock));
 	INSIST(isc_refcount_current(&sock->references) == 0);
+	LOCK(&sock->lock);
 	INSIST(!sock->connecting);
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->connect_list));
 	INSIST(!ISC_LINK_LINKED(sock, link));
+	UNLOCK(&sock->lock);
 
 	sock->common.magic = 0;
 	sock->common.impmagic = 0;
