@@ -459,20 +459,21 @@ struct dns_resolver {
 	isc_mutex_t			lock;
 	isc_mutex_t			nlock;
 	isc_mutex_t			primelock;
+	isc_mutex_t			zspill_lock;
 	dns_rdataclass_t		rdclass;
 	isc_socketmgr_t *		socketmgr;
 	isc_timermgr_t *		timermgr;
 	isc_taskmgr_t *			taskmgr;
 	dns_view_t *			view;
-	bool			frozen;
+	bool				frozen;
 	unsigned int			options;
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatchset_t *		dispatches4;
-	bool			exclusivev4;
+	bool				exclusivev4;
 	dns_dispatchset_t *		dispatches6;
 	isc_dscp_t			querydscp4;
 	isc_dscp_t			querydscp6;
-	bool			exclusivev6;
+	bool				exclusivev6;
 	unsigned int			nbuckets;
 	fctxbucket_t *			buckets;
 	zonebucket_t *			dbuckets;
@@ -491,20 +492,22 @@ struct dns_resolver {
 	unsigned int			spillatmax;
 	unsigned int			spillatmin;
 	isc_timer_t *			spillattimer;
-	bool			zero_no_soa_ttl;
+	bool				zero_no_soa_ttl;
 	unsigned int			query_timeout;
 	unsigned int			maxdepth;
 	unsigned int			maxqueries;
 	isc_result_t			quotaresp[2];
 
 	/* Locked by lock. */
+	unsigned int			zspill;		/* fetches-per-zone */
+
+	/* Locked by lock. */
 	unsigned int			references;
-	bool			exiting;
+	bool				exiting;
 	isc_eventlist_t			whenshutdown;
 	unsigned int			activebuckets;
-	bool			priming;
+	bool				priming;
 	unsigned int			spillat;	/* clients-per-query */
-	unsigned int			zspill;		/* fetches-per-zone */
 
 	dns_badcache_t  * 		badcache;	 /* Bad cache. */
 
@@ -1252,7 +1255,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	isc_result_t result = ISC_R_SUCCESS;
 	zonebucket_t *dbucket;
 	fctxcount_t *counter;
-	unsigned int bucketnum, spill;
+	unsigned int bucketnum;
 
 	REQUIRE(fctx != NULL);
 	REQUIRE(fctx->res != NULL);
@@ -1260,10 +1263,6 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	INSIST(fctx->dbucketnum == RES_NOBUCKET);
 	bucketnum = dns_name_fullhash(&fctx->domain, false)
 			% RES_DOMAIN_BUCKETS;
-
-	LOCK(&fctx->res->lock);
-	spill = fctx->res->zspill;
-	UNLOCK(&fctx->res->lock);
 
 	dbucket = &fctx->res->dbuckets[bucketnum];
 
@@ -1292,6 +1291,12 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 			ISC_LIST_APPEND(dbucket->list, counter, link);
 		}
 	} else {
+		unsigned int spill;
+
+		LOCK(&fctx->res->zspill_lock);
+		spill = fctx->res->zspill;
+		UNLOCK(&fctx->res->zspill_lock);
+
 		if (!force && spill != 0 && counter->count >= spill) {
 			counter->dropped++;
 			fcount_logspill(fctx, counter);
@@ -8807,6 +8812,7 @@ destroy(dns_resolver_t *res) {
 
 	INSIST(res->nfctx == 0);
 
+	DESTROYLOCK(&res->zspill_lock);
 	DESTROYLOCK(&res->primelock);
 	DESTROYLOCK(&res->nlock);
 	DESTROYLOCK(&res->lock);
@@ -9083,10 +9089,14 @@ dns_resolver_create(dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_nlock;
 
+	result = isc_mutex_init(&res->zspill_lock);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_primelock;
+
 	task = NULL;
 	result = isc_task_create(taskmgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_primelock;
+		goto cleanup_zspill_lock;
 	isc_task_setname(task, "resolver_task", NULL);
 
 	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
@@ -9094,7 +9104,7 @@ dns_resolver_create(dns_view_t *view,
 				  &res->spillattimer);
 	isc_task_detach(&task);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_primelock;
+		goto cleanup_zspill_lock;
 
 #if USE_ALGLOCK
 	result = isc_rwlock_init(&res->alglock, 0, 0);
@@ -9126,6 +9136,9 @@ dns_resolver_create(dns_view_t *view,
  cleanup_spillattimer:
 	isc_timer_detach(&res->spillattimer);
 #endif
+
+ cleanup_zspill_lock:
+	DESTROYLOCK(&res->zspill_lock);
 
  cleanup_primelock:
 	DESTROYLOCK(&res->primelock);
@@ -10269,9 +10282,9 @@ dns_resolver_setfetchesperzone(dns_resolver_t *resolver, uint32_t clients)
 {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	LOCK(&resolver->lock);
+	LOCK(&resolver->zspill_lock);
 	resolver->zspill = clients;
-	UNLOCK(&resolver->lock);
+	UNLOCK(&resolver->zspill_lock);
 }
 
 
