@@ -473,7 +473,9 @@ task_ready(isc__task_t *task) {
 	XTRACE("task_ready");
 
 	LOCK(&manager->lock);
+	LOCK(&task->lock);
 	push_readyq(manager, task);
+	UNLOCK(&task->lock);
 #ifdef USE_WORKER_THREADS
 	if (manager->mode == isc_taskmgrmode_normal || has_privilege)
 		SIGNAL(&manager->work_available);
@@ -1263,7 +1265,9 @@ dispatch(isc__taskmgr_t *manager) {
 				 * might even hurt rather than help.
 				 */
 #ifdef USE_WORKER_THREADS
+				LOCK(&task->lock);
 				push_readyq(manager, task);
+				UNLOCK(&task->lock);
 #else
 				ENQUEUE(new_ready_tasks, task, ready_link);
 				if ((task->flags & TASK_F_PRIVILEGED) != 0)
