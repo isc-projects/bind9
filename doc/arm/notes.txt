@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.13
+Release Notes for BIND Version 9.11.14
 
 Introduction
 
@@ -35,6 +35,15 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.14
+
+Bug Fixes
+
+  * Fixed a bug that caused named to leak memory on reconfiguration when
+    any GeoIP2 database was in use. [GL #1445]
+
+  * Fixed several possible race conditions discovered by Thread Sanitizer.
 
 Notes for BIND 9.11.13
 
@@ -997,7 +1006,4 @@ policy.
 
 Thank You
 
-Thank you to everyone who assisted us in making this release possible. If
-you would like to contribute to ISC to assist us in continuing to make
-quality open source software, please visit our donations page at https://
-www.isc.org/donate/.
+Thank you to everyone who assisted us in making this release possible.
