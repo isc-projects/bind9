@@ -1832,15 +1832,17 @@ destroy(isc__socket_t **sockp) {
 	isc__socketmgr_t *manager = sock->manager;
 	isc__socketthread_t *thread = NULL;
 
+	isc_refcount_destroy(&sock->references);
+
 	socket_log(sock, NULL, CREATION, "destroying");
 
+	LOCK(&sock->lock);
 	INSIST(ISC_LIST_EMPTY(sock->connect_list));
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 	INSIST(sock->fd >= -1 && sock->fd < (int)manager->maxsocks);
 
-	LOCK(&sock->lock);
 	if (sock->fd >= 0) {
 		fd = sock->fd;
 		thread = &manager->threads[sock->threadid];
