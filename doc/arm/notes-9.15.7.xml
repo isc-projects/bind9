@@ -28,6 +28,29 @@
           for prior discussion of this feature.)
         </para>
       </listitem>
+      <listitem>
+        <para>
+          Added support for multithreaded listening for TCP connections
+	  in the network manager [GL !2659]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.15.7-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Fixed a bug that caused <command>named</command> to leak memory
+          on reconfiguration when any GeoIP2 database was in use. [GL #1445]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Fixed several possible race conditions discovered by Thread
+          Sanitizer.
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 

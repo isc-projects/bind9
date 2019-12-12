@@ -97,20 +97,6 @@ dlz \fIstring\fR {
 .if n \{\
 .RE
 .\}
-.SH "DNSSEC-KEYS"
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-dnssec\-keys { \fIstring\fR ( static\-key |
-    initial\-key | static\-ds | initial\-ds )
-    \fIinteger\fR \fIinteger\fR \fIinteger\fR
-    \fIquoted_string\fR; \&.\&.\&. };
-.fi
-.if n \{\
-.RE
-.\}
 .SH "DYNDB"
 .sp
 .if n \{\
@@ -164,7 +150,7 @@ logging {
 .\}
 .SH "MANAGED-KEYS"
 .PP
-Deprecated \- see DNSSEC\-KEYS\&.
+Deprecated \- see TRUST\-ANCHORS\&.
 .sp
 .if n \{\
 .RS 4
@@ -565,9 +551,23 @@ statistics\-channels {
 .if n \{\
 .RE
 .\}
+.SH "TRUST-ANCHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+trust\-anchors { \fIstring\fR ( static\-key |
+    initial\-key | static\-ds | initial\-ds )
+    \fIinteger\fR \fIinteger\fR \fIinteger\fR
+    \fIquoted_string\fR; \&.\&.\&. };
+.fi
+.if n \{\
+.RE
+.\}
 .SH "TRUSTED-KEYS"
 .PP
-Deprecated \- see DNSSEC\-KEYS\&.
+Deprecated \- see TRUST\-ANCHORS\&.
 .sp
 .if n \{\
 .RS 4
@@ -655,10 +655,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 	dnsrps\-options { \fIunspecified\-text\fR };
 	dnssec\-accept\-expired \fIboolean\fR;
 	dnssec\-dnskey\-kskonly \fIboolean\fR;
-	dnssec\-keys { \fIstring\fR ( static\-key |
-	    initial\-key | static\-ds | initial\-ds
-	    ) \fIinteger\fR \fIinteger\fR \fIinteger\fR
-	    \fIquoted_string\fR; \&.\&.\&. };
 	dnssec\-loadkeys\-interval \fIinteger\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
@@ -849,6 +845,10 @@ view \fIstring\fR [ \fIclass\fR ] {
 	transfer\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * )
 	    ] [ dscp \fIinteger\fR ];
 	trust\-anchor\-telemetry \fIboolean\fR; // experimental
+	trust\-anchors { \fIstring\fR ( static\-key |
+	    initial\-key | static\-ds | initial\-ds
+	    ) \fIinteger\fR \fIinteger\fR \fIinteger\fR
+	    \fIquoted_string\fR; \&.\&.\&. };
 	trusted\-keys { \fIstring\fR
 	    \fIinteger\fR \fIinteger\fR
 	    \fIinteger\fR
@@ -1074,7 +1074,7 @@ zone \fIstring\fR [ \fIclass\fR ] {
 .\}
 .nf
 dnssec\-policy \fIstring\fR {
-	dnskey\-ttl \fIttlval\fR;
+	dnskey\-ttl \fIduration\fR;
 	keys { ( csk | ksk | zsk ) key\-directory lifetime \fIduration\fR algorithm \fIinteger\fR [ \fIinteger\fR ] ; \&.\&.\&. };
 	parent\-ds\-ttl \fIduration\fR;
 	parent\-propagation\-delay \fIduration\fR;

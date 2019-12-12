@@ -1042,7 +1042,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
           <strong class="userinput"><code>yes</code></strong>, DNSSEC validation will only occur
           if at least one trust anchor has been explicitly configured
           in <code class="filename">named.conf</code>
-          using a <span class="command"><strong>dnssec-keys</strong></span> statement (or the
+          using a <span class="command"><strong>trust-anchors</strong></span> statement (or the
           <span class="command"><strong>managed-keys</strong></span> and <span class="command"><strong>trusted-keys</strong></span>
           statements, both deprecated).
         </p>
@@ -1057,7 +1057,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
         </p>
 
         <p>
-          The keys specified in <span class="command"><strong>dnssec-keys</strong></span>
+          The keys specified in <span class="command"><strong>trust-anchors</strong></span>
           copies of DNSKEY RRs for zones that are used to form the
           first link in the cryptographic chain of trust.  Keys configured
           with the keyword <span class="command"><strong>static-key</strong></span> or
@@ -1071,7 +1071,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
         </p>
 
         <p>
-          <span class="command"><strong>dnssec-keys</strong></span> is described in more detail
+          <span class="command"><strong>trust-anchors</strong></span> is described in more detail
           later in this document.
         </p>
 
@@ -1094,7 +1094,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
         </p>
 
 <pre class="programlisting">
-dnssec-keys {
+trust-anchors {
         /* Root Key */
         "." initial-key 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
                                  JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
@@ -1586,10 +1586,10 @@ options {
     
     <p>To configure a validating resolver to use RFC 5011 to
     maintain a trust anchor, configure the trust anchor using a
-    <span class="command"><strong>dnssec-keys</strong></span> statement and the
+    <span class="command"><strong>trust-anchors</strong></span> statement and the
     <span class="command"><strong>initial-key</strong></span> or <span class="command"><strong>initial-ds</strong></span>
     keyword. Information about this can be found in
-    <a class="xref" href="Bv9ARM.ch05.html#dnssec-keys" title="dnssec-keys Statement Definition and Usage">the section called &#8220;<span class="command"><strong>dnssec-keys</strong></span> Statement Definition
+    <a class="xref" href="Bv9ARM.ch05.html#trust-anchors" title="trust-anchors Statement Definition and Usage">the section called &#8220;<span class="command"><strong>trust-anchors</strong></span> Statement Definition
             and Usage&#8221;</a>.</p>
   </div>
   <div class="section">
@@ -2915,6 +2915,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.6 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.7 (Development Release)</p>
 </body>
 </html>

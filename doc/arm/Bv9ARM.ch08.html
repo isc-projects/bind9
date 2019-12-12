@@ -36,12 +36,13 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.6</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.7</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_platforms">Supported Platforms</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_download">Download</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.7">Notes for BIND 9.15.7</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.6">Notes for BIND 9.15.6</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.5">Notes for BIND 9.15.5</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.4">Notes for BIND 9.15.4</a></span></dt>
@@ -57,7 +58,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.6</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.7</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -101,11 +102,12 @@
     C compiler.
   </p>
   <p>
-    The OpenSSL cryptography library must be available for the target
-    platform.  A PKCS#11 provider can be used instead for Public Key
-    cryptography (i.e., DNSSEC signing and validation), but OpenSSL is
-    still required for general cryptography operations such as hashing
-    and random number generation.
+    The <code class="filename">libuv</code> asynchronous I/O library and the
+    OpenSSL cryptography library must be available for the target
+    platform.  A PKCS#11 provider can be used instead of OpenSSL for
+    Public Key cryptography (i.e., DNSSEC signing and validation),
+    but OpenSSL is still required for general cryptography operations
+    such as hashing and random number generation.
   </p>
   <p>
     More information can be found in the <code class="filename">PLATFORMS.md</code>
@@ -130,7 +132,70 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.15.7"></a>Notes for BIND 9.15.7</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.15.7-changes"></a>Feature Changes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          The <span class="command"><strong>dnssec-keys</strong></span> configuration statement,
+          which was introduced in 9.15.1 and revised in 9.15.6, has now
+          been renamed to the more descriptive
+          <span class="command"><strong>trust-anchors</strong></span>. [GL !2702]
+        </p>
+        <p>
+          (See release notes for
+          <a class="xref" href="Bv9ARM.ch08.html#relnotes-9.15.1-new" title="New Features">BIND 9.15.1</a>
+          and
+          <a class="xref" href="Bv9ARM.ch08.html#relnotes-9.15.6-new" title="New Features">BIND 9.15.6</a>
+          for prior discussion of this feature.)
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          Added support for multithreaded listening for TCP connections
+	  in the network manager [GL !2659]
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.15.7-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          Fixed a bug that caused <span class="command"><strong>named</strong></span> to leak memory
+          on reconfiguration when any GeoIP2 database was in use. [GL #1445]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          Fixed several possible race conditions discovered by Thread
+          Sanitizer.
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+</div>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.15.6"></a>Notes for BIND 9.15.6</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.15.6-security"></a>Security Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          Set a limit on the number of concurrently served pipelined TCP
+          queries. This flaw is disclosed in CVE-2019-6477. [GL #1264]
+        </p>
+      </li></ul></div>
+  </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
@@ -157,25 +222,32 @@
         </p>
       </li>
 <li class="listitem">
-	<p>
-	  Two new keywords have been added to the
-	  <span class="command"><strong>dnssec-keys</strong></span> statement:
-	  <span class="command"><strong>initial-ds</strong></span> and <span class="command"><strong>static-ds</strong></span>.
-	  These allow the use of trust anchors in DS format instead of
-	  DNSKEY format.  DS format allows trust anchors to be configured
-	  for keys that have not yet been published; this is the format
-	  used by IANA when announcing future root keys.
-	</p>
-	<p>
-	  As with the <span class="command"><strong>initial-key</strong></span> and
-	  <span class="command"><strong>static-key</strong></span> keywords, <span class="command"><strong>initial-ds</strong></span>
-	  configures a dynamic trust anchor to be maintained via RFC 5011, and
-	  <span class="command"><strong>static-ds</strong></span> configures a permanent trust anchor.
-	</p>
-	<p>
-	  (Note: Currently, DNSKEY-format and DS-format trust anchors
-	  cannot both be used for the same domain name.) [GL #6] [GL #622]
-	</p>
+        <p>
+          Two new keywords have been added to the
+          <span class="command"><strong>dnssec-keys</strong></span> statement:
+          <span class="command"><strong>initial-ds</strong></span> and <span class="command"><strong>static-ds</strong></span>.
+          These allow the use of trust anchors in DS format instead of
+          DNSKEY format.  DS format allows trust anchors to be configured
+          for keys that have not yet been published; this is the format
+          used by IANA when announcing future root keys.
+        </p>
+        <p>
+          As with the <span class="command"><strong>initial-key</strong></span> and
+          <span class="command"><strong>static-key</strong></span> keywords, <span class="command"><strong>initial-ds</strong></span>
+          configures a dynamic trust anchor to be maintained via RFC 5011, and
+          <span class="command"><strong>static-ds</strong></span> configures a permanent trust anchor.
+        </p>
+        <p>
+          (Note: Currently, DNSKEY-format and DS-format trust anchors
+          cannot both be used for the same domain name.) [GL #6] [GL #622]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          Added a new statistics variable <span class="command"><strong>tcp-highwater</strong></span>
+          that reports the maximum number of simultaneous TCP clients BIND
+          has handled while running. [GL #1206]
+        </p>
       </li>
 </ul></div>
   </div>
@@ -193,25 +265,12 @@
         </p>
       </li>
 <li class="listitem">
-	<p>
-	  The DNSSEC validation code has been refactored for clarity and to
-	  reduce code duplication.  [GL #622]
-	</p>
+        <p>
+          The DNSSEC validation code has been refactored for clarity and to
+          reduce code duplication.  [GL #622]
+        </p>
       </li>
 </ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h4 class="title">
-<a name="relnotes-9.15.6-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-	<p>
-	  Too many simultaneous pipelined TCP queries could cause
-	  resource overuse. We now prevent this by enforcing a limit
-	  on the number of simultaneous requests per active connection.
-	  This flaw`is disclosed in CVE-2019-6477. [GL #1264]
-	</p>
-      </li></ul></div>
   </div>
 
 </div>
@@ -719,9 +778,6 @@
 <a name="relnotes_thanks"></a>Thank You</h3></div></div></div>
   <p>
     Thank you to everyone who assisted us in making this release possible.
-    If you would like to contribute to ISC to assist us in continuing to
-    make quality open source software, please visit our donations page at
-    <a class="link" href="https://www.isc.org/donate/" target="_top">https://www.isc.org/donate/</a>.
   </p>
 </div>
 </div>
@@ -744,6 +800,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.6 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.7 (Development Release)</p>
 </body>
 </html>
