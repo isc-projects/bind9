@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.14.8
+Release Notes for BIND Version 9.14.9
 
 Introduction
 
@@ -48,6 +48,15 @@ The latest versions of BIND 9 software can always be found at https://
 www.isc.org/download/. There you will find additional information about
 each release, source code, and pre-compiled versions for Microsoft Windows
 operating systems.
+
+Notes for BIND 9.14.9
+
+Bug Fixes
+
+  * Fixed a bug that caused named to leak memory on reconfiguration when
+    any GeoIP2 database was in use. [GL #1445]
+
+  * Fixed several possible race conditions discovered by Thread Sanitizer.
 
 Notes for BIND 9.14.8
 
@@ -511,7 +520,4 @@ policy.
 
 Thank You
 
-Thank you to everyone who assisted us in making this release possible. If
-you would like to contribute to ISC to assist us in continuing to make
-quality open source software, please visit our donations page at https://
-www.isc.org/donate/.
+Thank you to everyone who assisted us in making this release possible.
