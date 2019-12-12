@@ -248,6 +248,7 @@ isc_hex_tobuffer
 isc_hex_totext
 isc_hp_clear
 isc_hp_destroy
+isc_hp_init
 isc_hp_protect
 isc_hp_protect_ptr
 isc_hp_protect_release
