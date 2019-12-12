@@ -168,7 +168,6 @@ nm_destroy(isc_nm_t **mgr0) {
 
 	isc_refcount_destroy(&mgr->references);
 
-	LOCK(&mgr->lock);
 	mgr->magic = 0;
 
 	for (size_t i = 0; i < mgr->nworkers; i++) {
@@ -181,6 +180,7 @@ nm_destroy(isc_nm_t **mgr0) {
 		isc__nm_enqueue_ievent(&mgr->workers[i], event);
 	}
 
+	LOCK(&mgr->lock);
 	while (atomic_load(&mgr->workers_running) > 0) {
 		WAIT(&mgr->wkstatecond, &mgr->lock);
 	}
