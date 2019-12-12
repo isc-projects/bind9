@@ -487,7 +487,7 @@ isc_result_t
 ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		 dns_rdataset_t **opt);
 
-/*
+/*%<
  * Get a client object from the inactive queue, or create one, as needed.
  * (Not intended for use outside this module and associated tests.)
  */
@@ -495,10 +495,18 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 void
 ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg);
 
-/*
+/*%<
  * Handle client requests.
  * (Not intended for use outside this module and associated tests.)
  */
+
+ void
+ ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg);
+
+ /*%<
+  * Called every time a TCP connection is establish.  This is used for
+  * updating TCP statistics.
+  */
 
 dns_rdataset_t *
 ns_client_newrdataset(ns_client_t *client);

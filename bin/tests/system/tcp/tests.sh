@@ -105,6 +105,10 @@ echo_i "TCP high-water: check initial statistics ($n)"
 ret=0
 refresh_tcp_stats
 assert_int_equal "${TCP_CUR}" 0 "current TCP clients count" || ret=1
+# We compare initial tcp-highwater value with 1 because as part of the
+# system test startup, the script start.pl executes dig to check if target
+# named is running, and that increments tcp-quota by one.
+assert_int_equal "${TCP_HIGH}" 1 "tcp-highwater count" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

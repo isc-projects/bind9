@@ -28,6 +28,7 @@
 #include <ns/log.h>
 #include <ns/interfacemgr.h>
 #include <ns/server.h>
+#include <ns/stats.h>
 
 #ifdef HAVE_NET_ROUTE_H
 #include <net/route.h>
@@ -463,6 +464,7 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	result = isc_nm_listentcpdns(ifp->mgr->nm,
 				     (isc_nmiface_t *) &ifp->addr,
 				     ns__client_request, ifp,
+				     ns__client_tcpconn, ifp->mgr->sctx,
 				     sizeof(ns_client_t),
 				     ifp->mgr->backlog,
 				     &ifp->mgr->sctx->tcpquota,
@@ -472,6 +474,13 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 				 "creating TCP socket: %s",
 				 isc_result_totext(result));
 	}
+
+	/*
+	 * We call this now to update the tcp-highwater statistic:
+	 * this is necessary because we are adding to the TCP quota just
+	 * by listening.
+	 */
+	ns__client_tcpconn(NULL, ISC_R_SUCCESS, ifp->mgr->sctx);
 
 #if 0
 #ifndef ISC_ALLOW_MAPPED
