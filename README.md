@@ -318,8 +318,12 @@ BIND 9.11.12 is a maintenance release.
 
 #### BIND 9.11.13
 
-BIND 9.11.13 is a maintenance release, and also addresse the security
+BIND 9.11.13 is a maintenance release, and also addresses the security
 vulnerability disclosed in CVE-2019-6477.
+
+#### BIND 9.11.14
+
+BIND 9.11.14 is a maintenance release.
 
 ### <a name="build"/> Building BIND
 
