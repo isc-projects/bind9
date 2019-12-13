@@ -14,6 +14,12 @@ SYSTEMTESTTOP=..
 
 DIGOPTS="+tcp +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
 
+wait_for_serial() (
+    $DIG $DIGOPTS "@$1" "$2" SOA > "$4"
+    serial=$(awk '$4 == "SOA" { print $7 }' "$4")
+    [ "$3" -eq "${serial:--1}" ]
+)
+
 status=0
 n=0
 
@@ -91,11 +97,13 @@ digcomp dig.ns1.test$n postupdate.good || ret=1
 test $ret -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
 
-for i in 1 2 3 4 5 6 7 8 9
-do
-	$DIG $DIGOPTS soa dynamic @10.53.0.2 | grep 2000042408 > /dev/null && break
-	sleep 1
-done
+n=`expr $n + 1`
+ret=0
+echo_i "wait for zone to transfer ($n)"
+retry_quiet 20 wait_for_serial 10.53.0.2 dynamic 2000042408 dig.ns2.test$n || ret=1
+
+test $ret -eq 0 || echo_i "failed"
+status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "check SOA owner case is transfered to slave ($n)"
@@ -121,11 +129,13 @@ digcomp dig.ns1.test$n postns1.good || ret=1
 test $ret -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
 
-for i in 1 2 3 4 5 6 7 8 9
-do
-	$DIG $DIGOPTS soa dynamic @10.53.0.2 | grep 2000042409 > /dev/null && break
-	sleep 1
-done
+n=`expr $n + 1`
+ret=0
+echo_i "wait for zone to transfer ($n)"
+retry_quiet 20 wait_for_serial 10.53.0.2 dynamic 2000042409 dig.ns2.test$n || ret=1
+
+test $ret -eq 0 || echo_i "failed"
+status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "check A owner case is transfered to slave ($n)"
