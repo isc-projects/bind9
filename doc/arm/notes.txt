@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.15.6
+Release Notes for BIND Version 9.15.7
 
 Introduction
 
@@ -29,11 +29,11 @@ To build on UNIX-like systems, BIND requires support for POSIX.1c threads
 (IEEE Std 1003.1c-1995), the Advanced Sockets API for IPv6 (RFC 3542), and
 standard atomic operations provided by the C compiler.
 
-The OpenSSL cryptography library must be available for the target
-platform. A PKCS#11 provider can be used instead for Public Key
-cryptography (i.e., DNSSEC signing and validation), but OpenSSL is still
-required for general cryptography operations such as hashing and random
-number generation.
+The libuv asynchronous I/O library and the OpenSSL cryptography library
+must be available for the target platform. A PKCS#11 provider can be used
+instead of OpenSSL for Public Key cryptography (i.e., DNSSEC signing and
+validation), but OpenSSL is still required for general cryptography
+operations such as hashing and random number generation.
 
 More information can be found in the PLATFORMS.md file that is included in
 the source distribution of BIND 9. If your compiler and system libraries
@@ -48,7 +48,33 @@ www.isc.org/download/. There you will find additional information about
 each release, source code, and pre-compiled versions for Microsoft Windows
 operating systems.
 
+Notes for BIND 9.15.7
+
+Feature Changes
+
+  * The dnssec-keys configuration statement, which was introduced in
+    9.15.1 and revised in 9.15.6, has now been renamed to the more
+    descriptive trust-anchors. [GL !2702]
+
+    (See release notes for BIND 9.15.1 and BIND 9.15.6 for prior
+    discussion of this feature.)
+
+  * Added support for multithreaded listening for TCP connections in the
+    network manager [GL !2659]
+
+Bug Fixes
+
+  * Fixed a bug that caused named to leak memory on reconfiguration when
+    any GeoIP2 database was in use. [GL #1445]
+
+  * Fixed several possible race conditions discovered by Thread Sanitizer.
+
 Notes for BIND 9.15.6
+
+Security Fixes
+
+  * Set a limit on the number of concurrently served pipelined TCP
+    queries. This flaw is disclosed in CVE-2019-6477. [GL #1264]
 
 New Features
 
@@ -77,6 +103,10 @@ New Features
     (Note: Currently, DNSKEY-format and DS-format trust anchors cannot
     both be used for the same domain name.) [GL #6] [GL #622]
 
+  * Added a new statistics variable tcp-highwater that reports the maximum
+    number of simultaneous TCP clients BIND has handled while running. [GL
+    #1206]
+
 Feature Changes
 
   * NSEC Aggressive Cache (synth-from-dnssec) has been disabled by default
@@ -86,13 +116,6 @@ Feature Changes
 
   * The DNSSEC validation code has been refactored for clarity and to
     reduce code duplication. [GL #622]
-
-Security Fixes
-
-  * Too many simultaneous pipelined TCP queries could cause resource
-    overuse. We now prevent this by enforcing a limit on the number of
-    simultaneous requests per active connection. This flaw`is disclosed in
-    CVE-2019-6477. [GL #1264]
 
 Notes for BIND 9.15.5
 
@@ -347,7 +370,4 @@ policy.
 
 Thank You
 
-Thank you to everyone who assisted us in making this release possible. If
-you would like to contribute to ISC to assist us in continuing to make
-quality open source software, please visit our donations page at https://
-www.isc.org/donate/.
+Thank you to everyone who assisted us in making this release possible.

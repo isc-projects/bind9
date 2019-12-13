@@ -67,8 +67,8 @@
 <dt><span class="section"><a href="Bv9ARM.ch05.html#statschannels"><span class="command"><strong>statistics-channels</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#statistics_channels"><span class="command"><strong>statistics-channels</strong></span> Statement Definition and
               Usage</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_keys"><span class="command"><strong>dnssec-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec-keys"><span class="command"><strong>dnssec-keys</strong></span> Statement Definition
+<dt><span class="section"><a href="Bv9ARM.ch05.html#trust_anchors"><span class="command"><strong>trust-anchors</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#trust-anchors"><span class="command"><strong>trust-anchors</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_policy_grammar"><span class="command"><strong>dnssec-policy</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_policy"><span class="command"><strong>dnssec-policy</strong></span> Statement Definition
@@ -899,7 +899,7 @@
 </tr>
 <tr>
 <td>
-                <p><span class="command"><strong>dnssec-keys</strong></span></p>
+                <p><span class="command"><strong>trust-anchors</strong></span></p>
               </td>
 <td>
                 <p>
@@ -920,9 +920,9 @@
               </td>
 <td>
                 <p>
-                  is identical to <span class="command"><strong>dnssec-keys</strong></span>;
+                  is identical to <span class="command"><strong>trust-anchors</strong></span>;
                   this option is deprecated in favor
-                  of <span class="command"><strong>dnssec-keys</strong></span> with
+                  of <span class="command"><strong>trust-anchors</strong></span> with
                   the <span class="command"><strong>initial-key</strong></span> keyword,
                   and may be removed in a future release.
                 </p>
@@ -936,7 +936,7 @@
                 <p>
                   defines permanent trusted DNSSEC keys;
                   this option is deprecated in favor
-                  of <span class="command"><strong>dnssec-keys</strong></span> with
+                  of <span class="command"><strong>trust-anchors</strong></span> with
                   the <span class="command"><strong>static-key</strong></span> keyword,
                   and may be removed in a future release.
                 </p>
@@ -2950,9 +2950,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                     The number of seconds to wait between attempts to
                     reopen a closed output stream. The minimum is 1 second,
                     the maximum is 600 seconds (10 minutes), and the default
-                    is 5 seconds.
-                    For convenience, TTL-style time unit suffixes may be
-                    used to specify the value.
+                    is 5 seconds.  For convenience, TTL-style time unit
+                    suffixes may be used to specify the value.  It also
+                    accepts ISO 8601 duration formats.
                   
                 </li>
 </ul></div>
@@ -3087,7 +3087,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 track managed DNSSEC keys (i.e., those configured using
                 the <span class="command"><strong>initial-key</strong></span> or
                 <span class="command"><strong>initial-ds</strong></span> keywords in a
-                <span class="command"><strong>dnssec-keys</strong></span> statement).  By default,
+                <span class="command"><strong>trust-anchors</strong></span> statement).  By default,
                 this is the working directory.  The directory
                 <span class="emphasis"><em>must</em></span> be writable by the effective
                 user ID of the <span class="command"><strong>named</strong></span> process.
@@ -3455,7 +3455,7 @@ options {
                 as insecure.
               </p>
               <p>
-                Configured trust anchors in <span class="command"><strong>dnssec-keys</strong></span>
+                Configured trust anchors in <span class="command"><strong>trust-anchors</strong></span>
                 (or <span class="command"><strong>managed-keys</strong></span> or
                 <span class="command"><strong>trusted-keys</strong></span>, both deprecated)
                 that match a disabled algorithm will be ignored and treated
@@ -3487,7 +3487,7 @@ options {
                 they are secure.  If <strong class="userinput"><code>no</code></strong>, then normal
                 DNSSEC validation applies allowing for insecure answers to
                 be accepted.  The specified domain must be defined as a
-                trust anchor, for instance in a <span class="command"><strong>dnssec-keys</strong></span>
+                trust anchor, for instance in a <span class="command"><strong>trust-anchors</strong></span>
                 statement, or <span class="command"><strong>dnssec-validation auto</strong></span> must
                 be active.
               </p>
@@ -3646,8 +3646,11 @@ options {
                 <p>
                   For convenience, TTL-style time unit suffixes can be
                   used to specify the NTA lifetime in seconds, minutes
-                  or hours.  <code class="option">nta-lifetime</code> defaults to
-                  one hour.  It cannot exceed one week.
+                  or hours.  It also accepts ISO 8601 duration formats.
+                </p>
+                <p>
+                 <code class="option">nta-lifetime</code> defaults to one hour.  It
+                 cannot exceed one week.
                 </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>nta-recheck</strong></span></span></dt>
@@ -3677,9 +3680,13 @@ options {
                 <p>
                   For convenience, TTL-style time unit suffixes can be
                   used to specify the NTA recheck interval in seconds,
-                  minutes or hours.  The default is five minutes.  It
-                  cannot be longer than <code class="option">nta-lifetime</code>
-                  (which cannot be longer than a week).
+                  minutes or hours.  It also accepts ISO 8601 duration
+                  formats.
+                </p>
+                <p>
+                  The default is five minutes.  It cannot be longer than
+                  <code class="option">nta-lifetime</code> (which cannot be longer
+                  than a week).
                 </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>max-zone-ttl</strong></span></span></dt>
@@ -3687,7 +3694,10 @@ options {
               <p>
                 Specifies a maximum permissible TTL value in seconds.
                 For convenience, TTL-style time unit suffixes may be
-                used to specify the maximum value.
+                used to specify the maximum value. It also
+                accepts ISO 8601 duration formats.
+              </p>
+              <p>
                 When loading a zone file using a
                 <code class="option">masterfile-format</code> of
                 <code class="constant">text</code> or <code class="constant">raw</code>,
@@ -4500,7 +4510,7 @@ options {
                   Causes <span class="command"><strong>named</strong></span> to send specially-formed
                   queries once per day to domains for which trust anchors
                   have been configured via, e.g.,
-                  <span class="command"><strong>dnssec-keys</strong></span> or
+                  <span class="command"><strong>trust-anchors</strong></span> or
                   <span class="command"><strong>dnssec-validation auto</strong></span>.
                 </p>
                 <p>
@@ -4691,7 +4701,7 @@ options {
                 <p>
                   If set to <strong class="userinput"><code>yes</code></strong>, DNSSEC validation is
                   enabled, but a trust anchor must be manually configured
-                  using a <span class="command"><strong>dnssec-keys</strong></span> statement (or
+                  using a <span class="command"><strong>trust-anchors</strong></span> statement (or
                   the <span class="command"><strong>managed-keys</strong></span> or the
                   <span class="command"><strong>trusted-keys</strong></span> statements, both deprecated).
                   If there is no configured trust anchor, validation will
@@ -6515,7 +6525,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   <span class="command"><strong>listen-on</strong></span> configuration), and
                   will stop listening on interfaces that have gone away.
                   For convenience, TTL-style time unit suffixes may be
-                  used to specify the value.
+                  used to specify the value.  It also accepts ISO 8601
+                  duration formats.
                 </p>
               </dd>
 </dl></div>
@@ -6795,9 +6806,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   stores negative answers. <span class="command"><strong>min-ncache-ttl</strong></span> is
                   used to set a minimum retention time for these answers in the
                   server in seconds.  For convenience, TTL-style time unit
-                  suffixes may be used to specify the value.  The default
-                  <span class="command"><strong>min-ncache-ttl</strong></span> is <code class="literal">0</code>
-                  seconds.  <span class="command"><strong>min-ncache-ttl</strong></span> cannot exceed 90
+                  suffixes may be used to specify the value.  It also
+                  accepts ISO 8601 duration formats.
+                </p>
+                <p>
+                  The default <span class="command"><strong>min-ncache-ttl</strong></span> is
+                  <code class="literal">0</code> seconds.
+                  <span class="command"><strong>min-ncache-ttl</strong></span> cannot exceed 90
                   seconds and will be truncated to 90 seconds if set to a
                   greater value.
                 </p>
@@ -6806,10 +6821,14 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <dd>
                 <p>
                   Sets the minimum time for which the server will cache ordinary
-                  (positive) answers in seconds. For convenience, TTL-style time
-                  unit suffixes may be used to specify the value. The default
-                  <span class="command"><strong>min-cache-ttl</strong></span> is <code class="literal">0</code>
-                  seconds. <span class="command"><strong>min-cache-ttl</strong></span> cannot exceed 90
+                  (positive) answers in seconds.  For convenience, TTL-style
+                  time unit suffixes may be used to specify the value.  It also
+                  accepts ISO 8601 duration formats.
+                </p>
+                <p>
+                  The default <span class="command"><strong>min-cache-ttl</strong></span> is
+                  <code class="literal">0</code> seconds.
+                  <span class="command"><strong>min-cache-ttl</strong></span> cannot exceed 90
                   seconds and will be truncated to 90 seconds if set to a
                   greater value.
                 </p>
@@ -6818,15 +6837,19 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <dd>
                 <p>
                   To reduce network traffic and increase performance,
-                  the server stores negative answers. <span class="command"><strong>max-ncache-ttl</strong></span> is
+                  the server stores negative answers.
+                  <span class="command"><strong>max-ncache-ttl</strong></span> is
                   used to set a maximum retention time for these answers in
-                  the server in seconds.
-                  For convenience, TTL-style time unit suffixes may be
-                  used to specify the value.  The default
-                  <span class="command"><strong>max-ncache-ttl</strong></span> is <code class="literal">10800</code> seconds (3 hours).
-                  <span class="command"><strong>max-ncache-ttl</strong></span> cannot exceed
-                  7 days and will
-                  be silently truncated to 7 days if set to a greater value.
+                  the server in seconds.  For convenience, TTL-style time unit
+                  suffixes may be used to specify the value.  It also accepts
+                  ISO 8601 duration formats.
+                </p>
+                <p>
+                  The default <span class="command"><strong>max-ncache-ttl</strong></span> is
+                  <code class="literal">10800</code> seconds (3 hours).
+                  <span class="command"><strong>max-ncache-ttl</strong></span> cannot exceed 7 days and
+                  will be silently truncated to 7 days if set to a greater
+                  value.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>max-cache-ttl</strong></span></span></dt>
@@ -6835,7 +6858,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   Sets the maximum time for which the server will
                   cache ordinary (positive) answers in seconds.
                   For convenience, TTL-style time unit suffixes may be
-                  used to specify the value.
+                  used to specify the value.  It also accepts ISO 8601
+                  duration formats.
+                </p>
+                <p>
                   The default is 604800 (one week).
                   A value of zero may cause all queries to return
                   SERVFAIL, because of lost caches of intermediate
@@ -8043,7 +8069,9 @@ deny-answer-aliases { "example.net"; };
             The <span class="command"><strong>max-policy-ttl</strong></span> clause changes the
             maximum seconds from its default of 5.
             For convenience, TTL-style time unit suffixes may be
-            used to specify the value.
+            used to specify the value.  It also accepts ISO 8601 duration
+            formats.
+
           </p>
 
           <p>
@@ -8139,7 +8167,8 @@ example.com                 CNAME   rpz-tcp-only.
             recent update, then the changes will not be carried out until this
             interval has elapsed.  The default is <code class="literal">60</code> seconds.
             For convenience, TTL-style time unit suffixes may be
-            used to specify the value.
+            used to specify the value.  It also accepts ISO 8601 duration
+            formats.
           </p>
         </div>
 
@@ -8849,9 +8878,9 @@ example.com                 CNAME   rpz-tcp-only.
 
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="dnssec_keys"></a><span class="command"><strong>dnssec-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="trust_anchors"></a><span class="command"><strong>trust-anchors</strong></span> Statement Grammar</h3></div></div></div>
         <pre class="programlisting">
-<span class="command"><strong>dnssec-keys</strong></span> { <em class="replaceable"><code>string</code></em> ( static-key |
+<span class="command"><strong>trust-anchors</strong></span> { <em class="replaceable"><code>string</code></em> ( static-key |
     <span class="command"><strong>initial-key</strong></span> | static-ds | initial-ds )
     <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
     <em class="replaceable"><code>quoted_string</code></em>; ... };
@@ -8859,11 +8888,11 @@ example.com                 CNAME   rpz-tcp-only.
         </div>
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="dnssec-keys"></a><span class="command"><strong>dnssec-keys</strong></span> Statement Definition
+<a name="trust-anchors"></a><span class="command"><strong>trust-anchors</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 
           <p>
-            The <span class="command"><strong>dnssec-keys</strong></span> statement defines DNSSEC
+            The <span class="command"><strong>trust-anchors</strong></span> statement defines DNSSEC
             trust anchors.  DNSSEC is described in <a class="xref" href="Bv9ARM.ch04.html#DNSSEC" title="DNSSEC">the section called &#8220;DNSSEC&#8221;</a>.
           </p>
           <p>
@@ -8882,21 +8911,21 @@ example.com                 CNAME   rpz-tcp-only.
             the <span class="command"><strong>validate-except</strong></span> option).
           </p>
           <p>
-            All keys listed in <span class="command"><strong>dnssec-keys</strong></span>, and
+            All keys listed in <span class="command"><strong>trust-anchors</strong></span>, and
             their corresponding zones, are deemed to exist regardless
             of what parent zones say.  Only keys configured as trust anchors
             are used to validate the DNSKEY RRset for the corresponding
             name. The parent's DS RRset will not be used.
           </p>
           <p>
-            <span class="command"><strong>dnssec-keys</strong></span> may be set at the top level
+            <span class="command"><strong>trust-anchors</strong></span> may be set at the top level
             of <code class="filename">named.conf</code> or within a view.  If it is
             set in both places, the configurations are additive: keys
             defined at the top level are inherited by all views, but keys
             defined in a view are only used within that view.
           </p>
           <p>
-            The <span class="command"><strong>dnssec-keys</strong></span> statement can contain
+            The <span class="command"><strong>trust-anchors</strong></span> statement can contain
             multiple trust anchor entries, each consisting of a
             domain name, followed by an "anchor type" keyword indicating
             the trust anchor's format, followed by the key or digest data.
@@ -8936,7 +8965,7 @@ example.com                 CNAME   rpz-tcp-only.
             <span class="command"><strong>static-ds</strong></span> would be unable to validate
             this zone any longer; it would reply with a SERVFAIL response
             code.  This would continue until the resolver operator had
-            updated the <span class="command"><strong>dnssec-keys</strong></span> statement with
+            updated the <span class="command"><strong>trust-anchors</strong></span> statement with
             the new key.
           </p>
           <p>
@@ -8972,7 +9001,7 @@ example.com                 CNAME   rpz-tcp-only.
             <span class="command"><strong>initial-key</strong></span> or <span class="command"><strong>initial-ds</strong></span>
             configured in <code class="filename">named.conf</code>, it fetches the
             DNSKEY RRset directly from the zone apex, and validates it
-            using the trust anchor specified in <span class="command"><strong>dnssec-keys</strong></span>.
+            using the trust anchor specified in <span class="command"><strong>trust-anchors</strong></span>.
             If the DNSKEY RRset is validly signed by a key matching
             the trust anchor, then it is used as the basis for a new
             managed keys database.
@@ -8981,10 +9010,10 @@ example.com                 CNAME   rpz-tcp-only.
             From that point on, whenever <span class="command"><strong>named</strong></span> runs, it
             sees the <span class="command"><strong>initial-key</strong></span> or
             <span class="command"><strong>initial-ds</strong></span> listed in
-            <span class="command"><strong>dnssec-keys</strong></span>, checks to
+            <span class="command"><strong>trust-anchors</strong></span>, checks to
             make sure RFC 5011 key maintenance has already been initialized
             for the specified domain, and if so, it simply moves on.  The
-            key specified in the <span class="command"><strong>dnssec-keys</strong></span>
+            key specified in the <span class="command"><strong>trust-anchors</strong></span>
             statement is not used to validate answers; it is
             superseded by the key or keys stored in the managed keys
             database.
@@ -8993,7 +9022,7 @@ example.com                 CNAME   rpz-tcp-only.
             The next time <span class="command"><strong>named</strong></span> runs after an
             <span class="command"><strong>initial-key</strong></span> or <span class="command"><strong>initial-ds</strong></span>
             trust anchor has been <span class="emphasis"><em>removed</em></span> from the
-            <span class="command"><strong>dnssec-keys</strong></span> statement (or changed to
+            <span class="command"><strong>trust-anchors</strong></span> statement (or changed to
             a <span class="command"><strong>static-key</strong></span> or <span class="command"><strong>static-ds</strong></span>),
             the corresponding keys will be removed from the managed keys
             database, and RFC 5011 key maintenance will no longer be used
@@ -9045,8 +9074,8 @@ example.com                 CNAME   rpz-tcp-only.
 <a name="dnssec_policy_grammar"></a><span class="command"><strong>dnssec-policy</strong></span> Statement Grammar</h3></div></div></div>
         <pre class="programlisting">
 <span class="command"><strong>dnssec-policy</strong></span> <em class="replaceable"><code>string</code></em> {
-    <span class="command"><strong>dnskey-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
-    <span class="command"><strong>keys</strong></span> { ( csk | ksk | zsk ) key-directory <em class="replaceable"><code>duration</code></em> <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ] ; ... };
+    <span class="command"><strong>dnskey-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>keys</strong></span> { ( csk | ksk | zsk ) key-directory lifetime <em class="replaceable"><code>duration</code></em> algorithm <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ] ; ... };
     <span class="command"><strong>parent-ds-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
     <span class="command"><strong>parent-propagation-delay</strong></span> <em class="replaceable"><code>duration</code></em>;
     <span class="command"><strong>parent-registration-delay</strong></span> <em class="replaceable"><code>duration</code></em>;
@@ -9136,8 +9165,8 @@ example.com                 CNAME   rpz-tcp-only.
                 <p>
                   A margin that is added to the publish interval in key
                   timing equations to give some extra time to cover
-                  unforeseen events.  Default is <code class="constant">PT5M</code>
-                  (5 minutes).
+                  unforeseen events.  Default is <code class="constant">PT1H</code>
+                  (1 hour).
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>retire-safety</strong></span></span></dt>
@@ -9145,8 +9174,8 @@ example.com                 CNAME   rpz-tcp-only.
                 <p>
                   A margin that is added to the retire interval in key
                   timing equations to give some extra time to cover
-                  unforeseen events.  Default is <code class="constant">PT5M</code>
-                  (5 minutes).
+                  unforeseen events.  Default is <code class="constant">PT1H</code>
+                  (1 hour).
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>signatures-refresh</strong></span></span></dt>
@@ -9220,7 +9249,7 @@ example.com                 CNAME   rpz-tcp-only.
 <dd>
                 <p>
                   The TTL of the DS RRset that the parent uses.  Default is
-                  <code class="constant">PT1H</code> (1 hour).
+                  <code class="constant">P1D</code> (1 day).
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>parent-propagation-delay</strong></span></span></dt>
@@ -9261,7 +9290,7 @@ example.com                 CNAME   rpz-tcp-only.
 
           <p>
             The <span class="command"><strong>managed-keys</strong></span> statement has been
-            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#dnssec_keys" title="dnssec-keys Statement Grammar">the section called &#8220;<span class="command"><strong>dnssec-keys</strong></span> Statement Grammar&#8221;</a>
+            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#trust_anchors" title="trust-anchors Statement Grammar">the section called &#8220;<span class="command"><strong>trust-anchors</strong></span> Statement Grammar&#8221;</a>
             with the <span class="command"><strong>initial-key</strong></span> keyword.
           </p>
         </div>
@@ -9282,7 +9311,7 @@ example.com                 CNAME   rpz-tcp-only.
 
           <p>
             The <span class="command"><strong>trusted-keys</strong></span> statement has been
-            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#dnssec_keys" title="dnssec-keys Statement Grammar">the section called &#8220;<span class="command"><strong>dnssec-keys</strong></span> Statement Grammar&#8221;</a>
+            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#trust_anchors" title="trust-anchors Statement Grammar">the section called &#8220;<span class="command"><strong>trust-anchors</strong></span> Statement Grammar&#8221;</a>
             with the <span class="command"><strong>static-key</strong></span> keyword.
           </p>
         </div>
@@ -9919,7 +9948,7 @@ view "external" {
                         (KSK) for the zone must be configured as a trust
                         anchor in <code class="filename">named.conf</code>: that
                         is, a key for the zone must be specified in
-                        <span class="command"><strong>dnssec-keys</strong></span>.  In the case
+                        <span class="command"><strong>trust-anchors</strong></span>.  In the case
                         of the root zone, you may also rely on the
                         built-in root trust anchor, which is enabled
                         when <a class="xref" href="Bv9ARM.ch05.html#dnssec_validation"><span class="command"><strong>dnssec-validation</strong></span></a> is set to the
@@ -10338,9 +10367,13 @@ view "external" {
 <dt><span class="term"><span class="command"><strong>dnssec-policy</strong></span></span></dt>
 <dd>
                   <p>
-                    The key and signing policy for this zone.  Set to
-                    <strong class="userinput"><code>"default"</code></strong> if you want to make use
-                    of the default policy.
+                    The key and signing policy for this zone.  This is a string
+                    referring to a <span class="command"><strong>dnssec-policy</strong></span> statement.
+                    There are two built-in policies:
+                    <strong class="userinput"><code>"default"</code></strong> allows you to use the
+                    default policy, and <strong class="userinput"><code>"none"</code></strong> means
+                    not to use any DNSSEC policy, keeping the zone unsigned.
+                    The default is <strong class="userinput"><code>"none"</code></strong>.
                   </p>
                 </dd>
 <dt><span class="term"><span class="command"><strong>dnssec-update-mode</strong></span></span></dt>
@@ -15188,6 +15221,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.6 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.7 (Development Release)</p>
 </body>
 </html>
