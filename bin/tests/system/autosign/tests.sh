@@ -128,8 +128,12 @@ checkjitter () {
 	echo_i "checking whether all frequencies fall into <$_low;$_high> range"
 	for _num in $_expiretimes
 	do
-		if [ $_num -gt $_high ] || [ $_num -lt $_low ]; then
-			echo_i "error: too many RRSIG records ($_num) with the same expiration time"
+		if [ $_num -gt $_high ]; then
+			echo_i "error: too many RRSIG records ($_num) in expiration bucket"
+			_ret=1
+		fi
+		if [ $_num -lt $_low ]; then
+			echo_i "error: too few RRSIG records ($_num) in expiration bucket"
 			_ret=1
 		fi
 	done
@@ -1062,7 +1066,10 @@ check_if_nsec3param_exists() {
 	$DIG $DIGOPTS NSEC3PARAM jitter.nsec3.example @10.53.0.3 > dig.out.ns3.1.test$n || return 1
 	grep -q "^jitter\.nsec3\.example\..*NSEC3PARAM" dig.out.ns3.1.test$n || return 1
 }
-retry_quiet 20 check_if_nsec3param_exists || ret=1
+retry_quiet 40 check_if_nsec3param_exists || {
+	echo_i "error: NSEC3PARAM not present yet"
+	ret=1
+}
 $DIG $DIGOPTS AXFR jitter.nsec3.example @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
 # Check jitter distribution.
 checkjitter dig.out.ns3.2.test$n || ret=1
