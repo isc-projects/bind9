@@ -15030,6 +15030,8 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 		dns_db_detachnode(db, &node);
 	}
 
+	dns_dbiterator_destroy(&dbiterator);
+
 	/*
 	 * Call restore_nsec3param() to create private-type records from
 	 * the old nsec3 parameters and insert them into db
