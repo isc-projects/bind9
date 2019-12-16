@@ -198,8 +198,8 @@ maybe_free_connection(controlconnection_t *conn) {
 
 static void
 shutdown_listener(controllistener_t *listener) {
-	controlconnection_t *conn;
-	controlconnection_t *next;
+	controlconnection_t *conn = NULL;
+	controlconnection_t *next = NULL;
 
 	if (!listener->exiting) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
@@ -341,7 +341,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	isc_stdtime_t now;
 	isc_buffer_t b;
 	isc_region_t r;
-	isc_buffer_t *text;
+	isc_buffer_t *text = NULL;
 	isc_result_t result;
 	isc_result_t eresult;
 	isccc_sexpr_t *_ctrl = NULL;
@@ -573,7 +573,7 @@ control_timeout(isc_task_t *task, isc_event_t *event) {
 
 static isc_result_t
 newconnection(controllistener_t *listener, isc_socket_t *sock) {
-	controlconnection_t *conn;
+	controlconnection_t *conn = NULL;
 	isc_interval_t interval;
 	isc_result_t result;
 
@@ -631,7 +631,7 @@ static void
 control_newconn(isc_task_t *task, isc_event_t *event) {
 	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
 	controllistener_t *listener = event->ev_arg;
-	isc_socket_t *sock;
+	isc_socket_t *sock = NULL;
 	isc_sockaddr_t peeraddr;
 	isc_result_t result;
 
@@ -693,8 +693,8 @@ cleanup:
 
 static void
 controls_shutdown(named_controls_t *controls) {
-	controllistener_t *listener;
-	controllistener_t *next;
+	controllistener_t *listener = NULL;
+	controllistener_t *next = NULL;
 
 	for (listener = ISC_LIST_HEAD(controls->listeners); listener != NULL;
 	     listener = next)
@@ -717,9 +717,9 @@ named_controls_shutdown(named_controls_t *controls) {
 static isc_result_t
 cfgkeylist_find(const cfg_obj_t *keylist, const char *keyname,
 		const cfg_obj_t **objp) {
-	const cfg_listelt_t *element;
-	const char *str;
-	const cfg_obj_t *obj;
+	const cfg_listelt_t *element = NULL;
+	const char *str = NULL;
+	const cfg_obj_t *obj = NULL;
 
 	for (element = cfg_list_first(keylist); element != NULL;
 	     element = cfg_list_next(element))
@@ -741,11 +741,11 @@ cfgkeylist_find(const cfg_obj_t *keylist, const char *keyname,
 static void
 controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		       controlkeylist_t *keyids) {
-	const cfg_listelt_t *element;
+	const cfg_listelt_t *element = NULL;
 	char *newstr = NULL;
-	const char *str;
-	const cfg_obj_t *obj;
-	controlkey_t *key;
+	const char *str = NULL;
+	const cfg_obj_t *obj = NULL;
+	controlkey_t *key = NULL;
 
 	for (element = cfg_list_first(keylist); element != NULL;
 	     element = cfg_list_next(element))
@@ -767,8 +767,8 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 static void
 register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 	      controlkeylist_t *keyids, isc_mem_t *mctx, const char *socktext) {
-	controlkey_t *keyid, *next;
-	const cfg_obj_t *keydef;
+	controlkey_t *keyid = NULL, *next = NULL;
+	const cfg_obj_t *keydef = NULL;
 	char secret[1024];
 	isc_buffer_t b;
 	isc_result_t result;
@@ -801,10 +801,9 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			algstr = cfg_obj_asstring(algobj);
 			secretstr = cfg_obj_asstring(secretobj);
 
-			if (named_config_getkeyalgorithm2(algstr, NULL,
-							  &algtype, NULL) !=
-			    ISC_R_SUCCESS)
-			{
+			result = named_config_getkeyalgorithm2(algstr, NULL,
+							       &algtype, NULL);
+			if (result != ISC_R_SUCCESS) {
 				cfg_obj_log(control, named_g_lctx,
 					    ISC_LOG_WARNING,
 					    "unsupported algorithm '%s' in "
@@ -841,11 +840,12 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 	}
 }
 
-#define CHECK(x)                             \
-	do {                                 \
-		result = (x);                \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup;        \
+#define CHECK(x)                               \
+	do {                                   \
+		result = (x);                  \
+		if (result != ISC_R_SUCCESS) { \
+			goto cleanup;          \
+		}                              \
 	} while (0)
 
 static isc_result_t
@@ -895,9 +895,8 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	algstr = cfg_obj_asstring(algobj);
 	secretstr = cfg_obj_asstring(secretobj);
 
-	if (named_config_getkeyalgorithm2(algstr, NULL, &algtype, NULL) !=
-	    ISC_R_SUCCESS)
-	{
+	result = named_config_getkeyalgorithm2(algstr, NULL, &algtype, NULL);
+	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "unsupported algorithm '%s' in "
 			    "key '%s' for use with command "
@@ -970,8 +969,8 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 		const cfg_obj_t *control, const cfg_obj_t *config,
 		isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
 		const char *socktext, isc_sockettype_t type) {
-	controllistener_t *listener;
-	const cfg_obj_t *allow;
+	controllistener_t *listener = NULL;
+	const cfg_obj_t *allow = NULL;
 	const cfg_obj_t *global_keylist = NULL;
 	const cfg_obj_t *control_keylist = NULL;
 	dns_acl_t *new_acl = NULL;
@@ -1064,7 +1063,7 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 	}
 
 	if (control != NULL) {
-		const cfg_obj_t *readonly;
+		const cfg_obj_t *readonly = NULL;
 
 		readonly = cfg_tuple_get(control, "read-only");
 		if (!cfg_obj_isvoid(readonly)) {
@@ -1123,35 +1122,25 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	     isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
 	     const char *socktext, isc_sockettype_t type) {
 	isc_mem_t *mctx = cp->server->mctx;
-	controllistener_t *listener;
-	const cfg_obj_t *allow;
+	controllistener_t *listener = NULL;
+	const cfg_obj_t *allow = NULL;
 	const cfg_obj_t *global_keylist = NULL;
 	const cfg_obj_t *control_keylist = NULL;
 	dns_acl_t *new_acl = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	listener = isc_mem_get(mctx, sizeof(*listener));
-
-	listener->mctx = NULL;
+	*listener = (controllistener_t){ .controls = cp,
+					 .task = cp->server->task,
+					 .address = *addr,
+					 .type = type };
 	isc_mem_attach(mctx, &listener->mctx);
-	listener->controls = cp;
-	listener->task = cp->server->task;
-	listener->address = *addr;
-	listener->sock = NULL;
-	listener->listening = false;
-	listener->exiting = false;
-	listener->acl = NULL;
-	listener->type = type;
-	listener->perm = 0;
-	listener->owner = 0;
-	listener->group = 0;
-	listener->readonly = false;
 	ISC_LINK_INIT(listener, link);
 	ISC_LIST_INIT(listener->keys);
 	ISC_LIST_INIT(listener->connections);
 
 	/*
-	 * Make the acl.
+	 * Make the ACL.
 	 */
 	if (control != NULL && type == isc_sockettype_tcp) {
 		allow = cfg_tuple_get(control, "allow");
@@ -1161,8 +1150,8 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 		result = dns_acl_any(mctx, &new_acl);
 	}
 
-	if ((result == ISC_R_SUCCESS) && (control != NULL)) {
-		const cfg_obj_t *readonly;
+	if (result == ISC_R_SUCCESS && control != NULL) {
+		const cfg_obj_t *readonly = NULL;
 
 		readonly = cfg_tuple_get(control, "read-only");
 		if (!cfg_obj_isvoid(readonly)) {
@@ -1242,6 +1231,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 		result = isc_socket_permunix(&listener->address, listener->perm,
 					     listener->owner, listener->group);
 	}
+
 	if (result == ISC_R_SUCCESS) {
 		result = control_listen(listener);
 	}
@@ -1279,7 +1269,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 isc_result_t
 named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 			 cfg_aclconfctx_t *aclconfctx) {
-	controllistener_t *listener;
+	controllistener_t *listener = NULL;
 	controllistenerlist_t new_listeners;
 	const cfg_obj_t *controlslist = NULL;
 	const cfg_listelt_t *element, *element2;
@@ -1304,7 +1294,7 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 		for (element = cfg_list_first(controlslist); element != NULL;
 		     element = cfg_list_next(element))
 		{
-			const cfg_obj_t *controls;
+			const cfg_obj_t *controls = NULL;
 			const cfg_obj_t *inetcontrols = NULL;
 
 			controls = cfg_listelt_value(element);
@@ -1317,8 +1307,8 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 			     element2 != NULL;
 			     element2 = cfg_list_next(element2))
 			{
-				const cfg_obj_t *control;
-				const cfg_obj_t *obj;
+				const cfg_obj_t *control = NULL;
+				const cfg_obj_t *obj = NULL;
 				isc_sockaddr_t addr;
 
 				/*
@@ -1375,7 +1365,7 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 		for (element = cfg_list_first(controlslist); element != NULL;
 		     element = cfg_list_next(element))
 		{
-			const cfg_obj_t *controls;
+			const cfg_obj_t *controls = NULL;
 			const cfg_obj_t *unixcontrols = NULL;
 
 			controls = cfg_listelt_value(element);
@@ -1388,8 +1378,8 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 			     element2 != NULL;
 			     element2 = cfg_list_next(element2))
 			{
-				const cfg_obj_t *control;
-				const cfg_obj_t *path;
+				const cfg_obj_t *control = NULL;
+				const cfg_obj_t *path = NULL;
 				isc_sockaddr_t addr;
 				isc_result_t result;
 

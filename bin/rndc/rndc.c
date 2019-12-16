@@ -55,11 +55,11 @@
 
 #define SERVERADDRS 10
 
-const char *progname;
+const char *progname = NULL;
 bool verbose;
 
-static const char *admin_conffile;
-static const char *admin_keyfile;
+static const char *admin_conffile = NULL;
+static const char *admin_keyfile = NULL;
 static const char *version = PACKAGE_VERSION;
 static const char *servername = NULL;
 static isc_sockaddr_t serveraddrs[SERVERADDRS];
@@ -69,18 +69,18 @@ static int nserveraddrs;
 static int currentaddr = 0;
 static unsigned int remoteport = 0;
 static isc_socketmgr_t *socketmgr = NULL;
-static isc_buffer_t *databuf;
+static isc_buffer_t *databuf = NULL;
 static isccc_ccmsg_t ccmsg;
 static uint32_t algorithm;
 static isccc_region_t secret;
 static bool failed = false;
 static bool c_flag = false;
-static isc_mem_t *rndc_mctx;
+static isc_mem_t *rndc_mctx = NULL;
 static atomic_uint_fast32_t sends = ATOMIC_VAR_INIT(0);
 static atomic_uint_fast32_t recvs = ATOMIC_VAR_INIT(0);
 static atomic_uint_fast32_t connects = ATOMIC_VAR_INIT(0);
-static char *command;
-static char *args;
+static char *command = NULL;
+static char *args = NULL;
 static char program[256];
 static isc_socket_t *sock = NULL;
 static uint32_t serial;
@@ -114,7 +114,7 @@ command is one of the following:\n\
 		Close, rename and re-open the DNSTAP output file(s).\n\
   dumpdb [-all|-cache|-zones|-adb|-bad|-fail] [view ...]\n\
 		Dump cache(s) to the dump file (named_dump.db).\n\
-  flush 	Flushes all of the server's caches.\n\
+  flush         Flushes all of the server's caches.\n\
   flush [view]	Flushes the server's cache for a view.\n\
   flushname name [view]\n\
 		Flush the given name from the server's cache(s)\n\
@@ -652,7 +652,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		if (servers != NULL) {
 			for (elt = cfg_list_first(servers); elt != NULL;
 			     elt = cfg_list_next(elt)) {
-				const char *name;
+				const char *name = NULL;
 				server = cfg_listelt_value(elt);
 				name = cfg_obj_asstring(
 					cfg_map_getname(server));
@@ -689,9 +689,11 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		DO("get config key list", cfg_map_get(config, "key", &keys));
 		for (elt = cfg_list_first(keys); elt != NULL;
 		     elt = cfg_list_next(elt)) {
+			const char *name = NULL;
+
 			key = cfg_listelt_value(elt);
-			if (strcasecmp(cfg_obj_asstring(cfg_map_getname(key)),
-				       keyname) == 0) {
+			name = cfg_obj_asstring(cfg_map_getname(key));
+			if (strcasecmp(name, keyname) == 0) {
 				break;
 			}
 		}
@@ -990,7 +992,6 @@ main(int argc, char **argv) {
 	DO("create task manager",
 	   isc_taskmgr_create(rndc_mctx, 1, 0, NULL, &taskmgr));
 	DO("create task", isc_task_create(taskmgr, 0, &task));
-
 	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);
 	isc_log_settag(logconfig, progname);

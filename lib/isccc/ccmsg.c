@@ -46,7 +46,7 @@ recv_message(isc_task_t *, isc_event_t *);
 static void
 recv_length(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
-	isc_event_t *dev;
+	isc_event_t *dev = NULL;
 	isccc_ccmsg_t *ccmsg = ev_in->ev_arg;
 	isc_region_t region;
 	isc_result_t result;
@@ -101,10 +101,10 @@ send_and_free:
 static void
 recv_message(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
-	isc_event_t *dev;
+	isc_event_t *dev = NULL;
 	isccc_ccmsg_t *ccmsg = ev_in->ev_arg;
 
-	(void)task;
+	UNUSED(task);
 
 	INSIST(VALID_CCMSG(ccmsg));
 
@@ -131,19 +131,17 @@ isccc_ccmsg_init(isc_mem_t *mctx, isc_socket_t *sock, isccc_ccmsg_t *ccmsg) {
 	REQUIRE(sock != NULL);
 	REQUIRE(ccmsg != NULL);
 
-	ccmsg->magic = CCMSG_MAGIC;
-	ccmsg->size = 0;
-	ccmsg->buffer.base = NULL;
-	ccmsg->buffer.length = 0;
-	ccmsg->maxsize = 4294967295U; /* Largest message possible. */
-	ccmsg->mctx = mctx;
-	ccmsg->sock = sock;
-	ccmsg->task = NULL;		  /* None yet. */
-	ccmsg->result = ISC_R_UNEXPECTED; /* None yet. */
-					  /*
-					   * Should probably initialize the
-					   *event here, but it can wait.
-					   */
+	*ccmsg = (isccc_ccmsg_t){
+		.magic = CCMSG_MAGIC,
+		.maxsize = 0xffffffffU, /* Largest message possible. */
+		.mctx = mctx,
+		.sock = sock,
+		.result = ISC_R_UNEXPECTED /* None yet. */
+	};
+
+	/*
+	 * Should probably initialize the event here, but it can wait.
+	 */
 }
 
 void
@@ -196,21 +194,6 @@ isccc_ccmsg_cancelread(isccc_ccmsg_t *ccmsg) {
 
 	isc_socket_cancel(ccmsg->sock, NULL, ISC_SOCKCANCEL_RECV);
 }
-
-#if 0
-void
-isccc_ccmsg_freebuffer(isccc_ccmsg_t*ccmsg) {
-	REQUIRE(VALID_CCMSG(ccmsg));
-
-	if (ccmsg->buffer.base == NULL) {
-		return;
-	}
-
-	isc_mem_put(ccmsg->mctx,ccmsg->buffer.base,ccmsg->buffer.length);
-	ccmsg->buffer.base = NULL;
-	ccmsg->buffer.length = 0;
-}
-#endif /* if 0 */
 
 void
 isccc_ccmsg_invalidate(isccc_ccmsg_t *ccmsg) {
