@@ -16,6 +16,12 @@ DIGOPTS="+tcp +dnssec -p ${PORT}"
 DIGUDPOPTS="+dnssec -p ${PORT}"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
+wait_for_serial() (
+    $DIG $DIGOPTS "@$1" "$2" SOA > "$4"
+    serial=$(awk '$4 == "SOA" { print $7 }' "$4")
+    [ "$3" -eq "${serial:--1}" ]
+)
+
 status=0
 n=0
 
@@ -1020,10 +1026,7 @@ ret=0
 $DIG $DIGOPTS nsec3. SOA @10.53.0.3 > dig.out.n3.pre.test$n
 newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] + 10) if ($field[3] eq "SOA"); }' < dig.out.n3.pre.test$n`
 $RNDCCMD 10.53.0.3 signing -serial ${newserial:-0} nsec3 > /dev/null 2>&1
-sleep 1
-$DIG $DIGOPTS nsec3. SOA @10.53.0.3 > dig.out.ns3.post.test$n
-serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns3.post.test$n`
-[ ${newserial:-0} -eq ${serial:-1} ] || ret=1
+retry_quiet 5 wait_for_serial 10.53.0.3 nsec3. "${newserial:-0}" dig.out.ns3.post.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1053,10 +1056,7 @@ newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n",
 $RNDCCMD 10.53.0.3 freeze nsec3 > /dev/null 2>&1
 $RNDCCMD 10.53.0.3 signing -serial ${newserial:-0} nsec3 > /dev/null 2>&1
 $RNDCCMD 10.53.0.3 thaw nsec3 > /dev/null 2>&1
-sleep 1
-$DIG $DIGOPTS nsec3. SOA @10.53.0.3 > dig.out.ns3.post.test$n
-serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns3.post.test$n`
-[ ${newserial:-0} -eq ${serial:-1} ] || ret=1
+retry_quiet 5 wait_for_serial 10.53.0.3 nsec3. "${newserial:-0}" dig.out.ns3.post1.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1066,10 +1066,7 @@ ret=0
 $DIG $DIGOPTS bits. SOA @10.53.0.2 > dig.out.ns2.pre.test$n
 newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] + 10) if ($field[3] eq "SOA"); }' < dig.out.ns2.pre.test$n`
 $RNDCCMD 10.53.0.2 signing -serial ${newserial:-0} bits > /dev/null 2>&1
-sleep 1
-$DIG $DIGOPTS bits. SOA @10.53.0.2 > dig.out.ns2.post.test$n
-serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.post.test$n`
-[ ${newserial:-0} -eq ${serial:-1} ] || ret=1
+retry_quiet 5 wait_for_serial 10.53.0.2 bits. "${newserial:-0}" dig.out.ns2.post.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1080,10 +1077,8 @@ $DIG $DIGOPTS bits. SOA @10.53.0.2 > dig.out.ns2.pre.test$n
 oldserial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.pre.test$n`
 newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] - 10) if ($field[3] eq "SOA"); }' < dig.out.ns2.pre.test$n`
 $RNDCCMD 10.53.0.2 signing -serial ${newserial:-0} bits > /dev/null 2>&1
-sleep 1
-$DIG $DIGOPTS bits. SOA @10.53.0.2 > dig.out.ns2.post.test$n
-serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.post.test$n`
-[ ${oldserial:-0} -eq ${serial:-1} ] || ret=1
+retry_quiet 5 wait_for_serial 10.53.0.2 bits. "${newserial:-1}" dig.out.ns2.post1.test$n && ret=1
+retry_quiet 5 wait_for_serial 10.53.0.2 bits. "${oldserial:-1}" dig.out.ns2.post2.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1096,10 +1091,8 @@ newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n",
 $RNDCCMD 10.53.0.2 freeze bits > /dev/null 2>&1
 $RNDCCMD 10.53.0.2 signing -serial ${newserial:-0} bits > /dev/null 2>&1
 $RNDCCMD 10.53.0.2 thaw bits > /dev/null 2>&1
-sleep 1
-$DIG $DIGOPTS bits. SOA @10.53.0.2 > dig.out.ns2.post.test$n
-serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.post.test$n`
-[ ${oldserial:-0} -eq ${serial:-1} ] || ret=1
+retry_quiet 5 wait_for_serial 10.53.0.2 bits. "${newserial:-1}" dig.out.ns2.post1.test$n && ret=1
+retry_quiet 5 wait_for_serial 10.53.0.2 bits. "${oldserial:-1}" dig.out.ns2.post2.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
