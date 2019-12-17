@@ -463,6 +463,7 @@ isc_nm_send
 isc_nm_setstats
 isc_nm_start
 isc_nm_stoplistening
+isc_nm_tcpconnect
 isc_nm_tcp_gettimeouts
 isc_nm_tcp_settimeouts
 isc_nm_tcpdns_keepalive

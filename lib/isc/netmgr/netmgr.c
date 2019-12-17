@@ -1140,6 +1140,9 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 
 static void
 nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
+	size_t handlenum;
+	bool reuse = false;
+
 	/*
 	 * We do all of this under lock to avoid races with socket
 	 * destruction.  We have to do this now, because at this point the
@@ -1152,10 +1155,9 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	INSIST(atomic_load(&sock->ah) > 0);
 
 	sock->ah_handles[handle->ah_pos] = NULL;
-	size_t handlenum = atomic_fetch_sub(&sock->ah, 1) - 1;
+	handlenum = atomic_fetch_sub(&sock->ah, 1) - 1;
 	sock->ah_frees[handlenum] = handle->ah_pos;
 	handle->ah_pos = 0;
-	bool reuse = false;
 	if (atomic_load(&sock->active)) {
 		reuse = isc_astack_trypush(sock->inactivehandles, handle);
 	}
