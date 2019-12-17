@@ -239,6 +239,21 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
  */
 
 isc_result_t
+isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+		  isc_nm_cb_t cb, void *cbarg, size_t extrahandlesize);
+/*%<
+ * Create a socket using netmgr 'mgr', bind it to the address 'local',
+ * and connect it to the address 'peer'.
+ *
+ * When the connection is complete, call 'cb' with argument 'cbarg'.
+ * Allocate 'extrahandlesize' additional bytes along with the handle to use
+ * for an associated object.
+ *
+ * The connected socket can only be accessed via the handle passed to
+ * 'cb'.
+ */
+
+isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		    void *cbarg, isc_nm_cb_t accept_cb, void *accept_cbarg,
 		    size_t extrahandlesize, int backlog, isc_quota_t *quota,

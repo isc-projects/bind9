@@ -96,8 +96,7 @@ struct isc_nmhandle {
 	 * the socket.
 	 */
 	isc_nmsocket_t *sock;
-	size_t ah_pos; /* Position in the socket's
-			* 'active handles' array */
+	size_t ah_pos; /* Position in the socket's 'active handles' array */
 
 	/*
 	 * The handle is 'inflight' if netmgr is not currently processing
@@ -141,6 +140,7 @@ typedef enum isc__netievent_type {
 	netievent_closecb,
 	netievent_shutdown,
 	netievent_stop,
+
 	netievent_prio = 0xff, /* event type values higher than this
 				* will be treated as high-priority
 				* events, which can be processed
@@ -443,6 +443,8 @@ struct isc_nmsocket {
 	atomic_bool closed;
 	atomic_bool listening;
 	atomic_bool listen_error;
+	atomic_bool connected;
+	atomic_bool connect_error;
 	isc_refcount_t references;
 
 	/*%
