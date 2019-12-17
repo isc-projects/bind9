@@ -1,3 +1,6 @@
+5337.	[func]		'named -V' now reports maxminddb and protobuf-c
+			versions. [GL !2686]
+
 	--- 9.15.7 released ---
 
 5336.	[bug]		The TCP high-water statistic could report an
