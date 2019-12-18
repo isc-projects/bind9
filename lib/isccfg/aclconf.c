@@ -1292,8 +1292,8 @@ nested_acl:
 			dns_acl_detach(&de->nestedacl);
 		}
 
-		dacl->node_count++;
-		de->node_num = dacl->node_count;
+		dns_acl_node_count(dacl)++;
+		de->node_num = dns_acl_node_count(dacl);
 
 		dacl->length++;
 		de++;

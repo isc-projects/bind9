@@ -143,7 +143,7 @@ dns_acl_isanyornone(dns_acl_t *acl, bool pos)
 	    acl->iptable->radix->head->prefix == NULL)
 		return (false);
 
-	if (acl->length != 0 || acl->node_count != 1)
+	if (acl->length != 0 || dns_acl_node_count(acl) != 1)
 		return (false);
 
 	if (acl->iptable->radix->head->prefix->bitlen == 0 &&
@@ -371,7 +371,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 
 		/* Adjust node numbering. */
 		dest->elements[nelem + i].node_num =
-			source->elements[i].node_num + dest->node_count;
+			source->elements[i].node_num + dns_acl_node_count(dest);
 
 		/* Duplicate nested acl. */
 		if (source->elements[i].type == dns_aclelementtype_nestedacl &&
@@ -410,12 +410,12 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 	 * Merge the iptables.  Make sure the destination ACL's
 	 * node_count value is set correctly afterward.
 	 */
-	nodes = max_node + dest->node_count;
+	nodes = max_node + dns_acl_node_count(dest);
 	result = dns_iptable_merge(dest->iptable, source->iptable, pos);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (nodes > dest->node_count)
-		dest->node_count = nodes;
+	if (nodes > dns_acl_node_count(dest))
+		dns_acl_node_count(dest) = nodes;
 
 	return (ISC_R_SUCCESS);
 }
