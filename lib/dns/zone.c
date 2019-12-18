@@ -15503,12 +15503,9 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dns_zone_t *zone;
 	dns_db_t *rawdb, *db = NULL;
-	dns_dbnode_t *rawnode = NULL, *node = NULL;
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	dns_dbiterator_t *dbiterator = NULL;
-	dns_rdatasetiter_t *rdsit = NULL;
-	dns_rdataset_t rdataset;
 	dns_dbversion_t *version = NULL;
 	isc_time_t loadtime;
 	unsigned int oldserial = 0;
@@ -15516,6 +15513,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	nsec3paramlist_t nsec3list;
 	isc_event_t *setnsec3param_event;
 	dns_zone_t *dummy;
+	dns_rdataset_t rdataset;
 
 	UNUSED(task);
 
@@ -15526,7 +15524,6 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	name = dns_fixedname_initname(&fname);
-	dns_rdataset_init(&rdataset);
 
 	LOCK_ZONE(zone);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) || !inline_secure(zone)) {
@@ -15572,24 +15569,34 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
-	for (result = dns_dbiterator_first(dbiterator);
-	     result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_next(dbiterator)) {
+	dns_rdataset_init(&rdataset);
+
+	for (iter_result = dns_dbiterator_first(dbiterator);
+	     iter_result == ISC_R_SUCCESS;
+	     iter_result = dns_dbiterator_next(dbiterator))
+	{
+		dns_dbnode_t *rawnode = NULL, *node = NULL;
+		dns_rdatasetiter_t *rdsit = NULL;
+
 		result = dns_dbiterator_current(dbiterator, &rawnode, name);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			continue;
+		}
 
 		result = dns_db_findnode(db, name, true, &node);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
+		if (result != ISC_R_SUCCESS) {
+			goto iter_cleanup;
+		}
 
 		result = dns_db_allrdatasets(rawdb, rawnode, NULL, 0, &rdsit);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
+		if (result != ISC_R_SUCCESS) {
+			goto iter_cleanup;
+		}
 
-		for (result = dns_rdatasetiter_first(rdsit);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdatasetiter_next(rdsit)) {
+		for (isc_result_t rdsit_result = dns_rdatasetiter_first(rdsit);
+		     rdsit_result == ISC_R_SUCCESS;
+		     rdsit_result = dns_rdatasetiter_next(rdsit))
+		{
 			dns_rdatasetiter_current(rdsit, &rdataset);
 			if (rdataset.type == dns_rdatatype_nsec ||
 			    rdataset.type == dns_rdatatype_rrsig ||
@@ -15609,21 +15616,33 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 			    have_oldserial) {
 				result = checkandaddsoa(db, node, version,
 							&rdataset, oldserial);
-			} else
+			} else {
 				result = dns_db_addrdataset(db, node, version,
 							    0, &rdataset, 0,
 							    NULL);
-			if (result != ISC_R_SUCCESS)
-				goto failure;
-
+			}
 			dns_rdataset_disassociate(&rdataset);
+			if (result != ISC_R_SUCCESS) {
+				break;
+			}
 		}
 		dns_rdatasetiter_destroy(&rdsit);
-		dns_db_detachnode(rawdb, &rawnode);
-		dns_db_detachnode(db, &node);
+iter_cleanup:
+		if (rawnode) {
+			dns_db_detachnode(rawdb, &rawnode);
+		}
+		if (node) {
+			dns_db_detachnode(db, &node);
+		}
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
 	}
-
 	dns_dbiterator_destroy(&dbiterator);
+
+	if (result != ISC_R_SUCCESS) {
+		goto failure;
+	}
 
 	/*
 	 * Call restore_nsec3param() to create private-type records from
@@ -15662,9 +15681,10 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 
  failure:
 	UNLOCK_ZONE(zone);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "receive_secure_db: %s",
 			     dns_result_totext(result));
+	}
 
 	while (!ISC_LIST_EMPTY(nsec3list)) {
 		nsec3param_t *nsec3p;
@@ -15672,20 +15692,13 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 		ISC_LIST_UNLINK(nsec3list, nsec3p, link);
 		isc_mem_put(zone->mctx, nsec3p, sizeof(nsec3param_t));
 	}
-	if (dns_rdataset_isassociated(&rdataset))
-		dns_rdataset_disassociate(&rdataset);
 	if (db != NULL) {
-		if (node != NULL)
-			dns_db_detachnode(db, &node);
-		if (version != NULL)
+		if (version != NULL) {
 			dns_db_closeversion(db, &version, false);
+		}
 		dns_db_detach(&db);
 	}
-	if (rawnode != NULL)
-		dns_db_detachnode(rawdb, &rawnode);
 	dns_db_detach(&rawdb);
-	if (dbiterator != NULL)
-		dns_dbiterator_destroy(&dbiterator);
 	dns_zone_idetach(&zone);
 
 	INSIST(version == NULL);
