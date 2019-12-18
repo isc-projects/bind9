@@ -14919,6 +14919,7 @@ restore_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 static void
 receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
+	isc_result_t iter_result;
 	dns_zone_t *zone;
 	dns_db_t *rawdb, *db = NULL;
 	dns_fixedname_t fname;
@@ -14990,6 +14991,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	{
 		dns_dbnode_t *rawnode = NULL, *node = NULL;
 		dns_rdatasetiter_t *rdsit = NULL;
+		isc_result_t rdsit_result;
 
 		result = dns_dbiterator_current(dbiterator, &rawnode, name);
 		if (result != ISC_R_SUCCESS) {
@@ -15006,7 +15008,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 			goto iter_cleanup;
 		}
 
-		for (isc_result_t rdsit_result = dns_rdatasetiter_first(rdsit);
+		for (rdsit_result = dns_rdatasetiter_first(rdsit);
 		     rdsit_result == ISC_R_SUCCESS;
 		     rdsit_result = dns_rdatasetiter_next(rdsit))
 		{
@@ -15033,6 +15035,11 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 				break;
 			}
 		}
+		if (rdsit_result != ISC_R_SUCCESS &&
+		    rdsit_result != ISC_R_NOMORE)
+		{
+			result = rdsit_result;
+		}
 		dns_rdatasetiter_destroy(&rdsit);
 iter_cleanup:
 		if (rawnode) {
@@ -15044,6 +15051,10 @@ iter_cleanup:
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}
+	}
+	if (iter_result != ISC_R_SUCCESS &&
+	    iter_result != ISC_R_NOMORE) {
+		result = iter_result;
 	}
 	dns_dbiterator_destroy(&dbiterator);
 
