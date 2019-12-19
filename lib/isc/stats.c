@@ -297,7 +297,7 @@ setcounter(isc_stats_t *stats,
 	isc_atomic_store((int32_t *)&stats->counters[counter].lo,
 			 (uint32_t)(value & 0xffffffff));
 # else
-	stats->counters[counter] = val;
+	stats->counters[counter] = value;
 # endif
 #endif
 }
