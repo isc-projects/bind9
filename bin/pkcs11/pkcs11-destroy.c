@@ -130,7 +130,7 @@ main(int argc, char *argv[]) {
 	if (errflg || (id && (label != NULL))) {
 		fprintf(stderr, "Usage:\n");
 		fprintf(stderr, "\tpkcs11-destroy [-m module] [-s slot] "
-				"[-i id | -l label] [-p pin] [-w waittime]\n");
+				"{-i id | -l label} [-p pin] [-w waittime]\n");
 		exit(1);
 	}
 
