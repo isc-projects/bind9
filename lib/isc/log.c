@@ -19,6 +19,7 @@
 #include <sys/types.h> /* dev_t FreeBSD 2.1 */
 #include <time.h>
 
+#include <isc/atomic.h>
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/log.h>
@@ -138,7 +139,7 @@ struct isc_log {
 	int debug_level;
 	isc_mutex_t lock;
 	/* Locked by isc_log lock. */
-	isc_logconfig_t *logconfig;
+	atomic_uintptr_t logconfig;
 	char buffer[LOG_BUFFER_SIZE];
 	ISC_LIST(isc_logmessage_t) messages;
 };
@@ -276,7 +277,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 	}
 
 	if (result == ISC_R_SUCCESS) {
-		lctx->logconfig = lcfg;
+		atomic_init(&lctx->logconfig, (uintptr_t)lcfg);
 
 		*lctxp = lctx;
 		if (lcfgp != NULL) {
@@ -389,12 +390,8 @@ isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg) {
 		return (result);
 	}
 
-	LOCK(&lctx->lock);
-
-	old_cfg = lctx->logconfig;
-	lctx->logconfig = lcfg;
-
-	UNLOCK(&lctx->lock);
+	old_cfg = (isc_logconfig_t *)atomic_exchange_acq_rel(&lctx->logconfig,
+							     (uintptr_t)lcfg);
 
 	isc_logconfig_destroy(&old_cfg);
 
@@ -414,9 +411,9 @@ isc_log_destroy(isc_log_t **lctxp) {
 	*lctxp = NULL;
 	mctx = lctx->mctx;
 
-	if (lctx->logconfig != NULL) {
-		lcfg = lctx->logconfig;
-		lctx->logconfig = NULL;
+	lcfg = (isc_logconfig_t *)atomic_exchange_acq_rel(&lctx->logconfig,
+							  (uintptr_t)NULL);
+	if (lcfg != NULL) {
 		isc_logconfig_destroy(&lcfg);
 	}
 
@@ -459,7 +456,8 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	 * This function cannot be called with a logconfig that is in
 	 * use by a log context.
 	 */
-	REQUIRE(lcfg->lctx != NULL && lcfg->lctx->logconfig != lcfg);
+	REQUIRE(lcfg->lctx != NULL &&
+		atomic_load_acquire(&lcfg->lctx->logconfig) != (uintptr_t)lcfg);
 
 	mctx = lcfg->lctx->mctx;
 
@@ -840,6 +838,7 @@ isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level) {
 	isc_logchannel_t *channel;
 
 	REQUIRE(VALID_CONTEXT(lctx));
+	REQUIRE(atomic_load_acquire(&lctx->logconfig) != (uintptr_t)NULL);
 
 	LOCK(&lctx->lock);
 
@@ -848,13 +847,16 @@ isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level) {
 	 * Close ISC_LOG_DEBUGONLY channels if level is zero.
 	 */
 	if (lctx->debug_level == 0) {
-		for (channel = ISC_LIST_HEAD(lctx->logconfig->channels);
-		     channel != NULL; channel = ISC_LIST_NEXT(channel, link))
-		{
-			if (channel->type == ISC_LOG_TOFILE &&
-			    (channel->flags & ISC_LOG_DEBUGONLY) != 0 &&
-			    FILE_STREAM(channel) != NULL)
+		isc_logconfig_t *lcfg = (isc_logconfig_t *)atomic_load_acquire(
+			&lctx->logconfig);
+		if (lcfg != NULL) {
+			for (channel = ISC_LIST_HEAD(lcfg->channels);
+			     channel != NULL;
+			     channel = ISC_LIST_NEXT(channel, link))
 			{
+				if (channel->type == ISC_LOG_TOFILE &&
+				    (channel->flags & ISC_LOG_DEBUGONLY) != 0 &&
+				    FILE_STREAM(channel) != NULL)
 				{
 					(void)fclose(FILE_STREAM(channel));
 					FILE_STREAM(channel) = NULL;
@@ -925,12 +927,14 @@ isc_log_closefilelogs(isc_log_t *lctx) {
 	REQUIRE(VALID_CONTEXT(lctx));
 
 	LOCK(&lctx->lock);
-	for (channel = ISC_LIST_HEAD(lctx->logconfig->channels);
-	     channel != NULL; channel = ISC_LIST_NEXT(channel, link))
-	{
-		if (channel->type == ISC_LOG_TOFILE &&
-		    FILE_STREAM(channel) != NULL) {
-			{
+	isc_logconfig_t *lcfg =
+		(isc_logconfig_t *)atomic_load_acquire(&lctx->logconfig);
+	if (lcfg != NULL) {
+		for (channel = ISC_LIST_HEAD(lcfg->channels); channel != NULL;
+		     channel = ISC_LIST_NEXT(channel, link))
+		{
+			if (channel->type == ISC_LOG_TOFILE &&
+			    FILE_STREAM(channel) != NULL) {
 				(void)fclose(FILE_STREAM(channel));
 				FILE_STREAM(channel) = NULL;
 			}
@@ -1471,13 +1475,18 @@ isc_log_wouldlog(isc_log_t *lctx, int level) {
 	 * because that's a risk anyway if the logconfig is being
 	 * dynamically changed.
 	 */
-
-	if (lctx == NULL || lctx->logconfig == NULL) {
+	if (lctx == NULL) {
 		return (false);
 	}
 
-	return (level <= lctx->logconfig->highest_level ||
-		(lctx->logconfig->dynamic && level <= lctx->debug_level));
+	isc_logconfig_t *lcfg =
+		(isc_logconfig_t *)atomic_load_acquire(&lctx->logconfig);
+	if (lcfg == NULL) {
+		return (false);
+	}
+
+	return (level <= lcfg->highest_level ||
+		(lcfg->dynamic && level <= lctx->debug_level));
 }
 
 static void
@@ -1529,7 +1538,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 	lctx->buffer[0] = '\0';
 
-	lcfg = lctx->logconfig;
+	lcfg = (isc_logconfig_t *)atomic_load_acquire(&lctx->logconfig);
 
 	category_channels = ISC_LIST_HEAD(lcfg->channellists[category->id]);
 
