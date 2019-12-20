@@ -583,7 +583,7 @@
     <section xml:id="cpu_req"><info><title>CPU Requirements</title></info>
       <para>
 	CPU requirements for <acronym>BIND</acronym> 9 range from
-	i486-class machines
+	i386-class machines
 	for serving of static zones without caching, to enterprise-class
 	machines if you intend to process many dynamic updates and DNSSEC
 	signed zones, serving many thousands of queries per second.
@@ -633,9 +633,9 @@
 	ISC <acronym>BIND</acronym> 9 compiles and runs on a large
 	number
 	of Unix-like operating systems and on
-	Microsoft Windows Server 2003 and 2008, and Windows XP and Vista.
+	Microsoft Windows Server 2012 R2, 2016 and Windows 10.
 	For an up-to-date
-	list of supported systems, see the README file in the top level
+	list of supported systems, see the PLATFORMS file in the top level
 	directory
 	of the BIND 9 source distribution.
       </para>
@@ -748,7 +748,7 @@ zone "eng.example.com" {
       </para>
 
       <para>
-	For example, if you have three WWW servers with network addresses
+	For example, if you have three HTTP servers with network addresses
 	of 10.0.0.1, 10.0.0.2 and 10.0.0.3, a set of records such as the
 	following means that clients will connect to each machine one third
 	of the time:
