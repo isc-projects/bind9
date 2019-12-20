@@ -1684,110 +1684,6 @@ check_signer(dns_validator_t *val, dns_rdata_t *keyrdata,
 	return (result);
 }
 
-static isc_result_t
-anchor_signed(dns_validator_t *val, isc_result_t *resp) {
-	isc_result_t result;
-	bool atsep = false;
-
-	/*
-	 * First, see if this key was signed by a trust anchor.
-	 */
-	for (result = dns_rdataset_first(val->event->sigrdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(val->event->sigrdataset))
-	{
-		dns_keynode_t *keynode = NULL;
-		dns_rdata_t sigrdata = DNS_RDATA_INIT;
-		dns_fixedname_t fixed;
-		dns_name_t *found;
-		dst_key_t *dstkey;
-		dns_rdata_rrsig_t sig;
-
-		found = dns_fixedname_initname(&fixed);
-		dns_rdata_reset(&sigrdata);
-		dns_rdataset_current(val->event->sigrdataset, &sigrdata);
-		result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		if (!dns_name_equal(val->event->name, &sig.signer)) {
-			continue;
-		}
-
-		result = dns_keytable_findkeynode(val->keytable,
-						  val->event->name,
-						  sig.algorithm, sig.keyid,
-						  &keynode);
-		if (result == ISC_R_NOTFOUND) {
-			result = dns_keytable_finddeepestmatch(val->keytable,
-							       val->event->name,
-							       found);
-			if (result != ISC_R_SUCCESS) {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "not beneath secure root");
-				*resp = markanswer(val, "validate_dnskey (1)",
-						   "not beneath secure root");
-				return (ISC_R_COMPLETE);
-			}
-			continue;
-		}
-
-		if (result == DNS_R_PARTIALMATCH || result == ISC_R_SUCCESS) {
-			atsep = true;
-		}
-
-		while (result == ISC_R_SUCCESS) {
-			dns_keynode_t *nextnode = NULL;
-			dstkey = dns_keynode_key(keynode);
-			if (dstkey == NULL) {
-				dns_keytable_detachkeynode(val->keytable,
-							   &keynode);
-				break;
-			}
-
-			result = verify(val, dstkey, &sigrdata, sig.keyid);
-			if (result == ISC_R_SUCCESS) {
-				dns_keytable_detachkeynode(val->keytable,
-							   &keynode);
-				break;
-			}
-
-			result = dns_keytable_findnextkeynode(val->keytable,
-							      keynode,
-							      &nextnode);
-			dns_keytable_detachkeynode(val->keytable, &keynode);
-			keynode = nextnode;
-		}
-
-		if (result == ISC_R_SUCCESS) {
-			marksecure(val->event);
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "signed by trusted key; "
-				      "marking as secure");
-			*resp = result;
-			return (ISC_R_COMPLETE);
-		}
-	}
-
-	if (atsep) {
-		/*
-		 * We have not found a key to verify this DNSKEY
-		 * RRset, but there is a trust anchor defined for this
-		 * name, so we have to assume that the RRset is invalid.
-		 */
-		char namebuf[DNS_NAME_FORMATSIZE];
-
-		dns_name_format(val->event->name, namebuf, sizeof(namebuf));
-		validator_log(val, ISC_LOG_NOTICE,
-			      "unable to find a DNSKEY which verifies "
-			      "the DNSKEY RRset and also matches a "
-			      "trusted key for '%s'", namebuf);
-		*resp = DNS_R_NOVALIDKEY;
-		return (ISC_R_COMPLETE);
-	}
-
-	return (result);
-}
-
 /*
  * get_dsset is called to look up a DS RRset corresponding to the name
  * of a DNSKEY record, either in the cache or, if necessary, by starting a
@@ -1923,15 +1819,6 @@ validate_dnskey(dns_validator_t *val) {
 	 */
 	if (val->dsset == NULL) {
 		isc_result_t tresult = ISC_R_SUCCESS;
-
-		/*
-		 * First, check whether the key to be validated was
-		 * signed by a trust anchor.
-		 */
-		result = anchor_signed(val, &tresult);
-		if (result == ISC_R_COMPLETE) {
-			return (tresult);
-		}
 
 		/*
 		 * If this is the root name and there was no trusted key,

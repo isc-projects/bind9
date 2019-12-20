@@ -3857,12 +3857,9 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	isc_stdtime_get(&now);
 
 	/*
-	 * If the keynode has neither a key nor a DS RRset,
-	 * we shouldn't be here.
+	 * If the keynode has no trust anchor set, we shouldn't be here.
 	 */
-	if (dns_keynode_key(keynode) == NULL &&
-	    dns_keynode_dsset(keynode) == NULL)
-	{
+	if (dns_keynode_dsset(keynode) == NULL) {
 		return (ISC_R_FAILURE);
 	}
 
@@ -4265,12 +4262,9 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	}
 
 	/*
-	 * If the keynode has neither a key-style nor a DS-style
-	 * trust anchor, return.
+	 * If the keynode has no trust anchor set, return.
 	 */
-	if (dns_keynode_dsset(keynode) == NULL &&
-	    dns_keynode_key(keynode) == NULL)
-	{
+	if (dns_keynode_dsset(keynode) == NULL) {
 		return;
 	}
 
@@ -9823,8 +9817,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * If the first keynode has a DS trust anchor, use that for
-	 * verification.
+	 * If the keynode has a DS trust anchor, use it for verification.
 	 */
 	if ((dsset = dns_keynode_dsset(keynode)) != NULL) {
 		for (result = dns_rdataset_first(dnskeysigs);
@@ -9896,74 +9889,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				secure = true;
 				break;
 			}
-		}
-		goto anchors_done;
-	} else {
-		dns_keytable_detachkeynode(secroots, &keynode);
-	}
-
-	/*
-	 * Validate the DNSKEY set against using the key-style
-	 * trust anchor(s).
-	 */
-	for (result = dns_rdataset_first(dnskeysigs);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(dnskeysigs))
-	{
-		result = dns_keytable_find(secroots, keyname, &keynode);
-		if (result != ISC_R_SUCCESS) {
-			goto anchors_done;
-		}
-		dns_rdata_reset(&sigrr);
-		dns_rdataset_current(dnskeysigs, &sigrr);
-		result = dns_rdata_tostruct(&sigrr, &sig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		result = ISC_R_SUCCESS;
-		while (result == ISC_R_SUCCESS) {
-			dns_keynode_t *nextnode = NULL;
-
-			dstkey = dns_keynode_key(keynode);
-			if (dstkey == NULL) {
-				/* fail_secure() was called */
-				break;
-			}
-
-			if (dst_key_alg(dstkey) == sig.algorithm &&
-			    dst_key_id(dstkey) == sig.keyid)
-			{
-				result = dns_dnssec_verify(keyname, dnskeys,
-							   dstkey, false, 0,
-							   mctx, &sigrr, NULL);
-
-				dnssec_log(zone, ISC_LOG_DEBUG(3),
-					   "Verifying DNSKEY set "
-					   "for zone '%s' "
-					   "using key %d/%d: %s",
-					   namebuf, sig.keyid,
-					   sig.algorithm,
-					   dns_result_totext(result));
-
-				if (result == ISC_R_SUCCESS) {
-					dnskeys->trust = dns_trust_secure;
-					dnskeysigs->trust = dns_trust_secure;
-					secure = true;
-					initial = dns_keynode_initial(keynode);
-					dns_keynode_trust(keynode);
-					break;
-				}
-			}
-
-			result = dns_keytable_nextkeynode(secroots, keynode,
-							  &nextnode);
-			if (result == ISC_R_SUCCESS) {
-				dns_keytable_detachkeynode(secroots, &keynode);
-				keynode = nextnode;
-			}
-		}
-		dns_keytable_detachkeynode(secroots, &keynode);
-		if (secure) {
-			break;
 		}
 	}
 

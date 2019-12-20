@@ -517,123 +517,6 @@ dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
 }
 
 isc_result_t
-dns_keytable_nextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
-			 dns_keynode_t **nextnodep)
-{
-	/*
-	 * Return the next key after 'keynode', regardless of
-	 * properties.
-	 */
-
-	REQUIRE(VALID_KEYTABLE(keytable));
-	REQUIRE(VALID_KEYNODE(keynode));
-	REQUIRE(nextnodep != NULL && *nextnodep == NULL);
-
-	if (keynode->next == NULL) {
-		return (ISC_R_NOTFOUND);
-	}
-
-	dns_keytable_attachkeynode(keytable, keynode->next, nextnodep);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_keytable_findkeynode(dns_keytable_t *keytable, const dns_name_t *name,
-			 dns_secalg_t algorithm, dns_keytag_t tag,
-			 dns_keynode_t **keynodep)
-{
-	isc_result_t result;
-	dns_keynode_t *knode;
-	void *data;
-
-	/*
-	 * Search for a key named 'name', matching 'algorithm' and 'tag' in
-	 * 'keytable'.
-	 */
-
-	REQUIRE(VALID_KEYTABLE(keytable));
-	REQUIRE(dns_name_isabsolute(name));
-	REQUIRE(keynodep != NULL && *keynodep == NULL);
-
-	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
-
-	/*
-	 * Note we don't want the DNS_R_PARTIALMATCH from dns_rbt_findname()
-	 * as that indicates that 'name' was not found.
-	 *
-	 * DNS_R_PARTIALMATCH indicates that the name was found but we
-	 * didn't get a match on algorithm and key id arguments.
-	 */
-	knode = NULL;
-	data = NULL;
-	result = dns_rbt_findname(keytable->table, name, 0, NULL, &data);
-	if (result == ISC_R_SUCCESS) {
-		INSIST(data != NULL);
-
-		for (knode = data; knode != NULL; knode = knode->next) {
-			if (knode->key == NULL) {
-				knode = NULL;
-				break;
-			}
-			if (algorithm == dst_key_alg(knode->key) &&
-			    tag == dst_key_id(knode->key))
-			{
-				break;
-			}
-		}
-		if (knode != NULL) {
-			dns_keytable_attachkeynode(keytable, knode, keynodep);
-		} else {
-			result = DNS_R_PARTIALMATCH;
-		}
-	} else if (result == DNS_R_PARTIALMATCH) {
-		result = ISC_R_NOTFOUND;
-	}
-
-	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
-
-	return (result);
-}
-
-isc_result_t
-dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
-			     dns_keynode_t **nextnodep)
-{
-	isc_result_t result;
-	dns_keynode_t *knode;
-
-	/*
-	 * Search for the next key with the same properties as 'keynode' in
-	 * 'keytable'.
-	 */
-
-	REQUIRE(VALID_KEYTABLE(keytable));
-	REQUIRE(VALID_KEYNODE(keynode));
-	REQUIRE(nextnodep != NULL && *nextnodep == NULL);
-
-	for (knode = keynode->next; knode != NULL; knode = knode->next) {
-		if (knode->key == NULL) {
-			knode = NULL;
-			break;
-		}
-		if (dst_key_alg(keynode->key) == dst_key_alg(knode->key) &&
-		    dst_key_id(keynode->key) == dst_key_id(knode->key))
-		{
-			break;
-		}
-	}
-	if (knode != NULL) {
-		dns_keytable_attachkeynode(keytable, knode, nextnodep);
-		result = ISC_R_SUCCESS;
-	} else {
-		result = ISC_R_NOTFOUND;
-	}
-
-	return (result);
-}
-
-isc_result_t
 dns_keytable_finddeepestmatch(dns_keytable_t *keytable, const dns_name_t *name,
 			      dns_name_t *foundname)
 {
@@ -674,7 +557,8 @@ dns_keytable_attachkeynode(dns_keytable_t *keytable, dns_keynode_t *source,
 	REQUIRE(VALID_KEYNODE(source));
 	REQUIRE(target != NULL && *target == NULL);
 
-	REQUIRE(atomic_fetch_add_relaxed(&keytable->active_nodes, 1) < UINT32_MAX);
+	REQUIRE(atomic_fetch_add_relaxed(&keytable->active_nodes,
+					 1) < UINT32_MAX);
 
 	dns_keynode_attach(source, target);
 }
@@ -913,8 +797,8 @@ dns_keytable_forall(dns_keytable_t *keytable,
 		}
 		goto cleanup;
 	}
-	REQUIRE(atomic_fetch_add_relaxed(&keytable->active_nodes, 1)
-		< UINT32_MAX);
+	REQUIRE(atomic_fetch_add_relaxed(&keytable->active_nodes,
+					 1) < UINT32_MAX);
 	for (;;) {
 		dns_rbtnodechain_current(&chain, foundname, origin, &node);
 		if (node->data != NULL) {
@@ -937,13 +821,6 @@ dns_keytable_forall(dns_keytable_t *keytable,
 	dns_rbtnodechain_invalidate(&chain);
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
 	return (result);
-}
-
-dst_key_t *
-dns_keynode_key(dns_keynode_t *keynode) {
-	REQUIRE(VALID_KEYNODE(keynode));
-
-	return (keynode->key);
 }
 
 dns_rdataset_t *

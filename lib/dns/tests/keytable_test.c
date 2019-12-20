@@ -219,7 +219,6 @@ static void
 add_test(void **state) {
 	dst_key_t *key = NULL;
 	dns_keynode_t *keynode = NULL;
-	dns_keynode_t *next_keynode = NULL;
 	dns_keynode_t *null_keynode = NULL;
 
 	UNUSED(state);
@@ -227,27 +226,24 @@ add_test(void **state) {
 	create_tables();
 
 	/*
-	 * Get the keynode for the example.com key.  There's no other key for
-	 * the name, so nextkeynode() should return NOTFOUND.
+	 * Getting the keynode for the example.com key should succeed.
 	 */
 	assert_int_equal(dns_keytable_find(keytable, str2name("example.com"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_NOTFOUND);
 
 	/*
-	 * Try to add the same key.  This should have no effect, so
-	 * nextkeynode() should still return NOTFOUND.
+	 * Try to add the same key.  This should have no effect but
+	 * report success.
 	 */
 	create_key(257, 3, 5, "example.com", keystr1, &key);
 	assert_int_equal(dns_keytable_add(keytable, false, false,
 					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_NOTFOUND);
+	dns_keytable_detachkeynode(keytable, &keynode);
+	assert_int_equal(dns_keytable_find(keytable, str2name("example.com"),
+					   &keynode),
+			 ISC_R_SUCCESS);
 
 	/* Add another key (different keydata) */
 	dns_keytable_detachkeynode(keytable, &keynode);
@@ -258,24 +254,16 @@ add_test(void **state) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("example.com"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_SUCCESS);
-	dns_keytable_detachkeynode(keytable, &next_keynode);
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*
-	 * Get the keynode for the managed.com key.  There's no other key for
-	 * the name, so nextkeynode() should return NOTFOUND.  Ensure the
+	 * Get the keynode for the managed.com key. Ensure the
 	 * retrieved key is an initializing key, then mark it as trusted using
 	 * dns_keynode_trust() and ensure the latter works as expected.
 	 */
 	assert_int_equal(dns_keytable_find(keytable, str2name("managed.com"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_NOTFOUND);
 	assert_int_equal(dns_keynode_initial(keynode), true);
 	dns_keynode_trust(keynode);
 	assert_int_equal(dns_keynode_initial(keynode), false);
@@ -283,8 +271,7 @@ add_test(void **state) {
 
 	/*
 	 * Add a different managed key for managed.com, marking it as an
-	 * initializing key.  Ensure nextkeynode() no longer returns
-	 * ISC_R_NOTFOUND and that the added key is an initializing key.
+	 * initializing key.
 	 */
 	create_key(257, 3, 5, "managed.com", keystr2, &key);
 	assert_int_equal(dns_keytable_add(keytable, true, true,
@@ -293,11 +280,7 @@ add_test(void **state) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("managed.com"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keynode_initial(keynode), true);
-	dns_keytable_detachkeynode(keytable, &next_keynode);
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*
@@ -314,22 +297,11 @@ add_test(void **state) {
 					   &keynode),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keynode_initial(keynode), false);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_SUCCESS);
-	dns_keytable_detachkeynode(keytable, &keynode);
-	keynode = next_keynode;
-	next_keynode = NULL;
-	assert_int_equal(dns_keynode_initial(keynode), false);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_NOTFOUND);
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*
 	 * Add a managed key at a new node, two.com, marking it as an
-	 * initializing key.  Ensure nextkeynode() returns ISC_R_NOTFOUND and
-	 * that the added key is an initializing key.
+	 * initializing key.
 	 */
 	create_key(257, 3, 5, "two.com", keystr1, &key);
 	assert_int_equal(dns_keytable_add(keytable, true, true,
@@ -338,16 +310,12 @@ add_test(void **state) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_NOTFOUND);
 	assert_int_equal(dns_keynode_initial(keynode), true);
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*
 	 * Add a different managed key for two.com, marking it as a
-	 * non-initializing key.  Ensure nextkeynode() no longer returns
-	 * ISC_R_NOTFOUND and that the added key is not an initializing key.
+	 * non-initializing key.
 	 */
 	create_key(257, 3, 5, "two.com", keystr2, &key);
 	assert_int_equal(dns_keytable_add(keytable, true, false,
@@ -356,10 +324,7 @@ add_test(void **state) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						&next_keynode), ISC_R_SUCCESS);
 	assert_int_equal(dns_keynode_initial(keynode), false);
-	dns_keytable_detachkeynode(keytable, &next_keynode);
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*
@@ -376,16 +341,6 @@ add_test(void **state) {
 					   &keynode),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keynode_initial(keynode), false);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_SUCCESS);
-	dns_keytable_detachkeynode(keytable, &keynode);
-	keynode = next_keynode;
-	next_keynode = NULL;
-	assert_int_equal(dns_keynode_initial(keynode), false);
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_NOTFOUND);
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*
@@ -403,13 +358,11 @@ add_test(void **state) {
 					   &keynode),
 			 ISC_R_SUCCESS);
 	assert_int_equal(keynode, null_keynode); /* should be the same node */
-	assert_non_null(dns_keynode_key(keynode)); /* now have a key */
 	dns_keytable_detachkeynode(keytable, &null_keynode);
 
 	/*
 	 * Try to add a null key to a name that already has a key.  It's
-	 * effectively no-op, so the same key node is still there, with no
-	 * no next node.
+	 * effectively no-op, so the same key node is still there.
 	 * (Note: this and above checks confirm that if a name has a null key
 	 * that's the only key for the name).
 	 */
@@ -420,10 +373,6 @@ add_test(void **state) {
 					   &null_keynode),
 			 ISC_R_SUCCESS);
 	assert_int_equal(keynode, null_keynode);
-	assert_non_null(dns_keynode_key(keynode));
-	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
-						  &next_keynode),
-			 ISC_R_NOTFOUND);
 	dns_keytable_detachkeynode(keytable, &null_keynode);
 
 	dns_keytable_detachkeynode(keytable, &keynode);
@@ -553,7 +502,6 @@ find_test(void **state) {
 					   str2name("null.example"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keynode_key(keynode), NULL);
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*
@@ -580,37 +528,6 @@ find_test(void **state) {
 						       name),
 			 ISC_R_SUCCESS);
 	assert_true(dns_name_equal(name, str2name("null.example")));
-
-	/*
-	 * dns_keytable_findkeynode() requires exact name, algorithm, keytag
-	 * match.  If algorithm or keytag doesn't match, should result in
-	 * PARTIALMATCH.  Same for a node with a null key.
-	 */
-	assert_int_equal(dns_keytable_findkeynode(keytable,
-						  str2name("example.org"),
-						  5, keytag1, &keynode),
-			 ISC_R_NOTFOUND);
-	assert_int_equal(dns_keytable_findkeynode(keytable,
-						  str2name("sub.example.com"),
-						  5, keytag1, &keynode),
-			 ISC_R_NOTFOUND);
-	assert_int_equal(dns_keytable_findkeynode(keytable,
-						  str2name("example.com"),
-						  4, keytag1, &keynode),
-			 DNS_R_PARTIALMATCH); /* different algorithm */
-	assert_int_equal(dns_keytable_findkeynode(keytable,
-						  str2name("example.com"),
-						  5, keytag1 + 1, &keynode),
-			 DNS_R_PARTIALMATCH); /* different keytag */
-	assert_int_equal(dns_keytable_findkeynode(keytable,
-						  str2name("null.example"),
-						  5, 0, &keynode),
-			 DNS_R_PARTIALMATCH); /* null key */
-	assert_int_equal(dns_keytable_findkeynode(keytable,
-						  str2name("example.com"),
-						  5, keytag1, &keynode),
-			 ISC_R_SUCCESS); /* complete match */
-	dns_keytable_detachkeynode(keytable, &keynode);
 
 	destroy_tables();
 }

@@ -463,7 +463,6 @@ dns_keynode_detach
 dns_keynode_detachall
 dns_keynode_dsset
 dns_keynode_initial
-dns_keynode_key
 dns_keynode_managed
 dns_keynode_trust
 dns_keyring_restore
@@ -478,12 +477,9 @@ dns_keytable_detachkeynode
 dns_keytable_dump
 dns_keytable_find
 dns_keytable_finddeepestmatch
-dns_keytable_findkeynode
-dns_keytable_findnextkeynode
 dns_keytable_forall
 dns_keytable_issecuredomain
 dns_keytable_marksecure
-dns_keytable_nextkeynode
 dns_keytable_totext
 dns_lib_init
 dns_lib_shutdown

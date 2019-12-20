@@ -6835,11 +6835,7 @@ struct dotat_arg {
  * reported in the TAT query.
  */
 static isc_result_t
-get_tat_qname(dns_name_t *target, dns_name_t *keyname,
-	      dns_keytable_t *keytable, dns_keynode_t *keynode)
-{
-	dns_keynode_t *firstnode = keynode;
-	dns_keynode_t *nextnode = NULL;
+get_tat_qname(dns_name_t *target, dns_name_t *keyname, dns_keynode_t *keynode) {
 	dns_rdataset_t *dsset = NULL;
 	unsigned int i, n = 0;
 	uint16_t ids[12];
@@ -6866,23 +6862,6 @@ get_tat_qname(dns_name_t *target, dns_name_t *keyname,
 				n++;
 			}
 		}
-	} else {
-		do {
-			dst_key_t *key = dns_keynode_key(keynode);
-			if (key != NULL) {
-				if (n < (sizeof(ids)/sizeof(ids[0]))) {
-					ids[n] = dst_key_id(key);
-					n++;
-				}
-			}
-			nextnode = NULL;
-			(void)dns_keytable_nextkeynode(keytable, keynode,
-						       &nextnode);
-			if (keynode != firstnode) {
-				dns_keytable_detachkeynode(keytable, &keynode);
-			}
-			keynode = nextnode;
-		} while (keynode != NULL);
 	}
 
 	if (n == 0) {
@@ -6938,7 +6917,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	task = dotat_arg->task;
 
 	tatname = dns_fixedname_initname(&fixed);
-	result = get_tat_qname(tatname, keyname, keytable, keynode);
+	result = get_tat_qname(tatname, keyname, keynode);
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}

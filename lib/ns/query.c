@@ -6634,23 +6634,12 @@ has_ta(query_ctx_t *qctx) {
 		}
 	}
 
-	while (result == ISC_R_SUCCESS) {
-		dns_keynode_t *nextnode = NULL;
-		dns_keytag_t keyid = dst_key_id(dns_keynode_key(keynode));
-		if (keyid == sentinel) {
-			dns_keytable_detachkeynode(keytable, &keynode);
-			dns_keytable_detach(&keytable);
-			return (true);
-		}
-		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
-		dns_keytable_detachkeynode(keytable, &keynode);
-		keynode = nextnode;
-	}
-
 	if (keynode != NULL) {
 		dns_keytable_detachkeynode(keytable, &keynode);
 	}
+
 	dns_keytable_detach(&keytable);
+
 	return (false);
 }
 

@@ -1614,39 +1614,6 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 		goto cleanup;
 	}
 
-	/*
-	 * The keynode didn't have any DS trust anchors, so we now try to
-	 * find a matching DNSKEY trust anchor.
-	 */
-	result = dns_keytable_findkeynode(vctx->secroots, vctx->origin,
-					  dst_key_alg(key), dst_key_id(key),
-					  &keynode);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	/*
-	 * Walk the keynode list until we find a matching key or
-	 * reach the end.
-	 */
-	while (result == ISC_R_SUCCESS) {
-		dns_keynode_t *nextnode = NULL;
-
-		if (dst_key_compare(key, dns_keynode_key(keynode))) {
-			dns_keytable_detachkeynode(vctx->secroots, &keynode);
-			dns_rdataset_settrust(&vctx->keyset, dns_trust_secure);
-			dns_rdataset_settrust(&vctx->keysigs, dns_trust_secure);
-			*goodkey = true;
-
-			goto cleanup;
-		}
-
-		result = dns_keytable_findnextkeynode(vctx->secroots,
-						      keynode, &nextnode);
-		dns_keytable_detachkeynode(vctx->secroots, &keynode);
-		keynode = nextnode;
-	}
-
  cleanup:
 	if (keynode != NULL) {
 		dns_keytable_detachkeynode(vctx->secroots, &keynode);

@@ -223,9 +223,8 @@ isc_result_t
 dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
 		  dns_keynode_t **keynodep);
 /*%<
- * Search for the first instance of a key named 'name' in 'keytable',
- * without regard to keyid and algorithm.  Use dns_keytable_nextkeynode()
- * to find subsequent instances.
+ * Search for the first instance of a trust anchor named 'name' in
+ * 'keytable', without regard to keyid and algorithm.
  *
  * Requires:
  *
@@ -234,78 +233,6 @@ dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
  *\li	'name' is a valid absolute name.
  *
  *\li	keynodep != NULL && *keynodep == NULL
- *
- * Returns:
- *
- *\li	ISC_R_SUCCESS
- *\li	ISC_R_NOTFOUND
- *
- *\li	Any other result indicates an error.
- */
-
-isc_result_t
-dns_keytable_nextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
-			 dns_keynode_t **nextnodep);
-/*%<
- * Return for the next key after 'keynode' in 'keytable', without regard to
- * keyid and algorithm.
- *
- * Requires:
- *
- *\li	'keytable' is a valid keytable.
- *
- *\li	'keynode' is a valid keynode.
- *
- *\li	nextnodep != NULL && *nextnodep == NULL
- *
- * Returns:
- *
- *\li	ISC_R_SUCCESS
- *\li	ISC_R_NOTFOUND
- *
- *\li	Any other result indicates an error.
- */
-
-isc_result_t
-dns_keytable_findkeynode(dns_keytable_t *keytable, const dns_name_t *name,
-			 dns_secalg_t algorithm, dns_keytag_t tag,
-			 dns_keynode_t **keynodep);
-/*%<
- * Search for a key named 'name', matching 'algorithm' and 'tag' in
- * 'keytable'.  This finds the first instance which matches.  Use
- * dns_keytable_findnextkeynode() to find other instances.
- *
- * Requires:
- *
- *\li	'keytable' is a valid keytable.
- *
- *\li	'name' is a valid absolute name.
- *
- *\li	keynodep != NULL && *keynodep == NULL
- *
- * Returns:
- *
- *\li	ISC_R_SUCCESS
- *\li	DNS_R_PARTIALMATCH	the name existed in the keytable.
- *\li	ISC_R_NOTFOUND
- *
- *\li	Any other result indicates an error.
- */
-
-isc_result_t
-dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
-					     dns_keynode_t **nextnodep);
-/*%<
- * Search for the next key with the same properties as 'keynode' in
- * 'keytable' as found by dns_keytable_findkeynode().
- *
- * Requires:
- *
- *\li	'keytable' is a valid keytable.
- *
- *\li	'keynode' is a valid keynode.
- *
- *\li	nextnodep != NULL && *nextnodep == NULL
  *
  * Returns:
  *
@@ -413,12 +340,6 @@ dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **buf);
  * Dump the keytable to buffer at 'buf'
  */
 
-dst_key_t *
-dns_keynode_key(dns_keynode_t *keynode);
-/*%<
- * Get the DST key associated with keynode.
- */
-
 dns_rdataset_t *
 dns_keynode_dsset(dns_keynode_t *keynode);
 /*%<
@@ -466,8 +387,7 @@ dns_keynode_attach(dns_keynode_t *source, dns_keynode_t **target);
 void
 dns_keynode_detach(isc_mem_t *mctx, dns_keynode_t **target);
 /*%<
- * Detach a single keynode, without touching any keynodes that
- * may be pointed to by its 'next' pointer
+ * Detach a keynode.
  */
 
 void
