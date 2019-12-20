@@ -54,7 +54,7 @@
 
 dig_lookup_t *default_lookup = NULL;
 
-static char *batchname = NULL;
+static atomic_uintptr_t batchname = ATOMIC_VAR_INIT(0);
 static FILE *batchfp = NULL;
 static char *argv0;
 static int addresscount = 0;
@@ -1874,7 +1874,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				value);
 		return (value_from_next);
 	case 'f':
-		batchname = value;
+		atomic_store(&batchname, (uintptr_t)value);
 		return (value_from_next);
 	case 'k':
 		strlcpy(keyfile, value, sizeof(keyfile));
@@ -2327,13 +2327,15 @@ parse_args(bool is_batchfile, bool config_only,
 	 * first entry, then trust the callback in dighost_shutdown
 	 * to get the rest
 	 */
-	if ((batchname != NULL) && !(is_batchfile)) {
-		if (strcmp(batchname, "-") == 0)
+	char *filename = (char *)atomic_load(&batchname);
+	if ((filename != NULL) && !(is_batchfile)) {
+		if (strcmp(filename, "-") == 0) {
 			batchfp = stdin;
-		else
-			batchfp = fopen(batchname, "r");
+		} else {
+			batchfp = fopen(filename, "r");
+		}
 		if (batchfp == NULL) {
-			perror(batchname);
+			perror(filename);
 			if (exitcode < 8)
 				exitcode = 8;
 			fatal("couldn't open specified batch file");
@@ -2388,14 +2390,14 @@ query_finished(void) {
 	int bargc;
 	char *bargv[16];
 
-	if (batchname == NULL) {
+	if (atomic_load(&batchname) == 0) {
 		isc_app_shutdown();
 		return;
 	}
 
 	fflush(stdout);
 	if (feof(batchfp)) {
-		batchname = NULL;
+		atomic_store(&batchname, 0);
 		isc_app_shutdown();
 		if (batchfp != stdin)
 			fclose(batchfp);
@@ -2409,7 +2411,7 @@ query_finished(void) {
 		parse_args(true, false, bargc, (char **)bargv);
 		start_lookup();
 	} else {
-		batchname = NULL;
+		atomic_store(&batchname, 0);
 		if (batchfp != stdin)
 			fclose(batchfp);
 		isc_app_shutdown();
@@ -2539,10 +2541,11 @@ void dig_query_start()
 void
 dig_shutdown() {
 	destroy_lookup(default_lookup);
-	if (batchname != NULL) {
-		if (batchfp != stdin)
+	if (atomic_load(&batchname) != 0) {
+		if (batchfp != stdin) {
 			fclose(batchfp);
-		batchname = NULL;
+		}
+		atomic_store(&batchname, 0);
 	}
 	cancel_all();
 	destroy_libs();
