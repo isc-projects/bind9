@@ -3700,12 +3700,12 @@ status=$((status+ret))
 # DNSSEC tests related to unsupported, disabled and revoked trust anchors.
 #
 
-# This nameserver (ns8) is loaded with a bunch of trust anchors.  Some of them
-# are good (enabled.managed, enabled.trusted, secure.managed, secure.trusted),
-# and some of them are bad (disabled.managed, revoked.managed, unsupported.managed,
-# disabled.trusted, revoked.trusted, unsupported.trusted).  Make sure that the bad
-# trust anchors are ignored.  This is tested by looking for the corresponding
-# lines in the logfile.
+# This nameserver (ns8) is loaded with a bunch of trust anchors.  Some of
+# them are good (enabled.managed, enabled.trusted, secure.managed,
+# secure.trusted), and some of them are bad (disabled.managed,
+# revoked.managed, unsupported.managed, disabled.trusted, revoked.trusted,
+# unsupported.trusted).  Make sure that the bad trust anchors are ignored.
+# This is tested by looking for the corresponding lines in the logfile.
 echo_i "checking that keys with unsupported algorithms and disabled algorithms are ignored ($n)"
 ret=0
 grep -q "ignoring static-key for 'disabled\.trusted\.': algorithm is disabled" ns8/named.run || ret=1

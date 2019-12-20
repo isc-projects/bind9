@@ -106,13 +106,11 @@ dns_keytable_detach(dns_keytable_t **keytablep);
  */
 
 isc_result_t
-dns_keytable_add(dns_keytable_t *keytable,
-		 bool managed, bool initial,
-		 dns_name_t *name, dst_key_t **keyp, dns_rdata_ds_t *ds);
+dns_keytable_add(dns_keytable_t *keytable, bool managed, bool initial,
+		 dns_name_t *name, dns_rdata_ds_t *ds);
 /*%<
  * Add a key to 'keytable'. The keynode associated with 'name'
- * is updated with either the key referenced in '*keyp'
- * or with the DS specified in 'ds'.
+ * is updated with the DS specified in 'ds'.
  *
  * The value of keynode->managed is set to 'managed', and the
  * value of keynode->initial is set to 'initial'. (Note: 'initial'
@@ -123,27 +121,14 @@ dns_keytable_add(dns_keytable_t *keytable,
  *
  * Notes:
  *
- *\li	Ownership of *keyp is transferred to the keytable.
- *\li	If 'keyp' is not NULL and DS-style keys already exist
- *	in the table for this name, they are freed before adding
- *	the new key.
- *\li	If 'ds' is not NULL and key-style keys already exist
- *	in the table for this name, return ISC_R_EXISTS. DS keys
- *	can be updated to key-style, but not vice versa.
- *\li   If the key already exists in the table, ISC_R_EXISTS is
- *      returned and the new key is freed.
+ *\li   If the key already exists in the table, adding it again
+ *      has no effect and ISC_R_SUCCESS is returned.
  *
  * Requires:
  *
  *\li	'keytable' points to a valid keytable.
- *
+ *\li	'ds' is not NULL.
  *\li	if 'initial' is true then 'managed' must also be true.
- *
- *\li	keyp != NULL && *keyp is a valid dst_key_t *.
- *
- * Ensures:
- *
- *\li	On success, *keyp == NULL
  *
  * Returns:
  *

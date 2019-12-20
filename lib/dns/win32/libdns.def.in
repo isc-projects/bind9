@@ -336,6 +336,7 @@ dns_dnssecsignstats_create
 dns_dnssecsignstats_dump
 dns_dnssecsignstats_increment
 dns_ds_buildrdata
+dns_ds_fromkeyrdata
 dns_dsdigest_format
 dns_dsdigest_fromtext
 dns_dsdigest_totext

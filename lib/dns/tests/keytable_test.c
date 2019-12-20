@@ -27,11 +27,12 @@
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/md.h>
 #include <isc/util.h>
 
-#include <dns/name.h>
 #include <dns/fixedname.h>
 #include <dns/keytable.h>
+#include <dns/name.h>
 #include <dns/nta.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatastruct.h>
@@ -129,44 +130,48 @@ create_keystruct(uint16_t flags, uint8_t proto, uint8_t alg,
 }
 
 static void
-create_key(uint16_t flags, uint8_t proto, uint8_t alg,
-	   const char *keynamestr, const char *keystr, dst_key_t **target)
+create_dsstruct(dns_name_t *name, uint16_t flags,
+		uint8_t proto, uint8_t alg, const char *keystr,
+		unsigned char *digest, dns_rdata_ds_t *dsstruct)
 {
 	isc_result_t result;
-	dns_rdata_dnskey_t keystruct;
 	unsigned char rrdata[4096];
 	isc_buffer_t rrdatabuf;
-	const dns_rdataclass_t rdclass = dns_rdataclass_in;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_dnskey_t dnskey;
 
 	/*
 	 * Populate DNSKEY rdata structure.
 	 */
-	create_keystruct(flags, proto, alg, keystr, &keystruct);
+	create_keystruct(flags, proto, alg, keystr, &dnskey);
 
 	/*
 	 * Convert to wire format.
 	 */
 	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
-	result = dns_rdata_fromstruct(NULL, keystruct.common.rdclass,
-				     keystruct.common.rdtype,
-				     &keystruct, &rrdatabuf),
+	result = dns_rdata_fromstruct(&rdata, dnskey.common.rdclass,
+				     dnskey.common.rdtype,
+				     &dnskey, &rrdatabuf);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
-	 * Convert wire format to DST key.
+	 * Build DS rdata struct.
 	 */
-	result = dst_key_fromdns(str2name(keynamestr), rdclass,
-				 &rrdatabuf, dt_mctx, target),
+	result = dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256,
+				     digest, dsstruct);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	dns_rdata_freestruct(&keystruct);
+	dns_rdata_freestruct(&dnskey);
 }
 
 /* Common setup: create a keytable and ntatable to test with a few keys */
 static void
 create_tables() {
 	isc_result_t result;
-	dst_key_t *key = NULL;
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	dns_rdata_ds_t ds;
+	dns_fixedname_t fn;
+	dns_name_t *keyname = dns_fixedname_name(&fn);
 	isc_stdtime_t now;
 
 	result = dns_test_makeview("view", &view);
@@ -178,15 +183,15 @@ create_tables() {
 					     &ntatable), ISC_R_SUCCESS);
 
 	/* Add a normal key */
-	create_key(257, 3, 5, "example.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, false, false,
-					  dst_key_name(key), &key, NULL),
+	dns_test_namefromstring("example.com", &fn);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 
 	/* Add an initializing managed key */
-	create_key(257, 3, 5, "managed.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, true,
-					  dst_key_name(key), &key, NULL),
+	dns_test_namefromstring("managed.com", &fn);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 
 	/* Add a null key */
@@ -217,9 +222,12 @@ destroy_tables() {
 /* add keys to the keytable */
 static void
 add_test(void **state) {
-	dst_key_t *key = NULL;
 	dns_keynode_t *keynode = NULL;
 	dns_keynode_t *null_keynode = NULL;
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	dns_rdata_ds_t ds;
+	dns_fixedname_t fn;
+	dns_name_t *keyname = dns_fixedname_name(&fn);
 
 	UNUSED(state);
 
@@ -236,9 +244,9 @@ add_test(void **state) {
 	 * Try to add the same key.  This should have no effect but
 	 * report success.
 	 */
-	create_key(257, 3, 5, "example.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, false, false,
-					  dst_key_name(key), &key, NULL),
+	dns_test_namefromstring("example.com", &fn);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	dns_keytable_detachkeynode(keytable, &keynode);
 	assert_int_equal(dns_keytable_find(keytable, str2name("example.com"),
@@ -247,9 +255,8 @@ add_test(void **state) {
 
 	/* Add another key (different keydata) */
 	dns_keytable_detachkeynode(keytable, &keynode);
-	create_key(257, 3, 5, "example.com", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, false, false,
-					  dst_key_name(key), &key, NULL),
+	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
+	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("example.com"),
 					   &keynode),
@@ -273,9 +280,9 @@ add_test(void **state) {
 	 * Add a different managed key for managed.com, marking it as an
 	 * initializing key.
 	 */
-	create_key(257, 3, 5, "managed.com", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, true,
-					  dst_key_name(key), &key, NULL),
+	dns_test_namefromstring("managed.com", &fn);
+	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
+	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("managed.com"),
 					   &keynode),
@@ -289,9 +296,7 @@ add_test(void **state) {
 	 * to a non-initializing key and make sure there are still two key
 	 * nodes for managed.com, both containing non-initializing keys.
 	 */
-	create_key(257, 3, 5, "managed.com", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, false,
-					  dst_key_name(key), &key, NULL),
+	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("managed.com"),
 					   &keynode),
@@ -303,9 +308,9 @@ add_test(void **state) {
 	 * Add a managed key at a new node, two.com, marking it as an
 	 * initializing key.
 	 */
-	create_key(257, 3, 5, "two.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, true,
-					  dst_key_name(key), &key, NULL),
+	dns_test_namefromstring("two.com", &fn);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
 					   &keynode),
@@ -317,9 +322,8 @@ add_test(void **state) {
 	 * Add a different managed key for two.com, marking it as a
 	 * non-initializing key.
 	 */
-	create_key(257, 3, 5, "two.com", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, false,
-					  dst_key_name(key), &key, NULL),
+	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
+	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
 					   &keynode),
@@ -333,9 +337,8 @@ add_test(void **state) {
 	 * to a non-initializing key and make sure there are still two key
 	 * nodes for two.com, both containing non-initializing keys.
 	 */
-	create_key(257, 3, 5, "two.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, false,
-					  dst_key_name(key), &key, NULL),
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
 					   &keynode),
@@ -350,9 +353,9 @@ add_test(void **state) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("null.example"),
 					   &null_keynode),
 			 ISC_R_SUCCESS);
-	create_key(257, 3, 5, "null.example", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, false, false,
-					  dst_key_name(key), &key, NULL),
+	dns_test_namefromstring("null.example", &fn);
+	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
+	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("null.example"),
 					   &keynode),
@@ -595,8 +598,11 @@ dump_test(void **state) {
 static void
 nta_test(void **state) {
 	isc_result_t result;
-	dst_key_t *key = NULL;
 	bool issecure, covered;
+	dns_fixedname_t fn;
+	dns_name_t *keyname = dns_fixedname_name(&fn);
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	dns_rdata_ds_t ds;
 	dns_view_t *myview = NULL;
 	isc_stdtime_t now;
 
@@ -618,14 +624,13 @@ nta_test(void **state) {
 	result = dns_view_getntatable(myview, &ntatable);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	create_key(257, 3, 5, "example", keystr1, &key);
-	result = dns_keytable_add(keytable, false, false,
-					  dst_key_name(key), &key, NULL),
+	dns_test_namefromstring("example", &fn);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	result = dns_keytable_add(keytable, false, false, keyname, &ds),
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_stdtime_get(&now);
-	result = dns_ntatable_add(ntatable,
-				  str2name("insecure.example"),
+	result = dns_ntatable_add(ntatable, str2name("insecure.example"),
 				  false, now, 1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 

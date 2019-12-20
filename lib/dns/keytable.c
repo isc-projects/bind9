@@ -364,14 +364,12 @@ insert(dns_keytable_t *keytable, bool managed, bool initial,
 }
 
 isc_result_t
-dns_keytable_add(dns_keytable_t *keytable,
-		 bool managed, bool initial,
-		 dns_name_t *name, dst_key_t **keyp, dns_rdata_ds_t *ds)
+dns_keytable_add(dns_keytable_t *keytable, bool managed, bool initial,
+		 dns_name_t *name, dns_rdata_ds_t *ds)
 {
-	REQUIRE(keyp == NULL || *keyp != NULL);
-	REQUIRE(keyp != NULL || ds != NULL);
+	REQUIRE(ds != NULL);
 	REQUIRE(!initial || managed);
-	return (insert(keytable, managed, initial, name, keyp, ds));
+	return (insert(keytable, managed, initial, name, NULL, ds));
 }
 
 isc_result_t
