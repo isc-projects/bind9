@@ -14916,23 +14916,89 @@ restore_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 	return (result);
 }
 
+static isc_result_t
+copy_non_dnssec_records(dns_db_t *db, dns_db_t *version, dns_db_t *rawdb,
+			dns_dbiterator_t *dbiterator, unsigned int *oldserial)
+{
+	dns_dbnode_t *rawnode = NULL, *node = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	dns_rdataset_t rdataset;
+	dns_rdatasetiter_t *rdsit = NULL;
+	isc_result_t result;
+
+	result = dns_dbiterator_current(dbiterator, &rawnode, name);
+	if (result != ISC_R_SUCCESS) {
+		return (ISC_R_SUCCESS);
+	}
+
+	result = dns_db_findnode(db, name, true, &node);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	result = dns_db_allrdatasets(rawdb, rawnode, NULL, 0, &rdsit);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	dns_rdataset_init(&rdataset);
+
+	for (result = dns_rdatasetiter_first(rdsit);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdatasetiter_next(rdsit))
+	{
+		dns_rdatasetiter_current(rdsit, &rdataset);
+		if (rdataset.type == dns_rdatatype_nsec ||
+		    rdataset.type == dns_rdatatype_rrsig ||
+		    rdataset.type == dns_rdatatype_nsec3 ||
+		    rdataset.type == dns_rdatatype_dnskey ||
+		    rdataset.type == dns_rdatatype_nsec3param) {
+			dns_rdataset_disassociate(&rdataset);
+			continue;
+		}
+		if (rdataset.type == dns_rdatatype_soa && oldserial != NULL) {
+			result = checkandaddsoa(db, node, version,
+						&rdataset, *oldserial);
+		} else {
+			result = dns_db_addrdataset(db, node, version,
+						    0, &rdataset, 0,
+						    NULL);
+		}
+		dns_rdataset_disassociate(&rdataset);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+	}
+	if (result == ISC_R_NOMORE) {
+		result = ISC_R_SUCCESS;
+	}
+
+ cleanup:
+	if (rdsit != NULL) {
+		dns_rdatasetiter_destroy(&rdsit);
+	}
+	if (rawnode) {
+		dns_db_detachnode(rawdb, &rawnode);
+	}
+	if (node) {
+		dns_db_detachnode(db, &node);
+	}
+	return (result);
+}
+
 static void
 receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	isc_result_t iter_result;
 	dns_zone_t *zone;
 	dns_db_t *rawdb, *db = NULL;
-	dns_fixedname_t fname;
-	dns_name_t *name;
 	dns_dbiterator_t *dbiterator = NULL;
 	dns_dbversion_t *version = NULL;
 	isc_time_t loadtime;
-	unsigned int oldserial = 0;
-	bool have_oldserial = false;
+	unsigned int oldserial = 0, *oldserialp = NULL;
 	nsec3paramlist_t nsec3list;
 	isc_event_t *setnsec3param_event;
 	dns_zone_t *dummy;
-	dns_rdataset_t rdataset;
 
 	UNUSED(task);
 
@@ -14941,8 +15007,6 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	zone = event->ev_arg;
 	rawdb = ((struct secure_event *)event)->db;
 	isc_event_free(&event);
-
-	name = dns_fixedname_initname(&fname);
 
 	LOCK_ZONE(zone);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) || !inline_secure(zone)) {
@@ -14954,8 +15018,9 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL) {
 		result = dns_db_getsoaserial(zone->db, NULL, &oldserial);
-		if (result == ISC_R_SUCCESS)
-			have_oldserial = true;
+		if (result == ISC_R_SUCCESS) {
+			oldserialp = &oldserial;
+		}
 
 		/*
 		 * assemble nsec3parameters from the old zone, and set a flag
@@ -14972,93 +15037,32 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	result = dns_db_create(zone->mctx, zone->db_argv[0],
 			       &zone->origin, dns_dbtype_zone, zone->rdclass,
 			       zone->db_argc - 1, zone->db_argv + 1, &db);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto failure;
+	}
 
 	result = dns_db_newversion(db, &version);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto failure;
+	}
 
 	result = dns_db_createiterator(rawdb, 0, &dbiterator);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto failure;
-
-	dns_rdataset_init(&rdataset);
-
-	for (iter_result = dns_dbiterator_first(dbiterator);
-	     iter_result == ISC_R_SUCCESS;
-	     iter_result = dns_dbiterator_next(dbiterator))
-	{
-		dns_dbnode_t *rawnode = NULL, *node = NULL;
-		dns_rdatasetiter_t *rdsit = NULL;
-		isc_result_t rdsit_result;
-
-		result = dns_dbiterator_current(dbiterator, &rawnode, name);
-		if (result != ISC_R_SUCCESS) {
-			continue;
-		}
-
-		result = dns_db_findnode(db, name, true, &node);
-		if (result != ISC_R_SUCCESS) {
-			goto iter_cleanup;
-		}
-
-		result = dns_db_allrdatasets(rawdb, rawnode, NULL, 0, &rdsit);
-		if (result != ISC_R_SUCCESS) {
-			goto iter_cleanup;
-		}
-
-		for (rdsit_result = dns_rdatasetiter_first(rdsit);
-		     rdsit_result == ISC_R_SUCCESS;
-		     rdsit_result = dns_rdatasetiter_next(rdsit))
-		{
-			dns_rdatasetiter_current(rdsit, &rdataset);
-			if (rdataset.type == dns_rdatatype_nsec ||
-			    rdataset.type == dns_rdatatype_rrsig ||
-			    rdataset.type == dns_rdatatype_nsec3 ||
-			    rdataset.type == dns_rdatatype_dnskey ||
-			    rdataset.type == dns_rdatatype_nsec3param) {
-				dns_rdataset_disassociate(&rdataset);
-				continue;
-			}
-			if (rdataset.type == dns_rdatatype_soa &&
-			    have_oldserial) {
-				result = checkandaddsoa(db, node, version,
-							&rdataset, oldserial);
-			} else {
-				result = dns_db_addrdataset(db, node, version,
-							    0, &rdataset, 0,
-							    NULL);
-			}
-			dns_rdataset_disassociate(&rdataset);
-			if (result != ISC_R_SUCCESS) {
-				break;
-			}
-		}
-		if (rdsit_result != ISC_R_SUCCESS &&
-		    rdsit_result != ISC_R_NOMORE)
-		{
-			result = rdsit_result;
-		}
-		dns_rdatasetiter_destroy(&rdsit);
-iter_cleanup:
-		if (rawnode) {
-			dns_db_detachnode(rawdb, &rawnode);
-		}
-		if (node) {
-			dns_db_detachnode(db, &node);
-		}
-		if (result != ISC_R_SUCCESS) {
-			break;
-		}
 	}
-	if (iter_result != ISC_R_SUCCESS &&
-	    iter_result != ISC_R_NOMORE) {
-		result = iter_result;
+
+	for (result = dns_dbiterator_first(dbiterator);
+	     result == ISC_R_SUCCESS;
+	     result = dns_dbiterator_next(dbiterator))
+	{
+		result = copy_non_dnssec_records(db, version, rawdb,
+						 dbiterator, oldserialp);
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
 	}
 	dns_dbiterator_destroy(&dbiterator);
-
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_NOMORE) {
 		goto failure;
 	}
 
@@ -15099,6 +15103,9 @@ iter_cleanup:
 
  failure:
 	UNLOCK_ZONE(zone);
+	if (dbiterator != NULL) {
+		dns_dbiterator_destroy(&dbiterator);
+	}
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "receive_secure_db: %s",
 			     dns_result_totext(result));
