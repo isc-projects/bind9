@@ -191,7 +191,7 @@ create_tables() {
 	/* Add an initializing managed key */
 	dns_test_namefromstring("managed.com", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
-	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
+	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds),
 			 ISC_R_SUCCESS);
 
 	/* Add a null key */
@@ -278,7 +278,8 @@ add_test(void **state) {
 
 	/*
 	 * Add a different managed key for managed.com, marking it as an
-	 * initializing key.
+	 * initializing key. Since there is already a trusted key at the
+	 * node, the node should *not* be marked as initializing.
 	 */
 	dns_test_namefromstring("managed.com", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
@@ -287,7 +288,7 @@ add_test(void **state) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("managed.com"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keynode_initial(keynode), true);
+	assert_int_equal(dns_keynode_initial(keynode), false);
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*
@@ -320,7 +321,9 @@ add_test(void **state) {
 
 	/*
 	 * Add a different managed key for two.com, marking it as a
-	 * non-initializing key.
+	 * non-initializing key. Since there is already an iniitalizing
+	 * trust anchor for two.com and we haven't run dns_keynode_trust(),
+	 * the initialization status should not change.
 	 */
 	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
 	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds),
@@ -328,22 +331,7 @@ add_test(void **state) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keynode_initial(keynode), false);
-	dns_keytable_detachkeynode(keytable, &keynode);
-
-	/*
-	 * Add the first managed key again, but this time mark it as a
-	 * non-initializing key.  Ensure the previously added key is upgraded
-	 * to a non-initializing key and make sure there are still two key
-	 * nodes for two.com, both containing non-initializing keys.
-	 */
-	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
-	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds),
-			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
-					   &keynode),
-			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keynode_initial(keynode), false);
+	assert_int_equal(dns_keynode_initial(keynode), true);
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*

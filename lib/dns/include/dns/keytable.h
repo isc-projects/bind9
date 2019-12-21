@@ -357,12 +357,6 @@ dns_keynode_trust(dns_keynode_t *keynode);
  * trusted: no longer an initializing key.
  */
 
-isc_result_t
-dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target);
-/*%<
- * Allocate space for a keynode
- */
-
 void
 dns_keynode_attach(dns_keynode_t *source, dns_keynode_t **target);
 /*%<
