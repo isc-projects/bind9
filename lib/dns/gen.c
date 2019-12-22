@@ -26,8 +26,6 @@
 
 #include <sys/types.h>
 
-#include <isc/platform.h>
-
 #include <ctype.h>
 #include <limits.h>
 #include <stdint.h>
@@ -38,6 +36,10 @@
 #include <time.h>
 #include <errno.h>
 #include <limits.h>
+
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
 
 #ifdef WIN32
 #include "gen-win32.h"
