@@ -27,15 +27,13 @@
 #include <sys/types.h>
 
 #include <ctype.h>
+#include <errno.h>
 #include <limits.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <errno.h>
-#include <limits.h>
 
 #ifndef PATH_MAX
 #define PATH_MAX 1024
