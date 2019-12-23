@@ -157,6 +157,33 @@ wire_to_rdata(const unsigned char *src, size_t srclen,
 }
 
 /*
+ * Call dns_rdata_towire() for rdata and write to result to dst.
+ */
+static isc_result_t
+rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen, size_t *length)
+{
+	isc_buffer_t target;
+	dns_compress_t cctx;
+	isc_result_t result;
+
+	/*
+	 * Initialize target buffer.
+	 */
+	isc_buffer_init(&target, dst, dstlen);
+
+	/*
+	 * Try converting input data into uncompressed wire form.
+	 */
+	dns_compress_init(&cctx, -1, mctx);
+	result = dns_rdata_towire(rdata, &cctx, &target);
+	dns_compress_invalidate(&cctx);
+
+	*length = isc_buffer_usedlength(&target);
+
+	return (result);
+}
+
+/*
  * Test whether converting rdata to a type-specific struct and then back to
  * rdata results in the same uncompressed wire form.  This checks whether
  * tostruct_*() and fromstruct_*() routines for given RR class and type behave
@@ -210,11 +237,12 @@ static void
 check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, size_t structsize)
 {
-	unsigned char buf_fromtext[1024], buf_fromwire[1024];
+	unsigned char buf_fromtext[1024], buf_fromwire[1024], buf_towire[1024];
 	dns_rdata_t rdata = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT;
 	char buf_totext[1024] = { 0 };
 	isc_buffer_t target;
 	isc_result_t result;
+	size_t length = 0;
 
 	/*
 	 * Try converting text form RDATA into uncompressed wire form.
@@ -272,6 +300,14 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(rdata.length, rdata2.length);
 	assert_memory_equal(rdata.data, buf_fromwire, rdata.length);
+
+	/*
+	 * Ensure that fromtext_*() output is valid input for towire_*().
+	 */
+	result = rdata_towire(&rdata, buf_towire, sizeof(buf_towire), &length);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(rdata.length, length);
+	assert_memory_equal(rdata.data, buf_towire, length);
 
 	/*
 	 * Perform two-way conversion checks between uncompressed wire form and
@@ -384,9 +420,10 @@ static void
 check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, size_t structsize)
 {
-	unsigned char buf[1024];
+	unsigned char buf[1024], buf_towire[1024];
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
+	size_t length = 0;
 
 	/*
 	 * Try converting wire data into uncompressed wire form.
@@ -401,6 +438,11 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 	} else {
 		assert_int_not_equal(result, ISC_R_SUCCESS);
 	}
+
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+
 	/*
 	 * If data was parsed correctly, perform two-way conversion checks
 	 * between uncompressed wire form and type-specific struct.
@@ -411,13 +453,19 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 	 *   - uncompressed wire form and text form,
 	 *   - uncompressed wire form and multi-line text form.
 	 */
-	if (result == ISC_R_SUCCESS) {
-		check_struct_conversions(&rdata, structsize);
-		if (!dns_rdatatype_ismeta(rdata.type)) {
-			check_text_conversions(&rdata);
-			check_multiline_text_conversions(&rdata);
-		}
+	check_struct_conversions(&rdata, structsize);
+	if (!dns_rdatatype_ismeta(rdata.type)) {
+		check_text_conversions(&rdata);
+		check_multiline_text_conversions(&rdata);
 	}
+
+	/*
+	 * Ensure that fromwire_*() output is valid input for towire_*().
+	 */
+	result = rdata_towire(&rdata, buf_towire, sizeof(buf_towire), &length);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(rdata.length, length);
+	assert_memory_equal(rdata.data, buf_towire, length);
 }
 
 /*
