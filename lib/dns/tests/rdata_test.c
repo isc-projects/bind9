@@ -201,6 +201,44 @@ rdata_additionadata(dns_rdata_t *rdata) {
 }
 
 /*
+ * Call dns_rdata_checknames() with various owner names chosen to
+ * match well known forms.
+ *
+ * We are currently only checking that the calls do not trigger
+ * assertion failures.
+ *
+ * XXXMPA A future extention could be to record the expected
+ * result and the expected value of 'bad'.
+ */
+static void
+rdata_checknames(dns_rdata_t *rdata) {
+	dns_fixedname_t fixed, bfixed;
+	dns_name_t *name, *bad;
+	isc_result_t result;
+
+	name = dns_fixedname_initname(&fixed);
+	bad = dns_fixedname_initname(&bfixed);
+
+	(void) dns_rdata_checknames(rdata, dns_rootname, NULL);
+	(void) dns_rdata_checknames(rdata, dns_rootname, bad);
+
+	result = dns_name_fromstring(name, "example.net", 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	(void) dns_rdata_checknames(rdata, name, NULL);
+	(void) dns_rdata_checknames(rdata, name, bad);
+
+	result = dns_name_fromstring(name, "in-addr.arpa", 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	(void) dns_rdata_checknames(rdata, name, NULL);
+	(void) dns_rdata_checknames(rdata, name, bad);
+
+	result = dns_name_fromstring(name, "ip6.arpa", 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	(void) dns_rdata_checknames(rdata, name, NULL);
+	(void) dns_rdata_checknames(rdata, name, bad);
+}
+
+/*
  * Test whether converting rdata to a type-specific struct and then back to
  * rdata results in the same uncompressed wire form.  This checks whether
  * tostruct_*() and fromstruct_*() routines for given RR class and type behave
@@ -331,6 +369,11 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 */
 	result = rdata_additionadata(&rdata);
 	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Exercise checknames_*().
+	 */
+	rdata_checknames(&rdata);
 
 	/*
 	 * Perform two-way conversion checks between uncompressed wire form and
@@ -495,6 +538,11 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 	 */
 	result = rdata_additionadata(&rdata);
 	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Exercise checknames_*().
+	 */
+	rdata_checknames(&rdata);
 }
 
 /*
