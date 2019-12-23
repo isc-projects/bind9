@@ -158,7 +158,8 @@ wire_to_rdata(const unsigned char *src, size_t srclen,
  * Call dns_rdata_towire() for rdata and write to result to dst.
  */
 static isc_result_t
-rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen, size_t *length)
+rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
+	     size_t *length)
 {
 	isc_buffer_t target;
 	dns_compress_t cctx;
@@ -179,6 +180,22 @@ rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen, size_t *leng
 	*length = isc_buffer_usedlength(&target);
 
 	return (result);
+}
+
+static isc_result_t
+additionaldata_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
+	UNUSED(arg);
+	UNUSED(name);
+	UNUSED(qtype);
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * call dns_rdata_additionaldata() for rdata.
+ */
+static isc_result_t
+rdata_additionadata(dns_rdata_t *rdata) {
+	return (dns_rdata_additionaldata(rdata, additionaldata_cb, NULL));
 }
 
 /*
@@ -306,6 +323,12 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(rdata.length, length);
 	assert_memory_equal(rdata.data, buf_towire, length);
+
+	/*
+	 * Test that additionaldata_*() succeeded.
+	 */
+	result = rdata_additionadata(&rdata);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Perform two-way conversion checks between uncompressed wire form and
@@ -464,6 +487,12 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(rdata.length, length);
 	assert_memory_equal(rdata.data, buf_towire, length);
+
+	/*
+	 * Test that additionaldata_*() succeeded.
+	 */
+	result = rdata_additionadata(&rdata);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 /*
