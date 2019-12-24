@@ -1332,18 +1332,12 @@ ret=0
 mv Kdelayedkeys* ns3/
 $RNDCCMD 10.53.0.3 loadkeys delayedkeys > rndc.out.ns3.pre.test$n 2>&1 || ret=1
 # Wait until the zone is signed.
-ans=1
-for i in 1 2 3 4 5 6 7 8 9 10
-do
-	$RNDCCMD 10.53.0.3 signing -list delayedkeys > signing.out.test$n 2>&1
-	num=`grep "Done signing with" signing.out.test$n | wc -l`
-	if [ $num -eq 2 ]; then
-		ans=0
-		break
-	fi
-	sleep 1
-done
-if [ $ans != 0 ]; then ret=1; fi
+check_done_signing () (
+    $RNDCCMD 10.53.0.3 signing -list delayedkeys > signing.out.test$n 2>&1
+    num=`grep "Done signing with" signing.out.test$n | wc -l`
+    [ $num -eq 2 ]
+)
+retry_quiet 10 check_done_signing || ret=1
 # Halt rather than stopping the server to prevent the master file from being
 # flushed upon shutdown since we specifically want to avoid it.
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
@@ -1362,6 +1356,7 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} inline ns3
 # unless the records contained in it were scheduled for resigning, no resigning
 # event will be scheduled at all since the secure zone master file contains no
 # DNSSEC records.
+wait_for_log 20 "all zones loaded" ns3/named.run || ret=1
 $RNDCCMD 10.53.0.3 zonestatus delayedkeys > rndc.out.ns3.post.test$n 2>&1 || ret=1
 grep "next resign node:" rndc.out.ns3.post.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
