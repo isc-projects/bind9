@@ -29,7 +29,7 @@
 #include <dst/dst.h>
 
 isc_result_t
-dns_ds_fromkeyrdata(dns_name_t *owner, dns_rdata_t *key,
+dns_ds_fromkeyrdata(const dns_name_t *owner, dns_rdata_t *key,
 		    dns_dsdigest_t digest_type, unsigned char *digest,
 		    dns_rdata_ds_t *dsrdata)
 {

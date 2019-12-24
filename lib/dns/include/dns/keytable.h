@@ -250,33 +250,13 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, const dns_name_t *name,
  */
 
 void
-dns_keytable_attachkeynode(dns_keytable_t *keytable, dns_keynode_t *source,
-			   dns_keynode_t **target);
+dns_keytable_detachkeynode(dns_keytable_t *keytable, dns_keynode_t **keynodep);
 /*%<
- * Attach a keynode and and increment the active_nodes counter in a
- * corresponding keytable.
+ * Detach a keynode found via dns_keytable_find().
  *
  * Requires:
  *
- *\li	'keytable' is a valid keytable.
- *
- *\li	'source' is a valid keynode.
- *
- *\li	'target' is not null and '*target' is null.
- */
-
-void
-dns_keytable_detachkeynode(dns_keytable_t *keytable,
-			   dns_keynode_t **keynodep);
-/*%<
- * Give back a keynode found via dns_keytable_findkeynode().
- *
- * Requires:
- *
- *\li	'keytable' is a valid keytable.
- *
- *\li	*keynodep is a valid keynode returned by a call to
- *	dns_keytable_findkeynode().
+ *\li	*keynodep is a valid keynode returned by a call to dns_keytable_find().
  *
  * Ensures:
  *
@@ -355,24 +335,6 @@ dns_keynode_trust(dns_keynode_t *keynode);
 /*%<
  * Sets keynode->initial to false in order to mark the key as
  * trusted: no longer an initializing key.
- */
-
-void
-dns_keynode_attach(dns_keynode_t *source, dns_keynode_t **target);
-/*%<
- * Attach keynode 'source' to '*target'
- */
-
-void
-dns_keynode_detach(isc_mem_t *mctx, dns_keynode_t **target);
-/*%<
- * Detach a keynode.
- */
-
-void
-dns_keynode_detachall(isc_mem_t *mctx, dns_keynode_t **target);
-/*%<
- * Detach a keynode and all its succesors.
  */
 
 isc_result_t

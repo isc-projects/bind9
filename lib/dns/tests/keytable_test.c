@@ -68,7 +68,6 @@ dns_keytable_t *keytable = NULL;
 dns_ntatable_t *ntatable = NULL;
 
 static const char *keystr1 = "BQEAAAABok+vaUC9neRv8yeT/FEGgN7svR8s7VBUVSBd8NsAiV8AlaAg O5FHar3JQd95i/puZos6Vi6at9/JBbN8qVmO2AuiXxVqfxMKxIcy+LEB 0Vw4NaSJ3N3uaVREso6aTSs98H/25MjcwLOr7SFfXA7bGhZatLtYY/xu kp6Km5hMfkE=";
-static const dns_keytag_t keytag1 = 30591;
 
 static const char *keystr2 = "BQEAAAABwuHz9Cem0BJ0JQTO7C/a3McR6hMaufljs1dfG/inaJpYv7vH XTrAOm/MeKp+/x6eT4QLru0KoZkvZJnqTI8JyaFTw2OM/ItBfh/hL2lm Cft2O7n3MfeqYtvjPnY7dWghYW4sVfH7VVEGm958o9nfi79532Qeklxh x8pXWdeAaRU=";
 
@@ -434,16 +433,23 @@ deletekey_test(void **state) {
 	dns_rdata_freestruct(&dnskey);
 
 	/*
-	 * exact match.  after deleting the node the internal rbt node will be
-	 * empty, and any delete or deletekeynode attempt should result in
-	 * NOTFOUND.
+	 * exact match: should return SUCCESS on the first try, then
+	 * PARTIALMATCH on the second (because the name existed but
+	 * not a matching key).
 	 */
 	create_keystruct(257, 3, 5, keystr1, &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
-			 ISC_R_NOTFOUND);
+			 DNS_R_PARTIALMATCH);
+
+	/*
+	 * after deleting the node, any deletekey or delete attempt should
+	 * result in NOTFOUND.
+	 */
 	assert_int_equal(dns_keytable_delete(keytable, keyname),
+			 ISC_R_SUCCESS);
+	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 ISC_R_NOTFOUND);
 	dns_rdata_freestruct(&dnskey);
 
@@ -691,23 +697,16 @@ nta_test(void **state) {
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(add_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(delete_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(deletekey_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(find_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(issecuredomain_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(dump_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(nta_test,
-						_setup, _teardown),
+		cmocka_unit_test(add_test),
+		cmocka_unit_test(delete_test),
+		cmocka_unit_test(deletekey_test),
+		cmocka_unit_test(find_test),
+		cmocka_unit_test(issecuredomain_test),
+		cmocka_unit_test(dump_test),
+		cmocka_unit_test(nta_test),
 	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	return (cmocka_run_group_tests(tests, _setup, _teardown));
 }
 
 #else /* HAVE_CMOCKA */
