@@ -31,7 +31,7 @@
       <listitem>
         <para>
           Added support for multithreaded listening for TCP connections
-	  in the network manager [GL !2659]
+          in the network manager. [GL !2659]
         </para>
       </listitem>
     </itemizedlist>
@@ -47,8 +47,8 @@
       </listitem>
       <listitem>
         <para>
-          Fixed several possible race conditions discovered by Thread
-          Sanitizer.
+          Fixed several possible race conditions discovered by
+          ThreadSanitizer.
         </para>
       </listitem>
     </itemizedlist>
