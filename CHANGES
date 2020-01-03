@@ -16,7 +16,7 @@
 			dropped because the recursive-clients quota was
 			exceeded. [GL #1399]
 
-5326.	[bug]		Add python dependancy on 'distutils.core' to configure.
+5326.	[bug]		Add Python dependency on 'distutils.core' to configure.
 			'distutils.core' is required for installation.
 			[GL #1397]
 
