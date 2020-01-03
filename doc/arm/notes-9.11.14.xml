@@ -21,8 +21,8 @@
       </listitem>
       <listitem>
         <para>
-          Fixed several possible race conditions discovered by Thread
-         Sanitizer.
+          Fixed several possible race conditions discovered by
+          ThreadSanitizer.
         </para>
       </listitem>
     </itemizedlist>
