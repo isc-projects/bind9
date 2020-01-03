@@ -9,13 +9,13 @@
 5335.	[func]		Make TCP listening code multithreaded. [GL !2659]
 
 5334.	[doc]		Update documentation with dnssec-policy clarifications.
-			Also change some defaults.
+			Also change some defaults. [GL !2711]
 
 5333.	[bug]		Fix duration printing on Solaris when value is not
 			an ISO 8601 duration. [GL #1460]
 
 5332.	[func]		Renamed "dnssec-keys" configuration statement
-			to the more descriptive "trust-anchors".
+			to the more descriptive "trust-anchors". [GL !2702]
 
 5331.	[func]		Use compiler-provided mechanisms for thread local
 			storage, and make the requirement for such mechanisms
@@ -34,7 +34,7 @@
 			dropped because the recursive-clients quota was
 			exceeded. [GL #1399]
 
-5326.	[bug]		Add python dependancy on 'distutils.core' to configure.
+5326.	[bug]		Add Python dependency on 'distutils.core' to configure.
 			'distutils.core' is required for installation.
 			[GL #1397]
 
