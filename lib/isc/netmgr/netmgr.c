@@ -26,11 +26,89 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/stats.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
 #include "uv-compat.h"
 #include "netmgr-int.h"
+
+/*%
+ * Shortcut index arrays to get access to statistics counters.
+ */
+
+static const isc_statscounter_t udp4statsindex[] = {
+	isc_sockstatscounter_udp4open,
+	isc_sockstatscounter_udp4openfail,
+	isc_sockstatscounter_udp4close,
+	isc_sockstatscounter_udp4bindfail,
+	isc_sockstatscounter_udp4connectfail,
+	isc_sockstatscounter_udp4connect,
+	-1,
+	-1,
+	isc_sockstatscounter_udp4sendfail,
+	isc_sockstatscounter_udp4recvfail,
+	isc_sockstatscounter_udp4active
+};
+
+static const isc_statscounter_t udp6statsindex[] = {
+	isc_sockstatscounter_udp6open,
+	isc_sockstatscounter_udp6openfail,
+	isc_sockstatscounter_udp6close,
+	isc_sockstatscounter_udp6bindfail,
+	isc_sockstatscounter_udp6connectfail,
+	isc_sockstatscounter_udp6connect,
+	-1,
+	-1,
+	isc_sockstatscounter_udp6sendfail,
+	isc_sockstatscounter_udp6recvfail,
+	isc_sockstatscounter_udp6active
+};
+
+static const isc_statscounter_t tcp4statsindex[] = {
+	isc_sockstatscounter_tcp4open,
+	isc_sockstatscounter_tcp4openfail,
+	isc_sockstatscounter_tcp4close,
+	isc_sockstatscounter_tcp4bindfail,
+	isc_sockstatscounter_tcp4connectfail,
+	isc_sockstatscounter_tcp4connect,
+	isc_sockstatscounter_tcp4acceptfail,
+	isc_sockstatscounter_tcp4accept,
+	isc_sockstatscounter_tcp4sendfail,
+	isc_sockstatscounter_tcp4recvfail,
+	isc_sockstatscounter_tcp4active
+};
+
+static const isc_statscounter_t tcp6statsindex[] = {
+	isc_sockstatscounter_tcp6open,
+	isc_sockstatscounter_tcp6openfail,
+	isc_sockstatscounter_tcp6close,
+	isc_sockstatscounter_tcp6bindfail,
+	isc_sockstatscounter_tcp6connectfail,
+	isc_sockstatscounter_tcp6connect,
+	isc_sockstatscounter_tcp6acceptfail,
+	isc_sockstatscounter_tcp6accept,
+	isc_sockstatscounter_tcp6sendfail,
+	isc_sockstatscounter_tcp6recvfail,
+	isc_sockstatscounter_tcp6active
+};
+
+#if 0
+/* XXX: not currently used */
+static const isc_statscounter_t unixstatsindex[] = {
+	isc_sockstatscounter_unixopen,
+	isc_sockstatscounter_unixopenfail,
+	isc_sockstatscounter_unixclose,
+	isc_sockstatscounter_unixbindfail,
+	isc_sockstatscounter_unixconnectfail,
+	isc_sockstatscounter_unixconnect,
+	isc_sockstatscounter_unixacceptfail,
+	isc_sockstatscounter_unixaccept,
+	isc_sockstatscounter_unixsendfail,
+	isc_sockstatscounter_unixrecvfail,
+	isc_sockstatscounter_unixactive
+};
+#endif
 
 /*
  * libuv is not thread safe, but has mechanisms to pass messages
@@ -204,6 +282,10 @@ nm_destroy(isc_nm_t **mgr0) {
 		isc_queue_destroy(worker->ievents);
 		isc_queue_destroy(worker->ievents_prio);
 		isc_thread_join(worker->thread, NULL);
+	}
+
+	if (mgr->stats != NULL) {
+		isc_stats_detach(&mgr->stats);
 	}
 
 	isc_condition_destroy(&mgr->wkstatecond);
@@ -828,15 +910,25 @@ isc_nmsocket_detach(isc_nmsocket_t **sockp) {
 
 void
 isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
-		   isc_nmsocket_type type)
+		   isc_nmsocket_type type, isc_nmiface_t *iface)
 {
+	uint16_t family;
+
+	REQUIRE(sock != NULL);
+	REQUIRE(mgr != NULL);
+	REQUIRE(iface!= NULL);
+
+	family = iface->addr.type.sa.sa_family;
+
 	*sock = (isc_nmsocket_t) {
 		.type = type,
+		.iface = iface,
 		.fd = -1,
 		.ah_size = 32,
 		.inactivehandles = isc_astack_new(mgr->mctx, 60),
 		.inactivereqs = isc_astack_new(mgr->mctx, 60)
 	};
+
 	isc_nm_attach(mgr, &sock->mgr);
 	sock->uv_handle.handle.data = sock;
 
@@ -848,6 +940,28 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 	for (size_t i = 0; i < 32; i++) {
 		sock->ah_frees[i] = i;
 		sock->ah_handles[i] = NULL;
+	}
+
+	switch (type) {
+	case isc_nm_udpsocket:
+	case isc_nm_udplistener:
+		if (family == AF_INET) {
+			sock->statsindex = udp4statsindex;
+		} else {
+			sock->statsindex = udp6statsindex;
+		}
+		break;
+	case isc_nm_tcpsocket:
+	case isc_nm_tcplistener:
+	case isc_nm_tcpchildlistener:
+		if (family == AF_INET) {
+			sock->statsindex = tcp4statsindex;
+		} else {
+			sock->statsindex = tcp6statsindex;
+		}
+		break;
+	default:
+		break;
 	}
 
 	isc_mutex_init(&sock->lock);
@@ -1290,4 +1404,34 @@ isc__nm_acquire_interlocked_force(isc_nm_t *mgr) {
 		WAIT(&mgr->wkstatecond, &mgr->lock);
 	}
 	UNLOCK(&mgr->lock);
+}
+
+void
+isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats) {
+	REQUIRE(VALID_NM(mgr));
+	REQUIRE(mgr->stats == NULL);
+	REQUIRE(isc_stats_ncounters(stats) == isc_sockstatscounter_max);
+
+	isc_stats_attach(stats, &mgr->stats);
+}
+
+
+void
+isc__nm_incstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
+	REQUIRE(VALID_NM(mgr));
+	REQUIRE(counterid != -1);
+
+	if (mgr->stats != NULL) {
+		isc_stats_increment(mgr->stats, counterid);
+	}
+}
+
+void
+isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
+	REQUIRE(VALID_NM(mgr));
+	REQUIRE(counterid != -1);
+
+	if (mgr->stats != NULL) {
+		isc_stats_decrement(mgr->stats, counterid);
+	}
 }

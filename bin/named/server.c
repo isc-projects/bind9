@@ -9941,6 +9941,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 				    isc_sockstatscounter_max),
 		   "isc_stats_create");
 	isc_socketmgr_setstats(named_g_socketmgr, server->sockstats);
+	isc_nm_setstats(named_g_nm, server->sockstats);
 
 	CHECKFATAL(isc_stats_create(named_g_mctx, &server->zonestats,
 				    dns_zonestatscounter_max),

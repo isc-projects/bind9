@@ -147,8 +147,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 	REQUIRE(VALID_NM(mgr));
 
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
-	isc__nmsocket_init(nsock, mgr, isc_nm_tcplistener);
-	nsock->iface = iface;
+	isc__nmsocket_init(nsock, mgr, isc_nm_tcplistener, iface);
 	nsock->nchildren = mgr->nworkers;
 	atomic_init(&nsock->rchildren, mgr->nworkers);
 	nsock->children = isc_mem_get(mgr->mctx,
@@ -223,9 +222,9 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	for (int i = 0; i < sock->nchildren; i++) {
 		isc_nmsocket_t *csock = &sock->children[i];
 
-		isc__nmsocket_init(csock, sock->mgr, isc_nm_tcpchildlistener);
+		isc__nmsocket_init(csock, sock->mgr,
+				   isc_nm_tcpchildlistener, sock->iface);
 		csock->parent = sock;
-		csock->iface = sock->iface;
 		csock->tid = i;
 		csock->pquota = sock->pquota;
 		csock->backlog = sock->backlog;
@@ -680,10 +679,9 @@ accept_connection(isc_nmsocket_t *ssock) {
 	}
 
 	csock = isc_mem_get(ssock->mgr->mctx, sizeof(isc_nmsocket_t));
-	isc__nmsocket_init(csock, ssock->mgr, isc_nm_tcpsocket);
+	isc__nmsocket_init(csock, ssock->mgr, isc_nm_tcpsocket, ssock->iface);
 	csock->tid = isc_nm_tid();
 	csock->extrahandlesize = ssock->extrahandlesize;
-	csock->iface = ssock->iface;
 	csock->quota = quota;
 	quota = NULL;
 

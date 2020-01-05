@@ -54,8 +54,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface,
 	 * socket for each worker thread.
 	 */
 	nsock = isc_mem_get(mgr->mctx, sizeof(isc_nmsocket_t));
-	isc__nmsocket_init(nsock, mgr, isc_nm_udplistener);
-	nsock->iface = iface;
+	isc__nmsocket_init(nsock, mgr, isc_nm_udplistener, iface);
 	nsock->nchildren = mgr->nworkers;
 	atomic_init(&nsock->rchildren, mgr->nworkers);
 	nsock->children = isc_mem_get(mgr->mctx,
@@ -74,9 +73,8 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface,
 		isc__netievent_udplisten_t *ievent = NULL;
 		isc_nmsocket_t *csock = &nsock->children[i];
 
-		isc__nmsocket_init(csock, mgr, isc_nm_udpsocket);
+		isc__nmsocket_init(csock, mgr, isc_nm_udpsocket, iface);
 		csock->parent = nsock;
-		csock->iface = iface;
 		csock->tid = i;
 		csock->extrahandlesize = extrahandlesize;
 

@@ -357,3 +357,15 @@ isc_nm_maxudp(isc_nm_t *mgr, uint32_t maxudp);
  * Simulate a broken firewall that blocks UDP messages larger than a given
  * size.
  */
+
+void
+isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats);
+/*%<
+ * Set a socket statistics counter set 'stats' for 'mgr'.
+ *
+ * Requires:
+ *\li	'mgr' is valid and doesn't have stats already set.
+ *
+ *\li	stats is a valid set of statistics counters supporting the
+ *	full range of socket-related stats counter numbers.
+ */
