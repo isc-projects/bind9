@@ -23,6 +23,9 @@ variables:
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
 
+  # Pass run-time flags to AddressSanitizer to get core dumps on error.
+  ASAN_OPTIONS_COMMON: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
+
   TARBALL_COMPRESSOR: xz
   TARBALL_EXTENSION: xz
 
@@ -805,6 +808,8 @@ asan:sid:amd64:
   <<: *build_job
 
 system:asan:sid:amd64:
+  variables:
+    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
@@ -812,6 +817,8 @@ system:asan:sid:amd64:
   needs: ["asan:sid:amd64"]
 
 unit:asan:sid:amd64:
+  variables:
+    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
