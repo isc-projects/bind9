@@ -855,7 +855,7 @@ check_signatures() {
 response_has_cds_for_key() (
 	awk -v zone="${ZONE%%.}." \
 	    -v ttl="${DNSKEY_TTL}" \
-	    -v qtype="${_qtype}" \
+	    -v qtype="CDS" \
 	    -v keyid="$(key_get "${1}" ID)" \
 	    -v keyalg="${_key_algnum}" \
 	    -v hashalg="2" \
@@ -865,37 +865,70 @@ response_has_cds_for_key() (
 	    "$2"
 )
 
+response_has_cdnskey_for_key() (
+	awk -v zone="${ZONE%%.}." \
+	    -v ttl="${DNSKEY_TTL}" \
+	    -v qtype="CDNSKEY" \
+	    -v flags="257" \
+	    -v keyalg="${_key_algnum}" \
+	    'BEGIN { ret=1; }
+	     $1 == zone && $2 == ttl && $4 == qtype && $5 == flags && $7 == keyalg { ret=0; exit; }
+	     END { exit ret; }' \
+	    "$2"
+)
+
 # Test CDS and CDNSKEY publication.
 check_cds() {
 
-	_qtype="CDS"
 	_key_algnum="$(key_get KEY1 ALG_NUM)"
 
 	n=$((n+1))
-	echo_i "check ${_qtype} rrset is signed correctly for zone ${ZONE} ($n)"
+	echo_i "check CDS and CDNSKEY rrset are signed correctly for zone ${ZONE} ($n)"
 	ret=0
-	dig_with_opts "$ZONE" "@${SERVER}" $_qtype > "dig.out.$DIR.test$n" || log_error "dig ${ZONE} ${_qtype} failed"
-	grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || log_error "mismatch status in DNS response"
+
+	dig_with_opts "$ZONE" "@${SERVER}" "CDS" > "dig.out.$DIR.test$n.cds" || log_error "dig ${ZONE} CDS failed"
+	grep "status: NOERROR" "dig.out.$DIR.test$n.cds" > /dev/null || log_error "mismatch status in DNS response"
+
+	dig_with_opts "$ZONE" "@${SERVER}" "CDNSKEY" > "dig.out.$DIR.test$n.cdnskey" || log_error "dig ${ZONE} CDNSKEY failed"
+	grep "status: NOERROR" "dig.out.$DIR.test$n.cdnskey" > /dev/null || log_error "mismatch status in DNS response"
 
 	if [ "$(key_get KEY1 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY1 STATE_DS)" = "omnipresent" ]; then
-		response_has_cds_for_key KEY1 "dig.out.$DIR.test$n" || log_error "missing ${_qtype} record in response for key $(key_get KEY1 ID)"
-		check_signatures $_qtype "dig.out.$DIR.test$n" "KSK"
+		response_has_cds_for_key KEY1 "dig.out.$DIR.test$n.cds" || log_error "missing CDS record in response for key $(key_get KEY1 ID)"
+		check_signatures "CDS" "dig.out.$DIR.test$n.cds" "KSK"
+		response_has_cdnskey_for_key KEY1 "dig.out.$DIR.test$n.cdnskey" || log_error "missing CDNSKEY record in response for key $(key_get KEY1 ID)"
+		check_signatures "CDNSKEY" "dig.out.$DIR.test$n.cdnskey" "KSK"
 	elif [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		response_has_cds_for_key KEY1 "dig.out.$DIR.test$n" && log_error "unexpected ${_qtype} record in response for key $(key_get KEY1 ID)"
+		response_has_cds_for_key KEY1 "dig.out.$DIR.test$n.cds" && log_error "unexpected CDS record in response for key $(key_get KEY1 ID)"
+		# KEY1 should not have an associated CDNSKEY, but there may be
+		# one for another key.  Since the CDNSKEY has no field for key
+		# id, it is hard to check what key the CDNSKEY may belong to
+		# so let's skip this check for now.
 	fi
 
 	if [ "$(key_get KEY2 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY2 STATE_DS)" = "omnipresent" ]; then
-		response_has_cds_for_key KEY2 "dig.out.$DIR.test$n" || log_error "missing ${_qtype} record in response for key $(key_get KEY2 ID)"
-		check_signatures $_qtype "dig.out.$DIR.test$n" "KSK"
+		response_has_cds_for_key KEY2 "dig.out.$DIR.test$n.cds" || log_error "missing CDS record in response for key $(key_get KEY2 ID)"
+		check_signatures "CDS" "dig.out.$DIR.test$n.cds" "KSK"
+		response_has_cdnskey_for_key KEY2 "dig.out.$DIR.test$n.cdnskey" || log_error "missing CDNSKEY record in response for key $(key_get KEY2 ID)"
+		check_signatures "CDNSKEY" "dig.out.$DIR.test$n.cdnskey" "KSK"
 	elif [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		response_has_cds_for_key KEY2 "dig.out.$DIR.test$n" && log_error "unexpected ${_qtype} record in response for key $(key_get KEY2 ID)"
+		response_has_cds_for_key KEY2 "dig.out.$DIR.test$n.cds" && log_error "unexpected CDS record in response for key $(key_get KEY2 ID)"
+		# KEY2 should not have an associated CDNSKEY, but there may be
+		# one for another key.  Since the CDNSKEY has no field for key
+		# id, it is hard to check what key the CDNSKEY may belong to
+		# so let's skip this check for now.
 	fi
 
 	if [ "$(key_get KEY3 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY3 STATE_DS)" = "omnipresent" ]; then
-		response_has_cds_for_key KEY3 "dig.out.$DIR.test$n" || log_error "missing ${_qtype} record in response for key $(key_get KEY3 ID)"
-		check_signatures $_qtype "dig.out.$DIR.test$n" "KSK"
+		response_has_cds_for_key KEY3 "dig.out.$DIR.test$n.cds" || log_error "missing CDS record in response for key $(key_get KEY3 ID)"
+		check_signatures "CDS" "dig.out.$DIR.test$n.cds" "KSK"
+		response_has_cdnskey_for_key KEY3 "dig.out.$DIR.test$n.cdnskey" || log_error "missing CDNSKEY record in response for key $(key_get KEY3 ID)"
+		check_signatures "CDNSKEY" "dig.out.$DIR.test$n.cdnskey" "KSK"
 	elif [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-		response_has_cds_for_key KEY3 "dig.out.$DIR.test$n" && log_error "unexpected ${_qtype} record in response for key $(key_get KEY3 ID)"
+		response_has_cds_for_key KEY3 "dig.out.$DIR.test$n.cds" && log_error "unexpected CDS record in response for key $(key_get KEY3 ID)"
+		# KEY3 should not have an associated CDNSKEY, but there may be
+		# one for another key.  Since the CDNSKEY has no field for key
+		# id, it is hard to check what key the CDNSKEY may belong to
+		# so let's skip this check for now.
 	fi
 
 	test "$ret" -eq 0 || echo_i "failed"
@@ -957,7 +990,7 @@ check_apex() {
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
 
-	# Test CDS publication.
+	# Test CDS and CDNSKEY publication.
 	check_cds
 }
 
