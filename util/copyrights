@@ -349,7 +349,7 @@
 ./bin/tests/pkcs11/benchmarks/sha1.c		C	2014,2015,2016,2018,2019,2020
 ./bin/tests/pkcs11/benchmarks/sign.c		C	2014,2015,2016,2018,2019,2020
 ./bin/tests/pkcs11/benchmarks/verify.c		C	2014,2015,2016,2018,2019,2020
-./bin/tests/prepare-softhsm2.sh			X	2018,2019,2020
+./bin/tests/prepare-softhsm2.sh			SH	2020
 ./bin/tests/startperf/README			X	2011,2018,2019,2020
 ./bin/tests/startperf/clean.sh			SH	2011,2012,2016,2018,2019,2020
 ./bin/tests/startperf/makenames.pl		PERL	2011,2012,2016,2018,2019,2020
