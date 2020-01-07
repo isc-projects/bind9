@@ -68,12 +68,15 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
 	if (r != 0) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
 		return (r);
 	}
 
 	if (req->local.length != 0) {
 		r = uv_tcp_bind(&sock->uv_handle.tcp, &req->local.type.sa, 0);
 		if (r != 0) {
+			isc__nm_incstats(sock->mgr,
+					 sock->statsindex[STATID_BINDFAIL]);
 			tcp_close_direct(sock);
 			return (r);
 		}
@@ -115,6 +118,7 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		isc_nmhandle_t *handle = NULL;
 		struct sockaddr_storage ss;
 
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
 		uv_tcp_getpeername(&sock->uv_handle.tcp,
 				   (struct sockaddr *) &ss,
 				   &(int){sizeof(ss)});
@@ -129,6 +133,8 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		 * TODO:
 		 * Handle the connect error properly and free the socket.
 		 */
+		isc__nm_incstats(sock->mgr,
+				 sock->statsindex[STATID_CONNECTFAIL]);
 		req->cb.connect(NULL, isc__nm_uverr2result(status), req->cbarg);
 	}
 
@@ -239,11 +245,15 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
 	if (r != 0) {
 		/* It was never opened */
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
 		atomic_store(&sock->closed, true);
 		sock->result = isc__nm_uverr2result(r);
 		atomic_store(&sock->listen_error, true);
 		goto done;
 	}
+
+	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPEN]);
+
 	if (sock->iface->addr.type.sa.sa_family == AF_INET6) {
 		flags = UV_TCP_IPV6ONLY;
 	}
@@ -251,6 +261,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_tcp_bind(&sock->uv_handle.tcp,
 			&sock->iface->addr.type.sa, flags);
 	if (r != 0) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
 		sock->result = isc__nm_uverr2result(r);
 		atomic_store(&sock->listen_error, true);
@@ -514,6 +525,7 @@ isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_startread_t *ievent =
 		(isc__netievent_startread_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
+	int r;
 
 	REQUIRE(worker->id == isc_nm_tid());
 	if (sock->read_timeout != 0) {
@@ -526,7 +538,10 @@ isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 			       sock->read_timeout, 0);
 	}
 
-	uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb, read_cb);
+	r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb, read_cb);
+	if (r != 0) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_RECVFAIL]);
+	}
 }
 
 isc_result_t
@@ -610,14 +625,11 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 			.base = (unsigned char *) buf->base,
 			.length = nread
 		};
-		/*
-		 * This might happen if the inner socket is closing.
-		 * It means that it's detached, so the socket will
-		 * be closed.
-		 */
+
 		if (sock->rcb.recv != NULL) {
 			sock->rcb.recv(sock->tcphandle, &region, sock->rcbarg);
 		}
+
 		sock->read_timeout = (atomic_load(&sock->keepalive)
 				      ? sock->mgr->keepalive
 				      : sock->mgr->idle);
@@ -627,6 +639,7 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 			uv_timer_start(&sock->timer, readtimeout_cb,
 				       sock->read_timeout, 0);
 		}
+
 		isc__nm_free_uvbuf(sock, buf);
 		return;
 	}
@@ -635,14 +648,16 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	if (sock->quota) {
 		isc_quota_detach(&sock->quota);
 	}
+
 	/*
-	 * This might happen if the inner socket is closing.
-	 * It means that it's detached, so the socket will
-	 * be closed.
+	 * This might happen if the inner socket is closing.  It means that
+	 * it's detached, so the socket will be closed.
 	 */
 	if (sock->rcb.recv != NULL) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_RECVFAIL]);
 		sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
 	}
+
 	/*
 	 * We don't need to clean up now; the socket will be closed and
 	 * resources and quota reclaimed when handle is freed in
@@ -674,9 +689,13 @@ accept_connection(isc_nmsocket_t *ssock) {
 	if (ssock->pquota != NULL) {
 		result = isc_quota_attach(ssock->pquota, &quota);
 		if (result != ISC_R_SUCCESS) {
+			isc__nm_incstats(ssock->mgr,
+					 ssock->statsindex[STATID_ACCEPTFAIL]);
 			return (result);
 		}
 	}
+
+	isc__nm_incstats(ssock->mgr, ssock->statsindex[STATID_ACCEPT]);
 
 	csock = isc_mem_get(ssock->mgr->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(csock, ssock->mgr, isc_nm_tcpsocket, ssock->iface);
@@ -790,6 +809,8 @@ tcp_send_cb(uv_write_t *req, int status) {
 
 	if (status < 0) {
 		result = isc__nm_uverr2result(status);
+		isc__nm_incstats(uvreq->sock->mgr,
+				 uvreq->sock->statsindex[STATID_SENDFAIL]);
 	}
 
 	uvreq->cb.send(uvreq->handle, result, uvreq->cbarg);
@@ -830,6 +851,8 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	r = uv_write(&req->uv_req.write, &sock->uv_handle.stream,
 		     &req->uvbuf, 1, tcp_send_cb);
 	if (r < 0) {
+		isc__nm_incstats(sock->mgr,
+				 sock->statsindex[STATID_SENDFAIL]);
 		req->cb.send(NULL, isc__nm_uverr2result(r), req->cbarg);
 		isc__nm_uvreq_put(&req, sock);
 		return (isc__nm_uverr2result(r));
@@ -844,6 +867,7 @@ tcp_close_cb(uv_handle_t *uvhandle) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 
+	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CLOSE]);
 	atomic_store(&sock->closed, true);
 	isc__nmsocket_prep_destroy(sock);
 }
