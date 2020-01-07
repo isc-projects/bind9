@@ -855,6 +855,8 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock) {
 	if (sock->children != NULL) {
 		for (int i = 0; i < sock->nchildren; i++) {
 			atomic_store(&sock->children[i].active, false);
+			isc__nm_decstats(sock->mgr,
+					 sock->statsindex[STATID_ACTIVE]);
 		}
 	}
 
@@ -950,6 +952,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 		} else {
 			sock->statsindex = udp6statsindex;
 		}
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 		break;
 	case isc_nm_tcpsocket:
 	case isc_nm_tcplistener:
@@ -960,6 +963,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 			sock->statsindex = tcp6statsindex;
 		}
 		break;
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 	default:
 		break;
 	}
