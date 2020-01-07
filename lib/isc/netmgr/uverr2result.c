@@ -12,7 +12,6 @@
 #include <stdbool.h>
 #include <uv.h>
 
-#include <isc/platform.h>
 #include <isc/result.h>
 #include <isc/strerr.h>
 #include <isc/string.h>

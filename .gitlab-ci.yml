@@ -191,6 +191,7 @@ stages:
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
+    - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
   script:
     - *configure
     - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
@@ -657,6 +658,19 @@ cppcheck:gcc:sid:amd64:
   dependencies:
     - gcc:sid:amd64
   needs: ["gcc:sid:amd64"]
+
+# Job for out-of-tree GCC build on Debian Sid (amd64)
+
+oot:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    CONFIGURE: ../configure
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    RUN_MAKE_INSTALL: 1
+    OOT_BUILD_WORKSPACE: workspace
+  <<: *debian_sid_amd64_image
+  <<: *build_job
 
 # Jobs for tarball GCC builds on Debian Sid (amd64)
 

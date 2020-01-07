@@ -11,9 +11,11 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-CINCLUDES =	-I${srcdir}/../include \
+CINCLUDES =	-I${srcdir}/include \
 		-I${srcdir}/../unix/include \
 		-I${srcdir}/../pthreads/include \
+		-I../include \
+		-I${srcdir}/../include \
 		-I${srcdir}/.. \
 		${OPENSSL_CFLAGS} \
 		${JSON_C_CFLAGS} \
