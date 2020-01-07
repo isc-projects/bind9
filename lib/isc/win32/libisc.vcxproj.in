@@ -446,6 +446,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\netmgr\tcp.c" />
     <ClCompile Include="..\netmgr\udp.c" />
     <ClCompile Include="..\netmgr\uverr2result.c" />
+    <ClCompile Include="..\netmgr\uv-compat.c" />
     <ClCompile Include="..\netmgr\tcpdns.c" />
     <ClCompile Include="..\netscope.c" />
     <ClCompile Include="..\nonce.c" />
