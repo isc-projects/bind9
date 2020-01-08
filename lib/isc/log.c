@@ -393,19 +393,6 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 	return (result);
 }
 
-isc_logconfig_t *
-isc_logconfig_get(isc_log_t *lctx) {
-	REQUIRE(VALID_CONTEXT(lctx));
-
-	isc_logconfig_t *lcfg = NULL;
-	LOCK(&lctx->lock);
-	lcfg = lctx->logconfig;
-	UNLOCK(&lctx->lock);
-
-	ENSURE(lcfg != NULL);
-	return (lcfg);
-}
-
 isc_result_t
 isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg) {
 	isc_logconfig_t *old_cfg;

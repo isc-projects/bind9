@@ -348,7 +348,6 @@ isc_log_write
 isc_log_write1
 isc_logconfig_create
 isc_logconfig_destroy
-isc_logconfig_get
 isc_logconfig_use
 isc_logfile_roll
 isc_md_new

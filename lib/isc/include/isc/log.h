@@ -254,21 +254,6 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
  *\li	#ISC_R_NOMEMORY		Resource limit: Out of memory
  */
 
-isc_logconfig_t *
-isc_logconfig_get(isc_log_t *lctx);
-/*%<
- * Returns a pointer to the configuration currently in use by the log context.
- *
- * Requires:
- *\li	lctx is a valid context.
- *
- * Ensures:
- *\li	The configuration pointer is non-null.
- *
- * Returns:
- *\li	The configuration pointer.
- */
-
 isc_result_t
 isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
 /*%<
@@ -315,11 +300,6 @@ void
 isc_logconfig_destroy(isc_logconfig_t **lcfgp);
 /*%<
  * Destroy a logging configuration.
- *
- * Notes:
- *\li	This function cannot be used directly with the return value of
- *	isc_logconfig_get, because a logging context must always have
- *	a valid configuration associated with it.
  *
  * Requires:
  *\li	lcfgp is not null and *lcfgp is a valid logging configuration.
