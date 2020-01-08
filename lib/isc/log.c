@@ -397,9 +397,13 @@ isc_logconfig_t *
 isc_logconfig_get(isc_log_t *lctx) {
 	REQUIRE(VALID_CONTEXT(lctx));
 
-	ENSURE(lctx->logconfig != NULL);
+	isc_logconfig_t *lcfg = NULL;
+	LOCK(&lctx->lock);
+	lcfg = lctx->logconfig;
+	UNLOCK(&lctx->lock);
 
-	return (lctx->logconfig);
+	ENSURE(lcfg != NULL);
+	return (lcfg);
 }
 
 isc_result_t
@@ -1458,7 +1462,7 @@ isc_log_open(isc_logchannel_t *channel) {
 }
 
 bool
-isc_log_wouldlog(isc_log_t *lctx, int level) {
+isc_log_wouldlog(isc_log_t *lctx, int level) ISC_NO_SANITIZE {
 	/*
 	 * Try to avoid locking the mutex for messages which can't
 	 * possibly be logged to any channels -- primarily debugging
