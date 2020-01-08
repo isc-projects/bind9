@@ -175,6 +175,7 @@ scan_interfaces(isc_task_t *task, isc_event_t *event) {
 static isc_result_t
 create_managers(void) {
 	isc_result_t result;
+	in_port_t port = 5300 + isc_random8();
 	ns_listenlist_t *listenon = NULL;
 	isc_event_t *event = NULL;
 	ncpus = isc_os_ncpus();
@@ -199,7 +200,7 @@ create_managers(void) {
 	CHECK(ns_clientmgr_create(mctx, sctx, taskmgr, timermgr,
 				  &clientmgr));
 
-	CHECK(ns_listenlist_default(mctx, 5300, -1, true, &listenon));
+	CHECK(ns_listenlist_default(mctx, port, -1, true, &listenon));
 	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
 	ns_listenlist_detach(&listenon);
 
