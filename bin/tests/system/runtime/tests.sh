@@ -132,36 +132,36 @@ then
     kill_named ns2/named.pid || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
+
+    n=$((n+1))
+    echo_i "checking that named refuses to start if managed-keys-directory is set and not writable ($n)"
+    ret=0
+    (cd ns2 && $NAMED -c named-alt4.conf -D runtime-ns2-extra-4 -d 99 -g > named$n.run 2>&1 &)
+    wait_for_named "exiting (due to fatal error)" ns2/named$n.run || ret=1
+    grep "managed-keys-directory '.*' is not writable" ns2/named$n.run > /dev/null 2>&1 || ret=1
+    kill_named ns2/named.pid && ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    n=$((n+1))
+    echo_i "checking that named refuses to start if managed-keys-directory is unset and working directory is not writable ($n)"
+    ret=0
+    (cd ns2 && $NAMED -c named-alt5.conf -D runtime-ns2-extra-5 -d 99 -g > named$n.run 2>&1 &)
+    wait_for_named "exiting (due to fatal error)" ns2/named$n.run || ret=1
+    grep "working directory '.*' is not writable" ns2/named$n.run > /dev/null 2>&1 || ret=1
+    kill_named ns2/named.pid && ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    n=$((n+1))
+    echo_i "checking that named starts if managed-keys-directory is writable and working directory is not writable ($n)"
+    ret=0
+    (cd ns2/nope && $NAMED -c ../named-alt6.conf -D runtime-ns2-extra-6 -d 99 -g > ../named$n.run 2>&1 &)
+    wait_for_named " running$" ns2/named$n.run || ret=1
+    kill_named ns2/named.pid || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
 fi
-
-n=$((n+1))
-echo_i "checking that named refuses to start if managed-keys-directory is set and not writable ($n)"
-ret=0
-(cd ns2 && $NAMED -c named-alt4.conf -D runtime-ns2-extra-4 -d 99 -g > named$n.run 2>&1 &)
-wait_for_named "exiting (due to fatal error)" ns2/named$n.run || ret=1
-grep "managed-keys-directory '.*' is not writable" ns2/named$n.run > /dev/null 2>&1 || ret=1
-kill_named ns2/named.pid && ret=1
-if [ $ret -ne 0 ]; then echo_i "failed"; fi
-status=$((status+ret))
-
-n=$((n+1))
-echo_i "checking that named refuses to start if managed-keys-directory is unset and working directory is not writable ($n)"
-ret=0
-(cd ns2 && $NAMED -c named-alt5.conf -D runtime-ns2-extra-5 -d 99 -g > named$n.run 2>&1 &)
-wait_for_named "exiting (due to fatal error)" ns2/named$n.run || ret=1
-grep "working directory '.*' is not writable" ns2/named$n.run > /dev/null 2>&1 || ret=1
-kill_named ns2/named.pid && ret=1
-if [ $ret -ne 0 ]; then echo_i "failed"; fi
-status=$((status+ret))
-
-n=$((n+1))
-echo_i "checking that named starts if managed-keys-directory is writable and working directory is not writable ($n)"
-ret=0
-(cd ns2/nope && $NAMED -c ../named-alt6.conf -D runtime-ns2-extra-6 -d 99 -g > ../named$n.run 2>&1 &)
-wait_for_named " running$" ns2/named$n.run || ret=1
-kill_named ns2/named.pid || ret=1
-if [ $ret -ne 0 ]; then echo_i "failed"; fi
-status=$((status+ret))
 
 n=$((n+1))
 echo_i "verifying that named switches UID ($n)"
