@@ -198,6 +198,12 @@
 #define __SANITIZE_THREAD__ 1
 #endif
 
+#if __SANITIZE_THREAD__
+#define ISC_NO_SANITIZE __attribute__((no_sanitize("thread")))
+#else
+#define ISC_NO_SANITIZE
+#endif
+
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6)
 #define STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
 #elif __has_feature(c_static_assert)
