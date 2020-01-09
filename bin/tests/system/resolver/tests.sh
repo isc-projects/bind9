@@ -451,10 +451,13 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check prefetch (${n})"
 ret=0
+# read prefetch value from config.
+PREFETCH=`sed -n "s/[[:space:]]*prefetch \([0-9]\).*/\1/p" ns5/named.conf`
 $DIG $DIGOPTS @10.53.0.5 fetch.tld txt > dig.out.1.${n} || ret=1
-ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 2 }' dig.out.1.${n}`
+ttl1=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.1.${n}`
+interval=$((ttl1 - PREFETCH + 1))
 # sleep so we are in prefetch range
-sleep ${ttl1:-0}
+sleep ${interval:-0}
 # trigger prefetch
 $DIG $DIGOPTS @10.53.0.5 fetch.tld txt > dig.out.2.${n} || ret=1
 ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
@@ -470,9 +473,10 @@ n=`expr $n + 1`
 echo_i "check prefetch of validated DS's RRSIG TTL is updated (${n})"
 ret=0
 $DIG $DIGOPTS +dnssec @10.53.0.5 ds.example.net ds > dig.out.1.${n} || ret=1
-dsttl1=`awk '$4 == "DS" && $7 == "1" { print $2 - 2 }' dig.out.1.${n}`
+dsttl1=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.1.${n}`
+interval=$((dsttl1 - PREFETCH + 1))
 # sleep so we are in prefetch range
-sleep ${dsttl1:-0}
+sleep ${interval:-0}
 # trigger prefetch
 $DIG $DIGOPTS @10.53.0.5 ds.example.net ds > dig.out.2.${n} || ret=1
 dsttl2=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.2.${n}`
@@ -491,25 +495,24 @@ n=`expr $n + 1`
 echo_i "check prefetch disabled (${n})"
 ret=0
 $DIG $DIGOPTS @10.53.0.7 fetch.example.net txt > dig.out.1.${n} || ret=1
-ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 2 }' dig.out.1.${n}`
+ttl1=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.1.${n}`
+interval=$((ttl1 - PREFETCH + 1))
 # sleep so we are in expire range
-sleep ${ttl1:-0}
-# look for ttl = 1, allow for one miss at getting zero ttl
-zerotonine="0 1 2 3 4 5 6 7 8 9"
-for i in $zerotonine $zerotonine $zerotonine $zerotonine
-do
-	$DIG $DIGOPTS @10.53.0.7 fetch.example.net txt > dig.out.2.${n} || ret=1
+sleep ${interval:-0}
+tmp_ttl=$ttl1
+no_prefetch() {
+	# fetch record and ensure its ttl is in range 0 < ttl < tmp_ttl.
+	# since prefetch is disabled, updated ttl must be a lower value than
+	# the previous one.
+	$DIG $DIGOPTS @10.53.0.7 fetch.example.net txt > dig.out.2.${n} || return 1
 	ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
-	test ${ttl2:-2} -eq 1 && break
-	$PERL -e 'select(undef, undef, undef, 0.05);'
-done
-test ${ttl2:-2} -eq 1 || ret=1
-# delay so that any prefetched record will have a lower ttl than expected
-sleep 3
-# check that prefetch has not occured
-$DIG $DIGOPTS @10.53.0.7 fetch.example.net txt > dig.out.3.${n} || ret=1
-ttl=`awk '/"A" "short" "ttl"/ { print $2 - 2 }' dig.out.3.${n}`
-test ${ttl:-0} -eq ${ttl1:-1} || ret=1
+        # check that prefetch has not occured
+        if [ $ttl2 -ge $tmp_ttl ]; then
+                return 1
+        fi
+        tmp_ttl=$ttl2
+}
+retry_quiet 3 no_prefetch || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
