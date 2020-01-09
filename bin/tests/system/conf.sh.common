@@ -338,6 +338,45 @@ nextpartpeek() {
 	nextpartread $1 2> /dev/null
 }
 
+# _search_log: look for message $1 in file $2 with nextpart().
+_search_log() (
+	msg="$1"
+	file="$2"
+	nextpart "$file" | grep -F "$msg" > /dev/null
+)
+
+# _search_log_peek: look for message $1 in file $2 with nextpartpeek().
+_search_log_peek() (
+	msg="$1"
+	file="$2"
+	nextpartpeek "$file" | grep -F "$msg" > /dev/null
+)
+
+# wait_for_log: wait until message $2 in file $3 appears.  Bail out after
+# $1 seconds.  This needs to be used in conjunction with a prior call to
+# nextpart() or nextpartreset() on the same file to guarantee the offset is
+# set correctly.  Tests using wait_for_log() are responsible for cleaning up
+# the created <file>.prev files.
+wait_for_log() (
+	timeout="$1"
+	msg="$2"
+	file="$3"
+	retry_quiet "$timeout" _search_log "$msg" "$file" && return 0
+	echo_i "exceeded time limit waiting for '$msg' in $file"
+        return 1
+)
+
+# wait_for_log_peek: similar to wait_for_log() but peeking, so the file offset
+# does not change.
+wait_for_log_peek() (
+	timeout="$1"
+	msg="$2"
+	file="$3"
+	retry_quiet "$timeout" _search_log_peek "$msg" "$file" && return 0
+	echo_i "exceeded time limit waiting for '$msg' in $file"
+        return 1
+)
+
 # _retry: keep running a command until it succeeds, up to $1 times, with
 # one-second intervals, optionally printing a message upon every attempt
 _retry() {
