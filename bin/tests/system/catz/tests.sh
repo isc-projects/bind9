@@ -22,11 +22,12 @@ rndccmd() (
 )
 
 _wait_for_message() (
-	nextpartpeek "$1" | grep -F "$2" >/dev/null
+	nextpartpeek "$1" > wait_for_message.$n
+	grep -F "$2" wait_for_message.$n >/dev/null
 )
 
 wait_for_message() (
-	retry_quiet 10 _wait_for_message "$@"
+	retry_quiet 20 _wait_for_message "$@"
 )
 
 _wait_for_rcode() (
