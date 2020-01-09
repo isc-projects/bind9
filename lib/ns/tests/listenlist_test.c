@@ -28,6 +28,7 @@
 
 #include <isc/list.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -61,13 +62,14 @@ _teardown(void **state) {
 static void
 ns_listenlist_default_test(void **state) {
 	isc_result_t result;
+	in_port_t port = 5300 + isc_random8();
 	ns_listenlist_t *list = NULL;
 	ns_listenelt_t *elt;
 	int count;
 
 	UNUSED(state);
 
-	result = ns_listenlist_default(mctx, 5300, -1, false, &list);
+	result = ns_listenlist_default(mctx, port, -1, false, &list);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(list);
 
@@ -94,7 +96,7 @@ ns_listenlist_default_test(void **state) {
 
 	ns_listenlist_detach(&list);
 
-	result = ns_listenlist_default(mctx, 5300, -1, true, &list);
+	result = ns_listenlist_default(mctx, port, -1, true, &list);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_false(ISC_LIST_EMPTY(list->elts));
