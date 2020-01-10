@@ -1,3 +1,5 @@
+5343.	[func]		Add statistics counters to the netmgr. [GL #1311]
+
 5342.	[bug]		Disable pktinfo for ipv6 - bind to all interfaces
 			explicitly as libuv doesn't pass us pktinfo structure,
 			[GL #1558]
