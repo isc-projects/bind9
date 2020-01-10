@@ -390,6 +390,7 @@ struct isc_nmsocket {
 	 */
 	atomic_bool	      	closed;
 	atomic_bool	      	listening;
+	atomic_bool		listen_error;
 	isc_refcount_t	      	references;
 
 	/*%

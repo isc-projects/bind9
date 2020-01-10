@@ -180,7 +180,8 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 				       (isc__netievent_t *) ievent);
 
 		LOCK(&nsock->lock);
-		while (!atomic_load(&nsock->listening)) {
+		while (!atomic_load(&nsock->listening) &&
+		       !atomic_load(&nsock->listen_error)) {
 			WAIT(&nsock->cond, &nsock->lock);
 		}
 		UNLOCK(&nsock->lock);
@@ -213,7 +214,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		(isc__netievent_tcplisten_t *) ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 	struct sockaddr_storage sname;
-	int r, snamelen = sizeof(sname);
+	int r, flags = 0, snamelen = sizeof(sname);
 
 	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(sock->type == isc_nm_tcplistener);
@@ -241,13 +242,19 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		/* It was never opened */
 		atomic_store(&sock->closed, true);
 		sock->result = isc__nm_uverr2result(r);
+		atomic_store(&sock->listen_error, true);
 		goto done;
 	}
+	if (sock->iface->addr.type.sa.sa_family == AF_INET6) {
+		flags = UV_TCP_IPV6ONLY;
+	}
 
-	r = uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa, 0);
+	r = uv_tcp_bind(&sock->uv_handle.tcp,
+			&sock->iface->addr.type.sa, flags);
 	if (r != 0) {
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
 		sock->result = isc__nm_uverr2result(r);
+		atomic_store(&sock->listen_error, true);
 		goto done;
 	}
 
@@ -257,10 +264,12 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	 * initially returning success even if bind() fails, and this
 	 * could cause a deadlock later if we didn't check first.)
 	 */
-	r = uv_tcp_getsockname(&sock->uv_handle.tcp, &sname, &snamelen);
+	r = uv_tcp_getsockname(&sock->uv_handle.tcp,
+			       (struct sockaddr*) &sname, &snamelen);
 	if (r != 0) {
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
 		sock->result = isc__nm_uverr2result(r);
+		atomic_store(&sock->listen_error, true);
 		goto done;
 	}
 
