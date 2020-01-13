@@ -19225,11 +19225,11 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 		for (i = 0; i < sizeof(algorithms); i++) {
 			if (delete) {
 				if (algorithms[i] != 0) {
-					result = DNS_R_BADCDNSKEY;
+					result = DNS_R_BADCDS;
 					goto failure;
 				}
 			} else if (algorithms[i] == 1) {
-				result = DNS_R_BADCDNSKEY;
+				result = DNS_R_BADCDS;
 				goto failure;
 			}
 		}
@@ -19283,11 +19283,11 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 		for (i = 0; i < sizeof(algorithms); i++) {
 			if (delete) {
 				if (algorithms[i] != 0) {
-					result = DNS_R_BADCDS;
+					result = DNS_R_BADCDNSKEY;
 					goto failure;
 				}
 			} else if (algorithms[i] == 1) {
-				result = DNS_R_BADCDS;
+				result = DNS_R_BADCDNSKEY;
 				goto failure;
 			}
 		}
