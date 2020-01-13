@@ -19025,9 +19025,11 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 
 	/*
 	 * For each DNSSEC algorithm in the CDS RRset there must be
-	 * a matching DNSKEY record.
+	 * a matching DNSKEY record with the exception of a CDS deletion
+	 * record which must be by itself.
 	 */
 	if (dns_rdataset_isassociated(&cds)) {
+		bool delete = false;
 		memset(algorithms, 0, sizeof(algorithms));
 		for (result = dns_rdataset_first(&cds);
 		     result == ISC_R_SUCCESS;
@@ -19036,6 +19038,16 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			dns_rdata_cds_t structcds;
 
 			dns_rdataset_current(&cds, &crdata);
+			/*
+			 * CDS deletion record has this form "0 0 0 00" which
+			 * is 5 zero octets.
+			 */
+			if (crdata.length == 5U &&
+			    memcmp(crdata.data, "\0\0\0\0", 5) == 0)
+			{
+				delete = true;
+				continue;
+			}
 			CHECK(dns_rdata_tostruct(&crdata, &structcds, NULL));
 			if (algorithms[structcds.algorithm] == 0)
 				algorithms[structcds.algorithm] = 1;
@@ -19059,7 +19071,12 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 				goto failure;
 		}
 		for (i = 0; i < sizeof(algorithms); i++) {
-			if (algorithms[i] == 1) {
+			if (delete) {
+				if (algorithms[i] != 0) {
+					result = DNS_R_BADCDNSKEY;
+					goto failure;
+				}
+			} else if (algorithms[i] == 1) {
 				result = DNS_R_BADCDNSKEY;
 				goto failure;
 			}
