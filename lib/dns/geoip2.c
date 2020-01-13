@@ -194,7 +194,7 @@ get_entry_for(MMDB_s * const db, const isc_netaddr_t *addr) {
 
 	isc_sockaddr_fromnetaddr(&sa, addr, 0);
 	match = MMDB_lookup_sockaddr(db, &sa.type.sa, &err);
-	if (err != MMDB_SUCCESS) {
+	if (err != MMDB_SUCCESS || !match.found_entry) {
 		return (NULL);
 	}
 
