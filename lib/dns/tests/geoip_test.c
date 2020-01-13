@@ -36,6 +36,8 @@
 #if defined(HAVE_GEOIP2)
 #include <maxminddb.h>
 
+#include "../geoip2.c"
+
 /* Use GeoIP2 databases from the 'geoip2' system test */
 #define TEST_GEOIP_DATA "../../../bin/tests/system/geoip2/data"
 
@@ -103,6 +105,77 @@ close_geoip(void) {
 	MMDB_close(&geoip_as);
 	MMDB_close(&geoip_isp);
 	MMDB_close(&geoip_domain);
+}
+
+static bool
+/* Check if an MMDB entry of a given subtype exists for the given IP */
+entry_exists(dns_geoip_subtype_t subtype, const char *addr) {
+	struct in6_addr in6;
+	struct in_addr in4;
+	isc_netaddr_t na;
+	MMDB_s *db;
+
+	if (inet_pton(AF_INET6, addr, &in6) == 1) {
+		isc_netaddr_fromin6(&na, &in6);
+	} else if (inet_pton(AF_INET, addr, &in4) == 1) {
+		isc_netaddr_fromin(&na, &in4);
+	} else {
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
+	db = geoip2_database(&geoip, fix_subtype(&geoip, subtype));
+
+	return (db != NULL && get_entry_for(db, &na) != NULL);
+}
+
+/*
+ * Baseline test - check if get_entry_for() works as expected, i.e. that its
+ * return values are consistent with the contents of the test MMDBs found in
+ * bin/tests/system/geoip2/data/ (10.53.0.1 and fd92:7065:b8e:ffff::1 should be
+ * present in all databases, 192.0.2.128 should only be present in the country
+ * database, ::1 should be absent from all databases).
+ */
+static void
+baseline(void **state) {
+	dns_geoip_subtype_t subtype;
+
+	UNUSED(state);
+
+	subtype = dns_geoip_city_name;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_false(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
+
+	subtype = dns_geoip_country_name;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_true(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
+
+	subtype = dns_geoip_domain_name;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_false(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
+
+	subtype = dns_geoip_isp_name;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_false(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
+
+	subtype = dns_geoip_as_asnum;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_false(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
 }
 
 static bool
@@ -334,6 +407,7 @@ int
 main(void) {
 #if defined(HAVE_GEOIP2)
 	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(baseline),
 		cmocka_unit_test(country),
 		cmocka_unit_test(country_v6),
 		cmocka_unit_test(city),
