@@ -90,7 +90,9 @@
 #endif /* HAVE_SYSCTLBYNAME */
 
 static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
+#ifdef __notyet__
 static isc_once_t 	once_ipv6pktinfo = ISC_ONCE_INIT;
+#endif
 
 #ifndef ISC_CMSG_IP_TOS
 #ifdef __APPLE__
@@ -284,6 +286,7 @@ initialize_ipv6only(void) {
 				  try_ipv6only) == ISC_R_SUCCESS);
 }
 
+#ifdef __notyet__
 static void
 try_ipv6pktinfo(void) {
 	int s, on;
@@ -331,6 +334,7 @@ initialize_ipv6pktinfo(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo,
 				  try_ipv6pktinfo) == ISC_R_SUCCESS);
 }
+#endif
 
 isc_result_t
 isc_net_probe_ipv6only(void) {
@@ -340,7 +344,18 @@ isc_net_probe_ipv6only(void) {
 
 isc_result_t
 isc_net_probe_ipv6pktinfo(void) {
+/*
+ * XXXWPK if pktinfo were supported then we could listen on :: for ipv6 and get
+ * the information about the destination address from pktinfo structure passed
+ * in recvmsg but this method is not portable and libuv doesn't support it - so
+ * we need to listen on all interfaces.
+ * We should verify that this doesn't impact performance (we already do it for
+ * ipv4) and either remove all the ipv6pktinfo detection code from above
+ * or think of fixing libuv.
+ */
+#ifdef __notyet__
 	initialize_ipv6pktinfo();
+#endif
 	return (ipv6pktinfo_result);
 }
 
