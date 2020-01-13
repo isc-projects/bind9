@@ -10328,17 +10328,20 @@ ns_server_dumpsecroots(ns_server_t *server, isc_lex_t *lex,
 	FILE *fp = NULL;
 	isc_time_t now;
 	char tbuf[64];
+	unsigned int used = isc_buffer_usedlength(*text);
+	bool first = true;
 
 	/* Skip the command name. */
 	ptr = next_token(lex, text);
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	/* "-" here means print the output instead of dumping to file */
 	ptr = next_token(lex, text);
-	if (ptr != NULL && strcmp(ptr, "-") == 0)
+	if (ptr != NULL && strcmp(ptr, "-") == 0) {
 		ptr = next_token(lex, text);
-	else {
+	} else {
 		result = isc_stdio_open(server->secrootsfile, "w", &fp);
 		if (result != ISC_R_SUCCESS) {
 			(void) putstr(text, "could not open ");
@@ -10353,66 +10356,85 @@ ns_server_dumpsecroots(ns_server_t *server, isc_lex_t *lex,
 	CHECK(putstr(text, "secure roots as of "));
 	CHECK(putstr(text, tbuf));
 	CHECK(putstr(text, ":\n"));
+	used = isc_buffer_usedlength(*text);
 
 	do {
 		for (view = ISC_LIST_HEAD(server->viewlist);
 		     view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
 		{
-			if (ptr != NULL && strcmp(view->name, ptr) != 0)
+			if (ptr != NULL && strcmp(view->name, ptr) != 0) {
 				continue;
-			if (secroots != NULL)
+			}
+			if (secroots != NULL) {
 				dns_keytable_detach(&secroots);
+			}
 			result = dns_view_getsecroots(view, &secroots);
 			if (result == ISC_R_NOTFOUND) {
 				result = ISC_R_SUCCESS;
 				continue;
 			}
-			CHECK(putstr(text, "\n Start view "));
+			if (first || used != isc_buffer_usedlength(*text)) {
+				CHECK(putstr(text, "\n"));
+				first = false;
+			}
+			CHECK(putstr(text, " Start view "));
 			CHECK(putstr(text, view->name));
 			CHECK(putstr(text, "\n   Secure roots:\n\n"));
+			used = isc_buffer_usedlength(*text);
 			CHECK(dns_keytable_totext(secroots, text));
 
-			if (ntatable != NULL)
+			if (ntatable != NULL) {
 				dns_ntatable_detach(&ntatable);
+			}
 			result = dns_view_getntatable(view, &ntatable);
 			if (result == ISC_R_NOTFOUND) {
 				result = ISC_R_SUCCESS;
 				continue;
 			}
-			CHECK(putstr(text, "\n   Negative trust anchors:\n\n"));
+			if (used != isc_buffer_usedlength(*text)) {
+				CHECK(putstr(text, "\n"));
+			}
+			CHECK(putstr(text, "   Negative trust anchors:\n\n"));
+			used = isc_buffer_usedlength(*text);
 			CHECK(dns_ntatable_totext(ntatable, text));
 		}
-		if (ptr != NULL)
+
+		if (ptr != NULL) {
 			ptr = next_token(lex, text);
+		}
 	} while (ptr != NULL);
 
  cleanup:
-	if (isc_buffer_usedlength(*text) > 0) {
-		if (fp != NULL)
-			(void)putstr(text, "\n");
-		else
-			(void)putnull(text);
-	}
-	if (secroots != NULL)
+	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
-	if (ntatable != NULL)
+	}
+	if (ntatable != NULL) {
 		dns_ntatable_detach(&ntatable);
+	}
+
 	if (fp != NULL) {
+		if (used != isc_buffer_usedlength(*text)) {
+			(void)putstr(text, "\n");
+		}
 		fprintf(fp, "%.*s", (int) isc_buffer_usedlength(*text),
 			(char *) isc_buffer_base(*text));
 		isc_buffer_clear(*text);
 		(void)isc_stdio_close(fp);
+	} else if (isc_buffer_usedlength(*text) > 0) {
+		(void)putnull(text);
 	}
-	if (result == ISC_R_SUCCESS)
+
+	if (result == ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "dumpsecroots complete");
-	else
+	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "dumpsecroots failed: %s",
 			      dns_result_totext(result));
+	}
 	return (result);
 }
 
