@@ -93,6 +93,21 @@ stripns () {
     awk '($4 == "NS") || ($4 == "RRSIG" && $5 == "NS") { next} { print }' $1
 }
 
+#
+# Ensure there is not multiple consecutive blank lines.
+# Ensure there is a blank line before "Start view" and
+# "Negative trust anchors:".
+# Ensure there is not a blank line before "Secure roots:".
+#
+check_secroots_layout () {
+	awk '$0 == "" { if (empty) exit(1); empty=1; next }
+	     /Start view/ { if (!empty) exit(1) }
+	     /Secure roots:/ { if (empty) exit(1) }
+	     /Negative trust anchors:/ { if (!empty) exit(1) }
+	     { empty=0 }' $1
+	return $?
+}
+
 # Check that for a query against a validating resolver where the
 # authoritative zone is unsigned (insecure delegation), glue is returned
 # in the additional section
@@ -1771,13 +1786,14 @@ status=`expr $status + $ret`
 # Test that "rndc secroots" is able to dump trusted keys
 echo_i "checking rndc secroots ($n)"
 ret=0
-$RNDCCMD 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 keyid=`cat ns1/managed.key.id`
+$RNDCCMD 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 cp ns4/named.secroots named.secroots.test$n
+check_secroots_layout named.secroots.test$n || ret=1
 linecount=`grep "./$DEFAULT_ALGORITHM/$keyid ; trusted" named.secroots.test$n | wc -l`
 [ "$linecount" -eq 1 ] || ret=1
 linecount=`cat named.secroots.test$n | wc -l`
-[ "$linecount" -eq 10 ] || ret=1
+[ "$linecount" -eq 9 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1918,10 +1934,12 @@ $DIG $DIGOPTS a.fakenode.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.7 || 
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.7 > /dev/null && ret=1
 echo_i "dumping secroots"
 $RNDCCMD 10.53.0.4 secroots | sed 's/^/ns4 /' | cat_i
-grep "bogus.example: expiry" ns4/named.secroots > /dev/null || ret=1
-grep "badds.example: expiry" ns4/named.secroots > /dev/null || ret=1
-grep "secure.example: expiry" ns4/named.secroots > /dev/null || ret=1
-grep "fakenode.secure.example: expiry" ns4/named.secroots > /dev/null || ret=1
+cp ns4/named.secroots named.secroots.test$n
+check_secroots_layout named.secroots.test$n || ret=1
+grep "bogus.example: expiry" named.secroots.test$n > /dev/null || ret=1
+grep "badds.example: expiry" named.secroots.test$n > /dev/null || ret=1
+grep "secure.example: expiry" named.secroots.test$n > /dev/null || ret=1
+grep "fakenode.secure.example: expiry" named.secroots.test$n > /dev/null || ret=1
 
 if [ $ret != 0 ]; then echo_i "failed - with NTA's in place failed"; fi
 status=`expr $status + $ret`
@@ -3939,6 +3957,14 @@ $DIG $DIGOPTS @10.53.0.8 a.unsupported.managed A > dig.out.ns8.test$n
 grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
 grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking secroots output with multiple views ($n)"
+rndccmd 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
+cp ns4/named.secroots named.secroots.test$n
+check_secroots_layout named.secroots.test$n || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
