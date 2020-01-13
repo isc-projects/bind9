@@ -29,6 +29,7 @@
 #include <isc/sockaddr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include "uv-compat.h"
 
 #define ISC_NETMGR_TID_UNKNOWN -1
 
@@ -208,8 +209,16 @@ typedef struct isc__netievent__socket_req {
 
 typedef isc__netievent__socket_req_t isc__netievent_tcpconnect_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcplisten_t;
-typedef isc__netievent__socket_req_t isc__netievent_tcpchildlisten_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcpsend_t;
+
+typedef struct isc__netievent__socket_streaminfo {
+	isc__netievent_type	type;
+	isc_nmsocket_t		*sock;
+	isc_uv_stream_info_t	streaminfo;
+} isc__netievent__socket_streaminfo_t;
+
+typedef isc__netievent__socket_streaminfo_t isc__netievent_tcpchildlisten_t;
+
 
 typedef struct isc__netievent__socket_handle {
 	isc__netievent_type	type;
@@ -348,11 +357,6 @@ struct isc_nmsocket {
 	isc_nmiface_t		*iface;
 	isc_nmhandle_t		*tcphandle;
 
-	/*% Used to transfer listening TCP sockets to children */
-	uv_pipe_t		ipc;
-	char			ipc_pipe_name[64];
-	atomic_int_fast32_t	schildren;
-
 	/*% Extra data allocated at the end of each isc_nmhandle_t */
 	size_t			extrahandlesize;
 
@@ -386,6 +390,7 @@ struct isc_nmsocket {
 	 */
 	atomic_bool	      	closed;
 	atomic_bool	      	listening;
+	atomic_bool		listen_error;
 	isc_refcount_t	      	references;
 
 	/*%

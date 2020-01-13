@@ -2257,6 +2257,7 @@
 ./lib/isc/netmgr/tcp.c				C	2019,2020
 ./lib/isc/netmgr/tcpdns.c			C	2019,2020
 ./lib/isc/netmgr/udp.c				C	2019,2020
+./lib/isc/netmgr/uv-compat.c			C	2020
 ./lib/isc/netmgr/uv-compat.h			C	2019,2020
 ./lib/isc/netmgr/uverr2result.c			C	2019,2020
 ./lib/isc/netscope.c				C	2002,2004,2005,2006,2007,2016,2018,2019,2020
@@ -2604,3 +2605,4 @@
 ./win32utils/GeoIP.diff				X	2013,2018,2019,2020
 ./win32utils/bind9.sln.in			X	2013,2014,2015,2016,2017,2018,2019,2020
 ./win32utils/index.html				HTML	2006,2007,2008,2012,2013,2014,2015,2016,2018,2019,2020
+./win32utils/libuv.diff				X	2020

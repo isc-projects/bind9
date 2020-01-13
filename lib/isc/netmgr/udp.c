@@ -130,8 +130,12 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 			    (isc_nmsocket_t **)&sock->uv_handle.udp.data);
 
 	uv_udp_open(&sock->uv_handle.udp, sock->fd);
+	int flags = 0;
+	if (sock->iface->addr.type.sa.sa_family == AF_INET6) {
+		flags = UV_UDP_IPV6ONLY;
+	}
 	uv_udp_bind(&sock->uv_handle.udp,
-		    &sock->parent->iface->addr.type.sa, 0);
+		    &sock->parent->iface->addr.type.sa, flags);
 	uv_recv_buffer_size(&sock->uv_handle.handle,
 			    &(int){16 * 1024 * 1024});
 	uv_send_buffer_size(&sock->uv_handle.handle,
