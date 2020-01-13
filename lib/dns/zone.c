@@ -18663,9 +18663,11 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 
 	/*
 	 * For each DNSSEC algorithm in the CDNSKEY RRset there must be
-	 * a matching DNSKEY record.
+	 * a matching DNSKEY record with the exception of a CDNSKEY deletion
+	 * record which must be by itself.
 	 */
 	if (dns_rdataset_isassociated(&cdnskey)) {
+		bool delete = false;
 		memset(algorithms, 0, sizeof(algorithms));
 		for (result = dns_rdataset_first(&cdnskey);
 		     result == ISC_R_SUCCESS;
@@ -18674,6 +18676,17 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			dns_rdata_cdnskey_t structcdnskey;
 
 			dns_rdataset_current(&cdnskey, &crdata);
+			/*
+			 * CDNSKEY deletion record has this form
+			 * "0 3 0 AA==" which is 2 zero octets, a 3,
+			 * and 2 zero octets.
+			 */
+			if (crdata.length == 5U &&
+			    memcmp(crdata.data, "\0\0\003\0", 5) == 0)
+			{
+				delete = true;
+				continue;
+			}
 			CHECK(dns_rdata_tostruct(&crdata, &structcdnskey,
 						 NULL));
 			if (algorithms[structcdnskey.algorithm] == 0)
@@ -18694,7 +18707,12 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 				goto failure;
 		}
 		for (i = 0; i < sizeof(algorithms); i++) {
-			if (algorithms[i] == 1) {
+			if (delete) {
+				if (algorithms[i] != 0) {
+					result = DNS_R_BADCDS;
+					goto failure;
+				}
+			} else if (algorithms[i] == 1) {
 				result = DNS_R_BADCDS;
 				goto failure;
 			}
