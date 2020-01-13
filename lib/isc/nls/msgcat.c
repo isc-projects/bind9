@@ -62,9 +62,8 @@ isc_msgcat_open(const char *name, isc_msgcat_t **msgcatp) {
 
 #ifdef HAVE_CATGETS
 	/*
-	 * We don't check if catopen() fails because we don't care.
-	 * If it does fail, then when we call catgets(), it will use
-	 * the default string.
+	 * We don't check if catopen() fails because isc_msgcat_get() takes
+	 * care of that before calling catgets().
 	 */
 	msgcat->catalog = catopen(name, 0);
 #endif
@@ -112,8 +111,9 @@ isc_msgcat_get(isc_msgcat_t *msgcat, int set, int message,
 	REQUIRE(default_text != NULL);
 
 #ifdef HAVE_CATGETS
-	if (msgcat == NULL)
+	if (msgcat == NULL || msgcat->catalog == (nl_catd)(-1)) {
 		return (default_text);
+	}
 	return (catgets(msgcat->catalog, set, message, default_text));
 #else
 	return (default_text);
