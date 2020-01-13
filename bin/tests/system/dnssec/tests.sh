@@ -3362,6 +3362,25 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "check that CDS deletion records are signed only using KSK when added by"
+echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+ret=0
+(
+echo zone cds-kskonly.secure
+echo server 10.53.0.2 "$PORT"
+echo update delete cds-kskonly.secure CDS
+echo update add cds-kskonly.secure 0 CDS 0 0 0 00
+echo send
+) | $NSUPDATE
+dig_with_opts +noall +answer @10.53.0.2 cds cds-kskonly.secure > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking that positive unknown NSEC3 hash algorithm with OPTOUT does validate ($n)"
 ret=0
 dig_with_opts +noauth +noadd +nodnssec +adflag @10.53.0.3 optout-unknown.example SOA > dig.out.ns3.test$n
