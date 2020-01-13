@@ -48,7 +48,7 @@ static isc_timer_t *timer = NULL;
 static isc_condition_t cv;
 static isc_mutex_t mx;
 static isc_time_t endtime;
-static isc_mutex_t lasttime_mx = PTHREAD_MUTEX_INITIALIZER;
+static isc_mutex_t lasttime_mx;
 static isc_time_t lasttime;
 static int seconds;
 static int nanoseconds;
@@ -112,6 +112,7 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	atomic_init(&eventcnt, 0);
 
 	isc_mutex_init(&mx);
+	isc_mutex_init(&lasttime_mx);
 
 	isc_condition_init(&cv);
 
