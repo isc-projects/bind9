@@ -111,6 +111,12 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
   <<: *linux_i386
 
+# openSUSE Tumbleweed
+
+.tumbleweed-latest-amd64: &tumbleweed_latest_amd64_image
+  image: "$CI_REGISTRY_IMAGE:tumbleweed-latest-amd64"
+  <<: *linux_amd64
+
 # Fedora
 
 .fedora-31-amd64: &fedora_31_amd64_image
@@ -737,6 +743,30 @@ unit:gcc:sid:i386:
   dependencies:
     - gcc:sid:i386
   needs: ["gcc:sid:i386"]
+
+# Jobs for regular GCC builds on openSUSE Tumbleweed (amd64)
+
+gcc:tumbleweed:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *tumbleweed_latest_amd64_image
+  <<: *build_job
+
+system:gcc:tumbleweed:amd64:
+  <<: *tumbleweed_latest_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:tumbleweed:amd64
+  needs: ["gcc:tumbleweed:amd64"]
+
+unit:gcc:tumbleweed:amd64:
+  <<: *tumbleweed_latest_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:tumbleweed:amd64
+  needs: ["gcc:tumbleweed:amd64"]
 
 # Jobs for regular GCC builds on Fedora 31 (amd64)
 
