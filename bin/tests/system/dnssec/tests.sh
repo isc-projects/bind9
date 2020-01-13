@@ -3516,6 +3516,22 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "check that a CDNSKEY deletion record is accepted ($n)"
+ret=0
+(
+echo zone cdnskey-update.secure
+echo server 10.53.0.2 "$PORT"
+echo update delete cdnskey-update.secure CDNSKEY
+echo update add cdnskey-update.secure 0 CDNSKEY 0 3 0 AA==
+echo send
+) | $NSUPDATE > nsupdate.out.test$n 2>&1
+dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
+lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
+test "${lines:-10}" -eq 1 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking that unknown DNSKEY algorithm + unknown NSEC3 has algorithm validates as insecure ($n)"
 ret=0
 dig_with_opts +noauth +noadd +nodnssec +adflag @10.53.0.3 dnskey-nsec3-unknown.example A > dig.out.ns3.test$n
