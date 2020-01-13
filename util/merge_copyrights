@@ -35,6 +35,7 @@ while (<CHANGES>) {
 	       /CVS/ |		# CVS directory
 	       /\.git/ |		# git directory
 	       /\.gitignore |   # .gitignore files
+	       /\.gitattributes |   # .gitattributes files
 	       Makefile.in  |   # build system doesn't need to have copyright
 	       /m4/ |           # build system doesn't need to have copyright
 	       /configure   |   # build system doesn't need to have copyright
