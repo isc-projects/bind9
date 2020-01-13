@@ -3,6 +3,9 @@
 			in a given GeoIP2 database to one of the existing
 			entries in that database. [GL #1552]
 
+5338.	[bug]		Fix line spacing in `rndc secroots`.
+			Thanks to Tony Finch. [GL !2478]
+
 5337.	[func]		'named -V' now reports maxminddb and protobuf-c
 			versions. [GL !2686]
 
