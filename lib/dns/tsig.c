@@ -349,7 +349,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
  cleanup_refs:
 	tkey->magic = 0;
 	while (refs-- > 0) {
-		INSIST(isc_refcount_decrement(&tkey->refs) > 0);
+		isc_refcount_decrement(&tkey->refs);
 	}
 	isc_refcount_destroy(&tkey->refs);
 
@@ -431,6 +431,7 @@ cleanup_ring(dns_tsig_keyring_t *ring)
 
 static void
 destroyring(dns_tsig_keyring_t *ring) {
+	isc_refcount_destroy(&ring->references);
 	dns_rbt_destroy(&ring->keys);
 	isc_rwlock_destroy(&ring->lock);
 	isc_mem_putanddetach(&ring->mctx, ring, sizeof(dns_tsig_keyring_t));
@@ -614,14 +615,16 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 		node = NULL;
 		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
 		tkey = node->data;
-		if (tkey != NULL && tkey->generated && tkey->expire >= now)
+		if (tkey != NULL && tkey->generated && tkey->expire >= now) {
 			dump_key(tkey, fp);
+		}
 		result = dns_rbtnodechain_next(&chain, &foundname,
 					       origin);
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 			dns_rbtnodechain_invalidate(&chain);
-			if (result == ISC_R_NOMORE)
+			if (result == ISC_R_NOMORE) {
 				result = ISC_R_SUCCESS;
+			}
 			goto destroy;
 		}
 	}

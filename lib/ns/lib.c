@@ -68,7 +68,7 @@ ns_lib_init(void) {
 	if (!initialize_done)
 		return (ISC_R_FAILURE);
 
-	isc_refcount_increment(&references);
+	isc_refcount_increment0(&references);
 
 	return (ISC_R_SUCCESS);
 }
@@ -76,6 +76,7 @@ ns_lib_init(void) {
 void
 ns_lib_shutdown(void) {
 	if (isc_refcount_decrement(&references) == 1) {
+		isc_refcount_destroy(&references);
 		if (ns_g_mctx != NULL) {
 			isc_mem_detach(&ns_g_mctx);
 		}

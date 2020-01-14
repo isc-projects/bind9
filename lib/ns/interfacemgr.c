@@ -300,6 +300,8 @@ static void
 ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
+	isc_refcount_destroy(&mgr->references);
+
 #ifdef USE_ROUTE_SOCKET
 	if (mgr->route != NULL)
 		isc_socket_detach(&mgr->route);
@@ -338,7 +340,7 @@ ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr) {
 void
 ns_interfacemgr_attach(ns_interfacemgr_t *source, ns_interfacemgr_t **target) {
 	REQUIRE(NS_INTERFACEMGR_VALID(source));
-	INSIST(isc_refcount_increment(&source->references) > 0);
+	isc_refcount_increment(&source->references);
 	*target = source;
 }
 

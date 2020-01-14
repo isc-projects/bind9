@@ -1818,7 +1818,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 static inline void
 new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	INSIST(!ISC_LINK_LINKED(node, deadlink));
-	if (isc_refcount_increment(&node->references) == 0) {
+	if (isc_refcount_increment0(&node->references) == 0) {
 		/* this is the first reference to the node */
 		isc_refcount_increment0(&rbtdb->node_locks[node->locknum].references);
 	}
@@ -8322,7 +8322,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	rbtdb->next_serial = 2;
 	rbtdb->current_version = allocate_version(mctx, 1, 1, false);
 	if (rbtdb->current_version == NULL) {
-		INSIST(isc_refcount_decrement(&rbtdb->references) > 0);
+		isc_refcount_decrement(&rbtdb->references);
 		free_rbtdb(rbtdb, false, NULL);
 		return (ISC_R_NOMEMORY);
 	}
@@ -8343,7 +8343,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		isc_mem_put(mctx, rbtdb->current_version,
 			    sizeof(*rbtdb->current_version));
 		rbtdb->current_version = NULL;
-		INSIST(isc_refcount_decrement(&rbtdb->references) > 0);
+		isc_refcount_decrement(&rbtdb->references);
 		free_rbtdb(rbtdb, false, NULL);
 		return (result);
 	}

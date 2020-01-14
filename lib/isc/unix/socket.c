@@ -1933,7 +1933,7 @@ free_socket(isc__socket_t **socketp) {
 	isc__socket_t *sock = *socketp;
 
 	INSIST(VALID_SOCKET(sock));
-	INSIST(isc_refcount_current(&sock->references) == 0);
+	isc_refcount_destroy(&sock->references);
 	LOCK(&sock->lock);
 	INSIST(!sock->connecting);
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
@@ -2489,7 +2489,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		abort();
 	}
 	sock->threadid = gen_threadid(sock);
-	isc_refcount_increment(&sock->references);
+	isc_refcount_increment0(&sock->references);
 	thread = &manager->threads[sock->threadid];
 	*socketp = (isc_socket_t *)sock;
 
@@ -3149,7 +3149,7 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 		return;
 	}
 
-	if (isc_refcount_increment(&sock->references) == 0) {
+	if (isc_refcount_increment0(&sock->references) == 0) {
 		/*
 		 * Sock is being closed, it will be destroyed, bail.
 		 */
@@ -4678,7 +4678,7 @@ isc_socket_accept(isc_socket_t *sock0,
 		UNLOCK(&sock->lock);
 		return (ISC_R_SHUTTINGDOWN);
 	}
-	isc_refcount_increment(&nsock->references);
+	isc_refcount_increment0(&nsock->references);
 	nsock->statsindex = sock->statsindex;
 
 	dev->ev_sender = ntask;

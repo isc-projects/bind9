@@ -314,8 +314,6 @@ cleanup_filelock:
 
 static void
 cache_free(dns_cache_t *cache) {
-	int i;
-
 	REQUIRE(VALID_CACHE(cache));
 
 	isc_refcount_destroy(&cache->references);
@@ -359,10 +357,9 @@ cache_free(dns_cache_t *cache) {
 		if (strcmp(cache->db_type, "rbt") == 0) {
 			extra = 1;
 		}
-		for (i = extra; i < cache->db_argc; i++) {
+		for (int i = extra; i < cache->db_argc; i++) {
 			if (cache->db_argv[i] != NULL) {
-				isc_mem_free(cache->mctx,
-					     cache->db_argv[i]);
+				isc_mem_free(cache->mctx, cache->db_argv[i]);
 			}
 		}
 		isc_mem_put(cache->mctx, cache->db_argv,

@@ -371,15 +371,12 @@ asyncload(dns_zone_t *zone, void *zt_) {
 	result = dns_zone_asyncload(zone, zt->loadparams->newonly,
 				    *zt->loadparams->dl, zt);
 	if (result != ISC_R_SUCCESS) {
-		uint_fast32_t oldref;
 		/*
 		 * Caller is holding a reference to zt->loads_pending
 		 * and zt->references so these can't decrement to zero.
 		 */
-		oldref = isc_refcount_decrement(&zt->loads_pending);
-		INSIST(oldref > 1);
-		oldref = isc_refcount_decrement(&zt->references);
-		INSIST(oldref > 1);
+		INSIST(isc_refcount_decrement(&zt->loads_pending) > 1);
+		INSIST(isc_refcount_decrement(&zt->references) > 1);
 	}
 	return (ISC_R_SUCCESS);
 }

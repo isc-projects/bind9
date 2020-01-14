@@ -982,11 +982,11 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 #if ISC_MEM_TRACKLINES
-	if (isc_refcount_decrement(&ctx->references) != 1) {
+	if (isc_refcount_decrement(&ctx->references) > 1) {
 		print_active(ctx, stderr);
 	}
 #else
-	INSIST(isc_refcount_decrement(&ctx->references) == 1);
+	isc_refcount_decrement(&ctx->references);
 #endif
 	isc_refcount_destroy(&ctx->references);
 	destroy(ctx);

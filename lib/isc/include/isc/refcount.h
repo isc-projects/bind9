@@ -52,15 +52,15 @@ typedef atomic_uint_fast32_t isc_refcount_t;
  *   atomic_load_explicit() by casting to uint_fast32_t.
  */
 
-#define isc_refcount_current(target)				\
-	(uint_fast32_t)atomic_load_explicit(target, memory_order_acquire)
+#define isc_refcount_current(target)					\
+	(uint_fast32_t)atomic_load_acquire(target)
 
 /** \def isc_refcount_destroy(ref)
  *  \brief a destructor that makes sure that all references were cleared.
  *  \param[in] ref pointer to reference counter.
  *  \returns nothing.
  */
-#define isc_refcount_destroy(target)				\
+#define isc_refcount_destroy(target)					\
 	ISC_REQUIRE(isc_refcount_current(target) == 0)
 
 /** \def isc_refcount_increment0(ref)
@@ -68,23 +68,71 @@ typedef atomic_uint_fast32_t isc_refcount_t;
  *  \param[in] ref pointer to reference counter.
  *  \returns previous value of reference counter.
  */
-#define isc_refcount_increment0(target)				\
-	isc_refcount_increment(target)
+#if _MSC_VER
+static inline uint_fast32_t
+isc_refcount_increment0(isc_refcount_t *target) {
+	uint_fast32_t __v;
+	__v = (uint_fast32_t)atomic_fetch_add_relaxed(target, 1);
+	INSIST(__v < UINT32_MAX);
+	return (__v);
+}
+#else /* _MSC_VER */
+#define isc_refcount_increment0(target)					\
+	({								\
+		/* cppcheck-suppress shadowVariable */			\
+		uint_fast32_t __v;					\
+		__v = atomic_fetch_add_relaxed(target, 1);		\
+		INSIST(__v < UINT32_MAX);				\
+		__v;							\
+	})
+#endif /* _MSC_VER */
 
 /** \def isc_refcount_increment(ref)
  *  \brief increases reference counter by 1.
  *  \param[in] ref pointer to reference counter.
  *  \returns previous value of reference counter.
  */
-#define isc_refcount_increment(target)				\
-	atomic_fetch_add_explicit(target, 1, memory_order_relaxed)
+#if _MSC_VER
+static inline uint_fast32_t
+isc_refcount_increment(isc_refcount_t *target) {
+	uint_fast32_t __v;
+	__v = (uint_fast32_t)atomic_fetch_add_relaxed(target, 1);
+	INSIST(__v > 0 && __v < UINT32_MAX);
+	return(__v);
+}
+#else /* _MSC_VER */
+#define isc_refcount_increment(target)					\
+	({								\
+		/* cppcheck-suppress shadowVariable */			\
+		uint_fast32_t __v;					\
+		__v = atomic_fetch_add_relaxed(target, 1);		\
+		INSIST(__v > 0 && __v < UINT32_MAX);			\
+		__v;							\
+	})
+#endif /* _MSC_VER */
 
 /** \def isc_refcount_decrement(ref)
  *  \brief decreases reference counter by 1.
  *  \param[in] ref pointer to reference counter.
  *  \returns previous value of reference counter.
  */
-#define isc_refcount_decrement(target)				\
-	atomic_fetch_sub_explicit(target, 1, memory_order_release)
+#if _MSC_VER
+static inline uint_fast32_t
+isc_refcount_decrement(isc_refcount_t *target) {
+		uint_fast32_t __v;
+		__v = (uint_fast32_t)atomic_fetch_sub_release(target, 1);
+		INSIST(__v > 0);
+		return(__v);
+}
+#else /* _MSC_VER */
+#define isc_refcount_decrement(target)					\
+	({								\
+		/* cppcheck-suppress shadowVariable */			\
+		uint_fast32_t __v;					\
+		__v = atomic_fetch_sub_release(target, 1);		\
+		INSIST(__v > 0);					\
+		__v;							\
+	})
+#endif /* _MSC_VER */
 
 ISC_LANG_ENDDECLS

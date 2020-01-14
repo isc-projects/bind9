@@ -215,7 +215,7 @@ static dns_dispatch_t *dispatch = NULL;
 static dns_dispentry_t *dispentry = NULL;
 static atomic_bool first = ATOMIC_VAR_INIT(true);
 static isc_sockaddr_t local;
-static isc_refcount_t responses;
+static atomic_uint_fast32_t responses;
 
 static void
 response(isc_task_t *task, isc_event_t *event) {
@@ -224,7 +224,7 @@ response(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	isc_refcount_increment(&responses);
+	atomic_fetch_add_relaxed(&responses, 1);
 	if (atomic_compare_exchange_strong(&first, &exp_true, false)) {
 		isc_result_t result = dns_dispatch_getnext(dispentry, &devent);
 		assert_int_equal(result, ISC_R_SUCCESS);
@@ -261,7 +261,7 @@ dispatch_getnext(void **state) {
 
 	UNUSED(state);
 
-	isc_refcount_init(&responses, 0);
+	atomic_init(&responses, 0);
 
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -313,7 +313,7 @@ dispatch_getnext(void **state) {
 	result = isc_app_run();
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	assert_int_equal(isc_refcount_current(&responses), 2);
+	assert_int_equal(atomic_load_acquire(&responses), 2);
 
 	/*
 	 * Shutdown nameserver.

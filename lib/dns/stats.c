@@ -125,6 +125,7 @@ dns_stats_detach(dns_stats_t **statsp) {
 	*statsp = NULL;
 
 	if (isc_refcount_decrement(&stats->references) == 1) {
+		isc_refcount_destroy(&stats->references);
 		isc_stats_detach(&stats->counters);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 	}
