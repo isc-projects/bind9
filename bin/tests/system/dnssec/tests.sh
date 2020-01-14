@@ -3699,7 +3699,15 @@ $DIG $DIGOPTS . dnskey +ednsopt=KEY-TAG:fffe +ednsopt=KEY-TAG:fffd @10.53.0.1 > 
 grep "trust-anchor-telemetry './IN' from .* 65534" ns1/named.run > /dev/null || ret=1
 grep "trust-anchor-telemetry './IN' from .* 65533" ns1/named.run > /dev/null && ret=1
 $PERL $SYSTEMTESTTOP/stop.pl dnssec ns1 || ret=1
+nextpart ns1/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} dnssec ns1 || ret=1
+n=`expr $n + 1`
+test "$ret" -eq 0 || echo_i "failed"
+status=`expr $status + $ret`
+
+echo_i "waiting for root server to finish reloading ($n)"
+ret=0
+wait_for_log "all zones loaded" ns1/named.run || ret=1
 n=`expr $n + 1`
 test "$ret" -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
