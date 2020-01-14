@@ -2098,6 +2098,31 @@ new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 }
 
 /*%
+ * The tree lock must be held for the result to be valid.
+ */
+static inline bool
+is_leaf(dns_rbtnode_t *node) {
+	return (node->parent != NULL && node->parent->down == node &&
+		node->left == NULL && node->right == NULL);
+}
+
+static inline void
+send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
+	isc_event_t *ev;
+	dns_db_t *db;
+
+	ev = isc_event_allocate(rbtdb->common.mctx, NULL,
+				DNS_EVENT_RBTPRUNE,
+				prune_tree, node,
+				sizeof(isc_event_t));
+	new_reference(rbtdb, node);
+	db = NULL;
+	attach((dns_db_t *)rbtdb, &db);
+	ev->ev_sender = db;
+	isc_task_send(rbtdb->task, &ev);
+}
+
+/*%
  * Clean up dead nodes.  These are nodes which have no references, and
  * have no data.  They are dead but we could not or chose not to delete
  * them when we deleted all the data at that node because we did not want
@@ -2117,33 +2142,29 @@ cleanup_dead_nodes(dns_rbtdb_t *rbtdb, int bucketnum) {
 		/*
 		 * Since we're holding a tree write lock, it should be
 		 * impossible for this node to be referenced by others.
+		 *
+		 * decrement_reference may not have tested node->down, as
+		 * the tree_lock was not held, before adding the node to
+		 * deadnodes so we test it here.
 		 */
 		INSIST(dns_rbtnode_refcurrent(node) == 0 &&
 		       node->data == NULL);
 
-		if (node->parent != NULL &&
-		    node->parent->down == node && node->left == NULL &&
-		    node->right == NULL && rbtdb->task != NULL)
-		{
-			isc_event_t *ev;
-			dns_db_t *db;
-
-			ev = isc_event_allocate(rbtdb->common.mctx, NULL,
-						DNS_EVENT_RBTPRUNE,
-						prune_tree, node,
-						sizeof(isc_event_t));
-			if (ev != NULL) {
-				new_reference(rbtdb, node);
-				db = NULL;
-				attach((dns_db_t *)rbtdb, &db);
-				ev->ev_sender = db;
-				isc_task_send(rbtdb->task, &ev);
-			} else {
-				ISC_LIST_APPEND(rbtdb->deadnodes[bucketnum],
-						node, deadlink);
-			}
-		} else {
+		if (is_leaf(node) && rbtdb->task != NULL) {
+			send_to_prune_tree(rbtdb, node);
+		} else if (node->down == NULL && node->data == NULL) {
+			/*
+			 * Not a interior node and not needing to be
+			 * reactivated.
+			 */
 			delete_node(rbtdb, node);
+		} else if (node->data == NULL) {
+			/*
+			 * A interior node without data. Leave linked to
+			 * to be cleaned up when node->down becomes NULL.
+			 */
+			ISC_LIST_APPEND(rbtdb->deadnodes[bucketnum],
+					node, deadlink);
 		}
 		node = ISC_LIST_HEAD(rbtdb->deadnodes[bucketnum]);
 		count--;
@@ -2225,6 +2246,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 {
 	isc_result_t result;
 	bool write_locked;
+	bool locked = tlock != isc_rwlocktype_none;
 	rbtdb_nodelock_t *nodelock;
 	unsigned int refs, nrefs;
 	int bucket = node->locknum;
@@ -2232,19 +2254,21 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 	nodelock = &rbtdb->node_locks[bucket];
 
-#define KEEP_NODE(n, r) \
-	((n)->data != NULL || (n)->down != NULL || \
+#define KEEP_NODE(n, r, l) \
+	((n)->data != NULL || ((l) && (n)->down != NULL) || \
 	 (n) == (r)->origin_node || (n) == (r)->nsec3_origin_node)
 
 	/* Handle easy and typical case first. */
-	if (!node->dirty && KEEP_NODE(node, rbtdb)) {
+	if (!node->dirty && KEEP_NODE(node, rbtdb, locked)) {
 		dns_rbtnode_refdecrement(node, &nrefs);
 		INSIST((int)nrefs >= 0);
 		if (nrefs == 0) {
 			isc_refcount_decrement(&nodelock->references, &refs);
 			INSIST((int)refs >= 0);
+			return (true);
+		} else {
+			return (false);
 		}
-		return ((nrefs == 0) ? true : false);
 	}
 
 	/* Upgrade the lock? */
@@ -2306,8 +2330,9 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	isc_refcount_decrement(&nodelock->references, &refs);
 	INSIST((int)refs >= 0);
 
-	if (KEEP_NODE(node, rbtdb))
+	if (KEEP_NODE(node, rbtdb, locked || write_locked)) {
 		goto restore_locks;
+	}
 
 #undef KEEP_NODE
 
@@ -2332,44 +2357,9 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		 * it's their responsibility to purge stale leaves (e.g. by
 		 * periodic walk-through).
 		 */
-		if (!pruning && node->parent != NULL &&
-		    node->parent->down == node && node->left == NULL &&
-		    node->right == NULL && rbtdb->task != NULL) {
-			isc_event_t *ev;
-			dns_db_t *db;
-
-			ev = isc_event_allocate(rbtdb->common.mctx, NULL,
-						DNS_EVENT_RBTPRUNE,
-						prune_tree, node,
-						sizeof(isc_event_t));
-			if (ev != NULL) {
-				new_reference(rbtdb, node);
-				db = NULL;
-				attach((dns_db_t *)rbtdb, &db);
-				ev->ev_sender = db;
-				isc_task_send(rbtdb->task, &ev);
-				no_reference = false;
-			} else {
-				/*
-				 * XXX: this is a weird situation.  We could
-				 * ignore this error case, but then the stale
-				 * node will unlikely be purged except via a
-				 * rare condition such as manual cleanup.  So
-				 * we queue it in the deadnodes list, hoping
-				 * the memory shortage is temporary and the node
-				 * will be deleted later.
-				 */
-				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_DATABASE,
-					      DNS_LOGMODULE_CACHE,
-					      ISC_LOG_INFO,
-					      "decrement_reference: failed to "
-					      "allocate pruning event");
-				INSIST(node->data == NULL);
-				INSIST(!ISC_LINK_LINKED(node, deadlink));
-				ISC_LIST_APPEND(rbtdb->deadnodes[bucket], node,
-						deadlink);
-			}
+		if (!pruning && is_leaf(node) && rbtdb->task != NULL) {
+			send_to_prune_tree(rbtdb, node);
+			no_reference = false;
 		} else {
 			delete_node(rbtdb, node);
 		}
