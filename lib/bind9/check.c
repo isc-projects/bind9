@@ -3593,64 +3593,6 @@ record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx, const cfg_obj_t *keylist)
 	return (ret);
 }
 
-static isc_result_t
-check_non_ds_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
-		  isc_log_t *logctx)
-{
-	isc_result_t result, ret = ISC_R_SUCCESS;
-	const cfg_listelt_t *elt;
-	dns_fixedname_t fixed;
-	dns_name_t *name;
-	char namebuf[DNS_NAME_FORMATSIZE];
-
-	name = dns_fixedname_initname(&fixed);
-
-	for (elt = cfg_list_first(keylist);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
-		const cfg_obj_t *obj = cfg_listelt_value(elt);
-		const cfg_obj_t *init = NULL;
-		const char *str;
-		isc_symvalue_t symvalue;
-
-		init = cfg_tuple_get(obj, "anchortype");
-		if (cfg_obj_isvoid(init) ||
-		    strcasecmp(cfg_obj_asstring(init), "static-ds") == 0 ||
-		    strcasecmp(cfg_obj_asstring(init), "initial-ds") == 0)
-		{
-			/* DS-style entry, skip it */
-			continue;
-		}
-
-		str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
-		result = dns_name_fromstring(name, str, 0, NULL);
-		if (result != ISC_R_SUCCESS) {
-			continue;
-		}
-
-		dns_name_format(name, namebuf, sizeof(namebuf));
-		result = isc_symtab_lookup(symtab, namebuf, 1, &symvalue);
-		if (result == ISC_R_SUCCESS) {
-			const char *file = cfg_obj_file(symvalue.as_cpointer);
-			unsigned int line = cfg_obj_line(symvalue.as_cpointer);
-			if (file == NULL) {
-				file = "<unknown file>";
-			}
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "ds-style and key-style keys "
-				    "cannot be used for the "
-				    "same domain. "
-				    "ds-style defined at "
-				    "%s:%u", file, line);
-
-			ret = ISC_R_FAILURE;
-		}
-	}
-
-	return (ret);
-}
-
 /*
  * Check for conflicts between static and initialiizing keys.
  */
@@ -3739,8 +3681,7 @@ check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 
 	/*
 	 * Next, ensure that there's no conflict between the
-	 * static keys and the trust-anchors configured with "initial-key",
-	 * or between DS-style and DNSKEY-style trust-anchors.
+	 * static keys and the trust-anchors configured with "initial-key".
 	 */
 	for (elt = cfg_list_first(global_ta);
 	     elt != NULL;
@@ -3748,11 +3689,6 @@ check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 	{
 		keylist = cfg_listelt_value(elt);
 		tresult = check_initializing_keys(statictab, keylist, logctx);
-		if (result == ISC_R_SUCCESS) {
-			result = tresult;
-		}
-
-		tresult = check_non_ds_keys(dstab, keylist, logctx);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3764,11 +3700,6 @@ check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 	{
 		keylist = cfg_listelt_value(elt);
 		tresult = check_initializing_keys(statictab, keylist, logctx);
-		if (result == ISC_R_SUCCESS) {
-			result = tresult;
-		}
-
-		tresult = check_non_ds_keys(dstab, keylist, logctx);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
