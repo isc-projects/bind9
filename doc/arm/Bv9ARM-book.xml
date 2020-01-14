@@ -10986,8 +10986,7 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	  <para>
 	    It is not possible to mix static with initial trust anchors
-	    for the same domain name. It is also not possible to mix
-	    <command>key</command> with <command>ds</command> trust anchors.
+	    for the same domain name.
 	  </para>
 	  <para>
 	    The first time <command>named</command> runs with an

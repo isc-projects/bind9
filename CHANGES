@@ -1,3 +1,6 @@
+5345.	[func]		Key-style trust anchors and DS-style trust anchors
+			can now both be used for the same name. [GL !2892]
+
 5344.	[bug]		Handle accept() errors properly in netmgr. [GL !2880]
 
 5343.	[func]		Add statistics counters to the netmgr. [GL #1311]
