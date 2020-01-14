@@ -1221,7 +1221,7 @@ dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now,
 
 void
 dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
-		 dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx);
+		 dns_rdata_dnskey_t *dnskey);
 /*%<
  * Remove keys that match 'keyname' and 'dnskey' from the views trust
  * anchors.
@@ -1235,7 +1235,6 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
  * Requires:
  * \li	'view' is valid.
  * \li	'keyname' is valid.
- * \li	'mctx' is valid.
  * \li	'dnskey' is valid.
  */
 

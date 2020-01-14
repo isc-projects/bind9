@@ -18,6 +18,7 @@
 #include <isc/atomic.h>
 #include <isc/file.h>
 #include <isc/hex.h>
+#include <isc/md.h>
 #include <isc/mutex.h>
 #include <isc/pool.h>
 #include <isc/print.h>
@@ -3857,12 +3858,9 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	isc_stdtime_get(&now);
 
 	/*
-	 * If the keynode has neither a key nor a DS RRset,
-	 * we shouldn't be here.
+	 * If the keynode has no trust anchor set, we shouldn't be here.
 	 */
-	if (dns_keynode_key(keynode) == NULL &&
-	    dns_keynode_dsset(keynode) == NULL)
-	{
+	if (dns_keynode_dsset(keynode) == NULL) {
 		return (ISC_R_FAILURE);
 	}
 
@@ -3945,35 +3943,34 @@ compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
  */
 static void
 trust_key(dns_zone_t *zone, dns_name_t *keyname,
-	  dns_rdata_dnskey_t *dnskey, bool initial,
-	  isc_mem_t *mctx)
+	  dns_rdata_dnskey_t *dnskey, bool initial)
 {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char data[4096];
+	unsigned char data[4096], digest[ISC_MAX_MD_SIZE];
 	isc_buffer_t buffer;
 	dns_keytable_t *sr = NULL;
-	dst_key_t *dstkey = NULL;
+	dns_rdata_ds_t ds;
 
-	/* Convert dnskey to DST key. */
+	result = dns_view_getsecroots(zone->view, &sr);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+
+	/* Build DS record for key. */
 	isc_buffer_init(&buffer, data, sizeof(data));
 	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
 			     dns_rdatatype_dnskey, dnskey, &buffer);
+	CHECK(dns_ds_fromkeyrdata(keyname, &rdata, DNS_DSDIGEST_SHA256,
+				  digest, &ds));
+	CHECK(dns_keytable_add(sr, true, initial, keyname, &ds));
 
-	result = dns_view_getsecroots(zone->view, &sr);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
-	CHECK(dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &dstkey));
-	CHECK(dns_keytable_add(sr, true, initial,
-			       dst_key_name(dstkey), &dstkey, NULL));
 	dns_keytable_detach(&sr);
 
   failure:
-	if (dstkey != NULL)
-		dst_key_free(&dstkey);
-	if (sr != NULL)
+	if (sr != NULL) {
 		dns_keytable_detach(&sr);
+	}
 	return;
 }
 
@@ -4003,7 +4000,6 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_keydata_t keydata;
 	dns_rdata_dnskey_t dnskey;
-	isc_mem_t *mctx = zone->mctx;
 	int trusted = 0, revoked = 0, pending = 0;
 	isc_stdtime_t now;
 	dns_keytable_t *sr = NULL;
@@ -4054,7 +4050,7 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 		/* Add to keytables. */
 		trusted++;
-		trust_key(zone, name, &dnskey, (keydata.addhd == 0), mctx);
+		trust_key(zone, name, &dnskey, (keydata.addhd == 0));
 	}
 
 	if (trusted == 0 && pending != 0) {
@@ -4265,12 +4261,9 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	}
 
 	/*
-	 * If the keynode has neither a key-style nor a DS-style
-	 * trust anchor, return.
+	 * If the keynode has no trust anchor set, return.
 	 */
-	if (dns_keynode_dsset(keynode) == NULL &&
-	    dns_keynode_key(keynode) == NULL)
-	{
+	if (dns_keynode_dsset(keynode) == NULL) {
 		return;
 	}
 
@@ -9823,8 +9816,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * If the first keynode has a DS trust anchor, use that for
-	 * verification.
+	 * If the keynode has a DS trust anchor, use it for verification.
 	 */
 	if ((dsset = dns_keynode_dsset(keynode)) != NULL) {
 		for (result = dns_rdataset_first(dnskeysigs);
@@ -9896,74 +9888,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				secure = true;
 				break;
 			}
-		}
-		goto anchors_done;
-	} else {
-		dns_keytable_detachkeynode(secroots, &keynode);
-	}
-
-	/*
-	 * Validate the DNSKEY set against using the key-style
-	 * trust anchor(s).
-	 */
-	for (result = dns_rdataset_first(dnskeysigs);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(dnskeysigs))
-	{
-		result = dns_keytable_find(secroots, keyname, &keynode);
-		if (result != ISC_R_SUCCESS) {
-			goto anchors_done;
-		}
-		dns_rdata_reset(&sigrr);
-		dns_rdataset_current(dnskeysigs, &sigrr);
-		result = dns_rdata_tostruct(&sigrr, &sig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		result = ISC_R_SUCCESS;
-		while (result == ISC_R_SUCCESS) {
-			dns_keynode_t *nextnode = NULL;
-
-			dstkey = dns_keynode_key(keynode);
-			if (dstkey == NULL) {
-				/* fail_secure() was called */
-				break;
-			}
-
-			if (dst_key_alg(dstkey) == sig.algorithm &&
-			    dst_key_id(dstkey) == sig.keyid)
-			{
-				result = dns_dnssec_verify(keyname, dnskeys,
-							   dstkey, false, 0,
-							   mctx, &sigrr, NULL);
-
-				dnssec_log(zone, ISC_LOG_DEBUG(3),
-					   "Verifying DNSKEY set "
-					   "for zone '%s' "
-					   "using key %d/%d: %s",
-					   namebuf, sig.keyid,
-					   sig.algorithm,
-					   dns_result_totext(result));
-
-				if (result == ISC_R_SUCCESS) {
-					dnskeys->trust = dns_trust_secure;
-					dnskeysigs->trust = dns_trust_secure;
-					secure = true;
-					initial = dns_keynode_initial(keynode);
-					dns_keynode_trust(keynode);
-					break;
-				}
-			}
-
-			result = dns_keytable_nextkeynode(secroots, keynode,
-							  &nextnode);
-			if (result == ISC_R_SUCCESS) {
-				dns_keytable_detachkeynode(secroots, &keynode);
-				keynode = nextnode;
-			}
-		}
-		dns_keytable_detachkeynode(secroots, &keynode);
-		if (secure) {
-			break;
 		}
 	}
 
@@ -10173,7 +10097,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					 * Remove key from secroots.
 					 */
 					dns_view_untrust(zone->view, keyname,
-							 &dnskey, mctx);
+							 &dnskey);
 
 					/* If initializing, delete now */
 					if (keydata.addhd == 0) {
@@ -10346,7 +10270,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			/* Trust this key. */
 			result = dns_rdata_tostruct(&dnskeyrr, &dnskey, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			trust_key(zone, keyname, &dnskey, false, mctx);
+			trust_key(zone, keyname, &dnskey, false);
 		}
 
 		if (secure && !deletekey) {

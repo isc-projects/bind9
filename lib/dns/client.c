@@ -14,6 +14,7 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/portset.h>
@@ -1498,6 +1499,7 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	dns_keytable_t *secroots = NULL;
 	dns_name_t *name = NULL;
 	char dsbuf[DNS_DS_BUFFERSIZE];
+	unsigned char digest[ISC_MAX_MD_SIZE];
 	dns_rdata_ds_t ds;
 	dns_decompress_t dctx;
 	dns_rdata_t rdata;
@@ -1515,32 +1517,27 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 
 	DE_CONST(keyname, name);
 
-	switch (rdtype) {
-	case dns_rdatatype_dnskey:
-		result = dst_key_fromdns(keyname, rdclass, databuf,
-					 client->mctx, &dstkey);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-		CHECK(dns_keytable_add(secroots, false, false,
-				       name, &dstkey, NULL));
-		break;
-	case dns_rdatatype_ds:
-		isc_buffer_init(&b, dsbuf, sizeof(dsbuf));
-		dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
-		dns_rdata_init(&rdata);
-		isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
-		CHECK(dns_rdata_fromwire(&rdata, rdclass, rdtype,
-					 databuf, &dctx, 0, &b));
-		dns_decompress_invalidate(&dctx);
-		CHECK(dns_rdata_tostruct(&rdata, &ds, NULL));
-		CHECK(dns_keytable_add(secroots, false, false,
-				       name, NULL, &ds));
-		break;
-
-	default:
+	if (rdtype != dns_rdatatype_dnskey && rdtype != dns_rdatatype_ds) {
 		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
 	}
+
+	isc_buffer_init(&b, dsbuf, sizeof(dsbuf));
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
+	dns_rdata_init(&rdata);
+	isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
+	CHECK(dns_rdata_fromwire(&rdata, rdclass, rdtype,
+				 databuf, &dctx, 0, &b));
+	dns_decompress_invalidate(&dctx);
+
+	if (rdtype == dns_rdatatype_ds) {
+		CHECK(dns_rdata_tostruct(&rdata, &ds, NULL));
+	} else {
+		CHECK(dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256,
+					  digest, &ds));
+	}
+
+	CHECK(dns_keytable_add(secroots, false, false, name, &ds));
 
  cleanup:
 	if (dstkey != NULL) {

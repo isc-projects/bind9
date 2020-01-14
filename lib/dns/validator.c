@@ -533,6 +533,7 @@ fetch_callback_ds(isc_task_t *task, isc_event_t *event) {
 				      "dsset with trust %s",
 				      dns_trust_totext(rdataset->trust));
 			val->dsset = &val->frdataset;
+			INSIST(val->keynode == NULL);
 			result = validate_dnskey(val);
 			if (result != DNS_R_WAIT) {
 				validator_done(val, result);
@@ -1356,22 +1357,12 @@ compute_keytag(dns_rdata_t *rdata) {
  */
 static bool
 selfsigned_dnskey(dns_validator_t *val) {
-	dns_rdataset_t *rdataset, *sigrdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_t sigrdata = DNS_RDATA_INIT;
-	dns_rdata_dnskey_t key;
-	dns_rdata_rrsig_t sig;
-	dns_keytag_t keytag;
-	dns_name_t *name;
+	dns_rdataset_t *rdataset = val->event->rdataset;
+	dns_rdataset_t *sigrdataset = val->event->sigrdataset;
+	dns_name_t *name = val->event->name;
 	isc_result_t result;
-	dst_key_t *dstkey;
-	isc_mem_t *mctx;
+	isc_mem_t *mctx = val->view->mctx;
 	bool answer = false;
-
-	rdataset = val->event->rdataset;
-	sigrdataset = val->event->sigrdataset;
-	name = val->event->name;
-	mctx = val->view->mctx;
 
 	if (rdataset->type != dns_rdatatype_dnskey) {
 		return (false);
@@ -1381,15 +1372,24 @@ selfsigned_dnskey(dns_validator_t *val) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))
 	{
-		dns_rdata_reset(&rdata);
-		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &key, NULL);
+		dns_rdata_t keyrdata = DNS_RDATA_INIT;
+		dns_rdata_t sigrdata = DNS_RDATA_INIT;
+		dns_rdata_dnskey_t key;
+		dns_rdata_rrsig_t sig;
+		dns_keytag_t keytag;
+
+		dns_rdata_reset(&keyrdata);
+		dns_rdataset_current(rdataset, &keyrdata);
+		result = dns_rdata_tostruct(&keyrdata, &key, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		keytag = compute_keytag(&rdata);
+		keytag = compute_keytag(&keyrdata);
+
 		for (result = dns_rdataset_first(sigrdataset);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(sigrdataset))
 		{
+			dst_key_t *dstkey = NULL;
+
 			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(sigrdataset, &sigrdata);
 			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
@@ -1402,8 +1402,7 @@ selfsigned_dnskey(dns_validator_t *val) {
 				continue;
 			}
 
-			dstkey = NULL;
-			result = dns_dnssec_keyfromrdata(name, &rdata, mctx,
+			result = dns_dnssec_keyfromrdata(name, &keyrdata, mctx,
 							 &dstkey);
 			if (result != ISC_R_SUCCESS) {
 				continue;
@@ -1417,11 +1416,13 @@ selfsigned_dnskey(dns_validator_t *val) {
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}
+
 			if ((key.flags & DNS_KEYFLAG_REVOKE) == 0) {
 				answer = true;
 				continue;
 			}
-			dns_view_untrust(val->view, name, &key, mctx);
+
+			dns_view_untrust(val->view, name, &key);
 		}
 	}
 
@@ -1678,118 +1679,16 @@ check_signer(dns_validator_t *val, dns_rdata_t *keyrdata,
 			break;
 		}
 	}
+
 	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
-	}
-	return (result);
-}
-
-static isc_result_t
-anchor_signed(dns_validator_t *val, isc_result_t *resp) {
-	isc_result_t result;
-	bool atsep = false;
-
-	/*
-	 * First, see if this key was signed by a trust anchor.
-	 */
-	for (result = dns_rdataset_first(val->event->sigrdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(val->event->sigrdataset))
-	{
-		dns_keynode_t *keynode = NULL;
-		dns_rdata_t sigrdata = DNS_RDATA_INIT;
-		dns_fixedname_t fixed;
-		dns_name_t *found;
-		dst_key_t *dstkey;
-		dns_rdata_rrsig_t sig;
-
-		found = dns_fixedname_initname(&fixed);
-		dns_rdata_reset(&sigrdata);
-		dns_rdataset_current(val->event->sigrdataset, &sigrdata);
-		result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		if (!dns_name_equal(val->event->name, &sig.signer)) {
-			continue;
-		}
-
-		result = dns_keytable_findkeynode(val->keytable,
-						  val->event->name,
-						  sig.algorithm, sig.keyid,
-						  &keynode);
-		if (result == ISC_R_NOTFOUND) {
-			result = dns_keytable_finddeepestmatch(val->keytable,
-							       val->event->name,
-							       found);
-			if (result != ISC_R_SUCCESS) {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "not beneath secure root");
-				*resp = markanswer(val, "validate_dnskey (1)",
-						   "not beneath secure root");
-				return (ISC_R_COMPLETE);
-			}
-			continue;
-		}
-
-		if (result == DNS_R_PARTIALMATCH || result == ISC_R_SUCCESS) {
-			atsep = true;
-		}
-
-		while (result == ISC_R_SUCCESS) {
-			dns_keynode_t *nextnode = NULL;
-			dstkey = dns_keynode_key(keynode);
-			if (dstkey == NULL) {
-				dns_keytable_detachkeynode(val->keytable,
-							   &keynode);
-				break;
-			}
-
-			result = verify(val, dstkey, &sigrdata, sig.keyid);
-			if (result == ISC_R_SUCCESS) {
-				dns_keytable_detachkeynode(val->keytable,
-							   &keynode);
-				break;
-			}
-
-			result = dns_keytable_findnextkeynode(val->keytable,
-							      keynode,
-							      &nextnode);
-			dns_keytable_detachkeynode(val->keytable, &keynode);
-			keynode = nextnode;
-		}
-
-		if (result == ISC_R_SUCCESS) {
-			marksecure(val->event);
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "signed by trusted key; "
-				      "marking as secure");
-			*resp = result;
-			return (ISC_R_COMPLETE);
-		}
-	}
-
-	if (atsep) {
-		/*
-		 * We have not found a key to verify this DNSKEY
-		 * RRset, but there is a trust anchor defined for this
-		 * name, so we have to assume that the RRset is invalid.
-		 */
-		char namebuf[DNS_NAME_FORMATSIZE];
-
-		dns_name_format(val->event->name, namebuf, sizeof(namebuf));
-		validator_log(val, ISC_LOG_NOTICE,
-			      "unable to find a DNSKEY which verifies "
-			      "the DNSKEY RRset and also matches a "
-			      "trusted key for '%s'", namebuf);
-		*resp = DNS_R_NOVALIDKEY;
-		return (ISC_R_COMPLETE);
 	}
 
 	return (result);
 }
 
 /*
- * get_dsset is called to look up a DS RRset corresponding to the name
+ * get_dsset() is called to look up a DS RRset corresponding to the name
  * of a DNSKEY record, either in the cache or, if necessary, by starting a
  * fetch. This is done in the context of validating a zone key to build a
  * trust chain.
@@ -1812,6 +1711,7 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 		 * We have a DS RRset.
 		 */
 		val->dsset = &val->frdataset;
+		INSIST(val->keynode == NULL);
 		if ((DNS_TRUST_PENDING(val->frdataset.trust) ||
 		     DNS_TRUST_ANSWER(val->frdataset.trust)) &&
 		    dns_rdataset_isassociated(&val->fsigrdataset))
@@ -1918,43 +1818,42 @@ validate_dnskey(dns_validator_t *val) {
 	}
 
 	/*
-	 * If that didn't work, see if there's a key-style trust anchor we
-	 * can validate against. If not, look up the DS at the parent.
+	 * No trust anchor for this name, so we look up the DS at the parent.
 	 */
 	if (val->dsset == NULL) {
 		isc_result_t tresult = ISC_R_SUCCESS;
 
 		/*
-		 * First, check whether the key to be validated was
-		 * signed by a trust anchor.
-		 */
-		result = anchor_signed(val, &tresult);
-		if (result == ISC_R_COMPLETE) {
-			return (tresult);
-		}
-
-		/*
-		 * If this is the root name and there was no trusted key,
+		 * If this is the root name and there was no trust anchor,
 		 * we can give up now, since there's no DS at the root.
 		 */
 		if (dns_name_equal(val->event->name, dns_rootname)) {
 			if ((val->attributes & VALATTR_TRIEDVERIFY) != 0) {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					      "root key failed to validate");
-				return (DNS_R_NOVALIDSIG);
 			} else {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					      "no trusted root key");
-				return (DNS_R_NOVALIDDS);
 			}
+			result = DNS_R_NOVALIDSIG;
+			goto cleanup;
 		}
 
 		/*
-		 * Otherwise, look up the DS RRset for this name.
+		 * Look up the DS RRset for this name.
 		 */
 		result = get_dsset(val, val->event->name, &tresult);
 		if (result == ISC_R_COMPLETE) {
-			return (tresult);
+			if (tresult == DNS_R_WAIT) {
+				/*
+				 * Keep the keynode attached so we don't
+				 * lose val->dsset.
+				 */
+				val->keynode = keynode;
+			}
+
+			result = tresult;
+			goto cleanup;
 		}
 	}
 
@@ -2048,8 +1947,7 @@ validate_dnskey(dns_validator_t *val) {
 		/*
 		 * Find the DNSKEY matching the DS...
 		 */
-		result = dns_dnssec_matchdskey(val->event->name,
-					       &dsrdata,
+		result = dns_dnssec_matchdskey(val->event->name, &dsrdata,
 					       val->event->rdataset,
 					       &keyrdata);
 		if (result != ISC_R_SUCCESS) {
@@ -2069,25 +1967,27 @@ validate_dnskey(dns_validator_t *val) {
 			      "no RRSIG matching DS key");
 	}
 
+	if (result == ISC_R_SUCCESS) {
+		marksecure(val->event);
+		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure (DS)");
+	} else if (result == ISC_R_NOMORE && !supported_algorithm) {
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "no supported algorithm/digest (DS)");
+		result = markanswer(val, "validate_dnskey (3)",
+				    "no supported algorithm/digest (DS)");
+	} else {
+		validator_log(val, ISC_LOG_INFO,
+			      "no valid signature found (DS)");
+		result = DNS_R_NOVALIDSIG;
+	}
+
+ cleanup:
 	if (keynode != NULL) {
 		val->dsset = NULL;
 		dns_keytable_detachkeynode(val->keytable, &keynode);
 	}
 
-	if (result == ISC_R_SUCCESS) {
-		marksecure(val->event);
-		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure (DS)");
-		return (result);
-	} else if (result == ISC_R_NOMORE && !supported_algorithm) {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "no supported algorithm/digest (DS)");
-		return (markanswer(val, "validate_dnskey (3)",
-				   "no supported algorithm/digest (DS)"));
-	} else {
-		validator_log(val, ISC_LOG_INFO,
-			      "no valid signature found (DS)");
-		return (DNS_R_NOVALIDSIG);
-	}
+	return (result);
 }
 
 /*%
@@ -3236,10 +3136,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		(rdataset == NULL && sigrdataset == NULL && message != NULL));
 	REQUIRE(validatorp != NULL && *validatorp == NULL);
 
-	val = isc_mem_get(view->mctx, sizeof(*val));
-	val->view = NULL;
-	dns_view_weakattach(view, &val->view);
-
 	event = (dns_validatorevent_t *)
 		isc_event_allocate(view->mctx, task,
 				   DNS_EVENT_VALIDATORSTART,
@@ -3247,7 +3143,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				   sizeof(dns_validatorevent_t));
 
 	isc_task_attach(task, &tclone);
-	event->validator = val;
 	event->result = ISC_R_FAILURE;
 	event->name = name;
 	event->type = type;
@@ -3258,32 +3153,23 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	event->optout = false;
 	event->secure = false;
 
+	val = isc_mem_get(view->mctx, sizeof(*val));
+	*val = (dns_validator_t) {
+		.event = event,
+		.options = options,
+		.task = task,
+		.action = action,
+		.arg = arg
+	};
+
+	dns_view_weakattach(view, &val->view);
 	isc_mutex_init(&val->lock);
 
-	val->event = event;
-	val->options = options;
-	val->attributes = 0;
-	val->fetch = NULL;
-	val->subvalidator = NULL;
-	val->parent = NULL;
-
-	val->keytable = NULL;
 	result = dns_view_getsecroots(val->view, &val->keytable);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-	val->key = NULL;
-	val->siginfo = NULL;
-	val->task = task;
-	val->action = action;
-	val->arg = arg;
-	val->labels = 0;
-	val->currentset = NULL;
-	val->keyset = NULL;
-	val->dsset = NULL;
-	val->depth = 0;
-	val->authcount = 0;
-	val->authfail = 0;
+
 	val->mustbesecure = dns_resolver_getmustbesecure(view->resolver, name);
 	dns_rdataset_init(&val->frdataset);
 	dns_rdataset_init(&val->fsigrdataset);
@@ -3292,6 +3178,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	isc_stdtime_get(&val->start);
 	ISC_LINK_INIT(val, link);
 	val->magic = VALIDATOR_MAGIC;
+
+	event->validator = val;
 
 	if ((options & DNS_VALIDATOR_DEFER) == 0) {
 		isc_task_send(task, ISC_EVENT_PTR(&event));
@@ -3370,10 +3258,15 @@ destroy(dns_validator_t *val) {
 	REQUIRE(val->event == NULL);
 	REQUIRE(val->fetch == NULL);
 
+	val->magic = 0;
 	if (val->key != NULL) {
 		dst_key_free(&val->key);
 	}
 	if (val->keytable != NULL) {
+		if (val->keynode != NULL) {
+			dns_keytable_detachkeynode(val->keytable,
+						   &val->keynode);
+		}
 		dns_keytable_detach(&val->keytable);
 	}
 	if (val->subvalidator != NULL) {
@@ -3386,7 +3279,6 @@ destroy(dns_validator_t *val) {
 	}
 	isc_mutex_destroy(&val->lock);
 	dns_view_weakdetach(&val->view);
-	val->magic = 0;
 	isc_mem_put(mctx, val, sizeof(*val));
 }
 
