@@ -1,3 +1,6 @@
+5351.	[bug]		CDS / CDNSKEY consistency checks failed to handle
+			removal records. [GL #1554]
+
 5350.	[bug]		When a view was configured with class CHAOS, the
 			server could crash while processing a query for a
 			non-existent record. [GL #1540]
