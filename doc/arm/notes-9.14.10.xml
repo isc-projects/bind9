@@ -1,0 +1,31 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.14.10"><info><title>Notes for BIND 9.14.10</title></info>
+
+  <section xml:id="relnotes-9.14.10-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Fixed a GeoIP2 lookup bug which was triggered when certain
+          libmaxminddb versions were used. [GL #1552]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Fixed several possible race conditions discovered by
+          ThreadSanitizer.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>
