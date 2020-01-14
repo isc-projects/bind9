@@ -450,6 +450,7 @@ isc_nm_listentcpdns
 isc_nm_listenudp
 isc_nm_maxudp
 isc_nm_send
+isc_nm_setstats
 isc_nm_start
 isc_nm_tcp_gettimeouts
 isc_nm_tcp_settimeouts

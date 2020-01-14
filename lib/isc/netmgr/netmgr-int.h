@@ -27,6 +27,7 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/stats.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 #include "uv-compat.h"
@@ -265,6 +266,8 @@ struct isc_nm {
 	isc_condition_t		wkstatecond;
 	isc__networker_t	*workers;
 
+	isc_stats_t		*stats;
+
 	isc_mempool_t		*reqpool;
 	isc_mutex_t		reqlock;
 
@@ -320,13 +323,30 @@ typedef enum isc_nmsocket_type {
 #define NMSOCK_MAGIC                    ISC_MAGIC('N', 'M', 'S', 'K')
 #define VALID_NMSOCK(t)                 ISC_MAGIC_VALID(t, NMSOCK_MAGIC)
 
+/*%
+ * Index into socket stat counter arrays.
+ */
+enum {
+	STATID_OPEN = 0,
+	STATID_OPENFAIL = 1,
+	STATID_CLOSE = 2,
+	STATID_BINDFAIL = 3,
+	STATID_CONNECTFAIL = 4,
+	STATID_CONNECT = 5,
+	STATID_ACCEPTFAIL = 6,
+	STATID_ACCEPT = 7,
+	STATID_SENDFAIL = 8,
+	STATID_RECVFAIL = 9,
+	STATID_ACTIVE = 10
+};
+
 struct isc_nmsocket {
 	/*% Unlocked, RO */
-	int			magic;
-	int			tid;
-	isc_nmsocket_type	type;
-	isc_nm_t		*mgr;
-	isc_nmsocket_t		*parent;
+	int				magic;
+	int				tid;
+	isc_nmsocket_type		type;
+	isc_nm_t			*mgr;
+	isc_nmsocket_t			*parent;
 
 	/*%
 	 * quota is the TCP client, attached when a TCP connection
@@ -334,53 +354,58 @@ struct isc_nmsocket {
 	 * TCP client quota, stored in listening sockets but only
 	 * attached in connected sockets.
 	 */
-	isc_quota_t		*quota;
-	isc_quota_t		*pquota;
-	bool			overquota;
+	isc_quota_t			*quota;
+	isc_quota_t			*pquota;
+	bool				overquota;
+
+	/*%
+	 * Socket statistics
+	 */
+	const isc_statscounter_t	*statsindex;
 
 	/*%
 	 * TCP read timeout timer.
 	 */
-	uv_timer_t		timer;
-	bool			timer_initialized;
-	uint64_t		read_timeout;
+	uv_timer_t			timer;
+	bool				timer_initialized;
+	uint64_t			read_timeout;
 
 	/*% outer socket is for 'wrapped' sockets - e.g. tcpdns in tcp */
-	isc_nmsocket_t		*outer;
+	isc_nmsocket_t			*outer;
 
 	/*% server socket for connections */
-	isc_nmsocket_t		*server;
+	isc_nmsocket_t			*server;
 
 	/*% Child sockets for multi-socket setups */
-	isc_nmsocket_t		*children;
-	int			nchildren;
-	isc_nmiface_t		*iface;
-	isc_nmhandle_t		*tcphandle;
+	isc_nmsocket_t			*children;
+	int				nchildren;
+	isc_nmiface_t			*iface;
+	isc_nmhandle_t			*tcphandle;
 
 	/*% Extra data allocated at the end of each isc_nmhandle_t */
-	size_t			extrahandlesize;
+	size_t				extrahandlesize;
 
 	/*% TCP backlog */
-	int backlog;
+	int				backlog;
 
 	/*% libuv data */
-	uv_os_sock_t		fd;
-	union uv_any_handle	uv_handle;
+	uv_os_sock_t			fd;
+	union uv_any_handle		uv_handle;
 
 	/*% Peer address */
-	isc_sockaddr_t		peer;
+	isc_sockaddr_t			peer;
 
 	/* Atomic */
 	/*% Number of running (e.g. listening) child sockets */
-	atomic_int_fast32_t     rchildren;
+	atomic_int_fast32_t     	rchildren;
 
 	/*%
 	 * Socket is active if it's listening, working, etc. If it's
 	 * closing, then it doesn't make a sense, for example, to
 	 * push handles or reqs for reuse.
 	 */
-	atomic_bool        	active;
-	atomic_bool	   	destroying;
+	atomic_bool        		active;
+	atomic_bool	   		destroying;
 
 	/*%
 	 * Socket is closed if it's not active and all the possible
@@ -388,59 +413,59 @@ struct isc_nmsocket {
 	 * If active==false but closed==false, that means the socket
 	 * is closing.
 	 */
-	atomic_bool	      	closed;
-	atomic_bool	      	listening;
-	atomic_bool		listen_error;
-	isc_refcount_t	      	references;
+	atomic_bool	      		closed;
+	atomic_bool	      		listening;
+	atomic_bool			listen_error;
+	isc_refcount_t	      		references;
 
 	/*%
 	 * TCPDNS socket has been set not to pipeliine.
 	 */
-	atomic_bool		sequential;
+	atomic_bool			sequential;
 
 	/*%
 	 * TCPDNS socket has exceeded the maximum number of
 	 * simultaneous requests per connecton, so will be temporarily
 	 * restricted from pipelining.
 	 */
-	atomic_bool		overlimit;
+	atomic_bool			overlimit;
 
 	/*%
 	 * TCPDNS socket in sequential mode is currently processing a packet,
 	 * we need to wait until it finishes.
 	 */
-	atomic_bool		processing;
+	atomic_bool			processing;
 
 	/*%
 	 * A TCP socket has had isc_nm_pauseread() called.
 	 */
-	atomic_bool		readpaused;
+	atomic_bool			readpaused;
 
 	/*%
 	 * A TCP or TCPDNS socket has been set to use the keepalive
 	 * timeout instead of the default idle timeout.
 	 */
-	atomic_bool		keepalive;
+	atomic_bool			keepalive;
 
 	/*%
 	 * 'spare' handles for that can be reused to avoid allocations,
 	 * for UDP.
 	 */
-	isc_astack_t 		*inactivehandles;
-	isc_astack_t 		*inactivereqs;
+	isc_astack_t 			*inactivehandles;
+	isc_astack_t 			*inactivereqs;
 
 	/*%
 	 * Used to wait for TCP listening events to complete, and
 	 * for the number of running children to reach zero during
 	 * shutdown.
 	 */
-	isc_mutex_t		lock;
-	isc_condition_t		cond;
+	isc_mutex_t			lock;
+	isc_condition_t			cond;
 
 	/*%
 	 * Used to pass a result back from TCP listening events.
 	 */
-	isc_result_t		result;
+	isc_result_t			result;
 
 	/*%
 	 * List of active handles.
@@ -463,28 +488,28 @@ struct isc_nmsocket {
 	 * might want to change it to something lockless in the
 	 * future.
 	 */
-	atomic_int_fast32_t     ah;
-	size_t			ah_size;
-	size_t			*ah_frees;
-	isc_nmhandle_t		**ah_handles;
+	atomic_int_fast32_t		ah;
+	size_t				ah_size;
+	size_t				*ah_frees;
+	isc_nmhandle_t			**ah_handles;
 
 	/*% Buffer for TCPDNS processing */
-	size_t			buf_size;
-	size_t			buf_len;
-	unsigned char		*buf;
+	size_t				buf_size;
+	size_t				buf_len;
+	unsigned char			*buf;
 
 	/*%
 	 * This function will be called with handle->sock
 	 * as the argument whenever a handle's references drop
 	 * to zero, after its reset callback has been called.
 	 */
-	isc_nm_opaquecb_t	closehandle_cb;
+	isc_nm_opaquecb_t		closehandle_cb;
 
-	isc__nm_readcb_t	rcb;
-	void			*rcbarg;
+	isc__nm_readcb_t		rcb;
+	void				*rcbarg;
 
-	isc__nm_cb_t		accept_cb;
-	void 			*accept_cbarg;
+	isc__nm_cb_t			accept_cb;
+	void 				*accept_cbarg;
 };
 
 bool
@@ -561,9 +586,10 @@ isc__nm_uvreq_put(isc__nm_uvreq_t **req, isc_nmsocket_t *sock);
 
 void
 isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
-		   isc_nmsocket_type type);
+		   isc_nmsocket_type type, isc_nmiface_t *iface);
 /*%<
- * Initialize socket 'sock', attach it to 'mgr', and set it to type 'type'.
+ * Initialize socket 'sock', attach it to 'mgr', and set it to type 'type'
+ * and its interface to 'iface'.
  */
 
 void
@@ -690,4 +716,16 @@ void
 isc__nm_acquire_interlocked_force(isc_nm_t *mgr);
 /*%<
  * Actively wait for interlocked state.
+ */
+
+void
+isc__nm_incstats(isc_nm_t *mgr, isc_statscounter_t counterid);
+/*%<
+ * Increment socket-related statistics counters.
+ */
+
+void
+isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid);
+/*%<
+ * Decrement socket-related statistics counters.
  */

@@ -118,7 +118,8 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	/* We need to create a 'wrapper' dnssocket for this connection */
 	dnssock = isc_mem_get(handle->sock->mgr->mctx, sizeof(*dnssock));
-	isc__nmsocket_init(dnssock, handle->sock->mgr, isc_nm_tcpdnssocket);
+	isc__nmsocket_init(dnssock, handle->sock->mgr,
+			   isc_nm_tcpdnssocket, handle->sock->iface);
 
 	/* We need to copy read callbacks from outer socket */
 	dnssock->rcb.recv = dnslistensock->rcb.recv;
@@ -126,7 +127,6 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	dnssock->extrahandlesize = dnslistensock->extrahandlesize;
 	isc_nmsocket_attach(handle->sock, &dnssock->outer);
 	dnssock->peer = handle->sock->peer;
-	dnssock->iface = handle->sock->iface;
 	dnssock->read_timeout = handle->sock->mgr->init;
 	dnssock->tid = isc_nm_tid();
 	dnssock->closehandle_cb = resume_processing;
@@ -293,8 +293,7 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 
 	REQUIRE(VALID_NM(mgr));
 
-	isc__nmsocket_init(dnslistensock, mgr, isc_nm_tcpdnslistener);
-	dnslistensock->iface = iface;
+	isc__nmsocket_init(dnslistensock, mgr, isc_nm_tcpdnslistener, iface);
 	dnslistensock->rcb.recv = cb;
 	dnslistensock->rcbarg = cbarg;
 	dnslistensock->accept_cb.accept = accept_cb;
