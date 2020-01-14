@@ -61,6 +61,8 @@ AC_SUBST(BACKTRACECFLAGS)
 #
 
 PKG_PROG_PKG_CONFIG
+AS_IF([test -z "$PKG_CONFIG"],
+      [AC_MSG_ERROR([The pkg-config script could not be found or is too old.])])
 
 AC_ARG_ENABLE(buffer_useinline,
 	      AS_HELP_STRING([--enable-buffer-useinline],
