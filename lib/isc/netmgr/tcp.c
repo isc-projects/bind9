@@ -709,27 +709,36 @@ accept_connection(isc_nmsocket_t *ssock) {
 
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
 	if (r != 0) {
-		if (csock->quota != NULL) {
-			isc_quota_detach(&csock->quota);
-		}
-		isc_mem_put(ssock->mgr->mctx, csock, sizeof(isc_nmsocket_t));
-
-		return (isc__nm_uverr2result(r));
+		result = isc__nm_uverr2result(r);
+		goto error;
 	}
 
-	isc_nmsocket_attach(ssock, &csock->server);
-
-	uv_tcp_getpeername(&csock->uv_handle.tcp, (struct sockaddr *) &ss,
-			   &(int){sizeof(ss)});
+	r = uv_tcp_getpeername(&csock->uv_handle.tcp, (struct sockaddr *) &ss,
+			       &(int){sizeof(ss)});
+	if (r != 0) {
+		result = isc__nm_uverr2result(r);
+		goto error;
+	}
 
 	result = isc_sockaddr_fromsockaddr(&csock->peer,
 					   (struct sockaddr *) &ss);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	uv_tcp_getsockname(&csock->uv_handle.tcp, (struct sockaddr *) &ss,
-			   &(int){sizeof(ss)});
+	if (result != ISC_R_SUCCESS) {
+		goto error;
+	}
+
+	r = uv_tcp_getsockname(&csock->uv_handle.tcp, (struct sockaddr *) &ss,
+			       &(int){sizeof(ss)});
+	if (r != 0) {
+		result = isc__nm_uverr2result(r);
+		goto error;
+	}
 	result = isc_sockaddr_fromsockaddr(&local,
 					   (struct sockaddr *) &ss);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		goto error;
+	}
+
+	isc_nmsocket_attach(ssock, &csock->server);
 
 	handle = isc__nmhandle_get(csock, NULL, &local);
 
@@ -739,6 +748,18 @@ accept_connection(isc_nmsocket_t *ssock) {
 	isc_nmsocket_detach(&csock);
 
 	return (ISC_R_SUCCESS);
+
+error:
+	/*
+	 * Detach it early to make room for other connections, otherwise
+	 * it'd be detached later asynchronously clogging the quota.
+	 */
+	if (csock->quota != NULL) {
+		isc_quota_detach(&csock->quota);
+	}
+	/* We need to detach it properly to make sure uv_close is called. */
+	isc_nmsocket_detach(&csock);
+	return (result);
 }
 
 static void
@@ -906,7 +927,9 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		uv_timer_stop(&sock->timer);
 		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 	} else {
-		isc_nmsocket_detach(&sock->server);
+		if (sock->server != NULL) {
+			isc_nmsocket_detach(&sock->server);
+		}
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
 	}
 }
