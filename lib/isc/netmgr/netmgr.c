@@ -356,13 +356,10 @@ isc_nm_resume(isc_nm_t *mgr) {
 
 void
 isc_nm_attach(isc_nm_t *mgr, isc_nm_t **dst) {
-	int refs;
-
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(dst != NULL && *dst == NULL);
 
-	refs = isc_refcount_increment(&mgr->references);
-	INSIST(refs > 0);
+	isc_refcount_increment(&mgr->references);
 
 	*dst = mgr;
 }
@@ -370,7 +367,6 @@ isc_nm_attach(isc_nm_t *mgr, isc_nm_t **dst) {
 void
 isc_nm_detach(isc_nm_t **mgr0) {
 	isc_nm_t *mgr = NULL;
-	int references;
 
 	REQUIRE(mgr0 != NULL);
 	REQUIRE(VALID_NM(*mgr0));
@@ -378,9 +374,7 @@ isc_nm_detach(isc_nm_t **mgr0) {
 	mgr = *mgr0;
 	*mgr0 = NULL;
 
-	references = isc_refcount_decrement(&mgr->references);
-	INSIST(references > 0);
-	if (references == 1) {
+	if (isc_refcount_decrement(&mgr->references) == 1) {
 		nm_destroy(&mgr);
 	}
 }
@@ -704,9 +698,9 @@ isc_nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target) {
 
 	if (sock->parent != NULL) {
 		INSIST(sock->parent->parent == NULL); /* sanity check */
-		isc_refcount_increment(&sock->parent->references);
+		isc_refcount_increment0(&sock->parent->references);
 	} else {
-		isc_refcount_increment(&sock->references);
+		isc_refcount_increment0(&sock->references);
 	}
 
 	*target = sock;
@@ -888,7 +882,6 @@ isc_nmsocket_detach(isc_nmsocket_t **sockp) {
 	REQUIRE(VALID_NMSOCK(*sockp));
 
 	isc_nmsocket_t *sock = *sockp, *rsock = NULL;
-	int references;
 	*sockp = NULL;
 
 	/*
@@ -902,9 +895,7 @@ isc_nmsocket_detach(isc_nmsocket_t **sockp) {
 		rsock = sock;
 	}
 
-	references = isc_refcount_decrement(&rsock->references);
-	INSIST(references > 0);
-	if (references == 1) {
+	if (isc_refcount_decrement(&rsock->references) == 1) {
 		isc__nmsocket_prep_destroy(rsock);
 	}
 
@@ -1045,7 +1036,7 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		handle = alloc_handle(sock);
 	} else {
 		INSIST(VALID_NMHANDLE(handle));
-		isc_refcount_increment(&handle->references);
+		isc_refcount_increment0(&handle->references);
 	}
 
 	handle->sock = sock;
@@ -1104,13 +1095,9 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 
 void
 isc_nmhandle_ref(isc_nmhandle_t *handle) {
-	int refs;
-
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	refs = isc_refcount_increment(&handle->references);
-	INSIST(refs > 0);
-
+	isc_refcount_increment(&handle->references);
 }
 
 bool
@@ -1169,13 +1156,10 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 void
 isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;
-	int refs;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	refs = isc_refcount_decrement(&handle->references);
-	INSIST(refs > 0);
-	if (refs > 1) {
+	if (isc_refcount_decrement(&handle->references) > 1) {
 		return;
 	}
 
