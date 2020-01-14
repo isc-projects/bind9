@@ -12216,6 +12216,9 @@ $as_echo "no" >&6; }
 		PKG_CONFIG=""
 	fi
 fi
+if test -z "$PKG_CONFIG"; then :
+  as_fn_error $? "The pkg-config script could not be found or is too old." "$LINENO" 5
+fi
 
 # Check whether --enable-buffer_useinline was given.
 if test "${enable_buffer_useinline+set}" = set; then :
