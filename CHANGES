@@ -1,3 +1,5 @@
+5344.	[bug]		Handle accept() errors properly in netmgr. [GL !2880]
+
 5343.	[func]		Add statistics counters to the netmgr. [GL #1311]
 
 5342.	[bug]		Disable pktinfo for ipv6 - bind to all interfaces
