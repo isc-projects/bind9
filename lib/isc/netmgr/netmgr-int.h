@@ -347,7 +347,10 @@ struct isc_nmsocket {
 	int				tid;
 	isc_nmsocket_type		type;
 	isc_nm_t			*mgr;
+	/*% Parent socket for multithreaded listeners */
 	isc_nmsocket_t			*parent;
+	/*% Listener socket this connection was accepted on */
+	isc_nmsocket_t			*listener;
 
 	/*%
 	 * quota is the TCP client, attached when a TCP connection

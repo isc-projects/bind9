@@ -121,10 +121,8 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc__nmsocket_init(dnssock, handle->sock->mgr,
 			   isc_nm_tcpdnssocket, handle->sock->iface);
 
-	/* We need to copy read callbacks from outer socket */
-	dnssock->rcb.recv = dnslistensock->rcb.recv;
-	dnssock->rcbarg = dnslistensock->rcbarg;
 	dnssock->extrahandlesize = dnslistensock->extrahandlesize;
+	isc_nmsocket_attach(dnslistensock, &dnssock->listener);
 	isc_nmsocket_attach(handle->sock, &dnssock->outer);
 	dnssock->peer = handle->sock->peer;
 	dnssock->read_timeout = handle->sock->mgr->init;
@@ -171,14 +169,17 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 	 */
 	len = dnslen(dnssock->buf);
 	if (len <= dnssock->buf_len - 2) {
-		isc_nmhandle_t *dnshandle = NULL;
-		isc_region_t r2 = {
-			.base = dnssock->buf + 2,
-			.length = len
-		};
+		isc_nmhandle_t *dnshandle = isc__nmhandle_get(dnssock,
+							      NULL, NULL);
+		isc_nmsocket_t *listener = dnssock->listener;
 
-		dnshandle = isc__nmhandle_get(dnssock, NULL, NULL);
-		dnssock->rcb.recv(dnshandle, &r2, dnssock->rcbarg);
+		if (listener != NULL && listener->rcb.recv != NULL) {
+			listener->rcb.recv(dnshandle,
+					   &(isc_region_t){
+						.base = dnssock->buf + 2,
+						.length = len
+					   }, listener->rcbarg);
+		}
 
 		len += 2;
 		dnssock->buf_len -= len;
@@ -322,6 +323,8 @@ isc_nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
 
 	atomic_store(&sock->listening, false);
 	atomic_store(&sock->closed, true);
+	sock->rcb.recv = NULL;
+	sock->rcbarg = NULL;
 
 	if (sock->outer != NULL) {
 		isc_nm_tcp_stoplistening(sock->outer);
@@ -501,6 +504,9 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 	if (sock->outer != NULL) {
 		sock->outer->rcb.recv = NULL;
 		isc_nmsocket_detach(&sock->outer);
+	}
+	if (sock->listener != NULL) {
+		isc_nmsocket_detach(&sock->listener);
 	}
 	/* We don't need atomics here, it's all in single network thread */
 	if (sock->timer_initialized) {

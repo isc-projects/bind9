@@ -1625,6 +1625,11 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	ifp = (ns_interface_t *) arg;
 
 	mgr = ifp->clientmgr;
+	if (mgr == NULL) {
+		/* The interface was shut down in the meantime, just bail */
+		return;
+	}
+
 	REQUIRE(VALID_MANAGER(mgr));
 
 	client = isc_nmhandle_getdata(handle);
