@@ -1,3 +1,7 @@
+5346.	[bug]		Make hazard pointer array allocations dynamic, fixing a
+			bug that caused named to crash on machines with more
+			than 40 cores. [GL #1493]
+
 5345.	[func]		Key-style trust anchors and DS-style trust anchors
 			can now both be used for the same name. [GL !2892]
 

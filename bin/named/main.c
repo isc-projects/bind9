@@ -23,6 +23,7 @@
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/hp.h>
 #include <isc/httpd.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
@@ -907,6 +908,12 @@ create_managers(void) {
 		      "using %u UDP listener%s per interface",
 		      named_g_udpdisp, named_g_udpdisp == 1 ? "" : "s");
 
+	/*
+	 * We have ncpus network threads, ncpus worker threads, ncpus
+	 * old network threads - make it 4x just to be safe. The memory
+	 * impact is neglible.
+	 */
+	isc_hp_init(4*named_g_cpus);
 	named_g_nm = isc_nm_start(named_g_mctx, named_g_cpus);
 	if (named_g_nm == NULL) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
