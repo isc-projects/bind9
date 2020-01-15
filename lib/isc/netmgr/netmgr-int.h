@@ -245,10 +245,11 @@ typedef isc__netievent_t isc__netievent_shutdown_t;
 typedef isc__netievent_t isc__netievent_stop_t;
 
 typedef union {
-		isc__netievent_t		  ni;
-		isc__netievent__socket_t	  nis;
-		isc__netievent__socket_req_t	  nisr;
-		isc__netievent_udpsend_t	  nius;
+		isc__netievent_t		  	ni;
+		isc__netievent__socket_t	  	nis;
+		isc__netievent__socket_req_t	  	nisr;
+		isc__netievent_udpsend_t	  	nius;
+		isc__netievent__socket_streaminfo_t	niss;
 } isc__netievent_storage_t;
 
 /*
