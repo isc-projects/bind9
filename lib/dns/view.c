@@ -1298,8 +1298,9 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			ztoptions |= DNS_ZTFIND_NOEXACT;
 		result = dns_zt_find(view->zonetable, name, ztoptions,
 				     NULL, &zone);
-	} else
+	} else {
 		result = ISC_R_NOTFOUND;
+	}
 	UNLOCK(&view->lock);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
@@ -1314,12 +1315,15 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			 * We have a cache; try it.
 			 */
 			dns_db_attach(view->cachedb, &db);
-		} else {
+		} else if (use_hints && view->hints != NULL) {
 			/*
 			 * Maybe we have hints...
 			 */
 			try_hints = true;
 			goto finish;
+		} else {
+			result = DNS_R_NXDOMAIN;
+			goto cleanup;
 		}
 	} else if (result != ISC_R_SUCCESS) {
 		/*
@@ -1340,6 +1344,7 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			result = ISC_R_SUCCESS;
 		else if (result != ISC_R_SUCCESS)
 			goto cleanup;
+
 		if (use_cache && view->cachedb != NULL && db != view->hints) {
 			/*
 			 * We found an answer, but the cache may be better.
@@ -1381,11 +1386,15 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 				 * have a zone delegation, so use it.
 				 */
 				use_zone = true;
-			} else {
+				result = ISC_R_SUCCESS;
+			} else if (use_hints && view->hints != NULL) {
 				/*
 				 * Maybe we have hints...
 				 */
 				try_hints = true;
+				result = ISC_R_SUCCESS;
+			} else {
+				result = DNS_R_NXDOMAIN;
 			}
 		} else {
 			/*
@@ -1410,7 +1419,7 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 		if (sigrdataset != NULL &&
 		    dns_rdataset_isassociated(&zrdataset))
 			dns_rdataset_clone(&zsigrdataset, sigrdataset);
-	} else if (try_hints && use_hints && view->hints != NULL) {
+	} else if (try_hints) {
 		/*
 		 * We've found nothing so far, but we have hints.
 		 */
