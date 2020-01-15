@@ -47,6 +47,7 @@ my $A = "ns.example 300 IN A $localaddr";
 #
 my $TXT = "data.example 1 IN TXT \"A text record with a 1 second ttl\"";
 my $LONGTXT = "longttl.example 600 IN TXT \"A text record with a 600 second ttl\"";
+my $CAA = "othertype.example 1 IN CAA 0 issue \"ca1.example.net\"";
 my $negSOA = "example 1 IN SOA . . 0 0 0 0 300";
 
 sub reply_handler {
@@ -129,6 +130,15 @@ sub reply_handler {
 	my $rr = new Net::DNS::RR($negSOA);
 	push @auth, $rr;
 	$rcode = "NXDOMAIN";
+    } elsif ($qname eq "othertype.example") {
+	if ($qtype eq "CAA") {
+	    my $rr = new Net::DNS::RR($CAA);
+	    push @ans, $rr;
+	} else {
+	    my $rr = new Net::DNS::RR($negSOA);
+	    push @auth, $rr;
+	}
+	$rcode = "NOERROR";
     } else {
         my $rr = new Net::DNS::RR($SOA);
 	push @auth, $rr;
