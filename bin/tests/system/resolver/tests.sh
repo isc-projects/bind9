@@ -805,5 +805,13 @@ grep "running as: .* -m record,size,mctx " ns1/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking NXDOMAIN is returned when querying non existing domain in CH class ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.1 id.hostname txt ch > dig.ns1.out.${n} || ret=1
+grep "status: NXDOMAIN" dig.ns1.out.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
