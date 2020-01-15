@@ -99,6 +99,7 @@
 #define CANCELED(v)          (((v)->attributes & VALATTR_CANCELED) != 0)
 
 #define NEGATIVE(r)       (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
+#define NXDOMAIN(r)       (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
 static void
 destroy(dns_validator_t *val);
@@ -3085,16 +3086,14 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 				      "parent indicates it should be secure");
 		}
 	} else if ((val->event->rdataset == NULL &&
-		    val->event->sigrdataset == NULL) ||
-		   (val->event->rdataset != NULL &&
-		    NEGATIVE(val->event->rdataset)))
-
+		    val->event->sigrdataset == NULL))
 	{
 		/*
-		 * This is a nonexistence validation.
+		 * This is a validation of a negative response.
 		 */
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "attempting negative response validation");
+			      "attempting negative response validation "
+			      "from message");
 
 		if (val->event->message->rcode == dns_rcode_nxdomain) {
 			val->attributes |= VALATTR_NEEDNOQNAME;
@@ -3102,6 +3101,25 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		} else {
 			val->attributes |= VALATTR_NEEDNODATA;
 		}
+
+		result = validate_nx(val, false);
+	} else if ((val->event->rdataset != NULL &&
+		    NEGATIVE(val->event->rdataset)))
+	{
+		/*
+		 * This is a delayed validation of a negative cache entry.
+		 */
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "attempting negative response validation "
+			      "from cache");
+
+		if (NXDOMAIN(val->event->rdataset)) {
+			val->attributes |= VALATTR_NEEDNOQNAME;
+			val->attributes |= VALATTR_NEEDNOWILDCARD;
+		} else {
+			val->attributes |= VALATTR_NEEDNODATA;
+		}
+
 		result = validate_nx(val, false);
 	} else {
 		INSIST(0);

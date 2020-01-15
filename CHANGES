@@ -1,3 +1,7 @@
+5347.	[bug]		Fixed a bug that could cause an intermittent crash
+			in validator.c when validating a negative cache
+			entry. [GL #1561]
+
 5346.	[bug]		Make hazard pointer array allocations dynamic, fixing a
 			bug that caused named to crash on machines with more
 			than 40 cores. [GL #1493]

@@ -1073,6 +1073,23 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "checking insecurity proof works using negative cache ($n)"
+ret=0
+rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
+dig_with_opts +cd @10.53.0.4 insecure.example. ds > dig.out.ns4.test$n.1 || ret=1
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
+do
+        dig_with_opts @10.53.0.4 nonexistent.insecure.example. > dig.out.ns4.test$n.2 || ret=1
+	if grep "status: NXDOMAIN" dig.out.ns4.test$n.2 >/dev/null; then
+		break
+	fi
+	sleep 1
+done
+grep "status: NXDOMAIN" dig.out.ns4.test$n.2 >/dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking positive validation RSASHA256 NSEC ($n)"
 ret=0
 dig_with_opts +noauth a.rsasha256.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
