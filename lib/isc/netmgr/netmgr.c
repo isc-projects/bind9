@@ -760,8 +760,11 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 
 	if (sock->timer_initialized) {
 		sock->timer_initialized = false;
-		uv_timer_stop(&sock->timer);
-		uv_close((uv_handle_t *)&sock->timer, NULL);
+		/* We might be in timer callback */
+		if (!uv_is_closing((uv_handle_t *) &sock->timer)) {
+			uv_timer_stop(&sock->timer);
+			uv_close((uv_handle_t *)&sock->timer, NULL);
+		}
 	}
 
 	isc_astack_destroy(sock->inactivehandles);
