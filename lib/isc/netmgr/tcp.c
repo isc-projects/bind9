@@ -295,7 +295,16 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 		event = isc__nm_get_ievent(csock->mgr,
 					   netievent_tcpchildlisten);
-		isc_uv_export(&sock->uv_handle.stream, &event->streaminfo);
+		r = isc_uv_export(&sock->uv_handle.stream,
+				  &event->streaminfo);
+		if (r != 0) {
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+				      "uv_export failed: %s",
+				      isc_result_totext(isc__nm_uverr2result(r)));
+			isc__nm_put_ievent(sock->mgr, event);
+			continue;
+		}
 		event->sock = csock;
 		if (csock->tid == isc_nm_tid()) {
 			isc__nm_async_tcpchildlisten(&sock->mgr->workers[i],
@@ -334,7 +343,14 @@ isc__nm_async_tcpchildlisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	uv_tcp_init(&worker->loop, (uv_tcp_t *) &sock->uv_handle.tcp);
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
-	isc_uv_import(&sock->uv_handle.stream, &ievent->streaminfo);
+	r = isc_uv_import(&sock->uv_handle.stream, &ievent->streaminfo);
+	if (r != 0) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+			      "uv_import failed: %s",
+			      isc_result_totext(isc__nm_uverr2result(r)));
+		return;
+	}
 
 	r = uv_listen((uv_stream_t *) &sock->uv_handle.tcp, sock->backlog,
 		      tcp_connection_cb);

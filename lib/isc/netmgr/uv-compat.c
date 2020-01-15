@@ -10,6 +10,7 @@
  */
 
 #include <unistd.h>
+#include <isc/util.h>
 #include "uv-compat.h"
 
 /*
@@ -21,6 +22,7 @@
 
 #ifdef WIN32
 /* This code is adapted from libuv/src/win/internal.h */
+
 typedef enum {
 	UV__IPC_SOCKET_XFER_NONE = 0,
 	UV__IPC_SOCKET_XFER_TCP_CONNECTION,
@@ -32,38 +34,60 @@ typedef struct {
 	uint32_t delayed_error;
 } uv__ipc_socket_xfer_info_t;
 
+/*
+ * Needed to make sure that the internal structure that we pulled out of
+ * libuv hasn't changed.
+ */
+
 int
 uv__tcp_xfer_import(uv_tcp_t *tcp, uv__ipc_socket_xfer_type_t xfer_type,
 		    uv__ipc_socket_xfer_info_t *xfer_info);
+
 int
-uv__tcp_xfer_export(uv_tcp_t *handle, int pid,
-		    uv__ipc_socket_xfer_info_t *xfer_info);
+uv__tcp_xfer_export(uv_tcp_t* handle,
+		    int target_pid,
+		    uv__ipc_socket_xfer_type_t* xfer_type,
+		    uv__ipc_socket_xfer_info_t* xfer_info);
 
 int
 isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info) {
+	uv__ipc_socket_xfer_info_t xfer_info;
+	uv__ipc_socket_xfer_type_t xfer_type = UV__IPC_SOCKET_XFER_NONE;
+
+	/*
+	 * Needed to make sure that the internal structure that we pulled
+	 * out of libuv hasn't changed.
+	 */
+	RUNTIME_CHECK(sizeof(uv__ipc_socket_xfer_info_t) == 632);
+
 	if (stream->type != UV_TCP) {
 		return (-1);
 	}
-	if (uv__tcp_xfer_export((uv_tcp_t *) stream, GetCurrentProcessId(),
-				&info->socket_info) == -1) {
-		return (-1);
+	int r = uv__tcp_xfer_export((uv_tcp_t *) stream,
+				    GetCurrentProcessId(),
+				    &xfer_type, &xfer_info);
+	if (r != 0) {
+		return (r);
 	}
-
+	if (xfer_info.delayed_error != 0) {
+		return (xfer_info.delayed_error);
+	}
 	info->type = UV_TCP;
+	info->socket_info = xfer_info.socket_info;
+	return (0);
 }
 
 int
 isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info) {
-	uv__ipc_socket_xfer_info_t xfer_info;
-
 	if (stream->type != UV_TCP || info->type != UV_TCP) {
 		return (-1);
 	}
-	xfer_info.socket_info = info->socket_info;
 
 	return (uv__tcp_xfer_import((uv_tcp_t *) stream,
 				    UV__IPC_SOCKET_XFER_TCP_SERVER,
-				    &xfer_info));
+				    &(uv__ipc_socket_xfer_info_t){
+					.socket_info = info->socket_info
+				    }));
 }
 #else /* WIN32 */
 /* Adapted from libuv/src/unix/internal.h */
