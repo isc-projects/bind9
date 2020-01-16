@@ -2333,6 +2333,16 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		isc_task_detach(&client->task);
 	}
 
+	if (client->manager != NULL) {
+		clientmgr_detach(&client->manager);
+	}
+	if (client->mctx != NULL) {
+		isc_mem_detach(&client->mctx);
+	}
+	if (client->sctx != NULL) {
+		ns_server_detach(&client->sctx);
+	}
+
 	return (result);
 }
 
