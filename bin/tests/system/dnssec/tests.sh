@@ -120,11 +120,12 @@ stripns () {
 # Ensure there is not a blank line before "Secure roots:".
 #
 check_secroots_layout () {
+	tr -d '\r' < "$1" | \
 	awk '$0 == "" { if (empty) exit(1); empty=1; next }
 	     /Start view/ { if (!empty) exit(1) }
 	     /Secure roots:/ { if (empty) exit(1) }
 	     /Negative trust anchors:/ { if (!empty) exit(1) }
-	     { empty=0 }' $1
+	     { empty=0 }'
 	return $?
 }
 
