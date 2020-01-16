@@ -1831,7 +1831,7 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	if (key->prepublish && ttl > key->prepublish) {
 		isc_stdtime_t now;
 
-		report("Key %s: Delaying activation to match the DNSKEY TTL.\n",
+		report("Key %s: Delaying activation to match the DNSKEY TTL.",
 		       keystr, ttl);
 
 		isc_stdtime_get(&now);
