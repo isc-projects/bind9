@@ -364,8 +364,11 @@ misc:sid:amd64:
     - sh util/checklibs.sh > checklibs.out
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
-    - rm CHANGES.tmp
     - perl util/check-changes CHANGES
+    - test ! -f CHANGES.SE || sh util/tabify-changes < CHANGES.SE > CHANGES.tmp
+    - test ! -f CHANGES.SE || diff -urNap CHANGES.SE CHANGES.tmp
+    - test ! -f CHANGES.SE || perl util/check-changes master=0 CHANGES.SE
+    - rm CHANGES.tmp
     - perl -w util/merge_copyrights
     - diff -urNap util/copyrights util/newcopyrights
     - rm util/newcopyrights
