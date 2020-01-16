@@ -5,6 +5,8 @@
 5348.	[bug]		dnssec-settime -Psync was not being honoured.
 			[GL !2893]
 
+	--- 9.14.10 released ---
+
 5339.	[bug]		With some libmaxminddb versions, named could erroneously
 			match an IP address not belonging to any subnet defined
 			in a given GeoIP2 database to one of the existing
