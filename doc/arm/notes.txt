@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.14
+Release Notes for BIND Version 9.11.15
 
 Introduction
 
@@ -36,6 +36,15 @@ Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
 
+Notes for BIND 9.11.15
+
+Bug Fixes
+
+  * Fixed a GeoIP2 lookup bug which was triggered when certain
+    libmaxminddb versions were used. [GL #1552]
+
+  * Fixed several possible race conditions discovered by ThreadSanitizer.
+
 Notes for BIND 9.11.14
 
 Bug Fixes
@@ -43,7 +52,7 @@ Bug Fixes
   * Fixed a bug that caused named to leak memory on reconfiguration when
     any GeoIP2 database was in use. [GL #1445]
 
-  * Fixed several possible race conditions discovered by Thread Sanitizer.
+  * Fixed several possible race conditions discovered by ThreadSanitizer.
 
 Notes for BIND 9.11.13
 
