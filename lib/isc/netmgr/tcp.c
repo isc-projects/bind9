@@ -419,7 +419,7 @@ stoplistening(isc_nmsocket_t *sock) {
 		event = isc__nm_get_ievent(sock->mgr, netievent_tcpchildstop);
 		isc_nmsocket_attach(&sock->children[i], &event->sock);
 
-		if (i == sock->tid) {
+		if (isc_nm_tid() == sock->children[i].tid) {
 			isc__nm_async_tcpchildstop(&sock->mgr->workers[i],
 						   (isc__netievent_t *) event);
 			isc__nm_put_ievent(sock->mgr, event);

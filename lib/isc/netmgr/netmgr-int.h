@@ -606,8 +606,8 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock);
 bool
 isc__nmsocket_active(isc_nmsocket_t *sock);
 /*%<
- * Check is socket 'sock' is active - by checking either sock->active or
- * sock->parent->active;
+ * Determine whether 'sock' is active by checking 'sock->active'
+ * or, for child sockets, 'sock->parent->active'.
  */
 
 void
