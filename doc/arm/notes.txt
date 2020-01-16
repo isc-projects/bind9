@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.15.7
+Release Notes for BIND Version 9.15.8
 
 Introduction
 
@@ -48,6 +48,24 @@ www.isc.org/download/. There you will find additional information about
 each release, source code, and pre-compiled versions for Microsoft Windows
 operating systems.
 
+Notes for BIND 9.15.8
+
+Feature Changes
+
+  * The trust-anchors statement no longer rejects a mix of both key-style
+    and DS-style trust anchor entries for the same name. [GL #1237]
+
+Bug Fixes
+
+  * Fixed an intermittent crash in the validator that could occur when
+    validating negative answers from the cache. [GL #1561]
+
+  * Fixed a bug that could cause named to crash on machines with more than
+    40 CPUs. [GL #1493]
+
+  * Socket-related statistics counters were not being updated by network
+    manager sockets, but are now fully functional. [GL #1311]
+
 Notes for BIND 9.15.7
 
 Feature Changes
@@ -60,14 +78,14 @@ Feature Changes
     discussion of this feature.)
 
   * Added support for multithreaded listening for TCP connections in the
-    network manager [GL !2659]
+    network manager. [GL !2659]
 
 Bug Fixes
 
   * Fixed a bug that caused named to leak memory on reconfiguration when
     any GeoIP2 database was in use. [GL #1445]
 
-  * Fixed several possible race conditions discovered by Thread Sanitizer.
+  * Fixed several possible race conditions discovered by ThreadSanitizer.
 
 Notes for BIND 9.15.6
 

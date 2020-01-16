@@ -1,3 +1,5 @@
+	--- 9.15.8 released ---
+
 5347.	[bug]		Fixed a bug that could cause an intermittent crash
 			in validator.c when validating a negative cache
 			entry. [GL #1561]
