@@ -62,7 +62,7 @@ static const char *keystates[KEYSTATES_NVALUES] = {
 
 int verbose = 0;
 bool quiet = false;
-uint8_t dtype[8];
+dns_dsdigest_t dtype[8];
 
 static fatalcallback_t *fatalcallback = NULL;
 

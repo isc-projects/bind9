@@ -124,7 +124,8 @@ typedef struct keyinfo {
 
 /* A replaceable function that can generate a DS RRset from some input */
 typedef isc_result_t
-ds_maker_func_t(dns_rdatalist_t *dslist, isc_buffer_t *buf, dns_rdata_t *rdata);
+ds_maker_func_t(isc_buffer_t *buf, dns_rdata_t *ds, dns_dsdigest_t dt,
+		dns_rdata_t *crdata);
 
 static dns_rdataset_t cdnskey_set, cdnskey_sig;
 static dns_rdataset_t cds_set, cds_sig;
@@ -724,82 +725,82 @@ signed_strict(dns_rdataset_t *dsset, dns_secalg_t *algo) {
 	return (all_ok);
 }
 
-static dns_rdata_t *
-rdata_get(void) {
-	dns_rdata_t *rdata;
-
-	rdata = isc_mem_get(mctx, sizeof(*rdata));
-	dns_rdata_init(rdata);
-
-	return (rdata);
-}
-
-static isc_result_t
-rdata_put(isc_result_t result, dns_rdatalist_t *rdlist, dns_rdata_t *rdata) {
-	if (result == ISC_R_SUCCESS) {
-		ISC_LIST_APPEND(rdlist->rdata, rdata, link);
-	} else {
-		isc_mem_put(mctx, rdata, sizeof(*rdata));
-	}
-
-	return (result);
-}
-
 /*
  * This basically copies the rdata into the buffer, but going via the
- * unpacked struct has the side-effect of changing the rdatatype. The
- * dns_rdata_cds_t and dns_rdata_ds_t types are aliases.
+ * unpacked struct lets us change the rdatatype. (The dns_rdata_cds_t
+ * and dns_rdata_ds_t types are aliases.)
  */
 static isc_result_t
-ds_from_cds(dns_rdatalist_t *dslist, isc_buffer_t *buf, dns_rdata_t *cds) {
+ds_from_cds(isc_buffer_t *buf, dns_rdata_t *rds, dns_dsdigest_t dt,
+	    dns_rdata_t *cds) {
 	isc_result_t result;
 	dns_rdata_ds_t ds;
-	dns_rdata_t *rdata;
 
 	REQUIRE(buf != NULL);
-
-	rdata = rdata_get();
 
 	result = dns_rdata_tostruct(cds, &ds, NULL);
 	check_result(result, "dns_rdata_tostruct(CDS)");
 	ds.common.rdtype = dns_rdatatype_ds;
 
-	result = dns_rdata_fromstruct(rdata, rdclass, dns_rdatatype_ds, &ds,
-				      buf);
+	if (ds.digest_type != dt) {
+		return (ISC_R_IGNORE);
+	}
 
-	return (rdata_put(result, dslist, rdata));
+	return (dns_rdata_fromstruct(rds, rdclass, dns_rdatatype_ds, &ds, buf));
 }
 
 static isc_result_t
-ds_from_cdnskey(dns_rdatalist_t *dslist, isc_buffer_t *buf,
+ds_from_cdnskey(isc_buffer_t *buf, dns_rdata_t *ds, dns_dsdigest_t dt,
 		dns_rdata_t *cdnskey) {
 	isc_result_t result;
-	unsigned i, n;
+	isc_region_t r;
 
 	REQUIRE(buf != NULL);
 
-	n = sizeof(dtype) / sizeof(dtype[0]);
-	for (i = 0; i < n; i++) {
-		if (dtype[i] != 0) {
-			dns_rdata_t *rdata;
-			isc_region_t r;
+	isc_buffer_availableregion(buf, &r);
+	if (r.length < DNS_DS_BUFFERSIZE) {
+		return (ISC_R_NOSPACE);
+	}
 
-			isc_buffer_availableregion(buf, &r);
-			if (r.length < DNS_DS_BUFFERSIZE) {
-				return (ISC_R_NOSPACE);
-			}
+	result = dns_ds_buildrdata(name, cdnskey, dt, r.base, ds);
+	if (result == ISC_R_SUCCESS) {
+		isc_buffer_add(buf, DNS_DS_BUFFERSIZE);
+	}
 
-			rdata = rdata_get();
-			result = dns_ds_buildrdata(name, cdnskey, dtype[i],
-						   r.base, rdata);
-			if (result == ISC_R_SUCCESS) {
-				isc_buffer_add(buf, DNS_DS_BUFFERSIZE);
-			}
+	return (result);
+}
 
-			result = rdata_put(result, dslist, rdata);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
-			}
+static isc_result_t
+append_new_ds_set(ds_maker_func_t *ds_from_rdata, isc_buffer_t *buf,
+		  dns_rdatalist_t *dslist, dns_dsdigest_t dt,
+		  dns_rdataset_t *crdset) {
+	isc_result_t result;
+
+	for (result = dns_rdataset_first(crdset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(crdset))
+	{
+		dns_rdata_t crdata = DNS_RDATA_INIT;
+		dns_rdata_t *ds = NULL;
+
+		dns_rdataset_current(crdset, &crdata);
+
+		ds = isc_mem_get(mctx, sizeof(*ds));
+		dns_rdata_init(ds);
+
+		result = ds_from_rdata(buf, ds, dt, &crdata);
+
+		switch (result) {
+		case ISC_R_SUCCESS:
+			ISC_LIST_APPEND(dslist->rdata, ds, link);
+			break;
+		case ISC_R_IGNORE:
+			isc_mem_put(mctx, ds, sizeof(*ds));
+			continue;
+		case ISC_R_NOSPACE:
+			isc_mem_put(mctx, ds, sizeof(*ds));
+			return (result);
+		default:
+			check_result(result, "ds_from_rdata()");
 		}
 	}
 
@@ -808,14 +809,14 @@ ds_from_cdnskey(dns_rdatalist_t *dslist, isc_buffer_t *buf,
 
 static void
 make_new_ds_set(ds_maker_func_t *ds_from_rdata, uint32_t ttl,
-		dns_rdataset_t *rdset) {
+		dns_rdataset_t *crdset) {
+	isc_result_t result;
+	dns_rdatalist_t *dslist;
 	unsigned int size = 16;
+	unsigned i, n;
+
 	for (;;) {
-		isc_result_t result;
-		dns_rdatalist_t *dslist;
-
 		dslist = isc_mem_get(mctx, sizeof(*dslist));
-
 		dns_rdatalist_init(dslist);
 		dslist->rdclass = rdclass;
 		dslist->type = dns_rdatatype_ds;
@@ -827,29 +828,22 @@ make_new_ds_set(ds_maker_func_t *ds_from_rdata, uint32_t ttl,
 
 		isc_buffer_allocate(mctx, &new_ds_buf, size);
 
-		for (result = dns_rdataset_first(rdset);
-		     result == ISC_R_SUCCESS; result = dns_rdataset_next(rdset))
-		{
-			isc_result_t tresult;
-			dns_rdata_t rdata = DNS_RDATA_INIT;
-
-			dns_rdataset_current(rdset, &rdata);
-
-			tresult = ds_from_rdata(dslist, new_ds_buf, &rdata);
-			if (tresult == ISC_R_NOSPACE) {
-				vbprintf(20, "DS list buffer size %u\n", size);
-				freelist(&new_ds_set);
-				isc_buffer_free(&new_ds_buf);
-				size *= 2;
+		n = sizeof(dtype) / sizeof(dtype[0]);
+		for (i = 0; i < n && dtype[i] != 0; i++) {
+			result = append_new_ds_set(ds_from_rdata, new_ds_buf,
+						   dslist, dtype[i], crdset);
+			if (result != ISC_R_SUCCESS) {
 				break;
 			}
-
-			check_result(tresult, "ds_from_rdata()");
+		}
+		if (result == ISC_R_SUCCESS) {
+			return;
 		}
 
-		if (result == ISC_R_NOMORE) {
-			break;
-		}
+		vbprintf(2, "doubling DS list buffer size from %u\n", size);
+		freelist(&new_ds_set);
+		isc_buffer_free(&new_ds_buf);
+		size *= 2;
 	}
 }
 
@@ -874,8 +868,9 @@ consistent_digests(dns_rdataset_t *dsset) {
 	int i, j, n, d;
 
 	/*
-	 * First sort the dsset. DS rdata fields are tag, algorithm, digest,
-	 * so sorting them brings together all the records for each key.
+	 * First sort the dsset. DS rdata fields are tag, algorithm,
+	 * digest, so sorting them brings together all the records for
+	 * each key.
 	 */
 
 	n = dns_rdataset_count(dsset);
@@ -1093,8 +1088,8 @@ main(int argc, char *argv[]) {
 			break;
 		case 'i':
 			/*
-			 * This is a bodge to make the argument optional,
-			 * so that it works just like sed(1).
+			 * This is a bodge to make the argument
+			 * optional, so that it works just like sed(1).
 			 */
 			if (isc_commandline_argument ==
 			    argv[isc_commandline_index - 1]) {
@@ -1197,9 +1192,10 @@ main(int argc, char *argv[]) {
 	old_key_tbl = match_keyset_dsset(&dnskey_set, &old_ds_set, LOOSE);
 
 	/*
-	 * We have now identified the keys that are allowed to authenticate
-	 * the DNSKEY RRset (RFC 4035 section 5.2 bullet 2), and CDNSKEY and
-	 * CDS RRsets (RFC 7344 section 4.1 bullet 2).
+	 * We have now identified the keys that are allowed to
+	 * authenticate the DNSKEY RRset (RFC 4035 section 5.2 bullet
+	 * 2), and CDNSKEY and CDS RRsets (RFC 7344 section 4.1 bullet
+	 * 2).
 	 */
 
 	vbprintf(1, "verify DNSKEY signature(s)\n");
@@ -1262,6 +1258,24 @@ main(int argc, char *argv[]) {
 		make_new_ds_set(ds_from_cds, ttl, &cds_set);
 	} else {
 		make_new_ds_set(ds_from_cdnskey, ttl, &cdnskey_set);
+	}
+
+	/*
+	 * Try to use CDNSKEY records if the CDS records are missing
+	 * or did not match.
+	 */
+	if (dns_rdataset_count(&new_ds_set) == 0 &&
+	    dns_rdataset_isassociated(&cdnskey_set))
+	{
+		vbprintf(1, "CDS records have no allowed digest types; "
+			    "using CDNSKEY instead\n");
+		freelist(&new_ds_set);
+		isc_buffer_free(&new_ds_buf);
+		make_new_ds_set(ds_from_cdnskey, ttl, &cdnskey_set);
+	}
+	if (dns_rdataset_count(&new_ds_set) == 0) {
+		fatal("CDS records at %s do not match any -a digest types",
+		      namestr);
 	}
 
 	/*

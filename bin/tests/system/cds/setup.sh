@@ -45,6 +45,8 @@ convert() {
 	grep ' 8 1 ' DS.$n >DS.$n-1
 	grep ' 8 2 ' DS.$n >DS.$n-2
 	sed 's/ IN DS / IN CDS /' <DS.$n >>CDS.$n
+	sed 's/ IN DS / IN CDS /' <DS.$n-1 >>CDS.$n-1
+	sed 's/ IN DS / IN CDS /' <DS.$n-2 >>CDS.$n-2
 	sed 's/ IN DNSKEY / IN CDNSKEY /' <$key.key >CDNSKEY.$n
 	sed 's/ IN DS / 3600 IN DS /' <DS.$n >DS.ttl$n
 	sed 's/ IN DS / 7200 IN DS /' <DS.$n >DS.ttlong$n
@@ -109,6 +111,10 @@ tac <sig.cds.1 >sig.cds.rev1
 
 cat db.null CDNSKEY.2 | sign cdnskey.2
 cat db.null CDS.2 CDNSKEY.2 | sign cds.cdnskey.2
+cat db.null CDS.1 CDNSKEY.2 | sign cds1.cdnskey2
+
+cat db.null CDS.2-1 | sign cds.2.sha1
+cat db.null CDS.2-1 CDNSKEY.2 | sign cds.cdnskey.2.sha1
 
 $mangle '\s+IN\s+RRSIG\s+CDS .* '$idz' '$Z'\. ' \
 	<sig.cds.1 >brk.rrsig.cds.zsk
