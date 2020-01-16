@@ -1825,14 +1825,14 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
 	dst_key_format(key->key, keystr, sizeof(keystr));
 
-	report("Fetching %s (%s) from key %s.\n",
+	report("Fetching %s (%s) from key %s.",
 	       keystr, key->ksk ? (key->zsk ? "CSK" : "KSK") : "ZSK",
 	       key->source == dns_keysource_user ?  "file" : "repository");
 
 	if (key->prepublish && ttl > key->prepublish) {
 		isc_stdtime_t now;
 
-		report("Key %s: Delaying activation to match the DNSKEY TTL.\n",
+		report("Key %s: Delaying activation to match the DNSKEY TTL.",
 		       keystr, ttl);
 
 		isc_stdtime_get(&now);
@@ -1857,7 +1857,7 @@ remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	char alg[80];
 
 	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
-	report("Removing %s key %d/%s from DNSKEY RRset.\n",
+	report("Removing %s key %d/%s from DNSKEY RRset.",
 	       reason, dst_key_id(key->key), alg);
 
 	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
