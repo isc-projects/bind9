@@ -27,6 +27,9 @@ NOTESXML = notes-download.xml notes-eol.xml notes-intro.xml notes-license.xml \
 	   notes-9.15.3.xml \
 	   notes-9.15.4.xml \
 	   notes-9.15.5.xml \
+	   notes-9.15.6.xml \
+	   notes-9.15.7.xml \
+	   notes-9.15.8.xml \
 	   notes.xml
 
 doc man:: ${MANOBJS} ${TXTOBJS} ${PDFOBJS}

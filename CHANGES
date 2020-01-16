@@ -2,20 +2,20 @@
 			in validator.c when validating a negative cache
 			entry. [GL #1561]
 
-5346.	[bug]		Make hazard pointer array allocations dynamic, fixing a
-			bug that caused named to crash on machines with more
+5346.	[bug]		Make hazard pointer array allocations dynamic, fixing
+			a bug that caused named to crash on machines with more
 			than 40 cores. [GL #1493]
 
 5345.	[func]		Key-style trust anchors and DS-style trust anchors
-			can now both be used for the same name. [GL !2892]
+			can now both be used for the same name. [GL #1237]
 
 5344.	[bug]		Handle accept() errors properly in netmgr. [GL !2880]
 
 5343.	[func]		Add statistics counters to the netmgr. [GL #1311]
 
-5342.	[bug]		Disable pktinfo for ipv6 - bind to all interfaces
-			explicitly as libuv doesn't pass us pktinfo structure,
-			[GL #1558]
+5342.	[bug]		Disable pktinfo for IPv6 and bind to each interface
+			explicitly instead, because libuv doesn't support
+			pktinfo control messages. [GL #1558]
 
 5341.	[func]		Simplify passing the bound TCP socket to child
 			threads by using isc_uv_export/import functions.
