@@ -127,10 +127,10 @@ BIND 9.15 is the newest development branch of BIND 9. It includes a
 number of changes from BIND 9.14 and earlier releases. New features
 include:
 
-* New "dnssec-policy" statement to configure a key and signing policy
+* New `dnssec-policy` statement to configure a key and signing policy
   for zones, enabling automatic key regeneration and rollover.
-* New new network manager based on libuv.
-* Support for the new GeoIP2 geolocation API
+* New network manager based on libuv.
+* Added support for the new GeoIP2 geolocation API, `libmaxminddb`.
 * Improved DNSSEC trust anchor configuration using the `trust-anchors`
   statement, permitting configuration of trust anchors in DS as well as
   DNSKEY format.

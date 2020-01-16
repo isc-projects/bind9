@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000-2019 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2020 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,12 +36,13 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.7</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.8</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_platforms">Supported Platforms</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_download">Download</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.8">Notes for BIND 9.15.8</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.7">Notes for BIND 9.15.7</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.6">Notes for BIND 9.15.6</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.15.5">Notes for BIND 9.15.5</a></span></dt>
@@ -58,7 +59,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.7</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.8</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -132,6 +133,48 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.15.8"></a>Notes for BIND 9.15.8</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.15.8-changes"></a>Feature Changes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          The <span class="command"><strong>trust-anchors</strong></span> statement no longer rejects
+          a mix of both key-style and DS-style trust anchor entries for the
+          same name. [GL #1237]
+        </p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.15.8-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          Fixed an intermittent crash in the validator that could occur
+          when validating negative answers from the cache. [GL #1561]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          Fixed a bug that could cause <span class="command"><strong>named</strong></span> to crash on
+          machines with more than 40 CPUs. [GL #1493]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          Socket-related statistics counters were not being updated by
+          network manager sockets, but are now fully functional. [GL #1311]
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+</div>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.15.7"></a>Notes for BIND 9.15.7</h3></div></div></div>
 
   <div class="section">
@@ -156,7 +199,7 @@
 <li class="listitem">
         <p>
           Added support for multithreaded listening for TCP connections
-	  in the network manager [GL !2659]
+          in the network manager. [GL !2659]
         </p>
       </li>
 </ul></div>
@@ -174,8 +217,8 @@
       </li>
 <li class="listitem">
         <p>
-          Fixed several possible race conditions discovered by Thread
-          Sanitizer.
+          Fixed several possible race conditions discovered by
+          ThreadSanitizer.
         </p>
       </li>
 </ul></div>
@@ -800,6 +843,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.7 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.8 (Development Release)</p>
 </body>
 </html>
