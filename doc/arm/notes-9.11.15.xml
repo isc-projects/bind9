@@ -11,7 +11,7 @@
 
 <section xml:id="relnotes-9.11.15"><info><title>Notes for BIND 9.11.15</title></info>
 
-  <section xml:id="relnotes-9.14.10-bugs"><info><title>Bug Fixes</title></info>
+  <section xml:id="relnotes-9.11.15-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
         <para>
