@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.14.9
+Release Notes for BIND Version 9.14.10
 
 Introduction
 
@@ -49,6 +49,15 @@ www.isc.org/download/. There you will find additional information about
 each release, source code, and pre-compiled versions for Microsoft Windows
 operating systems.
 
+Notes for BIND 9.14.10
+
+Bug Fixes
+
+  * Fixed a GeoIP2 lookup bug which was triggered when certain
+    libmaxminddb versions were used. [GL #1552]
+
+  * Fixed several possible race conditions discovered by ThreadSanitizer.
+
 Notes for BIND 9.14.9
 
 Bug Fixes
@@ -56,7 +65,7 @@ Bug Fixes
   * Fixed a bug that caused named to leak memory on reconfiguration when
     any GeoIP2 database was in use. [GL #1445]
 
-  * Fixed several possible race conditions discovered by Thread Sanitizer.
+  * Fixed several possible race conditions discovered by ThreadSanitizer.
 
 Notes for BIND 9.14.8
 
