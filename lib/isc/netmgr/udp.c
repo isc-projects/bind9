@@ -179,14 +179,18 @@ stop_udp_child(isc_nmsocket_t *sock) {
 
 static void
 stoplistening(isc_nmsocket_t *sock) {
+	INSIST(sock->type == isc_nm_udplistener);
 	/*
 	 * Socket is already closing; there's nothing to do.
 	 */
-	if (uv_is_closing((uv_handle_t *) &sock->uv_handle.udp)) {
+	if (!isc__nmsocket_active(sock)) {
 		return;
 	}
-
-	INSIST(sock->type == isc_nm_udplistener);
+	/*
+	 * Mark it inactive now so that all sends will be ignored
+	 * and we won't try to stop listening again.
+	 */
+	atomic_store(&sock->active, false);
 
 	for (int i = 0; i < sock->nchildren; i++) {
 		isc__netievent_udpstop_t *event = NULL;
@@ -375,6 +379,11 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
 		return (ISC_R_UNEXPECTED);
 	}
 
+	if (!isc__nmsocket_active(sock)) {
+		isc_nmhandle_unref(handle);
+		return (ISC_R_CANCELED);
+	}
+
 	if (isc__nm_in_netthread()) {
 		ntid = isc_nm_tid();
 	} else {
@@ -425,7 +434,7 @@ isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	REQUIRE(worker->id == ievent->sock->tid);
 
-	if (atomic_load(&ievent->sock->active)) {
+	if (isc__nmsocket_active(ievent->sock)) {
 		udp_send_direct(ievent->sock, ievent->req, &ievent->peer);
 	} else {
 		ievent->req->cb.send(ievent->req->handle,

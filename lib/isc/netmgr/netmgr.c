@@ -681,7 +681,7 @@ isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event) {
 	uv_async_send(&worker->async);
 }
 
-static bool
+bool
 isc__nmsocket_active(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	if (sock->parent != NULL) {
