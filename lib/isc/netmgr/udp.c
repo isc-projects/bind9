@@ -383,7 +383,8 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
 	} else if (sock->type == isc_nm_udplistener) {
 		psock = sock;
 	} else {
-		return (ISC_R_UNEXPECTED);
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (!isc__nmsocket_active(sock)) {
