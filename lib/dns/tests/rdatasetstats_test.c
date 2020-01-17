@@ -223,8 +223,8 @@ rdatasetstats(void **state, bool servestale) {
 	result = dns_rdatasetstats_create(dt_mctx, &stats);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	/* First 256 types. */
-	for (i = 0; i <= 255; i++) {
+	/* First 255 types. */
+	for (i = 1; i <= 255; i++) {
 		set_typestats(stats, (dns_rdatatype_t)i);
 	}
 	/* Specials */
@@ -236,7 +236,7 @@ rdatasetstats(void **state, bool servestale) {
 
 	if (servestale) {
 		/* Mark stale */
-		for (i = 0; i <= 255; i++) {
+		for (i = 1; i <= 255; i++) {
 			mark_stale(stats, (dns_rdatatype_t)i, 0,
 				   DNS_RDATASTATSTYPE_ATTR_STALE);
 		}
@@ -252,7 +252,7 @@ rdatasetstats(void **state, bool servestale) {
 	}
 
 	/* Mark ancient */
-	for (i = 0; i <= 255; i++) {
+	for (i = 1; i <= 255; i++) {
 		mark_stale(stats, (dns_rdatatype_t)i, from,
 			   DNS_RDATASTATSTYPE_ATTR_ANCIENT);
 	}

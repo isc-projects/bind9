@@ -1585,7 +1585,8 @@ clean_cache_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 		top_next = current->next;
 		clean_stale_headers(rbtdb, mctx, current);
 		/*
-		 * If current is nonexistent or stale, we can clean it up.
+		 * If current is nonexistent, ancient, or stale and
+		 * we are not keeping stale, we can clean it up.
 		 */
 		if (NONEXISTENT(current) || ANCIENT(current) ||
 		    (STALE(current) && ! KEEPSTALE(rbtdb))) {
