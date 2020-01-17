@@ -366,7 +366,11 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
 
 	/*
 	 * Simulate a firewall blocking UDP packets bigger than
-	 * 'maxudp' bytes.
+	 * 'maxudp' bytes, for testing purposes.
+	 *
+	 * The client would ordinarily have unreferenced the handle
+	 * in the callback, but that won't happen in this case, so
+	 * we need to do so here.
 	 */
 	if (maxudp != 0 && region->length > maxudp) {
 		isc_nmhandle_unref(handle);
@@ -379,12 +383,10 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region,
 	} else if (sock->type == isc_nm_udplistener) {
 		psock = sock;
 	} else {
-		isc_nmhandle_unref(handle);
 		return (ISC_R_UNEXPECTED);
 	}
 
 	if (!isc__nmsocket_active(sock)) {
-		isc_nmhandle_unref(handle);
 		return (ISC_R_CANCELED);
 	}
 

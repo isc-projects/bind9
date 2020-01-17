@@ -470,8 +470,7 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 
 	if (sock->outer == NULL) {
-		/* The socket is closed, just issue the callback */
-		cb(handle, ISC_R_FAILURE, cbarg);
+		/* The socket is closed */
 		return (ISC_R_NOTCONNECTED);
 	}
 

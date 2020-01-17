@@ -1663,8 +1663,6 @@ xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		xfrout_fail(xfr, result, "send");
 	} else if (xfr->end_of_stream == false) {
 		sendstream(xfr);
-		/* Return now so we don't unref the handle */
-		return;
 	} else {
 		/* End of zone transfer stream. */
 		uint64_t msecs, persec;
@@ -1690,9 +1688,9 @@ xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 			   (unsigned int) persec);
 
 		xfrout_ctx_destroy(&xfr);
+		/* We're done, unreference the handle */
+		isc_nmhandle_unref(handle);
 	}
-
-	isc_nmhandle_unref(handle);
 }
 
 static void

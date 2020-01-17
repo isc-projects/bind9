@@ -381,8 +381,9 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	r.base[1] = client->message->id & 0xff;
 
 	result = client_sendpkg(client, &buffer);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		return;
+	}
 
  done:
 	if (client->tcpbuf != NULL) {
@@ -392,6 +393,7 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	}
 
 	ns_client_drop(client, result);
+	isc_nmhandle_unref(client->handle);
 }
 
 void
@@ -596,6 +598,10 @@ ns_client_send(ns_client_t *client) {
 
 		isc_nmhandle_ref(client->handle);
 		result = client_sendpkg(client, &tcpbuffer);
+		if (result != ISC_R_SUCCESS) {
+			/* We won't get a callback to clean it up */
+			isc_nmhandle_unref(client->handle);
+		}
 
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
@@ -629,6 +635,10 @@ ns_client_send(ns_client_t *client) {
 
 		isc_nmhandle_ref(client->handle);
 		result = client_sendpkg(client, &buffer);
+		if (result != ISC_R_SUCCESS) {
+			/* We won't get a callback to clean it up */
+			isc_nmhandle_unref(client->handle);
+		}
 
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
