@@ -53,9 +53,8 @@ typedef enum {
  */
 enum {
 	/* For 0-255, we use the rdtype value as counter indices */
-	rdtypecounter_dlv = 256,	/* for dns_rdatatype_dlv */
-	rdtypecounter_others = 257,	/* anything else */
-	rdtypecounter_max = 258,
+	rdtypecounter_others = 256,	/* anything else */
+	rdtypecounter_max = 257,
 	/* The following are used for nxrrset rdataset */
 	rdtypenxcounter_max = rdtypecounter_max * 2,
 	/* nxdomain counter */
@@ -226,9 +225,7 @@ dns_rdatatypestats_increment(dns_stats_t *stats, dns_rdatatype_t type) {
 
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_rdtype);
 
-	if (type == dns_rdatatype_dlv)
-		counter = rdtypecounter_dlv;
-	else if (type > dns_rdatatype_any)
+	if (type > dns_rdatatype_any)
 		counter = rdtypecounter_others;
 	else
 		counter = (int)type;
@@ -248,9 +245,7 @@ update_rdatasetstats(dns_stats_t *stats, dns_rdatastatstype_t rrsettype,
 		counter = rdtypecounter_nxdomain;
 	} else {
 		rdtype = DNS_RDATASTATSTYPE_BASE(rrsettype);
-		if (rdtype == dns_rdatatype_dlv)
-			counter = (int)rdtypecounter_dlv;
-		else if (rdtype > dns_rdatatype_any)
+		if (rdtype > dns_rdatatype_any)
 			counter = (int)rdtypecounter_others;
 		else
 			counter = (int)rdtype;
@@ -338,10 +333,7 @@ dump_rdentry(int rdcounter, uint64_t value, dns_rdatastatstype_t attributes,
 	if (rdcounter == rdtypecounter_others)
 		attributes |= DNS_RDATASTATSTYPE_ATTR_OTHERTYPE;
 	else {
-		if (rdcounter == rdtypecounter_dlv)
-			rdtype = dns_rdatatype_dlv;
-		else
-			rdtype = (dns_rdatatype_t)rdcounter;
+		rdtype = (dns_rdatatype_t)rdcounter;
 	}
 	type = DNS_RDATASTATSTYPE_VALUE((dns_rdatastatstype_t)rdtype,
 					attributes);

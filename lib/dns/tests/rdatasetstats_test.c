@@ -228,7 +228,6 @@ rdatasetstats(void **state, bool servestale) {
 		set_typestats(stats, (dns_rdatatype_t)i);
 	}
 	/* Specials */
-	set_typestats(stats, dns_rdatatype_dlv);
 	set_typestats(stats, (dns_rdatatype_t)1000);
 	set_nxdomainstats(stats);
 
@@ -241,8 +240,6 @@ rdatasetstats(void **state, bool servestale) {
 			mark_stale(stats, (dns_rdatatype_t)i, 0,
 				   DNS_RDATASTATSTYPE_ATTR_STALE);
 		}
-		mark_stale(stats, dns_rdatatype_dlv, 0,
-			   DNS_RDATASTATSTYPE_ATTR_STALE);
 		mark_stale(stats, (dns_rdatatype_t)1000, 0,
 			   DNS_RDATASTATSTYPE_ATTR_STALE);
 		mark_nxdomain_stale(stats, 0, DNS_RDATASTATSTYPE_ATTR_STALE);
@@ -259,8 +256,6 @@ rdatasetstats(void **state, bool servestale) {
 		mark_stale(stats, (dns_rdatatype_t)i, from,
 			   DNS_RDATASTATSTYPE_ATTR_ANCIENT);
 	}
-	mark_stale(stats, dns_rdatatype_dlv, from,
-		   DNS_RDATASTATSTYPE_ATTR_ANCIENT);
 	mark_stale(stats, (dns_rdatatype_t)1000, from,
 		   DNS_RDATASTATSTYPE_ATTR_ANCIENT);
 	mark_nxdomain_stale(stats, from, DNS_RDATASTATSTYPE_ATTR_ANCIENT);
