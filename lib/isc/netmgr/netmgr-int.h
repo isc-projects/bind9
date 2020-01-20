@@ -603,6 +603,13 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock);
  * if there are no remaining references or active handles.
  */
 
+bool
+isc__nmsocket_active(isc_nmsocket_t *sock);
+/*%<
+ * Determine whether 'sock' is active by checking 'sock->active'
+ * or, for child sockets, 'sock->parent->active'.
+ */
+
 void
 isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<

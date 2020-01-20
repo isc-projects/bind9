@@ -681,7 +681,7 @@ isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event) {
 	uv_async_send(&worker->async);
 }
 
-static bool
+bool
 isc__nmsocket_active(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	if (sock->parent != NULL) {
@@ -1158,7 +1158,7 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 
 void
 isc_nmhandle_unref(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock = NULL;
+	isc_nmsocket_t *sock = NULL, *tmp = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 
@@ -1199,8 +1199,14 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		}
 	}
 
+	/*
+	 * Temporarily reference the socket to ensure that it can't
+	 * be deleted by another thread while we're deactivating the
+	 * handle.
+	 */
+	isc_nmsocket_attach(sock, &tmp);
 	nmhandle_deactivate(sock, handle);
-	nmsocket_maybe_destroy(sock);
+	isc_nmsocket_detach(&tmp);
 }
 
 void *
