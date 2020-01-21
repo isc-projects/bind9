@@ -673,6 +673,7 @@ syncpublish(dst_key_t *key, isc_stdtime_t now) {
 	isc_result_t result;
 	isc_stdtime_t when;
 	int major, minor;
+	bool publish;
 
 	/*
 	 * Is this an old-style key?
@@ -686,16 +687,16 @@ syncpublish(dst_key_t *key, isc_stdtime_t now) {
 	if (major == 1 && minor <= 2)
 		return (false);
 
+	publish = false;
 	result = dst_key_gettime(key, DST_TIME_SYNCPUBLISH, &when);
-	if (result != ISC_R_SUCCESS)
-		return (false);
-
+	if (result == ISC_R_SUCCESS && when <= now) {
+		publish = true;
+	}
 	result = dst_key_gettime(key, DST_TIME_SYNCDELETE, &when);
-	if (result != ISC_R_SUCCESS)
-		return (true);
-	if (when <= now)
-		return (false);
-	return (true);
+	if (result == ISC_R_SUCCESS && when < now) {
+		publish = false;
+	}
+	return (publish);
 }
 
 /*%<
