@@ -9319,6 +9319,11 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  Specifying <command>version none</command>
 		  disables processing of the queries.
 		</para>
+		<para>
+		  Setting <command>version</command> to any value
+		  (including <literal>none</literal>) will also
+		  disable queries for <literal>authors.bind TXT CH</literal>.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
