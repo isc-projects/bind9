@@ -1,3 +1,6 @@
+5348.	[bug]		dnssec-settime -Psync was not being honoured.
+			[GL !2893]
+
 	--- 9.15.8 released ---
 
 5347.	[bug]		Fixed a bug that could cause an intermittent crash
