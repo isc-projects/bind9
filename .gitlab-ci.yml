@@ -174,7 +174,7 @@ stages:
       - configure
       - ltmain.sh
       - m4/libtool.m4
-    expire_in: "1 week"
+    expire_in: "1 day"
 
 .configure: &configure |
     ${CONFIGURE} \
@@ -208,7 +208,7 @@ stages:
     - autoreconf:sid:amd64
   artifacts:
     untracked: true
-    expire_in: "1 week"
+    expire_in: "1 day"
 
 .windows_build: &windows_build_job
   stage: build
@@ -237,7 +237,7 @@ stages:
     - autoreconf:sid:amd64
   artifacts:
     untracked: true
-    expire_in: "1 week"
+    expire_in: "1 day"
 
 .setup_interfaces: &setup_interfaces |
     if [ "$(id -u)" -eq "0" ]; then
@@ -260,7 +260,7 @@ stages:
     - test -s bin/tests/system/systests.output
   artifacts:
     untracked: true
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
 
 .kyua_report: &kyua_report_html |
@@ -287,7 +287,7 @@ stages:
     - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
   artifacts:
     untracked: true
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
   only:
     - tags
@@ -308,7 +308,7 @@ stages:
       - kyua.log
       - kyua.results
       - kyua_html/
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
 
 .cppcheck_args: &run_cppcheck |
@@ -343,7 +343,7 @@ stages:
       - compile_commands.json
       - cppcheck.results
       - cppcheck_html/
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
 
 ### Job Definitions
@@ -377,7 +377,7 @@ misc:sid:amd64:
     paths:
       - util/newcopyrights
       - checklibs.out
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
 
 🐞:sid:amd64:
@@ -421,7 +421,7 @@ docs:sid:amd64:
   artifacts:
     paths:
       - doc/arm/
-    expire_in: "1 month"
+    expire_in: "1 day"
 
 push:docs:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -628,7 +628,7 @@ scan-build:buster:amd64:
   artifacts:
     paths:
       - scan-build.reports/
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
 
 # Jobs for regular GCC builds on Debian Sid (amd64)
@@ -1102,4 +1102,4 @@ release:sid:amd64:
   artifacts:
     paths:
       - "*.tar.gz"
-    expire_in: "1 week"
+    expire_in: "1 day"
