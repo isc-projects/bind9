@@ -78,13 +78,17 @@
  ***/
 
 typedef enum {
-	task_state_idle, task_state_ready, task_state_paused,
-	task_state_running, task_state_done
+	task_state_idle,	/* not doing anything, events queue empty */
+	task_state_ready,	/* waiting in worker's queue */
+	task_state_paused,	/* not running, paused */
+	task_state_pausing,	/* running, waiting to be paused */
+	task_state_running,	/* actively processing events */
+	task_state_done		/* shutting down, no events or references */
 } task_state_t;
 
 #if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 static const char *statenames[] = {
-	"idle", "ready", "running", "done",
+	"idle", "ready", "paused", "pausing", "running", "done",
 };
 #endif
 
@@ -381,6 +385,7 @@ task_shutdown(isc__task_t *task) {
 		}
 		INSIST(task->state == task_state_ready ||
 		       task->state == task_state_paused ||
+		       task->state == task_state_pausing ||
 		       task->state == task_state_running);
 
 		/*
@@ -502,7 +507,8 @@ task_send(isc__task_t *task, isc_event_t **eventp, int c) {
 	}
 	INSIST(task->state == task_state_ready ||
 	       task->state == task_state_running ||
-	       task->state == task_state_paused);
+	       task->state == task_state_paused ||
+	       task->state == task_state_pausing);
 	ENQUEUE(task->events, event, ev_link);
 	task->nevents++;
 	*eventp = NULL;
@@ -1200,10 +1206,12 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 						finished = true;
 						task->state = task_state_done;
 					} else {
-						/* It might be paused */
 						if (task->state ==
 						    task_state_running) {
 							task->state = task_state_idle;
+						} else if (task->state ==
+							   task_state_pausing) {
+							task->state = task_state_paused;
 						}
 					}
 					done = true;
@@ -1226,6 +1234,9 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 						 */
 						task->state = task_state_ready;
 						requeue = true;
+					} else if (task->state ==
+						   task_state_pausing) {
+						task->state = task_state_paused;
 					}
 					done = true;
 				}
@@ -1682,8 +1693,12 @@ isc_task_pause(isc_task_t *task0) {
 	INSIST(task->state == task_state_idle ||
 	       task->state == task_state_ready ||
 	       task->state == task_state_running);
-	running = (task->state == task_state_running);
-	task->state = task_state_paused;
+	if (task->state == task_state_running) {
+		running = true;
+		task->state = task_state_pausing;
+	} else {
+		task->state = task_state_paused;
+	}
 	UNLOCK(&task->lock);
 
 	if (running) {
@@ -1706,12 +1721,17 @@ isc_task_unpause(isc_task_t *task0) {
 	REQUIRE(ISCAPI_TASK_VALID(task0));
 
 	LOCK(&task->lock);
-	INSIST(task->state == task_state_paused);
-	if (!EMPTY(task->events)) {
-		task->state = task_state_ready;
-		was_idle = true;
+	INSIST(task->state == task_state_paused ||
+	       task->state == task_state_pausing);
+	/* If the task was pausing we can't reschedule it */
+	if (task->state == task_state_pausing) {
+		task->state = task_state_running;
 	} else {
 		task->state = task_state_idle;
+	}
+	if (task->state == task_state_idle && !EMPTY(task->events)) {
+		task->state = task_state_ready;
+		was_idle = true;
 	}
 	UNLOCK(&task->lock);
 

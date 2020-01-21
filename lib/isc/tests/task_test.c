@@ -48,7 +48,7 @@ static isc_condition_t cv;
 
 atomic_int_fast32_t counter;
 static int active[10];
-static atomic_bool done;
+static atomic_bool done, done2;
 
 static int
 _setup(void **state) {
@@ -427,6 +427,83 @@ privilege_drop(void **state) {
 	assert_null(task1);
 	isc_task_destroy(&task2);
 	assert_null(task2);
+}
+
+static void
+sleep_cb(isc_task_t *task, isc_event_t *event) {
+	UNUSED(task);
+	int p = *(int*)event->ev_arg;
+	if (p == 1) {
+		/*
+		 * Signal the main thread that we're running, so that
+		 * it can trigger the race.
+		 */
+		LOCK(&lock);
+		atomic_store(&done2, true);
+		SIGNAL(&cv);
+		UNLOCK(&lock);
+		/*
+		 * Wait for the operations in the main thread to be finished.
+		 */
+		LOCK(&lock);
+		while (!atomic_load(&done)) {
+			WAIT(&cv, &lock);
+		}
+		UNLOCK(&lock);
+	} else {
+		/*
+		 * Wait for the operations in the main thread to be finished.
+		 */
+		LOCK(&lock);
+		atomic_store(&done2, true);
+		SIGNAL(&cv);
+		UNLOCK(&lock);
+	}
+	isc_event_free(&event);
+}
+
+static void
+pause_unpause(void **state) {
+	isc_result_t result;
+	isc_task_t *task = NULL;
+	isc_event_t *event1,*event2 = NULL;
+	UNUSED(state);
+	atomic_store(&done, false);
+	atomic_store(&done2, false);
+
+	result = isc_task_create(taskmgr, 0, &task);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	event1 = isc_event_allocate(test_mctx, task, ISC_TASKEVENT_TEST,
+				    sleep_cb, &(int){1}, sizeof (isc_event_t));
+	assert_non_null(event1);
+	event2 = isc_event_allocate(test_mctx, task, ISC_TASKEVENT_TEST,
+				    sleep_cb, &(int){2}, sizeof (isc_event_t));
+	assert_non_null(event2);
+	isc_task_send(task, &event1);
+	isc_task_send(task, &event2);
+	/* Wait for event1 to be running */
+	LOCK(&lock);
+	while (!atomic_load(&done2)) {
+		WAIT(&cv, &lock);
+	}
+	UNLOCK(&lock);
+	/* Pause-unpause-detach is what causes the race */
+	isc_task_pause(task);
+	isc_task_unpause(task);
+	isc_task_detach(&task);
+	/* Signal event1 to finish */
+	LOCK(&lock);
+	atomic_store(&done2, false);
+	atomic_store(&done, true);
+	SIGNAL(&cv);
+	UNLOCK(&lock);
+	/* Wait for event2 to finish */
+	LOCK(&lock);
+	while (!atomic_load(&done2)) {
+		WAIT(&cv, &lock);
+	}
+	UNLOCK(&lock);
 }
 
 /*
@@ -1482,6 +1559,7 @@ main(int argc, char **argv) {
 		cmocka_unit_test_setup_teardown(purgeevent, _setup2, _teardown),
 		cmocka_unit_test_setup_teardown(purgeevent_notpurge,
 						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(pause_unpause, _setup, _teardown),
 	};
 	int c;
 

@@ -1,3 +1,5 @@
+5349.	[bug]		Fix a race in task_pause/unpause. [GL #1571]
+
 5348.	[bug]		dnssec-settime -Psync was not being honoured.
 			[GL !2893]
 
