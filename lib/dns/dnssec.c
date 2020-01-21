@@ -673,7 +673,7 @@ syncpublish(dst_key_t *key, isc_stdtime_t now) {
 	/* If no kasp state, check timings. */
 	publish = false;
 	result = dst_key_gettime(key, DST_TIME_SYNCPUBLISH, &when);
-	if (result == ISC_R_SUCCESS && when < now) {
+	if (result == ISC_R_SUCCESS && when <= now) {
 		publish = true;
 	}
 	result = dst_key_gettime(key, DST_TIME_SYNCDELETE, &when);
