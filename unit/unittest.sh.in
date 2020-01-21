@@ -9,7 +9,7 @@ export CMOCKA_MESSAGE_OUTPUT
 GDB="$(command -v gdb)"
 
 kyua_report() {
-	${KYUA} --logfile /dev/null report --results-file "${KYUA_RESULT:-LATEST}"
+	${KYUA} --logfile /dev/null report --verbose --results-file "${KYUA_RESULT:-LATEST}"
 }
 
 status=0
@@ -36,7 +36,7 @@ then
 	# Use kyua-debug(1) facility to gather additional data on failed tests.
 	# Some runs will just show verbose information from the run, some will
 	# show backtrace via gdb(1).
-	broken_tests="$(kyua_report | awk '/Broken tests/ { flag=1; next } /Summary/ { flag=0 } flag' | awk '{ print $1 }')"
+	broken_tests=$(kyua_report | awk '$2 == "->" && ( $3 == "broken:" || $3 == "failed:" ) { print $1 }')
 	if [ -n "${CI}" ] && [ "$(id -u)" -eq 0 ] && [ -n "${broken_tests}" ] && [ -n "${GDB}" ]; then
 		if grep '^#define USE_LIBTOOL 1$' "${TOP}/config.h" >/dev/null; then
 			# kyua debug command misidentifies broken binary when libtool is used
