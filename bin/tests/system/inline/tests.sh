@@ -1351,6 +1351,7 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} inline ns3
 # receive_secure_serial() should refrain from introducing any zone changes.
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
+nextpart ns3/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} inline ns3
 # We can now test whether the secure zone journal was correctly processed:
 # unless the records contained in it were scheduled for resigning, no resigning
