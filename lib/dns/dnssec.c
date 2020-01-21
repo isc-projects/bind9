@@ -1897,7 +1897,7 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, dns_name_t *origin,
 		isc_stdtime_t now;
 
 		dst_key_format(key->key, keystr, sizeof(keystr));
-		report("Key %s: Delaying activation to match the DNSKEY TTL.\n",
+		report("Key %s: Delaying activation to match the DNSKEY TTL.",
 		       keystr, ttl);
 
 		isc_stdtime_get(&now);
