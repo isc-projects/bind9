@@ -141,7 +141,6 @@ static bool nonearest = false;
 static bool nosoa = false;
 static bool notcp = false;
 static bool sigvalinsecs = false;
-static unsigned int delay = 0;
 
 /*
  * -4 and -6
@@ -638,14 +637,10 @@ parse_T_opt(char *option) {
 	/*
 	 * force the server to behave (or misbehave) in
 	 * specified ways for testing purposes.
-	 * delay=xxxx: delay client responses by xxxx ms to
-	 *	       simulate remote servers.
 	 * dscp=x:     check that dscp values are as
 	 * 	       expected and assert otherwise.
 	 */
-	if (!strncmp(option, "delay=", 6)) {
-		delay = atoi(option + 6);
-	} else if (!strcmp(option, "dropedns")) {
+	if (!strcmp(option, "dropedns")) {
 		dropedns = true;
 	} else if (!strncmp(option, "dscp=", 5)) {
 		isc_dscp_check_value = atoi(option + 5);
@@ -1318,8 +1313,6 @@ setup(void) {
 		ns_server_setoption(sctx, NS_SERVER_NOTCP, true);
 	if (sigvalinsecs)
 		ns_server_setoption(sctx, NS_SERVER_SIGVALINSECS, true);
-
-	named_g_server->sctx->delay = delay;
 }
 
 static void

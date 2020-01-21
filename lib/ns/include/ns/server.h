@@ -90,7 +90,6 @@ struct ns_server {
 
 	/*% Test options and other configurables */
 	uint32_t		options;
-	unsigned int		delay;
 
 	dns_acl_t		*blackholeacl;
 	dns_acl_t		*keepresporder;
