@@ -172,7 +172,7 @@ n=$((n+1))
 echo_i "remove untrusted standby key, check timer restarts ($n)"
 ret=0
 mkeys_sync_on 2 || ret=1
-t1=$(grep "trust pending" ns2/managed-keys.bind)
+t1=$(grep "trust pending" ns2/managed-keys.bind) || true
 $SETTIME -D now -K ns1 "$standby1" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 # Less than a second may have passed since the last time ns2 received a
@@ -182,7 +182,7 @@ mkeys_loadkeys_on 1 || ret=1
 sleep 1
 mkeys_refresh_on 2 || ret=1
 mkeys_sync_on 2 || ret=1
-t2=$(grep "trust pending" ns2/managed-keys.bind)
+t2=$(grep "trust pending" ns2/managed-keys.bind) || true
 # trust pending date must be different
 [ -n "$t2" ] || ret=1
 [ "$t1" = "$t2" ] && ret=1
@@ -220,7 +220,7 @@ count=$(grep -c "remove at" rndc.out.$n) || true
 count=$(grep -c "trust pending" rndc.out.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # pending date moved forward for the standby key
-t2=$(grep "trust pending" ns2/managed-keys.bind)
+t2=$(grep "trust pending" ns2/managed-keys.bind) || true
 [ -n "$t2" ] || ret=1
 [ "$t1" = "$t2" ] && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -254,7 +254,7 @@ count=$(grep -c "remove at" rndc.out.$n) || true
 count=$(grep -c "trust pending" rndc.out.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # pending date moved forward for the standby key
-t2=$(grep "trust pending" ns2/managed-keys.bind)
+t2=$(grep "trust pending" ns2/managed-keys.bind) || true
 [ -n "$t2" ] || ret=1
 [ "$t1" = "$t2" ] && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -292,7 +292,7 @@ count=$(grep -c "remove at" rndc.out.$n) || true
 count=$(grep -c "trust pending" rndc.out.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # pending date moved forward for the standby key
-t2=$(grep "trust pending" ns2/managed-keys.bind)
+t2=$(grep "trust pending" ns2/managed-keys.bind) || true
 [ -n "$t2" ] || ret=1
 [ "$t1" = "$t2" ] && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -571,7 +571,7 @@ ret=0
 # set using -T mkeytimers).
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
-t1=$(grep 'next refresh:' rndc.out.1.$n)
+t1=$(grep 'next refresh:' rndc.out.1.$n) || true
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns1
 rm -f ns1/root.db.signed.jnl
 cp ns1/root.db ns1/root.db.signed
@@ -594,7 +594,7 @@ count=$(grep -c "trust" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 count=$(grep -c "trusted since" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
-t2=$(grep 'next refresh:' rndc.out.2.$n)
+t2=$(grep 'next refresh:' rndc.out.2.$n) || true
 [ "$t1" = "$t2" ] && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -605,7 +605,7 @@ ret=0
 # Refresh keys first to prevent previous checks from influencing this one
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
-t1=$(grep 'next refresh:' rndc.out.1.$n)
+t1=$(grep 'next refresh:' rndc.out.1.$n) || true
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns1
 rm -f ns1/root.db.signed.jnl
 cat ns1/K*.key >> ns1/root.db.signed
@@ -632,7 +632,7 @@ count=$(grep -c "trust" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 count=$(grep -c "trusted since" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
-t2=$(grep 'next refresh:' rndc.out.2.$n)
+t2=$(grep 'next refresh:' rndc.out.2.$n) || true
 [ "$t1" = "$t2" ] && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -682,7 +682,7 @@ echo_i "check that trust-anchor-telemetry queries contain the correct key ($n)"
 ret=0
 # convert the hexadecimal key from the TAT query into decimal and
 # compare against the known key.
-tathex=$(grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $6; exit 0}' | sed -e 's/(_ta-\([0-9a-f][0-9a-f]*\)):/\1/')
+tathex=$(grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $6; exit 0}' | sed -e 's/(_ta-\([0-9a-f][0-9a-f]*\)):/\1/') || true
 tatkey=$($PERL -e 'printf("%d\n", hex(@ARGV[0]));' "$tathex")
 realkey=$(rndccmd 10.53.0.2 secroots - | sed -n 's#.*SHA256/\([0-9][0-9]*\) ; .*managed.*#\1#p')
 [ "$tatkey" -eq "$realkey" ] || ret=1
