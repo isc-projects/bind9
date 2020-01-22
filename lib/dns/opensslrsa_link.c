@@ -1703,56 +1703,52 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	isc_result_t ret;
 	EVP_PKEY *pkey = NULL;
 	RSA *rsa = NULL, *pubrsa = NULL;
-	char *colon, *tmpengine = NULL;
 	const BIGNUM *ex = NULL;
 
 	UNUSED(pin);
 
 	if (engine == NULL) {
-		if (strchr(label, ':') == NULL)
-			DST_RET(DST_R_NOENGINE);
-		tmpengine = isc_mem_strdup(key->mctx, label);
-		if (tmpengine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
-		colon = strchr(tmpengine, ':');
-		INSIST(colon != NULL);
-		*colon = '\0';
+		DST_RET(DST_R_NOENGINE);
 	}
 	e = dst__openssl_getengine(engine);
-	if (e == NULL)
+	if (e == NULL) {
 		DST_RET(DST_R_NOENGINE);
+	}
 	pkey = ENGINE_load_public_key(e, label, NULL, NULL);
 	if (pkey != NULL) {
 		pubrsa = EVP_PKEY_get1_RSA(pkey);
 		EVP_PKEY_free(pkey);
-		if (pubrsa == NULL)
+		if (pubrsa == NULL) {
 			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		}
 	}
 	pkey = ENGINE_load_private_key(e, label, NULL, NULL);
-	if (pkey == NULL)
+	if (pkey == NULL) {
 		DST_RET(dst__openssl_toresult2("ENGINE_load_private_key",
 					       ISC_R_NOTFOUND));
-	if (tmpengine != NULL) {
-		key->engine = tmpengine;
-		tmpengine = NULL;
-	} else {
-		key->engine = isc_mem_strdup(key->mctx, engine);
-		if (key->engine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
+	}
+	key->engine = isc_mem_strdup(key->mctx, engine);
+	if (key->engine == NULL) {
+		DST_RET(ISC_R_NOMEMORY);
 	}
 	key->label = isc_mem_strdup(key->mctx, label);
-	if (key->label == NULL)
+	if (key->label == NULL) {
 		DST_RET(ISC_R_NOMEMORY);
+	}
 	rsa = EVP_PKEY_get1_RSA(pkey);
-	if (rsa == NULL)
+	if (rsa == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-	if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS)
+	}
+	if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS) {
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	}
 	RSA_get0_key(rsa, NULL, &ex, NULL);
-	if (BN_num_bits(ex) > RSA_MAX_PUBEXP_BITS)
+	if (BN_num_bits(ex) > RSA_MAX_PUBEXP_BITS) {
 		DST_RET(ISC_R_RANGE);
-	if (pubrsa != NULL)
+	}
+	if (pubrsa != NULL) {
 		RSA_free(pubrsa);
+	}
 	key->key_size = EVP_PKEY_bits(pkey);
 #if USE_EVP
 	key->keydata.pkey = pkey;
@@ -1764,8 +1760,6 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	return (ISC_R_SUCCESS);
 
  err:
-	if (tmpengine != NULL)
-		isc_mem_free(key->mctx, tmpengine);
 	if (rsa != NULL)
 		RSA_free(rsa);
 	if (pubrsa != NULL)
