@@ -1,3 +1,7 @@
+5350.	[bug]		When a view was configured with class CHAOS,
+			dns_view_findzonecut() could incorrectly return
+			success for non-existent records. [GL #1540]
+
 5348.	[bug]		dnssec-settime -Psync was not being honoured.
 			[GL !2893]
 
