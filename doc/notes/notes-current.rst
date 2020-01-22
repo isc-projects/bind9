@@ -39,6 +39,9 @@ Feature Changes
   key. This allows for a gradual replacement of RRSIGs as they reach expiry.
   :gl:`#1551`
 
+- SHA-1 CDS records are no longer used by ``dnssec-cds`` to make DS
+  records. Thanks to Tony Finch. :gl:`!2946`
+
 Bug Fixes
 ~~~~~~~~~
 

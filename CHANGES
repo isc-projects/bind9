@@ -1,3 +1,6 @@
+5697.	[protocol]	SHA-1 CDS records are no longer used by dnssec-cds to
+			make DS records. Thanks to Tony Finch. [GL !2946]
+
 5696.	[protocol]	Add support for HTTPS and SVCB record types. [GL #1132]
 
 5695.	[func]		Dig can now display the BADCOOKIE message as part of
@@ -1452,7 +1455,7 @@
 5349.	[bug]		Fix a race in task_pause/unpause. [GL #1571]
 
 5348.	[bug]		dnssec-settime -Psync was not being honoured.
-			[GL !2893]
+			Thanks to Tony Finch. [GL !2893]
 
 	--- 9.15.8 released ---
 
