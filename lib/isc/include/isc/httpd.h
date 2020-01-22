@@ -35,7 +35,7 @@ struct isc_httpdurl {
 	char			       *url;
 	isc_httpdaction_t	       *action;
 	void			       *action_arg;
-	bool			isstatic;
+	bool				isstatic;
 	isc_time_t			loadtime;
 	ISC_LINK(isc_httpdurl_t)	link;
 };
