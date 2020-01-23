@@ -378,14 +378,14 @@ nextpartpeek() {
 _search_log() (
 	msg="$1"
 	file="$2"
-	nextpart "$file" | grep -F "$msg" > /dev/null
+	nextpart "$file" | grep -F -e "$msg" > /dev/null
 )
 
 # _search_log_peek: look for message $1 in file $2 with nextpartpeek().
 _search_log_peek() (
 	msg="$1"
 	file="$2"
-	nextpartpeek "$file" | grep -F "$msg" > /dev/null
+	nextpartpeek "$file" | grep -F -e "$msg" > /dev/null
 )
 
 # wait_for_log: wait until message $2 in file $3 appears.  Bail out after
