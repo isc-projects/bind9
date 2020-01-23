@@ -97,7 +97,7 @@ grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-sleep 1
+sleep 2
 
 n=`expr $n + 1`
 echo_i "check 'rndc serve-stale status' ($n)"
@@ -113,13 +113,13 @@ ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*2.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 # Run rndc dumpdb, test whether the stale data has correct comment printed.
 # The max-stale-ttl is 3600 seconds, so the comment should say the data is
 # stale for somewhere between 3500-3599 seconds.
 rndc_dumpdb ns1 || ret=1
 awk '/; stale/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
-    grep "; stale (will be retained for 35.. more seconds) data\.example.*A text record with a 1 second ttl" > /dev/null 2>&1 || ret=1
+    grep "; stale (will be retained for 35.. more seconds) data\.example.*A text record with a 2 second ttl" > /dev/null 2>&1 || ret=1
 # Also make sure the not expired data does not have a stale comment.
 awk '/; answer/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
     grep "; answer longttl\.example.*A text record with a 600 second ttl" > /dev/null 2>&1 || ret=1
@@ -226,7 +226,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*2.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -310,7 +310,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*2.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -362,7 +362,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*2.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -457,7 +457,7 @@ grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-sleep 1
+sleep 2
 
 n=`expr $n + 1`
 echo_i "prime cache longttl.example (low max-stale-ttl) ($n)"
@@ -520,7 +520,7 @@ grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-sleep 1
+sleep 2
 
 n=`expr $n + 1`
 echo_i "check stale data.example (low max-stale-ttl) ($n)"
@@ -528,7 +528,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*3.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -570,7 +570,7 @@ grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 status=`expr $status + $ret`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
-sleep 1
+sleep 2
 
 n=`expr $n + 1`
 echo_i "check ancient data.example (low max-stale-ttl) ($n)"
@@ -628,7 +628,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*1.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -638,7 +638,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*1.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+grep "example\..*2.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -648,7 +648,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*1.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+grep "example\..*2.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -677,7 +677,7 @@ grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-sleep 1
+sleep 2
 
 n=`expr $n + 1`
 echo_i "check 'rndc serve-stale status' ($n)"
@@ -753,7 +753,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*1.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*1.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -806,7 +806,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.4 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*1.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -816,7 +816,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.4 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*1.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+grep "example\..*2.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -826,7 +826,7 @@ ret=0
 $DIG -p ${PORT} @10.53.0.4 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*1.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+grep "example\..*2.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -855,7 +855,7 @@ grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-sleep 1
+sleep 2
 
 n=`expr $n + 1`
 echo_i "check 'rndc serve-stale status' ($n)"
@@ -947,7 +947,7 @@ status=`expr $status + $ret`
 echo_i "start ns4"
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} serve-stale ns4
 
-sleep 1
+sleep 2
 
 n=`expr $n + 1`
 echo_i "verify ancient cache statistics (serve-stale disabled) ($n)"
