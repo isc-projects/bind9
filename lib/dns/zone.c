@@ -19426,7 +19426,8 @@ keydone(isc_task_t *task, isc_event_t *event) {
 		commit = true;
 
 		LOCK_ZONE(zone);
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED|
+				 DNS_ZONEFLG_NEEDNOTIFY);
 		zone_needdump(zone, 30);
 		UNLOCK_ZONE(zone);
 	}
