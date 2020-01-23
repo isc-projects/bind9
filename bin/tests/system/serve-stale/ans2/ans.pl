@@ -45,10 +45,10 @@ my $A = "ns.example 300 IN A $localaddr";
 #
 # Records to be TTL stretched
 #
-my $TXT = "data.example 1 IN TXT \"A text record with a 1 second ttl\"";
+my $TXT = "data.example 2 IN TXT \"A text record with a 2 second ttl\"";
 my $LONGTXT = "longttl.example 600 IN TXT \"A text record with a 600 second ttl\"";
-my $CAA = "othertype.example 1 IN CAA 0 issue \"ca1.example.net\"";
-my $negSOA = "example 1 IN SOA . . 0 0 0 0 300";
+my $CAA = "othertype.example 2 IN CAA 0 issue \"ca1.example.net\"";
+my $negSOA = "example 2 IN SOA . . 0 0 0 0 300";
 
 sub reply_handler {
     my ($qname, $qclass, $qtype) = @_;
