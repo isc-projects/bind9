@@ -150,7 +150,7 @@ releases.  New features include:
 - "rndc modzone" reconfigures a single zone, without requiring the entire
   server to be reconfigured.
 - "rndc showzone" displays the current configuration of a zone.
-- "rndc managed-keys" can be used to check the status of RFC 5001 managed
+- "rndc managed-keys" can be used to check the status of RFC 5011 managed
   trust anchors, or to force trust anchors to be refreshed.
 - "max-cache-size" can now be set to a percentage of available memory. The
   default is 90%.
