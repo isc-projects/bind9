@@ -85,21 +85,6 @@
 #define NS_CLIENT_SEND_BUFFER_SIZE 4096
 #define NS_CLIENT_RECV_BUFFER_SIZE 4096
 
-#define CLIENT_NMCTXS 100
-/*%<
- * Number of 'mctx pools' for clients. (Should this be configurable?)
- * When enabling threads, we use a pool of memory contexts shared by
- * client objects, since concurrent access to a shared context would cause
- * heavy contentions.  The above constant is expected to be enough for
- * completely avoiding contentions among threads for an authoritative-only
- * server.
- */
-
-#define CLIENT_NTASKS 100
-/*%<
- * Number of tasks to be used by clients - those are used only when recursing
- */
-
 /*!
  * Client object states.  Ordering is significant: higher-numbered
  * states are generally "more active", meaning that the client can
@@ -166,6 +151,7 @@ struct ns_clientmgr {
 	isc_timermgr_t *timermgr;
 	isc_task_t *	excl;
 	isc_refcount_t	references;
+	int		ncpus;
 
 	/* Attached by clients, needed for e.g. recursion */
 	isc_task_t **taskpool;
@@ -180,11 +166,8 @@ struct ns_clientmgr {
 	isc_mutex_t   reclock;
 	client_list_t recursing; /*%< Recursing clients */
 
-#if CLIENT_NMCTXS > 0
 	/*%< mctx pool for clients. */
-	unsigned int nextmctx;
-	isc_mem_t *  mctxpool[CLIENT_NMCTXS];
-#endif /* if CLIENT_NMCTXS > 0 */
+	isc_mem_t **mctxpool;
 };
 
 /*% nameserver client structure */
@@ -364,7 +347,7 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds);
 
 isc_result_t
 ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
-		    isc_timermgr_t *timermgr, ns_interface_t *ifp,
+		    isc_timermgr_t *timermgr, ns_interface_t *ifp, int ncpus,
 		    ns_clientmgr_t **managerp);
 /*%<
  * Create a client manager.
