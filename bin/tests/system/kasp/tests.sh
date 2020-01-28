@@ -507,6 +507,7 @@ for id in $ids; do
 	test "$ret" -eq 0 && continue
 
 	ret=0 && check_key "KEY3" "$id"
+
 	# If ret is still non-zero, non of the files matched.
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
@@ -767,9 +768,9 @@ check_keys()
 	_log=0
 
 	# Clear key ids.
-	key_set KEY1 ID 0
-	key_set KEY2 ID 0
-	key_set KEY3 ID 0
+	key_set KEY1 ID "no"
+	key_set KEY2 ID "no"
+	key_set KEY3 ID "no"
 
 	# Check key files.
 	_ids=$(get_keyids "$DIR" "$ZONE" "$_key_algnum")
@@ -778,17 +779,17 @@ check_keys()
 		# Check them until a match is found.
 		echo_i "check key $_id"
 
-		if [ "0" = "$(key_get KEY1 ID)" ] && [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
+		if [ "no" = "$(key_get KEY1 ID)" ] && [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
 			ret=0
 			check_key "KEY1" "$_id"
 			test "$ret" -eq 0 && key_set KEY1 "ID" "$KEY_ID" && continue
 		fi
-		if [ "0" = "$(key_get KEY2 ID)" ] && [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
+		if [ "no" = "$(key_get KEY2 ID)" ] && [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
 			ret=0
 			check_key "KEY2" "$_id"
 			test "$ret" -eq 0 && key_set KEY2 "ID" "$KEY_ID" && continue
 		fi
-		if [ "0" = "$(key_get KEY3 ID)" ] && [ "$(key_get KEY3 EXPECT)" = "yes"  ]; then
+		if [ "no" = "$(key_get KEY3 ID)" ] && [ "$(key_get KEY3 EXPECT)" = "yes"  ]; then
 			ret=0
 			check_key "KEY3" "$_id"
 			test "$ret" -eq 0 && key_set KEY3 ID "$KEY_ID" && continue
@@ -808,13 +809,13 @@ check_keys()
 
 	ret=0
 	if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		test "0" = "$(key_get KEY1 ID)" && log_error "No KEY1 found for zone ${ZONE}"
+		test "no" = "$(key_get KEY1 ID)" && log_error "No KEY1 found for zone ${ZONE}"
 	fi
 	if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		test "0" = "$(key_get KEY2 ID)" && log_error "No KEY2 found for zone ${ZONE}"
+		test "no" = "$(key_get KEY2 ID)" && log_error "No KEY2 found for zone ${ZONE}"
 	fi
 	if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-		test "0" = "$(key_get KEY3 ID)" && log_error "No KEY3 found for zone ${ZONE}"
+		test "no" = "$(key_get KEY3 ID)" && log_error "No KEY3 found for zone ${ZONE}"
 	fi
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
