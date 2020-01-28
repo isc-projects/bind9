@@ -135,7 +135,7 @@ void
 isc_hp_destroy(isc_hp_t *hp) {
 	for (int i = 0; i < isc__hp_max_threads; i++) {
 		isc_mem_put(hp->mctx, hp->hp[i],
-			    CLPAD * 2 * sizeof(uintptr_t));
+			    CLPAD * 2 * sizeof(hp->hp[i][0]));
 
 		for (int j = 0; j < hp->rl[i]->size; j++) {
 			void *data = (void *)hp->rl[i]->list[j];
