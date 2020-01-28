@@ -17,7 +17,12 @@
 #include <isc/util.h>
 #include <isc/siphash.h>
 
-#if HAVE_OPENSSL_SIPHASH
+/*
+ * Creation of EVP_MD_CTX and EVP_PKEY is quite expensive, until
+ * we fix the code to reuse the context and key we'll use our own
+ * implementation of siphash.
+ */
+#if 0 /* HAVE_OPENSSL_SIPHASH */
 #include <openssl/evp.h>
 
 void
