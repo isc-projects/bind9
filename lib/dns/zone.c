@@ -18623,7 +18623,8 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			 * is 5 zero octets.
 			 */
 			if (crdata.length == 5U &&
-			    memcmp(crdata.data, "\0\0\0\0", 5) == 0)
+			    memcmp(crdata.data,
+				   (unsigned char[5]){ 0, 0, 0, 0, 0 }, 5) == 0)
 			{
 				delete = true;
 				continue;
@@ -18686,7 +18687,8 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			 * and 2 zero octets.
 			 */
 			if (crdata.length == 5U &&
-			    memcmp(crdata.data, "\0\0\3\0", 5) == 0)
+			    memcmp(crdata.data,
+				   (unsigned char[5]){ 0, 0, 3, 0, 0 }, 5) == 0)
 			{
 				delete = true;
 				continue;
