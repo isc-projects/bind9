@@ -238,6 +238,7 @@ key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 cat "$infile" "$key1.key" "$key2.key" > "$zonefile"
 "$SIGNER" -P -g -o "$zone" "$zonefile" > /dev/null 2>&1
+keyfile_to_key_id "$key1" > cds-kskonly.secure.id
 
 zone=cds-auto.secure
 infile=cds-auto.secure.db.in
@@ -281,6 +282,7 @@ key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 cat "$infile" "$key1.key" "$key2.key" > "$zonefile"
 "$SIGNER" -P -g -o "$zone" "$zonefile" > /dev/null 2>&1
+keyfile_to_key_id "$key1" > cdnskey-kskonly.secure.id
 
 zone=cdnskey-auto.secure
 infile=cdnskey-auto.secure.db.in

@@ -3342,6 +3342,7 @@ status=$((status+ret))
 echo_i "check that CDS records are signed only using KSK when added by"
 echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
 ret=0
+keyid=$(cat ns2/cds-kskonly.secure.id)
 (
 echo zone cds-kskonly.secure
 echo server 10.53.0.2 "$PORT"
@@ -3356,6 +3357,8 @@ echo send
 dig_with_opts +noall +answer @10.53.0.2 cds cds-kskonly.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
+lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDS" && $11 == id {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 2 || ret=1
 n=$((n+1))
@@ -3365,6 +3368,7 @@ status=$((status+ret))
 echo_i "check that CDS deletion records are signed only using KSK when added by"
 echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
 ret=0
+keyid=$(cat ns2/cds-kskonly.secure.id)
 (
 echo zone cds-kskonly.secure
 echo server 10.53.0.2 "$PORT"
@@ -3374,6 +3378,8 @@ echo send
 ) | $NSUPDATE
 dig_with_opts +noall +answer @10.53.0.2 cds cds-kskonly.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDS" && $11 == id {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
@@ -3565,6 +3571,7 @@ status=$((status+ret))
 echo_i "check that CDNSKEY records are signed only using KSK when added by"
 echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
 ret=0
+keyid=$(cat ns2/cdnskey-kskonly.secure.id)
 (
 echo zone cdnskey-kskonly.secure
 echo server 10.53.0.2 "$PORT"
@@ -3575,6 +3582,8 @@ echo send
 ) | $NSUPDATE
 dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-kskonly.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDNSKEY" && $11 == id {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
