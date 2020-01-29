@@ -35,6 +35,19 @@
 
 #define ISC_NETMGR_TID_UNKNOWN -1
 
+#if !defined(WIN32)
+/*
+ * New versions of libuv support recvmmsg on unices.
+ * Since recvbuf is only allocated per worker allocating a bigger one is not
+ * that wasteful.
+ * 20 here is UV__MMSG_MAXWIDTH taken from the current libuv source, nothing
+ * will break if the original value changes.
+ */
+#define ISC_NETMGR_RECVBUF_SIZE (20 * 65536)
+#else
+#define ISC_NETMGR_RECVBUF_SIZE (65536)
+#endif
+
 /*
  * Single network event loop worker.
  */
@@ -56,7 +69,7 @@ typedef struct isc__networker {
 				    * worker is paused */
 	isc_refcount_t references;
 	atomic_int_fast64_t pktcount;
-	char recvbuf[65536];
+	char *recvbuf;
 	bool recvbuf_inuse;
 } isc__networker_t;
 
