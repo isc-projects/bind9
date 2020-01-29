@@ -383,8 +383,16 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		return (ISC_R_CANCELED);
 	}
 
+	/*
+	 * If we're in netthread - send it directly
+	 * If the original packet was received over a regular socket
+	 * - send it over the same thread (assuming cpu affinity)
+	 * Otherwise - use a random thread.
+	 */
 	if (isc__nm_in_netthread()) {
 		ntid = isc_nm_tid();
+	} else if (sock->type == isc_nm_udpsocket) {
+		ntid = sock->tid;
 	} else {
 		ntid = (int)isc_random_uniform(sock->nchildren);
 	}
