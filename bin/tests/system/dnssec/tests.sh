@@ -3443,6 +3443,8 @@ lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDS" && $11 == id {print}'
 test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
+lines=$(awk '$4 == "CDS" && $5 == "0" && $6 == "0" && $7 == "0" && $8 == "00" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3593,6 +3595,8 @@ echo send
 ) | $NSUPDATE > nsupdate.out.test$n 2>&1
 dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
 lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
+test "${lines:-10}" -eq 1 || ret=1
+lines=$(awk '$4 == "CDNSKEY" && $5 == "0" && $6 == "3" && $7 == "0" && $8 == "AA==" {print}' dig.out.test$n | wc -l)
 test "${lines:-10}" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
