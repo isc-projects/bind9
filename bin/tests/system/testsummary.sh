@@ -56,6 +56,24 @@ if [ -n "${FAILED_TESTS}" ]; then
 	status=1
 fi
 
+CRASHED_TESTS=`find . -name 'core*' -or -name '*.core' | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /'`
+if [ -n "${CRASHED_TESTS}" ]; then
+	echoinfo "I:Core dumps were found for the following system tests:"
+	echoinfo "${CRASHED_TESTS}"
+fi
+
+ASSERTION_FAILED_TESTS=`find . -name named.run | xargs grep "assertion failure" | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /'`
+if [ -n "${ASSERTION_FAILED_TESTS}" ]; then
+	echoinfo "I:Assertion failures were detected for the following system tests:"
+	echoinfo "${ASSERTION_FAILED_TESTS}"
+fi
+
+TSAN_REPORT_TESTS=`find . -name 'tsan.*' | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /'`
+if [ -n "${TSAN_REPORT_TESTS}" ]; then
+	echoinfo "I:ThreadSanitizer reported issues for the following system tests:"
+	echoinfo "${TSAN_REPORT_TESTS}"
+fi
+
 RESULTS_FOUND=`grep -c 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output`
 TESTS_RUN=`echo "${SUBDIRS}" | wc -w`
 if [ "${RESULTS_FOUND}" -ne "${TESTS_RUN}" ]; then
