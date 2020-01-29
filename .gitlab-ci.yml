@@ -313,10 +313,7 @@ stages:
   after_script:
     - *kyua_report_html
   artifacts:
-    paths:
-      - kyua.log
-      - kyua.results
-      - kyua_html/
+    untracked: true
     expire_in: "1 day"
     when: on_failure
 
@@ -1088,8 +1085,6 @@ system:clang:freebsd11.3:amd64:
 unit:clang:freebsd11.3:amd64:
   <<: *freebsd_amd64
   <<: *unit_test_job
-  variables:
-    USER: gitlab-runner
   needs:
     - job: clang:freebsd11.3:amd64
       artifacts: true
@@ -1117,8 +1112,6 @@ system:clang:freebsd12.1:amd64:
 unit:clang:freebsd12.1:amd64:
   <<: *freebsd_amd64
   <<: *unit_test_job
-  variables:
-    USER: gitlab-runner
   needs:
     - job: clang:freebsd12.1:amd64
       artifacts: true
