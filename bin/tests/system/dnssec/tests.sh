@@ -3361,6 +3361,24 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "check that a CDS deletion record is accepted ($n)"
+ret=0
+(
+echo zone cds-update.secure
+echo server 10.53.0.2 "$PORT"
+echo update delete cds-update.secure CDS
+echo update add cds-update.secure 0 CDS 0 0 0 00
+echo send
+) | $NSUPDATE > nsupdate.out.test$n 2>&1
+$DIG $DIGOPTS +noall +answer @10.53.0.2 cds cds-update.secure > dig.out.test$n
+lines=`awk '$4 == "CDS" {print}' dig.out.test$n | wc -l`
+test "${lines:-10}" -eq 1 || ret=1
+lines=`awk '$4 == "CDS" && $5 == "0" && $6 == "0" && $7 == "0" && $8 == "00" {print}' dig.out.test$n | wc -l`
+test "$lines" -eq 1 || ret=1
+n=`expr $n + 1`
+test "$ret" -eq 0 || echo_i "failed"
+status=`expr $status + $ret`
+
 echo_i "check that CDS records are signed using KSK when added by nsupdate ($n)"
 ret=0
 (
@@ -3551,29 +3569,6 @@ echo send
 $DIG $DIGOPTS +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
 lines=`awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
 test "$lines" -eq 2 || ret=1
-lines=`awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
-test "$lines" -eq 1 || ret=1
-n=`expr $n + 1`
-test "$ret" -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
-
-echo_i "check that CDNSKEY records are signed only using KSK when added by"
-echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
-ret=0
-keyid=`cat ns2/cdnskey-kskonly.secure.id`
-(
-echo zone cdnskey-kskonly.secure
-echo server 10.53.0.2 "$PORT"
-echo update delete cdnskey-kskonly.secure CDNSKEY
-$DIG $DIGOPTS +noall +answer @10.53.0.2 dnskey cdnskey-kskonly.secure |
-sed -n -e "s/^/update add /" -e 's/DNSKEY.257/CDNSKEY 257/p'
-echo send
-) | $NSUPDATE
-$DIG $DIGOPTS +noall +answer @10.53.0.2 cdnskey cdnskey-kskonly.secure > dig.out.test$n
-lines=`awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
-test "$lines" -eq 1 || ret=1
-lines=`awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDNSKEY" && $11 == id {print}' dig.out.test$n | wc -l`
-test "$lines" -eq 1 || ret=1
 lines=`awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
 test "$lines" -eq 1 || ret=1
 n=`expr $n + 1`
