@@ -284,8 +284,6 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_result_t result;
 	isc_nmhandle_t *nmhandle = NULL;
 	isc_sockaddr_t sockaddr;
-	isc_sockaddr_t localaddr;
-	struct sockaddr_storage laddr;
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc_region_t region;
 	uint32_t maxudp;
@@ -319,13 +317,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	result = isc_sockaddr_fromsockaddr(&sockaddr, addr);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	uv_udp_getsockname(handle, (struct sockaddr *)&laddr,
-			   &(int){ sizeof(struct sockaddr_storage) });
-	result = isc_sockaddr_fromsockaddr(&localaddr,
-					   (struct sockaddr *)&laddr);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	nmhandle = isc__nmhandle_get(sock, &sockaddr, &localaddr);
+	nmhandle = isc__nmhandle_get(sock, &sockaddr, NULL);
 	region.base = (unsigned char *)buf->base;
 	region.length = nrecv;
 
