@@ -3103,6 +3103,7 @@
 ./contrib/queryperf/missing/getnameinfo.c	X	2004,2018,2019,2020
 ./contrib/queryperf/queryperf.c			X	2001,2002,2003,2004,2005,2007,2012,2013,2014,2018,2019,2020
 ./contrib/queryperf/utils/gen-data-queryperf.py	X	2003,2008,2016,2018,2019,2020
+./contrib/scripts/catzhash.py			X	2020
 ./contrib/scripts/check-secure-delegation.pl.in	PERL	2010,2012,2014,2016,2018,2019,2020
 ./contrib/scripts/check5011.pl			X	2013,2014,2017,2018,2019,2020
 ./contrib/scripts/dnssec-keyset.sh		X	2015,2018,2019,2020
