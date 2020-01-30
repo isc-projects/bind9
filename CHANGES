@@ -1,3 +1,6 @@
+5352.	[bug]		Correctly handle catalog zone entries containing
+			characters that aren't legal in filenames. [GL #1592]
+
 5351.	[bug]		CDS / CDNSKEY consistency checks failed to handle
 			removal records. [GL #1554]
 
