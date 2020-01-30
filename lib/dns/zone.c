@@ -19137,11 +19137,14 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	unsigned char algorithms[256];
 	unsigned int i;
 
+	enum { notexpected = 0, expected = 1, found = 2 };
+
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	result = dns_db_getoriginnode(db, &node);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	dns_rdataset_init(&cds);
 	dns_rdataset_init(&dnskey);
@@ -19149,16 +19152,19 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_cds,
 				     dns_rdatatype_none, 0, &cds, NULL);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		goto failure;
+	}
 
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_cdnskey,
 				     dns_rdatatype_none, 0, &cdnskey, NULL);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		goto failure;
+	}
 
 	if (!dns_rdataset_isassociated(&cds) &&
-	    !dns_rdataset_isassociated(&cdnskey)) {
+	    !dns_rdataset_isassociated(&cdnskey))
+	{
 		result = ISC_R_SUCCESS;
 		goto failure;
 	}
@@ -19166,21 +19172,25 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_dnskey,
 				     dns_rdatatype_none, 0, &dnskey, NULL);
 	if (result == ISC_R_NOTFOUND) {
-		if (dns_rdataset_isassociated(&cds))
+		if (dns_rdataset_isassociated(&cds)) {
 			result = DNS_R_BADCDS;
-		else
+		} else {
 			result = DNS_R_BADCDNSKEY;
+		}
 		goto failure;
 	}
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto failure;
+	}
 
 	/*
 	 * For each DNSSEC algorithm in the CDS RRset there must be
-	 * a matching DNSKEY record.
+	 * a matching DNSKEY record with the exception of a CDS deletion
+	 * record which must be by itself.
 	 */
 	if (dns_rdataset_isassociated(&cds)) {
-		memset(algorithms, 0, sizeof(algorithms));
+		bool delete = false;
+		memset(algorithms, notexpected, sizeof(algorithms));
 		for (result = dns_rdataset_first(&cds);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(&cds)) {
@@ -19188,9 +19198,21 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			dns_rdata_cds_t structcds;
 
 			dns_rdataset_current(&cds, &crdata);
+			/*
+			 * CDS deletion record has this form "0 0 0 00" which
+			 * is 5 zero octets.
+			 */
+			if (crdata.length == 5U &&
+			    memcmp(crdata.data,
+				   (unsigned char[5]){ 0, 0, 0, 0, 0 }, 5) == 0)
+			{
+				delete = true;
+				continue;
+			}
 			CHECK(dns_rdata_tostruct(&crdata, &structcds, NULL));
-			if (algorithms[structcds.algorithm] == 0)
-				algorithms[structcds.algorithm] = 1;
+			if (algorithms[structcds.algorithm] == 0) {
+				algorithms[structcds.algorithm] = expected;
+			}
 			for (result = dns_rdataset_first(&dnskey);
 			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(&dnskey)) {
@@ -19203,16 +19225,23 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 							buffer, &dsrdata));
 				if (crdata.length == dsrdata.length &&
 				    memcmp(crdata.data, dsrdata.data,
-					   dsrdata.length) == 0) {
-					algorithms[structcds.algorithm] = 2;
+					   dsrdata.length) == 0)
+				{
+					algorithms[structcds.algorithm] = found;
 				}
 			}
-			if (result != ISC_R_NOMORE)
+			if (result != ISC_R_NOMORE) {
 				goto failure;
+			}
 		}
 		for (i = 0; i < sizeof(algorithms); i++) {
-			if (algorithms[i] == 1) {
-				result = DNS_R_BADCDNSKEY;
+			if (delete) {
+				if (algorithms[i] != notexpected) {
+					result = DNS_R_BADCDS;
+					goto failure;
+				}
+			} else if (algorithms[i] == expected) {
+				result = DNS_R_BADCDS;
 				goto failure;
 			}
 		}
@@ -19220,10 +19249,12 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 
 	/*
 	 * For each DNSSEC algorithm in the CDNSKEY RRset there must be
-	 * a matching DNSKEY record.
+	 * a matching DNSKEY record with the exception of a CDNSKEY deletion
+	 * record which must be by itself.
 	 */
 	if (dns_rdataset_isassociated(&cdnskey)) {
-		memset(algorithms, 0, sizeof(algorithms));
+		bool delete = false;
+		memset(algorithms, notexpected, sizeof(algorithms));
 		for (result = dns_rdataset_first(&cdnskey);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(&cdnskey)) {
@@ -19231,10 +19262,23 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			dns_rdata_cdnskey_t structcdnskey;
 
 			dns_rdataset_current(&cdnskey, &crdata);
+			/*
+			 * CDNSKEY deletion record has this form
+			 * "0 3 0 AA==" which is 2 zero octets, a 3,
+			 * and 2 zero octets.
+			 */
+			if (crdata.length == 5U &&
+			    memcmp(crdata.data,
+				   (unsigned char[5]){ 0, 0, 3, 0, 0 }, 5) == 0)
+			{
+				delete = true;
+				continue;
+			}
 			CHECK(dns_rdata_tostruct(&crdata, &structcdnskey,
 						 NULL));
-			if (algorithms[structcdnskey.algorithm] == 0)
-				algorithms[structcdnskey.algorithm] = 1;
+			if (algorithms[structcdnskey.algorithm] == 0) {
+				algorithms[structcdnskey.algorithm] = expected;
+			}
 			for (result = dns_rdataset_first(&dnskey);
 			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(&dnskey)) {
@@ -19243,16 +19287,24 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 				dns_rdataset_current(&dnskey, &rdata);
 				if (crdata.length == rdata.length &&
 				    memcmp(crdata.data, rdata.data,
-					   rdata.length) == 0) {
-					algorithms[structcdnskey.algorithm] = 2;
+					   rdata.length) == 0)
+				{
+					algorithms[structcdnskey.algorithm] =
+							 found;
 				}
 			}
-			if (result != ISC_R_NOMORE)
+			if (result != ISC_R_NOMORE) {
 				goto failure;
+			}
 		}
 		for (i = 0; i < sizeof(algorithms); i++) {
-			if (algorithms[i] == 1) {
-				result = DNS_R_BADCDS;
+			if (delete) {
+				if (algorithms[i] != notexpected) {
+					result = DNS_R_BADCDNSKEY;
+					goto failure;
+				}
+			} else if (algorithms[i] == expected) {
+				result = DNS_R_BADCDNSKEY;
 				goto failure;
 			}
 		}
@@ -19260,12 +19312,15 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	result = ISC_R_SUCCESS;
 
  failure:
-	if (dns_rdataset_isassociated(&cds))
+	if (dns_rdataset_isassociated(&cds)) {
 		dns_rdataset_disassociate(&cds);
-	if (dns_rdataset_isassociated(&dnskey))
+	}
+	if (dns_rdataset_isassociated(&dnskey)) {
 		dns_rdataset_disassociate(&dnskey);
-	if (dns_rdataset_isassociated(&cdnskey))
+	}
+	if (dns_rdataset_isassociated(&cdnskey)) {
 		dns_rdataset_disassociate(&cdnskey);
+	}
 	dns_db_detachnode(db, &node);
 	return (result);
 }
