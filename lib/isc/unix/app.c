@@ -996,7 +996,9 @@ isc__appctx_destroy(isc_appctx_t **ctxp) {
 	isc__appctx_t *ctx;
 
 	REQUIRE(ctxp != NULL);
+
 	ctx = (isc__appctx_t *)*ctxp;
+
 	REQUIRE(VALID_APPCTX(ctx));
 
 	isc_mem_putanddetach(&ctx->mctx, ctx, sizeof(*ctx));
@@ -1006,27 +1008,33 @@ isc__appctx_destroy(isc_appctx_t **ctxp) {
 
 void
 isc__appctx_settaskmgr(isc_appctx_t *ctx0, isc_taskmgr_t *taskmgr) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
+	isc__appctx_t *ctx;
 
-	REQUIRE(VALID_APPCTX(ctx));
+	REQUIRE(VALID_APPCTX(ctx0));
+
+	ctx = (isc__appctx_t *)ctx0;
 
 	ctx->taskmgr = taskmgr;
 }
 
 void
 isc__appctx_setsocketmgr(isc_appctx_t *ctx0, isc_socketmgr_t *socketmgr) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
+	isc__appctx_t *ctx;
 
-	REQUIRE(VALID_APPCTX(ctx));
+	REQUIRE(VALID_APPCTX(ctx0));
+
+	ctx = (isc__appctx_t *)ctx0;
 
 	ctx->socketmgr = socketmgr;
 }
 
 void
 isc__appctx_settimermgr(isc_appctx_t *ctx0, isc_timermgr_t *timermgr) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
+	isc__appctx_t *ctx;
 
-	REQUIRE(VALID_APPCTX(ctx));
+	REQUIRE(VALID_APPCTX(ctx0));
+
+	ctx = (isc__appctx_t *)ctx0;
 
 	ctx->timermgr = timermgr;
 }

@@ -238,8 +238,9 @@ irs_dnsconf_destroy(irs_dnsconf_t **confp) {
 	irs_dnsconf_dnskey_t *keyent;
 
 	REQUIRE(confp != NULL);
+	REQUIRE(IRS_DNSCONF_VALID((*confp)));
+
 	conf = *confp;
-	REQUIRE(IRS_DNSCONF_VALID(conf));
 
 	while ((keyent = ISC_LIST_HEAD(conf->trusted_keylist)) != NULL) {
 		ISC_LIST_UNLINK(conf->trusted_keylist, keyent, link);

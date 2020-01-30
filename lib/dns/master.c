@@ -3203,8 +3203,9 @@ load_quantum(isc_task_t *task, isc_event_t *event) {
 	dns_loadctx_t *lctx;
 
 	REQUIRE(event != NULL);
+	REQUIRE(DNS_LCTX_VALID(event->ev_arg));
+
 	lctx = event->ev_arg;
-	REQUIRE(DNS_LCTX_VALID(lctx));
 
 	if (lctx->canceled)
 		result = ISC_R_CANCELED;

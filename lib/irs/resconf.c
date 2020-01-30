@@ -606,8 +606,9 @@ irs_resconf_destroy(irs_resconf_t **confp) {
 	unsigned int i;
 
 	REQUIRE(confp != NULL);
+	REQUIRE(IRS_RESCONF_VALID((*confp)));
+
 	conf = *confp;
-	REQUIRE(IRS_RESCONF_VALID(conf));
 
 	while ((searchentry = ISC_LIST_HEAD(conf->searchlist)) != NULL) {
 		ISC_LIST_UNLINK(conf->searchlist, searchentry, link);

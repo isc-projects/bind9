@@ -131,8 +131,8 @@ internal_current(isc_interfaceiter_t *iter) {
 		return (linux_if_inet6_current(iter));
 #endif
 
-	INSIST(ifa != NULL);
-	INSIST(ifa->ifa_name != NULL);
+	REQUIRE(iter->pos != NULL);
+	REQUIRE(iter->pos->ifa_name != NULL);
 
 	if (ifa->ifa_addr == NULL)
 		return (ISC_R_IGNORE);
@@ -207,6 +207,7 @@ internal_next(isc_interfaceiter_t *iter) {
 
 static void
 internal_destroy(isc_interfaceiter_t *iter) {
+	REQUIRE(VALID_IFITER(iter));
 
 #ifdef __linux
 	if (iter->proc != NULL)

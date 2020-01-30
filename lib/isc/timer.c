@@ -377,10 +377,14 @@ isc__timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 		  isc_task_t *task, isc_taskaction_t action, void *arg,
 		  isc_timer_t **timerp)
 {
-	isc__timermgr_t *manager = (isc__timermgr_t *)manager0;
+	isc__timermgr_t *manager;
 	isc__timer_t *timer;
 	isc_result_t result;
 	isc_time_t now;
+
+	REQUIRE(VALID_MANAGER(manager0));
+	REQUIRE(task != NULL);
+	REQUIRE(action != NULL);
 
 	/*
 	 * Create a new 'type' timer managed by 'manager'.  The timers
@@ -389,10 +393,7 @@ isc__timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 	 * called with 'arg' as the arg value.  The new timer is returned
 	 * in 'timerp'.
 	 */
-
-	REQUIRE(VALID_MANAGER(manager));
-	REQUIRE(task != NULL);
-	REQUIRE(action != NULL);
+	manager = (isc__timermgr_t *)manager0;
 	if (expires == NULL)
 		expires = isc_time_epoch;
 	if (interval == NULL)
@@ -498,7 +499,7 @@ isc__timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 		 const isc_time_t *expires, const isc_interval_t *interval,
 		 bool purge)
 {
-	isc__timer_t *timer = (isc__timer_t *)timer0;
+	isc__timer_t *timer;
 	isc_time_t now;
 	isc__timermgr_t *manager;
 	isc_result_t result;
@@ -509,7 +510,8 @@ isc__timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 	 * are purged from its task's event queue.
 	 */
 
-	REQUIRE(VALID_TIMER(timer));
+	REQUIRE(VALID_TIMER(timer0));
+	timer = (isc__timer_t *)timer0;
 	manager = timer->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -571,10 +573,11 @@ isc__timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 
 isc_timertype_t
 isc_timer_gettype(isc_timer_t *timer0) {
-	isc__timer_t *timer = (isc__timer_t *)timer0;
+	isc__timer_t *timer;
 	isc_timertype_t t;
 
-	REQUIRE(VALID_TIMER(timer));
+	REQUIRE(VALID_TIMER(timer0));
+	timer = (isc__timer_t *)timer0;
 
 	LOCK(&timer->lock);
 	t = timer->type;
@@ -585,7 +588,7 @@ isc_timer_gettype(isc_timer_t *timer0) {
 
 isc_result_t
 isc__timer_touch(isc_timer_t *timer0) {
-	isc__timer_t *timer = (isc__timer_t *)timer0;
+	isc__timer_t *timer;
 	isc_result_t result;
 	isc_time_t now;
 
@@ -593,7 +596,8 @@ isc__timer_touch(isc_timer_t *timer0) {
 	 * Set the last-touched time of 'timer' to the current time.
 	 */
 
-	REQUIRE(VALID_TIMER(timer));
+	REQUIRE(VALID_TIMER(timer0));
+	timer = (isc__timer_t *)timer0;
 
 	LOCK(&timer->lock);
 
@@ -616,13 +620,14 @@ isc__timer_touch(isc_timer_t *timer0) {
 
 void
 isc__timer_attach(isc_timer_t *timer0, isc_timer_t **timerp) {
-	isc__timer_t *timer = (isc__timer_t *)timer0;
+	isc__timer_t *timer;
 
 	/*
 	 * Attach *timerp to timer.
 	 */
 
-	REQUIRE(VALID_TIMER(timer));
+	REQUIRE(VALID_TIMER(timer0));
+	timer = (isc__timer_t *)timer0;
 	REQUIRE(timerp != NULL && *timerp == NULL);
 
 	LOCK(&timer->lock);
@@ -842,8 +847,8 @@ static void
 set_index(void *what, unsigned int index) {
 	isc__timer_t *timer;
 
+	REQUIRE(VALID_TIMER(what));
 	timer = what;
-	REQUIRE(VALID_TIMER(timer));
 
 	timer->index = index;
 }
@@ -933,9 +938,10 @@ isc__timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 void
 isc_timermgr_poke(isc_timermgr_t *manager0) {
 #ifdef USE_TIMER_THREAD
-	isc__timermgr_t *manager = (isc__timermgr_t *)manager0;
+	isc__timermgr_t *manager;
 
-	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(VALID_MANAGER(manager0));
+	manager = (isc__timermgr_t *)manager0;
 
 	SIGNAL(&manager->wakeup);
 #else

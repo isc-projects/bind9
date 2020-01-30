@@ -115,8 +115,9 @@ isc_heap_destroy(isc_heap_t **heapp) {
 	isc_heap_t *heap;
 
 	REQUIRE(heapp != NULL);
+	REQUIRE(VALID_HEAP((*heapp)));
+
 	heap = *heapp;
-	REQUIRE(VALID_HEAP(heap));
 
 	if (heap->array != NULL)
 		isc_mem_put(heap->mctx, heap->array,

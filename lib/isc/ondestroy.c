@@ -42,10 +42,9 @@ isc_ondestroy_register(isc_ondestroy_t *ondest, isc_task_t *task,
 	REQUIRE(VALID_ONDESTROY(ondest));
 	REQUIRE(task != NULL);
 	REQUIRE(eventp != NULL);
+	REQUIRE((*eventp) != NULL);
 
 	theevent = *eventp;
-
-	REQUIRE(theevent != NULL);
 
 	isc_task_attach(task, &thetask);
 
