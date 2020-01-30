@@ -763,7 +763,7 @@ echo_i "Testing very long domain in catalog"
 n=$((n+1))
 echo_i "checking that this.is.a.very.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example. is not served by master ($n)"
 ret=0
-wait_for_no_soa @10.53.0.1 this.is.aery.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example. dig.out.test$n || ret=1
+wait_for_no_soa @10.53.0.1 this.is.a.very.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example. dig.out.test$n || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -839,7 +839,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking that this.is.a.very.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example. is not served by slave ($n)"
 ret=0
-wait_for_no_soa @10.53.0.2 this.is.aery.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example. dig.out.test$n || ret=1
+wait_for_no_soa @10.53.0.2 this.is.a.very.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example. dig.out.test$n || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -847,6 +847,99 @@ n=$((n+1))
 echo_i "checking that zone-directory is emptied ($n)"
 ret=0
 wait_for_no_zonefile "ns2/zonedir/__catz__4d70696f2335687069467f11f5d5378c480383f97782e553fb2d04a7bb2a23ed.db" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+##########################################################################
+echo_i "Testing domain with special characters in catalog"
+n=$((n+1))
+echo_i "checking that
+this.zone/domain.has.a.slash.dom10.example. is not served by master ($n)"
+ret=0
+wait_for_no_soa @10.53.0.1 this.zone/domain.has.a.slash.dom10.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "Adding a domain this.zone/domain.has.a.slash.dom10.example. to master via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom10.example.db
+echo "@ IN NS invalid." >> ns1/dom10.example.db
+rndccmd 10.53.0.1 addzone '"this.zone/domain.has.a.slash.dom10.example."' '{type master; file "dom10.example.db";};' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that this.zone/domain.has.a.slash.dom10.example. is now served by master ($n)"
+ret=0
+wait_for_soa @10.53.0.1 this.zone/domain.has.a.slash.dom10.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n+1))
+echo_i "Adding domain this.zone/domain.has.a.slash.dom10.example. to catalog1 zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update add e64cc64c99bf52d0a77fb16dd7ed57cf925a36aa.zones.catalog1.example 3600 IN PTR this.zone/domain.has.a.slash.dom10.example.
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "waiting for slave to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run  "catz: adding zone 'this.zone/domain.has.a.slash.dom10.example' from catalog 'catalog1.example'" &&
+wait_for_message ns2/named.run  "transfer of 'this.zone/domain.has.a.slash.dom10.example/IN' from 10.53.0.1#${PORT}: Transfer status: success" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that this.zone/domain.has.a.slash.dom10.example. is served by slave ($n)"
+ret=0
+wait_for_soa @10.53.0.2 this.zone/domain.has.a.slash.dom10.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that zone-directory is populated with a hashed filename ($n)"
+ret=0
+wait_for_zonefile "ns2/zonedir/__catz__46ba3e1b28d5955e5313d5fee61bedc78c71d08035aa7ea2f7bf0b8228ab3acc.db" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "removing domain this.zone/domain.has.a.slash.dom10.example. from catalog1 zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+   server 10.53.0.1 ${PORT}
+   update delete e64cc64c99bf52d0a77fb16dd7ed57cf925a36aa.zones.catalog1.example
+   send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "waiting for slave to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run  "zone_shutdown: zone this.zone/domain.has.a.slash.dom10.example/IN: shutting down" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that this.zone/domain.has.a.slash.dom10.example. is not served by slave ($n)"
+ret=0
+wait_for_no_soa @10.53.0.2 this.zone/domain.has.a.slash.dom10.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that zone-directory is emptied ($n)"
+ret=0
+wait_for_no_zonefile "ns2/zonedir/__catz__46ba3e1b28d5955e5313d5fee61bedc78c71d08035aa7ea2f7bf0b8228ab3acc.db" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -954,8 +1047,6 @@ wait_for_soa @10.53.0.2 subdomain.of.dom11.example. dig.out.test$n || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-
-
 n=$((n+1))
 echo_i "removing domain dom11.example. from catalog1 zone ($n)"
 ret=0
@@ -1012,7 +1103,6 @@ ret=0
 wait_for_no_soa @10.53.0.2 subdomain.of.d11.example. dig.out.test$n || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
-
 
 ##########################################################################
 echo_i "Testing adding a catalog zone at runtime with rndc reconfig"
