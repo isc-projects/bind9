@@ -15,12 +15,17 @@
 /*%
  * Performance
  */
+#ifdef CPPCHECK
+#define ISC_LIKELY(x)            (x)
+#define ISC_UNLIKELY(x)          (x)
+#else
 #ifdef HAVE_BUILTIN_EXPECT
 #define ISC_LIKELY(x)            __builtin_expect(!!(x), 1)
 #define ISC_UNLIKELY(x)          __builtin_expect(!!(x), 0)
 #else
 #define ISC_LIKELY(x)            (x)
 #define ISC_UNLIKELY(x)          (x)
+#endif
 #endif
 
 #endif /* ISC_LIKELY_H */
