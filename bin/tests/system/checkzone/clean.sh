@@ -9,3 +9,4 @@
 
 rm -f test.* good1.db.map good1.db.raw named-compilezone
 rm -f ns*/named.lock
+rm -f zones/zone1_*.txt
