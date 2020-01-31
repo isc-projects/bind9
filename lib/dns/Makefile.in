@@ -109,7 +109,7 @@ GEOIPL2INKSRCS = geoip2.c
 
 DNSTAPSRCS = dnstap.c dnstap.pb-c.c
 
-DNSSRCS =	acache.c acl.c adb.c badcache. byaddr.c \
+DNSSRCS =	acache.c acl.c adb.c badcache.c byaddr.c \
 		cache.c callbacks.c clientinfo.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
 		dlz.c dns64.c dnssec.c ds.c dyndb.c fixedname.c forward.c \
