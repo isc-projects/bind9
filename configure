@@ -15960,7 +15960,7 @@ LIBS="$LIBS $LIBUV_LIBS"
 
 # Those functions are only provided in newer versions of libuv, we'll be emulating them
 # for now
-for ac_func in uv_handle_get_data uv_handle_set_data
+for ac_func in uv_handle_get_data uv_handle_set_data uv_import
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
