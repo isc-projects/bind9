@@ -172,12 +172,17 @@ typedef isc_rwlock_t nodelock_t;
 
 /*%
  * Whether to rate-limit updating the LRU to avoid possible thread contention.
- * Our performance measurement has shown the cost is marginal, so it's defined
- * to be 0 by default either with or without threads.
+ * Updating LRU requires write locking, so we don't do it every time the
+ * record is touched - only after some time passes.
  */
 #ifndef DNS_RBTDB_LIMITLRUUPDATE
-#define DNS_RBTDB_LIMITLRUUPDATE 0
-#endif /* ifndef DNS_RBTDB_LIMITLRUUPDATE */
+#define DNS_RBTDB_LIMITLRUUPDATE 1
+#endif
+
+/*% Time after which we update LRU for glue records, 5 minutes */
+#define DNS_RBTDB_LRUUPDATE_GLUE 300
+/*% Time after which we update LRU for all other records, 10 minutes */
+#define DNS_RBTDB_LRUUPDATE_REGULAR 600
 
 /*
  * Allow clients with a virtual time of up to 5 minutes in the past to see
@@ -10344,15 +10349,18 @@ need_headerupdate(rdatasetheader_t *header, isc_stdtime_t now) {
 	      header->type == dns_rdatatype_aaaa)))
 	{
 		/*
-		 * Glue records are updated if at least 60 seconds have passed
-		 * since the previous update time.
+		 * Glue records are updated if at least DNS_RBTDB_LRUUPDATE_GLUE
+		 * seconds have passed since the previous update time.
 		 */
-		return (header->last_used + 60 <= now);
+		return (header->last_used + DNS_RBTDB_LRUUPDATE_GLUE <= now);
 	}
 
-	/* Other records are updated if 5 minutes have passed. */
-	return (header->last_used + 300 <= now);
-#else  /* if DNS_RBTDB_LIMITLRUUPDATE */
+	/*
+	 * Other records are updated if DNS_RBTDB_LRUUPDATE_REGULAR seconds
+	 * have passed.
+	 */
+	return (header->last_used + DNS_RBTDB_LRUUPDATE_REGULAR <= now);
+#else
 	UNUSED(now);
 
 	return (true);
