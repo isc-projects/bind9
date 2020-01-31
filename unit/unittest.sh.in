@@ -9,7 +9,7 @@ export CMOCKA_MESSAGE_OUTPUT
 GDB="$(command -v gdb)"
 
 kyua_report() {
-	${KYUA} --logfile /dev/null report --verbose --results-file "${KYUA_RESULT:-LATEST}"
+	${KYUA} --logfile /dev/null report --results-file "${KYUA_RESULT:-LATEST}"
 }
 
 status=0
