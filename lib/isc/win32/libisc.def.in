@@ -687,8 +687,6 @@ isc_timermgr_destroy
 isc_timermgr_poke
 isc_tm_timegm
 isc_tm_strptime
-isc_uv_export
-isc_uv_import
 isc_win32os_versioncheck
 openlog
 @IF PKCS11

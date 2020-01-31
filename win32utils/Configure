@@ -223,6 +223,9 @@ my @substdefh = ("CONFIGARGS",
                  "HAVE_HMAC_CTX_GET_MD",
                  "HAVE_HMAC_CTX_NEW",
                  "HAVE_HMAC_CTX_RESET",
+                 "HAVE_UV_HANDLE_GET_DATA",
+                 "HAVE_UV_HANDLE_SET_DATA",
+                 "HAVE_UV_IMPORT",
     );
 
 # for platform.h
@@ -1321,6 +1324,10 @@ if ($use_libuv eq "auto") {
             last;
         }
     }
+    $configdefh{"HAVE_UV_HANDLE_SET_DATA"} = 1;
+    $configdefh{"HAVE_UV_HANDLE_GET_DATA"} = 1;
+    $configdefh{"HAVE_UV_IMPORT"} = 1;
+
 
     # If we have one use it otherwise report the error
     if ($use_libuv eq "auto") {
