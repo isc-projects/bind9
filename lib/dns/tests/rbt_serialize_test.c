@@ -403,7 +403,9 @@ deserialize_corrupt_test(void **state) {
 		close(fd);
 
 		/* Randomly fuzz a portion of the memory */
+		/* cppcheck-suppress nullPointerArithmeticRedundantCheck */
 		p = base + (isc_random_uniform(filesize));
+		/* cppcheck-suppress nullPointerArithmeticRedundantCheck */
 		q = base + filesize;
 		q -= (isc_random_uniform(q - p));
 		while (p++ < q) {
