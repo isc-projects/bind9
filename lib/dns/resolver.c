@@ -7220,19 +7220,21 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 {
 	static const char hex[17] = "0123456789abcdef";
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-	uint16_t buflen, i;
+	size_t buflen;
 	unsigned char *p, *nsid;
 	unsigned char *buf = NULL, *pbuf = NULL;
 
+	REQUIRE(nsid_len <= UINT16_MAX);
+
 	/* Allocate buffer for storing hex version of the NSID */
-	buflen = (uint16_t)nsid_len * 2 + 1;
+	buflen = nsid_len * 2 + 1;
 	buf = isc_mem_get(mctx, buflen);
 	pbuf = isc_mem_get(mctx, nsid_len + 1);
 
 	/* Convert to hex */
 	p = buf;
 	nsid = isc_buffer_current(opt);
-	for (i = 0; i < nsid_len; i++) {
+	for (size_t i = 0; i < nsid_len; i++) {
 		*p++ = hex[(nsid[i] >> 4) & 0xf];
 		*p++ = hex[nsid[i] & 0xf];
 	}
@@ -7240,11 +7242,8 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 
 	/* Make printable version */
 	p = pbuf;
-	for (i = 0; i < nsid_len; i++) {
-		if (isprint(nsid[i]))
-			*p++ = nsid[i];
-		else
-			*p++ = '.';
+	for (size_t i = 0; i < nsid_len; i++) {
+		*p++ = isprint(nsid[i]) ? nsid[i] : '.';
 	}
 	*p = '\0';
 
@@ -7254,10 +7253,8 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 		      DNS_LOGMODULE_RESOLVER, level,
 		      "received NSID %s (\"%s\") from %s", buf, pbuf, addrbuf);
 
-	if (pbuf != NULL)
-		isc_mem_put(mctx, pbuf, nsid_len + 1);
-	if (buf != NULL)
-		isc_mem_put(mctx, buf, buflen);
+	isc_mem_put(mctx, pbuf, nsid_len + 1);
+	isc_mem_put(mctx, buf, buflen);
 }
 
 static bool
