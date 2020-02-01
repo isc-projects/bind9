@@ -73,7 +73,7 @@ struct isc_rwlock {
 	atomic_int_fast32_t	write_requests;
 	atomic_int_fast32_t	write_completions;
 	atomic_int_fast32_t	cnt_and_flag;
-	atomic_uint_fast32_t	write_granted;
+	atomic_int_fast32_t	write_granted;
 #else
 	int32_t		spins;
 	int32_t		write_requests;
