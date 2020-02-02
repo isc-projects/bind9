@@ -9884,10 +9884,7 @@ restart:
 		dns_rdataset_t *sigrdataset_aaaa = NULL;
 		dns_name_t *gluename = dns_fixedname_name(&ge->fixedname);
 
-		result = isc_buffer_allocate(msg->mctx, &buffer, 512);
-		if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
-			goto no_glue;
-		}
+		isc_buffer_allocate(msg->mctx, &buffer, 512);
 
 		result = dns_message_gettempname(msg, &name);
 		if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {

@@ -2858,17 +2858,11 @@ ns_client_putrdataset(ns_client_t *client, dns_rdataset_t **rdatasetp) {
 isc_result_t
 ns_client_newnamebuf(ns_client_t *client) {
 	isc_buffer_t *dbuf;
-	isc_result_t result;
 
 	CTRACE("ns_client_newnamebuf");
 
 	dbuf = NULL;
-	result = isc_buffer_allocate(client->mctx, &dbuf, 1024);
-	if (result != ISC_R_SUCCESS) {
-		CTRACE("ns_client_newnamebuf: "
-		       "isc_buffer_allocate failed: done");
-		return (result);
-	}
+	isc_buffer_allocate(client->mctx, &dbuf, 1024);
 	ISC_LIST_APPEND(client->query.namebufs, dbuf, link);
 
 	CTRACE("ns_client_newnamebuf: done");

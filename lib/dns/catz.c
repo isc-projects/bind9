@@ -1239,10 +1239,8 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 	result = dns_rdata_tostruct(&rdata, &rdata_apl, zone->catzs->mctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = isc_buffer_allocate(zone->catzs->mctx, &aclb, 16);
+	isc_buffer_allocate(zone->catzs->mctx, &aclb, 16);
 	isc_buffer_setautorealloc(aclb, true);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 	for (result = dns_rdata_apl_first(&rdata_apl);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdata_apl_next(&rdata_apl)) {
@@ -1462,12 +1460,9 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	REQUIRE(entry != NULL);
 	REQUIRE(buffer != NULL && *buffer != NULL);
 
-	result = isc_buffer_allocate(zone->catzs->mctx, &tbuf,
-				     strlen(zone->catzs->view->name) +
-				     2 * DNS_NAME_FORMATSIZE + 2);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	INSIST(tbuf != NULL);
+	isc_buffer_allocate(zone->catzs->mctx, &tbuf,
+			    strlen(zone->catzs->view->name) + 2 *
+			    DNS_NAME_FORMATSIZE + 2);
 
 	isc_buffer_putstr(tbuf, zone->catzs->view->name);
 	isc_buffer_putstr(tbuf, "_");
@@ -1552,11 +1547,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	 * The buffer will be reallocated if something won't fit,
 	 * ISC_BUFFER_INCR seems like a good start.
 	 */
-	result = isc_buffer_allocate(zone->catzs->mctx, &buffer,
-				     ISC_BUFFER_INCR);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_buffer_allocate(zone->catzs->mctx, &buffer, ISC_BUFFER_INCR);
 
 	isc_buffer_setautorealloc(buffer, true);
 	isc_buffer_putstr(buffer, "zone ");

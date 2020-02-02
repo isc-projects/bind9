@@ -13822,9 +13822,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 		goto soa_cleanup;
 	dns_rdataset_current(&rdataset, &rdata);
 	dns_rdata_toregion(&rdata, &r);
-	result = isc_buffer_allocate(zone->mctx, &b, r.length);
-	if (result != ISC_R_SUCCESS)
-		goto soa_cleanup;
+	isc_buffer_allocate(zone->mctx, &b, r.length);
 	isc_buffer_putmem(b, r.base, r.length);
 	isc_buffer_usedregion(b, &r);
 	dns_rdata_init(temprdata);
@@ -16712,9 +16710,7 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 		goto cleanup;
 	}
 
-	result = isc_buffer_allocate(zone->mctx, &forward->msgbuf, mr->length);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_buffer_allocate(zone->mctx, &forward->msgbuf, mr->length);
 	result = isc_buffer_copyregion(forward->msgbuf, mr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;

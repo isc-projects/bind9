@@ -445,9 +445,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		goto cleanup_request;
 	}
 
-	result = isc_buffer_allocate(listener->mctx, &text, 2 * 2048);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_request;
+	isc_buffer_allocate(listener->mctx, &text, 2 * 2048);
 
 	/*
 	 * Establish nonce.
@@ -493,10 +491,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		goto cleanup_response;
 
 	if (conn->buffer == NULL) {
-		result = isc_buffer_allocate(listener->mctx,
-					     &conn->buffer, 2 * 2048);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_response;
+		isc_buffer_allocate(listener->mctx, &conn->buffer, 2 * 2048);
 	}
 
 	isc_buffer_clear(conn->buffer);

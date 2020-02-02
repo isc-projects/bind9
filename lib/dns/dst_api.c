@@ -865,8 +865,8 @@ dst_key_fromgssapi(const dns_name_t *name, gss_ctx_id_t gssctx,
 		 * Keep the token for use by external ssu rules. They may need
 		 * to examine the PAC in the kerberos ticket.
 		 */
-		RETERR(isc_buffer_allocate(key->mctx, &key->key_tkeytoken,
-		       intoken->length));
+		isc_buffer_allocate(key->mctx, &key->key_tkeytoken,
+				    intoken->length);
 		RETERR(isc_buffer_copyregion(key->key_tkeytoken, intoken));
 	}
 

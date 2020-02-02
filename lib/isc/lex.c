@@ -181,7 +181,6 @@ new_source(isc_lex_t *lex, bool is_file, bool need_close,
 	   void *input, const char *name)
 {
 	inputsource *source;
-	isc_result_t result;
 
 	source = isc_mem_get(lex->mctx, sizeof(*source));
 	source->result = ISC_R_SUCCESS;
@@ -192,13 +191,8 @@ new_source(isc_lex_t *lex, bool is_file, bool need_close,
 	source->input = input;
 	source->name = isc_mem_strdup(lex->mctx, name);
 	source->pushback = NULL;
-	result = isc_buffer_allocate(lex->mctx, &source->pushback,
-				     (unsigned int)lex->max_token);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_free(lex->mctx, source->name);
-		isc_mem_put(lex->mctx, source, sizeof(*source));
-		return (result);
-	}
+	isc_buffer_allocate(lex->mctx, &source->pushback,
+			    (unsigned int)lex->max_token);
 	source->ignored = 0;
 	source->line = 1;
 	ISC_LIST_INITANDPREPEND(lex->sources, source, link);
@@ -320,9 +314,7 @@ pushandgrow(isc_lex_t *lex, inputsource *source, int c) {
 		isc_result_t result;
 
 		oldlen = isc_buffer_length(source->pushback);
-		result = isc_buffer_allocate(lex->mctx, &tbuf, oldlen * 2);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		isc_buffer_allocate(lex->mctx, &tbuf, oldlen * 2);
 		isc_buffer_usedregion(source->pushback, &used);
 		result = isc_buffer_copyregion(tbuf, &used);
 		INSIST(result == ISC_R_SUCCESS);

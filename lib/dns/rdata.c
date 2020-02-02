@@ -857,9 +857,7 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 					false));
 	if (token.value.as_ulong > 65535U)
 		return (ISC_R_RANGE);
-	result = isc_buffer_allocate(mctx, &buf, token.value.as_ulong);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(mctx, &buf, token.value.as_ulong);
 
 	if (token.value.as_ulong != 0U) {
 		result = isc_hex_tobuffer(lexer, buf,

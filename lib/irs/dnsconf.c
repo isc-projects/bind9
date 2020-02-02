@@ -109,11 +109,7 @@ configure_key(isc_mem_t *mctx, const cfg_obj_t *key, irs_dnsconf_t *conf,
 		return (result);
 	}
 	isc_buffer_usedregion(&rrdatabuf, &r);
-	result = isc_buffer_allocate(mctx, &keydatabuf,
-				     r.length);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	isc_buffer_allocate(mctx, &keydatabuf, r.length);
 	result = isc_buffer_copyregion(keydatabuf, &r);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;

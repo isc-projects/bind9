@@ -257,9 +257,7 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 */
 	sig.signature = isc_mem_get(mctx, sig.siglen);
 
-	ret = isc_buffer_allocate(mctx, &databuf, sigsize + 256 + 18);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_signature;
+	isc_buffer_allocate(mctx, &databuf, sigsize + 256 + 18);
 
 	dns_rdata_init(&tmpsigrdata);
 	ret = dns_rdata_fromstruct(&tmpsigrdata, sig.common.rdclass,
@@ -355,7 +353,6 @@ cleanup_context:
 	dst_context_destroy(&ctx);
 cleanup_databuf:
 	isc_buffer_free(&databuf);
-cleanup_signature:
 	isc_mem_put(mctx, sig.signature, sig.siglen);
 
 	return (ret);
@@ -997,7 +994,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	rdata = NULL;
 	RETERR(dns_message_gettemprdata(msg, &rdata));
-	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024));
+	isc_buffer_allocate(msg->mctx, &dynbuf, 1024);
 	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				    dns_rdatatype_sig /* SIG(0) */,
 				    &sig, dynbuf));

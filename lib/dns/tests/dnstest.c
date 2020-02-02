@@ -571,8 +571,7 @@ dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
 
 	name = dns_fixedname_initname(fname);
 
-	result = isc_buffer_allocate(dt_mctx, &b, length);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_buffer_allocate(dt_mctx, &b, length);
 
 	isc_buffer_putmem(b, (const unsigned char *) namestr, length);
 	result = dns_name_fromtext(name, b, dns_rootname, 0, NULL);

@@ -2556,9 +2556,7 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 	result = dns_message_gettempname(msg, &newname);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = isc_buffer_allocate(mctx, &namebuf, DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
+	isc_buffer_allocate(mctx, &namebuf, DNS_NAME_MAXWIRE);
 	dns_name_init(newname, NULL);
 	dns_name_setbuffer(newname, namebuf);
 	dns_message_takebuffer(msg, &namebuf);
@@ -2587,10 +2585,7 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 				goto fail;
 			dns_rdata_toregion(&rdata, &r);
 			rdatabuf = NULL;
-			result = isc_buffer_allocate(mctx, &rdatabuf,
-						     r.length);
-			if (result != ISC_R_SUCCESS)
-				goto fail;
+			isc_buffer_allocate(mctx, &rdatabuf, r.length);
 			isc_buffer_putmem(rdatabuf, r.base, r.length);
 			isc_buffer_usedregion(rdatabuf, &r);
 			dns_rdata_init(newrdata);
