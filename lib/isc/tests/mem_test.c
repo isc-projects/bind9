@@ -69,7 +69,6 @@ _teardown(void **state) {
 /* general memory system tests */
 static void
 isc_mem_test(void **state) {
-	isc_result_t result;
 	void *items1[50];
 	void *items2[50];
 	void *tmp;
@@ -79,11 +78,8 @@ isc_mem_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mempool_create(test_mctx, 24, &mp1);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_mempool_create(test_mctx, 31, &mp2);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mempool_create(test_mctx, 24, &mp1);
+	isc_mempool_create(test_mctx, 31, &mp2);
 
 	isc_mempool_setfreemax(mp1, MP1_FREEMAX);
 	isc_mempool_setfillcount(mp1, MP1_FILLCNT);
@@ -148,8 +144,7 @@ isc_mem_test(void **state) {
 	isc_mempool_destroy(&mp1);
 	isc_mempool_destroy(&mp2);
 
-	result = isc_mempool_create(test_mctx, 2, &mp1);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mempool_create(test_mctx, 2, &mp1);
 
 	tmp = isc_mempool_get(mp1);
 	assert_non_null(tmp);
@@ -460,8 +455,7 @@ isc_mempool_benchmark(void **state) {
 
 	isc_mutex_init(&mplock);
 
-	result = isc_mempool_create(test_mctx, ITEM_SIZE, &mp);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mempool_create(test_mctx, ITEM_SIZE, &mp);
 
 	isc_mempool_associatelock(mp, &mplock);
 

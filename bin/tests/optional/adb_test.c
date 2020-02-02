@@ -297,8 +297,8 @@ main(int argc, char **argv) {
 	isc_mem_create(&mctx);
 
 	cmp = NULL;
-	RUNTIME_CHECK(isc_mempool_create(mctx, sizeof(client_t), &cmp)
-		      == ISC_R_SUCCESS);
+	isc_mempool_create(mctx, sizeof(client_t), &cmp)
+		      ;
 	isc_mempool_setname(cmp, "adb test clients");
 
 	result = isc_log_create(mctx, &lctx, &lcfg);
