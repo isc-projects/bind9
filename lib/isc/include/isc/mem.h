@@ -451,7 +451,7 @@ isc_mem_renderjson(void *memobj0);
  * Memory pools
  */
 
-isc_result_t
+void
 isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp);
 /*%<
  * Create a memory pool.

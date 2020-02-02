@@ -1535,7 +1535,7 @@ isc_mem_gettag(isc_mem_t *ctx0) {
  * Memory pool stuff
  */
 
-isc_result_t
+void
 isc_mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 	isc__mem_t *mctx = (isc__mem_t *)mctx0;
 	isc__mempool_t *mpctx;
@@ -1579,8 +1579,6 @@ isc_mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 	ISC_LIST_INITANDAPPEND(mctx->pools, mpctx, link);
 	mctx->poolcnt++;
 	MCTXUNLOCK(mctx);
-
-	return (ISC_R_SUCCESS);
 }
 
 void
