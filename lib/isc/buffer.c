@@ -536,18 +536,14 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 		    unsigned int length)
 {
-	isc_buffer_t *dbuf;
-	unsigned char * bdata;
-	REQUIRE(dynbuffer != NULL);
-	REQUIRE(*dynbuffer == NULL);
+	REQUIRE(dynbuffer != NULL && *dynbuffer == NULL);
 
-	dbuf = isc_mem_get(mctx, sizeof(isc_buffer_t));
-
-	bdata = isc_mem_get(mctx, length);
+	isc_buffer_t *dbuf = isc_mem_get(mctx, sizeof(isc_buffer_t));
+	unsigned char *bdata = isc_mem_get(mctx, length);
 
 	isc_buffer_init(dbuf, bdata, length);
 
@@ -556,8 +552,6 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 	dbuf->mctx = mctx;
 
 	*dynbuffer = dbuf;
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

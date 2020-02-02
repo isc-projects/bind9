@@ -192,7 +192,7 @@ struct isc_buffer {
  *** Functions
  ***/
 
-isc_result_t
+void
 isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 		    unsigned int length);
 /*!<
@@ -203,10 +203,6 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
  *\li	"mctx" is valid.
  *
  *\li	"dynbuffer" is non-NULL, and "*dynbuffer" is NULL.
- *
- * Returns:
- *\li	ISC_R_SUCCESS		- success
- *\li	ISC_R_NOMEMORY		- no memory available
  *
  * Note:
  *\li	Changing the buffer's length field is not permitted.
