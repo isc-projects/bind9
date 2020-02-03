@@ -51,7 +51,8 @@ ISC_LANG_BEGINDECLS
 #define DNS_COMPRESS_TABLEBITS	  6
 #define DNS_COMPRESS_TABLESIZE	  (1U << DNS_COMPRESS_TABLEBITS)
 #define DNS_COMPRESS_TABLEMASK	  (DNS_COMPRESS_TABLESIZE - 1)
-#define DNS_COMPRESS_INITIALNODES 16
+#define DNS_COMPRESS_INITIALNODES 24
+#define DNS_COMPRESS_ARENA_SIZE	  640
 
 typedef struct dns_compressnode dns_compressnode_t;
 
@@ -69,6 +70,9 @@ struct dns_compress {
 	int	     edns;    /*%< Edns version or -1. */
 	/*% Global compression table. */
 	dns_compressnode_t *table[DNS_COMPRESS_TABLESIZE];
+	/*% Preallocated arena for names. */
+	unsigned char arena[DNS_COMPRESS_ARENA_SIZE];
+	off_t	      arena_off;
 	/*% Preallocated nodes for the table. */
 	dns_compressnode_t initialnodes[DNS_COMPRESS_INITIALNODES];
 	uint16_t	   count; /*%< Number of nodes. */
