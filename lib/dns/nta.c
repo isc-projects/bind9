@@ -568,9 +568,7 @@ dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
 	isc_buffer_t *text = NULL;
 	int len = 4096;
 
-	result = isc_buffer_allocate(ntatable->view->mctx, &text, len);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(ntatable->view->mctx, &text, len);
 
 	result = dns_ntatable_totext(ntatable, NULL, &text);
 

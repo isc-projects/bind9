@@ -199,8 +199,7 @@ say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 
 	dns_name_format(name, namestr, sizeof(namestr));
  retry:
-	result = isc_buffer_allocate(mctx, &b, bufsize);
-	check_result(result, "isc_buffer_allocate");
+	isc_buffer_allocate(mctx, &b, bufsize);
 	result = dns_rdata_totext(rdata, NULL, b);
 	if (result == ISC_R_NOSPACE) {
 		isc_buffer_free(&b);

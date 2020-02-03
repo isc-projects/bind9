@@ -1238,8 +1238,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 
 	result = dns_message_gettempname(msg, namep);
 	check_result(result, "dns_message_gettempname");
-	result = isc_buffer_allocate(gmctx, &namebuf, DNS_NAME_MAXWIRE);
-	check_result(result, "isc_buffer_allocate");
+	isc_buffer_allocate(gmctx, &namebuf, DNS_NAME_MAXWIRE);
 	dns_name_init(*namep, NULL);
 	dns_name_setbuffer(*namep, namebuf);
 	dns_message_takebuffer(msg, &namebuf);
@@ -1284,16 +1283,14 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 		isc_buffer_add(&source, strlen(cmdline));
 		result = isc_lex_openbuffer(lex, &source);
 		check_result(result, "isc_lex_openbuffer");
-		result = isc_buffer_allocate(gmctx, &buf, MAXWIRE);
-		check_result(result, "isc_buffer_allocate");
+		isc_buffer_allocate(gmctx, &buf, MAXWIRE);
 		result = dns_rdata_fromtext(NULL, rdataclass, rdatatype, lex,
 					    dns_rootname, 0, gmctx, buf,
 					    &callbacks);
 		isc_lex_destroy(&lex);
 		if (result == ISC_R_SUCCESS) {
 			isc_buffer_usedregion(buf, &r);
-			result = isc_buffer_allocate(gmctx, &newbuf, r.length);
-			check_result(result, "isc_buffer_allocate");
+			isc_buffer_allocate(gmctx, &newbuf, r.length);
 			isc_buffer_putmem(newbuf, r.base, r.length);
 			isc_buffer_usedregion(newbuf, &r);
 			dns_rdata_fromregion(rdata, rdataclass, rdatatype, &r);
@@ -2041,8 +2038,7 @@ show_message(FILE *stream, dns_message_t *msg, const char *description) {
 		}
 		if (buf != NULL)
 			isc_buffer_free(&buf);
-		result = isc_buffer_allocate(gmctx, &buf, bufsz);
-		check_result(result, "isc_buffer_allocate");
+		isc_buffer_allocate(gmctx, &buf, bufsz);
 		result = dns_message_totext(msg, style, 0, buf);
 		bufsz *= 2;
 	} while (result == ISC_R_NOSPACE);

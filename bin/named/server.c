@@ -7694,9 +7694,7 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data,
 	REQUIRE(zoneconfig != NULL && *zoneconfig == NULL);
 
 	if (*text == NULL) {
-		result = isc_buffer_allocate(view->mctx, text, 256);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		isc_buffer_allocate(view->mctx, text, 256);
 	} else {
 		isc_buffer_clear(*text);
 	}
@@ -12394,17 +12392,7 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 		/* We're creating or overwriting the zone */
 		const cfg_obj_t *zoptions;
 
-		result = isc_buffer_allocate(view->mctx, &text, 256);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(named_g_lctx,
-				      NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER,
-				      ISC_LOG_ERROR,
-				      "Unable to allocate buffer in "
-				      "nzd_save(): %s",
-				      isc_result_totext(result));
-			goto cleanup;
-		}
+		isc_buffer_allocate(view->mctx, &text, 256);
 
 		zoptions = cfg_tuple_get(zconfig, "options");
 		if (zoptions == NULL) {
@@ -12429,7 +12417,7 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 				      ISC_LOG_ERROR,
 				      "Error writing zone config to "
 				      "buffer in nzd_save(): %s",
-				      isc_result_totext(result));
+				      isc_result_totext(dzarg.result));
 			result = dzarg.result;
 			goto cleanup;
 		}
@@ -12761,7 +12749,7 @@ migrate_nzf(dns_view_t *view) {
 
 	CHECK(nzd_open(view, 0, &txn, &dbi));
 
-	CHECK(isc_buffer_allocate(view->mctx, &text, 256));
+	isc_buffer_allocate(view->mctx, &text, 256);
 
 	for (element = cfg_list_first(zonelist);
 	     element != NULL;

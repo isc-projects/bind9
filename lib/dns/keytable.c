@@ -592,9 +592,7 @@ dns_keytable_dump(dns_keytable_t *keytable, FILE *fp) {
 	REQUIRE(VALID_KEYTABLE(keytable));
 	REQUIRE(fp != NULL);
 
-	result = isc_buffer_allocate(keytable->mctx, &text, 4096);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(keytable->mctx, &text, 4096);
 
 	result = dns_keytable_totext(keytable, &text);
 

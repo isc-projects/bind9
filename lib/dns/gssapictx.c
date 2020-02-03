@@ -752,8 +752,8 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	}
 
 	if (gouttoken.length > 0U) {
-		RETERR(isc_buffer_allocate(mctx, outtoken,
-					   (unsigned int)gouttoken.length));
+		isc_buffer_allocate(mctx, outtoken,
+				    (unsigned int)gouttoken.length);
 		GBUFFER_TO_REGION(gouttoken, r);
 		RETERR(isc_buffer_copyregion(*outtoken, &r));
 		(void)gss_release_buffer(&minor, &gouttoken);

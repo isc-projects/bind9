@@ -273,7 +273,6 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t typeval,
 	dns_rdatalist_t *rdatalist;
 	dns_rdata_t *rdata;
 	isc_buffer_t *rdatabuf = NULL;
-	isc_result_t result;
 	isc_mem_t *mctx;
 	isc_region_t region;
 
@@ -299,9 +298,7 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t typeval,
 
 	rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
 
-	result = isc_buffer_allocate(mctx, &rdatabuf, rdlen);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	isc_buffer_allocate(mctx, &rdatabuf, rdlen);
 	DE_CONST(rdatap, region.base);
 	region.length = rdlen;
 	isc_buffer_copyregion(rdatabuf, &region);
@@ -311,12 +308,8 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t typeval,
 			     &region);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	ISC_LIST_APPEND(lookup->buffers, rdatabuf, link);
-	rdata = NULL;
 
- failure:
-	if (rdata != NULL)
-		isc_mem_put(mctx, rdata, sizeof(dns_rdata_t));
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

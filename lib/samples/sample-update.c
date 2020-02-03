@@ -443,16 +443,14 @@ parse_rdata(isc_mem_t *mctx, char **cmdlinep, dns_rdataclass_t rdataclass,
 		isc_buffer_add(&source, strlen(cmdline));
 		result = isc_lex_openbuffer(lex, &source);
 		check_result(result, "isc_lex_openbuffer");
-		result = isc_buffer_allocate(mctx, &buf, MAXWIRE);
-		check_result(result, "isc_buffer_allocate");
+		isc_buffer_allocate(mctx, &buf, MAXWIRE);
 		result = dns_rdata_fromtext(rdata, rdataclass, rdatatype, lex,
 					    dns_rootname, 0, mctx, buf,
 					    &callbacks);
 		isc_lex_destroy(&lex);
 		if (result == ISC_R_SUCCESS) {
 			isc_buffer_usedregion(buf, &r);
-			result = isc_buffer_allocate(mctx, &newbuf, r.length);
-			check_result(result, "isc_buffer_allocate");
+			isc_buffer_allocate(mctx, &newbuf, r.length);
 			isc_buffer_putmem(newbuf, r.base, r.length);
 			isc_buffer_usedregion(newbuf, &r);
 			dns_rdata_reset(rdata);

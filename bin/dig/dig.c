@@ -568,8 +568,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf,
 	if (!query->lookup->comments)
 		flags |= DNS_MESSAGETEXTFLAG_NOCOMMENTS;
 
-	result = isc_buffer_allocate(mctx, &buf, len);
-	check_result(result, "isc_buffer_allocate");
+	isc_buffer_allocate(mctx, &buf, len);
 
 	if (yaml) {
 		enum { Q = 0x1, R = 0x2 }; /* Q:query; R:ecursive */
@@ -742,11 +741,8 @@ repopulate_buffer:
 buftoosmall:
 			len += OUTPUTBUF;
 			isc_buffer_free(&buf);
-			result = isc_buffer_allocate(mctx, &buf, len);
-			if (result == ISC_R_SUCCESS)
-				goto repopulate_buffer;
-			else
-				goto cleanup;
+			isc_buffer_allocate(mctx, &buf, len);
+			goto repopulate_buffer;
 		}
 		check_result(result,
 		     "dns_message_pseudosectiontotext");
@@ -827,7 +823,6 @@ buftoosmall:
 	       (char *)isc_buffer_base(buf));
 	isc_buffer_free(&buf);
 
-cleanup:
 	if (style != NULL)
 		dns_master_styledestroy(&style, mctx);
 	return (result);

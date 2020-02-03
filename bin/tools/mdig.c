@@ -309,8 +309,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	if (!display_comments)
 		flags |= DNS_MESSAGETEXTFLAG_NOCOMMENTS;
 
-	result = isc_buffer_allocate(mctx, &buf, len);
-	CHECK("isc_buffer_allocate", result);
+	isc_buffer_allocate(mctx, &buf, len);
 
 	if (yaml) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
@@ -416,11 +415,8 @@ repopulate_buffer:
 buftoosmall:
 			len += OUTPUTBUF;
 			isc_buffer_free(&buf);
-			result = isc_buffer_allocate(mctx, &buf, len);
-			if (result == ISC_R_SUCCESS)
-				goto repopulate_buffer;
-			else
-				goto cleanup;
+			isc_buffer_allocate(mctx, &buf, len);
+			goto repopulate_buffer;
 		}
 		CHECK("dns_message_pseudosectiontotext", result);
 	}

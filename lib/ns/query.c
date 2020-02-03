@@ -7458,11 +7458,9 @@ query_dns64(query_ctx_t *qctx) {
 
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 
-	result = isc_buffer_allocate(client->mctx, &buffer,
-				     view->dns64cnt * 16 *
-				     dns_rdataset_count(qctx->rdataset));
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_buffer_allocate(client->mctx, &buffer,
+			    view->dns64cnt * 16 *
+			    dns_rdataset_count(qctx->rdataset));
 	result = dns_message_gettemprdataset(client->message,
 					     &dns64_rdataset);
 	if (result != ISC_R_SUCCESS)
@@ -7628,10 +7626,8 @@ query_filter64(query_ctx_t *qctx) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 	}
 
-	result = isc_buffer_allocate(client->mctx, &buffer,
-				     16 * dns_rdataset_count(qctx->rdataset));
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_buffer_allocate(client->mctx, &buffer,
+			    16 * dns_rdataset_count(qctx->rdataset));
 	result = dns_message_gettemprdataset(client->message, &myrdataset);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;

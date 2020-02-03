@@ -1076,9 +1076,7 @@ modrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	mctx = sdlz->common.mctx;
 
-	result = isc_buffer_allocate(mctx, &buffer, 1024);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(mctx, &buffer, 1024);
 
 	result = dns_master_stylecreate(&style, 0, 0, 0, 0, 0, 0, 1,
 					0xffffffff, mctx);
@@ -1869,9 +1867,7 @@ dns_sdlz_putrr(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
 			goto failure;
 
 		rdatabuf = NULL;
-		result = isc_buffer_allocate(mctx, &rdatabuf, size);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
+		isc_buffer_allocate(mctx, &rdatabuf, size);
 
 		result = dns_rdata_fromtext(rdata, rdatalist->rdclass,
 					    rdatalist->type, lex,

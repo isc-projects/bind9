@@ -164,7 +164,7 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	RETERR(dns_message_gettemprdata(msg, &newrdata));
 
 	dns_rdata_toregion(rdata, &r);
-	RETERR(isc_buffer_allocate(msg->mctx, &tmprdatabuf, r.length));
+	isc_buffer_allocate(msg->mctx, &tmprdatabuf, r.length);
 	isc_buffer_availableregion(tmprdatabuf, &newr);
 	memmove(newr.base, r.base, r.length);
 	dns_rdata_fromregion(newrdata, rdata->rdclass, rdata->type, &newr);
@@ -438,7 +438,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	RETERR(add_rdata_to_list(msg, &ourname, &ourkeyrdata, 0, namelist));
 
 	RETERR(dst_key_secretsize(tctx->dhkey, &sharedsize));
-	RETERR(isc_buffer_allocate(msg->mctx, &shared, sharedsize));
+	isc_buffer_allocate(msg->mctx, &shared, sharedsize);
 
 	result = dst_key_computesecret(pubkey, tctx->dhkey, shared);
 	if (result != ISC_R_SUCCESS) {
@@ -940,9 +940,9 @@ buildquery(dns_message_t *msg, const dns_name_t *name,
 				  dns_rdatatype_tkey);
 
 	len = 16 + tkey->algorithm.length + tkey->keylen + tkey->otherlen;
-	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, len));
-	RETERR(isc_buffer_allocate(msg->mctx, &anamebuf, name->length));
-	RETERR(isc_buffer_allocate(msg->mctx, &qnamebuf, name->length));
+	isc_buffer_allocate(msg->mctx, &dynbuf, len);
+	isc_buffer_allocate(msg->mctx, &anamebuf, name->length);
+	isc_buffer_allocate(msg->mctx, &qnamebuf, name->length);
 	RETERR(dns_message_gettemprdata(msg, &rdata));
 
 	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
@@ -1046,7 +1046,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key,
 	RETERR(buildquery(msg, name, &tkey, false));
 
 	RETERR(dns_message_gettemprdata(msg, &rdata));
-	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024));
+	isc_buffer_allocate(msg->mctx, &dynbuf, 1024);
 	RETERR(dst_key_todns(key, dynbuf));
 	isc_buffer_usedregion(dynbuf, &r);
 	dns_rdata_fromregion(rdata, dns_rdataclass_any,
@@ -1265,7 +1265,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 				       rmsg->mctx, &theirkey));
 
 	RETERR(dst_key_secretsize(key, &sharedsize));
-	RETERR(isc_buffer_allocate(rmsg->mctx, &shared, sharedsize));
+	isc_buffer_allocate(rmsg->mctx, &shared, sharedsize);
 
 	RETERR(dst_key_computesecret(theirkey, key, shared));
 

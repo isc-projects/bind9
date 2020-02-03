@@ -54,18 +54,12 @@ struct dst_gssapi_signverifyctx {
 static isc_result_t
 gssapi_create_signverify_ctx(dst_key_t *key, dst_context_t *dctx) {
 	dst_gssapi_signverifyctx_t *ctx;
-	isc_result_t result;
 
 	UNUSED(key);
 
 	ctx = isc_mem_get(dctx->mctx, sizeof(dst_gssapi_signverifyctx_t));
 	ctx->buffer = NULL;
-	result = isc_buffer_allocate(dctx->mctx, &ctx->buffer,
-				     INITIAL_BUFFER_SIZE);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(dctx->mctx, ctx, sizeof(dst_gssapi_signverifyctx_t));
-		return (result);
-	}
+	isc_buffer_allocate(dctx->mctx, &ctx->buffer, INITIAL_BUFFER_SIZE);
 
 	dctx->ctxdata.gssctx = ctx;
 
@@ -107,9 +101,7 @@ gssapi_adddata(dst_context_t *dctx, const isc_region_t *data) {
 
 	length = isc_buffer_length(ctx->buffer) + data->length + BUFFER_EXTRA;
 
-	result = isc_buffer_allocate(dctx->mctx, &newbuffer, length);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(dctx->mctx, &newbuffer, length);
 
 	isc_buffer_usedregion(ctx->buffer, &r);
 	(void)isc_buffer_copyregion(newbuffer, &r);
@@ -276,9 +268,7 @@ gssapi_restore(dst_key_t *key, const char *keystr) {
 
 	len = (len / 4) * 3;
 
-	result = isc_buffer_allocate(key->mctx, &b, len);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(key->mctx, &b, len);
 
 	result = isc_base64_decodestring(keystr, b);
 	if (result != ISC_R_SUCCESS) {

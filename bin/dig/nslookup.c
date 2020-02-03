@@ -221,9 +221,7 @@ printrdata(dns_rdata_t *rdata) {
 		printf("rdata_%d = ", rdata->type);
 
 	while (!done) {
-		result = isc_buffer_allocate(mctx, &b, size);
-		if (result != ISC_R_SUCCESS)
-			check_result(result, "isc_buffer_allocate");
+		isc_buffer_allocate(mctx, &b, size);
 		result = dns_rdata_totext(rdata, NULL, b);
 		if (result == ISC_R_SUCCESS) {
 			printf("%.*s\n", (int)isc_buffer_usedlength(b),

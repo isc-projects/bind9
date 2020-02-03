@@ -236,11 +236,7 @@ main(int argc, char *argv[]) {
 
 	/* Dump the response */
 	outputbuf = NULL;
-	result = isc_buffer_allocate(mctx, &outputbuf, 65535);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to allocate a result buffer\n");
-		exit(1);
-	}
+	isc_buffer_allocate(mctx, &outputbuf, 65535);
 	for (i = 0; i < DNS_SECTION_MAX; i++) {
 		print_section(rmessage, i, outputbuf);
 		isc_buffer_clear(outputbuf);

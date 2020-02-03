@@ -883,10 +883,8 @@ setup_text_key(void) {
 	unsigned char *secretstore;
 
 	debug("setup_text_key()");
-	result = isc_buffer_allocate(mctx, &namebuf, MXNAME);
-	check_result(result, "isc_buffer_allocate");
+	isc_buffer_allocate(mctx, &namebuf, MXNAME);
 	dns_name_init(&keyname, NULL);
-	check_result(result, "dns_name_init");
 	isc_buffer_putstr(namebuf, keynametext);
 	secretsize = (unsigned int) strlen(keysecret) * 3 / 4;
 	secretstore = isc_mem_allocate(mctx, secretsize);

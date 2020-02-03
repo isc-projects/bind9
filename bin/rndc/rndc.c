@@ -965,8 +965,7 @@ main(int argc, char **argv) {
 
 	command = *argv;
 
-	DO("allocate data buffer",
-	   isc_buffer_allocate(rndc_mctx, &databuf, 2048));
+	isc_buffer_allocate(rndc_mctx, &databuf, 2048);
 
 	/*
 	 * Convert argc/argv into a space-delimited command string

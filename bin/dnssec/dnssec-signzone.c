@@ -226,8 +226,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 
 	dns_rdataset_init(&rds);
 
-	result = isc_buffer_allocate(mctx, &buffer, bufsize);
-	check_result(result, "isc_buffer_allocate");
+	isc_buffer_allocate(mctx, &buffer, bufsize);
 
 	for (result = dns_rdatasetiter_first(iter);
 	     result == ISC_R_SUCCESS;
@@ -253,8 +252,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 
 			bufsize <<= 1;
 			isc_buffer_free(&buffer);
-			result = isc_buffer_allocate(mctx, &buffer, bufsize);
-			check_result(result, "isc_buffer_allocate");
+			isc_buffer_allocate(mctx, &buffer, bufsize);
 		}
 		check_result(result, "dns_master_rdatasettotext");
 

@@ -108,9 +108,7 @@ pkcs11eddsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 		return (ISC_R_SUCCESS);
 
 	length = isc_buffer_length(buf) + data->length + 64;
-	result = isc_buffer_allocate(dctx->mctx, &nbuf, length);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(dctx->mctx, &nbuf, length);
 	isc_buffer_usedregion(buf, &r);
 	(void) isc_buffer_copyregion(nbuf, &r);
 	(void) isc_buffer_copyregion(nbuf, data);
