@@ -1396,8 +1396,7 @@ setup_libs(void) {
 	check_result(result, "dst_lib_init");
 	is_dst_up = true;
 
-	result = isc_mempool_create(mctx, COMMSIZE, &commctx);
-	check_result(result, "isc_mempool_create");
+	isc_mempool_create(mctx, COMMSIZE, &commctx);
 	isc_mempool_setname(commctx, "COMMPOOL");
 	/*
 	 * 6 and 2 set as reasonable parameters for 3 or 4 nameserver

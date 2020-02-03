@@ -2646,9 +2646,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	 * Memory pools
 	 */
 #define MPINIT(t, p, n) do { \
-	result = isc_mempool_create(mem, sizeof(t), &(p)); \
-	if (result != ISC_R_SUCCESS) \
-		goto fail2; \
+	isc_mempool_create(mem, sizeof(t), &(p)); \
 	isc_mempool_setfreemax((p), FREE_ITEMS); \
 	isc_mempool_setfillcount((p), FILL_COUNT); \
 	isc_mempool_setname((p), n); \
