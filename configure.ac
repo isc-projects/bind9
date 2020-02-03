@@ -2236,23 +2236,15 @@ AC_CHECK_FUNCS(setlocale)
 #
 # was --with-tuning specified?
 #
-AC_ARG_WITH(tuning,
+AC_ARG_WITH([tuning],
 	    AS_HELP_STRING([--with-tuning=ARG],
-			   [Specify server tuning (large or default)]),
-	    use_tuning="$withval", use_tuning="no")
+			   [Specify server tuning (default or small)]),
+	    [],[with_tuning=no])
 
-case "$use_tuning" in
-	large)
-		AC_DEFINE(TUNE_LARGE, 1, [Define to use large-system tuning.])
-		AC_MSG_RESULT(using large-system tuning)
-		;;
-	no|default)
-		AC_MSG_RESULT(using default tuning)
-		;;
-	yes|*)
-		AC_MSG_ERROR([You must specify "large" or "default" for --with-tuning.])
-		;;
-esac
+AS_CASE([$with_tuning],
+	[small],[AC_MSG_NOTICE(using small system tuning)],
+	[AC_DEFINE(TUNE_LARGE, 1, [Define to use default system tuning.])
+	 AC_MSG_NOTICE(using default system tuning)])
 
 #
 # was --enable-querytrace specified?
