@@ -342,7 +342,7 @@ quantize(size_t size) {
 	return ((size + ALIGNMENT_SIZE - 1) & (~(ALIGNMENT_SIZE - 1)));
 }
 
-static inline bool
+static inline void
 more_basic_blocks(isc__mem_t *ctx) {
 	void *tmp;
 	unsigned char *curr, *next;
@@ -350,6 +350,11 @@ more_basic_blocks(isc__mem_t *ctx) {
 	unsigned char **table;
 	unsigned int table_size;
 	int i;
+
+	if (ctx->basic_blocks != NULL) {
+		/* Nothing to do. */
+		return;
+	}
 
 	/* Require: we hold the context lock. */
 
@@ -400,8 +405,6 @@ more_basic_blocks(isc__mem_t *ctx) {
 	if (last > ctx->highest)
 		ctx->highest = last;
 	ctx->basic_blocks = tmp;
-
-	return (true);
 }
 
 static inline bool
@@ -415,17 +418,16 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	 * Try to get more fragments by chopping up a basic block.
 	 */
 
+	more_basic_blocks(ctx);
 	if (ctx->basic_blocks == NULL) {
-		if (!more_basic_blocks(ctx)) {
-			/*
-			 * We can't get more memory from the OS, or we've
-			 * hit the quota for this context.
-			 */
-			/*
-			 * XXXRTH  "At quota" notification here.
-			 */
-			return (false);
-		}
+		/*
+		 * We can't get more memory from the OS, or we've
+		 * hit the quota for this context.
+		 */
+		/*
+		 * XXXRTH  "At quota" notification here.
+		 */
+		return (false);
 	}
 
 	total_size = ctx->mem_target;
