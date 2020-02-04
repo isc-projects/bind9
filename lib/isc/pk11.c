@@ -14,6 +14,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -21,6 +22,7 @@
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/stdio.h>
+#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/thread.h>
 #include <isc/util.h>
@@ -151,8 +153,12 @@ pk11_mem_get(size_t size) {
 		ptr = isc_mem_get(pk11_mctx, size);
 	else {
 		ptr = malloc(size);
-		if (ptr != NULL)
-			allocsize += (int)size;
+		if (ptr == NULL && size != 0) {
+			char strbuf[ISC_STRERRORSIZE];
+			strerror_r(errno, strbuf, sizeof(strbuf));
+			isc_error_fatal(__FILE__, __LINE__, "malloc failed: %s",
+					strbuf);
+		}
 	}
 	UNLOCK(&alloclock);
 
@@ -323,8 +329,6 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	UNLOCK(&sessionlock);
 
 	sp = pk11_mem_get(sizeof(*sp));
-	if (sp == NULL)
-		return (ISC_R_NOMEMORY);
 	sp->magic = SES_MAGIC;
 	sp->token = token;
 	sp->session = CK_INVALID_HANDLE;
@@ -479,7 +483,6 @@ scan_slots(void) {
 	if (slotCount == 0)
 		return;
 	slotList = pk11_mem_get(sizeof(CK_SLOT_ID) * slotCount);
-	RUNTIME_CHECK(slotList != NULL);
 	PK11_FATALCHECK(pkcs_C_GetSlotList, (CK_FALSE, slotList, &slotCount));
 
 	for (i = 0; i < slotCount; i++) {
@@ -490,7 +493,6 @@ scan_slots(void) {
 		if (rv != CKR_OK)
 			continue;
 		token = pk11_mem_get(sizeof(*token));
-		RUNTIME_CHECK(token != NULL);
 		token->magic = TOK_MAGIC;
 		token->slotid = slot;
 		ISC_LINK_INIT(token, link);

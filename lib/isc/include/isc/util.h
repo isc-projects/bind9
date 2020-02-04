@@ -285,12 +285,17 @@ extern void mock_assert(const int result, const char* const expression,
 #ifdef UNIT_TESTING
 
 #define RUNTIME_CHECK(expression)					\
-	mock_assert((int)(expression), #expression, __FILE__, __LINE__)
+	((!(expression)) ?						\
+	(mock_assert(0, #expression, __FILE__, __LINE__), abort()) : (void)0)
 
 #else /* UNIT_TESTING */
 
+#ifndef CPPCHECK
 /*% Runtime Check */
 #define RUNTIME_CHECK(cond)		ISC_ERROR_RUNTIMECHECK(cond)
+#else
+#define RUNTIME_CHECK(e)		if (!(e)) abort()
+#endif
 
 #endif /* UNIT_TESTING */
 

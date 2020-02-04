@@ -1122,7 +1122,7 @@ free_element_heap(void *element, void *uap) {
 }
 
 static bool
-checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
+_checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 	  const struct nsec3_chain_fixed *e)
 {
 	char buf[512];
@@ -1160,6 +1160,37 @@ checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 			     (int)isc_buffer_usedlength(&b), buf);
 
 	return (false);
+}
+
+static inline bool
+checknext(isc_mem_t *mctx,
+	  const vctx_t *vctx,
+	  const struct nsec3_chain_fixed *first,
+	  struct nsec3_chain_fixed *prev,
+	  const struct nsec3_chain_fixed *cur)
+{
+	bool result = _checknext(vctx, prev, cur);
+
+	if (prev != first) {
+		free_element(mctx, prev);
+	}
+
+	return (result);
+}
+
+static inline bool
+checklast(isc_mem_t *mctx,
+	  const vctx_t *vctx,
+	  struct nsec3_chain_fixed *first,
+	  struct nsec3_chain_fixed *prev)
+{
+	bool result = _checknext(vctx, prev, first);
+	if (prev != first) {
+		free_element(mctx, prev);
+	}
+	free_element(mctx, first);
+
+	return (result);
 }
 
 static isc_result_t
@@ -1214,39 +1245,27 @@ verify_nsec3_chains(const vctx_t *vctx, isc_mem_t *mctx) {
 					     "not equal");
 			result = ISC_R_FAILURE;
 		}
-		if (first == NULL || newchain(first, e)) {
-			if (prev != NULL) {
-				if (!checknext(vctx, prev, first)) {
-					result = ISC_R_FAILURE;
-				}
-				if (prev != first) {
-					free_element(mctx, prev);
-				}
-			}
-			if (first != NULL) {
-				free_element(mctx, first);
-			}
+
+		if (first == NULL) {
 			prev = first = e;
-			continue;
+		} else if (newchain(first, e)) {
+			if (!checklast(mctx, vctx, first, prev)) {
+				result = ISC_R_FAILURE;
+			}
+
+			prev = first = e;
+		} else {
+			if (!checknext(mctx, vctx, first, prev, e)) {
+				result = ISC_R_FAILURE;
+			}
+
+			prev = e;
 		}
-		if (!checknext(vctx, prev, e)) {
-			result = ISC_R_FAILURE;
-		}
-		if (prev != first) {
-			free_element(mctx, prev);
-		}
-		prev = e;
 	}
 	if (prev != NULL) {
-		if (!checknext(vctx, prev, first)) {
+		if (!checklast(mctx, vctx, first, prev)) {
 			result = ISC_R_FAILURE;
 		}
-		if (prev != first) {
-			free_element(mctx, prev);
-		}
-	}
-	if (first != NULL) {
-		free_element(mctx, first);
 	}
 	do {
 		if (f != NULL) {

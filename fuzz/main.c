@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	UNUSED(argc);
 	UNUSED(argv);
 
-	target = target ? target + 1 : argv[0];
+	target = (target != NULL) ? target + 1 : argv[0];
 	if (strncmp(target, "lt-", 3) == 0) {
 		target += 3;
 	}

@@ -103,10 +103,10 @@ void isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line);
 
 #if ISC_MUTEX_PROFILE
 #define isc_mutex_destroy(mp) \
-	(RUNTIME_CHECK(pthread_mutex_destroy((&(mp)->mutex)) == 0))
+	RUNTIME_CHECK(pthread_mutex_destroy((&(mp)->mutex)) == 0)
 #else
 #define isc_mutex_destroy(mp) \
-	(RUNTIME_CHECK(pthread_mutex_destroy((mp)) == 0))
+	RUNTIME_CHECK(pthread_mutex_destroy((mp)) == 0)
 #endif
 
 #if ISC_MUTEX_PROFILE
