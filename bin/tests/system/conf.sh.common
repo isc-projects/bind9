@@ -95,6 +95,8 @@ else
     COLOR_WARN=''
 fi
 
+SYSTESTDIR="`basename $PWD`"
+
 if type printf > /dev/null 2>&1
 then
 	echofail () {
@@ -115,6 +117,23 @@ then
 	echoend () {
 		printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
 	}
+	echo_i() {
+	    printf '%s\n' "$*" | while read -r __LINE ; do
+	       echoinfo "I:$SYSTESTDIR:$__LINE"
+	    done
+	}
+
+	echo_ic() {
+	    printf '%s\n' "$*" | while read -r __LINE ; do
+	       echoinfo "I:$SYSTESTDIR:  $__LINE"
+	    done
+	}
+
+	echo_d() {
+	    printf '%s\n' "$*" | while read -r __LINE ; do
+	       echoinfo "D:$SYSTESTDIR:$__LINE"
+	    done
+	}
 else
 	echofail () {
 		echo "$*"
@@ -134,36 +153,34 @@ else
 	echoend () {
 		echo "$*"
 	}
+
+	echo_i() {
+	    echo "$@" | while read -r __LINE ; do
+	       echoinfo "I:$SYSTESTDIR:$__LINE"
+	    done
+	}
+
+	echo_ic() {
+	    echo "$@" | while read -r __LINE ; do
+	       echoinfo "I:$SYSTESTDIR:  $__LINE"
+	    done
+	}
+
+	echo_d() {
+	    echo "$@" | while read -r __LINE ; do
+	       echoinfo "D:$SYSTESTDIR:$__LINE"
+	    done
+	}
 fi
 
-SYSTESTDIR="`basename $PWD`"
-
-echo_i() {
-    echo "$@" | while read __LINE ; do
-       echoinfo "I:$SYSTESTDIR:$__LINE"
-    done
-}
-
-echo_ic() {
-    echo "$@" | while read __LINE ; do
-       echoinfo "I:$SYSTESTDIR:  $__LINE"
-    done
-}
-
 cat_i() {
-    while read __LINE ; do
+    while read -r __LINE ; do
        echoinfo "I:$SYSTESTDIR:$__LINE"
-    done
-}
-
-echo_d() {
-    echo "$@" | while read __LINE ; do
-       echoinfo "D:$SYSTESTDIR:$__LINE"
     done
 }
 
 cat_d() {
-    while read __LINE ; do
+    while read -r __LINE ; do
        echoinfo "D:$SYSTESTDIR:$__LINE"
     done
 }
