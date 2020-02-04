@@ -30,6 +30,7 @@ n=0
 #$DIG -p ${PORT} @10.53.0.2 data.example TXT
 #$DIG -p ${PORT} @10.53.0.2 nodata.example TXT
 #$DIG -p ${PORT} @10.53.0.2 nxdomain.example TXT
+#$DIG -p ${PORT} @10.53.0.2 othertype.example CAA
 
 #
 # First test server with serve-stale options set.
@@ -49,6 +50,15 @@ n=`expr $n + 1`
 echo_i "prime cache data.example ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "prime cache othertype.example ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -82,6 +92,7 @@ cp ns1/named.stats ns1/named.stats.$n
 # Check first 10 lines of Cache DB statistics.  After prime queries, we expect
 # two active TXT one nxrrset TXT, and one NXDOMAIN.
 grep -A 10 "++ Cache DB RRsets ++" ns1/named.stats.$n > ns1/named.stats.$n.cachedb || ret=1
+grep "1 Others" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "2 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 !TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
@@ -127,6 +138,16 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check stale othertype.example ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "othertype\.example\..*2.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check stale nodata.example ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
@@ -158,6 +179,7 @@ cp ns1/named.stats ns1/named.stats.$n
 # stale NXDOMAIN.
 grep -A 10 "++ Cache DB RRsets ++" ns1/named.stats.$n > ns1/named.stats.$n.cachedb || ret=1
 grep "1 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #Others" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #!TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
@@ -186,6 +208,14 @@ $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check stale othertype.example (serve-stale off) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -227,6 +257,16 @@ $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check stale othertype.example (serve-stale on) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "othertype\.example\..*2.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -274,6 +314,14 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check stale othertype.example (serve-stale no) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check stale nodata.example (serve-stale no) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
@@ -311,6 +359,16 @@ $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check stale othertype.example (serve-stale yes) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "othertype\.example\..*2.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -363,6 +421,16 @@ $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check stale othertype.example (serve-stale reset) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "othertype.example\..*2.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -425,7 +493,7 @@ n=`expr $n + 1`
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: off (rndc) (stale-answer-ttl=3 max-stale-ttl=35)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: off (rndc) (stale-answer-ttl=3 max-stale-ttl=45)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -444,7 +512,7 @@ n=`expr $n + 1`
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=35)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=45)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -472,6 +540,15 @@ n=`expr $n + 1`
 echo_i "prime cache data.example (low max-stale-ttl) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "prime cache othertype.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -506,6 +583,7 @@ cp ns1/named.stats ns1/named.stats.$n
 # two active TXT RRsets, one nxrrset TXT, and one NXDOMAIN.
 grep -A 10 "++ Cache DB RRsets ++" ns1/named.stats.$n > ns1/named.stats.$n.cachedb || ret=1
 grep "2 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 Others" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 !TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 status=`expr $status + $ret`
@@ -529,6 +607,16 @@ $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*3.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check stale othertype.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "othertype\.example\..*3.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -565,8 +653,10 @@ cp ns1/named.stats ns1/named.stats.$n
 grep -A 10 "++ Cache DB RRsets ++" ns1/named.stats.$n > ns1/named.stats.$n.cachedb || ret=1
 grep "1 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #Others" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #!TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+
 status=`expr $status + $ret`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
@@ -576,6 +666,15 @@ n=`expr $n + 1`
 echo_i "check ancient data.example (low max-stale-ttl) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check ancient othertype.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -633,6 +732,16 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "prime cache othertype.example (max-stale-ttl default) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 othertype.example CAA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "othertype\.example\..*1.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "prime cache nodata.example (max-stale-ttl default) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
@@ -663,6 +772,7 @@ cp ns3/named.stats ns3/named.stats.$n
 # two active TXT RRsets, one nxrrset TXT, and one NXDOMAIN.
 grep -A 10 "++ Cache DB RRsets ++" ns3/named.stats.$n > ns3/named.stats.$n.cachedb || ret=1
 grep "2 TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 Others" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 !TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 NXDOMAIN" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 status=`expr $status + $ret`
@@ -691,6 +801,15 @@ n=`expr $n + 1`
 echo_i "check fail of data.example (max-stale-ttl default) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check fail of othertype.example (max-stale-ttl default) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 othertype.example CAA > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -727,8 +846,10 @@ cp ns3/named.stats ns3/named.stats.$n
 grep -A 10 "++ Cache DB RRsets ++" ns3/named.stats.$n > ns3/named.stats.$n.cachedb || ret=1
 grep "1 TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #Others" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #!TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #NXDOMAIN" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+
 status=`expr $status + $ret`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
@@ -754,6 +875,16 @@ $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*1.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check othertype.example (max-stale-ttl default) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 othertype.example CAA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "example\..*1.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -811,6 +942,16 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "prime cache othertype.example (serve-stale disabled) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.4 othertype.example CAA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "othertype\.example\..*1.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "prime cache nodata.example (serve-stale disabled) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.4 nodata.example TXT > dig.out.test$n
@@ -841,6 +982,7 @@ cp ns4/named.stats ns4/named.stats.$n
 # two active TXT RRsets, one nxrrset TXT, and one NXDOMAIN.
 grep -A 10 "++ Cache DB RRsets ++" ns4/named.stats.$n > ns4/named.stats.$n.cachedb || ret=1
 grep "2 TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 Others" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 !TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 NXDOMAIN" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 status=`expr $status + $ret`
@@ -869,6 +1011,15 @@ n=`expr $n + 1`
 echo_i "check fail of data.example (serve-stale disabled) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.4 data.example TXT > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check fail of othertype.example (serve-stale disabled) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.4 othertype.example CAA > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -905,6 +1056,7 @@ cp ns4/named.stats ns4/named.stats.$n
 grep -A 10 "++ Cache DB RRsets ++" ns4/named.stats.$n > ns4/named.stats.$n.cachedb || ret=1
 grep "1 TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #Others" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #!TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #NXDOMAIN" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 status=`expr $status + $ret`
@@ -960,6 +1112,7 @@ cp ns4/named.stats ns4/named.stats.$n
 # everything to be removed or scheduled to be removed.
 grep -A 10 "++ Cache DB RRsets ++" ns4/named.stats.$n > ns4/named.stats.$n.cachedb || ret=1
 grep "#TXT" ns4/named.stats.$n.cachedb > /dev/null && ret=1
+grep "#Others" ns4/named.stats.$n.cachedb > /dev/null && ret=1
 grep "#!TXT" ns4/named.stats.$n.cachedb > /dev/null && ret=1
 grep "#NXDOMAIN" ns4/named.stats.$n.cachedb > /dev/null && ret=1
 status=`expr $status + $ret`
