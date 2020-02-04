@@ -58,7 +58,7 @@ stages:
 
 .openbsd-amd64: &openbsd_amd64
   tags:
-    - openbsd
+    - libvirt
     - amd64
 
 ### Docker Image Templates
@@ -986,20 +986,23 @@ unit:clang:freebsd12.0:amd64:
     - clang:freebsd12.0:amd64
   needs: ["clang:freebsd12.0:amd64"]
 
-# Jobs for Clang builds on OpenBSD 6.5 (amd64)
+# Jobs for Clang builds on OpenBSD 6.6 (amd64)
 
-clang:openbsd6.5:amd64:
+clang:openbsd6.6:amd64:
   variables:
     CC: clang
+    USER: gitlab-runner
   <<: *openbsd_amd64
   <<: *build_job
 
-system:clang:openbsd6.5:amd64:
+system:clang:openbsd6.6:amd64:
   <<: *openbsd_amd64
   <<: *system_test_job
+  variables:
+    USER: gitlab-runner
   dependencies:
-    - clang:openbsd6.5:amd64
-  needs: ["clang:openbsd6.5:amd64"]
+    - clang:openbsd6.6:amd64
+  needs: ["clang:openbsd6.6:amd64"]
   only:
     - schedules
     - tags
