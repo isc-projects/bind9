@@ -1802,11 +1802,14 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 
 	isc_refcount_decrement(&client->references);
 
-	LOCK(&client->lock);
-	ISC_LIST_UNLINK(client->reqctxs, ctx, link);
-	UNLOCK(&client->lock);
-	isc_mutex_destroy(&ctx->lock);
-	isc_mem_put(client->mctx, ctx, sizeof(*ctx));
+cleanup:
+	if (ctx != NULL) {
+		LOCK(&client->lock);
+		ISC_LIST_UNLINK(client->reqctxs, ctx, link);
+		UNLOCK(&client->lock);
+		isc_mutex_destroy(&ctx->lock);
+		isc_mem_put(client->mctx, ctx, sizeof(*ctx));
+	}
 
 	isc_event_free(ISC_EVENT_PTR(&event));
 	isc_task_detach(&tclone);
