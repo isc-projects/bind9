@@ -536,8 +536,8 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 
 		dns_name_format(&entry->name, zname, DNS_NAME_FORMATSIZE);
 		result = addzone(entry, target, target->catzs->view,
-			      target->catzs->taskmgr,
-			      target->catzs->zmm->udata);
+				 target->catzs->taskmgr,
+				 target->catzs->zmm->udata);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
 			      "catz: adding zone '%s' from catalog "
@@ -1497,6 +1497,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_region_t r;
 	isc_result_t result;
 	size_t rlen;
+	bool special = false;
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
 	REQUIRE(entry != NULL);
@@ -1512,24 +1513,39 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_buffer_putstr(tbuf, zone->catzs->view->name);
 	isc_buffer_putstr(tbuf, "_");
 	result = dns_name_totext(&zone->name, true, tbuf);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	isc_buffer_putstr(tbuf, "_");
 	result = dns_name_totext(&entry->name, true, tbuf);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
+
+	/*
+	 * Search for slash and other special characters in the view and
+	 * zone names.  Add a null terminator so we can use strpbrk(), then
+	 * remove it.
+	 */
+	isc_buffer_putuint8(tbuf, 0);
+	if (strpbrk(isc_buffer_base(tbuf), "\\/:") != NULL) {
+		special = true;
+	}
+	isc_buffer_subtract(tbuf, 1);
 
 	/* __catz__<digest>.db */
 	rlen = ISC_SHA256_DIGESTSTRINGLENGTH + 12;
 
 	/* optionally prepend with <zonedir>/ */
-	if (entry->opts.zonedir != NULL)
+	if (entry->opts.zonedir != NULL) {
 		rlen += strlen(entry->opts.zonedir) + 1;
+	}
 
 	result = isc_buffer_reserve(buffer, (unsigned int)rlen);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	if (entry->opts.zonedir != NULL) {
 		isc_buffer_putstr(*buffer, entry->opts.zonedir);
@@ -1538,7 +1554,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 
 	isc_buffer_usedregion(tbuf, &r);
 	isc_buffer_putstr(*buffer, "__catz__");
-	if (tbuf->used > ISC_SHA256_DIGESTSTRINGLENGTH) {
+	if (special || tbuf->used > ISC_SHA256_DIGESTSTRINGLENGTH) {
 		isc_sha256_init(&sha256);
 		isc_sha256_update(&sha256, r.base, r.length);
 		/* we can do that because digest string < 2 * DNS_NAME */
@@ -1562,7 +1578,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 {
 	/*
 	 * We have to generate a text buffer with regular zone config:
-	 * zone foo.bar {
+	 * zone "foo.bar" {
 	 * 	type slave;
 	 * 	masters [ dscp X ] { ip1 port port1; ip2 port port2; };
 	 * }
@@ -1590,9 +1606,9 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	}
 
 	isc_buffer_setautorealloc(buffer, true);
-	isc_buffer_putstr(buffer, "zone ");
+	isc_buffer_putstr(buffer, "zone \"");
 	dns_name_totext(&entry->name, true, buffer);
-	isc_buffer_putstr(buffer, " { type slave; masters");
+	isc_buffer_putstr(buffer, "\" { type slave; masters");
 
 	/*
 	 * DSCP value has no default, but when it is specified, it is identical
@@ -1600,7 +1616,8 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	 * use the DSCP value set for the first master
 	 */
 	if (entry->opts.masters.count > 0 &&
-	    entry->opts.masters.dscps[0] >= 0) {
+	    entry->opts.masters.dscps[0] >= 0)
+	{
 		isc_buffer_putstr(buffer, " dscp ");
 		snprintf(pbuf, sizeof(pbuf), "%hd",
 			 entry->opts.masters.dscps[0]);
@@ -1642,8 +1659,9 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 			isc_buffer_putstr(buffer, " key ");
 			result = dns_name_totext(entry->opts.masters.keys[i],
 						 true, buffer);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
+			}
 		}
 		isc_buffer_putstr(buffer, "; ");
 	}
@@ -1651,8 +1669,9 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	if (entry->opts.in_memory == false) {
 		isc_buffer_putstr(buffer, "file \"");
 		result = dns_catz_generate_masterfilename(zone, entry, &buffer);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 		isc_buffer_putstr(buffer, "\"; ");
 
 	}
@@ -1671,11 +1690,13 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 
 	isc_buffer_putstr(buffer, "};");
 	*buf = buffer;
+
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (buffer != NULL)
+	if (buffer != NULL) {
 		isc_buffer_free(&buffer);
+	}
 	return (result);
 }
 

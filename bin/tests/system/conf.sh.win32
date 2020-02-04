@@ -230,20 +230,32 @@ echoend () {
 SYSTESTDIR="`basename $PWD`"
 
 echo_i() {
-    echo "$@" | while read __LINE ; do
+    printf '%s\n' "$*" | while read -r __LINE ; do
        echoinfo "I:$SYSTESTDIR:$__LINE"
     done
 }
 
 echo_ic() {
-    echo "$@" | while read __LINE ; do
+    printf '%s\n' "$*" | while read -r __LINE ; do
        echoinfo "I:$SYSTESTDIR:  $__LINE"
     done
 }
 
+echo_d() {
+    echo "$@" | while read -r __LINE ; do
+       echoinfo "D:$SYSTESTDIR:$__LINE"
+    done
+}
+
 cat_i() {
-    while read __LINE ; do
+    while read -r __LINE ; do
        echoinfo "I:$SYSTESTDIR:$__LINE"
+    done
+}
+
+cat_d() {
+    while read -r __LINE ; do
+       echoinfo "D:$SYSTESTDIR:$__LINE"
     done
 }
 
