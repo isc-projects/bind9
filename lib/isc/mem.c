@@ -126,6 +126,11 @@ static isc_mutex_t		contextslock;
  */
 static uint64_t		totallost;
 
+/*%
+ * Memory allocation and free function definitions.
+ * isc__memalloc_t must deal with memory allocation failure
+ * and must never return NULL.
+ */
 typedef void * (*isc__memalloc_t)(size_t);
 typedef void (*isc__memfree_t)(void *);
 
