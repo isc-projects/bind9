@@ -1489,7 +1489,6 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 {
 	isc_result_t result;
 	dns_view_t *view = NULL;
-	dst_key_t *dstkey = NULL;
 	dns_keytable_t *secroots = NULL;
 	dns_name_t *name = NULL;
 	char dsbuf[DNS_DS_BUFFERSIZE];
@@ -1534,9 +1533,6 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	CHECK(dns_keytable_add(secroots, false, false, name, &ds));
 
  cleanup:
-	if (dstkey != NULL) {
-		dst_key_free(&dstkey);
-	}
 	if (view != NULL) {
 		dns_view_detach(&view);
 	}
