@@ -956,8 +956,8 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 		} else {
 			sock->statsindex = tcp6statsindex;
 		}
-		break;
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
+		break;
 	default:
 		break;
 	}

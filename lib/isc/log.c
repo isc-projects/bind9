@@ -321,17 +321,15 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 
 	lcfg = isc_mem_get(lctx->mctx, sizeof(*lcfg));
 
-	{
-		lcfg->lctx = lctx;
-		lcfg->channellists = NULL;
-		lcfg->channellist_count = 0;
-		lcfg->duplicate_interval = 0;
-		lcfg->highest_level = level;
-		lcfg->tag = NULL;
-		lcfg->dynamic = false;
-		ISC_LIST_INIT(lcfg->channels);
-		lcfg->magic = LCFG_MAGIC;
-	}
+	lcfg->lctx = lctx;
+	lcfg->channellists = NULL;
+	lcfg->channellist_count = 0;
+	lcfg->duplicate_interval = 0;
+	lcfg->highest_level = level;
+	lcfg->tag = NULL;
+	lcfg->dynamic = false;
+	ISC_LIST_INIT(lcfg->channels);
+	lcfg->magic = LCFG_MAGIC;
 
 	/*
 	 * Create the default channels:
@@ -377,18 +375,18 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 					       ISC_LOG_PRINTTIME);
 	}
 
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		result = isc_log_createchannel(lcfg, "null",
 					       ISC_LOG_TONULL,
 					       ISC_LOG_DYNAMIC,
 					       NULL, 0);
+	}
 
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		*lcfgp = lcfg;
-
-	else
-		if (lcfg != NULL)
-			isc_logconfig_destroy(&lcfg);
+	} else {
+		isc_logconfig_destroy(&lcfg);
+	}
 
 	return (result);
 }

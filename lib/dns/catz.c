@@ -1655,9 +1655,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (buffer != NULL) {
-		isc_buffer_free(&buffer);
-	}
+	isc_buffer_free(&buffer);
 	return (result);
 }
 

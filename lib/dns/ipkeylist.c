@@ -126,26 +126,6 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 	}
 	dst->count = src->count;
 	return (ISC_R_SUCCESS);
-
-	do {
-		if (dst->labels[i] != NULL) {
-			if (dns_name_dynamic(dst->labels[i]))
-				dns_name_free(dst->labels[i], mctx);
-			isc_mem_put(mctx, dst->labels[i], sizeof(dns_name_t));
-			dst->labels[i] = NULL;
-		}
-	} while (i-- > 0);
-
-	do {
-		if (dst->keys[i] != NULL) {
-			if (dns_name_dynamic(dst->keys[i]))
-				dns_name_free(dst->keys[i], mctx);
-			isc_mem_put(mctx, dst->keys[i], sizeof(dns_name_t));
-			dst->keys[i] = NULL;
-		}
-	} while (i-- > 0);
-
-	return (result);
 }
 
 isc_result_t

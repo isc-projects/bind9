@@ -1393,8 +1393,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 		isc_mutex_destroy(&rctx->lock);
 		isc_mem_put(mctx, rctx, sizeof(*rctx));
 	}
-	if (event != NULL)
-		isc_event_free(ISC_EVENT_PTR(&event));
+	isc_event_free(ISC_EVENT_PTR(&event));
 	isc_task_detach(&tclone);
 	dns_view_detach(&view);
 
@@ -1489,7 +1488,6 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 {
 	isc_result_t result;
 	dns_view_t *view = NULL;
-	dst_key_t *dstkey = NULL;
 	dns_keytable_t *secroots = NULL;
 	dns_name_t *name = NULL;
 	char dsbuf[DNS_DS_BUFFERSIZE];
@@ -1534,9 +1532,6 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	CHECK(dns_keytable_add(secroots, false, false, name, &ds));
 
  cleanup:
-	if (dstkey != NULL) {
-		dst_key_free(&dstkey);
-	}
 	if (view != NULL) {
 		dns_view_detach(&view);
 	}

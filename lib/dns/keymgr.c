@@ -89,7 +89,7 @@ keymgr_keyrole(dst_key_t* key)
 		return ("CSK");
 	} else if (ksk) {
 		return ("KSK");
-	} else {
+	} else if (zsk) {
 		return ("ZSK");
 	}
 	return ("NOSIGN");

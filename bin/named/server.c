@@ -10065,8 +10065,7 @@ named_add_reserved_dispatch(named_server_t *server,
 	return;
 
  cleanup:
-	if (dispatch != NULL)
-		isc_mem_put(server->mctx, dispatch, sizeof(*dispatch));
+	isc_mem_put(server->mctx, dispatch, sizeof(*dispatch));
 	isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -11028,8 +11027,7 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	if (dctx != NULL)
-		dumpcontext_destroy(dctx);
+	dumpcontext_destroy(dctx);
 	return (result);
 }
 
@@ -13835,10 +13833,6 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 		dns_zone_detach(&raw);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
-	if (dz != NULL) {
-		dns_zone_detach(&dz->zone);
-		isc_mem_put(named_g_mctx, dz, sizeof(*dz));
-	}
 
 	return (result);
 }

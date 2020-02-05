@@ -254,8 +254,7 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 
  flag_fail:
 	/* get rid of what was build of the query list */
-	if (tql != NULL)
-		destroy_querylist(mctx, &tql);
+	destroy_querylist(mctx, &tql);
 	return result;
 }
 
