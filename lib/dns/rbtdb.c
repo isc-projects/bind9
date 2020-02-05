@@ -6412,8 +6412,7 @@ addclosest(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
  cleanup:
 	dns_rdataset_disassociate(&neg);
 	dns_rdataset_disassociate(&negsig);
-	if (closest != NULL)
-		free_noqname(mctx, &closest);
+	free_noqname(mctx, &closest);
 	return(result);
 }
 
