@@ -121,14 +121,16 @@ compare_hs_a(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_hs_a(ARGS_FROMSTRUCT) {
-	dns_rdata_hs_a_t *a = source;
+	dns_rdata_hs_a_t *a;
 	uint32_t n;
 
 	REQUIRE(type == dns_rdatatype_a);
 	REQUIRE(rdclass == dns_rdataclass_hs);
-	REQUIRE(a != NULL);
-	REQUIRE(a->common.rdtype == type);
-	REQUIRE(a->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_hs_a_t *)source) != NULL);
+	REQUIRE(((dns_rdata_hs_a_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_hs_a_t *)source)->common.rdclass == rdclass);
+
+	a = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -140,14 +142,16 @@ fromstruct_hs_a(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_hs_a(ARGS_TOSTRUCT) {
-	dns_rdata_hs_a_t *a = target;
+	dns_rdata_hs_a_t *a;
 	uint32_t n;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_a);
 	REQUIRE(rdata->rdclass == dns_rdataclass_hs);
 	REQUIRE(rdata->length == 4);
-	REQUIRE(a != NULL);
+	REQUIRE(((dns_rdata_hs_a_t *)target) != NULL);
+
+	a = target;
 
 	UNUSED(mctx);
 

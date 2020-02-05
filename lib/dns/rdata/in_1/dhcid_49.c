@@ -117,14 +117,16 @@ compare_in_dhcid(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_dhcid(ARGS_FROMSTRUCT) {
-	dns_rdata_in_dhcid_t *dhcid = source;
+	dns_rdata_in_dhcid_t *dhcid;
 
 	REQUIRE(type == dns_rdatatype_dhcid);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(dhcid != NULL);
-	REQUIRE(dhcid->common.rdtype == type);
-	REQUIRE(dhcid->common.rdclass == rdclass);
-	REQUIRE(dhcid->length != 0);
+	REQUIRE(((dns_rdata_in_dhcid_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_dhcid_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_dhcid_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_in_dhcid_t *)source)->length != 0);
+
+	dhcid = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -134,13 +136,15 @@ fromstruct_in_dhcid(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_in_dhcid(ARGS_TOSTRUCT) {
-	dns_rdata_in_dhcid_t *dhcid = target;
+	dns_rdata_in_dhcid_t *dhcid;
 	isc_region_t region;
 
+	REQUIRE(((dns_rdata_in_dhcid_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_dhcid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(dhcid != NULL);
 	REQUIRE(rdata->length != 0);
+
+	dhcid = target;
 
 	dhcid->common.rdclass = rdata->rdclass;
 	dhcid->common.rdtype = rdata->type;
@@ -158,11 +162,15 @@ tostruct_in_dhcid(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_dhcid(ARGS_FREESTRUCT) {
-	dns_rdata_in_dhcid_t *dhcid = source;
+	dns_rdata_in_dhcid_t *dhcid;
 
-	REQUIRE(dhcid != NULL);
-	REQUIRE(dhcid->common.rdtype == dns_rdatatype_dhcid);
-	REQUIRE(dhcid->common.rdclass == dns_rdataclass_in);
+	REQUIRE(((dns_rdata_in_dhcid_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_dhcid_t *)source)->common.rdtype ==
+		dns_rdatatype_dhcid);
+	REQUIRE(((dns_rdata_in_dhcid_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+
+	dhcid = source;
 
 	if (dhcid->mctx == NULL)
 		return;

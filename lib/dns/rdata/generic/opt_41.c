@@ -255,15 +255,18 @@ compare_opt(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_opt(ARGS_FROMSTRUCT) {
-	dns_rdata_opt_t *opt = source;
+	dns_rdata_opt_t *opt;
 	isc_region_t region;
 	uint16_t length;
 
 	REQUIRE(type == dns_rdatatype_opt);
-	REQUIRE(opt != NULL);
-	REQUIRE(opt->common.rdtype == type);
-	REQUIRE(opt->common.rdclass == rdclass);
-	REQUIRE(opt->options != NULL || opt->length == 0);
+	REQUIRE(((dns_rdata_opt_t *)source) != NULL);
+	REQUIRE(((dns_rdata_opt_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_opt_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_opt_t *)source)->options != NULL ||
+		((dns_rdata_opt_t *)source)->length == 0);
+
+	opt = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -286,11 +289,13 @@ fromstruct_opt(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_opt(ARGS_TOSTRUCT) {
-	dns_rdata_opt_t *opt = target;
+	dns_rdata_opt_t *opt;
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_opt);
-	REQUIRE(opt != NULL);
+	REQUIRE(((dns_rdata_opt_t *)target) != NULL);
+
+	opt = target;
 
 	opt->common.rdclass = rdata->rdclass;
 	opt->common.rdtype = rdata->type;
@@ -309,10 +314,13 @@ tostruct_opt(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_opt(ARGS_FREESTRUCT) {
-	dns_rdata_opt_t *opt = source;
+	dns_rdata_opt_t *opt;
 
-	REQUIRE(opt != NULL);
-	REQUIRE(opt->common.rdtype == dns_rdatatype_opt);
+	REQUIRE(((dns_rdata_opt_t *)source) != NULL);
+	REQUIRE(((dns_rdata_opt_t *)source)->common.rdtype ==
+		dns_rdatatype_opt);
+
+	opt = source;
 
 	if (opt->mctx == NULL)
 		return;

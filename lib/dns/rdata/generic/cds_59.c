@@ -88,11 +88,13 @@ fromstruct_cds(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_cds(ARGS_TOSTRUCT) {
-	dns_rdata_cds_t *cds = target;
+	dns_rdata_cds_t *cds;
 
+	REQUIRE(((dns_rdata_cds_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_cds);
-	REQUIRE(cds != NULL);
 	REQUIRE(rdata->length != 0);
+
+	cds = target;
 
 	/*
 	 * Checked by generic_tostruct_ds().
@@ -106,10 +108,13 @@ tostruct_cds(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_cds(ARGS_FREESTRUCT) {
-	dns_rdata_cds_t *cds = source;
+	dns_rdata_cds_t *cds;
 
-	REQUIRE(cds != NULL);
-	REQUIRE(cds->common.rdtype == dns_rdatatype_cds);
+	REQUIRE(((dns_rdata_cds_t *)source) != NULL);
+	REQUIRE(((dns_rdata_cds_t *)source)->common.rdtype ==
+		dns_rdatatype_cds);
+
+	cds = source;
 
 	if (cds->mctx == NULL) {
 		return;

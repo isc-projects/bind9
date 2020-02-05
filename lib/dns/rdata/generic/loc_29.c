@@ -666,13 +666,15 @@ compare_loc(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_loc(ARGS_FROMSTRUCT) {
-	dns_rdata_loc_t *loc = source;
+	dns_rdata_loc_t *loc;
 	uint8_t c;
 
 	REQUIRE(type == dns_rdatatype_loc);
-	REQUIRE(loc != NULL);
-	REQUIRE(loc->common.rdtype == type);
-	REQUIRE(loc->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_loc_t *)source) != NULL);
+	REQUIRE(((dns_rdata_loc_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_loc_t *)source)->common.rdclass == rdclass);
+
+	loc = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -710,13 +712,15 @@ fromstruct_loc(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_loc(ARGS_TOSTRUCT) {
-	dns_rdata_loc_t *loc = target;
+	dns_rdata_loc_t *loc;
 	isc_region_t r;
 	uint8_t version;
 
+	REQUIRE(((dns_rdata_loc_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_loc);
-	REQUIRE(loc != NULL);
 	REQUIRE(rdata->length != 0);
+
+	loc = target;
 
 	UNUSED(mctx);
 
@@ -748,10 +752,13 @@ tostruct_loc(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_loc(ARGS_FREESTRUCT) {
-	dns_rdata_loc_t *loc = source;
+	dns_rdata_loc_t *loc;
 
-	REQUIRE(loc != NULL);
-	REQUIRE(loc->common.rdtype == dns_rdatatype_loc);
+	REQUIRE(((dns_rdata_loc_t *)source) != NULL);
+	REQUIRE(((dns_rdata_loc_t *)source)->common.rdtype ==
+		dns_rdatatype_loc);
+
+	loc = source;
 
 	UNUSED(source);
 	UNUSED(loc);

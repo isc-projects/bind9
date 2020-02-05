@@ -191,16 +191,19 @@ compare_caa(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_caa(ARGS_FROMSTRUCT) {
-	dns_rdata_caa_t *caa = source;
+	dns_rdata_caa_t *caa;
 	isc_region_t region;
 	unsigned int i;
 
 	REQUIRE(type == dns_rdatatype_caa);
-	REQUIRE(caa != NULL);
-	REQUIRE(caa->common.rdtype == type);
-	REQUIRE(caa->common.rdclass == rdclass);
-	REQUIRE(caa->tag != NULL && caa->tag_len != 0);
-	REQUIRE(caa->value != NULL);
+	REQUIRE(((dns_rdata_caa_t *)source) != NULL);
+	REQUIRE(((dns_rdata_caa_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_caa_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_caa_t *)source)->tag != NULL);
+	REQUIRE(((dns_rdata_caa_t *)source)->tag_len != 0);
+	REQUIRE(((dns_rdata_caa_t *)source)->value != NULL);
+
+	caa = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -235,13 +238,15 @@ fromstruct_caa(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_caa(ARGS_TOSTRUCT) {
-	dns_rdata_caa_t *caa = target;
+	dns_rdata_caa_t *caa;
 	isc_region_t sr;
 
+	REQUIRE(((dns_rdata_caa_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_caa);
-	REQUIRE(caa != NULL);
 	REQUIRE(rdata->length >= 3U);
 	REQUIRE(rdata->data != NULL);
+
+	caa = target;
 
 	caa->common.rdclass = rdata->rdclass;
 	caa->common.rdtype = rdata->type;
@@ -289,10 +294,13 @@ tostruct_caa(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_caa(ARGS_FREESTRUCT) {
-	dns_rdata_caa_t *caa = (dns_rdata_caa_t *) source;
+	dns_rdata_caa_t *caa;
 
-	REQUIRE(caa != NULL);
-	REQUIRE(caa->common.rdtype == dns_rdatatype_caa);
+	REQUIRE(((dns_rdata_caa_t *)source) != NULL);
+	REQUIRE(((dns_rdata_caa_t *)source)->common.rdtype ==
+		dns_rdatatype_caa);
+
+	caa = source;
 
 	if (caa->mctx == NULL)
 		return;

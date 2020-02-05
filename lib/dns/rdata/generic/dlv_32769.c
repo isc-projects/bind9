@@ -89,10 +89,12 @@ fromstruct_dlv(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_dlv(ARGS_TOSTRUCT) {
-	dns_rdata_dlv_t *dlv = target;
+	dns_rdata_dlv_t *dlv;
 
+	REQUIRE(((dns_rdata_dlv_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
-	REQUIRE(dlv != NULL);
+
+	dlv = target;
 
 	dlv->common.rdclass = rdata->rdclass;
 	dlv->common.rdtype = rdata->type;
@@ -103,10 +105,13 @@ tostruct_dlv(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_dlv(ARGS_FREESTRUCT) {
-	dns_rdata_dlv_t *dlv = source;
+	dns_rdata_dlv_t *dlv;
 
-	REQUIRE(dlv != NULL);
-	REQUIRE(dlv->common.rdtype == dns_rdatatype_dlv);
+	REQUIRE(((dns_rdata_dlv_t *)source) != NULL);
+	REQUIRE(((dns_rdata_dlv_t *)source)->common.rdtype ==
+		dns_rdatatype_dlv);
+
+	dlv = source;
 
 	if (dlv->mctx == NULL)
 		return;

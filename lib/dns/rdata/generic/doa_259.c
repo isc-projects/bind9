@@ -188,12 +188,15 @@ compare_doa(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_doa(ARGS_FROMSTRUCT) {
-	dns_rdata_doa_t *doa = source;
+	dns_rdata_doa_t *doa;
 
 	REQUIRE(type == dns_rdatatype_doa);
-	REQUIRE(doa != NULL);
-	REQUIRE(doa->common.rdtype == dns_rdatatype_doa);
-	REQUIRE(doa->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_doa_t *)source) != NULL);
+	REQUIRE(((dns_rdata_doa_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_doa_t *)source)->common.rdtype ==
+		dns_rdatatype_doa);
+
+	doa = source;
 
 	RETERR(uint32_tobuffer(doa->enterprise, target));
 	RETERR(uint32_tobuffer(doa->type, target));
@@ -205,13 +208,15 @@ fromstruct_doa(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_doa(ARGS_TOSTRUCT) {
-	dns_rdata_doa_t *doa = target;
+	dns_rdata_doa_t *doa;
 	isc_region_t region;
 
+	REQUIRE(((dns_rdata_doa_t *)target) != NULL);
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_doa);
-	REQUIRE(doa != NULL);
 	REQUIRE(rdata->length != 0);
+
+	doa = target;
 
 	doa->common.rdclass = rdata->rdclass;
 	doa->common.rdtype = rdata->type;
@@ -287,10 +292,13 @@ cleanup:
 
 static inline void
 freestruct_doa(ARGS_FREESTRUCT) {
-	dns_rdata_doa_t *doa = source;
+	dns_rdata_doa_t *doa;
 
-	REQUIRE(doa != NULL);
-	REQUIRE(doa->common.rdtype == dns_rdatatype_doa);
+	REQUIRE(((dns_rdata_doa_t *)source) != NULL);
+	REQUIRE(((dns_rdata_doa_t *)source)->common.rdtype ==
+		dns_rdatatype_doa);
+
+	doa = source;
 
 	if (doa->mctx == NULL) {
 		return;

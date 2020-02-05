@@ -306,11 +306,13 @@ compare_key(ARGS_COMPARE) {
 
 static inline isc_result_t
 generic_fromstruct_key(ARGS_FROMSTRUCT) {
-	dns_rdata_key_t *key = source;
+	dns_rdata_key_t *key;
 
-	REQUIRE(key != NULL);
-	REQUIRE(key->common.rdtype == type);
-	REQUIRE(key->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_key_t *)source) != NULL);
+	REQUIRE(((dns_rdata_key_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_key_t *)source)->common.rdclass == rdclass);
+
+	key = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -334,16 +336,16 @@ generic_fromstruct_key(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 generic_tostruct_key(ARGS_TOSTRUCT) {
-	dns_rdata_key_t *key = target;
+	dns_rdata_key_t *key;
 	isc_region_t sr;
 
-	REQUIRE(key != NULL);
 	REQUIRE(rdata->length != 0);
+	REQUIRE(((dns_rdata_key_t *)target) != NULL);
+	REQUIRE(((dns_rdata_key_t *)target)->common.rdclass == rdata->rdclass);
+	REQUIRE(((dns_rdata_key_t *)target)->common.rdtype == rdata->type);
+	REQUIRE(!ISC_LINK_LINKED(&((dns_rdata_key_t *)target)->common, link));
 
-	REQUIRE(key != NULL);
-	REQUIRE(key->common.rdclass == rdata->rdclass);
-	REQUIRE(key->common.rdtype == rdata->type);
-	REQUIRE(!ISC_LINK_LINKED(&key->common, link));
+	key = target;
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -377,9 +379,11 @@ generic_tostruct_key(ARGS_TOSTRUCT) {
 
 static inline void
 generic_freestruct_key(ARGS_FREESTRUCT) {
-	dns_rdata_key_t *key = (dns_rdata_key_t *) source;
+	dns_rdata_key_t *key;
 
-	REQUIRE(key != NULL);
+	REQUIRE(((dns_rdata_key_t *)source) != NULL);
+
+	key = (dns_rdata_key_t *) source;
 
 	if (key->mctx == NULL)
 		return;
@@ -399,11 +403,13 @@ fromstruct_key(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_key(ARGS_TOSTRUCT) {
-	dns_rdata_key_t *key = target;
+	dns_rdata_key_t *key;
 
-	REQUIRE(key != NULL);
+	REQUIRE(((dns_rdata_key_t *)target) != NULL);
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_key);
+
+	key = target;
 
 	key->common.rdclass = rdata->rdclass;
 	key->common.rdtype = rdata->type;
@@ -414,10 +420,9 @@ tostruct_key(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_key(ARGS_FREESTRUCT) {
-	dns_rdata_key_t *key = (dns_rdata_key_t *) source;
-
-	REQUIRE(key != NULL);
-	REQUIRE(key->common.rdtype == dns_rdatatype_key);
+	REQUIRE(((dns_rdata_key_t *)source) != NULL);
+	REQUIRE(((dns_rdata_key_t *)source)->common.rdtype ==
+		dns_rdatatype_key);
 
 	generic_freestruct_key(source);
 }

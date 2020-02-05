@@ -87,11 +87,13 @@ fromstruct_dnskey(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_dnskey(ARGS_TOSTRUCT) {
-	dns_rdata_dnskey_t *dnskey = target;
+	dns_rdata_dnskey_t *dnskey;
 
-	REQUIRE(dnskey != NULL);
+	REQUIRE(((dns_rdata_dnskey_t *)target) != NULL);
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_dnskey);
+
+	dnskey = target;
 
 	dnskey->common.rdclass = rdata->rdclass;
 	dnskey->common.rdtype = rdata->type;
@@ -102,10 +104,9 @@ tostruct_dnskey(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_dnskey(ARGS_FREESTRUCT) {
-	dns_rdata_dnskey_t *dnskey = (dns_rdata_dnskey_t *) source;
-
-	REQUIRE(dnskey != NULL);
-	REQUIRE(dnskey->common.rdtype == dns_rdatatype_dnskey);
+	REQUIRE(((dns_rdata_dnskey_t *)source) != NULL);
+	REQUIRE(((dns_rdata_dnskey_t *)source)->common.rdtype ==
+		dns_rdatatype_dnskey);
 
 	generic_freestruct_key(source);
 }

@@ -398,16 +398,21 @@ compare_naptr(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_naptr(ARGS_FROMSTRUCT) {
-	dns_rdata_naptr_t *naptr = source;
+	dns_rdata_naptr_t *naptr;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_naptr);
-	REQUIRE(naptr != NULL);
-	REQUIRE(naptr->common.rdtype == type);
-	REQUIRE(naptr->common.rdclass == rdclass);
-	REQUIRE(naptr->flags != NULL || naptr->flags_len == 0);
-	REQUIRE(naptr->service != NULL || naptr->service_len == 0);
-	REQUIRE(naptr->regexp != NULL || naptr->regexp_len == 0);
+	REQUIRE(((dns_rdata_naptr_t *)source) != NULL);
+	REQUIRE(((dns_rdata_naptr_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_naptr_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_naptr_t *)source)->flags != NULL ||
+		((dns_rdata_naptr_t *)source)->flags_len == 0);
+	REQUIRE(((dns_rdata_naptr_t *)source)->service != NULL ||
+		((dns_rdata_naptr_t *)source)->service_len == 0);
+	REQUIRE(((dns_rdata_naptr_t *)source)->regexp != NULL ||
+		((dns_rdata_naptr_t *)source)->regexp_len == 0);
+
+	naptr = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -426,14 +431,16 @@ fromstruct_naptr(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_naptr(ARGS_TOSTRUCT) {
-	dns_rdata_naptr_t *naptr = target;
+	dns_rdata_naptr_t *naptr;
 	isc_region_t r;
 	isc_result_t result;
 	dns_name_t name;
 
+	REQUIRE(((dns_rdata_naptr_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_naptr);
-	REQUIRE(naptr != NULL);
 	REQUIRE(rdata->length != 0);
+
+	naptr = target;
 
 	naptr->common.rdclass = rdata->rdclass;
 	naptr->common.rdtype = rdata->type;
@@ -496,10 +503,13 @@ tostruct_naptr(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_naptr(ARGS_FREESTRUCT) {
-	dns_rdata_naptr_t *naptr = source;
+	dns_rdata_naptr_t *naptr;
 
-	REQUIRE(naptr != NULL);
-	REQUIRE(naptr->common.rdtype == dns_rdatatype_naptr);
+	REQUIRE(((dns_rdata_naptr_t *)source) != NULL);
+	REQUIRE(((dns_rdata_naptr_t *)source)->common.rdtype ==
+		dns_rdatatype_naptr);
+
+	naptr = source;
 
 	if (naptr->mctx == NULL)
 		return;

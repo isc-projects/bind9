@@ -143,12 +143,14 @@ compare_sink(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_sink(ARGS_FROMSTRUCT) {
-	dns_rdata_sink_t *sink = source;
+	dns_rdata_sink_t *sink;
 
 	REQUIRE(type == dns_rdatatype_sink);
-	REQUIRE(sink != NULL);
-	REQUIRE(sink->common.rdtype == type);
-	REQUIRE(sink->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_sink_t *)source) != NULL);
+	REQUIRE(((dns_rdata_sink_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_sink_t *)source)->common.rdclass == rdclass);
+
+	sink = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -168,12 +170,14 @@ fromstruct_sink(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_sink(ARGS_TOSTRUCT) {
-	dns_rdata_sink_t *sink = target;
+	dns_rdata_sink_t *sink;
 	isc_region_t sr;
 
+	REQUIRE(((dns_rdata_sink_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_sink);
-	REQUIRE(sink != NULL);
 	REQUIRE(rdata->length >= 3);
+
+	sink = target;
 
 	sink->common.rdclass = rdata->rdclass;
 	sink->common.rdtype = rdata->type;
@@ -211,10 +215,13 @@ tostruct_sink(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_sink(ARGS_FREESTRUCT) {
-	dns_rdata_sink_t *sink = (dns_rdata_sink_t *) source;
+	dns_rdata_sink_t *sink;
 
-	REQUIRE(sink != NULL);
-	REQUIRE(sink->common.rdtype == dns_rdatatype_sink);
+	REQUIRE(((dns_rdata_sink_t *)source) != NULL);
+	REQUIRE(((dns_rdata_sink_t *)source)->common.rdtype ==
+		dns_rdatatype_sink);
+
+	sink = (dns_rdata_sink_t *) source;
 
 	if (sink->mctx == NULL)
 		return;

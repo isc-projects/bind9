@@ -87,10 +87,12 @@ fromstruct_avc(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_avc(ARGS_TOSTRUCT) {
-	dns_rdata_avc_t *avc = target;
+	dns_rdata_avc_t *avc;
 
+	REQUIRE(((dns_rdata_avc_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_avc);
-	REQUIRE(avc != NULL);
+
+	avc = target;
 
 	avc->common.rdclass = rdata->rdclass;
 	avc->common.rdtype = rdata->type;
@@ -101,10 +103,8 @@ tostruct_avc(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_avc(ARGS_FREESTRUCT) {
-	dns_rdata_avc_t *avc = source;
-
-	REQUIRE(avc != NULL);
-	REQUIRE(avc->common.rdtype == dns_rdatatype_avc);
+	REQUIRE(((dns_rdata_avc_t *)source) != NULL);
+	REQUIRE(((dns_rdata_avc_t *)source)->common.rdtype == dns_rdatatype_avc);
 
 	generic_freestruct_txt(source);
 }

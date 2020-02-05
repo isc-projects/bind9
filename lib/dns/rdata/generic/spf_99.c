@@ -87,11 +87,13 @@ fromstruct_spf(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_spf(ARGS_TOSTRUCT) {
-	dns_rdata_spf_t *spf = target;
+	dns_rdata_spf_t *spf;
 
-	REQUIRE(spf != NULL);
+	REQUIRE(((dns_rdata_spf_t *)target) != NULL);
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_spf);
+
+	spf = target;
 
 	spf->common.rdclass = rdata->rdclass;
 	spf->common.rdtype = rdata->type;
@@ -102,10 +104,9 @@ tostruct_spf(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_spf(ARGS_FREESTRUCT) {
-	dns_rdata_spf_t *spf = source;
-
-	REQUIRE(spf != NULL);
-	REQUIRE(spf->common.rdtype == dns_rdatatype_spf);
+	REQUIRE(((dns_rdata_spf_t *)source) != NULL);
+	REQUIRE(((dns_rdata_spf_t *)source)->common.rdtype ==
+		dns_rdatatype_spf);
 
 	generic_freestruct_txt(source);
 }

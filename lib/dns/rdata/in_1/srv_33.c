@@ -226,14 +226,16 @@ compare_in_srv(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_srv(ARGS_FROMSTRUCT) {
-	dns_rdata_in_srv_t *srv = source;
+	dns_rdata_in_srv_t *srv;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_srv);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(srv != NULL);
-	REQUIRE(srv->common.rdtype == type);
-	REQUIRE(srv->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_in_srv_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_srv_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_srv_t *)source)->common.rdclass == rdclass);
+
+	srv = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -248,13 +250,15 @@ fromstruct_in_srv(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_in_srv(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_in_srv_t *srv = target;
+	dns_rdata_in_srv_t *srv;
 	dns_name_t name;
 
+	REQUIRE(((dns_rdata_in_srv_t *)target) != NULL);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->type == dns_rdatatype_srv);
-	REQUIRE(srv != NULL);
 	REQUIRE(rdata->length != 0);
+
+	srv = target;
 
 	srv->common.rdclass = rdata->rdclass;
 	srv->common.rdtype = rdata->type;
@@ -277,11 +281,15 @@ tostruct_in_srv(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_srv(ARGS_FREESTRUCT) {
-	dns_rdata_in_srv_t *srv = source;
+	dns_rdata_in_srv_t *srv;
 
-	REQUIRE(srv != NULL);
-	REQUIRE(srv->common.rdclass == dns_rdataclass_in);
-	REQUIRE(srv->common.rdtype == dns_rdatatype_srv);
+	REQUIRE(((dns_rdata_in_srv_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_srv_t *)source)->common.rdtype ==
+		dns_rdatatype_srv);
+	REQUIRE(((dns_rdata_in_srv_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+
+	srv = source;
 
 	if (srv->mctx == NULL)
 		return;

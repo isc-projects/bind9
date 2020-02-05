@@ -104,12 +104,14 @@ compare_gpos(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_gpos(ARGS_FROMSTRUCT) {
-	dns_rdata_gpos_t *gpos = source;
+	dns_rdata_gpos_t *gpos;
 
 	REQUIRE(type == dns_rdatatype_gpos);
-	REQUIRE(gpos != NULL);
-	REQUIRE(gpos->common.rdtype == type);
-	REQUIRE(gpos->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_gpos_t *)source) != NULL);
+	REQUIRE(((dns_rdata_gpos_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_gpos_t *)source)->common.rdclass == rdclass);
+
+	gpos = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -124,12 +126,14 @@ fromstruct_gpos(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_gpos(ARGS_TOSTRUCT) {
-	dns_rdata_gpos_t *gpos = target;
+	dns_rdata_gpos_t *gpos;
 	isc_region_t region;
 
+	REQUIRE(((dns_rdata_gpos_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
-	REQUIRE(gpos != NULL);
 	REQUIRE(rdata->length != 0);
+
+	gpos = target;
 
 	gpos->common.rdclass = rdata->rdclass;
 	gpos->common.rdtype = rdata->type;
@@ -175,10 +179,13 @@ tostruct_gpos(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_gpos(ARGS_FREESTRUCT) {
-	dns_rdata_gpos_t *gpos = source;
+	dns_rdata_gpos_t *gpos;
 
-	REQUIRE(gpos != NULL);
-	REQUIRE(gpos->common.rdtype == dns_rdatatype_gpos);
+	REQUIRE(((dns_rdata_gpos_t *)source) != NULL);
+	REQUIRE(((dns_rdata_gpos_t *)source)->common.rdtype ==
+		dns_rdatatype_gpos);
+
+	gpos = source;
 
 	if (gpos->mctx == NULL)
 		return;

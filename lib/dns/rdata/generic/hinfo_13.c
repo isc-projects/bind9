@@ -94,12 +94,14 @@ compare_hinfo(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_hinfo(ARGS_FROMSTRUCT) {
-	dns_rdata_hinfo_t *hinfo = source;
+	dns_rdata_hinfo_t *hinfo;
 
 	REQUIRE(type == dns_rdatatype_hinfo);
-	REQUIRE(hinfo != NULL);
-	REQUIRE(hinfo->common.rdtype == type);
-	REQUIRE(hinfo->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_hinfo_t *)source) != NULL);
+	REQUIRE(((dns_rdata_hinfo_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_hinfo_t *)source)->common.rdclass == rdclass);
+
+	hinfo = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -112,12 +114,14 @@ fromstruct_hinfo(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_hinfo(ARGS_TOSTRUCT) {
-	dns_rdata_hinfo_t *hinfo = target;
+	dns_rdata_hinfo_t *hinfo;
 	isc_region_t region;
 
+	REQUIRE(((dns_rdata_hinfo_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_hinfo);
-	REQUIRE(hinfo != NULL);
 	REQUIRE(rdata->length != 0);
+
+	hinfo = target;
 
 	hinfo->common.rdclass = rdata->rdclass;
 	hinfo->common.rdtype = rdata->type;
@@ -148,9 +152,11 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_hinfo(ARGS_FREESTRUCT) {
-	dns_rdata_hinfo_t *hinfo = source;
+	dns_rdata_hinfo_t *hinfo;
 
-	REQUIRE(hinfo != NULL);
+	REQUIRE(((dns_rdata_hinfo_t *)source) != NULL);
+
+	hinfo = source;
 
 	if (hinfo->mctx == NULL)
 		return;

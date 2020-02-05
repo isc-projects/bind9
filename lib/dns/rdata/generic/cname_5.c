@@ -119,13 +119,15 @@ compare_cname(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_cname(ARGS_FROMSTRUCT) {
-	dns_rdata_cname_t *cname = source;
+	dns_rdata_cname_t *cname;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_cname);
-	REQUIRE(cname != NULL);
-	REQUIRE(cname->common.rdtype == type);
-	REQUIRE(cname->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_cname_t *)source) != NULL);
+	REQUIRE(((dns_rdata_cname_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_cname_t *)source)->common.rdclass == rdclass);
+
+	cname = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -137,12 +139,14 @@ fromstruct_cname(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_cname(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_cname_t *cname = target;
+	dns_rdata_cname_t *cname;
 	dns_name_t name;
 
+	REQUIRE(((dns_rdata_cname_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_cname);
-	REQUIRE(cname != NULL);
 	REQUIRE(rdata->length != 0);
+
+	cname = target;
 
 	cname->common.rdclass = rdata->rdclass;
 	cname->common.rdtype = rdata->type;
@@ -159,9 +163,11 @@ tostruct_cname(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_cname(ARGS_FREESTRUCT) {
-	dns_rdata_cname_t *cname = source;
+	dns_rdata_cname_t *cname;
 
-	REQUIRE(cname != NULL);
+	REQUIRE(((dns_rdata_cname_t *)source) != NULL);
+
+	cname = source;
 
 	if (cname->mctx == NULL)
 		return;

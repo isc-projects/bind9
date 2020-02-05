@@ -264,14 +264,16 @@ compare_amtrelay(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_amtrelay(ARGS_FROMSTRUCT) {
-	dns_rdata_amtrelay_t *amtrelay = source;
+	dns_rdata_amtrelay_t *amtrelay;
 	isc_region_t region;
 	uint32_t n;
 
 	REQUIRE(type == dns_rdatatype_amtrelay);
-	REQUIRE(amtrelay != NULL);
-	REQUIRE(amtrelay->common.rdtype == type);
-	REQUIRE(amtrelay->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_amtrelay_t *)source) != NULL);
+	REQUIRE(((dns_rdata_amtrelay_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_amtrelay_t *)source)->common.rdclass == rdclass);
+
+	amtrelay = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -305,13 +307,15 @@ fromstruct_amtrelay(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_amtrelay(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_amtrelay_t *amtrelay = target;
+	dns_rdata_amtrelay_t *amtrelay;
 	dns_name_t name;
 	uint32_t n;
 
+	REQUIRE(((dns_rdata_amtrelay_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
-	REQUIRE(amtrelay != NULL);
 	REQUIRE(rdata->length >= 2);
+
+	amtrelay = target;
 
 	amtrelay->common.rdclass = rdata->rdclass;
 	amtrelay->common.rdtype = rdata->type;
@@ -368,10 +372,13 @@ tostruct_amtrelay(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_amtrelay(ARGS_FREESTRUCT) {
-	dns_rdata_amtrelay_t *amtrelay = source;
+	dns_rdata_amtrelay_t *amtrelay;
 
-	REQUIRE(amtrelay != NULL);
-	REQUIRE(amtrelay->common.rdtype == dns_rdatatype_amtrelay);
+	REQUIRE(((dns_rdata_amtrelay_t *)source) != NULL);
+	REQUIRE(((dns_rdata_amtrelay_t *)source)->common.rdtype ==
+		dns_rdatatype_amtrelay);
+
+	amtrelay = source;
 
 	if (amtrelay->mctx == NULL)
 		return;

@@ -98,14 +98,17 @@ compare_x25(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_x25(ARGS_FROMSTRUCT) {
-	dns_rdata_x25_t *x25 = source;
+	dns_rdata_x25_t *x25;
 	uint8_t i;
 
 	REQUIRE(type == dns_rdatatype_x25);
-	REQUIRE(x25 != NULL);
-	REQUIRE(x25->common.rdtype == type);
-	REQUIRE(x25->common.rdclass == rdclass);
-	REQUIRE(x25->x25 != NULL && x25->x25_len != 0);
+	REQUIRE(((dns_rdata_x25_t *)source) != NULL);
+	REQUIRE(((dns_rdata_x25_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_x25_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_x25_t *)source)->x25 != NULL);
+	REQUIRE(((dns_rdata_x25_t *)source)->x25_len != 0);
+
+	x25 = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -123,12 +126,14 @@ fromstruct_x25(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_x25(ARGS_TOSTRUCT) {
-	dns_rdata_x25_t *x25 = target;
+	dns_rdata_x25_t *x25;
 	isc_region_t r;
 
+	REQUIRE(((dns_rdata_x25_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_x25);
-	REQUIRE(x25 != NULL);
 	REQUIRE(rdata->length != 0);
+
+	x25 = target;
 
 	x25->common.rdclass = rdata->rdclass;
 	x25->common.rdtype = rdata->type;
@@ -147,10 +152,13 @@ tostruct_x25(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_x25(ARGS_FREESTRUCT) {
-	dns_rdata_x25_t *x25 = source;
+	dns_rdata_x25_t *x25;
 
-	REQUIRE(x25 != NULL);
-	REQUIRE(x25->common.rdtype == dns_rdatatype_x25);
+	REQUIRE(((dns_rdata_x25_t *)source) != NULL);
+	REQUIRE(((dns_rdata_x25_t *)source)->common.rdtype ==
+		dns_rdatatype_x25);
+
+	x25 = source;
 
 	if (x25->mctx == NULL)
 		return;

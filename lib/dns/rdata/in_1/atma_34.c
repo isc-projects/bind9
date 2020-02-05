@@ -197,14 +197,17 @@ compare_in_atma(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_atma(ARGS_FROMSTRUCT) {
-	dns_rdata_in_atma_t *atma = source;
+	dns_rdata_in_atma_t *atma;
 
 	REQUIRE(type == dns_rdatatype_atma);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(atma != NULL);
-	REQUIRE(atma->common.rdtype == type);
-	REQUIRE(atma->common.rdclass == rdclass);
-	REQUIRE(atma->atma != NULL || atma->atma_len == 0);
+	REQUIRE(((dns_rdata_in_atma_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_atma_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_atma_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_in_atma_t *)source)->atma != NULL ||
+		((dns_rdata_in_atma_t *)source)->atma_len == 0);
+
+	atma = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -215,13 +218,15 @@ fromstruct_in_atma(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_in_atma(ARGS_TOSTRUCT) {
-	dns_rdata_in_atma_t *atma = target;
+	dns_rdata_in_atma_t *atma;
 	isc_region_t r;
 
+	REQUIRE(((dns_rdata_in_atma_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_atma);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(atma != NULL);
 	REQUIRE(rdata->length != 0);
+
+	atma = target;
 
 	atma->common.rdclass = rdata->rdclass;
 	atma->common.rdtype = rdata->type;
@@ -242,11 +247,15 @@ tostruct_in_atma(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_atma(ARGS_FREESTRUCT) {
-	dns_rdata_in_atma_t *atma = source;
+	dns_rdata_in_atma_t *atma;
 
-	REQUIRE(atma != NULL);
-	REQUIRE(atma->common.rdclass == dns_rdataclass_in);
-	REQUIRE(atma->common.rdtype == dns_rdatatype_atma);
+	REQUIRE(((dns_rdata_in_atma_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_atma_t *)source)->common.rdtype ==
+		dns_rdatatype_atma);
+	REQUIRE(((dns_rdata_in_atma_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+
+	atma = source;
 
 	if (atma->mctx == NULL) {
 		return;

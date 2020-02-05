@@ -194,11 +194,13 @@ compare_zonemd(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_zonemd(ARGS_FROMSTRUCT) {
-	dns_rdata_zonemd_t *zonemd = source;
+	dns_rdata_zonemd_t *zonemd;
 
-	REQUIRE(zonemd != NULL);
-	REQUIRE(zonemd->common.rdtype == type);
-	REQUIRE(zonemd->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_zonemd_t *)source) != NULL);
+	REQUIRE(((dns_rdata_zonemd_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_zonemd_t *)source)->common.rdclass == rdclass);
+
+	zonemd = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -218,12 +220,14 @@ fromstruct_zonemd(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_zonemd(ARGS_TOSTRUCT) {
-	dns_rdata_zonemd_t *zonemd = target;
+	dns_rdata_zonemd_t *zonemd;
 	isc_region_t region;
 
+	REQUIRE(((dns_rdata_zonemd_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_zonemd);
-	REQUIRE(zonemd != NULL);
 	REQUIRE(rdata->length != 0);
+
+	zonemd = target;
 
 	zonemd->common.rdclass = rdata->rdclass;
 	zonemd->common.rdtype = rdata->type;
@@ -250,10 +254,13 @@ tostruct_zonemd(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_zonemd(ARGS_FREESTRUCT) {
-	dns_rdata_zonemd_t *zonemd = source;
+	dns_rdata_zonemd_t *zonemd;
 
-	REQUIRE(zonemd != NULL);
-	REQUIRE(zonemd->common.rdtype == dns_rdatatype_zonemd);
+	REQUIRE(((dns_rdata_zonemd_t *)source) != NULL);
+	REQUIRE(((dns_rdata_zonemd_t *)source)->common.rdtype ==
+		dns_rdatatype_zonemd);
+
+	zonemd = source;
 
 	if (zonemd->mctx == NULL) {
 		return;

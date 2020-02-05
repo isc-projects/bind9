@@ -119,12 +119,14 @@ compare_l64(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_l64(ARGS_FROMSTRUCT) {
-	dns_rdata_l64_t *l64 = source;
+	dns_rdata_l64_t *l64;
 
 	REQUIRE(type == dns_rdatatype_l64);
-	REQUIRE(l64 != NULL);
-	REQUIRE(l64->common.rdtype == type);
-	REQUIRE(l64->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_l64_t *)source) != NULL);
+	REQUIRE(((dns_rdata_l64_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_l64_t *)source)->common.rdclass == rdclass);
+
+	l64 = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -136,11 +138,13 @@ fromstruct_l64(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_l64(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_l64_t *l64 = target;
+	dns_rdata_l64_t *l64;
 
+	REQUIRE(((dns_rdata_l64_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_l64);
-	REQUIRE(l64 != NULL);
 	REQUIRE(rdata->length == 10);
+
+	l64 = target;
 
 	UNUSED(mctx);
 
@@ -156,10 +160,9 @@ tostruct_l64(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_l64(ARGS_FREESTRUCT) {
-	dns_rdata_l64_t *l64 = source;
-
-	REQUIRE(l64 != NULL);
-	REQUIRE(l64->common.rdtype == dns_rdatatype_l64);
+	REQUIRE(((dns_rdata_l64_t *)source) != NULL);
+	REQUIRE(((dns_rdata_l64_t *)source)->common.rdtype ==
+		dns_rdatatype_l64);
 
 	return;
 }

@@ -87,10 +87,12 @@ fromstruct_ninfo(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_ninfo(ARGS_TOSTRUCT) {
-	dns_rdata_ninfo_t *ninfo = target;
+	dns_rdata_ninfo_t *ninfo;
 
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
-	REQUIRE(ninfo != NULL);
+	REQUIRE(((dns_rdata_ninfo_t *)target) != NULL);
+
+	ninfo = target;
 
 	ninfo->common.rdclass = rdata->rdclass;
 	ninfo->common.rdtype = rdata->type;
@@ -101,10 +103,9 @@ tostruct_ninfo(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_ninfo(ARGS_FREESTRUCT) {
-	dns_rdata_ninfo_t *ninfo = source;
-
-	REQUIRE(ninfo != NULL);
-	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
+	REQUIRE(((dns_rdata_ninfo_t *)source) != NULL);
+	REQUIRE(((dns_rdata_ninfo_t *)source)->common.rdtype ==
+		dns_rdatatype_ninfo);
 
 	generic_freestruct_txt(source);
 }

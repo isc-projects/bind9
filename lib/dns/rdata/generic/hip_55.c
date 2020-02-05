@@ -249,18 +249,26 @@ compare_hip(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_hip(ARGS_FROMSTRUCT) {
-	dns_rdata_hip_t *hip = source;
+	dns_rdata_hip_t *hip;
 	dns_rdata_hip_t myhip;
 	isc_result_t result;
 
 	REQUIRE(type == dns_rdatatype_hip);
-	REQUIRE(hip != NULL);
-	REQUIRE(hip->common.rdtype == type);
-	REQUIRE(hip->common.rdclass == rdclass);
-	REQUIRE(hip->hit_len > 0 && hip->hit != NULL);
-	REQUIRE(hip->key_len > 0 && hip->key != NULL);
-	REQUIRE((hip->servers == NULL && hip->servers_len == 0) ||
-		 (hip->servers != NULL && hip->servers_len != 0));
+	REQUIRE(((dns_rdata_hip_t *)source) != NULL);
+	REQUIRE(((dns_rdata_hip_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_hip_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_hip_t *)source)->hit_len > 0);
+	REQUIRE(((dns_rdata_hip_t *)source)->hit != NULL);
+	REQUIRE(((dns_rdata_hip_t *)source)->key_len > 0);
+	REQUIRE(((dns_rdata_hip_t *)source)->key != NULL);
+	REQUIRE(((dns_rdata_hip_t *)source)->servers == NULL);
+	REQUIRE(((dns_rdata_hip_t *)source)->servers_len == 0);
+	REQUIRE((((dns_rdata_hip_t *)source)->servers == NULL &&
+		 ((dns_rdata_hip_t *)source)->servers_len == 0) ||
+		(((dns_rdata_hip_t *)source)->servers != NULL &&
+		 ((dns_rdata_hip_t *)source)->servers_len != 0));
+
+	hip = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -283,11 +291,13 @@ fromstruct_hip(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_hip(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_hip_t *hip = target;
+	dns_rdata_hip_t *hip;
 
+	REQUIRE(((dns_rdata_hip_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_hip);
-	REQUIRE(hip != NULL);
 	REQUIRE(rdata->length != 0);
+
+	hip = target;
 
 	hip->common.rdclass = rdata->rdclass;
 	hip->common.rdtype = rdata->type;
@@ -342,9 +352,11 @@ tostruct_hip(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_hip(ARGS_FREESTRUCT) {
-	dns_rdata_hip_t *hip = source;
+	dns_rdata_hip_t *hip;
 
-	REQUIRE(hip != NULL);
+	REQUIRE(((dns_rdata_hip_t *)source) != NULL);
+
+	hip = source;
 
 	if (hip->mctx == NULL)
 		return;

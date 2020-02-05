@@ -243,15 +243,18 @@ compare_in_apl(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_apl(ARGS_FROMSTRUCT) {
-	dns_rdata_in_apl_t *apl = source;
+	dns_rdata_in_apl_t *apl;
 	isc_buffer_t b;
 
 	REQUIRE(type == dns_rdatatype_apl);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(apl != NULL);
-	REQUIRE(apl->common.rdtype == type);
-	REQUIRE(apl->common.rdclass == rdclass);
-	REQUIRE(apl->apl != NULL || apl->apl_len == 0);
+	REQUIRE(((dns_rdata_in_apl_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_apl_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_apl_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_in_apl_t *)source)->apl != NULL ||
+		((dns_rdata_in_apl_t *)source)->apl_len == 0);
+
+	apl = source;
 
 	isc_buffer_init(&b, apl->apl, apl->apl_len);
 	isc_buffer_add(&b, apl->apl_len);
@@ -261,12 +264,14 @@ fromstruct_in_apl(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_in_apl(ARGS_TOSTRUCT) {
-	dns_rdata_in_apl_t *apl = target;
+	dns_rdata_in_apl_t *apl;
 	isc_region_t r;
 
-	REQUIRE(apl != NULL);
+	REQUIRE(((dns_rdata_in_apl_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_apl);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
+
+	apl = target;
 
 	apl->common.rdclass = rdata->rdclass;
 	apl->common.rdtype = rdata->type;
@@ -285,11 +290,15 @@ tostruct_in_apl(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_apl(ARGS_FREESTRUCT) {
-	dns_rdata_in_apl_t *apl = source;
+	dns_rdata_in_apl_t *apl;
 
-	REQUIRE(apl != NULL);
-	REQUIRE(apl->common.rdtype == dns_rdatatype_apl);
-	REQUIRE(apl->common.rdclass == dns_rdataclass_in);
+	REQUIRE(((dns_rdata_in_apl_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_apl_t *)source)->common.rdtype ==
+		dns_rdatatype_apl);
+	REQUIRE(((dns_rdata_in_apl_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+
+	apl = source;
 
 	if (apl->mctx == NULL)
 		return;

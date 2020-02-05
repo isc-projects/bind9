@@ -340,12 +340,14 @@ compare_tkey(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_tkey(ARGS_FROMSTRUCT) {
-	dns_rdata_tkey_t *tkey = source;
+	dns_rdata_tkey_t *tkey;
 
 	REQUIRE(type == dns_rdatatype_tkey);
-	REQUIRE(tkey != NULL);
-	REQUIRE(tkey->common.rdtype == type);
-	REQUIRE(tkey->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_tkey_t *)source) != NULL);
+	REQUIRE(((dns_rdata_tkey_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_tkey_t *)source)->common.rdclass == rdclass);
+
+	tkey = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -398,13 +400,15 @@ fromstruct_tkey(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_tkey(ARGS_TOSTRUCT) {
-	dns_rdata_tkey_t *tkey = target;
+	dns_rdata_tkey_t *tkey;
 	dns_name_t alg;
 	isc_region_t sr;
 
+	REQUIRE(((dns_rdata_tkey_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_tkey);
-	REQUIRE(tkey != NULL);
 	REQUIRE(rdata->length != 0);
+
+	tkey = target;
 
 	tkey->common.rdclass = rdata->rdclass;
 	tkey->common.rdtype = rdata->type;
@@ -487,9 +491,11 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_tkey(ARGS_FREESTRUCT) {
-	dns_rdata_tkey_t *tkey = (dns_rdata_tkey_t *) source;
+	dns_rdata_tkey_t *tkey;
 
-	REQUIRE(tkey != NULL);
+	REQUIRE(((dns_rdata_tkey_t *)source) != NULL);
+
+	tkey = (dns_rdata_tkey_t *) source;
 
 	if (tkey->mctx == NULL)
 		return;

@@ -245,15 +245,18 @@ compare_nsec3(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_nsec3(ARGS_FROMSTRUCT) {
-	dns_rdata_nsec3_t *nsec3 = source;
+	dns_rdata_nsec3_t *nsec3;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_nsec3);
-	REQUIRE(nsec3 != NULL);
-	REQUIRE(nsec3->common.rdtype == type);
-	REQUIRE(nsec3->common.rdclass == rdclass);
-	REQUIRE(nsec3->typebits != NULL || nsec3->len == 0);
-	REQUIRE(nsec3->hash == dns_hash_sha1);
+	REQUIRE(((dns_rdata_nsec3_t *)source) != NULL);
+	REQUIRE(((dns_rdata_nsec3_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_nsec3_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_nsec3_t *)source)->typebits != NULL ||
+		((dns_rdata_nsec3_t *)source)->len == 0);
+	REQUIRE(((dns_rdata_nsec3_t *)source)->hash == dns_hash_sha1);
+
+	nsec3 = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -275,11 +278,13 @@ fromstruct_nsec3(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_nsec3(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_nsec3_t *nsec3 = target;
+	dns_rdata_nsec3_t *nsec3;
 
+	REQUIRE(((dns_rdata_nsec3_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_nsec3);
-	REQUIRE(nsec3 != NULL);
 	REQUIRE(rdata->length != 0);
+
+	nsec3 = target;
 
 	nsec3->common.rdclass = rdata->rdclass;
 	nsec3->common.rdtype = rdata->type;
@@ -320,10 +325,13 @@ tostruct_nsec3(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_nsec3(ARGS_FREESTRUCT) {
-	dns_rdata_nsec3_t *nsec3 = source;
+	dns_rdata_nsec3_t *nsec3;
 
-	REQUIRE(nsec3 != NULL);
-	REQUIRE(nsec3->common.rdtype == dns_rdatatype_nsec3);
+	REQUIRE(((dns_rdata_nsec3_t *)source) != NULL);
+	REQUIRE(((dns_rdata_nsec3_t *)source)->common.rdtype ==
+		dns_rdatatype_nsec3);
+
+	nsec3 = source;
 
 	if (nsec3->mctx == NULL)
 		return;

@@ -108,14 +108,17 @@ compare_in_eid(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_eid(ARGS_FROMSTRUCT) {
-	dns_rdata_in_eid_t *eid = source;
+	dns_rdata_in_eid_t *eid;
 
 	REQUIRE(type == dns_rdatatype_eid);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(eid != NULL);
-	REQUIRE(eid->common.rdtype == type);
-	REQUIRE(eid->common.rdclass == rdclass);
-	REQUIRE(eid->eid != NULL || eid->eid_len == 0);
+	REQUIRE(((dns_rdata_in_eid_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_eid_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_eid_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_in_eid_t *)source)->eid != NULL ||
+		((dns_rdata_in_eid_t *)source)->eid_len == 0);
+
+	eid = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -125,13 +128,15 @@ fromstruct_in_eid(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_in_eid(ARGS_TOSTRUCT) {
-	dns_rdata_in_eid_t *eid = target;
+	dns_rdata_in_eid_t *eid;
 	isc_region_t r;
 
+	REQUIRE(((dns_rdata_in_eid_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_eid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(eid != NULL);
 	REQUIRE(rdata->length != 0);
+
+	eid = target;
 
 	eid->common.rdclass = rdata->rdclass;
 	eid->common.rdtype = rdata->type;
@@ -150,11 +155,15 @@ tostruct_in_eid(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_eid(ARGS_FREESTRUCT) {
-	dns_rdata_in_eid_t *eid = source;
+	dns_rdata_in_eid_t *eid;
 
-	REQUIRE(eid != NULL);
-	REQUIRE(eid->common.rdclass == dns_rdataclass_in);
-	REQUIRE(eid->common.rdtype == dns_rdatatype_eid);
+	REQUIRE(((dns_rdata_in_eid_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_eid_t *)source)->common.rdtype ==
+		dns_rdatatype_eid);
+	REQUIRE(((dns_rdata_in_eid_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+
+	eid = source;
 
 	if (eid->mctx == NULL) {
 		return;

@@ -136,14 +136,17 @@ compare_csync(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_csync(ARGS_FROMSTRUCT) {
-	dns_rdata_csync_t *csync = source;
+	dns_rdata_csync_t *csync;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_csync);
-	REQUIRE(csync != NULL);
-	REQUIRE(csync->common.rdtype == type);
-	REQUIRE(csync->common.rdclass == rdclass);
-	REQUIRE(csync->typebits != NULL || csync->len == 0);
+	REQUIRE(((dns_rdata_csync_t *)source) != NULL);
+	REQUIRE(((dns_rdata_csync_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_csync_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_csync_t *)source)->typebits != NULL ||
+		((dns_rdata_csync_t *)source)->len == 0);
+
+	csync = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -160,11 +163,13 @@ fromstruct_csync(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_csync(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_csync_t *csync = target;
+	dns_rdata_csync_t *csync;
 
+	REQUIRE(((dns_rdata_csync_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_csync);
-	REQUIRE(csync != NULL);
 	REQUIRE(rdata->length != 0);
+
+	csync = target;
 
 	csync->common.rdclass = rdata->rdclass;
 	csync->common.rdtype = rdata->type;
@@ -192,10 +197,13 @@ tostruct_csync(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_csync(ARGS_FREESTRUCT) {
-	dns_rdata_csync_t *csync = source;
+	dns_rdata_csync_t *csync;
 
-	REQUIRE(csync != NULL);
-	REQUIRE(csync->common.rdtype == dns_rdatatype_csync);
+	REQUIRE(((dns_rdata_csync_t *)source) != NULL);
+	REQUIRE(((dns_rdata_csync_t *)source)->common.rdtype ==
+		dns_rdatatype_csync);
+
+	csync = source;
 
 	if (csync->mctx == NULL)
 		return;

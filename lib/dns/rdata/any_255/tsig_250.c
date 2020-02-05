@@ -353,14 +353,16 @@ compare_any_tsig(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_any_tsig(ARGS_FROMSTRUCT) {
-	dns_rdata_any_tsig_t *tsig = source;
+	dns_rdata_any_tsig_t *tsig;
 	isc_region_t tr;
 
 	REQUIRE(type == dns_rdatatype_tsig);
 	REQUIRE(rdclass == dns_rdataclass_any);
-	REQUIRE(tsig != NULL);
-	REQUIRE(tsig->common.rdclass == rdclass);
-	REQUIRE(tsig->common.rdtype == type);
+	REQUIRE(((dns_rdata_any_tsig_t *)source) != NULL);
+	REQUIRE(((dns_rdata_any_tsig_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_any_tsig_t *)source)->common.rdtype == type);
+
+	tsig = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -521,11 +523,13 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_any_tsig(ARGS_FREESTRUCT) {
-	dns_rdata_any_tsig_t *tsig = (dns_rdata_any_tsig_t *) source;
+	dns_rdata_any_tsig_t *tsig;
 
-	REQUIRE(tsig != NULL);
-	REQUIRE(tsig->common.rdtype == dns_rdatatype_tsig);
-	REQUIRE(tsig->common.rdclass == dns_rdataclass_any);
+	REQUIRE(((dns_rdata_any_tsig_t *)source) != NULL);
+	REQUIRE(((dns_rdata_any_tsig_t *)source)->common.rdtype == dns_rdatatype_tsig);
+	REQUIRE(((dns_rdata_any_tsig_t *)source)->common.rdclass == dns_rdataclass_any);
+
+	tsig = (dns_rdata_any_tsig_t *) source;
 
 	if (tsig->mctx == NULL)
 		return;

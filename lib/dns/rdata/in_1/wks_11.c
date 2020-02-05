@@ -290,16 +290,19 @@ compare_in_wks(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_wks(ARGS_FROMSTRUCT) {
-	dns_rdata_in_wks_t *wks = source;
+	dns_rdata_in_wks_t *wks;
 	uint32_t a;
 
 	REQUIRE(type == dns_rdatatype_wks);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(wks != NULL);
-	REQUIRE(wks->common.rdtype == type);
-	REQUIRE(wks->common.rdclass == rdclass);
-	REQUIRE((wks->map != NULL && wks->map_len <= 8*1024) ||
-		 wks->map_len == 0);
+	REQUIRE(((dns_rdata_in_wks_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_wks_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_wks_t *)source)->common.rdclass == rdclass);
+	REQUIRE((((dns_rdata_in_wks_t *)source)->map != NULL &&
+		 ((dns_rdata_in_wks_t *)source)->map_len <= 8*1024) ||
+		((dns_rdata_in_wks_t *)source)->map_len == 0);
+
+	wks = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -312,14 +315,16 @@ fromstruct_in_wks(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_in_wks(ARGS_TOSTRUCT) {
-	dns_rdata_in_wks_t *wks = target;
+	dns_rdata_in_wks_t *wks;
 	uint32_t n;
 	isc_region_t region;
 
-	REQUIRE(wks != NULL);
+	REQUIRE(((dns_rdata_in_wks_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_wks);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
+
+	wks = target;
 
 	wks->common.rdclass = rdata->rdclass;
 	wks->common.rdtype = rdata->type;
@@ -341,11 +346,15 @@ tostruct_in_wks(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_wks(ARGS_FREESTRUCT) {
-	dns_rdata_in_wks_t *wks = source;
+	dns_rdata_in_wks_t *wks;
 
-	REQUIRE(wks != NULL);
-	REQUIRE(wks->common.rdtype == dns_rdatatype_wks);
-	REQUIRE(wks->common.rdclass == dns_rdataclass_in);
+	REQUIRE(((dns_rdata_in_wks_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_wks_t *)source)->common.rdtype ==
+		dns_rdatatype_wks);
+	REQUIRE(((dns_rdata_in_wks_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+
+	wks = source;
 
 	if (wks->mctx == NULL)
 		return;

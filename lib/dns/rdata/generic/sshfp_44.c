@@ -173,12 +173,14 @@ compare_sshfp(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_sshfp(ARGS_FROMSTRUCT) {
-	dns_rdata_sshfp_t *sshfp = source;
+	dns_rdata_sshfp_t *sshfp;
 
 	REQUIRE(type == dns_rdatatype_sshfp);
-	REQUIRE(sshfp != NULL);
-	REQUIRE(sshfp->common.rdtype == type);
-	REQUIRE(sshfp->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_sshfp_t *)source) != NULL);
+	REQUIRE(((dns_rdata_sshfp_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_sshfp_t *)source)->common.rdclass == rdclass);
+
+	sshfp = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -191,12 +193,14 @@ fromstruct_sshfp(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_sshfp(ARGS_TOSTRUCT) {
-	dns_rdata_sshfp_t *sshfp = target;
+	dns_rdata_sshfp_t *sshfp;
 	isc_region_t region;
 
+	REQUIRE(((dns_rdata_sshfp_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_sshfp);
-	REQUIRE(sshfp != NULL);
 	REQUIRE(rdata->length != 0);
+
+	sshfp = target;
 
 	sshfp->common.rdclass = rdata->rdclass;
 	sshfp->common.rdtype = rdata->type;
@@ -220,10 +224,13 @@ tostruct_sshfp(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_sshfp(ARGS_FREESTRUCT) {
-	dns_rdata_sshfp_t *sshfp = source;
+	dns_rdata_sshfp_t *sshfp;
 
-	REQUIRE(sshfp != NULL);
-	REQUIRE(sshfp->common.rdtype == dns_rdatatype_sshfp);
+	REQUIRE(((dns_rdata_sshfp_t *)source) != NULL);
+	REQUIRE(((dns_rdata_sshfp_t *)source)->common.rdtype ==
+		dns_rdatatype_sshfp);
+
+	sshfp = source;
 
 	if (sshfp->mctx == NULL)
 		return;
