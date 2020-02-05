@@ -13835,10 +13835,6 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 		dns_zone_detach(&raw);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
-	if (dz != NULL) {
-		dns_zone_detach(&dz->zone);
-		isc_mem_put(named_g_mctx, dz, sizeof(*dz));
-	}
 
 	return (result);
 }
