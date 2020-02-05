@@ -10065,8 +10065,7 @@ named_add_reserved_dispatch(named_server_t *server,
 	return;
 
  cleanup:
-	if (dispatch != NULL)
-		isc_mem_put(server->mctx, dispatch, sizeof(*dispatch));
+	isc_mem_put(server->mctx, dispatch, sizeof(*dispatch));
 	isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
