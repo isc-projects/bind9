@@ -1333,7 +1333,7 @@ free_element(isc_mem_t *mctx, struct nsec3_chain_fixed *e) {
 }
 
 static bool
-checknext(const struct nsec3_chain_fixed *first,
+_checknext(const struct nsec3_chain_fixed *first,
 	  const struct nsec3_chain_fixed *e)
 {
 	char buf[512];
@@ -1369,6 +1369,35 @@ checknext(const struct nsec3_chain_fixed *first,
 	fprintf(stderr, "Found: %.*s\n", (int) isc_buffer_usedlength(&b), buf);
 
 	return (false);
+}
+
+static inline bool
+checknext(isc_mem_t *mctx,
+	  const struct nsec3_chain_fixed *first,
+	  struct nsec3_chain_fixed *prev,
+	  const struct nsec3_chain_fixed *cur)
+{
+	bool result = _checknext(prev, cur);
+
+	if (prev != first) {
+		free_element(mctx, prev);
+	}
+
+	return (result);
+}
+
+static inline bool
+checklast(isc_mem_t *mctx,
+	  struct nsec3_chain_fixed *first,
+	  struct nsec3_chain_fixed *prev)
+{
+	bool result = _checknext(prev, first);
+	if (prev != first) {
+		free_element(mctx, prev);
+	}
+	free_element(mctx, first);
+
+	return (result);
 }
 
 #define EXPECTEDANDFOUND "Expected and found NSEC3 chains not equal\n"
@@ -1415,32 +1444,27 @@ verify_nsec3_chains(isc_mem_t *mctx) {
 			fprintf(stderr, EXPECTEDANDFOUND);
 			result = ISC_R_FAILURE;
 		}
-		if (first == NULL || newchain(first, e)) {
-			if (prev != NULL) {
-				if (!checknext(prev, first))
-					result = ISC_R_FAILURE;
-				if (prev != first)
-					free_element(mctx, prev);
-			}
-			if (first != NULL)
-				free_element(mctx, first);
+
+		if (first == NULL) {
 			prev = first = e;
-			continue;
+		} else if (newchain(first, e)) {
+			if (!checklast(mctx, first, prev)) {
+				result = ISC_R_FAILURE;
+			}
+
+			prev = first = e;
+		} else {
+			if (!checknext(mctx, first, prev, e)) {
+				result = ISC_R_FAILURE;
+			}
+
+			prev = e;
 		}
-		if (!checknext(prev, e))
-			result = ISC_R_FAILURE;
-		if (prev != first)
-			free_element(mctx, prev);
-		prev = e;
 	}
 	if (prev != NULL) {
-		if (!checknext(prev, first))
+		if (!checklast(mctx, first, prev))
 			result = ISC_R_FAILURE;
-		if (prev != first)
-			free_element(mctx, prev);
 	}
-	if (first != NULL)
-		free_element(mctx, first);
 	do {
 		if (f != NULL) {
 			if (result == ISC_R_SUCCESS) {
