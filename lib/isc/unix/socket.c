@@ -2636,7 +2636,6 @@ isc_socket_detach(isc_socket_t **socketp) {
 	REQUIRE(socketp != NULL);
 	sock = (isc__socket_t *)*socketp;
 	REQUIRE(VALID_SOCKET(sock));
-
 	if (isc_refcount_decrement(&sock->references) == 1) {
 		destroy(&sock);
 	}
@@ -2786,11 +2785,8 @@ internal_accept(isc__socket_t *sock) {
 	const char *err = "accept";
 
 	INSIST(VALID_SOCKET(sock));
+	REQUIRE(sock->fd >= 0);
 
-	if (sock->fd < 0) {
-		/* Socket is gone */
-		return;
-	}
 	socket_log(sock, NULL, TRACE, "internal_accept called, locked socket");
 
 	manager = sock->manager;
@@ -3033,11 +3029,8 @@ internal_recv(isc__socket_t *sock) {
 	isc_socketevent_t *dev;
 
 	INSIST(VALID_SOCKET(sock));
+	REQUIRE(sock->fd >= 0);
 
-	if (sock->fd < 0) {
-		/* Socket is gone */
-		return;
-	}
 	dev = ISC_LIST_HEAD(sock->recv_list);
 	if (dev == NULL) {
 		goto finish;
@@ -3089,11 +3082,8 @@ internal_send(isc__socket_t *sock) {
 	isc_socketevent_t *dev;
 
 	INSIST(VALID_SOCKET(sock));
+	REQUIRE(sock->fd >= 0);
 
-	if (sock->fd < 0) {
-		/* Socket is gone */
-		return;
-	}
 	dev = ISC_LIST_HEAD(sock->send_list);
 	if (dev == NULL) {
 		goto finish;
@@ -3153,16 +3143,18 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable, bool writeable) {
 		return;
 	}
 
-	if (isc_refcount_increment0(&sock->references) == 0) {
+	LOCK(&sock->lock);
+	if (sock->fd < 0) {
 		/*
-		 * Sock is being closed, it will be destroyed, bail.
+		 * Sock is being closed - the final external reference
+		 * is gone but it was not yet removed from event loop
+		 * and fdstate[]/fds[] as destroy() is waiting on
+		 * thread->fdlock[lockid] or sock->lock that we're holding.
+		 * Just release the locks and bail.
 		 */
-		(void)isc_refcount_decrement(&sock->references);
-		UNLOCK(&thread->fdlock[lockid]);
-		return;
+		goto unlock;
 	}
 
-	LOCK(&sock->lock);
 	if (readable) {
 		if (sock->listener) {
 			internal_accept(sock);
@@ -3178,12 +3170,14 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable, bool writeable) {
 			internal_send(sock);
 		}
 	}
-	UNLOCK(&sock->lock);
 
+unlock:
+	UNLOCK(&sock->lock);
 	UNLOCK(&thread->fdlock[lockid]);
-	if (isc_refcount_decrement(&sock->references) == 1) {
-		destroy(&sock);
-	}
+	/*
+	 * Socket destruction might be pending, it will resume
+	 * after releasing fdlock and sock->lock.
+	 */
 }
 
 /*
@@ -4864,6 +4858,7 @@ internal_connect(isc__socket_t *sock) {
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	INSIST(VALID_SOCKET(sock));
+	REQUIRE(sock->fd >= 0);
 
 	/*
 	 * Get the first item off the connect list.
