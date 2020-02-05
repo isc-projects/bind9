@@ -157,7 +157,7 @@ is_safe(const char *input) {
 	return (true);
 }
 
-static isc_result_t
+static void
 create_path_helper(char *out, const char *in, config_data_t *cd) {
 	char *tmpString;
 	char *tmpPtr;
@@ -206,7 +206,6 @@ create_path_helper(char *out, const char *in, config_data_t *cd) {
 	}
 
 	isc_mem_free(named_g_mctx, tmpString);
-	return (ISC_R_SUCCESS);
 }
 
 /*%
@@ -223,7 +222,6 @@ create_path(const char *zone, const char *host, const char *client,
 	char *tmpPath;
 	int pathsize;
 	int len;
-	isc_result_t result;
 	bool isroot = false;
 
 	/* we require a zone & cd parameter */
@@ -285,9 +283,7 @@ create_path(const char *zone, const char *host, const char *client,
 
 	/* add zone name - parsed properly */
 	if (!isroot) {
-		result = create_path_helper(tmpPath, zone, cd);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_mem;
+		create_path_helper(tmpPath, zone, cd);
 	}
 
 	/*
@@ -322,26 +318,13 @@ create_path(const char *zone, const char *host, const char *client,
 	/* if host not null, add it. */
 	if (host != NULL) {
 		strncat(tmpPath, (char *) &cd->pathsep, 1);
-		if ((result = create_path_helper(tmpPath, host,
-						 cd)) != ISC_R_SUCCESS)
-			goto cleanup_mem;
+		create_path_helper(tmpPath, host, cd);
 	}
 
 	/* return the path we built. */
 	*path = tmpPath;
 
-	/* return success */
-	result = ISC_R_SUCCESS;
-
- cleanup_mem:
-	/* cleanup memory */
-
-	/* free tmpPath memory */
-	if (tmpPath != NULL && result != ISC_R_SUCCESS)
-		isc_mem_free(named_g_mctx, tmpPath);
-
-	/* free tmpPath memory */
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
