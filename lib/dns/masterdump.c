@@ -400,7 +400,7 @@ totext_ctx_init(const dns_master_style_t *style, const dns_indent_t *indentctx,
 	ctx->current_ttl = 0;
 	ctx->current_ttl_valid = false;
 	ctx->serve_stale_ttl = 0;
-	ctx->indent = indentctx ? *indentctx : default_indent;
+	ctx->indent = *indentctx;
 
 	return (ISC_R_SUCCESS);
 }
