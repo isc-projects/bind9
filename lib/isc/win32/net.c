@@ -34,7 +34,7 @@
  * The last resort defaults: use all non well known port space
  */
 #ifndef ISC_NET_PORTRANGELOW
-#define ISC_NET_PORTRANGELOW 1024
+#define ISC_NET_PORTRANGELOW 32768
 #endif	/* ISC_NET_PORTRANGELOW */
 #ifndef ISC_NET_PORTRANGEHIGH
 #define ISC_NET_PORTRANGEHIGH 65535
