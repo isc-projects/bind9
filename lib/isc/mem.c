@@ -609,6 +609,9 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 			return (false);
 		}
 	}
+	if (ctx->basic_blocks == NULL) {
+		return false;
+	}
 
 	total_size = ctx->mem_target;
 	tmp = ctx->basic_blocks;
