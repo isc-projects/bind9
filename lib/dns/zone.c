@@ -13428,17 +13428,18 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 
  cleanup:
 	cancel_refresh(zone);
-	if (stub != NULL) {
-		stub->magic = 0;
-		if (stub->version != NULL)
-			dns_db_closeversion(stub->db, &stub->version,
-					    false);
-		if (stub->db != NULL)
-			dns_db_detach(&stub->db);
-		if (stub->zone != NULL)
-			zone_idetach(&stub->zone);
-		isc_mem_put(stub->mctx, stub, sizeof(*stub));
+	stub->magic = 0;
+	if (stub->version != NULL) {
+		dns_db_closeversion(stub->db, &stub->version,
+				    false);
 	}
+	if (stub->db != NULL) {
+		dns_db_detach(&stub->db);
+	}
+	if (stub->zone != NULL) {
+		zone_idetach(&stub->zone);
+	}
+	isc_mem_put(stub->mctx, stub, sizeof(*stub));
 	if (message != NULL)
 		dns_message_destroy(&message);
  unlock:
