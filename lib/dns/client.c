@@ -1393,8 +1393,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 		isc_mutex_destroy(&rctx->lock);
 		isc_mem_put(mctx, rctx, sizeof(*rctx));
 	}
-	if (event != NULL)
-		isc_event_free(ISC_EVENT_PTR(&event));
+	isc_event_free(ISC_EVENT_PTR(&event));
 	isc_task_detach(&tclone);
 	dns_view_detach(&view);
 
