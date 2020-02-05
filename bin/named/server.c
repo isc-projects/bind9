@@ -11028,8 +11028,7 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	if (dctx != NULL)
-		dumpcontext_destroy(dctx);
+	dumpcontext_destroy(dctx);
 	return (result);
 }
 
