@@ -688,19 +688,18 @@ fs_allnodes(const char *zone, void *driverarg, void *dbdata,
 	} /* end while */
 
  complete_allnds:
-	if (dir_list != NULL) {
-		/* clean up entries from list. */
-		dir_entry = ISC_LIST_HEAD(*dir_list);
-		while (dir_entry != NULL) {
-			next_de = ISC_LIST_NEXT(dir_entry, link);
-			isc_mem_put(named_g_mctx, dir_entry, sizeof(dir_entry_t));
-			dir_entry = next_de;
-		} /* end while */
-		isc_mem_put(named_g_mctx, dir_list, sizeof(dlist_t));
-	}
+	/* clean up entries from list. */
+	dir_entry = ISC_LIST_HEAD(*dir_list);
+	while (dir_entry != NULL) {
+		next_de = ISC_LIST_NEXT(dir_entry, link);
+		isc_mem_put(named_g_mctx, dir_entry, sizeof(dir_entry_t));
+		dir_entry = next_de;
+	} /* end while */
+	isc_mem_put(named_g_mctx, dir_list, sizeof(dlist_t));
 
-	if (basepath != NULL)
+	if (basepath != NULL) {
 		isc_mem_free(named_g_mctx, basepath);
+	}
 
 	return (result);
 }
