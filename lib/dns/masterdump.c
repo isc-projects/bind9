@@ -1547,12 +1547,13 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	if (dctx->dbiter != NULL)
+	if (dctx->dbiter != NULL) {
 		dns_dbiterator_destroy(&dctx->dbiter);
-	if (dctx->db != NULL)
+	}
+	if (dctx->db != NULL) {
 		dns_db_detach(&dctx->db);
-	if (dctx != NULL)
-		isc_mem_put(mctx, dctx, sizeof(*dctx));
+	}
+	isc_mem_put(mctx, dctx, sizeof(*dctx));
 	return (result);
 }
 
