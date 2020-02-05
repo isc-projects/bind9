@@ -3088,7 +3088,9 @@ resign_fromlist(dns_rdatalist_t *this, dns_loadctx_t *lctx) {
 	else
 		when = sig.timeexpire - lctx->resign;
 
+	/* cppcheck-suppress nullPointerRedundantCheck */
 	rdata = ISC_LIST_NEXT(rdata, link);
+	/* cppcheck-suppress nullPointerRedundantCheck */
 	while (rdata != NULL) {
 		(void)dns_rdata_tostruct(rdata, &sig, NULL);
 		if (isc_serial_gt(sig.timesigned, lctx->now))
