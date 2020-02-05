@@ -30,6 +30,11 @@ ISC_LANG_BEGINDECLS
 #define ISC_MEM_HIWATER 1
 typedef void (*isc_mem_water_t)(void *, int);
 
+/*%
+ * Memory allocation and free function definitions.
+ * isc_memalloc_t must deal with memory allocation failure
+ * and must never return NULL.
+ */
 typedef void * (*isc_memalloc_t)(void *, size_t);
 typedef void (*isc_memfree_t)(void *, void *);
 

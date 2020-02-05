@@ -133,7 +133,7 @@ static isc_result_t
 write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 	isc_result_t result;
 	size_t ret = 0;
-	data_holder_t *data = (data_holder_t *)datap;
+	data_holder_t *data;
 	data_holder_t temp;
 	off_t where;
 
@@ -141,7 +141,8 @@ write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 
 	REQUIRE(file != NULL);
 	REQUIRE(crc != NULL);
-	REQUIRE(data != NULL);
+	REQUIRE(datap != NULL);
+	data = (data_holder_t *)datap;
 	REQUIRE((data->len == 0 && data->data == NULL) ||
 		(data->len != 0 && data->data != NULL));
 
@@ -405,7 +406,9 @@ deserialize_corrupt_test(void **state) {
 		close(fd);
 
 		/* Randomly fuzz a portion of the memory */
+		/* cppcheck-suppress nullPointerArithmeticRedundantCheck */
 		p = base + (isc_random_uniform(filesize));
+		/* cppcheck-suppress nullPointerArithmeticRedundantCheck */
 		q = base + filesize;
 		q -= (isc_random_uniform(q - p));
 		while (p++ < q) {

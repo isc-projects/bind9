@@ -1386,13 +1386,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	ISC_LIST_INIT(event->answerlist);
 
 	rctx = isc_mem_get(mctx, sizeof(*rctx));
-	if (rctx == NULL)
-		result = ISC_R_NOMEMORY;
-	else {
-		isc_mutex_init(&rctx->lock);
-	}
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_mutex_init(&rctx->lock);
 
 	result = getrdataset(mctx, &rdataset);
 	if (result != ISC_R_SUCCESS)
@@ -1775,13 +1769,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 	}
 
 	ctx = isc_mem_get(client->mctx, sizeof(*ctx));
-	if (ctx == NULL)
-		result = ISC_R_NOMEMORY;
-	else {
-		isc_mutex_init(&ctx->lock);
-	}
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_mutex_init(&ctx->lock);
 
 	ctx->client = client;
 	ISC_LINK_INIT(ctx, link);
@@ -1814,7 +1802,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 
 	isc_refcount_decrement(&client->references);
 
- cleanup:
+cleanup:
 	if (ctx != NULL) {
 		LOCK(&client->lock);
 		ISC_LIST_UNLINK(client->reqctxs, ctx, link);
@@ -1822,8 +1810,8 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 		isc_mutex_destroy(&ctx->lock);
 		isc_mem_put(client->mctx, ctx, sizeof(*ctx));
 	}
-	if (event != NULL)
-		isc_event_free(ISC_EVENT_PTR(&event));
+
+	isc_event_free(ISC_EVENT_PTR(&event));
 	isc_task_detach(&tclone);
 	dns_view_detach(&view);
 
