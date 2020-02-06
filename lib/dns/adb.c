@@ -440,6 +440,7 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 #define FIND_GLUEOK(fn)		(((fn)->options & DNS_ADBFIND_GLUEOK) != 0)
 #define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
 #define FIND_RETURNLAME(fn)	(((fn)->options & DNS_ADBFIND_RETURNLAME) != 0)
+#define FIND_NOFETCH(fn)	(((fn)->options & DNS_ADBFIND_NOFETCH) != 0)
 
 /*
  * These are currently used on simple unsigned ints, so they are
@@ -3234,7 +3235,9 @@ fetch:
 	} else {
 		have_address = false;
 	}
-	if (wanted_fetches != 0 && !(FIND_AVOIDFETCHES(find) && have_address)) {
+	if (wanted_fetches != 0 && !(FIND_AVOIDFETCHES(find) && have_address) &&
+	    !FIND_NOFETCH(find))
+	{
 		/*
 		 * We're missing at least one address family.  Either the
 		 * caller hasn't instructed us to avoid fetches, or we don't
