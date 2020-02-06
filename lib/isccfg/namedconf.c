@@ -476,6 +476,25 @@ static cfg_type_t cfg_type_dnsseckey = {
 };
 
 /*%
+ * Optional enums.
+ *
+ */
+static isc_result_t
+parse_optional_enum(cfg_parser_t *pctx, const cfg_type_t *type,
+		    cfg_obj_t **ret)
+{
+	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_void, ret));
+}
+
+static void
+doc_optional_enum(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "[ ");
+	cfg_doc_enum(pctx, type);
+	cfg_print_cstr(pctx, " ]");
+}
+
+/*%
  * A key initialization specifier, as used in the
  * "trust-anchors" (or synonymous "managed-keys") statement.
  */
@@ -514,8 +533,8 @@ static cfg_type_t cfg_type_dnsseckeyrole = {
  */
 static const char *dnsseckeystore_enums[] = { "key-directory", NULL };
 static cfg_type_t cfg_type_dnsseckeystore = {
-	"dnssec-key-storage", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
-	&cfg_rep_string, &dnsseckeystore_enums
+	"dnssec-key-storage", parse_optional_enum, cfg_print_ustring,
+	doc_optional_enum, &cfg_rep_string, dnsseckeystore_enums
 };
 
 /*%
@@ -1014,21 +1033,6 @@ static cfg_type_t cfg_type_fetchquota = {
  */
 
 static const char *response_enums[] = { "drop", "fail", NULL };
-
-static isc_result_t
-parse_optional_enum(cfg_parser_t *pctx, const cfg_type_t *type,
-		    cfg_obj_t **ret)
-{
-	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_void, ret));
-}
-
-static void
-doc_optional_enum(cfg_printer_t *pctx, const cfg_type_t *type) {
-	UNUSED(type);
-	cfg_print_cstr(pctx, "[ ");
-	cfg_doc_enum(pctx, type);
-	cfg_print_cstr(pctx, " ]");
-}
 
 static cfg_type_t cfg_type_responsetype = {
 	"responsetype", parse_optional_enum, cfg_print_ustring,
