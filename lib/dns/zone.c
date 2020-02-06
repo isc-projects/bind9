@@ -8028,7 +8028,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 					     DNS_DBFIND_NOWILD, 0, NULL, found,
 					     NULL, NULL);
 			if ((result == DNS_R_DELEGATION ||
-			    result == DNS_R_DNAME) &&
+			     result == DNS_R_DNAME) &&
 			    !dns_name_equal(name, found)) {
 				/*
 				 * Remember the obscuring name so that
