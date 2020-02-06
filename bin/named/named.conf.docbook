@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2019-08-12</date>
+    <date>2019-12-12</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -111,6 +111,26 @@ dlz <replaceable>string</replaceable> {
 </literallayout>
   </refsection>
 
+  <refsection><info><title>DNSSEC-POLICY</title></info>
+    <literallayout class="normal">
+dnssec-policy <replaceable>string</replaceable> {
+	dnskey-ttl <replaceable>duration</replaceable>;
+	keys { ( csk | ksk | zsk ) ( key-directory ) lifetime <replaceable>duration</replaceable>
+	    algorithm <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ]; ... };
+	max-zone-ttl <replaceable>duration</replaceable>;
+	parent-ds-ttl <replaceable>duration</replaceable>;
+	parent-propagation-delay <replaceable>duration</replaceable>;
+	parent-registration-delay <replaceable>duration</replaceable>;
+	publish-safety <replaceable>duration</replaceable>;
+	retire-safety <replaceable>duration</replaceable>;
+	signatures-refresh <replaceable>duration</replaceable>;
+	signatures-validity <replaceable>duration</replaceable>;
+	signatures-validity-dnskey <replaceable>duration</replaceable>;
+	zone-propagation-delay <replaceable>duration</replaceable>;
+};
+</literallayout>
+  </refsection>
+
   <refsection><info><title>DYNDB</title></info>
     <literallayout class="normal">
 dyndb <replaceable>string</replaceable> <replaceable>quoted_string</replaceable> {
@@ -148,7 +168,7 @@ logging {
   </refsection>
 
   <refsection><info><title>MANAGED-KEYS</title></info>
-  <para>Deprecated - see TRUST-ANCHORS.</para>
+  <para>Deprecated - see DNSSEC-KEYS.</para>
     <literallayout class="normal">
 managed-keys { <replaceable>string</replaceable> ( static-key
     | initial-key | static-ds |
@@ -246,6 +266,7 @@ options {
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
+	dnssec-policy <replaceable>string</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
 	dnssec-validation ( yes | no | auto );
@@ -395,8 +416,8 @@ options {
 	    <replaceable>integer</replaceable>;
 	response-policy { zone <replaceable>string</replaceable> [ add-soa <replaceable>boolean</replaceable> ] [ log
 	    <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>duration</replaceable> ] [ min-update-interval
-	    <replaceable>duration</replaceable> ] [ policy ( cname | disabled | drop | given | no-op |
-	    nodata | nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
+	    <replaceable>duration</replaceable> ] [ policy ( cname | disabled | drop | given | no-op
+	    | nodata | nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
 	    recursive-only <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
 	    nsdname-enable <replaceable>boolean</replaceable> ]; ... } [ add-soa <replaceable>boolean</replaceable> ] [
 	    break-dnssec <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>duration</replaceable> ] [
@@ -529,7 +550,7 @@ trust-anchors { <replaceable>string</replaceable> ( static-key |
   </refsection>
 
   <refsection><info><title>TRUSTED-KEYS</title></info>
-  <para>Deprecated - see TRUST-ANCHORS.</para>
+  <para>Deprecated - see DNSSEC-KEYS.</para>
     <literallayout class="normal">
 trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
     <replaceable>integer</replaceable> <replaceable>integer</replaceable>
@@ -610,6 +631,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
+	dnssec-policy <replaceable>string</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
 	dnssec-validation ( yes | no | auto );
@@ -733,8 +755,8 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	    <replaceable>integer</replaceable>;
 	response-policy { zone <replaceable>string</replaceable> [ add-soa <replaceable>boolean</replaceable> ] [ log
 	    <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>duration</replaceable> ] [ min-update-interval
-	    <replaceable>duration</replaceable> ] [ policy ( cname | disabled | drop | given | no-op |
-	    nodata | nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
+	    <replaceable>duration</replaceable> ] [ policy ( cname | disabled | drop | given | no-op
+	    | nodata | nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
 	    recursive-only <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
 	    nsdname-enable <replaceable>boolean</replaceable> ]; ... } [ add-soa <replaceable>boolean</replaceable> ] [
 	    break-dnssec <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>duration</replaceable> ] [
@@ -1010,26 +1032,6 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zone-statistics ( full | terse | none | <replaceable>boolean</replaceable> );
-};
-</literallayout>
-  </refsection>
-
-  <refsection><info><title>DNSSEC-POLICY</title></info>
-
-    <literallayout class="normal">
-dnssec-policy <replaceable>string</replaceable> {
-	dnskey-ttl <replaceable>duration</replaceable>;
-	keys { ( csk | ksk | zsk ) key-directory lifetime <replaceable>duration</replaceable> algorithm <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ] ; ... };
-	parent-ds-ttl <replaceable>duration</replaceable>;
-	parent-propagation-delay <replaceable>duration</replaceable>;
-	parent-registration-delay <replaceable>duration</replaceable>;
-	publish-safety <replaceable>duration</replaceable>;
-	retire-safety <replaceable>duration</replaceable>;
-	signatures-refresh <replaceable>duration</replaceable>;
-	signatures-validity <replaceable>duration</replaceable>;
-	signatures-validity-dnskey <replaceable>duration</replaceable>;
-	zone-max-ttl <replaceable>duration</replaceable>;
-	zone-propagation-delay <replaceable>duration</replaceable>;
 };
 </literallayout>
   </refsection>

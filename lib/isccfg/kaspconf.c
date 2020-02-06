@@ -191,7 +191,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
 	ISC_INSIST(!(dns_kasp_keylist_empty(kasp)));
 
 	/* Configuration: Zone settings */
-	dns_kasp_setzonemaxttl(kasp, get_duration(maps, "zone-max-ttl",
+	dns_kasp_setzonemaxttl(kasp, get_duration(maps, "max-zone-ttl",
 						  DNS_KASP_ZONE_MAXTTL));
 	dns_kasp_setzonepropagationdelay(kasp, get_duration(maps,
 						       "zone-propagation-delay",

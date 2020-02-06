@@ -1042,7 +1042,7 @@ keymgr_transition_time(dns_dnsseckey_t* key, int type,
 			 * TTLsig is the maximum TTL of all zone RRSIG
 			 * records.  This translates to:
 			 *
-			 *     Dsgn + zone-propragation-delay + zone-max-ttl.
+			 *     Dsgn + zone-propragation-delay + max-zone-ttl.
 			 *
 			 * We will also add the retire-safety interval.
 			 */

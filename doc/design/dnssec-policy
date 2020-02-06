@@ -156,7 +156,7 @@ dnssec-policy "nsec3" {
     zone-soa-ttl 3600;
     zone-soa-minimum 3600;
     zone-soa-serial-update-method unixtime;
-    zone-max-ttl 24h;
+    max-zone-ttl 24h;
 
     // Parent properties
     parent-propagation-delay PT24H;

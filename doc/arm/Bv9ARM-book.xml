@@ -11209,22 +11209,23 @@ example.com                 CNAME   rpz-tcp-only.
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>zone-max-ttl</command></term>
+	      <term><command>max-zone-ttl</command></term>
 	      <listitem>
 		<para>
-		  Like <command>max-zone-ttl</command>, specifies the
-		  maximum permissible TTL value in seconds. When loading a
-		  zone file using a <option>masterfile-format</option> or
+		  Like the <command>max-zone-ttl</command> zone option,
+		  this specifies the maximum permissible TTL value in
+		  seconds for the zone. When loading a zone file using
+		  a <option>masterfile-format</option> of
 		  <constant>text</constant> or <constant>raw</constant>,
 		  any record encountered with a TTL higher than
-		  <option>zone-max-ttl</option> will be capped to the
+		  <option>max-zone-ttl</option> will be capped to the
 		  maximum permissible TTL value.
 		</para>
 		<para>
 		  This is needed in DNSSEC-maintained zones because when
 		  rolling to a new DNSKEY, the old key needs to remain
 		  available until RRSIG records have expired from caches.
-		  The <option>zone-max-ttl</option> option guarantees that
+		  The <option>max-zone-ttl</option> option guarantees that
 		  the largest TTL in the zone will be no higher than the
 		  set value.
 		</para>
@@ -11235,8 +11236,8 @@ example.com                 CNAME   rpz-tcp-only.
 		</para>
 		<para>
 		  The default value is <constant>PT24H</constant> (24 hours).
-		  A <option>zone-max-ttl</option> of zero is treated as if
-		  the default value is in use.
+		  A <option>max-zone-ttl</option> of zero is treated as if
+		  the default value were in use.
 		</para>
 	      </listitem>
 	    </varlistentry>

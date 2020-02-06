@@ -2078,16 +2078,16 @@ static cfg_clausedef_t
 dnssecpolicy_clauses[] = {
 	{ "dnskey-ttl", &cfg_type_duration, 0 },
 	{ "keys", &cfg_type_kaspkeys, 0 },
+	{ "max-zone-ttl", &cfg_type_duration, 0 },
+	{ "parent-ds-ttl", &cfg_type_duration, 0 },
+	{ "parent-propagation-delay", &cfg_type_duration, 0 },
+	{ "parent-registration-delay", &cfg_type_duration, 0 },
 	{ "publish-safety", &cfg_type_duration, 0 },
 	{ "retire-safety", &cfg_type_duration, 0 },
 	{ "signatures-refresh", &cfg_type_duration, 0 },
 	{ "signatures-validity", &cfg_type_duration, 0 },
 	{ "signatures-validity-dnskey", &cfg_type_duration, 0 },
-	{ "zone-max-ttl", &cfg_type_duration, 0 },
 	{ "zone-propagation-delay", &cfg_type_duration, 0 },
-	{ "parent-ds-ttl", &cfg_type_duration, 0 },
-	{ "parent-propagation-delay", &cfg_type_duration, 0 },
-	{ "parent-registration-delay", &cfg_type_duration, 0 },
 	{ NULL, NULL, 0 }
 };
 
