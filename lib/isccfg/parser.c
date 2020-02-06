@@ -11,6 +11,7 @@
 
 /*! \file */
 
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1180,16 +1181,16 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	}
 
 	/* Every duration starts with 'P' */
-	P = strchr(str, 'P');
+	P = strpbrk(str, "Pp");
 	if (P == NULL) {
 		return (ISC_R_BADNUMBER);
 	}
 
 	/* Record the time indicator. */
-	T = strchr(str, 'T');
+	T = strpbrk(str, "Tt");
 
 	/* Record years. */
-	X = strchr(str, 'Y');
+	X = strpbrk(str, "Yy");
 	if (X != NULL) {
 		duration->parts[0] = atoi(str+1);
 		str = X;
@@ -1197,7 +1198,7 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	}
 
 	/* Record months. */
-	X = strchr(str, 'M');
+	X = strpbrk(str, "Mm");
 
 	/*
 	 * M could be months or minutes. This is months if there is no time
@@ -1210,7 +1211,7 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	}
 
 	/* Record days. */
-	X = strchr(str, 'D');
+	X = strpbrk(str, "Dd");
 	if (X != NULL) {
 		duration->parts[3] = atoi(str+1);
 		str = X;
@@ -1224,7 +1225,7 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	}
 
 	/* Record hours. */
-	X = strchr(str, 'H');
+	X = strpbrk(str, "Hh");
 	if (X != NULL && T != NULL) {
 		duration->parts[4] = atoi(str+1);
 		str = X;
@@ -1232,7 +1233,7 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	}
 
 	/* Record minutes. */
-	X = strrchr(str, 'M');
+	X = strpbrk(str, "Mm");
 
 	/*
 	 * M could be months or minutes. This is minutes if there is a time
@@ -1245,7 +1246,7 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	}
 
 	/* Record seconds. */
-	X = strchr(str, 'S');
+	X = strpbrk(str, "Ss");
 	if (X != NULL && T != NULL) {
 		duration->parts[6] = atoi(str+1);
 		str = X;
@@ -1253,7 +1254,7 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	}
 
 	/* Or is the duration configured in weeks? */
-	W = strchr(buf, 'W');
+	W = strpbrk(buf, "Ww");
 	if (W != NULL) {
 		if (not_weeks) {
 			/* Mix of weeks and other indicators is not allowed */
@@ -1280,7 +1281,7 @@ parse_duration(cfg_parser_t *pctx, cfg_obj_t **ret) {
 
 	duration.unlimited = false;
 
-	if (TOKEN_STRING(pctx)[0] == 'P') {
+	if (toupper(TOKEN_STRING(pctx)[0]) == 'P') {
 		result = duration_fromtext(&pctx->token.value.as_textregion,
 					   &duration);
 		duration.iso8601 = true;
