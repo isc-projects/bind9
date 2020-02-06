@@ -1978,7 +1978,7 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 	}
 
 	/*
-	 * Unconditionaly remove CDS/DNSKEY records for removed keys.
+	 * Unconditionally remove CDS/DNSKEY records for removed keys.
 	 */
 	for (key = ISC_LIST_HEAD(*rmkeys);
 	     key != NULL;
