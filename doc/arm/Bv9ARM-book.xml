@@ -11113,9 +11113,9 @@ example.com                 CNAME   rpz-tcp-only.
 		</para>
 
 <programlisting>keys {
-    ksk key-directory lifetime unlimited algorithm 8 2048;
+    ksk key-directory lifetime unlimited algorithm rsasha1 2048;
     zsk key-directory lifetime P30D algorithm 8;
-    csk key-directory lifetime P6MT12H3M15S algorithm 13;
+    csk key-directory lifetime P6MT12H3M15S algorithm ecdsa256;
 };
 </programlisting>
 
@@ -11150,10 +11150,11 @@ example.com                 CNAME   rpz-tcp-only.
 		</para>
 		<para>
 		  The <command>algorithm</command> parameter(s) are the key's
-		  algorithm, expressed numerically, and its size in bits.  The
-		  size may be omitted, as shown in the example for the
-		  second and third keys; in this case an appropriate
-		  default size will be used.
+		  algorithm, expressed either as a string ("rsasha256",
+		  "ecdsa384", etc) or as a decimal number, and the key's
+		  size in bits. The size may be omitted, as shown in
+		  the example for the second and third keys; in this case
+		  an appropriate default size will be used.
 		</para>
 	      </listitem>
 	    </varlistentry>

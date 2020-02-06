@@ -540,10 +540,10 @@ static cfg_type_t cfg_type_dnsseckeystore = {
 /*%
  * A dnssec key, as used in the "keys" statement in a "dnssec-policy".
  */
-static keyword_type_t algorithm_kw = { "algorithm", &cfg_type_uint32 };
+static keyword_type_t algorithm_kw = { "algorithm", &cfg_type_ustring };
 static cfg_type_t cfg_type_algorithm = {
 	"algorithm", parse_keyvalue, print_keyvalue,
-	doc_keyvalue, &cfg_rep_uint32, &algorithm_kw
+	doc_keyvalue, &cfg_rep_string, &algorithm_kw
 };
 
 static keyword_type_t lifetime_kw = { "lifetime",

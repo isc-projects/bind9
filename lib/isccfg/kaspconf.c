@@ -15,6 +15,7 @@
 
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/region.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -25,6 +26,8 @@
 #include <dns/kasp.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
+#include <dns/result.h>
+#include <dns/secalg.h>
 
 
 /*
@@ -65,7 +68,7 @@ get_duration(const cfg_obj_t **maps, const char* option, uint32_t dfl)
  * Create a new kasp key derived from configuration.
  */
 static isc_result_t
-cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp,
+cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		       isc_log_t *logctx)
 {
 	isc_result_t result;
@@ -86,6 +89,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp,
 	} else {
 		const char *rolestr = NULL;
 		const cfg_obj_t *obj = NULL;
+		isc_consttextregion_t alg;
 
 		rolestr = cfg_obj_asstring(cfg_tuple_get(config, "role"));
 		if (strcmp(rolestr, "ksk") == 0) {
@@ -104,7 +108,17 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp,
 		}
 
 		obj = cfg_tuple_get(config, "algorithm");
-		key->algorithm = cfg_obj_asuint32(obj);
+		alg.base = cfg_obj_asstring(obj);
+		alg.length = strlen(alg.base);
+		result = dns_secalg_fromtext(&key->algorithm,
+					     (isc_textregion_t *) &alg);
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-policy: bad algorithm %s",
+				    alg.base);
+			result = DNS_R_BADALG;
+			goto cleanup;
+		}
 
 		obj = cfg_tuple_get(config, "length");
 		if (cfg_obj_isuint32(obj)) {
@@ -121,10 +135,11 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp,
 					cfg_obj_log(obj, logctx,
 						    ISC_LOG_ERROR,
 						    "dnssec-policy: key with "
-						    "algorithm %u has invalid "
-						    "key length",
-						    key->algorithm);
-					return (ISC_R_RANGE);
+						    "algorithm %s has invalid "
+						    "key length %u",
+						    alg.base, size);
+					result = ISC_R_RANGE;
+					goto cleanup;
 				}
 				break;
 			case DNS_KEYALG_ECDSA256:
@@ -132,10 +147,9 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp,
 			case DNS_KEYALG_ED25519:
 			case DNS_KEYALG_ED448:
 				cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-					    "dnssec-policy: key algorithm %u "
+					    "dnssec-policy: key algorithm %s "
 					    "has predefined length; ignoring "
-					    "length value %u", key->algorithm,
-					    size);
+					    "length value %u", alg.base, size);
 			default:
 				break;
 			}
@@ -145,7 +159,13 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp,
 	}
 
 	dns_kasp_addkey(kasp, key);
+	return (ISC_R_SUCCESS);
+
+cleanup:
+
+	dns_kasp_key_destroy(key);
 	return (result);
+
 }
 
 isc_result_t

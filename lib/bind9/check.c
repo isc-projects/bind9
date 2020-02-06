@@ -976,11 +976,12 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	if (obj != NULL) {
 		bool bad_kasp = false;
 		bool bad_name = false;
+
 		if (optlevel != optlevel_config && !cfg_obj_isstring(obj)) {
 			bad_kasp = true;
 		} else if (optlevel == optlevel_config) {
 			dns_kasplist_t list;
-			dns_kasp_t* kasp, *kasp_next;
+			dns_kasp_t *kasp = NULL, *kasp_next = NULL;
 
 			ISC_LIST_INIT(list);
 
@@ -989,11 +990,11 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				     element != NULL;
 				     element = cfg_list_next(element))
 				{
+					isc_result_t ret;
 					cfg_obj_t *kconfig =
 						     cfg_listelt_value(element);
 
-					if (!cfg_obj_istuple(kconfig))
-					{
+					if (!cfg_obj_istuple(kconfig)) {
 						bad_kasp = true;
 						continue;
 					}
@@ -1001,17 +1002,24 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 						bad_name = true;
 						continue;
 					}
-					kasp = NULL;
-					(void)cfg_kasp_fromconfig(kconfig, mctx,
+
+					ret = cfg_kasp_fromconfig(kconfig, mctx,
 								  logctx,
 								  &list, &kasp);
+					if (ret != ISC_R_SUCCESS) {
+						if (result == ISC_R_SUCCESS) {
+							result = ret;
+						}
+					}
+
 					if (kasp != NULL) {
 						dns_kasp_detach(&kasp);
 					}
 				}
 			}
 
-			for (kasp = ISC_LIST_HEAD(list); kasp != NULL;
+			for (kasp = ISC_LIST_HEAD(list);
+			     kasp != NULL;
 			     kasp = kasp_next)
 			{
 				kasp_next = ISC_LIST_NEXT(kasp, link);

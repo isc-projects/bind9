@@ -475,9 +475,9 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking named-checkconf kasp warnings ($n)"
+echo_i "checking named-checkconf kasp errors ($n)"
 ret=0
-$CHECKCONF kasp-and-other-dnssec-options.conf > checkconf.out$n 2>&1
+$CHECKCONF kasp-and-other-dnssec-options.conf > checkconf.out$n 2>&1 && ret=1
 grep "'auto-dnssec maintain;' cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "dnskey-sig-validity: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "dnssec-dnskey-kskonly: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
@@ -490,11 +490,10 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking named-checkconf kasp key warnings ($n)"
+echo_i "checking named-checkconf kasp predefined key lengths ($n)"
 ret=0
-$CHECKCONF kasp-ignore-keylen.conf > checkconf.out$n 2>&1
-grep "dnssec-policy: key algorithm 13 has predefined length, ignoring length value 2048" < checkconf.out$n > /dev/null || ret=1
-grep "dnssec-policy: key with algorithm 5 has invalid key length, ignoring length value 4097" < checkconf.out$n > /dev/null || ret=1
+$CHECKCONF kasp-ignore-keylen.conf > checkconf.out$n 2>&1 || ret=1
+grep "dnssec-policy: key algorithm ecdsa256 has predefined length; ignoring length value 2048" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
