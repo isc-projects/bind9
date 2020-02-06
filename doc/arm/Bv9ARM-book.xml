@@ -7100,9 +7100,11 @@ options {
 	      <term><command>forwarders</command></term>
 	      <listitem>
 		<para>
-		  Specifies the IP addresses to be used
-		  for forwarding. The default is the empty list (no
-		  forwarding).
+		  Specifies a list of IP addresses to which queries shall be
+		  forwarded. The default is the empty list (no forwarding).
+		  Each address in the list can be associated with an optional
+		  port number and/or DSCP value, and a default port number and
+		  DSCP value can be set for the entire list.
 		</para>
 	      </listitem>
 	    </varlistentry>
