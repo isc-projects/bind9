@@ -78,7 +78,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp)
 	if (config == NULL) {
 		/* We are creating a key reference for the default kasp. */
 		key->role |= DNS_KASP_KEY_ROLE_KSK | DNS_KASP_KEY_ROLE_ZSK;
-		key->lifetime = 0;
+		key->lifetime = 0; /* unlimited */
 		key->algorithm = DNS_KEYALG_ECDSA256;
 		key->length = -1;
 	} else {
@@ -94,10 +94,16 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp)
 			key->role |= DNS_KASP_KEY_ROLE_KSK;
 			key->role |= DNS_KASP_KEY_ROLE_ZSK;
 		}
-		key->lifetime = cfg_obj_asduration(
-					     cfg_tuple_get(config, "lifetime"));
-		key->algorithm = cfg_obj_asuint32(
-					    cfg_tuple_get(config, "algorithm"));
+
+		key->lifetime = 0; /* unlimited */
+		obj = cfg_tuple_get(config, "lifetime");
+		if (cfg_obj_isduration(obj)) {
+			key->lifetime = cfg_obj_asduration(obj);
+		}
+
+		obj = cfg_tuple_get(config, "algorithm");
+		key->algorithm = cfg_obj_asuint32(obj);
+
 		obj = cfg_tuple_get(config, "length");
 		if (cfg_obj_isuint32(obj)) {
 			key->length = cfg_obj_asuint32(obj);

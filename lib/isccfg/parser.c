@@ -1088,6 +1088,22 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_chars(pctx, buf, strlen(buf));
 }
 
+void
+cfg_print_duration_or_unlimited(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	cfg_duration_t duration;
+
+	REQUIRE(pctx != NULL);
+	REQUIRE(obj != NULL);
+
+	duration = obj->value.duration;
+
+	if (duration.unlimited) {
+		cfg_print_cstr(pctx, "unlimited");
+	} else {
+		cfg_print_duration(pctx, obj);
+	}
+}
+
 bool
 cfg_obj_isduration(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
@@ -1250,21 +1266,14 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
-cfg_parse_duration(cfg_parser_t *pctx, const cfg_type_t *type,
-		   cfg_obj_t **ret)
+static isc_result_t
+cfg__parse_duration(cfg_parser_t *pctx, cfg_obj_t **ret)
 {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
 	cfg_duration_t duration;
 
-	UNUSED(type);
-
-	CHECK(cfg_gettoken(pctx, 0));
-	if (pctx->token.type != isc_tokentype_string) {
-		result = ISC_R_UNEXPECTEDTOKEN;
-		goto cleanup;
-	}
+	duration.unlimited = false;
 
 	if (TOKEN_STRING(pctx)[0] == 'P') {
 		result = duration_fromtext(&pctx->token.value.as_textregion,
@@ -1278,12 +1287,9 @@ cfg_parse_duration(cfg_parser_t *pctx, const cfg_type_t *type,
 		 * With dns_ttl_fromtext() the information on optional units.
 		 * is lost, and is treated as seconds from now on.
 		 */
-		duration.parts[0] = 0;
-		duration.parts[1] = 0;
-		duration.parts[2] = 0;
-		duration.parts[3] = 0;
-		duration.parts[4] = 0;
-		duration.parts[5] = 0;
+		for (int i = 0; i < 6; i++) {
+			duration.parts[i] = 0;
+		}
 		duration.parts[6] = ttl;
 		duration.iso8601 = false;
 	}
@@ -1305,6 +1311,66 @@ cleanup:
 	return (result);
 }
 
+isc_result_t
+cfg_parse_duration(cfg_parser_t *pctx, const cfg_type_t *type,
+		   cfg_obj_t **ret)
+{
+	isc_result_t result;
+
+	UNUSED(type);
+
+	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_string) {
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
+
+	return cfg__parse_duration(pctx, ret);
+
+cleanup:
+	cfg_parser_error(pctx, CFG_LOG_NEAR,
+			 "expected ISO 8601 duration or TTL value");
+	return (result);
+}
+
+isc_result_t
+cfg_parse_duration_or_unlimited(cfg_parser_t *pctx, const cfg_type_t *type,
+				cfg_obj_t **ret)
+{
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	cfg_duration_t duration;
+
+	UNUSED(type);
+
+	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_string) {
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
+
+	if (strcmp(TOKEN_STRING(pctx), "unlimited") == 0) {
+		for (int i = 0; i < 7; i++) {
+			duration.parts[i] = 0;
+		}
+		duration.iso8601 = false;
+		duration.unlimited = true;
+
+		CHECK(cfg_create_obj(pctx, &cfg_type_duration, &obj));
+		obj->value.duration = duration;
+		*ret = obj;
+		return (ISC_R_SUCCESS);
+	}
+
+	return cfg__parse_duration(pctx, ret);
+
+cleanup:
+	cfg_parser_error(pctx, CFG_LOG_NEAR,
+			 "expected ISO 8601 duration, TTL value, or unlimited");
+	return (result);
+}
+
+
 /*%
  * A duration as defined by ISO 8601 (P[n]Y[n]M[n]DT[n]H[n]M[n]S).
  * - P is the duration indicator ("period") placed at the start.
@@ -1322,6 +1388,11 @@ cleanup:
  */
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_duration = {
 	"duration", cfg_parse_duration, cfg_print_duration, cfg_doc_terminal,
+	&cfg_rep_duration, NULL
+};
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_duration_or_unlimited = {
+	"duration_or_unlimited", cfg_parse_duration_or_unlimited,
+	cfg_print_duration_or_unlimited, cfg_doc_terminal,
 	&cfg_rep_duration, NULL
 };
 

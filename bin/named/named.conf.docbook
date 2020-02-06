@@ -115,7 +115,7 @@ dlz <replaceable>string</replaceable> {
     <literallayout class="normal">
 dnssec-policy <replaceable>string</replaceable> {
 	dnskey-ttl <replaceable>duration</replaceable>;
-	keys { ( csk | ksk | zsk ) ( key-directory ) lifetime <replaceable>duration</replaceable>
+	keys { ( csk | ksk | zsk ) ( key-directory ) lifetime ( <replaceable>duration</replaceable> | unlimited )
 	    algorithm <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ]; ... };
 	max-zone-ttl <replaceable>duration</replaceable>;
 	parent-ds-ttl <replaceable>duration</replaceable>;

@@ -96,7 +96,7 @@ static cfg_type_t cfg_type_logseverity;
 static cfg_type_t cfg_type_logsuffix;
 static cfg_type_t cfg_type_logversions;
 static cfg_type_t cfg_type_masterselement;
-static cfg_type_t cfg_type_maxttl;
+static cfg_type_t cfg_type_maxduration;
 static cfg_type_t cfg_type_minimal;
 static cfg_type_t cfg_type_nameportiplist;
 static cfg_type_t cfg_type_notifytype;
@@ -439,6 +439,24 @@ static cfg_type_t cfg_type_category = {
 	&cfg_rep_tuple, category_fields
 };
 
+static isc_result_t
+parse_maxduration(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_duration, ret));
+}
+
+static void
+doc_maxduration(cfg_printer_t *pctx, const cfg_type_t *type) {
+	cfg_doc_enum_or_other(pctx, type, &cfg_type_duration);
+}
+
+/*%
+ * A duration or "unlimited", but not "default".
+ */
+static const char *maxduration_enums[] = { "unlimited", NULL };
+static cfg_type_t cfg_type_maxduration = {
+	"maxduration_no_default", parse_maxduration, cfg_print_ustring,
+	doc_maxduration, &cfg_rep_duration, maxduration_enums
+};
 
 /*%
  * A dnssec key, as used in the "trusted-keys" statement.
@@ -509,7 +527,8 @@ static cfg_type_t cfg_type_algorithm = {
 	doc_keyvalue, &cfg_rep_uint32, &algorithm_kw
 };
 
-static keyword_type_t lifetime_kw = { "lifetime", &cfg_type_duration };
+static keyword_type_t lifetime_kw = { "lifetime",
+				      &cfg_type_duration_or_unlimited };
 static cfg_type_t cfg_type_lifetime = {
 	"lifetime", parse_keyvalue, print_keyvalue,
 	doc_keyvalue, &cfg_rep_duration, &lifetime_kw
@@ -2227,7 +2246,7 @@ zone_clauses[] = {
 	{ "max-transfer-time-out", &cfg_type_uint32,
 		CFG_ZONE_MASTER | CFG_ZONE_MIRROR | CFG_ZONE_SLAVE
 	},
-	{ "max-zone-ttl", &cfg_type_maxttl,
+	{ "max-zone-ttl", &cfg_type_maxduration,
 		CFG_ZONE_MASTER | CFG_ZONE_REDIRECT
 	},
 	{ "min-refresh-time", &cfg_type_uint32,
@@ -3865,25 +3884,6 @@ parse_masterselement(cfg_parser_t *pctx, const cfg_type_t *type,
 static cfg_type_t cfg_type_masterselement = {
 	"masters_element", parse_masterselement, NULL,
 	 doc_masterselement, NULL, NULL
-};
-
-static isc_result_t
-parse_maxttl(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_duration, ret));
-}
-
-static void
-doc_maxttl(cfg_printer_t *pctx, const cfg_type_t *type) {
-	cfg_doc_enum_or_other(pctx, type, &cfg_type_duration);
-}
-
-/*%
- * A size or "unlimited", but not "default".
- */
-static const char *maxttl_enums[] = { "unlimited", NULL };
-static cfg_type_t cfg_type_maxttl = {
-	"maxttl_no_default", parse_maxttl, cfg_print_ustring, doc_maxttl,
-	&cfg_rep_string, maxttl_enums
 };
 
 static int cmp_clause(const void *ap, const void *bp) {

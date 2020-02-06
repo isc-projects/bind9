@@ -23,7 +23,7 @@ dlz <string> {
 
 dnssec-policy <string> {
         dnskey-ttl <duration>;
-        keys { ( csk | ksk | zsk ) ( key-directory ) lifetime <duration>
+        keys { ( csk | ksk | zsk ) ( key-directory ) lifetime ( <duration> | unlimited )
             algorithm <integer> [ <integer> ]; ... };
         max-zone-ttl <duration>;
         parent-ds-ttl <duration>;

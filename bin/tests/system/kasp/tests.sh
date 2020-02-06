@@ -1027,6 +1027,22 @@ check_apex
 check_subdomain
 
 #
+# Zone: unlimited.kasp.
+#
+zone_properties "ns3" "unlimited.kasp" "unlimited" "1234" "1" "10.53.0.3"
+key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_clear "KEY2"
+key_clear "KEY3"
+# The first key is immediately published and activated.
+key_timings "KEY1" "published" "active" "none" "none" "none"
+# DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
+key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
 # Zone: inherit.kasp.
 #
 zone_properties "ns3" "inherit.kasp" "rsasha1" "1234" "3" "10.53.0.3"
@@ -1451,7 +1467,7 @@ check_subdomain
 # ns5/override.inherit.signed
 # ns5/inherit.override.signed
 key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
-key_timings "KEY1" "published" "active" "none" "none" "none" "none"
+key_timings "KEY1" "published" "active" "none" "none" "none"
 key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 
 zone_properties "ns2" "signed.tld" "default" "3600" "1" "10.53.0.2"
@@ -1496,7 +1512,7 @@ dnssec_verify
 # ns5/override.override.unsigned
 # ns5/override.none.unsigned
 key_properties "KEY1" "csk" "0" "14" "ECDSAP384SHA384" "384" "yes" "yes"
-key_timings "KEY1" "published" "active" "none" "none" "none" "none"
+key_timings "KEY1" "published" "active" "none" "none" "none"
 key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 
 zone_properties "ns4" "inherit.inherit.signed" "test" "3600" "1" "10.53.0.4"

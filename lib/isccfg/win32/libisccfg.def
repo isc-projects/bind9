@@ -72,6 +72,7 @@ cfg_parse_bracketed_list
 cfg_parse_buffer
 cfg_parse_dscp
 cfg_parse_duration
+cfg_parse_duration_or_unlimited
 cfg_parse_enum
 cfg_parse_enum_or_other
 cfg_parse_file
@@ -112,6 +113,7 @@ cfg_print_chars
 cfg_print_clauseflags
 cfg_print_cstr
 cfg_print_duration
+cfg_print_duration_or_unlimited
 cfg_print_fixedpoint
 cfg_print_grammar
 cfg_print_indent

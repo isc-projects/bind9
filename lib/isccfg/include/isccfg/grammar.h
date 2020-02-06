@@ -173,6 +173,7 @@ struct cfg_duration {
 	 */
 	uint32_t parts[7];
 	bool iso8601;
+	bool unlimited;
 };
 
 /*%
@@ -344,6 +345,7 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_unsupported;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_fixedpoint;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_percentage;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_duration;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_duration_or_unlimited;
 /*@}*/
 
 isc_result_t
@@ -534,6 +536,13 @@ cfg_parse_duration(cfg_parser_t *pctx, const cfg_type_t *type,
 
 void
 cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj);
+
+isc_result_t
+cfg_parse_duration_or_unlimited(cfg_parser_t *pctx, const cfg_type_t *type,
+				cfg_obj_t **ret);
+
+void
+cfg_print_duration_or_unlimited(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
 isc_result_t
 cfg_parse_obj(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);

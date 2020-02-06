@@ -199,9 +199,9 @@ is referred to as a CSK. Below is an example configuration for the three types
 of keys:
 ```
 	keys {
-		ksk key-directory lifetime P5Y  algorithm ECDSAP256SHA256;
+		ksk key-directory lifetime unlimited algorithm ECDSAP256SHA256;
 		zsk key-directory lifetime P30D algorithm ECDSAP256SHA256;
-		csk key-directory lifetime PT0S algorithm 8 2048;
+		csk key-directory lifetime P5Y algorithm 8 2048;
 	};
 ```
 
