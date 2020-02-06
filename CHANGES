@@ -1,3 +1,9 @@
+5354.	[bug]		dnssec-policy created new KSK keys when zone is in
+			initial stage of signing (the DS is not yet in
+			rumoured or omnipresent state).  Fix by checking
+			key goals rather than active state when determining
+			new keys are needed. [GL #1593]
+
 5353.	[doc]		Document port and dscp parameters in forwarders
 			configuration option. [GL !914]
 

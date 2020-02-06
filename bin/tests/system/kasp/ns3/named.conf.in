@@ -108,6 +108,16 @@ zone "pregenerated.kasp" {
 };
 
 /*
+ * A configured dnssec-policy with one rumoured key.
+ * Bugfix case for GL #1593.
+ */
+zone "rumoured.kasp" {
+	type master;
+	file "rumoured.kasp.db";
+	dnssec-policy "rsasha1";
+};
+
+/*
  * Different algorithms.
  */
 zone "rsasha1-nsec3.kasp" {

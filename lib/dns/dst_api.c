@@ -2468,7 +2468,6 @@ dst_key_is_active(dst_key_t *key, isc_stdtime_t now)
 	return ds_ok && zrrsig_ok && time_ok && !inactive;
 }
 
-
 bool
 dst_key_is_signing(dst_key_t *key, int role, isc_stdtime_t now, isc_stdtime_t *active)
 {
@@ -2580,6 +2579,19 @@ dst_key_is_removed(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *remove)
 	}
 
 	return state_ok && time_ok;
+}
+
+dst_key_state_t
+dst_key_goal(dst_key_t *key)
+{
+	dst_key_state_t state;
+	isc_result_t result;
+
+	result = dst_key_getstate(key, DST_KEY_GOAL, &state);
+	if (result == ISC_R_SUCCESS) {
+		return state;
+	}
+	return DST_KEY_STATE_HIDDEN;
 }
 
 void

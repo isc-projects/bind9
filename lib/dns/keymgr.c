@@ -1358,7 +1358,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 						       lifetime);
 				}
 
-				if (dst_key_is_active(dkey->key, now)) {
+				if (dst_key_goal(dkey->key) == OMNIPRESENT) {
 					if (active_key != NULL) {
 						/*
 						 * Multiple signing keys match
