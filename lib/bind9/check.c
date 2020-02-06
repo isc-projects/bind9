@@ -2205,7 +2205,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			for (element = cfg_list_first(kasps); element != NULL;
 			     element = cfg_list_next(element))
 			{
-				const char* kn = cfg_obj_asstring(
+				const char *kn = cfg_obj_asstring(
 				       cfg_tuple_get(cfg_listelt_value(element),
 						     "name"));
 				if (strcmp(kaspname, kn) == 0) {

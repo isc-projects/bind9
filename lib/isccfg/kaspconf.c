@@ -216,21 +216,27 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 	maps[i] = NULL;
 
 	/* Configuration: Signatures */
-	dns_kasp_setsigrefresh(kasp, get_duration(maps, "signatures-refresh",
-						  DNS_KASP_SIG_REFRESH));
-	dns_kasp_setsigvalidity(kasp, get_duration(maps, "signatures-validity",
-						   DNS_KASP_SIG_VALIDITY));
-	dns_kasp_setsigvalidity_dnskey(kasp, get_duration(maps,
-						   "signatures-validity-dnskey",
-						 DNS_KASP_SIG_VALIDITY_DNSKEY));
+	dns_kasp_setsigrefresh(kasp,
+			       get_duration(maps, "signatures-refresh",
+					    DNS_KASP_SIG_REFRESH));
+	dns_kasp_setsigvalidity(kasp,
+				get_duration(maps, "signatures-validity",
+					     DNS_KASP_SIG_VALIDITY));
+	dns_kasp_setsigvalidity_dnskey(kasp,
+				       get_duration(maps,
+					    "signatures-validity-dnskey",
+					    DNS_KASP_SIG_VALIDITY_DNSKEY));
 
 	/* Configuration: Keys */
-	dns_kasp_setdnskeyttl(kasp, get_duration(maps, "dnskey-ttl",
-						 DNS_KASP_KEY_TTL));
-	dns_kasp_setpublishsafety(kasp, get_duration(maps, "publish-safety",
-						     DNS_KASP_PUBLISH_SAFETY));
-	dns_kasp_setretiresafety(kasp, get_duration(maps, "retire-safety",
-						    DNS_KASP_RETIRE_SAFETY));
+	dns_kasp_setdnskeyttl(kasp,
+			      get_duration(maps, "dnskey-ttl",
+					   DNS_KASP_KEY_TTL));
+	dns_kasp_setpublishsafety(kasp,
+				  get_duration(maps, "publish-safety",
+					       DNS_KASP_PUBLISH_SAFETY));
+	dns_kasp_setretiresafety(kasp,
+				 get_duration(maps, "retire-safety",
+					      DNS_KASP_RETIRE_SAFETY));
 
 	(void)confget(maps, "keys", &keys);
 	if (keys == NULL) {
@@ -249,33 +255,34 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 			}
 		}
 	}
-	ISC_INSIST(!(dns_kasp_keylist_empty(kasp)));
+	INSIST(!(dns_kasp_keylist_empty(kasp)));
 
 	/* Configuration: Zone settings */
 	dns_kasp_setzonemaxttl(kasp, get_duration(maps, "max-zone-ttl",
 						  DNS_KASP_ZONE_MAXTTL));
 	dns_kasp_setzonepropagationdelay(kasp, get_duration(maps,
-						       "zone-propagation-delay",
-						      DNS_KASP_ZONE_PROPDELAY));
+						    "zone-propagation-delay",
+						    DNS_KASP_ZONE_PROPDELAY));
 
 	/* Configuration: Parent settings */
 	dns_kasp_setdsttl(kasp, get_duration(maps, "parent-ds-ttl",
 					     DNS_KASP_DS_TTL));
 	dns_kasp_setparentpropagationdelay(kasp, get_duration(maps,
-						     "parent-propagation-delay",
-						    DNS_KASP_PARENT_PROPDELAY));
+						   "parent-propagation-delay",
+						   DNS_KASP_PARENT_PROPDELAY));
 	dns_kasp_setparentregistrationdelay(kasp, get_duration(maps,
-						    "parent-registration-delay",
-						     DNS_KASP_PARENT_REGDELAY));
+						  "parent-registration-delay",
+						   DNS_KASP_PARENT_REGDELAY));
 
-	// TODO: Rest of the configuration
+	/* TODO: Rest of the configuration */
 
 	/* Append it to the list for future lookups. */
 	ISC_LIST_APPEND(*kasplist, kasp, link);
-	ISC_INSIST(!(ISC_LIST_EMPTY(*kasplist)));
+	INSIST(!(ISC_LIST_EMPTY(*kasplist)));
 
 	/* Success: Attach the kasp to the pointer and return. */
 	dns_kasp_attach(kasp, kaspp);
+
 	/* Don't detach as kasp is on '*kasplist' */
 	return (ISC_R_SUCCESS);
 

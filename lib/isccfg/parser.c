@@ -989,7 +989,7 @@ numlen(uint32_t num) {
 	size_t count = 0;
 
 	if (period == 0) {
-		return 1;
+		return (1);
 	}
 	while (period > 0) {
 		count++;
@@ -1181,8 +1181,8 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 
 	/* Every duration starts with 'P' */
 	P = strchr(str, 'P');
-	if (!P) {
-	return (ISC_R_BADNUMBER);
+	if (P == NULL) {
+		return (ISC_R_BADNUMBER);
 	}
 
 	/* Record the time indicator. */
@@ -1190,57 +1190,63 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 
 	/* Record years. */
 	X = strchr(str, 'Y');
-	if (X) {
+	if (X != NULL) {
 		duration->parts[0] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
+
 	/* Record months. */
 	X = strchr(str, 'M');
+
 	/*
 	 * M could be months or minutes. This is months if there is no time
 	 * part, or this M indicator is before the time indicator.
 	 */
-	if (X && (!T || (size_t) (X-P) < (size_t) (T-P))) {
+	if (X != NULL && (T == NULL || (size_t) (X-P) < (size_t) (T-P))) {
 		duration->parts[1] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
+
 	/* Record days. */
 	X = strchr(str, 'D');
-	if (X) {
+	if (X != NULL) {
 		duration->parts[3] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
 
 	/* Time part? */
-	if (T) {
+	if (T != NULL) {
 		str = T;
 		not_weeks = true;
 	}
 
 	/* Record hours. */
 	X = strchr(str, 'H');
-	if (X && T) {
+	if (X != NULL && T != NULL) {
 		duration->parts[4] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
+
 	/* Record minutes. */
 	X = strrchr(str, 'M');
+
 	/*
 	 * M could be months or minutes. This is minutes if there is a time
 	 * part and the M indicator is behind the time indicator.
 	 */
-	if (X && T && (size_t) (X-P) > (size_t) (T-P)) {
+	if (X != NULL && T != NULL && (size_t) (X-P) > (size_t) (T-P)) {
 		duration->parts[5] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
+
 	/* Record seconds. */
 	X = strchr(str, 'S');
-	if (X && T) {
+	if (X != NULL && T != NULL) {
 		duration->parts[6] = atoi(str+1);
 		str = X;
 		not_weeks = true;
@@ -1248,7 +1254,7 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 
 	/* Or is the duration configured in weeks? */
 	W = strchr(buf, 'W');
-	if (W) {
+	if (W != NULL) {
 		if (not_weeks) {
 			/* Mix of weeks and other indicators is not allowed */
 			return (ISC_R_BADNUMBER);
@@ -1267,8 +1273,7 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 }
 
 static isc_result_t
-cfg__parse_duration(cfg_parser_t *pctx, cfg_obj_t **ret)
-{
+parse_duration(cfg_parser_t *pctx, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
 	cfg_duration_t duration;
@@ -1293,6 +1298,7 @@ cfg__parse_duration(cfg_parser_t *pctx, cfg_obj_t **ret)
 		duration.parts[6] = ttl;
 		duration.iso8601 = false;
 	}
+
 	if (result == ISC_R_RANGE) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
 				 "duration or TTL out of range");
@@ -1300,9 +1306,11 @@ cfg__parse_duration(cfg_parser_t *pctx, cfg_obj_t **ret)
 	} else if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
+
 	CHECK(cfg_create_obj(pctx, &cfg_type_duration, &obj));
 	obj->value.duration = duration;
 	*ret = obj;
+
 	return (ISC_R_SUCCESS);
 
 cleanup:
@@ -1325,7 +1333,7 @@ cfg_parse_duration(cfg_parser_t *pctx, const cfg_type_t *type,
 		goto cleanup;
 	}
 
-	return cfg__parse_duration(pctx, ret);
+	return (parse_duration(pctx, ret));
 
 cleanup:
 	cfg_parser_error(pctx, CFG_LOG_NEAR,
@@ -1362,7 +1370,7 @@ cfg_parse_duration_or_unlimited(cfg_parser_t *pctx, const cfg_type_t *type,
 		return (ISC_R_SUCCESS);
 	}
 
-	return cfg__parse_duration(pctx, ret);
+	return (parse_duration(pctx, ret));
 
 cleanup:
 	cfg_parser_error(pctx, CFG_LOG_NEAR,
