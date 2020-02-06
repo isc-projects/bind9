@@ -186,9 +186,9 @@ find(void **state) {
 	}
 
 	dns_rdataset_init(&rdataset);
-	check_assertion(dns_db_find(db1, dns_rootname, v2,
-				    dns_rdatatype_soa, 0, 0, NULL,
-				    name, &rdataset, NULL));
+	check_assertion((void)dns_db_find(db1, dns_rootname, v2,
+					  dns_rdatatype_soa, 0, 0, NULL,
+					  name, &rdataset, NULL));
 }
 
 /*
