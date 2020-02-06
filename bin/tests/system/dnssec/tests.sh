@@ -1331,7 +1331,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "basic dnssec-signzone checks:"
-echo_i " two DNSKEYs ($n)"
+echo_ic "two DNSKEYs ($n)"
 ret=0
 (
 cd signer/general
@@ -1343,7 +1343,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i " one non-KSK DNSKEY ($n)"
+echo_ic "one non-KSK DNSKEY ($n)"
 ret=0
 (
 cd signer/general
@@ -1355,7 +1355,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i " one KSK DNSKEY ($n)"
+echo_ic "one KSK DNSKEY ($n)"
 ret=0
 (
 cd signer/general
@@ -1367,7 +1367,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i " three DNSKEY ($n)"
+echo_ic "three DNSKEY ($n)"
 ret=0
 (
 cd signer/general
@@ -1379,7 +1379,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i " three DNSKEY, one private key missing ($n)"
+echo_ic "three DNSKEY, one private key missing ($n)"
 ret=0
 (
 cd signer/general
@@ -1391,7 +1391,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i " four DNSKEY ($n)"
+echo_ic "four DNSKEY ($n)"
 ret=0
 (
 cd signer/general
@@ -1403,7 +1403,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i " two DNSKEY, both private keys missing ($n)"
+echo_ic "two DNSKEY, both private keys missing ($n)"
 ret=0
 (
 cd signer/general
@@ -1415,7 +1415,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i " two DNSKEY, one private key missing ($n)"
+echo_ic "two DNSKEY, one private key missing ($n)"
 ret=0
 (
 cd signer/general
