@@ -182,13 +182,17 @@ def main():
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind((listenip, port))
     sock.listen(1)
+    sock.settimeout(1)
 
     while True:
-        (clientsock, _) = sock.accept()
-        log('Accepted connection from %s' % clientsock)
-        thread = TCPDelayer(clientsock, serverip, port)
-        thread.start()
-        THREADS.append(thread)
+        try:
+            (clientsock, _) = sock.accept()
+            log('Accepted connection from %s' % clientsock)
+            thread = TCPDelayer(clientsock, serverip, port)
+            thread.start()
+            THREADS.append(thread)
+        except socket.timeout:
+            pass
 
 if __name__ == '__main__':
     main()
