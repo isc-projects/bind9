@@ -1166,6 +1166,18 @@ dst_key_is_removed(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *remove);
  *	'key' to be valid.
  */
 
+dst_key_state_t
+dst_key_goal(dst_key_t *key);
+/*%<
+ * Get the key goal. Should be OMNIPRESENT or HIDDEN.
+ * This can be used to determine if the key is being introduced or
+ * is on its way out.
+ *
+ * Requires:
+ *	'key' to be valid.
+ */
+
+
 void
 dst_key_copy_metadata(dst_key_t *to, dst_key_t *from);
 /*%<

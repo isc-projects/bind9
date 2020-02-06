@@ -2336,7 +2336,7 @@ dst_key_is_unused(dst_key_t* key)
 		 * This key is used.
 		 */
 		if (!state_type_set) {
-			return false;
+			return (false);
 		}
 		/*
 		 * If the state is not HIDDEN, the key is in use.
@@ -2346,11 +2346,11 @@ dst_key_is_unused(dst_key_t* key)
 			st = DST_KEY_STATE_NA;
 		}
 		if (st != DST_KEY_STATE_HIDDEN) {
-			return false;
+			return (false);
 		}
 	}
 	/* This key is unused. */
-	return true;
+	return (true);
 }
 
 
@@ -2405,7 +2405,7 @@ dst_key_is_published(dst_key_t *key, isc_stdtime_t now,
 		time_ok = true;
 	}
 
-	return state_ok && time_ok;
+	return (state_ok && time_ok);
 }
 
 bool
@@ -2465,9 +2465,8 @@ dst_key_is_active(dst_key_t *key, isc_stdtime_t now)
 			inactive = false;
 		}
 	}
-	return ds_ok && zrrsig_ok && time_ok && !inactive;
+	return (ds_ok && zrrsig_ok && time_ok && !inactive);
 }
-
 
 bool
 dst_key_is_signing(dst_key_t *key, int role, isc_stdtime_t now, isc_stdtime_t *active)
@@ -2522,7 +2521,7 @@ dst_key_is_signing(dst_key_t *key, int role, isc_stdtime_t now, isc_stdtime_t *a
 			inactive = false;
 		}
 	}
-	return krrsig_ok && zrrsig_ok && time_ok && !inactive;
+	return (krrsig_ok && zrrsig_ok && time_ok && !inactive);
 }
 
 bool
@@ -2540,7 +2539,7 @@ dst_key_is_revoked(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *revoke)
 		time_ok = (when <= now);
 	}
 
-	return time_ok;
+	return (time_ok);
 }
 
 bool
@@ -2555,7 +2554,7 @@ dst_key_is_removed(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *remove)
 
 	if (dst_key_is_unused(key)) {
 		/* This key was never used. */
-		return false;
+		return (false);
 	}
 
 	result = dst_key_gettime(key, DST_TIME_DELETE, &when);
@@ -2579,7 +2578,20 @@ dst_key_is_removed(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *remove)
 		time_ok = true;
 	}
 
-	return state_ok && time_ok;
+	return (state_ok && time_ok);
+}
+
+dst_key_state_t
+dst_key_goal(dst_key_t *key)
+{
+	dst_key_state_t state;
+	isc_result_t result;
+
+	result = dst_key_getstate(key, DST_KEY_GOAL, &state);
+	if (result == ISC_R_SUCCESS) {
+		return (state);
+	}
+	return (DST_KEY_STATE_HIDDEN);
 }
 
 void

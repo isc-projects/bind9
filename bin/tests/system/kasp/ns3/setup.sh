@@ -43,7 +43,7 @@ U="UNRETENTIVE"
 # Set up zones that will be initially signed.
 #
 for zn in default rsasha1 dnssec-keygen some-keys legacy-keys pregenerated \
-	  rsasha1-nsec3 rsasha256 rsasha512 ecdsa256 ecdsa384 inherit
+	  rumoured rsasha1-nsec3 rsasha256 rsasha512 ecdsa256 ecdsa384 inherit
 do
 	setup "${zn}.kasp"
 	cp template.db.in "$zonefile"
@@ -71,6 +71,16 @@ $KEYGEN -a RSASHA1 -f KSK  -L 1234 $zone > keygen.out.$zone.2 2>&1
 zone="pregenerated.kasp"
 $KEYGEN -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.1 2>&1
 $KEYGEN -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.2 2>&1
+
+zone="rumoured.kasp"
+Tpub="now"
+Tact="now+1d"
+KSK=$($KEYGEN  -a RSASHA1 -f KSK  -L 1234 $zone 2> keygen.out.$zone.1)
+ZSK1=$($KEYGEN -a RSASHA1 -b 2000 -L 1234 $zone 2> keygen.out.$zone.2)
+ZSK2=$($KEYGEN -a RSASHA1         -L 1234 $zone 2> keygen.out.$zone.3)
+$SETTIME -s -P $Tpub -A $Tact -g $O -k $R $Tpub -r $R $Tpub -d $H $Tpub  "$KSK"  > settime.out.$zone.1 2>&1
+$SETTIME -s -P $Tpub -A $Tact -g $O -k $R $Tpub -z $R $Tpub              "$ZSK1" > settime.out.$zone.2 2>&1
+$SETTIME -s -P $Tpub -A $Tact -g $O -k $R $Tpub -z $R $Tpub              "$ZSK2" > settime.out.$zone.2 2>&1
 
 #
 # Set up zones that are already signed.

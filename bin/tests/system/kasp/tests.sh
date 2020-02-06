@@ -1057,6 +1057,17 @@ check_subdomain
 dnssec_verify
 
 #
+# Zone: rumoured.kasp.
+#
+# There are three keys in rumoured state.
+zone_properties "ns3" "rumoured.kasp" "rsasha1" "1234" "3" "10.53.0.3"
+# key_properties, key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
 # Zone: secondary.kasp.
 #
 zone_properties "ns3" "secondary.kasp" "rsasha1" "1234" "3" "10.53.0.3"
