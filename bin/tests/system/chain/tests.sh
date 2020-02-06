@@ -158,7 +158,7 @@ ret=0
 $RNDCCMD 10.53.0.7 null --- start test$n --- 2>&1 | sed 's/^/ns7 /' | cat_i
 $DIG $DIGOPTS @10.53.0.7 c.example > dig.out.$n
 grep "status: NOERROR" dig.out.$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i " failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
@@ -167,7 +167,7 @@ ret=0
 $RNDCCMD 10.53.0.7 null --- start test$n --- 2>&1 | sed 's/^/ns7 /' | cat_i
 $DIG $DIGOPTS @10.53.0.7 d.example > dig.out.$n
 grep "status: NOERROR" dig.out.$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i " failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
