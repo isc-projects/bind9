@@ -65,7 +65,8 @@ get_duration(const cfg_obj_t **maps, const char* option, uint32_t dfl)
  * Create a new kasp key derived from configuration.
  */
 static isc_result_t
-cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp)
+cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp,
+		       isc_log_t *logctx)
 {
 	isc_result_t result;
 	dns_kasp_key_t *key = NULL;
@@ -75,6 +76,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp)
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
+
 	if (config == NULL) {
 		/* We are creating a key reference for the default kasp. */
 		key->role |= DNS_KASP_KEY_ROLE_KSK | DNS_KASP_KEY_ROLE_ZSK;
@@ -82,8 +84,8 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp)
 		key->algorithm = DNS_KEYALG_ECDSA256;
 		key->length = -1;
 	} else {
-		const char* rolestr;
-		const cfg_obj_t* obj;
+		const char *rolestr = NULL;
+		const cfg_obj_t *obj = NULL;
 
 		rolestr = cfg_obj_asstring(cfg_tuple_get(config, "role"));
 		if (strcmp(rolestr, "ksk") == 0) {
@@ -106,15 +108,48 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp)
 
 		obj = cfg_tuple_get(config, "length");
 		if (cfg_obj_isuint32(obj)) {
-			key->length = cfg_obj_asuint32(obj);
+			uint32_t min, size;
+			size = cfg_obj_asuint32(obj);
+
+			switch (key->algorithm) {
+			case DNS_KEYALG_RSASHA1:
+			case DNS_KEYALG_NSEC3RSASHA1:
+			case DNS_KEYALG_RSASHA256:
+			case DNS_KEYALG_RSASHA512:
+				min = DNS_KEYALG_RSASHA512 ? 1024 : 512;
+				if (size < min || size > 4096) {
+					cfg_obj_log(obj, logctx,
+						    ISC_LOG_ERROR,
+						    "dnssec-policy: key with "
+						    "algorithm %u has invalid "
+						    "key length",
+						    key->algorithm);
+					return (ISC_R_RANGE);
+				}
+				break;
+			case DNS_KEYALG_ECDSA256:
+			case DNS_KEYALG_ECDSA384:
+			case DNS_KEYALG_ED25519:
+			case DNS_KEYALG_ED448:
+				cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+					    "dnssec-policy: key algorithm %u "
+					    "has predefined length; ignoring "
+					    "length value %u", key->algorithm,
+					    size);
+			default:
+				break;
+			}
+
+			key->length = size;
 		}
 	}
+
 	dns_kasp_addkey(kasp, key);
 	return (result);
 }
 
 isc_result_t
-cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
+cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 		    dns_kasplist_t *kasplist, dns_kasp_t **kaspp)
 {
 	isc_result_t result;
@@ -179,7 +214,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
 
 	(void)confget(maps, "keys", &keys);
 	if (keys == NULL) {
-		result = cfg_kaspkey_fromconfig(NULL, kasp);
+		result = cfg_kaspkey_fromconfig(NULL, kasp, logctx);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -188,7 +223,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
 		     element = cfg_list_next(element))
 		{
 			cfg_obj_t *kobj = cfg_listelt_value(element);
-			result = cfg_kaspkey_fromconfig(kobj, kasp);
+			result = cfg_kaspkey_fromconfig(kobj, kasp, logctx);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}

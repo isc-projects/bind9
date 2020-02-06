@@ -490,6 +490,15 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking named-checkconf kasp key warnings ($n)"
+ret=0
+$CHECKCONF kasp-ignore-keylen.conf > checkconf.out$n 2>&1
+grep "dnssec-policy: key algorithm 13 has predefined length, ignoring length value 2048" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: key with algorithm 5 has invalid key length, ignoring length value 4097" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check that a good 'kasp' configuration is accepted ($n)"
 ret=0
 $CHECKCONF good-kasp.conf > checkconf.out$n 2>/dev/null || ret=1

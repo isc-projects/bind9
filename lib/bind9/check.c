@@ -40,6 +40,7 @@
 #include <dns/acl.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
+#include <dns/kasp.h>
 #include <dns/keyvalues.h>
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
@@ -54,6 +55,7 @@
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
+#include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
 
 #include <ns/hooks.h>
@@ -977,20 +979,44 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		if (optlevel != optlevel_config && !cfg_obj_isstring(obj)) {
 			bad_kasp = true;
 		} else if (optlevel == optlevel_config) {
+			dns_kasplist_t list;
+			dns_kasp_t* kasp, *kasp_next;
+
+			ISC_LIST_INIT(list);
+
 			if (cfg_obj_islist(obj)) {
 				for (element = cfg_list_first(obj);
 				     element != NULL;
 				     element = cfg_list_next(element))
 				{
-					if (!cfg_obj_istuple(
-						    cfg_listelt_value(element)))
+					cfg_obj_t *kconfig =
+						     cfg_listelt_value(element);
+
+					if (!cfg_obj_istuple(kconfig))
 					{
 						bad_kasp = true;
+						continue;
 					}
 					if (!kasp_name_allowed(element)) {
 						bad_name = true;
+						continue;
+					}
+					kasp = NULL;
+					(void)cfg_kasp_fromconfig(kconfig, mctx,
+								  logctx,
+								  &list, &kasp);
+					if (kasp != NULL) {
+						dns_kasp_detach(&kasp);
 					}
 				}
+			}
+
+			for (kasp = ISC_LIST_HEAD(list); kasp != NULL;
+			     kasp = kasp_next)
+			{
+				kasp_next = ISC_LIST_NEXT(kasp, link);
+				ISC_LIST_UNLINK(list, kasp, link);
+				dns_kasp_detach(&kasp);
 			}
 		}
 
