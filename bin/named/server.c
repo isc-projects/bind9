@@ -8742,8 +8742,8 @@ load_configuration(const char *filename, named_server_t *server,
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		kasp = NULL;
-		CHECK(cfg_kasp_fromconfig(kconfig, named_g_mctx, &kasplist,
-					  &kasp));
+		CHECK(cfg_kasp_fromconfig(kconfig, named_g_mctx, named_g_lctx,
+					  &kasplist, &kasp));
 		INSIST(kasp != NULL);
 		dns_kasp_freeze(kasp);
 		dns_kasp_detach(&kasp);
@@ -8752,7 +8752,8 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Create the default kasp.
 	 */
 	kasp = NULL;
-	CHECK(cfg_kasp_fromconfig(NULL, named_g_mctx, &kasplist, &kasp));
+	CHECK(cfg_kasp_fromconfig(NULL, named_g_mctx, named_g_lctx, &kasplist,
+				  &kasp));
 	INSIST(kasp != NULL);
 	dns_kasp_freeze(kasp);
 	dns_kasp_detach(&kasp);

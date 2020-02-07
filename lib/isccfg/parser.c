@@ -11,6 +11,7 @@
 
 /*! \file */
 
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -989,7 +990,7 @@ numlen(uint32_t num) {
 	size_t count = 0;
 
 	if (period == 0) {
-		return 1;
+		return (1);
 	}
 	while (period > 0) {
 		count++;
@@ -1088,6 +1089,22 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_chars(pctx, buf, strlen(buf));
 }
 
+void
+cfg_print_duration_or_unlimited(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	cfg_duration_t duration;
+
+	REQUIRE(pctx != NULL);
+	REQUIRE(obj != NULL);
+
+	duration = obj->value.duration;
+
+	if (duration.unlimited) {
+		cfg_print_cstr(pctx, "unlimited");
+	} else {
+		cfg_print_duration(pctx, obj);
+	}
+}
+
 bool
 cfg_obj_isduration(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
@@ -1164,75 +1181,81 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	}
 
 	/* Every duration starts with 'P' */
-	P = strchr(str, 'P');
-	if (!P) {
-	return (ISC_R_BADNUMBER);
+	P = strpbrk(str, "Pp");
+	if (P == NULL) {
+		return (ISC_R_BADNUMBER);
 	}
 
 	/* Record the time indicator. */
-	T = strchr(str, 'T');
+	T = strpbrk(str, "Tt");
 
 	/* Record years. */
-	X = strchr(str, 'Y');
-	if (X) {
+	X = strpbrk(str, "Yy");
+	if (X != NULL) {
 		duration->parts[0] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
+
 	/* Record months. */
-	X = strchr(str, 'M');
+	X = strpbrk(str, "Mm");
+
 	/*
 	 * M could be months or minutes. This is months if there is no time
 	 * part, or this M indicator is before the time indicator.
 	 */
-	if (X && (!T || (size_t) (X-P) < (size_t) (T-P))) {
+	if (X != NULL && (T == NULL || (size_t) (X-P) < (size_t) (T-P))) {
 		duration->parts[1] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
+
 	/* Record days. */
-	X = strchr(str, 'D');
-	if (X) {
+	X = strpbrk(str, "Dd");
+	if (X != NULL) {
 		duration->parts[3] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
 
 	/* Time part? */
-	if (T) {
+	if (T != NULL) {
 		str = T;
 		not_weeks = true;
 	}
 
 	/* Record hours. */
-	X = strchr(str, 'H');
-	if (X && T) {
+	X = strpbrk(str, "Hh");
+	if (X != NULL && T != NULL) {
 		duration->parts[4] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
+
 	/* Record minutes. */
-	X = strrchr(str, 'M');
+	X = strpbrk(str, "Mm");
+
 	/*
 	 * M could be months or minutes. This is minutes if there is a time
 	 * part and the M indicator is behind the time indicator.
 	 */
-	if (X && T && (size_t) (X-P) > (size_t) (T-P)) {
+	if (X != NULL && T != NULL && (size_t) (X-P) > (size_t) (T-P)) {
 		duration->parts[5] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
+
 	/* Record seconds. */
-	X = strchr(str, 'S');
-	if (X && T) {
+	X = strpbrk(str, "Ss");
+	if (X != NULL && T != NULL) {
 		duration->parts[6] = atoi(str+1);
 		str = X;
 		not_weeks = true;
 	}
 
 	/* Or is the duration configured in weeks? */
-	W = strchr(buf, 'W');
-	if (W) {
+	W = strpbrk(buf, "Ww");
+	if (W != NULL) {
 		if (not_weeks) {
 			/* Mix of weeks and other indicators is not allowed */
 			return (ISC_R_BADNUMBER);
@@ -1250,9 +1273,78 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
+parse_duration(cfg_parser_t *pctx, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	cfg_duration_t duration;
+
+	duration.unlimited = false;
+
+	if (toupper(TOKEN_STRING(pctx)[0]) == 'P') {
+		result = duration_fromtext(&pctx->token.value.as_textregion,
+					   &duration);
+		duration.iso8601 = true;
+	} else {
+		uint32_t ttl;
+		result = dns_ttl_fromtext(&pctx->token.value.as_textregion,
+					  &ttl);
+		/*
+		 * With dns_ttl_fromtext() the information on optional units.
+		 * is lost, and is treated as seconds from now on.
+		 */
+		for (int i = 0; i < 6; i++) {
+			duration.parts[i] = 0;
+		}
+		duration.parts[6] = ttl;
+		duration.iso8601 = false;
+	}
+
+	if (result == ISC_R_RANGE) {
+		cfg_parser_error(pctx, CFG_LOG_NEAR,
+				 "duration or TTL out of range");
+		return (result);
+	} else if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	CHECK(cfg_create_obj(pctx, &cfg_type_duration, &obj));
+	obj->value.duration = duration;
+	*ret = obj;
+
+	return (ISC_R_SUCCESS);
+
+cleanup:
+	cfg_parser_error(pctx, CFG_LOG_NEAR,
+			 "expected ISO 8601 duration or TTL value");
+	return (result);
+}
+
 isc_result_t
 cfg_parse_duration(cfg_parser_t *pctx, const cfg_type_t *type,
 		   cfg_obj_t **ret)
+{
+	isc_result_t result;
+
+	UNUSED(type);
+
+	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_string) {
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
+
+	return (parse_duration(pctx, ret));
+
+cleanup:
+	cfg_parser_error(pctx, CFG_LOG_NEAR,
+			 "expected ISO 8601 duration or TTL value");
+	return (result);
+}
+
+isc_result_t
+cfg_parse_duration_or_unlimited(cfg_parser_t *pctx, const cfg_type_t *type,
+				cfg_obj_t **ret)
 {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
@@ -1266,44 +1358,27 @@ cfg_parse_duration(cfg_parser_t *pctx, const cfg_type_t *type,
 		goto cleanup;
 	}
 
-	if (TOKEN_STRING(pctx)[0] == 'P') {
-		result = duration_fromtext(&pctx->token.value.as_textregion,
-					   &duration);
-		duration.iso8601 = true;
-	} else {
-		uint32_t ttl;
-		result = dns_ttl_fromtext(&pctx->token.value.as_textregion,
-					  &ttl);
-		/*
-		 * With dns_ttl_fromtext() the information on optional units.
-		 * is lost, and is treated as seconds from now on.
-		 */
-		duration.parts[0] = 0;
-		duration.parts[1] = 0;
-		duration.parts[2] = 0;
-		duration.parts[3] = 0;
-		duration.parts[4] = 0;
-		duration.parts[5] = 0;
-		duration.parts[6] = ttl;
+	if (strcmp(TOKEN_STRING(pctx), "unlimited") == 0) {
+		for (int i = 0; i < 7; i++) {
+			duration.parts[i] = 0;
+		}
 		duration.iso8601 = false;
+		duration.unlimited = true;
+
+		CHECK(cfg_create_obj(pctx, &cfg_type_duration, &obj));
+		obj->value.duration = duration;
+		*ret = obj;
+		return (ISC_R_SUCCESS);
 	}
-	if (result == ISC_R_RANGE) {
-		cfg_parser_error(pctx, CFG_LOG_NEAR,
-				 "duration or TTL out of range");
-		return (result);
-	} else if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-	CHECK(cfg_create_obj(pctx, &cfg_type_duration, &obj));
-	obj->value.duration = duration;
-	*ret = obj;
-	return (ISC_R_SUCCESS);
+
+	return (parse_duration(pctx, ret));
 
 cleanup:
 	cfg_parser_error(pctx, CFG_LOG_NEAR,
-			 "expected ISO 8601 duration or TTL value");
+			 "expected ISO 8601 duration, TTL value, or unlimited");
 	return (result);
 }
+
 
 /*%
  * A duration as defined by ISO 8601 (P[n]Y[n]M[n]DT[n]H[n]M[n]S).
@@ -1322,6 +1397,11 @@ cleanup:
  */
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_duration = {
 	"duration", cfg_parse_duration, cfg_print_duration, cfg_doc_terminal,
+	&cfg_rep_duration, NULL
+};
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_duration_or_unlimited = {
+	"duration_or_unlimited", cfg_parse_duration_or_unlimited,
+	cfg_print_duration_or_unlimited, cfg_doc_terminal,
 	&cfg_rep_duration, NULL
 };
 

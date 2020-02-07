@@ -45,6 +45,13 @@ zone "default.kasp" {
 	dnssec-policy "default";
 };
 
+/* Key lifetime unlimited. */
+zone "unlimited.kasp" {
+	type master;
+	file "unlimited.kasp.db";
+	dnssec-policy "unlimited";
+};
+
 /* A master zone with dnssec-policy, no keys created. */
 zone "rsasha1.kasp" {
 	type master;

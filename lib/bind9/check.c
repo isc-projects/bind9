@@ -40,6 +40,7 @@
 #include <dns/acl.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
+#include <dns/kasp.h>
 #include <dns/keyvalues.h>
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
@@ -54,6 +55,7 @@
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
+#include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
 
 #include <ns/hooks.h>
@@ -974,23 +976,55 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	if (obj != NULL) {
 		bool bad_kasp = false;
 		bool bad_name = false;
+
 		if (optlevel != optlevel_config && !cfg_obj_isstring(obj)) {
 			bad_kasp = true;
 		} else if (optlevel == optlevel_config) {
+			dns_kasplist_t list;
+			dns_kasp_t *kasp = NULL, *kasp_next = NULL;
+
+			ISC_LIST_INIT(list);
+
 			if (cfg_obj_islist(obj)) {
 				for (element = cfg_list_first(obj);
 				     element != NULL;
 				     element = cfg_list_next(element))
 				{
-					if (!cfg_obj_istuple(
-						    cfg_listelt_value(element)))
-					{
+					isc_result_t ret;
+					cfg_obj_t *kconfig =
+						     cfg_listelt_value(element);
+
+					if (!cfg_obj_istuple(kconfig)) {
 						bad_kasp = true;
+						continue;
 					}
 					if (!kasp_name_allowed(element)) {
 						bad_name = true;
+						continue;
+					}
+
+					ret = cfg_kasp_fromconfig(kconfig, mctx,
+								  logctx,
+								  &list, &kasp);
+					if (ret != ISC_R_SUCCESS) {
+						if (result == ISC_R_SUCCESS) {
+							result = ret;
+						}
+					}
+
+					if (kasp != NULL) {
+						dns_kasp_detach(&kasp);
 					}
 				}
+			}
+
+			for (kasp = ISC_LIST_HEAD(list);
+			     kasp != NULL;
+			     kasp = kasp_next)
+			{
+				kasp_next = ISC_LIST_NEXT(kasp, link);
+				ISC_LIST_UNLINK(list, kasp, link);
+				dns_kasp_detach(&kasp);
 			}
 		}
 
@@ -2171,7 +2205,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			for (element = cfg_list_first(kasps); element != NULL;
 			     element = cfg_list_next(element))
 			{
-				const char* kn = cfg_obj_asstring(
+				const char *kn = cfg_obj_asstring(
 				       cfg_tuple_get(cfg_listelt_value(element),
 						     "name"));
 				if (strcmp(kaspname, kn) == 0) {

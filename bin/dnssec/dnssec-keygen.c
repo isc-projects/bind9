@@ -68,6 +68,8 @@
 
 const char *program = "dnssec-keygen";
 
+isc_log_t *lctx = NULL;
+
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
@@ -266,7 +268,8 @@ kasp_from_conf(cfg_obj_t* config, isc_mem_t* mctx, const char* name,
 			continue;
 		}
 
-		result = cfg_kasp_fromconfig(kconfig, mctx, &kasplist, &kasp);
+		result = cfg_kasp_fromconfig(kconfig, mctx, lctx, &kasplist,
+					     &kasp);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to configure dnssec-policy '%s': %s",
 			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
@@ -809,7 +812,6 @@ main(int argc, char **argv) {
 	isc_mem_t	*mctx = NULL;
 	isc_result_t	ret;
 	isc_textregion_t r;
-	isc_log_t	*log = NULL;
 	const char	*engine = NULL;
 	unsigned char	c;
 	int		ch;
@@ -1083,7 +1085,7 @@ main(int argc, char **argv) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(ret));
 
-	setup_logging(mctx, &log);
+	setup_logging(mctx, &lctx);
 
 	ctx.rdclass = strtoclass(classname);
 
@@ -1173,7 +1175,7 @@ main(int argc, char **argv) {
 			dns_kasp_t* kasp = NULL;
 			dns_kasp_key_t* kaspkey = NULL;
 
-			RUNTIME_CHECK(cfg_parser_create(mctx, log, &parser)
+			RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &parser)
 				      == ISC_R_SUCCESS);
 			if (cfg_parse_file(parser, ctx.configfile,
 				&cfg_type_namedconf, &config) != ISC_R_SUCCESS)
@@ -1220,7 +1222,7 @@ main(int argc, char **argv) {
 		keygen(&ctx, mctx, argc, argv);
 	}
 
-	cleanup_logging(&log);
+	cleanup_logging(&lctx);
 	dst_lib_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);

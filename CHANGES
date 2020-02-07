@@ -1,3 +1,19 @@
+5356.	[func]		Update dnssec-policy configuration statements:
+			- Rename "zone-max-ttl" dnssec-policy option to
+			  "max-zone-ttl" for consistency with the existing
+			  zone option.
+			- Allow for "lifetime unlimited" as a synonym for
+			  "lifetime PT0S"
+			- Make "key-directory" optional.
+			- Warn if specifying a key length does not make
+			  sense; fail if key length is out of range for
+			  the algorithm.
+			- Allow the use of mnemonics when specifying
+			  key algorithm (e.g. "rsasha256", "ecdsa384",
+			  etc).
+			- Make ISO 8601 durations case-insensitive.
+			[GL #1598]
+
 5355.	[func]		What was set with --with-tuning=large option in
 			older BIND9 versions is now a default, and
 			a --with-tuning=small option was added for small

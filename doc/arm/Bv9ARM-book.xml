@@ -11113,9 +11113,9 @@ example.com                 CNAME   rpz-tcp-only.
 		</para>
 
 <programlisting>keys {
-    ksk key-directory lifetime P5Y algorithm 8 2048;
+    ksk key-directory lifetime unlimited algorithm rsasha1 2048;
     zsk key-directory lifetime P30D algorithm 8;
-    csk key-directory lifetime P6MT12H3M15S algorithm 13;
+    csk key-directory lifetime P6MT12H3M15S algorithm ecdsa256;
 };
 </programlisting>
 
@@ -11133,16 +11133,28 @@ example.com                 CNAME   rpz-tcp-only.
 		  <command>key-directory</command>.
 		</para>
 		<para>
-		  The third token tells how long the key may be used.  In the
-		  example the first key has a lifetime of 5 years, the second
-		  key may be used for 30 days and the third key has a rather
-		  peculiar lifetime of 6 months, 12 hours, 3 minutes and 15
-		  seconds.
+		  The <command>lifetime</command> parameter specifies how
+		  long a key may be used before rolling over.  In the
+		  example above, the first key will have an unlimited
+		  lifetime, the second key may be used for 30 days, and the
+		  third key has a rather peculiar lifetime of 6 months,
+		  12 hours, 3 minutes and 15 seconds.  A lifetime of 0
+		  seconds is the same as <command>unlimited</command>.
 		</para>
 		<para>
-		  The last token(s) are the key's algorithm and algorithm
-		  length.  The length may be omitted as shown in the
-		  example for the second and third key.
+		  Note that the lifetime of a key may be extended if
+		  retiring it too soon would cause validation failures:
+		  for example, if the key were configured to roll more
+		  frequently than its TTL, its lifetime would
+		  automatically be extended to account for this.
+		</para>
+		<para>
+		  The <command>algorithm</command> parameter(s) are the key's
+		  algorithm, expressed either as a string ("rsasha256",
+		  "ecdsa384", etc) or as a decimal number, and the key's
+		  size in bits. The size may be omitted, as shown in
+		  the example for the second and third keys; in this case
+		  an appropriate default size will be used.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11209,22 +11221,23 @@ example.com                 CNAME   rpz-tcp-only.
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>zone-max-ttl</command></term>
+	      <term><command>max-zone-ttl</command></term>
 	      <listitem>
 		<para>
-		  Like <command>max-zone-ttl</command>, specifies the
-		  maximum permissible TTL value in seconds. When loading a
-		  zone file using a <option>masterfile-format</option> or
+		  Like the <command>max-zone-ttl</command> zone option,
+		  this specifies the maximum permissible TTL value in
+		  seconds for the zone. When loading a zone file using
+		  a <option>masterfile-format</option> of
 		  <constant>text</constant> or <constant>raw</constant>,
 		  any record encountered with a TTL higher than
-		  <option>zone-max-ttl</option> will be capped to the
+		  <option>max-zone-ttl</option> will be capped to the
 		  maximum permissible TTL value.
 		</para>
 		<para>
 		  This is needed in DNSSEC-maintained zones because when
 		  rolling to a new DNSKEY, the old key needs to remain
 		  available until RRSIG records have expired from caches.
-		  The <option>zone-max-ttl</option> option guarantees that
+		  The <option>max-zone-ttl</option> option guarantees that
 		  the largest TTL in the zone will be no higher than the
 		  set value.
 		</para>
@@ -11235,8 +11248,8 @@ example.com                 CNAME   rpz-tcp-only.
 		</para>
 		<para>
 		  The default value is <constant>PT24H</constant> (24 hours).
-		  A <option>zone-max-ttl</option> of zero is treated as if
-		  the default value is in use.
+		  A <option>max-zone-ttl</option> of zero is treated as if
+		  the default value were in use.
 		</para>
 	      </listitem>
 	    </varlistentry>

@@ -45,7 +45,7 @@ struct dns_kasp_key {
 
 	/* Configuration */
 	uint32_t			lifetime;
-	uint32_t			algorithm;
+	uint8_t				algorithm;
 	int				length;
 	uint8_t				role;
 };
