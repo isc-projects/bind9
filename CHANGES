@@ -1,3 +1,8 @@
+5355.	[func]		What was set with --with-tuning=large option in
+			older BIND9 versions is now a default, and
+			a --with-tuning=small option was added for small
+			(e.g. OpenWRT) systems. [GL !2989]
+
 5354.	[bug]		dnssec-policy created new KSK keys when zone is in
 			initial stage of signing (the DS is not yet in
 			rumoured or omnipresent state).  Fix by checking

@@ -242,11 +242,9 @@ and `libprotobuf-c`
 and BIND must be configured with `--enable-dnstap`.
 
 Certain compiled-in constants and default settings can be increased to
-values better suited to large servers with abundant memory resources (e.g,
-64-bit servers with 12G or more of memory) by specifying
-`--with-tuning=large` on the `configure` command line. This can improve
-performance on big servers, but will consume more memory and may degrade
-performance on smaller systems.
+values better suited to small machines, e.g. OpenWRT boxes, by specifying
+`--with-tuning=small` on the `configure` command line. This will decrease
+memory usage by using smaller structures, but will degrade performance.
 
 On Linux, process capabilities are managed in user space using
 the `libcap` library, which can be installed on most Linux systems via
