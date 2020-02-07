@@ -1349,7 +1349,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "basic dnssec-signzone checks:"
-echo_i " two DNSKEYs ($n)"
+echo_ic "two DNSKEYs ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1361,7 +1361,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " one non-KSK DNSKEY ($n)"
+echo_ic "one non-KSK DNSKEY ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1373,7 +1373,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " one KSK DNSKEY ($n)"
+echo_ic "one KSK DNSKEY ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1385,7 +1385,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " three DNSKEY ($n)"
+echo_ic "three DNSKEY ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1397,7 +1397,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " three DNSKEY, one private key missing ($n)"
+echo_ic "three DNSKEY, one private key missing ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1409,7 +1409,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " four DNSKEY ($n)"
+echo_ic "four DNSKEY ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1421,7 +1421,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " two DNSKEY, both private keys missing ($n)"
+echo_ic "two DNSKEY, both private keys missing ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1433,7 +1433,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " two DNSKEY, one private key missing ($n)"
+echo_ic "two DNSKEY, one private key missing ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -3418,7 +3418,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "check that CDS records are signed only using KSK when added by"
-echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
 ret=0
 keyid=$(cat ns2/cds-kskonly.secure.id)
 (
@@ -3444,7 +3444,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "check that CDS deletion records are signed only using KSK when added by"
-echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
 ret=0
 keyid=$(cat ns2/cds-kskonly.secure.id)
 (
@@ -3651,7 +3651,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "check that CDNSKEY records are signed only using KSK when added by"
-echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
 ret=0
 keyid=$(cat ns2/cdnskey-kskonly.secure.id)
 (
@@ -3674,7 +3674,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "check that CDNSKEY deletion records are signed only using KSK when added by"
-echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
 ret=0
 keyid=$(cat ns2/cdnskey-kskonly.secure.id)
 (
