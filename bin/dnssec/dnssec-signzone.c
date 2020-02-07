@@ -1946,7 +1946,7 @@ addnsec3param(const unsigned char *salt, size_t salt_len,
 	check_result(result, "dns_rdatalist_tordataset()");
 
 	result = dns_db_findnode(gdb, gorigin, true, &node);
-	check_result(result, "dns_db_find(gorigin)");
+	check_result(result, "dns_db_findnode(gorigin)");
 
 	/*
 	 * Delete any current NSEC3PARAM records.
