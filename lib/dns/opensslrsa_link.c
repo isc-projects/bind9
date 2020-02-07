@@ -708,6 +708,11 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	const BIGNUM *p = NULL, *q = NULL;
 	const BIGNUM *dmp1 = NULL, *dmq1 = NULL, *iqmp = NULL;
 
+	if (key->external) {
+		priv.nelements = 0;
+		return (dst__privstruct_writefile(key, &priv, directory));
+	}
+
 	if (key->keydata.pkey == NULL) {
 		return (DST_R_NULLKEY);
 	}
@@ -720,12 +725,6 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	RSA_get0_key(rsa, &n, &e, &d);
 	RSA_get0_factors(rsa, &p, &q);
 	RSA_get0_crt_params(rsa, &dmp1, &dmq1, &iqmp);
-
-	if (key->external) {
-		priv.nelements = 0;
-		result = dst__privstruct_writefile(key, &priv, directory);
-		goto fail;
-	}
 
 	for (i = 0; i < 8; i++) {
 		bufs[i] = isc_mem_get(key->mctx, BN_num_bytes(n));
@@ -811,7 +810,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 
 	priv.nelements = i;
 	result = dst__privstruct_writefile(key, &priv, directory);
-fail:
+
 	RSA_free(rsa);
 	for (i = 0; i < 8; i++) {
 		if (bufs[i] == NULL) {
