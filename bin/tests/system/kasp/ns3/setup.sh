@@ -200,7 +200,7 @@ TpubN1="now-26h"
 TretN1="now+30d"
 $SETTIME -s -P $TactN  -A $TactN            -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN -I now     -g $H -k $O $TactN  -z $O $TactN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -S "$ZSK1"             -i 0                                                     "$ZSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$ZSK1"           -i 0                                                     "$ZSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A now    -I $TretN1 -g $O -k $R $TpubN1 -z $H $TpubN1             "$ZSK2" > settime.out.$zone.4 2>&1
 cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 13 "$KSK"  >> "$infile"
@@ -233,7 +233,7 @@ TactN1="${TretN}"
 TretN1="now+479h"
 $SETTIME -s -P $TactN  -A $TactN             -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -z $U $TretN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -S "$ZSK1"              -i 0                                                     "$ZSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$ZSK1"            -i 0                                                     "$ZSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.4 2>&1
 cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 $SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
@@ -252,7 +252,7 @@ TactN1="${TretN}"
 TretN1="now+478h"
 $SETTIME -s -P $TactN  -A $TactN                   -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN -D now -g $H -k $U $TretN  -z $U $TretN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -S "$ZSK1"              -i 0                                                           "$ZSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$ZSK1"            -i 0                                                           "$ZSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1       -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.4 2>&1
 cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 13 "$KSK"  >> "$infile"
@@ -310,7 +310,7 @@ TretN="now+1d"
 TpubN1="now-27h"
 TretN1="now+61d"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$KSK1"              -i 0                                                        "$KSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$KSK1"            -i 0                                                        "$KSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TretN  -I $TretN1 -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN             -g $O -k $O $TactN   -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
@@ -342,7 +342,7 @@ TsbmN1="now-74h"
 TactN1="${TretN}"
 TretN1="now+1390h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$KSK1"              -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$KSK1"            -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN             -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
@@ -365,7 +365,7 @@ TsbmN1="now-75h"
 TactN1="${TretN}"
 TretN1="now+1388h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $U $TretN  -r $U $TretN  -d $H $TretN  "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$KSK1"              -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$KSK1"            -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TactN1 -r $O $TactN1 -d $O $TactN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN             -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
@@ -422,7 +422,7 @@ TretN="now+1d"
 TpubN1="now-3h"
 TretN1="now+187d"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  -z $O $TactN  "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                      "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                      "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TretN  -I $TretN1 -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 -z $H $TpubN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -455,7 +455,7 @@ TsbmN1="now-28h"
 TactN1="${TretN}"
 TretN1="now+4460h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 -z $U $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 -z $R $TsbmN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -477,7 +477,7 @@ TsbmN1="now-30h"
 TactN1="${TretN}"
 TretN1="now+4458h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $U $TdeaN  -d $H $TdeaN  -z $U $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $O $TdeaN  -z $R $TsbmN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -507,7 +507,7 @@ TsbmN1="now-627h"
 TactN1="${TretN}"
 TretN1="now+3837h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $H $TdeaN  -d $H $TdeaN  -z $U $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $O $TdeaN  -z $R $TsbmN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -528,7 +528,7 @@ TsbmN1="now-629h"
 TactN1="${TretN}"
 TretN1="now+3835h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $U now-2h  -r $H $TdeaN  -d $H $TdeaN  -z $H $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $O $TdeaN  -z $O $TsbmN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -585,7 +585,7 @@ TretN="now+1w"
 TpubN1="now-3h"
 TretN1="now+193d"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  -z $O $TactN  "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                      "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                      "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TretN  -I $TretN1 -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 -z $H $TpubN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -616,7 +616,7 @@ TpubN1="now-41h"
 TactN1="${TretN}"
 TretN1="now+4426"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN -r $O $TactN  -d $U $TretN -z $U $TretN "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                  "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                  "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TretN -r $O $TretN  -d $R $TretN -z $R $TretN "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -636,7 +636,7 @@ TpubN1="now-215h"
 TactN1="${TretN}"
 TretN1="now+4252h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN -r $O $TactN -d $U $TretN -z $H $TretN "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                 "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                 "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TretN -r $O $TretN -d $R $TretN -z $O $TretN "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -648,6 +648,7 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > si
 setup step6.csk-roll2.autosign
 CSK1=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
+
 # Substract DNSKEY TTL plus zone propagation delay (2h).
 TactN="now-4678h"
 TretN="now-214h"
@@ -656,7 +657,7 @@ TpubN1="now-217h"
 TactN1="${TretN}"
 TretN1="now+4250h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $U $TdeaN -r $U $TdeaN -d $H $TretN -z $H $TretN "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                 "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                 "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TretN -r $O $TretN -d $O $TretN -z $O $TretN "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
