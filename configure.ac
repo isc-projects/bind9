@@ -729,9 +729,6 @@ AS_IF([test "$enable_pthread_rwlock" = "yes"],
        AC_DEFINE([USE_PTHREAD_RWLOCK],[1],[Define if you want to use pthread rwlock implementation])
       ])
 
-AS_IF([test "$enable_pthread_rwlock" = "yes" -a "$enable_developer" != "yes"],
-      [AC_MSG_ERROR([pthread rwlock is not meant used in production and the developer mode must be enabled])])
-
 CRYPTO=OpenSSL
 
 #
@@ -2236,23 +2233,15 @@ AC_CHECK_FUNCS(setlocale)
 #
 # was --with-tuning specified?
 #
-AC_ARG_WITH(tuning,
+AC_ARG_WITH([tuning],
 	    AS_HELP_STRING([--with-tuning=ARG],
-			   [Specify server tuning (large or default)]),
-	    use_tuning="$withval", use_tuning="no")
+			   [Specify server tuning (default or small)]),
+	    [],[with_tuning=no])
 
-case "$use_tuning" in
-	large)
-		AC_DEFINE(TUNE_LARGE, 1, [Define to use large-system tuning.])
-		AC_MSG_RESULT(using large-system tuning)
-		;;
-	no|default)
-		AC_MSG_RESULT(using default tuning)
-		;;
-	yes|*)
-		AC_MSG_ERROR([You must specify "large" or "default" for --with-tuning.])
-		;;
-esac
+AS_CASE([$with_tuning],
+	[small],[AC_MSG_NOTICE(using small system tuning)],
+	[AC_DEFINE(TUNE_LARGE, 1, [Define to use default system tuning.])
+	 AC_MSG_NOTICE(using default system tuning)])
 
 #
 # was --enable-querytrace specified?
