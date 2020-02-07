@@ -496,10 +496,13 @@ status=`expr $status + $ret`
 echo_i "checking NSEC3->NSEC conversion with 'rndc signing -nsec3param none' ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 signing -nsec3param none autonsec3.example. > /dev/null 2>&1
-sleep 2
 # this command should result in an empty file:
-$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.nx.test$n || ret=1
-grep "NSEC3PARAM" dig.out.ns3.nx.test$n > /dev/null && ret=1
+no_nsec3param() (
+ $DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.nx.test$n || return 1
+ grep "NSEC3PARAM" dig.out.ns3.nx.test$n > /dev/null && return 1
+ return 0
+)
+retry_quiet 10 no_nsec3param || ret=1
 $DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
 digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
