@@ -206,8 +206,8 @@ nextpartreset ns3/named.run
 # Check that DNSKEY is initially signed with a KSK and not a ZSK.
 #
 echo_i "check that zone with active and inactive KSK and active ZSK is properly"
-echo_i "  resigned after the active KSK is deleted - stage 1: Verify that DNSKEY"
-echo_i "  is initially signed with a KSK and not a ZSK. ($n)"
+echo_ic "resigned after the active KSK is deleted - stage 1: Verify that DNSKEY"
+echo_ic "is initially signed with a KSK and not a ZSK. ($n)"
 ret=0
 
 $DIG $DIGOPTS @10.53.0.3 axfr inacksk3.example > dig.out.ns3.test$n
@@ -243,8 +243,8 @@ status=`expr $status + $ret`
 # Check that zone is initially signed with a ZSK and not a KSK.
 #
 echo_i "check that zone with active and inactive ZSK and active KSK is properly"
-echo_i "  resigned after the active ZSK is deleted - stage 1: Verify that zone"
-echo_i "  is initially signed with a ZSK and not a KSK. ($n)"
+echo_ic "resigned after the active ZSK is deleted - stage 1: Verify that zone"
+echo_ic "is initially signed with a ZSK and not a KSK. ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
 kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
@@ -1464,8 +1464,8 @@ status=`expr $status + $ret`
 # Check that DNSKEY is now signed with the ZSK.
 #
 echo_i "check that zone with active and inactive KSK and active ZSK is properly"
-echo_i "  resigned after the active KSK is deleted - stage 2: Verify that DNSKEY"
-echo_i "  is now signed with the ZSK. ($n)"
+echo_ic "resigned after the active KSK is deleted - stage 2: Verify that DNSKEY"
+echo_ic "is now signed with the ZSK. ($n)"
 ret=0
 
 $DIG $DIGOPTS @10.53.0.3 axfr inacksk3.example > dig.out.ns3.test$n
@@ -1493,8 +1493,8 @@ status=`expr $status + $ret`
 # Check that zone is now signed with the KSK.
 #
 echo_i "check that zone with active and inactive ZSK and active KSK is properly"
-echo_i "  resigned after the active ZSK is deleted - stage 2: Verify that zone"
-echo_i "  is now signed with the KSK. ($n)"
+echo_ic "resigned after the active ZSK is deleted - stage 2: Verify that zone"
+echo_ic "is now signed with the KSK. ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
 kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |

@@ -309,15 +309,15 @@ expected4="view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0${AIN} via 3
 expected3="view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0${AIN} via 32.3.0.53.10.rpz-client-ip.log2"
 expected2="view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0${AIN} via 32.2.0.53.10.rpz-client-ip.log3"
 sed -n "$cur,"'$p' < ns2/named.run | grep "$expected4" > /dev/null && {
-    echo_i " failed: unexpected rewrite message for policy zone log1 was logged"
+    echo_ic "failed: unexpected rewrite message for policy zone log1 was logged"
     status=1
 }
 sed -n "$cur,"'$p' < ns2/named.run | grep "$expected3" > /dev/null || {
-    echo_i " failed: expected rewrite message for policy zone log2 was not logged"
+    echo_ic "failed: expected rewrite message for policy zone log2 was not logged"
     status=1
 }
 sed -n "$cur,"'$p' < ns2/named.run | grep "$expected2" > /dev/null || {
-    echo_i " failed: expected rewrite message for policy zone log3 was not logged"
+    echo_ic "failed: expected rewrite message for policy zone log3 was not logged"
     status=1
 }
 
