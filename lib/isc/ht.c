@@ -93,10 +93,9 @@ isc_ht_destroy(isc_ht_t **htp) {
 	size_t i;
 
 	REQUIRE(htp != NULL);
+	REQUIRE(ISC_HT_VALID((*htp)));
 
 	ht = *htp;
-	REQUIRE(ISC_HT_VALID(ht));
-
 	ht->magic = 0;
 
 	for (i = 0; i < ht->size; i++) {

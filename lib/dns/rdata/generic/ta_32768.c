@@ -81,10 +81,12 @@ fromstruct_ta(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_ta(ARGS_TOSTRUCT) {
-	dns_rdata_ds_t *ds = target;
+	dns_rdata_ds_t *ds;
 
 	REQUIRE(rdata->type == dns_rdatatype_ta);
-	REQUIRE(ds != NULL);
+	REQUIRE(((dns_rdata_ds_t *)target) != NULL);
+
+	ds = target;
 
 	/*
 	 * Checked by generic_tostruct_ds().
@@ -98,10 +100,12 @@ tostruct_ta(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_ta(ARGS_FREESTRUCT) {
-	dns_rdata_ta_t *ds = source;
+	dns_rdata_ta_t *ds;
 
-	REQUIRE(ds != NULL);
-	REQUIRE(ds->common.rdtype == dns_rdatatype_ta);
+	REQUIRE(((dns_rdata_ds_t *)source) != NULL);
+	REQUIRE(((dns_rdata_ds_t *)source)->common.rdtype == dns_rdatatype_ta);
+
+	ds = source;
 
 	if (ds->mctx == NULL)
 		return;

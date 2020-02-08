@@ -292,9 +292,11 @@ void
 isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
 {
 	isc_interfaceiter_t *iter;
+
 	REQUIRE(iterp != NULL);
+	REQUIRE(VALID_IFITER((*iterp)));
+
 	iter = *iterp;
-	REQUIRE(VALID_IFITER(iter));
 
 	internal_destroy(iter);
 	if (iter->buf != NULL)

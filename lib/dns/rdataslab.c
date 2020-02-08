@@ -400,12 +400,15 @@ rdataset_next(dns_rdataset_t *rdataset) {
 
 static void
 rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
-	unsigned char *raw = rdataset->private5;
+	unsigned char *raw;
 	isc_region_t r;
 	unsigned int length;
 	unsigned int flags = 0;
 
-	REQUIRE(raw != NULL);
+	REQUIRE(rdataset != NULL);
+	REQUIRE(rdataset->private5 != NULL);
+
+	raw = rdataset->private5;
 
 	length = raw[0] * 256 + raw[1];
 #if DNS_RDATASET_FIXED

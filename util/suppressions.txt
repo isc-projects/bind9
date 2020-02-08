@@ -3,3 +3,4 @@ preprocessorErrorDirective:*
 invalidPrintfArgType_uint:bin/dig/dig.c
 invalidPrintfArgType_sint:lib/isc/buffer.c
 invalidPrintfArgType_uint:lib/isc/tests/crc64_test.c
+unknownMacro:*

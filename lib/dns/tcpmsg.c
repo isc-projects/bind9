@@ -50,7 +50,9 @@ recv_length(isc_task_t *task, isc_event_t *ev_in) {
 	INSIST(VALID_TCPMSG(tcpmsg));
 
 	dev = &tcpmsg->event;
+	/* cppcheck-suppress nullPointerRedundantCheck */
 	tcpmsg->address = ev->address;
+	/* cppcheck-suppress nullPointerRedundantCheck */
 
 	if (ev->result != ISC_R_SUCCESS) {
 		tcpmsg->result = ev->result;
@@ -98,13 +100,16 @@ recv_length(isc_task_t *task, isc_event_t *ev_in) {
 
 static void
 recv_message(isc_task_t *task, isc_event_t *ev_in) {
-	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
+	isc_socketevent_t *ev;;
 	isc_event_t *dev;
-	dns_tcpmsg_t *tcpmsg = ev_in->ev_arg;
+	dns_tcpmsg_t *tcpmsg;
+
+	REQUIRE(VALID_TCPMSG(ev_in->ev_arg));
+
+	ev = (isc_socketevent_t *)ev_in;
+	tcpmsg = ev_in->ev_arg;
 
 	(void)task;
-
-	INSIST(VALID_TCPMSG(tcpmsg));
 
 	dev = &tcpmsg->event;
 	tcpmsg->address = ev->address;

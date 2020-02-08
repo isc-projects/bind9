@@ -219,14 +219,16 @@ compare_in_px(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_px(ARGS_FROMSTRUCT) {
-	dns_rdata_in_px_t *px = source;
+	dns_rdata_in_px_t *px;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_px);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(px != NULL);
-	REQUIRE(px->common.rdtype == type);
-	REQUIRE(px->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_in_px_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_px_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_px_t *)source)->common.rdclass == rdclass);
+
+	px = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -240,15 +242,17 @@ fromstruct_in_px(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_in_px(ARGS_TOSTRUCT) {
-	dns_rdata_in_px_t *px = target;
+	dns_rdata_in_px_t *px;
 	dns_name_t name;
 	isc_region_t region;
 	isc_result_t result;
 
+	REQUIRE(((dns_rdata_in_px_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_px);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(px != NULL);
 	REQUIRE(rdata->length != 0);
+
+	px = target;
 
 	px->common.rdclass = rdata->rdclass;
 	px->common.rdtype = rdata->type;
@@ -281,11 +285,15 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_px(ARGS_FREESTRUCT) {
-	dns_rdata_in_px_t *px = source;
+	dns_rdata_in_px_t *px;
 
-	REQUIRE(px != NULL);
-	REQUIRE(px->common.rdclass == dns_rdataclass_in);
-	REQUIRE(px->common.rdtype == dns_rdatatype_px);
+	REQUIRE(((dns_rdata_in_px_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_px_t *)source)->common.rdtype ==
+		dns_rdatatype_px);
+	REQUIRE(((dns_rdata_in_px_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+
+	px = source;
 
 	if (px->mctx == NULL)
 		return;

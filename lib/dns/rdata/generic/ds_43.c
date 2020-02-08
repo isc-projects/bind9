@@ -247,11 +247,13 @@ compare_ds(ARGS_COMPARE) {
 
 static inline isc_result_t
 generic_fromstruct_ds(ARGS_FROMSTRUCT) {
-	dns_rdata_ds_t *ds = source;
+	dns_rdata_ds_t *ds;
 
-	REQUIRE(ds != NULL);
-	REQUIRE(ds->common.rdtype == type);
-	REQUIRE(ds->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_ds_t *)source) != NULL);
+	REQUIRE(((dns_rdata_ds_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_ds_t *)source)->common.rdclass == rdclass);
+
+	ds = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -290,14 +292,16 @@ fromstruct_ds(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 generic_tostruct_ds(ARGS_TOSTRUCT) {
-	dns_rdata_ds_t *ds = target;
+	dns_rdata_ds_t *ds;
 	isc_region_t region;
 
-	REQUIRE(ds != NULL);
 	REQUIRE(rdata->length != 0);
-	REQUIRE(ds->common.rdtype == rdata->type);
-	REQUIRE(ds->common.rdclass == rdata->rdclass);
-	REQUIRE(!ISC_LINK_LINKED(&ds->common, link));
+	REQUIRE(((dns_rdata_ds_t *)target) != NULL);
+	REQUIRE(((dns_rdata_ds_t *)target)->common.rdtype == rdata->type);
+	REQUIRE(((dns_rdata_ds_t *)target)->common.rdclass == rdata->rdclass);
+	REQUIRE(!ISC_LINK_LINKED(&((dns_rdata_ds_t *)target)->common, link));
+
+	ds = target;
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -319,10 +323,12 @@ generic_tostruct_ds(ARGS_TOSTRUCT) {
 
 static inline isc_result_t
 tostruct_ds(ARGS_TOSTRUCT) {
-	dns_rdata_ds_t *ds = target;
+	dns_rdata_ds_t *ds;
 
+	REQUIRE(((dns_rdata_ds_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_ds);
-	REQUIRE(ds != NULL);
+
+	ds = target;
 
 	ds->common.rdclass = rdata->rdclass;
 	ds->common.rdtype = rdata->type;
@@ -333,10 +339,12 @@ tostruct_ds(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_ds(ARGS_FREESTRUCT) {
-	dns_rdata_ds_t *ds = source;
+	dns_rdata_ds_t *ds;
 
-	REQUIRE(ds != NULL);
-	REQUIRE(ds->common.rdtype == dns_rdatatype_ds);
+	REQUIRE(((dns_rdata_ds_t *)source) != NULL);
+	REQUIRE(((dns_rdata_ds_t *)source)->common.rdtype == dns_rdatatype_ds);
+
+	ds = source;
 
 	if (ds->mctx == NULL)
 		return;

@@ -77,13 +77,16 @@ compare_null(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_null(ARGS_FROMSTRUCT) {
-	dns_rdata_null_t *null = source;
+	dns_rdata_null_t *null;
 
 	REQUIRE(type == dns_rdatatype_null);
-	REQUIRE(null != NULL);
-	REQUIRE(null->common.rdtype == type);
-	REQUIRE(null->common.rdclass == rdclass);
-	REQUIRE(null->data != NULL || null->length == 0);
+	REQUIRE(((dns_rdata_null_t *)source) != NULL);
+	REQUIRE(((dns_rdata_null_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_null_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_null_t *)source)->data != NULL ||
+		((dns_rdata_null_t *)source)->length == 0);
+
+	null = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -93,11 +96,13 @@ fromstruct_null(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_null(ARGS_TOSTRUCT) {
-	dns_rdata_null_t *null = target;
+	dns_rdata_null_t *null;
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_null);
-	REQUIRE(null != NULL);
+	REQUIRE(((dns_rdata_null_t *)target) != NULL);
+
+	null = target;
 
 	null->common.rdclass = rdata->rdclass;
 	null->common.rdtype = rdata->type;
@@ -115,10 +120,13 @@ tostruct_null(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_null(ARGS_FREESTRUCT) {
-	dns_rdata_null_t *null = source;
+	dns_rdata_null_t *null;
 
-	REQUIRE(null != NULL);
-	REQUIRE(null->common.rdtype == dns_rdatatype_null);
+	REQUIRE(((dns_rdata_null_t *)source) != NULL);
+	REQUIRE(((dns_rdata_null_t *)source)->common.rdtype ==
+		dns_rdatatype_null);
+
+	null = source;
 
 	if (null->mctx == NULL)
 		return;

@@ -277,14 +277,16 @@ compare_ipseckey(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_ipseckey(ARGS_FROMSTRUCT) {
-	dns_rdata_ipseckey_t *ipseckey = source;
+	dns_rdata_ipseckey_t *ipseckey;
 	isc_region_t region;
 	uint32_t n;
 
 	REQUIRE(type == dns_rdatatype_ipseckey);
-	REQUIRE(ipseckey != NULL);
-	REQUIRE(ipseckey->common.rdtype == type);
-	REQUIRE(ipseckey->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_ipseckey_t *)source) != NULL);
+	REQUIRE(((dns_rdata_ipseckey_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_ipseckey_t *)source)->common.rdclass == rdclass);
+
+	ipseckey = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -321,13 +323,15 @@ fromstruct_ipseckey(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_ipseckey(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_ipseckey_t *ipseckey = target;
+	dns_rdata_ipseckey_t *ipseckey;
 	dns_name_t name;
 	uint32_t n;
 
+	REQUIRE(((dns_rdata_ipseckey_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
-	REQUIRE(ipseckey != NULL);
 	REQUIRE(rdata->length >= 3);
+
+	ipseckey = target;
 
 	if (rdata->data[1] > 3U)
 		return (ISC_R_NOTIMPLEMENTED);
@@ -390,10 +394,13 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_ipseckey(ARGS_FREESTRUCT) {
-	dns_rdata_ipseckey_t *ipseckey = source;
+	dns_rdata_ipseckey_t *ipseckey;
 
-	REQUIRE(ipseckey != NULL);
-	REQUIRE(ipseckey->common.rdtype == dns_rdatatype_ipseckey);
+	REQUIRE(((dns_rdata_ipseckey_t *)source) != NULL);
+	REQUIRE(((dns_rdata_ipseckey_t *)source)->common.rdtype ==
+		dns_rdatatype_ipseckey);
+
+	ipseckey = source;
 
 	if (ipseckey->mctx == NULL)
 		return;

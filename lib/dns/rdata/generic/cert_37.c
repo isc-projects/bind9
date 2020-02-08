@@ -159,12 +159,14 @@ compare_cert(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_cert(ARGS_FROMSTRUCT) {
-	dns_rdata_cert_t *cert = source;
+	dns_rdata_cert_t *cert;
 
 	REQUIRE(type == dns_rdatatype_cert);
-	REQUIRE(cert != NULL);
-	REQUIRE(cert->common.rdtype == type);
-	REQUIRE(cert->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_cert_t *)source) != NULL);
+	REQUIRE(((dns_rdata_cert_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_cert_t *)source)->common.rdclass == rdclass);
+
+	cert = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -178,12 +180,14 @@ fromstruct_cert(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_cert(ARGS_TOSTRUCT) {
-	dns_rdata_cert_t *cert = target;
+	dns_rdata_cert_t *cert;
 	isc_region_t region;
 
+	REQUIRE(((dns_rdata_cert_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_cert);
-	REQUIRE(cert != NULL);
 	REQUIRE(rdata->length != 0);
+
+	cert = target;
 
 	cert->common.rdclass = rdata->rdclass;
 	cert->common.rdtype = rdata->type;
@@ -209,10 +213,13 @@ tostruct_cert(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_cert(ARGS_FREESTRUCT) {
-	dns_rdata_cert_t *cert = source;
+	dns_rdata_cert_t *cert;
 
-	REQUIRE(cert != NULL);
-	REQUIRE(cert->common.rdtype == dns_rdatatype_cert);
+	REQUIRE(((dns_rdata_cert_t *)source) != NULL);
+	REQUIRE(((dns_rdata_cert_t *)source)->common.rdtype ==
+		dns_rdatatype_cert);
+
+	cert = source;
 
 	if (cert->mctx == NULL)
 		return;

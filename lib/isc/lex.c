@@ -124,14 +124,14 @@ void
 isc_lex_destroy(isc_lex_t **lexp) {
 	isc_lex_t *lex;
 
+	REQUIRE(lexp != NULL);
+	REQUIRE(VALID_LEX((*lexp)));
+
+	lex = *lexp;
+
 	/*
 	 * Destroy the lexer.
 	 */
-
-	REQUIRE(lexp != NULL);
-	lex = *lexp;
-	REQUIRE(VALID_LEX(lex));
-
 	while (!EMPTY(lex->sources))
 		RUNTIME_CHECK(isc_lex_close(lex) == ISC_R_SUCCESS);
 	if (lex->data != NULL)
@@ -937,17 +937,19 @@ isc_lex_getoctaltoken(isc_lex_t *lex, isc_token_t *token, bool eol)
 void
 isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 	inputsource *source;
-	/*
-	 * Unget the current token.
-	 */
 
 	REQUIRE(VALID_LEX(lex));
-	source = HEAD(lex->sources);
-	REQUIRE(source != NULL);
+	REQUIRE(HEAD(lex->sources) != NULL);
 	REQUIRE(tokenp != NULL);
+
+	source = HEAD(lex->sources);
+
 	REQUIRE(isc_buffer_consumedlength(source->pushback) != 0 ||
 		tokenp->type == isc_tokentype_eof);
 
+	/*
+	 * Unget the current token.
+	 */
 	UNUSED(tokenp);
 
 	isc_buffer_first(source->pushback);
@@ -962,9 +964,11 @@ isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp, isc_region_t *r)
 	inputsource *source;
 
 	REQUIRE(VALID_LEX(lex));
-	source = HEAD(lex->sources);
-	REQUIRE(source != NULL);
+	REQUIRE(HEAD(lex->sources) != NULL);
 	REQUIRE(tokenp != NULL);
+
+	source = HEAD(lex->sources);
+
 	REQUIRE(isc_buffer_consumedlength(source->pushback) != 0 ||
 		tokenp->type == isc_tokentype_eof);
 

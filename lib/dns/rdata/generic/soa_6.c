@@ -268,13 +268,15 @@ compare_soa(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_soa(ARGS_FROMSTRUCT) {
-	dns_rdata_soa_t *soa = source;
+	dns_rdata_soa_t *soa;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_soa);
-	REQUIRE(soa != NULL);
-	REQUIRE(soa->common.rdtype == type);
-	REQUIRE(soa->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_soa_t *)source) != NULL);
+	REQUIRE(((dns_rdata_soa_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_soa_t *)source)->common.rdclass == rdclass);
+
+	soa = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -293,13 +295,15 @@ fromstruct_soa(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_soa(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_soa_t *soa = target;
+	dns_rdata_soa_t *soa;
 	dns_name_t name;
 	isc_result_t result;
 
+	REQUIRE(((dns_rdata_soa_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_soa);
-	REQUIRE(soa != NULL);
 	REQUIRE(rdata->length != 0);
+
+	soa = target;
 
 	soa->common.rdclass = rdata->rdclass;
 	soa->common.rdtype = rdata->type;
@@ -346,10 +350,13 @@ tostruct_soa(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_soa(ARGS_FREESTRUCT) {
-	dns_rdata_soa_t *soa = source;
+	dns_rdata_soa_t *soa;
 
-	REQUIRE(soa != NULL);
-	REQUIRE(soa->common.rdtype == dns_rdatatype_soa);
+	REQUIRE(((dns_rdata_soa_t *)source) != NULL);
+	REQUIRE(((dns_rdata_soa_t *)source)->common.rdtype ==
+		dns_rdatatype_soa);
+
+	soa = source;
 
 	if (soa->mctx == NULL)
 		return;

@@ -193,14 +193,18 @@ compare_nxt(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_nxt(ARGS_FROMSTRUCT) {
-	dns_rdata_nxt_t *nxt = source;
+	dns_rdata_nxt_t *nxt;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_nxt);
-	REQUIRE(nxt != NULL);
-	REQUIRE(nxt->common.rdtype == type);
-	REQUIRE(nxt->common.rdclass == rdclass);
-	REQUIRE(nxt->typebits != NULL || nxt->len == 0);
+	REQUIRE(((dns_rdata_nxt_t *)source) != NULL);
+	REQUIRE(((dns_rdata_nxt_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_nxt_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_nxt_t *)source)->typebits != NULL ||
+		((dns_rdata_nxt_t *)source)->len == 0);
+
+	nxt = source;
+
 	if (nxt->typebits != NULL && (nxt->typebits[0] & 0x80) == 0) {
 		REQUIRE(nxt->len <= 16);
 		REQUIRE(nxt->typebits[nxt->len - 1] != 0);
@@ -218,12 +222,14 @@ fromstruct_nxt(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_nxt(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_nxt_t *nxt = target;
+	dns_rdata_nxt_t *nxt;
 	dns_name_t name;
 
+	REQUIRE(((dns_rdata_nxt_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_nxt);
-	REQUIRE(nxt != NULL);
 	REQUIRE(rdata->length != 0);
+
+	nxt = target;
 
 	nxt->common.rdclass = rdata->rdclass;
 	nxt->common.rdtype = rdata->type;
@@ -252,10 +258,13 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_nxt(ARGS_FREESTRUCT) {
-	dns_rdata_nxt_t *nxt = source;
+	dns_rdata_nxt_t *nxt;
 
-	REQUIRE(nxt != NULL);
-	REQUIRE(nxt->common.rdtype == dns_rdatatype_nxt);
+	REQUIRE(((dns_rdata_nxt_t *)source) != NULL);
+	REQUIRE(((dns_rdata_nxt_t *)source)->common.rdtype ==
+		dns_rdatatype_nxt);
+
+	nxt = source;
 
 	if (nxt->mctx == NULL)
 		return;

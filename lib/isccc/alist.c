@@ -137,7 +137,9 @@ isccc_alist_delete(isccc_sexpr_t *alist, const char *key)
 		INSIST(rest->type == ISCCC_SEXPRTYPE_DOTTEDPAIR);
 		car = CAR(rest);
 		INSIST(car != NULL && car->type == ISCCC_SEXPRTYPE_DOTTEDPAIR);
+		/* cppcheck-suppress nullPointerRedundantCheck */
 		caar = CAR(car);
+		/* cppcheck-suppress nullPointerRedundantCheck */
 		if (caar->type == ISCCC_SEXPRTYPE_STRING &&
 		    strcmp(caar->value.as_string, key) == 0) {
 			CDR(prev) = CDR(rest);

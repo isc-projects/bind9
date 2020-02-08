@@ -339,13 +339,15 @@ isc_result_t
 isc__task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 		 isc_task_t **taskp)
 {
-	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
+	isc__taskmgr_t *manager;
 	isc__task_t *task;
 	bool exiting;
 	isc_result_t result;
 
-	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(VALID_MANAGER(manager0));
 	REQUIRE(taskp != NULL && *taskp == NULL);
+
+	manager = (isc__taskmgr_t *)manager0;
 
 	task = isc_mem_get(manager->mctx, sizeof(*task));
 	if (task == NULL)
@@ -542,16 +544,16 @@ task_send(isc__task_t *task, isc_event_t **eventp) {
 	bool was_idle = false;
 	isc_event_t *event;
 
+	REQUIRE(eventp != NULL);
+	REQUIRE((*eventp) != NULL);
+	REQUIRE((*eventp)->ev_type > 0);
+	REQUIRE(task->state != task_state_done);
+	REQUIRE(!ISC_LINK_LINKED((*eventp), ev_ratelink));
+
 	/*
 	 * Caller must be holding the task lock.
 	 */
-
-	REQUIRE(eventp != NULL);
 	event = *eventp;
-	REQUIRE(event != NULL);
-	REQUIRE(event->ev_type > 0);
-	REQUIRE(task->state != task_state_done);
-	REQUIRE(!ISC_LINK_LINKED(event, ev_ratelink));
 
 	XTRACE("task_send");
 
@@ -811,18 +813,20 @@ isc_result_t
 isc__task_onshutdown(isc_task_t *task0, isc_taskaction_t action,
 		     void *arg)
 {
-	isc__task_t *task = (isc__task_t *)task0;
+	isc__task_t *task;
 	bool disallowed = false;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_event_t *event;
+
+	REQUIRE(VALID_TASK(task0));
+	REQUIRE(action != NULL);
+
+	task = (isc__task_t *)task0;
 
 	/*
 	 * Send a shutdown event with action 'action' and argument 'arg' when
 	 * 'task' is shutdown.
 	 */
-
-	REQUIRE(VALID_TASK(task));
-	REQUIRE(action != NULL);
 
 	event = isc_event_allocate(task->manager->mctx,
 				   NULL,
@@ -897,28 +901,34 @@ isc__task_setname(isc_task_t *task0, const char *name, void *tag) {
 
 const char *
 isc__task_getname(isc_task_t *task0) {
-	isc__task_t *task = (isc__task_t *)task0;
+	isc__task_t *task;
 
-	REQUIRE(VALID_TASK(task));
+	REQUIRE(VALID_TASK(task0));
+
+	task = (isc__task_t *)task0;
 
 	return (task->name);
 }
 
 void *
 isc__task_gettag(isc_task_t *task0) {
-	isc__task_t *task = (isc__task_t *)task0;
+	isc__task_t *task;
 
-	REQUIRE(VALID_TASK(task));
+	REQUIRE(VALID_TASK(task0));
+
+	task = (isc__task_t *)task0;
 
 	return (task->tag);
 }
 
 void
 isc__task_getcurrenttime(isc_task_t *task0, isc_stdtime_t *t) {
-	isc__task_t *task = (isc__task_t *)task0;
+	isc__task_t *task;
 
-	REQUIRE(VALID_TASK(task));
+	REQUIRE(VALID_TASK(task0));
 	REQUIRE(t != NULL);
+
+	task = (isc__task_t *)task0;
 
 	LOCK(&task->lock);
 	*t = task->now;
@@ -927,10 +937,12 @@ isc__task_getcurrenttime(isc_task_t *task0, isc_stdtime_t *t) {
 
 void
 isc__task_getcurrenttimex(isc_task_t *task0, isc_time_t *t) {
-	isc__task_t *task = (isc__task_t *)task0;
+	isc__task_t *task;
 
-	REQUIRE(VALID_TASK(task));
+	REQUIRE(VALID_TASK(task0));
 	REQUIRE(t != NULL);
+
+	task = (isc__task_t *)task0;
 
 	LOCK(&task->lock);
 	*t = task->tnow;
@@ -1722,14 +1734,14 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr0, isc_task_t **taskp) {
 isc_result_t
 isc__task_beginexclusive(isc_task_t *task0) {
 #ifdef USE_WORKER_THREADS
-	isc__task_t *task = (isc__task_t *)task0;
+	isc__task_t *task;
 	isc__taskmgr_t *manager;
 
-	REQUIRE(VALID_TASK(task));
+	REQUIRE(VALID_TASK(task0));
 
-	manager = task->manager;
-
+	task = (isc__task_t *)task0;
 	REQUIRE(task->state == task_state_running);
+	manager = task->manager;
 /*
  *  TODO REQUIRE(task == task->manager->excl);
  *  it should be here, it fails on shutdown server->task
@@ -1754,13 +1766,15 @@ isc__task_beginexclusive(isc_task_t *task0) {
 void
 isc__task_endexclusive(isc_task_t *task0) {
 #ifdef USE_WORKER_THREADS
-	isc__task_t *task = (isc__task_t *)task0;
+	isc__task_t *task;
 	isc__taskmgr_t *manager;
 
-	REQUIRE(VALID_TASK(task));
+	REQUIRE(VALID_TASK(task0));
+
+	task = (isc__task_t *)task0;
+	REQUIRE(task->state == task_state_running);
 	manager = task->manager;
 
-	REQUIRE(task->state == task_state_running);
 	LOCK(&manager->lock);
 	REQUIRE(manager->exclusive_requested);
 	manager->exclusive_requested = false;

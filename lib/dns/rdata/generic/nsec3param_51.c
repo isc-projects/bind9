@@ -195,12 +195,14 @@ compare_nsec3param(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_nsec3param(ARGS_FROMSTRUCT) {
-	dns_rdata_nsec3param_t *nsec3param = source;
+	dns_rdata_nsec3param_t *nsec3param;
 
 	REQUIRE(type == dns_rdatatype_nsec3param);
-	REQUIRE(nsec3param != NULL);
-	REQUIRE(nsec3param->common.rdtype == type);
-	REQUIRE(nsec3param->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_nsec3param_t *)source) != NULL);
+	REQUIRE(((dns_rdata_nsec3param_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_nsec3param_t *)source)->common.rdclass == rdclass);
+
+	nsec3param = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -217,11 +219,13 @@ fromstruct_nsec3param(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_nsec3param(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_nsec3param_t *nsec3param = target;
+	dns_rdata_nsec3param_t *nsec3param;
 
+	REQUIRE(((dns_rdata_nsec3param_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_nsec3param);
-	REQUIRE(nsec3param != NULL);
 	REQUIRE(rdata->length != 0);
+
+	nsec3param = target;
 
 	nsec3param->common.rdclass = rdata->rdclass;
 	nsec3param->common.rdtype = rdata->type;
@@ -246,10 +250,13 @@ tostruct_nsec3param(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_nsec3param(ARGS_FREESTRUCT) {
-	dns_rdata_nsec3param_t *nsec3param = source;
+	dns_rdata_nsec3param_t *nsec3param;
 
-	REQUIRE(nsec3param != NULL);
-	REQUIRE(nsec3param->common.rdtype == dns_rdatatype_nsec3param);
+	REQUIRE(((dns_rdata_nsec3param_t *)source) != NULL);
+	REQUIRE(((dns_rdata_nsec3param_t *)source)->common.rdtype ==
+		dns_rdatatype_nsec3param);
+
+	nsec3param = source;
 
 	if (nsec3param->mctx == NULL)
 		return;

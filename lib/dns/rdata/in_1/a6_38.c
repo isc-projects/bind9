@@ -270,7 +270,7 @@ compare_in_a6(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_a6(ARGS_FROMSTRUCT) {
-	dns_rdata_in_a6_t *a6 = source;
+	dns_rdata_in_a6_t *a6;
 	isc_region_t region;
 	int octets;
 	uint8_t bits;
@@ -279,9 +279,11 @@ fromstruct_in_a6(ARGS_FROMSTRUCT) {
 
 	REQUIRE(type == dns_rdatatype_a6);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(a6 != NULL);
-	REQUIRE(a6->common.rdtype == type);
-	REQUIRE(a6->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_in_a6_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_a6_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_a6_t *)source)->common.rdclass == rdclass);
+
+	a6 = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -315,15 +317,17 @@ fromstruct_in_a6(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_in_a6(ARGS_TOSTRUCT) {
-	dns_rdata_in_a6_t *a6 = target;
+	dns_rdata_in_a6_t *a6;
 	unsigned char octets;
 	dns_name_t name;
 	isc_region_t r;
 
+	REQUIRE(((dns_rdata_in_a6_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_a6);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(a6 != NULL);
 	REQUIRE(rdata->length != 0);
+
+	a6 = target;
 
 	a6->common.rdclass = rdata->rdclass;
 	a6->common.rdtype = rdata->type;
@@ -360,11 +364,15 @@ tostruct_in_a6(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_a6(ARGS_FREESTRUCT) {
-	dns_rdata_in_a6_t *a6 = source;
+	dns_rdata_in_a6_t *a6;
 
-	REQUIRE(a6 != NULL);
-	REQUIRE(a6->common.rdclass == dns_rdataclass_in);
-	REQUIRE(a6->common.rdtype == dns_rdatatype_a6);
+	REQUIRE(((dns_rdata_in_a6_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_a6_t *)source)->common.rdtype ==
+		dns_rdatatype_a6);
+	REQUIRE(((dns_rdata_in_a6_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+
+	a6 = source;
 
 	if (a6->mctx == NULL)
 		return;

@@ -86,11 +86,13 @@ fromstruct_cdnskey(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_cdnskey(ARGS_TOSTRUCT) {
-	dns_rdata_cdnskey_t *dnskey = target;
+	dns_rdata_cdnskey_t *dnskey;
 
-	REQUIRE(dnskey != NULL);
+	REQUIRE(((dns_rdata_cdnskey_t *)target) != NULL);
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
+
+	dnskey = target;
 
 	dnskey->common.rdclass = rdata->rdclass;
 	dnskey->common.rdtype = rdata->type;
@@ -101,10 +103,9 @@ tostruct_cdnskey(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_cdnskey(ARGS_FREESTRUCT) {
-	dns_rdata_cdnskey_t *dnskey = (dns_rdata_cdnskey_t *) source;
-
-	REQUIRE(dnskey != NULL);
-	REQUIRE(dnskey->common.rdtype == dns_rdatatype_cdnskey);
+	REQUIRE(((dns_rdata_cdnskey_t *)source) != NULL);
+	REQUIRE(((dns_rdata_cdnskey_t *)source)->common.rdtype ==
+		dns_rdatatype_cdnskey);
 
 	generic_freestruct_key(source);
 }

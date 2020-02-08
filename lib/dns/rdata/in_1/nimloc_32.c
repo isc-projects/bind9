@@ -108,14 +108,17 @@ compare_in_nimloc(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_nimloc(ARGS_FROMSTRUCT) {
-	dns_rdata_in_nimloc_t *nimloc = source;
+	dns_rdata_in_nimloc_t *nimloc;
 
 	REQUIRE(type == dns_rdatatype_nimloc);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(nimloc != NULL);
-	REQUIRE(nimloc->common.rdtype == type);
-	REQUIRE(nimloc->common.rdclass == rdclass);
-	REQUIRE(nimloc->nimloc != NULL || nimloc->nimloc_len == 0);
+	REQUIRE(((dns_rdata_in_nimloc_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_nimloc_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_nimloc_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_in_nimloc_t *)source)->nimloc != NULL ||
+		((dns_rdata_in_nimloc_t *)source)->nimloc_len == 0);
+
+	nimloc = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -125,13 +128,15 @@ fromstruct_in_nimloc(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_in_nimloc(ARGS_TOSTRUCT) {
-	dns_rdata_in_nimloc_t *nimloc = target;
+	dns_rdata_in_nimloc_t *nimloc;
 	isc_region_t r;
 
+	REQUIRE(((dns_rdata_in_nimloc_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_nimloc);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(nimloc != NULL);
 	REQUIRE(rdata->length != 0);
+
+	nimloc = target;
 
 	nimloc->common.rdclass = rdata->rdclass;
 	nimloc->common.rdtype = rdata->type;
@@ -150,11 +155,15 @@ tostruct_in_nimloc(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_nimloc(ARGS_FREESTRUCT) {
-	dns_rdata_in_nimloc_t *nimloc = source;
+	dns_rdata_in_nimloc_t *nimloc;
 
-	REQUIRE(nimloc != NULL);
-	REQUIRE(nimloc->common.rdclass == dns_rdataclass_in);
-	REQUIRE(nimloc->common.rdtype == dns_rdatatype_nimloc);
+	REQUIRE(((dns_rdata_in_nimloc_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_nimloc_t *)source)->common.rdtype ==
+		dns_rdatatype_nimloc);
+	REQUIRE(((dns_rdata_in_nimloc_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+
+	nimloc = source;
 
 	if (nimloc->mctx == NULL) {
 		return;

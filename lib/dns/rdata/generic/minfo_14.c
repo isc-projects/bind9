@@ -173,13 +173,15 @@ compare_minfo(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_minfo(ARGS_FROMSTRUCT) {
-	dns_rdata_minfo_t *minfo = source;
+	dns_rdata_minfo_t *minfo;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_minfo);
-	REQUIRE(minfo != NULL);
-	REQUIRE(minfo->common.rdtype == type);
-	REQUIRE(minfo->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_minfo_t *)source) != NULL);
+	REQUIRE(((dns_rdata_minfo_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_minfo_t *)source)->common.rdclass == rdclass);
+
+	minfo = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -192,14 +194,16 @@ fromstruct_minfo(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_minfo(ARGS_TOSTRUCT) {
-	dns_rdata_minfo_t *minfo = target;
+	dns_rdata_minfo_t *minfo;
 	isc_region_t region;
 	dns_name_t name;
 	isc_result_t result;
 
+	REQUIRE(((dns_rdata_minfo_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_minfo);
-	REQUIRE(minfo != NULL);
 	REQUIRE(rdata->length != 0);
+
+	minfo = target;
 
 	minfo->common.rdclass = rdata->rdclass;
 	minfo->common.rdtype = rdata->type;
@@ -228,10 +232,13 @@ tostruct_minfo(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_minfo(ARGS_FREESTRUCT) {
-	dns_rdata_minfo_t *minfo = source;
+	dns_rdata_minfo_t *minfo;
 
-	REQUIRE(minfo != NULL);
-	REQUIRE(minfo->common.rdtype == dns_rdatatype_minfo);
+	REQUIRE(((dns_rdata_minfo_t *)source) != NULL);
+	REQUIRE(((dns_rdata_minfo_t *)source)->common.rdtype ==
+		dns_rdatatype_minfo);
+
+	minfo = source;
 
 	if (minfo->mctx == NULL)
 		return;

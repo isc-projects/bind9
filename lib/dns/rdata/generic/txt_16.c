@@ -134,14 +134,17 @@ compare_txt(ARGS_COMPARE) {
 
 static inline isc_result_t
 generic_fromstruct_txt(ARGS_FROMSTRUCT) {
-	dns_rdata_txt_t *txt = source;
+	dns_rdata_txt_t *txt;
 	isc_region_t region;
 	uint8_t length;
 
-	REQUIRE(txt != NULL);
-	REQUIRE(txt->common.rdtype == type);
-	REQUIRE(txt->common.rdclass == rdclass);
-	REQUIRE(txt->txt != NULL && txt->txt_len != 0);
+	REQUIRE(((dns_rdata_txt_t *)source) != NULL);
+	REQUIRE(((dns_rdata_txt_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_txt_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_txt_t *)source)->txt != NULL);
+	REQUIRE(((dns_rdata_txt_t *)source)->txt_len != 0);
+
+	txt = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -161,13 +164,15 @@ generic_fromstruct_txt(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 generic_tostruct_txt(ARGS_TOSTRUCT) {
-	dns_rdata_txt_t *txt = target;
+	dns_rdata_txt_t *txt;
 	isc_region_t r;
 
-	REQUIRE(txt != NULL);
-	REQUIRE(txt->common.rdclass == rdata->rdclass);
-	REQUIRE(txt->common.rdtype == rdata->type);
-	REQUIRE(!ISC_LINK_LINKED(&txt->common, link));
+	REQUIRE(((dns_rdata_txt_t *)target) != NULL);
+	REQUIRE(((dns_rdata_txt_t *)target)->common.rdclass == rdata->rdclass);
+	REQUIRE(((dns_rdata_txt_t *)target)->common.rdtype == rdata->type);
+	REQUIRE(!ISC_LINK_LINKED(&((dns_rdata_txt_t *)target)->common, link));
+
+	txt = target;
 
 	dns_rdata_toregion(rdata, &r);
 	txt->txt_len = r.length;
@@ -182,9 +187,11 @@ generic_tostruct_txt(ARGS_TOSTRUCT) {
 
 static inline void
 generic_freestruct_txt(ARGS_FREESTRUCT) {
-	dns_rdata_txt_t *txt = source;
+	dns_rdata_txt_t *txt;
 
-	REQUIRE(txt != NULL);
+	REQUIRE(((dns_rdata_txt_t *)source) != NULL);
+
+	txt = source;
 
 	if (txt->mctx == NULL)
 		return;
@@ -204,10 +211,12 @@ fromstruct_txt(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_txt(ARGS_TOSTRUCT) {
-	dns_rdata_txt_t *txt = target;
+	dns_rdata_txt_t *txt;
 
 	REQUIRE(rdata->type == dns_rdatatype_txt);
-	REQUIRE(txt != NULL);
+	REQUIRE(((dns_rdata_txt_t *)target) != NULL);
+
+	txt = target;
 
 	txt->common.rdclass = rdata->rdclass;
 	txt->common.rdtype = rdata->type;
@@ -218,10 +227,9 @@ tostruct_txt(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_txt(ARGS_FREESTRUCT) {
-	dns_rdata_txt_t *txt = source;
-
-	REQUIRE(txt != NULL);
-	REQUIRE(txt->common.rdtype == dns_rdatatype_txt);
+	REQUIRE(((dns_rdata_txt_t *)source) != NULL);
+	REQUIRE(((dns_rdata_txt_t *)source)->common.rdtype ==
+		dns_rdatatype_txt);
 
 	generic_freestruct_txt(source);
 }

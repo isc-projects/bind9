@@ -137,14 +137,17 @@ compare_in_nsap(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_in_nsap(ARGS_FROMSTRUCT) {
-	dns_rdata_in_nsap_t *nsap = source;
+	dns_rdata_in_nsap_t *nsap;
 
 	REQUIRE(type == dns_rdatatype_nsap);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(nsap != NULL);
-	REQUIRE(nsap->common.rdtype == type);
-	REQUIRE(nsap->common.rdclass == rdclass);
-	REQUIRE(nsap->nsap != NULL || nsap->nsap_len == 0);
+	REQUIRE(((dns_rdata_in_nsap_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_nsap_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_in_nsap_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_in_nsap_t *)source)->nsap != NULL ||
+		((dns_rdata_in_nsap_t *)source)->nsap_len == 0);
+
+	nsap = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -154,13 +157,15 @@ fromstruct_in_nsap(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_in_nsap(ARGS_TOSTRUCT) {
-	dns_rdata_in_nsap_t *nsap = target;
+	dns_rdata_in_nsap_t *nsap;
 	isc_region_t r;
 
+	REQUIRE(((dns_rdata_in_nsap_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_nsap);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(nsap != NULL);
 	REQUIRE(rdata->length != 0);
+
+	nsap = target;
 
 	nsap->common.rdclass = rdata->rdclass;
 	nsap->common.rdtype = rdata->type;
@@ -178,11 +183,15 @@ tostruct_in_nsap(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_in_nsap(ARGS_FREESTRUCT) {
-	dns_rdata_in_nsap_t *nsap = source;
+	dns_rdata_in_nsap_t *nsap;
 
-	REQUIRE(nsap != NULL);
-	REQUIRE(nsap->common.rdclass == dns_rdataclass_in);
-	REQUIRE(nsap->common.rdtype == dns_rdatatype_nsap);
+	REQUIRE(((dns_rdata_in_nsap_t *)source) != NULL);
+	REQUIRE(((dns_rdata_in_nsap_t *)source)->common.rdclass ==
+		dns_rdataclass_in);
+	REQUIRE(((dns_rdata_in_nsap_t *)source)->common.rdtype ==
+		dns_rdatatype_nsap);
+
+	nsap = source;
 
 	if (nsap->mctx == NULL)
 		return;

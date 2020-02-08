@@ -168,13 +168,16 @@ compare_uri(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_uri(ARGS_FROMSTRUCT) {
-	dns_rdata_uri_t *uri = source;
+	dns_rdata_uri_t *uri;
 
 	REQUIRE(type == dns_rdatatype_uri);
-	REQUIRE(uri != NULL);
-	REQUIRE(uri->common.rdtype == type);
-	REQUIRE(uri->common.rdclass == rdclass);
-	REQUIRE(uri->target != NULL && uri->tgt_len != 0);
+	REQUIRE(((dns_rdata_uri_t *)source) != NULL);
+	REQUIRE(((dns_rdata_uri_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_uri_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_uri_t *)source)->target != NULL);
+	REQUIRE(((dns_rdata_uri_t *)source)->tgt_len != 0);
+
+	uri = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -197,12 +200,14 @@ fromstruct_uri(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_uri(ARGS_TOSTRUCT) {
-	dns_rdata_uri_t *uri = target;
+	dns_rdata_uri_t *uri;
 	isc_region_t sr;
 
+	REQUIRE(((dns_rdata_uri_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_uri);
-	REQUIRE(uri != NULL);
 	REQUIRE(rdata->length != 0);
+
+	uri = target;
 
 	uri->common.rdclass = rdata->rdclass;
 	uri->common.rdtype = rdata->type;
@@ -240,10 +245,13 @@ tostruct_uri(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_uri(ARGS_FREESTRUCT) {
-	dns_rdata_uri_t *uri = (dns_rdata_uri_t *) source;
+	dns_rdata_uri_t *uri;
 
-	REQUIRE(uri != NULL);
-	REQUIRE(uri->common.rdtype == dns_rdatatype_uri);
+	REQUIRE(((dns_rdata_uri_t *)source) != NULL);
+	REQUIRE(((dns_rdata_uri_t *)source)->common.rdtype ==
+		dns_rdatatype_uri);
+
+	uri = (dns_rdata_uri_t *) source;
 
 	if (uri->mctx == NULL)
 		return;

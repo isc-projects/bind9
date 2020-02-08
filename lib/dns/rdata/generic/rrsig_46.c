@@ -353,13 +353,16 @@ compare_rrsig(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_rrsig(ARGS_FROMSTRUCT) {
-	dns_rdata_rrsig_t *sig = source;
+	dns_rdata_rrsig_t *sig;
 
 	REQUIRE(type == dns_rdatatype_rrsig);
-	REQUIRE(sig != NULL);
-	REQUIRE(sig->common.rdtype == type);
-	REQUIRE(sig->common.rdclass == rdclass);
-	REQUIRE(sig->signature != NULL || sig->siglen == 0);
+	REQUIRE(((dns_rdata_rrsig_t *)source) != NULL);
+	REQUIRE(((dns_rdata_rrsig_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_rrsig_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_rrsig_t *)source)->signature != NULL ||
+		((dns_rdata_rrsig_t *)source)->siglen == 0);
+
+	sig = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -413,12 +416,14 @@ fromstruct_rrsig(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_rrsig(ARGS_TOSTRUCT) {
 	isc_region_t sr;
-	dns_rdata_rrsig_t *sig = target;
+	dns_rdata_rrsig_t *sig;
 	dns_name_t signer;
 
+	REQUIRE(((dns_rdata_rrsig_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);
-	REQUIRE(sig != NULL);
 	REQUIRE(rdata->length != 0);
+
+	sig = target;
 
 	sig->common.rdclass = rdata->rdclass;
 	sig->common.rdtype = rdata->type;
@@ -494,10 +499,13 @@ tostruct_rrsig(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_rrsig(ARGS_FREESTRUCT) {
-	dns_rdata_rrsig_t *sig = (dns_rdata_rrsig_t *) source;
+	dns_rdata_rrsig_t *sig;
 
-	REQUIRE(sig != NULL);
-	REQUIRE(sig->common.rdtype == dns_rdatatype_rrsig);
+	REQUIRE(((dns_rdata_rrsig_t *)source) != NULL);
+	REQUIRE(((dns_rdata_rrsig_t *)source)->common.rdtype ==
+		dns_rdatatype_rrsig);
+
+	sig = (dns_rdata_rrsig_t *) source;
 
 	if (sig->mctx == NULL)
 		return;

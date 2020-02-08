@@ -186,11 +186,13 @@ compare_tlsa(ARGS_COMPARE) {
 
 static inline isc_result_t
 generic_fromstruct_tlsa(ARGS_FROMSTRUCT) {
-	dns_rdata_tlsa_t *tlsa = source;
+	dns_rdata_tlsa_t *tlsa;
 
-	REQUIRE(tlsa != NULL);
-	REQUIRE(tlsa->common.rdtype == type);
-	REQUIRE(tlsa->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_tlsa_t *)source) != NULL);
+	REQUIRE(((dns_rdata_tlsa_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_tlsa_t *)source)->common.rdclass == rdclass);
+
+	tlsa = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -204,16 +206,16 @@ generic_fromstruct_tlsa(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 generic_tostruct_tlsa(ARGS_TOSTRUCT) {
-	dns_rdata_tlsa_t *tlsa = target;
+	dns_rdata_tlsa_t *tlsa;
 	isc_region_t region;
 
-	REQUIRE(tlsa != NULL);
 	REQUIRE(rdata->length != 0);
+	REQUIRE(((dns_rdata_tlsa_t *)target) != NULL);
+	REQUIRE(((dns_rdata_tlsa_t *)target)->common.rdclass == rdata->rdclass);
+	REQUIRE(((dns_rdata_tlsa_t *)target)->common.rdtype == rdata->type);
+	REQUIRE(!ISC_LINK_LINKED(&((dns_rdata_tlsa_t *)target)->common, link));
 
-	REQUIRE(tlsa != NULL);
-	REQUIRE(tlsa->common.rdclass == rdata->rdclass);
-	REQUIRE(tlsa->common.rdtype == rdata->type);
-	REQUIRE(!ISC_LINK_LINKED(&tlsa->common, link));
+	tlsa = target;
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -235,9 +237,11 @@ generic_tostruct_tlsa(ARGS_TOSTRUCT) {
 
 static inline void
 generic_freestruct_tlsa(ARGS_FREESTRUCT) {
-	dns_rdata_tlsa_t *tlsa = source;
+	dns_rdata_tlsa_t *tlsa;
 
-	REQUIRE(tlsa != NULL);
+	REQUIRE(((dns_rdata_tlsa_t *)source) != NULL);
+
+	tlsa = source;
 
 	if (tlsa->mctx == NULL)
 		return;
@@ -257,10 +261,12 @@ fromstruct_tlsa(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_tlsa(ARGS_TOSTRUCT) {
-	dns_rdata_tlsa_t *tlsa = target;
+	dns_rdata_tlsa_t *tlsa;
 
 	REQUIRE(rdata->type == dns_rdatatype_tlsa);
-	REQUIRE(tlsa != NULL);
+	REQUIRE(((dns_rdata_tlsa_t *)target) != NULL);
+
+	tlsa = target;
 
 	tlsa->common.rdclass = rdata->rdclass;
 	tlsa->common.rdtype = rdata->type;
@@ -271,10 +277,9 @@ tostruct_tlsa(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_tlsa(ARGS_FREESTRUCT) {
-	dns_rdata_tlsa_t *tlsa = source;
-
-	REQUIRE(tlsa != NULL);
-	REQUIRE(tlsa->common.rdtype == dns_rdatatype_tlsa);
+	REQUIRE(((dns_rdata_tlsa_t *)source) != NULL);
+	REQUIRE(((dns_rdata_tlsa_t *)source)->common.rdtype ==
+		dns_rdatatype_tlsa);
 
 	generic_freestruct_tlsa(source);
 }

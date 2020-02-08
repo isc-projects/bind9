@@ -115,12 +115,14 @@ compare_eui64(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_eui64(ARGS_FROMSTRUCT) {
-	dns_rdata_eui64_t *eui64 = source;
+	dns_rdata_eui64_t *eui64;
 
 	REQUIRE(type == dns_rdatatype_eui64);
-	REQUIRE(eui64 != NULL);
-	REQUIRE(eui64->common.rdtype == type);
-	REQUIRE(eui64->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_eui64_t *)source) != NULL);
+	REQUIRE(((dns_rdata_eui64_t *)source)->common.rdtype == type);
+	REQUIRE(((dns_rdata_eui64_t *)source)->common.rdclass == rdclass);
+
+	eui64 = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -130,11 +132,13 @@ fromstruct_eui64(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_eui64(ARGS_TOSTRUCT) {
-	dns_rdata_eui64_t *eui64 = target;
+	dns_rdata_eui64_t *eui64;
 
+	REQUIRE(((dns_rdata_eui64_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_eui64);
-	REQUIRE(eui64 != NULL);
 	REQUIRE(rdata->length == 8);
+
+	eui64 = target;
 
 	UNUSED(mctx);
 
@@ -148,10 +152,9 @@ tostruct_eui64(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_eui64(ARGS_FREESTRUCT) {
-	dns_rdata_eui64_t *eui64 = source;
-
-	REQUIRE(eui64 != NULL);
-	REQUIRE(eui64->common.rdtype == dns_rdatatype_eui64);
+	REQUIRE(((dns_rdata_eui64_t *)source) != NULL);
+	REQUIRE(((dns_rdata_eui64_t *)source)->common.rdtype ==
+		dns_rdatatype_eui64);
 
 	return;
 }

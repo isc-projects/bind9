@@ -170,13 +170,15 @@ compare_afsdb(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_afsdb(ARGS_FROMSTRUCT) {
-	dns_rdata_afsdb_t *afsdb = source;
+	dns_rdata_afsdb_t *afsdb;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_afsdb);
-	REQUIRE(afsdb != NULL);
-	REQUIRE(afsdb->common.rdclass == rdclass);
-	REQUIRE(afsdb->common.rdtype == type);
+	REQUIRE(((dns_rdata_afsdb_t *)source) != NULL);
+	REQUIRE(((dns_rdata_afsdb_t *)source)->common.rdclass == rdclass);
+	REQUIRE(((dns_rdata_afsdb_t *)source)->common.rdtype == type);
+
+	afsdb = source;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -189,12 +191,14 @@ fromstruct_afsdb(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_afsdb(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_afsdb_t *afsdb = target;
+	dns_rdata_afsdb_t *afsdb;
 	dns_name_t name;
 
+	REQUIRE(((dns_rdata_afsdb_t *)target) != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
-	REQUIRE(afsdb != NULL);
 	REQUIRE(rdata->length != 0);
+
+	afsdb = target;
 
 	afsdb->common.rdclass = rdata->rdclass;
 	afsdb->common.rdtype = rdata->type;
@@ -217,10 +221,13 @@ tostruct_afsdb(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_afsdb(ARGS_FREESTRUCT) {
-	dns_rdata_afsdb_t *afsdb = source;
+	dns_rdata_afsdb_t *afsdb;
 
-	REQUIRE(afsdb != NULL);
-	REQUIRE(afsdb->common.rdtype == dns_rdatatype_afsdb);
+	REQUIRE(((dns_rdata_afsdb_t *)source) != NULL);
+	REQUIRE(((dns_rdata_afsdb_t *)source)->common.rdtype ==
+		dns_rdatatype_afsdb);
+
+	afsdb = source;
 
 	if (afsdb->mctx == NULL)
 		return;

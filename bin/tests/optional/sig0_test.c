@@ -71,10 +71,8 @@ static const dns_master_style_t *style = &dns_master_style_debug;
 
 static void
 senddone(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-
-	REQUIRE(sevent != NULL);
-	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(event != NULL);
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 	REQUIRE(task == task1);
 
 	printf("senddone\n");
@@ -84,14 +82,16 @@ senddone(isc_task_t *task, isc_event_t *event) {
 
 static void
 recvdone(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
+	isc_socketevent_t *sevent;
 	isc_buffer_t source;
 	isc_result_t result;
 	dns_message_t *response;
 
-	REQUIRE(sevent != NULL);
-	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_RECVDONE);
+	REQUIRE(event != NULL);
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
 	REQUIRE(task == task1);
+
+	sevent = (isc_socketevent_t *)event;
 
 	printf("recvdone\n");
 	if (sevent->result != ISC_R_SUCCESS) {
