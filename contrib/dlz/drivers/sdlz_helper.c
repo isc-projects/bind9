@@ -450,8 +450,7 @@ sdlzh_destroy_sqldbinstance(dbinstance_t *dbi)
 	(void) isc_mutex_destroy(&dbi->instance_lock);
 
 	/* return, and detach the memory */
-	isc_mem_put(mctx, dbi, sizeof(dbinstance_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&mctx, dbi, sizeof(dbinstance_t));
 }
 
 char *

@@ -936,10 +936,7 @@ fs_destroy(void *driverarg, void *dbdata)
 	mctx = cd->mctx;
 
 	/* free config data memory */
-	isc_mem_put(mctx, cd, sizeof(config_data_t));
-
-	/* detach memory from context */
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&mctx, cd, sizeof(config_data_t));
 }
 
 static dns_sdlzmethods_t dlz_fs_methods = {

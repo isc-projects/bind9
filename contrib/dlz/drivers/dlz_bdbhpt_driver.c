@@ -463,8 +463,7 @@ bdbhpt_cleanup(bdbhpt_instance_t *db) {
 		/* save mctx for later */
 		mctx = db->mctx;
 		/* return, and detach the memory */
-		isc_mem_put(mctx, db, sizeof(bdbhpt_instance_t));
-		isc_mem_detach(&mctx);
+		isc_mem_putanddetach(&mctx, db, sizeof(bdbhpt_instance_t));
 	}
 }
 
