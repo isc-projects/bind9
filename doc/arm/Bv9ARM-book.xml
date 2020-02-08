@@ -11087,33 +11087,89 @@ example.com                 CNAME   rpz-tcp-only.
 	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="dnssec-policy.grammar.xml"/>
 	</section>
 
-	<section xml:id="dnssec_policy"><info><title><command>dnssec-policy</command> Statement Definition
-	    and Usage</title></info>
+	<section xml:id="dnssec_policy"><info><title><command>dnssec-policy</command> Statement Definition and Usage</title></info>
 
 	  <para>
 	    The <command>dnssec-policy</command> statement defines a key and
 	    signing policy (KASP) for zones.
 	  </para>
 	  <para>
-	    KASP is used to determine how one or more zones need to be signed
-	    with DNSSEC.  For example, how often RRSIG records need to be
-	    refreshed, or what cryptographic algorithms to use.
+	    A KASP determines how one or more zones will be signed
+	    with DNSSEC. For example, it specifies how often keys should
+	    roll, which cryptographic algorithms to use, and how often RRSIG
+	    records need to be refreshed.
 	  </para>
 	  <para>
-	    You can configure multiple policies.  To attach a policy to a zone
-	    simply add <userinput>dnssec-policy "policy_name"</userinput>
-	    option to the <command>zone</command> statement with a matching
-	    policy name.
+	    Multiple key and signing policies can be configured.  To
+	    attach a policy to a zone, add a <command>dnssec-policy</command>
+	    option to the <command>zone</command> statement, specifying he
+	    name of the policy that should be used.
+	  </para>
+	  <para>
+	    Key rollover timing is computed for each key according to
+	    the key lifetime defined in the KASP.  The lifetime may be
+	    modified by zone TTLs and propagation delays, in order to
+	    prevent validation failures.  When a key reaches the end of its
+	    lifetime,
+	    <command>named</command> will generate and publish a new key
+	    automatically, then deactivate the old key and activate the
+	    new one, and finally retire the old key according to a computed
+	    schedule.
+	  </para>
+	  <para>
+	    Zone-signing key (ZSK) rollovers require no operator input.
+	    Key-signing key (KSK) and combined signing key (CSK) rollovers
+	    require action to be taken to submit a DS record to the parent.
+	    Rollover timing for KSKs and CSKs is adjusted to take into account
+	    delays in processing and propagating DS updates.
+	  </para>
+	  <para>
+	    There are two predefined <command>dnssec-policy</command> names:
+	    <command>none</command> and <command>default</command>.
+	    Setting a zone's policy to
+	    <command>none</command> is the same as not setting
+	    <command>dnssec-policy</command> at all; the zone will not
+	    be signed.  Policy <command>default</command> causes the
+	    zone to be signed with a single combined signing key (CSK)
+	    using algorithm ECDSAP256SHA256; this key will have an
+	    unlimited lifetime. (A verbose copy of this policy
+	    may be found in the source tree, in the file
+	    <filename>doc/misc/dnssec-policy.default.conf</filename>.)
+	    <note>
+	      The default signing policy may change in future releases.
+	      This could result in changes to your signing policy
+	      occurring when you upgrade to a new version of BIND. Check
+	      the release notes carefully when upgrading to be informed
+	      of such changes. To prevent policy changes on upgrade,
+	      use an explicitly defined <command>dnssec-policy</command>
+	      rather than <command>default</command>.
+	    </note>
+	  </para>
+	  <para>
+	    If a <command>dnssec-policy</command> statement is modified
+	    and the server restarted or reconfigured, <command>named</command>
+	    will attempt to change the policy smoothly from the old one to
+	    the new. For example, if the key algorithm is changed, then
+	    a new key will be generated with the new algorithm, and the old
+	    algorithm will be retired when the existing key's lifetime ends.
+	    <note>
+	      Rolling to a new policy while another key rollover is
+	      already in progress is not yet supported, and may result in
+	      unexpected behavior.
+	    </note>
+	  </para>
+	  <para>
+	    The following options can be specified in a
+	    <command>dnssec-policy</command> statement:
 	  </para>
 
 	  <variablelist>
-
 	    <varlistentry>
 	      <term><command>dnskey-ttl</command></term>
 	      <listitem>
 		<para>
-		  The TTL of the DNSKEY resource records.
-		  Default is <constant>3600</constant> seconds.
+		  The TTL to use when generating DNSKEY resource records.
+		  The default is 1 hour (3600 seconds).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11122,30 +11178,48 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>keys</command></term>
 	      <listitem>
 		<para>
-		  A list of keys to use.  Each line represents one key. Here is
-		  an example (for illustration purposes only) of some possible
-		  keys in a <command>dnssec-policy</command>:
+		  A list specifying the algorithms and roles to use when
+		  generating keys and signing the zone.
+		  Entries in this list do not represent specific
+		  DNSSEC keys, which may be changed on a regular basis,
+		  but the roles that keys will play in the signing policy.
+		  For example, configuring a KSK of algorithm RSASHA256 ensures
+		  that the DNSKEY RRset will always include a key-signing key
+		  for that algorithm.
+		</para>
+		<para>
+		  Here is an example (for illustration purposes only) of
+		  some possible entries in a <command>keys</command>
+		  list:
 		</para>
 
 <programlisting>keys {
     ksk key-directory lifetime unlimited algorithm rsasha1 2048;
-    zsk key-directory lifetime P30D algorithm 8;
-    csk key-directory lifetime P6MT12H3M15S algorithm ecdsa256;
+    zsk lifetime P30D algorithm 8;
+    csk lifetime P6MT12H3M15S algorithm ecdsa256;
 };
 </programlisting>
 
 		<para>
-		  This example lists three keys. The first token determines
-		  what RRsets the key will sign. If set to
-		  <userinput>ksk</userinput> the key will sign the DNSKEY, CDS,
-		  and CDNSKEY RRsets, if set to <userinput>zsk</userinput> the
-		  key will sign the other RRsets, and if set to
-		  <userinput>csk</userinput> the key will sign all RRsets.
+		  This example specifies that three keys should be used
+		  in the zone. The first token determines which role the
+		  key will play in signing RRsets.  If set to
+		  <userinput>ksk</userinput>, then this will be
+		  a key-signing key; it will have the KSK flag set and
+		  will only be used to sign DNSKEY, CDS, and CDNSKEY RRsets.
+		  If set to <userinput>zsk</userinput>, this will be
+		  a zone-signing key; the KSK flag will be unset, and
+		  the key will sign all RRsets <emphasis>except</emphasis>
+		  DNSKEY, CDS, and CDNSKEY. If set to
+		  <userinput>csk</userinput> the key will have the KSK
+		  flag set and will be used to sign all RRsets.
 		</para>
 		<para>
-		  The following part determines where the key will be stored.
-		  Currently keys can only be stored in the configured
-		  <command>key-directory</command>.
+		  An optional second token determines where the key will
+		  be stored.  Currently, keys can only be stored in the
+		  configured <command>key-directory</command>. This token
+		  may be used in the future to store keys in hardware
+		  service modules or separate directories.
 		</para>
 		<para>
 		  The <command>lifetime</command> parameter specifies how
@@ -11158,18 +11232,19 @@ example.com                 CNAME   rpz-tcp-only.
 		</para>
 		<para>
 		  Note that the lifetime of a key may be extended if
-		  retiring it too soon would cause validation failures:
-		  for example, if the key were configured to roll more
-		  frequently than its TTL, its lifetime would
+		  retiring it too soon would cause validation failures.
+		  For example, if the key were configured to roll more
+		  frequently than its own TTL, its lifetime would
 		  automatically be extended to account for this.
 		</para>
 		<para>
-		  The <command>algorithm</command> parameter(s) are the key's
-		  algorithm, expressed either as a string ("rsasha256",
-		  "ecdsa384", etc) or as a decimal number, and the key's
-		  size in bits. The size may be omitted, as shown in
-		  the example for the second and third keys; in this case
-		  an appropriate default size will be used.
+		  The <command>algorithm</command> parameter specifies
+		  the key's algorithm, expressed either as a string
+		  ("rsasha256", "ecdsa384", etc) or as a decimal number.
+		  An optional second parameter specifies the key's size
+		  in size in bits. If it is omitted, as shown in the
+		  example for the second and third keys, an appropriate
+		  default size for the algorithm will be used.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11178,10 +11253,11 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>publish-safety</command></term>
 	      <listitem>
 		<para>
-		  A margin that is added to the publish interval in key
-		  timing equations to give some extra time to cover
-		  unforeseen events.  Default is <constant>PT1H</constant>
-		  (1 hour).
+		  A margin that is added to the pre-publication
+		  interval in rollover timing calcuations to give some
+		  extra time to cover unforeseen events. This increases
+		  the time that keys are published before becoming active.
+		  The default is <constant>PT1H</constant> (1 hour).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11190,10 +11266,11 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>retire-safety</command></term>
 	      <listitem>
 		<para>
-		  A margin that is added to the retire interval in key
-		  timing equations to give some extra time to cover
-		  unforeseen events.  Default is <constant>PT1H</constant>
-		  (1 hour).
+		  A margin that is added to the post-publication interval
+		  in rollover timing calculations to give some extra time
+		  to cover unforeseen events. This increases the time a key
+		  remains published after it is no longer active.  The
+		  default is <constant>PT1H</constant> (1 hour).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11202,13 +11279,12 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>signatures-refresh</command></term>
 	      <listitem>
 		<para>
-		  This determines when a RRSIG record needs to be
-		  refreshed.  The signatures is renewed when the time until
-		  the expiration time is closer than
-		  <command>signatures-refresh</command>.
-		  <command>signatures-resign</command> interval.  Default
-		  is <constant>P5D</constant> (5 days), meaning a signature
-		  that will expire in 5 days or sooner will be refreshed.
+		  This determines how frequently an RRSIG record needs to be
+		  refreshed.  The signature is renewed when the time until
+		  the expiration time is closer than the specified interval.
+		  The default is <constant>P5D</constant> (5 days), meaning
+		  signatures that will expire in 5 days or sooner will be
+		  refreshed.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11217,8 +11293,8 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>signatures-validity</command></term>
 	      <listitem>
 		<para>
-		  The validity period of an RRSIG record (minus the
-		  inception offset and jitter). Default is
+		  The validity period of an RRSIG record (subject to
+		  inception offset and jitter). The default is
 		  <constant>P2W</constant> (2 weeks).
 		</para>
 	      </listitem>
@@ -11228,9 +11304,9 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>signatures-validity-dnskey</command></term>
 	      <listitem>
 		<para>
-		  Like <command>signatures-validity</command> but for
-		  DNSKEY records. Default is <constant>P2W</constant> (2
-		  weeks).
+		  Similar to <command>signatures-validity</command> but for
+		  DNSKEY records. The default is <constant>P2W</constant>
+		  (2 weeks).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11245,7 +11321,7 @@ example.com                 CNAME   rpz-tcp-only.
 		  a <option>masterfile-format</option> of
 		  <constant>text</constant> or <constant>raw</constant>,
 		  any record encountered with a TTL higher than
-		  <option>max-zone-ttl</option> will be capped to the
+		  <option>max-zone-ttl</option> will be capped at the
 		  maximum permissible TTL value.
 		</para>
 		<para>
@@ -11273,10 +11349,10 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>zone-propagation-delay</command></term>
 	      <listitem>
 		<para>
-		  The expected propagation delay from when a zone is
-		  updated and when the new version of the zone is served by
-		  all its name servers.  Default is
-		  <constant>PT5M</constant> (5 minutes).
+		  The expected propagation delay from the time when a zone
+		  is first updated to the time when the new version of the
+		  zone will be served by all secondary servers.  The default
+		  is <constant>PT5M</constant> (5 minutes).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11285,8 +11361,8 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>parent-ds-ttl</command></term>
 	      <listitem>
 		<para>
-		  The TTL of the DS RRset that the parent uses.  Default is
-		  <constant>P1D</constant> (1 day).
+		  The TTL of the DS RRset that the parent zone uses.  The
+		  default is <constant>P1D</constant> (1 day).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11295,10 +11371,10 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>parent-propagation-delay</command></term>
 	      <listitem>
 		<para>
-		  The expected propagation delay from when the parent zone
-		  is updated and when the new version of the parent zone is
-		  served by all its name servers.  Default is
-		  <constant>PT1H</constant> (1 hour).
+		  The expected propagation delay from the time when the
+		  parent zone is updated to the time when the new version
+		  is served by all of the parent zone's name servers.
+		  The default is <constant>PT1H</constant> (1 hour).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11307,9 +11383,9 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>parent-registration-delay</command></term>
 	      <listitem>
 		<para>
-		  The expected registration delay from when a DS RRset
-		  change is requested and when the DS RRset has been
-		  updated in the parent zone.  Default is
+		  The expected registration delay from the time when a DS
+		  RRset change is requested to the time when the DS RRset
+		  will be updated in the parent zone.  The default is
 		  <constant>P1D</constant> (1 day).
 	      </para>
 	      </listitem>
@@ -12195,13 +12271,16 @@ view "external" {
 		<term><command>dnssec-policy</command></term>
 		<listitem>
 		  <para>
-		    The key and signing policy for this zone.  This is a string
-		    referring to a <command>dnssec-policy</command> statement.
+		    Specifies which key and signing policy (KASP) should
+		    be used for this zone.  This is a string referring to
+		    a <command>dnssec-policy</command> statement.
 		    There are two built-in policies:
-		    <userinput>"default"</userinput> allows you to use the
-		    default policy, and <userinput>"none"</userinput> means
+		    <userinput>default</userinput> allows you to use the
+		    default policy, and <userinput>none</userinput> means
 		    not to use any DNSSEC policy, keeping the zone unsigned.
-		    The default is <userinput>"none"</userinput>.
+		    The default is <userinput>none</userinput>.
+		    See <xref linkend="dnssec_policy_grammar"/> for
+		    more details.
 		  </para>
 		</listitem>
 	      </varlistentry>
