@@ -1285,10 +1285,10 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp) {
 
 	REQUIRE(dkp != NULL && *dkp != NULL);
 	dk = *dkp;
+	*dkp = NULL;
 	if (dk->key != NULL)
 		dst_key_free(&dk->key);
 	isc_mem_put(mctx, dk, sizeof(dns_dnsseckey_t));
-	*dkp = NULL;
 }
 
 void

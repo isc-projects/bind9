@@ -3307,6 +3307,7 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 
 	REQUIRE(validatorp != NULL);
 	val = *validatorp;
+	*validatorp = NULL;
 	REQUIRE(VALID_VALIDATOR(val));
 
 	LOCK(&val->lock);
@@ -3319,8 +3320,6 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 	if (want_destroy) {
 		destroy(val);
 	}
-
-	*validatorp = NULL;
 }
 
 static void

@@ -228,10 +228,9 @@ isc_ht_iter_destroy(isc_ht_iter_t **itp) {
 	REQUIRE(itp != NULL && *itp != NULL);
 
 	it = *itp;
+	*itp = NULL;
 	ht = it->ht;
 	isc_mem_put(ht->mctx, it, sizeof(isc_ht_iter_t));
-
-	*itp = NULL;
 }
 
 isc_result_t

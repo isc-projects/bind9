@@ -313,6 +313,7 @@ check_result(isc_result_t result, const char *msg) {
 static char *
 nsu_strsep(char **stringp, const char *delim) {
 	char *string = *stringp;
+	*stringp = NULL;
 	char *s;
 	const char *d;
 	char sc, dc;
@@ -340,7 +341,6 @@ nsu_strsep(char **stringp, const char *delim) {
 			}
 		}
 	}
-	*stringp = NULL;
 	return (string);
 }
 

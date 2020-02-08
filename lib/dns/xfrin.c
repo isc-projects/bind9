@@ -701,10 +701,10 @@ dns_xfrin_attach(dns_xfrin_ctx_t *source, dns_xfrin_ctx_t **target) {
 void
 dns_xfrin_detach(dns_xfrin_ctx_t **xfrp) {
 	dns_xfrin_ctx_t *xfr = *xfrp;
+	*xfrp = NULL;
 	INSIST(xfr->refcount > 0);
 	xfr->refcount--;
 	maybe_free(xfr);
-	*xfrp = NULL;
 }
 
 static void

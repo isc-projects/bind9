@@ -201,14 +201,13 @@ dns_fwdtable_destroy(dns_fwdtable_t **fwdtablep) {
 	REQUIRE(fwdtablep != NULL && VALID_FWDTABLE(*fwdtablep));
 
 	fwdtable = *fwdtablep;
+	*fwdtablep = NULL;
 
 	dns_rbt_destroy(&fwdtable->table);
 	isc_rwlock_destroy(&fwdtable->rwlock);
 	fwdtable->magic = 0;
 
 	isc_mem_putanddetach(&fwdtable->mctx, fwdtable, sizeof(dns_fwdtable_t));
-
-	*fwdtablep = NULL;
 }
 
 /***

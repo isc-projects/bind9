@@ -1477,10 +1477,10 @@ named_controls_create(named_server_t *server, named_controls_t **ctrlsp) {
 void
 named_controls_destroy(named_controls_t **ctrlsp) {
 	named_controls_t *controls = *ctrlsp;
+	*ctrlsp = NULL;
 
 	REQUIRE(ISC_LIST_EMPTY(controls->listeners));
 
 	isccc_symtab_destroy(&controls->symtab);
 	isc_mem_put(controls->server->mctx, controls, sizeof(*controls));
-	*ctrlsp = NULL;
 }

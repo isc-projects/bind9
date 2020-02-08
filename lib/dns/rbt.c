@@ -1000,6 +1000,8 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum) {
 	if (rbt->root != NULL)
 		return (ISC_R_QUOTA);
 
+	*rbtp = NULL;
+
 	INSIST(rbt->nodecount == 0);
 
 	rbt->mmap_location = NULL;
@@ -1011,7 +1013,6 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum) {
 	rbt->magic = 0;
 
 	isc_mem_putanddetach(&rbt->mctx, rbt, sizeof(*rbt));
-	*rbtp = NULL;
 	return (ISC_R_SUCCESS);
 }
 
@@ -2768,11 +2769,11 @@ deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 static void
 freenode(dns_rbt_t *rbt, dns_rbtnode_t **nodep) {
 	dns_rbtnode_t *node = *nodep;
+	*nodep = NULL;
 
 	if (node->is_mmapped == 0) {
 		isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 	}
-	*nodep = NULL;
 
 	rbt->nodecount--;
 }

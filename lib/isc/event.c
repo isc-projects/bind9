@@ -84,6 +84,7 @@ isc_event_free(isc_event_t **eventp) {
 
 	REQUIRE(eventp != NULL);
 	event = *eventp;
+	*eventp = NULL;
 	REQUIRE(event != NULL);
 
 	REQUIRE(!ISC_LINK_LINKED(event, ev_link));
@@ -91,6 +92,4 @@ isc_event_free(isc_event_t **eventp) {
 
 	if (event->ev_destroy != NULL)
 		(event->ev_destroy)(event);
-
-	*eventp = NULL;
 }

@@ -104,6 +104,7 @@ dns_difftuple_create(isc_mem_t *mctx,
 void
 dns_difftuple_free(dns_difftuple_t **tp) {
 	dns_difftuple_t *t = *tp;
+	*tp = NULL;
 	isc_mem_t *mctx;
 
 	REQUIRE(DNS_DIFFTUPLE_VALID(t));
@@ -113,7 +114,6 @@ dns_difftuple_free(dns_difftuple_t **tp) {
 	mctx = t->mctx;
 	isc_mem_free(mctx, t);
 	isc_mem_detach(&mctx);
-	*tp = NULL;
 }
 
 isc_result_t

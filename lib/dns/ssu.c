@@ -119,8 +119,8 @@ dns_ssutable_detach(dns_ssutable_t **tablep) {
 
 	REQUIRE(tablep != NULL);
 	table = *tablep;
-	REQUIRE(VALID_SSUTABLE(table));
 	*tablep = NULL;
+	REQUIRE(VALID_SSUTABLE(table));
 
 	if (isc_refcount_decrement(&table->references) == 1) {
 		destroy(table);

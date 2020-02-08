@@ -247,12 +247,11 @@ dns_sdb_unregister(dns_sdbimplementation_t **sdbimp) {
 	REQUIRE(sdbimp != NULL && *sdbimp != NULL);
 
 	imp = *sdbimp;
+	*sdbimp = NULL;
 	dns_db_unregister(&imp->dbimp);
 	isc_mutex_destroy(&imp->driverlock);
 
 	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dns_sdbimplementation_t));
-
-	*sdbimp = NULL;
 }
 
 static inline unsigned int

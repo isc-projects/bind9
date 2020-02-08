@@ -283,9 +283,9 @@ requestmgr_detach(dns_requestmgr_t **requestmgrp) {
 
 	REQUIRE(requestmgrp != NULL);
 	requestmgr = *requestmgrp;
+	*requestmgrp = NULL;
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 
-	*requestmgrp = NULL;
 	LOCK(&requestmgr->lock);
 	INSIST(requestmgr->iref > 0);
 	requestmgr->iref--;
@@ -328,6 +328,7 @@ dns_requestmgr_detach(dns_requestmgr_t **requestmgrp) {
 
 	REQUIRE(requestmgrp != NULL);
 	requestmgr = *requestmgrp;
+	*requestmgrp = NULL;
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 
 	LOCK(&requestmgr->lock);
@@ -346,8 +347,6 @@ dns_requestmgr_detach(dns_requestmgr_t **requestmgrp) {
 
 	if (need_destroy)
 		mgr_destroy(requestmgr);
-
-	*requestmgrp = NULL;
 }
 
 static void
@@ -1202,6 +1201,7 @@ dns_request_destroy(dns_request_t **requestp) {
 	REQUIRE(requestp != NULL && VALID_REQUEST(*requestp));
 
 	request = *requestp;
+	*requestp = NULL;
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_destroy: request %p", request);
 
@@ -1223,8 +1223,6 @@ dns_request_destroy(dns_request_t **requestp) {
 	INSIST(request->timer == NULL);
 
 	req_destroy(request);
-
-	*requestp = NULL;
 }
 
 /***

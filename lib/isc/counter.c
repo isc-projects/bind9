@@ -101,9 +101,8 @@ isc_counter_detach(isc_counter_t **counterp) {
 
 	REQUIRE(counterp != NULL && *counterp != NULL);
 	counter = *counterp;
-	REQUIRE(VALID_COUNTER(counter));
-
 	*counterp = NULL;
+	REQUIRE(VALID_COUNTER(counter));
 
 	if (isc_refcount_decrement(&counter->references) == 1) {
 		destroy(counter);

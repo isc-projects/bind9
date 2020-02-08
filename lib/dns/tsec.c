@@ -109,6 +109,7 @@ dns_tsec_destroy(dns_tsec_t **tsecp) {
 
 	REQUIRE(tsecp != NULL && *tsecp != NULL);
 	tsec = *tsecp;
+	*tsecp = NULL;
 	REQUIRE(DNS_TSEC_VALID(tsec));
 
 	switch (tsec->type) {
@@ -125,8 +126,6 @@ dns_tsec_destroy(dns_tsec_t **tsecp) {
 
 	tsec->magic = 0;
 	isc_mem_put(tsec->mctx, tsec, sizeof(*tsec));
-
-	*tsecp = NULL;
 }
 
 dns_tsectype_t

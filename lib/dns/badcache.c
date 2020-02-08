@@ -91,6 +91,7 @@ dns_badcache_destroy(dns_badcache_t **bcp) {
 
 	REQUIRE(bcp != NULL && *bcp != NULL);
 	bc = *bcp;
+	*bcp = NULL;
 
 	dns_badcache_flush(bc);
 
@@ -98,7 +99,6 @@ dns_badcache_destroy(dns_badcache_t **bcp) {
 	isc_mutex_destroy(&bc->lock);
 	isc_mem_put(bc->mctx, bc->table, sizeof(dns_bcentry_t *) * bc->size);
 	isc_mem_putanddetach(&bc->mctx, bc, sizeof(dns_badcache_t));
-	*bcp = NULL;
 }
 
 static isc_result_t

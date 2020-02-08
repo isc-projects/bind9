@@ -2382,17 +2382,17 @@ clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp) {
 
 static void
 clientmgr_detach(ns_clientmgr_t **mp) {
+	int32_t oldrefs;
 	ns_clientmgr_t *mgr = *mp;
-	int32_t oldrefs = isc_refcount_decrement(&mgr->references);
+	*mp = NULL;
 
+	oldrefs = isc_refcount_decrement(&mgr->references);
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 		      "clientmgr @%p detach: %d", mgr, oldrefs - 1);
 	if (oldrefs == 1) {
 		clientmgr_destroy(mgr);
 	}
-
-	*mp = NULL;
 }
 
 static void
@@ -2506,6 +2506,7 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 
 	REQUIRE(managerp != NULL);
 	manager = *managerp;
+	*managerp = NULL;
 	REQUIRE(VALID_MANAGER(manager));
 
 	MTRACE("destroy");
@@ -2529,8 +2530,6 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 	if (isc_refcount_decrement(&manager->references) == 1) {
 		clientmgr_destroy(manager);
 	}
-
-	*managerp = NULL;
 }
 
 isc_sockaddr_t *

@@ -282,6 +282,7 @@ isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
 	isc_interfaceiter_t *iter;
 	REQUIRE(iterp != NULL);
 	iter = *iterp;
+	*iterp = NULL;
 	REQUIRE(VALID_IFITER(iter));
 
 	internal_destroy(iter);
@@ -290,5 +291,4 @@ isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
 
 	iter->magic = 0;
 	isc_mem_put(iter->mctx, iter, sizeof(*iter));
-	*iterp = NULL;
 }

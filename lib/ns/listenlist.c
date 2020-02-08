@@ -81,11 +81,11 @@ ns_listenlist_attach(ns_listenlist_t *source, ns_listenlist_t **target) {
 void
 ns_listenlist_detach(ns_listenlist_t **listp) {
 	ns_listenlist_t *list = *listp;
+	*listp = NULL;
 	INSIST(list->refcount > 0);
 	list->refcount--;
 	if (list->refcount == 0)
 		destroy(list);
-	*listp = NULL;
 }
 
 isc_result_t

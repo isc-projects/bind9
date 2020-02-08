@@ -110,6 +110,7 @@ isc_pool_expand(isc_pool_t **sourcep, unsigned int count,
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	pool = *sourcep;
+	*sourcep = NULL;
 	if (count > pool->count) {
 		isc_pool_t *newpool = NULL;
 		unsigned int i;
@@ -143,7 +144,6 @@ isc_pool_expand(isc_pool_t **sourcep, unsigned int count,
 		pool = newpool;
 	}
 
-	*sourcep = NULL;
 	*targetp = pool;
 	return (ISC_R_SUCCESS);
 }
@@ -152,11 +152,11 @@ void
 isc_pool_destroy(isc_pool_t **poolp) {
 	unsigned int i;
 	isc_pool_t *pool = *poolp;
+	*poolp = NULL;
 	for (i = 0; i < pool->count; i++) {
 		if (pool->free != NULL && pool->pool[i] != NULL)
 			pool->free(&pool->pool[i]);
 	}
 	isc_mem_put(pool->mctx, pool->pool, pool->count * sizeof(void *));
 	isc_mem_putanddetach(&pool->mctx, pool, sizeof(*pool));
-	*poolp = NULL;
 }

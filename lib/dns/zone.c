@@ -16987,13 +16987,12 @@ dns_zonemgr_detach(dns_zonemgr_t **zmgrp) {
 
 	REQUIRE(zmgrp != NULL);
 	zmgr = *zmgrp;
+	*zmgrp = NULL;
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	if (isc_refcount_decrement(&zmgr->refs) == 1) {
 		zonemgr_free(zmgr);
 	}
-
-	*zmgrp = NULL;
 }
 
 isc_result_t
@@ -17429,9 +17428,8 @@ zonemgr_putio(dns_io_t **iop) {
 
 	REQUIRE(iop != NULL);
 	io = *iop;
-	REQUIRE(DNS_IO_VALID(io));
-
 	*iop = NULL;
+	REQUIRE(DNS_IO_VALID(io));
 
 	INSIST(!ISC_LINK_LINKED(io, link));
 	INSIST(io->event == NULL);

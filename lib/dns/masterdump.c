@@ -1317,9 +1317,8 @@ dns_dumpctx_detach(dns_dumpctx_t **dctxp) {
 
 	REQUIRE(dctxp != NULL);
 	dctx = *dctxp;
-	REQUIRE(DNS_DCTX_VALID(dctx));
-
 	*dctxp = NULL;
+	REQUIRE(DNS_DCTX_VALID(dctx));
 
 	if (isc_refcount_decrement(&dctx->references) == 1) {
 		dumpctx_destroy(dctx);

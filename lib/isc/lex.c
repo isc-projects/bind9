@@ -119,6 +119,7 @@ isc_lex_destroy(isc_lex_t **lexp) {
 
 	REQUIRE(lexp != NULL);
 	lex = *lexp;
+	*lexp = NULL;
 	REQUIRE(VALID_LEX(lex));
 
 	while (!EMPTY(lex->sources))
@@ -127,8 +128,6 @@ isc_lex_destroy(isc_lex_t **lexp) {
 		isc_mem_put(lex->mctx, lex->data, lex->max_token + 1);
 	lex->magic = 0;
 	isc_mem_put(lex->mctx, lex, sizeof(*lex));
-
-	*lexp = NULL;
 }
 
 unsigned int

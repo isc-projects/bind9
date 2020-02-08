@@ -734,14 +734,13 @@ putrdataset(isc_mem_t *mctx, dns_rdataset_t **rdatasetp) {
 
 	REQUIRE(rdatasetp != NULL);
 	rdataset = *rdatasetp;
+	*rdatasetp = NULL;
 	REQUIRE(rdataset != NULL);
 
 	if (dns_rdataset_isassociated(rdataset))
 		dns_rdataset_disassociate(rdataset);
 
 	isc_mem_put(mctx, rdataset, sizeof(*rdataset));
-
-	*rdatasetp = NULL;
 }
 
 static void

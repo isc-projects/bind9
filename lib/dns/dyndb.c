@@ -198,11 +198,10 @@ unload_library(dyndb_implementation_t **impp) {
 	REQUIRE(impp != NULL && *impp != NULL);
 
 	imp = *impp;
+	*impp = NULL;
 
 	isc_mem_free(imp->mctx, imp->name);
 	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dyndb_implementation_t));
-
-	*impp = NULL;
 }
 #elif _WIN32
 static isc_result_t
@@ -310,11 +309,10 @@ unload_library(dyndb_implementation_t **impp) {
 	REQUIRE(impp != NULL && *impp != NULL);
 
 	imp = *impp;
+	*impp = NULL;
 
 	isc_mem_free(imp->mctx, imp->name);
 	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dyndb_implementation_t));
-
-	*impp = NULL;
 }
 #else	/* HAVE_DLFCN_H || _WIN32 */
 static isc_result_t

@@ -124,8 +124,8 @@ dns_dbtable_detach(dns_dbtable_t **dbtablep) {
 
 	REQUIRE(dbtablep != NULL);
 	dbtable = *dbtablep;
-	REQUIRE(VALID_DBTABLE(dbtable));
 	*dbtablep = NULL;
+	REQUIRE(VALID_DBTABLE(dbtable));
 
 	if (isc_refcount_decrement(&dbtable->references) == 1) {
 		dbtable_free(dbtable);

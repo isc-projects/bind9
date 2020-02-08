@@ -296,12 +296,11 @@ isc_ratelimiter_detach(isc_ratelimiter_t **rlp) {
 	REQUIRE(rlp != NULL && *rlp != NULL);
 
 	rl = *rlp;
+	*rlp = NULL;
 
 	if (isc_refcount_decrement(&rl->references) == 1) {
 		ratelimiter_free(rl);
 	}
-
-	*rlp = NULL;
 }
 
 isc_result_t

@@ -275,6 +275,7 @@ irs_dnsconf_destroy(irs_dnsconf_t **confp) {
 
 	REQUIRE(confp != NULL);
 	conf = *confp;
+	*confp = NULL;
 	REQUIRE(IRS_DNSCONF_VALID(conf));
 
 	while ((keyent = ISC_LIST_HEAD(conf->trusted_keylist)) != NULL) {
@@ -287,8 +288,6 @@ irs_dnsconf_destroy(irs_dnsconf_t **confp) {
 	}
 
 	isc_mem_put(conf->mctx, conf, sizeof(*conf));
-
-	*confp = NULL;
 }
 
 irs_dnsconf_dnskeylist_t *
