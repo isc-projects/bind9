@@ -116,14 +116,16 @@ isc_hp_new(isc_mem_t *mctx, size_t max_hps, isc_hp_deletefunc_t *deletefunc) {
 	hp->rl = isc_mem_get(mctx, isc__hp_max_threads * sizeof(hp->rl[0]));
 
 	for (int i = 0; i < isc__hp_max_threads; i++) {
-		hp->hp[i] = isc_mem_get(mctx, CLPAD * 2 * sizeof(hp->hp[i][0]));
+		hp->hp[i] = isc_mem_get(mctx,
+					CLPAD * 2 * sizeof(hp->hp[i][0]));
 		hp->rl[i] = isc_mem_get(mctx, sizeof(*hp->rl[0]));
 		*hp->rl[i] = (retirelist_t) { .size = 0 };
 
 		for (int j = 0; j < hp->max_hps; j++) {
 			atomic_init(&hp->hp[i][j], 0);
 		}
-		hp->rl[i]->list = isc_mem_get(hp->mctx, isc__hp_max_retired * sizeof(uintptr_t));
+		hp->rl[i]->list = isc_mem_get(hp->mctx,
+					      isc__hp_max_retired * sizeof(uintptr_t));
 	}
 
 	return (hp);
