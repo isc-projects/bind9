@@ -931,8 +931,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 	sock->ah_frees = isc_mem_allocate(mgr->mctx,
 					  sock->ah_size * sizeof(size_t));
 	sock->ah_handles = isc_mem_allocate(mgr->mctx,
-					    sock->ah_size *
-					     sizeof(isc_nmhandle_t *));
+					    sock->ah_size * sizeof(isc_nmhandle_t *));
 	for (size_t i = 0; i < 32; i++) {
 		sock->ah_frees[i] = i;
 		sock->ah_handles[i] = NULL;

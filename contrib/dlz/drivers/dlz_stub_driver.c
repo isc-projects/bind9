@@ -255,8 +255,7 @@ stub_dlz_destroy(void *driverarg, void *dbdata)
 	isc_mem_free(named_g_mctx, cd->myname);
 	isc_mem_free(named_g_mctx, cd->myip);
 	mctx = cd->mctx;
-	isc_mem_put(mctx, cd, sizeof(config_data_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&mctx, cd, sizeof(config_data_t));
 }
 
 static dns_sdlzmethods_t dlz_stub_methods = {

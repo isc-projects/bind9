@@ -2465,8 +2465,8 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	ns_interface_attach(interface, &manager->interface);
 
 	manager->exiting = false;
-	manager->taskpool =
-		isc_mem_get(mctx, CLIENT_NTASKS*sizeof(isc_task_t *));
+	manager->taskpool = isc_mem_get(mctx,
+					CLIENT_NTASKS * sizeof(isc_task_t *));
 	for (i = 0; i < CLIENT_NTASKS; i++) {
 		manager->taskpool[i] = NULL;
 		isc_task_create(manager->taskmgr, 20, &manager->taskpool[i]);

@@ -669,7 +669,7 @@ make_notify(const char *zone, int *packetlen) {
 
 	/* Question */
 	packet[12] = '.';
-	memcpy(&packet[13], zone, strlen(zone));
+	memmove(&packet[13], zone, strlen(zone));
 	packet[13 + strlen(zone)] = 0;
 
 	/* Make the question into labels */
@@ -755,7 +755,7 @@ notify(mysql_data_t *state, const char *zone, int sn) {
 		if (h == NULL)
 			continue;
 
-		memcpy(&addr.sin_addr, h->h_addr, h->h_length);
+		memmove(&addr.sin_addr, h->h_addr, h->h_length);
 		addrp = &addr.sin_addr;
 
 		/* Get the address for the nameserver into a string */
