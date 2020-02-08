@@ -22,6 +22,7 @@
 #include <isc/httpd.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/socket.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -35,9 +36,6 @@
 /*%
  * TODO:
  *
- *  o  Put in better checks to make certain things are passed in correctly.
- *     This includes a magic number for externally-visible structures,
- *     checking for NULL-ness before dereferencing, etc.
  *  o  Make the URL processing external functions which will fill-in a buffer
  *     structure we provide, or return an error and we will render a generic
  *     page and close the client.
@@ -46,16 +44,6 @@
 #define MSHUTTINGDOWN(cm) ((cm->flags & ISC_HTTPDMGR_FLAGSHUTTINGDOWN) != 0)
 #define MSETSHUTTINGDOWN(cm) (cm->flags |= ISC_HTTPDMGR_FLAGSHUTTINGDOWN)
 
-#ifdef DEBUG_HTTPD
-#define ENTER(x) do { fprintf(stderr, "ENTER %s\n", (x)); } while (0)
-#define EXIT(x) do { fprintf(stderr, "EXIT %s\n", (x)); } while (0)
-#define NOTICE(x) do { fprintf(stderr, "NOTICE %s\n", (x)); } while (0)
-#else
-#define ENTER(x) do { } while(0)
-#define EXIT(x) do { } while(0)
-#define NOTICE(x) do { } while(0)
-#endif
-
 #define HTTP_RECVLEN			1024
 #define HTTP_SENDGROW			1024
 #define HTTP_SEND_MAXLEN		10240
@@ -63,10 +51,19 @@
 #define HTTPD_CLOSE		0x0001 /* Got a Connection: close header */
 #define HTTPD_FOUNDHOST		0x0002 /* Got a Host: header */
 #define HTTPD_KEEPALIVE		0x0004 /* Got a Connection: Keep-Alive */
-#define HTTPD_ACCEPT_DEFLATE   0x0008
+#define HTTPD_ACCEPT_DEFLATE	0x0008
+
+#define HTTPD_MAGIC		ISC_MAGIC('H', 't', 'p', 'd')
+#define VALID_HTTPD(m)		ISC_MAGIC_VALID(m, HTTPD_MAGIC)
+
+#define HTTPDMGR_MAGIC		ISC_MAGIC('H', 'p', 'd', 'm')
+#define VALID_HTTPDMGR(m)	ISC_MAGIC_VALID(m, HTTPDMGR_MAGIC)
+
 
 /*% http client */
 struct isc_httpd {
+	unsigned int		magic;		/* HTTPD_MAGIC */
+	isc_refcount_t		references;
 	isc_httpdmgr_t	       *mgr;		/*%< our parent */
 	ISC_LINK(isc_httpd_t)	link;
 	unsigned int		state;
@@ -98,8 +95,8 @@ struct isc_httpd {
 	 * to the client.
 	 *
 	 * The bufflist is the list of buffers we are currently transmitting.
-	 * The headerbuffer is where we render our headers to.  If we run out of
-	 * space when rendering a header, we will change the size of our
+	 * The headerbuffer is where we render our headers to.  If we run out
+	 * of space when rendering a header, we will change the size of our
 	 * buffer.  We will not free it until we are finished, and will
 	 * allocate an additional HTTP_SENDGROW bytes per header space grow.
 	 *
@@ -128,6 +125,8 @@ struct isc_httpd {
 
 /*% lightweight socket manager for httpd output */
 struct isc_httpdmgr {
+	unsigned int		magic;		/* HTTPDMGR_MAGIC */
+	isc_refcount_t		references;
 	isc_mem_t	       *mctx;
 	isc_socket_t	       *sock;		/*%< listening socket */
 	isc_task_t	       *task;		/*%< owning task */
@@ -205,48 +204,122 @@ struct isc_httpdmgr {
 static void isc_httpd_accept(isc_task_t *, isc_event_t *);
 static void isc_httpd_recvdone(isc_task_t *, isc_event_t *);
 static void isc_httpd_senddone(isc_task_t *, isc_event_t *);
-static void destroy_client(isc_httpd_t **);
 static isc_result_t process_request(isc_httpd_t *, int);
-static void httpdmgr_destroy(isc_httpdmgr_t *);
 static isc_result_t grow_headerspace(isc_httpd_t *);
 static void reset_client(isc_httpd_t *httpd);
 
 static isc_httpdaction_t render_404;
 static isc_httpdaction_t render_500;
 
+#if ENABLE_AFL
 static void (*finishhook)(void) = NULL;
+#endif /* ENABLE_AFL */
+
+static void maybe_destroy_httpd(isc_httpd_t *);
+static void destroy_httpd(isc_httpd_t *);
+static void maybe_destroy_httpdmgr(isc_httpdmgr_t *);
+static void destroy_httpdmgr(isc_httpdmgr_t *);
 
 static void
-destroy_client(isc_httpd_t **httpdp) {
-	isc_httpd_t *httpd = *httpdp;
-	isc_httpdmgr_t *httpdmgr = httpd->mgr;
+isc_httpdmgr_attach(isc_httpdmgr_t *, isc_httpdmgr_t **);
+static void
+isc_httpdmgr_detach(isc_httpdmgr_t **);
+
+static void
+maybe_destroy_httpd(isc_httpd_t *httpd) {
+	if (isc_refcount_decrement(&httpd->references) == 1) {
+		destroy_httpd(httpd);
+	}
+}
+
+static inline void
+free_buffer(isc_mem_t *mctx, isc_buffer_t *buffer) {
 	isc_region_t r;
 
-	*httpdp = NULL;
+	isc_buffer_region(buffer, &r);
+	if (r.length > 0) {
+		isc_mem_put(mctx, r.base, r.length);
+	}
+}
 
+static void
+destroy_httpd(isc_httpd_t *httpd) {
+	isc_httpdmgr_t *httpdmgr;
+
+	REQUIRE(VALID_HTTPD(httpd));
+
+	httpdmgr = httpd->mgr;
+	REQUIRE(VALID_HTTPDMGR(httpdmgr));
+
+	/*
+	 * Unlink before calling isc_socket_detach so
+	 * isc_httpdmgr_shutdown does not dereference a NULL pointer
+	 * when calling isc_socket_cancel().
+	 */
 	LOCK(&httpdmgr->lock);
-
-	isc_socket_detach(&httpd->sock);
 	ISC_LIST_UNLINK(httpdmgr->running, httpd, link);
+	UNLOCK(&httpdmgr->lock);
 
-	isc_buffer_region(&httpd->headerbuffer, &r);
-	if (r.length > 0) {
-		isc_mem_put(httpdmgr->mctx, r.base, r.length);
-	}
+	httpd->magic = 0;
+	isc_refcount_destroy(&httpd->references);
+	isc_socket_detach(&httpd->sock);
 
-	isc_buffer_region(&httpd->compbuffer, &r);
-	if (r.length > 0) {
-		isc_mem_put(httpdmgr->mctx, r.base, r.length);
-	}
+
+	free_buffer(httpdmgr->mctx, &httpd->headerbuffer);
+	free_buffer(httpdmgr->mctx, &httpd->compbuffer);
 
 	isc_mem_put(httpdmgr->mctx, httpd, sizeof(isc_httpd_t));
 
-	UNLOCK(&httpdmgr->lock);
-
-	if (finishhook != NULL)
+#if ENABLE_AFL
+	if (finishhook != NULL) {
 		finishhook();
+	}
+#endif /* ENABLE_AFL */
 
-	httpdmgr_destroy(httpdmgr);
+	isc_httpdmgr_detach(&httpdmgr);
+}
+
+static inline isc_result_t
+httpdmgr_socket_accept(isc_task_t *task, isc_httpdmgr_t* httpdmgr)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+
+	/* decremented in isc_httpd_accept */
+	isc_refcount_increment(&httpdmgr->references);
+	result = isc_socket_accept(httpdmgr->sock, task, isc_httpd_accept,
+				   httpdmgr);
+	if (result != ISC_R_SUCCESS) {
+		INSIST(isc_refcount_decrement(&httpdmgr->references) > 1);
+	}
+	return (result);
+}
+
+static inline void
+httpd_socket_recv(isc_httpd_t *httpd, isc_region_t *region, isc_task_t *task)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+
+	/* decremented in isc_httpd_recvdone */
+	(void)isc_refcount_increment(&httpd->references);
+	result = isc_socket_recv(httpd->sock, region, 1, task,
+				 isc_httpd_recvdone, httpd);
+	if (result != ISC_R_SUCCESS) {
+		INSIST(isc_refcount_decrement(&httpd->references) > 1);
+	}
+}
+
+static inline void
+httpd_socket_send(isc_httpd_t *httpd, isc_region_t *region, isc_task_t *task)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+
+	/* decremented in isc_httpd_senddone */
+	(void)isc_refcount_increment(&httpd->references);
+	result = isc_socket_send(httpd->sock, region, task,
+				 isc_httpd_senddone, httpd);
+	if (result != ISC_R_SUCCESS) {
+		INSIST(isc_refcount_decrement(&httpd->references) > 1);
+	}
 }
 
 isc_result_t
@@ -268,21 +341,24 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	if (httpdmgr == NULL)
 		return (ISC_R_NOMEMORY);
 
+	*httpdmgr = (isc_httpdmgr_t){
+		.timermgr = tmgr, /* XXXMLG no attach function? */
+		.client_ok = client_ok,
+		.ondestroy = ondestroy,
+		.cb_arg = cb_arg,
+		.render_404 = render_404,
+		.render_500 = render_500
+	};
+
 	isc_mutex_init(&httpdmgr->lock);
-	httpdmgr->mctx = NULL;
 	isc_mem_attach(mctx, &httpdmgr->mctx);
-	httpdmgr->sock = NULL;
 	isc_socket_attach(sock, &httpdmgr->sock);
-	httpdmgr->task = NULL;
 	isc_task_attach(task, &httpdmgr->task);
-	httpdmgr->timermgr = tmgr; /* XXXMLG no attach function? */
-	httpdmgr->client_ok = client_ok;
-	httpdmgr->ondestroy = ondestroy;
-	httpdmgr->cb_arg = cb_arg;
-	httpdmgr->flags = 0;
 
 	ISC_LIST_INIT(httpdmgr->running);
 	ISC_LIST_INIT(httpdmgr->urls);
+
+	isc_refcount_init(&httpdmgr->references, 1);
 
 	/* XXXMLG ignore errors on isc_socket_listen() */
 	result = isc_socket_listen(sock, SOMAXCONN);
@@ -295,17 +371,21 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 
 	(void)isc_socket_filter(sock, "httpready");
 
-	result = isc_socket_accept(sock, task, isc_httpd_accept, httpdmgr);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	httpdmgr->magic = HTTPDMGR_MAGIC;
 
-	httpdmgr->render_404 = render_404;
-	httpdmgr->render_500 = render_500;
+
+	result = httpdmgr_socket_accept(task, httpdmgr);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	*httpdmgrp = httpdmgr;
 	return (ISC_R_SUCCESS);
 
   cleanup:
+	httpdmgr->magic = 0;
+	isc_refcount_decrement(&httpdmgr->references);
+	isc_refcount_destroy(&httpdmgr->references);
 	isc_task_detach(&httpdmgr->task);
 	isc_socket_detach(&httpdmgr->sock);
 	isc_mem_detach(&httpdmgr->mctx);
@@ -315,30 +395,43 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 }
 
 static void
-httpdmgr_destroy(isc_httpdmgr_t *httpdmgr) {
-	isc_mem_t *mctx;
+isc_httpdmgr_attach(isc_httpdmgr_t *source, isc_httpdmgr_t **targetp) {
+	REQUIRE(VALID_HTTPDMGR(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	isc_refcount_increment(&source->references);
+
+	*targetp = source;
+}
+
+static void
+isc_httpdmgr_detach(isc_httpdmgr_t **httpdmgrp) {
+	REQUIRE(httpdmgrp != NULL && VALID_HTTPDMGR(*httpdmgrp));
+	isc_httpdmgr_t *httpdmgr = *httpdmgrp;
+	*httpdmgrp = NULL;
+
+	maybe_destroy_httpdmgr(httpdmgr);
+}
+
+static void
+maybe_destroy_httpdmgr(isc_httpdmgr_t *httpdmgr) {
+	if (isc_refcount_decrement(&httpdmgr->references) == 1) {
+		destroy_httpdmgr(httpdmgr);
+	}
+}
+
+static void
+destroy_httpdmgr(isc_httpdmgr_t *httpdmgr) {
 	isc_httpdurl_t *url;
 
-	ENTER("httpdmgr_destroy");
+	isc_refcount_destroy(&httpdmgr->references);
 
 	LOCK(&httpdmgr->lock);
 
-	if (!MSHUTTINGDOWN(httpdmgr)) {
-		NOTICE("httpdmgr_destroy not shutting down yet");
-		UNLOCK(&httpdmgr->lock);
-		return;
-	}
+	httpdmgr->magic = 0;
 
-	/*
-	 * If all clients are not shut down, don't do anything yet.
-	 */
-	if (!ISC_LIST_EMPTY(httpdmgr->running)) {
-		NOTICE("httpdmgr_destroy clients still active");
-		UNLOCK(&httpdmgr->lock);
-		return;
-	}
-
-	NOTICE("httpdmgr_destroy detaching socket, task, and timermgr");
+	INSIST(MSHUTTINGDOWN(httpdmgr));
+	INSIST(ISC_LIST_EMPTY(httpdmgr->running));
 
 	isc_socket_detach(&httpdmgr->sock);
 	isc_task_detach(&httpdmgr->task);
@@ -359,13 +452,10 @@ httpdmgr_destroy(isc_httpdmgr_t *httpdmgr) {
 	UNLOCK(&httpdmgr->lock);
 	isc_mutex_destroy(&httpdmgr->lock);
 
-	if (httpdmgr->ondestroy != NULL)
+	if (httpdmgr->ondestroy != NULL) {
 		(httpdmgr->ondestroy)(httpdmgr->cb_arg);
-
-	mctx = httpdmgr->mctx;
-	isc_mem_putanddetach(&mctx, httpdmgr, sizeof(isc_httpdmgr_t));
-
-	EXIT("httpdmgr_destroy");
+	}
+	isc_mem_putanddetach(&httpdmgr->mctx, httpdmgr, sizeof(isc_httpdmgr_t));
 }
 
 #define LENGTHOK(s) (httpd->recvbuf - (s) < (int)httpd->recvlen)
@@ -443,8 +533,6 @@ process_request(isc_httpd_t *httpd, int length) {
 	char *s;
 	char *p;
 	int delim;
-
-	ENTER("request");
 
 	httpd->recvlen += length;
 
@@ -595,37 +683,80 @@ process_request(isc_httpd_t *httpd, int length) {
 	    && ((httpd->flags & HTTPD_FOUNDHOST) == 0))
 		return (ISC_R_RANGE);
 
-	EXIT("request");
-
 	return (ISC_R_SUCCESS);
 }
 
 static void
-isc_httpd_accept(isc_task_t *task, isc_event_t *ev) {
-	isc_result_t result;
-	isc_httpdmgr_t *httpdmgr = ev->ev_arg;
+isc_httpd_create(isc_httpdmgr_t *httpdmgr, isc_socket_t *sock,
+		 isc_httpd_t **httpdp)
+{
 	isc_httpd_t *httpd;
+	char *headerdata;
+
+	REQUIRE(VALID_HTTPDMGR(httpdmgr));
+	REQUIRE(httpdp != NULL && *httpdp == NULL);
+
+	httpd = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpd_t));
+	if (httpd == NULL) {
+		return;
+	}
+
+	*httpd = (isc_httpd_t){
+		.sock = sock
+	};
+
+	isc_httpdmgr_attach(httpdmgr, &httpd->mgr);
+
+	isc_refcount_init(&httpd->references, 1);
+	ISC_HTTPD_SETRECV(httpd);
+	isc_socket_setname(httpd->sock, "httpd", NULL);
+
+	/*
+	 * Initialize the buffer for our headers.
+	 */
+	headerdata = isc_mem_get(httpdmgr->mctx, HTTP_SENDGROW);
+	if (headerdata == NULL) {
+		maybe_destroy_httpdmgr(httpd->mgr);
+		INSIST(isc_refcount_decrement(&httpd->references) == 1);
+		isc_refcount_destroy(&httpd->references);
+		isc_mem_put(httpdmgr->mctx, httpd, sizeof(isc_httpd_t));
+		return;
+	}
+	isc_buffer_init(&httpd->headerbuffer, headerdata, HTTP_SENDGROW);
+
+	isc_buffer_initnull(&httpd->compbuffer);
+	isc_buffer_initnull(&httpd->bodybuffer);
+	reset_client(httpd);
+
+	ISC_LINK_INIT(httpd, link);
+	ISC_LIST_APPEND(httpdmgr->running, httpd, link);
+
+	httpd->magic = HTTPD_MAGIC;
+
+	*httpdp = httpd;
+}
+
+static void
+isc_httpd_accept(isc_task_t *task, isc_event_t *ev) {
+	isc_httpdmgr_t *httpdmgr = ev->ev_arg;
+	isc_httpd_t *httpd = NULL;
 	isc_region_t r;
 	isc_socket_newconnev_t *nev = (isc_socket_newconnev_t *)ev;
 	isc_sockaddr_t peeraddr;
-	char *headerdata;
 
-	ENTER("accept");
+	REQUIRE(VALID_HTTPDMGR(httpdmgr));
 
 	LOCK(&httpdmgr->lock);
 	if (MSHUTTINGDOWN(httpdmgr)) {
-		NOTICE("accept shutting down, goto out");
 		goto out;
 	}
 
 	if (nev->result == ISC_R_CANCELED) {
-		NOTICE("accept canceled, goto out");
 		goto out;
 	}
 
 	if (nev->result != ISC_R_SUCCESS) {
 		/* XXXMLG log failure */
-		NOTICE("accept returned failure, goto requeue");
 		goto requeue;
 	}
 
@@ -636,62 +767,29 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev) {
 		goto requeue;
 	}
 
-	httpd = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpd_t));
+	isc_httpd_create(httpdmgr, nev->newsocket, &httpd);
 	if (httpd == NULL) {
-		/* XXXMLG log failure */
-		NOTICE("accept failed to allocate memory, goto requeue");
 		isc_socket_detach(&nev->newsocket);
 		goto requeue;
 	}
-
-	httpd->mgr = httpdmgr;
-	ISC_LINK_INIT(httpd, link);
-	ISC_LIST_APPEND(httpdmgr->running, httpd, link);
-	ISC_HTTPD_SETRECV(httpd);
-	httpd->sock = nev->newsocket;
-	isc_socket_setname(httpd->sock, "httpd", NULL);
-	httpd->flags = 0;
-
-	/*
-	 * Initialize the buffer for our headers.
-	 */
-	headerdata = isc_mem_get(httpdmgr->mctx, HTTP_SENDGROW);
-	if (headerdata == NULL) {
-		isc_mem_put(httpdmgr->mctx, httpd, sizeof(isc_httpd_t));
-		isc_socket_detach(&nev->newsocket);
-		goto requeue;
-	}
-	isc_buffer_init(&httpd->headerbuffer, headerdata, HTTP_SENDGROW);
-
-	isc_buffer_initnull(&httpd->compbuffer);
-	isc_buffer_initnull(&httpd->bodybuffer);
-	httpd->sendbuffer = NULL;
-	reset_client(httpd);
 
 	r.base = (unsigned char *)httpd->recvbuf;
 	r.length = HTTP_RECVLEN - 1;
-	result = isc_socket_recv(httpd->sock, &r, 1, task, isc_httpd_recvdone,
-				 httpd);
-	/* FIXME!!! */
-	POST(result);
-	NOTICE("accept queued recv on socket");
+
+	httpd_socket_recv(httpd, &r, task);
 
  requeue:
-	result = isc_socket_accept(httpdmgr->sock, task, isc_httpd_accept,
-				   httpdmgr);
-	if (result != ISC_R_SUCCESS) {
-		/* XXXMLG what to do?  Log failure... */
-		NOTICE("accept could not reaccept due to failure");
-	}
+	(void)httpdmgr_socket_accept(task, httpdmgr);
 
  out:
 	UNLOCK(&httpdmgr->lock);
 
-	httpdmgr_destroy(httpdmgr);
+	if (httpd != NULL) {
+		maybe_destroy_httpd(httpd);
+	}
+	maybe_destroy_httpdmgr(httpdmgr);
 
 	isc_event_free(&ev);
-
-	EXIT("accept");
 }
 
 static isc_result_t
@@ -845,30 +943,25 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 	bool is_compressed = false;
 	char datebuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 
-	ENTER("recv");
+	REQUIRE(VALID_HTTPD(httpd));
 
 	INSIST(ISC_HTTPD_ISRECV(httpd));
 
 	if (sev->result != ISC_R_SUCCESS) {
-		NOTICE("recv destroying client");
-		destroy_client(&httpd);
 		goto out;
 	}
 
 	result = process_request(httpd, sev->n);
 	if (result == ISC_R_NOTFOUND) {
 		if (httpd->recvlen >= HTTP_RECVLEN - 1) {
-			destroy_client(&httpd);
 			goto out;
 		}
 		r.base = (unsigned char *)httpd->recvbuf + httpd->recvlen;
 		r.length = HTTP_RECVLEN - httpd->recvlen - 1;
-		/* check return code? */
-		(void)isc_socket_recv(httpd->sock, &r, 1, task,
-				      isc_httpd_recvdone, httpd);
+
+		httpd_socket_recv(httpd, &r, task);
 		goto out;
 	} else if (result != ISC_R_SUCCESS) {
-		destroy_client(&httpd);
 		goto out;
 	}
 
@@ -881,13 +974,16 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 	isc_buffer_initnull(&httpd->bodybuffer);
 	isc_time_now(&now);
 	isc_time_formathttptimestamp(&now, datebuf, sizeof(datebuf));
+	LOCK(&httpd->mgr->lock);
 	url = ISC_LIST_HEAD(httpd->mgr->urls);
 	while (url != NULL) {
 		if (strcmp(httpd->url, url->url) == 0)
 			break;
 		url = ISC_LIST_NEXT(url, link);
 	}
-	if (url == NULL)
+	UNLOCK(&httpd->mgr->lock);
+
+	if (url == NULL) {
 		result = httpd->mgr->render_404(httpd->url, NULL,
 						httpd->querystring,
 						NULL, NULL,
@@ -897,7 +993,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 						&httpd->bodybuffer,
 						&httpd->freecb,
 						&httpd->freecb_arg);
-	else
+	} else {
 		result = url->action(httpd->url, url,
 				     httpd->querystring,
 				     httpd->headers,
@@ -905,6 +1001,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 				     &httpd->retcode, &httpd->retmsg,
 				     &httpd->mimetype, &httpd->bodybuffer,
 				     &httpd->freecb, &httpd->freecb_arg);
+	}
 	if (result != ISC_R_SUCCESS) {
 		result = httpd->mgr->render_500(httpd->url, url,
 						httpd->querystring,
@@ -928,8 +1025,9 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 #endif
 
 	isc_httpd_response(httpd);
-	if ((httpd->flags & HTTPD_KEEPALIVE) != 0)
+	if ((httpd->flags & HTTPD_KEEPALIVE) != 0) {
 		isc_httpd_addheader(httpd, "Connection", "Keep-Alive");
+	}
 	isc_httpd_addheader(httpd, "Content-Type", httpd->mimetype);
 	isc_httpd_addheader(httpd, "Date", datebuf);
 	isc_httpd_addheader(httpd, "Expires", datebuf);
@@ -951,7 +1049,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 	if (is_compressed == true) {
 		isc_httpd_addheader(httpd, "Content-Encoding", "deflate");
 		isc_httpd_addheaderuint(httpd, "Content-Length",
-					isc_buffer_usedlength(&httpd->compbuffer));
+				    isc_buffer_usedlength(&httpd->compbuffer));
 	} else {
 		isc_httpd_addheaderuint(httpd, "Content-Length",
 		isc_buffer_usedlength(&httpd->bodybuffer));
@@ -975,23 +1073,22 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 	 */
 	isc_buffer_usedregion(httpd->sendbuffer, &r);
 
-	/* check return code? */
-	(void)isc_socket_send(httpd->sock, &r, task,
-			       isc_httpd_senddone, httpd);
+	httpd_socket_send(httpd, &r, task);
 
  out:
+	maybe_destroy_httpd(httpd);
 	isc_event_free(&ev);
-	EXIT("recv");
 }
 
 void
 isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
 	isc_httpdmgr_t *httpdmgr;
 	isc_httpd_t *httpd;
+
+	REQUIRE(httpdmgrp != NULL);
 	httpdmgr = *httpdmgrp;
 	*httpdmgrp = NULL;
-
-	ENTER("isc_httpdmgr_shutdown");
+	REQUIRE(VALID_HTTPDMGR(httpdmgr));
 
 	LOCK(&httpdmgr->lock);
 
@@ -1008,7 +1105,8 @@ isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
 
 	UNLOCK(&httpdmgr->lock);
 
-	EXIT("isc_httpdmgr_shutdown");
+	maybe_destroy_httpdmgr(httpdmgr);
+
 }
 
 static isc_result_t
@@ -1038,6 +1136,8 @@ isc_httpd_response(isc_httpd_t *httpd) {
 	isc_result_t result;
 	unsigned int needlen;
 
+	REQUIRE(VALID_HTTPD(httpd));
+
 	needlen = strlen(httpd->protocol) + 1; /* protocol + space */
 	needlen += 3 + 1;  /* room for response code, always 3 bytes */
 	needlen += strlen(httpd->retmsg) + 2;  /* return msg + CRLF */
@@ -1054,15 +1154,16 @@ isc_httpd_response(isc_httpd_t *httpd) {
 }
 
 isc_result_t
-isc_httpd_addheader(isc_httpd_t *httpd, const char *name,
-		    const char *val)
-{
+isc_httpd_addheader(isc_httpd_t *httpd, const char *name, const char *val) {
 	isc_result_t result;
 	unsigned int needlen;
 
+	REQUIRE(VALID_HTTPD(httpd));
+
 	needlen = strlen(name); /* name itself */
-	if (val != NULL)
+	if (val != NULL) {
 		needlen += 2 + strlen(val); /* :<space> and val */
+	}
 	needlen += 2; /* CRLF */
 
 	while (isc_buffer_availablelength(&httpd->headerbuffer) < needlen) {
@@ -1084,6 +1185,8 @@ isc_result_t
 isc_httpd_endheaders(isc_httpd_t *httpd) {
 	isc_result_t result;
 
+	REQUIRE(VALID_HTTPD(httpd));
+
 	while (isc_buffer_availablelength(&httpd->headerbuffer) < 2) {
 		result = grow_headerspace(httpd);
 		if (result != ISC_R_SUCCESS)
@@ -1098,6 +1201,8 @@ isc_httpd_addheaderuint(isc_httpd_t *httpd, const char *name, int val) {
 	isc_result_t result;
 	unsigned int needlen;
 	char buf[sizeof "18446744073709551616"];
+
+	REQUIRE(VALID_HTTPD(httpd));
 
 	snprintf(buf, sizeof(buf), "%d", val);
 
@@ -1121,7 +1226,8 @@ isc_httpd_senddone(isc_task_t *task, isc_event_t *ev) {
 	isc_region_t r;
 	isc_socketevent_t *sev = (isc_socketevent_t *)ev;
 
-	ENTER("senddone");
+	REQUIRE(VALID_HTTPD(httpd));
+
 	INSIST(ISC_HTTPD_ISSEND(httpd));
 
 	isc_buffer_free(&httpd->sendbuffer);
@@ -1139,34 +1245,28 @@ isc_httpd_senddone(isc_task_t *task, isc_event_t *ev) {
 			b = &httpd->bodybuffer;
 			httpd->freecb(b, httpd->freecb_arg);
 		}
-		NOTICE("senddone free callback performed");
 	}
 
 	if (sev->result != ISC_R_SUCCESS) {
-		destroy_client(&httpd);
 		goto out;
 	}
 
 	if ((httpd->flags & HTTPD_CLOSE) != 0) {
-		destroy_client(&httpd);
 		goto out;
 	}
 
 	ISC_HTTPD_SETRECV(httpd);
 
-	NOTICE("senddone restarting recv on socket");
-
 	reset_client(httpd);
 
 	r.base = (unsigned char *)httpd->recvbuf;
 	r.length = HTTP_RECVLEN - 1;
-	/* check return code? */
-	(void)isc_socket_recv(httpd->sock, &r, 1, task,
-			      isc_httpd_recvdone, httpd);
+
+	httpd_socket_recv(httpd, &r, task);
 
 out:
+	maybe_destroy_httpd(httpd);
 	isc_event_free(&ev);
-	EXIT("senddone");
 }
 
 static void
@@ -1197,6 +1297,8 @@ isc_result_t
 isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url,
 		    isc_httpdaction_t *func, void *arg)
 {
+	/* REQUIRE(VALID_HTTPDMGR(httpdmgr)); Dummy function */
+
 	return (isc_httpdmgr_addurl2(httpdmgr, url, false, func, arg));
 }
 
@@ -1206,6 +1308,8 @@ isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 		     isc_httpdaction_t *func, void *arg)
 {
 	isc_httpdurl_t *item;
+
+	REQUIRE(VALID_HTTPDMGR(httpdmgr));
 
 	if (url == NULL) {
 		httpdmgr->render_404 = func;
@@ -1228,7 +1332,10 @@ isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 	isc_time_now(&item->loadtime);
 
 	ISC_LINK_INIT(item, link);
+
+	LOCK(&httpdmgr->lock);
 	ISC_LIST_APPEND(httpdmgr->urls, item, link);
+	UNLOCK(&httpdmgr->lock);
 
 	return (ISC_R_SUCCESS);
 }
@@ -1236,5 +1343,9 @@ isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 void
 isc_httpd_setfinishhook(void (*fn)(void))
 {
+#if ENABLE_AFL
 	finishhook = fn;
+#else /* ENABLE_AFL */
+	UNUSED(fn);
+#endif /* ENABLE_AFL */
 }
