@@ -4832,7 +4832,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->vresult = ISC_R_SUCCESS;
 	fctx->exitline = -1;	/* sentinel */
 	fctx->logged = false;
-	atomic_store(&fctx->attributes, 0);
+	atomic_init(&fctx->attributes, 0);
 	fctx->spilled = false;
 	fctx->nqueries = 0;
 	fctx->reason = NULL;
