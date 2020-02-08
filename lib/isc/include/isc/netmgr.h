@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include <config.h>
-
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/types.h>
