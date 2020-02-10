@@ -110,6 +110,7 @@ isccc_symtab_destroy(isccc_symtab_t **symtabp) {
 
 	REQUIRE(symtabp != NULL);
 	symtab = *symtabp;
+	*symtabp = NULL;
 	REQUIRE(VALID_SYMTAB(symtab));
 
 	for (i = 0; i < symtab->size; i++) {
@@ -123,8 +124,6 @@ isccc_symtab_destroy(isccc_symtab_t **symtabp) {
 	free(symtab->table);
 	symtab->magic = 0;
 	free(symtab);
-
-	*symtabp = NULL;
 }
 
 static inline unsigned int

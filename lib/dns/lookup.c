@@ -416,6 +416,7 @@ dns_lookup_destroy(dns_lookup_t **lookupp) {
 
 	REQUIRE(lookupp != NULL);
 	lookup = *lookupp;
+	*lookupp = NULL;
 	REQUIRE(VALID_LOOKUP(lookup));
 	REQUIRE(lookup->event == NULL);
 	REQUIRE(lookup->task == NULL);
@@ -428,6 +429,4 @@ dns_lookup_destroy(dns_lookup_t **lookupp) {
 	isc_mutex_destroy(&lookup->lock);
 	lookup->magic = 0;
 	isc_mem_putanddetach(&lookup->mctx, lookup, sizeof(*lookup));
-
-	*lookupp = NULL;
 }

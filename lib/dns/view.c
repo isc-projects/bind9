@@ -667,8 +667,8 @@ dns_view_weakdetach(dns_view_t **viewp) {
 
 	REQUIRE(viewp != NULL);
 	view = *viewp;
-	REQUIRE(DNS_VIEW_VALID(view));
 	*viewp = NULL;
+	REQUIRE(DNS_VIEW_VALID(view));
 
 	if (isc_refcount_decrement(&view->weakrefs) == 1) {
 		destroy(view);

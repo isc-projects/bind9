@@ -492,6 +492,7 @@ task_send(isc__task_t *task, isc_event_t **eventp, int c) {
 
 	REQUIRE(eventp != NULL);
 	event = *eventp;
+	*eventp = NULL;
 	REQUIRE(event != NULL);
 	REQUIRE(event->ev_type > 0);
 	REQUIRE(task->state != task_state_done);
@@ -511,7 +512,6 @@ task_send(isc__task_t *task, isc_event_t **eventp, int c) {
 	       task->state == task_state_pausing);
 	ENQUEUE(task->events, event, ev_link);
 	task->nevents++;
-	*eventp = NULL;
 
 	return (was_idle);
 }

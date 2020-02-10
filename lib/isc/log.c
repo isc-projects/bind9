@@ -431,6 +431,7 @@ isc_log_destroy(isc_log_t **lctxp) {
 	REQUIRE(lctxp != NULL && VALID_CONTEXT(*lctxp));
 
 	lctx = *lctxp;
+	*lctxp = NULL;
 	mctx = lctx->mctx;
 
 	if (lctx->logconfig != NULL) {
@@ -458,8 +459,6 @@ isc_log_destroy(isc_log_t **lctxp) {
 	lctx->magic = 0;
 
 	isc_mem_putanddetach(&mctx, lctx, sizeof(*lctx));
-
-	*lctxp = NULL;
 }
 
 void
@@ -474,6 +473,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	REQUIRE(lcfgp != NULL && VALID_CONFIG(*lcfgp));
 
 	lcfg = *lcfgp;
+	*lcfgp = NULL;
 
 	/*
 	 * This function cannot be called with a logconfig that is in
@@ -524,8 +524,6 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	lcfg->magic = 0;
 
 	isc_mem_put(mctx, lcfg, sizeof(*lcfg));
-
-	*lcfgp = NULL;
 }
 
 void

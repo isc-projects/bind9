@@ -798,13 +798,13 @@ rpsdb_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 	isc_mem_t *mctx;
 
 	iterator = *iteratorp;
+	*iteratorp = NULL;
 	rpsdb = (rpsdb_t *)iterator->db;
 	REQUIRE(VALID_RPSDB(rpsdb));
 
 	mctx = iterator->db->mctx;
 	dns_db_detachnode(iterator->db, &iterator->node);
 	isc_mem_put(mctx, iterator, sizeof(rpsdb_rdatasetiter_t));
-	*iteratorp = NULL;
 }
 
 static isc_result_t

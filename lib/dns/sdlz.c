@@ -2068,6 +2068,7 @@ dns_sdlzunregister(dns_sdlzimplementation_t **sdlzimp) {
 	REQUIRE(sdlzimp != NULL && *sdlzimp != NULL);
 
 	imp = *sdlzimp;
+	*sdlzimp = NULL;
 
 	/* Unregister the DLZ driver implementation */
 	dns_dlzunregister(&imp->dlz_imp);
@@ -2080,8 +2081,6 @@ dns_sdlzunregister(dns_sdlzimplementation_t **sdlzimp) {
 	 * remove it from the memory context.
 	 */
 	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dns_sdlzimplementation_t));
-
-	*sdlzimp = NULL;
 }
 
 

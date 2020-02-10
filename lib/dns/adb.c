@@ -2293,8 +2293,8 @@ check_expire_name(dns_adbname_t **namep, isc_stdtime_t now) {
 	/*
 	 * The name is empty.  Delete it.
 	 */
-	result = kill_name(&name, DNS_EVENT_ADBEXPIRED);
 	*namep = NULL;
+	result = kill_name(&name, DNS_EVENT_ADBEXPIRED);
 
 	/*
 	 * Our caller, or one of its callers, will be calling check_exit() at
@@ -2379,13 +2379,13 @@ check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
 	/*
 	 * The entry is not in use.  Delete it.
 	 */
+	*entryp = NULL;
 	DP(DEF_LEVEL, "killing entry %p", entry);
 	INSIST(ISC_LINK_LINKED(entry, plink));
 	result = unlink_entry(adb, entry);
 	free_adbentry(adb, &entry);
 	if (result)
 		dec_adb_irefcnt(adb);
-	*entryp = NULL;
 	return (result);
 }
 
@@ -4604,11 +4604,11 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(addrp != NULL);
 	addr = *addrp;
+	*addrp = NULL;
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 	entry = addr->entry;
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
 
-	*addrp = NULL;
 	overmem = isc_mem_isovermem(adb->mctx);
 
 	bucket = addr->entry->lock_bucket;

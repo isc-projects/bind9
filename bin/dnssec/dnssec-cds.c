@@ -574,6 +574,7 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 static void
 free_keytable(keyinfo_t **keytable_p) {
 	keyinfo_t *keytable = *keytable_p;
+	*keytable_p = NULL;
 	keyinfo_t *ki;
 	int i;
 
@@ -585,7 +586,6 @@ free_keytable(keyinfo_t **keytable_p) {
 	}
 
 	isc_mem_put(mctx, keytable, sizeof(keyinfo_t) * nkey);
-	*keytable_p = NULL;
 }
 
 /*

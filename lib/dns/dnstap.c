@@ -1334,6 +1334,7 @@ dns_dtdata_free(dns_dtdata_t **dp) {
 	REQUIRE(dp != NULL && *dp != NULL);
 
 	d = *dp;
+	*dp = NULL;
 
 	if (d->msg != NULL)
 		dns_message_destroy(&d->msg);
@@ -1341,6 +1342,4 @@ dns_dtdata_free(dns_dtdata_t **dp) {
 		dnstap__dnstap__free_unpacked(d->frame, NULL);
 
 	isc_mem_putanddetach(&d->mctx, d, sizeof(*d));
-
-	*dp = NULL;
 }

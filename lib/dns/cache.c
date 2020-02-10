@@ -404,8 +404,8 @@ dns_cache_detach(dns_cache_t **cachep) {
 
 	REQUIRE(cachep != NULL);
 	cache = *cachep;
-	REQUIRE(VALID_CACHE(cache));
 	*cachep = NULL;
+	REQUIRE(VALID_CACHE(cache));
 
 	if (isc_refcount_decrement(&cache->references) == 1) {
 		cache->cleaner.overmem = false;

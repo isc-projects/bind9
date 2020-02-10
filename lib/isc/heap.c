@@ -112,6 +112,7 @@ isc_heap_destroy(isc_heap_t **heapp) {
 
 	REQUIRE(heapp != NULL);
 	heap = *heapp;
+	*heapp = NULL;
 	REQUIRE(VALID_HEAP(heap));
 
 	if (heap->array != NULL)
@@ -119,8 +120,6 @@ isc_heap_destroy(isc_heap_t **heapp) {
 			    heap->size * sizeof(void *));
 	heap->magic = 0;
 	isc_mem_putanddetach(&heap->mctx, heap, sizeof(*heap));
-
-	*heapp = NULL;
 }
 
 static bool

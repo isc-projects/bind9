@@ -1752,6 +1752,7 @@ isc_socket_detach(isc_socket_t **socketp) {
 
 	REQUIRE(socketp != NULL);
 	sock = *socketp;
+	*socketp = NULL;
 	REQUIRE(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
@@ -1771,8 +1772,6 @@ isc_socket_detach(isc_socket_t **socketp) {
 	}
 
 	maybe_free_socket(&sock, __LINE__); /* Also unlocks the socket lock */
-
-	*socketp = NULL;
 }
 
 isc_result_t
@@ -2565,6 +2564,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 
 	REQUIRE(managerp != NULL);
 	manager = *managerp;
+	*managerp = NULL;
 	REQUIRE(VALID_MANAGER(manager));
 
 	LOCK(&manager->lock);
@@ -2606,8 +2606,6 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	}
 	manager->magic = 0;
 	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
-
-	*managerp = NULL;
 }
 
 static void

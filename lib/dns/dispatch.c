@@ -594,8 +594,9 @@ new_portentry(dns_dispatch_t *disp, in_port_t port) {
  */
 static void
 deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
-	dispportentry_t *portentry = *portentryp;
 	dns_qid_t *qid;
+	dispportentry_t *portentry = *portentryp;
+	*portentryp = NULL;
 
 	REQUIRE(disp->port_table != NULL);
 	REQUIRE(portentry != NULL);
@@ -609,13 +610,6 @@ deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 		isc_mempool_put(disp->portpool, portentry);
 		UNLOCK(&qid->lock);
 	}
-
-	/*
-	 * XXXWPK TODO: is it really necessary?
-	 * Set '*portentryp' to NULL inside the lock so that
-	 * dispsock->portentry does not change in socket_search.
-	 */
-	*portentryp = NULL;
 }
 
 /*%
@@ -785,6 +779,7 @@ destroy_dispsocket(dns_dispatch_t *disp, dispsocket_t **dispsockp) {
 
 	REQUIRE(dispsockp != NULL && *dispsockp != NULL);
 	dispsock = *dispsockp;
+	*dispsockp = NULL;
 	REQUIRE(!ISC_LINK_LINKED(dispsock, link));
 
 	disp->nsockets--;
@@ -803,8 +798,6 @@ destroy_dispsocket(dns_dispatch_t *disp, dispsocket_t **dispsockp) {
 	if (dispsock->task != NULL)
 		isc_task_detach(&dispsock->task);
 	isc_mempool_put(disp->mgr->spool, dispsock);
-
-	*dispsockp = NULL;
 }
 
 /*%
@@ -2237,10 +2230,10 @@ qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp) {
 
 	REQUIRE(qidp != NULL);
 	qid = *qidp;
+	*qidp = NULL;
 
 	REQUIRE(VALID_QID(qid));
 
-	*qidp = NULL;
 	qid->magic = 0;
 	isc_mem_put(mctx, qid->qid_table,
 		    qid->qid_nbuckets * sizeof(dns_displist_t));
@@ -3632,14 +3625,13 @@ dns_dispatchset_destroy(dns_dispatchset_t **dsetp) {
 	REQUIRE(dsetp != NULL && *dsetp != NULL);
 
 	dset = *dsetp;
+	*dsetp = NULL;
 	for (i = 0; i < dset->ndisp; i++)
 		dns_dispatch_detach(&(dset->dispatches[i]));
 	isc_mem_put(dset->mctx, dset->dispatches,
 		    sizeof(dns_dispatch_t *) * dset->ndisp);
 	isc_mutex_destroy(&dset->lock);
 	isc_mem_putanddetach(&dset->mctx, dset, sizeof(dns_dispatchset_t));
-
-	*dsetp = NULL;
 }
 
 void

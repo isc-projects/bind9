@@ -115,6 +115,7 @@ isccc_sexpr_free(isccc_sexpr_t **sexprp) {
 	isccc_sexpr_t *item;
 
 	sexpr = *sexprp;
+	*sexprp = NULL;
 	if (sexpr == NULL)
 		return;
 	switch (sexpr->type) {
@@ -134,8 +135,6 @@ isccc_sexpr_free(isccc_sexpr_t **sexprp) {
 		break;
 	}
 	free(sexpr);
-
-	*sexprp = NULL;
 }
 
 static bool

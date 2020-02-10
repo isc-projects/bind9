@@ -605,6 +605,7 @@ irs_resconf_destroy(irs_resconf_t **confp) {
 
 	REQUIRE(confp != NULL);
 	conf = *confp;
+	*confp = NULL;
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
 	while ((searchentry = ISC_LIST_HEAD(conf->searchlist)) != NULL) {
@@ -626,8 +627,6 @@ irs_resconf_destroy(irs_resconf_t **confp) {
 	}
 
 	isc_mem_put(conf->mctx, conf, sizeof(*conf));
-
-	*confp = NULL;
 }
 
 isc_sockaddrlist_t *

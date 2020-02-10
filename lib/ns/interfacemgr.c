@@ -347,12 +347,12 @@ ns_interfacemgr_attach(ns_interfacemgr_t *source, ns_interfacemgr_t **target) {
 void
 ns_interfacemgr_detach(ns_interfacemgr_t **targetp) {
 	ns_interfacemgr_t *target = *targetp;
+	*targetp = NULL;
 	REQUIRE(target != NULL);
 	REQUIRE(NS_INTERFACEMGR_VALID(target));
 	if (isc_refcount_decrement(&target->references) == 1) {
 		ns_interfacemgr_destroy(target);
 	}
-	*targetp = NULL;
 }
 
 void
@@ -607,12 +607,12 @@ ns_interface_attach(ns_interface_t *source, ns_interface_t **target) {
 void
 ns_interface_detach(ns_interface_t **targetp) {
 	ns_interface_t *target = *targetp;
+	*targetp = NULL;
 	REQUIRE(target != NULL);
 	REQUIRE(NS_INTERFACE_VALID(target));
 	if (isc_refcount_decrement(&target->references) == 1) {
 		ns_interface_destroy(target);
 	}
-	*targetp = NULL;
 }
 
 /*%

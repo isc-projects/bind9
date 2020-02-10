@@ -609,7 +609,7 @@ isc_buffer_free(isc_buffer_t **dynbuffer) {
 	REQUIRE((*dynbuffer)->mctx != NULL);
 
 	dbuf = *dynbuffer;
-	*dynbuffer = NULL;	/* destroy external reference */
+	*dynbuffer = NULL;/* destroy external reference */
 	mctx = dbuf->mctx;
 	dbuf->mctx = NULL;
 

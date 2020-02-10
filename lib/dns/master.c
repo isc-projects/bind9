@@ -404,9 +404,8 @@ dns_loadctx_detach(dns_loadctx_t **lctxp) {
 
 	REQUIRE(lctxp != NULL);
 	lctx = *lctxp;
-	REQUIRE(DNS_LCTX_VALID(lctx));
-
 	*lctxp = NULL;
+	REQUIRE(DNS_LCTX_VALID(lctx));
 
 	if (isc_refcount_decrement(&lctx->references) == 1) {
 		loadctx_destroy(lctx);

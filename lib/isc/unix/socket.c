@@ -1931,6 +1931,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 static void
 free_socket(isc__socket_t **socketp) {
 	isc__socket_t *sock = *socketp;
+	*socketp = NULL;
 
 	INSIST(VALID_SOCKET(sock));
 	isc_refcount_destroy(&sock->references);
@@ -1949,8 +1950,6 @@ free_socket(isc__socket_t **socketp) {
 	isc_mutex_destroy(&sock->lock);
 
 	isc_mem_put(sock->manager->mctx, sock, sizeof(*sock));
-
-	*socketp = NULL;
 }
 
 #ifdef SO_RCVBUF

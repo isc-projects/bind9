@@ -1129,6 +1129,7 @@ resquery_destroy(resquery_t **queryp) {
 
 	REQUIRE(queryp != NULL);
 	query = *queryp;
+	*queryp = NULL;
 	REQUIRE(!ISC_LINK_LINKED(query, link));
 
 	INSIST(query->tcpsocket == NULL);
@@ -1144,7 +1145,6 @@ resquery_destroy(resquery_t **queryp) {
 
 	query->magic = 0;
 	isc_mem_put(query->mctx, query, sizeof(*query));
-	*queryp = NULL;
 
 	if (empty)
 		empty_bucket(res);
@@ -10339,11 +10339,10 @@ dns_resolver_detach(dns_resolver_t **resp) {
 
 	REQUIRE(resp != NULL);
 	res = *resp;
+	*resp = NULL;
 	REQUIRE(VALID_RESOLVER(res));
 
 	RTRACE("detach");
-
-	*resp = NULL;
 
 	if (isc_refcount_decrement(&res->references) == 1) {
 		LOCK(&res->lock);
@@ -10684,6 +10683,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 
 	REQUIRE(fetchp != NULL);
 	fetch = *fetchp;
+	*fetchp = NULL;
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	fctx = fetch->private;
 	REQUIRE(VALID_FCTX(fctx));
@@ -10712,7 +10712,6 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 	UNLOCK(&res->buckets[bucketnum].lock);
 
 	isc_mem_putanddetach(&fetch->mctx, fetch, sizeof(*fetch));
-	*fetchp = NULL;
 
 	if (bucket_empty)
 		empty_bucket(res);

@@ -237,6 +237,7 @@ nm_destroy(isc_nm_t **mgr0) {
 	REQUIRE(!isc__nm_in_netthread());
 
 	isc_nm_t *mgr = *mgr0;
+	*mgr0 = NULL;
 
 	isc_refcount_destroy(&mgr->references);
 
@@ -300,7 +301,6 @@ nm_destroy(isc_nm_t **mgr0) {
 	isc_mem_put(mgr->mctx, mgr->workers,
 		    mgr->nworkers * sizeof(isc__networker_t));
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
-	*mgr0 = NULL;
 }
 
 void

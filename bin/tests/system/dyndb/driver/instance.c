@@ -178,6 +178,7 @@ destroy_sample_instance(sample_instance_t **instp) {
 	REQUIRE(instp != NULL);
 
 	inst = *instp;
+	*instp = NULL;
 	if (inst == NULL)
 		return;
 
@@ -195,6 +196,4 @@ destroy_sample_instance(sample_instance_t **instp) {
 	isc_task_detach(&inst->task);
 
 	MEM_PUT_AND_DETACH(inst);
-
-	*instp = NULL;
 }

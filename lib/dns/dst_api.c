@@ -353,13 +353,13 @@ dst_context_destroy(dst_context_t **dctxp) {
 	REQUIRE(dctxp != NULL && VALID_CTX(*dctxp));
 
 	dctx = *dctxp;
+	*dctxp = NULL;
 	INSIST(dctx->key->func->destroyctx != NULL);
 	dctx->key->func->destroyctx(dctx);
 	if (dctx->key != NULL)
 		dst_key_free(&dctx->key);
 	dctx->magic = 0;
 	isc_mem_putanddetach(&dctx->mctx, dctx, sizeof(dst_context_t));
-	*dctxp = NULL;
 }
 
 isc_result_t

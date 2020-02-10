@@ -841,6 +841,7 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 	REQUIRE(*qctxp != NULL);
 
 	qctx = *qctxp;
+	*qctxp = NULL;
 
 	if (qctx->zone != NULL) {
 		dns_zone_detach(&qctx->zone);
@@ -853,7 +854,6 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 	}
 
 	isc_mem_put(mctx, qctx, sizeof(*qctx));
-	*qctxp = NULL;
 }
 
 ns_hookresult_t

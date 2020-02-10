@@ -558,8 +558,8 @@ compound_rrstream_create(isc_mem_t *mctx, rrstream_t **soa_stream,
 	s->state = -1;
 	s->result = ISC_R_FAILURE;
 
-	*soa_stream = NULL;
 	*data_stream = NULL;
+	*soa_stream = NULL;
 	*sp = (rrstream_t *) s;
 	return (ISC_R_SUCCESS);
 }
@@ -1605,6 +1605,7 @@ sendstream(xfrout_ctx_t *xfr) {
 static void
 xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 	xfrout_ctx_t *xfr = *xfrp;
+	*xfrp = NULL;
 
 	INSIST(xfr->sends == 0);
 
@@ -1629,8 +1630,6 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 		dns_db_detach(&xfr->db);
 
 	isc_mem_putanddetach(&xfr->mctx, xfr, sizeof(*xfr));
-
-	*xfrp = NULL;
 }
 
 static void

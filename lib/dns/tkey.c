@@ -131,6 +131,7 @@ dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp) {
 	REQUIRE(tctxp != NULL && *tctxp != NULL);
 
 	tctx = *tctxp;
+	*tctxp = NULL;
 	mctx = tctx->mctx;
 
 	if (tctx->dhkey != NULL)
@@ -146,7 +147,6 @@ dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp) {
 	if (tctx->gsscred != NULL)
 		dst_gssapi_releasecred(&tctx->gsscred);
 	isc_mem_putanddetach(&mctx, tctx, sizeof(dns_tkeyctx_t));
-	*tctxp = NULL;
 }
 
 static isc_result_t

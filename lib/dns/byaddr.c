@@ -266,6 +266,7 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp) {
 
 	REQUIRE(byaddrp != NULL);
 	byaddr = *byaddrp;
+	*byaddrp = NULL;
 	REQUIRE(VALID_BYADDR(byaddr));
 	REQUIRE(byaddr->event == NULL);
 	REQUIRE(byaddr->task == NULL);
@@ -274,6 +275,4 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp) {
 	isc_mutex_destroy(&byaddr->lock);
 	byaddr->magic = 0;
 	isc_mem_putanddetach(&byaddr->mctx, byaddr, sizeof(*byaddr));
-
-	*byaddrp = NULL;
 }

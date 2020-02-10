@@ -88,6 +88,7 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 
 	REQUIRE(symtabp != NULL);
 	symtab = *symtabp;
+	*symtabp = NULL;
 	REQUIRE(VALID_SYMTAB(symtab));
 
 	for (i = 0; i < symtab->size; i++) {
@@ -105,8 +106,6 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 		    symtab->size * sizeof(eltlist_t));
 	symtab->magic = 0;
 	isc_mem_putanddetach(&symtab->mctx, symtab, sizeof(*symtab));
-
-	*symtabp = NULL;
 }
 
 static inline unsigned int
