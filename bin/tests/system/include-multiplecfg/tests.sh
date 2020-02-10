@@ -50,5 +50,13 @@ grep '^mars.com.' dig.out.ns2.$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+# Test 4: named-checkconf correctly parses glob includes.
+n=`expr $n + 1`
+echo_i "checking named-checkconf with glob include ($n)"
+ret=0
+(cd ns2; $CHECKCONF named.conf) || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
