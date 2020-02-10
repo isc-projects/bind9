@@ -55,6 +55,11 @@ stages:
     - linux
     - amd64
 
+.linux-arm64: &linux_arm64
+  tags:
+    - linux
+    - arm64
+
 .linux-i386: &linux_i386
   tags:
     - linux
@@ -108,6 +113,10 @@ stages:
 .debian-sid-amd64: &debian_sid_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
   <<: *linux_amd64
+
+.debian-sid-arm64: &debian_sid_arm64_image
+  image: "$CI_REGISTRY_IMAGE:debian-sid-arm64"
+  <<: *linux_arm64
 
 .debian-sid-i386: &debian_sid_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
@@ -730,6 +739,39 @@ unit:tarball:sid:amd64:
   needs: ["tarball:sid:amd64"]
   only:
     - tags
+
+# Jobs for regular GCC builds on Debian Sid (arm64)
+
+gcc:sid:arm64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    RUN_MAKE_INSTALL: 1
+    MAKE: bear make
+  <<: *debian_sid_arm64_image
+  <<: *build_job
+
+system:gcc:sid:arm64:
+  <<: *debian_sid_arm64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:sid:arm64
+  needs: ["gcc:sid:arm64"]
+
+unit:gcc:sid:arm64:
+  <<: *debian_sid_arm64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:sid:arm64
+  needs: ["gcc:sid:arm64"]
+
+cppcheck:gcc:sid:arm64:
+  <<: *debian_sid_arm64_image
+  <<: *cppcheck_job
+  dependencies:
+    - gcc:sid:arm64
+  needs: ["gcc:sid:arm64"]
 
 # Jobs for regular GCC builds on Debian Sid (i386)
 
