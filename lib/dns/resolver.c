@@ -536,11 +536,11 @@ struct dns_resolver {
 	isc_refcount_t references;
 	atomic_uint_fast32_t zspill; /* fetches-per-zone */
 	atomic_bool exiting;
+	atomic_bool priming;
 
 	/* Locked by lock. */
 	isc_eventlist_t whenshutdown;
 	unsigned int activebuckets;
-	bool priming;
 	unsigned int spillat; /* clients-per-query */
 
 	dns_badcache_t *badcache; /* Bad cache. */
@@ -9975,7 +9975,7 @@ destroy(dns_resolver_t *res) {
 	alternate_t *a;
 
 	REQUIRE(atomic_load(&res->references) == 0);
-	REQUIRE(!res->priming);
+	REQUIRE(!atomic_load_acquire(&res->priming));
 	REQUIRE(res->primefetch == NULL);
 
 	RTRACE("destroy");
@@ -10224,7 +10224,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	atomic_init(&res->exiting, false);
 	res->frozen = false;
 	ISC_LIST_INIT(res->whenshutdown);
-	res->priming = false;
+	atomic_init(&res->priming, false);
 	res->primefetch = NULL;
 
 	atomic_init(&res->nfctx, 0);
@@ -10337,16 +10337,13 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	LOCK(&res->lock);
-
-	INSIST(res->priming);
-	res->priming = false;
 	LOCK(&res->primelock);
 	fetch = res->primefetch;
 	res->primefetch = NULL;
 	UNLOCK(&res->primelock);
 
-	UNLOCK(&res->lock);
+	INSIST(atomic_compare_exchange_strong_acq_rel(&res->priming,
+						      &(bool){ true }, false));
 
 	if (fevent->result == ISC_R_SUCCESS && res->view->cache != NULL &&
 	    res->view->hints != NULL)
@@ -10384,16 +10381,10 @@ dns_resolver_prime(dns_resolver_t *res) {
 
 	RTRACE("dns_resolver_prime");
 
-	LOCK(&res->lock);
-
-	/* XXXOND: cas needs to be used here */
-	if (!atomic_load_acquire(&res->exiting) && !res->priming) {
-		INSIST(res->primefetch == NULL);
-		res->priming = true;
-		want_priming = true;
+	if (!atomic_load_acquire(&res->exiting)) {
+		want_priming = atomic_compare_exchange_strong_acq_rel(
+			&res->priming, &(bool){ false }, true);
 	}
-
-	UNLOCK(&res->lock);
 
 	if (want_priming) {
 		/*
@@ -10408,19 +10399,20 @@ dns_resolver_prime(dns_resolver_t *res) {
 		RTRACE("priming");
 		rdataset = isc_mem_get(res->mctx, sizeof(*rdataset));
 		dns_rdataset_init(rdataset);
+
 		LOCK(&res->primelock);
+		INSIST(res->primefetch == NULL);
 		result = dns_resolver_createfetch(
 			res, dns_rootname, dns_rdatatype_ns, NULL, NULL, NULL,
 			NULL, 0, DNS_FETCHOPT_NOFORWARD, 0, NULL,
 			res->buckets[0].task, prime_done, res, rdataset, NULL,
 			&res->primefetch);
 		UNLOCK(&res->primelock);
+
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(res->mctx, rdataset, sizeof(*rdataset));
-			LOCK(&res->lock);
-			INSIST(res->priming);
-			res->priming = false;
-			UNLOCK(&res->lock);
+			INSIST(atomic_compare_exchange_strong_acq_rel(
+				&res->priming, &(bool){ true }, false));
 		}
 		inc_stats(res, dns_resstatscounter_priming);
 	}
