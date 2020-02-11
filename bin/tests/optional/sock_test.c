@@ -118,7 +118,9 @@ my_recv(isc_task_t *task, isc_event_t *event) {
 		       (int)dev->n, (char *)region.base);
 	}
 
-	isc_socket_recv(sock, &dev->region, 1, task, my_recv, event->ev_arg);
+	RUNTIME_CHECK(isc_socket_recv(sock, &dev->region, 1, task,
+				      my_recv, event->ev_arg)
+		      == ISC_R_SUCCESS);
 
 	isc_event_free(&event);
 }
@@ -146,7 +148,9 @@ my_http_get(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	isc_socket_recv(sock, &dev->region, 1, task, my_recv, event->ev_arg);
+	RUNTIME_CHECK(isc_socket_recv(sock, &dev->region, 1, task,
+				      my_recv, event->ev_arg)
+		      == ISC_R_SUCCESS);
 
 	isc_event_free(&event);
 }
@@ -223,8 +227,9 @@ my_listen(isc_task_t *task, isc_event_t *event) {
 		newtask = NULL;
 		RUNTIME_CHECK(isc_task_create(manager, 0, &newtask)
 			      == ISC_R_SUCCESS);
-		isc_socket_recv(dev->newsocket, &region, 1,
-				newtask, my_recv, event->ev_arg);
+		RUNTIME_CHECK(isc_socket_recv(dev->newsocket, &region, 1,
+					      newtask, my_recv, event->ev_arg)
+			      == ISC_R_SUCCESS);
 		isc_task_detach(&newtask);
 	} else {
 		printf("detaching from socket %p\n", event->ev_sender);

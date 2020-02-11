@@ -198,12 +198,10 @@ fromstruct_nxt(ARGS_FROMSTRUCT) {
 
 	REQUIRE(type == dns_rdatatype_nxt);
 	REQUIRE(((dns_rdata_nxt_t *)source) != NULL);
-	REQUIRE(((dns_rdata_nxt_t *)source)->common.rdtype == type);
-	REQUIRE(((dns_rdata_nxt_t *)source)->common.rdclass == rdclass);
-	REQUIRE(((dns_rdata_nxt_t *)source)->typebits != NULL ||
-		((dns_rdata_nxt_t *)source)->len == 0);
-
 	nxt = source;
+	REQUIRE(nxt->common.rdtype == type);
+	REQUIRE(nxt->common.rdclass == rdclass);
+	REQUIRE(nxt->typebits != NULL || nxt->len == 0);
 
 	if (nxt->typebits != NULL && (nxt->typebits[0] & 0x80) == 0) {
 		REQUIRE(nxt->len <= 16);
