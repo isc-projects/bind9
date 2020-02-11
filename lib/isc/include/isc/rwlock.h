@@ -52,7 +52,6 @@ struct isc_rwlock {
 	/* Unlocked. */
 	unsigned int		magic;
 	isc_mutex_t		lock;
-	int32_t		spins;
 
 #if defined(ISC_RWLOCK_USEATOMIC)
 	/*
@@ -70,22 +69,23 @@ struct isc_rwlock {
 
 	/* Read or modified atomically. */
 #if defined(ISC_RWLOCK_USESTDATOMIC)
+	atomic_int_fast32_t	spins;
 	atomic_int_fast32_t	write_requests;
 	atomic_int_fast32_t	write_completions;
 	atomic_int_fast32_t	cnt_and_flag;
+	atomic_int_fast32_t	write_granted;
 #else
+	int32_t		spins;
 	int32_t		write_requests;
 	int32_t		write_completions;
 	int32_t		cnt_and_flag;
+	int32_t		write_granted;
 #endif
 
 	/* Locked by lock. */
 	isc_condition_t		readable;
 	isc_condition_t		writeable;
 	unsigned int		readers_waiting;
-
-	/* Locked by rwlock itself. */
-	unsigned int		write_granted;
 
 	/* Unlocked. */
 	unsigned int		write_quota;
@@ -107,6 +107,7 @@ struct isc_rwlock {
 	 */
 	unsigned int		granted;
 
+	unsigned int		spins;
 	unsigned int		readers_waiting;
 	unsigned int		writers_waiting;
 	unsigned int		read_quota;
