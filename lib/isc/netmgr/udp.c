@@ -97,6 +97,10 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 #endif /* ifdef WIN32 */
 		RUNTIME_CHECK(res == 0);
 
+#ifdef SO_INCOMING_CPU
+		setsockopt(csock->fd, SOL_SOCKET, SO_INCOMING_CPU, &(int){ 1 },
+			   sizeof(int));
+#endif
 		ievent = isc__nm_get_ievent(mgr, netievent_udplisten);
 		ievent->sock = csock;
 		isc__nm_enqueue_ievent(&mgr->workers[i],
