@@ -79,8 +79,12 @@ using `named-checkconf -px`.
 
 If the bug you are reporting is a potential security issue, such as an
 assertion failure or other crash in `named`, please do *NOT* use GitLab to
-report it. Instead, please send mail to
-[security-officer@isc.org](mailto:security-officer@isc.org).
+report it. Instead, send mail to
+[security-officer@isc.org](mailto:security-officer@isc.org) using our
+OpenPGP key to secure your message. (Information about OpenPGP and links
+to our key can be found at
+[https://www.isc.org/pgpkey](https://www.isc.org/pgpkey).) Please do not
+discuss the bug on any public mailing list.
 
 For a general overview of ISC security policies, read the Knowledge Base
 article at [https://kb.isc.org/docs/aa-00861](https://kb.isc.org/docs/aa-00861).
@@ -325,6 +329,10 @@ vulnerability disclosed in CVE-2019-6477.
 
 BIND 9.11.14 is a maintenance release.
 
+#### BIND 9.11.15
+
+BIND 9.11.15 is a maintenance release.
+
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
@@ -346,7 +354,7 @@ If you're planning on making changes to the BIND 9 source, you should run
 `make depend`.  If you're using Emacs, you might find `make tags` helpful.
 
 Several environment variables that can be set before running `configure` will
-affect compilation:
+affect compilation.  Significant ones are:
 
 |Variable|Description |
 |--------------------|-----------------------------------------------|
@@ -361,6 +369,12 @@ affect compilation:
 |`BUILD_LDFLAGS`|`LDFLAGS` for the target system during cross-compiling.|
 |`BUILD_LIBS`|`LIBS` for the target system during cross-compiling.|
 
+Additional environment variables affecting the build are listed at the
+end of the `configure` help text, which can be obtained by running the
+command:
+
+    $ ./configure --help
+
 On platforms where neither the C11 Atomic operations library nor custom ISC
 atomic operations are available, updating the statistics counters is not
 locked due to performance reasons and therefore the counters might be
@@ -370,8 +384,11 @@ C11 compiler with C11 Atomic operations library support.
 #### <a name="macos"> macOS
 
 Building on macOS assumes that the "Command Tools for Xcode" is installed.
-This can be downloaded from [https://developer.apple.com/download/more/](https://developer.apple.com/download/more/)
-or if you have Xcode already installed you can run `xcode-select --install`.
+This can be downloaded from
+[https://developer.apple.com/download/more/](https://developer.apple.com/download/more/)
+or, if you have Xcode already installed, you can run `xcode-select
+--install`.  (Note that an Apple ID may be required to access the download
+page.)
 
 ### <a name="dependencies"/> Dependencies
 
