@@ -9974,7 +9974,7 @@ destroy(dns_resolver_t *res) {
 	unsigned int i;
 	alternate_t *a;
 
-	REQUIRE(atomic_load(&res->references) == 0);
+	isc_refcount_destroy(&res->references);
 	REQUIRE(!atomic_load_acquire(&res->priming));
 	REQUIRE(res->primefetch == NULL);
 
