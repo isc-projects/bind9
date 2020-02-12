@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
 
@@ -21,21 +20,20 @@
 
 #include <dns/types.h>
 
-#define DNS_ZTFIND_NOEXACT		0x01
-#define DNS_ZTFIND_MIRROR		0x02
+#define DNS_ZTFIND_NOEXACT 0x01
+#define DNS_ZTFIND_MIRROR 0x02
 
 ISC_LANG_BEGINDECLS
 
-typedef isc_result_t
-(*dns_zt_allloaded_t)(void *arg);
+typedef isc_result_t (*dns_zt_allloaded_t)(void *arg);
 /*%<
  * Method prototype: when all pending zone loads are complete,
  * the zone table can inform the caller via a callback function with
  * this signature.
  */
 
-typedef isc_result_t
-(*dns_zt_zoneloaded_t)(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task);
+typedef isc_result_t (*dns_zt_zoneloaded_t)(dns_zt_t *zt, dns_zone_t *zone,
+					    isc_task_t *task);
 /*%<
  * Method prototype: when a zone finishes loading, the zt object
  * can be informed via a callback function with this signature.

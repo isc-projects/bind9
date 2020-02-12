@@ -11,8 +11,8 @@
 
 /*! \file */
 
-#include <stdio.h>
 #include <inttypes.h>
+#include <stdio.h>
 
 #include <isc/lfsr.h>
 #include <isc/print.h>
@@ -21,10 +21,11 @@
 uint32_t state[1024 * 64];
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	isc_lfsr_t lfsr1, lfsr2;
-	int i;
-	uint32_t temp;
+	int	   i;
+	uint32_t   temp;
 
 	UNUSED(argc);
 	UNUSED(argv);

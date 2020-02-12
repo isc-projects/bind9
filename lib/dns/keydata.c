@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <inttypes.h>
@@ -19,13 +18,13 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/keydata.h>
 #include <dns/rdata.h>
 #include <dns/rdatastruct.h>
-#include <dns/keydata.h>
 
 isc_result_t
-dns_keydata_todnskey(dns_rdata_keydata_t *keydata,
-		     dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx)
+dns_keydata_todnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
+		     isc_mem_t *mctx)
 {
 	REQUIRE(keydata != NULL && dnskey != NULL);
 
@@ -49,10 +48,9 @@ dns_keydata_todnskey(dns_rdata_keydata_t *keydata,
 }
 
 isc_result_t
-dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata,
-		       dns_rdata_dnskey_t *dnskey,
-		       uint32_t refresh, uint32_t addhd,
-		       uint32_t removehd, isc_mem_t *mctx)
+dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
+		       uint32_t refresh, uint32_t addhd, uint32_t removehd,
+		       isc_mem_t *mctx)
 {
 	REQUIRE(keydata != NULL && dnskey != NULL);
 

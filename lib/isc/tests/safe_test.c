@@ -13,11 +13,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,27 +28,29 @@
 
 /* test isc_safe_memequal() */
 static void
-isc_safe_memequal_test(void **state) {
+isc_safe_memequal_test(void **state)
+{
 	UNUSED(state);
 
 	assert_true(isc_safe_memequal("test", "test", 4));
 	assert_true(!isc_safe_memequal("test", "tesc", 4));
-	assert_true(isc_safe_memequal("\x00\x00\x00\x00",
-				      "\x00\x00\x00\x00", 4));
-	assert_true(!isc_safe_memequal("\x00\x00\x00\x00",
-				       "\x00\x00\x00\x01", 4));
-	assert_true(!isc_safe_memequal("\x00\x00\x00\x02",
-				       "\x00\x00\x00\x00", 4));
+	assert_true(
+		isc_safe_memequal("\x00\x00\x00\x00", "\x00\x00\x00\x00", 4));
+	assert_true(
+		!isc_safe_memequal("\x00\x00\x00\x00", "\x00\x00\x00\x01", 4));
+	assert_true(
+		!isc_safe_memequal("\x00\x00\x00\x02", "\x00\x00\x00\x00", 4));
 }
 
 /* test isc_safe_memwipe() */
 static void
-isc_safe_memwipe_test(void **state) {
+isc_safe_memwipe_test(void **state)
+{
 	UNUSED(state);
 
 	/* These should pass. */
 	isc_safe_memwipe(NULL, 0);
-	isc_safe_memwipe((void *) -1, 0);
+	isc_safe_memwipe((void *)-1, 0);
 
 	/*
 	 * isc_safe_memwipe(ptr, size) should function same as
@@ -84,7 +85,8 @@ isc_safe_memwipe_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_safe_memequal_test),
 		cmocka_unit_test(isc_safe_memwipe_test),
@@ -98,7 +100,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

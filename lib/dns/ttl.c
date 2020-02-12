@@ -9,14 +9,13 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -29,31 +28,30 @@
 #include <dns/result.h>
 #include <dns/ttl.h>
 
-#define RETERR(x) do { \
-	isc_result_t _r = (x); \
-	if (_r != ISC_R_SUCCESS) \
-		return (_r); \
+#define RETERR(x)                        \
+	do {                             \
+		isc_result_t _r = (x);   \
+		if (_r != ISC_R_SUCCESS) \
+			return (_r);     \
 	} while (0)
 
-
-static isc_result_t bind_ttl(isc_textregion_t *source, uint32_t *ttl);
+static isc_result_t
+bind_ttl(isc_textregion_t *source, uint32_t *ttl);
 
 /*
  * Helper for dns_ttl_totext().
  */
 static isc_result_t
-ttlfmt(unsigned int t, const char *s, bool verbose,
-       bool space, isc_buffer_t *target)
+ttlfmt(unsigned int t, const char *s, bool verbose, bool space,
+       isc_buffer_t *target)
 {
-	char tmp[60];
+	char	     tmp[60];
 	unsigned int len;
 	isc_region_t region;
 
 	if (verbose)
-		len = snprintf(tmp, sizeof(tmp), "%s%u %s%s",
-			       space ? " " : "",
-			       t, s,
-			       t == 1 ? "" : "s");
+		len = snprintf(tmp, sizeof(tmp), "%s%u %s%s", space ? " " : "",
+			       t, s, t == 1 ? "" : "s");
 	else
 		len = snprintf(tmp, sizeof(tmp), "%u%c", t, s[0]);
 
@@ -71,16 +69,20 @@ ttlfmt(unsigned int t, const char *s, bool verbose,
  * Derived from bind8 ns_format_ttl().
  */
 isc_result_t
-dns_ttl_totext(uint32_t src, bool verbose,
-	       bool upcase, isc_buffer_t *target)
+dns_ttl_totext(uint32_t src, bool verbose, bool upcase, isc_buffer_t *target)
 {
 	unsigned secs, mins, hours, days, weeks, x;
 
-	secs = src % 60;   src /= 60;
-	mins = src % 60;   src /= 60;
-	hours = src % 24;  src /= 24;
-	days = src % 7;    src /= 7;
-	weeks = src;       src = 0;
+	secs = src % 60;
+	src /= 60;
+	mins = src % 60;
+	src /= 60;
+	hours = src % 24;
+	src /= 24;
+	days = src % 7;
+	src /= 7;
+	weeks = src;
+	src = 0;
 	POST(src);
 
 	x = 0;
@@ -100,12 +102,11 @@ dns_ttl_totext(uint32_t src, bool verbose,
 		RETERR(ttlfmt(mins, "minute", verbose, (x > 0), target));
 		x++;
 	}
-	if (secs != 0 ||
-	    (weeks == 0 && days == 0 && hours == 0 && mins == 0)) {
+	if (secs != 0 || (weeks == 0 && days == 0 && hours == 0 && mins == 0)) {
 		RETERR(ttlfmt(secs, "second", verbose, (x > 0), target));
 		x++;
 	}
-	INSIST (x > 0);
+	INSIST(x > 0);
 	/*
 	 * If only a single unit letter is printed, print it
 	 * in upper case. (Why?  Because BIND 8 does that.
@@ -128,12 +129,14 @@ dns_ttl_totext(uint32_t src, bool verbose,
 }
 
 isc_result_t
-dns_counter_fromtext(isc_textregion_t *source, uint32_t *ttl) {
+dns_counter_fromtext(isc_textregion_t *source, uint32_t *ttl)
+{
 	return (bind_ttl(source, ttl));
 }
 
 isc_result_t
-dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl) {
+dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl)
+{
 	isc_result_t result;
 
 	result = bind_ttl(source, ttl);
@@ -143,12 +146,13 @@ dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl) {
 }
 
 static isc_result_t
-bind_ttl(isc_textregion_t *source, uint32_t *ttl) {
+bind_ttl(isc_textregion_t *source, uint32_t *ttl)
+{
 	uint64_t tmp = 0ULL;
 	uint32_t n;
-	char *s;
-	char buf[64];
-	char nbuf[64]; /* Number buffer */
+	char *	 s;
+	char	 buf[64];
+	char	 nbuf[64]; /* Number buffer */
 
 	/*
 	 * Copy the buffer as it may not be NULL terminated.
@@ -174,27 +178,27 @@ bind_ttl(isc_textregion_t *source, uint32_t *ttl) {
 		switch (*s) {
 		case 'w':
 		case 'W':
-			tmp += (uint64_t) n * 7 * 24 * 3600;
+			tmp += (uint64_t)n * 7 * 24 * 3600;
 			s++;
 			break;
 		case 'd':
 		case 'D':
-			tmp += (uint64_t) n * 24 * 3600;
+			tmp += (uint64_t)n * 24 * 3600;
 			s++;
 			break;
 		case 'h':
 		case 'H':
-			tmp += (uint64_t) n * 3600;
+			tmp += (uint64_t)n * 3600;
 			s++;
 			break;
 		case 'm':
 		case 'M':
-			tmp += (uint64_t) n * 60;
+			tmp += (uint64_t)n * 60;
 			s++;
 			break;
 		case 's':
 		case 'S':
-			tmp += (uint64_t) n;
+			tmp += (uint64_t)n;
 			s++;
 			break;
 		case '\0':

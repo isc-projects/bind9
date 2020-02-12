@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <stdio.h>
@@ -52,7 +51,8 @@ isc_assertion_failed(const char *file, int line, isc_assertiontype_t type,
 
 /*% Set callback. */
 void
-isc_assertion_setcallback(isc_assertioncallback_t cb) {
+isc_assertion_setcallback(isc_assertioncallback_t cb)
+{
 	if (cb == NULL)
 		isc_assertion_failed_cb = default_callback;
 	else
@@ -61,7 +61,8 @@ isc_assertion_setcallback(isc_assertioncallback_t cb) {
 
 /*% Type to Text */
 const char *
-isc_assertion_typetotext(isc_assertiontype_t type) {
+isc_assertion_typetotext(isc_assertiontype_t type)
+{
 	const char *result;
 
 	/*
@@ -96,10 +97,10 @@ static void
 default_callback(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond)
 {
-	void *tracebuf[BACKTRACE_MAXFRAME];
-	int i, nframes;
-	const char *logsuffix = ".";
-	const char *fname;
+	void *	     tracebuf[BACKTRACE_MAXFRAME];
+	int	     i, nframes;
+	const char * logsuffix = ".";
+	const char * fname;
 	isc_result_t result;
 
 	result = isc_backtrace_gettrace(tracebuf, BACKTRACE_MAXFRAME, &nframes);
@@ -107,8 +108,8 @@ default_callback(const char *file, int line, isc_assertiontype_t type,
 		logsuffix = ", back trace";
 	}
 
-	fprintf(stderr, "%s:%d: %s(%s) failed%s\n",
-		file, line, isc_assertion_typetotext(type), cond, logsuffix);
+	fprintf(stderr, "%s:%d: %s(%s) failed%s\n", file, line,
+		isc_assertion_typetotext(type), cond, logsuffix);
 
 	if (result == ISC_R_SUCCESS) {
 		for (i = 0; i < nframes; i++) {

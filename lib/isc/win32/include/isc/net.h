@@ -73,18 +73,17 @@
  * figure it out.
  */
 #ifndef _WINSOCKAPI_
-#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#define _WINSOCKAPI_ /* Prevent inclusion of winsock.h in windows.h */
 #endif
 
 #include <winsock2.h>
+#include <ws2tcpip.h>
 
-#include <sys/types.h>
-
+#include <isc/ipv6.h>
 #include <isc/lang.h>
 #include <isc/types.h>
 
-#include <ws2tcpip.h>
-#include <isc/ipv6.h>
+#include <sys/types.h>
 
 /*
  * This is here because named client, interfacemgr.c, etc. use the name as
@@ -119,165 +118,169 @@ typedef uint16_t in_port_t;
 #define ISC_PLATFORM_RECVOVERFLOW
 #endif
 
-#define ISC__IPADDR(x)	((uint32_t)htonl((uint32_t)(x)))
+#define ISC__IPADDR(x) ((uint32_t)htonl((uint32_t)(x)))
 
 #define ISC_IPADDR_ISMULTICAST(i) \
-		(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
-		 == ISC__IPADDR(0xe0000000))
+	(((uint32_t)(i)&ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xe0000000))
 
 #define ISC_IPADDR_ISEXPERIMENTAL(i) \
-		(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
-		 == ISC__IPADDR(0xf0000000))
+	(((uint32_t)(i)&ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xf0000000))
 
 /*
  * Fix the FD_SET and FD_CLR Macros to properly cast
  */
 #undef FD_CLR
-#define FD_CLR(fd, set) do { \
-    u_int __i; \
-    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
-	if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET) fd) { \
-	    while (__i < ((fd_set FAR *)(set))->fd_count-1) { \
-		((fd_set FAR *)(set))->fd_array[__i] = \
-		    ((fd_set FAR *)(set))->fd_array[__i+1]; \
-		__i++; \
-	    } \
-	    ((fd_set FAR *)(set))->fd_count--; \
-	    break; \
-	} \
-    } \
-} while (0)
+#define FD_CLR(fd, set)                                                        \
+	do {                                                                   \
+		u_int __i;                                                     \
+		for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) {  \
+			if (((fd_set FAR *)(set))->fd_array[__i] ==            \
+			    (SOCKET)fd) {                                      \
+				while (__i <                                   \
+				       ((fd_set FAR *)(set))->fd_count - 1) {  \
+					((fd_set FAR *)(set))->fd_array[__i] = \
+						((fd_set FAR *)(set))          \
+							->fd_array[__i + 1];   \
+					__i++;                                 \
+				}                                              \
+				((fd_set FAR *)(set))->fd_count--;             \
+				break;                                         \
+			}                                                      \
+		}                                                              \
+	} while (0)
 
 #undef FD_SET
-#define FD_SET(fd, set) do { \
-    u_int __i; \
-    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
-	if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET)(fd)) { \
-	    break; \
-	} \
-    } \
-    if (__i == ((fd_set FAR *)(set))->fd_count) { \
-	if (((fd_set FAR *)(set))->fd_count < FD_SETSIZE) { \
-	    ((fd_set FAR *)(set))->fd_array[__i] = (SOCKET)(fd); \
-	    ((fd_set FAR *)(set))->fd_count++; \
-	} \
-    } \
-} while (0)
+#define FD_SET(fd, set)                                                       \
+	do {                                                                  \
+		u_int __i;                                                    \
+		for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
+			if (((fd_set FAR *)(set))->fd_array[__i] ==           \
+			    (SOCKET)(fd)) {                                   \
+				break;                                        \
+			}                                                     \
+		}                                                             \
+		if (__i == ((fd_set FAR *)(set))->fd_count) {                 \
+			if (((fd_set FAR *)(set))->fd_count < FD_SETSIZE) {   \
+				((fd_set FAR *)(set))->fd_array[__i] =        \
+					(SOCKET)(fd);                         \
+				((fd_set FAR *)(set))->fd_count++;            \
+			}                                                     \
+		}                                                             \
+	} while (0)
 
 /*
  * Windows Sockets errors redefined as regular Berkeley error constants.
- * These are usually commented out in Windows NT to avoid conflicts with errno.h.
- * Use the WSA constants instead.
+ * These are usually commented out in Windows NT to avoid conflicts with
+ * errno.h. Use the WSA constants instead.
  */
 
 #include <errno.h>
 
 #ifndef EWOULDBLOCK
-#define EWOULDBLOCK             WSAEWOULDBLOCK
+#define EWOULDBLOCK WSAEWOULDBLOCK
 #endif
 #ifndef EINPROGRESS
-#define EINPROGRESS             WSAEINPROGRESS
+#define EINPROGRESS WSAEINPROGRESS
 #endif
 #ifndef EALREADY
-#define EALREADY                WSAEALREADY
+#define EALREADY WSAEALREADY
 #endif
 #ifndef ENOTSOCK
-#define ENOTSOCK                WSAENOTSOCK
+#define ENOTSOCK WSAENOTSOCK
 #endif
 #ifndef EDESTADDRREQ
-#define EDESTADDRREQ            WSAEDESTADDRREQ
+#define EDESTADDRREQ WSAEDESTADDRREQ
 #endif
 #ifndef EMSGSIZE
-#define EMSGSIZE                WSAEMSGSIZE
+#define EMSGSIZE WSAEMSGSIZE
 #endif
 #ifndef EPROTOTYPE
-#define EPROTOTYPE              WSAEPROTOTYPE
+#define EPROTOTYPE WSAEPROTOTYPE
 #endif
 #ifndef ENOPROTOOPT
-#define ENOPROTOOPT             WSAENOPROTOOPT
+#define ENOPROTOOPT WSAENOPROTOOPT
 #endif
 #ifndef EPROTONOSUPPORT
-#define EPROTONOSUPPORT         WSAEPROTONOSUPPORT
+#define EPROTONOSUPPORT WSAEPROTONOSUPPORT
 #endif
 #ifndef ESOCKTNOSUPPORT
-#define ESOCKTNOSUPPORT         WSAESOCKTNOSUPPORT
+#define ESOCKTNOSUPPORT WSAESOCKTNOSUPPORT
 #endif
 #ifndef EOPNOTSUPP
-#define EOPNOTSUPP              WSAEOPNOTSUPP
+#define EOPNOTSUPP WSAEOPNOTSUPP
 #endif
 #ifndef EPFNOSUPPORT
-#define EPFNOSUPPORT            WSAEPFNOSUPPORT
+#define EPFNOSUPPORT WSAEPFNOSUPPORT
 #endif
 #ifndef EAFNOSUPPORT
-#define EAFNOSUPPORT            WSAEAFNOSUPPORT
+#define EAFNOSUPPORT WSAEAFNOSUPPORT
 #endif
 #ifndef EADDRINUSE
-#define EADDRINUSE              WSAEADDRINUSE
+#define EADDRINUSE WSAEADDRINUSE
 #endif
 #ifndef EADDRNOTAVAIL
-#define EADDRNOTAVAIL           WSAEADDRNOTAVAIL
+#define EADDRNOTAVAIL WSAEADDRNOTAVAIL
 #endif
 #ifndef ENETDOWN
-#define ENETDOWN                WSAENETDOWN
+#define ENETDOWN WSAENETDOWN
 #endif
 #ifndef ENETUNREACH
-#define ENETUNREACH             WSAENETUNREACH
+#define ENETUNREACH WSAENETUNREACH
 #endif
 #ifndef ENETRESET
-#define ENETRESET               WSAENETRESET
+#define ENETRESET WSAENETRESET
 #endif
 #ifndef ECONNABORTED
-#define ECONNABORTED            WSAECONNABORTED
+#define ECONNABORTED WSAECONNABORTED
 #endif
 #ifndef ECONNRESET
-#define ECONNRESET              WSAECONNRESET
+#define ECONNRESET WSAECONNRESET
 #endif
 #ifndef ENOBUFS
-#define ENOBUFS                 WSAENOBUFS
+#define ENOBUFS WSAENOBUFS
 #endif
 #ifndef EISCONN
-#define EISCONN                 WSAEISCONN
+#define EISCONN WSAEISCONN
 #endif
 #ifndef ENOTCONN
-#define ENOTCONN                WSAENOTCONN
+#define ENOTCONN WSAENOTCONN
 #endif
 #ifndef ESHUTDOWN
-#define ESHUTDOWN               WSAESHUTDOWN
+#define ESHUTDOWN WSAESHUTDOWN
 #endif
 #ifndef ETOOMANYREFS
-#define ETOOMANYREFS            WSAETOOMANYREFS
+#define ETOOMANYREFS WSAETOOMANYREFS
 #endif
 #ifndef ETIMEDOUT
-#define ETIMEDOUT               WSAETIMEDOUT
+#define ETIMEDOUT WSAETIMEDOUT
 #endif
 #ifndef ECONNREFUSED
-#define ECONNREFUSED            WSAECONNREFUSED
+#define ECONNREFUSED WSAECONNREFUSED
 #endif
 #ifndef ELOOP
-#define ELOOP                   WSAELOOP
+#define ELOOP WSAELOOP
 #endif
 #ifndef EHOSTDOWN
-#define EHOSTDOWN               WSAEHOSTDOWN
+#define EHOSTDOWN WSAEHOSTDOWN
 #endif
 #ifndef EHOSTUNREACH
-#define EHOSTUNREACH            WSAEHOSTUNREACH
+#define EHOSTUNREACH WSAEHOSTUNREACH
 #endif
 #ifndef EPROCLIM
-#define EPROCLIM                WSAEPROCLIM
+#define EPROCLIM WSAEPROCLIM
 #endif
 #ifndef EUSERS
-#define EUSERS                  WSAEUSERS
+#define EUSERS WSAEUSERS
 #endif
 #ifndef EDQUOT
-#define EDQUOT                  WSAEDQUOT
+#define EDQUOT WSAEDQUOT
 #endif
 #ifndef ESTALE
-#define ESTALE                  WSAESTALE
+#define ESTALE WSAESTALE
 #endif
 #ifndef EREMOTE
-#define EREMOTE                 WSAEREMOTE
+#define EREMOTE WSAEREMOTE
 #endif
-
 
 /***
  *** Functions.
@@ -322,13 +325,13 @@ isc_net_probeunix(void);
  *	ISC_R_NOTFOUND
  */
 
-#define ISC_NET_DSCPRECVV4      0x01    /* Can receive sent DSCP value IPv4 */
-#define ISC_NET_DSCPRECVV6      0x02    /* Can receive sent DSCP value IPv6 */
-#define ISC_NET_DSCPSETV4       0x04    /* Can set DSCP on socket IPv4 */
-#define ISC_NET_DSCPSETV6       0x08    /* Can set DSCP on socket IPv6 */
-#define ISC_NET_DSCPPKTV4       0x10    /* Can set DSCP on per packet IPv4 */
-#define ISC_NET_DSCPPKTV6       0x20    /* Can set DSCP on per packet IPv6 */
-#define ISC_NET_DSCPALL         0x3f    /* All valid flags */
+#define ISC_NET_DSCPRECVV4 0x01 /* Can receive sent DSCP value IPv4 */
+#define ISC_NET_DSCPRECVV6 0x02 /* Can receive sent DSCP value IPv6 */
+#define ISC_NET_DSCPSETV4 0x04	/* Can set DSCP on socket IPv4 */
+#define ISC_NET_DSCPSETV6 0x08	/* Can set DSCP on socket IPv6 */
+#define ISC_NET_DSCPPKTV4 0x10	/* Can set DSCP on per packet IPv4 */
+#define ISC_NET_DSCPPKTV6 0x20	/* Can set DSCP on per packet IPv6 */
+#define ISC_NET_DSCPALL 0x3f	/* All valid flags */
 
 unsigned int
 isc_net_probedscp(void);

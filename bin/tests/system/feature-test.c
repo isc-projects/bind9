@@ -9,14 +9,15 @@
  * information regarding copyright ownership.
  */
 
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
+#include <isc/net.h>
 #include <isc/print.h>
 #include <isc/util.h>
-#include <isc/net.h>
+
 #include <dns/edns.h>
 
 #ifdef WIN32
@@ -32,7 +33,8 @@
 #endif
 
 static void
-usage() {
+usage()
+{
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
 	fprintf(stderr, "	--edns-version\n");
@@ -49,7 +51,8 @@ usage() {
 }
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	if (argc != 2) {
 		usage();
 		return (1);
@@ -74,15 +77,15 @@ main(int argc, char **argv) {
 
 	if (strcmp(argv[1], "--gethostname") == 0) {
 		char hostname[MAXHOSTNAMELEN];
-		int n;
+		int  n;
 #ifdef WIN32
 		/* From InitSocket() */
-		WORD wVersionRequested;
+		WORD	wVersionRequested;
 		WSADATA wsaData;
-		int err;
+		int	err;
 
 		wVersionRequested = MAKEWORD(2, 0);
-		err = WSAStartup( wVersionRequested, &wsaData );
+		err = WSAStartup(wVersionRequested, &wsaData);
 		if (err != 0) {
 			fprintf(stderr, "WSAStartup() failed: %d\n", err);
 			exit(1);
@@ -92,7 +95,7 @@ main(int argc, char **argv) {
 		n = gethostname(hostname, sizeof(hostname));
 		if (n == -1) {
 			perror("gethostname");
-			return(1);
+			return (1);
 		}
 		fprintf(stdout, "%s\n", hostname);
 #ifdef WIN32
@@ -161,9 +164,9 @@ main(int argc, char **argv) {
 #ifdef WIN32
 		return (0);
 #elif defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY)
-		int s;
-		int n = -1;
-		int v6only = -1;
+		int	  s;
+		int	  n = -1;
+		int	  v6only = -1;
 		socklen_t len = sizeof(v6only);
 
 		s = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);

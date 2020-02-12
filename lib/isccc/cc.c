@@ -25,18 +25,16 @@
 
 /*! \file */
 
+#include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <inttypes.h>
 #include <string.h>
-#include <errno.h>
 
 #include <isc/assertions.h>
 #include <isc/hmac.h>
 #include <isc/print.h>
 #include <isc/safe.h>
-
-#include <pk11/site.h>
 
 #include <isccc/alist.h>
 #include <isccc/base64.h>
@@ -46,58 +44,55 @@
 #include <isccc/symtab.h>
 #include <isccc/symtype.h>
 #include <isccc/util.h>
+#include <pk11/site.h>
 
-#define MAX_TAGS		256
-#define DUP_LIFETIME		900
+#define MAX_TAGS 256
+#define DUP_LIFETIME 900
 
 typedef isccc_sexpr_t *sexpr_ptr;
 
 static unsigned char auth_hmd5[] = {
-	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68,		/*%< len + _auth */
-	ISCCC_CCMSGTYPE_TABLE,				/*%< message type */
-	0x00, 0x00, 0x00, 0x20,				/*%< length == 32 */
-	0x04, 0x68, 0x6d, 0x64, 0x35,			/*%< len + hmd5 */
-	ISCCC_CCMSGTYPE_BINARYDATA,			/*%< message type */
-	0x00, 0x00, 0x00, 0x16,				/*%< length == 22 */
+	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68, /*%< len + _auth */
+	ISCCC_CCMSGTYPE_TABLE,		    /*%< message type */
+	0x00, 0x00, 0x00, 0x20,		    /*%< length == 32 */
+	0x04, 0x68, 0x6d, 0x64, 0x35,	    /*%< len + hmd5 */
+	ISCCC_CCMSGTYPE_BINARYDATA,	    /*%< message type */
+	0x00, 0x00, 0x00, 0x16,		    /*%< length == 22 */
 	/*
 	 * The base64 encoding of one of our HMAC-MD5 signatures is
 	 * 22 bytes.
 	 */
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-#define HMD5_OFFSET	21		/*%< 21 = 6 + 1 + 4 + 5 + 1 + 4 */
-#define HMD5_LENGTH	22
+#define HMD5_OFFSET 21 /*%< 21 = 6 + 1 + 4 + 5 + 1 + 4 */
+#define HMD5_LENGTH 22
 
 static unsigned char auth_hsha[] = {
-	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68,		/*%< len + _auth */
-	ISCCC_CCMSGTYPE_TABLE,				/*%< message type */
-	0x00, 0x00, 0x00, 0x63,				/*%< length == 99 */
-	0x04, 0x68, 0x73, 0x68, 0x61,			/*%< len + hsha */
-	ISCCC_CCMSGTYPE_BINARYDATA,			/*%< message type */
-	0x00, 0x00, 0x00, 0x59,				/*%< length == 89 */
-	0x00,						/*%< algorithm */
+	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68, /*%< len + _auth */
+	ISCCC_CCMSGTYPE_TABLE,		    /*%< message type */
+	0x00, 0x00, 0x00, 0x63,		    /*%< length == 99 */
+	0x04, 0x68, 0x73, 0x68, 0x61,	    /*%< len + hsha */
+	ISCCC_CCMSGTYPE_BINARYDATA,	    /*%< message type */
+	0x00, 0x00, 0x00, 0x59,		    /*%< length == 89 */
+	0x00,				    /*%< algorithm */
 	/*
 	 * The base64 encoding of one of our HMAC-SHA* signatures is
 	 * 88 bytes.
 	 */
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00
 };
 
-#define HSHA_OFFSET	22		/*%< 21 = 6 + 1 + 4 + 5 + 1 + 4 + 1 */
-#define HSHA_LENGTH	88
+#define HSHA_OFFSET 22 /*%< 21 = 6 + 1 + 4 + 5 + 1 + 4 + 1 */
+#define HSHA_LENGTH 88
 
 static isc_result_t
 table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer);
@@ -106,10 +101,11 @@ static isc_result_t
 list_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer);
 
 static isc_result_t
-value_towire(isccc_sexpr_t *elt, isc_buffer_t **buffer) {
-	unsigned int len;
+value_towire(isccc_sexpr_t *elt, isc_buffer_t **buffer)
+{
+	unsigned int	len;
 	isccc_region_t *vr;
-	isc_result_t result;
+	isc_result_t	result;
 
 	if (isccc_sexpr_binaryp(elt)) {
 		vr = isccc_sexpr_tobinary(elt);
@@ -154,7 +150,7 @@ value_towire(isccc_sexpr_t *elt, isc_buffer_t **buffer) {
 		INSIST(len >= 4U);
 		len -= 4;
 
-		isc_buffer_init(&b, (unsigned char *) (*buffer)->base + used, 4);
+		isc_buffer_init(&b, (unsigned char *)(*buffer)->base + used, 4);
 		isc_buffer_putuint32(&b, len);
 	} else if (isccc_sexpr_listp(elt)) {
 		unsigned int used;
@@ -186,7 +182,7 @@ value_towire(isccc_sexpr_t *elt, isc_buffer_t **buffer) {
 		INSIST(len >= 4U);
 		len -= 4;
 
-		isc_buffer_init(&b, (unsigned char *) (*buffer)->base + used, 4);
+		isc_buffer_init(&b, (unsigned char *)(*buffer)->base + used, 4);
 		isc_buffer_putuint32(&b, len);
 	}
 
@@ -194,14 +190,14 @@ value_towire(isccc_sexpr_t *elt, isc_buffer_t **buffer) {
 }
 
 static isc_result_t
-table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer) {
+table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer)
+{
 	isccc_sexpr_t *kv, *elt, *k, *v;
-	char *ks;
-	isc_result_t result;
-	unsigned int len;
+	char *	       ks;
+	isc_result_t   result;
+	unsigned int   len;
 
-	for (elt = isccc_alist_first(alist);
-	     elt != NULL;
+	for (elt = isccc_alist_first(alist); elt != NULL;
 	     elt = ISCCC_SEXPR_CDR(elt)) {
 		kv = ISCCC_SEXPR_CAR(elt);
 		k = ISCCC_SEXPR_CAR(kv);
@@ -216,7 +212,7 @@ table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer) {
 		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint8(*buffer, (uint8_t)len);
-		isc_buffer_putmem(*buffer, (const unsigned char *) ks, len);
+		isc_buffer_putmem(*buffer, (const unsigned char *)ks, len);
 		/*
 		 * Emit the value.
 		 */
@@ -229,7 +225,8 @@ table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer) {
 }
 
 static isc_result_t
-list_towire(isccc_sexpr_t *list, isc_buffer_t **buffer) {
+list_towire(isccc_sexpr_t *list, isc_buffer_t **buffer)
+{
 	isc_result_t result;
 
 	while (list != NULL) {
@@ -246,12 +243,12 @@ static isc_result_t
 sign(unsigned char *data, unsigned int length, unsigned char *hmac,
      uint32_t algorithm, isccc_region_t *secret)
 {
-	isc_md_type_t md_type;
-	isc_result_t result;
+	isc_md_type_t  md_type;
+	isc_result_t   result;
 	isccc_region_t source, target;
-	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned int digestlen;
-	unsigned char digestb64[HSHA_LENGTH + 4];
+	unsigned char  digest[ISC_MAX_MD_SIZE];
+	unsigned int   digestlen;
+	unsigned char  digestb64[HSHA_LENGTH + 4];
 
 	source.rstart = digest;
 
@@ -278,10 +275,8 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 
-	result = isc_hmac(md_type,
-			  secret->rstart, REGION_SIZE(*secret),
-			  data, length,
-			  digest, &digestlen);
+	result = isc_hmac(md_type, secret->rstart, REGION_SIZE(*secret), data,
+			  length, digest, &digestlen);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -301,16 +296,16 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 }
 
 isc_result_t
-isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
-		uint32_t algorithm, isccc_region_t *secret)
+isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer, uint32_t algorithm,
+		isccc_region_t *secret)
 {
 	unsigned int hmac_base, signed_base;
 	isc_result_t result;
 
-	result = isc_buffer_reserve(buffer,
-				    4 + ((algorithm == ISCCC_ALG_HMACMD5) ?
-					 sizeof(auth_hmd5) :
-					 sizeof(auth_hsha)));
+	result =
+		isc_buffer_reserve(buffer, 4 + ((algorithm == ISCCC_ALG_HMACMD5)
+							? sizeof(auth_hmd5)
+							: sizeof(auth_hsha)));
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOSPACE);
 
@@ -327,17 +322,16 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 		 */
 		if (algorithm == ISCCC_ALG_HMACMD5) {
 			hmac_base = (*buffer)->used + HMD5_OFFSET;
-			isc_buffer_putmem(*buffer,
-					  auth_hmd5, sizeof(auth_hmd5));
-		} else
-		{
+			isc_buffer_putmem(*buffer, auth_hmd5,
+					  sizeof(auth_hmd5));
+		} else {
 			unsigned char *hmac_alg;
 
 			hmac_base = (*buffer)->used + HSHA_OFFSET;
-			hmac_alg = (unsigned char *) isc_buffer_used(*buffer) +
-				HSHA_OFFSET - 1;
-			isc_buffer_putmem(*buffer,
-					  auth_hsha, sizeof(auth_hsha));
+			hmac_alg = (unsigned char *)isc_buffer_used(*buffer) +
+				   HSHA_OFFSET - 1;
+			isc_buffer_putmem(*buffer, auth_hsha,
+					  sizeof(auth_hsha));
 			*hmac_alg = algorithm;
 		}
 	} else
@@ -355,9 +349,9 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (secret != NULL)
-		return (sign((unsigned char *) (*buffer)->base + signed_base,
+		return (sign((unsigned char *)(*buffer)->base + signed_base,
 			     (*buffer)->used - signed_base,
-			     (unsigned char *) (*buffer)->base + hmac_base,
+			     (unsigned char *)(*buffer)->base + hmac_base,
 			     algorithm, secret));
 	return (ISC_R_SUCCESS);
 }
@@ -366,14 +360,14 @@ static isc_result_t
 verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
        uint32_t algorithm, isccc_region_t *secret)
 {
-	isc_md_type_t md_type;
+	isc_md_type_t  md_type;
 	isccc_region_t source;
 	isccc_region_t target;
-	isc_result_t result;
+	isc_result_t   result;
 	isccc_sexpr_t *_auth, *hmac;
-	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned int digestlen;
-	unsigned char digestb64[HSHA_LENGTH * 4];
+	unsigned char  digest[ISC_MAX_MD_SIZE];
+	unsigned int   digestlen;
+	unsigned char  digestb64[HSHA_LENGTH * 4];
 
 	/*
 	 * Extract digest.
@@ -415,10 +409,8 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 
-	result = isc_hmac(md_type,
-			  secret->rstart, REGION_SIZE(*secret),
-			  data, length,
-			  digest, &digestlen);
+	result = isc_hmac(md_type, secret->rstart, REGION_SIZE(*secret), data,
+			  length, digest, &digestlen);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -436,7 +428,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	 */
 	if (algorithm == ISCCC_ALG_HMACMD5) {
 		isccc_region_t *region;
-		unsigned char *value;
+		unsigned char * value;
 
 		region = isccc_sexpr_tobinary(hmac);
 		if ((region->rend - region->rstart) != HMD5_LENGTH)
@@ -446,8 +438,8 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 			return (ISCCC_R_BADAUTH);
 	} else {
 		isccc_region_t *region;
-		unsigned char *value;
-		uint32_t valalg;
+		unsigned char * value;
+		uint32_t	valalg;
 
 		region = isccc_sexpr_tobinary(hmac);
 
@@ -475,12 +467,13 @@ static isc_result_t
 list_fromwire(isccc_region_t *source, isccc_sexpr_t **listp);
 
 static isc_result_t
-value_fromwire(isccc_region_t *source, isccc_sexpr_t **valuep) {
-	unsigned int msgtype;
-	uint32_t len;
+value_fromwire(isccc_region_t *source, isccc_sexpr_t **valuep)
+{
+	unsigned int   msgtype;
+	uint32_t       len;
 	isccc_sexpr_t *value;
 	isccc_region_t active;
-	isc_result_t result;
+	isc_result_t   result;
 
 	if (REGION_SIZE(*source) < 1 + 4)
 		return (ISC_R_UNEXPECTEDEND);
@@ -512,11 +505,11 @@ static isc_result_t
 table_fromwire(isccc_region_t *source, isccc_region_t *secret,
 	       uint32_t algorithm, isccc_sexpr_t **alistp)
 {
-	char key[256];
-	uint32_t len;
-	isc_result_t result;
+	char	       key[256];
+	uint32_t       len;
+	isc_result_t   result;
 	isccc_sexpr_t *alist, *value;
-	bool first_tag;
+	bool	       first_tag;
 	unsigned char *checksum_rstart;
 
 	REQUIRE(alistp != NULL && *alistp == NULL);
@@ -534,7 +527,7 @@ table_fromwire(isccc_region_t *source, isccc_region_t *secret,
 			goto bad;
 		}
 		GET_MEM(key, len, source->rstart);
-		key[len] = '\0';	/* Ensure NUL termination. */
+		key[len] = '\0'; /* Ensure NUL termination. */
 		value = NULL;
 		result = value_fromwire(source, &value);
 		if (result != ISC_R_SUCCESS)
@@ -550,16 +543,16 @@ table_fromwire(isccc_region_t *source, isccc_region_t *secret,
 
 	if (secret != NULL) {
 		if (checksum_rstart != NULL)
-			result = verify(alist, checksum_rstart,
-					(unsigned int)
-					(source->rend - checksum_rstart),
-					algorithm, secret);
+			result = verify(
+				alist, checksum_rstart,
+				(unsigned int)(source->rend - checksum_rstart),
+				algorithm, secret);
 		else
 			result = ISCCC_R_BADAUTH;
 	} else
 		result = ISC_R_SUCCESS;
 
- bad:
+bad:
 	if (result == ISC_R_SUCCESS)
 		*alistp = alist;
 	else
@@ -569,9 +562,10 @@ table_fromwire(isccc_region_t *source, isccc_region_t *secret,
 }
 
 static isc_result_t
-list_fromwire(isccc_region_t *source, isccc_sexpr_t **listp) {
+list_fromwire(isccc_region_t *source, isccc_sexpr_t **listp)
+{
 	isccc_sexpr_t *list, *value;
-	isc_result_t result;
+	isc_result_t   result;
 
 	list = NULL;
 	while (!REGION_EMPTY(*source)) {
@@ -598,7 +592,7 @@ isccc_cc_fromwire(isccc_region_t *source, isccc_sexpr_t **alistp,
 		  uint32_t algorithm, isccc_region_t *secret)
 {
 	unsigned int size;
-	uint32_t version;
+	uint32_t     version;
 
 	size = REGION_SIZE(*source);
 	if (size < 4)
@@ -612,12 +606,11 @@ isccc_cc_fromwire(isccc_region_t *source, isccc_sexpr_t **alistp,
 
 static isc_result_t
 createmessage(uint32_t version, const char *from, const char *to,
-	      uint32_t serial, isccc_time_t now,
-	      isccc_time_t expires, isccc_sexpr_t **alistp,
-	      bool want_expires)
+	      uint32_t serial, isccc_time_t now, isccc_time_t expires,
+	      isccc_sexpr_t **alistp, bool want_expires)
 {
 	isccc_sexpr_t *alist, *_ctrl, *_data;
-	isc_result_t result;
+	isc_result_t   result;
 
 	REQUIRE(alistp != NULL && *alistp == NULL);
 
@@ -651,18 +644,16 @@ createmessage(uint32_t version, const char *from, const char *to,
 	    (want_expires &&
 	     isccc_cc_defineuint32(_ctrl, "_exp", expires) == NULL))
 		goto bad;
-	if (from != NULL &&
-	    isccc_cc_definestring(_ctrl, "_frm", from) == NULL)
+	if (from != NULL && isccc_cc_definestring(_ctrl, "_frm", from) == NULL)
 		goto bad;
-	if (to != NULL &&
-	    isccc_cc_definestring(_ctrl, "_to", to) == NULL)
+	if (to != NULL && isccc_cc_definestring(_ctrl, "_to", to) == NULL)
 		goto bad;
 
 	*alistp = alist;
 
 	return (ISC_R_SUCCESS);
 
- bad:
+bad:
 	isccc_sexpr_free(&alist);
 
 	return (result);
@@ -670,22 +661,21 @@ createmessage(uint32_t version, const char *from, const char *to,
 
 isc_result_t
 isccc_cc_createmessage(uint32_t version, const char *from, const char *to,
-		       uint32_t serial, isccc_time_t now,
-		       isccc_time_t expires, isccc_sexpr_t **alistp)
+		       uint32_t serial, isccc_time_t now, isccc_time_t expires,
+		       isccc_sexpr_t **alistp)
 {
-	return (createmessage(version, from, to, serial, now, expires,
-			      alistp, true));
+	return (createmessage(version, from, to, serial, now, expires, alistp,
+			      true));
 }
 
 isc_result_t
-isccc_cc_createack(isccc_sexpr_t *message, bool ok,
-		   isccc_sexpr_t **ackp)
+isccc_cc_createack(isccc_sexpr_t *message, bool ok, isccc_sexpr_t **ackp)
 {
-	char *_frm, *_to;
-	uint32_t serial;
+	char *	       _frm, *_to;
+	uint32_t       serial;
 	isccc_sexpr_t *ack, *_ctrl;
-	isc_result_t result;
-	isccc_time_t t;
+	isc_result_t   result;
+	isccc_time_t   t;
 
 	REQUIRE(ackp != NULL && *ackp == NULL);
 
@@ -723,14 +713,15 @@ isccc_cc_createack(isccc_sexpr_t *message, bool ok,
 
 	return (ISC_R_SUCCESS);
 
- bad:
+bad:
 	isccc_sexpr_free(&ack);
 
 	return (result);
 }
 
 bool
-isccc_cc_isack(isccc_sexpr_t *message) {
+isccc_cc_isack(isccc_sexpr_t *message)
+{
 	isccc_sexpr_t *_ctrl;
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
@@ -742,7 +733,8 @@ isccc_cc_isack(isccc_sexpr_t *message) {
 }
 
 bool
-isccc_cc_isreply(isccc_sexpr_t *message) {
+isccc_cc_isreply(isccc_sexpr_t *message)
+{
 	isccc_sexpr_t *_ctrl;
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
@@ -757,10 +749,10 @@ isc_result_t
 isccc_cc_createresponse(isccc_sexpr_t *message, isccc_time_t now,
 			isccc_time_t expires, isccc_sexpr_t **alistp)
 {
-	char *_frm, *_to, *type = NULL;
-	uint32_t serial;
+	char *	       _frm, *_to, *type = NULL;
+	uint32_t       serial;
 	isccc_sexpr_t *alist, *_ctrl, *_data;
-	isc_result_t result;
+	isc_result_t   result;
 
 	REQUIRE(alistp != NULL && *alistp == NULL);
 
@@ -782,7 +774,7 @@ isccc_cc_createresponse(isccc_sexpr_t *message, isccc_time_t now,
 	 */
 	alist = NULL;
 	result = isccc_cc_createmessage(1, _to, _frm, serial, now, expires,
-					 &alist);
+					&alist);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -799,8 +791,7 @@ isccc_cc_createresponse(isccc_sexpr_t *message, isccc_time_t now,
 	}
 
 	if (isccc_cc_definestring(_ctrl, "_rpl", "1") == NULL ||
-	    isccc_cc_definestring(_data, "type", type) == NULL)
-	{
+	    isccc_cc_definestring(_data, "type", type) == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto bad;
 	}
@@ -809,14 +800,15 @@ isccc_cc_createresponse(isccc_sexpr_t *message, isccc_time_t now,
 
 	return (ISC_R_SUCCESS);
 
- bad:
+bad:
 	isccc_sexpr_free(&alist);
 	return (result);
 }
 
 isccc_sexpr_t *
-isccc_cc_definestring(isccc_sexpr_t *alist, const char *key, const char *str) {
-	size_t len;
+isccc_cc_definestring(isccc_sexpr_t *alist, const char *key, const char *str)
+{
+	size_t	       len;
 	isccc_region_t r;
 
 	len = strlen(str);
@@ -827,9 +819,10 @@ isccc_cc_definestring(isccc_sexpr_t *alist, const char *key, const char *str) {
 }
 
 isccc_sexpr_t *
-isccc_cc_defineuint32(isccc_sexpr_t *alist, const char *key, uint32_t i) {
-	char b[100];
-	size_t len;
+isccc_cc_defineuint32(isccc_sexpr_t *alist, const char *key, uint32_t i)
+{
+	char	       b[100];
+	size_t	       len;
 	isccc_region_t r;
 
 	snprintf(b, sizeof(b), "%u", i);
@@ -841,7 +834,8 @@ isccc_cc_defineuint32(isccc_sexpr_t *alist, const char *key, uint32_t i) {
 }
 
 isc_result_t
-isccc_cc_lookupstring(isccc_sexpr_t *alist, const char *key, char **strp) {
+isccc_cc_lookupstring(isccc_sexpr_t *alist, const char *key, char **strp)
+{
 	isccc_sexpr_t *kv, *v;
 
 	REQUIRE(strp == NULL || *strp == NULL);
@@ -861,8 +855,7 @@ isccc_cc_lookupstring(isccc_sexpr_t *alist, const char *key, char **strp) {
 }
 
 isc_result_t
-isccc_cc_lookupuint32(isccc_sexpr_t *alist, const char *key,
-		      uint32_t *uintp)
+isccc_cc_lookupuint32(isccc_sexpr_t *alist, const char *key, uint32_t *uintp)
 {
 	isccc_sexpr_t *kv, *v;
 
@@ -871,9 +864,8 @@ isccc_cc_lookupuint32(isccc_sexpr_t *alist, const char *key,
 		v = ISCCC_SEXPR_CDR(kv);
 		if (isccc_sexpr_binaryp(v)) {
 			if (uintp != NULL)
-				*uintp = (uint32_t)
-					strtoul(isccc_sexpr_tostring(v),
-						NULL, 10);
+				*uintp = (uint32_t)strtoul(
+					isccc_sexpr_tostring(v), NULL, 10);
 			return (ISC_R_SUCCESS);
 		} else
 			return (ISC_R_EXISTS);
@@ -883,8 +875,7 @@ isccc_cc_lookupuint32(isccc_sexpr_t *alist, const char *key,
 }
 
 static void
-symtab_undefine(char *key, unsigned int type, isccc_symvalue_t value,
-		void *arg)
+symtab_undefine(char *key, unsigned int type, isccc_symvalue_t value, void *arg)
 {
 	UNUSED(type);
 	UNUSED(value);
@@ -894,7 +885,8 @@ symtab_undefine(char *key, unsigned int type, isccc_symvalue_t value,
 }
 
 static bool
-symtab_clean(char *key, unsigned int type, isccc_symvalue_t value, void *arg) {
+symtab_clean(char *key, unsigned int type, isccc_symvalue_t value, void *arg)
+{
 	isccc_time_t *now;
 
 	UNUSED(key);
@@ -910,18 +902,21 @@ symtab_clean(char *key, unsigned int type, isccc_symvalue_t value, void *arg) {
 }
 
 isc_result_t
-isccc_cc_createsymtab(isccc_symtab_t **symtabp) {
+isccc_cc_createsymtab(isccc_symtab_t **symtabp)
+{
 	return (isccc_symtab_create(11897, symtab_undefine, NULL, false,
-				  symtabp));
+				    symtabp));
 }
 
 void
-isccc_cc_cleansymtab(isccc_symtab_t *symtab, isccc_time_t now) {
+isccc_cc_cleansymtab(isccc_symtab_t *symtab, isccc_time_t now)
+{
 	isccc_symtab_foreach(symtab, symtab_clean, &now);
 }
 
 static bool
-has_whitespace(const char *str) {
+has_whitespace(const char *str)
+{
 	char c;
 
 	if (str == NULL)
@@ -937,14 +932,14 @@ isc_result_t
 isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 		  isccc_time_t now)
 {
-	const char *_frm;
-	const char *_to;
-	char *_ser = NULL, *_tim = NULL, *tmp;
-	isc_result_t result;
-	char *key;
-	size_t len;
+	const char *	 _frm;
+	const char *	 _to;
+	char *		 _ser = NULL, *_tim = NULL, *tmp;
+	isc_result_t	 result;
+	char *		 key;
+	size_t		 len;
 	isccc_symvalue_t value;
-	isccc_sexpr_t *_ctrl;
+	isccc_sexpr_t *	 _ctrl;
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
 	if (!isccc_alist_alistp(_ctrl) ||
@@ -982,7 +977,7 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 	snprintf(key, len, "%s;%s;%s;%s", _frm, _to, _ser, _tim);
 	value.as_uinteger = now;
 	result = isccc_symtab_define(symtab, key, ISCCC_SYMTYPE_CCDUP, value,
-				   isccc_symexists_reject);
+				     isccc_symexists_reject);
 	if (result != ISC_R_SUCCESS) {
 		free(key);
 		return (result);

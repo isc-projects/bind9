@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_NETDB_H
 #define ISC_NETDB_H 1
 

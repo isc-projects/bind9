@@ -43,13 +43,13 @@
 
 #include <stdbool.h>
 
-#include <dns/log.h>
-#include <dns/result.h>
-
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
+
+#include <dns/log.h>
+#include <dns/result.h>
 
 #include <dlz/sdlz_helper.h>
 
@@ -76,13 +76,13 @@ destroy_querylist(isc_mem_t *mctx, query_list_t **querylist)
 
 	/* start at the top of the list */
 	nseg = ISC_LIST_HEAD(**querylist);
-	while (nseg != NULL) {	/* loop, until end of list */
+	while (nseg != NULL) { /* loop, until end of list */
 		tseg = nseg;
 		/*
 		 * free the query segment's text string but only if it
 		 * was really a query segment, and not a pointer to
 		 * %zone%, or %record%, or %client%
-		*/
+		 */
 		if (tseg->sql != NULL && tseg->direct == true)
 			isc_mem_free(mctx, tseg->sql);
 		/* get the next query segment, before we destroy this one. */
@@ -100,15 +100,15 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 		char **record, char **client, query_list_t **querylist,
 		unsigned int flags)
 {
-	isc_result_t result;
-	bool foundzone = false;
-	bool foundrecord = false;
-	bool foundclient = false;
-	char *free_me = NULL;
-	char *temp_str = NULL;
-	query_list_t *tql;
+	isc_result_t	 result;
+	bool		 foundzone = false;
+	bool		 foundrecord = false;
+	bool		 foundclient = false;
+	char *		 free_me = NULL;
+	char *		 temp_str = NULL;
+	query_list_t *	 tql;
 	query_segment_t *tseg = NULL;
-	char *last = NULL;
+	char *		 last = NULL;
 
 	REQUIRE(querylist != NULL && *querylist == NULL);
 	REQUIRE(mctx != NULL);
@@ -212,7 +212,7 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 	 */
 
 	/* if this query requires %client%, make sure we found it */
-	if (((flags & SDLZH_REQUIRE_CLIENT) != 0) && (!foundclient) ) {
+	if (((flags & SDLZH_REQUIRE_CLIENT) != 0) && (!foundclient)) {
 		/* Write error message to log */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -222,7 +222,7 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 	}
 
 	/* if this query requires %record%, make sure we found it */
-	if (((flags & SDLZH_REQUIRE_RECORD) != 0) && (!foundrecord) ) {
+	if (((flags & SDLZH_REQUIRE_RECORD) != 0) && (!foundrecord)) {
 		/* Write error message to log */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -232,7 +232,7 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 	}
 
 	/* if this query requires %zone%, make sure we found it */
-	if (((flags & SDLZH_REQUIRE_ZONE) != 0) && (!foundzone) ) {
+	if (((flags & SDLZH_REQUIRE_ZONE) != 0) && (!foundzone)) {
 		/* Write error message to log */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -242,17 +242,17 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 	}
 
 	/* pass back the query list */
-	*querylist = (query_list_t *) tql;
+	*querylist = (query_list_t *)tql;
 
 	/* return success */
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	/* get rid of free_me */
 	if (free_me != NULL)
 		isc_mem_free(mctx, free_me);
 
- flag_fail:
+flag_fail:
 	/* get rid of what was build of the query list */
 	destroy_querylist(mctx, &tql);
 	return result;
@@ -267,8 +267,8 @@ char *
 sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 {
 	query_segment_t *tseg = NULL;
-	unsigned int length = 0;
-	char *qs = NULL;
+	unsigned int	 length = 0;
+	char *		 qs = NULL;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(querylist != NULL);
@@ -282,8 +282,8 @@ sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 		 */
 		if (tseg->direct == true)
 			length += tseg->strlen;
-		else	/* calculate string length for dynamic segments. */
-			length += strlen(* (char**) tseg->sql);
+		else /* calculate string length for dynamic segments. */
+			length += strlen(*(char **)tseg->sql);
 		/* get the next segment */
 		tseg = ISC_LIST_NEXT(tseg, link);
 	}
@@ -300,7 +300,7 @@ sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 			strcat(qs, tseg->sql);
 		else
 			/* dynamic segments */
-			strcat(qs, * (char**) tseg->sql);
+			strcat(qs, *(char **)tseg->sql);
 		/* get the next segment */
 		tseg = ISC_LIST_NEXT(tseg, link);
 	}
@@ -311,12 +311,11 @@ sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 /*% constructs a sql dbinstance (DBI) */
 isc_result_t
 sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
-			 const char *allowxfr_str, const char *authority_str,
-			 const char *findzone_str, const char *lookup_str,
-			 const char *countzone_str, dbinstance_t **dbi)
+			  const char *allowxfr_str, const char *authority_str,
+			  const char *findzone_str, const char *lookup_str,
+			  const char *countzone_str, dbinstance_t **dbi)
 {
-
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *db = NULL;
 
 	REQUIRE(dbi != NULL && *dbi == NULL);
@@ -345,9 +344,9 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 	isc_mutex_init(&db->instance_lock);
 
 	/* build the all nodes query list */
-	result = build_querylist(mctx, allnodes_str, &db->zone,
-				 &db->record, &db->client,
-				 &db->allnodes_q, SDLZH_REQUIRE_ZONE);
+	result = build_querylist(mctx, allnodes_str, &db->zone, &db->record,
+				 &db->client, &db->allnodes_q,
+				 SDLZH_REQUIRE_ZONE);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -357,9 +356,8 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 	}
 
 	/* build the allow zone transfer query list */
-	result = build_querylist(mctx, allowxfr_str, &db->zone,
-				 &db->record, &db->client,
-				 &db->allowxfr_q,
+	result = build_querylist(mctx, allowxfr_str, &db->zone, &db->record,
+				 &db->client, &db->allowxfr_q,
 				 SDLZH_REQUIRE_ZONE | SDLZH_REQUIRE_CLIENT);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
@@ -370,9 +368,9 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 	}
 
 	/* build the authority query, query list */
-	result = build_querylist(mctx, authority_str, &db->zone,
-				 &db->record, &db->client,
-				 &db->authority_q, SDLZH_REQUIRE_ZONE);
+	result = build_querylist(mctx, authority_str, &db->zone, &db->record,
+				 &db->client, &db->authority_q,
+				 SDLZH_REQUIRE_ZONE);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -382,9 +380,9 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 	}
 
 	/* build findzone query, query list */
-	result = build_querylist(mctx, findzone_str, &db->zone,
-				 &db->record, &db->client,
-				 &db->findzone_q, SDLZH_REQUIRE_ZONE);
+	result = build_querylist(mctx, findzone_str, &db->zone, &db->record,
+				 &db->client, &db->findzone_q,
+				 SDLZH_REQUIRE_ZONE);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -394,9 +392,9 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 	}
 
 	/* build countzone query, query list */
-	result = build_querylist(mctx, countzone_str, &db->zone,
-				 &db->record, &db->client,
-				 &db->countzone_q, SDLZH_REQUIRE_ZONE);
+	result = build_querylist(mctx, countzone_str, &db->zone, &db->record,
+				 &db->client, &db->countzone_q,
+				 SDLZH_REQUIRE_ZONE);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -406,9 +404,9 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 	}
 
 	/* build lookup query, query list */
-	result = build_querylist(mctx, lookup_str, &db->zone,
-				 &db->record, &db->client,
-				 &db->lookup_q, SDLZH_REQUIRE_RECORD);
+	result = build_querylist(mctx, lookup_str, &db->zone, &db->record,
+				 &db->client, &db->lookup_q,
+				 SDLZH_REQUIRE_RECORD);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -418,12 +416,12 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 	}
 
 	/* pass back the db instance */
-	*dbi = (dbinstance_t *) db;
+	*dbi = (dbinstance_t *)db;
 
 	/* return success */
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	/* destroy whatever was build of the db instance */
 	destroy_sqldbinstance(db);
 	/* return failure */
@@ -447,19 +445,19 @@ sdlzh_destroy_sqldbinstance(dbinstance_t *dbi)
 	destroy_querylist(mctx, &dbi->lookup_q);
 
 	/* get rid of the mutex */
-	(void) isc_mutex_destroy(&dbi->instance_lock);
+	(void)isc_mutex_destroy(&dbi->instance_lock);
 
 	/* return, and detach the memory */
 	isc_mem_putanddetach(&mctx, dbi, sizeof(dbinstance_t));
 }
 
 char *
-sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char* key)
+sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char *key)
 {
-	int keylen;
+	int   keylen;
 	char *keystart;
-	char value[255];
-	int i;
+	char  value[255];
+	int   i;
 
 	if (key == NULL || input == NULL || strlen(input) < 1)
 		return NULL;

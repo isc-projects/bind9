@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file isc/aes.h */
 
 #ifndef ISC_AES_H

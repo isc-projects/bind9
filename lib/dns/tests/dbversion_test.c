@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -31,15 +30,15 @@
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/nsec3.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/nsec3.h>
 
 #include "dnstest.h"
 
-static char tempname[11] = "dtXXXXXXXX";
-static dns_db_t *db1 = NULL, *db2 = NULL;
+static char		tempname[11] = "dtXXXXXXXX";
+static dns_db_t *	db1 = NULL, *db2 = NULL;
 static dns_dbversion_t *v1 = NULL, *v2 = NULL;
 
 /*
@@ -53,13 +52,13 @@ static dns_dbversion_t *v1 = NULL, *v2 = NULL;
  */
 jmp_buf assertion;
 
-#define check_assertion(function_call)				\
-	do {							\
-		const int r = setjmp(assertion);		\
-		if (r == 0) {					\
-			expect_assert_failure(function_call);	\
-		}						\
-	} while(false);
+#define check_assertion(function_call)                        \
+	do {                                                  \
+		const int r = setjmp(assertion);              \
+		if (r == 0) {                                 \
+			expect_assert_failure(function_call); \
+		}                                             \
+	} while (false);
 
 static void
 local_callback(const char *file, int line, isc_assertiontype_t type,
@@ -72,7 +71,8 @@ local_callback(const char *file, int line, isc_assertiontype_t type,
 }
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t res;
 
 	UNUSED(state);
@@ -83,13 +83,13 @@ _setup(void **state) {
 	assert_int_equal(res, ISC_R_SUCCESS);
 
 	res = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_zone,
-			       dns_rdataclass_in, 0, NULL, &db1);
+			    dns_rdataclass_in, 0, NULL, &db1);
 	assert_int_equal(res, ISC_R_SUCCESS);
 	dns_db_newversion(db1, &v1);
 	assert_non_null(v1);
 
 	res = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_zone,
-			       dns_rdataclass_in, 0, NULL, &db2);
+			    dns_rdataclass_in, 0, NULL, &db2);
 	assert_int_equal(res, ISC_R_SUCCESS);
 	dns_db_newversion(db2, &v2);
 	assert_non_null(v1);
@@ -98,7 +98,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	if (strcmp(tempname, "dtXXXXXXXX") != 0) {
@@ -133,7 +134,8 @@ _teardown(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-attachversion(void **state) {
+attachversion(void **state)
+{
 	dns_dbversion_t *v = NULL;
 
 	UNUSED(state);
@@ -151,7 +153,8 @@ attachversion(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-closeversion(void **state) {
+closeversion(void **state)
+{
 	UNUSED(state);
 
 	assert_non_null(v1);
@@ -166,19 +169,20 @@ closeversion(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-find(void **state) {
-	isc_result_t res;
-	dns_rdataset_t rdataset;
+find(void **state)
+{
+	isc_result_t	res;
+	dns_rdataset_t	rdataset;
 	dns_fixedname_t fixed;
-	dns_name_t *name = NULL;
+	dns_name_t *	name = NULL;
 
 	UNUSED(state);
 
 	name = dns_fixedname_initname(&fixed);
 
 	dns_rdataset_init(&rdataset);
-	res = dns_db_find(db1, dns_rootname, v1, dns_rdatatype_soa,
-			  0, 0, NULL, name, &rdataset, NULL);
+	res = dns_db_find(db1, dns_rootname, v1, dns_rdatatype_soa, 0, 0, NULL,
+			  name, &rdataset, NULL);
 	assert_int_equal(res, DNS_R_NXDOMAIN);
 
 	if (dns_rdataset_isassociated(&rdataset)) {
@@ -187,8 +191,8 @@ find(void **state) {
 
 	dns_rdataset_init(&rdataset);
 	check_assertion((void)dns_db_find(db1, dns_rootname, v2,
-					  dns_rdatatype_soa, 0, 0, NULL,
-					  name, &rdataset, NULL));
+					  dns_rdatatype_soa, 0, 0, NULL, name,
+					  &rdataset, NULL));
 }
 
 /*
@@ -196,9 +200,10 @@ find(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-allrdatasets(void **state) {
-	isc_result_t res;
-	dns_dbnode_t *node = NULL;
+allrdatasets(void **state)
+{
+	isc_result_t	    res;
+	dns_dbnode_t *	    node = NULL;
 	dns_rdatasetiter_t *iterator = NULL;
 
 	UNUSED(state);
@@ -216,8 +221,6 @@ allrdatasets(void **state) {
 
 	dns_db_detachnode(db1, &node);
 	assert_null(node);
-
-
 }
 
 /*
@@ -225,10 +228,11 @@ allrdatasets(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-findrdataset(void **state) {
-	isc_result_t res;
+findrdataset(void **state)
+{
+	isc_result_t   res;
 	dns_rdataset_t rdataset;
-	dns_dbnode_t *node = NULL;
+	dns_dbnode_t * node = NULL;
 
 	UNUSED(state);
 
@@ -236,8 +240,8 @@ findrdataset(void **state) {
 	assert_int_equal(res, ISC_R_SUCCESS);
 
 	dns_rdataset_init(&rdataset);
-	res = dns_db_findrdataset(db1, node, v1, dns_rdatatype_soa,
-				     0, 0, &rdataset, NULL);
+	res = dns_db_findrdataset(db1, node, v1, dns_rdatatype_soa, 0, 0,
+				  &rdataset, NULL);
 	assert_int_equal(res, ISC_R_NOTFOUND);
 
 	if (dns_rdataset_isassociated(&rdataset)) {
@@ -245,9 +249,8 @@ findrdataset(void **state) {
 	}
 
 	dns_rdataset_init(&rdataset);
-	check_assertion(dns_db_findrdataset(db1, node, v2,
-					    dns_rdatatype_soa, 0, 0,
-					    &rdataset, NULL));
+	check_assertion(dns_db_findrdataset(db1, node, v2, dns_rdatatype_soa, 0,
+					    0, &rdataset, NULL));
 
 	dns_db_detachnode(db1, &node);
 	assert_null(node);
@@ -258,8 +261,9 @@ findrdataset(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-deleterdataset(void **state) {
-	isc_result_t res;
+deleterdataset(void **state)
+{
+	isc_result_t  res;
 	dns_dbnode_t *node = NULL;
 
 	UNUSED(state);
@@ -270,8 +274,8 @@ deleterdataset(void **state) {
 	res = dns_db_deleterdataset(db1, node, v1, dns_rdatatype_soa, 0);
 	assert_int_equal(res, DNS_R_UNCHANGED);
 
-	check_assertion(dns_db_deleterdataset(db1, node, v2,
-					      dns_rdatatype_soa, 0));
+	check_assertion(
+		dns_db_deleterdataset(db1, node, v2, dns_rdatatype_soa, 0));
 	dns_db_detachnode(db1, &node);
 	assert_null(node);
 }
@@ -281,11 +285,12 @@ deleterdataset(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-subtract(void **state) {
-	isc_result_t res;
-	dns_rdataset_t rdataset;
+subtract(void **state)
+{
+	isc_result_t	res;
+	dns_rdataset_t	rdataset;
 	dns_rdatalist_t rdatalist;
-	dns_dbnode_t *node = NULL;
+	dns_dbnode_t *	node = NULL;
 
 	UNUSED(state);
 
@@ -311,8 +316,8 @@ subtract(void **state) {
 	res = dns_rdatalist_tordataset(&rdatalist, &rdataset);
 	assert_int_equal(res, ISC_R_SUCCESS);
 
-	check_assertion(dns_db_subtractrdataset(db1, node, v2,
-						&rdataset, 0, NULL));
+	check_assertion(
+		dns_db_subtractrdataset(db1, node, v2, &rdataset, 0, NULL));
 
 	dns_db_detachnode(db1, &node);
 	assert_null(node);
@@ -323,9 +328,10 @@ subtract(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-dump(void **state) {
+dump(void **state)
+{
 	isc_result_t res;
-	FILE *f = NULL;
+	FILE *	     f = NULL;
 
 	UNUSED(state);
 
@@ -344,10 +350,11 @@ dump(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-addrdataset(void **state) {
-	isc_result_t res;
-	dns_rdataset_t rdataset;
-	dns_dbnode_t *node = NULL;
+addrdataset(void **state)
+{
+	isc_result_t	res;
+	dns_rdataset_t	rdataset;
+	dns_dbnode_t *	node = NULL;
 	dns_rdatalist_t rdatalist;
 
 	UNUSED(state);
@@ -366,8 +373,8 @@ addrdataset(void **state) {
 	res = dns_db_addrdataset(db1, node, v1, 0, &rdataset, 0, NULL);
 	assert_int_equal(res, ISC_R_SUCCESS);
 
-	check_assertion(dns_db_addrdataset(db1, node, v2,
-					   0, &rdataset, 0, NULL));
+	check_assertion(
+		dns_db_addrdataset(db1, node, v2, 0, &rdataset, 0, NULL));
 
 	dns_db_detachnode(db1, &node);
 	assert_null(node);
@@ -378,24 +385,23 @@ addrdataset(void **state) {
  * and asserts with mis-matching db and version.
  */
 static void
-getnsec3parameters(void **state) {
-	isc_result_t res;
-	dns_hash_t hash;
-	uint8_t flags;
-	uint16_t iterations;
+getnsec3parameters(void **state)
+{
+	isc_result_t  res;
+	dns_hash_t    hash;
+	uint8_t	      flags;
+	uint16_t      iterations;
 	unsigned char salt[DNS_NSEC3_SALTSIZE];
-	size_t salt_length = sizeof(salt);
+	size_t	      salt_length = sizeof(salt);
 
 	UNUSED(state);
 
-	res = dns_db_getnsec3parameters(db1, v1, &hash,
-					&flags, &iterations, salt,
-					   &salt_length);
+	res = dns_db_getnsec3parameters(db1, v1, &hash, &flags, &iterations,
+					salt, &salt_length);
 	assert_int_equal(res, ISC_R_NOTFOUND);
 
-	check_assertion(dns_db_getnsec3parameters(db1, v2, &hash,
-						  &flags, &iterations,
-						  salt, &salt_length));
+	check_assertion(dns_db_getnsec3parameters(
+		db1, v2, &hash, &flags, &iterations, salt, &salt_length));
 }
 
 /*
@@ -403,15 +409,16 @@ getnsec3parameters(void **state) {
  * asserts with mis-matching db and version.
  */
 static void
-resigned(void **state) {
-	isc_result_t res;
-	dns_rdataset_t rdataset, added;
-	dns_dbnode_t *node = NULL;
-	dns_rdatalist_t rdatalist;
+resigned(void **state)
+{
+	isc_result_t	  res;
+	dns_rdataset_t	  rdataset, added;
+	dns_dbnode_t *	  node = NULL;
+	dns_rdatalist_t	  rdatalist;
 	dns_rdata_rrsig_t rrsig;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_buffer_t b;
-	unsigned char buf[1024];
+	dns_rdata_t	  rdata = DNS_RDATA_INIT;
+	isc_buffer_t	  b;
+	unsigned char	  buf[1024];
 
 	UNUSED(state);
 
@@ -467,28 +474,26 @@ resigned(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(dump, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(find, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(allrdatasets,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(findrdataset,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(deleterdataset,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(subtract,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(addrdataset,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(getnsec3parameters,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(resigned,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(attachversion,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(closeversion,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(allrdatasets, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(findrdataset, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(deleterdataset, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(subtract, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(addrdataset, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(getnsec3parameters, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(resigned, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(attachversion, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(closeversion, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -499,7 +504,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

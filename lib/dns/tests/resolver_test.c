@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -38,12 +37,13 @@
 #include "dnstest.h"
 
 static dns_dispatchmgr_t *dispatchmgr = NULL;
-static dns_dispatch_t *dispatch = NULL;
-static dns_view_t *view = NULL;
+static dns_dispatch_t *	  dispatch = NULL;
+static dns_view_t *	  view = NULL;
 
 static int
-_setup(void **state) {
-	isc_result_t result;
+_setup(void **state)
+{
+	isc_result_t   result;
 	isc_sockaddr_t local;
 
 	UNUSED(state);
@@ -59,15 +59,15 @@ _setup(void **state) {
 
 	isc_sockaddr_any(&local);
 	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr, &local,
-				     4096, 100, 100, 100, 500, 0, 0,
-				     &dispatch);
+				     4096, 100, 100, 100, 500, 0, 0, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	return (0);
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	dns_dispatch_detach(&dispatch);
@@ -78,26 +78,27 @@ _teardown(void **state) {
 	return (0);
 }
 
-
 static void
-mkres(dns_resolver_t **resolverp) {
+mkres(dns_resolver_t **resolverp)
+{
 	isc_result_t result;
 
-	result = dns_resolver_create(view, taskmgr, 1, 1,
-				     socketmgr, timermgr, 0,
-				     dispatchmgr, dispatch, NULL, resolverp);
+	result = dns_resolver_create(view, taskmgr, 1, 1, socketmgr, timermgr,
+				     0, dispatchmgr, dispatch, NULL, resolverp);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 static void
-destroy_resolver(dns_resolver_t **resolverp) {
+destroy_resolver(dns_resolver_t **resolverp)
+{
 	dns_resolver_shutdown(*resolverp);
 	dns_resolver_detach(resolverp);
 }
 
 /* dns_resolver_create */
 static void
-create_test(void **state) {
+create_test(void **state)
+{
 	dns_resolver_t *resolver = NULL;
 
 	UNUSED(state);
@@ -108,9 +109,10 @@ create_test(void **state) {
 
 /* dns_resolver_gettimeout */
 static void
-gettimeout_test(void **state) {
+gettimeout_test(void **state)
+{
 	dns_resolver_t *resolver = NULL;
-	unsigned int timeout;
+	unsigned int	timeout;
 
 	UNUSED(state);
 
@@ -124,12 +126,12 @@ gettimeout_test(void **state) {
 
 /* dns_resolver_settimeout */
 static void
-settimeout_test(void **state) {
+settimeout_test(void **state)
+{
 	dns_resolver_t *resolver = NULL;
-	unsigned int default_timeout, timeout;
+	unsigned int	default_timeout, timeout;
 
 	UNUSED(state);
-
 
 	mkres(&resolver);
 
@@ -143,12 +145,12 @@ settimeout_test(void **state) {
 
 /* dns_resolver_settimeout */
 static void
-settimeout_default_test(void **state) {
+settimeout_default_test(void **state)
+{
 	dns_resolver_t *resolver = NULL;
-	unsigned int default_timeout, timeout;
+	unsigned int	default_timeout, timeout;
 
 	UNUSED(state);
-
 
 	mkres(&resolver);
 
@@ -167,12 +169,12 @@ settimeout_default_test(void **state) {
 
 /* dns_resolver_settimeout below minimum */
 static void
-settimeout_belowmin_test(void **state) {
+settimeout_belowmin_test(void **state)
+{
 	dns_resolver_t *resolver = NULL;
-	unsigned int default_timeout, timeout;
+	unsigned int	default_timeout, timeout;
 
 	UNUSED(state);
-
 
 	mkres(&resolver);
 
@@ -187,12 +189,12 @@ settimeout_belowmin_test(void **state) {
 
 /* dns_resolver_settimeout over maximum */
 static void
-settimeout_overmax_test(void **state) {
+settimeout_overmax_test(void **state)
+{
 	dns_resolver_t *resolver = NULL;
-	unsigned int timeout;
+	unsigned int	timeout;
 
 	UNUSED(state);
-
 
 	mkres(&resolver);
 
@@ -203,20 +205,20 @@ settimeout_overmax_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(create_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(gettimeout_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(settimeout_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(settimeout_default_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(create_test, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(gettimeout_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(settimeout_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(settimeout_default_test, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(settimeout_belowmin_test,
 						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(settimeout_overmax_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(settimeout_overmax_test, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -227,7 +229,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

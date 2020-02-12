@@ -18,6 +18,7 @@
 /*
  * This file is only built and linked if GeoIP2 has been configured.
  */
+#include <math.h>
 #include <maxminddb.h>
 
 #include <isc/mem.h>
@@ -29,16 +30,14 @@
 
 #include <dns/acl.h>
 #include <dns/geoip.h>
-
-#include <math.h>
 #ifndef WIN32
 #include <netinet/in.h>
 #else
 #ifndef _WINSOCKAPI_
-#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#define _WINSOCKAPI_ /* Prevent inclusion of winsock.h in windows.h */
 #endif
 #include <winsock2.h>
-#endif	/* WIN32 */
+#endif /* WIN32 */
 #include <dns/log.h>
 
 /*
@@ -64,11 +63,11 @@
  */
 
 typedef struct geoip_state {
-	uint16_t subtype;
-	const MMDB_s *db;
-	isc_netaddr_t addr;
+	uint16_t	     subtype;
+	const MMDB_s *	     db;
+	isc_netaddr_t	     addr;
 	MMDB_lookup_result_s mmresult;
-	MMDB_entry_s entry;
+	MMDB_entry_s	     entry;
 } geoip_state_t;
 
 ISC_THREAD_LOCAL geoip_state_t geoip_state = { 0 };
@@ -84,14 +83,14 @@ set_state(const MMDB_s *db, const isc_netaddr_t *addr,
 }
 
 static geoip_state_t *
-get_entry_for(MMDB_s * const db, const isc_netaddr_t *addr) {
-	isc_sockaddr_t sa;
+get_entry_for(MMDB_s *const db, const isc_netaddr_t *addr)
+{
+	isc_sockaddr_t	     sa;
 	MMDB_lookup_result_s match;
-	int err;
+	int		     err;
 
 	if (db == geoip_state.db &&
-	    isc_netaddr_equal(addr, &geoip_state.addr))
-	{
+	    isc_netaddr_equal(addr, &geoip_state.addr)) {
 		return (&geoip_state);
 	}
 
@@ -107,7 +106,8 @@ get_entry_for(MMDB_s * const db, const isc_netaddr_t *addr) {
 }
 
 static dns_geoip_subtype_t
-fix_subtype(const dns_geoip_databases_t *geoip, dns_geoip_subtype_t subtype) {
+fix_subtype(const dns_geoip_databases_t *geoip, dns_geoip_subtype_t subtype)
+{
 	dns_geoip_subtype_t ret = subtype;
 
 	switch (subtype) {
@@ -156,8 +156,7 @@ fix_subtype(const dns_geoip_databases_t *geoip, dns_geoip_subtype_t subtype) {
 }
 
 static MMDB_s *
-geoip2_database(const dns_geoip_databases_t *geoip,
-		dns_geoip_subtype_t subtype)
+geoip2_database(const dns_geoip_databases_t *geoip, dns_geoip_subtype_t subtype)
 {
 	switch (subtype) {
 	case dns_geoip_country_code:
@@ -198,13 +197,13 @@ geoip2_database(const dns_geoip_databases_t *geoip,
 }
 
 static bool
-match_string(MMDB_entry_data_s *value, const char *str) {
+match_string(MMDB_entry_data_s *value, const char *str)
+{
 	REQUIRE(str != NULL);
 
 	if (value == NULL || !value->has_data ||
 	    value->type != MMDB_DATA_TYPE_UTF8_STRING ||
-	    value->utf8_string == NULL)
-	{
+	    value->utf8_string == NULL) {
 		return (false);
 	}
 
@@ -212,11 +211,11 @@ match_string(MMDB_entry_data_s *value, const char *str) {
 }
 
 static bool
-match_int(MMDB_entry_data_s *value, const uint32_t ui32) {
+match_int(MMDB_entry_data_s *value, const uint32_t ui32)
+{
 	if (value == NULL || !value->has_data ||
 	    (value->type != MMDB_DATA_TYPE_UINT32 &&
-	     value->type != MMDB_DATA_TYPE_UINT16))
-	{
+	     value->type != MMDB_DATA_TYPE_UINT16)) {
 		return (false);
 	}
 
@@ -224,16 +223,15 @@ match_int(MMDB_entry_data_s *value, const uint32_t ui32) {
 }
 
 bool
-dns_geoip_match(const isc_netaddr_t *reqaddr,
-		const dns_geoip_databases_t *geoip,
-		const dns_geoip_elem_t *elt)
+dns_geoip_match(const isc_netaddr_t *	     reqaddr,
+		const dns_geoip_databases_t *geoip, const dns_geoip_elem_t *elt)
 {
-	MMDB_s *db = NULL;
-	MMDB_entry_data_s value;
-	geoip_state_t *state = NULL;
+	MMDB_s *	    db = NULL;
+	MMDB_entry_data_s   value;
+	geoip_state_t *	    state = NULL;
 	dns_geoip_subtype_t subtype;
-	const char *s = NULL;
-	int ret;
+	const char *	    s = NULL;
+	int		    ret;
 
 	REQUIRE(reqaddr != NULL);
 	REQUIRE(elt != NULL);
@@ -253,8 +251,8 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	switch (subtype) {
 	case dns_geoip_country_code:
 	case dns_geoip_city_countrycode:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "country", "iso_code", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "country",
+				     "iso_code", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -262,8 +260,8 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_country_name:
 	case dns_geoip_city_countryname:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "country", "names", "en", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "country", "names",
+				     "en", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -271,8 +269,8 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_country_continentcode:
 	case dns_geoip_city_continentcode:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "continent", "code", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "continent", "code",
+				     (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -280,8 +278,8 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_country_continent:
 	case dns_geoip_city_continent:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "continent", "names", "en", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "continent",
+				     "names", "en", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -289,8 +287,8 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_region:
 	case dns_geoip_city_region:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "subdivisions", "0", "iso_code", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "subdivisions", "0",
+				     "iso_code", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -298,41 +296,40 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_regionname:
 	case dns_geoip_city_regionname:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "subdivisions", "0", "names", "en", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "subdivisions", "0",
+				     "names", "en", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
 		break;
 
 	case dns_geoip_city_name:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "city", "names", "en", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "city", "names",
+				     "en", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
 		break;
 
 	case dns_geoip_city_postalcode:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "postal", "code", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "postal", "code",
+				     (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
 		break;
 
 	case dns_geoip_city_timezonecode:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "location", "time_zone", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "location",
+				     "time_zone", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
 		break;
 
-
 	case dns_geoip_city_metrocode:
-		ret = MMDB_get_value(&state->entry, &value,
-				     "location", "metro_code", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "location",
+				     "metro_code", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -363,14 +360,16 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_org_name:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "autonomous_system_organization", (char *)0);
+				     "autonomous_system_organization",
+				     (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
 		break;
 
 	case dns_geoip_domain_name:
-		ret = MMDB_get_value(&state->entry, &value, "domain", (char *)0);
+		ret = MMDB_get_value(&state->entry, &value, "domain",
+				     (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}

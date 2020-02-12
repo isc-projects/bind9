@@ -28,26 +28,25 @@
 
 #include <dst/dst.h>
 
-
 /***
  *** Globals
  ***/
 
-LIBDNS_EXTERNAL_DATA unsigned int			dns_pps = 0U;
-
+LIBDNS_EXTERNAL_DATA unsigned int dns_pps = 0U;
 
 /***
  *** Functions
  ***/
 
-static isc_once_t init_once = ISC_ONCE_INIT;
-static isc_mem_t *dns_g_mctx = NULL;
+static isc_once_t	       init_once = ISC_ONCE_INIT;
+static isc_mem_t *	       dns_g_mctx = NULL;
 static dns_dbimplementation_t *dbimp = NULL;
-static bool initialize_done = false;
-static isc_refcount_t references;
+static bool		       initialize_done = false;
+static isc_refcount_t	       references;
 
 static void
-initialize(void) {
+initialize(void)
+{
 	isc_result_t result;
 
 	REQUIRE(initialize_done == false);
@@ -67,16 +66,17 @@ initialize(void) {
 	initialize_done = true;
 	return;
 
-  cleanup_db:
+cleanup_db:
 	if (dbimp != NULL)
 		dns_ecdb_unregister(&dbimp);
-  cleanup_mctx:
+cleanup_mctx:
 	if (dns_g_mctx != NULL)
 		isc_mem_detach(&dns_g_mctx);
 }
 
 isc_result_t
-dns_lib_init(void) {
+dns_lib_init(void)
+{
 	isc_result_t result;
 
 	/*
@@ -97,7 +97,8 @@ dns_lib_init(void) {
 }
 
 void
-dns_lib_shutdown(void) {
+dns_lib_shutdown(void)
+{
 	if (isc_refcount_decrement(&references) == 1) {
 		dst_lib_destroy();
 

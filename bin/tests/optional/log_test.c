@@ -27,24 +27,26 @@
 
 char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
 
-#define CHECK(expr) result = expr; \
-	if (result != ISC_R_SUCCESS) { \
-		fprintf(stderr, "%s: " #expr "%s: exiting\n", \
-			progname, isc_result_totext(result)); \
+#define CHECK(expr)                                                     \
+	result = expr;                                                  \
+	if (result != ISC_R_SUCCESS) {                                  \
+		fprintf(stderr, "%s: " #expr "%s: exiting\n", progname, \
+			isc_result_totext(result));                     \
 	}
 
 int
-main(int argc, char **argv) {
-	const char *progname, *syslog_file, *message;
-	int ch, i, file_versions, stderr_line;
-	bool show_final_mem = false;
-	isc_log_t *lctx;
-	isc_logconfig_t *lcfg;
-	isc_mem_t *mctx;
-	isc_result_t result;
-	isc_logdestination_t destination;
+main(int argc, char **argv)
+{
+	const char *		 progname, *syslog_file, *message;
+	int			 ch, i, file_versions, stderr_line;
+	bool			 show_final_mem = false;
+	isc_log_t *		 lctx;
+	isc_logconfig_t *	 lcfg;
+	isc_mem_t *		 mctx;
+	isc_result_t		 result;
+	isc_logdestination_t	 destination;
 	const isc_logcategory_t *category;
-	const isc_logmodule_t *module;
+	const isc_logmodule_t *	 module;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL)
@@ -68,11 +70,12 @@ main(int argc, char **argv) {
 			if (file_versions < 0 &&
 			    file_versions != ISC_LOG_ROLLNEVER &&
 			    file_versions != ISC_LOG_ROLLINFINITE) {
-				fprintf(stderr, "%s: file rotations must be "
+				fprintf(stderr,
+					"%s: file rotations must be "
 					"%d (ISC_LOG_ROLLNEVER),\n\t"
 					"%d (ISC_LOG_ROLLINFINITE) "
-					"or > 0\n", progname,
-					ISC_LOG_ROLLNEVER,
+					"or > 0\n",
+					progname, ISC_LOG_ROLLNEVER,
 					ISC_LOG_ROLLINFINITE);
 				exit(1);
 			}
@@ -94,10 +97,11 @@ main(int argc, char **argv) {
 
 	fprintf(stderr, "EXPECT:\n%s%d%s%s%s",
 		"8 lines to stderr (first 4 numbered, #3 repeated)\n",
-		file_versions == 0 || file_versions == ISC_LOG_ROLLNEVER ? 1 :
-		file_versions > 0 ? file_versions + 1 : FILE_VERSIONS + 1,
-		" " TEST_FILE " files, and\n",
-		"2 lines to syslog\n",
+		file_versions == 0 || file_versions == ISC_LOG_ROLLNEVER
+			? 1
+			: file_versions > 0 ? file_versions + 1
+					    : FILE_VERSIONS + 1,
+		" " TEST_FILE " files, and\n", "2 lines to syslog\n",
 		"lines ending with exclamation marks are errors\n\n");
 
 	isc_log_opensyslog(progname, LOG_PID, LOG_DAEMON);
@@ -140,13 +144,10 @@ main(int argc, char **argv) {
 	destination.file.maximum_size = 1;
 	destination.file.versions = file_versions;
 
-	CHECK(isc_log_createchannel(lcfg, "file_test", ISC_LOG_TOFILE,
-				    ISC_LOG_INFO, &destination,
-				    ISC_LOG_PRINTTIME|
-				    ISC_LOG_PRINTTAG|
-				    ISC_LOG_PRINTLEVEL|
-				    ISC_LOG_PRINTCATEGORY|
-				    ISC_LOG_PRINTMODULE));
+	CHECK(isc_log_createchannel(
+		lcfg, "file_test", ISC_LOG_TOFILE, ISC_LOG_INFO, &destination,
+		ISC_LOG_PRINTTIME | ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL |
+			ISC_LOG_PRINTCATEGORY | ISC_LOG_PRINTMODULE));
 
 	/*
 	 * Create a dynamic debugging channel to a file descriptor.
@@ -155,9 +156,8 @@ main(int argc, char **argv) {
 
 	CHECK(isc_log_createchannel(lcfg, "debug_test", ISC_LOG_TOFILEDESC,
 				    ISC_LOG_DYNAMIC, &destination,
-				    ISC_LOG_PRINTTIME|
-				    ISC_LOG_PRINTLEVEL|
-				    ISC_LOG_DEBUGONLY));
+				    ISC_LOG_PRINTTIME | ISC_LOG_PRINTLEVEL |
+					    ISC_LOG_DEBUGONLY));
 
 	/*
 	 * Test the usability of the four predefined logging channels.
@@ -171,19 +171,15 @@ main(int argc, char **argv) {
 	CHECK(isc_log_usechannel(lcfg, "default_debug",
 				 DNS_LOGCATEGORY_DATABASE,
 				 DNS_LOGMODULE_CACHE));
-	CHECK(isc_log_usechannel(lcfg, "null",
-				 DNS_LOGCATEGORY_DATABASE,
-				 NULL));
+	CHECK(isc_log_usechannel(lcfg, "null", DNS_LOGCATEGORY_DATABASE, NULL));
 
 	/*
 	 * Use the custom channels.
 	 */
-	CHECK(isc_log_usechannel(lcfg, "file_test",
-				 DNS_LOGCATEGORY_GENERAL,
+	CHECK(isc_log_usechannel(lcfg, "file_test", DNS_LOGCATEGORY_GENERAL,
 				 DNS_LOGMODULE_DB));
 
-	CHECK(isc_log_usechannel(lcfg, "debug_test",
-				 DNS_LOGCATEGORY_GENERAL,
+	CHECK(isc_log_usechannel(lcfg, "debug_test", DNS_LOGCATEGORY_GENERAL,
 				 DNS_LOGMODULE_RBTDB));
 
 	fprintf(stderr, "\n==> stderr begin\n");
@@ -232,7 +228,6 @@ main(int argc, char **argv) {
 	 * Write to the file channel.
 	 */
 	if (file_versions >= 0 || file_versions == ISC_LOG_ROLLINFINITE) {
-
 		/*
 		 * If file_versions is 0 or ISC_LOG_ROLLINFINITE, write
 		 * the "should not appear" and "should be in file" messages
@@ -253,9 +248,8 @@ main(int argc, char **argv) {
 				      "should be in file %d/%d", i,
 				      file_versions - 1);
 
-		isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
-			      "should be in base file");
+		isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DB,
+			      ISC_LOG_NOTICE, "should be in base file");
 	} else {
 		file_versions = FILE_VERSIONS;
 		for (i = 1; i <= file_versions; i++)
@@ -263,7 +257,6 @@ main(int argc, char **argv) {
 				      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
 				      "This is message %d in the log file", i);
 	}
-
 
 	/*
 	 * Write a debugging message to a category that has no
@@ -277,7 +270,8 @@ main(int argc, char **argv) {
 	 * Write debugging messages to a dynamic debugging channel.
 	 */
 	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
-		      ISC_LOG_CRITICAL, "This critical message should "
+		      ISC_LOG_CRITICAL,
+		      "This critical message should "
 		      "not appear because the debug level is 0!");
 
 	isc_log_setdebuglevel(lctx, 3);
@@ -315,8 +309,8 @@ main(int argc, char **argv) {
 	 */
 	fputc('\n', stderr);
 	if (system("head " TEST_FILE "*; rm -f " TEST_FILE "*") != 0) {
-		fprintf(stderr, "system(\"head " TEST_FILE "*; rm -f "
-			TEST_FILE "*\") failed\n");
+		fprintf(stderr, "system(\"head " TEST_FILE "*; rm -f " TEST_FILE
+				"*\") failed\n");
 		goto cleanup;
 	}
 
@@ -333,7 +327,7 @@ main(int argc, char **argv) {
 	}
 	fputc('\n', stderr);
 
- cleanup:
+cleanup:
 	isc_log_destroy(&lctx);
 
 	if (show_final_mem)

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_KEYMGR_H
 #define DNS_KEYMGR_H 1
 

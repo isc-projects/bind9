@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_NETSCOPE_H
 #define ISC_NETSCOPE_H 1
 

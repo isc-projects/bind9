@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_WIN32OS_H
 #define ISC_WIN32OS_H 1
 
@@ -24,7 +23,7 @@ ISC_LANG_BEGINDECLS
 
 int
 isc_win32os_versioncheck(unsigned int major, unsigned int minor,
-		     unsigned int updatemajor, unsigned int updateminor);
+			 unsigned int updatemajor, unsigned int updateminor);
 
 /*
  * Checks the current version of the operating system with the

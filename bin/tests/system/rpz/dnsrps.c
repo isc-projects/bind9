@@ -20,20 +20,20 @@
  * -w sec.ond	wait for seconds, because `sleep 0.1` is not portable
  */
 
-#include <inttypes.h>
-
 #include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include <isc/print.h>
 #include <isc/util.h>
+
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #ifdef USE_DNSRPS
 #define LIBRPZ_LIB_OPEN DNSRPS_LIB_OPEN
@@ -41,28 +41,30 @@
 
 librpz_t *librpz;
 #else
-typedef struct {char c[120];} librpz_emsg_t;
+typedef struct {
+	char c[120];
+} librpz_emsg_t;
 #endif
 
-
-static bool link_dnsrps(librpz_emsg_t *emsg);
-
+static bool
+link_dnsrps(librpz_emsg_t *emsg);
 
 #define USAGE "usage: [-ap] [-n domain] [-w sec.onds]\n"
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 #ifdef USE_DNSRPS
-	char cstr[sizeof("zone ")+1024+10];
-	librpz_clist_t *clist;
+	char		 cstr[sizeof("zone ") + 1024 + 10];
+	librpz_clist_t * clist;
 	librpz_client_t *client;
-	librpz_rsp_t *rsp;
-	uint32_t serial;
+	librpz_rsp_t *	 rsp;
+	uint32_t	 serial;
 #endif
-	double seconds;
+	double	      seconds;
 	librpz_emsg_t emsg;
-	char *p;
-	int i;
+	char *	      p;
+	int	      i;
 
 	while ((i = getopt(argc, argv, "apn:w:")) != -1) {
 		switch (i) {
@@ -96,8 +98,8 @@ main(int argc, char **argv) {
 			 * Get the serial number of a policy zone from
 			 * a running dnsrpzd daemon.
 			 */
-			clist = librpz->clist_create(&emsg, NULL, NULL,
-						     NULL, NULL, NULL);
+			clist = librpz->clist_create(&emsg, NULL, NULL, NULL,
+						     NULL, NULL);
 			if (clist == NULL) {
 				fprintf(stderr, "## %s: %s\n", optarg, emsg.c);
 				return (1);
@@ -107,16 +109,16 @@ main(int argc, char **argv) {
 				 " dnsrpzd-sock dnsrpzd.sock;"
 				 " dnsrpzd-rpzf dnsrpzd.rpzf",
 				 optarg);
-			client = librpz->client_create(&emsg, clist,
-						       cstr, true);
+			client =
+				librpz->client_create(&emsg, clist, cstr, true);
 			if (client == NULL) {
 				fprintf(stderr, "## %s\n", emsg.c);
 				return (1);
 			}
 
 			rsp = NULL;
-			if (!librpz->rsp_create(&emsg, &rsp, NULL,
-						client, true, false) ||
+			if (!librpz->rsp_create(&emsg, &rsp, NULL, client, true,
+						false) ||
 			    rsp == NULL) {
 				fprintf(stderr, "## %s\n", emsg.c);
 				librpz->client_detach(&client);
@@ -143,7 +145,7 @@ main(int argc, char **argv) {
 				fputs(USAGE, stderr);
 				return (1);
 			}
-			usleep((int)(seconds*1000.0*1000.0));
+			usleep((int)(seconds * 1000.0 * 1000.0));
 			return (0);
 
 		default:
@@ -155,9 +157,9 @@ main(int argc, char **argv) {
 	return (1);
 }
 
-
 static bool
-link_dnsrps(librpz_emsg_t *emsg) {
+link_dnsrps(librpz_emsg_t *emsg)
+{
 #ifdef USE_DNSRPS
 	librpz = librpz_lib_open(emsg, NULL, DNSRPS_LIBRPZ_PATH);
 	if (librpz == NULL)

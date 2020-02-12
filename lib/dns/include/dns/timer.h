@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_TIMER_H
 #define DNS_TIMER_H 1
 

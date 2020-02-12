@@ -37,16 +37,17 @@
  * been requested to be built otherwise a NSEC chain needs to be built.
  */
 
-#define REMOVE(x) (((x) & DNS_NSEC3FLAG_REMOVE) != 0)
-#define CREATE(x) (((x) & DNS_NSEC3FLAG_CREATE) != 0)
-#define INITIAL(x) (((x) & DNS_NSEC3FLAG_INITIAL) != 0)
-#define NONSEC(x) (((x) & DNS_NSEC3FLAG_NONSEC) != 0)
+#define REMOVE(x) (((x)&DNS_NSEC3FLAG_REMOVE) != 0)
+#define CREATE(x) (((x)&DNS_NSEC3FLAG_CREATE) != 0)
+#define INITIAL(x) (((x)&DNS_NSEC3FLAG_INITIAL) != 0)
+#define NONSEC(x) (((x)&DNS_NSEC3FLAG_NONSEC) != 0)
 
-#define CHECK(x) do {					\
-			 result = (x);			\
-			 if (result != ISC_R_SUCCESS)	\
-				goto failure;		\
-		 } while (0)
+#define CHECK(x)                             \
+	do {                                 \
+		result = (x);                \
+		if (result != ISC_R_SUCCESS) \
+			goto failure;        \
+	} while (0)
 
 /*
  * Work out if 'param' should be ignored or not (i.e. it is in the process
@@ -57,19 +58,19 @@
  */
 
 static bool
-ignore(dns_rdata_t *param, dns_rdataset_t *privateset) {
+ignore(dns_rdata_t *param, dns_rdataset_t *privateset)
+{
 	isc_result_t result;
 
-	for (result = dns_rdataset_first(privateset);
-	     result == ISC_R_SUCCESS;
+	for (result = dns_rdataset_first(privateset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(privateset)) {
 		unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
 		dns_rdata_t private = DNS_RDATA_INIT;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(privateset, &private);
-		if (!dns_nsec3param_fromprivate(&private, &rdata,
-						buf, sizeof(buf)))
+		if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
+						sizeof(buf)))
 			continue;
 		/*
 		 * We are going to create a new NSEC3 chain so it
@@ -97,16 +98,16 @@ ignore(dns_rdata_t *param, dns_rdataset_t *privateset) {
 
 isc_result_t
 dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
-		   dns_rdatatype_t privatetype,
-		   bool *build_nsec, bool *build_nsec3)
+		   dns_rdatatype_t privatetype, bool *build_nsec,
+		   bool *build_nsec3)
 {
-	dns_dbnode_t *node;
+	dns_dbnode_t * node;
 	dns_rdataset_t nsecset, nsec3paramset, privateset;
-	bool nsec3chain;
-	bool signing;
-	isc_result_t result;
-	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
-	unsigned int count;
+	bool	       nsec3chain;
+	bool	       signing;
+	isc_result_t   result;
+	unsigned char  buf[DNS_NSEC3PARAM_BUFFERSIZE];
+	unsigned int   count;
 
 	node = NULL;
 	dns_rdataset_init(&nsecset);
@@ -115,15 +116,14 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 
 	CHECK(dns_db_getoriginnode(db, &node));
 
-	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec,
-				     0, (isc_stdtime_t) 0, &nsecset, NULL);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec, 0,
+				     (isc_stdtime_t)0, &nsecset, NULL);
 
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
 		goto failure;
 
-	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec3param,
-				     0, (isc_stdtime_t) 0, &nsec3paramset,
-				     NULL);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec3param, 0,
+				     (isc_stdtime_t)0, &nsec3paramset, NULL);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
 		goto failure;
 
@@ -137,9 +137,9 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 	}
 
 	if (privatetype != (dns_rdatatype_t)0) {
-		result = dns_db_findrdataset(db, node, ver, privatetype,
-					     0, (isc_stdtime_t) 0,
-					     &privateset, NULL);
+		result = dns_db_findrdataset(db, node, ver, privatetype, 0,
+					     (isc_stdtime_t)0, &privateset,
+					     NULL);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
 			goto failure;
 	}
@@ -161,8 +161,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 
 			dns_rdataset_current(&privateset, &private);
-			if (!dns_nsec3param_fromprivate(&private, &rdata,
-							buf, sizeof(buf)))
+			if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
+							sizeof(buf)))
 				continue;
 			if (REMOVE(rdata.data[1]))
 				continue;
@@ -191,8 +191,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 
 			dns_rdataset_current(&privateset, &private);
-			if (!dns_nsec3param_fromprivate(&private, &rdata,
-							buf, sizeof(buf)))
+			if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
+							sizeof(buf)))
 				continue;
 			if (CREATE(rdata.data[1]))
 				goto success;
@@ -243,15 +243,14 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 	signing = false;
 	nsec3chain = false;
 
-	for (result = dns_rdataset_first(&privateset);
-	     result == ISC_R_SUCCESS;
+	for (result = dns_rdataset_first(&privateset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&privateset)) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_t private = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&privateset, &private);
-		if (!dns_nsec3param_fromprivate(&private, &rdata,
-						buf, sizeof(buf))) {
+		if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
+						sizeof(buf))) {
 			/*
 			 * Look for record that says we are signing the
 			 * zone with a key.
@@ -275,9 +274,9 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		}
 	}
 
- success:
+success:
 	result = ISC_R_SUCCESS;
- failure:
+failure:
 	if (dns_rdataset_isassociated(&nsecset))
 		dns_rdataset_disassociate(&nsecset);
 	if (dns_rdataset_isassociated(&nsec3paramset))
@@ -290,19 +289,20 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 }
 
 isc_result_t
-dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
+dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf)
+{
 	isc_result_t result;
 
 	if (private->length < 5)
 		return (ISC_R_NOTFOUND);
 
 	if (private->data[0] == 0) {
-		unsigned char nsec3buf[DNS_NSEC3PARAM_BUFFERSIZE];
-		unsigned char newbuf[DNS_NSEC3PARAM_BUFFERSIZE];
-		dns_rdata_t rdata = DNS_RDATA_INIT;
+		unsigned char	       nsec3buf[DNS_NSEC3PARAM_BUFFERSIZE];
+		unsigned char	       newbuf[DNS_NSEC3PARAM_BUFFERSIZE];
+		dns_rdata_t	       rdata = DNS_RDATA_INIT;
 		dns_rdata_nsec3param_t nsec3param;
-		bool del, init, nonsec;
-		isc_buffer_t b;
+		bool		       del, init, nonsec;
+		isc_buffer_t	       b;
 
 		if (!dns_nsec3param_fromprivate(private, &rdata, nsec3buf,
 						sizeof(nsec3buf)))
@@ -314,10 +314,9 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 		init = ((nsec3param.flags & DNS_NSEC3FLAG_INITIAL) != 0);
 		nonsec = ((nsec3param.flags & DNS_NSEC3FLAG_NONSEC) != 0);
 
-		nsec3param.flags &= ~(DNS_NSEC3FLAG_CREATE|
-				      DNS_NSEC3FLAG_REMOVE|
-				      DNS_NSEC3FLAG_INITIAL|
-				      DNS_NSEC3FLAG_NONSEC);
+		nsec3param.flags &=
+			~(DNS_NSEC3FLAG_CREATE | DNS_NSEC3FLAG_REMOVE |
+			  DNS_NSEC3FLAG_INITIAL | DNS_NSEC3FLAG_NONSEC);
 
 		if (init)
 			isc_buffer_putstr(buf, "Pending NSEC3 chain ");
@@ -339,9 +338,9 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 	} else if (private->length == 5) {
 		unsigned char alg = private->data[0];
 		dns_keytag_t keyid = (private->data[2] | private->data[1] << 8);
-		char keybuf[BUFSIZ], algbuf[DNS_SECALG_FORMATSIZE];
-		bool del = private->data[3];
-		bool complete = private->data[4];
+		char	     keybuf[BUFSIZ], algbuf[DNS_SECALG_FORMATSIZE];
+		bool	     del = private->data[3];
+		bool	     complete = private->data[4];
 
 		if (del && complete)
 			isc_buffer_putstr(buf, "Done removing signatures for ");
@@ -360,6 +359,6 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 
 	isc_buffer_putuint8(buf, 0);
 	result = ISC_R_SUCCESS;
- failure:
+failure:
 	return (result);
 }

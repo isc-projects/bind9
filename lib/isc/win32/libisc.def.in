@@ -247,6 +247,7 @@ isc_hex_decodestring
 isc_hex_tobuffer
 isc_hex_totext
 isc_hp_clear
+isc_hp_clear_one
 isc_hp_destroy
 isc_hp_init
 isc_hp_protect
@@ -286,6 +287,7 @@ isc_ht_iter_first
 isc_ht_iter_next
 isc_httpd_addheader
 isc_httpd_addheaderuint
+isc_httpd_endheaders
 isc_httpd_response
 isc_httpd_setfinishhook
 isc_httpdmgr_addurl

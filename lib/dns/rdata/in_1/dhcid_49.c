@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /* RFC 4701 */
 
 #ifndef RDATA_IN_1_DHCID_49_C
@@ -17,9 +16,8 @@
 
 #define RRTYPE_DHCID_ATTRIBUTES 0
 
-static inline isc_result_t
-fromtext_in_dhcid(ARGS_FROMTEXT) {
-
+static inline isc_result_t fromtext_in_dhcid(ARGS_FROMTEXT)
+{
 	REQUIRE(type == dns_rdatatype_dhcid);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -32,11 +30,11 @@ fromtext_in_dhcid(ARGS_FROMTEXT) {
 	return (isc_base64_tobuffer(lexer, target, -2));
 }
 
-static inline isc_result_t
-totext_in_dhcid(ARGS_TOTEXT) {
+static inline isc_result_t totext_in_dhcid(ARGS_TOTEXT)
+{
 	isc_region_t sr, sr2;
 	/* " ; 64000 255 64000" */
-	char buf[5 + 3*11 + 1];
+	char buf[5 + 3 * 11 + 1];
 
 	REQUIRE(rdata->type == dns_rdatatype_dhcid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -47,25 +45,25 @@ totext_in_dhcid(ARGS_TOTEXT) {
 
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext("( " /*)*/, target));
-	if (tctx->width == 0)   /* No splitting */
+	if (tctx->width == 0) /* No splitting */
 		RETERR(isc_base64_totext(&sr, 60, "", target));
 	else
-		RETERR(isc_base64_totext(&sr, tctx->width - 2,
-					 tctx->linebreak, target));
+		RETERR(isc_base64_totext(&sr, tctx->width - 2, tctx->linebreak,
+					 target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(/* ( */ " )", target));
 		if (rdata->length > 2) {
 			snprintf(buf, sizeof(buf), " ; %u %u %u",
-				 sr2.base[0] * 256U + sr2.base[1],
-				 sr2.base[2], rdata->length - 3U);
+				 sr2.base[0] * 256U + sr2.base[1], sr2.base[2],
+				 rdata->length - 3U);
 			RETERR(str_totext(buf, target));
 		}
 	}
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-fromwire_in_dhcid(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_in_dhcid(ARGS_FROMWIRE)
+{
 	isc_region_t sr;
 
 	REQUIRE(type == dns_rdatatype_dhcid);
@@ -84,8 +82,8 @@ fromwire_in_dhcid(ARGS_FROMWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline isc_result_t
-towire_in_dhcid(ARGS_TOWIRE) {
+static inline isc_result_t towire_in_dhcid(ARGS_TOWIRE)
+{
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_dhcid);
@@ -98,8 +96,8 @@ towire_in_dhcid(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int
-compare_in_dhcid(ARGS_COMPARE) {
+static inline int compare_in_dhcid(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -115,8 +113,8 @@ compare_in_dhcid(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
-fromstruct_in_dhcid(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_in_dhcid(ARGS_FROMSTRUCT)
+{
 	dns_rdata_in_dhcid_t *dhcid = source;
 
 	REQUIRE(type == dns_rdatatype_dhcid);
@@ -132,10 +130,10 @@ fromstruct_in_dhcid(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, dhcid->dhcid, dhcid->length));
 }
 
-static inline isc_result_t
-tostruct_in_dhcid(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_in_dhcid(ARGS_TOSTRUCT)
+{
 	dns_rdata_in_dhcid_t *dhcid = target;
-	isc_region_t region;
+	isc_region_t	      region;
 
 	REQUIRE(rdata->type == dns_rdatatype_dhcid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -156,8 +154,8 @@ tostruct_in_dhcid(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_in_dhcid(ARGS_FREESTRUCT) {
+static inline void freestruct_in_dhcid(ARGS_FREESTRUCT)
+{
 	dns_rdata_in_dhcid_t *dhcid = source;
 
 	REQUIRE(dhcid != NULL);
@@ -172,8 +170,8 @@ freestruct_in_dhcid(ARGS_FREESTRUCT) {
 	dhcid->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_in_dhcid(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_in_dhcid(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_dhcid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -184,8 +182,8 @@ additionaldata_in_dhcid(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_in_dhcid(ARGS_DIGEST) {
+static inline isc_result_t digest_in_dhcid(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_dhcid);
@@ -196,9 +194,8 @@ digest_in_dhcid(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_in_dhcid(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_in_dhcid(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_dhcid);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -210,9 +207,8 @@ checkowner_in_dhcid(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_in_dhcid(ARGS_CHECKNAMES) {
-
+static inline bool checknames_in_dhcid(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_dhcid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -223,9 +219,9 @@ checknames_in_dhcid(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_in_dhcid(ARGS_COMPARE) {
+static inline int casecompare_in_dhcid(ARGS_COMPARE)
+{
 	return (compare_in_dhcid(rdata1, rdata2));
 }
 
-#endif	/* RDATA_IN_1_DHCID_49_C */
+#endif /* RDATA_IN_1_DHCID_49_C */

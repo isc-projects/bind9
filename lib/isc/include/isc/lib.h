@@ -9,14 +9,13 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_LIB_H
 #define ISC_LIB_H 1
 
 /*! \file isc/lib.h */
 
-#include <isc/types.h>
 #include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 

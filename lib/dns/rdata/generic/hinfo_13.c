@@ -14,10 +14,10 @@
 
 #define RRTYPE_HINFO_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_hinfo(ARGS_FROMTEXT) {
+static inline isc_result_t fromtext_hinfo(ARGS_FROMTEXT)
+{
 	isc_token_t token;
-	int i;
+	int	    i;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -29,15 +29,14 @@ fromtext_hinfo(ARGS_FROMTEXT) {
 
 	for (i = 0; i < 2; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
-					      isc_tokentype_qstring,
-					      false));
+					      isc_tokentype_qstring, false));
 		RETTOK(txt_fromtext(&token.value.as_textregion, target));
 	}
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-totext_hinfo(ARGS_TOTEXT) {
+static inline isc_result_t totext_hinfo(ARGS_TOTEXT)
+{
 	isc_region_t region;
 
 	UNUSED(tctx);
@@ -51,9 +50,8 @@ totext_hinfo(ARGS_TOTEXT) {
 	return (txt_totext(&region, true, target));
 }
 
-static inline isc_result_t
-fromwire_hinfo(ARGS_FROMWIRE) {
-
+static inline isc_result_t fromwire_hinfo(ARGS_FROMWIRE)
+{
 	REQUIRE(type == dns_rdatatype_hinfo);
 
 	UNUSED(type);
@@ -65,9 +63,8 @@ fromwire_hinfo(ARGS_FROMWIRE) {
 	return (txt_fromwire(source, target));
 }
 
-static inline isc_result_t
-towire_hinfo(ARGS_TOWIRE) {
-
+static inline isc_result_t towire_hinfo(ARGS_TOWIRE)
+{
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == dns_rdatatype_hinfo);
@@ -76,8 +73,8 @@ towire_hinfo(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
-compare_hinfo(ARGS_COMPARE) {
+static inline int compare_hinfo(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -92,8 +89,8 @@ compare_hinfo(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
-fromstruct_hinfo(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_hinfo(ARGS_FROMSTRUCT)
+{
 	dns_rdata_hinfo_t *hinfo = source;
 
 	REQUIRE(type == dns_rdatatype_hinfo);
@@ -110,10 +107,10 @@ fromstruct_hinfo(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, hinfo->os, hinfo->os_len));
 }
 
-static inline isc_result_t
-tostruct_hinfo(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_hinfo(ARGS_TOSTRUCT)
+{
 	dns_rdata_hinfo_t *hinfo = target;
-	isc_region_t region;
+	isc_region_t	   region;
 
 	REQUIRE(rdata->type == dns_rdatatype_hinfo);
 	REQUIRE(hinfo != NULL);
@@ -140,14 +137,14 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 	hinfo->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	if (mctx != NULL && hinfo->cpu != NULL)
 		isc_mem_free(mctx, hinfo->cpu);
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void
-freestruct_hinfo(ARGS_FREESTRUCT) {
+static inline void freestruct_hinfo(ARGS_FREESTRUCT)
+{
 	dns_rdata_hinfo_t *hinfo = source;
 
 	REQUIRE(hinfo != NULL);
@@ -162,8 +159,8 @@ freestruct_hinfo(ARGS_FREESTRUCT) {
 	hinfo->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_hinfo(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_hinfo(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_hinfo);
 
 	UNUSED(add);
@@ -173,8 +170,8 @@ additionaldata_hinfo(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_hinfo(ARGS_DIGEST) {
+static inline isc_result_t digest_hinfo(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_hinfo);
@@ -184,9 +181,8 @@ digest_hinfo(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_hinfo(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_hinfo(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_hinfo);
 
 	UNUSED(name);
@@ -197,9 +193,8 @@ checkowner_hinfo(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_hinfo(ARGS_CHECKNAMES) {
-
+static inline bool checknames_hinfo(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_hinfo);
 
 	UNUSED(rdata);
@@ -209,8 +204,8 @@ checknames_hinfo(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_hinfo(ARGS_COMPARE) {
+static inline int casecompare_hinfo(ARGS_COMPARE)
+{
 	return (compare_hinfo(rdata1, rdata2));
 }
-#endif	/* RDATA_GENERIC_HINFO_13_C */
+#endif /* RDATA_GENERIC_HINFO_13_C */

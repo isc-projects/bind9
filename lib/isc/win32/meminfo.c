@@ -15,7 +15,8 @@
 #include <isc/meminfo.h>
 
 uint64_t
-isc_meminfo_totalphys(void) {
+isc_meminfo_totalphys(void)
+{
 	MEMORYSTATUSEX statex;
 
 	statex.dwLength = sizeof(statex);

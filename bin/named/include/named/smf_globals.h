@@ -24,12 +24,14 @@
 #define INIT(v)
 #endif
 
-EXTERN unsigned int	named_smf_got_instance	INIT(0);
-EXTERN unsigned int	named_smf_chroot	INIT(0);
-EXTERN unsigned int	named_smf_want_disable	INIT(0);
+EXTERN unsigned int named_smf_got_instance INIT(0);
+EXTERN unsigned int named_smf_chroot	   INIT(0);
+EXTERN unsigned int named_smf_want_disable INIT(0);
 
-isc_result_t named_smf_add_message(isc_buffer_t **text);
-isc_result_t named_smf_get_instance(char **name, int debug, isc_mem_t *mctx);
+isc_result_t
+named_smf_add_message(isc_buffer_t **text);
+isc_result_t
+named_smf_get_instance(char **name, int debug, isc_mem_t *mctx);
 
 #undef EXTERN
 #undef INIT

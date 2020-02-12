@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_ERROR_H
 #define ISC_ERROR_H 1
 
@@ -27,30 +26,29 @@ ISC_LANG_BEGINDECLS
 typedef void (*isc_errorcallback_t)(const char *, int, const char *, va_list);
 
 /*% set unexpected error */
-void
-isc_error_setunexpected(isc_errorcallback_t);
+void isc_error_setunexpected(isc_errorcallback_t);
 
 /*% set fatal error */
-void
-isc_error_setfatal(isc_errorcallback_t);
+void isc_error_setfatal(isc_errorcallback_t);
 
 /*% unexpected error */
 void
 isc_error_unexpected(const char *, int, const char *, ...)
-     ISC_FORMAT_PRINTF(3, 4);
+	ISC_FORMAT_PRINTF(3, 4);
 
 /*% fatal error */
 ISC_PLATFORM_NORETURN_PRE void
 isc_error_fatal(const char *, int, const char *, ...)
-ISC_FORMAT_PRINTF(3, 4) ISC_PLATFORM_NORETURN_POST;
+	ISC_FORMAT_PRINTF(3, 4) ISC_PLATFORM_NORETURN_POST;
 
 /*% runtimecheck error */
 ISC_PLATFORM_NORETURN_PRE void
-isc_error_runtimecheck(const char *, int, const char *) ISC_PLATFORM_NORETURN_POST;
+isc_error_runtimecheck(const char *, int,
+		       const char *) ISC_PLATFORM_NORETURN_POST;
 
 #define ISC_ERROR_RUNTIMECHECK(cond) \
-	((void) (ISC_LIKELY(cond) || \
-		 ((isc_error_runtimecheck)(__FILE__, __LINE__, #cond), 0)))
+	((void)(ISC_LIKELY(cond) ||  \
+		((isc_error_runtimecheck)(__FILE__, __LINE__, #cond), 0)))
 
 ISC_LANG_ENDDECLS
 

@@ -9,20 +9,19 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
-#include <sys/types.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
 #ifdef HAVE_SYS_SOCKIO_H
-#include <sys/sockio.h>		/* Required for ifiter_ioctl.c. */
+#include <sys/sockio.h> /* Required for ifiter_ioctl.c. */
 #endif
 
-#include <stdio.h>
+#include <errno.h>
 #include <inttypes.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
 
 #include <isc/interfaceiter.h>
 #include <isc/log.h>
@@ -69,8 +68,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 	dst->family = family;
 	switch (family) {
 	case AF_INET:
-		memmove(&dst->type.in,
-			&((struct sockaddr_in *) src)->sin_addr,
+		memmove(&dst->type.in, &((struct sockaddr_in *)src)->sin_addr,
 			sizeof(struct in_addr));
 		break;
 	case AF_INET6:
@@ -115,8 +113,8 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 					 */
 					zone = if_nametoindex(ifname);
 					if (zone != 0) {
-						isc_netaddr_setzone(dst,
-								    (uint32_t)zone);
+						isc_netaddr_setzone(
+							dst, (uint32_t)zone);
 					}
 #endif
 				}
@@ -134,18 +132,23 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
  */
 
 #ifdef __linux
-#define ISC_IF_INET6_SZ \
-    sizeof("00000000000000000000000000000001 01 80 10 80 XXXXXXloXXXXXXXX\n")
-static isc_result_t linux_if_inet6_next(isc_interfaceiter_t *);
-static isc_result_t linux_if_inet6_current(isc_interfaceiter_t *);
-static void linux_if_inet6_first(isc_interfaceiter_t *iter);
+#define ISC_IF_INET6_SZ                                        \
+	sizeof("00000000000000000000000000000001 01 80 10 80 " \
+	       "XXXXXXloXXXXXXXX\n")
+static isc_result_t
+linux_if_inet6_next(isc_interfaceiter_t *);
+static isc_result_t
+linux_if_inet6_current(isc_interfaceiter_t *);
+static void
+linux_if_inet6_first(isc_interfaceiter_t *iter);
 #endif
 
 #include "ifiter_getifaddrs.c"
 
 #ifdef __linux
 static void
-linux_if_inet6_first(isc_interfaceiter_t *iter) {
+linux_if_inet6_first(isc_interfaceiter_t *iter)
+{
 	if (iter->proc != NULL) {
 		rewind(iter->proc);
 		(void)linux_if_inet6_next(iter);
@@ -154,7 +157,8 @@ linux_if_inet6_first(isc_interfaceiter_t *iter) {
 }
 
 static isc_result_t
-linux_if_inet6_next(isc_interfaceiter_t *iter) {
+linux_if_inet6_next(isc_interfaceiter_t *iter)
+{
 	if (iter->proc != NULL &&
 	    fgets(iter->entry, sizeof(iter->entry), iter->proc) != NULL)
 		iter->valid = ISC_R_SUCCESS;
@@ -164,13 +168,14 @@ linux_if_inet6_next(isc_interfaceiter_t *iter) {
 }
 
 static isc_result_t
-linux_if_inet6_current(isc_interfaceiter_t *iter) {
-	char address[33];
-	char name[IF_NAMESIZE+1];
+linux_if_inet6_current(isc_interfaceiter_t *iter)
+{
+	char		address[33];
+	char		name[IF_NAMESIZE + 1];
 	struct in6_addr addr6;
-	unsigned int ifindex, prefix, flag3, flag4;
-	int res;
-	unsigned int i;
+	unsigned int	ifindex, prefix, flag3, flag4;
+	int		res;
+	unsigned int	i;
 
 	if (iter->valid != ISC_R_SUCCESS)
 		return (iter->valid);
@@ -181,8 +186,8 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 		return (ISC_R_FAILURE);
 	}
 
-	res = sscanf(iter->entry, "%32[a-f0-9] %x %x %x %x %16s\n",
-		     address, &ifindex, &prefix, &flag3, &flag4, name);
+	res = sscanf(iter->entry, "%32[a-f0-9] %x %x %x %x %16s\n", address,
+		     &ifindex, &prefix, &flag3, &flag4, name);
 	if (res != 6) {
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_INTERFACE, ISC_LOG_ERROR,
@@ -197,7 +202,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 		return (ISC_R_FAILURE);
 	}
 	for (i = 0; i < 16; i++) {
-		unsigned char byte;
+		unsigned char	  byte;
 		static const char hex[] = "0123456789abcdef";
 		byte = ((strchr(hex, address[i * 2]) - hex) << 4) |
 		       (strchr(hex, address[i * 2 + 1]) - hex);
@@ -207,8 +212,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 	iter->current.flags = INTERFACE_F_UP;
 	isc_netaddr_fromin6(&iter->current.address, &addr6);
 	if (isc_netaddr_islinklocal(&iter->current.address)) {
-		isc_netaddr_setzone(&iter->current.address,
-				    (uint32_t)ifindex);
+		isc_netaddr_setzone(&iter->current.address, (uint32_t)ifindex);
 	}
 	for (i = 0; i < 16; i++) {
 		if (prefix > 8) {
@@ -230,8 +234,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
  */
 
 isc_result_t
-isc_interfaceiter_current(isc_interfaceiter_t *iter,
-			  isc_interface_t *ifdata)
+isc_interfaceiter_current(isc_interfaceiter_t *iter, isc_interface_t *ifdata)
 {
 	REQUIRE(iter->result == ISC_R_SUCCESS);
 	memmove(ifdata, &iter->current, sizeof(*ifdata));
@@ -239,7 +242,8 @@ isc_interfaceiter_current(isc_interfaceiter_t *iter,
 }
 
 isc_result_t
-isc_interfaceiter_first(isc_interfaceiter_t *iter) {
+isc_interfaceiter_first(isc_interfaceiter_t *iter)
+{
 	isc_result_t result;
 
 	REQUIRE(VALID_IFITER(iter));
@@ -258,7 +262,8 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter) {
 }
 
 isc_result_t
-isc_interfaceiter_next(isc_interfaceiter_t *iter) {
+isc_interfaceiter_next(isc_interfaceiter_t *iter)
+{
 	isc_result_t result;
 
 	REQUIRE(VALID_IFITER(iter));

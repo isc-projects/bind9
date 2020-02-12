@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
  *
@@ -32,75 +31,105 @@
 
 class CBINDInstallDlg : public CDialog
 {
-public:
-	CBINDInstallDlg(CWnd* pParent = NULL);	// standard constructor
+      public:
+	CBINDInstallDlg(CWnd *pParent = NULL); // standard constructor
 
 	//{{AFX_DATA(CBINDInstallDlg)
 	enum { IDD = IDD_BINDINSTALL_DIALOG };
-	CString	m_targetDir;
-	CString	m_version;
+	CString m_targetDir;
+	CString m_version;
 	BOOL	m_autoStart;
 	BOOL	m_keepFiles;
 	BOOL	m_toolsOnly;
-	CString	m_current;
+	CString m_current;
 	BOOL	m_startOnInstall;
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CBINDInstallDlg)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
-	//}}AFX_VIRTUAL
+      protected:
+	virtual void
+	DoDataExchange(CDataExchange *pDX); // DDX/DDV support
+					    //}}AFX_VIRTUAL
 
-protected:
-	void StartBINDService();
-	void StopBINDService();
+      protected:
+	void
+	StartBINDService();
+	void
+	StopBINDService();
 
-	void InstallTags();
-	void UninstallTags();
+	void
+	InstallTags();
+	void
+	UninstallTags();
 
-	void CreateDirs();
-	void RemoveDirs(BOOL uninstall);
+	void
+	CreateDirs();
+	void
+	RemoveDirs(BOOL uninstall);
 
-	void ReadInstallFlags();
-	void ReadInstallFileList();
+	void
+	ReadInstallFlags();
+	void
+	ReadInstallFileList();
 
-	void CopyFiles();
-	void DeleteFiles(BOOL uninstall);
+	void
+	CopyFiles();
+	void
+	DeleteFiles(BOOL uninstall);
 
-	void RegisterService();
-	void UpdateService(CString StartName);
-	void UnregisterService(BOOL uninstall);
+	void
+	RegisterService();
+	void
+	UpdateService(CString StartName);
+	void
+	UnregisterService(BOOL uninstall);
 
-	void RegisterMessages();
-	void UnregisterMessages(BOOL uninstall);
+	void
+	RegisterMessages();
+	void
+	UnregisterMessages(BOOL uninstall);
 
-	void FailedInstall();
-	void SetItemStatus(UINT nID, BOOL bSuccess = TRUE);
+	void
+	FailedInstall();
+	void
+	SetItemStatus(UINT nID, BOOL bSuccess = TRUE);
 
-	void GetCurrentServiceAccountName();
-	BOOL ValidateServiceAccount();
-protected:
-	CString DestDir(int destination);
-	int MsgBox(int id,  ...);
-	int MsgBox(int id, UINT type, ...);
-	CString GetErrMessage(DWORD err = -1);
-	BOOL CheckBINDService();
-	void SetCurrent(int id, ...);
-	void ProgramGroup(BOOL create = TRUE);
-	void ProgramGroupCreate(TCHAR *commonPath);
-	void ProgramGroupRemove(TCHAR *commonPath);
+	void
+	GetCurrentServiceAccountName();
+	BOOL
+	ValidateServiceAccount();
 
-	HICON m_hIcon;
+      protected:
+	CString
+	DestDir(int destination);
+	int
+	MsgBox(int id, ...);
+	int
+	MsgBox(int id, UINT type, ...);
+	CString
+	GetErrMessage(DWORD err = -1);
+	BOOL
+	CheckBINDService();
+	void
+	SetCurrent(int id, ...);
+	void
+	ProgramGroup(BOOL create = TRUE);
+	void
+	ProgramGroupCreate(TCHAR *commonPath);
+	void
+	ProgramGroupRemove(TCHAR *commonPath);
+
+	HICON	m_hIcon;
 	CString m_defaultDir;
 	CString m_etcDir;
 	CString m_binDir;
 	CString m_winSysDir;
-	BOOL m_installed;
+	BOOL	m_installed;
 	CString m_currentDir;
 	BOOL	m_accountExists;
 	BOOL	m_accountUsed;
-	CString	m_currentAccount;
+	CString m_currentAccount;
 	CString m_accountName;
 	CString m_accountPasswordConfirm;
 	CString m_accountPassword;
@@ -108,17 +137,28 @@ protected:
 
 	// Generated message map functions
 	//{{AFX_MSG(CBINDInstallDlg)
-	virtual BOOL OnInitDialog();
-	afx_msg void OnPaint();
-	afx_msg HCURSOR OnQueryDragIcon();
-	afx_msg void OnBrowse();
-	afx_msg void OnChangeTargetdir();
-	afx_msg void OnInstall();
-	afx_msg void OnExit();
-	afx_msg void OnUninstall();
-	afx_msg void OnAutoStart();
-	afx_msg void OnKeepFiles();
-	afx_msg void OnStartOnInstall();
+	virtual BOOL
+	OnInitDialog();
+	afx_msg void
+	OnPaint();
+	afx_msg HCURSOR
+	OnQueryDragIcon();
+	afx_msg void
+	OnBrowse();
+	afx_msg void
+	OnChangeTargetdir();
+	afx_msg void
+	OnInstall();
+	afx_msg void
+	OnExit();
+	afx_msg void
+	OnUninstall();
+	afx_msg void
+	OnAutoStart();
+	afx_msg void
+	OnKeepFiles();
+	afx_msg void
+	OnStartOnInstall();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

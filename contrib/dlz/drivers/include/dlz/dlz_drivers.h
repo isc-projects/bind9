@@ -14,7 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 #ifndef DLZ_DRIVERS_H
 #define DLZ_DRIVERS_H 1
 

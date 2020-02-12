@@ -15,12 +15,12 @@
 typedef dns_rdata_txt_string_t dns_rdata_avc_string_t;
 
 typedef struct dns_rdata_avc {
-	dns_rdatacommon_t       common;
-	isc_mem_t               *mctx;
-	unsigned char           *data;
-	uint16_t            length;
+	dns_rdatacommon_t common;
+	isc_mem_t *	  mctx;
+	unsigned char *	  data;
+	uint16_t	  length;
 	/* private */
-	uint16_t            offset;
+	uint16_t offset;
 } dns_rdata_avc_t;
 
 /*

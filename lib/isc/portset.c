@@ -9,11 +9,10 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
-#include <stdbool.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/mem.h>
 #include <isc/portset.h>
@@ -29,17 +28,19 @@
  * the second most significant bit of buf[0] corresponds to port 1.
  */
 struct isc_portset {
-	unsigned int nports;	/*%< number of ports in the set */
-	uint32_t buf[ISC_PORTSET_BUFSIZE];
+	unsigned int nports; /*%< number of ports in the set */
+	uint32_t     buf[ISC_PORTSET_BUFSIZE];
 };
 
 static inline bool
-portset_isset(isc_portset_t *portset, in_port_t port) {
+portset_isset(isc_portset_t *portset, in_port_t port)
+{
 	return ((portset->buf[port >> 5] & ((uint32_t)1 << (port & 31))) != 0);
 }
 
 static inline void
-portset_add(isc_portset_t *portset, in_port_t port) {
+portset_add(isc_portset_t *portset, in_port_t port)
+{
 	if (!portset_isset(portset, port)) {
 		portset->nports++;
 		portset->buf[port >> 5] |= ((uint32_t)1 << (port & 31));
@@ -47,7 +48,8 @@ portset_add(isc_portset_t *portset, in_port_t port) {
 }
 
 static inline void
-portset_remove(isc_portset_t *portset, in_port_t port) {
+portset_remove(isc_portset_t *portset, in_port_t port)
+{
 	if (portset_isset(portset, port)) {
 		portset->nports--;
 		portset->buf[port >> 5] &= ~((uint32_t)1 << (port & 31));
@@ -55,7 +57,8 @@ portset_remove(isc_portset_t *portset, in_port_t port) {
 }
 
 isc_result_t
-isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp) {
+isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp)
+{
 	isc_portset_t *portset;
 
 	REQUIRE(portsetp != NULL && *portsetp == NULL);
@@ -70,7 +73,8 @@ isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp) {
 }
 
 void
-isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp) {
+isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp)
+{
 	isc_portset_t *portset;
 
 	REQUIRE(portsetp != NULL);
@@ -80,28 +84,32 @@ isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp) {
 }
 
 bool
-isc_portset_isset(isc_portset_t *portset, in_port_t port) {
+isc_portset_isset(isc_portset_t *portset, in_port_t port)
+{
 	REQUIRE(portset != NULL);
 
 	return (portset_isset(portset, port));
 }
 
 unsigned int
-isc_portset_nports(isc_portset_t *portset) {
+isc_portset_nports(isc_portset_t *portset)
+{
 	REQUIRE(portset != NULL);
 
 	return (portset->nports);
 }
 
 void
-isc_portset_add(isc_portset_t *portset, in_port_t port) {
+isc_portset_add(isc_portset_t *portset, in_port_t port)
+{
 	REQUIRE(portset != NULL);
 
 	portset_add(portset, port);
 }
 
 void
-isc_portset_remove(isc_portset_t *portset, in_port_t port) {
+isc_portset_remove(isc_portset_t *portset, in_port_t port)
+{
 	portset_remove(portset, port);
 }
 

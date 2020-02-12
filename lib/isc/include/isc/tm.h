@@ -20,7 +20,6 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-
 ISC_LANG_BEGINDECLS
 
 time_t

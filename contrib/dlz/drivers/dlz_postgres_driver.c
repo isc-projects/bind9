@@ -43,12 +43,8 @@
 
 #ifdef DLZ_POSTGRES
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-
-#include <dns/log.h>
-#include <dns/sdlz.h>
-#include <dns/result.h>
+#include <string.h>
 
 #include <isc/mem.h>
 #include <isc/platform.h>
@@ -57,10 +53,13 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <named/globals.h>
+#include <dns/log.h>
+#include <dns/result.h>
+#include <dns/sdlz.h>
 
-#include <dlz/sdlz_helper.h>
 #include <dlz/dlz_postgres_driver.h>
+#include <dlz/sdlz_helper.h>
+#include <named/globals.h>
 
 /* temporarily include time. */
 #include <time.h>
@@ -110,14 +109,12 @@ static dns_sdlzimplementation_t *dlz_postgres = NULL;
 static size_t
 postgres_makesafe(char *to, const char *from, size_t length)
 {
-	const char *source = from;
-	char	   *target = to;
+	const char * source = from;
+	char *	     target = to;
 	unsigned int remaining = length;
 
-	while (remaining > 0)
-	{
-		switch (*source)
-		{
+	while (remaining > 0) {
+		switch (*source) {
 		case '\\':
 			*target = '\\';
 			target++;
@@ -155,7 +152,6 @@ postgres_makesafe(char *to, const char *from, size_t length)
 static void
 postgres_destroy_dblist(db_list_t *dblist)
 {
-
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -169,7 +165,7 @@ postgres_destroy_dblist(db_list_t *dblist)
 		ndbi = ISC_LIST_NEXT(dbi, link);
 		/* release DB connection */
 		if (dbi->dbconn != NULL)
-			PQfinish((PGconn *) dbi->dbconn);
+			PQfinish((PGconn *)dbi->dbconn);
 		/* release all memory that comprised a DBI */
 		destroy_sqldbinstance(dbi);
 	}
@@ -193,7 +189,7 @@ postgres_find_avail_conn(db_list_t *dblist)
 {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
-	int count = 0;
+	int	      count = 0;
 
 	/* get top of list */
 	head = dbi = ISC_LIST_HEAD(*dblist);
@@ -213,8 +209,8 @@ postgres_find_avail_conn(db_list_t *dblist)
 			dbi = head;
 		}
 	}
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_INFO,
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_INFO,
 		      "Postgres driver unable to find available connection "
 		      "after searching %d times",
 		      count);
@@ -230,9 +226,9 @@ postgres_find_avail_conn(db_list_t *dblist)
  */
 
 static char *
-postgres_escape_string(const char *instr) {
-
-	char *outstr;
+postgres_escape_string(const char *instr)
+{
+	char *	     outstr;
 	unsigned int len;
 
 	if (instr == NULL)
@@ -265,15 +261,14 @@ postgres_escape_string(const char *instr) {
  * it up properly.
  */
 static isc_result_t
-postgres_get_resultset(const char *zone, const char *record,
-		       const char *client, unsigned int query,
-		       void *dbdata, PGresult **rs)
+postgres_get_resultset(const char *zone, const char *record, const char *client,
+		       unsigned int query, void *dbdata, PGresult **rs)
 {
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *dbi = NULL;
-	char *querystring = NULL;
-	unsigned int i = 0;
-	unsigned int j = 0;
+	char *	      querystring = NULL;
+	unsigned int  i = 0;
+	unsigned int  j = 0;
 
 #if 0
 	/* temporarily get a unique thread # */
@@ -292,7 +287,7 @@ postgres_get_resultset(const char *zone, const char *record,
 	/* get db instance / connection */
 
 	/* find an available DBI from the list */
-	dbi = postgres_find_avail_conn((db_list_t *) dbdata);
+	dbi = postgres_find_avail_conn((db_list_t *)dbdata);
 
 #if 0
 	/* temporary logging message */
@@ -307,7 +302,7 @@ postgres_get_resultset(const char *zone, const char *record,
 	}
 
 	/* what type of query are we going to run? */
-	switch(query) {
+	switch (query) {
 	case ALLNODES:
 		/*
 		 * if the query was not passed in from the config file
@@ -385,7 +380,7 @@ postgres_get_resultset(const char *zone, const char *record,
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else {	/* no string passed, set the string pointer to NULL */
+	} else { /* no string passed, set the string pointer to NULL */
 		dbi->zone = NULL;
 	}
 
@@ -406,10 +401,9 @@ postgres_get_resultset(const char *zone, const char *record,
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else {	/* no string passed, set the string pointer to NULL */
+	} else { /* no string passed, set the string pointer to NULL */
 		dbi->record = NULL;
 	}
-
 
 #if 0
 	/* temporary logging message */
@@ -428,7 +422,7 @@ postgres_get_resultset(const char *zone, const char *record,
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else {	/* no string passed, set the string pointer to NULL */
+	} else { /* no string passed, set the string pointer to NULL */
 		dbi->client = NULL;
 	}
 
@@ -443,7 +437,7 @@ postgres_get_resultset(const char *zone, const char *record,
 	 * what type of query are we going to run?
 	 * this time we build the actual query to run.
 	 */
-	switch(query) {
+	switch (query) {
 	case ALLNODES:
 		querystring = build_querystring(named_g_mctx, dbi->allnodes_q);
 		break;
@@ -479,7 +473,7 @@ postgres_get_resultset(const char *zone, const char *record,
 #endif
 
 	/* if the querystring is null, Bummer, outta RAM.  UPGRADE TIME!!!   */
-	if (querystring  == NULL) {
+	if (querystring == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
 	}
@@ -495,12 +489,11 @@ postgres_get_resultset(const char *zone, const char *record,
 	 * output the full query string during debug so we can see
 	 * what lame error the query has.
 	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(1),
-		      "\nQuery String: %s\n", querystring);
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(1), "\nQuery String: %s\n", querystring);
 
 	/* attempt query up to 3 times. */
-	for (j=0; j < 3; j++) {
+	for (j = 0; j < 3; j++) {
 #if 0
 		/* temporary logging message */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -509,13 +502,13 @@ postgres_get_resultset(const char *zone, const char *record,
 			      dlz_thread_num, j);
 #endif
 		/* try to get result set */
-		*rs = PQexec((PGconn *)dbi->dbconn, querystring );
+		*rs = PQexec((PGconn *)dbi->dbconn, querystring);
 		result = ISC_R_SUCCESS;
 		/*
 		 * if result set is null, reset DB connection, max 3
 		 * attempts.
 		 */
-		for (i=0; *rs == NULL && i < 3; i++) {
+		for (i = 0; *rs == NULL && i < 3; i++) {
 #if 0
 			/* temporary logging message */
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -524,9 +517,9 @@ postgres_get_resultset(const char *zone, const char *record,
 				      dlz_thread_num);
 #endif
 			result = ISC_R_FAILURE;
-			PQreset((PGconn *) dbi->dbconn);
+			PQreset((PGconn *)dbi->dbconn);
 			/* connection ok, break inner loop */
-			if (PQstatus((PGconn *) dbi->dbconn) == CONNECTION_OK)
+			if (PQstatus((PGconn *)dbi->dbconn) == CONNECTION_OK)
 				break;
 		}
 		/* result set ok, break outter loop */
@@ -546,14 +539,14 @@ postgres_get_resultset(const char *zone, const char *record,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "%d clearing rs", dlz_thread_num);
 #endif
-			PQclear(*rs);	/* get rid of it */
+			PQclear(*rs); /* get rid of it */
 			/* in case this was the last attempt */
 			*rs = NULL;
 			result = ISC_R_FAILURE;
 		}
 	}
 
- cleanup:
+cleanup:
 	/* it's always good to cleanup after yourself */
 
 #if 0
@@ -586,8 +579,8 @@ postgres_get_resultset(const char *zone, const char *record,
 	isc_mutex_unlock(&dbi->instance_lock);
 
 	/* release query string */
-	if (querystring  != NULL)
-		isc_mem_free(named_g_mctx, querystring );
+	if (querystring != NULL)
+		isc_mem_free(named_g_mctx, querystring);
 
 #if 0
 	/* temporary logging message */
@@ -615,14 +608,14 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 	unsigned int fields;
 	unsigned int j;
 	unsigned int len;
-	char *tmpString;
-	char *endp;
-	int ttl;
+	char *	     tmpString;
+	char *	     endp;
+	int	     ttl;
 
 	rows = PQntuples(rs);	/* how many rows in result set */
-	fields = PQnfields(rs);	/* how many columns in result set */
-	for (i=0; i < rows; i++) {
-		switch(fields) {
+	fields = PQnfields(rs); /* how many columns in result set */
+	for (i = 0; i < rows; i++) {
+		switch (fields) {
 		case 1:
 			/*
 			 * one column in rs, it's the data field.  use
@@ -656,12 +649,12 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 						ttl, PQgetvalue(rs, i, 2));
 			break;
 		default:
-		  	/*
+			/*
 			 * more than 3 fields, concatenate the last
 			 * ones together.  figure out how long to make
 			 * string
 			 */
-			for (j=2, len=0; j < fields; j++) {
+			for (j = 2, len = 0; j < fields; j++) {
 				len += strlen(PQgetvalue(rs, i, j)) + 1;
 			}
 			/*
@@ -675,7 +668,7 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 			 * concat the rest of fields together, space
 			 * between each one.
 			 */
-			for (j=3; j < fields; j++) {
+			for (j = 3; j < fields; j++) {
 				strcat(tmpString, " ");
 				strcat(tmpString, PQgetvalue(rs, i, j));
 			}
@@ -727,10 +720,10 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 static isc_result_t
 postgres_findzone(void *driverarg, void *dbdata, const char *name,
 		  dns_clientinfomethods_t *methods,
-		  dns_clientinfo_t *clientinfo)
+		  dns_clientinfo_t *	   clientinfo)
 {
 	isc_result_t result;
-	PGresult *rs = NULL;
+	PGresult *   rs = NULL;
 	unsigned int rows;
 
 	UNUSED(driverarg);
@@ -738,8 +731,8 @@ postgres_findzone(void *driverarg, void *dbdata, const char *name,
 	UNUSED(clientinfo);
 
 	/* run the query and get the result set from the database. */
-	result = postgres_get_resultset(name, NULL, NULL,
-					FINDZONE, dbdata, &rs);
+	result =
+		postgres_get_resultset(name, NULL, NULL, FINDZONE, dbdata, &rs);
 	/* if we didn't get a result set, log an err msg. */
 	if (result != ISC_R_SUCCESS) {
 		if (rs != NULL)
@@ -769,7 +762,7 @@ postgres_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		      const char *client)
 {
 	isc_result_t result;
-	PGresult *rs = NULL;
+	PGresult *   rs = NULL;
 	unsigned int rows;
 	UNUSED(driverarg);
 
@@ -786,8 +779,8 @@ postgres_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 	 *
 	 * Run our query, and get a result set from the database.
 	 */
-	result = postgres_get_resultset(name, NULL, client,
-					ALLOWXFR, dbdata, &rs);
+	result = postgres_get_resultset(name, NULL, client, ALLOWXFR, dbdata,
+					&rs);
 	/* if we get "not implemented", send it along. */
 	if (result == ISC_R_NOTIMPLEMENTED)
 		return result;
@@ -824,21 +817,21 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 		  dns_sdlzallnodes_t *allnodes)
 {
 	isc_result_t result;
-	PGresult *rs = NULL;
+	PGresult *   rs = NULL;
 	unsigned int i;
 	unsigned int rows;
 	unsigned int fields;
 	unsigned int j;
 	unsigned int len;
-	char *tmpString;
-	char *endp;
-	int ttl;
+	char *	     tmpString;
+	char *	     endp;
+	int	     ttl;
 
 	UNUSED(driverarg);
 
 	/* run the query and get the result set from the database. */
-	result = postgres_get_resultset(zone, NULL, NULL,
-					ALLNODES, dbdata, &rs);
+	result =
+		postgres_get_resultset(zone, NULL, NULL, ALLNODES, dbdata, &rs);
 	/* if we get "not implemented", send it along */
 	if (result == ISC_R_NOTIMPLEMENTED)
 		return result;
@@ -854,9 +847,9 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 	}
 
 	rows = PQntuples(rs);	/* how many rows in result set */
-	fields = PQnfields(rs);	/* how many columns in result set */
-	for (i=0; i < rows; i++) {
-		if (fields < 4) {	/* gotta have at least 4 columns */
+	fields = PQnfields(rs); /* how many columns in result set */
+	for (i = 0; i < rows; i++) {
+		if (fields < 4) { /* gotta have at least 4 columns */
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "Postgres driver too few fields "
@@ -874,8 +867,7 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 			/* tell Bind about it. */
 			result = dns_sdlz_putnamedrr(allnodes,
 						     PQgetvalue(rs, i, 2),
-						     PQgetvalue(rs, i, 1),
-						     ttl,
+						     PQgetvalue(rs, i, 1), ttl,
 						     PQgetvalue(rs, i, 3));
 		} else {
 			/*
@@ -883,7 +875,7 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 			 * ones together.  figure out how long to make
 			 * string
 			 */
-			for (j=3, len=0; j < fields; j++) {
+			for (j = 3, len = 0; j < fields; j++) {
 				len += strlen(PQgetvalue(rs, i, j)) + 1;
 			}
 			/* allocate memory, allow for NULL to term string */
@@ -891,15 +883,14 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 			/* copy this field to tmpString */
 			strcpy(tmpString, PQgetvalue(rs, i, 3));
 			/* concatonate the rest, with spaces between */
-			for (j=4; j < fields; j++) {
+			for (j = 4; j < fields; j++) {
 				strcat(tmpString, " ");
 				strcat(tmpString, PQgetvalue(rs, i, j));
 			}
 			/* tell Bind about it. */
-			result = dns_sdlz_putnamedrr(allnodes,
-						     PQgetvalue(rs, i, 2),
-						     PQgetvalue(rs, i, 1),
-						     ttl, tmpString);
+			result = dns_sdlz_putnamedrr(
+				allnodes, PQgetvalue(rs, i, 2),
+				PQgetvalue(rs, i, 1), ttl, tmpString);
 			isc_mem_free(named_g_mctx, tmpString);
 		}
 		/* if we weren't successful, log err msg */
@@ -935,13 +926,13 @@ postgres_authority(const char *zone, void *driverarg, void *dbdata,
 		   dns_sdlzlookup_t *lookup)
 {
 	isc_result_t result;
-	PGresult *rs = NULL;
+	PGresult *   rs = NULL;
 
 	UNUSED(driverarg);
 
 	/* run the query and get the result set from the database. */
-	result = postgres_get_resultset(zone, NULL, NULL,
-					AUTHORITY, dbdata, &rs);
+	result = postgres_get_resultset(zone, NULL, NULL, AUTHORITY, dbdata,
+					&rs);
 	/* if we get "not implemented", send it along */
 	if (result == ISC_R_NOTIMPLEMENTED)
 		return result;
@@ -970,7 +961,7 @@ postgres_lookup(const char *zone, const char *name, void *driverarg,
 		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
-	PGresult *rs = NULL;
+	PGresult *   rs = NULL;
 
 	UNUSED(driverarg);
 	UNUSED(methods);
@@ -1005,26 +996,25 @@ static isc_result_t
 postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 		void *driverarg, void **dbdata)
 {
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *dbi = NULL;
-	unsigned int j;
+	unsigned int  j;
 
 	/* if multi-threaded, we need a few extra variables. */
-	int dbcount;
+	int	   dbcount;
 	db_list_t *dblist = NULL;
-	int i;
-	char *endp;
+	int	   i;
+	char *	   endp;
 
 	UNUSED(driverarg);
 	UNUSED(dlzname);
 
-/* seed random # generator */
-	srand( (unsigned)time( NULL ) );
-
+	/* seed random # generator */
+	srand((unsigned)time(NULL));
 
 	/* if debugging, let user know we are multithreaded. */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(1),
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(1),
 		      "Postgres driver running multithreaded");
 
 	/* verify we have at least 5 arg's passed to the driver */
@@ -1067,10 +1057,9 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 	 * create the appropriate number of database instances (DBI)
 	 * append each new DBI to the end of the list
 	 */
-	for (i=0; i < dbcount; i++) {
-
+	for (i = 0; i < dbcount; i++) {
 		/* how many queries were passed in from config file? */
-		switch(argc) {
+		switch (argc) {
 		case 5:
 			result = build_sqldbinstance(named_g_mctx, NULL, NULL,
 						     NULL, argv[3], argv[4],
@@ -1082,9 +1071,9 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 						     NULL, &dbi);
 			break;
 		case 7:
-			result = build_sqldbinstance(named_g_mctx, argv[6], NULL,
-						     argv[5], argv[3], argv[4],
-						     NULL, &dbi);
+			result = build_sqldbinstance(named_g_mctx, argv[6],
+						     NULL, argv[5], argv[3],
+						     argv[4], NULL, &dbi);
 			break;
 		case 8:
 			result = build_sqldbinstance(named_g_mctx, argv[6],
@@ -1095,7 +1084,6 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 			/* not really needed, should shut up compiler. */
 			result = ISC_R_FAILURE;
 		}
-
 
 		if (result == ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -1130,11 +1118,9 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 
 		/* if we cannot connect the first time, try 3 more times. */
 		for (j = 0;
-		     PQstatus((PGconn *) dbi->dbconn) != CONNECTION_OK &&
-			     j < 3;
+		     PQstatus((PGconn *)dbi->dbconn) != CONNECTION_OK && j < 3;
 		     j++)
-			PQreset((PGconn *) dbi->dbconn);
-
+			PQreset((PGconn *)dbi->dbconn);
 
 		/*
 		 * if multi threaded, let user know which connection
@@ -1142,7 +1128,7 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 		 * connections and for some reason the db backend only
 		 * allows 9
 		 */
-		if (PQstatus((PGconn *) dbi->dbconn) != CONNECTION_OK) {
+		if (PQstatus((PGconn *)dbi->dbconn) != CONNECTION_OK) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "Postgres driver failed to create "
@@ -1154,15 +1140,15 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 
 		/* set DBI = null for next loop through. */
 		dbi = NULL;
-	}	/* end for loop */
+	} /* end for loop */
 
-		/* set dbdata to the list we created. */
+	/* set dbdata to the list we created. */
 	*dbdata = dblist;
 
 	/* hey, we got through all of that ok, return success. */
-	return(ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 
 	/*
 	 * if multithreaded, we could fail because only 1 connection
@@ -1171,7 +1157,7 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 	 */
 	postgres_destroy_dblist(dblist);
 
-	return(ISC_R_FAILURE);
+	return (ISC_R_FAILURE);
 }
 
 /*%
@@ -1185,7 +1171,7 @@ postgres_destroy(void *driverarg, void *dbdata)
 {
 	UNUSED(driverarg);
 	/* cleanup the list of DBI's */
-	postgres_destroy_dblist((db_list_t *) dbdata);
+	postgres_destroy_dblist((db_list_t *)dbdata);
 }
 
 /* pointers to all our runtime methods. */
@@ -1212,15 +1198,15 @@ static dns_sdlzmethods_t dlz_postgres_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_postgres_init(void) {
+dlz_postgres_init(void)
+{
 	isc_result_t result;
 
 	/*
 	 * Write debugging message to log
 	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
-		      "Registering DLZ postgres driver.");
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(2), "Registering DLZ postgres driver.");
 
 	/*
 	 * Driver is always threadsafe.  When multithreaded all
@@ -1231,8 +1217,8 @@ dlz_postgres_init(void) {
 	 */
 	result = dns_sdlzregister("postgres", &dlz_postgres_methods, NULL,
 				  DNS_SDLZFLAG_RELATIVEOWNER |
-				  DNS_SDLZFLAG_RELATIVERDATA |
-				  DNS_SDLZFLAG_THREADSAFE,
+					  DNS_SDLZFLAG_RELATIVERDATA |
+					  DNS_SDLZFLAG_THREADSAFE,
 				  named_g_mctx, &dlz_postgres);
 	/* if we can't register the driver, there are big problems. */
 	if (result != ISC_R_SUCCESS) {
@@ -1242,7 +1228,6 @@ dlz_postgres_init(void) {
 		result = ISC_R_UNEXPECTED;
 	}
 
-
 	return result;
 }
 
@@ -1250,14 +1235,13 @@ dlz_postgres_init(void) {
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_postgres_clear(void) {
-
+dlz_postgres_clear(void)
+{
 	/*
 	 * Write debugging message to log
 	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
-		      "Unregistering DLZ postgres driver.");
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(2), "Unregistering DLZ postgres driver.");
 
 	/* unregister the driver. */
 	if (dlz_postgres != NULL)

@@ -38,7 +38,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 /*
  * pkcs11-destroy [-m module] [-s $slot] [-i $id | -l $label]
  *                 [-p $pin] [ -w $wait ]
@@ -46,12 +45,11 @@
 
 /*! \file */
 
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include <isc/commandline.h>
 #include <isc/print.h>
@@ -60,31 +58,32 @@
 
 #include <pk11/pk11.h>
 #include <pk11/result.h>
+#include <sys/types.h>
 
 #ifdef WIN32
-#define sleep(x)	Sleep(x)
+#define sleep(x) Sleep(x)
 #endif
 
 int
-main(int argc, char *argv[]) {
-	isc_result_t result;
-	CK_RV rv;
-	CK_SLOT_ID slot = 0;
+main(int argc, char *argv[])
+{
+	isc_result_t	  result;
+	CK_RV		  rv;
+	CK_SLOT_ID	  slot = 0;
 	CK_SESSION_HANDLE hSession;
-	CK_BYTE attr_id[2];
-	CK_OBJECT_HANDLE akey[50];
-	pk11_context_t pctx;
-	char *lib_name = NULL;
-	char *label = NULL;
-	char *pin = NULL;
-	int error = 0;
-	unsigned int id = 0, i = 0, wait = 5;
-	int c, errflg = 0;
-	CK_ULONG ulObjectCount;
-	CK_ATTRIBUTE search_template[] = {
-		{CKA_ID, &attr_id, sizeof(attr_id)}
-	};
-	unsigned int j, len;
+	CK_BYTE		  attr_id[2];
+	CK_OBJECT_HANDLE  akey[50];
+	pk11_context_t	  pctx;
+	char *		  lib_name = NULL;
+	char *		  label = NULL;
+	char *		  pin = NULL;
+	int		  error = 0;
+	unsigned int	  id = 0, i = 0, wait = 5;
+	int		  c, errflg = 0;
+	CK_ULONG	  ulObjectCount;
+	CK_ATTRIBUTE	  search_template[] = { { CKA_ID, &attr_id,
+						  sizeof(attr_id) } };
+	unsigned int	  j, len;
 
 	while ((c = isc_commandline_parse(argc, argv, ":m:s:i:l:p:w:")) != -1) {
 		switch (c) {
@@ -108,8 +107,7 @@ main(int argc, char *argv[]) {
 			wait = atoi(isc_commandline_argument);
 			break;
 		case ':':
-			fprintf(stderr,
-				"Option -%c requires an operand\n",
+			fprintf(stderr, "Option -%c requires an operand\n",
 				isc_commandline_option);
 			errflg++;
 			break;
@@ -147,17 +145,18 @@ main(int argc, char *argv[]) {
 		pin = getpass("Enter Pin: ");
 	}
 
-	result = pk11_get_session(&pctx, OP_ANY, false, true,
-				  true, (const char *) pin, slot);
+	result = pk11_get_session(&pctx, OP_ANY, false, true, true,
+				  (const char *)pin, slot);
 	if (result == PK11_R_NORANDOMSERVICE ||
-	    result == PK11_R_NODIGESTSERVICE ||
-	    result == PK11_R_NOAESSERVICE) {
+	    result == PK11_R_NODIGESTSERVICE || result == PK11_R_NOAESSERVICE) {
 		fprintf(stderr, "Warning: %s\n", isc_result_totext(result));
 		fprintf(stderr, "This HSM will not work with BIND 9 "
 				"using native PKCS#11.\n");
 	} else if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "Unrecoverable error initializing "
-				"PKCS#11: %s\n", isc_result_totext(result));
+		fprintf(stderr,
+			"Unrecoverable error initializing "
+			"PKCS#11: %s\n",
+			isc_result_totext(result));
 		exit(1);
 	}
 
@@ -166,14 +165,14 @@ main(int argc, char *argv[]) {
 	hSession = pctx.session;
 
 	rv = pkcs_C_FindObjectsInit(hSession, search_template,
-				    ((id != 0) || (label != NULL)) ? 1 : 0); 
+				    ((id != 0) || (label != NULL)) ? 1 : 0);
 
 	if (rv != CKR_OK) {
 		fprintf(stderr, "C_FindObjectsInit: Error = 0x%.8lX\n", rv);
 		error = 1;
 		goto exit_session;
 	}
-	
+
 	rv = pkcs_C_FindObjects(hSession, akey, 50, &ulObjectCount);
 	if (rv != CKR_OK) {
 		fprintf(stderr, "C_FindObjects: Error = 0x%.8lX\n", rv);
@@ -189,29 +188,29 @@ main(int argc, char *argv[]) {
 
 	for (i = 0; i < ulObjectCount; i++) {
 		CK_OBJECT_CLASS oclass = 0;
-		CK_BYTE labelbuf[64 + 1];
-		CK_BYTE idbuf[64];
-		CK_ATTRIBUTE attr_template[] = {
-			{CKA_CLASS, &oclass, sizeof(oclass)},
-			{CKA_LABEL, labelbuf, sizeof(labelbuf) - 1},
-			{CKA_ID, idbuf, sizeof(idbuf)}
+		CK_BYTE		labelbuf[64 + 1];
+		CK_BYTE		idbuf[64];
+		CK_ATTRIBUTE	attr_template[] = {
+			   { CKA_CLASS, &oclass, sizeof(oclass) },
+			   { CKA_LABEL, labelbuf, sizeof(labelbuf) - 1 },
+			   { CKA_ID, idbuf, sizeof(idbuf) }
 		};
 
 		memset(labelbuf, 0, sizeof(labelbuf));
 		memset(idbuf, 0, sizeof(idbuf));
 
-		rv = pkcs_C_GetAttributeValue(hSession, akey[i],
-					      attr_template, 3);
+		rv = pkcs_C_GetAttributeValue(hSession, akey[i], attr_template,
+					      3);
 		if (rv != CKR_OK) {
 			fprintf(stderr,
-				"C_GetAttributeValue[%u]: rv = 0x%.8lX\n",
-				i, rv);
+				"C_GetAttributeValue[%u]: rv = 0x%.8lX\n", i,
+				rv);
 			error = 1;
 			goto exit_search;
 		}
 		len = attr_template[2].ulValueLen;
-		printf("  object[%u]: class %lu, label '%s', id[%lu] ",
-		       i, oclass, labelbuf, attr_template[2].ulValueLen);
+		printf("  object[%u]: class %lu, label '%s', id[%lu] ", i,
+		       oclass, labelbuf, attr_template[2].ulValueLen);
 		if (len > 4)
 			len = 4;
 		if (len > 0)
@@ -226,7 +225,8 @@ main(int argc, char *argv[]) {
 
 	if (wait != 0) {
 		printf("WARNING: This action is irreversible! "
-		       "Destroying key objects in %u seconds\n  ", wait);
+		       "Destroying key objects in %u seconds\n  ",
+		       wait);
 		for (i = 0; i < wait; i++) {
 			printf(".");
 			fflush(stdout);
@@ -239,8 +239,8 @@ main(int argc, char *argv[]) {
 		rv = pkcs_C_DestroyObject(hSession, akey[i]);
 		if (rv != CKR_OK) {
 			fprintf(stderr,
-				"C_DestroyObject[%u] failed: rv = 0x%.8lX\n",
-				i, rv);
+				"C_DestroyObject[%u] failed: rv = 0x%.8lX\n", i,
+				rv);
 			error = 1;
 		}
 	}
@@ -248,16 +248,16 @@ main(int argc, char *argv[]) {
 	if (error == 0)
 		printf("Destruction complete.\n");
 
- exit_search:
+exit_search:
 	rv = pkcs_C_FindObjectsFinal(hSession);
 	if (rv != CKR_OK) {
 		fprintf(stderr, "C_FindObjectsFinal: Error = 0x%.8lX\n", rv);
 		error = 1;
 	}
 
- exit_session:
+exit_session:
 	pk11_return_session(&pctx);
-	(void) pk11_finalize();
+	(void)pk11_finalize();
 
 	exit(error);
 }

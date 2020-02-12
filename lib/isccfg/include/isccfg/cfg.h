@@ -31,9 +31,9 @@
 
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
+#include <isc/list.h>
 #include <isc/refcount.h>
 #include <isc/types.h>
-#include <isc/list.h>
 
 /***
  *** Types
@@ -70,8 +70,8 @@ typedef struct cfg_listelt cfg_listelt_t;
  * that needs to be interpreted at parsing time, like
  * "directory".
  */
-typedef isc_result_t
-(*cfg_parsecallback_t)(const char *clausename, const cfg_obj_t *obj, void *arg);
+typedef isc_result_t (*cfg_parsecallback_t)(const char *     clausename,
+					    const cfg_obj_t *obj, void *arg);
 
 /***
  *** Functions
@@ -108,8 +108,7 @@ cfg_parser_setflags(cfg_parser_t *pctx, unsigned int flags, bool turn_on);
  */
 
 void
-cfg_parser_setcallback(cfg_parser_t *pctx,
-		       cfg_parsecallback_t callback,
+cfg_parser_setcallback(cfg_parser_t *pctx, cfg_parsecallback_t callback,
 		       void *arg);
 /*%<
  * Make the parser call 'callback' whenever it encounters
@@ -122,14 +121,13 @@ cfg_parser_setcallback(cfg_parser_t *pctx,
  */
 
 isc_result_t
-cfg_parse_file(cfg_parser_t *pctx, const char *file,
-	       const cfg_type_t *type, cfg_obj_t **ret);
+cfg_parse_file(cfg_parser_t *pctx, const char *file, const cfg_type_t *type,
+	       cfg_obj_t **ret);
 
 isc_result_t
-cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
-		  const char *file, unsigned int line,
-		  const cfg_type_t *type, unsigned int flags,
-		  cfg_obj_t **ret);
+cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer, const char *file,
+		 unsigned int line, const cfg_type_t *type, unsigned int flags,
+		 cfg_obj_t **ret);
 /*%<
  * Read a configuration containing data of type 'type'
  * and make '*ret' point to its parse tree.
@@ -162,8 +160,8 @@ cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
  */
 
 isc_result_t
-cfg_parser_mapadd(cfg_parser_t *pctx, cfg_obj_t *mapobj,
-		  cfg_obj_t *obj, const char *clause);
+cfg_parser_mapadd(cfg_parser_t *pctx, cfg_obj_t *mapobj, cfg_obj_t *obj,
+		  const char *clause);
 /*%<
  * Add the object 'obj' to the specified clause in mapbody 'mapobj'.
  * Used for adding new zones.
@@ -214,7 +212,7 @@ cfg_obj_ispercentage(const cfg_obj_t *obj);
  */
 
 isc_result_t
-cfg_map_get(const cfg_obj_t *mapobj, const char* name, const cfg_obj_t **obj);
+cfg_map_get(const cfg_obj_t *mapobj, const char *name, const cfg_obj_t **obj);
 /*%<
  * Extract an element from a configuration object, which
  * must be of a map type.
@@ -399,7 +397,8 @@ cfg_obj_assockaddr(const cfg_obj_t *obj);
  * Returns the value of a configuration object representing a socket address.
  *
  * Requires:
- * \li     'obj' points to a valid configuration object of a socket address type.
+ * \li     'obj' points to a valid configuration object of a socket address
+ * type.
  *
  * Returns:
  * \li     A pointer to a sockaddr.  The sockaddr must be copied by the caller
@@ -502,12 +501,13 @@ cfg_printx(const cfg_obj_t *obj, unsigned int flags,
 	   void (*f)(void *closure, const char *text, int textlen),
 	   void *closure);
 
-#define CFG_PRINTER_XKEY        0x1     /* '?' out shared keys. */
-#define CFG_PRINTER_ONELINE     0x2     /* print config as a single line */
-#define CFG_PRINTER_ACTIVEONLY	0x4	/* print only active configuration
-					   options, omitting ancient,
-					   obsolete, nonimplemented,
-					   and test-only options. */
+#define CFG_PRINTER_XKEY 0x1	/* '?' out shared keys. */
+#define CFG_PRINTER_ONELINE 0x2 /* print config as a single line */
+#define CFG_PRINTER_ACTIVEONLY                 \
+	0x4 /* print only active configuration \
+	       options, omitting ancient,      \
+	       obsolete, nonimplemented,       \
+	       and test-only options. */
 
 /*%<
  * Print the configuration object 'obj' by repeatedly calling the
@@ -520,8 +520,8 @@ cfg_printx(const cfg_obj_t *obj, unsigned int flags,
 
 void
 cfg_print_grammar(const cfg_type_t *type, unsigned int flags,
-	  void (*f)(void *closure, const char *text, int textlen),
-	  void *closure);
+		  void (*f)(void *closure, const char *text, int textlen),
+		  void *closure);
 /*%<
  * Print a summary of the grammar of the configuration type 'type'.
  */
@@ -550,9 +550,8 @@ cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **obj);
  */
 
 void
-cfg_obj_log(const cfg_obj_t *obj, isc_log_t *lctx, int level,
-	    const char *fmt, ...)
-	ISC_FORMAT_PRINTF(4, 5);
+cfg_obj_log(const cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt,
+	    ...) ISC_FORMAT_PRINTF(4, 5);
 /*%<
  * Log a message concerning configuration object 'obj' to the logging
  * channel of 'pctx', at log level 'level'.  The message will be prefixed
@@ -578,10 +577,11 @@ const char *
 cfg_map_nextclause(const cfg_type_t *map, const void **clauses,
 		   unsigned int *idx);
 
-typedef isc_result_t
-(pluginlist_cb_t)(const cfg_obj_t *config, const cfg_obj_t *obj,
-		  const char *plugin_path, const char *parameters,
-		  void *callback_data);
+typedef isc_result_t(pluginlist_cb_t)(const cfg_obj_t *config,
+				      const cfg_obj_t *obj,
+				      const char *     plugin_path,
+				      const char *     parameters,
+				      void *	       callback_data);
 /*%<
  * Function prototype for the callback used with cfg_pluginlist_foreach().
  * Called once for each element of the list passed to cfg_pluginlist_foreach().

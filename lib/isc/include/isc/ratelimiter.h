@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_RATELIMITER_H
 #define ISC_RATELIMITER_H 1
 

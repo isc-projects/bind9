@@ -14,9 +14,8 @@
 
 #define RRTYPE_OPENPGPKEY_ATTRIBUTES 0
 
-static inline isc_result_t
-fromtext_openpgpkey(ARGS_FROMTEXT) {
-
+static inline isc_result_t fromtext_openpgpkey(ARGS_FROMTEXT)
+{
 	REQUIRE(type == dns_rdatatype_openpgpkey);
 
 	UNUSED(type);
@@ -31,8 +30,8 @@ fromtext_openpgpkey(ARGS_FROMTEXT) {
 	return (isc_base64_tobuffer(lexer, target, -2));
 }
 
-static inline isc_result_t
-totext_openpgpkey(ARGS_TOTEXT) {
+static inline isc_result_t totext_openpgpkey(ARGS_TOTEXT)
+{
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_openpgpkey);
@@ -47,7 +46,7 @@ totext_openpgpkey(ARGS_TOTEXT) {
 		RETERR(str_totext("( ", target));
 
 	if ((tctx->flags & DNS_STYLEFLAG_NOCRYPTO) == 0) {
-		if (tctx->width == 0)   /* No splitting */
+		if (tctx->width == 0) /* No splitting */
 			RETERR(isc_base64_totext(&sr, 60, "", target));
 		else
 			RETERR(isc_base64_totext(&sr, tctx->width - 2,
@@ -61,8 +60,8 @@ totext_openpgpkey(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-fromwire_openpgpkey(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_openpgpkey(ARGS_FROMWIRE)
+{
 	isc_region_t sr;
 
 	REQUIRE(type == dns_rdatatype_openpgpkey);
@@ -82,8 +81,8 @@ fromwire_openpgpkey(ARGS_FROMWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline isc_result_t
-towire_openpgpkey(ARGS_TOWIRE) {
+static inline isc_result_t towire_openpgpkey(ARGS_TOWIRE)
+{
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_openpgpkey);
@@ -95,8 +94,8 @@ towire_openpgpkey(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int
-compare_openpgpkey(ARGS_COMPARE) {
+static inline int compare_openpgpkey(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -111,8 +110,8 @@ compare_openpgpkey(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
-fromstruct_openpgpkey(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_openpgpkey(ARGS_FROMSTRUCT)
+{
 	dns_rdata_openpgpkey_t *sig = source;
 
 	REQUIRE(type == dns_rdatatype_openpgpkey);
@@ -130,9 +129,9 @@ fromstruct_openpgpkey(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, sig->keyring, sig->length));
 }
 
-static inline isc_result_t
-tostruct_openpgpkey(ARGS_TOSTRUCT) {
-	isc_region_t sr;
+static inline isc_result_t tostruct_openpgpkey(ARGS_TOSTRUCT)
+{
+	isc_region_t		sr;
 	dns_rdata_openpgpkey_t *sig = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_openpgpkey);
@@ -156,13 +155,13 @@ tostruct_openpgpkey(ARGS_TOSTRUCT) {
 	sig->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void
-freestruct_openpgpkey(ARGS_FREESTRUCT) {
-	dns_rdata_openpgpkey_t *sig = (dns_rdata_openpgpkey_t *) source;
+static inline void freestruct_openpgpkey(ARGS_FREESTRUCT)
+{
+	dns_rdata_openpgpkey_t *sig = (dns_rdata_openpgpkey_t *)source;
 
 	REQUIRE(sig != NULL);
 	REQUIRE(sig->common.rdtype == dns_rdatatype_openpgpkey);
@@ -175,8 +174,8 @@ freestruct_openpgpkey(ARGS_FREESTRUCT) {
 	sig->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_openpgpkey(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_openpgpkey(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_openpgpkey);
 
 	UNUSED(rdata);
@@ -186,8 +185,8 @@ additionaldata_openpgpkey(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_openpgpkey(ARGS_DIGEST) {
+static inline isc_result_t digest_openpgpkey(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_openpgpkey);
@@ -197,9 +196,8 @@ digest_openpgpkey(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_openpgpkey(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_openpgpkey(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_openpgpkey);
 
 	UNUSED(name);
@@ -210,9 +208,8 @@ checkowner_openpgpkey(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_openpgpkey(ARGS_CHECKNAMES) {
-
+static inline bool checknames_openpgpkey(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_openpgpkey);
 
 	UNUSED(rdata);
@@ -222,8 +219,8 @@ checknames_openpgpkey(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_openpgpkey(ARGS_COMPARE) {
+static inline int casecompare_openpgpkey(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -239,4 +236,4 @@ casecompare_openpgpkey(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-#endif	/* RDATA_GENERIC_OPENPGPKEY_61_C */
+#endif /* RDATA_GENERIC_OPENPGPKEY_61_C */

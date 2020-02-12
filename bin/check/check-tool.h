@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef CHECK_TOOL_H
 #define CHECK_TOOL_H
 
@@ -42,16 +41,18 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 	  const uint32_t rawversion);
 
 #ifdef _WIN32
-void InitSockets(void);
-void DestroySockets(void);
+void
+InitSockets(void);
+void
+DestroySockets(void);
 #endif
 
-extern int debug;
-extern const char *journal;
-extern bool nomerge;
-extern bool docheckmx;
-extern bool docheckns;
-extern bool dochecksrv;
+extern int	     debug;
+extern const char *  journal;
+extern bool	     nomerge;
+extern bool	     docheckmx;
+extern bool	     docheckns;
+extern bool	     dochecksrv;
 extern dns_zoneopt_t zone_options;
 
 ISC_LANG_ENDDECLS

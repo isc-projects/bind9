@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file isc/portset.h
  * \brief Transport Protocol Port Manipulation Module
  *
@@ -134,4 +133,4 @@ isc_portset_removerange(isc_portset_t *portset, in_port_t port_lo,
 
 ISC_LANG_ENDDECLS
 
-#endif	/* ISC_PORTSET_H */
+#endif /* ISC_PORTSET_H */

@@ -17,13 +17,12 @@
  * The statistics channels built-in the name server.
  */
 
-#include <isccc/types.h>
-
 #include <isccfg/aclconf.h>
 
+#include <isccc/types.h>
 #include <named/types.h>
 
-#define NAMED_STATSCHANNEL_HTTPPORT		80
+#define NAMED_STATSCHANNEL_HTTPPORT 80
 
 isc_result_t
 named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
@@ -38,7 +37,6 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
  * and create a new one.
  */
 
-
 void
 named_statschannels_shutdown(named_server_t *server);
 /*%<
@@ -51,4 +49,4 @@ named_stats_dump(named_server_t *server, FILE *fp);
  * Dump statistics counters managed by the server to the file fp.
  */
 
-#endif	/* NAMED_STATSCHANNEL_H */
+#endif /* NAMED_STATSCHANNEL_H */

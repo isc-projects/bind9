@@ -13,10 +13,9 @@
 
 #if HAVE_CMOCKA
 
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,21 +23,22 @@
 #include <cmocka.h>
 
 #include <isc/crc64.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/util.h>
-#include <isc/print.h>
 
-#define TEST_INPUT(x) (x), sizeof(x)-1
+#define TEST_INPUT(x) (x), sizeof(x) - 1
 
 typedef struct hash_testcase {
 	const char *input;
-	size_t input_len;
+	size_t	    input_len;
 	const char *result;
-	int repeats;
+	int	    repeats;
 } hash_testcase_t;
 
 static void
-isc_crc64_init_test(void **state) {
+isc_crc64_init_test(void **state)
+{
 	uint64_t crc;
 
 	UNUSED(state);
@@ -48,8 +48,7 @@ isc_crc64_init_test(void **state) {
 }
 
 static void
-_crc64(const char *buf, size_t buflen,
-       const char *result, const int repeats)
+_crc64(const char *buf, size_t buflen, const char *result, const int repeats)
 {
 	uint64_t crc;
 
@@ -65,20 +64,20 @@ _crc64(const char *buf, size_t buflen,
 	char hex[16 + 1];
 	snprintf(hex, sizeof(hex), "%016" PRIX64, crc);
 
-	assert_memory_equal(hex, result, (result?strlen(result):0));
+	assert_memory_equal(hex, result, (result ? strlen(result) : 0));
 }
 
 /* 64-bit cyclic redundancy check */
 static void
-isc_crc64_test(void **state) {
+isc_crc64_test(void **state)
+{
 	UNUSED(state);
 
 	_crc64(TEST_INPUT(""), "0000000000000000", 1);
 	_crc64(TEST_INPUT("a"), "CE73F427ACC0A99A", 1);
 	_crc64(TEST_INPUT("abc"), "048B813AF9F49702", 1);
 	_crc64(TEST_INPUT("message digest"), "5273F9EA7A357BF4", 1);
-	_crc64(TEST_INPUT("abcdefghijklmnopqrstuvwxyz"),
-	       "59F079F9218BAAA1", 1);
+	_crc64(TEST_INPUT("abcdefghijklmnopqrstuvwxyz"), "59F079F9218BAAA1", 1);
 	_crc64(TEST_INPUT("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm"
 			  "nopqrstuvwxyz0123456789"),
 	       "A36DA8F71E78B6FB", 1);
@@ -88,7 +87,8 @@ isc_crc64_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_crc64_init_test),
 		cmocka_unit_test(isc_crc64_test),
@@ -102,7 +102,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

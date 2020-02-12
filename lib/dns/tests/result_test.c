@@ -11,10 +11,9 @@
 
 #if HAVE_CMOCKA
 
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -26,14 +25,16 @@
 
 #include <dns/lib.h>
 #include <dns/result.h>
+
 #include <dst/result.h>
 
 /*
  * Check ids array is populated.
  */
 static void
-ids(void **state) {
-	const char *str;
+ids(void **state)
+{
+	const char * str;
 	isc_result_t result;
 
 	UNUSED(state);
@@ -42,18 +43,16 @@ ids(void **state) {
 	dst_result_register();
 
 	for (result = ISC_RESULTCLASS_DNS;
-	     result < (ISC_RESULTCLASS_DNS + DNS_R_NRESULTS);
-	     result++)
-	{
+	     result < (ISC_RESULTCLASS_DNS + DNS_R_NRESULTS); result++) {
 		str = isc_result_toid(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 
 		str = isc_result_totext(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 	}
 
 	str = isc_result_toid(result);
@@ -65,18 +64,16 @@ ids(void **state) {
 	assert_string_equal(str, "(result code text not available)");
 
 	for (result = ISC_RESULTCLASS_DST;
-	     result < (ISC_RESULTCLASS_DST + DST_R_NRESULTS);
-	     result++)
-	{
+	     result < (ISC_RESULTCLASS_DST + DST_R_NRESULTS); result++) {
 		str = isc_result_toid(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 
 		str = isc_result_totext(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 	}
 
 	str = isc_result_toid(result);
@@ -89,17 +86,16 @@ ids(void **state) {
 
 	for (result = ISC_RESULTCLASS_DNSRCODE;
 	     result < (ISC_RESULTCLASS_DNSRCODE + DNS_R_NRCODERESULTS);
-	     result++)
-	{
+	     result++) {
 		str = isc_result_toid(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 
 		str = isc_result_totext(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 	}
 
 	str = isc_result_toid(result);
@@ -112,7 +108,8 @@ ids(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(ids),
 	};
@@ -125,7 +122,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

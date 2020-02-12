@@ -35,7 +35,8 @@
  */
 
 /*
- * Copyright (C) 1999-2001, 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2001, 2013, 2016  Internet Systems Consortium, Inc.
+ * ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -46,37 +47,39 @@
  * This provides the externally loadable wildcard DLZ module.
  */
 
+#include <ctype.h>
 #include <inttypes.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include <dlz_minimal.h>
-#include <dlz_list.h>
 #include <dlz_dbi.h>
+#include <dlz_list.h>
+#include <dlz_minimal.h>
 
-#include <ctype.h>
-
-#define DE_CONST(konst, var) \
-	do { \
-		union { const void *k; void *v; } _u; \
-		_u.k = konst; \
-		var = _u.v; \
+#define DE_CONST(konst, var)           \
+	do {                           \
+		union {                \
+			const void *k; \
+			void *	    v; \
+		} _u;                  \
+		_u.k = konst;          \
+		var = _u.v;            \
 	} while (0)
 
 /* fnmatch() return values. */
-#define	FNM_NOMATCH	1	/* Match failed. */
+#define FNM_NOMATCH 1 /* Match failed. */
 
 /* fnmatch() flags. */
-#define	FNM_NOESCAPE	0x01	/* Disable backslash escaping. */
-#define	FNM_PATHNAME	0x02	/* Slash must be matched by slash. */
-#define	FNM_PERIOD	0x04	/* Period must be matched by period. */
-#define	FNM_LEADING_DIR	0x08	/* Ignore /<tail> after Imatch. */
-#define	FNM_CASEFOLD	0x10	/* Case insensitive search. */
-#define	FNM_IGNORECASE	FNM_CASEFOLD
-#define	FNM_FILE_NAME	FNM_PATHNAME
+#define FNM_NOESCAPE 0x01    /* Disable backslash escaping. */
+#define FNM_PATHNAME 0x02    /* Slash must be matched by slash. */
+#define FNM_PERIOD 0x04	     /* Period must be matched by period. */
+#define FNM_LEADING_DIR 0x08 /* Ignore /<tail> after Imatch. */
+#define FNM_CASEFOLD 0x10    /* Case insensitive search. */
+#define FNM_IGNORECASE FNM_CASEFOLD
+#define FNM_FILE_NAME FNM_PATHNAME
 
 /*
  * Our data structures.
@@ -86,26 +89,26 @@ typedef struct named_rr nrr_t;
 typedef DLZ_LIST(nrr_t) rr_list_t;
 
 typedef struct config_data {
-	char		*zone_pattern;
-	char		*axfr_pattern;
-	rr_list_t	rrs_list;
-	char		*zone;
-	char		*record;
-	char		*client;
+	char *	  zone_pattern;
+	char *	  axfr_pattern;
+	rr_list_t rrs_list;
+	char *	  zone;
+	char *	  record;
+	char *	  client;
 
 	/* Helper functions from the dlz_dlopen driver */
-	log_t *log;
-	dns_sdlz_putrr_t *putrr;
-	dns_sdlz_putnamedrr_t *putnamedrr;
+	log_t *			 log;
+	dns_sdlz_putrr_t *	 putrr;
+	dns_sdlz_putnamedrr_t *	 putnamedrr;
 	dns_dlz_writeablezone_t *writeable_zone;
 } config_data_t;
 
 struct named_rr {
-	char		*name;
-	char		*type;
-	int		ttl;
-	query_list_t	*data;
-	DLZ_LINK(nrr_t)	link;
+	char *	      name;
+	char *	      type;
+	int	      ttl;
+	query_list_t *data;
+	DLZ_LINK(nrr_t) link;
 };
 
 /*
@@ -124,18 +127,19 @@ static const char *
 shortest_match(const char *pattern, const char *string);
 
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
-	config_data_t *cd = (config_data_t *) dbdata;
-	isc_result_t result;
-	char *querystring = NULL;
-	nrr_t *nrec;
-	int i = 0;
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
+{
+	config_data_t *cd = (config_data_t *)dbdata;
+	isc_result_t   result;
+	char *	       querystring = NULL;
+	nrr_t *	       nrec;
+	int	       i = 0;
 
 	DE_CONST(zone, cd->zone);
 
 	/* Write info message to log */
-	cd->log(ISC_LOG_DEBUG(1),
-		"dlz_wildcard allnodes called for zone '%s'", zone);
+	cd->log(ISC_LOG_DEBUG(1), "dlz_wildcard allnodes called for zone '%s'",
+		zone);
 
 	result = ISC_R_FAILURE;
 
@@ -173,8 +177,9 @@ done:
 }
 
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
-	config_data_t *cd = (config_data_t *) dbdata;
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
+{
+	config_data_t *cd = (config_data_t *)dbdata;
 
 	UNUSED(name);
 
@@ -193,13 +198,12 @@ isc_result_t
 dlz_findzonedb(void *dbdata, const char *name)
 #else
 isc_result_t
-dlz_findzonedb(void *dbdata, const char *name,
-	       dns_clientinfomethods_t *methods,
+dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo)
 #endif
 {
-	config_data_t *cd = (config_data_t *) dbdata;
-	const char *p;
+	config_data_t *cd = (config_data_t *)dbdata;
+	const char *   p;
 
 #if DLZ_DLOPEN_VERSION >= 3
 	UNUSED(methods);
@@ -211,31 +215,29 @@ dlz_findzonedb(void *dbdata, const char *name,
 		return (ISC_R_NOTFOUND);
 
 	/* Write info message to log */
-	cd->log(ISC_LOG_DEBUG(1),
-		"dlz_wildcard findzonedb matched '%s'", p);
+	cd->log(ISC_LOG_DEBUG(1), "dlz_wildcard findzonedb matched '%s'", p);
 
 	return (ISC_R_SUCCESS);
 }
 
 #if DLZ_DLOPEN_VERSION == 1
 isc_result_t
-dlz_lookup(const char *zone, const char *name,
-	   void *dbdata, dns_sdlzlookup_t *lookup)
+dlz_lookup(const char *zone, const char *name, void *dbdata,
+	   dns_sdlzlookup_t *lookup)
 #else
 isc_result_t
-dlz_lookup(const char *zone, const char *name,
-	   void *dbdata, dns_sdlzlookup_t *lookup,
-	   dns_clientinfomethods_t *methods,
+dlz_lookup(const char *zone, const char *name, void *dbdata,
+	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
 	   dns_clientinfo_t *clientinfo)
 #endif
 {
-	isc_result_t result;
-	config_data_t *cd = (config_data_t *) dbdata;
-	char *querystring = NULL;
-	const char *p;
-	char *namebuf;
-	nrr_t *nrec;
-	bool origin = true;
+	isc_result_t   result;
+	config_data_t *cd = (config_data_t *)dbdata;
+	char *	       querystring = NULL;
+	const char *   p;
+	char *	       namebuf;
+	nrr_t *	       nrec;
+	bool	       origin = true;
 
 #if DLZ_DLOPEN_VERSION >= 2
 	UNUSED(methods);
@@ -249,8 +251,8 @@ dlz_lookup(const char *zone, const char *name,
 	DE_CONST(name, cd->record);
 	DE_CONST(p, cd->zone);
 
-	if ((p != zone) && (strcmp(name, "@") == 0 || strcmp(name, zone) == 0))
-	{
+	if ((p != zone) &&
+	    (strcmp(name, "@") == 0 || strcmp(name, zone) == 0)) {
 		size_t len = p - zone;
 		namebuf = malloc(len);
 		if (namebuf == NULL)
@@ -275,8 +277,7 @@ dlz_lookup(const char *zone, const char *name,
 		if (strcmp(cd->record, nrec->name) == 0) {
 			/* We handle authority data in dlz_authority() */
 			if (strcmp(nrec->type, "SOA") == 0 ||
-			    strcmp(nrec->type, "NS") == 0)
-			{
+			    strcmp(nrec->type, "NS") == 0) {
 				nrec = next;
 				continue;
 			}
@@ -287,8 +288,8 @@ dlz_lookup(const char *zone, const char *name,
 				goto done;
 			}
 
-			result = cd->putrr(lookup, nrec->type,
-					   nrec->ttl, querystring);
+			result = cd->putrr(lookup, nrec->type, nrec->ttl,
+					   querystring);
 			if (result != ISC_R_SUCCESS)
 				goto done;
 
@@ -311,12 +312,13 @@ done:
 }
 
 isc_result_t
-dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
-	isc_result_t result;
-	config_data_t *cd = (config_data_t *) dbdata;
-	char *querystring = NULL;
-	nrr_t *nrec;
-	const char *p, *name = "@";
+dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
+{
+	isc_result_t   result;
+	config_data_t *cd = (config_data_t *)dbdata;
+	char *	       querystring = NULL;
+	nrr_t *	       nrec;
+	const char *   p, *name = "@";
 
 	p = shortest_match(cd->zone_pattern, zone);
 	if (p == NULL)
@@ -325,8 +327,8 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 	DE_CONST(p, cd->zone);
 
 	/* Write info message to log */
-	cd->log(ISC_LOG_DEBUG(1),
-		"dlz_wildcard_dynamic: authority for '%s'", zone);
+	cd->log(ISC_LOG_DEBUG(1), "dlz_wildcard_dynamic: authority for '%s'",
+		zone);
 
 	result = ISC_R_NOTFOUND;
 	nrec = DLZ_LIST_HEAD(cd->rrs_list);
@@ -341,8 +343,8 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 				goto done;
 			}
 
-			presult = cd->putrr(lookup, nrec->type,
-					   nrec->ttl, querystring);
+			presult = cd->putrr(lookup, nrec->type, nrec->ttl,
+					    querystring);
 			if (presult != ISC_R_SUCCESS) {
 				result = presult;
 				goto done;
@@ -366,7 +368,8 @@ done:
 }
 
 static void
-destroy_rrlist(config_data_t *cd) {
+destroy_rrlist(config_data_t *cd)
+{
 	nrr_t *trec, *nrec;
 
 	nrec = DLZ_LIST_HEAD(cd->rrs_list);
@@ -390,16 +393,16 @@ destroy_rrlist(config_data_t *cd) {
 }
 
 isc_result_t
-dlz_create(const char *dlzname, unsigned int argc, char *argv[],
-	   void **dbdata, ...)
+dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
+	   ...)
 {
 	config_data_t *cd;
-	char *endp;
-	int i, def_ttl;
-	nrr_t *trec = NULL;
-	isc_result_t result;
-	const char *helper_name;
-	va_list ap;
+	char *	       endp;
+	int	       i, def_ttl;
+	nrr_t *	       trec = NULL;
+	isc_result_t   result;
+	const char *   helper_name;
+	va_list	       ap;
 
 	if (argc < 8 || argc % 4 != 0)
 		return (ISC_R_FAILURE);
@@ -411,8 +414,8 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* Fill in the helper functions */
 	va_start(ap, dbdata);
-	while ((helper_name = va_arg(ap, const char*)) != NULL)
-		b9_add_helper(cd, helper_name, va_arg(ap, void*));
+	while ((helper_name = va_arg(ap, const char *)) != NULL)
+		b9_add_helper(cd, helper_name, va_arg(ap, void *));
 	va_end(ap);
 
 	/*
@@ -465,9 +468,8 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		if (argv[i + 1][0] == '\0' || *endp != '\0' || trec->ttl < 0)
 			trec->ttl = def_ttl;
 
-		result = build_querylist(argv[i + 3], &cd->zone,
-					 &cd->record, &cd->client,
-					 &trec->data, 0, cd->log);
+		result = build_querylist(argv[i + 3], &cd->zone, &cd->record,
+					 &cd->client, &trec->data, 0, cd->log);
 		/* If unsuccessful, log err msg and cleanup */
 		if (result != ISC_R_SUCCESS) {
 			cd->log(ISC_LOG_ERROR,
@@ -495,8 +497,9 @@ cleanup:
 }
 
 void
-dlz_destroy(void *dbdata) {
-	config_data_t *cd = (config_data_t *) dbdata;
+dlz_destroy(void *dbdata)
+{
+	config_data_t *cd = (config_data_t *)dbdata;
 
 	/*
 	 * Write debugging message to log
@@ -510,12 +513,12 @@ dlz_destroy(void *dbdata) {
 	free(cd);
 }
 
-
 /*
  * Return the version of the API
  */
 int
-dlz_version(unsigned int *flags) {
+dlz_version(unsigned int *flags)
+{
 	UNUSED(flags);
 	/* XXX: ok to set DNS_SDLZFLAG_THREADSAFE here? */
 	return (DLZ_DLOPEN_VERSION);
@@ -525,7 +528,8 @@ dlz_version(unsigned int *flags) {
  * Register a helper function from the bind9 dlz_dlopen driver
  */
 static void
-b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr) {
+b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr)
+{
 	if (strcmp(helper_name, "log") == 0)
 		cd->log = (log_t *)ptr;
 	if (strcmp(helper_name, "putrr") == 0)
@@ -537,7 +541,8 @@ b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr) {
 }
 
 static const char *
-shortest_match(const char *pattern, const char *string) {
+shortest_match(const char *pattern, const char *string)
+{
 	const char *p = string;
 	if (pattern == NULL || p == NULL || *p == '\0')
 		return (NULL);
@@ -563,17 +568,18 @@ shortest_match(const char *pattern, const char *string) {
  * in BIND, we want to be thread-safe and don't need multibyte - DNS names are
  * always ASCII.
  */
-#define	EOS	'\0'
+#define EOS '\0'
 
-#define RANGE_MATCH     1
-#define RANGE_NOMATCH   0
-#define RANGE_ERROR     (-1)
+#define RANGE_MATCH 1
+#define RANGE_NOMATCH 0
+#define RANGE_ERROR (-1)
 
 static int
-fnmatch(const char *pattern, const char *string, int flags) {
+fnmatch(const char *pattern, const char *string, int flags)
+{
 	const char *stringstart;
-	char *newp;
-	char c, test;
+	char *	    newp;
+	char	    c, test;
 
 	for (stringstart = string;;)
 		switch (c = *pattern++) {
@@ -588,7 +594,7 @@ fnmatch(const char *pattern, const char *string, int flags) {
 				return (FNM_NOMATCH);
 			if (*string == '.' && (flags & FNM_PERIOD) &&
 			    (string == stringstart ||
-			    ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
+			     ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
 				return (FNM_NOMATCH);
 			++string;
 			break;
@@ -600,15 +606,18 @@ fnmatch(const char *pattern, const char *string, int flags) {
 
 			if (*string == '.' && (flags & FNM_PERIOD) &&
 			    (string == stringstart ||
-			    ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
+			     ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
 				return (FNM_NOMATCH);
 
 			/* Optimize for pattern with * at end or before /. */
 			if (c == EOS)
 				if (flags & FNM_PATHNAME)
 					return ((flags & FNM_LEADING_DIR) ||
-					    index(string, '/') == NULL ?
-					    0 : FNM_NOMATCH);
+								index(string,
+								      '/') ==
+									NULL
+							? 0
+							: FNM_NOMATCH);
 				else
 					return (0);
 			else if (c == '/' && flags & FNM_PATHNAME) {
@@ -634,7 +643,7 @@ fnmatch(const char *pattern, const char *string, int flags) {
 				return (FNM_NOMATCH);
 			if (*string == '.' && (flags & FNM_PERIOD) &&
 			    (string == stringstart ||
-			    ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
+			     ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
 				return (FNM_NOMATCH);
 
 			switch (rangematch(pattern, *string, flags, &newp)) {
@@ -673,8 +682,9 @@ fnmatch(const char *pattern, const char *string, int flags) {
 }
 
 static int
-rangematch(const char *pattern, char test, int flags, char **newp) {
-	int negate, ok;
+rangematch(const char *pattern, char test, int flags, char **newp)
+{
+	int  negate, ok;
 	char c, c2;
 
 	/*
@@ -684,7 +694,7 @@ rangematch(const char *pattern, char test, int flags, char **newp) {
 	 * consistency with the regular expression syntax.
 	 * J.T. Conklin (conklin@ngai.kaleida.com)
 	 */
-	if ( (negate = (*pattern == '!' || *pattern == '^')) )
+	if ((negate = (*pattern == '!' || *pattern == '^')))
 		++pattern;
 
 	if (flags & FNM_CASEFOLD)
@@ -709,8 +719,8 @@ rangematch(const char *pattern, char test, int flags, char **newp) {
 		if (flags & FNM_CASEFOLD)
 			c = tolower((unsigned char)c);
 
-		if (*pattern == '-'
-		    && (c2 = *(pattern+1)) != EOS && c2 != ']') {
+		if (*pattern == '-' && (c2 = *(pattern + 1)) != EOS &&
+		    c2 != ']') {
 			pattern += 2;
 			if (c2 == '\\' && !(flags & FNM_NOESCAPE))
 				c2 = *pattern++;

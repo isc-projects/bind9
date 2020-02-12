@@ -33,10 +33,10 @@
 
 #include <dns/log.h>
 
-#include <dst/result.h>
-
 #include "dst_internal.h"
 #include "dst_openssl.h"
+
+#include <dst/result.h>
 
 static isc_mem_t *dst__mctx = NULL;
 
@@ -46,7 +46,7 @@ static isc_mem_t *dst__mctx = NULL;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static isc_mutex_t *locks = NULL;
-static int nlocks;
+static int	    nlocks;
 #endif
 
 #if !defined(OPENSSL_NO_ENGINE)
@@ -54,7 +54,8 @@ static ENGINE *e = NULL;
 #endif
 
 static void
-enable_fips_mode(void) {
+enable_fips_mode(void)
+{
 #ifdef HAVE_FIPS_MODE
 	if (FIPS_mode() != 0) {
 		/*
@@ -72,7 +73,8 @@ enable_fips_mode(void) {
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static void
-lock_callback(int mode, int type, const char *file, int line) {
+lock_callback(int mode, int type, const char *file, int line)
+{
 	UNUSED(file);
 	UNUSED(line);
 	if ((mode & CRYPTO_LOCK) != 0)
@@ -84,7 +86,8 @@ lock_callback(int mode, int type, const char *file, int line) {
 
 #if defined(LIBRESSL_VERSION_NUMBER)
 static unsigned long
-id_callback(void) {
+id_callback(void)
+{
 	return ((unsigned long)isc_thread_self());
 }
 #endif
@@ -98,7 +101,8 @@ _set_thread_id(CRYPTO_THREADID *id)
 #endif
 
 isc_result_t
-dst__openssl_init(isc_mem_t *mctx, const char *engine) {
+dst__openssl_init(isc_mem_t *mctx, const char *engine)
+{
 	isc_result_t result;
 
 	REQUIRE(dst__mctx == NULL);
@@ -115,11 +119,11 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 	locks = isc_mem_allocate(dst__mctx, sizeof(isc_mutex_t) * nlocks);
 	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(lock_callback);
-# if defined(LIBRESSL_VERSION_NUMBER)
+#if defined(LIBRESSL_VERSION_NUMBER)
 	CRYPTO_set_id_callback(id_callback);
-# elif OPENSSL_VERSION_NUMBER < 0x10100000L
+#elif OPENSSL_VERSION_NUMBER < 0x10100000L
 	CRYPTO_THREADID_set_callback(_set_thread_id);
-# endif
+#endif
 	ERR_load_crypto_strings();
 #endif
 
@@ -136,7 +140,7 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 	ERR_clear_error();
 	CONF_modules_load_file(NULL, NULL,
 			       CONF_MFLAGS_DEFAULT_SECTION |
-			       CONF_MFLAGS_IGNORE_MISSING_FILE);
+				       CONF_MFLAGS_IGNORE_MISSING_FILE);
 #endif
 
 	if (engine != NULL && *engine == '\0')
@@ -168,7 +172,7 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 	return (ISC_R_SUCCESS);
 
 #if !defined(OPENSSL_NO_ENGINE)
- cleanup_rm:
+cleanup_rm:
 	if (e != NULL)
 		ENGINE_free(e);
 	e = NULL;
@@ -183,7 +187,8 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 }
 
 void
-dst__openssl_destroy(void) {
+dst__openssl_destroy(void)
+{
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L) || defined(LIBRESSL_VERSION_NUMBER)
 	/*
 	 * Sequence taken from apps_shutdown() in <apps/apps.h>.
@@ -206,7 +211,7 @@ dst__openssl_destroy(void) {
 #endif
 	ERR_free_strings();
 
-#ifdef  DNS_CRYPTO_LEAKS
+#ifdef DNS_CRYPTO_LEAKS
 	CRYPTO_mem_leaks_fp(stderr);
 #endif
 
@@ -221,8 +226,9 @@ dst__openssl_destroy(void) {
 }
 
 static isc_result_t
-toresult(isc_result_t fallback) {
-	isc_result_t result = fallback;
+toresult(isc_result_t fallback)
+{
+	isc_result_t  result = fallback;
 	unsigned long err = ERR_peek_error();
 #if defined(ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED)
 	int lib = ERR_GET_LIB(err);
@@ -252,7 +258,8 @@ toresult(isc_result_t fallback) {
 }
 
 isc_result_t
-dst__openssl_toresult(isc_result_t fallback) {
+dst__openssl_toresult(isc_result_t fallback)
+{
 	isc_result_t result;
 
 	result = toresult(fallback);
@@ -262,26 +269,26 @@ dst__openssl_toresult(isc_result_t fallback) {
 }
 
 isc_result_t
-dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
-	return (dst__openssl_toresult3(DNS_LOGCATEGORY_GENERAL,
-				       funcname, fallback));
+dst__openssl_toresult2(const char *funcname, isc_result_t fallback)
+{
+	return (dst__openssl_toresult3(DNS_LOGCATEGORY_GENERAL, funcname,
+				       fallback));
 }
 
 isc_result_t
-dst__openssl_toresult3(isc_logcategory_t *category,
-		       const char *funcname, isc_result_t fallback) {
-	isc_result_t result;
+dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
+		       isc_result_t fallback)
+{
+	isc_result_t  result;
 	unsigned long err;
-	const char *file, *data;
-	int line, flags;
-	char buf[256];
+	const char *  file, *data;
+	int	      line, flags;
+	char	      buf[256];
 
 	result = toresult(fallback);
 
-	isc_log_write(dns_lctx, category,
-		      DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,
-		      "%s failed (%s)", funcname,
-		      isc_result_totext(result));
+	isc_log_write(dns_lctx, category, DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,
+		      "%s failed (%s)", funcname, isc_result_totext(result));
 
 	if (result == ISC_R_NOMEMORY)
 		goto done;
@@ -291,21 +298,20 @@ dst__openssl_toresult3(isc_logcategory_t *category,
 		if (err == 0U)
 			goto done;
 		ERR_error_string_n(err, buf, sizeof(buf));
-		isc_log_write(dns_lctx, category,
-			      DNS_LOGMODULE_CRYPTO, ISC_LOG_INFO,
-			      "%s:%s:%d:%s", buf, file, line,
+		isc_log_write(dns_lctx, category, DNS_LOGMODULE_CRYPTO,
+			      ISC_LOG_INFO, "%s:%s:%d:%s", buf, file, line,
 			      ((flags & ERR_TXT_STRING) != 0) ? data : "");
 	}
 
-    done:
+done:
 	ERR_clear_error();
 	return (result);
 }
 
 #if !defined(OPENSSL_NO_ENGINE)
 ENGINE *
-dst__openssl_getengine(const char *engine) {
-
+dst__openssl_getengine(const char *engine)
+{
 	if (engine == NULL)
 		return (NULL);
 	if (e == NULL)

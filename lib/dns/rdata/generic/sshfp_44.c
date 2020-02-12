@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /* RFC 4255 */
 
 #ifndef RDATA_GENERIC_SSHFP_44_C
@@ -17,10 +16,10 @@
 
 #define RRTYPE_SSHFP_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_sshfp(ARGS_FROMTEXT) {
+static inline isc_result_t fromtext_sshfp(ARGS_FROMTEXT)
+{
 	isc_token_t token;
-	int len = -1;
+	int	    len = -1;
 
 	REQUIRE(type == dns_rdatatype_sshfp);
 
@@ -68,10 +67,10 @@ fromtext_sshfp(ARGS_FROMTEXT) {
 	return (isc_hex_tobuffer(lexer, target, len));
 }
 
-static inline isc_result_t
-totext_sshfp(ARGS_TOTEXT) {
+static inline isc_result_t totext_sshfp(ARGS_TOTEXT)
+{
 	isc_region_t sr;
-	char buf[sizeof("64000 ")];
+	char	     buf[sizeof("64000 ")];
 	unsigned int n;
 
 	REQUIRE(rdata->type == dns_rdatatype_sshfp);
@@ -110,15 +109,15 @@ totext_sshfp(ARGS_TOTEXT) {
 	if (tctx->width == 0) /* No splitting */
 		RETERR(isc_hex_totext(&sr, 0, "", target));
 	else
-		RETERR(isc_hex_totext(&sr, tctx->width - 2,
-				      tctx->linebreak, target));
+		RETERR(isc_hex_totext(&sr, tctx->width - 2, tctx->linebreak,
+				      target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-fromwire_sshfp(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_sshfp(ARGS_FROMWIRE)
+{
 	isc_region_t sr;
 
 	REQUIRE(type == dns_rdatatype_sshfp);
@@ -142,8 +141,8 @@ fromwire_sshfp(ARGS_FROMWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline isc_result_t
-towire_sshfp(ARGS_TOWIRE) {
+static inline isc_result_t towire_sshfp(ARGS_TOWIRE)
+{
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_sshfp);
@@ -155,8 +154,8 @@ towire_sshfp(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int
-compare_sshfp(ARGS_COMPARE) {
+static inline int compare_sshfp(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -171,8 +170,8 @@ compare_sshfp(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
-fromstruct_sshfp(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_sshfp(ARGS_FROMSTRUCT)
+{
 	dns_rdata_sshfp_t *sshfp = source;
 
 	REQUIRE(type == dns_rdatatype_sshfp);
@@ -189,10 +188,10 @@ fromstruct_sshfp(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, sshfp->digest, sshfp->length));
 }
 
-static inline isc_result_t
-tostruct_sshfp(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_sshfp(ARGS_TOSTRUCT)
+{
 	dns_rdata_sshfp_t *sshfp = target;
-	isc_region_t region;
+	isc_region_t	   region;
 
 	REQUIRE(rdata->type == dns_rdatatype_sshfp);
 	REQUIRE(sshfp != NULL);
@@ -218,8 +217,8 @@ tostruct_sshfp(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_sshfp(ARGS_FREESTRUCT) {
+static inline void freestruct_sshfp(ARGS_FREESTRUCT)
+{
 	dns_rdata_sshfp_t *sshfp = source;
 
 	REQUIRE(sshfp != NULL);
@@ -233,8 +232,8 @@ freestruct_sshfp(ARGS_FREESTRUCT) {
 	sshfp->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_sshfp(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_sshfp(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_sshfp);
 
 	UNUSED(rdata);
@@ -244,8 +243,8 @@ additionaldata_sshfp(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_sshfp(ARGS_DIGEST) {
+static inline isc_result_t digest_sshfp(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_sshfp);
@@ -255,9 +254,8 @@ digest_sshfp(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_sshfp(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_sshfp(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_sshfp);
 
 	UNUSED(name);
@@ -268,9 +266,8 @@ checkowner_sshfp(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_sshfp(ARGS_CHECKNAMES) {
-
+static inline bool checknames_sshfp(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_sshfp);
 
 	UNUSED(rdata);
@@ -280,9 +277,9 @@ checknames_sshfp(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_sshfp(ARGS_COMPARE) {
+static inline int casecompare_sshfp(ARGS_COMPARE)
+{
 	return (compare_sshfp(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_SSHFP_44_C */
+#endif /* RDATA_GENERIC_SSHFP_44_C */

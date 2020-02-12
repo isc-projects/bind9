@@ -16,12 +16,12 @@
 
 #define RRTYPE_EUI64_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_eui64(ARGS_FROMTEXT) {
-	isc_token_t token;
+static inline isc_result_t fromtext_eui64(ARGS_FROMTEXT)
+{
+	isc_token_t   token;
 	unsigned char eui64[8];
-	unsigned int l0, l1, l2, l3, l4, l5, l6, l7;
-	int n;
+	unsigned int  l0, l1, l2, l3, l4, l5, l6, l7;
+	int	      n;
 
 	REQUIRE(type == dns_rdatatype_eui64);
 
@@ -33,8 +33,8 @@ fromtext_eui64(ARGS_FROMTEXT) {
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	n = sscanf(DNS_AS_STR(token), "%2x-%2x-%2x-%2x-%2x-%2x-%2x-%2x",
-		   &l0, &l1, &l2, &l3, &l4, &l5, &l6, &l7);
+	n = sscanf(DNS_AS_STR(token), "%2x-%2x-%2x-%2x-%2x-%2x-%2x-%2x", &l0,
+		   &l1, &l2, &l3, &l4, &l5, &l6, &l7);
 	if (n != 8 || l0 > 255U || l1 > 255U || l2 > 255U || l3 > 255U ||
 	    l4 > 255U || l5 > 255U || l6 > 255U || l7 > 255U)
 		return (DNS_R_BADEUI);
@@ -50,8 +50,8 @@ fromtext_eui64(ARGS_FROMTEXT) {
 	return (mem_tobuffer(target, eui64, sizeof(eui64)));
 }
 
-static inline isc_result_t
-totext_eui64(ARGS_TOTEXT) {
+static inline isc_result_t totext_eui64(ARGS_TOTEXT)
+{
 	char buf[sizeof("xx-xx-xx-xx-xx-xx-xx-xx")];
 
 	REQUIRE(rdata->type == dns_rdatatype_eui64);
@@ -59,17 +59,15 @@ totext_eui64(ARGS_TOTEXT) {
 
 	UNUSED(tctx);
 
-	(void)snprintf(buf, sizeof(buf),
-		       "%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x",
-		       rdata->data[0], rdata->data[1],
-		       rdata->data[2], rdata->data[3],
-		       rdata->data[4], rdata->data[5],
-		       rdata->data[6], rdata->data[7]);
+	(void)snprintf(
+		buf, sizeof(buf), "%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x",
+		rdata->data[0], rdata->data[1], rdata->data[2], rdata->data[3],
+		rdata->data[4], rdata->data[5], rdata->data[6], rdata->data[7]);
 	return (str_totext(buf, target));
 }
 
-static inline isc_result_t
-fromwire_eui64(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_eui64(ARGS_FROMWIRE)
+{
 	isc_region_t sregion;
 
 	REQUIRE(type == dns_rdatatype_eui64);
@@ -86,9 +84,8 @@ fromwire_eui64(ARGS_FROMWIRE) {
 	return (mem_tobuffer(target, sregion.base, sregion.length));
 }
 
-static inline isc_result_t
-towire_eui64(ARGS_TOWIRE) {
-
+static inline isc_result_t towire_eui64(ARGS_TOWIRE)
+{
 	REQUIRE(rdata->type == dns_rdatatype_eui64);
 	REQUIRE(rdata->length == 8);
 
@@ -97,8 +94,8 @@ towire_eui64(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
-compare_eui64(ARGS_COMPARE) {
+static inline int compare_eui64(ARGS_COMPARE)
+{
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -113,8 +110,8 @@ compare_eui64(ARGS_COMPARE) {
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t
-fromstruct_eui64(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_eui64(ARGS_FROMSTRUCT)
+{
 	dns_rdata_eui64_t *eui64 = source;
 
 	REQUIRE(type == dns_rdatatype_eui64);
@@ -128,8 +125,8 @@ fromstruct_eui64(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, eui64->eui64, sizeof(eui64->eui64)));
 }
 
-static inline isc_result_t
-tostruct_eui64(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_eui64(ARGS_TOSTRUCT)
+{
 	dns_rdata_eui64_t *eui64 = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_eui64);
@@ -146,8 +143,8 @@ tostruct_eui64(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_eui64(ARGS_FREESTRUCT) {
+static inline void freestruct_eui64(ARGS_FREESTRUCT)
+{
 	dns_rdata_eui64_t *eui64 = source;
 
 	REQUIRE(eui64 != NULL);
@@ -156,9 +153,8 @@ freestruct_eui64(ARGS_FREESTRUCT) {
 	return;
 }
 
-static inline isc_result_t
-additionaldata_eui64(ARGS_ADDLDATA) {
-
+static inline isc_result_t additionaldata_eui64(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_eui64);
 	REQUIRE(rdata->length == 8);
 
@@ -169,8 +165,8 @@ additionaldata_eui64(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_eui64(ARGS_DIGEST) {
+static inline isc_result_t digest_eui64(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_eui64);
@@ -181,9 +177,8 @@ digest_eui64(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_eui64(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_eui64(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_eui64);
 
 	UNUSED(name);
@@ -194,9 +189,8 @@ checkowner_eui64(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_eui64(ARGS_CHECKNAMES) {
-
+static inline bool checknames_eui64(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_eui64);
 	REQUIRE(rdata->length == 8);
 
@@ -207,9 +201,9 @@ checknames_eui64(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_eui64(ARGS_COMPARE) {
+static inline int casecompare_eui64(ARGS_COMPARE)
+{
 	return (compare_eui64(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_EUI64_109_C */
+#endif /* RDATA_GENERIC_EUI64_109_C */

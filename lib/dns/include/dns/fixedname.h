@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_FIXEDNAME_H
 #define DNS_FIXEDNAME_H 1
 
@@ -59,10 +58,10 @@
  *****/
 
 struct dns_fixedname {
-	dns_name_t			name;
-	dns_offsets_t			offsets;
-	isc_buffer_t			buffer;
-	unsigned char			data[DNS_NAME_MAXWIRE];
+	dns_name_t    name;
+	dns_offsets_t offsets;
+	isc_buffer_t  buffer;
+	unsigned char data[DNS_NAME_MAXWIRE];
 };
 
 ISC_LANG_BEGINDECLS

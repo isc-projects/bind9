@@ -14,35 +14,32 @@
 
 #define RRTYPE_RKEY_ATTRIBUTES 0
 
-static inline isc_result_t
-fromtext_rkey(ARGS_FROMTEXT) {
-
+static inline isc_result_t fromtext_rkey(ARGS_FROMTEXT)
+{
 	REQUIRE(type == dns_rdatatype_rkey);
 
-	return (generic_fromtext_key(rdclass, type, lexer, origin,
-				     options, target, callbacks));
+	return (generic_fromtext_key(rdclass, type, lexer, origin, options,
+				     target, callbacks));
 }
 
-static inline isc_result_t
-totext_rkey(ARGS_TOTEXT) {
-
+static inline isc_result_t totext_rkey(ARGS_TOTEXT)
+{
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_rkey);
 
 	return (generic_totext_key(rdata, tctx, target));
 }
 
-static inline isc_result_t
-fromwire_rkey(ARGS_FROMWIRE) {
-
+static inline isc_result_t fromwire_rkey(ARGS_FROMWIRE)
+{
 	REQUIRE(type == dns_rdatatype_rkey);
 
-	return (generic_fromwire_key(rdclass, type, source, dctx,
-				     options, target));
+	return (generic_fromwire_key(rdclass, type, source, dctx, options,
+				     target));
 }
 
-static inline isc_result_t
-towire_rkey(ARGS_TOWIRE) {
+static inline isc_result_t towire_rkey(ARGS_TOWIRE)
+{
 	isc_region_t sr;
 
 	REQUIRE(rdata != NULL);
@@ -55,8 +52,8 @@ towire_rkey(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int
-compare_rkey(ARGS_COMPARE) {
+static inline int compare_rkey(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -73,16 +70,15 @@ compare_rkey(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
-fromstruct_rkey(ARGS_FROMSTRUCT) {
-
+static inline isc_result_t fromstruct_rkey(ARGS_FROMSTRUCT)
+{
 	REQUIRE(type == dns_rdatatype_rkey);
 
 	return (generic_fromstruct_key(rdclass, type, source, target));
 }
 
-static inline isc_result_t
-tostruct_rkey(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_rkey(ARGS_TOSTRUCT)
+{
 	dns_rdata_rkey_t *rkey = target;
 
 	REQUIRE(rkey != NULL);
@@ -96,9 +92,9 @@ tostruct_rkey(ARGS_TOSTRUCT) {
 	return (generic_tostruct_key(rdata, target, mctx));
 }
 
-static inline void
-freestruct_rkey(ARGS_FREESTRUCT) {
-	dns_rdata_rkey_t *rkey = (dns_rdata_rkey_t *) source;
+static inline void freestruct_rkey(ARGS_FREESTRUCT)
+{
+	dns_rdata_rkey_t *rkey = (dns_rdata_rkey_t *)source;
 
 	REQUIRE(rkey != NULL);
 	REQUIRE(rkey->common.rdtype == dns_rdatatype_rkey);
@@ -106,9 +102,8 @@ freestruct_rkey(ARGS_FREESTRUCT) {
 	generic_freestruct_key(source);
 }
 
-static inline isc_result_t
-additionaldata_rkey(ARGS_ADDLDATA) {
-
+static inline isc_result_t additionaldata_rkey(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_rkey);
 
 	UNUSED(rdata);
@@ -118,8 +113,8 @@ additionaldata_rkey(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_rkey(ARGS_DIGEST) {
+static inline isc_result_t digest_rkey(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata != NULL);
@@ -130,9 +125,8 @@ digest_rkey(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_rkey(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_rkey(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_rkey);
 
 	UNUSED(name);
@@ -143,9 +137,8 @@ checkowner_rkey(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_rkey(ARGS_CHECKNAMES) {
-
+static inline bool checknames_rkey(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_rkey);
 
@@ -156,13 +149,12 @@ checknames_rkey(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_rkey(ARGS_COMPARE) {
-
+static inline int casecompare_rkey(ARGS_COMPARE)
+{
 	/*
 	 * Treat ALG 253 (private DNS) subtype name case sensistively.
 	 */
 	return (compare_rkey(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_RKEY_57_C */
+#endif /* RDATA_GENERIC_RKEY_57_C */

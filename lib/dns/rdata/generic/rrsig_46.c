@@ -14,21 +14,21 @@
 #ifndef RDATA_GENERIC_RRSIG_46_C
 #define RDATA_GENERIC_RRSIG_46_C
 
-#define RRTYPE_RRSIG_ATTRIBUTES \
-	( DNS_RDATATYPEATTR_DNSSEC | DNS_RDATATYPEATTR_ZONECUTAUTH | \
-	  DNS_RDATATYPEATTR_ATCNAME )
+#define RRTYPE_RRSIG_ATTRIBUTES                                     \
+	(DNS_RDATATYPEATTR_DNSSEC | DNS_RDATATYPEATTR_ZONECUTAUTH | \
+	 DNS_RDATATYPEATTR_ATCNAME)
 
-static inline isc_result_t
-fromtext_rrsig(ARGS_FROMTEXT) {
-	isc_token_t token;
-	unsigned char c;
-	long i;
+static inline isc_result_t fromtext_rrsig(ARGS_FROMTEXT)
+{
+	isc_token_t	token;
+	unsigned char	c;
+	long		i;
 	dns_rdatatype_t covered;
-	char *e;
-	isc_result_t result;
-	dns_name_t name;
-	isc_buffer_t buffer;
-	uint32_t time_signed, time_expire;
+	char *		e;
+	isc_result_t	result;
+	dns_name_t	name;
+	isc_buffer_t	buffer;
+	uint32_t	time_signed, time_expire;
 
 	REQUIRE(type == dns_rdatatype_rrsig);
 
@@ -82,11 +82,11 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	if (strlen(DNS_AS_STR(token)) <= 10U &&
-	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+') {
-		char *end;
+	if (strlen(DNS_AS_STR(token)) <= 10U && *DNS_AS_STR(token) != '-' &&
+	    *DNS_AS_STR(token) != '+') {
+		char *	      end;
 		unsigned long u;
-		uint64_t u64;
+		uint64_t      u64;
 
 		u64 = u = strtoul(DNS_AS_STR(token), &end, 10);
 		if (u == ULONG_MAX || *end != 0)
@@ -103,11 +103,11 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	if (strlen(DNS_AS_STR(token)) <= 10U &&
-	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+') {
-		char *end;
+	if (strlen(DNS_AS_STR(token)) <= 10U && *DNS_AS_STR(token) != '-' &&
+	    *DNS_AS_STR(token) != '+') {
+		char *	      end;
 		unsigned long u;
-		uint64_t u64;
+		uint64_t      u64;
 
 		u64 = u = strtoul(DNS_AS_STR(token), &end, 10);
 		if (u == ULONG_MAX || *end != 0)
@@ -143,16 +143,16 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	return (isc_base64_tobuffer(lexer, target, -2));
 }
 
-static inline isc_result_t
-totext_rrsig(ARGS_TOTEXT) {
-	isc_region_t sr;
-	char buf[sizeof("4294967295")];	/* Also TYPE65000. */
+static inline isc_result_t totext_rrsig(ARGS_TOTEXT)
+{
+	isc_region_t	sr;
+	char		buf[sizeof("4294967295")]; /* Also TYPE65000. */
 	dns_rdatatype_t covered;
-	unsigned long ttl;
-	unsigned long when;
-	unsigned long exp;
-	unsigned long foot;
-	dns_name_t name;
+	unsigned long	ttl;
+	unsigned long	when;
+	unsigned long	exp;
+	unsigned long	foot;
+	dns_name_t	name;
 
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);
 	REQUIRE(rdata->length != 0);
@@ -242,7 +242,7 @@ totext_rrsig(ARGS_TOTEXT) {
 	 */
 	RETERR(str_totext(tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_NOCRYPTO) == 0) {
-		if (tctx->width == 0)   /* No splitting */
+		if (tctx->width == 0) /* No splitting */
 			RETERR(isc_base64_totext(&sr, 60, "", target));
 		else
 			RETERR(isc_base64_totext(&sr, tctx->width - 2,
@@ -256,10 +256,10 @@ totext_rrsig(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-fromwire_rrsig(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_rrsig(ARGS_FROMWIRE)
+{
 	isc_region_t sr;
-	dns_name_t name;
+	dns_name_t   name;
 
 	REQUIRE(type == dns_rdatatype_rrsig);
 
@@ -298,10 +298,10 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline isc_result_t
-towire_rrsig(ARGS_TOWIRE) {
-	isc_region_t sr;
-	dns_name_t name;
+static inline isc_result_t towire_rrsig(ARGS_TOWIRE)
+{
+	isc_region_t  sr;
+	dns_name_t    name;
 	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);
@@ -335,8 +335,8 @@ towire_rrsig(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int
-compare_rrsig(ARGS_COMPARE) {
+static inline int compare_rrsig(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -351,8 +351,8 @@ compare_rrsig(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
-fromstruct_rrsig(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_rrsig(ARGS_FROMSTRUCT)
+{
 	dns_rdata_rrsig_t *sig = source;
 
 	REQUIRE(type == dns_rdatatype_rrsig);
@@ -410,11 +410,11 @@ fromstruct_rrsig(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, sig->signature, sig->siglen));
 }
 
-static inline isc_result_t
-tostruct_rrsig(ARGS_TOSTRUCT) {
-	isc_region_t sr;
+static inline isc_result_t tostruct_rrsig(ARGS_TOSTRUCT)
+{
+	isc_region_t	   sr;
 	dns_rdata_rrsig_t *sig = target;
-	dns_name_t signer;
+	dns_name_t	   signer;
 
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);
 	REQUIRE(sig != NULL);
@@ -482,19 +482,18 @@ tostruct_rrsig(ARGS_TOSTRUCT) {
 	if (sig->signature == NULL)
 		goto cleanup;
 
-
 	sig->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	if (mctx != NULL)
 		dns_name_free(&sig->signer, mctx);
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void
-freestruct_rrsig(ARGS_FREESTRUCT) {
-	dns_rdata_rrsig_t *sig = (dns_rdata_rrsig_t *) source;
+static inline void freestruct_rrsig(ARGS_FREESTRUCT)
+{
+	dns_rdata_rrsig_t *sig = (dns_rdata_rrsig_t *)source;
 
 	REQUIRE(sig != NULL);
 	REQUIRE(sig->common.rdtype == dns_rdatatype_rrsig);
@@ -508,8 +507,8 @@ freestruct_rrsig(ARGS_FREESTRUCT) {
 	sig->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_rrsig(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_rrsig(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);
 
 	UNUSED(rdata);
@@ -519,9 +518,8 @@ additionaldata_rrsig(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_rrsig(ARGS_DIGEST) {
-
+static inline isc_result_t digest_rrsig(ARGS_DIGEST)
+{
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);
 
 	UNUSED(rdata);
@@ -532,9 +530,10 @@ digest_rrsig(ARGS_DIGEST) {
 }
 
 static inline dns_rdatatype_t
-covers_rrsig(dns_rdata_t *rdata) {
+covers_rrsig(dns_rdata_t *rdata)
+{
 	dns_rdatatype_t type;
-	isc_region_t r;
+	isc_region_t	r;
 
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);
 
@@ -544,9 +543,8 @@ covers_rrsig(dns_rdata_t *rdata) {
 	return (type);
 }
 
-static inline bool
-checkowner_rrsig(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_rrsig(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_rrsig);
 
 	UNUSED(name);
@@ -557,9 +555,8 @@ checkowner_rrsig(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_rrsig(ARGS_CHECKNAMES) {
-
+static inline bool checknames_rrsig(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);
 
 	UNUSED(rdata);
@@ -569,13 +566,13 @@ checknames_rrsig(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_rrsig(ARGS_COMPARE) {
+static inline int casecompare_rrsig(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
-	dns_name_t name1;
-	dns_name_t name2;
-	int order;
+	dns_name_t   name1;
+	dns_name_t   name2;
+	int	     order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -612,4 +609,4 @@ casecompare_rrsig(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-#endif	/* RDATA_GENERIC_RRSIG_46_C */
+#endif /* RDATA_GENERIC_RRSIG_46_C */

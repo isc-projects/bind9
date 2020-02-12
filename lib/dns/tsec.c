@@ -12,28 +12,27 @@
 #include <isc/mem.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
+#include <dns/result.h>
 #include <dns/tsec.h>
 #include <dns/tsig.h>
-#include <dns/result.h>
 
 #include <dst/dst.h>
+#include <pk11/site.h>
 
-#define DNS_TSEC_MAGIC			ISC_MAGIC('T', 's', 'e', 'c')
-#define DNS_TSEC_VALID(t)		ISC_MAGIC_VALID(t, DNS_TSEC_MAGIC)
+#define DNS_TSEC_MAGIC ISC_MAGIC('T', 's', 'e', 'c')
+#define DNS_TSEC_VALID(t) ISC_MAGIC_VALID(t, DNS_TSEC_MAGIC)
 
 /*%
  * DNS Transaction Security object.  We assume this is not shared by
  * multiple threads, and so the structure does not contain a lock.
  */
 struct dns_tsec {
-	unsigned int		magic;
-	dns_tsectype_t		type;
-	isc_mem_t		*mctx;
+	unsigned int   magic;
+	dns_tsectype_t type;
+	isc_mem_t *    mctx;
 	union {
-		dns_tsigkey_t	*tsigkey;
-		dst_key_t	*key;
+		dns_tsigkey_t *tsigkey;
+		dst_key_t *    key;
 	} ukey;
 };
 
@@ -41,9 +40,9 @@ isc_result_t
 dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 		dns_tsec_t **tsecp)
 {
-	isc_result_t result;
-	dns_tsec_t *tsec;
-	dns_tsigkey_t *tsigkey = NULL;
+	isc_result_t	  result;
+	dns_tsec_t *	  tsec;
+	dns_tsigkey_t *	  tsigkey = NULL;
 	const dns_name_t *algname;
 
 	REQUIRE(mctx != NULL);
@@ -79,10 +78,9 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 			isc_mem_put(mctx, tsec, sizeof(*tsec));
 			return (DNS_R_BADALG);
 		}
-		result = dns_tsigkey_createfromkey(dst_key_name(key),
-						   algname, key, false,
-						   NULL, 0, 0, mctx, NULL,
-						   &tsigkey);
+		result = dns_tsigkey_createfromkey(dst_key_name(key), algname,
+						   key, false, NULL, 0, 0, mctx,
+						   NULL, &tsigkey);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(mctx, tsec, sizeof(*tsec));
 			return (result);
@@ -104,7 +102,8 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 }
 
 void
-dns_tsec_destroy(dns_tsec_t **tsecp) {
+dns_tsec_destroy(dns_tsec_t **tsecp)
+{
 	dns_tsec_t *tsec;
 
 	REQUIRE(tsecp != NULL && *tsecp != NULL);
@@ -129,14 +128,16 @@ dns_tsec_destroy(dns_tsec_t **tsecp) {
 }
 
 dns_tsectype_t
-dns_tsec_gettype(dns_tsec_t *tsec) {
+dns_tsec_gettype(dns_tsec_t *tsec)
+{
 	REQUIRE(DNS_TSEC_VALID(tsec));
 
 	return (tsec->type);
 }
 
 void
-dns_tsec_getkey(dns_tsec_t *tsec, void *keyp) {
+dns_tsec_getkey(dns_tsec_t *tsec, void *keyp)
+{
 	REQUIRE(DNS_TSEC_VALID(tsec));
 	REQUIRE(keyp != NULL);
 

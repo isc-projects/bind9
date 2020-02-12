@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_HEX_H
 #define ISC_HEX_H 1
 
@@ -25,8 +24,8 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_result_t
-isc_hex_totext(isc_region_t *source, int wordlength,
-	       const char *wordbreak, isc_buffer_t *target);
+isc_hex_totext(isc_region_t *source, int wordlength, const char *wordbreak,
+	       isc_buffer_t *target);
 /*!<
  * \brief Convert data into hex encoded text.
  *

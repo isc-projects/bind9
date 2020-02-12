@@ -54,12 +54,11 @@
 
 /*! \file */
 
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include <isc/commandline.h>
 #include <isc/print.h>
@@ -67,22 +66,18 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <pk11/constants.h>
 #include <pk11/pk11.h>
 #include <pk11/result.h>
-#include <pk11/constants.h>
 #include <pkcs11/eddsa.h>
+#include <sys/types.h>
 
 /* Define static key template values */
 static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
 
 /* Key class: RSA, ECC, ECX, or unknown */
-typedef enum {
-	key_unknown,
-	key_rsa,
-	key_ecc,
-	key_ecx
-} key_class_t;
+typedef enum { key_unknown, key_rsa, key_ecc, key_ecx } key_class_t;
 
 /*
  * Private key template: usable for most key classes without
@@ -98,13 +93,13 @@ typedef enum {
 #define PRIVATE_ID 6
 #define PRIVATE_ATTRS 7
 static CK_ATTRIBUTE private_template[] = {
-	{CKA_LABEL, NULL_PTR, 0},
-	{CKA_SIGN, &truevalue, sizeof(truevalue)},
-	{CKA_TOKEN, &truevalue, sizeof(truevalue)},
-	{CKA_PRIVATE, &truevalue, sizeof(truevalue)},
-	{CKA_SENSITIVE, &truevalue, sizeof(truevalue)},
-	{CKA_EXTRACTABLE, &falsevalue, sizeof(falsevalue)},
-	{CKA_ID, NULL_PTR, 0}
+	{ CKA_LABEL, NULL_PTR, 0 },
+	{ CKA_SIGN, &truevalue, sizeof(truevalue) },
+	{ CKA_TOKEN, &truevalue, sizeof(truevalue) },
+	{ CKA_PRIVATE, &truevalue, sizeof(truevalue) },
+	{ CKA_SENSITIVE, &truevalue, sizeof(truevalue) },
+	{ CKA_EXTRACTABLE, &falsevalue, sizeof(falsevalue) },
+	{ CKA_ID, NULL_PTR, 0 }
 };
 
 /*
@@ -119,13 +114,13 @@ static CK_ATTRIBUTE private_template[] = {
 #define RSA_ID 6
 #define RSA_ATTRS 7
 static CK_ATTRIBUTE rsa_template[] = {
-	{CKA_LABEL, NULL_PTR, 0},
-	{CKA_VERIFY, &truevalue, sizeof(truevalue)},
-	{CKA_TOKEN, &truevalue, sizeof(truevalue)},
-	{CKA_PRIVATE, &falsevalue, sizeof(falsevalue)},
-	{CKA_MODULUS_BITS, NULL_PTR, 0},
-	{CKA_PUBLIC_EXPONENT, NULL_PTR, 0},
-	{CKA_ID, NULL_PTR, 0}
+	{ CKA_LABEL, NULL_PTR, 0 },
+	{ CKA_VERIFY, &truevalue, sizeof(truevalue) },
+	{ CKA_TOKEN, &truevalue, sizeof(truevalue) },
+	{ CKA_PRIVATE, &falsevalue, sizeof(falsevalue) },
+	{ CKA_MODULUS_BITS, NULL_PTR, 0 },
+	{ CKA_PUBLIC_EXPONENT, NULL_PTR, 0 },
+	{ CKA_ID, NULL_PTR, 0 }
 };
 
 /*
@@ -139,12 +134,12 @@ static CK_ATTRIBUTE rsa_template[] = {
 #define ECC_ID 5
 #define ECC_ATTRS 6
 static CK_ATTRIBUTE ecc_template[] = {
-	{CKA_LABEL, NULL_PTR, 0},
-	{CKA_VERIFY, &truevalue, sizeof(truevalue)},
-	{CKA_TOKEN, &truevalue, sizeof(truevalue)},
-	{CKA_PRIVATE, &falsevalue, sizeof(falsevalue)},
-	{CKA_EC_PARAMS, NULL_PTR, 0},
-	{CKA_ID, NULL_PTR, 0}
+	{ CKA_LABEL, NULL_PTR, 0 },
+	{ CKA_VERIFY, &truevalue, sizeof(truevalue) },
+	{ CKA_TOKEN, &truevalue, sizeof(truevalue) },
+	{ CKA_PRIVATE, &falsevalue, sizeof(falsevalue) },
+	{ CKA_EC_PARAMS, NULL_PTR, 0 },
+	{ CKA_ID, NULL_PTR, 0 }
 };
 
 /*
@@ -153,7 +148,8 @@ static CK_ATTRIBUTE ecc_template[] = {
  * NSEC3RSASHA1 maps to RSA.
  */
 static key_class_t
-keyclass_fromtext(const char *name) {
+keyclass_fromtext(const char *name)
+{
 	if (name == NULL)
 		return (key_unknown);
 
@@ -171,44 +167,43 @@ keyclass_fromtext(const char *name) {
 }
 
 static void
-usage(void) {
-	fprintf(stderr,
-		"Usage:\n"
-		"\tpkcs11-keygen -a algorithm -b keysize -l label\n"
-		"\t              [-P] [-m module] "
+usage(void)
+{
+	fprintf(stderr, "Usage:\n"
+			"\tpkcs11-keygen -a algorithm -b keysize -l label\n"
+			"\t              [-P] [-m module] "
 			"[-s slot] [-e] [-S] [-i id] [-p PIN]\n");
 	exit(2);
 }
 
 int
-main(int argc, char *argv[]) {
-	isc_result_t result;
-	CK_RV rv;
-	CK_SLOT_ID slot = 0;
-	CK_MECHANISM mech;
+main(int argc, char *argv[])
+{
+	isc_result_t	  result;
+	CK_RV		  rv;
+	CK_SLOT_ID	  slot = 0;
+	CK_MECHANISM	  mech;
 	CK_SESSION_HANDLE hSession;
-	char *lib_name = NULL;
-	char *pin = NULL;
-	CK_ULONG bits = 0;
-	CK_CHAR *label = NULL;
-	CK_OBJECT_HANDLE privatekey, publickey;
-	CK_BYTE exponent[5];
-	CK_ULONG expsize = 0;
-	pk11_context_t pctx;
-	int error = 0;
-	int c, errflg = 0;
-	int hide = 1, quiet = 0;
-	int idlen = 0, id_offset = 0;
-	unsigned long id = 0;
-	CK_BYTE idbuf[4];
-	CK_ULONG ulObjectCount;
-	CK_ATTRIBUTE search_template[] = {
-		{CKA_LABEL, NULL_PTR, 0}
-	};
-	CK_ATTRIBUTE *public_template = NULL;
-	CK_ULONG public_attrcnt = 0, private_attrcnt = PRIVATE_ATTRS;
-	key_class_t keyclass = key_rsa;
-	pk11_optype_t op_type = OP_ANY;
+	char *		  lib_name = NULL;
+	char *		  pin = NULL;
+	CK_ULONG	  bits = 0;
+	CK_CHAR *	  label = NULL;
+	CK_OBJECT_HANDLE  privatekey, publickey;
+	CK_BYTE		  exponent[5];
+	CK_ULONG	  expsize = 0;
+	pk11_context_t	  pctx;
+	int		  error = 0;
+	int		  c, errflg = 0;
+	int		  hide = 1, quiet = 0;
+	int		  idlen = 0, id_offset = 0;
+	unsigned long	  id = 0;
+	CK_BYTE		  idbuf[4];
+	CK_ULONG	  ulObjectCount;
+	CK_ATTRIBUTE	  search_template[] = { { CKA_LABEL, NULL_PTR, 0 } };
+	CK_ATTRIBUTE *	  public_template = NULL;
+	CK_ULONG	  public_attrcnt = 0, private_attrcnt = PRIVATE_ATTRS;
+	key_class_t	  keyclass = key_rsa;
+	pk11_optype_t	  op_type = OP_ANY;
 
 #define OPTIONS ":a:b:ei:l:m:Pp:qSs:"
 	while ((c = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
@@ -246,8 +241,7 @@ main(int argc, char *argv[]) {
 			quiet = 1;
 			break;
 		case ':':
-			fprintf(stderr,
-				"Option -%c requires an operand\n",
+			fprintf(stderr, "Option -%c requires an operand\n",
 				isc_commandline_option);
 			errflg++;
 			break;
@@ -360,8 +354,7 @@ main(int argc, char *argv[]) {
 				sizeof(pk11_ecc_ed25519);
 		} else {
 			public_template[4].pValue = pk11_ecc_ed448;
-			public_template[4].ulValueLen =
-				sizeof(pk11_ecc_ed448);
+			public_template[4].ulValueLen = sizeof(pk11_ecc_ed448);
 		}
 
 #endif
@@ -408,17 +401,18 @@ main(int argc, char *argv[]) {
 		pin = getpass("Enter Pin: ");
 	}
 
-	result = pk11_get_session(&pctx, op_type, false, true,
-				  true, (const char *) pin, slot);
+	result = pk11_get_session(&pctx, op_type, false, true, true,
+				  (const char *)pin, slot);
 	if (result == PK11_R_NORANDOMSERVICE ||
-	    result == PK11_R_NODIGESTSERVICE ||
-	    result == PK11_R_NOAESSERVICE) {
+	    result == PK11_R_NODIGESTSERVICE || result == PK11_R_NOAESSERVICE) {
 		fprintf(stderr, "Warning: %s\n", isc_result_totext(result));
 		fprintf(stderr, "This HSM will not work with BIND 9 "
 				"using native PKCS#11.\n");
 	} else if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "Unrecoverable error initializing "
-				"PKCS#11: %s\n", isc_result_totext(result));
+		fprintf(stderr,
+			"Unrecoverable error initializing "
+			"PKCS#11: %s\n",
+			isc_result_totext(result));
 		exit(1);
 	}
 
@@ -452,10 +446,9 @@ main(int argc, char *argv[]) {
 	}
 
 	/* Generate Key pair for signing/verifying */
-	rv = pkcs_C_GenerateKeyPair(hSession, &mech,
-			       public_template, public_attrcnt,
-			       private_template, private_attrcnt,
-			       &publickey, &privatekey);
+	rv = pkcs_C_GenerateKeyPair(hSession, &mech, public_template,
+				    public_attrcnt, private_template,
+				    private_attrcnt, &publickey, &privatekey);
 
 	if (rv != CKR_OK) {
 		fprintf(stderr, "C_GenerateKeyPair: Error = 0x%.8lX\n", rv);
@@ -464,16 +457,16 @@ main(int argc, char *argv[]) {
 		printf("Key pair generation complete.\n");
 	}
 
- exit_search:
+exit_search:
 	rv = pkcs_C_FindObjectsFinal(hSession);
 	if (rv != CKR_OK) {
 		fprintf(stderr, "C_FindObjectsFinal: Error = 0x%.8lX\n", rv);
 		error = 1;
 	}
 
- exit_session:
+exit_session:
 	pk11_return_session(&pctx);
-	(void) pk11_finalize();
+	(void)pk11_finalize();
 
 	exit(error);
 }

@@ -9,14 +9,13 @@
  * information regarding copyright ownership.
  */
 
-
 #include <stdbool.h>
 
 #include <isc/lang.h>
 #include <isc/types.h>
 
-#include <dns/types.h>
 #include <dns/db.h>
+#include <dns/types.h>
 
 #ifndef DNS_PRIVATE_H
 #define DNS_PRIVATE_H
@@ -25,8 +24,8 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
-		   dns_rdatatype_t privatetype,
-		   bool *build_nsec, bool *build_nsec3);
+		   dns_rdatatype_t privatetype, bool *build_nsec,
+		   bool *build_nsec3);
 /*%<
  * Examine the NSEC, NSEC3PARAM and privatetype RRsets at the apex of the
  * database to determine which of NSEC or NSEC3 chains we are currently

@@ -30,26 +30,28 @@ ISC_PLATFORM_NORETURN_PRE static inline void
 fatal(const char *message) ISC_PLATFORM_NORETURN_POST;
 
 static inline void
-fatal(const char *message) {
+fatal(const char *message)
+{
 	fprintf(stderr, "%s\n", message);
 	exit(1);
 }
 
 static inline void
-check_result(isc_result_t result, const char *message) {
+check_result(isc_result_t result, const char *message)
+{
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "%s: %s\n", message,
-			isc_result_totext(result));
+		fprintf(stderr, "%s: %s\n", message, isc_result_totext(result));
 		exit(1);
 	}
 }
 
 static inline bool
-active_node(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
+active_node(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node)
+{
 	dns_rdatasetiter_t *rdsiter;
-	bool active = false;
-	isc_result_t result;
-	dns_rdataset_t rdataset;
+	bool		    active = false;
+	isc_result_t	    result;
+	dns_rdataset_t	    rdataset;
 
 	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
@@ -89,7 +91,7 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 	    dns_name_t *name, dns_dbnode_t **nodep)
 {
 	isc_result_t result;
-	bool active;
+	bool	     active;
 
 	do {
 		active = false;
@@ -107,18 +109,19 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 }
 
 static void
-nsecify(char *filename) {
-	isc_result_t result;
-	dns_db_t *db;
-	dns_dbversion_t *wversion;
-	dns_dbnode_t *node, *nextnode;
-	const char *origintext;
-	dns_fixedname_t fname, fnextname;
-	dns_name_t *name, *nextname, *target;
-	isc_buffer_t b;
-	size_t len;
+nsecify(char *filename)
+{
+	isc_result_t	  result;
+	dns_db_t *	  db;
+	dns_dbversion_t * wversion;
+	dns_dbnode_t *	  node, *nextnode;
+	const char *	  origintext;
+	dns_fixedname_t	  fname, fnextname;
+	dns_name_t *	  name, *nextname, *target;
+	isc_buffer_t	  b;
+	size_t		  len;
 	dns_dbiterator_t *dbiter;
-	char newfilename[1024];
+	char		  newfilename[1024];
 
 	name = dns_fixedname_initname(&fname);
 	nextname = dns_fixedname_initname(&fnextname);
@@ -127,7 +130,7 @@ nsecify(char *filename) {
 	if (origintext == NULL)
 		origintext = filename;
 	else
-		origintext++;	/* Skip '/'. */
+		origintext++; /* Skip '/'. */
 	len = strlen(origintext);
 	isc_buffer_constinit(&b, origintext, len);
 	isc_buffer_add(&b, len);
@@ -163,7 +166,7 @@ nsecify(char *filename) {
 		else if (result == ISC_R_NOMORE)
 			target = dns_db_origin(db);
 		else {
-			target = NULL;	/* Make compiler happy. */
+			target = NULL; /* Make compiler happy. */
 			fatal("db iteration failed");
 		}
 		dns_nsec_build(db, wversion, node, target, 3600); /* XXX BEW */
@@ -187,7 +190,8 @@ nsecify(char *filename) {
 }
 
 int
-main(int argc, char *argv[]) {
+main(int argc, char *argv[])
+{
 	int i;
 
 	dns_result_register();

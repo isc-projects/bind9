@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
  *
@@ -32,32 +31,41 @@
 
 class CDirBrowse : public CDialog
 {
-// Construction
-public:
-	CDirBrowse(CString initialDir = "\\", CWnd* pParent = NULL);   // standard constructor
-	CString GetSelectedDir() {return(m_selectedDir);}
+	// Construction
+      public:
+	CDirBrowse(CString initialDir = "\\",
+		   CWnd *  pParent = NULL); // standard constructor
+	CString
+	GetSelectedDir()
+	{
+		return (m_selectedDir);
+	}
 
 	//{{AFX_DATA(CDirBrowse)
 	enum { IDD = IDD_BROWSE };
-		// NOTE: the ClassWizard will add data members here
+	// NOTE: the ClassWizard will add data members here
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CDirBrowse)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
+      protected:
+	virtual void
+	DoDataExchange(CDataExchange *pDX); // DDX/DDV support
+					    //}}AFX_VIRTUAL
 
-protected:
+      protected:
 	// Generated message map functions
 	//{{AFX_MSG(CDirBrowse)
-	virtual BOOL OnInitDialog();
-	afx_msg void OnDblclkDirlist();
-	afx_msg void OnSelchangeDirlist();
+	virtual BOOL
+	OnInitDialog();
+	afx_msg void
+	OnDblclkDirlist();
+	afx_msg void
+	OnSelchangeDirlist();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
-private:
+      private:
 	CString m_selectedDir;
 };
 

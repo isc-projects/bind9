@@ -9,21 +9,21 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
-#include <confgen/os.h>
-
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <pwd.h>
 #include <stdio.h>
+#include <unistd.h>
+
+#include <confgen/os.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 int
-set_user(FILE *fd, const char *user) {
+set_user(FILE *fd, const char *user)
+{
 	struct passwd *pw;
 
 	pw = getpwnam(user);
