@@ -1086,3 +1086,61 @@ release:sid:amd64:
     paths:
       - "*.tar.gz"
     expire_in: "1 day"
+
+# Coverity Scan analysis upload
+
+.coverity_cache_prep: &coverity_cache_prep |
+  test -f cov-analysis-linux64.md5 && test -f cov-analysis-linux64.tgz || (
+  curl --output cov-analysis-linux64.md5 https://scan.coverity.com/download/linux64 \
+       --form project=$COVERITY_SCAN_PROJECT_NAME \
+       --form token=$COVERITY_SCAN_TOKEN \
+       --form md5=1
+  curl --output cov-analysis-linux64.tgz https://scan.coverity.com/download/linux64 \
+       --form project=$COVERITY_SCAN_PROJECT_NAME \
+       --form token=$COVERITY_SCAN_TOKEN
+  )
+  test "$(md5sum cov-analysis-linux64.tgz | awk '{ print $1 }')" = "$(cat cov-analysis-linux64.md5)"
+  tar --extract --gzip --file=cov-analysis-linux64.tgz
+  test -d cov-analysis-linux64-2019.03
+
+.coverity_build: &coverity_build |
+  cov-analysis-linux64-2019.03/bin/cov-build --dir cov-int sh -c 'make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1'
+  tar --create --gzip --file=cov-int.tar.gz cov-int/
+  curl -v https://scan.coverity.com/builds?project=$COVERITY_SCAN_PROJECT_NAME \
+       --form token=$COVERITY_SCAN_TOKEN \
+       --form email=bind-changes@isc.org \
+       --form file=@cov-int.tar.gz \
+       --form version="$(git rev-parse --short HEAD)" \
+       --form description="$(git rev-parse --short HEAD) / $CI_COMMIT_TITLE / $CI_COMMIT_REF_NAME:$CI_PIPELINE_ID" 2>&1 \
+       | tee curl-response.txt
+  grep -q 'Build successfully submitted' curl-response.txt
+
+build:coverity:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: build
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+  script:
+    - *coverity_cache_prep
+    - *configure
+    - *coverity_build
+  dependencies:
+    - autoreconf:sid:amd64
+  needs:
+    - autoreconf:sid:amd64
+  artifacts:
+    paths:
+      - curl-response.txt
+      - cov-int.tar.gz
+    expire_in: "1 week"
+    when: on_failure
+  only:
+    - schedules
+    - web
+  cache:
+    key: cov-analysis-linux64-2019.03
+    paths:
+      - cov-analysis-linux64.md5
+      - cov-analysis-linux64.tgz
