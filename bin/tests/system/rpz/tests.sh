@@ -363,12 +363,30 @@ EOF
   sleep 2
 }
 
+#
+# generate prototype NXDOMAIN response to compare against.
+#
+make_proto_nxdomain() {
+  digcmd nonexistent @$ns2 >proto.nxdomain || return 1
+  grep "status: NXDOMAIN" proto.nxdomain >/dev/null || return 1
+  return 0
+}
+
+#
+# generate prototype NODATA response to compare against.
+#
+make_proto_nodata() {
+  digcmd txt-only.tld2 @$ns2 >proto.nodata || return 1
+  grep "status: NOERROR" proto.nodata >/dev/null || return 1
+  return 0
+}
+
 # this for loop is not necessary; it's here to make it easier
 # to backport changes from later versions, where it is.
 for mode in native; do
   # make prototype files to check against rewritten results
-  digcmd nonexistent @$ns2 >proto.nxdomain
-  digcmd txt-only.tld2 @$ns2 >proto.nodata
+  retry_quiet 10 make_proto_nxdomain
+  retry_quiet 10 make_proto_nodata
 
   start_group "QNAME rewrites" test1
   nochange .					# 1 do not crash or rewrite root
