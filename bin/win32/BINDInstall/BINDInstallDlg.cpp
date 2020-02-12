@@ -191,10 +191,6 @@ const FileData installFiles[] =
 	{"pkcs11-list.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-tokens.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 #endif
-#ifdef USE_PYTHON
-	{"dnssec-checkds.py", FileData::BinDir, FileData::Normal, FALSE, FALSE},
-	{"dnssec-coverage.py", FileData::BinDir, FileData::Normal, FALSE, FALSE},
-#endif
 	{"readme1st.txt", FileData::BinDir, FileData::Trivial, FALSE, TRUE},
 	{NULL, -1, -1}
 };

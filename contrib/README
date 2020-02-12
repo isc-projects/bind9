@@ -18,11 +18,6 @@ be fixed as time permits.
       Sample configuration for setting up a DNS-over-TLS server
       using BIND with Nginx as a TLS proxy.
 
-    - kasp/
-
-      Scripts for converting key and signature policies from OpenDNSSEC
-      KASP format to the policy.conf format used by dnssec-keymgr.
-
     - dlz/modules
 
       Dynamically linkable DLZ modules that can be configured into

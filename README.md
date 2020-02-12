@@ -195,16 +195,6 @@ or, if you have Xcode already installed, you can run `xcode-select
 --install`.  (Note that an Apple ID may be required to access the download
 page.)
 
-### <a name="dependencies"/> Dependencies
-
-Portions of BIND that are written in Python, including
-`dnssec-keymgr`, `dnssec-coverage`, `dnssec-checkds`, and some of the
-system tests, require the `argparse`, `ply` and `distutils.core` modules
-to be available.
-`argparse` is a standard module as of Python 2.7 and Python 3.2.
-`ply` is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
-`distutils.core` is required for installation.
-
 #### <a name="opts"/> Compile-time options
 
 To see a full list of configuration options, run `configure --help`.

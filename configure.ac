@@ -191,34 +191,20 @@ AC_PATH_PROGS(PERL, perl5 perl)
 AC_SUBST(PERL)
 
 #
-# Python is also optional but required by default so that dnssec-keymgr gets
-# installed unless explicitly prevented by the user using --without-python.
+# Python 3 is optional; it is used by the system test scripts.
 #
 testminvers='import sys
-if (sys.version_info < (2,7)) or (sys.version_info < (3,2) and sys.version_info >= (3,0)):
+if (sys.version_info < (3,5)):
    exit(1)'
 
-testargparse='try: import argparse
-except: exit(1)'
-
-testply='try: import ply
-except: exit(1)'
-
-testsetup='try: from distutils.core import setup
-except: exit(1)'
-
-default_with_python="python python3 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
+default_with_python="python python3 python3.8 python3.7 python3.6 python3.5"
 
 AC_ARG_VAR([PYTHON], [path to python executable])
 
 AC_ARG_WITH([python],
 	    AS_HELP_STRING([--with-python=PATH],
-			   [specify path to Python interpreter]),
+			   [specify path to Python 3 interpreter]),
 	    [], [with_python=$default_with_python])
-AC_ARG_WITH([python-install-dir],
-	    AS_HELP_STRING([--with-python-install-dir=PATH],
-			   [installation directory for Python modules]),
-	    [], with_python_install_dir="")
 
 AS_IF([test "$with_python" = "yes"],
       [with_python=$default_with_python])
@@ -242,76 +228,17 @@ AS_IF([test "$with_python" = "no"],
 
 	 AS_IF([test -z "$PYTHON"], [continue])
 
-	 AC_MSG_CHECKING([if $PYTHON is python2 version >= 2.7 or python3 version >= 3.2])
+	 AC_MSG_CHECKING([if $PYTHON is Python version >= 3.5])
 	 AS_IF(["$PYTHON" -c "$testminvers" 2>/dev/null],
 	       [AC_MSG_RESULT([yes])],
 	       [AC_MSG_RESULT([no])
 		unset PYTHON
 		continue])
 
-	 AC_MSG_CHECKING([Python module 'argparse'])
-	 AS_IF(["$PYTHON" -c "$testargparse" 2>/dev/null],
-	       [AC_MSG_RESULT([yes])],
-	       [AC_MSG_RESULT([no])
-		unset PYTHON
-		continue])
-
-	 AC_MSG_CHECKING([Python module 'ply'])
-	 AS_IF(["$PYTHON" -c "$testply" 2>/dev/null],
-	       [AC_MSG_RESULT([yes])],
-	       [AC_MSG_RESULT([no])
-		unset PYTHON
-		continue])
-
-	 AC_MSG_CHECKING([Python module 'distutils.core setup'])
-	 AS_IF(["$PYTHON" -c "$testsetup" 2>/dev/null],
-	       [AC_MSG_RESULT([yes])],
-	       [AC_MSG_RESULT([no])
-		unset PYTHON
-		continue])
-
-	 # Stop looking any further once we find a Python interpreter
+	 # Stop looking any further once we find a Python 3 interpreter
 	 # satisfying all requirements.
 	 break
-       done
-
-       AS_IF([test "X$PYTHON" = "X"],
-	     [AC_MSG_CHECKING([for Python support])
-	      AC_MSG_RESULT([no])
-	      AC_MSG_ERROR([m4_normalize(
-				[Python >= 2.7 or >= 3.2 and the PLY package
-                                 are required for dnssec-keymgr and other
-                                 Python-based tools. PLY may be
-                                 available from your OS package manager
-                                 as python-ply or python3-ply; it can also
-                                 be installed via pip. To build without
-                                 Python/PLY, use --without-python.]
-			    )])])])
-
-PYTHON_TOOLS=''
-CHECKDS=''
-COVERAGE=''
-KEYMGR=''
-AS_IF([test "X$PYTHON" != "X"],
-      [PYTHON_TOOLS=python
-       CHECKDS=checkds
-       COVERAGE=coverage
-       KEYMGR=keymgr
-       PYTHON_INSTALL_DIR="$with_python_install_dir"
-       AS_IF([test -n "$with_python_install_dir"],
-	     [PYTHON_INSTALL_LIB="--install-lib=$with_python_install_dir"])])
-AC_SUBST(CHECKDS)
-AC_SUBST(COVERAGE)
-AC_SUBST(KEYMGR)
-AC_SUBST(PYTHON_TOOLS)
-AC_SUBST(PYTHON_INSTALL_DIR)
-AC_SUBST(PYTHON_INSTALL_LIB)
-
-#
-# expanded_sysconfdir is needed for replacement in the python utilities
-#
-expanded_sysconfdir=`eval echo $sysconfdir`
-AC_SUBST(expanded_sysconfdir)
+       done])
 
 #
 # Make sure INSTALL uses an absolute path, else it will be wrong in all
@@ -2662,27 +2589,6 @@ AC_CONFIG_FILES([
 	bin/nsupdate/Makefile
 	bin/pkcs11/Makefile
 	bin/plugins/Makefile
-	bin/python/Makefile
-	bin/python/dnssec-checkds.py
-	bin/python/dnssec-coverage.py
-	bin/python/dnssec-keymgr.py
-	bin/python/isc/Makefile
-	bin/python/isc/__init__.py
-	bin/python/isc/checkds.py
-	bin/python/isc/coverage.py
-	bin/python/isc/dnskey.py
-	bin/python/isc/eventlist.py
-	bin/python/isc/keydict.py
-	bin/python/isc/keyevent.py
-	bin/python/isc/keymgr.py
-	bin/python/isc/keyseries.py
-	bin/python/isc/keyzone.py
-	bin/python/isc/policy.py
-	bin/python/isc/rndc.py
-	bin/python/isc/tests/Makefile
-	bin/python/isc/tests/dnskey_test.py
-	bin/python/isc/tests/policy_test.py
-	bin/python/isc/utils.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
 	bin/tests/headerdep_test.sh

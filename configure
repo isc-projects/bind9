@@ -764,13 +764,6 @@ MAXMINDDB_LIBS
 MAXMINDDB_CFLAGS
 ISC_PLATFORM_NORETURN_POST
 ISC_PLATFORM_NORETURN_PRE
-expanded_sysconfdir
-PYTHON_INSTALL_LIB
-PYTHON_INSTALL_DIR
-PYTHON_TOOLS
-KEYMGR
-COVERAGE
-CHECKDS
 PYTHON
 PERL
 LN
@@ -902,7 +895,6 @@ enable_developer
 enable_fuzzing
 enable_mutex_atomics
 with_python
-with_python_install_dir
 enable_kqueue
 enable_epoll
 enable_devpoll
@@ -1655,9 +1647,7 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
-  --with-python=PATH      specify path to Python interpreter
-  --with-python-install-dir=PATH
-                          installation directory for Python modules
+  --with-python=PATH      specify path to Python 3 interpreter
   --with-geoip2           deprecated, use --with-maxminddb
   --with-maxminddb=PATH   Build with MaxMind GeoIP2 support (auto|yes|no|path)
                           [default=auto]
@@ -12477,23 +12467,13 @@ done
 
 
 #
-# Python is also optional but required by default so that dnssec-keymgr gets
-# installed unless explicitly prevented by the user using --without-python.
+# Python 3 is optional; it is used by the system test scripts.
 #
 testminvers='import sys
-if (sys.version_info < (2,7)) or (sys.version_info < (3,2) and sys.version_info >= (3,0)):
+if (sys.version_info < (3,5)):
    exit(1)'
 
-testargparse='try: import argparse
-except: exit(1)'
-
-testply='try: import ply
-except: exit(1)'
-
-testsetup='try: from distutils.core import setup
-except: exit(1)'
-
-default_with_python="python python3 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
+default_with_python="python python3 python3.8 python3.7 python3.6 python3.5"
 
 
 
@@ -12503,14 +12483,6 @@ if test "${with_python+set}" = set; then :
   withval=$with_python;
 else
   with_python=$default_with_python
-fi
-
-
-# Check whether --with-python-install-dir was given.
-if test "${with_python_install_dir+set}" = set; then :
-  withval=$with_python_install_dir;
-else
-  with_python_install_dir=""
 fi
 
 
@@ -12585,8 +12557,8 @@ fi
   continue
 fi
 
-	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $PYTHON is python2 version >= 2.7 or python3 version >= 3.2" >&5
-$as_echo_n "checking if $PYTHON is python2 version >= 2.7 or python3 version >= 3.2... " >&6; }
+	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $PYTHON is Python version >= 3.5" >&5
+$as_echo_n "checking if $PYTHON is Python version >= 3.5... " >&6; }
 	 if "$PYTHON" -c "$testminvers" 2>/dev/null; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
@@ -12597,82 +12569,11 @@ $as_echo "no" >&6; }
 		continue
 fi
 
-	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking Python module 'argparse'" >&5
-$as_echo_n "checking Python module 'argparse'... " >&6; }
-	 if "$PYTHON" -c "$testargparse" 2>/dev/null; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		unset PYTHON
-		continue
-fi
-
-	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking Python module 'ply'" >&5
-$as_echo_n "checking Python module 'ply'... " >&6; }
-	 if "$PYTHON" -c "$testply" 2>/dev/null; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		unset PYTHON
-		continue
-fi
-
-	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking Python module 'distutils.core setup'" >&5
-$as_echo_n "checking Python module 'distutils.core setup'... " >&6; }
-	 if "$PYTHON" -c "$testsetup" 2>/dev/null; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		unset PYTHON
-		continue
-fi
-
-	 # Stop looking any further once we find a Python interpreter
+	 # Stop looking any further once we find a Python 3 interpreter
 	 # satisfying all requirements.
 	 break
        done
-
-       if test "X$PYTHON" = "X"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Python support" >&5
-$as_echo_n "checking for Python support... " >&6; }
-	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	      as_fn_error $? "Python >= 2.7 or >= 3.2 and the PLY package are required for dnssec-keymgr and other Python-based tools. PLY may be available from your OS package manager as python-ply or python3-ply; it can also be installed via pip. To build without Python/PLY, use --without-python." "$LINENO" 5
 fi
-fi
-
-PYTHON_TOOLS=''
-CHECKDS=''
-COVERAGE=''
-KEYMGR=''
-if test "X$PYTHON" != "X"; then :
-  PYTHON_TOOLS=python
-       CHECKDS=checkds
-       COVERAGE=coverage
-       KEYMGR=keymgr
-       PYTHON_INSTALL_DIR="$with_python_install_dir"
-       if test -n "$with_python_install_dir"; then :
-  PYTHON_INSTALL_LIB="--install-lib=$with_python_install_dir"
-fi
-fi
-
-
-
-
-
-
-
-#
-# expanded_sysconfdir is needed for replacement in the python utilities
-#
-expanded_sysconfdir=`eval echo $sysconfdir`
-
 
 #
 # Make sure INSTALL uses an absolute path, else it will be wrong in all
@@ -23870,7 +23771,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delv/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/plugins/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/python/dnssec-keymgr.py bin/python/isc/Makefile bin/python/isc/__init__.py bin/python/isc/checkds.py bin/python/isc/coverage.py bin/python/isc/dnskey.py bin/python/isc/eventlist.py bin/python/isc/keydict.py bin/python/isc/keyevent.py bin/python/isc/keymgr.py bin/python/isc/keyseries.py bin/python/isc/keyzone.py bin/python/isc/policy.py bin/python/isc/rndc.py bin/python/isc/tests/Makefile bin/python/isc/tests/dnskey_test.py bin/python/isc/tests/policy_test.py bin/python/isc/utils.py bin/rndc/Makefile bin/tests/Makefile bin/tests/headerdep_test.sh bin/tests/optional/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/dlzs.conf bin/tests/system/dyndb/Makefile bin/tests/system/dyndb/driver/Makefile bin/tests/system/pipelined/Makefile bin/tests/system/rndc/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/arm/noteversion.xml doc/arm/pkgversion.xml doc/arm/releaseinfo.xml doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/tex/Makefile doc/tex/armstyle.sty doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-manpage.xsl doc/xsl/isc-notes-html.xsl fuzz/Makefile lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/irs/tests/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/netmgr/Makefile lib/isc/pthreads/Makefile lib/isc/pthreads/include/Makefile lib/isc/pthreads/include/isc/Makefile lib/isc/tests/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccc/tests/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/isccfg/tests/Makefile lib/ns/Makefile lib/ns/include/Makefile lib/ns/include/ns/Makefile lib/ns/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall make/Makefile make/mkdep unit/unittest.sh util/check-make-install"
+ac_config_files="$ac_config_files Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delv/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/plugins/Makefile bin/rndc/Makefile bin/tests/Makefile bin/tests/headerdep_test.sh bin/tests/optional/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/dlzs.conf bin/tests/system/dyndb/Makefile bin/tests/system/dyndb/driver/Makefile bin/tests/system/pipelined/Makefile bin/tests/system/rndc/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/arm/noteversion.xml doc/arm/pkgversion.xml doc/arm/releaseinfo.xml doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/tex/Makefile doc/tex/armstyle.sty doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-manpage.xsl doc/xsl/isc-notes-html.xsl fuzz/Makefile lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/irs/tests/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/netmgr/Makefile lib/isc/pthreads/Makefile lib/isc/pthreads/include/Makefile lib/isc/pthreads/include/isc/Makefile lib/isc/tests/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccc/tests/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/isccfg/tests/Makefile lib/ns/Makefile lib/ns/include/Makefile lib/ns/include/ns/Makefile lib/ns/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall make/Makefile make/mkdep unit/unittest.sh util/check-make-install"
 
 
 #
@@ -24887,27 +24788,6 @@ do
     "bin/nsupdate/Makefile") CONFIG_FILES="$CONFIG_FILES bin/nsupdate/Makefile" ;;
     "bin/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES bin/pkcs11/Makefile" ;;
     "bin/plugins/Makefile") CONFIG_FILES="$CONFIG_FILES bin/plugins/Makefile" ;;
-    "bin/python/Makefile") CONFIG_FILES="$CONFIG_FILES bin/python/Makefile" ;;
-    "bin/python/dnssec-checkds.py") CONFIG_FILES="$CONFIG_FILES bin/python/dnssec-checkds.py" ;;
-    "bin/python/dnssec-coverage.py") CONFIG_FILES="$CONFIG_FILES bin/python/dnssec-coverage.py" ;;
-    "bin/python/dnssec-keymgr.py") CONFIG_FILES="$CONFIG_FILES bin/python/dnssec-keymgr.py" ;;
-    "bin/python/isc/Makefile") CONFIG_FILES="$CONFIG_FILES bin/python/isc/Makefile" ;;
-    "bin/python/isc/__init__.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/__init__.py" ;;
-    "bin/python/isc/checkds.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/checkds.py" ;;
-    "bin/python/isc/coverage.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/coverage.py" ;;
-    "bin/python/isc/dnskey.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/dnskey.py" ;;
-    "bin/python/isc/eventlist.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/eventlist.py" ;;
-    "bin/python/isc/keydict.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/keydict.py" ;;
-    "bin/python/isc/keyevent.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/keyevent.py" ;;
-    "bin/python/isc/keymgr.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/keymgr.py" ;;
-    "bin/python/isc/keyseries.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/keyseries.py" ;;
-    "bin/python/isc/keyzone.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/keyzone.py" ;;
-    "bin/python/isc/policy.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/policy.py" ;;
-    "bin/python/isc/rndc.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/rndc.py" ;;
-    "bin/python/isc/tests/Makefile") CONFIG_FILES="$CONFIG_FILES bin/python/isc/tests/Makefile" ;;
-    "bin/python/isc/tests/dnskey_test.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/tests/dnskey_test.py" ;;
-    "bin/python/isc/tests/policy_test.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/tests/policy_test.py" ;;
-    "bin/python/isc/utils.py") CONFIG_FILES="$CONFIG_FILES bin/python/isc/utils.py" ;;
     "bin/rndc/Makefile") CONFIG_FILES="$CONFIG_FILES bin/rndc/Makefile" ;;
     "bin/tests/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/Makefile" ;;
     "bin/tests/headerdep_test.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/headerdep_test.sh" ;;

@@ -248,8 +248,6 @@ libraries.
       `dnssec-keygen`, `dnssec-signzone`, `dnssec-settime`,
       `dnssec-revoke`, `dnssec-keyfromlabel`, `dnssec-dsfromkey`,
       `dnssec-verify` (BIND 9.9+)
-    * `bind9/bin/python` (BIND 9.9+): tools written in python. Currently
-       has `dnssec-checkds` and `dnssec-coverage`
     * `bind9/bin/rndc`: `rndc` binary
     * `bind9/bin/dig`: `dig`, `host`, and `nslookup`
     * `bind9/bin/delv`: `delv`

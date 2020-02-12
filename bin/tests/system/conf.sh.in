@@ -29,9 +29,7 @@ CYGWIN=""
 ARPANAME=$TOP/bin/tools/arpaname
 CDS=$TOP/bin/dnssec/dnssec-cds
 CHECKCONF=$TOP/bin/check/named-checkconf
-CHECKDS=$TOP/bin/python/dnssec-checkds
 CHECKZONE=$TOP/bin/check/named-checkzone
-COVERAGE=$TOP/bin/python/dnssec-coverage
 DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
 DELV=$TOP/bin/delv/delv
 DIG=$TOP/bin/dig/dig
@@ -44,7 +42,6 @@ IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
 JOURNALPRINT=$TOP/bin/tools/named-journalprint
 KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
 KEYGEN=$TOP/bin/dnssec/dnssec-keygen
-KEYMGR=$TOP/bin/python/dnssec-keymgr
 MDIG=$TOP/bin/tools/mdig
 NAMED=$TOP/bin/named/named
 NSEC3HASH=$TOP/bin/tools/nsec3hash
@@ -82,7 +79,7 @@ KRB5_CONFIG=/dev/null
 SEQUENTIAL_UNIX="@PKCS11_TEST@"
 SEQUENTIALDIRS="$SEQUENTIAL_COMMON $SEQUENTIAL_UNIX"
 
-PARALLEL_UNIX="@CHECKDS@ @COVERAGE@ @DNSTAP@ @KEYMGR@ logfileconfig"
+PARALLEL_UNIX="@DNSTAP@ logfileconfig"
 PARALLELDIRS="$PARALLEL_COMMON $PARALLEL_UNIX"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"

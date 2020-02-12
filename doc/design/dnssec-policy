@@ -168,18 +168,6 @@ dnssec-policy "nsec3" {
 
 # KASP design
 
-## dnssec-policy versus dnssec-keymgr
-
-Key management in BIND 9 is currently implemented with a Python script
-called `dnssec-keymgr`. It uses the DNSSEC tools for manipulating DNSSEC key
-metadata. 
-
-With `dnssec-policy` configured in `named.conf` you no longer need to manually
-call `dnssec-keymgr` or the tools it wraps around, `dnssec-keygen` and
-`dnssec-settime` (although it is still possible to use them). The policy in
-`named.conf` will make `named` create keys when necessary and set the key
-timings accordingly.
-
 ## Key roles
 
 BIND 9.14 allows sign your zones with a Zone Signing Key (ZSK) and a
