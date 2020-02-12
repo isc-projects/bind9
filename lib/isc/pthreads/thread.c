@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #if defined(HAVE_SCHED_H)
@@ -17,14 +16,14 @@
 #endif
 
 #if defined(HAVE_CPUSET_H)
-#include <sys/param.h>
 #include <sys/cpuset.h>
+#include <sys/param.h>
 #endif
 
 #if defined(HAVE_SYS_PROCSET_H)
-#include <sys/types.h>
 #include <sys/processor.h>
 #include <sys/procset.h>
+#include <sys/types.h>
 #endif
 
 #include <isc/strerr.h>
@@ -32,16 +31,14 @@
 #include <isc/util.h>
 
 #ifndef THREAD_MINSTACKSIZE
-#define THREAD_MINSTACKSIZE		(1024U * 1024)
+#define THREAD_MINSTACKSIZE (1024U * 1024)
 #endif
 
-#define _FATAL(r, f)							\
-	{								\
-		char strbuf[ISC_STRERRORSIZE];				\
-		strerror_r(r, strbuf, sizeof(strbuf));			\
-		isc_error_fatal(__FILE__, __LINE__,			\
-				f " failed: %s", \
-				strbuf);				\
+#define _FATAL(r, f)                                                          \
+	{                                                                     \
+		char strbuf[ISC_STRERRORSIZE];                                \
+		strerror_r(r, strbuf, sizeof(strbuf));                        \
+		isc_error_fatal(__FILE__, __LINE__, f " failed: %s", strbuf); \
 	}
 
 void
@@ -50,7 +47,7 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 {
 	pthread_attr_t attr;
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
-    defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
+	defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
 	size_t stacksize;
 #endif
 	int ret;
@@ -58,7 +55,7 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 	pthread_attr_init(&attr);
 
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
-    defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
+	defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
 	ret = pthread_attr_getstacksize(&attr, &stacksize);
 	if (ret != 0) {
 		_FATAL(ret, "pthread_attr_getstacksize()");
@@ -92,21 +89,23 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *result)
 }
 
 #ifdef __NetBSD__
-#define pthread_setconcurrency(a)	(void) a/* nothing */
+#define pthread_setconcurrency(a) (void)a /* nothing */
 #endif
 
 void
-isc_thread_setconcurrency(unsigned int level) {
+isc_thread_setconcurrency(unsigned int level)
+{
 	(void)pthread_setconcurrency(level);
 }
 
 void
-isc_thread_setname(isc_thread_t thread, const char *name) {
+isc_thread_setname(isc_thread_t thread, const char *name)
+{
 #if defined(HAVE_PTHREAD_SETNAME_NP) && !defined(__APPLE__)
 	/*
 	 * macOS has pthread_setname_np but only works on the
 	 * current thread so it's not used here
-	*/
+	 */
 #if defined(__NetBSD__)
 	(void)pthread_setname_np(thread, name, NULL);
 #else
@@ -121,25 +120,26 @@ isc_thread_setname(isc_thread_t thread, const char *name) {
 }
 
 void
-isc_thread_yield(void) {
+isc_thread_yield(void)
+{
 #if defined(HAVE_SCHED_YIELD)
 	sched_yield();
-#elif defined( HAVE_PTHREAD_YIELD)
+#elif defined(HAVE_PTHREAD_YIELD)
 	pthread_yield();
-#elif defined( HAVE_PTHREAD_YIELD_NP)
+#elif defined(HAVE_PTHREAD_YIELD_NP)
 	pthread_yield_np();
 #endif
 }
 
 isc_result_t
-isc_thread_setaffinity(int cpu) {
+isc_thread_setaffinity(int cpu)
+{
 #if defined(HAVE_CPUSET_SETAFFINITY)
 	cpuset_t cpuset;
 	CPU_ZERO(&cpuset);
 	CPU_SET(cpu, &cpuset);
 	if (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1,
-			       sizeof(cpuset), &cpuset) != 0)
-	{
+			       sizeof(cpuset), &cpuset) != 0) {
 		return (ISC_R_FAILURE);
 	}
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
@@ -149,20 +149,18 @@ isc_thread_setaffinity(int cpu) {
 	if (cset == NULL)
 		return (ISC_R_FAILURE);
 	cpuset_set(cpu, cset);
-	if (pthread_setaffinity_np(pthread_self(),
-		cpuset_size(cset), cset) != 0)
-	{
+	if (pthread_setaffinity_np(pthread_self(), cpuset_size(cset), cset) !=
+	    0) {
 		cpuset_destroy(cset);
 		return (ISC_R_FAILURE);
 	}
 	cpuset_destroy(cset);
-#else /* linux? */
+#else  /* linux? */
 	cpu_set_t set;
 	CPU_ZERO(&set);
 	CPU_SET(cpu, &set);
-	if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t),
-				   &set) != 0)
-	{
+	if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &set) !=
+	    0) {
 		return (ISC_R_FAILURE);
 	}
 #endif /* __NetBSD__ */

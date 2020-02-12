@@ -22,15 +22,15 @@
 #include <dns/types.h>
 
 struct dns_iptable {
-	unsigned int		magic;
-	isc_mem_t		*mctx;
-	isc_refcount_t		refcount;
-	isc_radix_tree_t	*radix;
-	ISC_LINK(dns_iptable_t)	nextincache;
+	unsigned int	  magic;
+	isc_mem_t *	  mctx;
+	isc_refcount_t	  refcount;
+	isc_radix_tree_t *radix;
+	ISC_LINK(dns_iptable_t) nextincache;
 };
 
-#define DNS_IPTABLE_MAGIC	ISC_MAGIC('T','a','b','l')
-#define DNS_IPTABLE_VALID(a)	ISC_MAGIC_VALID(a, DNS_IPTABLE_MAGIC)
+#define DNS_IPTABLE_MAGIC ISC_MAGIC('T', 'a', 'b', 'l')
+#define DNS_IPTABLE_VALID(a) ISC_MAGIC_VALID(a, DNS_IPTABLE_MAGIC)
 
 /***
  *** Functions

@@ -11,12 +11,11 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -41,7 +40,8 @@
 #include "dnstest.h"
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -53,7 +53,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	dns_test_end();
@@ -62,43 +63,45 @@ _teardown(void **state) {
 }
 
 static void
-nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
+nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...)
+{
 	UNUSED(cb);
 	UNUSED(fmt);
 }
 
-#define	BUFLEN		255
-#define	BIGBUFLEN	(70 * 1024)
-#define TEST_ORIGIN	"test"
+#define BUFLEN 255
+#define BIGBUFLEN (70 * 1024)
+#define TEST_ORIGIN "test"
 
 static dns_masterrawheader_t header;
-static bool headerset;
+static bool		     headerset;
 
-dns_name_t dns_origin;
-char origin[sizeof(TEST_ORIGIN)];
-unsigned char name_buf[BUFLEN];
+dns_name_t	     dns_origin;
+char		     origin[sizeof(TEST_ORIGIN)];
+unsigned char	     name_buf[BUFLEN];
 dns_rdatacallbacks_t callbacks;
-char *include_file = NULL;
+char *		     include_file = NULL;
 
 static void
 rawdata_callback(dns_zone_t *zone, dns_masterrawheader_t *header);
 
 static isc_result_t
-add_callback(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset) {
-	char buf[BIGBUFLEN];
+add_callback(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset)
+{
+	char	     buf[BIGBUFLEN];
 	isc_buffer_t target;
 	isc_result_t result;
 
 	UNUSED(arg);
 
 	isc_buffer_init(&target, buf, BIGBUFLEN);
-	result = dns_rdataset_totext(dataset, owner, false, false,
-				     &target);
-	return(result);
+	result = dns_rdataset_totext(dataset, owner, false, false, &target);
+	return (result);
 }
 
 static void
-rawdata_callback(dns_zone_t *zone, dns_masterrawheader_t *h) {
+rawdata_callback(dns_zone_t *zone, dns_masterrawheader_t *h)
+{
 	UNUSED(zone);
 	header = *h;
 	headerset = true;
@@ -108,10 +111,10 @@ static isc_result_t
 setup_master(void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
 	     void (*error)(struct dns_rdatacallbacks *, const char *, ...))
 {
-	isc_result_t		result;
-	int			len;
-	isc_buffer_t		source;
-	isc_buffer_t		target;
+	isc_result_t result;
+	int	     len;
+	isc_buffer_t source;
+	isc_buffer_t target;
 
 	strlcpy(origin, TEST_ORIGIN, sizeof(origin));
 	len = strlen(origin);
@@ -122,10 +125,10 @@ setup_master(void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
 	dns_name_init(&dns_origin, NULL);
 	dns_master_initrawheader(&header);
 
-	result = dns_name_fromtext(&dns_origin, &source, dns_rootname,
-				   0, &target);
+	result = dns_name_fromtext(&dns_origin, &source, dns_rootname, 0,
+				   &target);
 	if (result != ISC_R_SUCCESS) {
-		return(result);
+		return (result);
 	}
 
 	dns_rdatacallbacks_init_stdio(&callbacks);
@@ -147,11 +150,11 @@ test_master(const char *testfile, dns_masterformat_t format,
 	    void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
 	    void (*error)(struct dns_rdatacallbacks *, const char *, ...))
 {
-	isc_result_t		result;
+	isc_result_t result;
 
 	result = setup_master(warn, error);
 	if (result != ISC_R_SUCCESS) {
-		return(result);
+		return (result);
 	}
 
 	dns_rdatacallbacks_init_stdio(&callbacks);
@@ -166,14 +169,15 @@ test_master(const char *testfile, dns_masterformat_t format,
 	}
 
 	result = dns_master_loadfile(testfile, &dns_origin, &dns_origin,
-				     dns_rdataclass_in, true, 0,
-				     &callbacks, NULL, NULL, dt_mctx, format, 0);
+				     dns_rdataclass_in, true, 0, &callbacks,
+				     NULL, NULL, dt_mctx, format, 0);
 	return (result);
 }
 
 static void
-include_callback(const char *filename, void *arg) {
-	char **argp = (char **) arg;
+include_callback(const char *filename, void *arg)
+{
+	char **argp = (char **)arg;
 	*argp = isc_mem_strdup(dt_mctx, filename);
 }
 
@@ -182,7 +186,8 @@ include_callback(const char *filename, void *arg) {
  * dns_master_loadfile() loads a valid master file and returns success
  */
 static void
-load_test(void **state) {
+load_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -192,13 +197,13 @@ load_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
-
 /*
  * Unexpected end of file test:
  * dns_master_loadfile() returns DNS_R_UNEXPECTED when file ends too soon
  */
 static void
-unexpected_test(void **state) {
+unexpected_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -214,7 +219,8 @@ unexpected_test(void **state) {
  * if it is an SOA
  */
 static void
-noowner_test(void **state) {
+noowner_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -230,7 +236,8 @@ noowner_test(void **state) {
  * specified
  */
 static void
-nottl_test(void **state) {
+nottl_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -246,7 +253,8 @@ nottl_test(void **state) {
  * match zone class
  */
 static void
-badclass_test(void **state) {
+badclass_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -261,7 +269,8 @@ badclass_test(void **state) {
  * dns_master_loadfile() returns ISC_R_NOSPACE when record is too big
  */
 static void
-toobig_test(void **state) {
+toobig_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -276,7 +285,8 @@ toobig_test(void **state) {
  * dns_master_loadfile() returns ISC_R_SUCCESS when record is maximum size
  */
 static void
-maxrdata_test(void **state) {
+maxrdata_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -291,7 +301,8 @@ maxrdata_test(void **state) {
  * dns_master_loadfile() understands DNSKEY with key material
  */
 static void
-dnskey_test(void **state) {
+dnskey_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -309,7 +320,8 @@ dnskey_test(void **state) {
  * be rejected.
  */
 static void
-dnsnokey_test(void **state) {
+dnsnokey_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -324,7 +336,8 @@ dnsnokey_test(void **state) {
  * dns_master_loadfile() understands $INCLUDE
  */
 static void
-include_test(void **state) {
+include_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -339,20 +352,20 @@ include_test(void **state) {
  * dns_master_loadfile4() returns names of included file
  */
 static void
-master_includelist_test(void **state) {
+master_includelist_test(void **state)
+{
 	isc_result_t result;
-	char *filename = NULL;
+	char *	     filename = NULL;
 
 	UNUSED(state);
 
 	result = setup_master(nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_master_loadfile("testdata/master/master8.data",
-				     &dns_origin, &dns_origin,
-				     dns_rdataclass_in, 0, true,
-				     &callbacks, include_callback,
-				     &filename, dt_mctx, dns_masterformat_text, 0);
+	result = dns_master_loadfile(
+		"testdata/master/master8.data", &dns_origin, &dns_origin,
+		dns_rdataclass_in, 0, true, &callbacks, include_callback,
+		&filename, dt_mctx, dns_masterformat_text, 0);
 	assert_int_equal(result, DNS_R_SEENINCLUDE);
 	assert_non_null(filename);
 	if (filename != NULL) {
@@ -366,7 +379,8 @@ master_includelist_test(void **state) {
  * dns_master_loadfile() understands $INCLUDE failures
  */
 static void
-includefail_test(void **state) {
+includefail_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -381,7 +395,8 @@ includefail_test(void **state) {
  * dns_master_loadfile() handles non-empty blank lines
  */
 static void
-blanklines_test(void **state) {
+blanklines_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -397,7 +412,8 @@ blanklines_test(void **state) {
  */
 
 static void
-leadingzero_test(void **state) {
+leadingzero_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -409,12 +425,13 @@ leadingzero_test(void **state) {
 
 /* masterfile totext tests */
 static void
-totext_test(void **state) {
-	isc_result_t result;
-	dns_rdataset_t rdataset;
+totext_test(void **state)
+{
+	isc_result_t	result;
+	dns_rdataset_t	rdataset;
 	dns_rdatalist_t rdatalist;
-	isc_buffer_t target;
-	unsigned char buf[BIGBUFLEN];
+	isc_buffer_t	target;
+	unsigned char	buf[BIGBUFLEN];
 
 	UNUSED(state);
 
@@ -447,7 +464,8 @@ totext_test(void **state) {
  * dns_master_loadfile() loads a valid raw file and returns success
  */
 static void
-loadraw_test(void **state) {
+loadraw_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -480,15 +498,16 @@ loadraw_test(void **state) {
  * dns_master_dump*() functions dump valid raw files
  */
 static void
-dumpraw_test(void **state) {
-	isc_result_t result;
-	dns_db_t *db = NULL;
+dumpraw_test(void **state)
+{
+	isc_result_t	 result;
+	dns_db_t *	 db = NULL;
 	dns_dbversion_t *version = NULL;
-	char myorigin[sizeof(TEST_ORIGIN)];
-	dns_name_t dnsorigin;
-	isc_buffer_t source, target;
-	unsigned char namebuf[BUFLEN];
-	int len;
+	char		 myorigin[sizeof(TEST_ORIGIN)];
+	dns_name_t	 dnsorigin;
+	isc_buffer_t	 source, target;
+	unsigned char	 namebuf[BUFLEN];
+	int		 len;
 
 	UNUSED(state);
 
@@ -499,8 +518,8 @@ dumpraw_test(void **state) {
 	isc_buffer_setactive(&source, len);
 	isc_buffer_init(&target, namebuf, BUFLEN);
 	dns_name_init(&dnsorigin, NULL);
-	result = dns_name_fromtext(&dnsorigin, &source, dns_rootname,
-				   0, &target);
+	result = dns_name_fromtext(&dnsorigin, &source, dns_rootname, 0,
+				   &target);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_db_create(dt_mctx, "rbt", &dnsorigin, dns_dbtype_zone,
@@ -518,8 +537,8 @@ dumpraw_test(void **state) {
 				 dns_masterformat_raw, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = test_master("test.dump", dns_masterformat_raw,
-			     nullmsg, nullmsg);
+	result = test_master("test.dump", dns_masterformat_raw, nullmsg,
+			     nullmsg);
 	assert_string_equal(isc_result_totext(result), "success");
 	assert_true(headerset);
 	assert_int_equal(header.flags, 0);
@@ -534,8 +553,8 @@ dumpraw_test(void **state) {
 				 dns_masterformat_raw, &header);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = test_master("test.dump", dns_masterformat_raw,
-			     nullmsg, nullmsg);
+	result = test_master("test.dump", dns_masterformat_raw, nullmsg,
+			     nullmsg);
 	assert_string_equal(isc_result_totext(result), "success");
 	assert_true(headerset);
 	assert_true((header.flags & DNS_MASTERRAW_SOURCESERIALSET) != 0);
@@ -547,11 +566,12 @@ dumpraw_test(void **state) {
 }
 
 static const char *warn_expect_value;
-static bool warn_expect_result;
+static bool	   warn_expect_result;
 
 static void
-warn_expect(struct dns_rdatacallbacks *mycallbacks, const char *fmt, ...) {
-	char buf[4096];
+warn_expect(struct dns_rdatacallbacks *mycallbacks, const char *fmt, ...)
+{
+	char	buf[4096];
 	va_list ap;
 
 	UNUSED(mycallbacks);
@@ -563,8 +583,7 @@ warn_expect(struct dns_rdatacallbacks *mycallbacks, const char *fmt, ...) {
 	va_end(ap);
 
 	if (warn_expect_value != NULL &&
-	    strstr(buf, warn_expect_value) != NULL)
-	{
+	    strstr(buf, warn_expect_value) != NULL) {
 		warn_expect_result = true;
 	}
 }
@@ -574,7 +593,8 @@ warn_expect(struct dns_rdatacallbacks *mycallbacks, const char *fmt, ...) {
  * dns_master_loadfile() rejects zones with inherited name following $ORIGIN
  */
 static void
-neworigin_test(void **state) {
+neworigin_test(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -587,44 +607,40 @@ neworigin_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(load_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(unexpected_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(noowner_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(nottl_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(badclass_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(dnskey_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(dnsnokey_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(include_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(master_includelist_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(includefail_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(blanklines_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(leadingzero_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(totext_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(loadraw_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(dumpraw_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(toobig_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(maxrdata_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(neworigin_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(load_test, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(unexpected_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(noowner_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(nottl_test, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(badclass_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(dnskey_test, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(dnsnokey_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(include_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(master_includelist_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(includefail_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(blanklines_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(leadingzero_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(totext_test, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(loadraw_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(dumpraw_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(toobig_test, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(maxrdata_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(neworigin_test, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -635,7 +651,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

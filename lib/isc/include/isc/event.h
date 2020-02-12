@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
 
@@ -24,25 +23,25 @@
 
 typedef void (*isc_eventdestructor_t)(isc_event_t *);
 
-#define ISC_EVENT_COMMON(ltype)		\
-	size_t				ev_size; \
-	unsigned int			ev_attributes; \
-	void *				ev_tag; \
-	isc_eventtype_t			ev_type; \
-	isc_taskaction_t		ev_action; \
-	void *				ev_arg; \
-	void *				ev_sender; \
-	isc_eventdestructor_t		ev_destroy; \
-	void *				ev_destroy_arg; \
-	ISC_LINK(ltype)			ev_link; \
-	ISC_LINK(ltype)			ev_ratelink
+#define ISC_EVENT_COMMON(ltype)               \
+	size_t		      ev_size;        \
+	unsigned int	      ev_attributes;  \
+	void *		      ev_tag;         \
+	isc_eventtype_t	      ev_type;        \
+	isc_taskaction_t      ev_action;      \
+	void *		      ev_arg;         \
+	void *		      ev_sender;      \
+	isc_eventdestructor_t ev_destroy;     \
+	void *		      ev_destroy_arg; \
+	ISC_LINK(ltype) ev_link;              \
+	ISC_LINK(ltype) ev_ratelink
 
 /*%
  * Attributes matching a mask of 0x000000ff are reserved for the task library's
  * definition.  Attributes of 0xffffff00 may be used by the application
  * or non-ISC libraries.
  */
-#define ISC_EVENTATTR_NOPURGE		0x00000001
+#define ISC_EVENTATTR_NOPURGE 0x00000001
 
 /*%
  * The ISC_EVENTATTR_CANCELED attribute is intended to indicate
@@ -51,22 +50,22 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
  * between the sender and receiver.  It is not set or used by
  * the task system.
  */
-#define ISC_EVENTATTR_CANCELED		0x00000002
+#define ISC_EVENTATTR_CANCELED 0x00000002
 
 #define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da) \
-do { \
-	(event)->ev_size = (sz); \
-	(event)->ev_attributes = (at); \
-	(event)->ev_tag = (ta); \
-	(event)->ev_type = (ty); \
-	(event)->ev_action = (ac); \
-	(event)->ev_arg = (ar); \
-	(event)->ev_sender = (sn); \
-	(event)->ev_destroy = (df); \
-	(event)->ev_destroy_arg = (da); \
-	ISC_LINK_INIT((event), ev_link); \
-	ISC_LINK_INIT((event), ev_ratelink); \
-} while (0)
+	do {                                                      \
+		(event)->ev_size = (sz);                          \
+		(event)->ev_attributes = (at);                    \
+		(event)->ev_tag = (ta);                           \
+		(event)->ev_type = (ty);                          \
+		(event)->ev_action = (ac);                        \
+		(event)->ev_arg = (ar);                           \
+		(event)->ev_sender = (sn);                        \
+		(event)->ev_destroy = (df);                       \
+		(event)->ev_destroy_arg = (da);                   \
+		ISC_LINK_INIT((event), ev_link);                  \
+		ISC_LINK_INIT((event), ev_ratelink);              \
+	} while (0)
 
 /*%
  * This structure is public because "subclassing" it may be useful when
@@ -76,8 +75,8 @@ struct isc_event {
 	ISC_EVENT_COMMON(struct isc_event);
 };
 
-#define ISC_EVENTTYPE_FIRSTEVENT	0x00000000
-#define ISC_EVENTTYPE_LASTEVENT		0xffffffff
+#define ISC_EVENTTYPE_FIRSTEVENT 0x00000000
+#define ISC_EVENTTYPE_LASTEVENT 0xffffffff
 
 #define ISC_EVENT_PTR(p) ((isc_event_t **)(void *)(p))
 

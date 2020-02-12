@@ -11,25 +11,26 @@
 
 /*! \file */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
-
-#include <sys/types.h>		/* Non-portable. */
-#include <sys/stat.h>		/* Non-portable. */
 
 #include <isc/fsaccess.h>
 #include <isc/print.h>
 #include <isc/result.h>
 
+#include <sys/stat.h>  /* Non-portable. */
+#include <sys/types.h> /* Non-portable. */
+
 #define PATH "/tmp/fsaccess"
 
 int
-main(void) {
+main(void)
+{
 	isc_fsaccess_t access;
-	isc_result_t result;
-	FILE *fp;
-	int n;
+	isc_result_t   result;
+	FILE *	       fp;
+	int	       n;
 
 	n = remove(PATH);
 	if (n != 0 && errno != ENOENT) {
@@ -50,8 +51,7 @@ main(void) {
 	access = 0;
 
 	isc_fsaccess_add(ISC_FSACCESS_OWNER | ISC_FSACCESS_GROUP,
-			 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
-			 &access);
+			 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE, &access);
 
 	printf("fsaccess=%u\n", access);
 

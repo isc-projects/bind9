@@ -26,8 +26,8 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
-#include "uv-compat.h"
 #include "netmgr-int.h"
+#include "uv-compat.h"
 
 #define TCPDNS_CLIENTS_PER_CONN 23
 /*%<
@@ -44,7 +44,8 @@ static void
 resume_processing(void *arg);
 
 static inline size_t
-dnslen(unsigned char* base) {
+dnslen(unsigned char *base)
+{
 	return ((base[0] << 8) + (base[1]));
 }
 
@@ -57,9 +58,10 @@ dnslen(unsigned char* base) {
  * netmgr receives 64k at most so there's no risk
  * of overrun.
  */
-#define NM_BIG_BUF (65535+2)*2
+#define NM_BIG_BUF (65535 + 2) * 2
 static inline void
-alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
+alloc_dnsbuf(isc_nmsocket_t *sock, size_t len)
+{
 	REQUIRE(len <= NM_BIG_BUF);
 
 	if (sock->buf == NULL) {
@@ -76,31 +78,34 @@ alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 }
 
 static void
-timer_close_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) uv_handle_get_data(handle);
+timer_close_cb(uv_handle_t *handle)
+{
+	isc_nmsocket_t *sock = (isc_nmsocket_t *)uv_handle_get_data(handle);
 	INSIST(VALID_NMSOCK(sock));
 	atomic_store(&sock->closed, true);
 	isc_nmsocket_detach(&sock);
 }
 
 static void
-dnstcp_readtimeout(uv_timer_t *timer) {
+dnstcp_readtimeout(uv_timer_t *timer)
+{
 	isc_nmsocket_t *sock =
-		(isc_nmsocket_t *) uv_handle_get_data((uv_handle_t *) timer);
+		(isc_nmsocket_t *)uv_handle_get_data((uv_handle_t *)timer);
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	isc_nmsocket_detach(&sock->outer);
-	uv_close((uv_handle_t *) &sock->timer, timer_close_cb);
+	uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 }
 
 /*
  * Accept callback for TCP-DNS connection.
  */
 static void
-dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
-	isc_nmsocket_t *dnslistensock = (isc_nmsocket_t *) cbarg;
+dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg)
+{
+	isc_nmsocket_t *dnslistensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *dnssock = NULL;
 
 	REQUIRE(VALID_NMSOCK(dnslistensock));
@@ -118,8 +123,8 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	/* We need to create a 'wrapper' dnssocket for this connection */
 	dnssock = isc_mem_get(handle->sock->mgr->mctx, sizeof(*dnssock));
-	isc__nmsocket_init(dnssock, handle->sock->mgr,
-			   isc_nm_tcpdnssocket, handle->sock->iface);
+	isc__nmsocket_init(dnssock, handle->sock->mgr, isc_nm_tcpdnssocket,
+			   handle->sock->iface);
 
 	dnssock->extrahandlesize = dnslistensock->extrahandlesize;
 	isc_nmsocket_attach(dnslistensock, &dnssock->listener);
@@ -149,7 +154,8 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
  * The caller will need to unreference the handle.
  */
 static isc_result_t
-processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
+processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep)
+{
 	size_t len;
 
 	REQUIRE(VALID_NMSOCK(dnssock));
@@ -169,16 +175,16 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 	 */
 	len = dnslen(dnssock->buf);
 	if (len <= dnssock->buf_len - 2) {
-		isc_nmhandle_t *dnshandle = isc__nmhandle_get(dnssock,
-							      NULL, NULL);
+		isc_nmhandle_t *dnshandle =
+			isc__nmhandle_get(dnssock, NULL, NULL);
 		isc_nmsocket_t *listener = dnssock->listener;
 
 		if (listener != NULL && listener->rcb.recv != NULL) {
-			listener->rcb.recv(dnshandle,
-					   &(isc_region_t){
-						.base = dnssock->buf + 2,
-						.length = len
-					   }, listener->rcbarg);
+			listener->rcb.recv(
+				dnshandle,
+				&(isc_region_t){ .base = dnssock->buf + 2,
+						 .length = len },
+				listener->rcbarg);
 		}
 
 		len += 2;
@@ -200,11 +206,12 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
  * a complete DNS packet and, if so - call the callback
  */
 static void
-dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
-	isc_nmsocket_t *dnssock = (isc_nmsocket_t *) arg;
-	unsigned char *base = NULL;
-	bool done = false;
-	size_t len;
+dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg)
+{
+	isc_nmsocket_t *dnssock = (isc_nmsocket_t *)arg;
+	unsigned char * base = NULL;
+	bool		done = false;
+	size_t		len;
 
 	REQUIRE(VALID_NMSOCK(dnssock));
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -226,11 +233,11 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	dnssock->buf_len += len;
 
 	dnssock->read_timeout = (atomic_load(&dnssock->keepalive)
-				 ? dnssock->mgr->keepalive
-				 : dnssock->mgr->idle);
+					 ? dnssock->mgr->keepalive
+					 : dnssock->mgr->idle);
 
 	do {
-		isc_result_t result;
+		isc_result_t	result;
 		isc_nmhandle_t *dnshandle = NULL;
 
 		result = processbuffer(dnssock, &dnshandle);
@@ -264,8 +271,7 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 			 * is reached, pause reading.
 			 */
 			if (atomic_load(&dnssock->ah) >=
-			    TCPDNS_CLIENTS_PER_CONN)
-			{
+			    TCPDNS_CLIENTS_PER_CONN) {
 				isc_nm_pauseread(dnssock->outer);
 				done = true;
 			}
@@ -281,9 +287,8 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
  * (with 2-byte length stripped) - just like for UDP packet.
  */
 isc_result_t
-isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
-		    isc_nm_recv_cb_t cb, void *cbarg,
-		    isc_nm_cb_t accept_cb, void *accept_cbarg,
+isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
+		    void *cbarg, isc_nm_cb_t accept_cb, void *accept_cbarg,
 		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
 		    isc_nmsocket_t **sockp)
 {
@@ -302,9 +307,9 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 	dnslistensock->extrahandlesize = extrahandlesize;
 
 	/* We set dnslistensock->outer to a true listening socket */
-	result = isc_nm_listentcp(mgr, iface, dnslisten_acceptcb,
-				  dnslistensock, extrahandlesize, backlog,
-				  quota, &dnslistensock->outer);
+	result = isc_nm_listentcp(mgr, iface, dnslisten_acceptcb, dnslistensock,
+				  extrahandlesize, backlog, quota,
+				  &dnslistensock->outer);
 	if (result == ISC_R_SUCCESS) {
 		atomic_store(&dnslistensock->listening, true);
 		*sockp = dnslistensock;
@@ -317,7 +322,8 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 }
 
 void
-isc_nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
+isc_nm_tcpdns_stoplistening(isc_nmsocket_t *sock)
+{
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcpdnslistener);
 
@@ -333,12 +339,12 @@ isc_nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
 }
 
 void
-isc_nm_tcpdns_sequential(isc_nmhandle_t *handle) {
+isc_nm_tcpdns_sequential(isc_nmhandle_t *handle)
+{
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	if (handle->sock->type != isc_nm_tcpdnssocket ||
-	    handle->sock->outer == NULL)
-	{
+	    handle->sock->outer == NULL) {
 		return;
 	}
 
@@ -355,12 +361,12 @@ isc_nm_tcpdns_sequential(isc_nmhandle_t *handle) {
 }
 
 void
-isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle) {
+isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle)
+{
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	if (handle->sock->type != isc_nm_tcpdnssocket ||
-	    handle->sock->outer == NULL)
-	{
+	    handle->sock->outer == NULL) {
 		return;
 	}
 
@@ -369,18 +375,19 @@ isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle) {
 }
 
 typedef struct tcpsend {
-	isc_mem_t		*mctx;
-	isc_nmhandle_t		*handle;
-	isc_region_t		region;
-	isc_nmhandle_t		*orighandle;
-	isc_nm_cb_t		cb;
-	void 			*cbarg;
+	isc_mem_t *	mctx;
+	isc_nmhandle_t *handle;
+	isc_region_t	region;
+	isc_nmhandle_t *orighandle;
+	isc_nm_cb_t	cb;
+	void *		cbarg;
 } tcpsend_t;
 
 static void
-resume_processing(void *arg) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *) arg;
-	isc_result_t result;
+resume_processing(void *arg)
+{
+	isc_nmsocket_t *sock = (isc_nmsocket_t *)arg;
+	isc_result_t	result;
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -441,8 +448,9 @@ resume_processing(void *arg) {
 }
 
 static void
-tcpdnssend_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
-	tcpsend_t *ts = (tcpsend_t *) cbarg;
+tcpdnssend_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg)
+{
+	tcpsend_t *ts = (tcpsend_t *)cbarg;
 
 	UNUSED(handle);
 
@@ -475,7 +483,7 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	}
 
 	t = isc_mem_get(sock->mgr->mctx, sizeof(*t));
-	*t = (tcpsend_t) {
+	*t = (tcpsend_t){
 		.cb = cb,
 		.cbarg = cbarg,
 		.handle = handle->sock->outer->tcphandle,
@@ -485,20 +493,19 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	t->orighandle = handle;
 	isc_nmhandle_ref(t->orighandle);
 
-	t->region = (isc_region_t) {
-		.base = isc_mem_get(t->mctx, region->length + 2),
-		.length = region->length + 2
-	};
+	t->region = (isc_region_t){ .base = isc_mem_get(t->mctx,
+							region->length + 2),
+				    .length = region->length + 2 };
 
-	*(uint16_t *) t->region.base = htons(region->length);
+	*(uint16_t *)t->region.base = htons(region->length);
 	memmove(t->region.base + 2, region->base, region->length);
 
 	return (isc__nm_tcp_send(t->handle, &t->region, tcpdnssend_cb, t));
 }
 
-
 static void
-tcpdns_close_direct(isc_nmsocket_t *sock) {
+tcpdns_close_direct(isc_nmsocket_t *sock)
+{
 	REQUIRE(sock->tid == isc_nm_tid());
 	if (sock->outer != NULL) {
 		sock->outer->rcb.recv = NULL;
@@ -511,12 +518,13 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 	if (sock->timer_initialized) {
 		sock->timer_initialized = false;
 		uv_timer_stop(&sock->timer);
-		uv_close((uv_handle_t *) &sock->timer, timer_close_cb);
+		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 	}
 }
 
 void
-isc__nm_tcpdns_close(isc_nmsocket_t *sock) {
+isc__nm_tcpdns_close(isc_nmsocket_t *sock)
+{
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 
@@ -528,14 +536,15 @@ isc__nm_tcpdns_close(isc_nmsocket_t *sock) {
 
 		ievent->sock = sock;
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-				       (isc__netievent_t *) ievent);
+				       (isc__netievent_t *)ievent);
 	}
 }
 
 void
-isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0) {
+isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0)
+{
 	isc__netievent_tcpdnsclose_t *ievent =
-		(isc__netievent_tcpdnsclose_t *) ev0;
+		(isc__netievent_tcpdnsclose_t *)ev0;
 
 	REQUIRE(worker->id == ievent->sock->tid);
 

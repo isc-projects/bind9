@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 /***
@@ -51,13 +50,14 @@ dns_rriterator_init(dns_rriterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 	dns_rdata_init(&it->rdata);
 	dns_rdataset_init(&it->rdataset);
 	dns_fixedname_init(&it->fixedname);
-	INSIST(! dns_rdataset_isassociated(&it->rdataset));
+	INSIST(!dns_rdataset_isassociated(&it->rdataset));
 	it->result = ISC_R_SUCCESS;
 	return (it->result);
 }
 
 isc_result_t
-dns_rriterator_first(dns_rriterator_t *it) {
+dns_rriterator_first(dns_rriterator_t *it)
+{
 	REQUIRE(VALID_RRITERATOR(it));
 	/* Reset state */
 	if (dns_rdataset_isassociated(&it->rdataset))
@@ -73,8 +73,9 @@ dns_rriterator_first(dns_rriterator_t *it) {
 	 * Walk the tree to find the first node with data.
 	 */
 	while (it->result == ISC_R_SUCCESS) {
-		it->result = dns_dbiterator_current(it->dbit, &it->node,
-					   dns_fixedname_name(&it->fixedname));
+		it->result = dns_dbiterator_current(
+			it->dbit, &it->node,
+			dns_fixedname_name(&it->fixedname));
 		if (it->result != ISC_R_SUCCESS)
 			return (it->result);
 
@@ -104,7 +105,8 @@ dns_rriterator_first(dns_rriterator_t *it) {
 }
 
 isc_result_t
-dns_rriterator_nextrrset(dns_rriterator_t *it) {
+dns_rriterator_nextrrset(dns_rriterator_t *it)
+{
 	REQUIRE(VALID_RRITERATOR(it));
 	if (dns_rdataset_isassociated(&it->rdataset))
 		dns_rdataset_disassociate(&it->rdataset);
@@ -123,8 +125,9 @@ dns_rriterator_nextrrset(dns_rriterator_t *it) {
 		}
 		if (it->result != ISC_R_SUCCESS)
 			return (it->result);
-		it->result = dns_dbiterator_current(it->dbit, &it->node,
-					   dns_fixedname_name(&it->fixedname));
+		it->result = dns_dbiterator_current(
+			it->dbit, &it->node,
+			dns_fixedname_name(&it->fixedname));
 		if (it->result != ISC_R_SUCCESS)
 			return (it->result);
 		it->result = dns_db_allrdatasets(it->db, it->node, it->ver,
@@ -144,7 +147,8 @@ dns_rriterator_nextrrset(dns_rriterator_t *it) {
 }
 
 isc_result_t
-dns_rriterator_next(dns_rriterator_t *it) {
+dns_rriterator_next(dns_rriterator_t *it)
+{
 	REQUIRE(VALID_RRITERATOR(it));
 	if (it->result != ISC_R_SUCCESS)
 		return (it->result);
@@ -160,13 +164,15 @@ dns_rriterator_next(dns_rriterator_t *it) {
 }
 
 void
-dns_rriterator_pause(dns_rriterator_t *it) {
+dns_rriterator_pause(dns_rriterator_t *it)
+{
 	REQUIRE(VALID_RRITERATOR(it));
 	RUNTIME_CHECK(dns_dbiterator_pause(it->dbit) == ISC_R_SUCCESS);
 }
 
 void
-dns_rriterator_destroy(dns_rriterator_t *it) {
+dns_rriterator_destroy(dns_rriterator_t *it)
+{
 	REQUIRE(VALID_RRITERATOR(it));
 	if (dns_rdataset_isassociated(&it->rdataset))
 		dns_rdataset_disassociate(&it->rdataset);
@@ -178,9 +184,8 @@ dns_rriterator_destroy(dns_rriterator_t *it) {
 }
 
 void
-dns_rriterator_current(dns_rriterator_t *it, dns_name_t **name,
-		       uint32_t *ttl, dns_rdataset_t **rdataset,
-		       dns_rdata_t **rdata)
+dns_rriterator_current(dns_rriterator_t *it, dns_name_t **name, uint32_t *ttl,
+		       dns_rdataset_t **rdataset, dns_rdata_t **rdata)
 {
 	REQUIRE(name != NULL && *name == NULL);
 	REQUIRE(VALID_RRITERATOR(it));

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
 
@@ -35,17 +34,17 @@ typedef enum {
 #include <pthread.h>
 
 struct isc_rwlock {
-	pthread_rwlock_t	rwlock;
-	atomic_bool             downgrade;
+	pthread_rwlock_t rwlock;
+	atomic_bool	 downgrade;
 };
 
 #else /* USE_PTHREAD_RWLOCK */
 
 struct isc_rwlock {
 	/* Unlocked. */
-	unsigned int		magic;
-	isc_mutex_t		lock;
-	atomic_int_fast32_t	spins;
+	unsigned int	    magic;
+	isc_mutex_t	    lock;
+	atomic_int_fast32_t spins;
 
 	/*
 	 * When some atomic instructions with hardware assistance are
@@ -61,21 +60,20 @@ struct isc_rwlock {
 	 */
 
 	/* Read or modified atomically. */
-	atomic_int_fast32_t	write_requests;
-	atomic_int_fast32_t	write_completions;
-	atomic_int_fast32_t	cnt_and_flag;
+	atomic_int_fast32_t write_requests;
+	atomic_int_fast32_t write_completions;
+	atomic_int_fast32_t cnt_and_flag;
 
 	/* Locked by lock. */
-	isc_condition_t		readable;
-	isc_condition_t		writeable;
-	unsigned int		readers_waiting;
+	isc_condition_t readable;
+	isc_condition_t writeable;
+	unsigned int	readers_waiting;
 
 	/* Locked by rwlock itself. */
-	atomic_uint_fast32_t	write_granted;
+	atomic_uint_fast32_t write_granted;
 
 	/* Unlocked. */
-	unsigned int		write_quota;
-
+	unsigned int write_quota;
 };
 
 #endif /* USE_PTHREAD_RWLOCK */

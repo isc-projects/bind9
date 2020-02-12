@@ -22,8 +22,9 @@
 isc_mem_t *mctx = NULL;
 
 static void
-my_callback(isc_task_t *task, isc_event_t *event) {
-	int i, j;
+my_callback(isc_task_t *task, isc_event_t *event)
+{
+	int   i, j;
 	char *name = event->ev_arg;
 
 	j = 0;
@@ -34,7 +35,8 @@ my_callback(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-my_shutdown(isc_task_t *task, isc_event_t *event) {
+my_shutdown(isc_task_t *task, isc_event_t *event)
+{
 	char *name = event->ev_arg;
 
 	printf("shutdown %s (%p)\n", name, task);
@@ -42,7 +44,8 @@ my_shutdown(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-my_tick(isc_task_t *task, isc_event_t *event) {
+my_tick(isc_task_t *task, isc_event_t *event)
+{
 	char *name = event->ev_arg;
 
 	printf("task %p tick %s\n", task, name);
@@ -57,14 +60,15 @@ static char foo[] = "foo";
 static char bar[] = "bar";
 
 int
-main(int argc, char *argv[]) {
-	isc_taskmgr_t *manager = NULL;
-	isc_task_t *t1 = NULL, *t2 = NULL;
-	isc_task_t *t3 = NULL, *t4 = NULL;
-	isc_event_t *event;
-	unsigned int workers;
-	isc_timermgr_t *timgr;
-	isc_timer_t *ti1, *ti2;
+main(int argc, char *argv[])
+{
+	isc_taskmgr_t *	    manager = NULL;
+	isc_task_t *	    t1 = NULL, *t2 = NULL;
+	isc_task_t *	    t3 = NULL, *t4 = NULL;
+	isc_event_t *	    event;
+	unsigned int	    workers;
+	isc_timermgr_t *    timgr;
+	isc_timer_t *	    ti1, *ti2;
 	struct isc_interval interval;
 
 	if (argc > 1) {
@@ -102,14 +106,14 @@ main(int argc, char *argv[]) {
 
 	isc_interval_set(&interval, 1, 0);
 	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker, NULL,
-				       &interval, t1, my_tick, foo, &ti1) ==
-		      ISC_R_SUCCESS);
+				       &interval, t1, my_tick, foo,
+				       &ti1) == ISC_R_SUCCESS);
 
 	ti2 = NULL;
 	isc_interval_set(&interval, 1, 0);
 	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker, NULL,
-				       &interval, t2, my_tick, bar, &ti2) ==
-		      ISC_R_SUCCESS);
+				       &interval, t2, my_tick, bar,
+				       &ti2) == ISC_R_SUCCESS);
 
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);
@@ -172,9 +176,7 @@ main(int argc, char *argv[]) {
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, four,
 				   sizeof(*event));
 	isc_task_send(t4, &event);
-	isc_task_purgerange(t3,
-			    NULL,
-			    ISC_EVENTTYPE_FIRSTEVENT,
+	isc_task_purgerange(t3, NULL, ISC_EVENTTYPE_FIRSTEVENT,
 			    ISC_EVENTTYPE_LASTEVENT, NULL);
 
 	isc_task_detach(&t1);

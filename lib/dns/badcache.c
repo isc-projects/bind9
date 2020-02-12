@@ -15,8 +15,8 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
-#include <isc/log.h>
 #include <isc/hash.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/platform.h>
@@ -33,34 +33,35 @@
 typedef struct dns_bcentry dns_bcentry_t;
 
 struct dns_badcache {
-	unsigned int		magic;
-	isc_mutex_t		lock;
-	isc_mem_t		*mctx;
+	unsigned int magic;
+	isc_mutex_t  lock;
+	isc_mem_t *  mctx;
 
-	dns_bcentry_t 		**table;
-	unsigned int 		count;
-	unsigned int 		minsize;
-	unsigned int 		size;
-	unsigned int 		sweep;
+	dns_bcentry_t **table;
+	unsigned int	count;
+	unsigned int	minsize;
+	unsigned int	size;
+	unsigned int	sweep;
 };
 
-#define BADCACHE_MAGIC                   ISC_MAGIC('B', 'd', 'C', 'a')
-#define VALID_BADCACHE(m)                ISC_MAGIC_VALID(m, BADCACHE_MAGIC)
+#define BADCACHE_MAGIC ISC_MAGIC('B', 'd', 'C', 'a')
+#define VALID_BADCACHE(m) ISC_MAGIC_VALID(m, BADCACHE_MAGIC)
 
 struct dns_bcentry {
-	dns_bcentry_t *		next;
-	dns_rdatatype_t 	type;
-	isc_time_t		expire;
-	uint32_t		flags;
-	unsigned int		hashval;
-	dns_name_t		name;
+	dns_bcentry_t * next;
+	dns_rdatatype_t type;
+	isc_time_t	expire;
+	uint32_t	flags;
+	unsigned int	hashval;
+	dns_name_t	name;
 };
 
 static isc_result_t
 badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow);
 
 isc_result_t
-dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
+dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp)
+{
 	dns_badcache_t *bc = NULL;
 
 	REQUIRE(bcp != NULL && *bcp == NULL);
@@ -86,7 +87,8 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 }
 
 void
-dns_badcache_destroy(dns_badcache_t **bcp) {
+dns_badcache_destroy(dns_badcache_t **bcp)
+{
 	dns_badcache_t *bc;
 
 	REQUIRE(bcp != NULL && *bcp != NULL);
@@ -102,9 +104,10 @@ dns_badcache_destroy(dns_badcache_t **bcp) {
 }
 
 static isc_result_t
-badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow) {
+badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow)
+{
 	dns_bcentry_t **newtable, *bad, *next;
-	unsigned int newsize, i;
+	unsigned int	newsize, i;
 
 	if (grow)
 		newsize = bc->size * 2 + 1;
@@ -138,13 +141,13 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow) {
 
 void
 dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
-		 dns_rdatatype_t type, bool update,
-		 uint32_t flags, isc_time_t *expire)
+		 dns_rdatatype_t type, bool update, uint32_t flags,
+		 isc_time_t *expire)
 {
-	isc_result_t result;
-	unsigned int i, hashval;
+	isc_result_t   result;
+	unsigned int   i, hashval;
 	dns_bcentry_t *bad, *prev, *next;
-	isc_time_t now;
+	isc_time_t     now;
 
 	REQUIRE(VALID_BADCACHE(bc));
 	REQUIRE(name != NULL);
@@ -205,12 +208,11 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 
 bool
 dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
-		  dns_rdatatype_t type, uint32_t *flagp,
-		  isc_time_t *now)
+		  dns_rdatatype_t type, uint32_t *flagp, isc_time_t *now)
 {
 	dns_bcentry_t *bad, *prev, *next;
-	bool answer = false;
-	unsigned int i;
+	bool	       answer = false;
+	unsigned int   i;
 
 	REQUIRE(VALID_BADCACHE(bc));
 	REQUIRE(name != NULL);
@@ -246,8 +248,8 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 			else
 				bc->table[i] = bad->next;
 
-			isc_mem_put(bc->mctx, bad, sizeof(*bad) +
-				    bad->name.length);
+			isc_mem_put(bc->mctx, bad,
+				    sizeof(*bad) + bad->name.length);
 			bc->count--;
 			continue;
 		}
@@ -259,7 +261,7 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 		}
 		prev = bad;
 	}
- skip:
+skip:
 
 	/*
 	 * Slow sweep to clean out stale records.
@@ -277,17 +279,18 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 }
 
 void
-dns_badcache_flush(dns_badcache_t *bc) {
+dns_badcache_flush(dns_badcache_t *bc)
+{
 	dns_bcentry_t *entry, *next;
-	unsigned int i;
+	unsigned int   i;
 
 	REQUIRE(VALID_BADCACHE(bc));
 
 	for (i = 0; bc->count > 0 && i < bc->size; i++) {
 		for (entry = bc->table[i]; entry != NULL; entry = next) {
 			next = entry->next;
-			isc_mem_put(bc->mctx, entry, sizeof(*entry) +
-				    entry->name.length);
+			isc_mem_put(bc->mctx, entry,
+				    sizeof(*entry) + entry->name.length);
 			bc->count--;
 		}
 		bc->table[i] = NULL;
@@ -295,11 +298,12 @@ dns_badcache_flush(dns_badcache_t *bc) {
 }
 
 void
-dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name) {
+dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name)
+{
 	dns_bcentry_t *bad, *prev, *next;
-	isc_result_t result;
-	isc_time_t now;
-	unsigned int i;
+	isc_result_t   result;
+	isc_time_t     now;
+	unsigned int   i;
 
 	REQUIRE(VALID_BADCACHE(bc));
 	REQUIRE(name != NULL);
@@ -321,8 +325,8 @@ dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name) {
 			else
 				prev->next = bad->next;
 
-			isc_mem_put(bc->mctx, bad, sizeof(*bad) +
-				    bad->name.length);
+			isc_mem_put(bc->mctx, bad,
+				    sizeof(*bad) + bad->name.length);
 			bc->count--;
 		} else
 			prev = bad;
@@ -332,12 +336,13 @@ dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name) {
 }
 
 void
-dns_badcache_flushtree(dns_badcache_t *bc, const dns_name_t *name) {
+dns_badcache_flushtree(dns_badcache_t *bc, const dns_name_t *name)
+{
 	dns_bcentry_t *bad, *prev, *next;
-	unsigned int i;
-	int n;
-	isc_time_t now;
-	isc_result_t result;
+	unsigned int   i;
+	int	       n;
+	isc_time_t     now;
+	isc_result_t   result;
 
 	REQUIRE(VALID_BADCACHE(bc));
 	REQUIRE(name != NULL);
@@ -359,8 +364,8 @@ dns_badcache_flushtree(dns_badcache_t *bc, const dns_name_t *name) {
 				else
 					prev->next = bad->next;
 
-				isc_mem_put(bc->mctx, bad, sizeof(*bad) +
-					    bad->name.length);
+				isc_mem_put(bc->mctx, bad,
+					    sizeof(*bad) + bad->name.length);
 				bc->count--;
 			} else
 				prev = bad;
@@ -370,15 +375,15 @@ dns_badcache_flushtree(dns_badcache_t *bc, const dns_name_t *name) {
 	UNLOCK(&bc->lock);
 }
 
-
 void
-dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp) {
-	char namebuf[DNS_NAME_FORMATSIZE];
-	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp)
+{
+	char	       namebuf[DNS_NAME_FORMATSIZE];
+	char	       typebuf[DNS_RDATATYPE_FORMATSIZE];
 	dns_bcentry_t *bad, *next, *prev;
-	isc_time_t now;
-	unsigned int i;
-	uint64_t t;
+	isc_time_t     now;
+	unsigned int   i;
+	uint64_t       t;
 
 	REQUIRE(VALID_BADCACHE(bc));
 	REQUIRE(cachename != NULL);
@@ -398,8 +403,8 @@ dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp) {
 				else
 					bc->table[i] = bad->next;
 
-				isc_mem_put(bc->mctx, bad, sizeof(*bad) +
-					    bad->name.length);
+				isc_mem_put(bc->mctx, bad,
+					    sizeof(*bad) + bad->name.length);
 				bc->count--;
 				continue;
 			}
@@ -409,7 +414,8 @@ dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp) {
 					     sizeof(typebuf));
 			t = isc_time_microdiff(&bad->expire, &now);
 			t /= 1000;
-			fprintf(fp, "; %s/%s [ttl "
+			fprintf(fp,
+				"; %s/%s [ttl "
 				"%" PRIu64 "]\n",
 				namebuf, typebuf, t);
 		}

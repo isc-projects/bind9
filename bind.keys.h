@@ -1,6 +1,7 @@
 #ifndef BIND_KEYS_H
 #define BIND_KEYS_H 1
-#define TRUST_ANCHORS "\
+#define TRUST_ANCHORS \
+	"\
 # The bind.keys file is used to override the built-in DNSSEC trust anchors\n\
 # which are included as part of BIND 9.  The only trust anchors it contains\n\
 # are for the DNS root zone (\".\").  Trust anchors for any other zones MUST\n\

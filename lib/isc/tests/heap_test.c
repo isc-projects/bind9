@@ -13,11 +13,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 
@@ -31,7 +30,8 @@
 #include "isctest.h"
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -43,7 +43,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	isc_test_end();
@@ -57,7 +58,8 @@ struct e {
 };
 
 static bool
-compare(void *p1, void *p2) {
+compare(void *p1, void *p2)
+{
 	struct e *e1 = p1;
 	struct e *e2 = p2;
 
@@ -65,7 +67,8 @@ compare(void *p1, void *p2) {
 }
 
 static void
-idx(void *p, unsigned int i) {
+idx(void *p, unsigned int i)
+{
 	struct e *e = p;
 
 	e->index = i;
@@ -73,10 +76,11 @@ idx(void *p, unsigned int i) {
 
 /* test isc_heap_delete() */
 static void
-isc_heap_delete_test(void **state) {
-	isc_heap_t *heap = NULL;
+isc_heap_delete_test(void **state)
+{
+	isc_heap_t * heap = NULL;
 	isc_result_t result;
-	struct e e1 = { 100, 0 };
+	struct e     e1 = { 100, 0 };
 
 	UNUSED(state);
 
@@ -96,7 +100,8 @@ isc_heap_delete_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_heap_delete_test),
 	};
@@ -109,7 +114,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

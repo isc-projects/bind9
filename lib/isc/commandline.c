@@ -38,7 +38,6 @@
  * SUCH DAMAGE.
  */
 
-
 /*! \file
  * This file was adapted from the NetBSD project's source tree, RCS ID:
  *    NetBSD: getopt.c,v 1.15 1999/09/20 04:39:37 lukem Exp
@@ -71,18 +70,19 @@ LIBISC_EXTERNAL_DATA bool isc_commandline_reset = true;
 
 static char endopt = '\0';
 
-#define	BADOPT	'?'
-#define	BADARG	':'
-#define ENDOPT  &endopt
+#define BADOPT '?'
+#define BADARG ':'
+#define ENDOPT &endopt
 
 /*!
  * getopt --
  *	Parse argc/argv argument vector.
  */
 int
-isc_commandline_parse(int argc, char * const *argv, const char *options) {
+isc_commandline_parse(int argc, char *const *argv, const char *options)
+{
 	static char *place = ENDOPT;
-	const char *option;		/* Index into *options of option. */
+	const char * option; /* Index into *options of option. */
 
 	REQUIRE(argc >= 0 && argv != NULL && options != NULL);
 
@@ -181,7 +181,9 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 				return (BADARG);
 
 			if (isc_commandline_errprint)
-				fprintf(stderr, "%s: option requires an argument -- %c\n",
+				fprintf(stderr,
+					"%s: option requires an argument -- "
+					"%c\n",
 					isc_commandline_progname,
 					isc_commandline_option);
 
@@ -205,7 +207,7 @@ isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
 {
 	isc_result_t result;
 
- restart:
+restart:
 	/* Discard leading whitespace. */
 	while (*s == ' ' || *s == '\t')
 		s++;
@@ -232,7 +234,7 @@ isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
 			 */
 			while (*t != '\0') {
 				t++;
-				*(t-1) = *t;
+				*(t - 1) = *t;
 			}
 			while (*p != '\0' && *p != '}') {
 				p++;
@@ -246,8 +248,8 @@ isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
 		} else if (*p != '\0')
 			*p++ = '\0';
 
-		result = isc_commandline_strtoargv(mctx, p,
-						   argcp, argvp, n + 1);
+		result =
+			isc_commandline_strtoargv(mctx, p, argcp, argvp, n + 1);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		(*argvp)[n] = s;

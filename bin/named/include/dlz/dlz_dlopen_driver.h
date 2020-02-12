@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DLZ_DLOPEN_DRIVER_H
 #define DLZ_DLOPEN_DRIVER_H
 

@@ -9,12 +9,12 @@
  * information regarding copyright ownership.
  */
 
+#include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -28,18 +28,16 @@
 #include <isc/util.h>
 
 #include <dst/result.h>
-
-#include <pk11/pk11.h>
 #include <pk11/internal.h>
+#include <pk11/pk11.h>
 #include <pk11/result.h>
 #include <pk11/site.h>
-
-#include <pkcs11/pkcs11.h>
 #include <pkcs11/eddsa.h>
+#include <pkcs11/pkcs11.h>
 
 /* was 32 octets, Petr Spacek suggested 1024, SoftHSMv2 uses 256... */
 #ifndef PINLEN
-#define PINLEN	256
+#define PINLEN 256
 #endif
 
 #ifndef PK11_NO_LOGERR
@@ -50,32 +48,32 @@ LIBISC_EXTERNAL_DATA bool pk11_verbose_init = false;
 
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_mem_t *pk11_mctx = NULL;
-static int32_t allocsize = 0;
-static bool initialized = false;
+static int32_t	  allocsize = 0;
+static bool	  initialized = false;
 
 typedef struct pk11_session pk11_session_t;
-typedef struct pk11_token pk11_token_t;
+typedef struct pk11_token   pk11_token_t;
 typedef ISC_LIST(pk11_session_t) pk11_sessionlist_t;
 
 struct pk11_session {
-	unsigned int		magic;
-	CK_SESSION_HANDLE	session;
+	unsigned int	  magic;
+	CK_SESSION_HANDLE session;
 	ISC_LINK(pk11_session_t) link;
-	pk11_token_t		*token;
+	pk11_token_t *token;
 };
 
 struct pk11_token {
-	unsigned int		magic;
-	unsigned int		operations;
-	ISC_LINK(pk11_token_t)	link;
-	CK_SLOT_ID		slotid;
-	pk11_sessionlist_t	sessions;
-	bool		logged;
-	char			name[32];
-	char			manuf[32];
-	char			model[16];
-	char			serial[16];
-	char			pin[PINLEN + 1];
+	unsigned int magic;
+	unsigned int operations;
+	ISC_LINK(pk11_token_t) link;
+	CK_SLOT_ID	   slotid;
+	pk11_sessionlist_t sessions;
+	bool		   logged;
+	char		   name[32];
+	char		   manuf[32];
+	char		   model[16];
+	char		   serial[16];
+	char		   pin[PINLEN + 1];
 };
 static ISC_LIST(pk11_token_t) tokens;
 
@@ -84,19 +82,22 @@ static pk11_token_t *best_dh_token;
 static pk11_token_t *best_ecdsa_token;
 static pk11_token_t *best_eddsa_token;
 
-static isc_result_t free_all_sessions(void);
-static isc_result_t free_session_list(pk11_sessionlist_t *slist);
-static isc_result_t setup_session(pk11_session_t *sp,
-				  pk11_token_t *token,
-				  bool rw);
-static void scan_slots(void);
-static isc_result_t token_login(pk11_session_t *sp);
-static char *percent_decode(char *x, size_t *len);
-static bool pk11strcmp(const char *x, size_t lenx,
-				const char *y, size_t leny);
-static CK_ATTRIBUTE *push_attribute(pk11_object_t *obj,
-				    isc_mem_t *mctx,
-				    size_t len);
+static isc_result_t
+free_all_sessions(void);
+static isc_result_t
+free_session_list(pk11_sessionlist_t *slist);
+static isc_result_t
+setup_session(pk11_session_t *sp, pk11_token_t *token, bool rw);
+static void
+scan_slots(void);
+static isc_result_t
+token_login(pk11_session_t *sp);
+static char *
+percent_decode(char *x, size_t *len);
+static bool
+pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny);
+static CK_ATTRIBUTE *
+push_attribute(pk11_object_t *obj, isc_mem_t *mctx, size_t len);
 
 static isc_mutex_t alloclock;
 static isc_mutex_t sessionlock;
@@ -104,16 +105,16 @@ static isc_mutex_t sessionlock;
 static pk11_sessionlist_t actives;
 
 static CK_C_INITIALIZE_ARGS pk11_init_args = {
-	NULL_PTR,               /* CreateMutex */
-	NULL_PTR,               /* DestroyMutex */
-	NULL_PTR,               /* LockMutex */
-	NULL_PTR,               /* UnlockMutex */
-	CKF_OS_LOCKING_OK,      /* flags */
-	NULL_PTR,               /* pReserved */
+	NULL_PTR,	   /* CreateMutex */
+	NULL_PTR,	   /* DestroyMutex */
+	NULL_PTR,	   /* LockMutex */
+	NULL_PTR,	   /* UnlockMutex */
+	CKF_OS_LOCKING_OK, /* flags */
+	NULL_PTR,	   /* pReserved */
 };
 
 #ifndef PK11_LIB_LOCATION
-#define PK11_LIB_LOCATION	"unknown_provider"
+#define PK11_LIB_LOCATION "unknown_provider"
 #endif
 
 #ifndef WIN32
@@ -123,17 +124,20 @@ static const char *lib_name = PK11_LIB_LOCATION ".dll";
 #endif
 
 void
-pk11_set_lib_name(const char *name) {
+pk11_set_lib_name(const char *name)
+{
 	lib_name = name;
 }
 
 const char *
-pk11_get_lib_name(void) {
+pk11_get_lib_name(void)
+{
 	return (lib_name);
 }
 
 static void
-initialize(void) {
+initialize(void)
+{
 	char *pk11_provider;
 
 	isc_mutex_init(&alloclock);
@@ -145,7 +149,8 @@ initialize(void) {
 }
 
 void *
-pk11_mem_get(size_t size) {
+pk11_mem_get(size_t size)
+{
 	void *ptr;
 
 	LOCK(&alloclock);
@@ -168,7 +173,8 @@ pk11_mem_get(size_t size) {
 }
 
 void
-pk11_mem_put(void *ptr, size_t size) {
+pk11_mem_put(void *ptr, size_t size)
+{
 	if (ptr != NULL)
 		memset(ptr, 0, size);
 	LOCK(&alloclock);
@@ -183,9 +189,10 @@ pk11_mem_put(void *ptr, size_t size) {
 }
 
 isc_result_t
-pk11_initialize(isc_mem_t *mctx, const char *engine) {
+pk11_initialize(isc_mem_t *mctx, const char *engine)
+{
 	isc_result_t result = ISC_R_SUCCESS;
-	CK_RV rv;
+	CK_RV	     rv;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 
@@ -207,7 +214,7 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 		lib_name = engine;
 
 	/* Initialize the CRYPTOKI library */
-	rv = pkcs_C_Initialize((CK_VOID_PTR) &pk11_init_args);
+	rv = pkcs_C_Initialize((CK_VOID_PTR)&pk11_init_args);
 
 	if (rv == 0xfe) {
 		result = PK11_R_NOPROVIDER;
@@ -221,18 +228,19 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 	}
 
 	scan_slots();
- unlock:
+unlock:
 	UNLOCK(&sessionlock);
 	return (result);
 }
 
 isc_result_t
-pk11_finalize(void) {
+pk11_finalize(void)
+{
 	pk11_token_t *token, *next;
-	isc_result_t ret;
+	isc_result_t  ret;
 
 	ret = free_all_sessions();
-	(void) pkcs_C_Finalize(NULL_PTR);
+	(void)pkcs_C_Finalize(NULL_PTR);
 	token = ISC_LIST_HEAD(tokens);
 	while (token != NULL) {
 		next = ISC_LIST_NEXT(token, link);
@@ -259,14 +267,13 @@ pk11_finalize(void) {
 }
 
 isc_result_t
-pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
-		 bool need_services, bool rw,
-		 bool logon, const char *pin, CK_SLOT_ID slot)
+pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype, bool need_services,
+		 bool rw, bool logon, const char *pin, CK_SLOT_ID slot)
 {
-	pk11_token_t *token = NULL;
+	pk11_token_t *	    token = NULL;
 	pk11_sessionlist_t *freelist;
-	pk11_session_t *sp;
-	isc_result_t ret;
+	pk11_session_t *    sp;
+	isc_result_t	    ret;
 	UNUSED(need_services);
 
 	memset(ctx, 0, sizeof(pk11_context_t));
@@ -281,17 +288,15 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	/* wait for initialization to finish */
 	UNLOCK(&sessionlock);
 
-	switch(optype) {
+	switch (optype) {
 	case OP_ANY:
-		for (token = ISC_LIST_HEAD(tokens);
-		     token != NULL;
+		for (token = ISC_LIST_HEAD(tokens); token != NULL;
 		     token = ISC_LIST_NEXT(token, link))
 			if (token->slotid == slot)
 				break;
 		break;
 	default:
-		for (token = ISC_LIST_HEAD(tokens);
-		     token != NULL;
+		for (token = ISC_LIST_HEAD(tokens); token != NULL;
 		     token = ISC_LIST_NEXT(token, link))
 			if (token->slotid == slot)
 				break;
@@ -345,8 +350,9 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 }
 
 void
-pk11_return_session(pk11_context_t *ctx) {
-	pk11_session_t *sp = (pk11_session_t *) ctx->handle;
+pk11_return_session(pk11_context_t *ctx)
+{
+	pk11_session_t *sp = (pk11_session_t *)ctx->handle;
 
 	if (sp == NULL)
 		return;
@@ -367,13 +373,13 @@ pk11_return_session(pk11_context_t *ctx) {
 }
 
 static isc_result_t
-free_all_sessions(void) {
+free_all_sessions(void)
+{
 	pk11_token_t *token;
-	isc_result_t ret = ISC_R_SUCCESS;
-	isc_result_t oret;
+	isc_result_t  ret = ISC_R_SUCCESS;
+	isc_result_t  oret;
 
-	for (token = ISC_LIST_HEAD(tokens);
-	     token != NULL;
+	for (token = ISC_LIST_HEAD(tokens); token != NULL;
 	     token = ISC_LIST_NEXT(token, link)) {
 		oret = free_session_list(&token->sessions);
 		if (oret != ISC_R_SUCCESS)
@@ -389,10 +395,11 @@ free_all_sessions(void) {
 }
 
 static isc_result_t
-free_session_list(pk11_sessionlist_t *slist) {
+free_session_list(pk11_sessionlist_t *slist)
+{
 	pk11_session_t *sp;
-	CK_RV rv;
-	isc_result_t ret;
+	CK_RV		rv;
+	isc_result_t	ret;
 
 	ret = ISC_R_SUCCESS;
 	LOCK(&sessionlock);
@@ -414,33 +421,33 @@ free_session_list(pk11_sessionlist_t *slist) {
 }
 
 static isc_result_t
-setup_session(pk11_session_t *sp, pk11_token_t *token,
-	      bool rw)
+setup_session(pk11_session_t *sp, pk11_token_t *token, bool rw)
 {
-	CK_RV rv;
+	CK_RV	 rv;
 	CK_FLAGS flags = CKF_SERIAL_SESSION;
 
 	if (rw)
 		flags += CKF_RW_SESSION;
 
-	rv = pkcs_C_OpenSession(token->slotid, flags, NULL_PTR,
-				NULL_PTR, &sp->session);
+	rv = pkcs_C_OpenSession(token->slotid, flags, NULL_PTR, NULL_PTR,
+				&sp->session);
 	if (rv != CKR_OK)
 		return (DST_R_CRYPTOFAILURE);
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
-token_login(pk11_session_t *sp) {
-	CK_RV rv;
+token_login(pk11_session_t *sp)
+{
+	CK_RV	      rv;
 	pk11_token_t *token = sp->token;
-	isc_result_t ret = ISC_R_SUCCESS;
+	isc_result_t  ret = ISC_R_SUCCESS;
 
 	LOCK(&sessionlock);
 	if (!token->logged) {
 		rv = pkcs_C_Login(sp->session, CKU_USER,
-				  (CK_UTF8CHAR_PTR) token->pin,
-				  (CK_ULONG) strlen(token->pin));
+				  (CK_UTF8CHAR_PTR)token->pin,
+				  (CK_ULONG)strlen(token->pin));
 		if (rv != CKR_OK) {
 #if PK11_NO_LOGERR
 			pk11_error_fatalcheck(__FILE__, __LINE__,
@@ -455,26 +462,31 @@ token_login(pk11_session_t *sp) {
 	return (ret);
 }
 
-#define PK11_TRACE(fmt) \
-	if (pk11_verbose_init) fprintf(stderr, fmt)
-#define PK11_TRACE1(fmt, arg) \
-	if (pk11_verbose_init) fprintf(stderr, fmt, arg)
+#define PK11_TRACE(fmt)        \
+	if (pk11_verbose_init) \
+	fprintf(stderr, fmt)
+#define PK11_TRACE1(fmt, arg)  \
+	if (pk11_verbose_init) \
+	fprintf(stderr, fmt, arg)
 #define PK11_TRACE2(fmt, arg1, arg2) \
-	if (pk11_verbose_init) fprintf(stderr, fmt, arg1, arg2)
-#define PK11_TRACEM(mech) \
-	if (pk11_verbose_init) fprintf(stderr, #mech ": 0x%lx\n", rv)
+	if (pk11_verbose_init)       \
+	fprintf(stderr, fmt, arg1, arg2)
+#define PK11_TRACEM(mech)      \
+	if (pk11_verbose_init) \
+	fprintf(stderr, #mech ": 0x%lx\n", rv)
 
 static void
-scan_slots(void) {
+scan_slots(void)
+{
 	CK_MECHANISM_INFO mechInfo;
-	CK_TOKEN_INFO tokenInfo;
-	CK_RV rv;
-	CK_SLOT_ID slot;
-	CK_SLOT_ID_PTR slotList;
-	CK_ULONG slotCount;
-	pk11_token_t *token;
-	unsigned int i;
-	bool bad;
+	CK_TOKEN_INFO	  tokenInfo;
+	CK_RV		  rv;
+	CK_SLOT_ID	  slot;
+	CK_SLOT_ID_PTR	  slotList;
+	CK_ULONG	  slotCount;
+	pk11_token_t *	  token;
+	unsigned int	  i;
+	bool		  bad;
 
 	slotCount = 0;
 	PK11_FATALCHECK(pkcs_C_GetSlotList, (CK_FALSE, NULL_PTR, &slotCount));
@@ -512,41 +524,35 @@ scan_slots(void) {
 			bad = true;
 			PK11_TRACEM(CKM_RSA_PKCS_KEY_PAIR_GEN);
 		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5_RSA_PKCS,
-					     &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5_RSA_PKCS, &mechInfo);
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 			bad = true;
 			PK11_TRACEM(CKM_MD5_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA1_RSA_PKCS,
 					     &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 			bad = true;
 			PK11_TRACEM(CKM_SHA1_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256_RSA_PKCS,
 					     &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 			bad = true;
 			PK11_TRACEM(CKM_SHA256_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512_RSA_PKCS,
 					     &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 			bad = true;
 			PK11_TRACEM(CKM_SHA512_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_RSA_PKCS, &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 			bad = true;
 			PK11_TRACEM(CKM_RSA_PKCS);
@@ -568,8 +574,7 @@ scan_slots(void) {
 			PK11_TRACEM(CKM_EC_KEY_PAIR_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_ECDSA, &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 			bad = true;
 			PK11_TRACEM(CKM_ECDSA);
@@ -593,8 +598,7 @@ scan_slots(void) {
 			PK11_TRACEM(CKM_EDDSA_KEY_PAIR_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA, &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 			bad = true;
 			PK11_TRACEM(CKM_EDDSA);
@@ -614,7 +618,8 @@ scan_slots(void) {
 }
 
 CK_SLOT_ID
-pk11_get_best_token(pk11_optype_t optype) {
+pk11_get_best_token(pk11_optype_t optype)
+{
 	pk11_token_t *token = NULL;
 
 	switch (optype) {
@@ -634,9 +639,10 @@ pk11_get_best_token(pk11_optype_t optype) {
 }
 
 unsigned int
-pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt) {
+pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt)
+{
 	unsigned int bitcnt, i;
-	CK_BYTE top;
+	CK_BYTE	     top;
 
 	if (bytecnt == 0)
 		return (0);
@@ -670,12 +676,14 @@ pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt) {
 }
 
 CK_ATTRIBUTE *
-pk11_attribute_first(const pk11_object_t *obj) {
+pk11_attribute_first(const pk11_object_t *obj)
+{
 	return (obj->repr);
 }
 
 CK_ATTRIBUTE *
-pk11_attribute_next(const pk11_object_t *obj, CK_ATTRIBUTE *attr) {
+pk11_attribute_next(const pk11_object_t *obj, CK_ATTRIBUTE *attr)
+{
 	CK_ATTRIBUTE *next;
 
 	next = attr + 1;
@@ -685,20 +693,21 @@ pk11_attribute_next(const pk11_object_t *obj, CK_ATTRIBUTE *attr) {
 }
 
 CK_ATTRIBUTE *
-pk11_attribute_bytype(const pk11_object_t *obj, CK_ATTRIBUTE_TYPE type) {
+pk11_attribute_bytype(const pk11_object_t *obj, CK_ATTRIBUTE_TYPE type)
+{
 	CK_ATTRIBUTE *attr;
 
-	for(attr = pk11_attribute_first(obj);
-	    attr != NULL;
-	    attr = pk11_attribute_next(obj, attr))
+	for (attr = pk11_attribute_first(obj); attr != NULL;
+	     attr = pk11_attribute_next(obj, attr))
 		if (attr->type == type)
 			return (attr);
 	return (NULL);
 }
 
 static char *
-percent_decode(char *x, size_t *len) {
-	char *p, *c;
+percent_decode(char *x, size_t *len)
+{
+	char *	      p, *c;
 	unsigned char v = 0;
 
 	INSIST(len != NULL);
@@ -771,7 +780,7 @@ percent_decode(char *x, size_t *len) {
 				return (NULL);
 			}
 			p += 2;
-			*c = (char) v;
+			*c = (char)v;
 			(*len)++;
 			break;
 		default:
@@ -783,7 +792,8 @@ percent_decode(char *x, size_t *len) {
 }
 
 static bool
-pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny) {
+pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny)
+{
 	char buf[32];
 
 	INSIST((leny == 32) || (leny == 16));
@@ -796,10 +806,11 @@ pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny) {
 }
 
 static CK_ATTRIBUTE *
-push_attribute(pk11_object_t *obj, isc_mem_t *mctx, size_t len) {
+push_attribute(pk11_object_t *obj, isc_mem_t *mctx, size_t len)
+{
 	CK_ATTRIBUTE *old = obj->repr;
 	CK_ATTRIBUTE *attr;
-	CK_BYTE cnt = obj->attrcnt;
+	CK_BYTE	      cnt = obj->attrcnt;
 
 	REQUIRE(old != NULL || cnt == 0);
 
@@ -809,7 +820,7 @@ push_attribute(pk11_object_t *obj, isc_mem_t *mctx, size_t len) {
 		memmove(obj->repr, old, cnt * sizeof(*attr));
 	}
 	attr = obj->repr + cnt;
-	attr->ulValueLen = (CK_ULONG) len;
+	attr->ulValueLen = (CK_ULONG)len;
 	attr->pValue = isc_mem_get(mctx, len);
 	memset(attr->pValue, 0, len);
 	if (old != NULL) {
@@ -820,20 +831,24 @@ push_attribute(pk11_object_t *obj, isc_mem_t *mctx, size_t len) {
 	return (attr);
 }
 
-#define DST_RET(a)	{ ret = a; goto err; }
+#define DST_RET(a)        \
+	{                 \
+		ret = a;  \
+		goto err; \
+	}
 
 isc_result_t
-pk11_parse_uri(pk11_object_t *obj, const char *label,
-	       isc_mem_t *mctx, pk11_optype_t optype)
+pk11_parse_uri(pk11_object_t *obj, const char *label, isc_mem_t *mctx,
+	       pk11_optype_t optype)
 {
 	CK_ATTRIBUTE *attr;
 	pk11_token_t *token = NULL;
-	char *uri, *p, *a, *na, *v;
-	size_t len, l;
-	FILE *stream = NULL;
-	char pin[PINLEN + 1];
-	bool gotpin = false;
-	isc_result_t ret;
+	char *	      uri, *p, *a, *na, *v;
+	size_t	      len, l;
+	FILE *	      stream = NULL;
+	char	      pin[PINLEN + 1];
+	bool	      gotpin = false;
+	isc_result_t  ret;
 
 	/* get values to work on */
 	len = strlen(label) + 1;
@@ -975,24 +990,25 @@ pk11_parse_uri(pk11_object_t *obj, const char *label,
 
 	ret = ISC_R_SUCCESS;
 
-  err:
+err:
 	if (stream != NULL)
-		(void) isc_stdio_close(stream);
+		(void)isc_stdio_close(stream);
 	isc_mem_put(mctx, uri, len);
 	return (ret);
 }
 
 void
-pk11_error_fatalcheck(const char *file, int line,
-		      const char *funcname, CK_RV rv)
+pk11_error_fatalcheck(const char *file, int line, const char *funcname,
+		      CK_RV rv)
 {
 	isc_error_fatal(file, line, "%s: Error = 0x%.8lX\n", funcname, rv);
 }
 
 void
-pk11_dump_tokens(void) {
+pk11_dump_tokens(void)
+{
 	pk11_token_t *token;
-	bool first;
+	bool	      first;
 
 	printf("DEFAULTS\n");
 	printf("\tbest_rsa_token=%p\n", best_rsa_token);
@@ -1000,8 +1016,7 @@ pk11_dump_tokens(void) {
 	printf("\tbest_ecdsa_token=%p\n", best_ecdsa_token);
 	printf("\tbest_eddsa_token=%p\n", best_eddsa_token);
 
-	for (token = ISC_LIST_HEAD(tokens);
-	     token != NULL;
+	for (token = ISC_LIST_HEAD(tokens); token != NULL;
 	     token = ISC_LIST_NEXT(token, link)) {
 		printf("\nTOKEN\n");
 		printf("\taddress=%p\n", token);

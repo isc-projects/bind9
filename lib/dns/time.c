@@ -9,19 +9,18 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
-#include <stdio.h>
-#include <inttypes.h>
-#include <isc/string.h>		/* Required for HP/UX (and others?) */
-#include <time.h>
 #include <ctype.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <time.h>
 
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/serial.h>
 #include <isc/stdtime.h>
+#include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/result.h>
@@ -30,10 +29,12 @@
 static const int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 isc_result_t
-dns_time64_totext(int64_t t, isc_buffer_t *target) {
+dns_time64_totext(int64_t t, isc_buffer_t *target)
+{
 	struct tm tm;
-	char buf[sizeof("!!!!!!YYYY!!!!!!!!MM!!!!!!!!DD!!!!!!!!HH!!!!!!!!MM!!!!!!!!SS")];
-	int secs;
+	char buf[sizeof("!!!!!!YYYY!!!!!!!!MM!!!!!!!!DD!!!!!!!!HH!!!!!!!!MM!!!!"
+			"!!!!SS")];
+	int  secs;
 	unsigned int l;
 	isc_region_t region;
 
@@ -41,8 +42,8 @@ dns_time64_totext(int64_t t, isc_buffer_t *target) {
  * Warning. Do NOT use arguments with side effects with these macros.
  */
 #define is_leap(y) ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
-#define year_secs(y) ((is_leap(y) ? 366 : 365 ) * 86400)
-#define month_secs(m,y) ((days[m] + ((m == 1 && is_leap(y)) ? 1 : 0 )) * 86400)
+#define year_secs(y) ((is_leap(y) ? 366 : 365) * 86400)
+#define month_secs(m, y) ((days[m] + ((m == 1 && is_leap(y)) ? 1 : 0)) * 86400)
 
 	tm.tm_year = 70;
 	while (t < 0) {
@@ -79,10 +80,10 @@ dns_time64_totext(int64_t t, isc_buffer_t *target) {
 		tm.tm_min++;
 	}
 	tm.tm_sec = (int)t;
-				 /* yyyy  mm  dd  HH  MM  SS */
+	/* yyyy  mm  dd  HH  MM  SS */
 	snprintf(buf, sizeof(buf), "%04d%02d%02d%02d%02d%02d",
-		 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-		 tm.tm_hour, tm.tm_min, tm.tm_sec);
+		 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour,
+		 tm.tm_min, tm.tm_sec);
 
 	isc_buffer_availableregion(target, &region);
 	l = strlen(buf);
@@ -96,10 +97,11 @@ dns_time64_totext(int64_t t, isc_buffer_t *target) {
 }
 
 int64_t
-dns_time64_from32(uint32_t value) {
+dns_time64_from32(uint32_t value)
+{
 	isc_stdtime_t now;
-	int64_t start;
-	int64_t t;
+	int64_t	      start;
+	int64_t	      t;
 
 	/*
 	 * Adjust the time to the closest epoch.  This should be changed
@@ -108,7 +110,7 @@ dns_time64_from32(uint32_t value) {
 	 * 2106.
 	 */
 	isc_stdtime_get(&now);
-	start = (int64_t) now;
+	start = (int64_t)now;
 	if (isc_serial_gt(value, now))
 		t = start + (value - now);
 	else
@@ -118,21 +120,23 @@ dns_time64_from32(uint32_t value) {
 }
 
 isc_result_t
-dns_time32_totext(uint32_t value, isc_buffer_t *target) {
+dns_time32_totext(uint32_t value, isc_buffer_t *target)
+{
 	return (dns_time64_totext(dns_time64_from32(value), target));
 }
 
 isc_result_t
-dns_time64_fromtext(const char *source, int64_t *target) {
-	int year, month, day, hour, minute, second;
+dns_time64_fromtext(const char *source, int64_t *target)
+{
+	int	year, month, day, hour, minute, second;
 	int64_t value;
-	int secs;
-	int i;
+	int	secs;
+	int	i;
 
-#define RANGE(min, max, value) \
-	do { \
+#define RANGE(min, max, value)                      \
+	do {                                        \
 		if (value < (min) || value > (max)) \
-			return (ISC_R_RANGE); \
+			return (ISC_R_RANGE);       \
 	} while (0)
 
 	if (strlen(source) != 14U)
@@ -145,14 +149,14 @@ dns_time64_fromtext(const char *source, int64_t *target) {
 		if (!isdigit((unsigned char)source[i]))
 			return (DNS_R_SYNTAX);
 	}
-	if (sscanf(source, "%4d%2d%2d%2d%2d%2d",
-		   &year, &month, &day, &hour, &minute, &second) != 6)
+	if (sscanf(source, "%4d%2d%2d%2d%2d%2d", &year, &month, &day, &hour,
+		   &minute, &second) != 6)
 		return (DNS_R_SYNTAX);
 
 	RANGE(0, 9999, year);
 	RANGE(1, 12, month);
-	RANGE(1, days[month - 1] +
-		 ((month == 2 && is_leap(year)) ? 1 : 0), day);
+	RANGE(1, days[month - 1] + ((month == 2 && is_leap(year)) ? 1 : 0),
+	      day);
 #ifdef __COVERITY__
 	/*
 	 * Use a simplified range to silence Coverity warning (in
@@ -163,7 +167,7 @@ dns_time64_fromtext(const char *source, int64_t *target) {
 
 	RANGE(0, 23, hour);
 	RANGE(0, 59, minute);
-	RANGE(0, 60, second);		/* 60 == leap second. */
+	RANGE(0, 60, second); /* 60 == leap second. */
 
 	/*
 	 * Calculate seconds from epoch.
@@ -191,8 +195,9 @@ dns_time64_fromtext(const char *source, int64_t *target) {
 }
 
 isc_result_t
-dns_time32_fromtext(const char *source, uint32_t *target) {
-	int64_t value64;
+dns_time32_fromtext(const char *source, uint32_t *target)
+{
+	int64_t	     value64;
 	isc_result_t result;
 	result = dns_time64_fromtext(source, &value64);
 	if (result != ISC_R_SUCCESS)

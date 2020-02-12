@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_SECPROTO_H
 #define DNS_SECPROTO_H 1
 

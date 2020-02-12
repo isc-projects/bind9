@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,16 +22,17 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/time.h>
 #include <isc/result.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 /* parse http time stamp */
 static void
-isc_time_parsehttptimestamp_test(void **state) {
+isc_time_parsehttptimestamp_test(void **state)
+{
 	isc_result_t result;
-	isc_time_t t, x;
-	char buf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	isc_time_t   t, x;
+	char	     buf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 
 	UNUSED(state);
 
@@ -48,10 +48,11 @@ isc_time_parsehttptimestamp_test(void **state) {
 
 /* print UTC in ISO8601 */
 static void
-isc_time_formatISO8601_test(void **state) {
+isc_time_formatISO8601_test(void **state)
+{
 	isc_result_t result;
-	isc_time_t t;
-	char buf[64];
+	isc_time_t   t;
+	char	     buf[64];
 
 	UNUSED(state);
 
@@ -84,10 +85,11 @@ isc_time_formatISO8601_test(void **state) {
 
 /* print UTC in ISO8601 with milliseconds */
 static void
-isc_time_formatISO8601ms_test(void **state) {
+isc_time_formatISO8601ms_test(void **state)
+{
 	isc_result_t result;
-	isc_time_t t;
-	char buf[64];
+	isc_time_t   t;
+	char	     buf[64];
 
 	UNUSED(state);
 
@@ -121,10 +123,11 @@ isc_time_formatISO8601ms_test(void **state) {
 
 /* print local time in ISO8601 */
 static void
-isc_time_formatISO8601L_test(void **state) {
+isc_time_formatISO8601L_test(void **state)
+{
 	isc_result_t result;
-	isc_time_t t;
-	char buf[64];
+	isc_time_t   t;
+	char	     buf[64];
 
 	UNUSED(state);
 
@@ -156,10 +159,11 @@ isc_time_formatISO8601L_test(void **state) {
 
 /* print local time in ISO8601 with milliseconds */
 static void
-isc_time_formatISO8601Lms_test(void **state) {
+isc_time_formatISO8601Lms_test(void **state)
+{
 	isc_result_t result;
-	isc_time_t t;
-	char buf[64];
+	isc_time_t   t;
+	char	     buf[64];
 
 	UNUSED(state);
 
@@ -192,10 +196,11 @@ isc_time_formatISO8601Lms_test(void **state) {
 
 /* print UTC time as yyyymmddhhmmsssss */
 static void
-isc_time_formatshorttimestamp_test(void **state) {
+isc_time_formatshorttimestamp_test(void **state)
+{
 	isc_result_t result;
-	isc_time_t t;
-	char buf[64];
+	isc_time_t   t;
+	char	     buf[64];
 
 	UNUSED(state);
 
@@ -221,7 +226,8 @@ isc_time_formatshorttimestamp_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_time_parsehttptimestamp_test),
 		cmocka_unit_test(isc_time_formatISO8601_test),
@@ -239,7 +245,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

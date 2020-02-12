@@ -16,12 +16,12 @@
 #include <isc/log.h>
 #include <isc/result.h>
 
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <openssl/evp.h>
+#include <openssl/bn.h>
 #include <openssl/conf.h>
 #include <openssl/crypto.h>
-#include <openssl/bn.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 /*
@@ -55,8 +55,8 @@ isc_result_t
 dst__openssl_toresult2(const char *funcname, isc_result_t fallback);
 
 isc_result_t
-dst__openssl_toresult3(isc_logcategory_t *category,
-		       const char *funcname, isc_result_t fallback);
+dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
+		       isc_result_t fallback);
 
 #if !defined(OPENSSL_NO_ENGINE)
 ENGINE *

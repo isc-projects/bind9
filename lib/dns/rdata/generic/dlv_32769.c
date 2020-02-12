@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /* RFC3658 */
 
 #ifndef RDATA_GENERIC_DLV_32769_C
@@ -19,34 +18,31 @@
 
 #include <dns/ds.h>
 
-static inline isc_result_t
-fromtext_dlv(ARGS_FROMTEXT) {
-
+static inline isc_result_t fromtext_dlv(ARGS_FROMTEXT)
+{
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	return (generic_fromtext_ds(rdclass, type, lexer, origin, options,
 				    target, callbacks));
 }
 
-static inline isc_result_t
-totext_dlv(ARGS_TOTEXT) {
-
+static inline isc_result_t totext_dlv(ARGS_TOTEXT)
+{
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
 
 	return (generic_totext_ds(rdata, tctx, target));
 }
 
-static inline isc_result_t
-fromwire_dlv(ARGS_FROMWIRE) {
-
+static inline isc_result_t fromwire_dlv(ARGS_FROMWIRE)
+{
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	return (generic_fromwire_ds(rdclass, type, source, dctx, options,
 				    target));
 }
 
-static inline isc_result_t
-towire_dlv(ARGS_TOWIRE) {
+static inline isc_result_t towire_dlv(ARGS_TOWIRE)
+{
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
@@ -58,8 +54,8 @@ towire_dlv(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int
-compare_dlv(ARGS_COMPARE) {
+static inline int compare_dlv(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -74,16 +70,15 @@ compare_dlv(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
-fromstruct_dlv(ARGS_FROMSTRUCT) {
-
+static inline isc_result_t fromstruct_dlv(ARGS_FROMSTRUCT)
+{
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	return (generic_fromstruct_ds(rdclass, type, source, target));
 }
 
-static inline isc_result_t
-tostruct_dlv(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_dlv(ARGS_TOSTRUCT)
+{
 	dns_rdata_dlv_t *dlv = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
@@ -96,8 +91,8 @@ tostruct_dlv(ARGS_TOSTRUCT) {
 	return (generic_tostruct_ds(rdata, target, mctx));
 }
 
-static inline void
-freestruct_dlv(ARGS_FREESTRUCT) {
+static inline void freestruct_dlv(ARGS_FREESTRUCT)
+{
 	dns_rdata_dlv_t *dlv = source;
 
 	REQUIRE(dlv != NULL);
@@ -111,8 +106,8 @@ freestruct_dlv(ARGS_FREESTRUCT) {
 	dlv->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_dlv(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_dlv(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
 
 	UNUSED(rdata);
@@ -122,8 +117,8 @@ additionaldata_dlv(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_dlv(ARGS_DIGEST) {
+static inline isc_result_t digest_dlv(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
@@ -133,9 +128,8 @@ digest_dlv(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_dlv(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_dlv(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	UNUSED(name);
@@ -146,9 +140,8 @@ checkowner_dlv(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_dlv(ARGS_CHECKNAMES) {
-
+static inline bool checknames_dlv(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
 
 	UNUSED(rdata);
@@ -158,9 +151,9 @@ checknames_dlv(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_dlv(ARGS_COMPARE) {
+static inline int casecompare_dlv(ARGS_COMPARE)
+{
 	return (compare_dlv(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_DLV_32769_C */
+#endif /* RDATA_GENERIC_DLV_32769_C */

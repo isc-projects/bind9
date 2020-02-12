@@ -34,24 +34,25 @@
  */
 
 /*
- * Copyright (C) 1999-2001, 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
- * 
+ * Copyright (C) 1999-2001, 2013, 2016  Internet Systems Consortium, Inc.
+ * ("ISC")
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <ctype.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
 #include <stdlib.h>
-#include <ctype.h>
+#include <string.h>
 
-#include <dlz_minimal.h>
-#include <dlz_list.h>
 #include <dlz_dbi.h>
+#include <dlz_list.h>
+#include <dlz_minimal.h>
 #include <dlz_pthread.h>
 
 /*%
@@ -60,7 +61,8 @@
  */
 
 void
-destroy_querylist(query_list_t **querylist) {
+destroy_querylist(query_list_t **querylist)
+{
 	query_segment_t *tseg = NULL;
 	query_segment_t *nseg = NULL;
 
@@ -70,13 +72,13 @@ destroy_querylist(query_list_t **querylist) {
 
 	/* start at the top of the list */
 	nseg = DLZ_LIST_HEAD(**querylist);
-	while (nseg != NULL) {	/* loop, until end of list */
+	while (nseg != NULL) { /* loop, until end of list */
 		tseg = nseg;
 		/*
 		 * free the query segment's text string but only if it
 		 * was really a query segment, and not a pointer to
 		 * %zone%, or %record%, or %client%
-		*/
+		 */
 		if (tseg->cmd != NULL && tseg->direct == true)
 			free(tseg->cmd);
 		/* get the next query segment, before we destroy this one. */
@@ -91,17 +93,17 @@ destroy_querylist(query_list_t **querylist) {
 /*% constructs a query list by parsing a string into query segments */
 isc_result_t
 build_querylist(const char *query_str, char **zone, char **record,
-		char **client, query_list_t **querylist, unsigned int flags, 
+		char **client, query_list_t **querylist, unsigned int flags,
 		log_t log)
 {
-	isc_result_t result;
-	bool foundzone = false;
-	bool foundrecord = false;
-	bool foundclient = false;
-	char *temp_str = NULL;
-	char *right_str = NULL;
-	char *token = NULL;
-	query_list_t *tql;
+	isc_result_t	 result;
+	bool		 foundzone = false;
+	bool		 foundrecord = false;
+	bool		 foundclient = false;
+	char *		 temp_str = NULL;
+	char *		 right_str = NULL;
+	char *		 token = NULL;
+	query_list_t *	 tql;
 	query_segment_t *tseg = NULL;
 
 	/* if query string is null, or zero length */
@@ -132,13 +134,11 @@ build_querylist(const char *query_str, char **zone, char **record,
 	}
 
 	/* loop through the string and chop it up */
-	for (token = strtok_r(right_str, "$", &temp_str);
-	     token;
-	     token = strtok_r(NULL, "$", &temp_str))
-	{
+	for (token = strtok_r(right_str, "$", &temp_str); token;
+	     token = strtok_r(NULL, "$", &temp_str)) {
 		/* allocate memory for tseg */
 		tseg = calloc(1, sizeof(query_segment_t));
-		if (tseg  == NULL) {	/* no memory, clean everything up. */
+		if (tseg == NULL) { /* no memory, clean everything up. */
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
@@ -170,7 +170,7 @@ build_querylist(const char *query_str, char **zone, char **record,
 			 */
 			free(tseg->cmd);
 			/* set tseg->cmd to in-direct zone string */
-			tseg->cmd = (char**) zone;
+			tseg->cmd = (char **)zone;
 			tseg->strlen = 0;
 			/* tseg->cmd points in-directly to a string */
 			tseg->direct = false;
@@ -183,7 +183,7 @@ build_querylist(const char *query_str, char **zone, char **record,
 			 */
 			free(tseg->cmd);
 			/* set tseg->cmd to in-direct record string */
-			tseg->cmd = (char**) record;
+			tseg->cmd = (char **)record;
 			tseg->strlen = 0;
 			/* tseg->cmd points in-directly poinsts to a string */
 			tseg->direct = false;
@@ -196,7 +196,7 @@ build_querylist(const char *query_str, char **zone, char **record,
 			 */
 			free(tseg->cmd);
 			/* set tseg->cmd to in-direct record string */
-			tseg->cmd = (char**) client;
+			tseg->cmd = (char **)client;
 			tseg->strlen = 0;
 			/* tseg->cmd points in-directly poinsts to a string */
 			tseg->direct = false;
@@ -213,27 +213,27 @@ build_querylist(const char *query_str, char **zone, char **record,
 	 */
 
 	/* if this query requires %client%, make sure we found it */
-	if (((flags & REQUIRE_CLIENT) != 0) && (!foundclient) ) {
+	if (((flags & REQUIRE_CLIENT) != 0) && (!foundclient)) {
 		/* Write error message to log */
 		if (log != NULL)
-			log(ISC_LOG_ERROR,
-			    "Required token $client$ not found.");
+			log(ISC_LOG_ERROR, "Required token $client$ not "
+					   "found.");
 		result = ISC_R_FAILURE;
 		goto flag_fail;
 	}
 
 	/* if this query requires %record%, make sure we found it */
-	if (((flags & REQUIRE_RECORD) != 0) && (!foundrecord) ) {
+	if (((flags & REQUIRE_RECORD) != 0) && (!foundrecord)) {
 		/* Write error message to log */
 		if (log != NULL)
-			log(ISC_LOG_ERROR,
-			    "Required token $record$ not found.");
+			log(ISC_LOG_ERROR, "Required token $record$ not "
+					   "found.");
 		result = ISC_R_FAILURE;
 		goto flag_fail;
 	}
 
 	/* if this query requires %zone%, make sure we found it */
-	if (((flags & REQUIRE_ZONE) != 0) && (!foundzone) ) {
+	if (((flags & REQUIRE_ZONE) != 0) && (!foundzone)) {
 		/* Write error message to log */
 		if (log != NULL)
 			log(ISC_LOG_ERROR, "Required token $zone$ not found.");
@@ -242,18 +242,18 @@ build_querylist(const char *query_str, char **zone, char **record,
 	}
 
 	/* pass back the query list */
-	*querylist = (query_list_t *) tql;
+	*querylist = (query_list_t *)tql;
 
 	/* return success */
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	/* get rid of temp_str */
 	if (right_str != NULL) {
 		free(right_str);
 	}
 
- flag_fail:
+flag_fail:
 	/* get rid of what was build of the query list */
 	destroy_querylist(&tql);
 	return (result);
@@ -265,10 +265,11 @@ build_querylist(const char *query_str, char **zone, char **record,
  * used to be in our queries from named.conf
  */
 char *
-build_querystring(query_list_t *querylist) {
+build_querystring(query_list_t *querylist)
+{
 	query_segment_t *tseg = NULL;
-	unsigned int length = 0;
-	char *qs = NULL;
+	unsigned int	 length = 0;
+	char *		 qs = NULL;
 
 	/* start at the top of the list */
 	tseg = DLZ_LIST_HEAD(*querylist);
@@ -279,8 +280,8 @@ build_querystring(query_list_t *querylist) {
 		 */
 		if (tseg->direct == true)
 			length += tseg->strlen;
-		else	/* calculate string length for dynamic segments. */
-			length += strlen(* (char**) tseg->cmd);
+		else /* calculate string length for dynamic segments. */
+			length += strlen(*(char **)tseg->cmd);
 		/* get the next segment */
 		tseg = DLZ_LIST_NEXT(tseg, link);
 	}
@@ -298,7 +299,7 @@ build_querystring(query_list_t *querylist) {
 			strcat(qs, tseg->cmd);
 		else
 			/* dynamic segments */
-			strcat(qs, * (char**) tseg->cmd);
+			strcat(qs, *(char **)tseg->cmd);
 		/* get the next segment */
 		tseg = DLZ_LIST_NEXT(tseg, link);
 	}
@@ -313,18 +314,16 @@ build_dbinstance(const char *allnodes_str, const char *allowxfr_str,
 		 const char *lookup_str, const char *countzone_str,
 		 dbinstance_t **dbi, log_t log)
 {
-
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *db = NULL;
-	int err;
+	int	      err;
 
 	/* allocate and zero memory for driver structure */
 	db = calloc(1, sizeof(dbinstance_t));
 	if (db == NULL) {
 		if (log != NULL)
-			log(ISC_LOG_ERROR,
-			    "Could not allocate memory for "
-			    "database instance object.");
+			log(ISC_LOG_ERROR, "Could not allocate memory for "
+					   "database instance object.");
 		return (ISC_R_NOMEMORY);
 	}
 	memset(db, 0, sizeof(dbinstance_t));
@@ -352,84 +351,82 @@ build_dbinstance(const char *allnodes_str, const char *allowxfr_str,
 
 	/* build the all nodes query list */
 	result = build_querylist(allnodes_str, &db->zone, &db->record,
-				 &db->client, &db->allnodes_q,
-				 REQUIRE_ZONE, log);
+				 &db->client, &db->allnodes_q, REQUIRE_ZONE,
+				 log);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		if (log != NULL)
-			log(ISC_LOG_ERROR,
-			    "Could not build all nodes query list");
+			log(ISC_LOG_ERROR, "Could not build all nodes query "
+					   "list");
 		goto cleanup;
 	}
 
 	/* build the allow zone transfer query list */
 	result = build_querylist(allowxfr_str, &db->zone, &db->record,
 				 &db->client, &db->allowxfr_q,
-				 REQUIRE_ZONE | REQUIRE_CLIENT,
-				 log);
+				 REQUIRE_ZONE | REQUIRE_CLIENT, log);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		if (log != NULL)
-			log(ISC_LOG_ERROR,
-			    "Could not build allow xfr query list");
+			log(ISC_LOG_ERROR, "Could not build allow xfr query "
+					   "list");
 		goto cleanup;
 	}
 
 	/* build the authority query, query list */
 	result = build_querylist(authority_str, &db->zone, &db->record,
-				 &db->client, &db->authority_q,
-				 REQUIRE_ZONE, log);
+				 &db->client, &db->authority_q, REQUIRE_ZONE,
+				 log);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		if (log != NULL)
-			log(ISC_LOG_ERROR,
-			    "Could not build authority query list");
+			log(ISC_LOG_ERROR, "Could not build authority query "
+					   "list");
 		goto cleanup;
 	}
 
 	/* build findzone query, query list */
 	result = build_querylist(findzone_str, &db->zone, &db->record,
-				 &db->client, &db->findzone_q,
-				 REQUIRE_ZONE, log);
+				 &db->client, &db->findzone_q, REQUIRE_ZONE,
+				 log);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		if (log != NULL)
-			log(ISC_LOG_ERROR,
-			    "Could not build find zone query list");
+			log(ISC_LOG_ERROR, "Could not build find zone query "
+					   "list");
 		goto cleanup;
 	}
 
 	/* build countzone query, query list */
 	result = build_querylist(countzone_str, &db->zone, &db->record,
-				 &db->client, &db->countzone_q,
-				 REQUIRE_ZONE, log);
+				 &db->client, &db->countzone_q, REQUIRE_ZONE,
+				 log);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		if (log != NULL)
-			log(ISC_LOG_ERROR,
-			    "Could not build count zone query list");
+			log(ISC_LOG_ERROR, "Could not build count zone query "
+					   "list");
 		goto cleanup;
 	}
 
 	/* build lookup query, query list */
 	result = build_querylist(lookup_str, &db->zone, &db->record,
-				 &db->client, &db->lookup_q,
-				 REQUIRE_RECORD, log);
+				 &db->client, &db->lookup_q, REQUIRE_RECORD,
+				 log);
 	/* if unsuccessful, log err msg and cleanup */
 	if (result != ISC_R_SUCCESS) {
 		if (log != NULL)
-			log(ISC_LOG_ERROR,
-			    "Could not build lookup query list");
+			log(ISC_LOG_ERROR, "Could not build lookup query list");
 		goto cleanup;
 	}
 
 	/* pass back the db instance */
-	*dbi = (dbinstance_t *) db;
+	*dbi = (dbinstance_t *)db;
 
 	/* return success */
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	/* destroy whatever was build of the db instance */
 	destroy_dbinstance(db);
 	/* return failure */
@@ -437,7 +434,8 @@ build_dbinstance(const char *allnodes_str, const char *allowxfr_str,
 }
 
 void
-destroy_dbinstance(dbinstance_t *dbi) {
+destroy_dbinstance(dbinstance_t *dbi)
+{
 	/* destroy any query lists we created */
 	destroy_querylist(&dbi->allnodes_q);
 	destroy_querylist(&dbi->allowxfr_q);
@@ -447,18 +445,19 @@ destroy_dbinstance(dbinstance_t *dbi) {
 	destroy_querylist(&dbi->lookup_q);
 
 	/* get rid of the mutex */
-	(void) dlz_mutex_destroy(&dbi->lock);
+	(void)dlz_mutex_destroy(&dbi->lock);
 
 	/* return, and detach the memory */
 	free(dbi);
 }
 
 char *
-get_parameter_value(const char *input, const char* key) {
-	int keylen;
+get_parameter_value(const char *input, const char *key)
+{
+	int   keylen;
 	char *keystart;
-	char value[255];
-	int i;
+	char  value[255];
+	int   i;
 
 	if (key == NULL || input == NULL || *input == '\0')
 		return (NULL);

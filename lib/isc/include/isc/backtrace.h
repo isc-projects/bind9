@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file isc/backtrace.h
  * \brief provide a back trace of the running process to help debug problems.
  *
@@ -44,13 +43,13 @@
  *** Types
  ***/
 struct isc_backtrace_symmap {
-	void		*addr;
-	const char	*symbol;
+	void *	    addr;
+	const char *symbol;
 };
 
 LIBISC_EXTERNAL_DATA extern const int isc__backtrace_nsymbols;
-LIBISC_EXTERNAL_DATA extern const
-	isc_backtrace_symmap_t isc__backtrace_symtable[];
+LIBISC_EXTERNAL_DATA extern const isc_backtrace_symmap_t
+	isc__backtrace_symtable[];
 
 /***
  *** Functions
@@ -123,4 +122,4 @@ isc_backtrace_getsymbol(const void *addr, const char **symbolp,
  */
 ISC_LANG_ENDDECLS
 
-#endif	/* ISC_BACKTRACE_H */
+#endif /* ISC_BACKTRACE_H */

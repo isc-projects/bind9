@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*
  * Windows-specific path definitions
  * These routines are used to set up and return system-specific path
@@ -49,8 +48,8 @@ enum NtPaths {
 /*
  * Information about where the files are on disk
  */
-#define NAMED_LOCALSTATEDIR	"/dns/bin"
-#define NAMED_SYSCONFDIR	"/dns/etc"
+#define NAMED_LOCALSTATEDIR "/dns/bin"
+#define NAMED_SYSCONFDIR "/dns/etc"
 
 ISC_LANG_BEGINDECLS
 

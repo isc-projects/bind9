@@ -9,14 +9,14 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <isc/mutexblock.h>
 #include <isc/util.h>
 
 void
-isc_mutexblock_init(isc_mutex_t *block, unsigned int count) {
+isc_mutexblock_init(isc_mutex_t *block, unsigned int count)
+{
 	unsigned int i;
 
 	for (i = 0; i < count; i++) {
@@ -25,7 +25,8 @@ isc_mutexblock_init(isc_mutex_t *block, unsigned int count) {
 }
 
 void
-isc_mutexblock_destroy(isc_mutex_t *block, unsigned int count) {
+isc_mutexblock_destroy(isc_mutex_t *block, unsigned int count)
+{
 	unsigned int i;
 
 	for (i = 0; i < count; i++) {

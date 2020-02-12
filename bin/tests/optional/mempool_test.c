@@ -15,13 +15,14 @@
 isc_mem_t *mctx;
 
 int
-main(int argc, char *argv[]) {
-	void *items1[50];
-	void *items2[50];
-	void *tmp;
+main(int argc, char *argv[])
+{
+	void *	       items1[50];
+	void *	       items2[50];
+	void *	       tmp;
 	isc_mempool_t *mp1, *mp2;
-	unsigned int i, j;
-	isc_mutex_t lock;
+	unsigned int   i, j;
+	isc_mutex_t    lock;
 
 	UNUSED(argc);
 	UNUSED(argv);

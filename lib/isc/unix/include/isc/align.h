@@ -14,5 +14,5 @@
 #ifdef HAVE_STDALIGN_H
 #include <stdalign.h>
 #else
-#define alignas(x) __attribute__ ((__aligned__ (x)))
+#define alignas(x) __attribute__((__aligned__(x)))
 #endif

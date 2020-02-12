@@ -37,8 +37,8 @@
 
 /*! \file */
 
-#include <stdio.h>
 #include <inttypes.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -61,20 +61,21 @@
 #define CLOCK_REALTIME 0
 #endif
 
-static int clock_gettime(int32_t id, struct timespec *tp);
+static int
+clock_gettime(int32_t id, struct timespec *tp);
 
 static int
 clock_gettime(int32_t id, struct timespec *tp)
 {
 	struct timeval tv;
-	int result;
+	int	       result;
 
 	UNUSED(id);
 
 	result = gettimeofday(&tv, NULL);
 	if (result == 0) {
 		tp->tv_sec = tv.tv_sec;
-		tp->tv_nsec = (long) tv.tv_usec * 1000;
+		tp->tv_nsec = (long)tv.tv_usec * 1000;
 	}
 	return (result);
 }
@@ -83,27 +84,27 @@ clock_gettime(int32_t id, struct timespec *tp)
 CK_BYTE label[] = "foo??bar!!";
 
 int
-main(int argc, char *argv[]) {
-	isc_result_t result;
-	CK_RV rv;
-	CK_SLOT_ID slot = 0;
+main(int argc, char *argv[])
+{
+	isc_result_t	  result;
+	CK_RV		  rv;
+	CK_SLOT_ID	  slot = 0;
 	CK_SESSION_HANDLE hSession = CK_INVALID_HANDLE;
-	CK_ATTRIBUTE sTemplate[] =
-	{
-		{ CKA_LABEL, label, (CK_ULONG) sizeof(label) },
+	CK_ATTRIBUTE	  sTemplate[] = {
+		     { CKA_LABEL, label, (CK_ULONG)sizeof(label) },
 	};
 	CK_OBJECT_HANDLE sKey = CK_INVALID_HANDLE;
-	CK_ULONG found = 0;
-	pk11_context_t pctx;
-	pk11_optype_t op_type = OP_RSA;
-	char *lib_name = NULL;
-	char *pin = NULL;
-	int error = 0;
-	int c, errflg = 0;
-	unsigned int count = 1000;
-	unsigned int i;
-	struct timespec starttime;
-	struct timespec endtime;
+	CK_ULONG	 found = 0;
+	pk11_context_t	 pctx;
+	pk11_optype_t	 op_type = OP_RSA;
+	char *		 lib_name = NULL;
+	char *		 pin = NULL;
+	int		 error = 0;
+	int		 c, errflg = 0;
+	unsigned int	 count = 1000;
+	unsigned int	 i;
+	struct timespec	 starttime;
+	struct timespec	 endtime;
 
 	while ((c = isc_commandline_parse(argc, argv, ":m:s:p:n:")) != -1) {
 		switch (c) {
@@ -121,8 +122,7 @@ main(int argc, char *argv[]) {
 			count = atoi(isc_commandline_argument);
 			break;
 		case ':':
-			fprintf(stderr,
-				"Option -%c requires an operand\n",
+			fprintf(stderr, "Option -%c requires an operand\n",
 				isc_commandline_option);
 			errflg++;
 			break;
@@ -136,8 +136,8 @@ main(int argc, char *argv[]) {
 
 	if (errflg) {
 		fprintf(stderr, "Usage:\n");
-		fprintf(stderr,
-			"\tfind [-m module] [-s slot] [-p pin] [-n count]\n");
+		fprintf(stderr, "\tfind [-m module] [-s slot] [-p pin] [-n "
+				"count]\n");
 		exit(1);
 	}
 
@@ -151,10 +151,9 @@ main(int argc, char *argv[]) {
 		pin = getpass("Enter Pin: ");
 	}
 
-	result = pk11_get_session(&pctx, op_type, false, false,
-				  true, (const char *) pin, slot);
-	if ((result != ISC_R_SUCCESS) &&
-	    (result != PK11_R_NORANDOMSERVICE) &&
+	result = pk11_get_session(&pctx, op_type, false, false, true,
+				  (const char *)pin, slot);
+	if ((result != ISC_R_SUCCESS) && (result != PK11_R_NORANDOMSERVICE) &&
 	    (result != PK11_R_NODIGESTSERVICE) &&
 	    (result != PK11_R_NOAESSERVICE)) {
 		fprintf(stderr, "Error initializing PKCS#11: %s\n",
@@ -176,16 +175,15 @@ main(int argc, char *argv[]) {
 		rv = pkcs_C_FindObjectsInit(hSession, sTemplate, 1);
 		if (rv != CKR_OK) {
 			fprintf(stderr,
-				"C_FindObjectsInit[%u]: Error = 0x%.8lX\n",
-				i, rv);
+				"C_FindObjectsInit[%u]: Error = 0x%.8lX\n", i,
+				rv);
 			error = 1;
 			break;
 		}
 
 		rv = pkcs_C_FindObjects(hSession, &sKey, 1, &found);
 		if (rv != CKR_OK) {
-			fprintf(stderr,
-				"C_FindObjects[%u]: Error = 0x%.8lX\n",
+			fprintf(stderr, "C_FindObjects[%u]: Error = 0x%.8lX\n",
 				i, rv);
 			error = 1;
 			/* no break here! */
@@ -194,8 +192,8 @@ main(int argc, char *argv[]) {
 		rv = pkcs_C_FindObjectsFinal(hSession);
 		if (rv != CKR_OK) {
 			fprintf(stderr,
-				"C_FindObjectsFinal[%u]: Error = 0x%.8lX\n",
-				i, rv);
+				"C_FindObjectsFinal[%u]: Error = 0x%.8lX\n", i,
+				rv);
 			error = 1;
 			break;
 		}
@@ -212,16 +210,17 @@ main(int argc, char *argv[]) {
 		endtime.tv_sec -= 1;
 		endtime.tv_nsec += 1000000000;
 	}
-	printf("%u object searches in %ld.%09lds\n", i,
-	       endtime.tv_sec, endtime.tv_nsec);
+	printf("%u object searches in %ld.%09lds\n", i, endtime.tv_sec,
+	       endtime.tv_nsec);
 	if (i > 0)
 		printf("%g object searches/s\n",
-		       1024 * i / ((double) endtime.tv_sec +
-				   (double) endtime.tv_nsec / 1000000000.));
+		       1024 * i /
+			       ((double)endtime.tv_sec +
+				(double)endtime.tv_nsec / 1000000000.));
 
-    exit_objects:
+exit_objects:
 	pk11_return_session(&pctx);
-	(void) pk11_finalize();
+	(void)pk11_finalize();
 
 	exit(error);
 }

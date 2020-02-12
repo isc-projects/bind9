@@ -16,26 +16,29 @@
 #include <stdbool.h>
 
 #include <isc/mem.h>
-#include <isc/safe.h>
 #include <isc/result.h>
+#include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>
-#include <dst/result.h>
 
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
-
-#include <openssl/err.h>
-#include <openssl/objects.h>
-#include <openssl/evp.h>
-#include <openssl/x509.h>
-
 #include "openssl_shim.h"
 
-#define DST_RET(a) {ret = a; goto err;}
+#include <dst/result.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+#include <openssl/x509.h>
+
+#define DST_RET(a)        \
+	{                 \
+		ret = a;  \
+		goto err; \
+	}
 
 #if HAVE_OPENSSL_ED25519
 
@@ -45,16 +48,16 @@
 
 /* OpenSSL doesn't provide direct access to key values */
 
-#define PUBPREFIXLEN	12
+#define PUBPREFIXLEN 12
 
-static const unsigned char ed25519_pub_prefix[] = {
-	0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65,
-	0x70, 0x03, 0x21, 0x00
-};
+static const unsigned char ed25519_pub_prefix[] = { 0x30, 0x2a, 0x30, 0x05,
+						    0x06, 0x03, 0x2b, 0x65,
+						    0x70, 0x03, 0x21, 0x00 };
 
-static EVP_PKEY *pub_ed25519_to_ossl(const unsigned char *key)
+static EVP_PKEY *
+pub_ed25519_to_ossl(const unsigned char *key)
 {
-	unsigned char buf[PUBPREFIXLEN + DNS_KEY_ED25519SIZE];
+	unsigned char	     buf[PUBPREFIXLEN + DNS_KEY_ED25519SIZE];
 	const unsigned char *p;
 
 	memmove(buf, ed25519_pub_prefix, PUBPREFIXLEN);
@@ -63,12 +66,12 @@ static EVP_PKEY *pub_ed25519_to_ossl(const unsigned char *key)
 	return (d2i_PUBKEY(NULL, &p, PUBPREFIXLEN + DNS_KEY_ED25519SIZE));
 }
 
-static isc_result_t pub_ed25519_from_ossl(EVP_PKEY *pkey,
-					  unsigned char *key)
+static isc_result_t
+pub_ed25519_from_ossl(EVP_PKEY *pkey, unsigned char *key)
 {
-	unsigned char buf[PUBPREFIXLEN + DNS_KEY_ED25519SIZE];
+	unsigned char  buf[PUBPREFIXLEN + DNS_KEY_ED25519SIZE];
 	unsigned char *p;
-	int len;
+	int	       len;
 
 	len = i2d_PUBKEY(pkey, NULL);
 	if ((len <= DNS_KEY_ED25519SIZE) ||
@@ -83,16 +86,17 @@ static isc_result_t pub_ed25519_from_ossl(EVP_PKEY *pkey,
 	return (ISC_R_SUCCESS);
 }
 
-#define PRIVPREFIXLEN	16
+#define PRIVPREFIXLEN 16
 
-static const unsigned char ed25519_priv_prefix[] = {
-	0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06,
-	0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20
-};
+static const unsigned char ed25519_priv_prefix[] = { 0x30, 0x2e, 0x02, 0x01,
+						     0x00, 0x30, 0x05, 0x06,
+						     0x03, 0x2b, 0x65, 0x70,
+						     0x04, 0x22, 0x04, 0x20 };
 
-static EVP_PKEY *priv_ed25519_to_ossl(const unsigned char *key)
+static EVP_PKEY *
+priv_ed25519_to_ossl(const unsigned char *key)
 {
-	unsigned char buf[PRIVPREFIXLEN + DNS_KEY_ED25519SIZE];
+	unsigned char	     buf[PRIVPREFIXLEN + DNS_KEY_ED25519SIZE];
 	const unsigned char *p;
 
 	memmove(buf, ed25519_priv_prefix, PRIVPREFIXLEN);
@@ -102,12 +106,12 @@ static EVP_PKEY *priv_ed25519_to_ossl(const unsigned char *key)
 			       PRIVPREFIXLEN + DNS_KEY_ED25519SIZE));
 }
 
-static isc_result_t priv_ed25519_from_ossl(EVP_PKEY *pkey,
-					  unsigned char *key)
+static isc_result_t
+priv_ed25519_from_ossl(EVP_PKEY *pkey, unsigned char *key)
 {
-	unsigned char buf[PRIVPREFIXLEN + DNS_KEY_ED25519SIZE];
+	unsigned char  buf[PRIVPREFIXLEN + DNS_KEY_ED25519SIZE];
 	unsigned char *p;
-	int len;
+	int	       len;
 
 	len = i2d_PrivateKey(pkey, NULL);
 	if ((len <= DNS_KEY_ED25519SIZE) ||
@@ -147,7 +151,8 @@ priv_ed25519_to_ossl(const unsigned char *key)
 }
 
 static isc_result_t
-priv_ed25519_from_ossl(EVP_PKEY *pkey, unsigned char *key) {
+priv_ed25519_from_ossl(EVP_PKEY *pkey, unsigned char *key)
+{
 	UNUSED(pkey);
 	UNUSED(key);
 	return (ISC_R_NOTIMPLEMENTED);
@@ -161,14 +166,14 @@ priv_ed25519_from_ossl(EVP_PKEY *pkey, unsigned char *key) {
 #error "Ed448 group is not known (NID_ED448)"
 #endif
 
-static const unsigned char ed448_pub_prefix[] = {
-	0x30, 0x43, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65,
-	0x71, 0x03, 0x3a, 0x00
-};
+static const unsigned char ed448_pub_prefix[] = { 0x30, 0x43, 0x30, 0x05,
+						  0x06, 0x03, 0x2b, 0x65,
+						  0x71, 0x03, 0x3a, 0x00 };
 
-static EVP_PKEY *pub_ed448_to_ossl(const unsigned char *key)
+static EVP_PKEY *
+pub_ed448_to_ossl(const unsigned char *key)
 {
-	unsigned char buf[PUBPREFIXLEN + DNS_KEY_ED448SIZE];
+	unsigned char	     buf[PUBPREFIXLEN + DNS_KEY_ED448SIZE];
 	const unsigned char *p;
 
 	memmove(buf, ed448_pub_prefix, PUBPREFIXLEN);
@@ -177,12 +182,12 @@ static EVP_PKEY *pub_ed448_to_ossl(const unsigned char *key)
 	return (d2i_PUBKEY(NULL, &p, PUBPREFIXLEN + DNS_KEY_ED448SIZE));
 }
 
-static isc_result_t pub_ed448_from_ossl(EVP_PKEY *pkey,
-					unsigned char *key)
+static isc_result_t
+pub_ed448_from_ossl(EVP_PKEY *pkey, unsigned char *key)
 {
-	unsigned char buf[PUBPREFIXLEN + DNS_KEY_ED448SIZE];
+	unsigned char  buf[PUBPREFIXLEN + DNS_KEY_ED448SIZE];
 	unsigned char *p;
-	int len;
+	int	       len;
 
 	len = i2d_PUBKEY(pkey, NULL);
 	if ((len <= DNS_KEY_ED448SIZE) ||
@@ -197,14 +202,15 @@ static isc_result_t pub_ed448_from_ossl(EVP_PKEY *pkey,
 	return (ISC_R_SUCCESS);
 }
 
-static const unsigned char ed448_priv_prefix[] = {
-	0x30, 0x47, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06,
-	0x03, 0x2b, 0x65, 0x71, 0x04, 0x3b, 0x04, 0x39
-};
+static const unsigned char ed448_priv_prefix[] = { 0x30, 0x47, 0x02, 0x01,
+						   0x00, 0x30, 0x05, 0x06,
+						   0x03, 0x2b, 0x65, 0x71,
+						   0x04, 0x3b, 0x04, 0x39 };
 
-static EVP_PKEY *priv_ed448_to_ossl(const unsigned char *key)
+static EVP_PKEY *
+priv_ed448_to_ossl(const unsigned char *key)
 {
-	unsigned char buf[PRIVPREFIXLEN + DNS_KEY_ED448SIZE];
+	unsigned char	     buf[PRIVPREFIXLEN + DNS_KEY_ED448SIZE];
 	const unsigned char *p;
 
 	memmove(buf, ed448_priv_prefix, PRIVPREFIXLEN);
@@ -214,12 +220,12 @@ static EVP_PKEY *priv_ed448_to_ossl(const unsigned char *key)
 			       PRIVPREFIXLEN + DNS_KEY_ED448SIZE));
 }
 
-static isc_result_t priv_ed448_from_ossl(EVP_PKEY *pkey,
-					unsigned char *key)
+static isc_result_t
+priv_ed448_from_ossl(EVP_PKEY *pkey, unsigned char *key)
 {
-	unsigned char buf[PRIVPREFIXLEN + DNS_KEY_ED448SIZE];
+	unsigned char  buf[PRIVPREFIXLEN + DNS_KEY_ED448SIZE];
 	unsigned char *p;
-	int len;
+	int	       len;
 
 	len = i2d_PrivateKey(pkey, NULL);
 	if ((len <= DNS_KEY_ED448SIZE) ||
@@ -259,7 +265,8 @@ priv_ed448_to_ossl(const unsigned char *key)
 }
 
 static isc_result_t
-priv_ed448_from_ossl(EVP_PKEY *pkey, unsigned char *key) {
+priv_ed448_from_ossl(EVP_PKEY *pkey, unsigned char *key)
+{
 	UNUSED(pkey);
 	UNUSED(key);
 	return (ISC_R_NOTIMPLEMENTED);
@@ -267,11 +274,12 @@ priv_ed448_from_ossl(EVP_PKEY *pkey, unsigned char *key) {
 
 #endif /* HAVE_OPENSSL_ED448 */
 
-static isc_result_t openssleddsa_todns(const dst_key_t *key,
-				       isc_buffer_t *data);
+static isc_result_t
+openssleddsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static isc_result_t
-openssleddsa_createctx(dst_key_t *key, dst_context_t *dctx) {
+openssleddsa_createctx(dst_key_t *key, dst_context_t *dctx)
+{
 	isc_buffer_t *buf = NULL;
 
 	UNUSED(key);
@@ -285,8 +293,9 @@ openssleddsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 }
 
 static void
-openssleddsa_destroyctx(dst_context_t *dctx) {
-	isc_buffer_t *buf = (isc_buffer_t *) dctx->ctxdata.generic;
+openssleddsa_destroyctx(dst_context_t *dctx)
+{
+	isc_buffer_t *buf = (isc_buffer_t *)dctx->ctxdata.generic;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ED25519 ||
 		dctx->key->key_alg == DST_ALG_ED448);
@@ -296,12 +305,13 @@ openssleddsa_destroyctx(dst_context_t *dctx) {
 }
 
 static isc_result_t
-openssleddsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
-	isc_buffer_t *buf = (isc_buffer_t *) dctx->ctxdata.generic;
+openssleddsa_adddata(dst_context_t *dctx, const isc_region_t *data)
+{
+	isc_buffer_t *buf = (isc_buffer_t *)dctx->ctxdata.generic;
 	isc_buffer_t *nbuf = NULL;
-	isc_region_t r;
-	unsigned int length;
-	isc_result_t result;
+	isc_region_t  r;
+	unsigned int  length;
+	isc_result_t  result;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ED25519 ||
 		dctx->key->key_alg == DST_ALG_ED448);
@@ -313,8 +323,8 @@ openssleddsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	length = isc_buffer_length(buf) + data->length + 64;
 	isc_buffer_allocate(dctx->mctx, &nbuf, length);
 	isc_buffer_usedregion(buf, &r);
-	(void) isc_buffer_copyregion(nbuf, &r);
-	(void) isc_buffer_copyregion(nbuf, data);
+	(void)isc_buffer_copyregion(nbuf, &r);
+	(void)isc_buffer_copyregion(nbuf, data);
 	isc_buffer_free(&buf);
 	dctx->ctxdata.generic = nbuf;
 
@@ -322,15 +332,16 @@ openssleddsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 }
 
 static isc_result_t
-openssleddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
-	isc_result_t ret;
-	dst_key_t *key = dctx->key;
-	isc_region_t tbsreg;
-	isc_region_t sigreg;
-	EVP_PKEY *pkey = key->keydata.pkey;
-	EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-	isc_buffer_t *buf = (isc_buffer_t *) dctx->ctxdata.generic;
-	size_t siglen;
+openssleddsa_sign(dst_context_t *dctx, isc_buffer_t *sig)
+{
+	isc_result_t  ret;
+	dst_key_t *   key = dctx->key;
+	isc_region_t  tbsreg;
+	isc_region_t  sigreg;
+	EVP_PKEY *    pkey = key->keydata.pkey;
+	EVP_MD_CTX *  ctx = EVP_MD_CTX_new();
+	isc_buffer_t *buf = (isc_buffer_t *)dctx->ctxdata.generic;
+	size_t	      siglen;
 
 	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
 		key->key_alg == DST_ALG_ED448);
@@ -344,26 +355,24 @@ openssleddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		siglen = DNS_SIG_ED448SIZE;
 
 	isc_buffer_availableregion(sig, &sigreg);
-	if (sigreg.length < (unsigned int) siglen)
+	if (sigreg.length < (unsigned int)siglen)
 		DST_RET(ISC_R_NOSPACE);
 
 	isc_buffer_usedregion(buf, &tbsreg);
 
 	if (EVP_DigestSignInit(ctx, NULL, NULL, NULL, pkey) != 1) {
-		DST_RET(dst__openssl_toresult3(dctx->category,
-					       "EVP_DigestSignInit",
-					       ISC_R_FAILURE));
+		DST_RET(dst__openssl_toresult3(
+			dctx->category, "EVP_DigestSignInit", ISC_R_FAILURE));
 	}
-	if (EVP_DigestSign(ctx, sigreg.base, &siglen,
-			   tbsreg.base, tbsreg.length) != 1) {
-		DST_RET(dst__openssl_toresult3(dctx->category,
-					       "EVP_DigestSign",
+	if (EVP_DigestSign(ctx, sigreg.base, &siglen, tbsreg.base,
+			   tbsreg.length) != 1) {
+		DST_RET(dst__openssl_toresult3(dctx->category, "EVP_DigestSign",
 					       DST_R_SIGNFAILURE));
 	}
-	isc_buffer_add(sig, (unsigned int) siglen);
+	isc_buffer_add(sig, (unsigned int)siglen);
 	ret = ISC_R_SUCCESS;
 
- err:
+err:
 	EVP_MD_CTX_free(ctx);
 	isc_buffer_free(&buf);
 	dctx->ctxdata.generic = NULL;
@@ -372,15 +381,16 @@ openssleddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 }
 
 static isc_result_t
-openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
-	isc_result_t ret;
-	dst_key_t *key = dctx->key;
-	int status;
-	isc_region_t tbsreg;
-	EVP_PKEY *pkey = key->keydata.pkey;
-	EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-	isc_buffer_t *buf = (isc_buffer_t *) dctx->ctxdata.generic;
-	unsigned int siglen = 0;
+openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig)
+{
+	isc_result_t  ret;
+	dst_key_t *   key = dctx->key;
+	int	      status;
+	isc_region_t  tbsreg;
+	EVP_PKEY *    pkey = key->keydata.pkey;
+	EVP_MD_CTX *  ctx = EVP_MD_CTX_new();
+	isc_buffer_t *buf = (isc_buffer_t *)dctx->ctxdata.generic;
+	unsigned int  siglen = 0;
 
 	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
 		key->key_alg == DST_ALG_ED448);
@@ -408,13 +418,12 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	isc_buffer_usedregion(buf, &tbsreg);
 
 	if (EVP_DigestVerifyInit(ctx, NULL, NULL, NULL, pkey) != 1) {
-		DST_RET(dst__openssl_toresult3(dctx->category,
-					       "EVP_DigestVerifyInit",
-					       ISC_R_FAILURE));
+		DST_RET(dst__openssl_toresult3(
+			dctx->category, "EVP_DigestVerifyInit", ISC_R_FAILURE));
 	}
 
-	status = EVP_DigestVerify(ctx, sig->base, siglen,
-				  tbsreg.base, tbsreg.length);
+	status = EVP_DigestVerify(ctx, sig->base, siglen, tbsreg.base,
+				  tbsreg.length);
 
 	switch (status) {
 	case 1:
@@ -424,13 +433,12 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		ret = dst__openssl_toresult(DST_R_VERIFYFAILURE);
 		break;
 	default:
-		ret = dst__openssl_toresult3(dctx->category,
-					     "EVP_DigestVerify",
+		ret = dst__openssl_toresult3(dctx->category, "EVP_DigestVerify",
 					     DST_R_VERIFYFAILURE);
 		break;
 	}
 
- err:
+err:
 	EVP_MD_CTX_free(ctx);
 	isc_buffer_free(&buf);
 	dctx->ctxdata.generic = NULL;
@@ -439,8 +447,9 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 }
 
 static bool
-openssleddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	int status;
+openssleddsa_compare(const dst_key_t *key1, const dst_key_t *key2)
+{
+	int	  status;
 	EVP_PKEY *pkey1 = key1->keydata.pkey;
 	EVP_PKEY *pkey2 = key2->keydata.pkey;
 
@@ -456,11 +465,12 @@ openssleddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
-	isc_result_t ret;
-	EVP_PKEY *pkey = NULL;
+openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int))
+{
+	isc_result_t  ret;
+	EVP_PKEY *    pkey = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
-	int nid = 0, status;
+	int	      nid = 0, status;
 
 	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
 		key->key_alg == DST_ALG_ED448);
@@ -490,26 +500,27 @@ openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 	status = EVP_PKEY_keygen_init(ctx);
 	if (status != 1)
-		DST_RET (dst__openssl_toresult2("EVP_PKEY_keygen_init",
-						DST_R_OPENSSLFAILURE));
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen_init",
+					       DST_R_OPENSSLFAILURE));
 
 	status = EVP_PKEY_keygen(ctx, &pkey);
 	if (status != 1)
-		DST_RET (dst__openssl_toresult2("EVP_PKEY_keygen",
-						DST_R_OPENSSLFAILURE));
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen",
+					       DST_R_OPENSSLFAILURE));
 
 	key->keydata.pkey = pkey;
 	ret = ISC_R_SUCCESS;
 
- err:
+err:
 	EVP_PKEY_CTX_free(ctx);
 	return (ret);
 }
 
 static bool
-openssleddsa_isprivate(const dst_key_t *key) {
-	EVP_PKEY *pkey = key->keydata.pkey;
-	int len;
+openssleddsa_isprivate(const dst_key_t *key)
+{
+	EVP_PKEY *    pkey = key->keydata.pkey;
+	int	      len;
 	unsigned long err;
 
 	if (pkey == NULL)
@@ -526,7 +537,8 @@ openssleddsa_isprivate(const dst_key_t *key) {
 }
 
 static void
-openssleddsa_destroy(dst_key_t *key) {
+openssleddsa_destroy(dst_key_t *key)
+{
 	EVP_PKEY *pkey = key->keydata.pkey;
 
 	EVP_PKEY_free(pkey);
@@ -534,8 +546,9 @@ openssleddsa_destroy(dst_key_t *key) {
 }
 
 static isc_result_t
-openssleddsa_todns(const dst_key_t *key, isc_buffer_t *data) {
-	EVP_PKEY *pkey = key->keydata.pkey;
+openssleddsa_todns(const dst_key_t *key, isc_buffer_t *data)
+{
+	EVP_PKEY *   pkey = key->keydata.pkey;
 	isc_region_t r;
 	isc_result_t result;
 
@@ -566,8 +579,9 @@ openssleddsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 }
 
 static isc_result_t
-openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
-	EVP_PKEY *pkey;
+openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data)
+{
+	EVP_PKEY *   pkey;
 	isc_region_t r;
 	unsigned int len;
 
@@ -597,12 +611,13 @@ openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 }
 
 static isc_result_t
-openssleddsa_tofile(const dst_key_t *key, const char *directory) {
-	isc_result_t ret;
-	EVP_PKEY *pkey;
-	dst_private_t priv;
+openssleddsa_tofile(const dst_key_t *key, const char *directory)
+{
+	isc_result_t   ret;
+	EVP_PKEY *     pkey;
+	dst_private_t  priv;
 	unsigned char *buf = NULL;
-	unsigned int len;
+	unsigned int   len;
 
 	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
 		key->key_alg == DST_ALG_ED448);
@@ -623,7 +638,7 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 		priv.elements[0].length = len;
 		ret = priv_ed25519_from_ossl(pkey, buf);
 		if (ret != ISC_R_SUCCESS)
-			DST_RET (dst__openssl_toresult(ret));
+			DST_RET(dst__openssl_toresult(ret));
 		priv.elements[0].data = buf;
 		priv.nelements = 1;
 		ret = dst__privstruct_writefile(key, &priv, directory);
@@ -634,13 +649,13 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 		priv.elements[0].length = len;
 		ret = priv_ed448_from_ossl(pkey, buf);
 		if (ret != ISC_R_SUCCESS)
-			DST_RET (dst__openssl_toresult(ret));
+			DST_RET(dst__openssl_toresult(ret));
 		priv.elements[0].data = buf;
 		priv.nelements = 1;
 		ret = dst__privstruct_writefile(key, &priv, directory);
 	}
 
- err:
+err:
 	if (buf != NULL)
 		isc_mem_put(key->mctx, buf, len);
 	return (ret);
@@ -662,12 +677,13 @@ eddsa_check(EVP_PKEY *privkey, dst_key_t *pub)
 }
 
 static isc_result_t
-openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
+openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub)
+{
 	dst_private_t priv;
-	isc_result_t ret;
-	EVP_PKEY *pkey = NULL;
-	unsigned int len;
-	isc_mem_t *mctx = key->mctx;
+	isc_result_t  ret;
+	EVP_PKEY *    pkey = NULL;
+	unsigned int  len;
+	isc_mem_t *   mctx = key->mctx;
 
 	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
 		key->key_alg == DST_ALG_ED448);
@@ -701,7 +717,7 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		pkey = priv_ed448_to_ossl(priv.elements[0].data);
 	}
 	if (pkey == NULL)
-		DST_RET (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	if (eddsa_check(pkey, pub) != ISC_R_SUCCESS) {
 		EVP_PKEY_free(pkey);
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
@@ -710,7 +726,7 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	key->key_size = len;
 	ret = ISC_R_SUCCESS;
 
- err:
+err:
 	dst__privstruct_free(&priv, mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
 	return (ret);
@@ -741,7 +757,8 @@ static dst_func_t openssleddsa_functions = {
 };
 
 isc_result_t
-dst__openssleddsa_init(dst_func_t **funcp) {
+dst__openssleddsa_init(dst_func_t **funcp)
+{
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL)
 		*funcp = &openssleddsa_functions;

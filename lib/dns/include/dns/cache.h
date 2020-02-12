@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1
 
@@ -154,7 +153,6 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp);
  *\li	*dbp is attached to the database.
  */
 
-
 isc_result_t
 dns_cache_setfilename(dns_cache_t *cache, const char *filename);
 /*%<
@@ -268,8 +266,7 @@ dns_cache_flush(dns_cache_t *cache);
  */
 
 isc_result_t
-dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name,
-		    bool tree);
+dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name, bool tree);
 /*
  * Flush a given name from the cache.  If 'tree' is true, then
  * also flush all names under 'name'.

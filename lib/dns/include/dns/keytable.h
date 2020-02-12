@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_KEYTABLE_H
 #define DNS_KEYTABLE_H 1
 
@@ -70,7 +69,6 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep);
  *
  *\li	Any other result indicates failure.
  */
-
 
 void
 dns_keytable_attach(dns_keytable_t *source, dns_keytable_t **targetp);

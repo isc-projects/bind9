@@ -57,20 +57,19 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include "dlz_perl_driver.h"
 
 #include <EXTERN.h>
 #include <perl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <dlz_minimal.h>
 
-#include "dlz_perl_driver.h"
-
 /* Enable debug logging? */
 #if 0
-#define carp(...) 	cd->log(ISC_LOG_INFO, __VA_ARGS__);
+#define carp(...) cd->log(ISC_LOG_INFO, __VA_ARGS__);
 #else
 #define carp(...)
 #endif
@@ -82,18 +81,18 @@
  * serious problems arise. We can hack around this, but it's much better to do
  * it properly and link against a perl compiled with multiplicity. */
 static PerlInterpreter *global_perl = NULL;
-static int global_perl_dont_free = 0;
+static int		global_perl_dont_free = 0;
 #endif
 
 typedef struct config_data {
-	PerlInterpreter	*perl;
-	char			*perl_source;
-	SV				*perl_class;
+	PerlInterpreter *perl;
+	char *		 perl_source;
+	SV *		 perl_class;
 
 	/* Functions given to us by bind9 */
-	log_t *log;
-	dns_sdlz_putrr_t *putrr;
-	dns_sdlz_putnamedrr_t *putnamedrr;
+	log_t *			 log;
+	dns_sdlz_putrr_t *	 putrr;
+	dns_sdlz_putnamedrr_t *	 putnamedrr;
 	dns_dlz_writeablezone_t *writeable_zone;
 } config_data_t;
 
@@ -101,20 +100,23 @@ typedef struct config_data {
  * is (almost) verbatim from perlembed, and is known to work correctly despite
  * the warnings.
  */
-EXTERN_C void xs_init (pTHX);
-EXTERN_C void boot_DynaLoader (pTHX_ CV* cv);
-EXTERN_C void boot_DLZ_Perl__clientinfo (pTHX_ CV* cv);
-EXTERN_C void boot_DLZ_Perl (pTHX_ CV* cv);
+EXTERN_C void xs_init(pTHX);
 EXTERN_C void
-xs_init(pTHX)
+boot_DynaLoader(pTHX_ CV *cv);
+EXTERN_C void
+boot_DLZ_Perl__clientinfo(pTHX_ CV *cv);
+EXTERN_C void
+	      boot_DLZ_Perl(pTHX_ CV *cv);
+EXTERN_C void xs_init(pTHX)
 {
-		char *file = __FILE__;
-		dXSUB_SYS;
+	char *file = __FILE__;
+	dXSUB_SYS;
 
-		/* DynaLoader is a special case */
-		newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
-		newXS("DLZ_Perl::clientinfo::bootstrap", boot_DLZ_Perl__clientinfo, file);
-		newXS("DLZ_Perl::bootstrap", boot_DLZ_Perl, file);
+	/* DynaLoader is a special case */
+	newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
+	newXS("DLZ_Perl::clientinfo::bootstrap", boot_DLZ_Perl__clientinfo,
+	      file);
+	newXS("DLZ_Perl::bootstrap", boot_DLZ_Perl, file);
 }
 
 /*
@@ -124,8 +126,8 @@ xs_init(pTHX)
 /*
  * remember a helper function, from the bind9 dlz_dlopen driver
  */
-static void b9_add_helper(config_data_t *state,
-			  const char *helper_name, void *ptr)
+static void
+b9_add_helper(config_data_t *state, const char *helper_name, void *ptr)
 {
 	if (strcmp(helper_name, "log") == 0)
 		state->log = ptr;
@@ -137,21 +139,23 @@ static void b9_add_helper(config_data_t *state,
 		state->writeable_zone = ptr;
 }
 
-int dlz_version(unsigned int *flags) {
+int
+dlz_version(unsigned int *flags)
+{
 	return DLZ_DLOPEN_VERSION;
 }
 
-isc_result_t dlz_allnodes(const char *zone, void *dbdata,
-			  dns_sdlzallnodes_t *allnodes)
+isc_result_t
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 {
-	config_data_t *cd = (config_data_t *) dbdata;
-	isc_result_t retval;
-	int rrcount, r;
-	SV *record_ref;
-	SV **rr_name;
-	SV **rr_type;
-	SV **rr_ttl;
-	SV **rr_data;
+	config_data_t *cd = (config_data_t *)dbdata;
+	isc_result_t   retval;
+	int	       rrcount, r;
+	SV *	       record_ref;
+	SV **	       rr_name;
+	SV **	       rr_type;
+	SV **	       rr_ttl;
+	SV **	       rr_data;
 #ifdef MULTIPLICITY
 	PerlInterpreter *my_perl = cd->perl;
 #endif
@@ -160,21 +164,23 @@ isc_result_t dlz_allnodes(const char *zone, void *dbdata,
 	PERL_SET_CONTEXT(cd->perl);
 	ENTER;
 	SAVETMPS;
-	
+
 	PUSHMARK(SP);
 	XPUSHs(cd->perl_class);
 	XPUSHs(sv_2mortal(newSVpv(zone, 0)));
 	PUTBACK;
 
 	carp("DLZ Perl: Calling allnodes for zone %s", zone);
-	rrcount = call_method("allnodes", G_ARRAY|G_EVAL);
+	rrcount = call_method("allnodes", G_ARRAY | G_EVAL);
 	carp("DLZ Perl: Call to allnodes returned rrcount of %i", rrcount);
 
 	SPAGAIN;
 
 	if (SvTRUE(ERRSV)) {
 		POPs;
-		cd->log(ISC_LOG_ERROR, "DLZ Perl: allnodes for zone %s died in eval: %s", zone, SvPV_nolen(ERRSV));
+		cd->log(ISC_LOG_ERROR,
+			"DLZ Perl: allnodes for zone %s died in eval: %s", zone,
+			SvPV_nolen(ERRSV));
 		retval = ISC_R_FAILURE;
 		goto CLEAN_UP_AND_RETURN;
 	}
@@ -188,10 +194,8 @@ isc_result_t dlz_allnodes(const char *zone, void *dbdata,
 	r = 0;
 	while (r++ < rrcount) {
 		record_ref = POPs;
-		if (
-			(!SvROK(record_ref)) ||
-			(SvTYPE(SvRV(record_ref)) != SVt_PVAV)
-		) {
+		if ((!SvROK(record_ref)) ||
+		    (SvTYPE(SvRV(record_ref)) != SVt_PVAV)) {
 			cd->log(ISC_LOG_ERROR,
 				"DLZ Perl: allnodes for zone %s "
 				"returned an invalid value "
@@ -203,14 +207,13 @@ isc_result_t dlz_allnodes(const char *zone, void *dbdata,
 
 		record_ref = SvRV(record_ref);
 
-		rr_name = av_fetch((AV *) record_ref, 0, 0);
-		rr_type = av_fetch((AV *) record_ref, 1, 0);
-		rr_ttl = av_fetch((AV *) record_ref, 2, 0);
-		rr_data = av_fetch((AV *) record_ref, 3, 0);
+		rr_name = av_fetch((AV *)record_ref, 0, 0);
+		rr_type = av_fetch((AV *)record_ref, 1, 0);
+		rr_ttl = av_fetch((AV *)record_ref, 2, 0);
+		rr_data = av_fetch((AV *)record_ref, 3, 0);
 
-		if (rr_name == NULL || rr_type == NULL ||
-		    rr_ttl == NULL || rr_data == NULL)
-		{
+		if (rr_name == NULL || rr_type == NULL || rr_ttl == NULL ||
+		    rr_data == NULL) {
 			cd->log(ISC_LOG_ERROR,
 				"DLZ Perl: allnodes for zone %s "
 				"returned an array that was missing data",
@@ -219,13 +222,11 @@ isc_result_t dlz_allnodes(const char *zone, void *dbdata,
 			break;
 		}
 
-		carp("DLZ Perl: Got record %s/%s = %s",
-		     SvPV_nolen(*rr_name), SvPV_nolen(*rr_type),
-		     SvPV_nolen(*rr_data));
-   		retval = cd->putnamedrr(allnodes,
-					SvPV_nolen(*rr_name),
-					SvPV_nolen(*rr_type),
-					SvIV(*rr_ttl), SvPV_nolen(*rr_data));
+		carp("DLZ Perl: Got record %s/%s = %s", SvPV_nolen(*rr_name),
+		     SvPV_nolen(*rr_type), SvPV_nolen(*rr_data));
+		retval = cd->putnamedrr(allnodes, SvPV_nolen(*rr_name),
+					SvPV_nolen(*rr_type), SvIV(*rr_ttl),
+					SvPV_nolen(*rr_data));
 		if (retval != ISC_R_SUCCESS) {
 			cd->log(ISC_LOG_ERROR,
 				"DLZ Perl: putnamedrr in allnodes "
@@ -241,17 +242,18 @@ CLEAN_UP_AND_RETURN:
 	FREETMPS;
 	LEAVE;
 
-	carp("DLZ Perl: Returning from allnodes, r = %i, retval = %i",
-	     r, retval);
+	carp("DLZ Perl: Returning from allnodes, r = %i, retval = %i", r,
+	     retval);
 
 	return (retval);
 }
 
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
-	config_data_t *cd = (config_data_t *) dbdata;
-	int r;
-	isc_result_t retval;
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
+{
+	config_data_t *cd = (config_data_t *)dbdata;
+	int	       r;
+	isc_result_t   retval;
 #ifdef MULTIPLICITY
 	PerlInterpreter *my_perl = cd->perl;
 #endif
@@ -260,14 +262,14 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	PERL_SET_CONTEXT(cd->perl);
 	ENTER;
 	SAVETMPS;
-	
+
 	PUSHMARK(SP);
 	XPUSHs(cd->perl_class);
 	XPUSHs(sv_2mortal(newSVpv(name, 0)));
 	XPUSHs(sv_2mortal(newSVpv(client, 0)));
 	PUTBACK;
 
-	r = call_method("allowzonexfr", G_SCALAR|G_EVAL);
+	r = call_method("allowzonexfr", G_SCALAR | G_EVAL);
 	SPAGAIN;
 
 	if (SvTRUE(ERRSV)) {
@@ -283,12 +285,13 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 		retval = ISC_R_FAILURE;
 	} else if (r == 0) {
 		/* Client returned nothing -- zone not found. */
-	 	retval = ISC_R_NOTFOUND;
+		retval = ISC_R_NOTFOUND;
 	} else if (r > 1) {
 		/* Once again, clean out the stack when possible. */
-		while (r--) POPi;
-		cd->log(ISC_LOG_ERROR,
-			"DLZ Perl: allowzonexfr returned too many parameters!");
+		while (r--)
+			POPi;
+		cd->log(ISC_LOG_ERROR, "DLZ Perl: allowzonexfr returned too "
+				       "many parameters!");
 		retval = ISC_R_FAILURE;
 	} else {
 		/*
@@ -313,14 +316,13 @@ isc_result_t
 dlz_findzonedb(void *dbdata, const char *name)
 #else
 isc_result_t
-dlz_findzonedb(void *dbdata, const char *name,
-	       dns_clientinfomethods_t *methods,
+dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo)
 #endif
 {
-	config_data_t *cd = (config_data_t *) dbdata;
-	int r;
-	isc_result_t retval;
+	config_data_t *cd = (config_data_t *)dbdata;
+	int	       r;
+	isc_result_t   retval;
 #ifdef MULTIPLICITY
 	PerlInterpreter *my_perl = cd->perl;
 #endif
@@ -336,13 +338,13 @@ dlz_findzonedb(void *dbdata, const char *name,
 	PERL_SET_CONTEXT(cd->perl);
 	ENTER;
 	SAVETMPS;
-	
+
 	PUSHMARK(SP);
 	XPUSHs(cd->perl_class);
 	XPUSHs(sv_2mortal(newSVpv(name, 0)));
 	PUTBACK;
 
-	r = call_method("findzone", G_SCALAR|G_EVAL);
+	r = call_method("findzone", G_SCALAR | G_EVAL);
 	SPAGAIN;
 
 	if (SvTRUE(ERRSV)) {
@@ -352,17 +354,17 @@ dlz_findzonedb(void *dbdata, const char *name,
 		 * caller.
 		 */
 		POPs;
-		cd->log(ISC_LOG_ERROR,
-			"DLZ Perl: findzone died in eval: %s",
+		cd->log(ISC_LOG_ERROR, "DLZ Perl: findzone died in eval: %s",
 			SvPV_nolen(ERRSV));
 		retval = ISC_R_FAILURE;
 	} else if (r == 0) {
-	 	retval = ISC_R_FAILURE;
+		retval = ISC_R_FAILURE;
 	} else if (r > 1) {
 		/* Once again, clean out the stack when possible. */
-		while (r--) POPi;
-		cd->log(ISC_LOG_ERROR,
-			"DLZ Perl: findzone returned too many parameters!");
+		while (r--)
+			POPi;
+		cd->log(ISC_LOG_ERROR, "DLZ Perl: findzone returned too many "
+				       "parameters!");
 		retval = ISC_R_FAILURE;
 	} else {
 		r = POPi;
@@ -378,27 +380,25 @@ dlz_findzonedb(void *dbdata, const char *name,
 	return (retval);
 }
 
-
 #if DLZ_DLOPEN_VERSION == 1
 isc_result_t
-dlz_lookup(const char *zone, const char *name,
-	   void *dbdata, dns_sdlzlookup_t *lookup)
+dlz_lookup(const char *zone, const char *name, void *dbdata,
+	   dns_sdlzlookup_t *lookup)
 #else
 isc_result_t
-dlz_lookup(const char *zone, const char *name,
-	   void *dbdata, dns_sdlzlookup_t *lookup,
-	   dns_clientinfomethods_t *methods,
+dlz_lookup(const char *zone, const char *name, void *dbdata,
+	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
 	   dns_clientinfo_t *clientinfo)
 #endif
 {
-	isc_result_t retval;
-	config_data_t *cd = (config_data_t *) dbdata;
-	int rrcount, r;
+	isc_result_t		   retval;
+	config_data_t *		   cd = (config_data_t *)dbdata;
+	int			   rrcount, r;
 	dlz_perl_clientinfo_opaque opaque;
-	SV *record_ref;
-	SV **rr_type;
-	SV **rr_ttl;
-	SV **rr_data;
+	SV *			   record_ref;
+	SV **			   rr_type;
+	SV **			   rr_ttl;
+	SV **			   rr_data;
 #ifdef MULTIPLICITY
 	PerlInterpreter *my_perl = cd->perl;
 #endif
@@ -424,7 +424,7 @@ dlz_lookup(const char *zone, const char *name,
 	PUTBACK;
 
 	carp("DLZ Perl: Searching for name %s in zone %s", name, zone);
-	rrcount = call_method("lookup", G_ARRAY|G_EVAL);
+	rrcount = call_method("lookup", G_ARRAY | G_EVAL);
 	carp("DLZ Perl: Call to lookup returned %i", rrcount);
 
 	SPAGAIN;
@@ -447,34 +447,34 @@ dlz_lookup(const char *zone, const char *name,
 	while (r++ < rrcount) {
 		record_ref = POPs;
 		if ((!SvROK(record_ref)) ||
-		    (SvTYPE(SvRV(record_ref)) != SVt_PVAV))
-		{
-			cd->log(ISC_LOG_ERROR,
-				"DLZ Perl: lookup returned an "
-				"invalid value (expected array of arrayrefs)!");
+		    (SvTYPE(SvRV(record_ref)) != SVt_PVAV)) {
+			cd->log(ISC_LOG_ERROR, "DLZ Perl: lookup returned an "
+					       "invalid value (expected array "
+					       "of arrayrefs)!");
 			retval = ISC_R_FAILURE;
 			break;
 		}
 
 		record_ref = SvRV(record_ref);
 
-		rr_type = av_fetch((AV *) record_ref, 0, 0);
-		rr_ttl = av_fetch((AV *) record_ref, 1, 0);
-		rr_data = av_fetch((AV *) record_ref, 2, 0);
+		rr_type = av_fetch((AV *)record_ref, 0, 0);
+		rr_ttl = av_fetch((AV *)record_ref, 1, 0);
+		rr_data = av_fetch((AV *)record_ref, 2, 0);
 
 		if (rr_type == NULL || rr_ttl == NULL || rr_data == NULL) {
 			cd->log(ISC_LOG_ERROR,
 				"DLZ Perl: lookup for record %s in "
 				"zone %s returned an array that was "
-				"missing data", name, zone);
+				"missing data",
+				name, zone);
 			retval = ISC_R_FAILURE;
 			break;
 		}
 
-		carp("DLZ Perl: Got record %s = %s",
-		     SvPV_nolen(*rr_type), SvPV_nolen(*rr_data));
-		retval = cd->putrr(lookup, SvPV_nolen(*rr_type),
-				   SvIV(*rr_ttl), SvPV_nolen(*rr_data));
+		carp("DLZ Perl: Got record %s = %s", SvPV_nolen(*rr_type),
+		     SvPV_nolen(*rr_data));
+		retval = cd->putrr(lookup, SvPV_nolen(*rr_type), SvIV(*rr_ttl),
+				   SvPV_nolen(*rr_data));
 
 		if (retval != ISC_R_SUCCESS) {
 			cd->log(ISC_LOG_ERROR,
@@ -503,14 +503,14 @@ missing_perl_method(const char *perl_class_name, PerlInterpreter *my_perl)
 missing_perl_method(const char *perl_class_name)
 #endif
 {
-	const int BUF_LEN = 64; /* Should be big enough, right? hah */
-	char full_name[BUF_LEN];
+	const int   BUF_LEN = 64; /* Should be big enough, right? hah */
+	char	    full_name[BUF_LEN];
 	const char *methods[] = { "new", "findzone", "lookup", NULL };
-	int i = 0;
+	int	    i = 0;
 
-	while( methods[i] != NULL ) {
-		snprintf(full_name, BUF_LEN, "%s::%s",
-			 perl_class_name, methods[i]);
+	while (methods[i] != NULL) {
+		snprintf(full_name, BUF_LEN, "%s::%s", perl_class_name,
+			 methods[i]);
 
 		if (get_cv(full_name, 0) == NULL) {
 			return methods[i];
@@ -522,18 +522,18 @@ missing_perl_method(const char *perl_class_name)
 }
 
 isc_result_t
-dlz_create(const char *dlzname, unsigned int argc, char *argv[],
-	   void **dbdata, ...)
+dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
+	   ...)
 {
 	config_data_t *cd;
-	char *init_args[] = { NULL, NULL };
-	char *perlrun[] = { "", NULL, "dlz perl", NULL };
-	char *perl_class_name;
-	int r;
-	va_list ap;
-	const char *helper_name;
-	const char *missing_method_name;
-	char *call_argv_args = NULL;
+	char *	       init_args[] = { NULL, NULL };
+	char *	       perlrun[] = { "", NULL, "dlz perl", NULL };
+	char *	       perl_class_name;
+	int	       r;
+	va_list	       ap;
+	const char *   helper_name;
+	const char *   missing_method_name;
+	char *	       call_argv_args = NULL;
 #ifdef MULTIPLICITY
 	PerlInterpreter *my_perl;
 #endif
@@ -547,29 +547,27 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* fill in the helper functions */
 	va_start(ap, dbdata);
 	while ((helper_name = va_arg(ap, const char *)) != NULL) {
-		b9_add_helper(cd, helper_name, va_arg(ap, void*));
+		b9_add_helper(cd, helper_name, va_arg(ap, void *));
 	}
 	va_end(ap);
 
 	if (argc < 2) {
 		cd->log(ISC_LOG_ERROR,
-			"DLZ Perl '%s': Missing script argument.",
-			dlzname);
+			"DLZ Perl '%s': Missing script argument.", dlzname);
 		free(cd);
 		return (ISC_R_FAILURE);
 	}
 
 	if (argc < 3) {
 		cd->log(ISC_LOG_ERROR,
-			"DLZ Perl '%s': Missing class name argument.",
-			dlzname);
+			"DLZ Perl '%s': Missing class name argument.", dlzname);
 		free(cd);
 		return (ISC_R_FAILURE);
 	}
 	perl_class_name = argv[2];
 
 	cd->log(ISC_LOG_INFO, "DLZ Perl '%s': Loading '%s' from location '%s'",
-		 dlzname, perl_class_name, argv[1], argc);
+		dlzname, perl_class_name, argv[1], argc);
 
 #ifndef MULTIPLICITY
 	if (global_perl) {
@@ -595,7 +593,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	my_perl = cd->perl;
 #endif
 	PERL_SET_CONTEXT(cd->perl);
- 
+
 	/*
 	 * We will re-create the interpreter during an rndc reconfig, so we
 	 * must set this variable per perlembed in order to insure we can
@@ -622,10 +620,9 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* Let Perl know about our callbacks. */
-	call_argv("DLZ_Perl::clientinfo::bootstrap",
-		  G_DISCARD|G_NOARGS, &call_argv_args);
-	call_argv("DLZ_Perl::bootstrap",
-		  G_DISCARD|G_NOARGS, &call_argv_args);
+	call_argv("DLZ_Perl::clientinfo::bootstrap", G_DISCARD | G_NOARGS,
+		  &call_argv_args);
+	call_argv("DLZ_Perl::bootstrap", G_DISCARD | G_NOARGS, &call_argv_args);
 
 	/*
 	 * Run the script. We don't really need to do this since we have
@@ -646,7 +643,8 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	{
 		cd->log(ISC_LOG_ERROR,
 			"DLZ Perl '%s': Missing required function '%s', "
-			"aborting", dlzname, missing_method_name);
+			"aborting",
+			dlzname, missing_method_name);
 		goto CLEAN_UP_PERL_AND_FAIL;
 	}
 
@@ -669,11 +667,12 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	PUTBACK;
 
-	r = call_method("new", G_EVAL|G_SCALAR);
+	r = call_method("new", G_EVAL | G_SCALAR);
 
 	SPAGAIN;
 
-	if (r) cd->perl_class = SvREFCNT_inc(POPs);
+	if (r)
+		cd->perl_class = SvREFCNT_inc(POPs);
 
 	PUTBACK;
 	FREETMPS;
@@ -681,8 +680,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	if (SvTRUE(ERRSV)) {
 		POPs;
-		cd->log(ISC_LOG_ERROR,
-			"DLZ Perl '%s': new died in eval: %s",
+		cd->log(ISC_LOG_ERROR, "DLZ Perl '%s': new died in eval: %s",
 			dlzname, SvPV_nolen(ERRSV));
 		goto CLEAN_UP_PERL_AND_FAIL;
 	}
@@ -710,8 +708,10 @@ CLEAN_UP_PERL_AND_FAIL:
 	return (ISC_R_FAILURE);
 }
 
-void dlz_destroy(void *dbdata) {
-	config_data_t *cd = (config_data_t *) dbdata;
+void
+dlz_destroy(void *dbdata)
+{
+	config_data_t *cd = (config_data_t *)dbdata;
 #ifdef MULTIPLICITY
 	PerlInterpreter *my_perl = cd->perl;
 #endif

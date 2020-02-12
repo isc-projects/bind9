@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
 
@@ -65,58 +64,80 @@
 /***
  *** Imports.
  ***/
-#include <isc/platform.h>
-
 #include <inttypes.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>		/* Contractual promise. */
-
-#include <net/if.h>
-
-#include <netinet/in.h>		/* Contractual promise. */
-#include <arpa/inet.h>		/* Contractual promise. */
-
 #include <isc/lang.h>
+#include <isc/platform.h>
 #include <isc/types.h>
+
+#include <arpa/inet.h> /* Contractual promise. */
+#include <net/if.h>
+#include <netinet/in.h> /* Contractual promise. */
+#include <sys/socket.h> /* Contractual promise. */
+#include <sys/types.h>
 
 #ifndef IN6ADDR_LOOPBACK_INIT
 #ifdef s6_addr
 /*% IPv6 address loopback init */
-#define IN6ADDR_LOOPBACK_INIT { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 } } }
+#define IN6ADDR_LOOPBACK_INIT                                                  \
+	{                                                                      \
+		{                                                              \
+			{                                                      \
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 \
+			}                                                      \
+		}                                                              \
+	}
 #else
-#define IN6ADDR_LOOPBACK_INIT { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 } }
+#define IN6ADDR_LOOPBACK_INIT                                          \
+	{                                                              \
+		{                                                      \
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 \
+		}                                                      \
+	}
 #endif
 #endif
 
 #ifndef IN6ADDR_V4MAPPED_INIT
 #ifdef s6_addr
 /*% IPv6 v4mapped prefix init */
-#define IN6ADDR_V4MAPPED_INIT { { { 0,0,0,0,0,0,0,0,0,0,0xff,0xff,0,0,0,0 } } }
+#define IN6ADDR_V4MAPPED_INIT                                                \
+	{                                                                    \
+		{                                                            \
+			{                                                    \
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0, \
+					0, 0, 0                              \
+			}                                                    \
+		}                                                            \
+	}
 #else
-#define IN6ADDR_V4MAPPED_INIT { { 0,0,0,0,0,0,0,0,0,0,0xff,0xff,0,0,0,0 } }
+#define IN6ADDR_V4MAPPED_INIT                                                \
+	{                                                                    \
+		{                                                            \
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0, 0, 0, 0 \
+		}                                                            \
+	}
 #endif
 #endif
 
 #ifndef IN6_IS_ADDR_V4MAPPED
 /*% Is IPv6 address V4 mapped? */
-#define IN6_IS_ADDR_V4MAPPED(x) \
-	 (memcmp((x)->s6_addr, in6addr_any.s6_addr, 10) == 0 && \
-	  (x)->s6_addr[10] == 0xff && (x)->s6_addr[11] == 0xff)
+#define IN6_IS_ADDR_V4MAPPED(x)                                \
+	(memcmp((x)->s6_addr, in6addr_any.s6_addr, 10) == 0 && \
+	 (x)->s6_addr[10] == 0xff && (x)->s6_addr[11] == 0xff)
 #endif
 
 #ifndef IN6_IS_ADDR_V4COMPAT
 /*% Is IPv6 address V4 compatible? */
-#define IN6_IS_ADDR_V4COMPAT(x) \
-	 (memcmp((x)->s6_addr, in6addr_any.s6_addr, 12) == 0 && \
-	 ((x)->s6_addr[12] != 0 || (x)->s6_addr[13] != 0 || \
-	  (x)->s6_addr[14] != 0 || \
+#define IN6_IS_ADDR_V4COMPAT(x)                                \
+	(memcmp((x)->s6_addr, in6addr_any.s6_addr, 12) == 0 && \
+	 ((x)->s6_addr[12] != 0 || (x)->s6_addr[13] != 0 ||    \
+	  (x)->s6_addr[14] != 0 ||                             \
 	  ((x)->s6_addr[15] != 0 && (x)->s6_addr[15] != 1)))
 #endif
 
 #ifndef IN6_IS_ADDR_MULTICAST
 /*% Is IPv6 address multicast? */
-#define IN6_IS_ADDR_MULTICAST(a)        ((a)->s6_addr[0] == 0xff)
+#define IN6_IS_ADDR_MULTICAST(a) ((a)->s6_addr[0] == 0xff)
 #endif
 
 #ifndef IN6_IS_ADDR_LINKLOCAL
@@ -130,7 +151,6 @@
 #define IN6_IS_ADDR_SITELOCAL(a) \
 	(((a)->s6_addr[0] == 0xfe) && (((a)->s6_addr[1] & 0xc0) == 0xc0))
 #endif
-
 
 #ifndef IN6_IS_ADDR_LOOPBACK
 /*% is IPv6 address loopback? */
@@ -168,16 +188,14 @@
 #endif
 
 /*% IP address. */
-#define ISC__IPADDR(x)	((uint32_t)htonl((uint32_t)(x)))
+#define ISC__IPADDR(x) ((uint32_t)htonl((uint32_t)(x)))
 
 /*% Is IP address multicast? */
 #define ISC_IPADDR_ISMULTICAST(i) \
-		(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
-		 == ISC__IPADDR(0xe0000000))
+	(((uint32_t)(i)&ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xe0000000))
 
 #define ISC_IPADDR_ISEXPERIMENTAL(i) \
-		(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
-		 == ISC__IPADDR(0xf0000000))
+	(((uint32_t)(i)&ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xf0000000))
 
 /***
  *** Functions.
@@ -254,20 +272,19 @@ isc_net_probeunix(void);
  * Returns whether UNIX domain sockets are supported.
  */
 
-#define ISC_NET_DSCPRECVV4	0x01	/* Can receive sent DSCP value IPv4 */
-#define ISC_NET_DSCPRECVV6	0x02	/* Can receive sent DSCP value IPv6 */
-#define ISC_NET_DSCPSETV4	0x04	/* Can set DSCP on socket IPv4 */
-#define ISC_NET_DSCPSETV6	0x08	/* Can set DSCP on socket IPv6 */
-#define ISC_NET_DSCPPKTV4	0x10	/* Can set DSCP on per packet IPv4 */
-#define ISC_NET_DSCPPKTV6	0x20	/* Can set DSCP on per packet IPv6 */
-#define ISC_NET_DSCPALL		0x3f	/* All valid flags */
+#define ISC_NET_DSCPRECVV4 0x01 /* Can receive sent DSCP value IPv4 */
+#define ISC_NET_DSCPRECVV6 0x02 /* Can receive sent DSCP value IPv6 */
+#define ISC_NET_DSCPSETV4 0x04	/* Can set DSCP on socket IPv4 */
+#define ISC_NET_DSCPSETV6 0x08	/* Can set DSCP on socket IPv6 */
+#define ISC_NET_DSCPPKTV4 0x10	/* Can set DSCP on per packet IPv4 */
+#define ISC_NET_DSCPPKTV6 0x20	/* Can set DSCP on per packet IPv6 */
+#define ISC_NET_DSCPALL 0x3f	/* All valid flags */
 
 unsigned int
 isc_net_probedscp(void);
 /*%<
  * Probe the level of DSCP support.
  */
-
 
 isc_result_t
 isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);

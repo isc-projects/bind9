@@ -17,8 +17,8 @@
 
 #include <isc/commandline.h>
 #include <isc/hash.h>
-#include <isc/mem.h>
 #include <isc/lib.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -27,13 +27,13 @@
 #include <dns/types.h>
 
 #include "db.h"
-#include "log.h"
 #include "instance.h"
+#include "log.h"
 #include "util.h"
 
-dns_dyndb_destroy_t dyndb_destroy;
+dns_dyndb_destroy_t  dyndb_destroy;
 dns_dyndb_register_t dyndb_init;
-dns_dyndb_version_t dyndb_version;
+dns_dyndb_version_t  dyndb_version;
 
 /*
  * Driver init is called for each dyndb section in named.conf
@@ -57,13 +57,13 @@ dns_dyndb_version_t dyndb_version;
  */
 isc_result_t
 dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
-	   const char *file, unsigned long line,
-	   const dns_dyndbctx_t *dctx, void **instp)
+	   const char *file, unsigned long line, const dns_dyndbctx_t *dctx,
+	   void **instp)
 {
-	isc_result_t result;
-	unsigned int argc;
-	char **argv = NULL;
-	char *s = NULL;
+	isc_result_t	   result;
+	unsigned int	   argc;
+	char **		   argv = NULL;
+	char *		   s = NULL;
 	sample_instance_t *sample_inst = NULL;
 
 	REQUIRE(name != NULL);
@@ -91,13 +91,12 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 		goto cleanup;
 	}
 
-	log_write(ISC_LOG_DEBUG(9),
-		  "loading params for dyndb '%s' from %s:%lu",
+	log_write(ISC_LOG_DEBUG(9), "loading params for dyndb '%s' from %s:%lu",
 		  name, file, line);
 
 	/* Finally, create the instance. */
-	result = new_sample_instance(mctx, name, argc, argv, dctx,
-				     &sample_inst);
+	result =
+		new_sample_instance(mctx, name, argc, argv, dctx, &sample_inst);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
 			  "dyndb_init: new_sample_instance -> %s\n",
@@ -119,7 +118,7 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 
 	*instp = sample_inst;
 
- cleanup:
+cleanup:
 	isc_mem_free(mctx, s);
 	if (argv != NULL)
 		isc_mem_put(mctx, argv, argc * sizeof(*argv));
@@ -134,7 +133,8 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
  * @param[out] instp Pointer to instance-specific data (for one dyndb section).
  */
 void
-dyndb_destroy(void **instp) {
+dyndb_destroy(void **instp)
+{
 	destroy_sample_instance((sample_instance_t **)instp);
 }
 
@@ -143,7 +143,8 @@ dyndb_destroy(void **instp) {
  * is no API mismatch betwen the driver and the caller.
  */
 int
-dyndb_version(unsigned int *flags) {
+dyndb_version(unsigned int *flags)
+{
 	UNUSED(flags);
 
 	return (DNS_DYNDB_VERSION);

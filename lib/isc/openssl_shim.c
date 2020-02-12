@@ -9,15 +9,16 @@
  * information regarding copyright ownership.
  */
 
-#include <openssl/opensslv.h>
+#include "openssl_shim.h"
 
 #include <stdlib.h>
 #include <string.h>
-#include "openssl_shim.h"
+
+#include <openssl/crypto.h>
 #include <openssl/engine.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
-#include <openssl/crypto.h>
+#include <openssl/opensslv.h>
 
 #if !HAVE_CRYPTO_ZALLOC
 void *
@@ -110,14 +111,17 @@ HMAC_CTX_free(HMAC_CTX *ctx)
 
 #if !HAVE_HMAC_CTX_RESET
 int
-HMAC_CTX_reset(HMAC_CTX *ctx) {
+HMAC_CTX_reset(HMAC_CTX *ctx)
+{
 	HMAC_CTX_cleanup(ctx);
 	return (1);
 }
 #endif
 
 #if !HAVE_HMAC_CTX_GET_MD
-const EVP_MD *HMAC_CTX_get_md(const HMAC_CTX *ctx) {
+const EVP_MD *
+HMAC_CTX_get_md(const HMAC_CTX *ctx)
+{
 	return ctx->md;
 }
 #endif

@@ -14,10 +14,10 @@
 
 #define RRTYPE_MF_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_mf(ARGS_FROMTEXT) {
-	isc_token_t token;
-	dns_name_t name;
+static inline isc_result_t fromtext_mf(ARGS_FROMTEXT)
+{
+	isc_token_t  token;
+	dns_name_t   name;
 	isc_buffer_t buffer;
 
 	REQUIRE(type == dns_rdatatype_mf);
@@ -37,12 +37,12 @@ fromtext_mf(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-totext_mf(ARGS_TOTEXT) {
+static inline isc_result_t totext_mf(ARGS_TOTEXT)
+{
 	isc_region_t region;
-	dns_name_t name;
-	dns_name_t prefix;
-	bool sub;
+	dns_name_t   name;
+	dns_name_t   prefix;
+	bool	     sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_mf);
 	REQUIRE(rdata->length != 0);
@@ -58,8 +58,8 @@ totext_mf(ARGS_TOTEXT) {
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t
-fromwire_mf(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_mf(ARGS_FROMWIRE)
+{
 	dns_name_t name;
 
 	REQUIRE(type == dns_rdatatype_mf);
@@ -73,11 +73,11 @@ fromwire_mf(ARGS_FROMWIRE) {
 	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
-static inline isc_result_t
-towire_mf(ARGS_TOWIRE) {
-	dns_name_t name;
+static inline isc_result_t towire_mf(ARGS_TOWIRE)
+{
+	dns_name_t    name;
 	dns_offsets_t offsets;
-	isc_region_t region;
+	isc_region_t  region;
 
 	REQUIRE(rdata->type == dns_rdatatype_mf);
 	REQUIRE(rdata->length != 0);
@@ -91,10 +91,10 @@ towire_mf(ARGS_TOWIRE) {
 	return (dns_name_towire(&name, cctx, target));
 }
 
-static inline int
-compare_mf(ARGS_COMPARE) {
-	dns_name_t name1;
-	dns_name_t name2;
+static inline int compare_mf(ARGS_COMPARE)
+{
+	dns_name_t   name1;
+	dns_name_t   name2;
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -116,10 +116,10 @@ compare_mf(ARGS_COMPARE) {
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static inline isc_result_t
-fromstruct_mf(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_mf(ARGS_FROMSTRUCT)
+{
 	dns_rdata_mf_t *mf = source;
-	isc_region_t region;
+	isc_region_t	region;
 
 	REQUIRE(type == dns_rdatatype_mf);
 	REQUIRE(mf != NULL);
@@ -133,11 +133,11 @@ fromstruct_mf(ARGS_FROMSTRUCT) {
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t
-tostruct_mf(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_mf(ARGS_TOSTRUCT)
+{
 	dns_rdata_mf_t *mf = target;
-	isc_region_t r;
-	dns_name_t name;
+	isc_region_t	r;
+	dns_name_t	name;
 
 	REQUIRE(rdata->type == dns_rdatatype_mf);
 	REQUIRE(mf != NULL);
@@ -156,8 +156,8 @@ tostruct_mf(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_mf(ARGS_FREESTRUCT) {
+static inline void freestruct_mf(ARGS_FREESTRUCT)
+{
 	dns_rdata_mf_t *mf = source;
 
 	REQUIRE(mf != NULL);
@@ -169,11 +169,11 @@ freestruct_mf(ARGS_FREESTRUCT) {
 	mf->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_mf(ARGS_ADDLDATA) {
-	dns_name_t name;
+static inline isc_result_t additionaldata_mf(ARGS_ADDLDATA)
+{
+	dns_name_t    name;
 	dns_offsets_t offsets;
-	isc_region_t region;
+	isc_region_t  region;
 
 	REQUIRE(rdata->type == dns_rdatatype_mf);
 
@@ -184,10 +184,10 @@ additionaldata_mf(ARGS_ADDLDATA) {
 	return ((add)(arg, &name, dns_rdatatype_a));
 }
 
-static inline isc_result_t
-digest_mf(ARGS_DIGEST) {
+static inline isc_result_t digest_mf(ARGS_DIGEST)
+{
 	isc_region_t r;
-	dns_name_t name;
+	dns_name_t   name;
 
 	REQUIRE(rdata->type == dns_rdatatype_mf);
 
@@ -198,9 +198,8 @@ digest_mf(ARGS_DIGEST) {
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline bool
-checkowner_mf(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_mf(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_mf);
 
 	UNUSED(name);
@@ -211,9 +210,8 @@ checkowner_mf(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_mf(ARGS_CHECKNAMES) {
-
+static inline bool checknames_mf(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_mf);
 
 	UNUSED(rdata);
@@ -223,9 +221,9 @@ checknames_mf(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_mf(ARGS_COMPARE) {
+static inline int casecompare_mf(ARGS_COMPARE)
+{
 	return (compare_mf(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_MF_4_C */
+#endif /* RDATA_GENERIC_MF_4_C */

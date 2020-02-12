@@ -23,7 +23,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 #ifndef ISCCC_TYPES_H
 #define ISCCC_TYPES_H 1
 
@@ -45,8 +44,8 @@ typedef struct isccc_symtab isccc_symtab_t;
 
 /*% iscc region structure */
 typedef struct isccc_region {
-	unsigned char *		rstart;
-	unsigned char *		rend;
+	unsigned char *rstart;
+	unsigned char *rend;
 } isccc_region_t;
 
 #endif /* ISCCC_TYPES_H */

@@ -14,10 +14,10 @@
 
 #define RRTYPE_MR_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_mr(ARGS_FROMTEXT) {
-	isc_token_t token;
-	dns_name_t name;
+static inline isc_result_t fromtext_mr(ARGS_FROMTEXT)
+{
+	isc_token_t  token;
+	dns_name_t   name;
 	isc_buffer_t buffer;
 
 	REQUIRE(type == dns_rdatatype_mr);
@@ -37,12 +37,12 @@ fromtext_mr(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-totext_mr(ARGS_TOTEXT) {
+static inline isc_result_t totext_mr(ARGS_TOTEXT)
+{
 	isc_region_t region;
-	dns_name_t name;
-	dns_name_t prefix;
-	bool sub;
+	dns_name_t   name;
+	dns_name_t   prefix;
+	bool	     sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_mr);
 	REQUIRE(rdata->length != 0);
@@ -58,8 +58,8 @@ totext_mr(ARGS_TOTEXT) {
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t
-fromwire_mr(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_mr(ARGS_FROMWIRE)
+{
 	dns_name_t name;
 
 	REQUIRE(type == dns_rdatatype_mr);
@@ -73,11 +73,11 @@ fromwire_mr(ARGS_FROMWIRE) {
 	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
-static inline isc_result_t
-towire_mr(ARGS_TOWIRE) {
-	dns_name_t name;
+static inline isc_result_t towire_mr(ARGS_TOWIRE)
+{
+	dns_name_t    name;
 	dns_offsets_t offsets;
-	isc_region_t region;
+	isc_region_t  region;
 
 	REQUIRE(rdata->type == dns_rdatatype_mr);
 	REQUIRE(rdata->length != 0);
@@ -91,10 +91,10 @@ towire_mr(ARGS_TOWIRE) {
 	return (dns_name_towire(&name, cctx, target));
 }
 
-static inline int
-compare_mr(ARGS_COMPARE) {
-	dns_name_t name1;
-	dns_name_t name2;
+static inline int compare_mr(ARGS_COMPARE)
+{
+	dns_name_t   name1;
+	dns_name_t   name2;
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -116,10 +116,10 @@ compare_mr(ARGS_COMPARE) {
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static inline isc_result_t
-fromstruct_mr(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_mr(ARGS_FROMSTRUCT)
+{
 	dns_rdata_mr_t *mr = source;
-	isc_region_t region;
+	isc_region_t	region;
 
 	REQUIRE(type == dns_rdatatype_mr);
 	REQUIRE(mr != NULL);
@@ -133,11 +133,11 @@ fromstruct_mr(ARGS_FROMSTRUCT) {
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t
-tostruct_mr(ARGS_TOSTRUCT) {
-	isc_region_t region;
+static inline isc_result_t tostruct_mr(ARGS_TOSTRUCT)
+{
+	isc_region_t	region;
 	dns_rdata_mr_t *mr = target;
-	dns_name_t name;
+	dns_name_t	name;
 
 	REQUIRE(rdata->type == dns_rdatatype_mr);
 	REQUIRE(mr != NULL);
@@ -156,8 +156,8 @@ tostruct_mr(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_mr(ARGS_FREESTRUCT) {
+static inline void freestruct_mr(ARGS_FREESTRUCT)
+{
 	dns_rdata_mr_t *mr = source;
 
 	REQUIRE(mr != NULL);
@@ -169,8 +169,8 @@ freestruct_mr(ARGS_FREESTRUCT) {
 	mr->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_mr(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_mr(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_mr);
 
 	UNUSED(rdata);
@@ -180,10 +180,10 @@ additionaldata_mr(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_mr(ARGS_DIGEST) {
+static inline isc_result_t digest_mr(ARGS_DIGEST)
+{
 	isc_region_t r;
-	dns_name_t name;
+	dns_name_t   name;
 
 	REQUIRE(rdata->type == dns_rdatatype_mr);
 
@@ -194,9 +194,8 @@ digest_mr(ARGS_DIGEST) {
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline bool
-checkowner_mr(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_mr(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_mr);
 
 	UNUSED(name);
@@ -207,9 +206,8 @@ checkowner_mr(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_mr(ARGS_CHECKNAMES) {
-
+static inline bool checknames_mr(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_mr);
 
 	UNUSED(rdata);
@@ -219,9 +217,9 @@ checknames_mr(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_mr(ARGS_COMPARE) {
+static inline int casecompare_mr(ARGS_COMPARE)
+{
 	return (compare_mr(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_MR_9_C */
+#endif /* RDATA_GENERIC_MR_9_C */

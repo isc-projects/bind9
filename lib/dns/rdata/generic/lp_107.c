@@ -18,10 +18,10 @@
 
 #define RRTYPE_LP_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_lp(ARGS_FROMTEXT) {
-	isc_token_t token;
-	dns_name_t name;
+static inline isc_result_t fromtext_lp(ARGS_FROMTEXT)
+{
+	isc_token_t  token;
+	dns_name_t   name;
 	isc_buffer_t buffer;
 
 	REQUIRE(type == dns_rdatatype_lp);
@@ -46,13 +46,13 @@ fromtext_lp(ARGS_FROMTEXT) {
 	return (dns_name_fromtext(&name, &buffer, origin, options, target));
 }
 
-static inline isc_result_t
-totext_lp(ARGS_TOTEXT) {
-	isc_region_t region;
-	dns_name_t name;
-	dns_name_t prefix;
-	bool sub;
-	char buf[sizeof("64000")];
+static inline isc_result_t totext_lp(ARGS_TOTEXT)
+{
+	isc_region_t   region;
+	dns_name_t     name;
+	dns_name_t     prefix;
+	bool	       sub;
+	char	       buf[sizeof("64000")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == dns_rdatatype_lp);
@@ -74,9 +74,9 @@ totext_lp(ARGS_TOTEXT) {
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t
-fromwire_lp(ARGS_FROMWIRE) {
-	dns_name_t name;
+static inline isc_result_t fromwire_lp(ARGS_FROMWIRE)
+{
+	dns_name_t   name;
 	isc_region_t sregion;
 
 	REQUIRE(type == dns_rdatatype_lp);
@@ -96,9 +96,8 @@ fromwire_lp(ARGS_FROMWIRE) {
 	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
-static inline isc_result_t
-towire_lp(ARGS_TOWIRE) {
-
+static inline isc_result_t towire_lp(ARGS_TOWIRE)
+{
 	REQUIRE(rdata->type == dns_rdatatype_lp);
 	REQUIRE(rdata->length != 0);
 
@@ -107,8 +106,8 @@ towire_lp(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
-compare_lp(ARGS_COMPARE) {
+static inline int compare_lp(ARGS_COMPARE)
+{
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -124,10 +123,10 @@ compare_lp(ARGS_COMPARE) {
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t
-fromstruct_lp(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_lp(ARGS_FROMSTRUCT)
+{
 	dns_rdata_lp_t *lp = source;
-	isc_region_t region;
+	isc_region_t	region;
 
 	REQUIRE(type == dns_rdatatype_lp);
 	REQUIRE(lp != NULL);
@@ -142,11 +141,11 @@ fromstruct_lp(ARGS_FROMSTRUCT) {
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t
-tostruct_lp(ARGS_TOSTRUCT) {
-	isc_region_t region;
+static inline isc_result_t tostruct_lp(ARGS_TOSTRUCT)
+{
+	isc_region_t	region;
 	dns_rdata_lp_t *lp = target;
-	dns_name_t name;
+	dns_name_t	name;
 
 	REQUIRE(rdata->type == dns_rdatatype_lp);
 	REQUIRE(lp != NULL);
@@ -167,8 +166,8 @@ tostruct_lp(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_lp(ARGS_FREESTRUCT) {
+static inline void freestruct_lp(ARGS_FREESTRUCT)
+{
 	dns_rdata_lp_t *lp = source;
 
 	REQUIRE(lp != NULL);
@@ -181,12 +180,12 @@ freestruct_lp(ARGS_FREESTRUCT) {
 	lp->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_lp(ARGS_ADDLDATA) {
-	dns_name_t name;
+static inline isc_result_t additionaldata_lp(ARGS_ADDLDATA)
+{
+	dns_name_t    name;
 	dns_offsets_t offsets;
-	isc_region_t region;
-	isc_result_t result;
+	isc_region_t  region;
+	isc_result_t  result;
 
 	REQUIRE(rdata->type == dns_rdatatype_lp);
 
@@ -201,8 +200,8 @@ additionaldata_lp(ARGS_ADDLDATA) {
 	return ((add)(arg, &name, dns_rdatatype_l64));
 }
 
-static inline isc_result_t
-digest_lp(ARGS_DIGEST) {
+static inline isc_result_t digest_lp(ARGS_DIGEST)
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_lp);
@@ -211,9 +210,8 @@ digest_lp(ARGS_DIGEST) {
 	return ((digest)(arg, &region));
 }
 
-static inline bool
-checkowner_lp(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_lp(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_lp);
 
 	UNUSED(type);
@@ -224,9 +222,8 @@ checkowner_lp(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_lp(ARGS_CHECKNAMES) {
-
+static inline bool checknames_lp(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_lp);
 
 	UNUSED(bad);
@@ -235,13 +232,13 @@ checknames_lp(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_lp(ARGS_COMPARE) {
-	dns_name_t name1;
-	dns_name_t name2;
+static inline int casecompare_lp(ARGS_COMPARE)
+{
+	dns_name_t   name1;
+	dns_name_t   name2;
 	isc_region_t region1;
 	isc_region_t region2;
-	int order;
+	int	     order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -268,4 +265,4 @@ casecompare_lp(ARGS_COMPARE) {
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-#endif	/* RDATA_GENERIC_LP_107_C */
+#endif /* RDATA_GENERIC_LP_107_C */

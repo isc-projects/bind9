@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_HEAP_H
 #define ISC_HEAP_H 1
 

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_BUFFERLIST_H
 #define ISC_BUFFERLIST_H 1
 
@@ -20,8 +19,8 @@
 /*! \file isc/bufferlist.h
  *
  *
- *\brief	Buffer lists have no synchronization.  Clients must ensure exclusive
- *	access.
+ *\brief	Buffer lists have no synchronization.  Clients must ensure
+ exclusive *	access.
  *
  * \li Reliability:
  *	No anticipated impact.
@@ -63,8 +62,8 @@ isc_bufferlist_usedcount(isc_bufferlist_t *bl);
 unsigned int
 isc_bufferlist_availablecount(isc_bufferlist_t *bl);
 /*!<
- * \brief Return the length of the sum of all available regions of all buffers in
- * the buffer list 'bl'
+ * \brief Return the length of the sum of all available regions of all buffers
+ *in the buffer list 'bl'
  *
  * Requires:
  *

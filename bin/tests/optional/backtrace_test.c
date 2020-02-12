@@ -16,20 +16,16 @@
 #include <isc/print.h>
 #include <isc/result.h>
 
-const char *expected_symbols[] = {
-	"func3",
-	"func2",
-	"func1",
-	"main"
-};
+const char *expected_symbols[] = { "func3", "func2", "func1", "main" };
 
 static int
-func3() {
-	void *tracebuf[16];
-	int i, nframes;
-	int error = 0;
-	const char *fname;
-	isc_result_t result;
+func3()
+{
+	void *	      tracebuf[16];
+	int	      i, nframes;
+	int	      error = 0;
+	const char *  fname;
+	isc_result_t  result;
 	unsigned long offset;
 
 	result = isc_backtrace_gettrace(tracebuf, 16, &nframes);
@@ -74,16 +70,19 @@ func3() {
 }
 
 static int
-func2() {
+func2()
+{
 	return (func3());
 }
 
 static int
-func1() {
+func1()
+{
 	return (func2());
 }
 
 int
-main() {
+main()
+{
 	return (func1());
 }

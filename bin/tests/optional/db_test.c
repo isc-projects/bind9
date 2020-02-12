@@ -20,8 +20,8 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/print.h>
-#include <isc/time.h>
 #include <isc/string.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -33,35 +33,35 @@
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
 
-#define MAXHOLD			100
-#define MAXVERSIONS		100
+#define MAXHOLD 100
+#define MAXVERSIONS 100
 
 typedef struct dbinfo {
-	dns_db_t *		db;
-	dns_dbversion_t *	version;
-	dns_dbversion_t *	wversion;
-	dns_dbversion_t *	rversions[MAXVERSIONS];
-	int			rcount;
-	dns_dbnode_t *		hold_nodes[MAXHOLD];
-	int			hold_count;
-	dns_dbiterator_t *	dbiterator;
-	dns_dbversion_t *	iversion;
-	int			pause_every;
-	bool		ascending;
-	ISC_LINK(struct dbinfo)	link;
+	dns_db_t *	  db;
+	dns_dbversion_t * version;
+	dns_dbversion_t * wversion;
+	dns_dbversion_t * rversions[MAXVERSIONS];
+	int		  rcount;
+	dns_dbnode_t *	  hold_nodes[MAXHOLD];
+	int		  hold_count;
+	dns_dbiterator_t *dbiterator;
+	dns_dbversion_t * iversion;
+	int		  pause_every;
+	bool		  ascending;
+	ISC_LINK(struct dbinfo) link;
 } dbinfo;
 
-static isc_mem_t *		mctx = NULL;
-static char			dbtype[128];
-static dns_dbtable_t *		dbtable;
-static ISC_LIST(dbinfo)		dbs;
-static dbinfo *			cache_dbi = NULL;
-static int			pause_every = 0;
-static bool		ascending = true;
+static isc_mem_t *    mctx = NULL;
+static char	      dbtype[128];
+static dns_dbtable_t *dbtable;
+static ISC_LIST(dbinfo) dbs;
+static dbinfo *cache_dbi = NULL;
+static int     pause_every = 0;
+static bool    ascending = true;
 
 static void
-print_result(const char *message, isc_result_t result) {
-
+print_result(const char *message, isc_result_t result)
+{
 	if (message == NULL)
 		message = "";
 	printf("%s%sresult %08x: %s\n", message, (*message == '\0') ? "" : " ",
@@ -69,15 +69,15 @@ print_result(const char *message, isc_result_t result) {
 }
 
 static void
-print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
+print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset)
+{
 	isc_buffer_t text;
-	char t[1000];
+	char	     t[1000];
 	isc_result_t result;
 	isc_region_t r;
 
 	isc_buffer_init(&text, t, sizeof(t));
-	result = dns_rdataset_totext(rdataset, name, false, false,
-				     &text);
+	result = dns_rdataset_totext(rdataset, name, false, false, &text);
 	isc_buffer_usedregion(&text, &r);
 	if (result == ISC_R_SUCCESS)
 		printf("%.*s", (int)r.length, (char *)r.base);
@@ -86,8 +86,9 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
 }
 
 static void
-print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter) {
-	isc_result_t result;
+print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter)
+{
+	isc_result_t   result;
 	dns_rdataset_t rdataset;
 
 	dns_rdataset_init(&rdataset);
@@ -103,13 +104,14 @@ print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter) {
 }
 
 static dbinfo *
-select_db(char *origintext) {
+select_db(char *origintext)
+{
 	dns_fixedname_t forigin;
-	dns_name_t *origin;
-	isc_buffer_t source;
-	size_t len;
-	dbinfo *dbi;
-	isc_result_t result;
+	dns_name_t *	origin;
+	isc_buffer_t	source;
+	size_t		len;
+	dbinfo *	dbi;
+	isc_result_t	result;
 
 	if (strcasecmp(origintext, "cache") == 0) {
 		if (cache_dbi == NULL)
@@ -126,8 +128,7 @@ select_db(char *origintext) {
 		return (NULL);
 	}
 
-	for (dbi = ISC_LIST_HEAD(dbs);
-	     dbi != NULL;
+	for (dbi = ISC_LIST_HEAD(dbs); dbi != NULL;
 	     dbi = ISC_LIST_NEXT(dbi, link)) {
 		if (dns_name_compare(dns_db_origin(dbi->db), origin) == 0)
 			break;
@@ -137,17 +138,18 @@ select_db(char *origintext) {
 }
 
 static void
-list(dbinfo *dbi, char *seektext) {
-	dns_fixedname_t fname;
-	dns_name_t *name;
-	dns_dbnode_t *node;
+list(dbinfo *dbi, char *seektext)
+{
+	dns_fixedname_t	    fname;
+	dns_name_t *	    name;
+	dns_dbnode_t *	    node;
 	dns_rdatasetiter_t *rdsiter;
-	isc_result_t result;
-	int i;
-	size_t len;
-	dns_fixedname_t fseekname;
-	dns_name_t *seekname;
-	isc_buffer_t source;
+	isc_result_t	    result;
+	int		    i;
+	size_t		    len;
+	dns_fixedname_t	    fseekname;
+	dns_name_t *	    seekname;
+	isc_buffer_t	    source;
 
 	name = dns_fixedname_initname(&fname);
 
@@ -168,14 +170,12 @@ list(dbinfo *dbi, char *seektext) {
 				isc_buffer_init(&source, seektext, len);
 				isc_buffer_add(&source, len);
 				seekname = dns_fixedname_initname(&fseekname);
-				result = dns_name_fromtext(seekname, &source,
-							   dns_db_origin(
-								 dbi->db),
-							   0, NULL);
+				result = dns_name_fromtext(
+					seekname, &source,
+					dns_db_origin(dbi->db), 0, NULL);
 				if (result == ISC_R_SUCCESS)
 					result = dns_dbiterator_seek(
-							     dbi->dbiterator,
-							     seekname);
+						dbi->dbiterator, seekname);
 			} else if (dbi->ascending)
 				result = dns_dbiterator_first(dbi->dbiterator);
 			else
@@ -221,14 +221,15 @@ list(dbinfo *dbi, char *seektext) {
 }
 
 static isc_result_t
-load(const char *filename, const char *origintext, bool cache) {
+load(const char *filename, const char *origintext, bool cache)
+{
 	dns_fixedname_t forigin;
-	dns_name_t *origin;
-	isc_result_t result;
-	isc_buffer_t source;
-	size_t len;
-	dbinfo *dbi;
-	unsigned int i;
+	dns_name_t *	origin;
+	isc_result_t	result;
+	isc_buffer_t	source;
+	size_t		len;
+	dbinfo *	dbi;
+	unsigned int	i;
 
 	dbi = isc_mem_get(mctx, sizeof(*dbi));
 
@@ -258,8 +259,7 @@ load(const char *filename, const char *origintext, bool cache) {
 
 	result = dns_db_create(mctx, dbtype, origin,
 			       cache ? dns_dbtype_cache : dns_dbtype_zone,
-			       dns_rdataclass_in,
-			       0, NULL, &dbi->db);
+			       dns_rdataclass_in, 0, NULL, &dbi->db);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, dbi, sizeof(*dbi));
 		return (result);
@@ -292,7 +292,8 @@ load(const char *filename, const char *origintext, bool cache) {
 }
 
 static void
-unload_all(void) {
+unload_all(void)
+{
 	dbinfo *dbi, *dbi_next;
 
 	for (dbi = ISC_LIST_HEAD(dbs); dbi != NULL; dbi = dbi_next) {
@@ -310,55 +311,56 @@ unload_all(void) {
 	}
 }
 
-#define DBI_CHECK(dbi) \
-if ((dbi) == NULL) { \
-	printf("You must first select a database with !DB\n"); \
-	continue; \
-}
+#define DBI_CHECK(dbi)                                                 \
+	if ((dbi) == NULL) {                                           \
+		printf("You must first select a database with !DB\n"); \
+		continue;                                              \
+	}
 
 int
-main(int argc, char *argv[]) {
-	dns_db_t *db;
-	dns_dbnode_t *node;
-	isc_result_t result;
-	dns_name_t name;
-	dns_offsets_t offsets;
-	size_t len;
-	isc_buffer_t source, target;
-	char s[1000];
-	char b[255];
-	dns_rdataset_t rdataset, sigrdataset;
-	int ch;
-	dns_rdatatype_t type = 1;
-	bool printnode = false;
-	bool addmode = false;
-	bool delmode = false;
-	bool holdmode = false;
-	bool verbose = false;
-	bool done = false;
-	bool quiet = false;
-	bool time_lookups = false;
-	bool found_as;
-	bool find_zonecut = false;
-	bool noexact_zonecut = false;
-	int i, v;
+main(int argc, char *argv[])
+{
+	dns_db_t *	    db;
+	dns_dbnode_t *	    node;
+	isc_result_t	    result;
+	dns_name_t	    name;
+	dns_offsets_t	    offsets;
+	size_t		    len;
+	isc_buffer_t	    source, target;
+	char		    s[1000];
+	char		    b[255];
+	dns_rdataset_t	    rdataset, sigrdataset;
+	int		    ch;
+	dns_rdatatype_t	    type = 1;
+	bool		    printnode = false;
+	bool		    addmode = false;
+	bool		    delmode = false;
+	bool		    holdmode = false;
+	bool		    verbose = false;
+	bool		    done = false;
+	bool		    quiet = false;
+	bool		    time_lookups = false;
+	bool		    found_as;
+	bool		    find_zonecut = false;
+	bool		    noexact_zonecut = false;
+	int		    i, v;
 	dns_rdatasetiter_t *rdsiter;
-	char t1[256];
-	char t2[256];
-	isc_buffer_t tb1, tb2;
-	isc_region_t r1, r2;
-	dns_fixedname_t foundname;
-	dns_name_t *fname;
-	unsigned int options = 0, zcoptions;
-	isc_time_t start, finish;
-	const char *origintext;
-	dbinfo *dbi;
-	dns_dbversion_t *version;
-	const dns_name_t *origin;
-	dns_trust_t trust = 0;
-	unsigned int addopts;
-	isc_log_t *lctx = NULL;
-	size_t n;
+	char		    t1[256];
+	char		    t2[256];
+	isc_buffer_t	    tb1, tb2;
+	isc_region_t	    r1, r2;
+	dns_fixedname_t	    foundname;
+	dns_name_t *	    fname;
+	unsigned int	    options = 0, zcoptions;
+	isc_time_t	    start, finish;
+	const char *	    origintext;
+	dbinfo *	    dbi;
+	dns_dbversion_t *   version;
+	const dns_name_t *  origin;
+	dns_trust_t	    trust = 0;
+	unsigned int	    addopts;
+	isc_log_t *	    lctx = NULL;
+	size_t		    n;
 
 	dns_result_register();
 
@@ -367,8 +369,8 @@ main(int argc, char *argv[]) {
 		      ISC_R_SUCCESS);
 
 	snprintf(dbtype, sizeof(dbtype), "rbt");
-	while ((ch = isc_commandline_parse(argc, argv, "c:d:t:z:P:Q:glpqvT"))
-	       != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "c:d:t:z:P:Q:glpqvT")) !=
+	       -1) {
 		switch (ch) {
 		case 'c':
 			result = load(isc_commandline_argument, ".", true);
@@ -387,11 +389,12 @@ main(int argc, char *argv[]) {
 			}
 			break;
 		case 'g':
-			options |= (DNS_DBFIND_GLUEOK|DNS_DBFIND_VALIDATEGLUE);
+			options |=
+				(DNS_DBFIND_GLUEOK | DNS_DBFIND_VALIDATEGLUE);
 			break;
 		case 'l':
-			RUNTIME_CHECK(isc_log_create(mctx, &lctx,
-						     NULL) == ISC_R_SUCCESS);
+			RUNTIME_CHECK(isc_log_create(mctx, &lctx, NULL) ==
+				      ISC_R_SUCCESS);
 			isc_log_setcontext(lctx);
 			dns_log_init(lctx);
 			dns_log_setcontext(lctx);
@@ -420,7 +423,7 @@ main(int argc, char *argv[]) {
 			if (origintext == NULL)
 				origintext = isc_commandline_argument;
 			else
-				origintext++;	/* Skip '/'. */
+				origintext++; /* Skip '/'. */
 			result = load(isc_commandline_argument, origintext,
 				      false);
 			if (result != ISC_R_SUCCESS)
@@ -511,11 +514,11 @@ main(int argc, char *argv[]) {
 				dbi->wversion = NULL;
 			} else {
 				for (i = 0; i < dbi->rcount; i++) {
-					if (dbi->version ==
-					    dbi->rversions[i]) {
+					if (dbi->version == dbi->rversions[i]) {
 						dbi->rversions[i] = NULL;
-					  printf("closing open version %d\n",
-						 i);
+						printf("closing open version "
+						       "%d\n",
+						       i);
 						break;
 					}
 				}
@@ -534,11 +537,11 @@ main(int argc, char *argv[]) {
 				dbi->wversion = NULL;
 			} else {
 				for (i = 0; i < dbi->rcount; i++) {
-					if (dbi->version ==
-					    dbi->rversions[i]) {
+					if (dbi->version == dbi->rversions[i]) {
 						dbi->rversions[i] = NULL;
-					  printf("closing open version %d\n",
-						 i);
+						printf("closing open version "
+						       "%d\n",
+						       i);
 						break;
 					}
 				}
@@ -575,8 +578,7 @@ main(int argc, char *argv[]) {
 		} else if (strcmp(s, "!HR") == 0) {
 			DBI_CHECK(dbi);
 			for (i = 0; i < dbi->hold_count; i++)
-				dns_db_detachnode(dbi->db,
-						  &dbi->hold_nodes[i]);
+				dns_db_detachnode(dbi->db, &dbi->hold_nodes[i]);
 			dbi->hold_count = 0;
 			holdmode = false;
 			printf("held nodes have been detached\n");
@@ -616,8 +618,8 @@ main(int argc, char *argv[]) {
 			else
 				options |= DNS_DBFIND_GLUEOK;
 			printf("glue ok = %s\n",
-			       ((options & DNS_DBFIND_GLUEOK) != 0) ?
-			       "TRUE" : "FALSE");
+			       ((options & DNS_DBFIND_GLUEOK) != 0) ? "TRUE"
+								    : "FALSE");
 			continue;
 		} else if (strcmp(s, "!GV") == 0) {
 			if ((options & DNS_DBFIND_VALIDATEGLUE) != 0)
@@ -625,8 +627,9 @@ main(int argc, char *argv[]) {
 			else
 				options |= DNS_DBFIND_VALIDATEGLUE;
 			printf("validate glue = %s\n",
-			       ((options & DNS_DBFIND_VALIDATEGLUE) != 0) ?
-			       "TRUE" : "FALSE");
+			       ((options & DNS_DBFIND_VALIDATEGLUE) != 0)
+				       ? "TRUE"
+				       : "FALSE");
 			continue;
 		} else if (strcmp(s, "!WC") == 0) {
 			if ((options & DNS_DBFIND_NOWILD) != 0)
@@ -634,8 +637,8 @@ main(int argc, char *argv[]) {
 			else
 				options |= DNS_DBFIND_NOWILD;
 			printf("wildcard matching = %s\n",
-			       ((options & DNS_DBFIND_NOWILD) == 0) ?
-			       "TRUE" : "FALSE");
+			       ((options & DNS_DBFIND_NOWILD) == 0) ? "TRUE"
+								    : "FALSE");
 			continue;
 		} else if (strstr(s, "!LS ") == s) {
 			DBI_CHECK(dbi);
@@ -647,7 +650,7 @@ main(int argc, char *argv[]) {
 			continue;
 		} else if (strstr(s, "!DU ") == s) {
 			DBI_CHECK(dbi);
-			result = dns_db_dump(dbi->db, dbi->version, s+4);
+			result = dns_db_dump(dbi->db, dbi->version, s + 4);
 			if (result != ISC_R_SUCCESS) {
 				printf("\n");
 				print_result("", result);
@@ -681,7 +684,7 @@ main(int argc, char *argv[]) {
 			printf("now searching all databases\n");
 			continue;
 		} else if (strncmp(s, "!DB ", 4) == 0) {
-			dbi = select_db(s+4);
+			dbi = select_db(s + 4);
 			if (dbi != NULL) {
 				db = dbi->db;
 				origin = dns_db_origin(dbi->db);
@@ -740,8 +743,8 @@ main(int argc, char *argv[]) {
 				continue;
 			}
 			isc_buffer_init(&tb1, t1, sizeof(t1));
-			result = dns_name_totext(dns_db_origin(db), false,
-						 &tb1);
+			result =
+				dns_name_totext(dns_db_origin(db), false, &tb1);
 			if (result != ISC_R_SUCCESS) {
 				printf("\n");
 				print_result("", result);
@@ -749,9 +752,8 @@ main(int argc, char *argv[]) {
 				continue;
 			}
 			isc_buffer_usedregion(&tb1, &r1);
-			printf("\ndatabase = %.*s (%s)\n",
-			       (int)r1.length, r1.base,
-			       (dns_db_iszone(db)) ? "zone" : "cache");
+			printf("\ndatabase = %.*s (%s)\n", (int)r1.length,
+			       r1.base, (dns_db_iszone(db)) ? "zone" : "cache");
 		}
 		node = NULL;
 		dns_rdataset_init(&rdataset);
@@ -761,13 +763,13 @@ main(int argc, char *argv[]) {
 			zcoptions = options;
 			if (noexact_zonecut)
 				zcoptions |= DNS_DBFIND_NOEXACT;
-			result = dns_db_findzonecut(db, &name, zcoptions,
-						    0, &node, fname, NULL,
+			result = dns_db_findzonecut(db, &name, zcoptions, 0,
+						    &node, fname, NULL,
 						    &rdataset, &sigrdataset);
 		} else {
-			result = dns_db_find(db, &name, version, type,
-					     options, 0, &node, fname,
-					     &rdataset, &sigrdataset);
+			result = dns_db_find(db, &name, version, type, options,
+					     0, &node, fname, &rdataset,
+					     &sigrdataset);
 		}
 
 		if (!quiet) {
@@ -836,8 +838,7 @@ main(int argc, char *argv[]) {
 			}
 			isc_buffer_usedregion(&tb1, &r1);
 			isc_buffer_usedregion(&tb2, &r2);
-			printf("found %.*s as %.*s\n",
-			       (int)r1.length, r1.base,
+			printf("found %.*s as %.*s\n", (int)r1.length, r1.base,
 			       (int)r2.length, r2.base);
 		}
 
@@ -877,9 +878,8 @@ main(int argc, char *argv[]) {
 				if (printnode)
 					dns_db_printnode(db, node, stdout);
 			} else if (dbi != NULL && delmode && !found_as) {
-				result = dns_db_deleterdataset(db, node,
-							       version, type,
-							       0);
+				result = dns_db_deleterdataset(
+					db, node, version, type, 0);
 				if (result != ISC_R_SUCCESS)
 					print_result("", result);
 				if (printnode)

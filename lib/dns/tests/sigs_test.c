@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -43,14 +42,14 @@
 #include <dns/types.h>
 #include <dns/zone.h>
 
-#include <dst/dst.h>
-
 #include "../zone_p.h"
-
 #include "dnstest.h"
 
+#include <dst/dst.h>
+
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -62,7 +61,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	dns_test_end();
@@ -76,20 +76,23 @@ _teardown(void **state) {
  */
 typedef struct {
 	dns_diffop_t op;
-	const char *owner;
-	dns_ttl_t ttl;
-	const char *type;
+	const char * owner;
+	dns_ttl_t    ttl;
+	const char * type;
 } zonediff_t;
 
-#define ZONEDIFF_SENTINEL { 0, NULL, 0, NULL }
+#define ZONEDIFF_SENTINEL        \
+	{                        \
+		0, NULL, 0, NULL \
+	}
 
 /*%
  * Structure defining a dns__zone_updatesigs() test.
  */
 typedef struct {
-	const char *description;	/* test description */
-	const zonechange_t *changes;	/* array of "raw" zone changes */
-	const zonediff_t *zonediff;	/* array of "processed" zone changes */
+	const char *	    description; /* test description */
+	const zonechange_t *changes;	 /* array of "raw" zone changes */
+	const zonediff_t *  zonediff;	 /* array of "processed" zone changes */
 } updatesigs_test_params_t;
 
 /*%
@@ -97,19 +100,18 @@ typedef struct {
  * the 'index'th tuple output by dns__zone_updatesigs() in test 'test'.
  */
 static void
-compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
-	       size_t index)
+compare_tuples(const zonediff_t *expected, dns_difftuple_t *found, size_t index)
 {
-	char found_covers[DNS_RDATATYPE_FORMATSIZE] = { };
-	char found_type[DNS_RDATATYPE_FORMATSIZE] = { };
-	char found_name[DNS_NAME_FORMATSIZE];
+	char		      found_covers[DNS_RDATATYPE_FORMATSIZE] = {};
+	char		      found_type[DNS_RDATATYPE_FORMATSIZE] = {};
+	char		      found_name[DNS_NAME_FORMATSIZE];
 	isc_consttextregion_t typeregion;
-	dns_fixedname_t expected_fname;
-	dns_rdatatype_t expected_type;
-	dns_name_t *expected_name;
-	dns_rdata_rrsig_t rrsig;
-	isc_buffer_t typebuf;
-	isc_result_t result;
+	dns_fixedname_t	      expected_fname;
+	dns_rdatatype_t	      expected_type;
+	dns_name_t *	      expected_name;
+	dns_rdata_rrsig_t     rrsig;
+	isc_buffer_t	      typebuf;
+	isc_result_t	      result;
 
 	REQUIRE(expected != NULL);
 	REQUIRE(found != NULL);
@@ -124,7 +126,8 @@ compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
 	 * Check owner name.
 	 */
 	expected_name = dns_fixedname_initname(&expected_fname);
-	result = dns_name_fromstring(expected_name, expected->owner, 0, dt_mctx);
+	result =
+		dns_name_fromstring(expected_name, expected->owner, 0, dt_mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_name_format(&found->name, found_name, sizeof(found_name));
 	assert_true(dns_name_equal(expected_name, &found->name));
@@ -140,7 +143,7 @@ compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
 	typeregion.base = expected->type;
 	typeregion.length = strlen(expected->type);
 	result = dns_rdatatype_fromtext(&expected_type,
-					(isc_textregion_t*)&typeregion);
+					(isc_textregion_t *)&typeregion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -192,12 +195,12 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 		dns_db_t *db, dst_key_t *zone_keys[], unsigned int nkeys,
 		isc_stdtime_t now)
 {
-	size_t tuples_expected, tuples_found, index;
-	dns_dbversion_t *version = NULL;
-	dns_diff_t raw_diff, zone_diff;
+	size_t		  tuples_expected, tuples_found, index;
+	dns_dbversion_t * version = NULL;
+	dns_diff_t	  raw_diff, zone_diff;
 	const zonediff_t *expected;
-	dns_difftuple_t *found;
-	isc_result_t result;
+	dns_difftuple_t * found;
+	isc_result_t	  result;
 
 	dns__zonediff_t zonediff = {
 		.diff = &zone_diff,
@@ -255,10 +258,8 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	}
 
 	tuples_found = 0;
-	for (found = ISC_LIST_HEAD(zone_diff.tuples);
-	     found != NULL;
-	     found = ISC_LIST_NEXT(found, link))
-	{
+	for (found = ISC_LIST_HEAD(zone_diff.tuples); found != NULL;
+	     found = ISC_LIST_NEXT(found, link)) {
 		tuples_found++;
 	}
 
@@ -269,10 +270,8 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	 */
 	expected = test->zonediff;
 	index = 1;
-	for (found = ISC_LIST_HEAD(zone_diff.tuples);
-	     found != NULL;
-	     found = ISC_LIST_NEXT(found, link))
-	{
+	for (found = ISC_LIST_HEAD(zone_diff.tuples); found != NULL;
+	     found = ISC_LIST_NEXT(found, link)) {
 		compare_tuples(expected, found, index);
 		expected++;
 		index++;
@@ -288,14 +287,15 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 
 /* dns__zone_updatesigs() tests */
 static void
-updatesigs_next_test(void **state) {
-	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
-	dns_zone_t *zone = NULL;
-	dns_db_t *db = NULL;
-	isc_result_t result;
-	unsigned int nkeys;
+updatesigs_next_test(void **state)
+{
+	dst_key_t *   zone_keys[DNS_MAXZONEKEYS];
+	dns_zone_t *  zone = NULL;
+	dns_db_t *    db = NULL;
+	isc_result_t  result;
+	unsigned int  nkeys;
 	isc_stdtime_t now;
-	size_t i;
+	size_t	      i;
 
 	UNUSED(state);
 
@@ -315,8 +315,7 @@ updatesigs_next_test(void **state) {
 
 	isc_stdtime_get(&now);
 	result = dns__zone_findkeys(zone, db, NULL, now, dt_mctx,
-				    DNS_MAXZONEKEYS,
-				    zone_keys, &nkeys);
+				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(nkeys, 2);
 
@@ -418,11 +417,8 @@ updatesigs_next_test(void **state) {
 	};
 
 	const updatesigs_test_params_t *tests[] = {
-		&test_add,
-		&test_append,
-		&test_replace,
-		&test_delete,
-		&test_mixed,
+		&test_add,    &test_append, &test_replace,
+		&test_delete, &test_mixed,
 	};
 
 	/*
@@ -443,10 +439,11 @@ updatesigs_next_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(updatesigs_next_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(updatesigs_next_test, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -457,7 +454,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

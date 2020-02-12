@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef RDATA_GENERIC_AMTRELAY_260_C
 #define RDATA_GENERIC_AMTRELAY_260_C
 
@@ -19,16 +18,16 @@
 
 #define RRTYPE_AMTRELAY_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_amtrelay(ARGS_FROMTEXT) {
-	isc_token_t token;
-	dns_name_t name;
-	isc_buffer_t buffer;
-	unsigned int discovery;
-	unsigned int gateway;
+static inline isc_result_t fromtext_amtrelay(ARGS_FROMTEXT)
+{
+	isc_token_t    token;
+	dns_name_t     name;
+	isc_buffer_t   buffer;
+	unsigned int   discovery;
+	unsigned int   gateway;
 	struct in_addr addr;
-	unsigned char addr6[16];
-	isc_region_t region;
+	unsigned char  addr6[16];
+	isc_region_t   region;
 
 	REQUIRE(type == dns_rdatatype_amtrelay);
 
@@ -119,15 +118,15 @@ fromtext_amtrelay(ARGS_FROMTEXT) {
 	}
 }
 
-static inline isc_result_t
-totext_amtrelay(ARGS_TOTEXT) {
-	isc_region_t region;
-	dns_name_t name;
-	char buf[sizeof("0 255 ")];
+static inline isc_result_t totext_amtrelay(ARGS_TOTEXT)
+{
+	isc_region_t  region;
+	dns_name_t    name;
+	char	      buf[sizeof("0 255 ")];
 	unsigned char precedence;
 	unsigned char discovery;
 	unsigned char gateway;
-	const char *space;
+	const char *  space;
 
 	UNUSED(tctx);
 
@@ -181,9 +180,9 @@ totext_amtrelay(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-fromwire_amtrelay(ARGS_FROMWIRE) {
-	dns_name_t name;
+static inline isc_result_t fromwire_amtrelay(ARGS_FROMWIRE)
+{
+	dns_name_t   name;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_amtrelay);
@@ -232,8 +231,8 @@ fromwire_amtrelay(ARGS_FROMWIRE) {
 	}
 }
 
-static inline isc_result_t
-towire_amtrelay(ARGS_TOWIRE) {
+static inline isc_result_t towire_amtrelay(ARGS_TOWIRE)
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
@@ -245,8 +244,8 @@ towire_amtrelay(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, region.base, region.length));
 }
 
-static inline int
-compare_amtrelay(ARGS_COMPARE) {
+static inline int compare_amtrelay(ARGS_COMPARE)
+{
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -262,11 +261,11 @@ compare_amtrelay(ARGS_COMPARE) {
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t
-fromstruct_amtrelay(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_amtrelay(ARGS_FROMSTRUCT)
+{
 	dns_rdata_amtrelay_t *amtrelay = source;
-	isc_region_t region;
-	uint32_t n;
+	isc_region_t	      region;
+	uint32_t	      n;
 
 	REQUIRE(type == dns_rdatatype_amtrelay);
 	REQUIRE(amtrelay != NULL);
@@ -280,7 +279,7 @@ fromstruct_amtrelay(ARGS_FROMSTRUCT) {
 	n = (amtrelay->discovery ? 0x80 : 0) | amtrelay->gateway_type;
 	RETERR(uint8_tobuffer(n, target));
 
-	switch  (amtrelay->gateway_type) {
+	switch (amtrelay->gateway_type) {
 	case 0:
 		return (ISC_R_SUCCESS);
 
@@ -302,12 +301,12 @@ fromstruct_amtrelay(ARGS_FROMSTRUCT) {
 	}
 }
 
-static inline isc_result_t
-tostruct_amtrelay(ARGS_TOSTRUCT) {
-	isc_region_t region;
+static inline isc_result_t tostruct_amtrelay(ARGS_TOSTRUCT)
+{
+	isc_region_t	      region;
 	dns_rdata_amtrelay_t *amtrelay = target;
-	dns_name_t name;
-	uint32_t n;
+	dns_name_t	      name;
+	uint32_t	      n;
 
 	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 	REQUIRE(amtrelay != NULL);
@@ -354,8 +353,8 @@ tostruct_amtrelay(ARGS_TOSTRUCT) {
 
 	default:
 		if (region.length != 0) {
-			amtrelay->data = mem_maybedup(mctx, region.base,
-						      region.length);
+			amtrelay->data =
+				mem_maybedup(mctx, region.base, region.length);
 			if (amtrelay->data == NULL) {
 				return (ISC_R_NOMEMORY);
 			}
@@ -366,8 +365,8 @@ tostruct_amtrelay(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_amtrelay(ARGS_FREESTRUCT) {
+static inline void freestruct_amtrelay(ARGS_FREESTRUCT)
+{
 	dns_rdata_amtrelay_t *amtrelay = source;
 
 	REQUIRE(amtrelay != NULL);
@@ -385,9 +384,8 @@ freestruct_amtrelay(ARGS_FREESTRUCT) {
 	amtrelay->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_amtrelay(ARGS_ADDLDATA) {
-
+static inline isc_result_t additionaldata_amtrelay(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 
 	UNUSED(rdata);
@@ -397,8 +395,8 @@ additionaldata_amtrelay(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_amtrelay(ARGS_DIGEST) {
+static inline isc_result_t digest_amtrelay(ARGS_DIGEST)
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
@@ -407,9 +405,8 @@ digest_amtrelay(ARGS_DIGEST) {
 	return ((digest)(arg, &region));
 }
 
-static inline bool
-checkowner_amtrelay(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_amtrelay(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_amtrelay);
 
 	UNUSED(name);
@@ -420,9 +417,8 @@ checkowner_amtrelay(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_amtrelay(ARGS_CHECKNAMES) {
-
+static inline bool checknames_amtrelay(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 
 	UNUSED(rdata);
@@ -432,12 +428,12 @@ checknames_amtrelay(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_amtrelay(ARGS_COMPARE) {
+static inline int casecompare_amtrelay(ARGS_COMPARE)
+{
 	isc_region_t region1;
 	isc_region_t region2;
-	dns_name_t name1;
-	dns_name_t name2;
+	dns_name_t   name1;
+	dns_name_t   name2;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -464,4 +460,4 @@ casecompare_amtrelay(ARGS_COMPARE) {
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-#endif	/* RDATA_GENERIC_AMTRELAY_260_C */
+#endif /* RDATA_GENERIC_AMTRELAY_260_C */

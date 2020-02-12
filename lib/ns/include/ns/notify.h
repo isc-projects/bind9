@@ -43,4 +43,3 @@ ns_notify_start(ns_client_t *client);
  */
 
 #endif /* NS_NOTIFY_H */
-

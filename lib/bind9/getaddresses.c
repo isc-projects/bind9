@@ -27,16 +27,16 @@
 #include <bind9/getaddresses.h>
 
 isc_result_t
-bind9_getaddresses(const char *hostname, in_port_t port,
-		   isc_sockaddr_t *addrs, int addrsize, int *addrcount)
+bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
+		   int addrsize, int *addrcount)
 {
-	struct in_addr in4;
+	struct in_addr	in4;
 	struct in6_addr in6;
-	bool have_ipv4, have_ipv6;
-	int i;
+	bool		have_ipv4, have_ipv6;
+	int		i;
 
 	struct addrinfo *ai = NULL, *tmpai, hints;
-	int result;
+	int		 result;
 
 	REQUIRE(hostname != NULL);
 	REQUIRE(addrs != NULL);
@@ -63,7 +63,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 		*addrcount = 1;
 		return (ISC_R_SUCCESS);
 	} else if (strlen(hostname) <= 127U) {
-		char tmpbuf[128], *d;
+		char	 tmpbuf[128], *d;
 		uint32_t zone = 0;
 
 		strlcpy(tmpbuf, hostname, sizeof(tmpbuf));
@@ -89,9 +89,8 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 
 			isc_netaddr_fromin6(&na, &in6);
 			isc_netaddr_setzone(&na, zone);
-			isc_sockaddr_fromnetaddr(&addrs[0],
-						 (const isc_netaddr_t *)&na,
-						 port);
+			isc_sockaddr_fromnetaddr(
+				&addrs[0], (const isc_netaddr_t *)&na, port);
 
 			*addrcount = 1;
 			return (ISC_R_SUCCESS);
@@ -110,7 +109,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 	}
 	hints.ai_socktype = SOCK_STREAM;
 #ifdef AI_ADDRCONFIG
- again:
+again:
 #endif
 	result = getaddrinfo(hostname, NULL, &hints, &ai);
 	switch (result) {
@@ -132,12 +131,9 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 	default:
 		return (ISC_R_FAILURE);
 	}
-	for (tmpai = ai, i = 0;
-	     tmpai != NULL && i < addrsize;
-	     tmpai = tmpai->ai_next)
-	{
-		if (tmpai->ai_family != AF_INET &&
-		    tmpai->ai_family != AF_INET6)
+	for (tmpai = ai, i = 0; tmpai != NULL && i < addrsize;
+	     tmpai = tmpai->ai_next) {
+		if (tmpai->ai_family != AF_INET && tmpai->ai_family != AF_INET6)
 			continue;
 		if (tmpai->ai_family == AF_INET) {
 			struct sockaddr_in *sin;
@@ -146,11 +142,9 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 		} else {
 			struct sockaddr_in6 *sin6;
 			sin6 = (struct sockaddr_in6 *)tmpai->ai_addr;
-			isc_sockaddr_fromin6(&addrs[i], &sin6->sin6_addr,
-					     port);
+			isc_sockaddr_fromin6(&addrs[i], &sin6->sin6_addr, port);
 		}
 		i++;
-
 	}
 	freeaddrinfo(ai);
 	*addrcount = i;

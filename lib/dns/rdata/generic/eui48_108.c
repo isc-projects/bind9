@@ -16,12 +16,12 @@
 
 #define RRTYPE_EUI48_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_eui48(ARGS_FROMTEXT) {
-	isc_token_t token;
+static inline isc_result_t fromtext_eui48(ARGS_FROMTEXT)
+{
+	isc_token_t   token;
 	unsigned char eui48[6];
-	unsigned int l0, l1, l2, l3, l4, l5;
-	int n;
+	unsigned int  l0, l1, l2, l3, l4, l5;
+	int	      n;
 
 	REQUIRE(type == dns_rdatatype_eui48);
 
@@ -33,8 +33,8 @@ fromtext_eui48(ARGS_FROMTEXT) {
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	n = sscanf(DNS_AS_STR(token), "%2x-%2x-%2x-%2x-%2x-%2x",
-		   &l0, &l1, &l2, &l3, &l4, &l5);
+	n = sscanf(DNS_AS_STR(token), "%2x-%2x-%2x-%2x-%2x-%2x", &l0, &l1, &l2,
+		   &l3, &l4, &l5);
 	if (n != 6 || l0 > 255U || l1 > 255U || l2 > 255U || l3 > 255U ||
 	    l4 > 255U || l5 > 255U)
 		return (DNS_R_BADEUI);
@@ -48,8 +48,8 @@ fromtext_eui48(ARGS_FROMTEXT) {
 	return (mem_tobuffer(target, eui48, sizeof(eui48)));
 }
 
-static inline isc_result_t
-totext_eui48(ARGS_TOTEXT) {
+static inline isc_result_t totext_eui48(ARGS_TOTEXT)
+{
 	char buf[sizeof("xx-xx-xx-xx-xx-xx")];
 
 	REQUIRE(rdata->type == dns_rdatatype_eui48);
@@ -63,8 +63,8 @@ totext_eui48(ARGS_TOTEXT) {
 	return (str_totext(buf, target));
 }
 
-static inline isc_result_t
-fromwire_eui48(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_eui48(ARGS_FROMWIRE)
+{
 	isc_region_t sregion;
 
 	REQUIRE(type == dns_rdatatype_eui48);
@@ -81,9 +81,8 @@ fromwire_eui48(ARGS_FROMWIRE) {
 	return (mem_tobuffer(target, sregion.base, sregion.length));
 }
 
-static inline isc_result_t
-towire_eui48(ARGS_TOWIRE) {
-
+static inline isc_result_t towire_eui48(ARGS_TOWIRE)
+{
 	REQUIRE(rdata->type == dns_rdatatype_eui48);
 	REQUIRE(rdata->length == 6);
 
@@ -92,8 +91,8 @@ towire_eui48(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
-compare_eui48(ARGS_COMPARE) {
+static inline int compare_eui48(ARGS_COMPARE)
+{
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -108,8 +107,8 @@ compare_eui48(ARGS_COMPARE) {
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t
-fromstruct_eui48(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_eui48(ARGS_FROMSTRUCT)
+{
 	dns_rdata_eui48_t *eui48 = source;
 
 	REQUIRE(type == dns_rdatatype_eui48);
@@ -123,8 +122,8 @@ fromstruct_eui48(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, eui48->eui48, sizeof(eui48->eui48)));
 }
 
-static inline isc_result_t
-tostruct_eui48(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_eui48(ARGS_TOSTRUCT)
+{
 	dns_rdata_eui48_t *eui48 = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_eui48);
@@ -141,8 +140,8 @@ tostruct_eui48(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_eui48(ARGS_FREESTRUCT) {
+static inline void freestruct_eui48(ARGS_FREESTRUCT)
+{
 	dns_rdata_eui48_t *eui48 = source;
 
 	REQUIRE(eui48 != NULL);
@@ -151,9 +150,8 @@ freestruct_eui48(ARGS_FREESTRUCT) {
 	return;
 }
 
-static inline isc_result_t
-additionaldata_eui48(ARGS_ADDLDATA) {
-
+static inline isc_result_t additionaldata_eui48(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_eui48);
 	REQUIRE(rdata->length == 6);
 
@@ -164,8 +162,8 @@ additionaldata_eui48(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_eui48(ARGS_DIGEST) {
+static inline isc_result_t digest_eui48(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_eui48);
@@ -176,9 +174,8 @@ digest_eui48(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_eui48(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_eui48(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_eui48);
 
 	UNUSED(name);
@@ -189,9 +186,8 @@ checkowner_eui48(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_eui48(ARGS_CHECKNAMES) {
-
+static inline bool checknames_eui48(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_eui48);
 	REQUIRE(rdata->length == 6);
 
@@ -202,9 +198,9 @@ checknames_eui48(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_eui48(ARGS_COMPARE) {
+static inline int casecompare_eui48(ARGS_COMPARE)
+{
 	return (compare_eui48(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_EUI48_108_C */
+#endif /* RDATA_GENERIC_EUI48_108_C */

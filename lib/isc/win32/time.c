@@ -10,14 +10,13 @@
  */
 
 #include <errno.h>
-#include <limits.h>
-#include <stddef.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
 #include <windows.h>
 
 #include <isc/assertions.h>
@@ -32,23 +31,24 @@
  * While it is reasonably obvious that this makes the needed
  * conversion factor 10^7, it is coded this way for additional clarity.
  */
-#define NS_PER_S 	1000000000
-#define NS_INTERVAL	100
+#define NS_PER_S 1000000000
+#define NS_INTERVAL 100
 #define INTERVALS_PER_S (NS_PER_S / NS_INTERVAL)
 
 /***
  *** Absolute Times
  ***/
 
-static const isc_time_t epoch = { { 0, 0 } };
-LIBISC_EXTERNAL_DATA const isc_time_t * const isc_time_epoch = &epoch;
+static const isc_time_t	   epoch = { { 0, 0 } };
+LIBISC_EXTERNAL_DATA const isc_time_t *const isc_time_epoch = &epoch;
 
 /***
  *** Intervals
  ***/
 
 static const isc_interval_t zero_interval = { 0 };
-LIBISC_EXTERNAL_DATA const isc_interval_t * const isc_interval_zero = &zero_interval;
+LIBISC_EXTERNAL_DATA const isc_interval_t *const isc_interval_zero =
+	&zero_interval;
 
 void
 isc_interval_set(isc_interval_t *i, unsigned int seconds,
@@ -60,12 +60,13 @@ isc_interval_set(isc_interval_t *i, unsigned int seconds,
 	/*
 	 * This rounds nanoseconds up not down.
 	 */
-	i->interval = (LONGLONG)seconds * INTERVALS_PER_S
-		+ (nanoseconds + NS_INTERVAL - 1) / NS_INTERVAL;
+	i->interval = (LONGLONG)seconds * INTERVALS_PER_S +
+		      (nanoseconds + NS_INTERVAL - 1) / NS_INTERVAL;
 }
 
 bool
-isc_interval_iszero(const isc_interval_t *i) {
+isc_interval_iszero(const isc_interval_t *i)
+{
 	REQUIRE(i != NULL);
 	if (i->interval == 0)
 		return (true);
@@ -74,9 +75,10 @@ isc_interval_iszero(const isc_interval_t *i) {
 }
 
 void
-isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
-	SYSTEMTIME epoch1970 = { 1970, 1, 4, 1, 0, 0, 0, 0 };
-	FILETIME temp;
+isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds)
+{
+	SYSTEMTIME     epoch1970 = { 1970, 1, 4, 1, 0, 0, 0, 0 };
+	FILETIME       temp;
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL);
@@ -88,16 +90,17 @@ isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
 	i1.HighPart = temp.dwHighDateTime;
 
 	/* cppcheck-suppress unreadVariable */
-	i1.QuadPart += (unsigned __int64)nanoseconds/100;
+	i1.QuadPart += (unsigned __int64)nanoseconds / 100;
 	/* cppcheck-suppress unreadVariable */
-	i1.QuadPart += (unsigned __int64)seconds*10000000;
+	i1.QuadPart += (unsigned __int64)seconds * 10000000;
 
 	t->absolute.dwLowDateTime = i1.LowPart;
 	t->absolute.dwHighDateTime = i1.HighPart;
 }
 
 void
-isc_time_settoepoch(isc_time_t *t) {
+isc_time_settoepoch(isc_time_t *t)
+{
 	REQUIRE(t != NULL);
 
 	t->absolute.dwLowDateTime = 0;
@@ -105,18 +108,19 @@ isc_time_settoepoch(isc_time_t *t) {
 }
 
 bool
-isc_time_isepoch(const isc_time_t *t) {
+isc_time_isepoch(const isc_time_t *t)
+{
 	REQUIRE(t != NULL);
 
-	if (t->absolute.dwLowDateTime == 0 &&
-	    t->absolute.dwHighDateTime == 0)
+	if (t->absolute.dwLowDateTime == 0 && t->absolute.dwHighDateTime == 0)
 		return (true);
 
 	return (false);
 }
 
 isc_result_t
-isc_time_now(isc_time_t *t) {
+isc_time_now(isc_time_t *t)
+{
 	REQUIRE(t != NULL);
 
 	GetSystemTimeAsFileTime(&t->absolute);
@@ -125,7 +129,8 @@ isc_time_now(isc_time_t *t) {
 }
 
 isc_result_t
-isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
+isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i)
+{
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL);
@@ -142,14 +147,15 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	/* cppcheck-suppress unreadVariable */
 	i1.QuadPart += i->interval;
 
-	t->absolute.dwLowDateTime  = i1.LowPart;
+	t->absolute.dwLowDateTime = i1.LowPart;
 	t->absolute.dwHighDateTime = i1.HighPart;
 
 	return (ISC_R_SUCCESS);
 }
 
 int
-isc_time_compare(const isc_time_t *t1, const isc_time_t *t2) {
+isc_time_compare(const isc_time_t *t1, const isc_time_t *t2)
+{
 	REQUIRE(t1 != NULL && t2 != NULL);
 
 	return ((int)CompareFileTime(&t1->absolute, &t2->absolute));
@@ -179,7 +185,8 @@ isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result)
 
 isc_result_t
 isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
-		  isc_time_t *result) {
+		  isc_time_t *result)
+{
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
@@ -187,7 +194,7 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
 	i1.LowPart = t->absolute.dwLowDateTime;
 	i1.HighPart = t->absolute.dwHighDateTime;
 
-	if (i1.QuadPart < (unsigned __int64) i->interval)
+	if (i1.QuadPart < (unsigned __int64)i->interval)
 		return (ISC_R_RANGE);
 
 	/* cppcheck-suppress unreadVariable */
@@ -200,18 +207,19 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
 }
 
 uint64_t
-isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
+isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2)
+{
 	ULARGE_INTEGER i1, i2;
-	LONGLONG i3;
+	LONGLONG       i3;
 
 	REQUIRE(t1 != NULL && t2 != NULL);
 
 	/* cppcheck-suppress unreadVariable */
-	i1.LowPart  = t1->absolute.dwLowDateTime;
+	i1.LowPart = t1->absolute.dwLowDateTime;
 	/* cppcheck-suppress unreadVariable */
 	i1.HighPart = t1->absolute.dwHighDateTime;
 	/* cppcheck-suppress unreadVariable */
-	i2.LowPart  = t2->absolute.dwLowDateTime;
+	i2.LowPart = t2->absolute.dwLowDateTime;
 	/* cppcheck-suppress unreadVariable */
 	i2.HighPart = t2->absolute.dwHighDateTime;
 
@@ -227,20 +235,21 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 }
 
 uint32_t
-isc_time_seconds(const isc_time_t *t) {
-	SYSTEMTIME epoch1970 = { 1970, 1, 4, 1, 0, 0, 0, 0 };
-	FILETIME temp;
+isc_time_seconds(const isc_time_t *t)
+{
+	SYSTEMTIME     epoch1970 = { 1970, 1, 4, 1, 0, 0, 0, 0 };
+	FILETIME       temp;
 	ULARGE_INTEGER i1, i2;
-	LONGLONG i3;
+	LONGLONG       i3;
 
 	SystemTimeToFileTime(&epoch1970, &temp);
 
 	/* cppcheck-suppress unreadVariable */
-	i1.LowPart  = t->absolute.dwLowDateTime;
+	i1.LowPart = t->absolute.dwLowDateTime;
 	/* cppcheck-suppress unreadVariable */
 	i1.HighPart = t->absolute.dwHighDateTime;
 	/* cppcheck-suppress unreadVariable */
-	i2.LowPart  = temp.dwLowDateTime;
+	i2.LowPart = temp.dwLowDateTime;
 	/* cppcheck-suppress unreadVariable */
 	i2.HighPart = temp.dwHighDateTime;
 
@@ -250,7 +259,8 @@ isc_time_seconds(const isc_time_t *t) {
 }
 
 isc_result_t
-isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
+isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp)
+{
 	time_t seconds;
 
 	REQUIRE(t != NULL);
@@ -260,7 +270,7 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
 	INSIST(sizeof(unsigned int) == sizeof(uint32_t));
 	INSIST(sizeof(time_t) >= sizeof(uint32_t));
 
-	if (isc_time_seconds(t) > (~0U>>1) && seconds <= (time_t)(~0U>>1))
+	if (isc_time_seconds(t) > (~0U >> 1) && seconds <= (time_t)(~0U >> 1))
 		return (ISC_R_RANGE);
 
 	*secondsp = seconds;
@@ -268,22 +278,23 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
 	return (ISC_R_SUCCESS);
 }
 
-
 uint32_t
-isc_time_nanoseconds(const isc_time_t *t) {
+isc_time_nanoseconds(const isc_time_t *t)
+{
 	ULARGE_INTEGER i;
 
-	i.LowPart  = t->absolute.dwLowDateTime;
+	i.LowPart = t->absolute.dwLowDateTime;
 	i.HighPart = t->absolute.dwHighDateTime;
 	return ((uint32_t)(i.QuadPart % 10000000) * 100);
 }
 
 void
-isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
-	FILETIME localft;
+isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len)
+{
+	FILETIME   localft;
 	SYSTEMTIME st;
-	char DateBuf[50];
-	char TimeBuf[50];
+	char	   DateBuf[50];
+	char	   TimeBuf[50];
 
 	REQUIRE(t != NULL);
 	REQUIRE(buf != NULL);
@@ -293,8 +304,9 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	    FileTimeToSystemTime(&localft, &st)) {
 		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "dd-MMM-yyyy",
 			      DateBuf, 50);
-		GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOTIMEMARKER|
-			      TIME_FORCE24HOURFORMAT, &st, NULL, TimeBuf, 50);
+		GetTimeFormat(LOCALE_USER_DEFAULT,
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT, &st,
+			      NULL, TimeBuf, 50);
 
 		snprintf(buf, len, "%s %s.%03u", DateBuf, TimeBuf,
 			 st.wMilliseconds);
@@ -305,23 +317,24 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 }
 
 void
-isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
+isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len)
+{
 	SYSTEMTIME st;
-	char DateBuf[50];
-	char TimeBuf[50];
+	char	   DateBuf[50];
+	char	   TimeBuf[50];
 
-/* strftime() format: "%a, %d %b %Y %H:%M:%S GMT" */
+	/* strftime() format: "%a, %d %b %Y %H:%M:%S GMT" */
 
 	REQUIRE(t != NULL);
 	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
 
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
-		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st,
-			      "ddd',' dd MMM yyyy", DateBuf, 50);
+		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "ddd',' dd MMM yyyy",
+			      DateBuf, 50);
 		GetTimeFormat(LOCALE_USER_DEFAULT,
-			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
-			      &st, "hh':'mm':'ss", TimeBuf, 50);
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT, &st,
+			      "hh':'mm':'ss", TimeBuf, 50);
 
 		snprintf(buf, len, "%s %s GMT", DateBuf, TimeBuf);
 	} else {
@@ -330,10 +343,11 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 }
 
 isc_result_t
-isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
+isc_time_parsehttptimestamp(char *buf, isc_time_t *t)
+{
 	struct tm t_tm;
-	time_t when;
-	char *p;
+	time_t	  when;
+	char *	  p;
 
 	REQUIRE(buf != NULL);
 	REQUIRE(t != NULL);
@@ -349,10 +363,11 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 }
 
 void
-isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
+isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len)
+{
 	SYSTEMTIME st;
-	char DateBuf[50];
-	char TimeBuf[50];
+	char	   DateBuf[50];
+	char	   TimeBuf[50];
 
 	/* strtime() format: "%Y-%m-%dT%H:%M:%S" */
 
@@ -364,8 +379,8 @@ isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
 		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "yyyy-MM-dd",
 			      DateBuf, 50);
 		GetTimeFormat(LOCALE_USER_DEFAULT,
-			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
-			      &st, "hh':'mm':'ss", TimeBuf, 50);
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT, &st,
+			      "hh':'mm':'ss", TimeBuf, 50);
 		snprintf(buf, len, "%sT%s", DateBuf, TimeBuf);
 	} else {
 		buf[0] = 0;
@@ -373,10 +388,11 @@ isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
 }
 
 void
-isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
+isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len)
+{
 	SYSTEMTIME st;
-	char DateBuf[50];
-	char TimeBuf[50];
+	char	   DateBuf[50];
+	char	   TimeBuf[50];
 
 	/* strtime() format: "%Y-%m-%dT%H:%M:%S.SSS" */
 
@@ -388,8 +404,8 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "yyyy-MM-dd",
 			      DateBuf, 50);
 		GetTimeFormat(LOCALE_USER_DEFAULT,
-			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
-			      &st, "hh':'mm':'ss", TimeBuf, 50);
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT, &st,
+			      "hh':'mm':'ss", TimeBuf, 50);
 		snprintf(buf, len, "%sT%s.%03u", DateBuf, TimeBuf,
 			 st.wMilliseconds);
 	} else {
@@ -398,10 +414,11 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 }
 
 void
-isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
+isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len)
+{
 	SYSTEMTIME st;
-	char DateBuf[50];
-	char TimeBuf[50];
+	char	   DateBuf[50];
+	char	   TimeBuf[50];
 
 	/* strtime() format: "%Y-%m-%dT%H:%M:%SZ" */
 
@@ -410,11 +427,11 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
-		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyy-MM-dd",
-			      DateBuf, 50);
+		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyy-MM-dd", DateBuf,
+			      50);
 		GetTimeFormat(LOCALE_NEUTRAL,
-			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
-			      &st, "hh':'mm':'ss", TimeBuf, 50);
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT, &st,
+			      "hh':'mm':'ss", TimeBuf, 50);
 		snprintf(buf, len, "%sT%sZ", DateBuf, TimeBuf);
 	} else {
 		buf[0] = 0;
@@ -422,10 +439,11 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 }
 
 void
-isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
+isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len)
+{
 	SYSTEMTIME st;
-	char DateBuf[50];
-	char TimeBuf[50];
+	char	   DateBuf[50];
+	char	   TimeBuf[50];
 
 	/* strtime() format: "%Y-%m-%dT%H:%M:%S.SSSZ" */
 
@@ -434,11 +452,11 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
-		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyy-MM-dd",
-			      DateBuf, 50);
+		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyy-MM-dd", DateBuf,
+			      50);
 		GetTimeFormat(LOCALE_NEUTRAL,
-			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
-			      &st, "hh':'mm':'ss", TimeBuf, 50);
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT, &st,
+			      "hh':'mm':'ss", TimeBuf, 50);
 		snprintf(buf, len, "%sT%s.%03uZ", DateBuf, TimeBuf,
 			 st.wMilliseconds);
 	} else {
@@ -450,8 +468,8 @@ void
 isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
 {
 	SYSTEMTIME st;
-	char DateBuf[50];
-	char TimeBuf[50];
+	char	   DateBuf[50];
+	char	   TimeBuf[50];
 
 	/* strtime() format: "%Y%m%d%H%M%SSSS" */
 
@@ -460,11 +478,10 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
 	REQUIRE(len > 0);
 
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
-		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyyMMdd",
-			      DateBuf, 50);
+		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyyMMdd", DateBuf, 50);
 		GetTimeFormat(LOCALE_NEUTRAL,
-			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
-			      &st, "hhmmss", TimeBuf, 50);
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT, &st,
+			      "hhmmss", TimeBuf, 50);
 		snprintf(buf, len, "%s%s%03u", DateBuf, TimeBuf,
 			 st.wMilliseconds);
 	} else {
