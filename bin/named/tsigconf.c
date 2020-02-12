@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <inttypes.h>
@@ -20,44 +19,41 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/result.h>
+#include <dns/tsig.h>
+
 #include <isccfg/cfg.h>
 
-#include <dns/tsig.h>
-#include <dns/result.h>
-
-#include <named/log.h>
-
 #include <named/config.h>
+#include <named/log.h>
 #include <named/tsigconf.h>
 
 static isc_result_t
 add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 		 isc_mem_t *mctx)
 {
-	dns_tsigkey_t *tsigkey = NULL;
+	dns_tsigkey_t *	     tsigkey = NULL;
 	const cfg_listelt_t *element;
-	const cfg_obj_t *key = NULL;
-	const char *keyid = NULL;
-	unsigned char *secret = NULL;
-	int secretalloc = 0;
-	int secretlen = 0;
-	isc_result_t ret;
-	isc_stdtime_t now;
-	uint16_t bits;
+	const cfg_obj_t *    key = NULL;
+	const char *	     keyid = NULL;
+	unsigned char *	     secret = NULL;
+	int		     secretalloc = 0;
+	int		     secretlen = 0;
+	isc_result_t	     ret;
+	isc_stdtime_t	     now;
+	uint16_t	     bits;
 
-	for (element = cfg_list_first(list);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
-		const cfg_obj_t *algobj = NULL;
-		const cfg_obj_t *secretobj = NULL;
-		dns_name_t keyname;
+	for (element = cfg_list_first(list); element != NULL;
+	     element = cfg_list_next(element)) {
+		const cfg_obj_t * algobj = NULL;
+		const cfg_obj_t * secretobj = NULL;
+		dns_name_t	  keyname;
 		const dns_name_t *alg;
-		const char *algstr;
-		char keynamedata[1024];
-		isc_buffer_t keynamesrc, keynamebuf;
-		const char *secretstr;
-		isc_buffer_t secretbuf;
+		const char *	  algstr;
+		char		  keynamedata[1024];
+		isc_buffer_t	  keynamesrc, keynamebuf;
+		const char *	  secretstr;
+		isc_buffer_t	  secretbuf;
 
 		key = cfg_listelt_value(element);
 		keyid = cfg_obj_asstring(cfg_map_getname(key));
@@ -84,8 +80,8 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 		 * Create the algorithm.
 		 */
 		algstr = cfg_obj_asstring(algobj);
-		if (named_config_getkeyalgorithm(algstr, &alg, &bits)
-		    != ISC_R_SUCCESS) {
+		if (named_config_getkeyalgorithm(algstr, &alg, &bits) !=
+		    ISC_R_SUCCESS) {
 			cfg_obj_log(algobj, named_g_lctx, ISC_LOG_ERROR,
 				    "key '%s': has a "
 				    "unsupported algorithm '%s'",
@@ -105,8 +101,8 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 
 		isc_stdtime_get(&now);
 		ret = dns_tsigkey_create(&keyname, alg, secret, secretlen,
-					 false, NULL, now, now,
-					 mctx, ring, &tsigkey);
+					 false, NULL, now, now, mctx, ring,
+					 &tsigkey);
 		isc_mem_put(mctx, secret, secretalloc);
 		secret = NULL;
 		if (ret != ISC_R_SUCCESS)
@@ -120,10 +116,9 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 
 	return (ISC_R_SUCCESS);
 
- failure:
+failure:
 	cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
-		    "configuring key '%s': %s", keyid,
-		    isc_result_totext(ret));
+		    "configuring key '%s': %s", keyid, isc_result_totext(ret));
 
 	if (secret != NULL)
 		isc_mem_put(mctx, secret, secretalloc);
@@ -134,11 +129,11 @@ isc_result_t
 named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			     isc_mem_t *mctx, dns_tsig_keyring_t **ringp)
 {
-	const cfg_obj_t *maps[3];
-	const cfg_obj_t *keylist;
+	const cfg_obj_t *   maps[3];
+	const cfg_obj_t *   keylist;
 	dns_tsig_keyring_t *ring = NULL;
-	isc_result_t result;
-	int i;
+	isc_result_t	    result;
+	int		    i;
 
 	REQUIRE(ringp != NULL && *ringp == NULL);
 
@@ -153,7 +148,7 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	for (i = 0; ; i++) {
+	for (i = 0;; i++) {
 		if (maps[i] == NULL)
 			break;
 		keylist = NULL;
@@ -168,7 +163,7 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	*ringp = ring;
 	return (ISC_R_SUCCESS);
 
- failure:
+failure:
 	dns_tsigkeyring_detach(&ring);
 	return (result);
 }

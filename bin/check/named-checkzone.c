@@ -9,12 +9,11 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <inttypes.h>
 
 #include <isc/app.h>
 #include <isc/commandline.h>
@@ -43,31 +42,32 @@
 
 #include "check-tool.h"
 
-static int quiet = 0;
-static isc_mem_t *mctx = NULL;
-dns_zone_t *zone = NULL;
-dns_zonetype_t zonetype = dns_zone_master;
-static int dumpzone = 0;
-static const char *output_filename;
-static const char *prog_name = NULL;
+static int			 quiet = 0;
+static isc_mem_t *		 mctx = NULL;
+dns_zone_t *			 zone = NULL;
+dns_zonetype_t			 zonetype = dns_zone_master;
+static int			 dumpzone = 0;
+static const char *		 output_filename;
+static const char *		 prog_name = NULL;
 static const dns_master_style_t *outputstyle = NULL;
 static enum { progmode_check, progmode_compile } progmode;
 
-#define ERRRET(result, function) \
-	do { \
-		if (result != ISC_R_SUCCESS) { \
-			if (!quiet) \
-				fprintf(stderr, "%s() returned %s\n", \
+#define ERRRET(result, function)                                              \
+	do {                                                                  \
+		if (result != ISC_R_SUCCESS) {                                \
+			if (!quiet)                                           \
+				fprintf(stderr, "%s() returned %s\n",         \
 					function, dns_result_totext(result)); \
-			return (result); \
-		} \
+			return (result);                                      \
+		}                                                             \
 	} while (0)
 
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void) {
+usage(void)
+{
 	fprintf(stderr,
 		"usage: %s [-djqvD] [-c class] "
 		"[-f inputformat] [-F outputformat] [-J filename] "
@@ -84,7 +84,8 @@ usage(void) {
 }
 
 static void
-destroy(void) {
+destroy(void)
+{
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
 	}
@@ -92,26 +93,27 @@ destroy(void) {
 
 /*% main processing routine */
 int
-main(int argc, char **argv) {
-	int c;
-	char *origin = NULL;
-	char *filename = NULL;
-	isc_log_t *lctx = NULL;
-	isc_result_t result;
-	char classname_in[] = "IN";
-	char *classname = classname_in;
-	const char *workdir = NULL;
-	const char *inputformatstr = NULL;
-	const char *outputformatstr = NULL;
-	dns_masterformat_t inputformat = dns_masterformat_text;
-	dns_masterformat_t outputformat = dns_masterformat_text;
+main(int argc, char **argv)
+{
+	int		      c;
+	char *		      origin = NULL;
+	char *		      filename = NULL;
+	isc_log_t *	      lctx = NULL;
+	isc_result_t	      result;
+	char		      classname_in[] = "IN";
+	char *		      classname = classname_in;
+	const char *	      workdir = NULL;
+	const char *	      inputformatstr = NULL;
+	const char *	      outputformatstr = NULL;
+	dns_masterformat_t    inputformat = dns_masterformat_text;
+	dns_masterformat_t    outputformat = dns_masterformat_text;
 	dns_masterrawheader_t header;
-	uint32_t rawversion = 1, serialnum = 0;
-	dns_ttl_t maxttl = 0;
-	bool snset = false;
-	bool logdump = false;
-	FILE *errout = stdout;
-	char *endp;
+	uint32_t	      rawversion = 1, serialnum = 0;
+	dns_ttl_t	      maxttl = 0;
+	bool		      snset = false;
+	bool		      logdump = false;
+	FILE *		      errout = stdout;
+	char *		      endp;
 
 	/*
 	 * Uncomment the following line if memory debugging is needed:
@@ -148,24 +150,21 @@ main(int argc, char **argv) {
 
 	/* Compilation specific defaults */
 	if (progmode == progmode_compile) {
-		zone_options |= (DNS_ZONEOPT_CHECKNS |
-				 DNS_ZONEOPT_FATALNS |
-				 DNS_ZONEOPT_CHECKSPF |
-				 DNS_ZONEOPT_CHECKDUPRR |
-				 DNS_ZONEOPT_CHECKNAMES |
-				 DNS_ZONEOPT_CHECKNAMESFAIL |
-				 DNS_ZONEOPT_CHECKWILDCARD);
+		zone_options |=
+			(DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_FATALNS |
+			 DNS_ZONEOPT_CHECKSPF | DNS_ZONEOPT_CHECKDUPRR |
+			 DNS_ZONEOPT_CHECKNAMES | DNS_ZONEOPT_CHECKNAMESFAIL |
+			 DNS_ZONEOPT_CHECKWILDCARD);
 	} else
-		zone_options |= (DNS_ZONEOPT_CHECKDUPRR |
-				 DNS_ZONEOPT_CHECKSPF);
+		zone_options |= (DNS_ZONEOPT_CHECKDUPRR | DNS_ZONEOPT_CHECKSPF);
 
 #define ARGCMP(X) (strcmp(isc_commandline_argument, X) == 0)
 
 	isc_commandline_errprint = false;
 
 	while ((c = isc_commandline_parse(argc, argv,
-			       "c:df:hi:jJ:k:L:l:m:n:qr:s:t:o:vw:DF:M:S:T:W:"))
-	       != EOF) {
+					  "c:df:hi:jJ:k:L:l:m:n:qr:s:t:o:vw:DF:"
+					  "M:S:T:W:")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -269,16 +268,15 @@ main(int argc, char **argv) {
 			}
 			break;
 
-
 		case 'n':
 			if (ARGCMP("ignore")) {
-				zone_options &= ~(DNS_ZONEOPT_CHECKNS|
+				zone_options &= ~(DNS_ZONEOPT_CHECKNS |
 						  DNS_ZONEOPT_FATALNS);
 			} else if (ARGCMP("warn")) {
 				zone_options |= DNS_ZONEOPT_CHECKNS;
 				zone_options &= ~DNS_ZONEOPT_FATALNS;
 			} else if (ARGCMP("fail")) {
-				zone_options |= DNS_ZONEOPT_CHECKNS|
+				zone_options |= DNS_ZONEOPT_CHECKNS |
 						DNS_ZONEOPT_FATALNS;
 			} else {
 				fprintf(stderr, "invalid argument to -n: %s\n",
@@ -426,8 +424,8 @@ main(int argc, char **argv) {
 			usage();
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n",
-				prog_name, isc_commandline_option);
+			fprintf(stderr, "%s: unhandled option -%c\n", prog_name,
+				isc_commandline_option);
 			exit(1);
 		}
 	}
@@ -435,8 +433,8 @@ main(int argc, char **argv) {
 	if (workdir != NULL) {
 		result = isc_dir_chdir(workdir);
 		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "isc_dir_chdir: %s: %s\n",
-				workdir, isc_result_totext(result));
+			fprintf(stderr, "isc_dir_chdir: %s: %s\n", workdir,
+				isc_result_totext(result));
 			exit(1);
 		}
 	}
@@ -448,13 +446,13 @@ main(int argc, char **argv) {
 			inputformat = dns_masterformat_raw;
 		else if (strncasecmp(inputformatstr, "raw=", 4) == 0) {
 			inputformat = dns_masterformat_raw;
-			fprintf(stderr,
-				"WARNING: input format raw, version ignored\n");
+			fprintf(stderr, "WARNING: input format raw, version "
+					"ignored\n");
 		} else if (strcasecmp(inputformatstr, "map") == 0) {
 			inputformat = dns_masterformat_map;
 		} else {
 			fprintf(stderr, "unknown file format: %s\n",
-			    inputformatstr);
+				inputformatstr);
 			exit(1);
 		}
 	}
@@ -471,8 +469,7 @@ main(int argc, char **argv) {
 			rawversion = strtol(outputformatstr + 4, &end, 10);
 			if (end == outputformatstr + 4 || *end != '\0' ||
 			    rawversion > 1U) {
-				fprintf(stderr,
-					"unknown raw format version\n");
+				fprintf(stderr, "unknown raw format version\n");
 				exit(1);
 			}
 		} else if (strcasecmp(outputformatstr, "map") == 0) {
@@ -485,11 +482,11 @@ main(int argc, char **argv) {
 	}
 
 	if (progmode == progmode_compile) {
-		dumpzone = 1;	/* always dump */
+		dumpzone = 1; /* always dump */
 		logdump = !quiet;
 		if (output_filename == NULL) {
-			fprintf(stderr,
-				"output file required, but not specified\n");
+			fprintf(stderr, "output file required, but not "
+					"specified\n");
 			usage();
 		}
 	}
@@ -502,8 +499,7 @@ main(int argc, char **argv) {
 	 * output to stderr.
 	 */
 	if (dumpzone &&
-	    (output_filename == NULL ||
-	     strcmp(output_filename, "-") == 0 ||
+	    (output_filename == NULL || strcmp(output_filename, "-") == 0 ||
 	     strcmp(output_filename, "/dev/fd/1") == 0 ||
 	     strcmp(output_filename, "/dev/stdout") == 0)) {
 		errout = stderr;
@@ -519,8 +515,8 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 	if (!quiet)
-		RUNTIME_CHECK(setup_logging(mctx, errout, &lctx)
-			      == ISC_R_SUCCESS);
+		RUNTIME_CHECK(setup_logging(mctx, errout, &lctx) ==
+			      ISC_R_SUCCESS);
 
 	dns_result_register();
 
@@ -541,8 +537,8 @@ main(int argc, char **argv) {
 			fprintf(errout, "dump zone to %s...", output_filename);
 			fflush(errout);
 		}
-		result = dump_zone(origin, zone, output_filename,
-				   outputformat, outputstyle, rawversion);
+		result = dump_zone(origin, zone, output_filename, outputformat,
+				   outputstyle, rawversion);
 		if (logdump)
 			fprintf(errout, "done\n");
 	}

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_TIME_H
 #define DNS_TIME_H 1
 
@@ -44,7 +43,6 @@ dns_time32_fromtext(const char *source, uint32_t *target);
  * Like dns_time64_fromtext, but returns the second count modulo 2^32
  * as per RFC2535.
  */
-
 
 isc_result_t
 dns_time64_totext(int64_t value, isc_buffer_t *target);

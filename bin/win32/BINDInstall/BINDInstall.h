@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
  *
@@ -31,25 +30,26 @@
 #define BINDINSTALL_H
 
 #ifndef __AFXWIN_H__
-	#error include 'stdafx.h' before including this file for PCH
+#error include 'stdafx.h' before including this file for PCH
 #endif
 
-#include "resource.h"		// main symbols
+#include "resource.h" // main symbols
 
 class CBINDInstallApp : public CWinApp
 {
-public:
+      public:
 	CBINDInstallApp();
 
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CBINDInstallApp)
-	public:
-	virtual BOOL InitInstance();
+      public:
+	virtual BOOL
+	InitInstance();
 	//}}AFX_VIRTUAL
 
 	//{{AFX_MSG(CBINDInstallApp)
-		// NOTE - the ClassWizard will add and remove member functions here.
-		//    DO NOT EDIT what you see in these blocks of generated code !
+	// NOTE - the ClassWizard will add and remove member functions here.
+	//    DO NOT EDIT what you see in these blocks of generated code !
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

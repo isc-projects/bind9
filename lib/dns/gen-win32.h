@@ -66,18 +66,18 @@
 
 #include <isc/lang.h>
 
-int isc_commandline_index = 1;		/* Index into parent argv vector. */
-int isc_commandline_option;		/* Character checked for validity. */
+int isc_commandline_index = 1; /* Index into parent argv vector. */
+int isc_commandline_option;    /* Character checked for validity. */
 
-char *isc_commandline_argument;		/* Argument associated with option. */
-char *isc_commandline_progname;		/* For printing error messages. */
+char *isc_commandline_argument; /* Argument associated with option. */
+char *isc_commandline_progname; /* For printing error messages. */
 
 bool isc_commandline_errprint = true; /* Print error messages. */
-bool isc_commandline_reset = true; /* Reset processing. */
+bool isc_commandline_reset = true;    /* Reset processing. */
 
-#define BADOPT	'?'
-#define BADARG	':'
-#define ENDOPT	""
+#define BADOPT '?'
+#define BADARG ':'
+#define ENDOPT ""
 
 ISC_LANG_BEGINDECLS
 
@@ -86,9 +86,10 @@ ISC_LANG_BEGINDECLS
  *	Parse argc/argv argument vector.
  */
 int
-isc_commandline_parse(int argc, char * const *argv, const char *options) {
+isc_commandline_parse(int argc, char *const *argv, const char *options)
+{
 	static char *place = ENDOPT;
-	char *option;			/* Index into *options of option. */
+	char *	     option; /* Index into *options of option. */
 
 	/*
 	 * Update scanning pointer, either because a reset was requested or
@@ -183,9 +184,10 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 
 			if (isc_commandline_errprint)
 				fprintf(stderr,
-				    "%s: option requires an argument -- %c\n",
-				    isc_commandline_progname,
-				    isc_commandline_option);
+					"%s: option requires an argument -- "
+					"%c\n",
+					isc_commandline_progname,
+					isc_commandline_option);
 
 			return (BADOPT);
 		}
@@ -202,14 +204,15 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 }
 
 typedef struct {
-	HANDLE handle;
-	WIN32_FIND_DATA	find_data;
-	bool first_file;
-	char *filename;
+	HANDLE		handle;
+	WIN32_FIND_DATA find_data;
+	bool		first_file;
+	char *		filename;
 } isc_dir_t;
 
 bool
-start_directory(const char *path, isc_dir_t *dir) {
+start_directory(const char *path, isc_dir_t *dir)
+{
 	char pattern[_MAX_PATH], *p;
 
 	/*
@@ -224,7 +227,7 @@ start_directory(const char *path, isc_dir_t *dir) {
 	 * Append slash (if needed) and splat.
 	 */
 	p = pattern + strlen(pattern);
-	if (p != pattern  && p[-1] != '\\' && p[-1] != ':')
+	if (p != pattern && p[-1] != '\\' && p[-1] != ':')
 		*p++ = '\\';
 	*p++ = '*';
 	*p++ = '\0';
@@ -243,7 +246,8 @@ start_directory(const char *path, isc_dir_t *dir) {
 }
 
 bool
-next_file(isc_dir_t *dir) {
+next_file(isc_dir_t *dir)
+{
 	if (dir->first_file)
 		dir->first_file = false;
 
@@ -263,7 +267,8 @@ next_file(isc_dir_t *dir) {
 }
 
 void
-end_directory(isc_dir_t *dir) {
+end_directory(isc_dir_t *dir)
+{
 	if (dir->handle != INVALID_HANDLE_VALUE)
 		FindClose(dir->handle);
 }

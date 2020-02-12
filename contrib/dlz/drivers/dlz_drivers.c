@@ -14,7 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 /*! \file */
 
 #include <isc/result.h>
@@ -63,8 +62,8 @@
  */
 
 isc_result_t
-dlz_drivers_init(void) {
-
+dlz_drivers_init(void)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 
 #ifdef DLZ_STUB
@@ -120,35 +119,34 @@ dlz_drivers_init(void) {
  */
 
 void
-dlz_drivers_clear(void) {
-
+dlz_drivers_clear(void)
+{
 #ifdef DLZ_STUB
 	dlz_stub_clear();
 #endif
 
 #ifdef DLZ_POSTGRES
-        dlz_postgres_clear();
+	dlz_postgres_clear();
 #endif
 
 #ifdef DLZ_MYSQL
- 	dlz_mysql_clear();
+	dlz_mysql_clear();
 #endif
 
 #ifdef DLZ_FILESYSTEM
-        dlz_fs_clear();
+	dlz_fs_clear();
 #endif
 
 #ifdef DLZ_BDB
-        dlz_bdb_clear();
-        dlz_bdbhpt_clear();
+	dlz_bdb_clear();
+	dlz_bdbhpt_clear();
 #endif
 
 #ifdef DLZ_LDAP
-        dlz_ldap_clear();
+	dlz_ldap_clear();
 #endif
 
 #ifdef DLZ_ODBC
-        dlz_odbc_clear();
+	dlz_odbc_clear();
 #endif
-
 }

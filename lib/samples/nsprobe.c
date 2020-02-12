@@ -10,11 +10,11 @@
  */
 
 #ifndef WIN32
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <unistd.h>
 #include <netdb.h>
+#include <unistd.h>
+
+#include <sys/socket.h>
+#include <sys/types.h>
 #endif
 
 #include <stdbool.h>
@@ -28,8 +28,8 @@
 #include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/print.h>
-#include <isc/socket.h>
 #include <isc/sockaddr.h>
+#include <isc/socket.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -49,12 +49,12 @@
 #define MAX_PROBES 1000
 
 static dns_client_t *client = NULL;
-static isc_task_t *probe_task = NULL;
+static isc_task_t *  probe_task = NULL;
 static isc_appctx_t *actx = NULL;
-static isc_mem_t *mctx = NULL;
-static unsigned int outstanding_probes = 0;
-const char *cacheserver = "127.0.0.1";
-static FILE *input;
+static isc_mem_t *   mctx = NULL;
+static unsigned int  outstanding_probes = 0;
+const char *	     cacheserver = "127.0.0.1";
+static FILE *	     input;
 
 typedef enum {
 	none,
@@ -82,21 +82,21 @@ struct probe_ns {
 	ISC_LINK(struct probe_ns) link;
 
 	dns_fixedname_t fixedname;
-	dns_name_t *name;
-	struct server *current_server;
+	dns_name_t *	name;
+	struct server * current_server;
 	ISC_LIST(struct server) servers;
 };
 
 struct probe_trans {
-	bool inuse;
-	char *domain;
-	dns_fixedname_t fixedname;
-	dns_name_t *qname;
-	const char **qlabel;
-	bool qname_found;
+	bool		      inuse;
+	char *		      domain;
+	dns_fixedname_t	      fixedname;
+	dns_name_t *	      qname;
+	const char **	      qlabel;
+	bool		      qname_found;
 	dns_clientrestrans_t *resid;
-	dns_message_t *qmessage;
-	dns_message_t *rmessage;
+	dns_message_t *	      qmessage;
+	dns_message_t *	      rmessage;
 	dns_clientreqtrans_t *reqid;
 
 	/* NS list */
@@ -116,27 +116,31 @@ struct lcl_stat {
 	unsigned long unknown;
 } server_stat, domain_stat;
 
-static unsigned long number_of_domains = 0;
-static unsigned long number_of_servers = 0;
-static unsigned long multiple_error_domains = 0;
-static bool debug_mode = false;
-static int verbose_level = 0;
-static const char *qlabels[] = {"www.", "ftp.", NULL};
+static unsigned long	  number_of_domains = 0;
+static unsigned long	  number_of_servers = 0;
+static unsigned long	  multiple_error_domains = 0;
+static bool		  debug_mode = false;
+static int		  verbose_level = 0;
+static const char *	  qlabels[] = { "www.", "ftp.", NULL };
 static struct probe_trans probes[MAX_PROBES];
 
-static isc_result_t probe_domain(struct probe_trans *trans);
-static void reset_probe(struct probe_trans *trans);
-static isc_result_t fetch_nsaddress(struct probe_trans *trans);
-static isc_result_t probe_name(struct probe_trans *trans,
-			       dns_rdatatype_t type);
+static isc_result_t
+probe_domain(struct probe_trans *trans);
+static void
+reset_probe(struct probe_trans *trans);
+static isc_result_t
+fetch_nsaddress(struct probe_trans *trans);
+static isc_result_t
+probe_name(struct probe_trans *trans, dns_rdatatype_t type);
 
 /* Dump an rdataset for debug */
 static isc_result_t
-print_rdataset(dns_rdataset_t *rdataset, dns_name_t *owner) {
+print_rdataset(dns_rdataset_t *rdataset, dns_name_t *owner)
+{
 	isc_buffer_t target;
 	isc_result_t result;
 	isc_region_t r;
-	char t[4096];
+	char	     t[4096];
 
 	if (!debug_mode)
 		return (ISC_R_SUCCESS);
@@ -145,8 +149,7 @@ print_rdataset(dns_rdataset_t *rdataset, dns_name_t *owner) {
 
 	if (!dns_rdataset_isassociated(rdataset))
 		return (ISC_R_SUCCESS);
-	result = dns_rdataset_totext(rdataset, owner, false, false,
-				     &target);
+	result = dns_rdataset_totext(rdataset, owner, false, false, &target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_buffer_usedregion(&target, &r);
@@ -156,11 +159,12 @@ print_rdataset(dns_rdataset_t *rdataset, dns_name_t *owner) {
 }
 
 static isc_result_t
-print_name(dns_name_t *name) {
+print_name(dns_name_t *name)
+{
 	isc_result_t result;
 	isc_buffer_t target;
 	isc_region_t r;
-	char t[4096];
+	char	     t[4096];
 
 	isc_buffer_init(&target, t, sizeof(t));
 	result = dns_name_totext(name, true, &target);
@@ -174,11 +178,12 @@ print_name(dns_name_t *name) {
 }
 
 static isc_result_t
-print_address(FILE *fp, isc_sockaddr_t *addr) {
+print_address(FILE *fp, isc_sockaddr_t *addr)
+{
 	char buf[NI_MAXHOST];
 
-	if (getnameinfo(&addr->type.sa, addr->length, buf, sizeof(buf),
-			NULL, 0, NI_NUMERICHOST) == 0) {
+	if (getnameinfo(&addr->type.sa, addr->length, buf, sizeof(buf), NULL, 0,
+			NI_NUMERICHOST) == 0) {
 		fprintf(fp, "%s", buf);
 	} else {
 		fprintf(fp, "(invalid address)");
@@ -188,9 +193,8 @@ print_address(FILE *fp, isc_sockaddr_t *addr) {
 }
 
 static void
-ctxs_destroy(isc_mem_t **mctxp, isc_appctx_t **actxp,
-	     isc_taskmgr_t **taskmgrp, isc_socketmgr_t **socketmgrp,
-	     isc_timermgr_t **timermgrp)
+ctxs_destroy(isc_mem_t **mctxp, isc_appctx_t **actxp, isc_taskmgr_t **taskmgrp,
+	     isc_socketmgr_t **socketmgrp, isc_timermgr_t **timermgrp)
 {
 	if (*taskmgrp != NULL)
 		isc_taskmgr_destroy(taskmgrp);
@@ -209,9 +213,8 @@ ctxs_destroy(isc_mem_t **mctxp, isc_appctx_t **actxp,
 }
 
 static isc_result_t
-ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp,
-	  isc_taskmgr_t **taskmgrp, isc_socketmgr_t **socketmgrp,
-	  isc_timermgr_t **timermgrp)
+ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp, isc_taskmgr_t **taskmgrp,
+	  isc_socketmgr_t **socketmgrp, isc_timermgr_t **timermgrp)
 {
 	isc_result_t result;
 
@@ -235,7 +238,7 @@ ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp,
 
 	return (ISC_R_SUCCESS);
 
- fail:
+fail:
 	ctxs_destroy(mctxp, actxp, taskmgrp, socketmgrp, timermgrp);
 
 	return (result);
@@ -248,9 +251,9 @@ static isc_result_t
 make_querymessage(dns_message_t *message, dns_name_t *qname0,
 		  dns_rdatatype_t rdtype)
 {
-	dns_name_t *qname = NULL;
+	dns_name_t *	qname = NULL;
 	dns_rdataset_t *qrdataset = NULL;
-	isc_result_t result;
+	isc_result_t	result;
 
 	message->opcode = dns_opcode_query;
 	message->rdclass = dns_rdataclass_in;
@@ -271,7 +274,7 @@ make_querymessage(dns_message_t *message, dns_name_t *qname0,
 
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	if (qname != NULL)
 		dns_message_puttempname(message, &qname);
 	if (qrdataset != NULL)
@@ -283,18 +286,20 @@ make_querymessage(dns_message_t *message, dns_name_t *qname0,
  * Update statistics
  */
 static inline void
-increment_entry(unsigned long *entryp) {
+increment_entry(unsigned long *entryp)
+{
 	(*entryp)++;
-	INSIST(*entryp != 0U);	/* check overflow */
+	INSIST(*entryp != 0U); /* check overflow */
 }
 
 static void
-update_stat(struct probe_trans *trans) {
+update_stat(struct probe_trans *trans)
+{
 	struct probe_ns *pns;
-	struct server *server;
-	struct lcl_stat local_stat;
-	unsigned int err_count = 0;
-	const char *stattype;
+	struct server *	 server;
+	struct lcl_stat	 local_stat;
+	unsigned int	 err_count = 0;
+	const char *	 stattype;
 
 	increment_entry(&number_of_domains);
 	memset(&local_stat, 0, sizeof(local_stat));
@@ -340,18 +345,24 @@ update_stat(struct probe_trans *trans) {
 					break;
 				case multiplesoa:
 					stattype = "multiplesoa";
-					increment_entry(&server_stat.multiplesoa);
-					increment_entry(&local_stat.multiplesoa);
+					increment_entry(
+						&server_stat.multiplesoa);
+					increment_entry(
+						&local_stat.multiplesoa);
 					break;
 				case multiplecname:
 					stattype = "multiplecname";
-					increment_entry(&server_stat.multiplecname);
-					increment_entry(&local_stat.multiplecname);
+					increment_entry(
+						&server_stat.multiplecname);
+					increment_entry(
+						&local_stat.multiplecname);
 					break;
 				case brokenanswer:
 					stattype = "brokenanswer";
-					increment_entry(&server_stat.brokenanswer);
-					increment_entry(&local_stat.brokenanswer);
+					increment_entry(
+						&server_stat.brokenanswer);
+					increment_entry(
+						&local_stat.brokenanswer);
 					break;
 				case lame:
 					stattype = "lame";
@@ -456,11 +467,12 @@ update_stat(struct probe_trans *trans) {
  */
 
 static isc_result_t
-set_nextqname(struct probe_trans *trans) {
+set_nextqname(struct probe_trans *trans)
+{
 	isc_result_t result;
 	unsigned int domainlen;
 	isc_buffer_t b;
-	char buf[4096];	/* XXX ad-hoc constant, but should be enough */
+	char	     buf[4096]; /* XXX ad-hoc constant, but should be enough */
 
 	if (*trans->qlabel == NULL) {
 		return (ISC_R_NOMORE);
@@ -470,15 +482,15 @@ set_nextqname(struct probe_trans *trans) {
 		return ISC_R_NOSPACE;
 	}
 
-	if ((domainlen = strlcat(buf, trans->domain, sizeof(buf))) >= sizeof(buf)) {
+	if ((domainlen = strlcat(buf, trans->domain, sizeof(buf))) >=
+	    sizeof(buf)) {
 		return ISC_R_NOSPACE;
 	}
 
 	isc_buffer_init(&b, buf, domainlen);
 	isc_buffer_add(&b, domainlen);
 	trans->qname = dns_fixedname_initname(&trans->fixedname);
-	result = dns_name_fromtext(trans->qname, &b, dns_rootname,
-				   0, NULL);
+	result = dns_name_fromtext(trans->qname, &b, dns_rootname, 0, NULL);
 
 	trans->qlabel++;
 
@@ -486,17 +498,18 @@ set_nextqname(struct probe_trans *trans) {
 }
 
 static void
-request_done(isc_task_t *task, isc_event_t *event) {
-	struct probe_trans *trans = event->ev_arg;
+request_done(isc_task_t *task, isc_event_t *event)
+{
+	struct probe_trans *  trans = event->ev_arg;
 	dns_clientreqevent_t *rev = (dns_clientreqevent_t *)event;
-	dns_message_t *rmessage;
-	struct probe_ns *pns;
-	struct server *server;
-	isc_result_t result;
-	query_result_t *resultp;
-	dns_name_t *name;
-	dns_rdataset_t *rdataset;
-	dns_rdatatype_t type;
+	dns_message_t *	      rmessage;
+	struct probe_ns *     pns;
+	struct server *	      server;
+	isc_result_t	      result;
+	query_result_t *      resultp;
+	dns_name_t *	      name;
+	dns_rdataset_t *      rdataset;
+	dns_rdatatype_t	      type;
 
 	REQUIRE(task == probe_task);
 	REQUIRE(trans != NULL && trans->inuse == true);
@@ -530,19 +543,17 @@ request_done(isc_task_t *task, isc_event_t *event) {
 						       DNS_SECTION_ANSWER);
 			while (result == ISC_R_SUCCESS) {
 				name = NULL;
-				dns_message_currentname(rmessage,
-							DNS_SECTION_ANSWER,
-							&name);
+				dns_message_currentname(
+					rmessage, DNS_SECTION_ANSWER, &name);
 				for (rdataset = ISC_LIST_HEAD(name->list);
 				     rdataset != NULL;
-				     rdataset = ISC_LIST_NEXT(rdataset,
-							      link)) {
+				     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 					(void)print_rdataset(rdataset, name);
 
 					if (rdataset->type ==
-					    dns_rdatatype_cname ||
+						    dns_rdatatype_cname ||
 					    rdataset->type ==
-					    dns_rdatatype_dname) {
+						    dns_rdatatype_dname) {
 						/* Should chase the chain? */
 						*resultp = exist;
 						goto found;
@@ -551,8 +562,8 @@ request_done(isc_task_t *task, isc_event_t *event) {
 						goto found;
 					}
 				}
-				result = dns_message_nextname(rmessage,
-							      DNS_SECTION_ANSWER);
+				result = dns_message_nextname(
+					rmessage, DNS_SECTION_ANSWER);
 			}
 
 			/*
@@ -576,22 +587,20 @@ request_done(isc_task_t *task, isc_event_t *event) {
 				 * CNAME RRs.  Update the result code if so.
 				 */
 				name = NULL;
-				dns_message_currentname(rmessage,
-							DNS_SECTION_ANSWER,
-							&name);
+				dns_message_currentname(
+					rmessage, DNS_SECTION_ANSWER, &name);
 				for (rdataset = ISC_LIST_HEAD(name->list);
 				     rdataset != NULL;
-				     rdataset = ISC_LIST_NEXT(rdataset,
-							      link)) {
+				     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 					if (rdataset->type ==
-					    dns_rdatatype_cname &&
+						    dns_rdatatype_cname &&
 					    dns_rdataset_count(rdataset) > 1) {
 						*resultp = multiplecname;
 						goto found;
 					}
 				}
-				result = dns_message_nextname(rmessage,
-							      DNS_SECTION_ANSWER);
+				result = dns_message_nextname(
+					rmessage, DNS_SECTION_ANSWER);
 			}
 		}
 
@@ -604,22 +613,20 @@ request_done(isc_task_t *task, isc_event_t *event) {
 				 * SOA RRs.  Update the result code if so.
 				 */
 				name = NULL;
-				dns_message_currentname(rmessage,
-							DNS_SECTION_AUTHORITY,
-							&name);
+				dns_message_currentname(
+					rmessage, DNS_SECTION_AUTHORITY, &name);
 				for (rdataset = ISC_LIST_HEAD(name->list);
 				     rdataset != NULL;
-				     rdataset = ISC_LIST_NEXT(rdataset,
-							      link)) {
+				     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 					if (rdataset->type ==
-					    dns_rdatatype_soa &&
+						    dns_rdatatype_soa &&
 					    dns_rdataset_count(rdataset) > 1) {
 						*resultp = multiplesoa;
 						goto found;
 					}
 				}
-				result = dns_message_nextname(rmessage,
-							      DNS_SECTION_AUTHORITY);
+				result = dns_message_nextname(
+					rmessage, DNS_SECTION_AUTHORITY);
 			}
 		}
 	} else if (rev->result == ISC_R_TIMEDOUT)
@@ -632,7 +639,7 @@ request_done(isc_task_t *task, isc_event_t *event) {
 		*resultp = unexpected;
 	}
 
- found:
+found:
 	INSIST(*resultp != none);
 	if (type == dns_rdatatype_a && *resultp == exist)
 		trans->qname_found = true;
@@ -665,7 +672,8 @@ request_done(isc_task_t *task, isc_event_t *event) {
 					ISC_LIST_HEAD(trans->nslist);
 				for (pns = trans->current_ns; pns != NULL;
 				     pns = ISC_LIST_NEXT(pns, link)) {
-					for (server = ISC_LIST_HEAD(pns->servers);
+					for (server = ISC_LIST_HEAD(
+						     pns->servers);
 					     server != NULL;
 					     server = ISC_LIST_NEXT(server,
 								    link)) {
@@ -690,10 +698,11 @@ request_done(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_result_t
-probe_name(struct probe_trans *trans, dns_rdatatype_t type) {
-	isc_result_t result;
+probe_name(struct probe_trans *trans, dns_rdatatype_t type)
+{
+	isc_result_t	 result;
 	struct probe_ns *pns;
-	struct server *server;
+	struct server *	 server;
 
 	REQUIRE(trans->reqid == NULL);
 	REQUIRE(type == dns_rdatatype_a || type == dns_rdatatype_aaaa);
@@ -712,7 +721,7 @@ probe_name(struct probe_trans *trans, dns_rdatatype_t type) {
 		}
 	}
 
- found:
+found:
 	trans->current_ns = pns;
 	if (pns == NULL)
 		return (ISC_R_NOMORE);
@@ -722,13 +731,11 @@ probe_name(struct probe_trans *trans, dns_rdatatype_t type) {
 	result = make_querymessage(trans->qmessage, trans->qname, type);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_client_startrequest(client, trans->qmessage,
-					 trans->rmessage,
-					 &pns->current_server->address,
-					 0, DNS_MESSAGEPARSE_BESTEFFORT,
-					 NULL, 120, 0, 4,
-					 probe_task, request_done, trans,
-					 &trans->reqid);
+	result = dns_client_startrequest(
+		client, trans->qmessage, trans->rmessage,
+		&pns->current_server->address, 0, DNS_MESSAGEPARSE_BESTEFFORT,
+		NULL, 120, 0, 4, probe_task, request_done, trans,
+		&trans->reqid);
 
 	return (result);
 }
@@ -738,14 +745,15 @@ probe_name(struct probe_trans *trans, dns_rdatatype_t type) {
  */
 
 static void
-resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
-	struct probe_trans *trans = event->ev_arg;
+resolve_nsaddress(isc_task_t *task, isc_event_t *event)
+{
+	struct probe_trans *  trans = event->ev_arg;
 	dns_clientresevent_t *rev = (dns_clientresevent_t *)event;
-	dns_name_t *name;
-	dns_rdataset_t *rdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	struct probe_ns *pns = trans->current_ns;
-	isc_result_t result;
+	dns_name_t *	      name;
+	dns_rdataset_t *      rdataset;
+	dns_rdata_t	      rdata = DNS_RDATA_INIT;
+	struct probe_ns *     pns = trans->current_ns;
+	isc_result_t	      result;
 
 	REQUIRE(task == probe_task);
 	REQUIRE(trans->inuse == true);
@@ -754,8 +762,7 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 
 	for (name = ISC_LIST_HEAD(rev->answerlist); name != NULL;
 	     name = ISC_LIST_NEXT(name, link)) {
-		for (rdataset = ISC_LIST_HEAD(name->list);
-		     rdataset != NULL;
+		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			(void)print_rdataset(rdataset, name);
 
@@ -766,7 +773,7 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(rdataset)) {
 				dns_rdata_in_a_t rdata_a;
-				struct server *server;
+				struct server *	 server;
 
 				dns_rdataset_current(rdataset, &rdata);
 				result = dns_rdata_tostruct(&rdata, &rdata_a,
@@ -789,7 +796,7 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 	dns_client_destroyrestrans(&trans->resid);
 	isc_event_free(&event);
 
- next_ns:
+next_ns:
 	trans->current_ns = ISC_LIST_NEXT(pns, link);
 	if (trans->current_ns == NULL) {
 		trans->current_ns = ISC_LIST_HEAD(trans->nslist);
@@ -797,7 +804,7 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 		trans->qname = NULL;
 		result = set_nextqname(trans);
 		if (result == ISC_R_SUCCESS)
-			 result = probe_name(trans, dns_rdatatype_a);
+			result = probe_name(trans, dns_rdatatype_a);
 	} else {
 		result = fetch_nsaddress(trans);
 		if (result != ISC_R_SUCCESS)
@@ -809,16 +816,16 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_result_t
-fetch_nsaddress(struct probe_trans *trans) {
+fetch_nsaddress(struct probe_trans *trans)
+{
 	struct probe_ns *pns;
 
 	pns = trans->current_ns;
 	REQUIRE(pns != NULL);
 
-	return (dns_client_startresolve(client, pns->name, dns_rdataclass_in,
-					dns_rdatatype_a, 0, probe_task,
-					resolve_nsaddress, trans,
-					&trans->resid));
+	return (dns_client_startresolve(
+		client, pns->name, dns_rdataclass_in, dns_rdatatype_a, 0,
+		probe_task, resolve_nsaddress, trans, &trans->resid));
 }
 
 /*
@@ -826,10 +833,11 @@ fetch_nsaddress(struct probe_trans *trans) {
  */
 
 static void
-reset_probe(struct probe_trans *trans) {
+reset_probe(struct probe_trans *trans)
+{
 	struct probe_ns *pns;
-	struct server *server;
-	isc_result_t result;
+	struct server *	 server;
+	isc_result_t	 result;
 
 	REQUIRE(trans->resid == NULL);
 	REQUIRE(trans->reqid == NULL);
@@ -867,14 +875,15 @@ reset_probe(struct probe_trans *trans) {
 }
 
 static void
-resolve_ns(isc_task_t *task, isc_event_t *event) {
-	struct probe_trans *trans = event->ev_arg;
+resolve_ns(isc_task_t *task, isc_event_t *event)
+{
+	struct probe_trans *  trans = event->ev_arg;
 	dns_clientresevent_t *rev = (dns_clientresevent_t *)event;
-	dns_name_t *name;
-	dns_rdataset_t *rdataset;
-	isc_result_t result = ISC_R_SUCCESS;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	struct probe_ns *pns;
+	dns_name_t *	      name;
+	dns_rdataset_t *      rdataset;
+	isc_result_t	      result = ISC_R_SUCCESS;
+	dns_rdata_t	      rdata = DNS_RDATA_INIT;
+	struct probe_ns *     pns;
 
 	REQUIRE(task == probe_task);
 	REQUIRE(trans->inuse == true);
@@ -882,8 +891,7 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 
 	for (name = ISC_LIST_HEAD(rev->answerlist); name != NULL;
 	     name = ISC_LIST_NEXT(name, link)) {
-		for (rdataset = ISC_LIST_HEAD(name->list);
-		     rdataset != NULL;
+		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			(void)print_rdataset(rdataset, name);
 
@@ -906,7 +914,7 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 				pns = isc_mem_get(mctx, sizeof(*pns));
 
 				pns->name =
-				       dns_fixedname_initname(&pns->fixedname);
+					dns_fixedname_initname(&pns->fixedname);
 				ISC_LINK_INIT(pns, link);
 				ISC_LIST_APPEND(trans->nslist, pns, link);
 				ISC_LIST_INIT(pns->servers);
@@ -936,12 +944,13 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_result_t
-probe_domain(struct probe_trans *trans) {
+probe_domain(struct probe_trans *trans)
+{
 	isc_result_t result;
 	unsigned int domainlen;
 	isc_buffer_t b;
-	char buf[4096];	/* XXX ad hoc constant, but should be enough */
-	char *cp;
+	char	     buf[4096]; /* XXX ad hoc constant, but should be enough */
+	char *	     cp;
 
 	REQUIRE(trans != NULL);
 	REQUIRE(trans->inuse == false);
@@ -963,10 +972,9 @@ probe_domain(struct probe_trans *trans) {
 	result = dns_name_fromtext(trans->qname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	result = dns_client_startresolve(client, trans->qname,
-					 dns_rdataclass_in, dns_rdatatype_ns,
-					 0, probe_task, resolve_ns, trans,
-					 &trans->resid);
+	result = dns_client_startresolve(
+		client, trans->qname, dns_rdataclass_in, dns_rdatatype_ns, 0,
+		probe_task, resolve_ns, trans, &trans->resid);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -975,7 +983,7 @@ probe_domain(struct probe_trans *trans) {
 
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	isc_mem_free(mctx, trans->domain);
 	dns_fixedname_invalidate(&trans->fixedname);
 
@@ -986,23 +994,25 @@ ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void) {
+usage(void)
+{
 	fprintf(stderr, "usage: nsprobe [-d] [-v [-v...]] [-c cache_address] "
-		"[input_file]\n");
+			"[input_file]\n");
 
 	exit(1);
 }
 
 int
-main(int argc, char *argv[]) {
-	int i, ch, error;
-	struct addrinfo hints, *res;
-	isc_result_t result;
-	isc_sockaddr_t sa;
+main(int argc, char *argv[])
+{
+	int		   i, ch, error;
+	struct addrinfo	   hints, *res;
+	isc_result_t	   result;
+	isc_sockaddr_t	   sa;
 	isc_sockaddrlist_t servers;
-	isc_taskmgr_t *taskmgr = NULL;
-	isc_socketmgr_t *socketmgr = NULL;
-	isc_timermgr_t *timermgr = NULL;
+	isc_taskmgr_t *	   taskmgr = NULL;
+	isc_socketmgr_t *  socketmgr = NULL;
+	isc_timermgr_t *   timermgr = NULL;
 
 	while ((ch = isc_commandline_parse(argc, argv, "c:dhv")) != -1) {
 		switch (ch) {
@@ -1035,8 +1045,7 @@ main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	result = ctxs_init(&mctx, &actx, &taskmgr, &socketmgr,
-			   &timermgr);
+	result = ctxs_init(&mctx, &actx, &taskmgr, &socketmgr, &timermgr);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "ctx create failed: %u\n", result);
 		exit(1);
@@ -1044,8 +1053,8 @@ main(int argc, char *argv[]) {
 
 	isc_app_ctxstart(actx);
 
-	result = dns_client_createx(mctx, actx, taskmgr, socketmgr,
-				    timermgr, 0, &client, NULL, NULL);
+	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr, 0,
+				    &client, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_client_createx failed: %u\n", result);
 		exit(1);
@@ -1140,8 +1149,7 @@ main(int argc, char *argv[]) {
 	isc_app_ctxrun(actx);
 
 	/* Dump results */
-	printf("Per domain results (out of %lu domains):\n",
-	       number_of_domains);
+	printf("Per domain results (out of %lu domains):\n", number_of_domains);
 	printf("  valid: %lu\n"
 	       "  ignore: %lu\n"
 	       "  nxdomain: %lu\n"
@@ -1156,8 +1164,7 @@ main(int argc, char *argv[]) {
 	       domain_stat.othererr, domain_stat.multiplesoa,
 	       domain_stat.multiplecname, domain_stat.brokenanswer,
 	       domain_stat.lame, domain_stat.unknown, multiple_error_domains);
-	printf("Per server results (out of %lu servers):\n",
-	       number_of_servers);
+	printf("Per server results (out of %lu servers):\n", number_of_servers);
 	printf("  valid: %lu\n"
 	       "  ignore: %lu\n"
 	       "  nxdomain: %lu\n"

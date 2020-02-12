@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_HTTPD_H
 #define ISC_HTTPD_H 1
 
@@ -19,10 +18,10 @@
 
 #include <isc/event.h>
 #include <isc/eventclass.h>
-#include <isc/types.h>
 #include <isc/mutex.h>
 #include <isc/task.h>
 #include <isc/time.h>
+#include <isc/types.h>
 
 /*%
  * HTTP urls.  These are the URLs we manage, and the function to call to
@@ -32,18 +31,18 @@
  * the data cleanup function.
  */
 struct isc_httpdurl {
-	char			       *url;
-	isc_httpdaction_t	       *action;
-	void			       *action_arg;
-	bool				isstatic;
-	isc_time_t			loadtime;
-	ISC_LINK(isc_httpdurl_t)	link;
+	char *		   url;
+	isc_httpdaction_t *action;
+	void *		   action_arg;
+	bool		   isstatic;
+	isc_time_t	   loadtime;
+	ISC_LINK(isc_httpdurl_t) link;
 };
 
-#define HTTPD_EVENTCLASS		ISC_EVENTCLASS(4300)
-#define HTTPD_SHUTDOWN			(HTTPD_EVENTCLASS + 0x0001)
+#define HTTPD_EVENTCLASS ISC_EVENTCLASS(4300)
+#define HTTPD_SHUTDOWN (HTTPD_EVENTCLASS + 0x0001)
 
-#define ISC_HTTPDMGR_FLAGSHUTTINGDOWN	0x00000001
+#define ISC_HTTPDMGR_FLAGSHUTTINGDOWN 0x00000001
 
 /*
  * Create a new http daemon which will send, once every time period,
@@ -51,7 +50,7 @@ struct isc_httpdurl {
  */
 isc_result_t
 isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
-		    isc_httpdclientok_t *client_ok,
+		    isc_httpdclientok_t * client_ok,
 		    isc_httpdondestroy_t *ondestory, void *cb_arg,
 		    isc_timermgr_t *tmgr, isc_httpdmgr_t **httpdp);
 
@@ -63,21 +62,20 @@ isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url,
 		    isc_httpdaction_t *func, void *arg);
 
 isc_result_t
-isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
-		     bool isstatic,
+isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url, bool isstatic,
 		     isc_httpdaction_t *func, void *arg);
 
 isc_result_t
 isc_httpd_response(isc_httpd_t *httpd);
 
 isc_result_t
-isc_httpd_addheader(isc_httpd_t *httpd, const char *name,
-		    const char *val);
+isc_httpd_addheader(isc_httpd_t *httpd, const char *name, const char *val);
 
 isc_result_t
 isc_httpd_addheaderuint(isc_httpd_t *httpd, const char *name, int val);
 
-isc_result_t isc_httpd_endheaders(isc_httpd_t *httpd);
+isc_result_t
+isc_httpd_endheaders(isc_httpd_t *httpd);
 
 void
 isc_httpd_setfinishhook(void (*fn)(void));

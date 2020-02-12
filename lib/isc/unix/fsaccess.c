@@ -9,13 +9,13 @@
  * information regarding copyright ownership.
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-
 #include <errno.h>
 #include <stdbool.h>
 
 #include "errno2result.h"
+
+#include <sys/stat.h>
+#include <sys/types.h>
 
 /*! \file
  * \brief
@@ -24,12 +24,13 @@
 #include "../fsaccess.c"
 
 isc_result_t
-isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
-	struct stat statb;
-	mode_t mode;
-	bool is_dir = false;
+isc_fsaccess_set(const char *path, isc_fsaccess_t access)
+{
+	struct stat    statb;
+	mode_t	       mode;
+	bool	       is_dir = false;
 	isc_fsaccess_t bits;
-	isc_result_t result;
+	isc_result_t   result;
 
 	if (stat(path, &statb) != 0)
 		return (isc__errno2result(errno));
@@ -48,30 +49,28 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 	 */
 	mode = 0;
 
-#define SET_AND_CLEAR1(modebit) \
+#define SET_AND_CLEAR1(modebit)     \
 	if ((access & bits) != 0) { \
-		mode |= modebit; \
-		access &= ~bits; \
+		mode |= modebit;    \
+		access &= ~bits;    \
 	}
 #define SET_AND_CLEAR(user, group, other) \
-	SET_AND_CLEAR1(user); \
-	bits <<= STEP; \
-	SET_AND_CLEAR1(group); \
-	bits <<= STEP; \
+	SET_AND_CLEAR1(user);             \
+	bits <<= STEP;                    \
+	SET_AND_CLEAR1(group);            \
+	bits <<= STEP;                    \
 	SET_AND_CLEAR1(other);
 
 	bits = ISC_FSACCESS_READ | ISC_FSACCESS_LISTDIRECTORY;
 
 	SET_AND_CLEAR(S_IRUSR, S_IRGRP, S_IROTH);
 
-	bits = ISC_FSACCESS_WRITE |
-	       ISC_FSACCESS_CREATECHILD |
+	bits = ISC_FSACCESS_WRITE | ISC_FSACCESS_CREATECHILD |
 	       ISC_FSACCESS_DELETECHILD;
 
 	SET_AND_CLEAR(S_IWUSR, S_IWGRP, S_IWOTH);
 
-	bits = ISC_FSACCESS_EXECUTE |
-	       ISC_FSACCESS_ACCESSCHILD;
+	bits = ISC_FSACCESS_EXECUTE | ISC_FSACCESS_ACCESSCHILD;
 
 	SET_AND_CLEAR(S_IXUSR, S_IXGRP, S_IXOTH);
 

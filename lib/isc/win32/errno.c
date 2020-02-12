@@ -14,6 +14,7 @@
 #include "errno2result.h"
 
 isc_result_t
-isc_errno_toresult(int err) {
+isc_errno_toresult(int err)
+{
 	return (isc__errno2resultx(err, false, 0, 0));
 }

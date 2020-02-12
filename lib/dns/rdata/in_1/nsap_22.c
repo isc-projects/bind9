@@ -16,14 +16,14 @@
 
 #define RRTYPE_NSAP_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_in_nsap(ARGS_FROMTEXT) {
-	isc_token_t token;
+static inline isc_result_t fromtext_in_nsap(ARGS_FROMTEXT)
+{
+	isc_token_t	  token;
 	isc_textregion_t *sr;
-	int n;
-	bool valid = false;
-	int digits = 0;
-	unsigned char c = 0;
+	int		  n;
+	bool		  valid = false;
+	int		  digits = 0;
+	unsigned char	  c = 0;
 
 	REQUIRE(type == dns_rdatatype_nsap);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -65,10 +65,10 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-totext_in_nsap(ARGS_TOTEXT) {
+static inline isc_result_t totext_in_nsap(ARGS_TOTEXT)
+{
 	isc_region_t region;
-	char buf[sizeof("xx")];
+	char	     buf[sizeof("xx")];
 
 	REQUIRE(rdata->type == dns_rdatatype_nsap);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -86,8 +86,8 @@ totext_in_nsap(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-fromwire_in_nsap(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_in_nsap(ARGS_FROMWIRE)
+{
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_nsap);
@@ -107,8 +107,8 @@ fromwire_in_nsap(ARGS_FROMWIRE) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-towire_in_nsap(ARGS_TOWIRE) {
+static inline isc_result_t towire_in_nsap(ARGS_TOWIRE)
+{
 	REQUIRE(rdata->type == dns_rdatatype_nsap);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
@@ -118,8 +118,8 @@ towire_in_nsap(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
-compare_in_nsap(ARGS_COMPARE) {
+static inline int compare_in_nsap(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -135,8 +135,8 @@ compare_in_nsap(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
-fromstruct_in_nsap(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_in_nsap(ARGS_FROMSTRUCT)
+{
 	dns_rdata_in_nsap_t *nsap = source;
 
 	REQUIRE(type == dns_rdatatype_nsap);
@@ -152,10 +152,10 @@ fromstruct_in_nsap(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, nsap->nsap, nsap->nsap_len));
 }
 
-static inline isc_result_t
-tostruct_in_nsap(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_in_nsap(ARGS_TOSTRUCT)
+{
 	dns_rdata_in_nsap_t *nsap = target;
-	isc_region_t r;
+	isc_region_t	     r;
 
 	REQUIRE(rdata->type == dns_rdatatype_nsap);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -176,8 +176,8 @@ tostruct_in_nsap(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_in_nsap(ARGS_FREESTRUCT) {
+static inline void freestruct_in_nsap(ARGS_FREESTRUCT)
+{
 	dns_rdata_in_nsap_t *nsap = source;
 
 	REQUIRE(nsap != NULL);
@@ -192,8 +192,8 @@ freestruct_in_nsap(ARGS_FREESTRUCT) {
 	nsap->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_in_nsap(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_in_nsap(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_nsap);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -204,8 +204,8 @@ additionaldata_in_nsap(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_in_nsap(ARGS_DIGEST) {
+static inline isc_result_t digest_in_nsap(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_nsap);
@@ -216,9 +216,8 @@ digest_in_nsap(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_in_nsap(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_in_nsap(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_nsap);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -230,9 +229,8 @@ checkowner_in_nsap(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_in_nsap(ARGS_CHECKNAMES) {
-
+static inline bool checknames_in_nsap(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_nsap);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -243,9 +241,9 @@ checknames_in_nsap(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_in_nsap(ARGS_COMPARE) {
+static inline int casecompare_in_nsap(ARGS_COMPARE)
+{
 	return (compare_in_nsap(rdata1, rdata2));
 }
 
-#endif	/* RDATA_IN_1_NSAP_22_C */
+#endif /* RDATA_IN_1_NSAP_22_C */

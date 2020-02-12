@@ -13,6 +13,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+
 #include <isc/mutex.h>
 
 #if !defined(__has_feature)
@@ -25,7 +26,7 @@
 
 #if !defined(__GNUC_PREREQ__)
 #if defined(__GNUC__) && defined(__GNUC_MINOR__)
-#define __GNUC_PREREQ__(maj, min)                    \
+#define __GNUC_PREREQ__(maj, min) \
 	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
 #else
 #define __GNUC_PREREQ__(maj, min) 0
@@ -43,24 +44,23 @@
 #endif
 
 #ifndef __ATOMIC_RELAXED
-#define __ATOMIC_RELAXED        0
+#define __ATOMIC_RELAXED 0
 #endif
 #ifndef __ATOMIC_CONSUME
-#define __ATOMIC_CONSUME        1
+#define __ATOMIC_CONSUME 1
 #endif
 #ifndef __ATOMIC_ACQUIRE
-#define __ATOMIC_ACQUIRE        2
+#define __ATOMIC_ACQUIRE 2
 #endif
 #ifndef __ATOMIC_RELEASE
-#define __ATOMIC_RELEASE        3
+#define __ATOMIC_RELEASE 3
 #endif
 #ifndef __ATOMIC_ACQ_REL
-#define __ATOMIC_ACQ_REL        4
+#define __ATOMIC_ACQ_REL 4
 #endif
 #ifndef __ATOMIC_SEQ_CST
-#define __ATOMIC_SEQ_CST        5
+#define __ATOMIC_SEQ_CST 5
 #endif
-
 
 enum memory_order {
 	memory_order_relaxed = __ATOMIC_RELAXED,
@@ -74,117 +74,119 @@ enum memory_order {
 typedef enum memory_order memory_order;
 
 typedef struct atomic_int_fast32 {
-	isc_mutex_t m;
+	isc_mutex_t  m;
 	int_fast32_t v;
 } atomic_int_fast32_t;
 
 typedef struct atomic_int_fast64 {
-	isc_mutex_t m;
+	isc_mutex_t  m;
 	int_fast64_t v;
 } atomic_int_fast64_t;
 
 typedef struct atomic_uint_fast32 {
-	isc_mutex_t m;
+	isc_mutex_t   m;
 	uint_fast32_t v;
 } atomic_uint_fast32_t;
 
 typedef struct atomic_uint_fast64 {
-	isc_mutex_t m;
+	isc_mutex_t   m;
 	uint_fast64_t v;
 } atomic_uint_fast64_t;
 
 typedef struct atomic_uintptr {
 	isc_mutex_t m;
-	uintptr_t v;
+	uintptr_t   v;
 } atomic_uintptr_t;
 
 typedef struct atomic_bool_s {
 	isc_mutex_t m;
-	bool v;
+	bool	    v;
 } atomic_bool;
 
-#define ATOMIC_VAR_INIT(arg)				\
-	{ .m = PTHREAD_MUTEX_INITIALIZER, .v = arg }
-
-#define atomic_init(obj, desired)					\
-	{								\
-		isc_mutex_init(&(obj)->m);				\
-		(obj)->v = desired;					\
+#define ATOMIC_VAR_INIT(arg)                             \
+	{                                                \
+		.m = PTHREAD_MUTEX_INITIALIZER, .v = arg \
 	}
-#define atomic_load_explicit(obj, order)				\
-	({								\
-		typeof((obj)->v) ___v;					\
-		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v = (obj)->v;					\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v;							\
-	})
-#define atomic_store_explicit(obj, desired, order)			\
-	{								\
-		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		(obj)->v = desired;					\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
+
+#define atomic_init(obj, desired)          \
+	{                                  \
+		isc_mutex_init(&(obj)->m); \
+		(obj)->v = desired;        \
 	}
-#define atomic_fetch_add_explicit(obj, arg, order)			\
-	({								\
-		typeof((obj)->v) ___v;					\
-		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v = (obj)->v;					\
-		(obj)->v += arg;					\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v;\
+#define atomic_load_explicit(obj, order)                               \
+	({                                                             \
+		typeof((obj)->v) ___v;                                 \
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);   \
+		___v = (obj)->v;                                       \
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS); \
+		___v;                                                  \
 	})
-#define atomic_fetch_sub_explicit(obj, arg, order)			\
-	({ typeof((obj)->v) ___v;					\
-		 REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		 ___v = (obj)->v;					\
-		 (obj)->v -= arg;					\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v;\
+#define atomic_store_explicit(obj, desired, order)                     \
+	{                                                              \
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);   \
+		(obj)->v = desired;                                    \
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS); \
+	}
+#define atomic_fetch_add_explicit(obj, arg, order)                     \
+	({                                                             \
+		typeof((obj)->v) ___v;                                 \
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);   \
+		___v = (obj)->v;                                       \
+		(obj)->v += arg;                                       \
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS); \
+		___v;                                                  \
 	})
-#define atomic_fetch_and_explicit(obj, arg, order)			\
-	({								\
-		typeof((obj)->v) ___v;					\
-		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v = (obj)->v;					\
-		(obj)->v &= arg;					\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v;\
+#define atomic_fetch_sub_explicit(obj, arg, order)                     \
+	({                                                             \
+		typeof((obj)->v) ___v;                                 \
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);   \
+		___v = (obj)->v;                                       \
+		(obj)->v -= arg;                                       \
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS); \
+		___v;                                                  \
 	})
-#define atomic_fetch_or_explicit(obj, arg, order)			\
-	({								\
-		typeof((obj)->v) ___v;					\
-		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v = (obj)->v;					\
-		(obj)->v |= arg;					\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v;\
+#define atomic_fetch_and_explicit(obj, arg, order)                     \
+	({                                                             \
+		typeof((obj)->v) ___v;                                 \
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);   \
+		___v = (obj)->v;                                       \
+		(obj)->v &= arg;                                       \
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS); \
+		___v;                                                  \
 	})
-#define atomic_compare_exchange_strong_explicit(obj, expected, desired, \
-						succ, fail)		\
-	({								\
-		bool ___v;						\
-		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v = ((obj)->v == *expected);				\
-		*expected = (obj)->v;					\
-		(obj)->v = ___v ? desired : (obj)->v;			\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v;							\
+#define atomic_fetch_or_explicit(obj, arg, order)                      \
+	({                                                             \
+		typeof((obj)->v) ___v;                                 \
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);   \
+		___v = (obj)->v;                                       \
+		(obj)->v |= arg;                                       \
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS); \
+		___v;                                                  \
 	})
-#define atomic_compare_exchange_weak_explicit(obj, expected, desired,	\
-					      succ, fail)		\
-	({								\
-		bool ___v;						\
-		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v = ((obj)->v == *expected);				\
-		*expected = (obj)->v;					\
-		(obj)->v = ___v ? desired : (obj)->v;			\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v;							\
+#define atomic_compare_exchange_strong_explicit(obj, expected, desired, succ, \
+						fail)                         \
+	({                                                                    \
+		bool ___v;                                                    \
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);          \
+		___v = ((obj)->v == *expected);                               \
+		*expected = (obj)->v;                                         \
+		(obj)->v = ___v ? desired : (obj)->v;                         \
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);        \
+		___v;                                                         \
+	})
+#define atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, \
+					      fail)                         \
+	({                                                                  \
+		bool ___v;                                                  \
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);        \
+		___v = ((obj)->v == *expected);                             \
+		*expected = (obj)->v;                                       \
+		(obj)->v = ___v ? desired : (obj)->v;                       \
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);      \
+		___v;                                                       \
 	})
 
-#define atomic_load(obj) \
-	atomic_load_explicit(obj, memory_order_seq_cst)
+#define atomic_load(obj) atomic_load_explicit(obj, memory_order_seq_cst)
 #define atomic_store(obj, arg) \
 	atomic_store_explicit(obj, arg, memory_order_seq_cst)
 #define atomic_fetch_add(obj, arg) \
@@ -195,22 +197,22 @@ typedef struct atomic_bool_s {
 	atomic_fetch_and_explicit(obj, arg, memory_order_seq_cst)
 #define atomic_fetch_or(obj, arg) \
 	atomic_fetch_or_explicit(obj, arg, memory_order_seq_cst)
-#define atomic_compare_exchange_strong(obj, expected, desired)		\
+#define atomic_compare_exchange_strong(obj, expected, desired)          \
 	atomic_compare_exchange_strong_explicit(obj, expected, desired, \
-						memory_order_seq_cst,	\
+						memory_order_seq_cst,   \
 						memory_order_seq_cst)
-#define atomic_compare_exchange_weak(obj, expected, desired)	      \
+#define atomic_compare_exchange_weak(obj, expected, desired)          \
 	atomic_compare_exchange_weak_explicit(obj, expected, desired, \
 					      memory_order_seq_cst,   \
 					      memory_order_seq_cst)
-#define atomic_exchange_explicit(obj, desired, order)			\
-	({								\
-		typeof((obj)->v) ___v;					\
-		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v = (obj)->v;					\
-		(obj)->v = desired;					\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v;							\
+#define atomic_exchange_explicit(obj, desired, order)                  \
+	({                                                             \
+		typeof((obj)->v) ___v;                                 \
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);   \
+		___v = (obj)->v;                                       \
+		(obj)->v = desired;                                    \
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS); \
+		___v;                                                  \
 	})
 #define atomic_exchange(obj, desired) \
 	atomic_exchange_explicit(obj, desired, memory_order_seq_cst)

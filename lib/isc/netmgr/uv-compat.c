@@ -9,9 +9,11 @@
  * information regarding copyright ownership.
  */
 
-#include <unistd.h>
-#include <isc/util.h>
 #include "uv-compat.h"
+
+#include <unistd.h>
+
+#include <isc/util.h>
 
 /*
  * XXXWPK: This code goes into libuv internals and it's platform dependent.
@@ -31,7 +33,7 @@ typedef enum {
 
 typedef struct {
 	WSAPROTOCOL_INFOW socket_info;
-	uint32_t delayed_error;
+	uint32_t	  delayed_error;
 } uv__ipc_socket_xfer_info_t;
 
 /*
@@ -44,13 +46,13 @@ uv__tcp_xfer_import(uv_tcp_t *tcp, uv__ipc_socket_xfer_type_t xfer_type,
 		    uv__ipc_socket_xfer_info_t *xfer_info);
 
 int
-uv__tcp_xfer_export(uv_tcp_t* handle,
-		    int target_pid,
-		    uv__ipc_socket_xfer_type_t* xfer_type,
-		    uv__ipc_socket_xfer_info_t* xfer_info);
+uv__tcp_xfer_export(uv_tcp_t *handle, int target_pid,
+		    uv__ipc_socket_xfer_type_t *xfer_type,
+		    uv__ipc_socket_xfer_info_t *xfer_info);
 
 int
-isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info) {
+isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info)
+{
 	uv__ipc_socket_xfer_info_t xfer_info;
 	uv__ipc_socket_xfer_type_t xfer_type = UV__IPC_SOCKET_XFER_NONE;
 
@@ -63,8 +65,7 @@ isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 	if (stream->type != UV_TCP) {
 		return (-1);
 	}
-	int r = uv__tcp_xfer_export((uv_tcp_t *) stream,
-				    GetCurrentProcessId(),
+	int r = uv__tcp_xfer_export((uv_tcp_t *)stream, GetCurrentProcessId(),
 				    &xfer_type, &xfer_info);
 	if (r != 0) {
 		return (r);
@@ -78,24 +79,26 @@ isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 }
 
 int
-isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info) {
+isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info)
+{
 	if (stream->type != UV_TCP || info->type != UV_TCP) {
 		return (-1);
 	}
 
-	return (uv__tcp_xfer_import((uv_tcp_t *) stream,
-				    UV__IPC_SOCKET_XFER_TCP_SERVER,
-				    &(uv__ipc_socket_xfer_info_t){
-					.socket_info = info->socket_info
-				    }));
+	return (uv__tcp_xfer_import(
+		(uv_tcp_t *)stream, UV__IPC_SOCKET_XFER_TCP_SERVER,
+		&(uv__ipc_socket_xfer_info_t){ .socket_info =
+						       info->socket_info }));
 }
 #else /* WIN32 */
 /* Adapted from libuv/src/unix/internal.h */
-#include <sys/ioctl.h>
 #include <fcntl.h>
 
+#include <sys/ioctl.h>
+
 static int
-isc_uv__cloexec(int fd, int set) {
+isc_uv__cloexec(int fd, int set)
+{
 	int r;
 
 	/*
@@ -106,18 +109,13 @@ isc_uv__cloexec(int fd, int set) {
 	 * fcntl() call, which adds extra system call overhead, but
 	 * works.
 	 */
-#if defined(_AIX) || \
-    defined(__APPLE__) || \
-    defined(__DragonFly__) || \
-    defined(__FreeBSD__) || \
-    defined(__FreeBSD_kernel__) || \
-    defined(__linux__) || \
-    defined(__OpenBSD__) || \
-    defined(__NetBSD__)
+#if defined(_AIX) || defined(__APPLE__) || defined(__DragonFly__) || \
+	defined(__FreeBSD__) || defined(__FreeBSD_kernel__) ||       \
+	defined(__linux__) || defined(__OpenBSD__) || defined(__NetBSD__)
 	do {
 		r = ioctl(fd, set ? FIOCLEX : FIONCLEX);
 	} while (r == -1 && errno == EINTR);
-#else /* FIOCLEX/FIONCLEX unsupported */
+#else  /* FIOCLEX/FIONCLEX unsupported */
 	int flags;
 
 	do {
@@ -151,14 +149,15 @@ isc_uv__cloexec(int fd, int set) {
 }
 
 int
-isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info) {
+isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info)
+{
 	int oldfd, fd;
 	int err;
 
 	if (stream->type != UV_TCP) {
 		return (-1);
 	}
-	err = uv_fileno((uv_handle_t *) stream, (uv_os_fd_t *) &oldfd);
+	err = uv_fileno((uv_handle_t *)stream, (uv_os_fd_t *)&oldfd);
 
 	if (err != 0) {
 		return (err);
@@ -181,12 +180,13 @@ isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 }
 
 int
-isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info) {
+isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info)
+{
 	if (info->type != UV_TCP) {
 		return (-1);
 	}
 
-	uv_tcp_t *tcp = (uv_tcp_t *) stream;
+	uv_tcp_t *tcp = (uv_tcp_t *)stream;
 	return (uv_tcp_open(tcp, info->fd));
 }
 #endif

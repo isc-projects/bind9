@@ -9,18 +9,17 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <stdbool.h>
-#include <stddef.h>	/* NULL */
-#include <stdlib.h>	/* NULL */
+#include <stddef.h> /* NULL */
+#include <stdlib.h> /* NULL */
 #include <syslog.h>
-
-#include <sys/time.h>
 
 #include <isc/stdtime.h>
 #include <isc/util.h>
+
+#include <sys/time.h>
 
 #ifndef ISC_FIX_TV_USEC
 #define ISC_FIX_TV_USEC 1
@@ -30,7 +29,8 @@
 
 #if ISC_FIX_TV_USEC
 static inline void
-fix_tv_usec(struct timeval *tv) {
+fix_tv_usec(struct timeval *tv)
+{
 	bool fixed = false;
 
 	if (tv->tv_usec < 0) {
@@ -44,18 +44,20 @@ fix_tv_usec(struct timeval *tv) {
 		do {
 			tv->tv_sec += 1;
 			tv->tv_usec -= US_PER_S;
-		} while (tv->tv_usec >=US_PER_S);
+		} while (tv->tv_usec >= US_PER_S);
 	}
 	/*
 	 * Call syslog directly as we are called from the logging functions.
 	 */
 	if (fixed)
-		(void)syslog(LOG_ERR, "gettimeofday returned bad tv_usec: corrected");
+		(void)syslog(LOG_ERR, "gettimeofday returned bad tv_usec: "
+				      "corrected");
 }
 #endif
 
 void
-isc_stdtime_get(isc_stdtime_t *t) {
+isc_stdtime_get(isc_stdtime_t *t)
+{
 	struct timeval tv;
 
 	/*

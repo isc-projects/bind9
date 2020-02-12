@@ -20,28 +20,26 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dst/result.h>
-
 #include "dst_internal.h"
 #include "dst_parse.h"
 
 #include <dst/gssapi.h>
+#include <dst/result.h>
 
 #define INITIAL_BUFFER_SIZE 1024
 #define BUFFER_EXTRA 1024
 
-#define REGION_TO_GBUFFER(r, gb) \
-	do { \
+#define REGION_TO_GBUFFER(r, gb)          \
+	do {                              \
 		(gb).length = (r).length; \
-		(gb).value = (r).base; \
+		(gb).value = (r).base;    \
 	} while (0)
 
-#define GBUFFER_TO_REGION(gb, r) \
-	do { \
-	  (r).length = (unsigned int)(gb).length; \
-		(r).base = (gb).value; \
+#define GBUFFER_TO_REGION(gb, r)                        \
+	do {                                            \
+		(r).length = (unsigned int)(gb).length; \
+		(r).base = (gb).value;                  \
 	} while (0)
-
 
 struct dst_gssapi_signverifyctx {
 	isc_buffer_t *buffer;
@@ -52,7 +50,8 @@ struct dst_gssapi_signverifyctx {
  * or verifying.
  */
 static isc_result_t
-gssapi_create_signverify_ctx(dst_key_t *key, dst_context_t *dctx) {
+gssapi_create_signverify_ctx(dst_key_t *key, dst_context_t *dctx)
+{
 	dst_gssapi_signverifyctx_t *ctx;
 
 	UNUSED(key);
@@ -70,13 +69,15 @@ gssapi_create_signverify_ctx(dst_key_t *key, dst_context_t *dctx) {
  * Destroy the temporary sign/verify context.
  */
 static void
-gssapi_destroy_signverify_ctx(dst_context_t *dctx) {
+gssapi_destroy_signverify_ctx(dst_context_t *dctx)
+{
 	dst_gssapi_signverifyctx_t *ctx = dctx->ctxdata.gssctx;
 
 	if (ctx != NULL) {
 		if (ctx->buffer != NULL)
 			isc_buffer_free(&ctx->buffer);
-		isc_mem_put(dctx->mctx, ctx, sizeof(dst_gssapi_signverifyctx_t));
+		isc_mem_put(dctx->mctx, ctx,
+			    sizeof(dst_gssapi_signverifyctx_t));
 		dctx->ctxdata.gssctx = NULL;
 	}
 }
@@ -88,12 +89,13 @@ gssapi_destroy_signverify_ctx(dst_context_t *dctx) {
  * buffer and copy old+new into it, and free the old buffer.
  */
 static isc_result_t
-gssapi_adddata(dst_context_t *dctx, const isc_region_t *data) {
+gssapi_adddata(dst_context_t *dctx, const isc_region_t *data)
+{
 	dst_gssapi_signverifyctx_t *ctx = dctx->ctxdata.gssctx;
-	isc_buffer_t *newbuffer = NULL;
-	isc_region_t r;
-	unsigned int length;
-	isc_result_t result;
+	isc_buffer_t *		    newbuffer = NULL;
+	isc_region_t		    r;
+	unsigned int		    length;
+	isc_result_t		    result;
 
 	result = isc_buffer_copyregion(ctx->buffer, data);
 	if (result == ISC_R_SUCCESS)
@@ -117,13 +119,14 @@ gssapi_adddata(dst_context_t *dctx, const isc_region_t *data) {
  * Sign.
  */
 static isc_result_t
-gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
+gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig)
+{
 	dst_gssapi_signverifyctx_t *ctx = dctx->ctxdata.gssctx;
-	isc_region_t message;
-	gss_buffer_desc gmessage, gsig;
-	OM_uint32 minor, gret;
-	gss_ctx_id_t gssctx = dctx->key->keydata.gssctx;
-	char buf[1024];
+	isc_region_t		    message;
+	gss_buffer_desc		    gmessage, gsig;
+	OM_uint32		    minor, gret;
+	gss_ctx_id_t		    gssctx = dctx->key->keydata.gssctx;
+	char			    buf[1024];
 
 	/*
 	 * Convert the data we wish to sign into a structure gssapi can
@@ -135,8 +138,7 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	/*
 	 * Generate the signature.
 	 */
-	gret = gss_get_mic(&minor, gssctx, GSS_C_QOP_DEFAULT, &gmessage,
-			   &gsig);
+	gret = gss_get_mic(&minor, gssctx, GSS_C_QOP_DEFAULT, &gmessage, &gsig);
 
 	/*
 	 * If it did not complete, we log the result and return a generic
@@ -172,14 +174,15 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
  * Verify.
  */
 static isc_result_t
-gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
+gssapi_verify(dst_context_t *dctx, const isc_region_t *sig)
+{
 	dst_gssapi_signverifyctx_t *ctx = dctx->ctxdata.gssctx;
-	isc_region_t message, r;
-	gss_buffer_desc gmessage, gsig;
-	OM_uint32 minor, gret;
-	gss_ctx_id_t gssctx = dctx->key->keydata.gssctx;
-	unsigned char buf[sig->length];
-	char err[1024];
+	isc_region_t		    message, r;
+	gss_buffer_desc		    gmessage, gsig;
+	OM_uint32		    minor, gret;
+	gss_ctx_id_t		    gssctx = dctx->key->keydata.gssctx;
+	unsigned char		    buf[sig->length];
+	char			    err[1024];
 
 	/*
 	 * Convert the data we wish to sign into a structure gssapi can
@@ -204,16 +207,12 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	if (gret != GSS_S_COMPLETE) {
 		gss_log(3, "GSS verify error: %s",
 			gss_error_tostring(gret, minor, err, sizeof(err)));
-		if (gret == GSS_S_DEFECTIVE_TOKEN ||
-		    gret == GSS_S_BAD_SIG ||
-		    gret == GSS_S_DUPLICATE_TOKEN ||
-		    gret == GSS_S_OLD_TOKEN ||
-		    gret == GSS_S_UNSEQ_TOKEN ||
-		    gret == GSS_S_GAP_TOKEN ||
-		    gret == GSS_S_CONTEXT_EXPIRED ||
-		    gret == GSS_S_NO_CONTEXT ||
+		if (gret == GSS_S_DEFECTIVE_TOKEN || gret == GSS_S_BAD_SIG ||
+		    gret == GSS_S_DUPLICATE_TOKEN || gret == GSS_S_OLD_TOKEN ||
+		    gret == GSS_S_UNSEQ_TOKEN || gret == GSS_S_GAP_TOKEN ||
+		    gret == GSS_S_CONTEXT_EXPIRED || gret == GSS_S_NO_CONTEXT ||
 		    gret == GSS_S_FAILURE)
-			return(DST_R_VERIFYFAILURE);
+			return (DST_R_VERIFYFAILURE);
 		else
 			return (ISC_R_FAILURE);
 	}
@@ -222,7 +221,8 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 }
 
 static bool
-gssapi_compare(const dst_key_t *key1, const dst_key_t *key2) {
+gssapi_compare(const dst_key_t *key1, const dst_key_t *key2)
+{
 	gss_ctx_id_t gsskey1 = key1->keydata.gssctx;
 	gss_ctx_id_t gsskey2 = key2->keydata.gssctx;
 
@@ -231,7 +231,8 @@ gssapi_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-gssapi_generate(dst_key_t *key, int unused, void (*callback)(int)) {
+gssapi_generate(dst_key_t *key, int unused, void (*callback)(int))
+{
 	UNUSED(key);
 	UNUSED(unused);
 	UNUSED(callback);
@@ -241,26 +242,29 @@ gssapi_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 }
 
 static bool
-gssapi_isprivate(const dst_key_t *key) {
+gssapi_isprivate(const dst_key_t *key)
+{
 	UNUSED(key);
 	return (true);
 }
 
 static void
-gssapi_destroy(dst_key_t *key) {
+gssapi_destroy(dst_key_t *key)
+{
 	REQUIRE(key != NULL);
 	dst_gssapi_deletectx(key->mctx, &key->keydata.gssctx);
 	key->keydata.gssctx = NULL;
 }
 
 static isc_result_t
-gssapi_restore(dst_key_t *key, const char *keystr) {
-	OM_uint32 major, minor;
-	unsigned int len;
-	isc_buffer_t *b = NULL;
-	isc_region_t r;
+gssapi_restore(dst_key_t *key, const char *keystr)
+{
+	OM_uint32	major, minor;
+	unsigned int	len;
+	isc_buffer_t *	b = NULL;
+	isc_region_t	r;
 	gss_buffer_desc gssbuffer;
-	isc_result_t result;
+	isc_result_t	result;
 
 	len = strlen(keystr);
 	if ((len % 4) != 0U)
@@ -290,25 +294,26 @@ gssapi_restore(dst_key_t *key, const char *keystr) {
 }
 
 static isc_result_t
-gssapi_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
-	OM_uint32 major, minor;
+gssapi_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length)
+{
+	OM_uint32	major, minor;
 	gss_buffer_desc gssbuffer;
-	size_t len;
-	char *buf;
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
+	size_t		len;
+	char *		buf;
+	isc_buffer_t	b;
+	isc_region_t	r;
+	isc_result_t	result;
 
 	major = gss_export_sec_context(&minor, &key->keydata.gssctx,
 				       &gssbuffer);
 	if (major != GSS_S_COMPLETE) {
-		fprintf(stderr, "gss_export_sec_context -> %u, %u\n",
-			major, minor);
+		fprintf(stderr, "gss_export_sec_context -> %u, %u\n", major,
+			minor);
 		return (ISC_R_FAILURE);
 	}
 	if (gssbuffer.length == 0U)
 		return (ISC_R_FAILURE);
-	len = ((gssbuffer.length + 2)/3) * 4;
+	len = ((gssbuffer.length + 2) / 3) * 4;
 	buf = isc_mem_get(mctx, len);
 	isc_buffer_init(&b, buf, (unsigned int)len);
 	GBUFFER_TO_REGION(gssbuffer, r);
@@ -339,13 +344,14 @@ static dst_func_t gssapi_functions = {
 	NULL, /*%< tofile */
 	NULL, /*%< parse */
 	NULL, /*%< cleanup */
-	NULL,  /*%< fromlabel */
+	NULL, /*%< fromlabel */
 	gssapi_dump,
 	gssapi_restore,
 };
 
 isc_result_t
-dst__gssapi_init(dst_func_t **funcp) {
+dst__gssapi_init(dst_func_t **funcp)
+{
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL)
 		*funcp = &gssapi_functions;
@@ -353,7 +359,7 @@ dst__gssapi_init(dst_func_t **funcp) {
 }
 
 #else
-int  gssapi_link_unneeded = 1;
+int gssapi_link_unneeded = 1;
 #endif
 
 /*! \file */

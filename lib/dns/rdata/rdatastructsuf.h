@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATASTRUCT_H */

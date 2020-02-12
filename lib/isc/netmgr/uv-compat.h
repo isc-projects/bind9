@@ -21,14 +21,16 @@
 
 #ifndef HAVE_UV_HANDLE_GET_DATA
 static inline void *
-uv_handle_get_data(const uv_handle_t *handle) {
+uv_handle_get_data(const uv_handle_t *handle)
+{
 	return (handle->data);
 }
 #endif
 
 #ifndef HAVE_UV_HANDLE_SET_DATA
 static inline void
-uv_handle_set_data(uv_handle_t *handle, void *data) {
+uv_handle_set_data(uv_handle_t *handle, void *data)
+{
 	handle->data = data;
 };
 #endif

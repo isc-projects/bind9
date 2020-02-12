@@ -16,7 +16,8 @@
 #include <isc/util.h>
 
 void
-isc_stdtime_get(isc_stdtime_t *t) {
+isc_stdtime_get(isc_stdtime_t *t)
+{
 	/*
 	 * Set 't' to the number of seconds past 00:00:00 UTC, January 1, 1970.
 	 */

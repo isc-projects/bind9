@@ -12,23 +12,24 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <sys/types.h>
-#include <sys/time.h>	/* Required on some systems for <sys/resource.h>. */
-#include <sys/resource.h>
-
 #include <isc/platform.h>
 #include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/util.h>
 
+#include <sys/resource.h>
+#include <sys/time.h> /* Required on some systems for <sys/resource.h>. */
+#include <sys/types.h>
+
 #ifdef __linux__
-#include <linux/fs.h>	/* To get the large NR_OPEN. */
+#include <linux/fs.h> /* To get the large NR_OPEN. */
 #endif
 
 #include "errno2result.h"
 
 static isc_result_t
-resource2rlim(isc_resource_t resource, int *rlim_resource) {
+resource2rlim(isc_resource_t resource, int *rlim_resource)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 
 	switch (resource) {
@@ -91,12 +92,13 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 }
 
 isc_result_t
-isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
+isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value)
+{
 	struct rlimit rl;
-	rlim_t rlim_value;
-	int unixresult;
-	int unixresource;
-	isc_result_t result;
+	rlim_t	      rlim_value;
+	int	      unixresult;
+	int	      unixresource;
+	isc_result_t  result;
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS)
@@ -114,12 +116,10 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		 * rlim_t is not overflowed.
 		 */
 		isc_resourcevalue_t rlim_max;
-		bool rlim_t_is_signed =
-			(((double)(rlim_t)-1) < 0);
+		bool rlim_t_is_signed = (((double)(rlim_t)-1) < 0);
 
 		if (rlim_t_is_signed)
-			rlim_max = ~((rlim_t)1 <<
-				     (sizeof(rlim_t) * 8 - 1));
+			rlim_max = ~((rlim_t)1 << (sizeof(rlim_t) * 8 - 1));
 		else
 			rlim_max = (rlim_t)-1;
 
@@ -150,7 +150,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	}
 #elif defined(__linux__)
 #ifndef NR_OPEN
-#define NR_OPEN (1024*1024)
+#define NR_OPEN (1024 * 1024)
 #endif
 
 	/*
@@ -176,10 +176,11 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 }
 
 isc_result_t
-isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
-	int unixresource;
+isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value)
+{
+	int	      unixresource;
 	struct rlimit rl;
-	isc_result_t result;
+	isc_result_t  result;
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS) {
@@ -195,10 +196,11 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 }
 
 isc_result_t
-isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
-	int unixresource;
+isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value)
+{
+	int	      unixresource;
 	struct rlimit rl;
-	isc_result_t result;
+	isc_result_t  result;
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS) {

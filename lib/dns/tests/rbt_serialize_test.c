@@ -11,16 +11,16 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <fcntl.h>
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <stdlib.h>
-#include <sys/mman.h>
 #include <unistd.h>
+
+#include <sys/mman.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -47,11 +47,10 @@
 #include <dns/name.h>
 #include <dns/rbt.h>
 #include <dns/result.h>
-#include <dns/result.h>
-
-#include <dst/dst.h>
 
 #include "dnstest.h"
+
+#include <dst/dst.h>
 
 #ifndef MAP_FILE
 #define MAP_FILE 0
@@ -61,7 +60,8 @@
 static bool verbose = false;
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -73,7 +73,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	dns_test_end();
@@ -82,57 +83,60 @@ _teardown(void **state) {
 }
 
 typedef struct data_holder {
-	int len;
+	int	    len;
 	const char *data;
 } data_holder_t;
 
 typedef struct rbt_testdata {
-	const char *name;
-	size_t name_len;
+	const char *  name;
+	size_t	      name_len;
 	data_holder_t data;
 } rbt_testdata_t;
 
-#define DATA_ITEM(name) { (name), sizeof(name) - 1, { sizeof(name), (name) } }
+#define DATA_ITEM(name)                                            \
+	{                                                          \
+		(name), sizeof(name) - 1, { sizeof(name), (name) } \
+	}
 
-rbt_testdata_t testdata[] = {
-	DATA_ITEM("first.com."),
-	DATA_ITEM("one.net."),
-	DATA_ITEM("two.com."),
-	DATA_ITEM("three.org."),
-	DATA_ITEM("asdf.com."),
-	DATA_ITEM("ghjkl.com."),
-	DATA_ITEM("1.edu."),
-	DATA_ITEM("2.edu."),
-	DATA_ITEM("3.edu."),
-	DATA_ITEM("123.edu."),
-	DATA_ITEM("1236.com."),
-	DATA_ITEM("and_so_forth.com."),
-	DATA_ITEM("thisisalongname.com."),
-	DATA_ITEM("a.b."),
-	DATA_ITEM("test.net."),
-	DATA_ITEM("whoknows.org."),
-	DATA_ITEM("blargh.com."),
-	DATA_ITEM("www.joe.com."),
-	DATA_ITEM("test.com."),
-	DATA_ITEM("isc.org."),
-	DATA_ITEM("uiop.mil."),
-	DATA_ITEM("last.fm."),
-	{ NULL, 0, { 0, NULL } }
-};
+rbt_testdata_t testdata[] = { DATA_ITEM("first.com."),
+			      DATA_ITEM("one.net."),
+			      DATA_ITEM("two.com."),
+			      DATA_ITEM("three.org."),
+			      DATA_ITEM("asdf.com."),
+			      DATA_ITEM("ghjkl.com."),
+			      DATA_ITEM("1.edu."),
+			      DATA_ITEM("2.edu."),
+			      DATA_ITEM("3.edu."),
+			      DATA_ITEM("123.edu."),
+			      DATA_ITEM("1236.com."),
+			      DATA_ITEM("and_so_forth.com."),
+			      DATA_ITEM("thisisalongname.com."),
+			      DATA_ITEM("a.b."),
+			      DATA_ITEM("test.net."),
+			      DATA_ITEM("whoknows.org."),
+			      DATA_ITEM("blargh.com."),
+			      DATA_ITEM("www.joe.com."),
+			      DATA_ITEM("test.com."),
+			      DATA_ITEM("isc.org."),
+			      DATA_ITEM("uiop.mil."),
+			      DATA_ITEM("last.fm."),
+			      { NULL, 0, { 0, NULL } } };
 
 static void
-delete_data(void *data, void *arg) {
+delete_data(void *data, void *arg)
+{
 	UNUSED(arg);
 	UNUSED(data);
 }
 
 static isc_result_t
-write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
-	isc_result_t result;
-	size_t ret = 0;
+write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc)
+{
+	isc_result_t   result;
+	size_t	       ret = 0;
 	data_holder_t *data;
-	data_holder_t temp;
-	off_t where;
+	data_holder_t  temp;
+	off_t	       where;
 
 	UNUSED(arg);
 
@@ -149,9 +153,9 @@ write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 	}
 
 	temp = *data;
-	temp.data = (data->len == 0
-		     ? NULL
-		     : (char *)((uintptr_t)where + sizeof(data_holder_t)));
+	temp.data = (data->len == 0 ? NULL
+				    : (char *)((uintptr_t)where +
+					       sizeof(data_holder_t)));
 
 	isc_crc64_update(crc, (void *)&temp, sizeof(temp));
 	ret = fwrite(&temp, sizeof(data_holder_t), 1, file);
@@ -170,9 +174,10 @@ write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 }
 
 static isc_result_t
-fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg, uint64_t *crc) {
+fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg, uint64_t *crc)
+{
 	data_holder_t *data;
-	size_t size;
+	size_t	       size;
 
 	UNUSED(base);
 	UNUSED(max);
@@ -183,16 +188,14 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg, uint64_t *crc) {
 
 	data = p->data;
 
-	if (data == NULL ||
-	    (data->len == 0 && data->data != NULL) ||
-	    (data->len != 0 && data->data == NULL))
-	{
+	if (data == NULL || (data->len == 0 && data->data != NULL) ||
+	    (data->len != 0 && data->data == NULL)) {
 		return (ISC_R_INVALIDFILE);
 	}
 
 	size = max - ((char *)p - (char *)base);
 
-	if (data->len > (int) size || data->data > (const char *) max) {
+	if (data->len > (int)size || data->data > (const char *)max) {
 		return (ISC_R_INVALIDFILE);
 	}
 
@@ -214,13 +217,14 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg, uint64_t *crc) {
  * Load test data into the RBT.
  */
 static void
-add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt) {
-	char buffer[1024];
-	isc_buffer_t b;
-	isc_result_t result;
+add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt)
+{
+	char		buffer[1024];
+	isc_buffer_t	b;
+	isc_result_t	result;
 	dns_fixedname_t fname;
-	dns_name_t *name;
-	dns_compress_t cctx;
+	dns_name_t *	name;
+	dns_compress_t	cctx;
 	rbt_testdata_t *testdatap = testdata;
 
 	dns_compress_init(&cctx, -1, mctx);
@@ -251,16 +255,17 @@ add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt) {
  * Walk the tree and ensure that all the test nodes are present.
  */
 static void
-check_test_data(dns_rbt_t *rbt) {
-	char buffer[1024];
-	char *arg;
+check_test_data(dns_rbt_t *rbt)
+{
+	char		buffer[1024];
+	char *		arg;
 	dns_fixedname_t fname;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
-	isc_buffer_t b;
-	data_holder_t *data;
-	isc_result_t result;
-	dns_name_t *foundname;
+	dns_name_t *	name;
+	isc_buffer_t	b;
+	data_holder_t * data;
+	isc_result_t	result;
+	dns_name_t *	foundname;
 	rbt_testdata_t *testdatap = testdata;
 
 	foundname = dns_fixedname_initname(&fixed);
@@ -280,7 +285,7 @@ check_test_data(dns_rbt_t *rbt) {
 
 		data = NULL;
 		result = dns_rbt_findname(rbt, name, 0, foundname,
-					  (void *) &data);
+					  (void *)&data);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		testdatap++;
@@ -288,7 +293,8 @@ check_test_data(dns_rbt_t *rbt) {
 }
 
 static void
-data_printer(FILE *out, void *datap) {
+data_printer(FILE *out, void *datap)
+{
 	data_holder_t *data = (data_holder_t *)datap;
 
 	fprintf(out, "%d bytes, %s", data->len, data->data);
@@ -296,15 +302,16 @@ data_printer(FILE *out, void *datap) {
 
 /* Test writing an rbt to file */
 static void
-serialize_test(void **state) {
-	dns_rbt_t *rbt = NULL;
+serialize_test(void **state)
+{
+	dns_rbt_t *  rbt = NULL;
 	isc_result_t result;
-	FILE *rbtfile = NULL;
-	dns_rbt_t *rbt_deserialized = NULL;
-	off_t offset;
-	int fd;
-	off_t filesize = 0;
-	char *base;
+	FILE *	     rbtfile = NULL;
+	dns_rbt_t *  rbt_deserialized = NULL;
+	off_t	     offset;
+	int	     fd;
+	off_t	     filesize = 0;
+	char *	     base;
 
 	UNUSED(state);
 
@@ -324,8 +331,8 @@ serialize_test(void **state) {
 	 */
 	rbtfile = fopen("./zone.bin", "w+b");
 	assert_non_null(rbtfile);
-	result = dns_rbt_serialize_tree(rbtfile, rbt, write_data, NULL,
-					&offset);
+	result =
+		dns_rbt_serialize_tree(rbtfile, rbt, write_data, NULL, &offset);
 	assert_true(result == ISC_R_SUCCESS);
 	dns_rbt_destroy(&rbt);
 
@@ -336,8 +343,8 @@ serialize_test(void **state) {
 	fd = open("zone.bin", O_RDWR);
 	assert_int_not_equal(fd, -1);
 	isc_file_getsizefd(fd, &filesize);
-	base = mmap(NULL, filesize, PROT_READ|PROT_WRITE,
-		    MAP_FILE|MAP_PRIVATE, fd, 0);
+	base = mmap(NULL, filesize, PROT_READ | PROT_WRITE,
+		    MAP_FILE | MAP_PRIVATE, fd, 0);
 	assert_true(base != NULL && base != MAP_FAILED);
 	close(fd);
 
@@ -364,15 +371,16 @@ serialize_test(void **state) {
 
 /* Test reading a corrupt map file */
 static void
-deserialize_corrupt_test(void **state) {
-	dns_rbt_t *rbt = NULL;
+deserialize_corrupt_test(void **state)
+{
+	dns_rbt_t *  rbt = NULL;
 	isc_result_t result;
-	FILE *rbtfile = NULL;
-	off_t offset;
-	int fd;
-	off_t filesize = 0;
-	char *base, *p, *q;
-	int i;
+	FILE *	     rbtfile = NULL;
+	off_t	     offset;
+	int	     fd;
+	off_t	     filesize = 0;
+	char *	     base, *p, *q;
+	int	     i;
 
 	UNUSED(state);
 
@@ -385,8 +393,8 @@ deserialize_corrupt_test(void **state) {
 	add_test_data(dt_mctx, rbt);
 	rbtfile = fopen("./zone.bin", "w+b");
 	assert_non_null(rbtfile);
-	result = dns_rbt_serialize_tree(rbtfile, rbt, write_data, NULL,
-					&offset);
+	result =
+		dns_rbt_serialize_tree(rbtfile, rbt, write_data, NULL, &offset);
 	assert_true(result == ISC_R_SUCCESS);
 	dns_rbt_destroy(&rbt);
 
@@ -397,8 +405,8 @@ deserialize_corrupt_test(void **state) {
 		fd = open("zone.bin", O_RDWR);
 		assert_int_not_equal(fd, -1);
 		isc_file_getsizefd(fd, &filesize);
-		base = mmap(NULL, filesize, PROT_READ|PROT_WRITE,
-			    MAP_FILE|MAP_PRIVATE, fd, 0);
+		base = mmap(NULL, filesize, PROT_READ | PROT_WRITE,
+			    MAP_FILE | MAP_PRIVATE, fd, 0);
 		assert_true(base != NULL && base != MAP_FAILED);
 		close(fd);
 
@@ -412,10 +420,9 @@ deserialize_corrupt_test(void **state) {
 			*p = isc_random8();
 		}
 
-		result = dns_rbt_deserialize_tree(base, filesize, 0, dt_mctx,
-						  delete_data, NULL,
-						  fix_data, NULL,
-						  NULL, &rbt_deserialized);
+		result = dns_rbt_deserialize_tree(
+			base, filesize, 0, dt_mctx, delete_data, NULL, fix_data,
+			NULL, NULL, &rbt_deserialized);
 
 		/* Test to make sure we have a valid tree */
 		assert_true(result == ISC_R_SUCCESS ||
@@ -436,7 +443,8 @@ deserialize_corrupt_test(void **state) {
 
 /* Test the dns_rbt_serialize_align() function */
 static void
-serialize_align_test(void **state) {
+serialize_align_test(void **state)
+{
 	UNUSED(state);
 
 	assert_true(dns_rbt_serialize_align(0) == 0);
@@ -454,10 +462,11 @@ serialize_align_test(void **state) {
 }
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(serialize_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(serialize_test, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(deserialize_corrupt_test,
 						_setup, _teardown),
 		cmocka_unit_test(serialize_align_test),
@@ -482,7 +491,8 @@ main(int argc, char **argv) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

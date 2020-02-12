@@ -11,11 +11,11 @@
 
 #include <stdbool.h>
 
+#include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/util.h>
-#include <isc/mutex.h>
-#include <isc/mem.h>
 
 #include <dns/db.h>
 #include <dns/ecdb.h>
@@ -24,12 +24,11 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdataslab.h>
 
-#define ECDB_MAGIC		ISC_MAGIC('E', 'C', 'D', 'B')
-#define VALID_ECDB(db)		((db) != NULL && \
-				 (db)->common.impmagic == ECDB_MAGIC)
+#define ECDB_MAGIC ISC_MAGIC('E', 'C', 'D', 'B')
+#define VALID_ECDB(db) ((db) != NULL && (db)->common.impmagic == ECDB_MAGIC)
 
-#define ECDBNODE_MAGIC		ISC_MAGIC('E', 'C', 'D', 'N')
-#define VALID_ECDBNODE(ecdbn)	ISC_MAGIC_VALID(ecdbn, ECDBNODE_MAGIC)
+#define ECDBNODE_MAGIC ISC_MAGIC('E', 'C', 'D', 'N')
+#define VALID_ECDBNODE(ecdbn) ISC_MAGIC_VALID(ecdbn, ECDBNODE_MAGIC)
 
 /*%
  * The 'ephemeral' cache DB (ecdb) implementation.  An ecdb just provides
@@ -41,62 +40,66 @@
 
 typedef struct dns_ecdb {
 	/* Unlocked */
-	dns_db_t			common;
-	isc_mutex_t			lock;
+	dns_db_t    common;
+	isc_mutex_t lock;
 
 	/* Protected by atomics */
-	isc_refcount_t			references;
+	isc_refcount_t references;
 
 	/* Locked */
-	ISC_LIST(struct dns_ecdbnode)	nodes;
+	ISC_LIST(struct dns_ecdbnode) nodes;
 } dns_ecdb_t;
 
 typedef struct dns_ecdbnode {
 	/* Unlocked */
-	unsigned int			magic;
-	isc_mutex_t			lock;
-	dns_ecdb_t			*ecdb;
-	dns_name_t			name;
-	ISC_LINK(struct dns_ecdbnode)	link;
+	unsigned int magic;
+	isc_mutex_t  lock;
+	dns_ecdb_t * ecdb;
+	dns_name_t   name;
+	ISC_LINK(struct dns_ecdbnode) link;
 
 	/* Locked */
-	ISC_LIST(struct rdatasetheader)	rdatasets;
+	ISC_LIST(struct rdatasetheader) rdatasets;
 
 	/* Protected by atomics */
-	isc_refcount_t			references;
+	isc_refcount_t references;
 } dns_ecdbnode_t;
 
 typedef struct rdatasetheader {
-	dns_rdatatype_t			type;
-	dns_ttl_t			ttl;
-	dns_trust_t			trust;
-	dns_rdatatype_t			covers;
-	unsigned int			attributes;
+	dns_rdatatype_t type;
+	dns_ttl_t	ttl;
+	dns_trust_t	trust;
+	dns_rdatatype_t covers;
+	unsigned int	attributes;
 
-	ISC_LINK(struct rdatasetheader)	link;
+	ISC_LINK(struct rdatasetheader) link;
 } rdatasetheader_t;
 
 /* Copied from rbtdb.c */
-#define RDATASET_ATTR_NXDOMAIN		0x0010
-#define RDATASET_ATTR_NEGATIVE		0x0100
-#define NXDOMAIN(header) \
-	(((header)->attributes & RDATASET_ATTR_NXDOMAIN) != 0)
-#define NEGATIVE(header) \
-	(((header)->attributes & RDATASET_ATTR_NEGATIVE) != 0)
+#define RDATASET_ATTR_NXDOMAIN 0x0010
+#define RDATASET_ATTR_NEGATIVE 0x0100
+#define NXDOMAIN(header) (((header)->attributes & RDATASET_ATTR_NXDOMAIN) != 0)
+#define NEGATIVE(header) (((header)->attributes & RDATASET_ATTR_NEGATIVE) != 0)
 
-static isc_result_t dns_ecdb_create(isc_mem_t *mctx, const dns_name_t *origin,
-				    dns_dbtype_t type,
-				    dns_rdataclass_t rdclass,
-				    unsigned int argc, char *argv[],
-				    void *driverarg, dns_db_t **dbp);
+static isc_result_t
+dns_ecdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
+		dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
+		void *driverarg, dns_db_t **dbp);
 
-static void rdataset_disassociate(dns_rdataset_t *rdataset);
-static isc_result_t rdataset_first(dns_rdataset_t *rdataset);
-static isc_result_t rdataset_next(dns_rdataset_t *rdataset);
-static void rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
-static void rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
-static unsigned int rdataset_count(dns_rdataset_t *rdataset);
-static void rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
+static void
+rdataset_disassociate(dns_rdataset_t *rdataset);
+static isc_result_t
+rdataset_first(dns_rdataset_t *rdataset);
+static isc_result_t
+rdataset_next(dns_rdataset_t *rdataset);
+static void
+rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+static void
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
+static unsigned int
+rdataset_count(dns_rdataset_t *rdataset);
+static void
+rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
 
 static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_disassociate,
@@ -105,38 +108,40 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_current,
 	rdataset_clone,
 	rdataset_count,
-	NULL,			/* addnoqname */
-	NULL,			/* getnoqname */
-	NULL,			/* addclosest */
-	NULL,			/* getclosest */
-	rdataset_settrust,	/* settrust */
-	NULL,			/* expire */
-	NULL,			/* clearprefetch */
-	NULL,			/* setownercase */
-	NULL,			/* getownercase */
-	NULL			/* addglue */
+	NULL,		   /* addnoqname */
+	NULL,		   /* getnoqname */
+	NULL,		   /* addclosest */
+	NULL,		   /* getclosest */
+	rdataset_settrust, /* settrust */
+	NULL,		   /* expire */
+	NULL,		   /* clearprefetch */
+	NULL,		   /* setownercase */
+	NULL,		   /* getownercase */
+	NULL		   /* addglue */
 };
 
 typedef struct ecdb_rdatasetiter {
-	dns_rdatasetiter_t		common;
-	rdatasetheader_t	       *current;
+	dns_rdatasetiter_t common;
+	rdatasetheader_t * current;
 } ecdb_rdatasetiter_t;
 
-static void		rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
-static isc_result_t	rdatasetiter_first(dns_rdatasetiter_t *iterator);
-static isc_result_t	rdatasetiter_next(dns_rdatasetiter_t *iterator);
-static void		rdatasetiter_current(dns_rdatasetiter_t *iterator,
-					     dns_rdataset_t *rdataset);
+static void
+rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
+static isc_result_t
+rdatasetiter_first(dns_rdatasetiter_t *iterator);
+static isc_result_t
+rdatasetiter_next(dns_rdatasetiter_t *iterator);
+static void
+rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset);
 
 static dns_rdatasetitermethods_t rdatasetiter_methods = {
-	rdatasetiter_destroy,
-	rdatasetiter_first,
-	rdatasetiter_next,
+	rdatasetiter_destroy, rdatasetiter_first, rdatasetiter_next,
 	rdatasetiter_current
 };
 
 isc_result_t
-dns_ecdb_register(isc_mem_t *mctx, dns_dbimplementation_t **dbimp) {
+dns_ecdb_register(isc_mem_t *mctx, dns_dbimplementation_t **dbimp)
+{
 	REQUIRE(mctx != NULL);
 	REQUIRE(dbimp != NULL && *dbimp == NULL);
 
@@ -144,7 +149,8 @@ dns_ecdb_register(isc_mem_t *mctx, dns_dbimplementation_t **dbimp) {
 }
 
 void
-dns_ecdb_unregister(dns_dbimplementation_t **dbimp) {
+dns_ecdb_unregister(dns_dbimplementation_t **dbimp)
+{
 	REQUIRE(dbimp != NULL && *dbimp != NULL);
 
 	dns_db_unregister(dbimp);
@@ -155,7 +161,8 @@ dns_ecdb_unregister(dns_dbimplementation_t **dbimp) {
  */
 
 static void
-attach(dns_db_t *source, dns_db_t **targetp) {
+attach(dns_db_t *source, dns_db_t **targetp)
+{
 	dns_ecdb_t *ecdb = (dns_ecdb_t *)source;
 
 	REQUIRE(VALID_ECDB(ecdb));
@@ -167,7 +174,8 @@ attach(dns_db_t *source, dns_db_t **targetp) {
 }
 
 static void
-destroy_ecdb(dns_ecdb_t *ecdb) {
+destroy_ecdb(dns_ecdb_t *ecdb)
+{
 	if (isc_refcount_decrement(&ecdb->references) == 1) {
 		isc_refcount_destroy(&ecdb->references);
 
@@ -187,7 +195,8 @@ destroy_ecdb(dns_ecdb_t *ecdb) {
 }
 
 static void
-detach(dns_db_t **dbp) {
+detach(dns_db_t **dbp)
+{
 	dns_ecdb_t *ecdb;
 
 	REQUIRE(dbp != NULL);
@@ -200,8 +209,9 @@ detach(dns_db_t **dbp) {
 }
 
 static void
-attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
-	dns_ecdb_t *ecdb = (dns_ecdb_t *)db;
+attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp)
+{
+	dns_ecdb_t *	ecdb = (dns_ecdb_t *)db;
 	dns_ecdbnode_t *node = (dns_ecdbnode_t *)source;
 
 	REQUIRE(VALID_ECDB(ecdb));
@@ -215,9 +225,10 @@ attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 }
 
 static void
-destroynode(dns_ecdbnode_t *node) {
-	isc_mem_t *mctx;
-	dns_ecdb_t *ecdb = node->ecdb;
+destroynode(dns_ecdbnode_t *node)
+{
+	isc_mem_t *	  mctx;
+	dns_ecdb_t *	  ecdb = node->ecdb;
 	rdatasetheader_t *header;
 
 	mctx = ecdb->common.mctx;
@@ -247,8 +258,9 @@ destroynode(dns_ecdbnode_t *node) {
 }
 
 static void
-detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
-	dns_ecdb_t *ecdb = (dns_ecdb_t *)db;
+detachnode(dns_db_t *db, dns_dbnode_t **nodep)
+{
+	dns_ecdb_t *	ecdb = (dns_ecdb_t *)db;
 	dns_ecdbnode_t *node;
 
 	REQUIRE(VALID_ECDB(ecdb));
@@ -264,9 +276,9 @@ detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
 
 static isc_result_t
 find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
-    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-    dns_dbnode_t **nodep, dns_name_t *foundname, dns_rdataset_t *rdataset,
-    dns_rdataset_t *sigrdataset)
+     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
+     dns_dbnode_t **nodep, dns_name_t *foundname, dns_rdataset_t *rdataset,
+     dns_rdataset_t *sigrdataset)
 {
 	dns_ecdb_t *ecdb = (dns_ecdb_t *)db;
 
@@ -286,9 +298,8 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 }
 
 static isc_result_t
-findzonecut(dns_db_t *db, const dns_name_t *name,
-	    unsigned int options, isc_stdtime_t now,
-	    dns_dbnode_t **nodep, dns_name_t *foundname,
+findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
+	    isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
 	    dns_name_t *dcname, dns_rdataset_t *rdataset,
 	    dns_rdataset_t *sigrdataset)
 {
@@ -312,8 +323,8 @@ static isc_result_t
 findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	 dns_dbnode_t **nodep)
 {
-	dns_ecdb_t *ecdb = (dns_ecdb_t *)db;
-	isc_mem_t *mctx;
+	dns_ecdb_t *	ecdb = (dns_ecdb_t *)db;
+	isc_mem_t *	mctx;
 	dns_ecdbnode_t *node;
 
 	REQUIRE(VALID_ECDB(ecdb));
@@ -321,7 +332,7 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 
 	UNUSED(name);
 
-	if (create != true)	{
+	if (create != true) {
 		/* an 'ephemeral' node is never reused. */
 		return (ISC_R_NOTFOUND);
 	}
@@ -354,8 +365,8 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 }
 
 static void
-bind_rdataset(dns_ecdb_t *ecdb, dns_ecdbnode_t *node,
-	      rdatasetheader_t *header, dns_rdataset_t *rdataset)
+bind_rdataset(dns_ecdb_t *ecdb, dns_ecdbnode_t *node, rdatasetheader_t *header,
+	      dns_rdataset_t *rdataset)
 {
 	unsigned char *raw;
 
@@ -396,11 +407,11 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	    isc_stdtime_t now, dns_rdataset_t *rdataset, unsigned int options,
 	    dns_rdataset_t *addedrdataset)
 {
-	dns_ecdb_t *ecdb = (dns_ecdb_t *)db;
-	isc_region_t r;
-	isc_result_t result = ISC_R_SUCCESS;
-	isc_mem_t *mctx;
-	dns_ecdbnode_t *ecdbnode = (dns_ecdbnode_t *)node;
+	dns_ecdb_t *	  ecdb = (dns_ecdb_t *)db;
+	isc_region_t	  r;
+	isc_result_t	  result = ISC_R_SUCCESS;
+	isc_mem_t *	  mctx;
+	dns_ecdbnode_t *  ecdbnode = (dns_ecdbnode_t *)node;
 	rdatasetheader_t *header;
 
 	REQUIRE(VALID_ECDB(ecdb));
@@ -424,8 +435,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		       header->covers != rdataset->covers);
 	}
 
-	result = dns_rdataslab_fromrdataset(rdataset, mctx,
-					    &r, sizeof(rdatasetheader_t));
+	result = dns_rdataslab_fromrdataset(rdataset, mctx, &r,
+					    sizeof(rdatasetheader_t));
 	if (result != ISC_R_SUCCESS)
 		goto unlock;
 
@@ -447,7 +458,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	bind_rdataset(ecdb, ecdbnode, header, addedrdataset);
 
- unlock:
+unlock:
 	UNLOCK(&ecdbnode->lock);
 
 	return (result);
@@ -467,8 +478,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 }
 
 static isc_result_t
-createiterator(dns_db_t *db, unsigned int options,
-	       dns_dbiterator_t **iteratorp)
+createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 {
 	UNUSED(db);
 	UNUSED(options);
@@ -481,9 +491,9 @@ static isc_result_t
 allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     isc_stdtime_t now, dns_rdatasetiter_t **iteratorp)
 {
-	dns_ecdb_t *ecdb = (dns_ecdb_t *)db;
-	dns_ecdbnode_t *ecdbnode = (dns_ecdbnode_t *)node;
-	isc_mem_t *mctx;
+	dns_ecdb_t *	     ecdb = (dns_ecdb_t *)db;
+	dns_ecdbnode_t *     ecdbnode = (dns_ecdbnode_t *)node;
+	isc_mem_t *	     mctx;
 	ecdb_rdatasetiter_t *iterator;
 
 	REQUIRE(VALID_ECDB(ecdb));
@@ -509,52 +519,52 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 static dns_dbmethods_t ecdb_methods = {
 	attach,
 	detach,
-	NULL,			/* beginload */
-	NULL,			/* endload */
-	NULL,			/* serialize */
-	NULL,			/* dump */
-	NULL,			/* currentversion */
-	NULL,			/* newversion */
-	NULL,			/* attachversion */
-	NULL,			/* closeversion */
+	NULL, /* beginload */
+	NULL, /* endload */
+	NULL, /* serialize */
+	NULL, /* dump */
+	NULL, /* currentversion */
+	NULL, /* newversion */
+	NULL, /* attachversion */
+	NULL, /* closeversion */
 	findnode,
 	find,
 	findzonecut,
 	attachnode,
 	detachnode,
-	NULL,			/* expirenode */
-	NULL,			/* printnode */
-	createiterator,		/* createiterator */
-	NULL,			/* findrdataset */
+	NULL,		/* expirenode */
+	NULL,		/* printnode */
+	createiterator, /* createiterator */
+	NULL,		/* findrdataset */
 	allrdatasets,
 	addrdataset,
-	NULL,			/* subtractrdataset */
+	NULL, /* subtractrdataset */
 	deleterdataset,
-	NULL,			/* issecure */
-	NULL,			/* nodecount */
-	NULL,			/* ispersistent */
-	NULL,			/* overmem */
-	NULL,			/* settask */
-	NULL,			/* getoriginnode */
-	NULL,			/* transfernode */
-	NULL,			/* getnsec3parameters */
-	NULL,			/* findnsec3node */
-	NULL,			/* setsigningtime */
-	NULL,			/* getsigningtime */
-	NULL,			/* resigned */
-	NULL,			/* isdnssec */
-	NULL,			/* getrrsetstats */
-	NULL,			/* rpz_attach */
-	NULL,			/* rpz_ready */
-	NULL,			/* findnodeext */
-	NULL,			/* findext */
-	NULL,			/* setcachestats */
-	NULL,			/* hashsize */
-	NULL,			/* nodefullname */
-	NULL,			/* getsize */
-	NULL,			/* setservestalettl */
-	NULL,			/* getservestalettl */
-	NULL			/* setgluecachestats */
+	NULL, /* issecure */
+	NULL, /* nodecount */
+	NULL, /* ispersistent */
+	NULL, /* overmem */
+	NULL, /* settask */
+	NULL, /* getoriginnode */
+	NULL, /* transfernode */
+	NULL, /* getnsec3parameters */
+	NULL, /* findnsec3node */
+	NULL, /* setsigningtime */
+	NULL, /* getsigningtime */
+	NULL, /* resigned */
+	NULL, /* isdnssec */
+	NULL, /* getrrsetstats */
+	NULL, /* rpz_attach */
+	NULL, /* rpz_ready */
+	NULL, /* findnodeext */
+	NULL, /* findext */
+	NULL, /* setcachestats */
+	NULL, /* hashsize */
+	NULL, /* nodefullname */
+	NULL, /* getsize */
+	NULL, /* setservestalettl */
+	NULL, /* getservestalettl */
+	NULL  /* setgluecachestats */
 };
 
 static isc_result_t
@@ -562,7 +572,7 @@ dns_ecdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		void *driverarg, dns_db_t **dbp)
 {
-	dns_ecdb_t *ecdb;
+	dns_ecdb_t * ecdb;
 	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
@@ -606,17 +616,19 @@ dns_ecdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
  */
 
 static void
-rdataset_disassociate(dns_rdataset_t *rdataset) {
-	dns_db_t *db = rdataset->private1;
+rdataset_disassociate(dns_rdataset_t *rdataset)
+{
+	dns_db_t *    db = rdataset->private1;
 	dns_dbnode_t *node = rdataset->private2;
 
 	dns_db_detachnode(db, &node);
 }
 
 static isc_result_t
-rdataset_first(dns_rdataset_t *rdataset) {
+rdataset_first(dns_rdataset_t *rdataset)
+{
 	unsigned char *raw = rdataset->private3;
-	unsigned int count;
+	unsigned int   count;
 
 	count = raw[0] * 256 + raw[1];
 	if (count == 0) {
@@ -641,9 +653,10 @@ rdataset_first(dns_rdataset_t *rdataset) {
 }
 
 static isc_result_t
-rdataset_next(dns_rdataset_t *rdataset) {
-	unsigned int count;
-	unsigned int length;
+rdataset_next(dns_rdataset_t *rdataset)
+{
+	unsigned int   count;
+	unsigned int   length;
 	unsigned char *raw;
 
 	count = rdataset->privateuint4;
@@ -664,11 +677,12 @@ rdataset_next(dns_rdataset_t *rdataset) {
 }
 
 static void
-rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata)
+{
 	unsigned char *raw = rdataset->private5;
-	isc_region_t r;
-	unsigned int length;
-	unsigned int flags = 0;
+	isc_region_t   r;
+	unsigned int   length;
+	unsigned int   flags = 0;
 
 	REQUIRE(raw != NULL);
 
@@ -691,8 +705,9 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 }
 
 static void
-rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
-	dns_db_t *db = source->private1;
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target)
+{
+	dns_db_t *    db = source->private1;
 	dns_dbnode_t *node = source->private2;
 	dns_dbnode_t *cloned_node = NULL;
 
@@ -707,9 +722,10 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 }
 
 static unsigned int
-rdataset_count(dns_rdataset_t *rdataset) {
+rdataset_count(dns_rdataset_t *rdataset)
+{
 	unsigned char *raw = rdataset->private3;
-	unsigned int count;
+	unsigned int   count;
 
 	count = raw[0] * 256 + raw[1];
 
@@ -717,7 +733,8 @@ rdataset_count(dns_rdataset_t *rdataset) {
 }
 
 static void
-rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
+rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust)
+{
 	rdatasetheader_t *header = rdataset->private3;
 
 	header--;
@@ -729,10 +746,11 @@ rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
  */
 
 static void
-rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
+rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp)
+{
 	isc_mem_t *mctx;
 	union {
-		dns_rdatasetiter_t *rdatasetiterator;
+		dns_rdatasetiter_t * rdatasetiterator;
 		ecdb_rdatasetiter_t *ecdbiterator;
 	} u;
 
@@ -747,16 +765,16 @@ rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 
 	dns_db_detachnode(u.ecdbiterator->common.db,
 			  &u.ecdbiterator->common.node);
-	isc_mem_put(mctx, u.ecdbiterator,
-		    sizeof(ecdb_rdatasetiter_t));
+	isc_mem_put(mctx, u.ecdbiterator, sizeof(ecdb_rdatasetiter_t));
 }
 
 static isc_result_t
-rdatasetiter_first(dns_rdatasetiter_t *iterator) {
+rdatasetiter_first(dns_rdatasetiter_t *iterator)
+{
 	REQUIRE(DNS_RDATASETITER_VALID(iterator));
 
 	ecdb_rdatasetiter_t *ecdbiterator = (ecdb_rdatasetiter_t *)iterator;
-	dns_ecdbnode_t *ecdbnode = (dns_ecdbnode_t *)iterator->node;
+	dns_ecdbnode_t *     ecdbnode = (dns_ecdbnode_t *)iterator->node;
 
 	if (ISC_LIST_EMPTY(ecdbnode->rdatasets)) {
 		return (ISC_R_NOMORE);
@@ -766,7 +784,8 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 }
 
 static isc_result_t
-rdatasetiter_next(dns_rdatasetiter_t *iterator) {
+rdatasetiter_next(dns_rdatasetiter_t *iterator)
+{
 	REQUIRE(DNS_RDATASETITER_VALID(iterator));
 
 	ecdb_rdatasetiter_t *ecdbiterator = (ecdb_rdatasetiter_t *)iterator;
@@ -780,9 +799,10 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 }
 
 static void
-rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset) {
+rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset)
+{
 	ecdb_rdatasetiter_t *ecdbiterator = (ecdb_rdatasetiter_t *)iterator;
-	dns_ecdb_t *ecdb;
+	dns_ecdb_t *	     ecdb;
 
 	ecdb = (dns_ecdb_t *)iterator->db;
 	REQUIRE(VALID_ECDB(ecdb));

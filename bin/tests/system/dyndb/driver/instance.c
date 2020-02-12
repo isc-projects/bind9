@@ -8,6 +8,8 @@
  * Copyright (C) 2008-2015  Red Hat ; see COPYRIGHT for license
  */
 
+#include "instance.h"
+
 #include <isc/task.h>
 #include <isc/util.h>
 
@@ -19,9 +21,8 @@
 #include <dns/zone.h>
 
 #include "db.h"
-#include "util.h"
-#include "instance.h"
 #include "log.h"
+#include "util.h"
 #include "zone.h"
 
 /*
@@ -34,11 +35,11 @@
  * @param[out] z2   Zone name from argv[1]
  */
 static isc_result_t
-parse_params(isc_mem_t *mctx, int argc, char **argv,
-	     dns_name_t *z1, dns_name_t *z2)
+parse_params(isc_mem_t *mctx, int argc, char **argv, dns_name_t *z1,
+	     dns_name_t *z2)
 {
 	isc_result_t result;
-	int i;
+	int	     i;
 
 	REQUIRE(argv != NULL);
 	REQUIRE(z1 != NULL);
@@ -58,15 +59,15 @@ parse_params(isc_mem_t *mctx, int argc, char **argv,
 	result = dns_name_fromstring2(z1, argv[0], dns_rootname, 0, mctx);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
-			 "parse_params: dns_name_fromstring2 -> %s",
-			 isc_result_totext(result));
+			  "parse_params: dns_name_fromstring2 -> %s",
+			  isc_result_totext(result));
 		goto cleanup;
 	}
 	result = dns_name_fromstring2(z2, argv[1], dns_rootname, 0, mctx);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
-			 "parse_params: dns_name_fromstring2 -> %s",
-			 isc_result_totext(result));
+			  "parse_params: dns_name_fromstring2 -> %s",
+			  isc_result_totext(result));
 		goto cleanup;
 	}
 
@@ -81,11 +82,11 @@ cleanup:
  * load_sample_instance_zones() is called.
  */
 isc_result_t
-new_sample_instance(isc_mem_t *mctx, const char *db_name,
-		    int argc, char **argv, const dns_dyndbctx_t *dctx,
-		    sample_instance_t **sample_instp)
+new_sample_instance(isc_mem_t *mctx, const char *db_name, int argc, char **argv,
+		    const dns_dyndbctx_t *dctx,
+		    sample_instance_t **  sample_instp)
 {
-	isc_result_t result;
+	isc_result_t	   result;
 	sample_instance_t *inst = NULL;
 
 	REQUIRE(sample_instp != NULL && *sample_instp == NULL);
@@ -99,12 +100,12 @@ new_sample_instance(isc_mem_t *mctx, const char *db_name,
 	inst->zone1_name = dns_fixedname_initname(&inst->zone1_fn);
 	inst->zone2_name = dns_fixedname_initname(&inst->zone2_fn);
 
-	result = parse_params(mctx, argc, argv,
-			      inst->zone1_name, inst->zone2_name);
+	result = parse_params(mctx, argc, argv, inst->zone1_name,
+			      inst->zone2_name);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
-			 "new_sample_instance: parse_params -> %s",
-			 isc_result_totext(result));
+			  "new_sample_instance: parse_params -> %s",
+			  isc_result_totext(result));
 		goto cleanup;
 	}
 
@@ -116,8 +117,8 @@ new_sample_instance(isc_mem_t *mctx, const char *db_name,
 	result = dns_db_register(db_name, create_db, inst, mctx, &inst->db_imp);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
-			 "new_sample_instance: dns_db_register -> %s",
-			 isc_result_totext(result));
+			  "new_sample_instance: dns_db_register -> %s",
+			  isc_result_totext(result));
 		goto cleanup;
 	}
 
@@ -135,36 +136,37 @@ cleanup:
  * and add them to inst->view.
  */
 isc_result_t
-load_sample_instance_zones(sample_instance_t *inst) {
+load_sample_instance_zones(sample_instance_t *inst)
+{
 	isc_result_t result;
 
 	result = create_zone(inst, inst->zone1_name, &inst->zone1);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
-			 "load_sample_instance_zones: create_zone -> %s",
-			 isc_result_totext(result));
+			  "load_sample_instance_zones: create_zone -> %s",
+			  isc_result_totext(result));
 		goto cleanup;
 	}
 	result = activate_zone(inst, inst->zone1);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
-			 "load_sample_instance_zones: activate_zone -> %s",
-			 isc_result_totext(result));
+			  "load_sample_instance_zones: activate_zone -> %s",
+			  isc_result_totext(result));
 		goto cleanup;
 	}
 
 	result = create_zone(inst, inst->zone2_name, &inst->zone2);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
-			 "load_sample_instance_zones: create_zone -> %s",
-			 isc_result_totext(result));
+			  "load_sample_instance_zones: create_zone -> %s",
+			  isc_result_totext(result));
 		goto cleanup;
 	}
 	result = activate_zone(inst, inst->zone2);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
-			 "load_sample_instance_zones: activate_zone -> %s",
-			 isc_result_totext(result));
+			  "load_sample_instance_zones: activate_zone -> %s",
+			  isc_result_totext(result));
 		goto cleanup;
 	}
 
@@ -173,7 +175,8 @@ cleanup:
 }
 
 void
-destroy_sample_instance(sample_instance_t **instp) {
+destroy_sample_instance(sample_instance_t **instp)
+{
 	sample_instance_t *inst;
 	REQUIRE(instp != NULL);
 

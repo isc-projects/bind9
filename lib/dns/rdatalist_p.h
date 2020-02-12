@@ -9,13 +9,13 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_RDATALIST_P_H
 #define DNS_RDATALIST_P_H
 
 /*! \file */
 
 #include <isc/result.h>
+
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS

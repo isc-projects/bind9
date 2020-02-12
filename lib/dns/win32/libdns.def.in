@@ -314,6 +314,19 @@ dns_dns64_create
 dns_dns64_destroy
 dns_dns64_next
 dns_dns64_unlink
+@IF NOTYET
+dns_dnsrps_2policy
+dns_dnsrps_trig2type
+dns_dnsrps_type2trig
+dns_dnsrps_server_create
+dns_dnsrps_server_destroy
+dns_dnsrps_view_init
+dns_dnsrps_connect
+dns_dnsrps_rewrite_init
+@END NOTYET
+@IF NOTYET
+dns_resolver_setfuzzing
+@END NOTYET
 dns_dnssec_findmatchingkeys
 dns_dnssec_findzonekeys
 dns_dnssec_get_hints
@@ -1009,6 +1022,13 @@ dns_soa_setretry
 dns_soa_setserial
 dns_ssu_external_match
 dns_ssu_mtypefromstring
+dns_ssurule_isgrant
+dns_ssurule_identity
+dns_ssurule_matchtype
+dns_ssurule_name
+dns_ssurule_types
+dns_ssutable_firstrule
+dns_ssutable_nextrule
 dns_ssutable_addrule
 dns_ssutable_attach
 dns_ssutable_checkrules

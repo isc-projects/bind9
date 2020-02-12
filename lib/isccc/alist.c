@@ -23,28 +23,28 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 /*! \file */
 
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <isccc/alist.h>
 #include <isc/assertions.h>
 #include <isc/print.h>
+
+#include <isccc/alist.h>
 #include <isccc/result.h>
 #include <isccc/sexpr.h>
 #include <isccc/util.h>
 
-#define CAR(s)			(s)->value.as_dottedpair.car
-#define CDR(s)			(s)->value.as_dottedpair.cdr
+#define CAR(s) (s)->value.as_dottedpair.car
+#define CDR(s) (s)->value.as_dottedpair.cdr
 
-#define ALIST_TAG		"*alist*"
-#define MAX_INDENT		64
+#define ALIST_TAG "*alist*"
+#define MAX_INDENT 64
 
-static char spaces[MAX_INDENT + 1] =
-	"                                                                ";
+static char spaces[MAX_INDENT + 1] = "                                         "
+				     "                       ";
 
 isccc_sexpr_t *
 isccc_alist_create(void)
@@ -198,7 +198,8 @@ isccc_alist_definestring(isccc_sexpr_t *alist, const char *key, const char *str)
 }
 
 isccc_sexpr_t *
-isccc_alist_definebinary(isccc_sexpr_t *alist, const char *key, isccc_region_t *r)
+isccc_alist_definebinary(isccc_sexpr_t *alist, const char *key,
+			 isccc_region_t *r)
 {
 	isccc_sexpr_t *v, *kv;
 
@@ -243,7 +244,8 @@ isccc_alist_lookupstring(isccc_sexpr_t *alist, const char *key, char **strp)
 }
 
 isc_result_t
-isccc_alist_lookupbinary(isccc_sexpr_t *alist, const char *key, isccc_region_t **r)
+isccc_alist_lookupbinary(isccc_sexpr_t *alist, const char *key,
+			 isccc_region_t **r)
 {
 	isccc_sexpr_t *kv, *v;
 
@@ -269,8 +271,7 @@ isccc_alist_prettyprint(isccc_sexpr_t *sexpr, unsigned int indent, FILE *stream)
 	if (isccc_alist_alistp(sexpr)) {
 		fprintf(stream, "{\n");
 		indent += 4;
-		for (elt = isccc_alist_first(sexpr);
-		     elt != NULL;
+		for (elt = isccc_alist_first(sexpr); elt != NULL;
 		     elt = CDR(elt)) {
 			kv = CAR(elt);
 			INSIST(isccc_sexpr_listp(kv));
@@ -289,9 +290,7 @@ isccc_alist_prettyprint(isccc_sexpr_t *sexpr, unsigned int indent, FILE *stream)
 	} else if (isccc_sexpr_listp(sexpr)) {
 		fprintf(stream, "(\n");
 		indent += 4;
-		for (elt = sexpr;
-		     elt != NULL;
-		     elt = CDR(elt)) {
+		for (elt = sexpr; elt != NULL; elt = CDR(elt)) {
 			fprintf(stream, "%.*s", (int)indent, spaces);
 			isccc_alist_prettyprint(CAR(elt), indent, stream);
 			if (CDR(elt) != NULL)

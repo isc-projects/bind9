@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_RESOURCE_H
 #define ISC_RESOURCE_H 1
 
@@ -87,4 +86,3 @@ isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value);
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_RESOURCE_H */
-

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_SYSLOG_H
 #define ISC_SYSLOG_H 1
 

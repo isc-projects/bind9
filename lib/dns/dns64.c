@@ -10,6 +10,7 @@
  */
 
 #include <stdbool.h>
+#include <string.h>
 
 #include <isc/list.h>
 #include <isc/mem.h>
@@ -22,29 +23,28 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
-#include <string.h>
 
 struct dns_dns64 {
-	unsigned char		bits[16];	/*
-						 * Prefix + suffix bits.
-						 */
-	dns_acl_t *		clients;	/*
-						 * Which clients get mapped
-						 * addresses.
-						 */
-	dns_acl_t *		mapped;		/*
-						 * IPv4 addresses to be mapped.
-						 */
-	dns_acl_t *		excluded;	/*
-						 * IPv6 addresses that are
-						 * treated as not existing.
-						 */
-	unsigned int		prefixlen;	/*
-						 * Start of mapped address.
-						 */
-	unsigned int		flags;
-	isc_mem_t *		mctx;
-	ISC_LINK(dns_dns64_t)	link;
+	unsigned char bits[16]; /*
+				 * Prefix + suffix bits.
+				 */
+	dns_acl_t *clients;	/*
+				 * Which clients get mapped
+				 * addresses.
+				 */
+	dns_acl_t *mapped;	/*
+				 * IPv4 addresses to be mapped.
+				 */
+	dns_acl_t *excluded;	/*
+				 * IPv6 addresses that are
+				 * treated as not existing.
+				 */
+	unsigned int prefixlen; /*
+				 * Start of mapped address.
+				 */
+	unsigned int flags;
+	isc_mem_t *  mctx;
+	ISC_LINK(dns_dns64_t) link;
 };
 
 isc_result_t
@@ -98,7 +98,8 @@ dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 }
 
 void
-dns_dns64_destroy(dns_dns64_t **dns64p) {
+dns_dns64_destroy(dns_dns64_t **dns64p)
+{
 	dns_dns64_t *dns64;
 
 	REQUIRE(dns64p != NULL && *dns64p != NULL);
@@ -124,7 +125,7 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 {
 	unsigned int nbytes, i;
 	isc_result_t result;
-	int match;
+	int	     match;
 
 	if ((dns64->flags & DNS_DNS64_RECURSIVE_ONLY) != 0 &&
 	    (flags & DNS_DNS64_RECURSIVE) == 0)
@@ -135,8 +136,8 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		return (DNS_R_DISALLOWED);
 
 	if (dns64->clients != NULL) {
-		result = dns_acl_match(reqaddr, reqsigner, dns64->clients,
-				       env, &match, NULL);
+		result = dns_acl_match(reqaddr, reqsigner, dns64->clients, env,
+				       &match, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		if (match <= 0)
@@ -145,12 +146,12 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 
 	if (dns64->mapped != NULL) {
 		struct in_addr ina;
-		isc_netaddr_t netaddr;
+		isc_netaddr_t  netaddr;
 
 		memmove(&ina.s_addr, a, 4);
 		isc_netaddr_fromin(&netaddr, &ina);
-		result = dns_acl_match(&netaddr, NULL, dns64->mapped,
-				       env, &match, NULL);
+		result = dns_acl_match(&netaddr, NULL, dns64->mapped, env,
+				       &match, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		if (match <= 0)
@@ -177,34 +178,37 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 }
 
 dns_dns64_t *
-dns_dns64_next(dns_dns64_t *dns64) {
+dns_dns64_next(dns_dns64_t *dns64)
+{
 	dns64 = ISC_LIST_NEXT(dns64, link);
 	return (dns64);
 }
 
 void
-dns_dns64_append(dns_dns64list_t *list, dns_dns64_t *dns64) {
+dns_dns64_append(dns_dns64list_t *list, dns_dns64_t *dns64)
+{
 	ISC_LIST_APPEND(*list, dns64, link);
 }
 
 void
-dns_dns64_unlink(dns_dns64list_t *list, dns_dns64_t *dns64) {
+dns_dns64_unlink(dns_dns64list_t *list, dns_dns64_t *dns64)
+{
 	ISC_LIST_UNLINK(*list, dns64, link);
 }
 
 bool
 dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		 const dns_name_t *reqsigner, const dns_aclenv_t *env,
-		 unsigned int flags, dns_rdataset_t *rdataset,
-		 bool *aaaaok, size_t aaaaoklen)
+		 unsigned int flags, dns_rdataset_t *rdataset, bool *aaaaok,
+		 size_t aaaaoklen)
 {
 	struct in6_addr in6;
-	isc_netaddr_t netaddr;
-	isc_result_t result;
-	int match;
-	bool answer = false;
-	bool found = false;
-	unsigned int i, ok;
+	isc_netaddr_t	netaddr;
+	isc_result_t	result;
+	int		match;
+	bool		answer = false;
+	bool		found = false;
+	unsigned int	i, ok;
 
 	REQUIRE(rdataset != NULL);
 	REQUIRE(rdataset->type == dns_rdatatype_aaaa);
@@ -212,7 +216,7 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 	if (aaaaok != NULL)
 		REQUIRE(aaaaoklen == dns_rdataset_count(rdataset));
 
-	for (;dns64 != NULL; dns64 = ISC_LIST_NEXT(dns64, link)) {
+	for (; dns64 != NULL; dns64 = ISC_LIST_NEXT(dns64, link)) {
 		if ((dns64->flags & DNS_DNS64_RECURSIVE_ONLY) != 0 &&
 		    (flags & DNS_DNS64_RECURSIVE) == 0)
 			continue;
@@ -225,8 +229,8 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		 */
 		if (dns64->clients != NULL) {
 			result = dns_acl_match(reqaddr, reqsigner,
-					       dns64->clients, env,
-					       &match, NULL);
+					       dns64->clients, env, &match,
+					       NULL);
 			if (result != ISC_R_SUCCESS)
 				continue;
 			if (match <= 0)
@@ -252,13 +256,13 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 			goto done;
 		}
 
-		i = 0; ok = 0;
+		i = 0;
+		ok = 0;
 		for (result = dns_rdataset_first(rdataset);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(rdataset)) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			if (aaaaok == NULL || !aaaaok[i]) {
-
 				dns_rdataset_current(rdataset, &rdata);
 				memmove(&in6.s6_addr, rdata.data, 16);
 				isc_netaddr_fromin6(&netaddr, &in6);
@@ -284,7 +288,7 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 			goto done;
 	}
 
- done:
+done:
 	if (!found && aaaaok != NULL) {
 		for (i = 0; i < aaaaoklen; i++)
 			aaaaok[i] = true;

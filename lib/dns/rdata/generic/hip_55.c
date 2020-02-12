@@ -16,15 +16,15 @@
 
 #define RRTYPE_HIP_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_hip(ARGS_FROMTEXT) {
-	isc_token_t token;
-	dns_name_t name;
-	isc_buffer_t buffer;
-	isc_buffer_t hit_len;
-	isc_buffer_t key_len;
+static inline isc_result_t fromtext_hip(ARGS_FROMTEXT)
+{
+	isc_token_t    token;
+	dns_name_t     name;
+	isc_buffer_t   buffer;
+	isc_buffer_t   hit_len;
+	isc_buffer_t   key_len;
 	unsigned char *start;
-	size_t len;
+	size_t	       len;
 
 	REQUIRE(type == dns_rdatatype_hip);
 
@@ -94,8 +94,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
-					      isc_tokentype_string,
-					      true));
+					      isc_tokentype_string, true));
 		if (token.type != isc_tokentype_string)
 			break;
 		buffer_fromregion(&buffer, &token.value.as_region);
@@ -111,13 +110,13 @@ fromtext_hip(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-totext_hip(ARGS_TOTEXT) {
-	isc_region_t region;
-	dns_name_t name;
-	unsigned int length, key_len, hit_len;
+static inline isc_result_t totext_hip(ARGS_TOTEXT)
+{
+	isc_region_t  region;
+	dns_name_t    name;
+	unsigned int  length, key_len, hit_len;
 	unsigned char algorithm;
-	char buf[sizeof("225 ")];
+	char	      buf[sizeof("225 ")];
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
 	REQUIRE(rdata->length != 0);
@@ -179,12 +178,12 @@ totext_hip(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-fromwire_hip(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_hip(ARGS_FROMWIRE)
+{
 	isc_region_t region, rr;
-	dns_name_t name;
-	uint8_t hit_len;
-	uint16_t key_len;
+	dns_name_t   name;
+	uint8_t	     hit_len;
+	uint16_t     key_len;
 
 	REQUIRE(type == dns_rdatatype_hip);
 
@@ -199,12 +198,12 @@ fromwire_hip(ARGS_FROMWIRE) {
 	hit_len = uint8_fromregion(&region);
 	if (hit_len == 0)
 		RETERR(DNS_R_FORMERR);
-	isc_region_consume(&region, 2);  	/* hit length + algorithm */
+	isc_region_consume(&region, 2); /* hit length + algorithm */
 	key_len = uint16_fromregion(&region);
 	if (key_len == 0)
 		RETERR(DNS_R_FORMERR);
 	isc_region_consume(&region, 2);
-	if (region.length < (unsigned) (hit_len + key_len))
+	if (region.length < (unsigned)(hit_len + key_len))
 		RETERR(DNS_R_FORMERR);
 
 	RETERR(mem_tobuffer(target, rr.base, 4 + hit_len + key_len));
@@ -218,8 +217,8 @@ fromwire_hip(ARGS_FROMWIRE) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-towire_hip(ARGS_TOWIRE) {
+static inline isc_result_t towire_hip(ARGS_TOWIRE)
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
@@ -231,8 +230,8 @@ towire_hip(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, region.base, region.length));
 }
 
-static inline int
-compare_hip(ARGS_COMPARE) {
+static inline int compare_hip(ARGS_COMPARE)
+{
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -247,11 +246,11 @@ compare_hip(ARGS_COMPARE) {
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t
-fromstruct_hip(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_hip(ARGS_FROMSTRUCT)
+{
 	dns_rdata_hip_t *hip = source;
-	dns_rdata_hip_t myhip;
-	isc_result_t result;
+	dns_rdata_hip_t	 myhip;
+	isc_result_t	 result;
 
 	REQUIRE(type == dns_rdatatype_hip);
 	REQUIRE(hip != NULL);
@@ -260,7 +259,7 @@ fromstruct_hip(ARGS_FROMSTRUCT) {
 	REQUIRE(hip->hit_len > 0 && hip->hit != NULL);
 	REQUIRE(hip->key_len > 0 && hip->key != NULL);
 	REQUIRE((hip->servers == NULL && hip->servers_len == 0) ||
-		 (hip->servers != NULL && hip->servers_len != 0));
+		(hip->servers != NULL && hip->servers_len != 0));
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -272,17 +271,16 @@ fromstruct_hip(ARGS_FROMSTRUCT) {
 	RETERR(mem_tobuffer(target, hip->key, hip->key_len));
 
 	myhip = *hip;
-	for (result = dns_rdata_hip_first(&myhip);
-	     result == ISC_R_SUCCESS;
+	for (result = dns_rdata_hip_first(&myhip); result == ISC_R_SUCCESS;
 	     result = dns_rdata_hip_next(&myhip))
 		/* empty */;
 
-	return(mem_tobuffer(target, hip->servers, hip->servers_len));
+	return (mem_tobuffer(target, hip->servers, hip->servers_len));
 }
 
-static inline isc_result_t
-tostruct_hip(ARGS_TOSTRUCT) {
-	isc_region_t region;
+static inline isc_result_t tostruct_hip(ARGS_TOSTRUCT)
+{
+	isc_region_t	 region;
 	dns_rdata_hip_t *hip = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
@@ -329,7 +327,7 @@ tostruct_hip(ARGS_TOSTRUCT) {
 	hip->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	if (hip->hit != NULL)
 		isc_mem_free(mctx, hip->hit);
 	if (hip->key != NULL)
@@ -337,11 +335,10 @@ tostruct_hip(ARGS_TOSTRUCT) {
 	if (hip->servers != NULL)
 		isc_mem_free(mctx, hip->servers);
 	return (ISC_R_NOMEMORY);
-
 }
 
-static inline void
-freestruct_hip(ARGS_FREESTRUCT) {
+static inline void freestruct_hip(ARGS_FREESTRUCT)
+{
 	dns_rdata_hip_t *hip = source;
 
 	REQUIRE(hip != NULL);
@@ -356,8 +353,8 @@ freestruct_hip(ARGS_FREESTRUCT) {
 	hip->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_hip(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_hip(ARGS_ADDLDATA)
+{
 	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
@@ -367,8 +364,8 @@ additionaldata_hip(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_hip(ARGS_DIGEST) {
+static inline isc_result_t digest_hip(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
@@ -377,9 +374,8 @@ digest_hip(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_hip(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_hip(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_hip);
 
 	UNUSED(name);
@@ -390,9 +386,8 @@ checkowner_hip(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_hip(ARGS_CHECKNAMES) {
-
+static inline bool checknames_hip(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_hip);
 
 	UNUSED(rdata);
@@ -403,7 +398,8 @@ checknames_hip(ARGS_CHECKNAMES) {
 }
 
 isc_result_t
-dns_rdata_hip_first(dns_rdata_hip_t *hip) {
+dns_rdata_hip_first(dns_rdata_hip_t *hip)
+{
 	if (hip->servers_len == 0)
 		return (ISC_R_NOMORE);
 	hip->offset = 0;
@@ -411,9 +407,10 @@ dns_rdata_hip_first(dns_rdata_hip_t *hip) {
 }
 
 isc_result_t
-dns_rdata_hip_next(dns_rdata_hip_t *hip) {
+dns_rdata_hip_next(dns_rdata_hip_t *hip)
+{
 	isc_region_t region;
-	dns_name_t name;
+	dns_name_t   name;
 
 	if (hip->offset >= hip->servers_len)
 		return (ISC_R_NOMORE);
@@ -428,7 +425,8 @@ dns_rdata_hip_next(dns_rdata_hip_t *hip) {
 }
 
 void
-dns_rdata_hip_current(dns_rdata_hip_t *hip, dns_name_t *name) {
+dns_rdata_hip_current(dns_rdata_hip_t *hip, dns_name_t *name)
+{
 	isc_region_t region;
 
 	REQUIRE(hip->offset < hip->servers_len);
@@ -440,15 +438,15 @@ dns_rdata_hip_current(dns_rdata_hip_t *hip, dns_name_t *name) {
 	INSIST(name->length + hip->offset <= hip->servers_len);
 }
 
-static inline int
-casecompare_hip(ARGS_COMPARE) {
+static inline int casecompare_hip(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
-	dns_name_t name1;
-	dns_name_t name2;
-	int order;
-	uint8_t hit_len;
-	uint16_t key_len;
+	dns_name_t   name1;
+	dns_name_t   name2;
+	int	     order;
+	uint8_t	     hit_len;
+	uint16_t     key_len;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -466,13 +464,13 @@ casecompare_hip(ARGS_COMPARE) {
 		return (order);
 
 	hit_len = uint8_fromregion(&r1);
-	isc_region_consume(&r1, 2);         /* hit length + algorithm */
+	isc_region_consume(&r1, 2); /* hit length + algorithm */
 	key_len = uint16_fromregion(&r1);
-	isc_region_consume(&r1, 2);         /* key length */
+	isc_region_consume(&r1, 2); /* key length */
 	isc_region_consume(&r2, 4);
 
-	INSIST(r1.length >= (unsigned) (hit_len + key_len));
-	INSIST(r2.length >= (unsigned) (hit_len + key_len));
+	INSIST(r1.length >= (unsigned)(hit_len + key_len));
+	INSIST(r2.length >= (unsigned)(hit_len + key_len));
 	order = memcmp(r1.base, r2.base, hit_len + key_len);
 	if (order != 0)
 		return (order);
@@ -494,4 +492,4 @@ casecompare_hip(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-#endif	/* RDATA_GENERIC_HIP_5_C */
+#endif /* RDATA_GENERIC_HIP_5_C */

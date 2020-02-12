@@ -29,9 +29,11 @@
 #include <named/log.h>
 #include <named/logconf.h>
 
-#define CHECK(op) \
-	do { result = (op); 				  	 \
-	       if (result != ISC_R_SUCCESS) goto cleanup; 	 \
+#define CHECK(op)                            \
+	do {                                 \
+		result = (op);               \
+		if (result != ISC_R_SUCCESS) \
+			goto cleanup;        \
 	} while (0)
 
 /*%
@@ -39,20 +41,20 @@
  * in 'ccat' and add it to 'logconfig'.
  */
 static isc_result_t
-category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
-	isc_result_t result;
-	const char *catname;
-	isc_logcategory_t *category;
-	isc_logmodule_t *module;
-	const cfg_obj_t *destinations = NULL;
+category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig)
+{
+	isc_result_t	     result;
+	const char *	     catname;
+	isc_logcategory_t *  category;
+	isc_logmodule_t *    module;
+	const cfg_obj_t *    destinations = NULL;
 	const cfg_listelt_t *element = NULL;
 
 	catname = cfg_obj_asstring(cfg_tuple_get(ccat, "name"));
 	category = isc_log_categorybyname(named_g_lctx, catname);
 	if (category == NULL) {
 		cfg_obj_log(ccat, named_g_lctx, ISC_LOG_ERROR,
-			    "unknown logging category '%s' ignored",
-			    catname);
+			    "unknown logging category '%s' ignored", catname);
 		/*
 		 * Allow further processing by returning success.
 		 */
@@ -65,12 +67,10 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 	module = NULL;
 
 	destinations = cfg_tuple_get(ccat, "destinations");
-	for (element = cfg_list_first(destinations);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
+	for (element = cfg_list_first(destinations); element != NULL;
+	     element = cfg_list_next(element)) {
 		const cfg_obj_t *channel = cfg_listelt_value(element);
-		const char *channelname = cfg_obj_asstring(channel);
+		const char *	 channelname = cfg_obj_asstring(channel);
 
 		result = isc_log_usechannel(logconfig, channelname, category,
 					    module);
@@ -90,19 +90,20 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
  * in 'cchan' and add it to 'logconfig'.
  */
 static isc_result_t
-channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
-	isc_result_t result;
+channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
+{
+	isc_result_t	     result;
 	isc_logdestination_t dest;
-	unsigned int type;
-	unsigned int flags = 0;
-	int level;
-	const char *channelname;
-	const cfg_obj_t *fileobj = NULL;
-	const cfg_obj_t *syslogobj = NULL;
-	const cfg_obj_t *nullobj = NULL;
-	const cfg_obj_t *stderrobj = NULL;
-	const cfg_obj_t *severity = NULL;
-	int i;
+	unsigned int	     type;
+	unsigned int	     flags = 0;
+	int		     level;
+	const char *	     channelname;
+	const cfg_obj_t *    fileobj = NULL;
+	const cfg_obj_t *    syslogobj = NULL;
+	const cfg_obj_t *    nullobj = NULL;
+	const cfg_obj_t *    stderrobj = NULL;
+	const cfg_obj_t *    severity = NULL;
+	int		     i;
 
 	channelname = cfg_obj_asstring(cfg_map_getname(channel));
 
@@ -123,8 +124,9 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 
 	if (i != 1) {
 		cfg_obj_log(channel, named_g_lctx, ISC_LOG_ERROR,
-			      "channel '%s': exactly one of file, syslog, "
-			      "null, and stderr must be present", channelname);
+			    "channel '%s': exactly one of file, syslog, "
+			    "null, and stderr must be present",
+			    channelname);
 		return (ISC_R_FAILURE);
 	}
 
@@ -133,14 +135,13 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 	if (fileobj != NULL) {
 		const cfg_obj_t *pathobj = cfg_tuple_get(fileobj, "file");
 		const cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
-		const cfg_obj_t *versionsobj =
-				 cfg_tuple_get(fileobj, "versions");
-		const cfg_obj_t *suffixobj =
-				 cfg_tuple_get(fileobj, "suffix");
-		int32_t versions = ISC_LOG_ROLLNEVER;
+		const cfg_obj_t *versionsobj = cfg_tuple_get(fileobj, "version"
+								      "s");
+		const cfg_obj_t *suffixobj = cfg_tuple_get(fileobj, "suffix");
+		int32_t		 versions = ISC_LOG_ROLLNEVER;
 		isc_log_rollsuffix_t suffix = isc_log_rollsuffix_increment;
-		isc_offset_t size = 0;
-		uint64_t maxoffset;
+		isc_offset_t	     size = 0;
+		uint64_t	     maxoffset;
 
 		/*
 		 * isc_offset_t is a signed integer type, so the maximum
@@ -163,10 +164,10 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 		if (versionsobj != NULL && cfg_obj_isuint32(versionsobj))
 			versions = cfg_obj_asuint32(versionsobj);
 		else if (versionsobj != NULL && cfg_obj_isstring(versionsobj) &&
-		    strcasecmp(cfg_obj_asstring(versionsobj), "unlimited") == 0)
+			 strcasecmp(cfg_obj_asstring(versionsobj), "unlimite"
+								   "d") == 0)
 			versions = ISC_LOG_ROLLINFINITE;
-		if (sizeobj != NULL &&
-		    cfg_obj_isuint64(sizeobj) &&
+		if (sizeobj != NULL && cfg_obj_isuint64(sizeobj) &&
 		    cfg_obj_asuint64(sizeobj) < maxoffset)
 			size = (isc_offset_t)cfg_obj_asuint64(sizeobj);
 		if (suffixobj != NULL && cfg_obj_isstring(suffixobj) &&
@@ -221,7 +222,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 		if (printtime != NULL && cfg_obj_isboolean(printtime)) {
 			if (cfg_obj_asboolean(printtime))
 				flags |= ISC_LOG_PRINTTIME;
-		} else if (printtime != NULL) {	/* local/iso8601/iso8601-utc */
+		} else if (printtime != NULL) { /* local/iso8601/iso8601-utc */
 			const char *s = cfg_obj_asstring(printtime);
 			flags |= ISC_LOG_PRINTTIME;
 			if (strcasecmp(s, "iso8601") == 0)
@@ -255,8 +256,8 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 	if (logconfig == NULL)
 		result = ISC_R_SUCCESS;
 	else
-		result = isc_log_createchannel(logconfig, channelname,
-					       type, level, &dest, flags);
+		result = isc_log_createchannel(logconfig, channelname, type,
+					       level, &dest, flags);
 
 	if (result == ISC_R_SUCCESS && type == ISC_LOG_TOFILE) {
 		FILE *fp;
@@ -264,7 +265,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 		/*
 		 * Test to make sure that file is a plain file.
 		 * Fix defect #22771
-		*/
+		 */
 		result = isc_file_isplainfile(dest.file.name);
 		if (result == ISC_R_SUCCESS || result == ISC_R_FILENOTFOUND) {
 			/*
@@ -276,9 +277,10 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 			if (result != ISC_R_SUCCESS) {
 				if (logconfig != NULL && !named_g_nosyslog)
 					syslog(LOG_ERR,
-						"isc_stdio_open '%s' failed: "
-						"%s", dest.file.name,
-						isc_result_totext(result));
+					       "isc_stdio_open '%s' failed: "
+					       "%s",
+					       dest.file.name,
+					       isc_result_totext(result));
 				fprintf(stderr,
 					"isc_stdio_open '%s' failed: %s\n",
 					dest.file.name,
@@ -294,37 +296,34 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 			dest.file.name, isc_result_totext(result));
 	}
 
- done:
+done:
 	return (result);
 }
 
 isc_result_t
-named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
-	isc_result_t result;
-	const cfg_obj_t *channels = NULL;
-	const cfg_obj_t *categories = NULL;
+named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt)
+{
+	isc_result_t	     result;
+	const cfg_obj_t *    channels = NULL;
+	const cfg_obj_t *    categories = NULL;
 	const cfg_listelt_t *element;
-	bool default_set = false;
-	bool unmatched_set = false;
-	const cfg_obj_t *catname;
+	bool		     default_set = false;
+	bool		     unmatched_set = false;
+	const cfg_obj_t *    catname;
 
 	if (logconfig != NULL)
 		CHECK(named_log_setdefaultchannels(logconfig));
 
 	(void)cfg_map_get(logstmt, "channel", &channels);
-	for (element = cfg_list_first(channels);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
+	for (element = cfg_list_first(channels); element != NULL;
+	     element = cfg_list_next(element)) {
 		const cfg_obj_t *channel = cfg_listelt_value(element);
 		CHECK(channel_fromconf(channel, logconfig));
 	}
 
 	(void)cfg_map_get(logstmt, "category", &categories);
-	for (element = cfg_list_first(categories);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
+	for (element = cfg_list_first(categories); element != NULL;
+	     element = cfg_list_next(element)) {
 		const cfg_obj_t *category = cfg_listelt_value(element);
 		CHECK(category_fromconf(category, logconfig));
 		if (!default_set) {
@@ -347,6 +346,6 @@ named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	return (result);
 }

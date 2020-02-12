@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_PARSEINT_H
 #define ISC_PARSEINT_H 1
 

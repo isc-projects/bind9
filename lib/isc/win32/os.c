@@ -13,11 +13,12 @@
 
 #include <isc/os.h>
 
-static BOOL bInit = FALSE;
+static BOOL	   bInit = FALSE;
 static SYSTEM_INFO SystemInfo;
 
 static void
-initialize_action(void) {
+initialize_action(void)
+{
 	if (bInit)
 		return;
 
@@ -26,7 +27,8 @@ initialize_action(void) {
 }
 
 unsigned int
-isc_os_ncpus(void) {
+isc_os_ncpus(void)
+{
 	long ncpus;
 	initialize_action();
 	ncpus = SystemInfo.dwNumberOfProcessors;

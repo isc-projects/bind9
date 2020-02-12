@@ -11,6 +11,7 @@ ns__interfacemgr_getif
 ns__interfacemgr_nextif
 ns__query_sfcache
 ns__query_start
+ns__client_tcpconn
 ns_client_aclmsg
 ns_client_addopt
 ns_client_checkacl

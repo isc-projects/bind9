@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 #ifndef GENERIC_DLV_32769_H
 #define GENERIC_DLV_32769_H 1

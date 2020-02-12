@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef RDATA_GENERIC_IPSECKEY_45_C
 #define RDATA_GENERIC_IPSECKEY_45_C
 
@@ -19,15 +18,15 @@
 
 #define RRTYPE_IPSECKEY_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_ipseckey(ARGS_FROMTEXT) {
-	isc_token_t token;
-	dns_name_t name;
-	isc_buffer_t buffer;
-	unsigned int gateway;
+static inline isc_result_t fromtext_ipseckey(ARGS_FROMTEXT)
+{
+	isc_token_t    token;
+	dns_name_t     name;
+	isc_buffer_t   buffer;
+	unsigned int   gateway;
 	struct in_addr addr;
-	unsigned char addr6[16];
-	isc_region_t region;
+	unsigned char  addr6[16];
+	isc_region_t   region;
 
 	REQUIRE(type == dns_rdatatype_ipseckey);
 
@@ -100,8 +99,8 @@ fromtext_ipseckey(ARGS_FROMTEXT) {
 		buffer_fromregion(&buffer, &token.value.as_region);
 		if (origin == NULL)
 			origin = dns_rootname;
-		RETTOK(dns_name_fromtext(&name, &buffer, origin,
-					 options, target));
+		RETTOK(dns_name_fromtext(&name, &buffer, origin, options,
+					 target));
 		break;
 	}
 
@@ -111,11 +110,11 @@ fromtext_ipseckey(ARGS_FROMTEXT) {
 	return (isc_base64_tobuffer(lexer, target, -2));
 }
 
-static inline isc_result_t
-totext_ipseckey(ARGS_TOTEXT) {
-	isc_region_t region;
-	dns_name_t name;
-	char buf[sizeof("255 ")];
+static inline isc_result_t totext_ipseckey(ARGS_TOTEXT)
+{
+	isc_region_t   region;
+	dns_name_t     name;
+	char	       buf[sizeof("255 ")];
 	unsigned short num;
 	unsigned short gateway;
 
@@ -185,7 +184,7 @@ totext_ipseckey(ARGS_TOTEXT) {
 	 */
 	if (region.length > 0U) {
 		RETERR(str_totext(tctx->linebreak, target));
-		if (tctx->width == 0)   /* No splitting */
+		if (tctx->width == 0) /* No splitting */
 			RETERR(isc_base64_totext(&region, 60, "", target));
 		else
 			RETERR(isc_base64_totext(&region, tctx->width - 2,
@@ -197,9 +196,9 @@ totext_ipseckey(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-fromwire_ipseckey(ARGS_FROMWIRE) {
-	dns_name_t name;
+static inline isc_result_t fromwire_ipseckey(ARGS_FROMWIRE)
+{
+	dns_name_t   name;
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_ipseckey);
@@ -238,15 +237,15 @@ fromwire_ipseckey(ARGS_FROMWIRE) {
 		RETERR(dns_name_fromwire(&name, source, dctx, options, target));
 		isc_buffer_activeregion(source, &region);
 		isc_buffer_forward(source, region.length);
-		return(mem_tobuffer(target, region.base, region.length));
+		return (mem_tobuffer(target, region.base, region.length));
 
 	default:
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 }
 
-static inline isc_result_t
-towire_ipseckey(ARGS_TOWIRE) {
+static inline isc_result_t towire_ipseckey(ARGS_TOWIRE)
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
@@ -258,8 +257,8 @@ towire_ipseckey(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, region.base, region.length));
 }
 
-static inline int
-compare_ipseckey(ARGS_COMPARE) {
+static inline int compare_ipseckey(ARGS_COMPARE)
+{
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -275,11 +274,11 @@ compare_ipseckey(ARGS_COMPARE) {
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t
-fromstruct_ipseckey(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_ipseckey(ARGS_FROMSTRUCT)
+{
 	dns_rdata_ipseckey_t *ipseckey = source;
-	isc_region_t region;
-	uint32_t n;
+	isc_region_t	      region;
+	uint32_t	      n;
 
 	REQUIRE(type == dns_rdatatype_ipseckey);
 	REQUIRE(ipseckey != NULL);
@@ -296,7 +295,7 @@ fromstruct_ipseckey(ARGS_FROMSTRUCT) {
 	RETERR(uint8_tobuffer(ipseckey->gateway_type, target));
 	RETERR(uint8_tobuffer(ipseckey->algorithm, target));
 
-	switch  (ipseckey->gateway_type) {
+	switch (ipseckey->gateway_type) {
 	case 0:
 		break;
 
@@ -318,12 +317,12 @@ fromstruct_ipseckey(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, ipseckey->key, ipseckey->keylength));
 }
 
-static inline isc_result_t
-tostruct_ipseckey(ARGS_TOSTRUCT) {
-	isc_region_t region;
+static inline isc_result_t tostruct_ipseckey(ARGS_TOSTRUCT)
+{
+	isc_region_t	      region;
 	dns_rdata_ipseckey_t *ipseckey = target;
-	dns_name_t name;
-	uint32_t n;
+	dns_name_t	      name;
+	uint32_t	      n;
 
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
 	REQUIRE(ipseckey != NULL);
@@ -373,8 +372,8 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 
 	ipseckey->keylength = region.length;
 	if (ipseckey->keylength != 0U) {
-		ipseckey->key = mem_maybedup(mctx, region.base,
-					     ipseckey->keylength);
+		ipseckey->key =
+			mem_maybedup(mctx, region.base, ipseckey->keylength);
 		if (ipseckey->key == NULL) {
 			if (ipseckey->gateway_type == 3)
 				dns_name_free(&ipseckey->gateway,
@@ -388,8 +387,8 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_ipseckey(ARGS_FREESTRUCT) {
+static inline void freestruct_ipseckey(ARGS_FREESTRUCT)
+{
 	dns_rdata_ipseckey_t *ipseckey = source;
 
 	REQUIRE(ipseckey != NULL);
@@ -407,9 +406,8 @@ freestruct_ipseckey(ARGS_FREESTRUCT) {
 	ipseckey->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_ipseckey(ARGS_ADDLDATA) {
-
+static inline isc_result_t additionaldata_ipseckey(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
 
 	UNUSED(rdata);
@@ -419,8 +417,8 @@ additionaldata_ipseckey(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_ipseckey(ARGS_DIGEST) {
+static inline isc_result_t digest_ipseckey(ARGS_DIGEST)
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
@@ -429,9 +427,8 @@ digest_ipseckey(ARGS_DIGEST) {
 	return ((digest)(arg, &region));
 }
 
-static inline bool
-checkowner_ipseckey(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_ipseckey(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_ipseckey);
 
 	UNUSED(name);
@@ -442,9 +439,8 @@ checkowner_ipseckey(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_ipseckey(ARGS_CHECKNAMES) {
-
+static inline bool checknames_ipseckey(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
 
 	UNUSED(rdata);
@@ -454,13 +450,13 @@ checknames_ipseckey(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_ipseckey(ARGS_COMPARE) {
+static inline int casecompare_ipseckey(ARGS_COMPARE)
+{
 	isc_region_t region1;
 	isc_region_t region2;
-	dns_name_t name1;
-	dns_name_t name2;
-	int order;
+	dns_name_t   name1;
+	dns_name_t   name2;
+	int	     order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -493,4 +489,4 @@ casecompare_ipseckey(ARGS_COMPARE) {
 	return (isc_region_compare(&region1, &region2));
 }
 
-#endif	/* RDATA_GENERIC_IPSECKEY_45_C */
+#endif /* RDATA_GENERIC_IPSECKEY_45_C */

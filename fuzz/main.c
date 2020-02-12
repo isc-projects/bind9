@@ -9,24 +9,26 @@
  * information regarding copyright ownership.
  */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "fuzz.h"
+
+#include <sys/stat.h>
 
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 
 #include <dirent.h>
 
-static void test_all_from(const char *dirname)
+static void
+test_all_from(const char *dirname)
 {
-	DIR *dirp;
+	DIR *	       dirp;
 	struct dirent *dp;
 
 	dirp = opendir(dirname);
@@ -35,17 +37,17 @@ static void test_all_from(const char *dirname)
 	}
 
 	while ((dp = readdir(dirp)) != NULL) {
-		char filename[strlen(dirname) + strlen(dp->d_name) + 2];
-		int fd;
+		char	    filename[strlen(dirname) + strlen(dp->d_name) + 2];
+		int	    fd;
 		struct stat st;
-		char *data;
-		ssize_t n;
+		char *	    data;
+		ssize_t	    n;
 
 		if (dp->d_name[0] == '.') {
 			continue;
 		}
-		snprintf(filename, sizeof(filename), "%s/%s",
-			 dirname, dp->d_name);
+		snprintf(filename, sizeof(filename), "%s/%s", dirname,
+			 dp->d_name);
 
 		if ((fd = open(filename, O_RDONLY)) == -1) {
 			fprintf(stderr, "Failed to open %s: %s\n", filename,
@@ -62,23 +64,22 @@ static void test_all_from(const char *dirname)
 		data = malloc(st.st_size);
 		n = read(fd, data, st.st_size);
 		if (n == st.st_size) {
-			printf("testing %zd bytes from %s\n",
-			       n, filename);
+			printf("testing %zd bytes from %s\n", n, filename);
 			fflush(stdout);
 			LLVMFuzzerTestOneInput((const uint8_t *)data, n);
 			fflush(stderr);
 		} else {
 			if (n < 0) {
 				fprintf(stderr,
-					"Failed to read %zd bytes from %s: %s\n",
-					(ssize_t) st.st_size, filename,
+					"Failed to read %zd bytes from %s: "
+					"%s\n",
+					(ssize_t)st.st_size, filename,
 					strerror(errno));
 			} else {
 				fprintf(stderr,
 					"Failed to read %zd bytes from %s"
 					", got %zd\n",
-					(ssize_t) st.st_size, filename,
-					n);
+					(ssize_t)st.st_size, filename, n);
 			}
 		}
 		free(data);
@@ -89,9 +90,10 @@ static void test_all_from(const char *dirname)
 	closedir(dirp);
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
-	char corpusdir[PATH_MAX];
+	char	    corpusdir[PATH_MAX];
 	const char *target = strrchr(argv[0], '/');
 
 	UNUSED(argc);
@@ -111,9 +113,10 @@ int main(int argc, char **argv)
 
 #elif __AFL_COMPILER
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
-	int ret;
+	int	      ret;
 	unsigned char buf[64 * 1024];
 
 	UNUSED(argc);

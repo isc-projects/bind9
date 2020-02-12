@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_RDATASLAB_H
 #define DNS_RDATASLAB_H 1
 
@@ -52,12 +51,13 @@ ISC_LANG_BEGINDECLS
 #define DNS_RDATASLAB_FORCE 0x1
 #define DNS_RDATASLAB_EXACT 0x2
 
-#define DNS_RDATASLAB_OFFLINE 0x01 	/* RRSIG is for offline DNSKEY */
-#define DNS_RDATASLAB_WARNMASK 0x0E	/*%< RRSIG(DNSKEY) expired
-					 * warnings number mask. */
-#define DNS_RDATASLAB_WARNSHIFT 1	/*%< How many bits to shift to find
-					 * remaining expired warning number. */
-
+#define DNS_RDATASLAB_OFFLINE 0x01 /* RRSIG is for offline DNSKEY */
+#define DNS_RDATASLAB_WARNMASK          \
+	0x0E /*%< RRSIG(DNSKEY) expired \
+	      * warnings number mask. */
+#define DNS_RDATASLAB_WARNSHIFT               \
+	1 /*%< How many bits to shift to find \
+	   * remaining expired warning number. */
 
 /***
  *** Functions

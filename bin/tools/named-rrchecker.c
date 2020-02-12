@@ -36,7 +36,8 @@ ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void) {
+usage(void)
+{
 	fprintf(stderr, "usage: named-rrchecker [-o origin] [-hpCPTu]\n");
 	fprintf(stderr, "\t-h: print this help message\n");
 	fprintf(stderr, "\t-o origin: set origin to be used when "
@@ -53,7 +54,8 @@ ISC_PLATFORM_NORETURN_PRE static void
 fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
 
 static void
-fatal(const char *format, ...) {
+fatal(const char *format, ...)
+{
 	va_list args;
 
 	fprintf(stderr, "named-rrchecker: ");
@@ -65,26 +67,27 @@ fatal(const char *format, ...) {
 }
 
 int
-main(int argc, char *argv[]) {
-	isc_token_t token;
-	isc_result_t result;
-	int c;
-	unsigned int options = 0;
-	dns_rdatatype_t rdtype;
+main(int argc, char *argv[])
+{
+	isc_token_t	 token;
+	isc_result_t	 result;
+	int		 c;
+	unsigned int	 options = 0;
+	dns_rdatatype_t	 rdtype;
 	dns_rdataclass_t rdclass;
-	char text[256*1024];
-	char data[64*1024];
-	isc_buffer_t tbuf;
-	isc_buffer_t dbuf;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	bool doexit = false;
-	bool once = false;
-	bool print = false;
-	bool unknown = false;
-	unsigned int t;
-	char *origin = NULL;
-	dns_fixedname_t fixed;
-	dns_name_t *name = NULL;
+	char		 text[256 * 1024];
+	char		 data[64 * 1024];
+	isc_buffer_t	 tbuf;
+	isc_buffer_t	 dbuf;
+	dns_rdata_t	 rdata = DNS_RDATA_INIT;
+	bool		 doexit = false;
+	bool		 once = false;
+	bool		 print = false;
+	bool		 unknown = false;
+	unsigned int	 t;
+	char *		 origin = NULL;
+	dns_fixedname_t	 fixed;
+	dns_name_t *	 name = NULL;
 
 	while ((c = isc_commandline_parse(argc, argv, "ho:puCPT")) != -1) {
 		switch (c) {
@@ -138,8 +141,8 @@ main(int argc, char *argv[]) {
 			usage();
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n",
-				argv[0], isc_commandline_option);
+			fprintf(stderr, "%s: unhandled option -%c\n", argv[0],
+				isc_commandline_option);
 			exit(1);
 		}
 	}
@@ -184,7 +187,7 @@ main(int argc, char *argv[]) {
 		 * Get class.
 		 */
 		if (token.type == isc_tokentype_number) {
-			rdclass = (dns_rdataclass_t) token.value.as_ulong;
+			rdclass = (dns_rdataclass_t)token.value.as_ulong;
 			if (token.value.as_ulong > 0xffffu) {
 				fatal("class value too big %lu",
 				      token.value.as_ulong);
@@ -194,8 +197,8 @@ main(int argc, char *argv[]) {
 				      token.value.as_ulong);
 			}
 		} else if (token.type == isc_tokentype_string) {
-			result = dns_rdataclass_fromtext(&rdclass,
-					&token.value.as_textregion);
+			result = dns_rdataclass_fromtext(
+				&rdclass, &token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
 				fatal("dns_rdataclass_fromtext: %s",
 				      dns_result_totext(result));
@@ -222,7 +225,7 @@ main(int argc, char *argv[]) {
 		 * Get type.
 		 */
 		if (token.type == isc_tokentype_number) {
-			rdtype = (dns_rdatatype_t) token.value.as_ulong;
+			rdtype = (dns_rdatatype_t)token.value.as_ulong;
 			if (token.value.as_ulong > 0xffffu) {
 				fatal("type value too big %lu",
 				      token.value.as_ulong);
@@ -232,8 +235,8 @@ main(int argc, char *argv[]) {
 				      token.value.as_ulong);
 			}
 		} else if (token.type == isc_tokentype_string) {
-			result = dns_rdatatype_fromtext(&rdtype,
-					&token.value.as_textregion);
+			result = dns_rdatatype_fromtext(
+				&rdtype, &token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
 				fatal("dns_rdatatype_fromtext: %s",
 				      dns_result_totext(result));
@@ -248,8 +251,8 @@ main(int argc, char *argv[]) {
 		}
 
 		isc_buffer_init(&dbuf, data, sizeof(data));
-		result = dns_rdata_fromtext(&rdata, rdclass, rdtype, lex,
-					    name, 0, mctx, &dbuf, NULL);
+		result = dns_rdata_fromtext(&rdata, rdclass, rdtype, lex, name,
+					    0, mctx, &dbuf, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdata_fromtext: %s",
 			      dns_result_totext(result));
@@ -283,7 +286,7 @@ main(int argc, char *argv[]) {
 			      dns_result_totext(result));
 		}
 
-		printf("%.*s\n", (int)tbuf.used, (char*)tbuf.base);
+		printf("%.*s\n", (int)tbuf.used, (char *)tbuf.base);
 		fflush(stdout);
 	}
 
@@ -302,14 +305,14 @@ main(int argc, char *argv[]) {
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdata_tofmttext(&rdata, NULL,
-					     DNS_STYLEFLAG_UNKNOWNFORMAT,
-					     0, 0, "", &tbuf);
+					     DNS_STYLEFLAG_UNKNOWNFORMAT, 0, 0,
+					     "", &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdata_tofmttext: %sn",
 			      dns_result_totext(result));
 		}
 
-		printf("%.*s\n", (int)tbuf.used, (char*)tbuf.base);
+		printf("%.*s\n", (int)tbuf.used, (char *)tbuf.base);
 		fflush(stdout);
 	}
 

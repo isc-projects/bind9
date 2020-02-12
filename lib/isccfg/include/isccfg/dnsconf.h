@@ -12,7 +12,6 @@
 #ifndef ISCCFG_DNSCONF_H
 #define ISCCFG_DNSCONF_H 1
 
-
 /*! \file
  * \brief
  * This module defines the named.conf, rndc.conf, and rndc.key grammars.

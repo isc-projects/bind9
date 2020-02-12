@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_STDIO_H
 #define ISC_STDIO_H 1
 
@@ -49,8 +48,7 @@ isc_stdio_tell(FILE *f, off_t *offsetp);
 
 /*% Read */
 isc_result_t
-isc_stdio_read(void *ptr, size_t size, size_t nmemb, FILE *f,
-	       size_t *nret);
+isc_stdio_read(void *ptr, size_t size, size_t nmemb, FILE *f, size_t *nret);
 
 /*% Write */
 isc_result_t

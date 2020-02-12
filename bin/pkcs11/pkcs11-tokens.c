@@ -9,17 +9,15 @@
  * information regarding copyright ownership.
  */
 
-
 /* pkcs11-tokens [-m module] */
 
 /*! \file */
 
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include <isc/commandline.h>
 #include <isc/mem.h>
@@ -29,13 +27,15 @@
 
 #include <pk11/pk11.h>
 #include <pk11/result.h>
+#include <sys/types.h>
 
 int
-main(int argc, char *argv[]) {
-	isc_result_t result;
-	char *lib_name = NULL;
-	int c, errflg = 0;
-	isc_mem_t *mctx = NULL;
+main(int argc, char *argv[])
+{
+	isc_result_t   result;
+	char *	       lib_name = NULL;
+	int	       c, errflg = 0;
+	isc_mem_t *    mctx = NULL;
 	pk11_context_t pctx;
 
 	while ((c = isc_commandline_parse(argc, argv, ":m:v")) != -1) {
@@ -73,17 +73,17 @@ main(int argc, char *argv[]) {
 	if (lib_name != NULL)
 		pk11_set_lib_name(lib_name);
 
-	result = pk11_get_session(&pctx, OP_ANY, true, false,
-				  false, NULL, 0);
+	result = pk11_get_session(&pctx, OP_ANY, true, false, false, NULL, 0);
 	if (result == PK11_R_NORANDOMSERVICE ||
-	    result == PK11_R_NODIGESTSERVICE ||
-	    result == PK11_R_NOAESSERVICE) {
+	    result == PK11_R_NODIGESTSERVICE || result == PK11_R_NOAESSERVICE) {
 		fprintf(stderr, "Warning: %s\n", isc_result_totext(result));
 		fprintf(stderr, "This HSM will not work with BIND 9 "
 				"using native PKCS#11.\n\n");
 	} else if ((result != ISC_R_SUCCESS) && (result != ISC_R_NOTFOUND)) {
-		fprintf(stderr, "Unrecoverable error initializing "
-				"PKCS#11: %s\n", isc_result_totext(result));
+		fprintf(stderr,
+			"Unrecoverable error initializing "
+			"PKCS#11: %s\n",
+			isc_result_totext(result));
 		exit(1);
 	}
 
@@ -91,7 +91,7 @@ main(int argc, char *argv[]) {
 
 	if (pctx.handle != NULL)
 		pk11_return_session(&pctx);
-	(void) pk11_finalize();
+	(void)pk11_finalize();
 
 	isc_mem_destroy(&mctx);
 

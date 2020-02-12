@@ -9,14 +9,13 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_LIB_H
 #define DNS_LIB_H 1
 
 /*! \file dns/lib.h */
 
-#include <isc/types.h>
 #include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 

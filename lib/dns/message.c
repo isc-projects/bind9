@@ -22,7 +22,7 @@
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/print.h>
-#include <isc/string.h>		/* Required for HP/UX (and others?) */
+#include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/dnssec.h>
@@ -43,9 +43,10 @@
 
 #ifdef SKAN_MSG_DEBUG
 static void
-hexdump(const char *msg, const char *msg2, void *base, size_t len) {
+hexdump(const char *msg, const char *msg2, void *base, size_t len)
+{
 	unsigned char *p;
-	unsigned int cnt;
+	unsigned int   cnt;
 
 	p = base;
 	cnt = 0;
@@ -70,27 +71,28 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 }
 #endif
 
-#define DNS_MESSAGE_OPCODE_MASK		0x7800U
-#define DNS_MESSAGE_OPCODE_SHIFT	11
-#define DNS_MESSAGE_RCODE_MASK		0x000fU
-#define DNS_MESSAGE_FLAG_MASK		0x8ff0U
-#define DNS_MESSAGE_EDNSRCODE_MASK	0xff000000U
-#define DNS_MESSAGE_EDNSRCODE_SHIFT	24
-#define DNS_MESSAGE_EDNSVERSION_MASK	0x00ff0000U
-#define DNS_MESSAGE_EDNSVERSION_SHIFT	16
+#define DNS_MESSAGE_OPCODE_MASK 0x7800U
+#define DNS_MESSAGE_OPCODE_SHIFT 11
+#define DNS_MESSAGE_RCODE_MASK 0x000fU
+#define DNS_MESSAGE_FLAG_MASK 0x8ff0U
+#define DNS_MESSAGE_EDNSRCODE_MASK 0xff000000U
+#define DNS_MESSAGE_EDNSRCODE_SHIFT 24
+#define DNS_MESSAGE_EDNSVERSION_MASK 0x00ff0000U
+#define DNS_MESSAGE_EDNSVERSION_SHIFT 16
 
-#define VALID_NAMED_SECTION(s)  (((s) > DNS_SECTION_ANY) \
-				 && ((s) < DNS_SECTION_MAX))
-#define VALID_SECTION(s)	(((s) >= DNS_SECTION_ANY) \
-				 && ((s) < DNS_SECTION_MAX))
-#define ADD_STRING(b, s)	{if (strlen(s) >= \
-				   isc_buffer_availablelength(b)) { \
-				       result = ISC_R_NOSPACE; \
-				       goto cleanup; \
-				 } else \
-				       isc_buffer_putstr(b, s);}
-#define VALID_PSEUDOSECTION(s)	(((s) >= DNS_PSEUDOSECTION_ANY) \
-				 && ((s) < DNS_PSEUDOSECTION_MAX))
+#define VALID_NAMED_SECTION(s) \
+	(((s) > DNS_SECTION_ANY) && ((s) < DNS_SECTION_MAX))
+#define VALID_SECTION(s) (((s) >= DNS_SECTION_ANY) && ((s) < DNS_SECTION_MAX))
+#define ADD_STRING(b, s)                                          \
+	{                                                         \
+		if (strlen(s) >= isc_buffer_availablelength(b)) { \
+			result = ISC_R_NOSPACE;                   \
+			goto cleanup;                             \
+		} else                                            \
+			isc_buffer_putstr(b, s);                  \
+	}
+#define VALID_PSEUDOSECTION(s) \
+	(((s) >= DNS_PSEUDOSECTION_ANY) && ((s) < DNS_PSEUDOSECTION_MAX))
 
 #define OPTOUT(x) (((x)->attributes & DNS_RDATASETATTR_OPTOUT) != 0)
 
@@ -99,49 +101,29 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
  * of various block allocations used within the server.
  * XXXMLG These should come from a config setting.
  */
-#define SCRATCHPAD_SIZE		512
-#define NAME_COUNT		 64
-#define OFFSET_COUNT		  4
-#define RDATA_COUNT		  8
-#define RDATALIST_COUNT		  8
-#define RDATASET_COUNT	         64
+#define SCRATCHPAD_SIZE 512
+#define NAME_COUNT 64
+#define OFFSET_COUNT 4
+#define RDATA_COUNT 8
+#define RDATALIST_COUNT 8
+#define RDATASET_COUNT 64
 
 /*%
  * Text representation of the different items, for message_totext
  * functions.
  */
-static const char *sectiontext[] = {
-	"QUESTION",
-	"ANSWER",
-	"AUTHORITY",
-	"ADDITIONAL"
-};
+static const char *sectiontext[] = { "QUESTION", "ANSWER", "AUTHORITY",
+				     "ADDITIONAL" };
 
-static const char *updsectiontext[] = {
-	"ZONE",
-	"PREREQUISITE",
-	"UPDATE",
-	"ADDITIONAL"
-};
+static const char *updsectiontext[] = { "ZONE", "PREREQUISITE", "UPDATE",
+					"ADDITIONAL" };
 
-static const char *opcodetext[] = {
-	"QUERY",
-	"IQUERY",
-	"STATUS",
-	"RESERVED3",
-	"NOTIFY",
-	"UPDATE",
-	"RESERVED6",
-	"RESERVED7",
-	"RESERVED8",
-	"RESERVED9",
-	"RESERVED10",
-	"RESERVED11",
-	"RESERVED12",
-	"RESERVED13",
-	"RESERVED14",
-	"RESERVED15"
-};
+static const char *opcodetext[] = { "QUERY",	  "IQUERY",	"STATUS",
+				    "RESERVED3",  "NOTIFY",	"UPDATE",
+				    "RESERVED6",  "RESERVED7",	"RESERVED8",
+				    "RESERVED9",  "RESERVED10", "RESERVED11",
+				    "RESERVED12", "RESERVED13", "RESERVED14",
+				    "RESERVED15" };
 
 /*%
  * "helper" type, which consists of a block of some type, and is linkable.
@@ -149,9 +131,9 @@ static const char *opcodetext[] = {
  * size, or the allocated elements will not be aligned correctly.
  */
 struct dns_msgblock {
-	unsigned int			count;
-	unsigned int			remaining;
-	ISC_LINK(dns_msgblock_t)	link;
+	unsigned int count;
+	unsigned int remaining;
+	ISC_LINK(dns_msgblock_t) link;
 }; /* dynamically sized */
 
 static inline dns_msgblock_t *
@@ -180,11 +162,10 @@ logfmtpacket(dns_message_t *message, const char *description,
  * is free, return NULL.
  */
 static inline dns_msgblock_t *
-msgblock_allocate(isc_mem_t *mctx, unsigned int sizeof_type,
-		  unsigned int count)
+msgblock_allocate(isc_mem_t *mctx, unsigned int sizeof_type, unsigned int count)
 {
 	dns_msgblock_t *block;
-	unsigned int length;
+	unsigned int	length;
 
 	length = sizeof(dns_msgblock_t) + (sizeof_type * count);
 
@@ -203,7 +184,8 @@ msgblock_allocate(isc_mem_t *mctx, unsigned int sizeof_type,
  * NULL.
  */
 static inline void *
-msgblock_internalget(dns_msgblock_t *block, unsigned int sizeof_type) {
+msgblock_internalget(dns_msgblock_t *block, unsigned int sizeof_type)
+{
 	void *ptr;
 
 	if (block == NULL || block->remaining == 0)
@@ -211,15 +193,15 @@ msgblock_internalget(dns_msgblock_t *block, unsigned int sizeof_type) {
 
 	block->remaining--;
 
-	ptr = (((unsigned char *)block)
-	       + sizeof(dns_msgblock_t)
-	       + (sizeof_type * block->remaining));
+	ptr = (((unsigned char *)block) + sizeof(dns_msgblock_t) +
+	       (sizeof_type * block->remaining));
 
 	return (ptr);
 }
 
 static inline void
-msgblock_reset(dns_msgblock_t *block) {
+msgblock_reset(dns_msgblock_t *block)
+{
 	block->remaining = block->count;
 }
 
@@ -242,7 +224,8 @@ msgblock_free(isc_mem_t *mctx, dns_msgblock_t *block, unsigned int sizeof_type)
  * uses)
  */
 static inline isc_result_t
-newbuffer(dns_message_t *msg, unsigned int size) {
+newbuffer(dns_message_t *msg, unsigned int size)
+{
 	isc_buffer_t *dynbuf;
 
 	dynbuf = NULL;
@@ -253,7 +236,8 @@ newbuffer(dns_message_t *msg, unsigned int size) {
 }
 
 static inline isc_buffer_t *
-currentbuffer(dns_message_t *msg) {
+currentbuffer(dns_message_t *msg)
+{
 	isc_buffer_t *dynbuf;
 
 	dynbuf = ISC_LIST_TAIL(msg->scratchpad);
@@ -263,14 +247,16 @@ currentbuffer(dns_message_t *msg) {
 }
 
 static inline void
-releaserdata(dns_message_t *msg, dns_rdata_t *rdata) {
+releaserdata(dns_message_t *msg, dns_rdata_t *rdata)
+{
 	ISC_LIST_PREPEND(msg->freerdata, rdata, link);
 }
 
 static inline dns_rdata_t *
-newrdata(dns_message_t *msg) {
+newrdata(dns_message_t *msg)
+{
 	dns_msgblock_t *msgblock;
-	dns_rdata_t *rdata;
+	dns_rdata_t *	rdata;
 
 	rdata = ISC_LIST_HEAD(msg->freerdata);
 	if (rdata != NULL) {
@@ -296,13 +282,15 @@ newrdata(dns_message_t *msg) {
 }
 
 static inline void
-releaserdatalist(dns_message_t *msg, dns_rdatalist_t *rdatalist) {
+releaserdatalist(dns_message_t *msg, dns_rdatalist_t *rdatalist)
+{
 	ISC_LIST_PREPEND(msg->freerdatalist, rdatalist, link);
 }
 
 static inline dns_rdatalist_t *
-newrdatalist(dns_message_t *msg) {
-	dns_msgblock_t *msgblock;
+newrdatalist(dns_message_t *msg)
+{
+	dns_msgblock_t * msgblock;
 	dns_rdatalist_t *rdatalist;
 
 	rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
@@ -314,8 +302,7 @@ newrdatalist(dns_message_t *msg) {
 	msgblock = ISC_LIST_TAIL(msg->rdatalists);
 	rdatalist = msgblock_get(msgblock, dns_rdatalist_t);
 	if (rdatalist == NULL) {
-		msgblock = msgblock_allocate(msg->mctx,
-					     sizeof(dns_rdatalist_t),
+		msgblock = msgblock_allocate(msg->mctx, sizeof(dns_rdatalist_t),
 					     RDATALIST_COUNT);
 		if (msgblock == NULL)
 			return (NULL);
@@ -324,7 +311,7 @@ newrdatalist(dns_message_t *msg) {
 
 		rdatalist = msgblock_get(msgblock, dns_rdatalist_t);
 	}
- out:
+out:
 	if (rdatalist != NULL)
 		dns_rdatalist_init(rdatalist);
 
@@ -332,15 +319,15 @@ newrdatalist(dns_message_t *msg) {
 }
 
 static inline dns_offsets_t *
-newoffsets(dns_message_t *msg) {
+newoffsets(dns_message_t *msg)
+{
 	dns_msgblock_t *msgblock;
-	dns_offsets_t *offsets;
+	dns_offsets_t * offsets;
 
 	msgblock = ISC_LIST_TAIL(msg->offsets);
 	offsets = msgblock_get(msgblock, dns_offsets_t);
 	if (offsets == NULL) {
-		msgblock = msgblock_allocate(msg->mctx,
-					     sizeof(dns_offsets_t),
+		msgblock = msgblock_allocate(msg->mctx, sizeof(dns_offsets_t),
 					     OFFSET_COUNT);
 		if (msgblock == NULL)
 			return (NULL);
@@ -354,7 +341,8 @@ newoffsets(dns_message_t *msg) {
 }
 
 static inline void
-msginitheader(dns_message_t *m) {
+msginitheader(dns_message_t *m)
+{
 	m->id = 0;
 	m->flags = 0;
 	m->rcode = 0;
@@ -363,7 +351,8 @@ msginitheader(dns_message_t *m) {
 }
 
 static inline void
-msginitprivate(dns_message_t *m) {
+msginitprivate(dns_message_t *m)
+{
 	unsigned int i;
 
 	for (i = 0; i < DNS_SECTION_MAX; i++) {
@@ -375,7 +364,7 @@ msginitprivate(dns_message_t *m) {
 	m->sig0name = NULL;
 	m->tsig = NULL;
 	m->tsigname = NULL;
-	m->state = DNS_SECTION_ANY;  /* indicate nothing parsed or rendered */
+	m->state = DNS_SECTION_ANY; /* indicate nothing parsed or rendered */
 	m->opt_reserved = 0;
 	m->sig_reserved = 0;
 	m->reserved = 0;
@@ -385,7 +374,8 @@ msginitprivate(dns_message_t *m) {
 }
 
 static inline void
-msginittsig(dns_message_t *m) {
+msginittsig(dns_message_t *m)
+{
 	m->tsigstatus = dns_rcode_noerror;
 	m->querytsigstatus = dns_rcode_noerror;
 	m->tsigkey = NULL;
@@ -401,7 +391,8 @@ msginittsig(dns_message_t *m) {
  * and when resetting one.
  */
 static inline void
-msginit(dns_message_t *m) {
+msginit(dns_message_t *m)
+{
 	msginitheader(m);
 	msginitprivate(m);
 	msginittsig(m);
@@ -430,9 +421,10 @@ msginit(dns_message_t *m) {
 }
 
 static inline void
-msgresetnames(dns_message_t *msg, unsigned int first_section) {
-	unsigned int i;
-	dns_name_t *name, *next_name;
+msgresetnames(dns_message_t *msg, unsigned int first_section)
+{
+	unsigned int	i;
+	dns_name_t *	name, *next_name;
 	dns_rdataset_t *rds, *next_rds;
 
 	/*
@@ -480,7 +472,8 @@ msgresetopt(dns_message_t *msg)
 }
 
 static void
-msgresetsigs(dns_message_t *msg, bool replying) {
+msgresetsigs(dns_message_t *msg, bool replying)
+{
 	if (msg->sig_reserved > 0) {
 		dns_message_renderrelease(msg, msg->sig_reserved);
 		msg->sig_reserved = 0;
@@ -528,10 +521,11 @@ msgresetsigs(dns_message_t *msg, bool replying) {
  * both dns_message_reset() and dns_message_destroy().
  */
 static void
-msgreset(dns_message_t *msg, bool everything) {
-	dns_msgblock_t *msgblock, *next_msgblock;
-	isc_buffer_t *dynbuf, *next_dynbuf;
-	dns_rdata_t *rdata;
+msgreset(dns_message_t *msg, bool everything)
+{
+	dns_msgblock_t * msgblock, *next_msgblock;
+	isc_buffer_t *	 dynbuf, *next_dynbuf;
+	dns_rdata_t *	 rdata;
 	dns_rdatalist_t *rdatalist;
 
 	msgresetnames(msg, 0);
@@ -657,7 +651,8 @@ msgreset(dns_message_t *msg, bool everything) {
 }
 
 static unsigned int
-spacefortsig(dns_tsigkey_t *key, int otherlen) {
+spacefortsig(dns_tsigkey_t *key, int otherlen)
+{
 	isc_region_t r1, r2;
 	unsigned int x;
 	isc_result_t result;
@@ -699,14 +694,14 @@ isc_result_t
 dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 {
 	dns_message_t *m;
-	isc_buffer_t *dynbuf;
-	unsigned int i;
+	isc_buffer_t * dynbuf;
+	unsigned int   i;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(msgp != NULL);
 	REQUIRE(*msgp == NULL);
-	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE
-		|| intent == DNS_MESSAGE_INTENTRENDER);
+	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE ||
+		intent == DNS_MESSAGE_INTENTRENDER);
 
 	m = isc_mem_get(mctx, sizeof(dns_message_t));
 
@@ -744,8 +739,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	isc_mempool_setfreemax(m->namepool, NAME_COUNT);
 	isc_mempool_setname(m->namepool, "msg:names");
 
-	isc_mempool_create(m->mctx, sizeof(dns_rdataset_t),
-				    &m->rdspool);
+	isc_mempool_create(m->mctx, sizeof(dns_rdataset_t), &m->rdspool);
 	isc_mempool_setfillcount(m->rdspool, RDATASET_COUNT);
 	isc_mempool_setfreemax(m->rdspool, RDATASET_COUNT);
 	isc_mempool_setname(m->rdspool, "msg:rdataset");
@@ -761,17 +755,19 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 }
 
 void
-dns_message_reset(dns_message_t *msg, unsigned int intent) {
+dns_message_reset(dns_message_t *msg, unsigned int intent)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE
-		|| intent == DNS_MESSAGE_INTENTRENDER);
+	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE ||
+		intent == DNS_MESSAGE_INTENTRENDER);
 
 	msgreset(msg, false);
 	msg->from_to_wire = intent;
 }
 
 void
-dns_message_destroy(dns_message_t **msgp) {
+dns_message_destroy(dns_message_t **msgp)
+{
 	dns_message_t *msg;
 
 	REQUIRE(msgp != NULL);
@@ -793,8 +789,7 @@ findname(dns_name_t **foundname, const dns_name_t *target,
 {
 	dns_name_t *curr;
 
-	for (curr = ISC_LIST_TAIL(*section);
-	     curr != NULL;
+	for (curr = ISC_LIST_TAIL(*section); curr != NULL;
 	     curr = ISC_LIST_PREV(curr, link)) {
 		if (dns_name_equal(curr, target)) {
 			if (foundname != NULL)
@@ -816,11 +811,10 @@ dns_message_find(const dns_name_t *name, dns_rdataclass_t rdclass,
 	REQUIRE(name != NULL);
 	REQUIRE(rdataset == NULL || *rdataset == NULL);
 
-	for (curr = ISC_LIST_TAIL(name->list);
-	     curr != NULL;
+	for (curr = ISC_LIST_TAIL(name->list); curr != NULL;
 	     curr = ISC_LIST_PREV(curr, link)) {
-		if (curr->rdclass == rdclass &&
-		    curr->type == type && curr->covers == covers) {
+		if (curr->rdclass == rdclass && curr->type == type &&
+		    curr->covers == covers) {
 			if (rdataset != NULL)
 				*rdataset = curr;
 			return (ISC_R_SUCCESS);
@@ -839,8 +833,7 @@ dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
 	REQUIRE(name != NULL);
 	REQUIRE(rdataset == NULL || *rdataset == NULL);
 
-	for (curr = ISC_LIST_TAIL(name->list);
-	     curr != NULL;
+	for (curr = ISC_LIST_TAIL(name->list); curr != NULL;
 	     curr = ISC_LIST_PREV(curr, link)) {
 		if (curr->type == type && curr->covers == covers) {
 			if (ISC_UNLIKELY(rdataset != NULL))
@@ -860,8 +853,8 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	dns_decompress_t *dctx)
 {
 	isc_buffer_t *scratch;
-	isc_result_t result;
-	unsigned int tries;
+	isc_result_t  result;
+	unsigned int  tries;
 
 	scratch = currentbuffer(msg);
 
@@ -871,8 +864,7 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	 */
 	tries = 0;
 	while (tries < 2) {
-		result = dns_name_fromwire(name, source, dctx, 0,
-					   scratch);
+		result = dns_name_fromwire(name, source, dctx, 0, scratch);
 
 		if (result == ISC_R_NOSPACE) {
 			tries++;
@@ -898,9 +890,9 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	 unsigned int rdatalen, dns_rdata_t *rdata)
 {
 	isc_buffer_t *scratch;
-	isc_result_t result;
-	unsigned int tries;
-	unsigned int trysize;
+	isc_result_t  result;
+	unsigned int  tries;
+	unsigned int  trysize;
 
 	scratch = currentbuffer(msg);
 
@@ -917,9 +909,8 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	trysize = 0;
 	/* XXX possibly change this to a while (tries < 2) loop */
 	for (;;) {
-		result = dns_rdata_fromwire(rdata, rdclass, rdtype,
-					    source, dctx, 0,
-					    scratch);
+		result = dns_rdata_fromwire(rdata, rdclass, rdtype, source,
+					    dctx, 0, scratch);
 
 		if (result == ISC_R_NOSPACE) {
 			if (tries == 0) {
@@ -930,7 +921,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				INSIST(trysize != 0);
 				if (trysize >= 65535)
 					return (ISC_R_NOSPACE);
-					/* XXX DNS_R_RRTOOLONG? */
+				/* XXX DNS_R_RRTOOLONG? */
 				trysize *= 2;
 			}
 			tries++;
@@ -945,34 +936,34 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	}
 }
 
-#define DO_ERROR(r)					\
-	do {						\
-		if (best_effort)			\
-			seen_problem = true;	\
-		else {					\
-			result = r;			\
-			goto cleanup;			\
-		}					\
+#define DO_ERROR(r)                          \
+	do {                                 \
+		if (best_effort)             \
+			seen_problem = true; \
+		else {                       \
+			result = r;          \
+			goto cleanup;        \
+		}                            \
 	} while (0)
 
 static isc_result_t
 getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	     unsigned int options)
 {
-	isc_region_t r;
-	unsigned int count;
-	dns_name_t *name;
-	dns_name_t *name2;
-	dns_offsets_t *offsets;
-	dns_rdataset_t *rdataset;
+	isc_region_t	 r;
+	unsigned int	 count;
+	dns_name_t *	 name;
+	dns_name_t *	 name2;
+	dns_offsets_t *	 offsets;
+	dns_rdataset_t * rdataset;
 	dns_rdatalist_t *rdatalist;
-	isc_result_t result;
-	dns_rdatatype_t rdtype;
+	isc_result_t	 result;
+	dns_rdatatype_t	 rdtype;
 	dns_rdataclass_t rdclass;
-	dns_namelist_t *section;
-	bool free_name;
-	bool best_effort;
-	bool seen_problem;
+	dns_namelist_t * section;
+	bool		 free_name;
+	bool		 best_effort;
+	bool		 seen_problem;
 
 	section = &msg->sections[DNS_SECTION_QUESTION];
 
@@ -1105,7 +1096,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		return (DNS_R_RECOVERABLE);
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	if (rdataset != NULL) {
 		INSIST(!dns_rdataset_isassociated(rdataset));
 		isc_mempool_put(msg->rdspool, rdataset);
@@ -1121,7 +1112,8 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 }
 
 static bool
-update(dns_section_t section, dns_rdataclass_t rdclass) {
+update(dns_section_t section, dns_rdataclass_t rdclass)
+{
 	if (section == DNS_SECTION_PREREQUISITE)
 		return (rdclass == dns_rdataclass_any ||
 			rdclass == dns_rdataclass_none);
@@ -1135,20 +1127,17 @@ update(dns_section_t section, dns_rdataclass_t rdclass) {
  * covering RRSIGs.
  */
 static bool
-auth_signed(dns_namelist_t *section) {
+auth_signed(dns_namelist_t *section)
+{
 	dns_name_t *name;
 
-	for (name = ISC_LIST_HEAD(*section);
-	     name != NULL;
-	     name = ISC_LIST_NEXT(name, link))
-	{
-		int auth_dnssec = 0, auth_rrsig = 0;
+	for (name = ISC_LIST_HEAD(*section); name != NULL;
+	     name = ISC_LIST_NEXT(name, link)) {
+		int		auth_dnssec = 0, auth_rrsig = 0;
 		dns_rdataset_t *rds;
 
-		for (rds = ISC_LIST_HEAD(name->list);
-		     rds != NULL;
-		     rds = ISC_LIST_NEXT(rds, link))
-		{
+		for (rds = ISC_LIST_HEAD(name->list); rds != NULL;
+		     rds = ISC_LIST_NEXT(rds, link)) {
 			switch (rds->type) {
 			case dns_rdatatype_ds:
 				auth_dnssec |= 0x1;
@@ -1191,22 +1180,22 @@ static isc_result_t
 getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	   dns_section_t sectionid, unsigned int options)
 {
-	isc_region_t r;
-	unsigned int count, rdatalen;
-	dns_name_t *name = NULL;
-	dns_name_t *name2 = NULL;
-	dns_offsets_t *offsets;
-	dns_rdataset_t *rdataset;
+	isc_region_t	 r;
+	unsigned int	 count, rdatalen;
+	dns_name_t *	 name = NULL;
+	dns_name_t *	 name2 = NULL;
+	dns_offsets_t *	 offsets;
+	dns_rdataset_t * rdataset;
 	dns_rdatalist_t *rdatalist;
-	isc_result_t result;
-	dns_rdatatype_t rdtype, covers;
+	isc_result_t	 result;
+	dns_rdatatype_t	 rdtype, covers;
 	dns_rdataclass_t rdclass;
-	dns_rdata_t *rdata;
-	dns_ttl_t ttl;
-	dns_namelist_t *section;
-	bool free_name = false, free_rdataset = false;
-	bool preserve_order, best_effort, seen_problem;
-	bool isedns, issigzero, istsig;
+	dns_rdata_t *	 rdata;
+	dns_ttl_t	 ttl;
+	dns_namelist_t * section;
+	bool		 free_name = false, free_rdataset = false;
+	bool		 preserve_order, best_effort, seen_problem;
+	bool		 isedns, issigzero, istsig;
 
 	preserve_order = ((options & DNS_MESSAGEPARSE_PRESERVEORDER) != 0);
 	best_effort = ((options & DNS_MESSAGEPARSE_BESTEFFORT) != 0);
@@ -1215,7 +1204,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	section = &msg->sections[sectionid];
 
 	for (count = 0; count < msg->counts[sectionid]; count++) {
-		int recstart = source->current;
+		int  recstart = source->current;
 		bool skip_name_search, skip_type_search;
 
 		skip_name_search = false;
@@ -1264,9 +1253,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * established a class.  Do so now.
 		 */
 		if (msg->rdclass_set == 0 &&
-		    rdtype != dns_rdatatype_opt &&	/* class is UDP SIZE */
-		    rdtype != dns_rdatatype_tsig &&	/* class is ANY */
-		    rdtype != dns_rdatatype_tkey) {	/* class is undefined */
+		    rdtype != dns_rdatatype_opt &&  /* class is UDP SIZE */
+		    rdtype != dns_rdatatype_tsig && /* class is ANY */
+		    rdtype != dns_rdatatype_tkey) { /* class is undefined */
 			msg->rdclass = rdclass;
 			msg->rdclass_set = 1;
 		}
@@ -1275,14 +1264,14 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * If this class is different than the one in the question
 		 * section, bail.
 		 */
-		if (msg->opcode != dns_opcode_update
-		    && rdtype != dns_rdatatype_tsig
-		    && rdtype != dns_rdatatype_opt
-		    && rdtype != dns_rdatatype_key /* in a TKEY query */
-		    && rdtype != dns_rdatatype_sig /* SIG(0) */
+		if (msg->opcode != dns_opcode_update &&
+		    rdtype != dns_rdatatype_tsig &&
+		    rdtype != dns_rdatatype_opt &&
+		    rdtype != dns_rdatatype_key	    /* in a TKEY query */
+		    && rdtype != dns_rdatatype_sig  /* SIG(0) */
 		    && rdtype != dns_rdatatype_tkey /* Win2000 TKEY */
-		    && msg->rdclass != dns_rdataclass_any
-		    && msg->rdclass != rdclass)
+		    && msg->rdclass != dns_rdataclass_any &&
+		    msg->rdclass != rdclass)
 			DO_ERROR(DNS_R_FORMERR);
 
 		/*
@@ -1305,7 +1294,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 */
 			if (sectionid != DNS_SECTION_ADDITIONAL ||
 			    rdclass != dns_rdataclass_any ||
-			    count != msg->counts[sectionid]  - 1) {
+			    count != msg->counts[sectionid] - 1) {
 				DO_ERROR(DNS_R_BADTSIG);
 			} else {
 				skip_name_search = true;
@@ -1393,13 +1382,12 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			result = getrdata(source, msg, dctx, msg->rdclass,
 					  rdtype, rdatalen, rdata);
 		} else
-			result = getrdata(source, msg, dctx, rdclass,
-					  rdtype, rdatalen, rdata);
+			result = getrdata(source, msg, dctx, rdclass, rdtype,
+					  rdatalen, rdata);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		rdata->rdclass = rdclass;
-		if (rdtype == dns_rdatatype_rrsig &&
-		    rdata->flags == 0) {
+		if (rdtype == dns_rdatatype_rrsig && rdata->flags == 0) {
 			covers = dns_rdata_covers(rdata);
 			if (covers == 0)
 				DO_ERROR(DNS_R_FORMERR);
@@ -1408,7 +1396,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			covers = dns_rdata_covers(rdata);
 			if (covers == 0) {
 				if (sectionid != DNS_SECTION_ADDITIONAL ||
-				    count != msg->counts[sectionid]  - 1) {
+				    count != msg->counts[sectionid] - 1) {
 					DO_ERROR(DNS_R_BADSIG0);
 				} else {
 					skip_name_search = true;
@@ -1427,8 +1415,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * Check the ownername of NSEC3 records
 		 */
 		if (rdtype == dns_rdatatype_nsec3 &&
-		    !dns_rdata_checkowner(name, msg->rdclass, rdtype,
-					  false)) {
+		    !dns_rdata_checkowner(name, msg->rdclass, rdtype, false)) {
 			result = DNS_R_BADOWNERNAME;
 			goto cleanup;
 		}
@@ -1481,8 +1468,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				DO_ERROR(DNS_R_FORMERR);
 
 			rdataset = NULL;
-			result = dns_message_find(name, rdclass, rdtype,
-						   covers, &rdataset);
+			result = dns_message_find(name, rdclass, rdtype, covers,
+						  &rdataset);
 		}
 
 		/*
@@ -1528,9 +1515,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			rdatalist->ttl = ttl;
 
 			dns_rdataset_init(rdataset);
-			RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist,
-							       rdataset)
-				      == ISC_R_SUCCESS);
+			RUNTIME_CHECK(
+				dns_rdatalist_tordataset(rdatalist, rdataset) ==
+				ISC_R_SUCCESS);
 			dns_rdataset_setownercase(rdataset, name);
 
 			if (!isedns && !istsig && !issigzero) {
@@ -1571,9 +1558,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			msg->opt = rdataset;
 			rdataset = NULL;
 			free_rdataset = false;
-			ercode = (dns_rcode_t)
-				((msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK)
-				 >> 20);
+			ercode = (dns_rcode_t)(
+				(msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK) >>
+				20);
 			msg->rcode |= ercode;
 			isc_mempool_put(msg->namepool, name);
 			free_name = false;
@@ -1616,8 +1603,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	if (sectionid == DNS_SECTION_AUTHORITY &&
 	    msg->opcode == dns_opcode_query &&
 	    ((msg->flags & DNS_MESSAGEFLAG_QR) != 0) &&
-	    ((msg->flags & DNS_MESSAGEFLAG_TC) == 0) &&
-	    !preserve_order &&
+	    ((msg->flags & DNS_MESSAGEFLAG_TC) == 0) && !preserve_order &&
 	    !auth_signed(section))
 		DO_ERROR(DNS_R_FORMERR);
 
@@ -1625,7 +1611,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		return (DNS_R_RECOVERABLE);
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	if (free_name)
 		isc_mempool_put(msg->namepool, name);
 	if (free_rdataset)
@@ -1638,13 +1624,13 @@ isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		  unsigned int options)
 {
-	isc_region_t r;
+	isc_region_t	 r;
 	dns_decompress_t dctx;
-	isc_result_t ret;
-	uint16_t tmpflags;
-	isc_buffer_t origsource;
-	bool seen_problem;
-	bool ignore_tc;
+	isc_result_t	 ret;
+	uint16_t	 tmpflags;
+	isc_buffer_t	 origsource;
+	bool		 seen_problem;
+	bool		 ignore_tc;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(source != NULL);
@@ -1664,8 +1650,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 
 	msg->id = isc_buffer_getuint16(source);
 	tmpflags = isc_buffer_getuint16(source);
-	msg->opcode = ((tmpflags & DNS_MESSAGE_OPCODE_MASK)
-		       >> DNS_MESSAGE_OPCODE_SHIFT);
+	msg->opcode = ((tmpflags & DNS_MESSAGE_OPCODE_MASK) >>
+		       DNS_MESSAGE_OPCODE_SHIFT);
 	msg->rcode = (dns_rcode_t)(tmpflags & DNS_MESSAGE_RCODE_MASK);
 	msg->flags = (tmpflags & DNS_MESSAGE_FLAG_MASK);
 	msg->counts[DNS_SECTION_QUESTION] = isc_buffer_getuint16(source);
@@ -1732,7 +1718,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 			      r.length);
 	}
 
- truncated:
+truncated:
 	if ((options & DNS_MESSAGEPARSE_CLONEBUFFER) == 0)
 		isc_buffer_usedregion(&origsource, &msg->saved);
 	else {
@@ -1790,7 +1776,8 @@ dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
 }
 
 isc_result_t
-dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer) {
+dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer)
+{
 	isc_region_t r, rn;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -1819,7 +1806,8 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer) {
 }
 
 void
-dns_message_renderrelease(dns_message_t *msg, unsigned int space) {
+dns_message_renderrelease(dns_message_t *msg, unsigned int space)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(space <= msg->reserved);
 
@@ -1827,7 +1815,8 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space) {
 }
 
 isc_result_t
-dns_message_renderreserve(dns_message_t *msg, unsigned int space) {
+dns_message_renderreserve(dns_message_t *msg, unsigned int space)
+{
 	isc_region_t r;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -1844,7 +1833,8 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space) {
 }
 
 static inline bool
-wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
+wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue)
+{
 	int pass_needed;
 
 	/*
@@ -1877,8 +1867,8 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 
 static isc_result_t
 renderset(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
-	  dns_compress_t *cctx, isc_buffer_t *target,
-	  unsigned int reserved, unsigned int options, unsigned int *countp)
+	  dns_compress_t *cctx, isc_buffer_t *target, unsigned int reserved,
+	  unsigned int options, unsigned int *countp)
 {
 	isc_result_t result;
 
@@ -1889,15 +1879,16 @@ renderset(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		return (ISC_R_NOSPACE);
 
 	target->length -= reserved;
-	result = dns_rdataset_towire(rdataset, owner_name,
-				     cctx, target, options, countp);
+	result = dns_rdataset_towire(rdataset, owner_name, cctx, target,
+				     options, countp);
 	target->length += reserved;
 
 	return (result);
 }
 
 static void
-maybe_clear_ad(dns_message_t *msg, dns_section_t sectionid) {
+maybe_clear_ad(dns_message_t *msg, dns_section_t sectionid)
+{
 	if (msg->counts[sectionid] == 0 &&
 	    (sectionid == DNS_SECTION_ANSWER ||
 	     (sectionid == DNS_SECTION_AUTHORITY &&
@@ -1910,14 +1901,14 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			  unsigned int options)
 {
 	dns_namelist_t *section;
-	dns_name_t *name, *next_name;
+	dns_name_t *	name, *next_name;
 	dns_rdataset_t *rdataset, *next_rdataset;
-	unsigned int count, total;
-	isc_result_t result;
-	isc_buffer_t st; /* for rollbacks */
-	int pass;
-	bool partial = false;
-	unsigned int rd_options;
+	unsigned int	count, total;
+	isc_result_t	result;
+	isc_buffer_t	st; /* for rollbacks */
+	int		pass;
+	bool		partial = false;
+	unsigned int	rd_options;
 	dns_rdatatype_t preferred_glue = 0;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -1926,8 +1917,8 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 
 	section = &msg->sections[sectionid];
 
-	if ((sectionid == DNS_SECTION_ADDITIONAL)
-	    && (options & DNS_MESSAGERENDER_ORDERED) == 0) {
+	if ((sectionid == DNS_SECTION_ADDITIONAL) &&
+	    (options & DNS_MESSAGERENDER_ORDERED) == 0) {
 		if ((options & DNS_MESSAGERENDER_PREFER_A) != 0) {
 			preferred_glue = dns_rdatatype_a;
 			pass = 4;
@@ -1962,30 +1953,22 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	if (name != NULL) {
 		rdataset = ISC_LIST_HEAD(name->list);
 		if (rdataset != NULL &&
-		    (rdataset->attributes & DNS_RDATASETATTR_REQUIREDGLUE) != 0 &&
+		    (rdataset->attributes & DNS_RDATASETATTR_REQUIREDGLUE) !=
+			    0 &&
 		    (rdataset->attributes & DNS_RDATASETATTR_RENDERED) == 0) {
 			const void *order_arg = &msg->order_arg;
 			st = *(msg->buffer);
 			count = 0;
 			if (partial)
-				result = dns_rdataset_towirepartial(rdataset,
-								    name,
-								    msg->cctx,
-								    msg->buffer,
-								    msg->order,
-								    order_arg,
-								    rd_options,
-								    &count,
-								    NULL);
+				result = dns_rdataset_towirepartial(
+					rdataset, name, msg->cctx, msg->buffer,
+					msg->order, order_arg, rd_options,
+					&count, NULL);
 			else
-				result = dns_rdataset_towiresorted(rdataset,
-								   name,
-								   msg->cctx,
-								   msg->buffer,
-								   msg->order,
-								   order_arg,
-								   rd_options,
-								   &count);
+				result = dns_rdataset_towiresorted(
+					rdataset, name, msg->cctx, msg->buffer,
+					msg->order, order_arg, rd_options,
+					&count);
 			total += count;
 			if (partial && result == ISC_R_NOSPACE) {
 				msg->flags |= DNS_MESSAGEFLAG_TC;
@@ -1999,7 +1982,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				INSIST(st.used < 65536);
 				dns_compress_rollback(msg->cctx,
 						      (uint16_t)st.used);
-				*(msg->buffer) = st;  /* rollback */
+				*(msg->buffer) = st; /* rollback */
 				msg->buffer->length += msg->reserved;
 				msg->counts[sectionid] += total;
 				return (result);
@@ -2027,11 +2010,11 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				     DNS_RDATASETATTR_RENDERED) != 0)
 					goto next;
 
-				if (((options & DNS_MESSAGERENDER_ORDERED)
-				     == 0)
-				    && (sectionid == DNS_SECTION_ADDITIONAL)
-				    && wrong_priority(rdataset, pass,
-						      preferred_glue))
+				if (((options & DNS_MESSAGERENDER_ORDERED) ==
+				     0) &&
+				    (sectionid == DNS_SECTION_ADDITIONAL) &&
+				    wrong_priority(rdataset, pass,
+						   preferred_glue))
 					goto next;
 
 				st = *(msg->buffer);
@@ -2039,25 +2022,16 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				count = 0;
 				if (partial)
 					result = dns_rdataset_towirepartial(
-							  rdataset,
-							  name,
-							  msg->cctx,
-							  msg->buffer,
-							  msg->order,
-							  &msg->order_arg,
-							  rd_options,
-							  &count,
-							  NULL);
+						rdataset, name, msg->cctx,
+						msg->buffer, msg->order,
+						&msg->order_arg, rd_options,
+						&count, NULL);
 				else
 					result = dns_rdataset_towiresorted(
-							  rdataset,
-							  name,
-							  msg->cctx,
-							  msg->buffer,
-							  msg->order,
-							  &msg->order_arg,
-							  rd_options,
-							  &count);
+						rdataset, name, msg->cctx,
+						msg->buffer, msg->order,
+						&msg->order_arg, rd_options,
+						&count);
 
 				total += count;
 
@@ -2081,9 +2055,9 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				}
 				if (result != ISC_R_SUCCESS) {
 					INSIST(st.used < 65536);
-					dns_compress_rollback(msg->cctx,
-							(uint16_t)st.used);
-					*(msg->buffer) = st;  /* rollback */
+					dns_compress_rollback(
+						msg->cctx, (uint16_t)st.used);
+					*(msg->buffer) = st; /* rollback */
 					msg->buffer->length += msg->reserved;
 					msg->counts[sectionid] += total;
 					maybe_clear_ad(msg, sectionid);
@@ -2119,8 +2093,9 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 }
 
 void
-dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target) {
-	uint16_t tmp;
+dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target)
+{
+	uint16_t     tmp;
 	isc_region_t r;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -2131,32 +2106,32 @@ dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target) {
 
 	isc_buffer_putuint16(target, msg->id);
 
-	tmp = ((msg->opcode << DNS_MESSAGE_OPCODE_SHIFT)
-	       & DNS_MESSAGE_OPCODE_MASK);
+	tmp = ((msg->opcode << DNS_MESSAGE_OPCODE_SHIFT) &
+	       DNS_MESSAGE_OPCODE_MASK);
 	tmp |= (msg->rcode & DNS_MESSAGE_RCODE_MASK);
 	tmp |= (msg->flags & DNS_MESSAGE_FLAG_MASK);
 
-	INSIST(msg->counts[DNS_SECTION_QUESTION]  < 65536 &&
-	       msg->counts[DNS_SECTION_ANSWER]    < 65536 &&
+	INSIST(msg->counts[DNS_SECTION_QUESTION] < 65536 &&
+	       msg->counts[DNS_SECTION_ANSWER] < 65536 &&
 	       msg->counts[DNS_SECTION_AUTHORITY] < 65536 &&
 	       msg->counts[DNS_SECTION_ADDITIONAL] < 65536);
 
 	isc_buffer_putuint16(target, tmp);
 	isc_buffer_putuint16(target,
-			    (uint16_t)msg->counts[DNS_SECTION_QUESTION]);
+			     (uint16_t)msg->counts[DNS_SECTION_QUESTION]);
+	isc_buffer_putuint16(target, (uint16_t)msg->counts[DNS_SECTION_ANSWER]);
 	isc_buffer_putuint16(target,
-			    (uint16_t)msg->counts[DNS_SECTION_ANSWER]);
+			     (uint16_t)msg->counts[DNS_SECTION_AUTHORITY]);
 	isc_buffer_putuint16(target,
-			    (uint16_t)msg->counts[DNS_SECTION_AUTHORITY]);
-	isc_buffer_putuint16(target,
-			    (uint16_t)msg->counts[DNS_SECTION_ADDITIONAL]);
+			     (uint16_t)msg->counts[DNS_SECTION_ADDITIONAL]);
 }
 
 isc_result_t
-dns_message_renderend(dns_message_t *msg) {
+dns_message_renderend(dns_message_t *msg)
+{
 	isc_buffer_t tmpbuf;
 	isc_region_t r;
-	int result;
+	int	     result;
 	unsigned int count;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -2176,8 +2151,7 @@ dns_message_renderend(dns_message_t *msg) {
 	 * fit, don't include it.
 	 */
 	if ((msg->tsigkey != NULL || msg->sig0key != NULL || msg->opt) &&
-	    (msg->flags & DNS_MESSAGEFLAG_TC) != 0)
-	{
+	    (msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
 		isc_buffer_t *buf;
 
 		msgresetnames(msg, DNS_SECTION_ANSWER);
@@ -2187,8 +2161,8 @@ dns_message_renderend(dns_message_t *msg) {
 		isc_buffer_clear(msg->buffer);
 		isc_buffer_add(msg->buffer, DNS_MESSAGE_HEADERLEN);
 		dns_compress_rollback(msg->cctx, 0);
-		result = dns_message_rendersection(msg, DNS_SECTION_QUESTION,
-						   0);
+		result =
+			dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 			return (result);
 	}
@@ -2203,8 +2177,8 @@ dns_message_renderend(dns_message_t *msg) {
 		 * Set the extended rcode.
 		 */
 		msg->opt->ttl &= ~DNS_MESSAGE_EDNSRCODE_MASK;
-		msg->opt->ttl |= ((msg->rcode << 20) &
-				  DNS_MESSAGE_EDNSRCODE_MASK);
+		msg->opt->ttl |=
+			((msg->rcode << 20) & DNS_MESSAGE_EDNSRCODE_MASK);
 		/*
 		 * Render.
 		 */
@@ -2224,13 +2198,11 @@ dns_message_renderend(dns_message_t *msg) {
 	 */
 	if (msg->padding_off > 0) {
 		unsigned char *cp = isc_buffer_used(msg->buffer);
-		unsigned int used, remaining;
-		uint16_t len, padsize = 0;
+		unsigned int   used, remaining;
+		uint16_t       len, padsize = 0;
 
 		/* Check PAD */
-		if ((cp[-4] != 0) ||
-		    (cp[-3] != DNS_OPT_PAD) ||
-		    (cp[-2] != 0) ||
+		if ((cp[-4] != 0) || (cp[-3] != DNS_OPT_PAD) || (cp[-2] != 0) ||
 		    (cp[-1] != 0))
 			return (ISC_R_UNEXPECTED);
 
@@ -2242,8 +2214,8 @@ dns_message_renderend(dns_message_t *msg) {
 		/* Aligned used length + reserved to padding block */
 		used = isc_buffer_usedlength(msg->buffer);
 		if (msg->padding != 0) {
-			padsize = ((uint16_t)used + msg->reserved)
-				% msg->padding;
+			padsize =
+				((uint16_t)used + msg->reserved) % msg->padding;
 		}
 		if (padsize != 0) {
 			padsize = msg->padding - padsize;
@@ -2309,15 +2281,16 @@ dns_message_renderend(dns_message_t *msg) {
 
 	dns_message_renderheader(msg, &tmpbuf);
 
-	msg->buffer = NULL;  /* forget about this buffer only on success XXX */
+	msg->buffer = NULL; /* forget about this buffer only on success XXX */
 
 	return (ISC_R_SUCCESS);
 }
 
 void
-dns_message_renderreset(dns_message_t *msg) {
-	unsigned int i;
-	dns_name_t *name;
+dns_message_renderreset(dns_message_t *msg)
+{
+	unsigned int	i;
+	dns_name_t *	name;
 	dns_rdataset_t *rds;
 
 	/*
@@ -2332,11 +2305,9 @@ dns_message_renderreset(dns_message_t *msg) {
 	for (i = 0; i < DNS_SECTION_MAX; i++) {
 		msg->cursors[i] = NULL;
 		msg->counts[i] = 0;
-		for (name = ISC_LIST_HEAD(msg->sections[i]);
-		     name != NULL;
+		for (name = ISC_LIST_HEAD(msg->sections[i]); name != NULL;
 		     name = ISC_LIST_NEXT(name, link)) {
-			for (rds = ISC_LIST_HEAD(name->list);
-			     rds != NULL;
+			for (rds = ISC_LIST_HEAD(name->list); rds != NULL;
 			     rds = ISC_LIST_NEXT(rds, link)) {
 				rds->attributes &= ~DNS_RDATASETATTR_RENDERED;
 			}
@@ -2355,7 +2326,8 @@ dns_message_renderreset(dns_message_t *msg) {
 }
 
 isc_result_t
-dns_message_firstname(dns_message_t *msg, dns_section_t section) {
+dns_message_firstname(dns_message_t *msg, dns_section_t section)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(VALID_NAMED_SECTION(section));
 
@@ -2368,7 +2340,8 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section) {
 }
 
 isc_result_t
-dns_message_nextname(dns_message_t *msg, dns_section_t section) {
+dns_message_nextname(dns_message_t *msg, dns_section_t section)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(VALID_NAMED_SECTION(section));
 	REQUIRE(msg->cursors[section] != NULL);
@@ -2399,7 +2372,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 		     dns_rdatatype_t covers, dns_name_t **name,
 		     dns_rdataset_t **rdataset)
 {
-	dns_name_t *foundname;
+	dns_name_t * foundname;
 	isc_result_t result;
 
 	/*
@@ -2419,8 +2392,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 		REQUIRE(rdataset == NULL || *rdataset == NULL);
 	}
 
-	result = findname(&foundname, target,
-			  &msg->sections[section]);
+	result = findname(&foundname, target, &msg->sections[section]);
 
 	if (result == ISC_R_NOTFOUND)
 		return (DNS_R_NXDOMAIN);
@@ -2445,8 +2417,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 
 void
 dns_message_movename(dns_message_t *msg, dns_name_t *name,
-		     dns_section_t fromsection,
-		     dns_section_t tosection)
+		     dns_section_t fromsection, dns_section_t tosection)
 {
 	REQUIRE(msg != NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
@@ -2462,8 +2433,7 @@ dns_message_movename(dns_message_t *msg, dns_name_t *name,
 }
 
 void
-dns_message_addname(dns_message_t *msg, dns_name_t *name,
-		    dns_section_t section)
+dns_message_addname(dns_message_t *msg, dns_name_t *name, dns_section_t section)
 {
 	REQUIRE(msg != NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
@@ -2486,7 +2456,8 @@ dns_message_removename(dns_message_t *msg, dns_name_t *name,
 }
 
 isc_result_t
-dns_message_gettempname(dns_message_t *msg, dns_name_t **item) {
+dns_message_gettempname(dns_message_t *msg, dns_name_t **item)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item == NULL);
 
@@ -2499,7 +2470,8 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item) {
 }
 
 isc_result_t
-dns_message_gettempoffsets(dns_message_t *msg, dns_offsets_t **item) {
+dns_message_gettempoffsets(dns_message_t *msg, dns_offsets_t **item)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item == NULL);
 
@@ -2511,7 +2483,8 @@ dns_message_gettempoffsets(dns_message_t *msg, dns_offsets_t **item) {
 }
 
 isc_result_t
-dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item) {
+dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item == NULL);
 
@@ -2523,7 +2496,8 @@ dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item) {
 }
 
 isc_result_t
-dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item) {
+dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item == NULL);
 
@@ -2537,7 +2511,8 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item) {
 }
 
 isc_result_t
-dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item) {
+dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item == NULL);
 
@@ -2549,7 +2524,8 @@ dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item) {
 }
 
 void
-dns_message_puttempname(dns_message_t *msg, dns_name_t **itemp) {
+dns_message_puttempname(dns_message_t *msg, dns_name_t **itemp)
+{
 	dns_name_t *item;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -2565,7 +2541,8 @@ dns_message_puttempname(dns_message_t *msg, dns_name_t **itemp) {
 }
 
 void
-dns_message_puttemprdata(dns_message_t *msg, dns_rdata_t **item) {
+dns_message_puttemprdata(dns_message_t *msg, dns_rdata_t **item)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item != NULL);
 
@@ -2574,7 +2551,8 @@ dns_message_puttemprdata(dns_message_t *msg, dns_rdata_t **item) {
 }
 
 void
-dns_message_puttemprdataset(dns_message_t *msg, dns_rdataset_t **item) {
+dns_message_puttemprdataset(dns_message_t *msg, dns_rdataset_t **item)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item != NULL);
 
@@ -2584,7 +2562,8 @@ dns_message_puttemprdataset(dns_message_t *msg, dns_rdataset_t **item) {
 }
 
 void
-dns_message_puttemprdatalist(dns_message_t *msg, dns_rdatalist_t **item) {
+dns_message_puttemprdatalist(dns_message_t *msg, dns_rdatalist_t **item)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item != NULL);
 
@@ -2596,10 +2575,10 @@ isc_result_t
 dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 		       unsigned int *flagsp)
 {
-	isc_region_t r;
-	isc_buffer_t buffer;
+	isc_region_t	r;
+	isc_buffer_t	buffer;
 	dns_messageid_t id;
-	unsigned int flags;
+	unsigned int	flags;
 
 	REQUIRE(source != NULL);
 
@@ -2622,7 +2601,8 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 }
 
 isc_result_t
-dns_message_reply(dns_message_t *msg, bool want_question_section) {
+dns_message_reply(dns_message_t *msg, bool want_question_section)
+{
 	unsigned int clear_from;
 	isc_result_t result;
 
@@ -2631,8 +2611,7 @@ dns_message_reply(dns_message_t *msg, bool want_question_section) {
 
 	if (!msg->header_ok)
 		return (DNS_R_FORMERR);
-	if (msg->opcode != dns_opcode_query &&
-	    msg->opcode != dns_opcode_notify)
+	if (msg->opcode != dns_opcode_query && msg->opcode != dns_opcode_notify)
 		want_question_section = false;
 	if (msg->opcode == dns_opcode_update)
 		clear_from = DNS_SECTION_PREREQUISITE;
@@ -2687,8 +2666,8 @@ dns_message_reply(dns_message_t *msg, bool want_question_section) {
 }
 
 dns_rdataset_t *
-dns_message_getopt(dns_message_t *msg) {
-
+dns_message_getopt(dns_message_t *msg)
+{
 	/*
 	 * Get the OPT record for 'msg'.
 	 */
@@ -2699,9 +2678,10 @@ dns_message_getopt(dns_message_t *msg) {
 }
 
 isc_result_t
-dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
+dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt)
+{
 	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_t  rdata = DNS_RDATA_INIT;
 
 	/*
 	 * Set the OPT record for 'msg'.
@@ -2743,15 +2723,15 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
 
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	dns_rdataset_disassociate(opt);
 	dns_message_puttemprdataset(msg, &opt);
 	return (result);
 }
 
 dns_rdataset_t *
-dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner) {
-
+dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner)
+{
 	/*
 	 * Get the TSIG record and owner for 'msg'.
 	 */
@@ -2765,7 +2745,8 @@ dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner) {
 }
 
 isc_result_t
-dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key) {
+dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key)
+{
 	isc_result_t result;
 
 	/*
@@ -2799,8 +2780,8 @@ dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key) {
 }
 
 dns_tsigkey_t *
-dns_message_gettsigkey(dns_message_t *msg) {
-
+dns_message_gettsigkey(dns_message_t *msg)
+{
 	/*
 	 * Get the TSIG key for 'msg'
 	 */
@@ -2811,13 +2792,14 @@ dns_message_gettsigkey(dns_message_t *msg) {
 }
 
 isc_result_t
-dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
-	dns_rdata_t *rdata = NULL;
+dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig)
+{
+	dns_rdata_t *	 rdata = NULL;
 	dns_rdatalist_t *list = NULL;
-	dns_rdataset_t *set = NULL;
-	isc_buffer_t *buf = NULL;
-	isc_region_t r;
-	isc_result_t result;
+	dns_rdataset_t * set = NULL;
+	isc_buffer_t *	 buf = NULL;
+	isc_region_t	 r;
+	isc_result_t	 result;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->querytsig == NULL);
@@ -2852,7 +2834,7 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 
 	return (result);
 
- cleanup:
+cleanup:
 	if (rdata != NULL)
 		dns_message_puttemprdata(msg, &rdata);
 	if (list != NULL)
@@ -2864,9 +2846,10 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 
 isc_result_t
 dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
-			 isc_buffer_t **querytsig) {
+			 isc_buffer_t **querytsig)
+{
 	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_t  rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -2888,8 +2871,8 @@ dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
 }
 
 dns_rdataset_t *
-dns_message_getsig0(dns_message_t *msg, const dns_name_t **owner) {
-
+dns_message_getsig0(dns_message_t *msg, const dns_name_t **owner)
+{
 	/*
 	 * Get the SIG(0) record for 'msg'.
 	 */
@@ -2911,7 +2894,8 @@ dns_message_getsig0(dns_message_t *msg, const dns_name_t **owner) {
 }
 
 isc_result_t
-dns_message_setsig0key(dns_message_t *msg, dst_key_t *key) {
+dns_message_setsig0key(dns_message_t *msg, dst_key_t *key)
+{
 	isc_region_t r;
 	unsigned int x;
 	isc_result_t result;
@@ -2963,8 +2947,8 @@ dns_message_setsig0key(dns_message_t *msg, dst_key_t *key) {
 }
 
 dst_key_t *
-dns_message_getsig0key(dns_message_t *msg) {
-
+dns_message_getsig0key(dns_message_t *msg)
+{
 	/*
 	 * Get the SIG(0) key for 'msg'
 	 */
@@ -2975,7 +2959,8 @@ dns_message_getsig0key(dns_message_t *msg) {
 }
 
 void
-dns_message_takebuffer(dns_message_t *msg, isc_buffer_t **buffer) {
+dns_message_takebuffer(dns_message_t *msg, isc_buffer_t **buffer)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(buffer != NULL);
 	REQUIRE(ISC_BUFFER_VALID(*buffer));
@@ -2985,9 +2970,10 @@ dns_message_takebuffer(dns_message_t *msg, isc_buffer_t **buffer) {
 }
 
 isc_result_t
-dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
+dns_message_signer(dns_message_t *msg, dns_name_t *signer)
+{
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_t  rdata = DNS_RDATA_INIT;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(signer != NULL);
@@ -3024,7 +3010,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		dns_name_clone(&sig.signer, signer);
 		dns_rdata_freestruct(&sig);
 	} else {
-		const dns_name_t *identity;
+		const dns_name_t *   identity;
 		dns_rdata_any_tsig_t tsig;
 
 		result = dns_rdataset_first(msg->tsig);
@@ -3033,14 +3019,11 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 
 		result = dns_rdata_tostruct(&rdata, &tsig, NULL);
 		INSIST(result == ISC_R_SUCCESS);
-		if (msg->verified_sig &&
-		    msg->tsigstatus == dns_rcode_noerror &&
-		    tsig.error == dns_rcode_noerror)
-		{
+		if (msg->verified_sig && msg->tsigstatus == dns_rcode_noerror &&
+		    tsig.error == dns_rcode_noerror) {
 			result = ISC_R_SUCCESS;
 		} else if ((!msg->verified_sig) ||
-			   (msg->tsigstatus != dns_rcode_noerror))
-		{
+			   (msg->tsigstatus != dns_rcode_noerror)) {
 			result = DNS_R_TSIGVERIFYFAILURE;
 		} else {
 			INSIST(tsig.error != dns_rcode_noerror);
@@ -3071,7 +3054,8 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 }
 
 void
-dns_message_resetsig(dns_message_t *msg) {
+dns_message_resetsig(dns_message_t *msg)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	msg->verified_sig = 0;
 	msg->verify_attempted = 0;
@@ -3085,17 +3069,19 @@ dns_message_resetsig(dns_message_t *msg) {
 }
 
 isc_result_t
-dns_message_rechecksig(dns_message_t *msg, dns_view_t *view) {
+dns_message_rechecksig(dns_message_t *msg, dns_view_t *view)
+{
 	dns_message_resetsig(msg);
 	return (dns_message_checksig(msg, view));
 }
 
 #ifdef SKAN_MSG_DEBUG
 void
-dns_message_dumpsig(dns_message_t *msg, char *txt1) {
-	dns_rdata_t querytsigrdata = DNS_RDATA_INIT;
+dns_message_dumpsig(dns_message_t *msg, char *txt1)
+{
+	dns_rdata_t	     querytsigrdata = DNS_RDATA_INIT;
 	dns_rdata_any_tsig_t querytsig;
-	isc_result_t result;
+	isc_result_t	     result;
 
 	if (msg->tsig != NULL) {
 		result = dns_rdataset_first(msg->tsig);
@@ -3103,8 +3089,7 @@ dns_message_dumpsig(dns_message_t *msg, char *txt1) {
 		dns_rdataset_current(msg->tsig, &querytsigrdata);
 		result = dns_rdata_tostruct(&querytsigrdata, &querytsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		hexdump(txt1, "TSIG", querytsig.signature,
-			querytsig.siglen);
+		hexdump(txt1, "TSIG", querytsig.signature, querytsig.siglen);
 	}
 
 	if (msg->querytsig != NULL) {
@@ -3120,7 +3105,8 @@ dns_message_dumpsig(dns_message_t *msg, char *txt1) {
 #endif
 
 isc_result_t
-dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
+dns_message_checksig(dns_message_t *msg, dns_view_t *view)
+{
 	isc_buffer_t b, msgb;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -3140,10 +3126,10 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		else
 			return (dns_tsig_verify(&msgb, msg, NULL, NULL));
 	} else {
-		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_t	rdata = DNS_RDATA_INIT;
 		dns_rdata_sig_t sig;
-		dns_rdataset_t keyset;
-		isc_result_t result;
+		dns_rdataset_t	keyset;
+		isc_result_t	result;
 
 		result = dns_rdataset_first(msg->sig0);
 		INSIST(result == ISC_R_SUCCESS);
@@ -3167,8 +3153,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		if (view == NULL)
 			return (DNS_R_KEYUNAUTHORIZED);
 		result = dns_view_simplefind(view, &sig.signer,
-					     dns_rdatatype_key /* SIG(0) */,
-					     0, 0, false, &keyset, NULL);
+					     dns_rdatatype_key /* SIG(0) */, 0,
+					     0, false, &keyset, NULL);
 
 		if (result != ISC_R_SUCCESS) {
 			/* XXXBEW Should possibly create a fetch here */
@@ -3181,10 +3167,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		}
 		result = dns_rdataset_first(&keyset);
 		INSIST(result == ISC_R_SUCCESS);
-		for (;
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&keyset))
-		{
+		for (; result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&keyset)) {
 			dst_key_t *key = NULL;
 
 			dns_rdata_reset(&rdata);
@@ -3192,15 +3176,14 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			isc_buffer_init(&b, rdata.data, rdata.length);
 			isc_buffer_add(&b, rdata.length);
 
-			result = dst_key_fromdns(&sig.signer, rdata.rdclass,
-						 &b, view->mctx, &key);
+			result = dst_key_fromdns(&sig.signer, rdata.rdclass, &b,
+						 view->mctx, &key);
 			if (result != ISC_R_SUCCESS)
 				continue;
 			if (dst_key_alg(key) != sig.algorithm ||
 			    dst_key_id(key) != sig.keyid ||
 			    !(dst_key_proto(key) == DNS_KEYPROTO_DNSSEC ||
-			      dst_key_proto(key) == DNS_KEYPROTO_ANY))
-			{
+			      dst_key_proto(key) == DNS_KEYPROTO_ANY)) {
 				dst_key_free(&key);
 				continue;
 			}
@@ -3212,7 +3195,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		if (result == ISC_R_NOMORE)
 			result = DNS_R_KEYUNAUTHORIZED;
 
- freesig:
+	freesig:
 		if (dns_rdataset_isassociated(&keyset))
 			dns_rdataset_disassociate(&keyset);
 		dns_rdata_freestruct(&sig);
@@ -3220,29 +3203,28 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 	}
 }
 
-#define INDENT(sp) \
-	do { \
-		unsigned int __i; \
-		dns_masterstyle_flags_t  __flags = dns_master_styleflags(sp); \
-		if ((__flags & DNS_STYLEFLAG_INDENT) == 0ULL && \
-		    (__flags & DNS_STYLEFLAG_YAML) == 0ULL) \
-			break; \
-		for (__i = 0; __i < msg->indent.count; __i++) { \
-			ADD_STRING(target, msg->indent.string); \
-		} \
+#define INDENT(sp)                                                           \
+	do {                                                                 \
+		unsigned int		__i;                                 \
+		dns_masterstyle_flags_t __flags = dns_master_styleflags(sp); \
+		if ((__flags & DNS_STYLEFLAG_INDENT) == 0ULL &&              \
+		    (__flags & DNS_STYLEFLAG_YAML) == 0ULL)                  \
+			break;                                               \
+		for (__i = 0; __i < msg->indent.count; __i++) {              \
+			ADD_STRING(target, msg->indent.string);              \
+		}                                                            \
 	} while (0)
 
 isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 			  const dns_master_style_t *style,
-			  dns_messagetextflag_t flags,
-			  isc_buffer_t *target)
+			  dns_messagetextflag_t flags, isc_buffer_t *target)
 {
-	dns_name_t *name, empty_name;
-	dns_rdataset_t *rdataset;
-	isc_result_t result = ISC_R_SUCCESS;
-	bool seensoa = false;
-	size_t saved_count;
+	dns_name_t *		name, empty_name;
+	dns_rdataset_t *	rdataset;
+	isc_result_t		result = ISC_R_SUCCESS;
+	bool			seensoa = false;
+	size_t			saved_count;
 	dns_masterstyle_flags_t sflags;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -3286,8 +3268,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	do {
 		name = NULL;
 		dns_message_currentname(msg, section, &name);
-		for (rdataset = ISC_LIST_HEAD(name->list);
-		     rdataset != NULL;
+		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			if (section == DNS_SECTION_ANSWER &&
 			    rdataset->type == dns_rdatatype_soa) {
@@ -3305,16 +3286,12 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 				} else {
 					ADD_STRING(target, ";");
 				}
-				result = dns_master_questiontotext(name,
-								   rdataset,
-								   style,
-								   target);
+				result = dns_master_questiontotext(
+					name, rdataset, style, target);
 			} else {
-				result = dns_master_rdatasettotext(name,
-								   rdataset,
-								   style,
-								   &msg->indent,
-								   target);
+				result = dns_master_rdatasettotext(
+					name, rdataset, style, &msg->indent,
+					target);
 			}
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
@@ -3326,25 +3303,25 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	}
 	if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 	    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0 &&
-	    (sflags & DNS_STYLEFLAG_YAML) == 0)
-	{
+	    (sflags & DNS_STYLEFLAG_YAML) == 0) {
 		INDENT(style);
 		ADD_STRING(target, "\n");
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
 
- cleanup:
+cleanup:
 	msg->indent.count = saved_count;
 	return (result);
 }
 
 static isc_result_t
-render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
-	int i;
-	char addr[16], addr_text[64];
-	uint16_t family;
-	uint8_t addrlen, addrbytes, scopelen;
+render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target)
+{
+	int	     i;
+	char	     addr[16], addr_text[64];
+	uint16_t     family;
+	uint8_t	     addrlen, addrbytes, scopelen;
 	isc_result_t result;
 
 	/*
@@ -3365,7 +3342,7 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 		return (DNS_R_OPTERR);
 
 	memset(addr, 0, sizeof(addr));
-	for (i = 0; i < addrbytes; i ++)
+	for (i = 0; i < addrbytes; i++)
 		addr[i] = isc_buffer_getuint8(ecsbuf);
 
 	switch (family) {
@@ -3395,16 +3372,17 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 
 	result = ISC_R_SUCCESS;
 
- cleanup:
+cleanup:
 	return (result);
 }
 
 static isc_result_t
-render_llq(isc_buffer_t *optbuf, isc_buffer_t *target) {
-	char buf[sizeof("18446744073709551615")]; /* 2^64-1 */
+render_llq(isc_buffer_t *optbuf, isc_buffer_t *target)
+{
+	char	     buf[sizeof("18446744073709551615")]; /* 2^64-1 */
 	isc_result_t result = ISC_R_SUCCESS;
-	uint32_t u;
-	uint64_t q;
+	uint32_t     u;
+	uint64_t     q;
 
 	u = isc_buffer_getuint16(optbuf);
 	ADD_STRING(target, " Version: ");
@@ -3432,27 +3410,26 @@ render_llq(isc_buffer_t *optbuf, isc_buffer_t *target) {
 	ADD_STRING(target, ", Lifetime: ");
 	snprintf(buf, sizeof(buf), "%u", u);
 	ADD_STRING(target, buf);
- cleanup:
+cleanup:
 	return (result);
 }
 
 static isc_result_t
-dns_message_pseudosectiontoyaml(dns_message_t *msg,
-				dns_pseudosection_t section,
+dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 				const dns_master_style_t *style,
-				dns_messagetextflag_t flags,
-				isc_buffer_t *target)
+				dns_messagetextflag_t	  flags,
+				isc_buffer_t *		  target)
 {
-	dns_rdataset_t *ps = NULL;
+	dns_rdataset_t *  ps = NULL;
 	const dns_name_t *name = NULL;
-	isc_result_t result = ISC_R_SUCCESS;
-	char buf[sizeof("1234567890")];
-	uint32_t mbz;
-	dns_rdata_t rdata;
-	isc_buffer_t optbuf;
-	uint16_t optcode, optlen;
-	size_t saved_count;
-	unsigned char *optdata;
+	isc_result_t	  result = ISC_R_SUCCESS;
+	char		  buf[sizeof("1234567890")];
+	uint32_t	  mbz;
+	dns_rdata_t	  rdata;
+	isc_buffer_t	  optbuf;
+	uint16_t	  optcode, optlen;
+	size_t		  saved_count;
+	unsigned char *	  optdata;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
@@ -3487,7 +3464,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 			ADD_STRING(target, " do");
 		ADD_STRING(target, "\n");
 		mbz = ps->ttl & 0xffff;
-		mbz &= ~DNS_MESSAGEEXTFLAG_DO;		/* Known Flags. */
+		mbz &= ~DNS_MESSAGEEXTFLAG_DO; /* Known Flags. */
 		if (mbz != 0) {
 			INDENT(style);
 			ADD_STRING(target, "MBZ: ");
@@ -3596,14 +3573,15 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 				ADD_STRING(target, "KEY-TAG:");
 				if (optlen > 0U && (optlen % 2U) == 0U) {
 					const char *sep = "";
-					uint16_t id;
+					uint16_t    id;
 					while (optlen > 0U) {
-					    id = isc_buffer_getuint16(&optbuf);
-					    snprintf(buf, sizeof(buf), "%s %u",
-						     sep, id);
-					    ADD_STRING(target, buf);
-					    sep = ",";
-					    optlen -= 2;
+						id = isc_buffer_getuint16(
+							&optbuf);
+						snprintf(buf, sizeof(buf),
+							 "%s %u", sep, id);
+						ADD_STRING(target, buf);
+						sep = ",";
+						optlen -= 2;
 					}
 					ADD_STRING(target, "\n");
 					continue;
@@ -3694,16 +3672,15 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 				 * version
 				 */
 				ADD_STRING(target, "(\"");
-				if (isc_buffer_availablelength(target) < optlen)
-				{
+				if (isc_buffer_availablelength(target) <
+				    optlen) {
 					result = ISC_R_NOSPACE;
 					goto cleanup;
 				}
 				for (i = 0; i < optlen; i++) {
 					if (isprint(optdata[i]))
-						isc_buffer_putmem(target,
-								  &optdata[i],
-								  1);
+						isc_buffer_putmem(
+							target, &optdata[i], 1);
 					else
 						isc_buffer_putstr(target, ".");
 				}
@@ -3743,27 +3720,26 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 
 	result = ISC_R_UNEXPECTED;
 
- cleanup:
+cleanup:
 	msg->indent.count = saved_count;
 	return (result);
 }
 
 isc_result_t
-dns_message_pseudosectiontotext(dns_message_t *msg,
-				dns_pseudosection_t section,
+dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				const dns_master_style_t *style,
-				dns_messagetextflag_t flags,
-				isc_buffer_t *target)
+				dns_messagetextflag_t	  flags,
+				isc_buffer_t *		  target)
 {
-	dns_rdataset_t *ps = NULL;
+	dns_rdataset_t *  ps = NULL;
 	const dns_name_t *name = NULL;
-	isc_result_t result;
-	char buf[sizeof(" (65000 bytes)")];
-	uint32_t mbz;
-	dns_rdata_t rdata;
-	isc_buffer_t optbuf;
-	uint16_t optcode, optlen;
-	unsigned char *optdata;
+	isc_result_t	  result;
+	char		  buf[sizeof(" (65000 bytes)")];
+	uint32_t	  mbz;
+	dns_rdata_t	  rdata;
+	isc_buffer_t	  optbuf;
+	uint16_t	  optcode, optlen;
+	unsigned char *	  optdata;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
@@ -3793,7 +3769,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		if ((ps->ttl & DNS_MESSAGEEXTFLAG_DO) != 0)
 			ADD_STRING(target, " do");
 		mbz = ps->ttl & 0xffff;
-		mbz &= ~DNS_MESSAGEEXTFLAG_DO;		/* Known Flags. */
+		mbz &= ~DNS_MESSAGEEXTFLAG_DO; /* Known Flags. */
 		if (mbz != 0) {
 			ADD_STRING(target, "; MBZ: ");
 			snprintf(buf, sizeof(buf), "0x%.4x", mbz);
@@ -3900,14 +3876,15 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				ADD_STRING(target, "; KEY-TAG:");
 				if (optlen > 0U && (optlen % 2U) == 0U) {
 					const char *sep = "";
-					uint16_t id;
+					uint16_t    id;
 					while (optlen > 0U) {
-					    id = isc_buffer_getuint16(&optbuf);
-					    snprintf(buf, sizeof(buf), "%s %u",
-						     sep, id);
-					    ADD_STRING(target, buf);
-					    sep = ",";
-					    optlen -= 2;
+						id = isc_buffer_getuint16(
+							&optbuf);
+						snprintf(buf, sizeof(buf),
+							 "%s %u", sep, id);
+						ADD_STRING(target, buf);
+						sep = ",";
+						optlen -= 2;
 					}
 					ADD_STRING(target, "\n");
 					continue;
@@ -3999,9 +3976,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					return (ISC_R_NOSPACE);
 				for (i = 0; i < optlen; i++) {
 					if (isprint(optdata[i]))
-						isc_buffer_putmem(target,
-								  &optdata[i],
-								  1);
+						isc_buffer_putmem(
+							target, &optdata[i], 1);
 					else
 						isc_buffer_putstr(target, ".");
 				}
@@ -4038,7 +4014,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		return (result);
 	}
 	result = ISC_R_UNEXPECTED;
- cleanup:
+cleanup:
 	return (result);
 }
 
@@ -4046,7 +4022,7 @@ isc_result_t
 dns_message_headertotext(dns_message_t *msg, const dns_master_style_t *style,
 			 dns_messagetextflag_t flags, isc_buffer_t *target)
 {
-	char buf[sizeof("1234567890")];
+	char	     buf[sizeof("1234567890")];
 	isc_result_t result;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -4134,13 +4110,13 @@ dns_message_headertotext(dns_message_t *msg, const dns_master_style_t *style,
 			ADD_STRING(target, "UPDATE: ");
 		}
 		snprintf(buf, sizeof(buf), "%1u",
-			msg->counts[DNS_SECTION_AUTHORITY]);
+			 msg->counts[DNS_SECTION_AUTHORITY]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, "\n");
 		INDENT(style);
 		ADD_STRING(target, "ADDITIONAL: ");
 		snprintf(buf, sizeof(buf), "%1u",
-			msg->counts[DNS_SECTION_ADDITIONAL]);
+			 msg->counts[DNS_SECTION_ADDITIONAL]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, "\n");
 	} else {
@@ -4210,16 +4186,16 @@ dns_message_headertotext(dns_message_t *msg, const dns_master_style_t *style,
 			ADD_STRING(target, ", UPDATE: ");
 		}
 		snprintf(buf, sizeof(buf), "%1u",
-			msg->counts[DNS_SECTION_AUTHORITY]);
+			 msg->counts[DNS_SECTION_AUTHORITY]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, ", ADDITIONAL: ");
 		snprintf(buf, sizeof(buf), "%1u",
-			msg->counts[DNS_SECTION_ADDITIONAL]);
+			 msg->counts[DNS_SECTION_ADDITIONAL]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, "\n");
 	}
 
- cleanup:
+cleanup:
 	return (result);
 }
 
@@ -4243,26 +4219,26 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 		return (result);
 	}
 
-	result = dns_message_sectiontotext(msg, DNS_SECTION_QUESTION,
-					   style, flags, target);
+	result = dns_message_sectiontotext(msg, DNS_SECTION_QUESTION, style,
+					   flags, target);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
-	result = dns_message_sectiontotext(msg, DNS_SECTION_ANSWER,
-					   style, flags, target);
+	result = dns_message_sectiontotext(msg, DNS_SECTION_ANSWER, style,
+					   flags, target);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
-	result = dns_message_sectiontotext(msg, DNS_SECTION_AUTHORITY,
-					   style, flags, target);
+	result = dns_message_sectiontotext(msg, DNS_SECTION_AUTHORITY, style,
+					   flags, target);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
-	result = dns_message_sectiontotext(msg, DNS_SECTION_ADDITIONAL,
-					   style, flags, target);
+	result = dns_message_sectiontotext(msg, DNS_SECTION_ADDITIONAL, style,
+					   flags, target);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -4279,7 +4255,8 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 }
 
 isc_region_t *
-dns_message_getrawmessage(dns_message_t *msg) {
+dns_message_getrawmessage(dns_message_t *msg)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	return (&msg->saved);
 }
@@ -4300,20 +4277,22 @@ dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
 }
 
 void
-dns_message_settimeadjust(dns_message_t *msg, int timeadjust) {
+dns_message_settimeadjust(dns_message_t *msg, int timeadjust)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	msg->timeadjust = timeadjust;
 }
 
 int
-dns_message_gettimeadjust(dns_message_t *msg) {
+dns_message_gettimeadjust(dns_message_t *msg)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	return (msg->timeadjust);
 }
 
 isc_result_t
-dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target) {
-
+dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target)
+{
 	REQUIRE(opcode < 16);
 
 	if (isc_buffer_availablelength(target) < strlen(opcodetext[opcode]))
@@ -4323,8 +4302,8 @@ dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target) {
 }
 
 void
-dns_message_logpacket(dns_message_t *message,
-		      const char *description, const isc_sockaddr_t *address,
+dns_message_logpacket(dns_message_t *message, const char *description,
+		      const isc_sockaddr_t *address,
 		      isc_logcategory_t *category, isc_logmodule_t *module,
 		      int level, isc_mem_t *mctx)
 {
@@ -4335,8 +4314,7 @@ dns_message_logpacket(dns_message_t *message,
 }
 
 void
-dns_message_logfmtpacket(dns_message_t *message,
-			 const char *description,
+dns_message_logfmtpacket(dns_message_t *message, const char *description,
 			 const isc_sockaddr_t *address,
 			 isc_logcategory_t *category, isc_logmodule_t *module,
 			 const dns_master_style_t *style, int level,
@@ -4354,15 +4332,15 @@ logfmtpacket(dns_message_t *message, const char *description,
 	     isc_logmodule_t *module, const dns_master_style_t *style,
 	     int level, isc_mem_t *mctx)
 {
-	char addrbuf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
-	const char *newline = "\n";
-	const char *space = " ";
+	char	     addrbuf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
+	const char * newline = "\n";
+	const char * space = " ";
 	isc_buffer_t buffer;
-	char *buf = NULL;
-	int len = 1024;
+	char *	     buf = NULL;
+	int	     len = 1024;
 	isc_result_t result;
 
-	if (! isc_log_wouldlog(dns_lctx, level))
+	if (!isc_log_wouldlog(dns_lctx, level))
 		return;
 
 	/*
@@ -4386,8 +4364,7 @@ logfmtpacket(dns_message_t *message, const char *description,
 			isc_log_write(dns_lctx, category, module, level,
 				      "%s%s%s%s%.*s", description, space,
 				      addrbuf, newline,
-				      (int)isc_buffer_usedlength(&buffer),
-				      buf);
+				      (int)isc_buffer_usedlength(&buffer), buf);
 	} while (result == ISC_R_NOSPACE);
 
 	if (buf != NULL)
@@ -4396,14 +4373,14 @@ logfmtpacket(dns_message_t *message, const char *description,
 
 isc_result_t
 dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
-		     unsigned int version, uint16_t udpsize,
-		     unsigned int flags, dns_ednsopt_t *ednsopts, size_t count)
+		     unsigned int version, uint16_t udpsize, unsigned int flags,
+		     dns_ednsopt_t *ednsopts, size_t count)
 {
-	dns_rdataset_t *rdataset = NULL;
+	dns_rdataset_t * rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
-	dns_rdata_t *rdata = NULL;
-	isc_result_t result;
-	unsigned int len = 0, i;
+	dns_rdata_t *	 rdata = NULL;
+	isc_result_t	 result;
+	unsigned int	 len = 0, i;
 
 	REQUIRE(DNS_MESSAGE_VALID(message));
 	REQUIRE(rdatasetp != NULL && *rdatasetp == NULL);
@@ -4436,7 +4413,7 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	 */
 	if (count != 0U) {
 		isc_buffer_t *buf = NULL;
-		bool seenpad = false;
+		bool	      seenpad = false;
 		for (i = 0; i < count; i++)
 			len += ednsopts[i].length + 4;
 
@@ -4447,10 +4424,9 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 
 		isc_buffer_allocate(message->mctx, &buf, len);
 
-		for (i = 0; i < count; i++)  {
+		for (i = 0; i < count; i++) {
 			if (ednsopts[i].code == DNS_OPT_PAD &&
-			    ednsopts[i].length == 0U && !seenpad)
-			{
+			    ednsopts[i].length == 0U && !seenpad) {
 				seenpad = true;
 				continue;
 			}
@@ -4488,7 +4464,7 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	*rdatasetp = rdataset;
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	if (rdata != NULL)
 		dns_message_puttemprdata(message, &rdata);
 	if (rdataset != NULL)
@@ -4499,8 +4475,8 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 }
 
 void
-dns_message_setclass(dns_message_t *msg, dns_rdataclass_t rdclass) {
-
+dns_message_setclass(dns_message_t *msg, dns_rdataclass_t rdclass)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
 	REQUIRE(msg->state == DNS_SECTION_ANY);
@@ -4511,7 +4487,8 @@ dns_message_setclass(dns_message_t *msg, dns_rdataclass_t rdclass) {
 }
 
 void
-dns_message_setpadding(dns_message_t *msg, uint16_t padding) {
+dns_message_setpadding(dns_message_t *msg, uint16_t padding)
+{
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
 	/* Avoid silly large padding */

@@ -17,6 +17,7 @@
 #include <stdbool.h>
 
 #include <isc/result.h>
+
 #include <dns/types.h>
 
 /*%

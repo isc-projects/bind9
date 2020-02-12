@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -24,8 +23,8 @@
 #include <cmocka.h>
 
 #include <isc/atomic.h>
-#include <isc/condition.h>
 #include <isc/commandline.h>
+#include <isc/condition.h>
 #include <isc/mem.h>
 #include <isc/platform.h>
 #include <isc/print.h>
@@ -34,30 +33,30 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include "isctest.h"
-
 #include "../timer.c"
+#include "isctest.h"
 
 /* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
 
-#define	FUDGE_SECONDS	0	     /* in absence of clock_getres() */
-#define	FUDGE_NANOSECONDS	500000000    /* in absence of clock_getres() */
+#define FUDGE_SECONDS 0		    /* in absence of clock_getres() */
+#define FUDGE_NANOSECONDS 500000000 /* in absence of clock_getres() */
 
-static isc_timer_t *timer = NULL;
-static isc_condition_t cv;
-static isc_mutex_t mx;
-static isc_time_t endtime;
-static isc_mutex_t lasttime_mx;
-static isc_time_t lasttime;
-static int seconds;
-static int nanoseconds;
-static atomic_int_fast32_t eventcnt;
+static isc_timer_t *	    timer = NULL;
+static isc_condition_t	    cv;
+static isc_mutex_t	    mx;
+static isc_time_t	    endtime;
+static isc_mutex_t	    lasttime_mx;
+static isc_time_t	    lasttime;
+static int		    seconds;
+static int		    nanoseconds;
+static atomic_int_fast32_t  eventcnt;
 static atomic_uint_fast32_t errcnt;
-static int nevents;
+static int		    nevents;
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -72,7 +71,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	isc_test_end();
@@ -81,7 +81,8 @@ _teardown(void **state) {
 }
 
 static void
-shutdown(isc_task_t *task, isc_event_t *event) {
+shutdown(isc_task_t *task, isc_event_t *event)
+{
 	isc_result_t result;
 
 	UNUSED(task);
@@ -107,7 +108,7 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	   void (*action)(isc_task_t *, isc_event_t *))
 {
 	isc_result_t result;
-	isc_task_t *task = NULL;
+	isc_task_t * task = NULL;
 	isc_time_settoepoch(&endtime);
 	atomic_init(&eventcnt, 0);
 
@@ -129,9 +130,8 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	isc_mutex_unlock(&lasttime_mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_timer_create(timermgr, timertype, expires, interval,
-				  task, action, (void *)timertype,
-				  &timer);
+	result = isc_timer_create(timermgr, timertype, expires, interval, task,
+				  action, (void *)timertype, &timer);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -148,45 +148,49 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 
 	isc_task_detach(&task);
 	isc_mutex_destroy(&mx);
-	(void) isc_condition_destroy(&cv);
+	(void)isc_condition_destroy(&cv);
 }
 
 static void
-set_global_error(isc_result_t result) {
-	(void)atomic_compare_exchange_strong(&errcnt,
-					     &(uint_fast32_t){ ISC_R_SUCCESS },
-					     result);
+set_global_error(isc_result_t result)
+{
+	(void)atomic_compare_exchange_strong(
+		&errcnt, &(uint_fast32_t){ ISC_R_SUCCESS }, result);
 }
 
 static void
-subthread_assert_true(bool expected) {
+subthread_assert_true(bool expected)
+{
 	if (!expected) {
 		set_global_error(ISC_R_UNEXPECTED);
 	}
 }
 
 static void
-subthread_assert_int_equal(int observed, int expected) {
+subthread_assert_int_equal(int observed, int expected)
+{
 	if (observed != expected) {
 		set_global_error(ISC_R_UNEXPECTED);
 	}
 }
 
 static void
-subthread_assert_result_equal(isc_result_t result, isc_result_t expected) {
+subthread_assert_result_equal(isc_result_t result, isc_result_t expected)
+{
 	if (result != expected) {
 		set_global_error(result);
 	}
 }
 
 static void
-ticktock(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-	isc_time_t now;
-	isc_time_t base;
-	isc_time_t ulim;
-	isc_time_t llim;
-	isc_interval_t interval;
+ticktock(isc_task_t *task, isc_event_t *event)
+{
+	isc_result_t	result;
+	isc_time_t	now;
+	isc_time_t	base;
+	isc_time_t	ulim;
+	isc_time_t	llim;
+	isc_interval_t	interval;
 	isc_eventtype_t expected_event_type;
 
 	int tick = atomic_fetch_add(&eventcnt, 1);
@@ -196,7 +200,7 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 	}
 
 	expected_event_type = ISC_TIMEREVENT_LIFE;
-	if ((isc_timertype_t) event->ev_arg == isc_timertype_ticker) {
+	if ((isc_timertype_t)event->ev_arg == isc_timertype_ticker) {
 		expected_event_type = ISC_TIMEREVENT_TICK;
 	}
 
@@ -246,8 +250,9 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 
 /* timer type ticker */
 static void
-ticker(void **state) {
-	isc_time_t expires;
+ticker(void **state)
+{
+	isc_time_t     expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -264,9 +269,10 @@ ticker(void **state) {
 
 /* timer type once reaches lifetime */
 static void
-once_life(void **state) {
-	isc_result_t result;
-	isc_time_t expires;
+once_life(void **state)
+{
+	isc_result_t   result;
+	isc_time_t     expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -285,12 +291,13 @@ once_life(void **state) {
 }
 
 static void
-test_idle(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-	isc_time_t now;
-	isc_time_t base;
-	isc_time_t ulim;
-	isc_time_t llim;
+test_idle(isc_task_t *task, isc_event_t *event)
+{
+	isc_result_t   result;
+	isc_time_t     now;
+	isc_time_t     base;
+	isc_time_t     ulim;
+	isc_time_t     llim;
 	isc_interval_t interval;
 
 	int tick = atomic_fetch_add(&eventcnt, 1);
@@ -332,9 +339,10 @@ test_idle(isc_task_t *task, isc_event_t *event) {
 
 /* timer type once idles out */
 static void
-once_idle(void **state) {
-	isc_result_t result;
-	isc_time_t expires;
+once_idle(void **state)
+{
+	isc_result_t   result;
+	isc_time_t     expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -354,13 +362,14 @@ once_idle(void **state) {
 
 /* timer reset */
 static void
-test_reset(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-	isc_time_t now;
-	isc_time_t base;
-	isc_time_t ulim;
-	isc_time_t llim;
-	isc_time_t expires;
+test_reset(isc_task_t *task, isc_event_t *event)
+{
+	isc_result_t   result;
+	isc_time_t     now;
+	isc_time_t     base;
+	isc_time_t     ulim;
+	isc_time_t     llim;
+	isc_time_t     expires;
 	isc_interval_t interval;
 
 	int tick = atomic_fetch_add(&eventcnt, 1);
@@ -392,7 +401,8 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 	subthread_assert_true(isc_time_compare(&llim, &now) <= 0);
 	subthread_assert_true(isc_time_compare(&ulim, &now) >= 0);
 
-	isc_interval_set(&interval, 0, 0); isc_mutex_lock(&lasttime_mx);
+	isc_interval_set(&interval, 0, 0);
+	isc_mutex_lock(&lasttime_mx);
 	isc_time_add(&now, &interval, &lasttime);
 	isc_mutex_unlock(&lasttime_mx);
 
@@ -408,8 +418,7 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 
 			isc_interval_set(&interval, 0, 0);
 			result = isc_timer_reset(timer, isc_timertype_once,
-						 &expires, &interval,
-						 false);
+						 &expires, &interval, false);
 			subthread_assert_result_equal(result, ISC_R_SUCCESS);
 		}
 	} else {
@@ -423,8 +432,9 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-reset(void **state) {
-	isc_time_t expires;
+reset(void **state)
+{
+	isc_time_t     expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -439,12 +449,12 @@ reset(void **state) {
 	setup_test(isc_timertype_ticker, &expires, &interval, test_reset);
 }
 
-static int startflag;
-static int shutdownflag;
+static int	    startflag;
+static int	    shutdownflag;
 static isc_timer_t *tickertimer = NULL;
 static isc_timer_t *oncetimer = NULL;
-static isc_task_t *task1 = NULL;
-static isc_task_t *task2 = NULL;
+static isc_task_t * task1 = NULL;
+static isc_task_t * task2 = NULL;
 
 /*
  * task1 blocks on mx while events accumulate
@@ -452,7 +462,8 @@ static isc_task_t *task2 = NULL;
  */
 
 static void
-start_event(isc_task_t *task, isc_event_t *event) {
+start_event(isc_task_t *task, isc_event_t *event)
+{
 	UNUSED(task);
 
 	if (verbose) {
@@ -460,8 +471,8 @@ start_event(isc_task_t *task, isc_event_t *event) {
 	}
 
 	LOCK(&mx);
-	while (! startflag) {
-		(void) isc_condition_wait(&cv, &mx);
+	while (!startflag) {
+		(void)isc_condition_wait(&cv, &mx);
 	}
 	UNLOCK(&mx);
 
@@ -469,9 +480,10 @@ start_event(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-tick_event(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-	isc_time_t expires;
+tick_event(isc_task_t *task, isc_event_t *event)
+{
+	isc_result_t   result;
+	isc_time_t     expires;
 	isc_interval_t interval;
 
 	UNUSED(task);
@@ -499,7 +511,8 @@ tick_event(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-once_event(isc_task_t *task, isc_event_t *event) {
+once_event(isc_task_t *task, isc_event_t *event)
+{
 	isc_result_t result;
 
 	if (verbose) {
@@ -521,7 +534,8 @@ once_event(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-shutdown_purge(isc_task_t *task, isc_event_t *event) {
+shutdown_purge(isc_task_t *task, isc_event_t *event)
+{
 	isc_result_t result;
 
 	UNUSED(task);
@@ -546,10 +560,11 @@ shutdown_purge(isc_task_t *task, isc_event_t *event) {
 
 /* timer events purged */
 static void
-purge(void **state) {
-	isc_result_t result;
-	isc_event_t *event = NULL;
-	isc_time_t expires;
+purge(void **state)
+{
+	isc_result_t   result;
+	isc_event_t *  event = NULL;
+	isc_time_t     expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -575,7 +590,7 @@ purge(void **state) {
 
 	LOCK(&mx);
 
-	event = isc_event_allocate(test_mctx, (void *)1 , (isc_eventtype_t)1,
+	event = isc_event_allocate(test_mctx, (void *)1, (isc_eventtype_t)1,
 				   start_event, NULL, sizeof(*event));
 	assert_non_null(event);
 	isc_task_send(task1, &event);
@@ -584,9 +599,9 @@ purge(void **state) {
 	isc_interval_set(&interval, seconds, 0);
 
 	tickertimer = NULL;
-	result = isc_timer_create(timermgr, isc_timertype_ticker,
-				  &expires, &interval, task1,
-				  tick_event, NULL, &tickertimer);
+	result = isc_timer_create(timermgr, isc_timertype_ticker, &expires,
+				  &interval, task1, tick_event, NULL,
+				  &tickertimer);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	oncetimer = NULL;
@@ -596,15 +611,15 @@ purge(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, 0, 0);
-	result = isc_timer_create(timermgr, isc_timertype_once,
-				      &expires, &interval, task2,
-				      once_event, NULL, &oncetimer);
+	result = isc_timer_create(timermgr, isc_timertype_once, &expires,
+				  &interval, task2, once_event, NULL,
+				  &oncetimer);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Wait for shutdown processing to complete.
 	 */
-	while (! shutdownflag) {
+	while (!shutdownflag) {
 		result = isc_condition_wait(&cv, &mx);
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
@@ -623,12 +638,11 @@ purge(void **state) {
 }
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(ticker),
-		cmocka_unit_test(once_life),
-		cmocka_unit_test(once_idle),
-		cmocka_unit_test(reset),
+		cmocka_unit_test(ticker),    cmocka_unit_test(once_life),
+		cmocka_unit_test(once_idle), cmocka_unit_test(reset),
 		cmocka_unit_test(purge),
 	};
 	int c;
@@ -651,7 +665,8 @@ main(int argc, char **argv) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_SOA_H
 #define DNS_SOA_H 1
 
@@ -35,15 +34,13 @@
 
 ISC_LANG_BEGINDECLS
 
-#define DNS_SOA_BUFFERSIZE      ((2 * DNS_NAME_MAXWIRE) + (4 * 5))
+#define DNS_SOA_BUFFERSIZE ((2 * DNS_NAME_MAXWIRE) + (4 * 5))
 
 isc_result_t
 dns_soa_buildrdata(const dns_name_t *origin, const dns_name_t *contact,
-		   dns_rdataclass_t rdclass,
-		   uint32_t serial, uint32_t refresh,
-		   uint32_t retry, uint32_t expire,
-		   uint32_t minimum, unsigned char *buffer,
-		   dns_rdata_t *rdata);
+		   dns_rdataclass_t rdclass, uint32_t serial, uint32_t refresh,
+		   uint32_t retry, uint32_t expire, uint32_t minimum,
+		   unsigned char *buffer, dns_rdata_t *rdata);
 /*%<
  * Build the rdata of an SOA record.
  *
@@ -91,7 +88,6 @@ dns_soa_setminimum(uint32_t val, dns_rdata_t *rdata);
  * Requires:
  *	rdata refers to the rdata of a well-formed SOA record.
  */
-
 
 ISC_LANG_ENDDECLS
 

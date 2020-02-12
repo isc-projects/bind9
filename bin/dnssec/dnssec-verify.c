@@ -47,9 +47,9 @@
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdataclass.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
@@ -68,18 +68,19 @@
 
 const char *program = "dnssec-verify";
 
-static isc_stdtime_t now;
-static isc_mem_t *mctx = NULL;
+static isc_stdtime_t	  now;
+static isc_mem_t *	  mctx = NULL;
 static dns_masterformat_t inputformat = dns_masterformat_text;
-static dns_db_t *gdb;			/* The database */
-static dns_dbversion_t *gversion;	/* The database version */
-static dns_rdataclass_t gclass;		/* The class */
-static dns_name_t *gorigin;		/* The database origin */
-static bool ignore_kskflag = false;
-static bool keyset_kskonly = false;
+static dns_db_t *	  gdb;	    /* The database */
+static dns_dbversion_t *  gversion; /* The database version */
+static dns_rdataclass_t	  gclass;   /* The class */
+static dns_name_t *	  gorigin;  /* The database origin */
+static bool		  ignore_kskflag = false;
+static bool		  keyset_kskonly = false;
 
 static void
-report(const char *format, ...) {
+report(const char *format, ...)
+{
 	if (!quiet) {
 		va_list args;
 		va_start(args, format);
@@ -92,12 +93,13 @@ report(const char *format, ...) {
  * Load the zone file from disk
  */
 static void
-loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
-	isc_buffer_t b;
-	int len;
+loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db)
+{
+	isc_buffer_t	b;
+	int		len;
 	dns_fixedname_t fname;
-	dns_name_t *name;
-	isc_result_t result;
+	dns_name_t *	name;
+	isc_result_t	result;
 
 	len = strlen(origin);
 	isc_buffer_init(&b, origin, len);
@@ -106,11 +108,11 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 	name = dns_fixedname_initname(&fname);
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
-		fatal("failed converting name '%s' to dns format: %s",
-		      origin, isc_result_totext(result));
+		fatal("failed converting name '%s' to dns format: %s", origin,
+		      isc_result_totext(result));
 
-	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
-			       rdclass, 0, NULL, db);
+	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone, rdclass, 0,
+			       NULL, db);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*db, file, inputformat, 0);
@@ -131,8 +133,8 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 		}
 		/* FALLTHROUGH */
 	default:
-		fatal("failed loading zone from '%s': %s",
-		      file, isc_result_totext(result));
+		fatal("failed loading zone from '%s': %s", file,
+		      isc_result_totext(result));
 	}
 }
 
@@ -140,7 +142,8 @@ ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void) {
+usage(void)
+{
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "\t%s [options] zonefile [keys]\n", program);
 
@@ -159,8 +162,10 @@ usage(void) {
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-E engine:\n");
 #if USE_PKCS11
-	fprintf(stderr, "\t\tpath to PKCS#11 provider library "
-		"(default is %s)\n", PK11_LIB_LOCATION);
+	fprintf(stderr,
+		"\t\tpath to PKCS#11 provider library "
+		"(default is %s)\n",
+		PK11_LIB_LOCATION);
 #else
 	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
 #endif
@@ -171,19 +176,19 @@ usage(void) {
 }
 
 int
-main(int argc, char *argv[]) {
-	char *origin = NULL, *file = NULL;
-	char *inputformatstr = NULL;
-	isc_result_t result;
-	isc_log_t *log = NULL;
-	const char *engine = NULL;
-	char *classname = NULL;
+main(int argc, char *argv[])
+{
+	char *		 origin = NULL, *file = NULL;
+	char *		 inputformatstr = NULL;
+	isc_result_t	 result;
+	isc_log_t *	 log = NULL;
+	const char *	 engine = NULL;
+	char *		 classname = NULL;
 	dns_rdataclass_t rdclass;
-	char *endp;
-	int ch;
+	char *		 endp;
+	int		 ch;
 
-#define CMDLINE_FLAGS \
-	"c:E:hm:o:I:qv:Vxz"
+#define CMDLINE_FLAGS "c:E:hm:o:I:qv:Vxz"
 
 	/*
 	 * Process memory debugging argument first.
@@ -273,8 +278,8 @@ main(int argc, char *argv[]) {
 			version(program);
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n",
-				program, isc_commandline_option);
+			fprintf(stderr, "%s: unhandled option -%c\n", program,
+				isc_commandline_option);
 			exit(1);
 		}
 	}
@@ -326,9 +331,8 @@ main(int argc, char *argv[]) {
 	result = dns_db_newversion(gdb, &gversion);
 	check_result(result, "dns_db_newversion()");
 
-	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, NULL,
-				       mctx, ignore_kskflag, keyset_kskonly,
-				       report);
+	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, NULL, mctx,
+				       ignore_kskflag, keyset_kskonly, report);
 
 	dns_db_closeversion(gdb, &gversion, false);
 	dns_db_detach(&gdb);
@@ -339,7 +343,7 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
-	(void) isc_app_finish();
+	(void)isc_app_finish();
 
 	return (result == ISC_R_SUCCESS ? 0 : 1);
 }

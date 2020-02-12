@@ -20,13 +20,14 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-isc_mem_t *mctx1, *mctx2, *mctx3;
-isc_task_t *t1, *t2, *t3;
+isc_mem_t *  mctx1, *mctx2, *mctx3;
+isc_task_t * t1, *t2, *t3;
 isc_timer_t *ti1, *ti2, *ti3;
-int tick_count = 0;
+int	     tick_count = 0;
 
 static void
-shutdown_task(isc_task_t *task, isc_event_t *event) {
+shutdown_task(isc_task_t *task, isc_event_t *event)
+{
 	char *name = event->ev_arg;
 
 	printf("task %p shutdown %s\n", task, name);
@@ -34,7 +35,8 @@ shutdown_task(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-tick(isc_task_t *task, isc_event_t *event) {
+tick(isc_task_t *task, isc_event_t *event)
+{
 	char *name = event->ev_arg;
 
 	INSIST(event->ev_type == ISC_TIMEREVENT_TICK);
@@ -46,24 +48,25 @@ tick(isc_task_t *task, isc_event_t *event) {
 		isc_timer_touch(ti3);
 
 	if (ti3 != NULL && tick_count == 7) {
-		isc_time_t expires;
+		isc_time_t     expires;
 		isc_interval_t interval;
 
 		isc_interval_set(&interval, 5, 0);
 		(void)isc_time_nowplusinterval(&expires, &interval);
 		isc_interval_set(&interval, 4, 0);
 		printf("*** resetting ti3 ***\n");
-		RUNTIME_CHECK(isc_timer_reset(ti3, isc_timertype_once,
-					      &expires, &interval, true) ==
-			      ISC_R_SUCCESS);
+		RUNTIME_CHECK(isc_timer_reset(ti3, isc_timertype_once, &expires,
+					      &interval,
+					      true) == ISC_R_SUCCESS);
 	}
 
 	isc_event_free(&event);
 }
 
 static void
-timeout(isc_task_t *task, isc_event_t *event) {
-	char *name = event->ev_arg;
+timeout(isc_task_t *task, isc_event_t *event)
+{
+	char *	    name = event->ev_arg;
 	const char *type;
 
 	INSIST(event->ev_type == ISC_TIMEREVENT_IDLE ||
@@ -90,12 +93,13 @@ static char two[] = "2";
 static char three[] = "3";
 
 int
-main(int argc, char *argv[]) {
-	isc_taskmgr_t *manager = NULL;
+main(int argc, char *argv[])
+{
+	isc_taskmgr_t * manager = NULL;
 	isc_timermgr_t *timgr = NULL;
-	unsigned int workers;
-	isc_time_t expires, now;
-	isc_interval_t interval;
+	unsigned int	workers;
+	isc_time_t	expires, now;
+	isc_interval_t	interval;
 
 	if (argc > 1) {
 		workers = atoi(argv[1]);
@@ -112,12 +116,9 @@ main(int argc, char *argv[]) {
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_timermgr_create(mctx1, &timgr) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t3) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t1, shutdown_task, one) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t2, shutdown_task, two) ==
@@ -133,21 +134,20 @@ main(int argc, char *argv[]) {
 
 	isc_interval_set(&interval, 2, 0);
 	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, NULL,
-				       &interval, t2, timeout, two, &ti2) ==
-		      ISC_R_SUCCESS);
+				       &interval, t2, timeout, two,
+				       &ti2) == ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, 1, 0);
 	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker, NULL,
-				       &interval, t1, tick, one, &ti1) ==
-		      ISC_R_SUCCESS);
+				       &interval, t1, tick, one,
+				       &ti1) == ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, 10, 0);
-	RUNTIME_CHECK(isc_time_add(&now, &interval, &expires) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_time_add(&now, &interval, &expires) == ISC_R_SUCCESS);
 	isc_interval_set(&interval, 2, 0);
 	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, &expires,
-				       &interval, t3, timeout, three, &ti3) ==
-		      ISC_R_SUCCESS);
+				       &interval, t3, timeout, three,
+				       &ti3) == ISC_R_SUCCESS);
 
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);

@@ -20,13 +20,12 @@
 #ifndef __asn1_h__
 #define __asn1_h__
 
-
 #ifndef __asn1_common_definitions__
 #define __asn1_common_definitions__
 
 typedef struct octet_string {
 	size_t length;
-	void *data;
+	void * data;
 } octet_string;
 
 typedef char *general_string;
@@ -34,25 +33,25 @@ typedef char *general_string;
 typedef char *utf8_string;
 
 typedef struct oid {
-	size_t length;
+	size_t	  length;
 	unsigned *components;
 } oid;
 
-#define ASN1_MALLOC_ENCODE(T, B, BL, S, L, R)                  \
-  do {                                                         \
-    (BL) = length_##T((S));                                    \
-    (B) = malloc((BL));                                        \
-    if((B) == NULL) {                                          \
-      (R) = ENOMEM;                                            \
-    } else {                                                   \
-      (R) = encode_##T(((unsigned char*)(B)) + (BL) - 1, (BL), \
-		       (S), (L));                              \
-      if((R) != 0) {                                           \
-	free((B));                                             \
-	(B) = NULL;                                            \
-      }                                                        \
-    }                                                          \
-  } while (0)
+#define ASN1_MALLOC_ENCODE(T, B, BL, S, L, R)                             \
+	do {                                                              \
+		(BL) = length_##T((S));                                   \
+		(B) = malloc((BL));                                       \
+		if ((B) == NULL) {                                        \
+			(R) = ENOMEM;                                     \
+		} else {                                                  \
+			(R) = encode_##T(((unsigned char *)(B)) + (BL)-1, \
+					 (BL), (S), (L));                 \
+			if ((R) != 0) {                                   \
+				free((B));                                \
+				(B) = NULL;                               \
+			}                                                 \
+		}                                                         \
+	} while (0)
 
 #endif
 
@@ -62,12 +61,14 @@ typedef struct oid {
 
 typedef oid MechType;
 
-static int encode_MechType(unsigned char *, size_t, const MechType *, size_t *);
-static int decode_MechType(const unsigned char *, size_t, MechType *, size_t *);
-static void free_MechType(MechType *);
+static int
+encode_MechType(unsigned char *, size_t, const MechType *, size_t *);
+static int
+decode_MechType(const unsigned char *, size_t, MechType *, size_t *);
+static void
+free_MechType(MechType *);
 /* unused declaration: length_MechType */
 /* unused declaration: copy_MechType */
-
 
 /*
  * MechTypeList ::= SEQUENCE OF MechType
@@ -75,15 +76,17 @@ static void free_MechType(MechType *);
 
 typedef struct MechTypeList {
 	unsigned int len;
-	MechType *val;
+	MechType *   val;
 } MechTypeList;
 
-static int encode_MechTypeList(unsigned char *, size_t, const MechTypeList *, size_t *);
-static int decode_MechTypeList(const unsigned char *, size_t, MechTypeList *, size_t *);
-static void free_MechTypeList(MechTypeList *);
+static int
+encode_MechTypeList(unsigned char *, size_t, const MechTypeList *, size_t *);
+static int
+decode_MechTypeList(const unsigned char *, size_t, MechTypeList *, size_t *);
+static void
+free_MechTypeList(MechTypeList *);
 /* unused declaration: length_MechTypeList */
 /* unused declaration: copy_MechTypeList */
-
 
 /*
  * ContextFlags ::= BIT STRING { delegFlag(0), mutualFlag(1), replayFlag(2),
@@ -91,19 +94,21 @@ static void free_MechTypeList(MechTypeList *);
  */
 
 typedef struct ContextFlags {
-	unsigned int delegFlag:1;
-	unsigned int mutualFlag:1;
-	unsigned int replayFlag:1;
-	unsigned int sequenceFlag:1;
-	unsigned int anonFlag:1;
-	unsigned int confFlag:1;
-	unsigned int integFlag:1;
+	unsigned int delegFlag : 1;
+	unsigned int mutualFlag : 1;
+	unsigned int replayFlag : 1;
+	unsigned int sequenceFlag : 1;
+	unsigned int anonFlag : 1;
+	unsigned int confFlag : 1;
+	unsigned int integFlag : 1;
 } ContextFlags;
 
-
-static int encode_ContextFlags(unsigned char *, size_t, const ContextFlags *, size_t *);
-static int decode_ContextFlags(const unsigned char *, size_t, ContextFlags *, size_t *);
-static void free_ContextFlags(ContextFlags *);
+static int
+encode_ContextFlags(unsigned char *, size_t, const ContextFlags *, size_t *);
+static int
+decode_ContextFlags(const unsigned char *, size_t, ContextFlags *, size_t *);
+static void
+free_ContextFlags(ContextFlags *);
 /* unused declaration: length_ContextFlags */
 /* unused declaration: copy_ContextFlags */
 /* unused declaration: ContextFlags2int */
@@ -117,18 +122,20 @@ static void free_ContextFlags(ContextFlags *);
  */
 
 typedef struct NegTokenInit {
-	MechTypeList mechTypes;
+	MechTypeList  mechTypes;
 	ContextFlags *reqFlags;
 	octet_string *mechToken;
 	octet_string *mechListMIC;
 } NegTokenInit;
 
-static int encode_NegTokenInit(unsigned char *, size_t, const NegTokenInit *, size_t *);
-static int decode_NegTokenInit(const unsigned char *, size_t, NegTokenInit *, size_t *);
-static void free_NegTokenInit(NegTokenInit *);
+static int
+encode_NegTokenInit(unsigned char *, size_t, const NegTokenInit *, size_t *);
+static int
+decode_NegTokenInit(const unsigned char *, size_t, NegTokenInit *, size_t *);
+static void
+free_NegTokenInit(NegTokenInit *);
 /* unused declaration: length_NegTokenInit */
 /* unused declaration: copy_NegTokenInit */
-
 
 /*
  * NegTokenResp ::= SEQUENCE { negState[0]       ENUMERATED {
@@ -138,40 +145,47 @@ static void free_NegTokenInit(NegTokenInit *);
  */
 
 typedef struct NegTokenResp {
-	enum {
-		accept_completed = 0,
-		accept_incomplete = 1,
-		reject = 2,
-		request_mic = 3
-	} *negState;
+	enum { accept_completed = 0,
+	       accept_incomplete = 1,
+	       reject = 2,
+	       request_mic = 3 } *
+		negState;
 
-	MechType *supportedMech;
+	MechType *    supportedMech;
 	octet_string *responseToken;
 	octet_string *mechListMIC;
 } NegTokenResp;
 
-static int encode_NegTokenResp(unsigned char *, size_t, const NegTokenResp *, size_t *);
-static int decode_NegTokenResp(const unsigned char *, size_t, NegTokenResp *, size_t *);
-static void free_NegTokenResp(NegTokenResp *);
+static int
+encode_NegTokenResp(unsigned char *, size_t, const NegTokenResp *, size_t *);
+static int
+decode_NegTokenResp(const unsigned char *, size_t, NegTokenResp *, size_t *);
+static void
+free_NegTokenResp(NegTokenResp *);
 /* unused declaration: length_NegTokenResp */
 /* unused declaration: copy_NegTokenResp */
 
-
-
-
-#endif				/* __asn1_h__ */
+#endif /* __asn1_h__ */
 /* Generated from spnego.asn1 */
 /* Do not edit */
 
-
-#define BACK if (e) return e; p -= l; len -= l; ret += l; POST(p); POST(len); POST(ret)
+#define BACK              \
+	if (e)            \
+		return e; \
+	p -= l;           \
+	len -= l;         \
+	ret += l;         \
+	POST(p);          \
+	POST(len);        \
+	POST(ret)
 
 static int
-encode_MechType(unsigned char *p, size_t len, const MechType * data, size_t * size)
+encode_MechType(unsigned char *p, size_t len, const MechType *data,
+		size_t *size)
 {
 	size_t ret = 0;
 	size_t l;
-	int e;
+	int    e;
 
 	e = encode_oid(p, len, data, &l);
 	BACK;
@@ -179,14 +193,23 @@ encode_MechType(unsigned char *p, size_t len, const MechType * data, size_t * si
 	return 0;
 }
 
-#define FORW if(e) goto fail; p += l; len -= l; ret += l; POST(p); POST(len); POST(ret)
+#define FORW               \
+	if (e)             \
+		goto fail; \
+	p += l;            \
+	len -= l;          \
+	ret += l;          \
+	POST(p);           \
+	POST(len);         \
+	POST(ret)
 
 static int
-decode_MechType(const unsigned char *p, size_t len, MechType * data, size_t * size)
+decode_MechType(const unsigned char *p, size_t len, MechType *data,
+		size_t *size)
 {
 	size_t ret = 0;
 	size_t l;
-	int e;
+	int    e;
 
 	memset(data, 0, sizeof(*data));
 	e = decode_oid(p, len, data, &l);
@@ -200,26 +223,25 @@ fail:
 }
 
 static void
-free_MechType(MechType * data)
+free_MechType(MechType *data)
 {
 	free_oid(data);
 }
 
 /* unused function: length_MechType */
 
-
 /* unused function: copy_MechType */
 
 /* Generated from spnego.asn1 */
 /* Do not edit */
 
-
 static int
-encode_MechTypeList(unsigned char *p, size_t len, const MechTypeList * data, size_t * size)
+encode_MechTypeList(unsigned char *p, size_t len, const MechTypeList *data,
+		    size_t *size)
 {
 	size_t ret = 0;
 	size_t l;
-	int i, e;
+	int    i, e;
 
 	for (i = (data)->len - 1; i >= 0; --i) {
 		size_t oldret = ret;
@@ -228,22 +250,25 @@ encode_MechTypeList(unsigned char *p, size_t len, const MechTypeList * data, siz
 		BACK;
 		ret += oldret;
 	}
-	e = der_put_length_and_tag(p, len, ret, ASN1_C_UNIV, CONS, UT_Sequence, &l);
+	e = der_put_length_and_tag(p, len, ret, ASN1_C_UNIV, CONS, UT_Sequence,
+				   &l);
 	BACK;
 	*size = ret;
 	return 0;
 }
 
 static int
-decode_MechTypeList(const unsigned char *p, size_t len, MechTypeList * data, size_t * size)
+decode_MechTypeList(const unsigned char *p, size_t len, MechTypeList *data,
+		    size_t *size)
 {
 	size_t ret = 0, reallen;
 	size_t l;
-	int e;
+	int    e;
 
 	memset(data, 0, sizeof(*data));
 	reallen = 0;
-	e = der_match_tag_and_length(p, len, ASN1_C_UNIV, CONS, UT_Sequence, &reallen, &l);
+	e = der_match_tag_and_length(p, len, ASN1_C_UNIV, CONS, UT_Sequence,
+				     &reallen, &l);
 	FORW;
 	if (len < reallen)
 		return ASN1_OVERRUN;
@@ -257,13 +282,16 @@ decode_MechTypeList(const unsigned char *p, size_t len, MechTypeList * data, siz
 		while (ret < origlen) {
 			void *old = (data)->val;
 			(data)->len++;
-			(data)->val = realloc((data)->val, sizeof(*((data)->val)) * (data)->len);
+			(data)->val =
+				realloc((data)->val,
+					sizeof(*((data)->val)) * (data)->len);
 			if ((data)->val == NULL) {
 				(data)->val = old;
 				(data)->len--;
 				return ENOMEM;
 			}
-			e = decode_MechType(p, len, &(data)->val[(data)->len - 1], &l);
+			e = decode_MechType(p, len,
+					    &(data)->val[(data)->len - 1], &l);
 			FORW;
 			len = origlen - ret;
 		}
@@ -278,7 +306,7 @@ fail:
 }
 
 static void
-free_MechTypeList(MechTypeList * data)
+free_MechTypeList(MechTypeList *data)
 {
 	while ((data)->len) {
 		free_MechType(&(data)->val[(data)->len - 1]);
@@ -290,19 +318,18 @@ free_MechTypeList(MechTypeList * data)
 
 /* unused function: length_MechTypeList */
 
-
 /* unused function: copy_MechTypeList */
 
 /* Generated from spnego.asn1 */
 /* Do not edit */
 
-
 static int
-encode_ContextFlags(unsigned char *p, size_t len, const ContextFlags * data, size_t * size)
+encode_ContextFlags(unsigned char *p, size_t len, const ContextFlags *data,
+		    size_t *size)
 {
 	size_t ret = 0;
 	size_t l;
-	int e;
+	int    e;
 
 	{
 		unsigned char c = 0;
@@ -338,22 +365,25 @@ encode_ContextFlags(unsigned char *p, size_t len, const ContextFlags * data, siz
 		ret += 2;
 	}
 
-	e = der_put_length_and_tag(p, len, ret, ASN1_C_UNIV, PRIM, UT_BitString, &l);
+	e = der_put_length_and_tag(p, len, ret, ASN1_C_UNIV, PRIM, UT_BitString,
+				   &l);
 	BACK;
 	*size = ret;
 	return 0;
 }
 
 static int
-decode_ContextFlags(const unsigned char *p, size_t len, ContextFlags * data, size_t * size)
+decode_ContextFlags(const unsigned char *p, size_t len, ContextFlags *data,
+		    size_t *size)
 {
 	size_t ret = 0, reallen;
 	size_t l;
-	int e;
+	int    e;
 
 	memset(data, 0, sizeof(*data));
 	reallen = 0;
-	e = der_match_tag_and_length(p, len, ASN1_C_UNIV, PRIM, UT_BitString, &reallen, &l);
+	e = der_match_tag_and_length(p, len, ASN1_C_UNIV, PRIM, UT_BitString,
+				     &reallen, &l);
 	FORW;
 	if (len < reallen)
 		return ASN1_OVERRUN;
@@ -379,22 +409,18 @@ fail:
 }
 
 static void
-free_ContextFlags(ContextFlags * data)
+free_ContextFlags(ContextFlags *data)
 {
 	(void)data;
 }
 
 /* unused function: length_ContextFlags */
 
-
 /* unused function: copy_ContextFlags */
-
 
 /* unused function: ContextFlags2int */
 
-
 /* unused function: int2ContextFlags */
-
 
 /* unused variable: ContextFlags_units */
 
@@ -403,20 +429,21 @@ free_ContextFlags(ContextFlags * data)
 /* Generated from spnego.asn1 */
 /* Do not edit */
 
-
 static int
-encode_NegTokenInit(unsigned char *p, size_t len, const NegTokenInit * data, size_t * size)
+encode_NegTokenInit(unsigned char *p, size_t len, const NegTokenInit *data,
+		    size_t *size)
 {
 	size_t ret = 0;
 	size_t l;
-	int e;
+	int    e;
 
 	if ((data)->mechListMIC) {
 		size_t oldret = ret;
 		ret = 0;
 		e = encode_octet_string(p, len, (data)->mechListMIC, &l);
 		BACK;
-		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 3, &l);
+		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 3,
+					   &l);
 		BACK;
 		ret += oldret;
 	}
@@ -425,7 +452,8 @@ encode_NegTokenInit(unsigned char *p, size_t len, const NegTokenInit * data, siz
 		ret = 0;
 		e = encode_octet_string(p, len, (data)->mechToken, &l);
 		BACK;
-		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 2, &l);
+		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 2,
+					   &l);
 		BACK;
 		ret += oldret;
 	}
@@ -434,34 +462,40 @@ encode_NegTokenInit(unsigned char *p, size_t len, const NegTokenInit * data, siz
 		ret = 0;
 		e = encode_ContextFlags(p, len, (data)->reqFlags, &l);
 		BACK;
-		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 1, &l);
+		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 1,
+					   &l);
 		BACK;
 		ret += oldret;
-	} {
+	}
+	{
 		size_t oldret = ret;
 		ret = 0;
 		e = encode_MechTypeList(p, len, &(data)->mechTypes, &l);
 		BACK;
-		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 0, &l);
+		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 0,
+					   &l);
 		BACK;
 		ret += oldret;
 	}
-	e = der_put_length_and_tag(p, len, ret, ASN1_C_UNIV, CONS, UT_Sequence, &l);
+	e = der_put_length_and_tag(p, len, ret, ASN1_C_UNIV, CONS, UT_Sequence,
+				   &l);
 	BACK;
 	*size = ret;
 	return 0;
 }
 
 static int
-decode_NegTokenInit(const unsigned char *p, size_t len, NegTokenInit * data, size_t * size)
+decode_NegTokenInit(const unsigned char *p, size_t len, NegTokenInit *data,
+		    size_t *size)
 {
 	size_t ret = 0, reallen;
 	size_t l;
-	int e;
+	int    e;
 
 	memset(data, 0, sizeof(*data));
 	reallen = 0;
-	e = der_match_tag_and_length(p, len, ASN1_C_UNIV, CONS, UT_Sequence, &reallen, &l);
+	e = der_match_tag_and_length(p, len, ASN1_C_UNIV, CONS, UT_Sequence,
+				     &reallen, &l);
 	FORW;
 	{
 		int dce_fix;
@@ -480,14 +514,19 @@ decode_NegTokenInit(const unsigned char *p, size_t len, NegTokenInit * data, siz
 				{
 					int mydce_fix;
 					oldlen = len;
-					if ((mydce_fix = fix_dce(newlen, &len)) < 0) {
+					if ((mydce_fix = fix_dce(newlen,
+								 &len)) < 0) {
 						e = ASN1_BAD_FORMAT;
 						goto fail;
 					}
-					e = decode_MechTypeList(p, len, &(data)->mechTypes, &l);
+					e = decode_MechTypeList(
+						p, len, &(data)->mechTypes, &l);
 					FORW;
 					if (mydce_fix) {
-						e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+						e = der_match_tag_and_length(
+							p, len, (Der_class)0,
+							(Der_type)0, 0,
+							&reallen, &l);
 						FORW;
 					} else
 						len = oldlen - newlen;
@@ -509,19 +548,25 @@ decode_NegTokenInit(const unsigned char *p, size_t len, NegTokenInit * data, siz
 				{
 					int mydce_fix;
 					oldlen = len;
-					if ((mydce_fix = fix_dce(newlen, &len)) < 0) {
+					if ((mydce_fix = fix_dce(newlen,
+								 &len)) < 0) {
 						e = ASN1_BAD_FORMAT;
 						goto fail;
 					}
-					(data)->reqFlags = malloc(sizeof(*(data)->reqFlags));
+					(data)->reqFlags = malloc(
+						sizeof(*(data)->reqFlags));
 					if ((data)->reqFlags == NULL) {
 						e = ENOMEM;
 						goto fail;
 					}
-					e = decode_ContextFlags(p, len, (data)->reqFlags, &l);
+					e = decode_ContextFlags(
+						p, len, (data)->reqFlags, &l);
 					FORW;
 					if (mydce_fix) {
-						e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+						e = der_match_tag_and_length(
+							p, len, (Der_class)0,
+							(Der_type)0, 0,
+							&reallen, &l);
 						FORW;
 					} else
 						len = oldlen - newlen;
@@ -543,19 +588,25 @@ decode_NegTokenInit(const unsigned char *p, size_t len, NegTokenInit * data, siz
 				{
 					int mydce_fix;
 					oldlen = len;
-					if ((mydce_fix = fix_dce(newlen, &len)) < 0) {
+					if ((mydce_fix = fix_dce(newlen,
+								 &len)) < 0) {
 						e = ASN1_BAD_FORMAT;
 						goto fail;
 					}
-					(data)->mechToken = malloc(sizeof(*(data)->mechToken));
+					(data)->mechToken = malloc(
+						sizeof(*(data)->mechToken));
 					if ((data)->mechToken == NULL) {
 						e = ENOMEM;
 						goto fail;
 					}
-					e = decode_octet_string(p, len, (data)->mechToken, &l);
+					e = decode_octet_string(
+						p, len, (data)->mechToken, &l);
 					FORW;
 					if (mydce_fix) {
-						e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+						e = der_match_tag_and_length(
+							p, len, (Der_class)0,
+							(Der_type)0, 0,
+							&reallen, &l);
 						FORW;
 					} else
 						len = oldlen - newlen;
@@ -577,19 +628,26 @@ decode_NegTokenInit(const unsigned char *p, size_t len, NegTokenInit * data, siz
 				{
 					int mydce_fix;
 					oldlen = len;
-					if ((mydce_fix = fix_dce(newlen, &len)) < 0) {
+					if ((mydce_fix = fix_dce(newlen,
+								 &len)) < 0) {
 						e = ASN1_BAD_FORMAT;
 						goto fail;
 					}
-					(data)->mechListMIC = malloc(sizeof(*(data)->mechListMIC));
+					(data)->mechListMIC = malloc(
+						sizeof(*(data)->mechListMIC));
 					if ((data)->mechListMIC == NULL) {
 						e = ENOMEM;
 						goto fail;
 					}
-					e = decode_octet_string(p, len, (data)->mechListMIC, &l);
+					e = decode_octet_string(
+						p, len, (data)->mechListMIC,
+						&l);
 					FORW;
 					if (mydce_fix) {
-						e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+						e = der_match_tag_and_length(
+							p, len, (Der_class)0,
+							(Der_type)0, 0,
+							&reallen, &l);
 						FORW;
 					} else
 						len = oldlen - newlen;
@@ -597,7 +655,9 @@ decode_NegTokenInit(const unsigned char *p, size_t len, NegTokenInit * data, siz
 			}
 		}
 		if (dce_fix) {
-			e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+			e = der_match_tag_and_length(p, len, (Der_class)0,
+						     (Der_type)0, 0, &reallen,
+						     &l);
 			FORW;
 		}
 	}
@@ -610,7 +670,7 @@ fail:
 }
 
 static void
-free_NegTokenInit(NegTokenInit * data)
+free_NegTokenInit(NegTokenInit *data)
 {
 	free_MechTypeList(&(data)->mechTypes);
 	if ((data)->reqFlags) {
@@ -632,26 +692,26 @@ free_NegTokenInit(NegTokenInit * data)
 
 /* unused function: length_NegTokenInit */
 
-
 /* unused function: copy_NegTokenInit */
 
 /* Generated from spnego.asn1 */
 /* Do not edit */
 
-
 static int
-encode_NegTokenResp(unsigned char *p, size_t len, const NegTokenResp * data, size_t * size)
+encode_NegTokenResp(unsigned char *p, size_t len, const NegTokenResp *data,
+		    size_t *size)
 {
 	size_t ret = 0;
 	size_t l;
-	int e;
+	int    e;
 
 	if ((data)->mechListMIC) {
 		size_t oldret = ret;
 		ret = 0;
 		e = encode_octet_string(p, len, (data)->mechListMIC, &l);
 		BACK;
-		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 3, &l);
+		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 3,
+					   &l);
 		BACK;
 		ret += oldret;
 	}
@@ -660,7 +720,8 @@ encode_NegTokenResp(unsigned char *p, size_t len, const NegTokenResp * data, siz
 		ret = 0;
 		e = encode_octet_string(p, len, (data)->responseToken, &l);
 		BACK;
-		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 2, &l);
+		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 2,
+					   &l);
 		BACK;
 		ret += oldret;
 	}
@@ -669,7 +730,8 @@ encode_NegTokenResp(unsigned char *p, size_t len, const NegTokenResp * data, siz
 		ret = 0;
 		e = encode_MechType(p, len, (data)->supportedMech, &l);
 		BACK;
-		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 1, &l);
+		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 1,
+					   &l);
 		BACK;
 		ret += oldret;
 	}
@@ -678,27 +740,31 @@ encode_NegTokenResp(unsigned char *p, size_t len, const NegTokenResp * data, siz
 		ret = 0;
 		e = encode_enumerated(p, len, (data)->negState, &l);
 		BACK;
-		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 0, &l);
+		e = der_put_length_and_tag(p, len, ret, ASN1_C_CONTEXT, CONS, 0,
+					   &l);
 		BACK;
 		ret += oldret;
 	}
-	e = der_put_length_and_tag(p, len, ret, ASN1_C_UNIV, CONS, UT_Sequence, &l);
+	e = der_put_length_and_tag(p, len, ret, ASN1_C_UNIV, CONS, UT_Sequence,
+				   &l);
 	BACK;
 	*size = ret;
 	return 0;
 }
 
 static int
-decode_NegTokenResp(const unsigned char *p, size_t len, NegTokenResp * data, size_t * size)
+decode_NegTokenResp(const unsigned char *p, size_t len, NegTokenResp *data,
+		    size_t *size)
 {
 	size_t ret = 0, reallen;
 	size_t l;
-	int e;
+	int    e;
 
 	/* cppcheck-suppress uninitvar */
 	memset(data, 0, sizeof(*data));
 	reallen = 0;
-	e = der_match_tag_and_length(p, len, ASN1_C_UNIV, CONS, UT_Sequence, &reallen, &l);
+	e = der_match_tag_and_length(p, len, ASN1_C_UNIV, CONS, UT_Sequence,
+				     &reallen, &l);
 	FORW;
 	{
 		int dce_fix;
@@ -719,15 +785,21 @@ decode_NegTokenResp(const unsigned char *p, size_t len, NegTokenResp * data, siz
 				{
 					int mydce_fix;
 					oldlen = len;
-					if ((mydce_fix = fix_dce(newlen, &len)) < 0)
+					if ((mydce_fix =
+						     fix_dce(newlen, &len)) < 0)
 						return ASN1_BAD_FORMAT;
-					(data)->negState = malloc(sizeof(*(data)->negState));
+					(data)->negState = malloc(
+						sizeof(*(data)->negState));
 					if ((data)->negState == NULL)
 						return ENOMEM;
-					e = decode_enumerated(p, len, (data)->negState, &l);
+					e = decode_enumerated(
+						p, len, (data)->negState, &l);
 					FORW;
 					if (mydce_fix) {
-						e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+						e = der_match_tag_and_length(
+							p, len, (Der_class)0,
+							(Der_type)0, 0,
+							&reallen, &l);
 						FORW;
 					} else
 						len = oldlen - newlen;
@@ -749,15 +821,22 @@ decode_NegTokenResp(const unsigned char *p, size_t len, NegTokenResp * data, siz
 				{
 					int mydce_fix;
 					oldlen = len;
-					if ((mydce_fix = fix_dce(newlen, &len)) < 0)
+					if ((mydce_fix =
+						     fix_dce(newlen, &len)) < 0)
 						return ASN1_BAD_FORMAT;
-					(data)->supportedMech = malloc(sizeof(*(data)->supportedMech));
+					(data)->supportedMech = malloc(
+						sizeof(*(data)->supportedMech));
 					if ((data)->supportedMech == NULL)
 						return ENOMEM;
-					e = decode_MechType(p, len, (data)->supportedMech, &l);
+					e = decode_MechType(
+						p, len, (data)->supportedMech,
+						&l);
 					FORW;
 					if (mydce_fix) {
-						e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+						e = der_match_tag_and_length(
+							p, len, (Der_class)0,
+							(Der_type)0, 0,
+							&reallen, &l);
 						FORW;
 					} else
 						len = oldlen - newlen;
@@ -779,15 +858,22 @@ decode_NegTokenResp(const unsigned char *p, size_t len, NegTokenResp * data, siz
 				{
 					int mydce_fix;
 					oldlen = len;
-					if ((mydce_fix = fix_dce(newlen, &len)) < 0)
+					if ((mydce_fix =
+						     fix_dce(newlen, &len)) < 0)
 						return ASN1_BAD_FORMAT;
-					(data)->responseToken = malloc(sizeof(*(data)->responseToken));
+					(data)->responseToken = malloc(
+						sizeof(*(data)->responseToken));
 					if ((data)->responseToken == NULL)
 						return ENOMEM;
-					e = decode_octet_string(p, len, (data)->responseToken, &l);
+					e = decode_octet_string(
+						p, len, (data)->responseToken,
+						&l);
 					FORW;
 					if (mydce_fix) {
-						e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+						e = der_match_tag_and_length(
+							p, len, (Der_class)0,
+							(Der_type)0, 0,
+							&reallen, &l);
 						FORW;
 					} else
 						len = oldlen - newlen;
@@ -809,15 +895,22 @@ decode_NegTokenResp(const unsigned char *p, size_t len, NegTokenResp * data, siz
 				{
 					int mydce_fix;
 					oldlen = len;
-					if ((mydce_fix = fix_dce(newlen, &len)) < 0)
+					if ((mydce_fix =
+						     fix_dce(newlen, &len)) < 0)
 						return ASN1_BAD_FORMAT;
-					(data)->mechListMIC = malloc(sizeof(*(data)->mechListMIC));
+					(data)->mechListMIC = malloc(
+						sizeof(*(data)->mechListMIC));
 					if ((data)->mechListMIC == NULL)
 						return ENOMEM;
-					e = decode_octet_string(p, len, (data)->mechListMIC, &l);
+					e = decode_octet_string(
+						p, len, (data)->mechListMIC,
+						&l);
 					FORW;
 					if (mydce_fix) {
-						e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+						e = der_match_tag_and_length(
+							p, len, (Der_class)0,
+							(Der_type)0, 0,
+							&reallen, &l);
 						FORW;
 					} else
 						len = oldlen - newlen;
@@ -825,7 +918,9 @@ decode_NegTokenResp(const unsigned char *p, size_t len, NegTokenResp * data, siz
 			}
 		}
 		if (dce_fix) {
-			e = der_match_tag_and_length(p, len, (Der_class) 0, (Der_type) 0, 0, &reallen, &l);
+			e = der_match_tag_and_length(p, len, (Der_class)0,
+						     (Der_type)0, 0, &reallen,
+						     &l);
 			FORW;
 		}
 	}
@@ -838,7 +933,7 @@ fail:
 }
 
 static void
-free_NegTokenResp(NegTokenResp * data)
+free_NegTokenResp(NegTokenResp *data)
 {
 	if ((data)->negState) {
 		free((data)->negState);
@@ -863,12 +958,10 @@ free_NegTokenResp(NegTokenResp * data)
 
 /* unused function: length_NegTokenResp */
 
-
 /* unused function: copy_NegTokenResp */
 
 /* Generated from spnego.asn1 */
 /* Do not edit */
-
 
 /* CHOICE */
 /* unused variable: asn1_NegotiationToken_dummy_holder */

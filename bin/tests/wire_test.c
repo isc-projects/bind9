@@ -24,10 +24,10 @@
 #include <dns/message.h>
 #include <dns/result.h>
 
-int parseflags = 0;
+int	   parseflags = 0;
 isc_mem_t *mctx = NULL;
-bool printmemstats = false;
-bool dorender = false;
+bool	   printmemstats = false;
+bool	   dorender = false;
 
 static void
 process_message(isc_buffer_t *source);
@@ -36,7 +36,8 @@ static isc_result_t
 printmessage(dns_message_t *msg);
 
 static inline void
-CHECKRESULT(isc_result_t result, const char *msg) {
+CHECKRESULT(isc_result_t result, const char *msg)
+{
 	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, dns_result_totext(result));
 
@@ -45,7 +46,8 @@ CHECKRESULT(isc_result_t result, const char *msg) {
 }
 
 static int
-fromhex(char c) {
+fromhex(char c)
+{
 	if (c >= '0' && c <= '9')
 		return (c - '0');
 	else if (c >= 'a' && c <= 'f')
@@ -59,7 +61,8 @@ fromhex(char c) {
 }
 
 static void
-usage(void) {
+usage(void)
+{
 	fprintf(stderr, "wire_test [-b] [-d] [-p] [-r] [-s]\n");
 	fprintf(stderr, "          [-m {usage|trace|record|size|mctx}]\n");
 	fprintf(stderr, "          [filename]\n\n");
@@ -72,23 +75,24 @@ usage(void) {
 }
 
 static isc_result_t
-printmessage(dns_message_t *msg) {
+printmessage(dns_message_t *msg)
+{
 	isc_buffer_t b;
-	char *buf = NULL;
-	int len = 1024;
+	char *	     buf = NULL;
+	int	     len = 1024;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	do {
 		buf = isc_mem_get(mctx, len);
 
 		isc_buffer_init(&b, buf, len);
-		result = dns_message_totext(msg, &dns_master_style_debug,
-					    0, &b);
+		result =
+			dns_message_totext(msg, &dns_master_style_debug, 0, &b);
 		if (result == ISC_R_NOSPACE) {
 			isc_mem_put(mctx, buf, len);
 			len *= 2;
 		} else if (result == ISC_R_SUCCESS)
-			printf("%.*s\n", (int) isc_buffer_usedlength(&b), buf);
+			printf("%.*s\n", (int)isc_buffer_usedlength(&b), buf);
 	} while (result == ISC_R_NOSPACE);
 
 	if (buf != NULL)
@@ -98,15 +102,16 @@ printmessage(dns_message_t *msg) {
 }
 
 int
-main(int argc, char *argv[]) {
+main(int argc, char *argv[])
+{
 	isc_buffer_t *input = NULL;
-	bool need_close = false;
-	bool tcp = false;
-	bool rawdata = false;
-	isc_result_t result;
-	uint8_t c;
-	FILE *f;
-	int ch;
+	bool	      need_close = false;
+	bool	      tcp = false;
+	bool	      rawdata = false;
+	isc_result_t  result;
+	uint8_t	      c;
+	FILE *	      f;
+	int	      ch;
 
 #define CMDLINE_FLAGS "bdm:prst"
 	/*
@@ -136,29 +141,29 @@ main(int argc, char *argv[]) {
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
-			case 'b':
-				parseflags |= DNS_MESSAGEPARSE_BESTEFFORT;
-				break;
-			case 'd':
-				rawdata = true;
-				break;
-			case 'm':
-				break;
-			case 'p':
-				parseflags |= DNS_MESSAGEPARSE_PRESERVEORDER;
-				break;
-			case 'r':
-				dorender = true;
-				break;
-			case 's':
-				printmemstats = true;
-				break;
-			case 't':
-				tcp = true;
-				break;
-			default:
-				usage();
-				exit(1);
+		case 'b':
+			parseflags |= DNS_MESSAGEPARSE_BESTEFFORT;
+			break;
+		case 'd':
+			rawdata = true;
+			break;
+		case 'm':
+			break;
+		case 'p':
+			parseflags |= DNS_MESSAGEPARSE_PRESERVEORDER;
+			break;
+		case 'r':
+			dorender = true;
+			break;
+		case 's':
+			printmemstats = true;
+			break;
+		case 't':
+			tcp = true;
+			break;
+		default:
+			usage();
+			exit(1);
 		}
 	}
 
@@ -181,20 +186,20 @@ main(int argc, char *argv[]) {
 		while (fread(&c, 1, 1, f) != 0) {
 			result = isc_buffer_reserve(&input, 1);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			isc_buffer_putuint8(input, (uint8_t) c);
+			isc_buffer_putuint8(input, (uint8_t)c);
 		}
 	} else {
 		char s[BUFSIZ];
 
 		while (fgets(s, sizeof(s), f) != NULL) {
-			char *rp = s, *wp = s;
+			char * rp = s, *wp = s;
 			size_t i, len = 0;
 
 			while (*rp != '\0') {
 				if (*rp == '#')
 					break;
-				if (*rp != ' ' && *rp != '\t' &&
-				    *rp != '\r' && *rp != '\n') {
+				if (*rp != ' ' && *rp != '\t' && *rp != '\r' &&
+				    *rp != '\n') {
 					*wp++ = *rp;
 					len++;
 				}
@@ -204,7 +209,7 @@ main(int argc, char *argv[]) {
 				continue;
 			if (len % 2 != 0U) {
 				fprintf(stderr, "bad input format: %lu\n",
-				       (unsigned long)len);
+					(unsigned long)len);
 				exit(1);
 			}
 
@@ -215,7 +220,7 @@ main(int argc, char *argv[]) {
 				c += fromhex(*rp++);
 				result = isc_buffer_reserve(&input, 1);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
-				isc_buffer_putuint8(input, (uint8_t) c);
+				isc_buffer_putuint8(input, (uint8_t)c);
 			}
 		}
 	}
@@ -253,10 +258,11 @@ main(int argc, char *argv[]) {
 }
 
 static void
-process_message(isc_buffer_t *source) {
+process_message(isc_buffer_t *source)
+{
 	dns_message_t *message;
-	isc_result_t result;
-	int i;
+	isc_result_t   result;
+	int	       i;
 
 	message = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
@@ -274,8 +280,8 @@ process_message(isc_buffer_t *source) {
 		isc_mem_stats(mctx, stdout);
 
 	if (dorender) {
-		unsigned char b2[64 * 1024];
-		isc_buffer_t buffer;
+		unsigned char  b2[64 * 1024];
+		isc_buffer_t   buffer;
 		dns_compress_t cctx;
 
 		isc_buffer_init(&buffer, b2, sizeof(b2));
@@ -284,11 +290,11 @@ process_message(isc_buffer_t *source) {
 		 * XXXMLG
 		 * Changing this here is a hack, and should not be done in
 		 * reasonable application code, ever.
-		*/
+		 */
 		message->from_to_wire = DNS_MESSAGE_INTENTRENDER;
 
 		for (i = 0; i < DNS_SECTION_MAX; i++)
-			message->counts[i] = 0;  /* Another hack XXX */
+			message->counts[i] = 0; /* Another hack XXX */
 
 		result = dns_compress_init(&cctx, -1, mctx);
 		CHECKRESULT(result, "dns_compress_init() failed");
@@ -298,23 +304,22 @@ process_message(isc_buffer_t *source) {
 
 		result = dns_message_rendersection(message,
 						   DNS_SECTION_QUESTION, 0);
-		CHECKRESULT(result,
-			    "dns_message_rendersection(QUESTION) failed");
+		CHECKRESULT(result, "dns_message_rendersection(QUESTION) "
+				    "failed");
 
-		result = dns_message_rendersection(message,
-						   DNS_SECTION_ANSWER, 0);
-		CHECKRESULT(result,
-			    "dns_message_rendersection(ANSWER) failed");
+		result = dns_message_rendersection(message, DNS_SECTION_ANSWER,
+						   0);
+		CHECKRESULT(result, "dns_message_rendersection(ANSWER) failed");
 
 		result = dns_message_rendersection(message,
 						   DNS_SECTION_AUTHORITY, 0);
-		CHECKRESULT(result,
-			    "dns_message_rendersection(AUTHORITY) failed");
+		CHECKRESULT(result, "dns_message_rendersection(AUTHORITY) "
+				    "failed");
 
 		result = dns_message_rendersection(message,
 						   DNS_SECTION_ADDITIONAL, 0);
-		CHECKRESULT(result,
-			    "dns_message_rendersection(ADDITIONAL) failed");
+		CHECKRESULT(result, "dns_message_rendersection(ADDITIONAL) "
+				    "failed");
 
 		dns_message_renderend(message);
 

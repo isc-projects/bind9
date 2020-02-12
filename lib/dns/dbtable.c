@@ -15,29 +15,30 @@
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
-#include <dns/dbtable.h>
 #include <dns/db.h>
+#include <dns/dbtable.h>
 #include <dns/rbt.h>
 #include <dns/result.h>
 
 struct dns_dbtable {
 	/* Unlocked. */
-	unsigned int		magic;
-	isc_mem_t *		mctx;
-	dns_rdataclass_t	rdclass;
-	isc_rwlock_t		tree_lock;
+	unsigned int	 magic;
+	isc_mem_t *	 mctx;
+	dns_rdataclass_t rdclass;
+	isc_rwlock_t	 tree_lock;
 	/* Protected by atomics */
-	isc_refcount_t		references;
+	isc_refcount_t references;
 	/* Locked by tree_lock. */
-	dns_rbt_t *		rbt;
-	dns_db_t *		default_db;
+	dns_rbt_t *rbt;
+	dns_db_t * default_db;
 };
 
-#define DBTABLE_MAGIC		ISC_MAGIC('D', 'B', '-', '-')
-#define VALID_DBTABLE(dbtable)	ISC_MAGIC_VALID(dbtable, DBTABLE_MAGIC)
+#define DBTABLE_MAGIC ISC_MAGIC('D', 'B', '-', '-')
+#define VALID_DBTABLE(dbtable) ISC_MAGIC_VALID(dbtable, DBTABLE_MAGIC)
 
 static void
-dbdetach(void *data, void *arg) {
+dbdetach(void *data, void *arg)
+{
 	dns_db_t *db = data;
 
 	UNUSED(arg);
@@ -50,7 +51,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		   dns_dbtable_t **dbtablep)
 {
 	dns_dbtable_t *dbtable;
-	isc_result_t result;
+	isc_result_t   result;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(dbtablep != NULL && *dbtablep == NULL);
@@ -77,17 +78,18 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 	return (ISC_R_SUCCESS);
 
- clean3:
+clean3:
 	dns_rbt_destroy(&dbtable->rbt);
 
- clean1:
+clean1:
 	isc_mem_putanddetach(&mctx, dbtable, sizeof(*dbtable));
 
 	return (result);
 }
 
 static inline void
-dbtable_free(dns_dbtable_t *dbtable) {
+dbtable_free(dns_dbtable_t *dbtable)
+{
 	/*
 	 * Caller must ensure that it is safe to call.
 	 */
@@ -109,7 +111,8 @@ dbtable_free(dns_dbtable_t *dbtable) {
 }
 
 void
-dns_dbtable_attach(dns_dbtable_t *source, dns_dbtable_t **targetp) {
+dns_dbtable_attach(dns_dbtable_t *source, dns_dbtable_t **targetp)
+{
 	REQUIRE(VALID_DBTABLE(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
@@ -119,7 +122,8 @@ dns_dbtable_attach(dns_dbtable_t *source, dns_dbtable_t **targetp) {
 }
 
 void
-dns_dbtable_detach(dns_dbtable_t **dbtablep) {
+dns_dbtable_detach(dns_dbtable_t **dbtablep)
+{
 	dns_dbtable_t *dbtable;
 
 	REQUIRE(dbtablep != NULL);
@@ -133,9 +137,10 @@ dns_dbtable_detach(dns_dbtable_t **dbtablep) {
 }
 
 isc_result_t
-dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db) {
+dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db)
+{
 	isc_result_t result;
-	dns_db_t *dbclone;
+	dns_db_t *   dbclone;
 
 	REQUIRE(VALID_DBTABLE(dbtable));
 	REQUIRE(dns_db_class(db) == dbtable->rdclass);
@@ -151,10 +156,11 @@ dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db) {
 }
 
 void
-dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
-	dns_db_t *stored_data = NULL;
+dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db)
+{
+	dns_db_t *   stored_data = NULL;
 	isc_result_t result;
-	dns_name_t *name;
+	dns_name_t * name;
 
 	REQUIRE(VALID_DBTABLE(dbtable));
 
@@ -171,7 +177,7 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 
 	result = dns_rbt_findname(dbtable->rbt, name, 0, NULL,
-				  (void **) (void *)&stored_data);
+				  (void **)(void *)&stored_data);
 
 	if (result == ISC_R_SUCCESS) {
 		INSIST(stored_data == db);
@@ -183,7 +189,8 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 }
 
 void
-dns_dbtable_adddefault(dns_dbtable_t *dbtable, dns_db_t *db) {
+dns_dbtable_adddefault(dns_dbtable_t *dbtable, dns_db_t *db)
+{
 	REQUIRE(VALID_DBTABLE(dbtable));
 	REQUIRE(dbtable->default_db == NULL);
 	REQUIRE(dns_name_compare(dns_db_origin(db), dns_rootname) == 0);
@@ -197,7 +204,8 @@ dns_dbtable_adddefault(dns_dbtable_t *dbtable, dns_db_t *db) {
 }
 
 void
-dns_dbtable_getdefault(dns_dbtable_t *dbtable, dns_db_t **dbp) {
+dns_dbtable_getdefault(dns_dbtable_t *dbtable, dns_db_t **dbp)
+{
 	REQUIRE(VALID_DBTABLE(dbtable));
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
@@ -209,7 +217,8 @@ dns_dbtable_getdefault(dns_dbtable_t *dbtable, dns_db_t **dbp) {
 }
 
 void
-dns_dbtable_removedefault(dns_dbtable_t *dbtable) {
+dns_dbtable_removedefault(dns_dbtable_t *dbtable)
+{
 	REQUIRE(VALID_DBTABLE(dbtable));
 
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
@@ -223,7 +232,7 @@ isc_result_t
 dns_dbtable_find(dns_dbtable_t *dbtable, const dns_name_t *name,
 		 unsigned int options, dns_db_t **dbp)
 {
-	dns_db_t *stored_data = NULL;
+	dns_db_t *   stored_data = NULL;
 	isc_result_t result;
 	unsigned int rbtoptions = 0;
 
@@ -235,7 +244,7 @@ dns_dbtable_find(dns_dbtable_t *dbtable, const dns_name_t *name,
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
 
 	result = dns_rbt_findname(dbtable->rbt, name, rbtoptions, NULL,
-				  (void **) (void *)&stored_data);
+				  (void **)(void *)&stored_data);
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		dns_db_attach(stored_data, dbp);
