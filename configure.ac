@@ -7,7 +7,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-AC_INIT(BIND, [9.15], [info@isc.org], [], [https://www.isc.org/downloads/BIND/])
+AC_INIT(BIND, [9.15], [info@isc.org], [], [https://www.isc.org/downloads/])
 AC_PREREQ([2.60])
 
 #
