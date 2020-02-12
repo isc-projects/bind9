@@ -233,7 +233,10 @@ Change the default TCP/UDP name server port to
 .RS 4
 Change the type of the information query\&.
 .sp
-(Default = A; abbreviations = q, ty)
+(Default = A and then AAAA; abbreviations = q, ty)
+.sp
+\fBNote:\fR
+It is only possible to specify one query type, only the default behavior looks up both when an alternative is not specified\&.
 .RE
 .PP
 \fB\fI[no]\fR\fR\fBrecurse\fR

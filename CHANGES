@@ -1,3 +1,5 @@
+	--- 9.11.16 released ---
+
 5353.	[doc]		Document port and dscp parameters in forwarders
 			configuration option. [GL #914]
 
@@ -12,7 +14,7 @@
 			success for non-existent records. [GL #1540]
 
 5348.	[bug]		dnssec-settime -Psync was not being honoured.
-			[GL !2893]
+			[GL !2925]
 
 	--- 9.11.15 released ---
 
