@@ -3,14 +3,13 @@
 			  "max-zone-ttl" for consistency with the existing
 			  zone option.
 			- Allow for "lifetime unlimited" as a synonym for
-			  "lifetime PT0S"
+			  "lifetime PT0S".
 			- Make "key-directory" optional.
 			- Warn if specifying a key length does not make
 			  sense; fail if key length is out of range for
 			  the algorithm.
-			- Allow the use of mnemonics when specifying
-			  key algorithm (e.g. "rsasha256", "ecdsa384",
-			  etc).
+			- Allow use of mnemonics when specifying key
+			  algorithm (e.g. "rsasha256", "ecdsa384", etc.).
 			- Make ISO 8601 durations case-insensitive.
 			[GL #1598]
 
@@ -19,14 +18,14 @@
 			a --with-tuning=small option was added for small
 			(e.g. OpenWRT) systems. [GL !2989]
 
-5354.	[bug]		dnssec-policy created new KSK keys when zone is in
-			initial stage of signing (the DS is not yet in
-			rumoured or omnipresent state).  Fix by checking
-			key goals rather than active state when determining
-			new keys are needed. [GL #1593]
+5354.	[bug]		dnssec-policy created new KSK keys for zones in the
+			initial stage of signing (with the DS not yet in the
+			rumoured or omnipresent states).  Fix by checking the
+			key goals rather than the active state when determining
+			whether new keys are needed. [GL #1593]
 
 5353.	[doc]		Document port and dscp parameters in forwarders
-			configuration option. [GL !914]
+			configuration option. [GL #914]
 
 5352.	[bug]		Correctly handle catalog zone entries containing
 			characters that aren't legal in filenames. [GL #1592]
