@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.15
+Release Notes for BIND Version 9.11.16
 
 Introduction
 
@@ -35,6 +35,13 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.16
+
+Bug Fixes
+
+  * named crashed when it was queried for a nonexistent name in the CHAOS
+    class. [GL #1540]
 
 Notes for BIND 9.11.15
 
@@ -106,8 +113,8 @@ Bug Fixes
   * named-checkconf now correctly reports a missing dnstap-output option
     when dnstap is set. [GL #1136]
 
-  * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL #
-    1133]
+  * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL
+    #1133]
 
 Notes for BIND 9.11.9
 
@@ -160,8 +167,8 @@ Feature Changes
 
     This combination of settings was never intended to work, but there was
     no check for it in the parser. This has been corrected; a warning is
-    now logged. (In BIND 9.15 and higher this error will be fatal.) [GL #
-    868]
+    now logged. (In BIND 9.15 and higher this error will be fatal.) [GL
+    #868]
 
 Notes for BIND 9.11.6
 
@@ -355,8 +362,8 @@ Bug Fixes
     files. Such code should explicitly include <isc/util.h>.
 
   * Zones created with rndc addzone could temporarily fail to inherit the
-    allow-transfer ACL set in the options section of named.conf. [RT #
-    46603]
+    allow-transfer ACL set in the options section of named.conf. [RT
+    #46603]
 
   * named failed to properly determine whether there were active KSK and
     ZSK keys for an algorithm when update-check-ksk was true (which is the
@@ -485,21 +492,21 @@ Bug Fixes
 
   * A synthesized CNAME record appearing in a response before the
     associated DNAME could be cached, when it should not have been. This
-    was a regression introduced while addressing CVE-2016-8864. [RT #
-    44318]
+    was a regression introduced while addressing CVE-2016-8864. [RT
+    #44318]
 
   * named could deadlock if multiple changes to NSEC/NSEC3 parameters for
     the same zone were being processed at the same time. [RT #42770]
 
-  * named could trigger an assertion when sending NOTIFY messages. [RT #
-    44019]
+  * named could trigger an assertion when sending NOTIFY messages. [RT
+    #44019]
 
   * Referencing a nonexistent zone in a response-policy statement could
     cause an assertion failure during configuration. [RT #43787]
 
   * rndc addzone could cause a crash when attempting to add a zone with a
-    type other than master or slave. Such zones are now rejected. [RT #
-    43665]
+    type other than master or slave. Such zones are now rejected. [RT
+    #43665]
 
   * named could hang when encountering log file names with large apparent
     gaps in version number (for example, when files exist called
@@ -842,8 +849,8 @@ New Features
     for type ANY by implementing one of the strategies in
     "draft-ietf-dnsop-refuse-any": returning a single arbitrarily-selected
     RRset that matches the query name rather than returning all of the
-    matching RRsets. Thanks to Tony Finch for the contribution. [RT #
-    41615]
+    matching RRsets. Thanks to Tony Finch for the contribution. [RT
+    #41615]
 
   * named now provides feedback to the owners of zones which have trust
     anchors configured (trusted-keys, managed-keys, dnssec-validation
