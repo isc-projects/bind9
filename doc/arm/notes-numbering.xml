@@ -11,20 +11,10 @@
 
 <section xml:id="relnotes_versions"><info><title>Note on Version Numbering</title></info>
   <para>
-    Until BIND 9.12, new feature development releases were tagged
-    as "alpha" and "beta", leading up to the first stable release
-    for a given development branch, which always ended in ".0".
-    More recently, BIND adopted the "odd-unstable/even-stable"
-    release numbering convention. There will be no "alpha" or "beta"
-    releases in the 9.15 branch, only increasing version numbers.
-    So, for example, what would previously have been called 9.15.0a1,
-    9.15.0a2, 9.15.0b1, and so on, will instead be called 9.15.0,
-    9.15.1, 9.15.2, etc.
-  </para>
-  <para>
-    The first stable release from this development branch will be
-    renamed as 9.16.0. Thereafter, maintenance releases will continue
-    on the 9.16 branch, while unstable feature development proceeds in
-    9.17.
+    As of BIND 9.13/9.14, BIND has adopted the "odd-unstable/even-stable"
+    release numbering convention.  BIND 9.16 contains new features added
+    during the BIND 9.15 development process. Henceforth, the 9.16 branch
+    will be limited to bug fixes and new feature development will proceed
+    in the unstable 9.17 branch.
   </para>
 </section>

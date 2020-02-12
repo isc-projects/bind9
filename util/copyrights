@@ -1466,15 +1466,7 @@
 ./doc/arm/master.zoneopt.xml			SGML	2018,2019,2020
 ./doc/arm/masters.grammar.xml			SGML	2018,2019,2020
 ./doc/arm/mirror.zoneopt.xml			SGML	2018,2019,2020
-./doc/arm/notes-9.15.0.xml			SGML	2019,2020
-./doc/arm/notes-9.15.1.xml			SGML	2019,2020
-./doc/arm/notes-9.15.2.xml			SGML	2019,2020
-./doc/arm/notes-9.15.3.xml			SGML	2019,2020
-./doc/arm/notes-9.15.4.xml			SGML	2019,2020
-./doc/arm/notes-9.15.5.xml			SGML	2019,2020
-./doc/arm/notes-9.15.6.xml			SGML	2019,2020
-./doc/arm/notes-9.15.7.xml			SGML	2019,2020
-./doc/arm/notes-9.15.8.xml			SGML	2020
+./doc/arm/notes-9.16.0.xml			SGML	2020
 ./doc/arm/notes-download.xml			SGML	2019,2020
 ./doc/arm/notes-eol.xml				SGML	2019,2020
 ./doc/arm/notes-intro.xml			SGML	2019,2020
