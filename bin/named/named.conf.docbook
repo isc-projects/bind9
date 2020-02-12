@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2019-12-12</date>
+    <date>2020-02-07</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -115,8 +115,8 @@ dlz <replaceable>string</replaceable> {
     <literallayout class="normal">
 dnssec-policy <replaceable>string</replaceable> {
 	dnskey-ttl <replaceable>duration</replaceable>;
-	keys { ( csk | ksk | zsk ) ( key-directory ) lifetime ( <replaceable>duration</replaceable> | unlimited )
-	    algorithm <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ]; ... };
+	keys { ( csk | ksk | zsk ) [ ( key-directory ) ] lifetime
+	    <replaceable>duration_or_unlimited</replaceable> algorithm <replaceable>string</replaceable> [ <replaceable>integer</replaceable> ]; ... };
 	max-zone-ttl <replaceable>duration</replaceable>;
 	parent-ds-ttl <replaceable>duration</replaceable>;
 	parent-propagation-delay <replaceable>duration</replaceable>;

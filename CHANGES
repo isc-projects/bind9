@@ -1,3 +1,5 @@
+	--- 9.16.0 released ---
+
 5356.	[func]		Update dnssec-policy configuration statements:
 			- Rename "zone-max-ttl" dnssec-policy option to
 			  "max-zone-ttl" for consistency with the existing
@@ -40,7 +42,7 @@
 5349.	[bug]		Fix a race in task_pause/unpause. [GL #1571]
 
 5348.	[bug]		dnssec-settime -Psync was not being honoured.
-			[GL !2893]
+			[GL !2925]
 
 	--- 9.15.8 released ---
 

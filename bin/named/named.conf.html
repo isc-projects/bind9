@@ -92,7 +92,28 @@ dlz <em class="replaceable"><code>string</code></em> {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.11"></a><h2>DYNDB</h2>
+<a name="id-1.11"></a><h2>DNSSEC-POLICY</h2>
+    <div class="literallayout"><p><br>
+dnssec-policy <em class="replaceable"><code>string</code></em> {<br>
+	dnskey-ttl <em class="replaceable"><code>duration</code></em>;<br>
+	keys { ( csk | ksk | zsk ) [ ( key-directory ) ] lifetime<br>
+	    <em class="replaceable"><code>duration_or_unlimited</code></em> algorithm <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>integer</code></em> ]; ... };<br>
+	max-zone-ttl <em class="replaceable"><code>duration</code></em>;<br>
+	parent-ds-ttl <em class="replaceable"><code>duration</code></em>;<br>
+	parent-propagation-delay <em class="replaceable"><code>duration</code></em>;<br>
+	parent-registration-delay <em class="replaceable"><code>duration</code></em>;<br>
+	publish-safety <em class="replaceable"><code>duration</code></em>;<br>
+	retire-safety <em class="replaceable"><code>duration</code></em>;<br>
+	signatures-refresh <em class="replaceable"><code>duration</code></em>;<br>
+	signatures-validity <em class="replaceable"><code>duration</code></em>;<br>
+	signatures-validity-dnskey <em class="replaceable"><code>duration</code></em>;<br>
+	zone-propagation-delay <em class="replaceable"><code>duration</code></em>;<br>
+};<br>
+</p></div>
+  </div>
+
+  <div class="refsection">
+<a name="id-1.12"></a><h2>DYNDB</h2>
     <div class="literallayout"><p><br>
 dyndb <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>quoted_string</code></em> {<br>
     <em class="replaceable"><code>unspecified-text</code></em> };<br>
@@ -100,7 +121,7 @@ dyndb <em class="replaceable"><code>string</code></em> <em class="replaceable"><
   </div>
 
   <div class="refsection">
-<a name="id-1.12"></a><h2>KEY</h2>
+<a name="id-1.13"></a><h2>KEY</h2>
     <div class="literallayout"><p><br>
 key <em class="replaceable"><code>string</code></em> {<br>
 	algorithm <em class="replaceable"><code>string</code></em>;<br>
@@ -110,7 +131,7 @@ key <em class="replaceable"><code>string</code></em> {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.13"></a><h2>LOGGING</h2>
+<a name="id-1.14"></a><h2>LOGGING</h2>
     <div class="literallayout"><p><br>
 logging {<br>
 	category <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
@@ -131,8 +152,8 @@ logging {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14"></a><h2>MANAGED-KEYS</h2>
-  <p>Deprecated - see TRUST-ANCHORS.</p>
+<a name="id-1.15"></a><h2>MANAGED-KEYS</h2>
+  <p>Deprecated - see DNSSEC-KEYS.</p>
     <div class="literallayout"><p><br>
 managed-keys { <em class="replaceable"><code>string</code></em> ( static-key<br>
     | initial-key | static-ds |<br>
@@ -142,7 +163,7 @@ managed-keys { <em class="replaceable"><code>string</code></em> ( static-key<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.15"></a><h2>MASTERS</h2>
+<a name="id-1.16"></a><h2>MASTERS</h2>
     <div class="literallayout"><p><br>
 masters <em class="replaceable"><code>string</code></em> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp<br>
     <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [<br>
@@ -152,7 +173,7 @@ masters <em class="replaceable"><code>string</code></em> [ port <em class="repla
   </div>
 
   <div class="refsection">
-<a name="id-1.16"></a><h2>OPTIONS</h2>
+<a name="id-1.17"></a><h2>OPTIONS</h2>
     <div class="literallayout"><p><br>
 options {<br>
 	allow-new-zones <em class="replaceable"><code>boolean</code></em>;<br>
@@ -232,6 +253,7 @@ options {<br>
 	dnssec-dnskey-kskonly <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-loadkeys-interval <em class="replaceable"><code>integer</code></em>;<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
+	dnssec-policy <em class="replaceable"><code>string</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-update-mode ( maintain | no-resign );<br>
 	dnssec-validation ( yes | no | auto );<br>
@@ -381,8 +403,8 @@ options {<br>
 	    <em class="replaceable"><code>integer</code></em>;<br>
 	response-policy { zone <em class="replaceable"><code>string</code></em> [ add-soa <em class="replaceable"><code>boolean</code></em> ] [ log<br>
 	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [ min-update-interval<br>
-	    <em class="replaceable"><code>duration</code></em> ] [ policy ( cname | disabled | drop | given | no-op |<br>
-	    nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [<br>
+	    <em class="replaceable"><code>duration</code></em> ] [ policy ( cname | disabled | drop | given | no-op<br>
+	    | nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [<br>
 	    recursive-only <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    nsdname-enable <em class="replaceable"><code>boolean</code></em> ]; ... } [ add-soa <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [<br>
@@ -451,7 +473,7 @@ options {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.17"></a><h2>PLUGIN</h2>
+<a name="id-1.18"></a><h2>PLUGIN</h2>
     <div class="literallayout"><p><br>
 plugin ( query ) <em class="replaceable"><code>string</code></em> [ { <em class="replaceable"><code>unspecified-text</code></em><br>
     } ];<br>
@@ -459,7 +481,7 @@ plugin ( query ) <em class="replaceable"><code>string</code></em> [ { <em class=
   </div>
 
   <div class="refsection">
-<a name="id-1.18"></a><h2>SERVER</h2>
+<a name="id-1.19"></a><h2>SERVER</h2>
     <div class="literallayout"><p><br>
 server <em class="replaceable"><code>netprefix</code></em> {<br>
 	bogus <em class="replaceable"><code>boolean</code></em>;<br>
@@ -497,7 +519,7 @@ server <em class="replaceable"><code>netprefix</code></em> {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.19"></a><h2>STATISTICS-CHANNELS</h2>
+<a name="id-1.20"></a><h2>STATISTICS-CHANNELS</h2>
     <div class="literallayout"><p><br>
 statistics-channels {<br>
 	inet ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> |<br>
@@ -509,7 +531,7 @@ statistics-channels {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.20"></a><h2>TRUST-ANCHORS</h2>
+<a name="id-1.21"></a><h2>TRUST-ANCHORS</h2>
     <div class="literallayout"><p><br>
 trust-anchors { <em class="replaceable"><code>string</code></em> ( static-key |<br>
     initial-key | static-ds | initial-ds )<br>
@@ -519,8 +541,8 @@ trust-anchors { <em class="replaceable"><code>string</code></em> ( static-key |<
   </div>
 
   <div class="refsection">
-<a name="id-1.21"></a><h2>TRUSTED-KEYS</h2>
-  <p>Deprecated - see TRUST-ANCHORS.</p>
+<a name="id-1.22"></a><h2>TRUSTED-KEYS</h2>
+  <p>Deprecated - see DNSSEC-KEYS.</p>
     <div class="literallayout"><p><br>
 trusted-keys { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em><br>
     <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
@@ -529,7 +551,7 @@ trusted-keys { <em class="replaceable"><code>string</code></em> <em class="repla
   </div>
 
   <div class="refsection">
-<a name="id-1.22"></a><h2>VIEW</h2>
+<a name="id-1.23"></a><h2>VIEW</h2>
     <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {<br>
 	allow-new-zones <em class="replaceable"><code>boolean</code></em>;<br>
@@ -602,6 +624,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	dnssec-dnskey-kskonly <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-loadkeys-interval <em class="replaceable"><code>integer</code></em>;<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
+	dnssec-policy <em class="replaceable"><code>string</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-update-mode ( maintain | no-resign );<br>
 	dnssec-validation ( yes | no | auto );<br>
@@ -725,8 +748,8 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    <em class="replaceable"><code>integer</code></em>;<br>
 	response-policy { zone <em class="replaceable"><code>string</code></em> [ add-soa <em class="replaceable"><code>boolean</code></em> ] [ log<br>
 	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [ min-update-interval<br>
-	    <em class="replaceable"><code>duration</code></em> ] [ policy ( cname | disabled | drop | given | no-op |<br>
-	    nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [<br>
+	    <em class="replaceable"><code>duration</code></em> ] [ policy ( cname | disabled | drop | given | no-op<br>
+	    | nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [<br>
 	    recursive-only <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    nsdname-enable <em class="replaceable"><code>boolean</code></em> ]; ... } [ add-soa <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [<br>
@@ -908,7 +931,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
   </div>
 
   <div class="refsection">
-<a name="id-1.23"></a><h2>ZONE</h2>
+<a name="id-1.24"></a><h2>ZONE</h2>
     <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {<br>
 	allow-notify { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -1003,27 +1026,6 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	use-alt-transfer-source <em class="replaceable"><code>boolean</code></em>;<br>
 	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
 	zone-statistics ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );<br>
-};<br>
-</p></div>
-  </div>
-
-  <div class="refsection">
-<a name="id-1.24"></a><h2>DNSSEC-POLICY</h2>
-
-    <div class="literallayout"><p><br>
-dnssec-policy <em class="replaceable"><code>string</code></em> {<br>
-	dnskey-ttl <em class="replaceable"><code>duration</code></em>;<br>
-	keys { ( csk | ksk | zsk ) key-directory lifetime <em class="replaceable"><code>duration</code></em> algorithm <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ] ; ... };<br>
-	parent-ds-ttl <em class="replaceable"><code>duration</code></em>;<br>
-	parent-propagation-delay <em class="replaceable"><code>duration</code></em>;<br>
-	parent-registration-delay <em class="replaceable"><code>duration</code></em>;<br>
-	publish-safety <em class="replaceable"><code>duration</code></em>;<br>
-	retire-safety <em class="replaceable"><code>duration</code></em>;<br>
-	signatures-refresh <em class="replaceable"><code>duration</code></em>;<br>
-	signatures-validity <em class="replaceable"><code>duration</code></em>;<br>
-	signatures-validity-dnskey <em class="replaceable"><code>duration</code></em>;<br>
-	zone-max-ttl <em class="replaceable"><code>duration</code></em>;<br>
-	zone-propagation-delay <em class="replaceable"><code>duration</code></em>;<br>
 };<br>
 </p></div>
   </div>

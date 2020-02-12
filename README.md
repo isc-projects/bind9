@@ -254,7 +254,7 @@ and `libprotobuf-c`
 [https://developers.google.com/protocol-buffers](https://developers.google.com/protocol-buffers),
 and BIND must be configured with `--enable-dnstap`.
 
-Certain compiled-in constants and default settings can be increased to
+Certain compiled-in constants and default settings can be decreased to
 values better suited to small machines, e.g. OpenWRT boxes, by specifying
 `--with-tuning=small` on the `configure` command line. This will decrease
 memory usage by using smaller structures, but will degrade performance.

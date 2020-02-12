@@ -111,9 +111,9 @@ format-patch.
 
 BIND 9.16 features
 
-BIND 9.16 is the current stable branch of BIND 9. It includes all
-changes from the 9.15 development branch, updating the previous stable
-branch, 9.14. New features include:
+BIND 9.16 is the current stable branch of BIND 9. It includes all changes
+from the 9.15 development branch, updating the previous stable branch,
+9.14. New features include:
 
   * New dnssec-policy statement to configure a key and signing policy for
     zones, enabling automatic key regeneration and rollover.
@@ -237,12 +237,10 @@ github.com/farsightsec/fstrm and libprotobuf-c https://
 developers.google.com/protocol-buffers, and BIND must be configured with
 --enable-dnstap.
 
-Certain compiled-in constants and default settings can be increased to
-values better suited to large servers with abundant memory resources (e.g,
-64-bit servers with 12G or more of memory) by specifying --with-tuning=
-large on the configure command line. This can improve performance on big
-servers, but will consume more memory and may degrade performance on
-smaller systems.
+Certain compiled-in constants and default settings can be decreased to
+values better suited to small machines, e.g. OpenWRT boxes, by specifying
+--with-tuning=small on the configure command line. This will decrease
+memory usage by using smaller structures, but will degrade performance.
 
 On Linux, process capabilities are managed in user space using the libcap
 library, which can be installed on most Linux systems via the libcap-dev
