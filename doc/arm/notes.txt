@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.14.10
+Release Notes for BIND Version 9.14.11
 
 Introduction
 
@@ -48,6 +48,13 @@ The latest versions of BIND 9 software can always be found at https://
 www.isc.org/download/. There you will find additional information about
 each release, source code, and pre-compiled versions for Microsoft Windows
 operating systems.
+
+Notes for BIND 9.14.11
+
+Bug Fixes
+
+  * named crashed when it was queried for a nonexistent name in the CHAOS
+    class. [GL #1540]
 
 Notes for BIND 9.14.10
 
@@ -144,8 +151,8 @@ Bug Fixes
   * named-checkconf now correctly reports a missing dnstap-output option
     when dnstap is set. [GL #1136]
 
-  * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL #
-    1133]
+  * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL
+    #1133]
 
 Notes for BIND 9.14.4
 
@@ -209,8 +216,8 @@ Feature Changes
 
     This combination of settings was never intended to work, but there was
     no check for it in the parser. This has been corrected; a warning is
-    now logged. (In BIND 9.15 and higher this error will be fatal.) [GL #
-    868]
+    now logged. (In BIND 9.15 and higher this error will be fatal.) [GL
+    #868]
 
 Notes for BIND 9.14.1
 

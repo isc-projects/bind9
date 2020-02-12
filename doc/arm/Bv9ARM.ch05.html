@@ -2101,41 +2101,40 @@ category notify { null; };
 <a name="query_errors"></a>The <span class="command"><strong>query-errors</strong></span> Category</h4></div></div></div>
           <p>
             The <span class="command"><strong>query-errors</strong></span> category is
-            specifically intended for debugging purposes: To identify
-            why and how specific queries result in responses which
-            indicate an error.
-            Messages of this category are therefore only logged
-            with <span class="command"><strong>debug</strong></span> levels.
+            used to indicate why and how specific queries resulted in
+            responses which indicate an error.  Normally, these messages
+            will be logged at <span class="command"><strong>debug</strong></span> logging levels;
+            note, however, that if query logging is active, some will be
+            logged at <span class="command"><strong>info</strong></span>. The logging levels are
+            described below:
           </p>
 
           <p>
-            At the debug levels of 1 or higher, each response with the
-            rcode of SERVFAIL is logged as follows:
+            At <span class="command"><strong>debug</strong></span> level 1 or higher - or at
+            <span class="command"><strong>info</strong></span>, when query logging is active - each
+            response with response code SERVFAIL will be logged as follows:
           </p>
           <p>
             <code class="computeroutput">client 127.0.0.1#61502: query failed (SERVFAIL) for www.example.com/IN/AAAA at query.c:3880</code>
           </p>
           <p>
-            This means an error resulting in SERVFAIL was
-            detected at line 3880 of source file
-            <code class="filename">query.c</code>.
-            Log messages of this level will particularly
-            help identify the cause of SERVFAIL for an
-            authoritative server.
+            This means an error resulting in SERVFAIL was detected at line
+            3880 of source file <code class="filename">query.c</code>.  Log messages
+            of this level will particularly help identify the cause of
+            SERVFAIL for an authoritative server.
           </p>
           <p>
-            At the debug levels of 2 or higher, detailed context
-            information of recursive resolutions that resulted in
-            SERVFAIL is logged.
-            The log message will look like as follows:
+            At <span class="command"><strong>debug</strong></span> level 2 or higher, detailed
+            context information about recursive resolutions that resulted in
+            SERVFAIL will be logged.  The log message will look like this:
           </p>
           <p>
 
             </p>
 <pre class="programlisting">
 fetch completed at resolver.c:2970 for www.example.com/A
-in 30.000183: timed out/success [domain:example.com,
-referral:2,restart:7,qrysent:8,timeout:5,lame:0,neterr:0,
+in 10.000183: timed out/success [domain:example.com,
+referral:2,restart:7,qrysent:8,timeout:5,lame:0,quota:0,neterr:0,
 badresp:1,adberr:0,findfail:0,valfail:0]
             </pre>
 <p>
@@ -2143,29 +2142,25 @@ badresp:1,adberr:0,findfail:0,valfail:0]
           <p>
             The first part before the colon shows that a recursive
             resolution for AAAA records of www.example.com completed
-            in 30.000183 seconds and the final result that led to the
+            in 10.000183 seconds and the final result that led to the
             SERVFAIL was determined at line 2970 of source file
             <code class="filename">resolver.c</code>.
           </p>
           <p>
             The following part shows the detected final result and the
-            latest result of DNSSEC validation.
-            The latter is always success when no validation attempt
-            is made.
-            In this example, this query resulted in SERVFAIL probably
-            because all name servers are down or unreachable, leading
-            to a timeout in 30 seconds.
-            DNSSEC validation was probably not attempted.
+            latest result of DNSSEC validation.  The latter is always
+            "success" when no validation attempt was made.  In this example,
+            this query probably resulted in SERVFAIL because all name
+            servers are down or unreachable, leading to a timeout in 10
+            seconds.  DNSSEC validation was probably not attempted.
           </p>
           <p>
-            The last part enclosed in square brackets shows statistics
-            information collected for this particular resolution
-            attempt.
-            The <code class="varname">domain</code> field shows the deepest zone
-            that the resolver reached;
-            it is the zone where the error was finally detected.
-            The meaning of the other fields is summarized in the
-            following table.
+            The last part, enclosed in square brackets, shows statistics
+            collected for this particular resolution attempt.
+            The <code class="varname">domain</code> field shows the deepest zone that
+            the resolver reached; it is the zone where the error was
+            finally detected.  The meaning of the other fields is
+            summarized in the following table.
           </p>
 
           <div class="informaltable">
@@ -2243,6 +2238,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 </tr>
 <tr>
 <td>
+                    <p><code class="varname">quota</code></p>
+                  </td>
+<td>
+                    <p>
+                      The number of times the resolver was unable
+                      to send a query because it had exceeded the
+                      permissible fetch quota for a server.
+                    </p>
+                  </td>
+</tr>
+<tr>
+<td>
                     <p><code class="varname">neterr</code></p>
                   </td>
 <td>
@@ -2311,20 +2318,17 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 </table>
           </div>
           <p>
-            At the debug levels of 3 or higher, the same messages
-            as those at the debug 1 level are logged for other errors
-            than SERVFAIL.
-            Note that negative responses such as NXDOMAIN are not
-            regarded as errors here.
+            At <span class="command"><strong>debug</strong></span> level 3 or higher, the same
+            messages as those at <span class="command"><strong>debug</strong></span> level 1 will be
+            logged for other errors than SERVFAIL. Note that negative
+            responses such as NXDOMAIN are not errors, and are not logged
+            at this debug level.
           </p>
           <p>
-            At the debug levels of 4 or higher, the same messages
-            as those at the debug 2 level are logged for other errors
-            than SERVFAIL.
-            Unlike the above case of level 3, messages are logged for
-            negative responses.
-            This is because any unexpected results can be difficult to
-            debug in the recursion case.
+            At <span class="command"><strong>debug</strong></span> level 4 or higher, the
+            detailed context information logged at <span class="command"><strong>debug</strong></span>
+            level 2 will be logged for other errors than SERVFAIL and
+            for negative resonses such as NXDOMAIN.
           </p>
         </div>
       </div>
@@ -4772,11 +4776,22 @@ options {
 <dt><span class="term"><span class="command"><strong>querylog</strong></span></span></dt>
 <dd>
                 <p>
-                  Specify whether query logging should be started when <span class="command"><strong>named</strong></span>
-                  starts.
-                  If <span class="command"><strong>querylog</strong></span> is not specified,
-                  then the query logging
-                  is determined by the presence of the logging category <span class="command"><strong>queries</strong></span>.
+                  Query logging provides a complete log of all incoming
+                  queries and all query errors. This provides more insight
+                  into the server's activity, but with a cost to
+                  performance which may be significant on heavily-loaded
+                  servers.
+                </p>
+                <p>
+                  The <span class="command"><strong>querylog</strong></span> option specifies
+                  whether query logging should be active when
+                  <span class="command"><strong>named</strong></span> first starts.
+                  If <span class="command"><strong>querylog</strong></span> is not specified, then
+                  query logging is determined by the presence of the
+                  logging category <span class="command"><strong>queries</strong></span>.
+                  Query logging can also be activated at runtime using the
+                  command <span class="command"><strong>rndc querylog on</strong></span>, or
+                  deactivated with <span class="command"><strong>rndc querylog off</strong></span>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>check-names</strong></span></span></dt>
@@ -5055,9 +5070,11 @@ options {
 <dt><span class="term"><span class="command"><strong>forwarders</strong></span></span></dt>
 <dd>
                 <p>
-                  Specifies the IP addresses to be used
-                  for forwarding. The default is the empty list (no
-                  forwarding).
+                  Specifies a list of IP addresses to which queries shall be
+                  forwarded. The default is the empty list (no forwarding).
+                  Each address in the list can be associated with an optional
+                  port number and/or DSCP value, and a default port number and
+                  DSCP value can be set for the entire list.
                 </p>
               </dd>
 </dl></div>
@@ -7267,6 +7284,11 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   The default is the real version number of this server.
                   Specifying <span class="command"><strong>version none</strong></span>
                   disables processing of the queries.
+                </p>
+                <p>
+                  Setting <span class="command"><strong>version</strong></span> to any value
+                  (including <code class="literal">none</code>) will also
+                  disable queries for <code class="literal">authors.bind TXT CH</code>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>hostname</strong></span></span></dt>
@@ -14933,6 +14955,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.10 (Stable Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.11 (Stable Release)</p>
 </body>
 </html>
