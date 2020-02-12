@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_BYADDR_H
 #define DNS_BYADDR_H 1
 
@@ -40,8 +39,8 @@
  *\li	Drafts:	TBS
  */
 
-#include <isc/lang.h>
 #include <isc/event.h>
+#include <isc/lang.h>
 
 #include <dns/types.h>
 
@@ -56,8 +55,8 @@ ISC_LANG_BEGINDECLS
  */
 typedef struct dns_byaddrevent {
 	ISC_EVENT_COMMON(struct dns_byaddrevent);
-	isc_result_t			result;
-	dns_namelist_t			names;
+	isc_result_t   result;
+	dns_namelist_t names;
 } dns_byaddrevent_t;
 
 isc_result_t

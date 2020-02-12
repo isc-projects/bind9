@@ -9,14 +9,13 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
 
 /*! \file isc/netaddr.h */
 
-#include <stdbool.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/lang.h>
 #include <isc/net.h>
@@ -32,7 +31,7 @@ ISC_LANG_BEGINDECLS
 struct isc_netaddr {
 	unsigned int family;
 	union {
-		struct in_addr in;
+		struct in_addr	in;
 		struct in6_addr in6;
 #ifdef ISC_PLATFORM_HAVESYSUNH
 		char un[sizeof(((struct sockaddr_un *)0)->sun_path)];

@@ -14,25 +14,26 @@
 
 /*! \file */
 
-#include <sys/types.h>		/* Required on some systems. */
 #include <dirent.h>
 
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/result.h>
 
+#include <sys/types.h> /* Required on some systems. */
+
 /*% Directory Entry */
 typedef struct isc_direntry {
-	char 		name[NAME_MAX];
-	unsigned int	length;
+	char	     name[NAME_MAX];
+	unsigned int length;
 } isc_direntry_t;
 
 /*% Directory */
 typedef struct isc_dir {
-	unsigned int	magic;
-	char		dirname[PATH_MAX];
-	isc_direntry_t	entry;
-	DIR *		handle;
+	unsigned int   magic;
+	char	       dirname[PATH_MAX];
+	isc_direntry_t entry;
+	DIR *	       handle;
 } isc_dir_t;
 
 ISC_LANG_BEGINDECLS

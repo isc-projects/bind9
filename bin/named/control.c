@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <stdbool.h>
@@ -27,7 +26,6 @@
 #include <isccc/alist.h>
 #include <isccc/cc.h>
 #include <isccc/result.h>
-
 #include <named/control.h>
 #include <named/globals.h>
 #include <named/log.h>
@@ -38,9 +36,10 @@
 #endif
 
 static isc_result_t
-getcommand(isc_lex_t *lex, char **cmdp) {
+getcommand(isc_lex_t *lex, char **cmdp)
+{
 	isc_result_t result;
-	isc_token_t token;
+	isc_token_t  token;
 
 	REQUIRE(cmdp != NULL && *cmdp == NULL);
 
@@ -59,7 +58,8 @@ getcommand(isc_lex_t *lex, char **cmdp) {
 }
 
 static inline bool
-command_compare(const char *str, const char *command) {
+command_compare(const char *str, const char *command)
+{
 	return (strcasecmp(str, command) == 0);
 }
 
@@ -72,12 +72,12 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 			isc_buffer_t **text)
 {
 	isccc_sexpr_t *data;
-	char *cmdline = NULL;
-	char *command = NULL;
-	isc_result_t result;
-	int log_level;
-	isc_buffer_t src;
-	isc_lex_t *lex = NULL;
+	char *	       cmdline = NULL;
+	char *	       command = NULL;
+	isc_result_t   result;
+	int	       log_level;
+	isc_buffer_t   src;
+	isc_lex_t *    lex = NULL;
 #ifdef HAVE_LIBSCF
 	named_smf_want_disable = 0;
 #endif
@@ -117,8 +117,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	 */
 	if ((command_compare(command, NAMED_COMMAND_NULL) &&
 	     strlen(cmdline) == 4) ||
-	    command_compare(command, NAMED_COMMAND_STATUS))
-	{
+	    command_compare(command, NAMED_COMMAND_STATUS)) {
 		log_level = ISC_LOG_DEBUG(1);
 	} else {
 		log_level = ISC_LOG_INFO;
@@ -129,26 +128,24 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	 * restricted commands here. rndc nta is handled specially
 	 * below.
 	 */
-	if (readonly &&
-	    !command_compare(command, NAMED_COMMAND_NTA) &&
+	if (readonly && !command_compare(command, NAMED_COMMAND_NTA) &&
 	    !command_compare(command, NAMED_COMMAND_NULL) &&
 	    !command_compare(command, NAMED_COMMAND_STATUS) &&
 	    !command_compare(command, NAMED_COMMAND_SHOWZONE) &&
 	    !command_compare(command, NAMED_COMMAND_TESTGEN) &&
-	    !command_compare(command, NAMED_COMMAND_ZONESTATUS))
-	{
+	    !command_compare(command, NAMED_COMMAND_ZONESTATUS)) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, log_level,
 			      "rejecting restricted control channel "
-			      "command '%s'", cmdline);
+			      "command '%s'",
+			      cmdline);
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, log_level,
-		      "received control channel command '%s'",
-		      cmdline);
+		      "received control channel command '%s'", cmdline);
 
 	/*
 	 * After the lengthy "halt" and "stop", the commands are
@@ -171,11 +168,11 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		 */
 		if (named_smf_got_instance == 1 && named_smf_chroot == 0)
 			named_smf_want_disable = 1;
-		/*
-		 * If named_smf_got_instance = 0, named_smf_chroot
-		 * is not relevant and we fall through to
-		 * isc_app_shutdown below.
-		 */
+			/*
+			 * If named_smf_got_instance = 0, named_smf_chroot
+			 * is not relevant and we fall through to
+			 * isc_app_shutdown below.
+			 */
 #endif
 		/* Do not flush master files */
 		named_server_flushonshutdown(named_g_server, false);
@@ -246,8 +243,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	} else if (command_compare(command, NAMED_COMMAND_RELOAD)) {
 		result = named_server_reloadcommand(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_RETRANSFER)) {
-		result = named_server_retransfercommand(named_g_server,
-							lex, text);
+		result = named_server_retransfercommand(named_g_server, lex,
+							text);
 	} else if (command_compare(command, NAMED_COMMAND_SCAN)) {
 		named_server_scan_interfaces(named_g_server);
 		result = ISC_R_SUCCESS;
@@ -286,12 +283,11 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	} else {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
-			      "unknown control channel command '%s'",
-			      command);
+			      "unknown control channel command '%s'", command);
 		result = DNS_R_UNKNOWNCOMMAND;
 	}
 
- cleanup:
+cleanup:
 	if (lex != NULL)
 		isc_lex_destroy(&lex);
 

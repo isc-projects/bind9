@@ -11,13 +11,12 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <limits.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,14 +29,16 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-ISC_PLATFORM_NORETURN_PRE void _fail(const char * const file, const int line) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE void
+_fail(const char *const file, const int line) ISC_PLATFORM_NORETURN_POST;
 
 #include <ns/hooks.h>
 
 #include "nstest.h"
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -49,7 +50,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	if (*state != NULL) {
 		isc_mem_free(mctx, *state);
 	}
@@ -63,21 +65,20 @@ _teardown(void **state) {
  * Structure containing parameters for run_full_path_test().
  */
 typedef struct {
-	const ns_test_id_t id;	/* libns test identifier */
-	const char *input;	/* source string - plugin name or path */
-	size_t output_size;	/* size of target char array to allocate */
-	isc_result_t result;	/* expected return value */
-	const char *output;	/* expected output string */
+	const ns_test_id_t id;	  /* libns test identifier */
+	const char *	   input; /* source string - plugin name or path */
+	size_t	     output_size; /* size of target char array to allocate */
+	isc_result_t result;	  /* expected return value */
+	const char * output;	  /* expected output string */
 } ns_plugin_expandpath_test_params_t;
 
 /*%
  * Perform a single ns_plugin_expandpath() check using given parameters.
  */
 static void
-run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
-		   void **state)
+run_full_path_test(const ns_plugin_expandpath_test_params_t *test, void **state)
 {
-	char **target = (char **)state;
+	char **	     target = (char **)state;
 	isc_result_t result;
 
 	REQUIRE(test != NULL);
@@ -94,8 +95,7 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	/*
 	 * Call ns_plugin_expandpath().
 	 */
-	result = ns_plugin_expandpath(test->input,
-					 *target, test->output_size);
+	result = ns_plugin_expandpath(test->input, *target, test->output_size);
 
 	/*
 	 * Check return value.
@@ -103,9 +103,9 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	if (result != test->result) {
 		fail_msg("# test \"%s\" on line %d: "
 			 "expected result %d (%s), got %d (%s)",
-			 test->id.description, test->id.lineno,
-			 test->result, isc_result_totext(test->result),
-			 result, isc_result_totext(result));
+			 test->id.description, test->id.lineno, test->result,
+			 isc_result_totext(test->result), result,
+			 isc_result_totext(result));
 	}
 
 	/*
@@ -114,8 +114,8 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	if (result == ISC_R_SUCCESS && strcmp(*target, test->output) != 0) {
 		fail_msg("# test \"%s\" on line %d: "
 			 "expected output \"%s\", got \"%s\"",
-			 test->id.description, test->id.lineno,
-			 test->output, *target);
+			 test->id.description, test->id.lineno, test->output,
+			 *target);
 	}
 
 	isc_mem_free(mctx, *target);
@@ -123,7 +123,8 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 
 /* test ns_plugin_expandpath() */
 static void
-ns_plugin_expandpath_test(void **state) {
+ns_plugin_expandpath_test(void **state)
+{
 	size_t i;
 
 	const ns_plugin_expandpath_test_params_t tests[] = {
@@ -186,7 +187,8 @@ ns_plugin_expandpath_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(ns_plugin_expandpath_test,
 						_setup, _teardown),
@@ -199,7 +201,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

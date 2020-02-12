@@ -36,16 +36,15 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include <isccc/result.h>
-
 #include <dns/dispatch.h>
 #include <dns/dyndb.h>
 #include <dns/name.h>
-#include <dns/result.h>
 #include <dns/resolver.h>
+#include <dns/result.h>
 #include <dns/view.h>
 
 #include <dst/result.h>
+#include <isccc/result.h>
 #if USE_PKCS11
 #include <pk11/result.h>
 #endif
@@ -76,20 +75,20 @@
 #include <named/config.h>
 #include <named/control.h>
 #include <named/fuzz.h>
-#include <named/globals.h>	/* Explicit, though named/log.h includes it. */
+#include <named/globals.h> /* Explicit, though named/log.h includes it. */
 #include <named/log.h>
+#include <named/main.h>
 #include <named/os.h>
 #include <named/server.h>
-#include <named/main.h>
 #ifdef HAVE_LIBSCF
 #include <named/smf_globals.h>
 #endif
 
-#include <openssl/opensslv.h>
 #include <openssl/crypto.h>
+#include <openssl/opensslv.h>
 #ifdef HAVE_LIBXML2
-#include <libxml/xmlversion.h>
 #include <libxml/parser.h>
+#include <libxml/xmlversion.h>
 #endif
 #ifdef HAVE_ZLIB
 #include <zlib.h>
@@ -113,19 +112,19 @@
 #define BACKTRACE_MAXFRAME 128
 #endif
 
-LIBISC_EXTERNAL_DATA extern int isc_dscp_check_value;
+LIBISC_EXTERNAL_DATA extern int		 isc_dscp_check_value;
 LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_hour;
 LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_day;
 LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_month;
 
-static bool	want_stats = false;
-static char		program_name[NAME_MAX] = "named";
-static char		absolute_conffile[PATH_MAX];
-static char		saved_command_line[4096] = { 0 };
-static char		ellipsis[5] = { 0 };
-static char		version[512];
-static unsigned int	maxsocks = 0;
-static int		maxudp = 0;
+static bool	    want_stats = false;
+static char	    program_name[NAME_MAX] = "named";
+static char	    absolute_conffile[PATH_MAX];
+static char	    saved_command_line[4096] = { 0 };
+static char	    ellipsis[5] = { 0 };
+static char	    version[512];
+static unsigned int maxsocks = 0;
+static int	    maxudp = 0;
 
 /*
  * -T options:
@@ -149,14 +148,15 @@ static bool disable6 = false;
 static bool disable4 = false;
 
 void
-named_main_earlywarning(const char *format, ...) {
+named_main_earlywarning(const char *format, ...)
+{
 	va_list args;
 
 	va_start(args, format);
 	if (named_g_lctx != NULL) {
 		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			       NAMED_LOGMODULE_MAIN, ISC_LOG_WARNING,
-			       format, args);
+			       NAMED_LOGMODULE_MAIN, ISC_LOG_WARNING, format,
+			       args);
 	} else {
 		fprintf(stderr, "%s: ", program_name);
 		vfprintf(stderr, format, args);
@@ -167,17 +167,18 @@ named_main_earlywarning(const char *format, ...) {
 }
 
 void
-named_main_earlyfatal(const char *format, ...) {
+named_main_earlyfatal(const char *format, ...)
+{
 	va_list args;
 
 	va_start(args, format);
 	if (named_g_lctx != NULL) {
 		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			       NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			       format, args);
+			       NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL, format,
+			       args);
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			       NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			       "exiting (due to early fatal error)");
+			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+			      "exiting (due to early fatal error)");
 	} else {
 		fprintf(stderr, "%s: ", program_name);
 		vfprintf(stderr, format, args);
@@ -197,11 +198,11 @@ static void
 assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond)
 {
-	void *tracebuf[BACKTRACE_MAXFRAME];
-	int i, nframes;
+	void *	     tracebuf[BACKTRACE_MAXFRAME];
+	int	     i, nframes;
 	isc_result_t result;
-	const char *logsuffix = "";
-	const char *fname;
+	const char * logsuffix = "";
+	const char * fname;
 
 	/*
 	 * Handle assertion failures.
@@ -227,9 +228,8 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 				unsigned long offset;
 
 				fname = NULL;
-				result = isc_backtrace_getsymbol(tracebuf[i],
-								 &fname,
-								 &offset);
+				result = isc_backtrace_getsymbol(
+					tracebuf[i], &fname, &offset);
 				if (result == ISC_R_SUCCESS) {
 					isc_log_write(named_g_lctx,
 						      NAMED_LOGCATEGORY_GENERAL,
@@ -252,8 +252,8 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "exiting (due to assertion failure)");
 	} else {
-		fprintf(stderr, "%s:%d: %s(%s) failed\n",
-			file, line, isc_assertion_typetotext(type), cond);
+		fprintf(stderr, "%s:%d: %s(%s) failed\n", file, line,
+			isc_assertion_typetotext(type), cond);
 		fflush(stderr);
 	}
 
@@ -265,7 +265,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 ISC_PLATFORM_NORETURN_PRE static void
 library_fatal_error(const char *file, int line, const char *format,
 		    va_list args)
-ISC_FORMAT_PRINTF(3, 0) ISC_PLATFORM_NORETURN_POST;
+	ISC_FORMAT_PRINTF(3, 0) ISC_PLATFORM_NORETURN_POST;
 
 static void
 library_fatal_error(const char *file, int line, const char *format,
@@ -286,8 +286,8 @@ library_fatal_error(const char *file, int line, const char *format,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "%s:%d: fatal error:", file, line);
 		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			       NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			       format, args);
+			       NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL, format,
+			       args);
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "exiting (due to fatal error in library)");
@@ -320,8 +320,8 @@ library_unexpected_error(const char *file, int line, const char *format,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_ERROR,
 			      "%s:%d: unexpected error:", file, line);
 		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			       NAMED_LOGMODULE_MAIN, ISC_LOG_ERROR,
-			       format, args);
+			       NAMED_LOGMODULE_MAIN, ISC_LOG_ERROR, format,
+			       args);
 	} else {
 		fprintf(stderr, "%s:%d: fatal error: ", file, line);
 		vfprintf(stderr, format, args);
@@ -331,36 +331,35 @@ library_unexpected_error(const char *file, int line, const char *format,
 }
 
 static void
-usage(void) {
-	fprintf(stderr,
-		"usage: named [-4|-6] [-c conffile] [-d debuglevel] "
-		"[-E engine] [-f|-g]\n"
-		"             [-n number_of_cpus] [-p port] [-s] "
-		"[-S sockets] [-t chrootdir]\n"
-		"             [-u username] [-U listeners] "
-		"[-m {usage|trace|record|size|mctx}]\n"
-		"usage: named [-v|-V]\n");
+usage(void)
+{
+	fprintf(stderr, "usage: named [-4|-6] [-c conffile] [-d debuglevel] "
+			"[-E engine] [-f|-g]\n"
+			"             [-n number_of_cpus] [-p port] [-s] "
+			"[-S sockets] [-t chrootdir]\n"
+			"             [-u username] [-U listeners] "
+			"[-m {usage|trace|record|size|mctx}]\n"
+			"usage: named [-v|-V]\n");
 }
 
 static void
-save_command_line(int argc, char *argv[]) {
-	int i;
+save_command_line(int argc, char *argv[])
+{
+	int   i;
 	char *dst = saved_command_line;
 	char *eob = saved_command_line + sizeof(saved_command_line) - 1;
 	char *rollback = dst;
 
 	for (i = 1; i < argc && dst < eob; i++) {
 		char *src = argv[i];
-		bool quoted = false;
+		bool  quoted = false;
 
 		rollback = dst;
 		*dst++ = ' ';
 
 		while (*src != '\0' && dst < eob) {
-			if (isalnum(*src) || *src == ',' ||
-			    *src == '-' || *src == '_' ||
-			    *src == '.' || *src == '/')
-			{
+			if (isalnum(*src) || *src == ',' || *src == '-' ||
+			    *src == '_' || *src == '.' || *src == '/') {
 				*dst++ = *src++;
 			} else if (isprint(*src)) {
 				if (dst + 2 >= eob) {
@@ -389,8 +388,8 @@ save_command_line(int argc, char *argv[]) {
 					continue;
 				} else {
 					char tmp[5];
-					int c = snprintf(tmp, sizeof(tmp),
-							 "\\%03o", *src++);
+					int  c = snprintf(tmp, sizeof(tmp),
+							  "\\%03o", *src++);
 					if (dst + c >= eob) {
 						goto add_ellipsis;
 					}
@@ -405,7 +404,6 @@ save_command_line(int argc, char *argv[]) {
 			}
 			*dst++ = '\'';
 		}
-
 	}
 
 	if (dst < eob) {
@@ -418,13 +416,14 @@ add_ellipsis:
 }
 
 static int
-parse_int(char *arg, const char *desc) {
-	char *endp;
-	int tmp;
+parse_int(char *arg, const char *desc)
+{
+	char *	 endp;
+	int	 tmp;
 	long int ltmp;
 
 	ltmp = strtol(arg, &endp, 10);
-	tmp = (int) ltmp;
+	tmp = (int)ltmp;
 	if (*endp != '\0')
 		named_main_earlyfatal("%s '%s' must be numeric", desc, arg);
 	if (tmp < 0 || tmp != ltmp)
@@ -433,32 +432,30 @@ parse_int(char *arg, const char *desc) {
 }
 
 static struct flag_def {
-	const char *name;
+	const char * name;
 	unsigned int value;
-	bool negate;
-} mem_debug_flags[] = {
-	{ "none", 0, false },
-	{ "trace",  ISC_MEM_DEBUGTRACE, false },
-	{ "record", ISC_MEM_DEBUGRECORD, false },
-	{ "usage", ISC_MEM_DEBUGUSAGE, false },
-	{ "size", ISC_MEM_DEBUGSIZE, false },
-	{ "mctx", ISC_MEM_DEBUGCTX, false },
-	{ NULL, 0, false }
-}, mem_context_flags[] = {
-	{ "external", ISC_MEMFLAG_INTERNAL, true },
-	{ "fill", ISC_MEMFLAG_FILL, false },
-	{ "nofill", ISC_MEMFLAG_FILL, true },
-	{ NULL, 0, false }
-};
+	bool	     negate;
+} mem_debug_flags[] = { { "none", 0, false },
+			{ "trace", ISC_MEM_DEBUGTRACE, false },
+			{ "record", ISC_MEM_DEBUGRECORD, false },
+			{ "usage", ISC_MEM_DEBUGUSAGE, false },
+			{ "size", ISC_MEM_DEBUGSIZE, false },
+			{ "mctx", ISC_MEM_DEBUGCTX, false },
+			{ NULL, 0, false } },
+  mem_context_flags[] = { { "external", ISC_MEMFLAG_INTERNAL, true },
+			  { "fill", ISC_MEMFLAG_FILL, false },
+			  { "nofill", ISC_MEMFLAG_FILL, true },
+			  { NULL, 0, false } };
 
 static void
-set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
+set_flags(const char *arg, struct flag_def *defs, unsigned int *ret)
+{
 	bool clear = false;
 
 	for (;;) {
 		const struct flag_def *def;
-		const char *end = strchr(arg, ',');
-		int arglen;
+		const char *	       end = strchr(arg, ',');
+		int		       arglen;
 		if (end == NULL)
 			end = arg + strlen(arg);
 		arglen = (int)(end - arg);
@@ -475,7 +472,7 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 			}
 		}
 		named_main_earlyfatal("unrecognized flag '%.*s'", arglen, arg);
-	 found:
+	found:
 		if (clear || (*end == '\0'))
 			break;
 		arg = end + 1;
@@ -486,27 +483,26 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 }
 
 static void
-printversion(bool verbose) {
+printversion(bool verbose)
+{
 	char rndcconf[PATH_MAX], *dot = NULL;
 #if defined(HAVE_GEOIP2)
-	isc_mem_t *mctx = NULL;
-	cfg_parser_t *parser = NULL;
-	cfg_obj_t *config = NULL;
+	isc_mem_t *	 mctx = NULL;
+	cfg_parser_t *	 parser = NULL;
+	cfg_obj_t *	 config = NULL;
 	const cfg_obj_t *defaults = NULL, *obj = NULL;
 #endif
 
-	printf("%s %s%s%s <id:%s>\n",
-	       named_g_product, named_g_version,
-	       (*named_g_description != '\0') ? " " : "",
-	       named_g_description, named_g_srcid);
+	printf("%s %s%s%s <id:%s>\n", named_g_product, named_g_version,
+	       (*named_g_description != '\0') ? " " : "", named_g_description,
+	       named_g_srcid);
 
 	if (!verbose) {
 		return;
 	}
 
 	printf("running on %s\n", named_os_uname());
-	printf("built by %s with %s\n",
-	       named_g_builder, named_g_configargs);
+	printf("built by %s with %s\n", named_g_builder, named_g_configargs);
 #ifdef __clang__
 	printf("compiled by CLANG %s\n", __VERSION__);
 #else
@@ -524,10 +520,9 @@ printversion(bool verbose) {
 #ifdef __SUNPRO_C
 	printf("compiled by Solaris Studio %x\n", __SUNPRO_C);
 #endif
-	printf("compiled with OpenSSL version: %s\n",
-	       OPENSSL_VERSION_TEXT);
+	printf("compiled with OpenSSL version: %s\n", OPENSSL_VERSION_TEXT);
 #if !defined(LIBRESSL_VERSION_NUMBER) && \
-OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
+	OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 	printf("linked to OpenSSL version: %s\n",
 	       OpenSSL_version(OPENSSL_VERSION));
 
@@ -536,36 +531,26 @@ OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 	       SSLeay_version(SSLEAY_VERSION));
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 #ifdef HAVE_LIBXML2
-	printf("compiled with libxml2 version: %s\n",
-	       LIBXML_DOTTED_VERSION);
-	printf("linked to libxml2 version: %s\n",
-	       xmlParserVersion);
+	printf("compiled with libxml2 version: %s\n", LIBXML_DOTTED_VERSION);
+	printf("linked to libxml2 version: %s\n", xmlParserVersion);
 #endif
 #if defined(HAVE_JSON_C)
-	printf("compiled with json-c version: %s\n",
-	       JSON_C_VERSION);
-	printf("linked to json-c version: %s\n",
-	       json_c_version());
+	printf("compiled with json-c version: %s\n", JSON_C_VERSION);
+	printf("linked to json-c version: %s\n", json_c_version());
 #endif
 #if defined(HAVE_ZLIB) && defined(ZLIB_VERSION)
-	printf("compiled with zlib version: %s\n",
-	       ZLIB_VERSION);
-	printf("linked to zlib version: %s\n",
-	       zlibVersion());
+	printf("compiled with zlib version: %s\n", ZLIB_VERSION);
+	printf("linked to zlib version: %s\n", zlibVersion());
 #endif
 #if defined(HAVE_GEOIP2)
 	/* Unfortunately, no version define on link time */
-	printf("linked to maxminddb version: %s\n",
-	       MMDB_lib_version());
+	printf("linked to maxminddb version: %s\n", MMDB_lib_version());
 #endif
 #if defined(HAVE_DNSTAP)
-	printf("compiled with protobuf-c version: %s\n",
-	       PROTOBUF_C_VERSION);
-	printf("linked to protobuf-c version: %s\n",
-	       protobuf_c_version());
+	printf("compiled with protobuf-c version: %s\n", PROTOBUF_C_VERSION);
+	printf("linked to protobuf-c version: %s\n", protobuf_c_version());
 #endif
 	printf("threads support is enabled\n\n");
-
 
 	/*
 	 * The default rndc.conf and rndc.key paths are in the same
@@ -608,7 +593,8 @@ OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 }
 
 static void
-parse_fuzz_arg(void) {
+parse_fuzz_arg(void)
+{
 	if (!strncmp(isc_commandline_argument, "client:", 7)) {
 		named_g_fuzz_addr = isc_commandline_argument + 7;
 		named_g_fuzz_type = isc_fuzz_client;
@@ -626,14 +612,15 @@ parse_fuzz_arg(void) {
 		named_g_fuzz_type = isc_fuzz_rndc;
 	} else {
 		named_main_earlyfatal("unknown fuzzing type '%s'",
-				   isc_commandline_argument);
+				      isc_commandline_argument);
 	}
 }
 
 static void
-parse_T_opt(char *option) {
+parse_T_opt(char *option)
+{
 	const char *p;
-	char *last = NULL;
+	char *	    last = NULL;
 	/*
 	 * force the server to behave (or misbehave) in
 	 * specified ways for testing purposes.
@@ -717,9 +704,10 @@ parse_T_opt(char *option) {
 }
 
 static void
-parse_command_line(int argc, char *argv[]) {
-	int ch;
-	int port;
+parse_command_line(int argc, char *argv[])
+{
+	int	    ch;
+	int	    port;
 	const char *p;
 
 	save_command_line(argc, argv);
@@ -729,9 +717,8 @@ parse_command_line(int argc, char *argv[]) {
 	 * both by named and by ntservice hooks.
 	 */
 	isc_commandline_errprint = false;
-	while ((ch = isc_commandline_parse(argc, argv,
-					   NAMED_MAIN_ARGS)) != -1)
-	{
+	while ((ch = isc_commandline_parse(argc, argv, NAMED_MAIN_ARGS)) !=
+	       -1) {
 		switch (ch) {
 		case '4':
 			if (disable4)
@@ -762,7 +749,8 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'd':
 			named_g_debuglevel = parse_int(isc_commandline_argument,
-						       "debug level");
+						       "debug "
+						       "level");
 			break;
 		case 'D':
 			/* Descriptive comment for 'ps'. */
@@ -790,8 +778,12 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':
-			named_g_cpus = parse_int(isc_commandline_argument,
-					      "number of cpus");
+			named_g_cpus = parse_int(isc_commandline_argument, "num"
+									   "ber"
+									   " of"
+									   " cp"
+									   "u"
+									   "s");
 			if (named_g_cpus == 0)
 				named_g_cpus = 1;
 			break;
@@ -799,7 +791,7 @@ parse_command_line(int argc, char *argv[]) {
 			port = parse_int(isc_commandline_argument, "port");
 			if (port < 1 || port > 65535)
 				named_main_earlyfatal("port '%s' out of range",
-						   isc_commandline_argument);
+						      isc_commandline_argument);
 			named_g_port = port;
 			break;
 		case 's':
@@ -807,14 +799,17 @@ parse_command_line(int argc, char *argv[]) {
 			want_stats = true;
 			break;
 		case 'S':
-			maxsocks = parse_int(isc_commandline_argument,
-					     "max number of sockets");
+			maxsocks = parse_int(isc_commandline_argument, "max "
+								       "number "
+								       "of "
+								       "socket"
+								       "s");
 			break;
 		case 't':
 			/* XXXJAB should we make a copy? */
 			named_g_chrootdir = isc_commandline_argument;
 			break;
-		case 'T':	/* NOT DOCUMENTED */
+		case 'T': /* NOT DOCUMENTED */
 			parse_T_opt(isc_commandline_argument);
 			break;
 		case 'U':
@@ -852,11 +847,11 @@ parse_command_line(int argc, char *argv[]) {
 			p = strchr(NAMED_MAIN_ARGS, isc_commandline_option);
 			if (p == NULL || *++p != ':')
 				named_main_earlyfatal("unknown option '-%c'",
-						   isc_commandline_option);
+						      isc_commandline_option);
 			else
 				named_main_earlyfatal("option '-%c' requires "
-						   "an argument",
-						   isc_commandline_option);
+						      "an argument",
+						      isc_commandline_option);
 			/* FALLTHROUGH */
 		default:
 			named_main_earlyfatal("parsing options returned %d",
@@ -875,7 +870,8 @@ parse_command_line(int argc, char *argv[]) {
 }
 
 static isc_result_t
-create_managers(void) {
+create_managers(void)
+{
 	isc_result_t result;
 	unsigned int socks;
 
@@ -883,12 +879,11 @@ create_managers(void) {
 
 	if (named_g_cpus == 0)
 		named_g_cpus = named_g_cpus_detected;
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "found %u CPU%s, using %u worker thread%s",
-		      named_g_cpus_detected,
-		      named_g_cpus_detected == 1 ? "" : "s",
-		      named_g_cpus, named_g_cpus == 1 ? "" : "s");
+	isc_log_write(
+		named_g_lctx, NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
+		named_g_cpus_detected, named_g_cpus_detected == 1 ? "" : "s",
+		named_g_cpus, named_g_cpus == 1 ? "" : "s");
 #ifdef WIN32
 	named_g_udpdisp = 1;
 #else
@@ -900,24 +895,23 @@ create_managers(void) {
 #endif
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "using %u UDP listener%s per interface",
-		      named_g_udpdisp, named_g_udpdisp == 1 ? "" : "s");
+		      "using %u UDP listener%s per interface", named_g_udpdisp,
+		      named_g_udpdisp == 1 ? "" : "s");
 
 	/*
 	 * We have ncpus network threads, ncpus worker threads, ncpus
 	 * old network threads - make it 4x just to be safe. The memory
 	 * impact is neglible.
 	 */
-	isc_hp_init(4*named_g_cpus);
+	isc_hp_init(4 * named_g_cpus);
 	named_g_nm = isc_nm_start(named_g_mctx, named_g_cpus);
 	if (named_g_nm == NULL) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				"isc_nm_start() failed");
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_nm_start() failed");
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0,
-				    named_g_nm, &named_g_taskmgr);
+	result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0, named_g_nm,
+				    &named_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_taskmgr_create() failed: %s",
@@ -946,15 +940,16 @@ create_managers(void) {
 	result = isc_socketmgr_getmaxsockets(named_g_socketmgr, &socks);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER,
-			      ISC_LOG_INFO, "using up to %u sockets", socks);
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "using up to %u sockets", socks);
 	}
 
 	return (ISC_R_SUCCESS);
 }
 
 static void
-destroy_managers(void) {
+destroy_managers(void)
+{
 	/*
 	 * isc_nm_closedown() closes all active connections, freeing
 	 * attached clients and other resources and preventing new
@@ -977,11 +972,12 @@ destroy_managers(void) {
 }
 
 static void
-dump_symboltable(void) {
-	int i;
+dump_symboltable(void)
+{
+	int	     i;
 	isc_result_t result;
-	const char *fname;
-	const void *addr;
+	const char * fname;
+	const void * addr;
 
 	if (isc__backtrace_nsymbols == 0)
 		return;
@@ -990,8 +986,7 @@ dump_symboltable(void) {
 		return;
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_DEBUG(99),
-		      "Symbol table:");
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_DEBUG(99), "Symbol table:");
 
 	for (i = 0, result = ISC_R_SUCCESS; result == ISC_R_SUCCESS; i++) {
 		addr = NULL;
@@ -1006,10 +1001,11 @@ dump_symboltable(void) {
 }
 
 static void
-setup(void) {
-	isc_result_t result;
+setup(void)
+{
+	isc_result_t	    result;
 	isc_resourcevalue_t old_openfiles;
-	ns_server_t *sctx;
+	ns_server_t *	    sctx;
 #ifdef HAVE_LIBSCF
 	char *instance = NULL;
 #endif
@@ -1060,7 +1056,7 @@ setup(void) {
 	result = named_log_init(named_g_username != NULL);
 	if (result != ISC_R_SUCCESS)
 		named_main_earlyfatal("named_log_init() failed: %s",
-				   isc_result_totext(result));
+				      isc_result_totext(result));
 
 	/*
 	 * Now is the time to daemonize (if we're not running in the
@@ -1079,27 +1075,26 @@ setup(void) {
 	result = isc_app_start();
 	if (result != ISC_R_SUCCESS)
 		named_main_earlyfatal("isc_app_start() failed: %s",
-				   isc_result_totext(result));
+				      isc_result_totext(result));
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "starting %s %s%s%s <id:%s>",
-		      named_g_product, named_g_version,
-		      *named_g_description ? " " : "", named_g_description,
-		      named_g_srcid);
+		      "starting %s %s%s%s <id:%s>", named_g_product,
+		      named_g_version, *named_g_description ? " " : "",
+		      named_g_description, named_g_srcid);
+
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "running on %s",
+		      named_os_uname());
+
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "built with %s",
+		      named_g_configargs);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "running on %s", named_os_uname());
-
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "built with %s", named_g_configargs);
-
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "running as: %s%s%s",
-		      program_name, saved_command_line, ellipsis);
+		      "running as: %s%s%s", program_name, saved_command_line,
+		      ellipsis);
 #ifdef __clang__
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
@@ -1132,7 +1127,7 @@ setup(void) {
 		      "compiled with OpenSSL version: %s",
 		      OPENSSL_VERSION_TEXT);
 #if !defined(LIBRESSL_VERSION_NUMBER) && \
-    OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
+	OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "linked to OpenSSL version: %s",
@@ -1194,18 +1189,18 @@ setup(void) {
 	 */
 #ifndef WIN32
 	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_stacksize,
-					    &named_g_initstacksize)
-		      == ISC_R_SUCCESS);
+					    &named_g_initstacksize) ==
+		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_datasize,
-					    &named_g_initdatasize)
-		      == ISC_R_SUCCESS);
+					    &named_g_initdatasize) ==
+		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_coresize,
-					    &named_g_initcoresize)
-		      == ISC_R_SUCCESS);
+					    &named_g_initcoresize) ==
+		      ISC_R_SUCCESS);
 #endif
 	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_openfiles,
-					    &named_g_initopenfiles)
-		      == ISC_R_SUCCESS);
+					    &named_g_initopenfiles) ==
+		      ISC_R_SUCCESS);
 
 	/*
 	 * System resources cannot effectively be tuned on some systems.
@@ -1214,8 +1209,8 @@ setup(void) {
 	old_openfiles = named_g_initopenfiles;
 	named_os_adjustnofile();
 	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_openfiles,
-					    &named_g_initopenfiles)
-		      == ISC_R_SUCCESS);
+					    &named_g_initopenfiles) ==
+		      ISC_R_SUCCESS);
 	if (old_openfiles != named_g_initopenfiles) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
@@ -1229,7 +1224,7 @@ setup(void) {
 	 * If the named configuration filename is relative, prepend the current
 	 * directory's name before possibly changing to another directory.
 	 */
-	if (! isc_file_isabsolute(named_g_conffile)) {
+	if (!isc_file_isabsolute(named_g_conffile)) {
 		result = isc_file_absolutepath(named_g_conffile,
 					       absolute_conffile,
 					       sizeof(absolute_conffile));
@@ -1247,12 +1242,12 @@ setup(void) {
 	result = isc_time_now(&named_g_boottime);
 	if (result != ISC_R_SUCCESS)
 		named_main_earlyfatal("isc_time_now() failed: %s",
-				   isc_result_totext(result));
+				      isc_result_totext(result));
 
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)
 		named_main_earlyfatal("create_managers() failed: %s",
-				   isc_result_totext(result));
+				      isc_result_totext(result));
 
 	named_builtin_init();
 
@@ -1268,7 +1263,7 @@ setup(void) {
 	result = dlz_dlopen_init(named_g_mctx);
 	if (result != ISC_R_SUCCESS)
 		named_main_earlyfatal("dlz_dlopen_init() failed: %s",
-				   isc_result_totext(result));
+				      isc_result_totext(result));
 #endif
 
 #if CONTRIB_DLZ
@@ -1278,7 +1273,7 @@ setup(void) {
 	result = dlz_drivers_init();
 	if (result != ISC_R_SUCCESS)
 		named_main_earlyfatal("dlz_drivers_init() failed: %s",
-				   isc_result_totext(result));
+				      isc_result_totext(result));
 #endif
 
 	named_server_create(named_g_mctx, &named_g_server);
@@ -1293,7 +1288,7 @@ setup(void) {
 		ns_server_setoption(sctx, NS_SERVER_DISABLE6, true);
 	if (dropedns)
 		ns_server_setoption(sctx, NS_SERVER_DROPEDNS, true);
-	if (ednsformerr)	/* STD13 server */
+	if (ednsformerr) /* STD13 server */
 		ns_server_setoption(sctx, NS_SERVER_EDNSFORMERR, true);
 	if (ednsnotimp)
 		ns_server_setoption(sctx, NS_SERVER_EDNSNOTIMP, true);
@@ -1316,7 +1311,8 @@ setup(void) {
 }
 
 static void
-cleanup(void) {
+cleanup(void)
+{
 	destroy_managers();
 
 	if (named_g_mapped != NULL)
@@ -1345,15 +1341,15 @@ cleanup(void) {
 #endif
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "exiting");
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "exiting");
 	named_log_shutdown();
 }
 
 static char *memstats = NULL;
 
 void
-named_main_setmemstats(const char *filename) {
+named_main_setmemstats(const char *filename)
+{
 	/*
 	 * Caller has to ensure locking.
 	 */
@@ -1374,10 +1370,11 @@ named_main_setmemstats(const char *filename) {
  * Get FMRI for the named process.
  */
 isc_result_t
-named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
+named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx)
+{
 	scf_handle_t *h = NULL;
-	int namelen;
-	char *instance;
+	int	      namelen;
+	char *	      instance;
 
 	REQUIRE(ins_name != NULL && *ins_name == NULL);
 
@@ -1435,14 +1432,15 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 /* main entry point, possibly hooked */
 
 int
-main(int argc, char *argv[]) {
+main(int argc, char *argv[])
+{
 	isc_result_t result;
 #ifdef HAVE_LIBSCF
 	char *instance = NULL;
 #endif
 
 #ifdef HAVE_GPERFTOOLS_PROFILER
-	(void) ProfilerStart(NULL);
+	(void)ProfilerStart(NULL);
 #endif
 
 #ifdef WIN32
@@ -1452,7 +1450,7 @@ main(int argc, char *argv[]) {
 	 * buffering (_IOFBF) as line buffering (_IOLBF) is unavailable on
 	 * Windows and fflush() is called anyway after each log message gets
 	 * written to the default stderr logging channels created by libisc.
-	*/
+	 */
 	setvbuf(stderr, NULL, _IOFBF, BUFSIZ);
 #endif
 
@@ -1578,7 +1576,7 @@ main(int argc, char *argv[]) {
 		if (result == ISC_R_SUCCESS) {
 			isc_mem_stats(named_g_mctx, fp);
 			isc_mutex_stats(fp);
-			(void) isc_stdio_close(fp);
+			(void)isc_stdio_close(fp);
 		}
 	}
 	isc_mem_destroy(&named_g_mctx);

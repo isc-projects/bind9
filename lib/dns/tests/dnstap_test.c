@@ -11,12 +11,11 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -26,8 +25,8 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
-#include <isc/stdio.h>
 #include <isc/print.h>
+#include <isc/stdio.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -47,7 +46,8 @@
 #define TAPTEXT "testdata/dnstap/dnstap.text"
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -59,7 +59,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	dns_test_end();
@@ -68,16 +69,18 @@ _teardown(void **state) {
 }
 
 static void
-cleanup() {
-	(void) isc_file_remove(TAPFILE);
-	(void) isc_file_remove(TAPSOCK);
+cleanup()
+{
+	(void)isc_file_remove(TAPFILE);
+	(void)isc_file_remove(TAPSOCK);
 }
 
 /* set up dnstap environment */
 static void
-create_test(void **state) {
-	isc_result_t result;
-	dns_dtenv_t *dtenv = NULL;
+create_test(void **state)
+{
+	isc_result_t		    result;
+	dns_dtenv_t *		    dtenv = NULL;
 	struct fstrm_iothr_options *fopt;
 
 	UNUSED(state);
@@ -88,8 +91,8 @@ create_test(void **state) {
 	assert_non_null(fopt);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(dt_mctx, dns_dtmode_file, TAPFILE,
-			       &fopt, NULL, &dtenv);
+	result = dns_dt_create(dt_mctx, dns_dtmode_file, TAPFILE, &fopt, NULL,
+			       &dtenv);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	if (dtenv != NULL) {
 		dns_dt_detach(&dtenv);
@@ -104,8 +107,8 @@ create_test(void **state) {
 	assert_non_null(fopt);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(dt_mctx, dns_dtmode_unix, TAPSOCK,
-			       &fopt, NULL, &dtenv);
+	result = dns_dt_create(dt_mctx, dns_dtmode_unix, TAPSOCK, &fopt, NULL,
+			       &dtenv);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	if (dtenv != NULL) {
 		dns_dt_detach(&dtenv);
@@ -136,28 +139,29 @@ create_test(void **state) {
 
 /* send dnstap messages */
 static void
-send_test(void **state) {
-	isc_result_t result;
-	dns_dtenv_t *dtenv = NULL;
-	dns_dthandle_t *handle = NULL;
-	uint8_t *data;
-	size_t dsize;
-	unsigned char zone[DNS_NAME_MAXWIRE];
-	unsigned char qambuffer[4096], rambuffer[4096];
-	unsigned char qrmbuffer[4096], rrmbuffer[4096];
-	isc_buffer_t zb, qamsg, ramsg, qrmsg, rrmsg;
-	size_t qasize, qrsize, rasize, rrsize;
-	dns_fixedname_t zfname;
-	dns_name_t *zname;
-	dns_dtmsgtype_t dt;
-	dns_view_t *view = NULL;
-	dns_compress_t cctx;
-	isc_region_t zr;
-	isc_sockaddr_t qaddr;
-	isc_sockaddr_t raddr;
-	struct in_addr in;
-	isc_stdtime_t now;
-	isc_time_t p, f;
+send_test(void **state)
+{
+	isc_result_t		    result;
+	dns_dtenv_t *		    dtenv = NULL;
+	dns_dthandle_t *	    handle = NULL;
+	uint8_t *		    data;
+	size_t			    dsize;
+	unsigned char		    zone[DNS_NAME_MAXWIRE];
+	unsigned char		    qambuffer[4096], rambuffer[4096];
+	unsigned char		    qrmbuffer[4096], rrmbuffer[4096];
+	isc_buffer_t		    zb, qamsg, ramsg, qrmsg, rrmsg;
+	size_t			    qasize, qrsize, rasize, rrsize;
+	dns_fixedname_t		    zfname;
+	dns_name_t *		    zname;
+	dns_dtmsgtype_t		    dt;
+	dns_view_t *		    view = NULL;
+	dns_compress_t		    cctx;
+	isc_region_t		    zr;
+	isc_sockaddr_t		    qaddr;
+	isc_sockaddr_t		    raddr;
+	struct in_addr		    in;
+	isc_stdtime_t		    now;
+	isc_time_t		    p, f;
 	struct fstrm_iothr_options *fopt;
 
 	UNUSED(state);
@@ -171,8 +175,8 @@ send_test(void **state) {
 	assert_non_null(fopt);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(dt_mctx, dns_dtmode_file, TAPFILE,
-			       &fopt, NULL, &dtenv);
+	result = dns_dt_create(dt_mctx, dns_dtmode_file, TAPFILE, &fopt, NULL,
+			       &dtenv);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_dt_attach(dtenv, &view->dtenv);
@@ -206,14 +210,14 @@ send_test(void **state) {
 	isc_time_set(&p, now - 3600, 0); /* past */
 	isc_time_set(&f, now + 3600, 0); /* future */
 
-	result = dns_test_getdata("testdata/dnstap/query.auth",
-				  qambuffer, sizeof(qambuffer), &qasize);
+	result = dns_test_getdata("testdata/dnstap/query.auth", qambuffer,
+				  sizeof(qambuffer), &qasize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&qamsg, qambuffer, qasize);
 	isc_buffer_add(&qamsg, qasize);
 
-	result = dns_test_getdata("testdata/dnstap/response.auth",
-				  rambuffer, sizeof(rambuffer), &rasize);
+	result = dns_test_getdata("testdata/dnstap/response.auth", rambuffer,
+				  sizeof(rambuffer), &rasize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&ramsg, rambuffer, rasize);
 	isc_buffer_add(&ramsg, rasize);
@@ -231,7 +235,7 @@ send_test(void **state) {
 	isc_buffer_add(&rrmsg, rrsize);
 
 	for (dt = DNS_DTTYPE_SQ; dt <= DNS_DTTYPE_TR; dt <<= 1) {
-		isc_buffer_t *m;
+		isc_buffer_t *	m;
 		isc_sockaddr_t *q = &qaddr, *r = &raddr;
 
 		switch (dt) {
@@ -267,10 +271,10 @@ send_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	while (dns_dt_getframe(handle, &data, &dsize) == ISC_R_SUCCESS) {
-		dns_dtdata_t *dtdata = NULL;
-		isc_region_t r;
+		dns_dtdata_t *	       dtdata = NULL;
+		isc_region_t	       r;
 		static dns_dtmsgtype_t expected = DNS_DTTYPE_SQ;
-		static int n = 0;
+		static int	       n = 0;
 
 		r.base = data;
 		r.length = dsize;
@@ -301,12 +305,13 @@ send_test(void **state) {
 
 /* dnstap message to text */
 static void
-totext_test(void **state) {
-	isc_result_t result;
+totext_test(void **state)
+{
+	isc_result_t	result;
 	dns_dthandle_t *handle = NULL;
-	uint8_t *data;
-	size_t dsize;
-	FILE *fp = NULL;
+	uint8_t *	data;
+	size_t		dsize;
+	FILE *		fp = NULL;
 
 	UNUSED(state);
 
@@ -319,8 +324,8 @@ totext_test(void **state) {
 	while (dns_dt_getframe(handle, &data, &dsize) == ISC_R_SUCCESS) {
 		dns_dtdata_t *dtdata = NULL;
 		isc_buffer_t *b = NULL;
-		isc_region_t r;
-		char s[BUFSIZ], *p;
+		isc_region_t  r;
+		char	      s[BUFSIZ], *p;
 
 		r.base = data;
 		r.length = dsize;
@@ -354,7 +359,7 @@ totext_test(void **state) {
 		result = dns_dt_datatotext(dtdata, &b);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		assert_string_equal((char *) isc_buffer_base(b), s);
+		assert_string_equal((char *)isc_buffer_base(b), s);
 
 		dns_dtdata_free(&dtdata);
 		isc_buffer_free(&b);
@@ -368,7 +373,8 @@ totext_test(void **state) {
 #endif /* HAVE_DNSTAP */
 
 int
-main(void) {
+main(void)
+{
 #if HAVE_DNSTAP
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(create_test, _setup, _teardown),
@@ -390,7 +396,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

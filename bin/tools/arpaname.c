@@ -9,17 +9,18 @@
  * information regarding copyright ownership.
  */
 
+#include <stdio.h>
+
 #include <isc/net.h>
 #include <isc/print.h>
-
-#include <stdio.h>
 
 #define UNUSED(x) (void)(x)
 
 int
-main(int argc, char *argv[]) {
+main(int argc, char *argv[])
+{
 	unsigned char buf[16];
-	int i;
+	int	      i;
 
 	UNUSED(argc);
 
@@ -33,13 +34,13 @@ main(int argc, char *argv[]) {
 			continue;
 		}
 		if (inet_pton(AF_INET, argv[1], buf) == 1) {
-			fprintf(stdout, "%u.%u.%u.%u.IN-ADDR.ARPA\n",
-				buf[3], buf[2], buf[1], buf[0]);
+			fprintf(stdout, "%u.%u.%u.%u.IN-ADDR.ARPA\n", buf[3],
+				buf[2], buf[1], buf[0]);
 			argv++;
 			continue;
 		}
 		return (1);
 	}
 	fflush(stdout);
-	return(ferror(stdout));
+	return (ferror(stdout));
 }

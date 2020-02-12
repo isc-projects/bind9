@@ -14,8 +14,8 @@
 
 /*! \file */
 
-#include <isc/types.h>
 #include <isc/lang.h>
+#include <isc/types.h>
 
 #include <isccfg/cfg.h>
 

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <inttypes.h>
@@ -43,17 +42,17 @@
 
 static isc_result_t
 addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-	  dns_rdatatype_t covers, isc_stdtime_t now,
-	  dns_ttl_t minttl, dns_ttl_t maxttl,
-	  bool optout, bool secure,
+	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
+	  dns_ttl_t maxttl, bool optout, bool secure,
 	  dns_rdataset_t *addedrdataset);
 
 static inline isc_result_t
-copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
+copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer)
+{
 	isc_result_t result;
 	unsigned int count;
 	isc_region_t ar, r;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_t  rdata = DNS_RDATA_INIT;
 
 	/*
 	 * Copy the rdataset count to the buffer.
@@ -94,9 +93,8 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 
 isc_result_t
 dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-	       dns_rdatatype_t covers, isc_stdtime_t now,
-	       dns_ttl_t minttl, dns_ttl_t maxttl,
-	       dns_rdataset_t *addedrdataset)
+	       dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
+	       dns_ttl_t maxttl, dns_rdataset_t *addedrdataset)
 {
 	return (addoptout(message, cache, node, covers, now, minttl, maxttl,
 			  false, false, addedrdataset));
@@ -105,8 +103,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 isc_result_t
 dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 		     dns_dbnode_t *node, dns_rdatatype_t covers,
-		     isc_stdtime_t now,
-		     dns_ttl_t minttl, dns_ttl_t maxttl,
+		     isc_stdtime_t now, dns_ttl_t minttl, dns_ttl_t maxttl,
 		     bool optout, dns_rdataset_t *addedrdataset)
 {
 	return (addoptout(message, cache, node, covers, now, minttl, maxttl,
@@ -115,24 +112,23 @@ dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 
 static isc_result_t
 addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-	  dns_rdatatype_t covers, isc_stdtime_t now,
-	  dns_ttl_t minttl, dns_ttl_t maxttl,
-	  bool optout, bool secure,
+	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
+	  dns_ttl_t maxttl, bool optout, bool secure,
 	  dns_rdataset_t *addedrdataset)
 {
-	isc_result_t result;
-	isc_buffer_t buffer;
-	isc_region_t r;
+	isc_result_t	result;
+	isc_buffer_t	buffer;
+	isc_region_t	r;
 	dns_rdataset_t *rdataset;
 	dns_rdatatype_t type;
-	dns_name_t *name;
-	dns_ttl_t ttl;
-	dns_trust_t trust;
-	dns_rdata_t rdata[DNS_NCACHE_RDATA];
-	dns_rdataset_t ncrdataset;
+	dns_name_t *	name;
+	dns_ttl_t	ttl;
+	dns_trust_t	trust;
+	dns_rdata_t	rdata[DNS_NCACHE_RDATA];
+	dns_rdataset_t	ncrdataset;
 	dns_rdatalist_t ncrdatalist;
-	unsigned char data[65536];
-	unsigned int next = 0;
+	unsigned char	data[65536];
+	unsigned int	next = 0;
 
 	/*
 	 * Convert the authority data from 'message' into a negative cache
@@ -166,8 +162,7 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		result = ISC_R_NOMORE;
 	while (result == ISC_R_SUCCESS) {
 		name = NULL;
-		dns_message_currentname(message, DNS_SECTION_AUTHORITY,
-					&name);
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
 		if ((name->attributes & DNS_NAMEATTR_NCACHE) != 0) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
@@ -201,14 +196,14 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 					/*
 					 * Copy the type to the buffer.
 					 */
-					isc_buffer_availableregion(&buffer,
-								   &r);
+					isc_buffer_availableregion(&buffer, &r);
 					if (r.length < 3)
 						return (ISC_R_NOSPACE);
 					isc_buffer_putuint16(&buffer,
 							     rdataset->type);
-					isc_buffer_putuint8(&buffer,
-					       (unsigned char)rdataset->trust);
+					isc_buffer_putuint8(
+						&buffer,
+						(unsigned char)rdataset->trust);
 					/*
 					 * Copy the rdataset into the buffer.
 					 */
@@ -257,8 +252,8 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	ncrdatalist.ttl = ttl;
 
 	dns_rdataset_init(&ncrdataset);
-	RUNTIME_CHECK(dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset)
-		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset) ==
+		      ISC_R_SUCCESS);
 	if (!secure && trust > dns_trust_answer)
 		trust = dns_trust_answer;
 	ncrdataset.trust = trust;
@@ -268,8 +263,8 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	if (optout)
 		ncrdataset.attributes |= DNS_RDATASETATTR_OPTOUT;
 
-	return (dns_db_addrdataset(cache, node, NULL, now, &ncrdataset,
-				   0, addedrdataset));
+	return (dns_db_addrdataset(cache, node, NULL, now, &ncrdataset, 0,
+				   addedrdataset));
 }
 
 isc_result_t
@@ -277,13 +272,13 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 		  isc_buffer_t *target, unsigned int options,
 		  unsigned int *countp)
 {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_result_t result;
-	isc_region_t remaining, tavailable;
-	isc_buffer_t source, savedbuffer, rdlen;
-	dns_name_t name;
+	dns_rdata_t	rdata = DNS_RDATA_INIT;
+	isc_result_t	result;
+	isc_region_t	remaining, tavailable;
+	isc_buffer_t	source, savedbuffer, rdlen;
+	dns_name_t	name;
 	dns_rdatatype_t type;
-	unsigned int i, rcount, count;
+	unsigned int	i, rcount, count;
 
 	/*
 	 * Convert the negative caching rdataset 'rdataset' to wire format,
@@ -375,9 +370,9 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			 */
 			INSIST((target->used >= rdlen.used + 2) &&
 			       (target->used - rdlen.used - 2 < 65536));
-			isc_buffer_putuint16(&rdlen,
-					     (uint16_t)(target->used -
-							    rdlen.used - 2));
+			isc_buffer_putuint16(
+				&rdlen,
+				(uint16_t)(target->used - rdlen.used - 2));
 
 			count++;
 		}
@@ -392,7 +387,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 
 	return (ISC_R_SUCCESS);
 
- rollback:
+rollback:
 	INSIST(savedbuffer.used < 65536);
 	dns_compress_rollback(cctx, (uint16_t)savedbuffer.used);
 	*countp = 0;
@@ -402,14 +397,16 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 }
 
 static void
-rdataset_disassociate(dns_rdataset_t *rdataset) {
+rdataset_disassociate(dns_rdataset_t *rdataset)
+{
 	UNUSED(rdataset);
 }
 
 static isc_result_t
-rdataset_first(dns_rdataset_t *rdataset) {
+rdataset_first(dns_rdataset_t *rdataset)
+{
 	unsigned char *raw = rdataset->private3;
-	unsigned int count;
+	unsigned int   count;
 
 	count = raw[0] * 256 + raw[1];
 	if (count == 0) {
@@ -430,9 +427,10 @@ rdataset_first(dns_rdataset_t *rdataset) {
 }
 
 static isc_result_t
-rdataset_next(dns_rdataset_t *rdataset) {
-	unsigned int count;
-	unsigned int length;
+rdataset_next(dns_rdataset_t *rdataset)
+{
+	unsigned int   count;
+	unsigned int   length;
 	unsigned char *raw;
 
 	count = rdataset->privateuint4;
@@ -449,9 +447,10 @@ rdataset_next(dns_rdataset_t *rdataset) {
 }
 
 static void
-rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata)
+{
 	unsigned char *raw = rdataset->private5;
-	isc_region_t r;
+	isc_region_t   r;
 
 	REQUIRE(raw != NULL);
 
@@ -462,7 +461,8 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 }
 
 static void
-rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target)
+{
 	*target = *source;
 
 	/*
@@ -473,9 +473,10 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 }
 
 static unsigned int
-rdataset_count(dns_rdataset_t *rdataset) {
+rdataset_count(dns_rdataset_t *rdataset)
+{
 	unsigned char *raw = rdataset->private3;
-	unsigned int count;
+	unsigned int   count;
 
 	count = raw[0] * 256 + raw[1];
 
@@ -483,7 +484,8 @@ rdataset_count(dns_rdataset_t *rdataset) {
 }
 
 static void
-rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
+rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust)
+{
 	unsigned char *raw = rdataset->private3;
 
 	raw[-1] = (unsigned char)trust;
@@ -496,30 +498,30 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_current,
 	rdataset_clone,
 	rdataset_count,
-	NULL,			/* addnoqname */
-	NULL,			/* getnoqname */
-	NULL,			/* addclosest */
-	NULL,			/* getclosest */
-	rdataset_settrust,	/* settrust */
-	NULL,			/* expire */
-	NULL,			/* clearprefetch */
-	NULL,			/* setownercase */
-	NULL,			/* getownercase */
-	NULL			/* addglue */
+	NULL,		   /* addnoqname */
+	NULL,		   /* getnoqname */
+	NULL,		   /* addclosest */
+	NULL,		   /* getclosest */
+	rdataset_settrust, /* settrust */
+	NULL,		   /* expire */
+	NULL,		   /* clearprefetch */
+	NULL,		   /* setownercase */
+	NULL,		   /* getownercase */
+	NULL		   /* addglue */
 };
 
 isc_result_t
 dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 		       dns_rdatatype_t type, dns_rdataset_t *rdataset)
 {
-	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_region_t remaining;
-	isc_buffer_t source;
-	dns_name_t tname;
+	isc_result_t	result;
+	dns_rdata_t	rdata = DNS_RDATA_INIT;
+	isc_region_t	remaining;
+	isc_buffer_t	source;
+	dns_name_t	tname;
 	dns_rdatatype_t ttype;
-	dns_trust_t trust = dns_trust_none;
-	dns_rdataset_t rclone;
+	dns_trust_t	trust = dns_trust_none;
+	dns_rdataset_t	rclone;
 
 	REQUIRE(ncacherdataset != NULL);
 	REQUIRE(ncacherdataset->type == 0);
@@ -586,17 +588,17 @@ isc_result_t
 dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 			  dns_rdatatype_t covers, dns_rdataset_t *rdataset)
 {
-	dns_name_t tname;
+	dns_name_t	  tname;
 	dns_rdata_rrsig_t rrsig;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdataset_t rclone;
-	dns_rdatatype_t type;
-	dns_trust_t trust = dns_trust_none;
-	isc_buffer_t source;
-	isc_region_t remaining, sigregion;
-	isc_result_t result;
-	unsigned char *raw;
-	unsigned int count;
+	dns_rdata_t	  rdata = DNS_RDATA_INIT;
+	dns_rdataset_t	  rclone;
+	dns_rdatatype_t	  type;
+	dns_trust_t	  trust = dns_trust_none;
+	isc_buffer_t	  source;
+	isc_region_t	  remaining, sigregion;
+	isc_result_t	  result;
+	unsigned char *	  raw;
+	unsigned int	  count;
 
 	REQUIRE(ncacherdataset != NULL);
 	REQUIRE(ncacherdataset->type == 0);
@@ -685,15 +687,15 @@ void
 dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
 		   dns_rdataset_t *rdataset)
 {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_trust_t trust;
-	isc_region_t remaining, sigregion;
-	isc_buffer_t source;
-	dns_name_t tname;
-	dns_rdatatype_t type;
-	unsigned int count;
+	dns_rdata_t	  rdata = DNS_RDATA_INIT;
+	dns_trust_t	  trust;
+	isc_region_t	  remaining, sigregion;
+	isc_buffer_t	  source;
+	dns_name_t	  tname;
+	dns_rdatatype_t	  type;
+	unsigned int	  count;
 	dns_rdata_rrsig_t rrsig;
-	unsigned char *raw;
+	unsigned char *	  raw;
 
 	REQUIRE(ncacherdataset != NULL);
 	REQUIRE(ncacherdataset->type == 0);
@@ -733,8 +735,8 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
 		raw += 2;
 		sigregion.base = raw;
 		dns_rdata_reset(&rdata);
-		dns_rdata_fromregion(&rdata, rdataset->rdclass,
-				     rdataset->type, &sigregion);
+		dns_rdata_fromregion(&rdata, rdataset->rdclass, rdataset->type,
+				     &sigregion);
 		(void)dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		rdataset->covers = rrsig.covered;
 	} else

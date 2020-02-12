@@ -160,9 +160,8 @@ typedef void (*isc_nm_cb_t)(isc_nmhandle_t *handle, isc_result_t result,
  */
 
 isc_result_t
-isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface,
-		 isc_nm_recv_cb_t cb, void *cbarg,
-		 size_t extrasize, isc_nmsocket_t **sockp);
+isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
+		 void *cbarg, size_t extrasize, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for UDP packets on interface 'iface' using net manager
  * 'mgr'.
@@ -217,8 +216,8 @@ isc_nm_resumeread(isc_nmsocket_t *sock);
  */
 
 isc_result_t
-isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region,
-	    isc_nm_cb_t cb, void *cbarg);
+isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
+	    void *cbarg);
 /*%<
  * Send the data in 'region' via 'handle'. Afterward, the callback 'cb' is
  * called with the argument 'cbarg'.
@@ -228,11 +227,9 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region,
  */
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
-		 isc_nm_cb_t cb, void *cbarg,
-		 size_t extrahandlesize, int backlog,
-		 isc_quota_t *quota,
-		 isc_nmsocket_t **sockp);
+isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
+		 void *cbarg, size_t extrahandlesize, int backlog,
+		 isc_quota_t *quota, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for raw messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -261,9 +258,8 @@ isc_nm_tcp_stoplistening(isc_nmsocket_t *sock);
  */
 
 isc_result_t
-isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
-		    isc_nm_recv_cb_t cb, void *cbarg,
-		    isc_nm_cb_t accept_cb, void *accept_cbarg,
+isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
+		    void *cbarg, isc_nm_cb_t accept_cb, void *accept_cbarg,
 		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
 		    isc_nmsocket_t **sockp);
 /*%<
@@ -324,7 +320,7 @@ isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle);
 
 void
 isc_nm_tcp_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
-		   uint32_t keepalive, uint32_t advertised);
+		       uint32_t keepalive, uint32_t advertised);
 /*%<
  * Sets the initial, idle, and keepalive timeout values to use for
  * TCP connections, and the timeout value to advertise in responses using

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_NETDB_H
 #define ISC_NETDB_H 1
 
@@ -43,8 +42,8 @@
  *** Imports.
  ***/
 
-#include <isc/net.h>
-
 #include <netdb.h>
+
+#include <isc/net.h>
 
 #endif /* ISC_NETDB_H */

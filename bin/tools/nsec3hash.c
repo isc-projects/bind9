@@ -9,9 +9,9 @@
  * information regarding copyright ownership.
  */
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <stdarg.h>
 
 #include <isc/base32.h>
 #include <isc/buffer.h>
@@ -36,7 +36,8 @@ ISC_PLATFORM_NORETURN_PRE static void
 fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
 
 static void
-fatal(const char *format, ...) {
+fatal(const char *format, ...)
+{
 	va_list args;
 
 	fprintf(stderr, "%s: ", program);
@@ -48,13 +49,15 @@ fatal(const char *format, ...) {
 }
 
 static void
-check_result(isc_result_t result, const char *message) {
+check_result(isc_result_t result, const char *message)
+{
 	if (result != ISC_R_SUCCESS)
 		fatal("%s: %s", message, isc_result_totext(result));
 }
 
 static void
-usage() {
+usage()
+{
 	fprintf(stderr, "Usage: %s salt algorithm iterations domain\n",
 		program);
 	fprintf(stderr, "       %s -r algorithm flags iterations salt domain\n",
@@ -62,28 +65,28 @@ usage() {
 	exit(1);
 }
 
-typedef void nsec3printer(unsigned algo, unsigned flags, unsigned iters,
-			  const char *saltstr, const char *domain,
-			  const char *digest);
+typedef void
+nsec3printer(unsigned algo, unsigned flags, unsigned iters, const char *saltstr,
+	     const char *domain, const char *digest);
 
 static void
 nsec3hash(nsec3printer *nsec3print, const char *algostr, const char *flagstr,
 	  const char *iterstr, const char *saltstr, const char *domain)
 {
 	dns_fixedname_t fixed;
-	dns_name_t *name;
-	isc_buffer_t buffer;
-	isc_region_t region;
-	isc_result_t result;
-	unsigned char hash[NSEC3_MAX_HASH_LENGTH];
-	unsigned char salt[DNS_NSEC3_SALTSIZE];
-	unsigned char text[1024];
-	unsigned int hash_alg;
-	unsigned int flags;
-	unsigned int length;
-	unsigned int iterations;
-	unsigned int salt_length;
-	const char dash[] = "-";
+	dns_name_t *	name;
+	isc_buffer_t	buffer;
+	isc_region_t	region;
+	isc_result_t	result;
+	unsigned char	hash[NSEC3_MAX_HASH_LENGTH];
+	unsigned char	salt[DNS_NSEC3_SALTSIZE];
+	unsigned char	text[1024];
+	unsigned int	hash_alg;
+	unsigned int	flags;
+	unsigned int	length;
+	unsigned int	iterations;
+	unsigned int	salt_length;
+	const char	dash[] = "-";
 
 	if (strcmp(saltstr, "-") == 0) {
 		salt_length = 0;
@@ -115,7 +118,7 @@ nsec3hash(nsec3printer *nsec3print, const char *algostr, const char *flagstr,
 	check_result(result, "dns_name_fromtext() failed");
 
 	dns_name_downcase(name, name, NULL);
-	length = isc_iterated_hash(hash, hash_alg, iterations,  salt,
+	length = isc_iterated_hash(hash, hash_alg, iterations, salt,
 				   salt_length, name->ndata, name->length);
 	if (length == 0)
 		fatal("isc_iterated_hash failed");
@@ -135,8 +138,8 @@ nsec3hash_print(unsigned algo, unsigned flags, unsigned iters,
 	UNUSED(flags);
 	UNUSED(domain);
 
-	fprintf(stdout, "%s (salt=%s, hash=%u, iterations=%u)\n",
-		digest, saltstr, algo, iters);
+	fprintf(stdout, "%s (salt=%s, hash=%u, iterations=%u)\n", digest,
+		saltstr, algo, iters);
 }
 
 static void
@@ -144,14 +147,15 @@ nsec3hash_rdata_print(unsigned algo, unsigned flags, unsigned iters,
 		      const char *saltstr, const char *domain,
 		      const char *digest)
 {
-	fprintf(stdout, "%s NSEC3 %u %u %u %s %s\n",
-		domain, algo, flags, iters, saltstr, digest);
+	fprintf(stdout, "%s NSEC3 %u %u %u %s %s\n", domain, algo, flags, iters,
+		saltstr, digest);
 }
 
 int
-main(int argc, char *argv[]) {
+main(int argc, char *argv[])
+{
 	bool rdata_format = false;
-	int ch;
+	int  ch;
 
 	while ((ch = isc_commandline_parse(argc, argv, "-r")) != -1) {
 		switch (ch) {
@@ -166,7 +170,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
- skip:
+skip:
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
@@ -174,14 +178,14 @@ main(int argc, char *argv[]) {
 		if (argc != 5) {
 			usage();
 		}
-		nsec3hash(nsec3hash_rdata_print,
-			  argv[0], argv[1], argv[2], argv[3], argv[4]);
+		nsec3hash(nsec3hash_rdata_print, argv[0], argv[1], argv[2],
+			  argv[3], argv[4]);
 	} else {
 		if (argc != 4) {
 			usage();
 		}
-		nsec3hash(nsec3hash_print,
-			  argv[1], NULL, argv[2], argv[0], argv[3]);
+		nsec3hash(nsec3hash_print, argv[1], NULL, argv[2], argv[0],
+			  argv[3]);
 	}
-	return(0);
+	return (0);
 }

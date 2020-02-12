@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_DBTABLE_H
 #define DNS_DBTABLE_H 1
 
@@ -44,7 +43,7 @@
 
 #include <dns/types.h>
 
-#define DNS_DBTABLEFIND_NOEXACT		0x01
+#define DNS_DBTABLEFIND_NOEXACT 0x01
 
 ISC_LANG_BEGINDECLS
 

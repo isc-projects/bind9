@@ -11,33 +11,33 @@
 
 /*! \file */
 
-#include <sys/types.h>
-
+#include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <unistd.h>
+
+#include <sys/types.h>
 
 #ifndef WIN32
 #include <inttypes.h>
 #include <signal.h>
+
 #include <sys/time.h>
 #endif /* WIN32 */
 
-#include <isc/platform.h>
-#include <isc/atomic.h>
 #include <isc/app.h>
+#include <isc/atomic.h>
 #include <isc/condition.h>
+#include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/event.h>
 #include <isc/platform.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/task.h>
-#include <isc/time.h>
 #include <isc/thread.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #ifdef WIN32
@@ -51,46 +51,43 @@
  * context and let multiple worker, I/O, timer threads do actual jobs.
  */
 
-static isc_thread_t		blockedthread;
-static atomic_bool		is_running;
+static isc_thread_t blockedthread;
+static atomic_bool  is_running;
 
 #ifdef WIN32
 /*
  * We need to remember which thread is the main thread...
  */
-static isc_thread_t		main_thread;
+static isc_thread_t main_thread;
 #endif
 
 /*
  * The application context of this module.
  */
-#define APPCTX_MAGIC		ISC_MAGIC('A', 'p', 'c', 'x')
-#define VALID_APPCTX(c)		ISC_MAGIC_VALID(c, APPCTX_MAGIC)
+#define APPCTX_MAGIC ISC_MAGIC('A', 'p', 'c', 'x')
+#define VALID_APPCTX(c) ISC_MAGIC_VALID(c, APPCTX_MAGIC)
 
 #ifdef WIN32
 #define NUM_EVENTS 2
 
-enum {
-	RELOAD_EVENT,
-	SHUTDOWN_EVENT
-};
+enum { RELOAD_EVENT, SHUTDOWN_EVENT };
 #endif /* WIN32 */
 
 struct isc_appctx {
-	unsigned int		magic;
-	isc_mem_t		*mctx;
-	isc_mutex_t		lock;
-	isc_eventlist_t	on_run;
-	atomic_bool		shutdown_requested;
-	atomic_bool		running;
-	atomic_bool		want_shutdown;
-	atomic_bool		want_reload;
-	atomic_bool		blocked;
+	unsigned int	magic;
+	isc_mem_t *	mctx;
+	isc_mutex_t	lock;
+	isc_eventlist_t on_run;
+	atomic_bool	shutdown_requested;
+	atomic_bool	running;
+	atomic_bool	want_shutdown;
+	atomic_bool	want_reload;
+	atomic_bool	blocked;
 #ifdef WIN32
-	HANDLE			hEvents[NUM_EVENTS];
-#else /* WIN32 */
-	isc_mutex_t		readylock;
-	isc_condition_t	ready;
+	HANDLE hEvents[NUM_EVENTS];
+#else  /* WIN32 */
+	isc_mutex_t	readylock;
+	isc_condition_t ready;
 #endif /* WIN32 */
 };
 
@@ -98,25 +95,25 @@ static isc_appctx_t isc_g_appctx;
 
 #ifndef WIN32
 static void
-handle_signal(int sig, void (*handler)(int)) {
+handle_signal(int sig, void (*handler)(int))
+{
 	struct sigaction sa;
 
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = handler;
 
-	if (sigfillset(&sa.sa_mask) != 0 ||
-	    sigaction(sig, &sa, NULL) < 0) {
+	if (sigfillset(&sa.sa_mask) != 0 || sigaction(sig, &sa, NULL) < 0) {
 		char strbuf[ISC_STRERRORSIZE];
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_error_fatal(__FILE__, __LINE__,
-				 "handle_signal() %d setup: %s",
-				 sig, strbuf);
+				"handle_signal() %d setup: %s", sig, strbuf);
 	}
 }
 #endif
 
 isc_result_t
-isc_app_ctxstart(isc_appctx_t *ctx) {
+isc_app_ctxstart(isc_appctx_t *ctx)
+{
 	REQUIRE(VALID_APPCTX(ctx));
 
 	/*
@@ -147,9 +144,9 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 	/* Create the shutdown event in a non-signaled state */
 	ctx->hEvents[SHUTDOWN_EVENT] = CreateEvent(NULL, FALSE, FALSE, NULL);
 #else /* WIN32 */
-	int presult;
-	sigset_t sset;
-	char strbuf[ISC_STRERRORSIZE];
+	int		presult;
+	sigset_t	sset;
+	char		strbuf[ISC_STRERRORSIZE];
 
 	/*
 	 * Always ignore SIGPIPE.
@@ -169,20 +166,17 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 	 * blocked by default, ensuring that only the thread that calls
 	 * sigwait() for them will get those signals.
 	 */
-	if (sigemptyset(&sset) != 0 ||
-	    sigaddset(&sset, SIGHUP) != 0 ||
-	    sigaddset(&sset, SIGINT) != 0 ||
-	    sigaddset(&sset, SIGTERM) != 0) {
+	if (sigemptyset(&sset) != 0 || sigaddset(&sset, SIGHUP) != 0 ||
+	    sigaddset(&sset, SIGINT) != 0 || sigaddset(&sset, SIGTERM) != 0) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_error_fatal(__FILE__, __LINE__,
-				 "isc_app_start() sigsetops: %s", strbuf);
+				"isc_app_start() sigsetops: %s", strbuf);
 	}
 	presult = pthread_sigmask(SIG_BLOCK, &sset, NULL);
 	if (presult != 0) {
 		strerror_r(presult, strbuf, sizeof(strbuf));
 		isc_error_fatal(__FILE__, __LINE__,
-				 "isc_app_start() pthread_sigmask: %s",
-				 strbuf);
+				"isc_app_start() pthread_sigmask: %s", strbuf);
 	}
 
 #endif /* WIN32 */
@@ -191,7 +185,8 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 }
 
 isc_result_t
-isc_app_start(void) {
+isc_app_start(void)
+{
 	isc_g_appctx.magic = APPCTX_MAGIC;
 	isc_g_appctx.mctx = NULL;
 	/* The remaining members will be initialized in ctxstart() */
@@ -208,10 +203,10 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 
 isc_result_t
 isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
-		  isc_taskaction_t action, void *arg)
+		 isc_taskaction_t action, void *arg)
 {
 	isc_event_t *event;
-	isc_task_t *cloned_task = NULL;
+	isc_task_t * cloned_task = NULL;
 
 	if (atomic_load_acquire(&ctx->running)) {
 		return (ISC_R_ALREADYRUNNING);
@@ -234,11 +229,12 @@ isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
 }
 
 isc_result_t
-isc_app_ctxrun(isc_appctx_t *ctx) {
+isc_app_ctxrun(isc_appctx_t *ctx)
+{
 	isc_event_t *event, *next_event;
-	isc_task_t *task;
-	bool exp_false = false;
-	bool exp_true = true;
+	isc_task_t * task;
+	bool	     exp_false = false;
+	bool	     exp_true = true;
 
 	REQUIRE(VALID_APPCTX(ctx));
 
@@ -246,15 +242,13 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	REQUIRE(main_thread == GetCurrentThread());
 #endif
 
-	if (atomic_compare_exchange_weak_acq_rel(
-		    &ctx->running, &exp_false, true) == true)
-	{
+	if (atomic_compare_exchange_weak_acq_rel(&ctx->running, &exp_false,
+						 true) == true) {
 		/*
 		 * Post any on-run events (in FIFO order).
 		 */
 		LOCK(&ctx->lock);
-		for (event = ISC_LIST_HEAD(ctx->on_run);
-		     event != NULL;
+		for (event = ISC_LIST_HEAD(ctx->on_run); event != NULL;
 		     event = next_event) {
 			next_event = ISC_LIST_NEXT(event, ev_link);
 			ISC_LIST_UNLINK(ctx->on_run, event, ev_link);
@@ -282,9 +276,8 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	 */
 	while (atomic_load_acquire(&ctx->want_shutdown) == false) {
 #ifdef WIN32
-		DWORD  dwWaitResult = \
-			WaitForMultipleObjects(NUM_EVENTS, ctx->hEvents,
-					       FALSE, INFINITE);
+		DWORD dwWaitResult = WaitForMultipleObjects(
+			NUM_EVENTS, ctx->hEvents, FALSE, INFINITE);
 
 		/* See why we returned */
 
@@ -304,10 +297,10 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 				break;
 			}
 		}
-#else /* WIN32 */
+#else  /* WIN32 */
 		if (isc_bind9) {
 			sigset_t sset;
-			int sig;
+			int	 sig;
 			/*
 			 * BIND9 internal; single context:
 			 * Wait for SIGHUP, SIGINT, or SIGTERM.
@@ -331,8 +324,8 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 						&ctx->want_shutdown, true);
 					break;
 				case SIGHUP:
-					atomic_store_release(
-						&ctx->want_reload, true);
+					atomic_store_release(&ctx->want_reload,
+							     true);
 					break;
 				default:
 					INSIST(0);
@@ -356,9 +349,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 #endif /* WIN32 */
 		exp_true = true;
 		if (atomic_compare_exchange_weak_acq_rel(&ctx->want_reload,
-							 &exp_true,
-							 false))
-		{
+							 &exp_true, false)) {
 			return (ISC_R_RELOAD);
 		}
 
@@ -372,12 +363,13 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 }
 
 isc_result_t
-isc_app_run(void) {
+isc_app_run(void)
+{
 	isc_result_t result;
-	bool exp_false = false;
+	bool	     exp_false = false;
 
-	REQUIRE(atomic_compare_exchange_weak_acq_rel(
-			&is_running, &exp_false, true) == true);
+	REQUIRE(atomic_compare_exchange_weak_acq_rel(&is_running, &exp_false,
+						     true) == true);
 	result = isc_app_ctxrun(&isc_g_appctx);
 	atomic_store_release(&is_running, false);
 
@@ -385,12 +377,14 @@ isc_app_run(void) {
 }
 
 bool
-isc_app_isrunning() {
+isc_app_isrunning()
+{
 	return (atomic_load_acquire(&is_running));
 }
 
 void
-isc_app_ctxshutdown(isc_appctx_t *ctx) {
+isc_app_ctxshutdown(isc_appctx_t *ctx)
+{
 	bool exp_false = false;
 
 	REQUIRE(VALID_APPCTX(ctx));
@@ -400,14 +394,11 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 	/* If ctx->shutdown_requested == true, we are already shutting
 	 * down and we want to just bail out.
 	 */
-	if (atomic_compare_exchange_weak_acq_rel(
-		    &ctx->shutdown_requested,
-		    &exp_false,
-		    true))
-	{
+	if (atomic_compare_exchange_weak_acq_rel(&ctx->shutdown_requested,
+						 &exp_false, true)) {
 #ifdef WIN32
 		SetEvent(ctx->hEvents[SHUTDOWN_EVENT]);
-#else /* WIN32 */
+#else  /* WIN32 */
 		if (isc_bind9 && ctx != &isc_g_appctx) {
 			/* BIND9 internal, but using multiple contexts */
 			atomic_store_release(&ctx->want_shutdown, true);
@@ -415,11 +406,11 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 			/* BIND9 internal, single context */
 			if (kill(getpid(), SIGTERM) < 0) {
 				char strbuf[ISC_STRERRORSIZE];
-				strerror_r(errno,
-					   strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				isc_error_fatal(__FILE__, __LINE__,
 						"isc_app_shutdown() "
-						"kill: %s", strbuf);
+						"kill: %s",
+						strbuf);
 			}
 		} else {
 			/* External, multiple contexts */
@@ -428,16 +419,17 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 		}
 #endif /* WIN32 */
 	}
-
 }
 
 void
-isc_app_shutdown(void) {
+isc_app_shutdown(void)
+{
 	isc_app_ctxshutdown(&isc_g_appctx);
 }
 
 void
-isc_app_ctxsuspend(isc_appctx_t *ctx) {
+isc_app_ctxsuspend(isc_appctx_t *ctx)
+{
 	REQUIRE(VALID_APPCTX(ctx));
 
 	REQUIRE(atomic_load(&ctx->running));
@@ -447,8 +439,8 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	 */
 	if (atomic_load_acquire(&ctx->shutdown_requested) == false) {
 #ifdef WIN32
-				SetEvent(ctx->hEvents[RELOAD_EVENT]);
-#else /* WIN32 */
+		SetEvent(ctx->hEvents[RELOAD_EVENT]);
+#else  /* WIN32 */
 		if (isc_bind9 && ctx != &isc_g_appctx) {
 			/* BIND9 internal, but using multiple contexts */
 			atomic_store_release(&ctx->want_reload, true);
@@ -456,11 +448,11 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 			/* BIND9 internal, single context */
 			if (kill(getpid(), SIGHUP) < 0) {
 				char strbuf[ISC_STRERRORSIZE];
-				strerror_r(errno,
-					   strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				isc_error_fatal(__FILE__, __LINE__,
 						"isc_app_reload() "
-						"kill: %s", strbuf);
+						"kill: %s",
+						strbuf);
 			}
 		} else {
 			/* External, multiple contexts */
@@ -472,12 +464,14 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 }
 
 void
-isc_app_reload(void) {
+isc_app_reload(void)
+{
 	isc_app_ctxsuspend(&isc_g_appctx);
 }
 
 void
-isc_app_ctxfinish(isc_appctx_t *ctx) {
+isc_app_ctxfinish(isc_appctx_t *ctx)
+{
 	REQUIRE(VALID_APPCTX(ctx));
 
 	isc_mutex_destroy(&ctx->lock);
@@ -488,12 +482,14 @@ isc_app_ctxfinish(isc_appctx_t *ctx) {
 }
 
 void
-isc_app_finish(void) {
+isc_app_finish(void)
+{
 	isc_app_ctxfinish(&isc_g_appctx);
 }
 
 void
-isc_app_block(void) {
+isc_app_block(void)
+{
 	bool exp_false = false;
 	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
 	REQUIRE(atomic_compare_exchange_weak_acq_rel(&isc_g_appctx.blocked,
@@ -501,7 +497,7 @@ isc_app_block(void) {
 
 #ifdef WIN32
 	blockedthread = GetCurrentThread();
-#else /* WIN32 */
+#else  /* WIN32 */
 	sigset_t sset;
 	blockedthread = pthread_self();
 	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
@@ -512,18 +508,17 @@ isc_app_block(void) {
 }
 
 void
-isc_app_unblock(void) {
+isc_app_unblock(void)
+{
 	bool exp_true = true;
 
 	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
-	REQUIRE(atomic_compare_exchange_weak_acq_rel(
-			&isc_g_appctx.blocked,
-			&exp_true,
-			false));
+	REQUIRE(atomic_compare_exchange_weak_acq_rel(&isc_g_appctx.blocked,
+						     &exp_true, false));
 
 #ifdef WIN32
 	REQUIRE(blockedthread == GetCurrentThread());
-#else /* WIN32 */
+#else  /* WIN32 */
 	REQUIRE(blockedthread == pthread_self());
 
 	sigset_t sset;
@@ -535,7 +530,8 @@ isc_app_unblock(void) {
 }
 
 isc_result_t
-isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
+isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp)
+{
 	isc_appctx_t *ctx;
 
 	REQUIRE(mctx != NULL);
@@ -554,7 +550,8 @@ isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
 }
 
 void
-isc_appctx_destroy(isc_appctx_t **ctxp) {
+isc_appctx_destroy(isc_appctx_t **ctxp)
+{
 	isc_appctx_t *ctx;
 
 	REQUIRE(ctxp != NULL);

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_ZONEKEY_H
 #define DNS_ZONEKEY_H 1
 

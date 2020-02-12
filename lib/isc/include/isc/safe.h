@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_SAFE_H
 #define ISC_SAFE_H 1
 

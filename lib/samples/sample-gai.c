@@ -9,20 +9,21 @@
  * information regarding copyright ownership.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include <isc/net.h>
 #include <isc/print.h>
 
 #include <irs/netdb.h>
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-
 static void
-do_gai(int family, char *hostname) {
+do_gai(int family, char *hostname)
+{
 	struct addrinfo hints, *res, *res0;
-	int error;
-	char namebuf[1024], addrbuf[1024], servbuf[1024];
+	int		error;
+	char		namebuf[1024], addrbuf[1024], servbuf[1024];
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = family;
@@ -36,21 +37,20 @@ do_gai(int family, char *hostname) {
 	}
 
 	for (res = res0; res; res = res->ai_next) {
-		error = getnameinfo(res->ai_addr,
-				    (socklen_t)res->ai_addrlen,
-				    addrbuf, sizeof(addrbuf),
-				    NULL, 0, NI_NUMERICHOST);
+		error = getnameinfo(res->ai_addr, (socklen_t)res->ai_addrlen,
+				    addrbuf, sizeof(addrbuf), NULL, 0,
+				    NI_NUMERICHOST);
 		if (error == 0)
 			error = getnameinfo(res->ai_addr,
-					    (socklen_t)res->ai_addrlen,
-					    namebuf, sizeof(namebuf),
-					    servbuf, sizeof(servbuf), 0);
+					    (socklen_t)res->ai_addrlen, namebuf,
+					    sizeof(namebuf), servbuf,
+					    sizeof(servbuf), 0);
 		if (error != 0) {
 			fprintf(stderr, "getnameinfo failed: %s\n",
 				gai_strerror(error));
 		} else {
-			printf("%s(%s/%s)=%s:%s\n", hostname,
-			       res->ai_canonname, addrbuf, namebuf, servbuf);
+			printf("%s(%s/%s)=%s:%s\n", hostname, res->ai_canonname,
+			       addrbuf, namebuf, servbuf);
 		}
 	}
 
@@ -58,7 +58,8 @@ do_gai(int family, char *hostname) {
 }
 
 int
-main(int argc, char *argv[]) {
+main(int argc, char *argv[])
+{
 	if (argc < 2)
 		exit(1);
 

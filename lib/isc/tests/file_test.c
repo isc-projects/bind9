@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <fcntl.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -40,7 +39,8 @@
 #define F(x) "testdata/file/" x ".test"
 
 static void
-touch(const char *filename) {
+touch(const char *filename)
+{
 	int fd;
 
 	unlink(filename);
@@ -52,9 +52,10 @@ touch(const char *filename) {
 
 /* test sanitized filenames */
 static void
-isc_file_sanitize_test(void **state) {
+isc_file_sanitize_test(void **state)
+{
 	isc_result_t result;
-	char buf[1024];
+	char	     buf[1024];
 
 	UNUSED(state);
 
@@ -88,26 +89,27 @@ isc_file_sanitize_test(void **state) {
 
 /* test filename templates */
 static void
-isc_file_template_test(void **state) {
+isc_file_template_test(void **state)
+{
 	isc_result_t result;
-	char buf[1024];
+	char	     buf[1024];
 
 	UNUSED(state);
 
 	assert_return_code(chdir(TESTS), 0);
 
-	result = isc_file_template("/absolute/path", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("/absolute/path", "file-XXXXXXXX", buf,
+				   sizeof(buf));
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "/absolute/file-XXXXXXXX");
 
-	result = isc_file_template("relative/path", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("relative/path", "file-XXXXXXXX", buf,
+				   sizeof(buf));
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "relative/file-XXXXXXXX");
 
-	result = isc_file_template("/trailing/slash/", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("/trailing/slash/", "file-XXXXXXXX", buf,
+				   sizeof(buf));
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "/trailing/slash/file-XXXXXXXX");
 
@@ -120,8 +122,8 @@ isc_file_template_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "/file-XXXXXXXX");
 
-	result = isc_file_template("noslash", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result =
+		isc_file_template("noslash", "file-XXXXXXXX", buf, sizeof(buf));
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "file-XXXXXXXX");
 
@@ -131,7 +133,8 @@ isc_file_template_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_file_sanitize_test),
 		cmocka_unit_test(isc_file_template_test),
@@ -145,7 +148,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

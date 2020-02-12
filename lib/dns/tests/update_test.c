@@ -11,12 +11,11 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -41,7 +40,8 @@
 #include "../update.c"
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -55,7 +55,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	dns_test_end();
@@ -66,7 +67,8 @@ _teardown(void **state) {
 static uint32_t mystdtime;
 
 static void
-set_mystdtime(int year, int month, int day) {
+set_mystdtime(int year, int month, int day)
+{
 	struct tm tm;
 
 	memset(&tm, 0, sizeof(tm));
@@ -76,13 +78,16 @@ set_mystdtime(int year, int month, int day) {
 	mystdtime = timegm(&tm);
 }
 
-void isc_stdtime_get(isc_stdtime_t *now) {
+void
+isc_stdtime_get(isc_stdtime_t *now)
+{
 	*now = mystdtime;
 }
 
 /* simple increment by 1 */
 static void
-increment_test(void **state) {
+increment_test(void **state)
+{
 	uint32_t old = 50;
 	uint32_t serial;
 
@@ -96,7 +101,8 @@ increment_test(void **state) {
 
 /* increment past zero, 0xfffffffff -> 1 */
 static void
-increment_past_zero_test(void **state) {
+increment_past_zero_test(void **state)
+{
 	uint32_t old = 0xffffffffu;
 	uint32_t serial;
 
@@ -110,7 +116,8 @@ increment_past_zero_test(void **state) {
 
 /* past to unixtime */
 static void
-past_to_unix_test(void **state) {
+past_to_unix_test(void **state)
+{
 	uint32_t old;
 	uint32_t serial;
 
@@ -127,7 +134,8 @@ past_to_unix_test(void **state) {
 
 /* now to unixtime */
 static void
-now_to_unix_test(void **state) {
+now_to_unix_test(void **state)
+{
 	uint32_t old;
 	uint32_t serial;
 
@@ -144,7 +152,8 @@ now_to_unix_test(void **state) {
 
 /* future to unixtime */
 static void
-future_to_unix_test(void **state) {
+future_to_unix_test(void **state)
+{
 	uint32_t old;
 	uint32_t serial;
 
@@ -161,7 +170,8 @@ future_to_unix_test(void **state) {
 
 /* undefined plus 1 to unixtime */
 static void
-undefined_plus1_to_unix_test(void **state) {
+undefined_plus1_to_unix_test(void **state)
+{
 	uint32_t old;
 	uint32_t serial;
 
@@ -179,7 +189,8 @@ undefined_plus1_to_unix_test(void **state) {
 
 /* undefined minus 1 to unixtime */
 static void
-undefined_minus1_to_unix_test(void **state) {
+undefined_minus1_to_unix_test(void **state)
+{
 	uint32_t old;
 	uint32_t serial;
 
@@ -197,7 +208,8 @@ undefined_minus1_to_unix_test(void **state) {
 
 /* undefined to unixtime */
 static void
-undefined_to_unix_test(void **state) {
+undefined_to_unix_test(void **state)
+{
 	uint32_t old;
 	uint32_t serial;
 
@@ -214,7 +226,8 @@ undefined_to_unix_test(void **state) {
 
 /* handle unixtime being zero */
 static void
-unixtime_zero_test(void **state) {
+unixtime_zero_test(void **state)
+{
 	uint32_t old;
 	uint32_t serial;
 
@@ -231,7 +244,8 @@ unixtime_zero_test(void **state) {
 
 /* past to date */
 static void
-past_to_date_test(void **state) {
+past_to_date_test(void **state)
+{
 	uint32_t old, serial;
 
 	UNUSED(state);
@@ -249,7 +263,8 @@ past_to_date_test(void **state) {
 
 /* now to date */
 static void
-now_to_date_test(void **state) {
+now_to_date_test(void **state)
+{
 	uint32_t old;
 	uint32_t serial;
 
@@ -266,7 +281,8 @@ now_to_date_test(void **state) {
 
 /* future to date */
 static void
-future_to_date_test(void **state) {
+future_to_date_test(void **state)
+{
 	uint32_t old;
 	uint32_t serial;
 
@@ -283,32 +299,33 @@ future_to_date_test(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(increment_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(increment_test, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(increment_past_zero_test,
 						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(past_to_unix_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(now_to_unix_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(future_to_unix_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(undefined_to_unix_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(past_to_unix_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(now_to_unix_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(future_to_unix_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(undefined_to_unix_test, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(undefined_plus1_to_unix_test,
 						_setup, _teardown),
 		cmocka_unit_test_setup_teardown(undefined_minus1_to_unix_test,
 						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(unixtime_zero_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(past_to_date_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(now_to_date_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(future_to_date_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(unixtime_zero_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(past_to_date_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(now_to_date_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(future_to_date_test, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -319,7 +336,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

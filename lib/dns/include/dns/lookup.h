@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_LOOKUP_H
 #define DNS_LOOKUP_H 1
 
@@ -41,8 +40,8 @@
  *\li	Drafts:	TBS
  */
 
-#include <isc/lang.h>
 #include <isc/event.h>
+#include <isc/lang.h>
 
 #include <dns/types.h>
 
@@ -57,12 +56,12 @@ ISC_LANG_BEGINDECLS
  */
 typedef struct dns_lookupevent {
 	ISC_EVENT_COMMON(struct dns_lookupevent);
-	isc_result_t			result;
-	dns_name_t			*name;
-	dns_rdataset_t			*rdataset;
-	dns_rdataset_t			*sigrdataset;
-	dns_db_t			*db;
-	dns_dbnode_t			*node;
+	isc_result_t	result;
+	dns_name_t *	name;
+	dns_rdataset_t *rdataset;
+	dns_rdataset_t *sigrdataset;
+	dns_db_t *	db;
+	dns_dbnode_t *	node;
 } dns_lookupevent_t;
 
 isc_result_t

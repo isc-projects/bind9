@@ -10,15 +10,13 @@
  */
 
 #ifndef WIN32
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
-
 #include <netdb.h>
 #include <unistd.h>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #endif
 
 #include <stdbool.h>
@@ -26,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -33,14 +32,10 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
-#include <isc/util.h>
-#include <isc/app.h>
-#include <isc/task.h>
 #include <isc/socket.h>
+#include <isc/task.h>
 #include <isc/timer.h>
-
-#include <irs/resconf.h>
-#include <irs/netdb.h>
+#include <isc/util.h>
 
 #include <dns/client.h>
 #include <dns/fixedname.h>
@@ -55,15 +50,18 @@
 #include <dns/secalg.h>
 
 #include <dst/dst.h>
+#include <irs/netdb.h>
+#include <irs/resconf.h>
 
 static char *algname;
 
 static isc_result_t
-printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
+printdata(dns_rdataset_t *rdataset, dns_name_t *owner)
+{
 	isc_buffer_t target;
 	isc_result_t result;
 	isc_region_t r;
-	char t[4096];
+	char	     t[4096];
 
 	if (!dns_rdataset_isassociated(rdataset)) {
 		printf("[WARN: empty]\n");
@@ -72,8 +70,7 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 
 	isc_buffer_init(&target, t, sizeof(t));
 
-	result = dns_rdataset_totext(rdataset, owner, false, false,
-				     &target);
+	result = dns_rdataset_totext(rdataset, owner, false, false, &target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_buffer_usedregion(&target, &r);
@@ -86,32 +83,33 @@ ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void) {
+usage(void)
+{
 	fprintf(stderr, "resolve [-t RRtype] "
-		"[[-a algorithm] [-e] -k keyname -K keystring] "
-		"[-S domain:serveraddr_for_domain ] [-s server_address]"
-		"[-b address[#port]] hostname\n");
+			"[[-a algorithm] [-e] -k keyname -K keystring] "
+			"[-S domain:serveraddr_for_domain ] [-s server_address]"
+			"[-b address[#port]] hostname\n");
 
 	exit(1);
 }
 
 static void
-set_key(dns_client_t *client, char *keynamestr, char *keystr,
-	bool is_sep, isc_mem_t **mctxp)
+set_key(dns_client_t *client, char *keynamestr, char *keystr, bool is_sep,
+	isc_mem_t **mctxp)
 {
-	isc_result_t result;
-	dns_fixedname_t fkeyname;
-	unsigned int namelen;
-	dns_name_t *keyname;
+	isc_result_t	   result;
+	dns_fixedname_t	   fkeyname;
+	unsigned int	   namelen;
+	dns_name_t *	   keyname;
 	dns_rdata_dnskey_t keystruct;
-	unsigned char keydata[4096];
-	isc_buffer_t keydatabuf;
-	unsigned char rrdata[4096];
-	isc_buffer_t rrdatabuf;
-	isc_buffer_t b;
-	isc_textregion_t tr;
-	isc_region_t r;
-	dns_secalg_t alg;
+	unsigned char	   keydata[4096];
+	isc_buffer_t	   keydatabuf;
+	unsigned char	   rrdata[4096];
+	isc_buffer_t	   rrdatabuf;
+	isc_buffer_t	   b;
+	isc_textregion_t   tr;
+	isc_region_t	   r;
+	dns_secalg_t	   alg;
 
 	isc_mem_create(mctxp);
 
@@ -146,8 +144,8 @@ set_key(dns_client_t *client, char *keynamestr, char *keystr,
 	keystruct.data = r.base;
 
 	result = dns_rdata_fromstruct(NULL, keystruct.common.rdclass,
-				      keystruct.common.rdtype,
-				      &keystruct, &rrdatabuf);
+				      keystruct.common.rdtype, &keystruct,
+				      &rrdatabuf);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "failed to construct key rdata\n");
 		exit(1);
@@ -162,11 +160,10 @@ set_key(dns_client_t *client, char *keynamestr, char *keystr,
 		exit(1);
 	}
 	result = dns_client_addtrustedkey(client, dns_rdataclass_in,
-					  dns_rdatatype_dnskey,
-					  keyname, &rrdatabuf);
+					  dns_rdatatype_dnskey, keyname,
+					  &rrdatabuf);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to add key for %s\n",
-			keynamestr);
+		fprintf(stderr, "failed to add key for %s\n", keynamestr);
 		exit(1);
 	}
 }
@@ -175,15 +172,15 @@ static void
 addserver(dns_client_t *client, const char *addrstr, const char *port,
 	  const char *name_space)
 {
-	struct addrinfo hints, *res;
-	int gaierror;
-	isc_sockaddr_t sa;
+	struct addrinfo	   hints, *res;
+	int		   gaierror;
+	isc_sockaddr_t	   sa;
 	isc_sockaddrlist_t servers;
-	isc_result_t result;
-	unsigned int namelen;
-	isc_buffer_t b;
-	dns_fixedname_t fname;
-	dns_name_t *name = NULL;
+	isc_result_t	   result;
+	unsigned int	   namelen;
+	isc_buffer_t	   b;
+	dns_fixedname_t	   fname;
+	dns_name_t *	   name = NULL;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -226,48 +223,48 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 }
 
 int
-main(int argc, char *argv[]) {
-	int ch;
+main(int argc, char *argv[])
+{
+	int		 ch;
 	isc_textregion_t tr;
-	char *server = NULL;
-	char *altserver = NULL;
-	char *altserveraddr = NULL;
-	char *altservername = NULL;
-	dns_client_t *client = NULL;
-	char *keynamestr = NULL;
-	char *keystr = NULL;
-	isc_result_t result;
-	isc_buffer_t b;
-	dns_fixedname_t qname0;
-	unsigned int namelen;
-	dns_name_t *qname, *name;
-	dns_rdatatype_t type = dns_rdatatype_a;
-	dns_rdataset_t *rdataset;
-	dns_namelist_t namelist;
-	isc_mem_t *keymctx = NULL;
-	unsigned int clientopt, resopt;
-	bool is_sep = false;
-	const char *port = "53";
-	isc_mem_t *mctx = NULL;
-	isc_appctx_t *actx = NULL;
-	isc_taskmgr_t *taskmgr = NULL;
+	char *		 server = NULL;
+	char *		 altserver = NULL;
+	char *		 altserveraddr = NULL;
+	char *		 altservername = NULL;
+	dns_client_t *	 client = NULL;
+	char *		 keynamestr = NULL;
+	char *		 keystr = NULL;
+	isc_result_t	 result;
+	isc_buffer_t	 b;
+	dns_fixedname_t	 qname0;
+	unsigned int	 namelen;
+	dns_name_t *	 qname, *name;
+	dns_rdatatype_t	 type = dns_rdatatype_a;
+	dns_rdataset_t * rdataset;
+	dns_namelist_t	 namelist;
+	isc_mem_t *	 keymctx = NULL;
+	unsigned int	 clientopt, resopt;
+	bool		 is_sep = false;
+	const char *	 port = "53";
+	isc_mem_t *	 mctx = NULL;
+	isc_appctx_t *	 actx = NULL;
+	isc_taskmgr_t *	 taskmgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
-	isc_timermgr_t *timermgr = NULL;
-	struct in_addr in4;
-	struct in6_addr in6;
-	isc_sockaddr_t a4, a6;
-	isc_sockaddr_t *addr4 = NULL, *addr6 = NULL;
+	isc_timermgr_t * timermgr = NULL;
+	struct in_addr	 in4;
+	struct in6_addr	 in6;
+	isc_sockaddr_t	 a4, a6;
+	isc_sockaddr_t * addr4 = NULL, *addr6 = NULL;
 
-	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:b:es:t:k:K:p:S:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "a:b:es:t:k:K:p:S:")) !=
+	       -1) {
 		switch (ch) {
 		case 't':
 			tr.base = isc_commandline_argument;
 			tr.length = strlen(isc_commandline_argument);
 			result = dns_rdatatype_fromtext(&type, &tr);
 			if (result != ISC_R_SUCCESS) {
-				fprintf(stderr,
-					"invalid RRtype: %s\n",
+				fprintf(stderr, "invalid RRtype: %s\n",
 					isc_commandline_argument);
 				exit(1);
 			}
@@ -276,8 +273,8 @@ main(int argc, char *argv[]) {
 			algname = isc_commandline_argument;
 			break;
 		case 'b':
-			if (inet_pton(AF_INET,
-				      isc_commandline_argument, &in4) == 1) {
+			if (inet_pton(AF_INET, isc_commandline_argument,
+				      &in4) == 1) {
 				if (addr4 != NULL) {
 					fprintf(stderr, "only one local "
 							"address per family "
@@ -286,8 +283,7 @@ main(int argc, char *argv[]) {
 				}
 				isc_sockaddr_fromin(&a4, &in4, 0);
 				addr4 = &a4;
-			} else if (inet_pton(AF_INET6,
-					     isc_commandline_argument,
+			} else if (inet_pton(AF_INET6, isc_commandline_argument,
 					     &in6) == 1) {
 				if (addr6 != NULL) {
 					fprintf(stderr, "only one local "
@@ -308,7 +304,8 @@ main(int argc, char *argv[]) {
 			break;
 		case 'S':
 			if (altserver != NULL) {
-				fprintf(stderr, "alternate server "
+				fprintf(stderr,
+					"alternate server "
 					"already defined: %s\n",
 					altserver);
 				exit(1);
@@ -317,7 +314,8 @@ main(int argc, char *argv[]) {
 			break;
 		case 's':
 			if (server != NULL) {
-				fprintf(stderr, "server "
+				fprintf(stderr,
+					"server "
 					"already defined: %s\n",
 					server);
 				exit(1);
@@ -393,7 +391,7 @@ main(int argc, char *argv[]) {
 
 	/* Set the nameserver */
 	if (server == NULL) {
-		irs_resconf_t *resconf = NULL;
+		irs_resconf_t *	    resconf = NULL;
 		isc_sockaddrlist_t *nameservers;
 
 		result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
@@ -403,8 +401,8 @@ main(int argc, char *argv[]) {
 			exit(1);
 		}
 		nameservers = irs_resconf_getnameservers(resconf);
-		result = dns_client_setservers(client, dns_rdataclass_in,
-					       NULL, nameservers);
+		result = dns_client_setservers(client, dns_rdataclass_in, NULL,
+					       nameservers);
 		if (result != ISC_R_SUCCESS) {
 			irs_resconf_destroy(&resconf);
 			fprintf(stderr, "dns_client_setservers failed: %u\n",
@@ -423,9 +421,8 @@ main(int argc, char *argv[]) {
 	/* Install DNSSEC key (if given) */
 	if (keynamestr != NULL) {
 		if (keystr == NULL) {
-			fprintf(stderr,
-				"key string is missing "
-				"while key name is provided\n");
+			fprintf(stderr, "key string is missing "
+					"while key name is provided\n");
 			exit(1);
 		}
 		set_key(client, keynamestr, keystr, is_sep, &keymctx);
@@ -448,13 +445,12 @@ main(int argc, char *argv[]) {
 	result = dns_client_resolve(client, qname, dns_rdataclass_in, type,
 				    resopt, &namelist);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr,
-			"resolution failed: %s\n", dns_result_totext(result));
+		fprintf(stderr, "resolution failed: %s\n",
+			dns_result_totext(result));
 	}
 	for (name = ISC_LIST_HEAD(namelist); name != NULL;
 	     name = ISC_LIST_NEXT(name, link)) {
-		for (rdataset = ISC_LIST_HEAD(name->list);
-		     rdataset != NULL;
+		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			if (printdata(rdataset, name) != ISC_R_SUCCESS)
 				fprintf(stderr, "print data failed\n");

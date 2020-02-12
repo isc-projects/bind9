@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -30,7 +29,8 @@
 #include "isctest.h"
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -42,7 +42,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	isc_test_end();
@@ -52,8 +53,9 @@ _teardown(void **state) {
 
 /* Create a taskpool */
 static void
-create_pool(void **state) {
-	isc_result_t result;
+create_pool(void **state)
+{
+	isc_result_t	result;
 	isc_taskpool_t *pool = NULL;
 
 	UNUSED(state);
@@ -68,8 +70,9 @@ create_pool(void **state) {
 
 /* Resize a taskpool */
 static void
-expand_pool(void **state) {
-	isc_result_t result;
+expand_pool(void **state)
+{
+	isc_result_t	result;
 	isc_taskpool_t *pool1 = NULL, *pool2 = NULL, *hold = NULL;
 
 	UNUSED(state);
@@ -112,10 +115,11 @@ expand_pool(void **state) {
 
 /* Get tasks */
 static void
-get_tasks(void **state) {
-	isc_result_t result;
+get_tasks(void **state)
+{
+	isc_result_t	result;
 	isc_taskpool_t *pool = NULL;
-	isc_task_t *task1 = NULL, *task2 = NULL, *task3 = NULL;
+	isc_task_t *	task1 = NULL, *task2 = NULL, *task3 = NULL;
 
 	UNUSED(state);
 
@@ -143,10 +147,11 @@ get_tasks(void **state) {
 
 /* Set privileges */
 static void
-set_privilege(void **state) {
-	isc_result_t result;
+set_privilege(void **state)
+{
+	isc_result_t	result;
 	isc_taskpool_t *pool = NULL;
-	isc_task_t *task1 = NULL, *task2 = NULL, *task3 = NULL;
+	isc_task_t *	task1 = NULL, *task2 = NULL, *task3 = NULL;
 
 	UNUSED(state);
 
@@ -183,16 +188,14 @@ set_privilege(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(create_pool,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(expand_pool,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(get_tasks,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(set_privilege,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(create_pool, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(expand_pool, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(get_tasks, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(set_privilege, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -203,7 +206,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

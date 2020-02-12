@@ -11,12 +11,11 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -25,14 +24,15 @@
 #include <cmocka.h>
 
 #include <isc/netaddr.h>
-#include <isc/sockaddr.h>
 #include <isc/print.h>
+#include <isc/sockaddr.h>
 #include <isc/util.h>
 
 #include "isctest.h"
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -44,7 +44,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	isc_test_end();
@@ -54,12 +55,13 @@ _teardown(void **state) {
 
 /* test sockaddr hash */
 static void
-sockaddr_hash(void **state) {
-	isc_sockaddr_t addr;
-	struct in_addr in;
+sockaddr_hash(void **state)
+{
+	isc_sockaddr_t	addr;
+	struct in_addr	in;
 	struct in6_addr in6;
-	unsigned int h1, h2, h3, h4;
-	int ret;
+	unsigned int	h1, h2, h3, h4;
+	int		ret;
 
 	UNUSED(state);
 
@@ -80,25 +82,22 @@ sockaddr_hash(void **state) {
 
 /* test isc_sockaddr_isnetzero() */
 static void
-sockaddr_isnetzero(void **state) {
-	isc_sockaddr_t addr;
-	struct in_addr in;
+sockaddr_isnetzero(void **state)
+{
+	isc_sockaddr_t	addr;
+	struct in_addr	in;
 	struct in6_addr in6;
-	bool r;
-	int ret;
-	size_t i;
+	bool		r;
+	int		ret;
+	size_t		i;
 	struct {
 		const char *string;
-		bool expect;
+		bool	    expect;
 	} data4[] = {
-		{ "0.0.0.0", true },
-		{ "0.0.0.1", true },
-		{ "0.0.1.0", true },
-		{ "0.1.0.0", true },
-		{ "1.0.0.0", false },
-		{ "0.0.0.127", true },
-		{ "0.0.0.255", true },
-		{ "127.0.0.1", false },
+		{ "0.0.0.0", true },	      { "0.0.0.1", true },
+		{ "0.0.1.0", true },	      { "0.1.0.0", true },
+		{ "1.0.0.0", false },	      { "0.0.0.127", true },
+		{ "0.0.0.255", true },	      { "127.0.0.1", false },
 		{ "255.255.255.255", false },
 	};
 	/*
@@ -106,7 +105,7 @@ sockaddr_isnetzero(void **state) {
 	 */
 	struct {
 		const char *string;
-		bool expect;
+		bool	    expect;
 	} data6[] = {
 		{ "::ffff:0.0.0.0", false },
 		{ "::ffff:0.0.0.1", false },
@@ -118,14 +117,14 @@ sockaddr_isnetzero(void **state) {
 
 	UNUSED(state);
 
-	for (i = 0; i < sizeof(data4)/sizeof(data4[0]); i++) {
+	for (i = 0; i < sizeof(data4) / sizeof(data4[0]); i++) {
 		in.s_addr = inet_addr(data4[i].string);
 		isc_sockaddr_fromin(&addr, &in, 1);
 		r = isc_sockaddr_isnetzero(&addr);
 		assert_int_equal(r, data4[i].expect);
 	}
 
-	for (i = 0; i < sizeof(data6)/sizeof(data6[0]); i++) {
+	for (i = 0; i < sizeof(data6) / sizeof(data6[0]); i++) {
 		ret = inet_pton(AF_INET6, data6[i].string, &in6);
 		assert_int_equal(ret, 1);
 		isc_sockaddr_fromin6(&addr, &in6, 1);
@@ -139,7 +138,8 @@ sockaddr_isnetzero(void **state) {
  * and b are equal, and false when they are not equal
  */
 static void
-sockaddr_eqaddrprefix(void **state) {
+sockaddr_eqaddrprefix(void **state)
+{
 	struct in_addr ina_a;
 	struct in_addr ina_b;
 	struct in_addr ina_c;
@@ -167,10 +167,11 @@ sockaddr_eqaddrprefix(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(sockaddr_hash,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(sockaddr_hash, _setup,
+						_teardown),
 		cmocka_unit_test(sockaddr_isnetzero),
 		cmocka_unit_test(sockaddr_eqaddrprefix),
 	};
@@ -183,7 +184,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

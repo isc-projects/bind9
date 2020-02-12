@@ -42,13 +42,12 @@
  */
 
 #ifdef DLZ_ODBC
+#include <sql.h>
+#include <sqlext.h>
+#include <sqltypes.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-
-#include <dns/log.h>
-#include <dns/sdlz.h>
-#include <dns/result.h>
+#include <string.h>
 
 #include <isc/mem.h>
 #include <isc/platform.h>
@@ -57,14 +56,13 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <named/globals.h>
+#include <dns/log.h>
+#include <dns/result.h>
+#include <dns/sdlz.h>
 
-#include <dlz/sdlz_helper.h>
 #include <dlz/dlz_odbc_driver.h>
-
-#include <sql.h>
-#include <sqlext.h>
-#include <sqltypes.h>
+#include <dlz/sdlz_helper.h>
+#include <named/globals.h>
 
 static dns_sdlzimplementation_t *dlz_odbc = NULL;
 
@@ -85,9 +83,9 @@ static dns_sdlzimplementation_t *dlz_odbc = NULL;
  * structure to hold ODBC connection & statement
  */
 
-typedef struct{
-	SQLHDBC   dbc;
-	SQLHSTMT  stmnt;
+typedef struct {
+	SQLHDBC	 dbc;
+	SQLHSTMT stmnt;
 } odbc_db_t;
 
 /*
@@ -97,11 +95,11 @@ typedef struct{
  */
 
 typedef struct {
-    db_list_t    *db;       /* handle to a list of DB */
-    SQLHENV      sql_env;  /* handle to SQL environment */
-    SQLCHAR      *dsn;
-    SQLCHAR      *user;
-    SQLCHAR      *pass;
+	db_list_t *db;	    /* handle to a list of DB */
+	SQLHENV	   sql_env; /* handle to SQL environment */
+	SQLCHAR *  dsn;
+	SQLCHAR *  user;
+	SQLCHAR *  pass;
 } odbc_instance_t;
 
 /* forward reference */
@@ -114,16 +112,18 @@ odbc_makesafe(char *to, const char *from, size_t length);
  */
 
 static SQLSMALLINT
-safeLen(void *a) {
+safeLen(void *a)
+{
 	if (a == NULL)
 		return 0;
-	return strlen((char *) a);
+	return strlen((char *)a);
 }
 
 /*% propertly cleans up an odbc_instance_t */
 
 static void
-destroy_odbc_instance(odbc_instance_t *odbc_inst) {
+destroy_odbc_instance(odbc_instance_t *odbc_inst)
+{
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -139,21 +139,20 @@ destroy_odbc_instance(odbc_instance_t *odbc_inst) {
 		/* if we have a connection / statement object in memory */
 		if (dbi->dbconn != NULL) {
 			/* free statement handle */
-			if (((odbc_db_t *) (dbi->dbconn))->stmnt != NULL) {
-				SQLFreeHandle(SQL_HANDLE_STMT,
-					      ((odbc_db_t *)
-					       (dbi->dbconn))->stmnt);
-				((odbc_db_t *) (dbi->dbconn))->stmnt = NULL;
+			if (((odbc_db_t *)(dbi->dbconn))->stmnt != NULL) {
+				SQLFreeHandle(
+					SQL_HANDLE_STMT,
+					((odbc_db_t *)(dbi->dbconn))->stmnt);
+				((odbc_db_t *)(dbi->dbconn))->stmnt = NULL;
 			}
 
 			/* disconnect from database & free connection handle */
-			if (((odbc_db_t *) (dbi->dbconn))->dbc != NULL) {
-				SQLDisconnect(((odbc_db_t *)
-					       dbi->dbconn)->dbc);
-				SQLFreeHandle(SQL_HANDLE_DBC,
-					      ((odbc_db_t *)
-					       (dbi->dbconn))->dbc);
-				((odbc_db_t *) (dbi->dbconn))->dbc = NULL;
+			if (((odbc_db_t *)(dbi->dbconn))->dbc != NULL) {
+				SQLDisconnect(((odbc_db_t *)dbi->dbconn)->dbc);
+				SQLFreeHandle(
+					SQL_HANDLE_DBC,
+					((odbc_db_t *)(dbi->dbconn))->dbc);
+				((odbc_db_t *)(dbi->dbconn))->dbc = NULL;
 			}
 
 			/* free memory that held connection & statement. */
@@ -180,16 +179,15 @@ destroy_odbc_instance(odbc_instance_t *odbc_inst) {
 	/* free memory for odbc_inst */
 	if (odbc_inst != NULL)
 		isc_mem_put(named_g_mctx, odbc_inst, sizeof(odbc_instance_t));
-
 }
 
 /*% Connects to database, and creates ODBC statements */
 
 static isc_result_t
-odbc_connect(odbc_instance_t *dbi, odbc_db_t **dbc) {
-
-	odbc_db_t *ndb = *dbc;
-	SQLRETURN sqlRes;
+odbc_connect(odbc_instance_t *dbi, odbc_db_t **dbc)
+{
+	odbc_db_t *  ndb = *dbc;
+	SQLRETURN    sqlRes;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (ndb != NULL) {
@@ -244,10 +242,9 @@ odbc_connect(odbc_instance_t *dbi, odbc_db_t **dbc) {
 
 	return ISC_R_SUCCESS;
 
- cleanup:
+cleanup:
 
 	if (ndb != NULL) {
-
 		/* if statement handle != null free it */
 		if (ndb->stmnt != NULL) {
 			SQLFreeHandle(SQL_HANDLE_STMT, ndb->stmnt);
@@ -283,7 +280,7 @@ odbc_find_avail_conn(db_list_t *dblist)
 {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
-	int count = 0;
+	int	      count = 0;
 
 	/* get top of list */
 	head = dbi = ISC_LIST_HEAD(*dblist);
@@ -303,8 +300,8 @@ odbc_find_avail_conn(db_list_t *dblist)
 			dbi = head;
 		}
 	}
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_INFO,
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_INFO,
 		      "Odbc driver unable to find available "
 		      "connection after searching %d times",
 		      count);
@@ -319,9 +316,9 @@ odbc_find_avail_conn(db_list_t *dblist)
  */
 
 static char *
-odbc_escape_string(const char *instr) {
-
-	char *outstr;
+odbc_escape_string(const char *instr)
+{
+	char *	     outstr;
 	unsigned int len;
 
 	if (instr == NULL)
@@ -357,31 +354,29 @@ odbc_escape_string(const char *instr) {
 static size_t
 odbc_makesafe(char *to, const char *from, size_t length)
 {
-	const char *source = from;
-	char	   *target = to;
+	const char * source = from;
+	char *	     target = to;
 	unsigned int remaining = length;
 
-	while (remaining > 0)
-	{
-		switch (*source)
-		{
-			case '\\':
-				*target = '\\';
-				target++;
-				*target = '\\';
-				/* target and remaining are updated below. */
-				break;
+	while (remaining > 0) {
+		switch (*source) {
+		case '\\':
+			*target = '\\';
+			target++;
+			*target = '\\';
+			/* target and remaining are updated below. */
+			break;
 
-			case '\'':
-				*target = '\'';
-				target++;
-				*target = '\'';
-				/* target and remaining are updated below. */
-				break;
+		case '\'':
+			*target = '\'';
+			target++;
+			*target = '\'';
+			/* target and remaining are updated below. */
+			break;
 
-			default:
-				*target = *source;
-				/* target and remaining are updated below. */
+		default:
+			*target = *source;
+			/* target and remaining are updated below. */
 		}
 		source++;
 		target++;
@@ -411,25 +406,22 @@ odbc_makesafe(char *to, const char *from, size_t length)
  * If not successfull, this function will perform all the cleanup.
  */
 
-
 static isc_result_t
-odbc_get_resultset(const char *zone, const char *record,
-		   const char *client, unsigned int query,
-		   void *dbdata, dbinstance_t **r_dbi)
+odbc_get_resultset(const char *zone, const char *record, const char *client,
+		   unsigned int query, void *dbdata, dbinstance_t **r_dbi)
 {
-
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *dbi = NULL;
-	char *querystring = NULL;
-	unsigned int j = 0;
-	SQLRETURN sqlRes;
+	char *	      querystring = NULL;
+	unsigned int  j = 0;
+	SQLRETURN     sqlRes;
 
 	REQUIRE(*r_dbi == NULL);
 
 	/* get db instance / connection */
 
 	/* find an available DBI from the list */
-	dbi = odbc_find_avail_conn(((odbc_instance_t *) dbdata)->db);
+	dbi = odbc_find_avail_conn(((odbc_instance_t *)dbdata)->db);
 
 	/* if DBI is null, can't do anything else */
 	if (dbi == NULL) {
@@ -437,7 +429,7 @@ odbc_get_resultset(const char *zone, const char *record,
 	}
 
 	/* what type of query are we going to run? */
-	switch(query) {
+	switch (query) {
 	case ALLNODES:
 		/*
 		 * if the query was not passed in from the config file
@@ -498,7 +490,6 @@ odbc_get_resultset(const char *zone, const char *record,
 		goto cleanup;
 	}
 
-
 	/*
 	 * was a zone string passed?  If so, make it safe for use in
 	 * queries.
@@ -509,7 +500,7 @@ odbc_get_resultset(const char *zone, const char *record,
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else {	/* no string passed, set the string pointer to NULL */
+	} else { /* no string passed, set the string pointer to NULL */
 		dbi->zone = NULL;
 	}
 
@@ -523,7 +514,7 @@ odbc_get_resultset(const char *zone, const char *record,
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else {	/* no string passed, set the string pointer to NULL */
+	} else { /* no string passed, set the string pointer to NULL */
 		dbi->record = NULL;
 	}
 
@@ -537,7 +528,7 @@ odbc_get_resultset(const char *zone, const char *record,
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else {	/* no string passed, set the string pointer to NULL */
+	} else { /* no string passed, set the string pointer to NULL */
 		dbi->client = NULL;
 	}
 
@@ -545,7 +536,7 @@ odbc_get_resultset(const char *zone, const char *record,
 	 * what type of query are we going to run?
 	 * this time we build the actual query to run.
 	 */
-	switch(query) {
+	switch (query) {
 	case ALLNODES:
 		querystring = build_querystring(named_g_mctx, dbi->allnodes_q);
 		break;
@@ -574,31 +565,30 @@ odbc_get_resultset(const char *zone, const char *record,
 	}
 
 	/* if the querystring is null, Bummer, outta RAM.  UPGRADE TIME!!!   */
-	if (querystring  == NULL) {
+	if (querystring == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
 	}
 
 	/* output the full query string during debug so we can see */
 	/* what lame error the query has. */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(1),
-		      "\nQuery String: %s\n", querystring);
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(1), "\nQuery String: %s\n", querystring);
 
 	/* attempt query up to 3 times. */
-	for (j=0; j < 3; j++) {
+	for (j = 0; j < 3; j++) {
 		/* try to get result set */
-		sqlRes = SQLExecDirect(((odbc_db_t *) dbi->dbconn)->stmnt,
-				       (SQLCHAR *) querystring,
-				       (SQLINTEGER) strlen(querystring));
+		sqlRes = SQLExecDirect(((odbc_db_t *)dbi->dbconn)->stmnt,
+				       (SQLCHAR *)querystring,
+				       (SQLINTEGER)strlen(querystring));
 
 		/* if error, reset DB connection */
 		if (!sqlOK(sqlRes)) {
 			/* close cursor */
-			SQLCloseCursor(((odbc_db_t *) dbi->dbconn)->stmnt);
+			SQLCloseCursor(((odbc_db_t *)dbi->dbconn)->stmnt);
 			/* attempt to reconnect */
-			result = odbc_connect((odbc_instance_t *) dbdata,
-					      (odbc_db_t **) &(dbi->dbconn));
+			result = odbc_connect((odbc_instance_t *)dbdata,
+					      (odbc_db_t **)&(dbi->dbconn));
 			/* check if we reconnected */
 			if (result != ISC_R_SUCCESS)
 				break;
@@ -611,9 +601,9 @@ odbc_get_resultset(const char *zone, const char *record,
 			/* result set ok, break loop */
 			break;
 		}
-	}	/* end for loop */
+	} /* end for loop */
 
- cleanup:	/* it's always good to cleanup after yourself */
+cleanup: /* it's always good to cleanup after yourself */
 
 	/* free dbi->zone string */
 	if (dbi->zone != NULL)
@@ -632,12 +622,11 @@ odbc_get_resultset(const char *zone, const char *record,
 		isc_mutex_unlock(&dbi->instance_lock);
 
 	/* release query string */
-	if (querystring  != NULL)
-		isc_mem_free(named_g_mctx, querystring );
+	if (querystring != NULL)
+		isc_mem_free(named_g_mctx, querystring);
 
 	/* return result */
 	return result;
-
 }
 
 /*%
@@ -648,18 +637,19 @@ odbc_get_resultset(const char *zone, const char *record,
  */
 
 static isc_result_t
-odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data) {
-
+odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data)
+{
 	SQLLEN size;
 
 	REQUIRE(data != NULL && *data == NULL);
 
-	if (sqlOK(SQLColAttribute(stmnt, field, SQL_DESC_DISPLAY_SIZE,
-				  NULL, 0, NULL, &size)) && size > 0) {
+	if (sqlOK(SQLColAttribute(stmnt, field, SQL_DESC_DISPLAY_SIZE, NULL, 0,
+				  NULL, &size)) &&
+	    size > 0) {
 		*data = isc_mem_allocate(named_g_mctx, size + 1);
 		if (data != NULL) {
-			if (sqlOK(SQLGetData(stmnt, field, SQL_C_CHAR,
-					     *data, size + 1,&size)))
+			if (sqlOK(SQLGetData(stmnt, field, SQL_C_CHAR, *data,
+					     size + 1, &size)))
 				return ISC_R_SUCCESS;
 			isc_mem_free(named_g_mctx, *data);
 		}
@@ -676,22 +666,23 @@ odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data) {
 
 static isc_result_t
 odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
-		   SQLSMALLINT endField, char **retData) {
-
+		   SQLSMALLINT endField, char **retData)
+{
 	isc_result_t result;
-	SQLLEN size;
-	int totSize = 0;
-	SQLSMALLINT i;
-	int j = 0;
-	char *data;
+	SQLLEN	     size;
+	int	     totSize = 0;
+	SQLSMALLINT  i;
+	int	     j = 0;
+	char *	     data;
 
 	REQUIRE(retData != NULL && *retData == NULL);
 	REQUIRE(startField > 0 && startField <= endField);
 
 	/* determine how large the data is */
-	for (i=startField; i <= endField; i++)
-		if (sqlOK(SQLColAttribute(stmnt, i, SQL_DESC_DISPLAY_SIZE,
-					  NULL, 0, NULL, &size)) && size > 0) {
+	for (i = startField; i <= endField; i++)
+		if (sqlOK(SQLColAttribute(stmnt, i, SQL_DESC_DISPLAY_SIZE, NULL,
+					  0, NULL, &size)) &&
+		    size > 0) {
 			/* always allow for a " " (space) character */
 			totSize += (size + 1);
 			/* after the data item */
@@ -706,7 +697,7 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 	result = ISC_R_FAILURE;
 
 	/* get the data and concat all fields into a large string */
-	for (i=startField; i <= endField; i++) {
+	for (i = startField; i <= endField; i++) {
 		if (sqlOK(SQLGetData(stmnt, i, SQL_C_CHAR, &(data[j]),
 				     totSize - j, &size))) {
 			if (size > 0) {
@@ -728,7 +719,6 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 
 	*retData = data;
 	return ISC_R_SUCCESS;
-
 }
 
 /*%
@@ -740,20 +730,18 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 static isc_result_t
 odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 {
-
-
 	isc_result_t result;
-	SQLSMALLINT fields;
-	SQLHSTMT  *stmnt;
-	char *ttl_s;
-	char *type;
-	char *data;
-	char *endp;
-	int ttl;
+	SQLSMALLINT  fields;
+	SQLHSTMT *   stmnt;
+	char *	     ttl_s;
+	char *	     type;
+	char *	     data;
+	char *	     endp;
+	int	     ttl;
 
 	REQUIRE(dbi != NULL);
 
-	stmnt = ((odbc_db_t *) (dbi->dbconn))->stmnt;
+	stmnt = ((odbc_db_t *)(dbi->dbconn))->stmnt;
 
 	/* get number of columns */
 	if (!sqlOK(SQLNumResultCols(stmnt, &fields))) {
@@ -768,11 +756,10 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 	result = ISC_R_FAILURE;
 
 	while (sqlOK(SQLFetch(stmnt))) {
-
 		/* set to null for next pass through */
 		data = type = ttl_s = NULL;
 
-		switch(fields) {
+		switch (fields) {
 		case 1:
 			/*
 			 * one column in rs, it's the data field.  use
@@ -780,10 +767,10 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 			 * of 86400.  attempt to get data, & tell bind
 			 * about it.
 			 */
-			if ((result = odbc_getField(stmnt, 1,
-						    &data)) == ISC_R_SUCCESS) {
-				result = dns_sdlz_putrr(lookup, "a",
-							86400, data);
+			if ((result = odbc_getField(stmnt, 1, &data)) ==
+			    ISC_R_SUCCESS) {
+				result = dns_sdlz_putrr(lookup, "a", 86400,
+							data);
 			}
 			break;
 		case 2:
@@ -792,12 +779,12 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 			 * use default TTL of 86400.  attempt to get
 			 * DNS type & data, then tell bind about it.
 			 */
-			if ((result = odbc_getField(stmnt, 1,
-						    &type)) == ISC_R_SUCCESS &&
-			    (result = odbc_getField(stmnt, 2,
-						    &data)) == ISC_R_SUCCESS) {
-				result = dns_sdlz_putrr(lookup, type,
-							86400, data);
+			if ((result = odbc_getField(stmnt, 1, &type)) ==
+				    ISC_R_SUCCESS &&
+			    (result = odbc_getField(stmnt, 2, &data)) ==
+				    ISC_R_SUCCESS) {
+				result = dns_sdlz_putrr(lookup, type, 86400,
+							data);
 			}
 			break;
 		default:
@@ -806,13 +793,13 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 			 * together.  attempt to get DNS ttl, type,
 			 * data then tell Bind about them.
 			 */
-			if ((result = odbc_getField(stmnt, 1, &ttl_s))
-				== ISC_R_SUCCESS &&
-			    (result = odbc_getField(stmnt, 2, &type))
-				== ISC_R_SUCCESS &&
-			    (result = odbc_getManyFields(stmnt, 3,
-							 fields, &data))
-				== ISC_R_SUCCESS) {
+			if ((result = odbc_getField(stmnt, 1, &ttl_s)) ==
+				    ISC_R_SUCCESS &&
+			    (result = odbc_getField(stmnt, 2, &type)) ==
+				    ISC_R_SUCCESS &&
+			    (result = odbc_getManyFields(stmnt, 3, fields,
+							 &data)) ==
+				    ISC_R_SUCCESS) {
 				/* try to convert ttl string to int */
 				ttl = strtol(ttl_s, &endp, 10);
 				/* failure converting ttl. */
@@ -833,7 +820,7 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 								ttl, data);
 				}
 			} /* closes bid if () */
-		} /* closes switch(fields) */
+		}	  /* closes switch(fields) */
 
 		/* clean up mem */
 		if (ttl_s != NULL)
@@ -855,10 +842,10 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 		}
 	} /* closes while loop */
 
- process_rs_cleanup:
+process_rs_cleanup:
 
 	/* close cursor */
-	SQLCloseCursor(((odbc_db_t *) (dbi->dbconn))->stmnt);
+	SQLCloseCursor(((odbc_db_t *)(dbi->dbconn))->stmnt);
 
 	/* free lock on dbi so someone else can use it. */
 	isc_mutex_unlock(&dbi->instance_lock);
@@ -876,8 +863,7 @@ static isc_result_t
 odbc_findzone(void *driverarg, void *dbdata, const char *name,
 	      dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
-
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *dbi = NULL;
 
 	UNUSED(driverarg);
@@ -891,13 +877,13 @@ odbc_findzone(void *driverarg, void *dbdata, const char *name,
 
 	/* Check that we got a result set with data */
 	if (result == ISC_R_SUCCESS &&
-	    !sqlOK(SQLFetch(((odbc_db_t *) (dbi->dbconn))->stmnt))) {
+	    !sqlOK(SQLFetch(((odbc_db_t *)(dbi->dbconn))->stmnt))) {
 		result = ISC_R_NOTFOUND;
 	}
 
 	if (dbi != NULL) {
 		/* get rid of result set, we are done with it. */
-		SQLCloseCursor(((odbc_db_t *) (dbi->dbconn))->stmnt);
+		SQLCloseCursor(((odbc_db_t *)(dbi->dbconn))->stmnt);
 
 		/* free lock on dbi so someone else can use it. */
 		isc_mutex_unlock(&dbi->instance_lock);
@@ -911,7 +897,7 @@ static isc_result_t
 odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		  const char *client)
 {
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *dbi = NULL;
 
 	UNUSED(driverarg);
@@ -931,8 +917,7 @@ odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 	 * result != ISC_R_SUCCESS cursor and mutex already cleaned
 	 * up, so we don't have to do it here.
 	 */
-	result = odbc_get_resultset(name, NULL, client, ALLOWXFR,
-				    dbdata, &dbi);
+	result = odbc_get_resultset(name, NULL, client, ALLOWXFR, dbdata, &dbi);
 
 	/* if we get "not implemented", send it along. */
 	if (result == ISC_R_NOTIMPLEMENTED)
@@ -940,17 +925,16 @@ odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 
 	/* Check that we got a result set with data */
 	if (result == ISC_R_SUCCESS &&
-	    !sqlOK(SQLFetch(((odbc_db_t *) (dbi->dbconn))->stmnt))) {
+	    !sqlOK(SQLFetch(((odbc_db_t *)(dbi->dbconn))->stmnt))) {
 		result = ISC_R_NOPERM;
 	}
 
 	if (dbi != NULL) {
 		/* get rid of result set, we are done with it. */
-		SQLCloseCursor(((odbc_db_t *) (dbi->dbconn))->stmnt);
+		SQLCloseCursor(((odbc_db_t *)(dbi->dbconn))->stmnt);
 
 		/* free lock on dbi so someone else can use it. */
 		isc_mutex_unlock(&dbi->instance_lock);
-
 	}
 
 	return result;
@@ -966,17 +950,16 @@ static isc_result_t
 odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 	      dns_sdlzallnodes_t *allnodes)
 {
-
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *dbi = NULL;
-	SQLHSTMT  *stmnt;
-	SQLSMALLINT fields;
-	char *data;
-	char *type;
-	char *ttl_s;
-	int ttl;
-	char *host;
-	char *endp;
+	SQLHSTMT *    stmnt;
+	SQLSMALLINT   fields;
+	char *	      data;
+	char *	      type;
+	char *	      ttl_s;
+	int	      ttl;
+	char *	      host;
+	char *	      endp;
 
 	UNUSED(driverarg);
 
@@ -996,7 +979,7 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 		return (ISC_R_FAILURE);
 	}
 
-	stmnt = ((odbc_db_t *) (dbi->dbconn))->stmnt;
+	stmnt = ((odbc_db_t *)(dbi->dbconn))->stmnt;
 
 	/* get number of columns */
 	if (!sqlOK(SQLNumResultCols(stmnt, &fields))) {
@@ -1007,7 +990,7 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 		goto allnodes_cleanup;
 	}
 
-	if (fields < 4) {	/* gotta have at least 4 columns */
+	if (fields < 4) { /* gotta have at least 4 columns */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 			      "Odbc driver too few fields returned by "
@@ -1020,7 +1003,6 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 	result = ISC_R_FAILURE;
 
 	while (sqlOK(SQLFetch(stmnt))) {
-
 		/* set to null for next pass through */
 		data = host = type = ttl_s = NULL;
 
@@ -1028,14 +1010,14 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 		 * attempt to get DNS ttl, type, host, data then tell
 		 * Bind about them
 		 */
-		if ((result = odbc_getField(stmnt, 1,
-					    &ttl_s)) == ISC_R_SUCCESS &&
-		    (result = odbc_getField(stmnt, 2,
-					    &type)) == ISC_R_SUCCESS &&
-		    (result = odbc_getField(stmnt, 3,
-					    &host)) == ISC_R_SUCCESS &&
-		    (result = odbc_getManyFields(stmnt, 4, fields,
-						 &data)) == ISC_R_SUCCESS) {
+		if ((result = odbc_getField(stmnt, 1, &ttl_s)) ==
+			    ISC_R_SUCCESS &&
+		    (result = odbc_getField(stmnt, 2, &type)) ==
+			    ISC_R_SUCCESS &&
+		    (result = odbc_getField(stmnt, 3, &host)) ==
+			    ISC_R_SUCCESS &&
+		    (result = odbc_getManyFields(stmnt, 4, fields, &data)) ==
+			    ISC_R_SUCCESS) {
 			/* convert ttl string to int */
 			ttl = strtol(ttl_s, &endp, 10);
 			/* failure converting ttl. */
@@ -1075,10 +1057,10 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 		}
 	} /* closes while loop */
 
- allnodes_cleanup:
+allnodes_cleanup:
 
 	/* close cursor */
-	SQLCloseCursor(((odbc_db_t *) (dbi->dbconn))->stmnt);
+	SQLCloseCursor(((odbc_db_t *)(dbi->dbconn))->stmnt);
 
 	/* free lock on dbi so someone else can use it. */
 	isc_mutex_unlock(&dbi->instance_lock);
@@ -1095,7 +1077,7 @@ static isc_result_t
 odbc_authority(const char *zone, void *driverarg, void *dbdata,
 	       dns_sdlzlookup_t *lookup)
 {
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *dbi = NULL;
 
 	UNUSED(driverarg);
@@ -1121,11 +1103,11 @@ odbc_authority(const char *zone, void *driverarg, void *dbdata,
 /*% if zone is supported, lookup up a (or multiple) record(s) in it */
 
 static isc_result_t
-odbc_lookup(const char *zone, const char *name, void *driverarg,
-	    void *dbdata, dns_sdlzlookup_t *lookup,
-	    dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
+odbc_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
+	    dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
+	    dns_clientinfo_t *clientinfo)
 {
-	isc_result_t result;
+	isc_result_t  result;
 	dbinstance_t *dbi = NULL;
 
 	UNUSED(driverarg);
@@ -1157,21 +1139,20 @@ static isc_result_t
 odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 	    void *driverarg, void **dbdata)
 {
-	isc_result_t result;
+	isc_result_t	 result;
 	odbc_instance_t *odbc_inst = NULL;
-	dbinstance_t *db = NULL;
-	SQLRETURN sqlRes;
-	int dbcount;
-	int i;
-	char *endp;
+	dbinstance_t *	 db = NULL;
+	SQLRETURN	 sqlRes;
+	int		 dbcount;
+	int		 i;
+	char *		 endp;
 
 	UNUSED(dlzname);
 	UNUSED(driverarg);
 
 	/* if debugging, let user know we are multithreaded. */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(1),
-		      "Odbc driver running multithreaded");
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(1), "Odbc driver running multithreaded");
 
 	/* verify we have at least 5 arg's passed to the driver */
 	if (argc < 5) {
@@ -1209,8 +1190,7 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* parse connection string and get paramters. */
 
 	/* get odbc database dsn - required */
-	odbc_inst->dsn = (SQLCHAR *) getParameterValue(argv[2],
-						       "dsn=");
+	odbc_inst->dsn = (SQLCHAR *)getParameterValue(argv[2], "dsn=");
 	if (odbc_inst->dsn == NULL) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -1220,12 +1200,11 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 	/* get odbc database username */
 	/* if no username was passed, set odbc_inst.user = NULL; */
-	odbc_inst->user = (SQLCHAR *) getParameterValue(argv[2],
-							"user=");
+	odbc_inst->user = (SQLCHAR *)getParameterValue(argv[2], "user=");
 
 	/* get odbc database password */
 	/* if no password was passed, set odbc_inst.pass = NULL; */
-	odbc_inst->pass = (SQLCHAR *) getParameterValue(argv[2], "pass=");
+	odbc_inst->pass = (SQLCHAR *)getParameterValue(argv[2], "pass=");
 
 	/* create odbc environment & set environment to ODBC V3 */
 	if (odbc_inst->sql_env == NULL) {
@@ -1242,7 +1221,7 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 		/*set ODBC version = 3 */
 		sqlRes = SQLSetEnvAttr(odbc_inst->sql_env,
 				       SQL_ATTR_ODBC_VERSION,
-				       (void *) SQL_OV_ODBC3, 0);
+				       (void *)SQL_OV_ODBC3, 0);
 		if (!sqlOK(sqlRes)) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_INFO,
@@ -1255,16 +1234,14 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* allocate memory for database connection list */
 	odbc_inst->db = isc_mem_get(named_g_mctx, sizeof(db_list_t));
 
-
 	/* initialize DB connection list */
 	ISC_LIST_INIT(*odbc_inst->db);
 
 	/* create the appropriate number of database instances (DBI) */
 	/* append each new DBI to the end of the list */
-	for (i=0; i < dbcount; i++) {
-
+	for (i = 0; i < dbcount; i++) {
 		/* how many queries were passed in from config file? */
-		switch(argc) {
+		switch (argc) {
 		case 5:
 			result = build_sqldbinstance(named_g_mctx, NULL, NULL,
 						     NULL, argv[3], argv[4],
@@ -1276,9 +1253,9 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 						     NULL, &db);
 			break;
 		case 7:
-			result = build_sqldbinstance(named_g_mctx, argv[6], NULL,
-						     argv[5], argv[3], argv[4],
-						     NULL, &db);
+			result = build_sqldbinstance(named_g_mctx, argv[6],
+						     NULL, argv[5], argv[3],
+						     argv[4], NULL, &db);
 			break;
 		case 8:
 			result = build_sqldbinstance(named_g_mctx, argv[6],
@@ -1303,10 +1280,9 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 		ISC_LINK_INIT(db, link);
 		ISC_LIST_APPEND(*odbc_inst->db, db, link);
 
-		result = odbc_connect(odbc_inst, (odbc_db_t **) &(db->dbconn));
+		result = odbc_connect(odbc_inst, (odbc_db_t **)&(db->dbconn));
 
 		if (result != ISC_R_SUCCESS) {
-
 			/*
 			 * if multi threaded, let user know which
 			 * connection failed.  user could be
@@ -1318,22 +1294,22 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "Odbc driver failed to create database "
 				      "connection number %u after 3 attempts",
-				      i+1);
+				      i + 1);
 			goto cleanup;
 		}
 
 		/* set DB = null for next loop through. */
 		db = NULL;
 
-	}	/* end for loop */
+	} /* end for loop */
 
 	/* set dbdata to the odbc_instance we created. */
 	*dbdata = odbc_inst;
 
 	/* hey, we got through all of that ok, return success. */
-	return(ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 
 	destroy_odbc_instance(odbc_inst);
 
@@ -1352,9 +1328,8 @@ odbc_destroy(void *driverarg, void *dbdata)
 {
 	UNUSED(driverarg);
 
-	destroy_odbc_instance((odbc_instance_t *) dbdata);
+	destroy_odbc_instance((odbc_instance_t *)dbdata);
 }
-
 
 /* pointers to all our runtime methods. */
 /* this is used during driver registration */
@@ -1380,15 +1355,15 @@ static dns_sdlzmethods_t dlz_odbc_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_odbc_init(void) {
+dlz_odbc_init(void)
+{
 	isc_result_t result;
 
 	/*
 	 * Write debugging message to log
 	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
-		      "Registering DLZ odbc driver.");
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(2), "Registering DLZ odbc driver.");
 
 	/*
 	 * Driver is always threadsafe.  When multithreaded all
@@ -1399,8 +1374,8 @@ dlz_odbc_init(void) {
 	 */
 	result = dns_sdlzregister("odbc", &dlz_odbc_methods, NULL,
 				  DNS_SDLZFLAG_RELATIVEOWNER |
-				  DNS_SDLZFLAG_RELATIVERDATA |
-				  DNS_SDLZFLAG_THREADSAFE,
+					  DNS_SDLZFLAG_RELATIVERDATA |
+					  DNS_SDLZFLAG_THREADSAFE,
 				  named_g_mctx, &dlz_odbc);
 	/* if we can't register the driver, there are big problems. */
 	if (result != ISC_R_SUCCESS) {
@@ -1410,7 +1385,6 @@ dlz_odbc_init(void) {
 		result = ISC_R_UNEXPECTED;
 	}
 
-
 	return result;
 }
 
@@ -1418,14 +1392,13 @@ dlz_odbc_init(void) {
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_odbc_clear(void) {
-
+dlz_odbc_clear(void)
+{
 	/*
 	 * Write debugging message to log
 	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
-		      "Unregistering DLZ odbc driver.");
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(2), "Unregistering DLZ odbc driver.");
 
 	/* unregister the driver. */
 	if (dlz_odbc != NULL)

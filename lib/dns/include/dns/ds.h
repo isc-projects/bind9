@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_DS_H
 #define DNS_DS_H 1
 

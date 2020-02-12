@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef NAMED_LOGCONF_H
 #define NAMED_LOGCONF_H 1
 

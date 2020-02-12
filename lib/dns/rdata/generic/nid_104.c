@@ -18,9 +18,9 @@
 
 #define RRTYPE_NID_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_nid(ARGS_FROMTEXT) {
-	isc_token_t token;
+static inline isc_result_t fromtext_nid(ARGS_FROMTEXT)
+{
+	isc_token_t   token;
 	unsigned char locator[NS_LOCATORSZ];
 
 	REQUIRE(type == dns_rdatatype_nid);
@@ -45,10 +45,10 @@ fromtext_nid(ARGS_FROMTEXT) {
 	return (mem_tobuffer(target, locator, NS_LOCATORSZ));
 }
 
-static inline isc_result_t
-totext_nid(ARGS_TOTEXT) {
-	isc_region_t region;
-	char buf[sizeof("xxxx:xxxx:xxxx:xxxx")];
+static inline isc_result_t totext_nid(ARGS_TOTEXT)
+{
+	isc_region_t   region;
+	char	       buf[sizeof("xxxx:xxxx:xxxx:xxxx")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == dns_rdatatype_nid);
@@ -65,15 +65,15 @@ totext_nid(ARGS_TOTEXT) {
 	RETERR(str_totext(" ", target));
 
 	snprintf(buf, sizeof(buf), "%x:%x:%x:%x",
-		 region.base[0]<<8 | region.base[1],
-		 region.base[2]<<8 | region.base[3],
-		 region.base[4]<<8 | region.base[5],
-		 region.base[6]<<8 | region.base[7]);
+		 region.base[0] << 8 | region.base[1],
+		 region.base[2] << 8 | region.base[3],
+		 region.base[4] << 8 | region.base[5],
+		 region.base[6] << 8 | region.base[7]);
 	return (str_totext(buf, target));
 }
 
-static inline isc_result_t
-fromwire_nid(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_nid(ARGS_FROMWIRE)
+{
 	isc_region_t sregion;
 
 	REQUIRE(type == dns_rdatatype_nid);
@@ -90,9 +90,8 @@ fromwire_nid(ARGS_FROMWIRE) {
 	return (mem_tobuffer(target, sregion.base, sregion.length));
 }
 
-static inline isc_result_t
-towire_nid(ARGS_TOWIRE) {
-
+static inline isc_result_t towire_nid(ARGS_TOWIRE)
+{
 	REQUIRE(rdata->type == dns_rdatatype_nid);
 	REQUIRE(rdata->length == 10);
 
@@ -101,8 +100,8 @@ towire_nid(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
-compare_nid(ARGS_COMPARE) {
+static inline int compare_nid(ARGS_COMPARE)
+{
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -117,8 +116,8 @@ compare_nid(ARGS_COMPARE) {
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t
-fromstruct_nid(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_nid(ARGS_FROMSTRUCT)
+{
 	dns_rdata_nid_t *nid = source;
 
 	REQUIRE(type == dns_rdatatype_nid);
@@ -133,9 +132,9 @@ fromstruct_nid(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, nid->nid, sizeof(nid->nid)));
 }
 
-static inline isc_result_t
-tostruct_nid(ARGS_TOSTRUCT) {
-	isc_region_t region;
+static inline isc_result_t tostruct_nid(ARGS_TOSTRUCT)
+{
+	isc_region_t	 region;
 	dns_rdata_nid_t *nid = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_nid);
@@ -154,8 +153,8 @@ tostruct_nid(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_nid(ARGS_FREESTRUCT) {
+static inline void freestruct_nid(ARGS_FREESTRUCT)
+{
 	dns_rdata_nid_t *nid = source;
 
 	REQUIRE(nid != NULL);
@@ -164,9 +163,8 @@ freestruct_nid(ARGS_FREESTRUCT) {
 	return;
 }
 
-static inline isc_result_t
-additionaldata_nid(ARGS_ADDLDATA) {
-
+static inline isc_result_t additionaldata_nid(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_nid);
 	REQUIRE(rdata->length == 10);
 
@@ -177,8 +175,8 @@ additionaldata_nid(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_nid(ARGS_DIGEST) {
+static inline isc_result_t digest_nid(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_nid);
@@ -189,9 +187,8 @@ digest_nid(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_nid(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_nid(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_nid);
 
 	UNUSED(name);
@@ -202,9 +199,8 @@ checkowner_nid(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_nid(ARGS_CHECKNAMES) {
-
+static inline bool checknames_nid(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_nid);
 	REQUIRE(rdata->length == 10);
 
@@ -215,9 +211,9 @@ checknames_nid(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_nid(ARGS_COMPARE) {
+static inline int casecompare_nid(ARGS_COMPARE)
+{
 	return (compare_nid(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_NID_104_C */
+#endif /* RDATA_GENERIC_NID_104_C */

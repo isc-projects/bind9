@@ -34,8 +34,8 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_result_t
-isc_base32_totext(isc_region_t *source, int wordlength,
-		  const char *wordbreak, isc_buffer_t *target);
+isc_base32_totext(isc_region_t *source, int wordlength, const char *wordbreak,
+		  isc_buffer_t *target);
 isc_result_t
 isc_base32hex_totext(isc_region_t *source, int wordlength,
 		     const char *wordbreak, isc_buffer_t *target);

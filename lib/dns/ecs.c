@@ -21,7 +21,8 @@
 #include <dns/types.h>
 
 void
-dns_ecs_init(dns_ecs_t *ecs) {
+dns_ecs_init(dns_ecs_t *ecs)
+{
 	isc_netaddr_unspec(&ecs->addr);
 	ecs->source = 0;
 	/*
@@ -32,7 +33,8 @@ dns_ecs_init(dns_ecs_t *ecs) {
 }
 
 void
-dns_ecs_format(dns_ecs_t *ecs, char *buf, size_t size) {
+dns_ecs_format(dns_ecs_t *ecs, char *buf, size_t size)
+{
 	size_t len;
 
 	REQUIRE(ecs != NULL);

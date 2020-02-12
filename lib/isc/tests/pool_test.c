@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -30,7 +29,8 @@
 #include "isctest.h"
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -42,7 +42,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	isc_test_end();
@@ -51,35 +52,39 @@ _teardown(void **state) {
 }
 
 static isc_result_t
-poolinit(void **target, void *arg) {
+poolinit(void **target, void *arg)
+{
 	isc_result_t result;
 
-	isc_taskmgr_t *mgr = (isc_taskmgr_t *) arg;
-	isc_task_t *task = NULL;
+	isc_taskmgr_t *mgr = (isc_taskmgr_t *)arg;
+	isc_task_t *   task = NULL;
 	result = isc_task_create(mgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	*target = (void *) task;
+	*target = (void *)task;
 	return (ISC_R_SUCCESS);
 }
 
 static void
-poolfree(void **target) {
-	isc_task_t *task = *(isc_task_t **) target;
+poolfree(void **target)
+{
+	isc_task_t *task = *(isc_task_t **)target;
 	isc_task_destroy(&task);
 	*target = NULL;
 }
 
 /* Create a pool */
 static void
-create_pool(void **state) {
+create_pool(void **state)
+{
 	isc_result_t result;
-	isc_pool_t *pool = NULL;
+	isc_pool_t * pool = NULL;
 
 	UNUSED(state);
 
-	result = isc_pool_create(test_mctx, 8, poolfree, poolinit, taskmgr, &pool);
+	result = isc_pool_create(test_mctx, 8, poolfree, poolinit, taskmgr,
+				 &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_pool_count(pool), 8);
 
@@ -89,13 +94,15 @@ create_pool(void **state) {
 
 /* Resize a pool */
 static void
-expand_pool(void **state) {
+expand_pool(void **state)
+{
 	isc_result_t result;
-	isc_pool_t *pool1 = NULL, *pool2 = NULL, *hold = NULL;
+	isc_pool_t * pool1 = NULL, *pool2 = NULL, *hold = NULL;
 
 	UNUSED(state);
 
-	result = isc_pool_create(test_mctx, 10, poolfree, poolinit, taskmgr, &pool1);
+	result = isc_pool_create(test_mctx, 10, poolfree, poolinit, taskmgr,
+				 &pool1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_pool_count(pool1), 10);
 
@@ -133,29 +140,31 @@ expand_pool(void **state) {
 
 /* Get objects */
 static void
-get_objects(void **state) {
+get_objects(void **state)
+{
 	isc_result_t result;
-	isc_pool_t *pool = NULL;
-	void *item;
-	isc_task_t *task1 = NULL, *task2 = NULL, *task3 = NULL;
+	isc_pool_t * pool = NULL;
+	void *	     item;
+	isc_task_t * task1 = NULL, *task2 = NULL, *task3 = NULL;
 
 	UNUSED(state);
 
-	result = isc_pool_create(test_mctx, 2, poolfree, poolinit, taskmgr, &pool);
+	result = isc_pool_create(test_mctx, 2, poolfree, poolinit, taskmgr,
+				 &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_pool_count(pool), 2);
 
 	item = isc_pool_get(pool);
 	assert_non_null(item);
-	isc_task_attach((isc_task_t *) item, &task1);
+	isc_task_attach((isc_task_t *)item, &task1);
 
 	item = isc_pool_get(pool);
 	assert_non_null(item);
-	isc_task_attach((isc_task_t *) item, &task2);
+	isc_task_attach((isc_task_t *)item, &task2);
 
 	item = isc_pool_get(pool);
 	assert_non_null(item);
-	isc_task_attach((isc_task_t *) item, &task3);
+	isc_task_attach((isc_task_t *)item, &task3);
 
 	isc_task_detach(&task1);
 	isc_task_detach(&task2);
@@ -166,14 +175,12 @@ get_objects(void **state) {
 }
 
 int
-main(void) {
+main(void)
+{
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(create_pool,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(expand_pool,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(get_objects,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(create_pool, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(expand_pool, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(get_objects, _setup, _teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -184,7 +191,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

@@ -42,24 +42,22 @@
  */
 
 #ifdef DLZ_BDB
+#include <db.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-
-#include <dns/log.h>
-#include <dns/sdlz.h>
-#include <dns/result.h>
+#include <string.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/util.h>
 
-#include <named/globals.h>
+#include <dns/log.h>
+#include <dns/result.h>
+#include <dns/sdlz.h>
 
 #include <dlz/dlz_bdbhpt_driver.h>
-
-#include <db.h>
+#include <named/globals.h>
 
 static dns_sdlzimplementation_t *dlz_bdbhpt = NULL;
 
@@ -72,27 +70,26 @@ static dns_sdlzimplementation_t *dlz_bdbhpt = NULL;
 #define dlz_xfr "dns_xfr"
 #define dlz_client "dns_client"
 
-	/* This structure contains all the Berkeley DB handles
-	 * for this instance of the bdbhpt driver.
-	 */
+/* This structure contains all the Berkeley DB handles
+ * for this instance of the bdbhpt driver.
+ */
 
 typedef struct bdbhpt_instance {
-	DB_ENV	*dbenv;		/*%< bdbhpt environment */
-	DB	*data;		/*%< dns_data database handle */
-	DB	*zone;		/*%< zone database handle */
-	DB	*xfr;		/*%< zone xfr database handle */
-	DB	*client;	/*%< client database handle */
-	isc_mem_t *mctx;	/*%< memory context */
+	DB_ENV *   dbenv;  /*%< bdbhpt environment */
+	DB *	   data;   /*%< dns_data database handle */
+	DB *	   zone;   /*%< zone database handle */
+	DB *	   xfr;	   /*%< zone xfr database handle */
+	DB *	   client; /*%< client database handle */
+	isc_mem_t *mctx;   /*%< memory context */
 
 } bdbhpt_instance_t;
 
 typedef struct bdbhpt_parsed_data {
 	char *host;
 	char *type;
-	int ttl;
+	int   ttl;
 	char *data;
 } bdbhpt_parsed_data_t;
-
 
 /* forward reference */
 
@@ -104,14 +101,14 @@ bdbhpt_findzone(void *driverarg, void *dbdata, const char *name,
  * Reverses a string in place.
  */
 
-static char *bdbhpt_strrev(char *str)
+static char *
+bdbhpt_strrev(char *str)
 {
 	char *p1, *p2;
 
-	if (! str || ! *str)
+	if (!str || !*str)
 		return str;
-	for (p1 = str, p2 = str + strlen(str) - 1; p2 > p1; ++p1, --p2)
-	{
+	for (p1 = str, p2 = str + strlen(str) - 1; p2 > p1; ++p1, --p2) {
 		*p1 ^= *p2;
 		*p2 ^= *p1;
 		*p1 ^= *p2;
@@ -128,11 +125,11 @@ static char *bdbhpt_strrev(char *str)
  */
 
 static isc_result_t
-bdbhpt_parse_data(char *in, bdbhpt_parsed_data_t *pd) {
-
+bdbhpt_parse_data(char *in, bdbhpt_parsed_data_t *pd)
+{
 	char *endp, *ttlStr;
 	char *tmp = in;
-	char *lastchar = (char *) &tmp[strlen(tmp)];
+	char *lastchar = (char *)&tmp[strlen(tmp)];
 
 	/*%
 	 * String should be formated as:
@@ -233,9 +230,9 @@ static isc_result_t
 bdbhpt_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		    const char *client)
 {
-	isc_result_t result;
-	bdbhpt_instance_t *db = (bdbhpt_instance_t *) dbdata;
-	DBT key, data;
+	isc_result_t	   result;
+	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
+	DBT		   key, data;
 
 	/* check to see if we are authoritative for the zone first. */
 	result = bdbhpt_findzone(driverarg, dbdata, name, NULL, NULL);
@@ -260,7 +257,7 @@ bdbhpt_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 	}
 	data.size = strlen(data.data);
 
-	switch(db->client->get(db->client, NULL, &key, &data, DB_GET_BOTH)) {
+	switch (db->client->get(db->client, NULL, &key, &data, DB_GET_BOTH)) {
 	case DB_NOTFOUND:
 		result = ISC_R_NOTFOUND;
 		break;
@@ -271,7 +268,7 @@ bdbhpt_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		result = ISC_R_FAILURE;
 	}
 
- xfr_cleanup:
+xfr_cleanup:
 
 	/* free any memory duplicate string in the key field */
 	if (key.data != NULL)
@@ -282,7 +279,6 @@ bdbhpt_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		free(data.data);
 
 	return result;
-
 }
 
 /*%
@@ -315,17 +311,16 @@ static isc_result_t
 bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
 		dns_sdlzallnodes_t *allnodes)
 {
-
-	isc_result_t result = ISC_R_NOTFOUND;
-	bdbhpt_instance_t *db = (bdbhpt_instance_t *) dbdata;
-	DBC *xfr_cursor = NULL;
-	DBC *dns_cursor = NULL;
-	DBT xfr_key, xfr_data, dns_key, dns_data;
-	int xfr_flags;
-	int dns_flags;
-	int bdbhptres;
+	isc_result_t	     result = ISC_R_NOTFOUND;
+	bdbhpt_instance_t *  db = (bdbhpt_instance_t *)dbdata;
+	DBC *		     xfr_cursor = NULL;
+	DBC *		     dns_cursor = NULL;
+	DBT		     xfr_key, xfr_data, dns_key, dns_data;
+	int		     xfr_flags;
+	int		     dns_flags;
+	int		     bdbhptres;
 	bdbhpt_parsed_data_t pd;
-	char *tmp = NULL, *tmp_zone, *tmp_zone_host = NULL;
+	char *		     tmp = NULL, *tmp_zone, *tmp_zone_host = NULL;
 
 	UNUSED(driverarg);
 
@@ -357,7 +352,6 @@ bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
 	/* loop through xfr table for specified zone. */
 	while ((bdbhptres = xfr_cursor->c_get(xfr_cursor, &xfr_key, &xfr_data,
 					      xfr_flags)) == 0) {
-
 		xfr_flags = DB_NEXT_DUP;
 
 		/* +1 to allow for space between zone and host names */
@@ -379,9 +373,8 @@ bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
 		dns_flags = DB_SET;
 
 		while ((bdbhptres = dns_cursor->c_get(dns_cursor, &dns_key,
-						      &dns_data,
-						      dns_flags)) == 0) {
-
+						      &dns_data, dns_flags)) ==
+		       0) {
 			dns_flags = DB_NEXT_DUP;
 
 			/* +1 to allow for null term at end of string. */
@@ -397,12 +390,12 @@ bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
 			if (bdbhpt_parse_data(tmp, &pd) != ISC_R_SUCCESS)
 				goto allnodes_cleanup;
 
-			result = dns_sdlz_putnamedrr(allnodes, pd.host,
-						     pd.type, pd.ttl, pd.data);
+			result = dns_sdlz_putnamedrr(allnodes, pd.host, pd.type,
+						     pd.ttl, pd.data);
 			if (result != ISC_R_SUCCESS)
 				goto allnodes_cleanup;
 
-		}  /* end inner while loop */
+		} /* end inner while loop */
 
 		/* clean up memory */
 		if (tmp_zone_host != NULL) {
@@ -411,7 +404,7 @@ bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
 		}
 	} /* end outer while loop */
 
- allnodes_cleanup:
+allnodes_cleanup:
 
 	/* free any memory */
 	if (tmp != NULL)
@@ -440,8 +433,8 @@ bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
  */
 
 static void
-bdbhpt_cleanup(bdbhpt_instance_t *db) {
-
+bdbhpt_cleanup(bdbhpt_instance_t *db)
+{
 	isc_mem_t *mctx;
 
 	/* close databases */
@@ -471,10 +464,9 @@ static isc_result_t
 bdbhpt_findzone(void *driverarg, void *dbdata, const char *name,
 		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
-
-	isc_result_t result;
-	bdbhpt_instance_t *db = (bdbhpt_instance_t *) dbdata;
-	DBT key, data;
+	isc_result_t	   result;
+	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
+	DBT		   key, data;
 
 	UNUSED(driverarg);
 	UNUSED(methods);
@@ -497,7 +489,7 @@ bdbhpt_findzone(void *driverarg, void *dbdata, const char *name,
 	key.data = bdbhpt_strrev(key.data);
 	key.size = strlen(key.data);
 
-	switch(db->zone->get(db->zone, NULL, &key, &data, 0)) {
+	switch (db->zone->get(db->zone, NULL, &key, &data, 0)) {
 	case DB_NOTFOUND:
 		result = ISC_R_NOTFOUND;
 		break;
@@ -520,21 +512,20 @@ bdbhpt_findzone(void *driverarg, void *dbdata, const char *name,
 }
 
 static isc_result_t
-bdbhpt_lookup(const char *zone, const char *name, void *driverarg,
-	      void *dbdata, dns_sdlzlookup_t *lookup,
-	      dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
+bdbhpt_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
+	      dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
+	      dns_clientinfo_t *clientinfo)
 {
-
-	isc_result_t result = ISC_R_NOTFOUND;
-	bdbhpt_instance_t *db = (bdbhpt_instance_t *) dbdata;
-	DBC *data_cursor = NULL;
-	DBT key, data;
-	int bdbhptres;
-	int flags;
+	isc_result_t	   result = ISC_R_NOTFOUND;
+	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
+	DBC *		   data_cursor = NULL;
+	DBT		   key, data;
+	int		   bdbhptres;
+	int		   flags;
 
 	bdbhpt_parsed_data_t pd;
-	char *tmp = NULL;
-	char *keyStr = NULL;
+	char *		     tmp = NULL;
+	char *		     keyStr = NULL;
 
 	UNUSED(driverarg);
 	UNUSED(methods);
@@ -566,7 +557,6 @@ bdbhpt_lookup(const char *zone, const char *name, void *driverarg,
 	flags = DB_SET;
 	while ((bdbhptres = data_cursor->c_get(data_cursor, &key, &data,
 					       flags)) == 0) {
-
 		flags = DB_NEXT_DUP;
 		tmp = realloc(tmp, data.size + 1);
 		if (tmp == NULL)
@@ -584,7 +574,7 @@ bdbhpt_lookup(const char *zone, const char *name, void *driverarg,
 			goto lookup_cleanup;
 	} /* end while loop */
 
- lookup_cleanup:
+lookup_cleanup:
 
 	/* get rid of cursor */
 	if (data_cursor != NULL)
@@ -601,8 +591,8 @@ bdbhpt_lookup(const char *zone, const char *name, void *driverarg,
 
 static isc_result_t
 bdbhpt_opendb(DB_ENV *db_env, DBTYPE db_type, DB **db, const char *db_name,
-	      char *db_file, int flags) {
-
+	      char *db_file, int flags)
+{
 	int result;
 
 	/* Initialize the database. */
@@ -643,9 +633,9 @@ static isc_result_t
 bdbhpt_create(const char *dlzname, unsigned int argc, char *argv[],
 	      void *driverarg, void **dbdata)
 {
-	isc_result_t result;
-	int bdbhptres;
-	int bdbFlags = 0;
+	isc_result_t	   result;
+	int		   bdbhptres;
+	int		   bdbFlags = 0;
 	bdbhpt_instance_t *db = NULL;
 
 	UNUSED(dlzname);
@@ -660,14 +650,14 @@ bdbhpt_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (ISC_R_FAILURE);
 	}
 
-	switch((char) *argv[1]) {
+	switch ((char)*argv[1]) {
 		/*
 		 * Transactional mode.  Highest safety - lowest speed.
 		 */
 	case 'T':
 	case 't':
-		bdbFlags = DB_INIT_MPOOL | DB_INIT_LOCK |
-			   DB_INIT_LOG | DB_INIT_TXN;
+		bdbFlags = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_LOG |
+			   DB_INIT_TXN;
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(1),
 			      "bdbhpt driver using transactional mode.");
@@ -739,34 +729,34 @@ bdbhpt_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* open dlz_data database. */
-	result = bdbhpt_opendb(db->dbenv, DB_UNKNOWN, &db->data,
-			       dlz_data, argv[3], DB_DUP | DB_DUPSORT);
+	result = bdbhpt_opendb(db->dbenv, DB_UNKNOWN, &db->data, dlz_data,
+			       argv[3], DB_DUP | DB_DUPSORT);
 	if (result != ISC_R_SUCCESS)
 		goto init_cleanup;
 
 	/* open dlz_xfr database. */
-	result = bdbhpt_opendb(db->dbenv, DB_UNKNOWN, &db->xfr,
-			       dlz_xfr, argv[3], DB_DUP | DB_DUPSORT);
+	result = bdbhpt_opendb(db->dbenv, DB_UNKNOWN, &db->xfr, dlz_xfr,
+			       argv[3], DB_DUP | DB_DUPSORT);
 	if (result != ISC_R_SUCCESS)
 		goto init_cleanup;
 
 	/* open dlz_zone database. */
-	result = bdbhpt_opendb(db->dbenv, DB_UNKNOWN, &db->zone,
-			       dlz_zone, argv[3], 0);
+	result = bdbhpt_opendb(db->dbenv, DB_UNKNOWN, &db->zone, dlz_zone,
+			       argv[3], 0);
 	if (result != ISC_R_SUCCESS)
 		goto init_cleanup;
 
 	/* open dlz_client database. */
-	result = bdbhpt_opendb(db->dbenv, DB_UNKNOWN, &db->client,
-			       dlz_client, argv[3], DB_DUP | DB_DUPSORT);
+	result = bdbhpt_opendb(db->dbenv, DB_UNKNOWN, &db->client, dlz_client,
+			       argv[3], DB_DUP | DB_DUPSORT);
 	if (result != ISC_R_SUCCESS)
 		goto init_cleanup;
 
 	*dbdata = db;
 
-	return(ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
- init_cleanup:
+init_cleanup:
 
 	bdbhpt_cleanup(db);
 	return result;
@@ -777,7 +767,7 @@ bdbhpt_destroy(void *driverarg, void *dbdata)
 {
 	UNUSED(driverarg);
 
-	bdbhpt_cleanup((bdbhpt_instance_t *) dbdata);
+	bdbhpt_cleanup((bdbhpt_instance_t *)dbdata);
 }
 
 /*
@@ -804,20 +794,20 @@ static dns_sdlzmethods_t dlz_bdbhpt_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_bdbhpt_init(void) {
+dlz_bdbhpt_init(void)
+{
 	isc_result_t result;
 
 	/*
 	 * Write debugging message to log
 	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
-		      "Registering DLZ bdbhpt driver.");
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(2), "Registering DLZ bdbhpt driver.");
 
 	result = dns_sdlzregister("bdbhpt", &dlz_bdbhpt_methods, NULL,
 				  DNS_SDLZFLAG_RELATIVEOWNER |
-				  DNS_SDLZFLAG_RELATIVERDATA |
-				  DNS_SDLZFLAG_THREADSAFE,
+					  DNS_SDLZFLAG_RELATIVERDATA |
+					  DNS_SDLZFLAG_THREADSAFE,
 				  named_g_mctx, &dlz_bdbhpt);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -826,7 +816,6 @@ dlz_bdbhpt_init(void) {
 		result = ISC_R_UNEXPECTED;
 	}
 
-
 	return result;
 }
 
@@ -834,14 +823,13 @@ dlz_bdbhpt_init(void) {
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_bdbhpt_clear(void) {
-
+dlz_bdbhpt_clear(void)
+{
 	/*
 	 * Write debugging message to log
 	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
-		      "Unregistering DLZ bdbhpt driver.");
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+		      ISC_LOG_DEBUG(2), "Unregistering DLZ bdbhpt driver.");
 
 	if (dlz_bdbhpt != NULL)
 		dns_sdlzunregister(&dlz_bdbhpt);

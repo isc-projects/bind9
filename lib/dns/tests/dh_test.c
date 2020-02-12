@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -23,22 +22,21 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/util.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <dns/name.h>
 
-#include <dst/result.h>
-
-#include <pk11/site.h>
-
 #include "../dst_internal.h"
-
 #include "dnstest.h"
+
+#include <dst/result.h>
+#include <pk11/site.h>
 
 #if USE_OPENSSL
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	isc_result_t result;
 
 	UNUSED(state);
@@ -50,7 +48,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	UNUSED(state);
 
 	dns_test_end();
@@ -60,13 +59,14 @@ _teardown(void **state) {
 
 /* OpenSSL DH_compute_key() failure */
 static void
-dh_computesecret(void **state) {
-	dst_key_t *key = NULL;
-	isc_buffer_t buf;
-	unsigned char array[1024];
-	isc_result_t result;
+dh_computesecret(void **state)
+{
+	dst_key_t *	key = NULL;
+	isc_buffer_t	buf;
+	unsigned char	array[1024];
+	isc_result_t	result;
 	dns_fixedname_t fname;
-	dns_name_t *name;
+	dns_name_t *	name;
 
 	UNUSED(state);
 
@@ -77,8 +77,8 @@ dh_computesecret(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dst_key_fromfile(name, 18602, DST_ALG_DH,
-				  DST_TYPE_PUBLIC | DST_TYPE_KEY,
-				  "./", dt_mctx, &key);
+				  DST_TYPE_PUBLIC | DST_TYPE_KEY, "./", dt_mctx,
+				  &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&buf, array, sizeof(array));
@@ -92,11 +92,12 @@ dh_computesecret(void **state) {
 #endif /* USE_OPENSSL */
 
 int
-main(void) {
+main(void)
+{
 #if USE_OPENSSL
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(dh_computesecret,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(dh_computesecret, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -110,7 +111,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

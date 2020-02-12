@@ -42,25 +42,26 @@
 #include <dns/name.h>
 #include <dns/result.h>
 
-#include <dst/dst.h>
-#include <confgen/os.h>
-
-#include "util.h"
 #include "keygen.h"
+#include "util.h"
 
-#define KEYGEN_DEFAULT		"tsig-key"
-#define CONFGEN_DEFAULT		"ddns-key"
+#include <confgen/os.h>
+#include <dst/dst.h>
+
+#define KEYGEN_DEFAULT "tsig-key"
+#define CONFGEN_DEFAULT "ddns-key"
 
 static char program[256];
 const char *progname;
-static enum { progmode_keygen, progmode_confgen} progmode;
+static enum { progmode_keygen, progmode_confgen } progmode;
 bool verbose = false; /* needed by util.c but not used here */
 
 ISC_PLATFORM_NORETURN_PRE static void
 usage(int status) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(int status) {
+usage(int status)
+{
 	if (progmode == progmode_confgen) {
 		fprintf(stderr, "\
 Usage:\n\
@@ -70,35 +71,36 @@ Usage:\n\
   -s name:       domain name to be updated using the created key\n\
   -z zone:       name of the zone as it will be used in named.conf\n\
   -q:            quiet mode: print the key, with no explanatory text\n",
-			 progname);
+			progname);
 	} else {
 		fprintf(stderr, "\
 Usage:\n\
  %s [-a alg] [keyname]\n\
   -a alg:        algorithm (default hmac-sha256)\n\n",
-			 progname);
+			progname);
 	}
 
-	exit (status);
+	exit(status);
 }
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	isc_result_t result = ISC_R_SUCCESS;
-	bool show_final_mem = false;
-	bool quiet = false;
+	bool	     show_final_mem = false;
+	bool	     quiet = false;
 	isc_buffer_t key_txtbuffer;
-	char key_txtsecret[256];
-	isc_mem_t *mctx = NULL;
-	const char *keyname = NULL;
-	const char *zone = NULL;
-	const char *self_domain = NULL;
-	char *keybuf = NULL;
+	char	     key_txtsecret[256];
+	isc_mem_t *  mctx = NULL;
+	const char * keyname = NULL;
+	const char * zone = NULL;
+	const char * self_domain = NULL;
+	char *	     keybuf = NULL;
 	dns_secalg_t alg = DST_ALG_HMACSHA256;
-	const char *algname;
-	int keysize = 256;
-	int len = 0;
-	int ch;
+	const char * algname;
+	int	     keysize = 256;
+	int	     len = 0;
+	int	     ch;
 
 #if USE_PKCS11
 	pk11_result_register();
@@ -132,8 +134,8 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = false;
 
-	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:hk:Mmr:qs:y:z:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "a:hk:Mmr:qs:y:z:")) !=
+	       -1) {
 		switch (ch) {
 		case 'a':
 			algname = isc_commandline_argument;
@@ -187,8 +189,8 @@ main(int argc, char **argv) {
 				usage(0);
 			break;
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n",
-				program, isc_commandline_option);
+			fprintf(stderr, "%s: unhandled option -%c\n", program,
+				isc_commandline_option);
 			exit(1);
 		}
 	}
@@ -199,7 +201,7 @@ main(int argc, char **argv) {
 	POST(argv);
 
 	if (self_domain != NULL && zone != NULL)
-		usage(1);	/* -s and -z cannot coexist */
+		usage(1); /* -s and -z cannot coexist */
 
 	if (argc > isc_commandline_index)
 		usage(1);
@@ -212,9 +214,8 @@ main(int argc, char **argv) {
 	if (keyname == NULL) {
 		const char *suffix = NULL;
 
-		keyname = ((progmode == progmode_keygen)
-			?  KEYGEN_DEFAULT
-			: CONFGEN_DEFAULT);
+		keyname = ((progmode == progmode_keygen) ? KEYGEN_DEFAULT
+							 : CONFGEN_DEFAULT);
 		if (self_domain != NULL)
 			suffix = self_domain;
 		else if (zone != NULL)
@@ -223,14 +224,13 @@ main(int argc, char **argv) {
 			len = strlen(keyname) + strlen(suffix) + 2;
 			keybuf = isc_mem_get(mctx, len);
 			snprintf(keybuf, len, "%s.%s", keyname, suffix);
-			keyname = (const char *) keybuf;
+			keyname = (const char *)keybuf;
 		}
 	}
 
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
 	generate_key(mctx, alg, keysize, &key_txtbuffer);
-
 
 	if (!quiet)
 		printf("\
@@ -243,8 +243,7 @@ key \"%s\" {\n\
 	algorithm %s;\n\
 	secret \"%.*s\";\n\
 };\n",
-	       keyname, algname,
-	       (int)isc_buffer_usedlength(&key_txtbuffer),
+	       keyname, algname, (int)isc_buffer_usedlength(&key_txtbuffer),
 	       (char *)isc_buffer_base(&key_txtbuffer));
 
 	if (!quiet) {
@@ -282,7 +281,6 @@ update-policy {\n\
 # After the keyfile has been placed, the following command will\n\
 # execute nsupdate using this key:\n\
 nsupdate -k <keyfile>\n");
-
 	}
 
 	if (keybuf != NULL)

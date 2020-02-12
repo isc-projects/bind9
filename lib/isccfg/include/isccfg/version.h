@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file isccfg/version.h */
 
 #include <isc/platform.h>

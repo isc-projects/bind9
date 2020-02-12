@@ -30,7 +30,8 @@
  */
 
 static void
-notify_log(ns_client_t *client, int level, const char *fmt, ...) {
+notify_log(ns_client_t *client, int level, const char *fmt, ...)
+{
 	va_list ap;
 
 	va_start(ap, fmt);
@@ -40,10 +41,11 @@ notify_log(ns_client_t *client, int level, const char *fmt, ...) {
 }
 
 static void
-respond(ns_client_t *client, isc_result_t result) {
-	dns_rcode_t rcode;
+respond(ns_client_t *client, isc_result_t result)
+{
+	dns_rcode_t    rcode;
 	dns_message_t *message;
-	isc_result_t msg_result;
+	isc_result_t   msg_result;
 
 	message = client->message;
 	rcode = dns_result_torcode(result);
@@ -67,13 +69,14 @@ respond(ns_client_t *client, isc_result_t result) {
 }
 
 void
-ns_notify_start(ns_client_t *client) {
-	dns_message_t *request = client->message;
-	isc_result_t result;
-	dns_name_t *zonename;
+ns_notify_start(ns_client_t *client)
+{
+	dns_message_t * request = client->message;
+	isc_result_t	result;
+	dns_name_t *	zonename;
 	dns_rdataset_t *zone_rdataset;
-	dns_zone_t *zone = NULL;
-	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_zone_t *	zone = NULL;
+	char		namebuf[DNS_NAME_FORMATSIZE];
 	char tsigbuf[DNS_NAME_FORMATSIZE * 2 + sizeof(": TSIG '' ()")];
 	dns_tsigkey_t *tsigkey;
 
@@ -143,15 +146,14 @@ ns_notify_start(ns_client_t *client) {
 		if ((zonetype == dns_zone_master) ||
 		    (zonetype == dns_zone_slave) ||
 		    (zonetype == dns_zone_mirror) ||
-		    (zonetype == dns_zone_stub))
-		{
+		    (zonetype == dns_zone_stub)) {
 			isc_sockaddr_t *from = ns_client_getsockaddr(client);
 			isc_sockaddr_t *to = ns_client_getdestaddr(client);
 			notify_log(client, ISC_LOG_INFO,
-				   "received notify for zone '%s'%s",
-				   namebuf, tsigbuf);
-			result = dns_zone_notifyreceive(zone, from, to,
-							request);
+				   "received notify for zone '%s'%s", namebuf,
+				   tsigbuf);
+			result =
+				dns_zone_notifyreceive(zone, from, to, request);
 			goto done;
 		}
 	}
@@ -161,7 +163,7 @@ ns_notify_start(ns_client_t *client) {
 		   namebuf, tsigbuf);
 	result = DNS_R_NOTAUTH;
 
- done:
+done:
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 	respond(client, result);

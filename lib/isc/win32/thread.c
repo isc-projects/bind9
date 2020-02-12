@@ -36,7 +36,8 @@ isc_thread_create(isc_threadfunc_t start, isc_threadarg_t arg,
 }
 
 void
-isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp) {
+isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp)
+{
 	DWORD result;
 
 	result = WaitForSingleObject(thread, INFINITE);
@@ -46,8 +47,8 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp) {
 	}
 	if (rp != NULL && !GetExitCodeThread(thread, rp)) {
 		isc_error_fatal(__FILE__, __LINE__,
-				"GetExitCodeThread() failed: %d", GetLastError());
-
+				"GetExitCodeThread() failed: %d",
+				GetLastError());
 	}
 	(void)CloseHandle(thread);
 
@@ -55,7 +56,8 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp) {
 }
 
 void
-isc_thread_setconcurrency(unsigned int level) {
+isc_thread_setconcurrency(unsigned int level)
+{
 	/*
 	 * This is unnecessary on Win32 systems, but is here so that the
 	 * call exists
@@ -63,13 +65,15 @@ isc_thread_setconcurrency(unsigned int level) {
 }
 
 void
-isc_thread_setname(isc_thread_t thread, const char *name) {
+isc_thread_setname(isc_thread_t thread, const char *name)
+{
 	UNUSED(thread);
 	UNUSED(name);
 }
 
 isc_result_t
-isc_thread_setaffinity(int cpu) {
+isc_thread_setaffinity(int cpu)
+{
 	/* no-op on Windows for now */
 	return (ISC_R_SUCCESS);
 }

@@ -23,5 +23,4 @@ isc__taskmgr_pause(isc_taskmgr_t *taskmgr);
 void
 isc__taskmgr_resume(isc_taskmgr_t *taskmgr);
 
-
 #endif /* ISC_TASK_P_H */

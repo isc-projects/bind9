@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_OS_H
 #define ISC_OS_H 1
 

@@ -9,8 +9,9 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
+
+#include "errno2result.h"
 
 #include <stdbool.h>
 
@@ -20,8 +21,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include "errno2result.h"
-
 /*%
  * Convert a POSIX errno value into an isc_result_t.  The
  * list of supported errno values is not complete; new users
@@ -29,15 +28,15 @@
  * not already there.
  */
 isc_result_t
-isc___errno2result(int posixerrno, bool dolog,
-		   const char *file, unsigned int line)
+isc___errno2result(int posixerrno, bool dolog, const char *file,
+		   unsigned int line)
 {
 	char strbuf[ISC_STRERRORSIZE];
 
 	switch (posixerrno) {
 	case ENOTDIR:
 	case ELOOP:
-	case EINVAL:		/* XXX sometimes this is not for files */
+	case EINVAL: /* XXX sometimes this is not for files */
 	case ENAMETOOLONG:
 	case EBADF:
 		return (ISC_R_INVALIDFILE);
@@ -116,7 +115,8 @@ isc___errno2result(int posixerrno, bool dolog,
 	default:
 		if (dolog) {
 			strerror_r(posixerrno, strbuf, sizeof(strbuf));
-			UNEXPECTED_ERROR(file, line, "unable to convert errno "
+			UNEXPECTED_ERROR(file, line,
+					 "unable to convert errno "
 					 "to isc_result: %d: %s",
 					 posixerrno, strbuf);
 		}

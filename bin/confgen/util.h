@@ -9,27 +9,25 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1
 
 /*! \file */
 
+#include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/platform.h>
 
-#include <isc/formatcheck.h>
-
-#define NS_CONTROL_PORT		953
+#define NS_CONTROL_PORT 953
 
 #undef DO
-#define DO(name, function) \
-	do { \
-		result = function; \
-		if (result != ISC_R_SUCCESS) \
+#define DO(name, function)                                                \
+	do {                                                              \
+		result = function;                                        \
+		if (result != ISC_R_SUCCESS)                              \
 			fatal("%s: %s", name, isc_result_totext(result)); \
-		else \
-			notify("%s", name); \
+		else                                                      \
+			notify("%s", name);                               \
 	} while (0)
 
 ISC_LANG_BEGINDECLS
@@ -39,7 +37,7 @@ notify(const char *fmt, ...) ISC_FORMAT_PRINTF(1, 2);
 
 ISC_PLATFORM_NORETURN_PRE void
 fatal(const char *format, ...)
-ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
+	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 ISC_LANG_ENDDECLS
 

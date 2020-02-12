@@ -46,8 +46,8 @@
 #pragma once
 
 #include <isc/atomic.h>
-#include <isc/string.h>
 #include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -61,8 +61,7 @@
  * in the file HazardPointers.hpp.
  */
 
-typedef void
-(isc_hp_deletefunc_t)(void *);
+typedef void(isc_hp_deletefunc_t)(void *);
 
 void
 isc_hp_init(int max_threads);

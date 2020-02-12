@@ -20,5 +20,5 @@
 /* This is the only part that differs from dlz_minimal.h. */
 typedef struct dlz_perl_clientinfo_opaque {
 	dns_clientinfomethods_t *methods;
-	dns_clientinfo_t *clientinfo;
+	dns_clientinfo_t *	 clientinfo;
 } dlz_perl_clientinfo_opaque;

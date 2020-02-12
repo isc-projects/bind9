@@ -9,9 +9,9 @@
  * information regarding copyright ownership.
  */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/region.h>
@@ -19,15 +19,16 @@
 
 #include <dns/keyvalues.h>
 
-#include <dst/dst.h>
-
 #include "dst_internal.h"
 
+#include <dst/dst.h>
+
 uint16_t
-dst_region_computeid(const isc_region_t *source) {
-	uint32_t ac;
+dst_region_computeid(const isc_region_t *source)
+{
+	uint32_t	     ac;
 	const unsigned char *p;
-	int size;
+	int		     size;
 
 	REQUIRE(source != NULL);
 	REQUIRE(source->length >= 4);
@@ -46,10 +47,11 @@ dst_region_computeid(const isc_region_t *source) {
 }
 
 uint16_t
-dst_region_computerid(const isc_region_t *source) {
-	uint32_t ac;
+dst_region_computerid(const isc_region_t *source)
+{
+	uint32_t	     ac;
 	const unsigned char *p;
-	int size;
+	int		     size;
 
 	REQUIRE(source != NULL);
 	REQUIRE(source->length >= 4);
@@ -59,7 +61,7 @@ dst_region_computerid(const isc_region_t *source) {
 
 	ac = ((*p) << 8) + *(p + 1);
 	ac |= DNS_KEYFLAG_REVOKE;
-	for (size -= 2, p +=2; size > 1; size -= 2, p += 2)
+	for (size -= 2, p += 2; size > 1; size -= 2, p += 2)
 		ac += ((*p) << 8) + *(p + 1);
 
 	if (size > 0)
@@ -70,55 +72,64 @@ dst_region_computerid(const isc_region_t *source) {
 }
 
 dns_name_t *
-dst_key_name(const dst_key_t *key) {
+dst_key_name(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_name);
 }
 
 unsigned int
-dst_key_size(const dst_key_t *key) {
+dst_key_size(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_size);
 }
 
 unsigned int
-dst_key_proto(const dst_key_t *key) {
+dst_key_proto(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_proto);
 }
 
 unsigned int
-dst_key_alg(const dst_key_t *key) {
+dst_key_alg(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_alg);
 }
 
 uint32_t
-dst_key_flags(const dst_key_t *key) {
+dst_key_flags(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_flags);
 }
 
 dns_keytag_t
-dst_key_id(const dst_key_t *key) {
+dst_key_id(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_id);
 }
 
 dns_keytag_t
-dst_key_rid(const dst_key_t *key) {
+dst_key_rid(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_rid);
 }
 
 dns_rdataclass_t
-dst_key_class(const dst_key_t *key) {
+dst_key_class(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_class);
 }
 
 bool
-dst_key_iszonekey(const dst_key_t *key) {
+dst_key_iszonekey(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 
 	if ((key->key_flags & DNS_KEYTYPE_NOAUTH) != 0)
@@ -132,7 +143,8 @@ dst_key_iszonekey(const dst_key_t *key) {
 }
 
 bool
-dst_key_isnullkey(const dst_key_t *key) {
+dst_key_isnullkey(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 
 	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
@@ -146,7 +158,8 @@ dst_key_isnullkey(const dst_key_t *key) {
 }
 
 void
-dst_key_setbits(dst_key_t *key, uint16_t bits) {
+dst_key_setbits(dst_key_t *key, uint16_t bits)
+{
 	unsigned int maxbits;
 	REQUIRE(VALID_KEY(key));
 	if (bits != 0) {
@@ -158,19 +171,22 @@ dst_key_setbits(dst_key_t *key, uint16_t bits) {
 }
 
 uint16_t
-dst_key_getbits(const dst_key_t *key) {
+dst_key_getbits(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_bits);
 }
 
 void
-dst_key_setttl(dst_key_t *key, dns_ttl_t ttl) {
+dst_key_setttl(dst_key_t *key, dns_ttl_t ttl)
+{
 	REQUIRE(VALID_KEY(key));
 	key->key_ttl = ttl;
 }
 
 dns_ttl_t
-dst_key_getttl(const dst_key_t *key) {
+dst_key_getttl(const dst_key_t *key)
+{
 	REQUIRE(VALID_KEY(key));
 	return (key->key_ttl);
 }

@@ -26,13 +26,13 @@
  * not already there.
  */
 isc_result_t
-isc___nm_uverr2result(int uverr, bool dolog,
-		     const char *file, unsigned int line)
+isc___nm_uverr2result(int uverr, bool dolog, const char *file,
+		      unsigned int line)
 {
 	switch (uverr) {
 	case UV_ENOTDIR:
 	case UV_ELOOP:
-	case UV_EINVAL:		/* XXX sometimes this is not for files */
+	case UV_EINVAL: /* XXX sometimes this is not for files */
 	case UV_ENAMETOOLONG:
 	case UV_EBADF:
 		return (ISC_R_INVALIDFILE);

@@ -9,11 +9,11 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_BIND9_H
 #define ISC_BIND9_H 1
 
 #include <stdbool.h>
+
 #include <isc/platform.h>
 
 /*

@@ -9,12 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_STDTIME_H
 #define ISC_STDTIME_H 1
 
-#include <isc/lang.h>
 #include <inttypes.h>
+
+#include <isc/lang.h>
 
 /*
  * It's public information that 'isc_stdtime_t' is an unsigned integral type.

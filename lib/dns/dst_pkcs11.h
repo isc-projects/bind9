@@ -22,16 +22,19 @@ isc_result_t
 dst__pkcs11_toresult(const char *funcname, const char *file, int line,
 		     isc_result_t fallback, CK_RV rv);
 
-#define PK11_CALL(func, args, fallback) \
-	((void) (((rv = (func) args) == CKR_OK) || \
-		 ((ret = dst__pkcs11_toresult(#func, __FILE__, __LINE__, \
-					      fallback, rv)), 0)))
+#define PK11_CALL(func, args, fallback)                                 \
+	((void)(((rv = (func)args) == CKR_OK) ||                        \
+		((ret = dst__pkcs11_toresult(#func, __FILE__, __LINE__, \
+					     fallback, rv)),            \
+		 0)))
 
-#define PK11_RET(func, args, fallback) \
-	((void) (((rv = (func) args) == CKR_OK) || \
-		 ((ret = dst__pkcs11_toresult(#func, __FILE__, __LINE__, \
-					      fallback, rv)), 0)));	\
-	if (rv != CKR_OK) goto err;
+#define PK11_RET(func, args, fallback)                                  \
+	((void)(((rv = (func)args) == CKR_OK) ||                        \
+		((ret = dst__pkcs11_toresult(#func, __FILE__, __LINE__, \
+					     fallback, rv)),            \
+		 0)));                                                  \
+	if (rv != CKR_OK)                                               \
+		goto err;
 
 ISC_LANG_ENDDECLS
 

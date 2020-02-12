@@ -19,13 +19,14 @@
 #include <isc/util.h>
 
 int
-main(int argc, char **argv) {
-	isc_mem_t *mctx = NULL;
+main(int argc, char **argv)
+{
+	isc_mem_t *	     mctx = NULL;
 	isc_interfaceiter_t *iter = NULL;
-	isc_interface_t ifdata;
-	isc_result_t result;
-	const char * res;
-	char buf[128];
+	isc_interface_t	     ifdata;
+	isc_result_t	     result;
+	const char *	     res;
+	char		     buf[128];
 
 	UNUSED(argc);
 	UNUSED(argv);
@@ -49,8 +50,7 @@ main(int argc, char **argv) {
 				sizeof(buf));
 		if (ifdata.address.zone != 0)
 			fprintf(stdout, "address = %s (zone %u)\n",
-				res == NULL ? "BAD" : res,
-				ifdata.address.zone);
+				res == NULL ? "BAD" : res, ifdata.address.zone);
 		else
 			fprintf(stdout, "address = %s\n",
 				res == NULL ? "BAD" : res);
@@ -60,8 +60,8 @@ main(int argc, char **argv) {
 		fprintf(stdout, "netmask = %s\n", res == NULL ? "BAD" : res);
 		INSIST(ifdata.netmask.family == ifdata.af);
 		if ((ifdata.flags & INTERFACE_F_POINTTOPOINT) != 0) {
-			res = inet_ntop(ifdata.af, &ifdata.dstaddress.type,
-					 buf, sizeof(buf));
+			res = inet_ntop(ifdata.af, &ifdata.dstaddress.type, buf,
+					sizeof(buf));
 			fprintf(stdout, "dstaddress = %s\n",
 				res == NULL ? "BAD" : res);
 
@@ -96,8 +96,7 @@ main(int argc, char **argv) {
 				sizeof(buf));
 		if (ifdata.address.zone != 0)
 			fprintf(stdout, "address = %s (zone %u)\n",
-				res == NULL ? "BAD" : res,
-				ifdata.address.zone);
+				res == NULL ? "BAD" : res, ifdata.address.zone);
 		else
 			fprintf(stdout, "address = %s\n",
 				res == NULL ? "BAD" : res);
@@ -107,8 +106,8 @@ main(int argc, char **argv) {
 		fprintf(stdout, "netmask = %s\n", res == NULL ? "BAD" : res);
 		INSIST(ifdata.netmask.family == ifdata.af);
 		if ((ifdata.flags & INTERFACE_F_POINTTOPOINT) != 0) {
-			res = inet_ntop(ifdata.af, &ifdata.dstaddress.type,
-					 buf, sizeof(buf));
+			res = inet_ntop(ifdata.af, &ifdata.dstaddress.type, buf,
+					sizeof(buf));
 			fprintf(stdout, "dstaddress = %s\n",
 				res == NULL ? "BAD" : res);
 
@@ -122,7 +121,7 @@ main(int argc, char **argv) {
 		}
 	}
 	isc_interfaceiter_destroy(&iter);
- cleanup:
+cleanup:
 	isc_mem_destroy(&mctx);
 
 	return (0);

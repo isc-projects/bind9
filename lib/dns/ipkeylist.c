@@ -20,7 +20,8 @@
 #include <dns/name.h>
 
 void
-dns_ipkeylist_init(dns_ipkeylist_t *ipkl) {
+dns_ipkeylist_init(dns_ipkeylist_t *ipkl)
+{
 	ipkl->count = 0;
 	ipkl->allocated = 0;
 	ipkl->addrs = NULL;
@@ -30,7 +31,8 @@ dns_ipkeylist_init(dns_ipkeylist_t *ipkl) {
 }
 
 void
-dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
+dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl)
+{
 	uint32_t i;
 
 	REQUIRE(ipkl != NULL);
@@ -78,7 +80,7 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 		   dns_ipkeylist_t *dst)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	uint32_t i;
+	uint32_t     i;
 
 	REQUIRE(dst != NULL);
 	/* dst might be preallocated, we don't care, but it must be empty */
@@ -101,8 +103,8 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 	if (src->keys != NULL) {
 		for (i = 0; i < src->count; i++) {
 			if (src->keys[i] != NULL) {
-				dst->keys[i] = isc_mem_get(mctx,
-							   sizeof(dns_name_t));
+				dst->keys[i] =
+					isc_mem_get(mctx, sizeof(dns_name_t));
 				dns_name_init(dst->keys[i], NULL);
 				dns_name_dup(src->keys[i], mctx, dst->keys[i]);
 			} else {
@@ -114,8 +116,8 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 	if (src->labels != NULL) {
 		for (i = 0; i < src->count; i++) {
 			if (src->labels[i] != NULL) {
-				dst->labels[i] = isc_mem_get(mctx,
-							     sizeof(dns_name_t));
+				dst->labels[i] =
+					isc_mem_get(mctx, sizeof(dns_name_t));
 				dns_name_init(dst->labels[i], NULL);
 				dns_name_dup(src->labels[i], mctx,
 					     dst->labels[i]);
@@ -129,11 +131,12 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 }
 
 isc_result_t
-dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
+dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n)
+{
 	isc_sockaddr_t *addrs = NULL;
-	isc_dscp_t *dscps = NULL;
-	dns_name_t **keys = NULL;
-	dns_name_t **labels = NULL;
+	isc_dscp_t *	dscps = NULL;
+	dns_name_t **	keys = NULL;
+	dns_name_t **	labels = NULL;
 
 	REQUIRE(ipkl != NULL);
 	REQUIRE(n > ipkl->count);

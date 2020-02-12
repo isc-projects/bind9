@@ -9,23 +9,21 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
-#include <stddef.h>
 #include <inttypes.h>
+#include <stddef.h>
 #include <stdlib.h>
 
 #include <isc/assertions.h>
 #include <isc/lfsr.h>
 #include <isc/util.h>
 
-#define VALID_LFSR(x)	(x != NULL)
+#define VALID_LFSR(x) (x != NULL)
 
 void
-isc_lfsr_init(isc_lfsr_t *lfsr, uint32_t state, unsigned int bits,
-	      uint32_t tap, unsigned int count,
-	      isc_lfsrreseed_t reseed, void *arg)
+isc_lfsr_init(isc_lfsr_t *lfsr, uint32_t state, unsigned int bits, uint32_t tap,
+	      unsigned int count, isc_lfsrreseed_t reseed, void *arg)
 {
 	REQUIRE(VALID_LFSR(lfsr));
 	REQUIRE(8 <= bits && bits <= 32);
@@ -50,7 +48,6 @@ isc_lfsr_init(isc_lfsr_t *lfsr, uint32_t state, unsigned int bits,
 static inline uint32_t
 lfsr_generate(isc_lfsr_t *lfsr)
 {
-
 	/*
 	 * If the previous state is zero, we must fill it with something
 	 * here, or we will begin to generate an extremely predictable output.
@@ -78,8 +75,8 @@ void
 isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count)
 {
 	unsigned char *p;
-	unsigned int bit;
-	unsigned int byte;
+	unsigned int   bit;
+	unsigned int   byte;
 
 	REQUIRE(VALID_LFSR(lfsr));
 	REQUIRE(data != NULL);

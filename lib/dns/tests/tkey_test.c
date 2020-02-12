@@ -11,14 +11,14 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 
+#define UNIT_TESTING
 #include <cmocka.h>
 
 #include <isc/mem.h>
@@ -28,11 +28,9 @@
 #include <dns/tkey.h>
 
 #if defined(USE_LIBTOOL) || LD_WRAP
-static isc_mem_t mock_mctx = {
-	.impmagic = 0,
-	.magic = ISCAPI_MCTX_MAGIC,
-	.methods = NULL
-};
+static isc_mem_t mock_mctx = { .impmagic = 0,
+			       .magic = ISCAPI_MCTX_MAGIC,
+			       .methods = NULL };
 
 void *
 __wrap_isc__mem_get(isc_mem_t *mctx, size_t size);
@@ -52,15 +50,16 @@ __wrap_isc__mem_get(isc_mem_t *mctx, size_t size)
 
 	UNUSED(mctx);
 
-	mock_assert(has_enough_memory, "mock isc_mem_get failed",
-		    __FILE__, __LINE__);
+	mock_assert(has_enough_memory, "mock isc_mem_get failed", __FILE__,
+		    __LINE__);
 
 	/* cppcheck-suppress leakNoVarFunctionCall */
 	return (malloc(size));
 }
 
 void
-__wrap_isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size) {
+__wrap_isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size)
+{
 	UNUSED(ctx0);
 	UNUSED(size);
 
@@ -68,17 +67,20 @@ __wrap_isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size) {
 }
 
 void
-__wrap_isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
+__wrap_isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp)
+{
 	*targetp = source0;
 }
 
 void
-__wrap_isc_mem_detach(isc_mem_t **ctxp) {
+__wrap_isc_mem_detach(isc_mem_t **ctxp)
+{
 	*ctxp = NULL;
 }
 
 void
-__wrap_isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size) {
+__wrap_isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size)
+{
 	isc_mem_t *ctx = *ctxp;
 	__wrap_isc__mem_put(ctx, ptr, size);
 	__wrap_isc_mem_detach(ctxp);
@@ -86,7 +88,7 @@ __wrap_isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size) {
 
 #ifdef USE_LIBTOOL
 #if ISC_MEM_TRACKLINES
-#define FLARG		, const char *file, unsigned int line
+#define FLARG , const char *file, unsigned int line
 #else
 #define FLARG
 #endif
@@ -108,17 +110,20 @@ isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG)
 }
 
 void
-isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
+isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp)
+{
 	__wrap_isc_mem_attach(source0, targetp);
 }
 
 void
-isc_mem_detach(isc_mem_t **ctxp) {
+isc_mem_detach(isc_mem_t **ctxp)
+{
 	__wrap_isc_mem_detach(ctxp);
 }
 
 void
-isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG){
+isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG)
+{
 	UNUSED(file);
 	UNUSED(line);
 	__wrap_isc__mem_putanddetach(ctxp, ptr, size);
@@ -126,7 +131,8 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG){
 #endif /* USE_LIBTOOL */
 
 static int
-_setup(void **state) {
+_setup(void **state)
+{
 	dns_tkeyctx_t *tctx = NULL;
 	will_return(__wrap_isc__mem_get, true);
 	if (dns_tkeyctx_create(&mock_mctx, &tctx) != ISC_R_SUCCESS) {
@@ -137,7 +143,8 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+_teardown(void **state)
+{
 	dns_tkeyctx_t *tctx = *state;
 	if (tctx != NULL) {
 		dns_tkeyctx_destroy(&tctx);
@@ -146,7 +153,8 @@ _teardown(void **state) {
 }
 
 static void
-dns_tkeyctx_create_test(void **state) {
+dns_tkeyctx_create_test(void **state)
+{
 	dns_tkeyctx_t *tctx;
 
 	tctx = NULL;
@@ -155,13 +163,13 @@ dns_tkeyctx_create_test(void **state) {
 
 	tctx = NULL;
 	will_return(__wrap_isc__mem_get, true);
-	assert_int_equal(dns_tkeyctx_create(&mock_mctx, &tctx),
-			 ISC_R_SUCCESS);
+	assert_int_equal(dns_tkeyctx_create(&mock_mctx, &tctx), ISC_R_SUCCESS);
 	*state = tctx;
 }
 
 static void
-dns_tkeyctx_destroy_test(void **state) {
+dns_tkeyctx_destroy_test(void **state)
+{
 	dns_tkeyctx_t *tctx = *state;
 
 	assert_non_null(tctx);
@@ -170,7 +178,8 @@ dns_tkeyctx_destroy_test(void **state) {
 #endif /* defined(USE_LIBTOOL) || LD_WRAP */
 
 int
-main(void) {
+main(void)
+{
 #if defined(USE_LIBTOOL) || LD_WRAP
 	const struct CMUnitTest tkey_tests[] = {
 		cmocka_unit_test_teardown(dns_tkeyctx_create_test, _teardown),
@@ -187,7 +196,7 @@ main(void) {
 #endif
 	};
 	return (cmocka_run_group_tests(tkey_tests, NULL, NULL));
-#else /* defined(USE_LIBTOOL) || LD_WRAP */
+#else  /* defined(USE_LIBTOOL) || LD_WRAP */
 	print_message("1..0 # Skip tkey_test requires libtool or LD_WRAP\n");
 #endif /* defined(USE_LIBTOOL) || LD_WRAP */
 }
@@ -197,7 +206,8 @@ main(void) {
 #include <stdio.h>
 
 int
-main(void) {
+main(void)
+{
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

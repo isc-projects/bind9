@@ -9,12 +9,10 @@
  * information regarding copyright ownership.
  */
 
-#include <string.h>
 #include <direct.h>
-#include <process.h>
 #include <io.h>
-
-#include <sys/stat.h>
+#include <process.h>
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/dir.h>
@@ -25,14 +23,17 @@
 
 #include "errno2result.h"
 
-#define ISC_DIR_MAGIC		ISC_MAGIC('D', 'I', 'R', '*')
-#define VALID_DIR(dir)		ISC_MAGIC_VALID(dir, ISC_DIR_MAGIC)
+#include <sys/stat.h>
+
+#define ISC_DIR_MAGIC ISC_MAGIC('D', 'I', 'R', '*')
+#define VALID_DIR(dir) ISC_MAGIC_VALID(dir, ISC_DIR_MAGIC)
 
 static isc_result_t
 start_directory(isc_dir_t *p);
 
 void
-isc_dir_init(isc_dir_t *dir) {
+isc_dir_init(isc_dir_t *dir)
+{
 	REQUIRE(dir != NULL);
 
 	dir->dirname[0] = '\0';
@@ -52,8 +53,9 @@ isc_dir_init(isc_dir_t *dir) {
  * NULL will be returned.
  */
 isc_result_t
-isc_dir_open(isc_dir_t *dir, const char *dirname) {
-	char *p;
+isc_dir_open(isc_dir_t *dir, const char *dirname)
+{
+	char *	     p;
 	isc_result_t result;
 
 	REQUIRE(dirname != NULL);
@@ -91,7 +93,8 @@ isc_dir_open(isc_dir_t *dir, const char *dirname) {
  * the dir stream and reads the first file in one operation.
  */
 isc_result_t
-isc_dir_read(isc_dir_t *dir) {
+isc_dir_read(isc_dir_t *dir)
+{
 	REQUIRE(VALID_DIR(dir) && dir->search_handle != INVALID_HANDLE_VALUE);
 
 	if (dir->entry_filled)
@@ -104,8 +107,8 @@ isc_dir_read(isc_dir_t *dir) {
 		/*
 		 * Fetch next file in directory.
 		 */
-		if (FindNextFile(dir->search_handle,
-				 &dir->entry.find_data) == FALSE)
+		if (FindNextFile(dir->search_handle, &dir->entry.find_data) ==
+		    FALSE)
 			/*
 			 * Either the last file has been processed or
 			 * an error has occurred.  The former is not
@@ -131,18 +134,20 @@ isc_dir_read(isc_dir_t *dir) {
  * Close directory stream.
  */
 void
-isc_dir_close(isc_dir_t *dir) {
-       REQUIRE(VALID_DIR(dir) && dir->search_handle != INVALID_HANDLE_VALUE);
+isc_dir_close(isc_dir_t *dir)
+{
+	REQUIRE(VALID_DIR(dir) && dir->search_handle != INVALID_HANDLE_VALUE);
 
-       FindClose(dir->search_handle);
-       dir->search_handle = INVALID_HANDLE_VALUE;
+	FindClose(dir->search_handle);
+	dir->search_handle = INVALID_HANDLE_VALUE;
 }
 
 /*
  * Reposition directory stream at start.
  */
 isc_result_t
-isc_dir_reset(isc_dir_t *dir) {
+isc_dir_reset(isc_dir_t *dir)
+{
 	isc_result_t result;
 
 	REQUIRE(VALID_DIR(dir) && dir->search_handle != INVALID_HANDLE_VALUE);
@@ -179,8 +184,7 @@ start_directory(isc_dir_t *dir)
 	/*
 	 * Open stream and retrieve first file.
 	 */
-	dir->search_handle = FindFirstFile(dir->dirname,
-					    &dir->entry.find_data);
+	dir->search_handle = FindFirstFile(dir->dirname, &dir->entry.find_data);
 
 	if (dir->search_handle == INVALID_HANDLE_VALUE) {
 		/*
@@ -214,7 +218,8 @@ start_directory(isc_dir_t *dir)
 }
 
 isc_result_t
-isc_dir_chdir(const char *dirname) {
+isc_dir_chdir(const char *dirname)
+{
 	/*
 	 * Change the current directory to 'dirname'.
 	 */
@@ -228,17 +233,19 @@ isc_dir_chdir(const char *dirname) {
 }
 
 isc_result_t
-isc_dir_chroot(const char *dirname) {
+isc_dir_chroot(const char *dirname)
+{
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
 isc_result_t
-isc_dir_createunique(char *templet) {
+isc_dir_createunique(char *templet)
+{
 	isc_result_t result;
-	char *x;
-	char *p;
-	int i;
-	int pid;
+	char *	     x;
+	char *	     p;
+	int	     i;
+	int	     pid;
 
 	REQUIRE(templet != NULL);
 
@@ -255,7 +262,7 @@ isc_dir_createunique(char *templet) {
 	     x--, pid /= 10)
 		*x = pid % 10 + '0';
 
-	x++;			/* Set x to start of ex-Xs. */
+	x++; /* Set x to start of ex-Xs. */
 
 	do {
 		i = mkdir(templet);

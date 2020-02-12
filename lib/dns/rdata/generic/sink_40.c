@@ -16,8 +16,8 @@
 
 #define RRTYPE_SINK_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_sink(ARGS_FROMTEXT) {
+static inline isc_result_t fromtext_sink(ARGS_FROMTEXT)
+{
 	isc_token_t token;
 
 	REQUIRE(type == dns_rdatatype_sink);
@@ -49,14 +49,14 @@ fromtext_sink(ARGS_FROMTEXT) {
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 
-	return(isc_base64_tobuffer(lexer, target, -1));
+	return (isc_base64_tobuffer(lexer, target, -1));
 }
 
-static inline isc_result_t
-totext_sink(ARGS_TOTEXT) {
+static inline isc_result_t totext_sink(ARGS_TOTEXT)
+{
 	isc_region_t sr;
-	char buf[sizeof("255 255 255")];
-	uint8_t meaning, coding, subcoding;
+	char	     buf[sizeof("255 255 255")];
+	uint8_t	     meaning, coding, subcoding;
 
 	REQUIRE(rdata->type == dns_rdatatype_sink);
 	REQUIRE(rdata->length >= 3);
@@ -82,11 +82,11 @@ totext_sink(ARGS_TOTEXT) {
 
 	RETERR(str_totext(tctx->linebreak, target));
 
-	if (tctx->width == 0)   /* No splitting */
+	if (tctx->width == 0) /* No splitting */
 		RETERR(isc_base64_totext(&sr, 60, "", target));
 	else
-		RETERR(isc_base64_totext(&sr, tctx->width - 2,
-					 tctx->linebreak, target));
+		RETERR(isc_base64_totext(&sr, tctx->width - 2, tctx->linebreak,
+					 target));
 
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
@@ -94,8 +94,8 @@ totext_sink(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-fromwire_sink(ARGS_FROMWIRE) {
+static inline isc_result_t fromwire_sink(ARGS_FROMWIRE)
+{
 	isc_region_t sr;
 
 	REQUIRE(type == dns_rdatatype_sink);
@@ -114,9 +114,8 @@ fromwire_sink(ARGS_FROMWIRE) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-towire_sink(ARGS_TOWIRE) {
-
+static inline isc_result_t towire_sink(ARGS_TOWIRE)
+{
 	REQUIRE(rdata->type == dns_rdatatype_sink);
 	REQUIRE(rdata->length >= 3);
 
@@ -125,8 +124,8 @@ towire_sink(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
-compare_sink(ARGS_COMPARE) {
+static inline int compare_sink(ARGS_COMPARE)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -141,8 +140,8 @@ compare_sink(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
-fromstruct_sink(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_sink(ARGS_FROMSTRUCT)
+{
 	dns_rdata_sink_t *sink = source;
 
 	REQUIRE(type == dns_rdatatype_sink);
@@ -166,10 +165,10 @@ fromstruct_sink(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, sink->data, sink->datalen));
 }
 
-static inline isc_result_t
-tostruct_sink(ARGS_TOSTRUCT) {
+static inline isc_result_t tostruct_sink(ARGS_TOSTRUCT)
+{
 	dns_rdata_sink_t *sink = target;
-	isc_region_t sr;
+	isc_region_t	  sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_sink);
 	REQUIRE(sink != NULL);
@@ -209,9 +208,9 @@ tostruct_sink(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_sink(ARGS_FREESTRUCT) {
-	dns_rdata_sink_t *sink = (dns_rdata_sink_t *) source;
+static inline void freestruct_sink(ARGS_FREESTRUCT)
+{
+	dns_rdata_sink_t *sink = (dns_rdata_sink_t *)source;
 
 	REQUIRE(sink != NULL);
 	REQUIRE(sink->common.rdtype == dns_rdatatype_sink);
@@ -224,8 +223,8 @@ freestruct_sink(ARGS_FREESTRUCT) {
 	sink->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_sink(ARGS_ADDLDATA) {
+static inline isc_result_t additionaldata_sink(ARGS_ADDLDATA)
+{
 	REQUIRE(rdata->type == dns_rdatatype_sink);
 
 	UNUSED(rdata);
@@ -235,8 +234,8 @@ additionaldata_sink(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-digest_sink(ARGS_DIGEST) {
+static inline isc_result_t digest_sink(ARGS_DIGEST)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_sink);
@@ -246,9 +245,8 @@ digest_sink(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
-checkowner_sink(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_sink(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_sink);
 
 	UNUSED(name);
@@ -259,9 +257,8 @@ checkowner_sink(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_sink(ARGS_CHECKNAMES) {
-
+static inline bool checknames_sink(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_sink);
 
 	UNUSED(rdata);
@@ -271,8 +268,8 @@ checknames_sink(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_sink(ARGS_COMPARE) {
+static inline int casecompare_sink(ARGS_COMPARE)
+{
 	return (compare_sink(rdata1, rdata2));
 }
-#endif	/* RDATA_GENERIC_SINK_40_C */
+#endif /* RDATA_GENERIC_SINK_40_C */

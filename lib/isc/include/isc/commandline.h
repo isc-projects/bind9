@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_COMMANDLINE_H
 #define ISC_COMMANDLINE_H 1
 
@@ -37,7 +36,7 @@ LIBISC_EXTERNAL_DATA extern bool isc_commandline_reset;
 ISC_LANG_BEGINDECLS
 
 int
-isc_commandline_parse(int argc, char * const *argv, const char *options);
+isc_commandline_parse(int argc, char *const *argv, const char *options);
 /*%<
  * Parse a command line (similar to getopt())
  */

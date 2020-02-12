@@ -18,4 +18,3 @@ LIBISCCFG_EXTERNAL_DATA const char cfg_version[] = VERSION;
 LIBISCCFG_EXTERNAL_DATA const unsigned int cfg_libinterface = LIBINTERFACE;
 LIBISCCFG_EXTERNAL_DATA const unsigned int cfg_librevision = LIBREVISION;
 LIBISCCFG_EXTERNAL_DATA const unsigned int cfg_libage = LIBAGE;
-

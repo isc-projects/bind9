@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file gai_strerror.c
  * gai_strerror() returns an error message corresponding to an
  * error code returned by getaddrinfo() and getnameinfo(). The following error
@@ -49,24 +48,25 @@
 #include <irs/netdb.h>
 
 /*% Text of error messages. */
-static const char *gai_messages[] = {
-	"no error",
-	"address family for hostname not supported",
-	"temporary failure in name resolution",
-	"invalid value for ai_flags",
-	"non-recoverable failure in name resolution",
-	"ai_family not supported",
-	"memory allocation failure",
-	"no address associated with hostname",
-	"hostname nor servname provided, or not known",
-	"servname not supported for ai_socktype",
-	"ai_socktype not supported",
-	"system error returned in errno",
-	"bad hints",
-	"bad protocol",
-	"argument buffer overflow",
-	"insecure data provided"
-};
+static const char *gai_messages[] = { "no error",
+				      "address family for hostname not "
+				      "supported",
+				      "temporary failure in name resolution",
+				      "invalid value for ai_flags",
+				      "non-recoverable failure in name "
+				      "resolution",
+				      "ai_family not supported",
+				      "memory allocation failure",
+				      "no address associated with hostname",
+				      "hostname nor servname provided, or not "
+				      "known",
+				      "servname not supported for ai_socktype",
+				      "ai_socktype not supported",
+				      "system error returned in errno",
+				      "bad hints",
+				      "bad protocol",
+				      "argument buffer overflow",
+				      "insecure data provided" };
 
 /*%
  * Returns an error message corresponding to an error code returned by
@@ -77,14 +77,15 @@ char *
 #else
 const char *
 #endif
-gai_strerror(int ecode) {
+gai_strerror(int ecode)
+{
 	union {
 		const char *const_ptr;
-		char *deconst_ptr;
+		char *	    deconst_ptr;
 	} ptr;
 
 	if ((ecode < 0) ||
-	    (ecode >= (int)(sizeof(gai_messages)/sizeof(*gai_messages))))
+	    (ecode >= (int)(sizeof(gai_messages) / sizeof(*gai_messages))))
 		ptr.const_ptr = "invalid error code";
 	else
 		ptr.const_ptr = gai_messages[ecode];

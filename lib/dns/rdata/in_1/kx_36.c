@@ -16,10 +16,10 @@
 
 #define RRTYPE_KX_ATTRIBUTES (0)
 
-static inline isc_result_t
-fromtext_in_kx(ARGS_FROMTEXT) {
-	isc_token_t token;
-	dns_name_t name;
+static inline isc_result_t fromtext_in_kx(ARGS_FROMTEXT)
+{
+	isc_token_t  token;
+	dns_name_t   name;
 	isc_buffer_t buffer;
 
 	REQUIRE(type == dns_rdatatype_kx);
@@ -45,13 +45,13 @@ fromtext_in_kx(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
-totext_in_kx(ARGS_TOTEXT) {
-	isc_region_t region;
-	dns_name_t name;
-	dns_name_t prefix;
-	bool sub;
-	char buf[sizeof("64000")];
+static inline isc_result_t totext_in_kx(ARGS_TOTEXT)
+{
+	isc_region_t   region;
+	dns_name_t     name;
+	dns_name_t     prefix;
+	bool	       sub;
+	char	       buf[sizeof("64000")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == dns_rdatatype_kx);
@@ -74,9 +74,9 @@ totext_in_kx(ARGS_TOTEXT) {
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t
-fromwire_in_kx(ARGS_FROMWIRE) {
-	dns_name_t name;
+static inline isc_result_t fromwire_in_kx(ARGS_FROMWIRE)
+{
+	dns_name_t   name;
 	isc_region_t sregion;
 
 	REQUIRE(type == dns_rdatatype_kx);
@@ -97,11 +97,11 @@ fromwire_in_kx(ARGS_FROMWIRE) {
 	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
-static inline isc_result_t
-towire_in_kx(ARGS_TOWIRE) {
-	dns_name_t name;
+static inline isc_result_t towire_in_kx(ARGS_TOWIRE)
+{
+	dns_name_t    name;
 	dns_offsets_t offsets;
-	isc_region_t region;
+	isc_region_t  region;
 
 	REQUIRE(rdata->type == dns_rdatatype_kx);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -118,13 +118,13 @@ towire_in_kx(ARGS_TOWIRE) {
 	return (dns_name_towire(&name, cctx, target));
 }
 
-static inline int
-compare_in_kx(ARGS_COMPARE) {
-	dns_name_t name1;
-	dns_name_t name2;
+static inline int compare_in_kx(ARGS_COMPARE)
+{
+	dns_name_t   name1;
+	dns_name_t   name2;
 	isc_region_t region1;
 	isc_region_t region2;
-	int order;
+	int	     order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -152,10 +152,10 @@ compare_in_kx(ARGS_COMPARE) {
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static inline isc_result_t
-fromstruct_in_kx(ARGS_FROMSTRUCT) {
+static inline isc_result_t fromstruct_in_kx(ARGS_FROMSTRUCT)
+{
 	dns_rdata_in_kx_t *kx = source;
-	isc_region_t region;
+	isc_region_t	   region;
 
 	REQUIRE(type == dns_rdatatype_kx);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -171,11 +171,11 @@ fromstruct_in_kx(ARGS_FROMSTRUCT) {
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t
-tostruct_in_kx(ARGS_TOSTRUCT) {
-	isc_region_t region;
+static inline isc_result_t tostruct_in_kx(ARGS_TOSTRUCT)
+{
+	isc_region_t	   region;
 	dns_rdata_in_kx_t *kx = target;
-	dns_name_t name;
+	dns_name_t	   name;
 
 	REQUIRE(rdata->type == dns_rdatatype_kx);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -199,8 +199,8 @@ tostruct_in_kx(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-freestruct_in_kx(ARGS_FREESTRUCT) {
+static inline void freestruct_in_kx(ARGS_FREESTRUCT)
+{
 	dns_rdata_in_kx_t *kx = source;
 
 	REQUIRE(kx != NULL);
@@ -214,11 +214,11 @@ freestruct_in_kx(ARGS_FREESTRUCT) {
 	kx->mctx = NULL;
 }
 
-static inline isc_result_t
-additionaldata_in_kx(ARGS_ADDLDATA) {
-	dns_name_t name;
+static inline isc_result_t additionaldata_in_kx(ARGS_ADDLDATA)
+{
+	dns_name_t    name;
 	dns_offsets_t offsets;
-	isc_region_t region;
+	isc_region_t  region;
 
 	REQUIRE(rdata->type == dns_rdatatype_kx);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -231,10 +231,10 @@ additionaldata_in_kx(ARGS_ADDLDATA) {
 	return ((add)(arg, &name, dns_rdatatype_a));
 }
 
-static inline isc_result_t
-digest_in_kx(ARGS_DIGEST) {
+static inline isc_result_t digest_in_kx(ARGS_DIGEST)
+{
 	isc_region_t r1, r2;
-	dns_name_t name;
+	dns_name_t   name;
 
 	REQUIRE(rdata->type == dns_rdatatype_kx);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -249,9 +249,8 @@ digest_in_kx(ARGS_DIGEST) {
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline bool
-checkowner_in_kx(ARGS_CHECKOWNER) {
-
+static inline bool checkowner_in_kx(ARGS_CHECKOWNER)
+{
 	REQUIRE(type == dns_rdatatype_kx);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -263,9 +262,8 @@ checkowner_in_kx(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
-checknames_in_kx(ARGS_CHECKNAMES) {
-
+static inline bool checknames_in_kx(ARGS_CHECKNAMES)
+{
 	REQUIRE(rdata->type == dns_rdatatype_kx);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -276,9 +274,9 @@ checknames_in_kx(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
-casecompare_in_kx(ARGS_COMPARE) {
+static inline int casecompare_in_kx(ARGS_COMPARE)
+{
 	return (compare_in_kx(rdata1, rdata2));
 }
 
-#endif	/* RDATA_IN_1_KX_36_C */
+#endif /* RDATA_IN_1_KX_36_C */
