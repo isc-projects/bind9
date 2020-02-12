@@ -1157,8 +1157,9 @@ build:coverity:sid:amd64:
     expire_in: "1 week"
     when: on_failure
   only:
-    - schedules
-    - web
+    variables:
+      - $COVERITY_SCAN_PROJECT_NAME
+      - $COVERITY_SCAN_TOKEN
   cache:
     key: cov-analysis-linux64-2019.03
     paths:
