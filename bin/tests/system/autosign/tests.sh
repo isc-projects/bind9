@@ -1252,7 +1252,7 @@ $SETTIME -K ns3 -A now+3s $ksk > settime.out.test$n.ksk || ret=1
 ($RNDCCMD 10.53.0.3 loadkeys delay.example. 2>&1 | sed 's/^/ns2 /' | cat_i) || ret=1
 echo_i "waiting for changes to take effect"
 sleep 3
-wait_for_notifies "delay.example" "ns3" || ret=1
+wait_for_log "add delay\.example\..*NSEC.a\.delay\.example\. NS SOA RRSIG NSEC DNSKEY" ns3/named.run
 $DIG $DIGOPTS +noall +answer dnskey delay.example. @10.53.0.3 > dig.out.ns3.1.test$n || ret=1
 # DNSKEY expected:
 awk 'BEGIN {r=1} $4=="DNSKEY" {r=0} END {exit r}' dig.out.ns3.1.test$n || ret=1
