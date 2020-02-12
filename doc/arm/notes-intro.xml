@@ -11,10 +11,12 @@
 
 <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
   <para>
-    BIND 9.15 is an unstable development release of BIND.
-    This document summarizes new features and functional changes that
-    have been introduced on this branch.  With each development release
-    leading up to the stable BIND 9.16 release, this document will be
-    updated with additional features added and bugs fixed.
+    BIND 9.16 is a stable branch of BIND.
+    This document summarizes significant changes since the last
+    production release on that branch.
+  </para>
+  <para>
+    Please see the file <filename>CHANGES</filename> for a more
+    detailed list of changes and bug fixes.
   </para>
 </section>
