@@ -33,35 +33,34 @@
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
 
-#define MAXHOLD 100
+#define MAXHOLD	    100
 #define MAXVERSIONS 100
 
 typedef struct dbinfo {
-	dns_db_t *	  db;
-	dns_dbversion_t * version;
-	dns_dbversion_t * wversion;
-	dns_dbversion_t * rversions[MAXVERSIONS];
-	int		  rcount;
-	dns_dbnode_t *	  hold_nodes[MAXHOLD];
-	int		  hold_count;
+	dns_db_t *db;
+	dns_dbversion_t *version;
+	dns_dbversion_t *wversion;
+	dns_dbversion_t *rversions[MAXVERSIONS];
+	int rcount;
+	dns_dbnode_t *hold_nodes[MAXHOLD];
+	int hold_count;
 	dns_dbiterator_t *dbiterator;
-	dns_dbversion_t * iversion;
-	int		  pause_every;
-	bool		  ascending;
+	dns_dbversion_t *iversion;
+	int pause_every;
+	bool ascending;
 	ISC_LINK(struct dbinfo) link;
 } dbinfo;
 
-static isc_mem_t *    mctx = NULL;
-static char	      dbtype[128];
+static isc_mem_t *mctx = NULL;
+static char dbtype[128];
 static dns_dbtable_t *dbtable;
 static ISC_LIST(dbinfo) dbs;
 static dbinfo *cache_dbi = NULL;
-static int     pause_every = 0;
-static bool    ascending = true;
+static int pause_every = 0;
+static bool ascending = true;
 
 static void
-print_result(const char *message, isc_result_t result)
-{
+print_result(const char *message, isc_result_t result) {
 	if (message == NULL) {
 		message = "";
 	}
@@ -70,10 +69,9 @@ print_result(const char *message, isc_result_t result)
 }
 
 static void
-print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset)
-{
+print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
 	isc_buffer_t text;
-	char	     t[1000];
+	char t[1000];
 	isc_result_t result;
 	isc_region_t r;
 
@@ -88,9 +86,8 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset)
 }
 
 static void
-print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter)
-{
-	isc_result_t   result;
+print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter) {
+	isc_result_t result;
 	dns_rdataset_t rdataset;
 
 	dns_rdataset_init(&rdataset);
@@ -107,14 +104,13 @@ print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter)
 }
 
 static dbinfo *
-select_db(char *origintext)
-{
+select_db(char *origintext) {
 	dns_fixedname_t forigin;
-	dns_name_t *	origin;
-	isc_buffer_t	source;
-	size_t		len;
-	dbinfo *	dbi;
-	isc_result_t	result;
+	dns_name_t *origin;
+	isc_buffer_t source;
+	size_t len;
+	dbinfo *dbi;
+	isc_result_t result;
 
 	if (strcasecmp(origintext, "cache") == 0) {
 		if (cache_dbi == NULL) {
@@ -143,18 +139,17 @@ select_db(char *origintext)
 }
 
 static void
-list(dbinfo *dbi, char *seektext)
-{
-	dns_fixedname_t	    fname;
-	dns_name_t *	    name;
-	dns_dbnode_t *	    node;
+list(dbinfo *dbi, char *seektext) {
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	dns_dbnode_t *node;
 	dns_rdatasetiter_t *rdsiter;
-	isc_result_t	    result;
-	int		    i;
-	size_t		    len;
-	dns_fixedname_t	    fseekname;
-	dns_name_t *	    seekname;
-	isc_buffer_t	    source;
+	isc_result_t result;
+	int i;
+	size_t len;
+	dns_fixedname_t fseekname;
+	dns_name_t *seekname;
+	isc_buffer_t source;
 
 	name = dns_fixedname_initname(&fname);
 
@@ -235,15 +230,14 @@ list(dbinfo *dbi, char *seektext)
 }
 
 static isc_result_t
-load(const char *filename, const char *origintext, bool cache)
-{
+load(const char *filename, const char *origintext, bool cache) {
 	dns_fixedname_t forigin;
-	dns_name_t *	origin;
-	isc_result_t	result;
-	isc_buffer_t	source;
-	size_t		len;
-	dbinfo *	dbi;
-	unsigned int	i;
+	dns_name_t *origin;
+	isc_result_t result;
+	isc_buffer_t source;
+	size_t len;
+	dbinfo *dbi;
+	unsigned int i;
 
 	dbi = isc_mem_get(mctx, sizeof(*dbi));
 
@@ -308,8 +302,7 @@ load(const char *filename, const char *origintext, bool cache)
 }
 
 static void
-unload_all(void)
-{
+unload_all(void) {
 	dbinfo *dbi, *dbi_next;
 
 	for (dbi = ISC_LIST_HEAD(dbs); dbi != NULL; dbi = dbi_next) {
@@ -334,49 +327,48 @@ unload_all(void)
 	}
 
 int
-main(int argc, char *argv[])
-{
-	dns_db_t *	    db;
-	dns_dbnode_t *	    node;
-	isc_result_t	    result;
-	dns_name_t	    name;
-	dns_offsets_t	    offsets;
-	size_t		    len;
-	isc_buffer_t	    source, target;
-	char		    s[1000];
-	char		    b[255];
-	dns_rdataset_t	    rdataset, sigrdataset;
-	int		    ch;
-	dns_rdatatype_t	    type = 1;
-	bool		    printnode = false;
-	bool		    addmode = false;
-	bool		    delmode = false;
-	bool		    holdmode = false;
-	bool		    verbose = false;
-	bool		    done = false;
-	bool		    quiet = false;
-	bool		    time_lookups = false;
-	bool		    found_as;
-	bool		    find_zonecut = false;
-	bool		    noexact_zonecut = false;
-	int		    i, v;
+main(int argc, char *argv[]) {
+	dns_db_t *db;
+	dns_dbnode_t *node;
+	isc_result_t result;
+	dns_name_t name;
+	dns_offsets_t offsets;
+	size_t len;
+	isc_buffer_t source, target;
+	char s[1000];
+	char b[255];
+	dns_rdataset_t rdataset, sigrdataset;
+	int ch;
+	dns_rdatatype_t type = 1;
+	bool printnode = false;
+	bool addmode = false;
+	bool delmode = false;
+	bool holdmode = false;
+	bool verbose = false;
+	bool done = false;
+	bool quiet = false;
+	bool time_lookups = false;
+	bool found_as;
+	bool find_zonecut = false;
+	bool noexact_zonecut = false;
+	int i, v;
 	dns_rdatasetiter_t *rdsiter;
-	char		    t1[256];
-	char		    t2[256];
-	isc_buffer_t	    tb1, tb2;
-	isc_region_t	    r1, r2;
-	dns_fixedname_t	    foundname;
-	dns_name_t *	    fname;
-	unsigned int	    options = 0, zcoptions;
-	isc_time_t	    start, finish;
-	const char *	    origintext;
-	dbinfo *	    dbi;
-	dns_dbversion_t *   version;
-	const dns_name_t *  origin;
-	dns_trust_t	    trust = 0;
-	unsigned int	    addopts;
-	isc_log_t *	    lctx = NULL;
-	size_t		    n;
+	char t1[256];
+	char t2[256];
+	isc_buffer_t tb1, tb2;
+	isc_region_t r1, r2;
+	dns_fixedname_t foundname;
+	dns_name_t *fname;
+	unsigned int options = 0, zcoptions;
+	isc_time_t start, finish;
+	const char *origintext;
+	dbinfo *dbi;
+	dns_dbversion_t *version;
+	const dns_name_t *origin;
+	dns_trust_t trust = 0;
+	unsigned int addopts;
+	isc_log_t *lctx = NULL;
+	size_t n;
 
 	dns_result_register();
 
@@ -406,8 +398,8 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 'g':
-			options |=
-				(DNS_DBFIND_GLUEOK | DNS_DBFIND_VALIDATEGLUE);
+			options |= (DNS_DBFIND_GLUEOK |
+				    DNS_DBFIND_VALIDATEGLUE);
 			break;
 		case 'l':
 			RUNTIME_CHECK(isc_log_create(mctx, &lctx, NULL) ==
@@ -781,8 +773,8 @@ main(int argc, char *argv[])
 				continue;
 			}
 			isc_buffer_init(&tb1, t1, sizeof(t1));
-			result =
-				dns_name_totext(dns_db_origin(db), false, &tb1);
+			result = dns_name_totext(dns_db_origin(db), false,
+						 &tb1);
 			if (result != ISC_R_SUCCESS) {
 				printf("\n");
 				print_result("", result);

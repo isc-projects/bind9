@@ -190,7 +190,7 @@ typedef isc_result_t (*dns_dbcreatefunc_t)(isc_mem_t *	     mctx,
 
 typedef isc_result_t (*dns_dbupdate_callback_t)(dns_db_t *db, void *fn_arg);
 
-#define DNS_DB_MAGIC ISC_MAGIC('D', 'N', 'S', 'D')
+#define DNS_DB_MAGIC	 ISC_MAGIC('D', 'N', 'S', 'D')
 #define DNS_DB_VALID(db) ISC_MAGIC_VALID(db, DNS_DB_MAGIC)
 
 /*%
@@ -214,7 +214,7 @@ struct dns_db {
 };
 
 #define DNS_DBATTR_CACHE 0x01
-#define DNS_DBATTR_STUB 0x02
+#define DNS_DBATTR_STUB	 0x02
 
 struct dns_dbonupdatelistener {
 	dns_dbupdate_callback_t onupdate;
@@ -226,26 +226,26 @@ struct dns_dbonupdatelistener {
 /*%
  * Options that can be specified for dns_db_find().
  */
-#define DNS_DBFIND_GLUEOK 0x0001
+#define DNS_DBFIND_GLUEOK	0x0001
 #define DNS_DBFIND_VALIDATEGLUE 0x0002
-#define DNS_DBFIND_NOWILD 0x0004
-#define DNS_DBFIND_PENDINGOK 0x0008
-#define DNS_DBFIND_NOEXACT 0x0010
-#define DNS_DBFIND_FORCENSEC 0x0020
+#define DNS_DBFIND_NOWILD	0x0004
+#define DNS_DBFIND_PENDINGOK	0x0008
+#define DNS_DBFIND_NOEXACT	0x0010
+#define DNS_DBFIND_FORCENSEC	0x0020
 #define DNS_DBFIND_COVERINGNSEC 0x0040
-#define DNS_DBFIND_FORCENSEC3 0x0080
+#define DNS_DBFIND_FORCENSEC3	0x0080
 #define DNS_DBFIND_ADDITIONALOK 0x0100
-#define DNS_DBFIND_NOZONECUT 0x0200
-#define DNS_DBFIND_STALEOK 0x0400
+#define DNS_DBFIND_NOZONECUT	0x0200
+#define DNS_DBFIND_STALEOK	0x0400
 /*@}*/
 
 /*@{*/
 /*%
  * Options that can be specified for dns_db_addrdataset().
  */
-#define DNS_DBADD_MERGE 0x01
-#define DNS_DBADD_FORCE 0x02
-#define DNS_DBADD_EXACT 0x04
+#define DNS_DBADD_MERGE	   0x01
+#define DNS_DBADD_FORCE	   0x02
+#define DNS_DBADD_EXACT	   0x04
 #define DNS_DBADD_EXACTTTL 0x08
 #define DNS_DBADD_PREFETCH 0x10
 /*@}*/
@@ -253,7 +253,7 @@ struct dns_dbonupdatelistener {
 /*%
  * Options that can be specified for dns_db_subtractrdataset().
  */
-#define DNS_DBSUB_EXACT 0x01
+#define DNS_DBSUB_EXACT	  0x01
 #define DNS_DBSUB_WANTOLD 0x02
 
 /*@{*/
@@ -261,8 +261,8 @@ struct dns_dbonupdatelistener {
  * Iterator options
  */
 #define DNS_DB_RELATIVENAMES 0x1
-#define DNS_DB_NSEC3ONLY 0x2
-#define DNS_DB_NONSEC3 0x4
+#define DNS_DB_NSEC3ONLY     0x2
+#define DNS_DB_NONSEC3	     0x4
 /*@}*/
 
 /*****

@@ -43,8 +43,7 @@
 #include <dst/dst.h>
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -56,8 +55,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -96,12 +94,11 @@ static dns_view_t *view = NULL;
  * static data, and so is not thread safe.
  */
 static dns_name_t *
-str2name(const char *namestr)
-{
+str2name(const char *namestr) {
 	static dns_fixedname_t fname;
-	static dns_name_t *    name;
-	static isc_buffer_t    namebuf;
-	void *		       deconst_namestr;
+	static dns_name_t *name;
+	static isc_buffer_t namebuf;
+	void *deconst_namestr;
 
 	name = dns_fixedname_initname(&fname);
 	DE_CONST(namestr, deconst_namestr); /* OK, since we don't modify it */
@@ -116,11 +113,10 @@ str2name(const char *namestr)
 
 static void
 create_keystruct(uint16_t flags, uint8_t proto, uint8_t alg, const char *keystr,
-		 dns_rdata_dnskey_t *keystruct)
-{
-	unsigned char	       keydata[4096];
-	isc_buffer_t	       keydatabuf;
-	isc_region_t	       r;
+		 dns_rdata_dnskey_t *keystruct) {
+	unsigned char keydata[4096];
+	isc_buffer_t keydatabuf;
+	isc_region_t r;
 	const dns_rdataclass_t rdclass = dns_rdataclass_in;
 
 	keystruct->common.rdclass = rdclass;
@@ -143,12 +139,11 @@ create_keystruct(uint16_t flags, uint8_t proto, uint8_t alg, const char *keystr,
 static void
 create_dsstruct(dns_name_t *name, uint16_t flags, uint8_t proto, uint8_t alg,
 		const char *keystr, unsigned char *digest,
-		dns_rdata_ds_t *dsstruct)
-{
-	isc_result_t	   result;
-	unsigned char	   rrdata[4096];
-	isc_buffer_t	   rrdatabuf;
-	dns_rdata_t	   rdata = DNS_RDATA_INIT;
+		dns_rdata_ds_t *dsstruct) {
+	isc_result_t result;
+	unsigned char rrdata[4096];
+	isc_buffer_t rrdatabuf;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_dnskey_t dnskey;
 
 	/*
@@ -177,14 +172,13 @@ create_dsstruct(dns_name_t *name, uint16_t flags, uint8_t proto, uint8_t alg,
 
 /* Common setup: create a keytable and ntatable to test with a few keys */
 static void
-create_tables()
-{
-	isc_result_t	result;
-	unsigned char	digest[ISC_MAX_MD_SIZE];
-	dns_rdata_ds_t	ds;
+create_tables() {
+	isc_result_t result;
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	dns_rdata_ds_t ds;
 	dns_fixedname_t fn;
-	dns_name_t *	keyname = dns_fixedname_name(&fn);
-	isc_stdtime_t	now;
+	dns_name_t *keyname = dns_fixedname_name(&fn);
+	isc_stdtime_t now;
 
 	result = dns_test_makeview("view", &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -221,8 +215,7 @@ create_tables()
 }
 
 static void
-destroy_tables()
-{
+destroy_tables() {
 	if (ntatable != NULL) {
 		dns_ntatable_detach(&ntatable);
 	}
@@ -235,14 +228,13 @@ destroy_tables()
 
 /* add keys to the keytable */
 static void
-add_test(void **state)
-{
-	dns_keynode_t * keynode = NULL;
-	dns_keynode_t * null_keynode = NULL;
-	unsigned char	digest[ISC_MAX_MD_SIZE];
-	dns_rdata_ds_t	ds;
+add_test(void **state) {
+	dns_keynode_t *keynode = NULL;
+	dns_keynode_t *null_keynode = NULL;
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	dns_rdata_ds_t ds;
 	dns_fixedname_t fn;
-	dns_name_t *	keyname = dns_fixedname_name(&fn);
+	dns_name_t *keyname = dns_fixedname_name(&fn);
 
 	UNUSED(state);
 
@@ -387,8 +379,7 @@ add_test(void **state)
 
 /* delete keys from the keytable */
 static void
-delete_test(void **state)
-{
+delete_test(void **state) {
 	UNUSED(state);
 
 	create_tables();
@@ -417,11 +408,10 @@ delete_test(void **state)
 
 /* delete key nodes from the keytable */
 static void
-deletekey_test(void **state)
-{
+deletekey_test(void **state) {
 	dns_rdata_dnskey_t dnskey;
-	dns_fixedname_t	   fn;
-	dns_name_t *	   keyname = dns_fixedname_name(&fn);
+	dns_fixedname_t fn;
+	dns_name_t *keyname = dns_fixedname_name(&fn);
 
 	UNUSED(state);
 
@@ -484,11 +474,10 @@ deletekey_test(void **state)
 
 /* check find-variant operations */
 static void
-find_test(void **state)
-{
-	dns_keynode_t * keynode = NULL;
+find_test(void **state) {
+	dns_keynode_t *keynode = NULL;
 	dns_fixedname_t fname;
-	dns_name_t *	name;
+	dns_name_t *name;
 
 	UNUSED(state);
 
@@ -540,12 +529,11 @@ find_test(void **state)
 
 /* check issecuredomain() */
 static void
-issecuredomain_test(void **state)
-{
-	bool	     issecure;
+issecuredomain_test(void **state) {
+	bool issecure;
 	const char **n;
-	const char * names[] = { "example.com", "sub.example.com",
-				 "null.example", "sub.null.example", NULL };
+	const char *names[] = { "example.com", "sub.example.com",
+				"null.example", "sub.null.example", NULL };
 
 	UNUSED(state);
 	create_tables();
@@ -579,8 +567,7 @@ issecuredomain_test(void **state)
 
 /* check dns_keytable_dump() */
 static void
-dump_test(void **state)
-{
+dump_test(void **state) {
 	FILE *f = fopen("/dev/null", "w");
 
 	UNUSED(state);
@@ -599,16 +586,15 @@ dump_test(void **state)
 
 /* check negative trust anchors */
 static void
-nta_test(void **state)
-{
-	isc_result_t	result;
-	bool		issecure, covered;
+nta_test(void **state) {
+	isc_result_t result;
+	bool issecure, covered;
 	dns_fixedname_t fn;
-	dns_name_t *	keyname = dns_fixedname_name(&fn);
-	unsigned char	digest[ISC_MAX_MD_SIZE];
-	dns_rdata_ds_t	ds;
-	dns_view_t *	myview = NULL;
-	isc_stdtime_t	now;
+	dns_name_t *keyname = dns_fixedname_name(&fn);
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	dns_rdata_ds_t ds;
+	dns_view_t *myview = NULL;
+	isc_stdtime_t now;
 
 	UNUSED(state);
 
@@ -705,8 +691,7 @@ nta_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(add_test),
 		cmocka_unit_test(delete_test),
@@ -725,8 +710,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

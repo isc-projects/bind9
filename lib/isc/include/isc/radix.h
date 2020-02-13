@@ -56,7 +56,7 @@ typedef struct isc_prefix {
 typedef void (*isc_radix_destroyfunc_t)(void *);
 typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 
-#define isc_prefix_tochar(prefix) ((char *)&(prefix)->add.sin)
+#define isc_prefix_tochar(prefix)  ((char *)&(prefix)->add.sin)
 #define isc_prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
 
 /*
@@ -78,8 +78,8 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
  * but matches all IPv6 addresses too.
  */
 
-#define RADIX_V4 0
-#define RADIX_V6 1
+#define RADIX_V4       0
+#define RADIX_V6       1
 #define RADIX_FAMILIES 2
 
 #define ISC_RADIX_FAMILY(p) (((p)->family == AF_INET6) ? RADIX_V6 : RADIX_V4)
@@ -99,7 +99,7 @@ typedef struct isc_radix_node {
 						      * nodes */
 } isc_radix_node_t;
 
-#define RADIX_TREE_MAGIC ISC_MAGIC('R', 'd', 'x', 'T');
+#define RADIX_TREE_MAGIC    ISC_MAGIC('R', 'd', 'x', 'T');
 #define RADIX_TREE_VALID(a) ISC_MAGIC_VALID(a, RADIX_TREE_MAGIC);
 
 typedef struct isc_radix_tree {
@@ -190,8 +190,8 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
  * \li	'func' to point to a function.
  */
 
-#define RADIX_MAXBITS 128
-#define RADIX_NBIT(x) (0x80 >> ((x)&0x7f))
+#define RADIX_MAXBITS  128
+#define RADIX_NBIT(x)  (0x80 >> ((x)&0x7f))
 #define RADIX_NBYTE(x) ((x) >> 3)
 
 #define RADIX_WALK(Xhead, Xnode)                              \

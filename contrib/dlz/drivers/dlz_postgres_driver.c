@@ -69,11 +69,11 @@
 static dns_sdlzimplementation_t *dlz_postgres = NULL;
 
 #define dbc_search_limit 30
-#define ALLNODES 1
-#define ALLOWXFR 2
-#define AUTHORITY 3
-#define FINDZONE 4
-#define LOOKUP 5
+#define ALLNODES	 1
+#define ALLOWXFR	 2
+#define AUTHORITY	 3
+#define FINDZONE	 4
+#define LOOKUP		 5
 
 /*
  * Private methods
@@ -109,8 +109,8 @@ static dns_sdlzimplementation_t *dlz_postgres = NULL;
 static size_t
 postgres_makesafe(char *to, const char *from, size_t length)
 {
-	const char * source = from;
-	char *	     target = to;
+	const char *source = from;
+	char *target = to;
 	unsigned int remaining = length;
 
 	while (remaining > 0) {
@@ -190,7 +190,7 @@ postgres_find_avail_conn(db_list_t *dblist)
 {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
-	int	      count = 0;
+	int count = 0;
 
 	/* get top of list */
 	head = dbi = ISC_LIST_HEAD(*dblist);
@@ -229,7 +229,7 @@ postgres_find_avail_conn(db_list_t *dblist)
 static char *
 postgres_escape_string(const char *instr)
 {
-	char *	     outstr;
+	char *outstr;
 	unsigned int len;
 
 	if (instr == NULL) {
@@ -266,11 +266,11 @@ static isc_result_t
 postgres_get_resultset(const char *zone, const char *record, const char *client,
 		       unsigned int query, void *dbdata, PGresult **rs)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
-	char *	      querystring = NULL;
-	unsigned int  i = 0;
-	unsigned int  j = 0;
+	char *querystring = NULL;
+	unsigned int i = 0;
+	unsigned int j = 0;
 
 #if 0
 	/* temporarily get a unique thread # */
@@ -617,9 +617,9 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 	unsigned int fields;
 	unsigned int j;
 	unsigned int len;
-	char *	     tmpString;
-	char *	     endp;
-	int	     ttl;
+	char *tmpString;
+	char *endp;
+	int ttl;
 
 	rows = PQntuples(rs);	/* how many rows in result set */
 	fields = PQnfields(rs); /* how many columns in result set */
@@ -730,10 +730,10 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 static isc_result_t
 postgres_findzone(void *driverarg, void *dbdata, const char *name,
 		  dns_clientinfomethods_t *methods,
-		  dns_clientinfo_t *	   clientinfo)
+		  dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
-	PGresult *   rs = NULL;
+	PGresult *rs = NULL;
 	unsigned int rows;
 
 	UNUSED(driverarg);
@@ -741,8 +741,8 @@ postgres_findzone(void *driverarg, void *dbdata, const char *name,
 	UNUSED(clientinfo);
 
 	/* run the query and get the result set from the database. */
-	result =
-		postgres_get_resultset(name, NULL, NULL, FINDZONE, dbdata, &rs);
+	result = postgres_get_resultset(name, NULL, NULL, FINDZONE, dbdata,
+					&rs);
 	/* if we didn't get a result set, log an err msg. */
 	if (result != ISC_R_SUCCESS) {
 		if (rs != NULL) {
@@ -774,7 +774,7 @@ postgres_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		      const char *client)
 {
 	isc_result_t result;
-	PGresult *   rs = NULL;
+	PGresult *rs = NULL;
 	unsigned int rows;
 	UNUSED(driverarg);
 
@@ -833,21 +833,21 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 		  dns_sdlzallnodes_t *allnodes)
 {
 	isc_result_t result;
-	PGresult *   rs = NULL;
+	PGresult *rs = NULL;
 	unsigned int i;
 	unsigned int rows;
 	unsigned int fields;
 	unsigned int j;
 	unsigned int len;
-	char *	     tmpString;
-	char *	     endp;
-	int	     ttl;
+	char *tmpString;
+	char *endp;
+	int ttl;
 
 	UNUSED(driverarg);
 
 	/* run the query and get the result set from the database. */
-	result =
-		postgres_get_resultset(zone, NULL, NULL, ALLNODES, dbdata, &rs);
+	result = postgres_get_resultset(zone, NULL, NULL, ALLNODES, dbdata,
+					&rs);
 	/* if we get "not implemented", send it along */
 	if (result == ISC_R_NOTIMPLEMENTED) {
 		return (result);
@@ -945,7 +945,7 @@ postgres_authority(const char *zone, void *driverarg, void *dbdata,
 		   dns_sdlzlookup_t *lookup)
 {
 	isc_result_t result;
-	PGresult *   rs = NULL;
+	PGresult *rs = NULL;
 
 	UNUSED(driverarg);
 
@@ -982,7 +982,7 @@ postgres_lookup(const char *zone, const char *name, void *driverarg,
 		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
-	PGresult *   rs = NULL;
+	PGresult *rs = NULL;
 
 	UNUSED(driverarg);
 	UNUSED(methods);
@@ -1018,15 +1018,15 @@ static isc_result_t
 postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 		void *driverarg, void **dbdata)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
-	unsigned int  j;
+	unsigned int j;
 
 	/* if multi-threaded, we need a few extra variables. */
-	int	   dbcount;
+	int dbcount;
 	db_list_t *dblist = NULL;
-	int	   i;
-	char *	   endp;
+	int i;
+	char *endp;
 
 	UNUSED(driverarg);
 	UNUSED(dlzname);

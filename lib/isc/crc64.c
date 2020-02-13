@@ -110,18 +110,16 @@ static const uint64_t crc64_table[256] = {
 };
 
 void
-isc_crc64_init(uint64_t *crc)
-{
+isc_crc64_init(uint64_t *crc) {
 	REQUIRE(crc != NULL);
 
 	*crc = 0xffffffffffffffffULL;
 }
 
 void
-isc_crc64_update(uint64_t *crc, const void *data, size_t len)
-{
+isc_crc64_update(uint64_t *crc, const void *data, size_t len) {
 	const unsigned char *p = data;
-	int		     i;
+	int i;
 
 	REQUIRE(crc != NULL);
 	REQUIRE(data != NULL);
@@ -133,8 +131,7 @@ isc_crc64_update(uint64_t *crc, const void *data, size_t len)
 }
 
 void
-isc_crc64_final(uint64_t *crc)
-{
+isc_crc64_final(uint64_t *crc) {
 	REQUIRE(crc != NULL);
 
 	*crc ^= 0xffffffffffffffffULL;

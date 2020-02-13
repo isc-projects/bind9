@@ -35,8 +35,7 @@
 
 #include "resource.h" /* main symbols */
 
-class CBINDInstallApp : public CWinApp
-{
+class CBINDInstallApp : public CWinApp {
       public:
 	CBINDInstallApp();
 

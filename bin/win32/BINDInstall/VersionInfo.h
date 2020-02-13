@@ -9,14 +9,12 @@
 #pragma once
 #endif /* _MSC_VER > 1000 */
 
-class CVersionInfo
-{
+class CVersionInfo {
       public:
 	CVersionInfo(CString filename);
 	virtual ~CVersionInfo();
 	BOOL
-	IsValid()
-	{
+	IsValid() {
 		return (m_isValid);
 	}
 	DWORD
@@ -28,8 +26,7 @@ class CVersionInfo
 	CopyFileNoVersion(CVersionInfo &originalFile);
 
 	const CString &
-	GetFilename()
-	{
+	GetFilename() {
 		return (m_filename);
 	}
 

@@ -323,14 +323,13 @@ static const char *rcode_ids[DNS_R_NRCODERESULTS] = {
 	"DNS_R_BADVERS",
 };
 
-#define DNS_RESULT_RESULTSET 2
+#define DNS_RESULT_RESULTSET	  2
 #define DNS_RESULT_RCODERESULTSET 3
 
 static isc_once_t once = ISC_ONCE_INIT;
 
 static void
-initialize_action(void)
-{
+initialize_action(void) {
 	isc_result_t result;
 
 	result = isc_result_register(ISC_RESULTCLASS_DNS, DNS_R_NRESULTS, text,
@@ -359,28 +358,24 @@ initialize_action(void)
 }
 
 static void
-initialize(void)
-{
+initialize(void) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 }
 
 const char *
-dns_result_totext(isc_result_t result)
-{
+dns_result_totext(isc_result_t result) {
 	initialize();
 
 	return (isc_result_totext(result));
 }
 
 void
-dns_result_register(void)
-{
+dns_result_register(void) {
 	initialize();
 }
 
 dns_rcode_t
-dns_result_torcode(isc_result_t result)
-{
+dns_result_torcode(isc_result_t result) {
 	dns_rcode_t rcode = dns_rcode_servfail;
 
 	if (DNS_RESULT_ISRCODE(result)) {

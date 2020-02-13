@@ -50,20 +50,19 @@
 
 #define RUNCHECK(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
 
-#define PORT 5300
+#define PORT	5300
 #define TIMEOUT 30
 
-static isc_mem_t *	   mctx;
-static dns_tsigkey_t *	   tsigkey;
+static isc_mem_t *mctx;
+static dns_tsigkey_t *tsigkey;
 static dns_tsig_keyring_t *ring;
-static dns_requestmgr_t *  requestmgr;
+static dns_requestmgr_t *requestmgr;
 
 static void
-recvquery(isc_task_t *task, isc_event_t *event)
-{
+recvquery(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
-	isc_result_t	    result;
-	dns_message_t *	    query, *response;
+	isc_result_t result;
+	dns_message_t *query, *response;
 
 	UNUSED(task);
 
@@ -104,11 +103,10 @@ recvquery(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-sendquery(isc_task_t *task, isc_event_t *event)
-{
+sendquery(isc_task_t *task, isc_event_t *event) {
 	struct in_addr inaddr;
 	isc_sockaddr_t address;
-	isc_result_t   result;
+	isc_result_t result;
 	dns_message_t *query;
 	dns_request_t *request;
 
@@ -135,25 +133,24 @@ sendquery(isc_task_t *task, isc_event_t *event)
 }
 
 int
-main(int argc, char **argv)
-{
-	char *		   keyname;
-	isc_taskmgr_t *	   taskmgr;
-	isc_timermgr_t *   timermgr;
-	isc_socketmgr_t *  socketmgr;
-	isc_socket_t *	   sock;
-	unsigned int	   attrs, attrmask;
-	isc_sockaddr_t	   bind_any;
+main(int argc, char **argv) {
+	char *keyname;
+	isc_taskmgr_t *taskmgr;
+	isc_timermgr_t *timermgr;
+	isc_socketmgr_t *socketmgr;
+	isc_socket_t *sock;
+	unsigned int attrs, attrmask;
+	isc_sockaddr_t bind_any;
 	dns_dispatchmgr_t *dispatchmgr;
-	dns_dispatch_t *   dispatchv4;
-	dns_view_t *	   view;
-	dns_tkeyctx_t *	   tctx;
-	dst_key_t *	   dstkey;
-	isc_log_t *	   log;
-	isc_logconfig_t *  logconfig;
-	isc_task_t *	   task;
-	isc_result_t	   result;
-	int		   type;
+	dns_dispatch_t *dispatchv4;
+	dns_view_t *view;
+	dns_tkeyctx_t *tctx;
+	dst_key_t *dstkey;
+	isc_log_t *log;
+	isc_logconfig_t *logconfig;
+	isc_task_t *task;
+	isc_result_t result;
+	int type;
 
 	RUNCHECK(isc_app_start());
 

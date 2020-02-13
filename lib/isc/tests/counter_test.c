@@ -28,8 +28,7 @@
 #include "isctest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -41,8 +40,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -52,11 +50,10 @@ _teardown(void **state)
 
 /* test isc_counter object */
 static void
-isc_counter_test(void **state)
-{
-	isc_result_t   result;
+isc_counter_test(void **state) {
+	isc_result_t result;
 	isc_counter_t *counter = NULL;
-	int	       i;
+	int i;
 
 	UNUSED(state);
 
@@ -84,8 +81,7 @@ isc_counter_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(isc_counter_test, _setup,
 						_teardown),
@@ -99,8 +95,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

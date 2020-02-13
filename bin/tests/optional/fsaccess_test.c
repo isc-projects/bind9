@@ -25,12 +25,11 @@
 #define PATH "/tmp/fsaccess"
 
 int
-main(void)
-{
+main(void) {
 	isc_fsaccess_t access;
-	isc_result_t   result;
-	FILE *	       fp;
-	int	       n;
+	isc_result_t result;
+	FILE *fp;
+	int n;
 
 	n = remove(PATH);
 	if (n != 0 && errno != ENOENT) {

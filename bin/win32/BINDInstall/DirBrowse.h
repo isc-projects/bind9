@@ -29,16 +29,15 @@
 #ifndef DIRBROWSE_H
 #define DIRBROWSE_H
 
-class CDirBrowse : public CDialog
-{
+class CDirBrowse : public CDialog {
 	/* Construction */
       public:
-	CDirBrowse(CString initialDir = "\\", CWnd *pParent = NULL); /* standard
-								      * constructor
-								      */
+	CDirBrowse(CString initialDir = "\\",
+		   CWnd *  pParent = NULL); /* standard
+					   * constructor
+					   */
 	CString
-	GetSelectedDir()
-	{
+	GetSelectedDir() {
 		return (m_selectedDir);
 	}
 

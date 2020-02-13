@@ -63,60 +63,57 @@ typedef struct controllistener controllistener_t;
 typedef ISC_LIST(controllistener_t) controllistenerlist_t;
 
 struct controlkey {
-	char *	     keyname;
-	uint32_t     algorithm;
+	char *keyname;
+	uint32_t algorithm;
 	isc_region_t secret;
 	ISC_LINK(controlkey_t) link;
 };
 
 struct controlconnection {
-	isc_socket_t *	   sock;
-	isccc_ccmsg_t	   ccmsg;
-	bool		   ccmsg_valid;
-	bool		   sending;
-	isc_timer_t *	   timer;
-	isc_buffer_t *	   buffer;
+	isc_socket_t *sock;
+	isccc_ccmsg_t ccmsg;
+	bool ccmsg_valid;
+	bool sending;
+	isc_timer_t *timer;
+	isc_buffer_t *buffer;
 	controllistener_t *listener;
-	uint32_t	   nonce;
+	uint32_t nonce;
 	ISC_LINK(controlconnection_t) link;
 };
 
 struct controllistener {
-	named_controls_t *	controls;
-	isc_mem_t *		mctx;
-	isc_task_t *		task;
-	isc_sockaddr_t		address;
-	isc_socket_t *		sock;
-	dns_acl_t *		acl;
-	bool			listening;
-	bool			exiting;
-	controlkeylist_t	keys;
+	named_controls_t *controls;
+	isc_mem_t *mctx;
+	isc_task_t *task;
+	isc_sockaddr_t address;
+	isc_socket_t *sock;
+	dns_acl_t *acl;
+	bool listening;
+	bool exiting;
+	controlkeylist_t keys;
 	controlconnectionlist_t connections;
-	isc_sockettype_t	type;
-	uint32_t		perm;
-	uint32_t		owner;
-	uint32_t		group;
-	bool			readonly;
+	isc_sockettype_t type;
+	uint32_t perm;
+	uint32_t owner;
+	uint32_t group;
+	bool readonly;
 	ISC_LINK(controllistener_t) link;
 };
 
 struct named_controls {
-	named_server_t *      server;
+	named_server_t *server;
 	controllistenerlist_t listeners;
-	bool		      shuttingdown;
-	isccc_symtab_t *      symtab;
+	bool shuttingdown;
+	isccc_symtab_t *symtab;
 };
 
-static void
-control_newconn(isc_task_t *task, isc_event_t *event);
-static void
-control_recvmessage(isc_task_t *task, isc_event_t *event);
+static void control_newconn(isc_task_t *task, isc_event_t *event);
+static void control_recvmessage(isc_task_t *task, isc_event_t *event);
 
 #define CLOCKSKEW 300
 
 static void
-free_controlkey(controlkey_t *key, isc_mem_t *mctx)
-{
+free_controlkey(controlkey_t *key, isc_mem_t *mctx) {
 	if (key->keyname != NULL) {
 		isc_mem_free(mctx, key->keyname);
 	}
@@ -127,8 +124,7 @@ free_controlkey(controlkey_t *key, isc_mem_t *mctx)
 }
 
 static void
-free_controlkeylist(controlkeylist_t *keylist, isc_mem_t *mctx)
-{
+free_controlkeylist(controlkeylist_t *keylist, isc_mem_t *mctx) {
 	while (!ISC_LIST_EMPTY(*keylist)) {
 		controlkey_t *key = ISC_LIST_HEAD(*keylist);
 		ISC_LIST_UNLINK(*keylist, key, link);
@@ -137,8 +133,7 @@ free_controlkeylist(controlkeylist_t *keylist, isc_mem_t *mctx)
 }
 
 static void
-free_listener(controllistener_t *listener)
-{
+free_listener(controllistener_t *listener) {
 	INSIST(listener->exiting);
 	INSIST(!listener->listening);
 	INSIST(ISC_LIST_EMPTY(listener->connections));
@@ -157,17 +152,16 @@ free_listener(controllistener_t *listener)
 }
 
 static void
-maybe_free_listener(controllistener_t *listener)
-{
+maybe_free_listener(controllistener_t *listener) {
 	if (listener->exiting && !listener->listening &&
-	    ISC_LIST_EMPTY(listener->connections)) {
+	    ISC_LIST_EMPTY(listener->connections))
+	{
 		free_listener(listener);
 	}
 }
 
 static void
-maybe_free_connection(controlconnection_t *conn)
-{
+maybe_free_connection(controlconnection_t *conn) {
 	controllistener_t *listener = conn->listener;
 
 	if (conn->buffer != NULL) {
@@ -199,8 +193,7 @@ maybe_free_connection(controlconnection_t *conn)
 }
 
 static void
-shutdown_listener(controllistener_t *listener)
-{
+shutdown_listener(controllistener_t *listener) {
 	controlconnection_t *conn;
 	controlconnection_t *next;
 
@@ -235,13 +228,12 @@ shutdown_listener(controllistener_t *listener)
 }
 
 static bool
-address_ok(isc_sockaddr_t *sockaddr, dns_acl_t *acl)
-{
+address_ok(isc_sockaddr_t *sockaddr, dns_acl_t *acl) {
 	dns_aclenv_t *env =
 		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 	isc_netaddr_t netaddr;
-	isc_result_t  result;
-	int	      match;
+	isc_result_t result;
+	int match;
 
 	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
 
@@ -250,8 +242,7 @@ address_ok(isc_sockaddr_t *sockaddr, dns_acl_t *acl)
 }
 
 static isc_result_t
-control_accept(controllistener_t *listener)
-{
+control_accept(controllistener_t *listener) {
 	isc_result_t result;
 	result = isc_socket_accept(listener->sock, listener->task,
 				   control_newconn, listener);
@@ -266,8 +257,7 @@ control_accept(controllistener_t *listener)
 }
 
 static isc_result_t
-control_listen(controllistener_t *listener)
-{
+control_listen(controllistener_t *listener) {
 	isc_result_t result;
 
 	result = isc_socket_listen(listener->sock, 0);
@@ -280,19 +270,17 @@ control_listen(controllistener_t *listener)
 }
 
 static void
-control_next(controllistener_t *listener)
-{
+control_next(controllistener_t *listener) {
 	(void)control_accept(listener);
 }
 
 static void
-control_senddone(isc_task_t *task, isc_event_t *event)
-{
-	isc_socketevent_t *  sevent = (isc_socketevent_t *)event;
+control_senddone(isc_task_t *task, isc_event_t *event) {
+	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	controlconnection_t *conn = event->ev_arg;
-	controllistener_t *  listener = conn->listener;
-	isc_socket_t *	     sock = (isc_socket_t *)sevent->ev_sender;
-	isc_result_t	     result;
+	controllistener_t *listener = conn->listener;
+	isc_socket_t *sock = (isc_socket_t *)sevent->ev_sender;
+	isc_result_t result;
 
 	REQUIRE(conn->sending);
 
@@ -300,9 +288,9 @@ control_senddone(isc_task_t *task, isc_event_t *event)
 
 	conn->sending = false;
 
-	if (sevent->result != ISC_R_SUCCESS &&
-	    sevent->result != ISC_R_CANCELED) {
-		char	       socktext[ISC_SOCKADDR_FORMATSIZE];
+	if (sevent->result != ISC_R_SUCCESS && sevent->result != ISC_R_CANCELED)
+	{
+		char socktext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_t peeraddr;
 
 		(void)isc_socket_getpeername(sock, &peeraddr);
@@ -324,9 +312,8 @@ control_senddone(isc_task_t *task, isc_event_t *event)
 }
 
 static inline void
-log_invalid(isccc_ccmsg_t *ccmsg, isc_result_t result)
-{
-	char	       socktext[ISC_SOCKADDR_FORMATSIZE];
+log_invalid(isccc_ccmsg_t *ccmsg, isc_result_t result) {
+	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t peeraddr;
 
 	(void)isc_socket_getpeername(ccmsg->sock, &peeraddr);
@@ -338,26 +325,25 @@ log_invalid(isccc_ccmsg_t *ccmsg, isc_result_t result)
 }
 
 static void
-control_recvmessage(isc_task_t *task, isc_event_t *event)
-{
+control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	controlconnection_t *conn = NULL;
-	controllistener_t *  listener = NULL;
-	controlkey_t *	     key = NULL;
-	isccc_sexpr_t *	     request = NULL;
-	isccc_sexpr_t *	     response = NULL;
-	uint32_t	     algorithm;
-	isccc_region_t	     secret;
-	isc_stdtime_t	     now;
-	isc_buffer_t	     b;
-	isc_region_t	     r;
-	isc_buffer_t *	     text;
-	isc_result_t	     result;
-	isc_result_t	     eresult;
-	isccc_sexpr_t *	     _ctrl = NULL;
-	isccc_time_t	     sent;
-	isccc_time_t	     exp;
-	uint32_t	     nonce;
-	isccc_sexpr_t *	     data = NULL;
+	controllistener_t *listener = NULL;
+	controlkey_t *key = NULL;
+	isccc_sexpr_t *request = NULL;
+	isccc_sexpr_t *response = NULL;
+	uint32_t algorithm;
+	isccc_region_t secret;
+	isc_stdtime_t now;
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_buffer_t *text;
+	isc_result_t result;
+	isc_result_t eresult;
+	isccc_sexpr_t *_ctrl = NULL;
+	isccc_time_t sent;
+	isccc_time_t exp;
+	uint32_t nonce;
+	isccc_sexpr_t *data = NULL;
 
 	REQUIRE(event->ev_type == ISCCC_EVENT_CCMSG);
 
@@ -383,7 +369,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event)
 	request = NULL;
 
 	for (key = ISC_LIST_HEAD(listener->keys); key != NULL;
-	     key = ISC_LIST_NEXT(key, link)) {
+	     key = ISC_LIST_NEXT(key, link))
+	{
 		isccc_region_t ccregion;
 
 		ccregion.rstart = isc_buffer_base(&conn->ccmsg.buffer);
@@ -460,7 +447,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event)
 
 	if (conn->nonce != 0 &&
 	    (isccc_cc_lookupuint32(_ctrl, "_nonce", &nonce) != ISC_R_SUCCESS ||
-	     conn->nonce != nonce)) {
+	     conn->nonce != nonce))
+	{
 		log_invalid(&conn->ccmsg, ISCCC_R_BADAUTH);
 		goto cleanup_request;
 	}
@@ -512,7 +500,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event)
 
 	_ctrl = isccc_alist_lookup(response, "_ctrl");
 	if (_ctrl == NULL ||
-	    isccc_cc_defineuint32(_ctrl, "_nonce", conn->nonce) == NULL) {
+	    isccc_cc_defineuint32(_ctrl, "_nonce", conn->nonce) == NULL)
+	{
 		goto cleanup_response;
 	}
 
@@ -566,8 +555,7 @@ cleanup:
 }
 
 static void
-control_timeout(isc_task_t *task, isc_event_t *event)
-{
+control_timeout(isc_task_t *task, isc_event_t *event) {
 	controlconnection_t *conn = event->ev_arg;
 
 	UNUSED(task);
@@ -579,11 +567,10 @@ control_timeout(isc_task_t *task, isc_event_t *event)
 }
 
 static isc_result_t
-newconnection(controllistener_t *listener, isc_socket_t *sock)
-{
+newconnection(controllistener_t *listener, isc_socket_t *sock) {
 	controlconnection_t *conn;
-	isc_interval_t	     interval;
-	isc_result_t	     result;
+	isc_interval_t interval;
+	isc_result_t result;
 
 	conn = isc_mem_get(listener->mctx, sizeof(*conn));
 
@@ -636,13 +623,12 @@ cleanup:
 }
 
 static void
-control_newconn(isc_task_t *task, isc_event_t *event)
-{
+control_newconn(isc_task_t *task, isc_event_t *event) {
 	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
-	controllistener_t *	listener = event->ev_arg;
-	isc_socket_t *		sock;
-	isc_sockaddr_t		peeraddr;
-	isc_result_t		result;
+	controllistener_t *listener = event->ev_arg;
+	isc_socket_t *sock;
+	isc_sockaddr_t peeraddr;
+	isc_result_t result;
 
 	UNUSED(task);
 
@@ -660,7 +646,8 @@ control_newconn(isc_task_t *task, isc_event_t *event)
 	isc_socket_setname(sock, "control", NULL);
 	(void)isc_socket_getpeername(sock, &peeraddr);
 	if (listener->type == isc_sockettype_tcp &&
-	    !address_ok(&peeraddr, listener->acl)) {
+	    !address_ok(&peeraddr, listener->acl))
+	{
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -690,13 +677,13 @@ cleanup:
 }
 
 static void
-controls_shutdown(named_controls_t *controls)
-{
+controls_shutdown(named_controls_t *controls) {
 	controllistener_t *listener;
 	controllistener_t *next;
 
 	for (listener = ISC_LIST_HEAD(controls->listeners); listener != NULL;
-	     listener = next) {
+	     listener = next)
+	{
 		/*
 		 * This is asynchronous.  As listeners shut down, they will
 		 * call their callbacks.
@@ -707,22 +694,21 @@ controls_shutdown(named_controls_t *controls)
 }
 
 void
-named_controls_shutdown(named_controls_t *controls)
-{
+named_controls_shutdown(named_controls_t *controls) {
 	controls_shutdown(controls);
 	controls->shuttingdown = true;
 }
 
 static isc_result_t
 cfgkeylist_find(const cfg_obj_t *keylist, const char *keyname,
-		const cfg_obj_t **objp)
-{
+		const cfg_obj_t **objp) {
 	const cfg_listelt_t *element;
-	const char *	     str;
-	const cfg_obj_t *    obj;
+	const char *str;
+	const cfg_obj_t *obj;
 
 	for (element = cfg_list_first(keylist); element != NULL;
-	     element = cfg_list_next(element)) {
+	     element = cfg_list_next(element))
+	{
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(cfg_map_getname(obj));
 		if (strcasecmp(str, keyname) == 0) {
@@ -739,16 +725,16 @@ cfgkeylist_find(const cfg_obj_t *keylist, const char *keyname,
 
 static void
 controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
-		       controlkeylist_t *keyids)
-{
+		       controlkeylist_t *keyids) {
 	const cfg_listelt_t *element;
-	char *		     newstr = NULL;
-	const char *	     str;
-	const cfg_obj_t *    obj;
-	controlkey_t *	     key;
+	char *newstr = NULL;
+	const char *str;
+	const cfg_obj_t *obj;
+	controlkey_t *key;
 
 	for (element = cfg_list_first(keylist); element != NULL;
-	     element = cfg_list_next(element)) {
+	     element = cfg_list_next(element))
+	{
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(obj);
 		newstr = isc_mem_strdup(mctx, str);
@@ -765,13 +751,12 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 
 static void
 register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
-	      controlkeylist_t *keyids, isc_mem_t *mctx, const char *socktext)
-{
-	controlkey_t *	 keyid, *next;
+	      controlkeylist_t *keyids, isc_mem_t *mctx, const char *socktext) {
+	controlkey_t *keyid, *next;
 	const cfg_obj_t *keydef;
-	char		 secret[1024];
-	isc_buffer_t	 b;
-	isc_result_t	 result;
+	char secret[1024];
+	isc_buffer_t b;
+	isc_result_t result;
 
 	/*
 	 * Find the keys corresponding to the keyids used by this listener.
@@ -790,9 +775,9 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 		} else {
 			const cfg_obj_t *algobj = NULL;
 			const cfg_obj_t *secretobj = NULL;
-			const char *	 algstr = NULL;
-			const char *	 secretstr = NULL;
-			unsigned int	 algtype;
+			const char *algstr = NULL;
+			const char *secretstr = NULL;
+			unsigned int algtype;
 
 			(void)cfg_map_get(keydef, "algorithm", &algobj);
 			(void)cfg_map_get(keydef, "secret", &secretobj);
@@ -803,7 +788,8 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 
 			if (named_config_getkeyalgorithm2(algstr, NULL,
 							  &algtype, NULL) !=
-			    ISC_R_SUCCESS) {
+			    ISC_R_SUCCESS)
+			{
 				cfg_obj_log(control, named_g_lctx,
 					    ISC_LOG_WARNING,
 					    "unsupported algorithm '%s' in "
@@ -832,8 +818,8 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			}
 
 			keyid->secret.length = isc_buffer_usedlength(&b);
-			keyid->secret.base =
-				isc_mem_get(mctx, keyid->secret.length);
+			keyid->secret.base = isc_mem_get(mctx,
+							 keyid->secret.length);
 			memmove(keyid->secret.base, isc_buffer_base(&b),
 				keyid->secret.length);
 		}
@@ -848,20 +834,19 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 	} while (0)
 
 static isc_result_t
-get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids)
-{
-	isc_result_t	 result;
-	cfg_parser_t *	 pctx = NULL;
-	cfg_obj_t *	 config = NULL;
+get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
+	isc_result_t result;
+	cfg_parser_t *pctx = NULL;
+	cfg_obj_t *config = NULL;
 	const cfg_obj_t *key = NULL;
 	const cfg_obj_t *algobj = NULL;
 	const cfg_obj_t *secretobj = NULL;
-	const char *	 algstr = NULL;
-	const char *	 secretstr = NULL;
-	controlkey_t *	 keyid = NULL;
-	char		 secret[1024];
-	unsigned int	 algtype;
-	isc_buffer_t	 b;
+	const char *algstr = NULL;
+	const char *secretstr = NULL;
+	controlkey_t *keyid = NULL;
+	char secret[1024];
+	unsigned int algtype;
+	isc_buffer_t b;
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_INFO,
@@ -876,8 +861,8 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids)
 	CHECK(cfg_map_get(config, "key", &key));
 
 	keyid = isc_mem_get(mctx, sizeof(*keyid));
-	keyid->keyname =
-		isc_mem_strdup(mctx, cfg_obj_asstring(cfg_map_getname(key)));
+	keyid->keyname = isc_mem_strdup(mctx,
+					cfg_obj_asstring(cfg_map_getname(key)));
 	keyid->secret.base = NULL;
 	keyid->secret.length = 0;
 	keyid->algorithm = DST_ALG_UNKNOWN;
@@ -896,7 +881,8 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids)
 	secretstr = cfg_obj_asstring(secretobj);
 
 	if (named_config_getkeyalgorithm2(algstr, NULL, &algtype, NULL) !=
-	    ISC_R_SUCCESS) {
+	    ISC_R_SUCCESS)
+	{
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "unsupported algorithm '%s' in "
 			    "key '%s' for use with command "
@@ -943,9 +929,8 @@ cleanup:
 static void
 get_key_info(const cfg_obj_t *config, const cfg_obj_t *control,
 	     const cfg_obj_t **global_keylistp,
-	     const cfg_obj_t **control_keylistp)
-{
-	isc_result_t	 result;
+	     const cfg_obj_t **control_keylistp) {
+	isc_result_t result;
 	const cfg_obj_t *control_keylist = NULL;
 	const cfg_obj_t *global_keylist = NULL;
 
@@ -969,18 +954,18 @@ static void
 update_listener(named_controls_t *cp, controllistener_t **listenerp,
 		const cfg_obj_t *control, const cfg_obj_t *config,
 		isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
-		const char *socktext, isc_sockettype_t type)
-{
+		const char *socktext, isc_sockettype_t type) {
 	controllistener_t *listener;
-	const cfg_obj_t *  allow;
-	const cfg_obj_t *  global_keylist = NULL;
-	const cfg_obj_t *  control_keylist = NULL;
-	dns_acl_t *	   new_acl = NULL;
-	controlkeylist_t   keys;
-	isc_result_t	   result = ISC_R_SUCCESS;
+	const cfg_obj_t *allow;
+	const cfg_obj_t *global_keylist = NULL;
+	const cfg_obj_t *control_keylist = NULL;
+	dns_acl_t *new_acl = NULL;
+	controlkeylist_t keys;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	for (listener = ISC_LIST_HEAD(cp->listeners); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link)) {
+	     listener = ISC_LIST_NEXT(listener, link))
+	{
 		if (isc_sockaddr_equal(addr, &listener->address)) {
 			break;
 		}
@@ -1097,7 +1082,8 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 		group = cfg_obj_asuint32(cfg_tuple_get(control, "group"));
 		result = ISC_R_SUCCESS;
 		if (listener->perm != perm || listener->owner != owner ||
-		    listener->group != group) {
+		    listener->group != group)
+		{
 			result = isc_socket_permunix(&listener->address, perm,
 						     owner, group);
 		}
@@ -1120,15 +1106,14 @@ static void
 add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	     const cfg_obj_t *control, const cfg_obj_t *config,
 	     isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
-	     const char *socktext, isc_sockettype_t type)
-{
-	isc_mem_t *	   mctx = cp->server->mctx;
+	     const char *socktext, isc_sockettype_t type) {
+	isc_mem_t *mctx = cp->server->mctx;
 	controllistener_t *listener;
-	const cfg_obj_t *  allow;
-	const cfg_obj_t *  global_keylist = NULL;
-	const cfg_obj_t *  control_keylist = NULL;
-	dns_acl_t *	   new_acl = NULL;
-	isc_result_t	   result = ISC_R_SUCCESS;
+	const cfg_obj_t *allow;
+	const cfg_obj_t *global_keylist = NULL;
+	const cfg_obj_t *control_keylist = NULL;
+	dns_acl_t *new_acl = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	listener = isc_mem_get(mctx, sizeof(*listener));
 
@@ -1205,7 +1190,8 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 #ifdef ISC_PLATFORM_HAVESYSUNH
 		    (pf == AF_UNIX && isc_net_probeunix() != ISC_R_SUCCESS) ||
 #endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
-		    (pf == AF_INET6 && isc_net_probeipv6() != ISC_R_SUCCESS)) {
+		    (pf == AF_INET6 && isc_net_probeipv6() != ISC_R_SUCCESS))
+		{
 			result = ISC_R_FAMILYNOSUPPORT;
 		}
 	}
@@ -1282,13 +1268,12 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 
 isc_result_t
 named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
-			 cfg_aclconfctx_t *aclconfctx)
-{
-	controllistener_t *   listener;
+			 cfg_aclconfctx_t *aclconfctx) {
+	controllistener_t *listener;
 	controllistenerlist_t new_listeners;
-	const cfg_obj_t *     controlslist = NULL;
-	const cfg_listelt_t * element, *element2;
-	char		      socktext[ISC_SOCKADDR_FORMATSIZE];
+	const cfg_obj_t *controlslist = NULL;
+	const cfg_listelt_t *element, *element2;
+	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
 	ISC_LIST_INIT(new_listeners);
 
@@ -1307,7 +1292,8 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 	 */
 	if (controlslist != NULL) {
 		for (element = cfg_list_first(controlslist); element != NULL;
-		     element = cfg_list_next(element)) {
+		     element = cfg_list_next(element))
+		{
 			const cfg_obj_t *controls;
 			const cfg_obj_t *inetcontrols = NULL;
 
@@ -1319,10 +1305,11 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 
 			for (element2 = cfg_list_first(inetcontrols);
 			     element2 != NULL;
-			     element2 = cfg_list_next(element2)) {
+			     element2 = cfg_list_next(element2))
+			{
 				const cfg_obj_t *control;
 				const cfg_obj_t *obj;
-				isc_sockaddr_t	 addr;
+				isc_sockaddr_t addr;
 
 				/*
 				 * The parser handles BIND 8 configuration file
@@ -1376,7 +1363,8 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 			}
 		}
 		for (element = cfg_list_first(controlslist); element != NULL;
-		     element = cfg_list_next(element)) {
+		     element = cfg_list_next(element))
+		{
 			const cfg_obj_t *controls;
 			const cfg_obj_t *unixcontrols = NULL;
 
@@ -1388,11 +1376,12 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 
 			for (element2 = cfg_list_first(unixcontrols);
 			     element2 != NULL;
-			     element2 = cfg_list_next(element2)) {
+			     element2 = cfg_list_next(element2))
+			{
 				const cfg_obj_t *control;
 				const cfg_obj_t *path;
-				isc_sockaddr_t	 addr;
-				isc_result_t	 result;
+				isc_sockaddr_t addr;
+				isc_result_t result;
 
 				/*
 				 * The parser handles BIND 8 configuration file
@@ -1518,10 +1507,9 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 }
 
 isc_result_t
-named_controls_create(named_server_t *server, named_controls_t **ctrlsp)
-{
-	isc_mem_t *	  mctx = server->mctx;
-	isc_result_t	  result;
+named_controls_create(named_server_t *server, named_controls_t **ctrlsp) {
+	isc_mem_t *mctx = server->mctx;
+	isc_result_t result;
 	named_controls_t *controls = isc_mem_get(mctx, sizeof(*controls));
 
 	if (controls == NULL) {
@@ -1541,8 +1529,7 @@ named_controls_create(named_server_t *server, named_controls_t **ctrlsp)
 }
 
 void
-named_controls_destroy(named_controls_t **ctrlsp)
-{
+named_controls_destroy(named_controls_t **ctrlsp) {
 	named_controls_t *controls = *ctrlsp;
 	*ctrlsp = NULL;
 

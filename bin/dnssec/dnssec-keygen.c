@@ -69,33 +69,31 @@ const char *program = "dnssec-keygen";
 
 isc_log_t *lctx = NULL;
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
-static void
-progress(int p);
+static void progress(int p);
 
 struct keygen_ctx {
-	const char *	 predecessor;
-	const char *	 policy;
-	const char *	 configfile;
-	const char *	 directory;
-	char *		 algname;
-	char *		 nametype;
-	char *		 type;
-	int		 generator;
-	int		 protocol;
-	int		 size;
-	int		 signatory;
+	const char *predecessor;
+	const char *policy;
+	const char *configfile;
+	const char *directory;
+	char *algname;
+	char *nametype;
+	char *type;
+	int generator;
+	int protocol;
+	int size;
+	int signatory;
 	dns_rdataclass_t rdclass;
-	int		 options;
-	int		 dbits;
-	dns_ttl_t	 ttl;
-	uint16_t	 kskflag;
-	uint16_t	 revflag;
-	dns_secalg_t	 alg;
+	int options;
+	int dbits;
+	dns_ttl_t ttl;
+	uint16_t kskflag;
+	uint16_t revflag;
+	dns_secalg_t alg;
 	/* timing data */
-	int	      prepub;
+	int prepub;
 	isc_stdtime_t now;
 	isc_stdtime_t publish;
 	isc_stdtime_t activate;
@@ -104,18 +102,18 @@ struct keygen_ctx {
 	isc_stdtime_t deltime;
 	isc_stdtime_t syncadd;
 	isc_stdtime_t syncdel;
-	bool	      setpub;
-	bool	      setact;
-	bool	      setinact;
-	bool	      setrev;
-	bool	      setdel;
-	bool	      setsyncadd;
-	bool	      setsyncdel;
-	bool	      unsetpub;
-	bool	      unsetact;
-	bool	      unsetinact;
-	bool	      unsetrev;
-	bool	      unsetdel;
+	bool setpub;
+	bool setact;
+	bool setinact;
+	bool setrev;
+	bool setdel;
+	bool setsyncadd;
+	bool setsyncdel;
+	bool unsetpub;
+	bool unsetact;
+	bool unsetinact;
+	bool unsetrev;
+	bool unsetdel;
 	/* how to generate the key */
 	bool setttl;
 	bool use_nsec3;
@@ -125,15 +123,14 @@ struct keygen_ctx {
 	bool oldstyle;
 	/* state */
 	time_t lifetime;
-	bool   ksk;
-	bool   zsk;
+	bool ksk;
+	bool zsk;
 };
 
 typedef struct keygen_ctx keygen_ctx_t;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "    %s [options] name\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
@@ -223,8 +220,7 @@ usage(void)
 }
 
 static void
-progress(int p)
-{
+progress(int p) {
 	char c = '*';
 
 	switch (p) {
@@ -249,19 +245,19 @@ progress(int p)
 
 static void
 kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
-	       dns_kasp_t **kaspp)
-{
+	       dns_kasp_t **kaspp) {
 	const cfg_listelt_t *element;
-	const cfg_obj_t *    kasps = NULL;
-	dns_kasp_t *	     kasp = NULL, *kasp_next;
-	isc_result_t	     result = ISC_R_NOTFOUND;
-	dns_kasplist_t	     kasplist;
+	const cfg_obj_t *kasps = NULL;
+	dns_kasp_t *kasp = NULL, *kasp_next;
+	isc_result_t result = ISC_R_NOTFOUND;
+	dns_kasplist_t kasplist;
 
 	ISC_LIST_INIT(kasplist);
 
 	(void)cfg_map_get(config, "dnssec-policy", &kasps);
 	for (element = cfg_list_first(kasps); element != NULL;
-	     element = cfg_list_next(element)) {
+	     element = cfg_list_next(element))
+	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		kasp = NULL;
 		if (strcmp(cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
@@ -294,21 +290,20 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 }
 
 static void
-keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
-{
-	char		filename[255];
-	char		algstr[DNS_SECALG_FORMATSIZE];
-	uint16_t	flags = 0;
-	int		param = 0;
-	bool		null_key = false;
-	bool		conflict = false;
-	bool		show_progress = false;
-	isc_buffer_t	buf;
-	dns_name_t *	name;
+keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
+	char filename[255];
+	char algstr[DNS_SECALG_FORMATSIZE];
+	uint16_t flags = 0;
+	int param = 0;
+	bool null_key = false;
+	bool conflict = false;
+	bool show_progress = false;
+	isc_buffer_t buf;
+	dns_name_t *name;
 	dns_fixedname_t fname;
-	isc_result_t	ret;
-	dst_key_t *	key = NULL;
-	dst_key_t *	prevkey = NULL;
+	isc_result_t ret;
+	dst_key_t *key = NULL;
+	dst_key_t *prevkey = NULL;
 
 	UNUSED(argc);
 
@@ -427,9 +422,9 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 			}
 		}
 	} else {
-		char	      keystr[DST_KEY_FORMATSIZE];
+		char keystr[DST_KEY_FORMATSIZE];
 		isc_stdtime_t when;
-		int	      major, minor;
+		int major, minor;
 
 		if (ctx->prepub == -1) {
 			ctx->prepub = (30 * 86400);
@@ -535,14 +530,14 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 	case DNS_KEYALG_RSASHA1:
 	case DNS_KEYALG_NSEC3RSASHA1:
 	case DNS_KEYALG_RSASHA256:
-		if (ctx->size != 0 &&
-		    (ctx->size < 1024 || ctx->size > MAX_RSA)) {
+		if (ctx->size != 0 && (ctx->size < 1024 || ctx->size > MAX_RSA))
+		{
 			fatal("RSA key size %d out of range", ctx->size);
 		}
 		break;
 	case DNS_KEYALG_RSASHA512:
-		if (ctx->size != 0 &&
-		    (ctx->size < 1024 || ctx->size > MAX_RSA)) {
+		if (ctx->size != 0 && (ctx->size < 1024 || ctx->size > MAX_RSA))
+		{
 			fatal("RSA key size %d out of range", ctx->size);
 		}
 		break;
@@ -578,7 +573,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 		flags |= DNS_KEYOWNER_ZONE;
 	} else if ((ctx->options & DST_TYPE_KEY) != 0) { /* KEY */
 		if (strcasecmp(ctx->nametype, "host") == 0 ||
-		    strcasecmp(ctx->nametype, "entity") == 0) {
+		    strcasecmp(ctx->nametype, "entity") == 0)
+		{
 			flags |= DNS_KEYOWNER_ENTITY;
 		} else if (strcasecmp(ctx->nametype, "user") == 0) {
 			flags |= DNS_KEYOWNER_USER;
@@ -603,7 +599,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 	if (ctx->protocol == -1) {
 		ctx->protocol = DNS_KEYPROTO_DNSSEC;
 	} else if ((ctx->options & DST_TYPE_KEY) == 0 &&
-		   ctx->protocol != DNS_KEYPROTO_DNSSEC) {
+		   ctx->protocol != DNS_KEYPROTO_DNSSEC)
+	{
 		fatal("invalid DNSKEY protocol: %d", ctx->protocol);
 	}
 
@@ -617,7 +614,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 	}
 
 	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
-	    ctx->alg == DNS_KEYALG_DH) {
+	    ctx->alg == DNS_KEYALG_DH)
+	{
 		fatal("a key with algorithm %s cannot be a zone key", algstr);
 	}
 
@@ -762,7 +760,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 			    ctx->setinact || ctx->setdel || ctx->unsetpub ||
 			    ctx->unsetact || ctx->unsetrev || ctx->unsetinact ||
 			    ctx->unsetdel || ctx->genonly || ctx->setsyncadd ||
-			    ctx->setsyncdel) {
+			    ctx->setsyncdel)
+			{
 				fatal("cannot use -C together with "
 				      "-P, -A, -R, -I, -D, or -G options");
 			}
@@ -856,17 +855,16 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 }
 
 int
-main(int argc, char **argv)
-{
-	char *		 algname = NULL, *freeit = NULL;
-	char *		 classname = NULL;
-	char *		 endp;
-	isc_mem_t *	 mctx = NULL;
-	isc_result_t	 ret;
+main(int argc, char **argv) {
+	char *algname = NULL, *freeit = NULL;
+	char *classname = NULL;
+	char *endp;
+	isc_mem_t *mctx = NULL;
+	isc_result_t ret;
 	isc_textregion_t r;
-	const char *	 engine = NULL;
-	unsigned char	 c;
-	int		 ch;
+	const char *engine = NULL;
+	unsigned char c;
+	int ch;
 
 	keygen_ctx_t ctx = {
 		.options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC,
@@ -895,16 +893,16 @@ main(int argc, char **argv)
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'm':
-			if (strcasecmp(isc_commandline_argument, "record") ==
-			    0) {
+			if (strcasecmp(isc_commandline_argument, "record") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 			}
-			if (strcasecmp(isc_commandline_argument, "trace") ==
-			    0) {
+			if (strcasecmp(isc_commandline_argument, "trace") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
 			}
-			if (strcasecmp(isc_commandline_argument, "usage") ==
-			    0) {
+			if (strcasecmp(isc_commandline_argument, "usage") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
 			}
 			if (strcasecmp(isc_commandline_argument, "size") == 0) {
@@ -968,8 +966,8 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'g':
-			ctx.generator =
-				strtol(isc_commandline_argument, &endp, 10);
+			ctx.generator = strtol(isc_commandline_argument, &endp,
+					       10);
 			if (*endp != '\0' || ctx.generator <= 0) {
 				fatal("-g requires a positive number");
 			}
@@ -998,8 +996,8 @@ main(int argc, char **argv)
 		case 'm':
 			break;
 		case 'p':
-			ctx.protocol =
-				strtol(isc_commandline_argument, &endp, 10);
+			ctx.protocol = strtol(isc_commandline_argument, &endp,
+					      10);
 			if (*endp != '\0' || ctx.protocol < 0 ||
 			    ctx.protocol > 255) {
 				fatal("-p must be followed by a number "
@@ -1014,8 +1012,8 @@ main(int argc, char **argv)
 			      "System random data is always used.\n");
 			break;
 		case 's':
-			ctx.signatory =
-				strtol(isc_commandline_argument, &endp, 10);
+			ctx.signatory = strtol(isc_commandline_argument, &endp,
+					       10);
 			if (*endp != '\0' || ctx.signatory < 0 ||
 			    ctx.signatory > 15) {
 				fatal("-s must be followed by a number "
@@ -1027,7 +1025,8 @@ main(int argc, char **argv)
 				ctx.options |= DST_TYPE_KEY;
 			} else if (strcasecmp(isc_commandline_argument,
 					      "DNSKE"
-					      "Y") == 0) {
+					      "Y") == 0)
+			{
 				/* default behavior */
 			} else {
 				fatal("unknown type '%s'",
@@ -1223,7 +1222,8 @@ main(int argc, char **argv)
 		if (ctx.setpub || ctx.setact || ctx.setrev || ctx.setinact ||
 		    ctx.setdel || ctx.unsetpub || ctx.unsetact ||
 		    ctx.unsetrev || ctx.unsetinact || ctx.unsetdel ||
-		    ctx.setsyncadd || ctx.setsyncdel) {
+		    ctx.setsyncadd || ctx.setsyncdel)
+		{
 			fatal("cannot use -k together with "
 			      "-P, -A, -R, -I, or -D options "
 			      "(use dnssec-settime on keys afterwards)");
@@ -1245,16 +1245,17 @@ main(int argc, char **argv)
 
 			keygen(&ctx, mctx, argc, argv);
 		} else {
-			cfg_parser_t *	parser = NULL;
-			cfg_obj_t *	config = NULL;
-			dns_kasp_t *	kasp = NULL;
+			cfg_parser_t *parser = NULL;
+			cfg_obj_t *config = NULL;
+			dns_kasp_t *kasp = NULL;
 			dns_kasp_key_t *kaspkey = NULL;
 
 			RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &parser) ==
 				      ISC_R_SUCCESS);
 			if (cfg_parse_file(parser, ctx.configfile,
 					   &cfg_type_namedconf,
-					   &config) != ISC_R_SUCCESS) {
+					   &config) != ISC_R_SUCCESS)
+			{
 				fatal("unable to load dnssec-policy '%s' from "
 				      "'%s'",
 				      ctx.policy, ctx.configfile);

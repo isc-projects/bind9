@@ -46,25 +46,23 @@ typedef struct {
 } librpz_emsg_t;
 #endif /* ifdef USE_DNSRPS */
 
-static bool
-link_dnsrps(librpz_emsg_t *emsg);
+static bool link_dnsrps(librpz_emsg_t *emsg);
 
 #define USAGE "usage: [-ap] [-n domain] [-w sec.onds]\n"
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 #ifdef USE_DNSRPS
-	char		 cstr[sizeof("zone ") + 1024 + 10];
-	librpz_clist_t * clist;
+	char cstr[sizeof("zone ") + 1024 + 10];
+	librpz_clist_t *clist;
 	librpz_client_t *client;
-	librpz_rsp_t *	 rsp;
-	uint32_t	 serial;
+	librpz_rsp_t *rsp;
+	uint32_t serial;
 #endif /* ifdef USE_DNSRPS */
-	double	      seconds;
+	double seconds;
 	librpz_emsg_t emsg;
-	char *	      p;
-	int	      i;
+	char *p;
+	int i;
 
 	while ((i = getopt(argc, argv, "apn:w:")) != -1) {
 		switch (i) {
@@ -109,8 +107,8 @@ main(int argc, char **argv)
 				 " dnsrpzd-sock dnsrpzd.sock;"
 				 " dnsrpzd-rpzf dnsrpzd.rpzf",
 				 optarg);
-			client =
-				librpz->client_create(&emsg, clist, cstr, true);
+			client = librpz->client_create(&emsg, clist, cstr,
+						       true);
 			if (client == NULL) {
 				fprintf(stderr, "## %s\n", emsg.c);
 				return (1);
@@ -158,8 +156,7 @@ main(int argc, char **argv)
 }
 
 static bool
-link_dnsrps(librpz_emsg_t *emsg)
-{
+link_dnsrps(librpz_emsg_t *emsg) {
 #ifdef USE_DNSRPS
 	librpz = librpz_lib_open(emsg, NULL, DNSRPS_LIBRPZ_PATH);
 	if (librpz == NULL) {

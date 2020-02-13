@@ -30,27 +30,26 @@ static bool seenv6 = false;
 
 /*% Iterator structure */
 struct isc_interfaceiter {
-	unsigned int	magic; /*%< Magic number. */
-	isc_mem_t *	mctx;
-	void *		buf;	 /*%< (unused) */
-	unsigned int	bufsize; /*%< (always 0) */
+	unsigned int magic; /*%< Magic number. */
+	isc_mem_t *mctx;
+	void *buf;		 /*%< (unused) */
+	unsigned int bufsize;	 /*%< (always 0) */
 	struct ifaddrs *ifaddrs; /*%< List of ifaddrs */
 	struct ifaddrs *pos;	 /*%< Ptr to current ifaddr */
 	isc_interface_t current; /*%< Current interface data. */
-	isc_result_t	result;	 /*%< Last result code. */
+	isc_result_t result;	 /*%< Last result code. */
 #ifdef __linux
-	FILE *	     proc;
-	char	     entry[ISC_IF_INET6_SZ];
+	FILE *proc;
+	char entry[ISC_IF_INET6_SZ];
 	isc_result_t valid;
 #endif /* ifdef __linux */
 };
 
 isc_result_t
-isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
-{
+isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	isc_interfaceiter_t *iter;
-	isc_result_t	     result;
-	char		     strbuf[ISC_STRERRORSIZE];
+	isc_result_t result;
+	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(iterp != NULL);
@@ -116,11 +115,10 @@ failure:
  */
 
 static isc_result_t
-internal_current(isc_interfaceiter_t *iter)
-{
+internal_current(isc_interfaceiter_t *iter) {
 	struct ifaddrs *ifa;
-	int		family;
-	unsigned int	namelen;
+	int family;
+	unsigned int namelen;
 
 	REQUIRE(VALID_IFITER(iter));
 
@@ -184,7 +182,8 @@ internal_current(isc_interfaceiter_t *iter)
 	}
 
 	if (ifa->ifa_dstaddr != NULL &&
-	    (iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0) {
+	    (iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0)
+	{
 		get_addr(family, &iter->current.dstaddress, ifa->ifa_dstaddr,
 			 ifa->ifa_name);
 	}
@@ -200,8 +199,7 @@ internal_current(isc_interfaceiter_t *iter)
  * interfaces, otherwise ISC_R_SUCCESS.
  */
 static isc_result_t
-internal_next(isc_interfaceiter_t *iter)
-{
+internal_next(isc_interfaceiter_t *iter) {
 	if (iter->pos != NULL) {
 		iter->pos = iter->pos->ifa_next;
 	}
@@ -218,8 +216,7 @@ internal_next(isc_interfaceiter_t *iter)
 }
 
 static void
-internal_destroy(isc_interfaceiter_t *iter)
-{
+internal_destroy(isc_interfaceiter_t *iter) {
 #ifdef __linux
 	if (iter->proc != NULL) {
 		fclose(iter->proc);
@@ -233,8 +230,7 @@ internal_destroy(isc_interfaceiter_t *iter)
 }
 
 static void
-internal_first(isc_interfaceiter_t *iter)
-{
+internal_first(isc_interfaceiter_t *iter) {
 #ifdef __linux
 	linux_if_inet6_first(iter);
 #endif /* ifdef __linux */

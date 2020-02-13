@@ -82,9 +82,9 @@ ISC_LANG_BEGINDECLS
  *** Magic number checks
  ***/
 
-#define DNS_ADBFIND_MAGIC ISC_MAGIC('a', 'd', 'b', 'H')
-#define DNS_ADBFIND_VALID(x) ISC_MAGIC_VALID(x, DNS_ADBFIND_MAGIC)
-#define DNS_ADBADDRINFO_MAGIC ISC_MAGIC('a', 'd', 'A', 'I')
+#define DNS_ADBFIND_MAGIC	 ISC_MAGIC('a', 'd', 'b', 'H')
+#define DNS_ADBFIND_VALID(x)	 ISC_MAGIC_VALID(x, DNS_ADBFIND_MAGIC)
+#define DNS_ADBADDRINFO_MAGIC	 ISC_MAGIC('a', 'd', 'A', 'I')
 #define DNS_ADBADDRINFO_VALID(x) ISC_MAGIC_VALID(x, DNS_ADBADDRINFO_MAGIC)
 
 /***
@@ -159,7 +159,7 @@ struct dns_adbfind {
 /*% Return addresses of type INET. */
 #define DNS_ADBFIND_INET 0x00000001
 /*% Return addresses of type INET6. */
-#define DNS_ADBFIND_INET6 0x00000002
+#define DNS_ADBFIND_INET6	0x00000002
 #define DNS_ADBFIND_ADDRESSMASK 0x00000003
 /*%
  *      Only schedule an event if no addresses are known.
@@ -518,9 +518,9 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  * Adjusting the scaling factors is fine, as long as they all remain
  * unique values.)
  */
-#define DNS_ADB_RTTADJDEFAULT 7 /*%< default scale */
-#define DNS_ADB_RTTADJREPLACE 0 /*%< replace with our rtt */
-#define DNS_ADB_RTTADJAGE 10	/*%< age this rtt */
+#define DNS_ADB_RTTADJDEFAULT 7	 /*%< default scale */
+#define DNS_ADB_RTTADJREPLACE 0	 /*%< replace with our rtt */
+#define DNS_ADB_RTTADJAGE     10 /*%< age this rtt */
 
 void
 dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int rtt,

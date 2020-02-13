@@ -14,8 +14,8 @@
 
 #define RRTYPE_AVC_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_avc(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_avc(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_avc);
 
 	UNUSED(type);
@@ -28,8 +28,8 @@ static inline isc_result_t fromtext_avc(ARGS_FROMTEXT)
 				     target, callbacks));
 }
 
-static inline isc_result_t totext_avc(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_avc(ARGS_TOTEXT) {
 	UNUSED(tctx);
 
 	REQUIRE(rdata->type == dns_rdatatype_avc);
@@ -37,8 +37,8 @@ static inline isc_result_t totext_avc(ARGS_TOTEXT)
 	return (generic_totext_txt(rdata, tctx, target));
 }
 
-static inline isc_result_t fromwire_avc(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_avc(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_avc);
 
 	UNUSED(type);
@@ -50,8 +50,8 @@ static inline isc_result_t fromwire_avc(ARGS_FROMWIRE)
 				     target));
 }
 
-static inline isc_result_t towire_avc(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_avc(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_avc);
 
 	UNUSED(cctx);
@@ -59,8 +59,8 @@ static inline isc_result_t towire_avc(ARGS_TOWIRE)
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int compare_avc(ARGS_COMPARE)
-{
+static inline int
+compare_avc(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -73,15 +73,15 @@ static inline int compare_avc(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_avc(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_avc(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_avc);
 
 	return (generic_fromstruct_txt(rdclass, type, source, target));
 }
 
-static inline isc_result_t tostruct_avc(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_avc(ARGS_TOSTRUCT) {
 	dns_rdata_avc_t *avc = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_avc);
@@ -94,8 +94,8 @@ static inline isc_result_t tostruct_avc(ARGS_TOSTRUCT)
 	return (generic_tostruct_txt(rdata, target, mctx));
 }
 
-static inline void freestruct_avc(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_avc(ARGS_FREESTRUCT) {
 	dns_rdata_avc_t *avc = source;
 
 	REQUIRE(avc != NULL);
@@ -104,8 +104,8 @@ static inline void freestruct_avc(ARGS_FREESTRUCT)
 	generic_freestruct_txt(source);
 }
 
-static inline isc_result_t additionaldata_avc(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_avc(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_avc);
 
 	UNUSED(rdata);
@@ -115,8 +115,8 @@ static inline isc_result_t additionaldata_avc(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_avc(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_avc(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_avc);
@@ -126,8 +126,8 @@ static inline isc_result_t digest_avc(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_avc(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_avc(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_avc);
 
 	UNUSED(name);
@@ -138,8 +138,8 @@ static inline bool checkowner_avc(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_avc(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_avc(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_avc);
 
 	UNUSED(rdata);
@@ -149,8 +149,8 @@ static inline bool checknames_avc(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_avc(ARGS_COMPARE)
-{
+static inline int
+casecompare_avc(ARGS_COMPARE) {
 	return (compare_avc(rdata1, rdata2));
 }
 #endif /* RDATA_GENERIC_AVC_258_C */

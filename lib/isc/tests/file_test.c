@@ -26,21 +26,20 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#define NAME "internal"
-#define SHA "3bed2cb3a3acf7b6a8ef408420cc682d5520e26976d354254f528c965612054f"
+#define NAME	  "internal"
+#define SHA	  "3bed2cb3a3acf7b6a8ef408420cc682d5520e26976d354254f528c965612054f"
 #define TRUNC_SHA "3bed2cb3a3acf7b6"
 
-#define BAD1 "in/internal"
+#define BAD1	 "in/internal"
 #define BADHASH1 "8bbb97a888791399"
 
-#define BAD2 "Internal"
+#define BAD2	 "Internal"
 #define BADHASH2 "2ea1842b445b0c81"
 
 #define F(x) "testdata/file/" x ".test"
 
 static void
-touch(const char *filename)
-{
+touch(const char *filename) {
 	int fd;
 
 	unlink(filename);
@@ -52,10 +51,9 @@ touch(const char *filename)
 
 /* test sanitized filenames */
 static void
-isc_file_sanitize_test(void **state)
-{
+isc_file_sanitize_test(void **state) {
 	isc_result_t result;
-	char	     buf[1024];
+	char buf[1024];
 
 	UNUSED(state);
 
@@ -89,10 +87,9 @@ isc_file_sanitize_test(void **state)
 
 /* test filename templates */
 static void
-isc_file_template_test(void **state)
-{
+isc_file_template_test(void **state) {
 	isc_result_t result;
-	char	     buf[1024];
+	char buf[1024];
 
 	UNUSED(state);
 
@@ -122,8 +119,8 @@ isc_file_template_test(void **state)
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "/file-XXXXXXXX");
 
-	result =
-		isc_file_template("noslash", "file-XXXXXXXX", buf, sizeof(buf));
+	result = isc_file_template("noslash", "file-XXXXXXXX", buf,
+				   sizeof(buf));
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "file-XXXXXXXX");
 
@@ -133,8 +130,7 @@ isc_file_template_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_file_sanitize_test),
 		cmocka_unit_test(isc_file_template_test),
@@ -148,8 +144,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

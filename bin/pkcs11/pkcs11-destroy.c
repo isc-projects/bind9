@@ -65,25 +65,24 @@
 #endif /* ifdef WIN32 */
 
 int
-main(int argc, char *argv[])
-{
-	isc_result_t	  result;
-	CK_RV		  rv;
-	CK_SLOT_ID	  slot = 0;
+main(int argc, char *argv[]) {
+	isc_result_t result;
+	CK_RV rv;
+	CK_SLOT_ID slot = 0;
 	CK_SESSION_HANDLE hSession;
-	CK_BYTE		  attr_id[2];
-	CK_OBJECT_HANDLE  akey[50];
-	pk11_context_t	  pctx;
-	char *		  lib_name = NULL;
-	char *		  label = NULL;
-	char *		  pin = NULL;
-	int		  error = 0;
-	unsigned int	  id = 0, i = 0, wait = 5;
-	int		  c, errflg = 0;
-	CK_ULONG	  ulObjectCount;
-	CK_ATTRIBUTE	  search_template[] = { { CKA_ID, &attr_id,
-						  sizeof(attr_id) } };
-	unsigned int	  j, len;
+	CK_BYTE attr_id[2];
+	CK_OBJECT_HANDLE akey[50];
+	pk11_context_t pctx;
+	char *lib_name = NULL;
+	char *label = NULL;
+	char *pin = NULL;
+	int error = 0;
+	unsigned int id = 0, i = 0, wait = 5;
+	int c, errflg = 0;
+	CK_ULONG ulObjectCount;
+	CK_ATTRIBUTE search_template[] = { { CKA_ID, &attr_id,
+					     sizeof(attr_id) } };
+	unsigned int j, len;
 
 	while ((c = isc_commandline_parse(argc, argv, ":m:s:i:l:p:w:")) != -1) {
 		switch (c) {
@@ -149,7 +148,8 @@ main(int argc, char *argv[])
 	result = pk11_get_session(&pctx, OP_ANY, false, true, true,
 				  (const char *)pin, slot);
 	if (result == PK11_R_NORANDOMSERVICE ||
-	    result == PK11_R_NODIGESTSERVICE || result == PK11_R_NOAESSERVICE) {
+	    result == PK11_R_NODIGESTSERVICE || result == PK11_R_NOAESSERVICE)
+	{
 		fprintf(stderr, "Warning: %s\n", isc_result_totext(result));
 		fprintf(stderr, "This HSM will not work with BIND 9 "
 				"using native PKCS#11.\n");
@@ -190,12 +190,12 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < ulObjectCount; i++) {
 		CK_OBJECT_CLASS oclass = 0;
-		CK_BYTE		labelbuf[64 + 1];
-		CK_BYTE		idbuf[64];
-		CK_ATTRIBUTE	attr_template[] = {
-			   { CKA_CLASS, &oclass, sizeof(oclass) },
-			   { CKA_LABEL, labelbuf, sizeof(labelbuf) - 1 },
-			   { CKA_ID, idbuf, sizeof(idbuf) }
+		CK_BYTE labelbuf[64 + 1];
+		CK_BYTE idbuf[64];
+		CK_ATTRIBUTE attr_template[] = {
+			{ CKA_CLASS, &oclass, sizeof(oclass) },
+			{ CKA_LABEL, labelbuf, sizeof(labelbuf) - 1 },
+			{ CKA_ID, idbuf, sizeof(idbuf) }
 		};
 
 		memset(labelbuf, 0, sizeof(labelbuf));

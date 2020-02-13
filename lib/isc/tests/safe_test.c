@@ -28,8 +28,7 @@
 
 /* test isc_safe_memequal() */
 static void
-isc_safe_memequal_test(void **state)
-{
+isc_safe_memequal_test(void **state) {
 	UNUSED(state);
 
 	assert_true(isc_safe_memequal("test", "test", 4));
@@ -44,8 +43,7 @@ isc_safe_memequal_test(void **state)
 
 /* test isc_safe_memwipe() */
 static void
-isc_safe_memwipe_test(void **state)
-{
+isc_safe_memwipe_test(void **state) {
 	UNUSED(state);
 
 	/* These should pass. */
@@ -85,8 +83,7 @@ isc_safe_memwipe_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_safe_memequal_test),
 		cmocka_unit_test(isc_safe_memwipe_test),
@@ -100,8 +97,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

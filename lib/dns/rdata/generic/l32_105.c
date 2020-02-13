@@ -18,11 +18,11 @@
 
 #define RRTYPE_L32_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_l32(ARGS_FROMTEXT)
-{
-	isc_token_t    token;
+static inline isc_result_t
+fromtext_l32(ARGS_FROMTEXT) {
+	isc_token_t token;
 	struct in_addr addr;
-	isc_region_t   region;
+	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_l32);
 
@@ -54,10 +54,10 @@ static inline isc_result_t fromtext_l32(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_l32(ARGS_TOTEXT)
-{
-	isc_region_t   region;
-	char	       buf[sizeof("65000")];
+static inline isc_result_t
+totext_l32(ARGS_TOTEXT) {
+	isc_region_t region;
+	char buf[sizeof("65000")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == dns_rdatatype_l32);
@@ -76,8 +76,8 @@ static inline isc_result_t totext_l32(ARGS_TOTEXT)
 	return (inet_totext(AF_INET, &region, target));
 }
 
-static inline isc_result_t fromwire_l32(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_l32(ARGS_FROMWIRE) {
 	isc_region_t sregion;
 
 	REQUIRE(type == dns_rdatatype_l32);
@@ -95,8 +95,8 @@ static inline isc_result_t fromwire_l32(ARGS_FROMWIRE)
 	return (mem_tobuffer(target, sregion.base, sregion.length));
 }
 
-static inline isc_result_t towire_l32(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_l32(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_l32);
 	REQUIRE(rdata->length == 6);
 
@@ -105,8 +105,8 @@ static inline isc_result_t towire_l32(ARGS_TOWIRE)
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int compare_l32(ARGS_COMPARE)
-{
+static inline int
+compare_l32(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -121,10 +121,10 @@ static inline int compare_l32(ARGS_COMPARE)
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t fromstruct_l32(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_l32(ARGS_FROMSTRUCT) {
 	dns_rdata_l32_t *l32 = source;
-	uint32_t	 n;
+	uint32_t n;
 
 	REQUIRE(type == dns_rdatatype_l32);
 	REQUIRE(l32 != NULL);
@@ -139,11 +139,11 @@ static inline isc_result_t fromstruct_l32(ARGS_FROMSTRUCT)
 	return (uint32_tobuffer(n, target));
 }
 
-static inline isc_result_t tostruct_l32(ARGS_TOSTRUCT)
-{
-	isc_region_t	 region;
+static inline isc_result_t
+tostruct_l32(ARGS_TOSTRUCT) {
+	isc_region_t region;
 	dns_rdata_l32_t *l32 = target;
-	uint32_t	 n;
+	uint32_t n;
 
 	REQUIRE(rdata->type == dns_rdatatype_l32);
 	REQUIRE(l32 != NULL);
@@ -162,8 +162,8 @@ static inline isc_result_t tostruct_l32(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_l32(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_l32(ARGS_FREESTRUCT) {
 	dns_rdata_l32_t *l32 = source;
 
 	REQUIRE(l32 != NULL);
@@ -172,8 +172,8 @@ static inline void freestruct_l32(ARGS_FREESTRUCT)
 	return;
 }
 
-static inline isc_result_t additionaldata_l32(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_l32(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_l32);
 	REQUIRE(rdata->length == 6);
 
@@ -184,8 +184,8 @@ static inline isc_result_t additionaldata_l32(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_l32(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_l32(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_l32);
@@ -196,8 +196,8 @@ static inline isc_result_t digest_l32(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_l32(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_l32(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_l32);
 
 	UNUSED(name);
@@ -208,8 +208,8 @@ static inline bool checkowner_l32(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_l32(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_l32(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_l32);
 	REQUIRE(rdata->length == 6);
 
@@ -220,8 +220,8 @@ static inline bool checknames_l32(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_l32(ARGS_COMPARE)
-{
+static inline int
+casecompare_l32(ARGS_COMPARE) {
 	return (compare_l32(rdata1, rdata2));
 }
 

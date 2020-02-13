@@ -41,10 +41,10 @@
  ***/
 
 struct dns_dbimplementation {
-	const char *	   name;
+	const char *name;
 	dns_dbcreatefunc_t create;
-	isc_mem_t *	   mctx;
-	void *		   driverarg;
+	isc_mem_t *mctx;
+	void *driverarg;
 	ISC_LINK(dns_dbimplementation_t) link;
 };
 
@@ -60,13 +60,12 @@ struct dns_dbimplementation {
 
 static ISC_LIST(dns_dbimplementation_t) implementations;
 static isc_rwlock_t implock;
-static isc_once_t   once = ISC_ONCE_INIT;
+static isc_once_t once = ISC_ONCE_INIT;
 
 static dns_dbimplementation_t rbtimp;
 
 static void
-initialize(void)
-{
+initialize(void) {
 	RUNTIME_CHECK(isc_rwlock_init(&implock, 0, 0) == ISC_R_SUCCESS);
 
 	rbtimp.name = "rbt";
@@ -80,12 +79,12 @@ initialize(void)
 }
 
 static inline dns_dbimplementation_t *
-impfind(const char *name)
-{
+impfind(const char *name) {
 	dns_dbimplementation_t *imp;
 
 	for (imp = ISC_LIST_HEAD(implementations); imp != NULL;
-	     imp = ISC_LIST_NEXT(imp, link)) {
+	     imp = ISC_LIST_NEXT(imp, link))
+	{
 		if (strcasecmp(name, imp->name) == 0) {
 			return (imp);
 		}
@@ -100,8 +99,7 @@ impfind(const char *name)
 isc_result_t
 dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 	      dns_dbtype_t type, dns_rdataclass_t rdclass, unsigned int argc,
-	      char *argv[], dns_db_t **dbp)
-{
+	      char *argv[], dns_db_t **dbp) {
 	dns_dbimplementation_t *impinfo;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -132,8 +130,7 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 }
 
 void
-dns_db_attach(dns_db_t *source, dns_db_t **targetp)
-{
+dns_db_attach(dns_db_t *source, dns_db_t **targetp) {
 	/*
 	 * Attach *targetp to source.
 	 */
@@ -147,8 +144,7 @@ dns_db_attach(dns_db_t *source, dns_db_t **targetp)
 }
 
 void
-dns_db_detach(dns_db_t **dbp)
-{
+dns_db_detach(dns_db_t **dbp) {
 	/*
 	 * Detach *dbp from its database.
 	 */
@@ -162,8 +158,7 @@ dns_db_detach(dns_db_t **dbp)
 }
 
 bool
-dns_db_iscache(dns_db_t *db)
-{
+dns_db_iscache(dns_db_t *db) {
 	/*
 	 * Does 'db' have cache semantics?
 	 */
@@ -178,8 +173,7 @@ dns_db_iscache(dns_db_t *db)
 }
 
 bool
-dns_db_iszone(dns_db_t *db)
-{
+dns_db_iszone(dns_db_t *db) {
 	/*
 	 * Does 'db' have zone semantics?
 	 */
@@ -194,8 +188,7 @@ dns_db_iszone(dns_db_t *db)
 }
 
 bool
-dns_db_isstub(dns_db_t *db)
-{
+dns_db_isstub(dns_db_t *db) {
 	/*
 	 * Does 'db' have stub semantics?
 	 */
@@ -210,8 +203,7 @@ dns_db_isstub(dns_db_t *db)
 }
 
 bool
-dns_db_isdnssec(dns_db_t *db)
-{
+dns_db_isdnssec(dns_db_t *db) {
 	/*
 	 * Is 'db' secure or partially secure?
 	 */
@@ -226,8 +218,7 @@ dns_db_isdnssec(dns_db_t *db)
 }
 
 bool
-dns_db_issecure(dns_db_t *db)
-{
+dns_db_issecure(dns_db_t *db) {
 	/*
 	 * Is 'db' secure?
 	 */
@@ -239,8 +230,7 @@ dns_db_issecure(dns_db_t *db)
 }
 
 bool
-dns_db_ispersistent(dns_db_t *db)
-{
+dns_db_ispersistent(dns_db_t *db) {
 	/*
 	 * Is 'db' persistent?
 	 */
@@ -251,8 +241,7 @@ dns_db_ispersistent(dns_db_t *db)
 }
 
 dns_name_t *
-dns_db_origin(dns_db_t *db)
-{
+dns_db_origin(dns_db_t *db) {
 	/*
 	 * The origin of the database.
 	 */
@@ -263,8 +252,7 @@ dns_db_origin(dns_db_t *db)
 }
 
 dns_rdataclass_t
-dns_db_class(dns_db_t *db)
-{
+dns_db_class(dns_db_t *db) {
 	/*
 	 * The class of the database.
 	 */
@@ -275,8 +263,7 @@ dns_db_class(dns_db_t *db)
 }
 
 isc_result_t
-dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks)
-{
+dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	/*
 	 * Begin loading 'db'.
 	 */
@@ -288,8 +275,7 @@ dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks)
 }
 
 isc_result_t
-dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks)
-{
+dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	dns_dbonupdatelistener_t *listener;
 
 	/*
@@ -301,7 +287,8 @@ dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks)
 	REQUIRE(callbacks->add_private != NULL);
 
 	for (listener = ISC_LIST_HEAD(db->update_listeners); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link)) {
+	     listener = ISC_LIST_NEXT(listener, link))
+	{
 		listener->onupdate(db, listener->onupdate_arg);
 	}
 
@@ -310,9 +297,8 @@ dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks)
 
 isc_result_t
 dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
-	    unsigned int options)
-{
-	isc_result_t	     result, eresult;
+	    unsigned int options) {
+	isc_result_t result, eresult;
 	dns_rdatacallbacks_t callbacks;
 
 	/*
@@ -340,7 +326,8 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
 	 * failed, we want to return the result code it gave us.
 	 */
 	if (eresult != ISC_R_SUCCESS &&
-	    (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE)) {
+	    (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE))
+	{
 		result = eresult;
 	}
 
@@ -348,8 +335,7 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
 }
 
 isc_result_t
-dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *file)
-{
+dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *file) {
 	REQUIRE(DNS_DB_VALID(db));
 	if (db->methods->serialize == NULL) {
 		return (ISC_R_NOTIMPLEMENTED);
@@ -358,8 +344,7 @@ dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *file)
 }
 
 isc_result_t
-dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename)
-{
+dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
 	return ((db->methods->dump)(db, version, filename,
 				    dns_masterformat_text));
 }
@@ -369,8 +354,7 @@ dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename)
  ***/
 
 void
-dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp)
-{
+dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	/*
 	 * Open the current version for reading.
 	 */
@@ -383,8 +367,7 @@ dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp)
 }
 
 isc_result_t
-dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp)
-{
+dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	/*
 	 * Open a new version for reading and writing.
 	 */
@@ -398,8 +381,7 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp)
 
 void
 dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
-		     dns_dbversion_t **targetp)
-{
+		     dns_dbversion_t **targetp) {
 	/*
 	 * Attach '*targetp' to 'source'.
 	 */
@@ -415,8 +397,7 @@ dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
 }
 
 void
-dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit)
-{
+dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 	dns_dbonupdatelistener_t *listener;
 
 	/*
@@ -431,8 +412,8 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit)
 
 	if (commit == true) {
 		for (listener = ISC_LIST_HEAD(db->update_listeners);
-		     listener != NULL;
-		     listener = ISC_LIST_NEXT(listener, link)) {
+		     listener != NULL; listener = ISC_LIST_NEXT(listener, link))
+		{
 			listener->onupdate(db, listener->onupdate_arg);
 		}
 	}
@@ -446,8 +427,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit)
 
 isc_result_t
 dns_db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
-		dns_dbnode_t **nodep)
-{
+		dns_dbnode_t **nodep) {
 	/*
 	 * Find the node with name 'name'.
 	 */
@@ -466,8 +446,7 @@ dns_db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 isc_result_t
 dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
 		   dns_clientinfomethods_t *methods,
-		   dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep)
-{
+		   dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep) {
 	/*
 	 * Find the node with name 'name', passing 'arg' to the database
 	 * implementation.
@@ -486,8 +465,7 @@ dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
 
 isc_result_t
 dns_db_findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
-		     dns_dbnode_t **nodep)
-{
+		     dns_dbnode_t **nodep) {
 	/*
 	 * Find the node with name 'name'.
 	 */
@@ -502,8 +480,7 @@ isc_result_t
 dns_db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
+	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	/*
 	 * Find the best match for 'name' and 'type' in version 'version'
 	 * of 'db'.
@@ -535,8 +512,7 @@ dns_db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	       dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	       dns_dbnode_t **nodep, dns_name_t *foundname,
 	       dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
+	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	/*
 	 * Find the best match for 'name' and 'type' in version 'version'
 	 * of 'db', passing in 'arg'.
@@ -567,8 +543,7 @@ isc_result_t
 dns_db_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		   isc_stdtime_t now, dns_dbnode_t **nodep,
 		   dns_name_t *foundname, dns_name_t *dcname,
-		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
+		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	/*
 	 * Find the deepest known zonecut which encloses 'name' in 'db'.
 	 * foundname is the zonecut, dcname is the deepest name we have
@@ -589,8 +564,7 @@ dns_db_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 }
 
 void
-dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp)
-{
+dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	/*
 	 * Attach *targetp to source.
 	 */
@@ -603,8 +577,7 @@ dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp)
 }
 
 void
-dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep)
-{
+dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	/*
 	 * Detach *nodep from its node.
 	 */
@@ -619,8 +592,7 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep)
 
 void
 dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep,
-		    dns_dbnode_t **targetp)
-{
+		    dns_dbnode_t **targetp) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 	/*
@@ -643,8 +615,7 @@ dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep,
 }
 
 isc_result_t
-dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now)
-{
+dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 	/*
 	 * Mark as stale all records at 'node' which expire at or before 'now'.
 	 */
@@ -657,8 +628,7 @@ dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now)
 }
 
 void
-dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out)
-{
+dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 	/*
 	 * Print a textual representation of the contents of the node to
 	 * 'out'.
@@ -676,8 +646,7 @@ dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out)
 
 isc_result_t
 dns_db_createiterator(dns_db_t *db, unsigned int flags,
-		      dns_dbiterator_t **iteratorp)
-{
+		      dns_dbiterator_t **iteratorp) {
 	/*
 	 * Create an iterator for version 'version' of 'db'.
 	 */
@@ -696,8 +665,7 @@ isc_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    dns_rdatatype_t type, dns_rdatatype_t covers,
 		    isc_stdtime_t now, dns_rdataset_t *rdataset,
-		    dns_rdataset_t *sigrdataset)
-{
+		    dns_rdataset_t *sigrdataset) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(node != NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
@@ -714,8 +682,7 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 isc_result_t
 dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp)
-{
+		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp) {
 	/*
 	 * Make '*iteratorp' an rdataset iteratator for all rdatasets at
 	 * 'node' in version 'version' of 'db'.
@@ -730,8 +697,7 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 isc_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   isc_stdtime_t now, dns_rdataset_t *rdataset,
-		   unsigned int options, dns_rdataset_t *addedrdataset)
-{
+		   unsigned int options, dns_rdataset_t *addedrdataset) {
 	/*
 	 * Add 'rdataset' to 'node' in version 'version' of 'db'.
 	 */
@@ -757,8 +723,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 isc_result_t
 dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 			dns_dbversion_t *version, dns_rdataset_t *rdataset,
-			unsigned int options, dns_rdataset_t *newrdataset)
-{
+			unsigned int options, dns_rdataset_t *newrdataset) {
 	/*
 	 * Remove any rdata in 'rdataset' from 'node' in version 'version' of
 	 * 'db'.
@@ -781,8 +746,7 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 isc_result_t
 dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 		      dns_dbversion_t *version, dns_rdatatype_t type,
-		      dns_rdatatype_t covers)
-{
+		      dns_rdatatype_t covers) {
 	/*
 	 * Make it so that no rdataset of type 'type' exists at 'node' in
 	 * version version 'version' of 'db'.
@@ -797,21 +761,19 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 }
 
 void
-dns_db_overmem(dns_db_t *db, bool overmem)
-{
+dns_db_overmem(dns_db_t *db, bool overmem) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	(db->methods->overmem)(db, overmem);
 }
 
 isc_result_t
-dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, uint32_t *serialp)
-{
-	isc_result_t   result;
-	dns_dbnode_t * node = NULL;
+dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, uint32_t *serialp) {
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
-	dns_rdata_t    rdata = DNS_RDATA_INIT;
-	isc_buffer_t   buffer;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_buffer_t buffer;
 
 	REQUIRE(dns_db_iszone(db) || dns_db_isstub(db));
 
@@ -852,16 +814,14 @@ freenode:
 }
 
 unsigned int
-dns_db_nodecount(dns_db_t *db)
-{
+dns_db_nodecount(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	return ((db->methods->nodecount)(db));
 }
 
 size_t
-dns_db_hashsize(dns_db_t *db)
-{
+dns_db_hashsize(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if (db->methods->hashsize == NULL) {
@@ -872,8 +832,7 @@ dns_db_hashsize(dns_db_t *db)
 }
 
 void
-dns_db_settask(dns_db_t *db, isc_task_t *task)
-{
+dns_db_settask(dns_db_t *db, isc_task_t *task) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	(db->methods->settask)(db, task);
@@ -881,8 +840,7 @@ dns_db_settask(dns_db_t *db, isc_task_t *task)
 
 isc_result_t
 dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
-		isc_mem_t *mctx, dns_dbimplementation_t **dbimp)
-{
+		isc_mem_t *mctx, dns_dbimplementation_t **dbimp) {
 	dns_dbimplementation_t *imp;
 
 	REQUIRE(name != NULL);
@@ -913,8 +871,7 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
 }
 
 void
-dns_db_unregister(dns_dbimplementation_t **dbimp)
-{
+dns_db_unregister(dns_dbimplementation_t **dbimp) {
 	dns_dbimplementation_t *imp;
 
 	REQUIRE(dbimp != NULL && *dbimp != NULL);
@@ -931,8 +888,7 @@ dns_db_unregister(dns_dbimplementation_t **dbimp)
 }
 
 isc_result_t
-dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep)
-{
+dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(dns_db_iszone(db) == true);
 	REQUIRE(nodep != NULL && *nodep == NULL);
@@ -945,8 +901,7 @@ dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep)
 }
 
 dns_stats_t *
-dns_db_getrrsetstats(dns_db_t *db)
-{
+dns_db_getrrsetstats(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if (db->methods->getrrsetstats != NULL) {
@@ -957,8 +912,7 @@ dns_db_getrrsetstats(dns_db_t *db)
 }
 
 isc_result_t
-dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats)
-{
+dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if (db->methods->setcachestats != NULL) {
@@ -972,8 +926,7 @@ isc_result_t
 dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 			  dns_hash_t *hash, uint8_t *flags,
 			  uint16_t *iterations, unsigned char *salt,
-			  size_t *salt_length)
-{
+			  size_t *salt_length) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(dns_db_iszone(db) == true);
 
@@ -988,8 +941,7 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
-	       uint64_t *bytes)
-{
+	       uint64_t *bytes) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(dns_db_iszone(db) == true);
 
@@ -1002,8 +954,7 @@ dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
 
 isc_result_t
 dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
-		      isc_stdtime_t resign)
-{
+		      isc_stdtime_t resign) {
 	if (db->methods->setsigningtime != NULL) {
 		return ((db->methods->setsigningtime)(db, rdataset, resign));
 	}
@@ -1011,8 +962,8 @@ dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 }
 
 isc_result_t
-dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, dns_name_t *name)
-{
+dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
+		      dns_name_t *name) {
 	if (db->methods->getsigningtime != NULL) {
 		return ((db->methods->getsigningtime)(db, rdataset, name));
 	}
@@ -1021,8 +972,7 @@ dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, dns_name_t *name)
 
 void
 dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
-		dns_dbversion_t *version)
-{
+		dns_dbversion_t *version) {
 	if (db->methods->resigned != NULL) {
 		(db->methods->resigned)(db, rdataset, version);
 	}
@@ -1034,8 +984,7 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
  * it is dealing with a database that understands response policy zones.
  */
 void
-dns_db_rpz_attach(dns_db_t *db, void *rpzs, uint8_t rpz_num)
-{
+dns_db_rpz_attach(dns_db_t *db, void *rpzs, uint8_t rpz_num) {
 	REQUIRE(db->methods->rpz_attach != NULL);
 	(db->methods->rpz_attach)(db, rpzs, rpz_num);
 }
@@ -1044,8 +993,7 @@ dns_db_rpz_attach(dns_db_t *db, void *rpzs, uint8_t rpz_num)
  * Finish loading a response policy zone.
  */
 isc_result_t
-dns_db_rpz_ready(dns_db_t *db)
-{
+dns_db_rpz_ready(dns_db_t *db) {
 	if (db->methods->rpz_ready == NULL) {
 		return (ISC_R_SUCCESS);
 	}
@@ -1057,8 +1005,7 @@ dns_db_rpz_ready(dns_db_t *db)
  */
 isc_result_t
 dns_db_updatenotify_register(dns_db_t *db, dns_dbupdate_callback_t fn,
-			     void *fn_arg)
-{
+			     void *fn_arg) {
 	dns_dbonupdatelistener_t *listener;
 
 	REQUIRE(db != NULL);
@@ -1077,14 +1024,14 @@ dns_db_updatenotify_register(dns_db_t *db, dns_dbupdate_callback_t fn,
 
 isc_result_t
 dns_db_updatenotify_unregister(dns_db_t *db, dns_dbupdate_callback_t fn,
-			       void *fn_arg)
-{
+			       void *fn_arg) {
 	dns_dbonupdatelistener_t *listener;
 
 	REQUIRE(db != NULL);
 
 	for (listener = ISC_LIST_HEAD(db->update_listeners); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link)) {
+	     listener = ISC_LIST_NEXT(listener, link))
+	{
 		if ((listener->onupdate == fn) &&
 		    (listener->onupdate_arg == fn_arg)) {
 			ISC_LIST_UNLINK(db->update_listeners, listener, link);
@@ -1098,8 +1045,7 @@ dns_db_updatenotify_unregister(dns_db_t *db, dns_dbupdate_callback_t fn,
 }
 
 isc_result_t
-dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name)
-{
+dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
 	REQUIRE(db != NULL);
 	REQUIRE(node != NULL);
 	REQUIRE(name != NULL);
@@ -1111,8 +1057,7 @@ dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name)
 }
 
 isc_result_t
-dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl)
-{
+dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
 
@@ -1123,8 +1068,7 @@ dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl)
 }
 
 isc_result_t
-dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl)
-{
+dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
 
@@ -1135,8 +1079,7 @@ dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl)
 }
 
 isc_result_t
-dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats)
-{
+dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 	REQUIRE(dns_db_iszone(db));
 	REQUIRE(stats != NULL);
 

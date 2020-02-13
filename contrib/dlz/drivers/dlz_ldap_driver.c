@@ -70,19 +70,19 @@
 #include <ldap.h>
 
 #define SIMPLE "simple"
-#define KRB41 "krb41"
-#define KRB42 "krb42"
-#define V2 "v2"
-#define V3 "v3"
+#define KRB41  "krb41"
+#define KRB42  "krb42"
+#define V2     "v2"
+#define V3     "v3"
 
 static dns_sdlzimplementation_t *dlz_ldap = NULL;
 
 #define dbc_search_limit 30
-#define ALLNODES 1
-#define ALLOWXFR 2
-#define AUTHORITY 3
-#define FINDZONE 4
-#define LOOKUP 5
+#define ALLNODES	 1
+#define ALLOWXFR	 2
+#define AUTHORITY	 3
+#define FINDZONE	 4
+#define LOOKUP		 5
 
 /*%
  * Structure to hold everthing needed by this "instance" of the LDAP
@@ -91,23 +91,22 @@ static dns_sdlzimplementation_t *dlz_ldap = NULL;
  */
 
 typedef struct {
-	db_list_t *db;	     /*%< handle to a list of DB */
-	int	   method;   /*%< security authentication method */
-	char *	   user;     /*%< who is authenticating */
-	char *	   cred;     /*%< password for simple authentication method */
-	int	   protocol; /*%< LDAP communication protocol version */
-	char *	   hosts;    /*%< LDAP server hosts */
+	db_list_t *db; /*%< handle to a list of DB */
+	int method;    /*%< security authentication method */
+	char *user;    /*%< who is authenticating */
+	char *cred;    /*%< password for simple authentication method */
+	int protocol;  /*%< LDAP communication protocol version */
+	char *hosts;   /*%< LDAP server hosts */
 } ldap_instance_t;
 
 /* forward references */
 
-static isc_result_t
-dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name,
-		  dns_clientinfomethods_t *methods,
-		  dns_clientinfo_t *	   clientinfo);
+static isc_result_t dlz_ldap_findzone(void *driverarg, void *dbdata,
+				      const char *name,
+				      dns_clientinfomethods_t *methods,
+				      dns_clientinfo_t *clientinfo);
 
-static void
-dlz_ldap_destroy(void *driverarg, void *dbdata);
+static void dlz_ldap_destroy(void *driverarg, void *dbdata);
 
 /*
  * Private methods
@@ -118,7 +117,7 @@ static isc_result_t
 dlz_ldap_checkURL(char *URL, int attrCnt, const char *msg)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	int	     ldap_result;
+	int ldap_result;
 	LDAPURLDesc *ldap_url = NULL;
 
 	if (!ldap_is_ldap_url(URL)) {
@@ -195,7 +194,7 @@ static isc_result_t
 dlz_ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc)
 {
 	isc_result_t result;
-	int	     ldap_result;
+	int ldap_result;
 
 	/* if we have a connection, get ride of it. */
 	if (dbc->dbconn != NULL) {
@@ -286,7 +285,7 @@ ldap_find_avail_conn(db_list_t *dblist)
 {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
-	int	      count = 0;
+	int count = 0;
 
 	/* get top of list */
 	head = dbi = ISC_LIST_HEAD(*dblist);
@@ -319,17 +318,17 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 		     bool allnodes)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	int	     i = 0;
-	int	     j;
-	int	     len;
-	char *	     attribute = NULL;
+	int i = 0;
+	int j;
+	int len;
+	char *attribute = NULL;
 	LDAPMessage *entry;
-	char *	     endp = NULL;
-	char *	     host = NULL;
-	char *	     type = NULL;
-	char *	     data = NULL;
-	char **	     vals = NULL;
-	int	     ttl;
+	char *endp = NULL;
+	char *host = NULL;
+	char *type = NULL;
+	char *data = NULL;
+	char **vals = NULL;
+	int ttl;
 
 	/* make sure there are at least some attributes to process. */
 	REQUIRE(attrs != NULL || attrs[0] != NULL);
@@ -556,14 +555,14 @@ static isc_result_t
 ldap_get_results(const char *zone, const char *record, const char *client,
 		 unsigned int query, void *dbdata, void *ptr)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
-	char *	      querystring = NULL;
-	LDAPURLDesc * ldap_url = NULL;
-	int	      ldap_result = 0;
-	LDAPMessage * ldap_msg = NULL;
-	int	      i;
-	int	      entries;
+	char *querystring = NULL;
+	LDAPURLDesc *ldap_url = NULL;
+	int ldap_result = 0;
+	LDAPMessage *ldap_msg = NULL;
+	int i;
+	int entries;
 
 	/* get db instance / connection */
 	/* find an available DBI from the list */
@@ -653,8 +652,8 @@ ldap_get_results(const char *zone, const char *record, const char *client,
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		} else {
-			querystring =
-				build_querystring(named_g_mctx, dbi->lookup_q);
+			querystring = build_querystring(named_g_mctx,
+							dbi->lookup_q);
 		}
 		break;
 	default:
@@ -876,7 +875,7 @@ dlz_ldap_authority(const char *zone, void *driverarg, void *dbdata,
 static isc_result_t
 dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name,
 		  dns_clientinfomethods_t *methods,
-		  dns_clientinfo_t *	   clientinfo)
+		  dns_clientinfo_t *clientinfo)
 {
 	UNUSED(driverarg);
 	UNUSED(methods);
@@ -909,13 +908,13 @@ static isc_result_t
 dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 		void *driverarg, void **dbdata)
 {
-	isc_result_t	 result;
+	isc_result_t result;
 	ldap_instance_t *ldap_inst = NULL;
-	dbinstance_t *	 dbi = NULL;
-	int		 protocol;
-	int		 method;
-	int		 dbcount;
-	char *		 endp;
+	dbinstance_t *dbi = NULL;
+	int protocol;
+	int method;
+	int dbcount;
+	char *endp;
 	/* db_list_t *dblist = NULL; */
 	int i;
 

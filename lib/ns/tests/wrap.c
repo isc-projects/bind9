@@ -31,11 +31,9 @@
  * can't be used.
  */
 
-extern void
-__wrap_isc_nmhandle_unref(isc_nmhandle_t *handle);
+extern void __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle);
 
 void
-isc_nmhandle_unref(isc_nmhandle_t *handle)
-{
+isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	__wrap_isc_nmhandle_unref(handle);
 }

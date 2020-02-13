@@ -39,7 +39,7 @@
 #include "../fsaccess.c"
 
 /* Store the user account name locally */
-static char  username[255] = "\0";
+static char username[255] = "\0";
 static DWORD namelen = 0;
 
 /*
@@ -48,14 +48,13 @@ static DWORD namelen = 0;
  */
 
 BOOL
-is_ntfs(const char *file)
-{
-	char  drive[255];
-	char  FSType[20];
-	char  tmpbuf[256];
+is_ntfs(const char *file) {
+	char drive[255];
+	char FSType[20];
+	char tmpbuf[256];
 	char *machinename;
 	char *sharename;
-	char  filename[1024];
+	char filename[1024];
 	char *last;
 
 	REQUIRE(filename != NULL);
@@ -70,7 +69,8 @@ is_ntfs(const char *file)
 	 * the UNC style file specs
 	 */
 	if (isalpha(filename[0]) && filename[1] == ':' &&
-	    (filename[2] == '\\' || filename[2] == '/')) {
+	    (filename[2] == '\\' || filename[2] == '/'))
+	{
 		/* Copy 'c:\' or 'c:/' and NUL terminate. */
 		strlcpy(drive, filename, ISC_MIN(3 + 1, sizeof(drive)));
 	} else if ((filename[0] == '\\') && (filename[1] == '\\')) {
@@ -102,9 +102,8 @@ is_ntfs(const char *file)
  * cleared.
  */
 isc_result_t
-FAT_fsaccess_set(const char *path, isc_fsaccess_t access)
-{
-	int	       mode;
+FAT_fsaccess_set(const char *path, isc_fsaccess_t access) {
+	int mode;
 	isc_fsaccess_t bits;
 
 	/*
@@ -144,25 +143,24 @@ FAT_fsaccess_set(const char *path, isc_fsaccess_t access)
 
 isc_result_t
 NTFS_Access_Control(const char *filename, const char *user, int access,
-		    bool isdir)
-{
+		    bool isdir) {
 	SECURITY_DESCRIPTOR sd;
-	BYTE		    aclBuffer[1024];
-	PACL		    pacl = (PACL)&aclBuffer;
-	BYTE		    sidBuffer[100];
-	PSID		    psid = (PSID)&sidBuffer;
-	DWORD		    sidBufferSize = sizeof(sidBuffer);
-	BYTE		    adminSidBuffer[100];
-	PSID		    padminsid = (PSID)&adminSidBuffer;
-	DWORD		    adminSidBufferSize = sizeof(adminSidBuffer);
-	BYTE		    otherSidBuffer[100];
-	PSID		    pothersid = (PSID)&otherSidBuffer;
-	DWORD		    otherSidBufferSize = sizeof(otherSidBuffer);
-	char		    domainBuffer[100];
-	DWORD		    domainBufferSize = sizeof(domainBuffer);
-	SID_NAME_USE	    snu;
-	DWORD		    NTFSbits;
-	int		    caccess;
+	BYTE aclBuffer[1024];
+	PACL pacl = (PACL)&aclBuffer;
+	BYTE sidBuffer[100];
+	PSID psid = (PSID)&sidBuffer;
+	DWORD sidBufferSize = sizeof(sidBuffer);
+	BYTE adminSidBuffer[100];
+	PSID padminsid = (PSID)&adminSidBuffer;
+	DWORD adminSidBufferSize = sizeof(adminSidBuffer);
+	BYTE otherSidBuffer[100];
+	PSID pothersid = (PSID)&otherSidBuffer;
+	DWORD otherSidBufferSize = sizeof(otherSidBuffer);
+	char domainBuffer[100];
+	DWORD domainBufferSize = sizeof(domainBuffer);
+	SID_NAME_USE snu;
+	DWORD NTFSbits;
+	int caccess;
 
 	/* Initialize an ACL */
 	if (!InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION)) {
@@ -172,19 +170,22 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 		return (ISC_R_NOPERM);
 	}
 	if (!LookupAccountName(0, user, psid, &sidBufferSize, domainBuffer,
-			       &domainBufferSize, &snu)) {
+			       &domainBufferSize, &snu))
+	{
 		return (ISC_R_NOPERM);
 	}
 	domainBufferSize = sizeof(domainBuffer);
 	if (!LookupAccountName(0, "Administrators", padminsid,
 			       &adminSidBufferSize, domainBuffer,
-			       &domainBufferSize, &snu)) {
+			       &domainBufferSize, &snu))
+	{
 		(void)GetLastError();
 		return (ISC_R_NOPERM);
 	}
 	domainBufferSize = sizeof(domainBuffer);
 	if (!LookupAccountName(0, "Everyone", pothersid, &otherSidBufferSize,
-			       domainBuffer, &domainBufferSize, &snu)) {
+			       domainBuffer, &domainBufferSize, &snu))
+	{
 		(void)GetLastError();
 		return (ISC_R_NOPERM);
 	}
@@ -293,8 +294,7 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 }
 
 isc_result_t
-NTFS_fsaccess_set(const char *path, isc_fsaccess_t access, bool isdir)
-{
+NTFS_fsaccess_set(const char *path, isc_fsaccess_t access, bool isdir) {
 	/*
 	 * For NTFS we first need to get the name of the account under
 	 * which BIND is running
@@ -309,10 +309,9 @@ NTFS_fsaccess_set(const char *path, isc_fsaccess_t access, bool isdir)
 }
 
 isc_result_t
-isc_fsaccess_set(const char *path, isc_fsaccess_t access)
-{
-	struct stat  statb;
-	bool	     is_dir = false;
+isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
+	struct stat statb;
+	bool is_dir = false;
 	isc_result_t result;
 
 	if (stat(path, &statb) != 0) {
@@ -342,18 +341,17 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access)
 }
 
 isc_result_t
-isc_fsaccess_changeowner(const char *filename, const char *user)
-{
+isc_fsaccess_changeowner(const char *filename, const char *user) {
 	SECURITY_DESCRIPTOR psd;
-	BYTE		    sidBuffer[500];
-	BYTE		    groupBuffer[500];
-	PSID		    psid = (PSID)&sidBuffer;
-	DWORD		    sidBufferSize = sizeof(sidBuffer);
-	char		    domainBuffer[100];
-	DWORD		    domainBufferSize = sizeof(domainBuffer);
-	SID_NAME_USE	    snu;
-	PSID		    pSidGroup = (PSID)&groupBuffer;
-	DWORD		    groupBufferSize = sizeof(groupBuffer);
+	BYTE sidBuffer[500];
+	BYTE groupBuffer[500];
+	PSID psid = (PSID)&sidBuffer;
+	DWORD sidBufferSize = sizeof(sidBuffer);
+	char domainBuffer[100];
+	DWORD domainBufferSize = sizeof(domainBuffer);
+	SID_NAME_USE snu;
+	PSID pSidGroup = (PSID)&groupBuffer;
+	DWORD groupBufferSize = sizeof(groupBuffer);
 
 	/*
 	 * Determine if this is a FAT or NTFS disk and
@@ -370,14 +368,16 @@ isc_fsaccess_changeowner(const char *filename, const char *user)
 	}
 
 	if (!LookupAccountName(0, user, psid, &sidBufferSize, domainBuffer,
-			       &domainBufferSize, &snu)) {
+			       &domainBufferSize, &snu))
+	{
 		return (ISC_R_NOPERM);
 	}
 
 	/* Make sure administrators can get to it */
 	domainBufferSize = sizeof(domainBuffer);
 	if (!LookupAccountName(0, "Administrators", pSidGroup, &groupBufferSize,
-			       domainBuffer, &domainBufferSize, &snu)) {
+			       domainBuffer, &domainBufferSize, &snu))
+	{
 		return (ISC_R_NOPERM);
 	}
 
@@ -392,7 +392,8 @@ isc_fsaccess_changeowner(const char *filename, const char *user)
 	if (!SetFileSecurity(filename,
 			     OWNER_SECURITY_INFORMATION |
 				     GROUP_SECURITY_INFORMATION,
-			     &psd)) {
+			     &psd))
+	{
 		return (ISC_R_NOPERM);
 	}
 

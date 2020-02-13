@@ -61,16 +61,16 @@
 		}                              \
 	} while (0)
 
-isc_mem_t *	 dt_mctx = NULL;
-isc_log_t *	 lctx = NULL;
-isc_taskmgr_t *	 taskmgr = NULL;
-isc_task_t *	 maintask = NULL;
-isc_timermgr_t * timermgr = NULL;
+isc_mem_t *dt_mctx = NULL;
+isc_log_t *lctx = NULL;
+isc_taskmgr_t *taskmgr = NULL;
+isc_task_t *maintask = NULL;
+isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
-dns_zonemgr_t *	 zonemgr = NULL;
-bool		 app_running = false;
-int		 ncpus;
-bool		 debug_mem_record = true;
+dns_zonemgr_t *zonemgr = NULL;
+bool app_running = false;
+int ncpus;
+bool debug_mem_record = true;
 
 static bool dst_active = false;
 static bool test_running = false;
@@ -89,8 +89,7 @@ static isc_logcategory_t categories[] = { { "", 0 },
 					  { NULL, 0 } };
 
 static void
-cleanup_managers(void)
-{
+cleanup_managers(void) {
 	if (maintask != NULL) {
 		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
@@ -110,8 +109,7 @@ cleanup_managers(void)
 }
 
 static isc_result_t
-create_managers(void)
-{
+create_managers(void) {
 	isc_result_t result;
 	ncpus = isc_os_ncpus();
 
@@ -127,8 +125,7 @@ cleanup:
 }
 
 isc_result_t
-dns_test_begin(FILE *logfile, bool start_managers)
-{
+dns_test_begin(FILE *logfile, bool start_managers) {
 	isc_result_t result;
 
 	INSIST(!test_running);
@@ -153,7 +150,7 @@ dns_test_begin(FILE *logfile, bool start_managers)
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
-		isc_logconfig_t *    logconfig = NULL;
+		isc_logconfig_t *logconfig = NULL;
 
 		INSIST(lctx == NULL);
 		CHECK(isc_log_create(dt_mctx, &lctx, &logconfig));
@@ -196,8 +193,7 @@ cleanup:
 }
 
 void
-dns_test_end(void)
-{
+dns_test_end(void) {
 	cleanup_managers();
 
 	dst_lib_destroy();
@@ -218,10 +214,9 @@ dns_test_end(void)
  * Create a view.
  */
 isc_result_t
-dns_test_makeview(const char *name, dns_view_t **viewp)
-{
+dns_test_makeview(const char *name, dns_view_t **viewp) {
 	isc_result_t result;
-	dns_view_t * view = NULL;
+	dns_view_t *view = NULL;
 
 	CHECK(dns_view_create(dt_mctx, dns_rdataclass_in, name, &view));
 	*viewp = view;
@@ -237,12 +232,11 @@ cleanup:
 
 isc_result_t
 dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
-		  bool createview)
-{
+		  bool createview) {
 	dns_fixedname_t fixed_origin;
-	dns_zone_t *	zone = NULL;
-	isc_result_t	result;
-	dns_name_t *	origin;
+	dns_zone_t *zone = NULL;
+	isc_result_t result;
+	dns_name_t *origin;
 
 	REQUIRE(view == NULL || !createview);
 
@@ -301,8 +295,7 @@ detach_zone:
 }
 
 isc_result_t
-dns_test_setupzonemgr(void)
-{
+dns_test_setupzonemgr(void) {
 	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
 
@@ -312,8 +305,7 @@ dns_test_setupzonemgr(void)
 }
 
 isc_result_t
-dns_test_managezone(dns_zone_t *zone)
-{
+dns_test_managezone(dns_zone_t *zone) {
 	isc_result_t result;
 	REQUIRE(zonemgr != NULL);
 
@@ -327,15 +319,13 @@ dns_test_managezone(dns_zone_t *zone)
 }
 
 void
-dns_test_releasezone(dns_zone_t *zone)
-{
+dns_test_releasezone(dns_zone_t *zone) {
 	REQUIRE(zonemgr != NULL);
 	dns_zonemgr_releasezone(zonemgr, zone);
 }
 
 void
-dns_test_closezonemgr(void)
-{
+dns_test_closezonemgr(void) {
 	REQUIRE(zonemgr != NULL);
 
 	dns_zonemgr_shutdown(zonemgr);
@@ -346,8 +336,7 @@ dns_test_closezonemgr(void)
  * Sleep for 'usec' microseconds.
  */
 void
-dns_test_nap(uint32_t usec)
-{
+dns_test_nap(uint32_t usec) {
 #ifdef HAVE_NANOSLEEP
 	struct timespec ts;
 
@@ -367,11 +356,10 @@ dns_test_nap(uint32_t usec)
 
 isc_result_t
 dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
-		const char *testfile)
-{
-	isc_result_t	result;
+		const char *testfile) {
+	isc_result_t result;
 	dns_fixedname_t fixed;
-	dns_name_t *	name;
+	dns_name_t *name;
 
 	name = dns_fixedname_initname(&fixed);
 
@@ -391,8 +379,7 @@ dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 }
 
 static int
-fromhex(char c)
-{
+fromhex(char c) {
 	if (c >= '0' && c <= '9') {
 		return (c - '0');
 	} else if (c >= 'a' && c <= 'f') {
@@ -412,11 +399,11 @@ fromhex(char c)
  * times 'len'. Always returns 'buf'.
  */
 char *
-dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen)
-{
+dns_test_tohex(const unsigned char *data, size_t len, char *buf,
+	       size_t buflen) {
 	isc_constregion_t source = { .base = data, .length = len };
-	isc_buffer_t	  target;
-	isc_result_t	  result;
+	isc_buffer_t target;
+	isc_result_t result;
 
 	memset(buf, 0, buflen);
 	isc_buffer_init(&target, buf, buflen);
@@ -428,15 +415,14 @@ dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen)
 
 isc_result_t
 dns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
-		 size_t *sizep)
-{
-	isc_result_t   result;
+		 size_t *sizep) {
+	isc_result_t result;
 	unsigned char *bp;
-	char *	       rp, *wp;
-	char	       s[BUFSIZ];
-	size_t	       len, i;
-	FILE *	       f = NULL;
-	int	       n;
+	char *rp, *wp;
+	char s[BUFSIZ];
+	size_t len, i;
+	FILE *f = NULL;
+	int n;
 
 	result = isc_stdio_open(file, "r", &f);
 	if (result != ISC_R_SUCCESS) {
@@ -487,8 +473,7 @@ cleanup:
 }
 
 static void
-nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...)
-{
+nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
 	UNUSED(cb);
 	UNUSED(fmt);
 }
@@ -496,14 +481,13 @@ nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...)
 isc_result_t
 dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			 dns_rdatatype_t rdtype, unsigned char *dst,
-			 size_t dstlen, const char *src, bool warnings)
-{
+			 size_t dstlen, const char *src, bool warnings) {
 	dns_rdatacallbacks_t callbacks;
-	isc_buffer_t	     source, target;
-	isc_lex_t *	     lex = NULL;
-	isc_lexspecials_t    specials = { 0 };
-	isc_result_t	     result;
-	size_t		     length;
+	isc_buffer_t source, target;
+	isc_lex_t *lex = NULL;
+	isc_lexspecials_t specials = { 0 };
+	isc_result_t result;
+	size_t length;
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
@@ -575,12 +559,11 @@ destroy_lexer:
 }
 
 void
-dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname)
-{
-	size_t	      length;
+dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
+	size_t length;
 	isc_buffer_t *b = NULL;
-	isc_result_t  result;
-	dns_name_t *  name;
+	isc_result_t result;
+	dns_name_t *name;
 
 	length = strlen(namestr);
 
@@ -597,17 +580,16 @@ dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname)
 
 isc_result_t
 dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
-			 bool warnings)
-{
-	isc_result_t	      result = ISC_R_SUCCESS;
-	unsigned char	      rdata_buf[1024];
-	dns_difftuple_t *     tuple = NULL;
+			 bool warnings) {
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned char rdata_buf[1024];
+	dns_difftuple_t *tuple = NULL;
 	isc_consttextregion_t region;
-	dns_rdatatype_t	      rdatatype;
-	dns_fixedname_t	      fixedname;
-	dns_rdata_t	      rdata;
-	dns_name_t *	      name;
-	size_t		      i;
+	dns_rdatatype_t rdatatype;
+	dns_fixedname_t fixedname;
+	dns_rdata_t rdata;
+	dns_name_t *name;
+	size_t i;
 
 	REQUIRE(diff != NULL);
 	REQUIRE(changes != NULL);
@@ -619,8 +601,8 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
 		 * Parse owner name.
 		 */
 		name = dns_fixedname_initname(&fixedname);
-		result =
-			dns_name_fromstring(name, changes[i].owner, 0, dt_mctx);
+		result = dns_name_fromstring(name, changes[i].owner, 0,
+					     dt_mctx);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}

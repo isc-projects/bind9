@@ -25,15 +25,13 @@
 
 #include <sys/stat.h>
 
-#define ISC_DIR_MAGIC ISC_MAGIC('D', 'I', 'R', '*')
+#define ISC_DIR_MAGIC  ISC_MAGIC('D', 'I', 'R', '*')
 #define VALID_DIR(dir) ISC_MAGIC_VALID(dir, ISC_DIR_MAGIC)
 
-static isc_result_t
-start_directory(isc_dir_t *p);
+static isc_result_t start_directory(isc_dir_t *p);
 
 void
-isc_dir_init(isc_dir_t *dir)
-{
+isc_dir_init(isc_dir_t *dir) {
 	REQUIRE(dir != NULL);
 
 	dir->dirname[0] = '\0';
@@ -53,9 +51,8 @@ isc_dir_init(isc_dir_t *dir)
  * NULL will be returned.
  */
 isc_result_t
-isc_dir_open(isc_dir_t *dir, const char *dirname)
-{
-	char *	     p;
+isc_dir_open(isc_dir_t *dir, const char *dirname) {
+	char *p;
 	isc_result_t result;
 
 	REQUIRE(dirname != NULL);
@@ -95,8 +92,7 @@ isc_dir_open(isc_dir_t *dir, const char *dirname)
  * the dir stream and reads the first file in one operation.
  */
 isc_result_t
-isc_dir_read(isc_dir_t *dir)
-{
+isc_dir_read(isc_dir_t *dir) {
 	REQUIRE(VALID_DIR(dir) && dir->search_handle != INVALID_HANDLE_VALUE);
 
 	if (dir->entry_filled) {
@@ -137,8 +133,7 @@ isc_dir_read(isc_dir_t *dir)
  * Close directory stream.
  */
 void
-isc_dir_close(isc_dir_t *dir)
-{
+isc_dir_close(isc_dir_t *dir) {
 	REQUIRE(VALID_DIR(dir) && dir->search_handle != INVALID_HANDLE_VALUE);
 
 	FindClose(dir->search_handle);
@@ -149,8 +144,7 @@ isc_dir_close(isc_dir_t *dir)
  * Reposition directory stream at start.
  */
 isc_result_t
-isc_dir_reset(isc_dir_t *dir)
-{
+isc_dir_reset(isc_dir_t *dir) {
 	isc_result_t result;
 
 	REQUIRE(VALID_DIR(dir) && dir->search_handle != INVALID_HANDLE_VALUE);
@@ -177,8 +171,7 @@ isc_dir_reset(isc_dir_t *dir)
  * - Be sure to close previous stream before opening new one
  */
 static isc_result_t
-start_directory(isc_dir_t *dir)
-{
+start_directory(isc_dir_t *dir) {
 	REQUIRE(VALID_DIR(dir));
 	REQUIRE(dir->search_handle == INVALID_HANDLE_VALUE);
 
@@ -221,8 +214,7 @@ start_directory(isc_dir_t *dir)
 }
 
 isc_result_t
-isc_dir_chdir(const char *dirname)
-{
+isc_dir_chdir(const char *dirname) {
 	/*
 	 * Change the current directory to 'dirname'.
 	 */
@@ -237,19 +229,17 @@ isc_dir_chdir(const char *dirname)
 }
 
 isc_result_t
-isc_dir_chroot(const char *dirname)
-{
+isc_dir_chroot(const char *dirname) {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
 isc_result_t
-isc_dir_createunique(char *templet)
-{
+isc_dir_createunique(char *templet) {
 	isc_result_t result;
-	char *	     x;
-	char *	     p;
-	int	     i;
-	int	     pid;
+	char *x;
+	char *p;
+	int i;
+	int pid;
 
 	REQUIRE(templet != NULL);
 

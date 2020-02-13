@@ -33,7 +33,7 @@ typedef enum {
 
 typedef struct {
 	WSAPROTOCOL_INFOW socket_info;
-	uint32_t	  delayed_error;
+	uint32_t delayed_error;
 } uv__ipc_socket_xfer_info_t;
 
 /*
@@ -41,18 +41,15 @@ typedef struct {
  * libuv hasn't changed.
  */
 
-int
-uv__tcp_xfer_import(uv_tcp_t *tcp, uv__ipc_socket_xfer_type_t xfer_type,
-		    uv__ipc_socket_xfer_info_t *xfer_info);
+int uv__tcp_xfer_import(uv_tcp_t *tcp, uv__ipc_socket_xfer_type_t xfer_type,
+			uv__ipc_socket_xfer_info_t *xfer_info);
+
+int uv__tcp_xfer_export(uv_tcp_t *handle, int target_pid,
+			uv__ipc_socket_xfer_type_t *xfer_type,
+			uv__ipc_socket_xfer_info_t *xfer_info);
 
 int
-uv__tcp_xfer_export(uv_tcp_t *handle, int target_pid,
-		    uv__ipc_socket_xfer_type_t *xfer_type,
-		    uv__ipc_socket_xfer_info_t *xfer_info);
-
-int
-isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info)
-{
+isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 	uv__ipc_socket_xfer_info_t xfer_info;
 	uv__ipc_socket_xfer_type_t xfer_type = UV__IPC_SOCKET_XFER_NONE;
 
@@ -79,16 +76,15 @@ isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info)
 }
 
 int
-isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info)
-{
+isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 	if (stream->type != UV_TCP || info->type != UV_TCP) {
 		return (-1);
 	}
 
 	return (uv__tcp_xfer_import(
 		(uv_tcp_t *)stream, UV__IPC_SOCKET_XFER_TCP_SERVER,
-		&(uv__ipc_socket_xfer_info_t){ .socket_info =
-						       info->socket_info }));
+		&(uv__ipc_socket_xfer_info_t){
+			.socket_info = info->socket_info }));
 }
 #else /* WIN32 */
 /* Adapted from libuv/src/unix/internal.h */
@@ -97,8 +93,7 @@ isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info)
 #include <sys/ioctl.h>
 
 static int
-isc_uv__cloexec(int fd, int set)
-{
+isc_uv__cloexec(int fd, int set) {
 	int r;
 
 	/*
@@ -149,8 +144,7 @@ isc_uv__cloexec(int fd, int set)
 }
 
 int
-isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info)
-{
+isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 	int oldfd, fd;
 	int err;
 
@@ -180,8 +174,7 @@ isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info)
 }
 
 int
-isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info)
-{
+isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 	if (info->type != UV_TCP) {
 		return (-1);
 	}

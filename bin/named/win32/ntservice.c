@@ -24,23 +24,20 @@
 
 /* Handle to SCM for updating service status */
 static SERVICE_STATUS_HANDLE hServiceStatus = 0;
-static BOOL		     foreground = FALSE;
-static char		     ConsoleTitle[128];
+static BOOL foreground = FALSE;
+static char ConsoleTitle[128];
 
 /*
  * Forward declarations
  */
-void
-ServiceControl(DWORD dwCtrlCode);
-int
-bindmain(int, char *[]); /* From main.c */
+void ServiceControl(DWORD dwCtrlCode);
+int bindmain(int, char *[]); /* From main.c */
 
 /*
  * Initialize the Service by registering it.
  */
 void
-ntservice_init(void)
-{
+ntservice_init(void) {
 	if (!foreground) {
 		/* Register handler with the SCM */
 		hServiceStatus = RegisterServiceCtrlHandler(
@@ -58,16 +55,14 @@ ntservice_init(void)
 }
 
 void
-ntservice_shutdown(void)
-{
+ntservice_shutdown(void) {
 	UpdateSCM(SERVICE_STOPPED);
 }
 /*
  * Routine to check if this is a service or a foreground program
  */
 BOOL
-ntservice_isservice(void)
-{
+ntservice_isservice(void) {
 	return (!foreground);
 }
 /*
@@ -75,8 +70,7 @@ ntservice_isservice(void)
  * to named.
  */
 void
-ServiceControl(DWORD dwCtrlCode)
-{
+ServiceControl(DWORD dwCtrlCode) {
 	/* Handle the requested control code */
 	switch (dwCtrlCode) {
 	case SERVICE_CONTROL_INTERROGATE:
@@ -98,10 +92,9 @@ ServiceControl(DWORD dwCtrlCode)
  * Tell the Service Control Manager the state of the service.
  */
 void
-UpdateSCM(DWORD state)
-{
+UpdateSCM(DWORD state) {
 	SERVICE_STATUS ss;
-	static DWORD   dwState = SERVICE_STOPPED;
+	static DWORD dwState = SERVICE_STOPPED;
 
 	if (hServiceStatus) {
 		if (state) {
@@ -135,14 +128,13 @@ UpdateSCM(DWORD state)
  * as we need to.
  */
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	int rc, ch;
 
 	/* Command line users should put -f in the options. */
 	isc_commandline_errprint = false;
-	while ((ch = isc_commandline_parse(argc, argv, NAMED_MAIN_ARGS)) !=
-	       -1) {
+	while ((ch = isc_commandline_parse(argc, argv, NAMED_MAIN_ARGS)) != -1)
+	{
 		switch (ch) {
 		case 'f':
 		case 'g':

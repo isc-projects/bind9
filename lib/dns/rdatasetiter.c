@@ -19,8 +19,7 @@
 #include <dns/rdatasetiter.h>
 
 void
-dns_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp)
-{
+dns_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 	/*
 	 * Destroy '*iteratorp'.
 	 */
@@ -34,8 +33,7 @@ dns_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp)
 }
 
 isc_result_t
-dns_rdatasetiter_first(dns_rdatasetiter_t *iterator)
-{
+dns_rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	/*
 	 * Move the rdataset cursor to the first rdataset at the node (if any).
 	 */
@@ -46,8 +44,7 @@ dns_rdatasetiter_first(dns_rdatasetiter_t *iterator)
 }
 
 isc_result_t
-dns_rdatasetiter_next(dns_rdatasetiter_t *iterator)
-{
+dns_rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	/*
 	 * Move the rdataset cursor to the next rdataset at the node (if any).
 	 */
@@ -58,8 +55,8 @@ dns_rdatasetiter_next(dns_rdatasetiter_t *iterator)
 }
 
 void
-dns_rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset)
-{
+dns_rdatasetiter_current(dns_rdatasetiter_t *iterator,
+			 dns_rdataset_t *rdataset) {
 	/*
 	 * Return the current rdataset.
 	 */

@@ -16,9 +16,9 @@
 
 #define RRTYPE_X25_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_x25(ARGS_FROMTEXT)
-{
-	isc_token_t  token;
+static inline isc_result_t
+fromtext_x25(ARGS_FROMTEXT) {
+	isc_token_t token;
 	unsigned int i;
 
 	REQUIRE(type == dns_rdatatype_x25);
@@ -43,8 +43,8 @@ static inline isc_result_t fromtext_x25(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_x25(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_x25(ARGS_TOTEXT) {
 	isc_region_t region;
 
 	UNUSED(tctx);
@@ -56,8 +56,8 @@ static inline isc_result_t totext_x25(ARGS_TOTEXT)
 	return (txt_totext(&region, true, target));
 }
 
-static inline isc_result_t fromwire_x25(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_x25(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(type == dns_rdatatype_x25);
@@ -74,8 +74,8 @@ static inline isc_result_t fromwire_x25(ARGS_FROMWIRE)
 	return (txt_fromwire(source, target));
 }
 
-static inline isc_result_t towire_x25(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_x25(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == dns_rdatatype_x25);
@@ -84,8 +84,8 @@ static inline isc_result_t towire_x25(ARGS_TOWIRE)
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int compare_x25(ARGS_COMPARE)
-{
+static inline int
+compare_x25(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -100,10 +100,10 @@ static inline int compare_x25(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_x25(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_x25(ARGS_FROMSTRUCT) {
 	dns_rdata_x25_t *x25 = source;
-	uint8_t		 i;
+	uint8_t i;
 
 	REQUIRE(type == dns_rdatatype_x25);
 	REQUIRE(x25 != NULL);
@@ -128,10 +128,10 @@ static inline isc_result_t fromstruct_x25(ARGS_FROMSTRUCT)
 	return (mem_tobuffer(target, x25->x25, x25->x25_len));
 }
 
-static inline isc_result_t tostruct_x25(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_x25(ARGS_TOSTRUCT) {
 	dns_rdata_x25_t *x25 = target;
-	isc_region_t	 r;
+	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_x25);
 	REQUIRE(x25 != NULL);
@@ -153,8 +153,8 @@ static inline isc_result_t tostruct_x25(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_x25(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_x25(ARGS_FREESTRUCT) {
 	dns_rdata_x25_t *x25 = source;
 
 	REQUIRE(x25 != NULL);
@@ -170,8 +170,8 @@ static inline void freestruct_x25(ARGS_FREESTRUCT)
 	x25->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_x25(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_x25(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_x25);
 
 	UNUSED(rdata);
@@ -181,8 +181,8 @@ static inline isc_result_t additionaldata_x25(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_x25(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_x25(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_x25);
@@ -192,8 +192,8 @@ static inline isc_result_t digest_x25(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_x25(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_x25(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_x25);
 
 	UNUSED(name);
@@ -204,8 +204,8 @@ static inline bool checkowner_x25(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_x25(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_x25(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_x25);
 
 	UNUSED(rdata);
@@ -215,8 +215,8 @@ static inline bool checknames_x25(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_x25(ARGS_COMPARE)
-{
+static inline int
+casecompare_x25(ARGS_COMPARE) {
 	return (compare_x25(rdata1, rdata2));
 }
 

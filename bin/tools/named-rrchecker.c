@@ -32,12 +32,10 @@ static isc_lex_t *lex;
 
 static isc_lexspecials_t specials;
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "usage: named-rrchecker [-o origin] [-hpCPTu]\n");
 	fprintf(stderr, "\t-h: print this help message\n");
 	fprintf(stderr, "\t-o origin: set origin to be used when "
@@ -50,12 +48,11 @@ usage(void)
 	exit(0);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format,
+					    ...) ISC_PLATFORM_NORETURN_POST;
 
 static void
-fatal(const char *format, ...)
-{
+fatal(const char *format, ...) {
 	va_list args;
 
 	fprintf(stderr, "named-rrchecker: ");
@@ -67,27 +64,26 @@ fatal(const char *format, ...)
 }
 
 int
-main(int argc, char *argv[])
-{
-	isc_token_t	 token;
-	isc_result_t	 result;
-	int		 c;
-	unsigned int	 options = 0;
-	dns_rdatatype_t	 rdtype;
+main(int argc, char *argv[]) {
+	isc_token_t token;
+	isc_result_t result;
+	int c;
+	unsigned int options = 0;
+	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	char		 text[256 * 1024];
-	char		 data[64 * 1024];
-	isc_buffer_t	 tbuf;
-	isc_buffer_t	 dbuf;
-	dns_rdata_t	 rdata = DNS_RDATA_INIT;
-	bool		 doexit = false;
-	bool		 once = false;
-	bool		 print = false;
-	bool		 unknown = false;
-	unsigned int	 t;
-	char *		 origin = NULL;
-	dns_fixedname_t	 fixed;
-	dns_name_t *	 name = NULL;
+	char text[256 * 1024];
+	char data[64 * 1024];
+	isc_buffer_t tbuf;
+	isc_buffer_t dbuf;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	bool doexit = false;
+	bool once = false;
+	bool print = false;
+	bool unknown = false;
+	unsigned int t;
+	char *origin = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
 
 	while ((c = isc_commandline_parse(argc, argv, "ho:puCPT")) != -1) {
 		switch (c) {
@@ -182,7 +178,8 @@ main(int argc, char *argv[])
 	}
 
 	while ((result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
-					  &token)) == ISC_R_SUCCESS) {
+					  &token)) == ISC_R_SUCCESS)
+	{
 		if (token.type == isc_tokentype_eof) {
 			break;
 		}

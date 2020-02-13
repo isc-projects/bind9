@@ -38,7 +38,7 @@ dir_init(dir_t *dir)
 isc_result_t
 dir_open(dir_t *dir, const char *dirname)
 {
-	char *	     p;
+	char *p;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (strlen(dirname) + 3 > sizeof(dir->dirname)) {

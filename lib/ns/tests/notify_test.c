@@ -40,8 +40,7 @@
 
 #if defined(USE_LIBTOOL) || LD_WRAP
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -53,8 +52,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	ns_test_end();
@@ -63,12 +61,11 @@ _teardown(void **state)
 }
 
 static void
-check_response(isc_buffer_t *buf)
-{
-	isc_result_t   result;
+check_response(isc_buffer_t *buf) {
+	isc_result_t result;
 	dns_message_t *message = NULL;
-	char	       rcodebuf[20];
-	isc_buffer_t   b;
+	char rcodebuf[20];
+	isc_buffer_t b;
 
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -87,14 +84,13 @@ check_response(isc_buffer_t *buf)
 
 /* test ns_notify_start() */
 static void
-notify_start(void **state)
-{
-	isc_result_t   result;
-	ns_client_t *  client = NULL;
+notify_start(void **state) {
+	isc_result_t result;
+	ns_client_t *client = NULL;
 	dns_message_t *nmsg = NULL;
-	unsigned char  ndata[4096];
-	isc_buffer_t   nbuf;
-	size_t	       nsize;
+	unsigned char ndata[4096];
+	isc_buffer_t nbuf;
+	size_t nsize;
 
 	UNUSED(state);
 
@@ -146,8 +142,7 @@ notify_start(void **state)
 #endif /* if defined(USE_LIBTOOL) || LD_WRAP */
 
 int
-main(void)
-{
+main(void) {
 #if defined(USE_LIBTOOL) || LD_WRAP
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(notify_start, _setup,
@@ -164,8 +159,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 #if __SANITIZE_ADDRESS__
 	/*
 	 * We disable this test when the address sanitizer is in

@@ -46,12 +46,10 @@
 
 const char *program = "dnssec-keyfromlabel";
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "    %s -l label [options] name\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
@@ -116,52 +114,51 @@ usage(void)
 }
 
 int
-main(int argc, char **argv)
-{
-	char *		 algname = NULL, *freeit = NULL;
-	char *		 nametype = NULL, *type = NULL;
-	const char *	 directory = NULL;
-	const char *	 predecessor = NULL;
-	dst_key_t *	 prevkey = NULL;
-	const char *	 engine = NULL;
-	char *		 classname = NULL;
-	char *		 endp;
-	dst_key_t *	 key = NULL;
-	dns_fixedname_t	 fname;
-	dns_name_t *	 name;
-	uint16_t	 flags = 0, kskflag = 0, revflag = 0;
-	dns_secalg_t	 alg;
-	bool		 oldstyle = false;
-	isc_mem_t *	 mctx = NULL;
-	int		 ch;
-	int		 protocol = -1, signatory = 0;
-	isc_result_t	 ret;
+main(int argc, char **argv) {
+	char *algname = NULL, *freeit = NULL;
+	char *nametype = NULL, *type = NULL;
+	const char *directory = NULL;
+	const char *predecessor = NULL;
+	dst_key_t *prevkey = NULL;
+	const char *engine = NULL;
+	char *classname = NULL;
+	char *endp;
+	dst_key_t *key = NULL;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	uint16_t flags = 0, kskflag = 0, revflag = 0;
+	dns_secalg_t alg;
+	bool oldstyle = false;
+	isc_mem_t *mctx = NULL;
+	int ch;
+	int protocol = -1, signatory = 0;
+	isc_result_t ret;
 	isc_textregion_t r;
-	char		 filename[255];
-	isc_buffer_t	 buf;
-	isc_log_t *	 log = NULL;
+	char filename[255];
+	isc_buffer_t buf;
+	isc_log_t *log = NULL;
 	dns_rdataclass_t rdclass;
-	int		 options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
-	char *		 label = NULL;
-	dns_ttl_t	 ttl = 0;
-	isc_stdtime_t	 publish = 0, activate = 0, revoke = 0;
-	isc_stdtime_t	 inactive = 0, deltime = 0;
-	isc_stdtime_t	 now;
-	int		 prepub = -1;
-	bool		 setpub = false, setact = false;
-	bool		 setrev = false, setinact = false;
-	bool		 setdel = false, setttl = false;
-	bool		 unsetpub = false, unsetact = false;
-	bool		 unsetrev = false, unsetinact = false;
-	bool		 unsetdel = false;
-	bool		 genonly = false;
-	bool		 use_nsec3 = false;
-	bool		 avoid_collisions = true;
-	bool		 exact;
-	unsigned char	 c;
-	isc_stdtime_t	 syncadd = 0, syncdel = 0;
-	bool		 unsetsyncadd = false, setsyncadd = false;
-	bool		 unsetsyncdel = false, setsyncdel = false;
+	int options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
+	char *label = NULL;
+	dns_ttl_t ttl = 0;
+	isc_stdtime_t publish = 0, activate = 0, revoke = 0;
+	isc_stdtime_t inactive = 0, deltime = 0;
+	isc_stdtime_t now;
+	int prepub = -1;
+	bool setpub = false, setact = false;
+	bool setrev = false, setinact = false;
+	bool setdel = false, setttl = false;
+	bool unsetpub = false, unsetact = false;
+	bool unsetrev = false, unsetinact = false;
+	bool unsetdel = false;
+	bool genonly = false;
+	bool use_nsec3 = false;
+	bool avoid_collisions = true;
+	bool exact;
+	unsigned char c;
+	isc_stdtime_t syncadd = 0, syncdel = 0;
+	bool unsetsyncadd = false, setsyncadd = false;
+	bool unsetsyncdel = false, setsyncdel = false;
 
 	if (argc == 1) {
 		usage();
@@ -384,7 +381,7 @@ main(int argc, char **argv)
 
 		if (strchr(label, ':') == NULL) {
 			char *l;
-			int   len;
+			int len;
 
 			len = strlen(label) + 8;
 			l = isc_mem_allocate(mctx, len);
@@ -467,9 +464,9 @@ main(int argc, char **argv)
 			}
 		}
 	} else {
-		char	      keystr[DST_KEY_FORMATSIZE];
+		char keystr[DST_KEY_FORMATSIZE];
 		isc_stdtime_t when;
-		int	      major, minor;
+		int major, minor;
 
 		if (prepub == -1) {
 			prepub = (30 * 86400);
@@ -612,7 +609,8 @@ main(int argc, char **argv)
 	}
 
 	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
-	    alg == DNS_KEYALG_DH) {
+	    alg == DNS_KEYALG_DH)
+	{
 		fatal("a key with algorithm '%s' cannot be a zone key",
 		      algname);
 	}
@@ -694,7 +692,8 @@ main(int argc, char **argv)
 	} else {
 		if (setpub || setact || setrev || setinact || setdel ||
 		    unsetpub || unsetact || unsetrev || unsetinact ||
-		    unsetdel || genonly || setsyncadd || setsyncdel) {
+		    unsetdel || genonly || setsyncadd || setsyncdel)
+		{
 			fatal("cannot use -C together with "
 			      "-P, -A, -R, -I, -D, or -G options");
 		}

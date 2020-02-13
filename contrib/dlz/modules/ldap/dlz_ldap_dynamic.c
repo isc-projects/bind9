@@ -66,17 +66,17 @@
 #include <ldap.h>
 
 #define SIMPLE "simple"
-#define KRB41 "krb41"
-#define KRB42 "krb42"
-#define V2 "v2"
-#define V3 "v3"
+#define KRB41  "krb41"
+#define KRB42  "krb42"
+#define V2     "v2"
+#define V3     "v3"
 
 #define dbc_search_limit 30
-#define ALLNODES 1
-#define ALLOWXFR 2
-#define AUTHORITY 3
-#define FINDZONE 4
-#define LOOKUP 5
+#define ALLNODES	 1
+#define ALLOWXFR	 2
+#define AUTHORITY	 3
+#define FINDZONE	 4
+#define LOOKUP		 5
 
 /*%
  * Structure to hold everthing needed by this "instance" of the LDAP
@@ -99,28 +99,26 @@ typedef struct {
 	char *hosts;   /*%< LDAP server hosts */
 
 	/* Helper functions from the dlz_dlopen driver */
-	log_t *			 log;
-	dns_sdlz_putrr_t *	 putrr;
-	dns_sdlz_putnamedrr_t *	 putnamedrr;
+	log_t *log;
+	dns_sdlz_putrr_t *putrr;
+	dns_sdlz_putnamedrr_t *putnamedrr;
 	dns_dlz_writeablezone_t *writeable_zone;
 } ldap_instance_t;
 
 /* forward references */
 
 #if DLZ_DLOPEN_VERSION < 3
-isc_result_t
-dlz_findzonedb(void *dbdata, const char *name);
+isc_result_t dlz_findzonedb(void *dbdata, const char *name);
 #else  /* if DLZ_DLOPEN_VERSION < 3 */
-isc_result_t
-dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
-	       dns_clientinfo_t *clientinfo);
+isc_result_t dlz_findzonedb(void *dbdata, const char *name,
+			    dns_clientinfomethods_t *methods,
+			    dns_clientinfo_t *clientinfo);
 #endif /* if DLZ_DLOPEN_VERSION < 3 */
 
-void
-dlz_destroy(void *dbdata);
+void dlz_destroy(void *dbdata);
 
-static void
-b9_add_helper(ldap_instance_t *db, const char *helper_name, void *ptr);
+static void b9_add_helper(ldap_instance_t *db, const char *helper_name,
+			  void *ptr);
 
 /*
  * Private methods
@@ -131,7 +129,7 @@ static isc_result_t
 ldap_checkURL(ldap_instance_t *db, char *URL, int attrCnt, const char *msg)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	int	     ldap_result;
+	int ldap_result;
 	LDAPURLDesc *ldap_url = NULL;
 
 	if (!ldap_is_ldap_url(URL)) {
@@ -197,7 +195,7 @@ static isc_result_t
 ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc)
 {
 	isc_result_t result;
-	int	     ldap_result;
+	int ldap_result;
 
 	/* if we have a connection, get ride of it. */
 	if (dbc->dbconn != NULL) {
@@ -289,7 +287,7 @@ ldap_find_avail_conn(ldap_instance_t *ldap)
 {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
-	int	      count = 0;
+	int count = 0;
 
 	/* get top of list */
 	head = dbi = DLZ_LIST_HEAD(*ldap->db);
@@ -323,17 +321,17 @@ ldap_process_results(ldap_instance_t *db, LDAP *dbc, LDAPMessage *msg,
 		     char **attrs, void *ptr, bool allnodes)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	int	     i = 0;
-	int	     j;
-	int	     len;
-	char *	     attribute = NULL;
+	int i = 0;
+	int j;
+	int len;
+	char *attribute = NULL;
 	LDAPMessage *entry;
-	char *	     endp = NULL;
-	char *	     host = NULL;
-	char *	     type = NULL;
-	char *	     data = NULL;
-	char **	     vals = NULL;
-	int	     ttl;
+	char *endp = NULL;
+	char *host = NULL;
+	char *type = NULL;
+	char *data = NULL;
+	char **vals = NULL;
+	int ttl;
 
 	/* get the first entry to process */
 	entry = ldap_first_entry(dbc, msg);
@@ -551,15 +549,15 @@ static isc_result_t
 ldap_get_results(const char *zone, const char *record, const char *client,
 		 unsigned int query, void *dbdata, void *ptr)
 {
-	isc_result_t	 result;
+	isc_result_t result;
 	ldap_instance_t *db = (ldap_instance_t *)dbdata;
-	dbinstance_t *	 dbi = NULL;
-	char *		 querystring = NULL;
-	LDAPURLDesc *	 ldap_url = NULL;
-	int		 ldap_result = 0;
-	LDAPMessage *	 ldap_msg = NULL;
-	int		 i;
-	int		 entries;
+	dbinstance_t *dbi = NULL;
+	char *querystring = NULL;
+	LDAPURLDesc *ldap_url = NULL;
+	int ldap_result = 0;
+	LDAPMessage *ldap_msg = NULL;
+	int i;
+	int entries;
 
 	/* get db instance / connection */
 #if PTHREADS
@@ -918,16 +916,16 @@ isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	   ...)
 {
-	isc_result_t	 result = ISC_R_FAILURE;
+	isc_result_t result = ISC_R_FAILURE;
 	ldap_instance_t *ldap = NULL;
-	dbinstance_t *	 dbi = NULL;
-	const char *	 helper_name;
-	int		 protocol;
-	int		 method;
+	dbinstance_t *dbi = NULL;
+	const char *helper_name;
+	int protocol;
+	int method;
 #if PTHREADS
-	int   dbcount;
+	int dbcount;
 	char *endp;
-	int   i;
+	int i;
 #endif /* PTHREADS */
 	va_list ap;
 
@@ -1010,8 +1008,8 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	/* check that LDAP URL parameters make sense */
 	switch (argc) {
 	case 12:
-		result =
-			ldap_checkURL(ldap, argv[11], 0, "allow zone transfer");
+		result = ldap_checkURL(ldap, argv[11], 0,
+				       "allow zone transfer");
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}

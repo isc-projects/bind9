@@ -51,27 +51,26 @@
 
 #define RUNCHECK(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
 
-#define PORT 5300
+#define PORT	5300
 #define TIMEOUT 30
 
-static dst_key_t *	   ourkey;
-static isc_mem_t *	   mctx;
-static dns_tsigkey_t *	   tsigkey, *initialkey;
+static dst_key_t *ourkey;
+static isc_mem_t *mctx;
+static dns_tsigkey_t *tsigkey, *initialkey;
 static dns_tsig_keyring_t *ring;
-static unsigned char	   noncedata[16];
-static isc_buffer_t	   nonce;
-static dns_requestmgr_t *  requestmgr;
-static const char *	   ownername_str = ".";
+static unsigned char noncedata[16];
+static isc_buffer_t nonce;
+static dns_requestmgr_t *requestmgr;
+static const char *ownername_str = ".";
 
 static void
-recvquery(isc_task_t *task, isc_event_t *event)
-{
+recvquery(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
-	isc_result_t	    result;
-	dns_message_t *	    query, *response;
-	char		    keyname[256];
-	isc_buffer_t	    keynamebuf;
-	int		    type;
+	isc_result_t result;
+	dns_message_t *query, *response;
+	char keyname[256];
+	isc_buffer_t keynamebuf;
+	int type;
 
 	UNUSED(task);
 
@@ -125,19 +124,18 @@ recvquery(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-sendquery(isc_task_t *task, isc_event_t *event)
-{
-	struct in_addr	inaddr;
-	isc_sockaddr_t	address;
-	isc_region_t	r;
-	isc_result_t	result;
+sendquery(isc_task_t *task, isc_event_t *event) {
+	struct in_addr inaddr;
+	isc_sockaddr_t address;
+	isc_region_t r;
+	isc_result_t result;
 	dns_fixedname_t keyname;
 	dns_fixedname_t ownername;
-	isc_buffer_t	namestr, keybuf;
-	unsigned char	keydata[9];
-	dns_message_t * query;
-	dns_request_t * request;
-	static char	keystr[] = "0123456789ab";
+	isc_buffer_t namestr, keybuf;
+	unsigned char keydata[9];
+	dns_message_t *query;
+	dns_request_t *request;
+	static char keystr[] = "0123456789ab";
 
 	isc_event_free(&event);
 
@@ -191,24 +189,23 @@ sendquery(isc_task_t *task, isc_event_t *event)
 }
 
 int
-main(int argc, char *argv[])
-{
-	char *		   ourkeyname;
-	isc_taskmgr_t *	   taskmgr;
-	isc_timermgr_t *   timermgr;
-	isc_socketmgr_t *  socketmgr;
-	isc_socket_t *	   sock;
-	unsigned int	   attrs, attrmask;
-	isc_sockaddr_t	   bind_any;
+main(int argc, char *argv[]) {
+	char *ourkeyname;
+	isc_taskmgr_t *taskmgr;
+	isc_timermgr_t *timermgr;
+	isc_socketmgr_t *socketmgr;
+	isc_socket_t *sock;
+	unsigned int attrs, attrmask;
+	isc_sockaddr_t bind_any;
 	dns_dispatchmgr_t *dispatchmgr;
-	dns_dispatch_t *   dispatchv4;
-	dns_view_t *	   view;
-	dns_tkeyctx_t *	   tctx;
-	isc_log_t *	   log;
-	isc_logconfig_t *  logconfig;
-	isc_task_t *	   task;
-	isc_result_t	   result;
-	int		   type;
+	dns_dispatch_t *dispatchv4;
+	dns_view_t *view;
+	dns_tkeyctx_t *tctx;
+	isc_log_t *log;
+	isc_logconfig_t *logconfig;
+	isc_task_t *task;
+	isc_result_t result;
+	int type;
 
 	RUNCHECK(isc_app_start());
 

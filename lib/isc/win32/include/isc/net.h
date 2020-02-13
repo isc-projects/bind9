@@ -100,7 +100,7 @@
 #endif /* ifndef INADDR_LOOPBACK */
 
 #if _MSC_VER < 1300
-#define in6addr_any isc_in6addr_any
+#define in6addr_any	 isc_in6addr_any
 #define in6addr_loopback isc_in6addr_loopback
 #endif /* if _MSC_VER < 1300 */
 
@@ -327,11 +327,11 @@ isc_net_probeunix(void);
 
 #define ISC_NET_DSCPRECVV4 0x01 /* Can receive sent DSCP value IPv4 */
 #define ISC_NET_DSCPRECVV6 0x02 /* Can receive sent DSCP value IPv6 */
-#define ISC_NET_DSCPSETV4 0x04	/* Can set DSCP on socket IPv4 */
-#define ISC_NET_DSCPSETV6 0x08	/* Can set DSCP on socket IPv6 */
-#define ISC_NET_DSCPPKTV4 0x10	/* Can set DSCP on per packet IPv4 */
-#define ISC_NET_DSCPPKTV6 0x20	/* Can set DSCP on per packet IPv6 */
-#define ISC_NET_DSCPALL 0x3f	/* All valid flags */
+#define ISC_NET_DSCPSETV4  0x04 /* Can set DSCP on socket IPv4 */
+#define ISC_NET_DSCPSETV6  0x08 /* Can set DSCP on socket IPv6 */
+#define ISC_NET_DSCPPKTV4  0x10 /* Can set DSCP on per packet IPv4 */
+#define ISC_NET_DSCPPKTV6  0x20 /* Can set DSCP on per packet IPv6 */
+#define ISC_NET_DSCPALL	   0x3f /* All valid flags */
 
 unsigned int
 isc_net_probedscp(void);

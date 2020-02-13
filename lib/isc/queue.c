@@ -28,10 +28,10 @@ static uintptr_t nulluintptr = (uintptr_t)NULL;
 
 typedef struct node {
 	atomic_uint_fast32_t deqidx;
-	atomic_uintptr_t     items[BUFFER_SIZE];
+	atomic_uintptr_t items[BUFFER_SIZE];
 	atomic_uint_fast32_t enqidx;
-	atomic_uintptr_t     next;
-	isc_mem_t *	     mctx;
+	atomic_uintptr_t next;
+	isc_mem_t *mctx;
 } node_t;
 
 /* we just need one Hazard Pointer */
@@ -42,15 +42,14 @@ struct isc_queue {
 	alignas(ALIGNMENT) atomic_uintptr_t head;
 	alignas(ALIGNMENT) atomic_uintptr_t tail;
 	isc_mem_t *mctx;
-	int	   max_threads;
-	int	   taken;
-	isc_hp_t * hp;
-	void *	   alloced_ptr;
+	int max_threads;
+	int taken;
+	isc_hp_t *hp;
+	void *alloced_ptr;
 };
 
 static node_t *
-node_new(isc_mem_t *mctx, uintptr_t item)
-{
+node_new(isc_mem_t *mctx, uintptr_t item) {
 	node_t *node = isc_mem_get(mctx, sizeof(*node));
 	*node = (node_t){ .mctx = NULL };
 
@@ -69,41 +68,36 @@ node_new(isc_mem_t *mctx, uintptr_t item)
 }
 
 static void
-node_destroy(void *node0)
-{
+node_destroy(void *node0) {
 	node_t *node = (node_t *)node0;
 
 	isc_mem_putanddetach(&node->mctx, node, sizeof(*node));
 }
 
 static bool
-node_cas_next(node_t *node, node_t *cmp, const node_t *val)
-{
+node_cas_next(node_t *node, node_t *cmp, const node_t *val) {
 	return (atomic_compare_exchange_strong(&node->next, (uintptr_t *)&cmp,
 					       (uintptr_t)val));
 }
 
 static bool
-queue_cas_tail(isc_queue_t *queue, node_t *cmp, const node_t *val)
-{
+queue_cas_tail(isc_queue_t *queue, node_t *cmp, const node_t *val) {
 	return (atomic_compare_exchange_strong(&queue->tail, (uintptr_t *)&cmp,
 					       (uintptr_t)val));
 }
 
 static bool
-queue_cas_head(isc_queue_t *queue, node_t *cmp, const node_t *val)
-{
+queue_cas_head(isc_queue_t *queue, node_t *cmp, const node_t *val) {
 	return (atomic_compare_exchange_strong(&queue->head, (uintptr_t *)&cmp,
 					       (uintptr_t)val));
 }
 
 isc_queue_t *
-isc_queue_new(isc_mem_t *mctx, int max_threads)
-{
+isc_queue_new(isc_mem_t *mctx, int max_threads) {
 	isc_queue_t *queue = NULL;
-	node_t *     sentinel = NULL;
-	void *	     qbuf = NULL;
-	uintptr_t    qptr;
+	node_t *sentinel = NULL;
+	void *qbuf = NULL;
+	uintptr_t qptr;
 
 	/*
 	 * A trick to allocate an aligned isc_queue_t structure
@@ -135,14 +129,13 @@ isc_queue_new(isc_mem_t *mctx, int max_threads)
 }
 
 void
-isc_queue_enqueue(isc_queue_t *queue, uintptr_t item)
-{
+isc_queue_enqueue(isc_queue_t *queue, uintptr_t item) {
 	REQUIRE(item != nulluintptr);
 
 	while (true) {
-		node_t *      lt = NULL;
+		node_t *lt = NULL;
 		uint_fast32_t idx;
-		uintptr_t     n = nulluintptr;
+		uintptr_t n = nulluintptr;
 
 		lt = (node_t *)isc_hp_protect(queue->hp, 0, &queue->tail);
 		idx = atomic_fetch_add(&lt->enqidx, 1);
@@ -177,18 +170,18 @@ isc_queue_enqueue(isc_queue_t *queue, uintptr_t item)
 }
 
 uintptr_t
-isc_queue_dequeue(isc_queue_t *queue)
-{
+isc_queue_dequeue(isc_queue_t *queue) {
 	REQUIRE(queue != NULL);
 
 	while (true) {
-		node_t *      lh = NULL;
+		node_t *lh = NULL;
 		uint_fast32_t idx;
-		uintptr_t     item;
+		uintptr_t item;
 
 		lh = (node_t *)isc_hp_protect(queue->hp, 0, &queue->head);
 		if (atomic_load(&lh->deqidx) >= atomic_load(&lh->enqidx) &&
-		    atomic_load(&lh->next) == nulluintptr) {
+		    atomic_load(&lh->next) == nulluintptr)
+		{
 			break;
 		}
 
@@ -220,10 +213,9 @@ isc_queue_dequeue(isc_queue_t *queue)
 }
 
 void
-isc_queue_destroy(isc_queue_t *queue)
-{
+isc_queue_destroy(isc_queue_t *queue) {
 	node_t *last = NULL;
-	void *	alloced = NULL;
+	void *alloced = NULL;
 
 	REQUIRE(queue != NULL);
 

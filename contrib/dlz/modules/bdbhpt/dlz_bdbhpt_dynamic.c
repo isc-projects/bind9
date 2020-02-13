@@ -70,9 +70,9 @@
 #define bdbhpt_threads DB_THREAD
 
 /* bdbhpt database names */
-#define dlz_data "dns_data"
-#define dlz_zone "dns_zone"
-#define dlz_xfr "dns_xfr"
+#define dlz_data   "dns_data"
+#define dlz_zone   "dns_zone"
+#define dlz_xfr	   "dns_xfr"
 #define dlz_client "dns_client"
 
 #define dlz_bdbhpt_dynamic_version "0.1"
@@ -83,28 +83,28 @@
  *
  */
 typedef struct bdbhpt_instance {
-	DB_ENV *dbenv;	/* bdbhpt environment */
-	DB *	data;	/* dns_data database handle */
-	DB *	zone;	/* zone database handle */
-	DB *	xfr;	/* zone xfr database handle */
-	DB *	client; /* client database handle */
+	DB_ENV *dbenv; /* bdbhpt environment */
+	DB *data;      /* dns_data database handle */
+	DB *zone;      /* zone database handle */
+	DB *xfr;       /* zone xfr database handle */
+	DB *client;    /* client database handle */
 
 	/* Helper functions from the dlz_dlopen driver */
-	log_t *			 log;
-	dns_sdlz_putrr_t *	 putrr;
-	dns_sdlz_putnamedrr_t *	 putnamedrr;
+	log_t *log;
+	dns_sdlz_putrr_t *putrr;
+	dns_sdlz_putnamedrr_t *putnamedrr;
 	dns_dlz_writeablezone_t *writeable_zone;
 } bdbhpt_instance_t;
 
 typedef struct bdbhpt_parsed_data {
 	char *host;
 	char *type;
-	int   ttl;
+	int ttl;
 	char *data;
 } bdbhpt_parsed_data_t;
 
-static void
-b9_add_helper(struct bdbhpt_instance *db, const char *helper_name, void *ptr);
+static void b9_add_helper(struct bdbhpt_instance *db, const char *helper_name,
+			  void *ptr);
 
 /*%
  * Reverses a string in place.
@@ -244,9 +244,9 @@ bdbhpt_parse_data(log_t *log, char *in, bdbhpt_parsed_data_t *pd)
 isc_result_t
 dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
 {
-	isc_result_t	   result;
+	isc_result_t result;
 	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
-	DBT		   key, data;
+	DBT key, data;
 
 	/* check to see if we are authoritative for the zone first. */
 #if DLZ_DLOPEN_VERSION >= 3
@@ -331,16 +331,16 @@ xfr_cleanup:
 isc_result_t
 dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 {
-	isc_result_t	     result = ISC_R_NOTFOUND;
-	bdbhpt_instance_t *  db = (bdbhpt_instance_t *)dbdata;
-	DBC *		     xfr_cursor = NULL;
-	DBC *		     dns_cursor = NULL;
-	DBT		     xfr_key, xfr_data, dns_key, dns_data;
-	int		     xfr_flags;
-	int		     dns_flags;
-	int		     bdbhptres;
+	isc_result_t result = ISC_R_NOTFOUND;
+	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
+	DBC *xfr_cursor = NULL;
+	DBC *dns_cursor = NULL;
+	DBT xfr_key, xfr_data, dns_key, dns_data;
+	int xfr_flags;
+	int dns_flags;
+	int bdbhptres;
 	bdbhpt_parsed_data_t pd;
-	char *		     tmp = NULL, *tmp_zone, *tmp_zone_host = NULL;
+	char *tmp = NULL, *tmp_zone, *tmp_zone_host = NULL;
 
 	memset(&xfr_key, 0, sizeof(DBT));
 	memset(&xfr_data, 0, sizeof(DBT));
@@ -370,7 +370,8 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 
 	/* loop through xfr table for specified zone. */
 	while ((bdbhptres = xfr_cursor->c_get(xfr_cursor, &xfr_key, &xfr_data,
-					      xfr_flags)) == 0) {
+					      xfr_flags)) == 0)
+	{
 		xfr_flags = DB_NEXT_DUP;
 
 		/* +1 to allow for space between zone and host names */
@@ -394,7 +395,8 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 
 		while ((bdbhptres = dns_cursor->c_get(dns_cursor, &dns_key,
 						      &dns_data, dns_flags)) ==
-		       0) {
+		       0)
+		{
 			dns_flags = DB_NEXT_DUP;
 
 			/* +1 to allow for null term at end of string. */
@@ -492,9 +494,9 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo)
 #endif /* if DLZ_DLOPEN_VERSION < 3 */
 {
-	isc_result_t	   result;
+	isc_result_t result;
 	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
-	DBT		   key, data;
+	DBT key, data;
 
 	memset(&key, 0, sizeof(DBT));
 	memset(&data, 0, sizeof(DBT));
@@ -558,16 +560,16 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_clientinfo_t *clientinfo)
 #endif /* if DLZ_DLOPEN_VERSION == 1 */
 {
-	isc_result_t	   result = ISC_R_NOTFOUND;
+	isc_result_t result = ISC_R_NOTFOUND;
 	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
-	DBC *		   data_cursor = NULL;
-	DBT		   key, data;
-	int		   bdbhptres;
-	int		   flags;
+	DBC *data_cursor = NULL;
+	DBT key, data;
+	int bdbhptres;
+	int flags;
 
 	bdbhpt_parsed_data_t pd;
-	char *		     tmp = NULL;
-	char *		     keyStr = NULL;
+	char *tmp = NULL;
+	char *keyStr = NULL;
 
 #if DLZ_DLOPEN_VERSION >= 2
 	UNUSED(methods);
@@ -663,7 +665,8 @@ bdbhpt_opendb(log_t *log, DB_ENV *db_env, DBTYPE db_type, DB **db,
 
 	/* open the database. */
 	if ((result = (*db)->open(*db, NULL, db_file, db_name, db_type,
-				  DB_RDONLY | bdbhpt_threads, 0)) != 0) {
+				  DB_RDONLY | bdbhpt_threads, 0)) != 0)
+	{
 		log(ISC_LOG_ERROR,
 		    "bdbhpt_dynamic: could not open %s database in %s. "
 		    "BerkeleyDB error: %s",
@@ -681,13 +684,13 @@ isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	   ...)
 {
-	isc_result_t	   result;
-	int		   bdbhptres;
-	int		   bdbFlags = 0;
+	isc_result_t result;
+	int bdbhptres;
+	int bdbFlags = 0;
 	bdbhpt_instance_t *db = NULL;
 
 	const char *helper_name;
-	va_list	    ap;
+	va_list ap;
 
 	UNUSED(dlzname);
 

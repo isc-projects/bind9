@@ -53,30 +53,26 @@ LIBDNS_EXTERNAL_DATA isc_stats_t *dns_dnssec_stats;
 			goto failure;        \
 	} while (0)
 
-#define TYPE_SIGN 0
+#define TYPE_SIGN   0
 #define TYPE_VERIFY 1
 
-static isc_result_t
-digest_callback(void *arg, isc_region_t *data);
+static isc_result_t digest_callback(void *arg, isc_region_t *data);
 
-static int
-rdata_compare_wrapper(const void *rdata1, const void *rdata2);
+static int rdata_compare_wrapper(const void *rdata1, const void *rdata2);
 
-static isc_result_t
-rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
-			dns_rdata_t **rdata, int *nrdata);
+static isc_result_t rdataset_to_sortedarray(dns_rdataset_t *set,
+					    isc_mem_t *mctx,
+					    dns_rdata_t **rdata, int *nrdata);
 
 static isc_result_t
-digest_callback(void *arg, isc_region_t *data)
-{
+digest_callback(void *arg, isc_region_t *data) {
 	dst_context_t *ctx = arg;
 
 	return (dst_context_adddata(ctx, data));
 }
 
 static inline void
-inc_stat(isc_statscounter_t counter)
-{
+inc_stat(isc_statscounter_t counter) {
 	if (dns_dnssec_stats != NULL) {
 		isc_stats_increment(dns_dnssec_stats, counter);
 	}
@@ -86,8 +82,7 @@ inc_stat(isc_statscounter_t counter)
  * Make qsort happy.
  */
 static int
-rdata_compare_wrapper(const void *rdata1, const void *rdata2)
-{
+rdata_compare_wrapper(const void *rdata1, const void *rdata2) {
 	return (dns_rdata_compare((const dns_rdata_t *)rdata1,
 				  (const dns_rdata_t *)rdata2));
 }
@@ -97,11 +92,10 @@ rdata_compare_wrapper(const void *rdata1, const void *rdata2)
  */
 static isc_result_t
 rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
-			dns_rdata_t **rdata, int *nrdata)
-{
-	isc_result_t   ret;
-	int	       i = 0, n;
-	dns_rdata_t *  data;
+			dns_rdata_t **rdata, int *nrdata) {
+	isc_result_t ret;
+	int i = 0, n;
+	dns_rdata_t *data;
 	dns_rdataset_t rdataset;
 
 	n = dns_rdataset_count(set);
@@ -137,8 +131,7 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 
 isc_result_t
 dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
-			isc_mem_t *mctx, dst_key_t **key)
-{
+			isc_mem_t *mctx, dst_key_t **key) {
 	isc_buffer_t b;
 	isc_region_t r;
 
@@ -158,10 +151,9 @@ dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
 
 static isc_result_t
 digest_sig(dst_context_t *ctx, bool downcase, dns_rdata_t *sigrdata,
-	   dns_rdata_rrsig_t *rrsig)
-{
-	isc_region_t	r;
-	isc_result_t	ret;
+	   dns_rdata_rrsig_t *rrsig) {
+	isc_region_t r;
+	isc_result_t ret;
 	dns_fixedname_t fname;
 
 	dns_rdata_toregion(sigrdata, &r);
@@ -189,22 +181,21 @@ digest_sig(dst_context_t *ctx, bool downcase, dns_rdata_t *sigrdata,
 isc_result_t
 dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_stdtime_t *inception, isc_stdtime_t *expire,
-		isc_mem_t *mctx, isc_buffer_t *buffer, dns_rdata_t *sigrdata)
-{
+		isc_mem_t *mctx, isc_buffer_t *buffer, dns_rdata_t *sigrdata) {
 	dns_rdata_rrsig_t sig;
-	dns_rdata_t	  tmpsigrdata;
-	dns_rdata_t *	  rdatas;
-	int		  nrdatas, i;
-	isc_buffer_t	  sigbuf, envbuf;
-	isc_region_t	  r;
-	dst_context_t *	  ctx = NULL;
-	isc_result_t	  ret;
-	isc_buffer_t *	  databuf = NULL;
-	char		  data[256 + 8];
-	uint32_t	  flags;
-	unsigned int	  sigsize;
-	dns_fixedname_t	  fnewname;
-	dns_fixedname_t	  fsigner;
+	dns_rdata_t tmpsigrdata;
+	dns_rdata_t *rdatas;
+	int nrdatas, i;
+	isc_buffer_t sigbuf, envbuf;
+	isc_region_t r;
+	dst_context_t *ctx = NULL;
+	isc_result_t ret;
+	isc_buffer_t *databuf = NULL;
+	char data[256 + 8];
+	uint32_t flags;
+	unsigned int sigsize;
+	dns_fixedname_t fnewname;
+	dns_fixedname_t fsigner;
 
 	REQUIRE(name != NULL);
 	REQUIRE(dns_name_countlabels(name) <= 255);
@@ -311,15 +302,15 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	isc_buffer_usedregion(&envbuf, &r);
 
 	for (i = 0; i < nrdatas; i++) {
-		uint16_t     len;
+		uint16_t len;
 		isc_buffer_t lenbuf;
 		isc_region_t lenr;
 
 		/*
 		 * Skip duplicates.
 		 */
-		if (i > 0 &&
-		    dns_rdata_compare(&rdatas[i], &rdatas[i - 1]) == 0) {
+		if (i > 0 && dns_rdata_compare(&rdatas[i], &rdatas[i - 1]) == 0)
+		{
 			continue;
 		}
 
@@ -380,21 +371,20 @@ cleanup_databuf:
 isc_result_t
 dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		  bool ignoretime, unsigned int maxbits, isc_mem_t *mctx,
-		  dns_rdata_t *sigrdata, dns_name_t *wild)
-{
+		  dns_rdata_t *sigrdata, dns_name_t *wild) {
 	dns_rdata_rrsig_t sig;
-	dns_fixedname_t	  fnewname;
-	isc_region_t	  r;
-	isc_buffer_t	  envbuf;
-	dns_rdata_t *	  rdatas;
-	int		  nrdatas, i;
-	isc_stdtime_t	  now;
-	isc_result_t	  ret;
-	unsigned char	  data[300];
-	dst_context_t *	  ctx = NULL;
-	int		  labels = 0;
-	uint32_t	  flags;
-	bool		  downcase = false;
+	dns_fixedname_t fnewname;
+	isc_region_t r;
+	isc_buffer_t envbuf;
+	dns_rdata_t *rdatas;
+	int nrdatas, i;
+	isc_stdtime_t now;
+	isc_result_t ret;
+	unsigned char data[300];
+	dst_context_t *ctx = NULL;
+	int labels = 0;
+	uint32_t flags;
+	bool downcase = false;
 
 	REQUIRE(name != NULL);
 	REQUIRE(set != NULL);
@@ -524,15 +514,15 @@ again:
 	isc_buffer_usedregion(&envbuf, &r);
 
 	for (i = 0; i < nrdatas; i++) {
-		uint16_t     len;
+		uint16_t len;
 		isc_buffer_t lenbuf;
 		isc_region_t lenr;
 
 		/*
 		 * Skip duplicates.
 		 */
-		if (i > 0 &&
-		    dns_rdata_compare(&rdatas[i], &rdatas[i - 1]) == 0) {
+		if (i > 0 && dns_rdata_compare(&rdatas[i], &rdatas[i - 1]) == 0)
+		{
 			continue;
 		}
 
@@ -614,12 +604,11 @@ cleanup_struct:
 }
 
 bool
-dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now)
-{
-	isc_result_t  result;
+dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
+	isc_result_t result;
 	isc_stdtime_t publish, active, revoke, remove;
 	bool hint_publish, hint_zsign, hint_ksign, hint_revoke, hint_remove;
-	int  major, minor;
+	int major, minor;
 	bool ksk = false, zsk = false;
 	isc_result_t ret;
 
@@ -678,13 +667,12 @@ dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now)
  *  - SyncDelete is unset or in the future
  */
 static bool
-syncpublish(dst_key_t *key, isc_stdtime_t now)
-{
-	isc_result_t	result;
-	isc_stdtime_t	when;
+syncpublish(dst_key_t *key, isc_stdtime_t now) {
+	isc_result_t result;
+	isc_stdtime_t when;
 	dst_key_state_t state;
-	int		major, minor;
-	bool		publish;
+	int major, minor;
+	bool publish;
 
 	/*
 	 * Is this an old-style key?
@@ -730,12 +718,11 @@ syncpublish(dst_key_t *key, isc_stdtime_t now)
  * - SyncDelete is set and in the past.
  */
 static bool
-syncdelete(dst_key_t *key, isc_stdtime_t now)
-{
-	isc_result_t	result;
-	isc_stdtime_t	when;
+syncdelete(dst_key_t *key, isc_stdtime_t now) {
+	isc_result_t result;
+	isc_stdtime_t when;
 	dst_key_state_t state;
-	int		major, minor;
+	int major, minor;
 
 	/*
 	 * Is this an old-style key?
@@ -776,13 +763,12 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 			const dns_name_t *name, const char *directory,
 			isc_stdtime_t now, isc_mem_t *mctx,
 			unsigned int maxkeys, dst_key_t **keys,
-			unsigned int *nkeys)
-{
+			unsigned int *nkeys) {
 	dns_rdataset_t rdataset;
-	dns_rdata_t    rdata = DNS_RDATA_INIT;
-	isc_result_t   result;
-	dst_key_t *    pubkey = NULL;
-	unsigned int   count = 0;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_result_t result;
+	dst_key_t *pubkey = NULL;
+	unsigned int count = 0;
 
 	REQUIRE(nkeys != NULL);
 	REQUIRE(keys != NULL);
@@ -841,7 +827,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			char	     filename[DNS_NAME_FORMATSIZE +
+			char filename[DNS_NAME_FORMATSIZE +
 				      DNS_SECALG_FORMATSIZE +
 				      sizeof("key file for //65535")];
 			isc_result_t result2;
@@ -942,23 +928,22 @@ failure:
 }
 
 isc_result_t
-dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key)
-{
-	dns_rdata_sig_t	 sig; /* SIG(0) */
-	unsigned char	 data[512];
-	unsigned char	 header[DNS_MESSAGE_HEADERLEN];
-	isc_buffer_t	 headerbuf, databuf, sigbuf;
-	unsigned int	 sigsize;
-	isc_buffer_t *	 dynbuf = NULL;
-	dns_rdata_t *	 rdata;
+dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
+	dns_rdata_sig_t sig; /* SIG(0) */
+	unsigned char data[512];
+	unsigned char header[DNS_MESSAGE_HEADERLEN];
+	isc_buffer_t headerbuf, databuf, sigbuf;
+	unsigned int sigsize;
+	isc_buffer_t *dynbuf = NULL;
+	dns_rdata_t *rdata;
 	dns_rdatalist_t *datalist;
-	dns_rdataset_t * dataset;
-	isc_region_t	 r;
-	isc_stdtime_t	 now;
-	dst_context_t *	 ctx = NULL;
-	isc_mem_t *	 mctx;
-	isc_result_t	 result;
-	bool		 signeedsfree = true;
+	dns_rdataset_t *dataset;
+	isc_region_t r;
+	isc_stdtime_t now;
+	dst_context_t *ctx = NULL;
+	isc_mem_t *mctx;
+	isc_result_t result;
+	bool signeedsfree = true;
 
 	REQUIRE(msg != NULL);
 	REQUIRE(key != NULL);
@@ -1080,18 +1065,17 @@ failure:
 
 isc_result_t
 dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
-			 dst_key_t *key)
-{
+			 dst_key_t *key) {
 	dns_rdata_sig_t sig; /* SIG(0) */
-	unsigned char	header[DNS_MESSAGE_HEADERLEN];
-	dns_rdata_t	rdata = DNS_RDATA_INIT;
-	isc_region_t	r, source_r, sig_r, header_r;
-	isc_stdtime_t	now;
-	dst_context_t * ctx = NULL;
-	isc_mem_t *	mctx;
-	isc_result_t	result;
-	uint16_t	addcount, addcount_n;
-	bool		signeedsfree = false;
+	unsigned char header[DNS_MESSAGE_HEADERLEN];
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_region_t r, source_r, sig_r, header_r;
+	isc_stdtime_t now;
+	dst_context_t *ctx = NULL;
+	isc_mem_t *mctx;
+	isc_result_t result;
+	uint16_t addcount, addcount_n;
+	bool signeedsfree = false;
 
 	REQUIRE(source != NULL);
 	REQUIRE(msg != NULL);
@@ -1222,8 +1206,7 @@ failure:
 bool
 dns_dnssec_selfsigns(dns_rdata_t *rdata, const dns_name_t *name,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-		     bool ignoretime, isc_mem_t *mctx)
-{
+		     bool ignoretime, isc_mem_t *mctx) {
 	INSIST(rdataset->type == dns_rdatatype_key ||
 	       rdataset->type == dns_rdatatype_dnskey);
 	if (rdataset->type == dns_rdatatype_key) {
@@ -1241,14 +1224,13 @@ dns_dnssec_selfsigns(dns_rdata_t *rdata, const dns_name_t *name,
 bool
 dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-		 bool ignoretime, isc_mem_t *mctx)
-{
-	dst_key_t *	   dstkey = NULL;
-	dns_keytag_t	   keytag;
+		 bool ignoretime, isc_mem_t *mctx) {
+	dst_key_t *dstkey = NULL;
+	dns_keytag_t keytag;
 	dns_rdata_dnskey_t key;
-	dns_rdata_rrsig_t  sig;
-	dns_rdata_t	   sigrdata = DNS_RDATA_INIT;
-	isc_result_t	   result;
+	dns_rdata_rrsig_t sig;
+	dns_rdata_t sigrdata = DNS_RDATA_INIT;
+	isc_result_t result;
 
 	INSIST(sigrdataset->type == dns_rdatatype_rrsig);
 	if (sigrdataset->covers != rdataset->type) {
@@ -1264,7 +1246,8 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 
 	keytag = dst_key_id(dstkey);
 	for (result = dns_rdataset_first(sigrdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(sigrdataset)) {
+	     result = dns_rdataset_next(sigrdataset))
+	{
 		dns_rdata_reset(&sigrdata);
 		dns_rdataset_current(sigrdataset, &sigrdata);
 		result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
@@ -1285,11 +1268,11 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 }
 
 isc_result_t
-dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey, dns_dnsseckey_t **dkp)
-{
-	isc_result_t	 result;
+dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
+		     dns_dnsseckey_t **dkp) {
+	isc_result_t result;
 	dns_dnsseckey_t *dk;
-	int		 major, minor;
+	int major, minor;
 
 	REQUIRE(dkp != NULL && *dkp == NULL);
 	dk = isc_mem_get(mctx, sizeof(dns_dnsseckey_t));
@@ -1331,8 +1314,7 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey, dns_dnsseckey_t **dkp)
 }
 
 void
-dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp)
-{
+dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp) {
 	dns_dnsseckey_t *dk;
 
 	REQUIRE(dkp != NULL && *dkp != NULL);
@@ -1345,15 +1327,14 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp)
 }
 
 void
-dns_dnssec_get_hints(dns_dnsseckey_t *key, isc_stdtime_t now)
-{
+dns_dnssec_get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	isc_stdtime_t publish = 0, active = 0, revoke = 0, remove = 0;
 
 	REQUIRE(key != NULL && key->key != NULL);
 
 	key->hint_publish = dst_key_is_published(key->key, now, &publish);
-	key->hint_sign =
-		dst_key_is_signing(key->key, DST_BOOL_ZSK, now, &active);
+	key->hint_sign = dst_key_is_signing(key->key, DST_BOOL_ZSK, now,
+					    &active);
 	key->hint_revoke = dst_key_is_revoked(key->key, now, &revoke);
 	key->hint_remove = dst_key_is_removed(key->key, now, &remove);
 
@@ -1412,17 +1393,16 @@ dns_dnssec_get_hints(dns_dnsseckey_t *key, isc_stdtime_t now)
 isc_result_t
 dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 			    isc_stdtime_t now, isc_mem_t *mctx,
-			    dns_dnsseckeylist_t *keylist)
-{
-	isc_result_t	    result = ISC_R_SUCCESS;
-	bool		    dir_open = false;
+			    dns_dnsseckeylist_t *keylist) {
+	isc_result_t result = ISC_R_SUCCESS;
+	bool dir_open = false;
 	dns_dnsseckeylist_t list;
-	isc_dir_t	    dir;
-	dns_dnsseckey_t *   key = NULL;
-	dst_key_t *	    dstkey = NULL;
-	char		    namebuf[DNS_NAME_FORMATSIZE];
-	isc_buffer_t	    b;
-	unsigned int	    len, i, alg;
+	isc_dir_t dir;
+	dns_dnsseckey_t *key = NULL;
+	dst_key_t *dstkey = NULL;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	isc_buffer_t b;
+	unsigned int len, i, alg;
 
 	REQUIRE(keylist != NULL);
 	ISC_LIST_INIT(list);
@@ -1442,14 +1422,15 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
 		if (dir.entry.name[0] != 'K' || dir.entry.length < len + 1 ||
 		    dir.entry.name[len + 1] != '+' ||
-		    strncasecmp(dir.entry.name + 1, namebuf, len) != 0) {
+		    strncasecmp(dir.entry.name + 1, namebuf, len) != 0)
+		{
 			continue;
 		}
 
 		alg = 0;
 		for (i = len + 1 + 1; i < dir.entry.length; i++) {
-			if (dir.entry.name[i] < '0' ||
-			    dir.entry.name[i] > '9') {
+			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
+			{
 				break;
 			}
 			alg *= 10;
@@ -1467,8 +1448,8 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 		}
 
 		for (i++; i < dir.entry.length; i++) {
-			if (dir.entry.name[i] < '0' ||
-			    dir.entry.name[i] > '9') {
+			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
+			{
 				break;
 
 				/*
@@ -1485,7 +1466,8 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 		 * Did we correctly terminate?
 		 */
 		if (i != len + 1 + 1 + 3 + 1 + 5 || i >= dir.entry.length ||
-		    strcmp(dir.entry.name + i, ".private") != 0) {
+		    strcmp(dir.entry.name + i, ".private") != 0)
+		{
 			continue;
 		}
 
@@ -1562,10 +1544,9 @@ failure:
  */
 static isc_result_t
 addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
-       isc_mem_t *mctx)
-{
+       isc_mem_t *mctx) {
 	dns_dnsseckey_t *key;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	/* Skip duplicates */
 	for (key = ISC_LIST_HEAD(*keylist); key != NULL;
@@ -1573,7 +1554,8 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
 		if (dst_key_id(key->key) == dst_key_id(*newkey) &&
 		    dst_key_alg(key->key) == dst_key_alg(*newkey) &&
 		    dns_name_equal(dst_key_name(key->key),
-				   dst_key_name(*newkey))) {
+				   dst_key_name(*newkey)))
+		{
 			break;
 		}
 	}
@@ -1615,11 +1597,10 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
  * for future reference.
  */
 static isc_result_t
-mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs)
-{
-	isc_result_t	 result = ISC_R_SUCCESS;
-	dns_rdata_t	 rdata = DNS_RDATA_INIT;
-	dns_rdataset_t	 sigs;
+mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdataset_t sigs;
 	dns_dnsseckey_t *key;
 
 	REQUIRE(rrsigs != NULL && dns_rdataset_isassociated(rrsigs));
@@ -1628,14 +1609,14 @@ mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs)
 	dns_rdataset_clone(rrsigs, &sigs);
 	for (key = ISC_LIST_HEAD(*keylist); key != NULL;
 	     key = ISC_LIST_NEXT(key, link)) {
-		uint16_t     keyid, sigid;
+		uint16_t keyid, sigid;
 		dns_secalg_t keyalg, sigalg;
 		keyid = dst_key_id(key->key);
 		keyalg = dst_key_alg(key->key);
 
 		for (result = dns_rdataset_first(&sigs);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&sigs)) {
+		     result == ISC_R_SUCCESS; result = dns_rdataset_next(&sigs))
+		{
 			dns_rdata_rrsig_t sig;
 
 			dns_rdata_reset(&rdata);
@@ -1669,12 +1650,11 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 			       isc_mem_t *mctx, dns_rdataset_t *keyset,
 			       dns_rdataset_t *keysigs, dns_rdataset_t *soasigs,
 			       bool savekeys, bool publickey,
-			       dns_dnsseckeylist_t *keylist)
-{
+			       dns_dnsseckeylist_t *keylist) {
 	dns_rdataset_t keys;
-	dns_rdata_t    rdata = DNS_RDATA_INIT;
-	dst_key_t *    pubkey = NULL, *privkey = NULL;
-	isc_result_t   result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dst_key_t *pubkey = NULL, *privkey = NULL;
+	isc_result_t result;
 
 	REQUIRE(keyset != NULL && dns_rdataset_isassociated(keyset));
 
@@ -1682,7 +1662,8 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 
 	dns_rdataset_clone(keyset, &keys);
 	for (result = dns_rdataset_first(&keys); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&keys)) {
+	     result = dns_rdataset_next(&keys))
+	{
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(&keys, &rdata);
 
@@ -1737,8 +1718,8 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 					 DST_TYPE_STATE),
 					directory, mctx, &privkey);
 				if (result == ISC_R_SUCCESS &&
-				    dst_key_pubcompare(pubkey, privkey,
-						       false)) {
+				    dst_key_pubcompare(pubkey, privkey, false))
+				{
 					dst_key_setflags(privkey, flags);
 				}
 				dst_key_setflags(pubkey, flags);
@@ -1746,7 +1727,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			char	     filename[DNS_NAME_FORMATSIZE +
+			char filename[DNS_NAME_FORMATSIZE +
 				      DNS_SECALG_FORMATSIZE +
 				      sizeof("key file for //65535")];
 			isc_result_t result2;
@@ -1835,8 +1816,7 @@ failure:
 
 static isc_result_t
 make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
-	    dns_rdata_t *target)
-{
+	    dns_rdata_t *target) {
 	isc_result_t result;
 	isc_buffer_t b;
 	isc_region_t r;
@@ -1856,9 +1836,8 @@ make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
 
 static isc_result_t
 addrdata(dns_rdata_t *rdata, dns_diff_t *diff, const dns_name_t *origin,
-	 dns_ttl_t ttl, isc_mem_t *mctx)
-{
-	isc_result_t	 result;
+	 dns_ttl_t ttl, isc_mem_t *mctx) {
+	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
 
 	RETERR(dns_difftuple_create(mctx, DNS_DIFFOP_ADD, origin, ttl, rdata,
@@ -1871,9 +1850,8 @@ failure:
 
 static isc_result_t
 delrdata(dns_rdata_t *rdata, dns_diff_t *diff, const dns_name_t *origin,
-	 dns_ttl_t ttl, isc_mem_t *mctx)
-{
-	isc_result_t	 result;
+	 dns_ttl_t ttl, isc_mem_t *mctx) {
+	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
 
 	RETERR(dns_difftuple_create(mctx, DNS_DIFFOP_DEL, origin, ttl, rdata,
@@ -1886,12 +1864,11 @@ failure:
 
 static isc_result_t
 publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
-	    dns_ttl_t ttl, isc_mem_t *mctx, void (*report)(const char *, ...))
-{
-	isc_result_t  result;
+	    dns_ttl_t ttl, isc_mem_t *mctx, void (*report)(const char *, ...)) {
+	isc_result_t result;
 	unsigned char buf[DST_KEY_MAXSIZE];
-	char	      keystr[DST_KEY_FORMATSIZE];
-	dns_rdata_t   dnskey = DNS_RDATA_INIT;
+	char keystr[DST_KEY_FORMATSIZE];
+	dns_rdata_t dnskey = DNS_RDATA_INIT;
 
 	dns_rdata_reset(&dnskey);
 	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
@@ -1921,12 +1898,11 @@ failure:
 static isc_result_t
 remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	   dns_ttl_t ttl, isc_mem_t *mctx, const char *reason,
-	   void (*report)(const char *, ...))
-{
-	isc_result_t  result;
+	   void (*report)(const char *, ...)) {
+	isc_result_t result;
 	unsigned char buf[DST_KEY_MAXSIZE];
-	dns_rdata_t   dnskey = DNS_RDATA_INIT;
-	char	      alg[80];
+	dns_rdata_t dnskey = DNS_RDATA_INIT;
+	char alg[80];
 
 	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
 	report("Removing %s key %d/%s from DNSKEY RRset.", reason,
@@ -1940,15 +1916,15 @@ failure:
 }
 
 static bool
-exists(dns_rdataset_t *rdataset, dns_rdata_t *rdata)
-{
-	isc_result_t   result;
+exists(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+	isc_result_t result;
 	dns_rdataset_t trdataset;
 
 	dns_rdataset_init(&trdataset);
 	dns_rdataset_clone(rdataset, &trdataset);
 	for (result = dns_rdataset_first(&trdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&trdataset)) {
+	     result = dns_rdataset_next(&trdataset))
+	{
 		dns_rdata_t current = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&trdataset, &current);
@@ -1965,12 +1941,11 @@ isc_result_t
 dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 		      isc_stdtime_t now, dns_ttl_t ttl, dns_diff_t *diff,
-		      isc_mem_t *mctx)
-{
-	unsigned char	 dsbuf1[DNS_DS_BUFFERSIZE];
-	unsigned char	 dsbuf2[DNS_DS_BUFFERSIZE];
-	unsigned char	 keybuf[DST_KEY_MAXSIZE];
-	isc_result_t	 result;
+		      isc_mem_t *mctx) {
+	unsigned char dsbuf1[DNS_DS_BUFFERSIZE];
+	unsigned char dsbuf2[DNS_DS_BUFFERSIZE];
+	unsigned char keybuf[DST_KEY_MAXSIZE];
+	isc_result_t result;
 	dns_dnsseckey_t *key;
 
 	for (key = ISC_LIST_HEAD(*keys); key != NULL;
@@ -2019,8 +1994,8 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 			}
 		}
 
-		if (dns_rdataset_isassociated(cds) &&
-		    syncdelete(key->key, now)) {
+		if (dns_rdataset_isassociated(cds) && syncdelete(key->key, now))
+		{
 			/* Delete both SHA-1 and SHA-256 */
 			if (exists(cds, &cds_sha1)) {
 				RETERR(delrdata(&cds_sha1, diff, origin,
@@ -2100,12 +2075,11 @@ isc_result_t
 dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		      dns_dnsseckeylist_t *removed, const dns_name_t *origin,
 		      dns_ttl_t hint_ttl, dns_diff_t *diff, isc_mem_t *mctx,
-		      void (*report)(const char *, ...))
-{
-	isc_result_t	 result;
+		      void (*report)(const char *, ...)) {
+	isc_result_t result;
 	dns_dnsseckey_t *key, *key1, *key2, *next;
-	bool		 found_ttl = false;
-	dns_ttl_t	 ttl = hint_ttl;
+	bool found_ttl = false;
+	dns_ttl_t ttl = hint_ttl;
 
 	/*
 	 * First, look through the existing key list to find keys
@@ -2118,7 +2092,8 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 	for (key = ISC_LIST_HEAD(*keys); key != NULL;
 	     key = ISC_LIST_NEXT(key, link)) {
 		if (key->source == dns_keysource_user &&
-		    (key->hint_publish || key->force_publish)) {
+		    (key->hint_publish || key->force_publish))
+		{
 			RETERR(publish_key(diff, key, origin, ttl, mctx,
 					   report));
 		}
@@ -2161,14 +2136,16 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		next = ISC_LIST_NEXT(key1, link);
 
 		for (key2 = ISC_LIST_HEAD(*keys); key2 != NULL;
-		     key2 = ISC_LIST_NEXT(key2, link)) {
+		     key2 = ISC_LIST_NEXT(key2, link))
+		{
 			int f1 = dst_key_flags(key1->key);
 			int f2 = dst_key_flags(key2->key);
 			int nr1 = f1 & ~DNS_KEYFLAG_REVOKE;
 			int nr2 = f2 & ~DNS_KEYFLAG_REVOKE;
 			if (nr1 == nr2 &&
 			    dst_key_alg(key1->key) == dst_key_alg(key2->key) &&
-			    dst_key_pubcompare(key1->key, key2->key, true)) {
+			    dst_key_pubcompare(key1->key, key2->key, true))
+			{
 				int r1, r2;
 				r1 = dst_key_flags(key1->key) &
 				     DNS_KEYFLAG_REVOKE;
@@ -2188,7 +2165,8 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			ISC_LIST_APPEND(*keys, key1, link);
 
 			if (key1->source != dns_keysource_zoneapex &&
-			    (key1->hint_publish || key1->force_publish)) {
+			    (key1->hint_publish || key1->force_publish))
+			{
 				RETERR(publish_key(diff, key1, origin, ttl,
 						   mctx, report));
 				isc_log_write(
@@ -2241,8 +2219,9 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			} else {
 				dns_dnsseckey_destroy(mctx, &key2);
 			}
-		} else if (key_revoked && (dst_key_flags(key1->key) &
-					   DNS_KEYFLAG_REVOKE) != 0) {
+		} else if (key_revoked &&
+			   (dst_key_flags(key1->key) & DNS_KEYFLAG_REVOKE) != 0)
+		{
 			/*
 			 * A previously valid key has been revoked.
 			 * We need to remove the old version and pull
@@ -2322,20 +2301,20 @@ failure:
 
 isc_result_t
 dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
-		      dns_rdataset_t *keyset, dns_rdata_t *keyrdata)
-{
-	isc_result_t	   result;
-	unsigned char	   buf[DNS_DS_BUFFERSIZE];
-	dns_keytag_t	   keytag;
+		      dns_rdataset_t *keyset, dns_rdata_t *keyrdata) {
+	isc_result_t result;
+	unsigned char buf[DNS_DS_BUFFERSIZE];
+	dns_keytag_t keytag;
 	dns_rdata_dnskey_t key;
-	dns_rdata_ds_t	   ds;
-	isc_region_t	   r;
+	dns_rdata_ds_t ds;
+	isc_region_t r;
 
 	result = dns_rdata_tostruct(dsrdata, &ds, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	for (result = dns_rdataset_first(keyset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(keyset)) {
+	     result = dns_rdataset_next(keyset))
+	{
 		dns_rdata_t newdsrdata = DNS_RDATA_INIT;
 
 		dns_rdata_reset(keyrdata);

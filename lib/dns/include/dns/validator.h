@@ -102,8 +102,8 @@ typedef struct dns_validatorevent {
 	bool secure;
 } dns_validatorevent_t;
 
-#define DNS_VALIDATOR_NOQNAMEPROOF 0
-#define DNS_VALIDATOR_NODATAPROOF 1
+#define DNS_VALIDATOR_NOQNAMEPROOF    0
+#define DNS_VALIDATOR_NODATAPROOF     1
 #define DNS_VALIDATOR_NOWILDCARDPROOF 2
 #define DNS_VALIDATOR_CLOSESTENCLOSER 3
 
@@ -154,9 +154,9 @@ struct dns_validator {
  * dns_validator_create() options.
  */
 /* obsolete: #define DNS_VALIDATOR_DLV	0x0001U */
-#define DNS_VALIDATOR_DEFER 0x0002U
+#define DNS_VALIDATOR_DEFER    0x0002U
 #define DNS_VALIDATOR_NOCDFLAG 0x0004U
-#define DNS_VALIDATOR_NONTA 0x0008U /*% Ignore NTA table */
+#define DNS_VALIDATOR_NONTA    0x0008U /*% Ignore NTA table */
 
 ISC_LANG_BEGINDECLS
 

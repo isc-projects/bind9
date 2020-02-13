@@ -316,8 +316,7 @@ masters " DEFAULT_IANA_ROOT_ZONE_MASTERS " {\n\
 ";
 
 isc_result_t
-named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf)
-{
+named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 	isc_buffer_t b;
 
 	isc_buffer_init(&b, defaultconf, sizeof(defaultconf) - 1);
@@ -328,8 +327,7 @@ named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf)
 
 isc_result_t
 named_config_get(cfg_obj_t const *const *maps, const char *name,
-		 const cfg_obj_t **obj)
-{
+		 const cfg_obj_t **obj) {
 	int i;
 
 	for (i = 0;; i++) {
@@ -344,13 +342,12 @@ named_config_get(cfg_obj_t const *const *maps, const char *name,
 
 isc_result_t
 named_checknames_get(const cfg_obj_t **maps, const char *which,
-		     const cfg_obj_t **obj)
-{
+		     const cfg_obj_t **obj) {
 	const cfg_listelt_t *element;
-	const cfg_obj_t *    checknames;
-	const cfg_obj_t *    type;
-	const cfg_obj_t *    value;
-	int		     i;
+	const cfg_obj_t *checknames;
+	const cfg_obj_t *type;
+	const cfg_obj_t *value;
+	int i;
 
 	for (i = 0;; i++) {
 		if (maps[i] == NULL) {
@@ -367,8 +364,8 @@ named_checknames_get(const cfg_obj_t **maps, const char *which,
 				return (ISC_R_SUCCESS);
 			}
 			for (element = cfg_list_first(checknames);
-			     element != NULL;
-			     element = cfg_list_next(element)) {
+			     element != NULL; element = cfg_list_next(element))
+			{
 				value = cfg_listelt_value(element);
 				type = cfg_tuple_get(value, "type");
 				if (strcasecmp(cfg_obj_asstring(type), which) ==
@@ -382,10 +379,9 @@ named_checknames_get(const cfg_obj_t **maps, const char *which,
 }
 
 int
-named_config_listcount(const cfg_obj_t *list)
-{
+named_config_listcount(const cfg_obj_t *list) {
 	const cfg_listelt_t *e;
-	int		     i = 0;
+	int i = 0;
 
 	for (e = cfg_list_first(list); e != NULL; e = cfg_list_next(e)) {
 		i++;
@@ -396,10 +392,9 @@ named_config_listcount(const cfg_obj_t *list)
 
 isc_result_t
 named_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
-		      dns_rdataclass_t *classp)
-{
+		      dns_rdataclass_t *classp) {
 	isc_textregion_t r;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	if (!cfg_obj_isstring(classobj)) {
 		*classp = defclass;
@@ -417,10 +412,9 @@ named_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 
 isc_result_t
 named_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
-		     dns_rdatatype_t *typep)
-{
+		     dns_rdatatype_t *typep) {
 	isc_textregion_t r;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	if (!cfg_obj_isstring(typeobj)) {
 		*typep = deftype;
@@ -437,10 +431,9 @@ named_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
 }
 
 dns_zonetype_t
-named_config_getzonetype(const cfg_obj_t *zonetypeobj)
-{
+named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 	dns_zonetype_t ztype = dns_zone_none;
-	const char *   str;
+	const char *str;
 
 	str = cfg_obj_asstring(zonetypeobj);
 	if (strcasecmp(str, "primary") == 0 || strcasecmp(str, "master") == 0) {
@@ -467,16 +460,15 @@ isc_result_t
 named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		       in_port_t defport, isc_mem_t *mctx,
 		       isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
-		       uint32_t *countp)
-{
-	int		     count, i = 0;
-	const cfg_obj_t *    addrlist;
-	const cfg_obj_t *    portobj, *dscpobj;
+		       uint32_t *countp) {
+	int count, i = 0;
+	const cfg_obj_t *addrlist;
+	const cfg_obj_t *portobj, *dscpobj;
 	const cfg_listelt_t *element;
-	isc_sockaddr_t *     addrs;
-	in_port_t	     port;
-	isc_dscp_t	     dscp = -1, *dscps = NULL;
-	isc_result_t	     result;
+	isc_sockaddr_t *addrs;
+	in_port_t port;
+	isc_dscp_t dscp = -1, *dscps = NULL;
+	isc_result_t result;
 
 	INSIST(addrsp != NULL && *addrsp == NULL);
 	INSIST(dscpsp == NULL || *dscpsp == NULL);
@@ -522,7 +514,8 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 	addrs = isc_mem_get(mctx, count * sizeof(isc_sockaddr_t));
 
 	for (element = cfg_list_first(addrlist); element != NULL;
-	     element = cfg_list_next(element), i++) {
+	     element = cfg_list_next(element), i++)
+	{
 		const cfg_obj_t *addr;
 		INSIST(i < count);
 		addr = cfg_listelt_value(element);
@@ -553,8 +546,7 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 
 void
 named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-		       isc_dscp_t **dscpsp, uint32_t count)
-{
+		       isc_dscp_t **dscpsp, uint32_t count) {
 	INSIST(addrsp != NULL && *addrsp != NULL);
 	INSIST(dscpsp == NULL || *dscpsp != NULL);
 
@@ -569,10 +561,9 @@ named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 
 isc_result_t
 named_config_getmastersdef(const cfg_obj_t *cctx, const char *name,
-			   const cfg_obj_t **ret)
-{
-	isc_result_t	     result;
-	const cfg_obj_t *    masters = NULL;
+			   const cfg_obj_t **ret) {
+	isc_result_t result;
+	const cfg_obj_t *masters = NULL;
 	const cfg_listelt_t *elt;
 
 	result = cfg_map_get(cctx, "masters", &masters);
@@ -582,7 +573,7 @@ named_config_getmastersdef(const cfg_obj_t *cctx, const char *name,
 	for (elt = cfg_list_first(masters); elt != NULL;
 	     elt = cfg_list_next(elt)) {
 		const cfg_obj_t *list;
-		const char *	 listname;
+		const char *listname;
 
 		list = cfg_listelt_value(elt);
 		listname = cfg_obj_asstring(cfg_tuple_get(list, "name"));
@@ -597,29 +588,28 @@ named_config_getmastersdef(const cfg_obj_t *cctx, const char *name,
 
 isc_result_t
 named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
-			     isc_mem_t *mctx, dns_ipkeylist_t *ipkl)
-{
-	uint32_t	     addrcount = 0, dscpcount = 0, keycount = 0, i = 0;
-	uint32_t	     listcount = 0, l = 0, j;
-	uint32_t	     stackcount = 0, pushed = 0;
-	isc_result_t	     result;
+			     isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
+	uint32_t addrcount = 0, dscpcount = 0, keycount = 0, i = 0;
+	uint32_t listcount = 0, l = 0, j;
+	uint32_t stackcount = 0, pushed = 0;
+	isc_result_t result;
 	const cfg_listelt_t *element;
-	const cfg_obj_t *    addrlist;
-	const cfg_obj_t *    portobj;
-	const cfg_obj_t *    dscpobj;
-	in_port_t	     port;
-	isc_dscp_t	     dscp = -1;
-	dns_fixedname_t	     fname;
-	isc_sockaddr_t *     addrs = NULL;
-	isc_dscp_t *	     dscps = NULL;
-	dns_name_t **	     keys = NULL;
+	const cfg_obj_t *addrlist;
+	const cfg_obj_t *portobj;
+	const cfg_obj_t *dscpobj;
+	in_port_t port;
+	isc_dscp_t dscp = -1;
+	dns_fixedname_t fname;
+	isc_sockaddr_t *addrs = NULL;
+	isc_dscp_t *dscps = NULL;
+	dns_name_t **keys = NULL;
 	struct {
 		const char *name;
 	} *lists = NULL;
 	struct {
 		const cfg_listelt_t *element;
-		in_port_t	     port;
-		isc_dscp_t	     dscp;
+		in_port_t port;
+		isc_dscp_t dscp;
 	} *stack = NULL;
 
 	REQUIRE(ipkl != NULL);
@@ -677,22 +667,22 @@ resume:
 	for (; element != NULL; element = cfg_list_next(element)) {
 		const cfg_obj_t *addr;
 		const cfg_obj_t *key;
-		const char *	 keystr;
-		isc_buffer_t	 b;
+		const char *keystr;
+		isc_buffer_t b;
 
 		addr = cfg_tuple_get(cfg_listelt_value(element), "masterselemen"
 								 "t");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
 
 		if (!cfg_obj_issockaddr(addr)) {
-			const char * listname = cfg_obj_asstring(addr);
+			const char *listname = cfg_obj_asstring(addr);
 			isc_result_t tresult;
 
 			/* Grow lists? */
 			if (listcount == l) {
-				void *	 tmp;
+				void *tmp;
 				uint32_t newlen = listcount + 16;
-				size_t	 newsize, oldsize;
+				size_t newsize, oldsize;
 
 				newsize = newlen * sizeof(*lists);
 				oldsize = listcount * sizeof(*lists);
@@ -729,9 +719,9 @@ resume:
 			lists[l++].name = listname;
 			/* Grow stack? */
 			if (stackcount == pushed) {
-				void *	 tmp;
+				void *tmp;
 				uint32_t newlen = stackcount + 16;
-				size_t	 newsize, oldsize;
+				size_t newsize, oldsize;
 
 				newsize = newlen * sizeof(*stack);
 				oldsize = stackcount * sizeof(*stack);
@@ -755,9 +745,9 @@ resume:
 		}
 
 		if (i == addrcount) {
-			void *	 tmp;
+			void *tmp;
 			uint32_t newlen = addrcount + 16;
-			size_t	 newsize, oldsize;
+			size_t newsize, oldsize;
 
 			newsize = newlen * sizeof(isc_sockaddr_t);
 			oldsize = addrcount * sizeof(isc_sockaddr_t);
@@ -825,7 +815,7 @@ resume:
 		goto resume;
 	}
 	if (i < addrcount) {
-		void * tmp;
+		void *tmp;
 		size_t newsize, oldsize;
 
 		newsize = i * sizeof(isc_sockaddr_t);
@@ -913,13 +903,12 @@ cleanup:
 }
 
 isc_result_t
-named_config_getport(const cfg_obj_t *config, in_port_t *portp)
-{
+named_config_getport(const cfg_obj_t *config, in_port_t *portp) {
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *portobj = NULL;
-	isc_result_t	 result;
-	int		 i;
+	isc_result_t result;
+	int i;
 
 	(void)cfg_map_get(config, "options", &options);
 	i = 0;
@@ -942,11 +931,10 @@ named_config_getport(const cfg_obj_t *config, in_port_t *portp)
 }
 
 isc_result_t
-named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp)
-{
+named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp) {
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *dscpobj = NULL;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	(void)cfg_map_get(config, "options", &options);
 	if (options == NULL) {
@@ -978,7 +966,7 @@ struct keyalgorithms {
 	       hmacsha384,
 	       hmacsha512 } hmac;
 	unsigned int type;
-	uint16_t     size;
+	uint16_t size;
 } algorithms[] = { { "hmac-md5", hmacmd5, DST_ALG_HMACMD5, 128 },
 		   { "hmac-md5.sig-alg.reg.int", hmacmd5, DST_ALG_HMACMD5, 0 },
 		   { "hmac-md5.sig-alg.reg.int.", hmacmd5, DST_ALG_HMACMD5, 0 },
@@ -991,25 +979,24 @@ struct keyalgorithms {
 
 isc_result_t
 named_config_getkeyalgorithm(const char *str, const dns_name_t **name,
-			     uint16_t *digestbits)
-{
+			     uint16_t *digestbits) {
 	return (named_config_getkeyalgorithm2(str, name, NULL, digestbits));
 }
 
 isc_result_t
 named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
-			      unsigned int *typep, uint16_t *digestbits)
-{
-	int	     i;
-	size_t	     len = 0;
-	uint16_t     bits;
+			      unsigned int *typep, uint16_t *digestbits) {
+	int i;
+	size_t len = 0;
+	uint16_t bits;
 	isc_result_t result;
 
 	for (i = 0; algorithms[i].str != NULL; i++) {
 		len = strlen(algorithms[i].str);
 		if (strncasecmp(algorithms[i].str, str, len) == 0 &&
 		    (str[len] == '\0' ||
-		     (algorithms[i].size != 0 && str[len] == '-'))) {
+		     (algorithms[i].size != 0 && str[len] == '-')))
+		{
 			break;
 		}
 	}

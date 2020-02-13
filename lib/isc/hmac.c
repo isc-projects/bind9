@@ -24,16 +24,14 @@
 #include <openssl/opensslv.h>
 
 isc_hmac_t *
-isc_hmac_new(void)
-{
+isc_hmac_new(void) {
 	isc_hmac_t *hmac = HMAC_CTX_new();
 	RUNTIME_CHECK(hmac != NULL);
 	return (hmac);
 }
 
 void
-isc_hmac_free(isc_hmac_t *hmac)
-{
+isc_hmac_free(isc_hmac_t *hmac) {
 	if (ISC_UNLIKELY(hmac == NULL)) {
 		return;
 	}
@@ -43,8 +41,7 @@ isc_hmac_free(isc_hmac_t *hmac)
 
 isc_result_t
 isc_hmac_init(isc_hmac_t *hmac, const void *key, size_t keylen,
-	      isc_md_type_t md_type)
-{
+	      isc_md_type_t md_type) {
 	REQUIRE(hmac != NULL);
 	REQUIRE(key != NULL);
 
@@ -60,8 +57,7 @@ isc_hmac_init(isc_hmac_t *hmac, const void *key, size_t keylen,
 }
 
 isc_result_t
-isc_hmac_reset(isc_hmac_t *hmac)
-{
+isc_hmac_reset(isc_hmac_t *hmac) {
 	REQUIRE(hmac != NULL);
 
 	if (HMAC_CTX_reset(hmac) != 1) {
@@ -72,8 +68,7 @@ isc_hmac_reset(isc_hmac_t *hmac)
 }
 
 isc_result_t
-isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len)
-{
+isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len) {
 	REQUIRE(hmac != NULL);
 
 	if (ISC_UNLIKELY(buf == NULL || len == 0)) {
@@ -88,8 +83,8 @@ isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len)
 }
 
 isc_result_t
-isc_hmac_final(isc_hmac_t *hmac, unsigned char *digest, unsigned int *digestlen)
-{
+isc_hmac_final(isc_hmac_t *hmac, unsigned char *digest,
+	       unsigned int *digestlen) {
 	REQUIRE(hmac != NULL);
 	REQUIRE(digest != NULL);
 
@@ -101,24 +96,21 @@ isc_hmac_final(isc_hmac_t *hmac, unsigned char *digest, unsigned int *digestlen)
 }
 
 isc_md_type_t
-isc_hmac_get_md_type(isc_hmac_t *hmac)
-{
+isc_hmac_get_md_type(isc_hmac_t *hmac) {
 	REQUIRE(hmac != NULL);
 
 	return (HMAC_CTX_get_md(hmac));
 }
 
 size_t
-isc_hmac_get_size(isc_hmac_t *hmac)
-{
+isc_hmac_get_size(isc_hmac_t *hmac) {
 	REQUIRE(hmac != NULL);
 
 	return ((size_t)EVP_MD_size(HMAC_CTX_get_md(hmac)));
 }
 
 int
-isc_hmac_get_block_size(isc_hmac_t *hmac)
-{
+isc_hmac_get_block_size(isc_hmac_t *hmac) {
 	REQUIRE(hmac != NULL);
 
 	return (EVP_MD_block_size(HMAC_CTX_get_md(hmac)));
@@ -127,9 +119,8 @@ isc_hmac_get_block_size(isc_hmac_t *hmac)
 isc_result_t
 isc_hmac(isc_md_type_t type, const void *key, const int keylen,
 	 const unsigned char *buf, const size_t len, unsigned char *digest,
-	 unsigned int *digestlen)
-{
-	isc_hmac_t * hmac = NULL;
+	 unsigned int *digestlen) {
+	isc_hmac_t *hmac = NULL;
 	isc_result_t res;
 
 	hmac = isc_hmac_new();

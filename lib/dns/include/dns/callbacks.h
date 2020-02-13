@@ -29,7 +29,7 @@ ISC_LANG_BEGINDECLS
  ***	Types
  ***/
 
-#define DNS_CALLBACK_MAGIC ISC_MAGIC('C', 'L', 'L', 'B')
+#define DNS_CALLBACK_MAGIC     ISC_MAGIC('C', 'L', 'L', 'B')
 #define DNS_CALLBACK_VALID(cb) ISC_MAGIC_VALID(cb, DNS_CALLBACK_MAGIC)
 
 struct dns_rdatacallbacks {

@@ -37,10 +37,10 @@
  * been requested to be built otherwise a NSEC chain needs to be built.
  */
 
-#define REMOVE(x) (((x)&DNS_NSEC3FLAG_REMOVE) != 0)
-#define CREATE(x) (((x)&DNS_NSEC3FLAG_CREATE) != 0)
+#define REMOVE(x)  (((x)&DNS_NSEC3FLAG_REMOVE) != 0)
+#define CREATE(x)  (((x)&DNS_NSEC3FLAG_CREATE) != 0)
 #define INITIAL(x) (((x)&DNS_NSEC3FLAG_INITIAL) != 0)
-#define NONSEC(x) (((x)&DNS_NSEC3FLAG_NONSEC) != 0)
+#define NONSEC(x)  (((x)&DNS_NSEC3FLAG_NONSEC) != 0)
 
 #define CHECK(x)                             \
 	do {                                 \
@@ -58,12 +58,12 @@
  */
 
 static bool
-ignore(dns_rdata_t *param, dns_rdataset_t *privateset)
-{
+ignore(dns_rdata_t *param, dns_rdataset_t *privateset) {
 	isc_result_t result;
 
 	for (result = dns_rdataset_first(privateset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(privateset)) {
+	     result = dns_rdataset_next(privateset))
+	{
 		unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
 		dns_rdata_t private = DNS_RDATA_INIT;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -84,7 +84,8 @@ ignore(dns_rdata_t *param, dns_rdataset_t *privateset)
 		    rdata.data[2] != param->data[2] ||
 		    rdata.data[3] != param->data[3] ||
 		    rdata.data[4] != param->data[4] ||
-		    memcmp(&rdata.data[5], &param->data[5], param->data[4])) {
+		    memcmp(&rdata.data[5], &param->data[5], param->data[4]))
+		{
 			continue;
 		}
 		/*
@@ -103,15 +104,14 @@ ignore(dns_rdata_t *param, dns_rdataset_t *privateset)
 isc_result_t
 dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		   dns_rdatatype_t privatetype, bool *build_nsec,
-		   bool *build_nsec3)
-{
-	dns_dbnode_t * node;
+		   bool *build_nsec3) {
+	dns_dbnode_t *node;
 	dns_rdataset_t nsecset, nsec3paramset, privateset;
-	bool	       nsec3chain;
-	bool	       signing;
-	isc_result_t   result;
-	unsigned char  buf[DNS_NSEC3PARAM_BUFFERSIZE];
-	unsigned int   count;
+	bool nsec3chain;
+	bool signing;
+	isc_result_t result;
+	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
+	unsigned int count;
 
 	node = NULL;
 	dns_rdataset_init(&nsecset);
@@ -134,7 +134,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 	}
 
 	if (dns_rdataset_isassociated(&nsecset) &&
-	    dns_rdataset_isassociated(&nsec3paramset)) {
+	    dns_rdataset_isassociated(&nsec3paramset))
+	{
 		if (build_nsec != NULL) {
 			*build_nsec = true;
 		}
@@ -168,7 +169,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		}
 		for (result = dns_rdataset_first(&privateset);
 		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&privateset)) {
+		     result = dns_rdataset_next(&privateset))
+		{
 			dns_rdata_t private = DNS_RDATA_INIT;
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 
@@ -204,7 +206,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		 */
 		for (result = dns_rdataset_first(&privateset);
 		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&privateset)) {
+		     result = dns_rdataset_next(&privateset))
+		{
 			dns_rdata_t private = DNS_RDATA_INIT;
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 
@@ -225,7 +228,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		count = 0;
 		for (result = dns_rdataset_first(&nsec3paramset);
 		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&nsec3paramset)) {
+		     result = dns_rdataset_next(&nsec3paramset))
+		{
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 
 			/*
@@ -270,7 +274,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 	nsec3chain = false;
 
 	for (result = dns_rdataset_first(&privateset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&privateset)) {
+	     result = dns_rdataset_next(&privateset))
+	{
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_t private = DNS_RDATA_INIT;
 
@@ -282,7 +287,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 			 * zone with a key.
 			 */
 			if (private.length == 5 && private.data[0] != 0 &&
-			    private.data[3] == 0 && private.data[4] == 0) {
+			    private.data[3] == 0 && private.data[4] == 0)
+			{
 				signing = true;
 			}
 		} else {
@@ -323,8 +329,7 @@ failure:
 }
 
 isc_result_t
-dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf)
-{
+dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 	isc_result_t result;
 
 	if (private->length < 5) {
@@ -332,12 +337,12 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf)
 	}
 
 	if (private->data[0] == 0) {
-		unsigned char	       nsec3buf[DNS_NSEC3PARAM_BUFFERSIZE];
-		unsigned char	       newbuf[DNS_NSEC3PARAM_BUFFERSIZE];
-		dns_rdata_t	       rdata = DNS_RDATA_INIT;
+		unsigned char nsec3buf[DNS_NSEC3PARAM_BUFFERSIZE];
+		unsigned char newbuf[DNS_NSEC3PARAM_BUFFERSIZE];
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_nsec3param_t nsec3param;
-		bool		       del, init, nonsec;
-		isc_buffer_t	       b;
+		bool del, init, nonsec;
+		isc_buffer_t b;
 
 		if (!dns_nsec3param_fromprivate(private, &rdata, nsec3buf,
 						sizeof(nsec3buf))) {
@@ -376,9 +381,9 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf)
 	} else if (private->length == 5) {
 		unsigned char alg = private->data[0];
 		dns_keytag_t keyid = (private->data[2] | private->data[1] << 8);
-		char	     keybuf[BUFSIZ], algbuf[DNS_SECALG_FORMATSIZE];
-		bool	     del = private->data[3];
-		bool	     complete = private->data[4];
+		char keybuf[BUFSIZ], algbuf[DNS_SECALG_FORMATSIZE];
+		bool del = private->data[3];
+		bool complete = private->data[4];
 
 		if (del && complete) {
 			isc_buffer_putstr(buf, "Done removing signatures for ");

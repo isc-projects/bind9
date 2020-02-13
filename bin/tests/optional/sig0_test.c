@@ -51,24 +51,23 @@
 		}                                                        \
 	}
 
-isc_mutex_t			 lock;
-dst_key_t *			 key;
-isc_mem_t *			 mctx;
-unsigned char			 qdata[1024], rdata[1024];
-isc_buffer_t			 qbuffer, rbuffer;
-isc_taskmgr_t *			 taskmgr;
-isc_task_t *			 task1;
-isc_log_t *			 lctx = NULL;
-isc_logconfig_t *		 logconfig = NULL;
-isc_socket_t *			 s;
-isc_sockaddr_t			 address;
-char				 output[10 * 1024];
-isc_buffer_t			 outbuf;
+isc_mutex_t lock;
+dst_key_t *key;
+isc_mem_t *mctx;
+unsigned char qdata[1024], rdata[1024];
+isc_buffer_t qbuffer, rbuffer;
+isc_taskmgr_t *taskmgr;
+isc_task_t *task1;
+isc_log_t *lctx = NULL;
+isc_logconfig_t *logconfig = NULL;
+isc_socket_t *s;
+isc_sockaddr_t address;
+char output[10 * 1024];
+isc_buffer_t outbuf;
 static const dns_master_style_t *style = &dns_master_style_debug;
 
 static void
-senddone(isc_task_t *task, isc_event_t *event)
-{
+senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 
 	REQUIRE(sevent != NULL);
@@ -81,12 +80,11 @@ senddone(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-recvdone(isc_task_t *task, isc_event_t *event)
-{
+recvdone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-	isc_buffer_t	   source;
-	isc_result_t	   result;
-	dns_message_t *	   response;
+	isc_buffer_t source;
+	isc_result_t result;
+	dns_message_t *response;
 
 	REQUIRE(sevent != NULL);
 	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_RECVDONE);
@@ -120,18 +118,17 @@ recvdone(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-buildquery(void)
-{
-	isc_result_t	result;
+buildquery(void) {
+	isc_result_t result;
 	dns_rdataset_t *question = NULL;
-	dns_name_t *	qname = NULL;
-	isc_region_t	r, inr;
-	dns_message_t * query;
-	char		nametext[] = "host.example";
-	isc_buffer_t	namesrc, namedst;
-	unsigned char	namedata[256];
-	isc_sockaddr_t	sa;
-	dns_compress_t	cctx;
+	dns_name_t *qname = NULL;
+	isc_region_t r, inr;
+	dns_message_t *query;
+	char nametext[] = "host.example";
+	isc_buffer_t namesrc, namedst;
+	unsigned char namedata[256];
+	isc_sockaddr_t sa;
+	dns_compress_t cctx;
 
 	query = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
@@ -181,8 +178,8 @@ buildquery(void)
 	isc_sockaddr_any(&sa);
 	result = isc_socket_bind(s, &sa, 0);
 	CHECK("isc_socket_bind", result);
-	result =
-		isc_socket_sendto(s, &r, task1, senddone, NULL, &address, NULL);
+	result = isc_socket_sendto(s, &r, task1, senddone, NULL, &address,
+				   NULL);
 	CHECK("isc_socket_sendto", result);
 
 	inr.base = rdata;
@@ -193,18 +190,17 @@ buildquery(void)
 }
 
 int
-main(int argc, char *argv[])
-{
-	bool		 verbose = false;
+main(int argc, char *argv[]) {
+	bool verbose = false;
 	isc_socketmgr_t *socketmgr;
-	isc_timermgr_t * timermgr;
-	struct in_addr	 inaddr;
-	dns_fixedname_t	 fname;
-	dns_name_t *	 name;
-	isc_buffer_t	 b;
-	int		 ch;
-	isc_result_t	 result;
-	in_port_t	 port = 53;
+	isc_timermgr_t *timermgr;
+	struct in_addr inaddr;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	isc_buffer_t b;
+	int ch;
+	isc_result_t result;
+	in_port_t port = 53;
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
 

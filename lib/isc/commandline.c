@@ -79,10 +79,9 @@ static char endopt = '\0';
  *	Parse argc/argv argument vector.
  */
 int
-isc_commandline_parse(int argc, char *const *argv, const char *options)
-{
+isc_commandline_parse(int argc, char *const *argv, const char *options) {
 	static char *place = ENDOPT;
-	const char * option; /* Index into *options of option. */
+	const char *option; /* Index into *options of option. */
 
 	REQUIRE(argc >= 0 && argv != NULL && options != NULL);
 
@@ -101,7 +100,8 @@ isc_commandline_parse(int argc, char *const *argv, const char *options)
 		}
 
 		if (isc_commandline_index >= argc ||
-		    *(place = argv[isc_commandline_index]) != '-') {
+		    *(place = argv[isc_commandline_index]) != '-')
+		{
 			/*
 			 * Index out of range or points to non-option.
 			 */
@@ -206,8 +206,7 @@ isc_commandline_parse(int argc, char *const *argv, const char *options)
 
 isc_result_t
 isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
-			  char ***argvp, unsigned int n)
-{
+			  char ***argvp, unsigned int n) {
 	isc_result_t result;
 
 restart:
@@ -253,8 +252,8 @@ restart:
 			*p++ = '\0';
 		}
 
-		result =
-			isc_commandline_strtoargv(mctx, p, argcp, argvp, n + 1);
+		result = isc_commandline_strtoargv(mctx, p, argcp, argvp,
+						   n + 1);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}

@@ -10,7 +10,7 @@
  */
 
 /* None of these are defined in NT, so define them for our use */
-#define O_NONBLOCK 1
+#define O_NONBLOCK    1
 #define PORT_NONBLOCK O_NONBLOCK
 
 /*

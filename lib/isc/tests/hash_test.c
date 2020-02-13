@@ -37,8 +37,7 @@
 
 /*Hash function test */
 static void
-isc_hash_function_test(void **state)
-{
+isc_hash_function_test(void **state) {
 	unsigned int h1;
 	unsigned int h2;
 
@@ -71,8 +70,7 @@ isc_hash_function_test(void **state)
 
 /* Hash function initializer test */
 static void
-isc_hash_initializer_test(void **state)
-{
+isc_hash_initializer_test(void **state) {
 	unsigned int h1;
 	unsigned int h2;
 
@@ -92,8 +90,7 @@ isc_hash_initializer_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_hash_function_test),
 		cmocka_unit_test(isc_hash_initializer_test),
@@ -107,8 +104,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

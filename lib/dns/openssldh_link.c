@@ -66,8 +66,7 @@
 	"83655D23DCA3AD961C62F356208552BB9ED529077096966D" \
 	"670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF"
 
-static isc_result_t
-openssldh_todns(const dst_key_t *key, isc_buffer_t *data);
+static isc_result_t openssldh_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static BIGNUM *bn2 = NULL, *bn768 = NULL, *bn1024 = NULL, *bn1536 = NULL;
 
@@ -77,8 +76,7 @@ static BIGNUM *bn2 = NULL, *bn768 = NULL, *bn1024 = NULL, *bn1536 = NULL;
  * are from OpenSSL 1.1.0.
  */
 static void
-DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key)
-{
+DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key) {
 	if (pub_key != NULL) {
 		*pub_key = dh->pub_key;
 	}
@@ -88,8 +86,7 @@ DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key)
 }
 
 static int
-DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key)
-{
+DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key) {
 	if (pub_key != NULL) {
 		BN_free(dh->pub_key);
 		dh->pub_key = pub_key;
@@ -104,8 +101,8 @@ DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key)
 }
 
 static void
-DH_get0_pqg(const DH *dh, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
-{
+DH_get0_pqg(const DH *dh, const BIGNUM **p, const BIGNUM **q,
+	    const BIGNUM **g) {
 	if (p != NULL) {
 		*p = dh->p;
 	}
@@ -118,8 +115,7 @@ DH_get0_pqg(const DH *dh, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
 }
 
 static int
-DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
-{
+DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g) {
 	/* If the fields p and g in d are NULL, the corresponding input
 	 * parameters MUST be non-NULL.  q may remain NULL.
 	 */
@@ -153,13 +149,12 @@ DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 
 static isc_result_t
 openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
-			isc_buffer_t *secret)
-{
-	DH *	      dhpub, *dhpriv;
+			isc_buffer_t *secret) {
+	DH *dhpub, *dhpriv;
 	const BIGNUM *pub_key = NULL;
-	int	      ret;
-	isc_region_t  r;
-	unsigned int  len;
+	int ret;
+	isc_region_t r;
+	unsigned int len;
 
 	REQUIRE(pub->keydata.dh != NULL);
 	REQUIRE(priv->keydata.dh != NULL);
@@ -184,9 +179,8 @@ openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 }
 
 static bool
-openssldh_compare(const dst_key_t *key1, const dst_key_t *key2)
-{
-	DH *	      dh1, *dh2;
+openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
+	DH *dh1, *dh2;
 	const BIGNUM *pub_key1 = NULL, *pub_key2 = NULL;
 	const BIGNUM *priv_key1 = NULL, *priv_key2 = NULL;
 	const BIGNUM *p1 = NULL, *g1 = NULL, *p2 = NULL, *g2 = NULL;
@@ -206,7 +200,8 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2)
 	DH_get0_pqg(dh2, &p2, NULL, &g2);
 
 	if (BN_cmp(p1, p2) != 0 || BN_cmp(g1, g2) != 0 ||
-	    BN_cmp(pub_key1, pub_key2) != 0) {
+	    BN_cmp(pub_key1, pub_key2) != 0)
+	{
 		return (false);
 	}
 
@@ -222,9 +217,8 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2)
 }
 
 static bool
-openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2)
-{
-	DH *	      dh1, *dh2;
+openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
+	DH *dh1, *dh2;
 	const BIGNUM *p1 = NULL, *g1 = NULL, *p2 = NULL, *g2 = NULL;
 
 	dh1 = key1->keydata.dh;
@@ -246,8 +240,7 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2)
 }
 
 static int
-progress_cb(int p, int n, BN_GENCB *cb)
-{
+progress_cb(int p, int n, BN_GENCB *cb) {
 	union {
 		void *dptr;
 		void (*fptr)(int);
@@ -263,9 +256,8 @@ progress_cb(int p, int n, BN_GENCB *cb)
 }
 
 static isc_result_t
-openssldh_generate(dst_key_t *key, int generator, void (*callback)(int))
-{
-	DH *	  dh = NULL;
+openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
+	DH *dh = NULL;
 	BN_GENCB *cb;
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	BN_GENCB _cb;
@@ -351,9 +343,8 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int))
 }
 
 static bool
-openssldh_isprivate(const dst_key_t *key)
-{
-	DH *	      dh = key->keydata.dh;
+openssldh_isprivate(const dst_key_t *key) {
+	DH *dh = key->keydata.dh;
 	const BIGNUM *priv_key = NULL;
 
 	DH_get0_key(dh, NULL, &priv_key);
@@ -361,8 +352,7 @@ openssldh_isprivate(const dst_key_t *key)
 }
 
 static void
-openssldh_destroy(dst_key_t *key)
-{
+openssldh_destroy(dst_key_t *key) {
 	DH *dh = key->keydata.dh;
 
 	if (dh == NULL) {
@@ -374,8 +364,7 @@ openssldh_destroy(dst_key_t *key)
 }
 
 static void
-uint16_toregion(uint16_t val, isc_region_t *region)
-{
+uint16_toregion(uint16_t val, isc_region_t *region) {
 	*region->base = (val & 0xff00) >> 8;
 	isc_region_consume(region, 1);
 	*region->base = (val & 0x00ff);
@@ -383,9 +372,8 @@ uint16_toregion(uint16_t val, isc_region_t *region)
 }
 
 static uint16_t
-uint16_fromregion(isc_region_t *region)
-{
-	uint16_t       val;
+uint16_fromregion(isc_region_t *region) {
+	uint16_t val;
 	unsigned char *cp = region->base;
 
 	val = ((unsigned int)(cp[0])) << 8;
@@ -397,12 +385,11 @@ uint16_fromregion(isc_region_t *region)
 }
 
 static isc_result_t
-openssldh_todns(const dst_key_t *key, isc_buffer_t *data)
-{
-	DH *	      dh;
+openssldh_todns(const dst_key_t *key, isc_buffer_t *data) {
+	DH *dh;
 	const BIGNUM *pub_key = NULL, *p = NULL, *g = NULL;
-	isc_region_t  r;
-	uint16_t      dnslen, plen, glen, publen;
+	isc_region_t r;
+	uint16_t dnslen, plen, glen, publen;
 
 	REQUIRE(key->keydata.dh != NULL);
 
@@ -413,7 +400,8 @@ openssldh_todns(const dst_key_t *key, isc_buffer_t *data)
 	DH_get0_pqg(dh, &p, NULL, &g);
 	if (BN_cmp(g, bn2) == 0 &&
 	    (BN_cmp(p, bn768) == 0 || BN_cmp(p, bn1024) == 0 ||
-	     BN_cmp(p, bn1536) == 0)) {
+	     BN_cmp(p, bn1536) == 0))
+	{
 		plen = 1;
 		glen = 0;
 	} else {
@@ -457,13 +445,12 @@ openssldh_todns(const dst_key_t *key, isc_buffer_t *data)
 }
 
 static isc_result_t
-openssldh_fromdns(dst_key_t *key, isc_buffer_t *data)
-{
-	DH *	     dh;
-	BIGNUM *     pub_key = NULL, *p = NULL, *g = NULL;
+openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
+	DH *dh;
+	BIGNUM *pub_key = NULL, *p = NULL, *g = NULL;
 	isc_region_t r;
-	uint16_t     plen, glen, publen;
-	int	     special = 0;
+	uint16_t plen, glen, publen;
+	int special = 0;
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0) {
@@ -601,14 +588,13 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data)
 }
 
 static isc_result_t
-openssldh_tofile(const dst_key_t *key, const char *directory)
-{
-	int	       i;
-	DH *	       dh;
-	const BIGNUM * pub_key = NULL, *priv_key = NULL, *p = NULL, *g = NULL;
-	dst_private_t  priv;
+openssldh_tofile(const dst_key_t *key, const char *directory) {
+	int i;
+	DH *dh;
+	const BIGNUM *pub_key = NULL, *priv_key = NULL, *p = NULL, *g = NULL;
+	dst_private_t priv;
 	unsigned char *bufs[4];
-	isc_result_t   result;
+	isc_result_t result;
 
 	if (key->keydata.dh == NULL) {
 		return (DST_R_NULLKEY);
@@ -666,14 +652,13 @@ openssldh_tofile(const dst_key_t *key, const char *directory)
 }
 
 static isc_result_t
-openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub)
-{
+openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
-	isc_result_t  ret;
-	int	      i;
-	DH *	      dh = NULL;
-	BIGNUM *      pub_key = NULL, *priv_key = NULL, *p = NULL, *g = NULL;
-	isc_mem_t *   mctx;
+	isc_result_t ret;
+	int i;
+	DH *dh = NULL;
+	BIGNUM *pub_key = NULL, *priv_key = NULL, *p = NULL, *g = NULL;
+	isc_mem_t *mctx;
 #define DST_RET(a)        \
 	{                 \
 		ret = a;  \
@@ -750,8 +735,7 @@ err:
 }
 
 static void
-openssldh_cleanup(void)
-{
+openssldh_cleanup(void) {
 	BN_free(bn2);
 	bn2 = NULL;
 
@@ -790,8 +774,7 @@ static dst_func_t openssldh_functions = {
 };
 
 isc_result_t
-dst__openssldh_init(dst_func_t **funcp)
-{
+dst__openssldh_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL) {
 		if (BN_hex2bn(&bn2, PRIME2) == 0 || bn2 == NULL) {

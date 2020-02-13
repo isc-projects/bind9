@@ -16,10 +16,10 @@
 
 #define RRTYPE_GPOS_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_gpos(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_gpos(ARGS_FROMTEXT) {
 	isc_token_t token;
-	int	    i;
+	int i;
 
 	REQUIRE(type == dns_rdatatype_gpos);
 
@@ -37,10 +37,10 @@ static inline isc_result_t fromtext_gpos(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_gpos(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_gpos(ARGS_TOTEXT) {
 	isc_region_t region;
-	int	     i;
+	int i;
 
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
 	REQUIRE(rdata->length != 0);
@@ -59,8 +59,8 @@ static inline isc_result_t totext_gpos(ARGS_TOTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t fromwire_gpos(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_gpos(ARGS_FROMWIRE) {
 	int i;
 
 	REQUIRE(type == dns_rdatatype_gpos);
@@ -75,8 +75,8 @@ static inline isc_result_t fromwire_gpos(ARGS_FROMWIRE)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t towire_gpos(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_gpos(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
 	REQUIRE(rdata->length != 0);
 
@@ -85,8 +85,8 @@ static inline isc_result_t towire_gpos(ARGS_TOWIRE)
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int compare_gpos(ARGS_COMPARE)
-{
+static inline int
+compare_gpos(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -101,8 +101,8 @@ static inline int compare_gpos(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_gpos(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_gpos(ARGS_FROMSTRUCT) {
 	dns_rdata_gpos_t *gpos = source;
 
 	REQUIRE(type == dns_rdatatype_gpos);
@@ -121,10 +121,10 @@ static inline isc_result_t fromstruct_gpos(ARGS_FROMSTRUCT)
 	return (mem_tobuffer(target, gpos->altitude, gpos->alt_len));
 }
 
-static inline isc_result_t tostruct_gpos(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_gpos(ARGS_TOSTRUCT) {
 	dns_rdata_gpos_t *gpos = target;
-	isc_region_t	  region;
+	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
 	REQUIRE(gpos != NULL);
@@ -177,8 +177,8 @@ cleanup_longitude:
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void freestruct_gpos(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_gpos(ARGS_FREESTRUCT) {
 	dns_rdata_gpos_t *gpos = source;
 
 	REQUIRE(gpos != NULL);
@@ -200,8 +200,8 @@ static inline void freestruct_gpos(ARGS_FREESTRUCT)
 	gpos->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_gpos(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_gpos(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
 
 	UNUSED(rdata);
@@ -211,8 +211,8 @@ static inline isc_result_t additionaldata_gpos(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_gpos(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_gpos(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
@@ -222,8 +222,8 @@ static inline isc_result_t digest_gpos(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_gpos(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_gpos(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_gpos);
 
 	UNUSED(name);
@@ -234,8 +234,8 @@ static inline bool checkowner_gpos(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_gpos(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_gpos(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
 
 	UNUSED(rdata);
@@ -245,8 +245,8 @@ static inline bool checknames_gpos(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_gpos(ARGS_COMPARE)
-{
+static inline int
+casecompare_gpos(ARGS_COMPARE) {
 	return (compare_gpos(rdata1, rdata2));
 }
 

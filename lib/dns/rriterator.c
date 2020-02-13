@@ -34,8 +34,7 @@
 
 isc_result_t
 dns_rriterator_init(dns_rriterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
-		    isc_stdtime_t now)
-{
+		    isc_stdtime_t now) {
 	isc_result_t result;
 	it->magic = RRITERATOR_MAGIC;
 	it->db = db;
@@ -57,8 +56,7 @@ dns_rriterator_init(dns_rriterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 }
 
 isc_result_t
-dns_rriterator_first(dns_rriterator_t *it)
-{
+dns_rriterator_first(dns_rriterator_t *it) {
 	REQUIRE(VALID_RRITERATOR(it));
 	/* Reset state */
 	if (dns_rdataset_isassociated(&it->rdataset)) {
@@ -111,8 +109,7 @@ dns_rriterator_first(dns_rriterator_t *it)
 }
 
 isc_result_t
-dns_rriterator_nextrrset(dns_rriterator_t *it)
-{
+dns_rriterator_nextrrset(dns_rriterator_t *it) {
 	REQUIRE(VALID_RRITERATOR(it));
 	if (dns_rdataset_isassociated(&it->rdataset)) {
 		dns_rdataset_disassociate(&it->rdataset);
@@ -158,8 +155,7 @@ dns_rriterator_nextrrset(dns_rriterator_t *it)
 }
 
 isc_result_t
-dns_rriterator_next(dns_rriterator_t *it)
-{
+dns_rriterator_next(dns_rriterator_t *it) {
 	REQUIRE(VALID_RRITERATOR(it));
 	if (it->result != ISC_R_SUCCESS) {
 		return (it->result);
@@ -177,15 +173,13 @@ dns_rriterator_next(dns_rriterator_t *it)
 }
 
 void
-dns_rriterator_pause(dns_rriterator_t *it)
-{
+dns_rriterator_pause(dns_rriterator_t *it) {
 	REQUIRE(VALID_RRITERATOR(it));
 	RUNTIME_CHECK(dns_dbiterator_pause(it->dbit) == ISC_R_SUCCESS);
 }
 
 void
-dns_rriterator_destroy(dns_rriterator_t *it)
-{
+dns_rriterator_destroy(dns_rriterator_t *it) {
 	REQUIRE(VALID_RRITERATOR(it));
 	if (dns_rdataset_isassociated(&it->rdataset)) {
 		dns_rdataset_disassociate(&it->rdataset);
@@ -201,8 +195,7 @@ dns_rriterator_destroy(dns_rriterator_t *it)
 
 void
 dns_rriterator_current(dns_rriterator_t *it, dns_name_t **name, uint32_t *ttl,
-		       dns_rdataset_t **rdataset, dns_rdata_t **rdata)
-{
+		       dns_rdataset_t **rdataset, dns_rdata_t **rdata) {
 	REQUIRE(name != NULL && *name == NULL);
 	REQUIRE(VALID_RRITERATOR(it));
 	REQUIRE(it->result == ISC_R_SUCCESS);

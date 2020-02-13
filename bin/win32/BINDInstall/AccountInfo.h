@@ -9,10 +9,10 @@
  * information regarding copyright ownership.
  */
 
-#define RTN_OK 0
+#define RTN_OK	      0
 #define RTN_NOACCOUNT 1
-#define RTN_NOMEMORY 2
-#define RTN_ERROR 10
+#define RTN_NOMEMORY  2
+#define RTN_ERROR     10
 
 #define SE_SERVICE_LOGON_PRIV L"SeServiceLogonRight"
 

@@ -37,9 +37,9 @@
 
 /* For this simple example, use fixed sized strings */
 struct record {
-	char	  name[100];
-	char	  type[10];
-	char	  data[200];
+	char name[100];
+	char type[10];
+	char data[200];
 	dns_ttl_t ttl;
 };
 
@@ -56,9 +56,9 @@ struct dlz_example_data {
 	bool transaction_started;
 
 	/* Helper functions from the dlz_dlopen driver */
-	log_t *			 log;
-	dns_sdlz_putrr_t *	 putrr;
-	dns_sdlz_putnamedrr_t *	 putnamedrr;
+	log_t *log;
+	dns_sdlz_putrr_t *putrr;
+	dns_sdlz_putnamedrr_t *putnamedrr;
 	dns_dlz_writeablezone_t *writeable_zone;
 };
 
@@ -66,7 +66,7 @@ static bool
 single_valued(const char *type)
 {
 	const char *single[] = { "soa", "cname", NULL };
-	int	    i;
+	int i;
 
 	for (i = 0; single[i]; i++) {
 		if (strcasecmp(single[i], type) == 0) {
@@ -83,9 +83,9 @@ static isc_result_t
 add_name(struct dlz_example_data *state, struct record *list, const char *name,
 	 const char *type, dns_ttl_t ttl, const char *data)
 {
-	int  i;
+	int i;
 	bool single = single_valued(type);
-	int  first_empty = -1;
+	int first_empty = -1;
 
 	for (i = 0; i < MAX_RECORDS; i++) {
 		if (first_empty == -1 && strlen(list[i].name) == 0U) {
@@ -115,7 +115,8 @@ add_name(struct dlz_example_data *state, struct record *list, const char *name,
 
 	if (strlen(name) >= sizeof(list[i].name) ||
 	    strlen(type) >= sizeof(list[i].type) ||
-	    strlen(data) >= sizeof(list[i].data)) {
+	    strlen(data) >= sizeof(list[i].data))
+	{
 		return (ISC_R_NOSPACE);
 	}
 
@@ -147,7 +148,8 @@ del_name(struct dlz_example_data *state, struct record *list, const char *name,
 	for (i = 0; i < MAX_RECORDS; i++) {
 		if (strcasecmp(name, list[i].name) == 0 &&
 		    strcasecmp(type, list[i].type) == 0 &&
-		    strcasecmp(data, list[i].data) == 0 && ttl == list[i].ttl) {
+		    strcasecmp(data, list[i].data) == 0 && ttl == list[i].ttl)
+		{
 			break;
 		}
 	}
@@ -161,9 +163,9 @@ del_name(struct dlz_example_data *state, struct record *list, const char *name,
 static isc_result_t
 fmt_address(isc_sockaddr_t *addr, char *buffer, size_t size)
 {
-	char	    addr_buf[100];
+	char addr_buf[100];
 	const char *ret;
-	uint16_t    port = 0;
+	uint16_t port = 0;
 
 	switch (addr->type.sa.sa_family) {
 	case AF_INET:
@@ -227,12 +229,12 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	   ...)
 {
 	struct dlz_example_data *state;
-	const char *		 helper_name;
-	va_list			 ap;
-	char			 soa_data[200];
-	const char *		 extra;
-	isc_result_t		 result;
-	int			 n;
+	const char *helper_name;
+	va_list ap;
+	char soa_data[200];
+	const char *extra;
+	isc_result_t result;
+	int n;
 
 	UNUSED(dlzname);
 
@@ -329,14 +331,15 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo)
 {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
-	isc_sockaddr_t *	 src;
-	char			 addrbuf[100];
-	char			 absolute[1024];
+	isc_sockaddr_t *src;
+	char addrbuf[100];
+	char absolute[1024];
 
 	strcpy(addrbuf, "unknown");
 	if (methods != NULL && methods->sourceip != NULL &&
 	    methods->version - methods->age <= DNS_CLIENTINFOMETHODS_VERSION &&
-	    DNS_CLIENTINFOMETHODS_VERSION <= methods->version) {
+	    DNS_CLIENTINFOMETHODS_VERSION <= methods->version)
+	{
 		methods->sourceip(clientinfo, &src);
 		fmt_address(src, addrbuf, sizeof(addrbuf));
 	}
@@ -364,7 +367,8 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	 * from 10.53.0.1.
 	 */
 	if (strcasecmp(name, "test.example.net") == 0 &&
-	    strncmp(addrbuf, "10.53.0.1", 9) == 0) {
+	    strncmp(addrbuf, "10.53.0.1", 9) == 0)
+	{
 		return (ISC_R_NOMORE);
 	}
 
@@ -395,14 +399,14 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
 	   dns_clientinfo_t *clientinfo)
 {
-	isc_result_t		 result;
+	isc_result_t result;
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
-	bool			 found = false;
-	void *			 dbversion = NULL;
-	isc_sockaddr_t *	 src;
-	char			 full_name[256];
-	char			 buf[512];
-	int			 i;
+	bool found = false;
+	void *dbversion = NULL;
+	isc_sockaddr_t *src;
+	char full_name[256];
+	char buf[512];
+	int i;
 
 	UNUSED(zone);
 
@@ -432,8 +436,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	 * If the DLZ only operates on 'live' data, then version
 	 * wouldn't necessarily be needed.
 	 */
-	if (clientinfo != NULL &&
-	    clientinfo->version >= DNS_CLIENTINFO_VERSION) {
+	if (clientinfo != NULL && clientinfo->version >= DNS_CLIENTINFO_VERSION)
+	{
 		dbversion = clientinfo->dbversion;
 		if (dbversion != NULL && *(bool *)dbversion) {
 			state->log(ISC_LOG_INFO, "dlz_example: lookup against "
@@ -447,7 +451,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		if (methods != NULL && methods->sourceip != NULL &&
 		    (methods->version - methods->age <=
 		     DNS_CLIENTINFOMETHODS_VERSION) &&
-		    DNS_CLIENTINFOMETHODS_VERSION <= methods->version) {
+		    DNS_CLIENTINFOMETHODS_VERSION <= methods->version)
+		{
 			methods->sourceip(clientinfo, &src);
 			fmt_address(src, buf, sizeof(buf));
 		}
@@ -511,7 +516,7 @@ isc_result_t
 dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
-	int			 i;
+	int i;
 
 	UNUSED(zone);
 
@@ -628,7 +633,7 @@ isc_result_t
 dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata)
 {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
-	isc_result_t		 result;
+	isc_result_t result;
 
 	if (state->log != NULL) {
 		state->log(ISC_LOG_INFO, "dlz_example: starting configure");
@@ -701,8 +706,8 @@ static isc_result_t
 modrdataset(struct dlz_example_data *state, const char *name,
 	    const char *rdatastr, struct record *list)
 {
-	char *	     full_name, *dclass, *type, *data, *ttlstr, *buf;
-	char	     absolute[1024];
+	char *full_name, *dclass, *type, *data, *ttlstr, *buf;
+	char absolute[1024];
 	isc_result_t result;
 #if defined(WIN32) || defined(_REENTRANT)
 	char *saveptr = NULL;

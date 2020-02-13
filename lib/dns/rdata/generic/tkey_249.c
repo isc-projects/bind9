@@ -16,14 +16,14 @@
 
 #define RRTYPE_TKEY_ATTRIBUTES (DNS_RDATATYPEATTR_META)
 
-static inline isc_result_t fromtext_tkey(ARGS_FROMTEXT)
-{
-	isc_token_t  token;
-	dns_rcode_t  rcode;
-	dns_name_t   name;
+static inline isc_result_t
+fromtext_tkey(ARGS_FROMTEXT) {
+	isc_token_t token;
+	dns_rcode_t rcode;
+	dns_name_t name;
 	isc_buffer_t buffer;
-	long	     i;
-	char *	     e;
+	long i;
+	char *e;
 
 	REQUIRE(type == dns_rdatatype_tkey);
 
@@ -116,14 +116,14 @@ static inline isc_result_t fromtext_tkey(ARGS_FROMTEXT)
 	return (isc_base64_tobuffer(lexer, target, (int)token.value.as_ulong));
 }
 
-static inline isc_result_t totext_tkey(ARGS_TOTEXT)
-{
-	isc_region_t  sr, dr;
-	char	      buf[sizeof("4294967295 ")];
+static inline isc_result_t
+totext_tkey(ARGS_TOTEXT) {
+	isc_region_t sr, dr;
+	char buf[sizeof("4294967295 ")];
 	unsigned long n;
-	dns_name_t    name;
-	dns_name_t    prefix;
-	bool	      sub;
+	dns_name_t name;
+	dns_name_t prefix;
+	bool sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_tkey);
 	REQUIRE(rdata->length != 0);
@@ -240,11 +240,11 @@ static inline isc_result_t totext_tkey(ARGS_TOTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t fromwire_tkey(ARGS_FROMWIRE)
-{
-	isc_region_t  sr;
+static inline isc_result_t
+fromwire_tkey(ARGS_FROMWIRE) {
+	isc_region_t sr;
 	unsigned long n;
-	dns_name_t    name;
+	dns_name_t name;
 
 	REQUIRE(type == dns_rdatatype_tkey);
 
@@ -301,10 +301,10 @@ static inline isc_result_t fromwire_tkey(ARGS_FROMWIRE)
 	return (mem_tobuffer(target, sr.base, n + 2));
 }
 
-static inline isc_result_t towire_tkey(ARGS_TOWIRE)
-{
-	isc_region_t  sr;
-	dns_name_t    name;
+static inline isc_result_t
+towire_tkey(ARGS_TOWIRE) {
+	isc_region_t sr;
+	dns_name_t name;
 	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_tkey);
@@ -323,13 +323,13 @@ static inline isc_result_t towire_tkey(ARGS_TOWIRE)
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int compare_tkey(ARGS_COMPARE)
-{
+static inline int
+compare_tkey(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
-	dns_name_t   name1;
-	dns_name_t   name2;
-	int	     order;
+	dns_name_t name1;
+	dns_name_t name2;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -354,8 +354,8 @@ static inline int compare_tkey(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_tkey(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_tkey(ARGS_FROMSTRUCT) {
 	dns_rdata_tkey_t *tkey = source;
 
 	REQUIRE(type == dns_rdatatype_tkey);
@@ -412,11 +412,11 @@ static inline isc_result_t fromstruct_tkey(ARGS_FROMSTRUCT)
 	return (mem_tobuffer(target, tkey->other, tkey->otherlen));
 }
 
-static inline isc_result_t tostruct_tkey(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_tkey(ARGS_TOSTRUCT) {
 	dns_rdata_tkey_t *tkey = target;
-	dns_name_t	  alg;
-	isc_region_t	  sr;
+	dns_name_t alg;
+	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_tkey);
 	REQUIRE(tkey != NULL);
@@ -505,8 +505,8 @@ cleanup:
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void freestruct_tkey(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_tkey(ARGS_FREESTRUCT) {
 	dns_rdata_tkey_t *tkey = (dns_rdata_tkey_t *)source;
 
 	REQUIRE(tkey != NULL);
@@ -525,8 +525,8 @@ static inline void freestruct_tkey(ARGS_FREESTRUCT)
 	tkey->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_tkey(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_tkey(ARGS_ADDLDATA) {
 	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
@@ -536,8 +536,8 @@ static inline isc_result_t additionaldata_tkey(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_tkey(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_tkey(ARGS_DIGEST) {
 	UNUSED(rdata);
 	UNUSED(digest);
 	UNUSED(arg);
@@ -547,8 +547,8 @@ static inline isc_result_t digest_tkey(ARGS_DIGEST)
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
-static inline bool checkowner_tkey(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_tkey(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_tkey);
 
 	UNUSED(name);
@@ -559,8 +559,8 @@ static inline bool checkowner_tkey(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_tkey(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_tkey(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_tkey);
 
 	UNUSED(rdata);
@@ -570,8 +570,8 @@ static inline bool checknames_tkey(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_tkey(ARGS_COMPARE)
-{
+static inline int
+casecompare_tkey(ARGS_COMPARE) {
 	return (compare_tkey(rdata1, rdata2));
 }
 #endif /* RDATA_GENERIC_TKEY_249_C */

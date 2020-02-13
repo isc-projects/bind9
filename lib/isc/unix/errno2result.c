@@ -29,8 +29,7 @@
  */
 isc_result_t
 isc___errno2result(int posixerrno, bool dolog, const char *file,
-		   unsigned int line)
-{
+		   unsigned int line) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	switch (posixerrno) {

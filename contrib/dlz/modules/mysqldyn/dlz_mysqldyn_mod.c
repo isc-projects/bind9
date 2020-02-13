@@ -191,17 +191,17 @@ typedef struct mysql_record {
 } mysql_record_t;
 
 typedef struct mysql_instance {
-	int	    id;
-	MYSQL *	    sock;
-	int	    connected;
+	int id;
+	MYSQL *sock;
+	int connected;
 	dlz_mutex_t mutex;
 } mysql_instance_t;
 
 typedef struct mysql_transaction mysql_transaction_t;
 struct mysql_transaction {
-	char *		     zone;
-	char *		     zone_id;
-	mysql_instance_t *   dbi;
+	char *zone;
+	char *zone_id;
+	mysql_instance_t *dbi;
 	mysql_transaction_t *next;
 };
 
@@ -232,9 +232,9 @@ typedef struct mysql_data {
 	dlz_mutex_t tx_mutex;
 
 	/* Helper functions from the dlz_dlopen driver */
-	log_t *			 log;
-	dns_sdlz_putrr_t *	 putrr;
-	dns_sdlz_putnamedrr_t *	 putnamedrr;
+	log_t *log;
+	dns_sdlz_putrr_t *putrr;
+	dns_sdlz_putnamedrr_t *putnamedrr;
 	dns_dlz_writeablezone_t *writeable_zone;
 } mysql_data_t;
 
@@ -371,14 +371,14 @@ static char *
 build_query(mysql_data_t *state, mysql_instance_t *dbi, const char *command,
 	    ...)
 {
-	isc_result_t	result;
-	bool		localdbi = false;
+	isc_result_t result;
+	bool localdbi = false;
 	mysql_arglist_t arglist;
-	mysql_arg_t *	item;
-	char *		p, *q, *tmp = NULL, *querystr = NULL;
-	char *		query = NULL;
-	size_t		len = 0;
-	va_list		ap1;
+	mysql_arg_t *item;
+	char *p, *q, *tmp = NULL, *querystr = NULL;
+	char *query = NULL;
+	size_t len = 0;
+	va_list ap1;
 
 	/* Get a DB instance if needed */
 	if (dbi == NULL) {
@@ -456,7 +456,8 @@ build_query(mysql_data_t *state, mysql_instance_t *dbi, const char *command,
 
 	*query = '\0';
 	for (item = DLZ_LIST_HEAD(arglist); item != NULL;
-	     item = DLZ_LIST_NEXT(item, link)) {
+	     item = DLZ_LIST_NEXT(item, link))
+	{
 		if (item->arg != NULL) {
 			strcat(query, item->arg);
 		}
@@ -466,7 +467,8 @@ fail:
 	va_end(ap1);
 
 	for (item = DLZ_LIST_HEAD(arglist); item != NULL;
-	     item = DLZ_LIST_NEXT(item, link)) {
+	     item = DLZ_LIST_NEXT(item, link))
+	{
 		if (item->arg != NULL) {
 			free(item->arg);
 		}
@@ -534,7 +536,7 @@ fqhn(const char *name, const char *zone, char *dest)
 static char *
 relname(const char *name, const char *zone)
 {
-	size_t	    nlen, zlen;
+	size_t nlen, zlen;
 	const char *p;
 	char *new;
 
@@ -556,7 +558,8 @@ relname(const char *name, const char *zone)
 
 	p = name + nlen - zlen;
 	if (strcasecmp(p, zone) != 0 &&
-	    (zone[zlen - 1] != '.' || strncasecmp(p, zone, zlen - 1) != 0)) {
+	    (zone[zlen - 1] != '.' || strncasecmp(p, zone, zlen - 1) != 0))
+	{
 		strcpy(new, name);
 		return (new);
 	}
@@ -569,7 +572,7 @@ relname(const char *name, const char *zone)
 static isc_result_t
 validate_txn(mysql_data_t *state, mysql_transaction_t *txn)
 {
-	isc_result_t	     result = ISC_R_FAILURE;
+	isc_result_t result = ISC_R_FAILURE;
 	mysql_transaction_t *txp;
 
 	dlz_mutex_lock(&state->tx_mutex);
@@ -619,8 +622,8 @@ static MYSQL_RES *
 db_query(mysql_data_t *state, mysql_instance_t *dbi, const char *query)
 {
 	isc_result_t result;
-	bool	     localdbi = false;
-	MYSQL_RES *  res = NULL;
+	bool localdbi = false;
+	MYSQL_RES *res = NULL;
 
 	if (query == NULL) {
 		return (NULL);
@@ -683,7 +686,7 @@ fail:
 static unsigned char *
 make_notify(const char *zone, int *packetlen)
 {
-	int	       i, j;
+	int i, j;
 	unsigned char *packet = (unsigned char *)malloc(strlen(zone) + 18);
 
 	if (packet == NULL) {
@@ -758,14 +761,14 @@ send_notify(struct sockaddr_in *addr, const unsigned char *p, const int plen)
 static void
 notify(mysql_data_t *state, const char *zone, int sn)
 {
-	MYSQL_RES *	res;
-	MYSQL_ROW	row;
-	char *		query;
-	unsigned char * packet;
-	int		packetlen;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+	char *query;
+	unsigned char *packet;
+	int packetlen;
 	struct ifaddrs *ifap, *ifa;
-	char		zaddr[INET_ADDRSTRLEN];
-	void *		addrp = NULL;
+	char zaddr[INET_ADDRSTRLEN];
+	void *addrp = NULL;
 
 	/* Get the name servers from the NS rrset */
 	query = build_query(state, NULL, Q_GETNS, zone);
@@ -789,8 +792,8 @@ notify(mysql_data_t *state, const char *zone, int sn)
 
 	/* Tell each nameserver of the update */
 	while ((row = mysql_fetch_row(res)) != NULL) {
-		bool		   local = false;
-		struct hostent *   h;
+		bool local = false;
+		struct hostent *h;
 		struct sockaddr_in addr, *sin;
 
 		/*
@@ -851,8 +854,8 @@ static mysql_record_t *
 makerecord(mysql_data_t *state, const char *name, const char *rdatastr)
 {
 	mysql_record_t *new_record;
-	char *		real_name, *dclass, *type, *data, *ttlstr, *buf;
-	dns_ttl_t	ttlvalue;
+	char *real_name, *dclass, *type, *data, *ttlstr, *buf;
+	dns_ttl_t ttlvalue;
 
 	new_record = (mysql_record_t *)malloc(sizeof(mysql_record_t));
 
@@ -965,9 +968,9 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	   ...)
 {
 	mysql_data_t *state;
-	const char *  helper_name;
-	va_list	      ap;
-	int	      n;
+	const char *helper_name;
+	va_list ap;
+	int n;
 
 	UNUSED(dlzname);
 
@@ -1067,7 +1070,7 @@ void
 dlz_destroy(void *dbdata)
 {
 	mysql_data_t *state = (mysql_data_t *)dbdata;
-	int	      i;
+	int i;
 
 	if (state->debug && state->log != NULL) {
 		state->log(ISC_LOG_INFO, "%s: shutting down", modname);
@@ -1094,10 +1097,10 @@ isc_result_t
 dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo)
 {
-	isc_result_t  result = ISC_R_SUCCESS;
+	isc_result_t result = ISC_R_SUCCESS;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
-	MYSQL_RES *   res;
-	char *	      query;
+	MYSQL_RES *res;
+	char *query;
 
 	/* Query the Zones table to see if this zone is present */
 	query = build_query(state, NULL, Q_FINDZONE, name);
@@ -1127,15 +1130,15 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
 	   dns_clientinfo_t *clientinfo)
 {
-	isc_result_t	     result;
-	mysql_data_t *	     state = (mysql_data_t *)dbdata;
-	bool		     found = false;
-	char *		     real_name;
-	MYSQL_RES *	     res;
-	MYSQL_ROW	     row;
-	char *		     query;
+	isc_result_t result;
+	mysql_data_t *state = (mysql_data_t *)dbdata;
+	bool found = false;
+	char *real_name;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+	char *query;
 	mysql_transaction_t *txn = NULL;
-	mysql_instance_t *   dbi = NULL;
+	mysql_instance_t *dbi = NULL;
 
 	if (state->putrr == NULL) {
 		if (state->log != NULL) {
@@ -1146,8 +1149,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	/* Are we okay to try to find the txn version?  */
-	if (clientinfo != NULL &&
-	    clientinfo->version >= DNS_CLIENTINFO_VERSION) {
+	if (clientinfo != NULL && clientinfo->version >= DNS_CLIENTINFO_VERSION)
+	{
 		txn = (mysql_transaction_t *)clientinfo->dbversion;
 		if (txn != NULL && validate_txn(state, txn) == ISC_R_SUCCESS) {
 			dbi = txn->dbi;
@@ -1194,7 +1197,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 
 		while ((row = mysql_fetch_row(res)) != NULL) {
 			char host[1024], admin[1024], data[1024];
-			int  ttl;
+			int ttl;
 
 			sscanf(row[7], "%d", &ttl);
 			fqhn(row[0], zone, host);
@@ -1282,11 +1285,11 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
 isc_result_t
 dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 {
-	isc_result_t  result = ISC_R_SUCCESS;
+	isc_result_t result = ISC_R_SUCCESS;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
-	MYSQL_RES *   res;
-	MYSQL_ROW     row;
-	char *	      query;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+	char *query;
 
 	UNUSED(zone);
 
@@ -1314,7 +1317,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 
 	while ((row = mysql_fetch_row(res)) != NULL) {
 		char hostname[1024];
-		int  ttl;
+		int ttl;
 
 		sscanf(row[3], "%d", &ttl);
 		fqhn(row[0], zone, hostname);
@@ -1335,12 +1338,12 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 isc_result_t
 dlz_newversion(const char *zone, void *dbdata, void **versionp)
 {
-	isc_result_t	     result = ISC_R_FAILURE;
-	mysql_data_t *	     state = (mysql_data_t *)dbdata;
-	MYSQL_RES *	     res;
-	MYSQL_ROW	     row;
-	char *		     query;
-	char		     zone_id[16];
+	isc_result_t result = ISC_R_FAILURE;
+	mysql_data_t *state = (mysql_data_t *)dbdata;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+	char *query;
+	char zone_id[16];
 	mysql_transaction_t *txn = NULL, *newtx = NULL;
 
 	/*
@@ -1450,13 +1453,13 @@ cleanup:
 void
 dlz_closeversion(const char *zone, bool commit, void *dbdata, void **versionp)
 {
-	isc_result_t	     result;
-	mysql_data_t *	     state = (mysql_data_t *)dbdata;
+	isc_result_t result;
+	mysql_data_t *state = (mysql_data_t *)dbdata;
 	mysql_transaction_t *txn = (mysql_transaction_t *)*versionp;
 	mysql_transaction_t *txp;
-	char *		     query;
-	MYSQL_RES *	     res;
-	MYSQL_ROW	     row;
+	char *query;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
 
 	/*
 	 * Find the transaction
@@ -1584,10 +1587,10 @@ dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata)
 #endif /* DLZ_DLOPEN_VERSION */
 {
 	mysql_data_t *state = (mysql_data_t *)dbdata;
-	isc_result_t  result;
-	MYSQL_RES *   res;
-	MYSQL_ROW     row;
-	int	      count;
+	isc_result_t result;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+	int count;
 
 	/*
 	 * Seed PRNG (used by Notify code)
@@ -1672,11 +1675,11 @@ isc_result_t
 dlz_addrdataset(const char *name, const char *rdatastr, void *dbdata,
 		void *version)
 {
-	mysql_data_t *	     state = (mysql_data_t *)dbdata;
+	mysql_data_t *state = (mysql_data_t *)dbdata;
 	mysql_transaction_t *txn = (mysql_transaction_t *)version;
-	char *		     new_name, *query;
-	mysql_record_t *     record;
-	isc_result_t	     result;
+	char *new_name, *query;
+	mysql_record_t *record;
+	isc_result_t result;
 
 	if (txn == NULL) {
 		return (ISC_R_FAILURE);
@@ -1736,11 +1739,11 @@ isc_result_t
 dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
 		void *version)
 {
-	mysql_data_t *	     state = (mysql_data_t *)dbdata;
+	mysql_data_t *state = (mysql_data_t *)dbdata;
 	mysql_transaction_t *txn = (mysql_transaction_t *)version;
-	char *		     new_name, *query;
-	mysql_record_t *     record;
-	isc_result_t	     result;
+	char *new_name, *query;
+	mysql_record_t *record;
+	isc_result_t result;
 
 	if (txn == NULL) {
 		return (ISC_R_FAILURE);
@@ -1787,10 +1790,10 @@ cleanup:
 isc_result_t
 dlz_delrdataset(const char *name, const char *type, void *dbdata, void *version)
 {
-	mysql_data_t *	     state = (mysql_data_t *)dbdata;
+	mysql_data_t *state = (mysql_data_t *)dbdata;
 	mysql_transaction_t *txn = (mysql_transaction_t *)version;
-	char *		     new_name, *query;
-	isc_result_t	     result;
+	char *new_name, *query;
+	isc_result_t result;
 
 	if (txn == NULL) {
 		return (ISC_R_FAILURE);

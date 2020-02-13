@@ -38,9 +38,9 @@
 
 #define MXSERV 20
 #define MXNAME (DNS_NAME_MAXTEXT + 1)
-#define MXRD 32
+#define MXRD   32
 /*% Buffer Size */
-#define BUFSIZE 512
+#define BUFSIZE	 512
 #define COMMSIZE 0xffff
 #ifndef RESOLV_CONF
 /*% location of resolve.conf */

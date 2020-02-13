@@ -33,8 +33,7 @@
 #include "isctest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -46,8 +45,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -56,11 +54,10 @@ _teardown(void **state)
 }
 
 static void
-test_ht_full(int bits, uintptr_t count)
-{
-	isc_ht_t *   ht = NULL;
+test_ht_full(int bits, uintptr_t count) {
+	isc_ht_t *ht = NULL;
 	isc_result_t result;
-	uintptr_t    i;
+	uintptr_t i;
 
 	result = isc_ht_init(&ht, test_mctx, bits);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -80,7 +77,7 @@ test_ht_full(int bits, uintptr_t count)
 
 	for (i = 1; i < count; i++) {
 		unsigned char key[16];
-		void *	      f = NULL;
+		void *f = NULL;
 		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
@@ -111,7 +108,7 @@ test_ht_full(int bits, uintptr_t count)
 
 	for (i = 1; i < count; i++) {
 		unsigned char key[16];
-		void *	      f = NULL;
+		void *f = NULL;
 		/*
 		 * Note: case of KEY is now in capitals,
 		 */
@@ -123,7 +120,7 @@ test_ht_full(int bits, uintptr_t count)
 	}
 
 	for (i = 1; i < count; i++) {
-		char  key[64];
+		char key[64];
 		void *f = NULL;
 		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
@@ -135,7 +132,7 @@ test_ht_full(int bits, uintptr_t count)
 
 	for (i = 1; i < count; i++) {
 		unsigned char key[16];
-		void *	      f = NULL;
+		void *f = NULL;
 		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_delete(ht, key, 16);
@@ -157,7 +154,7 @@ test_ht_full(int bits, uintptr_t count)
 	}
 
 	for (i = 1; i < count; i++) {
-		char  key[64];
+		char key[64];
 		void *f = NULL;
 		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
@@ -172,7 +169,7 @@ test_ht_full(int bits, uintptr_t count)
 
 	for (i = 1; i < count; i++) {
 		unsigned char key[16];
-		void *	      f = NULL;
+		void *f = NULL;
 		/*
 		 * Note: case of KEY is now in capitals,
 		 */
@@ -185,7 +182,7 @@ test_ht_full(int bits, uintptr_t count)
 
 	for (i = 1; i < count; i++) {
 		unsigned char key[16];
-		void *	      f = NULL;
+		void *f = NULL;
 		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
@@ -198,16 +195,15 @@ test_ht_full(int bits, uintptr_t count)
 }
 
 static void
-test_ht_iterator()
-{
-	isc_ht_t *     ht = NULL;
-	isc_result_t   result;
+test_ht_iterator() {
+	isc_ht_t *ht = NULL;
+	isc_result_t result;
 	isc_ht_iter_t *iter = NULL;
-	uintptr_t      i;
-	uintptr_t      count = 10000;
-	uint32_t       walked;
-	unsigned char  key[16];
-	size_t	       tksize;
+	uintptr_t i;
+	uintptr_t count = 10000;
+	uint32_t walked;
+	unsigned char key[16];
+	size_t tksize;
 
 	result = isc_ht_init(&ht, test_mctx, 16);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -228,9 +224,10 @@ test_ht_iterator()
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(iter)) {
+	     result = isc_ht_iter_next(iter))
+	{
 		unsigned char *tkey = NULL;
-		void *	       v = NULL;
+		void *v = NULL;
 
 		isc_ht_iter_current(iter, &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
@@ -249,7 +246,7 @@ test_ht_iterator()
 	result = isc_ht_iter_first(iter);
 	while (result == ISC_R_SUCCESS) {
 		unsigned char *tkey = NULL;
-		void *	       v = NULL;
+		void *v = NULL;
 
 		isc_ht_iter_current(iter, &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
@@ -273,7 +270,7 @@ test_ht_iterator()
 	result = isc_ht_iter_first(iter);
 	while (result == ISC_R_SUCCESS) {
 		unsigned char *tkey = NULL;
-		void *	       v = NULL;
+		void *v = NULL;
 
 		isc_ht_iter_current(iter, &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
@@ -294,7 +291,8 @@ test_ht_iterator()
 
 	walked = 0;
 	for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(iter)) {
+	     result = isc_ht_iter_next(iter))
+	{
 		walked++;
 	}
 
@@ -310,39 +308,34 @@ test_ht_iterator()
 
 /* 20 bit, 200K elements test */
 static void
-isc_ht_20(void **state)
-{
+isc_ht_20(void **state) {
 	UNUSED(state);
 	test_ht_full(20, 200000);
 }
 
 /* 8 bit, 20000 elements crowded test */
 static void
-isc_ht_8(void **state)
-{
+isc_ht_8(void **state) {
 	UNUSED(state);
 	test_ht_full(8, 20000);
 }
 
 /* 8 bit, 100 elements corner case test */
 static void
-isc_ht_1(void **state)
-{
+isc_ht_1(void **state) {
 	UNUSED(state);
 	test_ht_full(1, 100);
 }
 
 /* test hashtable iterator */
 static void
-isc_ht_iterator_test(void **state)
-{
+isc_ht_iterator_test(void **state) {
 	UNUSED(state);
 	test_ht_iterator();
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_ht_20),
 		cmocka_unit_test(isc_ht_8),
@@ -358,8 +351,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

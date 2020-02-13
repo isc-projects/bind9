@@ -38,8 +38,7 @@
 static dns_rdatatype_t privatetype = 65534;
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -51,8 +50,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -62,25 +60,24 @@ _teardown(void **state)
 
 typedef struct {
 	unsigned char alg;
-	dns_keytag_t  keyid;
-	bool	      remove;
-	bool	      complete;
+	dns_keytag_t keyid;
+	bool remove;
+	bool complete;
 } signing_testcase_t;
 
 typedef struct {
 	unsigned char hash;
 	unsigned char flags;
-	unsigned int  iterations;
+	unsigned int iterations;
 	unsigned long salt;
-	bool	      remove;
-	bool	      pending;
-	bool	      nonsec;
+	bool remove;
+	bool pending;
+	bool nonsec;
 } nsec3_testcase_t;
 
 static void
 make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
-	     unsigned char *buf, size_t len)
-{
+	     unsigned char *buf, size_t len) {
 	dns_rdata_init(private);
 
 	buf[0] = testcase->alg;
@@ -100,15 +97,14 @@ make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
 
 static void
 make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
-	   unsigned char *   pbuf)
-{
+	   unsigned char *pbuf) {
 	dns_rdata_nsec3param_t params;
-	dns_rdata_t	       nsec3param = DNS_RDATA_INIT;
-	unsigned char	       bufdata[BUFSIZ];
-	isc_buffer_t	       buf;
-	uint32_t	       salt;
-	unsigned char *	       sp;
-	int		       slen = 4;
+	dns_rdata_t nsec3param = DNS_RDATA_INIT;
+	unsigned char bufdata[BUFSIZ];
+	isc_buffer_t buf;
+	uint32_t salt;
+	unsigned char *sp;
+	int slen = 4;
 
 	/* for simplicity, we're using a maximum salt length of 4 */
 	salt = htonl(testcase->salt);
@@ -150,8 +146,7 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 
 /* convert private signing records to text */
 static void
-private_signing_totext_test(void **state)
-{
+private_signing_totext_test(void **state) {
 	dns_rdata_t private;
 	int i;
 
@@ -160,19 +155,19 @@ private_signing_totext_test(void **state)
 					   { DST_ALG_NSEC3RSASHA1, 22222, 0,
 					     1 },
 					   { DST_ALG_RSASHA1, 33333, 1, 1 } };
-	const char *	   results[] = { "Signing with key 12345/RSASHA512",
-					 "Removing signatures for key 54321/RSASHA256",
-					 "Done signing with key 22222/NSEC3RSASHA1",
-					 "Done removing signatures for key "
-					 "33333/RSASHA1" };
-	int		   ncases = 4;
+	const char *results[] = { "Signing with key 12345/RSASHA512",
+				  "Removing signatures for key 54321/RSASHA256",
+				  "Done signing with key 22222/NSEC3RSASHA1",
+				  "Done removing signatures for key "
+				  "33333/RSASHA1" };
+	int ncases = 4;
 
 	UNUSED(state);
 
 	for (i = 0; i < ncases; i++) {
 		unsigned char data[5];
-		char	      output[BUFSIZ];
-		isc_buffer_t  buf;
+		char output[BUFSIZ];
+		isc_buffer_t buf;
 
 		isc_buffer_init(&buf, output, sizeof(output));
 
@@ -184,8 +179,7 @@ private_signing_totext_test(void **state)
 
 /* convert private chain records to text */
 static void
-private_nsec3_totext_test(void **state)
-{
+private_nsec3_totext_test(void **state) {
 	dns_rdata_t private;
 	int i;
 
@@ -202,14 +196,14 @@ private_nsec3_totext_test(void **state)
 				  "Removing NSEC3 chain 1 0 30 DEAF / creating "
 				  "NSEC chain",
 				  "Removing NSEC3 chain 1 0 100 FEEDABEE" };
-	int	    ncases = 5;
+	int ncases = 5;
 
 	UNUSED(state);
 
 	for (i = 0; i < ncases; i++) {
 		unsigned char data[DNS_NSEC3PARAM_BUFFERSIZE + 1];
-		char	      output[BUFSIZ];
-		isc_buffer_t  buf;
+		char output[BUFSIZ];
+		isc_buffer_t buf;
 
 		isc_buffer_init(&buf, output, sizeof(output));
 
@@ -220,8 +214,7 @@ private_nsec3_totext_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(private_signing_totext_test,
 						_setup, _teardown),
@@ -237,8 +230,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

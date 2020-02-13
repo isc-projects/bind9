@@ -14,8 +14,8 @@
 
 #define RRTYPE_URI_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_uri(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_uri(ARGS_FROMTEXT) {
 	isc_token_t token;
 
 	REQUIRE(type == dns_rdatatype_uri);
@@ -58,11 +58,11 @@ static inline isc_result_t fromtext_uri(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_uri(ARGS_TOTEXT)
-{
-	isc_region_t   region;
+static inline isc_result_t
+totext_uri(ARGS_TOTEXT) {
+	isc_region_t region;
 	unsigned short priority, weight;
-	char	       buf[sizeof("65000 ")];
+	char buf[sizeof("65000 ")];
 
 	UNUSED(tctx);
 
@@ -94,8 +94,8 @@ static inline isc_result_t totext_uri(ARGS_TOTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t fromwire_uri(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_uri(ARGS_FROMWIRE) {
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_uri);
@@ -120,8 +120,8 @@ static inline isc_result_t fromwire_uri(ARGS_FROMWIRE)
 	return (mem_tobuffer(target, region.base, region.length));
 }
 
-static inline isc_result_t towire_uri(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_uri(ARGS_TOWIRE) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_uri);
@@ -133,11 +133,11 @@ static inline isc_result_t towire_uri(ARGS_TOWIRE)
 	return (mem_tobuffer(target, region.base, region.length));
 }
 
-static inline int compare_uri(ARGS_COMPARE)
-{
+static inline int
+compare_uri(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
-	int	     order;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -171,8 +171,8 @@ static inline int compare_uri(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_uri(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_uri(ARGS_FROMSTRUCT) {
 	dns_rdata_uri_t *uri = source;
 
 	REQUIRE(type == dns_rdatatype_uri);
@@ -200,10 +200,10 @@ static inline isc_result_t fromstruct_uri(ARGS_FROMSTRUCT)
 	return (mem_tobuffer(target, uri->target, uri->tgt_len));
 }
 
-static inline isc_result_t tostruct_uri(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_uri(ARGS_TOSTRUCT) {
 	dns_rdata_uri_t *uri = target;
-	isc_region_t	 sr;
+	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_uri);
 	REQUIRE(uri != NULL);
@@ -246,8 +246,8 @@ static inline isc_result_t tostruct_uri(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_uri(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_uri(ARGS_FREESTRUCT) {
 	dns_rdata_uri_t *uri = (dns_rdata_uri_t *)source;
 
 	REQUIRE(uri != NULL);
@@ -263,8 +263,8 @@ static inline void freestruct_uri(ARGS_FREESTRUCT)
 	uri->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_uri(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_uri(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_uri);
 
 	UNUSED(rdata);
@@ -274,8 +274,8 @@ static inline isc_result_t additionaldata_uri(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_uri(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_uri(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_uri);
@@ -285,8 +285,8 @@ static inline isc_result_t digest_uri(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_uri(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_uri(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_uri);
 
 	UNUSED(name);
@@ -297,8 +297,8 @@ static inline bool checkowner_uri(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_uri(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_uri(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_uri);
 
 	UNUSED(rdata);
@@ -308,8 +308,8 @@ static inline bool checknames_uri(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_uri(ARGS_COMPARE)
-{
+static inline int
+casecompare_uri(ARGS_COMPARE) {
 	return (compare_uri(rdata1, rdata2));
 }
 

@@ -32,8 +32,7 @@
 #include "isctest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -45,8 +44,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -56,10 +54,9 @@ _teardown(void **state)
 
 /* Test for 32 bit overflow on 64 bit machines in isc_parse_uint32 */
 static void
-parse_overflow(void **state)
-{
+parse_overflow(void **state) {
 	isc_result_t result;
-	uint32_t     output;
+	uint32_t output;
 
 	UNUSED(state);
 
@@ -75,8 +72,7 @@ parse_overflow(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(parse_overflow, _setup,
 						_teardown),
@@ -90,8 +86,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

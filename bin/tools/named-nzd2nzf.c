@@ -22,15 +22,14 @@
 #include <dns/view.h>
 
 int
-main(int argc, char *argv[])
-{
-	int	    status;
+main(int argc, char *argv[]) {
+	int status;
 	const char *path;
-	MDB_env *   env = NULL;
-	MDB_txn *   txn = NULL;
+	MDB_env *env = NULL;
+	MDB_txn *txn = NULL;
 	MDB_cursor *cursor = NULL;
-	MDB_dbi	    dbi;
-	MDB_val	    key, data;
+	MDB_dbi dbi;
+	MDB_val key, data;
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: named-nzd2nzf <nzd-path>\n");
@@ -76,9 +75,11 @@ main(int argc, char *argv[])
 
 	for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
 	     status == MDB_SUCCESS;
-	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) {
+	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT))
+	{
 		if (key.mv_data == NULL || key.mv_size == 0 ||
-		    data.mv_data == NULL || data.mv_size == 0) {
+		    data.mv_data == NULL || data.mv_size == 0)
+		{
 			fprintf(stderr,
 				"named-nzd2nzf: empty column found in "
 				"database '%s'",

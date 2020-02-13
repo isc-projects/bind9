@@ -44,14 +44,11 @@ static dns_geoip_databases_t geoip;
 
 static MMDB_s geoip_country, geoip_city, geoip_as, geoip_isp, geoip_domain;
 
-static void
-load_geoip(const char *dir);
-static void
-close_geoip(void);
+static void load_geoip(const char *dir);
+static void close_geoip(void);
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -66,8 +63,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	close_geoip();
@@ -78,10 +74,9 @@ _teardown(void **state)
 }
 
 static MMDB_s *
-open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb)
-{
+open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
 	char pathbuf[PATH_MAX];
-	int  ret;
+	int ret;
 
 	snprintf(pathbuf, sizeof(pathbuf), "%s/%s", dir, dbfile);
 	ret = MMDB_open(pathbuf, MMDB_MODE_MMAP, mmdb);
@@ -93,8 +88,7 @@ open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb)
 }
 
 static void
-load_geoip(const char *dir)
-{
+load_geoip(const char *dir) {
 	geoip.country = open_geoip2(dir, "GeoIP2-Country.mmdb", &geoip_country);
 	geoip.city = open_geoip2(dir, "GeoIP2-City.mmdb", &geoip_city);
 	geoip.as = open_geoip2(dir, "GeoLite2-ASN.mmdb", &geoip_as);
@@ -103,8 +97,7 @@ load_geoip(const char *dir)
 }
 
 static void
-close_geoip(void)
-{
+close_geoip(void) {
 	MMDB_close(&geoip_country);
 	MMDB_close(&geoip_city);
 	MMDB_close(&geoip_as);
@@ -114,12 +107,11 @@ close_geoip(void)
 
 static bool
 /* Check if an MMDB entry of a given subtype exists for the given IP */
-entry_exists(dns_geoip_subtype_t subtype, const char *addr)
-{
+entry_exists(dns_geoip_subtype_t subtype, const char *addr) {
 	struct in6_addr in6;
-	struct in_addr	in4;
-	isc_netaddr_t	na;
-	MMDB_s *	db;
+	struct in_addr in4;
+	isc_netaddr_t na;
+	MMDB_s *db;
 
 	if (inet_pton(AF_INET6, addr, &in6) == 1) {
 		isc_netaddr_fromin6(&na, &in6);
@@ -143,8 +135,7 @@ entry_exists(dns_geoip_subtype_t subtype, const char *addr)
  * database, ::1 should be absent from all databases).
  */
 static void
-baseline(void **state)
-{
+baseline(void **state) {
 	dns_geoip_subtype_t subtype;
 
 	UNUSED(state);
@@ -187,11 +178,10 @@ baseline(void **state)
 
 static bool
 do_lookup_string(const char *addr, dns_geoip_subtype_t subtype,
-		 const char *string)
-{
+		 const char *string) {
 	dns_geoip_elem_t elt;
-	struct in_addr	 in4;
-	isc_netaddr_t	 na;
+	struct in_addr in4;
+	isc_netaddr_t na;
 
 	inet_pton(AF_INET, addr, &in4);
 	isc_netaddr_fromin(&na, &in4);
@@ -204,11 +194,10 @@ do_lookup_string(const char *addr, dns_geoip_subtype_t subtype,
 
 static bool
 do_lookup_string_v6(const char *addr, dns_geoip_subtype_t subtype,
-		    const char *string)
-{
+		    const char *string) {
 	dns_geoip_elem_t elt;
-	struct in6_addr	 in6;
-	isc_netaddr_t	 na;
+	struct in6_addr in6;
+	isc_netaddr_t na;
 
 	inet_pton(AF_INET6, addr, &in6);
 	isc_netaddr_fromin6(&na, &in6);
@@ -221,8 +210,7 @@ do_lookup_string_v6(const char *addr, dns_geoip_subtype_t subtype,
 
 /* GeoIP country matching */
 static void
-country(void **state)
-{
+country(void **state) {
 	bool match;
 
 	UNUSED(state);
@@ -248,8 +236,7 @@ country(void **state)
 
 /* GeoIP country (ipv6) matching */
 static void
-country_v6(void **state)
-{
+country_v6(void **state) {
 	bool match;
 
 	UNUSED(state);
@@ -269,8 +256,7 @@ country_v6(void **state)
 
 /* GeoIP city (ipv4) matching */
 static void
-city(void **state)
-{
+city(void **state) {
 	bool match;
 
 	UNUSED(state);
@@ -308,8 +294,7 @@ city(void **state)
 
 /* GeoIP city (ipv6) matching */
 static void
-city_v6(void **state)
-{
+city_v6(void **state) {
 	bool match;
 
 	UNUSED(state);
@@ -350,8 +335,7 @@ city_v6(void **state)
 
 /* GeoIP asnum matching */
 static void
-asnum(void **state)
-{
+asnum(void **state) {
 	bool match;
 
 	UNUSED(state);
@@ -366,8 +350,7 @@ asnum(void **state)
 
 /* GeoIP isp matching */
 static void
-isp(void **state)
-{
+isp(void **state) {
 	bool match;
 
 	UNUSED(state);
@@ -383,8 +366,7 @@ isp(void **state)
 
 /* GeoIP org matching */
 static void
-org(void **state)
-{
+org(void **state) {
 	bool match;
 
 	UNUSED(state);
@@ -400,8 +382,7 @@ org(void **state)
 
 /* GeoIP domain matching */
 static void
-domain(void **state)
-{
+domain(void **state) {
 	bool match;
 
 	UNUSED(state);
@@ -416,8 +397,7 @@ domain(void **state)
 #endif /* HAVE_GEOIP2 */
 
 int
-main(void)
-{
+main(void) {
 #if defined(HAVE_GEOIP2)
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(baseline),   cmocka_unit_test(country),
@@ -438,8 +418,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

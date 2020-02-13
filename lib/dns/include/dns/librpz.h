@@ -49,7 +49,7 @@
  */
 #ifdef LIBRPZ_INTERNAL
 #define LIBDEF(t, s) extern t s;
-#define LIBDEF_F(f) LIBDEF(librpz_##f##_t, librpz_##f)
+#define LIBDEF_F(f)  LIBDEF(librpz_##f##_t, librpz_##f)
 #else /* ifdef LIBRPZ_INTERNAL */
 #define LIBDEF(t, s)
 #define LIBDEF_F(f)
@@ -99,9 +99,9 @@ typedef enum {
  * NXDOMAIN is signaled by a CNAME with a "." target.
  * NODATA is signaled by a CNAME with a "*." target.
  */
-#define LIBRPZ_RPZ_PREFIX "rpz-"
+#define LIBRPZ_RPZ_PREFIX   "rpz-"
 #define LIBRPZ_RPZ_PASSTHRU LIBRPZ_RPZ_PREFIX "passthru"
-#define LIBRPZ_RPZ_DROP LIBRPZ_RPZ_PREFIX "drop"
+#define LIBRPZ_RPZ_DROP	    LIBRPZ_RPZ_PREFIX "drop"
 #define LIBRPZ_RPZ_TCP_ONLY LIBRPZ_RPZ_PREFIX "tcp-only"
 
 typedef uint16_t librpz_dznum_t; /* dnsrpzd zone # in [0,DZNUM_MAX] */
@@ -154,8 +154,8 @@ typedef struct {
  */
 typedef uint32_t librpz_idx_t;
 #define LIBRPZ_IDX_NULL 0
-#define LIBRPZ_IDX_MIN 1
-#define LIBRPZ_IDX_BAD ((librpz_idx_t)-1)
+#define LIBRPZ_IDX_MIN	1
+#define LIBRPZ_IDX_BAD	((librpz_idx_t)-1)
 /**
  * Partial decoded results of a set of RPZ queries for a single DNS response
  * or iteration through the mapped file.
@@ -214,9 +214,9 @@ typedef struct {
 } librpz_emsg_t;
 
 #ifdef LIBRPZ_HAVE_ATTR
-#define LIBRPZ_UNUSED __attribute__((unused))
+#define LIBRPZ_UNUSED	__attribute__((unused))
 #define LIBRPZ_PF(f, l) __attribute__((format(printf, f, l)))
-#define LIBRPZ_NORET __attribute__((__noreturn__))
+#define LIBRPZ_NORET	__attribute__((__noreturn__))
 #else /* ifdef LIBRPZ_HAVE_ATTR */
 #define LIBRPZ_UNUSED
 #define LIBRPZ_PF(f, l)
@@ -224,10 +224,10 @@ typedef struct {
 #endif /* ifdef LIBRPZ_HAVE_ATTR */
 
 #ifdef HAVE_BUILTIN_EXPECT
-#define LIBRPZ_LIKELY(c) __builtin_expect(!!(c), 1)
+#define LIBRPZ_LIKELY(c)   __builtin_expect(!!(c), 1)
 #define LIBRPZ_UNLIKELY(c) __builtin_expect(!!(c), 0)
 #else /* ifdef HAVE_BUILTIN_EXPECT */
-#define LIBRPZ_LIKELY(c) (c)
+#define LIBRPZ_LIKELY(c)   (c)
 #define LIBRPZ_UNLIKELY(c) (c)
 #endif /* ifdef HAVE_BUILTIN_EXPECT */
 
@@ -847,7 +847,7 @@ extern librpz_0_t librpz_def_0;
  * Future versions can be upward compatible by defining LIBRPZ_DEF as
  * librpz_X_t.
  */
-#define LIBRPZ_DEF librpz_def_0
+#define LIBRPZ_DEF     librpz_def_0
 #define LIBRPZ_DEF_STR "librpz_def_0"
 
 typedef librpz_0_t librpz_t;
@@ -864,8 +864,7 @@ extern librpz_t *  librpz;
  * @return address of interface structure or NULL on failure
  */
 static inline librpz_t *
-librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path)
-{
+librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
 	void *	  handle;
 	librpz_t *new_librpz;
 
@@ -934,8 +933,7 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path)
  * Statically link to the librpz.so DSO on systems without dlopen()
  */
 static inline librpz_t *
-librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path)
-{
+librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
 	(void)(path);
 
 	if (dl_handle != NULL) {

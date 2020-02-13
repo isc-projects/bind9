@@ -39,7 +39,7 @@ ISC_LANG_BEGINDECLS
  * dns_dns64_aaaaok() and dns_dns64_aaaafroma() flags.
  */
 #define DNS_DNS64_RECURSIVE 0x01 /* Recursive query. */
-#define DNS_DNS64_DNSSEC 0x02	 /* DNSSEC sensitive query. */
+#define DNS_DNS64_DNSSEC    0x02 /* DNSSEC sensitive query. */
 
 isc_result_t
 dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,

@@ -17,11 +17,10 @@
 #include <isc/serial.h>
 
 int
-main()
-{
+main() {
 	uint32_t a, b;
-	char	 buf[1024];
-	char *	 s, *e;
+	char buf[1024];
+	char *s, *e;
 
 	while (fgets(buf, sizeof(buf), stdin) != NULL) {
 		buf[sizeof(buf) - 1] = '\0';

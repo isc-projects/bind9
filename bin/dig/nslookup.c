@@ -62,11 +62,11 @@ static bool short_form = true, tcpmode = false, tcpmode_set = false,
 
 static bool interactive;
 
-static bool	    in_use = false;
-static char	    defclass[MXRD] = "IN";
-static char	    deftype[MXRD] = "A";
+static bool in_use = false;
+static char defclass[MXRD] = "IN";
+static char deftype[MXRD] = "A";
 static isc_event_t *global_event = NULL;
-static int	    query_error = 1, print_error = 0;
+static int query_error = 1, print_error = 0;
 
 static char domainopt[DNS_NAME_MAXTEXT];
 
@@ -124,18 +124,15 @@ static const char *rtypetext[] = {
 
 #define N_KNOWN_RRTYPES (sizeof(rtypetext) / sizeof(rtypetext[0]))
 
-static void
-flush_lookup_list(void);
-static void
-getinput(isc_task_t *task, isc_event_t *event);
+static void flush_lookup_list(void);
+static void getinput(isc_task_t *task, isc_event_t *event);
 
 static char *
-rcode_totext(dns_rcode_t rcode)
-{
+rcode_totext(dns_rcode_t rcode) {
 	static char buf[sizeof("?65535")];
 	union {
 		const char *consttext;
-		char *	    deconsttext;
+		char *deconsttext;
 	} totext;
 
 	if (rcode >= (sizeof(rcodetext) / sizeof(rcodetext[0]))) {
@@ -148,8 +145,7 @@ rcode_totext(dns_rcode_t rcode)
 }
 
 static void
-query_finished(void)
-{
+query_finished(void) {
 	isc_event_t *event = global_event;
 
 	flush_lookup_list();
@@ -164,11 +160,10 @@ query_finished(void)
 }
 
 static void
-printsoa(dns_rdata_t *rdata)
-{
+printsoa(dns_rdata_t *rdata) {
 	dns_rdata_soa_t soa;
-	isc_result_t	result;
-	char		namebuf[DNS_NAME_FORMATSIZE];
+	isc_result_t result;
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	result = dns_rdata_tostruct(rdata, &soa, NULL);
 	check_result(result, "dns_rdata_tostruct");
@@ -186,8 +181,7 @@ printsoa(dns_rdata_t *rdata)
 }
 
 static void
-printaddr(dns_rdata_t *rdata)
-{
+printaddr(dns_rdata_t *rdata) {
 	isc_result_t result;
 	char text[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
 	isc_buffer_t b;
@@ -200,12 +194,11 @@ printaddr(dns_rdata_t *rdata)
 }
 
 static void
-printrdata(dns_rdata_t *rdata)
-{
-	isc_result_t  result;
+printrdata(dns_rdata_t *rdata) {
+	isc_result_t result;
 	isc_buffer_t *b = NULL;
-	unsigned int  size = 1024;
-	bool	      done = false;
+	unsigned int size = 1024;
+	bool done = false;
 
 	if (rdata->type < N_KNOWN_RRTYPES) {
 		printf("%s", rtypetext[rdata->type]);
@@ -230,13 +223,12 @@ printrdata(dns_rdata_t *rdata)
 
 static isc_result_t
 printsection(dig_query_t *query, dns_message_t *msg, bool headers,
-	     dns_section_t section)
-{
-	isc_result_t	result, loopresult;
-	dns_name_t *	name;
+	     dns_section_t section) {
+	isc_result_t result, loopresult;
+	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
-	dns_rdata_t	rdata = DNS_RDATA_INIT;
-	char		namebuf[DNS_NAME_FORMATSIZE];
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	UNUSED(query);
 	UNUSED(headers);
@@ -253,7 +245,8 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 		name = NULL;
 		dns_message_currentname(msg, section, &name);
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
 				dns_rdataset_current(rdataset, &rdata);
@@ -298,13 +291,12 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 
 static isc_result_t
 detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
-	      dns_section_t section)
-{
-	isc_result_t	result, loopresult;
-	dns_name_t *	name;
+	      dns_section_t section) {
+	isc_result_t result, loopresult;
+	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
-	dns_rdata_t	rdata = DNS_RDATA_INIT;
-	char		namebuf[DNS_NAME_FORMATSIZE];
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	UNUSED(query);
 
@@ -337,7 +329,8 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 		name = NULL;
 		dns_message_currentname(msg, section, &name);
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
 			if (section == DNS_SECTION_QUESTION) {
 				dns_name_format(name, namebuf, sizeof(namebuf));
 				printf("\t%s, ", namebuf);
@@ -379,28 +372,25 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 }
 
 static void
-received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query)
-{
+received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	UNUSED(bytes);
 	UNUSED(from);
 	UNUSED(query);
 }
 
 static void
-trying(char *frm, dig_lookup_t *lookup)
-{
+trying(char *frm, dig_lookup_t *lookup) {
 	UNUSED(frm);
 	UNUSED(lookup);
 }
 
 static void
-chase_cnamechain(dns_message_t *msg, dns_name_t *qname)
-{
-	isc_result_t	  result;
-	dns_rdataset_t *  rdataset;
+chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
+	isc_result_t result;
+	dns_rdataset_t *rdataset;
 	dns_rdata_cname_t cname;
-	dns_rdata_t	  rdata = DNS_RDATA_INIT;
-	unsigned int	  i = msg->counts[DNS_SECTION_ANSWER];
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	unsigned int i = msg->counts[DNS_SECTION_ANSWER];
 
 	while (i-- > 0) {
 		rdataset = NULL;
@@ -423,8 +413,7 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname)
 
 static isc_result_t
 printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
-	     bool headers)
-{
+	     bool headers) {
 	char servtext[ISC_SOCKADDR_FORMATSIZE];
 
 	UNUSED(msgbuf);
@@ -467,10 +456,10 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	}
 
 	if (default_lookups && query->lookup->rdtype == dns_rdatatype_a) {
-		char		namestr[DNS_NAME_FORMATSIZE];
-		dig_lookup_t *	lookup;
+		char namestr[DNS_NAME_FORMATSIZE];
+		dig_lookup_t *lookup;
 		dns_fixedname_t fixed;
-		dns_name_t *	name;
+		dns_name_t *name;
 
 		/* Add AAAA lookup. */
 		name = dns_fixedname_initname(&fixed);
@@ -490,18 +479,20 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	}
 
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0 &&
-	    (!default_lookups || query->lookup->rdtype == dns_rdatatype_a)) {
+	    (!default_lookups || query->lookup->rdtype == dns_rdatatype_a))
+	{
 		puts("Non-authoritative answer:");
 	}
 	if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER])) {
 		printsection(query, msg, headers, DNS_SECTION_ANSWER);
 	} else {
-		if (default_lookups &&
-		    query->lookup->rdtype == dns_rdatatype_a) {
+		if (default_lookups && query->lookup->rdtype == dns_rdatatype_a)
+		{
 			a_noanswer = true;
 		} else if (!default_lookups ||
 			   (query->lookup->rdtype == dns_rdatatype_aaaa &&
-			    a_noanswer)) {
+			    a_noanswer))
+		{
 			printf("*** Can't find %s: No answer\n",
 			       query->lookup->textname);
 		}
@@ -509,7 +500,8 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 	if (((msg->flags & DNS_MESSAGEFLAG_AA) == 0) &&
 	    (query->lookup->rdtype != dns_rdatatype_a) &&
-	    (query->lookup->rdtype != dns_rdatatype_aaaa)) {
+	    (query->lookup->rdtype != dns_rdatatype_aaaa))
+	{
 		puts("\nAuthoritative answers can be found from:");
 		printsection(query, msg, headers, DNS_SECTION_AUTHORITY);
 		printsection(query, msg, headers, DNS_SECTION_ADDITIONAL);
@@ -518,12 +510,11 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 }
 
 static void
-show_settings(bool full, bool serv_only)
-{
-	dig_server_t *	  srv;
-	isc_sockaddr_t	  sockaddr;
+show_settings(bool full, bool serv_only) {
+	dig_server_t *srv;
+	isc_sockaddr_t sockaddr;
 	dig_searchlist_t *listent;
-	isc_result_t	  result;
+	isc_result_t result;
 
 	srv = ISC_LIST_HEAD(server_list);
 
@@ -554,7 +545,8 @@ show_settings(bool full, bool serv_only)
 	printf("  querytype = %-8s\tclass = %s\n", deftype, defclass);
 	printf("  srchlist = ");
 	for (listent = ISC_LIST_HEAD(search_list); listent != NULL;
-	     listent = ISC_LIST_NEXT(listent, link)) {
+	     listent = ISC_LIST_NEXT(listent, link))
+	{
 		printf("%s", listent->origin);
 		if (ISC_LIST_NEXT(listent, link) != NULL) {
 			printf("/");
@@ -564,11 +556,10 @@ show_settings(bool full, bool serv_only)
 }
 
 static bool
-testtype(char *typetext)
-{
-	isc_result_t	 result;
+testtype(char *typetext) {
+	isc_result_t result;
 	isc_textregion_t tr;
-	dns_rdatatype_t	 rdtype;
+	dns_rdatatype_t rdtype;
 
 	tr.base = typetext;
 	tr.length = strlen(typetext);
@@ -582,9 +573,8 @@ testtype(char *typetext)
 }
 
 static bool
-testclass(char *typetext)
-{
-	isc_result_t	 result;
+testclass(char *typetext) {
+	isc_result_t result;
 	isc_textregion_t tr;
 	dns_rdataclass_t rdclass;
 
@@ -600,9 +590,8 @@ testclass(char *typetext)
 }
 
 static void
-set_port(const char *value)
-{
-	uint32_t     n;
+set_port(const char *value) {
+	uint32_t n;
 	isc_result_t result = parse_uint(&n, value, 65535, "port");
 	if (result == ISC_R_SUCCESS) {
 		port = (uint16_t)n;
@@ -610,9 +599,8 @@ set_port(const char *value)
 }
 
 static void
-set_timeout(const char *value)
-{
-	uint32_t     n;
+set_timeout(const char *value) {
+	uint32_t n;
 	isc_result_t result = parse_uint(&n, value, UINT_MAX, "timeout");
 	if (result == ISC_R_SUCCESS) {
 		timeout = n;
@@ -620,9 +608,8 @@ set_timeout(const char *value)
 }
 
 static void
-set_tries(const char *value)
-{
-	uint32_t     n;
+set_tries(const char *value) {
+	uint32_t n;
 	isc_result_t result = parse_uint(&n, value, INT_MAX, "tries");
 	if (result == ISC_R_SUCCESS) {
 		tries = n;
@@ -630,9 +617,8 @@ set_tries(const char *value)
 }
 
 static void
-set_ndots(const char *value)
-{
-	uint32_t     n;
+set_ndots(const char *value) {
+	uint32_t n;
 	isc_result_t result = parse_uint(&n, value, 128, "ndots");
 	if (result == ISC_R_SUCCESS) {
 		ndots = n;
@@ -640,14 +626,12 @@ set_ndots(const char *value)
 }
 
 static void
-version(void)
-{
+version(void) {
 	fputs("nslookup " VERSION "\n", stderr);
 }
 
 static void
-setoption(char *opt)
-{
+setoption(char *opt) {
 	size_t l = strlen(opt);
 
 #define CHECKOPT(A, N) \
@@ -755,14 +739,13 @@ setoption(char *opt)
 }
 
 static void
-addlookup(char *opt)
-{
-	dig_lookup_t *	 lookup;
-	isc_result_t	 result;
+addlookup(char *opt) {
+	dig_lookup_t *lookup;
+	isc_result_t result;
 	isc_textregion_t tr;
-	dns_rdatatype_t	 rdtype;
+	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	char		 store[MXNAME];
+	char store[MXNAME];
 
 	debug("addlookup()");
 
@@ -826,8 +809,7 @@ addlookup(char *opt)
 }
 
 static void
-do_next_command(char *input)
-{
+do_next_command(char *input) {
 	char *ptr, *arg, *last;
 
 	if ((ptr = strtok_r(input, " \t\r\n", &last)) == NULL) {
@@ -837,7 +819,8 @@ do_next_command(char *input)
 	if ((strcasecmp(ptr, "set") == 0) && (arg != NULL)) {
 		setoption(arg);
 	} else if ((strcasecmp(ptr, "server") == 0) ||
-		   (strcasecmp(ptr, "lserver") == 0)) {
+		   (strcasecmp(ptr, "lserver") == 0))
+	{
 		isc_app_block();
 		set_nameserver(arg);
 		check_ra = false;
@@ -849,7 +832,8 @@ do_next_command(char *input)
 		printf("The '%s' command is not yet implemented.\n", ptr);
 	} else if (strcasecmp(ptr, "finger") == 0 ||
 		   strcasecmp(ptr, "root") == 0 || strcasecmp(ptr, "ls") == 0 ||
-		   strcasecmp(ptr, "view") == 0) {
+		   strcasecmp(ptr, "view") == 0)
+	{
 		printf("The '%s' command is not implemented.\n", ptr);
 	} else {
 		addlookup(ptr);
@@ -857,8 +841,7 @@ do_next_command(char *input)
 }
 
 static void
-get_next_command(void)
-{
+get_next_command(void) {
 	char *buf;
 	char *ptr;
 
@@ -893,12 +876,10 @@ get_next_command(void)
 	isc_mem_free(mctx, buf);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "   nslookup [-opt ...]             # interactive mode "
 			"using default server\n");
@@ -912,8 +893,7 @@ usage(void)
 }
 
 static void
-parse_args(int argc, char **argv)
-{
+parse_args(int argc, char **argv) {
 	bool have_lookup = false;
 
 	usesearch = true;
@@ -945,10 +925,9 @@ parse_args(int argc, char **argv)
 }
 
 static void
-flush_lookup_list(void)
-{
+flush_lookup_list(void) {
 	dig_lookup_t *l, *lp;
-	dig_query_t * q, *qp;
+	dig_query_t *q, *qp;
 	dig_server_t *s, *sp;
 
 	lookup_counter = 0;
@@ -986,8 +965,7 @@ flush_lookup_list(void)
 }
 
 static void
-getinput(isc_task_t *task, isc_event_t *event)
-{
+getinput(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	if (global_event == NULL) {
 		global_event = event;
@@ -1003,8 +981,7 @@ getinput(isc_task_t *task, isc_event_t *event)
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	isc_result_t result;
 
 	interactive = isatty(0);

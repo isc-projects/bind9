@@ -29,8 +29,7 @@
  * @param[in,out] statep Lock state: ISC_R_SUCCESS or ISC_R_LOCKBUSY
  */
 void
-run_exclusive_enter(sample_instance_t *inst, isc_result_t *statep)
-{
+run_exclusive_enter(sample_instance_t *inst, isc_result_t *statep) {
 	REQUIRE(statep != NULL);
 	REQUIRE(*statep == ISC_R_IGNORE);
 
@@ -45,8 +44,7 @@ run_exclusive_enter(sample_instance_t *inst, isc_result_t *statep)
  * @param[in] state Lock state as returned by run_exclusive_enter().
  */
 void
-run_exclusive_exit(sample_instance_t *inst, isc_result_t state)
-{
+run_exclusive_exit(sample_instance_t *inst, isc_result_t state) {
 	if (state == ISC_R_SUCCESS) {
 		isc_task_endexclusive(inst->task);
 	} else {

@@ -16,8 +16,7 @@
 #include <unistd.h>
 
 static inline long
-sysconf_ncpus(void)
-{
+sysconf_ncpus(void) {
 #if defined(_SC_NPROCESSORS_ONLN)
 	return (sysconf((_SC_NPROCESSORS_ONLN)));
 #elif defined(_SC_NPROC_ONLN)
@@ -34,9 +33,8 @@ sysconf_ncpus(void)
 #include <sys/types.h> /* for FreeBSD */
 
 static int
-sysctl_ncpus(void)
-{
-	int    ncpu, result;
+sysctl_ncpus(void) {
+	int ncpu, result;
 	size_t len;
 
 	len = sizeof(ncpu);
@@ -49,8 +47,7 @@ sysctl_ncpus(void)
 #endif /* if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME) */
 
 unsigned int
-isc_os_ncpus(void)
-{
+isc_os_ncpus(void) {
 	long ncpus = 0;
 
 #if defined(HAVE_SYSCONF)

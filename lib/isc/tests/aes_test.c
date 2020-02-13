@@ -33,21 +33,18 @@
  * Test data from NIST KAT
  */
 
-isc_result_t
-tohexstr(unsigned char *d, char *out);
+isc_result_t tohexstr(unsigned char *d, char *out);
 
-size_t
-fromhexstr(const char *in, unsigned char *d);
+size_t fromhexstr(const char *in, unsigned char *d);
 
 unsigned char plaintext[3 * ISC_AES_BLOCK_LENGTH];
 unsigned char ciphertext[ISC_AES_BLOCK_LENGTH];
-char	      str[2 * ISC_AES_BLOCK_LENGTH + 1];
+char str[2 * ISC_AES_BLOCK_LENGTH + 1];
 unsigned char key[ISC_AES256_KEYLENGTH + 1];
-size_t	      len;
+size_t len;
 
 isc_result_t
-tohexstr(unsigned char *d, char *out)
-{
+tohexstr(unsigned char *d, char *out) {
 	isc_buffer_t b;
 	isc_region_t r;
 
@@ -58,8 +55,7 @@ tohexstr(unsigned char *d, char *out)
 }
 
 size_t
-fromhexstr(const char *in, unsigned char *d)
-{
+fromhexstr(const char *in, unsigned char *d) {
 	isc_buffer_t b;
 	isc_result_t ret;
 
@@ -79,8 +75,7 @@ typedef struct aes_testcase {
 
 /* AES 128 test vectors */
 static void
-isc_aes128_test(void **state)
-{
+isc_aes128_test(void **state) {
 	aes_testcase_t testcases[] = { /* Test 1 (KAT ECBVarTxt128 #3) */
 				       { "00000000000000000000000000000000",
 					 "F0000000000000000000000000000000",
@@ -127,8 +122,7 @@ isc_aes128_test(void **state)
 
 /* AES 192 test vectors */
 static void
-isc_aes192_test(void **state)
-{
+isc_aes192_test(void **state) {
 	aes_testcase_t testcases[] = {
 		/* Test 1 (KAT ECBVarTxt192 #3) */
 		{ "000000000000000000000000000000000000000000000000",
@@ -176,8 +170,7 @@ isc_aes192_test(void **state)
 
 /* AES 256 test vectors */
 static void
-isc_aes256_test(void **state)
-{
+isc_aes256_test(void **state) {
 	aes_testcase_t testcases[] = { /* Test 1 (KAT ECBVarTxt256 #3) */
 				       { "00000000000000000000000000000000"
 					 "00000000000000000000000000000000",
@@ -229,8 +222,7 @@ isc_aes256_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_aes128_test),
 		cmocka_unit_test(isc_aes192_test),
@@ -245,8 +237,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

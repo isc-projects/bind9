@@ -21,12 +21,11 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-isc_mem_t *    mctx;
+isc_mem_t *mctx;
 isc_taskmgr_t *manager;
 
 static void
-my_shutdown(isc_task_t *task, isc_event_t *event)
-{
+my_shutdown(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
 
 	printf("shutdown %s (%p)\n", name, task);
@@ -35,9 +34,8 @@ my_shutdown(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_send(isc_task_t *task, isc_event_t *event)
-{
-	isc_socket_t *	   sock;
+my_send(isc_task_t *task, isc_event_t *event) {
+	isc_socket_t *sock;
 	isc_socketevent_t *dev;
 
 	sock = event->ev_sender;
@@ -61,13 +59,12 @@ my_send(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_recv(isc_task_t *task, isc_event_t *event)
-{
-	isc_socket_t *	   sock;
+my_recv(isc_task_t *task, isc_event_t *event) {
+	isc_socket_t *sock;
 	isc_socketevent_t *dev;
-	isc_region_t	   region;
-	char		   buf[1024];
-	char		   host[256];
+	isc_region_t region;
+	char buf[1024];
+	char host[256];
 
 	sock = event->ev_sender;
 	dev = (isc_socketevent_t *)event;
@@ -124,9 +121,8 @@ my_recv(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_http_get(isc_task_t *task, isc_event_t *event)
-{
-	isc_socket_t *	   sock;
+my_http_get(isc_task_t *task, isc_event_t *event) {
+	isc_socket_t *sock;
 	isc_socketevent_t *dev;
 
 	sock = event->ev_sender;
@@ -153,12 +149,11 @@ my_http_get(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_connect(isc_task_t *task, isc_event_t *event)
-{
-	isc_socket_t *	     sock;
+my_connect(isc_task_t *task, isc_event_t *event) {
+	isc_socket_t *sock;
 	isc_socket_connev_t *dev;
-	isc_region_t	     region;
-	char		     buf[1024];
+	isc_region_t region;
+	char buf[1024];
 
 	sock = event->ev_sender;
 	dev = (isc_socket_connev_t *)event;
@@ -192,13 +187,12 @@ my_connect(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_listen(isc_task_t *task, isc_event_t *event)
-{
-	char *			name = event->ev_arg;
+my_listen(isc_task_t *task, isc_event_t *event) {
+	char *name = event->ev_arg;
 	isc_socket_newconnev_t *dev;
-	isc_region_t		region;
-	isc_socket_t *		oldsock;
-	isc_task_t *		newtask;
+	isc_region_t region;
+	isc_socket_t *oldsock;
+	isc_task_t *newtask;
 
 	dev = (isc_socket_newconnev_t *)event;
 
@@ -242,8 +236,7 @@ my_listen(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-timeout(isc_task_t *task, isc_event_t *event)
-{
+timeout(isc_task_t *task, isc_event_t *event) {
 	isc_socket_t *sock = event->ev_arg;
 
 	printf("Timeout, canceling IO on socket %p (task %p)\n", sock, task);
@@ -259,21 +252,20 @@ static char xso1[] = "so1";
 static char xso2[] = "so2";
 
 int
-main(int argc, char *argv[])
-{
-	isc_task_t *	 t1, *t2;
-	isc_timermgr_t * timgr;
-	isc_time_t	 expires;
-	isc_interval_t	 interval;
-	isc_timer_t *	 ti1;
-	unsigned int	 workers;
+main(int argc, char *argv[]) {
+	isc_task_t *t1, *t2;
+	isc_timermgr_t *timgr;
+	isc_time_t expires;
+	isc_interval_t interval;
+	isc_timer_t *ti1;
+	unsigned int workers;
 	isc_socketmgr_t *socketmgr;
-	isc_socket_t *	 so1, *so2;
-	isc_sockaddr_t	 sockaddr;
-	struct in_addr	 ina;
-	struct in6_addr	 in6a;
-	isc_result_t	 result;
-	int		 pf;
+	isc_socket_t *so1, *so2;
+	isc_sockaddr_t sockaddr;
+	struct in_addr ina;
+	struct in6_addr in6a;
+	isc_result_t result;
+	int pf;
 
 	if (argc > 1) {
 		workers = atoi(argv[1]);

@@ -17,9 +17,9 @@
 #include <dns/rdatastruct.h>
 #include <dns/types.h>
 
-#define DNS_DSDIGEST_SHA1 (1)
+#define DNS_DSDIGEST_SHA1   (1)
 #define DNS_DSDIGEST_SHA256 (2)
-#define DNS_DSDIGEST_GOST (3)
+#define DNS_DSDIGEST_GOST   (3)
 #define DNS_DSDIGEST_SHA384 (4)
 
 /*

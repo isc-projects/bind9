@@ -76,7 +76,7 @@ struct isc_event {
 };
 
 #define ISC_EVENTTYPE_FIRSTEVENT 0x00000000
-#define ISC_EVENTTYPE_LASTEVENT 0xffffffff
+#define ISC_EVENTTYPE_LASTEVENT	 0xffffffff
 
 #define ISC_EVENT_PTR(p) ((isc_event_t **)(void *)(p))
 
