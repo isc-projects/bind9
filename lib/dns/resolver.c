@@ -6985,9 +6985,15 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 
 	/*
 	 * If the target name is a subdomain of the search domain, allow it.
+	 *
+	 * Note that if BIND is configured as a forwarding DNS server, the
+	 * search domain will always match the root domain ("."), so we
+	 * must also check whether forwarding is enabled so that filters
+	 * can be applied; see GL #1574.
 	 */
-	if (dns_name_issubdomain(tname, &fctx->domain))
+	if (!fctx->forwarding && dns_name_issubdomain(tname, &fctx->domain)) {
 		return (true);
+	}
 
 	/*
 	 * Otherwise, apply filters.
