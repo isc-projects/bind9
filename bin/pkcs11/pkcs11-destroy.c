@@ -62,7 +62,7 @@
 
 #ifdef WIN32
 #define sleep(x) Sleep(x)
-#endif
+#endif /* ifdef WIN32 */
 
 int
 main(int argc, char *argv[])
@@ -138,8 +138,9 @@ main(int argc, char *argv[])
 	pk11_result_register();
 
 	/* Initialize the CRYPTOKI library */
-	if (lib_name != NULL)
+	if (lib_name != NULL) {
 		pk11_set_lib_name(lib_name);
+	}
 
 	if (pin == NULL) {
 		pin = getpass("Enter Pin: ");
@@ -183,8 +184,9 @@ main(int argc, char *argv[])
 	if (ulObjectCount == 0) {
 		printf("No matching key objects found.\n");
 		goto exit_search;
-	} else
+	} else {
 		printf("Key object%s found:\n", ulObjectCount > 1 ? "s" : "");
+	}
 
 	for (i = 0; i < ulObjectCount; i++) {
 		CK_OBJECT_CLASS oclass = 0;
@@ -211,16 +213,19 @@ main(int argc, char *argv[])
 		len = attr_template[2].ulValueLen;
 		printf("  object[%u]: class %lu, label '%s', id[%lu] ", i,
 		       oclass, labelbuf, attr_template[2].ulValueLen);
-		if (len > 4)
+		if (len > 4) {
 			len = 4;
-		if (len > 0)
+		}
+		if (len > 0) {
 			printf("0x");
+		}
 		for (j = 0; j < len; j++)
 			printf("%02x", idbuf[j]);
-		if (attr_template[2].ulValueLen > len)
+		if (attr_template[2].ulValueLen > len) {
 			printf("...\n");
-		else
+		} else {
 			printf("\n");
+		}
 	}
 
 	if (wait != 0) {
@@ -245,8 +250,9 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (error == 0)
+	if (error == 0) {
 		printf("Destruction complete.\n");
+	}
 
 exit_search:
 	rv = pkcs_C_FindObjectsFinal(hSession);

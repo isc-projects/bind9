@@ -27,8 +27,9 @@ static inline isc_result_t fromtext_talink(ARGS_FROMTEXT)
 	UNUSED(rdclass);
 	UNUSED(callbacks);
 
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 
 	for (i = 0; i < 2; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
@@ -183,15 +184,17 @@ static inline isc_result_t tostruct_talink(ARGS_TOSTRUCT)
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&talink->next, NULL);
 	result = name_duporclone(&name, mctx, &talink->next);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	talink->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (mctx != NULL)
+	if (mctx != NULL) {
 		dns_name_free(&talink->prev, mctx);
+	}
 	return (ISC_R_NOMEMORY);
 }
 
@@ -202,8 +205,9 @@ static inline void freestruct_talink(ARGS_FREESTRUCT)
 	REQUIRE(talink != NULL);
 	REQUIRE(talink->common.rdtype == dns_rdatatype_talink);
 
-	if (talink->mctx == NULL)
+	if (talink->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&talink->prev, talink->mctx);
 	dns_name_free(&talink->next, talink->mctx);

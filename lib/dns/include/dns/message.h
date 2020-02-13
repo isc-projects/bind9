@@ -168,11 +168,11 @@ typedef int dns_messagetextflag_t;
 #define DNS_MESSAGEPARSE_PRESERVEORDER 0x0001 /*%< preserve rdata order */
 #define DNS_MESSAGEPARSE_BESTEFFORT       \
 	0x0002 /*%< return a message if a \
-		  recoverable parse error \
-		  occurs */
+		* recoverable parse error \
+		* occurs */
 #define DNS_MESSAGEPARSE_CLONEBUFFER   \
 	0x0004 /*%< save a copy of the \
-		  source buffer */
+		* source buffer */
 #define DNS_MESSAGEPARSE_IGNORETRUNCATION \
 	0x0008 /*%< truncation errors are \
 		* not fatal. */
@@ -185,10 +185,10 @@ typedef int dns_messagetextflag_t;
 #define DNS_MESSAGERENDER_OMITDNSSEC 0x0004 /*%< omit DNSSEC records */
 #define DNS_MESSAGERENDER_PREFER_A      \
 	0x0008 /*%< prefer A records in \
-		    additional section. */
+		*   additional section. */
 #define DNS_MESSAGERENDER_PREFER_AAAA      \
 	0x0010 /*%< prefer AAAA records in \
-		    additional section. */
+		*   additional section. */
 /* Obsolete: DNS_MESSAGERENDER_FILTER_AAAA	0x0020	*/
 
 typedef struct dns_msgblock dns_msgblock_t;
@@ -257,16 +257,18 @@ struct dns_message {
 	ISC_LIST(dns_rdata_t) freerdata;
 	ISC_LIST(dns_rdatalist_t) freerdatalist;
 
-	dns_rcode_t	tsigstatus;
-	dns_rcode_t	querytsigstatus;
-	dns_name_t *	tsigname; /* Owner name of TSIG, if any */
+	dns_rcode_t tsigstatus;
+	dns_rcode_t querytsigstatus;
+	dns_name_t *tsigname; /* Owner name of TSIG, if any
+			       * */
 	dns_rdataset_t *querytsig;
 	dns_tsigkey_t * tsigkey;
 	dst_context_t * tsigctx;
 	int		sigstart;
 	int		timeadjust;
 
-	dns_name_t * sig0name; /* Owner name of SIG0, if any */
+	dns_name_t *sig0name; /* Owner name of SIG0, if any
+			       * */
 	dst_key_t *  sig0key;
 	dns_rcode_t  sig0status;
 	isc_region_t query;
@@ -1294,7 +1296,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer);
  *				  message
  *
  *\li	#DNS_R_TSIGVERIFYFAILURE	- the message was signed by a TSIG, but
- *the signature failed to verify
+ * the signature failed to verify
  *
  *\li	#DNS_R_TSIGERRORSET	- the message was signed by a TSIG and
  *				  verified, but the query was rejected by

@@ -44,7 +44,7 @@
 #include <pk11/site.h>
 #ifdef HAVE_FIPS_MODE
 #include "dst_openssl.h" /* FIPS_mode() prototype */
-#endif
+#endif			 /* ifdef HAVE_FIPS_MODE */
 #include "dst_parse.h"
 
 #define ISC_MD_md5 ISC_MD_MD5

@@ -62,11 +62,13 @@ ns_lib_init(void)
 	 * abort, on any failure.
 	 */
 	result = isc_once_do(&init_once, initialize);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
-	if (!initialize_done)
+	if (!initialize_done) {
 		return (ISC_R_FAILURE);
+	}
 
 	isc_refcount_increment0(&references);
 

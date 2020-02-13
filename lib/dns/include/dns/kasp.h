@@ -13,8 +13,8 @@
 #define DNS_KASP_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/kasp.h
  * \brief
@@ -88,7 +88,7 @@ struct dns_kasp {
 	uint32_t  parent_propagation_delay;
 	uint32_t  parent_registration_delay;
 
-	// TODO: The rest of the KASP configuration
+	/* TODO: The rest of the KASP configuration */
 };
 
 #define DNS_KASP_MAGIC ISC_MAGIC('K', 'A', 'S', 'P')

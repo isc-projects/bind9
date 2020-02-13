@@ -31,4 +31,4 @@ set_user(FILE *fd, const char *user);
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* ifndef RNDC_OS_H */

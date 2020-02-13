@@ -174,8 +174,8 @@ install_hooks(ns_hooktable_t *hooktable, isc_mem_t *mctx,
 }
 
 /**
- ** Support for parsing of parameters and configuration of the module.
- **/
+** Support for parsing of parameters and configuration of the module.
+**/
 
 /*
  * Support for parsing of parameters.
@@ -326,13 +326,13 @@ cleanup:
 }
 
 /**
- ** Mandatory plugin API functions:
- **
- ** - plugin_destroy
- ** - plugin_register
- ** - plugin_version
- ** - plugin_check
- **/
+** Mandatory plugin API functions:
+**
+** - plugin_destroy
+** - plugin_register
+** - plugin_version
+** - plugin_check
+**/
 
 /*
  * Called by ns_plugin_register() to initialize the plugin and
@@ -461,8 +461,8 @@ plugin_version(void)
 }
 
 /**
- ** "filter-aaaa" feature implementation begins here.
- **/
+** "filter-aaaa" feature implementation begins here.
+**/
 
 /*%
  * Structure describing the filtering to be applied by process_section().

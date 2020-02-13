@@ -30,7 +30,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	char *		de_const;
 
 	if (size < 5) {
-		return 0;
+		return (0);
 	}
 
 	dns_fixedname_init(&origin);
@@ -40,5 +40,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	result = dns_name_fromtext(dns_fixedname_name(&origin), &buf,
 				   dns_rootname, 0, NULL);
 	UNUSED(result);
-	return 0;
+	return (0);
 }

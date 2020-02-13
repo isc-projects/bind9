@@ -13,8 +13,8 @@
 #define DNS_RESOLVER_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/resolver.h
  *
@@ -96,7 +96,7 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 #define DNS_FETCHOPT_NOVALIDATE 0x00000020  /*%< Disable validation. */
 #define DNS_FETCHOPT_EDNS512                                       \
 	0x00000040			 /*%< Advertise a 512 byte \
-					      UDP buffer. */
+					  *   UDP buffer. */
 #define DNS_FETCHOPT_WANTNSID 0x00000080 /*%< Request NSID */
 #define DNS_FETCHOPT_PREFETCH 0x00000100 /*%< Do prefetch */
 #define DNS_FETCHOPT_NOCDFLAG 0x00000200 /*%< Don't set CD flag. */
@@ -108,27 +108,27 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 #define DNS_FETCHOPT_NOCACHED 0x00008000 /*%< Force cache update. */
 #define DNS_FETCHOPT_QMINIMIZE    \
 	0x00010000 /*%< Use qname \
-			minimization. */
+		    *    minimization. */
 #define DNS_FETCHOPT_NOFOLLOW        \
 	0x00020000 /*%< Don't follow \
-			delegations */
+		    *   delegations */
 #define DNS_FETCHOPT_QMIN_STRICT            \
 	0x00040000 /*%< Do not work around  \
-			servers that return \
-			errors on non-empty \
-			terminals. */
+		    *   servers that return \
+		    *   errors on non-empty \
+		    *   terminals. */
 #define DNS_FETCHOPT_QMIN_USE_A            \
 	0x00080000 /*%< Use A type queries \
-			instead of NS when \
-			doing minimization */
+		    *   instead of NS when \
+		    *   doing minimization */
 #define DNS_FETCHOPT_QMIN_SKIP_IP6A      \
 	0x00100000 /*%< Skip some labels \
-			when doing qname \
-			minimization on  \
-			ip6.arpa. */
+		    *   when doing qname \
+		    *   minimization on  \
+		    *   ip6.arpa. */
 #define DNS_FETCHOPT_NOFORWARD                \
 	0x00200000 /*%< Do not use forwarders \
-			if possible. */
+		    *   if possible. */
 
 /* Reserved in use by adb.c		0x00400000 */
 #define DNS_FETCHOPT_EDNSVERSIONSET 0x00800000
@@ -737,7 +737,7 @@ dns_resolver_dumpfetches(dns_resolver_t *resolver, isc_statsformat_t format,
  */
 void
 dns_resolver_setfuzzing(void);
-#endif
+#endif /* ifdef ENABLE_AFL */
 
 ISC_LANG_ENDDECLS
 

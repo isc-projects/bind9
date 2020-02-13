@@ -26,28 +26,26 @@
 #include <openssl/evp.h>
 
 void
-isc_siphash24(const uint8_t *k,
-	      const uint8_t *in, const size_t inlen,
-	      uint8_t *out)
+isc_siphash24(const uint8_t*k,const uint8_t*in,const size_t inlen,uint8_t*out)
 {
 	REQUIRE(k != NULL);
 	REQUIRE(out != NULL);
 	size_t outlen = 8;
-	EVP_PKEY_CTX *pctx = NULL;
+	EVP_PKEY_CTX*pctx = NULL;
 
-	EVP_MD_CTX *mctx = EVP_MD_CTX_new();
-	EVP_PKEY *key = EVP_PKEY_new_raw_private_key(EVP_PKEY_SIPHASH, NULL,
-						     k, 16);
+	EVP_MD_CTX*mctx = EVP_MD_CTX_new();
+	EVP_PKEY*key = EVP_PKEY_new_raw_private_key(EVP_PKEY_SIPHASH,NULL,
+						    k,16);
 	RUNTIME_CHECK(mctx != NULL);
 	RUNTIME_CHECK(key != NULL);
 
-	RUNTIME_CHECK(EVP_DigestSignInit(mctx, &pctx, NULL, NULL, key) == 1);
-	RUNTIME_CHECK(EVP_PKEY_CTX_ctrl(pctx, EVP_PKEY_SIPHASH,
+	RUNTIME_CHECK(EVP_DigestSignInit(mctx,&pctx,NULL,NULL,key) == 1);
+	RUNTIME_CHECK(EVP_PKEY_CTX_ctrl(pctx,EVP_PKEY_SIPHASH,
 					EVP_PKEY_OP_SIGNCTX,
-					EVP_PKEY_CTRL_SET_DIGEST_SIZE, outlen,
+					EVP_PKEY_CTRL_SET_DIGEST_SIZE,outlen,
 					NULL) == 1);
-	RUNTIME_CHECK(EVP_DigestSignUpdate(mctx, in, inlen) == 1);
-	RUNTIME_CHECK(EVP_DigestSignFinal(mctx, out, &outlen) == 1);
+	RUNTIME_CHECK(EVP_DigestSignUpdate(mctx,in,inlen) == 1);
+	RUNTIME_CHECK(EVP_DigestSignFinal(mctx,out,&outlen) == 1);
 
 	ENSURE(outlen == 8);
 
@@ -144,25 +142,25 @@ isc_siphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 	switch (left) {
 	case 7:
 		b |= ((uint64_t)in[6]) << 48;
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	case 6:
 		b |= ((uint64_t)in[5]) << 40;
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	case 5:
 		b |= ((uint64_t)in[4]) << 32;
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	case 4:
 		b |= ((uint64_t)in[3]) << 24;
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	case 3:
 		b |= ((uint64_t)in[2]) << 16;
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	case 2:
 		b |= ((uint64_t)in[1]) << 8;
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	case 1:
 		b |= ((uint64_t)in[0]);
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	case 0:
 		break;
 	default:

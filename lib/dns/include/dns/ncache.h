@@ -13,8 +13,8 @@
 #define DNS_NCACHE_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/ncache.h
  *\brief

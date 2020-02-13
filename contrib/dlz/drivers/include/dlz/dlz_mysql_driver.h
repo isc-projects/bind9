@@ -42,4 +42,4 @@ dlz_mysql_init(void);
 void
 dlz_mysql_clear(void);
 
-#endif
+#endif /* ifndef DLZ_MYSQL_DRIVER_H */

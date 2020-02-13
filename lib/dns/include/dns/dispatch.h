@@ -13,8 +13,8 @@
 #define DNS_DISPATCH_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/dispatch.h
  * \brief

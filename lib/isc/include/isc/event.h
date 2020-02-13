@@ -18,8 +18,8 @@
 #include <isc/types.h>
 
 /*****
- ***** Events.
- *****/
+***** Events.
+*****/
 
 typedef void (*isc_eventdestructor_t)(isc_event_t *);
 

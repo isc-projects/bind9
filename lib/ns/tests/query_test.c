@@ -59,22 +59,28 @@ _teardown(void **state)
 }
 
 /*****
- ***** ns__query_sfcache() tests
- *****/
+***** ns__query_sfcache() tests
+*****/
 
 /*%
  * Structure containing parameters for ns__query_sfcache_test().
  */
 typedef struct {
-	const ns_test_id_t id;	    /* libns test identifier */
-	unsigned int	   qflags;  /* query flags */
-	bool cache_entry_present;   /* whether a SERVFAIL cache entry
-				       matching the query should be
-				       present */
-	uint32_t cache_entry_flags; /* NS_FAILCACHE_* flags to set for
-				       the SERVFAIL cache entry */
-	bool servfail_expected;	    /* whether a cached SERVFAIL is
-				       expected to be returned */
+	const ns_test_id_t id;			/* libns test identifier */
+	unsigned int	   qflags;		/* query flags */
+	bool		   cache_entry_present; /* whether a SERVFAIL
+						 * cache entry
+						 * matching the query
+						 * should be
+						 * present */
+	uint32_t cache_entry_flags;		/* NS_FAILCACHE_* flags to
+						 * set for
+						 * the SERVFAIL cache entry
+						 * */
+	bool servfail_expected;			/* whether a cached
+						 * SERVFAIL is
+						 * expected to be returned
+						 * */
 } ns__query_sfcache_test_params_t;
 
 /*%
@@ -247,8 +253,8 @@ ns__query_sfcache_test(void **state)
 }
 
 /*****
- ***** ns__query_start() tests
- *****/
+***** ns__query_start() tests
+*****/
 
 /*%
  * Structure containing parameters for ns__query_start_test().
@@ -258,24 +264,31 @@ typedef struct {
 	const char *	   qname;		/* QNAME */
 	dns_rdatatype_t	   qtype;		/* QTYPE */
 	unsigned int	   qflags;		/* query flags */
-	bool		   disable_name_checks; /* if set to true, owner name
-							    checks will be disabled for the
-							    view created */
+	bool		   disable_name_checks; /* if set to true, owner
+						 * name
+						 *          checks will
+						 * be disabled for the
+						 *          view created
+						 * */
 	bool recursive_service;			/* if set to true, the view
-							    created will have a cache
-							    database attached */
-	const char *auth_zone_origin;		/* origin name of the zone the
-						   created view will be
-						   authoritative for */
-	const char *auth_zone_path; /* path to load the authoritative
-				       zone from */
-	enum {			    /* expected result: */
+						 *          created will
+						 * have a cache
+						 *          database
+						 * attached */
+	const char *auth_zone_origin;		/* origin name of the zone
+						 * the
+						 * created view will be
+						 * authoritative for */
+	const char *auth_zone_path;		/* path to load the
+						 * authoritative
+						 * zone from */
+	enum {					/* expected result: */
 	       NS__QUERY_START_R_INVALID,
 	       NS__QUERY_START_R_REFUSE, /* query should be REFUSED */
 	       NS__QUERY_START_R_CACHE,	 /* query should be answered from
-					    cache */
+					  * cache */
 	       NS__QUERY_START_R_AUTH,	 /* query should be answered using
-					    authoritative data */
+					  * authoritative data */
 	} expected_result;
 } ns__query_start_test_params_t;
 
@@ -593,7 +606,7 @@ ns__query_start_test(void **state)
 		run_start_test(&tests[i]);
 	}
 }
-#endif
+#endif /* if defined(USE_LIBTOOL) || LD_WRAP */
 
 int
 main(void)
@@ -607,9 +620,9 @@ main(void)
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
-#else
+#else  /* if defined(USE_LIBTOOL) || LD_WRAP */
 	print_message("1..0 # Skip query_test requires libtool or LD_WRAP\n");
-#endif
+#endif /* if defined(USE_LIBTOOL) || LD_WRAP */
 }
 
 #else /* HAVE_CMOCKA && !__SANITIZE_ADDRESS__ */

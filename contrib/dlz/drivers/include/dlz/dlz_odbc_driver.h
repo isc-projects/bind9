@@ -42,4 +42,4 @@ dlz_odbc_init(void);
 void
 dlz_odbc_clear(void);
 
-#endif
+#endif /* ifndef DLZ_ODBC_DRIVER_H */

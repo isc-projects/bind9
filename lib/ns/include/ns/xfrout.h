@@ -13,8 +13,8 @@
 #define NS_XFROUT_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief

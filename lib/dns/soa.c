@@ -90,27 +90,27 @@ dns_soa_buildrdata(const dns_name_t *origin, const dns_name_t *contact,
 uint32_t
 dns_soa_getserial(dns_rdata_t *rdata)
 {
-	return soa_get(rdata, 0);
+	return (soa_get(rdata, 0));
 }
 uint32_t
 dns_soa_getrefresh(dns_rdata_t *rdata)
 {
-	return soa_get(rdata, 4);
+	return (soa_get(rdata, 4));
 }
 uint32_t
 dns_soa_getretry(dns_rdata_t *rdata)
 {
-	return soa_get(rdata, 8);
+	return (soa_get(rdata, 8));
 }
 uint32_t
 dns_soa_getexpire(dns_rdata_t *rdata)
 {
-	return soa_get(rdata, 12);
+	return (soa_get(rdata, 12));
 }
 uint32_t
 dns_soa_getminimum(dns_rdata_t *rdata)
 {
-	return soa_get(rdata, 16);
+	return (soa_get(rdata, 16));
 }
 
 static void

@@ -37,23 +37,27 @@ static inline isc_result_t fromtext_ch_a(ARGS_FROMTEXT)
 	/* get domain name */
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	if ((options & DNS_RDATA_CHECKNAMES) != 0 &&
 	    (options & DNS_RDATA_CHECKREVERSE) != 0) {
 		bool ok;
 		ok = dns_name_ishostname(&name, false);
-		if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
+		if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0) {
 			RETTOK(DNS_R_BADNAME);
-		if (!ok && callbacks != NULL)
+		}
+		if (!ok && callbacks != NULL) {
 			warn_badname(&name, lexer, callbacks);
+		}
 	}
 
 	/* 16-bit octal address */
 	RETERR(isc_lex_getoctaltoken(lexer, &token, false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	return (uint16_tobuffer(token.value.as_ulong, target));
 }
 
@@ -106,10 +110,12 @@ static inline isc_result_t fromwire_ch_a(ARGS_FROMWIRE)
 
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
-	if (sregion.length < 2)
+	if (sregion.length < 2) {
 		return (ISC_R_UNEXPECTEDEND);
-	if (tregion.length < 2)
+	}
+	if (tregion.length < 2) {
 		return (ISC_R_NOSPACE);
+	}
 
 	memmove(tregion.base, sregion.base, 2);
 	isc_buffer_forward(source, 2);
@@ -140,8 +146,9 @@ static inline isc_result_t towire_ch_a(ARGS_TOWIRE)
 	RETERR(dns_name_towire(&name, cctx, target));
 
 	isc_buffer_availableregion(target, &tregion);
-	if (tregion.length < 2)
+	if (tregion.length < 2) {
 		return (ISC_R_NOSPACE);
+	}
 
 	memmove(tregion.base, sregion.base, 2);
 	isc_buffer_add(target, 2);
@@ -175,12 +182,14 @@ static inline int compare_ch_a(ARGS_COMPARE)
 	isc_region_consume(&region2, name_length(&name2));
 
 	order = dns_name_rdatacompare(&name1, &name2);
-	if (order != 0)
+	if (order != 0) {
 		return (order);
+	}
 
 	order = memcmp(region1.base, region2.base, 2);
-	if (order != 0)
+	if (order != 0) {
 		order = (order < 0) ? -1 : 1;
+	}
 	return (order);
 }
 
@@ -237,8 +246,9 @@ static inline void freestruct_ch_a(ARGS_FREESTRUCT)
 	REQUIRE(a != NULL);
 	REQUIRE(a->common.rdtype == dns_rdatatype_a);
 
-	if (a->mctx == NULL)
+	if (a->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&a->ch_addr_dom, a->mctx);
 	a->mctx = NULL;
@@ -296,8 +306,9 @@ static inline bool checknames_ch_a(ARGS_CHECKNAMES)
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ishostname(&name, false)) {
-		if (bad != NULL)
+		if (bad != NULL) {
 			dns_name_clone(&name, bad);
+		}
 		return (false);
 	}
 

@@ -146,28 +146,30 @@ getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 	unsigned short	port = 0;
 #ifdef IRS_PLATFORM_HAVESALEN
 	size_t len;
-#endif
+#endif /* ifdef IRS_PLATFORM_HAVESALEN */
 	int	    family, i;
 	const void *addr = NULL;
 	char *	    p;
 #if 0
 	unsigned long v4a;
 	unsigned char pfx;
-#endif
+#endif /* if 0 */
 	char numserv[sizeof("65000")];
 	char numaddr[sizeof("abcd:abcd:abcd:abcd:abcd:abcd:255.255.255.255") +
 		     1 + sizeof("4294967295")];
 	const char *proto;
 	int	    result = SUCCESS;
 
-	if (sa == NULL)
+	if (sa == NULL) {
 		ERR(EAI_FAIL);
+	}
 
 #ifdef IRS_PLATFORM_HAVESALEN
 	len = sa->sa_len;
-	if (len != salen)
+	if (len != salen) {
 		ERR(EAI_FAIL);
-#endif
+	}
+#endif /* ifdef IRS_PLATFORM_HAVESALEN */
 
 	family = sa->sa_family;
 	for (i = 0; afdl[i].a_af; i++) {
@@ -181,8 +183,9 @@ getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 	ERR(EAI_FAMILY);
 
 found:
-	if (salen != afd->a_socklen)
+	if (salen != afd->a_socklen) {
 		ERR(EAI_FAIL);
+	}
 
 	switch (family) {
 	case AF_INET:
@@ -208,12 +211,14 @@ found:
 	} else if ((flags & NI_NUMERICSERV) != 0 ||
 		   (sp = getservbyport(port, proto)) == NULL) {
 		snprintf(numserv, sizeof(numserv), "%d", ntohs(port));
-		if ((strlen(numserv) + 1) > servlen)
+		if ((strlen(numserv) + 1) > servlen) {
 			ERR(EAI_OVERFLOW);
+		}
 		strlcpy(serv, numserv, servlen);
 	} else {
-		if ((strlen(sp->s_name) + 1) > servlen)
+		if ((strlen(sp->s_name) + 1) > servlen) {
 			ERR(EAI_OVERFLOW);
+		}
 		strlcpy(serv, sp->s_name, servlen);
 	}
 
@@ -221,20 +226,23 @@ found:
 	switch (sa->sa_family) {
 	case AF_INET:
 		v4a = ((struct sockaddr_in *)sa)->sin_addr.s_addr;
-		if (IN_MULTICAST(v4a) || IN_EXPERIMENTAL(v4a))
+		if (IN_MULTICAST(v4a) || IN_EXPERIMENTAL(v4a)) {
 			flags |= NI_NUMERICHOST;
+		}
 		v4a >>= IN_CLASSA_NSHIFT;
-		if (v4a == 0 || v4a == IN_LOOPBACKNET)
+		if (v4a == 0 || v4a == IN_LOOPBACKNET) {
 			flags |= NI_NUMERICHOST;
+		}
 		break;
 
 	case AF_INET6:
 		pfx = ((struct sockaddr_in6 *)sa)->sin6_addr.s6_addr[0];
-		if (pfx == 0 || pfx == 0xfe || pfx == 0xff)
+		if (pfx == 0 || pfx == 0xfe || pfx == 0xff) {
 			flags |= NI_NUMERICHOST;
+		}
 		break;
 	}
-#endif
+#endif /* if 0 */
 
 	if (host == NULL || hostlen == 0U) {
 		/*
@@ -245,8 +253,9 @@ found:
 		 */
 	} else if ((flags & NI_NUMERICHOST) != 0) {
 		if (inet_ntop(afd->a_af, addr, numaddr, sizeof(numaddr)) ==
-		    NULL)
+		    NULL) {
 			ERR(EAI_SYSTEM);
+		}
 #if defined(IRS_HAVE_SIN6_SCOPE_ID)
 		if (afd->a_af == AF_INET6 &&
 		    ((const struct sockaddr_in6 *)sa)->sin6_scope_id) {
@@ -258,7 +267,7 @@ found:
 			 * non-numeric scope identifier.
 			 */
 			stringscope = foo;
-#endif
+#endif /* ifdef VENDOR_SPECIFIC */
 			if (stringscope == NULL) {
 				snprintf(p, sizeof(numaddr) - (p - numaddr),
 					 "%%%u",
@@ -269,9 +278,10 @@ found:
 					 "%%%s", stringscope);
 			}
 		}
-#endif
-		if (strlen(numaddr) + 1 > hostlen)
+#endif /* if defined(IRS_HAVE_SIN6_SCOPE_ID) */
+		if (strlen(numaddr) + 1 > hostlen) {
 			ERR(EAI_OVERFLOW);
+		}
 		strlcpy(host, numaddr, hostlen);
 	} else {
 		isc_netaddr_t	netaddr;
@@ -288,16 +298,18 @@ found:
 
 		/* Get IRS context and the associated DNS client object */
 		iresult = irs_context_get(&irsctx);
-		if (iresult != ISC_R_SUCCESS)
+		if (iresult != ISC_R_SUCCESS) {
 			ERR(EAI_FAIL);
+		}
 		client = irs_context_getdnsclient(irsctx);
 
 		/* Make query name */
 		isc_netaddr_fromsockaddr(&netaddr, (const isc_sockaddr_t *)sa);
 		ptrname = dns_fixedname_initname(&ptrfname);
 		iresult = dns_byaddr_createptrname(&netaddr, 0, ptrname);
-		if (iresult != ISC_R_SUCCESS)
+		if (iresult != ISC_R_SUCCESS) {
 			ERR(EAI_FAIL);
+		}
 
 		/* Get the PTR RRset */
 		ISC_LIST_INIT(answerlist);
@@ -340,10 +352,12 @@ found:
 			for (rdataset = ISC_LIST_HEAD(ptrname->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-				if (!dns_rdataset_isassociated(rdataset))
+				if (!dns_rdataset_isassociated(rdataset)) {
 					continue;
-				if (rdataset->type != dns_rdatatype_ptr)
+				}
+				if (rdataset->type != dns_rdatatype_ptr) {
 					continue;
+				}
 
 				for (iresult = dns_rdataset_first(rdataset);
 				     iresult == ISC_R_SUCCESS;
@@ -382,21 +396,26 @@ found:
 		if (found) {
 			if ((flags & NI_NOFQDN) != 0) {
 				p = strchr(hoststr, '.');
-				if (p)
+				if (p) {
 					*p = '\0';
+				}
 			}
-			if (hostregion.length + 1 > hostlen)
+			if (hostregion.length + 1 > hostlen) {
 				ERR(EAI_OVERFLOW);
+			}
 			snprintf(host, hostlen, "%.*s", (int)hostregion.length,
 				 (char *)hostregion.base);
 		} else {
-			if ((flags & NI_NAMEREQD) != 0)
+			if ((flags & NI_NAMEREQD) != 0) {
 				ERR(EAI_NONAME);
+			}
 			if (inet_ntop(afd->a_af, addr, numaddr,
-				      sizeof(numaddr)) == NULL)
+				      sizeof(numaddr)) == NULL) {
 				ERR(EAI_SYSTEM);
-			if ((strlen(numaddr) + 1) > hostlen)
+			}
+			if ((strlen(numaddr) + 1) > hostlen) {
 				ERR(EAI_OVERFLOW);
+			}
 			strlcpy(host, numaddr, hostlen);
 		}
 	}

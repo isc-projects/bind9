@@ -114,9 +114,10 @@ odbc_makesafe(char *to, const char *from, size_t length);
 static SQLSMALLINT
 safeLen(void *a)
 {
-	if (a == NULL)
-		return 0;
-	return strlen((char *)a);
+	if (a == NULL) {
+		return (0);
+	}
+	return (strlen((char *)a));
 }
 
 /*% propertly cleans up an odbc_instance_t */
@@ -165,20 +166,25 @@ destroy_odbc_instance(odbc_instance_t *odbc_inst)
 	isc_mem_put(named_g_mctx, odbc_inst->db, sizeof(db_list_t));
 
 	/* free sql environment */
-	if (odbc_inst->sql_env != NULL)
+	if (odbc_inst->sql_env != NULL) {
 		SQLFreeHandle(SQL_HANDLE_ENV, odbc_inst->sql_env);
+	}
 
 	/* free ODBC instance strings */
-	if (odbc_inst->dsn != NULL)
+	if (odbc_inst->dsn != NULL) {
 		isc_mem_free(named_g_mctx, odbc_inst->dsn);
-	if (odbc_inst->pass != NULL)
+	}
+	if (odbc_inst->pass != NULL) {
 		isc_mem_free(named_g_mctx, odbc_inst->pass);
-	if (odbc_inst->user != NULL)
+	}
+	if (odbc_inst->user != NULL) {
 		isc_mem_free(named_g_mctx, odbc_inst->user);
+	}
 
 	/* free memory for odbc_inst */
-	if (odbc_inst != NULL)
+	if (odbc_inst != NULL) {
 		isc_mem_put(named_g_mctx, odbc_inst, sizeof(odbc_instance_t));
+	}
 }
 
 /*% Connects to database, and creates ODBC statements */
@@ -240,7 +246,7 @@ odbc_connect(odbc_instance_t *dbi, odbc_db_t **dbc)
 
 	*dbc = ndb;
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 
 cleanup:
 
@@ -261,7 +267,7 @@ cleanup:
 		isc_mem_free(named_g_mctx, ndb);
 	}
 
-	return result;
+	return (result);
 }
 
 /*%
@@ -288,9 +294,9 @@ odbc_find_avail_conn(db_list_t *dblist)
 	/* loop through list */
 	while (count < dbc_search_limit) {
 		/* try to lock on the mutex */
-		if (isc_mutex_trylock(&dbi->instance_lock) == ISC_R_SUCCESS)
-			return dbi; /* success, return the DBI for use. */
-
+		if (isc_mutex_trylock(&dbi->instance_lock) == ISC_R_SUCCESS) {
+			return (dbi); /* success, return the DBI for use. */
+		}
 		/* not successful, keep trying */
 		dbi = ISC_LIST_NEXT(dbi, link);
 
@@ -305,7 +311,7 @@ odbc_find_avail_conn(db_list_t *dblist)
 		      "Odbc driver unable to find available "
 		      "connection after searching %d times",
 		      count);
-	return NULL;
+	return (NULL);
 }
 
 /*% Allocates memory for a new string, and then constructs the new
@@ -321,8 +327,9 @@ odbc_escape_string(const char *instr)
 	char *	     outstr;
 	unsigned int len;
 
-	if (instr == NULL)
-		return NULL;
+	if (instr == NULL) {
+		return (NULL);
+	}
 
 	len = strlen(instr);
 
@@ -330,7 +337,7 @@ odbc_escape_string(const char *instr)
 
 	odbc_makesafe(outstr, instr, len);
 
-	return outstr;
+	return (outstr);
 }
 
 /* ---------------
@@ -386,7 +393,7 @@ odbc_makesafe(char *to, const char *from, size_t length)
 	/* Write the terminating NUL character. */
 	*target = '\0';
 
-	return target - to;
+	return (target - to);
 }
 
 /*%
@@ -590,8 +597,9 @@ odbc_get_resultset(const char *zone, const char *record, const char *client,
 			result = odbc_connect((odbc_instance_t *)dbdata,
 					      (odbc_db_t **)&(dbi->dbconn));
 			/* check if we reconnected */
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				break;
+			}
 			/* incase this is the last time through the loop */
 			result = ISC_R_FAILURE;
 		} else {
@@ -606,27 +614,32 @@ odbc_get_resultset(const char *zone, const char *record, const char *client,
 cleanup: /* it's always good to cleanup after yourself */
 
 	/* free dbi->zone string */
-	if (dbi->zone != NULL)
+	if (dbi->zone != NULL) {
 		isc_mem_free(named_g_mctx, dbi->zone);
+	}
 
 	/* free dbi->record string */
-	if (dbi->record != NULL)
+	if (dbi->record != NULL) {
 		isc_mem_free(named_g_mctx, dbi->record);
+	}
 
 	/* free dbi->client string */
-	if (dbi->client != NULL)
+	if (dbi->client != NULL) {
 		isc_mem_free(named_g_mctx, dbi->client);
+	}
 
 	/* if we are done using this dbi, release the lock */
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		isc_mutex_unlock(&dbi->instance_lock);
+	}
 
 	/* release query string */
-	if (querystring != NULL)
+	if (querystring != NULL) {
 		isc_mem_free(named_g_mctx, querystring);
+	}
 
 	/* return result */
-	return result;
+	return (result);
 }
 
 /*%
@@ -649,12 +662,13 @@ odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data)
 		*data = isc_mem_allocate(named_g_mctx, size + 1);
 		if (data != NULL) {
 			if (sqlOK(SQLGetData(stmnt, field, SQL_C_CHAR, *data,
-					     size + 1, &size)))
-				return ISC_R_SUCCESS;
+					     size + 1, &size))) {
+				return (ISC_R_SUCCESS);
+			}
 			isc_mem_free(named_g_mctx, *data);
 		}
 	}
-	return ISC_R_FAILURE;
+	return (ISC_R_FAILURE);
 }
 
 /*%
@@ -680,18 +694,20 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 
 	/* determine how large the data is */
 	for (i = startField; i <= endField; i++) {
-		if (sqlOK(SQLColAttribute(stmnt, i, SQL_DESC_DISPLAY_SIZE, NULL, 0, NULL, &size)) && size > 0) {
+		if (sqlOK(SQLColAttribute(stmnt, i, SQL_DESC_DISPLAY_SIZE, NULL,
+					  0, NULL, &size)) &&
+		    size > 0) {
 			{
-			/* always allow for a " " (space) character */
+				/* always allow for a " " (space) character */
 				totSize += (size + 1);
-			/* after the data item */
+				/* after the data item */
 			}
-
 		}
 	}
 
-	if (totSize < 1)
-		return ISC_R_FAILURE;
+	if (totSize < 1) {
+		return (ISC_R_FAILURE);
+	}
 
 	/* allow for a "\n" at the end of the string/ */
 	data = isc_mem_allocate(named_g_mctx, ++totSize);
@@ -710,17 +726,17 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 			}
 		} else {
 			isc_mem_free(named_g_mctx, data);
-			return ISC_R_FAILURE;
+			return (ISC_R_FAILURE);
 		}
 	}
 
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_free(named_g_mctx, data);
-		return result;
+		return (result);
 	}
 
 	*retData = data;
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 /*%
@@ -825,12 +841,15 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 		}	  /* closes switch(fields) */
 
 		/* clean up mem */
-		if (ttl_s != NULL)
+		if (ttl_s != NULL) {
 			isc_mem_free(named_g_mctx, ttl_s);
-		if (type != NULL)
+		}
+		if (type != NULL) {
 			isc_mem_free(named_g_mctx, type);
-		if (data != NULL)
+		}
+		if (data != NULL) {
 			isc_mem_free(named_g_mctx, data);
+		}
 
 		/* I sure hope we were successful */
 		if (result != ISC_R_SUCCESS) {
@@ -852,7 +871,7 @@ process_rs_cleanup:
 	/* free lock on dbi so someone else can use it. */
 	isc_mutex_unlock(&dbi->instance_lock);
 
-	return result;
+	return (result);
 }
 
 /*
@@ -891,7 +910,7 @@ odbc_findzone(void *driverarg, void *dbdata, const char *name,
 		isc_mutex_unlock(&dbi->instance_lock);
 	}
 
-	return result;
+	return (result);
 }
 
 /*% Determine if the client is allowed to perform a zone transfer */
@@ -906,8 +925,9 @@ odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 
 	/* first check if the zone is supported by the database. */
 	result = odbc_findzone(driverarg, dbdata, name, NULL, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOTFOUND);
+	}
 
 	/*
 	 * if we get to this point we know the zone is supported by
@@ -922,8 +942,9 @@ odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 	result = odbc_get_resultset(name, NULL, client, ALLOWXFR, dbdata, &dbi);
 
 	/* if we get "not implemented", send it along. */
-	if (result == ISC_R_NOTIMPLEMENTED)
-		return result;
+	if (result == ISC_R_NOTIMPLEMENTED) {
+		return (result);
+	}
 
 	/* Check that we got a result set with data */
 	if (result == ISC_R_SUCCESS &&
@@ -939,7 +960,7 @@ odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		isc_mutex_unlock(&dbi->instance_lock);
 	}
 
-	return result;
+	return (result);
 }
 
 /*%
@@ -969,8 +990,9 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 	result = odbc_get_resultset(zone, NULL, NULL, ALLNODES, dbdata, &dbi);
 
 	/* if we get "not implemented", send it along */
-	if (result == ISC_R_NOTIMPLEMENTED)
-		return result;
+	if (result == ISC_R_NOTIMPLEMENTED) {
+		return (result);
+	}
 
 	/* if we didn't get a result set, log an err msg. */
 	if (result != ISC_R_SUCCESS) {
@@ -1038,14 +1060,18 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 		} /* closes big if () */
 
 		/* clean up mem */
-		if (ttl_s != NULL)
+		if (ttl_s != NULL) {
 			isc_mem_free(named_g_mctx, ttl_s);
-		if (type != NULL)
+		}
+		if (type != NULL) {
 			isc_mem_free(named_g_mctx, type);
-		if (host != NULL)
+		}
+		if (host != NULL) {
 			isc_mem_free(named_g_mctx, host);
-		if (data != NULL)
+		}
+		if (data != NULL) {
 			isc_mem_free(named_g_mctx, data);
+		}
 
 		/* if we weren't successful, log err msg */
 		if (result != ISC_R_SUCCESS) {
@@ -1067,7 +1093,7 @@ allnodes_cleanup:
 	/* free lock on dbi so someone else can use it. */
 	isc_mutex_unlock(&dbi->instance_lock);
 
-	return result;
+	return (result);
 }
 
 /*%
@@ -1087,8 +1113,9 @@ odbc_authority(const char *zone, void *driverarg, void *dbdata,
 	/* run the query and get the result set from the database. */
 	result = odbc_get_resultset(zone, NULL, NULL, AUTHORITY, dbdata, &dbi);
 	/* if we get "not implemented", send it along */
-	if (result == ISC_R_NOTIMPLEMENTED)
-		return result;
+	if (result == ISC_R_NOTIMPLEMENTED) {
+		return (result);
+	}
 	/* if we didn't get a result set, log an err msg. */
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -1099,7 +1126,7 @@ odbc_authority(const char *zone, void *driverarg, void *dbdata,
 	}
 	/* lookup and authority result sets are processed in the same manner */
 	/* odbc_process_rs does the job for both functions. */
-	return odbc_process_rs(lookup, dbi);
+	return (odbc_process_rs(lookup, dbi));
 }
 
 /*% if zone is supported, lookup up a (or multiple) record(s) in it */
@@ -1128,7 +1155,7 @@ odbc_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
 	}
 	/* lookup and authority result sets are processed in the same manner */
 	/* odbc_process_rs does the job for both functions. */
-	return odbc_process_rs(lookup, dbi);
+	return (odbc_process_rs(lookup, dbi));
 }
 
 /*%
@@ -1302,7 +1329,6 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 
 		/* set DB = null for next loop through. */
 		db = NULL;
-
 	} /* end for loop */
 
 	/* set dbdata to the odbc_instance we created. */
@@ -1315,7 +1341,7 @@ cleanup:
 
 	destroy_odbc_instance(odbc_inst);
 
-	return result;
+	return (result);
 }
 
 /*%
@@ -1387,7 +1413,7 @@ dlz_odbc_init(void)
 		result = ISC_R_UNEXPECTED;
 	}
 
-	return result;
+	return (result);
 }
 
 /*%
@@ -1403,8 +1429,9 @@ dlz_odbc_clear(void)
 		      ISC_LOG_DEBUG(2), "Unregistering DLZ odbc driver.");
 
 	/* unregister the driver. */
-	if (dlz_odbc != NULL)
+	if (dlz_odbc != NULL) {
 		dns_sdlzunregister(&dlz_odbc);
+	}
 }
 
-#endif
+#endif /* ifdef DLZ_ODBC */

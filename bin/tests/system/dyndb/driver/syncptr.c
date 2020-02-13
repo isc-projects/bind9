@@ -33,9 +33,10 @@ struct syncptrevent {
 	isc_mem_t *	mctx;
 	dns_zone_t *	zone;
 	dns_diff_t	diff;
-	dns_fixedname_t ptr_target_name; /* referenced by owner name in tuple */
-	isc_buffer_t	b; /* referenced by target name in tuple */
-	unsigned char	buf[DNS_NAME_MAXWIRE];
+	dns_fixedname_t ptr_target_name; /* referenced by owner name in
+					  * tuple */
+	isc_buffer_t  b; /* referenced by target name in tuple */
+	unsigned char buf[DNS_NAME_MAXWIRE];
 };
 
 /*
@@ -84,8 +85,9 @@ syncptr_write(isc_task_t *task, isc_event_t *event)
 
 cleanup:
 	if (db != NULL) {
-		if (version != NULL)
+		if (version != NULL) {
 			dns_db_closeversion(db, &version, true);
+		}
 		dns_db_detach(&db);
 	}
 	dns_zone_detach(&pevent->zone);
@@ -150,9 +152,9 @@ syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata, dns_name_t *name,
 
 	/* Find a zone containing owner name of the PTR record. */
 	result = dns_zt_find(inst->view->zonetable, name, 0, NULL, zone);
-	if (result == DNS_R_PARTIALMATCH)
+	if (result == DNS_R_PARTIALMATCH) {
 		result = ISC_R_SUCCESS;
-	else if (result != ISC_R_SUCCESS) {
+	} else if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
 			  "syncptr_find_zone: dns_zt_find -> %s\n",
 			  isc_result_totext(result));
@@ -167,10 +169,11 @@ syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata, dns_name_t *name,
 	}
 
 cleanup:
-	if (rdata->type == dns_rdatatype_a)
+	if (rdata->type == dns_rdatatype_a) {
 		dns_rdata_freestruct(&ipv4);
-	else
+	} else {
 		dns_rdata_freestruct(&ipv6);
+	}
 
 	return (result);
 }
@@ -262,14 +265,18 @@ syncptr(sample_instance_t *inst, dns_name_t *name, dns_rdata_t *addr_rdata,
 	isc_task_send(task, (isc_event_t **)&pevent);
 
 cleanup:
-	if (ptr_zone != NULL)
+	if (ptr_zone != NULL) {
 		dns_zone_detach(&ptr_zone);
-	if (tp != NULL)
+	}
+	if (tp != NULL) {
 		dns_difftuple_free(&tp);
-	if (task != NULL)
+	}
+	if (task != NULL) {
 		isc_task_detach(&task);
-	if (pevent != NULL)
+	}
+	if (pevent != NULL) {
 		isc_event_free((isc_event_t **)&pevent);
+	}
 
 	return (result);
 }
@@ -293,11 +300,13 @@ syncptrs(sample_instance_t *inst, dns_name_t *name, dns_rdataset_t *rdataset,
 	     result = dns_rdataset_next(rdataset)) {
 		dns_rdataset_current(rdataset, &rdata);
 		result = syncptr(inst, name, &rdata, rdataset->ttl, op);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 			goto cleanup;
+		}
 	}
-	if (result == ISC_R_NOMORE)
+	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
+	}
 
 cleanup:
 	return (result);

@@ -279,8 +279,9 @@ main(int argc, char *argv[])
 
 	isc_log_destroy(&lctx);
 
-	if (verbose)
+	if (verbose) {
 		isc_mem_stats(mctx, stdout);
+	}
 	isc_mem_destroy(&mctx);
 
 	isc_mutex_destroy(&lock);

@@ -18,10 +18,10 @@
 #include <stddef.h>
 #if defined(WIN32) || defined(WIN64)
 #include <malloc.h>
-#endif
+#endif /* if defined(WIN32) || defined(WIN64) */
 
 #include "entropy_private.h"
-#include "isc/hash.h" // IWYU pragma: keep
+#include "isc/hash.h" /* IWYU pragma: keep */
 #include "isc/likely.h"
 #include "isc/once.h"
 #include "isc/random.h"
@@ -44,9 +44,9 @@ isc_hash_initialize(void)
 	 * Set a constant key to help in problem reproduction should
 	 * fuzzing find a crash or a hang.
 	 */
-#else
+#else  /* if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
 	isc_entropy_get(key, sizeof(key));
-#endif
+#endif /* if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
 	memmove(isc_hash_key, key, sizeof(isc_hash_key));
 	hash_initialized = true;
 }

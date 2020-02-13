@@ -279,10 +279,11 @@ isc_buffer_compact(isc_buffer_t *b)
 		(void)memmove(b->base, src, (size_t)length);
 	}
 
-	if (b->active > b->current)
+	if (b->active > b->current) {
 		b->active -= b->current;
-	else
+	} else {
 		b->active = 0;
+	}
 	b->current = 0;
 	b->used = length;
 }

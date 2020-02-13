@@ -189,4 +189,4 @@ isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info)
 	uv_tcp_t *tcp = (uv_tcp_t *)stream;
 	return (uv_tcp_open(tcp, info->fd));
 }
-#endif
+#endif /* ifdef WIN32 */

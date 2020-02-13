@@ -145,8 +145,9 @@ dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
 		}
 	}
 
-	if (result == ISC_R_NOTIMPLEMENTED)
+	if (result == ISC_R_NOTIMPLEMENTED) {
 		result = ISC_R_NOTFOUND;
+	}
 
 	return (result);
 }
@@ -203,8 +204,9 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 
 	ISC_LINK_INIT(db, link);
 	db->implementation = impinfo;
-	if (dlzname != NULL)
+	if (dlzname != NULL) {
 		db->dlzname = isc_mem_strdup(mctx, dlzname);
+	}
 
 	/* Create a new database using implementation 'drivername'. */
 	result = ((impinfo->methods->create)(mctx, dlzname, argc, argv,
@@ -250,12 +252,14 @@ dns_dlzdestroy(dns_dlzdb_t **dbp)
 	db = *dbp;
 	*dbp = NULL;
 
-	if (db->ssutable != NULL)
+	if (db->ssutable != NULL) {
 		dns_ssutable_detach(&db->ssutable);
+	}
 
 	/* call the drivers destroy method */
-	if (db->dlzname != NULL)
+	if (db->dlzname != NULL) {
 		isc_mem_free(db->mctx, db->dlzname);
+	}
 	destroy = db->implementation->methods->destroy;
 	(*destroy)(db->implementation->driverarg, db->dbdata);
 	/* return memory and detach */
@@ -429,8 +433,9 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	dns_fixedname_init(&fixorigin);
 	result = dns_name_fromtext(dns_fixedname_name(&fixorigin), &buffer,
 				   dns_rootname, 0, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	origin = dns_fixedname_name(&fixorigin);
 
 	if (!dlzdb->search) {
@@ -454,11 +459,13 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 
 	/* Create it */
 	result = dns_zone_create(&zone, view->mctx);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	result = dns_zone_setorigin(zone, origin);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	dns_zone_setview(zone, view);
 
 	dns_zone_setadded(zone, true);
@@ -466,20 +473,23 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	if (dlzdb->ssutable == NULL) {
 		result = dns_ssutable_createdlz(dlzdb->mctx, &dlzdb->ssutable,
 						dlzdb);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 	}
 	dns_zone_setssutable(zone, dlzdb->ssutable);
 
 	result = dlzdb->configure_callback(view, dlzdb, zone);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	result = dns_view_addzone(view, zone);
 
 cleanup:
-	if (zone != NULL)
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
+	}
 
 	return (result);
 }
@@ -500,8 +510,9 @@ dns_dlzconfigure(dns_view_t *view, dns_dlzdb_t *dlzdb,
 
 	impl = dlzdb->implementation;
 
-	if (impl->methods->configure == NULL)
+	if (impl->methods->configure == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 
 	dlzdb->configure_callback = callback;
 

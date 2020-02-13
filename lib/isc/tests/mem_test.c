@@ -372,12 +372,12 @@ isc_mem_traceflag_test(void **state)
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 }
-#endif
+#endif /* if ISC_MEM_TRACKLINES */
 
 #if !defined(__SANITIZE_THREAD__)
 
 #define ITERS 512
-#define NUM_ITEMS 1024 // 768
+#define NUM_ITEMS 1024 /* 768 */
 #define ITEM_SIZE 65534
 
 static isc_threadresult_t
@@ -533,7 +533,7 @@ main(void)
 		 */
 		cmocka_unit_test_setup_teardown(isc_mem_traceflag_test, _setup,
 						_teardown),
-#endif
+#endif /* if ISC_MEM_TRACKLINES */
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -550,4 +550,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

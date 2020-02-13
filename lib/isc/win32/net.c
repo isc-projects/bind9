@@ -116,7 +116,7 @@ try_ipv6only(void)
 	SOCKET s;
 	int    on;
 	char   strbuf[ISC_STRERRORSIZE];
-#endif
+#endif /* ifdef IPV6_V6ONLY */
 	isc_result_t result;
 
 	result = isc_net_probeipv6();
@@ -128,7 +128,7 @@ try_ipv6only(void)
 #ifndef IPV6_V6ONLY
 	ipv6only_result = ISC_R_NOTFOUND;
 	return;
-#else
+#else  /* ifndef IPV6_V6ONLY */
 	/* check for TCP sockets */
 	s = socket(PF_INET6, SOCK_STREAM, 0);
 	if (s == INVALID_SOCKET) {
@@ -213,9 +213,9 @@ try_ipv6pktinfo(void)
 
 #ifdef IPV6_RECVPKTINFO
 	optname = IPV6_RECVPKTINFO;
-#else
+#else  /* ifdef IPV6_RECVPKTINFO */
 	optname = IPV6_PKTINFO;
-#endif
+#endif /* ifdef IPV6_RECVPKTINFO */
 	on = 1;
 	if (setsockopt(s, IPPROTO_IPV6, optname, (const char *)&on,
 		       sizeof(on)) < 0) {
@@ -275,32 +275,36 @@ void
 isc_net_disableipv4(void)
 {
 	initialize();
-	if (ipv4_result == ISC_R_SUCCESS)
+	if (ipv4_result == ISC_R_SUCCESS) {
 		ipv4_result = ISC_R_DISABLED;
+	}
 }
 
 void
 isc_net_disableipv6(void)
 {
 	initialize();
-	if (ipv6_result == ISC_R_SUCCESS)
+	if (ipv6_result == ISC_R_SUCCESS) {
 		ipv6_result = ISC_R_DISABLED;
+	}
 }
 
 void
 isc_net_enableipv4(void)
 {
 	initialize();
-	if (ipv4_result == ISC_R_DISABLED)
+	if (ipv4_result == ISC_R_DISABLED) {
 		ipv4_result = ISC_R_SUCCESS;
+	}
 }
 
 void
 isc_net_enableipv6(void)
 {
 	initialize();
-	if (ipv6_result == ISC_R_DISABLED)
+	if (ipv6_result == ISC_R_DISABLED) {
 		ipv6_result = ISC_R_SUCCESS;
+	}
 }
 
 unsigned int

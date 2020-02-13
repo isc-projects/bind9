@@ -13,8 +13,8 @@
 #define ISC_COUNTER_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/counter.h
  *
@@ -34,8 +34,8 @@
 #include <isc/types.h>
 
 /*****
- ***** Types.
- *****/
+***** Types.
+*****/
 
 ISC_LANG_BEGINDECLS
 

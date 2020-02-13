@@ -34,7 +34,7 @@ typedef void (*isc_mem_water_t)(void *, int);
  */
 #ifndef ISC_MEM_TRACKLINES
 #define ISC_MEM_TRACKLINES 1
-#endif
+#endif /* ifndef ISC_MEM_TRACKLINES */
 
 /*%
  * Define ISC_MEM_CHECKOVERRUN=1 to turn on checks for using memory outside
@@ -46,10 +46,10 @@ typedef void (*isc_mem_water_t)(void *, int);
 #ifdef __COVERITY__
 #undef ISC_MEM_CHECKOVERRUN
 #define ISC_MEM_CHECKOVERRUN 0
-#endif
+#endif /* ifdef __COVERITY__ */
 #ifndef ISC_MEM_CHECKOVERRUN
 #define ISC_MEM_CHECKOVERRUN 1
-#endif
+#endif /* ifndef ISC_MEM_CHECKOVERRUN */
 
 /*%
  * Define ISC_MEMPOOL_NAMES=1 to make memory pools store a symbolic
@@ -58,7 +58,7 @@ typedef void (*isc_mem_water_t)(void *, int);
  */
 #ifndef ISC_MEMPOOL_NAMES
 #define ISC_MEMPOOL_NAMES 1
-#endif
+#endif /* ifndef ISC_MEMPOOL_NAMES */
 
 LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
@@ -101,10 +101,10 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 #if ISC_MEM_TRACKLINES
 #define _ISC_MEM_FILELINE , __FILE__, __LINE__
 #define _ISC_MEM_FLARG , const char *, unsigned int
-#else
+#else /* if ISC_MEM_TRACKLINES */
 #define _ISC_MEM_FILELINE
 #define _ISC_MEM_FLARG
-#endif
+#endif /* if ISC_MEM_TRACKLINES */
 
 /*!
  * Define ISC_MEM_USE_INTERNAL_MALLOC=1 to use the internal malloc()
@@ -117,7 +117,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 
 #ifndef ISC_MEM_USE_INTERNAL_MALLOC
 #define ISC_MEM_USE_INTERNAL_MALLOC 1
-#endif
+#endif /* ifndef ISC_MEM_USE_INTERNAL_MALLOC */
 
 /*
  * Flags for isc_mem_create() calls.
@@ -129,9 +129,9 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 
 #if !ISC_MEM_USE_INTERNAL_MALLOC
 #define ISC_MEMFLAG_DEFAULT 0
-#else
+#else /* if !ISC_MEM_USE_INTERNAL_MALLOC */
 #define ISC_MEMFLAG_DEFAULT ISC_MEMFLAG_INTERNAL | ISC_MEMFLAG_FILL
-#endif
+#endif /* if !ISC_MEM_USE_INTERNAL_MALLOC */
 
 /*%
  * isc_mem_putanddetach() is a convenience function for use where you

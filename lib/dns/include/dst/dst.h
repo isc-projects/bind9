@@ -602,7 +602,7 @@ dst_key_buildinternal(const dns_name_t *name, unsigned int alg,
 		      unsigned int bits, unsigned int flags,
 		      unsigned int protocol, dns_rdataclass_t rdclass,
 		      void *data, isc_mem_t *mctx, dst_key_t **keyp);
-#endif
+#endif /* ifdef DST_KEY_INTERNAL */
 
 isc_result_t
 dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,

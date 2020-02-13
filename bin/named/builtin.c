@@ -98,8 +98,9 @@ dns64_rdata(unsigned char *v, size_t start, unsigned char *rdata)
 
 	for (i = 0; i < 4U; i++) {
 		unsigned char c = v[start++];
-		if (start == 7U)
+		if (start == 7U) {
 			start++;
+		}
 		if (c > 99) {
 			rdata[j++] = 3;
 			rdata[j++] = decimal[c / 100];
@@ -141,8 +142,9 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 	 */
 	zlen = zone->length;
 	nlen = name->length;
-	if ((zlen + nlen) > 74U || zlen < 10U || (nlen % 2) != 0U)
+	if ((zlen + nlen) > 74U || zlen < 10U || (nlen % 2) != 0U) {
 		return (ISC_R_NOTFOUND);
+	}
 
 	/*
 	 * We assume the zone name is well formed.
@@ -166,11 +168,13 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 	memset(v, 0, sizeof(v));
 	while (j != 0U) {
 		INSIST((i / 2) < sizeof(v));
-		if (ndata[0] != 1)
+		if (ndata[0] != 1) {
 			return (ISC_R_NOTFOUND);
+		}
 		n = hex16[ndata[1] & 0xff];
-		if (n == 1)
+		if (n == 1) {
 			return (ISC_R_NOTFOUND);
+		}
 		v[i / 2] = n | (v[i / 2] >> 4);
 		j -= 2;
 		ndata += 2;
@@ -190,14 +194,16 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * The nibbles that map to this byte must be zero for 'name'
 		 * to exist in the zone.
 		 */
-		if (nlen > 16U && v[(nlen - 1) / 4 - 4] != 0)
+		if (nlen > 16U && v[(nlen - 1) / 4 - 4] != 0) {
 			return (ISC_R_NOTFOUND);
+		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
-		if (nlen + zlen != 74U)
+		if (nlen + zlen != 74U) {
 			return (ISC_R_SUCCESS);
+		}
 		len = dns64_rdata(v, 8, rdata);
 		break;
 	case ZLEN(40): /* prefix len 40 */
@@ -205,14 +211,16 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * The nibbles that map to this byte must be zero for 'name'
 		 * to exist in the zone.
 		 */
-		if (nlen > 12U && v[(nlen - 1) / 4 - 3] != 0)
+		if (nlen > 12U && v[(nlen - 1) / 4 - 3] != 0) {
 			return (ISC_R_NOTFOUND);
+		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
-		if (nlen + zlen != 74U)
+		if (nlen + zlen != 74U) {
 			return (ISC_R_SUCCESS);
+		}
 		len = dns64_rdata(v, 6, rdata);
 		break;
 	case ZLEN(48): /* prefix len 48 */
@@ -220,14 +228,16 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * The nibbles that map to this byte must be zero for 'name'
 		 * to exist in the zone.
 		 */
-		if (nlen > 8U && v[(nlen - 1) / 4 - 2] != 0)
+		if (nlen > 8U && v[(nlen - 1) / 4 - 2] != 0) {
 			return (ISC_R_NOTFOUND);
+		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
-		if (nlen + zlen != 74U)
+		if (nlen + zlen != 74U) {
 			return (ISC_R_SUCCESS);
+		}
 		len = dns64_rdata(v, 5, rdata);
 		break;
 	case ZLEN(56): /* prefix len 56 */
@@ -235,14 +245,16 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * The nibbles that map to this byte must be zero for 'name'
 		 * to exist in the zone.
 		 */
-		if (nlen > 4U && v[(nlen - 1) / 4 - 1] != 0)
+		if (nlen > 4U && v[(nlen - 1) / 4 - 1] != 0) {
 			return (ISC_R_NOTFOUND);
+		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
-		if (nlen + zlen != 74U)
+		if (nlen + zlen != 74U) {
 			return (ISC_R_SUCCESS);
+		}
 		len = dns64_rdata(v, 4, rdata);
 		break;
 	case ZLEN(64): /* prefix len 64 */
@@ -250,14 +262,16 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * The nibbles that map to this byte must be zero for 'name'
 		 * to exist in the zone.
 		 */
-		if (v[(nlen - 1) / 4] != 0)
+		if (v[(nlen - 1) / 4] != 0) {
 			return (ISC_R_NOTFOUND);
+		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
-		if (nlen + zlen != 74U)
+		if (nlen + zlen != 74U) {
 			return (ISC_R_SUCCESS);
+		}
 		len = dns64_rdata(v, 3, rdata);
 		break;
 	case ZLEN(96): /* prefix len 96 */
@@ -265,8 +279,9 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
-		if (nlen + zlen != 74U)
+		if (nlen + zlen != 74U) {
 			return (ISC_R_SUCCESS);
+		}
 		len = dns64_rdata(v, 0, rdata);
 		break;
 	default:
@@ -291,10 +306,11 @@ builtin_lookup(const char *zone, const char *name, void *dbdata,
 	UNUSED(methods);
 	UNUSED(clientinfo);
 
-	if (strcmp(name, "@") == 0)
+	if (strcmp(name, "@") == 0) {
 		return (b->do_lookup(lookup));
-	else
+	} else {
 		return (ISC_R_NOTFOUND);
+	}
 }
 
 static isc_result_t
@@ -307,10 +323,11 @@ dns64_lookup(const dns_name_t *zone, const dns_name_t *name, void *dbdata,
 	UNUSED(methods);
 	UNUSED(clientinfo);
 
-	if (name->labels == 0 && name->length == 0)
+	if (name->labels == 0 && name->length == 0) {
 		return (b->do_lookup(lookup));
-	else
+	} else {
 		return (dns64_cname(zone, name, lookup));
+	}
 }
 
 static isc_result_t
@@ -318,8 +335,9 @@ put_txt(dns_sdblookup_t *lookup, const char *text)
 {
 	unsigned char buf[256];
 	unsigned int  len = strlen(text);
-	if (len > 255)
+	if (len > 255) {
 		len = 255; /* Silently truncate */
+	}
 	buf[0] = len;
 	memmove(&buf[1], text, len);
 	return (dns_sdb_putrdata(lookup, dns_rdatatype_txt, 0, buf, len + 1));
@@ -329,10 +347,11 @@ static isc_result_t
 do_version_lookup(dns_sdblookup_t *lookup)
 {
 	if (named_g_server->version_set) {
-		if (named_g_server->version == NULL)
+		if (named_g_server->version == NULL) {
 			return (ISC_R_SUCCESS);
-		else
+		} else {
 			return (put_txt(lookup, named_g_server->version));
+		}
 	} else {
 		return (put_txt(lookup, named_g_version));
 	}
@@ -342,15 +361,17 @@ static isc_result_t
 do_hostname_lookup(dns_sdblookup_t *lookup)
 {
 	if (named_g_server->hostname_set) {
-		if (named_g_server->hostname == NULL)
+		if (named_g_server->hostname == NULL) {
 			return (ISC_R_SUCCESS);
-		else
+		} else {
 			return (put_txt(lookup, named_g_server->hostname));
+		}
 	} else {
 		char	     buf[256];
 		isc_result_t result = named_os_gethostname(buf, sizeof(buf));
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 		return (put_txt(lookup, buf));
 	}
 }
@@ -373,13 +394,15 @@ do_authors_lookup(dns_sdblookup_t *lookup)
 	/*
 	 * If a version string is specified, disable the authors.bind zone.
 	 */
-	if (named_g_server->version_set)
+	if (named_g_server->version_set) {
 		return (ISC_R_SUCCESS);
+	}
 
 	for (p = authors; *p != NULL; p++) {
 		result = put_txt(lookup, *p);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -392,13 +415,15 @@ do_id_lookup(dns_sdblookup_t *lookup)
 		isc_result_t result;
 
 		result = named_g_server->sctx->gethostname(buf, sizeof(buf));
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 		return (put_txt(lookup, buf));
-	} else if (named_g_server->sctx->server_id != NULL)
+	} else if (named_g_server->sctx->server_id != NULL) {
 		return (put_txt(lookup, named_g_server->sctx->server_id));
-	else
+	} else {
 		return (ISC_R_SUCCESS);
+	}
 }
 
 static isc_result_t
@@ -430,19 +455,23 @@ builtin_authority(const char *zone, void *dbdata, dns_sdblookup_t *lookup)
 		server = ".";
 		contact = ".";
 	} else {
-		if (b->server != NULL)
+		if (b->server != NULL) {
 			server = b->server;
-		if (b->contact != NULL)
+		}
+		if (b->contact != NULL) {
 			contact = b->contact;
+		}
 	}
 
 	result = dns_sdb_putsoa(lookup, server, contact, 0);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_FAILURE);
+	}
 
 	result = dns_sdb_putrr(lookup, "ns", 0, server);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_FAILURE);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -457,21 +486,23 @@ builtin_create(const char *zone, int argc, char **argv, void *driverdata,
 	UNUSED(driverdata);
 
 	if (strcmp(argv[0], "empty") == 0 || strcmp(argv[0], "dns64") == 0) {
-		if (argc != 3)
+		if (argc != 3) {
 			return (DNS_R_SYNTAX);
-	} else if (argc != 1)
+		}
+	} else if (argc != 1) {
 		return (DNS_R_SYNTAX);
+	}
 
-	if (strcmp(argv[0], "version") == 0)
+	if (strcmp(argv[0], "version") == 0) {
 		*dbdata = &version_builtin;
-	else if (strcmp(argv[0], "hostname") == 0)
+	} else if (strcmp(argv[0], "hostname") == 0) {
 		*dbdata = &hostname_builtin;
-	else if (strcmp(argv[0], "authors") == 0)
+	} else if (strcmp(argv[0], "authors") == 0) {
 		*dbdata = &authors_builtin;
-	else if (strcmp(argv[0], "id") == 0)
+	} else if (strcmp(argv[0], "id") == 0) {
 		*dbdata = &id_builtin;
-	else if (strcmp(argv[0], "empty") == 0 ||
-		 strcmp(argv[0], "dns64") == 0) {
+	} else if (strcmp(argv[0], "empty") == 0 ||
+		   strcmp(argv[0], "dns64") == 0) {
 		builtin_t *empty;
 		char *	   server;
 		char *	   contact;
@@ -483,30 +514,36 @@ builtin_create(const char *zone, int argc, char **argv, void *driverdata,
 		server = isc_mem_strdup(named_g_mctx, argv[1]);
 		contact = isc_mem_strdup(named_g_mctx, argv[2]);
 		if (empty == NULL || server == NULL || contact == NULL) {
-			if (strcmp(argv[0], "empty") == 0)
+			if (strcmp(argv[0], "empty") == 0) {
 				*dbdata = &empty_builtin;
-			else
+			} else {
 				*dbdata = &dns64_builtin;
-			if (server != NULL)
+			}
+			if (server != NULL) {
 				isc_mem_free(named_g_mctx, server);
-			if (contact != NULL)
+			}
+			if (contact != NULL) {
 				isc_mem_free(named_g_mctx, contact);
-			if (empty != NULL)
+			}
+			if (empty != NULL) {
 				isc_mem_put(named_g_mctx, empty,
 					    sizeof(*empty));
+			}
 		} else {
-			if (strcmp(argv[0], "empty") == 0)
+			if (strcmp(argv[0], "empty") == 0) {
 				memmove(empty, &empty_builtin,
 					sizeof(empty_builtin));
-			else
+			} else {
 				memmove(empty, &dns64_builtin,
 					sizeof(empty_builtin));
+			}
 			empty->server = server;
 			empty->contact = contact;
 			*dbdata = empty;
 		}
-	} else
+	} else {
 		return (ISC_R_NOTIMPLEMENTED);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -523,8 +560,9 @@ builtin_destroy(const char *zone, void *driverdata, void **dbdata)
 	 */
 	if (*dbdata == &version_builtin || *dbdata == &hostname_builtin ||
 	    *dbdata == &authors_builtin || *dbdata == &id_builtin ||
-	    *dbdata == &empty_builtin || *dbdata == &dns64_builtin)
+	    *dbdata == &empty_builtin || *dbdata == &dns64_builtin) {
 		return;
+	}
 
 	isc_mem_free(named_g_mctx, b->server);
 	isc_mem_free(named_g_mctx, b->contact);

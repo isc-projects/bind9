@@ -260,7 +260,7 @@ LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
 #ifndef NS_PLUGIN_VERSION
 #define NS_PLUGIN_VERSION 1
 #define NS_PLUGIN_AGE 0
-#endif
+#endif /* ifndef NS_PLUGIN_VERSION */
 
 typedef isc_result_t
 ns_plugin_register_t(const char *parameters, const void *cfg, const char *file,

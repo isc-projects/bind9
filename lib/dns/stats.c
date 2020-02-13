@@ -167,8 +167,9 @@ create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 	isc_refcount_init(&stats->references, 1);
 
 	result = isc_stats_create(mctx, &stats->counters, ncounters);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto clean_mutex;
+	}
 
 	stats->magic = DNS_STATS_MAGIC;
 	stats->type = type;
@@ -255,9 +256,9 @@ inline static isc_statscounter_t
 rdatatype2counter(dns_rdatatype_t type)
 {
 	if (type > (dns_rdatatype_t)RDTYPECOUNTER_MAXTYPE) {
-		return 0;
+		return (0);
 	}
-	return (isc_statscounter_t)type;
+	return ((isc_statscounter_t)type);
 }
 
 void
@@ -347,8 +348,9 @@ dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code)
 {
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_rcode);
 
-	if (code <= dns_rcode_badcookie)
+	if (code <= dns_rcode_badcookie) {
 		isc_stats_increment(stats->counters, (isc_statscounter_t)code);
+	}
 }
 
 void
@@ -539,10 +541,12 @@ dns_stats_alloccounters(isc_mem_t *mctx, uint64_t **ctrp)
 {
 	int	  i;
 	uint64_t *p = isc_mem_get(mctx, DNS_STATS_NCOUNTERS * sizeof(uint64_t));
-	if (p == NULL)
+	if (p == NULL) {
 		return (ISC_R_NOMEMORY);
-	for (i = 0; i < DNS_STATS_NCOUNTERS; i++)
+	}
+	for (i = 0; i < DNS_STATS_NCOUNTERS; i++) {
 		p[i] = 0;
+	}
 	*ctrp = p;
 	return (ISC_R_SUCCESS);
 }

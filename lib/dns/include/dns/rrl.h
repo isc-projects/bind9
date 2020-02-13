@@ -134,23 +134,24 @@ struct dns_rrl_entry {
 #define DNS_RRL_MAX_WINDOW 3600
 #if DNS_RRL_MAX_WINDOW >= DNS_RRL_MAX_TS
 #error "DNS_RRL_MAX_WINDOW is too large"
-#endif
+#endif /* if DNS_RRL_MAX_WINDOW >= DNS_RRL_MAX_TS */
 #define DNS_RRL_MAX_RATE 1000
 #if DNS_RRL_MAX_RATE >= (DNS_RRL_MAX_RESPONSES / DNS_RRL_MAX_WINDOW)
 #error "DNS_RRL_MAX_rate is too large"
-#endif
+#endif /* if DNS_RRL_MAX_RATE >= (DNS_RRL_MAX_RESPONSES / DNS_RRL_MAX_WINDOW) \
+	*/
 
 #if (1 << DNS_RRL_LOG_BITS) >= DNS_RRL_FOREVER
 #error DNS_RRL_LOG_BITS is too big
-#endif
+#endif /* if (1 << DNS_RRL_LOG_BITS) >= DNS_RRL_FOREVER */
 #define DNS_RRL_MAX_LOG_SECS 1800
 #if DNS_RRL_MAX_LOG_SECS >= (1 << DNS_RRL_LOG_BITS)
 #error "DNS_RRL_MAX_LOG_SECS is too large"
-#endif
+#endif /* if DNS_RRL_MAX_LOG_SECS >= (1 << DNS_RRL_LOG_BITS) */
 #define DNS_RRL_STOP_LOG_SECS 60
 #if DNS_RRL_STOP_LOG_SECS >= (1 << DNS_RRL_LOG_BITS)
 #error "DNS_RRL_STOP_LOG_SECS is too large"
-#endif
+#endif /* if DNS_RRL_STOP_LOG_SECS >= (1 << DNS_RRL_LOG_BITS) */
 
 /*
  * A hash table of rate-limit entries.

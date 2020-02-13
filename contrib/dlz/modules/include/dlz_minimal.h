@@ -33,7 +33,7 @@
 #include <sys/types.h>
 #ifdef ISC_PLATFORM_HAVESYSUNH
 #include <sys/un.h>
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <netinet/in.h>
@@ -48,7 +48,7 @@ typedef uint32_t     dns_ttl_t;
 #ifndef DLZ_DLOPEN_VERSION
 #define DLZ_DLOPEN_VERSION 3
 #define DLZ_DLOPEN_AGE 0
-#endif
+#endif /* ifndef DLZ_DLOPEN_VERSION */
 
 /* return these in flags from dlz_version() */
 #define DNS_SDLZFLAG_THREADSAFE 0x00000001U
@@ -106,7 +106,7 @@ typedef struct isc_sockaddr {
 		struct sockaddr_in6 sin6;
 #ifdef ISC_PLATFORM_HAVESYSUNH
 		struct sockaddr_un sunix;
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 	} type;
 	unsigned int length;
 	void *	     link;

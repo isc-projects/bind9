@@ -59,7 +59,7 @@ static atomic_bool  is_running;
  * We need to remember which thread is the main thread...
  */
 static isc_thread_t main_thread;
-#endif
+#endif /* ifdef WIN32 */
 
 /*
  * The application context of this module.
@@ -109,7 +109,7 @@ handle_signal(int sig, void (*handler)(int))
 				"handle_signal() %d setup: %s", sig, strbuf);
 	}
 }
-#endif
+#endif /* ifndef WIN32 */
 
 isc_result_t
 isc_app_ctxstart(isc_appctx_t *ctx)
@@ -240,7 +240,7 @@ isc_app_ctxrun(isc_appctx_t *ctx)
 
 #ifdef WIN32
 	REQUIRE(main_thread == GetCurrentThread());
-#endif
+#endif /* ifdef WIN32 */
 
 	if (atomic_compare_exchange_weak_acq_rel(&ctx->running, &exp_false,
 						 true) == true) {

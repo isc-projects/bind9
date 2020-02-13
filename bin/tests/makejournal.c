@@ -63,13 +63,15 @@ loadzone(dns_db_t **db, const char *origin, const char *filename)
 	name = dns_fixedname_initname(&fixed);
 
 	result = dns_name_fromstring(name, origin, 0, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, db);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_db_load(*db, filename, dns_masterformat_text, 0);
 	return (result);
@@ -131,22 +133,27 @@ main(int argc, char **argv)
 	result = dns_db_diff(mctx, newdb, NULL, olddb, NULL, journal);
 
 cleanup:
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "%s\n", isc_result_totext(result));
+	}
 
-	if (newdb != NULL)
+	if (newdb != NULL) {
 		dns_db_detach(&newdb);
-	if (olddb != NULL)
+	}
+	if (olddb != NULL) {
 		dns_db_detach(&olddb);
+	}
 
-	if (lctx != NULL)
+	if (lctx != NULL) {
 		isc_log_destroy(&lctx);
+	}
 	if (dst_active) {
 		dst_lib_destroy();
 		dst_active = false;
 	}
-	if (mctx != NULL)
+	if (mctx != NULL) {
 		isc_mem_destroy(&mctx);
+	}
 
 	return (result != ISC_R_SUCCESS ? 1 : 0);
 }

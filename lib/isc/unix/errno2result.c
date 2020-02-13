@@ -57,57 +57,57 @@ isc___errno2result(int posixerrno, bool dolog, const char *file,
 #ifdef EDQUOT
 	case EDQUOT:
 		return (ISC_R_DISCQUOTA);
-#endif
+#endif /* ifdef EDQUOT */
 	case ENOSPC:
 		return (ISC_R_DISCFULL);
 #ifdef EOVERFLOW
 	case EOVERFLOW:
 		return (ISC_R_RANGE);
-#endif
+#endif /* ifdef EOVERFLOW */
 	case EPIPE:
 #ifdef ECONNRESET
 	case ECONNRESET:
-#endif
+#endif /* ifdef ECONNRESET */
 #ifdef ECONNABORTED
 	case ECONNABORTED:
-#endif
+#endif /* ifdef ECONNABORTED */
 		return (ISC_R_CONNECTIONRESET);
 #ifdef ENOTCONN
 	case ENOTCONN:
 		return (ISC_R_NOTCONNECTED);
-#endif
+#endif /* ifdef ENOTCONN */
 #ifdef ETIMEDOUT
 	case ETIMEDOUT:
 		return (ISC_R_TIMEDOUT);
-#endif
+#endif /* ifdef ETIMEDOUT */
 #ifdef ENOBUFS
 	case ENOBUFS:
 		return (ISC_R_NORESOURCES);
-#endif
+#endif /* ifdef ENOBUFS */
 #ifdef EAFNOSUPPORT
 	case EAFNOSUPPORT:
 		return (ISC_R_FAMILYNOSUPPORT);
-#endif
+#endif /* ifdef EAFNOSUPPORT */
 #ifdef ENETDOWN
 	case ENETDOWN:
 		return (ISC_R_NETDOWN);
-#endif
+#endif /* ifdef ENETDOWN */
 #ifdef EHOSTDOWN
 	case EHOSTDOWN:
 		return (ISC_R_HOSTDOWN);
-#endif
+#endif /* ifdef EHOSTDOWN */
 #ifdef ENETUNREACH
 	case ENETUNREACH:
 		return (ISC_R_NETUNREACH);
-#endif
+#endif /* ifdef ENETUNREACH */
 #ifdef EHOSTUNREACH
 	case EHOSTUNREACH:
 		return (ISC_R_HOSTUNREACH);
-#endif
+#endif /* ifdef EHOSTUNREACH */
 #ifdef EADDRINUSE
 	case EADDRINUSE:
 		return (ISC_R_ADDRINUSE);
-#endif
+#endif /* ifdef EADDRINUSE */
 	case EADDRNOTAVAIL:
 		return (ISC_R_ADDRNOTAVAIL);
 	case ECONNREFUSED:

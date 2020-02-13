@@ -17,7 +17,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#endif
+#endif /* ifndef WIN32 */
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -108,10 +108,10 @@ DestroySockets(void)
 {
 	WSACleanup();
 }
-#else
+#else /* ifdef _WIN32 */
 #define InitSockets() ((void)0)
 #define DestroySockets() ((void)0)
-#endif
+#endif /* ifdef _WIN32 */
 
 static bool
 addserver(const char *server, isc_sockaddrlist_t *list,
@@ -126,10 +126,10 @@ addserver(const char *server, isc_sockaddrlist_t *list,
 	hints.ai_protocol = IPPROTO_UDP;
 #ifdef AI_NUMERICHOST
 	hints.ai_flags |= AI_NUMERICHOST;
-#endif
+#endif /* ifdef AI_NUMERICHOST */
 #ifdef AI_NUMERICSERV
 	hints.ai_flags |= AI_NUMERICSERV;
-#endif
+#endif /* ifdef AI_NUMERICSERV */
 	InitSockets();
 	gaierror = getaddrinfo(server, port, &hints, &res);
 	if (gaierror != 0) {
@@ -185,8 +185,9 @@ main(int argc, char *argv[])
 		case 'a':
 			if (nsa_auth < sizeof(sa_auth) / sizeof(*sa_auth) &&
 			    addserver(isc_commandline_argument, &auth_servers,
-				      &sa_auth[nsa_auth]))
+				      &sa_auth[nsa_auth])) {
 				nsa_auth++;
+			}
 			break;
 		case 'p':
 			prereqstr = isc_commandline_argument;
@@ -198,8 +199,9 @@ main(int argc, char *argv[])
 			if (nsa_recursive < sizeof(sa_recursive) /
 						    sizeof(*sa_recursive) &&
 			    addserver(isc_commandline_argument, &rec_servers,
-				      &sa_recursive[nsa_recursive]))
+				      &sa_recursive[nsa_recursive])) {
 				nsa_recursive++;
+			}
 			break;
 		case 's':
 			sendtwice = true;
@@ -214,15 +216,16 @@ main(int argc, char *argv[])
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
-	if (argc < 2)
+	if (argc < 2) {
 		usage();
+	}
 
 	/* command line argument validation */
-	if (strcmp(argv[0], "delete") == 0)
+	if (strcmp(argv[0], "delete") == 0) {
 		isdelete = true;
-	else if (strcmp(argv[0], "add") == 0)
+	} else if (strcmp(argv[0], "add") == 0) {
 		isdelete = false;
-	else {
+	} else {
 		fprintf(stderr, "invalid update command: %s\n", argv[0]);
 		exit(1);
 	}
@@ -260,9 +263,10 @@ main(int argc, char *argv[])
 		isc_buffer_add(&b, namelen);
 		zname = dns_fixedname_initname(&zname0);
 		result = dns_name_fromtext(zname, &b, dns_rootname, 0, NULL);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "failed to convert zone name: %u\n",
 				result);
+		}
 	}
 
 	/* Construct prerequisite name (if given) */
@@ -280,11 +284,13 @@ main(int argc, char *argv[])
 	ISC_LIST_APPEND(updatelist, uname, link);
 
 	/* Set up TSIG/SIG(0) key (if given) */
-	if (keyfilename != NULL)
+	if (keyfilename != NULL) {
 		setup_tsec(keyfilename, umctx);
+	}
 
-	if (ISC_LIST_HEAD(auth_servers) == NULL)
+	if (ISC_LIST_HEAD(auth_servers) == NULL) {
 		auth_serversp = NULL;
+	}
 
 	/* Perform update */
 	result = dns_client_update(client, default_rdataclass, /* XXX: fixed */
@@ -293,21 +299,23 @@ main(int argc, char *argv[])
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "update failed: %s\n",
 			dns_result_totext(result));
-	} else
+	} else {
 		fprintf(stderr, "update succeeded\n");
+	}
 
 	if (sendtwice) {
 		/* Perform 2nd update */
 		result = dns_client_update(client, default_rdataclass, /* XXX:
-									  fixed
+									* fixed
 									*/
 					   zname, prereqlistp, &updatelist,
 					   auth_serversp, tsec, 0);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "2nd update failed: %s\n",
 				dns_result_totext(result));
-		} else
+		} else {
 			fprintf(stderr, "2nd update succeeded\n");
+		}
 	}
 
 	/* Cleanup */
@@ -339,8 +347,9 @@ main(int argc, char *argv[])
 		ISC_LIST_UNLINK(usedbuffers, buf, link);
 		isc_buffer_free(&buf);
 	}
-	if (tsec != NULL)
+	if (tsec != NULL) {
 		dns_tsec_destroy(&tsec);
+	}
 	isc_mem_destroy(&umctx);
 	dns_client_destroy(&client);
 	dns_lib_shutdown();
@@ -362,17 +371,20 @@ nsu_strsep(char **stringp, const char *delim)
 	const char *d;
 	char	    sc, dc;
 
-	if (string == NULL)
+	if (string == NULL) {
 		return (NULL);
+	}
 
 	for (; *string != '\0'; string++) {
 		sc = *string;
 		for (d = delim; (dc = *d) != '\0'; d++) {
-			if (sc == dc)
+			if (sc == dc) {
 				break;
+			}
 		}
-		if (dc == 0)
+		if (dc == 0) {
 			break;
+		}
 	}
 
 	for (s = string; *s != '\0'; s++) {
@@ -404,8 +416,9 @@ fatal(const char *format, ...)
 static inline void
 check_result(isc_result_t result, const char *msg)
 {
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("%s: %s", msg, isc_result_totext(result));
+	}
 }
 
 static void
@@ -440,8 +453,9 @@ parse_rdata(isc_mem_t *mctx, char **cmdlinep, dns_rdataclass_t rdataclass,
 	isc_result_t	     result;
 
 	while (cmdline != NULL && *cmdline != 0 &&
-	       isspace((unsigned char)*cmdline))
+	       isspace((unsigned char)*cmdline)) {
 		cmdline++;
+	}
 
 	if (cmdline != NULL && *cmdline != 0) {
 		dns_rdatacallbacks_init(&callbacks);
@@ -528,9 +542,9 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
 		}
 	}
 
-	if (isdelete)
+	if (isdelete) {
 		ttl = 0;
-	else if (ttl > TTL_MAX) {
+	} else if (ttl > TTL_MAX) {
 		fprintf(stderr, "ttl '%s' is out of range (0 to %u)\n", word,
 			TTL_MAX);
 		exit(1);
@@ -594,10 +608,11 @@ parseclass:
 	parse_rdata(mctx, &cmdline, rdataclass, rdatatype, rdata);
 
 	if (isdelete) {
-		if ((rdata->flags & DNS_RDATA_UPDATE) != 0)
+		if ((rdata->flags & DNS_RDATA_UPDATE) != 0) {
 			rdataclass = dns_rdataclass_any;
-		else
+		} else {
 			rdataclass = dns_rdataclass_none;
+		}
 	} else {
 		if ((rdata->flags & DNS_RDATA_UPDATE) != 0) {
 			fprintf(stderr, "could not read rdata\n");
@@ -678,27 +693,31 @@ make_prereq(isc_mem_t *mctx, char *cmdline, bool ispositive, bool isrrset,
 				exit(1);
 			}
 		}
-	} else
+	} else {
 		rdatatype = dns_rdatatype_any;
+	}
 
 	rdata = isc_mem_get(mctx, sizeof(*rdata));
 	dns_rdata_init(rdata);
 
-	if (isrrset && ispositive)
+	if (isrrset && ispositive) {
 		parse_rdata(mctx, &cmdline, rdataclass, rdatatype, rdata);
-	else
+	} else {
 		rdata->flags = DNS_RDATA_UPDATE;
+	}
 
 	rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
 	dns_rdatalist_init(rdatalist);
 	rdatalist->type = rdatatype;
 	if (ispositive) {
-		if (isrrset && rdata->data != NULL)
+		if (isrrset && rdata->data != NULL) {
 			rdatalist->rdclass = rdataclass;
-		else
+		} else {
 			rdatalist->rdclass = dns_rdataclass_any;
-	} else
+		}
+	} else {
 		rdatalist->rdclass = dns_rdataclass_none;
+	}
 	rdata->rdclass = rdatalist->rdclass;
 	rdata->type = rdatatype;
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
@@ -758,10 +777,11 @@ setup_tsec(char *keyfile, isc_mem_t *mctx)
 		exit(1);
 	}
 
-	if (dst_key_alg(dstkey) == DST_ALG_HMACMD5)
+	if (dst_key_alg(dstkey) == DST_ALG_HMACMD5) {
 		tsectype = dns_tsectype_tsig;
-	else
+	} else {
 		tsectype = dns_tsectype_sig0;
+	}
 
 	result = dns_tsec_create(mctx, tsectype, dstkey, &tsec);
 	dst_key_free(&dstkey);

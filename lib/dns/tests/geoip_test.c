@@ -428,9 +428,9 @@ main(void)
 	};
 
 	return (cmocka_run_group_tests(tests, _setup, _teardown));
-#else
+#else  /* if defined(HAVE_GEOIP2) */
 	print_message("1..0 # Skip GeoIP not enabled\n");
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 }
 
 #else /* HAVE_CMOCKA */

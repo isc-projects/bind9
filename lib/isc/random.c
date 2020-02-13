@@ -72,9 +72,9 @@ isc_random_initialize(void)
 	 * find a crash or a hang.  The seed array must be non-zero else
 	 * xoshiro128starstar will generate an infinite series of zeroes.
 	 */
-#else
+#else  /* if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
 	isc_entropy_get(useed, sizeof(useed));
-#endif
+#endif /* if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
 	memmove(seed, useed, sizeof(seed));
 }
 

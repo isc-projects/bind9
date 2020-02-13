@@ -19,8 +19,9 @@ static SYSTEM_INFO SystemInfo;
 static void
 initialize_action(void)
 {
-	if (bInit)
+	if (bInit) {
 		return;
+	}
 
 	GetSystemInfo(&SystemInfo);
 	bInit = TRUE;
@@ -32,8 +33,9 @@ isc_os_ncpus(void)
 	long ncpus;
 	initialize_action();
 	ncpus = SystemInfo.dwNumberOfProcessors;
-	if (ncpus <= 0)
+	if (ncpus <= 0) {
 		ncpus = 1;
+	}
 
 	return ((unsigned int)ncpus);
 }

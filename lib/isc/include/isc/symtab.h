@@ -13,8 +13,8 @@
 #define ISC_SYMTAB_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/symtab.h
  * \brief Provides a simple memory-based symbol table.

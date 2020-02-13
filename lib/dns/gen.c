@@ -21,8 +21,8 @@
  */
 #if _MSC_VER < 1900
 #define snprintf _snprintf
-#endif
-#endif
+#endif /* if _MSC_VER < 1900 */
+#endif /* ifdef WIN32 */
 
 #include <ctype.h>
 #include <errno.h>
@@ -37,17 +37,17 @@
 
 #ifndef PATH_MAX
 #define PATH_MAX 1024
-#endif
+#endif /* ifndef PATH_MAX */
 
 #ifdef WIN32
 #include "gen-win32.h"
-#else
+#else /* ifdef WIN32 */
 #include "gen-unix.h"
-#endif
+#endif /* ifdef WIN32 */
 
 #ifndef ULLONG_MAX
 #define ULLONG_MAX (~0ULL)
-#endif
+#endif /* ifndef ULLONG_MAX */
 
 #define INSIST(cond)                                                       \
 	if (!(cond)) {                                                     \
@@ -199,14 +199,16 @@ upper(char *s)
 	int	    c;
 
 	buf_to_use++;
-	if (buf_to_use > 9)
+	if (buf_to_use > 9) {
 		buf_to_use = 0;
+	}
 
 	b = buf[buf_to_use];
 	memset(b, 0, 256);
 
-	while ((c = (*s++) & 0xff))
+	while ((c = (*s++) & 0xff)) {
 		*b++ = islower(c) ? toupper(c) : c;
+	}
 	*b = '\0';
 	return (buf[buf_to_use]);
 }
@@ -236,8 +238,9 @@ doswitch(const char *name, const char *function, const char *args,
 	char	    buf1[TYPECLASSBUF], buf2[TYPECLASSBUF];
 	const char *result = " result =";
 
-	if (res == NULL)
+	if (res == NULL) {
 		result = "";
+	}
 
 	for (tt = types; tt != NULL; tt = tt->next) {
 		if (first) {
@@ -246,11 +249,12 @@ doswitch(const char *name, const char *function, const char *args,
 			first = 0;
 		}
 		if (tt->type != lasttype && subswitch) {
-			if (res == NULL)
+			if (res == NULL) {
 				fprintf(stdout, "\t\tdefault: break; \\\n");
-			else
+			} else {
 				fprintf(stdout, "\t\tdefault: %s; break; \\\n",
 					res);
+			}
 			fputs(/*{*/ "\t\t} \\\n", stdout);
 			fputs("\t\tbreak; \\\n", stdout);
 			subswitch = 0;
@@ -260,36 +264,40 @@ doswitch(const char *name, const char *function, const char *args,
 				tt->type, csw);
 			subswitch = 1;
 		}
-		if (tt->rdclass == 0)
+		if (tt->rdclass == 0) {
 			fprintf(stdout, "\tcase %d:%s %s_%s(%s); break;",
 				tt->type, result, function,
 				funname(tt->typebuf, buf1), args);
-		else
+		} else {
 			fprintf(stdout, "\t\tcase %d:%s %s_%s_%s(%s); break;",
 				tt->rdclass, result, function,
 				funname(tt->classbuf, buf1),
 				funname(tt->typebuf, buf2), args);
+		}
 		fputs(" \\\n", stdout);
 		lasttype = tt->type;
 	}
 	if (subswitch) {
-		if (res == NULL)
+		if (res == NULL) {
 			fprintf(stdout, "\t\tdefault: break; \\\n");
-		else
+		} else {
 			fprintf(stdout, "\t\tdefault: %s; break; \\\n", res);
+		}
 		fputs(/*{*/ "\t\t} \\\n", stdout);
 		fputs("\t\tbreak; \\\n", stdout);
 	}
 	if (first) {
-		if (res == NULL)
+		if (res == NULL) {
 			fprintf(stdout, "\n#define %s\n", name);
-		else
+		} else {
 			fprintf(stdout, "\n#define %s %s;\n", name, res);
+		}
 	} else {
-		if (res == NULL)
+		if (res == NULL) {
 			fprintf(stdout, "\tdefault: break; \\\n");
-		else
+		} else {
 			fprintf(stdout, "\tdefault: %s; break; \\\n", res);
+		}
 		fputs(/*{*/ "\t}\n", stdout);
 	}
 }
@@ -529,7 +537,7 @@ HASH(char *string)
 	a = tolower((unsigned char)string[0]);
 	b = tolower((unsigned char)string[n - 1]);
 
-	return ((a + n) * b) % 256;
+	return (((a + n) * b) % 256);
 }
 
 int
@@ -563,11 +571,12 @@ main(int argc, char **argv)
 	char *		   endptr;
 	isc_dir_t	   dir;
 
-	for (i = 0; i < TYPENAMES; i++)
+	for (i = 0; i < TYPENAMES; i++) {
 		memset(&typenames[i], 0, sizeof(typenames[i]));
+	}
 
 	srcdir[0] = '\0';
-	while ((c = isc_commandline_parse(argc, argv, "cdits:F:P:S:")) != -1)
+	while ((c = isc_commandline_parse(argc, argv, "cdits:F:P:S:")) != -1) {
 		switch (c) {
 		case 'c':
 			code = 0;
@@ -625,6 +634,7 @@ main(int argc, char **argv)
 		case '?':
 			exit(1);
 		}
+	}
 
 	n = snprintf(buf, sizeof(buf), "%srdata", srcdir);
 	INSIST(n > 0 && (unsigned)n < sizeof(srcdir));
@@ -942,7 +952,6 @@ main(int argc, char **argv)
 				"((dns_rdatatype_t)dns_rdatatype_any)\n");
 
 		fprintf(stdout, "\n#endif /* DNS_ENUMTYPE_H */\n");
-
 	} else if (class_enum) {
 		char *s;
 		int   classnum;

@@ -618,9 +618,9 @@ basic(void **state)
 
 #ifndef WIN32
 	sleep(2);
-#else
+#else  /* ifndef WIN32 */
 	Sleep(2000);
-#endif
+#endif /* ifndef WIN32 */
 
 	for (i = 0; testarray[i] != NULL; i++) {
 		/*
@@ -647,9 +647,9 @@ basic(void **state)
 
 #ifndef WIN32
 	sleep(10);
-#else
+#else  /* ifndef WIN32 */
 	Sleep(10000);
-#endif
+#endif /* ifndef WIN32 */
 	isc_timer_detach(&ti1);
 	isc_timer_detach(&ti2);
 }
@@ -1459,13 +1459,12 @@ pge_sde(isc_task_t *task, isc_event_t *event)
 static void
 try_purgeevent(bool purgeable)
 {
-	isc_result_t result;
-	isc_task_t * task = NULL;
-	bool	     purged;
-	isc_event_t *event1 = NULL;
-	isc_event_t *event2 = NULL;
-	isc_event_t *event2_clone = NULL;
-	;
+	isc_result_t   result;
+	isc_task_t *   task = NULL;
+	bool	       purged;
+	isc_event_t *  event1 = NULL;
+	isc_event_t *  event2 = NULL;
+	isc_event_t *  event2_clone = NULL;
 	isc_time_t     now;
 	isc_interval_t interval;
 
@@ -1615,4 +1614,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

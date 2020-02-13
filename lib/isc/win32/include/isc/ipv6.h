@@ -13,8 +13,8 @@
 #define ISC_IPV6_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*
  * IPv6 definitions for systems which do not support IPv6.
@@ -37,7 +37,7 @@
 
 #if _MSC_VER < 1300
 #define in6_addr in_addr6
-#endif
+#endif /* if _MSC_VER < 1300 */
 
 #ifndef IN6ADDR_ANY_INIT
 #define IN6ADDR_ANY_INIT                                               \
@@ -46,7 +46,7 @@
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 \
 		}                                                      \
 	}
-#endif
+#endif /* ifndef IN6ADDR_ANY_INIT */
 #ifndef IN6ADDR_LOOPBACK_INIT
 #define IN6ADDR_LOOPBACK_INIT                                          \
 	{                                                              \
@@ -54,7 +54,7 @@
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 \
 		}                                                      \
 	}
-#endif
+#endif /* ifndef IN6ADDR_LOOPBACK_INIT */
 #ifndef IN6ADDR_V4MAPPED_INIT
 #define IN6ADDR_V4MAPPED_INIT                                                \
 	{                                                                    \
@@ -62,7 +62,7 @@
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0, 0, 0, 0 \
 		}                                                            \
 	}
-#endif
+#endif /* ifndef IN6ADDR_V4MAPPED_INIT */
 
 LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_any;
 LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_loopback;
@@ -76,7 +76,7 @@ LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_loopback;
 	 *((u_long *)((a)->s6_addr) + 1) == 0 && \
 	 *((u_long *)((a)->s6_addr) + 2) == 0 && \
 	 *((u_long *)((a)->s6_addr) + 3) == 0)
-#endif
+#endif /* ifndef IN6_IS_ADDR_UNSPECIFIED */
 
 /*
  * Loopback
@@ -87,7 +87,7 @@ LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_loopback;
 	 *((u_long *)((a)->s6_addr) + 1) == 0 && \
 	 *((u_long *)((a)->s6_addr) + 2) == 0 && \
 	 *((u_long *)((a)->s6_addr) + 3) == htonl(1))
-#endif
+#endif /* ifndef IN6_IS_ADDR_LOOPBACK */
 
 /*
  * IPv4 compatible
@@ -118,11 +118,11 @@ LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_loopback;
 #ifndef IN6_IS_ADDR_LINKLOCAL
 #define IN6_IS_ADDR_LINKLOCAL(a) \
 	(((a)->s6_addr[0] == 0xfe) && (((a)->s6_addr[1] & 0xc0) == 0x80))
-#endif
+#endif /* ifndef IN6_IS_ADDR_LINKLOCAL */
 
 #ifndef IN6_IS_ADDR_SITELOCAL
 #define IN6_IS_ADDR_SITELOCAL(a) \
 	(((a)->s6_addr[0] == 0xfe) && (((a)->s6_addr[1] & 0xc0) == 0xc0))
-#endif
+#endif /* ifndef IN6_IS_ADDR_SITELOCAL */
 
 #endif /* ISC_IPV6_H */

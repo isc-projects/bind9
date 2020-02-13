@@ -59,7 +59,7 @@
 
 #ifndef CLOCK_REALTIME
 #define CLOCK_REALTIME 0
-#endif
+#endif /* ifndef CLOCK_REALTIME */
 
 static int
 clock_gettime(int32_t id, struct timespec *tp);
@@ -79,7 +79,7 @@ clock_gettime(int32_t id, struct timespec *tp)
 	}
 	return (result);
 }
-#endif
+#endif /* ifndef HAVE_CLOCK_GETTIME */
 
 CK_BYTE buf[1024];
 char	label[16];
@@ -164,11 +164,13 @@ main(int argc, char *argv[])
 		hKey[i] = CK_INVALID_HANDLE;
 
 	/* Initialize the CRYPTOKI library */
-	if (lib_name != NULL)
+	if (lib_name != NULL) {
 		pk11_set_lib_name(lib_name);
+	}
 
-	if (pin == NULL)
+	if (pin == NULL) {
 		pin = getpass("Enter Pin: ");
+	}
 
 	result = pk11_get_session(&pctx, OP_ANY, true, true, true,
 				  (const char *)pin, slot);
@@ -180,8 +182,9 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (pin != NULL)
+	if (pin != NULL) {
 		memset(pin, 0, strlen((char *)pin));
+	}
 
 	hSession = pctx.session;
 
@@ -192,8 +195,9 @@ main(int argc, char *argv[])
 		goto exit_objects;
 	}
 
-	if (ontoken)
+	if (ontoken) {
 		kTemplate[1].pValue = &truevalue;
+	}
 
 	if (clock_gettime(CLOCK_REALTIME, &starttime) < 0) {
 		perror("clock_gettime(start)");
@@ -208,8 +212,9 @@ main(int argc, char *argv[])
 			fprintf(stderr, "C_CreateObject[%u]: Error = 0x%.8lX\n",
 				i, rv);
 			error = 1;
-			if (i == 0)
+			if (i == 0) {
 				goto exit_objects;
+			}
 			break;
 		}
 	}
@@ -227,17 +232,19 @@ main(int argc, char *argv[])
 	}
 	printf("%u created objects in %ld.%09lds\n", i, endtime.tv_sec,
 	       endtime.tv_nsec);
-	if (i > 0)
+	if (i > 0) {
 		printf("%g created objects/s\n",
 		       1024 * i /
 			       ((double)endtime.tv_sec +
 				(double)endtime.tv_nsec / 1000000000.));
+	}
 
 exit_objects:
 	for (i = 0; i < count; i++) {
 		/* Destroy objects */
-		if (hKey[i] == CK_INVALID_HANDLE)
+		if (hKey[i] == CK_INVALID_HANDLE) {
 			continue;
+		}
 		rv = pkcs_C_DestroyObject(hSession, hKey[i]);
 		if ((rv != CKR_OK) && !errflg) {
 			fprintf(stderr,

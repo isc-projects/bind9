@@ -142,8 +142,9 @@ sendquery(isc_task_t *task, isc_event_t *event)
 	isc_event_free(&event);
 
 	result = ISC_R_FAILURE;
-	if (inet_pton(AF_INET, "10.53.0.1", &inaddr) != 1)
+	if (inet_pton(AF_INET, "10.53.0.1", &inaddr) != 1) {
 		CHECK("inet_pton", result);
+	}
 	isc_sockaddr_fromin(&address, &inaddr, PORT);
 
 	dns_fixedname_init(&keyname);
@@ -221,8 +222,9 @@ main(int argc, char *argv[])
 	}
 	ourkeyname = argv[1];
 
-	if (argc >= 3)
+	if (argc >= 3) {
 		ownername_str = argv[2];
+	}
 
 	dns_result_register();
 

@@ -137,18 +137,21 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 
 	node = NULL;
 	result = dns_db_findnode(db, zonename, false, &node);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto nonode;
+	}
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa, 0,
 				     (isc_stdtime_t)0, &rdataset, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto freenode;
+	}
 
 	result = dns_rdataset_first(&rdataset);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto freenode;
+	}
 
 	dns_rdataset_current(&rdataset, &rdata);
 	dns_rdataset_getownercase(&rdataset, zonename);
@@ -303,8 +306,9 @@ struct dns_journal {
 	FILE *		 fp;	   /*%< File handle */
 	isc_offset_t	 offset;   /*%< Current file offset */
 	journal_header_t header;   /*%< In-core journal header */
-	unsigned char *	 rawindex; /*%< In-core buffer for journal index in
-				      on-disk format */
+	unsigned char *	 rawindex; /*%< In-core buffer for journal index
+				    * in
+				    * on-disk format */
 	journal_pos_t *index;	   /*%< In-core journal index */
 
 	/*% Current transaction state (when writing). */
@@ -319,9 +323,11 @@ struct dns_journal {
 		journal_pos_t bpos; /*%< Position before first, */
 		journal_pos_t epos; /*%< and after last transaction */
 		/* The rest is iterator state. */
-		uint32_t	 current_serial; /*%< Current SOA serial */
-		isc_buffer_t	 source;	 /*%< Data from disk */
-		isc_buffer_t	 target; /*%< Data from _fromwire check */
+		uint32_t current_serial; /*%< Current SOA serial
+					  * */
+		isc_buffer_t source;	 /*%< Data from disk */
+		isc_buffer_t target;	 /*%< Data from _fromwire check
+					  * */
 		dns_decompress_t dctx;	 /*%< Dummy decompression ctx */
 		dns_name_t	 name;	 /*%< Current domain name */
 		dns_rdata_t	 rdata;	 /*%< Current rdata */
@@ -405,8 +411,9 @@ journal_read(dns_journal_t *j, void *mem, size_t nbytes)
 
 	result = isc_stdio_read(mem, 1, nbytes, j->fp, NULL);
 	if (result != ISC_R_SUCCESS) {
-		if (result == ISC_R_EOF)
+		if (result == ISC_R_EOF) {
 			return (ISC_R_NOMORE);
+		}
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: read: %s", j->filename,
 			      isc_result_totext(result));
@@ -463,8 +470,9 @@ journal_read_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr)
 	journal_rawxhdr_t raw;
 	isc_result_t	  result;
 	result = journal_read(j, &raw, sizeof(raw));
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	xhdr->size = decode_uint32(raw.size);
 	xhdr->serial0 = decode_uint32(raw.serial0);
 	xhdr->serial1 = decode_uint32(raw.serial1);
@@ -492,8 +500,9 @@ journal_read_rrhdr(dns_journal_t *j, journal_rrhdr_t *rrhdr)
 	journal_rawrrhdr_t raw;
 	isc_result_t	   result;
 	result = journal_read(j, &raw, sizeof(raw));
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	rrhdr->size = decode_uint32(raw.size);
 	return (ISC_R_SUCCESS);
 }
@@ -574,8 +583,9 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 	j->index = NULL;
 	j->rawindex = NULL;
 
-	if (j->filename == NULL)
+	if (j->filename == NULL) {
 		FAIL(ISC_R_NOMEMORY);
+	}
 
 	result = isc_stdio_open(j->filename, writable ? "rb+" : "rb", &fp);
 
@@ -669,16 +679,20 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 
 failure:
 	j->magic = 0;
-	if (j->rawindex != NULL)
+	if (j->rawindex != NULL) {
 		isc_mem_put(j->mctx, j->rawindex,
 			    j->header.index_size * sizeof(journal_rawpos_t));
-	if (j->index != NULL)
+	}
+	if (j->index != NULL) {
 		isc_mem_put(j->mctx, j->index,
 			    j->header.index_size * sizeof(journal_pos_t));
-	if (j->filename != NULL)
+	}
+	if (j->filename != NULL) {
 		isc_mem_free(j->mctx, j->filename);
-	if (j->fp != NULL)
+	}
+	if (j->fp != NULL) {
 		(void)isc_stdio_close(j->fp);
+	}
 	isc_mem_putanddetach(&j->mctx, j, sizeof(*j));
 	return (result);
 }
@@ -698,13 +712,15 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
 	result = journal_open(mctx, filename, writable, create, journalp);
 	if (result == ISC_R_NOTFOUND) {
 		namelen = strlen(filename);
-		if (namelen > 4U && strcmp(filename + namelen - 4, ".jnl") == 0)
+		if (namelen > 4U &&
+		    strcmp(filename + namelen - 4, ".jnl") == 0) {
 			namelen -= 4;
+		}
 
 		result = snprintf(backup, sizeof(backup), "%.*s.jbk",
 				  (int)namelen, filename);
 		if (result >= sizeof(backup)) {
-			return ISC_R_NOSPACE;
+			return (ISC_R_NOSPACE);
 		}
 		result = journal_open(mctx, backup, writable, writable,
 				      journalp);
@@ -763,13 +779,15 @@ ixfr_order(const void *av, const void *bv)
 	}
 
 	r = bop - aop;
-	if (r != 0)
+	if (r != 0) {
 		return (r);
+	}
 
 	r = (b->rdata.type == dns_rdatatype_soa) -
 	    (a->rdata.type == dns_rdatatype_soa);
-	if (r != 0)
+	if (r != 0) {
 		return (r);
+	}
 
 	r = (a->rdata.type - b->rdata.type);
 	return (r);
@@ -799,18 +817,21 @@ journal_next(dns_journal_t *j, journal_pos_t *pos)
 	REQUIRE(DNS_JOURNAL_VALID(j));
 
 	result = journal_seek(j, pos->offset);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
-	if (pos->serial == j->header.end.serial)
+	if (pos->serial == j->header.end.serial) {
 		return (ISC_R_NOMORE);
+	}
 	/*
 	 * Read the header of the current transaction.
 	 * This will return ISC_R_NOMORE if we are at EOF.
 	 */
 	result = journal_read_xhdr(j, &xhdr);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	/*
 	 * Check serial number consistency.
@@ -849,13 +870,15 @@ static void
 index_find(dns_journal_t *j, uint32_t serial, journal_pos_t *best_guess)
 {
 	unsigned int i;
-	if (j->index == NULL)
+	if (j->index == NULL) {
 		return;
+	}
 	for (i = 0; i < j->header.index_size; i++) {
 		if (POS_VALID(j->index[i]) &&
 		    DNS_SERIAL_GE(serial, j->index[i].serial) &&
-		    DNS_SERIAL_GT(j->index[i].serial, best_guess->serial))
+		    DNS_SERIAL_GT(j->index[i].serial, best_guess->serial)) {
 			*best_guess = j->index[i];
+		}
 	}
 }
 
@@ -872,14 +895,16 @@ static void
 index_add(dns_journal_t *j, journal_pos_t *pos)
 {
 	unsigned int i;
-	if (j->index == NULL)
+	if (j->index == NULL) {
 		return;
+	}
 	/*
 	 * Search for a vacant position.
 	 */
 	for (i = 0; i < j->header.index_size; i++) {
-		if (!POS_VALID(j->index[i]))
+		if (!POS_VALID(j->index[i])) {
 			break;
+		}
 	}
 	if (i == j->header.index_size) {
 		unsigned int k = 0;
@@ -912,11 +937,13 @@ static void
 index_invalidate(dns_journal_t *j, uint32_t serial)
 {
 	unsigned int i;
-	if (j->index == NULL)
+	if (j->index == NULL) {
 		return;
+	}
 	for (i = 0; i < j->header.index_size; i++) {
-		if (!DNS_SERIAL_GT(serial, j->index[i].serial))
+		if (!DNS_SERIAL_GT(serial, j->index[i].serial)) {
 			POS_INVALIDATE(j->index[i]);
+		}
 	}
 }
 
@@ -946,10 +973,12 @@ journal_find(dns_journal_t *j, uint32_t serial, journal_pos_t *pos)
 	journal_pos_t current_pos;
 	REQUIRE(DNS_JOURNAL_VALID(j));
 
-	if (DNS_SERIAL_GT(j->header.begin.serial, serial))
+	if (DNS_SERIAL_GT(j->header.begin.serial, serial)) {
 		return (ISC_R_RANGE);
-	if (DNS_SERIAL_GT(serial, j->header.end.serial))
+	}
+	if (DNS_SERIAL_GT(serial, j->header.end.serial)) {
 		return (ISC_R_RANGE);
+	}
 	if (serial == j->header.end.serial) {
 		*pos = j->header.end;
 		return (ISC_R_SUCCESS);
@@ -959,11 +988,13 @@ journal_find(dns_journal_t *j, uint32_t serial, journal_pos_t *pos)
 	index_find(j, serial, &current_pos);
 
 	while (current_pos.serial != serial) {
-		if (DNS_SERIAL_GT(current_pos.serial, serial))
+		if (DNS_SERIAL_GT(current_pos.serial, serial)) {
 			return (ISC_R_NOTFOUND);
+		}
 		result = journal_next(j, &current_pos);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	}
 	*pos = current_pos;
 	return (ISC_R_SUCCESS);
@@ -1035,9 +1066,10 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff)
 	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
 	     t = ISC_LIST_NEXT(t, link)) {
 		if (t->rdata.type == dns_rdatatype_soa) {
-			if (j->x.n_soa < 2)
+			if (j->x.n_soa < 2) {
 				j->x.pos[j->x.n_soa].serial =
 					dns_soa_getserial(&t->rdata);
+			}
 			j->x.n_soa++;
 		}
 		size += sizeof(journal_rawrrhdr_t);
@@ -1094,8 +1126,9 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff)
 	result = ISC_R_SUCCESS;
 
 failure:
-	if (mem != NULL)
+	if (mem != NULL) {
 		isc_mem_put(j->mctx, mem, size);
+	}
 	return (result);
 }
 
@@ -1180,7 +1213,7 @@ dns_journal_commit(dns_journal_t *j)
 	if (DNS_SERIAL_GT(last_dumped_serial, j->x.pos[1].serial)) {
 		force_dump(...);
 	}
-#endif
+#endif /* ifdef notyet */
 
 	/*
 	 * Commit the transaction data to stable storage.
@@ -1202,8 +1235,9 @@ dns_journal_commit(dns_journal_t *j)
 	/*
 	 * Update the journal header.
 	 */
-	if (JOURNAL_EMPTY(&j->header))
+	if (JOURNAL_EMPTY(&j->header)) {
 		j->header.begin = j->x.pos[0];
+	}
 	j->header.end = j->x.pos[1];
 	journal_header_encode(&j->header, &rawheader);
 	CHECK(journal_seek(j, 0));
@@ -1259,20 +1293,26 @@ dns_journal_destroy(dns_journal_t **journalp)
 	j->it.result = ISC_R_FAILURE;
 	dns_name_invalidate(&j->it.name);
 	dns_decompress_invalidate(&j->it.dctx);
-	if (j->rawindex != NULL)
+	if (j->rawindex != NULL) {
 		isc_mem_put(j->mctx, j->rawindex,
 			    j->header.index_size * sizeof(journal_rawpos_t));
-	if (j->index != NULL)
+	}
+	if (j->index != NULL) {
 		isc_mem_put(j->mctx, j->index,
 			    j->header.index_size * sizeof(journal_pos_t));
-	if (j->it.target.base != NULL)
+	}
+	if (j->it.target.base != NULL) {
 		isc_mem_put(j->mctx, j->it.target.base, j->it.target.length);
-	if (j->it.source.base != NULL)
+	}
+	if (j->it.source.base != NULL) {
 		isc_mem_put(j->mctx, j->it.source.base, j->it.source.length);
-	if (j->filename != NULL)
+	}
+	if (j->filename != NULL) {
 		isc_mem_free(j->mctx, j->filename);
-	if (j->fp != NULL)
+	}
+	if (j->fp != NULL) {
 		(void)isc_stdio_close(j->fp);
+	}
 	j->magic = 0;
 	isc_mem_putanddetach(&j->mctx, j, sizeof(*j));
 }
@@ -1337,8 +1377,9 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options)
 	 */
 
 	end_serial = dns_journal_last_serial(j);
-	if (db_serial == end_serial)
+	if (db_serial == end_serial) {
 		CHECK(DNS_R_UPTODATE);
+	}
 
 	CHECK(dns_journal_iter_init(j, db_serial, end_serial));
 
@@ -1355,12 +1396,14 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options)
 
 		if (rdata->type == dns_rdatatype_soa) {
 			n_soa++;
-			if (n_soa == 2)
+			if (n_soa == 2) {
 				db_serial = j->it.current_serial;
+			}
 		}
 
-		if (n_soa == 3)
+		if (n_soa == 3) {
 			n_soa = 1;
+		}
 		if (n_soa == 0) {
 			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				      "%s: journal file corrupt: missing "
@@ -1368,11 +1411,12 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options)
 				      j->filename);
 			FAIL(ISC_R_UNEXPECTED);
 		}
-		if ((options & DNS_JOURNALOPT_RESIGN) != 0)
+		if ((options & DNS_JOURNALOPT_RESIGN) != 0) {
 			op = (n_soa == 1) ? DNS_DIFFOP_DELRESIGN
 					  : DNS_DIFFOP_ADDRESIGN;
-		else
+		} else {
 			op = (n_soa == 1) ? DNS_DIFFOP_DEL : DNS_DIFFOP_ADD;
+		}
 
 		CHECK(dns_difftuple_create(diff.mctx, op, name, ttl, rdata,
 					   &tuple));
@@ -1388,8 +1432,9 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options)
 			n_put = 0;
 		}
 	}
-	if (result == ISC_R_NOMORE)
+	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
+	}
 	CHECK(result);
 
 	if (n_put != 0) {
@@ -1402,14 +1447,17 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options)
 	}
 
 failure:
-	if (ver != NULL)
+	if (ver != NULL) {
 		dns_db_closeversion(db, &ver,
 				    result == ISC_R_SUCCESS ? true : false);
+	}
 
-	if (source.base != NULL)
+	if (source.base != NULL) {
 		isc_mem_put(j->mctx, source.base, source.length);
-	if (target.base != NULL)
+	}
+	if (target.base != NULL) {
 		isc_mem_put(j->mctx, target.base, target.length);
+	}
 
 	dns_diff_clear(&diff);
 
@@ -1435,12 +1483,14 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
 							"that's OK");
 		return (DNS_R_NOJOURNAL);
 	}
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-	if (JOURNAL_EMPTY(&j->header))
+	}
+	if (JOURNAL_EMPTY(&j->header)) {
 		result = DNS_R_UPTODATE;
-	else
+	} else {
 		result = roll_forward(j, db, options);
+	}
 
 	dns_journal_destroy(&j);
 
@@ -1476,8 +1526,9 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file)
 		return (result);
 	}
 
-	if (j->header.serialset)
+	if (j->header.serialset) {
 		fprintf(file, "Source serial = %u\n", j->header.sourceserial);
+	}
 	dns_diff_init(j->mctx, &diff);
 
 	/*
@@ -1504,11 +1555,13 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file)
 		rdata = NULL;
 		dns_journal_current_rr(j, &name, &ttl, &rdata);
 
-		if (rdata->type == dns_rdatatype_soa)
+		if (rdata->type == dns_rdatatype_soa) {
 			n_soa++;
+		}
 
-		if (n_soa == 3)
+		if (n_soa == 3) {
 			n_soa = 1;
+		}
 		if (n_soa == 0) {
 			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				      "%s: journal file corrupt: missing "
@@ -1525,12 +1578,14 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file)
 			result = dns_diff_print(&diff, file);
 			dns_diff_clear(&diff);
 			n_put = 0;
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				break;
+			}
 		}
 	}
-	if (result == ISC_R_NOMORE)
+	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
+	}
 	CHECK(result);
 
 	if (n_put != 0) {
@@ -1544,10 +1599,12 @@ failure:
 		      "%s: cannot print: journal file corrupt", j->filename);
 
 cleanup:
-	if (source.base != NULL)
+	if (source.base != NULL) {
 		isc_mem_put(j->mctx, source.base, source.length);
-	if (target.base != NULL)
+	}
+	if (target.base != NULL) {
 		isc_mem_put(j->mctx, target.base, target.length);
+	}
 
 	dns_diff_clear(&diff);
 	dns_journal_destroy(&j);
@@ -1586,8 +1643,9 @@ dns_journal_set_sourceserial(dns_journal_t *j, uint32_t sourceserial)
 
 	j->header.sourceserial = sourceserial;
 	j->header.serialset = true;
-	if (j->state == JOURNAL_STATE_WRITE)
+	if (j->state == JOURNAL_STATE_WRITE) {
 		j->state = JOURNAL_STATE_INLINE;
+	}
 }
 
 bool
@@ -1595,8 +1653,9 @@ dns_journal_get_sourceserial(dns_journal_t *j, uint32_t *sourceserial)
 {
 	REQUIRE(sourceserial != NULL);
 
-	if (!j->header.serialset)
+	if (!j->header.serialset) {
 		return (false);
+	}
 	*sourceserial = j->header.sourceserial;
 	return (true);
 }
@@ -1630,10 +1689,12 @@ size_buffer(isc_mem_t *mctx, isc_buffer_t *b, unsigned size)
 {
 	if (b->length < size) {
 		void *mem = isc_mem_get(mctx, size);
-		if (mem == NULL)
+		if (mem == NULL) {
 			return (ISC_R_NOMEMORY);
-		if (b->base != NULL)
+		}
+		if (b->base != NULL) {
 			isc_mem_put(mctx, b->base, b->length);
+		}
 		b->base = mem;
 		b->length = size;
 	}
@@ -1698,8 +1759,9 @@ read_one_rr(dns_journal_t *j)
 			      j->filename);
 		return (ISC_R_UNEXPECTED);
 	}
-	if (j->offset == j->it.epos.offset)
+	if (j->offset == j->it.epos.offset) {
 		return (ISC_R_NOMORE);
+	}
 	if (j->it.xpos == j->it.xsize) {
 		/*
 		 * We are at a transaction boundary.
@@ -1767,8 +1829,9 @@ read_one_rr(dns_journal_t *j)
 	/*
 	 * Check that the RR header is there, and parse it.
 	 */
-	if (isc_buffer_remaininglength(&j->it.source) < 10)
+	if (isc_buffer_remaininglength(&j->it.source) < 10) {
 		FAIL(DNS_R_FORMERR);
+	}
 
 	rdtype = isc_buffer_getuint16(&j->it.source);
 	rdclass = isc_buffer_getuint16(&j->it.source);
@@ -1778,8 +1841,9 @@ read_one_rr(dns_journal_t *j)
 	/*
 	 * Parse the rdata.
 	 */
-	if (isc_buffer_remaininglength(&j->it.source) != rdlen)
+	if (isc_buffer_remaininglength(&j->it.source) != rdlen) {
 		FAIL(DNS_R_FORMERR);
+	}
 	isc_buffer_setactive(&j->it.source, rdlen);
 	dns_rdata_reset(&j->it.rdata);
 	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass, rdtype, &j->it.source,
@@ -1841,12 +1905,14 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 	dns_difftuple_t *   tuple = NULL;
 
 	result = dns_dbiterator_current(dbit, &node, name);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_db_allrdatasets(db, node, ver, now, &rdsiter);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_node;
+	}
 
 	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter)) {
@@ -1870,11 +1936,13 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 			dns_diff_append(diff, &tuple);
 		}
 		dns_rdataset_disassociate(&rdataset);
-		if (result != ISC_R_NOMORE)
+		if (result != ISC_R_NOMORE) {
 			goto cleanup_iterator;
+		}
 	}
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_NOMORE) {
 		goto cleanup_iterator;
+	}
 
 	result = ISC_R_SUCCESS;
 
@@ -1902,8 +1970,9 @@ rdata_order(const void *av, const void *bv)
 	dns_difftuple_t const *	      b = *bp;
 	int			      r;
 	r = (b->rdata.type - a->rdata.type);
-	if (r != 0)
+	if (r != 0) {
 		return (r);
+	}
 	r = dns_rdata_compare(&a->rdata, &b->rdata);
 	return (r);
 }
@@ -1922,8 +1991,9 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r)
 	for (;;) {
 		p[0] = ISC_LIST_HEAD(diff[0].tuples);
 		p[1] = ISC_LIST_HEAD(diff[1].tuples);
-		if (p[0] == NULL && p[1] == NULL)
+		if (p[0] == NULL && p[1] == NULL) {
 			break;
+		}
 
 		for (i = 0; i < 2; i++) {
 			if (p[!i] == NULL) {
@@ -1991,11 +2061,13 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 	dns_fixedname_init(&fixname[1]);
 
 	result = dns_db_createiterator(db[0], options, &dbit[0]);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	result = dns_db_createiterator(db[1], options, &dbit[1]);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_iterator;
+	}
 
 	itresult[0] = dns_dbiterator_first(dbit[0]);
 	itresult[1] = dns_dbiterator_first(dbit[1]);
@@ -2053,10 +2125,12 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 		have[0] = have[1] = false;
 	next:;
 	}
-	if (itresult[0] != ISC_R_NOMORE)
+	if (itresult[0] != ISC_R_NOMORE) {
 		FAIL(itresult[0]);
-	if (itresult[1] != ISC_R_NOMORE)
+	}
+	if (itresult[1] != ISC_R_NOMORE) {
 		FAIL(itresult[1]);
+	}
 
 	INSIST(ISC_LIST_EMPTY(diff[0].tuples));
 	INSIST(ISC_LIST_EMPTY(diff[1].tuples));
@@ -2103,23 +2177,26 @@ dns_db_diffx(dns_diff_t *diff, dns_db_t *dba, dns_dbversion_t *dbvera,
 	if (filename != NULL) {
 		result = dns_journal_open(diff->mctx, filename,
 					  DNS_JOURNAL_CREATE, &journal);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	}
 
 	CHECK(diff_namespace(dba, dbvera, dbb, dbverb, DNS_DB_NONSEC3, diff));
 	CHECK(diff_namespace(dba, dbvera, dbb, dbverb, DNS_DB_NSEC3ONLY, diff));
 
 	if (journal != NULL) {
-		if (ISC_LIST_EMPTY(diff->tuples))
+		if (ISC_LIST_EMPTY(diff->tuples)) {
 			isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "no changes");
-		else
+		} else {
 			CHECK(dns_journal_write_transaction(journal, diff));
+		}
 	}
 
 failure:
-	if (journal != NULL)
+	if (journal != NULL) {
 		dns_journal_destroy(&journal);
+	}
 	return (result);
 }
 
@@ -2163,8 +2240,9 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		is_backup = true;
 		result = journal_open(mctx, backup, false, false, &j1);
 	}
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	if (JOURNAL_EMPTY(&j1->header)) {
 		dns_journal_destroy(&j1);
@@ -2182,10 +2260,12 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	 */
 	indexend = sizeof(journal_rawheader_t) +
 		   j1->header.index_size * sizeof(journal_rawpos_t);
-	if (target_size < DNS_JOURNAL_SIZE_MIN)
+	if (target_size < DNS_JOURNAL_SIZE_MIN) {
 		target_size = DNS_JOURNAL_SIZE_MIN;
-	if (target_size < indexend * 2)
+	}
+	if (target_size < indexend * 2) {
 		target_size = target_size / 2 + indexend;
+	}
 
 	/*
 	 * See if there is any work to do.
@@ -2200,8 +2280,9 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	/*
 	 * Remove overhead so space test below can succeed.
 	 */
-	if (target_size >= indexend)
+	if (target_size >= indexend) {
 		target_size -= indexend;
+	}
 
 	/*
 	 * Find if we can create enough free space.
@@ -2212,28 +2293,32 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		    DNS_SERIAL_GE(serial, j1->index[i].serial) &&
 		    ((uint32_t)(j1->header.end.offset - j1->index[i].offset) >=
 		     target_size / 2) &&
-		    j1->index[i].offset > best_guess.offset)
+		    j1->index[i].offset > best_guess.offset) {
 			best_guess = j1->index[i];
+		}
 	}
 
 	current_pos = best_guess;
 	while (current_pos.serial != serial) {
 		CHECK(journal_next(j1, &current_pos));
-		if (current_pos.serial == j1->header.end.serial)
+		if (current_pos.serial == j1->header.end.serial) {
 			break;
+		}
 
 		if (DNS_SERIAL_GE(serial, current_pos.serial) &&
 		    ((uint32_t)(j1->header.end.offset - current_pos.offset) >=
 		     (target_size / 2)) &&
-		    current_pos.offset > best_guess.offset)
+		    current_pos.offset > best_guess.offset) {
 			best_guess = current_pos;
-		else
+		} else {
 			break;
+		}
 	}
 
 	INSIST(best_guess.serial != j1->header.end.serial);
-	if (best_guess.serial != serial)
+	if (best_guess.serial != serial) {
 		CHECK(journal_next(j1, &best_guess));
+	}
 
 	/*
 	 * We should now be roughly half target_size provided
@@ -2247,8 +2332,9 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		 * Copy best_guess to end into space just freed.
 		 */
 		size = 64 * 1024;
-		if (copy_length < size)
+		if (copy_length < size) {
 			size = copy_length;
+		}
 		buf = isc_mem_get(mctx, size);
 
 		CHECK(journal_seek(j1, best_guess.offset));
@@ -2322,12 +2408,15 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		if (errno == EEXIST && !is_backup) {
 			result = isc_file_remove(backup);
 			if (result != ISC_R_SUCCESS &&
-			    result != ISC_R_FILENOTFOUND)
+			    result != ISC_R_FILENOTFOUND) {
 				goto failure;
-			if (rename(filename, backup) == -1)
+			}
+			if (rename(filename, backup) == -1) {
 				goto maperrno;
-			if (rename(newname, filename) == -1)
+			}
+			if (rename(newname, filename) == -1) {
 				goto maperrno;
+			}
 			(void)isc_file_remove(backup);
 		} else {
 		maperrno:
@@ -2340,12 +2429,15 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 
 failure:
 	(void)isc_file_remove(newname);
-	if (buf != NULL)
+	if (buf != NULL) {
 		isc_mem_put(mctx, buf, size);
-	if (j1 != NULL)
+	}
+	if (j1 != NULL) {
 		dns_journal_destroy(&j1);
-	if (j2 != NULL)
+	}
+	if (j2 != NULL) {
 		dns_journal_destroy(&j2);
+	}
 	return (result);
 }
 

@@ -353,8 +353,9 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_fixedname_init(&name);
 	result = dns_db_subtractrdataset(sampledb->rbtdb, node, version,
 					 rdataset, options, newrdataset);
-	if (result != ISC_R_SUCCESS && result != DNS_R_NXRRSET)
+	if (result != ISC_R_SUCCESS && result != DNS_R_NXRRSET) {
 		goto cleanup;
+	}
 
 	if (rdataset->type == dns_rdatatype_a ||
 	    rdataset->type == dns_rdatatype_aaaa) {
@@ -668,8 +669,9 @@ add_soa(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 	CHECK(dns_db_findnode(db, name, true, &node));
 	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
 cleanup:
-	if (node != NULL)
+	if (node != NULL) {
 		dns_db_detachnode(db, &node);
+	}
 	return (result);
 }
 
@@ -706,8 +708,9 @@ add_ns(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 	CHECK(dns_db_findnode(db, name, true, &node));
 	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
 cleanup:
-	if (node != NULL)
+	if (node != NULL) {
 		dns_db_detachnode(db, &node);
+	}
 	return (result);
 }
 
@@ -742,8 +745,9 @@ add_a(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 	CHECK(dns_db_findnode(db, name, true, &node));
 	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
 cleanup:
-	if (node != NULL)
+	if (node != NULL) {
 		dns_db_detachnode(db, &node);
+	}
 	return (result);
 }
 
@@ -811,8 +815,9 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 cleanup:
 	if (sampledb != NULL) {
-		if (dns_name_dynamic(&sampledb->common.origin))
+		if (dns_name_dynamic(&sampledb->common.origin)) {
 			dns_name_free(&sampledb->common.origin, mctx);
+		}
 
 		isc_mem_putanddetach(&sampledb->common.mctx, sampledb,
 				     sizeof(*sampledb));

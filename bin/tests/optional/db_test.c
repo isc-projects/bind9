@@ -62,8 +62,9 @@ static bool    ascending = true;
 static void
 print_result(const char *message, isc_result_t result)
 {
-	if (message == NULL)
+	if (message == NULL) {
 		message = "";
+	}
 	printf("%s%sresult %08x: %s\n", message, (*message == '\0') ? "" : " ",
 	       result, isc_result_totext(result));
 }
@@ -79,10 +80,11 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset)
 	isc_buffer_init(&text, t, sizeof(t));
 	result = dns_rdataset_totext(rdataset, name, false, false, &text);
 	isc_buffer_usedregion(&text, &r);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		printf("%.*s", (int)r.length, (char *)r.base);
-	else
+	} else {
 		print_result("", result);
+	}
 }
 
 static void
@@ -99,8 +101,9 @@ print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter)
 		dns_rdataset_disassociate(&rdataset);
 		result = dns_rdatasetiter_next(rdsiter);
 	}
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_NOMORE) {
 		print_result("", result);
+	}
 }
 
 static dbinfo *
@@ -114,8 +117,9 @@ select_db(char *origintext)
 	isc_result_t	result;
 
 	if (strcasecmp(origintext, "cache") == 0) {
-		if (cache_dbi == NULL)
+		if (cache_dbi == NULL) {
 			printf("the cache does not exist\n");
+		}
 		return (cache_dbi);
 	}
 	len = strlen(origintext);
@@ -130,8 +134,9 @@ select_db(char *origintext)
 
 	for (dbi = ISC_LIST_HEAD(dbs); dbi != NULL;
 	     dbi = ISC_LIST_NEXT(dbi, link)) {
-		if (dns_name_compare(dns_db_origin(dbi->db), origin) == 0)
+		if (dns_name_compare(dns_db_origin(dbi->db), origin) == 0) {
 			break;
+		}
 	}
 
 	return (dbi);
@@ -156,11 +161,12 @@ list(dbinfo *dbi, char *seektext)
 	if (dbi->dbiterator == NULL) {
 		INSIST(dbi->iversion == NULL);
 		if (dns_db_iszone(dbi->db)) {
-			if (dbi->version != NULL)
+			if (dbi->version != NULL) {
 				dns_db_attachversion(dbi->db, dbi->version,
 						     &dbi->iversion);
-			else
+			} else {
 				dns_db_currentversion(dbi->db, &dbi->iversion);
+			}
 		}
 
 		result = dns_db_createiterator(dbi->db, 0, &dbi->dbiterator);
@@ -173,24 +179,28 @@ list(dbinfo *dbi, char *seektext)
 				result = dns_name_fromtext(
 					seekname, &source,
 					dns_db_origin(dbi->db), 0, NULL);
-				if (result == ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS) {
 					result = dns_dbiterator_seek(
 						dbi->dbiterator, seekname);
-			} else if (dbi->ascending)
+				}
+			} else if (dbi->ascending) {
 				result = dns_dbiterator_first(dbi->dbiterator);
-			else
+			} else {
 				result = dns_dbiterator_last(dbi->dbiterator);
+			}
 		}
-	} else
+	} else {
 		result = ISC_R_SUCCESS;
+	}
 
 	node = NULL;
 	rdsiter = NULL;
 	i = 0;
 	while (result == ISC_R_SUCCESS) {
 		result = dns_dbiterator_current(dbi->dbiterator, &node, name);
-		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
+		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 			break;
+		}
 		result = dns_db_allrdatasets(dbi->db, node, dbi->iversion, 0,
 					     &rdsiter);
 		if (result != ISC_R_SUCCESS) {
@@ -200,24 +210,28 @@ list(dbinfo *dbi, char *seektext)
 		print_rdatasets(name, rdsiter);
 		dns_rdatasetiter_destroy(&rdsiter);
 		dns_db_detachnode(dbi->db, &node);
-		if (dbi->ascending)
+		if (dbi->ascending) {
 			result = dns_dbiterator_next(dbi->dbiterator);
-		else
+		} else {
 			result = dns_dbiterator_prev(dbi->dbiterator);
+		}
 		i++;
 		if (result == ISC_R_SUCCESS && i == dbi->pause_every) {
 			printf("[more...]\n");
 			result = dns_dbiterator_pause(dbi->dbiterator);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				return;
+			}
 		}
 	}
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_NOMORE) {
 		print_result("", result);
+	}
 
 	dns_dbiterator_destroy(&dbi->dbiterator);
-	if (dbi->iversion != NULL)
+	if (dbi->iversion != NULL) {
 		dns_db_closeversion(dbi->db, &dbi->iversion, false);
+	}
 }
 
 static isc_result_t
@@ -236,11 +250,13 @@ load(const char *filename, const char *origintext, bool cache)
 	dbi->db = NULL;
 	dbi->version = NULL;
 	dbi->wversion = NULL;
-	for (i = 0; i < MAXVERSIONS; i++)
+	for (i = 0; i < MAXVERSIONS; i++) {
 		dbi->rversions[i] = NULL;
+	}
 	dbi->hold_count = 0;
-	for (i = 0; i < MAXHOLD; i++)
+	for (i = 0; i < MAXHOLD; i++) {
 		dbi->hold_nodes[i] = NULL;
+	}
 	dbi->dbiterator = NULL;
 	dbi->iversion = NULL;
 	dbi->pause_every = pause_every;
@@ -298,9 +314,9 @@ unload_all(void)
 
 	for (dbi = ISC_LIST_HEAD(dbs); dbi != NULL; dbi = dbi_next) {
 		dbi_next = ISC_LIST_NEXT(dbi, link);
-		if (dns_db_iszone(dbi->db))
+		if (dns_db_iszone(dbi->db)) {
 			dns_dbtable_remove(dbtable, dbi->db);
-		else {
+		} else {
 			INSIST(dbi == cache_dbi);
 			dns_dbtable_removedefault(dbtable);
 			cache_dbi = NULL;
@@ -374,10 +390,11 @@ main(int argc, char *argv[])
 		switch (ch) {
 		case 'c':
 			result = load(isc_commandline_argument, ".", true);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				printf("cache load(%s) %08x: %s\n",
 				       isc_commandline_argument, result,
 				       isc_result_totext(result));
+			}
 			break;
 		case 'd':
 			n = strlcpy(dbtype, isc_commandline_argument,
@@ -420,16 +437,18 @@ main(int argc, char *argv[])
 			break;
 		case 'z':
 			origintext = strrchr(isc_commandline_argument, '/');
-			if (origintext == NULL)
+			if (origintext == NULL) {
 				origintext = isc_commandline_argument;
-			else
+			} else {
 				origintext++; /* Skip '/'. */
+			}
 			result = load(isc_commandline_argument, origintext,
 				      false);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				printf("zone load(%s) %08x: %s\n",
 				       isc_commandline_argument, result,
 				       isc_result_totext(result));
+			}
 			break;
 		}
 	}
@@ -438,8 +457,9 @@ main(int argc, char *argv[])
 	argv += isc_commandline_index;
 	POST(argv);
 
-	if (argc != 0)
+	if (argc != 0) {
 		printf("ignoring trailing arguments\n");
+	}
 
 	/*
 	 * Some final initialization...
@@ -454,8 +474,9 @@ main(int argc, char *argv[])
 	}
 
 	while (!done) {
-		if (!quiet)
+		if (!quiet) {
 			printf("\n");
+		}
 		if (fgets(s, sizeof(s), stdin) == NULL) {
 			done = true;
 			continue;
@@ -466,8 +487,9 @@ main(int argc, char *argv[])
 			len--;
 		}
 		if (verbose && dbi != NULL) {
-			if (dbi->wversion != NULL)
+			if (dbi->wversion != NULL) {
 				printf("future version (%p)\n", dbi->wversion);
+			}
 			for (i = 0; i < dbi->rcount; i++) {
 				if (dbi->rversions[i] != NULL) {
 					printf("open version %d (%p)\n", i,
@@ -498,10 +520,11 @@ main(int argc, char *argv[])
 				continue;
 			}
 			result = dns_db_newversion(dbi->db, &dbi->wversion);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				print_result("", result);
-			else
+			} else {
 				printf("newversion\n");
+			}
 			dbi->version = dbi->wversion;
 			version = dbi->version;
 			continue;
@@ -509,8 +532,9 @@ main(int argc, char *argv[])
 			DBI_CHECK(dbi);
 			addmode = false;
 			delmode = false;
-			if (dbi->version == NULL)
+			if (dbi->version == NULL) {
 				continue;
+			}
 			if (dbi->version == dbi->wversion) {
 				printf("closing future version\n");
 				dbi->wversion = NULL;
@@ -532,8 +556,9 @@ main(int argc, char *argv[])
 			DBI_CHECK(dbi);
 			addmode = false;
 			delmode = false;
-			if (dbi->version == NULL)
+			if (dbi->version == NULL) {
 				continue;
+			}
 			if (dbi->version == dbi->wversion) {
 				printf("aborting future version\n");
 				dbi->wversion = NULL;
@@ -554,33 +579,37 @@ main(int argc, char *argv[])
 		} else if (strcmp(s, "!A") == 0) {
 			DBI_CHECK(dbi);
 			delmode = false;
-			if (addmode)
+			if (addmode) {
 				addmode = false;
-			else
+			} else {
 				addmode = true;
+			}
 			printf("addmode = %s\n", addmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!D") == 0) {
 			DBI_CHECK(dbi);
 			addmode = false;
-			if (delmode)
+			if (delmode) {
 				delmode = false;
-			else
+			} else {
 				delmode = true;
+			}
 			printf("delmode = %s\n", delmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!H") == 0) {
 			DBI_CHECK(dbi);
-			if (holdmode)
+			if (holdmode) {
 				holdmode = false;
-			else
+			} else {
 				holdmode = true;
+			}
 			printf("holdmode = %s\n", holdmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!HR") == 0) {
 			DBI_CHECK(dbi);
-			for (i = 0; i < dbi->hold_count; i++)
+			for (i = 0; i < dbi->hold_count; i++) {
 				dns_db_detachnode(dbi->db, &dbi->hold_nodes[i]);
+			}
 			dbi->hold_count = 0;
 			holdmode = false;
 			printf("held nodes have been detached\n");
@@ -615,29 +644,32 @@ main(int argc, char *argv[])
 			printf("now searching for type %u\n", type);
 			continue;
 		} else if (strcmp(s, "!G") == 0) {
-			if ((options & DNS_DBFIND_GLUEOK) != 0)
+			if ((options & DNS_DBFIND_GLUEOK) != 0) {
 				options &= ~DNS_DBFIND_GLUEOK;
-			else
+			} else {
 				options |= DNS_DBFIND_GLUEOK;
+			}
 			printf("glue ok = %s\n",
 			       ((options & DNS_DBFIND_GLUEOK) != 0) ? "TRUE"
 								    : "FALSE");
 			continue;
 		} else if (strcmp(s, "!GV") == 0) {
-			if ((options & DNS_DBFIND_VALIDATEGLUE) != 0)
+			if ((options & DNS_DBFIND_VALIDATEGLUE) != 0) {
 				options &= ~DNS_DBFIND_VALIDATEGLUE;
-			else
+			} else {
 				options |= DNS_DBFIND_VALIDATEGLUE;
+			}
 			printf("validate glue = %s\n",
 			       ((options & DNS_DBFIND_VALIDATEGLUE) != 0)
 				       ? "TRUE"
 				       : "FALSE");
 			continue;
 		} else if (strcmp(s, "!WC") == 0) {
-			if ((options & DNS_DBFIND_NOWILD) != 0)
+			if ((options & DNS_DBFIND_NOWILD) != 0) {
 				options &= ~DNS_DBFIND_NOWILD;
-			else
+			} else {
 				options |= DNS_DBFIND_NOWILD;
+			}
 			printf("wildcard matching = %s\n",
 			       ((options & DNS_DBFIND_NOWILD) == 0) ? "TRUE"
 								    : "FALSE");
@@ -659,10 +691,11 @@ main(int argc, char *argv[])
 			}
 			continue;
 		} else if (strcmp(s, "!PN") == 0) {
-			if (printnode)
+			if (printnode) {
 				printnode = false;
-			else
+			} else {
 				printnode = true;
+			}
 			printf("printnode = %s\n",
 			       printnode ? "TRUE" : "FALSE");
 			continue;
@@ -703,18 +736,20 @@ main(int argc, char *argv[])
 			}
 			continue;
 		} else if (strcmp(s, "!ZC") == 0) {
-			if (find_zonecut)
+			if (find_zonecut) {
 				find_zonecut = false;
-			else
+			} else {
 				find_zonecut = true;
+			}
 			printf("find_zonecut = %s\n",
 			       find_zonecut ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!NZ") == 0) {
-			if (noexact_zonecut)
+			if (noexact_zonecut) {
 				noexact_zonecut = false;
-			else
+			} else {
 				noexact_zonecut = true;
+			}
 			printf("noexact_zonecut = %s\n",
 			       noexact_zonecut ? "TRUE" : "FALSE");
 			continue;
@@ -731,8 +766,9 @@ main(int argc, char *argv[])
 
 		if (dbi == NULL) {
 			zcoptions = 0;
-			if (noexact_zonecut)
+			if (noexact_zonecut) {
 				zcoptions |= DNS_DBTABLEFIND_NOEXACT;
+			}
 			db = NULL;
 			result = dns_dbtable_find(dbtable, &name, zcoptions,
 						  &db);
@@ -763,8 +799,9 @@ main(int argc, char *argv[])
 
 		if (find_zonecut && dns_db_iscache(db)) {
 			zcoptions = options;
-			if (noexact_zonecut)
+			if (noexact_zonecut) {
 				zcoptions |= DNS_DBFIND_NOEXACT;
+			}
 			result = dns_db_findzonecut(db, &name, zcoptions, 0,
 						    &node, fname, NULL,
 						    &rdataset, &sigrdataset);
@@ -775,8 +812,9 @@ main(int argc, char *argv[])
 		}
 
 		if (!quiet) {
-			if (dbi != NULL)
+			if (dbi != NULL) {
 				printf("\n");
+			}
 			print_result("", result);
 		}
 
@@ -792,8 +830,9 @@ main(int argc, char *argv[])
 			found_as = true;
 			break;
 		case DNS_R_NXRRSET:
-			if (dns_rdataset_isassociated(&rdataset))
+			if (dns_rdataset_isassociated(&rdataset)) {
 				break;
+			}
 			if (dbi != NULL) {
 				if (holdmode) {
 					RUNTIME_CHECK(dbi->hold_count <
@@ -801,22 +840,26 @@ main(int argc, char *argv[])
 					dbi->hold_nodes[dbi->hold_count++] =
 						node;
 					node = NULL;
-				} else
+				} else {
 					dns_db_detachnode(db, &node);
+				}
 			} else {
 				dns_db_detachnode(db, &node);
 				dns_db_detach(&db);
 			}
 			continue;
 		case DNS_R_NXDOMAIN:
-			if (dns_rdataset_isassociated(&rdataset))
+			if (dns_rdataset_isassociated(&rdataset)) {
 				break;
-			/* FALLTHROUGH */
+			}
+		/* FALLTHROUGH */
 		default:
-			if (dbi == NULL)
+			if (dbi == NULL) {
 				dns_db_detach(&db);
-			if (quiet)
+			}
+			if (quiet) {
 				print_result("", result);
+			}
 			continue;
 		}
 		if (found_as && !quiet) {
@@ -826,16 +869,18 @@ main(int argc, char *argv[])
 			if (result != ISC_R_SUCCESS) {
 				print_result("", result);
 				dns_db_detachnode(db, &node);
-				if (dbi == NULL)
+				if (dbi == NULL) {
 					dns_db_detach(&db);
+				}
 				continue;
 			}
 			result = dns_name_totext(fname, false, &tb2);
 			if (result != ISC_R_SUCCESS) {
 				print_result("", result);
 				dns_db_detachnode(db, &node);
-				if (dbi == NULL)
+				if (dbi == NULL) {
 					dns_db_detach(&db);
+				}
 				continue;
 			}
 			isc_buffer_usedregion(&tb1, &r1);
@@ -844,48 +889,58 @@ main(int argc, char *argv[])
 			       (int)r2.length, r2.base);
 		}
 
-		if (printnode)
+		if (printnode) {
 			dns_db_printnode(db, node, stdout);
+		}
 
 		if (!found_as && type == dns_rdatatype_any) {
 			rdsiter = NULL;
 			result = dns_db_allrdatasets(db, node, version, 0,
 						     &rdsiter);
 			if (result == ISC_R_SUCCESS) {
-				if (!quiet)
+				if (!quiet) {
 					print_rdatasets(fname, rdsiter);
+				}
 				dns_rdatasetiter_destroy(&rdsiter);
-			} else
+			} else {
 				print_result("", result);
+			}
 		} else {
-			if (!quiet)
+			if (!quiet) {
 				print_rdataset(fname, &rdataset);
+			}
 			if (dns_rdataset_isassociated(&sigrdataset)) {
-				if (!quiet)
+				if (!quiet) {
 					print_rdataset(fname, &sigrdataset);
+				}
 				dns_rdataset_disassociate(&sigrdataset);
 			}
 			if (dbi != NULL && addmode && !found_as) {
 				rdataset.ttl++;
 				rdataset.trust = trust;
-				if (dns_db_iszone(db))
+				if (dns_db_iszone(db)) {
 					addopts = DNS_DBADD_MERGE;
-				else
+				} else {
 					addopts = 0;
+				}
 				result = dns_db_addrdataset(db, node, version,
 							    0, &rdataset,
 							    addopts, NULL);
-				if (result != ISC_R_SUCCESS)
+				if (result != ISC_R_SUCCESS) {
 					print_result("", result);
-				if (printnode)
+				}
+				if (printnode) {
 					dns_db_printnode(db, node, stdout);
+				}
 			} else if (dbi != NULL && delmode && !found_as) {
 				result = dns_db_deleterdataset(
 					db, node, version, type, 0);
-				if (result != ISC_R_SUCCESS)
+				if (result != ISC_R_SUCCESS) {
 					print_result("", result);
-				if (printnode)
+				}
+				if (printnode) {
 					dns_db_printnode(db, node, stdout);
+				}
 			}
 			dns_rdataset_disassociate(&rdataset);
 		}
@@ -895,8 +950,9 @@ main(int argc, char *argv[])
 				RUNTIME_CHECK(dbi->hold_count < MAXHOLD);
 				dbi->hold_nodes[dbi->hold_count++] = node;
 				node = NULL;
-			} else
+			} else {
 				dns_db_detachnode(db, &node);
+			}
 		} else {
 			dns_db_detachnode(db, &node);
 			dns_db_detach(&db);
@@ -919,11 +975,13 @@ main(int argc, char *argv[])
 
 	dns_dbtable_detach(&dbtable);
 
-	if (lctx != NULL)
+	if (lctx != NULL) {
 		isc_log_destroy(&lctx);
+	}
 
-	if (!quiet)
+	if (!quiet) {
 		isc_mem_stats(mctx, stdout);
+	}
 
 	return (0);
 }

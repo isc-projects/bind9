@@ -31,7 +31,7 @@
 
 #ifdef OPENSSL_LEAKS
 #include <openssl/err.h>
-#endif
+#endif /* ifdef OPENSSL_LEAKS */
 
 #ifdef ISC_TIMER_TRACE
 #define XTRACE(s) fprintf(stderr, "%s\n", (s))
@@ -44,7 +44,7 @@
 #define XTRACETIMER(s, t, d)                                      \
 	fprintf(stderr, "%s %p %u.%09u\n", (s), (t), (d).seconds, \
 		(d).nanoseconds)
-#else
+#else /* ifdef ISC_TIMER_TRACE */
 #define XTRACE(s)
 #define XTRACEID(s, t)
 #define XTRACETIME(s, d)
@@ -120,20 +120,24 @@ schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok)
 	 */
 	if (timer->type != isc_timertype_once) {
 		result = isc_time_add(now, &timer->interval, &due);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 		if (timer->type == isc_timertype_limited &&
-		    isc_time_compare(&timer->expires, &due) < 0)
+		    isc_time_compare(&timer->expires, &due) < 0) {
 			due = timer->expires;
+		}
 	} else {
-		if (isc_time_isepoch(&timer->idle))
+		if (isc_time_isepoch(&timer->idle)) {
 			due = timer->expires;
-		else if (isc_time_isepoch(&timer->expires))
+		} else if (isc_time_isepoch(&timer->expires)) {
 			due = timer->idle;
-		else if (isc_time_compare(&timer->idle, &timer->expires) < 0)
+		} else if (isc_time_compare(&timer->idle, &timer->expires) <
+			   0) {
 			due = timer->idle;
-		else
+		} else {
 			due = timer->expires;
+		}
 	}
 
 	/*
@@ -196,8 +200,9 @@ deschedule(isc__timer_t *timer)
 
 	manager = timer->manager;
 	if (timer->index > 0) {
-		if (timer->index == 1)
+		if (timer->index == 1) {
 			need_wakeup = true;
+		}
 		isc_heap_delete(manager->heap, timer->index);
 		timer->index = 0;
 		INSIST(manager->nscheduled > 0);
@@ -257,10 +262,12 @@ isc_timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 	 * in 'timerp'.
 	 */
 	manager = (isc__timermgr_t *)manager0;
-	if (expires == NULL)
+	if (expires == NULL) {
 		expires = isc_time_epoch;
-	if (interval == NULL)
+	}
+	if (interval == NULL) {
 		interval = isc_interval_zero;
+	}
 	REQUIRE(type == isc_timertype_inactive ||
 		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 	REQUIRE(timerp != NULL && *timerp == NULL);
@@ -292,8 +299,9 @@ isc_timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 			isc_mem_put(manager->mctx, timer, sizeof(*timer));
 			return (result);
 		}
-	} else
+	} else {
 		isc_time_settoepoch(&timer->idle);
+	}
 
 	timer->type = type;
 	timer->expires = *expires;
@@ -325,10 +333,11 @@ isc_timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 	 * there are no external references to it yet.
 	 */
 
-	if (type != isc_timertype_inactive)
+	if (type != isc_timertype_inactive) {
 		result = schedule(timer, &now, true);
-	else
+	} else {
 		result = ISC_R_SUCCESS;
+	}
 	if (result == ISC_R_SUCCESS) {
 		*timerp = (isc_timer_t *)timer;
 		APPEND(manager->timers, timer, link);
@@ -369,10 +378,12 @@ isc_timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 	manager = timer->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
-	if (expires == NULL)
+	if (expires == NULL) {
 		expires = isc_time_epoch;
-	if (interval == NULL)
+	}
+	if (interval == NULL) {
 		interval = isc_interval_zero;
+	}
 	REQUIRE(type == isc_timertype_inactive ||
 		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 	REQUIRE(type != isc_timertype_limited ||
@@ -395,10 +406,11 @@ isc_timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 	LOCK(&manager->lock);
 	LOCK(&timer->lock);
 
-	if (purge)
+	if (purge) {
 		(void)isc_task_purgerange(timer->task, timer,
 					  ISC_TIMEREVENT_FIRSTEVENT,
 					  ISC_TIMEREVENT_LASTEVENT, NULL);
+	}
 	timer->type = type;
 	timer->expires = *expires;
 	timer->interval = *interval;
@@ -413,8 +425,9 @@ isc_timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 		if (type == isc_timertype_inactive) {
 			deschedule(timer);
 			result = ISC_R_SUCCESS;
-		} else
+		} else {
 			result = schedule(timer, &now, true);
+		}
 	}
 
 	UNLOCK(&timer->lock);
@@ -587,11 +600,12 @@ dispatch(isc__timermgr_t *manager, isc_time_t *now)
 					event->due = timer->due;
 					isc_task_send(timer->task,
 						      ISC_EVENT_PTR(&event));
-				} else
+				} else {
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 							 "%s",
 							 "couldn't allocate "
 							 "event");
+				}
 			}
 
 			timer->index = 0;
@@ -600,12 +614,13 @@ dispatch(isc__timermgr_t *manager, isc_time_t *now)
 
 			if (need_schedule) {
 				result = schedule(timer, now, false);
-				if (result != ISC_R_SUCCESS)
+				if (result != ISC_R_SUCCESS) {
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 							 "%s: %u",
 							 "couldn't schedule "
 							 "timer",
 							 result);
+				}
 			}
 		} else {
 			manager->due = timer->due;
@@ -617,7 +632,7 @@ dispatch(isc__timermgr_t *manager, isc_time_t *now)
 static isc_threadresult_t
 #ifdef _WIN32 /* XXXDCL */
 	WINAPI
-#endif
+#endif /* ifdef _WIN32 */
 	run(void *uap)
 {
 	isc__timermgr_t *manager = uap;
@@ -648,7 +663,7 @@ static isc_threadresult_t
 
 #ifdef OPENSSL_LEAKS
 	ERR_remove_state(0);
-#endif
+#endif /* ifdef OPENSSL_LEAKS */
 
 	return ((isc_threadresult_t)0);
 }
@@ -663,8 +678,9 @@ sooner(void *v1, void *v2)
 	REQUIRE(VALID_TIMER(t1));
 	REQUIRE(VALID_TIMER(t2));
 
-	if (isc_time_compare(&t1->due, &t2->due) < 0)
+	if (isc_time_compare(&t1->due, &t2->due) < 0) {
 		return (true);
+	}
 	return (false);
 }
 

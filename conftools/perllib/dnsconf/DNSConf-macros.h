@@ -35,13 +35,13 @@
 		isc_result_t tmpres;                                          \
                                                                               \
 		if (cfg == NULL || cfg->confctx == NULL)                      \
-			return NULL;                                          \
+			return (NULL);                                        \
                                                                               \
 		tmpres = CONCAT(dns_c_ctx_get, FIELD)(cfg->confctx, &result); \
 		if (tmpres == ISC_R_NOTFOUND)                                 \
-			return NULL;                                          \
+			return (NULL);                                        \
                                                                               \
-		return result;                                                \
+		return (result);                                              \
 	}
 
 #define STRING_FIELD_DEFS(FIELD) \

@@ -34,19 +34,21 @@ static isc_errorcallback_t fatal_callback = default_fatal_callback;
 void
 isc_error_setunexpected(isc_errorcallback_t cb)
 {
-	if (cb == NULL)
+	if (cb == NULL) {
 		unexpected_callback = default_unexpected_callback;
-	else
+	} else {
 		unexpected_callback = cb;
+	}
 }
 
 void
 isc_error_setfatal(isc_errorcallback_t cb)
 {
-	if (cb == NULL)
+	if (cb == NULL) {
 		fatal_callback = default_fatal_callback;
-	else
+	} else {
 		fatal_callback = cb;
+	}
 }
 
 void

@@ -59,8 +59,9 @@ poolinit(void **target, void *arg)
 	isc_taskmgr_t *mgr = (isc_taskmgr_t *)arg;
 	isc_task_t *   task = NULL;
 	result = isc_task_create(mgr, 0, &task);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	*target = (void *)task;
 	return (ISC_R_SUCCESS);
@@ -197,4 +198,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

@@ -13,8 +13,8 @@
 #define ISC_STAT_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*
  * Portable <sys/stat.h> support.

@@ -13,8 +13,8 @@
 #define DNS_RDATASET_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/rdataset.h
  * \brief

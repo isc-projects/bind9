@@ -13,8 +13,8 @@
 #define DNS_REQUEST_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/request.h
  *

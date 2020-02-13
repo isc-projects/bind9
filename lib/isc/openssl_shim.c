@@ -30,7 +30,7 @@ CRYPTO_zalloc(size_t size)
 	}
 	return (ret);
 }
-#endif
+#endif /* if !HAVE_CRYPTO_ZALLOC */
 
 #if !HAVE_EVP_CIPHER_CTX_NEW
 EVP_CIPHER_CTX *
@@ -39,7 +39,7 @@ EVP_CIPHER_CTX_new(void)
 	EVP_CIPHER_CTX *ctx = OPENSSL_zalloc(sizeof(*ctx));
 	return (ctx);
 }
-#endif
+#endif /* if !HAVE_EVP_CIPHER_CTX_NEW */
 
 #if !HAVE_EVP_CIPHER_CTX_FREE
 void
@@ -50,7 +50,7 @@ EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx)
 		OPENSSL_free(ctx);
 	}
 }
-#endif
+#endif /* if !HAVE_EVP_CIPHER_CTX_FREE */
 
 #if !HAVE_EVP_MD_CTX_NEW
 EVP_MD_CTX *
@@ -62,7 +62,7 @@ EVP_MD_CTX_new(void)
 	}
 	return (ctx);
 }
-#endif
+#endif /* if !HAVE_EVP_MD_CTX_NEW */
 
 #if !HAVE_EVP_MD_CTX_FREE
 void
@@ -73,7 +73,7 @@ EVP_MD_CTX_free(EVP_MD_CTX *ctx)
 		OPENSSL_free(ctx);
 	}
 }
-#endif
+#endif /* if !HAVE_EVP_MD_CTX_FREE */
 
 #if !HAVE_EVP_MD_CTX_RESET
 int
@@ -81,7 +81,7 @@ EVP_MD_CTX_reset(EVP_MD_CTX *ctx)
 {
 	return (EVP_MD_CTX_cleanup(ctx));
 }
-#endif
+#endif /* if !HAVE_EVP_MD_CTX_RESET */
 
 #if !HAVE_HMAC_CTX_NEW
 HMAC_CTX *
@@ -96,7 +96,7 @@ HMAC_CTX_new(void)
 	}
 	return (ctx);
 }
-#endif
+#endif /* if !HAVE_HMAC_CTX_NEW */
 
 #if !HAVE_HMAC_CTX_FREE
 void
@@ -107,7 +107,7 @@ HMAC_CTX_free(HMAC_CTX *ctx)
 		OPENSSL_free(ctx);
 	}
 }
-#endif
+#endif /* if !HAVE_HMAC_CTX_FREE */
 
 #if !HAVE_HMAC_CTX_RESET
 int
@@ -116,12 +116,12 @@ HMAC_CTX_reset(HMAC_CTX *ctx)
 	HMAC_CTX_cleanup(ctx);
 	return (1);
 }
-#endif
+#endif /* if !HAVE_HMAC_CTX_RESET */
 
 #if !HAVE_HMAC_CTX_GET_MD
 const EVP_MD *
 HMAC_CTX_get_md(const HMAC_CTX *ctx)
 {
-	return ctx->md;
+	return (ctx->md);
 }
-#endif
+#endif /* if !HAVE_HMAC_CTX_GET_MD */

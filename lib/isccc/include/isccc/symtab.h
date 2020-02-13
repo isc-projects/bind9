@@ -27,8 +27,8 @@
 #define ISCCC_SYMTAB_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isccc/symtab.h
  * \brief

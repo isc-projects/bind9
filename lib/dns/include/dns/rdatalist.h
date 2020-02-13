@@ -13,8 +13,8 @@
 #define DNS_RDATALIST_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/rdatalist.h
  * \brief

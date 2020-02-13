@@ -31,19 +31,19 @@ static struct dsn_c_pvt_sfnt {
 		   { LOG_LPR, "lpr" },
 #ifdef LOG_NEWS
 		   { LOG_NEWS, "news" },
-#endif
+#endif /* ifdef LOG_NEWS */
 #ifdef LOG_UUCP
 		   { LOG_UUCP, "uucp" },
-#endif
+#endif /* ifdef LOG_UUCP */
 #ifdef LOG_CRON
 		   { LOG_CRON, "cron" },
-#endif
+#endif /* ifdef LOG_CRON */
 #ifdef LOG_AUTHPRIV
 		   { LOG_AUTHPRIV, "authpriv" },
-#endif
+#endif /* ifdef LOG_AUTHPRIV */
 #ifdef LOG_FTP
 		   { LOG_FTP, "ftp" },
-#endif
+#endif /* ifdef LOG_FTP */
 		   { LOG_LOCAL0, "local0" },
 		   { LOG_LOCAL1, "local1" },
 		   { LOG_LOCAL2, "local2" },

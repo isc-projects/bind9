@@ -13,8 +13,8 @@
 #define ISC_SOCKET_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/socket.h
  * \brief Provides TCP and UDP sockets for network I/O.  The sockets are event
@@ -125,7 +125,7 @@ struct isc_socketevent {
 	isc_time_t	    timestamp;	/*%< timestamp of packet recv */
 	struct in6_pktinfo  pktinfo;	/*%< ipv6 pktinfo */
 	isc_sockeventattr_t attributes; /*%< see isc_sockeventattr_t
-					     enum */
+					 *   enum */
 	isc_eventdestructor_t destroy;	/*%< original destructor */
 	unsigned int	      dscp;	/*%< UDP dscp value */
 };
@@ -209,7 +209,7 @@ struct isc_socketmgr {
 	unsigned int impmagic;
 	unsigned int magic;
 };
-#endif
+#endif /* ifndef WIN32 */
 
 #define ISCAPI_SOCKETMGR_MAGIC ISC_MAGIC('A', 's', 'm', 'g')
 #define ISCAPI_SOCKETMGR_VALID(m) \
@@ -224,7 +224,7 @@ struct isc_socket {
 	unsigned int impmagic;
 	unsigned int magic;
 };
-#endif
+#endif /* ifndef WIN32 */
 
 #define ISCAPI_SOCKET_MAGIC ISC_MAGIC('A', 's', 'c', 't')
 #define ISCAPI_SOCKET_VALID(s) \

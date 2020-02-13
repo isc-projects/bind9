@@ -74,7 +74,7 @@ typedef struct dns_master_style dns_master_style_t;
 #define DNS_STYLEFLAG_REL_OWNER 0x000100000ULL
 
 /*% Print domain names in RR data in relative form when possible.
-   For this to take effect, DNS_STYLEFLAG_REL_OWNER must also be set. */
+ * For this to take effect, DNS_STYLEFLAG_REL_OWNER must also be set. */
 #define DNS_STYLEFLAG_REL_DATA 0x000200000ULL
 
 /*% Print the trust level of each rdataset. */

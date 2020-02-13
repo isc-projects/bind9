@@ -17,7 +17,7 @@
 
 #if defined(sun) && (defined(__sparc) || defined(__sparc__))
 #include <synch.h> /* for smt_pause(3c) */
-#endif
+#endif /* if defined(sun) && (defined(__sparc) || defined(__sparc__)) */
 
 #include <isc/atomic.h>
 #include <isc/magic.h>
@@ -56,8 +56,8 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type)
 			if (atomic_load_acquire(&rwl->downgrade)) {
 				REQUIRE(pthread_rwlock_unlock(&rwl->rwlock) ==
 					0);
-				while (atomic_load_acquire(&rwl->downgrade))
-					;
+				while (atomic_load_acquire(&rwl->downgrade)) {
+				}
 				continue;
 			}
 			break;
@@ -132,22 +132,22 @@ isc_rwlock_destroy(isc_rwlock_t *rwl)
 	pthread_rwlock_destroy(&rwl->rwlock);
 }
 
-#else
+#else /* if USE_PTHREAD_RWLOCK */
 
 #define RWLOCK_MAGIC ISC_MAGIC('R', 'W', 'L', 'k')
 #define VALID_RWLOCK(rwl) ISC_MAGIC_VALID(rwl, RWLOCK_MAGIC)
 
 #ifndef RWLOCK_DEFAULT_READ_QUOTA
 #define RWLOCK_DEFAULT_READ_QUOTA 4
-#endif
+#endif /* ifndef RWLOCK_DEFAULT_READ_QUOTA */
 
 #ifndef RWLOCK_DEFAULT_WRITE_QUOTA
 #define RWLOCK_DEFAULT_WRITE_QUOTA 4
-#endif
+#endif /* ifndef RWLOCK_DEFAULT_WRITE_QUOTA */
 
 #ifndef RWLOCK_MAX_ADAPTIVE_COUNT
 #define RWLOCK_MAX_ADAPTIVE_COUNT 100
-#endif
+#endif /* ifndef RWLOCK_MAX_ADAPTIVE_COUNT */
 
 #if defined(_MSC_VER)
 #include <intrin.h>
@@ -168,9 +168,9 @@ isc_rwlock_destroy(isc_rwlock_t *rwl)
 #elif defined(__ppc__) || defined(_ARCH_PPC) || defined(_ARCH_PWR) || \
 	defined(_ARCH_PWR2) || defined(_POWER)
 #define isc_rwlock_pause() __asm__ volatile("or 27,27,27")
-#else
+#else /* if defined(_MSC_VER) */
 #define isc_rwlock_pause()
-#endif
+#endif /* if defined(_MSC_VER) */
 
 static isc_result_t
 isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
@@ -219,8 +219,9 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "read quota is not supported");
 	}
-	if (write_quota == 0)
+	if (write_quota == 0) {
 		write_quota = RWLOCK_DEFAULT_WRITE_QUOTA;
+	}
 	rwl->write_quota = write_quota;
 
 	isc_mutex_init(&rwl->lock);
@@ -323,7 +324,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type)
 
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("prelock", rwl, type);
-#endif
+#endif /* ifdef ISC_RWLOCK_TRACE */
 
 	if (type == isc_rwlocktype_read) {
 		if (atomic_load_acquire(&rwl->write_requests) !=
@@ -430,7 +431,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type)
 
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("postlock", rwl, type);
-#endif
+#endif /* ifdef ISC_RWLOCK_TRACE */
 
 	return (ISC_R_SUCCESS);
 }
@@ -465,13 +466,14 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type)
 
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("prelock", rwl, type);
-#endif
+#endif /* ifdef ISC_RWLOCK_TRACE */
 
 	if (type == isc_rwlocktype_read) {
 		/* If a writer is waiting or working, we fail. */
 		if (atomic_load_acquire(&rwl->write_requests) !=
-		    atomic_load_acquire(&rwl->write_completions))
+		    atomic_load_acquire(&rwl->write_completions)) {
 			return (ISC_R_LOCKBUSY);
+		}
 
 		/* Otherwise, be ready for reading. */
 		cntflag = atomic_fetch_add_release(&rwl->cnt_and_flag,
@@ -515,7 +517,7 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type)
 
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("postlock", rwl, type);
-#endif
+#endif /* ifdef ISC_RWLOCK_TRACE */
 
 	return (ISC_R_SUCCESS);
 }
@@ -544,8 +546,9 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl)
 			 * Now jump into the head of the writer waiting queue.
 			 */
 			atomic_fetch_sub_release(&rwl->write_completions, 1);
-		} else
+		} else {
 			return (ISC_R_LOCKBUSY);
+		}
 	}
 
 	return (ISC_R_SUCCESS);
@@ -585,7 +588,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type)
 
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("preunlock", rwl, type);
-#endif
+#endif /* ifdef ISC_RWLOCK_TRACE */
 
 	if (type == isc_rwlocktype_read) {
 		prev_cnt = atomic_fetch_sub_release(&rwl->cnt_and_flag,
@@ -645,7 +648,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type)
 
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("postunlock", rwl, type);
-#endif
+#endif /* ifdef ISC_RWLOCK_TRACE */
 
 	return (ISC_R_SUCCESS);
 }

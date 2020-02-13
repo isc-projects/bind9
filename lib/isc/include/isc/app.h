@@ -13,8 +13,8 @@
 #define ISC_APP_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/app.h
  * \brief ISC Application Support

@@ -59,7 +59,7 @@
 
 #ifndef CLOCK_REALTIME
 #define CLOCK_REALTIME 0
-#endif
+#endif /* ifndef CLOCK_REALTIME */
 
 static int
 clock_gettime(int32_t id, struct timespec *tp);
@@ -79,7 +79,7 @@ clock_gettime(int32_t id, struct timespec *tp)
 	}
 	return (result);
 }
-#endif
+#endif /* ifndef HAVE_CLOCK_GETTIME */
 
 CK_BYTE modulus[] = {
 	0x00, 0xb7, 0x9c, 0x1f, 0x05, 0xa3, 0xc2, 0x99, 0x44, 0x82, 0x20, 0x78,
@@ -231,8 +231,9 @@ main(int argc, char *argv[])
 	pk11_result_register();
 
 	/* Initialize the CRYPTOKI library */
-	if (lib_name != NULL)
+	if (lib_name != NULL) {
 		pk11_set_lib_name(lib_name);
+	}
 
 	if (pin == NULL) {
 		pin = getpass("Enter Pin: ");
@@ -248,14 +249,16 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (pin != NULL)
+	if (pin != NULL) {
 		memset(pin, 0, strlen((char *)pin));
+	}
 
 	hSession = pctx.session;
 
 	/* Create the private RSA key */
-	if (ontoken)
+	if (ontoken) {
 		kTemplate[2].pValue = &truevalue;
+	}
 
 	rv = pkcs_C_CreateObject(hSession, kTemplate, 13, &hKey);
 	if (rv != CKR_OK) {
@@ -309,18 +312,20 @@ main(int argc, char *argv[])
 	}
 	printf("%u RSA signs in %ld.%09lds\n", i, endtime.tv_sec,
 	       endtime.tv_nsec);
-	if (i > 0)
+	if (i > 0) {
 		printf("%g RSA signs/s\n",
 		       1024 * i /
 			       ((double)endtime.tv_sec +
 				(double)endtime.tv_nsec / 1000000000.));
+	}
 
 exit_key:
 	if (hKey != CK_INVALID_HANDLE) {
 		rv = pkcs_C_DestroyObject(hSession, hKey);
-		if (rv != CKR_OK)
+		if (rv != CKR_OK) {
 			fprintf(stderr, "C_DestroyObject: Error = 0x%.8lX\n",
 				rv);
+		}
 	}
 
 	pk11_return_session(&pctx);

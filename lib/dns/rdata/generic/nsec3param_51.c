@@ -59,22 +59,25 @@ static inline isc_result_t fromtext_nsec3param(ARGS_FROMTEXT)
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
 	flags = token.value.as_ulong;
-	if (flags > 255U)
+	if (flags > 255U) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(flags, target));
 
 	/* Iterations. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* Salt. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	if (token.value.as_textregion.length > (255 * 2))
+	if (token.value.as_textregion.length > (255 * 2)) {
 		RETTOK(DNS_R_TEXTTOOLONG);
+	}
 	if (strcmp(DNS_AS_STR(token), "-") == 0) {
 		RETERR(uint8_tobuffer(0, target));
 	} else {
@@ -128,8 +131,9 @@ static inline isc_result_t totext_nsec3param(ARGS_TOTEXT)
 		sr.length = j;
 		RETERR(isc_hex_totext(&sr, 1, "", target));
 		sr.length = i - j;
-	} else
+	} else {
 		RETERR(str_totext("-", target));
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -150,13 +154,15 @@ static inline isc_result_t fromwire_nsec3param(ARGS_FROMWIRE)
 	rr = sr;
 
 	/* hash(1), flags(1), iterations(2), saltlen(1) */
-	if (sr.length < 5U)
+	if (sr.length < 5U) {
 		RETERR(DNS_R_FORMERR);
+	}
 	saltlen = sr.base[4];
 	isc_region_consume(&sr, 5);
 
-	if (sr.length < saltlen)
+	if (sr.length < saltlen) {
 		RETERR(DNS_R_FORMERR);
+	}
 	isc_region_consume(&sr, saltlen);
 	RETERR(mem_tobuffer(target, rr.base, rr.length));
 	isc_buffer_forward(source, rr.length);
@@ -234,8 +240,9 @@ static inline isc_result_t tostruct_nsec3param(ARGS_TOSTRUCT)
 	nsec3param->salt_length = uint8_consume_fromregion(&region);
 	nsec3param->salt =
 		mem_maybedup(mctx, region.base, nsec3param->salt_length);
-	if (nsec3param->salt == NULL)
+	if (nsec3param->salt == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 	isc_region_consume(&region, nsec3param->salt_length);
 
 	nsec3param->mctx = mctx;
@@ -249,11 +256,13 @@ static inline void freestruct_nsec3param(ARGS_FREESTRUCT)
 	REQUIRE(nsec3param != NULL);
 	REQUIRE(nsec3param->common.rdtype == dns_rdatatype_nsec3param);
 
-	if (nsec3param->mctx == NULL)
+	if (nsec3param->mctx == NULL) {
 		return;
+	}
 
-	if (nsec3param->salt != NULL)
+	if (nsec3param->salt != NULL) {
 		isc_mem_free(nsec3param->mctx, nsec3param->salt);
+	}
 	nsec3param->mctx = NULL;
 }
 

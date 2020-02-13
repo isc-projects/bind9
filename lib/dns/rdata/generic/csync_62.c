@@ -36,8 +36,9 @@ static inline isc_result_t fromtext_csync(ARGS_FROMTEXT)
 	/* Flags. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* Type Map */
@@ -93,8 +94,9 @@ static /* inline */ isc_result_t fromwire_csync(ARGS_FROMWIRE)
 	 * Serial + Flags
 	 */
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length < 6)
+	if (sr.length < 6) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	RETERR(mem_tobuffer(target, sr.base, 6));
 	isc_buffer_forward(source, 6);
@@ -179,8 +181,9 @@ static inline isc_result_t tostruct_csync(ARGS_TOSTRUCT)
 
 	csync->len = region.length;
 	csync->typebits = mem_maybedup(mctx, region.base, region.length);
-	if (csync->typebits == NULL)
+	if (csync->typebits == NULL) {
 		goto cleanup;
+	}
 
 	csync->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -196,11 +199,13 @@ static inline void freestruct_csync(ARGS_FREESTRUCT)
 	REQUIRE(csync != NULL);
 	REQUIRE(csync->common.rdtype == dns_rdatatype_csync);
 
-	if (csync->mctx == NULL)
+	if (csync->mctx == NULL) {
 		return;
+	}
 
-	if (csync->typebits != NULL)
+	if (csync->typebits != NULL) {
 		isc_mem_free(csync->mctx, csync->typebits);
+	}
 	csync->mctx = NULL;
 }
 

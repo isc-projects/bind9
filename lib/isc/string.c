@@ -42,10 +42,10 @@
 
 #ifdef _GNU_SOURCE
 #undef _GNU_SOURCE
-#endif
+#endif /* ifdef _GNU_SOURCE */
 #include <string.h>
 
-#include <isc/string.h> // IWYU pragma: keep
+#include <isc/string.h> /* IWYU pragma: keep */
 
 #if !defined(HAVE_STRLCPY)
 size_t
@@ -69,8 +69,8 @@ strlcpy(char *dst, const char *src, size_t size)
 		if (size != 0U) {
 			*d = '\0'; /* NUL-terminate dst */
 		}
-		while (*s++)
-			;
+		while (*s++) {
+		}
 	}
 
 	return (s - src - 1); /* count does not include NUL */
@@ -114,7 +114,7 @@ isc_string_strerror_r(int errnum, char *buf, size_t buflen)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	return (strerror_s(buf, buflen, errnum));
-#else
+#else  /* if defined(_WIN32) || defined(_WIN64) */
 	return (strerror_r(errnum, buf, buflen));
-#endif
+#endif /* if defined(_WIN32) || defined(_WIN64) */
 }

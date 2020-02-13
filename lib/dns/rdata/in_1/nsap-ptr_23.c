@@ -34,8 +34,9 @@ static inline isc_result_t fromtext_in_nsap_ptr(ARGS_FROMTEXT)
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return (ISC_R_SUCCESS);
 }
@@ -172,8 +173,9 @@ static inline void freestruct_in_nsap_ptr(ARGS_FREESTRUCT)
 	REQUIRE(nsap_ptr->common.rdclass == dns_rdataclass_in);
 	REQUIRE(nsap_ptr->common.rdtype == dns_rdatatype_nsap_ptr);
 
-	if (nsap_ptr->mctx == NULL)
+	if (nsap_ptr->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&nsap_ptr->owner, nsap_ptr->mctx);
 	nsap_ptr->mctx = NULL;
