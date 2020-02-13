@@ -448,7 +448,7 @@ enum { dns_sizecounter_out_0 = 0,
  * intentionally defined to be the same value to ensure binary compatibility.
  */
 #define DNS_STATSDUMP_VERBOSE 0x00000001 /*%< dump 0-value counters */
-#endif
+#endif					 /* if 0 */
 
 /*%<
  * (Obsoleted)

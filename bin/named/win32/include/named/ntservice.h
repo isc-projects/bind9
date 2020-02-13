@@ -26,4 +26,4 @@ void
 ntservice_shutdown();
 BOOL
 ntservice_isservice();
-#endif
+#endif /* ifndef NTSERVICE_H */

@@ -58,8 +58,9 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer)
 	 * Copy the rdataset count to the buffer.
 	 */
 	isc_buffer_availableregion(buffer, &ar);
-	if (ar.length < 2)
+	if (ar.length < 2) {
 		return (ISC_R_NOSPACE);
+	}
 	count = dns_rdataset_count(rdataset);
 	INSIST(count <= 65535);
 	isc_buffer_putuint16(buffer, (uint16_t)count);
@@ -70,8 +71,9 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer)
 		dns_rdata_toregion(&rdata, &r);
 		INSIST(r.length <= 65535);
 		isc_buffer_availableregion(buffer, &ar);
-		if (ar.length < 2)
+		if (ar.length < 2) {
 			return (ISC_R_NOSPACE);
+		}
 		/*
 		 * Copy the rdata length to the buffer.
 		 */
@@ -80,13 +82,15 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer)
 		 * Copy the rdata to the buffer.
 		 */
 		result = isc_buffer_copyregion(buffer, &r);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);
 	}
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_NOMORE) {
 		return (result);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -156,10 +160,11 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	ttl = maxttl;
 	trust = 0xffff;
 	isc_buffer_init(&buffer, data, sizeof(data));
-	if (message->counts[DNS_SECTION_AUTHORITY])
+	if (message->counts[DNS_SECTION_AUTHORITY]) {
 		result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
-	else
+	} else {
 		result = ISC_R_NOMORE;
+	}
 	while (result == ISC_R_SUCCESS) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
@@ -168,11 +173,13 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 				if ((rdataset->attributes &
-				     DNS_RDATASETATTR_NCACHE) == 0)
+				     DNS_RDATASETATTR_NCACHE) == 0) {
 					continue;
+				}
 				type = rdataset->type;
-				if (type == dns_rdatatype_rrsig)
+				if (type == dns_rdatatype_rrsig) {
 					type = rdataset->covers;
+				}
 				if (type == dns_rdatatype_soa ||
 				    type == dns_rdatatype_nsec ||
 				    type == dns_rdatatype_nsec3) {
@@ -191,14 +198,16 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 					dns_name_toregion(name, &r);
 					result = isc_buffer_copyregion(&buffer,
 								       &r);
-					if (result != ISC_R_SUCCESS)
+					if (result != ISC_R_SUCCESS) {
 						return (result);
+					}
 					/*
 					 * Copy the type to the buffer.
 					 */
 					isc_buffer_availableregion(&buffer, &r);
-					if (r.length < 3)
+					if (r.length < 3) {
 						return (ISC_R_NOSPACE);
+					}
 					isc_buffer_putuint16(&buffer,
 							     rdataset->type);
 					isc_buffer_putuint8(
@@ -209,11 +218,13 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 					 */
 					result = copy_rdataset(rdataset,
 							       &buffer);
-					if (result != ISC_R_SUCCESS)
+					if (result != ISC_R_SUCCESS) {
 						return (result);
+					}
 
-					if (next >= DNS_NCACHE_RDATA)
+					if (next >= DNS_NCACHE_RDATA) {
 						return (ISC_R_NOSPACE);
+					}
 					dns_rdata_init(&rdata[next]);
 					isc_buffer_remainingregion(&buffer, &r);
 					rdata[next].data = r.base;
@@ -231,8 +242,9 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		}
 		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
 	}
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_NOMORE) {
 		return (result);
+	}
 
 	if (trust == 0xffff) {
 		if ((message->flags & DNS_MESSAGEFLAG_AA) != 0 &&
@@ -242,8 +254,9 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 			 * any CNAME or DNAME chains.
 			 */
 			trust = dns_trust_authauthority;
-		} else
+		} else {
 			trust = dns_trust_additional;
+		}
 		ttl = 0;
 	}
 
@@ -254,14 +267,17 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	dns_rdataset_init(&ncrdataset);
 	RUNTIME_CHECK(dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset) ==
 		      ISC_R_SUCCESS);
-	if (!secure && trust > dns_trust_answer)
+	if (!secure && trust > dns_trust_answer) {
 		trust = dns_trust_answer;
+	}
 	ncrdataset.trust = trust;
 	ncrdataset.attributes |= DNS_RDATASETATTR_NEGATIVE;
-	if (message->rcode == dns_rcode_nxdomain)
+	if (message->rcode == dns_rcode_nxdomain) {
 		ncrdataset.attributes |= DNS_RDATASETATTR_NXDOMAIN;
-	if (optout)
+	}
+	if (optout) {
 		ncrdataset.attributes |= DNS_RDATASETATTR_OPTOUT;
+	}
 
 	return (dns_db_addrdataset(cache, node, NULL, now, &ncrdataset, 0,
 				   addedrdataset));
@@ -327,16 +343,18 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			isc_buffer_forward(&source, rdata.length);
 
 			if ((options & DNS_NCACHETOWIRE_OMITDNSSEC) != 0 &&
-			    dns_rdatatype_isdnssec(type))
+			    dns_rdatatype_isdnssec(type)) {
 				continue;
+			}
 
 			/*
 			 * Write the name.
 			 */
 			dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 			result = dns_name_towire(&name, cctx, target);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				goto rollback;
+			}
 
 			/*
 			 * See if we have space for type, class, ttl, and
@@ -361,8 +379,9 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			 * Write the rdata.
 			 */
 			result = dns_rdata_towire(&rdata, cctx, target);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				goto rollback;
+			}
 
 			/*
 			 * Set the rdata length field to the compressed
@@ -380,8 +399,9 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 		result = dns_rdataset_next(rdataset);
 		dns_rdata_reset(&rdata);
 	}
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_NOMORE) {
 		goto rollback;
+	}
 
 	*countp = count;
 
@@ -434,8 +454,9 @@ rdataset_next(dns_rdataset_t *rdataset)
 	unsigned char *raw;
 
 	count = rdataset->privateuint4;
-	if (count == 0)
+	if (count == 0) {
 		return (ISC_R_NOMORE);
+	}
 	count--;
 	rdataset->privateuint4 = count;
 	raw = rdataset->private5;
@@ -557,10 +578,12 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&rclone);
-	if (result == ISC_R_NOMORE)
+	if (result == ISC_R_NOMORE) {
 		return (ISC_R_NOTFOUND);
-	if (result != ISC_R_SUCCESS)
+	}
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	INSIST(remaining.length != 0);
 
@@ -656,10 +679,12 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&rclone);
-	if (result == ISC_R_NOMORE)
+	if (result == ISC_R_NOMORE) {
 		return (ISC_R_NOTFOUND);
-	if (result != ISC_R_SUCCESS)
+	}
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	INSIST(remaining.length != 0);
 
@@ -739,8 +764,9 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
 				     &sigregion);
 		(void)dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		rdataset->covers = rrsig.covered;
-	} else
+	} else {
 		rdataset->covers = 0;
+	}
 	rdataset->ttl = ncacherdataset->ttl;
 	rdataset->trust = trust;
 	rdataset->private1 = NULL;

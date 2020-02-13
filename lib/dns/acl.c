@@ -36,8 +36,9 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target)
 	/*
 	 * Work around silly limitation of isc_mem_get().
 	 */
-	if (n == 0)
+	if (n == 0) {
 		n = 1;
+	}
 
 	acl = isc_mem_get(mctx, sizeof(*acl));
 
@@ -85,8 +86,9 @@ dns_acl_anyornone(isc_mem_t *mctx, bool neg, dns_acl_t **target)
 	dns_acl_t *  acl = NULL;
 
 	result = dns_acl_create(mctx, 0, &acl);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_iptable_addprefix(acl->iptable, NULL, 0, !neg);
 	if (result != ISC_R_SUCCESS) {
@@ -126,18 +128,21 @@ dns_acl_isanyornone(dns_acl_t *acl, bool pos)
 	/* Should never happen but let's be safe */
 	if (acl == NULL || acl->iptable == NULL ||
 	    acl->iptable->radix == NULL || acl->iptable->radix->head == NULL ||
-	    acl->iptable->radix->head->prefix == NULL)
+	    acl->iptable->radix->head->prefix == NULL) {
 		return (false);
+	}
 
-	if (acl->length != 0 || dns_acl_node_count(acl) != 1)
+	if (acl->length != 0 || dns_acl_node_count(acl) != 1) {
 		return (false);
+	}
 
 	if (acl->iptable->radix->head->prefix->bitlen == 0 &&
 	    acl->iptable->radix->head->data[0] != NULL &&
 	    acl->iptable->radix->head->data[0] ==
 		    acl->iptable->radix->head->data[1] &&
-	    *(bool *)(acl->iptable->radix->head->data[0]) == pos)
+	    *(bool *)(acl->iptable->radix->head->data[0]) == pos) {
 		return (true);
+	}
 
 	return (false); /* All others */
 }
@@ -225,10 +230,11 @@ dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 		if (dns_aclelement_match(reqaddr, reqsigner, e, env,
 					 matchelt)) {
 			if (match_num == -1 || e->node_num < match_num) {
-				if (e->negative)
+				if (e->negative) {
 					*match = -e->node_num;
-				else
+				} else {
 					*match = e->node_num;
+				}
 			}
 			break;
 		}
@@ -258,8 +264,9 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 		void *newmem;
 
 		newalloc = dest->alloc + source->alloc;
-		if (newalloc < 4)
+		if (newalloc < 4) {
 			newalloc = 4;
+		}
 
 		newmem = isc_mem_get(dest->mctx,
 				     newalloc * sizeof(dns_aclelement_t));
@@ -287,8 +294,9 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 	nelem = dest->length;
 	dest->length += source->length;
 	for (i = 0; i < source->length; i++) {
-		if (source->elements[i].node_num > max_node)
+		if (source->elements[i].node_num > max_node) {
 			max_node = source->elements[i].node_num;
+		}
 
 		/* Copy type. */
 		dest->elements[nelem + i].type = source->elements[i].type;
@@ -299,9 +307,10 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 
 		/* Duplicate nested acl. */
 		if (source->elements[i].type == dns_aclelementtype_nestedacl &&
-		    source->elements[i].nestedacl != NULL)
+		    source->elements[i].nestedacl != NULL) {
 			dns_acl_attach(source->elements[i].nestedacl,
 				       &dest->elements[nelem + i].nestedacl);
+		}
 
 		/* Duplicate key name. */
 		if (source->elements[i].type == dns_aclelementtype_keyname) {
@@ -316,7 +325,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 			dest->elements[nelem + i].geoip_elem =
 				source->elements[i].geoip_elem;
 		}
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 
 		/* reverse sense of positives if this is a negative acl */
 		if (!pos && !source->elements[i].negative) {
@@ -333,10 +342,12 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 	 */
 	nodes = max_node + dns_acl_node_count(dest);
 	result = dns_iptable_merge(dest->iptable, source->iptable, pos);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-	if (nodes > dns_acl_node_count(dest))
+	}
+	if (nodes > dns_acl_node_count(dest)) {
 		dns_acl_node_count(dest) = nodes;
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -364,34 +375,39 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 	case dns_aclelementtype_keyname:
 		if (reqsigner != NULL &&
 		    dns_name_equal(reqsigner, &e->keyname)) {
-			if (matchelt != NULL)
+			if (matchelt != NULL) {
 				*matchelt = e;
+			}
 			return (true);
-		} else
+		} else {
 			return (false);
+		}
 
 	case dns_aclelementtype_nestedacl:
 		inner = e->nestedacl;
 		break;
 
 	case dns_aclelementtype_localhost:
-		if (env == NULL || env->localhost == NULL)
+		if (env == NULL || env->localhost == NULL) {
 			return (false);
+		}
 		inner = env->localhost;
 		break;
 
 	case dns_aclelementtype_localnets:
-		if (env == NULL || env->localnets == NULL)
+		if (env == NULL || env->localnets == NULL) {
 			return (false);
+		}
 		inner = env->localnets;
 		break;
 
 #if defined(HAVE_GEOIP2)
 	case dns_aclelementtype_geoip:
-		if (env == NULL || env->geoip == NULL)
+		if (env == NULL || env->geoip == NULL) {
 			return (false);
+		}
 		return (dns_geoip_match(reqaddr, env->geoip, &e->geoip_elem));
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -408,8 +424,9 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 	 * XXXDCL this should be documented.
 	 */
 	if (indirectmatch > 0) {
-		if (matchelt != NULL)
+		if (matchelt != NULL) {
 			*matchelt = e;
+		}
 		return (true);
 	}
 
@@ -417,8 +434,9 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 	 * A negative indirect match may have set *matchelt, but we don't
 	 * want it set when we return.
 	 */
-	if (matchelt != NULL)
+	if (matchelt != NULL) {
 		*matchelt = NULL;
+	}
 
 	return (false);
 }
@@ -447,13 +465,16 @@ destroy(dns_acl_t *dacl)
 			dns_acl_detach(&de->nestedacl);
 		}
 	}
-	if (dacl->elements != NULL)
+	if (dacl->elements != NULL) {
 		isc_mem_put(dacl->mctx, dacl->elements,
 			    dacl->alloc * sizeof(dns_aclelement_t));
-	if (dacl->name != NULL)
+	}
+	if (dacl->name != NULL) {
 		isc_mem_free(dacl->mctx, dacl->name);
-	if (dacl->iptable != NULL)
+	}
+	if (dacl->iptable != NULL) {
 		dns_iptable_detach(&dacl->iptable);
+	}
 	isc_refcount_destroy(&dacl->refcount);
 	dacl->magic = 0;
 	isc_mem_putanddetach(&dacl->mctx, dacl, sizeof(*dacl));
@@ -542,16 +563,18 @@ dns_acl_isinsecure(const dns_acl_t *a)
 	isc_radix_process(a->iptable->radix, is_insecure);
 	insecure = insecure_prefix_found;
 	UNLOCK(&insecure_prefix_lock);
-	if (insecure)
+	if (insecure) {
 		return (true);
+	}
 
 	/* Now check non-radix elements */
 	for (i = 0; i < a->length; i++) {
 		dns_aclelement_t *e = &a->elements[i];
 
 		/* A negated match can never be insecure. */
-		if (e->negative)
+		if (e->negative) {
 			continue;
+		}
 
 		switch (e->type) {
 		case dns_aclelementtype_keyname:
@@ -559,13 +582,14 @@ dns_acl_isinsecure(const dns_acl_t *a)
 			continue;
 
 		case dns_aclelementtype_nestedacl:
-			if (dns_acl_isinsecure(e->nestedacl))
+			if (dns_acl_isinsecure(e->nestedacl)) {
 				return (true);
+			}
 			continue;
 
 #if defined(HAVE_GEOIP2)
 		case dns_aclelementtype_geoip:
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 		case dns_aclelementtype_localnets:
 			return (true);
 
@@ -610,15 +634,17 @@ dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env)
 	env->localhost = NULL;
 	env->localnets = NULL;
 	result = dns_acl_create(mctx, 0, &env->localhost);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_nothing;
+	}
 	result = dns_acl_create(mctx, 0, &env->localnets);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_localhost;
+	}
 	env->match_mapped = false;
 #if defined(HAVE_GEOIP2)
 	env->geoip = NULL;
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 	return (ISC_R_SUCCESS);
 
 cleanup_localhost:
@@ -637,14 +663,16 @@ dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s)
 	t->match_mapped = s->match_mapped;
 #if defined(HAVE_GEOIP2)
 	t->geoip = s->geoip;
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 }
 
 void
 dns_aclenv_destroy(dns_aclenv_t *env)
 {
-	if (env->localhost != NULL)
+	if (env->localhost != NULL) {
 		dns_acl_detach(&env->localhost);
-	if (env->localnets != NULL)
+	}
+	if (env->localnets != NULL) {
 		dns_acl_detach(&env->localnets);
+	}
 }

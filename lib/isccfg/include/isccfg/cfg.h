@@ -13,8 +13,8 @@
 #define ISCCFG_CFG_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isccfg/cfg.h
  * \brief
@@ -505,9 +505,9 @@ cfg_printx(const cfg_obj_t *obj, unsigned int flags,
 #define CFG_PRINTER_ONELINE 0x2 /* print config as a single line */
 #define CFG_PRINTER_ACTIVEONLY                 \
 	0x4 /* print only active configuration \
-	       options, omitting ancient,      \
-	       obsolete, nonimplemented,       \
-	       and test-only options. */
+	     * options, omitting ancient,      \
+	     * obsolete, nonimplemented,       \
+	     * and test-only options. */
 
 /*%<
  * Print the configuration object 'obj' by repeatedly calling the

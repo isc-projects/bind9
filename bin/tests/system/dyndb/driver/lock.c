@@ -47,11 +47,12 @@ run_exclusive_enter(sample_instance_t *inst, isc_result_t *statep)
 void
 run_exclusive_exit(sample_instance_t *inst, isc_result_t state)
 {
-	if (state == ISC_R_SUCCESS)
+	if (state == ISC_R_SUCCESS) {
 		isc_task_endexclusive(inst->task);
-	else
+	} else {
 		/* Unlocking recursive lock or the lock was never locked. */
 		INSIST(state == ISC_R_LOCKBUSY || state == ISC_R_IGNORE);
+	}
 
 	return;
 }

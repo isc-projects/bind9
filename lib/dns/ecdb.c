@@ -382,10 +382,12 @@ bind_rdataset(dns_ecdb_t *ecdb, dns_ecdbnode_t *node, rdatasetheader_t *header,
 	rdataset->covers = header->covers;
 	rdataset->ttl = header->ttl;
 	rdataset->trust = header->trust;
-	if (NXDOMAIN(header))
+	if (NXDOMAIN(header)) {
 		rdataset->attributes |= DNS_RDATASETATTR_NXDOMAIN;
-	if (NEGATIVE(header))
+	}
+	if (NEGATIVE(header)) {
 		rdataset->attributes |= DNS_RDATASETATTR_NEGATIVE;
+	}
 
 	rdataset->private1 = ecdb;
 	rdataset->private2 = node;
@@ -437,8 +439,9 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	result = dns_rdataslab_fromrdataset(rdataset, mctx, &r,
 					    sizeof(rdatasetheader_t));
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto unlock;
+	}
 
 	header = (rdatasetheader_t *)r.base;
 	header->type = rdataset->type;
@@ -446,15 +449,18 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	header->trust = rdataset->trust;
 	header->covers = rdataset->covers;
 	header->attributes = 0;
-	if ((rdataset->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
+	if ((rdataset->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0) {
 		header->attributes |= RDATASET_ATTR_NXDOMAIN;
-	if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
+	}
+	if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 		header->attributes |= RDATASET_ATTR_NEGATIVE;
+	}
 	ISC_LINK_INIT(header, link);
 	ISC_LIST_APPEND(ecdbnode->rdatasets, header, link);
 
-	if (addedrdataset == NULL)
+	if (addedrdataset == NULL) {
 		goto unlock;
+	}
 
 	bind_rdataset(ecdb, ecdbnode, header, addedrdataset);
 
@@ -637,9 +643,9 @@ rdataset_first(dns_rdataset_t *rdataset)
 	}
 #if DNS_RDATASET_FIXED
 	raw += 2 + (4 * count);
-#else
+#else  /* if DNS_RDATASET_FIXED */
 	raw += 2;
-#endif
+#endif /* if DNS_RDATASET_FIXED */
 	/*
 	 * The privateuint4 field is the number of rdata beyond the cursor
 	 * position, so we decrement the total count by one before storing
@@ -660,17 +666,18 @@ rdataset_next(dns_rdataset_t *rdataset)
 	unsigned char *raw;
 
 	count = rdataset->privateuint4;
-	if (count == 0)
+	if (count == 0) {
 		return (ISC_R_NOMORE);
+	}
 	count--;
 	rdataset->privateuint4 = count;
 	raw = rdataset->private5;
 	length = raw[0] * 256 + raw[1];
 #if DNS_RDATASET_FIXED
 	raw += length + 4;
-#else
+#else  /* if DNS_RDATASET_FIXED */
 	raw += length + 2;
-#endif
+#endif /* if DNS_RDATASET_FIXED */
 	rdataset->private5 = raw;
 
 	return (ISC_R_SUCCESS);
@@ -689,12 +696,13 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata)
 	length = raw[0] * 256 + raw[1];
 #if DNS_RDATASET_FIXED
 	raw += 4;
-#else
+#else  /* if DNS_RDATASET_FIXED */
 	raw += 2;
-#endif
+#endif /* if DNS_RDATASET_FIXED */
 	if (rdataset->type == dns_rdatatype_rrsig) {
-		if ((*raw & DNS_RDATASLAB_OFFLINE) != 0)
+		if ((*raw & DNS_RDATASLAB_OFFLINE) != 0) {
 			flags |= DNS_RDATA_OFFLINE;
+		}
 		length--;
 		raw++;
 	}

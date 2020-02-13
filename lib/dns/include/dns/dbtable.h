@@ -13,8 +13,8 @@
 #define DNS_DBTABLE_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/dbtable.h
  * \brief

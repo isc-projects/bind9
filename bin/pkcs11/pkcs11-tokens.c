@@ -70,8 +70,9 @@ main(int argc, char *argv[])
 	pk11_result_register();
 
 	/* Initialize the CRYPTOKI library */
-	if (lib_name != NULL)
+	if (lib_name != NULL) {
 		pk11_set_lib_name(lib_name);
+	}
 
 	result = pk11_get_session(&pctx, OP_ANY, true, false, false, NULL, 0);
 	if (result == PK11_R_NORANDOMSERVICE ||
@@ -89,8 +90,9 @@ main(int argc, char *argv[])
 
 	pk11_dump_tokens();
 
-	if (pctx.handle != NULL)
+	if (pctx.handle != NULL) {
 		pk11_return_session(&pctx);
+	}
 	(void)pk11_finalize();
 
 	isc_mem_destroy(&mctx);

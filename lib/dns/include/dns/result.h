@@ -35,10 +35,10 @@
 /*
  * Since we dropped the support of bitstring labels, deprecate the related
  * result codes too.
-
-#define DNS_R_BADBITSTRING		(ISC_RESULTCLASS_DNS + 2)
-#define DNS_R_BITSTRINGTOOLONG		(ISC_RESULTCLASS_DNS + 3)
-*/
+ *
+ #define DNS_R_BADBITSTRING		(ISC_RESULTCLASS_DNS + 2)
+ #define DNS_R_BITSTRINGTOOLONG		(ISC_RESULTCLASS_DNS + 3)
+ */
 #define DNS_R_EMPTYLABEL (ISC_RESULTCLASS_DNS + 4)
 #define DNS_R_BADDOTTEDQUAD (ISC_RESULTCLASS_DNS + 5)
 #define DNS_R_INVALIDNS (ISC_RESULTCLASS_DNS + 6)

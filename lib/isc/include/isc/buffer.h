@@ -13,13 +13,13 @@
 #define ISC_BUFFER_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/buffer.h
  *
  * \brief A buffer is a region of memory, together with a set of related
- *subregions. Buffers are used for parsing and I/O operations.
+ * subregions. Buffers are used for parsing and I/O operations.
  *
  * The 'used region' and the 'available' region are disjoint, and their
  * union is the buffer's region.  The used region extends from the beginning
@@ -526,7 +526,7 @@ uint16_t
 isc_buffer_getuint16(isc_buffer_t *b);
 /*!<
  * \brief Read an unsigned 16-bit integer in network byte order from 'b',
- *convert it to host byte order, and return it.
+ * convert it to host byte order, and return it.
  *
  * Requires:
  *
@@ -564,7 +564,7 @@ uint32_t
 isc_buffer_getuint32(isc_buffer_t *b);
 /*!<
  * \brief Read an unsigned 32-bit integer in network byte order from 'b',
- *convert it to host byte order, and return it.
+ * convert it to host byte order, and return it.
  *
  * Requires:
  *
@@ -1010,7 +1010,7 @@ ISC_LANG_ENDDECLS
 #define isc_buffer_putuint16 ISC__BUFFER_PUTUINT16
 #define isc_buffer_putuint24 ISC__BUFFER_PUTUINT24
 #define isc_buffer_putuint32 ISC__BUFFER_PUTUINT32
-#else
+#else /* if defined(ISC_BUFFER_USEINLINE) */
 #define isc_buffer_init isc__buffer_init
 #define isc_buffer_initnull isc__buffer_initnull
 #define isc_buffer_invalidate isc__buffer_invalidate
@@ -1033,7 +1033,7 @@ ISC_LANG_ENDDECLS
 #define isc_buffer_putuint16 isc__buffer_putuint16
 #define isc_buffer_putuint24 isc__buffer_putuint24
 #define isc_buffer_putuint32 isc__buffer_putuint32
-#endif
+#endif /* if defined(ISC_BUFFER_USEINLINE) */
 
 #define isc_buffer_constinit(_b, _d, _l)                    \
 	do {                                                \

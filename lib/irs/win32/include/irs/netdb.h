@@ -23,16 +23,17 @@
 
 #ifdef ISC_IRS_NEEDADDRINFO
 struct addrinfo {
-	int		 ai_flags;     /* AI_PASSIVE, AI_CANONNAME */
-	int		 ai_family;    /* PF_xxx */
-	int		 ai_socktype;  /* SOCK_xxx */
-	int		 ai_protocol;  /* 0 or IPPROTO_xxx for IPv4 and IPv6 */
+	int ai_flags;		       /* AI_PASSIVE, AI_CANONNAME */
+	int ai_family;		       /* PF_xxx */
+	int ai_socktype;	       /* SOCK_xxx */
+	int ai_protocol;	       /* 0 or IPPROTO_xxx for IPv4 and
+					* IPv6 */
 	size_t		 ai_addrlen;   /* Length of ai_addr */
 	char *		 ai_canonname; /* Canonical name for hostname */
 	struct sockaddr *ai_addr;      /* Binary address */
 	struct addrinfo *ai_next;      /* Next structure in linked list */
 };
-#endif
+#endif /* ifdef ISC_IRS_NEEDADDRINFO */
 
 /*
  * Undefine all #defines we are interested in as <netdb.h> may or may not have
@@ -163,25 +164,25 @@ struct addrinfo {
 
 #ifdef getnameinfo
 #undef getnameinfo
-#endif
+#endif /* ifdef getnameinfo */
 #define getnameinfo irs_getnameinfo
 
 #ifdef getaddrinfo
 #undef getaddrinfo
-#endif
+#endif /* ifdef getaddrinfo */
 #define getaddrinfo irs_getaddrinfo
 
 #ifdef freeaddrinfo
 #undef freeaddrinfo
-#endif
+#endif /* ifdef freeaddrinfo */
 #define freeaddrinfo irs_freeaddrinfo
 
 #ifdef gai_strerror
 #undef gai_strerror
-#endif
+#endif /* ifdef gai_strerror */
 #define gai_strerror irs_gai_strerror
 
-#endif
+#endif /* ifdef IRS_NAMESPACE */
 
 int
 getaddrinfo(const char *, const char *, const struct addrinfo *,

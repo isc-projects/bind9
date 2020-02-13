@@ -40,11 +40,11 @@
 #include <dns/librpz.h>
 
 librpz_t *librpz;
-#else
+#else  /* ifdef USE_DNSRPS */
 typedef struct {
 	char c[120];
 } librpz_emsg_t;
-#endif
+#endif /* ifdef USE_DNSRPS */
 
 static bool
 link_dnsrps(librpz_emsg_t *emsg);
@@ -60,7 +60,7 @@ main(int argc, char **argv)
 	librpz_client_t *client;
 	librpz_rsp_t *	 rsp;
 	uint32_t	 serial;
-#endif
+#endif /* ifdef USE_DNSRPS */
 	double	      seconds;
 	librpz_emsg_t emsg;
 	char *	      p;
@@ -82,10 +82,10 @@ main(int argc, char **argv)
 			}
 #ifdef USE_DNSRPS
 			printf("%s\n", librpz->dnsrpzd_path);
-#else
+#else  /* ifdef USE_DNSRPS */
 			INSIST(0);
 			ISC_UNREACHABLE();
-#endif
+#endif /* ifdef USE_DNSRPS */
 			return (0);
 
 		case 'n':
@@ -133,10 +133,10 @@ main(int argc, char **argv)
 			librpz->rsp_detach(&rsp);
 			librpz->client_detach(&client);
 			printf("%u\n", serial);
-#else
+#else  /* ifdef USE_DNSRPS */
 			INSIST(0);
 			ISC_UNREACHABLE();
-#endif
+#endif /* ifdef USE_DNSRPS */
 			return (0);
 
 		case 'w':
@@ -162,12 +162,13 @@ link_dnsrps(librpz_emsg_t *emsg)
 {
 #ifdef USE_DNSRPS
 	librpz = librpz_lib_open(emsg, NULL, DNSRPS_LIBRPZ_PATH);
-	if (librpz == NULL)
+	if (librpz == NULL) {
 		return (false);
+	}
 
 	return (true);
-#else
+#else  /* ifdef USE_DNSRPS */
 	snprintf(emsg->c, sizeof(emsg->c), "DNSRPS not configured");
 	return (false);
-#endif
+#endif /* ifdef USE_DNSRPS */
 }

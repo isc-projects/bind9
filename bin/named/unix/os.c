@@ -17,7 +17,7 @@
 #include <sys/types.h> /* dev_t FreeBSD 2.1 */
 #ifdef HAVE_UNAME
 #include <sys/utsname.h>
-#endif
+#endif /* ifdef HAVE_UNAME */
 
 #include <ctype.h>
 #include <errno.h>
@@ -30,7 +30,7 @@
 #include <syslog.h>
 #ifdef HAVE_TZSET
 #include <time.h>
-#endif
+#endif /* ifdef HAVE_TZSET */
 #include <unistd.h>
 
 #include <isc/buffer.h>
@@ -46,7 +46,7 @@
 #include <named/os.h>
 #ifdef HAVE_LIBSCF
 #include <named/smf_globals.h>
-#endif
+#endif /* ifdef HAVE_LIBSCF */
 
 static char *pidfile = NULL;
 static char *lockfile = NULL;
@@ -55,7 +55,7 @@ static int   singletonfd = -1;
 
 #ifndef ISC_FACILITY
 #define ISC_FACILITY LOG_DAEMON
-#endif
+#endif /* ifndef ISC_FACILITY */
 
 static struct passwd *runas_pw = NULL;
 static bool	      done_setuid = false;
@@ -245,8 +245,9 @@ linux_keepcaps(void)
 		}
 	} else {
 		non_root_caps = true;
-		if (getuid() != 0)
+		if (getuid() != 0) {
 			non_root = true;
+		}
 	}
 }
 
@@ -260,7 +261,7 @@ setup_syslog(const char *progname)
 	options = LOG_PID;
 #ifdef LOG_NDELAY
 	options |= LOG_NDELAY;
-#endif
+#endif /* ifdef LOG_NDELAY */
 	openlog(isc_file_basename(progname), options, ISC_FACILITY);
 }
 
@@ -270,10 +271,10 @@ named_os_init(const char *progname)
 	setup_syslog(progname);
 #ifdef HAVE_SYS_CAPABILITY_H
 	linux_initialprivs();
-#endif
+#endif /* ifdef HAVE_SYS_CAPABILITY_H */
 #ifdef SIGXFSZ
 	signal(SIGXFSZ, SIG_IGN);
-#endif
+#endif /* ifdef SIGXFSZ */
 }
 
 void
@@ -303,8 +304,9 @@ named_os_daemonize(void)
 		do {
 			char buf;
 			n = read(dfd[0], &buf, 1);
-			if (n == 1)
+			if (n == 1) {
 				_exit(0);
+			}
 		} while (n == -1 && errno == EINTR);
 		_exit(1);
 	}
@@ -354,10 +356,11 @@ named_os_started(void)
 	 * Signal to the parent that we started successfully.
 	 */
 	if (dfd[0] != -1 && dfd[1] != -1) {
-		if (write(dfd[1], &buf, 1) != 1)
+		if (write(dfd[1], &buf, 1) != 1) {
 			named_main_earlyfatal("unable to signal parent that we "
 					      "otherwise started "
 					      "successfully.");
+		}
 		close(dfd[1]);
 		dfd[0] = dfd[1] = -1;
 	}
@@ -382,11 +385,13 @@ named_os_closedevnull(void)
 static bool
 all_digits(const char *s)
 {
-	if (*s == '\0')
+	if (*s == '\0') {
 		return (false);
+	}
 	while (*s != '\0') {
-		if (!isdigit((*s) & 0xff))
+		if (!isdigit((*s) & 0xff)) {
 			return (false);
+		}
 		s++;
 	}
 	return (true);
@@ -398,16 +403,16 @@ named_os_chroot(const char *root)
 	char strbuf[ISC_STRERRORSIZE];
 #ifdef HAVE_LIBSCF
 	named_smf_chroot = 0;
-#endif
+#endif /* ifdef HAVE_LIBSCF */
 	if (root != NULL) {
 #ifdef HAVE_CHROOT
 		if (chroot(root) < 0) {
 			strerror_r(errno, strbuf, sizeof(strbuf));
 			named_main_earlyfatal("chroot(): %s", strbuf);
 		}
-#else
+#else  /* ifdef HAVE_CHROOT */
 		named_main_earlyfatal("chroot(): disabled");
-#endif
+#endif /* ifdef HAVE_CHROOT */
 		if (chdir("/") < 0) {
 			strerror_r(errno, strbuf, sizeof(strbuf));
 			named_main_earlyfatal("chdir(/): %s", strbuf);
@@ -415,7 +420,7 @@ named_os_chroot(const char *root)
 #ifdef HAVE_LIBSCF
 		/* Set named_smf_chroot flag on successful chroot. */
 		named_smf_chroot = 1;
-#endif
+#endif /* ifdef HAVE_LIBSCF */
 	}
 }
 
@@ -423,17 +428,20 @@ void
 named_os_inituserinfo(const char *username)
 {
 	char strbuf[ISC_STRERRORSIZE];
-	if (username == NULL)
+	if (username == NULL) {
 		return;
+	}
 
-	if (all_digits(username))
+	if (all_digits(username)) {
 		runas_pw = getpwuid((uid_t)atoi(username));
-	else
+	} else {
 		runas_pw = getpwnam(username);
+	}
 	endpwent();
 
-	if (runas_pw == NULL)
+	if (runas_pw == NULL) {
 		named_main_earlyfatal("user '%s' unknown", username);
+	}
 
 	if (getuid() == 0) {
 		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0) {
@@ -447,8 +455,9 @@ void
 named_os_changeuser(void)
 {
 	char strbuf[ISC_STRERRORSIZE];
-	if (runas_pw == NULL || done_setuid)
+	if (runas_pw == NULL || done_setuid) {
 		return;
+	}
 
 	done_setuid = true;
 
@@ -474,14 +483,15 @@ named_os_changeuser(void)
 	}
 
 	linux_minprivs();
-#endif
+#endif /* if defined(HAVE_SYS_CAPABILITY_H) */
 }
 
 uid_t
 ns_os_uid(void)
 {
-	if (runas_pw == NULL)
+	if (runas_pw == NULL) {
 		return (0);
+	}
 	return (runas_pw->pw_uid);
 }
 
@@ -499,9 +509,10 @@ named_os_adjustnofile(void)
 	newvalue = ISC_RESOURCE_UNLIMITED;
 
 	result = isc_resource_setlimit(isc_resource_openfiles, newvalue);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		named_main_earlywarning("couldn't adjust limit on open files");
-#endif
+	}
+#endif /* if defined(__linux__) */
 }
 
 void
@@ -511,7 +522,7 @@ named_os_minprivs(void)
 	linux_keepcaps();
 	named_os_changeuser();
 	linux_minprivs();
-#endif
+#endif /* if defined(HAVE_SYS_CAPABILITY_H) */
 }
 
 static int
@@ -521,18 +532,20 @@ safe_open(const char *filename, mode_t mode, bool append)
 	struct stat sb;
 
 	if (stat(filename, &sb) == -1) {
-		if (errno != ENOENT)
+		if (errno != ENOENT) {
 			return (-1);
+		}
 	} else if ((sb.st_mode & S_IFREG) == 0) {
 		errno = EOPNOTSUPP;
 		return (-1);
 	}
 
-	if (append)
+	if (append) {
 		fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, mode);
-	else {
-		if (unlink(filename) < 0 && errno != ENOENT)
+	} else {
+		if (unlink(filename) < 0 && errno != ENOENT) {
 			return (-1);
+		}
 		fd = open(filename, O_WRONLY | O_CREAT | O_EXCL, mode);
 	}
 	return (fd);
@@ -544,8 +557,9 @@ cleanup_pidfile(void)
 	int n;
 	if (pidfile != NULL) {
 		n = unlink(pidfile);
-		if (n == -1 && errno != ENOENT)
+		if (n == -1 && errno != ENOENT) {
 			named_main_earlywarning("unlink '%s': failed", pidfile);
+		}
 		free(pidfile);
 	}
 	pidfile = NULL;
@@ -561,9 +575,10 @@ cleanup_lockfile(void)
 
 	if (lockfile != NULL) {
 		int n = unlink(lockfile);
-		if (n == -1 && errno != ENOENT)
+		if (n == -1 && errno != ENOENT) {
 			named_main_earlywarning("unlink '%s': failed",
 						lockfile);
+		}
 		free(lockfile);
 		lockfile = NULL;
 	}
@@ -592,8 +607,9 @@ mkdirpath(char *filename, void (*report)(const char *, ...))
 					  strbuf);
 				goto error;
 			}
-			if (mkdirpath(filename, report) == -1)
+			if (mkdirpath(filename, report) == -1) {
 				goto error;
+			}
 			/*
 			 * Handle "//", "/./" and "/../" in path.
 			 */
@@ -633,13 +649,13 @@ setperms(uid_t uid, gid_t gid)
 {
 #if defined(HAVE_SETEGID) || defined(HAVE_SETRESGID)
 	char strbuf[ISC_STRERRORSIZE];
-#endif
+#endif /* if defined(HAVE_SETEGID) || defined(HAVE_SETRESGID) */
 #if !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID)
 	gid_t oldgid, tmpg;
-#endif
+#endif /* if !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID) */
 #if !defined(HAVE_SETEUID) && defined(HAVE_SETRESUID)
 	uid_t olduid, tmpu;
-#endif
+#endif /* if !defined(HAVE_SETEUID) && defined(HAVE_SETRESUID) */
 #if defined(HAVE_SETEGID)
 	if (getegid() != gid && setegid(gid) == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
@@ -656,7 +672,7 @@ setperms(uid_t uid, gid_t gid)
 						gid, strbuf);
 		}
 	}
-#endif
+#endif /* if defined(HAVE_SETEGID) */
 
 #if defined(HAVE_SETEUID)
 	if (geteuid() != uid && seteuid(uid) == -1) {
@@ -674,7 +690,7 @@ setperms(uid_t uid, gid_t gid)
 						uid, strbuf);
 		}
 	}
-#endif
+#endif /* if defined(HAVE_SETEUID) */
 }
 
 FILE *
@@ -763,8 +779,9 @@ named_os_writepidfile(const char *filename, bool first_time)
 
 	cleanup_pidfile();
 
-	if (filename == NULL)
+	if (filename == NULL) {
 		return;
+	}
 
 	pidfile = strdup(filename);
 	if (pidfile == NULL) {
@@ -801,11 +818,13 @@ named_os_issingleton(const char *filename)
 	char	     strbuf[ISC_STRERRORSIZE];
 	struct flock lock;
 
-	if (singletonfd != -1)
+	if (singletonfd != -1) {
 		return (true);
+	}
 
-	if (strcasecmp(filename, "none") == 0)
+	if (strcasecmp(filename, "none") == 0) {
 		return (true);
+	}
 
 	/*
 	 * Make the containing directory if it doesn't exist.
@@ -898,7 +917,7 @@ named_os_tzset(void)
 {
 #ifdef HAVE_TZSET
 	tzset();
-#endif
+#endif /* ifdef HAVE_TZSET */
 }
 
 static char  unamebuf[BUFSIZ];
@@ -918,16 +937,17 @@ getuname(void)
 
 	snprintf(unamebuf, sizeof(unamebuf), "%s %s %s %s", uts.sysname,
 		 uts.machine, uts.release, uts.version);
-#else
+#else  /* ifdef HAVE_UNAME */
 	snprintf(unamebuf, sizeof(unamebuf), "unknown architecture");
-#endif
+#endif /* ifdef HAVE_UNAME */
 	unamep = unamebuf;
 }
 
 char *
 named_os_uname(void)
 {
-	if (unamep == NULL)
+	if (unamep == NULL) {
 		getuname();
+	}
 	return (unamep);
 }

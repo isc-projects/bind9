@@ -105,32 +105,38 @@ main(int argc, char *argv[])
 
 		case 'C':
 			for (t = 1; t <= 0xfeffu; t++) {
-				if (dns_rdataclass_ismeta(t))
+				if (dns_rdataclass_ismeta(t)) {
 					continue;
+				}
 				dns_rdataclass_format(t, text, sizeof(text));
-				if (strncmp(text, "CLASS", 4) != 0)
+				if (strncmp(text, "CLASS", 4) != 0) {
 					fprintf(stdout, "%s\n", text);
+				}
 			}
 			exit(0);
 
 		case 'P':
 			for (t = 0xff00; t <= 0xfffeu; t++) {
-				if (dns_rdatatype_ismeta(t))
+				if (dns_rdatatype_ismeta(t)) {
 					continue;
+				}
 				dns_rdatatype_format(t, text, sizeof(text));
-				if (strncmp(text, "TYPE", 4) != 0)
+				if (strncmp(text, "TYPE", 4) != 0) {
 					fprintf(stdout, "%s\n", text);
+				}
 			}
 			doexit = true;
 			break;
 
 		case 'T':
 			for (t = 1; t <= 0xfeffu; t++) {
-				if (dns_rdatatype_ismeta(t))
+				if (dns_rdatatype_ismeta(t)) {
 					continue;
+				}
 				dns_rdatatype_format(t, text, sizeof(text));
-				if (strncmp(text, "TYPE", 4) != 0)
+				if (strncmp(text, "TYPE", 4) != 0) {
 					fprintf(stdout, "%s\n", text);
+				}
 			}
 			doexit = true;
 			break;
@@ -146,8 +152,9 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 	}
-	if (doexit)
+	if (doexit) {
 		exit(0);
+	}
 
 	isc_mem_create(&mctx);
 	RUNTIME_CHECK(isc_lex_create(mctx, 256, &lex) == ISC_R_SUCCESS);
@@ -176,10 +183,12 @@ main(int argc, char *argv[])
 
 	while ((result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
 					  &token)) == ISC_R_SUCCESS) {
-		if (token.type == isc_tokentype_eof)
+		if (token.type == isc_tokentype_eof) {
 			break;
-		if (token.type == isc_tokentype_eol)
+		}
+		if (token.type == isc_tokentype_eol) {
 			continue;
+		}
 		if (once) {
 			fatal("extra data");
 		}
@@ -214,12 +223,15 @@ main(int argc, char *argv[])
 
 		result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
 					  &token);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			break;
-		if (token.type == isc_tokentype_eol)
+		}
+		if (token.type == isc_tokentype_eol) {
 			continue;
-		if (token.type == isc_tokentype_eof)
+		}
+		if (token.type == isc_tokentype_eof) {
 			break;
+		}
 
 		/*
 		 * Get type.

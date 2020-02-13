@@ -50,10 +50,10 @@
 #ifdef LIBRPZ_INTERNAL
 #define LIBDEF(t, s) extern t s;
 #define LIBDEF_F(f) LIBDEF(librpz_##f##_t, librpz_##f)
-#else
+#else /* ifdef LIBRPZ_INTERNAL */
 #define LIBDEF(t, s)
 #define LIBDEF_F(f)
-#endif
+#endif /* ifdef LIBRPZ_INTERNAL */
 
 /*
  * Response Policy Zone triggers.
@@ -169,7 +169,8 @@ typedef struct librpz_result {
 	librpz_dznum_t	   dznum;   /* dnsrpzd zone number */
 	librpz_cznum_t	   cznum;   /* librpz client zone number */
 	librpz_trig_t	   trig : LIBRPZ_TRIG_SIZE;
-	bool		   log : 1; /* log rewrite given librpz_log_level */
+	bool		   log : 1; /* log rewrite given librpz_log_level
+				     * */
 } librpz_result_t;
 
 /**
@@ -216,19 +217,19 @@ typedef struct {
 #define LIBRPZ_UNUSED __attribute__((unused))
 #define LIBRPZ_PF(f, l) __attribute__((format(printf, f, l)))
 #define LIBRPZ_NORET __attribute__((__noreturn__))
-#else
+#else /* ifdef LIBRPZ_HAVE_ATTR */
 #define LIBRPZ_UNUSED
 #define LIBRPZ_PF(f, l)
 #define LIBRPZ_NORET
-#endif
+#endif /* ifdef LIBRPZ_HAVE_ATTR */
 
 #ifdef HAVE_BUILTIN_EXPECT
 #define LIBRPZ_LIKELY(c) __builtin_expect(!!(c), 1)
 #define LIBRPZ_UNLIKELY(c) __builtin_expect(!!(c), 0)
-#else
+#else /* ifdef HAVE_BUILTIN_EXPECT */
 #define LIBRPZ_LIKELY(c) (c)
 #define LIBRPZ_UNLIKELY(c) (c)
-#endif
+#endif /* ifdef HAVE_BUILTIN_EXPECT */
 
 typedef bool(librpz_parse_log_opt_t)(librpz_emsg_t *emsg, const char *arg);
 LIBDEF_F(parse_log_opt)
@@ -891,8 +892,9 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path)
 	if (handle != NULL) {
 		new_librpz = dlsym(handle, LIBRPZ_DEF_STR);
 		if (new_librpz != NULL) {
-			if (dl_handle != NULL)
+			if (dl_handle != NULL) {
 				*dl_handle = handle;
+			}
 			return (new_librpz);
 		}
 		if (dlclose(handle) != 0) {
@@ -917,8 +919,9 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path)
 	}
 	new_librpz = dlsym(handle, LIBRPZ_DEF_STR);
 	if (new_librpz != NULL) {
-		if (dl_handle != NULL)
+		if (dl_handle != NULL) {
 			*dl_handle = handle;
+		}
 		return (new_librpz);
 	}
 	snprintf(emsg->c, sizeof(librpz_emsg_t),
@@ -935,13 +938,14 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path)
 {
 	(void)(path);
 
-	if (dl_handle != NULL)
+	if (dl_handle != NULL) {
 		*dl_handle = NULL;
+	}
 
 #if LIBRPZ_LIB_OPEN == 1
 	emsg->c[0] = '\0';
 	return (&LIBRPZ_DEF);
-#else
+#else  /* if LIBRPZ_LIB_OPEN == 1 */
 	snprintf(emsg->c, sizeof(librpz_emsg_t),
 		 "librpz not available via ./configure");
 	return (NULL);

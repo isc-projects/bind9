@@ -13,8 +13,8 @@
 #define NS_INTERFACEMGR_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief
@@ -64,7 +64,7 @@
 #define NS_INTERFACEFLAG_ANYADDR 0x01U /*%< bound to "any" address */
 #define MAX_UDP_DISPATCH                           \
 	128 /*%< Maximum number of UDP dispatchers \
-			 to start per interface */
+	     *           to start per interface */
 /*% The nameserver interface structure */
 struct ns_interface {
 	unsigned int	   magic; /*%< Magic number. */
@@ -82,13 +82,13 @@ struct ns_interface {
 	isc_nmsocket_t *tcplistensocket;
 	isc_dscp_t	dscp;	       /*%< "listen-on" DSCP value */
 	isc_refcount_t	ntcpaccepting; /*%< Number of clients
-					    ready to accept new
-					    TCP connections on this
-					    interface */
+					*   ready to accept new
+					*   TCP connections on this
+					*   interface */
 	isc_refcount_t ntcpactive;     /*%< Number of clients
-					    servicing TCP queries
-					    (whether accepting or
-					    connected) */
+					*   servicing TCP queries
+					*   (whether accepting or
+					*   connected) */
 	int		nudpdispatch;  /*%< Number of UDP dispatches */
 	ns_clientmgr_t *clientmgr;     /*%< Client manager. */
 	ISC_LINK(ns_interface_t) link;

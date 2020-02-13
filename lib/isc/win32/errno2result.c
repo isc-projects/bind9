@@ -55,7 +55,7 @@ isc__errno2resultx(int posixerrno, bool dolog, const char *file, int line)
 #ifdef EOVERFLOW
 	case EOVERFLOW:
 		return (ISC_R_RANGE);
-#endif
+#endif /* ifdef EOVERFLOW */
 	case ENFILE:
 	case EMFILE:
 	case WSAEMFILE:

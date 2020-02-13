@@ -42,4 +42,4 @@ dlz_bdbhpt_init(void);
 void
 dlz_bdbhpt_clear(void);
 
-#endif
+#endif /* ifndef DLZ_BDBHPT_DRIVER_H */

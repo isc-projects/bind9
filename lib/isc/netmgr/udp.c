@@ -92,10 +92,10 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 #ifdef WIN32
 		res = setsockopt(csock->fd, SOL_SOCKET, SO_REUSEADDR,
 				 &(int){ 1 }, sizeof(int));
-#else
+#else  /* ifdef WIN32 */
 		res = setsockopt(csock->fd, SOL_SOCKET, SO_REUSEPORT,
 				 &(int){ 1 }, sizeof(int));
-#endif
+#endif /* ifdef WIN32 */
 		RUNTIME_CHECK(res == 0);
 
 		ievent = isc__nm_get_ievent(mgr, netievent_udplisten);

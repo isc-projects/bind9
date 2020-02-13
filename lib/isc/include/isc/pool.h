@@ -13,8 +13,8 @@
 #define ISC_OBJPOOL_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/pool.h
  * \brief An object pool is a mechanism for sharing a small pool of
@@ -37,8 +37,8 @@
 ISC_LANG_BEGINDECLS
 
 /*****
- ***** Types.
- *****/
+***** Types.
+*****/
 
 typedef void (*isc_pooldeallocator_t)(void **object);
 
@@ -47,8 +47,8 @@ typedef isc_result_t (*isc_poolinitializer_t)(void **target, void *arg);
 typedef struct isc_pool isc_pool_t;
 
 /*****
- ***** Functions.
- *****/
+***** Functions.
+*****/
 
 isc_result_t
 isc_pool_create(isc_mem_t *mctx, unsigned int count, isc_pooldeallocator_t free,

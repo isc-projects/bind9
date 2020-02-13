@@ -25,15 +25,15 @@ uv_handle_get_data(const uv_handle_t *handle)
 {
 	return (handle->data);
 }
-#endif
+#endif /* ifndef HAVE_UV_HANDLE_GET_DATA */
 
 #ifndef HAVE_UV_HANDLE_SET_DATA
 static inline void
 uv_handle_set_data(uv_handle_t *handle, void *data)
 {
 	handle->data = data;
-};
-#endif
+}
+#endif /* ifndef HAVE_UV_HANDLE_SET_DATA */
 
 /*
  * These functions are not available in libuv, but they're very internal
@@ -53,9 +53,9 @@ struct isc_uv_stream_info_s {
 	uv_handle_type type;
 #ifdef WIN32
 	WSAPROTOCOL_INFOW socket_info;
-#else
+#else  /* ifdef WIN32 */
 	int fd;
-#endif
+#endif /* ifdef WIN32 */
 };
 
 int

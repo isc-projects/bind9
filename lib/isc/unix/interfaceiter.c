@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKIO_H
 #include <sys/sockio.h> /* Required for ifiter_ioctl.c. */
-#endif
+#endif			/* ifdef HAVE_SYS_SOCKIO_H */
 
 #include <errno.h>
 #include <inttypes.h>
@@ -38,7 +38,7 @@
 /* Must follow <isc/net.h>. */
 #ifdef HAVE_NET_IF6_H
 #include <net/if6.h>
-#endif
+#endif /* ifdef HAVE_NET_IF6_H */
 #include <net/if.h>
 
 /* Common utility functions */
@@ -60,7 +60,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 
 #if !defined(HAVE_IF_NAMETOINDEX)
 	UNUSED(ifname);
-#endif
+#endif /* if !defined(HAVE_IF_NAMETOINDEX) */
 
 	/* clear any remaining value for safety */
 	memset(dst, 0, sizeof(*dst));
@@ -75,9 +75,9 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 		sa6 = (struct sockaddr_in6 *)src;
 		memmove(&dst->type.in6, &sa6->sin6_addr,
 			sizeof(struct in6_addr));
-		if (sa6->sin6_scope_id != 0)
+		if (sa6->sin6_scope_id != 0) {
 			isc_netaddr_setzone(dst, sa6->sin6_scope_id);
-		else {
+		} else {
 			/*
 			 * BSD variants embed scope zone IDs in the 128bit
 			 * address as a kernel internal form.  Unfortunately,
@@ -116,7 +116,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 						isc_netaddr_setzone(
 							dst, (uint32_t)zone);
 					}
-#endif
+#endif /* ifdef HAVE_IF_NAMETOINDEX */
 				}
 			}
 		}
@@ -141,7 +141,7 @@ static isc_result_t
 linux_if_inet6_current(isc_interfaceiter_t *);
 static void
 linux_if_inet6_first(isc_interfaceiter_t *iter);
-#endif
+#endif /* ifdef __linux */
 
 #include "ifiter_getifaddrs.c"
 
@@ -152,18 +152,20 @@ linux_if_inet6_first(isc_interfaceiter_t *iter)
 	if (iter->proc != NULL) {
 		rewind(iter->proc);
 		(void)linux_if_inet6_next(iter);
-	} else
+	} else {
 		iter->valid = ISC_R_NOMORE;
+	}
 }
 
 static isc_result_t
 linux_if_inet6_next(isc_interfaceiter_t *iter)
 {
 	if (iter->proc != NULL &&
-	    fgets(iter->entry, sizeof(iter->entry), iter->proc) != NULL)
+	    fgets(iter->entry, sizeof(iter->entry), iter->proc) != NULL) {
 		iter->valid = ISC_R_SUCCESS;
-	else
+	} else {
 		iter->valid = ISC_R_NOMORE;
+	}
 	return (iter->valid);
 }
 
@@ -177,8 +179,9 @@ linux_if_inet6_current(isc_interfaceiter_t *iter)
 	int		res;
 	unsigned int	i;
 
-	if (iter->valid != ISC_R_SUCCESS)
+	if (iter->valid != ISC_R_SUCCESS) {
 		return (iter->valid);
+	}
 	if (iter->proc == NULL) {
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_INTERFACE, ISC_LOG_ERROR,
@@ -227,7 +230,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter)
 	strlcpy(iter->current.name, name, sizeof(iter->current.name));
 	return (ISC_R_SUCCESS);
 }
-#endif
+#endif /* ifdef __linux */
 
 /*
  * The remaining code is common to the sysctl and ioctl case.
@@ -251,11 +254,13 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter)
 	internal_first(iter);
 	for (;;) {
 		result = internal_current(iter);
-		if (result != ISC_R_IGNORE)
+		if (result != ISC_R_IGNORE) {
 			break;
+		}
 		result = internal_next(iter);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			break;
+		}
 	}
 	iter->result = result;
 	return (result);
@@ -271,11 +276,13 @@ isc_interfaceiter_next(isc_interfaceiter_t *iter)
 
 	for (;;) {
 		result = internal_next(iter);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			break;
+		}
 		result = internal_current(iter);
-		if (result != ISC_R_IGNORE)
+		if (result != ISC_R_IGNORE) {
 			break;
+		}
 	}
 	iter->result = result;
 	return (result);
@@ -291,8 +298,9 @@ isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
 	REQUIRE(VALID_IFITER(iter));
 
 	internal_destroy(iter);
-	if (iter->buf != NULL)
+	if (iter->buf != NULL) {
 		isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
+	}
 
 	iter->magic = 0;
 	isc_mem_put(iter->mctx, iter, sizeof(*iter));

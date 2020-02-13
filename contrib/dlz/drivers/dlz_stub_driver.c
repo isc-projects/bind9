@@ -86,14 +86,17 @@ stub_dlz_allnodes(const char *zone, void *driverarg, void *dbdata,
 	result = dns_sdlz_putnamedrr(allnodes, cd->myname, "soa", 86400,
 				     "web root.localhost. "
 				     "0 28800 7200 604800 86400");
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_FAILURE);
+	}
 	result = dns_sdlz_putnamedrr(allnodes, "ns", "ns", 86400, cd->myname);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_FAILURE);
+	}
 	result = dns_sdlz_putnamedrr(allnodes, cd->myname, "a", 1, cd->myip);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_FAILURE);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -128,12 +131,14 @@ stub_dlz_authority(const char *zone, void *driverarg, void *dbdata,
 	if (strcmp(zone, cd->myzone) == 0) {
 		result = dns_sdlz_putsoa(lookup, cd->myname, "root.localhost.",
 					 0);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (ISC_R_FAILURE);
+		}
 
 		result = dns_sdlz_putrr(lookup, "ns", 86400, cd->myname);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (ISC_R_FAILURE);
+		}
 
 		return (ISC_R_SUCCESS);
 	}
@@ -158,10 +163,11 @@ stub_dlz_findzonedb(void *driverarg, void *dbdata, const char *name,
 		      ISC_LOG_DEBUG(2), "dlz_stub findzone looking for '%s'",
 		      name);
 
-	if (strcmp(cd->myzone, name) == 0)
+	if (strcmp(cd->myzone, name) == 0) {
 		return (ISC_R_SUCCESS);
-	else
+	} else {
 		return (ISC_R_NOTFOUND);
+	}
 }
 
 static isc_result_t
@@ -181,8 +187,9 @@ stub_dlz_lookup(const char *zone, const char *name, void *driverarg,
 
 	if (strcmp(name, cd->myname) == 0) {
 		result = dns_sdlz_putrr(lookup, "a", 1, cd->myip);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (ISC_R_FAILURE);
+		}
 
 		return (ISC_R_SUCCESS);
 	}
@@ -197,8 +204,9 @@ stub_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	UNUSED(driverarg);
 
-	if (argc < 4)
+	if (argc < 4) {
 		return (ISC_R_FAILURE);
+	}
 	/*
 	 * Write info message to log
 	 */
@@ -293,7 +301,7 @@ dlz_stub_init(void)
 		result = ISC_R_UNEXPECTED;
 	}
 
-	return result;
+	return (result);
 }
 
 /*
@@ -308,8 +316,9 @@ dlz_stub_clear(void)
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
 		      ISC_LOG_DEBUG(2), "Unregistering DLZ_stub driver.");
 
-	if (dlz_stub != NULL)
+	if (dlz_stub != NULL) {
 		dns_sdlzunregister(&dlz_stub);
+	}
 }
 
-#endif
+#endif /* ifdef DLZ_STUB */

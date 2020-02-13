@@ -120,8 +120,9 @@ recvresponse(isc_task_t *task, isc_event_t *event)
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
 
-	if (--onfly == 0)
+	if (--onfly == 0) {
 		isc_app_shutdown();
+	}
 	return;
 }
 
@@ -139,8 +140,9 @@ sendquery(isc_task_t *task)
 	int		c;
 
 	c = scanf("%255s", host);
-	if (c == EOF)
-		return ISC_R_NOMORE;
+	if (c == EOF) {
+		return (ISC_R_NOMORE);
+	}
 
 	onfly++;
 
@@ -182,7 +184,7 @@ sendquery(isc_task_t *task)
 		task, recvresponse, message, &request);
 	CHECK("dns_request_create", result);
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -196,8 +198,9 @@ sendqueries(isc_task_t *task, isc_event_t *event)
 		result = sendquery(task);
 	} while (result == ISC_R_SUCCESS);
 
-	if (onfly == 0)
+	if (onfly == 0) {
 		isc_app_shutdown();
+	}
 	return;
 }
 
@@ -259,13 +262,15 @@ main(int argc, char *argv[])
 	isc_sockaddr_any(&bind_any);
 
 	result = ISC_R_FAILURE;
-	if (inet_pton(AF_INET, "10.53.0.7", &inaddr) != 1)
+	if (inet_pton(AF_INET, "10.53.0.7", &inaddr) != 1) {
 		CHECK("inet_pton", result);
+	}
 	isc_sockaddr_fromin(&srcaddr, &inaddr, 0);
 
 	result = ISC_R_FAILURE;
-	if (inet_pton(AF_INET, "10.53.0.4", &inaddr) != 1)
+	if (inet_pton(AF_INET, "10.53.0.4", &inaddr) != 1) {
 		CHECK("inet_pton", result);
+	}
 	isc_sockaddr_fromin(&dstaddr, &inaddr, port);
 
 	mctx = NULL;

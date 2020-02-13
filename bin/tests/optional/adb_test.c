@@ -65,8 +65,9 @@ check_result(isc_result_t result, const char *format, ...)
 {
 	va_list args;
 
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		return;
+	}
 
 	va_start(args, format);
 	vfprintf(stderr, format, args);
@@ -260,8 +261,9 @@ lookup(const char *target)
 	result = dns_adb_createfind(
 		adb, t2, lookup_callback, client, &client->name, dns_rootname,
 		0, options, now, NULL, view->dstport, 0, NULL, &client->find);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		printf("DNS_ADB_CREATEFIND -> %s\n", dns_result_totext(result));
+	}
 	dns_adb_dumpfind(client->find, stderr);
 
 	if ((client->find->options & DNS_ADBFIND_WANTEVENT) != 0) {

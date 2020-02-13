@@ -85,4 +85,4 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n);
  * \li	#ISC_R_NOMEMORY if there's no memory, ipkeylist is left untoched
  */
 
-#endif
+#endif /* ifndef DNS_IPKEYLIST_H */

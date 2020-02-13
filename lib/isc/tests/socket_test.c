@@ -110,7 +110,6 @@ event_done(isc_task_t *task, isc_event_t *event)
 		if ((sev->attributes & ISC_SOCKEVENTATTR_DSCP) != 0) {
 			recv_dscp = true;
 			recv_dscp_value = sev->dscp;
-			;
 		} else {
 			recv_dscp = false;
 		}
@@ -717,16 +716,16 @@ net_probedscp_test(void **state)
 	}
 
 #if 0
-	fprintf(stdout, "IPv4:%s%s%s\n",
+	fprintf(stdout,"IPv4:%s%s%s\n",
 		(n & ISC_NET_DSCPSETV4) ? " set" : "none",
 		(n & ISC_NET_DSCPPKTV4) ? " packet" : "",
 		(n & ISC_NET_DSCPRECVV4) ? " receive" : "");
 
-	fprintf(stdout, "IPv6:%s%s%s\n",
+	fprintf(stdout,"IPv6:%s%s%s\n",
 		(n & ISC_NET_DSCPSETV6) ? " set" : "none",
 		(n & ISC_NET_DSCPPKTV6) ? " packet" : "",
 		(n & ISC_NET_DSCPRECVV6) ? " receive" : "");
-#endif
+#endif /* if 0 */
 }
 
 /* Test UDP truncation detection */
@@ -876,4 +875,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

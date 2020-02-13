@@ -37,8 +37,9 @@ static inline isc_result_t generic_fromtext_txt(ARGS_FROMTEXT)
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_qstring, true));
 		if (token.type != isc_tokentype_qstring &&
-		    token.type != isc_tokentype_string)
+		    token.type != isc_tokentype_string) {
 			break;
+		}
 		RETTOK(txt_fromtext(&token.value.as_textregion, target));
 		strings++;
 	}
@@ -57,8 +58,9 @@ static inline isc_result_t generic_totext_txt(ARGS_TOTEXT)
 
 	while (region.length > 0) {
 		RETERR(txt_totext(&region, true, target));
-		if (region.length > 0)
+		if (region.length > 0) {
 			RETERR(str_totext(" ", target));
+		}
 	}
 
 	return (ISC_R_SUCCESS);
@@ -75,8 +77,9 @@ static inline isc_result_t generic_fromwire_txt(ARGS_FROMWIRE)
 
 	do {
 		result = txt_fromwire(source, target);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	} while (!buffer_empty(source));
 	return (ISC_R_SUCCESS);
 }
@@ -146,8 +149,9 @@ static inline isc_result_t generic_fromstruct_txt(ARGS_FROMSTRUCT)
 	while (region.length > 0) {
 		length = uint8_fromregion(&region);
 		isc_region_consume(&region, 1);
-		if (region.length < length)
+		if (region.length < length) {
 			return (ISC_R_UNEXPECTEDEND);
+		}
 		isc_region_consume(&region, length);
 	}
 
@@ -167,8 +171,9 @@ static inline isc_result_t generic_tostruct_txt(ARGS_TOSTRUCT)
 	dns_rdata_toregion(rdata, &r);
 	txt->txt_len = r.length;
 	txt->txt = mem_maybedup(mctx, r.base, r.length);
-	if (txt->txt == NULL)
+	if (txt->txt == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	txt->offset = 0;
 	txt->mctx = mctx;
@@ -181,11 +186,13 @@ static inline void generic_freestruct_txt(ARGS_FREESTRUCT)
 
 	REQUIRE(txt != NULL);
 
-	if (txt->mctx == NULL)
+	if (txt->mctx == NULL) {
 		return;
+	}
 
-	if (txt->txt != NULL)
+	if (txt->txt != NULL) {
 		isc_mem_free(txt->mctx, txt->txt);
+	}
 	txt->mctx = NULL;
 }
 
@@ -276,8 +283,9 @@ generic_txt_first(dns_rdata_txt_t *txt)
 	REQUIRE(txt != NULL);
 	REQUIRE(txt->txt != NULL || txt->txt_len == 0);
 
-	if (txt->txt_len == 0)
+	if (txt->txt_len == 0) {
 		return (ISC_R_NOMORE);
+	}
 
 	txt->offset = 0;
 	return (ISC_R_SUCCESS);
@@ -298,8 +306,9 @@ generic_txt_next(dns_rdata_txt_t *txt)
 	length = uint8_fromregion(&r);
 	INSIST(txt->offset + 1 + length <= txt->txt_len);
 	txt->offset = txt->offset + 1 + length;
-	if (txt->offset == txt->txt_len)
+	if (txt->offset == txt->txt_len) {
 		return (ISC_R_NOMORE);
+	}
 	return (ISC_R_SUCCESS);
 }
 

@@ -13,8 +13,8 @@
 #define DNS_FIXEDNAME_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/fixedname.h
  * \brief
@@ -45,8 +45,8 @@
  */
 
 /*****
- ***** Imports
- *****/
+***** Imports
+*****/
 
 #include <isc/buffer.h>
 #include <isc/lang.h>
@@ -54,8 +54,8 @@
 #include <dns/name.h>
 
 /*****
- ***** Types
- *****/
+***** Types
+*****/
 
 struct dns_fixedname {
 	dns_name_t    name;

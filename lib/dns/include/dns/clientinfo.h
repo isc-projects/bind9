@@ -13,8 +13,8 @@
 #define DNS_CLIENTINFO_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/clientinfo.h
  * \brief
@@ -33,8 +33,8 @@
  */
 
 /*****
- ***** Imports
- *****/
+***** Imports
+*****/
 
 #include <inttypes.h>
 
@@ -44,8 +44,8 @@
 ISC_LANG_BEGINDECLS
 
 /*****
- ***** Types
- *****/
+***** Types
+*****/
 
 #define DNS_CLIENTINFO_VERSION 2
 typedef struct dns_clientinfo {
@@ -67,8 +67,8 @@ typedef struct dns_clientinfomethods {
 } dns_clientinfomethods_t;
 
 /*****
- ***** Methods
- *****/
+***** Methods
+*****/
 void
 dns_clientinfomethods_init(dns_clientinfomethods_t * methods,
 			   dns_clientinfo_sourceip_t sourceip);

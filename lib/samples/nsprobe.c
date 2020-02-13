@@ -15,7 +15,7 @@
 
 #include <sys/socket.h>
 #include <sys/types.h>
-#endif
+#endif /* ifndef WIN32 */
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -142,16 +142,19 @@ print_rdataset(dns_rdataset_t *rdataset, dns_name_t *owner)
 	isc_region_t r;
 	char	     t[4096];
 
-	if (!debug_mode)
+	if (!debug_mode) {
 		return (ISC_R_SUCCESS);
+	}
 
 	isc_buffer_init(&target, t, sizeof(t));
 
-	if (!dns_rdataset_isassociated(rdataset))
+	if (!dns_rdataset_isassociated(rdataset)) {
 		return (ISC_R_SUCCESS);
+	}
 	result = dns_rdataset_totext(rdataset, owner, false, false, &target);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	isc_buffer_usedregion(&target, &r);
 	printf("%.*s", (int)r.length, (char *)r.base);
 
@@ -171,8 +174,9 @@ print_name(dns_name_t *name)
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_usedregion(&target, &r);
 		printf("%.*s", (int)r.length, (char *)r.base);
-	} else
+	} else {
 		printf("(invalid name)");
+	}
 
 	return (result);
 }
@@ -196,20 +200,25 @@ static void
 ctxs_destroy(isc_mem_t **mctxp, isc_appctx_t **actxp, isc_taskmgr_t **taskmgrp,
 	     isc_socketmgr_t **socketmgrp, isc_timermgr_t **timermgrp)
 {
-	if (*taskmgrp != NULL)
+	if (*taskmgrp != NULL) {
 		isc_taskmgr_destroy(taskmgrp);
+	}
 
-	if (*timermgrp != NULL)
+	if (*timermgrp != NULL) {
 		isc_timermgr_destroy(timermgrp);
+	}
 
-	if (*socketmgrp != NULL)
+	if (*socketmgrp != NULL) {
 		isc_socketmgr_destroy(socketmgrp);
+	}
 
-	if (*actxp != NULL)
+	if (*actxp != NULL) {
 		isc_appctx_destroy(actxp);
+	}
 
-	if (*mctxp != NULL)
+	if (*mctxp != NULL) {
 		isc_mem_destroy(mctxp);
+	}
 }
 
 static isc_result_t
@@ -221,20 +230,24 @@ ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp, isc_taskmgr_t **taskmgrp,
 	isc_mem_create(mctxp);
 
 	result = isc_appctx_create(*mctxp, actxp);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
+	}
 
 	result = isc_taskmgr_createinctx(*mctxp, 1, 0, taskmgrp);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
+	}
 
 	result = isc_socketmgr_createinctx(*mctxp, socketmgrp);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
+	}
 
 	result = isc_timermgr_createinctx(*mctxp, timermgrp);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
+	}
 
 	return (ISC_R_SUCCESS);
 
@@ -259,12 +272,14 @@ make_querymessage(dns_message_t *message, dns_name_t *qname0,
 	message->rdclass = dns_rdataclass_in;
 
 	result = dns_message_gettempname(message, &qname);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	result = dns_message_gettemprdataset(message, &qrdataset);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	dns_name_init(qname, NULL);
 	dns_name_clone(qname0, qname);
@@ -275,10 +290,12 @@ make_querymessage(dns_message_t *message, dns_name_t *qname0,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (qname != NULL)
+	if (qname != NULL) {
 		dns_message_puttempname(message, &qname);
-	if (qrdataset != NULL)
+	}
+	if (qrdataset != NULL) {
 		dns_message_puttemprdataset(message, &qrdataset);
+	}
 	return (result);
 }
 
@@ -396,58 +413,67 @@ update_stat(struct probe_trans *trans)
 
 	/* Update per domain statistics */
 	if (local_stat.ignore > 0U) {
-		if (verbose_level > 0)
+		if (verbose_level > 0) {
 			printf("%s:ignore\n", trans->domain);
+		}
 		increment_entry(&domain_stat.ignore);
 		err_count++;
 	}
 	if (local_stat.nxdomain > 0U) {
-		if (verbose_level > 0)
+		if (verbose_level > 0) {
 			printf("%s:nxdomain\n", trans->domain);
+		}
 		increment_entry(&domain_stat.nxdomain);
 		err_count++;
 	}
 	if (local_stat.othererr > 0U) {
-		if (verbose_level > 0)
+		if (verbose_level > 0) {
 			printf("%s:othererr\n", trans->domain);
+		}
 		increment_entry(&domain_stat.othererr);
 		err_count++;
 	}
 	if (local_stat.multiplesoa > 0U) {
-		if (verbose_level > 0)
+		if (verbose_level > 0) {
 			printf("%s:multiplesoa\n", trans->domain);
+		}
 		increment_entry(&domain_stat.multiplesoa);
 		err_count++;
 	}
 	if (local_stat.multiplecname > 0U) {
-		if (verbose_level > 0)
+		if (verbose_level > 0) {
 			printf("%s:multiplecname\n", trans->domain);
+		}
 		increment_entry(&domain_stat.multiplecname);
 		err_count++;
 	}
 	if (local_stat.brokenanswer > 0U) {
-		if (verbose_level > 0)
+		if (verbose_level > 0) {
 			printf("%s:brokenanswer\n", trans->domain);
+		}
 		increment_entry(&domain_stat.brokenanswer);
 		err_count++;
 	}
 	if (local_stat.lame > 0U) {
-		if (verbose_level > 0)
+		if (verbose_level > 0) {
 			printf("%s:lame\n", trans->domain);
+		}
 		increment_entry(&domain_stat.lame);
 		err_count++;
 	}
 
-	if (err_count > 1U)
+	if (err_count > 1U) {
 		increment_entry(&multiple_error_domains);
+	}
 
 	/*
 	 * We regard the domain as valid if and only if no authoritative server
 	 * has a problem and at least one server is known to be valid.
 	 */
 	if (local_stat.valid > 0U && err_count == 0U) {
-		if (verbose_level > 1)
+		if (verbose_level > 1) {
 			printf("%s:valid\n", trans->domain);
+		}
 		increment_entry(&domain_stat.valid);
 	}
 
@@ -456,8 +482,9 @@ update_stat(struct probe_trans *trans)
 	 * 'unknown' result, the domain's result is also regarded as unknown.
 	 */
 	if (local_stat.valid == 0U && err_count == 0U) {
-		if (verbose_level > 1)
+		if (verbose_level > 1) {
 			printf("%s:unknown\n", trans->domain);
+		}
 		increment_entry(&domain_stat.unknown);
 	}
 }
@@ -479,12 +506,12 @@ set_nextqname(struct probe_trans *trans)
 	}
 
 	if (strlcpy(buf, *trans->qlabel, sizeof(buf)) >= sizeof(buf)) {
-		return ISC_R_NOSPACE;
+		return (ISC_R_NOSPACE);
 	}
 
 	if ((domainlen = strlcat(buf, trans->domain, sizeof(buf))) >=
 	    sizeof(buf)) {
-		return ISC_R_NOSPACE;
+		return (ISC_R_NOSPACE);
 	}
 
 	isc_buffer_init(&b, buf, domainlen);
@@ -529,13 +556,13 @@ request_done(isc_task_t *task, isc_event_t *event)
 	}
 
 	if (rev->result == ISC_R_SUCCESS) {
-		if ((rmessage->flags & DNS_MESSAGEFLAG_AA) == 0)
+		if ((rmessage->flags & DNS_MESSAGEFLAG_AA) == 0) {
 			*resultp = lame;
-		else if (rmessage->rcode == dns_rcode_nxdomain)
+		} else if (rmessage->rcode == dns_rcode_nxdomain) {
 			*resultp = nxdomain;
-		else if (rmessage->rcode != dns_rcode_noerror)
+		} else if (rmessage->rcode != dns_rcode_noerror) {
 			*resultp = othererr;
-		else if (rmessage->counts[DNS_SECTION_ANSWER] == 0) {
+		} else if (rmessage->counts[DNS_SECTION_ANSWER] == 0) {
 			/* no error but empty answer */
 			*resultp = notype;
 		} else {
@@ -629,9 +656,9 @@ request_done(isc_task_t *task, isc_event_t *event)
 					rmessage, DNS_SECTION_AUTHORITY);
 			}
 		}
-	} else if (rev->result == ISC_R_TIMEDOUT)
+	} else if (rev->result == ISC_R_TIMEDOUT) {
 		*resultp = timedout;
-	else {
+	} else {
 		fprintf(stderr, "unexpected result: %u (domain=%s, server=",
 			rev->result, trans->domain);
 		print_address(stderr, &server->address);
@@ -641,8 +668,9 @@ request_done(isc_task_t *task, isc_event_t *event)
 
 found:
 	INSIST(*resultp != none);
-	if (type == dns_rdatatype_a && *resultp == exist)
+	if (type == dns_rdatatype_a && *resultp == exist) {
 		trans->qname_found = true;
+	}
 
 	dns_client_destroyreqtrans(&trans->reqid);
 	isc_event_free(&event);
@@ -693,8 +721,9 @@ found:
 			 */
 			reset_probe(trans);
 		}
-	} else if (result != ISC_R_SUCCESS)
+	} else if (result != ISC_R_SUCCESS) {
 		reset_probe(trans); /* XXX */
+	}
 }
 
 static isc_result_t
@@ -723,14 +752,16 @@ probe_name(struct probe_trans *trans, dns_rdatatype_t type)
 
 found:
 	trans->current_ns = pns;
-	if (pns == NULL)
+	if (pns == NULL) {
 		return (ISC_R_NOMORE);
+	}
 
 	INSIST(pns->current_server != NULL);
 	dns_message_reset(trans->qmessage, DNS_MESSAGE_INTENTRENDER);
 	result = make_querymessage(trans->qmessage, trans->qname, type);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	result = dns_client_startrequest(
 		client, trans->qmessage, trans->rmessage,
 		&pns->current_server->address, 0, DNS_MESSAGEPARSE_BESTEFFORT,
@@ -766,8 +797,9 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event)
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			(void)print_rdataset(rdataset, name);
 
-			if (rdataset->type != dns_rdatatype_a)
+			if (rdataset->type != dns_rdatatype_a) {
 				continue;
+			}
 
 			for (result = dns_rdataset_first(rdataset);
 			     result == ISC_R_SUCCESS;
@@ -778,8 +810,9 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event)
 				dns_rdataset_current(rdataset, &rdata);
 				result = dns_rdata_tostruct(&rdata, &rdata_a,
 							    NULL);
-				if (result != ISC_R_SUCCESS)
+				if (result != ISC_R_SUCCESS) {
 					continue;
+				}
 
 				server = isc_mem_get(mctx, sizeof(*server));
 				isc_sockaddr_fromin(&server->address,
@@ -803,16 +836,19 @@ next_ns:
 		dns_fixedname_invalidate(&trans->fixedname);
 		trans->qname = NULL;
 		result = set_nextqname(trans);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			result = probe_name(trans, dns_rdatatype_a);
+		}
 	} else {
 		result = fetch_nsaddress(trans);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto next_ns; /* XXX: this is unlikely to succeed */
+		}
 	}
 
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		reset_probe(trans);
+	}
 }
 
 static isc_result_t
@@ -848,11 +884,13 @@ reset_probe(struct probe_trans *trans)
 	dns_message_reset(trans->rmessage, DNS_MESSAGE_INTENTPARSE);
 
 	trans->inuse = false;
-	if (trans->domain != NULL)
+	if (trans->domain != NULL) {
 		isc_mem_free(mctx, trans->domain);
+	}
 	trans->domain = NULL;
-	if (trans->qname != NULL)
+	if (trans->qname != NULL) {
 		dns_fixedname_invalidate(&trans->fixedname);
+	}
 	trans->qname = NULL;
 	trans->qlabel = qlabels;
 	trans->qname_found = false;
@@ -870,8 +908,9 @@ reset_probe(struct probe_trans *trans)
 	outstanding_probes--;
 
 	result = probe_domain(trans);
-	if (result == ISC_R_NOMORE && outstanding_probes == 0)
+	if (result == ISC_R_NOMORE && outstanding_probes == 0) {
 		isc_app_ctxshutdown(actx);
+	}
 }
 
 static void
@@ -895,8 +934,9 @@ resolve_ns(isc_task_t *task, isc_event_t *event)
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			(void)print_rdataset(rdataset, name);
 
-			if (rdataset->type != dns_rdatatype_ns)
+			if (rdataset->type != dns_rdatatype_ns) {
 				continue;
+			}
 
 			for (result = dns_rdataset_first(rdataset);
 			     result == ISC_R_SUCCESS;
@@ -908,8 +948,9 @@ resolve_ns(isc_task_t *task, isc_event_t *event)
 				 * Extract the name from the NS record.
 				 */
 				result = dns_rdata_tostruct(&rdata, &ns, NULL);
-				if (result != ISC_R_SUCCESS)
+				if (result != ISC_R_SUCCESS) {
 					continue;
+				}
 
 				pns = isc_mem_get(mctx, sizeof(*pns));
 
@@ -934,11 +975,13 @@ resolve_ns(isc_task_t *task, isc_event_t *event)
 		/* Go get addresses of NSes */
 		trans->current_ns = ISC_LIST_HEAD(trans->nslist);
 		result = fetch_nsaddress(trans);
-	} else
+	} else {
 		result = ISC_R_FAILURE;
+	}
 
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		return;
+	}
 
 	reset_probe(trans);
 }
@@ -958,10 +1001,12 @@ probe_domain(struct probe_trans *trans)
 
 	/* Construct domain */
 	cp = fgets(buf, sizeof(buf), input);
-	if (cp == NULL)
+	if (cp == NULL) {
 		return (ISC_R_NOMORE);
-	if ((cp = strchr(buf, '\n')) != NULL) /* zap NL if any */
+	}
+	if ((cp = strchr(buf, '\n')) != NULL) { /* zap NL if any */
 		*cp = '\0';
+	}
 	trans->domain = isc_mem_strdup(mctx, buf);
 
 	/* Start getting NS for the domain */
@@ -970,13 +1015,15 @@ probe_domain(struct probe_trans *trans)
 	isc_buffer_add(&b, domainlen);
 	trans->qname = dns_fixedname_initname(&trans->fixedname);
 	result = dns_name_fromtext(trans->qname, &b, dns_rootname, 0, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	result = dns_client_startresolve(
 		client, trans->qname, dns_rdataclass_in, dns_rdatatype_ns, 0,
 		probe_task, resolve_ns, trans, &trans->resid);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	trans->inuse = true;
 	outstanding_probes++;
@@ -1099,9 +1146,9 @@ main(int argc, char *argv[])
 	}
 
 	/* Open input file */
-	if (argc == 0)
+	if (argc == 0) {
 		input = stdin;
-	else {
+	} else {
 		input = fopen(argv[0], "r");
 		if (input == NULL) {
 			fprintf(stderr, "failed to open input file: %s\n",
@@ -1137,9 +1184,9 @@ main(int argc, char *argv[])
 	}
 	for (i = 0; i < MAX_PROBES; i++) {
 		result = probe_domain(&probes[i]);
-		if (result == ISC_R_NOMORE)
+		if (result == ISC_R_NOMORE) {
 			break;
-		else if (result != ISC_R_SUCCESS) {
+		} else if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "failed to issue an initial probe\n");
 			exit(1);
 		}

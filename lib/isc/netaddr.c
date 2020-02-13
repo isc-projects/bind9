@@ -28,29 +28,34 @@ isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b)
 {
 	REQUIRE(a != NULL && b != NULL);
 
-	if (a->family != b->family)
+	if (a->family != b->family) {
 		return (false);
+	}
 
-	if (a->zone != b->zone)
+	if (a->zone != b->zone) {
 		return (false);
+	}
 
 	switch (a->family) {
 	case AF_INET:
-		if (a->type.in.s_addr != b->type.in.s_addr)
+		if (a->type.in.s_addr != b->type.in.s_addr) {
 			return (false);
+		}
 		break;
 	case AF_INET6:
 		if (memcmp(&a->type.in6, &b->type.in6, sizeof(a->type.in6)) !=
 			    0 ||
-		    a->zone != b->zone)
+		    a->zone != b->zone) {
 			return (false);
+		}
 		break;
 #ifdef ISC_PLATFORM_HAVESYSUNH
 	case AF_UNIX:
-		if (strcmp(a->type.un, b->type.un) != 0)
+		if (strcmp(a->type.un, b->type.un) != 0) {
 			return (false);
+		}
 		break;
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 	default:
 		return (false);
 	}
@@ -68,11 +73,13 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 
 	REQUIRE(a != NULL && b != NULL);
 
-	if (a->family != b->family)
+	if (a->family != b->family) {
 		return (false);
+	}
 
-	if (a->zone != b->zone && b->zone != 0)
+	if (a->zone != b->zone && b->zone != 0) {
 		return (false);
+	}
 
 	switch (a->family) {
 	case AF_INET:
@@ -92,15 +99,17 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 	/*
 	 * Don't crash if we get a pattern like 10.0.0.1/9999999.
 	 */
-	if (prefixlen > ipabytes * 8)
+	if (prefixlen > ipabytes * 8) {
 		prefixlen = ipabytes * 8;
+	}
 
 	nbytes = prefixlen / 8;
 	nbits = prefixlen % 8;
 
 	if (nbytes > 0) {
-		if (memcmp(pa, pb, nbytes) != 0)
+		if (memcmp(pa, pb, nbytes) != 0) {
 			return (false);
+		}
 	}
 	if (nbits > 0) {
 		unsigned int bytea, byteb, mask;
@@ -109,8 +118,9 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		bytea = pa[nbytes];
 		byteb = pb[nbytes];
 		mask = (0xFF << (8 - nbits)) & 0xFF;
-		if ((bytea & mask) != (byteb & mask))
+		if ((bytea & mask) != (byteb & mask)) {
 			return (false);
+		}
 	}
 	return (true);
 }
@@ -137,19 +147,21 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target)
 #ifdef ISC_PLATFORM_HAVESYSUNH
 	case AF_UNIX:
 		alen = strlen(netaddr->type.un);
-		if (alen > isc_buffer_availablelength(target))
+		if (alen > isc_buffer_availablelength(target)) {
 			return (ISC_R_NOSPACE);
+		}
 		isc_buffer_putmem(target,
 				  (const unsigned char *)(netaddr->type.un),
 				  alen);
 		return (ISC_R_SUCCESS);
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 	default:
 		return (ISC_R_FAILURE);
 	}
 	r = inet_ntop(netaddr->family, type, abuf, sizeof(abuf));
-	if (r == NULL)
+	if (r == NULL) {
 		return (ISC_R_FAILURE);
+	}
 
 	alen = strlen(abuf);
 	INSIST(alen < sizeof(abuf));
@@ -157,13 +169,15 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target)
 	zlen = 0;
 	if (netaddr->family == AF_INET6 && netaddr->zone != 0) {
 		zlen = snprintf(zbuf, sizeof(zbuf), "%%%u", netaddr->zone);
-		if (zlen < 0)
+		if (zlen < 0) {
 			return (ISC_R_FAILURE);
+		}
 		INSIST((unsigned int)zlen < sizeof(zbuf));
 	}
 
-	if (alen + zlen > isc_buffer_availablelength(target))
+	if (alen + zlen > isc_buffer_availablelength(target)) {
 		return (ISC_R_NOSPACE);
+	}
 
 	isc_buffer_putmem(target, (unsigned char *)abuf, alen);
 	isc_buffer_putmem(target, (unsigned char *)zbuf, (unsigned int)zlen);
@@ -180,17 +194,19 @@ isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size)
 	isc_buffer_init(&buf, array, size);
 	result = isc_netaddr_totext(na, &buf);
 
-	if (size == 0)
+	if (size == 0) {
 		return;
+	}
 
 	/*
 	 * Null terminate.
 	 */
 	if (result == ISC_R_SUCCESS) {
-		if (isc_buffer_availablelength(&buf) >= 1)
+		if (isc_buffer_availablelength(&buf) >= 1) {
 			isc_buffer_putuint8(&buf, 0);
-		else
+		} else {
 			result = ISC_R_NOSPACE;
+		}
 	}
 
 	if (result != ISC_R_SUCCESS) {
@@ -211,14 +227,16 @@ isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen)
 	case AF_INET:
 		p = (const unsigned char *)&na->type.in;
 		ipbytes = 4;
-		if (prefixlen > 32)
+		if (prefixlen > 32) {
 			return (ISC_R_RANGE);
+		}
 		break;
 	case AF_INET6:
 		p = (const unsigned char *)&na->type.in6;
 		ipbytes = 16;
-		if (prefixlen > 128)
+		if (prefixlen > 128) {
 			return (ISC_R_RANGE);
+		}
 		break;
 	default:
 		return (ISC_R_NOTIMPLEMENTED);
@@ -227,13 +245,15 @@ isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen)
 	nbits = prefixlen % 8;
 	if (nbits != 0) {
 		INSIST(nbytes < ipbytes);
-		if ((p[nbytes] & (0xff >> nbits)) != 0U)
+		if ((p[nbytes] & (0xff >> nbits)) != 0U) {
 			return (ISC_R_FAILURE);
+		}
 		nbytes++;
 	}
 	if (nbytes < ipbytes &&
-	    memcmp(p + nbytes, zeros, ipbytes - nbytes) != 0)
+	    memcmp(p + nbytes, zeros, ipbytes - nbytes) != 0) {
 		return (ISC_R_FAILURE);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -256,8 +276,9 @@ isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp)
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 	for (i = 0; i < ipbytes; i++) {
-		if (p[i] != 0xFF)
+		if (p[i] != 0xFF) {
 			break;
+		}
 	}
 	nbytes = i;
 	if (i < ipbytes) {
@@ -266,13 +287,15 @@ isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp)
 			c <<= 1;
 			nbits++;
 		}
-		if ((c & 0xFF) != 0)
+		if ((c & 0xFF) != 0) {
 			return (ISC_R_MASKNONCONTIG);
+		}
 		i++;
 	}
 	for (; i < ipbytes; i++) {
-		if (p[i] != 0)
+		if (p[i] != 0) {
 			return (ISC_R_MASKNONCONTIG);
+		}
 	}
 	*lenp = nbytes * 8 + nbits;
 	return (ISC_R_SUCCESS);
@@ -298,19 +321,20 @@ isc_result_t
 isc_netaddr_frompath(isc_netaddr_t *netaddr, const char *path)
 {
 #ifdef ISC_PLATFORM_HAVESYSUNH
-	if (strlen(path) > sizeof(netaddr->type.un) - 1)
+	if (strlen(path) > sizeof(netaddr->type.un) - 1) {
 		return (ISC_R_NOSPACE);
+	}
 
 	memset(netaddr, 0, sizeof(*netaddr));
 	netaddr->family = AF_UNIX;
 	strlcpy(netaddr->type.un, path, sizeof(netaddr->type.un));
 	netaddr->zone = 0;
 	return (ISC_R_SUCCESS);
-#else
+#else  /* ifdef ISC_PLATFORM_HAVESYSUNH */
 	UNUSED(netaddr);
 	UNUSED(path);
 	return (ISC_R_NOTIMPLEMENTED);
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 }
 
 void
@@ -347,7 +371,7 @@ isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s)
 		memmove(t->type.un, s->type.sunix.sun_path, sizeof(t->type.un));
 		t->zone = 0;
 		break;
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

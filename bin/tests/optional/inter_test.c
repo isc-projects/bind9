@@ -33,8 +33,9 @@ main(int argc, char **argv)
 
 	isc_mem_create(&mctx);
 	result = isc_interfaceiter_create(mctx, &iter);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	result = isc_interfaceiter_first(iter);
 	while (result == ISC_R_SUCCESS) {
 		result = isc_interfaceiter_current(iter, &ifdata);
@@ -48,12 +49,13 @@ main(int argc, char **argv)
 		INSIST(ifdata.af == AF_INET || ifdata.af == AF_INET6);
 		res = inet_ntop(ifdata.af, &ifdata.address.type, buf,
 				sizeof(buf));
-		if (ifdata.address.zone != 0)
+		if (ifdata.address.zone != 0) {
 			fprintf(stdout, "address = %s (zone %u)\n",
 				res == NULL ? "BAD" : res, ifdata.address.zone);
-		else
+		} else {
 			fprintf(stdout, "address = %s\n",
 				res == NULL ? "BAD" : res);
+		}
 		INSIST(ifdata.address.family == ifdata.af);
 		res = inet_ntop(ifdata.af, &ifdata.netmask.type, buf,
 				sizeof(buf));
@@ -79,8 +81,9 @@ main(int argc, char **argv)
 	fprintf(stdout, "\nPass 2\n\n");
 
 	result = isc_interfaceiter_create(mctx, &iter);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	result = isc_interfaceiter_first(iter);
 	while (result == ISC_R_SUCCESS) {
 		result = isc_interfaceiter_current(iter, &ifdata);
@@ -94,12 +97,13 @@ main(int argc, char **argv)
 		INSIST(ifdata.af == AF_INET || ifdata.af == AF_INET6);
 		res = inet_ntop(ifdata.af, &ifdata.address.type, buf,
 				sizeof(buf));
-		if (ifdata.address.zone != 0)
+		if (ifdata.address.zone != 0) {
 			fprintf(stdout, "address = %s (zone %u)\n",
 				res == NULL ? "BAD" : res, ifdata.address.zone);
-		else
+		} else {
 			fprintf(stdout, "address = %s\n",
 				res == NULL ? "BAD" : res);
+		}
 		INSIST(ifdata.address.family == ifdata.af);
 		res = inet_ntop(ifdata.af, &ifdata.netmask.type, buf,
 				sizeof(buf));

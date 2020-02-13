@@ -41,8 +41,9 @@ static inline isc_result_t fromtext_nsec(ARGS_FROMTEXT)
 				      false));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 
 	return (typemap_fromtext(lexer, target, false));
@@ -175,15 +176,17 @@ static inline isc_result_t tostruct_nsec(ARGS_TOSTRUCT)
 
 	nsec->len = region.length;
 	nsec->typebits = mem_maybedup(mctx, region.base, region.length);
-	if (nsec->typebits == NULL)
+	if (nsec->typebits == NULL) {
 		goto cleanup;
+	}
 
 	nsec->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (mctx != NULL)
+	if (mctx != NULL) {
 		dns_name_free(&nsec->next, mctx);
+	}
 	return (ISC_R_NOMEMORY);
 }
 
@@ -194,12 +197,14 @@ static inline void freestruct_nsec(ARGS_FREESTRUCT)
 	REQUIRE(nsec != NULL);
 	REQUIRE(nsec->common.rdtype == dns_rdatatype_nsec);
 
-	if (nsec->mctx == NULL)
+	if (nsec->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&nsec->next, nsec->mctx);
-	if (nsec->typebits != NULL)
+	if (nsec->typebits != NULL) {
 		isc_mem_free(nsec->mctx, nsec->typebits);
+	}
 	nsec->mctx = NULL;
 }
 
@@ -271,8 +276,9 @@ static inline int casecompare_nsec(ARGS_COMPARE)
 	dns_name_fromregion(&name2, &region2);
 
 	order = dns_name_rdatacompare(&name1, &name2);
-	if (order != 0)
+	if (order != 0) {
 		return (order);
+	}
 
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));

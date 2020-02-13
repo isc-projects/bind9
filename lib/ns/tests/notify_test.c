@@ -143,7 +143,7 @@ notify_start(void **state)
 	ns_test_cleanup_zone();
 	isc_nmhandle_unref(client->handle);
 }
-#endif
+#endif /* if defined(USE_LIBTOOL) || LD_WRAP */
 
 int
 main(void)
@@ -155,9 +155,9 @@ main(void)
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
-#else
+#else  /* if defined(USE_LIBTOOL) || LD_WRAP */
 	print_message("1..0 # Skip notify_test requires libtool or LD_WRAP\n");
-#endif
+#endif /* if defined(USE_LIBTOOL) || LD_WRAP */
 }
 #else /* HAVE_CMOCKA && !__SANITIZE_ADDRESS__ */
 

@@ -60,12 +60,14 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 	dbtable->rbt = NULL;
 	result = dns_rbt_create(mctx, dbdetach, NULL, &dbtable->rbt);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto clean1;
+	}
 
 	result = isc_rwlock_init(&dbtable->tree_lock, 0, 0);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto clean3;
+	}
 
 	dbtable->default_db = NULL;
 	dbtable->mctx = NULL;
@@ -96,8 +98,9 @@ dbtable_free(dns_dbtable_t *dbtable)
 
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 
-	if (dbtable->default_db != NULL)
+	if (dbtable->default_db != NULL) {
 		dns_db_detach(&dbtable->default_db);
+	}
 
 	dns_rbt_destroy(&dbtable->rbt);
 
@@ -238,21 +241,23 @@ dns_dbtable_find(dns_dbtable_t *dbtable, const dns_name_t *name,
 
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
-	if ((options & DNS_DBTABLEFIND_NOEXACT) != 0)
+	if ((options & DNS_DBTABLEFIND_NOEXACT) != 0) {
 		rbtoptions |= DNS_RBTFIND_NOEXACT;
+	}
 
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
 
 	result = dns_rbt_findname(dbtable->rbt, name, rbtoptions, NULL,
 				  (void **)(void *)&stored_data);
 
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		dns_db_attach(stored_data, dbp);
-	else if (dbtable->default_db != NULL) {
+	} else if (dbtable->default_db != NULL) {
 		dns_db_attach(dbtable->default_db, dbp);
 		result = DNS_R_PARTIALMATCH;
-	} else
+	} else {
 		result = ISC_R_NOTFOUND;
+	}
 
 	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
 

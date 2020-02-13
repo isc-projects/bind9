@@ -19,7 +19,7 @@
 #include <dlfcn.h>
 #elif _WIN32
 #include <windows.h>
-#endif
+#endif /* if HAVE_DLFCN_H */
 
 #include <isc/errno.h>
 #include <isc/list.h>
@@ -80,12 +80,12 @@ ns_plugin_expandpath(const char *src, char *dst, size_t dstsize)
 		 */
 		result = snprintf(dst, dstsize, "%s/%s", NAMED_PLUGINDIR, src);
 	}
-#else
+#else  /* ifndef WIN32 */
 	/*
 	 * On Windows, always copy 'src' do 'dst'.
 	 */
 	result = snprintf(dst, dstsize, "%s", src);
-#endif
+#endif /* ifndef WIN32 */
 
 	if (result < 0) {
 		return (isc_errno_toresult(errno));
@@ -150,7 +150,7 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp)
 	flags = RTLD_LAZY | RTLD_LOCAL;
 #if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__
 	flags |= RTLD_DEEPBIND;
-#endif
+#endif /* if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__ */
 
 	handle = dlopen(modpath, flags);
 	if (handle == NULL) {

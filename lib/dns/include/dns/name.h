@@ -13,8 +13,8 @@
 #define DNS_NAME_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/name.h
  * \brief
@@ -76,20 +76,20 @@
 ISC_LANG_BEGINDECLS
 
 /*****
- ***** Labels
- *****
- ***** A 'label' is basically a region.  It contains one DNS wire format
- ***** label of type 00 (ordinary).
- *****/
+***** Labels
+*****
+***** A 'label' is basically a region.  It contains one DNS wire format
+***** label of type 00 (ordinary).
+*****/
 
 /*****
- ***** Names
- *****
- ***** A 'name' is a handle to a binary region.  It contains a sequence of one
- ***** or more DNS wire format labels of type 00 (ordinary).
- ***** Note that all names are not required to end with the root label,
- ***** as they are in the actual DNS wire protocol.
- *****/
+***** Names
+*****
+***** A 'name' is a handle to a binary region.  It contains a sequence of one
+***** or more DNS wire format labels of type 00 (ordinary).
+***** Note that all names are not required to end with the root label,
+***** as they are in the actual DNS wire protocol.
+*****/
 
 /***
  *** Types

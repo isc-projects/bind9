@@ -36,11 +36,13 @@ static inline isc_result_t fromtext_in_aaaa(ARGS_FROMTEXT)
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 
-	if (inet_pton(AF_INET6, DNS_AS_STR(token), addr) != 1)
+	if (inet_pton(AF_INET6, DNS_AS_STR(token), addr) != 1) {
 		RETTOK(DNS_R_BADAAAA);
+	}
 	isc_buffer_availableregion(target, &region);
-	if (region.length < 16)
+	if (region.length < 16) {
 		return (ISC_R_NOSPACE);
+	}
 	memmove(region.base, addr, 16);
 	isc_buffer_add(target, 16);
 	return (ISC_R_SUCCESS);
@@ -91,10 +93,12 @@ static inline isc_result_t fromwire_in_aaaa(ARGS_FROMWIRE)
 
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
-	if (sregion.length < 16)
+	if (sregion.length < 16) {
 		return (ISC_R_UNEXPECTEDEND);
-	if (tregion.length < 16)
+	}
+	if (tregion.length < 16) {
 		return (ISC_R_NOSPACE);
+	}
 
 	memmove(tregion.base, sregion.base, 16);
 	isc_buffer_forward(source, 16);
@@ -113,8 +117,9 @@ static inline isc_result_t towire_in_aaaa(ARGS_TOWIRE)
 	REQUIRE(rdata->length == 16);
 
 	isc_buffer_availableregion(target, &region);
-	if (region.length < rdata->length)
+	if (region.length < rdata->length) {
 		return (ISC_R_NOSPACE);
+	}
 	memmove(region.base, rdata->data, rdata->length);
 	isc_buffer_add(target, 16);
 	return (ISC_R_SUCCESS);
@@ -230,8 +235,9 @@ static inline bool checkowner_in_aaaa(ARGS_CHECKOWNER)
 		dns_name_split(name, dns_name_countlabels(name) - 2, &prefix,
 			       &suffix);
 		if (dns_name_equal(&gc_msdcs, &prefix) &&
-		    dns_name_ishostname(&suffix, false))
+		    dns_name_ishostname(&suffix, false)) {
 			return (true);
+		}
 	}
 
 	return (dns_name_ishostname(name, wildcard));

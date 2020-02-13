@@ -13,8 +13,8 @@
 #define DNS_ADB_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/adb.h
  *\brief
@@ -245,8 +245,8 @@ struct dns_adbaddrinfo {
  */
 
 /****
- **** FUNCTIONS
- ****/
+**** FUNCTIONS
+****/
 
 isc_result_t
 dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,

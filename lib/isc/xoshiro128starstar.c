@@ -39,7 +39,7 @@ ISC_THREAD_LOCAL uint32_t seed[4] = { 0 };
 static inline uint32_t
 rotl(const uint32_t x, int k)
 {
-	return (x << k) | (x >> (32 - k));
+	return ((x << k) | (x >> (32 - k)));
 }
 
 static inline uint32_t

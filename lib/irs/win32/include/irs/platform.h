@@ -15,14 +15,14 @@
 #define IRS_PLATFORM_H 1
 
 /*****
- ***** Platform-dependent defines.
- *****/
+***** Platform-dependent defines.
+*****/
 
 #ifdef LIBIRS_EXPORTS
 #define LIBIRS_EXTERNAL_DATA __declspec(dllexport)
-#else
+#else /* ifdef LIBIRS_EXPORTS */
 #define LIBIRS_EXTERNAL_DATA __declspec(dllimport)
-#endif
+#endif /* ifdef LIBIRS_EXPORTS */
 
 /*
  * Tell Emacs to use C mode on this file.

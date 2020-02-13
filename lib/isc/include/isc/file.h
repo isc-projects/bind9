@@ -66,7 +66,7 @@ isc_result_t
 isc_file_mktemplate(const char *path, char *buf, size_t buflen);
 /*!<
  * \brief Generate a template string suitable for use with
- *isc_file_openunique().
+ * isc_file_openunique().
  *
  * Notes:
  *\li	This function is intended to make creating temporary files

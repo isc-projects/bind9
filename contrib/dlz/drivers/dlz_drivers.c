@@ -30,32 +30,32 @@
 
 #ifdef DLZ_STUB
 #include <dlz/dlz_stub_driver.h>
-#endif
+#endif /* ifdef DLZ_STUB */
 
 #ifdef DLZ_POSTGRES
 #include <dlz/dlz_postgres_driver.h>
-#endif
+#endif /* ifdef DLZ_POSTGRES */
 
 #ifdef DLZ_MYSQL
 #include <dlz/dlz_mysql_driver.h>
-#endif
+#endif /* ifdef DLZ_MYSQL */
 
 #ifdef DLZ_FILESYSTEM
 #include <dlz/dlz_filesystem_driver.h>
-#endif
+#endif /* ifdef DLZ_FILESYSTEM */
 
 #ifdef DLZ_BDB
 #include <dlz/dlz_bdb_driver.h>
 #include <dlz/dlz_bdbhpt_driver.h>
-#endif
+#endif /* ifdef DLZ_BDB */
 
 #ifdef DLZ_LDAP
 #include <dlz/dlz_ldap_driver.h>
-#endif
+#endif /* ifdef DLZ_LDAP */
 
 #ifdef DLZ_ODBC
 #include <dlz/dlz_odbc_driver.h>
-#endif
+#endif /* ifdef DLZ_ODBC */
 
 /*%
  * Call init functions for all relevant DLZ drivers.
@@ -68,48 +68,56 @@ dlz_drivers_init(void)
 
 #ifdef DLZ_STUB
 	result = dlz_stub_init();
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-#endif
+	}
+#endif /* ifdef DLZ_STUB */
 
 #ifdef DLZ_POSTGRES
 	result = dlz_postgres_init();
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-#endif
+	}
+#endif /* ifdef DLZ_POSTGRES */
 
 #ifdef DLZ_MYSQL
 	result = dlz_mysql_init();
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-#endif
+	}
+#endif /* ifdef DLZ_MYSQL */
 
 #ifdef DLZ_FILESYSTEM
 	result = dlz_fs_init();
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-#endif
+	}
+#endif /* ifdef DLZ_FILESYSTEM */
 
 #ifdef DLZ_BDB
 	result = dlz_bdb_init();
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	result = dlz_bdbhpt_init();
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-#endif
+	}
+#endif /* ifdef DLZ_BDB */
 
 #ifdef DLZ_LDAP
 	result = dlz_ldap_init();
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-#endif
+	}
+#endif /* ifdef DLZ_LDAP */
 
 #ifdef DLZ_ODBC
 	result = dlz_odbc_init();
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-#endif
+	}
+#endif /* ifdef DLZ_ODBC */
 
 	return (result);
 }
@@ -123,30 +131,30 @@ dlz_drivers_clear(void)
 {
 #ifdef DLZ_STUB
 	dlz_stub_clear();
-#endif
+#endif /* ifdef DLZ_STUB */
 
 #ifdef DLZ_POSTGRES
 	dlz_postgres_clear();
-#endif
+#endif /* ifdef DLZ_POSTGRES */
 
 #ifdef DLZ_MYSQL
 	dlz_mysql_clear();
-#endif
+#endif /* ifdef DLZ_MYSQL */
 
 #ifdef DLZ_FILESYSTEM
 	dlz_fs_clear();
-#endif
+#endif /* ifdef DLZ_FILESYSTEM */
 
 #ifdef DLZ_BDB
 	dlz_bdb_clear();
 	dlz_bdbhpt_clear();
-#endif
+#endif /* ifdef DLZ_BDB */
 
 #ifdef DLZ_LDAP
 	dlz_ldap_clear();
-#endif
+#endif /* ifdef DLZ_LDAP */
 
 #ifdef DLZ_ODBC
 	dlz_odbc_clear();
-#endif
+#endif /* ifdef DLZ_ODBC */
 }

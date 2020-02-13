@@ -31,42 +31,43 @@
 
 class CDirBrowse : public CDialog
 {
-	// Construction
+	/* Construction */
       public:
-	CDirBrowse(CString initialDir = "\\",
-		   CWnd *  pParent = NULL); // standard constructor
+	CDirBrowse(CString initialDir = "\\", CWnd *pParent = NULL); /* standard
+								      * constructor
+								      */
 	CString
 	GetSelectedDir()
 	{
 		return (m_selectedDir);
 	}
 
-	//{{AFX_DATA(CDirBrowse)
+	/*{{AFX_DATA(CDirBrowse) */
 	enum { IDD = IDD_BROWSE };
-	// NOTE: the ClassWizard will add data members here
-	//}}AFX_DATA
+	/* NOTE: the ClassWizard will add data members here */
+	/*}}AFX_DATA */
 
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(CDirBrowse)
+	/* ClassWizard generated virtual function overrides */
+	/*{{AFX_VIRTUAL(CDirBrowse) */
       protected:
 	virtual void
-	DoDataExchange(CDataExchange *pDX); // DDX/DDV support
-					    //}}AFX_VIRTUAL
+	DoDataExchange(CDataExchange *pDX); /* DDX/DDV support */
+					    /*}}AFX_VIRTUAL */
 
       protected:
-	// Generated message map functions
-	//{{AFX_MSG(CDirBrowse)
+	/* Generated message map functions */
+	/*{{AFX_MSG(CDirBrowse) */
 	virtual BOOL
 	OnInitDialog();
 	afx_msg void
 	OnDblclkDirlist();
 	afx_msg void
 	OnSelchangeDirlist();
-	//}}AFX_MSG
+	/*}}AFX_MSG */
 	DECLARE_MESSAGE_MAP()
 
       private:
 	CString m_selectedDir;
 };
 
-#endif
+#endif /* ifndef DIRBROWSE_H */

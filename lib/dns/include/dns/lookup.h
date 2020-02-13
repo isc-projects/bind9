@@ -13,8 +13,8 @@
 #define DNS_LOOKUP_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/lookup.h
  * \brief

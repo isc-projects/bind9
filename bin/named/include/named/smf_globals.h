@@ -19,10 +19,10 @@
 #ifdef NAMED_MAIN
 #define EXTERN
 #define INIT(v) = (v)
-#else
+#else /* ifdef NAMED_MAIN */
 #define EXTERN extern
 #define INIT(v)
-#endif
+#endif /* ifdef NAMED_MAIN */
 
 EXTERN unsigned int named_smf_got_instance INIT(0);
 EXTERN unsigned int named_smf_chroot	   INIT(0);

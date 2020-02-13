@@ -29,9 +29,9 @@
 
 #if defined(_WIN32) && !defined(_WIN64)
 typedef atomic_int_fast32_t isc__atomic_statcounter_t;
-#else
+#else  /* if defined(_WIN32) && !defined(_WIN64) */
 typedef atomic_int_fast64_t isc__atomic_statcounter_t;
-#endif
+#endif /* if defined(_WIN32) && !defined(_WIN64) */
 
 struct isc_stats {
 	unsigned int		   magic;

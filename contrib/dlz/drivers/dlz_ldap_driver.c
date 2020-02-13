@@ -183,8 +183,9 @@ dlz_ldap_checkURL(char *URL, int attrCnt, const char *msg)
 	}
 
 cleanup:
-	if (ldap_url != NULL)
+	if (ldap_url != NULL) {
 		ldap_free_urldesc(ldap_url);
+	}
 
 	return (result);
 }
@@ -206,8 +207,9 @@ dlz_ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc)
 
 	/* initialize. */
 	dbc->dbconn = ldap_init(dbi->hosts, LDAP_PORT);
-	if (dbc->dbconn == NULL)
+	if (dbc->dbconn == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	/* set protocol version. */
 	ldap_result = ldap_set_option((LDAP *)dbc->dbconn,
@@ -259,8 +261,9 @@ ldap_destroy_dblist(db_list_t *dblist)
 		/* get the next DBI in the list */
 		ndbi = ISC_LIST_NEXT(dbi, link);
 		/* release DB connection */
-		if (dbi->dbconn != NULL)
+		if (dbi->dbconn != NULL) {
 			ldap_unbind_s((LDAP *)dbi->dbconn);
+		}
 		/* release all memory that comprised a DBI */
 		destroy_sqldbinstance(dbi);
 	}
@@ -291,9 +294,9 @@ ldap_find_avail_conn(db_list_t *dblist)
 	/* loop through list */
 	while (count < dbc_search_limit) {
 		/* try to lock on the mutex */
-		if (isc_mutex_trylock(&dbi->instance_lock) == ISC_R_SUCCESS)
+		if (isc_mutex_trylock(&dbi->instance_lock) == ISC_R_SUCCESS) {
 			return (dbi); /* success, return the DBI for use. */
-
+		}
 		/* not successful, keep trying */
 		dbi = ISC_LIST_NEXT(dbi, link);
 
@@ -353,8 +356,9 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 			/* get the list of values for this attribute. */
 			vals = ldap_get_values(dbc, entry, attrs[j]);
 			/* skip empty attributes. */
-			if (vals == NULL || ldap_count_values(vals) < 1)
+			if (vals == NULL || ldap_count_values(vals) < 1) {
 				continue;
+			}
 			/*
 			 * we only use the first value.  this driver
 			 * does not support multi-valued attributes.
@@ -418,17 +422,18 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 				break;
 			case 2:
 				j++;
-				if (allnodes)
+				if (allnodes) {
 					host = isc_mem_strdup(named_g_mctx,
 							      vals[0]);
-				else
+				} else {
 					strcpy(data, vals[0]);
+				}
 				break;
 			case 3:
 				j++;
-				if (allnodes)
+				if (allnodes) {
 					strcpy(data, vals[0]);
-				else {
+				} else {
 					strcat(data, " ");
 					strcat(data, vals[0]);
 				}
@@ -466,15 +471,16 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 		}
 
 		if (allnodes && host != NULL) {
-			if (strcasecmp(host, "~") == 0)
+			if (strcasecmp(host, "~") == 0) {
 				result = dns_sdlz_putnamedrr(
 					(dns_sdlzallnodes_t *)ptr, "*", type,
 					ttl, data);
-			else
+			} else {
 				result = dns_sdlz_putnamedrr(
 					(dns_sdlzallnodes_t *)ptr, host, type,
 					ttl, data);
-			if (result != ISC_R_SUCCESS)
+			}
+			if (result != ISC_R_SUCCESS) {
 				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_DATABASE,
 					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -482,10 +488,11 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 					      "for \"%s %s %u %s\", %s",
 					      host, type, ttl, data,
 					      isc_result_totext(result));
+			}
 		} else {
 			result = dns_sdlz_putrr((dns_sdlzlookup_t *)ptr, type,
 						ttl, data);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_DATABASE,
 					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -493,6 +500,7 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 					      "for \"%s %u %s\", %s",
 					      type, ttl, data,
 					      isc_result_totext(result));
+			}
 		}
 
 		if (result != ISC_R_SUCCESS) {
@@ -506,8 +514,9 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 		/* free memory for type, data and host for next loop */
 		isc_mem_free(named_g_mctx, type);
 		isc_mem_free(named_g_mctx, data);
-		if (host != NULL)
+		if (host != NULL) {
 			isc_mem_free(named_g_mctx, host);
+		}
 
 		/* get the next entry to process */
 		entry = ldap_next_entry(dbc, entry);
@@ -515,14 +524,18 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 
 cleanup:
 	/* de-allocate memory */
-	if (vals != NULL)
+	if (vals != NULL) {
 		ldap_value_free(vals);
-	if (host != NULL)
+	}
+	if (host != NULL) {
 		isc_mem_free(named_g_mctx, host);
-	if (type != NULL)
+	}
+	if (type != NULL) {
 		isc_mem_free(named_g_mctx, type);
-	if (data != NULL)
+	}
+	if (data != NULL) {
 		isc_mem_free(named_g_mctx, data);
+	}
 
 	return (result);
 }
@@ -558,8 +571,9 @@ ldap_get_results(const char *zone, const char *record, const char *client,
 		(db_list_t *)((ldap_instance_t *)dbdata)->db);
 
 	/* if DBI is null, can't do anything else */
-	if (dbi == NULL)
+	if (dbi == NULL) {
 		return (ISC_R_FAILURE);
+	}
 
 	/* set fields */
 	if (zone != NULL) {
@@ -722,8 +736,9 @@ ldap_get_results(const char *zone, const char *record, const char *client,
 				      "LDAP driver attempting to re-connect");
 			result = dlz_ldap_connect((ldap_instance_t *)dbdata,
 						  dbi);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 			break;
 		default:
 			/*
@@ -740,8 +755,9 @@ ldap_get_results(const char *zone, const char *record, const char *client,
 		} /* close switch(ldap_result) */
 	}	  /* end for (int i = 0 i < 3; i++) */
 
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	switch (query) {
 	case ALLNODES:
@@ -755,21 +771,23 @@ ldap_get_results(const char *zone, const char *record, const char *client,
 		break;
 	case ALLOWXFR:
 		entries = ldap_count_entries((LDAP *)dbi->dbconn, ldap_msg);
-		if (entries == 0)
+		if (entries == 0) {
 			result = ISC_R_NOPERM;
-		else if (entries > 0)
+		} else if (entries > 0) {
 			result = ISC_R_SUCCESS;
-		else
+		} else {
 			result = ISC_R_FAILURE;
+		}
 		break;
 	case FINDZONE:
 		entries = ldap_count_entries((LDAP *)dbi->dbconn, ldap_msg);
-		if (entries == 0)
+		if (entries == 0) {
 			result = ISC_R_NOTFOUND;
-		else if (entries > 0)
+		} else if (entries > 0) {
 			result = ISC_R_SUCCESS;
-		else
+		} else {
 			result = ISC_R_FAILURE;
+		}
 		break;
 	default:
 		/*
@@ -786,26 +804,32 @@ cleanup:
 	/* it's always good to cleanup after yourself */
 
 	/* if we retrieved results, free them */
-	if (ldap_msg != NULL)
+	if (ldap_msg != NULL) {
 		ldap_msgfree(ldap_msg);
+	}
 
-	if (ldap_url != NULL)
+	if (ldap_url != NULL) {
 		ldap_free_urldesc(ldap_url);
+	}
 
 	/* cleanup */
-	if (dbi->zone != NULL)
+	if (dbi->zone != NULL) {
 		isc_mem_free(named_g_mctx, dbi->zone);
-	if (dbi->record != NULL)
+	}
+	if (dbi->record != NULL) {
 		isc_mem_free(named_g_mctx, dbi->record);
-	if (dbi->client != NULL)
+	}
+	if (dbi->client != NULL) {
 		isc_mem_free(named_g_mctx, dbi->client);
+	}
 
 	/* release the lock so another thread can use this dbi */
 	isc_mutex_unlock(&dbi->instance_lock);
 
 	/* release query string */
-	if (querystring != NULL)
+	if (querystring != NULL) {
 		isc_mem_free(named_g_mctx, querystring);
+	}
 
 	/* return result */
 	return (result);
@@ -871,12 +895,13 @@ dlz_ldap_lookup(const char *zone, const char *name, void *driverarg,
 	UNUSED(methods);
 	UNUSED(clientinfo);
 
-	if (strcmp(name, "*") == 0)
+	if (strcmp(name, "*") == 0) {
 		result = ldap_get_results(zone, "~", NULL, LOOKUP, dbdata,
 					  lookup);
-	else
+	} else {
 		result = ldap_get_results(zone, name, NULL, LOOKUP, dbdata,
 					  lookup);
+	}
 	return (result);
 }
 
@@ -961,25 +986,30 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 	switch (argc) {
 	case 12:
 		result = dlz_ldap_checkURL(argv[11], 0, "allow zone transfer");
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	case 11:
 		result = dlz_ldap_checkURL(argv[10], 3, "all nodes");
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	case 10:
 		if (strlen(argv[9]) > 0) {
 			result = dlz_ldap_checkURL(argv[9], 3, "authority");
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				return (result);
+			}
 		}
 	case 9:
 		result = dlz_ldap_checkURL(argv[8], 3, "lookup");
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 		result = dlz_ldap_checkURL(argv[7], 0, "find zone");
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 		break;
 	default:
 		/* not really needed, should shut up compiler. */
@@ -1059,13 +1089,13 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 		 * cleanup.
 		 */
 		switch (result) {
-			/* success, do nothing */
+		/* success, do nothing */
 		case ISC_R_SUCCESS:
 			break;
-			/*
-			 * no memory means ldap_init could not
-			 * allocate memory
-			 */
+		/*
+		 * no memory means ldap_init could not
+		 * allocate memory
+		 */
 		case ISC_R_NOMEMORY:
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -1074,10 +1104,10 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 				      i + 1);
 			goto cleanup;
 			break;
-			/*
-			 * no perm means ldap_set_option could not set
-			 * protocol version
-			 */
+		/*
+		 * no perm means ldap_set_option could not set
+		 * protocol version
+		 */
 		case ISC_R_NOPERM:
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -1086,7 +1116,7 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 			result = ISC_R_FAILURE;
 			goto cleanup;
 			break;
-			/* failure means couldn't connect to ldap server */
+		/* failure means couldn't connect to ldap server */
 		case ISC_R_FAILURE:
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -1095,10 +1125,10 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 				      i + 1);
 			goto cleanup;
 			break;
-			/*
-			 * default should never happen.  If it does,
-			 * major errors.
-			 */
+		/*
+		 * default should never happen.  If it does,
+		 * major errors.
+		 */
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "dlz_ldap_create() failed: %s",
@@ -1134,17 +1164,20 @@ dlz_ldap_destroy(void *driverarg, void *dbdata)
 		ldap_destroy_dblist(
 			(db_list_t *)((ldap_instance_t *)dbdata)->db);
 
-		if (((ldap_instance_t *)dbdata)->hosts != NULL)
+		if (((ldap_instance_t *)dbdata)->hosts != NULL) {
 			isc_mem_free(named_g_mctx,
 				     ((ldap_instance_t *)dbdata)->hosts);
+		}
 
-		if (((ldap_instance_t *)dbdata)->user != NULL)
+		if (((ldap_instance_t *)dbdata)->user != NULL) {
 			isc_mem_free(named_g_mctx,
 				     ((ldap_instance_t *)dbdata)->user);
+		}
 
-		if (((ldap_instance_t *)dbdata)->cred != NULL)
+		if (((ldap_instance_t *)dbdata)->cred != NULL) {
 			isc_mem_free(named_g_mctx,
 				     ((ldap_instance_t *)dbdata)->cred);
+		}
 
 		isc_mem_put(named_g_mctx, dbdata, sizeof(ldap_instance_t));
 	}
@@ -1207,8 +1240,9 @@ dlz_ldap_clear(void)
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
 		      ISC_LOG_DEBUG(2), "Unregistering DLZ ldap driver.");
 
-	if (dlz_ldap != NULL)
+	if (dlz_ldap != NULL) {
 		dns_sdlzunregister(&dlz_ldap);
+	}
 }
 
-#endif
+#endif /* ifdef DLZ_LDAP */

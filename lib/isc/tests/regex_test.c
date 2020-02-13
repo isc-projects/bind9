@@ -21,7 +21,7 @@
 
 #ifdef HAVE_REGEX_H
 #include <regex.h>
-#endif
+#endif /* ifdef HAVE_REGEX_H */
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -45,7 +45,8 @@ regex_validate(void **state)
 	struct {
 		const char *expression;
 		int	    expect;
-		int	    exception; /* regcomp accepts but is disallowed. */
+		int	    exception; /* regcomp accepts but is
+					* disallowed. */
 	} tests[] = {
 		{ "", -1, 0 },
 		{ "*", -1, 0 },
@@ -2322,7 +2323,7 @@ regex_validate(void **state)
 			regfree(&preg);
 		}
 	}
-#endif
+#endif /* ifdef HAVE_REGEX_H */
 
 	/*
 	 * Check if we get the expected response.
@@ -2369,4 +2370,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

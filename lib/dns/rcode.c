@@ -41,7 +41,7 @@
 	do {                             \
 		isc_result_t _r = (x);   \
 		if (_r != ISC_R_SUCCESS) \
-			return (_r);     \
+			return ((_r));   \
 	} while (0)
 
 #define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */
@@ -209,8 +209,9 @@ str_totext(const char *source, isc_buffer_t *target)
 	isc_buffer_availableregion(target, &region);
 	l = strlen(source);
 
-	if (l > region.length)
+	if (l > region.length) {
 		return (ISC_R_NOSPACE);
+	}
 
 	memmove(region.base, source, l);
 	isc_buffer_add(target, l);
@@ -265,8 +266,9 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 	int	     i;
 
 	result = maybe_numeric(valuep, source, max, false);
-	if (result != ISC_R_BADNUMBER)
+	if (result != ISC_R_BADNUMBER) {
 		return (result);
+	}
 
 	for (i = 0; table[i].name != NULL; i++) {
 		unsigned int n;
@@ -404,15 +406,16 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 	unsigned int value = 0;
 #ifdef notyet
 	unsigned int mask = 0;
-#endif
+#endif /* ifdef notyet */
 
 	result = maybe_numeric(&value, source, 0xffff, true);
 	if (result == ISC_R_SUCCESS) {
 		*flagsp = value;
 		return (ISC_R_SUCCESS);
 	}
-	if (result != ISC_R_BADNUMBER)
+	if (result != ISC_R_BADNUMBER) {
 		return (result);
+	}
 
 	text = source->base;
 	end = source->base + source->length;
@@ -421,25 +424,30 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 		struct keyflag *p;
 		unsigned int	len;
 		char *		delim = memchr(text, '|', end - text);
-		if (delim != NULL)
+		if (delim != NULL) {
 			len = (unsigned int)(delim - text);
-		else
+		} else {
 			len = (unsigned int)(end - text);
-		for (p = keyflags; p->name != NULL; p++) {
-			if (strncasecmp(p->name, text, len) == 0)
-				break;
 		}
-		if (p->name == NULL)
+		for (p = keyflags; p->name != NULL; p++) {
+			if (strncasecmp(p->name, text, len) == 0) {
+				break;
+			}
+		}
+		if (p->name == NULL) {
 			return (DNS_R_UNKNOWNFLAG);
+		}
 		value |= p->value;
 #ifdef notyet
-		if ((mask & p->mask) != 0)
+		if ((mask & p->mask) != 0) {
 			warn("overlapping key flags");
+		}
 		mask |= p->mask;
-#endif
+#endif /* ifdef notyet */
 		text += len;
-		if (delim != NULL)
+		if (delim != NULL) {
 			text++; /* Skip "|" */
+		}
 	}
 	*flagsp = value;
 	return (ISC_R_SUCCESS);
@@ -580,8 +588,9 @@ dns_rdataclass_format(dns_rdataclass_t rdclass, char *array, unsigned int size)
 	isc_result_t result;
 	isc_buffer_t buf;
 
-	if (size == 0U)
+	if (size == 0U) {
 		return;
+	}
 
 	isc_buffer_init(&buf, array, size);
 	result = dns_rdataclass_totext(rdclass, &buf);
@@ -589,11 +598,13 @@ dns_rdataclass_format(dns_rdataclass_t rdclass, char *array, unsigned int size)
 	 * Null terminate.
 	 */
 	if (result == ISC_R_SUCCESS) {
-		if (isc_buffer_availablelength(&buf) >= 1)
+		if (isc_buffer_availablelength(&buf) >= 1) {
 			isc_buffer_putuint8(&buf, 0);
-		else
+		} else {
 			result = ISC_R_NOSPACE;
+		}
 	}
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		strlcpy(array, "<unknown>", size);
+	}
 }

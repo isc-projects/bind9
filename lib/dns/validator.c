@@ -522,7 +522,7 @@ fetch_callback_ds(isc_task_t *task, isc_event_t *event)
 			goto unexpected;
 		}
 
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	case ISC_R_SUCCESS:
 		if (trustchain) {
 			/*

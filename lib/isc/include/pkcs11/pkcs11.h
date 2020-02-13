@@ -1,76 +1,76 @@
 /* pkcs11.h
-   Copyright 2006, 2007 g10 Code GmbH
-   Copyright 2006 Andreas Jellinghaus
-   Copyright 2017 Red Hat, Inc.
-
-   This file is free software; as a special exception the author gives
-   unlimited permission to copy and/or distribute it, with or without
-   modifications, as long as this notice is preserved.
-
-   This file is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY, to the extent permitted by law; without even
-   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-   PURPOSE.  */
+ * Copyright 2006, 2007 g10 Code GmbH
+ * Copyright 2006 Andreas Jellinghaus
+ * Copyright 2017 Red Hat, Inc.
+ *
+ * This file is free software; as a special exception the author gives
+ * unlimited permission to copy and/or distribute it, with or without
+ * modifications, as long as this notice is preserved.
+ *
+ * This file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY, to the extent permitted by law; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  */
 
 /* Please submit any changes back to the p11-kit project at
-   https://github.com/p11-glue/p11-kit/, so that
-   they can be picked up by other projects from there as well.  */
+ * https://github.com/p11-glue/p11-kit/, so that
+ * they can be picked up by other projects from there as well.  */
 
 /* This file is a modified implementation of the PKCS #11 standard by
-   OASIS group.  It is mostly a drop-in replacement, with the
-   following change:
-
-   This header file does not require any macro definitions by the user
-   (like CK_DEFINE_FUNCTION etc).  In fact, it defines those macros
-   for you (if useful, some are missing, let me know if you need
-   more).
-
-   There is an additional API available that does comply better to the
-   GNU coding standard.  It can be switched on by defining
-   CRYPTOKI_GNU before including this header file.  For this, the
-   following changes are made to the specification:
-
-   All structure types are changed to a "struct ck_foo" where CK_FOO
-   is the type name in PKCS #11.
-
-   All non-structure types are changed to ck_foo_t where CK_FOO is the
-   lowercase version of the type name in PKCS #11.  The basic types
-   (CK_ULONG et al.) are removed without substitute.
-
-   All members of structures are modified in the following way: Type
-   indication prefixes are removed, and underscore characters are
-   inserted before words.  Then the result is lowercased.
-
-   Note that function names are still in the original case, as they
-   need for ABI compatibility.
-
-   CK_FALSE, CK_TRUE and NULL_PTR are removed without substitute.  Use
-   <stdbool.h>.
-
-   If CRYPTOKI_COMPAT is defined before including this header file,
-   then none of the API changes above take place, and the API is the
-   one defined by the PKCS #11 standard.  */
+ * OASIS group.  It is mostly a drop-in replacement, with the
+ * following change:
+ *
+ * This header file does not require any macro definitions by the user
+ * (like CK_DEFINE_FUNCTION etc).  In fact, it defines those macros
+ * for you (if useful, some are missing, let me know if you need
+ * more).
+ *
+ * There is an additional API available that does comply better to the
+ * GNU coding standard.  It can be switched on by defining
+ * CRYPTOKI_GNU before including this header file.  For this, the
+ * following changes are made to the specification:
+ *
+ * All structure types are changed to a "struct ck_foo" where CK_FOO
+ * is the type name in PKCS #11.
+ *
+ * All non-structure types are changed to ck_foo_t where CK_FOO is the
+ * lowercase version of the type name in PKCS #11.  The basic types
+ * (CK_ULONG et al.) are removed without substitute.
+ *
+ * All members of structures are modified in the following way: Type
+ * indication prefixes are removed, and underscore characters are
+ * inserted before words.  Then the result is lowercased.
+ *
+ * Note that function names are still in the original case, as they
+ * need for ABI compatibility.
+ *
+ * CK_FALSE, CK_TRUE and NULL_PTR are removed without substitute.  Use
+ * <stdbool.h>.
+ *
+ * If CRYPTOKI_COMPAT is defined before including this header file,
+ * then none of the API changes above take place, and the API is the
+ * one defined by the PKCS #11 standard.  */
 
 #ifndef PKCS11_H
 #define PKCS11_H 1
 
 #if defined(__cplusplus)
 extern "C" {
-#endif
+#endif /* if defined(__cplusplus) */
 
 /* The version of cryptoki we implement.  The revision is changed with
-   each modification of this file.  */
+ * each modification of this file.  */
 #define CRYPTOKI_VERSION_MAJOR 2
 #define CRYPTOKI_VERSION_MINOR 40
 #define P11_KIT_CRYPTOKI_VERSION_REVISION 0
 
 /* Compatibility interface is default, unless CRYPTOKI_GNU is
-   given.  */
+ * given.  */
 #ifndef CRYPTOKI_GNU
 #ifndef CRYPTOKI_COMPAT
 #define CRYPTOKI_COMPAT 1
-#endif
-#endif
+#endif /* ifndef CRYPTOKI_COMPAT */
+#endif /* ifndef CRYPTOKI_GNU */
 
 /* System dependencies.  */
 
@@ -81,19 +81,19 @@ extern "C" {
 
 #ifdef CRYPTOKI_EXPORTS
 #define CK_SPEC __declspec(dllexport)
-#else
+#else /* ifdef CRYPTOKI_EXPORTS */
 #define CK_SPEC __declspec(dllimport)
-#endif
+#endif /* ifdef CRYPTOKI_EXPORTS */
 
-#else
+#else /* if defined(_WIN32) || defined(CRYPTOKI_FORCE_WIN32) */
 
 #define CK_SPEC
 
-#endif
+#endif /* if defined(_WIN32) || defined(CRYPTOKI_FORCE_WIN32) */
 
 #ifdef CRYPTOKI_COMPAT
 /* If we are in compatibility mode, switch all exposed names to the
-   PKCS #11 variant.  There are corresponding #undefs below.  */
+ * PKCS #11 variant.  There are corresponding #undefs below.  */
 
 #define ck_flags_t CK_FLAGS
 #define ck_version _CK_VERSION
@@ -1467,11 +1467,11 @@ typedef void **		  CK_VOID_PTR_PTR;
 #ifndef CK_DISABLE_TRUE_FALSE
 #ifndef FALSE
 #define FALSE 0
-#endif
+#endif /* ifndef FALSE */
 #ifndef TRUE
 #define TRUE 1
-#endif
-#endif
+#endif /* ifndef TRUE */
+#endif /* ifndef CK_DISABLE_TRUE_FALSE */
 
 typedef struct ck_version  CK_VERSION;
 typedef struct ck_version *CK_VERSION_PTR;
@@ -1548,7 +1548,7 @@ typedef struct ck_aes_cbc_encrypt_data_params
 
 #ifndef NULL_PTR
 #define NULL_PTR NULL
-#endif
+#endif /* ifndef NULL_PTR */
 
 /* Delete the helper macros defined at the top of the file.  */
 #undef ck_flags_t
@@ -1644,10 +1644,10 @@ typedef struct ck_aes_cbc_encrypt_data_params
 /* System dependencies.  */
 #if defined(_WIN32) || defined(CRYPTOKI_FORCE_WIN32)
 #pragma pack(pop, cryptoki)
-#endif
+#endif /* if defined(_WIN32) || defined(CRYPTOKI_FORCE_WIN32) */
 
 #if defined(__cplusplus)
 }
-#endif
+#endif /* if defined(__cplusplus) */
 
 #endif /* PKCS11_H */

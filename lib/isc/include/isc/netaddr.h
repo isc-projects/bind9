@@ -24,7 +24,7 @@
 #ifdef ISC_PLATFORM_HAVESYSUNH
 #include <sys/types.h>
 #include <sys/un.h>
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 
 ISC_LANG_BEGINDECLS
 
@@ -35,7 +35,7 @@ struct isc_netaddr {
 		struct in6_addr in6;
 #ifdef ISC_PLATFORM_HAVESYSUNH
 		char un[sizeof(((struct sockaddr_un *)0)->sun_path)];
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 	} type;
 	uint32_t zone;
 };

@@ -45,9 +45,9 @@ ISC_LANG_BEGINDECLS
 #define DNS_RBTNODE_MAGIC ISC_MAGIC('R', 'B', 'N', 'O')
 #if DNS_RBT_USEMAGIC
 #define DNS_RBTNODE_VALID(n) ISC_MAGIC_VALID(n, DNS_RBTNODE_MAGIC)
-#else
+#else /* if DNS_RBT_USEMAGIC */
 #define DNS_RBTNODE_VALID(n) true
-#endif
+#endif /* if DNS_RBT_USEMAGIC */
 
 /*%
  * This is the structure that is used for each node in the red/black
@@ -65,7 +65,7 @@ enum { DNS_RBT_NSEC_NORMAL = 0,	  /* in main tree */
 struct dns_rbtnode {
 #if DNS_RBT_USEMAGIC
 	unsigned int magic;
-#endif
+#endif /* if DNS_RBT_USEMAGIC */
 	/*@{*/
 	/*!
 	 * The following bitfields add up to a total bitwidth of 32.
@@ -152,8 +152,9 @@ struct dns_rbtnode {
 	uint8_t : 0; /* start of bitfields c/o node lock */
 	uint8_t dirty : 1;
 	uint8_t wild : 1;
-	uint8_t : 0;		/* end of bitfields c/o node lock */
-	uint16_t       locknum; /* note that this is not in the bitfield */
+	uint8_t : 0;	  /* end of bitfields c/o node lock */
+	uint16_t locknum; /* note that this is not in the bitfield
+			   * */
 	isc_refcount_t references;
 	/*@}*/
 };
@@ -172,8 +173,8 @@ typedef isc_result_t (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode, void *base,
 typedef void (*dns_rbtdeleter_t)(void *, void *);
 
 /*****
- *****  Chain Info
- *****/
+*****  Chain Info
+*****/
 
 /*!
  * A chain is used to keep track of the sequence of nodes to reach any given
@@ -270,8 +271,8 @@ typedef struct dns_rbtnodechain {
 } dns_rbtnodechain_t;
 
 /*****
- ***** Public interfaces.
- *****/
+***** Public interfaces.
+*****/
 isc_result_t
 dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter, void *deleter_arg,
 	       dns_rbt_t **rbtp);
@@ -484,10 +485,10 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
  *\li   If result is ISC_R_SUCCESS:
  *\verbatim
  *              *node is the terminal node for 'name'.
-
+ *
  *              'foundname' and 'name' represent the same name (though not
  *              the same memory).
-
+ *
  *              'chain' points to the DNSSEC predecessor, if any, of 'name'.
  *
  *              chain->level_matches and chain->level_count are equal.
@@ -822,8 +823,8 @@ dns__rbtnode_getdistance(dns_rbtnode_t *node);
  */
 
 /*****
- ***** Chain Functions
- *****/
+***** Chain Functions
+*****/
 
 void
 dns_rbtnodechain_init(dns_rbtnodechain_t *chain);
@@ -980,9 +981,9 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
  * Returns:
  *\li   #ISC_R_SUCCESS          The predecessor was found and 'name' was set.
  *\li   #DNS_R_NEWORIGIN                The predecessor was found with a
- *different origin and 'name' and 'origin' were set. \li   #ISC_R_NOMORE There
- *was no predecessor. \li   &lt;something_else>     Any error result from
- *dns_rbtnodechain_current.
+ * different origin and 'name' and 'origin' were set. \li   #ISC_R_NOMORE There
+ * was no predecessor. \li   &lt;something_else>     Any error result from
+ * dns_rbtnodechain_current.
  */
 
 isc_result_t

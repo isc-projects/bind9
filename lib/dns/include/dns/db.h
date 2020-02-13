@@ -13,8 +13,8 @@
 #define DNS_DB_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/db.h
  * \brief
@@ -43,8 +43,8 @@
  */
 
 /*****
- ***** Imports
- *****/
+***** Imports
+*****/
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -65,8 +65,8 @@
 ISC_LANG_BEGINDECLS
 
 /*****
- ***** Types
- *****/
+***** Types
+*****/
 
 typedef struct dns_dbmethods {
 	void (*attach)(dns_db_t *source, dns_db_t **targetp);
@@ -266,8 +266,8 @@ struct dns_dbonupdatelistener {
 /*@}*/
 
 /*****
- ***** Methods
- *****/
+***** Methods
+*****/
 
 /***
  *** Basic DB Methods
@@ -1229,7 +1229,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * \li	#ISC_R_SUCCESS
  * \li	#DNS_R_UNCHANGED			The operation did not change
- *anything. \li	#ISC_R_NOMEMORY \li	#DNS_R_NOTEXACT
+ * anything. \li	#ISC_R_NOMEMORY \li	#DNS_R_NOTEXACT
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
@@ -1271,9 +1271,10 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  *
  * \li	#ISC_R_SUCCESS
  * \li	#DNS_R_UNCHANGED			The operation did not change
- *anything. \li	#DNS_R_NXRRSET			All rdata of the same type as
- *those in 'rdataset' have been deleted. \li	#DNS_R_NOTEXACT
- *Some part of 'rdataset' did not exist and DNS_DBSUB_EXACT was set.
+ * anything. \li	#DNS_R_NXRRSET			All rdata of the same
+ *type as
+ * those in 'rdataset' have been deleted. \li	#DNS_R_NOTEXACT
+ * Some part of 'rdataset' did not exist and DNS_DBSUB_EXACT was set.
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
@@ -1312,7 +1313,7 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *
  * \li	#ISC_R_SUCCESS
  * \li	#DNS_R_UNCHANGED			No rdatasets of 'type' existed
- *before the operation was attempted.
+ * before the operation was attempted.
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.

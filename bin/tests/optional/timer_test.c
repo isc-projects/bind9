@@ -44,8 +44,9 @@ tick(isc_task_t *task, isc_event_t *event)
 	printf("task %s (%p) tick\n", name, task);
 
 	tick_count++;
-	if (ti3 != NULL && tick_count % 3 == 0)
+	if (ti3 != NULL && tick_count % 3 == 0) {
 		isc_timer_touch(ti3);
+	}
 
 	if (ti3 != NULL && tick_count == 7) {
 		isc_time_t     expires;
@@ -72,10 +73,11 @@ timeout(isc_task_t *task, isc_event_t *event)
 	INSIST(event->ev_type == ISC_TIMEREVENT_IDLE ||
 	       event->ev_type == ISC_TIMEREVENT_LIFE);
 
-	if (event->ev_type == ISC_TIMEREVENT_IDLE)
+	if (event->ev_type == ISC_TIMEREVENT_IDLE) {
 		type = "idle";
-	else
+	} else {
 		type = "life";
+	}
 	printf("task %s (%p) %s timeout\n", name, task, type);
 
 	if (strcmp(name, "3") == 0) {
@@ -103,12 +105,15 @@ main(int argc, char *argv[])
 
 	if (argc > 1) {
 		workers = atoi(argv[1]);
-		if (workers < 1)
+		if (workers < 1) {
 			workers = 1;
-		if (workers > 8192)
+		}
+		if (workers > 8192) {
 			workers = 8192;
-	} else
+		}
+	} else {
 		workers = 2;
+	}
 	printf("%u workers\n", workers);
 
 	isc_mem_create(&mctx1);
@@ -155,18 +160,18 @@ main(int argc, char *argv[])
 
 #ifndef WIN32
 	sleep(15);
-#else
+#else  /* ifndef WIN32 */
 	Sleep(15000);
-#endif
+#endif /* ifndef WIN32 */
 	printf("destroy\n");
 	isc_timer_detach(&ti1);
 	isc_timer_detach(&ti2);
 	isc_timer_detach(&ti3);
 #ifndef WIN32
 	sleep(2);
-#else
+#else  /* ifndef WIN32 */
 	Sleep(2000);
-#endif
+#endif /* ifndef WIN32 */
 	isc_timermgr_destroy(&timgr);
 	isc_taskmgr_destroy(&manager);
 	printf("destroyed\n");

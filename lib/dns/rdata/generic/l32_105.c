@@ -34,18 +34,21 @@ static inline isc_result_t fromtext_l32(ARGS_FROMTEXT)
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 
-	if (inet_pton(AF_INET, DNS_AS_STR(token), &addr) != 1)
+	if (inet_pton(AF_INET, DNS_AS_STR(token), &addr) != 1) {
 		RETTOK(DNS_R_BADDOTTEDQUAD);
+	}
 	isc_buffer_availableregion(target, &region);
-	if (region.length < 4)
+	if (region.length < 4) {
 		return (ISC_R_NOSPACE);
+	}
 	memmove(region.base, &addr, 4);
 	isc_buffer_add(target, 4);
 	return (ISC_R_SUCCESS);
@@ -85,8 +88,9 @@ static inline isc_result_t fromwire_l32(ARGS_FROMWIRE)
 	UNUSED(dctx);
 
 	isc_buffer_activeregion(source, &sregion);
-	if (sregion.length != 6)
+	if (sregion.length != 6) {
 		return (DNS_R_FORMERR);
+	}
 	isc_buffer_forward(source, sregion.length);
 	return (mem_tobuffer(target, sregion.base, sregion.length));
 }

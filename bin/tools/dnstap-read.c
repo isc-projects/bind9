@@ -101,16 +101,18 @@ print_dtdata(dns_dtdata_t *dt)
 	isc_buffer_t *b = NULL;
 
 	isc_buffer_allocate(mctx, &b, 2048);
-	if (b == NULL)
+	if (b == NULL) {
 		fatal("out of memory");
+	}
 
 	CHECKM(dns_dt_datatotext(dt, &b), "dns_dt_datatotext");
 	printf("%.*s\n", (int)isc_buffer_usedlength(b),
 	       (char *)isc_buffer_base(b));
 
 cleanup:
-	if (b != NULL)
+	if (b != NULL) {
 		isc_buffer_free(&b);
+	}
 }
 
 static void
@@ -137,8 +139,9 @@ print_hex(dns_dtdata_t *dt)
 	       (char *)isc_buffer_base(b));
 
 cleanup:
-	if (b != NULL)
+	if (b != NULL) {
 		isc_buffer_free(&b);
+	}
 }
 
 static void
@@ -151,13 +154,15 @@ print_packet(dns_dtdata_t *dt, const dns_master_style_t *style)
 		size_t textlen = 2048;
 
 		isc_buffer_allocate(mctx, &b, textlen);
-		if (b == NULL)
+		if (b == NULL) {
 			fatal("out of memory");
+		}
 
 		for (;;) {
 			isc_buffer_reserve(&b, textlen);
-			if (b == NULL)
+			if (b == NULL) {
 				fatal("out of memory");
+			}
 
 			result = dns_message_totext(dt->msg, style, 0, b);
 			if (result == ISC_R_NOSPACE) {
@@ -177,8 +182,9 @@ print_packet(dns_dtdata_t *dt, const dns_master_style_t *style)
 	}
 
 cleanup:
-	if (b != NULL)
+	if (b != NULL) {
 		isc_buffer_free(&b);
+	}
 }
 
 static void
@@ -191,33 +197,39 @@ print_yaml(dns_dtdata_t *dt)
 
 	ftype = protobuf_c_enum_descriptor_get_value(
 		&dnstap__dnstap__type__descriptor, frame->type);
-	if (ftype == NULL)
+	if (ftype == NULL) {
 		return;
+	}
 
-	if (!first)
+	if (!first) {
 		printf("---\n");
-	else
+	} else {
 		first = false;
+	}
 
 	printf("type: %s\n", ftype->name);
 
-	if (frame->has_identity)
+	if (frame->has_identity) {
 		printf("identity: %.*s\n", (int)frame->identity.len,
 		       frame->identity.data);
+	}
 
-	if (frame->has_version)
+	if (frame->has_version) {
 		printf("version: %.*s\n", (int)frame->version.len,
 		       frame->version.data);
+	}
 
-	if (frame->type != DNSTAP__DNSTAP__TYPE__MESSAGE)
+	if (frame->type != DNSTAP__DNSTAP__TYPE__MESSAGE) {
 		return;
+	}
 
 	printf("message:\n");
 
 	mtype = protobuf_c_enum_descriptor_get_value(
 		&dnstap__message__type__descriptor, m->type);
-	if (mtype == NULL)
+	if (mtype == NULL) {
 		return;
+	}
 
 	printf("  type: %s\n", mtype->name);
 
@@ -235,16 +247,18 @@ print_yaml(dns_dtdata_t *dt)
 
 	if (dt->msgdata.base != NULL) {
 		printf("  message_size: %zub\n", (size_t)dt->msgdata.length);
-	} else
+	} else {
 		printf("  message_size: 0b\n");
+	}
 
 	if (m->has_socket_family) {
 		const ProtobufCEnumValue *type =
 			protobuf_c_enum_descriptor_get_value(
 				&dnstap__socket_family__descriptor,
 				m->socket_family);
-		if (type != NULL)
+		if (type != NULL) {
 			printf("  socket_family: %s\n", type->name);
+		}
 	}
 
 	printf("  socket_protocol: %s\n", dt->tcp ? "TCP" : "UDP");
@@ -267,11 +281,13 @@ print_yaml(dns_dtdata_t *dt)
 		printf("  response_address: %s\n", buf);
 	}
 
-	if (m->has_query_port)
+	if (m->has_query_port) {
 		printf("  query_port: %u\n", m->query_port);
+	}
 
-	if (m->has_response_port)
+	if (m->has_response_port) {
 		printf("  response_port: %u\n", m->response_port);
+	}
 
 	if (m->has_query_zone) {
 		isc_result_t	 result;
@@ -308,7 +324,7 @@ print_yaml(dns_dtdata_t *dt)
 					    : "response_message");
 		print_packet(dt, &dns_master_style_indent);
 	}
-};
+}
 
 int
 main(int argc, char *argv[])
@@ -344,8 +360,9 @@ main(int argc, char *argv[])
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	if (argc < 1)
+	if (argc < 1) {
 		fatal("no file specified");
+	}
 
 	isc_mem_create(&mctx);
 
@@ -361,19 +378,22 @@ main(int argc, char *argv[])
 		size_t	     datalen;
 
 		result = dns_dt_getframe(handle, &data, &datalen);
-		if (result == ISC_R_NOMORE)
+		if (result == ISC_R_NOMORE) {
 			break;
-		else
+		} else {
 			CHECKM(result, "dns_dt_getframe");
+		}
 
 		input.base = data;
 		input.length = datalen;
 
-		if (b != NULL)
+		if (b != NULL) {
 			isc_buffer_free(&b);
+		}
 		isc_buffer_allocate(mctx, &b, 2048);
-		if (b == NULL)
+		if (b == NULL) {
 			fatal("out of memory");
+		}
 
 		result = dns_dt_parse(mctx, &input, &dt);
 		if (result != ISC_R_SUCCESS) {
@@ -397,14 +417,18 @@ main(int argc, char *argv[])
 	}
 
 cleanup:
-	if (dt != NULL)
+	if (dt != NULL) {
 		dns_dtdata_free(&dt);
-	if (handle != NULL)
+	}
+	if (handle != NULL) {
 		dns_dt_close(&handle);
-	if (message != NULL)
+	}
+	if (message != NULL) {
 		dns_message_destroy(&message);
-	if (b != NULL)
+	}
+	if (b != NULL) {
 		isc_buffer_free(&b);
+	}
 	isc_mem_destroy(&mctx);
 
 	exit(rv);

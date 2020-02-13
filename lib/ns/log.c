@@ -18,7 +18,7 @@
 
 #ifndef ISC_FACILITY
 #define ISC_FACILITY LOG_DAEMON
-#endif
+#endif /* ifndef ISC_FACILITY */
 
 /*%
  * When adding a new category, be sure to add the appropriate

@@ -104,8 +104,9 @@ UpdateSCM(DWORD state)
 	static DWORD   dwState = SERVICE_STOPPED;
 
 	if (hServiceStatus) {
-		if (state)
+		if (state) {
 			dwState = state;
+		}
 
 		memset(&ss, 0, sizeof(SERVICE_STATUS));
 		ss.dwServiceType |= SERVICE_WIN32_OWN_PROCESS;

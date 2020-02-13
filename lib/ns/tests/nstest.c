@@ -381,8 +381,9 @@ ns_test_makeview(const char *name, bool with_cache, dns_view_t **viewp)
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (view != NULL)
+	if (view != NULL) {
 		dns_view_detach(&view);
+	}
 	return (result);
 }
 
@@ -406,14 +407,16 @@ ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	dns_fixedname_t fixorigin;
 	dns_name_t *	origin;
 
-	if (view == NULL)
+	if (view == NULL) {
 		CHECK(dns_view_create(mctx, dns_rdataclass_in, "view", &view));
-	else if (!keepview)
+	} else if (!keepview) {
 		keepview = true;
+	}
 
 	zone = *zonep;
-	if (zone == NULL)
+	if (zone == NULL) {
 		CHECK(dns_zone_create(&zone, mctx));
+	}
 
 	isc_buffer_constinit(&buffer, name, strlen(name));
 	isc_buffer_add(&buffer, strlen(name));
@@ -425,18 +428,21 @@ ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	dns_zone_setclass(zone, view->rdclass);
 	dns_view_addzone(view, zone);
 
-	if (!keepview)
+	if (!keepview) {
 		dns_view_detach(&view);
+	}
 
 	*zonep = zone;
 
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (zone != NULL)
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
-	if (view != NULL)
+	}
+	if (view != NULL) {
 		dns_view_detach(&view);
+	}
 	return (result);
 }
 
@@ -458,8 +464,9 @@ ns_test_managezone(dns_zone_t *zone)
 	REQUIRE(zonemgr != NULL);
 
 	result = dns_zonemgr_setsize(zonemgr, 1);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_zonemgr_managezone(zonemgr, zone);
 	return (result);
@@ -888,13 +895,13 @@ ns_test_nap(uint32_t usec)
 	nanosleep(&ts, NULL);
 #elif HAVE_USLEEP
 	usleep(usec);
-#else
+#else  /* ifdef HAVE_NANOSLEEP */
 	/*
 	 * No fractional-second sleep function is available, so we
 	 * round up to the nearest second and sleep instead
 	 */
 	sleep((usec / 1000000) + 1);
-#endif
+#endif /* ifdef HAVE_NANOSLEEP */
 }
 
 isc_result_t
@@ -908,13 +915,15 @@ ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 	name = dns_fixedname_initname(&fixed);
 
 	result = dns_name_fromstring(name, origin, 0, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_db_create(mctx, "rbt", name, dbtype, dns_rdataclass_in, 0,
 			       NULL, db);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_db_load(*db, testfile, dns_masterformat_text, 0);
 	return (result);
@@ -923,12 +932,13 @@ ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 static int
 fromhex(char c)
 {
-	if (c >= '0' && c <= '9')
+	if (c >= '0' && c <= '9') {
 		return (c - '0');
-	else if (c >= 'a' && c <= 'f')
+	} else if (c >= 'a' && c <= 'f') {
 		return (c - 'a' + 10);
-	else if (c >= 'A' && c <= 'F')
+	} else if (c >= 'A' && c <= 'F') {
 		return (c - 'A' + 10);
+	}
 
 	printf("bad input format: %02x\n", c);
 	exit(3);
@@ -948,8 +958,9 @@ ns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
 	int	       n;
 
 	result = isc_stdio_open(file, "r", &f);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	bp = buf;
 	while (fgets(s, sizeof(s), f) != NULL) {
@@ -957,8 +968,9 @@ ns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
 		wp = s;
 		len = 0;
 		while (*rp != '\0') {
-			if (*rp == '#')
+			if (*rp == '#') {
 				break;
+			}
 			if (*rp != ' ' && *rp != '\t' && *rp != '\r' &&
 			    *rp != '\n') {
 				*wp++ = *rp;
@@ -966,12 +978,15 @@ ns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
 			}
 			rp++;
 		}
-		if (len == 0U)
+		if (len == 0U) {
 			continue;
-		if (len % 2 != 0U)
+		}
+		if (len % 2 != 0U) {
 			CHECK(ISC_R_UNEXPECTEDEND);
-		if (len > bufsiz * 2)
+		}
+		if (len > bufsiz * 2) {
 			CHECK(ISC_R_NOSPACE);
+		}
 		rp = s;
 		for (i = 0; i < len; i += 2) {
 			n = fromhex(*rp++);

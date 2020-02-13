@@ -45,8 +45,9 @@ getpass(const char *prompt)
 
 	for (cnt = 0; cnt < sizeof(buf) - 1; cnt++) {
 		ReadFile(h, buf + cnt, 1, &cc, NULL);
-		if (buf[cnt] == '\r')
+		if (buf[cnt] == '\r') {
 			break;
+		}
 		fputc('*', stdout);
 		fflush(stderr);
 		fflush(stdout);
@@ -69,14 +70,17 @@ pkcs_C_Initialize(CK_VOID_PTR pReserved)
 	CK_C_Initialize sym;
 	const char *	lib_name = pk11_get_lib_name();
 
-	if (hPK11 != NULL)
+	if (hPK11 != NULL) {
 		return (CKR_LIBRARY_ALREADY_INITIALIZED);
+	}
 
-	if (lib_name == NULL)
+	if (lib_name == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
+	}
 	/* Visual Studio convertion issue... */
-	if (*lib_name == ' ')
+	if (*lib_name == ' ') {
 		lib_name++;
+	}
 
 	hPK11 = LoadLibraryA(lib_name);
 
@@ -88,9 +92,10 @@ pkcs_C_Initialize(CK_VOID_PTR pReserved)
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
 	}
 	sym = (CK_C_Initialize)GetProcAddress(hPK11, "C_Initialize");
-	if (sym == NULL)
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(pReserved);
+	}
+	return ((*sym)(pReserved));
 }
 
 char *
@@ -105,14 +110,17 @@ pkcs_C_Finalize(CK_VOID_PTR pReserved)
 	CK_C_Finalize sym;
 	CK_RV	      rv;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
+	}
 	sym = (CK_C_Finalize)GetProcAddress(hPK11, "C_Finalize");
-	if (sym == NULL)
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
+	}
 	rv = (*sym)(pReserved);
-	if ((rv == CKR_OK) && (FreeLibrary(hPK11) == 0))
+	if ((rv == CKR_OK) && (FreeLibrary(hPK11) == 0)) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
+	}
 	hPK11 = NULL;
 	return (rv);
 }
@@ -123,13 +131,16 @@ pkcs_C_GetSlotList(CK_BBOOL tokenPresent, CK_SLOT_ID_PTR pSlotList,
 {
 	static CK_C_GetSlotList sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_GetSlotList)GetProcAddress(hPK11, "C_GetSlotList");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(tokenPresent, pSlotList, pulCount);
+	}
+	return ((*sym)(tokenPresent, pSlotList, pulCount));
 }
 
 CK_RV
@@ -137,14 +148,17 @@ pkcs_C_GetTokenInfo(CK_SLOT_ID slotID, CK_TOKEN_INFO_PTR pInfo)
 {
 	static CK_C_GetTokenInfo sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_GetTokenInfo)GetProcAddress(hPK11, "C_"
 							       "GetTokenInfo");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(slotID, pInfo);
+	}
+	return ((*sym)(slotID, pInfo));
 }
 
 CK_RV
@@ -153,15 +167,18 @@ pkcs_C_GetMechanismInfo(CK_SLOT_ID slotID, CK_MECHANISM_TYPE type,
 {
 	static CK_C_GetMechanismInfo sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_GetMechanismInfo)GetProcAddress(hPK11, "C_"
 								   "GetMechanis"
 								   "mInfo");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(slotID, type, pInfo);
+	}
+	return ((*sym)(slotID, type, pInfo));
 }
 
 CK_RV
@@ -173,8 +190,9 @@ pkcs_C_OpenSession(CK_SLOT_ID slotID, CK_FLAGS flags, CK_VOID_PTR pApplication,
 {
 	static CK_C_OpenSession sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		hPK11 = LoadLibraryA(pk11_get_lib_name());
+	}
 	if (hPK11 == NULL) {
 		const DWORD err = GetLastError();
 		snprintf(loaderrmsg, sizeof(loaderrmsg),
@@ -182,11 +200,13 @@ pkcs_C_OpenSession(CK_SLOT_ID slotID, CK_FLAGS flags, CK_VOID_PTR pApplication,
 			 pk11_get_lib_name(), err);
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
 	}
-	if (sym == NULL)
+	if (sym == NULL) {
 		sym = (CK_C_OpenSession)GetProcAddress(hPK11, "C_OpenSession");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(slotID, flags, pApplication, Notify, phSession);
+	}
+	return ((*sym)(slotID, flags, pApplication, Notify, phSession));
 }
 
 CK_RV
@@ -194,14 +214,17 @@ pkcs_C_CloseSession(CK_SESSION_HANDLE hSession)
 {
 	static CK_C_CloseSession sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_CloseSession)GetProcAddress(hPK11, "C_"
 							       "CloseSession");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession);
+	}
+	return ((*sym)(hSession));
 }
 
 CK_RV
@@ -210,13 +233,16 @@ pkcs_C_Login(CK_SESSION_HANDLE hSession, CK_USER_TYPE userType,
 {
 	static CK_C_Login sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_Login)GetProcAddress(hPK11, "C_Login");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, userType, pPin, usPinLen);
+	}
+	return ((*sym)(hSession, userType, pPin, usPinLen));
 }
 
 CK_RV
@@ -224,13 +250,16 @@ pkcs_C_Logout(CK_SESSION_HANDLE hSession)
 {
 	static CK_C_Logout sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_Logout)GetProcAddress(hPK11, "C_Logout");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession);
+	}
+	return ((*sym)(hSession));
 }
 
 CK_RV
@@ -239,14 +268,17 @@ pkcs_C_CreateObject(CK_SESSION_HANDLE hSession, CK_ATTRIBUTE_PTR pTemplate,
 {
 	static CK_C_CreateObject sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_CreateObject)GetProcAddress(hPK11, "C_"
 							       "CreateObject");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pTemplate, usCount, phObject);
+	}
+	return ((*sym)(hSession, pTemplate, usCount, phObject));
 }
 
 CK_RV
@@ -254,15 +286,18 @@ pkcs_C_DestroyObject(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE hObject)
 {
 	static CK_C_DestroyObject sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_DestroyObject)GetProcAddress(hPK11, "C_"
 								"DestroyObjec"
 								"t");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, hObject);
+	}
+	return ((*sym)(hSession, hObject));
 }
 
 CK_RV
@@ -271,15 +306,18 @@ pkcs_C_GetAttributeValue(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE hObject,
 {
 	static CK_C_GetAttributeValue sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_GetAttributeValue)GetProcAddress(hPK11, "C_"
 								    "GetAttribu"
 								    "teValue");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, hObject, pTemplate, usCount);
+	}
+	return ((*sym)(hSession, hObject, pTemplate, usCount));
 }
 
 CK_RV
@@ -288,15 +326,18 @@ pkcs_C_SetAttributeValue(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE hObject,
 {
 	static CK_C_SetAttributeValue sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_SetAttributeValue)GetProcAddress(hPK11, "C_"
 								    "SetAttribu"
 								    "teValue");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, hObject, pTemplate, usCount);
+	}
+	return ((*sym)(hSession, hObject, pTemplate, usCount));
 }
 
 CK_RV
@@ -305,15 +346,18 @@ pkcs_C_FindObjectsInit(CK_SESSION_HANDLE hSession, CK_ATTRIBUTE_PTR pTemplate,
 {
 	static CK_C_FindObjectsInit sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_FindObjectsInit)GetProcAddress(hPK11, "C_"
 								  "FindObjectsI"
 								  "nit");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pTemplate, usCount);
+	}
+	return ((*sym)(hSession, pTemplate, usCount));
 }
 
 CK_RV
@@ -322,13 +366,16 @@ pkcs_C_FindObjects(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE_PTR phObject,
 {
 	static CK_C_FindObjects sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_FindObjects)GetProcAddress(hPK11, "C_FindObjects");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, phObject, usMaxObjectCount, pusObjectCount);
+	}
+	return ((*sym)(hSession, phObject, usMaxObjectCount, pusObjectCount));
 }
 
 CK_RV
@@ -336,15 +383,18 @@ pkcs_C_FindObjectsFinal(CK_SESSION_HANDLE hSession)
 {
 	static CK_C_FindObjectsFinal sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_FindObjectsFinal)GetProcAddress(hPK11, "C_"
 								   "FindObjects"
 								   "Final");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession);
+	}
+	return ((*sym)(hSession));
 }
 
 CK_RV
@@ -353,13 +403,16 @@ pkcs_C_EncryptInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 {
 	static CK_C_EncryptInit sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_EncryptInit)GetProcAddress(hPK11, "C_EncryptInit");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pMechanism, hKey);
+	}
+	return ((*sym)(hSession, pMechanism, hKey));
 }
 
 CK_RV
@@ -369,14 +422,17 @@ pkcs_C_Encrypt(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
 {
 	static CK_C_Encrypt sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_Encrypt)GetProcAddress(hPK11, "C_Encrypt");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pData, ulDataLen, pEncryptedData,
-		      pulEncryptedDataLen);
+	}
+	return ((*sym)(hSession, pData, ulDataLen, pEncryptedData,
+		       pulEncryptedDataLen));
 }
 
 CK_RV
@@ -384,13 +440,16 @@ pkcs_C_DigestInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism)
 {
 	static CK_C_DigestInit sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_DigestInit)GetProcAddress(hPK11, "C_DigestInit");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pMechanism);
+	}
+	return ((*sym)(hSession, pMechanism));
 }
 
 CK_RV
@@ -399,14 +458,17 @@ pkcs_C_DigestUpdate(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pPart,
 {
 	static CK_C_DigestUpdate sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_DigestUpdate)GetProcAddress(hPK11, "C_"
 							       "DigestUpdate");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pPart, ulPartLen);
+	}
+	return ((*sym)(hSession, pPart, ulPartLen));
 }
 
 CK_RV
@@ -415,13 +477,16 @@ pkcs_C_DigestFinal(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pDigest,
 {
 	static CK_C_DigestFinal sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_DigestFinal)GetProcAddress(hPK11, "C_DigestFinal");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pDigest, pulDigestLen);
+	}
+	return ((*sym)(hSession, pDigest, pulDigestLen));
 }
 
 CK_RV
@@ -430,13 +495,16 @@ pkcs_C_SignInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 {
 	static CK_C_SignInit sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_SignInit)GetProcAddress(hPK11, "C_SignInit");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pMechanism, hKey);
+	}
+	return ((*sym)(hSession, pMechanism, hKey));
 }
 
 CK_RV
@@ -445,13 +513,17 @@ pkcs_C_Sign(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData, CK_ULONG ulDataLen,
 {
 	static CK_C_Sign sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_Sign)GetProcAddress(hPK11, "C_Sign");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pData, ulDataLen, pSignature, pulSignatureLen);
+	}
+	return ((*sym)(hSession, pData, ulDataLen, pSignature,
+		       pulSignatureLen));
 }
 
 CK_RV
@@ -460,13 +532,16 @@ pkcs_C_SignUpdate(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pPart,
 {
 	static CK_C_SignUpdate sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_SignUpdate)GetProcAddress(hPK11, "C_SignUpdate");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pPart, ulPartLen);
+	}
+	return ((*sym)(hSession, pPart, ulPartLen));
 }
 
 CK_RV
@@ -475,13 +550,16 @@ pkcs_C_SignFinal(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pSignature,
 {
 	static CK_C_SignFinal sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_SignFinal)GetProcAddress(hPK11, "C_SignFinal");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pSignature, pulSignatureLen);
+	}
+	return ((*sym)(hSession, pSignature, pulSignatureLen));
 }
 
 CK_RV
@@ -490,13 +568,16 @@ pkcs_C_VerifyInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 {
 	static CK_C_VerifyInit sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_VerifyInit)GetProcAddress(hPK11, "C_VerifyInit");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pMechanism, hKey);
+	}
+	return ((*sym)(hSession, pMechanism, hKey));
 }
 
 CK_RV
@@ -505,13 +586,16 @@ pkcs_C_Verify(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData, CK_ULONG ulDataLen,
 {
 	static CK_C_Verify sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_Verify)GetProcAddress(hPK11, "C_Verify");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pData, ulDataLen, pSignature, ulSignatureLen);
+	}
+	return ((*sym)(hSession, pData, ulDataLen, pSignature, ulSignatureLen));
 }
 
 CK_RV
@@ -520,14 +604,17 @@ pkcs_C_VerifyUpdate(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pPart,
 {
 	static CK_C_VerifyUpdate sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_VerifyUpdate)GetProcAddress(hPK11, "C_"
 							       "VerifyUpdate");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pPart, ulPartLen);
+	}
+	return ((*sym)(hSession, pPart, ulPartLen));
 }
 
 CK_RV
@@ -536,13 +623,16 @@ pkcs_C_VerifyFinal(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pSignature,
 {
 	static CK_C_VerifyFinal sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_VerifyFinal)GetProcAddress(hPK11, "C_VerifyFinal");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pSignature, ulSignatureLen);
+	}
+	return ((*sym)(hSession, pSignature, ulSignatureLen));
 }
 
 CK_RV
@@ -552,13 +642,16 @@ pkcs_C_GenerateKey(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 {
 	static CK_C_GenerateKey sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_GenerateKey)GetProcAddress(hPK11, "C_GenerateKey");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pMechanism, pTemplate, ulCount, phKey);
+	}
+	return ((*sym)(hSession, pMechanism, pTemplate, ulCount, phKey));
 }
 
 CK_RV
@@ -572,17 +665,20 @@ pkcs_C_GenerateKeyPair(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 {
 	static CK_C_GenerateKeyPair sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_GenerateKeyPair)GetProcAddress(hPK11, "C_"
 								  "GenerateKeyP"
 								  "air");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pMechanism, pPublicKeyTemplate,
-		      usPublicKeyAttributeCount, pPrivateKeyTemplate,
-		      usPrivateKeyAttributeCount, phPrivateKey, phPublicKey);
+	}
+	return ((*sym)(hSession, pMechanism, pPublicKeyTemplate,
+		       usPublicKeyAttributeCount, pPrivateKeyTemplate,
+		       usPrivateKeyAttributeCount, phPrivateKey, phPublicKey));
 }
 
 CK_RV
@@ -592,14 +688,17 @@ pkcs_C_DeriveKey(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 {
 	static CK_C_DeriveKey sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_DeriveKey)GetProcAddress(hPK11, "C_DeriveKey");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pMechanism, hBaseKey, pTemplate,
-		      ulAttributeCount, phKey);
+	}
+	return ((*sym)(hSession, pMechanism, hBaseKey, pTemplate,
+		       ulAttributeCount, phKey));
 }
 
 CK_RV
@@ -608,13 +707,16 @@ pkcs_C_SeedRandom(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pSeed,
 {
 	static CK_C_SeedRandom sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_SeedRandom)GetProcAddress(hPK11, "C_SeedRandom");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, pSeed, ulSeedLen);
+	}
+	return ((*sym)(hSession, pSeed, ulSeedLen));
 }
 
 CK_RV
@@ -623,13 +725,16 @@ pkcs_C_GenerateRandom(CK_SESSION_HANDLE hSession, CK_BYTE_PTR RandomData,
 {
 	static CK_C_GenerateRandom sym = NULL;
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		sym = (CK_C_GenerateRandom)GetProcAddress(hPK11, "C_"
 								 "GenerateRando"
 								 "m");
-	if (sym == NULL)
+	}
+	if (sym == NULL) {
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
-	return (*sym)(hSession, RandomData, ulRandomLen);
+	}
+	return ((*sym)(hSession, RandomData, ulRandomLen));
 }

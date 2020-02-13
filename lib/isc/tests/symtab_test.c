@@ -93,8 +93,9 @@ symtab_grow(void **state)
 		assert_non_null(value.as_pointer);
 		result = isc_symtab_define(st, key, 1, value, policy);
 		assert_int_equal(result, ISC_R_SUCCESS);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			undefine(key, 1, value, NULL);
+		}
 	}
 
 	/*
@@ -171,4 +172,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

@@ -34,7 +34,7 @@
 typedef struct isc_astack	    isc_astack_t; /*%< Array-based fast stack */
 typedef struct isc_appctx	    isc_appctx_t; /*%< Application context */
 typedef struct isc_backtrace_symmap isc_backtrace_symmap_t; /*%< Symbol Table
-							       Entry */
+							     * Entry */
 typedef struct isc_buffer isc_buffer_t;			    /*%< Buffer */
 typedef ISC_LIST(isc_buffer_t) isc_bufferlist_t;	    /*%< Buffer List */
 typedef struct isc_constregion	   isc_constregion_t;	    /*%< Const region */
@@ -48,7 +48,7 @@ typedef unsigned int	isc_eventtype_t;       /*%< Event Type */
 typedef uint32_t	isc_fsaccess_t;	       /*%< FS Access */
 typedef struct isc_hash isc_hash_t;	       /*%< Hash */
 typedef struct isc_hp	isc_hp_t;	       /*%< Hazard
-						    pointer */
+						*   pointer */
 typedef struct isc_httpd isc_httpd_t;	       /*%< HTTP client */
 typedef void(isc_httpdfree_t)(isc_buffer_t *, void *); /*%< HTTP free function
 							*/
@@ -78,16 +78,17 @@ typedef uint64_t	       isc_resourcevalue_t;  /*%< Resource Value */
 typedef unsigned int	       isc_result_t;	     /*%< Result */
 typedef struct isc_rwlock      isc_rwlock_t;	     /*%< Read Write Lock */
 typedef struct isc_sockaddr    isc_sockaddr_t;	     /*%< Socket Address */
-typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t; /*%< Socket Address List */
+typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t; /*%< Socket Address List
+						      * */
 typedef struct isc_socket      isc_socket_t;	     /*%< Socket */
 typedef struct isc_socketevent isc_socketevent_t;    /*%< Socket Event */
 typedef struct isc_socketmgr   isc_socketmgr_t;	     /*%< Socket Manager */
 typedef struct isc_stats       isc_stats_t;	     /*%< Statistics */
 #if defined(_WIN32) && !defined(_WIN64)
 typedef int_fast32_t isc_statscounter_t; /*%< Statistics Counter */
-#else
+#else  /* if defined(_WIN32) && !defined(_WIN64) */
 typedef int_fast64_t isc_statscounter_t;
-#endif
+#endif /* if defined(_WIN32) && !defined(_WIN64) */
 typedef struct isc_symtab isc_symtab_t;		/*%< Symbol Table */
 typedef struct isc_task	  isc_task_t;		/*%< Task */
 typedef ISC_LIST(isc_task_t) isc_tasklist_t;	/*%< Task List */

@@ -43,10 +43,11 @@ dns_nsec_setbit(unsigned char *array, unsigned int type, unsigned int bit)
 	shift = 7 - (type % 8);
 	mask = 1 << shift;
 
-	if (bit != 0)
+	if (bit != 0) {
 		array[type / 8] |= mask;
-	else
+	} else {
 		array[type / 8] &= (~mask & 0xFF);
+	}
 }
 
 bool
@@ -69,15 +70,19 @@ dns_nsec_compressbitmap(unsigned char *map, const unsigned char *raw,
 	unsigned int   window;
 	int	       octet;
 
-	if (raw == NULL)
+	if (raw == NULL) {
 		return (0);
+	}
 
 	for (window = 0; window < 256; window++) {
-		if (window * 256 > max_type)
+		if (window * 256 > max_type) {
 			break;
-		for (octet = 31; octet >= 0; octet--)
-			if (*(raw + octet) != 0)
+		}
+		for (octet = 31; octet >= 0; octet--) {
+			if (*(raw + octet) != 0) {
 				break;
+			}
+		}
 		if (octet < 0) {
 			raw += 32;
 			continue;
@@ -91,7 +96,7 @@ dns_nsec_compressbitmap(unsigned char *map, const unsigned char *raw,
 		map += octet + 1;
 		raw += 32;
 	}
-	return (unsigned int)(map - start);
+	return ((unsigned int)(map - start));
 }
 
 isc_result_t
@@ -126,16 +131,18 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
 	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter)) {
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 		if (rdataset.type != dns_rdatatype_nsec &&
 		    rdataset.type != dns_rdatatype_nsec3 &&
 		    rdataset.type != dns_rdatatype_rrsig) {
-			if (rdataset.type > max_type)
+			if (rdataset.type > max_type) {
 				max_type = rdataset.type;
+			}
 			dns_nsec_setbit(bm, rdataset.type, 1);
 		}
 		dns_rdataset_disassociate(&rdataset);
@@ -148,14 +155,16 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	    !dns_nsec_isset(bm, dns_rdatatype_soa)) {
 		for (i = 0; i <= max_type; i++) {
 			if (dns_nsec_isset(bm, i) &&
-			    !dns_rdatatype_iszonecutauth((dns_rdatatype_t)i))
+			    !dns_rdatatype_iszonecutauth((dns_rdatatype_t)i)) {
 				dns_nsec_setbit(bm, i, 0);
+			}
 		}
 	}
 
 	dns_rdatasetiter_destroy(&rdsiter);
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_NOMORE) {
 		return (result);
+	}
 
 	nsec_bits += dns_nsec_compressbitmap(nsec_bits, bm, max_type);
 
@@ -188,12 +197,14 @@ dns_nsec_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	RETERR(dns_rdatalist_tordataset(&rdatalist, &rdataset));
 	result = dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL);
-	if (result == DNS_R_UNCHANGED)
+	if (result == DNS_R_UNCHANGED) {
 		result = ISC_R_SUCCESS;
+	}
 
 failure:
-	if (dns_rdataset_isassociated(&rdataset))
+	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
+	}
 	return (result);
 }
 
@@ -249,17 +260,20 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version, bool *answer)
 	dns_rdataset_init(&rdataset);
 
 	result = dns_db_getoriginnode(db, &node);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_dnskey, 0,
 				     0, &rdataset, NULL);
 	dns_db_detachnode(db, &node);
 
-	if (result == ISC_R_NOTFOUND)
+	if (result == ISC_R_NOTFOUND) {
 		*answer = false;
-	if (result != ISC_R_SUCCESS)
+	}
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset)) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -269,12 +283,14 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version, bool *answer)
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (dnskey.algorithm == DST_ALG_RSAMD5 ||
-		    dnskey.algorithm == DST_ALG_RSASHA1)
+		    dnskey.algorithm == DST_ALG_RSASHA1) {
 			break;
+		}
 	}
 	dns_rdataset_disassociate(&rdataset);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		*answer = true;
+	}
 	if (result == ISC_R_NOMORE) {
 		*answer = false;
 		result = ISC_R_SUCCESS;
@@ -390,8 +406,9 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	}
 
 	result = dns_rdata_tostruct(&rdata, &nsec, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	relation = dns_name_fullcompare(&nsec.next, name, &order, &nlabels);
 	if (order == 0) {
 		dns_rdata_freestruct(&nsec);

@@ -49,15 +49,17 @@ isc_ntpaths_init(void)
 
 	memset(namedBase, 0, sizeof(namedBase));
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, BIND_SUBKEY, 0, KEY_READ, &hKey) !=
-	    ERROR_SUCCESS)
+	    ERROR_SUCCESS) {
 		keyFound = FALSE;
+	}
 
 	if (keyFound == TRUE) {
 		/* Get the named directory */
 		if (RegQueryValueEx(hKey, "InstallDir", NULL, NULL,
 				    (LPBYTE)namedBase,
-				    &baseLen) != ERROR_SUCCESS)
+				    &baseLen) != ERROR_SUCCESS) {
 			keyFound = FALSE;
+		}
 		RegCloseKey(hKey);
 	}
 
@@ -106,8 +108,9 @@ isc_ntpaths_init(void)
 char *
 isc_ntpaths_get(int ind)
 {
-	if (!Initialized)
+	if (!Initialized) {
 		isc_ntpaths_init();
+	}
 
 	switch (ind) {
 	case NAMED_CONF_PATH:

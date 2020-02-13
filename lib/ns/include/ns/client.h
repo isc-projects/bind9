@@ -13,8 +13,8 @@
 #define NS_CLIENT_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief
@@ -184,7 +184,7 @@ struct ns_clientmgr {
 	/*%< mctx pool for clients. */
 	unsigned int nextmctx;
 	isc_mem_t *  mctxpool[CLIENT_NMCTXS];
-#endif
+#endif /* if CLIENT_NMCTXS > 0 */
 };
 
 /*% nameserver client structure */
@@ -297,9 +297,9 @@ struct ns_client {
 
 #if defined(_WIN32) && !defined(_WIN64)
 LIBNS_EXTERNAL_DATA extern atomic_uint_fast32_t ns_client_requests;
-#else
+#else  /* if defined(_WIN32) && !defined(_WIN64) */
 LIBNS_EXTERNAL_DATA extern atomic_uint_fast64_t ns_client_requests;
-#endif
+#endif /* if defined(_WIN32) && !defined(_WIN64) */
 
 /***
  *** Functions
