@@ -13,8 +13,8 @@
 #define DNS_SDB_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/sdb.h
  * \brief

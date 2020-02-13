@@ -71,15 +71,17 @@ isccc_symtab_create(unsigned int	      size,
 	REQUIRE(size > 0); /* Should be prime. */
 
 	symtab = malloc(sizeof(*symtab));
-	if (symtab == NULL)
+	if (symtab == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 	symtab->table = malloc(size * sizeof(eltlist_t));
 	if (symtab->table == NULL) {
 		free(symtab);
 		return (ISC_R_NOMEMORY);
 	}
-	for (i = 0; i < size; i++)
+	for (i = 0; i < size; i++) {
 		ISC_LIST_INIT(symtab->table[i]);
+	}
 	symtab->size = size;
 	symtab->undefine_action = undefine_action;
 	symtab->undefine_arg = undefine_arg;
@@ -95,9 +97,10 @@ static inline void
 free_elt(isccc_symtab_t *symtab, unsigned int bucket, elt_t *elt)
 {
 	ISC_LIST_UNLINK(symtab->table[bucket], elt, link);
-	if (symtab->undefine_action != NULL)
+	if (symtab->undefine_action != NULL) {
 		(symtab->undefine_action)(elt->key, elt->type, elt->value,
 					  symtab->undefine_arg);
+	}
 	free(elt);
 }
 
@@ -192,11 +195,13 @@ isccc_symtab_lookup(isccc_symtab_t *symtab, const char *key, unsigned int type,
 
 	FIND(symtab, key, type, bucket, elt);
 
-	if (elt == NULL)
+	if (elt == NULL) {
 		return (ISC_R_NOTFOUND);
+	}
 
-	if (value != NULL)
+	if (value != NULL) {
 		*value = elt->value;
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -215,18 +220,21 @@ isccc_symtab_define(isccc_symtab_t *symtab, char *key, unsigned int type,
 	FIND(symtab, key, type, bucket, elt);
 
 	if (exists_policy != isccc_symexists_add && elt != NULL) {
-		if (exists_policy == isccc_symexists_reject)
+		if (exists_policy == isccc_symexists_reject) {
 			return (ISC_R_EXISTS);
+		}
 		INSIST(exists_policy == isccc_symexists_replace);
 		ISC_LIST_UNLINK(symtab->table[bucket], elt, link);
-		if (symtab->undefine_action != NULL)
+		if (symtab->undefine_action != NULL) {
 			(symtab->undefine_action)(elt->key, elt->type,
 						  elt->value,
 						  symtab->undefine_arg);
+		}
 	} else {
 		elt = malloc(sizeof(*elt));
-		if (elt == NULL)
+		if (elt == NULL) {
 			return (ISC_R_NOMEMORY);
+		}
 		ISC_LINK_INIT(elt, link);
 	}
 
@@ -254,8 +262,9 @@ isccc_symtab_undefine(isccc_symtab_t *symtab, const char *key,
 
 	FIND(symtab, key, type, bucket, elt);
 
-	if (elt == NULL)
+	if (elt == NULL) {
 		return (ISC_R_NOTFOUND);
+	}
 
 	free_elt(symtab, bucket, elt);
 
@@ -276,8 +285,9 @@ isccc_symtab_foreach(isccc_symtab_t *symtab, isccc_symtabforeachaction_t action,
 		for (elt = ISC_LIST_HEAD(symtab->table[i]); elt != NULL;
 		     elt = nelt) {
 			nelt = ISC_LIST_NEXT(elt, link);
-			if ((action)(elt->key, elt->type, elt->value, arg))
+			if ((action)(elt->key, elt->type, elt->value, arg)) {
 				free_elt(symtab, i, elt);
+			}
 		}
 	}
 }

@@ -14,8 +14,8 @@
 
 #if (__GNUC__ + 0) > 3
 #define ISC_DEPRECATED __attribute__((deprecated))
-#else
+#else		       /* if (__GNUC__ + 0) > 3 */
 #define ISC_DEPRECATED /* none */
 #endif		       /* __GNUC__ > 3*/
 
-#endif
+#endif /* ifndef ISC_DEPRECATED_H */

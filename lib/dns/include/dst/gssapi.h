@@ -31,16 +31,16 @@
  */
 #include <gssapi/gssapi.h>
 #include <gssapi/gssapi_krb5.h>
-#else
+#else /* ifdef WIN32 */
 #include ISC_PLATFORM_GSSAPIHEADER
 #ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER
 #include ISC_PLATFORM_GSSAPI_KRB5_HEADER
-#endif
-#endif
+#endif /* ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER */
+#endif /* ifdef WIN32 */
 #ifndef GSS_SPNEGO_MECHANISM
 #define GSS_SPNEGO_MECHANISM ((void *)0)
-#endif
-#endif
+#endif /* ifndef GSS_SPNEGO_MECHANISM */
+#endif /* ifdef GSSAPI */
 
 ISC_LANG_BEGINDECLS
 

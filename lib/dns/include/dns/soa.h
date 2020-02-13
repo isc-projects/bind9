@@ -13,8 +13,8 @@
 #define DNS_SOA_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/soa.h
  * \brief

@@ -41,13 +41,13 @@ openssl_isc_siphash24(const uint8_t *, const uint8_t *, const size_t,
 #include "../siphash.c"
 #undef isc_siphash24
 
-#else
+#else /* if HAVE_OPENSSL_SIPHASH */
 
 #define isc_siphash24 native_isc_siphash24
 #include "../siphash.c"
 #undef isc_siphash24
 
-#endif
+#endif /* if HAVE_OPENSSL_SIPHASH */
 
 const uint8_t vectors[64][8] = {
 	{
@@ -709,7 +709,7 @@ openssl_isc_siphash24_test(void **state)
 		assert_memory_equal(out, vectors[i], 8);
 	}
 }
-#endif
+#endif /* if HAVE_OPENSSL_SIPHASH */
 
 static void
 native_isc_siphash24_test(void **state)
@@ -734,7 +734,7 @@ main(void)
 	const struct CMUnitTest tests[] = {
 #if HAVE_OPENSSL_SIPHASH
 		cmocka_unit_test(openssl_isc_siphash24_test),
-#endif
+#endif /* if HAVE_OPENSSL_SIPHASH */
 		cmocka_unit_test(native_isc_siphash24_test),
 	};
 
@@ -752,4 +752,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

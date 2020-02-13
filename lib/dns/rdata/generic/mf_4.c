@@ -31,8 +31,9 @@ static inline isc_result_t fromtext_mf(ARGS_FROMTEXT)
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return (ISC_R_SUCCESS);
 }
@@ -163,8 +164,9 @@ static inline void freestruct_mf(ARGS_FREESTRUCT)
 	REQUIRE(mf != NULL);
 	REQUIRE(mf->common.rdtype == dns_rdatatype_mf);
 
-	if (mf->mctx == NULL)
+	if (mf->mctx == NULL) {
 		return;
+	}
 	dns_name_free(&mf->mf, mf->mctx);
 	mf->mctx = NULL;
 }

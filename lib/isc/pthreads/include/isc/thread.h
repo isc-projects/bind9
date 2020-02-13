@@ -18,7 +18,7 @@
 
 #if defined(HAVE_PTHREAD_NP_H)
 #include <pthread_np.h>
-#endif
+#endif /* if defined(HAVE_PTHREAD_NP_H) */
 
 #include <isc/lang.h>
 #include <isc/result.h>

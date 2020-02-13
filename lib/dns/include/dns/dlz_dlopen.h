@@ -154,4 +154,4 @@ dlz_dlopen_delrdataset_t(const char *name, const char *type, void *dbdata,
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* ifndef DLZ_DLOPEN_H */

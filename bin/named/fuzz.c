@@ -100,9 +100,9 @@ fuzz_thread_client(void *arg)
 	 */
 #ifdef __AFL_LOOP
 	for (int loop = 0; loop < 100000; loop++) {
-#else
+#else  /* ifdef __AFL_LOOP */
 	{
-#endif
+#endif /* ifdef __AFL_LOOP */
 		ssize_t length;
 		ssize_t sent;
 
@@ -146,8 +146,9 @@ fuzz_thread_client(void *arg)
 		 */
 		(void)recvfrom(sockfd, buf, 65536, MSG_DONTWAIT, NULL, NULL);
 
-		while (!ready)
+		while (!ready) {
 			pthread_cond_wait(&cond, &mutex);
+		}
 
 		RUNTIME_CHECK(pthread_mutex_unlock(&mutex) == 0);
 	next:;
@@ -449,8 +450,9 @@ fuzz_thread_resolver(void *arg)
 		/* Skip the name to get to the qtype */
 		i = 0;
 		while (((llen = nameptr[i]) != 0) && (i < 255) &&
-		       (((nameptr + i + 1 + llen) - buf) < length))
+		       (((nameptr + i + 1 + llen) - buf) < length)) {
 			i += 1 + llen;
+		}
 
 		if (i <= 255) {
 			nameptr += 1 + i;
@@ -521,8 +523,9 @@ fuzz_thread_resolver(void *arg)
 			/* Skip the name to get to the qtype */
 			i = 0;
 			while (((llen = nameptr[i]) != 0) && (i < 255) &&
-			       (((nameptr + i + 1 + llen) - buf) < length))
+			       (((nameptr + i + 1 + llen) - buf) < length)) {
 				i += 1 + llen;
+			}
 
 			if (i <= 255) {
 				nameptr += 1 + i;
@@ -557,8 +560,9 @@ fuzz_thread_resolver(void *arg)
 			RUNTIME_CHECK(sent == length);
 		}
 
-		while (!ready)
+		while (!ready) {
 			pthread_cond_wait(&cond, &mutex);
+		}
 
 		RUNTIME_CHECK(pthread_mutex_unlock(&mutex) == 0);
 	}
@@ -579,7 +583,7 @@ fuzz_thread_resolver(void *arg)
 	 * in persistent mode if it's present.
 	 */
 	__AFL_LOOP(0);
-#endif
+#endif /* ifdef __AFL_LOOP */
 
 	return (NULL);
 }
@@ -688,8 +692,9 @@ fuzz_thread_tcp(void *arg)
 		do {
 			r = connect(sockfd, (struct sockaddr *)&servaddr,
 				    sizeof(servaddr));
-			if (r != 0)
+			if (r != 0) {
 				usleep(10000);
+			}
 		} while (r != 0);
 
 		/*
@@ -700,8 +705,9 @@ fuzz_thread_tcp(void *arg)
 
 		close(sockfd);
 
-		while (!ready)
+		while (!ready) {
 			pthread_cond_wait(&cond, &mutex);
+		}
 
 		RUNTIME_CHECK(pthread_mutex_unlock(&mutex) == 0);
 	}

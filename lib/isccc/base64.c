@@ -48,8 +48,9 @@ isccc_base64_encode(isccc_region_t *source, int wordlength,
 			(unsigned int)(target->rend - target->rstart));
 
 	result = isc_base64_totext(&sr, wordlength, wordbreak, &tb);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	source->rstart = source->rend;
 	target->rstart = isc_buffer_used(&tb);
 	return (ISC_R_SUCCESS);
@@ -64,8 +65,9 @@ isccc_base64_decode(const char *cstr, isccc_region_t *target)
 	isc_buffer_init(&b, target->rstart,
 			(unsigned int)(target->rend - target->rstart));
 	result = isc_base64_decodestring(cstr, &b);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	target->rstart = isc_buffer_used(&b);
 	return (ISC_R_SUCCESS);
 }

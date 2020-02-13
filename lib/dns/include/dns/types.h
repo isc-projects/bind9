@@ -162,7 +162,7 @@ typedef struct dns_ipkeylist dns_ipkeylist_t;
 #ifndef GSSAPI
 typedef struct not_defined_gss_cred_id *gss_cred_id_t;
 typedef struct not_defined_gss_ctx *	gss_ctx_id_t;
-#endif
+#endif /* ifndef GSSAPI */
 typedef struct dst_gssapi_signverifyctx dst_gssapi_signverifyctx_t;
 
 typedef enum { dns_hash_sha1 = 1 } dns_hash_t;
@@ -262,8 +262,10 @@ enum {
 	dns_rcode_badcookie = 23
 #define dns_rcode_badcookie ((dns_rcode_t)dns_rcode_badcookie)
 	/*
-	 * Update dns_rcodestats_create() and dns_rcodestats_increment()
-	 * and this comment if a rcode > dns_rcode_badcookie is assigned.
+	 * Update dns_rcodestats_create() and
+	 *dns_rcodestats_increment()
+	 * and this comment if a rcode >
+	 *dns_rcode_badcookie is assigned.
 	 */
 	/* Private space [3841..4095] */
 };
@@ -325,7 +327,7 @@ enum {
 #define dns_trust_answer ((dns_trust_t)dns_trust_answer)
 
 	/*  Received in the authority section as part of an
-	    authoritative response */
+	 *  authoritative response */
 	dns_trust_authauthority = 6,
 #define dns_trust_authauthority ((dns_trust_t)dns_trust_authauthority)
 

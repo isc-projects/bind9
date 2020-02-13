@@ -64,4 +64,4 @@ dns_private_totext(dns_rdata_t *privaterdata, isc_buffer_t *buffer);
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* ifndef DNS_PRIVATE_H */

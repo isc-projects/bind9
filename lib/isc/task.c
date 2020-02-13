@@ -46,7 +46,7 @@
 
 #ifdef OPENSSL_LEAKS
 #include <openssl/err.h>
-#endif
+#endif /* ifdef OPENSSL_LEAKS */
 
 /*
  * Task manager is built around 'as little locking as possible' concept.
@@ -68,11 +68,11 @@
 	fprintf(stderr, "task %p thread %lu: %s\n", (t), isc_thread_self(), (m))
 #define XTHREADTRACE(m) \
 	fprintf(stderr, "thread %lu: %s\n", isc_thread_self(), (m))
-#else
+#else /* ifdef ISC_TASK_TRACE */
 #define XTRACE(m)
 #define XTTRACE(t, m)
 #define XTHREADTRACE(m)
-#endif
+#endif /* ifdef ISC_TASK_TRACE */
 
 /***
  *** Types.
@@ -91,7 +91,7 @@ typedef enum {
 static const char *statenames[] = {
 	"idle", "ready", "paused", "pausing", "running", "done",
 };
-#endif
+#endif /* if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C) */
 
 #define TASK_MAGIC ISC_MAGIC('T', 'A', 'S', 'K')
 #define VALID_TASK(t) ISC_MAGIC_VALID(t, TASK_MAGIC)
@@ -477,8 +477,9 @@ isc_task_detach(isc_task_t **taskp)
 	was_idle = task_detach(task);
 	UNLOCK(&task->lock);
 
-	if (was_idle)
+	if (was_idle) {
 		task_ready(task);
+	}
 
 	*taskp = NULL;
 }
@@ -616,8 +617,9 @@ isc_task_sendtoanddetach(isc_task_t **taskp, isc_event_t **eventp, int c)
 	 */
 	INSIST(!(idle1 && idle2));
 
-	if (idle1 || idle2)
+	if (idle1 || idle2) {
 		task_ready(task);
+	}
 
 	*taskp = NULL;
 }
@@ -747,8 +749,9 @@ isc_task_purgeevent(isc_task_t *task0, isc_event_t *event)
 	}
 	UNLOCK(&task->lock);
 
-	if (curr_event == NULL)
+	if (curr_event == NULL) {
 		return (false);
+	}
 
 	isc_event_free(&curr_event);
 
@@ -813,8 +816,9 @@ isc_task_onshutdown(isc_task_t *task0, isc_taskaction_t action, void *arg)
 		UNLOCK(&task->lock);
 	}
 
-	if (disallowed)
+	if (disallowed) {
 		isc_mem_put(task->manager->mctx, event, sizeof(*event));
+	}
 
 	return (result);
 }
@@ -835,8 +839,9 @@ isc_task_shutdown(isc_task_t *task0)
 	was_idle = task_shutdown(task);
 	UNLOCK(&task->lock);
 
-	if (was_idle)
+	if (was_idle) {
 		task_ready(task);
+	}
 }
 
 void
@@ -1250,8 +1255,9 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid)
 			} while (!done);
 			UNLOCK(&task->lock);
 
-			if (finished)
+			if (finished) {
 				task_finished(task);
+			}
 
 			RUNTIME_CHECK(atomic_fetch_sub_explicit(
 					      &manager->tasks_running, 1,
@@ -1333,7 +1339,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid)
 static isc_threadresult_t
 #ifdef _WIN32
 	WINAPI
-#endif
+#endif /* ifdef _WIN32 */
 	run(void *queuep)
 {
 	isc__taskqueue_t *tq = queuep;
@@ -1349,7 +1355,7 @@ static isc_threadresult_t
 
 #ifdef OPENSSL_LEAKS
 	ERR_remove_state(0);
-#endif
+#endif /* ifdef OPENSSL_LEAKS */
 
 	return ((isc_threadresult_t)0);
 }
@@ -1476,8 +1482,9 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp)
 	 * Detach the exclusive task before acquiring the manager lock
 	 */
 	LOCK(&manager->excl_lock);
-	if (manager->excl != NULL)
+	if (manager->excl != NULL) {
 		isc_task_detach((isc_task_t **)&manager->excl);
+	}
 	UNLOCK(&manager->excl_lock);
 
 	/*
@@ -1608,8 +1615,9 @@ isc_taskmgr_setexcltask(isc_taskmgr_t *mgr0, isc_task_t *task0)
 	REQUIRE(VALID_MANAGER(mgr));
 	REQUIRE(VALID_TASK(task));
 	LOCK(&mgr->excl_lock);
-	if (mgr->excl != NULL)
+	if (mgr->excl != NULL) {
 		isc_task_detach((isc_task_t **)&mgr->excl);
+	}
 	isc_task_attach(task0, (isc_task_t **)&mgr->excl);
 	UNLOCK(&mgr->excl_lock);
 }
@@ -1624,10 +1632,11 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr0, isc_task_t **taskp)
 	REQUIRE(taskp != NULL && *taskp == NULL);
 
 	LOCK(&mgr->excl_lock);
-	if (mgr->excl != NULL)
+	if (mgr->excl != NULL) {
 		isc_task_attach((isc_task_t *)mgr->excl, taskp);
-	else
+	} else {
 		result = ISC_R_NOTFOUND;
+	}
 	UNLOCK(&mgr->excl_lock);
 
 	return (result);
@@ -1776,12 +1785,13 @@ isc_task_setprivilege(isc_task_t *task0, bool priv)
 						       newflags));
 
 	LOCK(&manager->queues[task->threadid].lock);
-	if (priv && ISC_LINK_LINKED(task, ready_link))
+	if (priv && ISC_LINK_LINKED(task, ready_link)) {
 		ENQUEUE(manager->queues[task->threadid].ready_priority_tasks,
 			task, ready_priority_link);
-	else if (!priv && ISC_LINK_LINKED(task, ready_priority_link))
+	} else if (!priv && ISC_LINK_LINKED(task, ready_priority_link)) {
 		DEQUEUE(manager->queues[task->threadid].ready_priority_tasks,
 			task, ready_priority_link);
+	}
 	UNLOCK(&manager->queues[task->threadid].lock);
 }
 
@@ -1903,8 +1913,9 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, void *writer0)
 	TRY0(xmlTextWriterEndElement(writer)); /* tasks */
 
 error:
-	if (task != NULL)
+	if (task != NULL) {
 		UNLOCK(&task->lock);
+	}
 	UNLOCK(&mgr->lock);
 
 	return (xmlrc);
@@ -2008,16 +2019,18 @@ isc_taskmgr_renderjson(isc_taskmgr_t *mgr0, void *tasks0)
 	result = ISC_R_SUCCESS;
 
 error:
-	if (array != NULL)
+	if (array != NULL) {
 		json_object_put(array);
+	}
 
-	if (task != NULL)
+	if (task != NULL) {
 		UNLOCK(&task->lock);
+	}
 	UNLOCK(&mgr->lock);
 
 	return (result);
 }
-#endif
+#endif /* ifdef HAVE_JSON_C */
 
 isc_result_t
 isc_taskmgr_createinctx(isc_mem_t *mctx, unsigned int workers,

@@ -27,8 +27,9 @@ ns_sortlist_setup(dns_acl_t *acl, dns_aclenv_t *env, isc_netaddr_t *clientaddr,
 {
 	unsigned int i;
 
-	if (acl == NULL)
+	if (acl == NULL) {
 		goto dont_sort;
+	}
 
 	for (i = 0; i < acl->length; i++) {
 		/*
@@ -43,16 +44,17 @@ ns_sortlist_setup(dns_acl_t *acl, dns_aclenv_t *env, isc_netaddr_t *clientaddr,
 		if (e->type == dns_aclelementtype_nestedacl) {
 			dns_acl_t *inner = e->nestedacl;
 
-			if (inner->length == 0)
+			if (inner->length == 0) {
 				try_elt = e;
-			else if (inner->length > 2)
+			} else if (inner->length > 2) {
 				goto dont_sort;
-			else if (inner->elements[0].negative)
+			} else if (inner->elements[0].negative) {
 				goto dont_sort;
-			else {
+			} else {
 				try_elt = &inner->elements[0];
-				if (inner->length == 2)
+				if (inner->length == 2) {
 					order_elt = &inner->elements[1];
+				}
 			}
 		} else {
 			/*

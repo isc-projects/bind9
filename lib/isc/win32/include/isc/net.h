@@ -13,8 +13,8 @@
 #define ISC_NET_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*
  * Basic Networking Types
@@ -74,7 +74,7 @@
  */
 #ifndef _WINSOCKAPI_
 #define _WINSOCKAPI_ /* Prevent inclusion of winsock.h in windows.h */
-#endif
+#endif		     /* ifndef _WINSOCKAPI_ */
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -93,16 +93,16 @@
 
 #ifndef INADDR_ANY
 #define INADDR_ANY 0x00000000UL
-#endif
+#endif /* ifndef INADDR_ANY */
 
 #ifndef INADDR_LOOPBACK
 #define INADDR_LOOPBACK 0x7f000001UL
-#endif
+#endif /* ifndef INADDR_LOOPBACK */
 
 #if _MSC_VER < 1300
 #define in6addr_any isc_in6addr_any
 #define in6addr_loopback isc_in6addr_loopback
-#endif
+#endif /* if _MSC_VER < 1300 */
 
 /*
  * Ensure type in_port_t is defined.
@@ -116,7 +116,7 @@ typedef uint16_t in_port_t;
  */
 #ifndef MSG_TRUNC
 #define ISC_PLATFORM_RECVOVERFLOW
-#endif
+#endif /* ifndef MSG_TRUNC */
 
 #define ISC__IPADDR(x) ((uint32_t)htonl((uint32_t)(x)))
 
@@ -178,109 +178,109 @@ typedef uint16_t in_port_t;
 
 #ifndef EWOULDBLOCK
 #define EWOULDBLOCK WSAEWOULDBLOCK
-#endif
+#endif /* ifndef EWOULDBLOCK */
 #ifndef EINPROGRESS
 #define EINPROGRESS WSAEINPROGRESS
-#endif
+#endif /* ifndef EINPROGRESS */
 #ifndef EALREADY
 #define EALREADY WSAEALREADY
-#endif
+#endif /* ifndef EALREADY */
 #ifndef ENOTSOCK
 #define ENOTSOCK WSAENOTSOCK
-#endif
+#endif /* ifndef ENOTSOCK */
 #ifndef EDESTADDRREQ
 #define EDESTADDRREQ WSAEDESTADDRREQ
-#endif
+#endif /* ifndef EDESTADDRREQ */
 #ifndef EMSGSIZE
 #define EMSGSIZE WSAEMSGSIZE
-#endif
+#endif /* ifndef EMSGSIZE */
 #ifndef EPROTOTYPE
 #define EPROTOTYPE WSAEPROTOTYPE
-#endif
+#endif /* ifndef EPROTOTYPE */
 #ifndef ENOPROTOOPT
 #define ENOPROTOOPT WSAENOPROTOOPT
-#endif
+#endif /* ifndef ENOPROTOOPT */
 #ifndef EPROTONOSUPPORT
 #define EPROTONOSUPPORT WSAEPROTONOSUPPORT
-#endif
+#endif /* ifndef EPROTONOSUPPORT */
 #ifndef ESOCKTNOSUPPORT
 #define ESOCKTNOSUPPORT WSAESOCKTNOSUPPORT
-#endif
+#endif /* ifndef ESOCKTNOSUPPORT */
 #ifndef EOPNOTSUPP
 #define EOPNOTSUPP WSAEOPNOTSUPP
-#endif
+#endif /* ifndef EOPNOTSUPP */
 #ifndef EPFNOSUPPORT
 #define EPFNOSUPPORT WSAEPFNOSUPPORT
-#endif
+#endif /* ifndef EPFNOSUPPORT */
 #ifndef EAFNOSUPPORT
 #define EAFNOSUPPORT WSAEAFNOSUPPORT
-#endif
+#endif /* ifndef EAFNOSUPPORT */
 #ifndef EADDRINUSE
 #define EADDRINUSE WSAEADDRINUSE
-#endif
+#endif /* ifndef EADDRINUSE */
 #ifndef EADDRNOTAVAIL
 #define EADDRNOTAVAIL WSAEADDRNOTAVAIL
-#endif
+#endif /* ifndef EADDRNOTAVAIL */
 #ifndef ENETDOWN
 #define ENETDOWN WSAENETDOWN
-#endif
+#endif /* ifndef ENETDOWN */
 #ifndef ENETUNREACH
 #define ENETUNREACH WSAENETUNREACH
-#endif
+#endif /* ifndef ENETUNREACH */
 #ifndef ENETRESET
 #define ENETRESET WSAENETRESET
-#endif
+#endif /* ifndef ENETRESET */
 #ifndef ECONNABORTED
 #define ECONNABORTED WSAECONNABORTED
-#endif
+#endif /* ifndef ECONNABORTED */
 #ifndef ECONNRESET
 #define ECONNRESET WSAECONNRESET
-#endif
+#endif /* ifndef ECONNRESET */
 #ifndef ENOBUFS
 #define ENOBUFS WSAENOBUFS
-#endif
+#endif /* ifndef ENOBUFS */
 #ifndef EISCONN
 #define EISCONN WSAEISCONN
-#endif
+#endif /* ifndef EISCONN */
 #ifndef ENOTCONN
 #define ENOTCONN WSAENOTCONN
-#endif
+#endif /* ifndef ENOTCONN */
 #ifndef ESHUTDOWN
 #define ESHUTDOWN WSAESHUTDOWN
-#endif
+#endif /* ifndef ESHUTDOWN */
 #ifndef ETOOMANYREFS
 #define ETOOMANYREFS WSAETOOMANYREFS
-#endif
+#endif /* ifndef ETOOMANYREFS */
 #ifndef ETIMEDOUT
 #define ETIMEDOUT WSAETIMEDOUT
-#endif
+#endif /* ifndef ETIMEDOUT */
 #ifndef ECONNREFUSED
 #define ECONNREFUSED WSAECONNREFUSED
-#endif
+#endif /* ifndef ECONNREFUSED */
 #ifndef ELOOP
 #define ELOOP WSAELOOP
-#endif
+#endif /* ifndef ELOOP */
 #ifndef EHOSTDOWN
 #define EHOSTDOWN WSAEHOSTDOWN
-#endif
+#endif /* ifndef EHOSTDOWN */
 #ifndef EHOSTUNREACH
 #define EHOSTUNREACH WSAEHOSTUNREACH
-#endif
+#endif /* ifndef EHOSTUNREACH */
 #ifndef EPROCLIM
 #define EPROCLIM WSAEPROCLIM
-#endif
+#endif /* ifndef EPROCLIM */
 #ifndef EUSERS
 #define EUSERS WSAEUSERS
-#endif
+#endif /* ifndef EUSERS */
 #ifndef EDQUOT
 #define EDQUOT WSAEDQUOT
-#endif
+#endif /* ifndef EDQUOT */
 #ifndef ESTALE
 #define ESTALE WSAESTALE
-#endif
+#endif /* ifndef ESTALE */
 #ifndef EREMOTE
 #define EREMOTE WSAEREMOTE
-#endif
+#endif /* ifndef EREMOTE */
 
 /***
  *** Functions.

@@ -17,9 +17,9 @@
 #ifdef __cplusplus
 #define ISC_LANG_BEGINDECLS extern "C" {
 #define ISC_LANG_ENDDECLS }
-#else
+#else /* ifdef __cplusplus */
 #define ISC_LANG_BEGINDECLS
 #define ISC_LANG_ENDDECLS
-#endif
+#endif /* ifdef __cplusplus */
 
 #endif /* ISC_LANG_H */

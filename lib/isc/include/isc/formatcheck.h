@@ -27,8 +27,8 @@
 #ifdef __GNUC__
 #define ISC_FORMAT_PRINTF(fmt, args) \
 	__attribute__((__format__(__printf__, fmt, args)))
-#else
+#else /* ifdef __GNUC__ */
 #define ISC_FORMAT_PRINTF(fmt, args)
-#endif
+#endif /* ifdef __GNUC__ */
 
 #endif /* ISC_FORMATCHECK_H */

@@ -13,13 +13,13 @@
 #define ISC_TASK_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/task.h
  * \brief The task system provides a lightweight execution context, which is
  * basically an event queue.
-
+ *
  * When a task's event queue is non-empty, the
  * task is runnable.  A small work crew of threads, typically one per CPU,
  * execute runnable tasks by dispatching the events on the tasks' event
@@ -85,8 +85,8 @@
 #define ISC_TASKEVENT_LASTEVENT (ISC_EVENTCLASS_TASK + 65535)
 
 /*****
- ***** Tasks.
- *****/
+***** Tasks.
+*****/
 
 ISC_LANG_BEGINDECLS
 
@@ -424,7 +424,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg);
  *\li	When the task is shutdown, shutdown events requested with
  *	isc_task_onshutdown() will be appended to the task's event queue.
  *
-
+ *
  * Returns:
  *
  *\li	#ISC_R_SUCCESS
@@ -637,8 +637,8 @@ isc_task_privilege(isc_task_t *task);
  */
 
 /*****
- ***** Task Manager.
- *****/
+***** Task Manager.
+*****/
 
 isc_result_t
 isc_taskmgr_createinctx(isc_mem_t *mctx, unsigned int workers,
@@ -770,14 +770,14 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp);
  *
  * Requires:
  *\li	'manager' is a valid task manager.
-
+ *
  *\li	taskp != NULL && *taskp == NULL
  */
 
 #ifdef HAVE_LIBXML2
 int
 isc_taskmgr_renderxml(isc_taskmgr_t *mgr, void *writer0);
-#endif
+#endif /* ifdef HAVE_LIBXML2 */
 
 #ifdef HAVE_JSON_C
 isc_result_t

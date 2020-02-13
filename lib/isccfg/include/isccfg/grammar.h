@@ -143,10 +143,11 @@ typedef struct {
 } keyword_type_t;
 
 struct cfg_map {
-	cfg_obj_t *id; /*%< Used for 'named maps' like keys, zones, &c */
+	cfg_obj_t *id; /*%< Used for 'named maps' like
+			* keys, zones, &c */
 	const cfg_clausedef_t *const *clausesets; /*%< The clauses that
-						     can occur in this map;
-						     used for printing */
+						   * can occur in this map;
+						   * used for printing */
 	isc_symtab_t *symtab;
 };
 

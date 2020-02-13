@@ -142,8 +142,9 @@ zonemgr_createzone(void **state)
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(zone);
 
-	if (zone != NULL)
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
+	}
 
 	dns_zonemgr_shutdown(myzonemgr);
 	dns_zonemgr_detach(&myzonemgr);
@@ -267,4 +268,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

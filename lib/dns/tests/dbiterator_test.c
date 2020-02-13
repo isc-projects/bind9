@@ -123,8 +123,9 @@ test_walk(const char *filename, int nodes)
 	for (result = dns_dbiterator_first(iter); result == ISC_R_SUCCESS;
 	     result = dns_dbiterator_next(iter)) {
 		result = dns_dbiterator_current(iter, &node, name);
-		if (result == DNS_R_NEWORIGIN)
+		if (result == DNS_R_NEWORIGIN) {
 			result = ISC_R_SUCCESS;
+		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);
 		i++;
@@ -175,8 +176,9 @@ test_reverse(const char *filename)
 	for (result = dns_dbiterator_last(iter); result == ISC_R_SUCCESS;
 	     result = dns_dbiterator_prev(iter)) {
 		result = dns_dbiterator_current(iter, &node, name);
-		if (result == DNS_R_NEWORIGIN)
+		if (result == DNS_R_NEWORIGIN) {
 			result = ISC_R_SUCCESS;
+		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);
 		i++;
@@ -233,8 +235,9 @@ test_seek_node(const char *filename, int nodes)
 
 	while (result == ISC_R_SUCCESS) {
 		result = dns_dbiterator_current(iter, &node, name);
-		if (result == DNS_R_NEWORIGIN)
+		if (result == DNS_R_NEWORIGIN) {
 			result = ISC_R_SUCCESS;
+		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);
 		result = dns_dbiterator_next(iter);
@@ -407,4 +410,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

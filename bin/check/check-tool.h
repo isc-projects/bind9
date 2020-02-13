@@ -45,7 +45,7 @@ void
 InitSockets(void);
 void
 DestroySockets(void);
-#endif
+#endif /* ifdef _WIN32 */
 
 extern int	     debug;
 extern const char *  journal;
@@ -57,4 +57,4 @@ extern dns_zoneopt_t zone_options;
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* ifndef CHECK_TOOL_H */

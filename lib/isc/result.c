@@ -199,8 +199,9 @@ register_table(resulttable_list_t *tables, unsigned int base,
 	 * isc_result_totext() even if there is no memory context.
 	 */
 	table = malloc(sizeof(*table));
-	if (table == NULL)
+	if (table == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 	table->base = base;
 	table->last = base + nresults - 1;
 	table->text = text;

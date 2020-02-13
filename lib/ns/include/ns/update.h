@@ -13,8 +13,8 @@
 #define NS_UPDATE_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief

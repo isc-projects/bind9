@@ -22,6 +22,6 @@
  * Warning: this currently disables sending COOKIE requests in resolver.c
  */
 #define DNS_EDNS_VERSION 1 /* draft-andrews-edns1 */
-#endif
+#endif			   /* ifdef DRAFT_ANDREWS_EDNS1 */
 
-#endif
+#endif /* ifndef DNS_EDNS_H */

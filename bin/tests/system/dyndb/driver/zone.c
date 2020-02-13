@@ -87,12 +87,14 @@ cleanup:
 	log_error_r("failed to create new zone '%s'", zone_name);
 
 	if (raw != NULL) {
-		if (dns_zone_getmgr(raw) != NULL)
+		if (dns_zone_getmgr(raw) != NULL) {
 			dns_zonemgr_releasezone(inst->zmgr, raw);
+		}
 		dns_zone_detach(&raw);
 	}
-	if (acl_any != NULL)
+	if (acl_any != NULL) {
 		dns_acl_detach(&acl_any);
+	}
 
 	return (result);
 }
@@ -116,8 +118,9 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone)
 	/* Return success if the zone is already in the view as expected. */
 	result = dns_view_findzone(inst->view, dns_zone_getorigin(zone),
 				   &zone_in_view);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		goto cleanup;
+	}
 
 	view_in_zone = dns_zone_getview(zone);
 	if (view_in_zone != NULL) {
@@ -161,10 +164,12 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone)
 	}
 
 cleanup:
-	if (zone_in_view != NULL)
+	if (zone_in_view != NULL) {
 		dns_zone_detach(&zone_in_view);
-	if (freeze)
+	}
+	if (freeze) {
 		dns_view_freeze(inst->view);
+	}
 	run_exclusive_exit(inst, lock_state);
 
 	return (result);
@@ -183,8 +188,9 @@ load_zone(dns_zone_t *zone)
 
 	result = dns_zone_load(zone, false);
 	if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE &&
-	    result != DNS_R_DYNAMIC && result != DNS_R_CONTINUE)
+	    result != DNS_R_DYNAMIC && result != DNS_R_CONTINUE) {
 		goto cleanup;
+	}
 	zone_dynamic = (result == DNS_R_DYNAMIC);
 
 	result = dns_zone_getserial(zone, &serial);
@@ -196,8 +202,9 @@ load_zone(dns_zone_t *zone)
 	}
 	dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u", serial);
 
-	if (zone_dynamic)
+	if (zone_dynamic) {
 		dns_zone_notify(zone);
+	}
 
 cleanup:
 	return (result);

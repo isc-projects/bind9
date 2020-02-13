@@ -42,4 +42,4 @@ dlz_fs_init(void);
 void
 dlz_fs_clear(void);
 
-#endif
+#endif /* ifndef DLZ_FILESYSTEM_DRIVER_H */

@@ -42,4 +42,4 @@ dlz_stub_init(void);
 void
 dlz_stub_clear(void);
 
-#endif
+#endif /* ifndef DLZ_STUB_DRIVER_H */

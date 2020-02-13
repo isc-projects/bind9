@@ -125,9 +125,11 @@ struct isc_logmodule {
  * Setting maximum_size to zero implies no maximum.
  */
 typedef struct isc_logfile {
-	FILE *	    stream; /*%< Initialized to NULL for #ISC_LOG_TOFILE. */
-	const char *name;   /*%< NULL for #ISC_LOG_TOFILEDESC. */
-	int versions; /* >= 0, #ISC_LOG_ROLLNEVER, #ISC_LOG_ROLLINFINITE. */
+	FILE *stream;	      /*%< Initialized to NULL for
+			       * #ISC_LOG_TOFILE. */
+	const char *name;     /*%< NULL for #ISC_LOG_TOFILEDESC. */
+	int	    versions; /* >= 0, #ISC_LOG_ROLLNEVER,
+			       * #ISC_LOG_ROLLINFINITE. */
 	isc_log_rollsuffix_t suffix;
 	/*%
 	 * stdio's ftell is standardized to return a long, which may well not

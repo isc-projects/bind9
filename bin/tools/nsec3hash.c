@@ -51,8 +51,9 @@ fatal(const char *format, ...)
 static void
 check_result(isc_result_t result, const char *message)
 {
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("%s: %s", message, isc_result_totext(result));
+	}
 }
 
 static void
@@ -96,20 +97,25 @@ nsec3hash(nsec3printer *nsec3print, const char *algostr, const char *flagstr,
 		result = isc_hex_decodestring(saltstr, &buffer);
 		check_result(result, "isc_hex_decodestring(salt)");
 		salt_length = isc_buffer_usedlength(&buffer);
-		if (salt_length > DNS_NSEC3_SALTSIZE)
+		if (salt_length > DNS_NSEC3_SALTSIZE) {
 			fatal("salt too long");
-		if (salt_length == 0)
+		}
+		if (salt_length == 0) {
 			saltstr = dash;
+		}
 	}
 	hash_alg = atoi(algostr);
-	if (hash_alg > 255U)
+	if (hash_alg > 255U) {
 		fatal("hash algorithm too large");
+	}
 	flags = flagstr == NULL ? 0 : atoi(flagstr);
-	if (flags > 255U)
+	if (flags > 255U) {
 		fatal("flags too large");
+	}
 	iterations = atoi(iterstr);
-	if (iterations > 0xffffU)
+	if (iterations > 0xffffU) {
 		fatal("iterations to large");
+	}
 
 	name = dns_fixedname_initname(&fixed);
 	isc_buffer_constinit(&buffer, domain, strlen(domain));
@@ -120,8 +126,9 @@ nsec3hash(nsec3printer *nsec3print, const char *algostr, const char *flagstr,
 	dns_name_downcase(name, name, NULL);
 	length = isc_iterated_hash(hash, hash_alg, iterations, salt,
 				   salt_length, name->ndata, name->length);
-	if (length == 0)
+	if (length == 0) {
 		fatal("isc_iterated_hash failed");
+	}
 	region.base = hash;
 	region.length = length;
 	isc_buffer_init(&buffer, text, sizeof(text));

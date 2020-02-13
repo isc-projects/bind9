@@ -13,8 +13,8 @@
 #define DNS_NTA_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief

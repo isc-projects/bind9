@@ -91,6 +91,7 @@ isc_event_free(isc_event_t **eventp)
 	REQUIRE(!ISC_LINK_LINKED(event, ev_link));
 	REQUIRE(!ISC_LINK_LINKED(event, ev_ratelink));
 
-	if (event->ev_destroy != NULL)
+	if (event->ev_destroy != NULL) {
 		(event->ev_destroy)(event);
+	}
 }

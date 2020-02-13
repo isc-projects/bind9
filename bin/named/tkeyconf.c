@@ -54,8 +54,9 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 	int		 type;
 
 	result = dns_tkeyctx_create(mctx, &tctx);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	obj = NULL;
 	result = cfg_map_get(options, "tkey-dhkey", &obj);

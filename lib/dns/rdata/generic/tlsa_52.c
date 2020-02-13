@@ -31,8 +31,9 @@ static inline isc_result_t generic_fromtext_tlsa(ARGS_FROMTEXT)
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -40,8 +41,9 @@ static inline isc_result_t generic_fromtext_tlsa(ARGS_FROMTEXT)
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -49,8 +51,9 @@ static inline isc_result_t generic_fromtext_tlsa(ARGS_FROMTEXT)
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -98,16 +101,19 @@ static inline isc_result_t generic_totext_tlsa(ARGS_TOTEXT)
 	/*
 	 * Certificate Association Data.
 	 */
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" (", target));
+	}
 	RETERR(str_totext(tctx->linebreak, target));
-	if (tctx->width == 0) /* No splitting */
+	if (tctx->width == 0) { /* No splitting */
 		RETERR(isc_hex_totext(&sr, 0, "", target));
-	else
+	} else {
 		RETERR(isc_hex_totext(&sr, tctx->width - 2, tctx->linebreak,
 				      target));
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	}
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" )", target));
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -122,8 +128,9 @@ static inline isc_result_t generic_fromwire_tlsa(ARGS_FROMWIRE)
 
 	isc_buffer_activeregion(source, &sr);
 
-	if (sr.length < 3)
+	if (sr.length < 3) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -223,8 +230,9 @@ static inline isc_result_t generic_tostruct_tlsa(ARGS_TOSTRUCT)
 	tlsa->length = region.length;
 
 	tlsa->data = mem_maybedup(mctx, region.base, region.length);
-	if (tlsa->data == NULL)
+	if (tlsa->data == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	tlsa->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -236,11 +244,13 @@ static inline void generic_freestruct_tlsa(ARGS_FREESTRUCT)
 
 	REQUIRE(tlsa != NULL);
 
-	if (tlsa->mctx == NULL)
+	if (tlsa->mctx == NULL) {
 		return;
+	}
 
-	if (tlsa->data != NULL)
+	if (tlsa->data != NULL) {
 		isc_mem_free(tlsa->mctx, tlsa->data);
+	}
 	tlsa->mctx = NULL;
 }
 

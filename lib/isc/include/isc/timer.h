@@ -13,8 +13,8 @@
 #define ISC_TIMER_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/timer.h
  * \brief Provides timers which are event sources in the task system.

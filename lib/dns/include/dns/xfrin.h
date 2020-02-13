@@ -13,8 +13,8 @@
 #define DNS_XFRIN_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/xfrin.h
  * \brief

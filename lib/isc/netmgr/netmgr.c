@@ -98,7 +98,7 @@ static const isc_statscounter_t unixstatsindex[] = {
 	isc_sockstatscounter_unixrecvfail,
 	isc_sockstatscounter_unixactive
 };
-#endif
+#endif /* if 0 */
 
 /*
  * libuv is not thread safe, but has mechanisms to pass messages
@@ -412,9 +412,9 @@ isc_nm_destroy(isc_nm_t **mgr0)
 		isc_nm_resume(mgr);
 #ifdef WIN32
 		_sleep(1000);
-#else
+#else  /* ifdef WIN32 */
 		usleep(1000000);
-#endif
+#endif /* ifdef WIN32 */
 	}
 
 	/*
@@ -544,9 +544,9 @@ nm_thread(isc_threadarg_t worker0)
 			 */
 #ifdef WIN32
 			_sleep(100);
-#else
+#else  /* ifdef WIN32 */
 			usleep(100000);
-#endif
+#endif /* ifdef WIN32 */
 		}
 
 		/*

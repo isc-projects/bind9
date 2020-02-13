@@ -46,4 +46,4 @@ gss_accept_sec_context_spnego(OM_uint32 *, gss_ctx_id_t *, const gss_cred_id_t,
 			      gss_name_t *, gss_OID *, gss_buffer_t,
 			      OM_uint32 *, OM_uint32 *, gss_cred_id_t *);
 
-#endif
+#endif /* ifndef _SPNEGO_H_ */

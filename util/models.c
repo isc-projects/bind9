@@ -23,38 +23,44 @@ int condition;
 void *
 isc__mem_get(void *mem, unsigned int size FLARG)
 {
-	if (!mem)
+	if (!mem) {
 		__coverity_panic__();
+	}
 	__coverity_negative_sink__(size);
-	if (condition)
+	if (condition) {
 		return (0);
+	}
 	return (__coverity_alloc__(size));
 }
 
 void
 isc__mem_put(void *mem, void *ptr, unsigned int size FLARG)
 {
-	if (!mem)
+	if (!mem) {
 		__coverity_panic__();
+	}
 	__coverity_free__(ptr);
 }
 
 void
 isc__mem_putanddetach(void *mem, void *ptr, unsigned int size FLARG)
 {
-	if (!mem)
+	if (!mem) {
 		__coverity_panic__();
+	}
 	__coverity_free__(ptr);
 }
 
 void *
 isc__mem_allocate(void *mem, unsigned int size FLARG)
 {
-	if (!mem)
+	if (!mem) {
 		__coverity_panic__();
+	}
 	__coverity_negative_sink__(size);
-	if (condition)
+	if (condition) {
 		return (0);
+	}
 	return (__coverity_alloc__(size));
 }
 
@@ -67,8 +73,9 @@ isc__mem_reallocate(void *mem, void *ptr, size_t size FLARG)
 	char * p = (char *)0;
 	size_t l;
 
-	if (!mem)
+	if (!mem) {
 		__coverity_panic__();
+	}
 	if (size > 0) {
 		p = isc__mem_allocate(mem, size FLARG_PASS);
 		if (p && ptr) {
@@ -76,16 +83,18 @@ isc__mem_reallocate(void *mem, void *ptr, size_t size FLARG)
 			memcpy(p, ptr, l);
 			__coverity_free__(ptr);
 		}
-	} else if (ptr)
+	} else if (ptr) {
 		__coverity_free__(ptr);
+	}
 	return (p);
 }
 
 void
 isc__mem_free(void *mem, void *ptr FLARG)
 {
-	if (!mem)
+	if (!mem) {
 		__coverity_panic__();
+	}
 	__coverity_free__(ptr);
 }
 
@@ -96,10 +105,12 @@ void *
 isc__mem_strdup(void *mem, char *s FLARG)
 {
 	void *d;
-	if (!mem)
+	if (!mem) {
 		__coverity_panic__();
-	if (condition)
+	}
+	if (condition) {
 		return (0);
+	}
 	d = __coverity_alloc__(strlen(s) + 1);
 	__coverity_writeall__(d);
 	return (d);
@@ -109,18 +120,21 @@ void *
 isc__mempool_get(void *mem FLARG)
 {
 	unsigned int size;
-	if (!mem)
+	if (!mem) {
 		__coverity_panic__();
-	if (condition)
+	}
+	if (condition) {
 		return (0);
+	}
 	return (__coverity_alloc__(size));
 }
 
 void
 isc__mempool_put(void *mem, void *ptr FLARG)
 {
-	if (!mem)
+	if (!mem) {
 		__coverity_panic__();
+	}
 	__coverity_free__(ptr);
 }
 
@@ -134,6 +148,7 @@ void
 _assert_true(const LargestIntegralType result, const char *const expression,
 	     const char *const file, const int line)
 {
-	if (!result)
+	if (!result) {
 		__coverity_panic__();
+	}
 }

@@ -42,4 +42,4 @@ dlz_ldap_init(void);
 void
 dlz_ldap_clear(void);
 
-#endif
+#endif /* ifndef DLZ_LDAP_DRIVER_H */

@@ -178,7 +178,7 @@ isc_hmac_reset_test(void **state)
 #if 0
 	unsigned char digest[ISC_MAX_MD_SIZE] __attribute((unused));
 	unsigned int digestlen __attribute((unused));
-#endif
+#endif /* if 0 */
 
 	assert_non_null(hmac);
 
@@ -197,8 +197,8 @@ isc_hmac_reset_test(void **state)
 	 * so this could be only manually checked that the test will
 	 * segfault when called by hand
 	 */
-	expect_assert_failure(isc_hmac_final(hmac, digest, &digestlen));
-#endif
+	expect_assert_failure(isc_hmac_final(hmac,digest,&digestlen));
+#endif /* if 0 */
 }
 
 static void
@@ -316,7 +316,7 @@ isc_hmac_md5_test(void **state)
 				 "Larger Than One Block-Size Data"),
 		      "E8E99D0F45237D786D6BBAA7965C7808BBFF1A91",
 		      1);
-#endif
+#endif /* if 0 */
 }
 
 static void
@@ -373,7 +373,7 @@ isc_hmac_sha1_test(void **state)
 		      TEST_INPUT("Test With Truncation"),
 		      "4C1A03424B55E07FE7F27BE1",
 		      1);
-#endif
+#endif /* if 0 */
 	/* Test 6 */
 	isc_hmac_test(hmac,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -468,7 +468,7 @@ isc_hmac_sha224_test(void **state)
 		      TEST_INPUT("Test With Truncation"),
 		      "4C1A03424B55E07FE7F27BE1",
 		      1);
-#endif
+#endif /* if 0 */
 	/* Test 6 */
 	isc_hmac_test(hmac,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -593,7 +593,7 @@ isc_hmac_sha256_test(void **state)
 		      TEST_INPUT("Test With Truncation"),
 		      "4C1A03424B55E07FE7F27BE1",
 		      1);
-#endif
+#endif /* if 0 */
 	/* Test 6 */
 	isc_hmac_test(hmac,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -722,7 +722,7 @@ isc_hmac_sha384_test(void **state)
 		      TEST_INPUT("Test With Truncation"),
 		      "4C1A03424B55E07FE7F27BE1",
 		      1);
-#endif
+#endif /* if 0 */
 	/* Test 6 */
 	isc_hmac_test(hmac,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -854,7 +854,7 @@ isc_hmac_sha512_test(void **state)
 		      TEST_INPUT("Test With Truncation"),
 		      "4C1A03424B55E07FE7F27BE1",
 		      1);
-#endif
+#endif /* if 0 */
 	/* Test 6 */
 	isc_hmac_test(hmac,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -962,4 +962,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

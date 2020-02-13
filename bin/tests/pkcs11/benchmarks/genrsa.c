@@ -59,7 +59,7 @@
 
 #ifndef CLOCK_REALTIME
 #define CLOCK_REALTIME 0
-#endif
+#endif /* ifndef CLOCK_REALTIME */
 
 static int
 clock_gettime(int32_t id, struct timespec *tp);
@@ -79,7 +79,7 @@ clock_gettime(int32_t id, struct timespec *tp)
 	}
 	return (result);
 }
-#endif
+#endif /* ifndef HAVE_CLOCK_GETTIME */
 
 static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
@@ -189,8 +189,9 @@ main(int argc, char *argv[])
 	}
 
 	/* Initialize the CRYPTOKI library */
-	if (lib_name != NULL)
+	if (lib_name != NULL) {
 		pk11_set_lib_name(lib_name);
+	}
 
 	if (pin == NULL) {
 		pin = getpass("Enter Pin: ");
@@ -206,8 +207,9 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (pin != NULL)
+	if (pin != NULL) {
 		memset(pin, 0, strlen((char *)pin));
+	}
 
 	hSession = pctx.session;
 
@@ -230,8 +232,9 @@ main(int argc, char *argv[])
 				"C_GenerateKeyPair[%u]: Error = 0x%.8lX\n", i,
 				rv);
 			error = 1;
-			if (i == 0)
+			if (i == 0) {
 				goto exit_keys;
+			}
 			break;
 		}
 	}
@@ -249,17 +252,19 @@ main(int argc, char *argv[])
 	}
 	printf("%u generated RSA in %ld.%09lds\n", i, endtime.tv_sec,
 	       endtime.tv_nsec);
-	if (i > 0)
+	if (i > 0) {
 		printf("%g generated RSA/s\n",
 		       1024 * i /
 			       ((double)endtime.tv_sec +
 				(double)endtime.tv_nsec / 1000000000.));
+	}
 
 exit_keys:
 	for (i = 0; i < count; i++) {
 		/* Destroy keys */
-		if (pubKey[i] == CK_INVALID_HANDLE)
+		if (pubKey[i] == CK_INVALID_HANDLE) {
 			goto destroy_priv;
+		}
 		rv = pkcs_C_DestroyObject(hSession, pubKey[i]);
 		if ((rv != CKR_OK) && !errflg) {
 			fprintf(stderr,
@@ -268,8 +273,9 @@ exit_keys:
 			errflg = 1;
 		}
 	destroy_priv:
-		if (privKey[i] == CK_INVALID_HANDLE)
+		if (privKey[i] == CK_INVALID_HANDLE) {
 			continue;
+		}
 		rv = pkcs_C_DestroyObject(hSession, privKey[i]);
 		if ((rv != CKR_OK) && !errflg) {
 			fprintf(stderr,

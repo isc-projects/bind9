@@ -33,15 +33,17 @@ static inline isc_result_t fromtext_nid(ARGS_FROMTEXT)
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 
-	if (locator_pton(DNS_AS_STR(token), locator) != 1)
+	if (locator_pton(DNS_AS_STR(token), locator) != 1) {
 		RETTOK(DNS_R_SYNTAX);
+	}
 	return (mem_tobuffer(target, locator, NS_LOCATORSZ));
 }
 
@@ -84,8 +86,9 @@ static inline isc_result_t fromwire_nid(ARGS_FROMWIRE)
 	UNUSED(dctx);
 
 	isc_buffer_activeregion(source, &sregion);
-	if (sregion.length != 10)
+	if (sregion.length != 10) {
 		return (DNS_R_FORMERR);
+	}
 	isc_buffer_forward(source, sregion.length);
 	return (mem_tobuffer(target, sregion.base, sregion.length));
 }

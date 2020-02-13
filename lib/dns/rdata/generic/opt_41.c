@@ -61,23 +61,27 @@ static inline isc_result_t totext_opt(ARGS_TOTEXT)
 		RETERR(str_totext(buf, target));
 		INSIST(r.length >= length);
 		if (length > 0) {
-			if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+			if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 				RETERR(str_totext(" (", target));
+			}
 			RETERR(str_totext(tctx->linebreak, target));
 			or = r;
 			or.length = length;
-			if (tctx->width == 0) /* No splitting */
+			if (tctx->width == 0) { /* No splitting */
 				RETERR(isc_base64_totext(& or, 60, "", target));
-			else
+			} else {
 				RETERR(isc_base64_totext(& or, tctx->width - 2,
 							 tctx->linebreak,
 							 target));
+			}
 			isc_region_consume(&r, length);
-			if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+			if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 				RETERR(str_totext(" )", target));
+			}
 		}
-		if (r.length > 0)
+		if (r.length > 0) {
 			RETERR(str_totext(" ", target));
+		}
 	}
 
 	return (ISC_R_SUCCESS);
@@ -203,7 +207,7 @@ static inline isc_result_t fromwire_opt(ARGS_FROMWIRE)
 			isc_region_consume(&sregion, length);
 			break;
 		case DNS_OPT_CLIENT_TAG:
-			/* FALLTHROUGH */
+		/* FALLTHROUGH */
 		case DNS_OPT_SERVER_TAG:
 			if (length != 2) {
 				return (DNS_R_OPTERR);
@@ -273,12 +277,14 @@ static inline isc_result_t fromstruct_opt(ARGS_FROMSTRUCT)
 		isc_region_consume(&region, 2); /* opt */
 		length = uint16_fromregion(&region);
 		isc_region_consume(&region, 2);
-		if (region.length < length)
+		if (region.length < length) {
 			return (ISC_R_UNEXPECTEDEND);
+		}
 		isc_region_consume(&region, length);
 	}
-	if (region.length != 0)
+	if (region.length != 0) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	return (mem_tobuffer(target, opt->options, opt->length));
 }
@@ -298,8 +304,9 @@ static inline isc_result_t tostruct_opt(ARGS_TOSTRUCT)
 	dns_rdata_toregion(rdata, &r);
 	opt->length = r.length;
 	opt->options = mem_maybedup(mctx, r.base, r.length);
-	if (opt->options == NULL)
+	if (opt->options == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	opt->offset = 0;
 	opt->mctx = mctx;
@@ -313,11 +320,13 @@ static inline void freestruct_opt(ARGS_FREESTRUCT)
 	REQUIRE(opt != NULL);
 	REQUIRE(opt->common.rdtype == dns_rdatatype_opt);
 
-	if (opt->mctx == NULL)
+	if (opt->mctx == NULL) {
 		return;
+	}
 
-	if (opt->options != NULL)
+	if (opt->options != NULL) {
 		isc_mem_free(opt->mctx, opt->options);
+	}
 	opt->mctx = NULL;
 }
 
@@ -381,8 +390,9 @@ dns_rdata_opt_first(dns_rdata_opt_t *opt)
 	REQUIRE(opt->common.rdtype == dns_rdatatype_opt);
 	REQUIRE(opt->options != NULL || opt->length == 0);
 
-	if (opt->length == 0)
+	if (opt->length == 0) {
 		return (ISC_R_NOMORE);
+	}
 
 	opt->offset = 0;
 	return (ISC_R_SUCCESS);
@@ -405,8 +415,9 @@ dns_rdata_opt_next(dns_rdata_opt_t *opt)
 	length = uint16_fromregion(&r);
 	INSIST(opt->offset + 4 + length <= opt->length);
 	opt->offset = opt->offset + 4 + length;
-	if (opt->offset == opt->length)
+	if (opt->offset == opt->length) {
 		return (ISC_R_NOMORE);
+	}
 	return (ISC_R_SUCCESS);
 }
 

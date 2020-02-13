@@ -13,8 +13,8 @@
 #define DNS_KEYTABLE_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief
@@ -276,7 +276,7 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
  *\li	'foundanme' is NULL or is a pointer to an initialized dns_name_t
  *
  *\li	'*wantsdnssecp' is a valid bool.
-
+ *
  * Ensures:
  *
  *\li	On success, *wantsdnssecp will be true if and only if 'name'

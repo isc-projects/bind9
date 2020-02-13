@@ -39,8 +39,9 @@ static inline isc_result_t generic_fromtext_ds(ARGS_FROMTEXT)
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -126,19 +127,23 @@ static inline isc_result_t generic_totext_ds(ARGS_TOTEXT)
 	/*
 	 * Digest.
 	 */
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" (", target));
+	}
 	RETERR(str_totext(tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_NOCRYPTO) == 0) {
-		if (tctx->width == 0) /* No splitting */
+		if (tctx->width == 0) { /* No splitting */
 			RETERR(isc_hex_totext(&sr, 0, "", target));
-		else
+		} else {
 			RETERR(isc_hex_totext(&sr, tctx->width - 2,
 					      tctx->linebreak, target));
-	} else
+		}
+	} else {
 		RETERR(str_totext("[omitted]", target));
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	}
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" )", target));
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -169,20 +174,22 @@ static inline isc_result_t generic_fromwire_ds(ARGS_FROMWIRE)
 	    (sr.base[3] == DNS_DSDIGEST_SHA256 &&
 	     sr.length < 4 + ISC_SHA256_DIGESTLENGTH) ||
 	    (sr.base[3] == DNS_DSDIGEST_SHA384 &&
-	     sr.length < 4 + ISC_SHA384_DIGESTLENGTH))
+	     sr.length < 4 + ISC_SHA384_DIGESTLENGTH)) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	/*
 	 * Only copy digest lengths if we know them.
 	 * If there is extra data dns_rdata_fromwire() will
 	 * detect that.
 	 */
-	if (sr.base[3] == DNS_DSDIGEST_SHA1)
+	if (sr.base[3] == DNS_DSDIGEST_SHA1) {
 		sr.length = 4 + ISC_SHA1_DIGESTLENGTH;
-	else if (sr.base[3] == DNS_DSDIGEST_SHA256)
+	} else if (sr.base[3] == DNS_DSDIGEST_SHA256) {
 		sr.length = 4 + ISC_SHA256_DIGESTLENGTH;
-	else if (sr.base[3] == DNS_DSDIGEST_SHA384)
+	} else if (sr.base[3] == DNS_DSDIGEST_SHA384) {
 		sr.length = 4 + ISC_SHA384_DIGESTLENGTH;
+	}
 
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -284,8 +291,9 @@ static inline isc_result_t generic_tostruct_ds(ARGS_TOSTRUCT)
 	ds->length = region.length;
 
 	ds->digest = mem_maybedup(mctx, region.base, region.length);
-	if (ds->digest == NULL)
+	if (ds->digest == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	ds->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -312,11 +320,13 @@ static inline void freestruct_ds(ARGS_FREESTRUCT)
 	REQUIRE(ds != NULL);
 	REQUIRE(ds->common.rdtype == dns_rdatatype_ds);
 
-	if (ds->mctx == NULL)
+	if (ds->mctx == NULL) {
 		return;
+	}
 
-	if (ds->digest != NULL)
+	if (ds->digest != NULL) {
 		isc_mem_free(ds->mctx, ds->digest);
+	}
 	ds->mctx = NULL;
 }
 

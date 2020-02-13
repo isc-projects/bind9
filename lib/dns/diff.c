@@ -209,10 +209,11 @@ setresign(dns_rdataset_t *modified)
 	INSIST(result == ISC_R_SUCCESS);
 	dns_rdataset_current(modified, &rdata);
 	(void)dns_rdata_tostruct(&rdata, &sig, NULL);
-	if ((rdata.flags & DNS_RDATA_OFFLINE) != 0)
+	if ((rdata.flags & DNS_RDATA_OFFLINE) != 0) {
 		when = 0;
-	else
+	} else {
 		when = dns_time64_from32(sig.timeexpire);
+	}
 	dns_rdata_reset(&rdata);
 
 	result = dns_rdataset_next(modified);
@@ -222,8 +223,9 @@ setresign(dns_rdataset_t *modified)
 		if ((rdata.flags & DNS_RDATA_OFFLINE) != 0) {
 			goto next_rr;
 		}
-		if (when == 0 || dns_time64_from32(sig.timeexpire) < when)
+		if (when == 0 || dns_time64_from32(sig.timeexpire) < when) {
 			when = dns_time64_from32(sig.timeexpire);
+		}
 	next_rr:
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(modified);
@@ -235,15 +237,17 @@ setresign(dns_rdataset_t *modified)
 static void
 getownercase(dns_rdataset_t *rdataset, dns_name_t *name)
 {
-	if (dns_rdataset_isassociated(rdataset))
+	if (dns_rdataset_isassociated(rdataset)) {
 		dns_rdataset_getownercase(rdataset, name);
+	}
 }
 
 static void
 setownercase(dns_rdataset_t *rdataset, const dns_name_t *name)
 {
-	if (dns_rdataset_isassociated(rdataset))
+	if (dns_rdataset_isassociated(rdataset)) {
 		dns_rdataset_setownercase(rdataset, name);
+	}
 }
 
 static isc_result_t
@@ -309,11 +313,12 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn)
 
 			node = NULL;
 			if (type != dns_rdatatype_nsec3 &&
-			    covers != dns_rdatatype_nsec3)
+			    covers != dns_rdatatype_nsec3) {
 				CHECK(dns_db_findnode(db, name, true, &node));
-			else
+			} else {
 				CHECK(dns_db_findnsec3node(db, name, true,
 							   &node));
+			}
 
 			while (t != NULL && dns_name_equal(&t->name, name) &&
 			       t->op == op && t->rdata.type == type &&
@@ -389,11 +394,13 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn)
 							      resign);
 				}
 				if (op == DNS_DIFFOP_ADD ||
-				    op == DNS_DIFFOP_ADDRESIGN)
+				    op == DNS_DIFFOP_ADDRESIGN) {
 					setownercase(&ardataset, name);
+				}
 				if (op == DNS_DIFFOP_DEL ||
-				    op == DNS_DIFFOP_DELRESIGN)
+				    op == DNS_DIFFOP_DELRESIGN) {
 					getownercase(&ardataset, name);
+				}
 			} else if (result == DNS_R_UNCHANGED) {
 				/*
 				 * This will not happen when executing a
@@ -417,35 +424,42 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn)
 						      namebuf, classbuf);
 				}
 				if (op == DNS_DIFFOP_ADD ||
-				    op == DNS_DIFFOP_ADDRESIGN)
+				    op == DNS_DIFFOP_ADDRESIGN) {
 					setownercase(&ardataset, name);
+				}
 				if (op == DNS_DIFFOP_DEL ||
-				    op == DNS_DIFFOP_DELRESIGN)
+				    op == DNS_DIFFOP_DELRESIGN) {
 					getownercase(&ardataset, name);
+				}
 			} else if (result == DNS_R_NXRRSET) {
 				/*
 				 * OK.
 				 */
 				if (op == DNS_DIFFOP_DEL ||
-				    op == DNS_DIFFOP_DELRESIGN)
+				    op == DNS_DIFFOP_DELRESIGN) {
 					getownercase(&ardataset, name);
-				if (dns_rdataset_isassociated(&ardataset))
+				}
+				if (dns_rdataset_isassociated(&ardataset)) {
 					dns_rdataset_disassociate(&ardataset);
+				}
 			} else {
-				if (dns_rdataset_isassociated(&ardataset))
+				if (dns_rdataset_isassociated(&ardataset)) {
 					dns_rdataset_disassociate(&ardataset);
+				}
 				CHECK(result);
 			}
 			dns_db_detachnode(db, &node);
-			if (dns_rdataset_isassociated(&ardataset))
+			if (dns_rdataset_isassociated(&ardataset)) {
 				dns_rdataset_disassociate(&ardataset);
+			}
 		}
 	}
 	return (ISC_R_SUCCESS);
 
 failure:
-	if (node != NULL)
+	if (node != NULL) {
 		dns_db_detachnode(db, &node);
+	}
 	return (result);
 }
 
@@ -544,10 +558,12 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare)
 	REQUIRE(DNS_DIFF_VALID(diff));
 
 	for (p = ISC_LIST_HEAD(diff->tuples); p != NULL;
-	     p = ISC_LIST_NEXT(p, link))
+	     p = ISC_LIST_NEXT(p, link)) {
 		length++;
-	if (length == 0)
+	}
+	if (length == 0) {
 		return (ISC_R_SUCCESS);
+	}
 	v = isc_mem_get(diff->mctx, length * sizeof(dns_difftuple_t *));
 	for (i = 0; i < length; i++) {
 		p = ISC_LIST_HEAD(diff->tuples);
@@ -630,8 +646,9 @@ dns_diff_print(dns_diff_t *diff, FILE *file)
 			goto again;
 		}
 
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 		/*
 		 * Get rid of final newline.
 		 */
@@ -657,17 +674,19 @@ dns_diff_print(dns_diff_t *diff, FILE *file)
 			op = "del re-sign";
 			break;
 		}
-		if (file != NULL)
+		if (file != NULL) {
 			fprintf(file, "%s %.*s\n", op, (int)r.length,
 				(char *)r.base);
-		else
+		} else {
 			isc_log_write(DIFF_COMMON_LOGARGS, ISC_LOG_DEBUG(7),
 				      "%s %.*s", op, (int)r.length,
 				      (char *)r.base);
+		}
 	}
 	result = ISC_R_SUCCESS;
 cleanup:
-	if (mem != NULL)
+	if (mem != NULL) {
 		isc_mem_put(diff->mctx, mem, size);
+	}
 	return (result);
 }

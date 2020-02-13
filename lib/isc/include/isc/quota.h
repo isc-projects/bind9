@@ -13,8 +13,8 @@
 #define ISC_QUOTA_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/quota.h
  *
@@ -35,8 +35,8 @@
 #include <isc/types.h>
 
 /*****
- ***** Types.
- *****/
+***** Types.
+*****/
 
 ISC_LANG_BEGINDECLS
 

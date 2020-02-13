@@ -17,4 +17,4 @@ basename(const char *);
 char *
 dirname(const char *);
 
-#endif
+#endif /* ifndef LIBGEN_H */

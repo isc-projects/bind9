@@ -40,11 +40,12 @@ do_gai(int family, char *hostname)
 		error = getnameinfo(res->ai_addr, (socklen_t)res->ai_addrlen,
 				    addrbuf, sizeof(addrbuf), NULL, 0,
 				    NI_NUMERICHOST);
-		if (error == 0)
+		if (error == 0) {
 			error = getnameinfo(res->ai_addr,
 					    (socklen_t)res->ai_addrlen, namebuf,
 					    sizeof(namebuf), servbuf,
 					    sizeof(servbuf), 0);
+		}
 		if (error != 0) {
 			fprintf(stderr, "getnameinfo failed: %s\n",
 				gai_strerror(error));
@@ -60,8 +61,9 @@ do_gai(int family, char *hostname)
 int
 main(int argc, char *argv[])
 {
-	if (argc < 2)
+	if (argc < 2) {
 		exit(1);
+	}
 
 	do_gai(AF_INET, argv[1]);
 	do_gai(AF_INET6, argv[1]);

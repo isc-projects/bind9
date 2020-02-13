@@ -71,8 +71,9 @@ destroy_querylist(isc_mem_t *mctx, query_list_t **querylist)
 	REQUIRE(mctx != NULL);
 
 	/* if query list is null, nothing to do */
-	if (*querylist == NULL)
+	if (*querylist == NULL) {
 		return;
+	}
 
 	/* start at the top of the list */
 	nseg = ISC_LIST_HEAD(**querylist);
@@ -83,8 +84,9 @@ destroy_querylist(isc_mem_t *mctx, query_list_t **querylist)
 		 * was really a query segment, and not a pointer to
 		 * %zone%, or %record%, or %client%
 		 */
-		if (tseg->sql != NULL && tseg->direct == true)
+		if (tseg->sql != NULL && tseg->direct == true) {
 			isc_mem_free(mctx, tseg->sql);
+		}
 		/* get the next query segment, before we destroy this one. */
 		nseg = ISC_LIST_NEXT(nseg, link);
 		/* deallocate this query segment. */
@@ -115,12 +117,13 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 
 	/* if query string is null, or zero length */
 	if (query_str == NULL || strlen(query_str) < 1) {
-		if ((flags & SDLZH_REQUIRE_QUERY) == 0)
+		if ((flags & SDLZH_REQUIRE_QUERY) == 0) {
 			/* we don't need it were ok. */
 			return (ISC_R_SUCCESS);
-		else
+		} else {
 			/* we did need it, PROBLEM!!! */
 			return (ISC_R_FAILURE);
+		}
 	}
 
 	/* allocate memory for query list */
@@ -249,13 +252,14 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 
 cleanup:
 	/* get rid of free_me */
-	if (free_me != NULL)
+	if (free_me != NULL) {
 		isc_mem_free(mctx, free_me);
+	}
 
 flag_fail:
 	/* get rid of what was build of the query list */
 	destroy_querylist(mctx, &tql);
-	return result;
+	return (result);
 }
 
 /*%
@@ -280,10 +284,11 @@ sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 		 * if this is a query segment, use the
 		 * precalculated string length
 		 */
-		if (tseg->direct == true)
+		if (tseg->direct == true) {
 			length += tseg->strlen;
-		else /* calculate string length for dynamic segments. */
+		} else { /* calculate string length for dynamic segments. */
 			length += strlen(*(char **)tseg->sql);
+		}
 		/* get the next segment */
 		tseg = ISC_LIST_NEXT(tseg, link);
 	}
@@ -295,17 +300,18 @@ sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 	/* start at the top of the list again */
 	tseg = ISC_LIST_HEAD(*querylist);
 	while (tseg != NULL) {
-		if (tseg->direct == true)
+		if (tseg->direct == true) {
 			/* query segments */
 			strcat(qs, tseg->sql);
-		else
+		} else {
 			/* dynamic segments */
 			strcat(qs, *(char **)tseg->sql);
+		}
 		/* get the next segment */
 		tseg = ISC_LIST_NEXT(tseg, link);
 	}
 
-	return qs;
+	return (qs);
 }
 
 /*% constructs a sql dbinstance (DBI) */
@@ -459,18 +465,21 @@ sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char *key)
 	char  value[255];
 	int   i;
 
-	if (key == NULL || input == NULL || strlen(input) < 1)
-		return NULL;
+	if (key == NULL || input == NULL || strlen(input) < 1) {
+		return (NULL);
+	}
 
 	keylen = strlen(key);
 
-	if (keylen < 1)
-		return NULL;
+	if (keylen < 1) {
+		return (NULL);
+	}
 
 	keystart = strstr(input, key);
 
-	if (keystart == NULL)
-		return NULL;
+	if (keystart == NULL) {
+		return (NULL);
+	}
 
 	REQUIRE(mctx != NULL);
 
@@ -482,5 +491,5 @@ sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char *key)
 		}
 	}
 
-	return isc_mem_strdup(mctx, value);
+	return (isc_mem_strdup(mctx, value));
 }

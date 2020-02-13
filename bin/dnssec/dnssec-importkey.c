@@ -42,7 +42,7 @@
 
 #if USE_PKCS11
 #include <pk11/result.h>
-#endif
+#endif /* if USE_PKCS11 */
 
 #include "dnssectool.h"
 
@@ -82,17 +82,20 @@ db_load_from_stream(dns_db_t *db, FILE *fp)
 
 	dns_rdatacallbacks_init(&callbacks);
 	result = dns_db_beginload(db, &callbacks);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("dns_db_beginload failed: %s", isc_result_totext(result));
+	}
 
 	result = dns_master_loadstream(fp, name, name, rdclass, 0, &callbacks,
 				       mctx);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("can't load from input: %s", isc_result_totext(result));
+	}
 
 	result = dns_db_endload(db, &callbacks);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("dns_db_endload failed: %s", isc_result_totext(result));
+	}
 }
 
 static isc_result_t
@@ -107,8 +110,9 @@ loadset(const char *filename, dns_rdataset_t *rdataset)
 
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone, rdclass, 0,
 			       NULL, &db);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("can't create database");
+	}
 
 	if (strcmp(filename, "-") == 0) {
 		db_load_from_stream(db, stdin);
@@ -116,27 +120,32 @@ loadset(const char *filename, dns_rdataset_t *rdataset)
 	} else {
 		result = dns_db_load(db, filename, dns_masterformat_text,
 				     DNS_MASTER_NOTTL);
-		if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
+		if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE) {
 			fatal("can't load %s: %s", filename,
 			      isc_result_totext(result));
+		}
 	}
 
 	result = dns_db_findnode(db, name, false, &node);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("can't find %s node in %s", setname, filename);
+	}
 
 	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_dnskey, 0, 0,
 				     rdataset, NULL);
 
-	if (result == ISC_R_NOTFOUND)
+	if (result == ISC_R_NOTFOUND) {
 		fatal("no DNSKEY RR for %s in %s", setname, filename);
-	else if (result != ISC_R_SUCCESS)
+	} else if (result != ISC_R_SUCCESS) {
 		fatal("dns_db_findrdataset");
+	}
 
-	if (node != NULL)
+	if (node != NULL) {
 		dns_db_detachnode(db, &node);
-	if (db != NULL)
+	}
+	if (db != NULL) {
 		dns_db_detach(&db);
+	}
 	return (result);
 }
 
@@ -155,9 +164,10 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 
 	result = dst_key_fromnamedfile(filename, NULL, DST_TYPE_PUBLIC, mctx,
 				       &key);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("invalid keyfile name %s: %s", filename,
 		      isc_result_totext(result));
+	}
 
 	if (verbose > 2) {
 		char keystr[DST_KEY_FORMATSIZE];
@@ -167,8 +177,9 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 	}
 
 	result = dst_key_todns(key, &keyb);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("can't decode key");
+	}
 
 	isc_buffer_usedregion(&keyb, &r);
 	dns_rdata_fromregion(rdata, dst_key_class(key), dns_rdatatype_dnskey,
@@ -216,23 +227,29 @@ emit(const char *dir, dns_rdata_t *rdata)
 		dst_key_name(key), dst_key_id(key), dst_key_alg(key),
 		DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, dir, mctx, &tmp);
 	if (result == ISC_R_SUCCESS) {
-		if (dst_key_isprivate(tmp) && !dst_key_isexternal(tmp))
+		if (dst_key_isprivate(tmp) && !dst_key_isexternal(tmp)) {
 			fatal("Private key already exists in %s", priname);
+		}
 		dst_key_free(&tmp);
 	}
 
 	dst_key_setexternal(key, true);
-	if (setpub)
+	if (setpub) {
 		dst_key_settime(key, DST_TIME_PUBLISH, pub);
-	if (setdel)
+	}
+	if (setdel) {
 		dst_key_settime(key, DST_TIME_DELETE, del);
-	if (setsyncadd)
+	}
+	if (setsyncadd) {
 		dst_key_settime(key, DST_TIME_SYNCPUBLISH, syncadd);
-	if (setsyncdel)
+	}
+	if (setsyncdel) {
 		dst_key_settime(key, DST_TIME_SYNCDELETE, syncdel);
+	}
 
-	if (setttl)
+	if (setttl) {
 		dst_key_setttl(key, ttl);
+	}
 
 	result = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, dir);
 	if (result != ISC_R_SUCCESS) {
@@ -299,14 +316,15 @@ main(int argc, char **argv)
 	dns_rdata_init(&rdata);
 	isc_stdtime_get(&now);
 
-	if (argc == 1)
+	if (argc == 1) {
 		usage();
+	}
 
 	isc_mem_create(&mctx);
 
 #if USE_PKCS11
 	pk11_result_register();
-#endif
+#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;
@@ -317,9 +335,10 @@ main(int argc, char **argv)
 		case 'D':
 			/* -Dsync ? */
 			if (isoptarg("sync", argv, usage)) {
-				if (setsyncdel)
+				if (setsyncdel) {
 					fatal("-D sync specified more than "
 					      "once");
+				}
 
 				syncdel = strtotime(isc_commandline_argument,
 						    now, now, &setsyncdel);
@@ -327,16 +346,18 @@ main(int argc, char **argv)
 			}
 			/* -Ddnskey ? */
 			(void)isoptarg("dnskey", argv, usage);
-			if (setdel)
+			if (setdel) {
 				fatal("-D specified more than once");
+			}
 
 			del = strtotime(isc_commandline_argument, now, now,
 					&setdel);
 			break;
 		case 'K':
 			dir = isc_commandline_argument;
-			if (strlen(dir) == 0U)
+			if (strlen(dir) == 0U) {
 				fatal("directory must be non-empty string");
+			}
 			break;
 		case 'L':
 			ttl = strtottl(isc_commandline_argument);
@@ -345,9 +366,10 @@ main(int argc, char **argv)
 		case 'P':
 			/* -Psync ? */
 			if (isoptarg("sync", argv, usage)) {
-				if (setsyncadd)
+				if (setsyncadd) {
 					fatal("-P sync specified more than "
 					      "once");
+				}
 
 				syncadd = strtotime(isc_commandline_argument,
 						    now, now, &setsyncadd);
@@ -355,8 +377,9 @@ main(int argc, char **argv)
 			}
 			/* -Pdnskey ? */
 			(void)isoptarg("dnskey", argv, usage);
-			if (setpub)
+			if (setpub) {
 				fatal("-P specified more than once");
+			}
 
 			pub = strtotime(isc_commandline_argument, now, now,
 					&setpub);
@@ -366,14 +389,16 @@ main(int argc, char **argv)
 			break;
 		case 'v':
 			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0')
+			if (*endp != '\0') {
 				fatal("-v must be followed by a number");
+			}
 			break;
 		case '?':
-			if (isc_commandline_option != '?')
+			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
-			/* FALLTHROUGH */
+			}
+		/* FALLTHROUGH */
 		case 'h':
 			/* Does not return. */
 			usage();
@@ -391,15 +416,18 @@ main(int argc, char **argv)
 
 	rdclass = strtoclass(classname);
 
-	if (argc < isc_commandline_index + 1 && filename == NULL)
+	if (argc < isc_commandline_index + 1 && filename == NULL) {
 		fatal("the key file name was not specified");
-	if (argc > isc_commandline_index + 1)
+	}
+	if (argc > isc_commandline_index + 1) {
 		fatal("extraneous arguments");
+	}
 
 	result = dst_lib_init(mctx, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
+	}
 
 	setup_logging(mctx, &log);
 
@@ -409,18 +437,21 @@ main(int argc, char **argv)
 		if (argc < isc_commandline_index + 1) {
 			/* using filename as zone name */
 			namestr = filename;
-		} else
+		} else {
 			namestr = argv[isc_commandline_index];
+		}
 
 		result = initname(namestr);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fatal("could not initialize name %s", namestr);
+		}
 
 		result = loadset(filename, &rdataset);
 
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fatal("could not load DNSKEY set: %s\n",
 			      isc_result_totext(result));
+		}
 
 		for (result = dns_rdataset_first(&rdataset);
 		     result == ISC_R_SUCCESS;
@@ -438,18 +469,21 @@ main(int argc, char **argv)
 		emit(dir, &rdata);
 	}
 
-	if (dns_rdataset_isassociated(&rdataset))
+	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
+	}
 	cleanup_logging(&log);
 	dst_lib_destroy();
-	if (verbose > 10)
+	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
+	}
 	isc_mem_destroy(&mctx);
 
 	fflush(stdout);
 	if (ferror(stdout)) {
 		fprintf(stderr, "write error\n");
 		return (1);
-	} else
+	} else {
 		return (0);
+	}
 }

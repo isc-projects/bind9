@@ -73,8 +73,9 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 		isc_buffer_init(&keynamebuf, keynamedata, sizeof(keynamedata));
 		ret = dns_name_fromtext(&keyname, &keynamesrc, dns_rootname,
 					DNS_NAME_DOWNCASE, &keynamebuf);
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			goto failure;
+		}
 
 		/*
 		 * Create the algorithm.
@@ -95,8 +96,9 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 		secret = isc_mem_get(mctx, secretlen);
 		isc_buffer_init(&secretbuf, secret, secretlen);
 		ret = isc_base64_decodestring(secretstr, &secretbuf);
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			goto failure;
+		}
 		secretlen = isc_buffer_usedlength(&secretbuf);
 
 		isc_stdtime_get(&now);
@@ -105,8 +107,9 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 					 &tsigkey);
 		isc_mem_put(mctx, secret, secretalloc);
 		secret = NULL;
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			goto failure;
+		}
 		/*
 		 * Set digest bits.
 		 */
@@ -120,8 +123,9 @@ failure:
 	cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 		    "configuring key '%s': %s", keyid, isc_result_totext(ret));
 
-	if (secret != NULL)
+	if (secret != NULL) {
 		isc_mem_put(mctx, secret, secretalloc);
+	}
 	return (ret);
 }
 
@@ -138,26 +142,32 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	REQUIRE(ringp != NULL && *ringp == NULL);
 
 	i = 0;
-	if (config != NULL)
+	if (config != NULL) {
 		maps[i++] = config;
-	if (vconfig != NULL)
+	}
+	if (vconfig != NULL) {
 		maps[i++] = cfg_tuple_get(vconfig, "options");
+	}
 	maps[i] = NULL;
 
 	result = dns_tsigkeyring_create(mctx, &ring);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	for (i = 0;; i++) {
-		if (maps[i] == NULL)
+		if (maps[i] == NULL) {
 			break;
+		}
 		keylist = NULL;
 		result = cfg_map_get(maps[i], "key", &keylist);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			continue;
+		}
 		result = add_initial_keys(keylist, ring, mctx);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto failure;
+		}
 	}
 
 	*ringp = ring;

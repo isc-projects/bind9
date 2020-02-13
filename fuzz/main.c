@@ -108,7 +108,7 @@ main(int argc, char **argv)
 
 	test_all_from(corpusdir);
 
-	return 0;
+	return (0);
 }
 
 #elif __AFL_COMPILER
@@ -123,19 +123,19 @@ main(int argc, char **argv)
 	UNUSED(argv);
 
 #ifdef __AFL_LOOP
-	while (__AFL_LOOP(10000)) { // only works with afl-clang-fast
-#else
+	while (__AFL_LOOP(10000)) { /* only works with afl-clang-fast */
+#else  /* ifdef __AFL_LOOP */
 	{
-#endif
+#endif /* ifdef __AFL_LOOP */
 		ret = fread(buf, 1, sizeof(buf), stdin);
 		if (ret < 0) {
-			return 0;
+			return (0);
 		}
 
 		LLVMFuzzerTestOneInput(buf, ret);
 	}
 
-	return 0;
+	return (0);
 }
 
 #endif /* FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */

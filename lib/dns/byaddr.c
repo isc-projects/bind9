@@ -78,8 +78,9 @@ dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
 		}
 		remaining = sizeof(textname) - (cp - textname);
 		strlcpy(cp, "ip6.arpa.", remaining);
-	} else
+	} else {
 		return (ISC_R_NOTIMPLEMENTED);
+	}
 
 	len = (unsigned int)strlen(textname);
 	isc_buffer_init(&buffer, textname, len);
@@ -122,8 +123,9 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset)
 		dns_rdata_ptr_t ptr;
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ptr, NULL);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 		name = isc_mem_get(byaddr->mctx, sizeof(*name));
 		dns_name_init(name, NULL);
 		dns_name_dup(&ptr.ptr, byaddr->mctx, name);
@@ -132,8 +134,9 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset)
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);
 	}
-	if (result == ISC_R_NOMORE)
+	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
+	}
 
 	return (result);
 }
@@ -156,8 +159,9 @@ lookup_done(isc_task_t *task, isc_event_t *event)
 	if (levent->result == ISC_R_SUCCESS) {
 		result = copy_ptr_targets(byaddr, levent->rdataset);
 		byaddr->event->result = result;
-	} else
+	} else {
 		byaddr->event->result = levent->result;
+	}
 	isc_event_free(&event);
 	isc_task_sendanddetach(&byaddr->task, (isc_event_t **)&byaddr->event);
 }
@@ -213,15 +217,17 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 
 	result = dns_byaddr_createptrname(address, options,
 					  dns_fixedname_name(&byaddr->name));
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_lock;
+	}
 
 	byaddr->lookup = NULL;
 	result = dns_lookup_create(mctx, dns_fixedname_name(&byaddr->name),
 				   dns_rdatatype_ptr, view, 0, task,
 				   lookup_done, byaddr, &byaddr->lookup);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_lock;
+	}
 
 	byaddr->canceled = false;
 	byaddr->magic = BYADDR_MAGIC;
@@ -253,8 +259,9 @@ dns_byaddr_cancel(dns_byaddr_t *byaddr)
 
 	if (!byaddr->canceled) {
 		byaddr->canceled = true;
-		if (byaddr->lookup != NULL)
+		if (byaddr->lookup != NULL) {
 			dns_lookup_cancel(byaddr->lookup);
+		}
 	}
 
 	UNLOCK(&byaddr->lock);

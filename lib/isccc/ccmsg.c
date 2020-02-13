@@ -144,7 +144,8 @@ isccc_ccmsg_init(isc_mem_t *mctx, isc_socket_t *sock, isccc_ccmsg_t *ccmsg)
 	ccmsg->task = NULL;		  /* None yet. */
 	ccmsg->result = ISC_R_UNEXPECTED; /* None yet. */
 					  /*
-					   * Should probably initialize the event here, but it can wait.
+					   * Should probably initialize the
+					   *event here, but it can wait.
 					   */
 }
 
@@ -187,8 +188,9 @@ isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_task_t *task,
 	result = isc_socket_recv(ccmsg->sock, &region, 0, ccmsg->task,
 				 recv_length, ccmsg);
 
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		ccmsg->task = NULL;
+	}
 
 	return (result);
 }
@@ -203,17 +205,18 @@ isccc_ccmsg_cancelread(isccc_ccmsg_t *ccmsg)
 
 #if 0
 void
-isccc_ccmsg_freebuffer(isccc_ccmsg_t *ccmsg) {
+isccc_ccmsg_freebuffer(isccc_ccmsg_t*ccmsg) {
 	REQUIRE(VALID_CCMSG(ccmsg));
 
-	if (ccmsg->buffer.base == NULL)
+	if (ccmsg->buffer.base == NULL) {
 		return;
+	}
 
-	isc_mem_put(ccmsg->mctx, ccmsg->buffer.base, ccmsg->buffer.length);
+	isc_mem_put(ccmsg->mctx,ccmsg->buffer.base,ccmsg->buffer.length);
 	ccmsg->buffer.base = NULL;
 	ccmsg->buffer.length = 0;
 }
-#endif
+#endif /* if 0 */
 
 void
 isccc_ccmsg_invalidate(isccc_ccmsg_t *ccmsg)

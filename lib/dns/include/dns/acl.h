@@ -13,8 +13,8 @@
 #define DNS_ACL_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/acl.h
  * \brief

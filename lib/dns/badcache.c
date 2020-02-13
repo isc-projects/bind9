@@ -109,10 +109,11 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow)
 	dns_bcentry_t **newtable, *bad, *next;
 	unsigned int	newsize, i;
 
-	if (grow)
+	if (grow) {
 		newsize = bc->size * 2 + 1;
-	else
+	} else {
 		newsize = (bc->size - 1) / 2;
+	}
 
 	newtable = isc_mem_get(bc->mctx, sizeof(dns_bcentry_t *) * newsize);
 	memset(newtable, 0, sizeof(dns_bcentry_t *) * newsize);
@@ -156,8 +157,9 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 	LOCK(&bc->lock);
 
 	result = isc_time_now(&now);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&now);
+	}
 
 	hashval = dns_name_hash(name, false);
 	i = hashval % bc->size;
@@ -172,15 +174,17 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 			break;
 		}
 		if (isc_time_compare(&bad->expire, &now) < 0) {
-			if (prev == NULL)
+			if (prev == NULL) {
 				bc->table[i] = bad->next;
-			else
+			} else {
 				prev->next = bad->next;
+			}
 			isc_mem_put(bc->mctx, bad,
 				    sizeof(*bad) + bad->name.length);
 			bc->count--;
-		} else
+		} else {
 			prev = bad;
+		}
 	}
 
 	if (bad == NULL) {
@@ -196,12 +200,15 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 		bad->next = bc->table[i];
 		bc->table[i] = bad;
 		bc->count++;
-		if (bc->count > bc->size * 8)
+		if (bc->count > bc->size * 8) {
 			badcache_resize(bc, &now, true);
-		if (bc->count < bc->size * 2 && bc->size > bc->minsize)
+		}
+		if (bc->count < bc->size * 2 && bc->size > bc->minsize) {
 			badcache_resize(bc, &now, false);
-	} else
+		}
+	} else {
 		bad->expire = *expire;
+	}
 
 	UNLOCK(&bc->lock);
 }
@@ -232,8 +239,9 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 	 * name->link to store the type specific part.
 	 */
 
-	if (bc->count == 0)
+	if (bc->count == 0) {
 		goto skip;
+	}
 
 	i = dns_name_hash(name, false) % bc->size;
 	prev = NULL;
@@ -243,10 +251,11 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 		 * Search the hash list. Clean out expired records as we go.
 		 */
 		if (isc_time_compare(&bad->expire, now) < 0) {
-			if (prev != NULL)
+			if (prev != NULL) {
 				prev->next = bad->next;
-			else
+			} else {
 				bc->table[i] = bad->next;
+			}
 
 			isc_mem_put(bc->mctx, bad,
 				    sizeof(*bad) + bad->name.length);
@@ -254,8 +263,9 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 			continue;
 		}
 		if (bad->type == type && dns_name_equal(name, &bad->name)) {
-			if (flagp != NULL)
+			if (flagp != NULL) {
 				*flagp = bad->flags;
+			}
 			answer = true;
 			break;
 		}
@@ -311,8 +321,9 @@ dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name)
 	LOCK(&bc->lock);
 
 	result = isc_time_now(&now);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&now);
+	}
 	i = dns_name_hash(name, false) % bc->size;
 	prev = NULL;
 	for (bad = bc->table[i]; bad != NULL; bad = next) {
@@ -320,16 +331,18 @@ dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name)
 		next = bad->next;
 		n = isc_time_compare(&bad->expire, &now);
 		if (n < 0 || dns_name_equal(name, &bad->name)) {
-			if (prev == NULL)
+			if (prev == NULL) {
 				bc->table[i] = bad->next;
-			else
+			} else {
 				prev->next = bad->next;
+			}
 
 			isc_mem_put(bc->mctx, bad,
 				    sizeof(*bad) + bad->name.length);
 			bc->count--;
-		} else
+		} else {
 			prev = bad;
+		}
 	}
 
 	UNLOCK(&bc->lock);
@@ -350,8 +363,9 @@ dns_badcache_flushtree(dns_badcache_t *bc, const dns_name_t *name)
 	LOCK(&bc->lock);
 
 	result = isc_time_now(&now);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&now);
+	}
 
 	for (i = 0; bc->count > 0 && i < bc->size; i++) {
 		prev = NULL;
@@ -359,16 +373,18 @@ dns_badcache_flushtree(dns_badcache_t *bc, const dns_name_t *name)
 			next = bad->next;
 			n = isc_time_compare(&bad->expire, &now);
 			if (n < 0 || dns_name_issubdomain(&bad->name, name)) {
-				if (prev == NULL)
+				if (prev == NULL) {
 					bc->table[i] = bad->next;
-				else
+				} else {
 					prev->next = bad->next;
+				}
 
 				isc_mem_put(bc->mctx, bad,
 					    sizeof(*bad) + bad->name.length);
 				bc->count--;
-			} else
+			} else {
 				prev = bad;
+			}
 		}
 	}
 
@@ -398,10 +414,11 @@ dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp)
 		for (bad = bc->table[i]; bad != NULL; bad = next) {
 			next = bad->next;
 			if (isc_time_compare(&bad->expire, &now) < 0) {
-				if (prev != NULL)
+				if (prev != NULL) {
 					prev->next = bad->next;
-				else
+				} else {
 					bc->table[i] = bad->next;
+				}
 
 				isc_mem_put(bc->mctx, bad,
 					    sizeof(*bad) + bad->name.length);

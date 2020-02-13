@@ -68,7 +68,7 @@ fromhexstr(const char *in, unsigned char *d)
 	if (ret != ISC_R_SUCCESS) {
 		return (0);
 	}
-	return isc_buffer_usedlength(&b);
+	return (isc_buffer_usedlength(&b));
 }
 
 typedef struct aes_testcase {
@@ -251,4 +251,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

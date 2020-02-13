@@ -47,7 +47,7 @@
 	do {                             \
 		isc_result_t _r = (x);   \
 		if (_r != ISC_R_SUCCESS) \
-			return (_r);     \
+			return ((_r));   \
 	} while (0)
 
 #define RETTOK(x)                                          \
@@ -318,20 +318,24 @@ locator_pton(const char *src, unsigned char *dst)
 		const char *pch;
 
 		pch = strchr((xdigits = xdigits_l), ch);
-		if (pch == NULL)
+		if (pch == NULL) {
 			pch = strchr((xdigits = xdigits_u), ch);
+		}
 		if (pch != NULL) {
 			val <<= 4;
 			val |= (pch - xdigits);
-			if (++seen_xdigits > 4)
+			if (++seen_xdigits > 4) {
 				return (0);
+			}
 			continue;
 		}
 		if (ch == ':') {
-			if (!seen_xdigits)
+			if (!seen_xdigits) {
 				return (0);
-			if (tp + NS_INT16SZ > endp)
+			}
+			if (tp + NS_INT16SZ > endp) {
 				return (0);
+			}
 			*tp++ = (unsigned char)(val >> 8) & 0xff;
 			*tp++ = (unsigned char)val & 0xff;
 			seen_xdigits = 0;
@@ -341,13 +345,15 @@ locator_pton(const char *src, unsigned char *dst)
 		return (0);
 	}
 	if (seen_xdigits) {
-		if (tp + NS_INT16SZ > endp)
+		if (tp + NS_INT16SZ > endp) {
 			return (0);
+		}
 		*tp++ = (unsigned char)(val >> 8) & 0xff;
 		*tp++ = (unsigned char)val & 0xff;
 	}
-	if (tp != endp)
+	if (tp != endp) {
 		return (0);
+	}
 	memmove(dst, tmp, NS_LOCATORSZ);
 	return (1);
 }
@@ -368,8 +374,9 @@ mem_maybedup(isc_mem_t *mctx, void *source, size_t length)
 {
 	void *copy;
 
-	if (mctx == NULL)
+	if (mctx == NULL) {
 		return (source);
+	}
 	copy = isc_mem_allocate(mctx, length);
 	memmove(copy, source, length);
 
@@ -394,8 +401,9 @@ typemap_fromtext(isc_lex_t *lexer, isc_buffer_t *target, bool allow_empty)
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, true));
-		if (token.type != isc_tokentype_string)
+		if (token.type != isc_tokentype_string) {
 			break;
+		}
 		RETTOK(dns_rdatatype_fromtext(&covered,
 					      &token.value.as_textregion));
 		if (covered > max_used) {
@@ -410,28 +418,33 @@ typemap_fromtext(isc_lex_t *lexer, isc_buffer_t *target, bool allow_empty)
 		first = false;
 	} while (1);
 	isc_lex_ungettoken(lexer, &token);
-	if (!allow_empty && first)
+	if (!allow_empty && first) {
 		return (DNS_R_FORMERR);
+	}
 
 	for (window = 0; window < 256; window++) {
-		if (max_used < window * 256)
+		if (max_used < window * 256) {
 			break;
+		}
 
 		max_octet = max_used - (window * 256);
-		if (max_octet >= 256)
+		if (max_octet >= 256) {
 			max_octet = 31;
-		else
+		} else {
 			max_octet /= 8;
+		}
 
 		/*
 		 * Find if we have a type in this window.
 		 */
 		for (octet = max_octet; octet >= 0; octet--) {
-			if (bm[window * 32 + octet] != 0)
+			if (bm[window * 32 + octet] != 0) {
 				break;
+			}
 		}
-		if (octet < 0)
+		if (octet < 0) {
 			continue;
+		}
 		RETERR(uint8_tobuffer(window, target));
 		RETERR(uint8_tobuffer(octet + 1, target));
 		RETERR(mem_tobuffer(target, &bm[window * 32], octet + 1));
@@ -461,14 +474,17 @@ typemap_totext(isc_region_t *sr, dns_rdata_textctx_t *tctx,
 		INSIST(i + len <= sr->length);
 		for (j = 0; j < len; j++) {
 			dns_rdatatype_t t;
-			if (sr->base[i + j] == 0)
+			if (sr->base[i + j] == 0) {
 				continue;
+			}
 			for (k = 0; k < 8; k++) {
-				if ((sr->base[i + j] & (0x80 >> k)) == 0)
+				if ((sr->base[i + j] & (0x80 >> k)) == 0) {
 					continue;
+				}
 				t = window * 256 + j * 8 + k;
-				if (!first)
+				if (!first) {
 					RETERR(str_totext(" ", target));
+				}
 				first = false;
 				if (dns_rdatatype_isknown(t)) {
 					RETERR(dns_rdatatype_totext(t, target));
@@ -495,38 +511,45 @@ typemap_test(isc_region_t *sr, bool allow_empty)
 		/*
 		 * Check for overflow.
 		 */
-		if (i + 2 > sr->length)
+		if (i + 2 > sr->length) {
 			RETERR(DNS_R_FORMERR);
+		}
 		window = sr->base[i];
 		len = sr->base[i + 1];
 		i += 2;
 		/*
 		 * Check that bitmap windows are in the correct order.
 		 */
-		if (!first && window <= lastwindow)
+		if (!first && window <= lastwindow) {
 			RETERR(DNS_R_FORMERR);
+		}
 		/*
 		 * Check for legal lengths.
 		 */
-		if (len < 1 || len > 32)
+		if (len < 1 || len > 32) {
 			RETERR(DNS_R_FORMERR);
+		}
 		/*
 		 * Check for overflow.
 		 */
-		if (i + len > sr->length)
+		if (i + len > sr->length) {
 			RETERR(DNS_R_FORMERR);
+		}
 		/*
 		 * The last octet of the bitmap must be non zero.
 		 */
-		if (sr->base[i + len - 1] == 0)
+		if (sr->base[i + len - 1] == 0) {
 			RETERR(DNS_R_FORMERR);
+		}
 		lastwindow = window;
 		first = false;
 	}
-	if (i != sr->length)
+	if (i != sr->length) {
 		return (DNS_R_EXTRADATA);
-	if (!allow_empty && first)
+	}
+	if (!allow_empty && first) {
 		RETERR(DNS_R_FORMERR);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -610,11 +633,13 @@ dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2)
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata1));
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata2));
 
-	if (rdata1->rdclass != rdata2->rdclass)
+	if (rdata1->rdclass != rdata2->rdclass) {
 		return (rdata1->rdclass < rdata2->rdclass ? -1 : 1);
+	}
 
-	if (rdata1->type != rdata2->type)
+	if (rdata1->type != rdata2->type) {
 		return (rdata1->type < rdata2->type ? -1 : 1);
+	}
 
 	COMPARESWITCH
 
@@ -642,11 +667,13 @@ dns_rdata_casecompare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2)
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata1));
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata2));
 
-	if (rdata1->rdclass != rdata2->rdclass)
+	if (rdata1->rdclass != rdata2->rdclass) {
 		return (rdata1->rdclass < rdata2->rdclass ? -1 : 1);
+	}
 
-	if (rdata1->type != rdata2->type)
+	if (rdata1->type != rdata2->type) {
 		return (rdata1->type < rdata2->type ? -1 : 1);
+	}
 
 	CASECOMPARESWITCH
 
@@ -715,8 +742,9 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	REQUIRE(source != NULL);
 	REQUIRE(target != NULL);
 
-	if (type == 0)
+	if (type == 0) {
 		return (DNS_R_FORMERR);
+	}
 
 	ss = *source;
 	st = *target;
@@ -727,9 +755,9 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	FROMWIRESWITCH
 
 	if (use_default) {
-		if (activelength > isc_buffer_availablelength(target))
+		if (activelength > isc_buffer_availablelength(target)) {
 			result = ISC_R_NOSPACE;
-		else {
+		} else {
 			isc_buffer_putmem(target, isc_buffer_current(source),
 					  activelength);
 			isc_buffer_forward(source, activelength);
@@ -742,14 +770,16 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	 * as we cannot transmit it.
 	 */
 	length = isc_buffer_usedlength(target) - isc_buffer_usedlength(&st);
-	if (result == ISC_R_SUCCESS && length > DNS_RDATA_MAXLENGTH)
+	if (result == ISC_R_SUCCESS && length > DNS_RDATA_MAXLENGTH) {
 		result = DNS_R_FORMERR;
+	}
 
 	/*
 	 * We should have consumed all of our buffer.
 	 */
-	if (result == ISC_R_SUCCESS && !buffer_empty(source))
+	if (result == ISC_R_SUCCESS && !buffer_empty(source)) {
 		result = DNS_R_EXTRADATA;
+	}
 
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
 		region.base = isc_buffer_used(&st);
@@ -789,8 +819,9 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 
 	if (use_default) {
 		isc_buffer_availableregion(target, &tr);
-		if (tr.length < rdata->length)
+		if (tr.length < rdata->length) {
 			return (ISC_R_NOSPACE);
+		}
 		memmove(tr.base, rdata->data, rdata->length);
 		isc_buffer_add(target, rdata->length);
 		return (ISC_R_SUCCESS);
@@ -831,13 +862,15 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_t *buf = NULL;
 	isc_token_t   token;
 
-	if (type == 0 || dns_rdatatype_ismeta(type))
+	if (type == 0 || dns_rdatatype_ismeta(type)) {
 		return (DNS_R_METATYPE);
+	}
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 65535U)
+	if (token.value.as_ulong > 65535U) {
 		return (ISC_R_RANGE);
+	}
 	isc_buffer_allocate(mctx, &buf, token.value.as_ulong);
 
 	if (token.value.as_ulong != 0U) {
@@ -859,8 +892,9 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		isc_buffer_usedregion(buf, &r);
 		result = isc_buffer_copyregion(target, &r);
 	}
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto failure;
+	}
 
 	isc_buffer_free(&buf);
 	return (ISC_R_SUCCESS);
@@ -902,10 +936,11 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	st = *target;
 
-	if (callbacks != NULL)
+	if (callbacks != NULL) {
 		callback = callbacks->error;
-	else
+	} else {
 		callback = default_fromtext_callback;
+	}
 
 	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 					true);
@@ -927,42 +962,49 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		if (type == dns_rdatatype_txt) {
 			result = isc_lex_getmastertoken(
 				lexer, &token, isc_tokentype_number, false);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				isc_lex_ungettoken(lexer, &token);
+			}
 		}
 
 		if (result == ISC_R_SUCCESS) {
 			unknown = true;
 			result = unknown_fromtext(rdclass, type, lexer, mctx,
 						  target);
-		} else
+		} else {
 			options |= DNS_RDATA_UNKNOWNESCAPE;
-	} else
+		}
+	} else {
 		isc_lex_ungettoken(lexer, &token);
+	}
 
-	if (!unknown)
+	if (!unknown) {
 		FROMTEXTSWITCH
 
-	/*
-	 * Consume to end of line / file.
-	 * If not at end of line initially set error code.
-	 * Call callback via fromtext_error once if there was an error.
-	 */
+		/*
+		 * Consume to end of line / file.
+		 * If not at end of line initially set error code.
+		 * Call callback via fromtext_error once if there was an error.
+		 */
+	}
 	do {
 		name = isc_lex_getsourcename(lexer);
 		line = isc_lex_getsourceline(lexer);
 		tresult = isc_lex_gettoken(lexer, lexoptions, &token);
 		if (tresult != ISC_R_SUCCESS) {
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = tresult;
-			if (callback != NULL)
+			}
+			if (callback != NULL) {
 				fromtext_error(callback, callbacks, name, line,
 					       NULL, result);
+			}
 			break;
 		} else if (token.type != isc_tokentype_eol &&
 			   token.type != isc_tokentype_eof) {
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = DNS_R_EXTRATOKEN;
+			}
 			if (callback != NULL) {
 				fromtext_error(callback, callbacks, name, line,
 					       &token, result);
@@ -973,15 +1015,17 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 				       result);
 			break;
 		} else {
-			if (token.type == isc_tokentype_eof)
+			if (token.type == isc_tokentype_eof) {
 				fromtext_warneof(lexer, callbacks);
+			}
 			break;
 		}
 	} while (1);
 
 	length = isc_buffer_usedlength(target) - isc_buffer_usedlength(&st);
-	if (result == ISC_R_SUCCESS && length > DNS_RDATA_MAXLENGTH)
+	if (result == ISC_R_SUCCESS && length > DNS_RDATA_MAXLENGTH) {
 		result = ISC_R_NOSPACE;
+	}
 
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
 		region.base = isc_buffer_used(&st);
@@ -1004,33 +1048,39 @@ unknown_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	strlcpy(buf, "\\# ", sizeof(buf));
 	result = str_totext(buf, target);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	dns_rdata_toregion(rdata, &sr);
 	INSIST(sr.length < 65536);
 	snprintf(buf, sizeof(buf), "%u", sr.length);
 	result = str_totext(buf, target);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	if (sr.length != 0U) {
-		if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 			result = str_totext(" ( ", target);
-		else
+		} else {
 			result = str_totext(" ", target);
+		}
 
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 
-		if (tctx->width == 0) /* No splitting */
+		if (tctx->width == 0) { /* No splitting */
 			result = isc_hex_totext(&sr, 0, "", target);
-		else
+		} else {
 			result = isc_hex_totext(&sr, tctx->width - 2,
 						tctx->linebreak, target);
+		}
 		if (result == ISC_R_SUCCESS &&
-		    (tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		    (tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 			result = str_totext(" )", target);
+		}
 	}
 	return (result);
 }
@@ -1055,8 +1105,9 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		return (ISC_R_SUCCESS);
 	}
 
-	if ((tctx->flags & DNS_STYLEFLAG_UNKNOWNFORMAT) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_UNKNOWNFORMAT) != 0) {
 		return (unknown_totext(rdata, tctx, target));
+	}
 
 	cur = isc_buffer_usedlength(target);
 
@@ -1106,16 +1157,18 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, const dns_name_t *origin,
 	 */
 	tctx.origin = origin;
 	tctx.flags = flags;
-	if (split_width == 0xffffffff)
+	if (split_width == 0xffffffff) {
 		tctx.width = width;
-	else
+	} else {
 		tctx.width = split_width;
+	}
 
-	if ((flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	if ((flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		tctx.linebreak = linebreak;
-	else {
-		if (split_width == 0xffffffff)
+	} else {
+		if (split_width == 0xffffffff) {
 			tctx.width = 60; /* Used for hex word length only. */
+		}
 		tctx.linebreak = " ";
 	}
 	return (rdata_totext(rdata, &tctx, target));
@@ -1141,20 +1194,23 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	FROMSTRUCTSWITCH
 
-	if (use_default)
+	if (use_default) {
 		(void)NULL;
+	}
 
 	length = isc_buffer_usedlength(target) - isc_buffer_usedlength(&st);
-	if (result == ISC_R_SUCCESS && length > DNS_RDATA_MAXLENGTH)
+	if (result == ISC_R_SUCCESS && length > DNS_RDATA_MAXLENGTH) {
 		result = ISC_R_NOSPACE;
+	}
 
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
 		region.base = isc_buffer_used(&st);
 		region.length = length;
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		*target = st;
+	}
 	return (result);
 }
 
@@ -1169,8 +1225,9 @@ dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	TOSTRUCTSWITCH
 
-	if (use_default)
+	if (use_default) {
 		(void)NULL;
+	}
 
 	return (result);
 }
@@ -1203,8 +1260,9 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	ADDITIONALDATASWITCH
 
 	/* No additional processing for unknown types */
-	if (use_default)
+	if (use_default) {
 		result = ISC_R_SUCCESS;
+	}
 
 	return (result);
 }
@@ -1258,8 +1316,9 @@ unsigned int
 dns_rdatatype_attributes(dns_rdatatype_t type)
 {
 	RDATATYPE_ATTRIBUTE_SW
-	if (type >= (dns_rdatatype_t)128 && type < (dns_rdatatype_t)255)
+	if (type >= (dns_rdatatype_t)128 && type < (dns_rdatatype_t)255) {
 		return (DNS_RDATATYPEATTR_UNKNOWN | DNS_RDATATYPEATTR_META);
+	}
 	return (DNS_RDATATYPEATTR_UNKNOWN);
 }
 
@@ -1272,8 +1331,9 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source)
 
 	n = source->length;
 
-	if (n == 0)
+	if (n == 0) {
 		return (DNS_R_UNKNOWN);
+	}
 
 	a = tolower((unsigned char)source->base[0]);
 	b = tolower((unsigned char)source->base[n - 1]);
@@ -1332,8 +1392,9 @@ dns_rdatatype_format(dns_rdatatype_t rdtype, char *array, unsigned int size)
 	isc_result_t result;
 	isc_buffer_t buf;
 
-	if (size == 0U)
+	if (size == 0U) {
 		return;
+	}
 
 	isc_buffer_init(&buf, array, size);
 	result = dns_rdatatype_totext(rdtype, &buf);
@@ -1341,13 +1402,15 @@ dns_rdatatype_format(dns_rdatatype_t rdtype, char *array, unsigned int size)
 	 * Null terminate.
 	 */
 	if (result == ISC_R_SUCCESS) {
-		if (isc_buffer_availablelength(&buf) >= 1)
+		if (isc_buffer_availablelength(&buf) >= 1) {
 			isc_buffer_putuint8(&buf, 0);
-		else
+		} else {
 			result = ISC_R_NOSPACE;
+		}
 	}
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		strlcpy(array, "<unknown>", size);
+	}
 }
 
 /*
@@ -1377,12 +1440,14 @@ txt_totext(isc_region_t *source, bool quote, isc_buffer_t *target)
 	n = *sp++;
 
 	REQUIRE(n + 1 <= source->length);
-	if (n == 0U)
+	if (n == 0U) {
 		REQUIRE(quote == true);
+	}
 
 	if (quote) {
-		if (tl < 1)
+		if (tl < 1) {
 			return (ISC_R_NOSPACE);
+		}
 		*tp++ = '"';
 		tl--;
 	}
@@ -1391,8 +1456,9 @@ txt_totext(isc_region_t *source, bool quote, isc_buffer_t *target)
 		 * \DDD space (0x20) if not quoting.
 		 */
 		if (*sp < (quote ? 0x20 : 0x21) || *sp >= 0x7f) {
-			if (tl < 4)
+			if (tl < 4) {
 				return (ISC_R_NOSPACE);
+			}
 			*tp++ = 0x5c;
 			*tp++ = 0x30 + ((*sp / 100) % 10);
 			*tp++ = 0x30 + ((*sp / 10) % 10);
@@ -1408,19 +1474,22 @@ txt_totext(isc_region_t *source, bool quote, isc_buffer_t *target)
 		 */
 		if (*sp == 0x22 || *sp == 0x5c ||
 		    (!quote && (*sp == 0x40 || *sp == 0x3b))) {
-			if (tl < 2)
+			if (tl < 2) {
 				return (ISC_R_NOSPACE);
+			}
 			*tp++ = '\\';
 			tl--;
 		}
-		if (tl < 1)
+		if (tl < 1) {
 			return (ISC_R_NOSPACE);
+		}
 		*tp++ = *sp++;
 		tl--;
 	}
 	if (quote) {
-		if (tl < 1)
+		if (tl < 1) {
 			return (ISC_R_NOSPACE);
+		}
 		*tp++ = '"';
 		tl--;
 		POST(tl);
@@ -1447,8 +1516,9 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target)
 	t = tregion.base;
 	nrem = tregion.length;
 	escape = false;
-	if (nrem < 1)
+	if (nrem < 1) {
 		return (ISC_R_NOSPACE);
+	}
 	/*
 	 * Length byte.
 	 */
@@ -1457,41 +1527,49 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target)
 	/*
 	 * Maximum text string length.
 	 */
-	if (nrem > 255)
+	if (nrem > 255) {
 		nrem = 255;
+	}
 	while (n-- != 0) {
 		c = (*s++) & 0xff;
 		if (escape && (d = decvalue((char)c)) != -1) {
 			c = d;
-			if (n == 0)
+			if (n == 0) {
 				return (DNS_R_SYNTAX);
+			}
 			n--;
-			if ((d = decvalue(*s++)) != -1)
+			if ((d = decvalue(*s++)) != -1) {
 				c = c * 10 + d;
-			else
+			} else {
 				return (DNS_R_SYNTAX);
-			if (n == 0)
+			}
+			if (n == 0) {
 				return (DNS_R_SYNTAX);
+			}
 			n--;
-			if ((d = decvalue(*s++)) != -1)
+			if ((d = decvalue(*s++)) != -1) {
 				c = c * 10 + d;
-			else
+			} else {
 				return (DNS_R_SYNTAX);
-			if (c > 255)
+			}
+			if (c > 255) {
 				return (DNS_R_SYNTAX);
+			}
 		} else if (!escape && c == '\\') {
 			escape = true;
 			continue;
 		}
 		escape = false;
-		if (nrem == 0)
+		if (nrem == 0) {
 			return ((tregion.length <= 256U) ? ISC_R_NOSPACE
 							 : DNS_R_SYNTAX);
+		}
 		*t++ = c;
 		nrem--;
 	}
-	if (escape)
+	if (escape) {
 		return (DNS_R_SYNTAX);
+	}
 	*tregion.base = (unsigned char)(t - tregion.base - 1);
 	isc_buffer_add(target, *tregion.base + 1);
 	return (ISC_R_SUCCESS);
@@ -1505,18 +1583,22 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target)
 	isc_region_t tregion;
 
 	isc_buffer_activeregion(source, &sregion);
-	if (sregion.length == 0)
+	if (sregion.length == 0) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	n = *sregion.base + 1;
-	if (n > sregion.length)
+	if (n > sregion.length) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	isc_buffer_availableregion(target, &tregion);
-	if (n > tregion.length)
+	if (n > tregion.length) {
 		return (ISC_R_NOSPACE);
+	}
 
-	if (tregion.base != sregion.base)
+	if (tregion.base != sregion.base) {
 		memmove(tregion.base, sregion.base, n);
+	}
 	isc_buffer_forward(source, n);
 	isc_buffer_add(target, n);
 	return (ISC_R_SUCCESS);
@@ -1539,8 +1621,9 @@ multitxt_totext(isc_region_t *source, isc_buffer_t *target)
 	tp = (char *)region.base;
 	tl = region.length;
 
-	if (tl < 1)
+	if (tl < 1) {
 		return (ISC_R_NOSPACE);
+	}
 	*tp++ = '"';
 	tl--;
 	do {
@@ -1549,8 +1632,9 @@ multitxt_totext(isc_region_t *source, isc_buffer_t *target)
 
 		while (n--) {
 			if (*sp < 0x20 || *sp >= 0x7f) {
-				if (tl < 4)
+				if (tl < 4) {
 					return (ISC_R_NOSPACE);
+				}
 				*tp++ = 0x5c;
 				*tp++ = 0x30 + ((*sp / 100) % 10);
 				*tp++ = 0x30 + ((*sp / 10) % 10);
@@ -1561,20 +1645,23 @@ multitxt_totext(isc_region_t *source, isc_buffer_t *target)
 			}
 			/* double quote, backslash */
 			if (*sp == 0x22 || *sp == 0x5c) {
-				if (tl < 2)
+				if (tl < 2) {
 					return (ISC_R_NOSPACE);
+				}
 				*tp++ = '\\';
 				tl--;
 			}
-			if (tl < 1)
+			if (tl < 1) {
 				return (ISC_R_NOSPACE);
+			}
 			*tp++ = *sp++;
 			tl--;
 		}
 		isc_region_consume(source, n0 + 1);
 	} while (source->length != 0);
-	if (tl < 1)
+	if (tl < 1) {
 		return (ISC_R_NOSPACE);
+	}
 	*tp++ = '"';
 	tl--;
 	POST(tl);
@@ -1601,30 +1688,36 @@ multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target)
 		isc_buffer_availableregion(target, &tregion);
 		t0 = t = tregion.base;
 		nrem = tregion.length;
-		if (nrem < 1)
+		if (nrem < 1) {
 			return (ISC_R_NOSPACE);
+		}
 
 		while (n != 0) {
 			--n;
 			c = (*s++) & 0xff;
 			if (escape && (d = decvalue((char)c)) != -1) {
 				c = d;
-				if (n == 0)
+				if (n == 0) {
 					return (DNS_R_SYNTAX);
+				}
 				n--;
-				if ((d = decvalue(*s++)) != -1)
+				if ((d = decvalue(*s++)) != -1) {
 					c = c * 10 + d;
-				else
+				} else {
 					return (DNS_R_SYNTAX);
-				if (n == 0)
+				}
+				if (n == 0) {
 					return (DNS_R_SYNTAX);
+				}
 				n--;
-				if ((d = decvalue(*s++)) != -1)
+				if ((d = decvalue(*s++)) != -1) {
 					c = c * 10 + d;
-				else
+				} else {
 					return (DNS_R_SYNTAX);
-				if (c > 255)
+				}
+				if (c > 255) {
 					return (DNS_R_SYNTAX);
+				}
 			} else if (!escape && c == '\\') {
 				escape = true;
 				continue;
@@ -1632,11 +1725,13 @@ multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target)
 			escape = false;
 			*t++ = c;
 			nrem--;
-			if (nrem == 0)
+			if (nrem == 0) {
 				break;
+			}
 		}
-		if (escape)
+		if (escape) {
 			return (DNS_R_SYNTAX);
+		}
 
 		isc_buffer_add(target, (unsigned int)(t - t0));
 	} while (n != 0);
@@ -1648,25 +1743,30 @@ name_prefix(dns_name_t *name, const dns_name_t *origin, dns_name_t *target)
 {
 	int l1, l2;
 
-	if (origin == NULL)
+	if (origin == NULL) {
 		goto return_false;
+	}
 
-	if (dns_name_compare(origin, dns_rootname) == 0)
+	if (dns_name_compare(origin, dns_rootname) == 0) {
 		goto return_false;
+	}
 
-	if (!dns_name_issubdomain(name, origin))
+	if (!dns_name_issubdomain(name, origin)) {
 		goto return_false;
+	}
 
 	l1 = dns_name_countlabels(name);
 	l2 = dns_name_countlabels(origin);
 
-	if (l1 == l2)
+	if (l1 == l2) {
 		goto return_false;
+	}
 
 	/* Master files should be case preserving. */
 	dns_name_getlabelsequence(name, l1 - l2, l2, target);
-	if (!dns_name_caseequal(origin, target))
+	if (!dns_name_caseequal(origin, target)) {
 		goto return_false;
+	}
 
 	dns_name_getlabelsequence(name, 0, l1 - l2, target);
 	return (true);
@@ -1685,8 +1785,9 @@ str_totext(const char *source, isc_buffer_t *target)
 	isc_buffer_availableregion(target, &region);
 	l = strlen(source);
 
-	if (l > region.length)
+	if (l > region.length) {
 		return (ISC_R_NOSPACE);
+	}
 
 	memmove(region.base, source, l);
 	isc_buffer_add(target, l);
@@ -1699,10 +1800,12 @@ inet_totext(int af, isc_region_t *src, isc_buffer_t *target)
 	char tmpbuf[64];
 
 	/* Note - inet_ntop doesn't do size checking on its input. */
-	if (inet_ntop(af, src->base, tmpbuf, sizeof(tmpbuf)) == NULL)
+	if (inet_ntop(af, src->base, tmpbuf, sizeof(tmpbuf)) == NULL) {
 		return (ISC_R_NOSPACE);
-	if (strlen(tmpbuf) > isc_buffer_availablelength(target))
+	}
+	if (strlen(tmpbuf) > isc_buffer_availablelength(target)) {
 		return (ISC_R_NOSPACE);
+	}
 	isc_buffer_putstr(target, tmpbuf);
 	return (ISC_R_SUCCESS);
 }
@@ -1727,8 +1830,9 @@ uint32_tobuffer(uint32_t value, isc_buffer_t *target)
 	isc_region_t region;
 
 	isc_buffer_availableregion(target, &region);
-	if (region.length < 4)
+	if (region.length < 4) {
 		return (ISC_R_NOSPACE);
+	}
 	isc_buffer_putuint32(target, value);
 	return (ISC_R_SUCCESS);
 }
@@ -1738,11 +1842,13 @@ uint16_tobuffer(uint32_t value, isc_buffer_t *target)
 {
 	isc_region_t region;
 
-	if (value > 0xffff)
+	if (value > 0xffff) {
 		return (ISC_R_RANGE);
+	}
 	isc_buffer_availableregion(target, &region);
-	if (region.length < 2)
+	if (region.length < 2) {
 		return (ISC_R_NOSPACE);
+	}
 	isc_buffer_putuint16(target, (uint16_t)value);
 	return (ISC_R_SUCCESS);
 }
@@ -1752,11 +1858,13 @@ uint8_tobuffer(uint32_t value, isc_buffer_t *target)
 {
 	isc_region_t region;
 
-	if (value > 0xff)
+	if (value > 0xff) {
 		return (ISC_R_RANGE);
+	}
 	isc_buffer_availableregion(target, &region);
-	if (region.length < 1)
+	if (region.length < 1) {
 		return (ISC_R_NOSPACE);
+	}
 	isc_buffer_putuint8(target, (uint8_t)value);
 	return (ISC_R_SUCCESS);
 }
@@ -1788,7 +1896,7 @@ uint16_consume_fromregion(isc_region_t *region)
 	uint16_t r = uint16_fromregion(region);
 
 	isc_region_consume(region, 2);
-	return r;
+	return (r);
 }
 
 static uint16_t
@@ -1813,7 +1921,7 @@ uint8_consume_fromregion(isc_region_t *region)
 	uint8_t r = uint8_fromregion(region);
 
 	isc_region_consume(region, 1);
-	return r;
+	return (r);
 }
 
 static isc_result_t
@@ -1821,14 +1929,17 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length)
 {
 	isc_region_t tr;
 
-	if (length == 0U)
+	if (length == 0U) {
 		return (ISC_R_SUCCESS);
+	}
 
 	isc_buffer_availableregion(target, &tr);
-	if (length > tr.length)
+	if (length > tr.length) {
 		return (ISC_R_NOSPACE);
-	if (tr.base != base)
+	}
+	if (tr.base != base) {
 		memmove(tr.base, base, length);
+	}
 	isc_buffer_add(target, length);
 	return (ISC_R_SUCCESS);
 }
@@ -1841,13 +1952,16 @@ hexvalue(char value)
 
 	c = (unsigned char)value;
 
-	if (!isascii(c))
+	if (!isascii(c)) {
 		return (-1);
-	if (isupper(c))
+	}
+	if (isupper(c)) {
 		c = tolower(c);
-	if ((s = strchr(hexdigits, c)) == NULL)
+	}
+	if ((s = strchr(hexdigits, c)) == NULL) {
 		return (-1);
-	return (int)(s - hexdigits);
+	}
+	return ((int)(s - hexdigits));
 }
 
 static int
@@ -1859,11 +1973,13 @@ decvalue(char value)
 	 * isascii() is valid for full range of int values, no need to
 	 * mask or cast.
 	 */
-	if (!isascii(value))
+	if (!isascii(value)) {
 		return (-1);
-	if ((s = strchr(decdigits, value)) == NULL)
+	}
+	if ((s = strchr(decdigits, value)) == NULL) {
 		return (-1);
-	return (int)(s - decdigits);
+	}
+	return ((int)(s - decdigits));
 }
 
 static void
@@ -1884,8 +2000,9 @@ fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks)
 {
 	if (isc_lex_isfile(lexer) && callbacks != NULL) {
 		const char *name = isc_lex_getsourcename(lexer);
-		if (name == NULL)
+		if (name == NULL) {
 			name = "UNKNOWN";
+		}
 		(*callbacks->warn)(callbacks,
 				   "%s:%lu: file does not end with newline",
 				   name, isc_lex_getsourceline(lexer));
@@ -1931,8 +2048,9 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 	       dns_rdatacallbacks_t *callbacks, const char *name,
 	       unsigned long line, isc_token_t *token, isc_result_t result)
 {
-	if (name == NULL)
+	if (name == NULL) {
 		name = "UNKNOWN";
+	}
 
 	if (token != NULL) {
 		switch (token->type) {
@@ -1974,24 +2092,28 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 dns_rdatatype_t
 dns_rdata_covers(dns_rdata_t *rdata)
 {
-	if (rdata->type == dns_rdatatype_rrsig)
+	if (rdata->type == dns_rdatatype_rrsig) {
 		return (covers_rrsig(rdata));
+	}
 	return (covers_sig(rdata));
 }
 
 bool
 dns_rdatatype_ismeta(dns_rdatatype_t type)
 {
-	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_META) != 0)
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_META) != 0) {
 		return (true);
+	}
 	return (false);
 }
 
 bool
 dns_rdatatype_issingleton(dns_rdatatype_t type)
 {
-	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_SINGLETON) != 0)
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_SINGLETON) !=
+	    0) {
 		return (true);
+	}
 	return (false);
 }
 
@@ -1999,8 +2121,9 @@ bool
 dns_rdatatype_notquestion(dns_rdatatype_t type)
 {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_NOTQUESTION) !=
-	    0)
+	    0) {
 		return (true);
+	}
 	return (false);
 }
 
@@ -2008,8 +2131,9 @@ bool
 dns_rdatatype_questiononly(dns_rdatatype_t type)
 {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_QUESTIONONLY) !=
-	    0)
+	    0) {
 		return (true);
+	}
 	return (false);
 }
 
@@ -2025,8 +2149,10 @@ dns_rdatatype_atcname(dns_rdatatype_t type)
 bool
 dns_rdatatype_atparent(dns_rdatatype_t type)
 {
-	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATPARENT) != 0)
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATPARENT) !=
+	    0) {
 		return (true);
+	}
 	return (false);
 }
 
@@ -2034,8 +2160,9 @@ bool
 dns_rdataclass_ismeta(dns_rdataclass_t rdclass)
 {
 	if (rdclass == dns_rdataclass_reserved0 ||
-	    rdclass == dns_rdataclass_none || rdclass == dns_rdataclass_any)
+	    rdclass == dns_rdataclass_none || rdclass == dns_rdataclass_any) {
 		return (true);
+	}
 
 	return (false); /* Assume it is not a meta class. */
 }
@@ -2043,8 +2170,9 @@ dns_rdataclass_ismeta(dns_rdataclass_t rdclass)
 bool
 dns_rdatatype_isdnssec(dns_rdatatype_t type)
 {
-	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_DNSSEC) != 0)
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_DNSSEC) != 0) {
 		return (true);
+	}
 	return (false);
 }
 
@@ -2061,8 +2189,9 @@ dns_rdatatype_iszonecutauth(dns_rdatatype_t type)
 bool
 dns_rdatatype_isknown(dns_rdatatype_t type)
 {
-	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_UNKNOWN) == 0)
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_UNKNOWN) == 0) {
 		return (true);
+	}
 	return (false);
 }
 

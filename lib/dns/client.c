@@ -66,7 +66,7 @@
 
 #ifdef TUNE_LARGE
 #define RESOLVER_NTASKS 523
-#else
+#else /* ifdef TUNE_LARGE */
 #define RESOLVER_NTASKS 31
 #endif /* TUNE_LARGE */
 
@@ -352,8 +352,9 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 				     buffersize, maxbuffers, maxrequests,
 				     buckets, increment, attrs, attrmask,
 				     &disp);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		*dispp = disp;
+	}
 
 	return (result);
 }
@@ -370,8 +371,9 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, unsigned int options,
 	const char * dbtype;
 
 	result = dns_view_create(mctx, rdclass, DNS_CLIENTVIEW_NAME, &view);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	/* Initialize view security roots */
 	result = dns_view_initsecroots(view, mctx);
@@ -393,10 +395,11 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, unsigned int options,
 	 * XXX: it may be better if specific DB implementations can be
 	 * specified via some configuration knob.
 	 */
-	if ((options & DNS_CLIENTCREATEOPT_USECACHE) != 0)
+	if ((options & DNS_CLIENTCREATEOPT_USECACHE) != 0) {
 		dbtype = "rbt";
-	else
+	} else {
 		dbtype = "ecdb";
+	}
 	result = dns_db_create(mctx, dbtype, dns_rootname, dns_dbtype_cache,
 			       rdclass, 0, NULL, &view->cachedb);
 	if (result != ISC_R_SUCCESS) {
@@ -422,40 +425,48 @@ dns_client_create(dns_client_t **clientp, unsigned int options)
 	isc_log_t *lctx = NULL;
 	isc_logconfig_t *logconfig = NULL;
 	unsigned int logdebuglevel = 0;
-#endif
+#endif /* if 0 */
 
 	isc_mem_create(&mctx);
 	result = isc_appctx_create(mctx, &actx);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	result = isc_app_ctxstart(actx);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	result = isc_taskmgr_createinctx(mctx, 1, 0, &taskmgr);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	result = isc_socketmgr_createinctx(mctx, &socketmgr);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	result = isc_timermgr_createinctx(mctx, &timermgr);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 #if 0
 	result = isc_log_create(mctx, &lctx, &logconfig);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
 	dns_log_setcontext(lctx);
 	result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	isc_log_setdebuglevel(lctx, logdebuglevel);
-#endif
+#endif /* if 0 */
 	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
 				    options, clientp, NULL, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	(*clientp)->attributes |= DNS_CLIENTATTR_OWNCTX;
 
@@ -465,14 +476,18 @@ dns_client_create(dns_client_t **clientp, unsigned int options)
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (taskmgr != NULL)
+	if (taskmgr != NULL) {
 		isc_taskmgr_destroy(&taskmgr);
-	if (timermgr != NULL)
+	}
+	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
-	if (socketmgr != NULL)
+	}
+	if (socketmgr != NULL) {
 		isc_socketmgr_destroy(&socketmgr);
-	if (actx != NULL)
+	}
+	if (actx != NULL) {
 		isc_appctx_destroy(&actx);
+	}
 	isc_mem_detach(&mctx);
 
 	return (result);
@@ -514,8 +529,9 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 	}
 
 	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_task;
+	}
 	client->dispatchmgr = dispatchmgr;
 	(void)setsourceports(mctx, dispatchmgr);
 
@@ -614,10 +630,12 @@ destroyclient(dns_client_t *client)
 		dns_view_detach(&view);
 	}
 
-	if (client->dispatchv4 != NULL)
+	if (client->dispatchv4 != NULL) {
 		dns_dispatch_detach(&client->dispatchv4);
-	if (client->dispatchv6 != NULL)
+	}
+	if (client->dispatchv6 != NULL) {
 		dns_dispatch_detach(&client->dispatchv6);
+	}
 
 	dns_dispatchmgr_destroy(&client->dispatchmgr);
 
@@ -667,8 +685,9 @@ dns_client_setservers(dns_client_t *client, dns_rdataclass_t rdclass,
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(addrs != NULL);
 
-	if (name_space == NULL)
+	if (name_space == NULL) {
 		name_space = dns_rootname;
+	}
 
 	LOCK(&client->lock);
 	result = dns_viewlist_find(&client->viewlist, DNS_CLIENTVIEW_NAME,
@@ -696,8 +715,9 @@ dns_client_clearservers(dns_client_t *client, dns_rdataclass_t rdclass,
 
 	REQUIRE(DNS_CLIENT_VALID(client));
 
-	if (name_space == NULL)
+	if (name_space == NULL) {
 		name_space = dns_rootname;
+	}
 
 	LOCK(&client->lock);
 	result = dns_viewlist_find(&client->viewlist, DNS_CLIENTVIEW_NAME,
@@ -742,8 +762,9 @@ putrdataset(isc_mem_t *mctx, dns_rdataset_t **rdatasetp)
 	*rdatasetp = NULL;
 	REQUIRE(rdataset != NULL);
 
-	if (dns_rdataset_isassociated(rdataset))
+	if (dns_rdataset_isassociated(rdataset)) {
 		dns_rdataset_disassociate(rdataset);
+	}
 
 	isc_mem_put(mctx, rdataset, sizeof(*rdataset));
 }
@@ -774,12 +795,15 @@ start_fetch(resctx_t *rctx)
 
 	REQUIRE(rctx->fetch == NULL);
 
-	if (!rctx->want_cdflag)
+	if (!rctx->want_cdflag) {
 		fopts |= DNS_FETCHOPT_NOCDFLAG;
-	if (!rctx->want_validation)
+	}
+	if (!rctx->want_validation) {
 		fopts |= DNS_FETCHOPT_NOVALIDATE;
-	if (rctx->want_tcp)
+	}
+	if (rctx->want_tcp) {
 		fopts |= DNS_FETCHOPT_TCP;
+	}
 
 	result = dns_resolver_createfetch(
 		rctx->view->resolver, dns_fixedname_name(&rctx->name),
@@ -798,10 +822,11 @@ view_find(resctx_t *rctx, dns_db_t **dbp, dns_dbnode_t **nodep,
 	dns_name_t *	name = dns_fixedname_name(&rctx->name);
 	dns_rdatatype_t type;
 
-	if (rctx->type == dns_rdatatype_rrsig)
+	if (rctx->type == dns_rdatatype_rrsig) {
 		type = dns_rdatatype_any;
-	else
+	} else {
 		type = rctx->type;
+	}
 
 	result = dns_view_find(rctx->view, name, type, 0, 0, false, false, dbp,
 			       nodep, foundname, rctx->rdataset,
@@ -860,14 +885,16 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event)
 					INSIST(db != NULL);
 					dns_db_detachnode(db, &node);
 				}
-				if (db != NULL)
+				if (db != NULL) {
 					dns_db_detach(&db);
+				}
 				result = start_fetch(rctx);
 				if (result != ISC_R_SUCCESS) {
 					putrdataset(mctx, &rctx->rdataset);
-					if (rctx->sigrdataset != NULL)
+					if (rctx->sigrdataset != NULL) {
 						putrdataset(mctx,
 							    &rctx->sigrdataset);
+					}
 					send_event = true;
 				}
 				goto done;
@@ -888,9 +915,9 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event)
 		/*
 		 * If we've been canceled, forget about the result.
 		 */
-		if (rctx->canceled)
+		if (rctx->canceled) {
 			result = ISC_R_CANCELED;
-		else {
+		} else {
 			/*
 			 * Otherwise, get some resource for copying the
 			 * result.
@@ -930,13 +957,15 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event)
 			 * query name and start over.
 			 */
 			tresult = dns_rdataset_first(trdataset);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				goto done;
+			}
 			dns_rdataset_current(trdataset, &rdata);
 			tresult = dns_rdata_tostruct(&rdata, &cname, NULL);
 			dns_rdata_reset(&rdata);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				goto done;
+			}
 			dns_name_copynf(&cname.cname, name);
 			dns_rdata_freestruct(&cname);
 			want_restart = true;
@@ -982,10 +1011,11 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event)
 			tresult = dns_name_concatenate(prefix, &dname.dname,
 						       name, NULL);
 			dns_rdata_freestruct(&dname);
-			if (tresult == ISC_R_SUCCESS)
+			if (tresult == ISC_R_SUCCESS) {
 				want_restart = true;
-			else
+			} else {
 				result = tresult;
+			}
 			goto done;
 		case DNS_R_NCACHENXDOMAIN:
 		case DNS_R_NCACHENXRRSET:
@@ -994,15 +1024,18 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event)
 			ansname = NULL;
 			rctx->rdataset = NULL;
 			/* What about sigrdataset? */
-			if (rctx->sigrdataset != NULL)
+			if (rctx->sigrdataset != NULL) {
 				putrdataset(mctx, &rctx->sigrdataset);
+			}
 			send_event = true;
 			goto done;
 		default:
-			if (rctx->rdataset != NULL)
+			if (rctx->rdataset != NULL) {
 				putrdataset(mctx, &rctx->rdataset);
-			if (rctx->sigrdataset != NULL)
+			}
+			if (rctx->sigrdataset != NULL) {
 				putrdataset(mctx, &rctx->sigrdataset);
+			}
 			send_event = true;
 			goto done;
 		}
@@ -1067,10 +1100,11 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event)
 				ansname = NULL;
 			}
 			dns_rdatasetiter_destroy(&rdsiter);
-			if (tresult != ISC_R_NOMORE)
+			if (tresult != ISC_R_NOMORE) {
 				result = DNS_R_SERVFAIL; /* ditto */
-			else
+			} else {
 				result = ISC_R_SUCCESS;
+			}
 			goto done;
 		} else {
 			/*
@@ -1104,12 +1138,15 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event)
 			isc_mem_put(mctx, ansname, sizeof(*ansname));
 		}
 
-		if (node != NULL)
+		if (node != NULL) {
 			dns_db_detachnode(db, &node);
-		if (db != NULL)
+		}
+		if (db != NULL) {
 			dns_db_detach(&db);
-		if (event != NULL)
+		}
+		if (event != NULL) {
 			isc_event_free(ISC_EVENT_PTR(&event));
+		}
 
 		/*
 		 * Limit the number of restarts.
@@ -1204,8 +1241,9 @@ resolve_done(isc_task_t *task, isc_event_t *event)
 		 */
 		result = isc_app_ctxonrun(resarg->actx, resarg->client->mctx,
 					  task, suspend, resarg->actx);
-		if (result == ISC_R_ALREADYRUNNING)
+		if (result == ISC_R_ALREADYRUNNING) {
 			isc_app_ctxsuspend(resarg->actx);
+		}
 	} else {
 		/*
 		 * We have already exited from the loop (due to some
@@ -1237,8 +1275,9 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 		 * particular resolution.
 		 */
 		return (ISC_R_NOTIMPLEMENTED); /* XXXTBD */
-	} else
+	} else {
 		actx = client->actx;
+	}
 
 	resarg = isc_mem_get(client->mctx, sizeof(*resarg));
 
@@ -1266,8 +1305,9 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 	result = isc_app_ctxrun(actx);
 
 	LOCK(&resarg->lock);
-	if (result == ISC_R_SUCCESS || result == ISC_R_SUSPEND)
+	if (result == ISC_R_SUCCESS || result == ISC_R_SUSPEND) {
 		result = resarg->result;
+	}
 	if (result != ISC_R_SUCCESS && resarg->vresult != ISC_R_SUCCESS) {
 		/*
 		 * If this lookup failed due to some error in DNSSEC
@@ -1320,8 +1360,9 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	result = dns_viewlist_find(&client->viewlist, DNS_CLIENTVIEW_NAME,
 				   rdclass, &view);
 	UNLOCK(&client->lock);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	mctx = client->mctx;
 	rdataset = NULL;
@@ -1346,14 +1387,16 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	isc_mutex_init(&rctx->lock);
 
 	result = getrdataset(mctx, &rdataset);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 	rctx->rdataset = rdataset;
 
 	if (want_dnssec) {
 		result = getrdataset(mctx, &sigrdataset);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 	}
 	rctx->sigrdataset = sigrdataset;
 
@@ -1388,10 +1431,12 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (rdataset != NULL)
+	if (rdataset != NULL) {
 		putrdataset(client->mctx, &rdataset);
-	if (sigrdataset != NULL)
+	}
+	if (sigrdataset != NULL) {
 		putrdataset(client->mctx, &sigrdataset);
+	}
 	if (rctx != NULL) {
 		isc_mutex_destroy(&rctx->lock);
 		isc_mem_put(mctx, rctx, sizeof(*rctx));
@@ -1416,8 +1461,9 @@ dns_client_cancelresolve(dns_clientrestrans_t *trans)
 
 	if (!rctx->canceled) {
 		rctx->canceled = true;
-		if (rctx->fetch != NULL)
+		if (rctx->fetch != NULL) {
 			dns_resolver_cancelfetch(rctx->fetch);
+		}
 	}
 
 	UNLOCK(&rctx->lock);
@@ -1575,13 +1621,15 @@ request_done(isc_task_t *task, isc_event_t *event)
 						 ctx->parseoptions);
 	}
 
-	if (ctx->tsigkey != NULL)
+	if (ctx->tsigkey != NULL) {
 		dns_tsigkey_detach(&ctx->tsigkey);
+	}
 
-	if (ctx->canceled)
+	if (ctx->canceled) {
 		ctx->event->result = ISC_R_CANCELED;
-	else
+	} else {
 		ctx->event->result = result;
+	}
 	task = ctx->event->ev_sender;
 	ctx->event->ev_sender = ctx;
 	isc_task_sendanddetach(&task, ISC_EVENT_PTR(&ctx->event));
@@ -1644,8 +1692,9 @@ dns_client_request(dns_client_t *client, dns_message_t *qmessage,
 		 * particular resolution.
 		 */
 		return (ISC_R_NOTIMPLEMENTED); /* XXXTBD */
-	} else
+	} else {
 		actx = client->actx;
+	}
 
 	reqarg = isc_mem_get(client->mctx, sizeof(*reqarg));
 
@@ -1673,8 +1722,9 @@ dns_client_request(dns_client_t *client, dns_message_t *qmessage,
 	result = isc_app_ctxrun(actx);
 
 	LOCK(&reqarg->lock);
-	if (result == ISC_R_SUCCESS || result == ISC_R_SUSPEND)
+	if (result == ISC_R_SUCCESS || result == ISC_R_SUSPEND) {
 		result = reqarg->result;
+	}
 	if (reqarg->trans != NULL) {
 		/*
 		 * Unusual termination (perhaps due to signal).  We need some
@@ -1720,20 +1770,23 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 
 	if (tsec != NULL) {
 		tsectype = dns_tsec_gettype(tsec);
-		if (tsectype != dns_tsectype_tsig)
+		if (tsectype != dns_tsectype_tsig) {
 			return (ISC_R_NOTIMPLEMENTED); /* XXX */
+		}
 	}
 
 	LOCK(&client->lock);
 	result = dns_viewlist_find(&client->viewlist, DNS_CLIENTVIEW_NAME,
 				   qmessage->rdclass, &view);
 	UNLOCK(&client->lock);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	reqoptions = 0;
-	if ((options & DNS_CLIENTREQOPT_TCP) != 0)
+	if ((options & DNS_CLIENTREQOPT_TCP) != 0) {
 		reqoptions |= DNS_REQUESTOPT_TCP;
+	}
 
 	tclone = NULL;
 	isc_task_attach(task, &tclone);
@@ -1751,8 +1804,9 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 	ctx->event = event;
 	ctx->event->rmessage = rmessage;
 	ctx->tsigkey = NULL;
-	if (tsec != NULL)
+	if (tsec != NULL) {
 		dns_tsec_getkey(tsec, &ctx->tsigkey);
+	}
 
 	ctx->magic = REQCTX_MAGIC;
 
@@ -1800,8 +1854,9 @@ dns_client_cancelrequest(dns_clientreqtrans_t *trans)
 
 	if (!ctx->canceled) {
 		ctx->canceled = true;
-		if (ctx->request != NULL)
+		if (ctx->request != NULL) {
 			dns_request_cancel(ctx->request);
+		}
 	}
 
 	UNLOCK(&ctx->lock);
@@ -1882,15 +1937,18 @@ update_sendevent(updatectx_t *uctx, isc_result_t result)
 	isc_task_t *task;
 
 	dns_message_destroy(&uctx->updatemsg);
-	if (uctx->tsigkey != NULL)
+	if (uctx->tsigkey != NULL) {
 		dns_tsigkey_detach(&uctx->tsigkey);
-	if (uctx->sig0key != NULL)
+	}
+	if (uctx->sig0key != NULL) {
 		dst_key_free(&uctx->sig0key);
+	}
 
-	if (uctx->canceled)
+	if (uctx->canceled) {
 		uctx->event->result = ISC_R_CANCELED;
-	else
+	} else {
 		uctx->event->result = result;
+	}
 	uctx->event->state = uctx->state;
 	task = uctx->event->ev_sender;
 	uctx->event->ev_sender = uctx;
@@ -1918,22 +1976,26 @@ update_done(isc_task_t *task, isc_event_t *event)
 	REQUIRE(DNS_CLIENT_VALID(client));
 
 	result = reqev->result;
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto out;
+	}
 
 	result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE,
 				    &answer);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto out;
+	}
 	uctx->state = dns_clientupdatestate_done;
 	result = dns_request_getresponse(request, answer,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
-	if (result == ISC_R_SUCCESS && answer->rcode != dns_rcode_noerror)
+	if (result == ISC_R_SUCCESS && answer->rcode != dns_rcode_noerror) {
 		result = rcode2result(answer->rcode);
+	}
 
 out:
-	if (answer != NULL)
+	if (answer != NULL) {
 		dns_message_destroy(&answer);
+	}
 	isc_event_free(&event);
 
 	LOCK(&uctx->lock);
@@ -1957,11 +2019,13 @@ out:
 		dns_message_settsigkey(uctx->updatemsg, NULL);
 
 		timeout = client->update_timeout / uctx->nservers;
-		if (timeout < MIN_UPDATE_TIMEOUT)
+		if (timeout < MIN_UPDATE_TIMEOUT) {
 			timeout = MIN_UPDATE_TIMEOUT;
+		}
 		reqoptions = 0;
-		if (uctx->want_tcp)
+		if (uctx->want_tcp) {
 			reqoptions |= DNS_REQUESTOPT_TCP;
+		}
 		result = dns_request_createvia(
 			uctx->view->requestmgr, uctx->updatemsg, NULL,
 			uctx->currentserver, -1, reqoptions, uctx->tsigkey,
@@ -1975,8 +2039,9 @@ out:
 			uctx->state = dns_clientupdatestate_sent;
 			return;
 		}
-	} else
+	} else {
 		UNLOCK(&uctx->lock);
+	}
 
 	update_sendevent(uctx, result);
 }
@@ -1993,8 +2058,9 @@ send_update(updatectx_t *uctx)
 	REQUIRE(uctx->zonename != NULL && uctx->currentserver != NULL);
 
 	result = dns_message_gettempname(uctx->updatemsg, &name);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	dns_name_init(name, NULL);
 	dns_name_clone(uctx->zonename, name);
 	result = dns_message_gettemprdataset(uctx->updatemsg, &rdataset);
@@ -2008,15 +2074,18 @@ send_update(updatectx_t *uctx)
 	dns_message_addname(uctx->updatemsg, name, DNS_SECTION_ZONE);
 	if (uctx->tsigkey == NULL && uctx->sig0key != NULL) {
 		result = dns_message_setsig0key(uctx->updatemsg, uctx->sig0key);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	}
 	timeout = client->update_timeout / uctx->nservers;
-	if (timeout < MIN_UPDATE_TIMEOUT)
+	if (timeout < MIN_UPDATE_TIMEOUT) {
 		timeout = MIN_UPDATE_TIMEOUT;
+	}
 	reqoptions = 0;
-	if (uctx->want_tcp)
+	if (uctx->want_tcp) {
 		reqoptions |= DNS_REQUESTOPT_TCP;
+	}
 	result = dns_request_createvia(
 		uctx->view->requestmgr, uctx->updatemsg, NULL,
 		uctx->currentserver, -1, reqoptions, uctx->tsigkey, timeout,
@@ -2064,17 +2133,20 @@ resolveaddr_done(isc_task_t *task, isc_event_t *event)
 	}
 
 	result = rev->result;
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto done;
+	}
 
 	for (name = ISC_LIST_HEAD(rev->answerlist); name != NULL;
 	     name = ISC_LIST_NEXT(name, link)) {
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			if (!dns_rdataset_isassociated(rdataset))
+			if (!dns_rdataset_isassociated(rdataset)) {
 				continue;
-			if (rdataset->type != qtype)
+			}
+			if (rdataset->type != qtype) {
 				continue;
+			}
 
 			for (result = dns_rdataset_first(rdataset);
 			     result == ISC_R_SUCCESS;
@@ -2121,18 +2193,20 @@ done:
 	isc_event_free(&event);
 
 	LOCK(&uctx->lock);
-	if (uctx->restrans == NULL && uctx->restrans2 == NULL)
+	if (uctx->restrans == NULL && uctx->restrans2 == NULL) {
 		completed = true;
+	}
 	UNLOCK(&uctx->lock);
 
 	if (completed) {
 		INSIST(uctx->currentserver == NULL);
 		uctx->currentserver = ISC_LIST_HEAD(uctx->servers);
-		if (uctx->currentserver != NULL && !uctx->canceled)
+		if (uctx->currentserver != NULL && !uctx->canceled) {
 			send_update(uctx);
-		else {
-			if (result == ISC_R_SUCCESS)
+		} else {
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_NOTFOUND;
+			}
 			update_sendevent(uctx, result);
 		}
 	}
@@ -2149,13 +2223,15 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset,
 	unsigned int	resoptions;
 
 	result = dns_rdataset_first(soaset);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	dns_rdata_init(&soarr);
 	dns_rdataset_current(soaset, &soarr);
 	result = dns_rdata_tostruct(&soarr, &soa, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	dns_name_init(&primary, NULL);
 	dns_name_clone(&soa.origin, &primary);
@@ -2165,9 +2241,9 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset,
 		dns_name_copynf(soaname, uctx->zonename);
 	}
 
-	if (uctx->currentserver != NULL)
+	if (uctx->currentserver != NULL) {
 		result = send_update(uctx);
-	else {
+	} else {
 		/*
 		 * Get addresses of the primary server.  We don't use the ADB
 		 * feature so that we could avoid caching data.
@@ -2175,8 +2251,9 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset,
 		LOCK(&uctx->lock);
 		uctx->bp4 = uctx;
 		resoptions = 0;
-		if (uctx->want_tcp)
+		if (uctx->want_tcp) {
 			resoptions |= DNS_CLIENTRESOPT_TCP;
+		}
 		result = dns_client_startresolve(
 			uctx->client, &primary, uctx->rdclass, dns_rdatatype_a,
 			resoptions, uctx->client->task, resolveaddr_done,
@@ -2239,8 +2316,9 @@ receive_soa(isc_task_t *task, isc_event_t *event)
 
 	result = dns_message_create(uctx->client->mctx, DNS_MESSAGE_INTENTPARSE,
 				    &rcvmsg);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto out;
+	}
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 
@@ -2251,8 +2329,9 @@ receive_soa(isc_task_t *task, isc_event_t *event)
 		dns_message_destroy(&rcvmsg);
 		dns_message_renderreset(uctx->soaquery);
 		reqoptions = 0;
-		if (uctx->want_tcp)
+		if (uctx->want_tcp) {
 			reqoptions |= DNS_REQUESTOPT_TCP;
+		}
 		result = dns_request_createvia(
 			uctx->view->requestmgr, uctx->soaquery, NULL, addr, -1,
 			reqoptions, NULL, client->find_timeout * 20,
@@ -2279,11 +2358,11 @@ receive_soa(isc_task_t *task, isc_event_t *event)
 	}
 
 lookforsoa:
-	if (pass == 0)
+	if (pass == 0) {
 		section = DNS_SECTION_ANSWER;
-	else if (pass == 1)
+	} else if (pass == 1) {
 		section = DNS_SECTION_AUTHORITY;
-	else {
+	} else {
 		droplabel = true;
 		goto out;
 	}
@@ -2299,8 +2378,9 @@ lookforsoa:
 		soaset = NULL;
 		result = dns_message_findtype(name, dns_rdatatype_soa, 0,
 					      &soaset);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			break;
+		}
 		if (section == DNS_SECTION_ANSWER) {
 			dns_rdataset_t *tset = NULL;
 			if (dns_message_findtype(name, dns_rdatatype_cname, 0,
@@ -2334,9 +2414,9 @@ out:
 		name = NULL;
 		dns_message_currentname(soaquery, DNS_SECTION_QUESTION, &name);
 		nlabels = dns_name_countlabels(name);
-		if (nlabels == 1)
+		if (nlabels == 1) {
 			result = DNS_R_SERVFAIL; /* is there a better error? */
-		else {
+		} else {
 			dns_name_init(&tname, NULL);
 			dns_name_getlabelsequence(name, 1, nlabels - 1, &tname);
 			dns_name_clone(&tname, name);
@@ -2347,8 +2427,9 @@ out:
 			dns_message_renderreset(soaquery);
 			dns_message_settsigkey(soaquery, NULL);
 			reqoptions = 0;
-			if (uctx->want_tcp)
+			if (uctx->want_tcp) {
 				reqoptions |= DNS_REQUESTOPT_TCP;
+			}
 			result = dns_request_createvia(
 				uctx->view->requestmgr, soaquery, NULL,
 				uctx->currentserver, -1, reqoptions,
@@ -2365,11 +2446,13 @@ out:
 		UNLOCK(&uctx->lock);
 	}
 
-	if (rcvmsg != NULL)
+	if (rcvmsg != NULL) {
 		dns_message_destroy(&rcvmsg);
+	}
 
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		update_sendevent(uctx, result);
+	}
 }
 
 static isc_result_t
@@ -2385,16 +2468,19 @@ request_soa(updatectx_t *uctx)
 		result = dns_message_create(uctx->client->mctx,
 					    DNS_MESSAGE_INTENTRENDER,
 					    &soaquery);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	}
 	soaquery->flags |= DNS_MESSAGEFLAG_RD;
 	result = dns_message_gettempname(soaquery, &name);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
+	}
 	result = dns_message_gettemprdataset(soaquery, &rdataset);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
+	}
 	dns_rdataset_makequestion(rdataset, uctx->rdclass, dns_rdatatype_soa);
 	dns_name_clone(uctx->firstname, name);
 	ISC_LIST_APPEND(name->list, rdataset, link);
@@ -2402,8 +2488,9 @@ request_soa(updatectx_t *uctx)
 	rdataset = NULL;
 	name = NULL;
 	reqoptions = 0;
-	if (uctx->want_tcp)
+	if (uctx->want_tcp) {
 		reqoptions |= DNS_REQUESTOPT_TCP;
+	}
 
 	result = dns_request_createvia(
 		uctx->view->requestmgr, soaquery, NULL, uctx->currentserver, -1,
@@ -2420,8 +2507,9 @@ fail:
 		ISC_LIST_UNLINK(name->list, rdataset, link); /* for safety */
 		dns_message_puttemprdataset(soaquery, &rdataset);
 	}
-	if (name != NULL)
+	if (name != NULL) {
 		dns_message_puttempname(soaquery, &name);
+	}
 	dns_message_destroy(&soaquery);
 
 	return (result);
@@ -2458,8 +2546,9 @@ resolvesoa_done(isc_task_t *task, isc_event_t *event)
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			if (dns_rdataset_isassociated(rdataset) &&
-			    rdataset->type == dns_rdatatype_soa)
+			    rdataset->type == dns_rdatatype_soa) {
 				break;
+			}
 		}
 	}
 
@@ -2475,22 +2564,25 @@ resolvesoa_done(isc_task_t *task, isc_event_t *event)
 					  &tname);
 		dns_name_clone(&tname, &uctx->soaqname);
 		resoptions = 0;
-		if (uctx->want_tcp)
+		if (uctx->want_tcp) {
 			resoptions |= DNS_CLIENTRESOPT_TCP;
+		}
 
 		result = dns_client_startresolve(
 			uctx->client, &uctx->soaqname, uctx->rdclass,
 			dns_rdatatype_soa, resoptions, uctx->client->task,
 			resolvesoa_done, uctx, &uctx->restrans);
-	} else
+	} else {
 		result = process_soa(uctx, rdataset, &uctx->soaqname);
+	}
 
 out:
 	dns_client_freeresanswer(uctx->client, &rev->answerlist);
 	isc_event_free(&event);
 
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		update_sendevent(uctx, result);
+	}
 }
 
 static isc_result_t
@@ -2506,8 +2598,9 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 	dns_rdata_t	 rdata = DNS_RDATA_INIT, *newrdata;
 
 	result = dns_message_gettempname(msg, &newname);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	isc_buffer_allocate(mctx, &namebuf, DNS_NAME_MAXWIRE);
 	dns_name_init(newname, NULL);
 	dns_name_setbuffer(newname, namebuf);
@@ -2518,8 +2611,9 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 		rdatalist = NULL;
 		result = dns_message_gettemprdatalist(msg, &rdatalist);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto fail;
+		}
 		dns_rdatalist_init(rdatalist);
 		rdatalist->type = rdataset->type;
 		rdatalist->rdclass = rdataset->rdclass;
@@ -2533,8 +2627,9 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 
 			newrdata = NULL;
 			result = dns_message_gettemprdata(msg, &newrdata);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				goto fail;
+			}
 			dns_rdata_toregion(&rdata, &r);
 			rdatabuf = NULL;
 			isc_buffer_allocate(mctx, &rdatabuf, r.length);
@@ -2553,8 +2648,9 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 
 		newrdataset = NULL;
 		result = dns_message_gettemprdataset(msg, &newrdataset);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto fail;
+		}
 		dns_rdatalist_tordataset(rdatalist, newrdataset);
 
 		ISC_LIST_APPEND(newname->list, newrdataset, link);
@@ -2621,8 +2717,9 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 		 * particular update.
 		 */
 		return (ISC_R_NOTIMPLEMENTED); /* XXXTBD */
-	} else
+	} else {
 		actx = client->actx;
+	}
 
 	uarg = isc_mem_get(client->mctx, sizeof(*uarg));
 
@@ -2651,8 +2748,9 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 	result = isc_app_ctxrun(actx);
 
 	LOCK(&uarg->lock);
-	if (result == ISC_R_SUCCESS || result == ISC_R_SUSPEND)
+	if (result == ISC_R_SUCCESS || result == ISC_R_SUSPEND) {
 		result = uarg->result;
+	}
 
 	if (uarg->trans != NULL) {
 		/*
@@ -2690,30 +2788,35 @@ startupdate(isc_task_t *task, isc_event_t *event)
 
 	if (uctx->zonename != NULL && uctx->currentserver != NULL) {
 		result = send_update(uctx);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto fail;
+		}
 	} else if (uctx->currentserver != NULL) {
 		result = request_soa(uctx);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto fail;
+		}
 	} else {
 		resoptions = 0;
-		if (uctx->want_tcp)
+		if (uctx->want_tcp) {
 			resoptions |= DNS_CLIENTRESOPT_TCP;
+		}
 		dns_name_clone(uctx->firstname, &uctx->soaqname);
 		result = dns_client_startresolve(
 			uctx->client, &uctx->soaqname, uctx->rdclass,
 			dns_rdatatype_soa, resoptions, uctx->client->task,
 			resolvesoa_done, uctx, &uctx->restrans);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto fail;
+		}
 	}
 
 	isc_event_free(&event);
 
 fail:
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		update_sendevent(uctx, result);
+	}
 }
 
 isc_result_t
@@ -2744,16 +2847,18 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 
 	if (tsec != NULL) {
 		tsectype = dns_tsec_gettype(tsec);
-		if (tsectype != dns_tsectype_tsig)
+		if (tsectype != dns_tsectype_tsig) {
 			return (ISC_R_NOTIMPLEMENTED); /* XXX */
+		}
 	}
 
 	LOCK(&client->lock);
 	result = dns_viewlist_find(&client->viewlist, DNS_CLIENTVIEW_NAME,
 				   rdclass, &view);
 	UNLOCK(&client->lock);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	want_tcp = ((options & DNS_CLIENTUPDOPT_TCP) != 0);
 
@@ -2791,8 +2896,9 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	uctx->nservers = 0;
 	uctx->currentserver = NULL;
 	dns_fixedname_init(&uctx->zonefname);
-	if (tsec != NULL)
+	if (tsec != NULL) {
 		dns_tsec_getkey(tsec, &uctx->tsigkey);
+	}
 	uctx->event = (dns_clientupdateevent_t *)isc_event_allocate(
 		client->mctx, tclone, DNS_EVENT_UPDATEDONE, action, arg,
 		sizeof(*uctx->event));
@@ -2808,8 +2914,9 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 			sa->length = server->length;
 			ISC_LINK_INIT(sa, link);
 			ISC_LIST_APPEND(uctx->servers, sa, link);
-			if (uctx->currentserver == NULL)
+			if (uctx->currentserver == NULL) {
 				uctx->currentserver = sa;
+			}
 			uctx->nservers++;
 		}
 	}
@@ -2817,8 +2924,9 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	/* Make update message */
 	result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTRENDER,
 				    &uctx->updatemsg);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
+	}
 	uctx->updatemsg->opcode = dns_opcode_update;
 
 	if (prerequisites != NULL) {
@@ -2827,8 +2935,9 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 			newname = NULL;
 			result = copy_name(client->mctx, uctx->updatemsg, name,
 					   &newname);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				goto fail;
+			}
 			dns_message_addname(uctx->updatemsg, newname,
 					    DNS_SECTION_PREREQUISITE);
 		}
@@ -2839,8 +2948,9 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		newname = NULL;
 		result = copy_name(client->mctx, uctx->updatemsg, name,
 				   &newname);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto fail;
+		}
 		dns_message_addname(uctx->updatemsg, newname,
 				    DNS_SECTION_UPDATE);
 	}
@@ -2851,8 +2961,9 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		section = DNS_SECTION_PREREQUISITE;
 		result = dns_message_firstname(uctx->updatemsg, section);
 	}
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
+	}
 	dns_message_currentname(uctx->updatemsg, section, &uctx->firstname);
 
 	uctx->magic = UCTX_MAGIC;
@@ -2873,8 +2984,9 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		result = ISC_R_SUCCESS;
 		isc_task_send(task, &event);
 	}
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	isc_refcount_decrement(&client->references);
 	*transp = NULL;
@@ -2885,16 +2997,19 @@ fail:
 		ISC_LIST_UNLINK(client->updatectxs, uctx, link);
 		UNLOCK(&client->lock);
 	}
-	if (uctx->updatemsg != NULL)
+	if (uctx->updatemsg != NULL) {
 		dns_message_destroy(&uctx->updatemsg);
+	}
 	while ((sa = ISC_LIST_HEAD(uctx->servers)) != NULL) {
 		ISC_LIST_UNLINK(uctx->servers, sa, link);
 		isc_mem_put(client->mctx, sa, sizeof(*sa));
 	}
-	if (uctx->event != NULL)
+	if (uctx->event != NULL) {
 		isc_event_free(ISC_EVENT_PTR(&uctx->event));
-	if (uctx->tsigkey != NULL)
+	}
+	if (uctx->tsigkey != NULL) {
 		dns_tsigkey_detach(&uctx->tsigkey);
+	}
 	isc_task_detach(&tclone);
 	isc_mutex_destroy(&uctx->lock);
 	uctx->magic = 0;
@@ -2917,14 +3032,18 @@ dns_client_cancelupdate(dns_clientupdatetrans_t *trans)
 
 	if (!uctx->canceled) {
 		uctx->canceled = true;
-		if (uctx->updatereq != NULL)
+		if (uctx->updatereq != NULL) {
 			dns_request_cancel(uctx->updatereq);
-		if (uctx->soareq != NULL)
+		}
+		if (uctx->soareq != NULL) {
 			dns_request_cancel(uctx->soareq);
-		if (uctx->restrans != NULL)
+		}
+		if (uctx->restrans != NULL) {
 			dns_client_cancelresolve(uctx->restrans);
-		if (uctx->restrans2 != NULL)
+		}
+		if (uctx->restrans2 != NULL) {
 			dns_client_cancelresolve(uctx->restrans2);
+		}
 	}
 
 	UNLOCK(&uctx->lock);
@@ -3003,8 +3122,9 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 	REQUIRE((rdataset != NULL && rdatalist != NULL && rdata != NULL) ||
 		(rdataset == NULL && rdatalist == NULL && rdata == NULL &&
 		 mctx != NULL));
-	if (op == updateop_add)
+	if (op == updateop_add) {
 		REQUIRE(source != NULL);
+	}
 	if (source != NULL) {
 		REQUIRE(source->type == type);
 		REQUIRE(op == updateop_add || op == updateop_delete ||
@@ -3012,8 +3132,9 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 	}
 
 	size += owner->length;
-	if (source != NULL)
+	if (source != NULL) {
 		size += source->length;
+	}
 
 	if (rdataset == NULL) {
 		updaterec = isc_mem_get(mctx, size);
@@ -3037,8 +3158,9 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 		}
 		updaterec->mctx = NULL;
 		isc_mem_attach(mctx, &updaterec->mctx);
-	} else if (source != NULL)
+	} else if (source != NULL) {
 		dns_rdata_clone(source, rdata);
+	}
 
 	switch (op) {
 	case updateop_add:
@@ -3047,8 +3169,9 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 		if (source != NULL) {
 			ttl = 0;
 			dns_rdata_makedelete(rdata);
-		} else
+		} else {
 			dns_rdata_deleterrset(rdata, type);
+		}
 		break;
 	case updateop_notexist:
 		dns_rdata_notexist(rdata, type);
@@ -3078,10 +3201,11 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 		target->attributes |= DNS_NAMEATTR_HASUPDATEREC;
 		dns_name_setbuffer(target, &updaterec->buffer);
 	}
-	if (op == updateop_add || op == updateop_delete)
+	if (op == updateop_add || op == updateop_delete) {
 		target->attributes |= DNS_NAMEATTR_UPDATE;
-	else
+	} else {
 		target->attributes |= DNS_NAMEATTR_PREREQUISITE;
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -3107,8 +3231,9 @@ dns_client_freeupdate(dns_name_t **namep)
 			continue;
 		}
 		for (rdata = ISC_LIST_HEAD(rdatalist->rdata); rdata != NULL;
-		     rdata = ISC_LIST_HEAD(rdatalist->rdata))
+		     rdata = ISC_LIST_HEAD(rdatalist->rdata)) {
 			ISC_LIST_UNLINK(rdatalist->rdata, rdata, link);
+		}
 		dns_rdataset_disassociate(rdataset);
 	}
 

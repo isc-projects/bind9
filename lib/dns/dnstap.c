@@ -109,8 +109,9 @@ struct dns_dtenv {
 	struct fstrm_iothr_options *fopt;
 
 	isc_task_t *reopen_task;
-	isc_mutex_t reopen_lock; /* locks 'reopen_queued' */
-	bool	    reopen_queued;
+	isc_mutex_t reopen_lock; /* locks 'reopen_queued'
+				  * */
+	bool reopen_queued;
 
 	isc_region_t	     identity;
 	isc_region_t	     version;
@@ -476,8 +477,9 @@ dns_dt_getstats(dns_dtenv_t *env, isc_stats_t **statsp)
 	REQUIRE(VALID_DTENV(env));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	if (env->stats == NULL)
+	if (env->stats == NULL) {
 		return (ISC_R_NOTFOUND);
+	}
 	isc_stats_attach(env->stats, statsp);
 	return (ISC_R_SUCCESS);
 }
@@ -491,10 +493,12 @@ destroy(dns_dtenv_t *env)
 
 	atomic_fetch_add(&global_generation, 1);
 
-	if (env->iothr != NULL)
+	if (env->iothr != NULL) {
 		fstrm_iothr_destroy(&env->iothr);
-	if (env->fopt != NULL)
+	}
+	if (env->fopt != NULL) {
 		fstrm_iothr_options_destroy(&env->fopt);
+	}
 
 	if (env->identity.base != NULL) {
 		isc_mem_free(env->mctx, env->identity.base);
@@ -504,10 +508,12 @@ destroy(dns_dtenv_t *env)
 		isc_mem_free(env->mctx, env->version.base);
 		env->version.length = 0;
 	}
-	if (env->path != NULL)
+	if (env->path != NULL) {
 		isc_mem_free(env->mctx, env->path);
-	if (env->stats != NULL)
+	}
+	if (env->stats != NULL) {
 		isc_stats_detach(&env->stats);
+	}
 
 	isc_mem_putanddetach(&env->mctx, env, sizeof(*env));
 }
@@ -540,13 +546,15 @@ pack_dt(const Dnstap__Dnstap *d, void **buf, size_t *sz)
 
 	/* Need to use malloc() here because protobuf uses free() */
 	sbuf.data = malloc(sbuf.alloced);
-	if (sbuf.data == NULL)
+	if (sbuf.data == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 	sbuf.must_free_data = 1;
 
 	*sz = dnstap__dnstap__pack_to_buffer(d, (ProtobufCBuffer *)&sbuf);
-	if (sbuf.data == NULL)
+	if (sbuf.data == NULL) {
 		return (ISC_R_FAILURE);
+	}
 	*buf = sbuf.data;
 
 	return (ISC_R_SUCCESS);
@@ -560,8 +568,9 @@ send_dt(dns_dtenv_t *env, void *buf, size_t len)
 
 	REQUIRE(env != NULL);
 
-	if (buf == NULL)
+	if (buf == NULL) {
 		return;
+	}
 
 	ioq = dt_queue(env);
 	if (ioq == NULL) {
@@ -572,13 +581,15 @@ send_dt(dns_dtenv_t *env, void *buf, size_t len)
 	res = fstrm_iothr_submit(env->iothr, ioq, buf, len, fstrm_free_wrapper,
 				 NULL);
 	if (res != fstrm_res_success) {
-		if (env->stats != NULL)
+		if (env->stats != NULL) {
 			isc_stats_increment(env->stats, dns_dnstapcounter_drop);
+		}
 		free(buf);
 	} else {
-		if (env->stats != NULL)
+		if (env->stats != NULL) {
 			isc_stats_increment(env->stats,
 					    dns_dnstapcounter_success);
+		}
 	}
 }
 
@@ -658,8 +669,9 @@ setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, bool tcp,
 {
 	int family = isc_sockaddr_pf(sa);
 
-	if (family != AF_INET6 && family != AF_INET)
+	if (family != AF_INET6 && family != AF_INET) {
 		return;
+	}
 
 	if (family == AF_INET6) {
 		dm->m.socket_family = DNSTAP__SOCKET_FAMILY__INET6;
@@ -673,10 +685,11 @@ setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, bool tcp,
 		*port = ntohs(sa->type.sin.sin_port);
 	}
 
-	if (tcp)
+	if (tcp) {
 		dm->m.socket_protocol = DNSTAP__SOCKET_PROTOCOL__TCP;
-	else
+	} else {
 		dm->m.socket_protocol = DNSTAP__SOCKET_PROTOCOL__UDP;
+	}
 
 	dm->m.has_socket_protocol = 1;
 	dm->m.has_socket_family = 1;
@@ -777,11 +790,13 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	if ((msgtype & view->dttypes) == 0)
+	if ((msgtype & view->dttypes) == 0) {
 		return;
+	}
 
-	if (view->dtenv == NULL)
+	if (view->dtenv == NULL) {
 		return;
+	}
 
 	REQUIRE(VALID_DTENV(view->dtenv));
 
@@ -803,8 +818,9 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 	case DNS_DTTYPE_SR:
 	case DNS_DTTYPE_TR:
 	case DNS_DTTYPE_UR:
-		if (rtime != NULL)
+		if (rtime != NULL) {
 			t = rtime;
+		}
 
 		dm.m.response_time_sec = isc_time_seconds(t);
 		dm.m.has_response_time_sec = 1;
@@ -814,10 +830,11 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 		cpbuf(buf, &dm.m.response_message, &dm.m.has_response_message);
 
 		/* Types RR and FR get both query and response times */
-		if (msgtype == DNS_DTTYPE_CR || msgtype == DNS_DTTYPE_AR)
+		if (msgtype == DNS_DTTYPE_CR || msgtype == DNS_DTTYPE_AR) {
 			break;
+		}
 
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	case DNS_DTTYPE_AQ:
 	case DNS_DTTYPE_CQ:
 	case DNS_DTTYPE_FQ:
@@ -825,8 +842,9 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 	case DNS_DTTYPE_SQ:
 	case DNS_DTTYPE_TQ:
 	case DNS_DTTYPE_UQ:
-		if (qtime != NULL)
+		if (qtime != NULL) {
 			t = qtime;
+		}
 
 		dm.m.query_time_sec = isc_time_seconds(t);
 		dm.m.has_query_time_sec = 1;
@@ -870,8 +888,9 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 			&dm.m.has_response_port);
 	}
 
-	if (pack_dt(&dm.d, &dm.buf, &dm.len) == ISC_R_SUCCESS)
+	if (pack_dt(&dm.d, &dm.buf, &dm.len) == ISC_R_SUCCESS) {
 		send_dt(view->dtenv, dm.buf, dm.len);
+	}
 }
 
 static isc_result_t
@@ -880,8 +899,9 @@ putstr(isc_buffer_t **b, const char *str)
 	isc_result_t result;
 
 	result = isc_buffer_reserve(b, strlen(str));
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOSPACE);
+	}
 
 	isc_buffer_putstr(*b, str);
 	return (ISC_R_SUCCESS);
@@ -893,13 +913,16 @@ putaddr(isc_buffer_t **b, isc_region_t *ip)
 	char buf[64];
 
 	if (ip->length == 4) {
-		if (!inet_ntop(AF_INET, ip->base, buf, sizeof(buf)))
+		if (!inet_ntop(AF_INET, ip->base, buf, sizeof(buf))) {
 			return (ISC_R_FAILURE);
+		}
 	} else if (ip->length == 16) {
-		if (!inet_ntop(AF_INET6, ip->base, buf, sizeof(buf)))
+		if (!inet_ntop(AF_INET6, ip->base, buf, sizeof(buf))) {
 			return (ISC_R_FAILURE);
-	} else
+		}
+	} else {
 		return (ISC_R_BADADDRESSFORM);
+	}
 
 	return (putstr(b, buf));
 }
@@ -914,23 +937,28 @@ dnstap_file(struct fstrm_reader *r)
 	size_t n = 0;
 
 	res = fstrm_reader_get_control(r, FSTRM_CONTROL_START, &control);
-	if (res != fstrm_res_success)
+	if (res != fstrm_res_success) {
 		return (false);
+	}
 
 	res = fstrm_control_get_num_field_content_type(control, &n);
-	if (res != fstrm_res_success)
+	if (res != fstrm_res_success) {
 		return (false);
+	}
 	if (n > 0) {
 		res = fstrm_control_get_field_content_type(control, 0, &rtype,
 							   &rlen);
-		if (res != fstrm_res_success)
+		if (res != fstrm_res_success) {
 			return (false);
+		}
 
-		if (rlen != dlen)
+		if (rlen != dlen) {
 			return (false);
+		}
 
-		if (memcmp(DNSTAP_CONTENT_TYPE, rtype, dlen) == 0)
+		if (memcmp(DNSTAP_CONTENT_TYPE, rtype, dlen) == 0) {
 			return (true);
+		}
 	}
 
 	return (false);
@@ -955,21 +983,25 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, isc_mem_t *mctx,
 	switch (mode) {
 	case dns_dtmode_file:
 		fopt = fstrm_file_options_init();
-		if (fopt == NULL)
+		if (fopt == NULL) {
 			CHECK(ISC_R_NOMEMORY);
+		}
 
 		fstrm_file_options_set_file_path(fopt, filename);
 
 		handle->reader = fstrm_file_reader_init(fopt, NULL);
-		if (handle->reader == NULL)
+		if (handle->reader == NULL) {
 			CHECK(ISC_R_NOMEMORY);
+		}
 
 		res = fstrm_reader_open(handle->reader);
-		if (res != fstrm_res_success)
+		if (res != fstrm_res_success) {
 			CHECK(ISC_R_FAILURE);
+		}
 
-		if (!dnstap_file(handle->reader))
+		if (!dnstap_file(handle->reader)) {
 			CHECK(DNS_R_BADDNSTAP);
+		}
 		break;
 	case dns_dtmode_unix:
 		return (ISC_R_NOTIMPLEMENTED);
@@ -988,10 +1020,12 @@ cleanup:
 		fstrm_reader_destroy(&handle->reader);
 		handle->reader = NULL;
 	}
-	if (fopt != NULL)
+	if (fopt != NULL) {
 		fstrm_file_options_destroy(&fopt);
-	if (handle != NULL)
+	}
+	if (handle != NULL) {
 		isc_mem_put(mctx, handle, sizeof(*handle));
+	}
 	return (result);
 }
 
@@ -1010,8 +1044,9 @@ dns_dt_getframe(dns_dthandle_t *handle, uint8_t **bufp, size_t *sizep)
 	res = fstrm_reader_read(handle->reader, &data, sizep);
 	switch (res) {
 	case fstrm_res_success:
-		if (data == NULL)
+		if (data == NULL) {
 			return (ISC_R_FAILURE);
+		}
 		DE_CONST(data, *bufp);
 		return (ISC_R_SUCCESS);
 	case fstrm_res_stop:
@@ -1056,13 +1091,15 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp)
 	isc_mem_attach(mctx, &d->mctx);
 
 	d->frame = dnstap__dnstap__unpack(NULL, src->length, src->base);
-	if (d->frame == NULL)
+	if (d->frame == NULL) {
 		CHECK(ISC_R_NOMEMORY);
+	}
 
 	frame = (Dnstap__Dnstap *)d->frame;
 
-	if (frame->type != DNSTAP__DNSTAP__TYPE__MESSAGE)
+	if (frame->type != DNSTAP__DNSTAP__TYPE__MESSAGE) {
 		CHECK(DNS_R_BADDNSTAP);
+	}
 
 	m = frame->message;
 
@@ -1115,10 +1152,11 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp)
 	}
 
 	/* Query? */
-	if ((d->type & DNS_DTTYPE_QUERY) != 0)
+	if ((d->type & DNS_DTTYPE_QUERY) != 0) {
 		d->query = true;
-	else
+	} else {
 		d->query = false;
+	}
 
 	/* Parse DNS message */
 	if (d->query && m->has_query_message) {
@@ -1134,20 +1172,23 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp)
 	CHECK(dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &d->msg));
 	result = dns_message_parse(d->msg, &b, 0);
 	if (result != ISC_R_SUCCESS) {
-		if (result != DNS_R_RECOVERABLE)
+		if (result != DNS_R_RECOVERABLE) {
 			dns_message_destroy(&d->msg);
+		}
 		result = ISC_R_SUCCESS;
 	}
 
 	/* Timestamp */
 	if (d->query) {
-		if (m->has_query_time_sec && m->has_query_time_nsec)
+		if (m->has_query_time_sec && m->has_query_time_nsec) {
 			isc_time_set(&d->qtime, m->query_time_sec,
 				     m->query_time_nsec);
+		}
 	} else {
-		if (m->has_response_time_sec && m->has_response_time_nsec)
+		if (m->has_response_time_sec && m->has_response_time_nsec) {
 			isc_time_set(&d->rtime, m->response_time_sec,
 				     m->response_time_nsec);
+		}
 	}
 
 	/* Peer address */
@@ -1173,10 +1214,12 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp)
 			protobuf_c_enum_descriptor_get_value(
 				&dnstap__socket_protocol__descriptor,
 				m->socket_protocol);
-		if (type != NULL && type->value == DNSTAP__SOCKET_PROTOCOL__TCP)
+		if (type != NULL &&
+		    type->value == DNSTAP__SOCKET_PROTOCOL__TCP) {
 			d->tcp = true;
-		else
+		} else {
 			d->tcp = false;
+		}
 	}
 
 	/* Query tuple */
@@ -1198,8 +1241,9 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp)
 	*destp = d;
 
 cleanup:
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		dns_dtdata_free(&d);
+	}
 
 	return (result);
 }
@@ -1216,14 +1260,15 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest)
 	memset(buf, 0, sizeof(buf));
 
 	/* Timestamp */
-	if (d->query && !isc_time_isepoch(&d->qtime))
+	if (d->query && !isc_time_isepoch(&d->qtime)) {
 		isc_time_formattimestamp(&d->qtime, buf, sizeof(buf));
-	else if (!d->query && !isc_time_isepoch(&d->rtime))
+	} else if (!d->query && !isc_time_isepoch(&d->rtime)) {
 		isc_time_formattimestamp(&d->rtime, buf, sizeof(buf));
+	}
 
-	if (buf[0] == '\0')
+	if (buf[0] == '\0') {
 		CHECK(putstr(dest, "???\?-?\?-?? ??:??:??.??? "));
-	else {
+	} else {
 		CHECK(putstr(dest, buf));
 		CHECK(putstr(dest, " "));
 	}
@@ -1300,37 +1345,40 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest)
 	CHECK(putstr(dest, " "));
 
 	/* Protocol */
-	if (d->tcp)
+	if (d->tcp) {
 		CHECK(putstr(dest, "TCP "));
-	else
+	} else {
 		CHECK(putstr(dest, "UDP "));
+	}
 
 	/* Message size */
 	if (d->msgdata.base != NULL) {
 		snprintf(buf, sizeof(buf), "%zub ", (size_t)d->msgdata.length);
 		CHECK(putstr(dest, buf));
-	} else
+	} else {
 		CHECK(putstr(dest, "0b "));
+	}
 
 	/* Query tuple */
-	if (d->namebuf[0] == '\0')
+	if (d->namebuf[0] == '\0') {
 		CHECK(putstr(dest, "?/"));
-	else {
+	} else {
 		CHECK(putstr(dest, d->namebuf));
 		CHECK(putstr(dest, "/"));
 	}
 
-	if (d->classbuf[0] == '\0')
+	if (d->classbuf[0] == '\0') {
 		CHECK(putstr(dest, "?/"));
-	else {
+	} else {
 		CHECK(putstr(dest, d->classbuf));
 		CHECK(putstr(dest, "/"));
 	}
 
-	if (d->typebuf[0] == '\0')
+	if (d->typebuf[0] == '\0') {
 		CHECK(putstr(dest, "?"));
-	else
+	} else {
 		CHECK(putstr(dest, d->typebuf));
+	}
 
 	CHECK(isc_buffer_reserve(dest, 1));
 	isc_buffer_putuint8(*dest, 0);
@@ -1349,10 +1397,12 @@ dns_dtdata_free(dns_dtdata_t **dp)
 	d = *dp;
 	*dp = NULL;
 
-	if (d->msg != NULL)
+	if (d->msg != NULL) {
 		dns_message_destroy(&d->msg);
-	if (d->frame != NULL)
+	}
+	if (d->frame != NULL) {
 		dnstap__dnstap__free_unpacked(d->frame, NULL);
+	}
 
 	isc_mem_putanddetach(&d->mctx, d, sizeof(*d));
 }

@@ -71,8 +71,9 @@ main(int argc, char **argv)
 	RUNTIME_CHECK(setup_logging(mctx, stderr, &lctx) == ISC_R_SUCCESS);
 
 	result = dns_journal_print(mctx, file, stdout);
-	if (result == DNS_R_NOJOURNAL)
+	if (result == DNS_R_NOJOURNAL) {
 		fprintf(stderr, "%s\n", dns_result_totext(result));
+	}
 	isc_log_destroy(&lctx);
 	isc_mem_detach(&mctx);
 	return (result != ISC_R_SUCCESS ? 1 : 0);

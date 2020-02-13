@@ -105,12 +105,14 @@ static inline isc_result_t generic_totext_key(ARGS_TOTEXT)
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 	if ((flags & DNS_KEYFLAG_KSK) != 0) {
-		if (flags & DNS_KEYFLAG_REVOKE)
+		if (flags & DNS_KEYFLAG_REVOKE) {
 			keyinfo = "revoked KSK";
-		else
+		} else {
 			keyinfo = "KSK";
-	} else
+		}
+	} else {
 		keyinfo = "ZSK";
+	}
 
 	/* protocol */
 	snprintf(buf, sizeof(buf), "%u", sr.base[0]);
@@ -141,16 +143,18 @@ static inline isc_result_t generic_totext_key(ARGS_TOTEXT)
 	}
 
 	/* key */
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" (", target));
+	}
 	RETERR(str_totext(tctx->linebreak, target));
 
 	if ((tctx->flags & DNS_STYLEFLAG_NOCRYPTO) == 0) {
-		if (tctx->width == 0) /* No splitting */
+		if (tctx->width == 0) { /* No splitting */
 			RETERR(isc_base64_totext(&sr, 60, "", target));
-		else
+		} else {
 			RETERR(isc_base64_totext(&sr, tctx->width - 2,
 						 tctx->linebreak, target));
+		}
 	} else {
 		dns_rdata_toregion(rdata, &tmpr);
 		snprintf(buf, sizeof(buf), "[key id = %u]",
@@ -158,13 +162,15 @@ static inline isc_result_t generic_totext_key(ARGS_TOTEXT)
 		RETERR(str_totext(buf, target));
 	}
 
-	if ((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0) {
 		RETERR(str_totext(tctx->linebreak, target));
-	else if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	} else if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" ", target));
+	}
 
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(")", target));
+	}
 
 	if ((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0) {
 		if (rdata->type == dns_rdatatype_dnskey ||
@@ -326,28 +332,32 @@ static inline isc_result_t generic_tostruct_key(ARGS_TOSTRUCT)
 	dns_rdata_toregion(rdata, &sr);
 
 	/* Flags */
-	if (sr.length < 2)
+	if (sr.length < 2) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	key->flags = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Protocol */
-	if (sr.length < 1)
+	if (sr.length < 1) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	key->protocol = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Algorithm */
-	if (sr.length < 1)
+	if (sr.length < 1) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	key->algorithm = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Data */
 	key->datalen = sr.length;
 	key->data = mem_maybedup(mctx, sr.base, key->datalen);
-	if (key->data == NULL)
+	if (key->data == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	key->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -359,11 +369,13 @@ static inline void generic_freestruct_key(ARGS_FREESTRUCT)
 
 	REQUIRE(key != NULL);
 
-	if (key->mctx == NULL)
+	if (key->mctx == NULL) {
 		return;
+	}
 
-	if (key->data != NULL)
+	if (key->data != NULL) {
 		isc_mem_free(key->mctx, key->data);
+	}
 	key->mctx = NULL;
 }
 

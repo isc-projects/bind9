@@ -30,8 +30,9 @@ static inline isc_result_t fromtext_rp(ARGS_FROMTEXT)
 	UNUSED(rdclass);
 	UNUSED(callbacks);
 
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 
 	for (i = 0; i < 2; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
@@ -41,12 +42,15 @@ static inline isc_result_t fromtext_rp(ARGS_FROMTEXT)
 		RETTOK(dns_name_fromtext(&name, &buffer, origin, options,
 					 target));
 		ok = true;
-		if ((options & DNS_RDATA_CHECKNAMES) != 0 && i == 0)
+		if ((options & DNS_RDATA_CHECKNAMES) != 0 && i == 0) {
 			ok = dns_name_ismailbox(&name);
-		if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
+		}
+		if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0) {
 			RETTOK(DNS_R_BADNAME);
-		if (!ok && callbacks != NULL)
+		}
+		if (!ok && callbacks != NULL) {
 			warn_badname(&name, lexer, callbacks);
+		}
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -154,8 +158,9 @@ static inline int compare_rp(ARGS_COMPARE)
 	dns_name_fromregion(&name2, &region2);
 
 	order = dns_name_rdatacompare(&name1, &name2);
-	if (order != 0)
+	if (order != 0) {
 		return (order);
+	}
 
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
@@ -212,15 +217,17 @@ static inline isc_result_t tostruct_rp(ARGS_TOSTRUCT)
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&rp->text, NULL);
 	result = name_duporclone(&name, mctx, &rp->text);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	rp->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (mctx != NULL)
+	if (mctx != NULL) {
 		dns_name_free(&rp->mail, mctx);
+	}
 	return (ISC_R_NOMEMORY);
 }
 
@@ -231,8 +238,9 @@ static inline void freestruct_rp(ARGS_FREESTRUCT)
 	REQUIRE(rp != NULL);
 	REQUIRE(rp->common.rdtype == dns_rdatatype_rp);
 
-	if (rp->mctx == NULL)
+	if (rp->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&rp->mail, rp->mctx);
 	dns_name_free(&rp->text, rp->mctx);
@@ -295,8 +303,9 @@ static inline bool checknames_rp(ARGS_CHECKNAMES)
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ismailbox(&name)) {
-		if (bad != NULL)
+		if (bad != NULL) {
 			dns_name_clone(&name, bad);
+		}
 		return (false);
 	}
 	return (true);

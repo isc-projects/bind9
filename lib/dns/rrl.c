@@ -86,8 +86,8 @@ hash_divisor(unsigned int initial)
 		673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751,
 		757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829,
 		839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919,
-		929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997,1009,
-#endif
+		929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997, 1009,
+#endif /* if 0 */
 	};
 	int	     divisions, tries;
 	unsigned int result;
@@ -97,13 +97,15 @@ hash_divisor(unsigned int initial)
 
 	if (primes[sizeof(primes) / sizeof(primes[0]) - 1] >= result) {
 		pp = primes;
-		while (*pp < result)
+		while (*pp < result) {
 			++pp;
+		}
 		return (*pp);
 	}
 
-	if ((result & 1) == 0)
+	if ((result & 1) == 0) {
 		++result;
+	}
 
 	divisions = 0;
 	tries = 1;
@@ -118,12 +120,13 @@ hash_divisor(unsigned int initial)
 		}
 	} while (pp < &primes[sizeof(primes) / sizeof(primes[0])]);
 
-	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3))
+	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3)) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
 			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DEBUG3,
 			      "%d hash_divisor() divisions in %d tries"
 			      " to get %d from %d",
 			      divisions, tries, result, initial);
+	}
 
 	return (result);
 }
@@ -137,8 +140,9 @@ delta_rrl_time(isc_stdtime_t ts, isc_stdtime_t now)
 	int delta;
 
 	delta = now - ts;
-	if (delta >= 0)
+	if (delta >= 0) {
 		return (delta);
+	}
 
 	/*
 	 * The timestamp is in the future.  That future might result from
@@ -147,16 +151,18 @@ delta_rrl_time(isc_stdtime_t ts, isc_stdtime_t now)
 	 * assumed to result from clock changes.  When the clock changes to
 	 * the past, make existing timestamps appear to be in the past.
 	 */
-	if (delta < -DNS_RRL_MAX_TIME_TRAVEL)
+	if (delta < -DNS_RRL_MAX_TIME_TRAVEL) {
 		return (DNS_RRL_FOREVER);
+	}
 	return (0);
 }
 
 static inline int
 get_age(const dns_rrl_t *rrl, const dns_rrl_entry_t *e, isc_stdtime_t now)
 {
-	if (!e->ts_valid)
+	if (!e->ts_valid) {
 		return (DNS_RRL_FOREVER);
+	}
 	return (delta_rrl_time(e->ts + rrl->ts_bases[e->ts_gen], now));
 }
 
@@ -170,10 +176,11 @@ set_age(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_stdtime_t now)
 	ts_gen = rrl->ts_gen;
 	ts = now - rrl->ts_bases[ts_gen];
 	if (ts < 0) {
-		if (ts < -DNS_RRL_MAX_TIME_TRAVEL)
+		if (ts < -DNS_RRL_MAX_TIME_TRAVEL) {
 			ts = DNS_RRL_FOREVER;
-		else
+		} else {
 			ts = 0;
+		}
 	}
 
 	/*
@@ -196,7 +203,7 @@ set_age(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_stdtime_t now)
 		     e_old = ISC_LIST_PREV(e_old, lru), ++i) {
 			e_old->ts_valid = false;
 		}
-		if (i != 0)
+		if (i != 0) {
 			isc_log_write(
 				dns_lctx, DNS_LOGCATEGORY_RRL,
 				DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DEBUG1,
@@ -206,6 +213,7 @@ set_age(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_stdtime_t now)
 				rrl->ts_bases[(ts_gen + 1) % DNS_RRL_TS_BASES],
 				rrl->ts_bases[(ts_gen + 2) % DNS_RRL_TS_BASES],
 				rrl->ts_bases[(ts_gen + 3) % DNS_RRL_TS_BASES]);
+		}
 		rrl->ts_gen = ts_gen;
 		rrl->ts_bases[ts_gen] = now;
 		ts = 0;
@@ -228,8 +236,9 @@ expand_entries(dns_rrl_t *rrl, int newsize)
 	if (rrl->num_entries + newsize >= rrl->max_entries &&
 	    rrl->max_entries != 0) {
 		newsize = rrl->max_entries - rrl->num_entries;
-		if (newsize <= 0)
+		if (newsize <= 0) {
 			return (ISC_R_SUCCESS);
+		}
 	}
 
 	/*
@@ -238,8 +247,9 @@ expand_entries(dns_rrl_t *rrl, int newsize)
 	 */
 	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DROP) && rrl->hash != NULL) {
 		rate = rrl->probes;
-		if (rrl->searches != 0)
+		if (rrl->searches != 0) {
 			rate /= rrl->searches;
+		}
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
 			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DROP,
 			      "increase from %d to %d RRL entries with"
@@ -301,8 +311,9 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now)
 	int		old_bins, new_bins, hsize;
 	double		rate;
 
-	if (rrl->old_hash != NULL)
+	if (rrl->old_hash != NULL) {
 		free_old_hash(rrl);
+	}
 
 	/*
 	 * Most searches fail and so go to the end of the chain.
@@ -310,8 +321,9 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now)
 	 */
 	old_bins = (rrl->hash == NULL) ? 0 : rrl->hash->length;
 	new_bins = old_bins / 8 + old_bins;
-	if (new_bins < rrl->num_entries)
+	if (new_bins < rrl->num_entries) {
 		new_bins = rrl->num_entries;
+	}
 	new_bins = hash_divisor(new_bins);
 
 	hsize = sizeof(dns_rrl_hash_t) + (new_bins - 1) * sizeof(hash->bins[0]);
@@ -323,8 +335,9 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now)
 
 	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DROP) && old_bins != 0) {
 		rate = rrl->probes;
-		if (rrl->searches != 0)
+		if (rrl->searches != 0) {
 			rate /= rrl->searches;
+		}
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
 			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DROP,
 			      "increase from %d to %d RRL bins for"
@@ -333,8 +346,9 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now)
 	}
 
 	rrl->old_hash = rrl->hash;
-	if (rrl->old_hash != NULL)
+	if (rrl->old_hash != NULL) {
 		rrl->old_hash->check_time = now;
+	}
 	rrl->hash = hash;
 
 	return (ISC_R_SUCCESS);
@@ -347,8 +361,9 @@ ref_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, int probes, isc_stdtime_t now)
 	 * Make the entry most recently used.
 	 */
 	if (ISC_LIST_HEAD(rrl->lru) != e) {
-		if (e == rrl->last_logged)
+		if (e == rrl->last_logged) {
 			rrl->last_logged = ISC_LIST_PREV(e, lru);
+		}
 		ISC_LIST_UNLINK(rrl->lru, e, lru);
 		ISC_LIST_PREPEND(rrl->lru, e, lru);
 	}
@@ -363,8 +378,9 @@ ref_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, int probes, isc_stdtime_t now)
 	++rrl->searches;
 	if (rrl->searches > 100 &&
 	    delta_rrl_time(rrl->hash->check_time, now) > 1) {
-		if (rrl->probes / rrl->searches > 2)
+		if (rrl->probes / rrl->searches > 2) {
 			expand_rrl_hash(rrl, now);
+		}
 		rrl->hash->check_time = now;
 		rrl->probes = 0;
 		rrl->searches = 0;
@@ -374,8 +390,9 @@ ref_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, int probes, isc_stdtime_t now)
 static inline bool
 key_cmp(const dns_rrl_key_t *a, const dns_rrl_key_t *b)
 {
-	if (memcmp(a, b, sizeof(dns_rrl_key_t)) == 0)
+	if (memcmp(a, b, sizeof(dns_rrl_key_t)) == 0) {
 		return (true);
+	}
 	return (false);
 }
 
@@ -449,8 +466,9 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 		key->s.ipv6 = true;
 		memmove(key->s.ip, &client_addr->type.sin6.sin6_addr,
 			sizeof(key->s.ip));
-		for (i = 0; i < DNS_RRL_MAX_PREFIX / 32; ++i)
+		for (i = 0; i < DNS_RRL_MAX_PREFIX / 32; ++i) {
 			key->s.ip[i] &= rrl->ipv6_mask[i];
+		}
 		break;
 	}
 }
@@ -491,8 +509,9 @@ response_balance(dns_rrl_t *rrl, const dns_rrl_entry_t *e, int age)
 	}
 
 	balance = e->responses + age * rate;
-	if (balance > rate)
+	if (balance > rate) {
 		balance = rate;
+	}
 	return (balance);
 }
 
@@ -551,12 +570,14 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr,
 		 * Discard prevous hash table when all of its entries are old.
 		 */
 		age = delta_rrl_time(rrl->old_hash->check_time, now);
-		if (age > rrl->window)
+		if (age > rrl->window) {
 			free_old_hash(rrl);
+		}
 	}
 
-	if (!create)
+	if (!create) {
 		return (NULL);
+	}
 
 	/*
 	 * The entry does not exist, so create it by finding a free entry.
@@ -566,27 +587,31 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr,
 	 */
 	for (e = ISC_LIST_TAIL(rrl->lru); e != NULL;
 	     e = ISC_LIST_PREV(e, lru)) {
-		if (!ISC_LINK_LINKED(e, hlink))
+		if (!ISC_LINK_LINKED(e, hlink)) {
 			break;
+		}
 		age = get_age(rrl, e, now);
 		if (age <= 1) {
 			e = NULL;
 			break;
 		}
-		if (!e->logged && response_balance(rrl, e, age) > 0)
+		if (!e->logged && response_balance(rrl, e, age) > 0) {
 			break;
+		}
 	}
 	if (e == NULL) {
 		expand_entries(rrl, ISC_MIN((rrl->num_entries + 1) / 2, 1000));
 		e = ISC_LIST_TAIL(rrl->lru);
 	}
-	if (e->logged)
+	if (e->logged) {
 		log_end(rrl, e, true, log_buf, log_buf_len);
+	}
 	if (ISC_LINK_LINKED(e, hlink)) {
-		if (e->hash_gen == rrl->hash_gen)
+		if (e->hash_gen == rrl->hash_gen) {
 			hash = rrl->hash;
-		else
+		} else {
 			hash = rrl->old_hash;
+		}
 		old_bin = get_bin(hash, hash_key(&e->key));
 		ISC_LIST_UNLINK(*old_bin, e, hlink);
 	}
@@ -630,8 +655,9 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 	 */
 	ratep = get_rate(rrl, e->key.s.rtype);
 	rate = ratep->r;
-	if (rate == 0)
+	if (rate == 0) {
 		return (DNS_RRL_RESULT_OK);
+	}
 
 	if (scale < 1.0) {
 		/*
@@ -642,14 +668,16 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 				     log_buf, log_buf_len);
 		if (credit_e != NULL) {
 			age = get_age(rrl, e, now);
-			if (age < rrl->window)
+			if (age < rrl->window) {
 				scale = 1.0;
+			}
 		}
 	}
 	if (scale < 1.0) {
 		new_rate = (int)(rate * scale);
-		if (new_rate < 1)
+		if (new_rate < 1) {
 			new_rate = 1;
+		}
 		if (ratep->scaled != new_rate) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
 				      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DEBUG1,
@@ -695,8 +723,9 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 		if (e->logged) {
 			log_secs = e->log_secs;
 			log_secs += age;
-			if (log_secs > DNS_RRL_MAX_LOG_SECS || log_secs < 0)
+			if (log_secs > DNS_RRL_MAX_LOG_SECS || log_secs < 0) {
 				log_secs = DNS_RRL_MAX_LOG_SECS;
+			}
 			e->log_secs = log_secs;
 		}
 	}
@@ -706,13 +735,15 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 	 * Debit the entry for this response.
 	 */
 	if (--e->responses >= 0) {
-		if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3))
+		if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3)) {
 			debit_log(e, age, "");
+		}
 		return (DNS_RRL_RESULT_OK);
 	}
 
-	if (e->responses < min)
+	if (e->responses < min) {
 		e->responses = min;
+	}
 
 	/*
 	 * Drop this response unless it should slip or leak.
@@ -720,8 +751,9 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 	slip = rrl->slip.r;
 	if (slip > 2 && scale < 1.0) {
 		new_slip = (int)(slip * scale);
-		if (new_slip < 2)
+		if (new_slip < 2) {
 			new_slip = 2;
+		}
 		if (rrl->slip.scaled != new_slip) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
 				      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DEBUG1,
@@ -734,18 +766,21 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 	}
 	if (slip != 0 && e->key.s.rtype != DNS_RRL_RTYPE_ALL) {
 		if (e->slip_cnt++ == 0) {
-			if ((int)e->slip_cnt >= slip)
+			if ((int)e->slip_cnt >= slip) {
 				e->slip_cnt = 0;
-			if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3))
+			}
+			if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3)) {
 				debit_log(e, age, "slip");
+			}
 			return (DNS_RRL_RESULT_SLIP);
 		} else if ((int)e->slip_cnt >= slip) {
 			e->slip_cnt = 0;
 		}
 	}
 
-	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3))
+	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3)) {
 		debit_log(e, age, "drop");
+	}
 	return (DNS_RRL_RESULT_DROP);
 }
 
@@ -755,8 +790,9 @@ get_qname(dns_rrl_t *rrl, const dns_rrl_entry_t *e)
 	dns_rrl_qname_buf_t *qbuf;
 
 	qbuf = rrl->qnames[e->log_qname];
-	if (qbuf == NULL || qbuf->e != e)
+	if (qbuf == NULL || qbuf->e != e) {
 		return (NULL);
+	}
 	return (qbuf);
 }
 
@@ -779,8 +815,9 @@ add_log_str(isc_buffer_t *lb, const char *str, unsigned int str_len)
 
 	isc_buffer_availableregion(lb, &region);
 	if (str_len >= region.length) {
-		if (region.length == 0U)
+		if (region.length == 0U) {
 			return;
+		}
 		str_len = region.length;
 	}
 	memmove(region.base, str, str_len);
@@ -806,16 +843,19 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 	isc_result_t msg_result;
 
 	if (log_buf_len <= 1) {
-		if (log_buf_len == 1)
+		if (log_buf_len == 1) {
 			log_buf[0] = '\0';
+		}
 		return;
 	}
 	isc_buffer_init(&lb, log_buf, log_buf_len - 1);
 
-	if (str1 != NULL)
+	if (str1 != NULL) {
 		add_log_str(&lb, str1, strlen(str1));
-	if (str2 != NULL)
+	}
+	if (str2 != NULL) {
 		add_log_str(&lb, str2, strlen(str2));
+	}
 
 	switch (rrl_result) {
 	case DNS_RRL_RESULT_OK:
@@ -860,10 +900,11 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 		ISC_UNREACHABLE();
 	}
 
-	if (plural)
+	if (plural) {
 		ADD_LOG_CSTR(&lb, "responses to ");
-	else
+	} else {
 		ADD_LOG_CSTR(&lb, "response to ");
+	}
 
 	memset(&cidr, 0, sizeof(cidr));
 	if (e->key.s.ipv6) {
@@ -877,8 +918,9 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 		cidr.type.in.s_addr = e->key.s.ip[0];
 	}
 	msg_result = isc_netaddr_totext(&cidr, &lb);
-	if (msg_result != ISC_R_SUCCESS)
+	if (msg_result != ISC_R_SUCCESS) {
 		ADD_LOG_CSTR(&lb, "?");
+	}
 	add_log_str(&lb, strbuf, strlen(strbuf));
 
 	if (e->key.s.rtype == DNS_RRL_RTYPE_QUERY ||
@@ -911,8 +953,9 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 							       &qbuf->qname));
 			}
 		}
-		if (qbuf != NULL)
+		if (qbuf != NULL) {
 			qname = dns_fixedname_name(&qbuf->qname);
+		}
 		if (qname != NULL) {
 			ADD_LOG_CSTR(&lb, " for ");
 			(void)dns_name_totext(qname, true, &lb);
@@ -968,18 +1011,21 @@ log_stops(dns_rrl_t *rrl, isc_stdtime_t now, int limit, char *log_buf,
 	int		 age;
 
 	for (e = rrl->last_logged; e != NULL; e = ISC_LIST_PREV(e, lru)) {
-		if (!e->logged)
+		if (!e->logged) {
 			continue;
+		}
 		if (now != 0) {
 			age = get_age(rrl, e, now);
 			if (age < DNS_RRL_STOP_LOG_SECS ||
-			    response_balance(rrl, e, age) < 0)
+			    response_balance(rrl, e, age) < 0) {
 				break;
+			}
 		}
 
 		log_end(rrl, e, now == 0, log_buf, log_buf_len);
-		if (rrl->num_logged <= 0)
+		if (rrl->num_logged <= 0) {
 			break;
+		}
 
 		/*
 		 * Too many messages could stall real work.
@@ -1022,8 +1068,9 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 		isc_netaddr_fromsockaddr(&netclient, client_addr);
 		result = dns_acl_match(&netclient, NULL, rrl->exempt,
 				       &view->aclenv, &exempt_match, NULL);
-		if (result == ISC_R_SUCCESS && exempt_match > 0)
+		if (result == ISC_R_SUCCESS && exempt_match > 0) {
 			return (DNS_RRL_RESULT_OK);
+		}
 	}
 
 	LOCK(&rrl->lock);
@@ -1043,7 +1090,7 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 			qps = (1.0 * rrl->qps_responses) / secs;
 			if (secs >= rrl->window) {
 				if (isc_log_wouldlog(dns_lctx,
-						     DNS_RRL_LOG_DEBUG3))
+						     DNS_RRL_LOG_DEBUG3)) {
 					isc_log_write(dns_lctx,
 						      DNS_LOGCATEGORY_RRL,
 						      DNS_LOGMODULE_REQUEST,
@@ -1052,6 +1099,7 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 						      " = %d qps",
 						      rrl->qps_responses, secs,
 						      (int)qps);
+				}
 				rrl->qps = qps;
 				rrl->qps_responses = 0;
 				rrl->qps_time = now;
@@ -1065,8 +1113,9 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 	/*
 	 * Do maintenance once per second.
 	 */
-	if (rrl->num_logged > 0 && rrl->log_stops_time != now)
+	if (rrl->num_logged > 0 && rrl->log_stops_time != now) {
 		log_stops(rrl, now, 8, log_buf, log_buf_len);
+	}
 
 	/*
 	 * Notice TCP responses when scaling limits by qps.
@@ -1185,8 +1234,9 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 			     log_buf, log_buf_len);
 		if (!e->logged) {
 			e->logged = true;
-			if (++rrl->num_logged <= 1)
+			if (++rrl->num_logged <= 1) {
 				rrl->last_logged = e;
+			}
 		}
 		e->log_secs = 0;
 
@@ -1205,20 +1255,22 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 	/*
 	 * Make a log message for the caller.
 	 */
-	if (wouldlog)
+	if (wouldlog) {
 		make_log_buf(rrl, e,
 			     rrl->log_only ? "would rate limit "
 					   : "rate limit ",
 			     NULL, false, qname, false, rrl_result, resp_result,
 			     log_buf, log_buf_len);
+	}
 
 	if (e != NULL) {
 		/*
 		 * Do not save the qname unless we might need it for
 		 * the ending log message.
 		 */
-		if (!e->logged)
+		if (!e->logged) {
 			free_qname(rrl, e);
+		}
 		UNLOCK(&rrl->lock);
 	}
 
@@ -1235,25 +1287,29 @@ dns_rrl_view_destroy(dns_view_t *view)
 	int		 i;
 
 	rrl = view->rrl;
-	if (rrl == NULL)
+	if (rrl == NULL) {
 		return;
+	}
 	view->rrl = NULL;
 
 	/*
 	 * Assume the caller takes care of locking the view and anything else.
 	 */
 
-	if (rrl->num_logged > 0)
+	if (rrl->num_logged > 0) {
 		log_stops(rrl, 0, INT32_MAX, log_buf, sizeof(log_buf));
+	}
 
 	for (i = 0; i < DNS_RRL_QNAMES; ++i) {
-		if (rrl->qnames[i] == NULL)
+		if (rrl->qnames[i] == NULL) {
 			break;
+		}
 		isc_mem_put(rrl->mctx, rrl->qnames[i], sizeof(*rrl->qnames[i]));
 	}
 
-	if (rrl->exempt != NULL)
+	if (rrl->exempt != NULL) {
 		dns_acl_detach(&rrl->exempt);
+	}
 
 	isc_mutex_destroy(&rrl->lock);
 
@@ -1264,14 +1320,16 @@ dns_rrl_view_destroy(dns_view_t *view)
 	}
 
 	h = rrl->hash;
-	if (h != NULL)
+	if (h != NULL) {
 		isc_mem_put(rrl->mctx, h,
 			    sizeof(*h) + (h->length - 1) * sizeof(h->bins[0]));
+	}
 
 	h = rrl->old_hash;
-	if (h != NULL)
+	if (h != NULL) {
 		isc_mem_put(rrl->mctx, h,
 			    sizeof(*h) + (h->length - 1) * sizeof(h->bins[0]));
+	}
 
 	isc_mem_putanddetach(&rrl->mctx, rrl, sizeof(*rrl));
 }

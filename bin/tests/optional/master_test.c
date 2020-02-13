@@ -36,12 +36,13 @@ print_dataset(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset)
 
 	isc_buffer_init(&target, buf, 64 * 1024);
 	result = dns_rdataset_totext(dataset, owner, false, false, &target);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		fprintf(stdout, "%.*s\n", (int)target.used,
 			(char *)target.base);
-	else
+	} else {
 		fprintf(stdout, "dns_rdataset_totext: %s\n",
 			dns_result_totext(result));
+	}
 
 	return (ISC_R_SUCCESS);
 }

@@ -166,7 +166,7 @@ isc_md_reset_test(void **state)
 #if 0
 	unsigned char digest[ISC_MAX_MD_SIZE] __attribute((unused));
 	unsigned int digestlen __attribute((unused));
-#endif
+#endif /* if 0 */
 
 	assert_non_null(md);
 
@@ -184,8 +184,8 @@ isc_md_reset_test(void **state)
 	 * so this could be only manually checked that the test will
 	 * segfault when called by hand
 	 */
-	expect_assert_failure(isc_md_final(md, digest, &digestlen));
-#endif
+	expect_assert_failure(isc_md_final(md,digest,&digestlen));
+#endif /* if 0 */
 }
 
 static void
@@ -600,4 +600,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

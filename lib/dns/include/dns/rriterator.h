@@ -13,8 +13,8 @@
 #define DNS_RRITERATOR_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/rriterator.h
  * \brief
@@ -22,8 +22,8 @@
  */
 
 /*****
- ***** Imports
- *****/
+***** Imports
+*****/
 
 #include <inttypes.h>
 
@@ -43,8 +43,8 @@
 ISC_LANG_BEGINDECLS
 
 /*****
- ***** Types
- *****/
+***** Types
+*****/
 
 /*%
  * A dns_rriterator_t is an iterator that iterates over an entire database,

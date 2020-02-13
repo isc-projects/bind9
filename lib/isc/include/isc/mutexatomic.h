@@ -18,20 +18,20 @@
 
 #if !defined(__has_feature)
 #define __has_feature(x) 0
-#endif
+#endif /* if !defined(__has_feature) */
 
 #if !defined(__has_extension)
 #define __has_extension(x) __has_feature(x)
-#endif
+#endif /* if !defined(__has_extension) */
 
 #if !defined(__GNUC_PREREQ__)
 #if defined(__GNUC__) && defined(__GNUC_MINOR__)
 #define __GNUC_PREREQ__(maj, min) \
 	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#else
+#else /* if defined(__GNUC__) && defined(__GNUC_MINOR__) */
 #define __GNUC_PREREQ__(maj, min) 0
-#endif
-#endif
+#endif /* if defined(__GNUC__) && defined(__GNUC_MINOR__) */
+#endif /* if !defined(__GNUC_PREREQ__) */
 
 #if !defined(__CLANG_ATOMICS) && !defined(__GNUC_ATOMICS)
 #if __has_extension(c_atomic) || __has_extension(cxx_atomic)
@@ -40,27 +40,27 @@
 #define __GNUC_ATOMICS
 #elif !defined(__GNUC__)
 #error "isc/stdatomic.h does not support your compiler"
-#endif
-#endif
+#endif /* if __has_extension(c_atomic) || __has_extension(cxx_atomic) */
+#endif /* if !defined(__CLANG_ATOMICS) && !defined(__GNUC_ATOMICS) */
 
 #ifndef __ATOMIC_RELAXED
 #define __ATOMIC_RELAXED 0
-#endif
+#endif /* ifndef __ATOMIC_RELAXED */
 #ifndef __ATOMIC_CONSUME
 #define __ATOMIC_CONSUME 1
-#endif
+#endif /* ifndef __ATOMIC_CONSUME */
 #ifndef __ATOMIC_ACQUIRE
 #define __ATOMIC_ACQUIRE 2
-#endif
+#endif /* ifndef __ATOMIC_ACQUIRE */
 #ifndef __ATOMIC_RELEASE
 #define __ATOMIC_RELEASE 3
-#endif
+#endif /* ifndef __ATOMIC_RELEASE */
 #ifndef __ATOMIC_ACQ_REL
 #define __ATOMIC_ACQ_REL 4
-#endif
+#endif /* ifndef __ATOMIC_ACQ_REL */
 #ifndef __ATOMIC_SEQ_CST
 #define __ATOMIC_SEQ_CST 5
-#endif
+#endif /* ifndef __ATOMIC_SEQ_CST */
 
 enum memory_order {
 	memory_order_relaxed = __ATOMIC_RELAXED,

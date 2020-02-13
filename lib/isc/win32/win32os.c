@@ -13,11 +13,11 @@
 
 #ifndef TESTVERSION
 #include <isc/win32os.h>
-#else
+#else /* ifndef TESTVERSION */
 #include <stdio.h>
 
 #include <isc/util.h>
-#endif
+#endif /* ifndef TESTVERSION */
 #include <isc/print.h>
 
 int
@@ -50,8 +50,9 @@ isc_win32os_versioncheck(unsigned int major, unsigned int minor,
 	typeMask |= VER_SERVICEPACKMINOR;
 	conditionMask = VerSetConditionMask(conditionMask, VER_SERVICEPACKMINOR,
 					    VER_GREATER);
-	if (VerifyVersionInfo(&osVer, typeMask, conditionMask))
+	if (VerifyVersionInfo(&osVer, typeMask, conditionMask)) {
 		return (1);
+	}
 
 	/* Failed: retry with equal */
 	conditionMask = 0;
@@ -63,10 +64,11 @@ isc_win32os_versioncheck(unsigned int major, unsigned int minor,
 					    VER_EQUAL);
 	conditionMask = VerSetConditionMask(conditionMask, VER_SERVICEPACKMINOR,
 					    VER_EQUAL);
-	if (VerifyVersionInfo(&osVer, typeMask, conditionMask))
+	if (VerifyVersionInfo(&osVer, typeMask, conditionMask)) {
 		return (0);
-	else
+	} else {
 		return (-1);
+	}
 }
 
 #ifdef TESTVERSION
@@ -108,4 +110,4 @@ main(int argc, char **argv)
 	       minor, spmajor, spminor);
 	return (ret);
 }
-#endif
+#endif /* ifdef TESTVERSION */

@@ -13,8 +13,8 @@
 #define DNS_BADCACHE_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/badcache.h
  * \brief

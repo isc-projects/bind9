@@ -51,7 +51,7 @@ options {\n\
 #ifndef WIN32
 			    "	coresize default;\n\
 	datasize default;\n"
-#endif
+#endif /* ifndef WIN32 */
 			    "\
 #	deallocate-on-exit <obsolete>;\n\
 #	directory <none>\n\
@@ -61,14 +61,14 @@ options {\n\
 #	fake-iquery <obsolete>;\n"
 #ifndef WIN32
 			    "	files unlimited;\n"
-#endif
+#endif /* ifndef WIN32 */
 #if defined(HAVE_GEOIP2) && !defined(WIN32)
 			    "	geoip-directory \"" MAXMINDDB_PREFIX "/share/"
 			    "GeoIP\";"
 			    "\n"
 #elif defined(HAVE_GEOIP2)
 			    "	geoip-directory \".\";\n"
-#endif
+#endif /* if defined(HAVE_GEOIP2) && !defined(WIN32) */
 			    "\
 #	has-old-clients <obsolete>;\n\
 	heartbeat-interval 60;\n\
@@ -107,7 +107,7 @@ options {\n\
 	session-keyname local-ddns;\n"
 #ifndef WIN32
 			    "	stacksize default;\n"
-#endif
+#endif /* ifndef WIN32 */
 			    "	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
 #	statistics-interval <obsolete>;\n\
@@ -150,7 +150,7 @@ options {\n\
 	dnssec-validation " VALIDATION_DEFAULT "; \n"
 #ifdef HAVE_DNSTAP
 			    "	dnstap-identity hostname;\n"
-#endif
+#endif /* ifdef HAVE_DNSTAP */
 			    "\
 #	fetch-glue <obsolete>;\n\
 	fetch-quota-params 100 0.1 0.3 0.7;\n\
@@ -160,7 +160,7 @@ options {\n\
 	lame-ttl 600;\n"
 #ifdef HAVE_LMDB
 			    "	lmdb-mapsize 32M;\n"
-#endif
+#endif /* ifdef HAVE_LMDB */
 			    "	max-cache-size 90%;\n\
 	max-cache-ttl 604800; /* 1 week */\n\
 	max-clients-per-query 100;\n\
@@ -333,10 +333,12 @@ named_config_get(cfg_obj_t const *const *maps, const char *name,
 	int i;
 
 	for (i = 0;; i++) {
-		if (maps[i] == NULL)
+		if (maps[i] == NULL) {
 			return (ISC_R_NOTFOUND);
-		if (cfg_map_get(maps[i], name, obj) == ISC_R_SUCCESS)
+		}
+		if (cfg_map_get(maps[i], name, obj) == ISC_R_SUCCESS) {
 			return (ISC_R_SUCCESS);
+		}
 	}
 }
 
@@ -351,8 +353,9 @@ named_checknames_get(const cfg_obj_t **maps, const char *which,
 	int		     i;
 
 	for (i = 0;; i++) {
-		if (maps[i] == NULL)
+		if (maps[i] == NULL) {
 			return (ISC_R_NOTFOUND);
+		}
 		checknames = NULL;
 		if (cfg_map_get(maps[i], "check-names", &checknames) ==
 		    ISC_R_SUCCESS) {
@@ -384,8 +387,9 @@ named_config_listcount(const cfg_obj_t *list)
 	const cfg_listelt_t *e;
 	int		     i = 0;
 
-	for (e = cfg_list_first(list); e != NULL; e = cfg_list_next(e))
+	for (e = cfg_list_first(list); e != NULL; e = cfg_list_next(e)) {
 		i++;
+	}
 
 	return (i);
 }
@@ -404,9 +408,10 @@ named_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 	DE_CONST(cfg_obj_asstring(classobj), r.base);
 	r.length = strlen(r.base);
 	result = dns_rdataclass_fromtext(classp, &r);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(classobj, named_g_lctx, ISC_LOG_ERROR,
 			    "unknown class '%s'", r.base);
+	}
 	return (result);
 }
 
@@ -424,9 +429,10 @@ named_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
 	DE_CONST(cfg_obj_asstring(typeobj), r.base);
 	r.length = strlen(r.base);
 	result = dns_rdatatype_fromtext(typep, &r);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(typeobj, named_g_lctx, ISC_LOG_ERROR,
 			    "unknown type '%s'", r.base);
+	}
 	return (result);
 }
 
@@ -488,12 +494,13 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 			return (ISC_R_RANGE);
 		}
 		port = (in_port_t)val;
-	} else if (defport != 0)
+	} else if (defport != 0) {
 		port = defport;
-	else {
+	} else {
 		result = named_config_getport(config, &port);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	}
 
 	if (dscpsp != NULL) {
@@ -523,20 +530,23 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		if (dscpsp != NULL) {
 			isc_dscp_t innerdscp;
 			innerdscp = cfg_obj_getdscp(addr);
-			if (innerdscp == -1)
+			if (innerdscp == -1) {
 				innerdscp = dscp;
+			}
 			dscps[i] = innerdscp;
 		}
-		if (isc_sockaddr_getport(&addrs[i]) == 0)
+		if (isc_sockaddr_getport(&addrs[i]) == 0) {
 			isc_sockaddr_setport(&addrs[i], port);
+		}
 	}
 	INSIST(i == count);
 
 	*addrsp = addrs;
 	*countp = count;
 
-	if (dscpsp != NULL)
+	if (dscpsp != NULL) {
 		*dscpsp = dscps;
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -566,8 +576,9 @@ named_config_getmastersdef(const cfg_obj_t *cctx, const char *name,
 	const cfg_listelt_t *elt;
 
 	result = cfg_map_get(cctx, "masters", &masters);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	for (elt = cfg_list_first(masters); elt != NULL;
 	     elt = cfg_list_next(elt)) {
 		const cfg_obj_t *list;
@@ -623,12 +634,14 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	 * Get system defaults.
 	 */
 	result = named_config_getport(config, &port);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	result = named_config_getdscp(config, &dscp);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 newlist:
 	addrlist = cfg_tuple_get(list, "addresses");
@@ -692,11 +705,14 @@ resume:
 				listcount = newlen;
 			}
 			/* Seen? */
-			for (j = 0; j < l; j++)
-				if (strcasecmp(lists[j].name, listname) == 0)
+			for (j = 0; j < l; j++) {
+				if (strcasecmp(lists[j].name, listname) == 0) {
 					break;
-			if (j < l)
+				}
+			}
+			if (j < l) {
 				continue;
+			}
 			tresult = named_config_getmastersdef(config, listname,
 							     &list);
 			if (tresult == ISC_R_NOTFOUND) {
@@ -707,8 +723,9 @@ resume:
 				result = tresult;
 				goto cleanup;
 			}
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				goto cleanup;
+			}
 			lists[l++].name = listname;
 			/* Grow stack? */
 			if (stackcount == pushed) {
@@ -774,15 +791,18 @@ resume:
 		}
 
 		addrs[i] = *cfg_obj_assockaddr(addr);
-		if (isc_sockaddr_getport(&addrs[i]) == 0)
+		if (isc_sockaddr_getport(&addrs[i]) == 0) {
 			isc_sockaddr_setport(&addrs[i], port);
+		}
 		dscps[i] = cfg_obj_getdscp(addr);
-		if (dscps[i] == -1)
+		if (dscps[i] == -1) {
 			dscps[i] = dscp;
+		}
 		keys[i] = NULL;
 		i++; /* Increment here so that cleanup on error works. */
-		if (!cfg_obj_isstring(key))
+		if (!cfg_obj_isstring(key)) {
 			continue;
+		}
 		keys[i - 1] = isc_mem_get(mctx, sizeof(dns_name_t));
 		dns_name_init(keys[i - 1], NULL);
 
@@ -792,8 +812,9 @@ resume:
 		dns_fixedname_init(&fname);
 		result = dns_name_fromtext(dns_fixedname_name(&fname), &b,
 					   dns_rootname, 0, NULL);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 		dns_name_dup(dns_fixedname_name(&fname), mctx, keys[i - 1]);
 	}
 	if (pushed != 0) {
@@ -812,8 +833,9 @@ resume:
 		if (i != 0) {
 			tmp = isc_mem_get(mctx, newsize);
 			memmove(tmp, addrs, newsize);
-		} else
+		} else {
 			tmp = NULL;
+		}
 		isc_mem_put(mctx, addrs, oldsize);
 		addrs = tmp;
 		addrcount = i;
@@ -823,8 +845,9 @@ resume:
 		if (i != 0) {
 			tmp = isc_mem_get(mctx, newsize);
 			memmove(tmp, dscps, newsize);
-		} else
+		} else {
 			tmp = NULL;
+		}
 		isc_mem_put(mctx, dscps, oldsize);
 		dscps = tmp;
 		dscpcount = i;
@@ -834,17 +857,20 @@ resume:
 		if (i != 0) {
 			tmp = isc_mem_get(mctx, newsize);
 			memmove(tmp, keys, newsize);
-		} else
+		} else {
 			tmp = NULL;
+		}
 		isc_mem_put(mctx, keys, oldsize);
 		keys = tmp;
 		keycount = i;
 	}
 
-	if (lists != NULL)
+	if (lists != NULL) {
 		isc_mem_put(mctx, lists, listcount * sizeof(*lists));
-	if (stack != NULL)
+	}
+	if (stack != NULL) {
 		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+	}
 
 	INSIST(dscpcount == addrcount);
 	INSIST(keycount == addrcount);
@@ -859,24 +885,30 @@ resume:
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (addrs != NULL)
+	if (addrs != NULL) {
 		isc_mem_put(mctx, addrs, addrcount * sizeof(isc_sockaddr_t));
-	if (dscps != NULL)
+	}
+	if (dscps != NULL) {
 		isc_mem_put(mctx, dscps, dscpcount * sizeof(isc_dscp_t));
+	}
 	if (keys != NULL) {
 		for (j = 0; j < i; j++) {
-			if (keys[j] == NULL)
+			if (keys[j] == NULL) {
 				continue;
-			if (dns_name_dynamic(keys[j]))
+			}
+			if (dns_name_dynamic(keys[j])) {
 				dns_name_free(keys[j], mctx);
+			}
 			isc_mem_put(mctx, keys[j], sizeof(dns_name_t));
 		}
 		isc_mem_put(mctx, keys, keycount * sizeof(dns_name_t *));
 	}
-	if (lists != NULL)
+	if (lists != NULL) {
 		isc_mem_put(mctx, lists, listcount * sizeof(*lists));
-	if (stack != NULL)
+	}
+	if (stack != NULL) {
 		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+	}
 	return (result);
 }
 
@@ -891,8 +923,9 @@ named_config_getport(const cfg_obj_t *config, in_port_t *portp)
 
 	(void)cfg_map_get(config, "options", &options);
 	i = 0;
-	if (options != NULL)
+	if (options != NULL) {
 		maps[i++] = options;
+	}
 	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
 
@@ -916,8 +949,9 @@ named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp)
 	isc_result_t	 result;
 
 	(void)cfg_map_get(config, "options", &options);
-	if (options == NULL)
+	if (options == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 
 	result = cfg_map_get(options, "dscp", &dscpobj);
 	if (result != ISC_R_SUCCESS || dscpobj == NULL) {
@@ -975,21 +1009,26 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 		len = strlen(algorithms[i].str);
 		if (strncasecmp(algorithms[i].str, str, len) == 0 &&
 		    (str[len] == '\0' ||
-		     (algorithms[i].size != 0 && str[len] == '-')))
+		     (algorithms[i].size != 0 && str[len] == '-'))) {
 			break;
+		}
 	}
-	if (algorithms[i].str == NULL)
+	if (algorithms[i].str == NULL) {
 		return (ISC_R_NOTFOUND);
+	}
 	if (str[len] == '-') {
 		result = isc_parse_uint16(&bits, str + len + 1, 10);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
-		if (bits > algorithms[i].size)
+		}
+		if (bits > algorithms[i].size) {
 			return (ISC_R_RANGE);
-	} else if (algorithms[i].size == 0)
+		}
+	} else if (algorithms[i].size == 0) {
 		bits = 128;
-	else
+	} else {
 		bits = algorithms[i].size;
+	}
 
 	if (name != NULL) {
 		switch (algorithms[i].hmac) {
@@ -1016,9 +1055,11 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 			ISC_UNREACHABLE();
 		}
 	}
-	if (typep != NULL)
+	if (typep != NULL) {
 		*typep = algorithms[i].type;
-	if (digestbits != NULL)
+	}
+	if (digestbits != NULL) {
 		*digestbits = bits;
+	}
 	return (ISC_R_SUCCESS);
 }
