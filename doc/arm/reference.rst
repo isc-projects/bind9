@@ -8,16 +8,6 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-..
-   Copyright (C) Internet Systems Consortium, Inc. ("ISC")
-
-   This Source Code Form is subject to the terms of the Mozilla Public
-   License, v. 2.0. If a copy of the MPL was not distributed with this
-   file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-   See the COPYRIGHT file distributed with this work for additional
-   information regarding copyright ownership.
-
 .. Reference:
 
 BIND 9 Configuration Reference
@@ -5707,6 +5697,29 @@ including "ANY" (ANY matches all types except NSEC and NSEC3, which can
 never be updated). Note that when an attempt is made to delete all
 records associated with a name, the rules are checked for each existing
 record type.
+
+If the type is immediately followed by a number in parentheses,
+that number is the maximum number of records of that type permitted
+to exist in the RRset after an update has been applied.  For example,
+``PTR(1)`` indicates that only one PTR record is allowed. If an
+attempt is made to add two PTR records in an update, the second one
+will be silently discarded. If a PTR record already exists, both
+new records will be silently discarded.
+
+If type ANY is specified with a limit, then that limit applies to
+all types that are not otherwise specified.  For example, ``A PTR(1)
+ANY(2)`` indicates that an unlimited number of A records can exist,
+but only one PTR record, and no more than two of any other type.
+
+Typical use with rule ``grant * tcp-self . PTR(1);`` in the zone
+2.0.192.IN-ADDR.ARPA::
+
+  nsupdate -v <<EOF
+  local 192.0.2.1
+  del 1.2.0.192.IN-ADDR.ARPA PTR
+  add 1.2.0.192.IN-ADDR.ARPA 0 PTR EXAMPLE.COM
+  send
+  EOF
 
 The ruletype field has 16 values: ``name``, ``subdomain``, ``wildcard``,
 ``self``, ``selfsub``, ``selfwild``, ``krb5-self``, ``ms-self``,
