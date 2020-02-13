@@ -314,7 +314,10 @@ atomic_compare_exchange_strong_explicit8(atomic_int_fast8_t *obj,
 {
 	bool __r;
 	int8_t __v;
-	REQUIRE(succ == fail);
+
+	UNUSED(succ);
+	UNUSED(fail);
+
 	__v = InterlockedCompareExchange8((atomic_int_fast8_t *)obj, desired, *expected);
 	__r = (*(expected) == __v);
 	if (!__r) {
@@ -331,7 +334,10 @@ atomic_compare_exchange_strong_explicit32(atomic_int_fast32_t *obj,
 					  memory_order fail) {
 	bool __r;
 	int32_t __v;
-	REQUIRE(succ == fail);
+
+	UNUSED(succ);
+	UNUSED(fail);
+
 	switch (succ) {
 	case memory_order_relaxed:
 		__v = InterlockedCompareExchangeNoFence((atomic_int_fast32_t *)obj, desired, *expected);
@@ -361,7 +367,10 @@ atomic_compare_exchange_strong_explicit64(atomic_int_fast64_t *obj,
 					  memory_order fail) {
 	bool __r;
 	int64_t __v;
-	REQUIRE(succ == fail);
+
+	UNUSED(succ);
+	UNUSED(fail);
+
 #ifdef _WIN64
 	switch (succ) {
 	case memory_order_relaxed:
