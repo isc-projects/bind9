@@ -13,8 +13,8 @@
 #define ISC_TASKPOOL_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/taskpool.h
  * \brief A task pool is a mechanism for sharing a small number of tasks
@@ -40,14 +40,14 @@
 ISC_LANG_BEGINDECLS
 
 /*****
- ***** Types.
- *****/
+***** Types.
+*****/
 
 typedef struct isc_taskpool isc_taskpool_t;
 
 /*****
- ***** Functions.
- *****/
+***** Functions.
+*****/
 
 isc_result_t
 isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx, unsigned int ntasks,

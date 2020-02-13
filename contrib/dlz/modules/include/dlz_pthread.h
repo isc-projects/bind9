@@ -19,7 +19,7 @@
 
 #ifndef PTHREADS
 #define PTHREADS 1
-#endif
+#endif /* ifndef PTHREADS */
 
 #ifdef PTHREADS
 #include <pthread.h>
@@ -36,6 +36,6 @@
 #define dlz_mutex_lock(a) (0)
 #define dlz_mutex_trylock(a) (0)
 #define dlz_mutex_unlock(a) (0)
-#endif
+#endif /* ifdef PTHREADS */
 
 #endif /* DLZ_PTHREAD_H */

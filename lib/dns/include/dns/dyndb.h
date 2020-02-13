@@ -57,7 +57,7 @@ struct dns_dyndbctx {
 #ifndef DNS_DYNDB_VERSION
 #define DNS_DYNDB_VERSION 1
 #define DNS_DYNDB_AGE 0
-#endif
+#endif /* ifndef DNS_DYNDB_VERSION */
 
 typedef isc_result_t
 dns_dyndb_register_t(isc_mem_t *mctx, const char *name, const char *parameters,

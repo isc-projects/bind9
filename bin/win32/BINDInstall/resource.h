@@ -1,7 +1,7 @@
-//{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
-// Used by BINDInstall.rc
-//
+/*{{NO_DEPENDENCIES}} */
+/* Microsoft Developer Studio generated include file. */
+/* Used by BINDInstall.rc */
+/* */
 #define IDS_MAINFRAME 1
 #define IDS_CREATEDIR 2
 #define IDS_SUCCESS 3
@@ -93,13 +93,13 @@
 #define IDC_TOOLS_ONLY 1033
 #define IDS_ERR_START_SERVICE 1034
 
-// Next default values for new objects
-//
+/* Next default values for new objects */
+/* */
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE 144
 #define _APS_NEXT_COMMAND_VALUE 32771
 #define _APS_NEXT_CONTROL_VALUE 1027
 #define _APS_NEXT_SYMED_VALUE 104
-#endif
-#endif
+#endif /* ifndef APSTUDIO_READONLY_SYMBOLS */
+#endif /* ifdef APSTUDIO_INVOKED */

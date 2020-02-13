@@ -126,8 +126,9 @@ new_sample_instance(isc_mem_t *mctx, const char *db_name, int argc, char **argv,
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		destroy_sample_instance(&inst);
+	}
 	return (result);
 }
 
@@ -182,17 +183,22 @@ destroy_sample_instance(sample_instance_t **instp)
 
 	inst = *instp;
 	*instp = NULL;
-	if (inst == NULL)
+	if (inst == NULL) {
 		return;
+	}
 
-	if (inst->db_name != NULL)
+	if (inst->db_name != NULL) {
 		isc_mem_free(inst->mctx, inst->db_name);
-	if (inst->zone1 != NULL)
+	}
+	if (inst->zone1 != NULL) {
 		dns_zone_detach(&inst->zone1);
-	if (inst->zone2 != NULL)
+	}
+	if (inst->zone2 != NULL) {
 		dns_zone_detach(&inst->zone2);
-	if (inst->db_imp != NULL)
+	}
+	if (inst->db_imp != NULL) {
 		dns_db_unregister(&inst->db_imp);
+	}
 
 	dns_view_detach(&inst->view);
 	dns_zonemgr_detach(&inst->zmgr);

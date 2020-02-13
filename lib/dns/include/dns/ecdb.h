@@ -13,8 +13,8 @@
 #define DNS_ECDB_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /* TBD */
 

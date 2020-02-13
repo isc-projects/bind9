@@ -101,9 +101,9 @@ main(void)
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
-#else
+#else  /* if USE_OPENSSL */
 	print_message("1..0 # Skipped: dh test broken with PKCS11");
-#endif
+#endif /* if USE_OPENSSL */
 }
 
 #else /* HAVE_CMOCKA */
@@ -117,4 +117,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

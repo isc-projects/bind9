@@ -83,16 +83,17 @@ is_ntfs(const char *file)
 		strlcat(drive, "\\", sizeof(drive));
 		strlcat(drive, sharename, sizeof(drive));
 		strlcat(drive, "\\", sizeof(drive));
-
-	} else /* Not determinable */
+	} else { /* Not determinable */
 		return (FALSE);
+	}
 
 	GetVolumeInformation(drive, NULL, 0, NULL, 0, NULL, FSType,
 			     sizeof(FSType));
-	if (strcmp(FSType, "NTFS") == 0)
+	if (strcmp(FSType, "NTFS") == 0) {
 		return (TRUE);
-	else
+	} else {
 		return (FALSE);
+	}
 }
 
 /*
@@ -134,8 +135,9 @@ FAT_fsaccess_set(const char *path, isc_fsaccess_t access)
 
 	INSIST(access == 0);
 
-	if (_chmod(path, mode) < 0)
+	if (_chmod(path, mode) < 0) {
 		return (isc__errno2result(errno));
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -163,13 +165,16 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 	int		    caccess;
 
 	/* Initialize an ACL */
-	if (!InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION))
+	if (!InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION)) {
 		return (ISC_R_NOPERM);
-	if (!InitializeAcl(pacl, sizeof(aclBuffer), ACL_REVISION))
+	}
+	if (!InitializeAcl(pacl, sizeof(aclBuffer), ACL_REVISION)) {
 		return (ISC_R_NOPERM);
+	}
 	if (!LookupAccountName(0, user, psid, &sidBufferSize, domainBuffer,
-			       &domainBufferSize, &snu))
+			       &domainBufferSize, &snu)) {
 		return (ISC_R_NOPERM);
+	}
 	domainBufferSize = sizeof(domainBuffer);
 	if (!LookupAccountName(0, "Administrators", padminsid,
 			       &adminSidBufferSize, domainBuffer,
@@ -215,8 +220,9 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 	}
 
 	if (NTFSbits ==
-	    (FILE_GENERIC_READ | FILE_GENERIC_WRITE | FILE_GENERIC_EXECUTE))
+	    (FILE_GENERIC_READ | FILE_GENERIC_WRITE | FILE_GENERIC_EXECUTE)) {
 		NTFSbits |= FILE_ALL_ACCESS;
+	}
 	/*
 	 * Owner and Administrator also get STANDARD_RIGHTS_ALL
 	 * to ensure that they have full control
@@ -225,10 +231,12 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 	NTFSbits |= STANDARD_RIGHTS_ALL;
 
 	/* Add the ACE to the ACL */
-	if (!AddAccessAllowedAce(pacl, ACL_REVISION, NTFSbits, psid))
+	if (!AddAccessAllowedAce(pacl, ACL_REVISION, NTFSbits, psid)) {
 		return (ISC_R_NOPERM);
-	if (!AddAccessAllowedAce(pacl, ACL_REVISION, NTFSbits, padminsid))
+	}
+	if (!AddAccessAllowedAce(pacl, ACL_REVISION, NTFSbits, padminsid)) {
 		return (ISC_R_NOPERM);
+	}
 
 	/*
 	 * Group is ignored since we can be in multiple groups or no group
@@ -270,11 +278,13 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 		}
 	}
 	/* Add the ACE to the ACL */
-	if (!AddAccessAllowedAce(pacl, ACL_REVISION, NTFSbits, pothersid))
+	if (!AddAccessAllowedAce(pacl, ACL_REVISION, NTFSbits, pothersid)) {
 		return (ISC_R_NOPERM);
+	}
 
-	if (!SetSecurityDescriptorDacl(&sd, TRUE, pacl, FALSE))
+	if (!SetSecurityDescriptorDacl(&sd, TRUE, pacl, FALSE)) {
 		return (ISC_R_NOPERM);
+	}
 	if (!SetFileSecurity(filename, DACL_SECURITY_INFORMATION, &sd)) {
 		return (ISC_R_NOPERM);
 	}
@@ -291,8 +301,9 @@ NTFS_fsaccess_set(const char *path, isc_fsaccess_t access, bool isdir)
 	 */
 	if (namelen == 0) {
 		namelen = sizeof(username);
-		if (GetUserName(username, &namelen) == 0)
+		if (GetUserName(username, &namelen) == 0) {
 			return (ISC_R_FAILURE);
+		}
 	}
 	return (NTFS_Access_Control(path, username, access, isdir));
 }
@@ -304,26 +315,30 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access)
 	bool	     is_dir = false;
 	isc_result_t result;
 
-	if (stat(path, &statb) != 0)
+	if (stat(path, &statb) != 0) {
 		return (isc__errno2result(errno));
+	}
 
-	if ((statb.st_mode & S_IFDIR) != 0)
+	if ((statb.st_mode & S_IFDIR) != 0) {
 		is_dir = true;
-	else if ((statb.st_mode & S_IFREG) == 0)
+	} else if ((statb.st_mode & S_IFREG) == 0) {
 		return (ISC_R_INVALIDFILE);
+	}
 
 	result = check_bad_bits(access, is_dir);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	/*
 	 * Determine if this is a FAT or NTFS disk and
 	 * call the appropriate function to set the permissions
 	 */
-	if (is_ntfs(path))
+	if (is_ntfs(path)) {
 		return (NTFS_fsaccess_set(path, access, is_dir));
-	else
+	} else {
 		return (FAT_fsaccess_set(path, access));
+	}
 }
 
 isc_result_t
@@ -346,33 +361,40 @@ isc_fsaccess_changeowner(const char *filename, const char *user)
 	 * FAT disks do not have ownership attributes so it's
 	 * a noop.
 	 */
-	if (is_ntfs(filename) == FALSE)
+	if (is_ntfs(filename) == FALSE) {
 		return (ISC_R_SUCCESS);
+	}
 
-	if (!InitializeSecurityDescriptor(&psd, SECURITY_DESCRIPTOR_REVISION))
+	if (!InitializeSecurityDescriptor(&psd, SECURITY_DESCRIPTOR_REVISION)) {
 		return (ISC_R_NOPERM);
+	}
 
 	if (!LookupAccountName(0, user, psid, &sidBufferSize, domainBuffer,
-			       &domainBufferSize, &snu))
+			       &domainBufferSize, &snu)) {
 		return (ISC_R_NOPERM);
+	}
 
 	/* Make sure administrators can get to it */
 	domainBufferSize = sizeof(domainBuffer);
 	if (!LookupAccountName(0, "Administrators", pSidGroup, &groupBufferSize,
-			       domainBuffer, &domainBufferSize, &snu))
+			       domainBuffer, &domainBufferSize, &snu)) {
 		return (ISC_R_NOPERM);
+	}
 
-	if (!SetSecurityDescriptorOwner(&psd, psid, FALSE))
+	if (!SetSecurityDescriptorOwner(&psd, psid, FALSE)) {
 		return (ISC_R_NOPERM);
+	}
 
-	if (!SetSecurityDescriptorGroup(&psd, pSidGroup, FALSE))
+	if (!SetSecurityDescriptorGroup(&psd, pSidGroup, FALSE)) {
 		return (ISC_R_NOPERM);
+	}
 
 	if (!SetFileSecurity(filename,
 			     OWNER_SECURITY_INFORMATION |
 				     GROUP_SECURITY_INFORMATION,
-			     &psd))
+			     &psd)) {
 		return (ISC_R_NOPERM);
+	}
 
 	return (ISC_R_SUCCESS);
 }

@@ -291,8 +291,9 @@ static inline isc_result_t fromtext_caa(ARGS_FROMTEXT)
 	/* Flags. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 255U)
+	if (token.value.as_ulong > 255U) {
 		RETTOK(ISC_R_RANGE);
+	}
 	flags = (uint8_t)(token.value.as_ulong & 255U);
 	RETERR(uint8_tobuffer(flags, target));
 
@@ -302,9 +303,11 @@ static inline isc_result_t fromtext_caa(ARGS_FROMTEXT)
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 	tr = token.value.as_textregion;
-	for (i = 0; i < tr.length; i++)
-		if (!alphanumeric[(unsigned char)tr.base[i]])
+	for (i = 0; i < tr.length; i++) {
+		if (!alphanumeric[(unsigned char)tr.base[i]]) {
 			RETTOK(DNS_R_SYNTAX);
+		}
+	}
 	RETERR(uint8_tobuffer(tr.length, target));
 	RETERR(mem_tobuffer(target, tr.base, tr.length));
 
@@ -314,8 +317,9 @@ static inline isc_result_t fromtext_caa(ARGS_FROMTEXT)
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 				      false));
 	if (token.type != isc_tokentype_qstring &&
-	    token.type != isc_tokentype_string)
+	    token.type != isc_tokentype_string) {
 		RETERR(DNS_R_SYNTAX);
+	}
 	RETERR(multitxt_fromtext(&token.value.as_textregion, target));
 	return (ISC_R_SUCCESS);
 }
@@ -370,8 +374,9 @@ static inline isc_result_t fromwire_caa(ARGS_FROMWIRE)
 	 * Flags
 	 */
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length < 2)
+	if (sr.length < 2) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	/*
 	 * Flags, tag length
@@ -384,13 +389,19 @@ static inline isc_result_t fromwire_caa(ARGS_FROMWIRE)
 	/*
 	 * Zero length tag fields are illegal.
 	 */
-	if (sr.length < len || len == 0)
+	if (sr.length < len || len == 0) {
 		RETERR(DNS_R_FORMERR);
+	}
 
 	/* Check the Tag's value */
-	for (i = 0; i < len; i++)
-		if (!alphanumeric[sr.base[i]])
+	for (i = 0; i < len; i++) {
+		if (!alphanumeric[sr.base[i]]) {
 			RETERR(DNS_R_FORMERR);
+			/*
+			 * Tag + Value
+			 */
+		}
+	}
 	/*
 	 * Tag + Value
 	 */
@@ -460,9 +471,11 @@ static inline isc_result_t fromstruct_caa(ARGS_FROMSTRUCT)
 	 */
 	region.base = caa->tag;
 	region.length = caa->tag_len;
-	for (i = 0; i < region.length; i++)
-		if (!alphanumeric[region.base[i]])
+	for (i = 0; i < region.length; i++) {
+		if (!alphanumeric[region.base[i]]) {
 			RETERR(DNS_R_SYNTAX);
+		}
+	}
 	RETERR(isc_buffer_copyregion(target, &region));
 
 	/*
@@ -492,27 +505,31 @@ static inline isc_result_t tostruct_caa(ARGS_TOSTRUCT)
 	/*
 	 * Flags
 	 */
-	if (sr.length < 1)
+	if (sr.length < 1) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	caa->flags = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/*
 	 * Tag length
 	 */
-	if (sr.length < 1)
+	if (sr.length < 1) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	caa->tag_len = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/*
 	 * Tag
 	 */
-	if (sr.length < caa->tag_len)
+	if (sr.length < caa->tag_len) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	caa->tag = mem_maybedup(mctx, sr.base, caa->tag_len);
-	if (caa->tag == NULL)
+	if (caa->tag == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 	isc_region_consume(&sr, caa->tag_len);
 
 	/*
@@ -520,8 +537,9 @@ static inline isc_result_t tostruct_caa(ARGS_TOSTRUCT)
 	 */
 	caa->value_len = sr.length;
 	caa->value = mem_maybedup(mctx, sr.base, sr.length);
-	if (caa->value == NULL)
+	if (caa->value == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	caa->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -534,13 +552,16 @@ static inline void freestruct_caa(ARGS_FREESTRUCT)
 	REQUIRE(caa != NULL);
 	REQUIRE(caa->common.rdtype == dns_rdatatype_caa);
 
-	if (caa->mctx == NULL)
+	if (caa->mctx == NULL) {
 		return;
+	}
 
-	if (caa->tag != NULL)
+	if (caa->tag != NULL) {
 		isc_mem_free(caa->mctx, caa->tag);
-	if (caa->value != NULL)
+	}
+	if (caa->value != NULL) {
 		isc_mem_free(caa->mctx, caa->value);
+	}
 	caa->mctx = NULL;
 }
 

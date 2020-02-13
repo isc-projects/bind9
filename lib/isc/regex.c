@@ -22,9 +22,9 @@
 		reason = (x); \
 		goto error;   \
 	} while (0)
-#else
+#else /* if VALREGEX_REPORT_REASON */
 #define FAIL(x) goto error
-#endif
+#endif /* if VALREGEX_REPORT_REASON */
 
 /*
  * Validate the regular expression 'C' locale.
@@ -60,10 +60,11 @@ isc_regex_validate(const char *c)
 	int	     range_start = 0;
 #if VALREGEX_REPORT_REASON
 	const char *reason = "";
-#endif
+#endif /* if VALREGEX_REPORT_REASON */
 
-	if (c == NULL || *c == 0)
+	if (c == NULL || *c == 0) {
 		FAIL("empty string");
+	}
 
 	while (c != NULL && *c != 0) {
 		switch (state) {
@@ -81,8 +82,9 @@ isc_regex_validate(const char *c)
 				case '7':
 				case '8':
 				case '9':
-					if ((*c - '0') > sub)
+					if ((*c - '0') > sub) {
 						FAIL("bad back reference");
+					}
 					have_atom = true;
 					was_multiple = false;
 					break;
@@ -112,10 +114,12 @@ isc_regex_validate(const char *c)
 				case '7':
 				case '8':
 				case '9':
-					if (!have_atom)
+					if (!have_atom) {
 						FAIL("no atom");
-					if (was_multiple)
+					}
+					if (was_multiple) {
 						FAIL("was multiple");
+					}
 					seen_comma = false;
 					seen_high = false;
 					low = high = 0;
@@ -139,17 +143,20 @@ isc_regex_validate(const char *c)
 				++c;
 				break;
 			case ')': /* group end */
-				if (group && !have_atom && !empty_ok)
+				if (group && !have_atom && !empty_ok) {
 					FAIL("empty alternative");
+				}
 				have_atom = true;
 				was_multiple = false;
-				if (group != 0)
+				if (group != 0) {
 					--group;
+				}
 				++c;
 				break;
 			case '|': /* alternative seperator */
-				if (!have_atom)
+				if (!have_atom) {
 					FAIL("no atom");
+				}
 				have_atom = false;
 				empty_ok = false;
 				was_multiple = false;
@@ -164,10 +171,12 @@ isc_regex_validate(const char *c)
 			case '+':
 			case '*':
 			case '?':
-				if (was_multiple)
+				if (was_multiple) {
 					FAIL("was multiple");
-				if (!have_atom)
+				}
+				if (!have_atom) {
 					FAIL("no atom");
+				}
 				have_atom = true;
 				was_multiple = true;
 				++c;
@@ -195,19 +204,22 @@ isc_regex_validate(const char *c)
 			case '9':
 				if (!seen_comma) {
 					low = low * 10 + *c - '0';
-					if (low > 255)
+					if (low > 255) {
 						FAIL("lower bound too big");
+					}
 				} else {
 					seen_high = true;
 					high = high * 10 + *c - '0';
-					if (high > 255)
+					if (high > 255) {
 						FAIL("upper bound too big");
+					}
 				}
 				++c;
 				break;
 			case ',':
-				if (seen_comma)
+				if (seen_comma) {
 					FAIL("multiple commas");
+				}
 				seen_comma = true;
 				++c;
 				break;
@@ -215,8 +227,9 @@ isc_regex_validate(const char *c)
 			case '{':
 				FAIL("non digit/comma");
 			case '}':
-				if (seen_high && low > high)
+				if (seen_high && low > high) {
 					FAIL("bad parse bound");
+				}
 				seen_comma = false;
 				state = none;
 				++c;
@@ -226,18 +239,22 @@ isc_regex_validate(const char *c)
 		case parse_bracket:
 			switch (*c) {
 			case '^':
-				if (seen_char || neg)
+				if (seen_char || neg) {
 					goto inside;
+				}
 				neg = true;
 				++c;
 				break;
 			case '-':
-				if (range == 2)
+				if (range == 2) {
 					goto inside;
-				if (!seen_char)
+				}
+				if (!seen_char) {
 					goto inside;
-				if (range == 1)
+				}
+				if (range == 1) {
 					FAIL("bad range");
+				}
 				range = 2;
 				++c;
 				break;
@@ -245,24 +262,27 @@ isc_regex_validate(const char *c)
 				++c;
 				switch (*c) {
 				case '.': /* collating element */
-					if (range != 0)
+					if (range != 0) {
 						--range;
+					}
 					++c;
 					state = parse_ce;
 					seen_ce = false;
 					break;
 				case '=': /* equivalence class */
-					if (range == 2)
+					if (range == 2) {
 						FAIL("equivalence class in "
 						     "range");
+					}
 					++c;
 					state = parse_ec;
 					seen_ec = false;
 					break;
 				case ':': /* character class */
-					if (range == 2)
+					if (range == 2) {
 						FAIL("character class in "
 						     "range");
+					}
 					ccname = c;
 					++c;
 					state = parse_cc;
@@ -271,10 +291,12 @@ isc_regex_validate(const char *c)
 				seen_char = true;
 				break;
 			case ']':
-				if (!c[1] && !seen_char)
+				if (!c[1] && !seen_char) {
 					FAIL("unfinished brace");
-				if (!seen_char)
+				}
+				if (!seen_char) {
 					goto inside;
+				}
 				++c;
 				range = 0;
 				have_atom = true;
@@ -283,14 +305,16 @@ isc_regex_validate(const char *c)
 			default:
 			inside:
 				seen_char = true;
-				if (range == 2 && (*c & 0xff) < range_start)
+				if (range == 2 && (*c & 0xff) < range_start) {
 					FAIL("out of order range");
-				if (range != 0)
+				}
+				if (range != 0) {
 					--range;
+				}
 				range_start = *c & 0xff;
 				++c;
 				break;
-			};
+			}
 			break;
 		case parse_ce:
 			switch (*c) {
@@ -298,25 +322,28 @@ isc_regex_validate(const char *c)
 				++c;
 				switch (*c) {
 				case ']':
-					if (!seen_ce)
+					if (!seen_ce) {
 						FAIL("empty ce");
+					}
 					++c;
 					state = parse_bracket;
 					break;
 				default:
-					if (seen_ce)
+					if (seen_ce) {
 						range_start = 256;
-					else
+					} else {
 						range_start = '.';
+					}
 					seen_ce = true;
 					break;
 				}
 				break;
 			default:
-				if (seen_ce)
+				if (seen_ce) {
 					range_start = 256;
-				else
+				} else {
 					range_start = *c;
+				}
 				seen_ce = true;
 				++c;
 				break;
@@ -328,8 +355,9 @@ isc_regex_validate(const char *c)
 				++c;
 				switch (*c) {
 				case ']':
-					if (!seen_ec)
+					if (!seen_ec) {
 						FAIL("no ec");
+					}
 					++c;
 					state = parse_bracket;
 					break;
@@ -358,14 +386,19 @@ isc_regex_validate(const char *c)
 						unsigned int len;
 						len = strlen(cc[i]);
 						if (len !=
-						    (unsigned int)(c - ccname))
+						    (unsigned int)(c -
+								   ccname)) {
 							continue;
-						if (strncmp(cc[i], ccname, len))
+						}
+						if (strncmp(cc[i], ccname,
+							    len)) {
 							continue;
+						}
 						found = true;
 					}
-					if (!found)
+					if (!found) {
 						FAIL("unknown cc");
+					}
 					++c;
 					state = parse_bracket;
 					break;
@@ -381,17 +414,20 @@ isc_regex_validate(const char *c)
 			break;
 		}
 	}
-	if (group != 0)
+	if (group != 0) {
 		FAIL("group open");
-	if (state != none)
+	}
+	if (state != none) {
 		FAIL("incomplete");
-	if (!have_atom)
+	}
+	if (!have_atom) {
 		FAIL("no atom");
+	}
 	return (sub);
 
 error:
 #if VALREGEX_REPORT_REASON
 	fprintf(stderr, "%s\n", reason);
-#endif
+#endif /* if VALREGEX_REPORT_REASON */
 	return (-1);
 }

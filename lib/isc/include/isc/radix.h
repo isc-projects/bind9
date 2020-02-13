@@ -42,8 +42,9 @@
 	} while (0)
 
 typedef struct isc_prefix {
-	isc_mem_t *    mctx;
-	unsigned int   family; /* AF_INET | AF_INET6, or AF_UNSPEC for "any" */
+	isc_mem_t *  mctx;
+	unsigned int family;   /* AF_INET | AF_INET6, or AF_UNSPEC for
+				* "any" */
 	unsigned int   bitlen; /* 0 for "any" */
 	isc_refcount_t refcount;
 	union {
@@ -85,13 +86,17 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 
 typedef struct isc_radix_node {
 	isc_mem_t *	       mctx;
-	uint32_t	       bit;	/* bit length of the prefix */
-	isc_prefix_t *	       prefix;	/* who we are in radix tree */
-	struct isc_radix_node *l, *r;	/* left and right children */
-	struct isc_radix_node *parent;	/* may be used */
-	void *data[RADIX_FAMILIES];	/* pointers to IPv4 and IPV6 data */
-	int   node_num[RADIX_FAMILIES]; /* which node this was in the tree,
-					   or -1 for glue nodes */
+	uint32_t	       bit;    /* bit length of the prefix */
+	isc_prefix_t *	       prefix; /* who we are in radix tree */
+	struct isc_radix_node *l, *r;  /* left and right children */
+	struct isc_radix_node *parent; /* may be used */
+	void *		       data[RADIX_FAMILIES]; /* pointers to IPv4
+						      * and IPV6 data */
+	int node_num[RADIX_FAMILIES];		     /* which node
+						      * this was in
+						      * the tree,
+						      * or -1 for glue
+						      * nodes */
 } isc_radix_node_t;
 
 #define RADIX_TREE_MAGIC ISC_MAGIC('R', 'd', 'x', 'T');

@@ -34,7 +34,7 @@
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
-#endif
+#endif /* ifdef __APPLE__ */
 
 #define MXSERV 20
 #define MXNAME (DNS_NAME_MAXTEXT + 1)
@@ -45,7 +45,7 @@
 #ifndef RESOLV_CONF
 /*% location of resolve.conf */
 #define RESOLV_CONF "/etc/resolv.conf"
-#endif
+#endif /* ifndef RESOLV_CONF */
 /*% output buffer */
 #define OUTPUTBUF 32767
 /*% Max RR Limit */
@@ -89,14 +89,16 @@ typedef struct dig_searchlist dig_searchlist_t;
 /*% The dig_lookup structure */
 struct dig_lookup {
 	bool pending, /*%< Pending a successful answer */
-		waiting_connect, doing_xfr, ns_search_only, /*%< dig +nssearch,
-							       host -C */
+		waiting_connect, doing_xfr, ns_search_only, /*%< dig
+							     * +nssearch,
+							     * host -C */
 		identify, /*%< Append an "on server <foo>" message */
 		identify_previous_line, /*% Prepend a "Nameserver <foo>:"
-					   message, with newline and tab */
+					 * message, with newline and tab */
 		ignore, recurse, aaonly, adflag, cdflag, raflag, tcflag, zflag,
 		trace,	    /*% dig +trace */
-		trace_root, /*% initial query for either +trace or +nssearch */
+		trace_root, /*% initial query for either +trace or +nssearch
+			     * */
 		tcp_mode, tcp_mode_set, comments, stats, section_question,
 		section_answer, section_authority, section_additional,
 		servfail_stops, new_search, need_search, done_as_is, besteffort,
@@ -105,10 +107,12 @@ struct dig_lookup {
 		tcp_keepalive, header_only, ednsneg, mapped,
 		print_unknown_format, multiline, nottl, noclass, onesoa,
 		use_usec, nocrypto, ttlunits, idnin, idnout, expandaaaa, qr,
-		accept_reply_unexpected_src; /*%  print replies from unexpected
-						  sources. */
-	char textname[MXNAME]; /*% Name we're going to be looking up */
-	char cmdline[MXNAME];
+		accept_reply_unexpected_src; /*%  print replies from
+					      * unexpected
+					      *   sources. */
+	char textname[MXNAME];		     /*% Name we're going to be
+					      * looking up */
+	char		 cmdline[MXNAME];
 	dns_rdatatype_t	 rdtype;
 	dns_rdatatype_t	 qrdtype;
 	dns_rdataclass_t rdclass;
@@ -411,4 +415,4 @@ dig_shutdown(void);
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* ifndef DIG_H */

@@ -13,8 +13,8 @@
 #define DNS_CACHE_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/cache.h
  * \brief

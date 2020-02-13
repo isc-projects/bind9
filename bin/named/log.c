@@ -23,7 +23,7 @@
 
 #ifndef ISC_FACILITY
 #define ISC_FACILITY LOG_DAEMON
-#endif
+#endif /* ifndef ISC_FACILITY */
 
 /*%
  * When adding a new category, be sure to add the appropriate
@@ -55,8 +55,9 @@ named_log_init(bool safe)
 	 * Setup a logging context.
 	 */
 	result = isc_log_create(named_g_mctx, &named_g_lctx, &lcfg);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	/*
 	 * named-checktool.c:setup_logging() needs to be kept in sync.
@@ -70,16 +71,19 @@ named_log_init(bool safe)
 	ns_log_init(named_g_lctx);
 	ns_log_setcontext(named_g_lctx);
 
-	if (safe)
+	if (safe) {
 		result = named_log_setsafechannels(lcfg);
-	else
+	} else {
 		result = named_log_setdefaultchannels(lcfg);
-	if (result != ISC_R_SUCCESS)
+	}
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	result = named_log_setdefaultcategory(lcfg);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	return (ISC_R_SUCCESS);
 
@@ -110,8 +114,9 @@ named_log_setdefaultchannels(isc_logconfig_t *lcfg)
 		result = isc_log_createchannel(
 			lcfg, "default_debug", ISC_LOG_TOFILE, ISC_LOG_DYNAMIC,
 			&destination, ISC_LOG_PRINTTIME | ISC_LOG_DEBUGONLY);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 	}
 
 	if (named_g_logfile != NULL) {
@@ -124,17 +129,19 @@ named_log_setdefaultchannels(isc_logconfig_t *lcfg)
 			ISC_LOG_DYNAMIC, &destination,
 			ISC_LOG_PRINTTIME | ISC_LOG_PRINTCATEGORY |
 				ISC_LOG_PRINTLEVEL);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 	}
 
 #if ISC_FACILITY != LOG_DAEMON
 	destination.facility = ISC_FACILITY;
 	result = isc_log_createchannel(lcfg, "default_syslog", ISC_LOG_TOSYSLOG,
 				       ISC_LOG_INFO, &destination, 0);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
-#endif
+	}
+#endif /* if ISC_FACILITY != LOG_DAEMON */
 
 	/*
 	 * Set the initial debug level.
@@ -157,8 +164,9 @@ named_log_setsafechannels(isc_logconfig_t *lcfg)
 		result = isc_log_createchannel(lcfg, "default_debug",
 					       ISC_LOG_TONULL, ISC_LOG_DYNAMIC,
 					       NULL, 0);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 
 		/*
 		 * Setting the debug level to zero should get the output
@@ -179,17 +187,19 @@ named_log_setsafechannels(isc_logconfig_t *lcfg)
 			ISC_LOG_DYNAMIC, &destination,
 			ISC_LOG_PRINTTIME | ISC_LOG_PRINTCATEGORY |
 				ISC_LOG_PRINTLEVEL);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 	}
 
 #if ISC_FACILITY != LOG_DAEMON
 	destination.facility = ISC_FACILITY;
 	result = isc_log_createchannel(lcfg, "default_syslog", ISC_LOG_TOSYSLOG,
 				       ISC_LOG_INFO, &destination, 0);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
-#endif
+	}
+#endif /* if ISC_FACILITY != LOG_DAEMON */
 
 	result = ISC_R_SUCCESS;
 
@@ -204,18 +214,20 @@ named_log_setdefaultcategory(isc_logconfig_t *lcfg)
 
 	result = isc_log_usechannel(lcfg, "default_debug",
 				    ISC_LOGCATEGORY_DEFAULT, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	if (!named_g_logstderr) {
-		if (named_g_logfile != NULL)
+		if (named_g_logfile != NULL) {
 			result = isc_log_usechannel(lcfg, "default_logfile",
 						    ISC_LOGCATEGORY_DEFAULT,
 						    NULL);
-		else if (!named_g_nosyslog)
+		} else if (!named_g_nosyslog) {
 			result = isc_log_usechannel(lcfg, "default_syslog",
 						    ISC_LOGCATEGORY_DEFAULT,
 						    NULL);
+		}
 	}
 
 cleanup:

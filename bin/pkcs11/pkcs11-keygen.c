@@ -150,20 +150,22 @@ static CK_ATTRIBUTE ecc_template[] = {
 static key_class_t
 keyclass_fromtext(const char *name)
 {
-	if (name == NULL)
+	if (name == NULL) {
 		return (key_unknown);
+	}
 
 	if (strncasecmp(name, "rsa", 3) == 0 ||
-	    strncasecmp(name, "nsec3rsa", 8) == 0)
+	    strncasecmp(name, "nsec3rsa", 8) == 0) {
 		return (key_rsa);
-	else if (strncasecmp(name, "ecc", 3) == 0 ||
-		 strncasecmp(name, "ecdsa", 5) == 0)
+	} else if (strncasecmp(name, "ecc", 3) == 0 ||
+		   strncasecmp(name, "ecdsa", 5) == 0) {
 		return (key_ecc);
-	else if (strncasecmp(name, "ecx", 3) == 0 ||
-		 strncasecmp(name, "ed", 2) == 0)
+	} else if (strncasecmp(name, "ecx", 3) == 0 ||
+		   strncasecmp(name, "ed", 2) == 0) {
 		return (key_ecx);
-	else
+	} else {
 		return (key_unknown);
+	}
 }
 
 static void
@@ -253,11 +255,13 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (label == NULL && isc_commandline_index < argc)
+	if (label == NULL && isc_commandline_index < argc) {
 		label = (CK_CHAR *)argv[isc_commandline_index];
+	}
 
-	if (errflg || (label == NULL))
+	if (errflg || (label == NULL)) {
 		usage();
+	}
 
 	if (expsize != 0 && keyclass != key_rsa) {
 		fprintf(stderr, "The -e option is only compatible "
@@ -268,10 +272,12 @@ main(int argc, char *argv[])
 	switch (keyclass) {
 	case key_rsa:
 		op_type = OP_RSA;
-		if (expsize == 0)
+		if (expsize == 0) {
 			expsize = 3;
-		if (bits == 0)
+		}
+		if (bits == 0) {
 			usage();
+		}
 
 		mech.mechanism = CKM_RSA_PKCS_KEY_PAIR_GEN;
 		mech.pParameter = NULL;
@@ -284,9 +290,9 @@ main(int argc, char *argv[])
 		/* Set public exponent to F4 or F5 */
 		exponent[0] = 0x01;
 		exponent[1] = 0x00;
-		if (expsize == 3)
+		if (expsize == 3) {
 			exponent[2] = 0x01;
-		else {
+		} else {
 			exponent[2] = 0x00;
 			exponent[3] = 0x00;
 			exponent[4] = 0x01;
@@ -299,9 +305,9 @@ main(int argc, char *argv[])
 		break;
 	case key_ecc:
 		op_type = OP_ECDSA;
-		if (bits == 0)
+		if (bits == 0) {
 			bits = 256;
-		else if (bits != 256 && bits != 384) {
+		} else if (bits != 256 && bits != 384) {
 			fprintf(stderr, "ECC keys only support bit sizes of "
 					"256 and 384\n");
 			exit(2);
@@ -330,11 +336,11 @@ main(int argc, char *argv[])
 #ifndef CKM_EDDSA_KEY_PAIR_GEN
 		fprintf(stderr, "CKM_EDDSA_KEY_PAIR_GEN is not defined\n");
 		usage();
-#else
+#else /* ifndef CKM_EDDSA_KEY_PAIR_GEN */
 		op_type = OP_EDDSA;
-		if (bits == 0)
+		if (bits == 0) {
 			bits = 256;
-		else if (bits != 256 && bits != 456) {
+		} else if (bits != 256 && bits != 456) {
 			fprintf(stderr, "ECX keys only support bit sizes of "
 					"256 and 456\n");
 			exit(2);
@@ -357,7 +363,7 @@ main(int argc, char *argv[])
 			public_template[4].ulValueLen = sizeof(pk11_ecc_ed448);
 		}
 
-#endif
+#endif /* ifndef CKM_EDDSA_KEY_PAIR_GEN */
 		break;
 	case key_unknown:
 		usage();
@@ -394,8 +400,9 @@ main(int argc, char *argv[])
 	pk11_result_register();
 
 	/* Initialize the CRYPTOKI library */
-	if (lib_name != NULL)
+	if (lib_name != NULL) {
 		pk11_set_lib_name(lib_name);
+	}
 
 	if (pin == NULL) {
 		pin = getpass("Enter Pin: ");

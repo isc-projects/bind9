@@ -38,7 +38,7 @@
 
 #if USE_PKCS11
 #include <pk11/result.h>
-#endif
+#endif /* if USE_PKCS11 */
 
 #include "dnssectool.h"
 
@@ -72,9 +72,9 @@ usage(void)
 		"        path to PKCS#11 provider library "
 		"(default is %s)\n",
 		PK11_LIB_LOCATION);
-#else
+#else  /* if USE_PKCS11 */
 	fprintf(stderr, "        name of an OpenSSL engine to use\n");
-#endif
+#endif /* if USE_PKCS11 */
 	fprintf(stderr, "    -f keyflag: KSK | REVOKE\n");
 	fprintf(stderr, "    -K directory: directory in which to place "
 			"key files\n");
@@ -163,14 +163,15 @@ main(int argc, char **argv)
 	bool		 unsetsyncadd = false, setsyncadd = false;
 	bool		 unsetsyncdel = false, setsyncdel = false;
 
-	if (argc == 1)
+	if (argc == 1) {
 		usage();
+	}
 
 	isc_mem_create(&mctx);
 
 #if USE_PKCS11
 	pk11_result_register();
-#endif
+#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;
@@ -197,20 +198,22 @@ main(int argc, char **argv)
 			break;
 		case 'f':
 			c = (unsigned char)(isc_commandline_argument[0]);
-			if (toupper(c) == 'K')
+			if (toupper(c) == 'K') {
 				kskflag = DNS_KEYFLAG_KSK;
-			else if (toupper(c) == 'R')
+			} else if (toupper(c) == 'R') {
 				revflag = DNS_KEYFLAG_REVOKE;
-			else
+			} else {
 				fatal("unknown flag '%s'",
 				      isc_commandline_argument);
+			}
 			break;
 		case 'K':
 			directory = isc_commandline_argument;
 			ret = try_dir(directory);
-			if (ret != ISC_R_SUCCESS)
+			if (ret != ISC_R_SUCCESS) {
 				fatal("cannot open directory %s: %s", directory,
 				      isc_result_totext(ret));
+			}
 			break;
 		case 'k':
 			options |= DST_TYPE_KEY;
@@ -227,17 +230,19 @@ main(int argc, char **argv)
 			break;
 		case 'p':
 			protocol = strtol(isc_commandline_argument, &endp, 10);
-			if (*endp != '\0' || protocol < 0 || protocol > 255)
+			if (*endp != '\0' || protocol < 0 || protocol > 255) {
 				fatal("-p must be followed by a number "
 				      "[0..255]");
+			}
 			break;
 		case 't':
 			type = isc_commandline_argument;
 			break;
 		case 'v':
 			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0')
+			if (*endp != '\0') {
 				fatal("-v must be followed by a number");
+			}
 			break;
 		case 'y':
 			avoid_collisions = false;
@@ -248,9 +253,10 @@ main(int argc, char **argv)
 		case 'P':
 			/* -Psync ? */
 			if (isoptarg("sync", argv, usage)) {
-				if (unsetsyncadd || setsyncadd)
+				if (unsetsyncadd || setsyncadd) {
 					fatal("-P sync specified more than "
 					      "once");
+				}
 
 				syncadd = strtotime(isc_commandline_argument,
 						    now, now, &setsyncadd);
@@ -259,32 +265,36 @@ main(int argc, char **argv)
 			}
 			/* -Pdnskey ? */
 			(void)isoptarg("dnskey", argv, usage);
-			if (setpub || unsetpub)
+			if (setpub || unsetpub) {
 				fatal("-P specified more than once");
+			}
 
 			publish = strtotime(isc_commandline_argument, now, now,
 					    &setpub);
 			unsetpub = !setpub;
 			break;
 		case 'A':
-			if (setact || unsetact)
+			if (setact || unsetact) {
 				fatal("-A specified more than once");
+			}
 
 			activate = strtotime(isc_commandline_argument, now, now,
 					     &setact);
 			unsetact = !setact;
 			break;
 		case 'R':
-			if (setrev || unsetrev)
+			if (setrev || unsetrev) {
 				fatal("-R specified more than once");
+			}
 
 			revoke = strtotime(isc_commandline_argument, now, now,
 					   &setrev);
 			unsetrev = !setrev;
 			break;
 		case 'I':
-			if (setinact || unsetinact)
+			if (setinact || unsetinact) {
 				fatal("-I specified more than once");
+			}
 
 			inactive = strtotime(isc_commandline_argument, now, now,
 					     &setinact);
@@ -293,9 +303,10 @@ main(int argc, char **argv)
 		case 'D':
 			/* -Dsync ? */
 			if (isoptarg("sync", argv, usage)) {
-				if (unsetsyncdel || setsyncdel)
+				if (unsetsyncdel || setsyncdel) {
 					fatal("-D sync specified more than "
 					      "once");
+				}
 
 				syncdel = strtotime(isc_commandline_argument,
 						    now, now, &setsyncdel);
@@ -304,8 +315,9 @@ main(int argc, char **argv)
 			}
 			/* -Ddnskey ? */
 			(void)isoptarg("dnskey", argv, usage);
-			if (setdel || unsetdel)
+			if (setdel || unsetdel) {
 				fatal("-D specified more than once");
+			}
 
 			deltime = strtotime(isc_commandline_argument, now, now,
 					    &setdel);
@@ -318,13 +330,14 @@ main(int argc, char **argv)
 			prepub = strtottl(isc_commandline_argument);
 			break;
 		case 'F':
-			/* Reserved for FIPS mode */
-			/* FALLTHROUGH */
+		/* Reserved for FIPS mode */
+		/* FALLTHROUGH */
 		case '?':
-			if (isc_commandline_option != '?')
+			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
-			/* FALLTHROUGH */
+			}
+		/* FALLTHROUGH */
 		case 'h':
 			/* Does not return. */
 			usage();
@@ -341,28 +354,33 @@ main(int argc, char **argv)
 	}
 
 	ret = dst_lib_init(mctx, engine);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s", isc_result_totext(ret));
+	}
 
 	setup_logging(mctx, &log);
 
 	if (predecessor == NULL) {
-		if (label == NULL)
+		if (label == NULL) {
 			fatal("the key label was not specified");
-		if (argc < isc_commandline_index + 1)
+		}
+		if (argc < isc_commandline_index + 1) {
 			fatal("the key name was not specified");
-		if (argc > isc_commandline_index + 1)
+		}
+		if (argc > isc_commandline_index + 1) {
 			fatal("extraneous arguments");
+		}
 
 		name = dns_fixedname_initname(&fname);
 		isc_buffer_init(&buf, argv[isc_commandline_index],
 				strlen(argv[isc_commandline_index]));
 		isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));
 		ret = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			fatal("invalid key name %s: %s",
 			      argv[isc_commandline_index],
 			      isc_result_totext(ret));
+		}
 
 		if (strchr(label, ':') == NULL) {
 			char *l;
@@ -410,24 +428,26 @@ main(int argc, char **argv)
 		}
 
 		if (type != NULL && (options & DST_TYPE_KEY) != 0) {
-			if (strcasecmp(type, "NOAUTH") == 0)
+			if (strcasecmp(type, "NOAUTH") == 0) {
 				flags |= DNS_KEYTYPE_NOAUTH;
-			else if (strcasecmp(type, "NOCONF") == 0)
+			} else if (strcasecmp(type, "NOCONF") == 0) {
 				flags |= DNS_KEYTYPE_NOCONF;
-			else if (strcasecmp(type, "NOAUTHCONF") == 0)
+			} else if (strcasecmp(type, "NOAUTHCONF") == 0) {
 				flags |= (DNS_KEYTYPE_NOAUTH |
 					  DNS_KEYTYPE_NOCONF);
-			else if (strcasecmp(type, "AUTHCONF") == 0)
-				/* nothing */;
-			else
+			} else if (strcasecmp(type, "AUTHCONF") == 0) {
+				/* nothing */
+			} else {
 				fatal("invalid type %s", type);
+			}
 		}
 
 		if (!oldstyle && prepub > 0) {
-			if (setpub && setact && (activate - prepub) < publish)
+			if (setpub && setact && (activate - prepub) < publish) {
 				fatal("Activation and publication dates "
 				      "are closer together than the\n\t"
 				      "prepublication interval.");
+			}
 
 			if (!setpub && !setact) {
 				setpub = setact = true;
@@ -441,43 +461,55 @@ main(int argc, char **argv)
 				publish = activate - prepub;
 			}
 
-			if ((activate - prepub) < now)
+			if ((activate - prepub) < now) {
 				fatal("Time until activation is shorter "
 				      "than the\n\tprepublication interval.");
+			}
 		}
 	} else {
 		char	      keystr[DST_KEY_FORMATSIZE];
 		isc_stdtime_t when;
 		int	      major, minor;
 
-		if (prepub == -1)
+		if (prepub == -1) {
 			prepub = (30 * 86400);
+		}
 
-		if (algname != NULL)
+		if (algname != NULL) {
 			fatal("-S and -a cannot be used together");
-		if (nametype != NULL)
+		}
+		if (nametype != NULL) {
 			fatal("-S and -n cannot be used together");
-		if (type != NULL)
+		}
+		if (type != NULL) {
 			fatal("-S and -t cannot be used together");
-		if (setpub || unsetpub)
+		}
+		if (setpub || unsetpub) {
 			fatal("-S and -P cannot be used together");
-		if (setact || unsetact)
+		}
+		if (setact || unsetact) {
 			fatal("-S and -A cannot be used together");
-		if (use_nsec3)
+		}
+		if (use_nsec3) {
 			fatal("-S and -3 cannot be used together");
-		if (oldstyle)
+		}
+		if (oldstyle) {
 			fatal("-S and -C cannot be used together");
-		if (genonly)
+		}
+		if (genonly) {
 			fatal("-S and -G cannot be used together");
+		}
 
 		ret = dst_key_fromnamedfile(predecessor, directory,
 					    DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
 					    mctx, &prevkey);
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			fatal("Invalid keyfile %s: %s", predecessor,
 			      isc_result_totext(ret));
-		if (!dst_key_isprivate(prevkey))
+		}
+		if (!dst_key_isprivate(prevkey)) {
 			fatal("%s is not a private key", predecessor);
+		}
 
 		name = dst_key_name(prevkey);
 		alg = dst_key_alg(prevkey);
@@ -485,27 +517,30 @@ main(int argc, char **argv)
 
 		dst_key_format(prevkey, keystr, sizeof(keystr));
 		dst_key_getprivateformat(prevkey, &major, &minor);
-		if (major != DST_MAJOR_VERSION || minor < DST_MINOR_VERSION)
+		if (major != DST_MAJOR_VERSION || minor < DST_MINOR_VERSION) {
 			fatal("Key %s has incompatible format version %d.%d\n\t"
 			      "It is not possible to generate a successor key.",
 			      keystr, major, minor);
+		}
 
 		ret = dst_key_gettime(prevkey, DST_TIME_ACTIVATE, &when);
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			fatal("Key %s has no activation date.\n\t"
 			      "You must use dnssec-settime -A to set one "
 			      "before generating a successor.",
 			      keystr);
+		}
 
 		ret = dst_key_gettime(prevkey, DST_TIME_INACTIVE, &activate);
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			fatal("Key %s has no inactivation date.\n\t"
 			      "You must use dnssec-settime -I to set one "
 			      "before generating a successor.",
 			      keystr);
+		}
 
 		publish = activate - prepub;
-		if (publish < now)
+		if (publish < now) {
 			fatal("Key %s becomes inactive\n\t"
 			      "sooner than the prepublication period "
 			      "for the new key ends.\n\t"
@@ -514,9 +549,10 @@ main(int argc, char **argv)
 			      "or use the -i option to set a shorter "
 			      "prepublication interval.",
 			      keystr);
+		}
 
 		ret = dst_key_gettime(prevkey, DST_TIME_DELETE, &when);
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			fprintf(stderr,
 				"%s: WARNING: Key %s has no removal "
 				"date;\n\t it will remain in the zone "
@@ -524,54 +560,62 @@ main(int argc, char **argv)
 				"You can use dnssec-settime -D to "
 				"change this.\n",
 				program, keystr);
+		}
 
 		setpub = setact = true;
 	}
 
 	if (nametype == NULL) {
-		if ((options & DST_TYPE_KEY) != 0) /* KEY */
+		if ((options & DST_TYPE_KEY) != 0) { /* KEY */
 			fatal("no nametype specified");
+		}
 		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY */
-	} else if (strcasecmp(nametype, "zone") == 0)
+	} else if (strcasecmp(nametype, "zone") == 0) {
 		flags |= DNS_KEYOWNER_ZONE;
-	else if ((options & DST_TYPE_KEY) != 0) { /* KEY */
+	} else if ((options & DST_TYPE_KEY) != 0) { /* KEY */
 		if (strcasecmp(nametype, "host") == 0 ||
-		    strcasecmp(nametype, "entity") == 0)
+		    strcasecmp(nametype, "entity") == 0) {
 			flags |= DNS_KEYOWNER_ENTITY;
-		else if (strcasecmp(nametype, "user") == 0)
+		} else if (strcasecmp(nametype, "user") == 0) {
 			flags |= DNS_KEYOWNER_USER;
-		else
+		} else {
 			fatal("invalid KEY nametype %s", nametype);
-	} else if (strcasecmp(nametype, "other") != 0) /* DNSKEY */
+		}
+	} else if (strcasecmp(nametype, "other") != 0) { /* DNSKEY */
 		fatal("invalid DNSKEY nametype %s", nametype);
+	}
 
 	rdclass = strtoclass(classname);
 
-	if (directory == NULL)
+	if (directory == NULL) {
 		directory = ".";
+	}
 
-	if ((options & DST_TYPE_KEY) != 0) /* KEY */
+	if ((options & DST_TYPE_KEY) != 0) { /* KEY */
 		flags |= signatory;
-	else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
+	} else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
 		flags |= kskflag;
 		flags |= revflag;
 	}
 
-	if (protocol == -1)
+	if (protocol == -1) {
 		protocol = DNS_KEYPROTO_DNSSEC;
-	else if ((options & DST_TYPE_KEY) == 0 &&
-		 protocol != DNS_KEYPROTO_DNSSEC)
+	} else if ((options & DST_TYPE_KEY) == 0 &&
+		   protocol != DNS_KEYPROTO_DNSSEC) {
 		fatal("invalid DNSKEY protocol: %d", protocol);
+	}
 
 	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
-		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0)
+		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0) {
 			fatal("specified null key with signing authority");
+		}
 	}
 
 	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
-	    alg == DNS_KEYALG_DH)
+	    alg == DNS_KEYALG_DH) {
 		fatal("a key with algorithm '%s' cannot be a zone key",
 		      algname);
+	}
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 
@@ -579,9 +623,9 @@ main(int argc, char **argv)
 	ret = dst_key_fromlabel(name, alg, flags, protocol, rdclass,
 #if USE_PKCS11
 				"pkcs11",
-#else
+#else  /* if USE_PKCS11 */
 				engine,
-#endif
+#endif /* if USE_PKCS11 */
 				label, NULL, mctx, &key);
 
 	if (ret != ISC_R_SUCCESS) {
@@ -604,48 +648,56 @@ main(int argc, char **argv)
 	if (!oldstyle) {
 		dst_key_settime(key, DST_TIME_CREATED, now);
 
-		if (genonly && (setpub || setact))
+		if (genonly && (setpub || setact)) {
 			fatal("cannot use -G together with -P or -A options");
+		}
 
-		if (setpub)
+		if (setpub) {
 			dst_key_settime(key, DST_TIME_PUBLISH, publish);
-		else if (setact)
+		} else if (setact) {
 			dst_key_settime(key, DST_TIME_PUBLISH, activate);
-		else if (!genonly && !unsetpub)
+		} else if (!genonly && !unsetpub) {
 			dst_key_settime(key, DST_TIME_PUBLISH, now);
+		}
 
-		if (setact)
+		if (setact) {
 			dst_key_settime(key, DST_TIME_ACTIVATE, activate);
-		else if (!genonly && !unsetact)
+		} else if (!genonly && !unsetact) {
 			dst_key_settime(key, DST_TIME_ACTIVATE, now);
+		}
 
 		if (setrev) {
-			if (kskflag == 0)
+			if (kskflag == 0) {
 				fprintf(stderr,
 					"%s: warning: Key is "
 					"not flagged as a KSK, but -R "
 					"was used. Revoking a ZSK is "
 					"legal, but undefined.\n",
 					program);
+			}
 			dst_key_settime(key, DST_TIME_REVOKE, revoke);
 		}
 
-		if (setinact)
+		if (setinact) {
 			dst_key_settime(key, DST_TIME_INACTIVE, inactive);
+		}
 
-		if (setdel)
+		if (setdel) {
 			dst_key_settime(key, DST_TIME_DELETE, deltime);
-		if (setsyncadd)
+		}
+		if (setsyncadd) {
 			dst_key_settime(key, DST_TIME_SYNCPUBLISH, syncadd);
-		if (setsyncdel)
+		}
+		if (setsyncdel) {
 			dst_key_settime(key, DST_TIME_SYNCDELETE, syncdel);
-
+		}
 	} else {
 		if (setpub || setact || setrev || setinact || setdel ||
 		    unsetpub || unsetact || unsetrev || unsetinact ||
-		    unsetdel || genonly || setsyncadd || setsyncdel)
+		    unsetdel || genonly || setsyncadd || setsyncdel) {
 			fatal("cannot use -C together with "
 			      "-P, -A, -R, -I, -D, or -G options");
+		}
 		/*
 		 * Compatibility mode: Private-key-format
 		 * should be set to 1.2.
@@ -654,8 +706,9 @@ main(int argc, char **argv)
 	}
 
 	/* Set default key TTL */
-	if (setttl)
+	if (setttl) {
 		dst_key_setttl(key, ttl);
+	}
 
 	/*
 	 * Do not overwrite an existing key.  Warn LOUDLY if there
@@ -665,16 +718,19 @@ main(int argc, char **argv)
 	if (key_collision(key, name, directory, mctx, &exact)) {
 		isc_buffer_clear(&buf);
 		ret = dst_key_buildfilename(key, 0, directory, &buf);
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			fatal("dst_key_buildfilename returned: %s\n",
 			      isc_result_totext(ret));
-		if (exact)
+		}
+		if (exact) {
 			fatal("%s: %s already exists\n", program, filename);
+		}
 
-		if (avoid_collisions)
+		if (avoid_collisions) {
 			fatal("%s: %s could collide with another key upon "
 			      "revokation\n",
 			      program, filename);
+		}
 
 		fprintf(stderr,
 			"%s: WARNING: Key %s could collide with "
@@ -694,23 +750,27 @@ main(int argc, char **argv)
 
 	isc_buffer_clear(&buf);
 	ret = dst_key_buildfilename(key, 0, NULL, &buf);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		fatal("dst_key_buildfilename returned: %s\n",
 		      isc_result_totext(ret));
+	}
 	printf("%s\n", filename);
 	dst_key_free(&key);
-	if (prevkey != NULL)
+	if (prevkey != NULL) {
 		dst_key_free(&prevkey);
+	}
 
 	cleanup_logging(&log);
 	dst_lib_destroy();
-	if (verbose > 10)
+	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
+	}
 	isc_mem_free(mctx, label);
 	isc_mem_destroy(&mctx);
 
-	if (freeit != NULL)
+	if (freeit != NULL) {
 		free(freeit);
+	}
 
 	return (0);
 }

@@ -13,13 +13,13 @@
 
 #ifdef ISC_MUTEX_ATOMICS
 #include <isc/mutexatomic.h>
-#else
+#else /* ifdef ISC_MUTEX_ATOMICS */
 #if HAVE_STDATOMIC_H
 #include <stdatomic.h>
-#else
+#else /* if HAVE_STDATOMIC_H */
 #include <isc/stdatomic.h>
-#endif
-#endif
+#endif /* if HAVE_STDATOMIC_H */
+#endif /* ifdef ISC_MUTEX_ATOMICS */
 
 /*
  * We define a few additional macros to make things easier

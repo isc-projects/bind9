@@ -37,7 +37,7 @@
 
 #ifdef NEED_OPTARG
 extern char *optarg;
-#endif
+#endif /* ifdef NEED_OPTARG */
 
 #define isc_commandline_parse getopt
 #define isc_commandline_argument optarg
@@ -54,10 +54,11 @@ start_directory(const char *path, isc_dir_t *dir)
 {
 	dir->handle = opendir(path);
 
-	if (dir->handle != NULL)
+	if (dir->handle != NULL) {
 		return (true);
-	else
+	} else {
 		return (false);
+	}
 }
 
 static bool
@@ -79,17 +80,19 @@ next_file(isc_dir_t *dir)
 		}
 	}
 
-	if (dir->filename != NULL)
+	if (dir->filename != NULL) {
 		return (true);
-	else
+	} else {
 		return (false);
+	}
 }
 
 static void
 end_directory(isc_dir_t *dir)
 {
-	if (dir->handle != NULL)
+	if (dir->handle != NULL) {
 		(void)closedir(dir->handle);
+	}
 
 	dir->handle = NULL;
 }

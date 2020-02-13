@@ -17,5 +17,5 @@
 
 #if defined(strerror_r)
 #undef strerror_r
-#endif
+#endif /* if defined(strerror_r) */
 #define strerror_r isc_string_strerror_r

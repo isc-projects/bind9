@@ -13,8 +13,8 @@
 #define _DNSTAP_H
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief
@@ -30,7 +30,7 @@
 #include <fstrm.h>
 
 #include <protobuf-c/protobuf-c.h>
-#else
+#else  /* ifdef HAVE_DNSTAP */
 struct fstrm_iothr_options;
 #endif /* HAVE_DNSTAP */
 

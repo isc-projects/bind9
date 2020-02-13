@@ -74,7 +74,7 @@ struct isc_mutexstats {
 
 #ifndef ISC_MUTEX_PROFTABLESIZE
 #define ISC_MUTEX_PROFTABLESIZE (1024 * 1024)
-#endif
+#endif /* ifndef ISC_MUTEX_PROFTABLESIZE */
 static isc_mutexstats_t stats[ISC_MUTEX_PROFTABLESIZE];
 static int		stats_next = 0;
 static bool		stats_init = false;
@@ -94,8 +94,9 @@ isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line)
 
 	RUNTIME_CHECK(pthread_mutex_lock(&statslock) == 0);
 
-	if (stats_init == false)
+	if (stats_init == false) {
 		stats_init = true;
+	}
 
 	/*
 	 * If all statistics entries have been used, give up and trigger an
@@ -134,8 +135,9 @@ isc_mutex_lock_profile(isc_mutex_t *mp, const char *file, int line)
 
 	gettimeofday(&prelock_t, NULL);
 
-	if (pthread_mutex_lock(&mp->mutex) != 0)
+	if (pthread_mutex_lock(&mp->mutex) != 0) {
 		return (ISC_R_UNEXPECTED);
+	}
 
 	gettimeofday(&postlock_t, NULL);
 	mp->stats->lock_t = postlock_t;
@@ -204,8 +206,9 @@ isc_mutex_statsprofile(FILE *fp)
 			i);
 		for (j = 0; j < ISC_MUTEX_MAX_LOCKERS; j++) {
 			locker = &stats[i].lockers[j];
-			if (locker->file == NULL)
+			if (locker->file == NULL) {
 				continue;
+			}
 			fprintf(fp,
 				" %-11s %4d: %10u  %lu.%06lu %lu.%06lu %5d\n",
 				locker->file, locker->line, locker->count,
@@ -250,14 +253,15 @@ isc_mutex_init_errcheck(isc_mutex_t *mp)
 				strbuf);
 	}
 }
-#endif
+#endif /* if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK) */
 
 #if ISC_MUTEX_DEBUG && defined(__NetBSD__) && defined(PTHREAD_MUTEX_ERRORCHECK)
 pthread_mutexattr_t isc__mutex_attrs = {
 	PTHREAD_MUTEX_ERRORCHECK, /* m_type */
 	0			  /* m_flags, which appears to be unused. */
 };
-#endif
+#endif /* if ISC_MUTEX_DEBUG && defined(__NetBSD__) && \
+	* defined(PTHREAD_MUTEX_ERRORCHECK) */
 
 #if !(ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)) && \
 	!ISC_MUTEX_PROFILE
@@ -300,4 +304,5 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line)
 				strbuf);
 	}
 }
-#endif
+#endif /* if !(ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)) && \
+	* !ISC_MUTEX_PROFILE */

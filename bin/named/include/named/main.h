@@ -16,7 +16,7 @@
 
 #ifdef ISC_MAIN_HOOK
 #define main(argc, argv) bindmain(argc, argv)
-#endif
+#endif /* ifdef ISC_MAIN_HOOK */
 
 /*
  * Commandline arguments for named; also referenced in win32/ntservice.c

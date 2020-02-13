@@ -96,7 +96,8 @@
 #include <byteswap.h>
 #include <endian.h>
 
-#else
+#else /* if defined(__DragonFly__) || defined(__FreeBSD__) || \
+       * defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) */
 
 #endif /* Specific platform support */
 

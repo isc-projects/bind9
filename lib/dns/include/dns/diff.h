@@ -13,8 +13,8 @@
 #define DNS_DIFF_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/diff.h
  * \brief
@@ -209,7 +209,7 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuple);
  *\li	'diff' is still a minimal diff.
  *  \li 	*tuple is NULL.
  *   \li	The tuple has been freed, or will be freed when the diff is
- *cleared.
+ * cleared.
  *
  */
 

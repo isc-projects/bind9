@@ -33,7 +33,7 @@
 #include <named/server.h>
 #ifdef HAVE_LIBSCF
 #include <named/smf_globals.h>
-#endif
+#endif /* ifdef HAVE_LIBSCF */
 
 static isc_result_t
 getcommand(isc_lex_t *lex, char **cmdp)
@@ -44,13 +44,15 @@ getcommand(isc_lex_t *lex, char **cmdp)
 	REQUIRE(cmdp != NULL && *cmdp == NULL);
 
 	result = isc_lex_gettoken(lex, ISC_LEXOPT_EOF, &token);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	isc_lex_ungettoken(lex, &token);
 
-	if (token.type != isc_tokentype_string)
+	if (token.type != isc_tokentype_string) {
 		return (ISC_R_FAILURE);
+	}
 
 	*cmdp = token.value.as_textregion.base;
 
@@ -80,7 +82,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	isc_lex_t *    lex = NULL;
 #ifdef HAVE_LIBSCF
 	named_smf_want_disable = 0;
-#endif
+#endif /* ifdef HAVE_LIBSCF */
 
 	data = isccc_alist_lookup(message, "_data");
 	if (!isccc_alist_alistp(data)) {
@@ -99,18 +101,21 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	}
 
 	result = isc_lex_create(named_g_mctx, strlen(cmdline), &lex);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	isc_buffer_init(&src, cmdline, strlen(cmdline));
 	isc_buffer_add(&src, strlen(cmdline));
 	result = isc_lex_openbuffer(lex, &src);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	result = getcommand(lex, &command);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	/*
 	 * Compare the 'command' parameter against all known control commands.
@@ -166,14 +171,15 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		 * If we are managed by smf(5) but not in chroot,
 		 * try to disable ourselves the smf way.
 		 */
-		if (named_smf_got_instance == 1 && named_smf_chroot == 0)
+		if (named_smf_got_instance == 1 && named_smf_chroot == 0) {
 			named_smf_want_disable = 1;
-			/*
-			 * If named_smf_got_instance = 0, named_smf_chroot
-			 * is not relevant and we fall through to
-			 * isc_app_shutdown below.
-			 */
-#endif
+		}
+		/*
+		 * If named_smf_got_instance = 0, named_smf_chroot
+		 * is not relevant and we fall through to
+		 * isc_app_shutdown below.
+		 */
+#endif /* ifdef HAVE_LIBSCF */
 		/* Do not flush master files */
 		named_server_flushonshutdown(named_g_server, false);
 		named_os_shutdownmsg(cmdline, *text);
@@ -189,9 +195,10 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 			result = named_smf_add_message(text);
 			goto cleanup;
 		}
-		if (named_smf_got_instance == 1 && named_smf_chroot == 0)
+		if (named_smf_got_instance == 1 && named_smf_chroot == 0) {
 			named_smf_want_disable = 1;
-#endif
+		}
+#endif /* ifdef HAVE_LIBSCF */
 		named_server_flushonshutdown(named_g_server, true);
 		named_os_shutdownmsg(cmdline, *text);
 		isc_app_shutdown();
@@ -288,8 +295,9 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	}
 
 cleanup:
-	if (lex != NULL)
+	if (lex != NULL) {
 		isc_lex_destroy(&lex);
+	}
 
 	return (result);
 }

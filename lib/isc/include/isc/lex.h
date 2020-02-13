@@ -13,8 +13,8 @@
 #define ISC_LEX_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/lex.h
  * \brief The "lex" module provides a lightweight tokenizer.  It can operate

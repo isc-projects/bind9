@@ -30,11 +30,11 @@
  */
 #define _CRT_SECURE_NO_DEPRECATE 1
 
-// clang-format off
+/* clang-format off */
 #include <assert.h>
 #include <windows.h>
 #include <lm.h>
-// clang-format on
+/* clang-format on */
 
 #include <isc/ntgroups.h>
 #include <isc/result.h>
@@ -136,8 +136,9 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 	}
 	/* Free the allocated memory. */
 	/* cppcheck-suppress duplicateCondition */
-	if (pBuf != NULL)
+	if (pBuf != NULL) {
 		NetApiBufferFree(pBuf);
+	}
 
 	/*
 	 * Call the NetUserGetGroups function, specifying level 0.

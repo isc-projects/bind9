@@ -65,4 +65,4 @@ NTReportError(const char *, const char *);
  */
 #include <isc/bindevt.h>
 
-#endif
+#endif /* ifndef _SYSLOG_H */

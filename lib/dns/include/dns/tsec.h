@@ -13,8 +13,8 @@
 #define DNS_TSEC_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  *

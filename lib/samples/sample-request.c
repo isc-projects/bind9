@@ -17,7 +17,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#endif
+#endif /* ifndef WIN32 */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,12 +91,14 @@ make_querymessage(dns_message_t *message, const char *namestr,
 	message->rdclass = dns_rdataclass_in;
 
 	result = dns_message_gettempname(message, &qname);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	result = dns_message_gettemprdataset(message, &qrdataset);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	dns_name_init(qname, NULL);
 	dns_name_clone(qname0, qname);
@@ -107,10 +109,12 @@ make_querymessage(dns_message_t *message, const char *namestr,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (qname != NULL)
+	if (qname != NULL) {
 		dns_message_puttempname(message, &qname);
-	if (qrdataset != NULL)
+	}
+	if (qrdataset != NULL) {
 		dns_message_puttemprdataset(message, &qrdataset);
+	}
 	dns_message_destroy(&message);
 	return (result);
 }
@@ -123,8 +127,9 @@ print_section(dns_message_t *message, int section, isc_buffer_t *buf)
 
 	result = dns_message_sectiontotext(message, section,
 					   &dns_master_style_full, 0, buf);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
+	}
 
 	isc_buffer_usedregion(buf, &r);
 	printf("%.*s", (int)r.length, (char *)r.base);
@@ -167,8 +172,9 @@ main(int argc, char *argv[])
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
-	if (argc < 2)
+	if (argc < 2) {
 		usage();
+	}
 
 	isc_lib_register();
 	result = dns_lib_init();
@@ -206,7 +212,7 @@ main(int argc, char *argv[])
 	hints.ai_protocol = IPPROTO_UDP;
 #ifdef AI_NUMERICHOST
 	hints.ai_flags = AI_NUMERICHOST;
-#endif
+#endif /* ifdef AI_NUMERICHOST */
 	gaierror = getaddrinfo(argv[0], "53", &hints, &res);
 	if (gaierror != 0) {
 		fprintf(stderr, "getaddrinfo failed: %s\n",

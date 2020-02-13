@@ -50,8 +50,8 @@
 #define DLZ_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*
  * DLZ Interface
@@ -73,8 +73,8 @@
  */
 
 /*****
- ***** Imports
- *****/
+***** Imports
+*****/
 
 #include <stdbool.h>
 

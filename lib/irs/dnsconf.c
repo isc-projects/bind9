@@ -226,32 +226,37 @@ irs_dnsconf_load(isc_mem_t *mctx, const char *filename, irs_dnsconf_t **confp)
 	 * If the specified file does not exist, we'll simply with an empty
 	 * configuration.
 	 */
-	if (!isc_file_exists(filename))
+	if (!isc_file_exists(filename)) {
 		goto cleanup;
+	}
 
 	result = cfg_parser_create(mctx, NULL, &parser);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	result = cfg_parse_file(parser, filename, &cfg_type_dnsconf, &cfgobj);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	result = configure_dnsseckeys(conf, cfgobj, dns_rdataclass_in);
 
 cleanup:
 	if (parser != NULL) {
-		if (cfgobj != NULL)
+		if (cfgobj != NULL) {
 			cfg_obj_destroy(parser, &cfgobj);
+		}
 		cfg_parser_destroy(&parser);
 	}
 
 	conf->magic = IRS_DNSCONF_MAGIC;
 
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		*confp = conf;
-	else
+	} else {
 		irs_dnsconf_destroy(&conf);
+	}
 
 	return (result);
 }

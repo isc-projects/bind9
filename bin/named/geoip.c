@@ -13,7 +13,7 @@
 
 #if defined(HAVE_GEOIP2)
 #include <maxminddb.h>
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 
 #include <isc/print.h>
 #include <isc/string.h>
@@ -69,9 +69,9 @@ named_geoip_init(void)
 	if (named_g_geoip == NULL) {
 		named_g_geoip = &geoip_table;
 	}
-#else
+#else  /* if defined(HAVE_GEOIP2) */
 	return;
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 }
 
 void
@@ -106,11 +106,11 @@ named_geoip_load(char *dir)
 	named_g_geoip->isp = open_geoip2(dir, "GeoIP2-ISP.mmdb", &geoip_isp);
 	named_g_geoip->domain =
 		open_geoip2(dir, "GeoIP2-Domain.mmdb", &geoip_domain);
-#else
+#else  /* if defined(HAVE_GEOIP2) */
 	UNUSED(dir);
 
 	return;
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 }
 
 void
@@ -137,7 +137,7 @@ named_geoip_unload(void)
 		MMDB_close(named_g_geoip->domain);
 		named_g_geoip->domain = NULL;
 	}
-#endif
+#endif /* ifdef HAVE_GEOIP2 */
 }
 
 void

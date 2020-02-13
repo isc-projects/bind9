@@ -42,10 +42,12 @@ static inline isc_result_t fromtext_sig(ARGS_FROMTEXT)
 	result = dns_rdatatype_fromtext(&covered, &token.value.as_textregion);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
 		i = strtol(DNS_AS_STR(token), &e, 10);
-		if (i < 0 || i > 65535)
+		if (i < 0 || i > 65535) {
 			RETTOK(ISC_R_RANGE);
-		if (*e != 0)
+		}
+		if (*e != 0) {
 			RETTOK(result);
+		}
 		covered = (dns_rdatatype_t)i;
 	}
 	RETERR(uint16_tobuffer(covered, target));
@@ -63,8 +65,9 @@ static inline isc_result_t fromtext_sig(ARGS_FROMTEXT)
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	c = (unsigned char)token.value.as_ulong;
 	RETERR(mem_tobuffer(target, &c, 1));
 
@@ -105,8 +108,9 @@ static inline isc_result_t fromtext_sig(ARGS_FROMTEXT)
 				      false));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 
 	/*
@@ -182,8 +186,9 @@ static inline isc_result_t totext_sig(ARGS_TOTEXT)
 	isc_region_consume(&sr, 4);
 	RETERR(dns_time32_totext(exp, target));
 
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" (", target));
+	}
 	RETERR(str_totext(tctx->linebreak, target));
 
 	/*
@@ -217,13 +222,15 @@ static inline isc_result_t totext_sig(ARGS_TOTEXT)
 	 * Sig.
 	 */
 	RETERR(str_totext(tctx->linebreak, target));
-	if (tctx->width == 0) /* No splitting */
+	if (tctx->width == 0) { /* No splitting */
 		RETERR(isc_base64_totext(&sr, 60, "", target));
-	else
+	} else {
 		RETERR(isc_base64_totext(&sr, tctx->width - 2, tctx->linebreak,
 					 target));
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	}
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" )", target));
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -250,8 +257,9 @@ static inline isc_result_t fromwire_sig(ARGS_FROMWIRE)
 	 * time signed: 4
 	 * key footprint: 2
 	 */
-	if (sr.length < 18)
+	if (sr.length < 18) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	isc_buffer_forward(source, 18);
 	RETERR(mem_tobuffer(target, sr.base, 18));
@@ -329,8 +337,9 @@ static inline int compare_sig(ARGS_COMPARE)
 	r1.length = 18;
 	r2.length = 18;
 	order = isc_region_compare(&r1, &r2);
-	if (order != 0)
+	if (order != 0) {
 		return (order);
+	}
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -341,8 +350,9 @@ static inline int compare_sig(ARGS_COMPARE)
 	dns_name_fromregion(&name1, &r1);
 	dns_name_fromregion(&name2, &r2);
 	order = dns_name_rdatacompare(&name1, &name2);
-	if (order != 0)
+	if (order != 0) {
 		return (order);
+	}
 
 	isc_region_consume(&r1, name_length(&name1));
 	isc_region_consume(&r2, name_length(&name2));
@@ -478,15 +488,17 @@ static inline isc_result_t tostruct_sig(ARGS_TOSTRUCT)
 	 */
 	sig->siglen = sr.length;
 	sig->signature = mem_maybedup(mctx, sr.base, sig->siglen);
-	if (sig->signature == NULL)
+	if (sig->signature == NULL) {
 		goto cleanup;
+	}
 
 	sig->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (mctx != NULL)
+	if (mctx != NULL) {
 		dns_name_free(&sig->signer, mctx);
+	}
 	return (ISC_R_NOMEMORY);
 }
 
@@ -497,12 +509,14 @@ static inline void freestruct_sig(ARGS_FREESTRUCT)
 	REQUIRE(sig != NULL);
 	REQUIRE(sig->common.rdtype == dns_rdatatype_sig);
 
-	if (sig->mctx == NULL)
+	if (sig->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&sig->signer, sig->mctx);
-	if (sig->signature != NULL)
+	if (sig->signature != NULL) {
 		isc_mem_free(sig->mctx, sig->signature);
+	}
 	sig->mctx = NULL;
 }
 

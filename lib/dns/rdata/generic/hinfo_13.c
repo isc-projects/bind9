@@ -124,22 +124,25 @@ static inline isc_result_t tostruct_hinfo(ARGS_TOSTRUCT)
 	hinfo->cpu_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 	hinfo->cpu = mem_maybedup(mctx, region.base, hinfo->cpu_len);
-	if (hinfo->cpu == NULL)
+	if (hinfo->cpu == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 	isc_region_consume(&region, hinfo->cpu_len);
 
 	hinfo->os_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 	hinfo->os = mem_maybedup(mctx, region.base, hinfo->os_len);
-	if (hinfo->os == NULL)
+	if (hinfo->os == NULL) {
 		goto cleanup;
+	}
 
 	hinfo->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (mctx != NULL && hinfo->cpu != NULL)
+	if (mctx != NULL && hinfo->cpu != NULL) {
 		isc_mem_free(mctx, hinfo->cpu);
+	}
 	return (ISC_R_NOMEMORY);
 }
 
@@ -149,13 +152,16 @@ static inline void freestruct_hinfo(ARGS_FREESTRUCT)
 
 	REQUIRE(hinfo != NULL);
 
-	if (hinfo->mctx == NULL)
+	if (hinfo->mctx == NULL) {
 		return;
+	}
 
-	if (hinfo->cpu != NULL)
+	if (hinfo->cpu != NULL) {
 		isc_mem_free(hinfo->mctx, hinfo->cpu);
-	if (hinfo->os != NULL)
+	}
+	if (hinfo->os != NULL) {
 		isc_mem_free(hinfo->mctx, hinfo->os);
+	}
 	hinfo->mctx = NULL;
 }
 

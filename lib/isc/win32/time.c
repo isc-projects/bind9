@@ -68,8 +68,9 @@ bool
 isc_interval_iszero(const isc_interval_t *i)
 {
 	REQUIRE(i != NULL);
-	if (i->interval == 0)
+	if (i->interval == 0) {
 		return (true);
+	}
 
 	return (false);
 }
@@ -112,8 +113,9 @@ isc_time_isepoch(const isc_time_t *t)
 {
 	REQUIRE(t != NULL);
 
-	if (t->absolute.dwLowDateTime == 0 && t->absolute.dwHighDateTime == 0)
+	if (t->absolute.dwLowDateTime == 0 && t->absolute.dwHighDateTime == 0) {
 		return (true);
+	}
 
 	return (false);
 }
@@ -141,8 +143,9 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i)
 	i1.LowPart = t->absolute.dwLowDateTime;
 	i1.HighPart = t->absolute.dwHighDateTime;
 
-	if (UINT64_MAX - i1.QuadPart < (unsigned __int64)i->interval)
+	if (UINT64_MAX - i1.QuadPart < (unsigned __int64)i->interval) {
 		return (ISC_R_RANGE);
+	}
 
 	/* cppcheck-suppress unreadVariable */
 	i1.QuadPart += i->interval;
@@ -171,8 +174,9 @@ isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result)
 	i1.LowPart = t->absolute.dwLowDateTime;
 	i1.HighPart = t->absolute.dwHighDateTime;
 
-	if (UINT64_MAX - i1.QuadPart < (unsigned __int64)i->interval)
+	if (UINT64_MAX - i1.QuadPart < (unsigned __int64)i->interval) {
 		return (ISC_R_RANGE);
+	}
 
 	/* cppcheck-suppress unreadVariable */
 	i1.QuadPart += i->interval;
@@ -194,8 +198,9 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
 	i1.LowPart = t->absolute.dwLowDateTime;
 	i1.HighPart = t->absolute.dwHighDateTime;
 
-	if (i1.QuadPart < (unsigned __int64)i->interval)
+	if (i1.QuadPart < (unsigned __int64)i->interval) {
 		return (ISC_R_RANGE);
+	}
 
 	/* cppcheck-suppress unreadVariable */
 	i1.QuadPart -= i->interval;
@@ -223,8 +228,9 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2)
 	/* cppcheck-suppress unreadVariable */
 	i2.HighPart = t2->absolute.dwHighDateTime;
 
-	if (i1.QuadPart <= i2.QuadPart)
+	if (i1.QuadPart <= i2.QuadPart) {
 		return (0);
+	}
 
 	/*
 	 * Convert to microseconds.
@@ -270,8 +276,9 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp)
 	INSIST(sizeof(unsigned int) == sizeof(uint32_t));
 	INSIST(sizeof(time_t) >= sizeof(uint32_t));
 
-	if (isc_time_seconds(t) > (~0U >> 1) && seconds <= (time_t)(~0U >> 1))
+	if (isc_time_seconds(t) > (~0U >> 1) && seconds <= (time_t)(~0U >> 1)) {
 		return (ISC_R_RANGE);
+	}
 
 	*secondsp = seconds;
 
@@ -310,7 +317,6 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len)
 
 		snprintf(buf, len, "%s %s.%03u", DateBuf, TimeBuf,
 			 st.wMilliseconds);
-
 	} else {
 		strlcpy(buf, "99-Bad-9999 99:99:99.999", len);
 	}
@@ -353,11 +359,13 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t)
 	REQUIRE(t != NULL);
 
 	p = isc_tm_strptime(buf, "%a, %d %b %Y %H:%M:%S", &t_tm);
-	if (p == NULL)
+	if (p == NULL) {
 		return (ISC_R_UNEXPECTED);
+	}
 	when = isc_tm_timegm(&t_tm);
-	if (when == -1)
+	if (when == -1) {
 		return (ISC_R_UNEXPECTED);
+	}
 	isc_time_set(t, (unsigned int)when, 0);
 	return (ISC_R_SUCCESS);
 }

@@ -66,8 +66,10 @@ _teardown(void **state)
  */
 typedef struct {
 	const ns_test_id_t id;	  /* libns test identifier */
-	const char *	   input; /* source string - plugin name or path */
-	size_t	     output_size; /* size of target char array to allocate */
+	const char *	   input; /* source string - plugin name or path
+				   * */
+	size_t output_size;	  /* size of target char array to
+				   * allocate */
 	isc_result_t result;	  /* expected return value */
 	const char * output;	  /* expected output string */
 } ns_plugin_expandpath_test_params_t;
@@ -149,9 +151,9 @@ ns_plugin_expandpath_test(void **state)
 			.result = ISC_R_SUCCESS,
 #ifndef WIN32
 			.output = NAMED_PLUGINDIR "/foo.so",
-#else
+#else  /* ifndef WIN32 */
 			.output = "foo.so",
-#endif
+#endif /* ifndef WIN32 */
 		},
 		{
 			NS_TEST_ID("no space at all in target buffer"),
@@ -178,7 +180,7 @@ ns_plugin_expandpath_test(void **state)
 			.output_size = 7,
 			.result = ISC_R_NOSPACE,
 		},
-#endif
+#endif /* ifndef WIN32 */
 	};
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
@@ -207,4 +209,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

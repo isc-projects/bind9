@@ -35,22 +35,22 @@ typedef unsigned short mode_t;
 
 #ifndef S_IFMT
 #define S_IFMT _S_IFMT
-#endif
+#endif /* ifndef S_IFMT */
 #ifndef S_IFDIR
 #define S_IFDIR _S_IFDIR
-#endif
+#endif /* ifndef S_IFDIR */
 #ifndef S_IFCHR
 #define S_IFCHR _S_IFCHR
-#endif
+#endif /* ifndef S_IFCHR */
 #ifndef S_IFREG
 #define S_IFREG _S_IFREG
-#endif
+#endif /* ifndef S_IFREG */
 
 #ifndef S_ISDIR
 #define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
-#endif
+#endif /* ifndef S_ISDIR */
 #ifndef S_ISREG
 #define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
-#endif
+#endif /* ifndef S_ISREG */
 
 #endif /* ISC_STAT_H */

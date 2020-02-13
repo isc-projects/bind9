@@ -42,4 +42,4 @@ dlz_postgres_init(void);
 void
 dlz_postgres_clear(void);
 
-#endif
+#endif /* ifndef DLZ_POSTGRES_DRIVER_H */

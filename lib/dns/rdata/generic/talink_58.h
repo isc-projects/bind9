@@ -9,7 +9,8 @@
  * information regarding copyright ownership.
  */
 
-/* http://www.iana.org/assignments/dns-parameters/TALINK/talink-completed-template
+/*
+ * http://www.iana.org/assignments/dns-parameters/TALINK/talink-completed-template
  */
 
 #ifndef GENERIC_TALINK_58_H

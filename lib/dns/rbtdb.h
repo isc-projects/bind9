@@ -17,8 +17,8 @@
 #include <dns/types.h>
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief

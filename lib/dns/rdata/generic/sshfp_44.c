@@ -34,8 +34,9 @@ static inline isc_result_t fromtext_sshfp(ARGS_FROMTEXT)
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -43,8 +44,9 @@ static inline isc_result_t fromtext_sshfp(ARGS_FROMTEXT)
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -103,16 +105,19 @@ static inline isc_result_t totext_sshfp(ARGS_TOTEXT)
 	/*
 	 * Digest.
 	 */
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" (", target));
+	}
 	RETERR(str_totext(tctx->linebreak, target));
-	if (tctx->width == 0) /* No splitting */
+	if (tctx->width == 0) { /* No splitting */
 		RETERR(isc_hex_totext(&sr, 0, "", target));
-	else
+	} else {
 		RETERR(isc_hex_totext(&sr, tctx->width - 2, tctx->linebreak,
 				      target));
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	}
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" )", target));
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -210,8 +215,9 @@ static inline isc_result_t tostruct_sshfp(ARGS_TOSTRUCT)
 	sshfp->length = region.length;
 
 	sshfp->digest = mem_maybedup(mctx, region.base, region.length);
-	if (sshfp->digest == NULL)
+	if (sshfp->digest == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	sshfp->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -224,11 +230,13 @@ static inline void freestruct_sshfp(ARGS_FREESTRUCT)
 	REQUIRE(sshfp != NULL);
 	REQUIRE(sshfp->common.rdtype == dns_rdatatype_sshfp);
 
-	if (sshfp->mctx == NULL)
+	if (sshfp->mctx == NULL) {
 		return;
+	}
 
-	if (sshfp->digest != NULL)
+	if (sshfp->digest != NULL) {
 		isc_mem_free(sshfp->mctx, sshfp->digest);
+	}
 	sshfp->mctx = NULL;
 }
 

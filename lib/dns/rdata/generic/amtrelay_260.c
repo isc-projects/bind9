@@ -60,8 +60,9 @@ static inline isc_result_t fromtext_amtrelay(ARGS_FROMTEXT)
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0x7fU)
+	if (token.value.as_ulong > 0x7fU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(token.value.as_ulong | (discovery << 7), target));
 	gateway = token.value.as_ulong;
 
@@ -133,8 +134,9 @@ static inline isc_result_t totext_amtrelay(ARGS_TOTEXT)
 	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 	REQUIRE(rdata->length >= 2);
 
-	if ((rdata->data[1] & 0x7f) > 3U)
+	if ((rdata->data[1] & 0x7f) > 3U) {
 		return (ISC_R_NOTIMPLEMENTED);
+	}
 
 	/*
 	 * Precedence.
@@ -193,8 +195,9 @@ static inline isc_result_t fromwire_amtrelay(ARGS_FROMWIRE)
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	isc_buffer_activeregion(source, &region);
-	if (region.length < 2)
+	if (region.length < 2) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	switch (region.base[1] & 0x7f) {
 	case 0:
@@ -372,14 +375,17 @@ static inline void freestruct_amtrelay(ARGS_FREESTRUCT)
 	REQUIRE(amtrelay != NULL);
 	REQUIRE(amtrelay->common.rdtype == dns_rdatatype_amtrelay);
 
-	if (amtrelay->mctx == NULL)
+	if (amtrelay->mctx == NULL) {
 		return;
+	}
 
-	if (amtrelay->gateway_type == 3)
+	if (amtrelay->gateway_type == 3) {
 		dns_name_free(&amtrelay->gateway, amtrelay->mctx);
+	}
 
-	if (amtrelay->data != NULL)
+	if (amtrelay->data != NULL) {
 		isc_mem_free(amtrelay->mctx, amtrelay->data);
+	}
 
 	amtrelay->mctx = NULL;
 }
@@ -445,8 +451,9 @@ static inline int casecompare_amtrelay(ARGS_COMPARE)
 	dns_rdata_toregion(rdata2, &region2);
 
 	if (memcmp(region1.base, region2.base, 2) != 0 ||
-	    (region1.base[1] & 0x7f) != 3)
+	    (region1.base[1] & 0x7f) != 3) {
 		return (isc_region_compare(&region1, &region2));
+	}
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);

@@ -36,8 +36,9 @@ static inline isc_result_t fromtext_eui64(ARGS_FROMTEXT)
 	n = sscanf(DNS_AS_STR(token), "%2x-%2x-%2x-%2x-%2x-%2x-%2x-%2x", &l0,
 		   &l1, &l2, &l3, &l4, &l5, &l6, &l7);
 	if (n != 8 || l0 > 255U || l1 > 255U || l2 > 255U || l3 > 255U ||
-	    l4 > 255U || l5 > 255U || l6 > 255U || l7 > 255U)
+	    l4 > 255U || l5 > 255U || l6 > 255U || l7 > 255U) {
 		return (DNS_R_BADEUI);
+	}
 
 	eui64[0] = l0;
 	eui64[1] = l1;
@@ -78,8 +79,9 @@ static inline isc_result_t fromwire_eui64(ARGS_FROMWIRE)
 	UNUSED(dctx);
 
 	isc_buffer_activeregion(source, &sregion);
-	if (sregion.length != 8)
+	if (sregion.length != 8) {
 		return (DNS_R_FORMERR);
+	}
 	isc_buffer_forward(source, sregion.length);
 	return (mem_tobuffer(target, sregion.base, sregion.length));
 }

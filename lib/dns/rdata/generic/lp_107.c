@@ -32,8 +32,9 @@ static inline isc_result_t fromtext_lp(ARGS_FROMTEXT)
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
@@ -41,8 +42,9 @@ static inline isc_result_t fromtext_lp(ARGS_FROMTEXT)
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	return (dns_name_fromtext(&name, &buffer, origin, options, target));
 }
 
@@ -89,8 +91,9 @@ static inline isc_result_t fromwire_lp(ARGS_FROMWIRE)
 	dns_name_init(&name, NULL);
 
 	isc_buffer_activeregion(source, &sregion);
-	if (sregion.length < 2)
+	if (sregion.length < 2) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	RETERR(mem_tobuffer(target, sregion.base, 2));
 	isc_buffer_forward(source, 2);
 	return (dns_name_fromwire(&name, source, dctx, options, target));
@@ -173,8 +176,9 @@ static inline void freestruct_lp(ARGS_FREESTRUCT)
 	REQUIRE(lp != NULL);
 	REQUIRE(lp->common.rdtype == dns_rdatatype_lp);
 
-	if (lp->mctx == NULL)
+	if (lp->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&lp->lp, lp->mctx);
 	lp->mctx = NULL;
@@ -195,8 +199,9 @@ static inline isc_result_t additionaldata_lp(ARGS_ADDLDATA)
 	dns_name_fromregion(&name, &region);
 
 	result = (add)(arg, &name, dns_rdatatype_l32);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 	return ((add)(arg, &name, dns_rdatatype_l64));
 }
 
@@ -247,8 +252,9 @@ static inline int casecompare_lp(ARGS_COMPARE)
 	REQUIRE(rdata2->length != 0);
 
 	order = memcmp(rdata1->data, rdata2->data, 2);
-	if (order != 0)
+	if (order != 0) {
 		return (order < 0 ? -1 : 1);
+	}
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);

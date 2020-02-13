@@ -386,7 +386,7 @@ main(void)
 	setenv("TZ", "PST8", 1);
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
-#else
+#else  /* if HAVE_DNSTAP */
 	print_message("1..0 # Skip dnstap not enabled\n");
 #endif /* HAVE_DNSTAP */
 }

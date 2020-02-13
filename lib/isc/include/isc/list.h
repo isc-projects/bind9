@@ -16,9 +16,9 @@
 
 #ifdef ISC_LIST_CHECKINIT
 #define ISC_LINK_INSIST(x) ISC_INSIST(x)
-#else
+#else /* ifdef ISC_LIST_CHECKINIT */
 #define ISC_LINK_INSIST(x)
-#endif
+#endif /* ifdef ISC_LIST_CHECKINIT */
 
 #define ISC_LIST(type)             \
 	struct {                   \

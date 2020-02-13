@@ -13,8 +13,8 @@
 #define DNS_BYADDR_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/byaddr.h
  * \brief

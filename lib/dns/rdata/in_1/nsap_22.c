@@ -38,18 +38,21 @@ static inline isc_result_t fromtext_in_nsap(ARGS_FROMTEXT)
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 	sr = &token.value.as_textregion;
-	if (sr->length < 2)
+	if (sr->length < 2) {
 		RETTOK(ISC_R_UNEXPECTEDEND);
-	if (sr->base[0] != '0' || (sr->base[1] != 'x' && sr->base[1] != 'X'))
+	}
+	if (sr->base[0] != '0' || (sr->base[1] != 'x' && sr->base[1] != 'X')) {
 		RETTOK(DNS_R_SYNTAX);
+	}
 	isc_textregion_consume(sr, 2);
 	while (sr->length > 0) {
 		if (sr->base[0] == '.') {
 			isc_textregion_consume(sr, 1);
 			continue;
 		}
-		if ((n = hexvalue(sr->base[0])) == -1)
+		if ((n = hexvalue(sr->base[0])) == -1) {
 			RETTOK(DNS_R_SYNTAX);
+		}
 		c <<= 4;
 		c += n;
 		if (++digits == 2) {
@@ -60,8 +63,9 @@ static inline isc_result_t fromtext_in_nsap(ARGS_FROMTEXT)
 		}
 		isc_textregion_consume(sr, 1);
 	}
-	if (digits != 0 || !valid)
+	if (digits != 0 || !valid) {
 		RETTOK(ISC_R_UNEXPECTEDEND);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -99,8 +103,9 @@ static inline isc_result_t fromwire_in_nsap(ARGS_FROMWIRE)
 	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &region);
-	if (region.length < 1)
+	if (region.length < 1) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	RETERR(mem_tobuffer(target, region.base, region.length));
 	isc_buffer_forward(source, region.length);
@@ -169,8 +174,9 @@ static inline isc_result_t tostruct_in_nsap(ARGS_TOSTRUCT)
 	dns_rdata_toregion(rdata, &r);
 	nsap->nsap_len = r.length;
 	nsap->nsap = mem_maybedup(mctx, r.base, r.length);
-	if (nsap->nsap == NULL)
+	if (nsap->nsap == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	nsap->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -184,11 +190,13 @@ static inline void freestruct_in_nsap(ARGS_FREESTRUCT)
 	REQUIRE(nsap->common.rdclass == dns_rdataclass_in);
 	REQUIRE(nsap->common.rdtype == dns_rdatatype_nsap);
 
-	if (nsap->mctx == NULL)
+	if (nsap->mctx == NULL) {
 		return;
+	}
 
-	if (nsap->nsap != NULL)
+	if (nsap->nsap != NULL) {
 		isc_mem_free(nsap->mctx, nsap->nsap);
+	}
 	nsap->mctx = NULL;
 }
 

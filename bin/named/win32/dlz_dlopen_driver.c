@@ -311,8 +311,9 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 				"putnamedrr", dns_sdlz_putnamedrr,
 				"writeable_zone", dns_dlz_writeablezone, NULL);
 	MAYBE_UNLOCK(cd);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_lock;
+	}
 
 	*dbdata = cd;
 
@@ -356,13 +357,16 @@ dlopen_dlz_destroy(void *driverarg, void *dbdata)
 		MAYBE_UNLOCK(cd);
 	}
 
-	if (cd->dl_path)
+	if (cd->dl_path) {
 		isc_mem_free(cd->mctx, cd->dl_path);
-	if (cd->dlzname)
+	}
+	if (cd->dlzname) {
 		isc_mem_free(cd->mctx, cd->dlzname);
+	}
 
-	if (cd->dl_handle)
+	if (cd->dl_handle) {
 		FreeLibrary(cd->dl_handle);
+	}
 
 	isc_mutex_destroy(&cd->lock);
 
@@ -383,8 +387,9 @@ dlopen_dlz_newversion(const char *zone, void *driverarg, void *dbdata,
 
 	UNUSED(driverarg);
 
-	if (cd->dlz_newversion == NULL)
+	if (cd->dlz_newversion == NULL) {
 		return (ISC_R_NOTIMPLEMENTED);
+	}
 
 	MAYBE_LOCK(cd);
 	result = cd->dlz_newversion(zone, cd->dbdata, versionp);
@@ -425,8 +430,9 @@ dlopen_dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *driverarg,
 
 	UNUSED(driverarg);
 
-	if (cd->dlz_configure == NULL)
+	if (cd->dlz_configure == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 
 	MAYBE_LOCK(cd);
 	cd->in_configure = true;
@@ -450,8 +456,9 @@ dlopen_dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
 
 	UNUSED(driverarg);
 
-	if (cd->dlz_ssumatch == NULL)
+	if (cd->dlz_ssumatch == NULL) {
 		return (false);
+	}
 
 	MAYBE_LOCK(cd);
 	ret = cd->dlz_ssumatch(signer, name, tcpaddr, type, key, keydatalen,
@@ -473,8 +480,9 @@ dlopen_dlz_addrdataset(const char *name, const char *rdatastr, void *driverarg,
 
 	UNUSED(driverarg);
 
-	if (cd->dlz_addrdataset == NULL)
+	if (cd->dlz_addrdataset == NULL) {
 		return (ISC_R_NOTIMPLEMENTED);
+	}
 
 	MAYBE_LOCK(cd);
 	result = cd->dlz_addrdataset(name, rdatastr, cd->dbdata, version);
@@ -495,8 +503,9 @@ dlopen_dlz_subrdataset(const char *name, const char *rdatastr, void *driverarg,
 
 	UNUSED(driverarg);
 
-	if (cd->dlz_subrdataset == NULL)
+	if (cd->dlz_subrdataset == NULL) {
 		return (ISC_R_NOTIMPLEMENTED);
+	}
 
 	MAYBE_LOCK(cd);
 	result = cd->dlz_subrdataset(name, rdatastr, cd->dbdata, version);
@@ -506,7 +515,7 @@ dlopen_dlz_subrdataset(const char *name, const char *rdatastr, void *driverarg,
 }
 
 /*
-  delete a rdataset
+ * delete a rdataset
  */
 static isc_result_t
 dlopen_dlz_delrdataset(const char *name, const char *type, void *driverarg,
@@ -517,8 +526,9 @@ dlopen_dlz_delrdataset(const char *name, const char *type, void *driverarg,
 
 	UNUSED(driverarg);
 
-	if (cd->dlz_delrdataset == NULL)
+	if (cd->dlz_delrdataset == NULL) {
 		return (ISC_R_NOTIMPLEMENTED);
+	}
 
 	MAYBE_LOCK(cd);
 	result = cd->dlz_delrdataset(name, type, cd->dbdata, version);
@@ -534,7 +544,7 @@ static dns_sdlzmethods_t dlz_dlopen_methods = {
 	dlopen_dlz_configure,	 dlopen_dlz_ssumatch,	dlopen_dlz_addrdataset,
 	dlopen_dlz_subrdataset,	 dlopen_dlz_delrdataset
 };
-#endif
+#endif /* ifdef ISC_DLZ_DLOPEN */
 
 /*
  * Register driver with BIND
@@ -545,7 +555,7 @@ dlz_dlopen_init(isc_mem_t *mctx)
 #ifndef ISC_DLZ_DLOPEN
 	UNUSED(mctx);
 	return (ISC_R_NOTIMPLEMENTED);
-#else
+#else  /* ifndef ISC_DLZ_DLOPEN */
 	isc_result_t result;
 
 	dlopen_log(2, "Registering DLZ_dlopen driver");
@@ -564,7 +574,7 @@ dlz_dlopen_init(isc_mem_t *mctx)
 	}
 
 	return (result);
-#endif
+#endif /* ifndef ISC_DLZ_DLOPEN */
 }
 
 /*
@@ -575,7 +585,8 @@ dlz_dlopen_clear(void)
 {
 #ifdef ISC_DLZ_DLOPEN
 	dlopen_log(2, "Unregistering DLZ_dlopen driver");
-	if (dlz_dlopen != NULL)
+	if (dlz_dlopen != NULL) {
 		dns_sdlzunregister(&dlz_dlopen);
-#endif
+	}
+#endif /* ifdef ISC_DLZ_DLOPEN */
 }

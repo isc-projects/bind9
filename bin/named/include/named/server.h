@@ -53,12 +53,16 @@ struct named_server {
 	char *statsfile;    /*%< Statistics file name */
 	char *dumpfile;	    /*%< Dump file name */
 	char *secrootsfile; /*%< Secroots file name */
-	char *bindkeysfile; /*%< bind.keys file name */
+	char *bindkeysfile; /*%< bind.keys file name
+			     * */
 	char *recfile;	    /*%< Recursive file name */
-	bool  version_set;  /*%< User has set version */
+	bool  version_set;  /*%< User has set version
+			     * */
 	char *version;	    /*%< User-specified version */
-	bool  hostname_set; /*%< User has set hostname */
-	char *hostname;	    /*%< User-specified hostname */
+	bool  hostname_set; /*%< User has set hostname
+			     * */
+	char *hostname;	    /*%< User-specified hostname
+			     * */
 
 	/* Server data structures. */
 	dns_loadmgr_t *	   loadmgr;
@@ -82,10 +86,11 @@ struct named_server {
 
 	bool flushonshutdown;
 
-	named_cachelist_t cachelist;	 /*%< Possibly shared caches */
-	isc_stats_t *	  zonestats;	 /*% Zone management stats */
-	isc_stats_t *	  resolverstats; /*% Resolver stats */
-	isc_stats_t *	  sockstats;	 /*%< Socket stats */
+	named_cachelist_t cachelist; /*%< Possibly shared caches
+				      * */
+	isc_stats_t *zonestats;	     /*% Zone management stats */
+	isc_stats_t *resolverstats;  /*% Resolver stats */
+	isc_stats_t *sockstats;	     /*%< Socket stats */
 
 	named_controls_t *   controls; /*%< Control channels */
 	unsigned int	     dispatchgen;

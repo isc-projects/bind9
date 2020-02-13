@@ -43,13 +43,15 @@ static inline isc_result_t totext_in_dhcid(ARGS_TOTEXT)
 	dns_rdata_toregion(rdata, &sr);
 	sr2 = sr;
 
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext("( " /*)*/, target));
-	if (tctx->width == 0) /* No splitting */
+	}
+	if (tctx->width == 0) { /* No splitting */
 		RETERR(isc_base64_totext(&sr, 60, "", target));
-	else
+	} else {
 		RETERR(isc_base64_totext(&sr, tctx->width - 2, tctx->linebreak,
 					 target));
+	}
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(/* ( */ " )", target));
 		if (rdata->length > 2) {
@@ -75,8 +77,9 @@ static inline isc_result_t fromwire_in_dhcid(ARGS_FROMWIRE)
 	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length == 0)
+	if (sr.length == 0) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -147,8 +150,9 @@ static inline isc_result_t tostruct_in_dhcid(ARGS_TOSTRUCT)
 	dns_rdata_toregion(rdata, &region);
 
 	dhcid->dhcid = mem_maybedup(mctx, region.base, region.length);
-	if (dhcid->dhcid == NULL)
+	if (dhcid->dhcid == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	dhcid->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -162,11 +166,13 @@ static inline void freestruct_in_dhcid(ARGS_FREESTRUCT)
 	REQUIRE(dhcid->common.rdtype == dns_rdatatype_dhcid);
 	REQUIRE(dhcid->common.rdclass == dns_rdataclass_in);
 
-	if (dhcid->mctx == NULL)
+	if (dhcid->mctx == NULL) {
 		return;
+	}
 
-	if (dhcid->dhcid != NULL)
+	if (dhcid->dhcid != NULL) {
 		isc_mem_free(dhcid->mctx, dhcid->dhcid);
+	}
 	dhcid->mctx = NULL;
 }
 

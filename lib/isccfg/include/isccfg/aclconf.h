@@ -26,7 +26,7 @@ typedef struct cfg_aclconfctx {
 	isc_mem_t *mctx;
 #if defined(HAVE_GEOIP2)
 	dns_geoip_databases_t *geoip;
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 	isc_refcount_t references;
 } cfg_aclconfctx_t;
 

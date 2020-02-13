@@ -77,9 +77,9 @@ typedef struct {
 #if PTHREADS
 	db_list_t *db; /*%< handle to a list of DB */
 	int	   dbcount;
-#else
+#else  /* if PTHREADS */
 	dbinstance_t *db; /*%< handle to DB */
-#endif
+#endif /* if PTHREADS */
 
 	char *dbname;
 
@@ -120,8 +120,9 @@ void
 sqlite3_destroy(dbinstance_t *db)
 {
 	/* release DB connection */
-	if (db->dbconn != NULL)
+	if (db->dbconn != NULL) {
 		sqlite3_close((sqlite3 *)db->dbconn);
+	}
 	sqlite3_shutdown();
 
 	/* destroy DB instance */
@@ -174,9 +175,9 @@ sqlite3_find_avail(sqlite3_instance_t *sqlite3)
 	/* loop through list */
 	while (count < dbc_search_limit) {
 		/* try to lock on the mutex */
-		if (dlz_mutex_trylock(&dbi->lock) == 0)
+		if (dlz_mutex_trylock(&dbi->lock) == 0) {
 			return (dbi); /* success, return the DBI for use. */
-
+		}
 		/* not successful, keep trying */
 		dbi = DLZ_LIST_NEXT(dbi, link);
 
@@ -212,18 +213,21 @@ escape_string(const char *instr)
 	unsigned int atlen = 0;
 	unsigned int i;
 
-	if (instr == NULL)
+	if (instr == NULL) {
 		return (NULL);
+	}
 	len = strlen(instr);
 	atlen = (2 * len * sizeof(char)) + 1;
 	outstr = malloc(atlen);
-	if (outstr == NULL)
+	if (outstr == NULL) {
 		return (NULL);
+	}
 
 	ptr = outstr;
 	for (i = 0; i < len; i++) {
-		if (tlen > atlen || instr[i] == '\0')
+		if (tlen > atlen || instr[i] == '\0') {
 			break;
+		}
 
 		if (instr[i] == '\'') {
 			*ptr++ = '\'';
@@ -334,40 +338,46 @@ sqlite3_get_resultset(const char *zone, const char *record, const char *client,
 	}
 
 	if (zone != NULL) {
-		if (dbi->zone != NULL)
+		if (dbi->zone != NULL) {
 			free(dbi->zone);
+		}
 
 		dbi->zone = escape_string(zone);
 		if (dbi->zone == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else
+	} else {
 		dbi->zone = NULL;
+	}
 
 	if (record != NULL) {
-		if (dbi->record != NULL)
+		if (dbi->record != NULL) {
 			free(dbi->record);
+		}
 
 		dbi->record = escape_string(record);
 		if (dbi->record == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else
+	} else {
 		dbi->record = NULL;
+	}
 
 	if (client != NULL) {
-		if (dbi->client != NULL)
+		if (dbi->client != NULL) {
 			free(dbi->client);
+		}
 
 		dbi->client = escape_string(client);
 		if (dbi->client == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else
+	} else {
 		dbi->client = NULL;
+	}
 
 	/*
 	 * what type of query are we going to run?  this time we build
@@ -452,8 +462,9 @@ cleanup:
 	/* release the lock so another thread can use this dbi */
 	(void)dlz_mutex_unlock(&dbi->lock);
 
-	if (querystring != NULL)
+	if (querystring != NULL) {
 		free(querystring);
+	}
 
 	return (result);
 }
@@ -482,8 +493,9 @@ unsigned int
 sqlite3_num_fields(sqlite3_res_t *rs)
 {
 	unsigned int retval = 0;
-	if (rs != NULL)
+	if (rs != NULL) {
 		retval = rs->pnColumn;
+	}
 	return (retval);
 }
 
@@ -491,8 +503,9 @@ unsigned int
 sqlite3_num_rows(sqlite3_res_t *rs)
 {
 	unsigned int retval = 0;
-	if (rs != NULL)
+	if (rs != NULL) {
 		retval = rs->pnRow;
+	}
 	return (retval);
 }
 
@@ -632,8 +645,9 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 
 	result = sqlite3_get_resultset(name, NULL, NULL, FINDZONE, dbdata, &rs);
 	if (result != ISC_R_SUCCESS || rs == NULL) {
-		if (rs != NULL)
+		if (rs != NULL) {
 			sqlite3_free_result(rs);
+		}
 
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for FINDZONE query");
@@ -666,8 +680,9 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
 
 	/* first check if the zone is supported by the database. */
 	result = dlz_findzonedb(dbdata, name, NULL, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOTFOUND);
+	}
 
 	/*
 	 * if we get to this point we know the zone is supported by
@@ -677,12 +692,14 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
 	 */
 	result = sqlite3_get_resultset(name, NULL, client, ALLOWXFR, dbdata,
 				       &rs);
-	if (result == ISC_R_NOTIMPLEMENTED)
+	if (result == ISC_R_NOTIMPLEMENTED) {
 		return (result);
+	}
 
 	if (result != ISC_R_SUCCESS || rs == NULL) {
-		if (rs != NULL)
+		if (rs != NULL) {
 			sqlite3_free_result(rs);
+		}
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for ALLOWXFR query");
 		return (ISC_R_FAILURE);
@@ -694,8 +711,9 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
 	 */
 	rows = sqlite3_num_rows(rs);
 	sqlite3_free_result(rs);
-	if (rows > 0)
+	if (rows > 0) {
 		return (ISC_R_SUCCESS);
+	}
 
 	return (ISC_R_NOPERM);
 }
@@ -719,8 +737,9 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 	int		    ttl;
 
 	result = sqlite3_get_resultset(zone, NULL, NULL, ALLNODES, dbdata, &rs);
-	if (result == ISC_R_NOTIMPLEMENTED)
+	if (result == ISC_R_NOTIMPLEMENTED) {
 		return (result);
+	}
 
 	/* if we didn't get a result set, log an err msg. */
 	if (result != ISC_R_SUCCESS) {
@@ -797,8 +816,9 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 	}
 
 cleanup:
-	if (rs != NULL)
+	if (rs != NULL) {
 		sqlite3_free_result(rs);
+	}
 
 	return (result);
 }
@@ -816,12 +836,14 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
 
 	result =
 		sqlite3_get_resultset(zone, NULL, NULL, AUTHORITY, dbdata, &rs);
-	if (result == ISC_R_NOTIMPLEMENTED)
+	if (result == ISC_R_NOTIMPLEMENTED) {
 		return (result);
+	}
 
 	if (result != ISC_R_SUCCESS) {
-		if (rs != NULL)
+		if (rs != NULL) {
 			sqlite3_free_result(rs);
+		}
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for AUTHORITY query");
 		return (ISC_R_FAILURE);
@@ -851,8 +873,9 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 
 	/* if we didn't get a result set, log an err msg. */
 	if (result != ISC_R_SUCCESS) {
-		if (rs != NULL)
+		if (rs != NULL) {
 			sqlite3_free_result(rs);
+		}
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for LOOKUP query");
 		return (ISC_R_FAILURE);
@@ -881,7 +904,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	const char *	    helper_name;
 #if SQLITE3_VERSION_ID >= 50000
 	my_bool auto_reconnect = 1;
-#endif
+#endif /* if SQLITE3_VERSION_ID >= 50000 */
 #if PTHREADS
 	int dbcount;
 	int i, ret;
@@ -892,14 +915,16 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 
 	/* allocate memory for SQLite3 instance */
 	s3 = calloc(1, sizeof(sqlite3_instance_t));
-	if (s3 == NULL)
+	if (s3 == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 	memset(s3, 0, sizeof(sqlite3_instance_t));
 
 	/* Fill in the helper functions */
 	va_start(ap, dbdata);
-	while ((helper_name = va_arg(ap, const char *)) != NULL)
+	while ((helper_name = va_arg(ap, const char *)) != NULL) {
 		b9_add_helper(s3, helper_name, va_arg(ap, void *));
+	}
 	va_end(ap);
 
 #if PTHREADS
@@ -936,9 +961,9 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 #if PTHREADS
 	/* multithreaded build can have multiple DB connections */
 	tmp = get_parameter_value(argv[1], "threads=");
-	if (tmp == NULL)
+	if (tmp == NULL) {
 		dbcount = 1;
-	else {
+	} else {
 		dbcount = strtol(tmp, &endp, 10);
 		if (*endp != '\0' || dbcount < 1) {
 			s3->log(ISC_LOG_ERROR, "SQLite3 module: database "
@@ -1026,13 +1051,13 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 		/* when multithreaded, build a list of DBI's */
 		DLZ_LINK_INIT(dbi, link);
 		DLZ_LIST_APPEND(*(s3->db), dbi, link);
-#else
+#else  /* if PTHREADS */
 	/*
 	 * when single threaded, hold onto the one connection
 	 * instance.
 	 */
 	s3->db = dbi;
-#endif
+#endif /* if PTHREADS */
 
 		dbi->dbconn = dbc;
 		dbc = NULL;
@@ -1060,14 +1085,16 @@ dlz_destroy(void *dbdata)
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
 #if PTHREADS
 	/* cleanup the list of DBI's */
-	if (db->db != NULL)
+	if (db->db != NULL) {
 		sqlite3_destroy_dblist((db_list_t *)(db->db));
+	}
 #else  /* PTHREADS */
 	sqlite3_destroy(db);
 #endif /* PTHREADS */
 
-	if (db->dbname != NULL)
+	if (db->dbname != NULL) {
 		free(db->dbname);
+	}
 }
 
 /*
@@ -1087,12 +1114,16 @@ dlz_version(unsigned int *flags)
 static void
 b9_add_helper(sqlite3_instance_t *db, const char *helper_name, void *ptr)
 {
-	if (strcmp(helper_name, "log") == 0)
+	if (strcmp(helper_name, "log") == 0) {
 		db->log = (log_t *)ptr;
-	if (strcmp(helper_name, "putrr") == 0)
+	}
+	if (strcmp(helper_name, "putrr") == 0) {
 		db->putrr = (dns_sdlz_putrr_t *)ptr;
-	if (strcmp(helper_name, "putnamedrr") == 0)
+	}
+	if (strcmp(helper_name, "putnamedrr") == 0) {
 		db->putnamedrr = (dns_sdlz_putnamedrr_t *)ptr;
-	if (strcmp(helper_name, "writeable_zone") == 0)
+	}
+	if (strcmp(helper_name, "writeable_zone") == 0) {
 		db->writeable_zone = (dns_dlz_writeablezone_t *)ptr;
+	}
 }

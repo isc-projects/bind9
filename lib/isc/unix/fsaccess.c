@@ -32,17 +32,20 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access)
 	isc_fsaccess_t bits;
 	isc_result_t   result;
 
-	if (stat(path, &statb) != 0)
+	if (stat(path, &statb) != 0) {
 		return (isc__errno2result(errno));
+	}
 
-	if ((statb.st_mode & S_IFDIR) != 0)
+	if ((statb.st_mode & S_IFDIR) != 0) {
 		is_dir = true;
-	else if ((statb.st_mode & S_IFREG) == 0)
+	} else if ((statb.st_mode & S_IFREG) == 0) {
 		return (ISC_R_INVALIDFILE);
+	}
 
 	result = check_bad_bits(access, is_dir);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	/*
 	 * Done with checking bad bits.  Set mode_t.
@@ -76,8 +79,9 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access)
 
 	INSIST(access == 0);
 
-	if (chmod(path, mode) < 0)
+	if (chmod(path, mode) < 0) {
 		return (isc__errno2result(errno));
+	}
 
 	return (ISC_R_SUCCESS);
 }

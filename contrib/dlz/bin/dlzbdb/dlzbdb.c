@@ -312,18 +312,18 @@ getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey)
 	UNUSED(pkey);
 
 	if ((token = strtok_r(pdata->data, " ", &last)) == NULL) {
-		return BDBparseErr;
+		return (BDBparseErr);
 	}
 
 	/* copy string for "zone" secondary index */
 	if ((skey->data = strdup(token)) == NULL) {
-		return BDBparseErr;
+		return (BDBparseErr);
 	}
 	/* set required values for BDB */
 	skey->size = strlen(skey->data);
 	skey->flags = DB_DBT_APPMALLOC;
 
-	return 0;
+	return (0);
 }
 
 /*%
@@ -340,23 +340,23 @@ gethost(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey)
 
 	/* we don't care about first token. */
 	if ((token = strtok_r(right, " ", &last)) == NULL) {
-		return BDBparseErr;
+		return (BDBparseErr);
 	}
 
 	/* get "host" from data string */
 	if ((token = strtok_r(NULL, " ", &last)) == NULL) {
-		return BDBparseErr;
+		return (BDBparseErr);
 	}
 
 	/* copy string for "host" secondary index */
 	if ((skey->data = strdup(token)) == NULL) {
-		return BDBparseErr;
+		return (BDBparseErr);
 	}
 	/* set required values for BDB */
 	skey->size = strlen(skey->data);
 	skey->flags = DB_DBT_APPMALLOC;
 
-	return 0;
+	return (0);
 }
 
 /*%
@@ -427,7 +427,7 @@ bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags)
 		fprintf(stderr,
 			"BDB could not initialize %s database. BDB error: %s",
 			db_name, db_strerror(result));
-		return ISC_R_FAILURE;
+		return (ISC_R_FAILURE);
 	}
 
 	/* set database flags. */
@@ -436,7 +436,7 @@ bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags)
 			"BDB could not set flags for %s database. BDB error: "
 			"%s",
 			db_name, db_strerror(result));
-		return ISC_R_FAILURE;
+		return (ISC_R_FAILURE);
 	}
 
 	if (create_allowed == true) {
@@ -448,10 +448,10 @@ bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags)
 		fprintf(stderr,
 			"BDB could not open %s database in %s. BDB error: %s",
 			db_name, db_file, db_strerror(result));
-		return ISC_R_FAILURE;
+		return (ISC_R_FAILURE);
 	}
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 /*%
@@ -504,7 +504,7 @@ insert_data(void)
 			   ISC_LEXOPT_EOF |	/* Want end-of-file token. */
 			   ISC_LEXOPT_QSTRING | /* Recognize qstrings. */
 			   ISC_LEXOPT_QSTRINGMULTILINE; /* Allow multiline ""
-							   strings */
+							 * strings */
 
 	isc_result_t result;
 	isc_token_t  token; /* token from lexer */
@@ -515,7 +515,7 @@ insert_data(void)
 	char	     data_arr2[max_data_len];
 	isc_buffer_t buf2;
 	char data_type = 'u'; /* u =unknown, b =bad token, d/D =DNS, c/C =client
-				 IP */
+			       * IP */
 
 	/* Initialize buffers */
 	isc_buffer_init(&buf, &data_arr, max_data_len);
@@ -523,8 +523,9 @@ insert_data(void)
 
 	while (loop) {
 		result = isc_lex_gettoken(lexer, opt, &token);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto data_cleanup;
+		}
 
 		switch (token.type) {
 		case isc_tokentype_string:
@@ -660,24 +661,28 @@ openBDB(void)
 	/* open dlz_data database. */
 
 	result = bdb_opendb(DB_RECNO, &db.data, dlz_data, 0);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto openBDB_cleanup;
+	}
 
 	/* open dlz_host database */
 	result = bdb_opendb(DB_BTREE, &db.host, dlz_host, DB_DUP | DB_DUPSORT);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto openBDB_cleanup;
+	}
 
 	/* open dlz_zone database. */
 	result = bdb_opendb(DB_BTREE, &db.zone, dlz_zone, DB_DUP | DB_DUPSORT);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto openBDB_cleanup;
+	}
 
 	/* open dlz_client database. */
 	result = bdb_opendb(DB_BTREE, &db.client, dlz_client,
 			    DB_DUP | DB_DUPSORT);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto openBDB_cleanup;
+	}
 
 	/* associate the host secondary database with the primary database */
 	bdbres = db.data->associate(db.data, NULL, db.host, gethost, 0);
@@ -701,12 +706,12 @@ openBDB(void)
 		goto openBDB_cleanup;
 	}
 
-	return result;
+	return (result);
 
 openBDB_cleanup:
 
 	bdb_cleanup();
-	return result;
+	return (result);
 }
 
 /*% Create & open lexer to parse input data */
@@ -717,31 +722,33 @@ open_lexer(void)
 	isc_result_t result;
 
 	/* check if we already opened the lexer, if we did, return success */
-	if (lexer != NULL)
-		return ISC_R_SUCCESS;
+	if (lexer != NULL) {
+		return (ISC_R_SUCCESS);
+	}
 
 	/* allocate memory for lexer, and verify it was allocated */
 	isc_mem_create(&lex_mctx);
 
 	/* create lexer */
 	result = isc_lex_create(lex_mctx, 1500, &lexer);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "unexpected error creating lexer\n");
+	}
 
 	/* set allowed commenting style */
 	isc_lex_setcomments(lexer,
 			    ISC_LEXCOMMENT_C | /* Allow C comments */
 				    ISC_LEXCOMMENT_CPLUSPLUS | /* Allow
-								  C++
-								  comments
+								* C++
+								* comments
 								*/
 				    ISC_LEXCOMMENT_SHELL);     /* Allow
-								  shellcomments
+								* shellcomments
 								*/
 
 	isc_buffer_init(&lex_buffer, &lex_data_buf, max_data_len);
 
-	return result;
+	return (result);
 }
 
 /*% Close the lexer, and cleanup memory */
@@ -756,8 +763,9 @@ close_lexer(void)
 	}
 
 	/* if lexer memory is still allocated, destroy it. */
-	if (lex_mctx != NULL)
+	if (lex_mctx != NULL) {
 		isc_mem_destroy(&lex_mctx);
+	}
 }
 
 /*% Perform add operation */
@@ -845,7 +853,7 @@ bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata)
 	if (bdbdata->data == NULL) {
 		fprintf(stderr, "Unable to allocate 5 MB buffer for bulk "
 				"database dump\n");
-		return ISC_R_FAILURE;
+		return (ISC_R_FAILURE);
 	}
 	bdbdata->ulen = buffer_size;
 	bdbdata->flags = DB_DBT_USERMEM;
@@ -856,7 +864,7 @@ bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata)
 		fprintf(stderr, "Unexpected error. BDB Error: %s\n",
 			db_strerror(bdbres));
 		free(bdbdata->data);
-		return ISC_R_FAILURE;
+		return (ISC_R_FAILURE);
 	}
 
 	/* loop and dump all data */
@@ -872,35 +880,37 @@ bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata)
 					"Unexpected error. BDB Error: %s\n",
 					db_strerror(bdbres));
 				free(bdbdata->data);
-				return ISC_R_FAILURE;
+				return (ISC_R_FAILURE);
 			}
 			/* Hit DB_NOTFOUND which means end of data. */
 			break;
 		} /* end of if (bdbres !=0) */
 
 		for (DB_MULTIPLE_INIT(p, bdbdata);;) {
-			if (type == 'c')
+			if (type == 'c') {
 				DB_MULTIPLE_KEY_NEXT(p, bdbdata, retkey,
 						     retklen, retdata, retdlen);
-			else
+			} else {
 				DB_MULTIPLE_RECNO_NEXT(p, bdbdata, recNum,
 						       retdata, retdlen);
+			}
 
-			if (p == NULL)
+			if (p == NULL) {
 				break;
-			if (type == 'c')
+			}
+			if (type == 'c') {
 				printf("c %.*s %.*s\n", (int)retklen, retkey,
 				       (int)retdlen, retdata);
-			else
+			} else {
 				printf("d %.*s\n", (int)retdlen, retdata);
+			}
 		} /* end of for (DB_MULTIPLE_INIT....) */
-
-	} /* end of for (;;) */
+	}	  /* end of for (;;) */
 
 	/* free the buffer we created earlier */
 	free(bdbdata->data);
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 /*%
@@ -948,8 +958,9 @@ operation_listOrDelete(bool dlt)
 	/* Dump database in "dlzbdb" bulk format */
 	if (list_everything == true) {
 		if (bulk_write('c', db.client, db.cursor, &bdbkey, &bdbdata) !=
-		    ISC_R_SUCCESS)
+		    ISC_R_SUCCESS) {
 			return;
+		}
 		memset(&bdbkey, 0, sizeof(bdbkey));
 		memset(&bdbdata, 0, sizeof(bdbdata));
 		bulk_write('d', db.data, db.cursor2, &bdbkey, &bdbdata);
@@ -1165,8 +1176,9 @@ main(int argc, char **argv)
 	char *endp;
 
 	/* there has to be at least 2 args, some operations require more */
-	if (argc < 2)
+	if (argc < 2) {
 		show_usage();
+	}
 
 	/* use the ISC commandline parser to get all the program arguments */
 	while ((ch = isc_commandline_parse(argc, argv,
@@ -1293,4 +1305,4 @@ main(int argc, char **argv)
 
 	quit(0);
 }
-#endif
+#endif /* ifdef DLZ_BDB */

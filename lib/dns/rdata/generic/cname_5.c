@@ -32,8 +32,9 @@ static inline isc_result_t fromtext_cname(ARGS_FROMTEXT)
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return (ISC_R_SUCCESS);
 }
@@ -163,8 +164,9 @@ static inline void freestruct_cname(ARGS_FREESTRUCT)
 
 	REQUIRE(cname != NULL);
 
-	if (cname->mctx == NULL)
+	if (cname->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&cname->cname, cname->mctx);
 	cname->mctx = NULL;

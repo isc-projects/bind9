@@ -77,14 +77,16 @@ initialize_action(void)
 
 	result = isc_result_register(ISC_RESULTCLASS_DST, DST_R_NRESULTS, text,
 				     DST_RESULT_RESULTSET);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
+	}
 	result = isc_result_registerids(ISC_RESULTCLASS_DST, DST_R_NRESULTS,
 					ids, DST_RESULT_RESULTSET);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_registerids() failed: %u", result);
+	}
 }
 
 static void

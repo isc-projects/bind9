@@ -64,8 +64,9 @@ register_thread(unsigned long thrd, isc_condition_t *gblcond,
 	REQUIRE(localcond != NULL && *localcond == NULL);
 
 	newthread = malloc(sizeof(isc_condition_thread_t));
-	if (newthread == NULL)
+	if (newthread == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	/*
 	 * Create the thread-specific handle
@@ -150,12 +151,14 @@ isc_condition_broadcast(isc_condition_t *cond)
 	 */
 	for (threadcond = ISC_LIST_HEAD(cond->threadlist); threadcond != NULL;
 	     threadcond = ISC_LIST_NEXT(threadcond, link)) {
-		if (!SetEvent(threadcond->handle[LBROADCAST]))
+		if (!SetEvent(threadcond->handle[LBROADCAST])) {
 			failed = true;
+		}
 	}
 
-	if (failed)
+	if (failed) {
 		return (ISC_R_UNEXPECTED);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -206,8 +209,9 @@ wait(isc_condition_t *cond, isc_mutex_t *mutex, DWORD milliseconds)
 	 * Get the thread events needed for the wait
 	 */
 	tresult = find_thread_condition(isc_thread_self(), cond, &threadcond);
-	if (tresult != ISC_R_SUCCESS)
+	if (tresult != ISC_R_SUCCESS) {
 		return (tresult);
+	}
 
 	cond->waiters++;
 	LeaveCriticalSection(mutex);
@@ -219,8 +223,9 @@ wait(isc_condition_t *cond, isc_mutex_t *mutex, DWORD milliseconds)
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
-	if (result == WAIT_TIMEOUT)
+	if (result == WAIT_TIMEOUT) {
 		return (ISC_R_TIMEDOUT);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -245,10 +250,11 @@ isc_condition_waituntil(isc_condition_t *cond, isc_mutex_t *mutex,
 	}
 
 	microseconds = isc_time_microdiff(t, &now);
-	if (microseconds > 0xFFFFFFFFi64 * 1000)
+	if (microseconds > 0xFFFFFFFFi64 * 1000) {
 		milliseconds = 0xFFFFFFFF;
-	else
+	} else {
 		milliseconds = (DWORD)(microseconds / 1000);
+	}
 
 	return (wait(cond, mutex, milliseconds));
 }

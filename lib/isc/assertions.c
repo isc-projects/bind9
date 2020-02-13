@@ -24,7 +24,7 @@
  */
 #ifndef BACKTRACE_MAXFRAME
 #define BACKTRACE_MAXFRAME 128
-#endif
+#endif /* ifndef BACKTRACE_MAXFRAME */
 
 /*%
  * Forward.
@@ -53,10 +53,11 @@ isc_assertion_failed(const char *file, int line, isc_assertiontype_t type,
 void
 isc_assertion_setcallback(isc_assertioncallback_t cb)
 {
-	if (cb == NULL)
+	if (cb == NULL) {
 		isc_assertion_failed_cb = default_callback;
-	else
+	} else {
 		isc_assertion_failed_cb = cb;
+	}
 }
 
 /*% Type to Text */

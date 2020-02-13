@@ -13,8 +13,8 @@
 #define ISC_INTERFACEITER_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/interfaceiter.h
  * \brief Iterates over the list of network interfaces.
@@ -47,8 +47,9 @@ struct isc_interface {
 	unsigned int  af;	  /*%< Address family. */
 	isc_netaddr_t address;	  /*%< Local address. */
 	isc_netaddr_t netmask;	  /*%< Network mask. */
-	isc_netaddr_t dstaddress; /*%< Destination address (point-to-point
-				     only). */
+	isc_netaddr_t dstaddress; /*%< Destination address
+				   * (point-to-point
+				   * only). */
 	uint32_t flags;		  /*%< Flags; see INTERFACE flags. */
 };
 

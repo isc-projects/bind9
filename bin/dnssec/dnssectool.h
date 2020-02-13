@@ -108,6 +108,6 @@ void
 InitSockets(void);
 void
 DestroySockets(void);
-#endif
+#endif /* ifdef _WIN32 */
 
 #endif /* DNSSEC_DNSSECTOOL_H */

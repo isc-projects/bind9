@@ -335,23 +335,27 @@ initialize_action(void)
 
 	result = isc_result_register(ISC_RESULTCLASS_DNS, DNS_R_NRESULTS, text,
 				     DNS_RESULT_RESULTSET);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		result = isc_result_register(ISC_RESULTCLASS_DNSRCODE,
 					     DNS_R_NRCODERESULTS, rcode_text,
 					     DNS_RESULT_RCODERESULTSET);
-	if (result != ISC_R_SUCCESS)
+	}
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
+	}
 
 	result = isc_result_registerids(ISC_RESULTCLASS_DNS, DNS_R_NRESULTS,
 					ids, DNS_RESULT_RESULTSET);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		result = isc_result_registerids(ISC_RESULTCLASS_DNSRCODE,
 						DNS_R_NRCODERESULTS, rcode_ids,
 						DNS_RESULT_RCODERESULTSET);
-	if (result != ISC_R_SUCCESS)
+	}
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_registerids() failed: %u", result);
+	}
 }
 
 static void

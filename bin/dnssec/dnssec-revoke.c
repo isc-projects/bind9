@@ -32,7 +32,7 @@
 
 #if USE_PKCS11
 #include <pk11/result.h>
-#endif
+#endif /* if USE_PKCS11 */
 
 #include "dnssectool.h"
 
@@ -54,9 +54,9 @@ usage(void)
 		"    -E engine:    specify PKCS#11 provider "
 		"(default: %s)\n",
 		PK11_LIB_LOCATION);
-#else
+#else  /* if USE_PKCS11 */
 	fprintf(stderr, "    -E engine:    specify OpenSSL engine\n");
-#endif
+#endif /* if USE_PKCS11 */
 	fprintf(stderr, "    -f:           force overwrite\n");
 	fprintf(stderr, "    -h:           help\n");
 	fprintf(stderr, "    -K directory: use directory for key files\n");
@@ -89,14 +89,15 @@ main(int argc, char **argv)
 	bool	     removefile = false;
 	bool	     id = false;
 
-	if (argc == 1)
+	if (argc == 1) {
 		usage();
+	}
 
 	isc_mem_create(&mctx);
 
 #if HAVE_PKCS11
 	pk11_result_register();
-#endif
+#endif /* if HAVE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;
@@ -124,14 +125,16 @@ main(int argc, char **argv)
 			break;
 		case 'v':
 			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0')
+			if (*endp != '\0') {
 				fatal("-v must be followed by a number");
+			}
 			break;
 		case '?':
-			if (isc_commandline_option != '?')
+			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
-			/* FALLTHROUGH */
+			}
+		/* FALLTHROUGH */
 		case 'h':
 			/* Does not return. */
 			usage();
@@ -148,20 +151,23 @@ main(int argc, char **argv)
 	}
 
 	if (argc < isc_commandline_index + 1 ||
-	    argv[isc_commandline_index] == NULL)
+	    argv[isc_commandline_index] == NULL) {
 		fatal("The key file name was not specified");
-	if (argc > isc_commandline_index + 1)
+	}
+	if (argc > isc_commandline_index + 1) {
 		fatal("Extraneous arguments");
+	}
 
 	if (dir != NULL) {
 		filename = argv[isc_commandline_index];
 	} else {
 		result = isc_file_splitpath(mctx, argv[isc_commandline_index],
 					    &dir, &filename);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fatal("cannot process filename %s: %s",
 			      argv[isc_commandline_index],
 			      isc_result_totext(result));
+		}
 		if (strcmp(dir, ".") == 0) {
 			isc_mem_free(mctx, dir);
 			dir = NULL;
@@ -169,15 +175,17 @@ main(int argc, char **argv)
 	}
 
 	result = dst_lib_init(mctx, engine);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("Could not initialize dst: %s",
 		      isc_result_totext(result));
+	}
 
 	result = dst_key_fromnamedfile(
 		filename, dir, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, mctx, &key);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("Invalid keyfile name %s: %s", filename,
 		      isc_result_totext(result));
+	}
 
 	if (id) {
 		fprintf(stdout, "%u\n", dst_key_rid(key));
@@ -185,24 +193,27 @@ main(int argc, char **argv)
 	}
 	dst_key_format(key, keystr, sizeof(keystr));
 
-	if (verbose > 2)
+	if (verbose > 2) {
 		fprintf(stderr, "%s: %s\n", program, keystr);
+	}
 
-	if (force)
+	if (force) {
 		set_keyversion(key);
-	else
+	} else {
 		check_keyversion(key, keystr);
+	}
 
 	flags = dst_key_flags(key);
 	if ((flags & DNS_KEYFLAG_REVOKE) == 0) {
 		isc_stdtime_t now;
 
-		if ((flags & DNS_KEYFLAG_KSK) == 0)
+		if ((flags & DNS_KEYFLAG_KSK) == 0) {
 			fprintf(stderr,
 				"%s: warning: Key is not flagged "
 				"as a KSK. Revoking a ZSK is "
 				"legal, but undefined.\n",
 				program);
+		}
 
 		isc_stdtime_get(&now);
 		dst_key_settime(key, DST_TIME_REVOKE, now);
@@ -238,8 +249,9 @@ main(int argc, char **argv)
 			isc_buffer_init(&buf, oldname, sizeof(oldname));
 			dst_key_setflags(key, flags & ~DNS_KEYFLAG_REVOKE);
 			dst_key_buildfilename(key, DST_TYPE_PRIVATE, dir, &buf);
-			if (strcmp(oldname, newname) == 0)
+			if (strcmp(oldname, newname) == 0) {
 				goto cleanup;
+			}
 			(void)unlink(oldname);
 			isc_buffer_clear(&buf);
 			dst_key_buildfilename(key, DST_TYPE_PUBLIC, dir, &buf);
@@ -253,10 +265,12 @@ main(int argc, char **argv)
 cleanup:
 	dst_key_free(&key);
 	dst_lib_destroy();
-	if (verbose > 10)
+	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
-	if (dir != NULL)
+	}
+	if (dir != NULL) {
 		isc_mem_free(mctx, dir);
+	}
 	isc_mem_destroy(&mctx);
 
 	return (0);

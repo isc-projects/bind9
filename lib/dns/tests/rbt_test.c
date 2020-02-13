@@ -304,12 +304,14 @@ rbtnode_get_distance(void **state)
 
 	while (node != NULL) {
 		const size_t *distance = (const size_t *)node->data;
-		if (distance != NULL)
+		if (distance != NULL) {
 			assert_int_equal(*distance,
 					 dns__rbtnode_getdistance(node));
+		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
-		if (result == ISC_R_NOMORE)
+		if (result == ISC_R_NOMORE) {
 			break;
+		}
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 	}
 
@@ -378,8 +380,9 @@ rbt_check_distance_random(void **state)
 			name = dns_fixedname_name(&fname);
 
 			result = dns_rbt_addname(mytree, name, n);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				break;
+			}
 		}
 	}
 
@@ -1225,8 +1228,9 @@ find_thread(void *arg)
 	unsigned int   start = 0;
 
 	mytree = (dns_rbt_t *)arg;
-	while (start == 0)
+	while (start == 0) {
 		start = random() % 4000000;
+	}
 
 	/* Query 32 million random names from it in each thread */
 	for (j = 0; j < 8; j++) {
@@ -1365,4 +1369,4 @@ main(void)
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */
