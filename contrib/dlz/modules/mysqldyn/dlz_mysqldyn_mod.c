@@ -437,9 +437,12 @@ build_query(mysql_data_t *state, mysql_instance_t *dbi, const char *command,
 
 	*query = '\0';
 	for (item = DLZ_LIST_HEAD(arglist); item != NULL;
-	     item = DLZ_LIST_NEXT(item, link))
-		if (item->arg != NULL)
+	     item = DLZ_LIST_NEXT(item, link)) {
+		if (item->arg != NULL) {
 			strcat(query, item->arg);
+
+		}
+	}
 
 fail:
 	va_end(ap1);

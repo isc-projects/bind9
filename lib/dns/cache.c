@@ -291,9 +291,11 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 cleanup_db:
 	dns_db_detach(&cache->db);
 cleanup_dbargv:
-	for (i = extra; i < cache->db_argc; i++)
-		if (cache->db_argv[i] != NULL)
+	for (i = extra; i < cache->db_argc; i++) {
+		if (cache->db_argv[i] != NULL) {
 			isc_mem_free(cmctx, cache->db_argv[i]);
+		}
+	}
 	if (cache->db_argv != NULL)
 		isc_mem_put(cmctx, cache->db_argv,
 			    cache->db_argc * sizeof(char *));

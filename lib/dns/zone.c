@@ -2417,9 +2417,12 @@ zone_registerinclude(const char *filename, void *arg)
 	 * Suppress duplicates.
 	 */
 	for (inc = ISC_LIST_HEAD(zone->newincludes); inc != NULL;
-	     inc = ISC_LIST_NEXT(inc, link))
-		if (strcmp(filename, inc->name) == 0)
+	     inc = ISC_LIST_NEXT(inc, link)) {
+		if (strcmp(filename, inc->name) == 0) {
 			return;
+
+		}
+	}
 
 	inc = isc_mem_get(zone->mctx, sizeof(dns_include_t));
 	inc->name = isc_mem_strdup(zone->mctx, filename);
@@ -5869,9 +5872,11 @@ same_addrs(isc_sockaddr_t const *oldlist, isc_sockaddr_t const *newlist,
 {
 	unsigned int i;
 
-	for (i = 0; i < count; i++)
-		if (!isc_sockaddr_equal(&oldlist[i], &newlist[i]))
+	for (i = 0; i < count; i++) {
+		if (!isc_sockaddr_equal(&oldlist[i], &newlist[i])) {
 			return (false);
+		}
+	}
 	return (true);
 }
 
@@ -12377,11 +12382,14 @@ next_master:
 			/*
 			 * Did we get a good answer from all the masters?
 			 */
-			for (j = 0; j < zone->masterscnt; j++)
+			for (j = 0; j < zone->masterscnt; j++) {
 				if (zone->mastersok[j] == false) {
-					done = false;
-					break;
+					{
+						done = false;
+						break;
+					}
 				}
+			}
 		} else
 			done = true;
 		if (!done) {
@@ -12873,11 +12881,14 @@ next_master:
 			/*
 			 * Did we get a good answer from all the masters?
 			 */
-			for (j = 0; j < zone->masterscnt; j++)
+			for (j = 0; j < zone->masterscnt; j++) {
 				if (zone->mastersok[j] == false) {
-					done = false;
-					break;
+					{
+						done = false;
+						break;
+					}
 				}
+			}
 		} else
 			done = true;
 		if (!done) {
@@ -18008,9 +18019,11 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state)
 		break;
 	case DNS_ZONESTATE_SOAQUERY:
 		for (zone = ISC_LIST_HEAD(zmgr->zones); zone != NULL;
-		     zone = ISC_LIST_NEXT(zone, link))
-			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH))
+		     zone = ISC_LIST_NEXT(zone, link)) {
+			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
 				count++;
+			}
+		}
 		break;
 	case DNS_ZONESTATE_ANY:
 		for (zone = ISC_LIST_HEAD(zmgr->zones); zone != NULL;

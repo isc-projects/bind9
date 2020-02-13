@@ -383,9 +383,11 @@ mysql_get_resultset(const char *zone, const char *record, const char *client,
 		qres = mysql_query((MYSQL *)dbi->dbconn, querystring);
 		if (qres == 0)
 			break;
-		for (j = 0; j < 4; j++)
-			if (mysql_ping((MYSQL *)dbi->dbconn) == 0)
+		for (j = 0; j < 4; j++) {
+			if (mysql_ping((MYSQL *)dbi->dbconn) == 0) {
 				break;
+			}
+		}
 	}
 
 	if (qres == 0) {

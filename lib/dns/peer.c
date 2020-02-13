@@ -137,9 +137,12 @@ dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer)
 	 * More specifics to front of list.
 	 */
 	for (p = ISC_LIST_HEAD(peers->elements); p != NULL;
-	     p = ISC_LIST_NEXT(p, next))
-		if (p->prefixlen < peer->prefixlen)
+	     p = ISC_LIST_NEXT(p, next)) {
+		if (p->prefixlen < peer->prefixlen) {
 			break;
+
+		}
+	}
 
 	if (p != NULL)
 		ISC_LIST_INSERTBEFORE(peers->elements, p, peer, next);

@@ -230,13 +230,16 @@ err:
 
 	if (hKey != CK_INVALID_HANDLE)
 		(void)pkcs_C_DestroyObject(pk11_ctx->session, hKey);
-	for (i = 5; i <= 6; i++)
+	for (i = 5; i <= 6; i++) {
 		if (keyTemplate[i].pValue != NULL) {
-			memset(keyTemplate[i].pValue, 0,
-			       keyTemplate[i].ulValueLen);
-			isc_mem_put(dctx->mctx, keyTemplate[i].pValue,
-				    keyTemplate[i].ulValueLen);
+			{
+				memset(keyTemplate[i].pValue, 0,
+				       keyTemplate[i].ulValueLen);
+				isc_mem_put(dctx->mctx, keyTemplate[i].pValue,
+					    keyTemplate[i].ulValueLen);
+			}
 		}
+	}
 	pk11_return_session(pk11_ctx);
 	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
 	isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));
@@ -328,13 +331,16 @@ err:
 
 	if (hKey != CK_INVALID_HANDLE)
 		(void)pkcs_C_DestroyObject(pk11_ctx->session, hKey);
-	for (i = 5; i <= 6; i++)
+	for (i = 5; i <= 6; i++) {
 		if (keyTemplate[i].pValue != NULL) {
-			memset(keyTemplate[i].pValue, 0,
-			       keyTemplate[i].ulValueLen);
-			isc_mem_put(dctx->mctx, keyTemplate[i].pValue,
-				    keyTemplate[i].ulValueLen);
+			{
+				memset(keyTemplate[i].pValue, 0,
+				       keyTemplate[i].ulValueLen);
+				isc_mem_put(dctx->mctx, keyTemplate[i].pValue,
+					    keyTemplate[i].ulValueLen);
+			}
 		}
+	}
 	pk11_return_session(pk11_ctx);
 	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
 	isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));

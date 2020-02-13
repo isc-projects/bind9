@@ -375,9 +375,14 @@ isc__rdatalist_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name)
 	 */
 	rdatalist = rdataset->private1;
 	memset(rdatalist->upper, 0, sizeof(rdatalist->upper));
-	for (i = 1; i < name->length; i++)
-		if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a)
+	for (i = 1; i < name->length; i++) {
+		if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a) {
 			rdatalist->upper[i / 8] |= 1 << (i % 8);
+	/*
+	 * Record that upper has been set.
+	 */
+		}
+	}
 	/*
 	 * Record that upper has been set.
 	 */

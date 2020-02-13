@@ -1744,9 +1744,15 @@ check_dbtype(dns_zone_t *zone, unsigned int dbtypec, const char **dbargv,
 	/*
 	 * Check that all the arguments match.
 	 */
-	for (i = 0; i < dbtypec; i++)
-		if (argv[i] == NULL || strcmp(argv[i], dbargv[i]) != 0)
+	for (i = 0; i < dbtypec; i++) {
+		if (argv[i] == NULL || strcmp(argv[i], dbargv[i]) != 0) {
 			CHECK(ISC_R_FAILURE);
+
+	/*
+	 * Check that there are not extra arguments.
+	 */
+		}
+	}
 
 	/*
 	 * Check that there are not extra arguments.
@@ -10525,9 +10531,12 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view)
 	 * Prevent duplicate views.
 	 */
 	for (vle = ISC_LIST_HEAD(dctx->viewlist); vle != NULL;
-	     vle = ISC_LIST_NEXT(vle, link))
-		if (vle->view == view)
+	     vle = ISC_LIST_NEXT(vle, link)) {
+		if (vle->view == view) {
 			return (ISC_R_SUCCESS);
+
+		}
+	}
 
 	vle = isc_mem_get(dctx->mctx, sizeof *vle);
 	vle->view = NULL;

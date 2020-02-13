@@ -610,9 +610,15 @@ grow_entries(isc_task_t *task, isc_event_t *ev)
 	/*
 	 * Are we shutting down?
 	 */
-	for (i = 0; i < adb->nentries; i++)
-		if (adb->entry_sd[i])
+	for (i = 0; i < adb->nentries; i++) {
+		if (adb->entry_sd[i]) {
 			goto cleanup;
+
+	/*
+	 * Grab all the resources we need.
+	 */
+		}
+	}
 
 	/*
 	 * Grab all the resources we need.
@@ -764,9 +770,15 @@ grow_names(isc_task_t *task, isc_event_t *ev)
 	/*
 	 * Are we shutting down?
 	 */
-	for (i = 0; i < adb->nnames; i++)
-		if (adb->name_sd[i])
+	for (i = 0; i < adb->nnames; i++) {
+		if (adb->name_sd[i]) {
 			goto cleanup;
+
+	/*
+	 * Grab all the resources we need.
+	 */
+		}
+	}
 
 	/*
 	 * Grab all the resources we need.
@@ -963,9 +975,11 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 			link_entry(adb, addr_bucket, entry);
 		} else {
 			for (anh = ISC_LIST_HEAD(*hookhead); anh != NULL;
-			     anh = ISC_LIST_NEXT(anh, plink))
-				if (anh->entry == foundentry)
+			     anh = ISC_LIST_NEXT(anh, plink)) {
+				if (anh->entry == foundentry) {
 					break;
+				}
+			}
 			if (anh == NULL) {
 				foundentry->refcnt++;
 				foundentry->nh++;

@@ -100,20 +100,22 @@ static inline isc_result_t totext_nxt(ARGS_TOTEXT)
 
 	for (i = 0; i < sr.length; i++) {
 		if (sr.base[i] != 0)
-			for (j = 0; j < 8; j++)
+			for (j = 0; j < 8; j++) {
 				if ((sr.base[i] & (0x80 >> j)) != 0) {
-					dns_rdatatype_t t = i * 8 + j;
-					RETERR(str_totext(" ", target));
-					if (dns_rdatatype_isknown(t)) {
-						RETERR(dns_rdatatype_totext(
-							t, target));
-					} else {
+					{
+						dns_rdatatype_t t = i * 8 + j;
+						RETERR(str_totext(" ", target));
+						if (dns_rdatatype_isknown(t)) {
+							RETERR(dns_rdatatype_totext(t, target));
+						}else {
 						char buf[sizeof("65535")];
-						snprintf(buf, sizeof(buf), "%u",
-							 t);
+						snprintf(buf, sizeof(buf),
+							 "%u", t);
 						RETERR(str_totext(buf, target));
 					}
 				}
+			}
+		}
 	}
 	return (ISC_R_SUCCESS);
 }

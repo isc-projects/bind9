@@ -307,9 +307,11 @@ getalt:
 	 * We don't just multiply out as we will overflow.
 	 */
 	if (m > 0) {
-		for (exp = 0; exp < 7; exp++)
-			if (m < poweroften[exp + 1])
+		for (exp = 0; exp < 7; exp++) {
+			if (m < poweroften[exp + 1]) {
 				break;
+			}
+		}
 		man = m / poweroften[exp];
 		exp += 2;
 	} else {
@@ -360,9 +362,11 @@ getalt:
 	 * We don't just multiply out as we will overflow.
 	 */
 	if (m > 0) {
-		for (exp = 0; exp < 7; exp++)
-			if (m < poweroften[exp + 1])
+		for (exp = 0; exp < 7; exp++) {
+			if (m < poweroften[exp + 1]) {
 				break;
+			}
+		}
 		man = m / poweroften[exp];
 		exp += 2;
 	} else if (cm >= 10) {
@@ -411,9 +415,11 @@ getalt:
 	 * We don't just multiply out as we will overflow.
 	 */
 	if (m > 0) {
-		for (exp = 0; exp < 7; exp++)
-			if (m < poweroften[exp + 1])
+		for (exp = 0; exp < 7; exp++) {
+			if (m < poweroften[exp + 1]) {
 				break;
+			}
+		}
 		man = m / poweroften[exp];
 		exp += 2;
 	} else if (cm >= 10) {
@@ -592,28 +598,39 @@ static inline isc_result_t fromwire_loc(ARGS_FROMWIRE)
 	 * Size.
 	 */
 	c = sr.base[1];
-	if (c != 0)
-		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 ||
-		    ((c >> 4) & 0xf) == 0)
+	if (c != 0) {
+		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 || ((c >> 4) & 0xf) == 0) {
 			return (ISC_R_RANGE);
 
 	/*
 	 * Horizontal precision.
 	 */
+		}
+	}
+
+	/*
+	 * Horizontal precision.
+	 */
 	c = sr.base[2];
-	if (c != 0)
-		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 ||
-		    ((c >> 4) & 0xf) == 0)
+	if (c != 0) {
+		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 || ((c >> 4) & 0xf) == 0) {
 			return (ISC_R_RANGE);
 
 	/*
 	 * Vertical precision.
 	 */
+		}
+	}
+
+	/*
+	 * Vertical precision.
+	 */
 	c = sr.base[3];
-	if (c != 0)
-		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 ||
-		    ((c >> 4) & 0xf) == 0)
+	if (c != 0) {
+		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 || ((c >> 4) & 0xf) == 0) {
 			return (ISC_R_RANGE);
+		}
+	}
 	isc_region_consume(&sr, 4);
 
 	/*

@@ -163,9 +163,12 @@ static inline isc_result_t fromtext_in_wks(ARGS_FROMTEXT)
 		 * case sensitive and the database is usually in lowercase.
 		 */
 		strlcpy(service, DNS_AS_STR(token), sizeof(service));
-		for (i = strlen(service) - 1; i >= 0; i--)
-			if (isupper(service[i] & 0xff))
+		for (i = strlen(service) - 1; i >= 0; i--) {
+			if (isupper(service[i] & 0xff)) {
 				service[i] = tolower(service[i] & 0xff);
+
+			}
+		}
 
 		port = strtol(DNS_AS_STR(token), &e, 10);
 		if (*e == 0)
@@ -222,13 +225,16 @@ static inline isc_result_t totext_in_wks(ARGS_TOTEXT)
 	INSIST(sr.length <= 8 * 1024);
 	for (i = 0; i < sr.length; i++) {
 		if (sr.base[i] != 0)
-			for (j = 0; j < 8; j++)
+			for (j = 0; j < 8; j++) {
 				if ((sr.base[i] & (0x80 >> j)) != 0) {
-					snprintf(buf, sizeof(buf), "%u",
-						 i * 8 + j);
-					RETERR(str_totext(" ", target));
-					RETERR(str_totext(buf, target));
+					{
+						snprintf(buf, sizeof(buf),
+							 "%u", i * 8 + j);
+						RETERR(str_totext(" ", target));
+						RETERR(str_totext(buf, target));
+					}
 				}
+			}
 	}
 
 	return (ISC_R_SUCCESS);

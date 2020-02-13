@@ -76,9 +76,11 @@ impfind(const char *name)
 	dyndb_implementation_t *imp;
 
 	for (imp = ISC_LIST_HEAD(dyndb_implementations); imp != NULL;
-	     imp = ISC_LIST_NEXT(imp, link))
-		if (strcasecmp(name, imp->name) == 0)
+	     imp = ISC_LIST_NEXT(imp, link)) {
+		if (strcasecmp(name, imp->name) == 0) {
 			return (imp);
+		}
+	}
 	return (NULL);
 }
 
@@ -367,9 +369,12 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	if (result != ISC_R_SUCCESS)
-		if (implementation != NULL)
+	if (result != ISC_R_SUCCESS) {
+		if (implementation != NULL) {
 			unload_library(&implementation);
+
+		}
+	}
 
 	UNLOCK(&dyndb_lock);
 	return (result);

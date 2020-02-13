@@ -260,9 +260,11 @@ initial_size(unsigned int len)
 {
 	unsigned int size;
 
-	for (size = 1024; size < (64 * 1024); size *= 2)
-		if (len < size)
+	for (size = 1024; size < (64 * 1024); size *= 2) {
+		if (len < size) {
 			return (size);
+		}
+	}
 	return (65535);
 }
 

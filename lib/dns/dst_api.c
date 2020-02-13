@@ -257,9 +257,11 @@ dst_lib_destroy(void)
 	RUNTIME_CHECK(dst_initialized == true);
 	dst_initialized = false;
 
-	for (i = 0; i < DST_MAX_ALGS; i++)
-		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL)
+	for (i = 0; i < DST_MAX_ALGS; i++) {
+		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL) {
 			dst_t_func[i]->cleanup();
+		}
+	}
 	dst__openssl_destroy();
 #if USE_PKCS11
 	(void)dst__pkcs11_destroy();

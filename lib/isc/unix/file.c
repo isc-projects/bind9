@@ -297,9 +297,11 @@ isc_file_renameunique(const char *file, char *templet)
 			}
 		}
 	}
-	if (unlink(file) < 0)
-		if (errno != ENOENT)
+	if (unlink(file) < 0) {
+		if (errno != ENOENT) {
 			return (isc__errno2result(errno));
+		}
+	}
 	return (ISC_R_SUCCESS);
 }
 

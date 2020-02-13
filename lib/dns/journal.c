@@ -1925,12 +1925,16 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r)
 		if (p[0] == NULL && p[1] == NULL)
 			break;
 
-		for (i = 0; i < 2; i++)
+		for (i = 0; i < 2; i++) {
 			if (p[!i] == NULL) {
-				ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
-				ISC_LIST_APPEND(r->tuples, p[i], link);
-				goto next;
+				{
+					ISC_LIST_UNLINK(diff[i].tuples, p[i],
+							link);
+					ISC_LIST_APPEND(r->tuples, p[i], link);
+					goto next;
+				}
 			}
+		}
 		t = rdata_order(&p[0], &p[1]);
 		if (t < 0) {
 			ISC_LIST_UNLINK(diff[0].tuples, p[0], link);

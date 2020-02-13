@@ -33,9 +33,11 @@ static inline isc_result_t fromtext_x25(ARGS_FROMTEXT)
 				      false));
 	if (token.value.as_textregion.length < 4)
 		RETTOK(DNS_R_SYNTAX);
-	for (i = 0; i < token.value.as_textregion.length; i++)
-		if (!isdigit(token.value.as_textregion.base[i] & 0xff))
+	for (i = 0; i < token.value.as_textregion.length; i++) {
+		if (!isdigit(token.value.as_textregion.base[i] & 0xff)) {
 			RETTOK(ISC_R_RANGE);
+		}
+	}
 	RETTOK(txt_fromtext(&token.value.as_textregion, target));
 	return (ISC_R_SUCCESS);
 }
@@ -113,9 +115,12 @@ static inline isc_result_t fromstruct_x25(ARGS_FROMSTRUCT)
 	if (x25->x25_len < 4)
 		return (ISC_R_RANGE);
 
-	for (i = 0; i < x25->x25_len; i++)
-		if (!isdigit(x25->x25[i] & 0xff))
+	for (i = 0; i < x25->x25_len; i++) {
+		if (!isdigit(x25->x25[i] & 0xff)) {
 			return (ISC_R_RANGE);
+
+		}
+	}
 
 	RETERR(uint8_tobuffer(x25->x25_len, target));
 	return (mem_tobuffer(target, x25->x25, x25->x25_len));

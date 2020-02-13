@@ -64,9 +64,11 @@ static inline isc_result_t fromtext_in_apl(ARGS_FROMTEXT)
 				RETTOK(DNS_R_BADDOTTEDQUAD);
 			if (prefix > 32)
 				RETTOK(ISC_R_RANGE);
-			for (len = 4; len > 0; len--)
-				if (addr[len - 1] != 0)
+			for (len = 4; len > 0; len--) {
+				if (addr[len - 1] != 0) {
 					break;
+				}
+			}
 			break;
 
 		case 2:
@@ -77,9 +79,11 @@ static inline isc_result_t fromtext_in_apl(ARGS_FROMTEXT)
 				RETTOK(DNS_R_BADAAAA);
 			if (prefix > 128)
 				RETTOK(ISC_R_RANGE);
-			for (len = 16; len > 0; len--)
-				if (addr[len - 1] != 0)
+			for (len = 16; len > 0; len--) {
+				if (addr[len - 1] != 0) {
 					break;
+				}
+			}
 			break;
 
 		default:

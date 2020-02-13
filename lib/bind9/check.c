@@ -4478,9 +4478,17 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 
 	(void)cfg_map_get(config, "view", &views);
 
-	if (views != NULL && options != NULL)
-		if (check_dual_stack(options, logctx) != ISC_R_SUCCESS)
+	if (views != NULL && options != NULL) {
+		if (check_dual_stack(options, logctx) != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
+
+	/*
+	 * Use case insensitive comparision as not all file systems are
+	 * case sensitive. This will prevent people using FOO.DB and foo.db
+	 * on case sensitive file systems but that shouldn't be a major issue.
+	 */
+		}
+	}
 
 	/*
 	 * Use case insensitive comparision as not all file systems are
@@ -4622,15 +4630,20 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 
 			aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
 			for (i = 0; i < sizeof(builtin) / sizeof(builtin[0]);
-			     i++)
+			     i++) {
 				if (strcasecmp(aclname, builtin[i]) == 0) {
-					cfg_obj_log(acl, logctx, ISC_LOG_ERROR,
-						    "attempt to redefine "
-						    "builtin acl '%s'",
-						    aclname);
-					result = ISC_R_FAILURE;
-					break;
+					{
+						cfg_obj_log(acl, logctx,
+							    ISC_LOG_ERROR,
+							    "attempt to redefine "
+							    "builtin acl '%s'",
+							    aclname);
+						result = ISC_R_FAILURE;
+						break;
+					}
+
 				}
+			}
 
 			for (elt2 = cfg_list_next(elt); elt2 != NULL;
 			     elt2 = cfg_list_next(elt2)) {

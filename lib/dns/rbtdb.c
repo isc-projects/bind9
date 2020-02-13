@@ -2101,13 +2101,19 @@ restore_locks:
 	/*
 	 * Relock a read lock, or unlock the write lock if no lock was held.
 	 */
-	if (tlock == isc_rwlocktype_none)
-		if (write_locked)
+	if (tlock == isc_rwlocktype_none) {
+		if (write_locked) {
 			RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 
-	if (tlock == isc_rwlocktype_read)
-		if (write_locked)
+		}
+	}
+
+	if (tlock == isc_rwlocktype_read) {
+		if (write_locked) {
 			isc_rwlock_downgrade(&rbtdb->tree_lock);
+
+		}
+	}
 
 	return (no_reference);
 }
@@ -5286,9 +5292,10 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now)
 					      "reprieve by RETAIN() %s",
 					      printname);
 			}
-		} else if (isc_mem_isovermem(rbtdb->common.mctx) && log)
+		} else if (isc_mem_isovermem(rbtdb->common.mctx) && log) {
 			isc_log_write(dns_lctx, category, module, level,
 				      "overmem cache: saved %s", printname);
+		}
 
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		    isc_rwlocktype_write);
@@ -5829,9 +5836,11 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			 * type so they can be marked ancient later.
 			 */
 			for (topheader = rbtnode->data; topheader != NULL;
-			     topheader = topheader->next)
-				if (topheader->type == sigtype)
+			     topheader = topheader->next) {
+				if (topheader->type == sigtype) {
 					sigheader = topheader;
+				}
+			}
 			negtype = RBTDB_RDATATYPE_VALUE(covers, 0);
 		} else {
 			/*
@@ -8312,9 +8321,11 @@ cleanup_deadnodes:
 
 cleanup_heaps:
 	if (rbtdb->heaps != NULL) {
-		for (i = 0; i < (int)rbtdb->node_lock_count; i++)
-			if (rbtdb->heaps[i] != NULL)
+		for (i = 0; i < (int)rbtdb->node_lock_count; i++) {
+			if (rbtdb->heaps[i] != NULL) {
 				isc_heap_destroy(&rbtdb->heaps[i]);
+			}
+		}
 		isc_mem_put(hmctx, rbtdb->heaps,
 			    rbtdb->node_lock_count * sizeof(isc_heap_t *));
 	}
@@ -9319,11 +9330,14 @@ setownercase(rdatasetheader_t *header, const dns_name_t *name)
 	 */
 	memset(header->upper, 0, sizeof(header->upper));
 	fully_lower = true;
-	for (i = 0; i < name->length; i++)
+	for (i = 0; i < name->length; i++) {
 		if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a) {
-			header->upper[i / 8] |= 1 << (i % 8);
-			fully_lower = false;
+			{
+				header->upper[i / 8] |= 1 << (i % 8);
+				fully_lower = false;
+			}
 		}
+	}
 	header->attributes |= RDATASET_ATTR_CASESET;
 	if (ISC_LIKELY(fully_lower))
 		header->attributes |= RDATASET_ATTR_CASEFULLYLOWER;
@@ -9785,9 +9799,12 @@ restart:
 	 */
 	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_read);
 
-	for (cur = rbtversion->glue_table[idx]; cur != NULL; cur = cur->next)
-		if (cur->node == node)
+	for (cur = rbtversion->glue_table[idx]; cur != NULL; cur = cur->next) {
+		if (cur->node == node) {
 			break;
+
+		}
+	}
 
 	if (cur == NULL) {
 		goto no_glue;

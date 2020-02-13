@@ -170,11 +170,14 @@ getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 #endif
 
 	family = sa->sa_family;
-	for (i = 0; afdl[i].a_af; i++)
+	for (i = 0; afdl[i].a_af; i++) {
 		if (afdl[i].a_af == family) {
-			afd = &afdl[i];
-			goto found;
+			{
+				afd = &afdl[i];
+				goto found;
+			}
 		}
+	}
 	ERR(EAI_FAMILY);
 
 found:

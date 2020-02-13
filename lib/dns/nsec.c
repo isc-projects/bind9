@@ -75,9 +75,11 @@ dns_nsec_compressbitmap(unsigned char *map, const unsigned char *raw,
 	for (window = 0; window < 256; window++) {
 		if (window * 256 > max_type)
 			break;
-		for (octet = 31; octet >= 0; octet--)
-			if (*(raw + octet) != 0)
+		for (octet = 31; octet >= 0; octet--) {
+			if (*(raw + octet) != 0) {
 				break;
+			}
+		}
 		if (octet < 0) {
 			raw += 32;
 			continue;

@@ -679,14 +679,16 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 	REQUIRE(startField > 0 && startField <= endField);
 
 	/* determine how large the data is */
-	for (i = startField; i <= endField; i++)
-		if (sqlOK(SQLColAttribute(stmnt, i, SQL_DESC_DISPLAY_SIZE, NULL,
-					  0, NULL, &size)) &&
-		    size > 0) {
+	for (i = startField; i <= endField; i++) {
+		if (sqlOK(SQLColAttribute(stmnt, i, SQL_DESC_DISPLAY_SIZE, NULL, 0, NULL, &size)) && size > 0) {
+			{
 			/* always allow for a " " (space) character */
-			totSize += (size + 1);
+				totSize += (size + 1);
 			/* after the data item */
+			}
+
 		}
+	}
 
 	if (totSize < 1)
 		return ISC_R_FAILURE;

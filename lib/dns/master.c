@@ -363,25 +363,27 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token, bool eol,
 		}
 		/*NOTREACHED*/
 	}
-	if (eol != true)
-		if (token->type == isc_tokentype_eol ||
-		    token->type == isc_tokentype_eof) {
-			unsigned long int line;
-			const char *	  what;
-			const char *	  file;
-			file = isc_lex_getsourcename(lex);
-			line = isc_lex_getsourceline(lex);
-			if (token->type == isc_tokentype_eol) {
-				line--;
-				what = "line";
-			} else
-				what = "file";
-			(*callbacks->error)(callbacks,
-					    "dns_master_load: %s:%lu: "
-					    "unexpected end of %s",
-					    file, line, what);
-			return (ISC_R_UNEXPECTEDEND);
-		}
+	if (eol != true) {
+		if (token->type == isc_tokentype_eol || token->type == isc_tokentype_eof) {
+			{
+				unsigned long int line;
+				const char *what;
+				const char *file;
+				file = isc_lex_getsourcename(lex);
+				line = isc_lex_getsourceline(lex);
+				if (token->type == isc_tokentype_eol) {
+					line--;
+					what = "line";
+				}else
+					what = "file";
+				(*callbacks->error)(callbacks,
+						    "dns_master_load: %s:%lu: "
+						    "unexpected end of %s",
+						    file, line, what);
+				return (ISC_R_UNEXPECTEDEND);
+			}
+			}
+	}
 	return (ISC_R_SUCCESS);
 }
 

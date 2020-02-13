@@ -1406,9 +1406,17 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 		    dir.entry.name[i] != '+')
 			continue;
 
-		for (i++; i < dir.entry.length; i++)
-			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
+		for (i++; i < dir.entry.length; i++) {
+			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9') {
 				break;
+
+		/*
+		 * Did we not read exactly 5 more digits?
+		 * Did we overflow?
+		 * Did we correctly terminate?
+		 */
+			}
+		}
 
 		/*
 		 * Did we not read exactly 5 more digits?

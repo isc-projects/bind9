@@ -85,9 +85,11 @@ impfind(const char *name)
 	dns_dbimplementation_t *imp;
 
 	for (imp = ISC_LIST_HEAD(implementations); imp != NULL;
-	     imp = ISC_LIST_NEXT(imp, link))
-		if (strcasecmp(name, imp->name) == 0)
+	     imp = ISC_LIST_NEXT(imp, link)) {
+		if (strcasecmp(name, imp->name) == 0) {
 			return (imp);
+		}
+	}
 	return (NULL);
 }
 

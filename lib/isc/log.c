@@ -748,9 +748,12 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 	REQUIRE(module == NULL || module->id < lctx->module_count);
 
 	for (channel = ISC_LIST_HEAD(lcfg->channels); channel != NULL;
-	     channel = ISC_LIST_NEXT(channel, link))
-		if (strcmp(name, channel->name) == 0)
+	     channel = ISC_LIST_NEXT(channel, link)) {
+		if (strcmp(name, channel->name) == 0) {
 			break;
+
+		}
+	}
 
 	if (channel == NULL)
 		return (ISC_R_NOTFOUND);
@@ -845,13 +848,14 @@ isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level)
 	 */
 	if (lctx->debug_level == 0)
 		for (channel = ISC_LIST_HEAD(lctx->logconfig->channels);
-		     channel != NULL; channel = ISC_LIST_NEXT(channel, link))
-			if (channel->type == ISC_LOG_TOFILE &&
-			    (channel->flags & ISC_LOG_DEBUGONLY) != 0 &&
-			    FILE_STREAM(channel) != NULL) {
-				(void)fclose(FILE_STREAM(channel));
-				FILE_STREAM(channel) = NULL;
+		     channel != NULL; channel = ISC_LIST_NEXT(channel, link)) {
+			if (channel->type == ISC_LOG_TOFILE && (channel->flags & ISC_LOG_DEBUGONLY) != 0 && FILE_STREAM(channel) != NULL) {
+				{
+					(void)fclose(FILE_STREAM(channel));
+					FILE_STREAM(channel) = NULL;
+				}
 			}
+		}
 	UNLOCK(&lctx->lock);
 }
 
@@ -922,13 +926,15 @@ isc_log_closefilelogs(isc_log_t *lctx)
 
 	LOCK(&lctx->lock);
 	for (channel = ISC_LIST_HEAD(lctx->logconfig->channels);
-	     channel != NULL; channel = ISC_LIST_NEXT(channel, link))
+	     channel != NULL; channel = ISC_LIST_NEXT(channel, link)) {
 
-		if (channel->type == ISC_LOG_TOFILE &&
-		    FILE_STREAM(channel) != NULL) {
-			(void)fclose(FILE_STREAM(channel));
-			FILE_STREAM(channel) = NULL;
+		if (channel->type == ISC_LOG_TOFILE && FILE_STREAM(channel) != NULL) {
+			{
+				(void)fclose(FILE_STREAM(channel));
+				FILE_STREAM(channel) = NULL;
+			}
 		}
+	}
 	UNLOCK(&lctx->lock);
 }
 

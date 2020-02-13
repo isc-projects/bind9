@@ -3660,9 +3660,12 @@ update_listener(named_server_t *server, named_statschannel_t **listenerp,
 	isc_result_t	      result = ISC_R_SUCCESS;
 
 	for (listener = ISC_LIST_HEAD(server->statschannels); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link))
-		if (isc_sockaddr_equal(addr, &listener->address))
+	     listener = ISC_LIST_NEXT(listener, link)) {
+		if (isc_sockaddr_equal(addr, &listener->address)) {
 			break;
+
+		}
+	}
 
 	if (listener == NULL) {
 		*listenerp = NULL;

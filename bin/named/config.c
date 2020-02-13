@@ -692,9 +692,11 @@ resume:
 				listcount = newlen;
 			}
 			/* Seen? */
-			for (j = 0; j < l; j++)
-				if (strcasecmp(lists[j].name, listname) == 0)
+			for (j = 0; j < l; j++) {
+				if (strcasecmp(lists[j].name, listname) == 0) {
 					break;
+				}
+			}
 			if (j < l)
 				continue;
 			tresult = named_config_getmastersdef(config, listname,

@@ -468,10 +468,12 @@ main(int argc, char *argv[])
 		if (verbose && dbi != NULL) {
 			if (dbi->wversion != NULL)
 				printf("future version (%p)\n", dbi->wversion);
-			for (i = 0; i < dbi->rcount; i++)
-				if (dbi->rversions[i] != NULL)
+			for (i = 0; i < dbi->rcount; i++) {
+				if (dbi->rversions[i] != NULL) {
 					printf("open version %d (%p)\n", i,
 					       dbi->rversions[i]);
+				}
+			}
 		}
 		dns_name_init(&name, offsets);
 		if (strcmp(s, "!R") == 0) {

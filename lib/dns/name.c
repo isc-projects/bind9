@@ -2475,9 +2475,11 @@ dns_name_isdnssd(const dns_name_t *name)
 	if (dns_name_countlabels(name) > 3U) {
 		dns_name_init(&prefix, NULL);
 		dns_name_getlabelsequence(name, 0, 3, &prefix);
-		for (i = 0; i < (sizeof(dns_sd) / sizeof(dns_sd[0])); i++)
-			if (dns_name_equal(&prefix, &dns_sd[i]))
+		for (i = 0; i < (sizeof(dns_sd) / sizeof(dns_sd[0])); i++) {
+			if (dns_name_equal(&prefix, &dns_sd[i])) {
 				return (true);
+			}
+		}
 	}
 
 	return (false);
@@ -2534,9 +2536,11 @@ dns_name_isrfc1918(const dns_name_t *name)
 {
 	size_t i;
 
-	for (i = 0; i < (sizeof(rfc1918names) / sizeof(*rfc1918names)); i++)
-		if (dns_name_issubdomain(name, &rfc1918names[i]))
+	for (i = 0; i < (sizeof(rfc1918names) / sizeof(*rfc1918names)); i++) {
+		if (dns_name_issubdomain(name, &rfc1918names[i])) {
 			return (true);
+		}
+	}
 	return (false);
 }
 
@@ -2553,9 +2557,11 @@ dns_name_isula(const dns_name_t *name)
 {
 	size_t i;
 
-	for (i = 0; i < (sizeof(ulanames) / sizeof(*ulanames)); i++)
-		if (dns_name_issubdomain(name, &ulanames[i]))
+	for (i = 0; i < (sizeof(ulanames) / sizeof(*ulanames)); i++) {
+		if (dns_name_issubdomain(name, &ulanames[i])) {
 			return (true);
+		}
+	}
 	return (false);
 }
 

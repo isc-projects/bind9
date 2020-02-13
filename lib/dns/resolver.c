@@ -1314,33 +1314,45 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	if (finish != NULL || age_untried)
 		for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
 		     addrinfo != NULL;
-		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-			if (UNMARKED(addrinfo))
+		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+			if (UNMARKED(addrinfo)) {
 				dns_adb_agesrtt(fctx->adb, addrinfo, now);
+
+			}
+		}
 
 	if ((finish != NULL || age_untried) && TRIEDFIND(fctx))
 		for (find = ISC_LIST_HEAD(fctx->finds); find != NULL;
-		     find = ISC_LIST_NEXT(find, publink))
+		     find = ISC_LIST_NEXT(find, publink)) {
 			for (addrinfo = ISC_LIST_HEAD(find->list);
 			     addrinfo != NULL;
-			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-				if (UNMARKED(addrinfo))
+			     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+				if (UNMARKED(addrinfo)) {
 					dns_adb_agesrtt(fctx->adb, addrinfo,
-							now);
+						        now);
+
+				}
+			}
+		}
 
 	if ((finish != NULL || age_untried) && TRIEDALT(fctx)) {
 		for (addrinfo = ISC_LIST_HEAD(fctx->altaddrs); addrinfo != NULL;
-		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-			if (UNMARKED(addrinfo))
+		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+			if (UNMARKED(addrinfo)) {
 				dns_adb_agesrtt(fctx->adb, addrinfo, now);
+			}
+		}
 		for (find = ISC_LIST_HEAD(fctx->altfinds); find != NULL;
-		     find = ISC_LIST_NEXT(find, publink))
+		     find = ISC_LIST_NEXT(find, publink)) {
 			for (addrinfo = ISC_LIST_HEAD(find->list);
 			     addrinfo != NULL;
-			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-				if (UNMARKED(addrinfo))
+			     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+				if (UNMARKED(addrinfo)) {
 					dns_adb_agesrtt(fctx->adb, addrinfo,
-							now);
+						        now);
+				}
+			}
+		}
 	}
 
 	/*
@@ -7199,9 +7211,11 @@ betterreferral(fetchctx_t *fctx)
 		if (!isstrictsubdomain(name, &fctx->domain))
 			continue;
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-			if (rdataset->type == dns_rdatatype_ns)
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			if (rdataset->type == dns_rdatatype_ns) {
 				return (true);
+			}
+		}
 	}
 	return (false);
 }

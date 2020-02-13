@@ -3039,9 +3039,11 @@ parse_unsupported(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 				braces++;
 			else if (pctx->token.value.as_char == '}')
 				braces--;
-			else if (pctx->token.value.as_char == ';')
-				if (braces == 0)
+			else if (pctx->token.value.as_char == ';') {
+				if (braces == 0) {
 					break;
+				}
+			}
 		}
 		if (pctx->token.type == isc_tokentype_eof || braces < 0) {
 			cfg_parser_error(pctx, CFG_LOG_NEAR,

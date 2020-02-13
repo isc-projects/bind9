@@ -181,9 +181,11 @@ check_rsa(const dst_private_t *priv, bool external)
 		have[i] = false;
 
 	for (j = 0; j < priv->nelements; j++) {
-		for (i = 0; i < RSA_NTAGS; i++)
-			if (priv->elements[j].tag == TAG(DST_ALG_RSA, i))
+		for (i = 0; i < RSA_NTAGS; i++) {
+			if (priv->elements[j].tag == TAG(DST_ALG_RSA, i)) {
 				break;
+			}
+		}
 		if (i == RSA_NTAGS)
 			return (-1);
 		have[i] = true;
@@ -214,9 +216,11 @@ check_dh(const dst_private_t *priv)
 	if (priv->nelements != DH_NTAGS)
 		return (-1);
 	for (i = 0; i < DH_NTAGS; i++) {
-		for (j = 0; j < priv->nelements; j++)
-			if (priv->elements[j].tag == TAG(DST_ALG_DH, i))
+		for (j = 0; j < priv->nelements; j++) {
+			if (priv->elements[j].tag == TAG(DST_ALG_DH, i)) {
 				break;
+			}
+		}
 		if (j == priv->nelements)
 			return (-1);
 	}
@@ -237,9 +241,11 @@ check_ecdsa(const dst_private_t *priv, bool external)
 	for (i = 0; i < ECDSA_NTAGS; i++)
 		have[i] = false;
 	for (j = 0; j < priv->nelements; j++) {
-		for (i = 0; i < ECDSA_NTAGS; i++)
-			if (priv->elements[j].tag == TAG(DST_ALG_ECDSA256, i))
+		for (i = 0; i < ECDSA_NTAGS; i++) {
+			if (priv->elements[j].tag == TAG(DST_ALG_ECDSA256, i)) {
 				break;
+			}
+		}
 		if (i == ECDSA_NTAGS)
 			return (-1);
 		have[i] = true;
@@ -268,9 +274,11 @@ check_eddsa(const dst_private_t *priv, bool external)
 	for (i = 0; i < EDDSA_NTAGS; i++)
 		have[i] = false;
 	for (j = 0; j < priv->nelements; j++) {
-		for (i = 0; i < EDDSA_NTAGS; i++)
-			if (priv->elements[j].tag == TAG(DST_ALG_ED25519, i))
+		for (i = 0; i < EDDSA_NTAGS; i++) {
+			if (priv->elements[j].tag == TAG(DST_ALG_ED25519, i)) {
 				break;
+			}
+		}
 		if (i == EDDSA_NTAGS)
 			return (-1);
 		have[i] = true;
@@ -304,9 +312,11 @@ check_hmac_md5(const dst_private_t *priv, bool old)
 	 * We must be new format at this point.
 	 */
 	for (i = 0; i < HMACMD5_NTAGS; i++) {
-		for (j = 0; j < priv->nelements; j++)
-			if (priv->elements[j].tag == TAG(DST_ALG_HMACMD5, i))
+		for (j = 0; j < priv->nelements; j++) {
+			if (priv->elements[j].tag == TAG(DST_ALG_HMACMD5, i)) {
 				break;
+			}
+		}
 		if (j == priv->nelements)
 			return (-1);
 	}
@@ -320,9 +330,11 @@ check_hmac_sha(const dst_private_t *priv, unsigned int ntags, unsigned int alg)
 	if (priv->nelements != ntags)
 		return (-1);
 	for (i = 0; i < ntags; i++) {
-		for (j = 0; j < priv->nelements; j++)
-			if (priv->elements[j].tag == TAG(alg, i))
+		for (j = 0; j < priv->nelements; j++) {
+			if (priv->elements[j].tag == TAG(alg, i)) {
 				break;
+			}
+		}
 		if (j == priv->nelements)
 			return (-1);
 	}

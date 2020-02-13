@@ -945,9 +945,12 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 	isc_result_t	   result = ISC_R_SUCCESS;
 
 	for (listener = ISC_LIST_HEAD(cp->listeners); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link))
-		if (isc_sockaddr_equal(addr, &listener->address))
+	     listener = ISC_LIST_NEXT(listener, link)) {
+		if (isc_sockaddr_equal(addr, &listener->address)) {
 			break;
+
+		}
+	}
 
 	if (listener == NULL) {
 		*listenerp = NULL;

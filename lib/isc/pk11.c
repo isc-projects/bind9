@@ -291,15 +291,19 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype, bool need_services,
 	switch (optype) {
 	case OP_ANY:
 		for (token = ISC_LIST_HEAD(tokens); token != NULL;
-		     token = ISC_LIST_NEXT(token, link))
-			if (token->slotid == slot)
+		     token = ISC_LIST_NEXT(token, link)) {
+			if (token->slotid == slot) {
 				break;
+			}
+		}
 		break;
 	default:
 		for (token = ISC_LIST_HEAD(tokens); token != NULL;
-		     token = ISC_LIST_NEXT(token, link))
-			if (token->slotid == slot)
+		     token = ISC_LIST_NEXT(token, link)) {
+			if (token->slotid == slot) {
 				break;
+			}
+		}
 		break;
 	}
 	if (token == NULL)
@@ -698,9 +702,11 @@ pk11_attribute_bytype(const pk11_object_t *obj, CK_ATTRIBUTE_TYPE type)
 	CK_ATTRIBUTE *attr;
 
 	for (attr = pk11_attribute_first(obj); attr != NULL;
-	     attr = pk11_attribute_next(obj, attr))
-		if (attr->type == type)
+	     attr = pk11_attribute_next(obj, attr)) {
+		if (attr->type == type) {
 			return (attr);
+		}
+	}
 	return (NULL);
 }
 
@@ -899,33 +905,41 @@ pk11_parse_uri(pk11_object_t *obj, const char *label, isc_mem_t *mctx,
 			if (token == NULL)
 				for (token = ISC_LIST_HEAD(tokens);
 				     token != NULL;
-				     token = ISC_LIST_NEXT(token, link))
-					if (pk11strcmp(v, l, token->name, 32))
+				     token = ISC_LIST_NEXT(token, link)) {
+					if (pk11strcmp(v, l, token->name, 32)) {
 						break;
+					}
+				}
 		} else if (strcmp(a, "manufacturer") == 0) {
 			/* manufacturer: CK_TOKEN_INFO manufacturerID */
 			if (token == NULL)
 				for (token = ISC_LIST_HEAD(tokens);
 				     token != NULL;
-				     token = ISC_LIST_NEXT(token, link))
-					if (pk11strcmp(v, l, token->manuf, 32))
+				     token = ISC_LIST_NEXT(token, link)) {
+					if (pk11strcmp(v, l, token->manuf, 32)) {
 						break;
+					}
+				}
 		} else if (strcmp(a, "serial") == 0) {
 			/* serial: CK_TOKEN_INFO serialNumber */
 			if (token == NULL)
 				for (token = ISC_LIST_HEAD(tokens);
 				     token != NULL;
-				     token = ISC_LIST_NEXT(token, link))
-					if (pk11strcmp(v, l, token->serial, 16))
+				     token = ISC_LIST_NEXT(token, link)) {
+					if (pk11strcmp(v, l, token->serial, 16)) {
 						break;
+					}
+				}
 		} else if (strcmp(a, "model") == 0) {
 			/* model: CK_TOKEN_INFO model */
 			if (token == NULL)
 				for (token = ISC_LIST_HEAD(tokens);
 				     token != NULL;
-				     token = ISC_LIST_NEXT(token, link))
-					if (pk11strcmp(v, l, token->model, 16))
+				     token = ISC_LIST_NEXT(token, link)) {
+					if (pk11strcmp(v, l, token->model, 16)) {
 						break;
+					}
+				}
 		} else if (strcmp(a, "library-manufacturer") == 0) {
 			/* ignored */
 		} else if (strcmp(a, "library-description") == 0) {

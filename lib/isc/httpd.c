@@ -520,9 +520,14 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 		 * Terminate token search on NULL or EOL.
 		 */
 		while (*h != 0 && *h != '\r' && *h != '\n') {
-			if (strncasecmp(h, value, vlen) == 0)
-				if (strchr(eov, h[vlen]) != NULL)
+			if (strncasecmp(h, value, vlen) == 0) {
+				if (strchr(eov, h[vlen]) != NULL) {
 					return (true);
+			/*
+			 * Skip to next token.
+			 */
+				}
+			}
 			/*
 			 * Skip to next token.
 			 */

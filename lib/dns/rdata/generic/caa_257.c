@@ -302,9 +302,11 @@ static inline isc_result_t fromtext_caa(ARGS_FROMTEXT)
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 	tr = token.value.as_textregion;
-	for (i = 0; i < tr.length; i++)
-		if (!alphanumeric[(unsigned char)tr.base[i]])
+	for (i = 0; i < tr.length; i++) {
+		if (!alphanumeric[(unsigned char)tr.base[i]]) {
 			RETTOK(DNS_R_SYNTAX);
+		}
+	}
 	RETERR(uint8_tobuffer(tr.length, target));
 	RETERR(mem_tobuffer(target, tr.base, tr.length));
 
@@ -388,9 +390,14 @@ static inline isc_result_t fromwire_caa(ARGS_FROMWIRE)
 		RETERR(DNS_R_FORMERR);
 
 	/* Check the Tag's value */
-	for (i = 0; i < len; i++)
-		if (!alphanumeric[sr.base[i]])
+	for (i = 0; i < len; i++) {
+		if (!alphanumeric[sr.base[i]]) {
 			RETERR(DNS_R_FORMERR);
+	/*
+	 * Tag + Value
+	 */
+		}
+	}
 	/*
 	 * Tag + Value
 	 */
@@ -460,9 +467,11 @@ static inline isc_result_t fromstruct_caa(ARGS_FROMSTRUCT)
 	 */
 	region.base = caa->tag;
 	region.length = caa->tag_len;
-	for (i = 0; i < region.length; i++)
-		if (!alphanumeric[region.base[i]])
+	for (i = 0; i < region.length; i++) {
+		if (!alphanumeric[region.base[i]]) {
 			RETERR(DNS_R_SYNTAX);
+		}
+	}
 	RETERR(isc_buffer_copyregion(target, &region));
 
 	/*

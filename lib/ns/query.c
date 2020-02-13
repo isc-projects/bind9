@@ -10535,15 +10535,18 @@ query_glueanswer(query_ctx_t *qctx)
 
 	msg = qctx->client->message;
 	for (name = ISC_LIST_HEAD(msg->sections[section]); name != NULL;
-	     name = ISC_LIST_NEXT(name, link))
+	     name = ISC_LIST_NEXT(name, link)) {
 		if (dns_name_equal(name, qctx->client->query.qname)) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link))
-				if (rdataset->type == qctx->qtype)
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				if (rdataset->type == qctx->qtype) {
 					break;
+				}
+			}
 			break;
 		}
+	}
 	if (rdataset != NULL) {
 		ISC_LIST_UNLINK(msg->sections[section], name, link);
 		ISC_LIST_PREPEND(msg->sections[section], name, link);
