@@ -56,8 +56,8 @@ struct dns_bcentry {
 	dns_name_t name;
 };
 
-static isc_result_t badcache_resize(dns_badcache_t *bc, isc_time_t *now,
-				    bool grow);
+static isc_result_t
+badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow);
 
 isc_result_t
 dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {

@@ -61,8 +61,7 @@
  */
 
 void
-destroy_querylist(query_list_t **querylist)
-{
+destroy_querylist(query_list_t **querylist) {
 	query_segment_t *tseg = NULL;
 	query_segment_t *nseg = NULL;
 
@@ -96,8 +95,7 @@ destroy_querylist(query_list_t **querylist)
 isc_result_t
 build_querylist(const char *query_str, char **zone, char **record,
 		char **client, query_list_t **querylist, unsigned int flags,
-		log_t log)
-{
+		log_t log) {
 	isc_result_t result;
 	bool foundzone = false;
 	bool foundrecord = false;
@@ -273,8 +271,7 @@ flag_fail:
  * used to be in our queries from named.conf
  */
 char *
-build_querystring(query_list_t *querylist)
-{
+build_querystring(query_list_t *querylist) {
 	query_segment_t *tseg = NULL;
 	unsigned int length = 0;
 	char *qs = NULL;
@@ -323,8 +320,7 @@ isc_result_t
 build_dbinstance(const char *allnodes_str, const char *allowxfr_str,
 		 const char *authority_str, const char *findzone_str,
 		 const char *lookup_str, const char *countzone_str,
-		 dbinstance_t **dbi, log_t log)
-{
+		 dbinstance_t **dbi, log_t log) {
 	isc_result_t result;
 	dbinstance_t *db = NULL;
 	int err;
@@ -452,8 +448,7 @@ cleanup:
 }
 
 void
-destroy_dbinstance(dbinstance_t *dbi)
-{
+destroy_dbinstance(dbinstance_t *dbi) {
 	/* destroy any query lists we created */
 	destroy_querylist(&dbi->allnodes_q);
 	destroy_querylist(&dbi->allowxfr_q);
@@ -470,8 +465,7 @@ destroy_dbinstance(dbinstance_t *dbi)
 }
 
 char *
-get_parameter_value(const char *input, const char *key)
-{
+get_parameter_value(const char *input, const char *key) {
 	int keylen;
 	char *keystart;
 	char value[255];

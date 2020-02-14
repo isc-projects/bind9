@@ -25,7 +25,7 @@
 
 /*! verbosity: set by -v and -q option in each program, defined in dnssectool.c
  */
-extern int  verbose;
+extern int verbose;
 extern bool quiet;
 
 /*! program name, statically initialized in each program */

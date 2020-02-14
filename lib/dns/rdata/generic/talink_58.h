@@ -18,9 +18,9 @@
 
 typedef struct dns_rdata_talink {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	dns_name_t	  prev;
-	dns_name_t	  next;
+	isc_mem_t *mctx;
+	dns_name_t prev;
+	dns_name_t next;
 } dns_rdata_talink_t;
 
 #endif /* GENERIC_TALINK_58_H */

@@ -38,8 +38,10 @@
 #define CCMSG_MAGIC	 ISC_MAGIC('C', 'C', 'm', 's')
 #define VALID_CCMSG(foo) ISC_MAGIC_VALID(foo, CCMSG_MAGIC)
 
-static void recv_length(isc_task_t *, isc_event_t *);
-static void recv_message(isc_task_t *, isc_event_t *);
+static void
+recv_length(isc_task_t *, isc_event_t *);
+static void
+recv_message(isc_task_t *, isc_event_t *);
 
 static void
 recv_length(isc_task_t *task, isc_event_t *ev_in) {

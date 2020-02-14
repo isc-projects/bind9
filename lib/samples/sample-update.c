@@ -61,12 +61,16 @@ static ISC_LIST(dns_rdatalist_t) usedrdatalists;
 
 static const char *port = "53";
 
-static void setup_tsec(char *keyfile, isc_mem_t *mctx);
-static void update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
-			       dns_name_t *name);
-static void evaluate_prereq(isc_mem_t *mctx, char *cmdline, dns_name_t *name);
+static void
+setup_tsec(char *keyfile, isc_mem_t *mctx);
+static void
+update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
+		   dns_name_t *name);
+static void
+evaluate_prereq(isc_mem_t *mctx, char *cmdline, dns_name_t *name);
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

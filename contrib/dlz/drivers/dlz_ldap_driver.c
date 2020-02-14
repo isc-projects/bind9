@@ -101,12 +101,13 @@ typedef struct {
 
 /* forward references */
 
-static isc_result_t dlz_ldap_findzone(void *driverarg, void *dbdata,
-				      const char *name,
-				      dns_clientinfomethods_t *methods,
-				      dns_clientinfo_t *clientinfo);
+static isc_result_t
+dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name,
+		  dns_clientinfomethods_t *methods,
+		  dns_clientinfo_t *clientinfo);
 
-static void dlz_ldap_destroy(void *driverarg, void *dbdata);
+static void
+dlz_ldap_destroy(void *driverarg, void *dbdata);
 
 /*
  * Private methods
@@ -114,8 +115,7 @@ static void dlz_ldap_destroy(void *driverarg, void *dbdata);
 
 /*% checks that the LDAP URL parameters make sense */
 static isc_result_t
-dlz_ldap_checkURL(char *URL, int attrCnt, const char *msg)
-{
+dlz_ldap_checkURL(char *URL, int attrCnt, const char *msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 	int ldap_result;
 	LDAPURLDesc *ldap_url = NULL;
@@ -191,8 +191,7 @@ cleanup:
 
 /*% Connects / reconnects to LDAP server */
 static isc_result_t
-dlz_ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc)
-{
+dlz_ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc) {
 	isc_result_t result;
 	int ldap_result;
 
@@ -246,8 +245,7 @@ cleanup:
  * multithreaded operation.
  */
 static void
-ldap_destroy_dblist(db_list_t *dblist)
-{
+ldap_destroy_dblist(db_list_t *dblist) {
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -281,8 +279,7 @@ ldap_destroy_dblist(db_list_t *dblist)
  * multithreaded operation.
  */
 static dbinstance_t *
-ldap_find_avail_conn(db_list_t *dblist)
-{
+ldap_find_avail_conn(db_list_t *dblist) {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
 	int count = 0;
@@ -315,8 +312,7 @@ ldap_find_avail_conn(db_list_t *dblist)
 
 static isc_result_t
 ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
-		     bool allnodes)
-{
+		     bool allnodes) {
 	isc_result_t result = ISC_R_SUCCESS;
 	int i = 0;
 	int j;
@@ -553,8 +549,7 @@ cleanup:
  */
 static isc_result_t
 ldap_get_results(const char *zone, const char *record, const char *client,
-		 unsigned int query, void *dbdata, void *ptr)
-{
+		 unsigned int query, void *dbdata, void *ptr) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	char *querystring = NULL;
@@ -839,8 +834,7 @@ cleanup:
  */
 static isc_result_t
 dlz_ldap_allowzonexfr(void *driverarg, void *dbdata, const char *name,
-		      const char *client)
-{
+		      const char *client) {
 	isc_result_t result;
 
 	UNUSED(driverarg);
@@ -858,16 +852,14 @@ dlz_ldap_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 
 static isc_result_t
 dlz_ldap_allnodes(const char *zone, void *driverarg, void *dbdata,
-		  dns_sdlzallnodes_t *allnodes)
-{
+		  dns_sdlzallnodes_t *allnodes) {
 	UNUSED(driverarg);
 	return (ldap_get_results(zone, NULL, NULL, ALLNODES, dbdata, allnodes));
 }
 
 static isc_result_t
 dlz_ldap_authority(const char *zone, void *driverarg, void *dbdata,
-		   dns_sdlzlookup_t *lookup)
-{
+		   dns_sdlzlookup_t *lookup) {
 	UNUSED(driverarg);
 	return (ldap_get_results(zone, NULL, NULL, AUTHORITY, dbdata, lookup));
 }
@@ -875,8 +867,7 @@ dlz_ldap_authority(const char *zone, void *driverarg, void *dbdata,
 static isc_result_t
 dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name,
 		  dns_clientinfomethods_t *methods,
-		  dns_clientinfo_t *clientinfo)
-{
+		  dns_clientinfo_t *clientinfo) {
 	UNUSED(driverarg);
 	UNUSED(methods);
 	UNUSED(clientinfo);
@@ -886,8 +877,8 @@ dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name,
 static isc_result_t
 dlz_ldap_lookup(const char *zone, const char *name, void *driverarg,
 		void *dbdata, dns_sdlzlookup_t *lookup,
-		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
-{
+		dns_clientinfomethods_t *methods,
+		dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 
 	UNUSED(driverarg);
@@ -906,8 +897,7 @@ dlz_ldap_lookup(const char *zone, const char *name, void *driverarg,
 
 static isc_result_t
 dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
-		void *driverarg, void **dbdata)
-{
+		void *driverarg, void **dbdata) {
 	isc_result_t result;
 	ldap_instance_t *ldap_inst = NULL;
 	dbinstance_t *dbi = NULL;
@@ -1154,8 +1144,7 @@ cleanup:
 }
 
 void
-dlz_ldap_destroy(void *driverarg, void *dbdata)
-{
+dlz_ldap_destroy(void *driverarg, void *dbdata) {
 	UNUSED(driverarg);
 
 	if (dbdata != NULL) {
@@ -1203,8 +1192,7 @@ static dns_sdlzmethods_t dlz_ldap_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_ldap_init(void)
-{
+dlz_ldap_init(void) {
 	isc_result_t result;
 
 	/*
@@ -1231,8 +1219,7 @@ dlz_ldap_init(void)
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_ldap_clear(void)
-{
+dlz_ldap_clear(void) {
 	/*
 	 * Write debugging message to log
 	 */

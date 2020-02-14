@@ -284,65 +284,105 @@ struct dns_adbentry {
 /*
  * Internal functions (and prototypes).
  */
-static inline dns_adbname_t *new_adbname(dns_adb_t *, const dns_name_t *);
-static inline void free_adbname(dns_adb_t *, dns_adbname_t **);
-static inline dns_adbnamehook_t *new_adbnamehook(dns_adb_t *, dns_adbentry_t *);
-static inline void free_adbnamehook(dns_adb_t *, dns_adbnamehook_t **);
+static inline dns_adbname_t *
+new_adbname(dns_adb_t *, const dns_name_t *);
+static inline void
+free_adbname(dns_adb_t *, dns_adbname_t **);
+static inline dns_adbnamehook_t *
+new_adbnamehook(dns_adb_t *, dns_adbentry_t *);
+static inline void
+free_adbnamehook(dns_adb_t *, dns_adbnamehook_t **);
 static inline dns_adblameinfo_t *
 new_adblameinfo(dns_adb_t *, const dns_name_t *, dns_rdatatype_t);
-static inline void free_adblameinfo(dns_adb_t *, dns_adblameinfo_t **);
-static inline dns_adbentry_t *new_adbentry(dns_adb_t *);
-static inline void free_adbentry(dns_adb_t *, dns_adbentry_t **);
-static inline dns_adbfind_t *new_adbfind(dns_adb_t *);
-static inline bool free_adbfind(dns_adb_t *, dns_adbfind_t **);
-static inline dns_adbaddrinfo_t *new_adbaddrinfo(dns_adb_t *, dns_adbentry_t *,
-						 in_port_t);
-static inline dns_adbfetch_t *new_adbfetch(dns_adb_t *);
-static inline void free_adbfetch(dns_adb_t *, dns_adbfetch_t **);
-static inline dns_adbname_t *find_name_and_lock(dns_adb_t *, const dns_name_t *,
-						unsigned int, int *);
+static inline void
+free_adblameinfo(dns_adb_t *, dns_adblameinfo_t **);
+static inline dns_adbentry_t *
+new_adbentry(dns_adb_t *);
+static inline void
+free_adbentry(dns_adb_t *, dns_adbentry_t **);
+static inline dns_adbfind_t *
+new_adbfind(dns_adb_t *);
+static inline bool
+free_adbfind(dns_adb_t *, dns_adbfind_t **);
+static inline dns_adbaddrinfo_t *
+new_adbaddrinfo(dns_adb_t *, dns_adbentry_t *, in_port_t);
+static inline dns_adbfetch_t *
+new_adbfetch(dns_adb_t *);
+static inline void
+free_adbfetch(dns_adb_t *, dns_adbfetch_t **);
+static inline dns_adbname_t *
+find_name_and_lock(dns_adb_t *, const dns_name_t *, unsigned int, int *);
 static inline dns_adbentry_t *
 find_entry_and_lock(dns_adb_t *, const isc_sockaddr_t *, int *, isc_stdtime_t);
-static void dump_adb(dns_adb_t *, FILE *, bool debug, isc_stdtime_t);
-static void print_dns_name(FILE *, const dns_name_t *);
-static void print_namehook_list(FILE *, const char *legend, dns_adb_t *adb,
-				dns_adbnamehooklist_t *list, bool debug,
-				isc_stdtime_t now);
-static void print_find_list(FILE *, dns_adbname_t *);
-static void print_fetch_list(FILE *, dns_adbname_t *);
-static inline bool dec_adb_irefcnt(dns_adb_t *);
-static inline void inc_adb_irefcnt(dns_adb_t *);
-static inline void inc_adb_erefcnt(dns_adb_t *);
-static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *, bool);
-static inline bool dec_entry_refcnt(dns_adb_t *, bool, dns_adbentry_t *, bool);
-static inline void violate_locking_hierarchy(isc_mutex_t *, isc_mutex_t *);
-static bool clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
-static void clean_target(dns_adb_t *, dns_name_t *);
-static void clean_finds_at_name(dns_adbname_t *, isc_eventtype_t, unsigned int);
-static bool check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
-static bool check_expire_entry(dns_adb_t *, dns_adbentry_t **, isc_stdtime_t);
-static void cancel_fetches_at_name(dns_adbname_t *);
-static isc_result_t dbfind_name(dns_adbname_t *, isc_stdtime_t,
-				dns_rdatatype_t);
-static isc_result_t fetch_name(dns_adbname_t *, bool, unsigned int,
-			       isc_counter_t *qc, dns_rdatatype_t);
-static inline void check_exit(dns_adb_t *);
-static void destroy(dns_adb_t *);
-static bool shutdown_names(dns_adb_t *);
-static bool shutdown_entries(dns_adb_t *);
-static inline void link_name(dns_adb_t *, int, dns_adbname_t *);
-static inline bool unlink_name(dns_adb_t *, dns_adbname_t *);
-static inline void link_entry(dns_adb_t *, int, dns_adbentry_t *);
-static inline bool unlink_entry(dns_adb_t *, dns_adbentry_t *);
-static bool kill_name(dns_adbname_t **, isc_eventtype_t);
-static void water(void *, int);
-static void dump_entry(FILE *, dns_adb_t *, dns_adbentry_t *, bool,
-		       isc_stdtime_t);
-static void adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt,
-		       unsigned int factor, isc_stdtime_t now);
-static void shutdown_task(isc_task_t *task, isc_event_t *ev);
-static void log_quota(dns_adbentry_t *entry, const char *fmt, ...)
-	ISC_FORMAT_PRINTF(2, 3);
+static void
+dump_adb(dns_adb_t *, FILE *, bool debug, isc_stdtime_t);
+static void
+print_dns_name(FILE *, const dns_name_t *);
+static void
+print_namehook_list(FILE *, const char *legend, dns_adb_t *adb,
+		    dns_adbnamehooklist_t *list, bool debug, isc_stdtime_t now);
+static void
+print_find_list(FILE *, dns_adbname_t *);
+static void
+print_fetch_list(FILE *, dns_adbname_t *);
+static inline bool
+dec_adb_irefcnt(dns_adb_t *);
+static inline void
+inc_adb_irefcnt(dns_adb_t *);
+static inline void
+inc_adb_erefcnt(dns_adb_t *);
+static inline void
+inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *, bool);
+static inline bool
+dec_entry_refcnt(dns_adb_t *, bool, dns_adbentry_t *, bool);
+static inline void
+violate_locking_hierarchy(isc_mutex_t *, isc_mutex_t *);
+static bool
+clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
+static void
+clean_target(dns_adb_t *, dns_name_t *);
+static void
+clean_finds_at_name(dns_adbname_t *, isc_eventtype_t, unsigned int);
+static bool
+check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
+static bool
+check_expire_entry(dns_adb_t *, dns_adbentry_t **, isc_stdtime_t);
+static void
+cancel_fetches_at_name(dns_adbname_t *);
+static isc_result_t
+dbfind_name(dns_adbname_t *, isc_stdtime_t, dns_rdatatype_t);
+static isc_result_t
+fetch_name(dns_adbname_t *, bool, unsigned int, isc_counter_t *qc,
+	   dns_rdatatype_t);
+static inline void
+check_exit(dns_adb_t *);
+static void
+destroy(dns_adb_t *);
+static bool
+shutdown_names(dns_adb_t *);
+static bool
+shutdown_entries(dns_adb_t *);
+static inline void
+link_name(dns_adb_t *, int, dns_adbname_t *);
+static inline bool
+unlink_name(dns_adb_t *, dns_adbname_t *);
+static inline void
+link_entry(dns_adb_t *, int, dns_adbentry_t *);
+static inline bool
+unlink_entry(dns_adb_t *, dns_adbentry_t *);
+static bool
+kill_name(dns_adbname_t **, isc_eventtype_t);
+static void
+water(void *, int);
+static void
+dump_entry(FILE *, dns_adb_t *, dns_adbentry_t *, bool, isc_stdtime_t);
+static void
+adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
+	   isc_stdtime_t now);
+static void
+shutdown_task(isc_task_t *task, isc_event_t *ev);
+static void
+log_quota(dns_adbentry_t *entry, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 /*
  * MUST NOT overlap DNS_ADBFIND_* flags!
@@ -460,7 +500,8 @@ static isc_result_t find_err_map[FIND_ERR_MAX] = {
 	DNS_R_NXRRSET, ISC_R_UNEXPECTED, ISC_R_NOTFOUND /* not YET found */
 };
 
-static void DP(int level, const char *format, ...) ISC_FORMAT_PRINTF(2, 3);
+static void
+DP(int level, const char *format, ...) ISC_FORMAT_PRINTF(2, 3);
 
 static void
 DP(int level, const char *format, ...) {

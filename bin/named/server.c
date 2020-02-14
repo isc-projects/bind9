@@ -383,74 +383,86 @@ ISC_PLATFORM_NORETURN_PRE static void
 fatal(named_server_t *server, const char *msg,
       isc_result_t result) ISC_PLATFORM_NORETURN_POST;
 
-static void named_server_reload(isc_task_t *task, isc_event_t *event);
+static void
+named_server_reload(isc_task_t *task, isc_event_t *event);
 
-static isc_result_t ns_listenelt_fromconfig(const cfg_obj_t *listener,
-					    const cfg_obj_t *config,
-					    cfg_aclconfctx_t *actx,
-					    isc_mem_t *mctx, uint16_t family,
-					    ns_listenelt_t **target);
-static isc_result_t ns_listenlist_fromconfig(const cfg_obj_t *listenlist,
-					     const cfg_obj_t *config,
-					     cfg_aclconfctx_t *actx,
-					     isc_mem_t *mctx, uint16_t family,
-					     ns_listenlist_t **target);
+static isc_result_t
+ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
+			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
+			uint16_t family, ns_listenelt_t **target);
+static isc_result_t
+ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
+			 cfg_aclconfctx_t *actx, isc_mem_t *mctx,
+			 uint16_t family, ns_listenlist_t **target);
 
-static isc_result_t configure_forward(const cfg_obj_t *config, dns_view_t *view,
-				      const dns_name_t *origin,
-				      const cfg_obj_t *forwarders,
-				      const cfg_obj_t *forwardtype);
+static isc_result_t
+configure_forward(const cfg_obj_t *config, dns_view_t *view,
+		  const dns_name_t *origin, const cfg_obj_t *forwarders,
+		  const cfg_obj_t *forwardtype);
 
-static isc_result_t configure_alternates(const cfg_obj_t *config,
-					 dns_view_t *view,
-					 const cfg_obj_t *alternates);
+static isc_result_t
+configure_alternates(const cfg_obj_t *config, dns_view_t *view,
+		     const cfg_obj_t *alternates);
 
-static isc_result_t configure_zone(const cfg_obj_t *config,
-				   const cfg_obj_t *zconfig,
-				   const cfg_obj_t *vconfig, isc_mem_t *mctx,
-				   dns_view_t *view, dns_viewlist_t *viewlist,
-				   dns_kasplist_t *kasplist,
-				   cfg_aclconfctx_t *aclconf, bool added,
-				   bool old_rpz_ok, bool modify);
+static isc_result_t
+configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
+	       const cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
+	       dns_viewlist_t *viewlist, dns_kasplist_t *kasplist,
+	       cfg_aclconfctx_t *aclconf, bool added, bool old_rpz_ok,
+	       bool modify);
 
-static isc_result_t configure_newzones(dns_view_t *view, cfg_obj_t *config,
-				       cfg_obj_t *vconfig, isc_mem_t *mctx,
-				       cfg_aclconfctx_t *actx);
+static isc_result_t
+configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
+		   isc_mem_t *mctx, cfg_aclconfctx_t *actx);
 
-static isc_result_t add_keydata_zone(dns_view_t *view, const char *directory,
-				     isc_mem_t *mctx);
+static isc_result_t
+add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx);
 
-static void end_reserved_dispatches(named_server_t *server, bool all);
+static void
+end_reserved_dispatches(named_server_t *server, bool all);
 
-static void newzone_cfgctx_destroy(void **cfgp);
+static void
+newzone_cfgctx_destroy(void **cfgp);
 
-static inline isc_result_t putstr(isc_buffer_t **b, const char *str);
+static inline isc_result_t
+putstr(isc_buffer_t **b, const char *str);
 
-static isc_result_t putmem(isc_buffer_t **b, const char *str, size_t len);
+static isc_result_t
+putmem(isc_buffer_t **b, const char *str, size_t len);
 
-static isc_result_t putuint8(isc_buffer_t **b, uint8_t val);
+static isc_result_t
+putuint8(isc_buffer_t **b, uint8_t val);
 
-static inline isc_result_t putnull(isc_buffer_t **b);
+static inline isc_result_t
+putnull(isc_buffer_t **b);
 
-static int count_zones(const cfg_obj_t *conf);
+static int
+count_zones(const cfg_obj_t *conf);
 
 #ifdef HAVE_LMDB
-static isc_result_t migrate_nzf(dns_view_t *view);
+static isc_result_t
+migrate_nzf(dns_view_t *view);
 
-static isc_result_t nzd_writable(dns_view_t *view);
+static isc_result_t
+nzd_writable(dns_view_t *view);
 
-static isc_result_t nzd_open(dns_view_t *view, unsigned int flags,
-			     MDB_txn **txnp, MDB_dbi *dbi);
+static isc_result_t
+nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi);
 
-static isc_result_t nzd_env_reopen(dns_view_t *view);
+static isc_result_t
+nzd_env_reopen(dns_view_t *view);
 
-static void nzd_env_close(dns_view_t *view);
+static void
+nzd_env_close(dns_view_t *view);
 
-static isc_result_t nzd_close(MDB_txn **txnp, bool commit);
+static isc_result_t
+nzd_close(MDB_txn **txnp, bool commit);
 
-static isc_result_t nzd_count(dns_view_t *view, int *countp);
+static isc_result_t
+nzd_count(dns_view_t *view, int *countp);
 #else  /* ifdef HAVE_LMDB */
-static isc_result_t nzf_append(dns_view_t *view, const cfg_obj_t *zconfig);
+static isc_result_t
+nzf_append(dns_view_t *view, const cfg_obj_t *zconfig);
 #endif /* ifdef HAVE_LMDB */
 
 /*%

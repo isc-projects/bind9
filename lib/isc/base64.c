@@ -31,10 +31,11 @@
  * These static functions are also present in lib/dns/rdata.c.  I'm not
  * sure where they should go. -- bwelling
  */
-static isc_result_t str_totext(const char *source, isc_buffer_t *target);
+static isc_result_t
+str_totext(const char *source, isc_buffer_t *target);
 
-static isc_result_t mem_tobuffer(isc_buffer_t *target, void *base,
-				 unsigned int length);
+static isc_result_t
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
 
 static const char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw"
 			     "xyz0123456789+/=";

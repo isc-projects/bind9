@@ -165,7 +165,8 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 #define isc_rwlock_pause()
 #endif /* if defined(_MSC_VER) */
 
-static isc_result_t isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
+static isc_result_t
+isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 
 #ifdef ISC_RWLOCK_TRACE
 #include <stdio.h> /* Required for fprintf/stderr. */

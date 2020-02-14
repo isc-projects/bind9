@@ -37,10 +37,11 @@
  * changed in the future.
  */
 
-static void dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region,
-			     void *arg);
+static void
+dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg);
 
-static void resume_processing(void *arg);
+static void
+resume_processing(void *arg);
 
 static inline size_t
 dnslen(unsigned char *base) {

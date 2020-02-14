@@ -14,15 +14,15 @@
 #define GENERIC_TXT_16_H 1
 
 typedef struct dns_rdata_txt_string {
-	uint8_t	       length;
+	uint8_t length;
 	unsigned char *data;
 } dns_rdata_txt_string_t;
 
 typedef struct dns_rdata_txt {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	unsigned char *	  txt;
-	uint16_t	  txt_len;
+	isc_mem_t *mctx;
+	unsigned char *txt;
+	uint16_t txt_len;
 	/* private */
 	uint16_t offset;
 } dns_rdata_txt_t;

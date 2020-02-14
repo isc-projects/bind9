@@ -134,9 +134,12 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 #define ISC_IF_INET6_SZ                                        \
 	sizeof("00000000000000000000000000000001 01 80 10 80 " \
 	       "XXXXXXloXXXXXXXX\n")
-static isc_result_t linux_if_inet6_next(isc_interfaceiter_t *);
-static isc_result_t linux_if_inet6_current(isc_interfaceiter_t *);
-static void linux_if_inet6_first(isc_interfaceiter_t *iter);
+static isc_result_t
+linux_if_inet6_next(isc_interfaceiter_t *);
+static isc_result_t
+linux_if_inet6_current(isc_interfaceiter_t *);
+static void
+linux_if_inet6_first(isc_interfaceiter_t *iter);
 #endif /* ifdef __linux */
 
 #include "ifiter_getifaddrs.c"

@@ -251,16 +251,22 @@ typedef struct {
  * Forward declarations.
  */
 
-static void update_action(isc_task_t *task, isc_event_t *event);
-static void updatedone_action(isc_task_t *task, isc_event_t *event);
-static isc_result_t send_forward_event(ns_client_t *client, dns_zone_t *zone);
-static void forward_done(isc_task_t *task, isc_event_t *event);
-static isc_result_t add_rr_prepare_action(void *data, rr_t *rr);
+static void
+update_action(isc_task_t *task, isc_event_t *event);
+static void
+updatedone_action(isc_task_t *task, isc_event_t *event);
+static isc_result_t
+send_forward_event(ns_client_t *client, dns_zone_t *zone);
+static void
+forward_done(isc_task_t *task, isc_event_t *event);
+static isc_result_t
+add_rr_prepare_action(void *data, rr_t *rr);
 
 /**************************************************************************/
 
-static void update_log(ns_client_t *client, dns_zone_t *zone, int level,
-		       const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
+static void
+update_log(ns_client_t *client, dns_zone_t *zone, int level, const char *fmt,
+	   ...) ISC_FORMAT_PRINTF(4, 5);
 
 static void
 update_log(ns_client_t *client, dns_zone_t *zone, int level, const char *fmt,
@@ -512,12 +518,14 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 /*%
  * Function type for foreach_rrset() iterator actions.
  */
-typedef isc_result_t rrset_func(void *data, dns_rdataset_t *rrset);
+typedef isc_result_t
+rrset_func(void *data, dns_rdataset_t *rrset);
 
 /*%
  * Function type for foreach_rr() iterator actions.
  */
-typedef isc_result_t rr_func(void *data, rr_t *rr);
+typedef isc_result_t
+rr_func(void *data, rr_t *rr);
 
 /*%
  * Internal context struct for foreach_node_rr().
@@ -742,7 +750,8 @@ cleanup_node:
  * Function type for predicate functions that compare a database RR 'db_rr'
  * against an update RR 'update_rr'.
  */
-typedef bool rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
+typedef bool
+rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
 
 /*%
  * Helper function for rrset_exists().

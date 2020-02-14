@@ -135,8 +135,8 @@
 		return (ISC_R_SUCCESS);                                        \
 	}
 
-static isc_result_t hmac_fromdns(isc_md_type_t type, dst_key_t *key,
-				 isc_buffer_t *data);
+static isc_result_t
+hmac_fromdns(isc_md_type_t type, dst_key_t *key, isc_buffer_t *data);
 
 struct dst_hmac_key {
 	uint8_t key[ISC_MAX_BLOCK_SIZE];

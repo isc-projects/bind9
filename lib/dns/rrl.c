@@ -34,8 +34,9 @@
 #include <dns/rrl.h>
 #include <dns/view.h>
 
-static void log_end(dns_rrl_t *rrl, dns_rrl_entry_t *e, bool early,
-		    char *log_buf, unsigned int log_buf_len);
+static void
+log_end(dns_rrl_t *rrl, dns_rrl_entry_t *e, bool early, char *log_buf,
+	unsigned int log_buf_len);
 
 /*
  * Get a modulus for a hash function that is tolerably likely to be

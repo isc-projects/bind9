@@ -97,22 +97,22 @@ typedef struct {
 } mysql_instance_t;
 
 /* forward references */
-isc_result_t dlz_findzonedb(void *dbdata, const char *name,
-			    dns_clientinfomethods_t *methods,
-			    dns_clientinfo_t *clientinfo);
+isc_result_t
+dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
+	       dns_clientinfo_t *clientinfo);
 
-void dlz_destroy(void *dbdata);
+void
+dlz_destroy(void *dbdata);
 
-static void b9_add_helper(mysql_instance_t *db, const char *helper_name,
-			  void *ptr);
+static void
+b9_add_helper(mysql_instance_t *db, const char *helper_name, void *ptr);
 
 /*
  * Private methods
  */
 
 void
-mysql_destroy(dbinstance_t *db)
-{
+mysql_destroy(dbinstance_t *db) {
 	/* release DB connection */
 	if (db->dbconn != NULL) {
 		mysql_close((MYSQL *)db->dbconn);
@@ -129,8 +129,7 @@ mysql_destroy(dbinstance_t *db)
  * multithreaded operation.
  */
 static void
-mysql_destroy_dblist(db_list_t *dblist)
-{
+mysql_destroy_dblist(db_list_t *dblist) {
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -157,8 +156,7 @@ mysql_destroy_dblist(db_list_t *dblist)
  * multithreaded operation.
  */
 static dbinstance_t *
-mysql_find_avail_conn(mysql_instance_t *mysql)
-{
+mysql_find_avail_conn(mysql_instance_t *mysql) {
 	dbinstance_t *dbi = NULL, *head;
 	int count = 0;
 
@@ -197,8 +195,7 @@ mysql_find_avail_conn(mysql_instance_t *mysql)
  * want special characters in the string causing problems.
  */
 static char *
-mysqldrv_escape_string(MYSQL *mysql, const char *instr)
-{
+mysqldrv_escape_string(MYSQL *mysql, const char *instr) {
 	char *outstr;
 	unsigned int len;
 
@@ -228,8 +225,7 @@ mysqldrv_escape_string(MYSQL *mysql, const char *instr)
  */
 static isc_result_t
 mysql_get_resultset(const char *zone, const char *record, const char *client,
-		    unsigned int query, void *dbdata, MYSQL_RES **rs)
-{
+		    unsigned int query, void *dbdata, MYSQL_RES **rs) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
@@ -441,8 +437,8 @@ cleanup:
  * into this function to minimize code.
  */
 static isc_result_t
-mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup, MYSQL_RES *rs)
-{
+mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
+		 MYSQL_RES *rs) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	MYSQL_ROW row;
 	unsigned int fields;
@@ -554,8 +550,7 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup, MYSQL_RES *rs)
 /*% determine if the zone is supported by (in) the database */
 isc_result_t
 dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
-	       dns_clientinfo_t *clientinfo)
-{
+	       dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 	my_ulonglong rows;
@@ -591,8 +586,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 
 /*% Determine if the client is allowed to perform a zone transfer */
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
-{
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	isc_result_t result;
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
 	MYSQL_RES *rs = NULL;
@@ -643,8 +637,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
  * query.
  */
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
-{
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result;
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
 	MYSQL_RES *rs = NULL;
@@ -747,8 +740,7 @@ cleanup:
  * use this function to get that information for named.
  */
 isc_result_t
-dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
-{
+dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
@@ -778,8 +770,7 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
-	   dns_clientinfo_t *clientinfo)
-{
+	   dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
@@ -811,8 +802,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
  */
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
-	   ...)
-{
+	   ...) {
 	isc_result_t result = ISC_R_FAILURE;
 	mysql_instance_t *mysql = NULL;
 	dbinstance_t *dbi = NULL;
@@ -1074,8 +1064,7 @@ cleanup:
  * Destroy the module.
  */
 void
-dlz_destroy(void *dbdata)
-{
+dlz_destroy(void *dbdata) {
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
 #if PTHREADS
 	/* cleanup the list of DBI's */
@@ -1107,8 +1096,7 @@ dlz_destroy(void *dbdata)
  * Return the version of the API
  */
 int
-dlz_version(unsigned int *flags)
-{
+dlz_version(unsigned int *flags) {
 	*flags |= (DNS_SDLZFLAG_RELATIVEOWNER | DNS_SDLZFLAG_RELATIVERDATA |
 		   DNS_SDLZFLAG_THREADSAFE);
 	return (DLZ_DLOPEN_VERSION);
@@ -1118,8 +1106,7 @@ dlz_version(unsigned int *flags)
  * Register a helper function from the bind9 dlz_dlopen driver
  */
 static void
-b9_add_helper(mysql_instance_t *db, const char *helper_name, void *ptr)
-{
+b9_add_helper(mysql_instance_t *db, const char *helper_name, void *ptr) {
 	if (strcmp(helper_name, "log") == 0) {
 		db->log = (log_t *)ptr;
 	}

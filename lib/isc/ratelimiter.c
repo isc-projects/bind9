@@ -45,9 +45,11 @@ struct isc_ratelimiter {
 
 #define ISC_RATELIMITEREVENT_SHUTDOWN (ISC_EVENTCLASS_RATELIMITER + 1)
 
-static void ratelimiter_tick(isc_task_t *task, isc_event_t *event);
+static void
+ratelimiter_tick(isc_task_t *task, isc_event_t *event);
 
-static void ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event);
+static void
+ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event);
 
 isc_result_t
 isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,

@@ -747,91 +747,139 @@ LIBDNS_EXTERNAL_DATA unsigned int dns_zone_mkey_month = MONTH;
 
 #define SEND_BUFFER_SIZE 2048
 
-static void zone_settimer(dns_zone_t *, isc_time_t *);
-static void cancel_refresh(dns_zone_t *);
-static void zone_debuglog(dns_zone_t *zone, const char *, int debuglevel,
-			  const char *msg, ...) ISC_FORMAT_PRINTF(4, 5);
-static void notify_log(dns_zone_t *zone, int level, const char *fmt, ...)
+static void
+zone_settimer(dns_zone_t *, isc_time_t *);
+static void
+cancel_refresh(dns_zone_t *);
+static void
+zone_debuglog(dns_zone_t *zone, const char *, int debuglevel, const char *msg,
+	      ...) ISC_FORMAT_PRINTF(4, 5);
+static void
+notify_log(dns_zone_t *zone, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
-static void dnssec_log(dns_zone_t *zone, int level, const char *fmt, ...)
+static void
+dnssec_log(dns_zone_t *zone, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
-static void queue_xfrin(dns_zone_t *zone);
-static isc_result_t update_one_rr(dns_db_t *db, dns_dbversion_t *ver,
-				  dns_diff_t *diff, dns_diffop_t op,
-				  dns_name_t *name, dns_ttl_t ttl,
-				  dns_rdata_t *rdata);
-static void zone_unload(dns_zone_t *zone);
-static void zone_expire(dns_zone_t *zone);
-static void zone_iattach(dns_zone_t *source, dns_zone_t **target);
-static void zone_idetach(dns_zone_t **zonep);
-static isc_result_t zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump);
-static inline void zone_attachdb(dns_zone_t *zone, dns_db_t *db);
-static inline void zone_detachdb(dns_zone_t *zone);
-static isc_result_t default_journal(dns_zone_t *zone);
-static void zone_xfrdone(dns_zone_t *zone, isc_result_t result);
-static isc_result_t zone_postload(dns_zone_t *zone, dns_db_t *db,
-				  isc_time_t loadtime, isc_result_t result);
-static void zone_needdump(dns_zone_t *zone, unsigned int delay);
-static void zone_shutdown(isc_task_t *, isc_event_t *);
-static void zone_loaddone(void *arg, isc_result_t result);
-static isc_result_t zone_startload(dns_db_t *db, dns_zone_t *zone,
-				   isc_time_t loadtime);
-static void zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length);
-static void zone_name_tostr(dns_zone_t *zone, char *buf, size_t length);
-static void zone_rdclass_tostr(dns_zone_t *zone, char *buf, size_t length);
-static void zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length);
-static isc_result_t zone_send_secureserial(dns_zone_t *zone, uint32_t serial);
-static void refresh_callback(isc_task_t *, isc_event_t *);
-static void stub_callback(isc_task_t *, isc_event_t *);
-static void queue_soa_query(dns_zone_t *zone);
-static void soa_query(isc_task_t *, isc_event_t *);
-static void ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset,
-		     dns_stub_t *stub);
-static int message_count(dns_message_t *msg, dns_section_t section,
-			 dns_rdatatype_t type);
-static void notify_cancel(dns_zone_t *zone);
-static void notify_find_address(dns_notify_t *notify);
-static void notify_send(dns_notify_t *notify);
-static isc_result_t notify_createmessage(dns_zone_t *zone, unsigned int flags,
-					 dns_message_t **messagep);
-static void notify_done(isc_task_t *task, isc_event_t *event);
-static void notify_send_toaddr(isc_task_t *task, isc_event_t *event);
-static isc_result_t zone_dump(dns_zone_t *, bool);
-static void got_transfer_quota(isc_task_t *task, isc_event_t *event);
-static isc_result_t zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr,
-					     dns_zone_t *zone);
-static void zmgr_resume_xfrs(dns_zonemgr_t *zmgr, bool multi);
-static void zonemgr_free(dns_zonemgr_t *zmgr);
-static isc_result_t zonemgr_getio(dns_zonemgr_t *zmgr, bool high,
-				  isc_task_t *task, isc_taskaction_t action,
-				  void *arg, dns_io_t **iop);
-static void zonemgr_putio(dns_io_t **iop);
-static void zonemgr_cancelio(dns_io_t *io);
-static void rss_post(dns_zone_t *, isc_event_t *);
+static void
+queue_xfrin(dns_zone_t *zone);
+static isc_result_t
+update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
+	      dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
+	      dns_rdata_t *rdata);
+static void
+zone_unload(dns_zone_t *zone);
+static void
+zone_expire(dns_zone_t *zone);
+static void
+zone_iattach(dns_zone_t *source, dns_zone_t **target);
+static void
+zone_idetach(dns_zone_t **zonep);
+static isc_result_t
+zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump);
+static inline void
+zone_attachdb(dns_zone_t *zone, dns_db_t *db);
+static inline void
+zone_detachdb(dns_zone_t *zone);
+static isc_result_t
+default_journal(dns_zone_t *zone);
+static void
+zone_xfrdone(dns_zone_t *zone, isc_result_t result);
+static isc_result_t
+zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
+	      isc_result_t result);
+static void
+zone_needdump(dns_zone_t *zone, unsigned int delay);
+static void
+zone_shutdown(isc_task_t *, isc_event_t *);
+static void
+zone_loaddone(void *arg, isc_result_t result);
+static isc_result_t
+zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime);
+static void
+zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length);
+static void
+zone_name_tostr(dns_zone_t *zone, char *buf, size_t length);
+static void
+zone_rdclass_tostr(dns_zone_t *zone, char *buf, size_t length);
+static void
+zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length);
+static isc_result_t
+zone_send_secureserial(dns_zone_t *zone, uint32_t serial);
+static void
+refresh_callback(isc_task_t *, isc_event_t *);
+static void
+stub_callback(isc_task_t *, isc_event_t *);
+static void
+queue_soa_query(dns_zone_t *zone);
+static void
+soa_query(isc_task_t *, isc_event_t *);
+static void
+ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub);
+static int
+message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type);
+static void
+notify_cancel(dns_zone_t *zone);
+static void
+notify_find_address(dns_notify_t *notify);
+static void
+notify_send(dns_notify_t *notify);
+static isc_result_t
+notify_createmessage(dns_zone_t *zone, unsigned int flags,
+		     dns_message_t **messagep);
+static void
+notify_done(isc_task_t *task, isc_event_t *event);
+static void
+notify_send_toaddr(isc_task_t *task, isc_event_t *event);
+static isc_result_t
+zone_dump(dns_zone_t *, bool);
+static void
+got_transfer_quota(isc_task_t *task, isc_event_t *event);
+static isc_result_t
+zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone);
+static void
+zmgr_resume_xfrs(dns_zonemgr_t *zmgr, bool multi);
+static void
+zonemgr_free(dns_zonemgr_t *zmgr);
+static isc_result_t
+zonemgr_getio(dns_zonemgr_t *zmgr, bool high, isc_task_t *task,
+	      isc_taskaction_t action, void *arg, dns_io_t **iop);
+static void
+zonemgr_putio(dns_io_t **iop);
+static void
+zonemgr_cancelio(dns_io_t *io);
+static void
+rss_post(dns_zone_t *, isc_event_t *);
 
-static isc_result_t zone_get_from_db(dns_zone_t *zone, dns_db_t *db,
-				     unsigned int *nscount,
-				     unsigned int *soacount, uint32_t *serial,
-				     uint32_t *refresh, uint32_t *retry,
-				     uint32_t *expire, uint32_t *minimum,
-				     unsigned int *errors);
+static isc_result_t
+zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
+		 unsigned int *soacount, uint32_t *serial, uint32_t *refresh,
+		 uint32_t *retry, uint32_t *expire, uint32_t *minimum,
+		 unsigned int *errors);
 
-static void zone_freedbargs(dns_zone_t *zone);
-static void forward_callback(isc_task_t *task, isc_event_t *event);
-static void zone_saveunique(dns_zone_t *zone, const char *path,
-			    const char *templat);
-static void zone_maintenance(dns_zone_t *zone);
-static void zone_notify(dns_zone_t *zone, isc_time_t *now);
-static void dump_done(void *arg, isc_result_t result);
-static isc_result_t zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
-				     uint16_t keyid, bool deleteit);
-static isc_result_t delete_nsec(dns_db_t *db, dns_dbversion_t *ver,
-				dns_dbnode_t *node, dns_name_t *name,
-				dns_diff_t *diff);
-static void zone_rekey(dns_zone_t *zone);
-static isc_result_t zone_send_securedb(dns_zone_t *zone, dns_db_t *db);
-static void setrl(isc_ratelimiter_t *rl, unsigned int *rate,
-		  unsigned int value);
+static void
+zone_freedbargs(dns_zone_t *zone);
+static void
+forward_callback(isc_task_t *task, isc_event_t *event);
+static void
+zone_saveunique(dns_zone_t *zone, const char *path, const char *templat);
+static void
+zone_maintenance(dns_zone_t *zone);
+static void
+zone_notify(dns_zone_t *zone, isc_time_t *now);
+static void
+dump_done(void *arg, isc_result_t result);
+static isc_result_t
+zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid,
+		 bool deleteit);
+static isc_result_t
+delete_nsec(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
+	    dns_name_t *name, dns_diff_t *diff);
+static void
+zone_rekey(dns_zone_t *zone);
+static isc_result_t
+zone_send_securedb(dns_zone_t *zone, dns_db_t *db);
+static void
+setrl(isc_ratelimiter_t *rl, unsigned int *rate, unsigned int value);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 

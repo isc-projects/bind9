@@ -182,29 +182,37 @@ typedef struct sdlz_rdatasetiter {
 /*
  * Forward references.
  */
-static isc_result_t getnodedata(dns_db_t *db, const dns_name_t *name,
-				bool create, unsigned int options,
-				dns_clientinfomethods_t *methods,
-				dns_clientinfo_t *clientinfo,
-				dns_dbnode_t **nodep);
+static isc_result_t
+getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
+	    unsigned int options, dns_clientinfomethods_t *methods,
+	    dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep);
 
-static void list_tordataset(dns_rdatalist_t *rdatalist, dns_db_t *db,
-			    dns_dbnode_t *node, dns_rdataset_t *rdataset);
+static void
+list_tordataset(dns_rdatalist_t *rdatalist, dns_db_t *db, dns_dbnode_t *node,
+		dns_rdataset_t *rdataset);
 
-static void detachnode(dns_db_t *db, dns_dbnode_t **targetp);
+static void
+detachnode(dns_db_t *db, dns_dbnode_t **targetp);
 
-static void dbiterator_destroy(dns_dbiterator_t **iteratorp);
-static isc_result_t dbiterator_first(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_last(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_seek(dns_dbiterator_t *iterator,
-				    const dns_name_t *name);
-static isc_result_t dbiterator_prev(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_next(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_current(dns_dbiterator_t *iterator,
-				       dns_dbnode_t **nodep, dns_name_t *name);
-static isc_result_t dbiterator_pause(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_origin(dns_dbiterator_t *iterator,
-				      dns_name_t *name);
+static void
+dbiterator_destroy(dns_dbiterator_t **iteratorp);
+static isc_result_t
+dbiterator_first(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_last(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name);
+static isc_result_t
+dbiterator_prev(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_next(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
+		   dns_name_t *name);
+static isc_result_t
+dbiterator_pause(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
 
 static dns_dbiteratormethods_t dbiterator_methods = {
 	dbiterator_destroy, dbiterator_first, dbiterator_last,

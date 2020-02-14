@@ -17,9 +17,11 @@ variables:
 
   MAKE: make
   CONFIGURE: ./configure
+  CLANG: clang-9
   SCAN_BUILD: scan-build-9
   SYMBOLIZER: /usr/lib/llvm-9/bin/llvm-symbolizer
   ASAN_SYMBOLIZER_PATH: "$SYMBOLIZER"
+  CLANG_FORMAT: clang-format-11
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
 
@@ -384,6 +386,12 @@ misc:sid:amd64:
     expire_in: "1 day"
     when: on_failure
 
+💾:sid:amd64:
+  <<: *precheck_job
+  script:
+    - if [ -r .clang-format ]; then "${CLANG_FORMAT}" -i -style=file $(git ls-files '*.c' '*.h'); fi
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+
 🐞:sid:amd64:
   <<: *precheck_job
   <<: *debian_buster_amd64_image
@@ -618,7 +626,7 @@ scan-build:buster:amd64:
   <<: *debian_buster_amd64_image
   stage: postcheck
   variables:
-    CC: clang-9
+    CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON}"
     CONFIGURE: "${SCAN_BUILD} ./configure"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
@@ -878,7 +886,7 @@ tsan:buster:amd64:
   <<: *debian_buster_amd64_image
   <<: *build_job
   variables:
-    CC: clang-9
+    CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"

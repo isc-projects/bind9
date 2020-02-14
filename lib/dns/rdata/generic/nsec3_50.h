@@ -19,16 +19,16 @@
 
 typedef struct dns_rdata_nsec3 {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	dns_hash_t	  hash;
-	unsigned char	  flags;
-	dns_iterations_t  iterations;
-	unsigned char	  salt_length;
-	unsigned char	  next_length;
-	uint16_t	  len;
-	unsigned char *	  salt;
-	unsigned char *	  next;
-	unsigned char *	  typebits;
+	isc_mem_t *mctx;
+	dns_hash_t hash;
+	unsigned char flags;
+	dns_iterations_t iterations;
+	unsigned char salt_length;
+	unsigned char next_length;
+	uint16_t len;
+	unsigned char *salt;
+	unsigned char *next;
+	unsigned char *typebits;
 } dns_rdata_nsec3_t;
 
 /*

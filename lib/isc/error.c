@@ -18,11 +18,13 @@
 #include <isc/print.h>
 
 /*% Default unexpected callback. */
-static void default_unexpected_callback(const char *, int, const char *,
-					va_list) ISC_FORMAT_PRINTF(3, 0);
+static void
+default_unexpected_callback(const char *, int, const char *, va_list)
+	ISC_FORMAT_PRINTF(3, 0);
 
 /*% Default fatal callback. */
-static void default_fatal_callback(const char *, int, const char *, va_list)
+static void
+default_fatal_callback(const char *, int, const char *, va_list)
 	ISC_FORMAT_PRINTF(3, 0);
 
 /*% unexpected_callback */

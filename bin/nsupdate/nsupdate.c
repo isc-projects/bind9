@@ -181,16 +181,21 @@ typedef struct nsu_requestinfo {
 	isc_sockaddr_t *addr;
 } nsu_requestinfo_t;
 
-static void sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
-			dns_request_t **request);
-static void send_update(dns_name_t *zonename, isc_sockaddr_t *master);
+static void
+sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
+	    dns_request_t **request);
+static void
+send_update(dns_name_t *zonename, isc_sockaddr_t *master);
 
-ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format, ...)
+ISC_PLATFORM_NORETURN_PRE static void
+fatal(const char *format, ...)
 	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
-static void debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+static void
+debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
-static void ddebug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+static void
+ddebug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 #ifdef GSSAPI
 static dns_fixedname_t fkname;
@@ -204,14 +209,19 @@ typedef struct nsu_gssinfo {
 	gss_ctx_id_t context;
 } nsu_gssinfo_t;
 
-static void failed_gssrequest();
-static void start_gssrequest(dns_name_t *master);
-static void send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
-			    dns_request_t **request, gss_ctx_id_t context);
-static void recvgss(isc_task_t *task, isc_event_t *event);
+static void
+failed_gssrequest();
+static void
+start_gssrequest(dns_name_t *master);
+static void
+send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
+		dns_request_t **request, gss_ctx_id_t context);
+static void
+recvgss(isc_task_t *task, isc_event_t *event);
 #endif /* GSSAPI */
 
-static void error(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+static void
+error(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 #define STATUS_MORE   (uint16_t)0
 #define STATUS_SEND   (uint16_t)1

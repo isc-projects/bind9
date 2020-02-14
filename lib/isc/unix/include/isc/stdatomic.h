@@ -73,11 +73,11 @@ enum memory_order {
 
 typedef enum memory_order memory_order;
 
-typedef int_fast32_t  atomic_int_fast32_t;
+typedef int_fast32_t atomic_int_fast32_t;
 typedef uint_fast32_t atomic_uint_fast32_t;
-typedef int_fast64_t  atomic_int_fast64_t;
+typedef int_fast64_t atomic_int_fast64_t;
 typedef uint_fast64_t atomic_uint_fast64_t;
-typedef bool	      atomic_bool;
+typedef bool atomic_bool;
 
 typedef uint_fast64_t atomic_uintptr_t;
 

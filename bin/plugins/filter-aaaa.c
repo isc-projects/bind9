@@ -110,18 +110,18 @@ typedef struct filter_instance {
 /*
  * Forward declarations of functions referenced in install_hooks().
  */
-static ns_hookresult_t filter_qctx_initialize(void *arg, void *cbdata,
-					      isc_result_t *resp);
-static ns_hookresult_t filter_respond_begin(void *arg, void *cbdata,
-					    isc_result_t *resp);
-static ns_hookresult_t filter_respond_any_found(void *arg, void *cbdata,
-						isc_result_t *resp);
-static ns_hookresult_t filter_prep_response_begin(void *arg, void *cbdata,
-						  isc_result_t *resp);
-static ns_hookresult_t filter_query_done_send(void *arg, void *cbdata,
-					      isc_result_t *resp);
-static ns_hookresult_t filter_qctx_destroy(void *arg, void *cbdata,
-					   isc_result_t *resp);
+static ns_hookresult_t
+filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp);
+static ns_hookresult_t
+filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp);
+static ns_hookresult_t
+filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp);
+static ns_hookresult_t
+filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp);
+static ns_hookresult_t
+filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp);
+static ns_hookresult_t
+filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp);
 
 /*%
  * Register the functions to be called at each hook point in 'hooktable', using

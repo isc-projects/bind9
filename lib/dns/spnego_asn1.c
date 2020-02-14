@@ -61,9 +61,12 @@ typedef struct oid {
 
 typedef oid MechType;
 
-static int encode_MechType(unsigned char *, size_t, const MechType *, size_t *);
-static int decode_MechType(const unsigned char *, size_t, MechType *, size_t *);
-static void free_MechType(MechType *);
+static int
+encode_MechType(unsigned char *, size_t, const MechType *, size_t *);
+static int
+decode_MechType(const unsigned char *, size_t, MechType *, size_t *);
+static void
+free_MechType(MechType *);
 /* unused declaration: length_MechType */
 /* unused declaration: copy_MechType */
 
@@ -76,11 +79,12 @@ typedef struct MechTypeList {
 	MechType *val;
 } MechTypeList;
 
-static int encode_MechTypeList(unsigned char *, size_t, const MechTypeList *,
-			       size_t *);
-static int decode_MechTypeList(const unsigned char *, size_t, MechTypeList *,
-			       size_t *);
-static void free_MechTypeList(MechTypeList *);
+static int
+encode_MechTypeList(unsigned char *, size_t, const MechTypeList *, size_t *);
+static int
+decode_MechTypeList(const unsigned char *, size_t, MechTypeList *, size_t *);
+static void
+free_MechTypeList(MechTypeList *);
 /* unused declaration: length_MechTypeList */
 /* unused declaration: copy_MechTypeList */
 
@@ -99,11 +103,12 @@ typedef struct ContextFlags {
 	unsigned int integFlag : 1;
 } ContextFlags;
 
-static int encode_ContextFlags(unsigned char *, size_t, const ContextFlags *,
-			       size_t *);
-static int decode_ContextFlags(const unsigned char *, size_t, ContextFlags *,
-			       size_t *);
-static void free_ContextFlags(ContextFlags *);
+static int
+encode_ContextFlags(unsigned char *, size_t, const ContextFlags *, size_t *);
+static int
+decode_ContextFlags(const unsigned char *, size_t, ContextFlags *, size_t *);
+static void
+free_ContextFlags(ContextFlags *);
 /* unused declaration: length_ContextFlags */
 /* unused declaration: copy_ContextFlags */
 /* unused declaration: ContextFlags2int */
@@ -123,11 +128,12 @@ typedef struct NegTokenInit {
 	octet_string *mechListMIC;
 } NegTokenInit;
 
-static int encode_NegTokenInit(unsigned char *, size_t, const NegTokenInit *,
-			       size_t *);
-static int decode_NegTokenInit(const unsigned char *, size_t, NegTokenInit *,
-			       size_t *);
-static void free_NegTokenInit(NegTokenInit *);
+static int
+encode_NegTokenInit(unsigned char *, size_t, const NegTokenInit *, size_t *);
+static int
+decode_NegTokenInit(const unsigned char *, size_t, NegTokenInit *, size_t *);
+static void
+free_NegTokenInit(NegTokenInit *);
 /* unused declaration: length_NegTokenInit */
 /* unused declaration: copy_NegTokenInit */
 
@@ -150,11 +156,12 @@ typedef struct NegTokenResp {
 	octet_string *mechListMIC;
 } NegTokenResp;
 
-static int encode_NegTokenResp(unsigned char *, size_t, const NegTokenResp *,
-			       size_t *);
-static int decode_NegTokenResp(const unsigned char *, size_t, NegTokenResp *,
-			       size_t *);
-static void free_NegTokenResp(NegTokenResp *);
+static int
+encode_NegTokenResp(unsigned char *, size_t, const NegTokenResp *, size_t *);
+static int
+decode_NegTokenResp(const unsigned char *, size_t, NegTokenResp *, size_t *);
+static void
+free_NegTokenResp(NegTokenResp *);
 /* unused declaration: length_NegTokenResp */
 /* unused declaration: copy_NegTokenResp */
 

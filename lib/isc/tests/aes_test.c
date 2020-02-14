@@ -33,9 +33,11 @@
  * Test data from NIST KAT
  */
 
-isc_result_t tohexstr(unsigned char *d, char *out);
+isc_result_t
+tohexstr(unsigned char *d, char *out);
 
-size_t fromhexstr(const char *in, unsigned char *d);
+size_t
+fromhexstr(const char *in, unsigned char *d);
 
 unsigned char plaintext[3 * ISC_AES_BLOCK_LENGTH];
 unsigned char ciphertext[ISC_AES_BLOCK_LENGTH];

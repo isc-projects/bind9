@@ -89,15 +89,15 @@ typedef ISC_LIST(dir_entry_t) dlist_t;
 
 /* forward reference */
 
-static void fs_destroy(void *driverarg, void *dbdata);
+static void
+fs_destroy(void *driverarg, void *dbdata);
 
 /*
  * Private methods
  */
 
 static bool
-is_safe(const char *input)
-{
+is_safe(const char *input) {
 	unsigned int i;
 	unsigned int len = strlen(input);
 
@@ -165,8 +165,7 @@ is_safe(const char *input)
 }
 
 static void
-create_path_helper(char *out, const char *in, config_data_t *cd)
-{
+create_path_helper(char *out, const char *in, config_data_t *cd) {
 	char *tmpString;
 	char *tmpPtr;
 	int i;
@@ -229,8 +228,7 @@ create_path_helper(char *out, const char *in, config_data_t *cd)
 
 static isc_result_t
 create_path(const char *zone, const char *host, const char *client,
-	    config_data_t *cd, char **path)
-{
+	    config_data_t *cd, char **path) {
 	char *tmpPath;
 	int pathsize;
 	int len;
@@ -346,8 +344,7 @@ create_path(const char *zone, const char *host, const char *client,
 
 static isc_result_t
 process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
-	    dlist_t *dir_list, unsigned int basedirlen)
-{
+	    dlist_t *dir_list, unsigned int basedirlen) {
 	char tmp[PATH_MAX + NAME_MAX];
 	int astPos;
 	struct stat sb;
@@ -574,8 +571,7 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 
 static isc_result_t
 fs_allowzonexfr(void *driverarg, void *dbdata, const char *name,
-		const char *client)
-{
+		const char *client) {
 	isc_result_t result;
 	char *path;
 	struct stat sb;
@@ -609,8 +605,7 @@ complete_AXFR:
 
 static isc_result_t
 fs_allnodes(const char *zone, void *driverarg, void *dbdata,
-	    dns_sdlzallnodes_t *allnodes)
-{
+	    dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result;
 	dlist_t *dir_list;
 	config_data_t *cd;
@@ -724,8 +719,7 @@ complete_allnds:
 
 static isc_result_t
 fs_findzone(void *driverarg, void *dbdata, const char *name,
-	    dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
-{
+	    dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	char *path;
 	struct stat sb;
@@ -767,8 +761,7 @@ complete_FZ:
 static isc_result_t
 fs_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
 	  dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
-	  dns_clientinfo_t *clientinfo)
-{
+	  dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	char *path;
 	struct stat sb;
@@ -841,8 +834,7 @@ complete_lkup:
 
 static isc_result_t
 fs_create(const char *dlzname, unsigned int argc, char *argv[], void *driverarg,
-	  void **dbdata)
-{
+	  void **dbdata) {
 	config_data_t *cd;
 	char *endp;
 	int len;
@@ -929,8 +921,7 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[], void *driverarg,
 }
 
 static void
-fs_destroy(void *driverarg, void *dbdata)
-{
+fs_destroy(void *driverarg, void *dbdata) {
 	isc_mem_t *mctx;
 	config_data_t *cd;
 
@@ -982,8 +973,7 @@ static dns_sdlzmethods_t dlz_fs_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_fs_init(void)
-{
+dlz_fs_init(void) {
 	isc_result_t result;
 
 	/*
@@ -1010,8 +1000,7 @@ dlz_fs_init(void)
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_fs_clear(void)
-{
+dlz_fs_clear(void) {
 	/*
 	 * Write debugging message to log
 	 */

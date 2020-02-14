@@ -133,23 +133,24 @@ struct file_header {
  * and fseeked, not to a pipe or stream
  */
 
-static isc_result_t dns_rbt_zero_header(FILE *file);
+static isc_result_t
+dns_rbt_zero_header(FILE *file);
 
-static isc_result_t write_header(FILE *file, dns_rbt_t *rbt,
-				 uint64_t first_node_offset, uint64_t crc);
+static isc_result_t
+write_header(FILE *file, dns_rbt_t *rbt, uint64_t first_node_offset,
+	     uint64_t crc);
 
-static bool match_header_version(file_header_t *header);
+static bool
+match_header_version(file_header_t *header);
 
-static isc_result_t serialize_node(FILE *file, dns_rbtnode_t *node,
-				   uintptr_t left, uintptr_t right,
-				   uintptr_t down, uintptr_t parent,
-				   uintptr_t data, uint64_t *crc);
+static isc_result_t
+serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left, uintptr_t right,
+	       uintptr_t down, uintptr_t parent, uintptr_t data, uint64_t *crc);
 
-static isc_result_t serialize_nodes(FILE *file, dns_rbtnode_t *node,
-				    uintptr_t parent,
-				    dns_rbtdatawriter_t datawriter,
-				    void *writer_arg, uintptr_t *where,
-				    uint64_t *crc);
+static isc_result_t
+serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
+		dns_rbtdatawriter_t datawriter, void *writer_arg,
+		uintptr_t *where, uint64_t *crc);
 
 /*
  * The following functions allow you to get the actual address of a pointer
@@ -301,7 +302,8 @@ dns_rbt_root(dns_rbt_t *rbt) {
 /*
  * A little something to help out in GDB.
  */
-dns_name_t Name(dns_rbtnode_t *node);
+dns_name_t
+Name(dns_rbtnode_t *node);
 dns_name_t
 Name(dns_rbtnode_t *node) {
 	dns_name_t name;
@@ -387,37 +389,47 @@ dns__rbtnode_getdistance(dns_rbtnode_t *node) {
 /*
  * Forward declarations.
  */
-static isc_result_t create_node(isc_mem_t *mctx, const dns_name_t *name,
-				dns_rbtnode_t **nodep);
+static isc_result_t
+create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep);
 
-static isc_result_t inithash(dns_rbt_t *rbt);
+static isc_result_t
+inithash(dns_rbt_t *rbt);
 
-static inline void hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node,
-			     const dns_name_t *name);
+static inline void
+hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name);
 
-static inline void unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
+static inline void
+unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
 
-static void rehash(dns_rbt_t *rbt, unsigned int newcount);
+static void
+rehash(dns_rbt_t *rbt, unsigned int newcount);
 
-static inline void rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
-static inline void rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
+static inline void
+rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
+static inline void
+rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
 
-static void addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
-		       dns_rbtnode_t **rootp);
+static void
+addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
+	   dns_rbtnode_t **rootp);
 
-static void deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp);
+static void
+deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp);
 
-static isc_result_t treefix(dns_rbt_t *rbt, void *base, size_t size,
-			    dns_rbtnode_t *n, const dns_name_t *name,
-			    dns_rbtdatafixer_t datafixer, void *fixer_arg,
-			    uint64_t *crc);
+static isc_result_t
+treefix(dns_rbt_t *rbt, void *base, size_t size, dns_rbtnode_t *n,
+	const dns_name_t *name, dns_rbtdatafixer_t datafixer, void *fixer_arg,
+	uint64_t *crc);
 
-static void deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, bool unhash,
-			   dns_rbtnode_t **nodep);
+static void
+deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, bool unhash,
+	       dns_rbtnode_t **nodep);
 
-static void printnodename(dns_rbtnode_t *node, bool quoted, FILE *f);
+static void
+printnodename(dns_rbtnode_t *node, bool quoted, FILE *f);
 
-static void freenode(dns_rbt_t *rbt, dns_rbtnode_t **nodep);
+static void
+freenode(dns_rbt_t *rbt, dns_rbtnode_t **nodep);
 
 static isc_result_t
 dns_rbt_zero_header(FILE *file) {

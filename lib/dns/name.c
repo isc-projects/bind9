@@ -150,8 +150,9 @@ LIBDNS_EXTERNAL_DATA const dns_name_t *dns_wildcardname = &wild;
  */
 ISC_THREAD_LOCAL dns_name_totextfilter_t *totext_filter_proc = NULL;
 
-static void set_offsets(const dns_name_t *name, unsigned char *offsets,
-			dns_name_t *set_name);
+static void
+set_offsets(const dns_name_t *name, unsigned char *offsets,
+	    dns_name_t *set_name);
 
 void
 dns_name_init(dns_name_t *name, unsigned char *offsets) {

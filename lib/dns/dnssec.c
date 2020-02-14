@@ -56,13 +56,15 @@ LIBDNS_EXTERNAL_DATA isc_stats_t *dns_dnssec_stats;
 #define TYPE_SIGN   0
 #define TYPE_VERIFY 1
 
-static isc_result_t digest_callback(void *arg, isc_region_t *data);
+static isc_result_t
+digest_callback(void *arg, isc_region_t *data);
 
-static int rdata_compare_wrapper(const void *rdata1, const void *rdata2);
+static int
+rdata_compare_wrapper(const void *rdata1, const void *rdata2);
 
-static isc_result_t rdataset_to_sortedarray(dns_rdataset_t *set,
-					    isc_mem_t *mctx,
-					    dns_rdata_t **rdata, int *nrdata);
+static isc_result_t
+rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
+			dns_rdata_t **rdata, int *nrdata);
 
 static isc_result_t
 digest_callback(void *arg, isc_region_t *data) {

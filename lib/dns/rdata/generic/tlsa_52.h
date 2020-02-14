@@ -17,12 +17,12 @@
  */
 typedef struct dns_rdata_tlsa {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	uint8_t		  usage;
-	uint8_t		  selector;
-	uint8_t		  match;
-	uint16_t	  length;
-	unsigned char *	  data;
+	isc_mem_t *mctx;
+	uint8_t usage;
+	uint8_t selector;
+	uint8_t match;
+	uint16_t length;
+	unsigned char *data;
 } dns_rdata_tlsa_t;
 
 #endif /* GENERIC_TLSA_52_H */

@@ -445,27 +445,41 @@ struct isc__socketthread {
 #define MAXSCATTERGATHER_RECV (ISC_SOCKET_MAXSCATTERGATHER)
 #endif /* ifdef ISC_PLATFORM_RECVOVERFLOW */
 
-static isc_result_t socket_create(isc_socketmgr_t *manager0, int pf,
-				  isc_sockettype_t type, isc_socket_t **socketp,
-				  isc_socket_t *dup_socket);
-static void send_recvdone_event(isc__socket_t *, isc_socketevent_t **);
-static void send_senddone_event(isc__socket_t *, isc_socketevent_t **);
-static void send_connectdone_event(isc__socket_t *, isc_socket_connev_t **);
-static void free_socket(isc__socket_t **);
-static isc_result_t allocate_socket(isc__socketmgr_t *, isc_sockettype_t,
-				    isc__socket_t **);
-static void destroy(isc__socket_t **);
-static void internal_accept(isc__socket_t *);
-static void internal_connect(isc__socket_t *);
-static void internal_recv(isc__socket_t *);
-static void internal_send(isc__socket_t *);
-static void process_cmsg(isc__socket_t *, struct msghdr *, isc_socketevent_t *);
-static void build_msghdr_send(isc__socket_t *, char *, isc_socketevent_t *,
-			      struct msghdr *, struct iovec *, size_t *);
-static void build_msghdr_recv(isc__socket_t *, char *, isc_socketevent_t *,
-			      struct msghdr *, struct iovec *, size_t *);
-static bool process_ctlfd(isc__socketthread_t *thread);
-static void setdscp(isc__socket_t *sock, isc_dscp_t dscp);
+static isc_result_t
+socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
+	      isc_socket_t **socketp, isc_socket_t *dup_socket);
+static void
+send_recvdone_event(isc__socket_t *, isc_socketevent_t **);
+static void
+send_senddone_event(isc__socket_t *, isc_socketevent_t **);
+static void
+send_connectdone_event(isc__socket_t *, isc_socket_connev_t **);
+static void
+free_socket(isc__socket_t **);
+static isc_result_t
+allocate_socket(isc__socketmgr_t *, isc_sockettype_t, isc__socket_t **);
+static void
+destroy(isc__socket_t **);
+static void
+internal_accept(isc__socket_t *);
+static void
+internal_connect(isc__socket_t *);
+static void
+internal_recv(isc__socket_t *);
+static void
+internal_send(isc__socket_t *);
+static void
+process_cmsg(isc__socket_t *, struct msghdr *, isc_socketevent_t *);
+static void
+build_msghdr_send(isc__socket_t *, char *, isc_socketevent_t *, struct msghdr *,
+		  struct iovec *, size_t *);
+static void
+build_msghdr_recv(isc__socket_t *, char *, isc_socketevent_t *, struct msghdr *,
+		  struct iovec *, size_t *);
+static bool
+process_ctlfd(isc__socketthread_t *thread);
+static void
+setdscp(isc__socket_t *sock, isc_dscp_t dscp);
 
 #define SELECT_POKE_SHUTDOWN (-1)
 #define SELECT_POKE_NOTHING  (-2)
@@ -553,16 +567,18 @@ static const isc_statscounter_t rawstatsindex[] = {
 	isc_sockstatscounter_rawactive
 };
 
-static int gen_threadid(isc__socket_t *sock);
+static int
+gen_threadid(isc__socket_t *sock);
 
 static int
 gen_threadid(isc__socket_t *sock) {
 	return (sock->fd % sock->manager->nthreads);
 }
 
-static void manager_log(isc__socketmgr_t *sockmgr, isc_logcategory_t *category,
-			isc_logmodule_t *module, int level, const char *fmt,
-			...) ISC_FORMAT_PRINTF(5, 6);
+static void
+manager_log(isc__socketmgr_t *sockmgr, isc_logcategory_t *category,
+	    isc_logmodule_t *module, int level, const char *fmt, ...)
+	ISC_FORMAT_PRINTF(5, 6);
 static void
 manager_log(isc__socketmgr_t *sockmgr, isc_logcategory_t *category,
 	    isc_logmodule_t *module, int level, const char *fmt, ...) {
@@ -581,8 +597,9 @@ manager_log(isc__socketmgr_t *sockmgr, isc_logcategory_t *category,
 		      sockmgr, msgbuf);
 }
 
-static void thread_log(isc__socketthread_t *thread, isc_logcategory_t *category,
-		       isc_logmodule_t *module, int level, const char *fmt, ...)
+static void
+thread_log(isc__socketthread_t *thread, isc_logcategory_t *category,
+	   isc_logmodule_t *module, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(5, 6);
 static void
 thread_log(isc__socketthread_t *thread, isc_logcategory_t *category,
@@ -603,9 +620,10 @@ thread_log(isc__socketthread_t *thread, isc_logcategory_t *category,
 		      thread->threadid, msgbuf);
 }
 
-static void socket_log(isc__socket_t *sock, const isc_sockaddr_t *address,
-		       isc_logcategory_t *category, isc_logmodule_t *module,
-		       int level, const char *fmt, ...) ISC_FORMAT_PRINTF(6, 7);
+static void
+socket_log(isc__socket_t *sock, const isc_sockaddr_t *address,
+	   isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	   const char *fmt, ...) ISC_FORMAT_PRINTF(6, 7);
 static void
 socket_log(isc__socket_t *sock, const isc_sockaddr_t *address,
 	   isc_logcategory_t *category, isc_logmodule_t *module, int level,

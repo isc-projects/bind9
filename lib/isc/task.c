@@ -188,8 +188,10 @@ struct isc__taskmgr {
 	isc__task_t *excl;
 };
 
-void isc__taskmgr_pause(isc_taskmgr_t *manager0);
-void isc__taskmgr_resume(isc_taskmgr_t *manager0);
+void
+isc__taskmgr_pause(isc_taskmgr_t *manager0);
+void
+isc__taskmgr_resume(isc_taskmgr_t *manager0);
 
 #define DEFAULT_DEFAULT_QUANTUM 25
 #define FINISHED(m)                                      \
@@ -202,17 +204,23 @@ void isc__taskmgr_resume(isc_taskmgr_t *manager0);
  * unit tests etc.
  */
 
-bool isc_task_purgeevent(isc_task_t *task0, isc_event_t *event);
-void isc_taskmgr_setexcltask(isc_taskmgr_t *mgr0, isc_task_t *task0);
-isc_result_t isc_taskmgr_excltask(isc_taskmgr_t *mgr0, isc_task_t **taskp);
-static inline bool empty_readyq(isc__taskmgr_t *manager, int c);
+bool
+isc_task_purgeevent(isc_task_t *task0, isc_event_t *event);
+void
+isc_taskmgr_setexcltask(isc_taskmgr_t *mgr0, isc_task_t *task0);
+isc_result_t
+isc_taskmgr_excltask(isc_taskmgr_t *mgr0, isc_task_t **taskp);
+static inline bool
+empty_readyq(isc__taskmgr_t *manager, int c);
 
-static inline isc__task_t *pop_readyq(isc__taskmgr_t *manager, int c);
+static inline isc__task_t *
+pop_readyq(isc__taskmgr_t *manager, int c);
 
-static inline void push_readyq(isc__taskmgr_t *manager, isc__task_t *task,
-			       int c);
+static inline void
+push_readyq(isc__taskmgr_t *manager, isc__task_t *task, int c);
 
-static inline void wake_all_queues(isc__taskmgr_t *manager);
+static inline void
+wake_all_queues(isc__taskmgr_t *manager);
 
 /***
  *** Tasks.

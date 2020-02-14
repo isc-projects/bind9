@@ -79,7 +79,8 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 	return (ISC_R_SUCCESS);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

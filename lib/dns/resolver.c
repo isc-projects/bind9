@@ -598,30 +598,45 @@ static unsigned char underscore_offsets[] = { 0 };
 static const dns_name_t underscore_name =
 	DNS_NAME_INITNONABSOLUTE(underscore_data, underscore_offsets);
 
-static void destroy(dns_resolver_t *res);
-static void empty_bucket(dns_resolver_t *res);
-static isc_result_t resquery_send(resquery_t *query);
-static void resquery_response(isc_task_t *task, isc_event_t *event);
-static void resquery_connected(isc_task_t *task, isc_event_t *event);
-static void fctx_try(fetchctx_t *fctx, bool retrying, bool badcache);
-static isc_result_t fctx_minimize_qname(fetchctx_t *fctx);
-static void fctx_destroy(fetchctx_t *fctx);
-static bool fctx_unlink(fetchctx_t *fctx);
+static void
+destroy(dns_resolver_t *res);
+static void
+empty_bucket(dns_resolver_t *res);
+static isc_result_t
+resquery_send(resquery_t *query);
+static void
+resquery_response(isc_task_t *task, isc_event_t *event);
+static void
+resquery_connected(isc_task_t *task, isc_event_t *event);
+static void
+fctx_try(fetchctx_t *fctx, bool retrying, bool badcache);
+static isc_result_t
+fctx_minimize_qname(fetchctx_t *fctx);
+static void
+fctx_destroy(fetchctx_t *fctx);
+static bool
+fctx_unlink(fetchctx_t *fctx);
 static isc_result_t
 ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
 		  dns_ttl_t maxttl, bool optout, bool secure,
 		  dns_rdataset_t *ardataset, isc_result_t *eresultp);
-static void validated(isc_task_t *task, isc_event_t *event);
-static bool maybe_destroy(fetchctx_t *fctx, bool locked);
-static void add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
-		    isc_result_t reason, badnstype_t badtype);
-static inline isc_result_t findnoqname(fetchctx_t *fctx, dns_name_t *name,
-				       dns_rdatatype_t type,
-				       dns_name_t **noqname);
-static void fctx_increference(fetchctx_t *fctx);
-static bool fctx_decreference(fetchctx_t *fctx);
-static void resume_qmin(isc_task_t *task, isc_event_t *event);
+static void
+validated(isc_task_t *task, isc_event_t *event);
+static bool
+maybe_destroy(fetchctx_t *fctx, bool locked);
+static void
+add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
+	badnstype_t badtype);
+static inline isc_result_t
+findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
+	    dns_name_t **noqname);
+static void
+fctx_increference(fetchctx_t *fctx);
+static bool
+fctx_decreference(fetchctx_t *fctx);
+static void
+resume_qmin(isc_task_t *task, isc_event_t *event);
 
 /*%
  * The structure and functions defined below implement the resolver
@@ -756,66 +771,94 @@ typedef struct respctx {
 	dns_rdataset_t *opt; /* OPT rdataset */
 } respctx_t;
 
-static void rctx_respinit(isc_task_t *task, dns_dispatchevent_t *devent,
-			  resquery_t *query, fetchctx_t *fctx, respctx_t *rctx);
+static void
+rctx_respinit(isc_task_t *task, dns_dispatchevent_t *devent, resquery_t *query,
+	      fetchctx_t *fctx, respctx_t *rctx);
 
-static void rctx_answer_init(respctx_t *rctx);
+static void
+rctx_answer_init(respctx_t *rctx);
 
-static void rctx_answer_scan(respctx_t *rctx);
+static void
+rctx_answer_scan(respctx_t *rctx);
 
-static void rctx_authority_positive(respctx_t *rctx);
+static void
+rctx_authority_positive(respctx_t *rctx);
 
-static isc_result_t rctx_answer_any(respctx_t *rctx);
+static isc_result_t
+rctx_answer_any(respctx_t *rctx);
 
-static isc_result_t rctx_answer_match(respctx_t *rctx);
+static isc_result_t
+rctx_answer_match(respctx_t *rctx);
 
-static isc_result_t rctx_answer_cname(respctx_t *rctx);
+static isc_result_t
+rctx_answer_cname(respctx_t *rctx);
 
-static isc_result_t rctx_answer_dname(respctx_t *rctx);
+static isc_result_t
+rctx_answer_dname(respctx_t *rctx);
 
-static isc_result_t rctx_answer_positive(respctx_t *rctx);
+static isc_result_t
+rctx_answer_positive(respctx_t *rctx);
 
-static isc_result_t rctx_authority_negative(respctx_t *rctx);
+static isc_result_t
+rctx_authority_negative(respctx_t *rctx);
 
-static isc_result_t rctx_authority_dnssec(respctx_t *rctx);
+static isc_result_t
+rctx_authority_dnssec(respctx_t *rctx);
 
-static void rctx_additional(respctx_t *rctx);
+static void
+rctx_additional(respctx_t *rctx);
 
-static isc_result_t rctx_referral(respctx_t *rctx);
+static isc_result_t
+rctx_referral(respctx_t *rctx);
 
-static isc_result_t rctx_answer_none(respctx_t *rctx);
+static isc_result_t
+rctx_answer_none(respctx_t *rctx);
 
-static void rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
-			    isc_result_t result);
+static void
+rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
+		isc_result_t result);
 
-static void rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo);
+static void
+rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo);
 
-static void rctx_next(respctx_t *rctx);
+static void
+rctx_next(respctx_t *rctx);
 
-static void rctx_chaseds(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
-			 isc_result_t result);
+static void
+rctx_chaseds(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo, isc_result_t result);
 
-static void rctx_done(respctx_t *rctx, isc_result_t result);
+static void
+rctx_done(respctx_t *rctx, isc_result_t result);
 
-static void rctx_logpacket(respctx_t *rctx);
+static void
+rctx_logpacket(respctx_t *rctx);
 
-static void rctx_opt(respctx_t *rctx);
+static void
+rctx_opt(respctx_t *rctx);
 
-static void rctx_edns(respctx_t *rctx);
+static void
+rctx_edns(respctx_t *rctx);
 
-static isc_result_t rctx_parse(respctx_t *rctx);
+static isc_result_t
+rctx_parse(respctx_t *rctx);
 
-static isc_result_t rctx_badserver(respctx_t *rctx, isc_result_t result);
+static isc_result_t
+rctx_badserver(respctx_t *rctx, isc_result_t result);
 
-static isc_result_t rctx_answer(respctx_t *rctx);
+static isc_result_t
+rctx_answer(respctx_t *rctx);
 
-static isc_result_t rctx_lameserver(respctx_t *rctx);
+static isc_result_t
+rctx_lameserver(respctx_t *rctx);
 
-static isc_result_t rctx_dispfail(respctx_t *rctx);
+static isc_result_t
+rctx_dispfail(respctx_t *rctx);
 
-static void rctx_delonly_zone(respctx_t *rctx);
+static void
+rctx_delonly_zone(respctx_t *rctx);
 
-static void rctx_ncache(respctx_t *rctx);
+static void
+rctx_ncache(respctx_t *rctx);
 
 /*%
  * Increment resolver-related statistics counters.

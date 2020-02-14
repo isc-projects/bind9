@@ -33,13 +33,13 @@
 			goto cleanup;        \
 	} while (0)
 
-extern isc_mem_t *	test_mctx;
-extern isc_log_t *	test_lctx;
-extern isc_taskmgr_t *	taskmgr;
-extern isc_timermgr_t * timermgr;
+extern isc_mem_t *test_mctx;
+extern isc_log_t *test_lctx;
+extern isc_taskmgr_t *taskmgr;
+extern isc_timermgr_t *timermgr;
 extern isc_socketmgr_t *socketmgr;
-extern isc_nm_t *	netmgr;
-extern int		ncpus;
+extern isc_nm_t *netmgr;
+extern int ncpus;
 
 isc_result_t
 isc_test_begin(FILE *logfile, bool start_managers, unsigned int workers);

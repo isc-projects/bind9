@@ -68,8 +68,8 @@ const char *program = "dnstap-read";
 		}                                                     \
 	} while (0)
 
-ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format,
-					    ...) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
 
 static void
 fatal(const char *format, ...) {

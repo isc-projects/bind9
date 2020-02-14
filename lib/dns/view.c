@@ -77,9 +77,12 @@
 #define DNS_VIEW_DELONLYHASH   111
 #define DNS_VIEW_FAILCACHESIZE 1021
 
-static void resolver_shutdown(isc_task_t *task, isc_event_t *event);
-static void adb_shutdown(isc_task_t *task, isc_event_t *event);
-static void req_shutdown(isc_task_t *task, isc_event_t *event);
+static void
+resolver_shutdown(isc_task_t *task, isc_event_t *event);
+static void
+adb_shutdown(isc_task_t *task, isc_event_t *event);
+static void
+req_shutdown(isc_task_t *task, isc_event_t *event);
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,

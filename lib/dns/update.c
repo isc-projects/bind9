@@ -196,8 +196,9 @@ typedef struct update_event update_event_t;
 
 /**************************************************************************/
 
-static void update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
-		       const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
+static void
+update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
+	   const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
 
 static void
 update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
@@ -297,12 +298,14 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 /*%
  * Function type for foreach_rrset() iterator actions.
  */
-typedef isc_result_t rrset_func(void *data, dns_rdataset_t *rrset);
+typedef isc_result_t
+rrset_func(void *data, dns_rdataset_t *rrset);
 
 /*%
  * Function type for foreach_rr() iterator actions.
  */
-typedef isc_result_t rr_func(void *data, rr_t *rr);
+typedef isc_result_t
+rr_func(void *data, rr_t *rr);
 
 /*%
  * Internal context struct for foreach_node_rr().
@@ -492,7 +495,8 @@ cleanup_node:
  * Function type for predicate functions that compare a database RR 'db_rr'
  * against an update RR 'update_rr'.
  */
-typedef bool rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
+typedef bool
+rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
 
 /*%
  * Helper function for rrset_exists().

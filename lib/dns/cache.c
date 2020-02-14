@@ -153,16 +153,18 @@ struct dns_cache {
  ***	Functions
  ***/
 
-static isc_result_t cache_cleaner_init(dns_cache_t *cache,
-				       isc_taskmgr_t *taskmgr,
-				       isc_timermgr_t *timermgr,
-				       cache_cleaner_t *cleaner);
+static isc_result_t
+cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
+		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner);
 
-static void incremental_cleaning_action(isc_task_t *task, isc_event_t *event);
+static void
+incremental_cleaning_action(isc_task_t *task, isc_event_t *event);
 
-static void cleaner_shutdown_action(isc_task_t *task, isc_event_t *event);
+static void
+cleaner_shutdown_action(isc_task_t *task, isc_event_t *event);
 
-static void overmem_cleaning_action(isc_task_t *task, isc_event_t *event);
+static void
+overmem_cleaning_action(isc_task_t *task, isc_event_t *event);
 
 static inline isc_result_t
 cache_create_db(dns_cache_t *cache, dns_db_t **db) {

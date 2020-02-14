@@ -199,8 +199,9 @@ client_trace(ns_client_t *client, int level, const char *message) {
 	} while (0)
 #define RESTORE(a, b) SAVE(a, b)
 
-static bool validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
-		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+static bool
+validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
+	 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 
 static void
 query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
@@ -208,16 +209,18 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		       dns_name_t *fname, bool exact, dns_name_t *found);
 
-static inline void log_queryerror(ns_client_t *client, isc_result_t result,
-				  int line, int level);
+static inline void
+log_queryerror(ns_client_t *client, isc_result_t result, int line, int level);
 
-static void rpz_st_clear(ns_client_t *client);
+static void
+rpz_st_clear(ns_client_t *client);
 
-static bool rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
-			  dns_rdataset_t *rdataset,
-			  dns_rdataset_t *sigrdataset);
+static bool
+rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
+	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 
-static void log_noexistnodata(void *val, int level, const char *fmt, ...)
+static void
+log_noexistnodata(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
 /*
@@ -358,86 +361,122 @@ get_hooktab(query_ctx_t *qctx) {
  * plugins.)
  */
 
-static void query_trace(query_ctx_t *qctx);
+static void
+query_trace(query_ctx_t *qctx);
 
-static void qctx_init(ns_client_t *client, dns_fetchevent_t *event,
-		      dns_rdatatype_t qtype, query_ctx_t *qctx);
+static void
+qctx_init(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype,
+	  query_ctx_t *qctx);
 
-static isc_result_t query_setup(ns_client_t *client, dns_rdatatype_t qtype);
+static isc_result_t
+query_setup(ns_client_t *client, dns_rdatatype_t qtype);
 
-static isc_result_t query_lookup(query_ctx_t *qctx);
+static isc_result_t
+query_lookup(query_ctx_t *qctx);
 
-static void fetch_callback(isc_task_t *task, isc_event_t *event);
+static void
+fetch_callback(isc_task_t *task, isc_event_t *event);
 
-static void recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
-			    const dns_name_t *qname, const dns_name_t *qdomain);
+static void
+recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
+		const dns_name_t *qname, const dns_name_t *qdomain);
 
-static isc_result_t query_resume(query_ctx_t *qctx);
+static isc_result_t
+query_resume(query_ctx_t *qctx);
 
-static isc_result_t query_checkrrl(query_ctx_t *qctx, isc_result_t result);
+static isc_result_t
+query_checkrrl(query_ctx_t *qctx, isc_result_t result);
 
-static isc_result_t query_checkrpz(query_ctx_t *qctx, isc_result_t result);
+static isc_result_t
+query_checkrpz(query_ctx_t *qctx, isc_result_t result);
 
-static isc_result_t query_rpzcname(query_ctx_t *qctx, dns_name_t *cname);
+static isc_result_t
+query_rpzcname(query_ctx_t *qctx, dns_name_t *cname);
 
-static isc_result_t query_gotanswer(query_ctx_t *qctx, isc_result_t result);
+static isc_result_t
+query_gotanswer(query_ctx_t *qctx, isc_result_t result);
 
-static void query_addnoqnameproof(query_ctx_t *qctx);
+static void
+query_addnoqnameproof(query_ctx_t *qctx);
 
-static isc_result_t query_respond_any(query_ctx_t *qctx);
+static isc_result_t
+query_respond_any(query_ctx_t *qctx);
 
-static isc_result_t query_respond(query_ctx_t *qctx);
+static isc_result_t
+query_respond(query_ctx_t *qctx);
 
-static isc_result_t query_dns64(query_ctx_t *qctx);
+static isc_result_t
+query_dns64(query_ctx_t *qctx);
 
-static void query_filter64(query_ctx_t *qctx);
+static void
+query_filter64(query_ctx_t *qctx);
 
-static isc_result_t query_notfound(query_ctx_t *qctx);
+static isc_result_t
+query_notfound(query_ctx_t *qctx);
 
-static isc_result_t query_zone_delegation(query_ctx_t *qctx);
+static isc_result_t
+query_zone_delegation(query_ctx_t *qctx);
 
-static isc_result_t query_delegation(query_ctx_t *qctx);
+static isc_result_t
+query_delegation(query_ctx_t *qctx);
 
-static isc_result_t query_delegation_recurse(query_ctx_t *qctx);
+static isc_result_t
+query_delegation_recurse(query_ctx_t *qctx);
 
-static void query_addds(query_ctx_t *qctx);
+static void
+query_addds(query_ctx_t *qctx);
 
-static isc_result_t query_nodata(query_ctx_t *qctx, isc_result_t result);
+static isc_result_t
+query_nodata(query_ctx_t *qctx, isc_result_t result);
 
-static isc_result_t query_sign_nodata(query_ctx_t *qctx);
+static isc_result_t
+query_sign_nodata(query_ctx_t *qctx);
 
-static void query_addnxrrsetnsec(query_ctx_t *qctx);
+static void
+query_addnxrrsetnsec(query_ctx_t *qctx);
 
-static isc_result_t query_nxdomain(query_ctx_t *qctx, bool empty_wild);
+static isc_result_t
+query_nxdomain(query_ctx_t *qctx, bool empty_wild);
 
-static isc_result_t query_redirect(query_ctx_t *qctx);
+static isc_result_t
+query_redirect(query_ctx_t *qctx);
 
-static isc_result_t query_ncache(query_ctx_t *qctx, isc_result_t result);
+static isc_result_t
+query_ncache(query_ctx_t *qctx, isc_result_t result);
 
-static isc_result_t query_coveringnsec(query_ctx_t *qctx);
+static isc_result_t
+query_coveringnsec(query_ctx_t *qctx);
 
-static isc_result_t query_zerottl_refetch(query_ctx_t *qctx);
+static isc_result_t
+query_zerottl_refetch(query_ctx_t *qctx);
 
-static isc_result_t query_cname(query_ctx_t *qctx);
+static isc_result_t
+query_cname(query_ctx_t *qctx);
 
-static isc_result_t query_dname(query_ctx_t *qctx);
+static isc_result_t
+query_dname(query_ctx_t *qctx);
 
-static isc_result_t query_addcname(query_ctx_t *qctx, dns_trust_t trust,
-				   dns_ttl_t ttl);
+static isc_result_t
+query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl);
 
-static isc_result_t query_prepresponse(query_ctx_t *qctx);
+static isc_result_t
+query_prepresponse(query_ctx_t *qctx);
 
-static isc_result_t query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
-				 dns_section_t section);
+static isc_result_t
+query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
+	     dns_section_t section);
 
-static isc_result_t query_addns(query_ctx_t *qctx);
+static isc_result_t
+query_addns(query_ctx_t *qctx);
 
-static void query_addbestns(query_ctx_t *qctx);
+static void
+query_addbestns(query_ctx_t *qctx);
 
-static void query_addwildcardproof(query_ctx_t *qctx, bool ispositive,
-				   bool nodata);
+static void
+query_addwildcardproof(query_ctx_t *qctx, bool ispositive, bool nodata);
 
-static void query_addauth(query_ctx_t *qctx);
+static void
+query_addauth(query_ctx_t *qctx);
 
 /*
  * Increment query statistics counters.

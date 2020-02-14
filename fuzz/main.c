@@ -26,9 +26,8 @@
 #include <dirent.h>
 
 static void
-test_all_from(const char *dirname)
-{
-	DIR *	       dirp;
+test_all_from(const char *dirname) {
+	DIR *dirp;
 	struct dirent *dp;
 
 	dirp = opendir(dirname);
@@ -37,11 +36,11 @@ test_all_from(const char *dirname)
 	}
 
 	while ((dp = readdir(dirp)) != NULL) {
-		char	    filename[strlen(dirname) + strlen(dp->d_name) + 2];
-		int	    fd;
+		char filename[strlen(dirname) + strlen(dp->d_name) + 2];
+		int fd;
 		struct stat st;
-		char *	    data;
-		ssize_t	    n;
+		char *data;
+		ssize_t n;
 
 		if (dp->d_name[0] == '.') {
 			continue;
@@ -91,9 +90,8 @@ test_all_from(const char *dirname)
 }
 
 int
-main(int argc, char **argv)
-{
-	char	    corpusdir[PATH_MAX];
+main(int argc, char **argv) {
+	char corpusdir[PATH_MAX];
 	const char *target = strrchr(argv[0], '/');
 
 	UNUSED(argc);
@@ -114,9 +112,8 @@ main(int argc, char **argv)
 #elif __AFL_COMPILER
 
 int
-main(int argc, char **argv)
-{
-	int	      ret;
+main(int argc, char **argv) {
+	int ret;
 	unsigned char buf[64 * 1024];
 
 	UNUSED(argc);
