@@ -54,35 +54,34 @@
 #define ISC_MUTEX_MAX_LOCKERS 32
 
 typedef struct {
-	const char *   file;
-	int	       line;
-	unsigned       count;
+	const char *file;
+	int line;
+	unsigned count;
 	struct timeval locked_total;
 	struct timeval wait_total;
 } isc_mutexlocker_t;
 
 struct isc_mutexstats {
-	const char *	   file; /*%< File mutex was created in. */
-	int		   line; /*%< Line mutex was created on. */
-	unsigned	   count;
-	struct timeval	   lock_t;
-	struct timeval	   locked_total;
-	struct timeval	   wait_total;
+	const char *file; /*%< File mutex was created in. */
+	int line;	  /*%< Line mutex was created on. */
+	unsigned count;
+	struct timeval lock_t;
+	struct timeval locked_total;
+	struct timeval wait_total;
 	isc_mutexlocker_t *cur_locker;
-	isc_mutexlocker_t  lockers[ISC_MUTEX_MAX_LOCKERS];
+	isc_mutexlocker_t lockers[ISC_MUTEX_MAX_LOCKERS];
 };
 
 #ifndef ISC_MUTEX_PROFTABLESIZE
 #define ISC_MUTEX_PROFTABLESIZE (1024 * 1024)
 #endif /* ifndef ISC_MUTEX_PROFTABLESIZE */
 static isc_mutexstats_t stats[ISC_MUTEX_PROFTABLESIZE];
-static int		stats_next = 0;
-static bool		stats_init = false;
-static pthread_mutex_t	statslock = PTHREAD_MUTEX_INITIALIZER;
+static int stats_next = 0;
+static bool stats_init = false;
+static pthread_mutex_t statslock = PTHREAD_MUTEX_INITIALIZER;
 
 void
-isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line)
-{
+isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line) {
 	int i, err;
 
 	err = pthread_mutex_init(&mp->mutex, NULL);
@@ -126,12 +125,11 @@ isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line)
 }
 
 isc_result_t
-isc_mutex_lock_profile(isc_mutex_t *mp, const char *file, int line)
-{
-	struct timeval	   prelock_t;
-	struct timeval	   postlock_t;
+isc_mutex_lock_profile(isc_mutex_t *mp, const char *file, int line) {
+	struct timeval prelock_t;
+	struct timeval postlock_t;
 	isc_mutexlocker_t *locker = NULL;
-	int		   i;
+	int i;
 
 	gettimeofday(&prelock_t, NULL);
 
@@ -154,7 +152,8 @@ isc_mutex_lock_profile(isc_mutex_t *mp, const char *file, int line)
 			locker->line = line;
 			break;
 		} else if (mp->stats->lockers[i].file == file &&
-			   mp->stats->lockers[i].line == line) {
+			   mp->stats->lockers[i].line == line)
+		{
 			locker = &mp->stats->lockers[i];
 			break;
 		}
@@ -171,8 +170,7 @@ isc_mutex_lock_profile(isc_mutex_t *mp, const char *file, int line)
 }
 
 isc_result_t
-isc_mutex_unlock_profile(isc_mutex_t *mp, const char *file, int line)
-{
+isc_mutex_unlock_profile(isc_mutex_t *mp, const char *file, int line) {
 	struct timeval unlock_t;
 
 	UNUSED(file);
@@ -191,10 +189,9 @@ isc_mutex_unlock_profile(isc_mutex_t *mp, const char *file, int line)
 }
 
 void
-isc_mutex_statsprofile(FILE *fp)
-{
+isc_mutex_statsprofile(FILE *fp) {
 	isc_mutexlocker_t *locker;
-	int		   i, j;
+	int i, j;
 
 	fprintf(fp, "Mutex stats (in us)\n");
 	for (i = 0; i < stats_next; i++) {
@@ -224,13 +221,12 @@ isc_mutex_statsprofile(FILE *fp)
 
 #if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)
 
-static bool		   errcheck_initialized = false;
+static bool errcheck_initialized = false;
 static pthread_mutexattr_t errcheck;
-static isc_once_t	   once_errcheck = ISC_ONCE_INIT;
+static isc_once_t once_errcheck = ISC_ONCE_INIT;
 
 static void
-initialize_errcheck(void)
-{
+initialize_errcheck(void) {
 	RUNTIME_CHECK(pthread_mutexattr_init(&errcheck) == 0);
 	RUNTIME_CHECK(pthread_mutexattr_settype(&errcheck,
 						PTHREAD_MUTEX_ERRORCHECK) == 0);
@@ -238,10 +234,9 @@ initialize_errcheck(void)
 }
 
 void
-isc_mutex_init_errcheck(isc_mutex_t *mp)
-{
+isc_mutex_init_errcheck(isc_mutex_t *mp) {
 	isc_result_t result;
-	int	     err;
+	int err;
 
 	result = isc_once_do(&once_errcheck, initialize_errcheck);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -267,15 +262,14 @@ pthread_mutexattr_t isc__mutex_attrs = {
 	!ISC_MUTEX_PROFILE
 
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
-static bool		   attr_initialized = false;
+static bool attr_initialized = false;
 static pthread_mutexattr_t attr;
-static isc_once_t	   once_attr = ISC_ONCE_INIT;
+static isc_once_t once_attr = ISC_ONCE_INIT;
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 static void
-initialize_attr(void)
-{
+initialize_attr(void) {
 	RUNTIME_CHECK(pthread_mutexattr_init(&attr) == 0);
 	RUNTIME_CHECK(pthread_mutexattr_settype(
 			      &attr, PTHREAD_MUTEX_ADAPTIVE_NP) == 0);
@@ -284,8 +278,7 @@ initialize_attr(void)
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 
 void
-isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line)
-{
+isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 	int err;
 
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP

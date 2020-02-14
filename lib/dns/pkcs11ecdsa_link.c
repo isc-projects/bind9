@@ -53,7 +53,7 @@
  */
 
 #define TAG_OCTECT_STRING 0x04
-#define UNCOMPRESSED 0x04
+#define UNCOMPRESSED	  0x04
 
 #define DST_RET(a)        \
 	{                 \
@@ -64,23 +64,19 @@
 static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
 
-static isc_result_t
-pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data);
-static void
-pkcs11ecdsa_destroy(dst_key_t *key);
-static isc_result_t
-pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
-		  dst_key_t *pub);
+static isc_result_t pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data);
+static void pkcs11ecdsa_destroy(dst_key_t *key);
+static isc_result_t pkcs11ecdsa_fetch(dst_key_t *key, const char *engine,
+				      const char *label, dst_key_t *pub);
 
 static isc_result_t
-pkcs11ecdsa_createctx(dst_key_t *key, dst_context_t *dctx)
-{
-	CK_RV		rv;
-	CK_MECHANISM	mech = { 0, NULL, 0 };
-	CK_SLOT_ID	slotid;
+pkcs11ecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
+	CK_RV rv;
+	CK_MECHANISM mech = { 0, NULL, 0 };
+	CK_SLOT_ID slotid;
 	pk11_context_t *pk11_ctx;
-	pk11_object_t * ec = key->keydata.pkey;
-	isc_result_t	ret;
+	pk11_object_t *ec = key->keydata.pkey;
+	isc_result_t ret;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
 		dctx->key->key_alg == DST_ALG_ECDSA384);
@@ -118,10 +114,9 @@ err:
 }
 
 static void
-pkcs11ecdsa_destroyctx(dst_context_t *dctx)
-{
-	CK_BYTE		garbage[ISC_SHA384_DIGESTLENGTH];
-	CK_ULONG	len = ISC_SHA384_DIGESTLENGTH;
+pkcs11ecdsa_destroyctx(dst_context_t *dctx) {
+	CK_BYTE garbage[ISC_SHA384_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA384_DIGESTLENGTH;
 	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
@@ -138,11 +133,10 @@ pkcs11ecdsa_destroyctx(dst_context_t *dctx)
 }
 
 static isc_result_t
-pkcs11ecdsa_adddata(dst_context_t *dctx, const isc_region_t *data)
-{
-	CK_RV		rv;
+pkcs11ecdsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
+	CK_RV rv;
 	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
-	isc_result_t	ret = ISC_R_SUCCESS;
+	isc_result_t ret = ISC_R_SUCCESS;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
 		dctx->key->key_alg == DST_ALG_ECDSA384);
@@ -156,32 +150,31 @@ pkcs11ecdsa_adddata(dst_context_t *dctx, const isc_region_t *data)
 }
 
 static isc_result_t
-pkcs11ecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig)
-{
-	CK_RV		 rv;
-	CK_MECHANISM	 mech = { CKM_ECDSA, NULL, 0 };
+pkcs11ecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_ECDSA, NULL, 0 };
 	CK_OBJECT_HANDLE hKey = CK_INVALID_HANDLE;
-	CK_OBJECT_CLASS	 keyClass = CKO_PRIVATE_KEY;
-	CK_KEY_TYPE	 keyType = CKK_EC;
-	CK_ATTRIBUTE	 keyTemplate[] = {
-		    { CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
-		    { CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
-		    { CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		    { CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		    { CKA_SIGN, &truevalue, (CK_ULONG)sizeof(truevalue) },
-		    { CKA_EC_PARAMS, NULL, 0 },
-		    { CKA_VALUE, NULL, 0 }
+	CK_OBJECT_CLASS keyClass = CKO_PRIVATE_KEY;
+	CK_KEY_TYPE keyType = CKK_EC;
+	CK_ATTRIBUTE keyTemplate[] = {
+		{ CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
+		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
+		{ CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_SIGN, &truevalue, (CK_ULONG)sizeof(truevalue) },
+		{ CKA_EC_PARAMS, NULL, 0 },
+		{ CKA_VALUE, NULL, 0 }
 	};
-	CK_ATTRIBUTE *	attr;
-	CK_BYTE		digest[ISC_SHA384_DIGESTLENGTH];
-	CK_ULONG	dgstlen;
-	CK_ULONG	siglen;
+	CK_ATTRIBUTE *attr;
+	CK_BYTE digest[ISC_SHA384_DIGESTLENGTH];
+	CK_ULONG dgstlen;
+	CK_ULONG siglen;
 	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
-	dst_key_t *	key = dctx->key;
-	pk11_object_t * ec = key->keydata.pkey;
-	isc_region_t	r;
-	isc_result_t	ret = ISC_R_SUCCESS;
-	unsigned int	i;
+	dst_key_t *key = dctx->key;
+	pk11_object_t *ec = key->keydata.pkey;
+	isc_region_t r;
+	isc_result_t ret = ISC_R_SUCCESS;
+	unsigned int i;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -214,16 +207,16 @@ pkcs11ecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig)
 		switch (attr->type) {
 		case CKA_EC_PARAMS:
 			INSIST(keyTemplate[5].type == attr->type);
-			keyTemplate[5].pValue =
-				isc_mem_get(dctx->mctx, attr->ulValueLen);
+			keyTemplate[5].pValue = isc_mem_get(dctx->mctx,
+							    attr->ulValueLen);
 			memmove(keyTemplate[5].pValue, attr->pValue,
 				attr->ulValueLen);
 			keyTemplate[5].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_VALUE:
 			INSIST(keyTemplate[6].type == attr->type);
-			keyTemplate[6].pValue =
-				isc_mem_get(dctx->mctx, attr->ulValueLen);
+			keyTemplate[6].pValue = isc_mem_get(dctx->mctx,
+							    attr->ulValueLen);
 			memmove(keyTemplate[6].pValue, attr->pValue,
 				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
@@ -273,30 +266,29 @@ err:
 }
 
 static isc_result_t
-pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig)
-{
-	CK_RV		 rv;
-	CK_MECHANISM	 mech = { CKM_ECDSA, NULL, 0 };
+pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_ECDSA, NULL, 0 };
 	CK_OBJECT_HANDLE hKey = CK_INVALID_HANDLE;
-	CK_OBJECT_CLASS	 keyClass = CKO_PUBLIC_KEY;
-	CK_KEY_TYPE	 keyType = CKK_EC;
-	CK_ATTRIBUTE	 keyTemplate[] = {
-		    { CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
-		    { CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
-		    { CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		    { CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		    { CKA_VERIFY, &truevalue, (CK_ULONG)sizeof(truevalue) },
-		    { CKA_EC_PARAMS, NULL, 0 },
-		    { CKA_EC_POINT, NULL, 0 }
+	CK_OBJECT_CLASS keyClass = CKO_PUBLIC_KEY;
+	CK_KEY_TYPE keyType = CKK_EC;
+	CK_ATTRIBUTE keyTemplate[] = {
+		{ CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
+		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
+		{ CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_VERIFY, &truevalue, (CK_ULONG)sizeof(truevalue) },
+		{ CKA_EC_PARAMS, NULL, 0 },
+		{ CKA_EC_POINT, NULL, 0 }
 	};
-	CK_ATTRIBUTE *	attr;
-	CK_BYTE		digest[ISC_SHA384_DIGESTLENGTH];
-	CK_ULONG	dgstlen;
+	CK_ATTRIBUTE *attr;
+	CK_BYTE digest[ISC_SHA384_DIGESTLENGTH];
+	CK_ULONG dgstlen;
 	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
-	dst_key_t *	key = dctx->key;
-	pk11_object_t * ec = key->keydata.pkey;
-	isc_result_t	ret = ISC_R_SUCCESS;
-	unsigned int	i;
+	dst_key_t *key = dctx->key;
+	pk11_object_t *ec = key->keydata.pkey;
+	isc_result_t ret = ISC_R_SUCCESS;
+	unsigned int i;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -316,16 +308,16 @@ pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig)
 		switch (attr->type) {
 		case CKA_EC_PARAMS:
 			INSIST(keyTemplate[5].type == attr->type);
-			keyTemplate[5].pValue =
-				isc_mem_get(dctx->mctx, attr->ulValueLen);
+			keyTemplate[5].pValue = isc_mem_get(dctx->mctx,
+							    attr->ulValueLen);
 			memmove(keyTemplate[5].pValue, attr->pValue,
 				attr->ulValueLen);
 			keyTemplate[5].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_EC_POINT:
 			INSIST(keyTemplate[6].type == attr->type);
-			keyTemplate[6].pValue =
-				isc_mem_get(dctx->mctx, attr->ulValueLen);
+			keyTemplate[6].pValue = isc_mem_get(dctx->mctx,
+							    attr->ulValueLen);
 			memmove(keyTemplate[6].pValue, attr->pValue,
 				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
@@ -369,10 +361,9 @@ err:
 }
 
 static bool
-pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2)
-{
+pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	pk11_object_t *ec1, *ec2;
-	CK_ATTRIBUTE * attr1, *attr2;
+	CK_ATTRIBUTE *attr1, *attr2;
 
 	ec1 = key1->keydata.pkey;
 	ec2 = key2->keydata.pkey;
@@ -390,7 +381,8 @@ pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2)
 	} else if ((attr1 == NULL) || (attr2 == NULL) ||
 		   (attr1->ulValueLen != attr2->ulValueLen) ||
 		   !isc_safe_memequal(attr1->pValue, attr2->pValue,
-				      attr1->ulValueLen)) {
+				      attr1->ulValueLen))
+	{
 		return (false);
 	}
 
@@ -401,7 +393,8 @@ pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2)
 	} else if ((attr1 == NULL) || (attr2 == NULL) ||
 		   (attr1->ulValueLen != attr2->ulValueLen) ||
 		   !isc_safe_memequal(attr1->pValue, attr2->pValue,
-				      attr1->ulValueLen)) {
+				      attr1->ulValueLen))
+	{
 		return (false);
 	}
 
@@ -411,35 +404,36 @@ pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2)
 	    ((attr1 == NULL) || (attr2 == NULL) ||
 	     (attr1->ulValueLen != attr2->ulValueLen) ||
 	     !isc_safe_memequal(attr1->pValue, attr2->pValue,
-				attr1->ulValueLen))) {
+				attr1->ulValueLen)))
+	{
 		return (false);
 	}
 
 	if (!ec1->ontoken && !ec2->ontoken) {
 		return (true);
-	} else if (ec1->ontoken || ec2->ontoken ||
-		   (ec1->object != ec2->object)) {
+	} else if (ec1->ontoken || ec2->ontoken || (ec1->object != ec2->object))
+	{
 		return (false);
 	}
 
 	return (true);
 }
 
-#define SETCURVE()                                                           \
-	if (key->key_alg == DST_ALG_ECDSA256) {                              \
-		attr->pValue =                                               \
-			isc_mem_get(key->mctx, sizeof(pk11_ecc_prime256v1)); \
-                                                                             \
-		memmove(attr->pValue, pk11_ecc_prime256v1,                   \
-			sizeof(pk11_ecc_prime256v1));                        \
-		attr->ulValueLen = sizeof(pk11_ecc_prime256v1);              \
-	} else {                                                             \
-		attr->pValue =                                               \
-			isc_mem_get(key->mctx, sizeof(pk11_ecc_secp384r1));  \
-                                                                             \
-		memmove(attr->pValue, pk11_ecc_secp384r1,                    \
-			sizeof(pk11_ecc_secp384r1));                         \
-		attr->ulValueLen = sizeof(pk11_ecc_secp384r1);               \
+#define SETCURVE()                                                       \
+	if (key->key_alg == DST_ALG_ECDSA256) {                          \
+		attr->pValue = isc_mem_get(key->mctx,                    \
+					   sizeof(pk11_ecc_prime256v1)); \
+                                                                         \
+		memmove(attr->pValue, pk11_ecc_prime256v1,               \
+			sizeof(pk11_ecc_prime256v1));                    \
+		attr->ulValueLen = sizeof(pk11_ecc_prime256v1);          \
+	} else {                                                         \
+		attr->pValue = isc_mem_get(key->mctx,                    \
+					   sizeof(pk11_ecc_secp384r1));  \
+                                                                         \
+		memmove(attr->pValue, pk11_ecc_secp384r1,                \
+			sizeof(pk11_ecc_secp384r1));                     \
+		attr->ulValueLen = sizeof(pk11_ecc_secp384r1);           \
 	}
 
 #define FREECURVE()                                                     \
@@ -450,36 +444,35 @@ pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2)
 	}
 
 static isc_result_t
-pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int))
-{
-	CK_RV		 rv;
-	CK_MECHANISM	 mech = { CKM_EC_KEY_PAIR_GEN, NULL, 0 };
+pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_EC_KEY_PAIR_GEN, NULL, 0 };
 	CK_OBJECT_HANDLE pub = CK_INVALID_HANDLE;
-	CK_OBJECT_CLASS	 pubClass = CKO_PUBLIC_KEY;
-	CK_KEY_TYPE	 keyType = CKK_EC;
-	CK_ATTRIBUTE	 pubTemplate[] = {
-		    { CKA_CLASS, &pubClass, (CK_ULONG)sizeof(pubClass) },
-		    { CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
-		    { CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		    { CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		    { CKA_VERIFY, &truevalue, (CK_ULONG)sizeof(truevalue) },
-		    { CKA_EC_PARAMS, NULL, 0 }
+	CK_OBJECT_CLASS pubClass = CKO_PUBLIC_KEY;
+	CK_KEY_TYPE keyType = CKK_EC;
+	CK_ATTRIBUTE pubTemplate[] = {
+		{ CKA_CLASS, &pubClass, (CK_ULONG)sizeof(pubClass) },
+		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
+		{ CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_VERIFY, &truevalue, (CK_ULONG)sizeof(truevalue) },
+		{ CKA_EC_PARAMS, NULL, 0 }
 	};
 	CK_OBJECT_HANDLE priv = CK_INVALID_HANDLE;
 	CK_OBJECT_HANDLE privClass = CKO_PRIVATE_KEY;
-	CK_ATTRIBUTE	 privTemplate[] = {
-		    { CKA_CLASS, &privClass, (CK_ULONG)sizeof(privClass) },
-		    { CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
-		    { CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		    { CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		    { CKA_SENSITIVE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		    { CKA_EXTRACTABLE, &truevalue, (CK_ULONG)sizeof(truevalue) },
-		    { CKA_SIGN, &truevalue, (CK_ULONG)sizeof(truevalue) }
+	CK_ATTRIBUTE privTemplate[] = {
+		{ CKA_CLASS, &privClass, (CK_ULONG)sizeof(privClass) },
+		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
+		{ CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_SENSITIVE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_EXTRACTABLE, &truevalue, (CK_ULONG)sizeof(truevalue) },
+		{ CKA_SIGN, &truevalue, (CK_ULONG)sizeof(truevalue) }
 	};
-	CK_ATTRIBUTE *	attr;
-	pk11_object_t * ec;
+	CK_ATTRIBUTE *attr;
+	pk11_object_t *ec;
 	pk11_context_t *pk11_ctx;
-	isc_result_t	ret;
+	isc_result_t ret;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -565,10 +558,9 @@ err:
 }
 
 static bool
-pkcs11ecdsa_isprivate(const dst_key_t *key)
-{
+pkcs11ecdsa_isprivate(const dst_key_t *key) {
 	pk11_object_t *ec = key->keydata.pkey;
-	CK_ATTRIBUTE * attr;
+	CK_ATTRIBUTE *attr;
 
 	if (ec == NULL) {
 		return (false);
@@ -578,10 +570,9 @@ pkcs11ecdsa_isprivate(const dst_key_t *key)
 }
 
 static void
-pkcs11ecdsa_destroy(dst_key_t *key)
-{
+pkcs11ecdsa_destroy(dst_key_t *key) {
 	pk11_object_t *ec = key->keydata.pkey;
-	CK_ATTRIBUTE * attr;
+	CK_ATTRIBUTE *attr;
 
 	if (ec == NULL) {
 		return;
@@ -610,12 +601,11 @@ pkcs11ecdsa_destroy(dst_key_t *key)
 }
 
 static isc_result_t
-pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data)
-{
+pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	pk11_object_t *ec;
-	isc_region_t   r;
-	unsigned int   len;
-	CK_ATTRIBUTE * attr;
+	isc_region_t r;
+	unsigned int len;
+	CK_ATTRIBUTE *attr;
 
 	REQUIRE(key->keydata.pkey != NULL);
 
@@ -630,7 +620,8 @@ pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data)
 	if ((attr == NULL) || (attr->ulValueLen != len + 3) ||
 	    (((CK_BYTE_PTR)attr->pValue)[0] != TAG_OCTECT_STRING) ||
 	    (((CK_BYTE_PTR)attr->pValue)[1] != len + 1) ||
-	    (((CK_BYTE_PTR)attr->pValue)[2] != UNCOMPRESSED)) {
+	    (((CK_BYTE_PTR)attr->pValue)[2] != UNCOMPRESSED))
+	{
 		return (ISC_R_FAILURE);
 	}
 
@@ -645,12 +636,11 @@ pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data)
 }
 
 static isc_result_t
-pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data)
-{
+pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	pk11_object_t *ec;
-	isc_region_t   r;
-	unsigned int   len;
-	CK_ATTRIBUTE * attr;
+	isc_region_t r;
+	unsigned int len;
+	CK_ATTRIBUTE *attr;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -677,14 +667,14 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data)
 	attr = ec->repr;
 	attr->type = CKA_EC_PARAMS;
 	if (key->key_alg == DST_ALG_ECDSA256) {
-		attr->pValue =
-			isc_mem_get(key->mctx, sizeof(pk11_ecc_prime256v1));
+		attr->pValue = isc_mem_get(key->mctx,
+					   sizeof(pk11_ecc_prime256v1));
 		memmove(attr->pValue, pk11_ecc_prime256v1,
 			sizeof(pk11_ecc_prime256v1));
 		attr->ulValueLen = sizeof(pk11_ecc_prime256v1);
 	} else {
-		attr->pValue =
-			isc_mem_get(key->mctx, sizeof(pk11_ecc_secp384r1));
+		attr->pValue = isc_mem_get(key->mctx,
+					   sizeof(pk11_ecc_secp384r1));
 		memmove(attr->pValue, pk11_ecc_secp384r1,
 			sizeof(pk11_ecc_secp384r1));
 		attr->ulValueLen = sizeof(pk11_ecc_secp384r1);
@@ -707,14 +697,13 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data)
 }
 
 static isc_result_t
-pkcs11ecdsa_tofile(const dst_key_t *key, const char *directory)
-{
-	isc_result_t   ret;
+pkcs11ecdsa_tofile(const dst_key_t *key, const char *directory) {
+	isc_result_t ret;
 	pk11_object_t *ec;
-	dst_private_t  priv;
+	dst_private_t priv;
 	unsigned char *buf = NULL;
-	unsigned int   i = 0;
-	CK_ATTRIBUTE * attr;
+	unsigned int i = 0;
+	CK_ATTRIBUTE *attr;
 
 	if (key->keydata.pkey == NULL) {
 		return (DST_R_NULLKEY);
@@ -762,24 +751,23 @@ pkcs11ecdsa_tofile(const dst_key_t *key, const char *directory)
 
 static isc_result_t
 pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
-		  dst_key_t *pub)
-{
-	CK_RV		rv;
+		  dst_key_t *pub) {
+	CK_RV rv;
 	CK_OBJECT_CLASS keyClass = CKO_PRIVATE_KEY;
-	CK_KEY_TYPE	keyType = CKK_EC;
-	CK_ATTRIBUTE	searchTemplate[] = {
-		   { CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
-		   { CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
-		   { CKA_TOKEN, &truevalue, (CK_ULONG)sizeof(truevalue) },
-		   { CKA_LABEL, NULL, 0 }
+	CK_KEY_TYPE keyType = CKK_EC;
+	CK_ATTRIBUTE searchTemplate[] = {
+		{ CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
+		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
+		{ CKA_TOKEN, &truevalue, (CK_ULONG)sizeof(truevalue) },
+		{ CKA_LABEL, NULL, 0 }
 	};
-	CK_ULONG	cnt;
-	CK_ATTRIBUTE *	attr;
-	CK_ATTRIBUTE *	pubattr;
-	pk11_object_t * ec;
-	pk11_object_t * pubec;
+	CK_ULONG cnt;
+	CK_ATTRIBUTE *attr;
+	CK_ATTRIBUTE *pubattr;
+	pk11_object_t *ec;
+	pk11_object_t *pubec;
 	pk11_context_t *pk11_ctx = NULL;
-	isc_result_t	ret;
+	isc_result_t ret;
 
 	if (label == NULL) {
 		return (DST_R_NOENGINE);
@@ -867,15 +855,14 @@ err:
 }
 
 static isc_result_t
-pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub)
-{
-	dst_private_t  priv;
-	isc_result_t   ret;
+pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
+	dst_private_t priv;
+	isc_result_t ret;
 	pk11_object_t *ec = NULL;
-	CK_ATTRIBUTE * attr, *pattr;
-	isc_mem_t *    mctx = key->mctx;
-	unsigned int   i;
-	const char *   engine = NULL, *label = NULL;
+	CK_ATTRIBUTE *attr, *pattr;
+	isc_mem_t *mctx = key->mctx;
+	unsigned int i;
+	const char *engine = NULL, *label = NULL;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -977,24 +964,23 @@ err:
 
 static isc_result_t
 pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
-		      const char *pin)
-{
-	CK_RV		 rv;
+		      const char *pin) {
+	CK_RV rv;
 	CK_OBJECT_HANDLE hKey = CK_INVALID_HANDLE;
-	CK_OBJECT_CLASS	 keyClass = CKO_PUBLIC_KEY;
-	CK_KEY_TYPE	 keyType = CKK_EC;
-	CK_ATTRIBUTE	 searchTemplate[] = {
-		    { CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
-		    { CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
-		    { CKA_TOKEN, &truevalue, (CK_ULONG)sizeof(truevalue) },
-		    { CKA_LABEL, NULL, 0 }
+	CK_OBJECT_CLASS keyClass = CKO_PUBLIC_KEY;
+	CK_KEY_TYPE keyType = CKK_EC;
+	CK_ATTRIBUTE searchTemplate[] = {
+		{ CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
+		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
+		{ CKA_TOKEN, &truevalue, (CK_ULONG)sizeof(truevalue) },
+		{ CKA_LABEL, NULL, 0 }
 	};
-	CK_ULONG	cnt;
-	CK_ATTRIBUTE *	attr;
-	pk11_object_t * ec;
+	CK_ULONG cnt;
+	CK_ATTRIBUTE *attr;
+	pk11_object_t *ec;
 	pk11_context_t *pk11_ctx = NULL;
-	isc_result_t	ret;
-	unsigned int	i;
+	isc_result_t ret;
+	unsigned int i;
 
 	UNUSED(pin);
 
@@ -1123,8 +1109,7 @@ static dst_func_t pkcs11ecdsa_functions = {
 };
 
 isc_result_t
-dst__pkcs11ecdsa_init(dst_func_t **funcp)
-{
+dst__pkcs11ecdsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL) {
 		*funcp = &pkcs11ecdsa_functions;

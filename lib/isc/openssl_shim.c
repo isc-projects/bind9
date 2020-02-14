@@ -22,8 +22,7 @@
 
 #if !HAVE_CRYPTO_ZALLOC
 void *
-CRYPTO_zalloc(size_t size)
-{
+CRYPTO_zalloc(size_t size) {
 	void *ret = OPENSSL_malloc(size);
 	if (ret != NULL) {
 		memset(ret, 0, size);
@@ -34,8 +33,7 @@ CRYPTO_zalloc(size_t size)
 
 #if !HAVE_EVP_CIPHER_CTX_NEW
 EVP_CIPHER_CTX *
-EVP_CIPHER_CTX_new(void)
-{
+EVP_CIPHER_CTX_new(void) {
 	EVP_CIPHER_CTX *ctx = OPENSSL_zalloc(sizeof(*ctx));
 	return (ctx);
 }
@@ -43,8 +41,7 @@ EVP_CIPHER_CTX_new(void)
 
 #if !HAVE_EVP_CIPHER_CTX_FREE
 void
-EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx)
-{
+EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx) {
 	if (ctx != NULL) {
 		EVP_CIPHER_CTX_cleanup(ctx);
 		OPENSSL_free(ctx);
@@ -54,8 +51,7 @@ EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx)
 
 #if !HAVE_EVP_MD_CTX_NEW
 EVP_MD_CTX *
-EVP_MD_CTX_new(void)
-{
+EVP_MD_CTX_new(void) {
 	EVP_MD_CTX *ctx = OPENSSL_malloc(sizeof(*ctx));
 	if (ctx != NULL) {
 		memset(ctx, 0, sizeof(*ctx));
@@ -66,8 +62,7 @@ EVP_MD_CTX_new(void)
 
 #if !HAVE_EVP_MD_CTX_FREE
 void
-EVP_MD_CTX_free(EVP_MD_CTX *ctx)
-{
+EVP_MD_CTX_free(EVP_MD_CTX *ctx) {
 	if (ctx != NULL) {
 		EVP_MD_CTX_cleanup(ctx);
 		OPENSSL_free(ctx);
@@ -77,16 +72,14 @@ EVP_MD_CTX_free(EVP_MD_CTX *ctx)
 
 #if !HAVE_EVP_MD_CTX_RESET
 int
-EVP_MD_CTX_reset(EVP_MD_CTX *ctx)
-{
+EVP_MD_CTX_reset(EVP_MD_CTX *ctx) {
 	return (EVP_MD_CTX_cleanup(ctx));
 }
 #endif /* if !HAVE_EVP_MD_CTX_RESET */
 
 #if !HAVE_HMAC_CTX_NEW
 HMAC_CTX *
-HMAC_CTX_new(void)
-{
+HMAC_CTX_new(void) {
 	HMAC_CTX *ctx = OPENSSL_zalloc(sizeof(*ctx));
 	if (ctx != NULL) {
 		if (!HMAC_CTX_reset(ctx)) {
@@ -100,8 +93,7 @@ HMAC_CTX_new(void)
 
 #if !HAVE_HMAC_CTX_FREE
 void
-HMAC_CTX_free(HMAC_CTX *ctx)
-{
+HMAC_CTX_free(HMAC_CTX *ctx) {
 	if (ctx != NULL) {
 		HMAC_CTX_cleanup(ctx);
 		OPENSSL_free(ctx);
@@ -111,8 +103,7 @@ HMAC_CTX_free(HMAC_CTX *ctx)
 
 #if !HAVE_HMAC_CTX_RESET
 int
-HMAC_CTX_reset(HMAC_CTX *ctx)
-{
+HMAC_CTX_reset(HMAC_CTX *ctx) {
 	HMAC_CTX_cleanup(ctx);
 	return (1);
 }
@@ -120,8 +111,7 @@ HMAC_CTX_reset(HMAC_CTX *ctx)
 
 #if !HAVE_HMAC_CTX_GET_MD
 const EVP_MD *
-HMAC_CTX_get_md(const HMAC_CTX *ctx)
-{
+HMAC_CTX_get_md(const HMAC_CTX *ctx) {
 	return (ctx->md);
 }
 #endif /* if !HAVE_HMAC_CTX_GET_MD */

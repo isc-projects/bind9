@@ -20,16 +20,15 @@
 #include <isc/util.h>
 
 struct isc_astack {
-	isc_mem_t * mctx;
-	size_t	    size;
-	size_t	    pos;
+	isc_mem_t *mctx;
+	size_t size;
+	size_t pos;
 	isc_mutex_t lock;
-	uintptr_t   nodes[];
+	uintptr_t nodes[];
 };
 
 isc_astack_t *
-isc_astack_new(isc_mem_t *mctx, size_t size)
-{
+isc_astack_new(isc_mem_t *mctx, size_t size) {
 	isc_astack_t *stack = isc_mem_get(
 		mctx, sizeof(isc_astack_t) + size * sizeof(uintptr_t));
 
@@ -43,8 +42,7 @@ isc_astack_new(isc_mem_t *mctx, size_t size)
 }
 
 bool
-isc_astack_trypush(isc_astack_t *stack, void *obj)
-{
+isc_astack_trypush(isc_astack_t *stack, void *obj) {
 	if (isc_mutex_trylock(&stack->lock) == false) {
 		if (stack->pos >= stack->size) {
 			UNLOCK(&stack->lock);
@@ -59,8 +57,7 @@ isc_astack_trypush(isc_astack_t *stack, void *obj)
 }
 
 void *
-isc_astack_pop(isc_astack_t *stack)
-{
+isc_astack_pop(isc_astack_t *stack) {
 	LOCK(&stack->lock);
 	uintptr_t rv;
 	if (stack->pos == 0) {
@@ -73,8 +70,7 @@ isc_astack_pop(isc_astack_t *stack)
 }
 
 void
-isc_astack_destroy(isc_astack_t *stack)
-{
+isc_astack_destroy(isc_astack_t *stack) {
 	LOCK(&stack->lock);
 	REQUIRE(stack->pos == 0);
 	UNLOCK(&stack->lock);

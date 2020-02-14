@@ -16,13 +16,13 @@
 
 #define RRTYPE_RP_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_rp(ARGS_FROMTEXT)
-{
-	isc_token_t  token;
-	dns_name_t   name;
+static inline isc_result_t
+fromtext_rp(ARGS_FROMTEXT) {
+	isc_token_t token;
+	dns_name_t name;
 	isc_buffer_t buffer;
-	int	     i;
-	bool	     ok;
+	int i;
+	bool ok;
 
 	REQUIRE(type == dns_rdatatype_rp);
 
@@ -55,13 +55,13 @@ static inline isc_result_t fromtext_rp(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_rp(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_rp(ARGS_TOTEXT) {
 	isc_region_t region;
-	dns_name_t   rmail;
-	dns_name_t   email;
-	dns_name_t   prefix;
-	bool	     sub;
+	dns_name_t rmail;
+	dns_name_t email;
+	dns_name_t prefix;
+	bool sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_rp);
 	REQUIRE(rdata->length != 0);
@@ -87,8 +87,8 @@ static inline isc_result_t totext_rp(ARGS_TOTEXT)
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t fromwire_rp(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_rp(ARGS_FROMWIRE) {
 	dns_name_t rmail;
 	dns_name_t email;
 
@@ -106,11 +106,11 @@ static inline isc_result_t fromwire_rp(ARGS_FROMWIRE)
 	return (dns_name_fromwire(&email, source, dctx, options, target));
 }
 
-static inline isc_result_t towire_rp(ARGS_TOWIRE)
-{
-	isc_region_t  region;
-	dns_name_t    rmail;
-	dns_name_t    email;
+static inline isc_result_t
+towire_rp(ARGS_TOWIRE) {
+	isc_region_t region;
+	dns_name_t rmail;
+	dns_name_t email;
 	dns_offsets_t roffsets;
 	dns_offsets_t eoffsets;
 
@@ -134,13 +134,13 @@ static inline isc_result_t towire_rp(ARGS_TOWIRE)
 	return (dns_name_towire(&rmail, cctx, target));
 }
 
-static inline int compare_rp(ARGS_COMPARE)
-{
+static inline int
+compare_rp(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
-	dns_name_t   name1;
-	dns_name_t   name2;
-	int	     order;
+	dns_name_t name1;
+	dns_name_t name2;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -174,10 +174,10 @@ static inline int compare_rp(ARGS_COMPARE)
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static inline isc_result_t fromstruct_rp(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_rp(ARGS_FROMSTRUCT) {
 	dns_rdata_rp_t *rp = source;
-	isc_region_t	region;
+	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_rp);
 	REQUIRE(rp != NULL);
@@ -193,12 +193,12 @@ static inline isc_result_t fromstruct_rp(ARGS_FROMSTRUCT)
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t tostruct_rp(ARGS_TOSTRUCT)
-{
-	isc_result_t	result;
-	isc_region_t	region;
+static inline isc_result_t
+tostruct_rp(ARGS_TOSTRUCT) {
+	isc_result_t result;
+	isc_region_t region;
 	dns_rdata_rp_t *rp = target;
-	dns_name_t	name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_rp);
 	REQUIRE(rp != NULL);
@@ -231,8 +231,8 @@ cleanup:
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void freestruct_rp(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_rp(ARGS_FREESTRUCT) {
 	dns_rdata_rp_t *rp = source;
 
 	REQUIRE(rp != NULL);
@@ -247,8 +247,8 @@ static inline void freestruct_rp(ARGS_FREESTRUCT)
 	rp->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_rp(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_rp(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_rp);
 
 	UNUSED(rdata);
@@ -258,10 +258,10 @@ static inline isc_result_t additionaldata_rp(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_rp(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_rp(ARGS_DIGEST) {
 	isc_region_t r;
-	dns_name_t   name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_rp);
 
@@ -278,8 +278,8 @@ static inline isc_result_t digest_rp(ARGS_DIGEST)
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline bool checkowner_rp(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_rp(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_rp);
 
 	UNUSED(name);
@@ -290,10 +290,10 @@ static inline bool checkowner_rp(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_rp(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_rp(ARGS_CHECKNAMES) {
 	isc_region_t region;
-	dns_name_t   name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_rp);
 
@@ -311,8 +311,8 @@ static inline bool checknames_rp(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_rp(ARGS_COMPARE)
-{
+static inline int
+casecompare_rp(ARGS_COMPARE) {
 	return (compare_rp(rdata1, rdata2));
 }
 #endif /* RDATA_GENERIC_RP_17_C */

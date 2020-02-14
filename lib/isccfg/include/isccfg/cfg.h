@@ -501,7 +501,7 @@ cfg_printx(const cfg_obj_t *obj, unsigned int flags,
 	   void (*f)(void *closure, const char *text, int textlen),
 	   void *closure);
 
-#define CFG_PRINTER_XKEY 0x1	/* '?' out shared keys. */
+#define CFG_PRINTER_XKEY    0x1 /* '?' out shared keys. */
 #define CFG_PRINTER_ONELINE 0x2 /* print config as a single line */
 #define CFG_PRINTER_ACTIVEONLY                 \
 	0x4 /* print only active configuration \

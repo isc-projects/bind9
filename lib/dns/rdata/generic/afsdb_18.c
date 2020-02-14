@@ -16,12 +16,12 @@
 
 #define RRTYPE_AFSDB_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_afsdb(ARGS_FROMTEXT)
-{
-	isc_token_t  token;
+static inline isc_result_t
+fromtext_afsdb(ARGS_FROMTEXT) {
+	isc_token_t token;
 	isc_buffer_t buffer;
-	dns_name_t   name;
-	bool	     ok;
+	dns_name_t name;
+	bool ok;
 
 	REQUIRE(type == dns_rdatatype_afsdb);
 
@@ -63,13 +63,13 @@ static inline isc_result_t fromtext_afsdb(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_afsdb(ARGS_TOTEXT)
-{
-	dns_name_t   name;
-	dns_name_t   prefix;
+static inline isc_result_t
+totext_afsdb(ARGS_TOTEXT) {
+	dns_name_t name;
+	dns_name_t prefix;
 	isc_region_t region;
-	char	     buf[sizeof("64000 ")];
-	bool	     sub;
+	char buf[sizeof("64000 ")];
+	bool sub;
 	unsigned int num;
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
@@ -88,9 +88,9 @@ static inline isc_result_t totext_afsdb(ARGS_TOTEXT)
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t fromwire_afsdb(ARGS_FROMWIRE)
-{
-	dns_name_t   name;
+static inline isc_result_t
+fromwire_afsdb(ARGS_FROMWIRE) {
+	dns_name_t name;
 	isc_region_t sr;
 	isc_region_t tr;
 
@@ -117,11 +117,11 @@ static inline isc_result_t fromwire_afsdb(ARGS_FROMWIRE)
 	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
-static inline isc_result_t towire_afsdb(ARGS_TOWIRE)
-{
-	isc_region_t  tr;
-	isc_region_t  sr;
-	dns_name_t    name;
+static inline isc_result_t
+towire_afsdb(ARGS_TOWIRE) {
+	isc_region_t tr;
+	isc_region_t sr;
+	dns_name_t name;
 	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
@@ -143,11 +143,11 @@ static inline isc_result_t towire_afsdb(ARGS_TOWIRE)
 	return (dns_name_towire(&name, cctx, target));
 }
 
-static inline int compare_afsdb(ARGS_COMPARE)
-{
-	int	     result;
-	dns_name_t   name1;
-	dns_name_t   name2;
+static inline int
+compare_afsdb(ARGS_COMPARE) {
+	int result;
+	dns_name_t name1;
+	dns_name_t name2;
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -177,10 +177,10 @@ static inline int compare_afsdb(ARGS_COMPARE)
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static inline isc_result_t fromstruct_afsdb(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_afsdb(ARGS_FROMSTRUCT) {
 	dns_rdata_afsdb_t *afsdb = source;
-	isc_region_t	   region;
+	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_afsdb);
 	REQUIRE(afsdb != NULL);
@@ -195,11 +195,11 @@ static inline isc_result_t fromstruct_afsdb(ARGS_FROMSTRUCT)
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t tostruct_afsdb(ARGS_TOSTRUCT)
-{
-	isc_region_t	   region;
+static inline isc_result_t
+tostruct_afsdb(ARGS_TOSTRUCT) {
+	isc_region_t region;
 	dns_rdata_afsdb_t *afsdb = target;
-	dns_name_t	   name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
 	REQUIRE(afsdb != NULL);
@@ -224,8 +224,8 @@ static inline isc_result_t tostruct_afsdb(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_afsdb(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_afsdb(ARGS_FREESTRUCT) {
 	dns_rdata_afsdb_t *afsdb = source;
 
 	REQUIRE(afsdb != NULL);
@@ -239,11 +239,11 @@ static inline void freestruct_afsdb(ARGS_FREESTRUCT)
 	afsdb->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_afsdb(ARGS_ADDLDATA)
-{
-	dns_name_t    name;
+static inline isc_result_t
+additionaldata_afsdb(ARGS_ADDLDATA) {
+	dns_name_t name;
 	dns_offsets_t offsets;
-	isc_region_t  region;
+	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
 
@@ -255,10 +255,10 @@ static inline isc_result_t additionaldata_afsdb(ARGS_ADDLDATA)
 	return ((add)(arg, &name, dns_rdatatype_a));
 }
 
-static inline isc_result_t digest_afsdb(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_afsdb(ARGS_DIGEST) {
 	isc_region_t r1, r2;
-	dns_name_t   name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
 
@@ -273,8 +273,8 @@ static inline isc_result_t digest_afsdb(ARGS_DIGEST)
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline bool checkowner_afsdb(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_afsdb(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_afsdb);
 
 	UNUSED(name);
@@ -285,10 +285,10 @@ static inline bool checkowner_afsdb(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_afsdb(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_afsdb(ARGS_CHECKNAMES) {
 	isc_region_t region;
-	dns_name_t   name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
 
@@ -307,8 +307,8 @@ static inline bool checknames_afsdb(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_afsdb(ARGS_COMPARE)
-{
+static inline int
+casecompare_afsdb(ARGS_COMPARE) {
 	return (compare_afsdb(rdata1, rdata2));
 }
 #endif /* RDATA_GENERIC_AFSDB_18_C */

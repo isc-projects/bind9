@@ -19,20 +19,19 @@
 
 #include <ns/stats.h>
 
-#define NS_STATS_MAGIC ISC_MAGIC('N', 's', 't', 't')
+#define NS_STATS_MAGIC	  ISC_MAGIC('N', 's', 't', 't')
 #define NS_STATS_VALID(x) ISC_MAGIC_VALID(x, NS_STATS_MAGIC)
 
 struct ns_stats {
 	/*% Unlocked */
-	unsigned int   magic;
-	isc_mem_t *    mctx;
-	isc_stats_t *  counters;
+	unsigned int magic;
+	isc_mem_t *mctx;
+	isc_stats_t *counters;
 	isc_refcount_t references;
 };
 
 void
-ns_stats_attach(ns_stats_t *stats, ns_stats_t **statsp)
-{
+ns_stats_attach(ns_stats_t *stats, ns_stats_t **statsp) {
 	REQUIRE(NS_STATS_VALID(stats));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
@@ -42,8 +41,7 @@ ns_stats_attach(ns_stats_t *stats, ns_stats_t **statsp)
 }
 
 void
-ns_stats_detach(ns_stats_t **statsp)
-{
+ns_stats_detach(ns_stats_t **statsp) {
 	ns_stats_t *stats;
 
 	REQUIRE(statsp != NULL && NS_STATS_VALID(*statsp));
@@ -59,9 +57,8 @@ ns_stats_detach(ns_stats_t **statsp)
 }
 
 isc_result_t
-ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp)
-{
-	ns_stats_t * stats;
+ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
+	ns_stats_t *stats;
 	isc_result_t result;
 
 	REQUIRE(statsp != NULL && *statsp == NULL);
@@ -93,24 +90,21 @@ clean_mem:
  * Increment/Decrement methods
  */
 void
-ns_stats_increment(ns_stats_t *stats, isc_statscounter_t counter)
-{
+ns_stats_increment(ns_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(NS_STATS_VALID(stats));
 
 	isc_stats_increment(stats->counters, counter);
 }
 
 void
-ns_stats_decrement(ns_stats_t *stats, isc_statscounter_t counter)
-{
+ns_stats_decrement(ns_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(NS_STATS_VALID(stats));
 
 	isc_stats_decrement(stats->counters, counter);
 }
 
 isc_stats_t *
-ns_stats_get(ns_stats_t *stats)
-{
+ns_stats_get(ns_stats_t *stats) {
 	REQUIRE(NS_STATS_VALID(stats));
 
 	return (stats->counters);
@@ -118,16 +112,14 @@ ns_stats_get(ns_stats_t *stats)
 
 void
 ns_stats_update_if_greater(ns_stats_t *stats, isc_statscounter_t counter,
-			   isc_statscounter_t value)
-{
+			   isc_statscounter_t value) {
 	REQUIRE(NS_STATS_VALID(stats));
 
 	isc_stats_update_if_greater(stats->counters, counter, value);
 }
 
 isc_statscounter_t
-ns_stats_get_counter(ns_stats_t *stats, isc_statscounter_t counter)
-{
+ns_stats_get_counter(ns_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(NS_STATS_VALID(stats));
 
 	return (isc_stats_get_counter(stats->counters, counter));

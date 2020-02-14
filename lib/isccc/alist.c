@@ -40,15 +40,14 @@
 #define CAR(s) (s)->value.as_dottedpair.car
 #define CDR(s) (s)->value.as_dottedpair.cdr
 
-#define ALIST_TAG "*alist*"
+#define ALIST_TAG  "*alist*"
 #define MAX_INDENT 64
 
 static char spaces[MAX_INDENT + 1] = "                                         "
 				     "                       ";
 
 isccc_sexpr_t *
-isccc_alist_create(void)
-{
+isccc_alist_create(void) {
 	isccc_sexpr_t *alist, *tag;
 
 	tag = isccc_sexpr_fromstring(ALIST_TAG);
@@ -65,8 +64,7 @@ isccc_alist_create(void)
 }
 
 bool
-isccc_alist_alistp(isccc_sexpr_t *alist)
-{
+isccc_alist_alistp(isccc_sexpr_t *alist) {
 	isccc_sexpr_t *car;
 
 	if (alist == NULL || alist->type != ISCCC_SEXPRTYPE_DOTTEDPAIR) {
@@ -83,8 +81,7 @@ isccc_alist_alistp(isccc_sexpr_t *alist)
 }
 
 bool
-isccc_alist_emptyp(isccc_sexpr_t *alist)
-{
+isccc_alist_emptyp(isccc_sexpr_t *alist) {
 	REQUIRE(isccc_alist_alistp(alist));
 
 	if (CDR(alist) == NULL) {
@@ -94,16 +91,14 @@ isccc_alist_emptyp(isccc_sexpr_t *alist)
 }
 
 isccc_sexpr_t *
-isccc_alist_first(isccc_sexpr_t *alist)
-{
+isccc_alist_first(isccc_sexpr_t *alist) {
 	REQUIRE(isccc_alist_alistp(alist));
 
 	return (CDR(alist));
 }
 
 isccc_sexpr_t *
-isccc_alist_assq(isccc_sexpr_t *alist, const char *key)
-{
+isccc_alist_assq(isccc_sexpr_t *alist, const char *key) {
 	isccc_sexpr_t *car, *caar;
 
 	REQUIRE(isccc_alist_alistp(alist));
@@ -119,7 +114,8 @@ isccc_alist_assq(isccc_sexpr_t *alist, const char *key)
 		INSIST(car->type == ISCCC_SEXPRTYPE_DOTTEDPAIR);
 		caar = CAR(car);
 		if (caar->type == ISCCC_SEXPRTYPE_STRING &&
-		    strcmp(caar->value.as_string, key) == 0) {
+		    strcmp(caar->value.as_string, key) == 0)
+		{
 			return (car);
 		}
 		alist = CDR(alist);
@@ -129,8 +125,7 @@ isccc_alist_assq(isccc_sexpr_t *alist, const char *key)
 }
 
 void
-isccc_alist_delete(isccc_sexpr_t *alist, const char *key)
-{
+isccc_alist_delete(isccc_sexpr_t *alist, const char *key) {
 	isccc_sexpr_t *car, *caar, *rest, *prev;
 
 	REQUIRE(isccc_alist_alistp(alist));
@@ -143,7 +138,8 @@ isccc_alist_delete(isccc_sexpr_t *alist, const char *key)
 		INSIST(car != NULL && car->type == ISCCC_SEXPRTYPE_DOTTEDPAIR);
 		caar = CAR(car);
 		if (caar->type == ISCCC_SEXPRTYPE_STRING &&
-		    strcmp(caar->value.as_string, key) == 0) {
+		    strcmp(caar->value.as_string, key) == 0)
+		{
 			CDR(prev) = CDR(rest);
 			CDR(rest) = NULL;
 			isccc_sexpr_free(&rest);
@@ -155,8 +151,8 @@ isccc_alist_delete(isccc_sexpr_t *alist, const char *key)
 }
 
 isccc_sexpr_t *
-isccc_alist_define(isccc_sexpr_t *alist, const char *key, isccc_sexpr_t *value)
-{
+isccc_alist_define(isccc_sexpr_t *alist, const char *key,
+		   isccc_sexpr_t *value) {
 	isccc_sexpr_t *kv, *k, *elt;
 
 	kv = isccc_alist_assq(alist, key);
@@ -190,8 +186,8 @@ isccc_alist_define(isccc_sexpr_t *alist, const char *key, isccc_sexpr_t *value)
 }
 
 isccc_sexpr_t *
-isccc_alist_definestring(isccc_sexpr_t *alist, const char *key, const char *str)
-{
+isccc_alist_definestring(isccc_sexpr_t *alist, const char *key,
+			 const char *str) {
 	isccc_sexpr_t *v, *kv;
 
 	v = isccc_sexpr_fromstring(str);
@@ -208,8 +204,7 @@ isccc_alist_definestring(isccc_sexpr_t *alist, const char *key, const char *str)
 
 isccc_sexpr_t *
 isccc_alist_definebinary(isccc_sexpr_t *alist, const char *key,
-			 isccc_region_t *r)
-{
+			 isccc_region_t *r) {
 	isccc_sexpr_t *v, *kv;
 
 	v = isccc_sexpr_frombinary(r);
@@ -225,8 +220,7 @@ isccc_alist_definebinary(isccc_sexpr_t *alist, const char *key,
 }
 
 isccc_sexpr_t *
-isccc_alist_lookup(isccc_sexpr_t *alist, const char *key)
-{
+isccc_alist_lookup(isccc_sexpr_t *alist, const char *key) {
 	isccc_sexpr_t *kv;
 
 	kv = isccc_alist_assq(alist, key);
@@ -237,8 +231,7 @@ isccc_alist_lookup(isccc_sexpr_t *alist, const char *key)
 }
 
 isc_result_t
-isccc_alist_lookupstring(isccc_sexpr_t *alist, const char *key, char **strp)
-{
+isccc_alist_lookupstring(isccc_sexpr_t *alist, const char *key, char **strp) {
 	isccc_sexpr_t *kv, *v;
 
 	kv = isccc_alist_assq(alist, key);
@@ -259,8 +252,7 @@ isccc_alist_lookupstring(isccc_sexpr_t *alist, const char *key, char **strp)
 
 isc_result_t
 isccc_alist_lookupbinary(isccc_sexpr_t *alist, const char *key,
-			 isccc_region_t **r)
-{
+			 isccc_region_t **r) {
 	isccc_sexpr_t *kv, *v;
 
 	kv = isccc_alist_assq(alist, key);
@@ -280,8 +272,8 @@ isccc_alist_lookupbinary(isccc_sexpr_t *alist, const char *key,
 }
 
 void
-isccc_alist_prettyprint(isccc_sexpr_t *sexpr, unsigned int indent, FILE *stream)
-{
+isccc_alist_prettyprint(isccc_sexpr_t *sexpr, unsigned int indent,
+			FILE *stream) {
 	isccc_sexpr_t *elt, *kv, *k, *v;
 
 	if (isccc_alist_alistp(sexpr)) {

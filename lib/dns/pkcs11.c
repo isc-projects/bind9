@@ -24,8 +24,7 @@
 
 isc_result_t
 dst__pkcs11_toresult(const char *funcname, const char *file, int line,
-		     isc_result_t fallback, CK_RV rv)
-{
+		     isc_result_t fallback, CK_RV rv) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_CRYPTO,
 		      ISC_LOG_WARNING, "%s:%d: %s: Error = 0x%.8lX\n", file,
 		      line, funcname, rv);

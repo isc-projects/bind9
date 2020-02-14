@@ -102,15 +102,15 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 		char **record, char **client, query_list_t **querylist,
 		unsigned int flags)
 {
-	isc_result_t	 result;
-	bool		 foundzone = false;
-	bool		 foundrecord = false;
-	bool		 foundclient = false;
-	char *		 free_me = NULL;
-	char *		 temp_str = NULL;
-	query_list_t *	 tql;
+	isc_result_t result;
+	bool foundzone = false;
+	bool foundrecord = false;
+	bool foundclient = false;
+	char *free_me = NULL;
+	char *temp_str = NULL;
+	query_list_t *tql;
 	query_segment_t *tseg = NULL;
-	char *		 last = NULL;
+	char *last = NULL;
 
 	REQUIRE(querylist != NULL && *querylist == NULL);
 	REQUIRE(mctx != NULL);
@@ -271,8 +271,8 @@ char *
 sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 {
 	query_segment_t *tseg = NULL;
-	unsigned int	 length = 0;
-	char *		 qs = NULL;
+	unsigned int length = 0;
+	char *qs = NULL;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(querylist != NULL);
@@ -321,7 +321,7 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 			  const char *findzone_str, const char *lookup_str,
 			  const char *countzone_str, dbinstance_t **dbi)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *db = NULL;
 
 	REQUIRE(dbi != NULL && *dbi == NULL);
@@ -460,10 +460,10 @@ sdlzh_destroy_sqldbinstance(dbinstance_t *dbi)
 char *
 sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char *key)
 {
-	int   keylen;
+	int keylen;
 	char *keystart;
-	char  value[255];
-	int   i;
+	char value[255];
+	int i;
 
 	if (key == NULL || input == NULL || strlen(input) < 1) {
 		return (NULL);

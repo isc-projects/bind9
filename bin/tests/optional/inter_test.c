@@ -19,14 +19,13 @@
 #include <isc/util.h>
 
 int
-main(int argc, char **argv)
-{
-	isc_mem_t *	     mctx = NULL;
+main(int argc, char **argv) {
+	isc_mem_t *mctx = NULL;
 	isc_interfaceiter_t *iter = NULL;
-	isc_interface_t	     ifdata;
-	isc_result_t	     result;
-	const char *	     res;
-	char		     buf[128];
+	isc_interface_t ifdata;
+	isc_result_t result;
+	const char *res;
+	char buf[128];
 
 	UNUSED(argc);
 	UNUSED(argv);

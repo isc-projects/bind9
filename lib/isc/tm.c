@@ -83,8 +83,7 @@ static const char *abmon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 static const char *am_pm[2] = { "AM", "PM" };
 
 static int
-conv_num(const char **buf, int *dest, int llim, int ulim)
-{
+conv_num(const char **buf, int *dest, int llim, int ulim) {
 	int result = 0;
 
 	/* The limit also determines the number of valid digits. */
@@ -110,11 +109,10 @@ conv_num(const char **buf, int *dest, int llim, int ulim)
 }
 
 time_t
-isc_tm_timegm(struct tm *tm)
-{
+isc_tm_timegm(struct tm *tm) {
 	time_t ret;
-	int    i, yday = 0, leapday;
-	int    mdays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 };
+	int i, yday = 0, leapday;
+	int mdays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 };
 
 	leapday = ((((tm->tm_year + 1900) % 4) == 0 &&
 		    ((tm->tm_year + 1900) % 100) != 0) ||
@@ -135,12 +133,11 @@ isc_tm_timegm(struct tm *tm)
 }
 
 char *
-isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm)
-{
-	char	    c, *ret;
+isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm) {
+	char c, *ret;
 	const char *bp;
-	size_t	    len = 0;
-	int	    alt_format, i, split_year = 0;
+	size_t len = 0;
+	int alt_format, i, split_year = 0;
 
 	REQUIRE(buf != NULL);
 	REQUIRE(fmt != NULL);
@@ -379,7 +376,8 @@ isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm)
 				break;
 			}
 			/* PM? */
-			else if (strcasecmp(am_pm[1], bp) == 0) {
+			else if (strcasecmp(am_pm[1], bp) == 0)
+			{
 				if (tm->tm_hour > 11) {
 					return (0);
 				}

@@ -16,31 +16,31 @@
 
 #define RRTYPE_TA_ATTRIBUTES 0
 
-static inline isc_result_t fromtext_ta(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_ta(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromtext_ds(rdclass, type, lexer, origin, options,
 				    target, callbacks));
 }
 
-static inline isc_result_t totext_ta(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_ta(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	return (generic_totext_ds(rdata, tctx, target));
 }
 
-static inline isc_result_t fromwire_ta(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_ta(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromwire_ds(rdclass, type, source, dctx, options,
 				    target));
 }
 
-static inline isc_result_t towire_ta(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_ta(ARGS_TOWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_ta);
@@ -52,8 +52,8 @@ static inline isc_result_t towire_ta(ARGS_TOWIRE)
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int compare_ta(ARGS_COMPARE)
-{
+static inline int
+compare_ta(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -68,15 +68,15 @@ static inline int compare_ta(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_ta(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_ta(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromstruct_ds(rdclass, type, source, target));
 }
 
-static inline isc_result_t tostruct_ta(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_ta(ARGS_TOSTRUCT) {
 	dns_rdata_ds_t *ds = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_ta);
@@ -92,8 +92,8 @@ static inline isc_result_t tostruct_ta(ARGS_TOSTRUCT)
 	return (generic_tostruct_ds(rdata, target, mctx));
 }
 
-static inline void freestruct_ta(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_ta(ARGS_FREESTRUCT) {
 	dns_rdata_ta_t *ds = source;
 
 	REQUIRE(ds != NULL);
@@ -109,8 +109,8 @@ static inline void freestruct_ta(ARGS_FREESTRUCT)
 	ds->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_ta(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_ta(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	UNUSED(rdata);
@@ -120,8 +120,8 @@ static inline isc_result_t additionaldata_ta(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_ta(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_ta(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_ta);
@@ -131,8 +131,8 @@ static inline isc_result_t digest_ta(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_ta(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_ta(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_ta);
 
 	UNUSED(name);
@@ -143,8 +143,8 @@ static inline bool checkowner_ta(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_ta(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_ta(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	UNUSED(rdata);
@@ -154,8 +154,8 @@ static inline bool checknames_ta(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_ta(ARGS_COMPARE)
-{
+static inline int
+casecompare_ta(ARGS_COMPARE) {
 	return (compare_ta(rdata1, rdata2));
 }
 

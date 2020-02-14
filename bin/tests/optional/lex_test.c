@@ -23,8 +23,7 @@ isc_lex_t *lex;
 isc_lexspecials_t specials;
 
 static void
-print_token(isc_token_t *tokenp, FILE *stream)
-{
+print_token(isc_token_t *tokenp, FILE *stream) {
 	switch (tokenp->type) {
 	case isc_tokentype_unknown:
 		fprintf(stream, "UNKNOWN");
@@ -64,16 +63,15 @@ print_token(isc_token_t *tokenp, FILE *stream)
 }
 
 int
-main(int argc, char *argv[])
-{
-	isc_token_t  token;
+main(int argc, char *argv[]) {
+	isc_token_t token;
 	isc_result_t result;
-	int	     quiet = 0;
-	int	     c;
-	int	     masterfile = 1;
-	int	     stats = 0;
+	int quiet = 0;
+	int c;
+	int masterfile = 1;
+	int stats = 0;
 	unsigned int options = 0;
-	int	     done = 0;
+	int done = 0;
 
 	while ((c = isc_commandline_parse(argc, argv, "qmcs")) != -1) {
 		switch (c) {
@@ -128,7 +126,8 @@ main(int argc, char *argv[])
 
 	while ((result = isc_lex_gettoken(lex, options, &token)) ==
 		       ISC_R_SUCCESS &&
-	       !done) {
+	       !done)
+	{
 		if (!quiet) {
 			char *name = isc_lex_getsourcename(lex);
 			print_token(&token, stdout);

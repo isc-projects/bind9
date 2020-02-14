@@ -96,13 +96,13 @@
 #endif /* if defined(HAVE_EDIT_READLINE_READLINE_H) */
 #endif /* if defined(HAVE_READLINE) */
 
-#define MAXCMD (128 * 1024)
-#define MAXWIRE (64 * 1024)
-#define PACKETSIZE ((64 * 1024) - 1)
-#define INITTEXT (2 * 1024)
-#define MAXTEXT (128 * 1024)
+#define MAXCMD	     (128 * 1024)
+#define MAXWIRE	     (64 * 1024)
+#define PACKETSIZE   ((64 * 1024) - 1)
+#define INITTEXT     (2 * 1024)
+#define MAXTEXT	     (128 * 1024)
 #define FIND_TIMEOUT 5
-#define TTL_MAX 2147483647U /* Maximum signed 32 bit integer. */
+#define TTL_MAX	     2147483647U /* Maximum signed 32 bit integer. */
 
 #define DNSDEFAULTPORT 53
 
@@ -115,122 +115,111 @@ static uint16_t dnsport = DNSDEFAULTPORT;
 #define RESOLV_CONF "/etc/resolv.conf"
 #endif /* ifndef RESOLV_CONF */
 
-static bool			 debugging = false, ddebugging = false;
-static bool			 memdebugging = false;
-static bool			 have_ipv4 = false;
-static bool			 have_ipv6 = false;
-static bool			 is_dst_up = false;
-static bool			 usevc = false;
-static bool			 usegsstsig = false;
-static bool			 use_win2k_gsstsig = false;
-static bool			 tried_other_gsstsig = false;
-static bool			 local_only = false;
-static isc_taskmgr_t *		 taskmgr = NULL;
-static isc_task_t *		 global_task = NULL;
-static isc_event_t *		 global_event = NULL;
-static isc_log_t *		 glctx = NULL;
-static isc_mem_t *		 gmctx = NULL;
-static dns_dispatchmgr_t *	 dispatchmgr = NULL;
-static dns_requestmgr_t *	 requestmgr = NULL;
-static isc_socketmgr_t *	 socketmgr = NULL;
-static isc_timermgr_t *		 timermgr = NULL;
-static dns_dispatch_t *		 dispatchv4 = NULL;
-static dns_dispatch_t *		 dispatchv6 = NULL;
-static dns_message_t *		 updatemsg = NULL;
-static dns_fixedname_t		 fuserzone;
-static dns_fixedname_t		 fzname;
-static dns_name_t *		 userzone = NULL;
-static dns_name_t *		 zname = NULL;
-static dns_name_t		 tmpzonename = DNS_NAME_INITEMPTY;
-static dns_name_t		 restart_master = DNS_NAME_INITEMPTY;
-static dns_tsig_keyring_t *	 gssring = NULL;
-static dns_tsigkey_t *		 tsigkey = NULL;
-static dst_key_t *		 sig0key = NULL;
-static isc_sockaddr_t *		 servers = NULL;
-static isc_sockaddr_t *		 master_servers = NULL;
-static bool			 default_servers = true;
-static int			 ns_inuse = 0;
-static int			 master_inuse = 0;
-static int			 ns_total = 0;
-static int			 ns_alloc = 0;
-static int			 master_total = 0;
-static int			 master_alloc = 0;
-static isc_sockaddr_t *		 localaddr4 = NULL;
-static isc_sockaddr_t *		 localaddr6 = NULL;
-static const char *		 keyfile = NULL;
-static char *			 keystr = NULL;
-static bool			 shuttingdown = false;
-static FILE *			 input;
-static bool			 interactive = true;
-static bool			 seenerror = false;
+static bool debugging = false, ddebugging = false;
+static bool memdebugging = false;
+static bool have_ipv4 = false;
+static bool have_ipv6 = false;
+static bool is_dst_up = false;
+static bool usevc = false;
+static bool usegsstsig = false;
+static bool use_win2k_gsstsig = false;
+static bool tried_other_gsstsig = false;
+static bool local_only = false;
+static isc_taskmgr_t *taskmgr = NULL;
+static isc_task_t *global_task = NULL;
+static isc_event_t *global_event = NULL;
+static isc_log_t *glctx = NULL;
+static isc_mem_t *gmctx = NULL;
+static dns_dispatchmgr_t *dispatchmgr = NULL;
+static dns_requestmgr_t *requestmgr = NULL;
+static isc_socketmgr_t *socketmgr = NULL;
+static isc_timermgr_t *timermgr = NULL;
+static dns_dispatch_t *dispatchv4 = NULL;
+static dns_dispatch_t *dispatchv6 = NULL;
+static dns_message_t *updatemsg = NULL;
+static dns_fixedname_t fuserzone;
+static dns_fixedname_t fzname;
+static dns_name_t *userzone = NULL;
+static dns_name_t *zname = NULL;
+static dns_name_t tmpzonename = DNS_NAME_INITEMPTY;
+static dns_name_t restart_master = DNS_NAME_INITEMPTY;
+static dns_tsig_keyring_t *gssring = NULL;
+static dns_tsigkey_t *tsigkey = NULL;
+static dst_key_t *sig0key = NULL;
+static isc_sockaddr_t *servers = NULL;
+static isc_sockaddr_t *master_servers = NULL;
+static bool default_servers = true;
+static int ns_inuse = 0;
+static int master_inuse = 0;
+static int ns_total = 0;
+static int ns_alloc = 0;
+static int master_total = 0;
+static int master_alloc = 0;
+static isc_sockaddr_t *localaddr4 = NULL;
+static isc_sockaddr_t *localaddr6 = NULL;
+static const char *keyfile = NULL;
+static char *keystr = NULL;
+static bool shuttingdown = false;
+static FILE *input;
+static bool interactive = true;
+static bool seenerror = false;
 static const dns_master_style_t *style;
-static int			 requests = 0;
-static unsigned int		 logdebuglevel = 0;
-static unsigned int		 timeout = 300;
-static unsigned int		 udp_timeout = 3;
-static unsigned int		 udp_retries = 3;
-static dns_rdataclass_t		 defaultclass = dns_rdataclass_in;
-static dns_rdataclass_t		 zoneclass = dns_rdataclass_none;
-static dns_message_t *		 answer = NULL;
-static uint32_t			 default_ttl = 0;
-static bool			 default_ttl_set = false;
-static bool			 checknames = true;
+static int requests = 0;
+static unsigned int logdebuglevel = 0;
+static unsigned int timeout = 300;
+static unsigned int udp_timeout = 3;
+static unsigned int udp_retries = 3;
+static dns_rdataclass_t defaultclass = dns_rdataclass_in;
+static dns_rdataclass_t zoneclass = dns_rdataclass_none;
+static dns_message_t *answer = NULL;
+static uint32_t default_ttl = 0;
+static bool default_ttl_set = false;
+static bool checknames = true;
 
 typedef struct nsu_requestinfo {
-	dns_message_t * msg;
+	dns_message_t *msg;
 	isc_sockaddr_t *addr;
 } nsu_requestinfo_t;
 
-static void
-sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
-	    dns_request_t **request);
-static void
-send_update(dns_name_t *zonename, isc_sockaddr_t *master);
+static void sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
+			dns_request_t **request);
+static void send_update(dns_name_t *zonename, isc_sockaddr_t *master);
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...)
+ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format, ...)
 	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
-static void
-debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+static void debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
-static void
-ddebug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+static void ddebug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 #ifdef GSSAPI
 static dns_fixedname_t fkname;
 static isc_sockaddr_t *kserver = NULL;
-static char *	       realm = NULL;
-static char	       servicename[DNS_NAME_FORMATSIZE];
-static dns_name_t *    keyname;
+static char *realm = NULL;
+static char servicename[DNS_NAME_FORMATSIZE];
+static dns_name_t *keyname;
 typedef struct nsu_gssinfo {
-	dns_message_t * msg;
+	dns_message_t *msg;
 	isc_sockaddr_t *addr;
-	gss_ctx_id_t	context;
+	gss_ctx_id_t context;
 } nsu_gssinfo_t;
 
-static void
-failed_gssrequest();
-static void
-start_gssrequest(dns_name_t *master);
-static void
-send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
-		dns_request_t **request, gss_ctx_id_t context);
-static void
-recvgss(isc_task_t *task, isc_event_t *event);
+static void failed_gssrequest();
+static void start_gssrequest(dns_name_t *master);
+static void send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
+			    dns_request_t **request, gss_ctx_id_t context);
+static void recvgss(isc_task_t *task, isc_event_t *event);
 #endif /* GSSAPI */
 
-static void
-error(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+static void error(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
-#define STATUS_MORE (uint16_t)0
-#define STATUS_SEND (uint16_t)1
-#define STATUS_QUIT (uint16_t)2
+#define STATUS_MORE   (uint16_t)0
+#define STATUS_SEND   (uint16_t)1
+#define STATUS_QUIT   (uint16_t)2
 #define STATUS_SYNTAX (uint16_t)3
 
 static void
-master_from_servers(void)
-{
+master_from_servers(void) {
 	if (master_servers != NULL && master_servers != servers) {
 		isc_mem_put(gmctx, master_servers,
 			    master_alloc * sizeof(isc_sockaddr_t));
@@ -242,8 +231,7 @@ master_from_servers(void)
 }
 
 static dns_rdataclass_t
-getzoneclass(void)
-{
+getzoneclass(void) {
 	if (zoneclass == dns_rdataclass_none) {
 		zoneclass = defaultclass;
 	}
@@ -251,10 +239,9 @@ getzoneclass(void)
 }
 
 static bool
-setzoneclass(dns_rdataclass_t rdclass)
-{
-	if (zoneclass == dns_rdataclass_none ||
-	    rdclass == dns_rdataclass_none) {
+setzoneclass(dns_rdataclass_t rdclass) {
+	if (zoneclass == dns_rdataclass_none || rdclass == dns_rdataclass_none)
+	{
 		zoneclass = rdclass;
 	}
 	if (zoneclass != rdclass) {
@@ -264,8 +251,7 @@ setzoneclass(dns_rdataclass_t rdclass)
 }
 
 static void
-fatal(const char *format, ...)
-{
+fatal(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
@@ -276,8 +262,7 @@ fatal(const char *format, ...)
 }
 
 static void
-error(const char *format, ...)
-{
+error(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
@@ -287,8 +272,7 @@ error(const char *format, ...)
 }
 
 static void
-debug(const char *format, ...)
-{
+debug(const char *format, ...) {
 	va_list args;
 
 	if (debugging) {
@@ -300,8 +284,7 @@ debug(const char *format, ...)
 }
 
 static void
-ddebug(const char *format, ...)
-{
+ddebug(const char *format, ...) {
 	va_list args;
 
 	if (ddebugging) {
@@ -313,21 +296,19 @@ ddebug(const char *format, ...)
 }
 
 static inline void
-check_result(isc_result_t result, const char *msg)
-{
+check_result(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		fatal("%s: %s", msg, isc_result_totext(result));
 	}
 }
 
 static char *
-nsu_strsep(char **stringp, const char *delim)
-{
+nsu_strsep(char **stringp, const char *delim) {
 	char *string = *stringp;
 	*stringp = NULL;
-	char *	    s;
+	char *s;
 	const char *d;
-	char	    sc, dc;
+	char sc, dc;
 
 	if (string == NULL) {
 		return (NULL);
@@ -359,8 +340,7 @@ nsu_strsep(char **stringp, const char *delim)
 }
 
 static void
-reset_system(void)
-{
+reset_system(void) {
 	isc_result_t result;
 
 	ddebug("reset_system()");
@@ -386,11 +366,10 @@ reset_system(void)
 
 static bool
 parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
-	   uint16_t *digestbitsp)
-{
-	uint16_t     digestbits = 0;
+	   uint16_t *digestbitsp) {
+	uint16_t digestbits = 0;
 	isc_result_t result;
-	char	     buf[20];
+	char buf[20];
 
 	REQUIRE(hmac != NULL && *hmac == NULL);
 	REQUIRE(hmacstr != NULL);
@@ -471,8 +450,7 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 }
 
 static int
-basenamelen(const char *file)
-{
+basenamelen(const char *file) {
 	int len = strlen(file);
 
 	if (len > 1 && file[len - 1] == '.') {
@@ -486,20 +464,19 @@ basenamelen(const char *file)
 }
 
 static void
-setup_keystr(void)
-{
-	unsigned char *	  secret = NULL;
-	int		  secretlen;
-	isc_buffer_t	  secretbuf;
-	isc_result_t	  result;
-	isc_buffer_t	  keynamesrc;
-	char *		  secretstr;
-	char *		  s, *n;
-	dns_fixedname_t	  fkeyname;
-	dns_name_t *	  mykeyname;
-	char *		  name;
+setup_keystr(void) {
+	unsigned char *secret = NULL;
+	int secretlen;
+	isc_buffer_t secretbuf;
+	isc_result_t result;
+	isc_buffer_t keynamesrc;
+	char *secretstr;
+	char *s, *n;
+	dns_fixedname_t fkeyname;
+	dns_name_t *mykeyname;
+	char *name;
 	const dns_name_t *hmacname = NULL;
-	uint16_t	  digestbits = 0;
+	uint16_t digestbits = 0;
 
 	mykeyname = dns_fixedname_initname(&fkeyname);
 
@@ -566,18 +543,17 @@ failure:
  * Get a key from a named.conf format keyfile
  */
 static isc_result_t
-read_sessionkey(isc_mem_t *mctx, isc_log_t *lctx)
-{
-	cfg_parser_t *	 pctx = NULL;
-	cfg_obj_t *	 sessionkey = NULL;
+read_sessionkey(isc_mem_t *mctx, isc_log_t *lctx) {
+	cfg_parser_t *pctx = NULL;
+	cfg_obj_t *sessionkey = NULL;
 	const cfg_obj_t *key = NULL;
 	const cfg_obj_t *secretobj = NULL;
 	const cfg_obj_t *algorithmobj = NULL;
-	const char *	 mykeyname;
-	const char *	 secretstr;
-	const char *	 algorithm;
-	isc_result_t	 result;
-	int		 len;
+	const char *mykeyname;
+	const char *secretstr;
+	const char *algorithm;
+	isc_result_t result;
+	int len;
 
 	if (!isc_file_exists(keyfile)) {
 		return (ISC_R_FILENOTFOUND);
@@ -630,10 +606,9 @@ cleanup:
 }
 
 static void
-setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx)
-{
-	dst_key_t *	  dstkey = NULL;
-	isc_result_t	  result;
+setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
+	dst_key_t *dstkey = NULL;
+	isc_result_t result;
 	const dns_name_t *hmacname = NULL;
 
 	debug("Creating key...");
@@ -700,8 +675,7 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx)
 }
 
 static void
-doshutdown(void)
-{
+doshutdown(void) {
 	isc_task_detach(&global_task);
 
 	/*
@@ -762,8 +736,7 @@ doshutdown(void)
 }
 
 static void
-maybeshutdown(void)
-{
+maybeshutdown(void) {
 	ddebug("Shutting down request manager");
 	dns_requestmgr_shutdown(requestmgr);
 
@@ -775,8 +748,7 @@ maybeshutdown(void)
 }
 
 static void
-shutdown_program(isc_task_t *task, isc_event_t *event)
-{
+shutdown_program(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == global_task);
 	UNUSED(task);
 
@@ -791,11 +763,10 @@ shutdown_program(isc_task_t *task, isc_event_t *event)
  * Try honoring the operating system's preferred ephemeral port range.
  */
 static void
-set_source_ports(dns_dispatchmgr_t *manager)
-{
+set_source_ports(dns_dispatchmgr_t *manager) {
 	isc_portset_t *v4portset = NULL, *v6portset = NULL;
-	in_port_t      udpport_low, udpport_high;
-	isc_result_t   result;
+	in_port_t udpport_low, udpport_high;
+	isc_result_t result;
 
 	result = isc_portset_create(gmctx, &v4portset);
 	check_result(result, "isc_portset_create (v4)");
@@ -817,14 +788,13 @@ set_source_ports(dns_dispatchmgr_t *manager)
 }
 
 static void
-setup_system(void)
-{
-	isc_result_t	    result;
-	isc_sockaddr_t	    bind_any, bind_any6;
-	unsigned int	    attrs, attrmask;
+setup_system(void) {
+	isc_result_t result;
+	isc_sockaddr_t bind_any, bind_any6;
+	unsigned int attrs, attrmask;
 	isc_sockaddrlist_t *nslist;
-	isc_logconfig_t *   logconfig = NULL;
-	irs_resconf_t *	    resconf = NULL;
+	isc_logconfig_t *logconfig = NULL;
+	irs_resconf_t *resconf = NULL;
 
 	ddebug("setup_system()");
 
@@ -858,7 +828,7 @@ setup_system(void)
 
 	ns_inuse = 0;
 	if (local_only || ISC_LIST_EMPTY(*nslist)) {
-		struct in_addr	in;
+		struct in_addr in;
 		struct in6_addr in6;
 
 		if (local_only && keyfile == NULL) {
@@ -882,7 +852,7 @@ setup_system(void)
 		}
 	} else {
 		isc_sockaddr_t *sa;
-		int		i;
+		int i;
 
 		/*
 		 * Count the nameservers (skipping any that we can't use
@@ -1008,9 +978,9 @@ setup_system(void)
 }
 
 static int
-get_addresses(char *host, in_port_t port, isc_sockaddr_t *sockaddr, int naddrs)
-{
-	int	     count = 0;
+get_addresses(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
+	      int naddrs) {
+	int count = 0;
 	isc_result_t result;
 
 	isc_app_block();
@@ -1024,21 +994,19 @@ get_addresses(char *host, in_port_t port, isc_sockaddr_t *sockaddr, int naddrs)
 }
 
 static void
-version(void)
-{
+version(void) {
 	fputs("nsupdate " VERSION "\n", stderr);
 }
 
 #define PARSE_ARGS_FMT "46dDML:y:ghilovk:p:Pr:R::t:Tu:V"
 
 static void
-pre_parse_args(int argc, char **argv)
-{
+pre_parse_args(int argc, char **argv) {
 	dns_rdatatype_t t;
-	int		ch;
-	char		buf[100];
-	bool		doexit = false;
-	bool		ipv4only = false, ipv6only = false;
+	int ch;
+	char buf[100];
+	bool doexit = false;
+	bool ipv4only = false, ipv6only = false;
 
 	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
 		switch (ch) {
@@ -1120,12 +1088,11 @@ pre_parse_args(int argc, char **argv)
 }
 
 static void
-parse_args(int argc, char **argv)
-{
-	int	     ch;
-	uint32_t     i;
+parse_args(int argc, char **argv) {
+	int ch;
+	uint32_t i;
 	isc_result_t result;
-	bool	     force_interactive = false;
+	bool force_interactive = false;
 
 	debug("parse_args");
 	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
@@ -1287,12 +1254,11 @@ parse_args(int argc, char **argv)
 }
 
 static uint16_t
-parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep)
-{
-	isc_result_t  result;
-	char *	      word;
+parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
+	isc_result_t result;
+	char *word;
 	isc_buffer_t *namebuf = NULL;
-	isc_buffer_t  source;
+	isc_buffer_t source;
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
 	if (word == NULL || *word == 0) {
@@ -1321,14 +1287,13 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep)
 
 static uint16_t
 parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
-	    dns_rdatatype_t rdatatype, dns_message_t *msg, dns_rdata_t *rdata)
-{
-	char *		     cmdline = *cmdlinep;
-	isc_buffer_t	     source, *buf = NULL, *newbuf = NULL;
-	isc_region_t	     r;
-	isc_lex_t *	     lex = NULL;
+	    dns_rdatatype_t rdatatype, dns_message_t *msg, dns_rdata_t *rdata) {
+	char *cmdline = *cmdlinep;
+	isc_buffer_t source, *buf = NULL, *newbuf = NULL;
+	isc_region_t r;
+	isc_lex_t *lex = NULL;
 	dns_rdatacallbacks_t callbacks;
-	isc_result_t	     result;
+	isc_result_t result;
 
 	if (cmdline == NULL) {
 		rdata->flags = DNS_RDATA_UPDATE;
@@ -1374,18 +1339,17 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 }
 
 static uint16_t
-make_prereq(char *cmdline, bool ispositive, bool isrrset)
-{
-	isc_result_t	 result;
-	char *		 word;
-	dns_name_t *	 name = NULL;
+make_prereq(char *cmdline, bool ispositive, bool isrrset) {
+	isc_result_t result;
+	char *word;
+	dns_name_t *name = NULL;
 	isc_textregion_t region;
-	dns_rdataset_t * rdataset = NULL;
+	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataclass_t rdataclass;
-	dns_rdatatype_t	 rdatatype;
-	dns_rdata_t *	 rdata = NULL;
-	uint16_t	 retval;
+	dns_rdatatype_t rdatatype;
+	dns_rdata_t *rdata = NULL;
+	uint16_t retval;
 
 	ddebug("make_prereq()");
 
@@ -1487,10 +1451,9 @@ failure:
 }
 
 static uint16_t
-evaluate_prereq(char *cmdline)
-{
+evaluate_prereq(char *cmdline) {
 	char *word;
-	bool  ispositive, isrrset;
+	bool ispositive, isrrset;
 
 	ddebug("evaluate_prereq()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -1518,10 +1481,9 @@ evaluate_prereq(char *cmdline)
 }
 
 static uint16_t
-evaluate_server(char *cmdline)
-{
+evaluate_server(char *cmdline) {
 	char *word, *server;
-	long  port;
+	long port;
 
 	if (local_only) {
 		fprintf(stderr, "cannot reset server in localhost-only mode\n");
@@ -1576,11 +1538,10 @@ evaluate_server(char *cmdline)
 }
 
 static uint16_t
-evaluate_local(char *cmdline)
-{
-	char *		word, *local;
-	long		port;
-	struct in_addr	in4;
+evaluate_local(char *cmdline) {
+	char *word, *local;
+	long port;
+	struct in_addr in4;
 	struct in6_addr in6;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -1627,20 +1588,19 @@ evaluate_local(char *cmdline)
 }
 
 static uint16_t
-evaluate_key(char *cmdline)
-{
-	char *		  namestr;
-	char *		  secretstr;
-	isc_buffer_t	  b;
-	isc_result_t	  result;
-	dns_fixedname_t	  fkeyname;
-	dns_name_t *	  mykeyname;
-	int		  secretlen;
-	unsigned char *	  secret = NULL;
-	isc_buffer_t	  secretbuf;
+evaluate_key(char *cmdline) {
+	char *namestr;
+	char *secretstr;
+	isc_buffer_t b;
+	isc_result_t result;
+	dns_fixedname_t fkeyname;
+	dns_name_t *mykeyname;
+	int secretlen;
+	unsigned char *secret = NULL;
+	isc_buffer_t secretbuf;
 	const dns_name_t *hmacname = NULL;
-	uint16_t	  digestbits = 0;
-	char *		  n;
+	uint16_t digestbits = 0;
+	char *n;
 
 	namestr = nsu_strsep(&cmdline, " \t\r\n");
 	if (namestr == NULL || *namestr == 0) {
@@ -1702,9 +1662,8 @@ evaluate_key(char *cmdline)
 }
 
 static uint16_t
-evaluate_zone(char *cmdline)
-{
-	char *	     word;
+evaluate_zone(char *cmdline) {
+	char *word;
 	isc_buffer_t b;
 	isc_result_t result;
 
@@ -1728,12 +1687,11 @@ evaluate_zone(char *cmdline)
 }
 
 static uint16_t
-evaluate_realm(char *cmdline)
-{
+evaluate_realm(char *cmdline) {
 #ifdef GSSAPI
 	char *word;
-	char  buf[1024];
-	int   n;
+	char buf[1024];
+	int n;
 
 	if (realm != NULL) {
 		isc_mem_free(gmctx, realm);
@@ -1759,11 +1717,10 @@ evaluate_realm(char *cmdline)
 }
 
 static uint16_t
-evaluate_ttl(char *cmdline)
-{
-	char *	     word;
+evaluate_ttl(char *cmdline) {
+	char *word;
 	isc_result_t result;
-	uint32_t     ttl;
+	uint32_t ttl;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
@@ -1794,11 +1751,10 @@ evaluate_ttl(char *cmdline)
 }
 
 static uint16_t
-evaluate_class(char *cmdline)
-{
-	char *		 word;
+evaluate_class(char *cmdline) {
+	char *word;
 	isc_textregion_t r;
-	isc_result_t	 result;
+	isc_result_t result;
 	dns_rdataclass_t rdclass;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -1828,19 +1784,18 @@ evaluate_class(char *cmdline)
 }
 
 static uint16_t
-update_addordelete(char *cmdline, bool isdelete)
-{
-	isc_result_t	 result;
-	dns_name_t *	 name = NULL;
-	uint32_t	 ttl;
-	char *		 word;
+update_addordelete(char *cmdline, bool isdelete) {
+	isc_result_t result;
+	dns_name_t *name = NULL;
+	uint32_t ttl;
+	char *word;
 	dns_rdataclass_t rdataclass;
-	dns_rdatatype_t	 rdatatype;
-	dns_rdata_t *	 rdata = NULL;
+	dns_rdatatype_t rdatatype;
+	dns_rdata_t *rdata = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
-	dns_rdataset_t * rdataset = NULL;
+	dns_rdataset_t *rdataset = NULL;
 	isc_textregion_t region;
-	uint16_t	 retval;
+	uint16_t retval;
 
 	ddebug("update_addordelete()");
 
@@ -1977,7 +1932,7 @@ parseclass:
 
 	if (!isdelete && checknames) {
 		dns_fixedname_t fixed;
-		dns_name_t *	bad;
+		dns_name_t *bad;
 
 		if (!dns_rdata_checkowner(name, rdata->rdclass, rdata->type,
 					  true)) {
@@ -2026,10 +1981,9 @@ failure:
 }
 
 static uint16_t
-evaluate_update(char *cmdline)
-{
+evaluate_update(char *cmdline) {
 	char *word;
-	bool  isdelete;
+	bool isdelete;
 
 	ddebug("evaluate_update()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -2051,8 +2005,7 @@ evaluate_update(char *cmdline)
 }
 
 static uint16_t
-evaluate_checknames(char *cmdline)
-{
+evaluate_checknames(char *cmdline) {
 	char *word;
 
 	ddebug("evaluate_checknames()");
@@ -2062,11 +2015,13 @@ evaluate_checknames(char *cmdline)
 		return (STATUS_SYNTAX);
 	}
 	if (strcasecmp(word, "yes") == 0 || strcasecmp(word, "true") == 0 ||
-	    strcasecmp(word, "on") == 0) {
+	    strcasecmp(word, "on") == 0)
+	{
 		checknames = true;
 	} else if (strcasecmp(word, "no") == 0 ||
 		   strcasecmp(word, "false") == 0 ||
-		   strcasecmp(word, "off") == 0) {
+		   strcasecmp(word, "off") == 0)
+	{
 		checknames = false;
 	} else {
 		fprintf(stderr, "incorrect check-names directive: %s\n", word);
@@ -2076,10 +2031,9 @@ evaluate_checknames(char *cmdline)
 }
 
 static void
-setzone(dns_name_t *zonename)
-{
-	isc_result_t	result;
-	dns_name_t *	name = NULL;
+setzone(dns_name_t *zonename) {
+	isc_result_t result;
+	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
 
 	result = dns_message_firstname(updatemsg, DNS_SECTION_ZONE);
@@ -2087,7 +2041,8 @@ setzone(dns_name_t *zonename)
 		dns_message_currentname(updatemsg, DNS_SECTION_ZONE, &name);
 		dns_message_removename(updatemsg, name, DNS_SECTION_ZONE);
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_HEAD(name->list)) {
+		     rdataset = ISC_LIST_HEAD(name->list))
+		{
 			ISC_LIST_UNLINK(name->list, rdataset, link);
 			dns_rdataset_disassociate(rdataset);
 			dns_message_puttemprdataset(updatemsg, &rdataset);
@@ -2111,11 +2066,10 @@ setzone(dns_name_t *zonename)
 }
 
 static void
-show_message(FILE *stream, dns_message_t *msg, const char *description)
-{
-	isc_result_t  result;
+show_message(FILE *stream, dns_message_t *msg, const char *description) {
+	isc_result_t result;
 	isc_buffer_t *buf = NULL;
-	int	      bufsz;
+	int bufsz;
 
 	ddebug("show_message()");
 
@@ -2147,8 +2101,7 @@ show_message(FILE *stream, dns_message_t *msg, const char *description)
 }
 
 static uint16_t
-do_next_command(char *cmdline)
-{
+do_next_command(char *cmdline) {
 	char *word;
 
 	ddebug("do_next_command()");
@@ -2233,9 +2186,9 @@ do_next_command(char *cmdline)
 	if (strcasecmp(word, "realm") == 0) {
 		return (evaluate_realm(cmdline));
 	}
-	if (strcasecmp(word, "check-names") == 0 ||
-	    strcasecmp(word, "checkname"
-			     "s") == 0) {
+	if (strcasecmp(word, "check-names") == 0 || strcasecmp(word, "checkname"
+								     "s") == 0)
+	{
 		return (evaluate_checknames(cmdline));
 	}
 	if (strcasecmp(word, "gsstsig") == 0) {
@@ -2307,11 +2260,10 @@ do_next_command(char *cmdline)
 }
 
 static uint16_t
-get_next_command(void)
-{
+get_next_command(void) {
 	uint16_t result = STATUS_QUIT;
-	char	 cmdlinebuf[MAXCMD];
-	char *	 cmdline;
+	char cmdlinebuf[MAXCMD];
+	char *cmdline;
 
 	isc_app_block();
 	if (interactive) {
@@ -2349,8 +2301,7 @@ get_next_command(void)
 }
 
 static bool
-user_interaction(void)
-{
+user_interaction(void) {
 	uint16_t result = STATUS_MORE;
 
 	ddebug("user_interaction()");
@@ -2367,18 +2318,16 @@ user_interaction(void)
 }
 
 static void
-done_update(void)
-{
+done_update(void) {
 	isc_event_t *event = global_event;
 	ddebug("done_update()");
 	isc_task_send(global_task, &event);
 }
 
 static void
-check_tsig_error(dns_rdataset_t *rdataset, isc_buffer_t *b)
-{
-	isc_result_t	     result;
-	dns_rdata_t	     rdata = DNS_RDATA_INIT;
+check_tsig_error(dns_rdataset_t *rdataset, isc_buffer_t *b) {
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_any_tsig_t tsig;
 
 	result = dns_rdataset_first(rdataset);
@@ -2403,8 +2352,7 @@ check_tsig_error(dns_rdataset_t *rdataset, isc_buffer_t *b)
 }
 
 static bool
-next_master(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult)
-{
+next_master(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult) {
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
@@ -2418,11 +2366,10 @@ next_master(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult)
 }
 
 static void
-update_completed(isc_task_t *task, isc_event_t *event)
-{
+update_completed(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = NULL;
-	isc_result_t	    result;
-	dns_request_t *	    request;
+	isc_result_t result;
+	dns_request_t *request;
 
 	UNUSED(task);
 
@@ -2443,8 +2390,8 @@ update_completed(isc_task_t *task, isc_event_t *event)
 
 	if (reqev->result != ISC_R_SUCCESS) {
 		if (!next_master("update_completed",
-				 &master_servers[master_inuse],
-				 reqev->result)) {
+				 &master_servers[master_inuse], reqev->result))
+		{
 			seenerror = true;
 			goto done;
 		}
@@ -2493,8 +2440,8 @@ update_completed(isc_task_t *task, isc_event_t *event)
 	if (answer->rcode != dns_rcode_noerror) {
 		seenerror = true;
 		if (!debugging) {
-			char		buf[64];
-			isc_buffer_t	b;
+			char buf[64];
+			isc_buffer_t b;
 			dns_rdataset_t *rds;
 
 			isc_buffer_init(&b, buf, sizeof(buf) - 1);
@@ -2525,11 +2472,10 @@ done:
 }
 
 static void
-send_update(dns_name_t *zone, isc_sockaddr_t *master)
-{
-	isc_result_t	result;
-	dns_request_t * request = NULL;
-	unsigned int	options = DNS_REQUESTOPT_CASE;
+send_update(dns_name_t *zone, isc_sockaddr_t *master) {
+	isc_result_t result;
+	dns_request_t *request = NULL;
+	unsigned int options = DNS_REQUESTOPT_CASE;
 	isc_sockaddr_t *srcaddr;
 
 	ddebug("send_update()");
@@ -2575,8 +2521,7 @@ send_update(dns_name_t *zone, isc_sockaddr_t *master)
 }
 
 static void
-next_server(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult)
-{
+next_server(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult) {
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
@@ -2590,26 +2535,25 @@ next_server(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult)
 }
 
 static void
-recvsoa(isc_task_t *task, isc_event_t *event)
-{
+recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = NULL;
-	dns_request_t *	    request = NULL;
-	isc_result_t	    result, eresult;
-	dns_message_t *	    rcvmsg = NULL;
-	dns_section_t	    section;
-	dns_name_t *	    name = NULL;
-	dns_rdataset_t *    soaset = NULL;
-	dns_rdata_soa_t	    soa;
-	dns_rdata_t	    soarr = DNS_RDATA_INIT;
-	int		    pass = 0;
-	dns_name_t	    master;
-	nsu_requestinfo_t * reqinfo;
-	dns_message_t *	    soaquery = NULL;
-	isc_sockaddr_t *    addr;
-	isc_sockaddr_t *    srcaddr;
-	bool		    seencname = false;
-	dns_name_t	    tname;
-	unsigned int	    nlabels;
+	dns_request_t *request = NULL;
+	isc_result_t result, eresult;
+	dns_message_t *rcvmsg = NULL;
+	dns_section_t section;
+	dns_name_t *name = NULL;
+	dns_rdataset_t *soaset = NULL;
+	dns_rdata_soa_t soa;
+	dns_rdata_t soarr = DNS_RDATA_INIT;
+	int pass = 0;
+	dns_name_t master;
+	nsu_requestinfo_t *reqinfo;
+	dns_message_t *soaquery = NULL;
+	isc_sockaddr_t *addr;
+	isc_sockaddr_t *srcaddr;
+	bool seencname = false;
+	dns_name_t tname;
+	unsigned int nlabels;
 
 	UNUSED(task);
 
@@ -2734,7 +2678,8 @@ lookforsoa:
 			if (dns_message_findtype(name, dns_rdatatype_cname, 0,
 						 &tset) == ISC_R_SUCCESS ||
 			    dns_message_findtype(name, dns_rdatatype_dname, 0,
-						 &tset) == ISC_R_SUCCESS) {
+						 &tset) == ISC_R_SUCCESS)
+			{
 				seencname = true;
 				break;
 			}
@@ -2787,9 +2732,9 @@ lookforsoa:
 	}
 
 	if (default_servers) {
-		char	     serverstr[DNS_NAME_MAXTEXT + 1];
+		char serverstr[DNS_NAME_MAXTEXT + 1];
 		isc_buffer_t buf;
-		size_t	     size;
+		size_t size;
 
 		isc_buffer_init(&buf, serverstr, sizeof(serverstr));
 		result = dns_name_totext(&master, true, &buf);
@@ -2861,11 +2806,10 @@ droplabel:
 
 static void
 sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
-	    dns_request_t **request)
-{
-	isc_result_t	   result;
+	    dns_request_t **request) {
+	isc_result_t result;
 	nsu_requestinfo_t *reqinfo;
-	isc_sockaddr_t *   srcaddr;
+	isc_sockaddr_t *srcaddr;
 
 	reqinfo = isc_mem_get(gmctx, sizeof(nsu_requestinfo_t));
 	reqinfo->msg = msg;
@@ -2891,14 +2835,13 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
  * Get the realm from the users kerberos ticket if possible
  */
 static void
-get_ticket_realm(isc_mem_t *mctx)
-{
-	krb5_context	ctx;
+get_ticket_realm(isc_mem_t *mctx) {
+	krb5_context ctx;
 	krb5_error_code rc;
-	krb5_ccache	ccache;
-	krb5_principal	princ;
-	char *		name;
-	const char *	ticket_realm;
+	krb5_ccache ccache;
+	krb5_principal princ;
+	char *name;
+	const char *ticket_realm;
 
 	rc = krb5_init_context(&ctx);
 	if (rc != 0) {
@@ -2941,8 +2884,7 @@ get_ticket_realm(isc_mem_t *mctx)
 }
 
 static void
-failed_gssrequest()
-{
+failed_gssrequest() {
 	seenerror = true;
 
 	dns_name_free(&tmpzonename, gmctx);
@@ -2954,19 +2896,18 @@ failed_gssrequest()
 }
 
 static void
-start_gssrequest(dns_name_t *master)
-{
-	gss_ctx_id_t	context;
-	isc_buffer_t	buf;
-	isc_result_t	result;
-	uint32_t	val = 0;
-	dns_message_t * rmsg = NULL;
-	dns_request_t * request = NULL;
-	dns_name_t *	servname;
+start_gssrequest(dns_name_t *master) {
+	gss_ctx_id_t context;
+	isc_buffer_t buf;
+	isc_result_t result;
+	uint32_t val = 0;
+	dns_message_t *rmsg = NULL;
+	dns_request_t *request = NULL;
+	dns_name_t *servname;
 	dns_fixedname_t fname;
-	char		namestr[DNS_NAME_FORMATSIZE];
-	char		mykeystr[DNS_NAME_FORMATSIZE];
-	char *		err_message = NULL;
+	char namestr[DNS_NAME_FORMATSIZE];
+	char mykeystr[DNS_NAME_FORMATSIZE];
+	char *err_message = NULL;
 
 	debug("start_gssrequest");
 	usevc = true;
@@ -3010,8 +2951,8 @@ start_gssrequest(dns_name_t *master)
 
 	isc_nonce_buf(&val, sizeof(val));
 
-	result =
-		snprintf(mykeystr, sizeof(mykeystr), "%u.sig-%s", val, namestr);
+	result = snprintf(mykeystr, sizeof(mykeystr), "%u.sig-%s", val,
+			  namestr);
 	RUNTIME_CHECK(result <= sizeof(mykeystr));
 
 	isc_buffer_init(&buf, mykeystr, strlen(mykeystr));
@@ -3063,11 +3004,10 @@ failure:
 
 static void
 send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
-		dns_request_t **request, gss_ctx_id_t context)
-{
-	isc_result_t	result;
-	nsu_gssinfo_t * reqinfo;
-	unsigned int	options = 0;
+		dns_request_t **request, gss_ctx_id_t context) {
+	isc_result_t result;
+	nsu_gssinfo_t *reqinfo;
+	unsigned int options = 0;
 	isc_sockaddr_t *srcaddr;
 
 	debug("send_gssrequest");
@@ -3096,20 +3036,19 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 }
 
 static void
-recvgss(isc_task_t *task, isc_event_t *event)
-{
+recvgss(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = NULL;
-	dns_request_t *	    request = NULL;
-	isc_result_t	    result, eresult;
-	dns_message_t *	    rcvmsg = NULL;
-	nsu_gssinfo_t *	    reqinfo;
-	dns_message_t *	    tsigquery = NULL;
-	isc_sockaddr_t *    addr;
-	gss_ctx_id_t	    context;
-	isc_buffer_t	    buf;
-	dns_name_t *	    servname;
-	dns_fixedname_t	    fname;
-	char *		    err_message = NULL;
+	dns_request_t *request = NULL;
+	isc_result_t result, eresult;
+	dns_message_t *rcvmsg = NULL;
+	nsu_gssinfo_t *reqinfo;
+	dns_message_t *tsigquery = NULL;
+	isc_sockaddr_t *addr;
+	gss_ctx_id_t context;
+	isc_buffer_t buf;
+	dns_name_t *servname;
+	dns_fixedname_t fname;
+	char *err_message = NULL;
 
 	UNUSED(task);
 
@@ -3254,15 +3193,14 @@ done:
 #endif /* ifdef GSSAPI */
 
 static void
-start_update(void)
-{
-	isc_result_t	result;
+start_update(void) {
+	isc_result_t result;
 	dns_rdataset_t *rdataset = NULL;
-	dns_name_t *	name = NULL;
-	dns_request_t * request = NULL;
-	dns_message_t * soaquery = NULL;
-	dns_name_t *	firstname;
-	dns_section_t	section = DNS_SECTION_UPDATE;
+	dns_name_t *name = NULL;
+	dns_request_t *request = NULL;
+	dns_message_t *soaquery = NULL;
+	dns_name_t *firstname;
+	dns_section_t section = DNS_SECTION_UPDATE;
 
 	ddebug("start_update()");
 
@@ -3328,7 +3266,8 @@ start_update(void)
 		tmprdataset = ISC_LIST_HEAD(firstname->list);
 		if (section == DNS_SECTION_UPDATE &&
 		    !dns_name_equal(firstname, dns_rootname) &&
-		    tmprdataset->type == dns_rdatatype_ds) {
+		    tmprdataset->type == dns_rdatatype_ds)
+		{
 			unsigned int labels = dns_name_countlabels(name);
 			dns_name_getlabelsequence(name, 1, labels - 1, name);
 		}
@@ -3343,8 +3282,7 @@ start_update(void)
 }
 
 static void
-cleanup(void)
-{
+cleanup(void) {
 	ddebug("cleanup()");
 
 	if (answer != NULL) {
@@ -3403,8 +3341,7 @@ cleanup(void)
 }
 
 static void
-getinput(isc_task_t *task, isc_event_t *event)
-{
+getinput(isc_task_t *task, isc_event_t *event) {
 	bool more;
 
 	UNUSED(task);
@@ -3429,8 +3366,7 @@ getinput(isc_task_t *task, isc_event_t *event)
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	isc_result_t result;
 	style = &dns_master_style_debug;
 

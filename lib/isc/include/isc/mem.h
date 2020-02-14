@@ -64,12 +64,12 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 
 /*@{*/
-#define ISC_MEM_DEBUGTRACE 0x00000001U
+#define ISC_MEM_DEBUGTRACE  0x00000001U
 #define ISC_MEM_DEBUGRECORD 0x00000002U
-#define ISC_MEM_DEBUGUSAGE 0x00000004U
-#define ISC_MEM_DEBUGSIZE 0x00000008U
-#define ISC_MEM_DEBUGCTX 0x00000010U
-#define ISC_MEM_DEBUGALL 0x0000001FU
+#define ISC_MEM_DEBUGUSAGE  0x00000004U
+#define ISC_MEM_DEBUGSIZE   0x00000008U
+#define ISC_MEM_DEBUGCTX    0x00000010U
+#define ISC_MEM_DEBUGALL    0x0000001FU
 /*!<
  * The variable isc_mem_debugging holds a set of flags for
  * turning certain memory debugging options on or off at
@@ -100,7 +100,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 
 #if ISC_MEM_TRACKLINES
 #define _ISC_MEM_FILELINE , __FILE__, __LINE__
-#define _ISC_MEM_FLARG , const char *, unsigned int
+#define _ISC_MEM_FLARG	  , const char *, unsigned int
 #else /* if ISC_MEM_TRACKLINES */
 #define _ISC_MEM_FILELINE
 #define _ISC_MEM_FLARG
@@ -190,7 +190,7 @@ struct isc_mem {
 	isc_memmethods_t *methods;
 };
 
-#define ISCAPI_MCTX_MAGIC ISC_MAGIC('A', 'm', 'c', 'x')
+#define ISCAPI_MCTX_MAGIC    ISC_MAGIC('A', 'm', 'c', 'x')
 #define ISCAPI_MCTX_VALID(m) ((m) != NULL && (m)->magic == ISCAPI_MCTX_MAGIC)
 
 /*%
@@ -218,15 +218,15 @@ struct isc_mempool {
  * loaded modules can use them even if named is statically linked.
  */
 
-#define ISCMEMFUNC(sfx) isc__mem_##sfx
+#define ISCMEMFUNC(sfx)	    isc__mem_##sfx
 #define ISCMEMPOOLFUNC(sfx) isc__mempool_##sfx
 
-#define isc_mem_get(c, s) ISCMEMFUNC(get)((c), (s)_ISC_MEM_FILELINE)
+#define isc_mem_get(c, s)      ISCMEMFUNC(get)((c), (s)_ISC_MEM_FILELINE)
 #define isc_mem_allocate(c, s) ISCMEMFUNC(allocate)((c), (s)_ISC_MEM_FILELINE)
 #define isc_mem_reallocate(c, p, s) \
 	ISCMEMFUNC(reallocate)((c), (p), (s)_ISC_MEM_FILELINE)
 #define isc_mem_strdup(c, p) ISCMEMFUNC(strdup)((c), (p)_ISC_MEM_FILELINE)
-#define isc_mempool_get(c) ISCMEMPOOLFUNC(get)((c)_ISC_MEM_FILELINE)
+#define isc_mempool_get(c)   ISCMEMPOOLFUNC(get)((c)_ISC_MEM_FILELINE)
 
 #define isc_mem_put(c, p, s)                                     \
 	do {                                                     \

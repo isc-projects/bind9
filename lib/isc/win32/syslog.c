@@ -21,11 +21,11 @@
 #include <isc/util.h>
 
 static HANDLE hAppLog = NULL;
-static FILE * log_stream;
-static int    debug_level = 0;
+static FILE *log_stream;
+static int debug_level = 0;
 
 static struct dsn_c_pvt_sfnt {
-	int	    val;
+	int val;
 	const char *strval;
 } facilities[] = { { LOG_KERN, "kern" },
 		   { LOG_USER, "user" },
@@ -60,8 +60,7 @@ static struct dsn_c_pvt_sfnt {
 		   { 0, NULL } };
 
 isc_result_t
-isc_syslog_facilityfromstring(const char *str, int *facilityp)
-{
+isc_syslog_facilityfromstring(const char *str, int *facilityp) {
 	int i;
 
 	REQUIRE(str != NULL);
@@ -80,11 +79,10 @@ isc_syslog_facilityfromstring(const char *str, int *facilityp)
  * Log to the NT Event Log
  */
 void
-syslog(int level, const char *fmt, ...)
-{
+syslog(int level, const char *fmt, ...) {
 	va_list ap;
-	char	buf[1024];
-	char *	str[1];
+	char buf[1024];
+	char *str[1];
 
 	str[0] = buf;
 
@@ -117,8 +115,7 @@ syslog(int level, const char *fmt, ...)
  * Initialize event logging
  */
 void
-openlog(const char *name, int flags, ...)
-{
+openlog(const char *name, int flags, ...) {
 	/* Get a handle to the Application event log */
 	hAppLog = RegisterEventSource(NULL, name);
 }
@@ -129,8 +126,7 @@ openlog(const char *name, int flags, ...)
  * In fact if we failed then we would have nowhere to put the message
  */
 void
-closelog(void)
-{
+closelog(void) {
 	DeregisterEventSource(hAppLog);
 }
 
@@ -138,8 +134,7 @@ closelog(void)
  * Keep event logging synced with the current debug level
  */
 void
-ModifyLogLevel(int level)
-{
+ModifyLogLevel(int level) {
 	debug_level = level;
 }
 
@@ -148,8 +143,7 @@ ModifyLogLevel(int level)
  * Piggyback onto stream given.
  */
 void
-InitNTLogging(FILE *stream, int debug)
-{
+InitNTLogging(FILE *stream, int debug) {
 	log_stream = stream;
 	ModifyLogLevel(debug);
 }
@@ -160,9 +154,8 @@ InitNTLogging(FILE *stream, int debug)
  * circumstances.
  */
 void
-NTReportError(const char *name, const char *str)
-{
-	HANDLE	    hNTAppLog = NULL;
+NTReportError(const char *name, const char *str) {
+	HANDLE hNTAppLog = NULL;
 	const char *buf[1];
 
 	buf[0] = str;

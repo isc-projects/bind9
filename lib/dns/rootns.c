@@ -78,10 +78,9 @@ static char root_ns[] =
 	"M.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:DC3::35\n";
 
 static isc_result_t
-in_rootns(dns_rdataset_t *rootns, dns_name_t *name)
-{
-	isc_result_t   result;
-	dns_rdata_t    rdata = DNS_RDATA_INIT;
+in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_ns_t ns;
 
 	if (!dns_rdataset_isassociated(rootns)) {
@@ -109,9 +108,8 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name)
 
 static isc_result_t
 check_node(dns_rdataset_t *rootns, dns_name_t *name,
-	   dns_rdatasetiter_t *rdsiter)
-{
-	isc_result_t   result;
+	   dns_rdatasetiter_t *rdsiter) {
+	isc_result_t result;
 	dns_rdataset_t rdataset;
 
 	dns_rdataset_init(&rdataset);
@@ -149,15 +147,14 @@ cleanup:
 }
 
 static isc_result_t
-check_hints(dns_db_t *db)
-{
-	isc_result_t	    result;
-	dns_rdataset_t	    rootns;
-	dns_dbiterator_t *  dbiter = NULL;
-	dns_dbnode_t *	    node = NULL;
-	isc_stdtime_t	    now;
-	dns_fixedname_t	    fixname;
-	dns_name_t *	    name;
+check_hints(dns_db_t *db) {
+	isc_result_t result;
+	dns_rdataset_t rootns;
+	dns_dbiterator_t *dbiter = NULL;
+	dns_dbnode_t *node = NULL;
+	isc_stdtime_t now;
+	dns_fixedname_t fixname;
+	dns_name_t *name;
 	dns_rdatasetiter_t *rdsiter = NULL;
 
 	isc_stdtime_get(&now);
@@ -211,13 +208,12 @@ cleanup:
 
 isc_result_t
 dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
-		  const char *filename, dns_db_t **target)
-{
-	isc_result_t	     result, eresult;
-	isc_buffer_t	     source;
-	unsigned int	     len;
+		  const char *filename, dns_db_t **target) {
+	isc_result_t result, eresult;
+	isc_buffer_t source;
+	unsigned int len;
 	dns_rdatacallbacks_t callbacks;
-	dns_db_t *	     db = NULL;
+	dns_db_t *db = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
 
@@ -286,17 +282,17 @@ failure:
 }
 
 static void
-report(dns_view_t *view, dns_name_t *name, bool missing, dns_rdata_t *rdata)
-{
+report(dns_view_t *view, dns_name_t *name, bool missing, dns_rdata_t *rdata) {
 	const char *viewname = "", *sep = "";
-	char	    namebuf[DNS_NAME_FORMATSIZE];
-	char	    typebuf[DNS_RDATATYPE_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	char databuf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:123.123.123.123")];
 	isc_buffer_t buffer;
 	isc_result_t result;
 
 	if (strcmp(view->name, "_bind") != 0 && strcmp(view->name, "_defaul"
-								   "t") != 0) {
+								   "t") != 0)
+	{
 		viewname = view->name;
 		sep = ": view ";
 	}
@@ -323,10 +319,9 @@ report(dns_view_t *view, dns_name_t *name, bool missing, dns_rdata_t *rdata)
 }
 
 static bool
-inrrset(dns_rdataset_t *rrset, dns_rdata_t *rdata)
-{
+inrrset(dns_rdataset_t *rrset, dns_rdata_t *rdata) {
 	isc_result_t result;
-	dns_rdata_t  current = DNS_RDATA_INIT;
+	dns_rdata_t current = DNS_RDATA_INIT;
 
 	result = dns_rdataset_first(rrset);
 	while (result == ISC_R_SUCCESS) {
@@ -348,12 +343,11 @@ inrrset(dns_rdataset_t *rrset, dns_rdata_t *rdata)
 
 static void
 check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
-		      dns_name_t *name, isc_stdtime_t now)
-{
-	isc_result_t	hresult, rresult, result;
-	dns_rdataset_t	hintrrset, rootrrset;
-	dns_rdata_t	rdata = DNS_RDATA_INIT;
-	dns_name_t *	foundname;
+		      dns_name_t *name, isc_stdtime_t now) {
+	isc_result_t hresult, rresult, result;
+	dns_rdataset_t hintrrset, rootrrset;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_name_t *foundname;
 	dns_fixedname_t fixed;
 
 	dns_rdataset_init(&hintrrset);
@@ -366,7 +360,8 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 			      DNS_DBFIND_GLUEOK, now, NULL, foundname,
 			      &rootrrset, NULL);
 	if (hresult == ISC_R_SUCCESS &&
-	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE)) {
+	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE))
+	{
 		result = dns_rdataset_first(&rootrrset);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdata_reset(&rdata);
@@ -387,7 +382,8 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 		}
 	}
 	if (hresult == ISC_R_NOTFOUND &&
-	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE)) {
+	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE))
+	{
 		result = dns_rdataset_first(&rootrrset);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdata_reset(&rdata);
@@ -412,7 +408,8 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 			      DNS_DBFIND_GLUEOK, now, NULL, foundname,
 			      &rootrrset, NULL);
 	if (hresult == ISC_R_SUCCESS &&
-	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE)) {
+	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE))
+	{
 		result = dns_rdataset_first(&rootrrset);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdata_reset(&rdata);
@@ -435,7 +432,8 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 		}
 	}
 	if (hresult == ISC_R_NOTFOUND &&
-	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE)) {
+	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE))
+	{
 		result = dns_rdataset_first(&rootrrset);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdata_reset(&rdata);
@@ -454,15 +452,14 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 }
 
 void
-dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db)
-{
-	isc_result_t	result;
-	dns_rdata_t	rdata = DNS_RDATA_INIT;
-	dns_rdata_ns_t	ns;
-	dns_rdataset_t	hintns, rootns;
-	const char *	viewname = "", *sep = "";
-	isc_stdtime_t	now;
-	dns_name_t *	name;
+dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_ns_t ns;
+	dns_rdataset_t hintns, rootns;
+	const char *viewname = "", *sep = "";
+	isc_stdtime_t now;
+	dns_name_t *name;
 	dns_fixedname_t fixed;
 
 	REQUIRE(hints != NULL);
@@ -472,7 +469,8 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db)
 	isc_stdtime_get(&now);
 
 	if (strcmp(view->name, "_bind") != 0 && strcmp(view->name, "_defaul"
-								   "t") != 0) {
+								   "t") != 0)
+	{
 		viewname = view->name;
 		sep = ": view ";
 	}

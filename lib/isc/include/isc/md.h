@@ -38,17 +38,17 @@ typedef EVP_MD_CTX isc_md_t;
  */
 typedef const EVP_MD *isc_md_type_t;
 
-#define ISC_MD_MD5 EVP_md5()
-#define ISC_MD_SHA1 EVP_sha1()
+#define ISC_MD_MD5    EVP_md5()
+#define ISC_MD_SHA1   EVP_sha1()
 #define ISC_MD_SHA224 EVP_sha224()
 #define ISC_MD_SHA256 EVP_sha256()
 #define ISC_MD_SHA384 EVP_sha384()
 #define ISC_MD_SHA512 EVP_sha512()
 
-#define ISC_MD5_DIGESTLENGTH isc_md_type_get_size(ISC_MD_MD5)
-#define ISC_MD5_BLOCK_LENGTH isc_md_type_get_block_size(ISC_MD_MD5)
-#define ISC_SHA1_DIGESTLENGTH isc_md_type_get_size(ISC_MD_SHA1)
-#define ISC_SHA1_BLOCK_LENGTH isc_md_type_get_block_size(ISC_MD_SHA1)
+#define ISC_MD5_DIGESTLENGTH	isc_md_type_get_size(ISC_MD_MD5)
+#define ISC_MD5_BLOCK_LENGTH	isc_md_type_get_block_size(ISC_MD_MD5)
+#define ISC_SHA1_DIGESTLENGTH	isc_md_type_get_size(ISC_MD_SHA1)
+#define ISC_SHA1_BLOCK_LENGTH	isc_md_type_get_block_size(ISC_MD_SHA1)
 #define ISC_SHA224_DIGESTLENGTH isc_md_type_get_size(ISC_MD_SHA224)
 #define ISC_SHA224_BLOCK_LENGTH isc_md_type_get_block_size(ISC_MD_SHA224)
 #define ISC_SHA256_DIGESTLENGTH isc_md_type_get_size(ISC_MD_SHA256)
@@ -58,7 +58,7 @@ typedef const EVP_MD *isc_md_type_t;
 #define ISC_SHA512_DIGESTLENGTH isc_md_type_get_size(ISC_MD_SHA512)
 #define ISC_SHA512_BLOCK_LENGTH isc_md_type_get_block_size(ISC_MD_SHA512)
 
-#define ISC_MAX_MD_SIZE EVP_MAX_MD_SIZE
+#define ISC_MAX_MD_SIZE	   EVP_MAX_MD_SIZE
 #define ISC_MAX_BLOCK_SIZE 128U /* ISC_SHA512_BLOCK_LENGTH */
 
 /**

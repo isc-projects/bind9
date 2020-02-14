@@ -41,13 +41,12 @@
  * in 'ccat' and add it to 'logconfig'.
  */
 static isc_result_t
-category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig)
-{
-	isc_result_t	     result;
-	const char *	     catname;
-	isc_logcategory_t *  category;
-	isc_logmodule_t *    module;
-	const cfg_obj_t *    destinations = NULL;
+category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
+	isc_result_t result;
+	const char *catname;
+	isc_logcategory_t *category;
+	isc_logmodule_t *module;
+	const cfg_obj_t *destinations = NULL;
 	const cfg_listelt_t *element = NULL;
 
 	catname = cfg_obj_asstring(cfg_tuple_get(ccat, "name"));
@@ -69,9 +68,10 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig)
 
 	destinations = cfg_tuple_get(ccat, "destinations");
 	for (element = cfg_list_first(destinations); element != NULL;
-	     element = cfg_list_next(element)) {
+	     element = cfg_list_next(element))
+	{
 		const cfg_obj_t *channel = cfg_listelt_value(element);
-		const char *	 channelname = cfg_obj_asstring(channel);
+		const char *channelname = cfg_obj_asstring(channel);
 
 		result = isc_log_usechannel(logconfig, channelname, category,
 					    module);
@@ -91,20 +91,19 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig)
  * in 'cchan' and add it to 'logconfig'.
  */
 static isc_result_t
-channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
-{
-	isc_result_t	     result;
+channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
+	isc_result_t result;
 	isc_logdestination_t dest;
-	unsigned int	     type;
-	unsigned int	     flags = 0;
-	int		     level;
-	const char *	     channelname;
-	const cfg_obj_t *    fileobj = NULL;
-	const cfg_obj_t *    syslogobj = NULL;
-	const cfg_obj_t *    nullobj = NULL;
-	const cfg_obj_t *    stderrobj = NULL;
-	const cfg_obj_t *    severity = NULL;
-	int		     i;
+	unsigned int type;
+	unsigned int flags = 0;
+	int level;
+	const char *channelname;
+	const cfg_obj_t *fileobj = NULL;
+	const cfg_obj_t *syslogobj = NULL;
+	const cfg_obj_t *nullobj = NULL;
+	const cfg_obj_t *stderrobj = NULL;
+	const cfg_obj_t *severity = NULL;
+	int i;
 
 	channelname = cfg_obj_asstring(cfg_map_getname(channel));
 
@@ -143,10 +142,10 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
 		const cfg_obj_t *versionsobj = cfg_tuple_get(fileobj, "version"
 								      "s");
 		const cfg_obj_t *suffixobj = cfg_tuple_get(fileobj, "suffix");
-		int32_t		 versions = ISC_LOG_ROLLNEVER;
+		int32_t versions = ISC_LOG_ROLLNEVER;
 		isc_log_rollsuffix_t suffix = isc_log_rollsuffix_increment;
-		isc_offset_t	     size = 0;
-		uint64_t	     maxoffset;
+		isc_offset_t size = 0;
+		uint64_t maxoffset;
 
 		/*
 		 * isc_offset_t is a signed integer type, so the maximum
@@ -170,17 +169,19 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
 			versions = cfg_obj_asuint32(versionsobj);
 		} else if (versionsobj != NULL &&
 			   cfg_obj_isstring(versionsobj) &&
-			   strcasecmp(cfg_obj_asstring(versionsobj),
-				      "unlimite"
-				      "d") == 0) {
+			   strcasecmp(cfg_obj_asstring(versionsobj), "unlimite"
+								     "d") == 0)
+		{
 			versions = ISC_LOG_ROLLINFINITE;
 		}
 		if (sizeobj != NULL && cfg_obj_isuint64(sizeobj) &&
-		    cfg_obj_asuint64(sizeobj) < maxoffset) {
+		    cfg_obj_asuint64(sizeobj) < maxoffset)
+		{
 			size = (isc_offset_t)cfg_obj_asuint64(sizeobj);
 		}
 		if (suffixobj != NULL && cfg_obj_isstring(suffixobj) &&
-		    strcasecmp(cfg_obj_asstring(suffixobj), "timestamp") == 0) {
+		    strcasecmp(cfg_obj_asstring(suffixobj), "timestamp") == 0)
+		{
 			suffix = isc_log_rollsuffix_timestamp;
 		}
 
@@ -322,15 +323,14 @@ done:
 }
 
 isc_result_t
-named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt)
-{
-	isc_result_t	     result;
-	const cfg_obj_t *    channels = NULL;
-	const cfg_obj_t *    categories = NULL;
+named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
+	isc_result_t result;
+	const cfg_obj_t *channels = NULL;
+	const cfg_obj_t *categories = NULL;
 	const cfg_listelt_t *element;
-	bool		     default_set = false;
-	bool		     unmatched_set = false;
-	const cfg_obj_t *    catname;
+	bool default_set = false;
+	bool unmatched_set = false;
+	const cfg_obj_t *catname;
 
 	if (logconfig != NULL) {
 		CHECK(named_log_setdefaultchannels(logconfig));
@@ -338,14 +338,16 @@ named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt)
 
 	(void)cfg_map_get(logstmt, "channel", &channels);
 	for (element = cfg_list_first(channels); element != NULL;
-	     element = cfg_list_next(element)) {
+	     element = cfg_list_next(element))
+	{
 		const cfg_obj_t *channel = cfg_listelt_value(element);
 		CHECK(channel_fromconf(channel, logconfig));
 	}
 
 	(void)cfg_map_get(logstmt, "category", &categories);
 	for (element = cfg_list_first(categories); element != NULL;
-	     element = cfg_list_next(element)) {
+	     element = cfg_list_next(element))
+	{
 		const cfg_obj_t *category = cfg_listelt_value(element);
 		CHECK(category_fromconf(category, logconfig));
 		if (!default_set) {
@@ -356,8 +358,8 @@ named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt)
 		}
 		if (!unmatched_set) {
 			catname = cfg_tuple_get(category, "name");
-			if (strcmp(cfg_obj_asstring(catname), "unmatched") ==
-			    0) {
+			if (strcmp(cfg_obj_asstring(catname), "unmatched") == 0)
+			{
 				unmatched_set = true;
 			}
 		}

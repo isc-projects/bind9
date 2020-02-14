@@ -31,14 +31,13 @@
 
 typedef struct hash_testcase {
 	const char *input;
-	size_t	    input_len;
+	size_t input_len;
 	const char *result;
-	int	    repeats;
+	int repeats;
 } hash_testcase_t;
 
 static void
-isc_crc64_init_test(void **state)
-{
+isc_crc64_init_test(void **state) {
 	uint64_t crc;
 
 	UNUSED(state);
@@ -48,8 +47,7 @@ isc_crc64_init_test(void **state)
 }
 
 static void
-_crc64(const char *buf, size_t buflen, const char *result, const int repeats)
-{
+_crc64(const char *buf, size_t buflen, const char *result, const int repeats) {
 	uint64_t crc;
 
 	isc_crc64_init(&crc);
@@ -69,8 +67,7 @@ _crc64(const char *buf, size_t buflen, const char *result, const int repeats)
 
 /* 64-bit cyclic redundancy check */
 static void
-isc_crc64_test(void **state)
-{
+isc_crc64_test(void **state) {
 	UNUSED(state);
 
 	_crc64(TEST_INPUT(""), "0000000000000000", 1);
@@ -87,8 +84,7 @@ isc_crc64_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_crc64_init_test),
 		cmocka_unit_test(isc_crc64_test),
@@ -102,8 +98,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

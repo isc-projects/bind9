@@ -24,7 +24,7 @@
 #include <isc/stats.h>
 #include <isc/util.h>
 
-#define ISC_STATS_MAGIC ISC_MAGIC('S', 't', 'a', 't')
+#define ISC_STATS_MAGIC	   ISC_MAGIC('S', 't', 'a', 't')
 #define ISC_STATS_VALID(x) ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
 
 #if defined(_WIN32) && !defined(_WIN64)
@@ -34,18 +34,17 @@ typedef atomic_int_fast64_t isc__atomic_statcounter_t;
 #endif /* if defined(_WIN32) && !defined(_WIN64) */
 
 struct isc_stats {
-	unsigned int		   magic;
-	isc_mem_t *		   mctx;
-	isc_refcount_t		   references;
-	int			   ncounters;
+	unsigned int magic;
+	isc_mem_t *mctx;
+	isc_refcount_t references;
+	int ncounters;
 	isc__atomic_statcounter_t *counters;
 };
 
 static isc_result_t
-create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp)
-{
+create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 	isc_stats_t *stats;
-	size_t	     counters_alloc_size;
+	size_t counters_alloc_size;
 
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
@@ -64,8 +63,7 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp)
 }
 
 void
-isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp)
-{
+isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
@@ -74,8 +72,7 @@ isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp)
 }
 
 void
-isc_stats_detach(isc_stats_t **statsp)
-{
+isc_stats_detach(isc_stats_t **statsp) {
 	isc_stats_t *stats;
 
 	REQUIRE(statsp != NULL && ISC_STATS_VALID(*statsp));
@@ -93,24 +90,21 @@ isc_stats_detach(isc_stats_t **statsp)
 }
 
 int
-isc_stats_ncounters(isc_stats_t *stats)
-{
+isc_stats_ncounters(isc_stats_t *stats) {
 	REQUIRE(ISC_STATS_VALID(stats));
 
 	return (stats->ncounters);
 }
 
 isc_result_t
-isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters)
-{
+isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	return (create_stats(mctx, ncounters, statsp));
 }
 
 void
-isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter)
-{
+isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
@@ -119,8 +113,7 @@ isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter)
 }
 
 void
-isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter)
-{
+isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
@@ -130,8 +123,7 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter)
 
 void
 isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
-	       unsigned int options)
-{
+	       unsigned int options) {
 	int i;
 
 	REQUIRE(ISC_STATS_VALID(stats));
@@ -147,8 +139,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
 }
 
 void
-isc_stats_set(isc_stats_t *stats, uint64_t val, isc_statscounter_t counter)
-{
+isc_stats_set(isc_stats_t *stats, uint64_t val, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
@@ -158,8 +149,7 @@ isc_stats_set(isc_stats_t *stats, uint64_t val, isc_statscounter_t counter)
 
 void
 isc_stats_update_if_greater(isc_stats_t *stats, isc_statscounter_t counter,
-			    isc_statscounter_t value)
-{
+			    isc_statscounter_t value) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
@@ -174,8 +164,7 @@ isc_stats_update_if_greater(isc_stats_t *stats, isc_statscounter_t counter,
 }
 
 isc_statscounter_t
-isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter)
-{
+isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 

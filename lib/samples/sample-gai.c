@@ -19,11 +19,10 @@
 #include <irs/netdb.h>
 
 static void
-do_gai(int family, char *hostname)
-{
+do_gai(int family, char *hostname) {
 	struct addrinfo hints, *res, *res0;
-	int		error;
-	char		namebuf[1024], addrbuf[1024], servbuf[1024];
+	int error;
+	char namebuf[1024], addrbuf[1024], servbuf[1024];
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = family;
@@ -59,8 +58,7 @@ do_gai(int family, char *hostname)
 }
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	if (argc < 2) {
 		exit(1);
 	}

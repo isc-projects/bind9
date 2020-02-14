@@ -20,13 +20,11 @@
 
 #include <ns/listenlist.h>
 
-static void
-destroy(ns_listenlist_t *list);
+static void destroy(ns_listenlist_t *list);
 
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		    dns_acl_t *acl, ns_listenelt_t **target)
-{
+		    dns_acl_t *acl, ns_listenelt_t **target) {
 	ns_listenelt_t *elt = NULL;
 	REQUIRE(target != NULL && *target == NULL);
 	elt = isc_mem_get(mctx, sizeof(*elt));
@@ -40,8 +38,7 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 }
 
 void
-ns_listenelt_destroy(ns_listenelt_t *elt)
-{
+ns_listenelt_destroy(ns_listenelt_t *elt) {
 	if (elt->acl != NULL) {
 		dns_acl_detach(&elt->acl);
 	}
@@ -49,8 +46,7 @@ ns_listenelt_destroy(ns_listenelt_t *elt)
 }
 
 isc_result_t
-ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target)
-{
+ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target) {
 	ns_listenlist_t *list = NULL;
 	REQUIRE(target != NULL && *target == NULL);
 	list = isc_mem_get(mctx, sizeof(*list));
@@ -62,8 +58,7 @@ ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target)
 }
 
 static void
-destroy(ns_listenlist_t *list)
-{
+destroy(ns_listenlist_t *list) {
 	ns_listenelt_t *elt, *next;
 	for (elt = ISC_LIST_HEAD(list->elts); elt != NULL; elt = next) {
 		next = ISC_LIST_NEXT(elt, link);
@@ -73,16 +68,14 @@ destroy(ns_listenlist_t *list)
 }
 
 void
-ns_listenlist_attach(ns_listenlist_t *source, ns_listenlist_t **target)
-{
+ns_listenlist_attach(ns_listenlist_t *source, ns_listenlist_t **target) {
 	INSIST(source->refcount > 0);
 	source->refcount++;
 	*target = source;
 }
 
 void
-ns_listenlist_detach(ns_listenlist_t **listp)
-{
+ns_listenlist_detach(ns_listenlist_t **listp) {
 	ns_listenlist_t *list = *listp;
 	*listp = NULL;
 	INSIST(list->refcount > 0);
@@ -94,11 +87,10 @@ ns_listenlist_detach(ns_listenlist_t **listp)
 
 isc_result_t
 ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		      bool enabled, ns_listenlist_t **target)
-{
-	isc_result_t	 result;
-	dns_acl_t *	 acl = NULL;
-	ns_listenelt_t * elt = NULL;
+		      bool enabled, ns_listenlist_t **target) {
+	isc_result_t result;
+	dns_acl_t *acl = NULL;
+	ns_listenelt_t *elt = NULL;
 	ns_listenlist_t *list = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);

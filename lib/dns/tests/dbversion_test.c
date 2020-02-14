@@ -37,8 +37,8 @@
 
 #include "dnstest.h"
 
-static char		tempname[11] = "dtXXXXXXXX";
-static dns_db_t *	db1 = NULL, *db2 = NULL;
+static char tempname[11] = "dtXXXXXXXX";
+static dns_db_t *db1 = NULL, *db2 = NULL;
 static dns_dbversion_t *v1 = NULL, *v2 = NULL;
 
 /*
@@ -62,8 +62,7 @@ jmp_buf assertion;
 
 static void
 local_callback(const char *file, int line, isc_assertiontype_t type,
-	       const char *cond)
-{
+	       const char *cond) {
 	UNUSED(type);
 
 	mock_assert(1, cond, file, line);
@@ -71,8 +70,7 @@ local_callback(const char *file, int line, isc_assertiontype_t type,
 }
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t res;
 
 	UNUSED(state);
@@ -98,8 +96,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	if (strcmp(tempname, "dtXXXXXXXX") != 0) {
@@ -134,8 +131,7 @@ _teardown(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-attachversion(void **state)
-{
+attachversion(void **state) {
 	dns_dbversion_t *v = NULL;
 
 	UNUSED(state);
@@ -153,8 +149,7 @@ attachversion(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-closeversion(void **state)
-{
+closeversion(void **state) {
 	UNUSED(state);
 
 	assert_non_null(v1);
@@ -169,12 +164,11 @@ closeversion(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-find(void **state)
-{
-	isc_result_t	res;
-	dns_rdataset_t	rdataset;
+find(void **state) {
+	isc_result_t res;
+	dns_rdataset_t rdataset;
 	dns_fixedname_t fixed;
-	dns_name_t *	name = NULL;
+	dns_name_t *name = NULL;
 
 	UNUSED(state);
 
@@ -200,10 +194,9 @@ find(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-allrdatasets(void **state)
-{
-	isc_result_t	    res;
-	dns_dbnode_t *	    node = NULL;
+allrdatasets(void **state) {
+	isc_result_t res;
+	dns_dbnode_t *node = NULL;
 	dns_rdatasetiter_t *iterator = NULL;
 
 	UNUSED(state);
@@ -228,11 +221,10 @@ allrdatasets(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-findrdataset(void **state)
-{
-	isc_result_t   res;
+findrdataset(void **state) {
+	isc_result_t res;
 	dns_rdataset_t rdataset;
-	dns_dbnode_t * node = NULL;
+	dns_dbnode_t *node = NULL;
 
 	UNUSED(state);
 
@@ -261,9 +253,8 @@ findrdataset(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-deleterdataset(void **state)
-{
-	isc_result_t  res;
+deleterdataset(void **state) {
+	isc_result_t res;
 	dns_dbnode_t *node = NULL;
 
 	UNUSED(state);
@@ -285,12 +276,11 @@ deleterdataset(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-subtract(void **state)
-{
-	isc_result_t	res;
-	dns_rdataset_t	rdataset;
+subtract(void **state) {
+	isc_result_t res;
+	dns_rdataset_t rdataset;
 	dns_rdatalist_t rdatalist;
-	dns_dbnode_t *	node = NULL;
+	dns_dbnode_t *node = NULL;
 
 	UNUSED(state);
 
@@ -328,10 +318,9 @@ subtract(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-dump(void **state)
-{
+dump(void **state) {
 	isc_result_t res;
-	FILE *	     f = NULL;
+	FILE *f = NULL;
 
 	UNUSED(state);
 
@@ -350,11 +339,10 @@ dump(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-addrdataset(void **state)
-{
-	isc_result_t	res;
-	dns_rdataset_t	rdataset;
-	dns_dbnode_t *	node = NULL;
+addrdataset(void **state) {
+	isc_result_t res;
+	dns_rdataset_t rdataset;
+	dns_dbnode_t *node = NULL;
 	dns_rdatalist_t rdatalist;
 
 	UNUSED(state);
@@ -385,14 +373,13 @@ addrdataset(void **state)
  * and asserts with mis-matching db and version.
  */
 static void
-getnsec3parameters(void **state)
-{
-	isc_result_t  res;
-	dns_hash_t    hash;
-	uint8_t	      flags;
-	uint16_t      iterations;
+getnsec3parameters(void **state) {
+	isc_result_t res;
+	dns_hash_t hash;
+	uint8_t flags;
+	uint16_t iterations;
 	unsigned char salt[DNS_NSEC3_SALTSIZE];
-	size_t	      salt_length = sizeof(salt);
+	size_t salt_length = sizeof(salt);
 
 	UNUSED(state);
 
@@ -409,16 +396,15 @@ getnsec3parameters(void **state)
  * asserts with mis-matching db and version.
  */
 static void
-resigned(void **state)
-{
-	isc_result_t	  res;
-	dns_rdataset_t	  rdataset, added;
-	dns_dbnode_t *	  node = NULL;
-	dns_rdatalist_t	  rdatalist;
+resigned(void **state) {
+	isc_result_t res;
+	dns_rdataset_t rdataset, added;
+	dns_dbnode_t *node = NULL;
+	dns_rdatalist_t rdatalist;
 	dns_rdata_rrsig_t rrsig;
-	dns_rdata_t	  rdata = DNS_RDATA_INIT;
-	isc_buffer_t	  b;
-	unsigned char	  buf[1024];
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_buffer_t b;
+	unsigned char buf[1024];
 
 	UNUSED(state);
 
@@ -474,8 +460,7 @@ resigned(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(dump, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(find, _setup, _teardown),
@@ -504,8 +489,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

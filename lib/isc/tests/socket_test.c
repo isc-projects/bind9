@@ -33,17 +33,16 @@
 #include "../unix/socket_p.h"
 #include "isctest.h"
 
-static bool	    recv_dscp;
+static bool recv_dscp;
 static unsigned int recv_dscp_value;
-static bool	    recv_trunc;
+static bool recv_trunc;
 
 /*
  * Helper functions
  */
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -55,8 +54,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -65,23 +63,21 @@ _teardown(void **state)
 }
 
 typedef struct {
-	atomic_bool   done;
-	isc_result_t  result;
+	atomic_bool done;
+	isc_result_t result;
 	isc_socket_t *socket;
 } completion_t;
 
 static void
-completion_init(completion_t *completion)
-{
+completion_init(completion_t *completion) {
 	atomic_store(&completion->done, false);
 	completion->socket = NULL;
 }
 
 static void
-accept_done(isc_task_t *task, isc_event_t *event)
-{
+accept_done(isc_task_t *task, isc_event_t *event) {
 	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
-	completion_t *		completion = event->ev_arg;
+	completion_t *completion = event->ev_arg;
 
 	UNUSED(task);
 
@@ -95,11 +91,10 @@ accept_done(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-event_done(isc_task_t *task, isc_event_t *event)
-{
-	isc_socketevent_t *  sev = NULL;
+event_done(isc_task_t *task, isc_event_t *event) {
+	isc_socketevent_t *sev = NULL;
 	isc_socket_connev_t *connev = NULL;
-	completion_t *	     completion = event->ev_arg;
+	completion_t *completion = event->ev_arg;
 	UNUSED(task);
 
 	switch (event->ev_type) {
@@ -127,8 +122,7 @@ event_done(isc_task_t *task, isc_event_t *event)
 }
 
 static isc_result_t
-waitfor(completion_t *completion)
-{
+waitfor(completion_t *completion) {
 	int i = 0;
 	while (!atomic_load(&completion->done) && i++ < 5000) {
 		isc_test_nap(1000);
@@ -140,14 +134,12 @@ waitfor(completion_t *completion)
 }
 
 static void
-waitbody(void)
-{
+waitbody(void) {
 	isc_test_nap(1000);
 }
 
 static isc_result_t
-waitfor2(completion_t *c1, completion_t *c2)
-{
+waitfor2(completion_t *c1, completion_t *c2) {
 	int i = 0;
 
 	while (!(atomic_load(&c1->done) && atomic_load(&c2->done)) &&
@@ -166,16 +158,15 @@ waitfor2(completion_t *c1, completion_t *c2)
 
 /* Test UDP sendto/recv (IPv4) */
 static void
-udp_sendto_test(void **state)
-{
-	isc_result_t   result;
+udp_sendto_test(void **state) {
+	isc_result_t result;
 	isc_sockaddr_t addr1, addr2;
 	struct in_addr in;
-	isc_socket_t * s1 = NULL, *s2 = NULL;
-	isc_task_t *   task = NULL;
-	char	       sendbuf[BUFSIZ], recvbuf[BUFSIZ];
-	completion_t   completion;
-	isc_region_t   r;
+	isc_socket_t *s1 = NULL, *s2 = NULL;
+	isc_task_t *task = NULL;
+	char sendbuf[BUFSIZ], recvbuf[BUFSIZ];
+	completion_t completion;
+	isc_region_t r;
 
 	UNUSED(state);
 
@@ -232,16 +223,15 @@ udp_sendto_test(void **state)
 
 /* Test UDP sendto/recv with duplicated socket */
 static void
-udp_dup_test(void **state)
-{
-	isc_result_t   result;
+udp_dup_test(void **state) {
+	isc_result_t result;
 	isc_sockaddr_t addr1, addr2;
 	struct in_addr in;
-	isc_socket_t * s1 = NULL, *s2 = NULL, *s3 = NULL;
-	isc_task_t *   task = NULL;
-	char	       sendbuf[BUFSIZ], recvbuf[BUFSIZ];
-	completion_t   completion;
-	isc_region_t   r;
+	isc_socket_t *s1 = NULL, *s2 = NULL, *s3 = NULL;
+	isc_task_t *task = NULL;
+	char sendbuf[BUFSIZ], recvbuf[BUFSIZ];
+	completion_t completion;
+	isc_region_t r;
 
 	UNUSED(state);
 
@@ -324,16 +314,15 @@ udp_dup_test(void **state)
 
 /* Test UDP sendto/recv (IPv4) */
 static void
-udp_dscp_v4_test(void **state)
-{
-	isc_result_t	   result;
-	isc_sockaddr_t	   addr1, addr2;
-	struct in_addr	   in;
-	isc_socket_t *	   s1 = NULL, *s2 = NULL;
-	isc_task_t *	   task = NULL;
-	char		   sendbuf[BUFSIZ], recvbuf[BUFSIZ];
-	completion_t	   completion;
-	isc_region_t	   r;
+udp_dscp_v4_test(void **state) {
+	isc_result_t result;
+	isc_sockaddr_t addr1, addr2;
+	struct in_addr in;
+	isc_socket_t *s1 = NULL, *s2 = NULL;
+	isc_task_t *task = NULL;
+	char sendbuf[BUFSIZ], recvbuf[BUFSIZ];
+	completion_t completion;
+	isc_region_t r;
 	isc_socketevent_t *socketevent;
 
 	UNUSED(state);
@@ -413,18 +402,17 @@ udp_dscp_v4_test(void **state)
 
 /* Test UDP sendto/recv (IPv6) */
 static void
-udp_dscp_v6_test(void **state)
-{
-	isc_result_t	   result;
-	isc_sockaddr_t	   addr1, addr2;
-	struct in6_addr	   in6;
-	isc_socket_t *	   s1 = NULL, *s2 = NULL;
-	isc_task_t *	   task = NULL;
-	char		   sendbuf[BUFSIZ], recvbuf[BUFSIZ];
-	completion_t	   completion;
-	isc_region_t	   r;
+udp_dscp_v6_test(void **state) {
+	isc_result_t result;
+	isc_sockaddr_t addr1, addr2;
+	struct in6_addr in6;
+	isc_socket_t *s1 = NULL, *s2 = NULL;
+	isc_task_t *task = NULL;
+	char sendbuf[BUFSIZ], recvbuf[BUFSIZ];
+	completion_t completion;
+	isc_region_t r;
 	isc_socketevent_t *socketevent;
-	int		   n;
+	int n;
 
 	UNUSED(state);
 
@@ -433,8 +421,8 @@ udp_dscp_v6_test(void **state)
 	isc_sockaddr_fromin6(&addr1, &in6, 0);
 	isc_sockaddr_fromin6(&addr2, &in6, 0);
 
-	result =
-		isc_socket_create(socketmgr, PF_INET6, isc_sockettype_udp, &s1);
+	result = isc_socket_create(socketmgr, PF_INET6, isc_sockettype_udp,
+				   &s1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_socket_bind(s1, &addr1, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -442,8 +430,8 @@ udp_dscp_v6_test(void **state)
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(isc_sockaddr_getport(&addr1) != 0);
 
-	result =
-		isc_socket_create(socketmgr, PF_INET6, isc_sockettype_udp, &s2);
+	result = isc_socket_create(socketmgr, PF_INET6, isc_sockettype_udp,
+				   &s2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_socket_bind(s2, &addr2, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -504,16 +492,15 @@ udp_dscp_v6_test(void **state)
 
 /* Test TCP sendto/recv (IPv4) */
 static void
-tcp_dscp_v4_test(void **state)
-{
-	isc_result_t   result;
+tcp_dscp_v4_test(void **state) {
+	isc_result_t result;
 	isc_sockaddr_t addr1;
 	struct in_addr in;
-	isc_socket_t * s1 = NULL, *s2 = NULL, *s3 = NULL;
-	isc_task_t *   task = NULL;
-	char	       sendbuf[BUFSIZ], recvbuf[BUFSIZ];
-	completion_t   completion, completion2;
-	isc_region_t   r;
+	isc_socket_t *s1 = NULL, *s2 = NULL, *s3 = NULL;
+	isc_task_t *task = NULL;
+	char sendbuf[BUFSIZ], recvbuf[BUFSIZ];
+	completion_t completion, completion2;
+	isc_region_t r;
 
 	UNUSED(state);
 
@@ -596,17 +583,16 @@ tcp_dscp_v4_test(void **state)
 
 /* Test TCP sendto/recv (IPv6) */
 static void
-tcp_dscp_v6_test(void **state)
-{
-	isc_result_t	result;
-	isc_sockaddr_t	addr1;
+tcp_dscp_v6_test(void **state) {
+	isc_result_t result;
+	isc_sockaddr_t addr1;
 	struct in6_addr in6;
-	isc_socket_t *	s1 = NULL, *s2 = NULL, *s3 = NULL;
-	isc_task_t *	task = NULL;
-	char		sendbuf[BUFSIZ], recvbuf[BUFSIZ];
-	completion_t	completion, completion2;
-	isc_region_t	r;
-	int		n;
+	isc_socket_t *s1 = NULL, *s2 = NULL, *s3 = NULL;
+	isc_task_t *task = NULL;
+	char sendbuf[BUFSIZ], recvbuf[BUFSIZ];
+	completion_t completion, completion2;
+	isc_region_t r;
+	int n;
 
 	UNUSED(state);
 
@@ -614,8 +600,8 @@ tcp_dscp_v6_test(void **state)
 	assert_true(n == 1);
 	isc_sockaddr_fromin6(&addr1, &in6, 0);
 
-	result =
-		isc_socket_create(socketmgr, PF_INET6, isc_sockettype_tcp, &s1);
+	result = isc_socket_create(socketmgr, PF_INET6, isc_sockettype_tcp,
+				   &s1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_socket_bind(s1, &addr1, 0);
@@ -627,8 +613,8 @@ tcp_dscp_v6_test(void **state)
 	result = isc_socket_listen(s1, 3);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result =
-		isc_socket_create(socketmgr, PF_INET6, isc_sockettype_tcp, &s2);
+	result = isc_socket_create(socketmgr, PF_INET6, isc_sockettype_tcp,
+				   &s2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_task_create(taskmgr, 0, &task);
@@ -696,8 +682,7 @@ tcp_dscp_v6_test(void **state)
 
 /* probe dscp capabilities */
 static void
-net_probedscp_test(void **state)
-{
+net_probedscp_test(void **state) {
 	unsigned int n;
 
 	UNUSED(state);
@@ -730,16 +715,15 @@ net_probedscp_test(void **state)
 
 /* Test UDP truncation detection */
 static void
-udp_trunc_test(void **state)
-{
-	isc_result_t	   result;
-	isc_sockaddr_t	   addr1, addr2;
-	struct in_addr	   in;
-	isc_socket_t *	   s1 = NULL, *s2 = NULL;
-	isc_task_t *	   task = NULL;
-	char		   sendbuf[BUFSIZ * 2], recvbuf[BUFSIZ];
-	completion_t	   completion;
-	isc_region_t	   r;
+udp_trunc_test(void **state) {
+	isc_result_t result;
+	isc_sockaddr_t addr1, addr2;
+	struct in_addr in;
+	isc_socket_t *s1 = NULL, *s2 = NULL;
+	isc_task_t *task = NULL;
+	char sendbuf[BUFSIZ * 2], recvbuf[BUFSIZ];
+	completion_t completion;
+	isc_region_t r;
 	isc_socketevent_t *socketevent;
 
 	UNUSED(state);
@@ -840,8 +824,7 @@ udp_trunc_test(void **state)
  * Main
  */
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(udp_sendto_test, _setup,
 						_teardown),
@@ -869,8 +852,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

@@ -33,8 +33,7 @@
 #define TEST_INPUT(x) (x), sizeof(x) - 1
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_md_t *md = isc_md_new();
 	if (md == NULL) {
 		return (-1);
@@ -44,8 +43,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	if (*state == NULL) {
 		return (-1);
 	}
@@ -54,8 +52,7 @@ _teardown(void **state)
 }
 
 static int
-_reset(void **state)
-{
+_reset(void **state) {
 	if (*state == NULL) {
 		return (-1);
 	}
@@ -66,8 +63,7 @@ _reset(void **state)
 }
 
 static void
-isc_md_new_test(void **state)
-{
+isc_md_new_test(void **state) {
 	UNUSED(state);
 
 	isc_md_t *md = isc_md_new();
@@ -76,8 +72,7 @@ isc_md_new_test(void **state)
 }
 
 static void
-isc_md_free_test(void **state)
-{
+isc_md_free_test(void **state) {
 	UNUSED(state);
 
 	isc_md_t *md = isc_md_new();
@@ -88,8 +83,7 @@ isc_md_free_test(void **state)
 
 static void
 isc_md_test(isc_md_t *md, isc_md_type_t type, const char *buf, size_t buflen,
-	    const char *result, const int repeats)
-{
+	    const char *result, const int repeats) {
 	assert_non_null(md);
 	assert_int_equal(isc_md_init(md, type), ISC_R_SUCCESS);
 
@@ -102,10 +96,10 @@ isc_md_test(isc_md_t *md, isc_md_type_t type, const char *buf, size_t buflen,
 	}
 
 	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned int  digestlen;
+	unsigned int digestlen;
 	assert_int_equal(isc_md_final(md, digest, &digestlen), ISC_R_SUCCESS);
 
-	char	     hexdigest[ISC_MAX_MD_SIZE * 2 + 3];
+	char hexdigest[ISC_MAX_MD_SIZE * 2 + 3];
 	isc_region_t r = { .base = digest, .length = digestlen };
 	isc_buffer_t b;
 	isc_buffer_init(&b, hexdigest, sizeof(hexdigest));
@@ -117,8 +111,7 @@ isc_md_test(isc_md_t *md, isc_md_type_t type, const char *buf, size_t buflen,
 }
 
 static void
-isc_md_init_test(void **state)
-{
+isc_md_init_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
@@ -146,8 +139,7 @@ isc_md_init_test(void **state)
 }
 
 static void
-isc_md_update_test(void **state)
-{
+isc_md_update_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
@@ -160,8 +152,7 @@ isc_md_update_test(void **state)
 }
 
 static void
-isc_md_reset_test(void **state)
-{
+isc_md_reset_test(void **state) {
 	isc_md_t *md = *state;
 #if 0
 	unsigned char digest[ISC_MAX_MD_SIZE] __attribute((unused));
@@ -189,13 +180,12 @@ isc_md_reset_test(void **state)
 }
 
 static void
-isc_md_final_test(void **state)
-{
+isc_md_final_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
 	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned int  digestlen;
+	unsigned int digestlen;
 
 	/* Fail when message digest context is empty */
 	expect_assert_failure(isc_md_final(NULL, digest, &digestlen));
@@ -207,8 +197,7 @@ isc_md_final_test(void **state)
 }
 
 static void
-isc_md_md5_test(void **state)
-{
+isc_md_md5_test(void **state) {
 	isc_md_t *md = *state;
 	isc_md_test(md, ISC_MD_MD5, NULL, 0, NULL, 0);
 	isc_md_test(md, ISC_MD_MD5, TEST_INPUT(""),
@@ -232,8 +221,7 @@ isc_md_md5_test(void **state)
 }
 
 static void
-isc_md_sha1_test(void **state)
-{
+isc_md_sha1_test(void **state) {
 	isc_md_t *md = *state;
 	isc_md_test(md, ISC_MD_SHA1, NULL, 0, NULL, 0);
 	isc_md_test(md, ISC_MD_SHA1, TEST_INPUT(""),
@@ -277,8 +265,7 @@ isc_md_sha1_test(void **state)
 }
 
 static void
-isc_md_sha224_test(void **state)
-{
+isc_md_sha224_test(void **state) {
 	isc_md_t *md = *state;
 
 	isc_md_test(md, ISC_MD_SHA224, NULL, 0, NULL, 0);
@@ -338,8 +325,7 @@ isc_md_sha224_test(void **state)
 }
 
 static void
-isc_md_sha256_test(void **state)
-{
+isc_md_sha256_test(void **state) {
 	isc_md_t *md = *state;
 
 	isc_md_test(md, ISC_MD_SHA256, NULL, 0, NULL, 0);
@@ -401,8 +387,7 @@ isc_md_sha256_test(void **state)
 }
 
 static void
-isc_md_sha384_test(void **state)
-{
+isc_md_sha384_test(void **state) {
 	isc_md_t *md = *state;
 
 	isc_md_test(md, ISC_MD_SHA384, NULL, 0, NULL, 0);
@@ -479,8 +464,7 @@ isc_md_sha384_test(void **state)
 }
 
 static void
-isc_md_sha512_test(void **state)
-{
+isc_md_sha512_test(void **state) {
 	isc_md_t *md = *state;
 
 	isc_md_test(md, ISC_MD_SHA512, NULL, 0, NULL, 0);
@@ -556,8 +540,7 @@ isc_md_sha512_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		/* isc_md_new() */
 		cmocka_unit_test(isc_md_new_test),
@@ -594,8 +577,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

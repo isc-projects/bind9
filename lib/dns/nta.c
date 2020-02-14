@@ -37,20 +37,20 @@
 #include <dns/time.h>
 
 struct dns_nta {
-	unsigned int	magic;
-	isc_refcount_t	refcount;
+	unsigned int magic;
+	isc_refcount_t refcount;
 	dns_ntatable_t *ntatable;
-	bool		forced;
-	isc_timer_t *	timer;
-	dns_fetch_t *	fetch;
-	dns_rdataset_t	rdataset;
-	dns_rdataset_t	sigrdataset;
+	bool forced;
+	isc_timer_t *timer;
+	dns_fetch_t *fetch;
+	dns_rdataset_t rdataset;
+	dns_rdataset_t sigrdataset;
 	dns_fixedname_t fn;
-	dns_name_t *	name;
-	isc_stdtime_t	expiry;
+	dns_name_t *name;
+	isc_stdtime_t expiry;
 };
 
-#define NTA_MAGIC ISC_MAGIC('N', 'T', 'A', 'n')
+#define NTA_MAGIC     ISC_MAGIC('N', 'T', 'A', 'n')
 #define VALID_NTA(nn) ISC_MAGIC_VALID(nn, NTA_MAGIC)
 
 /*
@@ -58,14 +58,12 @@ struct dns_nta {
  * nta_detach.
  */
 static void
-nta_ref(dns_nta_t *nta)
-{
+nta_ref(dns_nta_t *nta) {
 	isc_refcount_increment(&nta->refcount);
 }
 
 static void
-nta_detach(isc_mem_t *mctx, dns_nta_t **ntap)
-{
+nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
 	REQUIRE(ntap != NULL && VALID_NTA(*ntap));
 	dns_nta_t *nta = *ntap;
 	*ntap = NULL;
@@ -94,8 +92,7 @@ nta_detach(isc_mem_t *mctx, dns_nta_t **ntap)
 }
 
 static void
-free_nta(void *data, void *arg)
-{
+free_nta(void *data, void *arg) {
 	dns_nta_t *nta = (dns_nta_t *)data;
 	isc_mem_t *mctx = (isc_mem_t *)arg;
 
@@ -104,10 +101,9 @@ free_nta(void *data, void *arg)
 
 isc_result_t
 dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		    isc_timermgr_t *timermgr, dns_ntatable_t **ntatablep)
-{
+		    isc_timermgr_t *timermgr, dns_ntatable_t **ntatablep) {
 	dns_ntatable_t *ntatable;
-	isc_result_t	result;
+	isc_result_t result;
 
 	REQUIRE(ntatablep != NULL && *ntatablep == NULL);
 
@@ -156,8 +152,7 @@ cleanup_ntatable:
 }
 
 void
-dns_ntatable_attach(dns_ntatable_t *source, dns_ntatable_t **targetp)
-{
+dns_ntatable_attach(dns_ntatable_t *source, dns_ntatable_t **targetp) {
 	REQUIRE(VALID_NTATABLE(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
@@ -167,8 +162,7 @@ dns_ntatable_attach(dns_ntatable_t *source, dns_ntatable_t **targetp)
 }
 
 void
-dns_ntatable_detach(dns_ntatable_t **ntatablep)
-{
+dns_ntatable_detach(dns_ntatable_t **ntatablep) {
 	dns_ntatable_t *ntatable;
 
 	REQUIRE(ntatablep != NULL && VALID_NTATABLE(*ntatablep));
@@ -191,14 +185,13 @@ dns_ntatable_detach(dns_ntatable_t **ntatablep)
 }
 
 static void
-fetch_done(isc_task_t *task, isc_event_t *event)
-{
+fetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
-	dns_nta_t *	  nta = devent->ev_arg;
-	isc_result_t	  eresult = devent->result;
-	dns_ntatable_t *  ntatable = nta->ntatable;
-	dns_view_t *	  view = ntatable->view;
-	isc_stdtime_t	  now;
+	dns_nta_t *nta = devent->ev_arg;
+	isc_result_t eresult = devent->result;
+	dns_ntatable_t *ntatable = nta->ntatable;
+	dns_view_t *view = ntatable->view;
+	isc_stdtime_t now;
 
 	UNUSED(task);
 
@@ -249,12 +242,11 @@ fetch_done(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-checkbogus(isc_task_t *task, isc_event_t *event)
-{
-	dns_nta_t *	nta = event->ev_arg;
+checkbogus(isc_task_t *task, isc_event_t *event) {
+	dns_nta_t *nta = event->ev_arg;
 	dns_ntatable_t *ntatable = nta->ntatable;
-	dns_view_t *	view = ntatable->view;
-	isc_result_t	result;
+	dns_view_t *view = ntatable->view;
+	isc_result_t result;
 
 	if (nta->fetch != NULL) {
 		dns_resolver_cancelfetch(nta->fetch);
@@ -280,11 +272,10 @@ checkbogus(isc_task_t *task, isc_event_t *event)
 }
 
 static isc_result_t
-settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime)
-{
-	isc_result_t   result;
+settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime) {
+	isc_result_t result;
 	isc_interval_t interval;
-	dns_view_t *   view;
+	dns_view_t *view;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
 	REQUIRE(VALID_NTA(nta));
@@ -306,9 +297,9 @@ settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime)
 }
 
 static isc_result_t
-nta_create(dns_ntatable_t *ntatable, const dns_name_t *name, dns_nta_t **target)
-{
-	dns_nta_t * nta = NULL;
+nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
+	   dns_nta_t **target) {
+	dns_nta_t *nta = NULL;
 	dns_view_t *view;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
@@ -338,12 +329,11 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name, dns_nta_t **target)
 
 isc_result_t
 dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
-		 isc_stdtime_t now, uint32_t lifetime)
-{
-	isc_result_t   result;
-	dns_nta_t *    nta = NULL;
+		 isc_stdtime_t now, uint32_t lifetime) {
+	isc_result_t result;
+	dns_nta_t *nta = NULL;
 	dns_rbtnode_t *node;
-	dns_view_t *   view;
+	dns_view_t *view;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
 
@@ -395,9 +385,8 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
  * Caller must hold a write lock on rwlock.
  */
 static isc_result_t
-deletenode(dns_ntatable_t *ntatable, const dns_name_t *name)
-{
-	isc_result_t   result;
+deletenode(dns_ntatable_t *ntatable, const dns_name_t *name) {
+	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
@@ -420,8 +409,7 @@ deletenode(dns_ntatable_t *ntatable, const dns_name_t *name)
 }
 
 isc_result_t
-dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *name)
-{
+dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *name) {
 	isc_result_t result;
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
@@ -433,14 +421,13 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *name)
 
 bool
 dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
-		     const dns_name_t *name, const dns_name_t *anchor)
-{
-	isc_result_t	 result;
-	dns_fixedname_t	 fn;
-	dns_rbtnode_t *	 node;
-	dns_name_t *	 foundname;
-	dns_nta_t *	 nta = NULL;
-	bool		 answer = false;
+		     const dns_name_t *name, const dns_name_t *anchor) {
+	isc_result_t result;
+	dns_fixedname_t fn;
+	dns_rbtnode_t *node;
+	dns_name_t *foundname;
+	dns_nta_t *nta = NULL;
+	bool answer = false;
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
 
 	REQUIRE(ntatable == NULL || VALID_NTATABLE(ntatable));
@@ -505,8 +492,7 @@ again:
 }
 
 static isc_result_t
-putstr(isc_buffer_t **b, const char *str)
-{
+putstr(isc_buffer_t **b, const char *str) {
 	isc_result_t result;
 
 	result = isc_buffer_reserve(b, strlen(str));
@@ -520,13 +506,12 @@ putstr(isc_buffer_t **b, const char *str)
 
 isc_result_t
 dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
-		    isc_buffer_t **buf)
-{
-	isc_result_t	   result;
-	dns_rbtnode_t *	   node;
+		    isc_buffer_t **buf) {
+	isc_result_t result;
+	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
-	bool		   first = true;
-	isc_stdtime_t	   now;
+	bool first = true;
+	isc_stdtime_t now;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
 
@@ -544,15 +529,15 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
 	for (;;) {
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		if (node->data != NULL) {
-			dns_nta_t *	n = (dns_nta_t *)node->data;
-			char		nbuf[DNS_NAME_FORMATSIZE];
-			char		tbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
-			char		obuf[DNS_NAME_FORMATSIZE +
-				     ISC_FORMATHTTPTIMESTAMP_SIZE +
-				     sizeof("expired:  \n")];
+			dns_nta_t *n = (dns_nta_t *)node->data;
+			char nbuf[DNS_NAME_FORMATSIZE];
+			char tbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+			char obuf[DNS_NAME_FORMATSIZE +
+				  ISC_FORMATHTTPTIMESTAMP_SIZE +
+				  sizeof("expired:  \n")];
 			dns_fixedname_t fn;
-			dns_name_t *	name;
-			isc_time_t	t;
+			dns_name_t *name;
+			isc_time_t t;
 
 			/*
 			 * Skip "validate-except" entries.
@@ -595,11 +580,10 @@ cleanup:
 }
 
 isc_result_t
-dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp)
-{
-	isc_result_t  result;
+dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
+	isc_result_t result;
 	isc_buffer_t *text = NULL;
-	int	      len = 4096;
+	int len = 4096;
 
 	isc_buffer_allocate(ntatable->view->mctx, &text, len);
 
@@ -621,13 +605,12 @@ dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp)
 }
 
 isc_result_t
-dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp)
-{
-	isc_result_t	   result;
-	dns_rbtnode_t *	   node;
+dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
+	isc_result_t result;
+	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
-	isc_stdtime_t	   now;
-	bool		   written = false;
+	isc_stdtime_t now;
+	bool written = false;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
 
@@ -643,11 +626,11 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp)
 	for (;;) {
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		if (node->data != NULL) {
-			isc_buffer_t	b;
-			char		nbuf[DNS_NAME_FORMATSIZE + 1], tbuf[80];
+			isc_buffer_t b;
+			char nbuf[DNS_NAME_FORMATSIZE + 1], tbuf[80];
 			dns_fixedname_t fn;
-			dns_name_t *	name;
-			dns_nta_t *	n = (dns_nta_t *)node->data;
+			dns_name_t *name;
+			dns_nta_t *n = (dns_nta_t *)node->data;
 
 			/*
 			 * Skip this node if the expiry is already in the

@@ -55,8 +55,7 @@
 
 #ifdef BACKTRACE_LIBC
 isc_result_t
-isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
-{
+isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes) {
 	int n;
 
 	/*
@@ -81,21 +80,18 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
 	return (ISC_R_SUCCESS);
 }
 #elif defined(BACKTRACE_GCC)
-extern int
-_Unwind_Backtrace(void *fn, void *a);
-extern void *
-_Unwind_GetIP(void *ctx);
+extern int _Unwind_Backtrace(void *fn, void *a);
+extern void *_Unwind_GetIP(void *ctx);
 
 typedef struct {
 	void **result;
-	int    max_depth;
-	int    skip_count;
-	int    count;
+	int max_depth;
+	int skip_count;
+	int count;
 } trace_arg_t;
 
 static int
-btcallback(void *uc, void *opq)
-{
+btcallback(void *uc, void *opq) {
 	trace_arg_t *arg = (trace_arg_t *)opq;
 
 	if (arg->skip_count > 0) {
@@ -110,8 +106,7 @@ btcallback(void *uc, void *opq)
 }
 
 isc_result_t
-isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
-{
+isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes) {
 	trace_arg_t arg;
 
 	/* Argument validation: see above. */
@@ -131,8 +126,7 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
 }
 #elif defined(BACKTRACE_WIN32)
 isc_result_t
-isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
-{
+isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes) {
 	unsigned long ftc = (unsigned long)maxaddrs;
 
 	*nframes = (int)CaptureStackBackTrace(1, ftc, addrs, NULL);
@@ -141,15 +135,13 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
 #elif defined(BACKTRACE_X86STACK)
 #ifdef __x86_64__
 static unsigned long
-getrbp(void)
-{
+getrbp(void) {
 	__asm("movq %rbp, %rax\n");
 }
 #endif /* ifdef __x86_64__ */
 
 static void **
-getnextframeptr(void **sp)
-{
+getnextframeptr(void **sp) {
 	void **newsp = (void **)*sp;
 
 	/*
@@ -177,9 +169,8 @@ getnextframeptr(void **sp)
 }
 
 isc_result_t
-isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
-{
-	int    i = 0;
+isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes) {
+	int i = 0;
 	void **sp;
 
 	/* Argument validation: see above. */
@@ -217,8 +208,7 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
 }
 #elif defined(BACKTRACE_DISABLED)
 isc_result_t
-isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
-{
+isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes) {
 	/* Argument validation: see above. */
 	if (addrs == NULL || nframes == NULL) {
 		return (ISC_R_FAILURE);
@@ -232,8 +222,7 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes)
 
 isc_result_t
 isc_backtrace_getsymbolfromindex(int idx, const void **addrp,
-				 const char **symbolp)
-{
+				 const char **symbolp) {
 	REQUIRE(addrp != NULL && *addrp == NULL);
 	REQUIRE(symbolp != NULL && *symbolp == NULL);
 
@@ -247,8 +236,7 @@ isc_backtrace_getsymbolfromindex(int idx, const void **addrp,
 }
 
 static int
-symtbl_compare(const void *addr, const void *entryarg)
-{
+symtbl_compare(const void *addr, const void *entryarg) {
 	const isc_backtrace_symmap_t *entry = entryarg;
 	const isc_backtrace_symmap_t *end =
 		&isc__backtrace_symtable[isc__backtrace_nsymbols - 1];
@@ -276,9 +264,8 @@ symtbl_compare(const void *addr, const void *entryarg)
 
 isc_result_t
 isc_backtrace_getsymbol(const void *addr, const char **symbolp,
-			unsigned long *offsetp)
-{
-	isc_result_t		result = ISC_R_SUCCESS;
+			unsigned long *offsetp) {
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_backtrace_symmap_t *found;
 
 	/*

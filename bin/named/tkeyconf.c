@@ -41,17 +41,16 @@
 
 isc_result_t
 named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
-			 dns_tkeyctx_t **tctxp)
-{
-	isc_result_t	 result;
-	dns_tkeyctx_t *	 tctx = NULL;
-	const char *	 s;
-	uint32_t	 n;
-	dns_fixedname_t	 fname;
-	dns_name_t *	 name;
-	isc_buffer_t	 b;
+			 dns_tkeyctx_t **tctxp) {
+	isc_result_t result;
+	dns_tkeyctx_t *tctx = NULL;
+	const char *s;
+	uint32_t n;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	isc_buffer_t b;
 	const cfg_obj_t *obj;
-	int		 type;
+	int type;
 
 	result = dns_tkeyctx_create(mctx, &tctx);
 	if (result != ISC_R_SUCCESS) {

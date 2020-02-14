@@ -19,7 +19,7 @@
 #include <dst/dst.h>
 #include <pk11/site.h>
 
-#define DNS_TSEC_MAGIC ISC_MAGIC('T', 's', 'e', 'c')
+#define DNS_TSEC_MAGIC	  ISC_MAGIC('T', 's', 'e', 'c')
 #define DNS_TSEC_VALID(t) ISC_MAGIC_VALID(t, DNS_TSEC_MAGIC)
 
 /*%
@@ -27,22 +27,21 @@
  * multiple threads, and so the structure does not contain a lock.
  */
 struct dns_tsec {
-	unsigned int   magic;
+	unsigned int magic;
 	dns_tsectype_t type;
-	isc_mem_t *    mctx;
+	isc_mem_t *mctx;
 	union {
 		dns_tsigkey_t *tsigkey;
-		dst_key_t *    key;
+		dst_key_t *key;
 	} ukey;
 };
 
 isc_result_t
 dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
-		dns_tsec_t **tsecp)
-{
-	isc_result_t	  result;
-	dns_tsec_t *	  tsec;
-	dns_tsigkey_t *	  tsigkey = NULL;
+		dns_tsec_t **tsecp) {
+	isc_result_t result;
+	dns_tsec_t *tsec;
+	dns_tsigkey_t *tsigkey = NULL;
 	const dns_name_t *algname;
 
 	REQUIRE(mctx != NULL);
@@ -102,8 +101,7 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 }
 
 void
-dns_tsec_destroy(dns_tsec_t **tsecp)
-{
+dns_tsec_destroy(dns_tsec_t **tsecp) {
 	dns_tsec_t *tsec;
 
 	REQUIRE(tsecp != NULL && *tsecp != NULL);
@@ -128,16 +126,14 @@ dns_tsec_destroy(dns_tsec_t **tsecp)
 }
 
 dns_tsectype_t
-dns_tsec_gettype(dns_tsec_t *tsec)
-{
+dns_tsec_gettype(dns_tsec_t *tsec) {
 	REQUIRE(DNS_TSEC_VALID(tsec));
 
 	return (tsec->type);
 }
 
 void
-dns_tsec_getkey(dns_tsec_t *tsec, void *keyp)
-{
+dns_tsec_getkey(dns_tsec_t *tsec, void *keyp) {
 	REQUIRE(DNS_TSEC_VALID(tsec));
 	REQUIRE(keyp != NULL);
 

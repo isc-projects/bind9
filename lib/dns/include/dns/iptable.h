@@ -29,7 +29,7 @@ struct dns_iptable {
 	ISC_LINK(dns_iptable_t) nextincache;
 };
 
-#define DNS_IPTABLE_MAGIC ISC_MAGIC('T', 'a', 'b', 'l')
+#define DNS_IPTABLE_MAGIC    ISC_MAGIC('T', 'a', 'b', 'l')
 #define DNS_IPTABLE_VALID(a) ISC_MAGIC_VALID(a, DNS_IPTABLE_MAGIC)
 
 /***

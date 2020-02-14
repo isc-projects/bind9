@@ -36,8 +36,7 @@
 #include "nstest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -49,8 +48,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	ns_test_end();
@@ -60,13 +58,12 @@ _teardown(void **state)
 
 /* test that ns_listenlist_default() works */
 static void
-ns_listenlist_default_test(void **state)
-{
-	isc_result_t	 result;
-	in_port_t	 port = 5300 + isc_random8();
+ns_listenlist_default_test(void **state) {
+	isc_result_t result;
+	in_port_t port = 5300 + isc_random8();
 	ns_listenlist_t *list = NULL;
-	ns_listenelt_t * elt;
-	int		 count;
+	ns_listenelt_t *elt;
+	int count;
 
 	UNUSED(state);
 
@@ -80,7 +77,7 @@ ns_listenlist_default_test(void **state)
 	elt = ISC_LIST_HEAD(list->elts);
 	while (elt != NULL) {
 		ns_listenelt_t *next = ISC_LIST_NEXT(elt, link);
-		dns_acl_t *	acl = NULL;
+		dns_acl_t *acl = NULL;
 
 		dns_acl_attach(elt->acl, &acl);
 		ISC_LIST_UNLINK(list->elts, elt, link);
@@ -118,8 +115,7 @@ ns_listenlist_default_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(ns_listenlist_default_test,
 						_setup, _teardown),
@@ -133,8 +129,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 #if __SANITIZE_ADDRESS__
 	/*
 	 * We disable this test when the address sanitizer is in

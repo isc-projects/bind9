@@ -48,8 +48,8 @@
 #include <pk11/site.h>
 
 #define DEFAULT_KEYNAME "rndc-key"
-#define DEFAULT_SERVER "127.0.0.1"
-#define DEFAULT_PORT 953
+#define DEFAULT_SERVER	"127.0.0.1"
+#define DEFAULT_PORT	953
 
 static char program[256];
 const char *progname;
@@ -62,8 +62,7 @@ ISC_PLATFORM_NORETURN_PRE static void
 usage(int status) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(int status)
-{
+usage(int status) {
 	fprintf(stderr, "\
 Usage:\n\
  %s [-a] [-b bits] [-c keyfile] [-k keyname] [-p port] \
@@ -83,27 +82,26 @@ Usage:\n\
 }
 
 int
-main(int argc, char **argv)
-{
-	bool		show_final_mem = false;
-	isc_buffer_t	key_txtbuffer;
-	char		key_txtsecret[256];
-	isc_mem_t *	mctx = NULL;
-	isc_result_t	result = ISC_R_SUCCESS;
-	const char *	keyname = NULL;
-	const char *	serveraddr = NULL;
-	dns_secalg_t	alg;
-	const char *	algname;
-	char *		p;
-	int		ch;
-	int		port;
-	int		keysize = -1;
-	struct in_addr	addr4_dummy;
+main(int argc, char **argv) {
+	bool show_final_mem = false;
+	isc_buffer_t key_txtbuffer;
+	char key_txtsecret[256];
+	isc_mem_t *mctx = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	const char *keyname = NULL;
+	const char *serveraddr = NULL;
+	dns_secalg_t alg;
+	const char *algname;
+	char *p;
+	int ch;
+	int port;
+	int keysize = -1;
+	struct in_addr addr4_dummy;
 	struct in6_addr addr6_dummy;
-	char *		chrootdir = NULL;
-	char *		user = NULL;
-	bool		keyonly = false;
-	int		len;
+	char *chrootdir = NULL;
+	char *user = NULL;
+	bool keyonly = false;
+	int len;
 
 	keydef = keyfile = RNDC_KEYFILE;
 
@@ -121,7 +119,8 @@ main(int argc, char **argv)
 	isc_commandline_errprint = false;
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "aA:b:c:hk:Mmp:r:s:t:u:Vy")) != -1) {
+					   "aA:b:c:hk:Mmp:r:s:t:u:Vy")) != -1)
+	{
 		switch (ch) {
 		case 'a':
 			keyonly = true;
@@ -168,8 +167,8 @@ main(int argc, char **argv)
 		case 's':
 			serveraddr = isc_commandline_argument;
 			if (inet_pton(AF_INET, serveraddr, &addr4_dummy) != 1 &&
-			    inet_pton(AF_INET6, serveraddr, &addr6_dummy) !=
-				    1) {
+			    inet_pton(AF_INET6, serveraddr, &addr6_dummy) != 1)
+			{
 				fatal("-s should be an IPv4 or IPv6 address");
 			}
 			break;

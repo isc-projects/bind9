@@ -36,23 +36,21 @@
 #define ISC_NET_PORTRANGEHIGH 65535
 #endif /* ISC_NET_PORTRANGEHIGH */
 
-static isc_once_t   once = ISC_ONCE_INIT;
-static isc_once_t   once_ipv6only = ISC_ONCE_INIT;
-static isc_once_t   once_ipv6pktinfo = ISC_ONCE_INIT;
+static isc_once_t once = ISC_ONCE_INIT;
+static isc_once_t once_ipv6only = ISC_ONCE_INIT;
+static isc_once_t once_ipv6pktinfo = ISC_ONCE_INIT;
 static isc_result_t ipv4_result = ISC_R_NOTFOUND;
 static isc_result_t ipv6_result = ISC_R_NOTFOUND;
 static isc_result_t ipv6only_result = ISC_R_NOTFOUND;
 static isc_result_t ipv6pktinfo_result = ISC_R_NOTFOUND;
 
-void
-InitSockets(void);
+void InitSockets(void);
 
 static isc_result_t
-try_proto(int domain)
-{
+try_proto(int domain) {
 	SOCKET s;
-	char   strbuf[ISC_STRERRORSIZE];
-	int    errval;
+	char strbuf[ISC_STRERRORSIZE];
+	int errval;
 
 	s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET) {
@@ -76,46 +74,40 @@ try_proto(int domain)
 }
 
 static void
-initialize_action(void)
-{
+initialize_action(void) {
 	InitSockets();
 	ipv4_result = try_proto(PF_INET);
 	ipv6_result = try_proto(PF_INET6);
 }
 
 static void
-initialize(void)
-{
+initialize(void) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 }
 
 isc_result_t
-isc_net_probeipv4(void)
-{
+isc_net_probeipv4(void) {
 	initialize();
 	return (ipv4_result);
 }
 
 isc_result_t
-isc_net_probeipv6(void)
-{
+isc_net_probeipv6(void) {
 	initialize();
 	return (ipv6_result);
 }
 
 isc_result_t
-isc_net_probeunix(void)
-{
+isc_net_probeunix(void) {
 	return (ISC_R_NOTFOUND);
 }
 
 static void
-try_ipv6only(void)
-{
+try_ipv6only(void) {
 #ifdef IPV6_V6ONLY
 	SOCKET s;
-	int    on;
-	char   strbuf[ISC_STRERRORSIZE];
+	int on;
+	char strbuf[ISC_STRERRORSIZE];
 #endif /* ifdef IPV6_V6ONLY */
 	isc_result_t result;
 
@@ -174,8 +166,7 @@ close:
 }
 
 static void
-initialize_ipv6only(void)
-{
+initialize_ipv6only(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6only, try_ipv6only) ==
 		      ISC_R_SUCCESS);
 }
@@ -187,13 +178,12 @@ initialize_ipv6only(void)
  * and compiler version dependent.
  */
 static void
-try_ipv6pktinfo(void)
-{
-	SOCKET	     s;
-	int	     on;
-	char	     strbuf[ISC_STRERRORSIZE];
+try_ipv6pktinfo(void) {
+	SOCKET s;
+	int on;
+	char strbuf[ISC_STRERRORSIZE];
 	isc_result_t result;
-	int	     optname;
+	int optname;
 
 	result = isc_net_probeipv6();
 	if (result != ISC_R_SUCCESS) {
@@ -231,23 +221,20 @@ close:
 }
 
 static void
-initialize_ipv6pktinfo(void)
-{
+initialize_ipv6pktinfo(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo, try_ipv6pktinfo) ==
 		      ISC_R_SUCCESS);
 }
 #endif /* __notyet__ */
 
 isc_result_t
-isc_net_probe_ipv6only(void)
-{
+isc_net_probe_ipv6only(void) {
 	initialize_ipv6only();
 	return (ipv6only_result);
 }
 
 isc_result_t
-isc_net_probe_ipv6pktinfo(void)
-{
+isc_net_probe_ipv6pktinfo(void) {
 #ifdef __notyet__
 	initialize_ipv6pktinfo();
 #endif /* __notyet__ */
@@ -255,8 +242,7 @@ isc_net_probe_ipv6pktinfo(void)
 }
 
 isc_result_t
-isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high)
-{
+isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high) {
 	int result = ISC_R_FAILURE;
 
 	REQUIRE(low != NULL && high != NULL);
@@ -272,8 +258,7 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high)
 }
 
 void
-isc_net_disableipv4(void)
-{
+isc_net_disableipv4(void) {
 	initialize();
 	if (ipv4_result == ISC_R_SUCCESS) {
 		ipv4_result = ISC_R_DISABLED;
@@ -281,8 +266,7 @@ isc_net_disableipv4(void)
 }
 
 void
-isc_net_disableipv6(void)
-{
+isc_net_disableipv6(void) {
 	initialize();
 	if (ipv6_result == ISC_R_SUCCESS) {
 		ipv6_result = ISC_R_DISABLED;
@@ -290,8 +274,7 @@ isc_net_disableipv6(void)
 }
 
 void
-isc_net_enableipv4(void)
-{
+isc_net_enableipv4(void) {
 	initialize();
 	if (ipv4_result == ISC_R_DISABLED) {
 		ipv4_result = ISC_R_SUCCESS;
@@ -299,8 +282,7 @@ isc_net_enableipv4(void)
 }
 
 void
-isc_net_enableipv6(void)
-{
+isc_net_enableipv6(void) {
 	initialize();
 	if (ipv6_result == ISC_R_DISABLED) {
 		ipv6_result = ISC_R_SUCCESS;
@@ -308,7 +290,6 @@ isc_net_enableipv6(void)
 }
 
 unsigned int
-isc_net_probedscp(void)
-{
+isc_net_probedscp(void) {
 	return (0);
 }

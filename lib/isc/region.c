@@ -18,10 +18,9 @@
 #include <isc/util.h>
 
 int
-isc_region_compare(isc_region_t *r1, isc_region_t *r2)
-{
+isc_region_compare(isc_region_t *r1, isc_region_t *r2) {
 	unsigned int l;
-	int	     result;
+	int result;
 
 	REQUIRE(r1 != NULL);
 	REQUIRE(r2 != NULL);

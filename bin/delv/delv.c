@@ -84,23 +84,23 @@
 #define MAXNAME (DNS_NAME_MAXTEXT + 1)
 
 /* Variables used internally by delv. */
-char *		  progname;
+char *progname;
 static isc_mem_t *mctx = NULL;
 static isc_log_t *lctx = NULL;
 
 /* Configurables */
-static char *	       server = NULL;
-static const char *    port = "53";
+static char *server = NULL;
+static const char *port = "53";
 static isc_sockaddr_t *srcaddr4 = NULL, *srcaddr6 = NULL;
-static isc_sockaddr_t  a4, a6;
-static char *	       curqname = NULL, *qname = NULL;
-static bool	       classset = false;
+static isc_sockaddr_t a4, a6;
+static char *curqname = NULL, *qname = NULL;
+static bool classset = false;
 static dns_rdatatype_t qtype = dns_rdatatype_none;
-static bool	       typeset = false;
+static bool typeset = false;
 
 static unsigned int styleflags = 0;
-static uint32_t	    splitwidth = 0xffffffff;
-static bool	    showcomments = true, showdnssec = true, showtrust = true,
+static uint32_t splitwidth = 0xffffffff;
+static bool showcomments = true, showdnssec = true, showtrust = true,
 	    rrcomments = true, noclass = false, nocrypto = false, nottl = false,
 	    multiline = false, short_form = false, print_unknown_format = false,
 	    yaml = false;
@@ -116,10 +116,10 @@ static bool use_tcp = false;
 
 static char *anchorfile = NULL;
 static char *trust_anchor = NULL;
-static int   num_keys = 0;
+static int num_keys = 0;
 
 static dns_fixedname_t afn;
-static dns_name_t *    anchor_name = NULL;
+static dns_name_t *anchor_name = NULL;
 
 /* Default bind.keys contents */
 static char anchortext[] = TRUST_ANCHORS;
@@ -127,15 +127,14 @@ static char anchortext[] = TRUST_ANCHORS;
 /*
  * Static function prototypes
  */
-static isc_result_t
-get_reverse(char *reverse, size_t len, char *value, bool strict);
+static isc_result_t get_reverse(char *reverse, size_t len, char *value,
+				bool strict);
 
-static isc_result_t
-parse_uint(uint32_t *uip, const char *value, uint32_t max, const char *desc);
+static isc_result_t parse_uint(uint32_t *uip, const char *value, uint32_t max,
+			       const char *desc);
 
 static void
-usage(void)
-{
+usage(void) {
 	fputs("Usage:  delv [@server] {q-opt} {d-opt} [domain] [q-type] "
 	      "[q-class]\n"
 	      "Where:  domain	  is in the Domain Name System\n"
@@ -206,13 +205,11 @@ usage(void)
 	exit(1);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...)
+ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format, ...)
 	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 static void
-fatal(const char *format, ...)
-{
+fatal(const char *format, ...) {
 	va_list args;
 
 	fflush(stdout);
@@ -224,12 +221,10 @@ fatal(const char *format, ...)
 	exit(1);
 }
 
-static void
-warn(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+static void warn(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void
-warn(const char *format, ...)
-{
+warn(const char *format, ...) {
 	va_list args;
 
 	fflush(stdout);
@@ -242,18 +237,16 @@ warn(const char *format, ...)
 
 static isc_logcategory_t categories[] = { { "delv", 0 }, { NULL, 0 } };
 #define LOGCATEGORY_DEFAULT (&categories[0])
-#define LOGMODULE_DEFAULT (&modules[0])
+#define LOGMODULE_DEFAULT   (&modules[0])
 
 static isc_logmodule_t modules[] = { { "delv", 0 }, { NULL, 0 } };
 
-static void
-delv_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
+static void delv_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 static void
-delv_log(int level, const char *fmt, ...)
-{
+delv_log(int level, const char *fmt, ...) {
 	va_list ap;
-	char	msgbuf[2048];
+	char msgbuf[2048];
 
 	if (!isc_log_wouldlog(lctx, level)) {
 		return;
@@ -270,11 +263,10 @@ delv_log(int level, const char *fmt, ...)
 static int loglevel = 0;
 
 static void
-setup_logging(FILE *errout)
-{
-	isc_result_t	     result;
+setup_logging(FILE *errout) {
+	isc_result_t result;
 	isc_logdestination_t destination;
-	isc_logconfig_t *    logconfig = NULL;
+	isc_logconfig_t *logconfig = NULL;
 
 	result = isc_log_create(mctx, &lctx, &logconfig);
 	if (result != ISC_R_SUCCESS) {
@@ -363,8 +355,7 @@ setup_logging(FILE *errout)
 }
 
 static void
-print_status(dns_rdataset_t *rdataset)
-{
+print_status(dns_rdataset_t *rdataset) {
 	char buf[1024] = { 0 };
 
 	REQUIRE(rdataset != NULL);
@@ -443,15 +434,14 @@ print_status(dns_rdataset_t *rdataset)
 
 static isc_result_t
 printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
-	  dns_master_style_t *style)
-{
-	isc_result_t	   result = ISC_R_SUCCESS;
+	  dns_master_style_t *style) {
+	isc_result_t result = ISC_R_SUCCESS;
 	static dns_trust_t trust;
-	static bool	   first = true;
-	isc_buffer_t	   target;
-	isc_region_t	   r;
-	char *		   t = NULL;
-	int		   len = 2048;
+	static bool first = true;
+	isc_buffer_t target;
+	isc_region_t r;
+	char *t = NULL;
+	int len = 2048;
 
 	if (!dns_rdataset_isassociated(rdataset)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
@@ -481,7 +471,8 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			for (result = dns_rdataset_first(rdataset);
 			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(rdataset)) {
+			     result = dns_rdataset_next(rdataset))
+			{
 				if ((rdataset->attributes &
 				     DNS_RDATASETATTR_NEGATIVE) != 0) {
 					continue;
@@ -537,9 +528,8 @@ cleanup:
 }
 
 static isc_result_t
-setup_style(dns_master_style_t **stylep)
-{
-	isc_result_t	    result;
+setup_style(dns_master_style_t **stylep) {
+	isc_result_t result;
 	dns_master_style_t *style = NULL;
 
 	REQUIRE(stylep != NULL && *stylep == NULL);
@@ -590,11 +580,10 @@ setup_style(dns_master_style_t **stylep)
 }
 
 static isc_result_t
-convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text)
-{
+convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 	isc_result_t result;
 	isc_buffer_t b;
-	dns_name_t * n;
+	dns_name_t *n;
 	unsigned int len;
 
 	REQUIRE(fn != NULL && name != NULL && text != NULL);
@@ -616,21 +605,20 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text)
 }
 
 static isc_result_t
-key_fromconfig(const cfg_obj_t *key, dns_client_t *client)
-{
+key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	dns_rdata_dnskey_t dnskey;
-	dns_rdata_ds_t	   ds;
-	uint32_t	   rdata1, rdata2, rdata3;
-	const char *	   datastr = NULL, *keynamestr = NULL, *atstr = NULL;
-	unsigned char	   data[4096];
-	isc_buffer_t	   databuf;
-	unsigned char	   rrdata[4096];
-	isc_buffer_t	   rrdatabuf;
-	isc_region_t	   r;
-	dns_fixedname_t	   fkeyname;
-	dns_name_t *	   keyname;
-	isc_result_t	   result;
-	bool		   match_root = false;
+	dns_rdata_ds_t ds;
+	uint32_t rdata1, rdata2, rdata3;
+	const char *datastr = NULL, *keynamestr = NULL, *atstr = NULL;
+	unsigned char data[4096];
+	isc_buffer_t databuf;
+	unsigned char rrdata[4096];
+	isc_buffer_t rrdatabuf;
+	isc_region_t r;
+	dns_fixedname_t fkeyname;
+	dns_name_t *keyname;
+	isc_result_t result;
+	bool match_root = false;
 	enum { INITIAL_KEY,
 	       STATIC_KEY,
 	       INITIAL_DS,
@@ -790,14 +778,13 @@ cleanup:
 }
 
 static isc_result_t
-load_keys(const cfg_obj_t *keys, dns_client_t *client)
-{
+load_keys(const cfg_obj_t *keys, dns_client_t *client) {
 	const cfg_listelt_t *elt, *elt2;
-	const cfg_obj_t *    key, *keylist;
-	isc_result_t	     result = ISC_R_SUCCESS;
+	const cfg_obj_t *key, *keylist;
+	isc_result_t result = ISC_R_SUCCESS;
 
-	for (elt = cfg_list_first(keys); elt != NULL;
-	     elt = cfg_list_next(elt)) {
+	for (elt = cfg_list_first(keys); elt != NULL; elt = cfg_list_next(elt))
+	{
 		keylist = cfg_listelt_value(elt);
 
 		for (elt2 = cfg_list_first(keylist); elt2 != NULL;
@@ -815,15 +802,14 @@ cleanup:
 }
 
 static isc_result_t
-setup_dnsseckeys(dns_client_t *client)
-{
-	isc_result_t	 result;
-	cfg_parser_t *	 parser = NULL;
+setup_dnsseckeys(dns_client_t *client) {
+	isc_result_t result;
+	cfg_parser_t *parser = NULL;
 	const cfg_obj_t *trusted_keys = NULL;
 	const cfg_obj_t *managed_keys = NULL;
 	const cfg_obj_t *trust_anchors = NULL;
-	cfg_obj_t *	 bindkeys = NULL;
-	const char *	 filename = anchorfile;
+	cfg_obj_t *bindkeys = NULL;
+	const char *filename = anchorfile;
 
 	if (!root_validation) {
 		return (ISC_R_SUCCESS);
@@ -912,17 +898,16 @@ cleanup:
 }
 
 static isc_result_t
-addserver(dns_client_t *client)
-{
-	struct addrinfo	   hints, *res, *cur;
-	int		   gaierror;
-	struct in_addr	   in4;
-	struct in6_addr	   in6;
-	isc_sockaddr_t *   sa;
+addserver(dns_client_t *client) {
+	struct addrinfo hints, *res, *cur;
+	int gaierror;
+	struct in_addr in4;
+	struct in6_addr in6;
+	isc_sockaddr_t *sa;
 	isc_sockaddrlist_t servers;
-	uint32_t	   destport;
-	isc_result_t	   result;
-	dns_name_t *	   name = NULL;
+	uint32_t destport;
+	isc_result_t result;
+	dns_name_t *name = NULL;
 
 	result = parse_uint(&destport, port, 0xffff, "port");
 	if (result != ISC_R_SUCCESS) {
@@ -1000,13 +985,12 @@ cleanup:
 }
 
 static isc_result_t
-findserver(dns_client_t *client)
-{
-	isc_result_t	    result;
-	irs_resconf_t *	    resconf = NULL;
+findserver(dns_client_t *client) {
+	isc_result_t result;
+	irs_resconf_t *resconf = NULL;
 	isc_sockaddrlist_t *nameservers;
-	isc_sockaddr_t *    sa, *next;
-	uint32_t	    destport;
+	isc_sockaddr_t *sa, *next;
+	uint32_t destport;
 
 	result = parse_uint(&destport, port, 0xffff, "port");
 	if (result != ISC_R_SUCCESS) {
@@ -1076,9 +1060,8 @@ cleanup:
 }
 
 static isc_result_t
-parse_uint(uint32_t *uip, const char *value, uint32_t max, const char *desc)
-{
-	uint32_t     n;
+parse_uint(uint32_t *uip, const char *value, uint32_t max, const char *desc) {
+	uint32_t n;
 	isc_result_t result = isc_parse_uint32(&n, value, 10);
 	if (result == ISC_R_SUCCESS && n > max) {
 		result = ISC_R_RANGE;
@@ -1093,11 +1076,10 @@ parse_uint(uint32_t *uip, const char *value, uint32_t max, const char *desc)
 }
 
 static void
-plus_option(char *option)
-{
+plus_option(char *option) {
 	isc_result_t result;
-	char *	     cmd, *value, *last = NULL;
-	bool	     state = true;
+	char *cmd, *value, *last = NULL;
+	bool state = true;
 
 	INSIST(option != NULL);
 
@@ -1311,20 +1293,19 @@ static const char *single_dash_opts = "46himv";
 static const char *dash_opts = "46abcdhimpqtvx";
 
 static bool
-dash_option(char *option, char *next, bool *open_type_class)
-{
-	char		 opt, *value;
-	isc_result_t	 result;
-	bool		 value_from_next;
+dash_option(char *option, char *next, bool *open_type_class) {
+	char opt, *value;
+	isc_result_t result;
+	bool value_from_next;
 	isc_textregion_t tr;
-	dns_rdatatype_t	 rdtype;
+	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	char		 textname[MAXNAME];
-	struct in_addr	 in4;
-	struct in6_addr	 in6;
-	in_port_t	 srcport;
-	uint32_t	 num;
-	char *		 hash;
+	char textname[MAXNAME];
+	struct in_addr in4;
+	struct in6_addr in6;
+	in_port_t srcport;
+	uint32_t num;
+	char *hash;
 
 	while (strpbrk(option, single_dash_opts) == &option[0]) {
 		/*
@@ -1516,9 +1497,8 @@ dash_option(char *option, char *next, bool *open_type_class)
  * memory debugging when setting up the memory context.
  */
 static void
-preparse_args(int argc, char **argv)
-{
-	bool  ipv4only = false, ipv6only = false;
+preparse_args(int argc, char **argv) {
+	bool ipv4only = false, ipv6only = false;
 	char *option;
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
@@ -1578,13 +1558,12 @@ preparse_args(int argc, char **argv)
  * should be familiar to dig users, however.
  */
 static void
-parse_args(int argc, char **argv)
-{
-	isc_result_t	 result;
+parse_args(int argc, char **argv) {
+	isc_result_t result;
 	isc_textregion_t tr;
-	dns_rdatatype_t	 rdtype;
+	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	bool		 open_type_class = true;
+	bool open_type_class = true;
 
 	for (; argc > 0; argc--, argv++) {
 		if (argv[0][0] == '@') {
@@ -1631,8 +1610,8 @@ parse_args(int argc, char **argv)
 				if (result == ISC_R_SUCCESS) {
 					if (classset) {
 						warn("extra query class");
-					} else if (rdclass !=
-						   dns_rdataclass_in) {
+					} else if (rdclass != dns_rdataclass_in)
+					{
 						warn("ignoring non-IN "
 						     "query class");
 					}
@@ -1666,8 +1645,7 @@ parse_args(int argc, char **argv)
 }
 
 static isc_result_t
-append_str(const char *text, int len, char **p, char *end)
-{
+append_str(const char *text, int len, char **p, char *end) {
 	if (len > end - *p) {
 		return (ISC_R_NOSPACE);
 	}
@@ -1677,10 +1655,9 @@ append_str(const char *text, int len, char **p, char *end)
 }
 
 static isc_result_t
-reverse_octets(const char *in, char **p, char *end)
-{
+reverse_octets(const char *in, char **p, char *end) {
 	char *dot = strchr(in, '.');
-	int   len;
+	int len;
 	if (dot != NULL) {
 		isc_result_t result;
 		result = reverse_octets(dot + 1, p, end);
@@ -1699,10 +1676,9 @@ reverse_octets(const char *in, char **p, char *end)
 }
 
 static isc_result_t
-get_reverse(char *reverse, size_t len, char *value, bool strict)
-{
-	int	      r;
-	isc_result_t  result;
+get_reverse(char *reverse, size_t len, char *value, bool strict) {
+	int r;
+	isc_result_t result;
 	isc_netaddr_t addr;
 
 	addr.family = AF_INET6;
@@ -1710,8 +1686,8 @@ get_reverse(char *reverse, size_t len, char *value, bool strict)
 	if (r > 0) {
 		/* This is a valid IPv6 address. */
 		dns_fixedname_t fname;
-		dns_name_t *	name;
-		unsigned int	options = 0;
+		dns_name_t *name;
+		unsigned int options = 0;
 
 		name = dns_fixedname_initname(&fname);
 		result = dns_byaddr_createptrname(&addr, options, name);
@@ -1747,20 +1723,19 @@ get_reverse(char *reverse, size_t len, char *value, bool strict)
 }
 
 int
-main(int argc, char *argv[])
-{
-	dns_client_t *	    client = NULL;
-	isc_result_t	    result;
-	dns_fixedname_t	    qfn;
-	dns_name_t *	    query_name, *response_name;
-	char		    namestr[DNS_NAME_FORMATSIZE];
-	dns_rdataset_t *    rdataset;
-	dns_namelist_t	    namelist;
-	unsigned int	    resopt, clopt;
-	isc_appctx_t *	    actx = NULL;
-	isc_taskmgr_t *	    taskmgr = NULL;
-	isc_socketmgr_t *   socketmgr = NULL;
-	isc_timermgr_t *    timermgr = NULL;
+main(int argc, char *argv[]) {
+	dns_client_t *client = NULL;
+	isc_result_t result;
+	dns_fixedname_t qfn;
+	dns_name_t *query_name, *response_name;
+	char namestr[DNS_NAME_FORMATSIZE];
+	dns_rdataset_t *rdataset;
+	dns_namelist_t namelist;
+	unsigned int resopt, clopt;
+	isc_appctx_t *actx = NULL;
+	isc_taskmgr_t *taskmgr = NULL;
+	isc_socketmgr_t *socketmgr = NULL;
+	isc_timermgr_t *timermgr = NULL;
 	dns_master_style_t *style = NULL;
 #ifndef WIN32
 	struct sigaction sa;
@@ -1857,10 +1832,11 @@ main(int argc, char *argv[])
 	}
 
 	for (response_name = ISC_LIST_HEAD(namelist); response_name != NULL;
-	     response_name = ISC_LIST_NEXT(response_name, link)) {
+	     response_name = ISC_LIST_NEXT(response_name, link))
+	{
 		for (rdataset = ISC_LIST_HEAD(response_name->list);
-		     rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		     rdataset != NULL; rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
 			result = printdata(rdataset, response_name, style);
 			if (result != ISC_R_SUCCESS) {
 				delv_log(ISC_LOG_ERROR, "print data failed");

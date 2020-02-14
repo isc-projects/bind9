@@ -49,20 +49,19 @@
 const char *program = "dnssec-importkey";
 
 static dns_rdataclass_t rdclass;
-static dns_fixedname_t	fixed;
-static dns_name_t *	name = NULL;
-static isc_mem_t *	mctx = NULL;
-static bool		setpub = false, setdel = false;
-static bool		setttl = false;
-static isc_stdtime_t	pub = 0, del = 0;
-static dns_ttl_t	ttl = 0;
-static isc_stdtime_t	syncadd = 0, syncdel = 0;
-static bool		setsyncadd = false;
-static bool		setsyncdel = false;
+static dns_fixedname_t fixed;
+static dns_name_t *name = NULL;
+static isc_mem_t *mctx = NULL;
+static bool setpub = false, setdel = false;
+static bool setttl = false;
+static isc_stdtime_t pub = 0, del = 0;
+static dns_ttl_t ttl = 0;
+static isc_stdtime_t syncadd = 0, syncdel = 0;
+static bool setsyncadd = false;
+static bool setsyncdel = false;
 
 static isc_result_t
-initname(char *setname)
-{
+initname(char *setname) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
@@ -75,9 +74,8 @@ initname(char *setname)
 }
 
 static void
-db_load_from_stream(dns_db_t *db, FILE *fp)
-{
-	isc_result_t	     result;
+db_load_from_stream(dns_db_t *db, FILE *fp) {
+	isc_result_t result;
 	dns_rdatacallbacks_t callbacks;
 
 	dns_rdatacallbacks_init(&callbacks);
@@ -99,12 +97,11 @@ db_load_from_stream(dns_db_t *db, FILE *fp)
 }
 
 static isc_result_t
-loadset(const char *filename, dns_rdataset_t *rdataset)
-{
-	isc_result_t  result;
-	dns_db_t *    db = NULL;
+loadset(const char *filename, dns_rdataset_t *rdataset) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
-	char	      setname[DNS_NAME_FORMATSIZE];
+	char setname[DNS_NAME_FORMATSIZE];
 
 	dns_name_format(name, setname, sizeof(setname));
 
@@ -151,10 +148,9 @@ loadset(const char *filename, dns_rdataset_t *rdataset)
 
 static void
 loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
-	dns_rdata_t *rdata)
-{
+	dns_rdata_t *rdata) {
 	isc_result_t result;
-	dst_key_t *  key = NULL;
+	dst_key_t *key = NULL;
 	isc_buffer_t keyb;
 	isc_region_t r;
 
@@ -194,14 +190,13 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 }
 
 static void
-emit(const char *dir, dns_rdata_t *rdata)
-{
+emit(const char *dir, dns_rdata_t *rdata) {
 	isc_result_t result;
-	char	     keystr[DST_KEY_FORMATSIZE];
-	char	     pubname[1024];
-	char	     priname[1024];
+	char keystr[DST_KEY_FORMATSIZE];
+	char pubname[1024];
+	char priname[1024];
 	isc_buffer_t buf;
-	dst_key_t *  key = NULL, *tmp = NULL;
+	dst_key_t *key = NULL, *tmp = NULL;
 
 	isc_buffer_init(&buf, rdata->data, rdata->length);
 	isc_buffer_add(&buf, rdata->length);
@@ -269,12 +264,10 @@ emit(const char *dir, dns_rdata_t *rdata)
 	dst_key_free(&key);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "    %s options [-K dir] keyfile\n\n", program);
 	fprintf(stderr, "    %s options -f file [keyname]\n\n", program);
@@ -301,17 +294,16 @@ usage(void)
 }
 
 int
-main(int argc, char **argv)
-{
-	char *	       classname = NULL;
-	char *	       filename = NULL, *dir = NULL, *namestr;
-	char *	       endp;
-	int	       ch;
-	isc_result_t   result;
-	isc_log_t *    log = NULL;
+main(int argc, char **argv) {
+	char *classname = NULL;
+	char *filename = NULL, *dir = NULL, *namestr;
+	char *endp;
+	int ch;
+	isc_result_t result;
+	isc_log_t *log = NULL;
 	dns_rdataset_t rdataset;
-	dns_rdata_t    rdata;
-	isc_stdtime_t  now;
+	dns_rdata_t rdata;
+	isc_stdtime_t now;
 
 	dns_rdata_init(&rdata);
 	isc_stdtime_get(&now);
@@ -455,7 +447,8 @@ main(int argc, char **argv)
 
 		for (result = dns_rdataset_first(&rdataset);
 		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset)) {
+		     result = dns_rdataset_next(&rdataset))
+		{
 			dns_rdata_init(&rdata);
 			dns_rdataset_current(&rdataset, &rdata);
 			emit(dir, &rdata);

@@ -55,7 +55,7 @@
 #include <irs/netdb.h>
 #include <irs/resconf.h>
 
-#define IRS_RESCONF_MAGIC ISC_MAGIC('R', 'E', 'S', 'c')
+#define IRS_RESCONF_MAGIC    ISC_MAGIC('R', 'E', 'S', 'c')
 #define IRS_RESCONF_VALID(c) ISC_MAGIC_VALID(c, IRS_RESCONF_MAGIC)
 
 /*!
@@ -74,10 +74,10 @@
  * resolv.conf parameters
  */
 
-#define RESCONFMAXNAMESERVERS 3U /*%< max 3 "nameserver" entries */
-#define RESCONFMAXSEARCH 8U	 /*%< max 8 domains in "search" entry */
-#define RESCONFMAXLINELEN 256U	 /*%< max size of a line */
-#define RESCONFMAXSORTLIST 10U	 /*%< max 10 */
+#define RESCONFMAXNAMESERVERS 3U   /*%< max 3 "nameserver" entries */
+#define RESCONFMAXSEARCH      8U   /*%< max 8 domains in "search" entry */
+#define RESCONFMAXLINELEN     256U /*%< max size of a line */
+#define RESCONFMAXSORTLIST    10U  /*%< max 10 */
 
 /*!
  * configuration data structure
@@ -89,14 +89,14 @@ struct irs_resconf {
 	 * need to be locked.
 	 */
 	unsigned int magic;
-	isc_mem_t *  mctx;
+	isc_mem_t *mctx;
 
 	isc_sockaddrlist_t nameservers;
-	unsigned int	   numns; /*%< number of configured servers
-				   * */
+	unsigned int numns; /*%< number of configured servers
+			     * */
 
-	char *	domainname;
-	char *	search[RESCONFMAXSEARCH];
+	char *domainname;
+	char *search[RESCONFMAXSEARCH];
 	uint8_t searchnxt; /*%< index for next free slot
 			    * */
 
@@ -115,28 +115,21 @@ struct irs_resconf {
 	uint8_t ndots;
 };
 
-static isc_result_t
-resconf_parsenameserver(irs_resconf_t *conf, FILE *fp);
-static isc_result_t
-resconf_parsedomain(irs_resconf_t *conf, FILE *fp);
-static isc_result_t
-resconf_parsesearch(irs_resconf_t *conf, FILE *fp);
-static isc_result_t
-resconf_parsesortlist(irs_resconf_t *conf, FILE *fp);
-static isc_result_t
-resconf_parseoption(irs_resconf_t *ctx, FILE *fp);
+static isc_result_t resconf_parsenameserver(irs_resconf_t *conf, FILE *fp);
+static isc_result_t resconf_parsedomain(irs_resconf_t *conf, FILE *fp);
+static isc_result_t resconf_parsesearch(irs_resconf_t *conf, FILE *fp);
+static isc_result_t resconf_parsesortlist(irs_resconf_t *conf, FILE *fp);
+static isc_result_t resconf_parseoption(irs_resconf_t *ctx, FILE *fp);
 
 #if HAVE_GET_WIN32_NAMESERVERS
-static isc_result_t
-get_win32_nameservers(irs_resconf_t *conf);
+static isc_result_t get_win32_nameservers(irs_resconf_t *conf);
 #endif /* if HAVE_GET_WIN32_NAMESERVERS */
 
 /*!
  * Eat characters from FP until EOL or EOF. Returns EOF or '\n'
  */
 static int
-eatline(FILE *fp)
-{
+eatline(FILE *fp) {
 	int ch;
 
 	ch = fgetc(fp);
@@ -153,8 +146,7 @@ eatline(FILE *fp)
  * space.
  */
 static int
-eatwhite(FILE *fp)
-{
+eatwhite(FILE *fp) {
 	int ch;
 
 	ch = fgetc(fp);
@@ -176,9 +168,8 @@ eatwhite(FILE *fp)
  * that caused the reading to stop.
  */
 static int
-getword(FILE *fp, char *buffer, size_t size)
-{
-	int   ch;
+getword(FILE *fp, char *buffer, size_t size) {
+	int ch;
 	char *p;
 
 	REQUIRE(buffer != NULL);
@@ -211,12 +202,11 @@ getword(FILE *fp, char *buffer, size_t size)
 
 static isc_result_t
 add_server(isc_mem_t *mctx, const char *address_str,
-	   isc_sockaddrlist_t *nameservers)
-{
-	int		error;
+	   isc_sockaddrlist_t *nameservers) {
+	int error;
 	isc_sockaddr_t *address = NULL;
 	struct addrinfo hints, *res;
-	isc_result_t	result = ISC_R_SUCCESS;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	res = NULL;
 	memset(&hints, 0, sizeof(hints));
@@ -232,8 +222,8 @@ add_server(isc_mem_t *mctx, const char *address_str,
 	/* XXX: special case: treat all-0 IPv4 address as loopback */
 	if (res->ai_family == AF_INET) {
 		struct in_addr *v4;
-		unsigned char	zeroaddress[] = { 0, 0, 0, 0 };
-		unsigned char	loopaddress[] = { 127, 0, 0, 1 };
+		unsigned char zeroaddress[] = { 0, 0, 0, 0 };
+		unsigned char loopaddress[] = { 127, 0, 0, 1 };
 
 		v4 = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
 		if (memcmp(v4, zeroaddress, 4) == 0) {
@@ -259,9 +249,8 @@ cleanup:
 }
 
 static isc_result_t
-create_addr(const char *buffer, isc_netaddr_t *addr, int convert_zero)
-{
-	struct in_addr	v4;
+create_addr(const char *buffer, isc_netaddr_t *addr, int convert_zero) {
+	struct in_addr v4;
 	struct in6_addr v6;
 
 	if (inet_pton(AF_INET, buffer, &v4) == 1) {
@@ -287,10 +276,9 @@ create_addr(const char *buffer, isc_netaddr_t *addr, int convert_zero)
 }
 
 static isc_result_t
-resconf_parsenameserver(irs_resconf_t *conf, FILE *fp)
-{
-	char	     word[RESCONFMAXLINELEN];
-	int	     cp;
+resconf_parsenameserver(irs_resconf_t *conf, FILE *fp) {
+	char word[RESCONFMAXLINELEN];
+	int cp;
 	isc_result_t result;
 
 	if (conf->numns == RESCONFMAXNAMESERVERS) {
@@ -318,10 +306,9 @@ resconf_parsenameserver(irs_resconf_t *conf, FILE *fp)
 }
 
 static isc_result_t
-resconf_parsedomain(irs_resconf_t *conf, FILE *fp)
-{
-	char	     word[RESCONFMAXLINELEN];
-	int	     res;
+resconf_parsedomain(irs_resconf_t *conf, FILE *fp) {
+	char word[RESCONFMAXLINELEN];
+	int res;
 	unsigned int i;
 
 	res = getword(fp, word, sizeof(word));
@@ -356,11 +343,10 @@ resconf_parsedomain(irs_resconf_t *conf, FILE *fp)
 }
 
 static isc_result_t
-resconf_parsesearch(irs_resconf_t *conf, FILE *fp)
-{
-	int	     delim;
+resconf_parsesearch(irs_resconf_t *conf, FILE *fp) {
+	int delim;
 	unsigned int idx;
-	char	     word[RESCONFMAXLINELEN];
+	char word[RESCONFMAXLINELEN];
 
 	if (conf->domainname != NULL) {
 		/*
@@ -409,12 +395,11 @@ resconf_parsesearch(irs_resconf_t *conf, FILE *fp)
 }
 
 static isc_result_t
-resconf_parsesortlist(irs_resconf_t *conf, FILE *fp)
-{
-	int	     delim, res;
+resconf_parsesortlist(irs_resconf_t *conf, FILE *fp) {
+	int delim, res;
 	unsigned int idx;
-	char	     word[RESCONFMAXLINELEN];
-	char *	     p;
+	char word[RESCONFMAXLINELEN];
+	char *p;
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0U) {
@@ -466,12 +451,11 @@ resconf_parsesortlist(irs_resconf_t *conf, FILE *fp)
 }
 
 static isc_result_t
-resconf_parseoption(irs_resconf_t *conf, FILE *fp)
-{
-	int   delim;
-	long  ndots;
+resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
+	int delim;
+	long ndots;
 	char *p;
-	char  word[RESCONFMAXLINELEN];
+	char word[RESCONFMAXLINELEN];
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0U) {
@@ -503,8 +487,7 @@ resconf_parseoption(irs_resconf_t *conf, FILE *fp)
 }
 
 static isc_result_t
-add_search(irs_resconf_t *conf, char *domain)
-{
+add_search(irs_resconf_t *conf, char *domain) {
 	irs_resconf_search_t *entry;
 
 	entry = isc_mem_get(conf->mctx, sizeof(*entry));
@@ -518,14 +501,13 @@ add_search(irs_resconf_t *conf, char *domain)
 
 /*% parses a file and fills in the data structure. */
 isc_result_t
-irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
-{
-	FILE *	       fp = NULL;
-	char	       word[256];
-	isc_result_t   rval, ret = ISC_R_SUCCESS;
+irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
+	FILE *fp = NULL;
+	char word[256];
+	isc_result_t rval, ret = ISC_R_SUCCESS;
 	irs_resconf_t *conf;
-	unsigned int   i;
-	int	       stopchar;
+	unsigned int i;
+	int stopchar;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(filename != NULL);
@@ -644,12 +626,11 @@ error:
 }
 
 void
-irs_resconf_destroy(irs_resconf_t **confp)
-{
-	irs_resconf_t *	      conf;
-	isc_sockaddr_t *      address;
+irs_resconf_destroy(irs_resconf_t **confp) {
+	irs_resconf_t *conf;
+	isc_sockaddr_t *address;
 	irs_resconf_search_t *searchentry;
-	unsigned int	      i;
+	unsigned int i;
 
 	REQUIRE(confp != NULL);
 	conf = *confp;
@@ -680,24 +661,21 @@ irs_resconf_destroy(irs_resconf_t **confp)
 }
 
 isc_sockaddrlist_t *
-irs_resconf_getnameservers(irs_resconf_t *conf)
-{
+irs_resconf_getnameservers(irs_resconf_t *conf) {
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
 	return (&conf->nameservers);
 }
 
 irs_resconf_searchlist_t *
-irs_resconf_getsearchlist(irs_resconf_t *conf)
-{
+irs_resconf_getsearchlist(irs_resconf_t *conf) {
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
 	return (&conf->searchlist);
 }
 
 unsigned int
-irs_resconf_getndots(irs_resconf_t *conf)
-{
+irs_resconf_getndots(irs_resconf_t *conf) {
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
 	return ((unsigned int)conf->ndots);

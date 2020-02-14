@@ -21,11 +21,10 @@
 #include <isc/result.h>
 
 isc_result_t
-isc_parse_uint32(uint32_t *uip, const char *string, int base)
-{
+isc_parse_uint32(uint32_t *uip, const char *string, int base) {
 	unsigned long n;
-	uint32_t      r;
-	char *	      e;
+	uint32_t r;
+	char *e;
 	if (!isalnum((unsigned char)(string[0]))) {
 		return (ISC_R_BADNUMBER);
 	}
@@ -48,9 +47,8 @@ isc_parse_uint32(uint32_t *uip, const char *string, int base)
 }
 
 isc_result_t
-isc_parse_uint16(uint16_t *uip, const char *string, int base)
-{
-	uint32_t     val;
+isc_parse_uint16(uint16_t *uip, const char *string, int base) {
+	uint32_t val;
 	isc_result_t result;
 	result = isc_parse_uint32(&val, string, base);
 	if (result != ISC_R_SUCCESS) {
@@ -64,9 +62,8 @@ isc_parse_uint16(uint16_t *uip, const char *string, int base)
 }
 
 isc_result_t
-isc_parse_uint8(uint8_t *uip, const char *string, int base)
-{
-	uint32_t     val;
+isc_parse_uint8(uint8_t *uip, const char *string, int base) {
+	uint32_t val;
 	isc_result_t result;
 	result = isc_parse_uint32(&val, string, base);
 	if (result != ISC_R_SUCCESS) {

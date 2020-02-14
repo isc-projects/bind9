@@ -77,15 +77,15 @@ char *
 #else  /* if defined _WIN32 */
 const char *
 #endif /* if defined _WIN32 */
-gai_strerror(int ecode)
-{
+gai_strerror(int ecode) {
 	union {
 		const char *const_ptr;
-		char *	    deconst_ptr;
+		char *deconst_ptr;
 	} ptr;
 
 	if ((ecode < 0) ||
-	    (ecode >= (int)(sizeof(gai_messages) / sizeof(*gai_messages)))) {
+	    (ecode >= (int)(sizeof(gai_messages) / sizeof(*gai_messages))))
+	{
 		ptr.const_ptr = "invalid error code";
 	} else {
 		ptr.const_ptr = gai_messages[ecode];

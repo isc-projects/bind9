@@ -51,23 +51,22 @@
 
 isc_result_t
 isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
-				unsigned int  maxgroups,
-				unsigned int *totalGroups)
-{
-	LPGROUP_USERS_INFO_0	  pTmpBuf;
+				unsigned int maxgroups,
+				unsigned int *totalGroups) {
+	LPGROUP_USERS_INFO_0 pTmpBuf;
 	LPLOCALGROUP_USERS_INFO_0 pTmpLBuf;
-	DWORD			  i;
+	DWORD i;
 	LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
-	LPGROUP_USERS_INFO_0	  pgrpBuf = NULL;
-	DWORD			  dwLevel = 0;
-	DWORD			  dwFlags = LG_INCLUDE_INDIRECT;
-	DWORD			  dwPrefMaxLen = MAX_PREFERRED_LENGTH;
-	DWORD			  dwEntriesRead = 0;
-	DWORD			  dwTotalEntries = 0;
-	NET_API_STATUS		  nStatus;
-	size_t			  retlen;
-	wchar_t			  user[MAX_NAME_LENGTH];
-	isc_result_t		  result;
+	LPGROUP_USERS_INFO_0 pgrpBuf = NULL;
+	DWORD dwLevel = 0;
+	DWORD dwFlags = LG_INCLUDE_INDIRECT;
+	DWORD dwPrefMaxLen = MAX_PREFERRED_LENGTH;
+	DWORD dwEntriesRead = 0;
+	DWORD dwTotalEntries = 0;
+	NET_API_STATUS nStatus;
+	size_t retlen;
+	wchar_t user[MAX_NAME_LENGTH];
+	isc_result_t result;
 
 	*totalGroups = 0;
 

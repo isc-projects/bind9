@@ -34,14 +34,13 @@ LIBNS_EXTERNAL_DATA unsigned int ns_pps = 0U;
  *** Private
  ***/
 
-static isc_once_t     init_once = ISC_ONCE_INIT;
-static isc_mem_t *    ns_g_mctx = NULL;
-static bool	      initialize_done = false;
+static isc_once_t init_once = ISC_ONCE_INIT;
+static isc_mem_t *ns_g_mctx = NULL;
+static bool initialize_done = false;
 static isc_refcount_t references;
 
 static void
-initialize(void)
-{
+initialize(void) {
 	REQUIRE(initialize_done == false);
 
 	isc_mem_create(&ns_g_mctx);
@@ -52,8 +51,7 @@ initialize(void)
 }
 
 isc_result_t
-ns_lib_init(void)
-{
+ns_lib_init(void) {
 	isc_result_t result;
 
 	/*
@@ -76,8 +74,7 @@ ns_lib_init(void)
 }
 
 void
-ns_lib_shutdown(void)
-{
+ns_lib_shutdown(void) {
 	if (isc_refcount_decrement(&references) == 1) {
 		isc_refcount_destroy(&references);
 		if (ns_g_mctx != NULL) {

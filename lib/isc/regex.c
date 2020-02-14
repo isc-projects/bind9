@@ -30,8 +30,7 @@
  * Validate the regular expression 'C' locale.
  */
 int
-isc_regex_validate(const char *c)
-{
+isc_regex_validate(const char *c) {
 	enum { none,
 	       parse_bracket,
 	       parse_bound,
@@ -39,25 +38,25 @@ isc_regex_validate(const char *c)
 	       parse_ec,
 	       parse_cc } state = none;
 	/* Well known character classes. */
-	const char * cc[] = { ":alnum:", ":digit:", ":punct:", ":alpha:",
-			      ":graph:", ":space:", ":blank:", ":lower:",
-			      ":upper:", ":cntrl:", ":print:", ":xdigit:" };
-	bool	     seen_comma = false;
-	bool	     seen_high = false;
-	bool	     seen_char = false;
-	bool	     seen_ec = false;
-	bool	     seen_ce = false;
-	bool	     have_atom = false;
-	int	     group = 0;
-	int	     range = 0;
-	int	     sub = 0;
-	bool	     empty_ok = false;
-	bool	     neg = false;
-	bool	     was_multiple = false;
+	const char *cc[] = { ":alnum:", ":digit:", ":punct:", ":alpha:",
+			     ":graph:", ":space:", ":blank:", ":lower:",
+			     ":upper:", ":cntrl:", ":print:", ":xdigit:" };
+	bool seen_comma = false;
+	bool seen_high = false;
+	bool seen_char = false;
+	bool seen_ec = false;
+	bool seen_ce = false;
+	bool have_atom = false;
+	int group = 0;
+	int range = 0;
+	int sub = 0;
+	bool empty_ok = false;
+	bool neg = false;
+	bool was_multiple = false;
 	unsigned int low = 0;
 	unsigned int high = 0;
-	const char * ccname = NULL;
-	int	     range_start = 0;
+	const char *ccname = NULL;
+	int range_start = 0;
 #if VALREGEX_REPORT_REASON
 	const char *reason = "";
 #endif /* if VALREGEX_REPORT_REASON */
@@ -379,19 +378,19 @@ isc_regex_validate(const char *c)
 				switch (*c) {
 				case ']': {
 					unsigned int i;
-					bool	     found = false;
+					bool found = false;
 					for (i = 0;
-					     i < sizeof(cc) / sizeof(*cc);
-					     i++) {
+					     i < sizeof(cc) / sizeof(*cc); i++)
+					{
 						unsigned int len;
 						len = strlen(cc[i]);
 						if (len !=
-						    (unsigned int)(c -
-								   ccname)) {
+						    (unsigned int)(c - ccname))
+						{
 							continue;
 						}
-						if (strncmp(cc[i], ccname,
-							    len)) {
+						if (strncmp(cc[i], ccname, len))
+						{
 							continue;
 						}
 						found = true;

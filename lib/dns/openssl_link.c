@@ -46,7 +46,7 @@ static isc_mem_t *dst__mctx = NULL;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static isc_mutex_t *locks = NULL;
-static int	    nlocks;
+static int nlocks;
 #endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
 	* defined(LIBRESSL_VERSION_NUMBER) */
 
@@ -55,8 +55,7 @@ static ENGINE *e = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) */
 
 static void
-enable_fips_mode(void)
-{
+enable_fips_mode(void) {
 #ifdef HAVE_FIPS_MODE
 	if (FIPS_mode() != 0) {
 		/*
@@ -74,8 +73,7 @@ enable_fips_mode(void)
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static void
-lock_callback(int mode, int type, const char *file, int line)
-{
+lock_callback(int mode, int type, const char *file, int line) {
 	UNUSED(file);
 	UNUSED(line);
 	if ((mode & CRYPTO_LOCK) != 0) {
@@ -89,23 +87,20 @@ lock_callback(int mode, int type, const char *file, int line)
 
 #if defined(LIBRESSL_VERSION_NUMBER)
 static unsigned long
-id_callback(void)
-{
+id_callback(void) {
 	return ((unsigned long)isc_thread_self());
 }
 #endif /* if defined(LIBRESSL_VERSION_NUMBER) */
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 static void
-_set_thread_id(CRYPTO_THREADID *id)
-{
+_set_thread_id(CRYPTO_THREADID *id) {
 	CRYPTO_THREADID_set_numeric(id, (unsigned long)isc_thread_self());
 }
 #endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L */
 
 isc_result_t
-dst__openssl_init(isc_mem_t *mctx, const char *engine)
-{
+dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 	isc_result_t result;
 
 	REQUIRE(dst__mctx == NULL);
@@ -194,8 +189,7 @@ cleanup_rm:
 }
 
 void
-dst__openssl_destroy(void)
-{
+dst__openssl_destroy(void) {
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L) || defined(LIBRESSL_VERSION_NUMBER)
 	/*
 	 * Sequence taken from apps_shutdown() in <apps/apps.h>.
@@ -235,9 +229,8 @@ dst__openssl_destroy(void)
 }
 
 static isc_result_t
-toresult(isc_result_t fallback)
-{
-	isc_result_t  result = fallback;
+toresult(isc_result_t fallback) {
+	isc_result_t result = fallback;
 	unsigned long err = ERR_peek_error();
 #if defined(ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED)
 	int lib = ERR_GET_LIB(err);
@@ -267,8 +260,7 @@ toresult(isc_result_t fallback)
 }
 
 isc_result_t
-dst__openssl_toresult(isc_result_t fallback)
-{
+dst__openssl_toresult(isc_result_t fallback) {
 	isc_result_t result;
 
 	result = toresult(fallback);
@@ -278,21 +270,19 @@ dst__openssl_toresult(isc_result_t fallback)
 }
 
 isc_result_t
-dst__openssl_toresult2(const char *funcname, isc_result_t fallback)
-{
+dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
 	return (dst__openssl_toresult3(DNS_LOGCATEGORY_GENERAL, funcname,
 				       fallback));
 }
 
 isc_result_t
 dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
-		       isc_result_t fallback)
-{
-	isc_result_t  result;
+		       isc_result_t fallback) {
+	isc_result_t result;
 	unsigned long err;
-	const char *  file, *data;
-	int	      line, flags;
-	char	      buf[256];
+	const char *file, *data;
+	int line, flags;
+	char buf[256];
 
 	result = toresult(fallback);
 
@@ -321,8 +311,7 @@ done:
 
 #if !defined(OPENSSL_NO_ENGINE)
 ENGINE *
-dst__openssl_getengine(const char *engine)
-{
+dst__openssl_getengine(const char *engine) {
 	if (engine == NULL) {
 		return (NULL);
 	}

@@ -34,8 +34,7 @@
 #include "dnstest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -47,8 +46,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -58,10 +56,9 @@ _teardown(void **state)
 
 /* create zone manager */
 static void
-zonemgr_create(void **state)
-{
+zonemgr_create(void **state) {
 	dns_zonemgr_t *myzonemgr = NULL;
-	isc_result_t   result;
+	isc_result_t result;
 
 	UNUSED(state);
 
@@ -76,11 +73,10 @@ zonemgr_create(void **state)
 
 /* manage and release a zone */
 static void
-zonemgr_managezone(void **state)
-{
+zonemgr_managezone(void **state) {
 	dns_zonemgr_t *myzonemgr = NULL;
-	dns_zone_t *   zone = NULL;
-	isc_result_t   result;
+	dns_zone_t *zone = NULL;
+	isc_result_t result;
 
 	UNUSED(state);
 
@@ -118,11 +114,10 @@ zonemgr_managezone(void **state)
 
 /* create and release a zone */
 static void
-zonemgr_createzone(void **state)
-{
+zonemgr_createzone(void **state) {
 	dns_zonemgr_t *myzonemgr = NULL;
-	dns_zone_t *   zone = NULL;
-	isc_result_t   result;
+	dns_zone_t *zone = NULL;
+	isc_result_t result;
 
 	UNUSED(state);
 
@@ -153,14 +148,13 @@ zonemgr_createzone(void **state)
 
 /* manage and release a zone */
 static void
-zonemgr_unreachable(void **state)
-{
+zonemgr_unreachable(void **state) {
 	dns_zonemgr_t *myzonemgr = NULL;
-	dns_zone_t *   zone = NULL;
+	dns_zone_t *zone = NULL;
 	isc_sockaddr_t addr1, addr2;
 	struct in_addr in;
-	isc_result_t   result;
-	isc_time_t     now;
+	isc_result_t result;
+	isc_time_t now;
 
 	UNUSED(state);
 
@@ -241,8 +235,7 @@ zonemgr_unreachable(void **state)
  */
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(zonemgr_create, _setup,
 						_teardown),
@@ -262,8 +255,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

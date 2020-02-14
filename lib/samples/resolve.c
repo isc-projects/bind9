@@ -56,12 +56,11 @@
 static char *algname;
 
 static isc_result_t
-printdata(dns_rdataset_t *rdataset, dns_name_t *owner)
-{
+printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 	isc_buffer_t target;
 	isc_result_t result;
 	isc_region_t r;
-	char	     t[4096];
+	char t[4096];
 
 	if (!dns_rdataset_isassociated(rdataset)) {
 		printf("[WARN: empty]\n");
@@ -80,12 +79,10 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner)
 	return (ISC_R_SUCCESS);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "resolve [-t RRtype] "
 			"[[-a algorithm] [-e] -k keyname -K keystring] "
 			"[-S domain:serveraddr_for_domain ] [-s server_address]"
@@ -96,21 +93,20 @@ usage(void)
 
 static void
 set_key(dns_client_t *client, char *keynamestr, char *keystr, bool is_sep,
-	isc_mem_t **mctxp)
-{
-	isc_result_t	   result;
-	dns_fixedname_t	   fkeyname;
-	unsigned int	   namelen;
-	dns_name_t *	   keyname;
+	isc_mem_t **mctxp) {
+	isc_result_t result;
+	dns_fixedname_t fkeyname;
+	unsigned int namelen;
+	dns_name_t *keyname;
 	dns_rdata_dnskey_t keystruct;
-	unsigned char	   keydata[4096];
-	isc_buffer_t	   keydatabuf;
-	unsigned char	   rrdata[4096];
-	isc_buffer_t	   rrdatabuf;
-	isc_buffer_t	   b;
-	isc_textregion_t   tr;
-	isc_region_t	   r;
-	dns_secalg_t	   alg;
+	unsigned char keydata[4096];
+	isc_buffer_t keydatabuf;
+	unsigned char rrdata[4096];
+	isc_buffer_t rrdatabuf;
+	isc_buffer_t b;
+	isc_textregion_t tr;
+	isc_region_t r;
+	dns_secalg_t alg;
 
 	isc_mem_create(mctxp);
 
@@ -173,17 +169,16 @@ set_key(dns_client_t *client, char *keynamestr, char *keystr, bool is_sep,
 
 static void
 addserver(dns_client_t *client, const char *addrstr, const char *port,
-	  const char *name_space)
-{
-	struct addrinfo	   hints, *res;
-	int		   gaierror;
-	isc_sockaddr_t	   sa;
+	  const char *name_space) {
+	struct addrinfo hints, *res;
+	int gaierror;
+	isc_sockaddr_t sa;
 	isc_sockaddrlist_t servers;
-	isc_result_t	   result;
-	unsigned int	   namelen;
-	isc_buffer_t	   b;
-	dns_fixedname_t	   fname;
-	dns_name_t *	   name = NULL;
+	isc_result_t result;
+	unsigned int namelen;
+	isc_buffer_t b;
+	dns_fixedname_t fname;
+	dns_name_t *name = NULL;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -226,38 +221,37 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 }
 
 int
-main(int argc, char *argv[])
-{
-	int		 ch;
+main(int argc, char *argv[]) {
+	int ch;
 	isc_textregion_t tr;
-	char *		 server = NULL;
-	char *		 altserver = NULL;
-	char *		 altserveraddr = NULL;
-	char *		 altservername = NULL;
-	dns_client_t *	 client = NULL;
-	char *		 keynamestr = NULL;
-	char *		 keystr = NULL;
-	isc_result_t	 result;
-	isc_buffer_t	 b;
-	dns_fixedname_t	 qname0;
-	unsigned int	 namelen;
-	dns_name_t *	 qname, *name;
-	dns_rdatatype_t	 type = dns_rdatatype_a;
-	dns_rdataset_t * rdataset;
-	dns_namelist_t	 namelist;
-	isc_mem_t *	 keymctx = NULL;
-	unsigned int	 clientopt, resopt;
-	bool		 is_sep = false;
-	const char *	 port = "53";
-	isc_mem_t *	 mctx = NULL;
-	isc_appctx_t *	 actx = NULL;
-	isc_taskmgr_t *	 taskmgr = NULL;
+	char *server = NULL;
+	char *altserver = NULL;
+	char *altserveraddr = NULL;
+	char *altservername = NULL;
+	dns_client_t *client = NULL;
+	char *keynamestr = NULL;
+	char *keystr = NULL;
+	isc_result_t result;
+	isc_buffer_t b;
+	dns_fixedname_t qname0;
+	unsigned int namelen;
+	dns_name_t *qname, *name;
+	dns_rdatatype_t type = dns_rdatatype_a;
+	dns_rdataset_t *rdataset;
+	dns_namelist_t namelist;
+	isc_mem_t *keymctx = NULL;
+	unsigned int clientopt, resopt;
+	bool is_sep = false;
+	const char *port = "53";
+	isc_mem_t *mctx = NULL;
+	isc_appctx_t *actx = NULL;
+	isc_taskmgr_t *taskmgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
-	isc_timermgr_t * timermgr = NULL;
-	struct in_addr	 in4;
-	struct in6_addr	 in6;
-	isc_sockaddr_t	 a4, a6;
-	isc_sockaddr_t * addr4 = NULL, *addr6 = NULL;
+	isc_timermgr_t *timermgr = NULL;
+	struct in_addr in4;
+	struct in6_addr in6;
+	isc_sockaddr_t a4, a6;
+	isc_sockaddr_t *addr4 = NULL, *addr6 = NULL;
 
 	while ((ch = isc_commandline_parse(argc, argv, "a:b:es:t:k:K:p:S:")) !=
 	       -1) {
@@ -400,7 +394,7 @@ main(int argc, char *argv[])
 
 	/* Set the nameserver */
 	if (server == NULL) {
-		irs_resconf_t *	    resconf = NULL;
+		irs_resconf_t *resconf = NULL;
 		isc_sockaddrlist_t *nameservers;
 
 		result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
@@ -461,9 +455,11 @@ main(int argc, char *argv[])
 			dns_result_totext(result));
 	}
 	for (name = ISC_LIST_HEAD(namelist); name != NULL;
-	     name = ISC_LIST_NEXT(name, link)) {
+	     name = ISC_LIST_NEXT(name, link))
+	{
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
 			if (printdata(rdataset, name) != ISC_R_SUCCESS) {
 				fprintf(stderr, "print data failed\n");
 			}

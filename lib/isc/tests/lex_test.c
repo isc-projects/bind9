@@ -30,8 +30,7 @@
 #include "isctest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -43,8 +42,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -54,12 +52,11 @@ _teardown(void **state)
 
 /* check handling of 0xff */
 static void
-lex_0xff(void **state)
-{
+lex_0xff(void **state) {
 	isc_result_t result;
-	isc_lex_t *  lex = NULL;
+	isc_lex_t *lex = NULL;
 	isc_buffer_t death_buf;
-	isc_token_t  token;
+	isc_token_t token;
 
 	unsigned char death[] = { EOF, 'A' };
 
@@ -82,15 +79,14 @@ lex_0xff(void **state)
 
 /* check setting of source line */
 static void
-lex_setline(void **state)
-{
-	isc_result_t  result;
-	isc_lex_t *   lex = NULL;
+lex_setline(void **state) {
+	isc_result_t result;
+	isc_lex_t *lex = NULL;
 	unsigned char text[] = "text\nto\nbe\nprocessed\nby\nlexer";
-	isc_buffer_t  buf;
-	isc_token_t   token;
+	isc_buffer_t buf;
+	isc_token_t token;
 	unsigned long line;
-	int	      i;
+	int i;
 
 	UNUSED(state);
 
@@ -124,8 +120,7 @@ lex_setline(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(lex_0xff),
 		cmocka_unit_test(lex_setline),
@@ -139,8 +134,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

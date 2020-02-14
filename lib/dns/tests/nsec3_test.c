@@ -31,8 +31,7 @@
 #include "dnstest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -44,8 +43,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -54,10 +52,9 @@ _teardown(void **state)
 }
 
 static void
-iteration_test(const char *file, unsigned int expected)
-{
+iteration_test(const char *file, unsigned int expected) {
 	isc_result_t result;
-	dns_db_t *   db = NULL;
+	dns_db_t *db = NULL;
 	unsigned int iterations;
 
 	result = dns_test_loaddb(&db, dns_dbtype_zone, "test", file);
@@ -88,14 +85,13 @@ typedef struct {
  * invalid NSEC3PARAM RDATA is out of scope of this unit test.
  */
 static void
-nsec3param_salttotext_test(const nsec3param_salttotext_test_params_t *params)
-{
-	dns_rdata_t	       rdata = DNS_RDATA_INIT;
+nsec3param_salttotext_test(const nsec3param_salttotext_test_params_t *params) {
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nsec3param_t nsec3param;
-	unsigned char	       buf[1024];
-	isc_result_t	       result;
-	char		       salt[64];
-	size_t		       length;
+	unsigned char buf[1024];
+	isc_result_t result;
+	char salt[64];
+	size_t length;
 
 	/*
 	 * Prepare a dns_rdata_nsec3param_t structure for testing.
@@ -138,8 +134,7 @@ nsec3param_salttotext_test(const nsec3param_salttotext_test_params_t *params)
  * key size mixes
  */
 static void
-max_iterations(void **state)
-{
+max_iterations(void **state) {
 	UNUSED(state);
 
 	iteration_test("testdata/nsec3/1024.db", 150);
@@ -151,8 +146,7 @@ max_iterations(void **state)
 
 /* check dns_nsec3param_salttotext() */
 static void
-nsec3param_salttotext(void **state)
-{
+nsec3param_salttotext(void **state) {
 	size_t i;
 
 	const nsec3param_salttotext_test_params_t tests[] = {
@@ -177,8 +171,7 @@ nsec3param_salttotext(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(max_iterations, _setup,
 						_teardown),
@@ -194,8 +187,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

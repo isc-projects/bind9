@@ -30,30 +30,30 @@
 
 static isc_result_t
 add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
-		 isc_mem_t *mctx)
-{
-	dns_tsigkey_t *	     tsigkey = NULL;
+		 isc_mem_t *mctx) {
+	dns_tsigkey_t *tsigkey = NULL;
 	const cfg_listelt_t *element;
-	const cfg_obj_t *    key = NULL;
-	const char *	     keyid = NULL;
-	unsigned char *	     secret = NULL;
-	int		     secretalloc = 0;
-	int		     secretlen = 0;
-	isc_result_t	     ret;
-	isc_stdtime_t	     now;
-	uint16_t	     bits;
+	const cfg_obj_t *key = NULL;
+	const char *keyid = NULL;
+	unsigned char *secret = NULL;
+	int secretalloc = 0;
+	int secretlen = 0;
+	isc_result_t ret;
+	isc_stdtime_t now;
+	uint16_t bits;
 
 	for (element = cfg_list_first(list); element != NULL;
-	     element = cfg_list_next(element)) {
-		const cfg_obj_t * algobj = NULL;
-		const cfg_obj_t * secretobj = NULL;
-		dns_name_t	  keyname;
+	     element = cfg_list_next(element))
+	{
+		const cfg_obj_t *algobj = NULL;
+		const cfg_obj_t *secretobj = NULL;
+		dns_name_t keyname;
 		const dns_name_t *alg;
-		const char *	  algstr;
-		char		  keynamedata[1024];
-		isc_buffer_t	  keynamesrc, keynamebuf;
-		const char *	  secretstr;
-		isc_buffer_t	  secretbuf;
+		const char *algstr;
+		char keynamedata[1024];
+		isc_buffer_t keynamesrc, keynamebuf;
+		const char *secretstr;
+		isc_buffer_t secretbuf;
 
 		key = cfg_listelt_value(element);
 		keyid = cfg_obj_asstring(cfg_map_getname(key));
@@ -131,13 +131,12 @@ failure:
 
 isc_result_t
 named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
-			     isc_mem_t *mctx, dns_tsig_keyring_t **ringp)
-{
-	const cfg_obj_t *   maps[3];
-	const cfg_obj_t *   keylist;
+			     isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
+	const cfg_obj_t *maps[3];
+	const cfg_obj_t *keylist;
 	dns_tsig_keyring_t *ring = NULL;
-	isc_result_t	    result;
-	int		    i;
+	isc_result_t result;
+	int i;
 
 	REQUIRE(ringp != NULL && *ringp == NULL);
 

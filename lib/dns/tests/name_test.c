@@ -42,8 +42,7 @@
 static bool verbose = false;
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -55,8 +54,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -66,21 +64,20 @@ _teardown(void **state)
 
 /* dns_name_fullcompare test */
 static void
-fullcompare_test(void **state)
-{
+fullcompare_test(void **state) {
 	dns_fixedname_t fixed1;
 	dns_fixedname_t fixed2;
-	dns_name_t *	name1;
-	dns_name_t *	name2;
-	dns_namereln_t	relation;
-	int		i;
-	isc_result_t	result;
+	dns_name_t *name1;
+	dns_name_t *name2;
+	dns_namereln_t relation;
+	int i;
+	isc_result_t result;
 	struct {
-		const char *   name1;
-		const char *   name2;
+		const char *name1;
+		const char *name2;
 		dns_namereln_t relation;
-		int	       order;
-		unsigned int   nlabels;
+		int order;
+		unsigned int nlabels;
 	} data[] = {
 		/* relative */
 		{ "", "", dns_namereln_equal, 0, 0 },
@@ -113,7 +110,7 @@ fullcompare_test(void **state)
 	name1 = dns_fixedname_initname(&fixed1);
 	name2 = dns_fixedname_initname(&fixed2);
 	for (i = 0; data[i].name1 != NULL; i++) {
-		int	     order = 3000;
+		int order = 3000;
 		unsigned int nlabels = 3000;
 
 		if (data[i].name1[0] == 0) {
@@ -149,11 +146,10 @@ fullcompare_test(void **state)
 static void
 compress_test(dns_name_t *name1, dns_name_t *name2, dns_name_t *name3,
 	      unsigned char *expected, unsigned int length,
-	      dns_compress_t *cctx, dns_decompress_t *dctx)
-{
-	isc_buffer_t  source;
-	isc_buffer_t  target;
-	dns_name_t    name;
+	      dns_compress_t *cctx, dns_decompress_t *dctx) {
+	isc_buffer_t source;
+	isc_buffer_t target;
+	dns_name_t name;
 	unsigned char buf1[1024];
 	unsigned char buf2[1024];
 
@@ -185,19 +181,18 @@ compress_test(dns_name_t *name1, dns_name_t *name2, dns_name_t *name3,
 
 /* name compression test */
 static void
-compression_test(void **state)
-{
-	unsigned int	 allowed;
-	dns_compress_t	 cctx;
+compression_test(void **state) {
+	unsigned int allowed;
+	dns_compress_t cctx;
 	dns_decompress_t dctx;
-	dns_name_t	 name1;
-	dns_name_t	 name2;
-	dns_name_t	 name3;
-	isc_region_t	 r;
-	unsigned char	 plain1[] = "\003yyy\003foo";
-	unsigned char	 plain2[] = "\003bar\003yyy\003foo";
-	unsigned char	 plain3[] = "\003xxx\003bar\003foo";
-	unsigned char	 plain[] = "\003yyy\003foo\0\003bar\003yyy\003foo\0\003"
+	dns_name_t name1;
+	dns_name_t name2;
+	dns_name_t name3;
+	isc_region_t r;
+	unsigned char plain1[] = "\003yyy\003foo";
+	unsigned char plain2[] = "\003bar\003yyy\003foo";
+	unsigned char plain3[] = "\003xxx\003bar\003foo";
+	unsigned char plain[] = "\003yyy\003foo\0\003bar\003yyy\003foo\0\003"
 				"bar\003yyy\003foo\0\003xxx\003bar\003foo";
 
 	UNUSED(state);
@@ -301,15 +296,14 @@ compression_test(void **state)
 
 /* is trust-anchor-telemetry test */
 static void
-istat_test(void **state)
-{
+istat_test(void **state) {
 	dns_fixedname_t fixed;
-	dns_name_t *	name;
-	isc_result_t	result;
-	size_t		i;
+	dns_name_t *name;
+	isc_result_t result;
+	size_t i;
 	struct {
 		const char *name;
-		bool	    istat;
+		bool istat;
 	} data[] = { { ".", false },
 		     { "_ta-", false },
 		     { "_ta-1234", true },
@@ -346,9 +340,8 @@ istat_test(void **state)
 
 /* dns_nane_init */
 static void
-init_test(void **state)
-{
-	dns_name_t    name;
+init_test(void **state) {
+	dns_name_t name;
 	unsigned char offsets[1];
 
 	UNUSED(state);
@@ -365,9 +358,8 @@ init_test(void **state)
 
 /* dns_nane_invalidate */
 static void
-invalidate_test(void **state)
-{
-	dns_name_t    name;
+invalidate_test(void **state) {
+	dns_name_t name;
 	unsigned char offsets[1];
 
 	UNUSED(state);
@@ -385,11 +377,10 @@ invalidate_test(void **state)
 
 /* dns_nane_setbuffer/hasbuffer */
 static void
-buffer_test(void **state)
-{
-	dns_name_t    name;
+buffer_test(void **state) {
+	dns_name_t name;
 	unsigned char buf[BUFSIZ];
-	isc_buffer_t  b;
+	isc_buffer_t b;
 
 	UNUSED(state);
 
@@ -402,11 +393,10 @@ buffer_test(void **state)
 
 /* dns_nane_isabsolute */
 static void
-isabsolute_test(void **state)
-{
+isabsolute_test(void **state) {
 	struct {
 		const char *namestr;
-		bool	    expect;
+		bool expect;
 	} testcases[] = { { "x", false },
 			  { "a.b.c.d.", true },
 			  { "x.z", false } };
@@ -415,11 +405,11 @@ isabsolute_test(void **state)
 	UNUSED(state);
 
 	for (i = 0; i < (sizeof(testcases) / sizeof(testcases[0])); i++) {
-		isc_result_t  result;
-		dns_name_t    name;
+		isc_result_t result;
+		dns_name_t name;
 		unsigned char data[BUFSIZ];
-		isc_buffer_t  b, nb;
-		size_t	      len;
+		isc_buffer_t b, nb;
+		size_t len;
 
 		len = strlen(testcases[i].namestr);
 		isc_buffer_constinit(&b, testcases[i].namestr, len);
@@ -438,13 +428,12 @@ isabsolute_test(void **state)
 
 /* dns_nane_hash */
 static void
-hash_test(void **state)
-{
+hash_test(void **state) {
 	struct {
 		const char *name1;
 		const char *name2;
-		bool	    expect;
-		bool	    expecti;
+		bool expect;
+		bool expecti;
 	} testcases[] = {
 		{ "a.b.c.d", "A.B.C.D", true, false },
 		{ "a.b.c.d.", "A.B.C.D.", true, false },
@@ -458,10 +447,10 @@ hash_test(void **state)
 	UNUSED(state);
 
 	for (i = 0; i < (sizeof(testcases) / sizeof(testcases[0])); i++) {
-		isc_result_t	result;
+		isc_result_t result;
 		dns_fixedname_t f1, f2;
-		dns_name_t *	n1, *n2;
-		unsigned int	h1, h2;
+		dns_name_t *n1, *n2;
+		unsigned int h1, h2;
 
 		n1 = dns_fixedname_initname(&f1);
 		n2 = dns_fixedname_initname(&f2);
@@ -503,12 +492,11 @@ hash_test(void **state)
 
 /* dns_nane_issubdomain */
 static void
-issubdomain_test(void **state)
-{
+issubdomain_test(void **state) {
 	struct {
 		const char *name1;
 		const char *name2;
-		bool	    expect;
+		bool expect;
 	} testcases[] = {
 		{ "c.d", "a.b.c.d", false }, { "c.d.", "a.b.c.d.", false },
 		{ "b.c.d", "c.d", true },    { "a.b.c.d.", "c.d.", true },
@@ -520,9 +508,9 @@ issubdomain_test(void **state)
 	UNUSED(state);
 
 	for (i = 0; i < (sizeof(testcases) / sizeof(testcases[0])); i++) {
-		isc_result_t	result;
+		isc_result_t result;
 		dns_fixedname_t f1, f2;
-		dns_name_t *	n1, *n2;
+		dns_name_t *n1, *n2;
 
 		n1 = dns_fixedname_initname(&f1);
 		n2 = dns_fixedname_initname(&f2);
@@ -548,10 +536,9 @@ issubdomain_test(void **state)
 
 /* dns_nane_countlabels */
 static void
-countlabels_test(void **state)
-{
+countlabels_test(void **state) {
 	struct {
-		const char * namestr;
+		const char *namestr;
 		unsigned int expect;
 	} testcases[] = {
 		{ "c.d", 2 },	  { "c.d.", 3 },  { "a.b.c.d.", 5 },
@@ -562,9 +549,9 @@ countlabels_test(void **state)
 	UNUSED(state);
 
 	for (i = 0; i < (sizeof(testcases) / sizeof(testcases[0])); i++) {
-		isc_result_t	result;
+		isc_result_t result;
 		dns_fixedname_t fname;
-		dns_name_t *	name;
+		dns_name_t *name;
 
 		name = dns_fixedname_initname(&fname);
 
@@ -585,12 +572,11 @@ countlabels_test(void **state)
 
 /* dns_nane_getlabel */
 static void
-getlabel_test(void **state)
-{
+getlabel_test(void **state) {
 	struct {
-		const char * name1;
+		const char *name1;
 		unsigned int pos1;
-		const char * name2;
+		const char *name2;
 		unsigned int pos2;
 	} testcases[] = {
 		{ "c.d", 1, "a.b.c.d", 3 },
@@ -602,11 +588,11 @@ getlabel_test(void **state)
 	UNUSED(state);
 
 	for (i = 0; i < (sizeof(testcases) / sizeof(testcases[0])); i++) {
-		isc_result_t	result;
+		isc_result_t result;
 		dns_fixedname_t f1, f2;
-		dns_name_t *	n1, *n2;
-		dns_label_t	l1, l2;
-		unsigned int	j;
+		dns_name_t *n1, *n2;
+		dns_label_t l1, l2;
+		unsigned int j;
 
 		n1 = dns_fixedname_initname(&f1);
 		n2 = dns_fixedname_initname(&f2);
@@ -630,12 +616,11 @@ getlabel_test(void **state)
 
 /* dns_nane_getlabelsequence */
 static void
-getlabelsequence_test(void **state)
-{
+getlabelsequence_test(void **state) {
 	struct {
-		const char * name1;
+		const char *name1;
 		unsigned int pos1;
-		const char * name2;
+		const char *name2;
 		unsigned int pos2;
 		unsigned int range;
 	} testcases[] = {
@@ -648,10 +633,10 @@ getlabelsequence_test(void **state)
 	UNUSED(state);
 
 	for (i = 0; i < (sizeof(testcases) / sizeof(testcases[0])); i++) {
-		isc_result_t	result;
-		dns_name_t	t1, t2;
+		isc_result_t result;
+		dns_name_t t1, t2;
 		dns_fixedname_t f1, f2;
-		dns_name_t *	n1, *n2;
+		dns_name_t *n1, *n2;
 
 		/* target names */
 		dns_name_init(&t1, NULL);
@@ -687,15 +672,14 @@ getlabelsequence_test(void **state)
 /* Benchmark dns_name_fromwire() implementation */
 
 static void *
-fromwire_thread(void *arg)
-{
-	unsigned int	 maxval = 32000000;
-	uint8_t		 data[] = { 3,	 'w', 'w', 'w', 7,   'e', 'x',
-			    'a', 'm', 'p', 'l', 'e', 7,	  'i',
-			    'n', 'v', 'a', 'l', 'i', 'd', 0 };
-	unsigned char	 output_data[DNS_NAME_MAXWIRE];
-	isc_buffer_t	 source, target;
-	unsigned int	 i;
+fromwire_thread(void *arg) {
+	unsigned int maxval = 32000000;
+	uint8_t data[] = { 3,	'w', 'w', 'w', 7,   'e', 'x',
+			   'a', 'm', 'p', 'l', 'e', 7,	 'i',
+			   'n', 'v', 'a', 'l', 'i', 'd', 0 };
+	unsigned char output_data[DNS_NAME_MAXWIRE];
+	isc_buffer_t source, target;
+	unsigned int i;
 	dns_decompress_t dctx;
 
 	UNUSED(arg);
@@ -724,12 +708,11 @@ fromwire_thread(void *arg)
 }
 
 static void
-benchmark_test(void **state)
-{
+benchmark_test(void **state) {
 	isc_result_t result;
 	unsigned int i;
-	isc_time_t   ts1, ts2;
-	double	     t;
+	isc_time_t ts1, ts2;
+	double t;
 	unsigned int nthreads;
 	isc_thread_t threads[32];
 
@@ -763,8 +746,7 @@ benchmark_test(void **state)
 #endif /* DNS_BENCHMARK_TESTS */
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(fullcompare_test),
 		cmocka_unit_test_setup_teardown(compression_test, _setup,
@@ -804,8 +786,7 @@ main(int argc, char **argv)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

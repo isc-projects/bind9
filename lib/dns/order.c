@@ -27,26 +27,25 @@
 
 typedef struct dns_order_ent dns_order_ent_t;
 struct dns_order_ent {
-	dns_fixedname_t	 name;
+	dns_fixedname_t name;
 	dns_rdataclass_t rdclass;
-	dns_rdatatype_t	 rdtype;
-	unsigned int	 mode;
+	dns_rdatatype_t rdtype;
+	unsigned int mode;
 	ISC_LINK(dns_order_ent_t) link;
 };
 
 struct dns_order {
-	unsigned int   magic;
+	unsigned int magic;
 	isc_refcount_t references;
 	ISC_LIST(dns_order_ent_t) ents;
 	isc_mem_t *mctx;
 };
 
-#define DNS_ORDER_MAGIC ISC_MAGIC('O', 'r', 'd', 'r')
+#define DNS_ORDER_MAGIC	       ISC_MAGIC('O', 'r', 'd', 'r')
 #define DNS_ORDER_VALID(order) ISC_MAGIC_VALID(order, DNS_ORDER_MAGIC)
 
 isc_result_t
-dns_order_create(isc_mem_t *mctx, dns_order_t **orderp)
-{
+dns_order_create(isc_mem_t *mctx, dns_order_t **orderp) {
 	dns_order_t *order;
 
 	REQUIRE(orderp != NULL && *orderp == NULL);
@@ -68,8 +67,7 @@ dns_order_create(isc_mem_t *mctx, dns_order_t **orderp)
 isc_result_t
 dns_order_add(dns_order_t *order, const dns_name_t *name,
 	      dns_rdatatype_t rdtype, dns_rdataclass_t rdclass,
-	      unsigned int mode)
-{
+	      unsigned int mode) {
 	dns_order_ent_t *ent;
 
 	REQUIRE(DNS_ORDER_VALID(order));
@@ -90,8 +88,7 @@ dns_order_add(dns_order_t *order, const dns_name_t *name,
 }
 
 static inline bool
-match(const dns_name_t *name1, const dns_name_t *name2)
-{
+match(const dns_name_t *name1, const dns_name_t *name2) {
 	if (dns_name_iswildcard(name2)) {
 		return (dns_name_matcheswildcard(name1, name2));
 	}
@@ -100,13 +97,13 @@ match(const dns_name_t *name1, const dns_name_t *name2)
 
 unsigned int
 dns_order_find(dns_order_t *order, const dns_name_t *name,
-	       dns_rdatatype_t rdtype, dns_rdataclass_t rdclass)
-{
+	       dns_rdatatype_t rdtype, dns_rdataclass_t rdclass) {
 	dns_order_ent_t *ent;
 	REQUIRE(DNS_ORDER_VALID(order));
 
 	for (ent = ISC_LIST_HEAD(order->ents); ent != NULL;
-	     ent = ISC_LIST_NEXT(ent, link)) {
+	     ent = ISC_LIST_NEXT(ent, link))
+	{
 		if (ent->rdtype != rdtype && ent->rdtype != dns_rdatatype_any) {
 			continue;
 		}
@@ -122,8 +119,7 @@ dns_order_find(dns_order_t *order, const dns_name_t *name,
 }
 
 void
-dns_order_attach(dns_order_t *source, dns_order_t **target)
-{
+dns_order_attach(dns_order_t *source, dns_order_t **target) {
 	REQUIRE(DNS_ORDER_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
 	isc_refcount_increment(&source->references);
@@ -131,8 +127,7 @@ dns_order_attach(dns_order_t *source, dns_order_t **target)
 }
 
 void
-dns_order_detach(dns_order_t **orderp)
-{
+dns_order_detach(dns_order_t **orderp) {
 	REQUIRE(orderp != NULL && DNS_ORDER_VALID(*orderp));
 	dns_order_t *order;
 	order = *orderp;

@@ -65,16 +65,16 @@
  * These share space with CFG_CLAUSEFLAG values, but count
  * down from the top.
  */
-#define CFG_ZONE_MASTER 0x80000000
-#define CFG_ZONE_SLAVE 0x40000000
-#define CFG_ZONE_STUB 0x20000000
-#define CFG_ZONE_HINT 0x10000000
-#define CFG_ZONE_FORWARD 0x08000000
+#define CFG_ZONE_MASTER	    0x80000000
+#define CFG_ZONE_SLAVE	    0x40000000
+#define CFG_ZONE_STUB	    0x20000000
+#define CFG_ZONE_HINT	    0x10000000
+#define CFG_ZONE_FORWARD    0x08000000
 #define CFG_ZONE_STATICSTUB 0x04000000
-#define CFG_ZONE_REDIRECT 0x02000000
+#define CFG_ZONE_REDIRECT   0x02000000
 #define CFG_ZONE_DELEGATION 0x01000000
-#define CFG_ZONE_INVIEW 0x00800000
-#define CFG_ZONE_MIRROR 0x00400000
+#define CFG_ZONE_INVIEW	    0x00800000
+#define CFG_ZONE_MIRROR	    0x00400000
 
 typedef struct cfg_clausedef	 cfg_clausedef_t;
 typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;
@@ -282,19 +282,19 @@ struct cfg_parser {
 };
 
 /* Parser context flags */
-#define CFG_PCTX_SKIP 0x1
+#define CFG_PCTX_SKIP	      0x1
 #define CFG_PCTX_NODEPRECATED 0x2
 
 /*@{*/
 /*%
  * Flags defining whether to accept certain types of network addresses.
  */
-#define CFG_ADDR_V4OK 0x00000001
+#define CFG_ADDR_V4OK	    0x00000001
 #define CFG_ADDR_V4PREFIXOK 0x00000002
-#define CFG_ADDR_V6OK 0x00000004
-#define CFG_ADDR_WILDOK 0x00000008
-#define CFG_ADDR_DSCPOK 0x00000010
-#define CFG_ADDR_MASK (CFG_ADDR_V6OK | CFG_ADDR_V4OK)
+#define CFG_ADDR_V6OK	    0x00000004
+#define CFG_ADDR_WILDOK	    0x00000008
+#define CFG_ADDR_DSCPOK	    0x00000010
+#define CFG_ADDR_MASK	    (CFG_ADDR_V6OK | CFG_ADDR_V4OK)
 /*@}*/
 
 /*@{*/
@@ -575,7 +575,7 @@ cfg_parser_error(cfg_parser_t *pctx, unsigned int flags, const char *fmt, ...)
  * Pass one of these flags to cfg_parser_error() to include the
  * token text in log message.
  */
-#define CFG_LOG_NEAR 0x00000001	  /*%< Say "near <token>" */
+#define CFG_LOG_NEAR   0x00000001 /*%< Say "near <token>" */
 #define CFG_LOG_BEFORE 0x00000002 /*%< Say "before <token>" */
 #define CFG_LOG_NOPREP 0x00000004 /*%< Say just "<token>" */
 

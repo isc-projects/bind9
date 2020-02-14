@@ -28,19 +28,18 @@
 
 /* test isc_netaddr_isnetzero() */
 static void
-netaddr_isnetzero(void **state)
-{
-	unsigned int   i;
+netaddr_isnetzero(void **state) {
+	unsigned int i;
 	struct in_addr ina;
 	struct {
 		const char *address;
-		bool	    expect;
+		bool expect;
 	} tests[] = { { "0.0.0.0", true },    { "0.0.0.1", true },
 		      { "0.0.1.2", true },    { "0.1.2.3", true },
 		      { "10.0.0.0", false },  { "10.9.0.0", false },
 		      { "10.9.8.0", false },  { "10.9.8.7", false },
 		      { "127.0.0.0", false }, { "127.0.0.1", false } };
-	bool	      result;
+	bool result;
 	isc_netaddr_t netaddr;
 
 	UNUSED(state);
@@ -55,17 +54,16 @@ netaddr_isnetzero(void **state)
 
 /* test isc_netaddr_masktoprefixlen() calculates correct prefix lengths */
 static void
-netaddr_masktoprefixlen(void **state)
-{
+netaddr_masktoprefixlen(void **state) {
 	struct in_addr na_a;
 	struct in_addr na_b;
 	struct in_addr na_c;
 	struct in_addr na_d;
-	isc_netaddr_t  ina_a;
-	isc_netaddr_t  ina_b;
-	isc_netaddr_t  ina_c;
-	isc_netaddr_t  ina_d;
-	unsigned int   plen;
+	isc_netaddr_t ina_a;
+	isc_netaddr_t ina_b;
+	isc_netaddr_t ina_c;
+	isc_netaddr_t ina_d;
+	unsigned int plen;
 
 	UNUSED(state);
 
@@ -98,13 +96,12 @@ netaddr_masktoprefixlen(void **state)
 
 /* check multicast addresses are detected properly */
 static void
-netaddr_multicast(void **state)
-{
+netaddr_multicast(void **state) {
 	unsigned int i;
 	struct {
-		int	    family;
+		int family;
 		const char *addr;
-		bool	    is_multicast;
+		bool is_multicast;
 	} tests[] = {
 		{ AF_INET, "1.2.3.4", false },	{ AF_INET, "4.3.2.1", false },
 		{ AF_INET, "224.1.1.1", true }, { AF_INET, "1.1.1.244", false },
@@ -114,10 +111,10 @@ netaddr_multicast(void **state)
 	UNUSED(state);
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
-		isc_netaddr_t	na;
-		struct in_addr	in;
+		isc_netaddr_t na;
+		struct in_addr in;
 		struct in6_addr in6;
-		int		r;
+		int r;
 
 		if (tests[i].family == AF_INET) {
 			r = inet_pton(AF_INET, tests[i].addr,
@@ -137,8 +134,7 @@ netaddr_multicast(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(netaddr_isnetzero),
 		cmocka_unit_test(netaddr_masktoprefixlen),
@@ -153,8 +149,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

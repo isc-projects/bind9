@@ -29,8 +29,7 @@
 #include "isctest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -42,8 +41,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -52,12 +50,11 @@ _teardown(void **state)
 }
 
 static isc_result_t
-poolinit(void **target, void *arg)
-{
+poolinit(void **target, void *arg) {
 	isc_result_t result;
 
 	isc_taskmgr_t *mgr = (isc_taskmgr_t *)arg;
-	isc_task_t *   task = NULL;
+	isc_task_t *task = NULL;
 	result = isc_task_create(mgr, 0, &task);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
@@ -68,8 +65,7 @@ poolinit(void **target, void *arg)
 }
 
 static void
-poolfree(void **target)
-{
+poolfree(void **target) {
 	isc_task_t *task = *(isc_task_t **)target;
 	isc_task_destroy(&task);
 	*target = NULL;
@@ -77,10 +73,9 @@ poolfree(void **target)
 
 /* Create a pool */
 static void
-create_pool(void **state)
-{
+create_pool(void **state) {
 	isc_result_t result;
-	isc_pool_t * pool = NULL;
+	isc_pool_t *pool = NULL;
 
 	UNUSED(state);
 
@@ -95,10 +90,9 @@ create_pool(void **state)
 
 /* Resize a pool */
 static void
-expand_pool(void **state)
-{
+expand_pool(void **state) {
 	isc_result_t result;
-	isc_pool_t * pool1 = NULL, *pool2 = NULL, *hold = NULL;
+	isc_pool_t *pool1 = NULL, *pool2 = NULL, *hold = NULL;
 
 	UNUSED(state);
 
@@ -141,12 +135,11 @@ expand_pool(void **state)
 
 /* Get objects */
 static void
-get_objects(void **state)
-{
+get_objects(void **state) {
 	isc_result_t result;
-	isc_pool_t * pool = NULL;
-	void *	     item;
-	isc_task_t * task1 = NULL, *task2 = NULL, *task3 = NULL;
+	isc_pool_t *pool = NULL;
+	void *item;
+	isc_task_t *task1 = NULL, *task2 = NULL, *task3 = NULL;
 
 	UNUSED(state);
 
@@ -176,8 +169,7 @@ get_objects(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(create_pool, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(expand_pool, _setup, _teardown),
@@ -192,8 +184,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

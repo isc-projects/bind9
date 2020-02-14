@@ -35,8 +35,7 @@
 
 #if USE_OPENSSL
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -48,8 +47,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -59,14 +57,13 @@ _teardown(void **state)
 
 /* OpenSSL DH_compute_key() failure */
 static void
-dh_computesecret(void **state)
-{
-	dst_key_t *	key = NULL;
-	isc_buffer_t	buf;
-	unsigned char	array[1024];
-	isc_result_t	result;
+dh_computesecret(void **state) {
+	dst_key_t *key = NULL;
+	isc_buffer_t buf;
+	unsigned char array[1024];
+	isc_result_t result;
 	dns_fixedname_t fname;
-	dns_name_t *	name;
+	dns_name_t *name;
 
 	UNUSED(state);
 
@@ -92,8 +89,7 @@ dh_computesecret(void **state)
 #endif /* USE_OPENSSL */
 
 int
-main(void)
-{
+main(void) {
 #if USE_OPENSSL
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(dh_computesecret, _setup,
@@ -111,8 +107,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

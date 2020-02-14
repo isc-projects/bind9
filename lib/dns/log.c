@@ -69,8 +69,7 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 LIBDNS_EXTERNAL_DATA isc_log_t *dns_lctx = NULL;
 
 void
-dns_log_init(isc_log_t *lctx)
-{
+dns_log_init(isc_log_t *lctx) {
 	REQUIRE(lctx != NULL);
 
 	isc_log_registercategories(lctx, dns_categories);
@@ -78,7 +77,6 @@ dns_log_init(isc_log_t *lctx)
 }
 
 void
-dns_log_setcontext(isc_log_t *lctx)
-{
+dns_log_setcontext(isc_log_t *lctx) {
 	dns_lctx = lctx;
 }

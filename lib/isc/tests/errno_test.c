@@ -26,7 +26,7 @@
 #include <isc/util.h>
 
 typedef struct {
-	int	     err;
+	int err;
 	isc_result_t result;
 } testpair_t;
 
@@ -86,10 +86,9 @@ testpair_t testpair[] = { { EPERM, ISC_R_NOPERM },
 
 /* convert errno to ISC result */
 static void
-isc_errno_toresult_test(void **state)
-{
+isc_errno_toresult_test(void **state) {
 	isc_result_t result, expect;
-	size_t	     i;
+	size_t i;
 
 	UNUSED(state);
 
@@ -101,8 +100,7 @@ isc_errno_toresult_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_errno_toresult_test),
 	};
@@ -115,8 +113,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

@@ -67,11 +67,11 @@
 static dns_sdlzimplementation_t *dlz_odbc = NULL;
 
 #define dbc_search_limit 30
-#define ALLNODES 1
-#define ALLOWXFR 2
-#define AUTHORITY 3
-#define FINDZONE 4
-#define LOOKUP 5
+#define ALLNODES	 1
+#define ALLOWXFR	 2
+#define AUTHORITY	 3
+#define FINDZONE	 4
+#define LOOKUP		 5
 
 #define sqlOK(a) ((a == SQL_SUCCESS || a == SQL_SUCCESS_WITH_INFO) ? -1 : 0)
 
@@ -84,7 +84,7 @@ static dns_sdlzimplementation_t *dlz_odbc = NULL;
  */
 
 typedef struct {
-	SQLHDBC	 dbc;
+	SQLHDBC dbc;
 	SQLHSTMT stmnt;
 } odbc_db_t;
 
@@ -95,17 +95,16 @@ typedef struct {
  */
 
 typedef struct {
-	db_list_t *db;	    /* handle to a list of DB */
-	SQLHENV	   sql_env; /* handle to SQL environment */
-	SQLCHAR *  dsn;
-	SQLCHAR *  user;
-	SQLCHAR *  pass;
+	db_list_t *db;	 /* handle to a list of DB */
+	SQLHENV sql_env; /* handle to SQL environment */
+	SQLCHAR *dsn;
+	SQLCHAR *user;
+	SQLCHAR *pass;
 } odbc_instance_t;
 
 /* forward reference */
 
-static size_t
-odbc_makesafe(char *to, const char *from, size_t length);
+static size_t odbc_makesafe(char *to, const char *from, size_t length);
 
 /*
  * Private methods
@@ -192,8 +191,8 @@ destroy_odbc_instance(odbc_instance_t *odbc_inst)
 static isc_result_t
 odbc_connect(odbc_instance_t *dbi, odbc_db_t **dbc)
 {
-	odbc_db_t *  ndb = *dbc;
-	SQLRETURN    sqlRes;
+	odbc_db_t *ndb = *dbc;
+	SQLRETURN sqlRes;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (ndb != NULL) {
@@ -286,7 +285,7 @@ odbc_find_avail_conn(db_list_t *dblist)
 {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
-	int	      count = 0;
+	int count = 0;
 
 	/* get top of list */
 	head = dbi = ISC_LIST_HEAD(*dblist);
@@ -324,7 +323,7 @@ odbc_find_avail_conn(db_list_t *dblist)
 static char *
 odbc_escape_string(const char *instr)
 {
-	char *	     outstr;
+	char *outstr;
 	unsigned int len;
 
 	if (instr == NULL) {
@@ -361,8 +360,8 @@ odbc_escape_string(const char *instr)
 static size_t
 odbc_makesafe(char *to, const char *from, size_t length)
 {
-	const char * source = from;
-	char *	     target = to;
+	const char *source = from;
+	char *target = to;
 	unsigned int remaining = length;
 
 	while (remaining > 0) {
@@ -417,11 +416,11 @@ static isc_result_t
 odbc_get_resultset(const char *zone, const char *record, const char *client,
 		   unsigned int query, void *dbdata, dbinstance_t **r_dbi)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
-	char *	      querystring = NULL;
-	unsigned int  j = 0;
-	SQLRETURN     sqlRes;
+	char *querystring = NULL;
+	unsigned int j = 0;
+	SQLRETURN sqlRes;
 
 	REQUIRE(*r_dbi == NULL);
 
@@ -658,7 +657,8 @@ odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data)
 
 	if (sqlOK(SQLColAttribute(stmnt, field, SQL_DESC_DISPLAY_SIZE, NULL, 0,
 				  NULL, &size)) &&
-	    size > 0) {
+	    size > 0)
+	{
 		*data = isc_mem_allocate(named_g_mctx, size + 1);
 		if (data != NULL) {
 			if (sqlOK(SQLGetData(stmnt, field, SQL_C_CHAR, *data,
@@ -683,11 +683,11 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 		   SQLSMALLINT endField, char **retData)
 {
 	isc_result_t result;
-	SQLLEN	     size;
-	int	     totSize = 0;
-	SQLSMALLINT  i;
-	int	     j = 0;
-	char *	     data;
+	SQLLEN size;
+	int totSize = 0;
+	SQLSMALLINT i;
+	int j = 0;
+	char *data;
 
 	REQUIRE(retData != NULL && *retData == NULL);
 	REQUIRE(startField > 0 && startField <= endField);
@@ -696,7 +696,8 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 	for (i = startField; i <= endField; i++) {
 		if (sqlOK(SQLColAttribute(stmnt, i, SQL_DESC_DISPLAY_SIZE, NULL,
 					  0, NULL, &size)) &&
-		    size > 0) {
+		    size > 0)
+		{
 			{
 				/* always allow for a " " (space) character */
 				totSize += (size + 1);
@@ -749,13 +750,13 @@ static isc_result_t
 odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 {
 	isc_result_t result;
-	SQLSMALLINT  fields;
-	SQLHSTMT *   stmnt;
-	char *	     ttl_s;
-	char *	     type;
-	char *	     data;
-	char *	     endp;
-	int	     ttl;
+	SQLSMALLINT fields;
+	SQLHSTMT *stmnt;
+	char *ttl_s;
+	char *type;
+	char *data;
+	char *endp;
+	int ttl;
 
 	REQUIRE(dbi != NULL);
 
@@ -800,7 +801,8 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 			if ((result = odbc_getField(stmnt, 1, &type)) ==
 				    ISC_R_SUCCESS &&
 			    (result = odbc_getField(stmnt, 2, &data)) ==
-				    ISC_R_SUCCESS) {
+				    ISC_R_SUCCESS)
+			{
 				result = dns_sdlz_putrr(lookup, type, 86400,
 							data);
 			}
@@ -815,9 +817,9 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 				    ISC_R_SUCCESS &&
 			    (result = odbc_getField(stmnt, 2, &type)) ==
 				    ISC_R_SUCCESS &&
-			    (result = odbc_getManyFields(stmnt, 3, fields,
-							 &data)) ==
-				    ISC_R_SUCCESS) {
+			    (result = odbc_getManyFields(
+				     stmnt, 3, fields, &data)) == ISC_R_SUCCESS)
+			{
 				/* try to convert ttl string to int */
 				ttl = strtol(ttl_s, &endp, 10);
 				/* failure converting ttl. */
@@ -884,7 +886,7 @@ static isc_result_t
 odbc_findzone(void *driverarg, void *dbdata, const char *name,
 	      dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 
 	UNUSED(driverarg);
@@ -898,7 +900,8 @@ odbc_findzone(void *driverarg, void *dbdata, const char *name,
 
 	/* Check that we got a result set with data */
 	if (result == ISC_R_SUCCESS &&
-	    !sqlOK(SQLFetch(((odbc_db_t *)(dbi->dbconn))->stmnt))) {
+	    !sqlOK(SQLFetch(((odbc_db_t *)(dbi->dbconn))->stmnt)))
+	{
 		result = ISC_R_NOTFOUND;
 	}
 
@@ -918,7 +921,7 @@ static isc_result_t
 odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		  const char *client)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 
 	UNUSED(driverarg);
@@ -948,7 +951,8 @@ odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 
 	/* Check that we got a result set with data */
 	if (result == ISC_R_SUCCESS &&
-	    !sqlOK(SQLFetch(((odbc_db_t *)(dbi->dbconn))->stmnt))) {
+	    !sqlOK(SQLFetch(((odbc_db_t *)(dbi->dbconn))->stmnt)))
+	{
 		result = ISC_R_NOPERM;
 	}
 
@@ -973,16 +977,16 @@ static isc_result_t
 odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 	      dns_sdlzallnodes_t *allnodes)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
-	SQLHSTMT *    stmnt;
-	SQLSMALLINT   fields;
-	char *	      data;
-	char *	      type;
-	char *	      ttl_s;
-	int	      ttl;
-	char *	      host;
-	char *	      endp;
+	SQLHSTMT *stmnt;
+	SQLSMALLINT fields;
+	char *data;
+	char *type;
+	char *ttl_s;
+	int ttl;
+	char *host;
+	char *endp;
 
 	UNUSED(driverarg);
 
@@ -1041,7 +1045,8 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 		    (result = odbc_getField(stmnt, 3, &host)) ==
 			    ISC_R_SUCCESS &&
 		    (result = odbc_getManyFields(stmnt, 4, fields, &data)) ==
-			    ISC_R_SUCCESS) {
+			    ISC_R_SUCCESS)
+		{
 			/* convert ttl string to int */
 			ttl = strtol(ttl_s, &endp, 10);
 			/* failure converting ttl. */
@@ -1105,7 +1110,7 @@ static isc_result_t
 odbc_authority(const char *zone, void *driverarg, void *dbdata,
 	       dns_sdlzlookup_t *lookup)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 
 	UNUSED(driverarg);
@@ -1136,7 +1141,7 @@ odbc_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
 	    dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
 	    dns_clientinfo_t *clientinfo)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 
 	UNUSED(driverarg);
@@ -1168,13 +1173,13 @@ static isc_result_t
 odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 	    void *driverarg, void **dbdata)
 {
-	isc_result_t	 result;
+	isc_result_t result;
 	odbc_instance_t *odbc_inst = NULL;
-	dbinstance_t *	 db = NULL;
-	SQLRETURN	 sqlRes;
-	int		 dbcount;
-	int		 i;
-	char *		 endp;
+	dbinstance_t *db = NULL;
+	SQLRETURN sqlRes;
+	int dbcount;
+	int i;
+	char *endp;
 
 	UNUSED(dlzname);
 	UNUSED(driverarg);

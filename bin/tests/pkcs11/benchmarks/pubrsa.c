@@ -61,14 +61,12 @@
 #define CLOCK_REALTIME 0
 #endif /* ifndef CLOCK_REALTIME */
 
-static int
-clock_gettime(int32_t id, struct timespec *tp);
+static int clock_gettime(int32_t id, struct timespec *tp);
 
 static int
-clock_gettime(int32_t id, struct timespec *tp)
-{
+clock_gettime(int32_t id, struct timespec *tp) {
 	struct timeval tv;
-	int	       result;
+	int result;
 
 	UNUSED(id);
 
@@ -102,34 +100,33 @@ static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
 
 int
-main(int argc, char *argv[])
-{
-	isc_result_t	  result;
-	CK_RV		  rv;
-	CK_SLOT_ID	  slot = 0;
+main(int argc, char *argv[]) {
+	isc_result_t result;
+	CK_RV rv;
+	CK_SLOT_ID slot = 0;
 	CK_SESSION_HANDLE hSession = CK_INVALID_HANDLE;
 	CK_OBJECT_HANDLE *hKey;
-	CK_OBJECT_CLASS	  kClass = CKO_PUBLIC_KEY;
-	CK_KEY_TYPE	  kType = CKK_RSA;
-	CK_ATTRIBUTE	  kTemplate[] = {
-		     { CKA_CLASS, &kClass, (CK_ULONG)sizeof(kClass) },
-		     { CKA_KEY_TYPE, &kType, (CK_ULONG)sizeof(kType) },
-		     { CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		     { CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		     { CKA_LABEL, (CK_BYTE_PTR)label, (CK_ULONG)sizeof(label) },
-		     { CKA_VERIFY, &truevalue, (CK_ULONG)sizeof(truevalue) },
-		     { CKA_MODULUS, modulus, (CK_ULONG)sizeof(modulus) },
-		     { CKA_PUBLIC_EXPONENT, exponent, (CK_ULONG)sizeof(exponent) }
+	CK_OBJECT_CLASS kClass = CKO_PUBLIC_KEY;
+	CK_KEY_TYPE kType = CKK_RSA;
+	CK_ATTRIBUTE kTemplate[] = {
+		{ CKA_CLASS, &kClass, (CK_ULONG)sizeof(kClass) },
+		{ CKA_KEY_TYPE, &kType, (CK_ULONG)sizeof(kType) },
+		{ CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_LABEL, (CK_BYTE_PTR)label, (CK_ULONG)sizeof(label) },
+		{ CKA_VERIFY, &truevalue, (CK_ULONG)sizeof(truevalue) },
+		{ CKA_MODULUS, modulus, (CK_ULONG)sizeof(modulus) },
+		{ CKA_PUBLIC_EXPONENT, exponent, (CK_ULONG)sizeof(exponent) }
 	};
-	pk11_context_t	pctx;
-	pk11_optype_t	op_type = OP_RSA;
-	char *		lib_name = NULL;
-	char *		pin = NULL;
-	int		error = 0;
-	int		c, errflg = 0;
-	int		ontoken = 0;
-	unsigned int	count = 1000;
-	unsigned int	i;
+	pk11_context_t pctx;
+	pk11_optype_t op_type = OP_RSA;
+	char *lib_name = NULL;
+	char *pin = NULL;
+	int error = 0;
+	int c, errflg = 0;
+	int ontoken = 0;
+	unsigned int count = 1000;
+	unsigned int i;
 	struct timespec starttime;
 	struct timespec endtime;
 
@@ -195,7 +192,8 @@ main(int argc, char *argv[])
 				  (const char *)pin, slot);
 	if ((result != ISC_R_SUCCESS) && (result != PK11_R_NORANDOMSERVICE) &&
 	    (result != PK11_R_NODIGESTSERVICE) &&
-	    (result != PK11_R_NOAESSERVICE)) {
+	    (result != PK11_R_NOAESSERVICE))
+	{
 		fprintf(stderr, "Error initializing PKCS#11: %s\n",
 			isc_result_totext(result));
 		free(hKey);

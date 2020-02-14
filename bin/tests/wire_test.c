@@ -24,20 +24,17 @@
 #include <dns/message.h>
 #include <dns/result.h>
 
-int	   parseflags = 0;
+int parseflags = 0;
 isc_mem_t *mctx = NULL;
-bool	   printmemstats = false;
-bool	   dorender = false;
+bool printmemstats = false;
+bool dorender = false;
 
-static void
-process_message(isc_buffer_t *source);
+static void process_message(isc_buffer_t *source);
 
-static isc_result_t
-printmessage(dns_message_t *msg);
+static isc_result_t printmessage(dns_message_t *msg);
 
 static inline void
-CHECKRESULT(isc_result_t result, const char *msg)
-{
+CHECKRESULT(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, dns_result_totext(result));
 
@@ -46,8 +43,7 @@ CHECKRESULT(isc_result_t result, const char *msg)
 }
 
 static int
-fromhex(char c)
-{
+fromhex(char c) {
 	if (c >= '0' && c <= '9') {
 		return (c - '0');
 	} else if (c >= 'a' && c <= 'f') {
@@ -62,8 +58,7 @@ fromhex(char c)
 }
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "wire_test [-b] [-d] [-p] [-r] [-s]\n");
 	fprintf(stderr, "          [-m {usage|trace|record|size|mctx}]\n");
 	fprintf(stderr, "          [filename]\n\n");
@@ -76,19 +71,18 @@ usage(void)
 }
 
 static isc_result_t
-printmessage(dns_message_t *msg)
-{
+printmessage(dns_message_t *msg) {
 	isc_buffer_t b;
-	char *	     buf = NULL;
-	int	     len = 1024;
+	char *buf = NULL;
+	int len = 1024;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	do {
 		buf = isc_mem_get(mctx, len);
 
 		isc_buffer_init(&b, buf, len);
-		result =
-			dns_message_totext(msg, &dns_master_style_debug, 0, &b);
+		result = dns_message_totext(msg, &dns_master_style_debug, 0,
+					    &b);
 		if (result == ISC_R_NOSPACE) {
 			isc_mem_put(mctx, buf, len);
 			len *= 2;
@@ -105,16 +99,15 @@ printmessage(dns_message_t *msg)
 }
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	isc_buffer_t *input = NULL;
-	bool	      need_close = false;
-	bool	      tcp = false;
-	bool	      rawdata = false;
-	isc_result_t  result;
-	uint8_t	      c;
-	FILE *	      f;
-	int	      ch;
+	bool need_close = false;
+	bool tcp = false;
+	bool rawdata = false;
+	isc_result_t result;
+	uint8_t c;
+	FILE *f;
+	int ch;
 
 #define CMDLINE_FLAGS "bdm:prst"
 	/*
@@ -123,16 +116,16 @@ main(int argc, char *argv[])
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'm':
-			if (strcasecmp(isc_commandline_argument, "record") ==
-			    0) {
+			if (strcasecmp(isc_commandline_argument, "record") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 			}
-			if (strcasecmp(isc_commandline_argument, "trace") ==
-			    0) {
+			if (strcasecmp(isc_commandline_argument, "trace") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
 			}
-			if (strcasecmp(isc_commandline_argument, "usage") ==
-			    0) {
+			if (strcasecmp(isc_commandline_argument, "usage") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
 			}
 			if (strcasecmp(isc_commandline_argument, "size") == 0) {
@@ -204,7 +197,7 @@ main(int argc, char *argv[])
 		char s[BUFSIZ];
 
 		while (fgets(s, sizeof(s), f) != NULL) {
-			char * rp = s, *wp = s;
+			char *rp = s, *wp = s;
 			size_t i, len = 0;
 
 			while (*rp != '\0') {
@@ -276,11 +269,10 @@ main(int argc, char *argv[])
 }
 
 static void
-process_message(isc_buffer_t *source)
-{
+process_message(isc_buffer_t *source) {
 	dns_message_t *message;
-	isc_result_t   result;
-	int	       i;
+	isc_result_t result;
+	int i;
 
 	message = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
@@ -300,8 +292,8 @@ process_message(isc_buffer_t *source)
 	}
 
 	if (dorender) {
-		unsigned char  b2[64 * 1024];
-		isc_buffer_t   buffer;
+		unsigned char b2[64 * 1024];
+		isc_buffer_t buffer;
 		dns_compress_t cctx;
 
 		isc_buffer_init(&buffer, b2, sizeof(b2));

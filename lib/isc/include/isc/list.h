@@ -39,11 +39,11 @@
 		(elt)->link.prev = (type *)(-1); \
 		(elt)->link.next = (type *)(-1); \
 	} while (0)
-#define ISC_LINK_INIT(elt, link) ISC_LINK_INIT_TYPE(elt, link, void)
+#define ISC_LINK_INIT(elt, link)   ISC_LINK_INIT_TYPE(elt, link, void)
 #define ISC_LINK_LINKED(elt, link) ((void *)((elt)->link.prev) != (void *)(-1))
 
-#define ISC_LIST_HEAD(list) ((list).head)
-#define ISC_LIST_TAIL(list) ((list).tail)
+#define ISC_LIST_HEAD(list)  ((list).head)
+#define ISC_LIST_TAIL(list)  ((list).tail)
 #define ISC_LIST_EMPTY(list) ((list).head == NULL)
 
 #define __ISC_LIST_PREPENDUNSAFE(list, elt, link)       \

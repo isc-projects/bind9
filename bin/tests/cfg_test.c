@@ -26,8 +26,7 @@
 #include <isccfg/namedconf.h>
 
 static void
-check_result(isc_result_t result, const char *format, ...)
-{
+check_result(isc_result_t result, const char *format, ...) {
 	va_list args;
 
 	if (result == ISC_R_SUCCESS) {
@@ -42,15 +41,13 @@ check_result(isc_result_t result, const char *format, ...)
 }
 
 static void
-output(void *closure, const char *text, int textlen)
-{
+output(void *closure, const char *text, int textlen) {
 	UNUSED(closure);
 	(void)fwrite(text, 1, textlen, stdout);
 }
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "usage: cfg_test --rndc|--named "
 			"[--grammar] [--zonegrammar] [--active] "
 			"[--memstats] conffile\n");
@@ -58,21 +55,20 @@ usage(void)
 }
 
 int
-main(int argc, char **argv)
-{
-	isc_result_t	     result;
-	isc_mem_t *	     mctx = NULL;
-	isc_log_t *	     lctx = NULL;
-	isc_logconfig_t *    lcfg = NULL;
+main(int argc, char **argv) {
+	isc_result_t result;
+	isc_mem_t *mctx = NULL;
+	isc_log_t *lctx = NULL;
+	isc_logconfig_t *lcfg = NULL;
 	isc_logdestination_t destination;
-	cfg_parser_t *	     pctx = NULL;
-	cfg_obj_t *	     cfg = NULL;
-	cfg_type_t *	     type = NULL;
-	bool		     grammar = false;
-	bool		     memstats = false;
-	char *		     filename = NULL;
-	unsigned int	     zonetype = 0;
-	unsigned int	     pflags = 0;
+	cfg_parser_t *pctx = NULL;
+	cfg_obj_t *cfg = NULL;
+	cfg_type_t *type = NULL;
+	bool grammar = false;
+	bool memstats = false;
+	char *filename = NULL;
+	unsigned int zonetype = 0;
+	unsigned int pflags = 0;
 
 	isc_mem_create(&mctx);
 

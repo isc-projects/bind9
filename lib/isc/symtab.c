@@ -21,37 +21,36 @@
 #include <isc/util.h>
 
 typedef struct elt {
-	char *	       key;
-	unsigned int   type;
+	char *key;
+	unsigned int type;
 	isc_symvalue_t value;
 	LINK(struct elt) link;
 } elt_t;
 
 typedef LIST(elt_t) eltlist_t;
 
-#define SYMTAB_MAGIC ISC_MAGIC('S', 'y', 'm', 'T')
+#define SYMTAB_MAGIC	 ISC_MAGIC('S', 'y', 'm', 'T')
 #define VALID_SYMTAB(st) ISC_MAGIC_VALID(st, SYMTAB_MAGIC)
 
 struct isc_symtab {
 	/* Unlocked. */
-	unsigned int	   magic;
-	isc_mem_t *	   mctx;
-	unsigned int	   size;
-	unsigned int	   count;
-	unsigned int	   maxload;
-	eltlist_t *	   table;
+	unsigned int magic;
+	isc_mem_t *mctx;
+	unsigned int size;
+	unsigned int count;
+	unsigned int maxload;
+	eltlist_t *table;
 	isc_symtabaction_t undefine_action;
-	void *		   undefine_arg;
-	bool		   case_sensitive;
+	void *undefine_arg;
+	bool case_sensitive;
 };
 
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		  isc_symtabaction_t undefine_action, void *undefine_arg,
-		  bool case_sensitive, isc_symtab_t **symtabp)
-{
+		  bool case_sensitive, isc_symtab_t **symtabp) {
 	isc_symtab_t *symtab;
-	unsigned int  i;
+	unsigned int i;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(symtabp != NULL && *symtabp == NULL);
@@ -79,11 +78,10 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 }
 
 void
-isc_symtab_destroy(isc_symtab_t **symtabp)
-{
+isc_symtab_destroy(isc_symtab_t **symtabp) {
 	isc_symtab_t *symtab;
-	unsigned int  i;
-	elt_t *	      elt, *nelt;
+	unsigned int i;
+	elt_t *elt, *nelt;
 
 	REQUIRE(symtabp != NULL);
 	symtab = *symtabp;
@@ -108,11 +106,10 @@ isc_symtab_destroy(isc_symtab_t **symtabp)
 }
 
 static inline unsigned int
-hash(const char *key, bool case_sensitive)
-{
-	const char * s;
+hash(const char *key, bool case_sensitive) {
+	const char *s;
 	unsigned int h = 0;
-	int	     c;
+	int c;
 
 	/*
 	 * This hash function is similar to the one Ousterhout
@@ -152,10 +149,9 @@ hash(const char *key, bool case_sensitive)
 
 isc_result_t
 isc_symtab_lookup(isc_symtab_t *symtab, const char *key, unsigned int type,
-		  isc_symvalue_t *value)
-{
+		  isc_symvalue_t *value) {
 	unsigned int bucket;
-	elt_t *	     elt;
+	elt_t *elt;
 
 	REQUIRE(VALID_SYMTAB(symtab));
 	REQUIRE(key != NULL);
@@ -174,9 +170,8 @@ isc_symtab_lookup(isc_symtab_t *symtab, const char *key, unsigned int type,
 }
 
 static void
-grow_table(isc_symtab_t *symtab)
-{
-	eltlist_t *  newtable;
+grow_table(isc_symtab_t *symtab) {
+	eltlist_t *newtable;
 	unsigned int i, newsize, newmax;
 
 	REQUIRE(symtab != NULL);
@@ -215,10 +210,9 @@ grow_table(isc_symtab_t *symtab)
 
 isc_result_t
 isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
-		  isc_symvalue_t value, isc_symexists_t exists_policy)
-{
+		  isc_symvalue_t value, isc_symexists_t exists_policy) {
 	unsigned int bucket;
-	elt_t *	     elt;
+	elt_t *elt;
 
 	REQUIRE(VALID_SYMTAB(symtab));
 	REQUIRE(key != NULL);
@@ -267,10 +261,9 @@ isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
 }
 
 isc_result_t
-isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type)
-{
+isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type) {
 	unsigned int bucket;
-	elt_t *	     elt;
+	elt_t *elt;
 
 	REQUIRE(VALID_SYMTAB(symtab));
 	REQUIRE(key != NULL);
@@ -293,8 +286,7 @@ isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type)
 }
 
 unsigned int
-isc_symtab_count(isc_symtab_t *symtab)
-{
+isc_symtab_count(isc_symtab_t *symtab) {
 	REQUIRE(VALID_SYMTAB(symtab));
 	return (symtab->count);
 }

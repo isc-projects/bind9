@@ -109,8 +109,7 @@ isc_siphash24(const uint8_t*k,const uint8_t*in,const size_t inlen,uint8_t*out)
 
 void
 isc_siphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
-	      uint8_t *out)
-{
+	      uint8_t *out) {
 	REQUIRE(k != NULL);
 	REQUIRE(out != NULL);
 
@@ -125,7 +124,7 @@ isc_siphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 	uint64_t b = ((uint64_t)inlen) << 56;
 
 	const uint8_t *end = in + inlen - (inlen % sizeof(uint64_t));
-	const size_t   left = inlen & 7;
+	const size_t left = inlen & 7;
 
 	for (; in != end; in += 8) {
 		uint64_t m = U8TO64_LE(in);

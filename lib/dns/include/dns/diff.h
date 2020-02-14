@@ -67,7 +67,7 @@ typedef enum {
 
 typedef struct dns_difftuple dns_difftuple_t;
 
-#define DNS_DIFFTUPLE_MAGIC ISC_MAGIC('D', 'I', 'F', 'T')
+#define DNS_DIFFTUPLE_MAGIC    ISC_MAGIC('D', 'I', 'F', 'T')
 #define DNS_DIFFTUPLE_VALID(t) ISC_MAGIC_VALID(t, DNS_DIFFTUPLE_MAGIC)
 
 struct dns_difftuple {
@@ -88,7 +88,7 @@ struct dns_difftuple {
  */
 typedef struct dns_diff dns_diff_t;
 
-#define DNS_DIFF_MAGIC ISC_MAGIC('D', 'I', 'F', 'F')
+#define DNS_DIFF_MAGIC	  ISC_MAGIC('D', 'I', 'F', 'F')
 #define DNS_DIFF_VALID(t) ISC_MAGIC_VALID(t, DNS_DIFF_MAGIC)
 
 struct dns_diff {

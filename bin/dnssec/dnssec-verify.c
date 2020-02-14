@@ -68,19 +68,18 @@
 
 const char *program = "dnssec-verify";
 
-static isc_stdtime_t	  now;
-static isc_mem_t *	  mctx = NULL;
+static isc_stdtime_t now;
+static isc_mem_t *mctx = NULL;
 static dns_masterformat_t inputformat = dns_masterformat_text;
-static dns_db_t *	  gdb;	    /* The database */
-static dns_dbversion_t *  gversion; /* The database version */
-static dns_rdataclass_t	  gclass;   /* The class */
-static dns_name_t *	  gorigin;  /* The database origin */
-static bool		  ignore_kskflag = false;
-static bool		  keyset_kskonly = false;
+static dns_db_t *gdb;		  /* The database */
+static dns_dbversion_t *gversion; /* The database version */
+static dns_rdataclass_t gclass;	  /* The class */
+static dns_name_t *gorigin;	  /* The database origin */
+static bool ignore_kskflag = false;
+static bool keyset_kskonly = false;
 
 static void
-report(const char *format, ...)
-{
+report(const char *format, ...) {
 	if (!quiet) {
 		va_list args;
 		va_start(args, format);
@@ -93,13 +92,12 @@ report(const char *format, ...)
  * Load the zone file from disk
  */
 static void
-loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db)
-{
-	isc_buffer_t	b;
-	int		len;
+loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
+	isc_buffer_t b;
+	int len;
 	dns_fixedname_t fname;
-	dns_name_t *	name;
-	isc_result_t	result;
+	dns_name_t *name;
+	isc_result_t result;
 
 	len = strlen(origin);
 	isc_buffer_init(&b, origin, len);
@@ -139,12 +137,10 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db)
 	}
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "\t%s [options] zonefile [keys]\n", program);
 
@@ -177,17 +173,16 @@ usage(void)
 }
 
 int
-main(int argc, char *argv[])
-{
-	char *		 origin = NULL, *file = NULL;
-	char *		 inputformatstr = NULL;
-	isc_result_t	 result;
-	isc_log_t *	 log = NULL;
-	const char *	 engine = NULL;
-	char *		 classname = NULL;
+main(int argc, char *argv[]) {
+	char *origin = NULL, *file = NULL;
+	char *inputformatstr = NULL;
+	isc_result_t result;
+	isc_log_t *log = NULL;
+	const char *engine = NULL;
+	char *classname = NULL;
 	dns_rdataclass_t rdclass;
-	char *		 endp;
-	int		 ch;
+	char *endp;
+	int ch;
 
 #define CMDLINE_FLAGS "c:E:hm:o:I:qv:Vxz"
 
@@ -197,16 +192,16 @@ main(int argc, char *argv[])
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'm':
-			if (strcasecmp(isc_commandline_argument, "record") ==
-			    0) {
+			if (strcasecmp(isc_commandline_argument, "record") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 			}
-			if (strcasecmp(isc_commandline_argument, "trace") ==
-			    0) {
+			if (strcasecmp(isc_commandline_argument, "trace") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
 			}
-			if (strcasecmp(isc_commandline_argument, "usage") ==
-			    0) {
+			if (strcasecmp(isc_commandline_argument, "usage") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
 			}
 			if (strcasecmp(isc_commandline_argument, "size") == 0) {

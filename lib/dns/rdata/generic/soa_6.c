@@ -14,14 +14,14 @@
 
 #define RRTYPE_SOA_ATTRIBUTES (DNS_RDATATYPEATTR_SINGLETON)
 
-static inline isc_result_t fromtext_soa(ARGS_FROMTEXT)
-{
-	isc_token_t  token;
-	dns_name_t   name;
+static inline isc_result_t
+fromtext_soa(ARGS_FROMTEXT) {
+	isc_token_t token;
+	dns_name_t name;
 	isc_buffer_t buffer;
-	int	     i;
-	uint32_t     n;
-	bool	     ok;
+	int i;
+	uint32_t n;
+	bool ok;
 
 	REQUIRE(type == dns_rdatatype_soa);
 
@@ -77,16 +77,16 @@ static inline isc_result_t fromtext_soa(ARGS_FROMTEXT)
 static const char *soa_fieldnames[5] = { "serial", "refresh", "retry", "expire",
 					 "minimum" };
 
-static inline isc_result_t totext_soa(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_soa(ARGS_TOTEXT) {
 	isc_region_t dregion;
-	dns_name_t   mname;
-	dns_name_t   rname;
-	dns_name_t   prefix;
-	bool	     sub;
-	int	     i;
-	bool	     multiline;
-	bool	     comm;
+	dns_name_t mname;
+	dns_name_t rname;
+	dns_name_t prefix;
+	bool sub;
+	int i;
+	bool multiline;
+	bool comm;
 
 	REQUIRE(rdata->type == dns_rdatatype_soa);
 	REQUIRE(rdata->length != 0);
@@ -124,7 +124,7 @@ static inline isc_result_t totext_soa(ARGS_TOTEXT)
 	RETERR(str_totext(tctx->linebreak, target));
 
 	for (i = 0; i < 5; i++) {
-		char	      buf[sizeof("0123456789 ; ")];
+		char buf[sizeof("0123456789 ; ")];
 		unsigned long num;
 		num = uint32_fromregion(&dregion);
 		isc_region_consume(&dregion, 4);
@@ -151,10 +151,10 @@ static inline isc_result_t totext_soa(ARGS_TOTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t fromwire_soa(ARGS_FROMWIRE)
-{
-	dns_name_t   mname;
-	dns_name_t   rname;
+static inline isc_result_t
+fromwire_soa(ARGS_FROMWIRE) {
+	dns_name_t mname;
+	dns_name_t rname;
 	isc_region_t sregion;
 	isc_region_t tregion;
 
@@ -188,12 +188,12 @@ static inline isc_result_t fromwire_soa(ARGS_FROMWIRE)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t towire_soa(ARGS_TOWIRE)
-{
-	isc_region_t  sregion;
-	isc_region_t  tregion;
-	dns_name_t    mname;
-	dns_name_t    rname;
+static inline isc_result_t
+towire_soa(ARGS_TOWIRE) {
+	isc_region_t sregion;
+	isc_region_t tregion;
+	dns_name_t mname;
+	dns_name_t rname;
 	dns_offsets_t moffsets;
 	dns_offsets_t roffsets;
 
@@ -225,13 +225,13 @@ static inline isc_result_t towire_soa(ARGS_TOWIRE)
 	return (ISC_R_SUCCESS);
 }
 
-static inline int compare_soa(ARGS_COMPARE)
-{
+static inline int
+compare_soa(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
-	dns_name_t   name1;
-	dns_name_t   name2;
-	int	     order;
+	dns_name_t name1;
+	dns_name_t name2;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -273,10 +273,10 @@ static inline int compare_soa(ARGS_COMPARE)
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t fromstruct_soa(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_soa(ARGS_FROMSTRUCT) {
 	dns_rdata_soa_t *soa = source;
-	isc_region_t	 region;
+	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_soa);
 	REQUIRE(soa != NULL);
@@ -297,12 +297,12 @@ static inline isc_result_t fromstruct_soa(ARGS_FROMSTRUCT)
 	return (uint32_tobuffer(soa->minimum, target));
 }
 
-static inline isc_result_t tostruct_soa(ARGS_TOSTRUCT)
-{
-	isc_region_t	 region;
+static inline isc_result_t
+tostruct_soa(ARGS_TOSTRUCT) {
+	isc_region_t region;
 	dns_rdata_soa_t *soa = target;
-	dns_name_t	 name;
-	isc_result_t	 result;
+	dns_name_t name;
+	isc_result_t result;
 
 	REQUIRE(rdata->type == dns_rdatatype_soa);
 	REQUIRE(soa != NULL);
@@ -352,8 +352,8 @@ cleanup:
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void freestruct_soa(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_soa(ARGS_FREESTRUCT) {
 	dns_rdata_soa_t *soa = source;
 
 	REQUIRE(soa != NULL);
@@ -368,8 +368,8 @@ static inline void freestruct_soa(ARGS_FREESTRUCT)
 	soa->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_soa(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_soa(ARGS_ADDLDATA) {
 	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
@@ -379,10 +379,10 @@ static inline isc_result_t additionaldata_soa(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_soa(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_soa(ARGS_DIGEST) {
 	isc_region_t r;
-	dns_name_t   name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_soa);
 
@@ -401,8 +401,8 @@ static inline isc_result_t digest_soa(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_soa(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_soa(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_soa);
 
 	UNUSED(name);
@@ -413,10 +413,10 @@ static inline bool checkowner_soa(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_soa(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_soa(ARGS_CHECKNAMES) {
 	isc_region_t region;
-	dns_name_t   name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_soa);
 
@@ -442,8 +442,8 @@ static inline bool checknames_soa(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_soa(ARGS_COMPARE)
-{
+static inline int
+casecompare_soa(ARGS_COMPARE) {
 	return (compare_soa(rdata1, rdata2));
 }
 

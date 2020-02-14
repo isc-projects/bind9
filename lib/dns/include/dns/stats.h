@@ -479,16 +479,16 @@ LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
  *	removal.
  */
 #define DNS_RDATASTATSTYPE_ATTR_OTHERTYPE 0x0001
-#define DNS_RDATASTATSTYPE_ATTR_NXRRSET 0x0002
-#define DNS_RDATASTATSTYPE_ATTR_NXDOMAIN 0x0004
-#define DNS_RDATASTATSTYPE_ATTR_STALE 0x0008
-#define DNS_RDATASTATSTYPE_ATTR_ANCIENT 0x0010
+#define DNS_RDATASTATSTYPE_ATTR_NXRRSET	  0x0002
+#define DNS_RDATASTATSTYPE_ATTR_NXDOMAIN  0x0004
+#define DNS_RDATASTATSTYPE_ATTR_STALE	  0x0008
+#define DNS_RDATASTATSTYPE_ATTR_ANCIENT	  0x0010
 
 /*%<
  * Conversion macros among dns_rdatatype_t, attributes and isc_statscounter_t.
  */
-#define DNS_RDATASTATSTYPE_BASE(type) ((dns_rdatatype_t)((type)&0xFFFF))
-#define DNS_RDATASTATSTYPE_ATTR(type) ((type) >> 16)
+#define DNS_RDATASTATSTYPE_BASE(type)  ((dns_rdatatype_t)((type)&0xFFFF))
+#define DNS_RDATASTATSTYPE_ATTR(type)  ((type) >> 16)
 #define DNS_RDATASTATSTYPE_VALUE(b, a) (((a) << 16) | (b))
 
 /*%<

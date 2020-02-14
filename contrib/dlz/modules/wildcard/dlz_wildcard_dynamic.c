@@ -63,7 +63,7 @@
 	do {                           \
 		union {                \
 			const void *k; \
-			void *	    v; \
+			void *v;       \
 		} _u;                  \
 		_u.k = konst;          \
 		var = _u.v;            \
@@ -73,13 +73,13 @@
 #define FNM_NOMATCH 1 /* Match failed. */
 
 /* fnmatch() flags. */
-#define FNM_NOESCAPE 0x01    /* Disable backslash escaping. */
-#define FNM_PATHNAME 0x02    /* Slash must be matched by slash. */
-#define FNM_PERIOD 0x04	     /* Period must be matched by period. */
+#define FNM_NOESCAPE	0x01 /* Disable backslash escaping. */
+#define FNM_PATHNAME	0x02 /* Slash must be matched by slash. */
+#define FNM_PERIOD	0x04 /* Period must be matched by period. */
 #define FNM_LEADING_DIR 0x08 /* Ignore /<tail> after Imatch. */
-#define FNM_CASEFOLD 0x10    /* Case insensitive search. */
-#define FNM_IGNORECASE FNM_CASEFOLD
-#define FNM_FILE_NAME FNM_PATHNAME
+#define FNM_CASEFOLD	0x10 /* Case insensitive search. */
+#define FNM_IGNORECASE	FNM_CASEFOLD
+#define FNM_FILE_NAME	FNM_PATHNAME
 
 /*
  * Our data structures.
@@ -89,24 +89,24 @@ typedef struct named_rr nrr_t;
 typedef DLZ_LIST(nrr_t) rr_list_t;
 
 typedef struct config_data {
-	char *	  zone_pattern;
-	char *	  axfr_pattern;
+	char *zone_pattern;
+	char *axfr_pattern;
 	rr_list_t rrs_list;
-	char *	  zone;
-	char *	  record;
-	char *	  client;
+	char *zone;
+	char *record;
+	char *client;
 
 	/* Helper functions from the dlz_dlopen driver */
-	log_t *			 log;
-	dns_sdlz_putrr_t *	 putrr;
-	dns_sdlz_putnamedrr_t *	 putnamedrr;
+	log_t *log;
+	dns_sdlz_putrr_t *putrr;
+	dns_sdlz_putnamedrr_t *putnamedrr;
 	dns_dlz_writeablezone_t *writeable_zone;
 } config_data_t;
 
 struct named_rr {
-	char *	      name;
-	char *	      type;
-	int	      ttl;
+	char *name;
+	char *type;
+	int ttl;
 	query_list_t *data;
 	DLZ_LINK(nrr_t) link;
 };
@@ -114,26 +114,23 @@ struct named_rr {
 /*
  * Forward references
  */
-static int
-rangematch(const char *, char, int, char **);
+static int rangematch(const char *, char, int, char **);
 
-static int
-fnmatch(const char *pattern, const char *string, int flags);
+static int fnmatch(const char *pattern, const char *string, int flags);
 
-static void
-b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr);
+static void b9_add_helper(struct config_data *cd, const char *helper_name,
+			  void *ptr);
 
-static const char *
-shortest_match(const char *pattern, const char *string);
+static const char *shortest_match(const char *pattern, const char *string);
 
 isc_result_t
 dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 {
 	config_data_t *cd = (config_data_t *)dbdata;
-	isc_result_t   result;
-	char *	       querystring = NULL;
-	nrr_t *	       nrec;
-	int	       i = 0;
+	isc_result_t result;
+	char *querystring = NULL;
+	nrr_t *nrec;
+	int i = 0;
 
 	DE_CONST(zone, cd->zone);
 
@@ -206,7 +203,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 #endif /* if DLZ_DLOPEN_VERSION < 3 */
 {
 	config_data_t *cd = (config_data_t *)dbdata;
-	const char *   p;
+	const char *p;
 
 #if DLZ_DLOPEN_VERSION >= 3
 	UNUSED(methods);
@@ -235,13 +232,13 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_clientinfo_t *clientinfo)
 #endif /* if DLZ_DLOPEN_VERSION == 1 */
 {
-	isc_result_t   result;
+	isc_result_t result;
 	config_data_t *cd = (config_data_t *)dbdata;
-	char *	       querystring = NULL;
-	const char *   p;
-	char *	       namebuf;
-	nrr_t *	       nrec;
-	bool	       origin = true;
+	char *querystring = NULL;
+	const char *p;
+	char *namebuf;
+	nrr_t *nrec;
+	bool origin = true;
 
 #if DLZ_DLOPEN_VERSION >= 2
 	UNUSED(methods);
@@ -256,8 +253,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	DE_CONST(name, cd->record);
 	DE_CONST(p, cd->zone);
 
-	if ((p != zone) &&
-	    (strcmp(name, "@") == 0 || strcmp(name, zone) == 0)) {
+	if ((p != zone) && (strcmp(name, "@") == 0 || strcmp(name, zone) == 0))
+	{
 		size_t len = p - zone;
 		namebuf = malloc(len);
 		if (namebuf == NULL) {
@@ -323,11 +320,11 @@ done:
 isc_result_t
 dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
 {
-	isc_result_t   result;
+	isc_result_t result;
 	config_data_t *cd = (config_data_t *)dbdata;
-	char *	       querystring = NULL;
-	nrr_t *	       nrec;
-	const char *   p, *name = "@";
+	char *querystring = NULL;
+	nrr_t *nrec;
+	const char *p, *name = "@";
 
 	p = shortest_match(cd->zone_pattern, zone);
 	if (p == NULL) {
@@ -410,12 +407,12 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	   ...)
 {
 	config_data_t *cd;
-	char *	       endp;
-	int	       i, def_ttl;
-	nrr_t *	       trec = NULL;
-	isc_result_t   result;
-	const char *   helper_name;
-	va_list	       ap;
+	char *endp;
+	int i, def_ttl;
+	nrr_t *trec = NULL;
+	isc_result_t result;
+	const char *helper_name;
+	va_list ap;
 
 	if (argc < 8 || argc % 4 != 0) {
 		return (ISC_R_FAILURE);
@@ -599,16 +596,16 @@ shortest_match(const char *pattern, const char *string)
  */
 #define EOS '\0'
 
-#define RANGE_MATCH 1
+#define RANGE_MATCH   1
 #define RANGE_NOMATCH 0
-#define RANGE_ERROR (-1)
+#define RANGE_ERROR   (-1)
 
 static int
 fnmatch(const char *pattern, const char *string, int flags)
 {
 	const char *stringstart;
-	char *	    newp;
-	char	    c, test;
+	char *newp;
+	char c, test;
 
 	for (stringstart = string;;)
 		switch (c = *pattern++) {
@@ -625,8 +622,9 @@ fnmatch(const char *pattern, const char *string, int flags)
 				return (FNM_NOMATCH);
 			}
 			if (*string == '.' && (flags & FNM_PERIOD) &&
-			    (string == stringstart || ((flags & FNM_PATHNAME) &&
-						       *(string - 1) == '/'))) {
+			    (string == stringstart ||
+			     ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
+			{
 				return (FNM_NOMATCH);
 			}
 			++string;
@@ -639,8 +637,9 @@ fnmatch(const char *pattern, const char *string, int flags)
 			}
 
 			if (*string == '.' && (flags & FNM_PERIOD) &&
-			    (string == stringstart || ((flags & FNM_PATHNAME) &&
-						       *(string - 1) == '/'))) {
+			    (string == stringstart ||
+			     ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
+			{
 				return (FNM_NOMATCH);
 			}
 
@@ -683,8 +682,9 @@ fnmatch(const char *pattern, const char *string, int flags)
 				return (FNM_NOMATCH);
 			}
 			if (*string == '.' && (flags & FNM_PERIOD) &&
-			    (string == stringstart || ((flags & FNM_PATHNAME) &&
-						       *(string - 1) == '/'))) {
+			    (string == stringstart ||
+			     ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
+			{
 				return (FNM_NOMATCH);
 			}
 
@@ -712,7 +712,8 @@ fnmatch(const char *pattern, const char *string, int flags)
 			if (c == *string) {
 			} else if ((flags & FNM_CASEFOLD) &&
 				   (tolower((unsigned char)c) ==
-				    tolower((unsigned char)*string))) {
+				    tolower((unsigned char)*string)))
+			{
 			} else {
 				return (FNM_NOMATCH);
 			}
@@ -725,7 +726,7 @@ fnmatch(const char *pattern, const char *string, int flags)
 static int
 rangematch(const char *pattern, char test, int flags, char **newp)
 {
-	int  negate, ok;
+	int negate, ok;
 	char c, c2;
 
 	/*

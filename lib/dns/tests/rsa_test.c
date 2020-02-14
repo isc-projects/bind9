@@ -32,8 +32,7 @@
 #include <pk11/site.h>
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -45,8 +44,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -134,15 +132,14 @@ static unsigned char sigsha512[512] = {
 
 /* RSA verify */
 static void
-isc_rsa_verify_test(void **state)
-{
-	isc_result_t	ret;
+isc_rsa_verify_test(void **state) {
+	isc_result_t ret;
 	dns_fixedname_t fname;
-	isc_buffer_t	buf;
-	dns_name_t *	name;
-	dst_key_t *	key = NULL;
-	dst_context_t * ctx = NULL;
-	isc_region_t	r;
+	isc_buffer_t buf;
+	dns_name_t *name;
+	dst_key_t *key = NULL;
+	dst_context_t *ctx = NULL;
+	isc_region_t r;
 
 	UNUSED(state);
 
@@ -218,8 +215,7 @@ isc_rsa_verify_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(isc_rsa_verify_test, _setup,
 						_teardown),
@@ -233,8 +229,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

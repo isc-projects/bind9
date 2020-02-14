@@ -29,11 +29,10 @@
 
 isc_result_t
 dns_timer_setidle(isc_timer_t *timer, unsigned int maxtime,
-		  unsigned int idletime, bool purge)
-{
-	isc_result_t   result;
+		  unsigned int idletime, bool purge) {
+	isc_result_t result;
 	isc_interval_t maxinterval, idleinterval;
-	isc_time_t     expires;
+	isc_time_t expires;
 
 	/* Compute the time of expiry. */
 	isc_interval_set(&maxinterval, maxtime, 0);

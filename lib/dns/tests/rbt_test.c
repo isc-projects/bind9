@@ -127,8 +127,7 @@ static const size_t ordered_names_count =
 	(sizeof(ordered_names) / sizeof(*ordered_names));
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -140,8 +139,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -149,19 +147,17 @@ _teardown(void **state)
 	return (0);
 }
 static void
-delete_data(void *data, void *arg)
-{
+delete_data(void *data, void *arg) {
 	UNUSED(arg);
 
 	isc_mem_put(dt_mctx, data, sizeof(size_t));
 }
 
 static test_context_t *
-test_context_setup(void)
-{
+test_context_setup(void) {
 	test_context_t *ctx;
-	isc_result_t	result;
-	size_t		i;
+	isc_result_t result;
+	size_t i;
 
 	ctx = isc_mem_get(dt_mctx, sizeof(*ctx));
 	assert_non_null(ctx);
@@ -171,14 +167,14 @@ test_context_setup(void)
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	ctx->rbt_distances = NULL;
-	result =
-		dns_rbt_create(dt_mctx, delete_data, NULL, &ctx->rbt_distances);
+	result = dns_rbt_create(dt_mctx, delete_data, NULL,
+				&ctx->rbt_distances);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (i = 0; i < domain_names_count; i++) {
-		size_t *	n;
+		size_t *n;
 		dns_fixedname_t fname;
-		dns_name_t *	name;
+		dns_name_t *name;
 
 		dns_test_namefromstring(domain_names[i], &fname);
 
@@ -201,8 +197,7 @@ test_context_setup(void)
 }
 
 static void
-test_context_teardown(test_context_t *ctx)
-{
+test_context_teardown(test_context_t *ctx) {
 	dns_rbt_destroy(&ctx->rbt);
 	dns_rbt_destroy(&ctx->rbt_distances);
 
@@ -213,19 +208,18 @@ test_context_teardown(test_context_t *ctx)
  * Walk the tree and ensure that all the test nodes are present.
  */
 static void
-check_test_data(dns_rbt_t *rbt)
-{
+check_test_data(dns_rbt_t *rbt) {
 	dns_fixedname_t fixed;
-	isc_result_t	result;
-	dns_name_t *	foundname;
-	size_t		i;
+	isc_result_t result;
+	dns_name_t *foundname;
+	size_t i;
 
 	foundname = dns_fixedname_initname(&fixed);
 
 	for (i = 0; i < domain_names_count; i++) {
 		dns_fixedname_t fname;
-		dns_name_t *	name;
-		size_t *	n;
+		dns_name_t *name;
+		size_t *n;
 
 		dns_test_namefromstring(domain_names[i], &fname);
 
@@ -239,10 +233,9 @@ check_test_data(dns_rbt_t *rbt)
 
 /* Test the creation of an rbt */
 static void
-rbt_create(void **state)
-{
+rbt_create(void **state) {
 	test_context_t *ctx;
-	bool		tree_ok;
+	bool tree_ok;
 
 	UNUSED(state);
 
@@ -260,8 +253,7 @@ rbt_create(void **state)
 
 /* Test dns_rbt_nodecount() on a tree */
 static void
-rbt_nodecount(void **state)
-{
+rbt_nodecount(void **state) {
 	test_context_t *ctx;
 
 	UNUSED(state);
@@ -277,14 +269,13 @@ rbt_nodecount(void **state)
 
 /* Test dns_rbtnode_get_distance() on a tree */
 static void
-rbtnode_get_distance(void **state)
-{
-	isc_result_t	   result;
-	test_context_t *   ctx;
-	const char *	   name_str = "a";
-	dns_fixedname_t	   fname;
-	dns_name_t *	   name;
-	dns_rbtnode_t *	   node = NULL;
+rbtnode_get_distance(void **state) {
+	isc_result_t result;
+	test_context_t *ctx;
+	const char *name_str = "a";
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	dns_rbtnode_t *node = NULL;
 	dns_rbtnodechain_t chain;
 
 	UNUSED(state);
@@ -331,13 +322,12 @@ rbtnode_get_distance(void **state)
  * 2log(n). This check verifies that the tree is balanced.
  */
 static void
-rbt_check_distance_random(void **state)
-{
-	dns_rbt_t *	   mytree = NULL;
+rbt_check_distance_random(void **state) {
+	dns_rbt_t *mytree = NULL;
 	const unsigned int log_num_nodes = 16;
-	isc_result_t	   result;
-	bool		   tree_ok;
-	int		   i;
+	isc_result_t result;
+	bool tree_ok;
+	int i;
 
 	UNUSED(state);
 
@@ -358,16 +348,16 @@ rbt_check_distance_random(void **state)
 	 */
 	for (i = 0; i < (1 << log_num_nodes); i++) {
 		size_t *n;
-		char	namebuf[34];
+		char namebuf[34];
 
 		n = isc_mem_get(dt_mctx, sizeof(size_t));
 		assert_non_null(n);
 		*n = i + 1;
 
 		while (1) {
-			int		j;
+			int j;
 			dns_fixedname_t fname;
-			dns_name_t *	name;
+			dns_name_t *name;
 
 			for (j = 0; j < 32; j++) {
 				uint32_t v = isc_random_uniform(26);
@@ -410,13 +400,12 @@ rbt_check_distance_random(void **state)
  * 2log(n). This check verifies that the tree is balanced.
  */
 static void
-rbt_check_distance_ordered(void **state)
-{
-	dns_rbt_t *	   mytree = NULL;
+rbt_check_distance_ordered(void **state) {
+	dns_rbt_t *mytree = NULL;
 	const unsigned int log_num_nodes = 16;
-	isc_result_t	   result;
-	bool		   tree_ok;
-	int		   i;
+	isc_result_t result;
+	bool tree_ok;
+	int i;
 
 	UNUSED(state);
 
@@ -436,10 +425,10 @@ rbt_check_distance_ordered(void **state)
 	 *   name00000003.
 	 */
 	for (i = 0; i < (1 << log_num_nodes); i++) {
-		size_t *	n;
-		char		namebuf[14];
+		size_t *n;
+		char namebuf[14];
 		dns_fixedname_t fname;
-		dns_name_t *	name;
+		dns_name_t *name;
 
 		n = isc_mem_get(dt_mctx, sizeof(size_t));
 		assert_non_null(n);
@@ -469,10 +458,9 @@ rbt_check_distance_ordered(void **state)
 }
 
 static isc_result_t
-insert_helper(dns_rbt_t *rbt, const char *namestr, dns_rbtnode_t **node)
-{
+insert_helper(dns_rbt_t *rbt, const char *namestr, dns_rbtnode_t **node) {
 	dns_fixedname_t fname;
-	dns_name_t *	name;
+	dns_name_t *name;
 
 	dns_test_namefromstring(namestr, &fname);
 	name = dns_fixedname_name(&fname);
@@ -481,12 +469,11 @@ insert_helper(dns_rbt_t *rbt, const char *namestr, dns_rbtnode_t **node)
 }
 
 static bool
-compare_labelsequences(dns_rbtnode_t *node, const char *labelstr)
-{
-	dns_name_t   name;
+compare_labelsequences(dns_rbtnode_t *node, const char *labelstr) {
+	dns_name_t name;
 	isc_result_t result;
-	char *	     nodestr = NULL;
-	bool	     is_equal;
+	char *nodestr = NULL;
+	bool is_equal;
 
 	dns_name_init(&name, NULL);
 	dns_rbt_namefromnode(node, &name);
@@ -503,11 +490,10 @@ compare_labelsequences(dns_rbtnode_t *node, const char *labelstr)
 
 /* Test insertion into a tree */
 static void
-rbt_insert(void **state)
-{
-	isc_result_t	result;
+rbt_insert(void **state) {
+	isc_result_t result;
 	test_context_t *ctx;
-	dns_rbtnode_t * node;
+	dns_rbtnode_t *node;
 
 	UNUSED(state);
 
@@ -667,10 +653,9 @@ rbt_insert(void **state)
  * have data.
  */
 static void
-rbt_remove(void **state)
-{
+rbt_remove(void **state) {
 	isc_result_t result;
-	size_t	     j;
+	size_t j;
 
 	UNUSED(state);
 
@@ -680,13 +665,13 @@ rbt_remove(void **state)
 	 * Delete single nodes and check if the rest of the nodes exist.
 	 */
 	for (j = 0; j < ordered_names_count; j++) {
-		dns_rbt_t *	   mytree = NULL;
-		dns_rbtnode_t *	   node;
-		size_t		   i;
-		size_t *	   n;
-		bool		   tree_ok;
+		dns_rbt_t *mytree = NULL;
+		dns_rbtnode_t *node;
+		size_t i;
+		size_t *n;
+		bool tree_ok;
 		dns_rbtnodechain_t chain;
-		size_t		   start_node;
+		size_t start_node;
 
 		/* Create a tree. */
 		result = dns_rbt_create(dt_mctx, delete_data, NULL, &mytree);
@@ -702,7 +687,7 @@ rbt_remove(void **state)
 		/* Check that all names exist in order. */
 		for (i = 0; i < ordered_names_count; i++) {
 			dns_fixedname_t fname;
-			dns_name_t *	name;
+			dns_name_t *name;
 
 			dns_test_namefromstring(ordered_names[i], &fname);
 
@@ -727,7 +712,7 @@ rbt_remove(void **state)
 		/* Now, delete the j'th node from the tree. */
 		{
 			dns_fixedname_t fname;
-			dns_name_t *	name;
+			dns_name_t *name;
 
 			dns_test_namefromstring(ordered_names[j], &fname);
 
@@ -750,7 +735,7 @@ rbt_remove(void **state)
 			 * above. We start from node 1.
 			 */
 			dns_fixedname_t fname;
-			dns_name_t *	name;
+			dns_name_t *name;
 
 			dns_test_namefromstring(ordered_names[0], &fname);
 			name = dns_fixedname_name(&fname);
@@ -769,7 +754,7 @@ rbt_remove(void **state)
 		} else {
 			/* Start from node 0. */
 			dns_fixedname_t fname;
-			dns_name_t *	name;
+			dns_name_t *name;
 
 			dns_test_namefromstring(ordered_names[0], &fname);
 			name = dns_fixedname_name(&fname);
@@ -786,7 +771,7 @@ rbt_remove(void **state)
 		 */
 		for (i = start_node; i < ordered_names_count; i++) {
 			dns_fixedname_t fname_j, fname_i;
-			dns_name_t *	name_j, *name_i;
+			dns_name_t *name_j, *name_i;
 
 			dns_test_namefromstring(ordered_names[j], &fname_j);
 			name_j = dns_fixedname_name(&fname_j);
@@ -849,14 +834,13 @@ rbt_remove(void **state)
 
 static void
 insert_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
-	     uint32_t num_names)
-{
-	uint32_t       i;
+	     uint32_t num_names) {
+	uint32_t i;
 	dns_rbtnode_t *node;
 
 	for (i = 0; i < num_names; i++) {
 		size_t *n;
-		char	namebuf[34];
+		char namebuf[34];
 
 		n = isc_mem_get(dt_mctx, sizeof(size_t));
 		assert_non_null(n);
@@ -864,10 +848,10 @@ insert_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
 		*n = i; /* Unused value */
 
 		while (1) {
-			int		j;
+			int j;
 			dns_fixedname_t fname;
-			dns_name_t *	name;
-			isc_result_t	result;
+			dns_name_t *name;
+			isc_result_t result;
 
 			for (j = 0; j < 32; j++) {
 				uint32_t v = isc_random_uniform(26);
@@ -883,8 +867,8 @@ insert_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
 			result = dns_rbt_addnode(mytree, name, &node);
 			if (result == ISC_R_SUCCESS) {
 				node->data = n;
-				names[*names_count] =
-					isc_mem_strdup(dt_mctx, namebuf);
+				names[*names_count] = isc_mem_strdup(dt_mctx,
+								     namebuf);
 				assert_non_null(names[*names_count]);
 				*names_count += 1;
 				break;
@@ -895,17 +879,16 @@ insert_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
 
 static void
 remove_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
-	     uint32_t num_names)
-{
+	     uint32_t num_names) {
 	uint32_t i;
 
 	UNUSED(mytree);
 
 	for (i = 0; i < num_names; i++) {
-		uint32_t	node;
+		uint32_t node;
 		dns_fixedname_t fname;
-		dns_name_t *	name;
-		isc_result_t	result;
+		dns_name_t *name;
+		isc_result_t result;
 
 		node = isc_random_uniform(*names_count);
 
@@ -925,8 +908,7 @@ remove_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
 }
 
 static void
-check_tree(dns_rbt_t *mytree, char **names, size_t names_count)
-{
+check_tree(dns_rbt_t *mytree, char **names, size_t names_count) {
 	bool tree_ok;
 
 	UNUSED(names);
@@ -962,14 +944,13 @@ check_tree(dns_rbt_t *mytree, char **names, size_t names_count)
  * over 1024.
  */
 static void
-rbt_insert_and_remove(void **state)
-{
+rbt_insert_and_remove(void **state) {
 	isc_result_t result;
-	dns_rbt_t *  mytree = NULL;
-	size_t *     n;
-	char *	     names[1024];
-	size_t	     names_count;
-	int	     i;
+	dns_rbt_t *mytree = NULL;
+	size_t *n;
+	char *names[1024];
+	size_t names_count;
+	int i;
 
 	UNUSED(state);
 
@@ -1030,13 +1011,12 @@ rbt_insert_and_remove(void **state)
 
 /* Test findname return values */
 static void
-rbt_findname(void **state)
-{
-	isc_result_t	result;
+rbt_findname(void **state) {
+	isc_result_t result;
 	test_context_t *ctx = NULL;
 	dns_fixedname_t fname, found;
-	dns_name_t *	name = NULL, *foundname = NULL;
-	size_t *	n = NULL;
+	dns_name_t *name = NULL, *foundname = NULL;
+	size_t *n = NULL;
 
 	UNUSED(state);
 
@@ -1079,13 +1059,12 @@ rbt_findname(void **state)
 
 /* Test addname return values */
 static void
-rbt_addname(void **state)
-{
-	isc_result_t	result;
+rbt_addname(void **state) {
+	isc_result_t result;
 	test_context_t *ctx = NULL;
 	dns_fixedname_t fname;
-	dns_name_t *	name = NULL;
-	size_t *	n;
+	dns_name_t *name = NULL;
+	size_t *n;
 
 	UNUSED(state);
 
@@ -1117,12 +1096,11 @@ rbt_addname(void **state)
 
 /* Test deletename return values */
 static void
-rbt_deletename(void **state)
-{
-	isc_result_t	result;
+rbt_deletename(void **state) {
+	isc_result_t result;
 	test_context_t *ctx = NULL;
 	dns_fixedname_t fname;
-	dns_name_t *	name = NULL;
+	dns_name_t *name = NULL;
 
 	UNUSED(state);
 
@@ -1147,13 +1125,12 @@ rbt_deletename(void **state)
 
 /* Test nodechain */
 static void
-rbt_nodechain(void **state)
-{
-	isc_result_t	   result;
-	test_context_t *   ctx;
-	dns_fixedname_t	   fname, found, expect;
-	dns_name_t *	   name, *foundname, *expected;
-	dns_rbtnode_t *	   node = NULL;
+rbt_nodechain(void **state) {
+	isc_result_t result;
+	test_context_t *ctx;
+	dns_fixedname_t fname, found, expect;
+	dns_name_t *name, *foundname, *expected;
+	dns_rbtnode_t *node = NULL;
 	dns_rbtnodechain_t chain;
 
 	UNUSED(state);
@@ -1215,17 +1192,16 @@ rbt_nodechain(void **state)
  */
 
 static dns_fixedname_t *fnames;
-static dns_name_t **	names;
-static int *		values;
+static dns_name_t **names;
+static int *values;
 
 static void *
-find_thread(void *arg)
-{
-	dns_rbt_t *    mytree;
-	isc_result_t   result;
+find_thread(void *arg) {
+	dns_rbt_t *mytree;
+	isc_result_t result;
 	dns_rbtnode_t *node;
-	unsigned int   j, i;
-	unsigned int   start = 0;
+	unsigned int j, i;
+	unsigned int start = 0;
 
 	mytree = (dns_rbt_t *)arg;
 	while (start == 0) {
@@ -1250,19 +1226,18 @@ find_thread(void *arg)
 
 /* Benchmark RBT implementation */
 static void
-benchmark(void **state)
-{
-	isc_result_t   result;
-	char	       namestr[sizeof("name18446744073709551616.example.org.")];
-	unsigned int   r;
-	dns_rbt_t *    mytree;
+benchmark(void **state) {
+	isc_result_t result;
+	char namestr[sizeof("name18446744073709551616.example.org.")];
+	unsigned int r;
+	dns_rbt_t *mytree;
 	dns_rbtnode_t *node;
-	unsigned int   i;
-	unsigned int   maxvalue = 1000000;
-	isc_time_t     ts1, ts2;
-	double	       t;
-	unsigned int   nthreads;
-	isc_thread_t   threads[32];
+	unsigned int i;
+	unsigned int maxvalue = 1000000;
+	isc_time_t ts1, ts2;
+	double t;
+	unsigned int nthreads;
+	isc_thread_t threads[32];
 
 	UNUSED(state);
 
@@ -1327,8 +1302,7 @@ benchmark(void **state)
 #endif /* defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)  */
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(rbt_create, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(rbt_nodecount, _setup,
@@ -1363,8 +1337,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

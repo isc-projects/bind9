@@ -34,35 +34,33 @@
 
 typedef struct client client_t;
 struct client {
-	dns_name_t  name;
+	dns_name_t name;
 	const char *target;
 	ISC_LINK(client_t) link;
 	dns_adbfind_t *find;
 };
 
-static isc_mem_t *	  mctx = NULL;
-static isc_mempool_t *	  cmp;
-static isc_log_t *	  lctx;
-static isc_logconfig_t *  lcfg;
-static isc_taskmgr_t *	  taskmgr;
-static isc_socketmgr_t *  socketmgr;
-static isc_timermgr_t *	  timermgr;
+static isc_mem_t *mctx = NULL;
+static isc_mempool_t *cmp;
+static isc_log_t *lctx;
+static isc_logconfig_t *lcfg;
+static isc_taskmgr_t *taskmgr;
+static isc_socketmgr_t *socketmgr;
+static isc_timermgr_t *timermgr;
 static dns_dispatchmgr_t *dispatchmgr;
-static isc_task_t *	  t1, *t2;
-static dns_view_t *	  view;
-static dns_db_t *	  rootdb;
+static isc_task_t *t1, *t2;
+static dns_view_t *view;
+static dns_db_t *rootdb;
 static ISC_LIST(client_t) clients;
-static isc_mutex_t   client_lock;
+static isc_mutex_t client_lock;
 static isc_stdtime_t now;
-static dns_adb_t *   adb;
+static dns_adb_t *adb;
 
-static void
-check_result(isc_result_t result, const char *format, ...)
+static void check_result(isc_result_t result, const char *format, ...)
 	ISC_FORMAT_PRINTF(2, 3);
 
 static void
-check_result(isc_result_t result, const char *format, ...)
-{
+check_result(isc_result_t result, const char *format, ...) {
 	va_list args;
 
 	if (result == ISC_R_SUCCESS) {
@@ -77,8 +75,7 @@ check_result(isc_result_t result, const char *format, ...)
 }
 
 static client_t *
-new_client(void)
-{
+new_client(void) {
 	client_t *client;
 
 	client = isc_mempool_get(cmp);
@@ -91,8 +88,7 @@ new_client(void)
 }
 
 static void
-free_client(client_t **c)
-{
+free_client(client_t **c) {
 	client_t *client;
 
 	INSIST(c != NULL);
@@ -107,20 +103,17 @@ free_client(client_t **c)
 }
 
 static inline void
-CLOCK(void)
-{
+CLOCK(void) {
 	RUNTIME_CHECK(isc_mutex_lock(&client_lock) == ISC_R_SUCCESS);
 }
 
 static inline void
-CUNLOCK(void)
-{
+CUNLOCK(void) {
 	RUNTIME_CHECK(isc_mutex_unlock(&client_lock) == ISC_R_SUCCESS);
 }
 
 static void
-lookup_callback(isc_task_t *task, isc_event_t *ev)
-{
+lookup_callback(isc_task_t *task, isc_event_t *ev) {
 	client_t *client;
 
 	client = ev->ev_arg;
@@ -147,8 +140,7 @@ lookup_callback(isc_task_t *task, isc_event_t *ev)
 }
 
 static void
-create_managers(void)
-{
+create_managers(void) {
 	isc_result_t result;
 
 	taskmgr = NULL;
@@ -169,8 +161,7 @@ create_managers(void)
 }
 
 static void
-create_view(void)
-{
+create_view(void) {
 	dns_cache_t *cache;
 	isc_result_t result;
 
@@ -193,8 +184,8 @@ create_view(void)
 	dns_cache_detach(&cache);
 
 	{
-		unsigned int	attrs;
-		isc_sockaddr_t	any4, any6;
+		unsigned int attrs;
+		isc_sockaddr_t any4, any6;
 		dns_dispatch_t *disp4 = NULL;
 		dns_dispatch_t *disp6 = NULL;
 
@@ -231,14 +222,13 @@ create_view(void)
 }
 
 static void
-lookup(const char *target)
-{
-	dns_name_t    name;
+lookup(const char *target) {
+	dns_name_t name;
 	unsigned char namedata[256];
-	client_t *    client;
-	isc_buffer_t  t, namebuf;
-	isc_result_t  result;
-	unsigned int  options;
+	client_t *client;
+	isc_buffer_t t, namebuf;
+	isc_result_t result;
+	unsigned int options;
 
 	INSIST(target != NULL);
 
@@ -280,9 +270,8 @@ lookup(const char *target)
 }
 
 int
-main(int argc, char **argv)
-{
-	isc_result_t	     result;
+main(int argc, char **argv) {
+	isc_result_t result;
 	isc_logdestination_t destination;
 
 	UNUSED(argc);

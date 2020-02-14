@@ -16,10 +16,10 @@
 
 #define RRTYPE_ZONEMD_ATTRIBUTES 0
 
-static inline isc_result_t fromtext_zonemd(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_zonemd(ARGS_FROMTEXT) {
 	isc_token_t token;
-	int	    digest_type, length;
+	int digest_type, length;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -64,10 +64,10 @@ static inline isc_result_t fromtext_zonemd(ARGS_FROMTEXT)
 	return (isc_hex_tobuffer(lexer, target, length));
 }
 
-static inline isc_result_t totext_zonemd(ARGS_TOTEXT)
-{
-	isc_region_t  sr;
-	char	      buf[sizeof("0123456789")];
+static inline isc_result_t
+totext_zonemd(ARGS_TOTEXT) {
+	isc_region_t sr;
+	char buf[sizeof("0123456789")];
 	unsigned long num;
 
 	REQUIRE(rdata->length > 6);
@@ -126,8 +126,8 @@ static inline isc_result_t totext_zonemd(ARGS_TOTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t fromwire_zonemd(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_zonemd(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
 	UNUSED(type);
@@ -145,7 +145,8 @@ static inline isc_result_t fromwire_zonemd(ARGS_FROMWIRE)
 	 * correct length.
 	 */
 	if (sr.length < 7 || (sr.base[4] == DNS_ZONEMD_DIGEST_SHA384 &&
-			      sr.length < 6 + ISC_SHA384_DIGESTLENGTH)) {
+			      sr.length < 6 + ISC_SHA384_DIGESTLENGTH))
+	{
 		return (ISC_R_UNEXPECTEDEND);
 	}
 
@@ -163,8 +164,8 @@ static inline isc_result_t fromwire_zonemd(ARGS_FROMWIRE)
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline isc_result_t towire_zonemd(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_zonemd(ARGS_TOWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_zonemd);
@@ -176,8 +177,8 @@ static inline isc_result_t towire_zonemd(ARGS_TOWIRE)
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int compare_zonemd(ARGS_COMPARE)
-{
+static inline int
+compare_zonemd(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -192,8 +193,8 @@ static inline int compare_zonemd(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_zonemd(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_zonemd(ARGS_FROMSTRUCT) {
 	dns_rdata_zonemd_t *zonemd = source;
 
 	REQUIRE(zonemd != NULL);
@@ -216,10 +217,10 @@ static inline isc_result_t fromstruct_zonemd(ARGS_FROMSTRUCT)
 	return (mem_tobuffer(target, zonemd->digest, zonemd->length));
 }
 
-static inline isc_result_t tostruct_zonemd(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_zonemd(ARGS_TOSTRUCT) {
 	dns_rdata_zonemd_t *zonemd = target;
-	isc_region_t	    region;
+	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_zonemd);
 	REQUIRE(zonemd != NULL);
@@ -248,8 +249,8 @@ static inline isc_result_t tostruct_zonemd(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_zonemd(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_zonemd(ARGS_FREESTRUCT) {
 	dns_rdata_zonemd_t *zonemd = source;
 
 	REQUIRE(zonemd != NULL);
@@ -265,8 +266,8 @@ static inline void freestruct_zonemd(ARGS_FREESTRUCT)
 	zonemd->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_zonemd(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_zonemd(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_zonemd);
 
 	UNUSED(rdata);
@@ -276,8 +277,8 @@ static inline isc_result_t additionaldata_zonemd(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_zonemd(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_zonemd(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_zonemd);
@@ -287,8 +288,8 @@ static inline isc_result_t digest_zonemd(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_zonemd(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_zonemd(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_zonemd);
 
 	UNUSED(name);
@@ -299,8 +300,8 @@ static inline bool checkowner_zonemd(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_zonemd(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_zonemd(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_zonemd);
 
 	UNUSED(rdata);
@@ -310,8 +311,8 @@ static inline bool checknames_zonemd(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_zonemd(ARGS_COMPARE)
-{
+static inline int
+casecompare_zonemd(ARGS_COMPARE) {
 	return (compare_zonemd(rdata1, rdata2));
 }
 

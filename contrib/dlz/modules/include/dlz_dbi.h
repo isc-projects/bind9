@@ -46,9 +46,9 @@
  * Types
  */
 #define REQUIRE_CLIENT 0x01
-#define REQUIRE_QUERY 0x02
+#define REQUIRE_QUERY  0x02
 #define REQUIRE_RECORD 0x04
-#define REQUIRE_ZONE 0x08
+#define REQUIRE_ZONE   0x08
 
 typedef struct query_segment query_segment_t;
 typedef DLZ_LIST(query_segment_t) query_list_t;

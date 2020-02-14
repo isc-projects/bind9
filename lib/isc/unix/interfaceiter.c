@@ -54,8 +54,7 @@
 
 static void
 get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
-	 char *ifname)
-{
+	 char *ifname) {
 	struct sockaddr_in6 *sa6;
 
 #if !defined(HAVE_IF_NAMETOINDEX)
@@ -135,20 +134,16 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 #define ISC_IF_INET6_SZ                                        \
 	sizeof("00000000000000000000000000000001 01 80 10 80 " \
 	       "XXXXXXloXXXXXXXX\n")
-static isc_result_t
-linux_if_inet6_next(isc_interfaceiter_t *);
-static isc_result_t
-linux_if_inet6_current(isc_interfaceiter_t *);
-static void
-linux_if_inet6_first(isc_interfaceiter_t *iter);
+static isc_result_t linux_if_inet6_next(isc_interfaceiter_t *);
+static isc_result_t linux_if_inet6_current(isc_interfaceiter_t *);
+static void linux_if_inet6_first(isc_interfaceiter_t *iter);
 #endif /* ifdef __linux */
 
 #include "ifiter_getifaddrs.c"
 
 #ifdef __linux
 static void
-linux_if_inet6_first(isc_interfaceiter_t *iter)
-{
+linux_if_inet6_first(isc_interfaceiter_t *iter) {
 	if (iter->proc != NULL) {
 		rewind(iter->proc);
 		(void)linux_if_inet6_next(iter);
@@ -158,10 +153,10 @@ linux_if_inet6_first(isc_interfaceiter_t *iter)
 }
 
 static isc_result_t
-linux_if_inet6_next(isc_interfaceiter_t *iter)
-{
+linux_if_inet6_next(isc_interfaceiter_t *iter) {
 	if (iter->proc != NULL &&
-	    fgets(iter->entry, sizeof(iter->entry), iter->proc) != NULL) {
+	    fgets(iter->entry, sizeof(iter->entry), iter->proc) != NULL)
+	{
 		iter->valid = ISC_R_SUCCESS;
 	} else {
 		iter->valid = ISC_R_NOMORE;
@@ -170,14 +165,13 @@ linux_if_inet6_next(isc_interfaceiter_t *iter)
 }
 
 static isc_result_t
-linux_if_inet6_current(isc_interfaceiter_t *iter)
-{
-	char		address[33];
-	char		name[IF_NAMESIZE + 1];
+linux_if_inet6_current(isc_interfaceiter_t *iter) {
+	char address[33];
+	char name[IF_NAMESIZE + 1];
 	struct in6_addr addr6;
-	unsigned int	ifindex, prefix, flag3, flag4;
-	int		res;
-	unsigned int	i;
+	unsigned int ifindex, prefix, flag3, flag4;
+	int res;
+	unsigned int i;
 
 	if (iter->valid != ISC_R_SUCCESS) {
 		return (iter->valid);
@@ -205,7 +199,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter)
 		return (ISC_R_FAILURE);
 	}
 	for (i = 0; i < 16; i++) {
-		unsigned char	  byte;
+		unsigned char byte;
 		static const char hex[] = "0123456789abcdef";
 		byte = ((strchr(hex, address[i * 2]) - hex) << 4) |
 		       (strchr(hex, address[i * 2 + 1]) - hex);
@@ -237,16 +231,14 @@ linux_if_inet6_current(isc_interfaceiter_t *iter)
  */
 
 isc_result_t
-isc_interfaceiter_current(isc_interfaceiter_t *iter, isc_interface_t *ifdata)
-{
+isc_interfaceiter_current(isc_interfaceiter_t *iter, isc_interface_t *ifdata) {
 	REQUIRE(iter->result == ISC_R_SUCCESS);
 	memmove(ifdata, &iter->current, sizeof(*ifdata));
 	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-isc_interfaceiter_first(isc_interfaceiter_t *iter)
-{
+isc_interfaceiter_first(isc_interfaceiter_t *iter) {
 	isc_result_t result;
 
 	REQUIRE(VALID_IFITER(iter));
@@ -267,8 +259,7 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter)
 }
 
 isc_result_t
-isc_interfaceiter_next(isc_interfaceiter_t *iter)
-{
+isc_interfaceiter_next(isc_interfaceiter_t *iter) {
 	isc_result_t result;
 
 	REQUIRE(VALID_IFITER(iter));
@@ -289,8 +280,7 @@ isc_interfaceiter_next(isc_interfaceiter_t *iter)
 }
 
 void
-isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
-{
+isc_interfaceiter_destroy(isc_interfaceiter_t **iterp) {
 	isc_interfaceiter_t *iter;
 	REQUIRE(iterp != NULL);
 	iter = *iterp;

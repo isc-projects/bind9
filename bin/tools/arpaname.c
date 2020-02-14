@@ -17,10 +17,9 @@
 #define UNUSED(x) (void)(x)
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	unsigned char buf[16];
-	int	      i;
+	int i;
 
 	UNUSED(argc);
 

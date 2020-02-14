@@ -138,13 +138,13 @@
 /*
  * Types of permission.
  */
-#define ISC_FSACCESS_READ 0x00000001	      /*%< File only. */
-#define ISC_FSACCESS_WRITE 0x00000002	      /*%< File only. */
-#define ISC_FSACCESS_EXECUTE 0x00000004	      /*%< File only. */
-#define ISC_FSACCESS_CREATECHILD 0x00000008   /*%< Dir only. */
-#define ISC_FSACCESS_DELETECHILD 0x00000010   /*%< Dir only. */
+#define ISC_FSACCESS_READ	   0x00000001 /*%< File only. */
+#define ISC_FSACCESS_WRITE	   0x00000002 /*%< File only. */
+#define ISC_FSACCESS_EXECUTE	   0x00000004 /*%< File only. */
+#define ISC_FSACCESS_CREATECHILD   0x00000008 /*%< Dir only. */
+#define ISC_FSACCESS_DELETECHILD   0x00000010 /*%< Dir only. */
 #define ISC_FSACCESS_LISTDIRECTORY 0x00000020 /*%< Dir only. */
-#define ISC_FSACCESS_ACCESSCHILD 0x00000040   /*%< Dir only. */
+#define ISC_FSACCESS_ACCESSCHILD   0x00000040 /*%< Dir only. */
 
 /*%
  * Adding any permission bits beyond 0x200 would mean typedef'ing

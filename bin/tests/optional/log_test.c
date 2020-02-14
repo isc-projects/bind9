@@ -21,8 +21,8 @@
 
 #include <dns/log.h>
 
-#define TEST_FILE "/tmp/test_log"
-#define SYSLOG_FILE "/var/log/daemon.log"
+#define TEST_FILE     "/tmp/test_log"
+#define SYSLOG_FILE   "/var/log/daemon.log"
 #define FILE_VERSIONS 10
 
 char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
@@ -35,18 +35,17 @@ char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
 	}
 
 int
-main(int argc, char **argv)
-{
-	const char *		 progname, *syslog_file, *message;
-	int			 ch, i, file_versions, stderr_line;
-	bool			 show_final_mem = false;
-	isc_log_t *		 lctx;
-	isc_logconfig_t *	 lcfg;
-	isc_mem_t *		 mctx;
-	isc_result_t		 result;
-	isc_logdestination_t	 destination;
+main(int argc, char **argv) {
+	const char *progname, *syslog_file, *message;
+	int ch, i, file_versions, stderr_line;
+	bool show_final_mem = false;
+	isc_log_t *lctx;
+	isc_logconfig_t *lcfg;
+	isc_mem_t *mctx;
+	isc_result_t result;
+	isc_logdestination_t destination;
 	const isc_logcategory_t *category;
-	const isc_logmodule_t *	 module;
+	const isc_logmodule_t *module;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL) {
@@ -70,7 +69,8 @@ main(int argc, char **argv)
 			file_versions = atoi(isc_commandline_argument);
 			if (file_versions < 0 &&
 			    file_versions != ISC_LOG_ROLLNEVER &&
-			    file_versions != ISC_LOG_ROLLINFINITE) {
+			    file_versions != ISC_LOG_ROLLINFINITE)
+			{
 				fprintf(stderr,
 					"%s: file rotations must be "
 					"%d (ISC_LOG_ROLLNEVER),\n\t"

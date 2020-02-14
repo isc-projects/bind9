@@ -194,7 +194,7 @@
 /*
  * Regions.
  */
-#define REGION_SIZE(r) ((unsigned int)((r).rend - (r).rstart))
+#define REGION_SIZE(r)	((unsigned int)((r).rend - (r).rstart))
 #define REGION_EMPTY(r) ((r).rstart == (r).rend)
 #define REGION_FROMSTRING(r, s)                    \
 	do {                                       \

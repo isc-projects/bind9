@@ -56,24 +56,23 @@
 
 #define RUNCHECK(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
 
-#define PORT 5300
+#define PORT	5300
 #define TIMEOUT 30
 
-static isc_mem_t *	 mctx;
+static isc_mem_t *mctx;
 static dns_requestmgr_t *requestmgr;
-static bool		 have_src = false;
-static isc_sockaddr_t	 srcaddr;
-static isc_sockaddr_t	 dstaddr;
-static int		 onfly;
+static bool have_src = false;
+static isc_sockaddr_t srcaddr;
+static isc_sockaddr_t dstaddr;
+static int onfly;
 
 static void
-recvresponse(isc_task_t *task, isc_event_t *event)
-{
+recvresponse(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
-	isc_result_t	    result;
-	dns_message_t *	    query, *response;
-	isc_buffer_t	    outbuf;
-	char		    output[1024];
+	isc_result_t result;
+	dns_message_t *query, *response;
+	isc_buffer_t outbuf;
+	char output[1024];
 
 	UNUSED(task);
 
@@ -127,17 +126,16 @@ recvresponse(isc_task_t *task, isc_event_t *event)
 }
 
 static isc_result_t
-sendquery(isc_task_t *task)
-{
-	dns_request_t * request;
-	dns_message_t * message;
-	dns_name_t *	qname;
+sendquery(isc_task_t *task) {
+	dns_request_t *request;
+	dns_message_t *message;
+	dns_name_t *qname;
 	dns_rdataset_t *qrdataset;
-	isc_result_t	result;
+	isc_result_t result;
 	dns_fixedname_t queryname;
-	isc_buffer_t	buf;
-	static char	host[256];
-	int		c;
+	isc_buffer_t buf;
+	static char host[256];
+	int c;
 
 	c = scanf("%255s", host);
 	if (c == EOF) {
@@ -188,8 +186,7 @@ sendquery(isc_task_t *task)
 }
 
 static void
-sendqueries(isc_task_t *task, isc_event_t *event)
-{
+sendqueries(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	isc_event_free(&event);
@@ -205,23 +202,22 @@ sendqueries(isc_task_t *task, isc_event_t *event)
 }
 
 int
-main(int argc, char *argv[])
-{
-	isc_sockaddr_t	   bind_any;
-	struct in_addr	   inaddr;
-	isc_result_t	   result;
-	isc_log_t *	   lctx;
-	isc_logconfig_t *  lcfg;
-	isc_taskmgr_t *	   taskmgr;
-	isc_task_t *	   task;
-	isc_timermgr_t *   timermgr;
-	isc_socketmgr_t *  socketmgr;
+main(int argc, char *argv[]) {
+	isc_sockaddr_t bind_any;
+	struct in_addr inaddr;
+	isc_result_t result;
+	isc_log_t *lctx;
+	isc_logconfig_t *lcfg;
+	isc_taskmgr_t *taskmgr;
+	isc_task_t *task;
+	isc_timermgr_t *timermgr;
+	isc_socketmgr_t *socketmgr;
 	dns_dispatchmgr_t *dispatchmgr;
-	unsigned int	   attrs, attrmask;
-	dns_dispatch_t *   dispatchv4;
-	dns_view_t *	   view;
-	uint16_t	   port = PORT;
-	int		   c;
+	unsigned int attrs, attrmask;
+	dns_dispatch_t *dispatchv4;
+	dns_view_t *view;
+	uint16_t port = PORT;
+	int c;
 
 	RUNCHECK(isc_app_start());
 

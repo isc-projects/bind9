@@ -30,8 +30,7 @@
 #include "dnstest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -43,8 +42,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -52,8 +50,8 @@ _teardown(void **state)
 	return (0);
 }
 
-#define BUFLEN 255
-#define BIGBUFLEN (64 * 1024)
+#define BUFLEN	    255
+#define BIGBUFLEN   (64 * 1024)
 #define TEST_ORIGIN "test"
 
 /*
@@ -62,12 +60,11 @@ _teardown(void **state)
 
 /* test multiple calls to dns_db_getoriginnode */
 static void
-getoriginnode_test(void **state)
-{
-	dns_db_t *    db = NULL;
+getoriginnode_test(void **state) {
+	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
-	isc_mem_t *   mctx = NULL;
-	isc_result_t  result;
+	isc_mem_t *mctx = NULL;
+	isc_result_t result;
 
 	UNUSED(state);
 
@@ -91,12 +88,11 @@ getoriginnode_test(void **state)
 
 /* test getservestalettl and setservestalettl */
 static void
-getsetservestalettl_test(void **state)
-{
-	dns_db_t *   db = NULL;
-	isc_mem_t *  mctx = NULL;
+getsetservestalettl_test(void **state) {
+	dns_db_t *db = NULL;
+	isc_mem_t *mctx = NULL;
 	isc_result_t result;
-	dns_ttl_t    ttl;
+	dns_ttl_t ttl;
 
 	UNUSED(state);
 
@@ -126,21 +122,20 @@ getsetservestalettl_test(void **state)
 
 /* check DNS_DBFIND_STALEOK works */
 static void
-dns_dbfind_staleok_test(void **state)
-{
-	dns_db_t *	db = NULL;
-	dns_dbnode_t *	node = NULL;
+dns_dbfind_staleok_test(void **state) {
+	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
 	dns_fixedname_t example_fixed;
 	dns_fixedname_t found_fixed;
-	dns_name_t *	example;
-	dns_name_t *	found;
+	dns_name_t *example;
+	dns_name_t *found;
 	dns_rdatalist_t rdatalist;
-	dns_rdataset_t	rdataset;
-	int		count;
-	int		pass;
-	isc_mem_t *	mctx = NULL;
-	isc_result_t	result;
-	unsigned char	data[] = { 0x0a, 0x00, 0x00, 0x01 };
+	dns_rdataset_t rdataset;
+	int count;
+	int pass;
+	isc_mem_t *mctx = NULL;
+	isc_result_t result;
+	unsigned char data[] = { 0x0a, 0x00, 0x00, 0x01 };
 
 	UNUSED(state);
 
@@ -282,10 +277,9 @@ dns_dbfind_staleok_test(void **state)
 
 /* database class */
 static void
-class_test(void **state)
-{
+class_test(void **state) {
 	isc_result_t result;
-	dns_db_t *   db = NULL;
+	dns_db_t *db = NULL;
 
 	UNUSED(state);
 
@@ -304,10 +298,9 @@ class_test(void **state)
 
 /* database type */
 static void
-dbtype_test(void **state)
-{
+dbtype_test(void **state) {
 	isc_result_t result;
-	dns_db_t *   db = NULL;
+	dns_db_t *db = NULL;
 
 	UNUSED(state);
 
@@ -336,15 +329,14 @@ dbtype_test(void **state)
 
 /* database versions */
 static void
-version_test(void **state)
-{
-	isc_result_t	 result;
-	dns_fixedname_t	 fname, ffound;
-	dns_name_t *	 name, *foundname;
-	dns_db_t *	 db = NULL;
+version_test(void **state) {
+	isc_result_t result;
+	dns_fixedname_t fname, ffound;
+	dns_name_t *name, *foundname;
+	dns_db_t *db = NULL;
 	dns_dbversion_t *ver = NULL, *new = NULL;
-	dns_dbnode_t *	 node = NULL;
-	dns_rdataset_t	 rdataset;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
 
 	UNUSED(state);
 
@@ -404,8 +396,7 @@ version_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(getoriginnode_test),
 		cmocka_unit_test(getsetservestalettl_test),
@@ -424,8 +415,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

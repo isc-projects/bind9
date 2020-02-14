@@ -19,8 +19,7 @@
 #include <dns/name.h>
 
 void
-dns_dbiterator_destroy(dns_dbiterator_t **iteratorp)
-{
+dns_dbiterator_destroy(dns_dbiterator_t **iteratorp) {
 	/*
 	 * Destroy '*iteratorp'.
 	 */
@@ -34,8 +33,7 @@ dns_dbiterator_destroy(dns_dbiterator_t **iteratorp)
 }
 
 isc_result_t
-dns_dbiterator_first(dns_dbiterator_t *iterator)
-{
+dns_dbiterator_first(dns_dbiterator_t *iterator) {
 	/*
 	 * Move the node cursor to the first node in the database (if any).
 	 */
@@ -46,8 +44,7 @@ dns_dbiterator_first(dns_dbiterator_t *iterator)
 }
 
 isc_result_t
-dns_dbiterator_last(dns_dbiterator_t *iterator)
-{
+dns_dbiterator_last(dns_dbiterator_t *iterator) {
 	/*
 	 * Move the node cursor to the first node in the database (if any).
 	 */
@@ -58,8 +55,7 @@ dns_dbiterator_last(dns_dbiterator_t *iterator)
 }
 
 isc_result_t
-dns_dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name)
-{
+dns_dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name) {
 	/*
 	 * Move the node cursor to the node with name 'name'.
 	 */
@@ -70,8 +66,7 @@ dns_dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name)
 }
 
 isc_result_t
-dns_dbiterator_prev(dns_dbiterator_t *iterator)
-{
+dns_dbiterator_prev(dns_dbiterator_t *iterator) {
 	/*
 	 * Move the node cursor to the previous node in the database (if any).
 	 */
@@ -82,8 +77,7 @@ dns_dbiterator_prev(dns_dbiterator_t *iterator)
 }
 
 isc_result_t
-dns_dbiterator_next(dns_dbiterator_t *iterator)
-{
+dns_dbiterator_next(dns_dbiterator_t *iterator) {
 	/*
 	 * Move the node cursor to the next node in the database (if any).
 	 */
@@ -95,8 +89,7 @@ dns_dbiterator_next(dns_dbiterator_t *iterator)
 
 isc_result_t
 dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
-		       dns_name_t *name)
-{
+		       dns_name_t *name) {
 	/*
 	 * Return the current node.
 	 */
@@ -109,8 +102,7 @@ dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 }
 
 isc_result_t
-dns_dbiterator_pause(dns_dbiterator_t *iterator)
-{
+dns_dbiterator_pause(dns_dbiterator_t *iterator) {
 	/*
 	 * Pause iteration.
 	 */
@@ -121,8 +113,7 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator)
 }
 
 isc_result_t
-dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name)
-{
+dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	/*
 	 * Return the origin to which returned node names are relative.
 	 */
@@ -135,8 +126,7 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name)
 }
 
 void
-dns_dbiterator_setcleanmode(dns_dbiterator_t *iterator, bool mode)
-{
+dns_dbiterator_setcleanmode(dns_dbiterator_t *iterator, bool mode) {
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
 	iterator->cleaning = mode;

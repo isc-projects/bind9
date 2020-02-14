@@ -34,11 +34,11 @@
  * #ISC_LOG_DYNAMIC can only be used for defining channels with
  * isc_log_createchannel(), not to specify a level in isc_log_write().
  */
-#define ISC_LOG_DYNAMIC 0
-#define ISC_LOG_INFO (-1)
-#define ISC_LOG_NOTICE (-2)
-#define ISC_LOG_WARNING (-3)
-#define ISC_LOG_ERROR (-4)
+#define ISC_LOG_DYNAMIC	 0
+#define ISC_LOG_INFO	 (-1)
+#define ISC_LOG_NOTICE	 (-2)
+#define ISC_LOG_WARNING	 (-3)
+#define ISC_LOG_ERROR	 (-4)
 #define ISC_LOG_CRITICAL (-5)
 /*@}*/
 
@@ -46,9 +46,9 @@
 /*!
  * \brief Destinations.
  */
-#define ISC_LOG_TONULL 1
-#define ISC_LOG_TOSYSLOG 2
-#define ISC_LOG_TOFILE 3
+#define ISC_LOG_TONULL	   1
+#define ISC_LOG_TOSYSLOG   2
+#define ISC_LOG_TOFILE	   3
 #define ISC_LOG_TOFILEDESC 4
 /*@}*/
 
@@ -56,18 +56,18 @@
 /*%
  * Channel flags.
  */
-#define ISC_LOG_PRINTTIME 0x00001
-#define ISC_LOG_PRINTLEVEL 0x00002
+#define ISC_LOG_PRINTTIME     0x00001
+#define ISC_LOG_PRINTLEVEL    0x00002
 #define ISC_LOG_PRINTCATEGORY 0x00004
-#define ISC_LOG_PRINTMODULE 0x00008
-#define ISC_LOG_PRINTTAG 0x00010    /* tag and ":" */
-#define ISC_LOG_PRINTPREFIX 0x00020 /* tag only, no colon */
-#define ISC_LOG_PRINTALL 0x0003F
-#define ISC_LOG_BUFFERED 0x00040
-#define ISC_LOG_DEBUGONLY 0x01000
-#define ISC_LOG_OPENERR 0x08000 /* internal */
-#define ISC_LOG_ISO8601 0x10000 /* if PRINTTIME, use ISO8601 */
-#define ISC_LOG_UTC 0x20000	/* if PRINTTIME, use UTC */
+#define ISC_LOG_PRINTMODULE   0x00008
+#define ISC_LOG_PRINTTAG      0x00010 /* tag and ":" */
+#define ISC_LOG_PRINTPREFIX   0x00020 /* tag only, no colon */
+#define ISC_LOG_PRINTALL      0x0003F
+#define ISC_LOG_BUFFERED      0x00040
+#define ISC_LOG_DEBUGONLY     0x01000
+#define ISC_LOG_OPENERR	      0x08000 /* internal */
+#define ISC_LOG_ISO8601	      0x10000 /* if PRINTTIME, use ISO8601 */
+#define ISC_LOG_UTC	      0x20000 /* if PRINTTIME, use UTC */
 /*@}*/
 
 /*@{*/
@@ -79,7 +79,7 @@
  *   INFINITE is going to be trivial to add to that.
  */
 #define ISC_LOG_ROLLINFINITE (-1)
-#define ISC_LOG_ROLLNEVER (-2)
+#define ISC_LOG_ROLLNEVER    (-2)
 #define ISC_LOG_MAX_VERSIONS 256
 /*@}*/
 
@@ -173,13 +173,13 @@ LIBISC_EXTERNAL_DATA extern isc_logmodule_t   isc_modules[];
 #define ISC_LOGCATEGORY_GENERAL (&isc_categories[1])
 /*@}*/
 
-#define ISC_LOGMODULE_SOCKET (&isc_modules[0])
-#define ISC_LOGMODULE_TIME (&isc_modules[1])
+#define ISC_LOGMODULE_SOCKET	(&isc_modules[0])
+#define ISC_LOGMODULE_TIME	(&isc_modules[1])
 #define ISC_LOGMODULE_INTERFACE (&isc_modules[2])
-#define ISC_LOGMODULE_TIMER (&isc_modules[3])
-#define ISC_LOGMODULE_FILE (&isc_modules[4])
-#define ISC_LOGMODULE_NETMGR (&isc_modules[5])
-#define ISC_LOGMODULE_OTHER (&isc_modules[6])
+#define ISC_LOGMODULE_TIMER	(&isc_modules[3])
+#define ISC_LOGMODULE_FILE	(&isc_modules[4])
+#define ISC_LOGMODULE_NETMGR	(&isc_modules[5])
+#define ISC_LOGMODULE_OTHER	(&isc_modules[6])
 
 ISC_LANG_BEGINDECLS
 

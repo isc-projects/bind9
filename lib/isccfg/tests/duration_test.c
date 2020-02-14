@@ -41,8 +41,8 @@
 			goto cleanup;        \
 	} while (0)
 
-isc_mem_t *		 mctx = NULL;
-isc_log_t *		 lctx = NULL;
+isc_mem_t *mctx = NULL;
+isc_log_t *lctx = NULL;
 static isc_logcategory_t categories[] = { { "", 0 },
 					  { "client", 0 },
 					  { "network", 0 },
@@ -54,8 +54,7 @@ static isc_logcategory_t categories[] = { { "", 0 },
 					  { NULL, 0 } };
 
 static void
-cleanup()
-{
+cleanup() {
 	if (lctx != NULL) {
 		isc_log_destroy(&lctx);
 	}
@@ -65,15 +64,14 @@ cleanup()
 }
 
 static isc_result_t
-setup()
-{
+setup() {
 	isc_result_t result;
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
 	isc_logdestination_t destination;
-	isc_logconfig_t *    logconfig = NULL;
+	isc_logconfig_t *logconfig = NULL;
 
 	CHECK(isc_log_create(mctx, &lctx, &logconfig));
 	isc_log_registercategories(lctx, categories);
@@ -96,15 +94,14 @@ cleanup:
 
 struct duration_conf {
 	const char *string;
-	uint32_t    time;
+	uint32_t time;
 };
 typedef struct duration_conf duration_conf_t;
 
 /* test cfg_obj_asduration() */
 static void
-cfg_obj_asduration_test(void **state)
-{
-	isc_result_t	result;
+cfg_obj_asduration_test(void **state) {
+	isc_result_t result;
 	duration_conf_t durations[] = {
 		{ .string = "PT0S", .time = 0 },
 		{ .string = "PT42S", .time = 42 },
@@ -129,10 +126,10 @@ cfg_obj_asduration_test(void **state)
 		{ .string = "7d", .time = 604800 },
 		{ .string = "2w", .time = 1209600 },
 	};
-	int	      num = 22;
-	isc_buffer_t  buf1;
+	int num = 22;
+	isc_buffer_t buf1;
 	cfg_parser_t *p1 = NULL;
-	cfg_obj_t *   c1 = NULL;
+	cfg_obj_t *c1 = NULL;
 
 	UNUSED(state);
 
@@ -140,8 +137,8 @@ cfg_obj_asduration_test(void **state)
 
 	for (int i = 0; i < num; i++) {
 		const cfg_listelt_t *element;
-		const cfg_obj_t *    kasps = NULL;
-		char		     conf[64];
+		const cfg_obj_t *kasps = NULL;
+		char conf[64];
 		sprintf(&conf[0],
 			"dnssec-policy \"dp\"\n{\nsignatures-refresh %s;\n};\n",
 			durations[i].string);
@@ -160,10 +157,11 @@ cfg_obj_asduration_test(void **state)
 		(void)cfg_map_get(c1, "dnssec-policy", &kasps);
 		assert_non_null(kasps);
 		for (element = cfg_list_first(kasps); element != NULL;
-		     element = cfg_list_next(element)) {
+		     element = cfg_list_next(element))
+		{
 			const cfg_obj_t *d1 = NULL;
 			const cfg_obj_t *kopts = NULL;
-			cfg_obj_t *	 kconf = cfg_listelt_value(element);
+			cfg_obj_t *kconf = cfg_listelt_value(element);
 			assert_non_null(kconf);
 
 			kopts = cfg_tuple_get(kconf, "options");
@@ -182,8 +180,7 @@ cfg_obj_asduration_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(cfg_obj_asduration_test),
 	};
@@ -196,8 +193,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

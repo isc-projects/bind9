@@ -37,8 +37,7 @@
  * Convert algorithm type to string.
  */
 const char *
-alg_totext(dns_secalg_t alg)
-{
+alg_totext(dns_secalg_t alg) {
 	switch (alg) {
 	case DST_ALG_HMACMD5:
 		return ("hmac-md5");
@@ -61,8 +60,7 @@ alg_totext(dns_secalg_t alg)
  * Convert string to algorithm type.
  */
 dns_secalg_t
-alg_fromtext(const char *name)
-{
+alg_fromtext(const char *name) {
 	const char *p = name;
 	if (strncasecmp(p, "hmac-", 5) == 0) {
 		p = &name[5];
@@ -93,8 +91,7 @@ alg_fromtext(const char *name)
  * Return default keysize for a given algorithm type.
  */
 int
-alg_bits(dns_secalg_t alg)
-{
+alg_bits(dns_secalg_t alg) {
 	switch (alg) {
 	case DST_ALG_HMACMD5:
 		return (128);
@@ -118,13 +115,12 @@ alg_bits(dns_secalg_t alg)
  */
 void
 generate_key(isc_mem_t *mctx, dns_secalg_t alg, int keysize,
-	     isc_buffer_t *key_txtbuffer)
-{
+	     isc_buffer_t *key_txtbuffer) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_buffer_t key_rawbuffer;
 	isc_region_t key_rawregion;
-	char	     key_rawsecret[64];
-	dst_key_t *  key = NULL;
+	char key_rawsecret[64];
+	dst_key_t *key = NULL;
 
 	switch (alg) {
 	case DST_ALG_HMACMD5:
@@ -176,11 +172,10 @@ generate_key(isc_mem_t *mctx, dns_secalg_t alg, int keysize,
  */
 void
 write_key_file(const char *keyfile, const char *user, const char *keyname,
-	       isc_buffer_t *secret, dns_secalg_t alg)
-{
+	       isc_buffer_t *secret, dns_secalg_t alg) {
 	isc_result_t result;
-	const char * algname = alg_totext(alg);
-	FILE *	     fd = NULL;
+	const char *algname = alg_totext(alg);
+	FILE *fd = NULL;
 
 	DO("create keyfile", isc_file_safecreate(keyfile, &fd));
 
