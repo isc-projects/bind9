@@ -62,8 +62,7 @@
  */
 
 isc_result_t
-dlz_drivers_init(void)
-{
+dlz_drivers_init(void) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 #ifdef DLZ_STUB
@@ -127,8 +126,7 @@ dlz_drivers_init(void)
  */
 
 void
-dlz_drivers_clear(void)
-{
+dlz_drivers_clear(void) {
 #ifdef DLZ_STUB
 	dlz_stub_clear();
 #endif /* ifdef DLZ_STUB */

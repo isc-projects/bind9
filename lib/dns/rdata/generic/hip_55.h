@@ -16,14 +16,14 @@
 
 typedef struct dns_rdata_hip {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	unsigned char *	  hit;
-	unsigned char *	  key;
-	unsigned char *	  servers;
-	uint8_t		  algorithm;
-	uint8_t		  hit_len;
-	uint16_t	  key_len;
-	uint16_t	  servers_len;
+	isc_mem_t *mctx;
+	unsigned char *hit;
+	unsigned char *key;
+	unsigned char *servers;
+	uint8_t algorithm;
+	uint8_t hit_len;
+	uint16_t key_len;
+	uint16_t servers_len;
 	/* Private */
 	uint16_t offset;
 } dns_rdata_hip_t;

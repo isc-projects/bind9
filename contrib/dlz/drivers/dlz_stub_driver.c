@@ -73,8 +73,7 @@ typedef struct config_data {
 
 static isc_result_t
 stub_dlz_allnodes(const char *zone, void *driverarg, void *dbdata,
-		  dns_sdlzallnodes_t *allnodes)
-{
+		  dns_sdlzallnodes_t *allnodes) {
 	config_data_t *cd;
 	isc_result_t result;
 
@@ -102,8 +101,7 @@ stub_dlz_allnodes(const char *zone, void *driverarg, void *dbdata,
 
 static isc_result_t
 stub_dlz_allowzonexfr(void *driverarg, void *dbdata, const char *name,
-		      const char *client)
-{
+		      const char *client) {
 	config_data_t *cd;
 
 	UNUSED(driverarg);
@@ -119,8 +117,7 @@ stub_dlz_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 
 static isc_result_t
 stub_dlz_authority(const char *zone, void *driverarg, void *dbdata,
-		   dns_sdlzlookup_t *lookup)
-{
+		   dns_sdlzlookup_t *lookup) {
 	isc_result_t result;
 	config_data_t *cd;
 
@@ -148,8 +145,7 @@ stub_dlz_authority(const char *zone, void *driverarg, void *dbdata,
 static isc_result_t
 stub_dlz_findzonedb(void *driverarg, void *dbdata, const char *name,
 		    dns_clientinfomethods_t *methods,
-		    dns_clientinfo_t *clientinfo)
-{
+		    dns_clientinfo_t *clientinfo) {
 	config_data_t *cd;
 
 	UNUSED(driverarg);
@@ -173,8 +169,8 @@ stub_dlz_findzonedb(void *driverarg, void *dbdata, const char *name,
 static isc_result_t
 stub_dlz_lookup(const char *zone, const char *name, void *driverarg,
 		void *dbdata, dns_sdlzlookup_t *lookup,
-		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
-{
+		dns_clientinfomethods_t *methods,
+		dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	config_data_t *cd;
 
@@ -198,8 +194,7 @@ stub_dlz_lookup(const char *zone, const char *name, void *driverarg,
 
 static isc_result_t
 stub_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
-		void *driverarg, void **dbdata)
-{
+		void *driverarg, void **dbdata) {
 	config_data_t *cd;
 
 	UNUSED(driverarg);
@@ -237,8 +232,7 @@ stub_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 }
 
 static void
-stub_dlz_destroy(void *driverarg, void *dbdata)
-{
+stub_dlz_destroy(void *driverarg, void *dbdata) {
 	config_data_t *cd;
 	isc_mem_t *mctx;
 
@@ -280,8 +274,7 @@ static dns_sdlzmethods_t dlz_stub_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_stub_init(void)
-{
+dlz_stub_init(void) {
 	isc_result_t result;
 
 	/*
@@ -308,8 +301,7 @@ dlz_stub_init(void)
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_stub_clear(void)
-{
+dlz_stub_clear(void) {
 	/*
 	 * Write debugging message to log
 	 */

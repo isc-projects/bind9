@@ -88,7 +88,7 @@ ISC_LANG_BEGINDECLS
 int
 isc_commandline_parse(int argc, char *const *argv, const char *options) {
 	static char *place = ENDOPT;
-	char *	     option; /* Index into *options of option. */
+	char *option; /* Index into *options of option. */
 
 	/*
 	 * Update scanning pointer, either because a reset was requested or
@@ -207,10 +207,10 @@ isc_commandline_parse(int argc, char *const *argv, const char *options) {
 }
 
 typedef struct {
-	HANDLE		handle;
+	HANDLE handle;
 	WIN32_FIND_DATA find_data;
-	bool		first_file;
-	char *		filename;
+	bool first_file;
+	char *filename;
 } isc_dir_t;
 
 bool

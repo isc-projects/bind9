@@ -23,12 +23,12 @@ typedef struct isc_condition_thread isc_condition_thread_t;
 
 struct isc_condition_thread {
 	unsigned long th;
-	HANDLE	      handle[2];
+	HANDLE handle[2];
 	ISC_LINK(isc_condition_thread_t) link;
 };
 
 typedef struct isc_condition {
-	HANDLE	     events[2];
+	HANDLE events[2];
 	unsigned int waiters;
 	ISC_LIST(isc_condition_thread_t) threadlist;
 } isc_condition_t;

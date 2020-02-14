@@ -95,9 +95,11 @@ struct ns_interfacemgr {
 #endif /* ifdef USE_ROUTE_SOCKET */
 };
 
-static void purge_old_interfaces(ns_interfacemgr_t *mgr);
+static void
+purge_old_interfaces(ns_interfacemgr_t *mgr);
 
-static void clearlistenon(ns_interfacemgr_t *mgr);
+static void
+clearlistenon(ns_interfacemgr_t *mgr);
 
 #ifdef USE_ROUTE_SOCKET
 static void

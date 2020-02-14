@@ -32,8 +32,8 @@
 
 const char *program = "nsec3hash";
 
-ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format,
-					    ...) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
 
 static void
 fatal(const char *format, ...) {
@@ -63,9 +63,9 @@ usage() {
 	exit(1);
 }
 
-typedef void nsec3printer(unsigned algo, unsigned flags, unsigned iters,
-			  const char *saltstr, const char *domain,
-			  const char *digest);
+typedef void
+nsec3printer(unsigned algo, unsigned flags, unsigned iters, const char *saltstr,
+	     const char *domain, const char *digest);
 
 static void
 nsec3hash(nsec3printer *nsec3print, const char *algostr, const char *flagstr,

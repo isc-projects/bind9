@@ -103,15 +103,14 @@ typedef struct bdbhpt_parsed_data {
 	char *data;
 } bdbhpt_parsed_data_t;
 
-static void b9_add_helper(struct bdbhpt_instance *db, const char *helper_name,
-			  void *ptr);
+static void
+b9_add_helper(struct bdbhpt_instance *db, const char *helper_name, void *ptr);
 
 /*%
  * Reverses a string in place.
  */
 static char *
-bdbhpt_strrev(char *str)
-{
+bdbhpt_strrev(char *str) {
 	char *p1, *p2;
 
 	if (!str || !*str) {
@@ -134,8 +133,7 @@ bdbhpt_strrev(char *str)
  */
 
 static isc_result_t
-bdbhpt_parse_data(log_t *log, char *in, bdbhpt_parsed_data_t *pd)
-{
+bdbhpt_parse_data(log_t *log, char *in, bdbhpt_parsed_data_t *pd) {
 	char *endp, *ttlStr;
 	char *tmp = in;
 	char *lastchar = (char *)&tmp[strlen(tmp)];
@@ -242,8 +240,7 @@ bdbhpt_parse_data(log_t *log, char *in, bdbhpt_parsed_data_t *pd)
  * See if a zone transfer is allowed
  */
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
-{
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	isc_result_t result;
 	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
 	DBT key, data;
@@ -329,8 +326,7 @@ xfr_cleanup:
  * updates by a separate process).
  */
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
-{
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
 	DBC *xfr_cursor = NULL;
@@ -460,8 +456,7 @@ allnodes_cleanup:
  * Used by bdbhpt_destroy when the driver is shutting down.
  */
 static void
-bdbhpt_cleanup(bdbhpt_instance_t *db)
-{
+bdbhpt_cleanup(bdbhpt_instance_t *db) {
 	/* close databases */
 	if (db->data != NULL) {
 		db->data->close(db->data, 0);
@@ -641,8 +636,7 @@ lookup_cleanup:
  */
 static isc_result_t
 bdbhpt_opendb(log_t *log, DB_ENV *db_env, DBTYPE db_type, DB **db,
-	      const char *db_name, char *db_file, int flags)
-{
+	      const char *db_name, char *db_file, int flags) {
 	int result;
 
 	/* Initialise the database. */
@@ -682,8 +676,7 @@ bdbhpt_opendb(log_t *log, DB_ENV *db_env, DBTYPE db_type, DB **db,
  */
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
-	   ...)
-{
+	   ...) {
 	isc_result_t result;
 	int bdbhptres;
 	int bdbFlags = 0;
@@ -826,8 +819,7 @@ init_cleanup:
  * Shut down the backend
  */
 void
-dlz_destroy(void *dbdata)
-{
+dlz_destroy(void *dbdata) {
 	struct bdbhpt_instance *db = (struct bdbhpt_instance *)dbdata;
 
 	db->log(ISC_LOG_INFO, "dlz_bdbhpt_dynamic (%s): shutting down",
@@ -840,8 +832,7 @@ dlz_destroy(void *dbdata)
  * Return the version of the API
  */
 int
-dlz_version(unsigned int *flags)
-{
+dlz_version(unsigned int *flags) {
 	UNUSED(flags);
 	return (DLZ_DLOPEN_VERSION);
 }
@@ -850,8 +841,7 @@ dlz_version(unsigned int *flags)
  * Register a helper function from the bind9 dlz_dlopen driver
  */
 static void
-b9_add_helper(struct bdbhpt_instance *db, const char *helper_name, void *ptr)
-{
+b9_add_helper(struct bdbhpt_instance *db, const char *helper_name, void *ptr) {
 	if (strcmp(helper_name, "log") == 0) {
 		db->log = (log_t *)ptr;
 	}

@@ -108,17 +108,19 @@ typedef struct {
 /* forward references */
 
 #if DLZ_DLOPEN_VERSION < 3
-isc_result_t dlz_findzonedb(void *dbdata, const char *name);
+isc_result_t
+dlz_findzonedb(void *dbdata, const char *name);
 #else  /* if DLZ_DLOPEN_VERSION < 3 */
-isc_result_t dlz_findzonedb(void *dbdata, const char *name,
-			    dns_clientinfomethods_t *methods,
-			    dns_clientinfo_t *clientinfo);
+isc_result_t
+dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
+	       dns_clientinfo_t *clientinfo);
 #endif /* if DLZ_DLOPEN_VERSION < 3 */
 
-void dlz_destroy(void *dbdata);
+void
+dlz_destroy(void *dbdata);
 
-static void b9_add_helper(ldap_instance_t *db, const char *helper_name,
-			  void *ptr);
+static void
+b9_add_helper(ldap_instance_t *db, const char *helper_name, void *ptr);
 
 /*
  * Private methods
@@ -126,8 +128,7 @@ static void b9_add_helper(ldap_instance_t *db, const char *helper_name,
 
 /*% checks that the LDAP URL parameters make sense */
 static isc_result_t
-ldap_checkURL(ldap_instance_t *db, char *URL, int attrCnt, const char *msg)
-{
+ldap_checkURL(ldap_instance_t *db, char *URL, int attrCnt, const char *msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 	int ldap_result;
 	LDAPURLDesc *ldap_url = NULL;
@@ -192,8 +193,7 @@ cleanup:
 
 /*% Connects / reconnects to LDAP server */
 static isc_result_t
-ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc)
-{
+ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc) {
 	isc_result_t result;
 	int ldap_result;
 
@@ -248,8 +248,7 @@ cleanup:
  * multithreaded operation.
  */
 static void
-ldap_destroy_dblist(db_list_t *dblist)
-{
+ldap_destroy_dblist(db_list_t *dblist) {
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -283,8 +282,7 @@ ldap_destroy_dblist(db_list_t *dblist)
  * multithreaded operation.
  */
 static dbinstance_t *
-ldap_find_avail_conn(ldap_instance_t *ldap)
-{
+ldap_find_avail_conn(ldap_instance_t *ldap) {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
 	int count = 0;
@@ -318,8 +316,7 @@ ldap_find_avail_conn(ldap_instance_t *ldap)
 
 static isc_result_t
 ldap_process_results(ldap_instance_t *db, LDAP *dbc, LDAPMessage *msg,
-		     char **attrs, void *ptr, bool allnodes)
-{
+		     char **attrs, void *ptr, bool allnodes) {
 	isc_result_t result = ISC_R_SUCCESS;
 	int i = 0;
 	int j;
@@ -547,8 +544,7 @@ cleanup:
  */
 static isc_result_t
 ldap_get_results(const char *zone, const char *record, const char *client,
-		 unsigned int query, void *dbdata, void *ptr)
-{
+		 unsigned int query, void *dbdata, void *ptr) {
 	isc_result_t result;
 	ldap_instance_t *db = (ldap_instance_t *)dbdata;
 	dbinstance_t *dbi = NULL;
@@ -837,8 +833,7 @@ cleanup:
  * DLZ methods
  */
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
-{
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	isc_result_t result;
 
 	/* check to see if we are authoritative for the zone first */
@@ -857,14 +852,12 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
 }
 
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
-{
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	return (ldap_get_results(zone, NULL, NULL, ALLNODES, dbdata, allnodes));
 }
 
 isc_result_t
-dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
-{
+dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 	return (ldap_get_results(zone, NULL, NULL, AUTHORITY, dbdata, lookup));
 }
 
@@ -914,8 +907,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
-	   ...)
-{
+	   ...) {
 	isc_result_t result = ISC_R_FAILURE;
 	ldap_instance_t *ldap = NULL;
 	dbinstance_t *dbi = NULL;
@@ -1201,8 +1193,7 @@ cleanup:
 }
 
 void
-dlz_destroy(void *dbdata)
-{
+dlz_destroy(void *dbdata) {
 	if (dbdata != NULL) {
 		ldap_instance_t *db = (ldap_instance_t *)dbdata;
 #if PTHREADS
@@ -1236,8 +1227,7 @@ dlz_destroy(void *dbdata)
  * Return the version of the API
  */
 int
-dlz_version(unsigned int *flags)
-{
+dlz_version(unsigned int *flags) {
 	*flags |= DNS_SDLZFLAG_RELATIVERDATA;
 #if PTHREADS
 	*flags |= DNS_SDLZFLAG_THREADSAFE;
@@ -1251,8 +1241,7 @@ dlz_version(unsigned int *flags)
  * Register a helper function from the bind9 dlz_dlopen driver
  */
 static void
-b9_add_helper(ldap_instance_t *db, const char *helper_name, void *ptr)
-{
+b9_add_helper(ldap_instance_t *db, const char *helper_name, void *ptr) {
 	if (strcmp(helper_name, "log") == 0) {
 		db->log = (log_t *)ptr;
 	}

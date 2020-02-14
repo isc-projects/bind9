@@ -82,16 +82,22 @@ static pk11_token_t *best_dh_token;
 static pk11_token_t *best_ecdsa_token;
 static pk11_token_t *best_eddsa_token;
 
-static isc_result_t free_all_sessions(void);
-static isc_result_t free_session_list(pk11_sessionlist_t *slist);
-static isc_result_t setup_session(pk11_session_t *sp, pk11_token_t *token,
-				  bool rw);
-static void scan_slots(void);
-static isc_result_t token_login(pk11_session_t *sp);
-static char *percent_decode(char *x, size_t *len);
-static bool pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny);
-static CK_ATTRIBUTE *push_attribute(pk11_object_t *obj, isc_mem_t *mctx,
-				    size_t len);
+static isc_result_t
+free_all_sessions(void);
+static isc_result_t
+free_session_list(pk11_sessionlist_t *slist);
+static isc_result_t
+setup_session(pk11_session_t *sp, pk11_token_t *token, bool rw);
+static void
+scan_slots(void);
+static isc_result_t
+token_login(pk11_session_t *sp);
+static char *
+percent_decode(char *x, size_t *len);
+static bool
+pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny);
+static CK_ATTRIBUTE *
+push_attribute(pk11_object_t *obj, isc_mem_t *mctx, size_t len);
 
 static isc_mutex_t alloclock;
 static isc_mutex_t sessionlock;

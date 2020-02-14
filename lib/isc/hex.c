@@ -30,10 +30,11 @@
 /*
  * BEW: These static functions are copied from lib/dns/rdata.c.
  */
-static isc_result_t str_totext(const char *source, isc_buffer_t *target);
+static isc_result_t
+str_totext(const char *source, isc_buffer_t *target);
 
-static isc_result_t mem_tobuffer(isc_buffer_t *target, void *base,
-				 unsigned int length);
+static isc_result_t
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
 
 static const char hex[] = "0123456789ABCDEF";
 

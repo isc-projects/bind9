@@ -33,7 +33,8 @@ struct dns_fwdtable {
 #define FWDTABLEMAGIC	   ISC_MAGIC('F', 'w', 'd', 'T')
 #define VALID_FWDTABLE(ft) ISC_MAGIC_VALID(ft, FWDTABLEMAGIC)
 
-static void auto_detach(void *, void *);
+static void
+auto_detach(void *, void *);
 
 isc_result_t
 dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep) {

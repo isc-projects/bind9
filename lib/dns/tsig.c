@@ -117,13 +117,17 @@ static const struct {
 		   { &hmacsha384, DST_ALG_HMACSHA384 },
 		   { &hmacsha512, DST_ALG_HMACSHA512 } };
 
-static isc_result_t tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
+static isc_result_t
+tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
 
-static void tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...)
+static void
+tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
-static void cleanup_ring(dns_tsig_keyring_t *ring);
-static void tsigkey_free(dns_tsigkey_t *key);
+static void
+cleanup_ring(dns_tsig_keyring_t *ring);
+static void
+tsigkey_free(dns_tsigkey_t *key);
 
 bool
 dns__tsig_algvalid(unsigned int alg) {

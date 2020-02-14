@@ -355,7 +355,7 @@ static inline bool
 atomic_compare_exchange_strong_explicit8(atomic_int_fast8_t *obj,
 					 int8_t *expected, int8_t desired,
 					 memory_order succ, memory_order fail) {
-	bool   __r;
+	bool __r;
 	int8_t __v;
 
 	UNUSED(succ);
@@ -375,7 +375,7 @@ atomic_compare_exchange_strong_explicit32(atomic_int_fast32_t *obj,
 					  int32_t *expected, int32_t desired,
 					  memory_order succ,
 					  memory_order fail) {
-	bool	__r;
+	bool __r;
 	int32_t __v;
 
 	UNUSED(succ);
@@ -411,7 +411,7 @@ atomic_compare_exchange_strong_explicit64(atomic_int_fast64_t *obj,
 					  int64_t *expected, int64_t desired,
 					  memory_order succ,
 					  memory_order fail) {
-	bool	__r;
+	bool __r;
 	int64_t __v;
 
 	UNUSED(succ);

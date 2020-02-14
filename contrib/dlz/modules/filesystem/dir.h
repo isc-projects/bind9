@@ -22,14 +22,14 @@
 #define DIR_PATHMAX 1024
 
 typedef struct direntry {
-	char	     name[DIR_NAMEMAX];
+	char name[DIR_NAMEMAX];
 	unsigned int length;
 } direntry_t;
 
 typedef struct dir {
-	char	   dirname[DIR_PATHMAX];
+	char dirname[DIR_PATHMAX];
 	direntry_t entry;
-	DIR *	   handle;
+	DIR *handle;
 } dir_t;
 
 void

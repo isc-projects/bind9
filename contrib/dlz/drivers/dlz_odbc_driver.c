@@ -104,15 +104,15 @@ typedef struct {
 
 /* forward reference */
 
-static size_t odbc_makesafe(char *to, const char *from, size_t length);
+static size_t
+odbc_makesafe(char *to, const char *from, size_t length);
 
 /*
  * Private methods
  */
 
 static SQLSMALLINT
-safeLen(void *a)
-{
+safeLen(void *a) {
 	if (a == NULL) {
 		return (0);
 	}
@@ -122,8 +122,7 @@ safeLen(void *a)
 /*% propertly cleans up an odbc_instance_t */
 
 static void
-destroy_odbc_instance(odbc_instance_t *odbc_inst)
-{
+destroy_odbc_instance(odbc_instance_t *odbc_inst) {
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -189,8 +188,7 @@ destroy_odbc_instance(odbc_instance_t *odbc_inst)
 /*% Connects to database, and creates ODBC statements */
 
 static isc_result_t
-odbc_connect(odbc_instance_t *dbi, odbc_db_t **dbc)
-{
+odbc_connect(odbc_instance_t *dbi, odbc_db_t **dbc) {
 	odbc_db_t *ndb = *dbc;
 	SQLRETURN sqlRes;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -281,8 +279,7 @@ cleanup:
  */
 
 static dbinstance_t *
-odbc_find_avail_conn(db_list_t *dblist)
-{
+odbc_find_avail_conn(db_list_t *dblist) {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
 	int count = 0;
@@ -321,8 +318,7 @@ odbc_find_avail_conn(db_list_t *dblist)
  */
 
 static char *
-odbc_escape_string(const char *instr)
-{
+odbc_escape_string(const char *instr) {
 	char *outstr;
 	unsigned int len;
 
@@ -358,8 +354,7 @@ odbc_escape_string(const char *instr)
  */
 
 static size_t
-odbc_makesafe(char *to, const char *from, size_t length)
-{
+odbc_makesafe(char *to, const char *from, size_t length) {
 	const char *source = from;
 	char *target = to;
 	unsigned int remaining = length;
@@ -414,8 +409,7 @@ odbc_makesafe(char *to, const char *from, size_t length)
 
 static isc_result_t
 odbc_get_resultset(const char *zone, const char *record, const char *client,
-		   unsigned int query, void *dbdata, dbinstance_t **r_dbi)
-{
+		   unsigned int query, void *dbdata, dbinstance_t **r_dbi) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	char *querystring = NULL;
@@ -649,8 +643,7 @@ cleanup: /* it's always good to cleanup after yourself */
  */
 
 static isc_result_t
-odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data)
-{
+odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data) {
 	SQLLEN size;
 
 	REQUIRE(data != NULL && *data == NULL);
@@ -680,8 +673,7 @@ odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data)
 
 static isc_result_t
 odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
-		   SQLSMALLINT endField, char **retData)
-{
+		   SQLSMALLINT endField, char **retData) {
 	isc_result_t result;
 	SQLLEN size;
 	int totSize = 0;
@@ -747,8 +739,7 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
  */
 
 static isc_result_t
-odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
-{
+odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi) {
 	isc_result_t result;
 	SQLSMALLINT fields;
 	SQLHSTMT *stmnt;
@@ -884,8 +875,7 @@ process_rs_cleanup:
 
 static isc_result_t
 odbc_findzone(void *driverarg, void *dbdata, const char *name,
-	      dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
-{
+	      dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 
@@ -919,8 +909,7 @@ odbc_findzone(void *driverarg, void *dbdata, const char *name,
 /*% Determine if the client is allowed to perform a zone transfer */
 static isc_result_t
 odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
-		  const char *client)
-{
+		  const char *client) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 
@@ -975,8 +964,7 @@ odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 
 static isc_result_t
 odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
-	      dns_sdlzallnodes_t *allnodes)
-{
+	      dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	SQLHSTMT *stmnt;
@@ -1108,8 +1096,7 @@ allnodes_cleanup:
 
 static isc_result_t
 odbc_authority(const char *zone, void *driverarg, void *dbdata,
-	       dns_sdlzlookup_t *lookup)
-{
+	       dns_sdlzlookup_t *lookup) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 
@@ -1139,8 +1126,7 @@ odbc_authority(const char *zone, void *driverarg, void *dbdata,
 static isc_result_t
 odbc_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
 	    dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
-	    dns_clientinfo_t *clientinfo)
-{
+	    dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 
@@ -1171,8 +1157,7 @@ odbc_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
  */
 static isc_result_t
 odbc_create(const char *dlzname, unsigned int argc, char *argv[],
-	    void *driverarg, void **dbdata)
-{
+	    void *driverarg, void **dbdata) {
 	isc_result_t result;
 	odbc_instance_t *odbc_inst = NULL;
 	dbinstance_t *db = NULL;
@@ -1357,8 +1342,7 @@ cleanup:
  */
 
 static void
-odbc_destroy(void *driverarg, void *dbdata)
-{
+odbc_destroy(void *driverarg, void *dbdata) {
 	UNUSED(driverarg);
 
 	destroy_odbc_instance((odbc_instance_t *)dbdata);
@@ -1388,8 +1372,7 @@ static dns_sdlzmethods_t dlz_odbc_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_odbc_init(void)
-{
+dlz_odbc_init(void) {
 	isc_result_t result;
 
 	/*
@@ -1425,8 +1408,7 @@ dlz_odbc_init(void)
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_odbc_clear(void)
-{
+dlz_odbc_clear(void) {
 	/*
 	 * Write debugging message to log
 	 */

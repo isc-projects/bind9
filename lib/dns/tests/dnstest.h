@@ -29,10 +29,10 @@
 
 typedef struct {
 	dns_diffop_t op;
-	const char * owner;
-	dns_ttl_t    ttl;
-	const char * type;
-	const char * rdata;
+	const char *owner;
+	dns_ttl_t ttl;
+	const char *type;
+	const char *rdata;
 } zonechange_t;
 
 #define ZONECHANGE_SENTINEL            \
@@ -40,16 +40,16 @@ typedef struct {
 		0, NULL, 0, NULL, NULL \
 	}
 
-extern isc_mem_t *	dt_mctx;
-extern isc_log_t *	lctx;
-extern isc_taskmgr_t *	taskmgr;
-extern isc_task_t *	maintask;
-extern isc_timermgr_t * timermgr;
+extern isc_mem_t *dt_mctx;
+extern isc_log_t *lctx;
+extern isc_taskmgr_t *taskmgr;
+extern isc_task_t *maintask;
+extern isc_timermgr_t *timermgr;
 extern isc_socketmgr_t *socketmgr;
-extern dns_zonemgr_t *	zonemgr;
-extern bool		app_running;
-extern int		ncpus;
-extern bool		debug_mem_record;
+extern dns_zonemgr_t *zonemgr;
+extern bool app_running;
+extern int ncpus;
+extern bool debug_mem_record;
 
 isc_result_t
 dns_test_begin(FILE *logfile, bool create_managers);

@@ -255,9 +255,12 @@ typedef struct updatectx {
 	struct updatectx *bp6;
 } updatectx_t;
 
-static isc_result_t request_soa(updatectx_t *uctx);
-static void client_resfind(resctx_t *rctx, dns_fetchevent_t *event);
-static isc_result_t send_update(updatectx_t *uctx);
+static isc_result_t
+request_soa(updatectx_t *uctx);
+static void
+client_resfind(resctx_t *rctx, dns_fetchevent_t *event);
+static isc_result_t
+send_update(updatectx_t *uctx);
 
 /*
  * Try honoring the operating system's preferred ephemeral port range.

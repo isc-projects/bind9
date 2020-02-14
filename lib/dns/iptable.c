@@ -18,7 +18,8 @@
 
 #include <dns/acl.h>
 
-static void destroy_iptable(dns_iptable_t *dtab);
+static void
+destroy_iptable(dns_iptable_t *dtab);
 
 /*
  * Create a new IP table and the underlying radix structure

@@ -138,23 +138,26 @@ struct dns_msgblock {
 	ISC_LINK(dns_msgblock_t) link;
 }; /* dynamically sized */
 
-static inline dns_msgblock_t *msgblock_allocate(isc_mem_t *, unsigned int,
-						unsigned int);
+static inline dns_msgblock_t *
+msgblock_allocate(isc_mem_t *, unsigned int, unsigned int);
 
 #define msgblock_get(block, type) \
 	((type *)msgblock_internalget(block, sizeof(type)))
 
-static inline void *msgblock_internalget(dns_msgblock_t *, unsigned int);
+static inline void *
+msgblock_internalget(dns_msgblock_t *, unsigned int);
 
-static inline void msgblock_reset(dns_msgblock_t *);
+static inline void
+msgblock_reset(dns_msgblock_t *);
 
-static inline void msgblock_free(isc_mem_t *, dns_msgblock_t *, unsigned int);
+static inline void
+msgblock_free(isc_mem_t *, dns_msgblock_t *, unsigned int);
 
-static void logfmtpacket(dns_message_t *message, const char *description,
-			 const isc_sockaddr_t *address,
-			 isc_logcategory_t *category, isc_logmodule_t *module,
-			 const dns_master_style_t *style, int level,
-			 isc_mem_t *mctx);
+static void
+logfmtpacket(dns_message_t *message, const char *description,
+	     const isc_sockaddr_t *address, isc_logcategory_t *category,
+	     isc_logmodule_t *module, const dns_master_style_t *style,
+	     int level, isc_mem_t *mctx);
 
 /*
  * Allocate a new dns_msgblock_t, and return a pointer to it.  If no memory

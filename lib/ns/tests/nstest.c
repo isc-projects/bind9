@@ -78,7 +78,8 @@ static dns_zone_t *served_zone = NULL;
 atomic_uint_fast32_t client_refs[32];
 atomic_uintptr_t client_addrs[32];
 
-void __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle);
+void
+__wrap_isc_nmhandle_unref(isc_nmhandle_t *handle);
 
 void
 __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle) {

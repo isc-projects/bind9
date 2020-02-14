@@ -35,7 +35,8 @@
 			return ((_r));   \
 	} while (0)
 
-static isc_result_t bind_ttl(isc_textregion_t *source, uint32_t *ttl);
+static isc_result_t
+bind_ttl(isc_textregion_t *source, uint32_t *ttl);
 
 /*
  * Helper for dns_ttl_totext().

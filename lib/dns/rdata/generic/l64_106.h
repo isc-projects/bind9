@@ -15,8 +15,8 @@
 
 typedef struct dns_rdata_l64 {
 	dns_rdatacommon_t common;
-	uint16_t	  pref;
-	unsigned char	  l64[8];
+	uint16_t pref;
+	unsigned char l64[8];
 } dns_rdata_l64_t;
 
 #endif /* GENERIC_L64_106_H */

@@ -114,18 +114,20 @@ struct named_rr {
 /*
  * Forward references
  */
-static int rangematch(const char *, char, int, char **);
+static int
+rangematch(const char *, char, int, char **);
 
-static int fnmatch(const char *pattern, const char *string, int flags);
+static int
+fnmatch(const char *pattern, const char *string, int flags);
 
-static void b9_add_helper(struct config_data *cd, const char *helper_name,
-			  void *ptr);
+static void
+b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr);
 
-static const char *shortest_match(const char *pattern, const char *string);
+static const char *
+shortest_match(const char *pattern, const char *string);
 
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
-{
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	config_data_t *cd = (config_data_t *)dbdata;
 	isc_result_t result;
 	char *querystring = NULL;
@@ -176,8 +178,7 @@ done:
 }
 
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
-{
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	config_data_t *cd = (config_data_t *)dbdata;
 
 	UNUSED(name);
@@ -318,8 +319,7 @@ done:
 }
 
 isc_result_t
-dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
-{
+dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 	isc_result_t result;
 	config_data_t *cd = (config_data_t *)dbdata;
 	char *querystring = NULL;
@@ -376,8 +376,7 @@ done:
 }
 
 static void
-destroy_rrlist(config_data_t *cd)
-{
+destroy_rrlist(config_data_t *cd) {
 	nrr_t *trec, *nrec;
 
 	nrec = DLZ_LIST_HEAD(cd->rrs_list);
@@ -404,8 +403,7 @@ destroy_rrlist(config_data_t *cd)
 
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
-	   ...)
-{
+	   ...) {
 	config_data_t *cd;
 	char *endp;
 	int i, def_ttl;
@@ -516,8 +514,7 @@ cleanup:
 }
 
 void
-dlz_destroy(void *dbdata)
-{
+dlz_destroy(void *dbdata) {
 	config_data_t *cd = (config_data_t *)dbdata;
 
 	/*
@@ -536,8 +533,7 @@ dlz_destroy(void *dbdata)
  * Return the version of the API
  */
 int
-dlz_version(unsigned int *flags)
-{
+dlz_version(unsigned int *flags) {
 	UNUSED(flags);
 	/* XXX: ok to set DNS_SDLZFLAG_THREADSAFE here? */
 	return (DLZ_DLOPEN_VERSION);
@@ -547,8 +543,7 @@ dlz_version(unsigned int *flags)
  * Register a helper function from the bind9 dlz_dlopen driver
  */
 static void
-b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr)
-{
+b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr) {
 	if (strcmp(helper_name, "log") == 0) {
 		cd->log = (log_t *)ptr;
 	}
@@ -564,8 +559,7 @@ b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr)
 }
 
 static const char *
-shortest_match(const char *pattern, const char *string)
-{
+shortest_match(const char *pattern, const char *string) {
 	const char *p = string;
 	if (pattern == NULL || p == NULL || *p == '\0') {
 		return (NULL);
@@ -601,8 +595,7 @@ shortest_match(const char *pattern, const char *string)
 #define RANGE_ERROR   (-1)
 
 static int
-fnmatch(const char *pattern, const char *string, int flags)
-{
+fnmatch(const char *pattern, const char *string, int flags) {
 	const char *stringstart;
 	char *newp;
 	char c, test;
@@ -724,8 +717,7 @@ fnmatch(const char *pattern, const char *string, int flags)
 }
 
 static int
-rangematch(const char *pattern, char test, int flags, char **newp)
-{
+rangematch(const char *pattern, char test, int flags, char **newp) {
 	int negate, ok;
 	char c, c2;
 

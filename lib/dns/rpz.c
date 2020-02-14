@@ -91,9 +91,11 @@
  */
 #define DNS_RPZ_QUANTUM 1024
 
-static void dns_rpz_update_from_db(dns_rpz_zone_t *rpz);
+static void
+dns_rpz_update_from_db(dns_rpz_zone_t *rpz);
 
-static void dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event);
+static void
+dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event);
 
 /*
  * Use a private definition of IPv6 addresses because s6_addr32 is not
@@ -168,9 +170,11 @@ struct dns_rpz_nm_data {
 	dns_rpz_nm_zbits_t wild;
 };
 
-static void rpz_detach(dns_rpz_zone_t **rpzp);
+static void
+rpz_detach(dns_rpz_zone_t **rpzp);
 
-static void rpz_detach_rpzs(dns_rpz_zones_t **rpzsp);
+static void
+rpz_detach_rpzs(dns_rpz_zones_t **rpzsp);
 
 #if 0
 /*

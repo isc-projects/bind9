@@ -46,9 +46,11 @@
 #define SERVER_PADDING_BIT	   16
 #define REQUEST_TCP_KEEPALIVE_BIT  17
 
-static void peerlist_delete(dns_peerlist_t **list);
+static void
+peerlist_delete(dns_peerlist_t **list);
 
-static void peer_delete(dns_peer_t **peer);
+static void
+peer_delete(dns_peer_t **peer);
 
 isc_result_t
 dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list) {

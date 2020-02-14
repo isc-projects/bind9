@@ -27,8 +27,7 @@
 #include <sys/types.h>
 
 void
-dir_init(dir_t *dir)
-{
+dir_init(dir_t *dir) {
 	dir->entry.name[0] = '\0';
 	dir->entry.length = 0;
 
@@ -36,8 +35,7 @@ dir_init(dir_t *dir)
 }
 
 isc_result_t
-dir_open(dir_t *dir, const char *dirname)
-{
+dir_open(dir_t *dir, const char *dirname) {
 	char *p;
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -90,8 +88,7 @@ dir_open(dir_t *dir, const char *dirname)
  * the dir stream and reads the first file in one operation.
  */
 isc_result_t
-dir_read(dir_t *dir)
-{
+dir_read(dir_t *dir) {
 	struct dirent *entry;
 
 	entry = readdir(dir->handle);
@@ -113,8 +110,7 @@ dir_read(dir_t *dir)
  * \brief Close directory stream.
  */
 void
-dir_close(dir_t *dir)
-{
+dir_close(dir_t *dir) {
 	(void)closedir(dir->handle);
 	dir->handle = NULL;
 }
@@ -123,8 +119,7 @@ dir_close(dir_t *dir)
  * \brief Reposition directory stream at start.
  */
 isc_result_t
-dir_reset(dir_t *dir)
-{
+dir_reset(dir_t *dir) {
 	rewinddir(dir->handle);
 
 	return (ISC_R_SUCCESS);

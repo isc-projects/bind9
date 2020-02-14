@@ -118,14 +118,21 @@ LIBNS_EXTERNAL_DATA atomic_uint_fast32_t ns_client_requests;
 LIBNS_EXTERNAL_DATA atomic_uint_fast64_t ns_client_requests;
 #endif /* if defined(_WIN32) && !defined(_WIN64) */
 
-static void clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp);
-static void clientmgr_detach(ns_clientmgr_t **mp);
-static void clientmgr_destroy(ns_clientmgr_t *manager);
-static void ns_client_endrequest(ns_client_t *client);
-static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
-static void compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
-			   const unsigned char *secret, isc_buffer_t *buf);
-static void get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp);
+static void
+clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp);
+static void
+clientmgr_detach(ns_clientmgr_t **mp);
+static void
+clientmgr_destroy(ns_clientmgr_t *manager);
+static void
+ns_client_endrequest(ns_client_t *client);
+static void
+ns_client_dumpmessage(ns_client_t *client, const char *reason);
+static void
+compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
+	       const unsigned char *secret, isc_buffer_t *buf);
+static void
+get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp);
 
 void
 ns_client_recursing(ns_client_t *client) {

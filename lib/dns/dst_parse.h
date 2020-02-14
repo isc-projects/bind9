@@ -106,7 +106,7 @@ struct dst_private_element {
 typedef struct dst_private_element dst_private_element_t;
 
 struct dst_private {
-	unsigned short	      nelements;
+	unsigned short nelements;
 	dst_private_element_t elements[MAXFIELDS];
 };
 

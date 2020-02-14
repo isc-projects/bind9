@@ -197,49 +197,66 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_task_t *task,
 	     const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey, dns_xfrin_ctx_t **xfrp);
 
-static isc_result_t axfr_init(dns_xfrin_ctx_t *xfr);
-static isc_result_t axfr_makedb(dns_xfrin_ctx_t *xfr, dns_db_t **dbp);
-static isc_result_t axfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
-				 dns_name_t *name, dns_ttl_t ttl,
-				 dns_rdata_t *rdata);
-static isc_result_t axfr_apply(dns_xfrin_ctx_t *xfr);
-static isc_result_t axfr_commit(dns_xfrin_ctx_t *xfr);
-static isc_result_t axfr_finalize(dns_xfrin_ctx_t *xfr);
+static isc_result_t
+axfr_init(dns_xfrin_ctx_t *xfr);
+static isc_result_t
+axfr_makedb(dns_xfrin_ctx_t *xfr, dns_db_t **dbp);
+static isc_result_t
+axfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op, dns_name_t *name,
+	     dns_ttl_t ttl, dns_rdata_t *rdata);
+static isc_result_t
+axfr_apply(dns_xfrin_ctx_t *xfr);
+static isc_result_t
+axfr_commit(dns_xfrin_ctx_t *xfr);
+static isc_result_t
+axfr_finalize(dns_xfrin_ctx_t *xfr);
 
-static isc_result_t ixfr_init(dns_xfrin_ctx_t *xfr);
-static isc_result_t ixfr_apply(dns_xfrin_ctx_t *xfr);
-static isc_result_t ixfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
-				 dns_name_t *name, dns_ttl_t ttl,
-				 dns_rdata_t *rdata);
-static isc_result_t ixfr_commit(dns_xfrin_ctx_t *xfr);
+static isc_result_t
+ixfr_init(dns_xfrin_ctx_t *xfr);
+static isc_result_t
+ixfr_apply(dns_xfrin_ctx_t *xfr);
+static isc_result_t
+ixfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op, dns_name_t *name,
+	     dns_ttl_t ttl, dns_rdata_t *rdata);
+static isc_result_t
+ixfr_commit(dns_xfrin_ctx_t *xfr);
 
-static isc_result_t xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, uint32_t ttl,
-			   dns_rdata_t *rdata);
+static isc_result_t
+xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, uint32_t ttl,
+       dns_rdata_t *rdata);
 
-static isc_result_t xfrin_start(dns_xfrin_ctx_t *xfr);
+static isc_result_t
+xfrin_start(dns_xfrin_ctx_t *xfr);
 
-static void xfrin_connect_done(isc_task_t *task, isc_event_t *event);
-static isc_result_t xfrin_send_request(dns_xfrin_ctx_t *xfr);
-static void xfrin_send_done(isc_task_t *task, isc_event_t *event);
-static void xfrin_recv_done(isc_task_t *task, isc_event_t *event);
-static void xfrin_timeout(isc_task_t *task, isc_event_t *event);
+static void
+xfrin_connect_done(isc_task_t *task, isc_event_t *event);
+static isc_result_t
+xfrin_send_request(dns_xfrin_ctx_t *xfr);
+static void
+xfrin_send_done(isc_task_t *task, isc_event_t *event);
+static void
+xfrin_recv_done(isc_task_t *task, isc_event_t *event);
+static void
+xfrin_timeout(isc_task_t *task, isc_event_t *event);
 
-static void maybe_free(dns_xfrin_ctx_t *xfr);
+static void
+maybe_free(dns_xfrin_ctx_t *xfr);
 
-static void xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result,
-		       const char *msg);
-static isc_result_t render(dns_message_t *msg, isc_mem_t *mctx,
-			   isc_buffer_t *buf);
+static void
+xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg);
+static isc_result_t
+render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf);
 
-static void xfrin_logv(int level, const char *zonetext,
-		       const isc_sockaddr_t *masteraddr, const char *fmt,
-		       va_list ap) ISC_FORMAT_PRINTF(4, 0);
+static void
+xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
+	   const char *fmt, va_list ap) ISC_FORMAT_PRINTF(4, 0);
 
-static void xfrin_log1(int level, const char *zonetext,
-		       const isc_sockaddr_t *masteraddr, const char *fmt, ...)
-	ISC_FORMAT_PRINTF(4, 5);
+static void
+xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
+	   const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
 
-static void xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...)
+static void
+xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
 /**************************************************************************/

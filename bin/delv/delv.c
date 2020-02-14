@@ -127,11 +127,11 @@ static char anchortext[] = TRUST_ANCHORS;
 /*
  * Static function prototypes
  */
-static isc_result_t get_reverse(char *reverse, size_t len, char *value,
-				bool strict);
+static isc_result_t
+get_reverse(char *reverse, size_t len, char *value, bool strict);
 
-static isc_result_t parse_uint(uint32_t *uip, const char *value, uint32_t max,
-			       const char *desc);
+static isc_result_t
+parse_uint(uint32_t *uip, const char *value, uint32_t max, const char *desc);
 
 static void
 usage(void) {
@@ -205,7 +205,8 @@ usage(void) {
 	exit(1);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format, ...)
+ISC_PLATFORM_NORETURN_PRE static void
+fatal(const char *format, ...)
 	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 static void
@@ -221,7 +222,8 @@ fatal(const char *format, ...) {
 	exit(1);
 }
 
-static void warn(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+static void
+warn(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void
 warn(const char *format, ...) {
@@ -241,7 +243,8 @@ static isc_logcategory_t categories[] = { { "delv", 0 }, { NULL, 0 } };
 
 static isc_logmodule_t modules[] = { { "delv", 0 }, { NULL, 0 } };
 
-static void delv_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
+static void
+delv_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 static void
 delv_log(int level, const char *fmt, ...) {

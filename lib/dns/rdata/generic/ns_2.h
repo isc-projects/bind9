@@ -15,8 +15,8 @@
 
 typedef struct dns_rdata_ns {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	dns_name_t	  name;
+	isc_mem_t *mctx;
+	dns_name_t name;
 } dns_rdata_ns_t;
 
 #endif /* GENERIC_NS_2_H */

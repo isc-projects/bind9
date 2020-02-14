@@ -17,12 +17,12 @@
 
 typedef struct dns_rdata_key {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	uint16_t	  flags;
-	dns_secproto_t	  protocol;
-	dns_secalg_t	  algorithm;
-	uint16_t	  datalen;
-	unsigned char *	  data;
+	isc_mem_t *mctx;
+	uint16_t flags;
+	dns_secproto_t protocol;
+	dns_secalg_t algorithm;
+	uint16_t datalen;
+	unsigned char *data;
 } dns_rdata_key_t;
 
 #endif /* GENERIC_KEY_25_H */

@@ -64,46 +64,57 @@
  * Forward declarations of static functions.
  */
 
-static void free_tuple(cfg_parser_t *pctx, cfg_obj_t *obj);
+static void
+free_tuple(cfg_parser_t *pctx, cfg_obj_t *obj);
 
-static isc_result_t parse_list(cfg_parser_t *pctx, const cfg_type_t *type,
-			       cfg_obj_t **ret);
+static isc_result_t
+parse_list(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
-static void print_list(cfg_printer_t *pctx, const cfg_obj_t *obj);
+static void
+print_list(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
-static void free_list(cfg_parser_t *pctx, cfg_obj_t *obj);
+static void
+free_list(cfg_parser_t *pctx, cfg_obj_t *obj);
 
-static isc_result_t create_listelt(cfg_parser_t *pctx, cfg_listelt_t **eltp);
+static isc_result_t
+create_listelt(cfg_parser_t *pctx, cfg_listelt_t **eltp);
 
-static isc_result_t create_string(cfg_parser_t *pctx, const char *contents,
-				  const cfg_type_t *type, cfg_obj_t **ret);
+static isc_result_t
+create_string(cfg_parser_t *pctx, const char *contents, const cfg_type_t *type,
+	      cfg_obj_t **ret);
 
-static void free_string(cfg_parser_t *pctx, cfg_obj_t *obj);
+static void
+free_string(cfg_parser_t *pctx, cfg_obj_t *obj);
 
-static isc_result_t create_map(cfg_parser_t *pctx, const cfg_type_t *type,
-			       cfg_obj_t **objp);
+static isc_result_t
+create_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **objp);
 
-static void free_map(cfg_parser_t *pctx, cfg_obj_t *obj);
+static void
+free_map(cfg_parser_t *pctx, cfg_obj_t *obj);
 
-static isc_result_t parse_symtab_elt(cfg_parser_t *pctx, const char *name,
-				     cfg_type_t *elttype, isc_symtab_t *symtab,
-				     bool callback);
+static isc_result_t
+parse_symtab_elt(cfg_parser_t *pctx, const char *name, cfg_type_t *elttype,
+		 isc_symtab_t *symtab, bool callback);
 
-static void free_noop(cfg_parser_t *pctx, cfg_obj_t *obj);
+static void
+free_noop(cfg_parser_t *pctx, cfg_obj_t *obj);
 
-static isc_result_t cfg_getstringtoken(cfg_parser_t *pctx);
+static isc_result_t
+cfg_getstringtoken(cfg_parser_t *pctx);
 
-static void parser_complain(cfg_parser_t *pctx, bool is_warning,
-			    unsigned int flags, const char *format,
-			    va_list args);
+static void
+parser_complain(cfg_parser_t *pctx, bool is_warning, unsigned int flags,
+		const char *format, va_list args);
 
 #if defined(HAVE_GEOIP2)
-static isc_result_t parse_geoip(cfg_parser_t *pctx, const cfg_type_t *type,
-				cfg_obj_t **ret);
+static isc_result_t
+parse_geoip(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
-static void print_geoip(cfg_printer_t *pctx, const cfg_obj_t *obj);
+static void
+print_geoip(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
-static void doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type);
+static void
+doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type);
 #endif /* HAVE_GEOIP2 */
 
 /*

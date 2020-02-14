@@ -21,15 +21,15 @@
 
 #if _MSC_VER < 1600
 struct addrinfo {
-	int ai_flags;		       /* AI_PASSIVE, AI_CANONNAME */
-	int ai_family;		       /* PF_xxx */
-	int ai_socktype;	       /* SOCK_xxx */
-	int ai_protocol;	       /* 0 or IPPROTO_xxx for IPv4 and
-					* IPv6 */
-	size_t		 ai_addrlen;   /* Length of ai_addr */
-	char *		 ai_canonname; /* Canonical name for hostname */
-	struct sockaddr *ai_addr;      /* Binary address */
-	struct addrinfo *ai_next;      /* Next structure in linked list */
+	int ai_flags;		  /* AI_PASSIVE, AI_CANONNAME */
+	int ai_family;		  /* PF_xxx */
+	int ai_socktype;	  /* SOCK_xxx */
+	int ai_protocol;	  /* 0 or IPPROTO_xxx for IPv4 and
+				   * IPv6 */
+	size_t ai_addrlen;	  /* Length of ai_addr */
+	char *ai_canonname;	  /* Canonical name for hostname */
+	struct sockaddr *ai_addr; /* Binary address */
+	struct addrinfo *ai_next; /* Next structure in linked list */
 };
 #endif /* if _MSC_VER < 1600 */
 
@@ -147,18 +147,18 @@ struct addrinfo {
  * Structures for getrrsetbyname()
  */
 struct rdatainfo {
-	unsigned int   rdi_length;
+	unsigned int rdi_length;
 	unsigned char *rdi_data;
 };
 
 struct rrsetinfo {
-	unsigned int	  rri_flags;
-	int		  rri_rdclass;
-	int		  rri_rdtype;
-	unsigned int	  rri_ttl;
-	unsigned int	  rri_nrdatas;
-	unsigned int	  rri_nsigs;
-	char *		  rri_name;
+	unsigned int rri_flags;
+	int rri_rdclass;
+	int rri_rdtype;
+	unsigned int rri_ttl;
+	unsigned int rri_nrdatas;
+	unsigned int rri_nsigs;
+	char *rri_name;
 	struct rdatainfo *rri_rdatas;
 	struct rdatainfo *rri_sigs;
 };

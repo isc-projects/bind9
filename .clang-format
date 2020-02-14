@@ -15,7 +15,7 @@ BraceWrapping:
   SplitEmptyFunction: true
 AllowShortIfStatementsOnASingleLine: false
 IndentCaseLabels: false
-AlwaysBreakAfterReturnType: TopLevelDefinitions
+AlwaysBreakAfterReturnType: All
 Cpp11BracedListStyle: false
 ColumnLimit: 80
 AlignAfterOpenBracket: Align

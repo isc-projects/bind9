@@ -29,9 +29,11 @@ isc_mem_t *mctx = NULL;
 bool printmemstats = false;
 bool dorender = false;
 
-static void process_message(isc_buffer_t *source);
+static void
+process_message(isc_buffer_t *source);
 
-static isc_result_t printmessage(dns_message_t *msg);
+static isc_result_t
+printmessage(dns_message_t *msg);
 
 static inline void
 CHECKRESULT(isc_result_t result, const char *msg) {
