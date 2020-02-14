@@ -22,11 +22,10 @@
 
 int
 isc_win32os_versioncheck(unsigned int major, unsigned int minor,
-			 unsigned int spmajor, unsigned int spminor)
-{
+			 unsigned int spmajor, unsigned int spminor) {
 	OSVERSIONINFOEX osVer;
-	DWORD		typeMask;
-	ULONGLONG	conditionMask;
+	DWORD typeMask;
+	ULONGLONG conditionMask;
 
 	memset(&osVer, 0, sizeof(OSVERSIONINFOEX));
 	osVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
@@ -56,10 +55,10 @@ isc_win32os_versioncheck(unsigned int major, unsigned int minor,
 
 	/* Failed: retry with equal */
 	conditionMask = 0;
-	conditionMask =
-		VerSetConditionMask(conditionMask, VER_MAJORVERSION, VER_EQUAL);
-	conditionMask =
-		VerSetConditionMask(conditionMask, VER_MINORVERSION, VER_EQUAL);
+	conditionMask = VerSetConditionMask(conditionMask, VER_MAJORVERSION,
+					    VER_EQUAL);
+	conditionMask = VerSetConditionMask(conditionMask, VER_MINORVERSION,
+					    VER_EQUAL);
 	conditionMask = VerSetConditionMask(conditionMask, VER_SERVICEPACKMAJOR,
 					    VER_EQUAL);
 	conditionMask = VerSetConditionMask(conditionMask, VER_SERVICEPACKMINOR,
@@ -73,13 +72,12 @@ isc_win32os_versioncheck(unsigned int major, unsigned int minor,
 
 #ifdef TESTVERSION
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	unsigned int major = 0;
 	unsigned int minor = 0;
 	unsigned int spmajor = 0;
 	unsigned int spminor = 0;
-	int	     ret;
+	int ret;
 
 	if (argc > 1) {
 		--argc;

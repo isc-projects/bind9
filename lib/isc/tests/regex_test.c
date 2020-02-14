@@ -36,17 +36,16 @@ static bool verbose = false;
 
 /* test isc_regex_validate() */
 static void
-regex_validate(void **state)
-{
+regex_validate(void **state) {
 	/*
 	 *  test regex were generated using http://code.google.com/p/regfuzz/
 	 *  modified to use only printable characters
 	 */
 	struct {
 		const char *expression;
-		int	    expect;
-		int	    exception; /* regcomp accepts but is
-					* disallowed. */
+		int expect;
+		int exception; /* regcomp accepts but is
+				* disallowed. */
 	} tests[] = {
 		{ "", -1, 0 },
 		{ "*", -1, 0 },
@@ -2285,7 +2284,7 @@ regex_validate(void **state)
 		{ "}}}}}}}}}(}}){}[llll]^N|", -1, 0 },
 	};
 	unsigned int i;
-	int	     r;
+	int r;
 
 	UNUSED(state);
 
@@ -2300,7 +2299,8 @@ regex_validate(void **state)
 		r = regcomp(&preg, tests[i].expression, REG_EXTENDED);
 		if (((r != 0 && tests[i].expect != -1) ||
 		     (r == 0 && tests[i].expect == -1)) &&
-		    !tests[i].exception) {
+		    !tests[i].exception)
+		{
 			if (verbose) {
 				print_error("regcomp(%s) -> %s expected %s\n",
 					    tests[i].expression,
@@ -2310,7 +2310,8 @@ regex_validate(void **state)
 			}
 		} else if (r == 0 &&
 			   preg.re_nsub != (unsigned int)tests[i].expect &&
-			   !tests[i].exception) {
+			   !tests[i].exception)
+		{
 			if (verbose) {
 				print_error("%s preg.re_nsub %lu expected %d\n",
 					    tests[i].expression,
@@ -2339,8 +2340,7 @@ regex_validate(void **state)
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(regex_validate),
 	};
@@ -2364,8 +2364,7 @@ main(int argc, char **argv)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

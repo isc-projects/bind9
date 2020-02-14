@@ -43,7 +43,7 @@ struct dns_dns64 {
 				 * Start of mapped address.
 				 */
 	unsigned int flags;
-	isc_mem_t *  mctx;
+	isc_mem_t *mctx;
 	ISC_LINK(dns_dns64_t) link;
 };
 
@@ -51,8 +51,7 @@ isc_result_t
 dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 		 unsigned int prefixlen, const isc_netaddr_t *suffix,
 		 dns_acl_t *clients, dns_acl_t *mapped, dns_acl_t *excluded,
-		 unsigned int flags, dns_dns64_t **dns64p)
-{
+		 unsigned int flags, dns_dns64_t **dns64p) {
 	dns_dns64_t *dns64;
 	unsigned int nbytes = 16;
 
@@ -103,8 +102,7 @@ dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 }
 
 void
-dns_dns64_destroy(dns_dns64_t **dns64p)
-{
+dns_dns64_destroy(dns_dns64_t **dns64p) {
 	dns_dns64_t *dns64;
 
 	REQUIRE(dns64p != NULL && *dns64p != NULL);
@@ -129,19 +127,20 @@ dns_dns64_destroy(dns_dns64_t **dns64p)
 isc_result_t
 dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		    const dns_name_t *reqsigner, const dns_aclenv_t *env,
-		    unsigned int flags, unsigned char *a, unsigned char *aaaa)
-{
+		    unsigned int flags, unsigned char *a, unsigned char *aaaa) {
 	unsigned int nbytes, i;
 	isc_result_t result;
-	int	     match;
+	int match;
 
 	if ((dns64->flags & DNS_DNS64_RECURSIVE_ONLY) != 0 &&
-	    (flags & DNS_DNS64_RECURSIVE) == 0) {
+	    (flags & DNS_DNS64_RECURSIVE) == 0)
+	{
 		return (DNS_R_DISALLOWED);
 	}
 
 	if ((dns64->flags & DNS_DNS64_BREAK_DNSSEC) == 0 &&
-	    (flags & DNS_DNS64_DNSSEC) != 0) {
+	    (flags & DNS_DNS64_DNSSEC) != 0)
+	{
 		return (DNS_R_DISALLOWED);
 	}
 
@@ -158,7 +157,7 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 
 	if (dns64->mapped != NULL) {
 		struct in_addr ina;
-		isc_netaddr_t  netaddr;
+		isc_netaddr_t netaddr;
 
 		memmove(&ina.s_addr, a, 4);
 		isc_netaddr_fromin(&netaddr, &ina);
@@ -194,21 +193,18 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 }
 
 dns_dns64_t *
-dns_dns64_next(dns_dns64_t *dns64)
-{
+dns_dns64_next(dns_dns64_t *dns64) {
 	dns64 = ISC_LIST_NEXT(dns64, link);
 	return (dns64);
 }
 
 void
-dns_dns64_append(dns_dns64list_t *list, dns_dns64_t *dns64)
-{
+dns_dns64_append(dns_dns64list_t *list, dns_dns64_t *dns64) {
 	ISC_LIST_APPEND(*list, dns64, link);
 }
 
 void
-dns_dns64_unlink(dns_dns64list_t *list, dns_dns64_t *dns64)
-{
+dns_dns64_unlink(dns_dns64list_t *list, dns_dns64_t *dns64) {
 	ISC_LIST_UNLINK(*list, dns64, link);
 }
 
@@ -216,15 +212,14 @@ bool
 dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		 const dns_name_t *reqsigner, const dns_aclenv_t *env,
 		 unsigned int flags, dns_rdataset_t *rdataset, bool *aaaaok,
-		 size_t aaaaoklen)
-{
+		 size_t aaaaoklen) {
 	struct in6_addr in6;
-	isc_netaddr_t	netaddr;
-	isc_result_t	result;
-	int		match;
-	bool		answer = false;
-	bool		found = false;
-	unsigned int	i, ok;
+	isc_netaddr_t netaddr;
+	isc_result_t result;
+	int match;
+	bool answer = false;
+	bool found = false;
+	unsigned int i, ok;
 
 	REQUIRE(rdataset != NULL);
 	REQUIRE(rdataset->type == dns_rdatatype_aaaa);
@@ -235,12 +230,14 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 
 	for (; dns64 != NULL; dns64 = ISC_LIST_NEXT(dns64, link)) {
 		if ((dns64->flags & DNS_DNS64_RECURSIVE_ONLY) != 0 &&
-		    (flags & DNS_DNS64_RECURSIVE) == 0) {
+		    (flags & DNS_DNS64_RECURSIVE) == 0)
+		{
 			continue;
 		}
 
 		if ((dns64->flags & DNS_DNS64_BREAK_DNSSEC) == 0 &&
-		    (flags & DNS_DNS64_DNSSEC) != 0) {
+		    (flags & DNS_DNS64_DNSSEC) != 0)
+		{
 			continue;
 		}
 		/*
@@ -284,7 +281,8 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		ok = 0;
 		for (result = dns_rdataset_first(rdataset);
 		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(rdataset)) {
+		     result = dns_rdataset_next(rdataset))
+		{
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			if (aaaaok == NULL || !aaaaok[i]) {
 				dns_rdataset_current(rdataset, &rdata);

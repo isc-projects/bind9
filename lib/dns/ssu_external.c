@@ -43,8 +43,7 @@
 #include <dst/dst.h>
 
 static void
-ssu_e_log(int level, const char *fmt, ...)
-{
+ssu_e_log(int level, const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
@@ -57,8 +56,7 @@ ssu_e_log(int level, const char *fmt, ...)
  * Connect to a UNIX domain socket.
  */
 static int
-ux_socket_connect(const char *path)
-{
+ux_socket_connect(const char *path) {
 	int fd = -1;
 #ifdef ISC_PLATFORM_HAVESYSUNH
 	struct sockaddr_un addr;
@@ -117,24 +115,23 @@ bool
 dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
 		       const dns_name_t *name, const isc_netaddr_t *tcpaddr,
 		       dns_rdatatype_t type, const dst_key_t *key,
-		       isc_mem_t *mctx)
-{
-	char	       b_identity[DNS_NAME_FORMATSIZE];
-	char	       b_signer[DNS_NAME_FORMATSIZE];
-	char	       b_name[DNS_NAME_FORMATSIZE];
-	char	       b_addr[ISC_NETADDR_FORMATSIZE];
-	char	       b_type[DNS_RDATATYPE_FORMATSIZE];
-	char	       b_key[DST_KEY_FORMATSIZE];
-	isc_buffer_t * tkey_token = NULL;
-	int	       fd;
-	const char *   sock_path;
-	unsigned int   req_len;
-	isc_region_t   token_region = { NULL, 0 };
+		       isc_mem_t *mctx) {
+	char b_identity[DNS_NAME_FORMATSIZE];
+	char b_signer[DNS_NAME_FORMATSIZE];
+	char b_name[DNS_NAME_FORMATSIZE];
+	char b_addr[ISC_NETADDR_FORMATSIZE];
+	char b_type[DNS_RDATATYPE_FORMATSIZE];
+	char b_key[DST_KEY_FORMATSIZE];
+	isc_buffer_t *tkey_token = NULL;
+	int fd;
+	const char *sock_path;
+	unsigned int req_len;
+	isc_region_t token_region = { NULL, 0 };
 	unsigned char *data;
-	isc_buffer_t   buf;
-	uint32_t       token_len = 0;
-	uint32_t       reply;
-	ssize_t	       ret;
+	isc_buffer_t buf;
+	uint32_t token_len = 0;
+	uint32_t reply;
+	ssize_t ret;
 
 	/* The identity contains local:/path/to/socket */
 	dns_name_format(identity, b_identity, sizeof(b_identity));

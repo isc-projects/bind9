@@ -58,7 +58,7 @@
  *** Types
  ***/
 
-#define IFACE_MAGIC ISC_MAGIC('I', ':', '-', ')')
+#define IFACE_MAGIC	      ISC_MAGIC('I', ':', '-', ')')
 #define NS_INTERFACE_VALID(t) ISC_MAGIC_VALID(t, IFACE_MAGIC)
 
 #define NS_INTERFACEFLAG_ANYADDR 0x01U /*%< bound to "any" address */

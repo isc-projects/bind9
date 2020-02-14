@@ -35,17 +35,15 @@
 			return ((_r));   \
 	} while (0)
 
-static isc_result_t
-bind_ttl(isc_textregion_t *source, uint32_t *ttl);
+static isc_result_t bind_ttl(isc_textregion_t *source, uint32_t *ttl);
 
 /*
  * Helper for dns_ttl_totext().
  */
 static isc_result_t
 ttlfmt(unsigned int t, const char *s, bool verbose, bool space,
-       isc_buffer_t *target)
-{
-	char	     tmp[60];
+       isc_buffer_t *target) {
+	char tmp[60];
 	unsigned int len;
 	isc_region_t region;
 
@@ -71,8 +69,7 @@ ttlfmt(unsigned int t, const char *s, bool verbose, bool space,
  * Derived from bind8 ns_format_ttl().
  */
 isc_result_t
-dns_ttl_totext(uint32_t src, bool verbose, bool upcase, isc_buffer_t *target)
-{
+dns_ttl_totext(uint32_t src, bool verbose, bool upcase, isc_buffer_t *target) {
 	unsigned secs, mins, hours, days, weeks, x;
 
 	secs = src % 60;
@@ -131,14 +128,12 @@ dns_ttl_totext(uint32_t src, bool verbose, bool upcase, isc_buffer_t *target)
 }
 
 isc_result_t
-dns_counter_fromtext(isc_textregion_t *source, uint32_t *ttl)
-{
+dns_counter_fromtext(isc_textregion_t *source, uint32_t *ttl) {
 	return (bind_ttl(source, ttl));
 }
 
 isc_result_t
-dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl)
-{
+dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl) {
 	isc_result_t result;
 
 	result = bind_ttl(source, ttl);
@@ -149,13 +144,12 @@ dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl)
 }
 
 static isc_result_t
-bind_ttl(isc_textregion_t *source, uint32_t *ttl)
-{
+bind_ttl(isc_textregion_t *source, uint32_t *ttl) {
 	uint64_t tmp = 0ULL;
 	uint32_t n;
-	char *	 s;
-	char	 buf[64];
-	char	 nbuf[64]; /* Number buffer */
+	char *s;
+	char buf[64];
+	char nbuf[64]; /* Number buffer */
 
 	/*
 	 * Copy the buffer as it may not be NULL terminated.

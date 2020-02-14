@@ -26,9 +26,8 @@
 isc_mem_t *mctx;
 
 static isc_result_t
-print_dataset(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset)
-{
-	char	     buf[64 * 1024];
+print_dataset(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset) {
+	char buf[64 * 1024];
 	isc_buffer_t target;
 	isc_result_t result;
 
@@ -48,13 +47,12 @@ print_dataset(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset)
 }
 
 int
-main(int argc, char *argv[])
-{
-	isc_result_t	     result;
-	dns_name_t	     origin;
-	isc_buffer_t	     source;
-	isc_buffer_t	     target;
-	unsigned char	     name_buf[255];
+main(int argc, char *argv[]) {
+	isc_result_t result;
+	dns_name_t origin;
+	isc_buffer_t source;
+	isc_buffer_t target;
+	unsigned char name_buf[255];
 	dns_rdatacallbacks_t callbacks;
 
 	UNUSED(argc);

@@ -31,35 +31,33 @@
 
 struct dns_lookup {
 	/* Unlocked. */
-	unsigned int	magic;
-	isc_mem_t *	mctx;
-	isc_mutex_t	lock;
+	unsigned int magic;
+	isc_mem_t *mctx;
+	isc_mutex_t lock;
 	dns_rdatatype_t type;
 	dns_fixedname_t name;
 	/* Locked by lock. */
-	unsigned int	   options;
-	isc_task_t *	   task;
-	dns_view_t *	   view;
+	unsigned int options;
+	isc_task_t *task;
+	dns_view_t *view;
 	dns_lookupevent_t *event;
-	dns_fetch_t *	   fetch;
-	unsigned int	   restarts;
-	bool		   canceled;
-	dns_rdataset_t	   rdataset;
-	dns_rdataset_t	   sigrdataset;
+	dns_fetch_t *fetch;
+	unsigned int restarts;
+	bool canceled;
+	dns_rdataset_t rdataset;
+	dns_rdataset_t sigrdataset;
 };
 
-#define LOOKUP_MAGIC ISC_MAGIC('l', 'o', 'o', 'k')
+#define LOOKUP_MAGIC	ISC_MAGIC('l', 'o', 'o', 'k')
 #define VALID_LOOKUP(l) ISC_MAGIC_VALID((l), LOOKUP_MAGIC)
 
 #define MAX_RESTARTS 16
 
-static void
-lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event);
+static void lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event);
 
 static void
-fetch_done(isc_task_t *task, isc_event_t *event)
-{
-	dns_lookup_t *	  lookup = event->ev_arg;
+fetch_done(isc_task_t *task, isc_event_t *event) {
+	dns_lookup_t *lookup = event->ev_arg;
 	dns_fetchevent_t *fevent;
 
 	UNUSED(task);
@@ -73,8 +71,7 @@ fetch_done(isc_task_t *task, isc_event_t *event)
 }
 
 static inline isc_result_t
-start_fetch(dns_lookup_t *lookup)
-{
+start_fetch(dns_lookup_t *lookup) {
 	isc_result_t result;
 
 	/*
@@ -93,9 +90,8 @@ start_fetch(dns_lookup_t *lookup)
 }
 
 static isc_result_t
-build_event(dns_lookup_t *lookup)
-{
-	dns_name_t *	name = NULL;
+build_event(dns_lookup_t *lookup) {
+	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdataset_t *sigrdataset = NULL;
 
@@ -123,10 +119,9 @@ build_event(dns_lookup_t *lookup)
 }
 
 static isc_result_t
-view_find(dns_lookup_t *lookup, dns_name_t *foundname)
-{
-	isc_result_t	result;
-	dns_name_t *	name = dns_fixedname_name(&lookup->name);
+view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
+	isc_result_t result;
+	dns_name_t *name = dns_fixedname_name(&lookup->name);
 	dns_rdatatype_t type;
 
 	if (lookup->type == dns_rdatatype_rrsig) {
@@ -143,17 +138,16 @@ view_find(dns_lookup_t *lookup, dns_name_t *foundname)
 }
 
 static void
-lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event)
-{
-	isc_result_t	  result;
-	bool		  want_restart;
-	bool		  send_event;
-	dns_name_t *	  name, *fname, *prefix;
-	dns_fixedname_t	  foundname, fixed;
-	dns_rdata_t	  rdata = DNS_RDATA_INIT;
-	unsigned int	  nlabels;
-	int		  order;
-	dns_namereln_t	  namereln;
+lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
+	isc_result_t result;
+	bool want_restart;
+	bool send_event;
+	dns_name_t *name, *fname, *prefix;
+	dns_fixedname_t foundname, fixed;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	unsigned int nlabels;
+	int order;
+	dns_namereln_t namereln;
 	dns_rdata_cname_t cname;
 	dns_rdata_dname_t dname;
 
@@ -331,10 +325,9 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event)
 }
 
 static void
-levent_destroy(isc_event_t *event)
-{
+levent_destroy(isc_event_t *event) {
 	dns_lookupevent_t *levent;
-	isc_mem_t *	   mctx;
+	isc_mem_t *mctx;
 
 	REQUIRE(event->ev_type == DNS_EVENT_LOOKUPDONE);
 	mctx = event->ev_destroy_arg;
@@ -366,10 +359,9 @@ levent_destroy(isc_event_t *event)
 isc_result_t
 dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 		  dns_view_t *view, unsigned int options, isc_task_t *task,
-		  isc_taskaction_t action, void *arg, dns_lookup_t **lookupp)
-{
+		  isc_taskaction_t action, void *arg, dns_lookup_t **lookupp) {
 	dns_lookup_t *lookup;
-	isc_event_t * ievent;
+	isc_event_t *ievent;
 
 	lookup = isc_mem_get(mctx, sizeof(*lookup));
 	lookup->mctx = NULL;
@@ -415,8 +407,7 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 }
 
 void
-dns_lookup_cancel(dns_lookup_t *lookup)
-{
+dns_lookup_cancel(dns_lookup_t *lookup) {
 	REQUIRE(VALID_LOOKUP(lookup));
 
 	LOCK(&lookup->lock);
@@ -433,8 +424,7 @@ dns_lookup_cancel(dns_lookup_t *lookup)
 }
 
 void
-dns_lookup_destroy(dns_lookup_t **lookupp)
-{
+dns_lookup_destroy(dns_lookup_t **lookupp) {
 	dns_lookup_t *lookup;
 
 	REQUIRE(lookupp != NULL);

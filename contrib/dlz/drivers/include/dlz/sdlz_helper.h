@@ -42,9 +42,9 @@
  * Types
  */
 #define SDLZH_REQUIRE_CLIENT 0x01
-#define SDLZH_REQUIRE_QUERY 0x02
+#define SDLZH_REQUIRE_QUERY  0x02
 #define SDLZH_REQUIRE_RECORD 0x04
-#define SDLZH_REQUIRE_ZONE 0x08
+#define SDLZH_REQUIRE_ZONE   0x08
 
 typedef struct query_segment query_segment_t;
 typedef ISC_LIST(query_segment_t) query_list_t;
@@ -110,8 +110,8 @@ sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char *key);
 
 /* Compatability with existing DLZ drivers */
 
-#define build_querystring sdlzh_build_querystring
-#define build_sqldbinstance sdlzh_build_sqldbinstance
+#define build_querystring     sdlzh_build_querystring
+#define build_sqldbinstance   sdlzh_build_sqldbinstance
 #define destroy_sqldbinstance sdlzh_destroy_sqldbinstance
 
 #define getParameterValue(x, y) \

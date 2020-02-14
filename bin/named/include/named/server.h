@@ -35,8 +35,8 @@
 
 #include <named/types.h>
 
-#define NAMED_EVENTCLASS ISC_EVENTCLASS(0x4E43)
-#define NAMED_EVENT_RELOAD (NAMED_EVENTCLASS + 0)
+#define NAMED_EVENTCLASS    ISC_EVENTCLASS(0x4E43)
+#define NAMED_EVENT_RELOAD  (NAMED_EVENTCLASS + 0)
 #define NAMED_EVENT_DELZONE (NAMED_EVENTCLASS + 1)
 
 /*%
@@ -112,7 +112,7 @@ struct named_server {
 	char *lockfile;
 };
 
-#define NAMED_SERVER_MAGIC ISC_MAGIC('S', 'V', 'E', 'R')
+#define NAMED_SERVER_MAGIC    ISC_MAGIC('S', 'V', 'E', 'R')
 #define NAMED_SERVER_VALID(s) ISC_MAGIC_VALID(s, NAMED_SERVER_MAGIC)
 
 void

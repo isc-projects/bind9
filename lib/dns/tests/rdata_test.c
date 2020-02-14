@@ -40,16 +40,15 @@ static bool debug = false;
  * An array of these structures is passed to compare_ok().
  */
 struct compare_ok {
-	const char *text1;  /* text passed to fromtext_*() */
-	const char *text2;  /* text passed to fromtext_*() */
-	int	    answer; /* -1, 0, 1 */
-	int	    lineno; /* source line defining this RDATA */
+	const char *text1; /* text passed to fromtext_*() */
+	const char *text2; /* text passed to fromtext_*() */
+	int answer;	   /* -1, 0, 1 */
+	int lineno;	   /* source line defining this RDATA */
 };
 typedef struct compare_ok compare_ok_t;
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -61,8 +60,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -84,8 +82,8 @@ typedef struct text_ok {
  */
 typedef struct wire_ok {
 	unsigned char data[512]; /* RDATA in wire format */
-	size_t	      len;	 /* octets of data to parse */
-	bool	      ok;	 /* is this RDATA valid? */
+	size_t len;		 /* octets of data to parse */
+	bool ok;		 /* is this RDATA valid? */
 } wire_ok_t;
 
 #define COMPARE(r1, r2, answer)          \
@@ -124,7 +122,7 @@ typedef struct wire_ok {
  * RR type or not.
  */
 #define WIRE_INVALID(FIRST, ...) WIRE_TEST(false, FIRST, __VA_ARGS__)
-#define WIRE_SENTINEL() WIRE_TEST(false)
+#define WIRE_SENTINEL()		 WIRE_TEST(false)
 
 /*
  * Call dns_rdata_fromwire() for data in 'src', which is 'srclen' octets in
@@ -135,11 +133,10 @@ typedef struct wire_ok {
 static isc_result_t
 wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
 	      dns_rdatatype_t type, unsigned char *dst, size_t dstlen,
-	      dns_rdata_t *rdata)
-{
-	isc_buffer_t	 source, target;
+	      dns_rdata_t *rdata) {
+	isc_buffer_t source, target;
 	dns_decompress_t dctx;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	/*
 	 * Set up len-octet buffer pointing at data.
@@ -169,11 +166,10 @@ wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
  */
 static isc_result_t
 rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
-	     size_t *length)
-{
-	isc_buffer_t   target;
+	     size_t *length) {
+	isc_buffer_t target;
 	dns_compress_t cctx;
-	isc_result_t   result;
+	isc_result_t result;
 
 	/*
 	 * Initialize target buffer.
@@ -193,8 +189,7 @@ rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
 }
 
 static isc_result_t
-additionaldata_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype)
-{
+additionaldata_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	UNUSED(arg);
 	UNUSED(name);
 	UNUSED(qtype);
@@ -205,8 +200,7 @@ additionaldata_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype)
  * call dns_rdata_additionaldata() for rdata.
  */
 static isc_result_t
-rdata_additionadata(dns_rdata_t *rdata)
-{
+rdata_additionadata(dns_rdata_t *rdata) {
 	return (dns_rdata_additionaldata(rdata, additionaldata_cb, NULL));
 }
 
@@ -221,11 +215,10 @@ rdata_additionadata(dns_rdata_t *rdata)
  * result and the expected value of 'bad'.
  */
 static void
-rdata_checknames(dns_rdata_t *rdata)
-{
+rdata_checknames(dns_rdata_t *rdata) {
 	dns_fixedname_t fixed, bfixed;
-	dns_name_t *	name, *bad;
-	isc_result_t	result;
+	dns_name_t *name, *bad;
+	isc_result_t result;
 
 	name = dns_fixedname_initname(&fixed);
 	bad = dns_fixedname_initname(&bfixed);
@@ -259,14 +252,13 @@ rdata_checknames(dns_rdata_t *rdata)
  * check_text_ok_single() and check_wire_ok_single().
  */
 static void
-check_struct_conversions(dns_rdata_t *rdata, size_t structsize)
-{
+check_struct_conversions(dns_rdata_t *rdata, size_t structsize) {
 	dns_rdataclass_t rdclass = rdata->rdclass;
-	dns_rdatatype_t	 type = rdata->type;
-	isc_result_t	 result;
-	isc_buffer_t	 target;
-	void *		 rdata_struct;
-	char		 buf[1024];
+	dns_rdatatype_t type = rdata->type;
+	isc_result_t result;
+	isc_buffer_t target;
+	void *rdata_struct;
+	char buf[1024];
 
 	rdata_struct = isc_mem_allocate(dt_mctx, structsize);
 	assert_non_null(rdata_struct);
@@ -302,14 +294,13 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize)
  */
 static void
 check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, size_t structsize)
-{
+		     dns_rdatatype_t type, size_t structsize) {
 	unsigned char buf_fromtext[1024], buf_fromwire[1024], buf_towire[1024];
-	dns_rdata_t   rdata = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT;
-	char	      buf_totext[1024] = { 0 };
-	isc_buffer_t  target;
-	isc_result_t  result;
-	size_t	      length = 0;
+	dns_rdata_t rdata = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT;
+	char buf_totext[1024] = { 0 };
+	isc_buffer_t target;
+	isc_result_t result;
+	size_t length = 0;
 
 	/*
 	 * Try converting text form RDATA into uncompressed wire form.
@@ -404,13 +395,12 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
  * by check_wire_ok_single() and whose type is not a meta-type.
  */
 static void
-check_text_conversions(dns_rdata_t *rdata)
-{
-	char	      buf_totext[1024] = { 0 };
+check_text_conversions(dns_rdata_t *rdata) {
+	char buf_totext[1024] = { 0 };
 	unsigned char buf_fromtext[1024];
-	isc_result_t  result;
-	isc_buffer_t  target;
-	dns_rdata_t   rdata2 = DNS_RDATA_INIT;
+	isc_result_t result;
+	isc_buffer_t target;
+	dns_rdata_t rdata2 = DNS_RDATA_INIT;
 
 	/*
 	 * Convert uncompressed wire form RDATA into text form.  This
@@ -451,14 +441,13 @@ check_text_conversions(dns_rdata_t *rdata)
  * by check_wire_ok_single() and whose type is not a meta-type.
  */
 static void
-check_multiline_text_conversions(dns_rdata_t *rdata)
-{
-	char	      buf_totext[1024] = { 0 };
+check_multiline_text_conversions(dns_rdata_t *rdata) {
+	char buf_totext[1024] = { 0 };
 	unsigned char buf_fromtext[1024];
-	isc_result_t  result;
-	isc_buffer_t  target;
-	dns_rdata_t   rdata2 = DNS_RDATA_INIT;
-	unsigned int  flags;
+	isc_result_t result;
+	isc_buffer_t target;
+	dns_rdata_t rdata2 = DNS_RDATA_INIT;
+	unsigned int flags;
 
 	/*
 	 * Convert uncompressed wire form RDATA into multi-line text form.
@@ -498,12 +487,11 @@ check_multiline_text_conversions(dns_rdata_t *rdata)
  */
 static void
 check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, size_t structsize)
-{
+		     dns_rdatatype_t type, size_t structsize) {
 	unsigned char buf[1024], buf_towire[1024];
-	isc_result_t  result;
-	dns_rdata_t   rdata = DNS_RDATA_INIT;
-	size_t	      length = 0;
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	size_t length = 0;
 
 	/*
 	 * Try converting wire data into uncompressed wire form.
@@ -567,8 +555,7 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
  */
 static void
 check_text_ok(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
-	      dns_rdatatype_t type, size_t structsize)
-{
+	      dns_rdatatype_t type, size_t structsize) {
 	size_t i;
 
 	/*
@@ -588,10 +575,9 @@ check_text_ok(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
  */
 static void
 check_wire_ok(const wire_ok_t *wire_ok, bool empty_ok, dns_rdataclass_t rdclass,
-	      dns_rdatatype_t type, size_t structsize)
-{
+	      dns_rdatatype_t type, size_t structsize) {
 	wire_ok_t empty_wire = WIRE_TEST(empty_ok);
-	size_t	  i;
+	size_t i;
 
 	/*
 	 * Check all entries in the supplied array.
@@ -611,12 +597,11 @@ check_wire_ok(const wire_ok_t *wire_ok, bool empty_ok, dns_rdataclass_t rdclass,
  */
 static void
 check_compare_ok_single(const compare_ok_t *compare_ok,
-			dns_rdataclass_t rdclass, dns_rdatatype_t type)
-{
-	dns_rdata_t   rdata1 = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT;
+			dns_rdataclass_t rdclass, dns_rdatatype_t type) {
+	dns_rdata_t rdata1 = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT;
 	unsigned char buf1[1024], buf2[1024];
-	isc_result_t  result;
-	int	      answer;
+	isc_result_t result;
+	int answer;
 
 	result = dns_test_rdatafromstring(&rdata1, rdclass, type, buf1,
 					  sizeof(buf1), compare_ok->text1,
@@ -665,8 +650,7 @@ check_compare_ok_single(const compare_ok_t *compare_ok,
  */
 static void
 check_compare_ok(const compare_ok_t *compare_ok, dns_rdataclass_t rdclass,
-		 dns_rdatatype_t type)
-{
+		 dns_rdatatype_t type) {
 	size_t i;
 	/*
 	 * Check all entries in the supplied array.
@@ -689,8 +673,7 @@ check_compare_ok(const compare_ok_t *compare_ok, dns_rdataclass_t rdclass,
 static void
 check_rdata(const text_ok_t *text_ok, const wire_ok_t *wire_ok,
 	    const compare_ok_t *compare_ok, bool empty_ok,
-	    dns_rdataclass_t rdclass, dns_rdatatype_t type, size_t structsize)
-{
+	    dns_rdataclass_t rdclass, dns_rdatatype_t type, size_t structsize) {
 	if (text_ok != NULL) {
 		check_text_ok(text_ok, rdclass, type, structsize);
 	}
@@ -710,8 +693,7 @@ check_rdata(const text_ok_t *text_ok, const wire_ok_t *wire_ok,
  *   - RKEY (draft-reid-dnsext-rkey-00)
  */
 static void
-key_required(void **state, dns_rdatatype_t type, size_t size)
-{
+key_required(void **state, dns_rdatatype_t type, size_t size) {
 	wire_ok_t wire_ok[] = { /*
 				 * RDATA must be at least 5 octets in size:
 				 *
@@ -742,8 +724,7 @@ key_required(void **state, dns_rdatatype_t type, size_t size)
 
 /* APL RDATA manipulations */
 static void
-apl(void **state)
-{
+apl(void **state) {
 	text_ok_t text_ok[] = {
 		/* empty list */
 		TEXT_VALID(""),
@@ -828,8 +809,7 @@ apl(void **state)
  * ATMA RRs cause no additional section processing.
  */
 static void
-atma(void **state)
-{
+atma(void **state) {
 	text_ok_t text_ok[] = { TEXT_VALID("00"),
 				TEXT_VALID_CHANGED("0.0", "00"),
 				/*
@@ -900,8 +880,7 @@ atma(void **state)
 
 /* AMTRELAY RDATA manipulations */
 static void
-amtrelay(void **state)
-{
+amtrelay(void **state) {
 	text_ok_t text_ok[] = {
 		TEXT_INVALID(""), TEXT_INVALID("0"), TEXT_INVALID("0 0"),
 		/* gatway type 0 */
@@ -980,8 +959,7 @@ amtrelay(void **state)
 }
 
 static void
-cdnskey(void **state)
-{
+cdnskey(void **state) {
 	key_required(state, dns_rdatatype_cdnskey, sizeof(dns_rdata_cdnskey_t));
 }
 
@@ -1050,8 +1028,7 @@ cdnskey(void **state)
  *    Map field that has been set to 1.
  */
 static void
-csync(void **state)
-{
+csync(void **state) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""),
 				TEXT_INVALID("0"),
 				TEXT_VALID("0 0"),
@@ -1113,8 +1090,7 @@ csync(void **state)
 }
 
 static void
-dnskey(void **state)
-{
+dnskey(void **state) {
 	key_required(state, dns_rdatatype_dnskey, sizeof(dns_rdata_dnskey_t));
 }
 
@@ -1179,8 +1155,7 @@ dnskey(void **state)
  *    data.
  */
 static void
-doa(void **state)
-{
+doa(void **state) {
 	text_ok_t text_ok[] = {
 		/*
 		 * Valid, non-empty DOA-DATA.
@@ -1396,8 +1371,7 @@ doa(void **state)
  *    digest algorithm is SHA-1, which produces a 20 octet digest.
  */
 static void
-ds(void **state)
-{
+ds(void **state) {
 	text_ok_t text_ok[] = {
 		/*
 		 * Invalid, empty record.
@@ -1666,8 +1640,7 @@ ds(void **state)
  *    Data Notation).
  */
 static void
-edns_client_subnet(void **state)
-{
+edns_client_subnet(void **state) {
 	wire_ok_t wire_ok[] = {
 		/*
 		 * Option code with no content.
@@ -1757,8 +1730,7 @@ edns_client_subnet(void **state)
  * field and should be ignored when reading a master file.
  */
 static void
-eid(void **state)
-{
+eid(void **state) {
 	text_ok_t text_ok[] = { TEXT_VALID("AABBCC"),
 				TEXT_VALID_CHANGED("AA bb cc", "AABBCC"),
 				TEXT_INVALID("aab"),
@@ -1782,15 +1754,14 @@ eid(void **state)
  * test that an oversized HIP record will be rejected
  */
 static void
-hip(void **state)
-{
+hip(void **state) {
 	unsigned char hipwire[DNS_RDATA_MAXLENGTH] = { 0x01, 0x00, 0x00, 0x01,
 						       0x00, 0x00, 0x04, 0x41,
 						       0x42, 0x43, 0x44, 0x00 };
 	unsigned char buf[1024 * 1024];
-	dns_rdata_t   rdata = DNS_RDATA_INIT;
-	isc_result_t  result;
-	size_t	      i;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_result_t result;
+	size_t i;
 
 	UNUSED(state);
 
@@ -1869,8 +1840,7 @@ hip(void **state)
  *    characters.
  */
 static void
-isdn(void **state)
-{
+isdn(void **state) {
 	wire_ok_t wire_ok[] = { /*
 				 * "".
 				 */
@@ -1903,8 +1873,7 @@ isdn(void **state)
  * KEY tests.
  */
 static void
-key(void **state)
-{
+key(void **state) {
 	wire_ok_t wire_ok[] = { /*
 				 * RDATA is comprised of:
 				 *
@@ -1945,8 +1914,7 @@ key(void **state)
  * field and should be ignored when reading a master file.
  */
 static void
-nimloc(void **state)
-{
+nimloc(void **state) {
 	text_ok_t text_ok[] = { TEXT_VALID("AABBCC"),
 				TEXT_VALID_CHANGED("AA bb cc", "AABBCC"),
 				TEXT_INVALID("aab"),
@@ -2033,8 +2001,7 @@ nimloc(void **state)
  *    in zone data.  If encountered, they MUST be ignored upon being read.
  */
 static void
-nsec(void **state)
-{
+nsec(void **state) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""), TEXT_INVALID("."),
 				TEXT_VALID(". RRSIG"), TEXT_SENTINEL() };
 	wire_ok_t wire_ok[] = { WIRE_INVALID(0x00), WIRE_INVALID(0x00, 0x00),
@@ -2054,8 +2021,7 @@ nsec(void **state)
  * RFC 5155.
  */
 static void
-nsec3(void **state)
-{
+nsec3(void **state) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""),
 				TEXT_INVALID("."),
 				TEXT_INVALID(". RRSIG"),
@@ -2083,8 +2049,7 @@ nsec3(void **state)
 
 /* NXT RDATA manipulations */
 static void
-nxt(void **state)
-{
+nxt(void **state) {
 	compare_ok_t compare_ok[] = {
 		COMPARE("a. A SIG", "a. A SIG", 0),
 		/*
@@ -2110,8 +2075,7 @@ nxt(void **state)
 }
 
 static void
-rkey(void **state)
-{
+rkey(void **state) {
 	text_ok_t text_ok[] = { /*
 				 * Valid, flags set to 0 and a key is present.
 				 */
@@ -2147,8 +2111,7 @@ rkey(void **state)
 
 /* SSHFP RDATA manipulations */
 static void
-sshfp(void **state)
-{
+sshfp(void **state) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""),     /* too short */
 				TEXT_INVALID("0"),    /* reserved, too short */
 				TEXT_VALID("0 0"),    /* no finger print */
@@ -2271,8 +2234,7 @@ sshfp(void **state)
  * address.
  */
 static void
-wks(void **state)
-{
+wks(void **state) {
 	text_ok_t text_ok[] = { /*
 				 * Valid, IPv4 address in dotted-quad form.
 				 */
@@ -2359,8 +2321,7 @@ wks(void **state)
  */
 
 static void
-zonemd(void **state)
-{
+zonemd(void **state) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""),
 				TEXT_INVALID("0"),
 				TEXT_INVALID("0 0"),
@@ -2456,8 +2417,7 @@ zonemd(void **state)
 }
 
 static void
-atcname(void **state)
-{
+atcname(void **state) {
 	unsigned int i;
 	UNUSED(state);
 #define UNR "# Unexpected result from dns_rdatatype_atcname for type %u\n"
@@ -2484,8 +2444,7 @@ atcname(void **state)
 }
 
 static void
-atparent(void **state)
-{
+atparent(void **state) {
 	unsigned int i;
 	UNUSED(state);
 #define UNR "# Unexpected result from dns_rdatatype_atparent for type %u\n"
@@ -2510,8 +2469,7 @@ atparent(void **state)
 }
 
 static void
-iszonecutauth(void **state)
-{
+iszonecutauth(void **state) {
 	unsigned int i;
 	UNUSED(state);
 #define UNR "# Unexpected result from dns_rdatatype_iszonecutauth for type %u\n"
@@ -2540,8 +2498,7 @@ iszonecutauth(void **state)
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(amtrelay, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(apl, _setup, _teardown),
@@ -2584,8 +2541,7 @@ main(int argc, char **argv)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

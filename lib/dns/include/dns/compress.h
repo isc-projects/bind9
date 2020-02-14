@@ -38,19 +38,19 @@ ISC_LANG_BEGINDECLS
  * used by a nameserver's configuration manager.
  */
 
-#define DNS_COMPRESS_NONE 0x00		/*%< no compression */
-#define DNS_COMPRESS_GLOBAL14 0x01	/*%< "normal" compression. */
-#define DNS_COMPRESS_ALL 0x01		/*%< all compression. */
+#define DNS_COMPRESS_NONE	   0x00 /*%< no compression */
+#define DNS_COMPRESS_GLOBAL14	   0x01 /*%< "normal" compression. */
+#define DNS_COMPRESS_ALL	   0x01 /*%< all compression. */
 #define DNS_COMPRESS_CASESENSITIVE 0x02 /*%< case sensitive compression. */
-#define DNS_COMPRESS_ENABLED 0x04
+#define DNS_COMPRESS_ENABLED	   0x04
 
 /*
  * DNS_COMPRESS_TABLESIZE must be a power of 2. The compress code
  * utilizes this assumption.
  */
-#define DNS_COMPRESS_TABLEBITS 6
-#define DNS_COMPRESS_TABLESIZE (1U << DNS_COMPRESS_TABLEBITS)
-#define DNS_COMPRESS_TABLEMASK (DNS_COMPRESS_TABLESIZE - 1)
+#define DNS_COMPRESS_TABLEBITS	  6
+#define DNS_COMPRESS_TABLESIZE	  (1U << DNS_COMPRESS_TABLEBITS)
+#define DNS_COMPRESS_TABLEMASK	  (DNS_COMPRESS_TABLESIZE - 1)
 #define DNS_COMPRESS_INITIALNODES 16
 
 typedef struct dns_compressnode dns_compressnode_t;

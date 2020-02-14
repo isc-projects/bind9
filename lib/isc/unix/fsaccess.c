@@ -24,13 +24,12 @@
 #include "../fsaccess.c"
 
 isc_result_t
-isc_fsaccess_set(const char *path, isc_fsaccess_t access)
-{
-	struct stat    statb;
-	mode_t	       mode;
-	bool	       is_dir = false;
+isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
+	struct stat statb;
+	mode_t mode;
+	bool is_dir = false;
 	isc_fsaccess_t bits;
-	isc_result_t   result;
+	isc_result_t result;
 
 	if (stat(path, &statb) != 0) {
 		return (isc__errno2result(errno));

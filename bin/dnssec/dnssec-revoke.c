@@ -40,12 +40,10 @@ const char *program = "dnssec-revoke";
 
 static isc_mem_t *mctx = NULL;
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "    %s [options] keyfile\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
@@ -72,22 +70,21 @@ usage(void)
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	isc_result_t result;
-	const char * engine = NULL;
-	char const * filename = NULL;
-	char *	     dir = NULL;
-	char	     newname[1024], oldname[1024];
-	char	     keystr[DST_KEY_FORMATSIZE];
-	char *	     endp;
-	int	     ch;
-	dst_key_t *  key = NULL;
-	uint32_t     flags;
+	const char *engine = NULL;
+	char const *filename = NULL;
+	char *dir = NULL;
+	char newname[1024], oldname[1024];
+	char keystr[DST_KEY_FORMATSIZE];
+	char *endp;
+	int ch;
+	dst_key_t *key = NULL;
+	uint32_t flags;
 	isc_buffer_t buf;
-	bool	     force = false;
-	bool	     removefile = false;
-	bool	     id = false;
+	bool force = false;
+	bool removefile = false;
+	bool id = false;
 
 	if (argc == 1) {
 		usage();

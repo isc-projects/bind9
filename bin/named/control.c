@@ -36,10 +36,9 @@
 #endif /* ifdef HAVE_LIBSCF */
 
 static isc_result_t
-getcommand(isc_lex_t *lex, char **cmdp)
-{
+getcommand(isc_lex_t *lex, char **cmdp) {
 	isc_result_t result;
-	isc_token_t  token;
+	isc_token_t token;
 
 	REQUIRE(cmdp != NULL && *cmdp == NULL);
 
@@ -60,8 +59,7 @@ getcommand(isc_lex_t *lex, char **cmdp)
 }
 
 static inline bool
-command_compare(const char *str, const char *command)
-{
+command_compare(const char *str, const char *command) {
 	return (strcasecmp(str, command) == 0);
 }
 
@@ -71,15 +69,14 @@ command_compare(const char *str, const char *command)
  */
 isc_result_t
 named_control_docommand(isccc_sexpr_t *message, bool readonly,
-			isc_buffer_t **text)
-{
+			isc_buffer_t **text) {
 	isccc_sexpr_t *data;
-	char *	       cmdline = NULL;
-	char *	       command = NULL;
-	isc_result_t   result;
-	int	       log_level;
-	isc_buffer_t   src;
-	isc_lex_t *    lex = NULL;
+	char *cmdline = NULL;
+	char *command = NULL;
+	isc_result_t result;
+	int log_level;
+	isc_buffer_t src;
+	isc_lex_t *lex = NULL;
 #ifdef HAVE_LIBSCF
 	named_smf_want_disable = 0;
 #endif /* ifdef HAVE_LIBSCF */
@@ -122,7 +119,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	 */
 	if ((command_compare(command, NAMED_COMMAND_NULL) &&
 	     strlen(cmdline) == 4) ||
-	    command_compare(command, NAMED_COMMAND_STATUS)) {
+	    command_compare(command, NAMED_COMMAND_STATUS))
+	{
 		log_level = ISC_LOG_DEBUG(1);
 	} else {
 		log_level = ISC_LOG_INFO;
@@ -138,7 +136,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	    !command_compare(command, NAMED_COMMAND_STATUS) &&
 	    !command_compare(command, NAMED_COMMAND_SHOWZONE) &&
 	    !command_compare(command, NAMED_COMMAND_TESTGEN) &&
-	    !command_compare(command, NAMED_COMMAND_ZONESTATUS)) {
+	    !command_compare(command, NAMED_COMMAND_ZONESTATUS))
+	{
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, log_level,
 			      "rejecting restricted control channel "
@@ -204,12 +203,14 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NAMED_COMMAND_ADDZONE) ||
-		   command_compare(command, NAMED_COMMAND_MODZONE)) {
+		   command_compare(command, NAMED_COMMAND_MODZONE))
+	{
 		result = named_server_changezone(named_g_server, cmdline, text);
 	} else if (command_compare(command, NAMED_COMMAND_DELZONE)) {
 		result = named_server_delzone(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_DNSTAP) ||
-		   command_compare(command, NAMED_COMMAND_DNSTAPREOPEN)) {
+		   command_compare(command, NAMED_COMMAND_DNSTAPREOPEN))
+	{
 		result = named_server_dnstap(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_DUMPDB)) {
 		named_server_dumpdb(named_g_server, lex, text);
@@ -225,7 +226,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	} else if (command_compare(command, NAMED_COMMAND_FREEZE)) {
 		result = named_server_freeze(named_g_server, true, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_LOADKEYS) ||
-		   command_compare(command, NAMED_COMMAND_SIGN)) {
+		   command_compare(command, NAMED_COMMAND_SIGN))
+	{
 		result = named_server_rekey(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_MKEYS)) {
 		result = named_server_mkeys(named_g_server, lex, text);
@@ -272,7 +274,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	} else if (command_compare(command, NAMED_COMMAND_TESTGEN)) {
 		result = named_server_testgen(lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_THAW) ||
-		   command_compare(command, NAMED_COMMAND_UNFREEZE)) {
+		   command_compare(command, NAMED_COMMAND_UNFREEZE))
+	{
 		result = named_server_freeze(named_g_server, false, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_TIMERPOKE)) {
 		isc_timermgr_poke(named_g_timermgr);

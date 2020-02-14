@@ -17,8 +17,8 @@
  * during startup and installation
  */
 
-#define BIND_SUBKEY "Software\\ISC\\BIND"
-#define BIND_SESSION "CurrentSession"
+#define BIND_SUBKEY	    "Software\\ISC\\BIND"
+#define BIND_SESSION	    "CurrentSession"
 #define BIND_SESSION_SUBKEY "Software\\ISC\\BIND\\CurrentSession"
 #define BIND_UNINSTALL_SUBKEY \
 	"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\ISC BIND"
@@ -33,8 +33,8 @@
 
 #define BIND_CONFIGFILE 0
 #define BIND_DEBUGLEVEL 1
-#define BIND_QUERYLOG 2
+#define BIND_QUERYLOG	2
 #define BIND_FOREGROUND 3
-#define BIND_PORT 4
+#define BIND_PORT	4
 
 #endif /* ISC_BINDREGISTRY_H */

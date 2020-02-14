@@ -16,16 +16,16 @@
 
 #define RRTYPE_APL_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_in_apl(ARGS_FROMTEXT)
-{
-	isc_token_t   token;
+static inline isc_result_t
+fromtext_in_apl(ARGS_FROMTEXT) {
+	isc_token_t token;
 	unsigned char addr[16];
 	unsigned long afi;
-	uint8_t	      prefix;
-	uint8_t	      len;
-	bool	      neg;
-	char *	      cp, *ap, *slash;
-	int	      n;
+	uint8_t prefix;
+	uint8_t len;
+	bool neg;
+	char *cp, *ap, *slash;
+	int n;
 
 	REQUIRE(type == dns_rdatatype_apl);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -112,18 +112,18 @@ static inline isc_result_t fromtext_in_apl(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_in_apl(ARGS_TOTEXT)
-{
-	isc_region_t  sr;
-	isc_region_t  ir;
-	uint16_t      afi;
-	uint8_t	      prefix;
-	uint8_t	      len;
-	bool	      neg;
+static inline isc_result_t
+totext_in_apl(ARGS_TOTEXT) {
+	isc_region_t sr;
+	isc_region_t ir;
+	uint16_t afi;
+	uint8_t prefix;
+	uint8_t len;
+	bool neg;
 	unsigned char buf[16];
-	char	      txt[sizeof(" !64000:")];
-	const char *  sep = "";
-	int	      n;
+	char txt[sizeof(" !64000:")];
+	const char *sep = "";
+	int n;
 
 	REQUIRE(rdata->type == dns_rdatatype_apl);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -177,13 +177,13 @@ static inline isc_result_t totext_in_apl(ARGS_TOTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t fromwire_in_apl(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_in_apl(ARGS_FROMWIRE) {
 	isc_region_t sr, sr2;
 	isc_region_t tr;
-	uint16_t     afi;
-	uint8_t	     prefix;
-	uint8_t	     len;
+	uint16_t afi;
+	uint8_t prefix;
+	uint8_t len;
 
 	REQUIRE(type == dns_rdatatype_apl);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -234,8 +234,8 @@ static inline isc_result_t fromwire_in_apl(ARGS_FROMWIRE)
 	return (mem_tobuffer(target, sr2.base, sr2.length));
 }
 
-static inline isc_result_t towire_in_apl(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_in_apl(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == dns_rdatatype_apl);
@@ -244,8 +244,8 @@ static inline isc_result_t towire_in_apl(ARGS_TOWIRE)
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int compare_in_apl(ARGS_COMPARE)
-{
+static inline int
+compare_in_apl(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -259,10 +259,10 @@ static inline int compare_in_apl(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_in_apl(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_in_apl(ARGS_FROMSTRUCT) {
 	dns_rdata_in_apl_t *apl = source;
-	isc_buffer_t	    b;
+	isc_buffer_t b;
 
 	REQUIRE(type == dns_rdatatype_apl);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -277,10 +277,10 @@ static inline isc_result_t fromstruct_in_apl(ARGS_FROMSTRUCT)
 	return (fromwire_in_apl(rdclass, type, &b, NULL, false, target));
 }
 
-static inline isc_result_t tostruct_in_apl(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_in_apl(ARGS_TOSTRUCT) {
 	dns_rdata_in_apl_t *apl = target;
-	isc_region_t	    r;
+	isc_region_t r;
 
 	REQUIRE(apl != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_apl);
@@ -302,8 +302,8 @@ static inline isc_result_t tostruct_in_apl(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_in_apl(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_in_apl(ARGS_FREESTRUCT) {
 	dns_rdata_in_apl_t *apl = source;
 
 	REQUIRE(apl != NULL);
@@ -320,8 +320,7 @@ static inline void freestruct_in_apl(ARGS_FREESTRUCT)
 }
 
 isc_result_t
-dns_rdata_apl_first(dns_rdata_in_apl_t *apl)
-{
+dns_rdata_apl_first(dns_rdata_in_apl_t *apl) {
 	uint32_t length;
 
 	REQUIRE(apl != NULL);
@@ -348,8 +347,7 @@ dns_rdata_apl_first(dns_rdata_in_apl_t *apl)
 }
 
 isc_result_t
-dns_rdata_apl_next(dns_rdata_in_apl_t *apl)
-{
+dns_rdata_apl_next(dns_rdata_in_apl_t *apl) {
 	uint32_t length;
 
 	REQUIRE(apl != NULL);
@@ -382,8 +380,7 @@ dns_rdata_apl_next(dns_rdata_in_apl_t *apl)
 }
 
 isc_result_t
-dns_rdata_apl_current(dns_rdata_in_apl_t *apl, dns_rdata_apl_ent_t *ent)
-{
+dns_rdata_apl_current(dns_rdata_in_apl_t *apl, dns_rdata_apl_ent_t *ent) {
 	uint32_t length;
 
 	REQUIRE(apl != NULL);
@@ -422,13 +419,12 @@ dns_rdata_apl_current(dns_rdata_in_apl_t *apl, dns_rdata_apl_ent_t *ent)
 }
 
 unsigned int
-dns_rdata_apl_count(const dns_rdata_in_apl_t *apl)
-{
+dns_rdata_apl_count(const dns_rdata_in_apl_t *apl) {
 	return (apl->apl_len);
 }
 
-static inline isc_result_t additionaldata_in_apl(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_in_apl(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_apl);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -438,8 +434,8 @@ static inline isc_result_t additionaldata_in_apl(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_in_apl(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_in_apl(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_apl);
@@ -450,8 +446,8 @@ static inline isc_result_t digest_in_apl(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_in_apl(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_in_apl(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_apl);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -463,8 +459,8 @@ static inline bool checkowner_in_apl(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_in_apl(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_in_apl(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_apl);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -475,8 +471,8 @@ static inline bool checknames_in_apl(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_in_apl(ARGS_COMPARE)
-{
+static inline int
+casecompare_in_apl(ARGS_COMPARE) {
 	return (compare_in_apl(rdata1, rdata2));
 }
 

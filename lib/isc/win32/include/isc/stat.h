@@ -24,14 +24,14 @@ typedef unsigned short mode_t;
  * We'll just map them all to the NT equivalent
  */
 
-#define S_IREAD _S_IREAD   /* read permission, owner */
+#define S_IREAD	 _S_IREAD  /* read permission, owner */
 #define S_IWRITE _S_IWRITE /* write permission, owner */
-#define S_IRUSR _S_IREAD   /* Owner read permission */
-#define S_IWUSR _S_IWRITE  /* Owner write permission */
-#define S_IRGRP _S_IREAD   /* Group read permission */
-#define S_IWGRP _S_IWRITE  /* Group write permission */
-#define S_IROTH _S_IREAD   /* Other read permission */
-#define S_IWOTH _S_IWRITE  /* Other write permission */
+#define S_IRUSR	 _S_IREAD  /* Owner read permission */
+#define S_IWUSR	 _S_IWRITE /* Owner write permission */
+#define S_IRGRP	 _S_IREAD  /* Group read permission */
+#define S_IWGRP	 _S_IWRITE /* Group write permission */
+#define S_IROTH	 _S_IREAD  /* Other read permission */
+#define S_IWOTH	 _S_IWRITE /* Other write permission */
 
 #ifndef S_IFMT
 #define S_IFMT _S_IFMT

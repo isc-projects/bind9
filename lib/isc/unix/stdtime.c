@@ -29,8 +29,7 @@
 
 #if ISC_FIX_TV_USEC
 static inline void
-fix_tv_usec(struct timeval *tv)
-{
+fix_tv_usec(struct timeval *tv) {
 	bool fixed = false;
 
 	if (tv->tv_usec < 0) {
@@ -57,8 +56,7 @@ fix_tv_usec(struct timeval *tv)
 #endif /* if ISC_FIX_TV_USEC */
 
 void
-isc_stdtime_get(isc_stdtime_t *t)
-{
+isc_stdtime_get(isc_stdtime_t *t) {
 	struct timeval tv;
 
 	/*

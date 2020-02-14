@@ -35,8 +35,7 @@
 #include "isctest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -48,8 +47,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -59,9 +57,8 @@ _teardown(void **state)
 
 /* reserve space in dynamic buffers */
 static void
-isc_buffer_reserve_test(void **state)
-{
-	isc_result_t  result;
+isc_buffer_reserve_test(void **state) {
+	isc_result_t result;
 	isc_buffer_t *b;
 
 	UNUSED(state);
@@ -127,11 +124,10 @@ isc_buffer_reserve_test(void **state)
 
 /* dynamic buffer automatic reallocation */
 static void
-isc_buffer_dynamic_test(void **state)
-{
+isc_buffer_dynamic_test(void **state) {
 	isc_buffer_t *b;
-	size_t	      last_length = 10;
-	int	      i;
+	size_t last_length = 10;
+	int i;
 
 	UNUSED(state);
 
@@ -181,11 +177,10 @@ isc_buffer_dynamic_test(void **state)
 
 /* copy a region into a buffer */
 static void
-isc_buffer_copyregion_test(void **state)
-{
+isc_buffer_copyregion_test(void **state) {
 	unsigned char data[] = { 0x11, 0x22, 0x33, 0x44 };
 	isc_buffer_t *b = NULL;
-	isc_result_t  result;
+	isc_result_t result;
 
 	isc_region_t r = {
 		.base = data,
@@ -220,13 +215,12 @@ isc_buffer_copyregion_test(void **state)
 
 /* sprintf() into a buffer */
 static void
-isc_buffer_printf_test(void **state)
-{
-	unsigned int  used, prev_used;
-	const char *  empty_fmt;
-	isc_result_t  result;
+isc_buffer_printf_test(void **state) {
+	unsigned int used, prev_used;
+	const char *empty_fmt;
+	isc_result_t result;
 	isc_buffer_t *b, sb;
-	char	      buf[8];
+	char buf[8];
 
 	UNUSED(state);
 
@@ -327,8 +321,7 @@ isc_buffer_printf_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(isc_buffer_reserve_test, _setup,
 						_teardown),
@@ -348,8 +341,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

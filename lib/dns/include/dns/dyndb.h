@@ -43,7 +43,7 @@ struct dns_dyndbctx {
 	bool *		refvar;
 };
 
-#define DNS_DYNDBCTX_MAGIC ISC_MAGIC('D', 'd', 'b', 'c')
+#define DNS_DYNDBCTX_MAGIC    ISC_MAGIC('D', 'd', 'b', 'c')
 #define DNS_DYNDBCTX_VALID(d) ISC_MAGIC_VALID(d, DNS_DYNDBCTX_MAGIC)
 
 /*
@@ -56,7 +56,7 @@ struct dns_dyndbctx {
  */
 #ifndef DNS_DYNDB_VERSION
 #define DNS_DYNDB_VERSION 1
-#define DNS_DYNDB_AGE 0
+#define DNS_DYNDB_AGE	  0
 #endif /* ifndef DNS_DYNDB_VERSION */
 
 typedef isc_result_t

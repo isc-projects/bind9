@@ -27,8 +27,7 @@
  */
 isc_result_t
 isc___nm_uverr2result(int uverr, bool dolog, const char *file,
-		      unsigned int line)
-{
+		      unsigned int line) {
 	switch (uverr) {
 	case UV_ENOTDIR:
 	case UV_ELOOP:

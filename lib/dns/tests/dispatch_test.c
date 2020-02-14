@@ -42,8 +42,7 @@ dns_dispatchmgr_t *dispatchmgr = NULL;
 dns_dispatchset_t *dset = NULL;
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -55,8 +54,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -65,11 +63,10 @@ _teardown(void **state)
 }
 
 static isc_result_t
-make_dispatchset(unsigned int ndisps)
-{
-	isc_result_t	result;
-	isc_sockaddr_t	any;
-	unsigned int	attrs;
+make_dispatchset(unsigned int ndisps) {
+	isc_result_t result;
+	isc_sockaddr_t any;
+	unsigned int attrs;
 	dns_dispatch_t *disp = NULL;
 
 	result = dns_dispatchmgr_create(dt_mctx, &dispatchmgr);
@@ -93,8 +90,7 @@ make_dispatchset(unsigned int ndisps)
 }
 
 static void
-reset(void)
-{
+reset(void) {
 	if (dset != NULL) {
 		dns_dispatchset_destroy(&dset);
 	}
@@ -105,8 +101,7 @@ reset(void)
 
 /* create dispatch set */
 static void
-dispatchset_create(void **state)
-{
+dispatchset_create(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -122,9 +117,8 @@ dispatchset_create(void **state)
 
 /* test dispatch set round-robin */
 static void
-dispatchset_get(void **state)
-{
-	isc_result_t	result;
+dispatchset_get(void **state) {
+	isc_result_t result;
 	dns_dispatch_t *d1, *d2, *d3, *d4, *d5;
 
 	UNUSED(state);
@@ -164,8 +158,7 @@ dispatchset_get(void **state)
 }
 
 static void
-senddone(isc_task_t *task, isc_event_t *event)
-{
+senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socket_t *sock = event->ev_arg;
 
 	UNUSED(task);
@@ -175,13 +168,12 @@ senddone(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-nameserver(isc_task_t *task, isc_event_t *event)
-{
-	isc_result_t	     result;
-	isc_region_t	     region;
-	isc_socket_t *	     dummy;
-	isc_socket_t *	     sock = event->ev_arg;
-	isc_socketevent_t *  ev = (isc_socketevent_t *)event;
+nameserver(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	isc_region_t region;
+	isc_socket_t *dummy;
+	isc_socket_t *sock = event->ev_arg;
+	isc_socketevent_t *ev = (isc_socketevent_t *)event;
 	static unsigned char buf1[16];
 	static unsigned char buf2[16];
 
@@ -221,17 +213,16 @@ nameserver(isc_task_t *task, isc_event_t *event)
 	isc_event_free(&event);
 }
 
-static dns_dispatch_t *	    dispatch = NULL;
-static dns_dispentry_t *    dispentry = NULL;
-static atomic_bool	    first = ATOMIC_VAR_INIT(true);
-static isc_sockaddr_t	    local;
+static dns_dispatch_t *dispatch = NULL;
+static dns_dispentry_t *dispentry = NULL;
+static atomic_bool first = ATOMIC_VAR_INIT(true);
+static isc_sockaddr_t local;
 static atomic_uint_fast32_t responses;
 
 static void
-response(isc_task_t *task, isc_event_t *event)
-{
+response(isc_task_t *task, isc_event_t *event) {
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
-	bool		     exp_true = true;
+	bool exp_true = true;
 
 	UNUSED(task);
 
@@ -246,9 +237,8 @@ response(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-startit(isc_task_t *task, isc_event_t *event)
-{
-	isc_result_t  result;
+startit(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
 	isc_socket_t *sock = NULL;
 
 	isc_socket_attach(dns_dispatch_getsocket(dispatch), &sock);
@@ -260,17 +250,16 @@ startit(isc_task_t *task, isc_event_t *event)
 
 /* test dispatch getnext */
 static void
-dispatch_getnext(void **state)
-{
-	isc_region_t   region;
-	isc_result_t   result;
-	isc_socket_t * sock = NULL;
-	isc_task_t *   task = NULL;
-	uint16_t       id;
+dispatch_getnext(void **state) {
+	isc_region_t region;
+	isc_result_t result;
+	isc_socket_t *sock = NULL;
+	isc_task_t *task = NULL;
+	uint16_t id;
 	struct in_addr ina;
-	unsigned char  message[12];
-	unsigned int   attrs;
-	unsigned char  rbuf[12];
+	unsigned char message[12];
+	unsigned int attrs;
+	unsigned char rbuf[12];
 
 	UNUSED(state);
 
@@ -343,8 +332,7 @@ dispatch_getnext(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(dispatchset_create, _setup,
 						_teardown),
@@ -362,8 +350,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

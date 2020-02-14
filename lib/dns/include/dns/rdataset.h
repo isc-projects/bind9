@@ -85,7 +85,7 @@ typedef struct dns_rdatasetmethods {
 				dns_dbversion_t *version, dns_message_t *msg);
 } dns_rdatasetmethods_t;
 
-#define DNS_RDATASET_MAGIC ISC_MAGIC('D', 'N', 'S', 'R')
+#define DNS_RDATASET_MAGIC	ISC_MAGIC('D', 'N', 'S', 'R')
 #define DNS_RDATASET_VALID(set) ISC_MAGIC_VALID(set, DNS_RDATASET_MAGIC)
 
 /*%
@@ -161,33 +161,33 @@ struct dns_rdataset {
  *	Output the RRset in load order.
  */
 
-#define DNS_RDATASETATTR_NONE 0x00000000 /*%< No ordering. */
-#define DNS_RDATASETATTR_QUESTION 0x00000001
-#define DNS_RDATASETATTR_RENDERED 0x00000002	/*%< Used by message.c */
-#define DNS_RDATASETATTR_ANSWERED 0x00000004	/*%< Used by server. */
-#define DNS_RDATASETATTR_CACHE 0x00000008	/*%< Used by resolver. */
-#define DNS_RDATASETATTR_ANSWER 0x00000010	/*%< Used by resolver. */
-#define DNS_RDATASETATTR_ANSWERSIG 0x00000020	/*%< Used by resolver. */
-#define DNS_RDATASETATTR_EXTERNAL 0x00000040	/*%< Used by resolver. */
-#define DNS_RDATASETATTR_NCACHE 0x00000080	/*%< Used by resolver. */
-#define DNS_RDATASETATTR_CHAINING 0x00000100	/*%< Used by resolver. */
-#define DNS_RDATASETATTR_TTLADJUSTED 0x00000200 /*%< Used by message.c */
-#define DNS_RDATASETATTR_FIXEDORDER 0x00000400	/*%< Fixed ordering. */
-#define DNS_RDATASETATTR_RANDOMIZE 0x00000800	/*%< Random ordering. */
-#define DNS_RDATASETATTR_CHASE 0x00001000	/*%< Used by resolver. */
-#define DNS_RDATASETATTR_NXDOMAIN 0x00002000
-#define DNS_RDATASETATTR_NOQNAME 0x00004000
-#define DNS_RDATASETATTR_CHECKNAMES 0x00008000 /*%< Used by resolver. */
-#define DNS_RDATASETATTR_REQUIRED 0x00010000
+#define DNS_RDATASETATTR_NONE	      0x00000000 /*%< No ordering. */
+#define DNS_RDATASETATTR_QUESTION     0x00000001
+#define DNS_RDATASETATTR_RENDERED     0x00000002 /*%< Used by message.c */
+#define DNS_RDATASETATTR_ANSWERED     0x00000004 /*%< Used by server. */
+#define DNS_RDATASETATTR_CACHE	      0x00000008 /*%< Used by resolver. */
+#define DNS_RDATASETATTR_ANSWER	      0x00000010 /*%< Used by resolver. */
+#define DNS_RDATASETATTR_ANSWERSIG    0x00000020 /*%< Used by resolver. */
+#define DNS_RDATASETATTR_EXTERNAL     0x00000040 /*%< Used by resolver. */
+#define DNS_RDATASETATTR_NCACHE	      0x00000080 /*%< Used by resolver. */
+#define DNS_RDATASETATTR_CHAINING     0x00000100 /*%< Used by resolver. */
+#define DNS_RDATASETATTR_TTLADJUSTED  0x00000200 /*%< Used by message.c */
+#define DNS_RDATASETATTR_FIXEDORDER   0x00000400 /*%< Fixed ordering. */
+#define DNS_RDATASETATTR_RANDOMIZE    0x00000800 /*%< Random ordering. */
+#define DNS_RDATASETATTR_CHASE	      0x00001000 /*%< Used by resolver. */
+#define DNS_RDATASETATTR_NXDOMAIN     0x00002000
+#define DNS_RDATASETATTR_NOQNAME      0x00004000
+#define DNS_RDATASETATTR_CHECKNAMES   0x00008000 /*%< Used by resolver. */
+#define DNS_RDATASETATTR_REQUIRED     0x00010000
 #define DNS_RDATASETATTR_REQUIREDGLUE DNS_RDATASETATTR_REQUIRED
-#define DNS_RDATASETATTR_LOADORDER 0x00020000
-#define DNS_RDATASETATTR_RESIGN 0x00040000
-#define DNS_RDATASETATTR_CLOSEST 0x00080000
-#define DNS_RDATASETATTR_OPTOUT 0x00100000 /*%< OPTOUT proof */
-#define DNS_RDATASETATTR_NEGATIVE 0x00200000
-#define DNS_RDATASETATTR_PREFETCH 0x00400000
-#define DNS_RDATASETATTR_CYCLIC 0x00800000 /*%< Cyclic ordering. */
-#define DNS_RDATASETATTR_STALE 0x01000000
+#define DNS_RDATASETATTR_LOADORDER    0x00020000
+#define DNS_RDATASETATTR_RESIGN	      0x00040000
+#define DNS_RDATASETATTR_CLOSEST      0x00080000
+#define DNS_RDATASETATTR_OPTOUT	      0x00100000 /*%< OPTOUT proof */
+#define DNS_RDATASETATTR_NEGATIVE     0x00200000
+#define DNS_RDATASETATTR_PREFETCH     0x00400000
+#define DNS_RDATASETATTR_CYCLIC	      0x00800000 /*%< Cyclic ordering. */
+#define DNS_RDATASETATTR_STALE	      0x01000000
 
 /*%
  * _OMITDNSSEC:

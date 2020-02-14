@@ -43,9 +43,8 @@ static isc_logmodule_t modules[] = {
 };
 
 isc_result_t
-named_log_init(bool safe)
-{
-	isc_result_t	 result;
+named_log_init(bool safe) {
+	isc_result_t result;
 	isc_logconfig_t *lcfg = NULL;
 
 	named_g_categories = categories;
@@ -96,9 +95,8 @@ cleanup:
 }
 
 isc_result_t
-named_log_setdefaultchannels(isc_logconfig_t *lcfg)
-{
-	isc_result_t	     result;
+named_log_setdefaultchannels(isc_logconfig_t *lcfg) {
+	isc_result_t result;
 	isc_logdestination_t destination;
 
 	/*
@@ -155,9 +153,8 @@ cleanup:
 }
 
 isc_result_t
-named_log_setsafechannels(isc_logconfig_t *lcfg)
-{
-	isc_result_t	     result;
+named_log_setsafechannels(isc_logconfig_t *lcfg) {
+	isc_result_t result;
 	isc_logdestination_t destination;
 
 	if (!named_g_logstderr) {
@@ -208,8 +205,7 @@ cleanup:
 }
 
 isc_result_t
-named_log_setdefaultcategory(isc_logconfig_t *lcfg)
-{
+named_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	result = isc_log_usechannel(lcfg, "default_debug",
@@ -235,8 +231,7 @@ cleanup:
 }
 
 isc_result_t
-named_log_setunmatchedcategory(isc_logconfig_t *lcfg)
-{
+named_log_setunmatchedcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 
 	result = isc_log_usechannel(lcfg, "null", NAMED_LOGCATEGORY_UNMATCHED,
@@ -245,8 +240,7 @@ named_log_setunmatchedcategory(isc_logconfig_t *lcfg)
 }
 
 void
-named_log_shutdown(void)
-{
+named_log_shutdown(void) {
 	isc_log_destroy(&named_g_lctx);
 	isc_log_setcontext(NULL);
 	dns_log_setcontext(NULL);

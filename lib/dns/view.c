@@ -74,23 +74,19 @@
 #define REQSHUTDOWN(v) \
 	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_REQSHUTDOWN) != 0)
 
-#define DNS_VIEW_DELONLYHASH 111
+#define DNS_VIEW_DELONLYHASH   111
 #define DNS_VIEW_FAILCACHESIZE 1021
 
-static void
-resolver_shutdown(isc_task_t *task, isc_event_t *event);
-static void
-adb_shutdown(isc_task_t *task, isc_event_t *event);
-static void
-req_shutdown(isc_task_t *task, isc_event_t *event);
+static void resolver_shutdown(isc_task_t *task, isc_event_t *event);
+static void adb_shutdown(isc_task_t *task, isc_event_t *event);
+static void req_shutdown(isc_task_t *task, isc_event_t *event);
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
-		dns_view_t **viewp)
-{
-	dns_view_t * view;
+		dns_view_t **viewp) {
+	dns_view_t *view;
 	isc_result_t result;
-	char	     buffer[1024];
+	char buffer[1024];
 
 	/*
 	 * Create a view.
@@ -345,8 +341,7 @@ cleanup_name:
 }
 
 static inline void
-destroy(dns_view_t *view)
-{
+destroy(dns_view_t *view) {
 	dns_dns64_t *dns64;
 	dns_dlzdb_t *dlzdb;
 
@@ -368,7 +363,7 @@ destroy(dns_view_t *view)
 	if (view->dynamickeys != NULL) {
 		isc_result_t result;
 		char template[PATH_MAX];
-		char  keyfile[PATH_MAX];
+		char keyfile[PATH_MAX];
 		FILE *fp = NULL;
 
 		result = isc_file_mktemplate(NULL, template, sizeof(template));
@@ -416,12 +411,14 @@ destroy(dns_view_t *view)
 		dns_catz_catzs_detach(&view->catzs);
 	}
 	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched); dlzdb != NULL;
-	     dlzdb = ISC_LIST_HEAD(view->dlz_searched)) {
+	     dlzdb = ISC_LIST_HEAD(view->dlz_searched))
+	{
 		ISC_LIST_UNLINK(view->dlz_searched, dlzdb, link);
 		dns_dlzdestroy(&dlzdb);
 	}
 	for (dlzdb = ISC_LIST_HEAD(view->dlz_unsearched); dlzdb != NULL;
-	     dlzdb = ISC_LIST_HEAD(view->dlz_unsearched)) {
+	     dlzdb = ISC_LIST_HEAD(view->dlz_unsearched))
+	{
 		ISC_LIST_UNLINK(view->dlz_unsearched, dlzdb, link);
 		dns_dlzdestroy(&dlzdb);
 	}
@@ -499,7 +496,7 @@ destroy(dns_view_t *view)
 	}
 	if (view->delonly != NULL) {
 		dns_name_t *name;
-		int	    i;
+		int i;
 
 		for (i = 0; i < DNS_VIEW_DELONLYHASH; i++) {
 			name = ISC_LIST_HEAD(view->delonly[i]);
@@ -516,7 +513,7 @@ destroy(dns_view_t *view)
 	}
 	if (view->rootexclude != NULL) {
 		dns_name_t *name;
-		int	    i;
+		int i;
 
 		for (i = 0; i < DNS_VIEW_DELONLYHASH; i++) {
 			name = ISC_LIST_HEAD(view->rootexclude[i]);
@@ -548,7 +545,8 @@ destroy(dns_view_t *view)
 		dns_ntatable_detach(&view->ntatable_priv);
 	}
 	for (dns64 = ISC_LIST_HEAD(view->dns64); dns64 != NULL;
-	     dns64 = ISC_LIST_HEAD(view->dns64)) {
+	     dns64 = ISC_LIST_HEAD(view->dns64))
+	{
 		dns_dns64_unlink(&view->dns64, dns64);
 		dns_dns64_destroy(&dns64);
 	}
@@ -603,8 +601,7 @@ destroy(dns_view_t *view)
 }
 
 void
-dns_view_attach(dns_view_t *source, dns_view_t **targetp)
-{
+dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 	REQUIRE(DNS_VIEW_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
@@ -614,8 +611,7 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp)
 }
 
 static void
-view_flushanddetach(dns_view_t **viewp, bool flush)
-{
+view_flushanddetach(dns_view_t **viewp, bool flush) {
 	REQUIRE(viewp != NULL && DNS_VIEW_VALID(*viewp));
 	dns_view_t *view = *viewp;
 	*viewp = NULL;
@@ -678,28 +674,24 @@ view_flushanddetach(dns_view_t **viewp, bool flush)
 }
 
 void
-dns_view_flushanddetach(dns_view_t **viewp)
-{
+dns_view_flushanddetach(dns_view_t **viewp) {
 	view_flushanddetach(viewp, true);
 }
 
 void
-dns_view_detach(dns_view_t **viewp)
-{
+dns_view_detach(dns_view_t **viewp) {
 	view_flushanddetach(viewp, false);
 }
 
 static isc_result_t
-dialup(dns_zone_t *zone, void *dummy)
-{
+dialup(dns_zone_t *zone, void *dummy) {
 	UNUSED(dummy);
 	dns_zone_dialup(zone);
 	return (ISC_R_SUCCESS);
 }
 
 void
-dns_view_dialup(dns_view_t *view)
-{
+dns_view_dialup(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
@@ -707,8 +699,7 @@ dns_view_dialup(dns_view_t *view)
 }
 
 void
-dns_view_weakattach(dns_view_t *source, dns_view_t **targetp)
-{
+dns_view_weakattach(dns_view_t *source, dns_view_t **targetp) {
 	REQUIRE(DNS_VIEW_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
@@ -718,8 +709,7 @@ dns_view_weakattach(dns_view_t *source, dns_view_t **targetp)
 }
 
 void
-dns_view_weakdetach(dns_view_t **viewp)
-{
+dns_view_weakdetach(dns_view_t **viewp) {
 	dns_view_t *view;
 
 	REQUIRE(viewp != NULL);
@@ -733,8 +723,7 @@ dns_view_weakdetach(dns_view_t **viewp)
 }
 
 static void
-resolver_shutdown(isc_task_t *task, isc_event_t *event)
-{
+resolver_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
 
 	REQUIRE(event->ev_type == DNS_EVENT_VIEWRESSHUTDOWN);
@@ -750,8 +739,7 @@ resolver_shutdown(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-adb_shutdown(isc_task_t *task, isc_event_t *event)
-{
+adb_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
 
 	REQUIRE(event->ev_type == DNS_EVENT_VIEWADBSHUTDOWN);
@@ -768,8 +756,7 @@ adb_shutdown(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-req_shutdown(isc_task_t *task, isc_event_t *event)
-{
+req_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
 
 	REQUIRE(event->ev_type == DNS_EVENT_VIEWREQSHUTDOWN);
@@ -786,8 +773,7 @@ req_shutdown(isc_task_t *task, isc_event_t *event)
 }
 
 isc_result_t
-dns_view_createzonetable(dns_view_t *view)
-{
+dns_view_createzonetable(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->zonetable == NULL);
@@ -800,11 +786,11 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 			unsigned int ntasks, unsigned int ndisp,
 			isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
 			unsigned int options, dns_dispatchmgr_t *dispatchmgr,
-			dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6)
-{
+			dns_dispatch_t *dispatchv4,
+			dns_dispatch_t *dispatchv6) {
 	isc_result_t result;
 	isc_event_t *event;
-	isc_mem_t *  mctx = NULL;
+	isc_mem_t *mctx = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
@@ -861,8 +847,7 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 }
 
 void
-dns_view_setcache(dns_view_t *view, dns_cache_t *cache, bool shared)
-{
+dns_view_setcache(dns_view_t *view, dns_cache_t *cache, bool shared) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 
@@ -877,16 +862,14 @@ dns_view_setcache(dns_view_t *view, dns_cache_t *cache, bool shared)
 }
 
 bool
-dns_view_iscacheshared(dns_view_t *view)
-{
+dns_view_iscacheshared(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	return (view->cacheshared);
 }
 
 void
-dns_view_sethints(dns_view_t *view, dns_db_t *hints)
-{
+dns_view_sethints(dns_view_t *view, dns_db_t *hints) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->hints == NULL);
@@ -896,8 +879,7 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints)
 }
 
 void
-dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring)
-{
+dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ring != NULL);
 	if (view->statickeys != NULL) {
@@ -907,8 +889,7 @@ dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring)
 }
 
 void
-dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring)
-{
+dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ring != NULL);
 	if (view->dynamickeys != NULL) {
@@ -918,8 +899,7 @@ dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring)
 }
 
 void
-dns_view_getdynamickeyring(dns_view_t *view, dns_tsig_keyring_t **ringp)
-{
+dns_view_getdynamickeyring(dns_view_t *view, dns_tsig_keyring_t **ringp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ringp != NULL && *ringp == NULL);
 	if (view->dynamickeys != NULL) {
@@ -928,10 +908,9 @@ dns_view_getdynamickeyring(dns_view_t *view, dns_tsig_keyring_t **ringp)
 }
 
 void
-dns_view_restorekeyring(dns_view_t *view)
-{
-	FILE *	     fp;
-	char	     keyfile[PATH_MAX];
+dns_view_restorekeyring(dns_view_t *view) {
+	FILE *fp;
+	char keyfile[PATH_MAX];
 	isc_result_t result;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -950,15 +929,13 @@ dns_view_restorekeyring(dns_view_t *view)
 }
 
 void
-dns_view_setdstport(dns_view_t *view, in_port_t dstport)
-{
+dns_view_setdstport(dns_view_t *view, in_port_t dstport) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	view->dstport = dstport;
 }
 
 void
-dns_view_freeze(dns_view_t *view)
-{
+dns_view_freeze(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 
@@ -970,8 +947,7 @@ dns_view_freeze(dns_view_t *view)
 }
 
 void
-dns_view_thaw(dns_view_t *view)
-{
+dns_view_thaw(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->frozen);
 
@@ -979,8 +955,7 @@ dns_view_thaw(dns_view_t *view)
 }
 
 isc_result_t
-dns_view_addzone(dns_view_t *view, dns_zone_t *zone)
-{
+dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	isc_result_t result;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -993,8 +968,8 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone)
 }
 
 isc_result_t
-dns_view_findzone(dns_view_t *view, const dns_name_t *name, dns_zone_t **zonep)
-{
+dns_view_findzone(dns_view_t *view, const dns_name_t *name,
+		  dns_zone_t **zonep) {
 	isc_result_t result;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -1019,14 +994,13 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	      isc_stdtime_t now, unsigned int options, bool use_hints,
 	      bool use_static_stub, dns_db_t **dbp, dns_dbnode_t **nodep,
 	      dns_name_t *foundname, dns_rdataset_t *rdataset,
-	      dns_rdataset_t *sigrdataset)
-{
-	isc_result_t   result;
-	dns_db_t *     db, *zdb;
-	dns_dbnode_t * node, *znode;
-	bool	       is_cache, is_staticstub_zone;
+	      dns_rdataset_t *sigrdataset) {
+	isc_result_t result;
+	dns_db_t *db, *zdb;
+	dns_dbnode_t *node, *znode;
+	bool is_cache, is_staticstub_zone;
 	dns_rdataset_t zrdataset, zsigrdataset;
-	dns_zone_t *   zone;
+	dns_zone_t *zone;
 
 	/*
 	 * Find an rdataset whose owner name is 'name', and whose type is
@@ -1063,7 +1037,8 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	}
 	UNLOCK(&view->lock);
 	if (zone != NULL && dns_zone_gettype(zone) == dns_zone_staticstub &&
-	    !use_static_stub) {
+	    !use_static_stub)
+	{
 		result = ISC_R_NOTFOUND;
 	}
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
@@ -1074,7 +1049,8 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 			goto cleanup;
 		}
 		if (dns_zone_gettype(zone) == dns_zone_staticstub &&
-		    dns_name_equal(name, dns_zone_getorigin(zone))) {
+		    dns_name_equal(name, dns_zone_getorigin(zone)))
+		{
 			is_staticstub_zone = true;
 		}
 	} else if (result == ISC_R_NOTFOUND && view->cachedb != NULL) {
@@ -1252,9 +1228,8 @@ isc_result_t
 dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 		    dns_rdatatype_t type, isc_stdtime_t now,
 		    unsigned int options, bool use_hints,
-		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
-	isc_result_t	result;
+		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+	isc_result_t result;
 	dns_fixedname_t foundname;
 
 	dns_fixedname_init(&foundname);
@@ -1278,7 +1253,8 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 	} else if (result != ISC_R_SUCCESS && result != DNS_R_GLUE &&
 		   result != DNS_R_HINT && result != DNS_R_NCACHENXDOMAIN &&
 		   result != DNS_R_NCACHENXRRSET && result != DNS_R_NXRRSET &&
-		   result != DNS_R_HINTNXRRSET && result != ISC_R_NOTFOUND) {
+		   result != DNS_R_HINTNXRRSET && result != ISC_R_NOTFOUND)
+	{
 		if (dns_rdataset_isassociated(rdataset)) {
 			dns_rdataset_disassociate(rdataset);
 		}
@@ -1296,16 +1272,15 @@ isc_result_t
 dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 		     dns_name_t *fname, dns_name_t *dcname, isc_stdtime_t now,
 		     unsigned int options, bool use_hints, bool use_cache,
-		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
-	isc_result_t	result;
-	dns_db_t *	db;
-	bool		is_cache, use_zone, try_hints;
-	dns_zone_t *	zone;
-	dns_name_t *	zfname;
-	dns_rdataset_t	zrdataset, zsigrdataset;
+		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+	isc_result_t result;
+	dns_db_t *db;
+	bool is_cache, use_zone, try_hints;
+	dns_zone_t *zone;
+	dns_name_t *zfname;
+	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_fixedname_t zfixedname;
-	unsigned int	ztoptions = DNS_ZTFIND_MIRROR;
+	unsigned int ztoptions = DNS_ZTFIND_MIRROR;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->frozen);
@@ -1407,7 +1382,8 @@ db_find:
 			if (zfname != NULL &&
 			    (!dns_name_issubdomain(fname, zfname) ||
 			     (dns_zone_gettype(zone) == dns_zone_staticstub &&
-			      dns_name_equal(fname, zfname)))) {
+			      dns_name_equal(fname, zfname))))
+			{
 				/*
 				 * We found a zonecut in the cache, but our
 				 * zone delegation is better.
@@ -1497,14 +1473,14 @@ cleanup:
 
 isc_result_t
 dns_viewlist_find(dns_viewlist_t *list, const char *name,
-		  dns_rdataclass_t rdclass, dns_view_t **viewp)
-{
+		  dns_rdataclass_t rdclass, dns_view_t **viewp) {
 	dns_view_t *view;
 
 	REQUIRE(list != NULL);
 
 	for (view = ISC_LIST_HEAD(*list); view != NULL;
-	     view = ISC_LIST_NEXT(view, link)) {
+	     view = ISC_LIST_NEXT(view, link))
+	{
 		if (strcmp(view->name, name) == 0 && view->rdclass == rdclass) {
 			break;
 		}
@@ -1521,18 +1497,18 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
 isc_result_t
 dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 		      bool allclasses, dns_rdataclass_t rdclass,
-		      dns_zone_t **zonep)
-{
-	dns_view_t * view;
+		      dns_zone_t **zonep) {
+	dns_view_t *view;
 	isc_result_t result;
-	dns_zone_t * zone1 = NULL, *zone2 = NULL;
+	dns_zone_t *zone1 = NULL, *zone2 = NULL;
 	dns_zone_t **zp = NULL;
 
 	REQUIRE(list != NULL);
 	REQUIRE(zonep != NULL && *zonep == NULL);
 
 	for (view = ISC_LIST_HEAD(*list); view != NULL;
-	     view = ISC_LIST_NEXT(view, link)) {
+	     view = ISC_LIST_NEXT(view, link))
+	{
 		if (allclasses == false && view->rdclass != rdclass) {
 			continue;
 		}
@@ -1544,8 +1520,8 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 		zp = (zone1 == NULL) ? &zone1 : &zone2;
 		LOCK(&view->lock);
 		if (view->zonetable != NULL) {
-			result =
-				dns_zt_find(view->zonetable, name, 0, NULL, zp);
+			result = dns_zt_find(view->zonetable, name, 0, NULL,
+					     zp);
 		} else {
 			result = ISC_R_NOTFOUND;
 		}
@@ -1577,8 +1553,7 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 }
 
 isc_result_t
-dns_view_load(dns_view_t *view, bool stop, bool newonly)
-{
+dns_view_load(dns_view_t *view, bool stop, bool newonly) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
@@ -1587,8 +1562,7 @@ dns_view_load(dns_view_t *view, bool stop, bool newonly)
 
 isc_result_t
 dns_view_asyncload(dns_view_t *view, bool newonly, dns_zt_allloaded_t callback,
-		   void *arg)
-{
+		   void *arg) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
@@ -1597,8 +1571,7 @@ dns_view_asyncload(dns_view_t *view, bool newonly, dns_zt_allloaded_t callback,
 
 isc_result_t
 dns_view_gettsig(dns_view_t *view, const dns_name_t *keyname,
-		 dns_tsigkey_t **keyp)
-{
+		 dns_tsigkey_t **keyp) {
 	isc_result_t result;
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
@@ -1612,11 +1585,10 @@ dns_view_gettsig(dns_view_t *view, const dns_name_t *keyname,
 
 isc_result_t
 dns_view_getpeertsig(dns_view_t *view, const isc_netaddr_t *peeraddr,
-		     dns_tsigkey_t **keyp)
-{
+		     dns_tsigkey_t **keyp) {
 	isc_result_t result;
-	dns_name_t * keyname = NULL;
-	dns_peer_t * peer = NULL;
+	dns_name_t *keyname = NULL;
+	dns_peer_t *peer = NULL;
 
 	result = dns_peerlist_peerbyaddr(view->peers, peeraddr, &peer);
 	if (result != ISC_R_SUCCESS) {
@@ -1633,8 +1605,7 @@ dns_view_getpeertsig(dns_view_t *view, const isc_netaddr_t *peeraddr,
 }
 
 isc_result_t
-dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg)
-{
+dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(source != NULL);
 
@@ -1643,8 +1614,7 @@ dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg)
 }
 
 isc_result_t
-dns_view_dumpdbtostream(dns_view_t *view, FILE *fp)
-{
+dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 	isc_result_t result;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -1663,8 +1633,7 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp)
 }
 
 isc_result_t
-dns_view_flushcache(dns_view_t *view, bool fixuponly)
-{
+dns_view_flushcache(dns_view_t *view, bool fixuponly) {
 	isc_result_t result;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -1692,14 +1661,12 @@ dns_view_flushcache(dns_view_t *view, bool fixuponly)
 }
 
 isc_result_t
-dns_view_flushname(dns_view_t *view, const dns_name_t *name)
-{
+dns_view_flushname(dns_view_t *view, const dns_name_t *name) {
 	return (dns_view_flushnode(view, name, false));
 }
 
 isc_result_t
-dns_view_flushnode(dns_view_t *view, const dns_name_t *name, bool tree)
-{
+dns_view_flushnode(dns_view_t *view, const dns_name_t *name, bool tree) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -1734,17 +1701,16 @@ dns_view_flushnode(dns_view_t *view, const dns_name_t *name, bool tree)
 }
 
 isc_result_t
-dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name)
-{
+dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 	dns_name_t *item;
-	uint32_t    hash;
+	uint32_t hash;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	if (view->delonly == NULL) {
-		view->delonly =
-			isc_mem_get(view->mctx, sizeof(dns_namelist_t) *
-							DNS_VIEW_DELONLYHASH);
+		view->delonly = isc_mem_get(view->mctx,
+					    sizeof(dns_namelist_t) *
+						    DNS_VIEW_DELONLYHASH);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++) {
 			ISC_LIST_INIT(view->delonly[hash]);
 		}
@@ -1765,16 +1731,15 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name)
 }
 
 isc_result_t
-dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name)
-{
+dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 	dns_name_t *item;
-	uint32_t    hash;
+	uint32_t hash;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	if (view->rootexclude == NULL) {
-		view->rootexclude =
-			isc_mem_get(view->mctx, sizeof(dns_namelist_t) *
+		view->rootexclude = isc_mem_get(view->mctx,
+						sizeof(dns_namelist_t) *
 							DNS_VIEW_DELONLYHASH);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++) {
 			ISC_LIST_INIT(view->rootexclude[hash]);
@@ -1796,10 +1761,9 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name)
 }
 
 bool
-dns_view_isdelegationonly(dns_view_t *view, const dns_name_t *name)
-{
+dns_view_isdelegationonly(dns_view_t *view, const dns_name_t *name) {
 	dns_name_t *item;
-	uint32_t    hash;
+	uint32_t hash;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1836,22 +1800,19 @@ dns_view_isdelegationonly(dns_view_t *view, const dns_name_t *name)
 }
 
 void
-dns_view_setrootdelonly(dns_view_t *view, bool value)
-{
+dns_view_setrootdelonly(dns_view_t *view, bool value) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	view->rootdelonly = value;
 }
 
 bool
-dns_view_getrootdelonly(dns_view_t *view)
-{
+dns_view_getrootdelonly(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	return (view->rootdelonly);
 }
 
 isc_result_t
-dns_view_freezezones(dns_view_t *view, bool value)
-{
+dns_view_freezezones(dns_view_t *view, bool value) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
@@ -1859,8 +1820,7 @@ dns_view_freezezones(dns_view_t *view, bool value)
 }
 
 void
-dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats)
-{
+dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->adbstats == NULL);
@@ -1869,8 +1829,7 @@ dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats)
 }
 
 void
-dns_view_getadbstats(dns_view_t *view, isc_stats_t **statsp)
-{
+dns_view_getadbstats(dns_view_t *view, isc_stats_t **statsp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
@@ -1880,8 +1839,7 @@ dns_view_getadbstats(dns_view_t *view, isc_stats_t **statsp)
 }
 
 void
-dns_view_setresstats(dns_view_t *view, isc_stats_t *stats)
-{
+dns_view_setresstats(dns_view_t *view, isc_stats_t *stats) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resstats == NULL);
@@ -1890,8 +1848,7 @@ dns_view_setresstats(dns_view_t *view, isc_stats_t *stats)
 }
 
 void
-dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp)
-{
+dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
@@ -1901,8 +1858,7 @@ dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp)
 }
 
 void
-dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats)
-{
+dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resquerystats == NULL);
@@ -1911,8 +1867,7 @@ dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats)
 }
 
 void
-dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp)
-{
+dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
@@ -1923,8 +1878,7 @@ dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp)
 
 isc_result_t
 dns_view_initntatable(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		      isc_timermgr_t *timermgr)
-{
+		      isc_timermgr_t *timermgr) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->ntatable_priv != NULL) {
 		dns_ntatable_detach(&view->ntatable_priv);
@@ -1934,8 +1888,7 @@ dns_view_initntatable(dns_view_t *view, isc_taskmgr_t *taskmgr,
 }
 
 isc_result_t
-dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp)
-{
+dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ntp != NULL && *ntp == NULL);
 	if (view->ntatable_priv == NULL) {
@@ -1946,8 +1899,7 @@ dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp)
 }
 
 isc_result_t
-dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx)
-{
+dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->secroots_priv != NULL) {
 		dns_keytable_detach(&view->secroots_priv);
@@ -1956,8 +1908,7 @@ dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx)
 }
 
 isc_result_t
-dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp)
-{
+dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ktp != NULL && *ktp == NULL);
 	if (view->secroots_priv == NULL) {
@@ -1969,8 +1920,7 @@ dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp)
 
 bool
 dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now, const dns_name_t *name,
-		   const dns_name_t *anchor)
-{
+		   const dns_name_t *anchor) {
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	if (view->ntatable_priv == NULL) {
@@ -1983,12 +1933,11 @@ dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now, const dns_name_t *name,
 isc_result_t
 dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
 			isc_stdtime_t now, bool checknta, bool *ntap,
-			bool *secure_domain)
-{
-	isc_result_t	result;
-	bool		secure = false;
+			bool *secure_domain) {
+	isc_result_t result;
+	bool secure = false;
 	dns_fixedname_t fn;
-	dns_name_t *	anchor;
+	dns_name_t *anchor;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2008,7 +1957,8 @@ dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
 		*ntap = false;
 	}
 	if (checknta && secure && view->ntatable_priv != NULL &&
-	    dns_ntatable_covered(view->ntatable_priv, now, name, anchor)) {
+	    dns_ntatable_covered(view->ntatable_priv, now, name, anchor))
+	{
 		if (ntap != NULL) {
 			*ntap = true;
 		}
@@ -2021,9 +1971,8 @@ dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
 
 void
 dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
-		 dns_rdata_dnskey_t *dnskey)
-{
-	isc_result_t	result;
+		 dns_rdata_dnskey_t *dnskey) {
+	isc_result_t result;
 	dns_keytable_t *sr = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -2075,10 +2024,9 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 
 static isc_result_t
 nz_legacy(const char *directory, const char *viewname, const char *suffix,
-	  char *buffer, size_t buflen)
-{
+	  char *buffer, size_t buflen) {
 	isc_result_t result;
-	char	     newbuf[PATH_MAX];
+	char newbuf[PATH_MAX];
 
 	result = isc_file_sanitize(directory, viewname, suffix, buffer, buflen);
 	if (result != ISC_R_SUCCESS) {
@@ -2108,13 +2056,12 @@ nz_legacy(const char *directory, const char *viewname, const char *suffix,
 
 isc_result_t
 dns_view_setnewzones(dns_view_t *view, bool allow, void *cfgctx,
-		     void (*cfg_destroy)(void **), uint64_t mapsize)
-{
+		     void (*cfg_destroy)(void **), uint64_t mapsize) {
 	isc_result_t result = ISC_R_SUCCESS;
-	char	     buffer[1024];
+	char buffer[1024];
 #ifdef HAVE_LMDB
 	MDB_env *env = NULL;
-	int	 status;
+	int status;
 #endif /* ifdef HAVE_LMDB */
 
 #ifndef HAVE_LMDB
@@ -2222,8 +2169,7 @@ cleanup:
 }
 
 void
-dns_view_setnewzonedir(dns_view_t *view, const char *dir)
-{
+dns_view_setnewzonedir(dns_view_t *view, const char *dir) {
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	if (view->new_zone_dir != NULL) {
@@ -2239,8 +2185,7 @@ dns_view_setnewzonedir(dns_view_t *view, const char *dir)
 }
 
 const char *
-dns_view_getnewzonedir(dns_view_t *view)
-{
+dns_view_getnewzonedir(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	return (view->new_zone_dir);
@@ -2249,16 +2194,15 @@ dns_view_getnewzonedir(dns_view_t *view)
 isc_result_t
 dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 		   unsigned int minlabels, dns_clientinfomethods_t *methods,
-		   dns_clientinfo_t *clientinfo, dns_db_t **dbp)
-{
-	dns_fixedname_t	  fname;
-	dns_name_t *	  zonename;
-	unsigned int	  namelabels;
-	unsigned int	  i;
-	isc_result_t	  result;
+		   dns_clientinfo_t *clientinfo, dns_db_t **dbp) {
+	dns_fixedname_t fname;
+	dns_name_t *zonename;
+	unsigned int namelabels;
+	unsigned int i;
+	isc_result_t result;
 	dns_dlzfindzone_t findzone;
-	dns_dlzdb_t *	  dlzdb;
-	dns_db_t *	  db, *best = NULL;
+	dns_dlzdb_t *dlzdb;
+	dns_db_t *db, *best = NULL;
 
 	/*
 	 * Performs checks to make sure data is as we expect it to be.
@@ -2274,7 +2218,8 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 	namelabels = dns_name_countlabels(name);
 
 	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched); dlzdb != NULL;
-	     dlzdb = ISC_LIST_NEXT(dlzdb, link)) {
+	     dlzdb = ISC_LIST_NEXT(dlzdb, link))
+	{
 		REQUIRE(DNS_DLZ_VALID(dlzdb));
 
 		/*
@@ -2333,26 +2278,23 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 }
 
 uint32_t
-dns_view_getfailttl(dns_view_t *view)
-{
+dns_view_getfailttl(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	return (view->fail_ttl);
 }
 
 void
-dns_view_setfailttl(dns_view_t *view, uint32_t fail_ttl)
-{
+dns_view_setfailttl(dns_view_t *view, uint32_t fail_ttl) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	view->fail_ttl = fail_ttl;
 }
 
 isc_result_t
-dns_view_saventa(dns_view_t *view)
-{
-	isc_result_t	result;
-	bool		removefile = false;
+dns_view_saventa(dns_view_t *view) {
+	isc_result_t result;
+	bool removefile = false;
 	dns_ntatable_t *ntatable = NULL;
-	FILE *		fp = NULL;
+	FILE *fp = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2402,13 +2344,12 @@ cleanup:
 #define TLEN(t) ((t).value.as_textregion.length)
 
 isc_result_t
-dns_view_loadnta(dns_view_t *view)
-{
-	isc_result_t	result;
+dns_view_loadnta(dns_view_t *view) {
+	isc_result_t result;
 	dns_ntatable_t *ntatable = NULL;
-	isc_lex_t *	lex = NULL;
-	isc_token_t	token;
-	isc_stdtime_t	now;
+	isc_lex_t *lex = NULL;
+	isc_token_t token;
+	isc_stdtime_t now;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2422,14 +2363,14 @@ dns_view_loadnta(dns_view_t *view)
 	isc_stdtime_get(&now);
 
 	for (;;) {
-		int		  options = (ISC_LEXOPT_EOL | ISC_LEXOPT_EOF);
-		char *		  name, *type, *timestamp;
-		size_t		  len;
-		dns_fixedname_t	  fn;
+		int options = (ISC_LEXOPT_EOL | ISC_LEXOPT_EOF);
+		char *name, *type, *timestamp;
+		size_t len;
+		dns_fixedname_t fn;
 		const dns_name_t *ntaname;
-		isc_buffer_t	  b;
-		isc_stdtime_t	  t;
-		bool		  forced;
+		isc_buffer_t b;
+		isc_stdtime_t t;
+		bool forced;
 
 		CHECK(isc_lex_gettoken(lex, options, &token));
 		if (token.type == isc_tokentype_eof) {
@@ -2509,8 +2450,7 @@ cleanup:
 }
 
 void
-dns_view_setviewcommit(dns_view_t *view)
-{
+dns_view_setviewcommit(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	LOCK(&view->lock);
@@ -2529,8 +2469,7 @@ dns_view_setviewcommit(dns_view_t *view)
 }
 
 void
-dns_view_setviewrevert(dns_view_t *view)
-{
+dns_view_setviewrevert(dns_view_t *view) {
 	dns_zt_t *zonetable;
 
 	REQUIRE(DNS_VIEW_VALID(view));

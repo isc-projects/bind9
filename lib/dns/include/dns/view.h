@@ -242,7 +242,7 @@ struct dns_view {
 	void (*hooktable_free)(isc_mem_t *, void **);
 };
 
-#define DNS_VIEW_MAGIC ISC_MAGIC('V', 'i', 'e', 'w')
+#define DNS_VIEW_MAGIC	     ISC_MAGIC('V', 'i', 'e', 'w')
 #define DNS_VIEW_VALID(view) ISC_MAGIC_VALID(view, DNS_VIEW_MAGIC)
 
 #define DNS_VIEWATTR_RESSHUTDOWN 0x01

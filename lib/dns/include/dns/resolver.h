@@ -88,19 +88,19 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 /*
  * Options that modify how a 'fetch' is done.
  */
-#define DNS_FETCHOPT_TCP 0x00000001	    /*%< Use TCP. */
-#define DNS_FETCHOPT_UNSHARED 0x00000002    /*%< See below. */
-#define DNS_FETCHOPT_RECURSIVE 0x00000004   /*%< Set RD? */
-#define DNS_FETCHOPT_NOEDNS0 0x00000008	    /*%< Do not use EDNS. */
+#define DNS_FETCHOPT_TCP	 0x00000001 /*%< Use TCP. */
+#define DNS_FETCHOPT_UNSHARED	 0x00000002 /*%< See below. */
+#define DNS_FETCHOPT_RECURSIVE	 0x00000004 /*%< Set RD? */
+#define DNS_FETCHOPT_NOEDNS0	 0x00000008 /*%< Do not use EDNS. */
 #define DNS_FETCHOPT_FORWARDONLY 0x00000010 /*%< Only use forwarders. */
-#define DNS_FETCHOPT_NOVALIDATE 0x00000020  /*%< Disable validation. */
+#define DNS_FETCHOPT_NOVALIDATE	 0x00000020 /*%< Disable validation. */
 #define DNS_FETCHOPT_EDNS512                                       \
 	0x00000040			 /*%< Advertise a 512 byte \
 					  *   UDP buffer. */
 #define DNS_FETCHOPT_WANTNSID 0x00000080 /*%< Request NSID */
 #define DNS_FETCHOPT_PREFETCH 0x00000100 /*%< Do prefetch */
 #define DNS_FETCHOPT_NOCDFLAG 0x00000200 /*%< Don't set CD flag. */
-#define DNS_FETCHOPT_NONTA 0x00000400	 /*%< Ignore NTA table. */
+#define DNS_FETCHOPT_NONTA    0x00000400 /*%< Ignore NTA table. */
 /* RESERVED ECS				0x00000000 */
 /* RESERVED ECS				0x00001000 */
 /* RESERVED ECS				0x00002000 */
@@ -131,23 +131,23 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 		    *   if possible. */
 
 /* Reserved in use by adb.c		0x00400000 */
-#define DNS_FETCHOPT_EDNSVERSIONSET 0x00800000
-#define DNS_FETCHOPT_EDNSVERSIONMASK 0xff000000
+#define DNS_FETCHOPT_EDNSVERSIONSET   0x00800000
+#define DNS_FETCHOPT_EDNSVERSIONMASK  0xff000000
 #define DNS_FETCHOPT_EDNSVERSIONSHIFT 24
 
 /*
  * Upper bounds of class of query RTT (ms).  Corresponds to
  * dns_resstatscounter_queryrttX statistics counters.
  */
-#define DNS_RESOLVER_QRYRTTCLASS0 10
+#define DNS_RESOLVER_QRYRTTCLASS0    10
 #define DNS_RESOLVER_QRYRTTCLASS0STR "10"
-#define DNS_RESOLVER_QRYRTTCLASS1 100
+#define DNS_RESOLVER_QRYRTTCLASS1    100
 #define DNS_RESOLVER_QRYRTTCLASS1STR "100"
-#define DNS_RESOLVER_QRYRTTCLASS2 500
+#define DNS_RESOLVER_QRYRTTCLASS2    500
 #define DNS_RESOLVER_QRYRTTCLASS2STR "500"
-#define DNS_RESOLVER_QRYRTTCLASS3 800
+#define DNS_RESOLVER_QRYRTTCLASS3    800
 #define DNS_RESOLVER_QRYRTTCLASS3STR "800"
-#define DNS_RESOLVER_QRYRTTCLASS4 1600
+#define DNS_RESOLVER_QRYRTTCLASS4    1600
 #define DNS_RESOLVER_QRYRTTCLASS4STR "1600"
 
 /*
@@ -155,12 +155,12 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
  * _dns_resolver_create()).
  */
 
-#define DNS_RESOLVER_CHECKNAMES 0x01
+#define DNS_RESOLVER_CHECKNAMES	    0x01
 #define DNS_RESOLVER_CHECKNAMESFAIL 0x02
 
-#define DNS_QMIN_MAXLABELS 7
+#define DNS_QMIN_MAXLABELS	   7
 #define DNS_QMIN_MAX_NO_DELEGATION 3
-#define DNS_MAX_LABELS 127
+#define DNS_MAX_LABELS		   127
 
 isc_result_t
 dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,

@@ -348,7 +348,7 @@ enum {
 	((x) == dns_trust_pending_answer || (x) == dns_trust_pending_additional)
 #define DNS_TRUST_ADDITIONAL(x) \
 	((x) == dns_trust_additional || (x) == dns_trust_pending_additional)
-#define DNS_TRUST_GLUE(x) ((x) == dns_trust_glue)
+#define DNS_TRUST_GLUE(x)   ((x) == dns_trust_glue)
 #define DNS_TRUST_ANSWER(x) ((x) == dns_trust_answer)
 
 /*%

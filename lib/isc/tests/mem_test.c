@@ -37,8 +37,7 @@
 #include "isctest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -50,8 +49,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -59,8 +57,8 @@ _teardown(void **state)
 	return (0);
 }
 
-#define MP1_FREEMAX 10
-#define MP1_FILLCNT 10
+#define MP1_FREEMAX  10
+#define MP1_FILLCNT  10
 #define MP1_MAXALLOC 30
 
 #define MP2_FREEMAX 25
@@ -68,14 +66,13 @@ _teardown(void **state)
 
 /* general memory system tests */
 static void
-isc_mem_test(void **state)
-{
-	void *	       items1[50];
-	void *	       items2[50];
-	void *	       tmp;
+isc_mem_test(void **state) {
+	void *items1[50];
+	void *items2[50];
+	void *tmp;
 	isc_mempool_t *mp1 = NULL, *mp2 = NULL;
-	unsigned int   i, j;
-	int	       rval;
+	unsigned int i, j;
+	int rval;
 
 	UNUSED(state);
 
@@ -157,12 +154,11 @@ isc_mem_test(void **state)
 
 /* test TotalUse calculation */
 static void
-isc_mem_total_test(void **state)
-{
+isc_mem_total_test(void **state) {
 	isc_mem_t *mctx2 = NULL;
-	size_t	   before, after;
-	ssize_t	   diff;
-	int	   i;
+	size_t before, after;
+	ssize_t diff;
+	int i;
 
 	UNUSED(state);
 
@@ -207,12 +203,11 @@ isc_mem_total_test(void **state)
 
 /* test InUse calculation */
 static void
-isc_mem_inuse_test(void **state)
-{
+isc_mem_inuse_test(void **state) {
 	isc_mem_t *mctx2 = NULL;
-	size_t	   before, after;
-	ssize_t	   diff;
-	void *	   ptr;
+	size_t before, after;
+	ssize_t diff;
+	void *ptr;
 
 	UNUSED(state);
 
@@ -235,13 +230,12 @@ isc_mem_inuse_test(void **state)
 
 /* test mem with no flags */
 static void
-isc_mem_noflags_test(void **state)
-{
+isc_mem_noflags_test(void **state) {
 	isc_result_t result;
-	isc_mem_t *  mctx2 = NULL;
-	char	     buf[4096], *p, *q;
-	FILE *	     f;
-	void *	     ptr;
+	isc_mem_t *mctx2 = NULL;
+	char buf[4096], *p, *q;
+	FILE *f;
+	void *ptr;
 
 	result = isc_stdio_open("mem.output", "w", &f);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -281,13 +275,12 @@ isc_mem_noflags_test(void **state)
 
 /* test mem with record flag */
 static void
-isc_mem_recordflag_test(void **state)
-{
+isc_mem_recordflag_test(void **state) {
 	isc_result_t result;
-	isc_mem_t *  mctx2 = NULL;
-	char	     buf[4096], *p;
-	FILE *	     f;
-	void *	     ptr;
+	isc_mem_t *mctx2 = NULL;
+	char buf[4096], *p;
+	FILE *f;
+	void *ptr;
 
 	result = isc_stdio_open("mem.output", "w", &f);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -323,13 +316,12 @@ isc_mem_recordflag_test(void **state)
 
 /* test mem with trace flag */
 static void
-isc_mem_traceflag_test(void **state)
-{
+isc_mem_traceflag_test(void **state) {
 	isc_result_t result;
-	isc_mem_t *  mctx2 = NULL;
-	char	     buf[4096], *p;
-	FILE *	     f;
-	void *	     ptr;
+	isc_mem_t *mctx2 = NULL;
+	char buf[4096], *p;
+	FILE *f;
+	void *ptr;
 
 	/* redirect stderr so we can check trace output */
 	f = freopen("mem.output", "w", stderr);
@@ -376,14 +368,13 @@ isc_mem_traceflag_test(void **state)
 
 #if !defined(__SANITIZE_THREAD__)
 
-#define ITERS 512
+#define ITERS	  512
 #define NUM_ITEMS 1024 /* 768 */
 #define ITEM_SIZE 65534
 
 static isc_threadresult_t
-mem_thread(isc_threadarg_t arg)
-{
-	void * items[NUM_ITEMS];
+mem_thread(isc_threadarg_t arg) {
+	void *items[NUM_ITEMS];
 	size_t size = *((size_t *)arg);
 
 	for (int i = 0; i < ITERS; i++) {
@@ -399,14 +390,13 @@ mem_thread(isc_threadarg_t arg)
 }
 
 static void
-isc_mem_benchmark(void **state)
-{
-	int	     nthreads = ISC_MAX(ISC_MIN(isc_os_ncpus(), 32), 1);
+isc_mem_benchmark(void **state) {
+	int nthreads = ISC_MAX(ISC_MIN(isc_os_ncpus(), 32), 1);
 	isc_thread_t threads[32];
-	isc_time_t   ts1, ts2;
-	double	     t;
+	isc_time_t ts1, ts2;
+	double t;
 	isc_result_t result;
-	size_t	     size = ITEM_SIZE;
+	size_t size = ITEM_SIZE;
 
 	UNUSED(state);
 
@@ -433,10 +423,9 @@ isc_mem_benchmark(void **state)
 }
 
 static isc_threadresult_t
-mempool_thread(isc_threadarg_t arg)
-{
+mempool_thread(isc_threadarg_t arg) {
 	isc_mempool_t *mp = (isc_mempool_t *)arg;
-	void *	       items[NUM_ITEMS];
+	void *items[NUM_ITEMS];
 
 	for (int i = 0; i < ITERS; i++) {
 		for (int j = 0; j < NUM_ITEMS; j++) {
@@ -451,16 +440,15 @@ mempool_thread(isc_threadarg_t arg)
 }
 
 static void
-isc_mempool_benchmark(void **state)
-{
-	int	       nthreads = ISC_MAX(ISC_MIN(isc_os_ncpus(), 32), 1);
-	isc_thread_t   threads[32];
-	isc_time_t     ts1, ts2;
-	double	       t;
-	isc_result_t   result;
-	size_t	       size = ITEM_SIZE;
+isc_mempool_benchmark(void **state) {
+	int nthreads = ISC_MAX(ISC_MIN(isc_os_ncpus(), 32), 1);
+	isc_thread_t threads[32];
+	isc_time_t ts1, ts2;
+	double t;
+	isc_result_t result;
+	size_t size = ITEM_SIZE;
 	isc_mempool_t *mp = NULL;
-	isc_mutex_t    mplock;
+	isc_mutex_t mplock;
 
 	isc_mutex_init(&mplock);
 
@@ -505,8 +493,7 @@ isc_mempool_benchmark(void **state)
  */
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(isc_mem_test, _setup,
 						_teardown),
@@ -544,8 +531,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

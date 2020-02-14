@@ -53,11 +53,11 @@ struct isccc_sexpr {
 	} value;
 };
 
-#define ISCCC_SEXPRTYPE_NONE 0x00 /*%< Illegal. */
-#define ISCCC_SEXPRTYPE_T 0x01
-#define ISCCC_SEXPRTYPE_STRING 0x02
+#define ISCCC_SEXPRTYPE_NONE	   0x00 /*%< Illegal. */
+#define ISCCC_SEXPRTYPE_T	   0x01
+#define ISCCC_SEXPRTYPE_STRING	   0x02
 #define ISCCC_SEXPRTYPE_DOTTEDPAIR 0x03
-#define ISCCC_SEXPRTYPE_BINARY 0x04
+#define ISCCC_SEXPRTYPE_BINARY	   0x04
 
 #define ISCCC_SEXPR_CAR(s) (s)->value.as_dottedpair.car
 #define ISCCC_SEXPR_CDR(s) (s)->value.as_dottedpair.cdr

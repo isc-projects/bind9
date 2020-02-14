@@ -35,14 +35,14 @@ ISC_LANG_BEGINDECLS
  * Sub-zones of various trigger types.
  */
 #define DNS_RPZ_CLIENT_IP_ZONE DNS_RPZ_PREFIX "client-ip"
-#define DNS_RPZ_IP_ZONE DNS_RPZ_PREFIX "ip"
-#define DNS_RPZ_NSIP_ZONE DNS_RPZ_PREFIX "nsip"
-#define DNS_RPZ_NSDNAME_ZONE DNS_RPZ_PREFIX "nsdname"
+#define DNS_RPZ_IP_ZONE	       DNS_RPZ_PREFIX "ip"
+#define DNS_RPZ_NSIP_ZONE      DNS_RPZ_PREFIX "nsip"
+#define DNS_RPZ_NSDNAME_ZONE   DNS_RPZ_PREFIX "nsdname"
 /*
  * Special policies.
  */
 #define DNS_RPZ_PASSTHRU_NAME DNS_RPZ_PREFIX "passthru"
-#define DNS_RPZ_DROP_NAME DNS_RPZ_PREFIX "drop"
+#define DNS_RPZ_DROP_NAME     DNS_RPZ_PREFIX "drop"
 #define DNS_RPZ_TCP_ONLY_NAME DNS_RPZ_PREFIX "tcp-only"
 
 typedef uint8_t dns_rpz_prefix_t;
@@ -279,14 +279,14 @@ struct dns_rpz_zones {
  */
 typedef struct {
 	unsigned int state;
-#define DNS_RPZ_REWRITTEN 0x0001
+#define DNS_RPZ_REWRITTEN      0x0001
 #define DNS_RPZ_DONE_CLIENT_IP 0x0002 /* client IP address checked */
-#define DNS_RPZ_DONE_QNAME 0x0004     /* qname checked */
-#define DNS_RPZ_DONE_QNAME_IP 0x0008  /* IP addresses of qname checked */
-#define DNS_RPZ_DONE_NSDNAME 0x0010   /* NS name missed; checking addresses */
-#define DNS_RPZ_DONE_IPv4 0x0020
-#define DNS_RPZ_RECURSING 0x0040
-#define DNS_RPZ_ACTIVE 0x0080
+#define DNS_RPZ_DONE_QNAME     0x0004 /* qname checked */
+#define DNS_RPZ_DONE_QNAME_IP  0x0008 /* IP addresses of qname checked */
+#define DNS_RPZ_DONE_NSDNAME   0x0010 /* NS name missed; checking addresses */
+#define DNS_RPZ_DONE_IPv4      0x0020
+#define DNS_RPZ_RECURSING      0x0040
+#define DNS_RPZ_ACTIVE	       0x0080
 	/*
 	 * Best match so far.
 	 */
@@ -358,19 +358,19 @@ typedef struct {
 	dns_fixedname_t _fnamef;
 } dns_rpz_st_t;
 
-#define DNS_RPZ_TTL_DEFAULT 5
-#define DNS_RPZ_MAX_TTL_DEFAULT DNS_RPZ_TTL_DEFAULT
+#define DNS_RPZ_TTL_DEFAULT		  5
+#define DNS_RPZ_MAX_TTL_DEFAULT		  DNS_RPZ_TTL_DEFAULT
 #define DNS_RPZ_MINUPDATEINTERVAL_DEFAULT 60
 
 /*
  * So various response policy zone messages can be turned up or down.
  */
-#define DNS_RPZ_ERROR_LEVEL ISC_LOG_WARNING
-#define DNS_RPZ_INFO_LEVEL ISC_LOG_INFO
+#define DNS_RPZ_ERROR_LEVEL  ISC_LOG_WARNING
+#define DNS_RPZ_INFO_LEVEL   ISC_LOG_INFO
 #define DNS_RPZ_DEBUG_LEVEL1 ISC_LOG_DEBUG(1)
 #define DNS_RPZ_DEBUG_LEVEL2 ISC_LOG_DEBUG(2)
 #define DNS_RPZ_DEBUG_LEVEL3 ISC_LOG_DEBUG(3)
-#define DNS_RPZ_DEBUG_QUIET (DNS_RPZ_DEBUG_LEVEL3 + 1)
+#define DNS_RPZ_DEBUG_QUIET  (DNS_RPZ_DEBUG_LEVEL3 + 1)
 
 const char *
 dns_rpz_type2str(dns_rpz_type_t type);

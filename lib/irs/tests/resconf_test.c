@@ -32,8 +32,7 @@
 static isc_mem_t *mctx = NULL;
 
 static void
-setup_test()
-{
+setup_test() {
 	isc_mem_create(&mctx);
 
 	/*
@@ -46,13 +45,12 @@ setup_test()
 
 /* test irs_resconf_load() */
 static void
-irs_resconf_load_test(void **state)
-{
-	isc_result_t   result;
+irs_resconf_load_test(void **state) {
+	isc_result_t result;
 	irs_resconf_t *resconf = NULL;
-	unsigned int   i;
+	unsigned int i;
 	struct {
-		const char * file;
+		const char *file;
 		isc_result_t loadres;
 		isc_result_t (*check)(irs_resconf_t *resconf);
 		isc_result_t checkres;
@@ -121,8 +119,7 @@ irs_resconf_load_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(irs_resconf_load_test),
 	};
@@ -135,8 +132,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

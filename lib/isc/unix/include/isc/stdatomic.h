@@ -82,7 +82,7 @@ typedef bool	      atomic_bool;
 typedef uint_fast64_t atomic_uintptr_t;
 
 #if defined(__CLANG_ATOMICS) /* __c11_atomic builtins */
-#define atomic_init(obj, desired) __c11_atomic_init(obj, desired)
+#define atomic_init(obj, desired)	 __c11_atomic_init(obj, desired)
 #define atomic_load_explicit(obj, order) __c11_atomic_load(obj, order)
 #define atomic_store_explicit(obj, desired, order) \
 	__c11_atomic_store(obj, desired, order)
@@ -105,7 +105,7 @@ typedef uint_fast64_t atomic_uintptr_t;
 #define atomic_exchange_explicit(obj, desired, order) \
 	__c11_atomic_exchange_explicit(obj, expected, order)
 #elif defined(__GNUC_ATOMICS) /* __atomic builtins */
-#define atomic_init(obj, desired) (*obj = desired)
+#define atomic_init(obj, desired)	 (*obj = desired)
 #define atomic_load_explicit(obj, order) __atomic_load_n(obj, order)
 #define atomic_store_explicit(obj, desired, order) \
 	__atomic_store_n(obj, desired, order)
@@ -126,7 +126,7 @@ typedef uint_fast64_t atomic_uintptr_t;
 #define atomic_exchange_explicit(obj, desired, order) \
 	__atomic_exchange_n(obj, desired, order)
 #else /* __sync builtins */
-#define atomic_init(obj, desired) (*obj = desired)
+#define atomic_init(obj, desired)	 (*obj = desired)
 #define atomic_load_explicit(obj, order) __sync_fetch_and_add(obj, 0)
 #define atomic_store_explicit(obj, desired, order) \
 	do {                                       \

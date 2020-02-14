@@ -30,20 +30,20 @@
 #include <dst/dst.h>
 #include <dst/gssapi.h>
 
-#define SSUTABLEMAGIC ISC_MAGIC('S', 'S', 'U', 'T')
+#define SSUTABLEMAGIC	      ISC_MAGIC('S', 'S', 'U', 'T')
 #define VALID_SSUTABLE(table) ISC_MAGIC_VALID(table, SSUTABLEMAGIC)
 
-#define SSURULEMAGIC ISC_MAGIC('S', 'S', 'U', 'R')
+#define SSURULEMAGIC	     ISC_MAGIC('S', 'S', 'U', 'R')
 #define VALID_SSURULE(table) ISC_MAGIC_VALID(table, SSURULEMAGIC)
 
 struct dns_ssurule {
-	unsigned int	   magic;
-	bool		   grant;     /*%< is this a grant or a deny? */
+	unsigned int magic;
+	bool grant;		      /*%< is this a grant or a deny? */
 	dns_ssumatchtype_t matchtype; /*%< which type of pattern match?
 				       * */
-	dns_name_t *	 identity;    /*%< the identity to match */
-	dns_name_t *	 name;	      /*%< the name being updated */
-	unsigned int	 ntypes;      /*%< number of data types covered */
+	dns_name_t *identity;	      /*%< the identity to match */
+	dns_name_t *name;	      /*%< the name being updated */
+	unsigned int ntypes;	      /*%< number of data types covered */
 	dns_rdatatype_t *types;	      /*%< the data types.  Can include */
 				      /*   ANY. if NULL, defaults to all */
 				      /*   types except SIG, SOA, and NS */
@@ -51,16 +51,15 @@ struct dns_ssurule {
 };
 
 struct dns_ssutable {
-	unsigned int   magic;
-	isc_mem_t *    mctx;
+	unsigned int magic;
+	isc_mem_t *mctx;
 	isc_refcount_t references;
-	dns_dlzdb_t *  dlzdatabase;
+	dns_dlzdb_t *dlzdatabase;
 	ISC_LIST(dns_ssurule_t) rules;
 };
 
 isc_result_t
-dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep)
-{
+dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
 	dns_ssutable_t *table;
 
 	REQUIRE(tablep != NULL && *tablep == NULL);
@@ -77,8 +76,7 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep)
 }
 
 static inline void
-destroy(dns_ssutable_t *table)
-{
+destroy(dns_ssutable_t *table) {
 	isc_mem_t *mctx;
 
 	REQUIRE(VALID_SSUTABLE(table));
@@ -108,8 +106,7 @@ destroy(dns_ssutable_t *table)
 }
 
 void
-dns_ssutable_attach(dns_ssutable_t *source, dns_ssutable_t **targetp)
-{
+dns_ssutable_attach(dns_ssutable_t *source, dns_ssutable_t **targetp) {
 	REQUIRE(VALID_SSUTABLE(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
@@ -119,8 +116,7 @@ dns_ssutable_attach(dns_ssutable_t *source, dns_ssutable_t **targetp)
 }
 
 void
-dns_ssutable_detach(dns_ssutable_t **tablep)
-{
+dns_ssutable_detach(dns_ssutable_t **tablep) {
 	dns_ssutable_t *table;
 
 	REQUIRE(tablep != NULL);
@@ -137,10 +133,9 @@ isc_result_t
 dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
-		     dns_rdatatype_t *types)
-{
+		     dns_rdatatype_t *types) {
 	dns_ssurule_t *rule;
-	isc_mem_t *    mctx;
+	isc_mem_t *mctx;
 
 	REQUIRE(VALID_SSUTABLE(table));
 	REQUIRE(dns_name_isabsolute(identity));
@@ -174,8 +169,8 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 
 	rule->ntypes = ntypes;
 	if (ntypes > 0) {
-		rule->types =
-			isc_mem_get(mctx, ntypes * sizeof(dns_rdatatype_t));
+		rule->types = isc_mem_get(mctx,
+					  ntypes * sizeof(dns_rdatatype_t));
 		memmove(rule->types, types, ntypes * sizeof(dns_rdatatype_t));
 	} else {
 		rule->types = NULL;
@@ -188,20 +183,18 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 }
 
 static inline bool
-isusertype(dns_rdatatype_t type)
-{
+isusertype(dns_rdatatype_t type) {
 	return (type != dns_rdatatype_ns && type != dns_rdatatype_soa &&
 		type != dns_rdatatype_rrsig);
 }
 
 static void
-reverse_from_address(dns_name_t *tcpself, const isc_netaddr_t *tcpaddr)
-{
-	char		     buf[16 * 4 + sizeof("IP6.ARPA.")];
-	isc_result_t	     result;
+reverse_from_address(dns_name_t *tcpself, const isc_netaddr_t *tcpaddr) {
+	char buf[16 * 4 + sizeof("IP6.ARPA.")];
+	isc_result_t result;
 	const unsigned char *ap;
-	isc_buffer_t	     b;
-	unsigned long	     l;
+	isc_buffer_t b;
+	unsigned long l;
 
 	switch (tcpaddr->family) {
 	case AF_INET:
@@ -246,13 +239,12 @@ reverse_from_address(dns_name_t *tcpself, const isc_netaddr_t *tcpaddr)
 }
 
 static void
-stf_from_address(dns_name_t *stfself, const isc_netaddr_t *tcpaddr)
-{
-	char		     buf[sizeof("X.X.X.X.Y.Y.Y.Y.2.0.0.2.IP6.ARPA.")];
-	isc_result_t	     result;
+stf_from_address(dns_name_t *stfself, const isc_netaddr_t *tcpaddr) {
+	char buf[sizeof("X.X.X.X.Y.Y.Y.Y.2.0.0.2.IP6.ARPA.")];
+	isc_result_t result;
 	const unsigned char *ap;
-	isc_buffer_t	     b;
-	unsigned long	     l;
+	isc_buffer_t b;
+	unsigned long l;
 
 	switch (tcpaddr->family) {
 	case AF_INET:
@@ -292,16 +284,15 @@ bool
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
 			bool tcp, const dns_aclenv_t *env, dns_rdatatype_t type,
-			const dst_key_t *key)
-{
-	dns_ssurule_t * rule;
-	unsigned int	i;
+			const dst_key_t *key) {
+	dns_ssurule_t *rule;
+	unsigned int i;
 	dns_fixedname_t fixed;
-	dns_name_t *	wildcard;
-	dns_name_t *	tcpself;
-	dns_name_t *	stfself;
-	isc_result_t	result;
-	int		match;
+	dns_name_t *wildcard;
+	dns_name_t *tcpself;
+	dns_name_t *stfself;
+	isc_result_t result;
+	int match;
 
 	REQUIRE(VALID_SSUTABLE(table));
 	REQUIRE(signer == NULL || dns_name_isabsolute(signer));
@@ -313,7 +304,8 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 	}
 
 	for (rule = ISC_LIST_HEAD(table->rules); rule != NULL;
-	     rule = ISC_LIST_NEXT(rule, link)) {
+	     rule = ISC_LIST_NEXT(rule, link))
+	{
 		switch (rule->matchtype) {
 		case dns_ssumatchtype_name:
 		case dns_ssumatchtype_local:
@@ -496,7 +488,8 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 		case dns_ssumatchtype_external:
 			if (!dns_ssu_external_match(rule->identity, signer,
 						    name, addr, type, key,
-						    table->mctx)) {
+						    table->mctx))
+			{
 				continue;
 			}
 			break;
@@ -536,36 +529,31 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 }
 
 bool
-dns_ssurule_isgrant(const dns_ssurule_t *rule)
-{
+dns_ssurule_isgrant(const dns_ssurule_t *rule) {
 	REQUIRE(VALID_SSURULE(rule));
 	return (rule->grant);
 }
 
 dns_name_t *
-dns_ssurule_identity(const dns_ssurule_t *rule)
-{
+dns_ssurule_identity(const dns_ssurule_t *rule) {
 	REQUIRE(VALID_SSURULE(rule));
 	return (rule->identity);
 }
 
 unsigned int
-dns_ssurule_matchtype(const dns_ssurule_t *rule)
-{
+dns_ssurule_matchtype(const dns_ssurule_t *rule) {
 	REQUIRE(VALID_SSURULE(rule));
 	return (rule->matchtype);
 }
 
 dns_name_t *
-dns_ssurule_name(const dns_ssurule_t *rule)
-{
+dns_ssurule_name(const dns_ssurule_t *rule) {
 	REQUIRE(VALID_SSURULE(rule));
 	return (rule->name);
 }
 
 unsigned int
-dns_ssurule_types(const dns_ssurule_t *rule, dns_rdatatype_t **types)
-{
+dns_ssurule_types(const dns_ssurule_t *rule, dns_rdatatype_t **types) {
 	REQUIRE(VALID_SSURULE(rule));
 	REQUIRE(types != NULL && *types != NULL);
 	*types = rule->types;
@@ -573,8 +561,7 @@ dns_ssurule_types(const dns_ssurule_t *rule, dns_rdatatype_t **types)
 }
 
 isc_result_t
-dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule)
-{
+dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule) {
 	REQUIRE(VALID_SSUTABLE(table));
 	REQUIRE(rule != NULL && *rule == NULL);
 	*rule = ISC_LIST_HEAD(table->rules);
@@ -582,8 +569,7 @@ dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule)
 }
 
 isc_result_t
-dns_ssutable_nextrule(dns_ssurule_t *rule, dns_ssurule_t **nextrule)
-{
+dns_ssutable_nextrule(dns_ssurule_t *rule, dns_ssurule_t **nextrule) {
 	REQUIRE(VALID_SSURULE(rule));
 	REQUIRE(nextrule != NULL && *nextrule == NULL);
 	*nextrule = ISC_LIST_NEXT(rule, link);
@@ -595,10 +581,9 @@ dns_ssutable_nextrule(dns_ssurule_t *rule, dns_ssurule_t **nextrule)
  */
 isc_result_t
 dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
-		       dns_dlzdb_t *dlzdatabase)
-{
-	isc_result_t	result;
-	dns_ssurule_t * rule;
+		       dns_dlzdb_t *dlzdatabase) {
+	isc_result_t result;
+	dns_ssurule_t *rule;
 	dns_ssutable_t *table = NULL;
 
 	REQUIRE(tablep != NULL && *tablep == NULL);
@@ -627,8 +612,7 @@ dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 }
 
 isc_result_t
-dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype)
-{
+dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype) {
 	REQUIRE(str != NULL);
 	REQUIRE(mtype != NULL);
 

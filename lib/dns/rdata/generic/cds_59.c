@@ -18,31 +18,31 @@
 
 #include <dns/ds.h>
 
-static inline isc_result_t fromtext_cds(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_cds(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_cds);
 
 	return (generic_fromtext_ds(rdclass, type, lexer, origin, options,
 				    target, callbacks));
 }
 
-static inline isc_result_t totext_cds(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_cds(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_cds);
 
 	return (generic_totext_ds(rdata, tctx, target));
 }
 
-static inline isc_result_t fromwire_cds(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_cds(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_cds);
 
 	return (generic_fromwire_ds(rdclass, type, source, dctx, options,
 				    target));
 }
 
-static inline isc_result_t towire_cds(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_cds(ARGS_TOWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_cds);
@@ -54,8 +54,8 @@ static inline isc_result_t towire_cds(ARGS_TOWIRE)
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int compare_cds(ARGS_COMPARE)
-{
+static inline int
+compare_cds(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -70,15 +70,15 @@ static inline int compare_cds(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_cds(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_cds(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_cds);
 
 	return (generic_fromstruct_ds(rdclass, type, source, target));
 }
 
-static inline isc_result_t tostruct_cds(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_cds(ARGS_TOSTRUCT) {
 	dns_rdata_cds_t *cds = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_cds);
@@ -95,8 +95,8 @@ static inline isc_result_t tostruct_cds(ARGS_TOSTRUCT)
 	return (generic_tostruct_ds(rdata, target, mctx));
 }
 
-static inline void freestruct_cds(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_cds(ARGS_FREESTRUCT) {
 	dns_rdata_cds_t *cds = source;
 
 	REQUIRE(cds != NULL);
@@ -112,8 +112,8 @@ static inline void freestruct_cds(ARGS_FREESTRUCT)
 	cds->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_cds(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_cds(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_cds);
 
 	UNUSED(rdata);
@@ -123,8 +123,8 @@ static inline isc_result_t additionaldata_cds(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_cds(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_cds(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_cds);
@@ -134,8 +134,8 @@ static inline isc_result_t digest_cds(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_cds(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_cds(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_cds);
 
 	UNUSED(name);
@@ -146,8 +146,8 @@ static inline bool checkowner_cds(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_cds(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_cds(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_cds);
 
 	UNUSED(rdata);
@@ -157,8 +157,8 @@ static inline bool checknames_cds(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_cds(ARGS_COMPARE)
-{
+static inline int
+casecompare_cds(ARGS_COMPARE) {
 	return (compare_cds(rdata1, rdata2));
 }
 

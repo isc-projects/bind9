@@ -22,14 +22,13 @@
 
 #include <isc/siphash.h>
 
-void
-native_isc_siphash24(const uint8_t *, const uint8_t *, const size_t, uint8_t *);
+void native_isc_siphash24(const uint8_t *, const uint8_t *, const size_t,
+			  uint8_t *);
 
 #if HAVE_OPENSSL_SIPHASH
 
-void
-openssl_isc_siphash24(const uint8_t *, const uint8_t *, const size_t,
-		      uint8_t *);
+void openssl_isc_siphash24(const uint8_t *, const uint8_t *, const size_t,
+			   uint8_t *);
 
 #undef HAVE_OPENSSL_SIPHASH
 #define isc_siphash24 native_isc_siphash24
@@ -37,7 +36,7 @@ openssl_isc_siphash24(const uint8_t *, const uint8_t *, const size_t,
 #undef isc_siphash24
 
 #define HAVE_OPENSSL_SIPHASH 1
-#define isc_siphash24 openssl_isc_siphash24
+#define isc_siphash24	     openssl_isc_siphash24
 #include "../siphash.c"
 #undef isc_siphash24
 
@@ -694,8 +693,7 @@ const uint8_t vectors[64][8] = {
 
 #if HAVE_OPENSSL_SIPHASH
 static void
-openssl_isc_siphash24_test(void **state)
-{
+openssl_isc_siphash24_test(void **state) {
 	UNUSED(state);
 
 	uint8_t in[64], out[8], key[16];
@@ -712,8 +710,7 @@ openssl_isc_siphash24_test(void **state)
 #endif /* if HAVE_OPENSSL_SIPHASH */
 
 static void
-native_isc_siphash24_test(void **state)
-{
+native_isc_siphash24_test(void **state) {
 	UNUSED(state);
 
 	uint8_t in[64], out[8], key[16];
@@ -729,8 +726,7 @@ native_isc_siphash24_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 #if HAVE_OPENSSL_SIPHASH
 		cmocka_unit_test(openssl_isc_siphash24_test),
@@ -746,8 +742,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

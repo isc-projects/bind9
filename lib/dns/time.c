@@ -29,20 +29,19 @@
 static const int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 isc_result_t
-dns_time64_totext(int64_t t, isc_buffer_t *target)
-{
+dns_time64_totext(int64_t t, isc_buffer_t *target) {
 	struct tm tm;
 	char buf[sizeof("!!!!!!YYYY!!!!!!!!MM!!!!!!!!DD!!!!!!!!HH!!!!!!!!MM!!!!"
 			"!!!!SS")];
-	int  secs;
+	int secs;
 	unsigned int l;
 	isc_region_t region;
 
 /*
  * Warning. Do NOT use arguments with side effects with these macros.
  */
-#define is_leap(y) ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
-#define year_secs(y) ((is_leap(y) ? 366 : 365) * 86400)
+#define is_leap(y)	 ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
+#define year_secs(y)	 ((is_leap(y) ? 366 : 365) * 86400)
 #define month_secs(m, y) ((days[m] + ((m == 1 && is_leap(y)) ? 1 : 0)) * 86400)
 
 	tm.tm_year = 70;
@@ -100,11 +99,10 @@ dns_time64_totext(int64_t t, isc_buffer_t *target)
 }
 
 int64_t
-dns_time64_from32(uint32_t value)
-{
+dns_time64_from32(uint32_t value) {
 	isc_stdtime_t now;
-	int64_t	      start;
-	int64_t	      t;
+	int64_t start;
+	int64_t t;
 
 	/*
 	 * Adjust the time to the closest epoch.  This should be changed
@@ -124,18 +122,16 @@ dns_time64_from32(uint32_t value)
 }
 
 isc_result_t
-dns_time32_totext(uint32_t value, isc_buffer_t *target)
-{
+dns_time32_totext(uint32_t value, isc_buffer_t *target) {
 	return (dns_time64_totext(dns_time64_from32(value), target));
 }
 
 isc_result_t
-dns_time64_fromtext(const char *source, int64_t *target)
-{
-	int	year, month, day, hour, minute, second;
+dns_time64_fromtext(const char *source, int64_t *target) {
+	int year, month, day, hour, minute, second;
 	int64_t value;
-	int	secs;
-	int	i;
+	int secs;
+	int i;
 
 #define RANGE(min, max, value)                      \
 	do {                                        \
@@ -156,7 +152,8 @@ dns_time64_fromtext(const char *source, int64_t *target)
 		}
 	}
 	if (sscanf(source, "%4d%2d%2d%2d%2d%2d", &year, &month, &day, &hour,
-		   &minute, &second) != 6) {
+		   &minute, &second) != 6)
+	{
 		return (DNS_R_SYNTAX);
 	}
 
@@ -204,9 +201,8 @@ dns_time64_fromtext(const char *source, int64_t *target)
 }
 
 isc_result_t
-dns_time32_fromtext(const char *source, uint32_t *target)
-{
-	int64_t	     value64;
+dns_time32_fromtext(const char *source, uint32_t *target) {
+	int64_t value64;
 	isc_result_t result;
 	result = dns_time64_fromtext(source, &value64);
 	if (result != ISC_R_SUCCESS) {

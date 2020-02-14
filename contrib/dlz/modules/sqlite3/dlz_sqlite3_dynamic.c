@@ -59,12 +59,12 @@
 #include <dlz_pthread.h>
 
 #define dbc_search_limit 30
-#define ALLNODES 1
-#define ALLOWXFR 2
-#define AUTHORITY 3
-#define FINDZONE 4
-#define COUNTZONE 5
-#define LOOKUP 6
+#define ALLNODES	 1
+#define ALLOWXFR	 2
+#define AUTHORITY	 3
+#define FINDZONE	 4
+#define COUNTZONE	 5
+#define LOOKUP		 6
 
 #define safeGet(in) in == NULL ? "" : in
 
@@ -76,7 +76,7 @@
 typedef struct {
 #if PTHREADS
 	db_list_t *db; /*%< handle to a list of DB */
-	int	   dbcount;
+	int dbcount;
 #else  /* if PTHREADS */
 	dbinstance_t *db; /*%< handle to DB */
 #endif /* if PTHREADS */
@@ -84,9 +84,9 @@ typedef struct {
 	char *dbname;
 
 	/* Helper functions from the dlz_dlopen driver */
-	log_t *			 log;
-	dns_sdlz_putrr_t *	 putrr;
-	dns_sdlz_putnamedrr_t *	 putnamedrr;
+	log_t *log;
+	dns_sdlz_putrr_t *putrr;
+	dns_sdlz_putnamedrr_t *putnamedrr;
 	dns_dlz_writeablezone_t *writeable_zone;
 } sqlite3_instance_t;
 
@@ -94,23 +94,22 @@ typedef struct {
  * SQLite3 result set
  */
 typedef struct {
-	char **	     pazResult; /* Result of the query */
-	unsigned int pnRow;	/* Number of result rows */
-	unsigned int pnColumn;	/* Number of result columns */
-	unsigned int curRow;	/* Current row */
-	char *	     pzErrmsg;	/* Error message */
+	char **pazResult;      /* Result of the query */
+	unsigned int pnRow;    /* Number of result rows */
+	unsigned int pnColumn; /* Number of result columns */
+	unsigned int curRow;   /* Current row */
+	char *pzErrmsg;	       /* Error message */
 } sqlite3_res_t;
 
 /* forward references */
-isc_result_t
-dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
-	       dns_clientinfo_t *clientinfo);
+isc_result_t dlz_findzonedb(void *dbdata, const char *name,
+			    dns_clientinfomethods_t *methods,
+			    dns_clientinfo_t *clientinfo);
 
-void
-dlz_destroy(void *dbdata);
+void dlz_destroy(void *dbdata);
 
-static void
-b9_add_helper(sqlite3_instance_t *db, const char *helper_name, void *ptr);
+static void b9_add_helper(sqlite3_instance_t *db, const char *helper_name,
+			  void *ptr);
 
 /*
  * Private methods
@@ -167,7 +166,7 @@ static dbinstance_t *
 sqlite3_find_avail(sqlite3_instance_t *sqlite3)
 {
 	dbinstance_t *dbi = NULL, *head;
-	int	      count = 0;
+	int count = 0;
 
 	/* get top of list */
 	head = dbi = DLZ_LIST_HEAD(*(sqlite3->db));
@@ -206,8 +205,8 @@ sqlite3_find_avail(sqlite3_instance_t *sqlite3)
 static char *
 escape_string(const char *instr)
 {
-	char *	     outstr;
-	char *	     ptr;
+	char *outstr;
+	char *ptr;
 	unsigned int len;
 	unsigned int tlen = 0;
 	unsigned int atlen = 0;
@@ -255,17 +254,18 @@ static isc_result_t
 sqlite3_get_resultset(const char *zone, const char *record, const char *client,
 		      unsigned int query, void *dbdata, sqlite3_res_t **rsp)
 {
-	isc_result_t	    result;
-	dbinstance_t *	    dbi = NULL;
+	isc_result_t result;
+	dbinstance_t *dbi = NULL;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
-	char *		    querystring = NULL;
-	sqlite3_res_t *	    rs = NULL;
-	unsigned int	    i = 0;
-	unsigned int	    j = 0;
-	int		    qres = 0;
+	char *querystring = NULL;
+	sqlite3_res_t *rs = NULL;
+	unsigned int i = 0;
+	unsigned int j = 0;
+	int qres = 0;
 
 	if ((query == COUNTZONE && rsp != NULL) ||
-	    (query != COUNTZONE && (rsp == NULL || *rsp != NULL))) {
+	    (query != COUNTZONE && (rsp == NULL || *rsp != NULL)))
+	{
 		db->log(ISC_LOG_DEBUG(2), "Invalid result set pointer.");
 		result = ISC_R_FAILURE;
 		goto cleanup;
@@ -523,12 +523,12 @@ sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
 		   sqlite3_res_t *rs)
 {
 	isc_result_t result = ISC_R_NOTFOUND;
-	char **	     row;
+	char **row;
 	unsigned int fields;
 	unsigned int i, j;
-	char *	     tmpString;
-	char *	     endp;
-	int	     ttl;
+	char *tmpString;
+	char *endp;
+	int ttl;
 
 	row = sqlite3_fetch_row(rs);	 /* get a row from the result set */
 	fields = sqlite3_num_fields(rs); /* how many columns in result set */
@@ -635,9 +635,9 @@ isc_result_t
 dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo)
 {
-	isc_result_t	    result;
-	sqlite3_res_t *	    rs = NULL;
-	sqlite3_uint64	    rows;
+	isc_result_t result;
+	sqlite3_res_t *rs = NULL;
+	sqlite3_uint64 rows;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
 
 	UNUSED(methods);
@@ -673,10 +673,10 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 isc_result_t
 dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
 {
-	isc_result_t	    result;
+	isc_result_t result;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
-	sqlite3_res_t *	    rs = NULL;
-	sqlite3_uint64	    rows;
+	sqlite3_res_t *rs = NULL;
+	sqlite3_uint64 rows;
 
 	/* first check if the zone is supported by the database. */
 	result = dlz_findzonedb(dbdata, name, NULL, NULL);
@@ -726,15 +726,15 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
 isc_result_t
 dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 {
-	isc_result_t	    result;
+	isc_result_t result;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
-	sqlite3_res_t *	    rs = NULL;
-	char **		    row;
-	unsigned int	    fields;
-	unsigned int	    j;
-	char *		    tmpString;
-	char *		    endp;
-	int		    ttl;
+	sqlite3_res_t *rs = NULL;
+	char **row;
+	unsigned int fields;
+	unsigned int j;
+	char *tmpString;
+	char *endp;
+	int ttl;
 
 	result = sqlite3_get_resultset(zone, NULL, NULL, ALLNODES, dbdata, &rs);
 	if (result == ISC_R_NOTIMPLEMENTED) {
@@ -830,12 +830,12 @@ cleanup:
 isc_result_t
 dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
 {
-	isc_result_t	    result;
-	sqlite3_res_t *	    rs = NULL;
+	isc_result_t result;
+	sqlite3_res_t *rs = NULL;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
 
-	result =
-		sqlite3_get_resultset(zone, NULL, NULL, AUTHORITY, dbdata, &rs);
+	result = sqlite3_get_resultset(zone, NULL, NULL, AUTHORITY, dbdata,
+				       &rs);
 	if (result == ISC_R_NOTIMPLEMENTED) {
 		return (result);
 	}
@@ -862,8 +862,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
 	   dns_clientinfo_t *clientinfo)
 {
-	isc_result_t	    result;
-	sqlite3_res_t *	    rs = NULL;
+	isc_result_t result;
+	sqlite3_res_t *rs = NULL;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
 
 	UNUSED(methods);
@@ -895,13 +895,13 @@ isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	   ...)
 {
-	isc_result_t	    result = ISC_R_FAILURE;
+	isc_result_t result = ISC_R_FAILURE;
 	sqlite3_instance_t *s3 = NULL;
-	dbinstance_t *	    dbi = NULL;
-	sqlite3 *	    dbc = NULL;
-	char *		    tmp = NULL;
-	char *		    endp;
-	const char *	    helper_name;
+	dbinstance_t *dbi = NULL;
+	sqlite3 *dbc = NULL;
+	char *tmp = NULL;
+	char *endp;
+	const char *helper_name;
 #if SQLITE3_VERSION_ID >= 50000
 	my_bool auto_reconnect = 1;
 #endif /* if SQLITE3_VERSION_ID >= 50000 */

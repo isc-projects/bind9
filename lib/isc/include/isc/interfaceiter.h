@@ -56,9 +56,9 @@ struct isc_interface {
 /*@{*/
 /*! Interface flags. */
 
-#define INTERFACE_F_UP 0x00000001U
+#define INTERFACE_F_UP		 0x00000001U
 #define INTERFACE_F_POINTTOPOINT 0x00000002U
-#define INTERFACE_F_LOOPBACK 0x00000004U
+#define INTERFACE_F_LOOPBACK	 0x00000004U
 /*@}*/
 
 /***

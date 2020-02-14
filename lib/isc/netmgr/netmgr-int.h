@@ -65,7 +65,7 @@ typedef struct isc__networker {
  * connections we have peer address here, so both TCP and UDP can be
  * handled with a simple send-like function
  */
-#define NMHANDLE_MAGIC ISC_MAGIC('N', 'M', 'H', 'D')
+#define NMHANDLE_MAGIC	  ISC_MAGIC('N', 'M', 'H', 'D')
 #define VALID_NMHANDLE(t) ISC_MAGIC_VALID(t, NMHANDLE_MAGIC)
 
 typedef void (*isc__nm_closecb)(isc_nmhandle_t *);
@@ -160,7 +160,7 @@ typedef union {
  * always point to its parent.  Note that we always allocate more than
  * sizeof(struct) because we make room for different req types;
  */
-#define UVREQ_MAGIC ISC_MAGIC('N', 'M', 'U', 'R')
+#define UVREQ_MAGIC    ISC_MAGIC('N', 'M', 'U', 'R')
 #define VALID_UVREQ(t) ISC_MAGIC_VALID(t, UVREQ_MAGIC)
 
 typedef struct isc__nm_uvreq {
@@ -253,7 +253,7 @@ typedef union {
 /*
  * Network manager
  */
-#define NM_MAGIC ISC_MAGIC('N', 'E', 'T', 'M')
+#define NM_MAGIC    ISC_MAGIC('N', 'E', 'T', 'M')
 #define VALID_NM(t) ISC_MAGIC_VALID(t, NM_MAGIC)
 
 struct isc_nm {
@@ -319,7 +319,7 @@ typedef enum isc_nmsocket_type {
  * A universal structure for either a single socket or a group of
  * dup'd/SO_REUSE_PORT-using sockets listening on the same interface.
  */
-#define NMSOCK_MAGIC ISC_MAGIC('N', 'M', 'S', 'K')
+#define NMSOCK_MAGIC	ISC_MAGIC('N', 'M', 'S', 'K')
 #define VALID_NMSOCK(t) ISC_MAGIC_VALID(t, NMSOCK_MAGIC)
 
 /*%

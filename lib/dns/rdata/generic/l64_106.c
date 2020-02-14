@@ -18,9 +18,9 @@
 
 #define RRTYPE_L64_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_l64(ARGS_FROMTEXT)
-{
-	isc_token_t   token;
+static inline isc_result_t
+fromtext_l64(ARGS_FROMTEXT) {
+	isc_token_t token;
 	unsigned char locator[NS_LOCATORSZ];
 
 	REQUIRE(type == dns_rdatatype_l64);
@@ -47,10 +47,10 @@ static inline isc_result_t fromtext_l64(ARGS_FROMTEXT)
 	return (mem_tobuffer(target, locator, NS_LOCATORSZ));
 }
 
-static inline isc_result_t totext_l64(ARGS_TOTEXT)
-{
-	isc_region_t   region;
-	char	       buf[sizeof("xxxx:xxxx:xxxx:xxxx")];
+static inline isc_result_t
+totext_l64(ARGS_TOTEXT) {
+	isc_region_t region;
+	char buf[sizeof("xxxx:xxxx:xxxx:xxxx")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == dns_rdatatype_l64);
@@ -74,8 +74,8 @@ static inline isc_result_t totext_l64(ARGS_TOTEXT)
 	return (str_totext(buf, target));
 }
 
-static inline isc_result_t fromwire_l64(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_l64(ARGS_FROMWIRE) {
 	isc_region_t sregion;
 
 	REQUIRE(type == dns_rdatatype_l64);
@@ -93,8 +93,8 @@ static inline isc_result_t fromwire_l64(ARGS_FROMWIRE)
 	return (mem_tobuffer(target, sregion.base, sregion.length));
 }
 
-static inline isc_result_t towire_l64(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_l64(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_l64);
 	REQUIRE(rdata->length == 10);
 
@@ -103,8 +103,8 @@ static inline isc_result_t towire_l64(ARGS_TOWIRE)
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int compare_l64(ARGS_COMPARE)
-{
+static inline int
+compare_l64(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -119,8 +119,8 @@ static inline int compare_l64(ARGS_COMPARE)
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t fromstruct_l64(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_l64(ARGS_FROMSTRUCT) {
 	dns_rdata_l64_t *l64 = source;
 
 	REQUIRE(type == dns_rdatatype_l64);
@@ -135,9 +135,9 @@ static inline isc_result_t fromstruct_l64(ARGS_FROMSTRUCT)
 	return (mem_tobuffer(target, l64->l64, sizeof(l64->l64)));
 }
 
-static inline isc_result_t tostruct_l64(ARGS_TOSTRUCT)
-{
-	isc_region_t	 region;
+static inline isc_result_t
+tostruct_l64(ARGS_TOSTRUCT) {
+	isc_region_t region;
 	dns_rdata_l64_t *l64 = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_l64);
@@ -156,8 +156,8 @@ static inline isc_result_t tostruct_l64(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_l64(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_l64(ARGS_FREESTRUCT) {
 	dns_rdata_l64_t *l64 = source;
 
 	REQUIRE(l64 != NULL);
@@ -166,8 +166,8 @@ static inline void freestruct_l64(ARGS_FREESTRUCT)
 	return;
 }
 
-static inline isc_result_t additionaldata_l64(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_l64(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_l64);
 	REQUIRE(rdata->length == 10);
 
@@ -178,8 +178,8 @@ static inline isc_result_t additionaldata_l64(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_l64(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_l64(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_l64);
@@ -190,8 +190,8 @@ static inline isc_result_t digest_l64(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_l64(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_l64(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_l64);
 
 	UNUSED(name);
@@ -202,8 +202,8 @@ static inline bool checkowner_l64(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_l64(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_l64(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_l64);
 	REQUIRE(rdata->length == 10);
 
@@ -214,8 +214,8 @@ static inline bool checknames_l64(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_l64(ARGS_COMPARE)
-{
+static inline int
+casecompare_l64(ARGS_COMPARE) {
 	return (compare_l64(rdata1, rdata2));
 }
 

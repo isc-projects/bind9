@@ -50,7 +50,7 @@
 #define DST_AS_STR(t) ((t).value.as_textregion.base)
 
 #define PRIVATE_KEY_STR "Private-key-format:"
-#define ALGORITHM_STR "Algorithm:"
+#define ALGORITHM_STR	"Algorithm:"
 
 #define TIMING_NTAGS (DST_MAX_TIMES + 1)
 static const char *timetags[TIMING_NTAGS] = {
@@ -66,7 +66,7 @@ static const char *numerictags[NUMERIC_NTAGS] = {
 };
 
 struct parse_map {
-	const int   value;
+	const int value;
 	const char *tag;
 };
 
@@ -116,8 +116,7 @@ static struct parse_map map[] = { { TAG_RSA_MODULUS, "Modulus:" },
 				  { 0, NULL } };
 
 static int
-find_value(const char *s, const unsigned int alg)
-{
+find_value(const char *s, const unsigned int alg) {
 	int i;
 
 	for (i = 0; map[i].tag != NULL; i++) {
@@ -130,8 +129,7 @@ find_value(const char *s, const unsigned int alg)
 }
 
 static const char *
-find_tag(const int value)
-{
+find_tag(const int value) {
 	int i;
 
 	for (i = 0;; i++) {
@@ -144,8 +142,7 @@ find_tag(const int value)
 }
 
 static int
-find_metadata(const char *s, const char *tags[], int ntags)
-{
+find_metadata(const char *s, const char *tags[], int ntags) {
 	int i;
 
 	for (i = 0; i < ntags; i++) {
@@ -158,23 +155,20 @@ find_metadata(const char *s, const char *tags[], int ntags)
 }
 
 static int
-find_timedata(const char *s)
-{
+find_timedata(const char *s) {
 	return (find_metadata(s, timetags, TIMING_NTAGS));
 }
 
 static int
-find_numericdata(const char *s)
-{
+find_numericdata(const char *s) {
 	return (find_metadata(s, numerictags, NUMERIC_NTAGS));
 }
 
 static int
-check_rsa(const dst_private_t *priv, bool external)
-{
-	int	     i, j;
-	bool	     have[RSA_NTAGS];
-	bool	     ok;
+check_rsa(const dst_private_t *priv, bool external) {
+	int i, j;
+	bool have[RSA_NTAGS];
+	bool ok;
 	unsigned int mask;
 
 	if (external) {
@@ -217,8 +211,7 @@ check_rsa(const dst_private_t *priv, bool external)
 }
 
 static int
-check_dh(const dst_private_t *priv)
-{
+check_dh(const dst_private_t *priv) {
 	int i, j;
 	if (priv->nelements != DH_NTAGS) {
 		return (-1);
@@ -237,11 +230,10 @@ check_dh(const dst_private_t *priv)
 }
 
 static int
-check_ecdsa(const dst_private_t *priv, bool external)
-{
-	int	     i, j;
-	bool	     have[ECDSA_NTAGS];
-	bool	     ok;
+check_ecdsa(const dst_private_t *priv, bool external) {
+	int i, j;
+	bool have[ECDSA_NTAGS];
+	bool ok;
 	unsigned int mask;
 
 	if (external) {
@@ -274,11 +266,10 @@ check_ecdsa(const dst_private_t *priv, bool external)
 }
 
 static int
-check_eddsa(const dst_private_t *priv, bool external)
-{
-	int	     i, j;
-	bool	     have[EDDSA_NTAGS];
-	bool	     ok;
+check_eddsa(const dst_private_t *priv, bool external) {
+	int i, j;
+	bool have[EDDSA_NTAGS];
+	bool ok;
 	unsigned int mask;
 
 	if (external) {
@@ -311,8 +302,7 @@ check_eddsa(const dst_private_t *priv, bool external)
 }
 
 static int
-check_hmac_md5(const dst_private_t *priv, bool old)
-{
+check_hmac_md5(const dst_private_t *priv, bool old) {
 	int i, j;
 
 	if (priv->nelements != HMACMD5_NTAGS) {
@@ -321,7 +311,8 @@ check_hmac_md5(const dst_private_t *priv, bool old)
 		 * the old format return success.
 		 */
 		if (old && priv->nelements == OLD_HMACMD5_NTAGS &&
-		    priv->elements[0].tag == TAG_HMACMD5_KEY) {
+		    priv->elements[0].tag == TAG_HMACMD5_KEY)
+		{
 			return (0);
 		}
 		return (-1);
@@ -343,8 +334,8 @@ check_hmac_md5(const dst_private_t *priv, bool old)
 }
 
 static int
-check_hmac_sha(const dst_private_t *priv, unsigned int ntags, unsigned int alg)
-{
+check_hmac_sha(const dst_private_t *priv, unsigned int ntags,
+	       unsigned int alg) {
 	unsigned int i, j;
 	if (priv->nelements != ntags) {
 		return (-1);
@@ -364,8 +355,7 @@ check_hmac_sha(const dst_private_t *priv, unsigned int ntags, unsigned int alg)
 
 static int
 check_data(const dst_private_t *priv, const unsigned int alg, bool old,
-	   bool external)
-{
+	   bool external) {
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (alg) {
 	case DST_ALG_RSA:
@@ -400,8 +390,7 @@ check_data(const dst_private_t *priv, const unsigned int alg, bool old,
 }
 
 void
-dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx)
-{
+dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx) {
 	int i;
 
 	if (priv == NULL) {
@@ -419,16 +408,15 @@ dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx)
 
 isc_result_t
 dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
-		      isc_mem_t *mctx, dst_private_t *priv)
-{
-	int	       n = 0, major, minor, check;
-	isc_buffer_t   b;
-	isc_token_t    token;
+		      isc_mem_t *mctx, dst_private_t *priv) {
+	int n = 0, major, minor, check;
+	isc_buffer_t b;
+	isc_token_t token;
 	unsigned char *data = NULL;
-	unsigned int   opt = ISC_LEXOPT_EOL;
-	isc_stdtime_t  when;
-	isc_result_t   ret;
-	bool	       external = false;
+	unsigned int opt = ISC_LEXOPT_EOL;
+	isc_stdtime_t when;
+	isc_result_t ret;
+	bool external = false;
 
 	REQUIRE(priv != NULL);
 
@@ -456,14 +444,15 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 	 */
 	NEXTTOKEN(lex, opt, &token);
 	if (token.type != isc_tokentype_string ||
-	    strcmp(DST_AS_STR(token), PRIVATE_KEY_STR) != 0) {
+	    strcmp(DST_AS_STR(token), PRIVATE_KEY_STR) != 0)
+	{
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
 	}
 
 	NEXTTOKEN(lex, opt, &token);
-	if (token.type != isc_tokentype_string ||
-	    (DST_AS_STR(token))[0] != 'v') {
+	if (token.type != isc_tokentype_string || (DST_AS_STR(token))[0] != 'v')
+	{
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
 	}
@@ -489,14 +478,16 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 	 */
 	NEXTTOKEN(lex, opt, &token);
 	if (token.type != isc_tokentype_string ||
-	    strcmp(DST_AS_STR(token), ALGORITHM_STR) != 0) {
+	    strcmp(DST_AS_STR(token), ALGORITHM_STR) != 0)
+	{
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
 	}
 
 	NEXTTOKEN(lex, opt | ISC_LEXOPT_NUMBER, &token);
 	if (token.type != isc_tokentype_number ||
-	    token.value.as_ulong != (unsigned long)dst_key_alg(key)) {
+	    token.value.as_ulong != (unsigned long)dst_key_alg(key))
+	{
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
 	}
@@ -507,7 +498,7 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 	 * Read the key data.
 	 */
 	for (n = 0; n < MAXFIELDS; n++) {
-		int	     tag;
+		int tag;
 		isc_region_t r;
 		do {
 			ret = isc_lex_gettoken(lex, opt, &token);
@@ -624,20 +615,19 @@ fail:
 
 isc_result_t
 dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
-			  const char *directory)
-{
-	FILE *	       fp;
-	isc_result_t   result;
-	char	       filename[NAME_MAX];
-	char	       buffer[MAXFIELDSIZE * 2];
+			  const char *directory) {
+	FILE *fp;
+	isc_result_t result;
+	char filename[NAME_MAX];
+	char buffer[MAXFIELDSIZE * 2];
 	isc_fsaccess_t access;
-	isc_stdtime_t  when;
-	uint32_t       value;
-	isc_buffer_t   b;
-	isc_region_t   r;
-	int	       major, minor;
-	mode_t	       mode;
-	int	       i, ret;
+	isc_stdtime_t when;
+	uint32_t value;
+	isc_buffer_t b;
+	isc_region_t r;
+	int major, minor;
+	mode_t mode;
+	int i, ret;
 
 	REQUIRE(priv != NULL);
 

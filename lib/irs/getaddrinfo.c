@@ -153,41 +153,35 @@
 #include <irs/netdb.h>
 #include <irs/resconf.h>
 
-#define SA(addr) ((struct sockaddr *)(addr))
-#define SIN(addr) ((struct sockaddr_in *)(addr))
-#define SIN6(addr) ((struct sockaddr_in6 *)(addr))
+#define SA(addr)     ((struct sockaddr *)(addr))
+#define SIN(addr)    ((struct sockaddr_in *)(addr))
+#define SIN6(addr)   ((struct sockaddr_in6 *)(addr))
 #define SLOCAL(addr) ((struct sockaddr_un *)(addr))
 
 /*! \struct addrinfo
  */
-static struct addrinfo *
-ai_concat(struct addrinfo *ai1, struct addrinfo *ai2),
+static struct addrinfo *ai_concat(struct addrinfo *ai1, struct addrinfo *ai2),
 	*ai_reverse(struct addrinfo *oai),
 	*ai_clone(struct addrinfo *oai, int family),
 	*ai_alloc(int family, int addrlen);
 #ifdef AF_LOCAL
-static int
-get_local(const char *name, int socktype, struct addrinfo **res);
+static int get_local(const char *name, int socktype, struct addrinfo **res);
 #endif /* ifdef AF_LOCAL */
 
-static int
-resolve_name(int family, const char *hostname, int flags, struct addrinfo **aip,
-	     int socktype, int port);
+static int resolve_name(int family, const char *hostname, int flags,
+			struct addrinfo **aip, int socktype, int port);
 
-static int
-add_ipv4(const char *hostname, int flags, struct addrinfo **aip, int socktype,
-	 int port);
-static int
-add_ipv6(const char *hostname, int flags, struct addrinfo **aip, int socktype,
-	 int port);
-static void
-set_order(int, int (**)(const char *, int, struct addrinfo **, int, int));
-static void
-_freeaddrinfo(struct addrinfo *ai);
+static int add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
+		    int socktype, int port);
+static int add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
+		    int socktype, int port);
+static void set_order(int, int (**)(const char *, int, struct addrinfo **, int,
+				    int));
+static void _freeaddrinfo(struct addrinfo *ai);
 
 #define FOUND_IPV4 0x1
 #define FOUND_IPV6 0x2
-#define FOUND_MAX 2
+#define FOUND_MAX  2
 
 /*%
  * Try converting the scope identifier in 'src' to a network interface index.
@@ -195,8 +189,7 @@ _freeaddrinfo(struct addrinfo *ai);
  * failure, return false.
  */
 static bool
-parse_scopeid(const char *src, uint32_t *dst)
-{
+parse_scopeid(const char *src, uint32_t *dst) {
 	uint32_t scopeid = 0;
 
 	REQUIRE(src != NULL);
@@ -238,14 +231,13 @@ parse_scopeid(const char *src, uint32_t *dst)
  */
 int
 getaddrinfo(const char *hostname, const char *servname,
-	    const struct addrinfo *hints, struct addrinfo **res)
-{
-	struct servent * sp;
-	const char *	 proto;
-	int		 family, socktype, flags, protocol;
+	    const struct addrinfo *hints, struct addrinfo **res) {
+	struct servent *sp;
+	const char *proto;
+	int family, socktype, flags, protocol;
 	struct addrinfo *ai, *ai_list;
-	int		 err = 0;
-	int		 port, i;
+	int err = 0;
+	int port, i;
 	int (*net_order[FOUND_MAX + 1])(const char *, int, struct addrinfo **,
 					int, int);
 
@@ -259,7 +251,8 @@ getaddrinfo(const char *hostname, const char *servname,
 			return (EAI_BADFLAGS);
 		}
 		if (hints->ai_addrlen || hints->ai_canonname ||
-		    hints->ai_addr || hints->ai_next) {
+		    hints->ai_addr || hints->ai_next)
+		{
 			errno = EINVAL;
 			return (EAI_SYSTEM);
 		}
@@ -327,12 +320,14 @@ getaddrinfo(const char *hostname, const char *servname,
 	 */
 
 	if (hostname != NULL &&
-	    (family == AF_LOCAL || (family == 0 && *hostname == '/'))) {
+	    (family == AF_LOCAL || (family == 0 && *hostname == '/')))
+	{
 		return (get_local(hostname, socktype, res));
 	}
 
 	if (servname != NULL &&
-	    (family == AF_LOCAL || (family == 0 && *servname == '/'))) {
+	    (family == AF_LOCAL || (family == 0 && *servname == '/')))
+	{
 		return (get_local(servname, socktype, res));
 	}
 #endif /* ifdef AF_LOCAL */
@@ -361,7 +356,7 @@ getaddrinfo(const char *hostname, const char *servname,
 			port = htons((unsigned short)port);
 		} else {
 #ifdef _WIN32
-			WORD	wVersionRequested;
+			WORD wVersionRequested;
 			WSADATA wsaData;
 
 			wVersionRequested = MAKEWORD(2, 0);
@@ -436,12 +431,12 @@ getaddrinfo(const char *hostname, const char *servname,
 	 * a domain name, and vice versa.  Checking for both numerics here
 	 * avoids that.
 	 */
-	if (hostname != NULL &&
-	    (family == 0 || (flags & AI_NUMERICHOST) != 0)) {
-		char	 abuf[sizeof(struct in6_addr)];
-		char	 nbuf[NI_MAXHOST];
-		int	 addrsize, addroff;
-		char	 ntmp[NI_MAXHOST];
+	if (hostname != NULL && (family == 0 || (flags & AI_NUMERICHOST) != 0))
+	{
+		char abuf[sizeof(struct in6_addr)];
+		char nbuf[NI_MAXHOST];
+		int addrsize, addroff;
+		char ntmp[NI_MAXHOST];
 		uint32_t scopeid = 0;
 
 		/*
@@ -512,7 +507,8 @@ getaddrinfo(const char *hostname, const char *servname,
 				if (getnameinfo(ai->ai_addr,
 						(socklen_t)ai->ai_addrlen, nbuf,
 						sizeof(nbuf), NULL, 0,
-						NI_NUMERICHOST) == 0) {
+						NI_NUMERICHOST) == 0)
+				{
 					ai->ai_canonname = strdup(nbuf);
 					if (ai->ai_canonname == NULL) {
 						_freeaddrinfo(ai);
@@ -566,46 +562,45 @@ done:
 
 typedef struct gai_restrans {
 	dns_clientrestrans_t *xid;
-	bool		      is_inprogress;
-	int		      error;
-	struct addrinfo	      ai_sentinel;
-	struct gai_resstate * resstate;
+	bool is_inprogress;
+	int error;
+	struct addrinfo ai_sentinel;
+	struct gai_resstate *resstate;
 } gai_restrans_t;
 
 typedef struct gai_resstate {
-	isc_mem_t *	      mctx;
+	isc_mem_t *mctx;
 	struct gai_statehead *head;
-	dns_fixedname_t	      fixedname;
-	dns_name_t *	      qname;
-	gai_restrans_t *      trans4;
-	gai_restrans_t *      trans6;
+	dns_fixedname_t fixedname;
+	dns_name_t *qname;
+	gai_restrans_t *trans4;
+	gai_restrans_t *trans6;
 	ISC_LINK(struct gai_resstate) link;
 } gai_resstate_t;
 
 typedef struct gai_statehead {
-	int	      ai_family;
-	int	      ai_flags;
-	int	      ai_socktype;
-	int	      ai_port;
+	int ai_family;
+	int ai_flags;
+	int ai_socktype;
+	int ai_port;
 	isc_appctx_t *actx;
 	dns_client_t *dnsclient;
-	isc_mutex_t   list_lock;
+	isc_mutex_t list_lock;
 	ISC_LIST(struct gai_resstate) resstates;
 	unsigned int activestates;
 } gai_statehead_t;
 
 static isc_result_t
 make_resstate(isc_mem_t *mctx, gai_statehead_t *head, const char *hostname,
-	      const char *domain, gai_resstate_t **statep)
-{
-	isc_result_t	result;
+	      const char *domain, gai_resstate_t **statep) {
+	isc_result_t result;
 	gai_resstate_t *state;
 	dns_fixedname_t fixeddomain;
-	dns_name_t *	qdomain;
-	unsigned int	namelen;
-	isc_buffer_t	b;
-	bool		need_v4 = false;
-	bool		need_v6 = false;
+	dns_name_t *qdomain;
+	unsigned int namelen;
+	isc_buffer_t b;
+	bool need_v4 = false;
+	bool need_v6 = false;
 
 	state = isc_mem_get(mctx, sizeof(*state));
 
@@ -668,12 +663,11 @@ make_resstate(isc_mem_t *mctx, gai_statehead_t *head, const char *hostname,
 
 static isc_result_t
 make_resstates(isc_mem_t *mctx, const char *hostname, gai_statehead_t *head,
-	       irs_resconf_t *resconf)
-{
-	isc_result_t		  result;
+	       irs_resconf_t *resconf) {
+	isc_result_t result;
 	irs_resconf_searchlist_t *searchlist;
-	irs_resconf_search_t *	  searchent;
-	gai_resstate_t *	  resstate, *resstate0;
+	irs_resconf_search_t *searchent;
+	gai_resstate_t *resstate, *resstate0;
 
 	resstate0 = NULL;
 	result = make_resstate(mctx, head, hostname, ".", &resstate0);
@@ -683,7 +677,8 @@ make_resstates(isc_mem_t *mctx, const char *hostname, gai_statehead_t *head,
 
 	searchlist = irs_resconf_getsearchlist(resconf);
 	for (searchent = ISC_LIST_HEAD(*searchlist); searchent != NULL;
-	     searchent = ISC_LIST_NEXT(searchent, link)) {
+	     searchent = ISC_LIST_NEXT(searchent, link))
+	{
 		resstate = NULL;
 		result = make_resstate(mctx, head, hostname,
 				       (const char *)searchent->domain,
@@ -729,15 +724,14 @@ make_resstates(isc_mem_t *mctx, const char *hostname, gai_statehead_t *head,
 }
 
 static void
-process_answer(isc_task_t *task, isc_event_t *event)
-{
-	int		      error = 0, family;
-	gai_restrans_t *      trans = event->ev_arg;
-	gai_resstate_t *      resstate;
+process_answer(isc_task_t *task, isc_event_t *event) {
+	int error = 0, family;
+	gai_restrans_t *trans = event->ev_arg;
+	gai_resstate_t *resstate;
 	dns_clientresevent_t *rev = (dns_clientresevent_t *)event;
-	dns_rdatatype_t	      qtype;
-	dns_name_t *	      name;
-	bool		      wantcname;
+	dns_rdatatype_t qtype;
+	dns_name_t *name;
+	bool wantcname;
 
 	REQUIRE(trans != NULL);
 	resstate = trans->resstate;
@@ -785,10 +779,11 @@ process_answer(isc_task_t *task, isc_event_t *event)
 
 	/* Parse the response and construct the addrinfo chain */
 	for (name = ISC_LIST_HEAD(rev->answerlist); name != NULL;
-	     name = ISC_LIST_NEXT(name, link)) {
-		isc_result_t	result;
+	     name = ISC_LIST_NEXT(name, link))
+	{
+		isc_result_t result;
 		dns_rdataset_t *rdataset;
-		char		cname[1024];
+		char cname[1024];
 
 		if (wantcname) {
 			isc_buffer_t b;
@@ -803,7 +798,8 @@ process_answer(isc_task_t *task, isc_event_t *event)
 		}
 
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
 			if (!dns_rdataset_isassociated(rdataset)) {
 				continue;
 			}
@@ -813,10 +809,11 @@ process_answer(isc_task_t *task, isc_event_t *event)
 
 			for (result = dns_rdataset_first(rdataset);
 			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(rdataset)) {
-				struct addrinfo *   ai;
-				dns_rdata_t	    rdata;
-				dns_rdata_in_a_t    rdata_a;
+			     result = dns_rdataset_next(rdataset))
+			{
+				struct addrinfo *ai;
+				dns_rdata_t rdata;
+				dns_rdata_in_a_t rdata_a;
 				dns_rdata_in_aaaa_t rdata_aaaa;
 
 				ai = ai_alloc(
@@ -894,7 +891,8 @@ done:
 
 	/* Check whether we are done */
 	if ((resstate->trans4 == NULL || !resstate->trans4->is_inprogress) &&
-	    (resstate->trans6 == NULL || !resstate->trans6->is_inprogress)) {
+	    (resstate->trans6 == NULL || !resstate->trans6->is_inprogress))
+	{
 		/*
 		 * We're done for this state.  If there is no other outstanding
 		 * state, we can exit.
@@ -916,12 +914,14 @@ done:
 			if ((resstate->trans4 != NULL &&
 			     resstate->trans4->ai_sentinel.ai_next != NULL) ||
 			    (resstate->trans6 != NULL &&
-			     resstate->trans6->ai_sentinel.ai_next != NULL)) {
+			     resstate->trans6->ai_sentinel.ai_next != NULL))
+			{
 				gai_resstate_t *rest;
 
 				for (rest = ISC_LIST_NEXT(resstate, link);
 				     rest != NULL;
-				     rest = ISC_LIST_NEXT(rest, link)) {
+				     rest = ISC_LIST_NEXT(rest, link))
+				{
 					if (rest->trans4 != NULL &&
 					    rest->trans4->xid != NULL) {
 						dns_client_cancelresolve(
@@ -951,20 +951,19 @@ done:
 
 static int
 resolve_name(int family, const char *hostname, int flags, struct addrinfo **aip,
-	     int socktype, int port)
-{
-	isc_result_t	result;
-	irs_context_t * irsctx;
-	irs_resconf_t * conf;
-	isc_mem_t *	mctx;
-	isc_appctx_t *	actx;
-	isc_task_t *	task;
-	int		terror = 0;
-	int		error = 0;
-	dns_client_t *	client;
+	     int socktype, int port) {
+	isc_result_t result;
+	irs_context_t *irsctx;
+	irs_resconf_t *conf;
+	isc_mem_t *mctx;
+	isc_appctx_t *actx;
+	isc_task_t *task;
+	int terror = 0;
+	int error = 0;
+	dns_client_t *client;
 	gai_resstate_t *resstate;
 	gai_statehead_t head;
-	bool		all_fail = true;
+	bool all_fail = true;
 
 	/* get IRS context and the associated parameters */
 	irsctx = NULL;
@@ -998,7 +997,8 @@ resolve_name(int family, const char *hostname, int flags, struct addrinfo **aip,
 
 	LOCK(&head.list_lock);
 	for (resstate = ISC_LIST_HEAD(head.resstates); resstate != NULL;
-	     resstate = ISC_LIST_NEXT(resstate, link)) {
+	     resstate = ISC_LIST_NEXT(resstate, link))
+	{
 		if (resstate->trans4 != NULL) {
 			result = dns_client_startresolve(
 				client, resstate->qname, dns_rdataclass_in,
@@ -1106,10 +1106,9 @@ resolve_name(int family, const char *hostname, int flags, struct addrinfo **aip,
 
 static void
 set_order(int family,
-	  int (**net_order)(const char *, int, struct addrinfo **, int, int))
-{
+	  int (**net_order)(const char *, int, struct addrinfo **, int, int)) {
 	char *order, *tok, *last;
-	int   found;
+	int found;
 
 	if (family) {
 		switch (family) {
@@ -1160,8 +1159,7 @@ static char v4_loop[4] = { 127, 0, 0, 1 };
 
 static int
 add_ipv4(const char *hostname, int flags, struct addrinfo **aip, int socktype,
-	 int port)
-{
+	 int port) {
 	struct addrinfo *ai;
 
 	UNUSED(hostname);
@@ -1184,8 +1182,7 @@ static char v6_loop[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 
 static int
 add_ipv6(const char *hostname, int flags, struct addrinfo **aip, int socktype,
-	 int port)
-{
+	 int port) {
 	struct addrinfo *ai;
 
 	UNUSED(hostname);
@@ -1206,14 +1203,12 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip, int socktype,
 
 /*% Free address info. */
 void
-freeaddrinfo(struct addrinfo *ai)
-{
+freeaddrinfo(struct addrinfo *ai) {
 	_freeaddrinfo(ai);
 }
 
 static void
-_freeaddrinfo(struct addrinfo *ai)
-{
+_freeaddrinfo(struct addrinfo *ai) {
 	struct addrinfo *ai_next;
 
 	while (ai != NULL) {
@@ -1231,9 +1226,8 @@ _freeaddrinfo(struct addrinfo *ai)
 
 #ifdef AF_LOCAL
 static int
-get_local(const char *name, int socktype, struct addrinfo **res)
-{
-	struct addrinfo *   ai;
+get_local(const char *name, int socktype, struct addrinfo **res) {
+	struct addrinfo *ai;
 	struct sockaddr_un *slocal;
 
 	if (socktype == 0) {
@@ -1270,8 +1264,7 @@ get_local(const char *name, int socktype, struct addrinfo **res)
  * and everything else is initialized to zero.
  */
 static struct addrinfo *
-ai_alloc(int family, int addrlen)
-{
+ai_alloc(int family, int addrlen) {
 	struct addrinfo *ai;
 
 	ai = (struct addrinfo *)calloc(1, sizeof(*ai));
@@ -1294,8 +1287,7 @@ ai_alloc(int family, int addrlen)
 }
 
 static struct addrinfo *
-ai_clone(struct addrinfo *oai, int family)
-{
+ai_clone(struct addrinfo *oai, int family) {
 	struct addrinfo *ai;
 
 	ai = ai_alloc(family,
@@ -1318,8 +1310,7 @@ ai_clone(struct addrinfo *oai, int family)
 }
 
 static struct addrinfo *
-ai_reverse(struct addrinfo *oai)
-{
+ai_reverse(struct addrinfo *oai) {
 	struct addrinfo *nai, *tai;
 
 	nai = NULL;
@@ -1340,8 +1331,7 @@ ai_reverse(struct addrinfo *oai)
 }
 
 static struct addrinfo *
-ai_concat(struct addrinfo *ai1, struct addrinfo *ai2)
-{
+ai_concat(struct addrinfo *ai1, struct addrinfo *ai2) {
 	struct addrinfo *ai_tmp;
 
 	if (ai1 == NULL) {
@@ -1351,7 +1341,8 @@ ai_concat(struct addrinfo *ai1, struct addrinfo *ai2)
 	}
 
 	for (ai_tmp = ai1; ai_tmp != NULL && ai_tmp->ai_next != NULL;
-	     ai_tmp = ai_tmp->ai_next) {
+	     ai_tmp = ai_tmp->ai_next)
+	{
 	}
 
 	ai_tmp->ai_next = ai2;

@@ -69,47 +69,35 @@
 
 /* shut up compiler warnings about no previous prototype */
 
-static void
-show_usage(void);
+static void show_usage(void);
 
-int
-getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey);
+int getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey);
 
-int
-gethost(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey);
+int gethost(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey);
 
-void
-bdb_cleanup(void);
+void bdb_cleanup(void);
 
-isc_result_t
-bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags);
+isc_result_t bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name,
+			int flags);
 
-void
-put_data(bool dns_data, char *input_key, char *input_data);
+void put_data(bool dns_data, char *input_key, char *input_data);
 
-void
-insert_data(void);
+void insert_data(void);
 
-isc_result_t
-openBDB(void);
+isc_result_t openBDB(void);
 
-isc_result_t
-open_lexer(void);
+isc_result_t open_lexer(void);
 
-void
-close_lexer(void);
+void close_lexer(void);
 
-isc_result_t
-bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata);
+isc_result_t bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey,
+			DBT *bdbdata);
 
-void
-operation_add(void);
+void operation_add(void);
 
-void
-operation_bulk(void);
+void operation_bulk(void);
 
-void
-operation_listOrDelete(bool dlt);
+void operation_listOrDelete(bool dlt);
 
 /*%
  * Maximum length of a single data line that
@@ -125,9 +113,9 @@ operation_listOrDelete(bool dlt);
  * database names change them here.
  */
 
-#define dlz_data "dns_data"
-#define dlz_zone "dns_zone"
-#define dlz_host "dns_host"
+#define dlz_data   "dns_data"
+#define dlz_zone   "dns_zone"
+#define dlz_host   "dns_host"
 #define dlz_client "dns_client"
 
 /*%
@@ -141,22 +129,22 @@ operation_listOrDelete(bool dlt);
 /* A struct to hold all the relevant info about the database */
 
 typedef struct bdb_instance {
-	DB_ENV *dbenv;	 /* BDB environment */
-	DB *	data;	 /* dns_data database handle */
-	DBC *	cursor;	 /* database cursor */
-	DBC *	cursor2; /* second cursor used during list operation. */
-	DBC *	cursor3; /* third cursor used during list operation */
-	DBC *	cursor4; /* fourth cursor used during list operation */
-	DB *	zone;	 /* zone database handle */
-	DB *	host;	 /* host database handle */
-	DB *	client;	 /* client database handle */
+	DB_ENV *dbenv; /* BDB environment */
+	DB *data;      /* dns_data database handle */
+	DBC *cursor;   /* database cursor */
+	DBC *cursor2;  /* second cursor used during list operation. */
+	DBC *cursor3;  /* third cursor used during list operation */
+	DBC *cursor4;  /* fourth cursor used during list operation */
+	DB *zone;      /* zone database handle */
+	DB *host;      /* host database handle */
+	DB *client;    /* client database handle */
 } bdb_instance_t;
 
 /* Possible operations */
 
 #define list 1 /* list data */
 #define dele 2 /* delete data */
-#define add 3  /* add a single piece of data */
+#define add  3 /* add a single piece of data */
 #define bulk 4 /* bulk load data */
 
 /*%
@@ -234,23 +222,23 @@ typedef struct bdb_instance {
 
 int operation = 0; /*%< operation to perform. */
 /*% allow new lock files or DB to be created. */
-bool  create_allowed = false;
+bool create_allowed = false;
 char *key = NULL; /*%< key to use in list & del operations */
 
 /*% dump DB in DLZBDB bulk format */
-bool	     list_everything = false;
+bool list_everything = false;
 unsigned int key_val; /*%< key as unsigned int used in list & del operations */
-char *	     zone = NULL;	 /*%< zone to use in list operations */
-char *	     host = NULL;	 /*%< host to use in list operations */
-char *	     c_zone = NULL;	 /*%< client zone to use in list operations */
-char *	     c_ip = NULL;	 /*%< client IP to use in list operations */
-char *	     a_data = NULL;	 /*%< data in add operation */
-char *	     bulk_file = NULL;	 /*%< bulk data file to load */
-char *	     db_envdir = NULL;	 /*%< BDB environment location  */
-char *	     db_file = NULL;	 /*%< BDB database file location. */
+char *zone = NULL;    /*%< zone to use in list operations */
+char *host = NULL;    /*%< host to use in list operations */
+char *c_zone = NULL;  /*%< client zone to use in list operations */
+char *c_ip = NULL;    /*%< client IP to use in list operations */
+char *a_data = NULL;  /*%< data in add operation */
+char *bulk_file = NULL;		 /*%< bulk data file to load */
+char *db_envdir = NULL;		 /*%< BDB environment location  */
+char *db_file = NULL;		 /*%< BDB database file location. */
 bdb_instance_t db;		 /* BDB instance we are operating on */
-isc_lex_t *    lexer = NULL;	 /*%< lexer for use to use in parsing input */
-isc_mem_t *    lex_mctx = NULL;	 /*%< memory context for lexer */
+isc_lex_t *lexer = NULL;	 /*%< lexer for use to use in parsing input */
+isc_mem_t *lex_mctx = NULL;	 /*%< memory context for lexer */
 char lex_data_buf[max_data_len]; /*%< data array to use for lex_buffer below */
 isc_buffer_t lex_buffer;	 /*%< buffer for lexer during add operation */
 
@@ -444,7 +432,8 @@ bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags)
 	}
 	/* open the database. */
 	if ((result = (*db_out)->open(*db_out, NULL, db_file, db_name, db_type,
-				      createFlag, 0)) != 0) {
+				      createFlag, 0)) != 0)
+	{
 		fprintf(stderr,
 			"BDB could not open %s database in %s. BDB error: %s",
 			db_name, db_file, db_strerror(result));
@@ -507,12 +496,12 @@ insert_data(void)
 							 * strings */
 
 	isc_result_t result;
-	isc_token_t  token; /* token from lexer */
-	bool	     loop = true;
-	bool	     have_czone = false;
-	char	     data_arr[max_data_len];
+	isc_token_t token; /* token from lexer */
+	bool loop = true;
+	bool have_czone = false;
+	char data_arr[max_data_len];
 	isc_buffer_t buf;
-	char	     data_arr2[max_data_len];
+	char data_arr2[max_data_len];
 	isc_buffer_t buf2;
 	char data_type = 'u'; /* u =unknown, b =bad token, d/D =DNS, c/C =client
 			       * IP */
@@ -536,7 +525,8 @@ insert_data(void)
 				 * input */
 				if (strlen(token.value.as_pointer) > 1 ||
 				    (data_type != 'd' && data_type != 'D' &&
-				     data_type != 'c' && data_type != 'C')) {
+				     data_type != 'c' && data_type != 'C'))
+				{
 					/* if not, set to 'b' so this line is
 					 * ignored. */
 					data_type = 'b';
@@ -575,8 +565,8 @@ insert_data(void)
 					/* add string terminator to buffer */
 					isc_buffer_putmem(&buf, "\0", 1);
 					put_data(true, NULL, (char *)&data_arr);
-				} else if (data_type == 'c' ||
-					   data_type == 'C') {
+				} else if (data_type == 'c' || data_type == 'C')
+				{
 					put_data(false, (char *)&data_arr,
 						 (char *)&data_arr2);
 				} else if (data_type == 'b') {
@@ -625,7 +615,7 @@ data_cleanup:
 isc_result_t
 openBDB(void)
 {
-	int	     bdbres;
+	int bdbres;
 	isc_result_t result;
 
 	/* create BDB environment  */
@@ -839,11 +829,11 @@ operation_bulk(void)
 isc_result_t
 bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata)
 {
-	int	   bdbres;
+	int bdbres;
 	db_recno_t recNum;
-	char *	   retkey = NULL, *retdata;
-	size_t	   retklen = 0, retdlen;
-	void *	   p;
+	char *retkey = NULL, *retdata;
+	size_t retklen = 0, retdlen;
+	void *p;
 
 	/* use a 5MB buffer for the bulk dump */
 	int buffer_size = 5 * 1024 * 1024;
@@ -922,11 +912,11 @@ bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata)
 void
 operation_listOrDelete(bool dlt)
 {
-	int	   bdbres = 0;
-	DBC *	   curList[3];
-	DBT	   bdbkey, bdbdata;
+	int bdbres = 0;
+	DBC *curList[3];
+	DBT bdbkey, bdbdata;
 	db_recno_t recno;
-	int	   curIndex = 0;
+	int curIndex = 0;
 
 	/* verify that only allowed parameters were passed. */
 	if (dlt == true) {
@@ -1172,7 +1162,7 @@ operation_listOrDelete(bool dlt)
 int
 main(int argc, char **argv)
 {
-	int   ch;
+	int ch;
 	char *endp;
 
 	/* there has to be at least 2 args, some operations require more */

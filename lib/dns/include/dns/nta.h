@@ -56,7 +56,7 @@ struct dns_ntatable {
 	dns_rbt_t *table;
 };
 
-#define NTATABLE_MAGIC ISC_MAGIC('N', 'T', 'A', 't')
+#define NTATABLE_MAGIC	   ISC_MAGIC('N', 'T', 'A', 't')
 #define VALID_NTATABLE(nt) ISC_MAGIC_VALID(nt, NTATABLE_MAGIC)
 
 isc_result_t

@@ -32,8 +32,8 @@
  *     	 _cb;
  * #endif
  */
-#define BN_GENCB_free(x) ((void)0)
-#define BN_GENCB_new() (&_cb)
+#define BN_GENCB_free(x)    ((void)0)
+#define BN_GENCB_new()	    (&_cb)
 #define BN_GENCB_get_arg(x) ((x)->arg)
 #endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
 	* defined(LIBRESSL_VERSION_NUMBER) */

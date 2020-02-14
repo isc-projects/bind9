@@ -127,11 +127,11 @@ struct dns_rrl_entry {
 };
 
 #define DNS_RRL_MAX_TIME_TRAVEL 5
-#define DNS_RRL_FOREVER (1 << DNS_RRL_TS_BITS)
-#define DNS_RRL_MAX_TS (DNS_RRL_FOREVER - 1)
+#define DNS_RRL_FOREVER		(1 << DNS_RRL_TS_BITS)
+#define DNS_RRL_MAX_TS		(DNS_RRL_FOREVER - 1)
 
 #define DNS_RRL_MAX_RESPONSES ((1 << (DNS_RRL_RESPONSE_BITS - 1)) - 1)
-#define DNS_RRL_MAX_WINDOW 3600
+#define DNS_RRL_MAX_WINDOW    3600
 #if DNS_RRL_MAX_WINDOW >= DNS_RRL_MAX_TS
 #error "DNS_RRL_MAX_WINDOW is too large"
 #endif /* if DNS_RRL_MAX_WINDOW >= DNS_RRL_MAX_TS */

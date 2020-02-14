@@ -24,11 +24,10 @@
 #include <dns/zonekey.h>
 
 bool
-dns_zonekey_iszonekey(dns_rdata_t *keyrdata)
-{
-	isc_result_t	   result;
+dns_zonekey_iszonekey(dns_rdata_t *keyrdata) {
+	isc_result_t result;
 	dns_rdata_dnskey_t key;
-	bool		   iszonekey = true;
+	bool iszonekey = true;
 
 	REQUIRE(keyrdata != NULL);
 

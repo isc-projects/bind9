@@ -20,12 +20,11 @@
 #include <isc/util.h>
 
 isc_result_t
-isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t)
-{
-	int		presult;
-	isc_result_t	result;
+isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
+	int presult;
+	isc_result_t result;
 	struct timespec ts;
-	char		strbuf[ISC_STRERRORSIZE];
+	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(c != NULL && m != NULL && t != NULL);
 

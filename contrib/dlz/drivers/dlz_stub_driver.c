@@ -61,9 +61,9 @@
 static dns_sdlzimplementation_t *dlz_stub = NULL;
 
 typedef struct config_data {
-	char *	   myzone;
-	char *	   myname;
-	char *	   myip;
+	char *myzone;
+	char *myname;
+	char *myip;
 	isc_mem_t *mctx;
 } config_data_t;
 
@@ -76,7 +76,7 @@ stub_dlz_allnodes(const char *zone, void *driverarg, void *dbdata,
 		  dns_sdlzallnodes_t *allnodes)
 {
 	config_data_t *cd;
-	isc_result_t   result;
+	isc_result_t result;
 
 	UNUSED(zone);
 	UNUSED(driverarg);
@@ -121,7 +121,7 @@ static isc_result_t
 stub_dlz_authority(const char *zone, void *driverarg, void *dbdata,
 		   dns_sdlzlookup_t *lookup)
 {
-	isc_result_t   result;
+	isc_result_t result;
 	config_data_t *cd;
 
 	UNUSED(driverarg);
@@ -148,7 +148,7 @@ stub_dlz_authority(const char *zone, void *driverarg, void *dbdata,
 static isc_result_t
 stub_dlz_findzonedb(void *driverarg, void *dbdata, const char *name,
 		    dns_clientinfomethods_t *methods,
-		    dns_clientinfo_t *	     clientinfo)
+		    dns_clientinfo_t *clientinfo)
 {
 	config_data_t *cd;
 
@@ -175,7 +175,7 @@ stub_dlz_lookup(const char *zone, const char *name, void *driverarg,
 		void *dbdata, dns_sdlzlookup_t *lookup,
 		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
-	isc_result_t   result;
+	isc_result_t result;
 	config_data_t *cd;
 
 	UNUSED(zone);
@@ -240,7 +240,7 @@ static void
 stub_dlz_destroy(void *driverarg, void *dbdata)
 {
 	config_data_t *cd;
-	isc_mem_t *    mctx;
+	isc_mem_t *mctx;
 
 	UNUSED(driverarg);
 

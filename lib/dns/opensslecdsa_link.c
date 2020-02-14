@@ -48,8 +48,7 @@
 #if !HAVE_ECDSA_SIG_GET0
 /* From OpenSSL 1.1 */
 static void
-ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
-{
+ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps) {
 	if (pr != NULL) {
 		*pr = sig->r;
 	}
@@ -59,8 +58,7 @@ ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
 }
 
 static int
-ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s)
-{
+ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s) {
 	if (r == NULL || s == NULL) {
 		return (0);
 	}
@@ -74,13 +72,12 @@ ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s)
 }
 #endif /* !HAVE_ECDSA_SIG_GET0 */
 
-static isc_result_t
-opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data);
+static isc_result_t opensslecdsa_todns(const dst_key_t *key,
+				       isc_buffer_t *data);
 
 static isc_result_t
-opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx)
-{
-	EVP_MD_CTX *  evp_md_ctx;
+opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
+	EVP_MD_CTX *evp_md_ctx;
 	const EVP_MD *type = NULL;
 
 	UNUSED(key);
@@ -109,8 +106,7 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx)
 }
 
 static void
-opensslecdsa_destroyctx(dst_context_t *dctx)
-{
+opensslecdsa_destroyctx(dst_context_t *dctx) {
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
@@ -123,8 +119,7 @@ opensslecdsa_destroyctx(dst_context_t *dctx)
 }
 
 static isc_result_t
-opensslecdsa_adddata(dst_context_t *dctx, const isc_region_t *data)
-{
+opensslecdsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
@@ -139,8 +134,7 @@ opensslecdsa_adddata(dst_context_t *dctx, const isc_region_t *data)
 }
 
 static int
-BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size)
-{
+BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
 	int bytes = size - BN_num_bytes(bn);
 
 	while (bytes-- > 0) {
@@ -151,16 +145,15 @@ BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size)
 }
 
 static isc_result_t
-opensslecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig)
-{
-	isc_result_t  ret;
-	dst_key_t *   key = dctx->key;
-	isc_region_t  region;
-	ECDSA_SIG *   ecdsasig;
-	EVP_MD_CTX *  evp_md_ctx = dctx->ctxdata.evp_md_ctx;
-	EVP_PKEY *    pkey = key->keydata.pkey;
-	EC_KEY *      eckey = EVP_PKEY_get1_EC_KEY(pkey);
-	unsigned int  dgstlen, siglen;
+opensslecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
+	isc_result_t ret;
+	dst_key_t *key = dctx->key;
+	isc_region_t region;
+	ECDSA_SIG *ecdsasig;
+	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
+	EVP_PKEY *pkey = key->keydata.pkey;
+	EC_KEY *eckey = EVP_PKEY_get1_EC_KEY(pkey);
+	unsigned int dgstlen, siglen;
 	unsigned char digest[EVP_MAX_MD_SIZE];
 	const BIGNUM *r, *s;
 
@@ -207,19 +200,18 @@ err:
 }
 
 static isc_result_t
-opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig)
-{
-	isc_result_t   ret;
-	dst_key_t *    key = dctx->key;
-	int	       status;
+opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
+	isc_result_t ret;
+	dst_key_t *key = dctx->key;
+	int status;
 	unsigned char *cp = sig->base;
-	ECDSA_SIG *    ecdsasig = NULL;
-	EVP_MD_CTX *   evp_md_ctx = dctx->ctxdata.evp_md_ctx;
-	EVP_PKEY *     pkey = key->keydata.pkey;
-	EC_KEY *       eckey = EVP_PKEY_get1_EC_KEY(pkey);
-	unsigned int   dgstlen, siglen;
-	unsigned char  digest[EVP_MAX_MD_SIZE];
-	BIGNUM *       r = NULL, *s = NULL;
+	ECDSA_SIG *ecdsasig = NULL;
+	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
+	EVP_PKEY *pkey = key->keydata.pkey;
+	EC_KEY *eckey = EVP_PKEY_get1_EC_KEY(pkey);
+	unsigned int dgstlen, siglen;
+	unsigned char digest[EVP_MAX_MD_SIZE];
+	BIGNUM *r = NULL, *s = NULL;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -276,14 +268,13 @@ err:
 }
 
 static bool
-opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2)
-{
-	bool	      ret;
-	int	      status;
-	EVP_PKEY *    pkey1 = key1->keydata.pkey;
-	EVP_PKEY *    pkey2 = key2->keydata.pkey;
-	EC_KEY *      eckey1 = NULL;
-	EC_KEY *      eckey2 = NULL;
+opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
+	bool ret;
+	int status;
+	EVP_PKEY *pkey1 = key1->keydata.pkey;
+	EVP_PKEY *pkey2 = key2->keydata.pkey;
+	EC_KEY *eckey1 = NULL;
+	EC_KEY *eckey2 = NULL;
 	const BIGNUM *priv1, *priv2;
 
 	if (pkey1 == NULL && pkey2 == NULL) {
@@ -328,12 +319,11 @@ err:
 }
 
 static isc_result_t
-opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int))
-{
+opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	isc_result_t ret;
-	EVP_PKEY *   pkey;
-	EC_KEY *     eckey = NULL;
-	int	     group_nid;
+	EVP_PKEY *pkey;
+	EC_KEY *eckey = NULL;
+	int group_nid;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -376,11 +366,10 @@ err:
 }
 
 static bool
-opensslecdsa_isprivate(const dst_key_t *key)
-{
-	bool	  ret;
+opensslecdsa_isprivate(const dst_key_t *key) {
+	bool ret;
 	EVP_PKEY *pkey = key->keydata.pkey;
-	EC_KEY *  eckey = EVP_PKEY_get1_EC_KEY(pkey);
+	EC_KEY *eckey = EVP_PKEY_get1_EC_KEY(pkey);
 
 	ret = (eckey != NULL && EC_KEY_get0_private_key(eckey) != NULL);
 	if (eckey != NULL) {
@@ -390,8 +379,7 @@ opensslecdsa_isprivate(const dst_key_t *key)
 }
 
 static void
-opensslecdsa_destroy(dst_key_t *key)
-{
+opensslecdsa_destroy(dst_key_t *key) {
 	EVP_PKEY *pkey = key->keydata.pkey;
 
 	EVP_PKEY_free(pkey);
@@ -399,15 +387,14 @@ opensslecdsa_destroy(dst_key_t *key)
 }
 
 static isc_result_t
-opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data)
-{
-	isc_result_t   ret;
-	EVP_PKEY *     pkey;
-	EC_KEY *       eckey = NULL;
-	isc_region_t   r;
-	int	       len;
+opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
+	isc_result_t ret;
+	EVP_PKEY *pkey;
+	EC_KEY *eckey = NULL;
+	isc_region_t r;
+	int len;
 	unsigned char *cp;
-	unsigned char  buf[DNS_KEY_ECDSA384SIZE + 1];
+	unsigned char buf[DNS_KEY_ECDSA384SIZE + 1];
 
 	REQUIRE(key->keydata.pkey != NULL);
 
@@ -438,16 +425,15 @@ err:
 }
 
 static isc_result_t
-opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data)
-{
-	isc_result_t	     ret;
-	EVP_PKEY *	     pkey;
-	EC_KEY *	     eckey = NULL;
-	isc_region_t	     r;
-	int		     group_nid;
-	unsigned int	     len;
+opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
+	isc_result_t ret;
+	EVP_PKEY *pkey;
+	EC_KEY *eckey = NULL;
+	isc_region_t r;
+	int group_nid;
+	unsigned int len;
 	const unsigned char *cp;
-	unsigned char	     buf[DNS_KEY_ECDSA384SIZE + 1];
+	unsigned char buf[DNS_KEY_ECDSA384SIZE + 1];
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -506,13 +492,12 @@ err:
 }
 
 static isc_result_t
-opensslecdsa_tofile(const dst_key_t *key, const char *directory)
-{
-	isc_result_t   ret;
-	EVP_PKEY *     pkey;
-	EC_KEY *       eckey = NULL;
-	const BIGNUM * privkey;
-	dst_private_t  priv;
+opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
+	isc_result_t ret;
+	EVP_PKEY *pkey;
+	EC_KEY *eckey = NULL;
+	const BIGNUM *privkey;
+	dst_private_t priv;
 	unsigned char *buf = NULL;
 
 	if (key->keydata.pkey == NULL) {
@@ -552,11 +537,10 @@ err:
 }
 
 static isc_result_t
-ecdsa_check(EC_KEY *eckey, dst_key_t *pub)
-{
-	isc_result_t	ret = ISC_R_FAILURE;
-	EVP_PKEY *	pkey;
-	EC_KEY *	pubeckey = NULL;
+ecdsa_check(EC_KEY *eckey, dst_key_t *pub) {
+	isc_result_t ret = ISC_R_FAILURE;
+	EVP_PKEY *pkey;
+	EC_KEY *pubeckey = NULL;
 	const EC_POINT *pubkey;
 
 	if (pub == NULL) {
@@ -587,15 +571,14 @@ err:
 }
 
 static isc_result_t
-opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub)
-{
+opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
-	isc_result_t  ret;
-	EVP_PKEY *    pkey;
-	EC_KEY *      eckey = NULL;
-	BIGNUM *      privkey = NULL;
-	int	      group_nid;
-	isc_mem_t *   mctx = key->mctx;
+	isc_result_t ret;
+	EVP_PKEY *pkey;
+	EC_KEY *eckey = NULL;
+	BIGNUM *privkey = NULL;
+	int group_nid;
+	isc_mem_t *mctx = key->mctx;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -631,8 +614,8 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub)
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 
-	privkey =
-		BN_bin2bn(priv.elements[0].data, priv.elements[0].length, NULL);
+	privkey = BN_bin2bn(priv.elements[0].data, priv.elements[0].length,
+			    NULL);
 	if (privkey == NULL) {
 		DST_RET(ISC_R_NOMEMORY);
 	}
@@ -696,8 +679,7 @@ static dst_func_t opensslecdsa_functions = {
 };
 
 isc_result_t
-dst__opensslecdsa_init(dst_func_t **funcp)
-{
+dst__opensslecdsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL) {
 		*funcp = &opensslecdsa_functions;

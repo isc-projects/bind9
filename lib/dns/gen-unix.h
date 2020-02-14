@@ -39,7 +39,7 @@
 extern char *optarg;
 #endif /* ifdef NEED_OPTARG */
 
-#define isc_commandline_parse getopt
+#define isc_commandline_parse	 getopt
 #define isc_commandline_argument optarg
 
 typedef struct {
@@ -50,8 +50,7 @@ typedef struct {
 ISC_LANG_BEGINDECLS
 
 static bool
-start_directory(const char *path, isc_dir_t *dir)
-{
+start_directory(const char *path, isc_dir_t *dir) {
 	dir->handle = opendir(path);
 
 	if (dir->handle != NULL) {
@@ -62,8 +61,7 @@ start_directory(const char *path, isc_dir_t *dir)
 }
 
 static bool
-next_file(isc_dir_t *dir)
-{
+next_file(isc_dir_t *dir) {
 	struct dirent *dirent;
 
 	dir->filename = NULL;
@@ -88,8 +86,7 @@ next_file(isc_dir_t *dir)
 }
 
 static void
-end_directory(isc_dir_t *dir)
-{
+end_directory(isc_dir_t *dir) {
 	if (dir->handle != NULL) {
 		(void)closedir(dir->handle);
 	}

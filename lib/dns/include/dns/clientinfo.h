@@ -58,7 +58,7 @@ typedef isc_result_t (*dns_clientinfo_sourceip_t)(dns_clientinfo_t *client,
 						  isc_sockaddr_t ** addrp);
 
 #define DNS_CLIENTINFOMETHODS_VERSION 2
-#define DNS_CLIENTINFOMETHODS_AGE 1
+#define DNS_CLIENTINFOMETHODS_AGE     1
 
 typedef struct dns_clientinfomethods {
 	uint16_t		  version;

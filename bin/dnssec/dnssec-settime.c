@@ -43,12 +43,10 @@ const char *program = "dnssec-settime";
 
 static isc_mem_t *mctx = NULL;
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "    %s [options] keyfile\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
@@ -113,10 +111,9 @@ usage(void)
 }
 
 static void
-printtime(dst_key_t *key, int type, const char *tag, bool epoch, FILE *stream)
-{
-	isc_result_t  result;
-	const char *  output = NULL;
+printtime(dst_key_t *key, int type, const char *tag, bool epoch, FILE *stream) {
+	isc_result_t result;
+	const char *output = NULL;
 	isc_stdtime_t when;
 
 	if (tag != NULL) {
@@ -136,13 +133,12 @@ printtime(dst_key_t *key, int type, const char *tag, bool epoch, FILE *stream)
 }
 
 static void
-writekey(dst_key_t *key, const char *directory, bool write_state)
-{
-	char	     newname[1024];
-	char	     keystr[DST_KEY_FORMATSIZE];
+writekey(dst_key_t *key, const char *directory, bool write_state) {
+	char newname[1024];
+	char keystr[DST_KEY_FORMATSIZE];
 	isc_buffer_t buf;
 	isc_result_t result;
-	int	     options = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE;
+	int options = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE;
 
 	if (write_state) {
 		options |= DST_TYPE_STATE;
@@ -184,57 +180,56 @@ writekey(dst_key_t *key, const char *directory, bool write_state)
 }
 
 int
-main(int argc, char **argv)
-{
-	isc_result_t	result;
-	const char *	engine = NULL;
-	const char *	filename = NULL;
-	char *		directory = NULL;
-	char		keystr[DST_KEY_FORMATSIZE];
-	char *		endp, *p;
-	int		ch;
-	const char *	predecessor = NULL;
-	dst_key_t *	prevkey = NULL;
-	dst_key_t *	key = NULL;
-	dns_name_t *	name = NULL;
-	dns_secalg_t	alg = 0;
-	unsigned int	size = 0;
-	uint16_t	flags = 0;
-	int		prepub = -1;
-	int		options;
-	dns_ttl_t	ttl = 0;
-	isc_stdtime_t	now;
-	isc_stdtime_t	dstime = 0, dnskeytime = 0;
-	isc_stdtime_t	krrsigtime = 0, zrrsigtime = 0;
-	isc_stdtime_t	pub = 0, act = 0, rev = 0, inact = 0, del = 0;
-	isc_stdtime_t	prevact = 0, previnact = 0, prevdel = 0;
+main(int argc, char **argv) {
+	isc_result_t result;
+	const char *engine = NULL;
+	const char *filename = NULL;
+	char *directory = NULL;
+	char keystr[DST_KEY_FORMATSIZE];
+	char *endp, *p;
+	int ch;
+	const char *predecessor = NULL;
+	dst_key_t *prevkey = NULL;
+	dst_key_t *key = NULL;
+	dns_name_t *name = NULL;
+	dns_secalg_t alg = 0;
+	unsigned int size = 0;
+	uint16_t flags = 0;
+	int prepub = -1;
+	int options;
+	dns_ttl_t ttl = 0;
+	isc_stdtime_t now;
+	isc_stdtime_t dstime = 0, dnskeytime = 0;
+	isc_stdtime_t krrsigtime = 0, zrrsigtime = 0;
+	isc_stdtime_t pub = 0, act = 0, rev = 0, inact = 0, del = 0;
+	isc_stdtime_t prevact = 0, previnact = 0, prevdel = 0;
 	dst_key_state_t goal = DST_KEY_STATE_NA;
 	dst_key_state_t ds = DST_KEY_STATE_NA;
 	dst_key_state_t dnskey = DST_KEY_STATE_NA;
 	dst_key_state_t krrsig = DST_KEY_STATE_NA;
 	dst_key_state_t zrrsig = DST_KEY_STATE_NA;
-	bool		setgoal = false, setds = false, setdnskey = false;
-	bool		setkrrsig = false, setzrrsig = false;
-	bool		setdstime = false, setdnskeytime = false;
-	bool		setkrrsigtime = false, setzrrsigtime = false;
-	bool		setpub = false, setact = false;
-	bool		setrev = false, setinact = false;
-	bool		setdel = false, setttl = false;
-	bool		unsetpub = false, unsetact = false;
-	bool		unsetrev = false, unsetinact = false;
-	bool		unsetdel = false;
-	bool		printcreate = false, printpub = false;
-	bool		printact = false, printrev = false;
-	bool		printinact = false, printdel = false;
-	bool		force = false;
-	bool		epoch = false;
-	bool		changed = false;
-	bool		write_state = false;
-	isc_log_t *	log = NULL;
-	isc_stdtime_t	syncadd = 0, syncdel = 0;
-	bool		unsetsyncadd = false, setsyncadd = false;
-	bool		unsetsyncdel = false, setsyncdel = false;
-	bool		printsyncadd = false, printsyncdel = false;
+	bool setgoal = false, setds = false, setdnskey = false;
+	bool setkrrsig = false, setzrrsig = false;
+	bool setdstime = false, setdnskeytime = false;
+	bool setkrrsigtime = false, setzrrsigtime = false;
+	bool setpub = false, setact = false;
+	bool setrev = false, setinact = false;
+	bool setdel = false, setttl = false;
+	bool unsetpub = false, unsetact = false;
+	bool unsetrev = false, unsetinact = false;
+	bool unsetdel = false;
+	bool printcreate = false, printpub = false;
+	bool printact = false, printrev = false;
+	bool printinact = false, printdel = false;
+	bool force = false;
+	bool epoch = false;
+	bool changed = false;
+	bool write_state = false;
+	isc_log_t *log = NULL;
+	isc_stdtime_t syncadd = 0, syncdel = 0;
+	bool unsetsyncadd = false, setsyncadd = false;
+	bool unsetsyncdel = false, setsyncdel = false;
+	bool printsyncadd = false, printsyncdel = false;
 
 	options = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE;
 
@@ -319,7 +314,8 @@ main(int argc, char **argv)
 			goal = strtokeystate(isc_commandline_argument);
 			if (goal != DST_KEY_STATE_NA &&
 			    goal != DST_KEY_STATE_HIDDEN &&
-			    goal != DST_KEY_STATE_OMNIPRESENT) {
+			    goal != DST_KEY_STATE_OMNIPRESENT)
+			{
 				fatal("-g must be either none, hidden, or "
 				      "omnipresent");
 			}
@@ -352,8 +348,8 @@ main(int argc, char **argv)
 			 * We don't have to copy it here, but do it to
 			 * simplify cleanup later
 			 */
-			directory =
-				isc_mem_strdup(mctx, isc_commandline_argument);
+			directory = isc_mem_strdup(mctx,
+						   isc_commandline_argument);
 			break;
 		case 'k':
 			if (setdnskey) {
@@ -545,8 +541,8 @@ main(int argc, char **argv)
 			fatal("Invalid keyfile %s: %s", filename,
 			      isc_result_totext(result));
 		}
-		if (!dst_key_isprivate(prevkey) &&
-		    !dst_key_isexternal(prevkey)) {
+		if (!dst_key_isprivate(prevkey) && !dst_key_isexternal(prevkey))
+		{
 			fatal("%s is not a private key", filename);
 		}
 
@@ -570,8 +566,8 @@ main(int argc, char **argv)
 			      "generating a successor.");
 		}
 
-		result =
-			dst_key_gettime(prevkey, DST_TIME_INACTIVE, &previnact);
+		result = dst_key_gettime(prevkey, DST_TIME_INACTIVE,
+					 &previnact);
 		if (result != ISC_R_SUCCESS) {
 			fatal("Predecessor has no inactivation date. "
 			      "You must set one before\n\t"
@@ -647,8 +643,8 @@ main(int argc, char **argv)
 		}
 	}
 
-	result =
-		dst_key_fromnamedfile(filename, directory, options, mctx, &key);
+	result = dst_key_fromnamedfile(filename, directory, options, mctx,
+				       &key);
 	if (result != ISC_R_SUCCESS) {
 		fatal("Invalid keyfile %s: %s", filename,
 		      isc_result_totext(result));
@@ -683,7 +679,8 @@ main(int argc, char **argv)
 	    (dst_key_gettime(key, DST_TIME_DELETE, &prevdel) == ISC_R_SUCCESS &&
 	     setinact && !setdel && !unsetdel && prevdel < inact) ||
 	    (!setdel && !unsetdel && !setinact && !unsetinact && prevdel != 0 &&
-	     prevdel < previnact)) {
+	     prevdel < previnact))
+	{
 		fprintf(stderr,
 			"%s: warning: Key is scheduled to "
 			"be deleted before it is\n\t"
