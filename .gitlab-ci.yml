@@ -389,7 +389,7 @@ misc:sid:amd64:
 💾:sid:amd64:
   <<: *precheck_job
   script:
-    - if [ -r .clang-format ]; then ./util/cformat.sh "${CLANG_FORMAT}"; fi
+    - if [ -r .clang-format ]; then "${CLANG_FORMAT}" -i -style=file $(git ls-files '*.c' '*.h'); fi
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
 🐞:sid:amd64:
