@@ -90,13 +90,15 @@
 	do {                                                            \
 		if ((elt)->link.next != NULL)                           \
 			(elt)->link.next->link.prev = (elt)->link.prev; \
-		else {                                                  \
+		else                                                    \
+		{                                                       \
 			ISC_INSIST((list).tail == (elt));               \
 			(list).tail = (elt)->link.prev;                 \
 		}                                                       \
 		if ((elt)->link.prev != NULL)                           \
 			(elt)->link.prev->link.next = (elt)->link.next; \
-		else {                                                  \
+		else                                                    \
+		{                                                       \
 			ISC_INSIST((list).head == (elt));               \
 			(list).head = (elt)->link.next;                 \
 		}                                                       \
@@ -124,7 +126,8 @@
 	do {                                                    \
 		if ((before)->link.prev == NULL)                \
 			ISC_LIST_PREPEND(list, elt, link);      \
-		else {                                          \
+		else                                            \
+		{                                               \
 			(elt)->link.prev = (before)->link.prev; \
 			(before)->link.prev = (elt);            \
 			(elt)->link.prev->link.next = (elt);    \
@@ -143,7 +146,8 @@
 	do {                                                   \
 		if ((after)->link.next == NULL)                \
 			ISC_LIST_APPEND(list, elt, link);      \
-		else {                                         \
+		else                                           \
+		{                                              \
 			(elt)->link.next = (after)->link.next; \
 			(after)->link.next = (elt);            \
 			(elt)->link.next->link.prev = (elt);   \
@@ -162,7 +166,8 @@
 	do {                                                    \
 		if (ISC_LIST_EMPTY(list1))                      \
 			(list1) = (list2);                      \
-		else if (!ISC_LIST_EMPTY(list2)) {              \
+		else if (!ISC_LIST_EMPTY(list2))                \
+		{                                               \
 			(list1).tail->link.next = (list2).head; \
 			(list2).head->link.prev = (list1).tail; \
 			(list1).tail = (list2).tail;            \
@@ -175,7 +180,8 @@
 	do {                                                    \
 		if (ISC_LIST_EMPTY(list1))                      \
 			(list1) = (list2);                      \
-		else if (!ISC_LIST_EMPTY(list2)) {              \
+		else if (!ISC_LIST_EMPTY(list2))                \
+		{                                               \
 			(list2).tail->link.next = (list1).head; \
 			(list1).head->link.prev = (list2).tail; \
 			(list1).head = (list2).head;            \

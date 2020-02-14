@@ -940,7 +940,8 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	do {                                 \
 		if (best_effort)             \
 			seen_problem = true; \
-		else {                       \
+		else                         \
+		{                            \
 			result = r;          \
 			goto cleanup;        \
 		}                            \

@@ -85,7 +85,8 @@
 		GET8(v, w);                  \
 		if (v == 0)                  \
 			d = ISCCC_TRUE;      \
-		else {                       \
+		else                         \
+		{                            \
 			d = ISCCC_FALSE;     \
 			if (v == 255)        \
 				GET16(v, w); \
@@ -165,7 +166,8 @@
 	do {                          \
 		if (v > 0 && v < 255) \
 			PUT8(v, w);   \
-		else {                \
+		else                  \
+		{                     \
 			PUT8(255, w); \
 			PUT16(v, w);  \
 		}                     \
@@ -175,7 +177,8 @@
 	do {                                 \
 		if (v < 0xffffffU)           \
 			PUT24(v, w);         \
-		else {                       \
+		else                         \
+		{                            \
 			PUT24(0xffffffU, w); \
 			PUT32(v, w);         \
 		}                            \
