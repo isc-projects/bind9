@@ -107,8 +107,7 @@ static dns_sdlzimplementation_t *dlz_postgres = NULL;
  */
 
 static size_t
-postgres_makesafe(char *to, const char *from, size_t length)
-{
+postgres_makesafe(char *to, const char *from, size_t length) {
 	const char *source = from;
 	char *target = to;
 	unsigned int remaining = length;
@@ -150,8 +149,7 @@ postgres_makesafe(char *to, const char *from, size_t length)
  * multithreaded operation.
  */
 static void
-postgres_destroy_dblist(db_list_t *dblist)
-{
+postgres_destroy_dblist(db_list_t *dblist) {
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -186,8 +184,7 @@ postgres_destroy_dblist(db_list_t *dblist)
  */
 
 static dbinstance_t *
-postgres_find_avail_conn(db_list_t *dblist)
-{
+postgres_find_avail_conn(db_list_t *dblist) {
 	dbinstance_t *dbi = NULL;
 	dbinstance_t *head;
 	int count = 0;
@@ -227,8 +224,7 @@ postgres_find_avail_conn(db_list_t *dblist)
  */
 
 static char *
-postgres_escape_string(const char *instr)
-{
+postgres_escape_string(const char *instr) {
 	char *outstr;
 	unsigned int len;
 
@@ -264,8 +260,7 @@ postgres_escape_string(const char *instr)
  */
 static isc_result_t
 postgres_get_resultset(const char *zone, const char *record, const char *client,
-		       unsigned int query, void *dbdata, PGresult **rs)
-{
+		       unsigned int query, void *dbdata, PGresult **rs) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	char *querystring = NULL;
@@ -609,8 +604,7 @@ cleanup:
  */
 
 static isc_result_t
-postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
-{
+postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs) {
 	isc_result_t result;
 	unsigned int i;
 	unsigned int rows;
@@ -730,8 +724,7 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 static isc_result_t
 postgres_findzone(void *driverarg, void *dbdata, const char *name,
 		  dns_clientinfomethods_t *methods,
-		  dns_clientinfo_t *clientinfo)
-{
+		  dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	PGresult *rs = NULL;
 	unsigned int rows;
@@ -771,8 +764,7 @@ postgres_findzone(void *driverarg, void *dbdata, const char *name,
 /*% Determine if the client is allowed to perform a zone transfer */
 static isc_result_t
 postgres_allowzonexfr(void *driverarg, void *dbdata, const char *name,
-		      const char *client)
-{
+		      const char *client) {
 	isc_result_t result;
 	PGresult *rs = NULL;
 	unsigned int rows;
@@ -830,8 +822,7 @@ postgres_allowzonexfr(void *driverarg, void *dbdata, const char *name,
  */
 static isc_result_t
 postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
-		  dns_sdlzallnodes_t *allnodes)
-{
+		  dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result;
 	PGresult *rs = NULL;
 	unsigned int i;
@@ -942,8 +933,7 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 
 static isc_result_t
 postgres_authority(const char *zone, void *driverarg, void *dbdata,
-		   dns_sdlzlookup_t *lookup)
-{
+		   dns_sdlzlookup_t *lookup) {
 	isc_result_t result;
 	PGresult *rs = NULL;
 
@@ -979,8 +969,8 @@ postgres_authority(const char *zone, void *driverarg, void *dbdata,
 static isc_result_t
 postgres_lookup(const char *zone, const char *name, void *driverarg,
 		void *dbdata, dns_sdlzlookup_t *lookup,
-		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
-{
+		dns_clientinfomethods_t *methods,
+		dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	PGresult *rs = NULL;
 
@@ -1016,8 +1006,7 @@ postgres_lookup(const char *zone, const char *name, void *driverarg,
  */
 static isc_result_t
 postgres_create(const char *dlzname, unsigned int argc, char *argv[],
-		void *driverarg, void **dbdata)
-{
+		void *driverarg, void **dbdata) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	unsigned int j;
@@ -1189,8 +1178,7 @@ cleanup:
  * so we really only need to clean it up since we are not using driverarg.
  */
 static void
-postgres_destroy(void *driverarg, void *dbdata)
-{
+postgres_destroy(void *driverarg, void *dbdata) {
 	UNUSED(driverarg);
 	/* cleanup the list of DBI's */
 	postgres_destroy_dblist((db_list_t *)dbdata);
@@ -1220,8 +1208,7 @@ static dns_sdlzmethods_t dlz_postgres_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_postgres_init(void)
-{
+dlz_postgres_init(void) {
 	isc_result_t result;
 
 	/*
@@ -1257,8 +1244,7 @@ dlz_postgres_init(void)
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_postgres_clear(void)
-{
+dlz_postgres_clear(void) {
 	/*
 	 * Write debugging message to log
 	 */

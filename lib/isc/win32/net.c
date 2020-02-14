@@ -44,7 +44,8 @@ static isc_result_t ipv6_result = ISC_R_NOTFOUND;
 static isc_result_t ipv6only_result = ISC_R_NOTFOUND;
 static isc_result_t ipv6pktinfo_result = ISC_R_NOTFOUND;
 
-void InitSockets(void);
+void
+InitSockets(void);
 
 static isc_result_t
 try_proto(int domain) {

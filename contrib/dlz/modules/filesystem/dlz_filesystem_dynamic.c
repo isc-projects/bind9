@@ -88,15 +88,14 @@ typedef DLZ_LIST(dir_entry_t) dlist_t;
 
 /* forward reference */
 
-static void b9_add_helper(struct config_data *cd, const char *helper_name,
-			  void *ptr);
+static void
+b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr);
 
 /*
  * Private methods
  */
 static bool
-is_safe(const char *input)
-{
+is_safe(const char *input) {
 	unsigned int i;
 	unsigned int len = strlen(input);
 
@@ -164,8 +163,7 @@ is_safe(const char *input)
 }
 
 static isc_result_t
-create_path_helper(char *out, const char *in, config_data_t *cd)
-{
+create_path_helper(char *out, const char *in, config_data_t *cd) {
 	char *tmpString;
 	char *tmpPtr;
 	int i;
@@ -232,8 +230,7 @@ create_path_helper(char *out, const char *in, config_data_t *cd)
 
 static isc_result_t
 create_path(const char *zone, const char *host, const char *client,
-	    config_data_t *cd, char **path)
-{
+	    config_data_t *cd, char **path) {
 	char *tmpPath;
 	int pathsize;
 	int len;
@@ -361,8 +358,7 @@ cleanup_mem:
 
 static isc_result_t
 process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
-	    unsigned int basedirlen)
-{
+	    unsigned int basedirlen) {
 	char tmp[DIR_PATHMAX + DIR_NAMEMAX];
 	int astPos;
 	struct stat sb;
@@ -582,8 +578,7 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
  * DLZ methods
  */
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
-{
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	isc_result_t result;
 	char *path;
 	struct stat sb;
@@ -614,8 +609,7 @@ complete_AXFR:
 }
 
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
-{
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result;
 	dlist_t *dir_list;
 	config_data_t *cd = (config_data_t *)dbdata;
@@ -849,8 +843,7 @@ complete_lkup:
 
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
-	   ...)
-{
+	   ...) {
 	isc_result_t result = ISC_R_NOMEMORY;
 	config_data_t *cd;
 	char *endp;
@@ -971,8 +964,7 @@ free_cd:
 }
 
 void
-dlz_destroy(void *dbdata)
-{
+dlz_destroy(void *dbdata) {
 	config_data_t *cd;
 
 	cd = (config_data_t *)dbdata;
@@ -1001,8 +993,7 @@ dlz_destroy(void *dbdata)
  * Return the version of the API
  */
 int
-dlz_version(unsigned int *flags)
-{
+dlz_version(unsigned int *flags) {
 	UNUSED(flags);
 	return (DLZ_DLOPEN_VERSION);
 }
@@ -1011,8 +1002,7 @@ dlz_version(unsigned int *flags)
  * Register a helper function from the bind9 dlz_dlopen driver
  */
 static void
-b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr)
-{
+b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr) {
 	if (strcmp(helper_name, "log") == 0) {
 		cd->log = (log_t *)ptr;
 	}

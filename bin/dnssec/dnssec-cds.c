@@ -121,8 +121,8 @@ typedef struct keyinfo {
 } keyinfo_t;
 
 /* A replaceable function that can generate a DS RRset from some input */
-typedef isc_result_t ds_maker_func_t(dns_rdatalist_t *dslist, isc_buffer_t *buf,
-				     dns_rdata_t *rdata);
+typedef isc_result_t
+ds_maker_func_t(dns_rdatalist_t *dslist, isc_buffer_t *buf, dns_rdata_t *rdata);
 
 static dns_rdataset_t cdnskey_set, cdnskey_sig;
 static dns_rdataset_t cds_set, cds_sig;
@@ -1016,7 +1016,8 @@ nsdiff(uint32_t ttl, dns_rdataset_t *oldset, dns_rdataset_t *newset) {
 	}
 }
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

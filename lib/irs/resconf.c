@@ -115,14 +115,20 @@ struct irs_resconf {
 	uint8_t ndots;
 };
 
-static isc_result_t resconf_parsenameserver(irs_resconf_t *conf, FILE *fp);
-static isc_result_t resconf_parsedomain(irs_resconf_t *conf, FILE *fp);
-static isc_result_t resconf_parsesearch(irs_resconf_t *conf, FILE *fp);
-static isc_result_t resconf_parsesortlist(irs_resconf_t *conf, FILE *fp);
-static isc_result_t resconf_parseoption(irs_resconf_t *ctx, FILE *fp);
+static isc_result_t
+resconf_parsenameserver(irs_resconf_t *conf, FILE *fp);
+static isc_result_t
+resconf_parsedomain(irs_resconf_t *conf, FILE *fp);
+static isc_result_t
+resconf_parsesearch(irs_resconf_t *conf, FILE *fp);
+static isc_result_t
+resconf_parsesortlist(irs_resconf_t *conf, FILE *fp);
+static isc_result_t
+resconf_parseoption(irs_resconf_t *ctx, FILE *fp);
 
 #if HAVE_GET_WIN32_NAMESERVERS
-static isc_result_t get_win32_nameservers(irs_resconf_t *conf);
+static isc_result_t
+get_win32_nameservers(irs_resconf_t *conf);
 #endif /* if HAVE_GET_WIN32_NAMESERVERS */
 
 /*!

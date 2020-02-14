@@ -14,8 +14,8 @@
 
 typedef struct dns_rdata_cname {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	dns_name_t	  cname;
+	isc_mem_t *mctx;
+	dns_name_t cname;
 } dns_rdata_cname_t;
 
 #endif /* GENERIC_CNAME_5_H */

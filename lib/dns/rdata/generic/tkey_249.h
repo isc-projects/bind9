@@ -17,16 +17,16 @@
 
 typedef struct dns_rdata_tkey {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	dns_name_t	  algorithm;
-	uint32_t	  inception;
-	uint32_t	  expire;
-	uint16_t	  mode;
-	uint16_t	  error;
-	uint16_t	  keylen;
-	unsigned char *	  key;
-	uint16_t	  otherlen;
-	unsigned char *	  other;
+	isc_mem_t *mctx;
+	dns_name_t algorithm;
+	uint32_t inception;
+	uint32_t expire;
+	uint16_t mode;
+	uint16_t error;
+	uint16_t keylen;
+	unsigned char *key;
+	uint16_t otherlen;
+	unsigned char *other;
 } dns_rdata_tkey_t;
 
 #endif /* GENERIC_TKEY_249_H */

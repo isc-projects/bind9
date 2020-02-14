@@ -61,9 +61,9 @@ typedef struct driverinstance driverinstance_t;
  * special tokens are %zone%, %record%, %client%
  */
 struct query_segment {
-	void *	     cmd;
+	void *cmd;
 	unsigned int strlen;
-	bool	     direct;
+	bool direct;
 	DLZ_LINK(query_segment_t) link;
 };
 
@@ -75,18 +75,18 @@ struct query_segment {
  * make sure no two threads try to use the same DBI at a time.
  */
 struct dbinstance {
-	void *	      dbconn;
+	void *dbconn;
 	query_list_t *allnodes_q;
 	query_list_t *allowxfr_q;
 	query_list_t *authority_q;
 	query_list_t *findzone_q;
 	query_list_t *lookup_q;
 	query_list_t *countzone_q;
-	char *	      query_buf;
-	char *	      zone;
-	char *	      record;
-	char *	      client;
-	dlz_mutex_t   lock;
+	char *query_buf;
+	char *zone;
+	char *record;
+	char *client;
+	dlz_mutex_t lock;
 	DLZ_LINK(dbinstance_t) link;
 };
 

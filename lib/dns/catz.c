@@ -80,13 +80,12 @@ struct dns_catz_zone {
 	isc_refcount_t refs;
 };
 
-static isc_result_t catz_process_zones_entry(dns_catz_zone_t *zone,
-					     dns_rdataset_t *value,
-					     dns_label_t *mhash);
-static isc_result_t catz_process_zones_suboption(dns_catz_zone_t *zone,
-						 dns_rdataset_t *value,
-						 dns_label_t *mhash,
-						 dns_name_t *name);
+static isc_result_t
+catz_process_zones_entry(dns_catz_zone_t *zone, dns_rdataset_t *value,
+			 dns_label_t *mhash);
+static isc_result_t
+catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
+			     dns_label_t *mhash, dns_name_t *name);
 
 /*%
  * Collection of catalog zones for a view

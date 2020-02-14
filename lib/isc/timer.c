@@ -96,7 +96,8 @@ struct isc__timermgr {
 	isc_heap_t *heap;
 };
 
-void isc_timermgr_poke(isc_timermgr_t *manager0);
+void
+isc_timermgr_poke(isc_timermgr_t *manager0);
 
 static inline isc_result_t
 schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok) {

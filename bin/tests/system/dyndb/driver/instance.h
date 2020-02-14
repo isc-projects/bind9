@@ -14,23 +14,23 @@
 #include <dns/types.h>
 
 struct sample_instance {
-	isc_mem_t *		mctx;
-	char *			db_name;
+	isc_mem_t *mctx;
+	char *db_name;
 	dns_dbimplementation_t *db_imp;
 
 	/* These are needed for zone creation. */
-	dns_view_t *   view;
+	dns_view_t *view;
 	dns_zonemgr_t *zmgr;
-	isc_task_t *   task;
-	bool	       exiting;
+	isc_task_t *task;
+	bool exiting;
 
-	dns_zone_t *	zone1;
+	dns_zone_t *zone1;
 	dns_fixedname_t zone1_fn;
-	dns_name_t *	zone1_name;
+	dns_name_t *zone1_name;
 
-	dns_zone_t *	zone2;
+	dns_zone_t *zone2;
 	dns_fixedname_t zone2_fn;
-	dns_name_t *	zone2_name;
+	dns_name_t *zone2_name;
 };
 
 typedef struct sample_instance sample_instance_t;
@@ -38,7 +38,7 @@ typedef struct sample_instance sample_instance_t;
 isc_result_t
 new_sample_instance(isc_mem_t *mctx, const char *db_name, int argc, char **argv,
 		    const dns_dyndbctx_t *dctx,
-		    sample_instance_t **  sample_instp);
+		    sample_instance_t **sample_instp);
 
 isc_result_t
 load_sample_instance_zones(sample_instance_t *inst);

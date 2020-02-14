@@ -61,7 +61,8 @@
 #define CLOCK_REALTIME 0
 #endif /* ifndef CLOCK_REALTIME */
 
-static int clock_gettime(int32_t id, struct timespec *tp);
+static int
+clock_gettime(int32_t id, struct timespec *tp);
 
 static int
 clock_gettime(int32_t id, struct timespec *tp) {

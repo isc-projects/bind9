@@ -52,7 +52,7 @@ extern pthread_mutexattr_t isc__mutex_attrs;
 typedef struct isc_mutexstats isc_mutexstats_t;
 
 typedef struct {
-	pthread_mutex_t	  mutex; /*%< The actual mutex. */
+	pthread_mutex_t mutex;	 /*%< The actual mutex. */
 	isc_mutexstats_t *stats; /*%< Mutex statistics. */
 } isc_mutex_t;
 #else  /* if ISC_MUTEX_PROFILE */

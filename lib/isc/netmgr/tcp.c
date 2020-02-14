@@ -32,21 +32,30 @@
 #include "netmgr-int.h"
 #include "uv-compat.h"
 
-static int tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req);
+static int
+tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req);
 
-static void tcp_close_direct(isc_nmsocket_t *sock);
+static void
+tcp_close_direct(isc_nmsocket_t *sock);
 
-static isc_result_t tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req);
-static void tcp_connect_cb(uv_connect_t *uvreq, int status);
+static isc_result_t
+tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req);
+static void
+tcp_connect_cb(uv_connect_t *uvreq, int status);
 
-static void tcp_connection_cb(uv_stream_t *server, int status);
+static void
+tcp_connection_cb(uv_stream_t *server, int status);
 
-static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+static void
+read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 
-static void tcp_close_cb(uv_handle_t *uvhandle);
+static void
+tcp_close_cb(uv_handle_t *uvhandle);
 
-static void stoplistening(isc_nmsocket_t *sock);
-static void tcp_listenclose_cb(uv_handle_t *handle);
+static void
+stoplistening(isc_nmsocket_t *sock);
+static void
+tcp_listenclose_cb(uv_handle_t *handle);
 
 static int
 tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {

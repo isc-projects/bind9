@@ -76,12 +76,12 @@ class CVersionInfo {
 	GetFileSubType();
 
       private:
-	CString		  m_filename;
-	BOOL		  m_isValid;
-	LPVOID		  m_versionInfo;
+	CString m_filename;
+	BOOL m_isValid;
+	LPVOID m_versionInfo;
 	VS_FIXEDFILEINFO *m_fixedInfo;
-	DWORD		  m_codePage;
-	DWORD		  m_status;
+	DWORD m_codePage;
+	DWORD m_status;
 
 	CString
 	QueryStringValue(CString value);

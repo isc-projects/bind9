@@ -21,12 +21,15 @@
  * a given account as well as the groups to which it beongs
  */
 int
-GetAccountPrivileges(char *	   name,      /* Name of Account */
-		     wchar_t **	   PrivList,  /* List of Privileges returned */
-		     unsigned int *PrivCount, /* Count of Privileges returned */
-		     char **Groups, /* List of Groups to which account belongs
-				     */
-		     unsigned int *totalGroups, /* Count of Groups returned */
+GetAccountPrivileges(char *name,	      /* Name of Account */
+		     wchar_t **PrivList,      /* List of Privileges returned */
+		     unsigned int *PrivCount, /* Count of Privileges
+						 returned */
+		     char **Groups,	      /* List of Groups to which account
+					       * belongs
+					       */
+		     unsigned int *totalGroups, /* Count of Groups returned
+						 */
 		     int maxGroups /* Maximum number of Groups to return */
 );
 

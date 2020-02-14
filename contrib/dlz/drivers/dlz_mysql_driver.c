@@ -87,8 +87,7 @@ static dns_sdlzimplementation_t *dlz_mysql = NULL;
  */
 
 static char *
-mysqldrv_escape_string(MYSQL *mysql, const char *instr)
-{
+mysqldrv_escape_string(MYSQL *mysql, const char *instr) {
 	char *outstr;
 	unsigned int len;
 
@@ -117,8 +116,7 @@ mysqldrv_escape_string(MYSQL *mysql, const char *instr)
 
 static isc_result_t
 mysql_get_resultset(const char *zone, const char *record, const char *client,
-		    unsigned int query, void *dbdata, MYSQL_RES **rs)
-{
+		    unsigned int query, void *dbdata, MYSQL_RES **rs) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	char *querystring = NULL;
@@ -357,8 +355,7 @@ cleanup:
  */
 
 static isc_result_t
-mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs)
-{
+mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	MYSQL_ROW row;
 	unsigned int fields;
@@ -475,8 +472,7 @@ mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs)
 
 static isc_result_t
 mysql_findzone(void *driverarg, void *dbdata, const char *name,
-	       dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
-{
+	       dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 	my_ulonglong rows;
@@ -516,8 +512,7 @@ mysql_findzone(void *driverarg, void *dbdata, const char *name,
 /*% Determine if the client is allowed to perform a zone transfer */
 static isc_result_t
 mysql_allowzonexfr(void *driverarg, void *dbdata, const char *name,
-		   const char *client)
-{
+		   const char *client) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 	my_ulonglong rows;
@@ -575,8 +570,7 @@ mysql_allowzonexfr(void *driverarg, void *dbdata, const char *name,
  */
 static isc_result_t
 mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
-	       dns_sdlzallnodes_t *allnodes)
-{
+	       dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 	MYSQL_ROW row;
@@ -681,8 +675,7 @@ mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
 
 static isc_result_t
 mysql_authority(const char *zone, void *driverarg, void *dbdata,
-		dns_sdlzlookup_t *lookup)
-{
+		dns_sdlzlookup_t *lookup) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 
@@ -716,8 +709,7 @@ mysql_authority(const char *zone, void *driverarg, void *dbdata,
 static isc_result_t
 mysql_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
 	     dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
-	     dns_clientinfo_t *clientinfo)
-{
+	     dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 
@@ -753,8 +745,7 @@ mysql_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
  */
 static isc_result_t
 mysql_create(const char *dlzname, unsigned int argc, char *argv[],
-	     void *driverarg, void **dbdata)
-{
+	     void *driverarg, void **dbdata) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	char *tmp = NULL;
@@ -973,8 +964,7 @@ cleanup:
  */
 
 static void
-mysql_destroy(void *driverarg, void *dbdata)
-{
+mysql_destroy(void *driverarg, void *dbdata) {
 	dbinstance_t *dbi;
 
 	UNUSED(driverarg);
@@ -1014,8 +1004,7 @@ static dns_sdlzmethods_t dlz_mysql_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_mysql_init(void)
-{
+dlz_mysql_init(void) {
 	isc_result_t result;
 
 	/*
@@ -1050,8 +1039,7 @@ dlz_mysql_init(void)
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_mysql_clear(void)
-{
+dlz_mysql_clear(void) {
 	/*
 	 * Write debugging message to log
 	 */

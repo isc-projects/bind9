@@ -94,9 +94,11 @@ static unsigned char auth_hsha[] = {
 #define HSHA_OFFSET 22 /*%< 21 = 6 + 1 + 4 + 5 + 1 + 4 + 1 */
 #define HSHA_LENGTH 88
 
-static isc_result_t table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer);
+static isc_result_t
+table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer);
 
-static isc_result_t list_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer);
+static isc_result_t
+list_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer);
 
 static isc_result_t
 value_towire(isccc_sexpr_t *elt, isc_buffer_t **buffer) {
@@ -474,12 +476,12 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t table_fromwire(isccc_region_t *source,
-				   isccc_region_t *secret, uint32_t algorithm,
-				   isccc_sexpr_t **alistp);
+static isc_result_t
+table_fromwire(isccc_region_t *source, isccc_region_t *secret,
+	       uint32_t algorithm, isccc_sexpr_t **alistp);
 
-static isc_result_t list_fromwire(isccc_region_t *source,
-				  isccc_sexpr_t **listp);
+static isc_result_t
+list_fromwire(isccc_region_t *source, isccc_sexpr_t **listp);
 
 static isc_result_t
 value_fromwire(isccc_region_t *source, isccc_sexpr_t **valuep) {

@@ -15,9 +15,9 @@
 
 typedef struct dns_rdata_mx {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	uint16_t	  pref;
-	dns_name_t	  mx;
+	isc_mem_t *mctx;
+	uint16_t pref;
+	dns_name_t mx;
 } dns_rdata_mx_t;
 
 #endif /* GENERIC_MX_15_H */

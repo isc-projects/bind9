@@ -14,15 +14,15 @@
 
 typedef struct dns_rdata_ipseckey {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	uint8_t		  precedence;
-	uint8_t		  gateway_type;
-	uint8_t		  algorithm;
-	struct in_addr	  in_addr;  /* gateway type 1 */
-	struct in6_addr	  in6_addr; /* gateway type 2 */
-	dns_name_t	  gateway;  /* gateway type 3 */
-	unsigned char *	  key;
-	uint16_t	  keylength;
+	isc_mem_t *mctx;
+	uint8_t precedence;
+	uint8_t gateway_type;
+	uint8_t algorithm;
+	struct in_addr in_addr;	  /* gateway type 1 */
+	struct in6_addr in6_addr; /* gateway type 2 */
+	dns_name_t gateway;	  /* gateway type 3 */
+	unsigned char *key;
+	uint16_t keylength;
 } dns_rdata_ipseckey_t;
 
 #endif /* GENERIC_IPSECKEY_45_H */

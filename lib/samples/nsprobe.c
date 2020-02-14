@@ -124,10 +124,14 @@ static int verbose_level = 0;
 static const char *qlabels[] = { "www.", "ftp.", NULL };
 static struct probe_trans probes[MAX_PROBES];
 
-static isc_result_t probe_domain(struct probe_trans *trans);
-static void reset_probe(struct probe_trans *trans);
-static isc_result_t fetch_nsaddress(struct probe_trans *trans);
-static isc_result_t probe_name(struct probe_trans *trans, dns_rdatatype_t type);
+static isc_result_t
+probe_domain(struct probe_trans *trans);
+static void
+reset_probe(struct probe_trans *trans);
+static isc_result_t
+fetch_nsaddress(struct probe_trans *trans);
+static isc_result_t
+probe_name(struct probe_trans *trans, dns_rdatatype_t type);
 
 /* Dump an rdataset for debug */
 static isc_result_t
@@ -1035,7 +1039,8 @@ cleanup:
 	return (result);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

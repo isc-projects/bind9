@@ -24,9 +24,12 @@ isc_timermgr_t *timermgr = NULL;
 isc_task_t *g_task = NULL;
 isc_mem_t *mctx = NULL;
 
-static void utick(isc_task_t *task, isc_event_t *event);
-static void shutdown_rl(isc_task_t *task, isc_event_t *event);
-static void shutdown_all(isc_task_t *task, isc_event_t *event);
+static void
+utick(isc_task_t *task, isc_event_t *event);
+static void
+shutdown_rl(isc_task_t *task, isc_event_t *event);
+static void
+shutdown_all(isc_task_t *task, isc_event_t *event);
 
 typedef struct {
 	int milliseconds;

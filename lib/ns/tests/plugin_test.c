@@ -29,8 +29,8 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-ISC_PLATFORM_NORETURN_PRE void _fail(const char *const file,
-				     const int line) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE void
+_fail(const char *const file, const int line) ISC_PLATFORM_NORETURN_POST;
 
 #include <ns/hooks.h>
 

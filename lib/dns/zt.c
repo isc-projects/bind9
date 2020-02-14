@@ -58,16 +58,20 @@ struct dns_zt {
 #define ZTMAGIC	     ISC_MAGIC('Z', 'T', 'b', 'l')
 #define VALID_ZT(zt) ISC_MAGIC_VALID(zt, ZTMAGIC)
 
-static void auto_detach(void *, void *);
+static void
+auto_detach(void *, void *);
 
-static isc_result_t load(dns_zone_t *zone, void *uap);
+static isc_result_t
+load(dns_zone_t *zone, void *uap);
 
-static isc_result_t asyncload(dns_zone_t *zone, void *callback);
+static isc_result_t
+asyncload(dns_zone_t *zone, void *callback);
 
-static isc_result_t freezezones(dns_zone_t *zone, void *uap);
+static isc_result_t
+freezezones(dns_zone_t *zone, void *uap);
 
-static isc_result_t doneloading(dns_zt_t *zt, dns_zone_t *zone,
-				isc_task_t *task);
+static isc_result_t
+doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task);
 
 isc_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {

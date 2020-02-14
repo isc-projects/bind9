@@ -126,58 +126,74 @@ typedef struct dns_rdata_textctx {
 	const char *linebreak;	       /*%< Line break string. */
 } dns_rdata_textctx_t;
 
-static isc_result_t txt_totext(isc_region_t *source, bool quote,
-			       isc_buffer_t *target);
+static isc_result_t
+txt_totext(isc_region_t *source, bool quote, isc_buffer_t *target);
 
-static isc_result_t txt_fromtext(isc_textregion_t *source,
-				 isc_buffer_t *target);
+static isc_result_t
+txt_fromtext(isc_textregion_t *source, isc_buffer_t *target);
 
-static isc_result_t txt_fromwire(isc_buffer_t *source, isc_buffer_t *target);
+static isc_result_t
+txt_fromwire(isc_buffer_t *source, isc_buffer_t *target);
 
-static isc_result_t multitxt_totext(isc_region_t *source, isc_buffer_t *target);
+static isc_result_t
+multitxt_totext(isc_region_t *source, isc_buffer_t *target);
 
-static isc_result_t multitxt_fromtext(isc_textregion_t *source,
-				      isc_buffer_t *target);
+static isc_result_t
+multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target);
 
-static bool name_prefix(dns_name_t *name, const dns_name_t *origin,
-			dns_name_t *target);
+static bool
+name_prefix(dns_name_t *name, const dns_name_t *origin, dns_name_t *target);
 
-static unsigned int name_length(const dns_name_t *name);
+static unsigned int
+name_length(const dns_name_t *name);
 
-static isc_result_t str_totext(const char *source, isc_buffer_t *target);
+static isc_result_t
+str_totext(const char *source, isc_buffer_t *target);
 
-static isc_result_t inet_totext(int af, isc_region_t *src,
-				isc_buffer_t *target);
+static isc_result_t
+inet_totext(int af, isc_region_t *src, isc_buffer_t *target);
 
-static bool buffer_empty(isc_buffer_t *source);
+static bool
+buffer_empty(isc_buffer_t *source);
 
-static void buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region);
+static void
+buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region);
 
-static isc_result_t uint32_tobuffer(uint32_t, isc_buffer_t *target);
+static isc_result_t
+uint32_tobuffer(uint32_t, isc_buffer_t *target);
 
-static isc_result_t uint16_tobuffer(uint32_t, isc_buffer_t *target);
+static isc_result_t
+uint16_tobuffer(uint32_t, isc_buffer_t *target);
 
-static isc_result_t uint8_tobuffer(uint32_t, isc_buffer_t *target);
+static isc_result_t
+uint8_tobuffer(uint32_t, isc_buffer_t *target);
 
-static isc_result_t name_tobuffer(const dns_name_t *name, isc_buffer_t *target);
+static isc_result_t
+name_tobuffer(const dns_name_t *name, isc_buffer_t *target);
 
-static uint32_t uint32_fromregion(isc_region_t *region);
+static uint32_t
+uint32_fromregion(isc_region_t *region);
 
-static uint16_t uint16_fromregion(isc_region_t *region);
+static uint16_t
+uint16_fromregion(isc_region_t *region);
 
-static uint8_t uint8_fromregion(isc_region_t *region);
+static uint8_t
+uint8_fromregion(isc_region_t *region);
 
-static uint8_t uint8_consume_fromregion(isc_region_t *region);
+static uint8_t
+uint8_consume_fromregion(isc_region_t *region);
 
-static isc_result_t mem_tobuffer(isc_buffer_t *target, void *base,
-				 unsigned int length);
+static isc_result_t
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
 
-static int hexvalue(char value);
+static int
+hexvalue(char value);
 
-static int decvalue(char value);
+static int
+decvalue(char value);
 
-static void default_fromtext_callback(dns_rdatacallbacks_t *callbacks,
-				      const char *, ...)
+static void
+default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *, ...)
 	ISC_FORMAT_PRINTF(2, 3);
 
 static void
@@ -185,22 +201,27 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 	       dns_rdatacallbacks_t *callbacks, const char *name,
 	       unsigned long line, isc_token_t *token, isc_result_t result);
 
-static void fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks);
+static void
+fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks);
 
-static isc_result_t rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-				 isc_buffer_t *target);
+static isc_result_t
+rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
+	     isc_buffer_t *target);
 
-static void warn_badname(const dns_name_t *name, isc_lex_t *lexer,
-			 dns_rdatacallbacks_t *callbacks);
+static void
+warn_badname(const dns_name_t *name, isc_lex_t *lexer,
+	     dns_rdatacallbacks_t *callbacks);
 
-static void warn_badmx(isc_token_t *token, isc_lex_t *lexer,
-		       dns_rdatacallbacks_t *callbacks);
+static void
+warn_badmx(isc_token_t *token, isc_lex_t *lexer,
+	   dns_rdatacallbacks_t *callbacks);
 
-static uint16_t uint16_consume_fromregion(isc_region_t *region);
+static uint16_t
+uint16_consume_fromregion(isc_region_t *region);
 
-static isc_result_t unknown_totext(dns_rdata_t *rdata,
-				   dns_rdata_textctx_t *tctx,
-				   isc_buffer_t *target);
+static isc_result_t
+unknown_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
+	       isc_buffer_t *target);
 
 static inline isc_result_t generic_fromtext_key(ARGS_FROMTEXT);
 
@@ -226,12 +247,14 @@ static isc_result_t generic_tostruct_txt(ARGS_TOSTRUCT);
 
 static void generic_freestruct_txt(ARGS_FREESTRUCT);
 
-static isc_result_t generic_txt_first(dns_rdata_txt_t *txt);
+static isc_result_t
+generic_txt_first(dns_rdata_txt_t *txt);
 
-static isc_result_t generic_txt_next(dns_rdata_txt_t *txt);
+static isc_result_t
+generic_txt_next(dns_rdata_txt_t *txt);
 
-static isc_result_t generic_txt_current(dns_rdata_txt_t *txt,
-					dns_rdata_txt_string_t *string);
+static isc_result_t
+generic_txt_current(dns_rdata_txt_t *txt, dns_rdata_txt_string_t *string);
 
 static isc_result_t generic_totext_ds(ARGS_TOTEXT);
 

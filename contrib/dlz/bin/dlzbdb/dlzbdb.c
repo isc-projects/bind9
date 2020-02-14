@@ -69,35 +69,47 @@
 
 /* shut up compiler warnings about no previous prototype */
 
-static void show_usage(void);
+static void
+show_usage(void);
 
-int getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey);
+int
+getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey);
 
-int gethost(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey);
+int
+gethost(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey);
 
-void bdb_cleanup(void);
+void
+bdb_cleanup(void);
 
-isc_result_t bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name,
-			int flags);
+isc_result_t
+bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags);
 
-void put_data(bool dns_data, char *input_key, char *input_data);
+void
+put_data(bool dns_data, char *input_key, char *input_data);
 
-void insert_data(void);
+void
+insert_data(void);
 
-isc_result_t openBDB(void);
+isc_result_t
+openBDB(void);
 
-isc_result_t open_lexer(void);
+isc_result_t
+open_lexer(void);
 
-void close_lexer(void);
+void
+close_lexer(void);
 
-isc_result_t bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey,
-			DBT *bdbdata);
+isc_result_t
+bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata);
 
-void operation_add(void);
+void
+operation_add(void);
 
-void operation_bulk(void);
+void
+operation_bulk(void);
 
-void operation_listOrDelete(bool dlt);
+void
+operation_listOrDelete(bool dlt);
 
 /*%
  * Maximum length of a single data line that
@@ -247,8 +259,7 @@ isc_buffer_t lex_buffer;	 /*%< buffer for lexer during add operation */
  */
 
 static void
-show_usage(void)
-{
+show_usage(void) {
 	fprintf(stderr, "\n\n\
 ---Usage:---------------------------------------------------------------------\
 \n\n\
@@ -292,8 +303,7 @@ c mynm.com 192.168.0.10\n\
 /*% BDB callback to create zone secondary index */
 
 int
-getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey)
-{
+getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey) {
 	char *token, *last;
 
 	UNUSED(dbp);
@@ -319,8 +329,7 @@ getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey)
  */
 
 int
-gethost(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey)
-{
+gethost(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey) {
 	char *token, *last;
 
 	UNUSED(dbp);
@@ -354,8 +363,7 @@ gethost(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey)
  */
 
 void
-bdb_cleanup(void)
-{
+bdb_cleanup(void) {
 	/* close cursors */
 	if (db.cursor4 != NULL) {
 		db.cursor4->c_close(db.cursor4);
@@ -405,8 +413,7 @@ bdb_cleanup(void)
 /*% Initializes, sets flags and then opens Berkeley databases. */
 
 isc_result_t
-bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags)
-{
+bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags) {
 	int result;
 	int createFlag = 0;
 
@@ -451,8 +458,7 @@ bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags)
  */
 
 void
-put_data(bool dns_data, char *input_key, char *input_data)
-{
+put_data(bool dns_data, char *input_key, char *input_data) {
 	int bdbres;
 	DBT key, data;
 
@@ -487,8 +493,7 @@ put_data(bool dns_data, char *input_key, char *input_data)
 }
 
 void
-insert_data(void)
-{
+insert_data(void) {
 	unsigned int opt = ISC_LEXOPT_EOL |	/* Want end-of-line token. */
 			   ISC_LEXOPT_EOF |	/* Want end-of-file token. */
 			   ISC_LEXOPT_QSTRING | /* Recognize qstrings. */
@@ -613,8 +618,7 @@ data_cleanup:
 }
 
 isc_result_t
-openBDB(void)
-{
+openBDB(void) {
 	int bdbres;
 	isc_result_t result;
 
@@ -707,8 +711,7 @@ openBDB_cleanup:
 /*% Create & open lexer to parse input data */
 
 isc_result_t
-open_lexer(void)
-{
+open_lexer(void) {
 	isc_result_t result;
 
 	/* check if we already opened the lexer, if we did, return success */
@@ -744,8 +747,7 @@ open_lexer(void)
 /*% Close the lexer, and cleanup memory */
 
 void
-close_lexer(void)
-{
+close_lexer(void) {
 	/* If lexer is still open, close it & destroy it. */
 	if (lexer != NULL) {
 		isc_lex_close(lexer);
@@ -761,8 +763,7 @@ close_lexer(void)
 /*% Perform add operation */
 
 void
-operation_add(void)
-{
+operation_add(void) {
 	/* check for any parameters that are not allowed during add */
 	checkInvalidParam(key, "k", "for add operation");
 	checkInvalidParam(zone, "z", "for add operation");
@@ -793,8 +794,7 @@ operation_add(void)
 /*% Perform bulk insert operation */
 
 void
-operation_bulk(void)
-{
+operation_bulk(void) {
 	/* check for any parameters that are not allowed during bulk */
 	checkInvalidParam(key, "k", "for bulk load operation");
 	checkInvalidParam(zone, "z", "for bulk load operation");
@@ -827,8 +827,7 @@ operation_bulk(void)
 }
 
 isc_result_t
-bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata)
-{
+bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata) {
 	int bdbres;
 	db_recno_t recNum;
 	char *retkey = NULL, *retdata;
@@ -910,8 +909,7 @@ bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata)
  */
 
 void
-operation_listOrDelete(bool dlt)
-{
+operation_listOrDelete(bool dlt) {
 	int bdbres = 0;
 	DBC *curList[3];
 	DBT bdbkey, bdbdata;
@@ -1160,8 +1158,7 @@ operation_listOrDelete(bool dlt)
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	int ch;
 	char *endp;
 

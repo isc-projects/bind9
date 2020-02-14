@@ -251,8 +251,7 @@ static const char *modname = "dlz_mysqldyn";
  * Local functions
  */
 static bool
-db_connect(mysql_data_t *state, mysql_instance_t *dbi)
-{
+db_connect(mysql_data_t *state, mysql_instance_t *dbi) {
 	MYSQL *conn;
 	/*
 	 * Make sure this thread has been through 'init'
@@ -287,8 +286,7 @@ db_connect(mysql_data_t *state, mysql_instance_t *dbi)
 }
 
 static mysql_instance_t *
-get_dbi(mysql_data_t *state)
-{
+get_dbi(mysql_data_t *state) {
 	int i;
 
 	/*
@@ -315,8 +313,7 @@ get_dbi(mysql_data_t *state)
  * of string 'original'
  */
 static char *
-sanitize(mysql_instance_t *dbi, const char *original)
-{
+sanitize(mysql_instance_t *dbi, const char *original) {
 	char *s;
 
 	if (original == NULL) {
@@ -339,8 +336,7 @@ sanitize(mysql_instance_t *dbi, const char *original)
  * and add the string length to the running total pointed to by 'len'.
  */
 static isc_result_t
-additem(mysql_arglist_t *arglist, char **s, size_t *len)
-{
+additem(mysql_arglist_t *arglist, char **s, size_t *len) {
 	mysql_arg_t *item;
 
 	item = malloc(sizeof(*item));
@@ -369,8 +365,7 @@ additem(mysql_arglist_t *arglist, char **s, size_t *len)
  */
 static char *
 build_query(mysql_data_t *state, mysql_instance_t *dbi, const char *command,
-	    ...)
-{
+	    ...) {
 	isc_result_t result;
 	bool localdbi = false;
 	mysql_arglist_t arglist;
@@ -491,8 +486,7 @@ fail:
 
 /* Does this name end in a dot? */
 static bool
-isrelative(const char *s)
-{
+isrelative(const char *s) {
 	if (s == NULL || s[strlen(s) - 1] == '.') {
 		return (false);
 	}
@@ -501,8 +495,7 @@ isrelative(const char *s)
 
 /* Return a dot if 's' doesn't already end with one */
 static inline const char *
-dot(const char *s)
-{
+dot(const char *s) {
 	return (isrelative(s) ? "." : "");
 }
 
@@ -512,8 +505,7 @@ dot(const char *s)
  * enough space).
  */
 static void
-fqhn(const char *name, const char *zone, char *dest)
-{
+fqhn(const char *name, const char *zone, char *dest) {
 	if (dest == NULL) {
 		return;
 	}
@@ -534,8 +526,7 @@ fqhn(const char *name, const char *zone, char *dest)
  * removes labels matching 'zone' from the end of 'name'.
  */
 static char *
-relname(const char *name, const char *zone)
-{
+relname(const char *name, const char *zone) {
 	size_t nlen, zlen;
 	const char *p;
 	char *new;
@@ -570,8 +561,7 @@ relname(const char *name, const char *zone)
 }
 
 static isc_result_t
-validate_txn(mysql_data_t *state, mysql_transaction_t *txn)
-{
+validate_txn(mysql_data_t *state, mysql_transaction_t *txn) {
 	isc_result_t result = ISC_R_FAILURE;
 	mysql_transaction_t *txp;
 
@@ -592,8 +582,7 @@ validate_txn(mysql_data_t *state, mysql_transaction_t *txn)
 }
 
 static isc_result_t
-db_execute(mysql_data_t *state, mysql_instance_t *dbi, const char *query)
-{
+db_execute(mysql_data_t *state, mysql_instance_t *dbi, const char *query) {
 	int ret;
 
 	/* Make sure this instance is connected.  */
@@ -619,8 +608,7 @@ db_execute(mysql_data_t *state, mysql_instance_t *dbi, const char *query)
 }
 
 static MYSQL_RES *
-db_query(mysql_data_t *state, mysql_instance_t *dbi, const char *query)
-{
+db_query(mysql_data_t *state, mysql_instance_t *dbi, const char *query) {
 	isc_result_t result;
 	bool localdbi = false;
 	MYSQL_RES *res = NULL;
@@ -684,8 +672,7 @@ fail:
  * values to the 'on the wire' packet values.
  */
 static unsigned char *
-make_notify(const char *zone, int *packetlen)
-{
+make_notify(const char *zone, int *packetlen) {
 	int i, j;
 	unsigned char *packet = (unsigned char *)malloc(strlen(zone) + 18);
 
@@ -739,8 +726,7 @@ make_notify(const char *zone, int *packetlen)
 }
 
 static void
-send_notify(struct sockaddr_in *addr, const unsigned char *p, const int plen)
-{
+send_notify(struct sockaddr_in *addr, const unsigned char *p, const int plen) {
 	int s;
 
 	addr->sin_family = AF_INET;
@@ -759,8 +745,7 @@ send_notify(struct sockaddr_in *addr, const unsigned char *p, const int plen)
  * Generate and send a DNS NOTIFY packet
  */
 static void
-notify(mysql_data_t *state, const char *zone, int sn)
-{
+notify(mysql_data_t *state, const char *zone, int sn) {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	char *query;
@@ -851,8 +836,7 @@ notify(mysql_data_t *state, const char *zone, int sn)
  * used in the dlz_{add,sub,del}rdataset functions below.
  */
 static mysql_record_t *
-makerecord(mysql_data_t *state, const char *name, const char *rdatastr)
-{
+makerecord(mysql_data_t *state, const char *name, const char *rdatastr) {
 	mysql_record_t *new_record;
 	char *real_name, *dclass, *type, *data, *ttlstr, *buf;
 	dns_ttl_t ttlvalue;
@@ -929,8 +913,7 @@ error:
  * Remember a helper function from the bind9 dlz_dlopen driver
  */
 static void
-b9_add_helper(mysql_data_t *state, const char *helper_name, void *ptr)
-{
+b9_add_helper(mysql_data_t *state, const char *helper_name, void *ptr) {
 	if (strcmp(helper_name, "log") == 0) {
 		state->log = (log_t *)ptr;
 	}
@@ -953,8 +936,7 @@ b9_add_helper(mysql_data_t *state, const char *helper_name, void *ptr)
  * Return the version of the API
  */
 int
-dlz_version(unsigned int *flags)
-{
+dlz_version(unsigned int *flags) {
 	UNUSED(flags);
 	*flags |= DNS_SDLZFLAG_THREADSAFE;
 	return (DLZ_DLOPEN_VERSION);
@@ -965,8 +947,7 @@ dlz_version(unsigned int *flags)
  */
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
-	   ...)
-{
+	   ...) {
 	mysql_data_t *state;
 	const char *helper_name;
 	va_list ap;
@@ -1067,8 +1048,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
  * Shut down the backend
  */
 void
-dlz_destroy(void *dbdata)
-{
+dlz_destroy(void *dbdata) {
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	int i;
 
@@ -1095,8 +1075,7 @@ dlz_destroy(void *dbdata)
  */
 isc_result_t
 dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
-	       dns_clientinfo_t *clientinfo)
-{
+	       dns_clientinfo_t *clientinfo) {
 	isc_result_t result = ISC_R_SUCCESS;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	MYSQL_RES *res;
@@ -1128,8 +1107,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
-	   dns_clientinfo_t *clientinfo)
-{
+	   dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	bool found = false;
@@ -1266,8 +1244,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
  * See if a zone transfer is allowed
  */
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
-{
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 
 	if (state->debug && state->log != NULL) {
@@ -1283,8 +1260,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
  * Perform a zone transfer
  */
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
-{
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result = ISC_R_SUCCESS;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	MYSQL_RES *res;
@@ -1336,8 +1312,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
  * Start a transaction
  */
 isc_result_t
-dlz_newversion(const char *zone, void *dbdata, void **versionp)
-{
+dlz_newversion(const char *zone, void *dbdata, void **versionp) {
 	isc_result_t result = ISC_R_FAILURE;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	MYSQL_RES *res;
@@ -1451,8 +1426,7 @@ cleanup:
  * End a transaction
  */
 void
-dlz_closeversion(const char *zone, bool commit, void *dbdata, void **versionp)
-{
+dlz_closeversion(const char *zone, bool commit, void *dbdata, void **versionp) {
 	isc_result_t result;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	mysql_transaction_t *txn = (mysql_transaction_t *)*versionp;
@@ -1654,8 +1628,7 @@ dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata)
 bool
 dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
 	     const char *type, const char *key, uint32_t keydatalen,
-	     unsigned char *keydata, void *dbdata)
-{
+	     unsigned char *keydata, void *dbdata) {
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 
 	UNUSED(tcpaddr);
@@ -1673,8 +1646,7 @@ dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
 
 isc_result_t
 dlz_addrdataset(const char *name, const char *rdatastr, void *dbdata,
-		void *version)
-{
+		void *version) {
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	mysql_transaction_t *txn = (mysql_transaction_t *)version;
 	char *new_name, *query;
@@ -1737,8 +1709,7 @@ cleanup:
 
 isc_result_t
 dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
-		void *version)
-{
+		void *version) {
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	mysql_transaction_t *txn = (mysql_transaction_t *)version;
 	char *new_name, *query;
@@ -1788,8 +1759,8 @@ cleanup:
 }
 
 isc_result_t
-dlz_delrdataset(const char *name, const char *type, void *dbdata, void *version)
-{
+dlz_delrdataset(const char *name, const char *type, void *dbdata,
+		void *version) {
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	mysql_transaction_t *txn = (mysql_transaction_t *)version;
 	char *new_name, *query;

@@ -103,7 +103,8 @@
 
 #define JOURNAL_SERIALSET 0x01U
 
-static isc_result_t index_to_disk(dns_journal_t *);
+static isc_result_t
+index_to_disk(dns_journal_t *);
 
 static inline uint32_t
 decode_uint32(unsigned char *p) {
@@ -1640,7 +1641,8 @@ dns_journal_get_sourceserial(dns_journal_t *j, uint32_t *sourceserial) {
  * when we reach the serial number that was current when the IXFR started.
  */
 
-static isc_result_t read_one_rr(dns_journal_t *j);
+static isc_result_t
+read_one_rr(dns_journal_t *j);
 
 /*
  * Make sure the buffer 'b' is has at least 'size' bytes

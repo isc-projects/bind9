@@ -101,11 +101,14 @@ typedef struct config_data {
  * the warnings.
  */
 EXTERN_C void xs_init(pTHX);
-EXTERN_C void boot_DynaLoader(pTHX_ CV *cv);
-EXTERN_C void boot_DLZ_Perl__clientinfo(pTHX_ CV *cv);
-EXTERN_C void boot_DLZ_Perl(pTHX_ CV *cv);
-EXTERN_C void xs_init(pTHX)
-{
+EXTERN_C void
+boot_DynaLoader(pTHX_ CV *cv);
+EXTERN_C void
+boot_DLZ_Perl__clientinfo(pTHX_ CV *cv);
+EXTERN_C void
+boot_DLZ_Perl(pTHX_ CV *cv);
+EXTERN_C void
+xs_init(pTHX) {
 	char *file = __FILE__;
 	dXSUB_SYS;
 
@@ -124,8 +127,7 @@ EXTERN_C void xs_init(pTHX)
  * remember a helper function, from the bind9 dlz_dlopen driver
  */
 static void
-b9_add_helper(config_data_t *state, const char *helper_name, void *ptr)
-{
+b9_add_helper(config_data_t *state, const char *helper_name, void *ptr) {
 	if (strcmp(helper_name, "log") == 0) {
 		state->log = ptr;
 	}
@@ -141,14 +143,12 @@ b9_add_helper(config_data_t *state, const char *helper_name, void *ptr)
 }
 
 int
-dlz_version(unsigned int *flags)
-{
+dlz_version(unsigned int *flags) {
 	return (DLZ_DLOPEN_VERSION);
 }
 
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
-{
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	config_data_t *cd = (config_data_t *)dbdata;
 	isc_result_t retval;
 	int rrcount, r;
@@ -250,8 +250,7 @@ CLEAN_UP_AND_RETURN:
 }
 
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
-{
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	config_data_t *cd = (config_data_t *)dbdata;
 	int r;
 	isc_result_t retval;
@@ -528,8 +527,7 @@ missing_perl_method(const char *perl_class_name)
 
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
-	   ...)
-{
+	   ...) {
 	config_data_t *cd;
 	char *init_args[] = { NULL, NULL };
 	char *perlrun[] = { "", NULL, "dlz perl", NULL };
@@ -716,8 +714,7 @@ CLEAN_UP_PERL_AND_FAIL:
 }
 
 void
-dlz_destroy(void *dbdata)
-{
+dlz_destroy(void *dbdata) {
 	config_data_t *cd = (config_data_t *)dbdata;
 #ifdef MULTIPLICITY
 	PerlInterpreter *my_perl = cd->perl;

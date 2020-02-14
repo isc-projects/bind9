@@ -31,7 +31,8 @@
 
 #include <sys/types.h>
 
-void InitSockets(void);
+void
+InitSockets(void);
 
 /* Common utility functions */
 

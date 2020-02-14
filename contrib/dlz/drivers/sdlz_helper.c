@@ -63,8 +63,7 @@
  */
 
 static void
-destroy_querylist(isc_mem_t *mctx, query_list_t **querylist)
-{
+destroy_querylist(isc_mem_t *mctx, query_list_t **querylist) {
 	query_segment_t *tseg = NULL;
 	query_segment_t *nseg = NULL;
 
@@ -100,8 +99,7 @@ destroy_querylist(isc_mem_t *mctx, query_list_t **querylist)
 static isc_result_t
 build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 		char **record, char **client, query_list_t **querylist,
-		unsigned int flags)
-{
+		unsigned int flags) {
 	isc_result_t result;
 	bool foundzone = false;
 	bool foundrecord = false;
@@ -268,8 +266,7 @@ flag_fail:
  * used to be in our queries from named.conf
  */
 char *
-sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
-{
+sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist) {
 	query_segment_t *tseg = NULL;
 	unsigned int length = 0;
 	char *qs = NULL;
@@ -319,8 +316,7 @@ isc_result_t
 sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 			  const char *allowxfr_str, const char *authority_str,
 			  const char *findzone_str, const char *lookup_str,
-			  const char *countzone_str, dbinstance_t **dbi)
-{
+			  const char *countzone_str, dbinstance_t **dbi) {
 	isc_result_t result;
 	dbinstance_t *db = NULL;
 
@@ -435,8 +431,7 @@ cleanup:
 }
 
 void
-sdlzh_destroy_sqldbinstance(dbinstance_t *dbi)
-{
+sdlzh_destroy_sqldbinstance(dbinstance_t *dbi) {
 	isc_mem_t *mctx;
 
 	/* save mctx for later */
@@ -458,8 +453,7 @@ sdlzh_destroy_sqldbinstance(dbinstance_t *dbi)
 }
 
 char *
-sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char *key)
-{
+sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char *key) {
 	int keylen;
 	char *keystart;
 	char value[255];

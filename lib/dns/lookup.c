@@ -53,7 +53,8 @@ struct dns_lookup {
 
 #define MAX_RESTARTS 16
 
-static void lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event);
+static void
+lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event);
 
 static void
 fetch_done(isc_task_t *task, isc_event_t *event) {

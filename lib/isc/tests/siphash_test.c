@@ -22,13 +22,14 @@
 
 #include <isc/siphash.h>
 
-void native_isc_siphash24(const uint8_t *, const uint8_t *, const size_t,
-			  uint8_t *);
+void
+native_isc_siphash24(const uint8_t *, const uint8_t *, const size_t, uint8_t *);
 
 #if HAVE_OPENSSL_SIPHASH
 
-void openssl_isc_siphash24(const uint8_t *, const uint8_t *, const size_t,
-			   uint8_t *);
+void
+openssl_isc_siphash24(const uint8_t *, const uint8_t *, const size_t,
+		      uint8_t *);
 
 #undef HAVE_OPENSSL_SIPHASH
 #define isc_siphash24 native_isc_siphash24

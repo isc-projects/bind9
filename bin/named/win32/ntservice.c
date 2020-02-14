@@ -30,8 +30,10 @@ static char ConsoleTitle[128];
 /*
  * Forward declarations
  */
-void ServiceControl(DWORD dwCtrlCode);
-int bindmain(int, char *[]); /* From main.c */
+void
+ServiceControl(DWORD dwCtrlCode);
+int
+bindmain(int, char *[]); /* From main.c */
 
 /*
  * Initialize the Service by registering it.

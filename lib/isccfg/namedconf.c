@@ -52,24 +52,29 @@
  * Forward declarations of static functions.
  */
 
-static isc_result_t parse_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
-				   cfg_obj_t **ret);
+static isc_result_t
+parse_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
-static isc_result_t parse_optional_keyvalue(cfg_parser_t *pctx,
-					    const cfg_type_t *type,
-					    cfg_obj_t **ret);
+static isc_result_t
+parse_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
+			cfg_obj_t **ret);
 
-static isc_result_t parse_updatepolicy(cfg_parser_t *pctx,
-				       const cfg_type_t *type, cfg_obj_t **ret);
-static void print_updatepolicy(cfg_printer_t *pctx, const cfg_obj_t *obj);
+static isc_result_t
+parse_updatepolicy(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
+static void
+print_updatepolicy(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
-static void doc_updatepolicy(cfg_printer_t *pctx, const cfg_type_t *type);
+static void
+doc_updatepolicy(cfg_printer_t *pctx, const cfg_type_t *type);
 
-static void print_keyvalue(cfg_printer_t *pctx, const cfg_obj_t *obj);
+static void
+print_keyvalue(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
-static void doc_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
+static void
+doc_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 
-static void doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
+static void
+doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 
 static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_bracketed_dscpsockaddrlist;

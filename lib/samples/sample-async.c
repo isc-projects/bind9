@@ -65,7 +65,8 @@ struct query_trans {
 
 static struct query_trans query_array[MAX_QUERIES];
 
-static isc_result_t dispatch_query(struct query_trans *trans);
+static isc_result_t
+dispatch_query(struct query_trans *trans);
 
 static void
 ctxs_destroy(isc_mem_t **mctxp, isc_appctx_t **actxp, isc_taskmgr_t **taskmgrp,
@@ -252,7 +253,8 @@ cleanup:
 	return (result);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

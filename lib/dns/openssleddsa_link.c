@@ -266,8 +266,8 @@ priv_ed448_from_ossl(EVP_PKEY *pkey, unsigned char *key) {
 
 #endif /* HAVE_OPENSSL_ED448 */
 
-static isc_result_t openssleddsa_todns(const dst_key_t *key,
-				       isc_buffer_t *data);
+static isc_result_t
+openssleddsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static isc_result_t
 openssleddsa_createctx(dst_key_t *key, dst_context_t *dctx) {

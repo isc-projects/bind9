@@ -16,10 +16,10 @@
  * \brief Per RFC1876 */
 
 typedef struct dns_rdata_loc_0 {
-	uint8_t	 version; /* must be first and zero */
-	uint8_t	 size;
-	uint8_t	 horizontal;
-	uint8_t	 vertical;
+	uint8_t version; /* must be first and zero */
+	uint8_t size;
+	uint8_t horizontal;
+	uint8_t vertical;
 	uint32_t latitude;
 	uint32_t longitude;
 	uint32_t altitude;

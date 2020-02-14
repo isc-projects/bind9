@@ -59,7 +59,8 @@ struct record {
 
 #define MAX_RECORDS 100
 
-typedef void log_t(int level, const char *fmt, ...);
+typedef void
+log_t(int level, const char *fmt, ...);
 
 struct dlz_example_data {
 	char *zone_name;

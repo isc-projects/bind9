@@ -81,18 +81,25 @@ typedef struct rdatasetheader {
 #define NXDOMAIN(header)       (((header)->attributes & RDATASET_ATTR_NXDOMAIN) != 0)
 #define NEGATIVE(header)       (((header)->attributes & RDATASET_ATTR_NEGATIVE) != 0)
 
-static isc_result_t dns_ecdb_create(isc_mem_t *mctx, const dns_name_t *origin,
-				    dns_dbtype_t type, dns_rdataclass_t rdclass,
-				    unsigned int argc, char *argv[],
-				    void *driverarg, dns_db_t **dbp);
+static isc_result_t
+dns_ecdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
+		dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
+		void *driverarg, dns_db_t **dbp);
 
-static void rdataset_disassociate(dns_rdataset_t *rdataset);
-static isc_result_t rdataset_first(dns_rdataset_t *rdataset);
-static isc_result_t rdataset_next(dns_rdataset_t *rdataset);
-static void rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
-static void rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
-static unsigned int rdataset_count(dns_rdataset_t *rdataset);
-static void rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
+static void
+rdataset_disassociate(dns_rdataset_t *rdataset);
+static isc_result_t
+rdataset_first(dns_rdataset_t *rdataset);
+static isc_result_t
+rdataset_next(dns_rdataset_t *rdataset);
+static void
+rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+static void
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
+static unsigned int
+rdataset_count(dns_rdataset_t *rdataset);
+static void
+rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
 
 static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_disassociate,
@@ -118,11 +125,14 @@ typedef struct ecdb_rdatasetiter {
 	rdatasetheader_t *current;
 } ecdb_rdatasetiter_t;
 
-static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
-static isc_result_t rdatasetiter_first(dns_rdatasetiter_t *iterator);
-static isc_result_t rdatasetiter_next(dns_rdatasetiter_t *iterator);
-static void rdatasetiter_current(dns_rdatasetiter_t *iterator,
-				 dns_rdataset_t *rdataset);
+static void
+rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
+static isc_result_t
+rdatasetiter_first(dns_rdatasetiter_t *iterator);
+static isc_result_t
+rdatasetiter_next(dns_rdatasetiter_t *iterator);
+static void
+rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset);
 
 static dns_rdatasetitermethods_t rdatasetiter_methods = {
 	rdatasetiter_destroy, rdatasetiter_first, rdatasetiter_next,
