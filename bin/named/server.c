@@ -145,13 +145,13 @@
 #endif /* ifndef SIZE_AS_PERCENT */
 
 #ifdef TUNE_LARGE
-#define RESOLVER_NTASKS 523
-#define UDPBUFFERS	32768
-#define EXCLBUFFERS	32768
-#else /* ifdef TUNE_LARGE */
-#define RESOLVER_NTASKS 31
-#define UDPBUFFERS	1000
-#define EXCLBUFFERS	4096
+#define RESOLVER_NTASKS_PERCPU 32
+#define UDPBUFFERS	       32768
+#define EXCLBUFFERS	       32768
+#else
+#define RESOLVER_NTASKS_PERCPU 8
+#define UDPBUFFERS	       1000
+#define EXCLBUFFERS	       4096
 #endif /* TUNE_LARGE */
 
 #define MAX_TCP_TIMEOUT 65535
@@ -4538,8 +4538,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
 	CHECK(dns_view_createresolver(
-		view, named_g_taskmgr, RESOLVER_NTASKS, ndisp,
-		named_g_socketmgr, named_g_timermgr, resopts,
+		view, named_g_taskmgr, RESOLVER_NTASKS_PERCPU * named_g_cpus,
+		ndisp, named_g_socketmgr, named_g_timermgr, resopts,
 		named_g_dispatchmgr, dispatch4, dispatch6));
 
 	if (dscp4 == -1) {
