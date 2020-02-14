@@ -66,15 +66,15 @@
 static dns_sdlzimplementation_t *dlz_fs = NULL;
 
 typedef struct config_data {
-	char *	   basedir;
-	int	   basedirsize;
-	char *	   datadir;
-	int	   datadirsize;
-	char *	   xfrdir;
-	int	   xfrdirsize;
-	int	   splitcnt;
-	char	   separator;
-	char	   pathsep;
+	char *basedir;
+	int basedirsize;
+	char *datadir;
+	int datadirsize;
+	char *xfrdir;
+	int xfrdirsize;
+	int splitcnt;
+	char separator;
+	char pathsep;
 	isc_mem_t *mctx;
 } config_data_t;
 
@@ -89,8 +89,7 @@ typedef ISC_LIST(dir_entry_t) dlist_t;
 
 /* forward reference */
 
-static void
-fs_destroy(void *driverarg, void *dbdata);
+static void fs_destroy(void *driverarg, void *dbdata);
 
 /*
  * Private methods
@@ -170,7 +169,7 @@ create_path_helper(char *out, const char *in, config_data_t *cd)
 {
 	char *tmpString;
 	char *tmpPtr;
-	int   i;
+	int i;
 
 	tmpString = isc_mem_strdup(named_g_mctx, in);
 
@@ -233,9 +232,9 @@ create_path(const char *zone, const char *host, const char *client,
 	    config_data_t *cd, char **path)
 {
 	char *tmpPath;
-	int   pathsize;
-	int   len;
-	bool  isroot = false;
+	int pathsize;
+	int len;
+	bool isroot = false;
 
 	/* we require a zone & cd parameter */
 	REQUIRE(zone != NULL);
@@ -349,22 +348,22 @@ static isc_result_t
 process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 	    dlist_t *dir_list, unsigned int basedirlen)
 {
-	char	     tmp[PATH_MAX + NAME_MAX];
-	int	     astPos;
-	struct stat  sb;
+	char tmp[PATH_MAX + NAME_MAX];
+	int astPos;
+	struct stat sb;
 	isc_result_t result = ISC_R_FAILURE;
-	char *	     endp;
-	char *	     type;
-	char *	     ttlStr;
-	char *	     data;
-	char	     host[NAME_MAX];
-	char *	     tmpString;
-	char *	     tmpPtr;
-	int	     ttl;
-	int	     i;
-	int	     len;
+	char *endp;
+	char *type;
+	char *ttlStr;
+	char *data;
+	char host[NAME_MAX];
+	char *tmpString;
+	char *tmpPtr;
+	int ttl;
+	int i;
+	int len;
 	dir_entry_t *direntry;
-	bool	     foundHost;
+	bool foundHost;
 
 	tmp[0] = '\0'; /* set 1st byte to '\0' so strcpy works right. */
 	host[0] = '\0';
@@ -577,9 +576,9 @@ static isc_result_t
 fs_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		const char *client)
 {
-	isc_result_t   result;
-	char *	       path;
-	struct stat    sb;
+	isc_result_t result;
+	char *path;
+	struct stat sb;
 	config_data_t *cd;
 	path = NULL;
 
@@ -612,15 +611,15 @@ static isc_result_t
 fs_allnodes(const char *zone, void *driverarg, void *dbdata,
 	    dns_sdlzallnodes_t *allnodes)
 {
-	isc_result_t   result;
-	dlist_t *      dir_list;
+	isc_result_t result;
+	dlist_t *dir_list;
 	config_data_t *cd;
-	char *	       basepath;
-	unsigned int   basepathlen;
-	struct stat    sb;
-	isc_dir_t      dir;
-	dir_entry_t *  dir_entry;
-	dir_entry_t *  next_de;
+	char *basepath;
+	unsigned int basepathlen;
+	struct stat sb;
+	isc_dir_t dir;
+	dir_entry_t *dir_entry;
+	dir_entry_t *next_de;
 
 	basepath = NULL;
 	dir_list = NULL;
@@ -728,8 +727,8 @@ fs_findzone(void *driverarg, void *dbdata, const char *name,
 	    dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
-	char *	     path;
-	struct stat  sb;
+	char *path;
+	struct stat sb;
 	path = NULL;
 
 	UNUSED(driverarg);
@@ -737,7 +736,8 @@ fs_findzone(void *driverarg, void *dbdata, const char *name,
 	UNUSED(clientinfo);
 
 	if (create_path(name, NULL, NULL, (config_data_t *)dbdata, &path) !=
-	    ISC_R_SUCCESS) {
+	    ISC_R_SUCCESS)
+	{
 		return (ISC_R_NOTFOUND);
 	}
 
@@ -770,9 +770,9 @@ fs_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
 	  dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
-	char *	     path;
-	struct stat  sb;
-	isc_dir_t    dir;
+	char *path;
+	struct stat sb;
+	isc_dir_t dir;
 	path = NULL;
 
 	UNUSED(driverarg);
@@ -844,9 +844,9 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[], void *driverarg,
 	  void **dbdata)
 {
 	config_data_t *cd;
-	char *	       endp;
-	int	       len;
-	char	       pathsep;
+	char *endp;
+	int len;
+	char pathsep;
 
 	UNUSED(driverarg);
 	UNUSED(dlzname);
@@ -931,7 +931,7 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[], void *driverarg,
 static void
 fs_destroy(void *driverarg, void *dbdata)
 {
-	isc_mem_t *    mctx;
+	isc_mem_t *mctx;
 	config_data_t *cd;
 
 	UNUSED(driverarg);

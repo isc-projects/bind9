@@ -41,16 +41,15 @@
 /* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
 
-static isc_mutex_t     lock;
+static isc_mutex_t lock;
 static isc_condition_t cv;
 
 atomic_int_fast32_t counter;
-static int	    active[10];
-static atomic_bool  done, done2;
+static int active[10];
+static atomic_bool done, done2;
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -66,8 +65,7 @@ _setup(void **state)
 }
 
 static int
-_setup2(void **state)
-{
+_setup2(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -84,8 +82,7 @@ _setup2(void **state)
 }
 
 static int
-_setup4(void **state)
-{
+_setup4(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -102,8 +99,7 @@ _setup4(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -113,8 +109,7 @@ _teardown(void **state)
 }
 
 static void
-set(isc_task_t *task, isc_event_t *event)
-{
+set(isc_task_t *task, isc_event_t *event) {
 	atomic_int_fast32_t *value = (atomic_int_fast32_t *)event->ev_arg;
 
 	UNUSED(task);
@@ -124,8 +119,7 @@ set(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-set_and_drop(isc_task_t *task, isc_event_t *event)
-{
+set_and_drop(isc_task_t *task, isc_event_t *event) {
 	atomic_int_fast32_t *value = (atomic_int_fast32_t *)event->ev_arg;
 
 	UNUSED(task);
@@ -139,10 +133,9 @@ set_and_drop(isc_task_t *task, isc_event_t *event)
 
 /* Create a task */
 static void
-create_task(void **state)
-{
+create_task(void **state) {
 	isc_result_t result;
-	isc_task_t * task = NULL;
+	isc_task_t *task = NULL;
 
 	UNUSED(state);
 
@@ -155,13 +148,12 @@ create_task(void **state)
 
 /* Process events */
 static void
-all_events(void **state)
-{
-	isc_result_t	    result;
-	isc_task_t *	    task = NULL;
-	isc_event_t *	    event = NULL;
+all_events(void **state) {
+	isc_result_t result;
+	isc_task_t *task = NULL;
+	isc_event_t *event = NULL;
 	atomic_int_fast32_t a, b;
-	int		    i = 0;
+	int i = 0;
 
 	UNUSED(state);
 
@@ -200,13 +192,12 @@ all_events(void **state)
 
 /* Privileged events */
 static void
-privileged_events(void **state)
-{
-	isc_result_t	    result;
-	isc_task_t *	    task1 = NULL, *task2 = NULL;
-	isc_event_t *	    event = NULL;
+privileged_events(void **state) {
+	isc_result_t result;
+	isc_task_t *task1 = NULL, *task2 = NULL;
+	isc_event_t *event = NULL;
 	atomic_int_fast32_t a, b, c, d, e;
-	int		    i = 0;
+	int i = 0;
 
 	UNUSED(state);
 
@@ -285,7 +276,8 @@ privileged_events(void **state)
 	while ((atomic_load(&a) == 0 || atomic_load(&b) == 0 ||
 		atomic_load(&c) == 0 || atomic_load(&d) == 0 ||
 		atomic_load(&e) == 0) &&
-	       i++ < 5000) {
+	       i++ < 5000)
+	{
 		isc_test_nap(1000);
 	}
 
@@ -320,13 +312,12 @@ privileged_events(void **state)
  * we explicitly set it into normal mode *while* running privileged.
  */
 static void
-privilege_drop(void **state)
-{
-	isc_result_t	    result;
-	isc_task_t *	    task1 = NULL, *task2 = NULL;
-	isc_event_t *	    event = NULL;
+privilege_drop(void **state) {
+	isc_result_t result;
+	isc_task_t *task1 = NULL, *task2 = NULL;
+	isc_event_t *event = NULL;
 	atomic_int_fast32_t a, b, c, d, e; /* non valid states */
-	int		    i = 0;
+	int i = 0;
 
 	UNUSED(state);
 
@@ -405,7 +396,8 @@ privilege_drop(void **state)
 	while ((atomic_load(&a) == -1 || atomic_load(&b) == -1 ||
 		atomic_load(&c) == -1 || atomic_load(&d) == -1 ||
 		atomic_load(&e) == -1) &&
-	       i++ < 5000) {
+	       i++ < 5000)
+	{
 		isc_test_nap(1000);
 	}
 
@@ -433,8 +425,7 @@ privilege_drop(void **state)
 }
 
 static void
-sleep_cb(isc_task_t *task, isc_event_t *event)
-{
+sleep_cb(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	int p = *(int *)event->ev_arg;
 	if (p == 1) {
@@ -467,10 +458,9 @@ sleep_cb(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-pause_unpause(void **state)
-{
+pause_unpause(void **state) {
 	isc_result_t result;
-	isc_task_t * task = NULL;
+	isc_task_t *task = NULL;
 	isc_event_t *event1, *event2 = NULL;
 	UNUSED(state);
 	atomic_store(&done, false);
@@ -515,8 +505,7 @@ pause_unpause(void **state)
  * Basic task functions:
  */
 static void
-basic_cb(isc_task_t *task, isc_event_t *event)
-{
+basic_cb(isc_task_t *task, isc_event_t *event) {
 	int i, j;
 
 	UNUSED(task);
@@ -536,8 +525,7 @@ basic_cb(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-basic_shutdown(isc_task_t *task, isc_event_t *event)
-{
+basic_shutdown(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	if (verbose) {
@@ -548,8 +536,7 @@ basic_shutdown(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-basic_tick(isc_task_t *task, isc_event_t *event)
-{
+basic_tick(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	if (verbose) {
@@ -567,21 +554,20 @@ static char tick[] = "tick";
 static char tock[] = "tock";
 
 static void
-basic(void **state)
-{
-	isc_result_t   result;
-	isc_task_t *   task1 = NULL;
-	isc_task_t *   task2 = NULL;
-	isc_task_t *   task3 = NULL;
-	isc_task_t *   task4 = NULL;
-	isc_event_t *  event = NULL;
-	isc_timer_t *  ti1 = NULL;
-	isc_timer_t *  ti2 = NULL;
-	isc_time_t     absolute;
+basic(void **state) {
+	isc_result_t result;
+	isc_task_t *task1 = NULL;
+	isc_task_t *task2 = NULL;
+	isc_task_t *task3 = NULL;
+	isc_task_t *task4 = NULL;
+	isc_event_t *event = NULL;
+	isc_timer_t *ti1 = NULL;
+	isc_timer_t *ti2 = NULL;
+	isc_time_t absolute;
 	isc_interval_t interval;
 	char *testarray[] = { one, one, one,   one,  one, one,	 one,  one,
 			      one, two, three, four, two, three, four, NULL };
-	int   i;
+	int i;
 
 	UNUSED(state);
 
@@ -660,8 +646,7 @@ basic(void **state)
  * tasks complete first.
  */
 static int
-spin(int n)
-{
+spin(int n) {
 	int i;
 	int r = 0;
 	for (i = 0; i < n; i++) {
@@ -674,8 +659,7 @@ spin(int n)
 }
 
 static void
-exclusive_cb(isc_task_t *task, isc_event_t *event)
-{
+exclusive_cb(isc_task_t *task, isc_event_t *event) {
 	int taskno = *(int *)(event->ev_arg);
 
 	if (verbose) {
@@ -685,7 +669,7 @@ exclusive_cb(isc_task_t *task, isc_event_t *event)
 	/* task chosen from the middle of the range */
 	if (taskno == 6) {
 		isc_result_t result;
-		int	     i;
+		int i;
 
 		result = isc_task_beginexclusive(task);
 		assert_int_equal(result, ISC_R_SUCCESS);
@@ -715,17 +699,16 @@ exclusive_cb(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-task_exclusive(void **state)
-{
-	isc_task_t * tasks[10];
+task_exclusive(void **state) {
+	isc_task_t *tasks[10];
 	isc_result_t result;
-	int	     i;
+	int i;
 
 	UNUSED(state);
 
 	for (i = 0; i < 10; i++) {
 		isc_event_t *event = NULL;
-		int *	     v;
+		int *v;
 
 		tasks[i] = NULL;
 
@@ -759,8 +742,7 @@ task_exclusive(void **state)
  * The task system can create and execute many tasks. Tests with 10000.
  */
 static void
-maxtask_shutdown(isc_task_t *task, isc_event_t *event)
-{
+maxtask_shutdown(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	if (event->ev_arg != NULL) {
@@ -776,8 +758,7 @@ maxtask_shutdown(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-maxtask_cb(isc_task_t *task, isc_event_t *event)
-{
+maxtask_cb(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	if (event->ev_arg != NULL) {
@@ -803,12 +784,11 @@ maxtask_cb(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-manytasks(void **state)
-{
-	isc_mem_t *  mctx = NULL;
+manytasks(void **state) {
+	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	isc_event_t *event = NULL;
-	uintptr_t    ntasks = 10000;
+	uintptr_t ntasks = 10000;
 
 	UNUSED(state);
 
@@ -849,14 +829,13 @@ manytasks(void **state)
  * in LIFO order.
  */
 
-static int  nevents = 0;
-static int  nsdevents = 0;
-static int  senders[4];
+static int nevents = 0;
+static int nsdevents = 0;
+static int senders[4];
 atomic_bool ready, all_done;
 
 static void
-sd_sde1(isc_task_t *task, isc_event_t *event)
-{
+sd_sde1(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	assert_int_equal(nevents, 256);
@@ -873,8 +852,7 @@ sd_sde1(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-sd_sde2(isc_task_t *task, isc_event_t *event)
-{
+sd_sde2(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	assert_int_equal(nevents, 256);
@@ -889,8 +867,7 @@ sd_sde2(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-sd_event1(isc_task_t *task, isc_event_t *event)
-{
+sd_event1(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&lock);
@@ -907,8 +884,7 @@ sd_event1(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-sd_event2(isc_task_t *task, isc_event_t *event)
-{
+sd_event2(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	++nevents;
@@ -921,13 +897,12 @@ sd_event2(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-shutdown(void **state)
-{
-	isc_result_t	result;
+shutdown(void **state) {
+	isc_result_t result;
 	isc_eventtype_t event_type;
-	isc_event_t *	event = NULL;
-	isc_task_t *	task = NULL;
-	int		i;
+	isc_event_t *event = NULL;
+	isc_task_t *task = NULL;
+	int i;
 
 	UNUSED(state);
 
@@ -991,8 +966,7 @@ shutdown(void **state)
  * isc_task_onshutdown() will return ISC_R_SHUTTINGDOWN.
  */
 static void
-psd_event1(isc_task_t *task, isc_event_t *event)
-{
+psd_event1(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&lock);
@@ -1007,20 +981,18 @@ psd_event1(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-psd_sde(isc_task_t *task, isc_event_t *event)
-{
+psd_sde(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	isc_event_free(&event);
 }
 
 static void
-post_shutdown(void **state)
-{
-	isc_result_t	result;
+post_shutdown(void **state) {
+	isc_result_t result;
 	isc_eventtype_t event_type;
-	isc_event_t *	event;
-	isc_task_t *	task;
+	isc_event_t *event;
+	isc_task_t *task;
 
 	UNUSED(state);
 
@@ -1064,22 +1036,21 @@ post_shutdown(void **state)
  */
 
 #define SENDERCNT 3
-#define TYPECNT 4
-#define TAGCNT 5
-#define NEVENTS (SENDERCNT * TYPECNT * TAGCNT)
+#define TYPECNT	  4
+#define TAGCNT	  5
+#define NEVENTS	  (SENDERCNT * TYPECNT * TAGCNT)
 
-static bool	       testrange;
-static void *	       purge_sender;
+static bool testrange;
+static void *purge_sender;
 static isc_eventtype_t purge_type_first;
 static isc_eventtype_t purge_type_last;
-static void *	       purge_tag;
-static int	       eventcnt;
+static void *purge_tag;
+static int eventcnt;
 
 atomic_bool started;
 
 static void
-pg_event1(isc_task_t *task, isc_event_t *event)
-{
+pg_event1(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&lock);
@@ -1092,8 +1063,7 @@ pg_event1(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-pg_event2(isc_task_t *task, isc_event_t *event)
-{
+pg_event2(isc_task_t *task, isc_event_t *event) {
 	bool sender_match = false;
 	bool type_match = false;
 	bool tag_match = false;
@@ -1143,8 +1113,7 @@ pg_event2(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-pg_sde(isc_task_t *task, isc_event_t *event)
-{
+pg_sde(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&lock);
@@ -1156,16 +1125,15 @@ pg_sde(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-test_purge(int sender, int type, int tag, int exp_purged)
-{
-	isc_result_t   result;
-	isc_task_t *   task = NULL;
-	isc_event_t *  eventtab[NEVENTS];
-	isc_event_t *  event = NULL;
+test_purge(int sender, int type, int tag, int exp_purged) {
+	isc_result_t result;
+	isc_task_t *task = NULL;
+	isc_event_t *eventtab[NEVENTS];
+	isc_event_t *event = NULL;
 	isc_interval_t interval;
-	isc_time_t     now;
-	int	       sender_cnt, type_cnt, tag_cnt, event_cnt, i;
-	int	       purged = 0;
+	isc_time_t now;
+	int sender_cnt, type_cnt, tag_cnt, event_cnt, i;
+	int purged = 0;
 
 	atomic_init(&started, false);
 	atomic_init(&done, false);
@@ -1290,8 +1258,7 @@ test_purge(int sender, int type, int tag, int exp_purged)
  * from the task's " queue and returns the number of events purged.
  */
 static void
-purge(void **state)
-{
+purge(void **state) {
 	UNUSED(state);
 
 	/* Try purging on a specific sender. */
@@ -1359,8 +1326,7 @@ purge(void **state)
  */
 
 static void
-purgerange(void **state)
-{
+purgerange(void **state) {
 	UNUSED(state);
 
 	/* Now let's try some ranges. */
@@ -1421,8 +1387,7 @@ purgerange(void **state)
  * Helpers for purge event tests
  */
 static void
-pge_event1(isc_task_t *task, isc_event_t *event)
-{
+pge_event1(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&lock);
@@ -1435,8 +1400,7 @@ pge_event1(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-pge_event2(isc_task_t *task, isc_event_t *event)
-{
+pge_event2(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	++eventcnt;
@@ -1444,8 +1408,7 @@ pge_event2(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-pge_sde(isc_task_t *task, isc_event_t *event)
-{
+pge_sde(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&lock);
@@ -1457,15 +1420,14 @@ pge_sde(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-try_purgeevent(bool purgeable)
-{
-	isc_result_t   result;
-	isc_task_t *   task = NULL;
-	bool	       purged;
-	isc_event_t *  event1 = NULL;
-	isc_event_t *  event2 = NULL;
-	isc_event_t *  event2_clone = NULL;
-	isc_time_t     now;
+try_purgeevent(bool purgeable) {
+	isc_result_t result;
+	isc_task_t *task = NULL;
+	bool purged;
+	isc_event_t *event1 = NULL;
+	isc_event_t *event2 = NULL;
+	isc_event_t *event2_clone = NULL;
+	isc_time_t now;
 	isc_interval_t interval;
 
 	atomic_init(&started, false);
@@ -1541,8 +1503,7 @@ try_purgeevent(bool purgeable)
  */
 
 static void
-purgeevent(void **state)
-{
+purgeevent(void **state) {
 	UNUSED(state);
 
 	try_purgeevent(true);
@@ -1556,16 +1517,14 @@ purgeevent(void **state)
  */
 
 static void
-purgeevent_notpurge(void **state)
-{
+purgeevent_notpurge(void **state) {
 	UNUSED(state);
 
 	try_purgeevent(false);
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(create_task, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(shutdown, _setup4, _teardown),
@@ -1608,8 +1567,7 @@ main(int argc, char **argv)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

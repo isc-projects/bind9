@@ -41,8 +41,8 @@
 			goto cleanup;        \
 	} while (0)
 
-isc_mem_t *		 mctx = NULL;
-isc_log_t *		 lctx = NULL;
+isc_mem_t *mctx = NULL;
+isc_log_t *lctx = NULL;
 static isc_logcategory_t categories[] = { { "", 0 },
 					  { "client", 0 },
 					  { "network", 0 },
@@ -54,8 +54,7 @@ static isc_logcategory_t categories[] = { { "", 0 },
 					  { NULL, 0 } };
 
 static void
-cleanup()
-{
+cleanup() {
 	if (lctx != NULL) {
 		isc_log_destroy(&lctx);
 	}
@@ -65,15 +64,14 @@ cleanup()
 }
 
 static isc_result_t
-setup()
-{
+setup() {
 	isc_result_t result;
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
 	isc_logdestination_t destination;
-	isc_logconfig_t *    logconfig = NULL;
+	isc_logconfig_t *logconfig = NULL;
 
 	CHECK(isc_log_create(mctx, &lctx, &logconfig));
 	isc_log_registercategories(lctx, categories);
@@ -96,13 +94,12 @@ cleanup:
 
 /* test cfg_parse_buffer() */
 static void
-parse_buffer_test(void **state)
-{
-	isc_result_t  result;
+parse_buffer_test(void **state) {
+	isc_result_t result;
 	unsigned char text[] = "options\n{\nrecursion yes;\n};\n";
-	isc_buffer_t  buf1, buf2;
+	isc_buffer_t buf1, buf2;
 	cfg_parser_t *p1 = NULL, *p2 = NULL;
-	cfg_obj_t *   c1 = NULL, *c2 = NULL;
+	cfg_obj_t *c1 = NULL, *c2 = NULL;
 
 	UNUSED(state);
 
@@ -143,10 +140,9 @@ parse_buffer_test(void **state)
 
 /* test cfg_map_firstclause() */
 static void
-cfg_map_firstclause_test(void **state)
-{
-	const char * name = NULL;
-	const void * clauses = NULL;
+cfg_map_firstclause_test(void **state) {
+	const char *name = NULL;
+	const void *clauses = NULL;
 	unsigned int idx;
 
 	UNUSED(state);
@@ -159,10 +155,9 @@ cfg_map_firstclause_test(void **state)
 
 /* test cfg_map_nextclause() */
 static void
-cfg_map_nextclause_test(void **state)
-{
-	const char * name = NULL;
-	const void * clauses = NULL;
+cfg_map_nextclause_test(void **state) {
+	const char *name = NULL;
+	const void *clauses = NULL;
 	unsigned int idx;
 
 	UNUSED(state);
@@ -184,8 +179,7 @@ cfg_map_nextclause_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(parse_buffer_test),
 		cmocka_unit_test(cfg_map_firstclause_test),
@@ -200,8 +194,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

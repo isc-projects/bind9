@@ -33,8 +33,7 @@
  * Utility function for getting a configuration option.
  */
 static isc_result_t
-confget(cfg_obj_t const *const *maps, const char *name, const cfg_obj_t **obj)
-{
+confget(cfg_obj_t const *const *maps, const char *name, const cfg_obj_t **obj) {
 	for (size_t i = 0;; i++) {
 		if (maps[i] == NULL) {
 			return (ISC_R_NOTFOUND);
@@ -49,10 +48,9 @@ confget(cfg_obj_t const *const *maps, const char *name, const cfg_obj_t **obj)
  * Utility function for configuring durations.
  */
 static uint32_t
-get_duration(const cfg_obj_t **maps, const char *option, uint32_t dfl)
-{
+get_duration(const cfg_obj_t **maps, const char *option, uint32_t dfl) {
 	const cfg_obj_t *obj;
-	isc_result_t	 result;
+	isc_result_t result;
 	obj = NULL;
 
 	result = confget(maps, option, &obj);
@@ -68,9 +66,8 @@ get_duration(const cfg_obj_t **maps, const char *option, uint32_t dfl)
  */
 static isc_result_t
 cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
-		       isc_log_t *logctx)
-{
-	isc_result_t	result;
+		       isc_log_t *logctx) {
+	isc_result_t result;
 	dns_kasp_key_t *key = NULL;
 
 	/* Create a new key reference. */
@@ -86,8 +83,8 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		key->algorithm = DNS_KEYALG_ECDSA256;
 		key->length = -1;
 	} else {
-		const char *	      rolestr = NULL;
-		const cfg_obj_t *     obj = NULL;
+		const char *rolestr = NULL;
+		const cfg_obj_t *obj = NULL;
 		isc_consttextregion_t alg;
 
 		rolestr = cfg_obj_asstring(cfg_tuple_get(config, "role"));
@@ -168,16 +165,15 @@ cleanup:
 
 isc_result_t
 cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
-		    dns_kasplist_t *kasplist, dns_kasp_t **kaspp)
-{
-	isc_result_t	     result;
-	const cfg_obj_t *    maps[2];
-	const cfg_obj_t *    koptions = NULL;
-	const cfg_obj_t *    keys = NULL;
+		    dns_kasplist_t *kasplist, dns_kasp_t **kaspp) {
+	isc_result_t result;
+	const cfg_obj_t *maps[2];
+	const cfg_obj_t *koptions = NULL;
+	const cfg_obj_t *keys = NULL;
 	const cfg_listelt_t *element = NULL;
-	const char *	     kaspname = NULL;
-	dns_kasp_t *	     kasp = NULL;
-	int		     i = 0;
+	const char *kaspname = NULL;
+	dns_kasp_t *kasp = NULL;
+	int i = 0;
 
 	REQUIRE(kaspp != NULL && *kaspp == NULL);
 
@@ -238,7 +234,8 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 		}
 	} else {
 		for (element = cfg_list_first(keys); element != NULL;
-		     element = cfg_list_next(element)) {
+		     element = cfg_list_next(element))
+		{
 			cfg_obj_t *kobj = cfg_listelt_value(element);
 			result = cfg_kaspkey_fromconfig(kobj, kasp, logctx);
 			if (result != ISC_R_SUCCESS) {

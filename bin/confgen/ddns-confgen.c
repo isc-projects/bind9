@@ -48,7 +48,7 @@
 #include <confgen/os.h>
 #include <dst/dst.h>
 
-#define KEYGEN_DEFAULT "tsig-key"
+#define KEYGEN_DEFAULT	"tsig-key"
 #define CONFGEN_DEFAULT "ddns-key"
 
 static char program[256];
@@ -60,8 +60,7 @@ ISC_PLATFORM_NORETURN_PRE static void
 usage(int status) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(int status)
-{
+usage(int status) {
 	if (progmode == progmode_confgen) {
 		fprintf(stderr, "\
 Usage:\n\
@@ -84,23 +83,22 @@ Usage:\n\
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	isc_result_t result = ISC_R_SUCCESS;
-	bool	     show_final_mem = false;
-	bool	     quiet = false;
+	bool show_final_mem = false;
+	bool quiet = false;
 	isc_buffer_t key_txtbuffer;
-	char	     key_txtsecret[256];
-	isc_mem_t *  mctx = NULL;
-	const char * keyname = NULL;
-	const char * zone = NULL;
-	const char * self_domain = NULL;
-	char *	     keybuf = NULL;
+	char key_txtsecret[256];
+	isc_mem_t *mctx = NULL;
+	const char *keyname = NULL;
+	const char *zone = NULL;
+	const char *self_domain = NULL;
+	char *keybuf = NULL;
 	dns_secalg_t alg = DST_ALG_HMACSHA256;
-	const char * algname;
-	int	     keysize = 256;
-	int	     len = 0;
-	int	     ch;
+	const char *algname;
+	int keysize = 256;
+	int len = 0;
+	int ch;
 
 #if USE_PKCS11
 	pk11_result_register();

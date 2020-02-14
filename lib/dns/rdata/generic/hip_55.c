@@ -16,15 +16,15 @@
 
 #define RRTYPE_HIP_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_hip(ARGS_FROMTEXT)
-{
-	isc_token_t    token;
-	dns_name_t     name;
-	isc_buffer_t   buffer;
-	isc_buffer_t   hit_len;
-	isc_buffer_t   key_len;
+static inline isc_result_t
+fromtext_hip(ARGS_FROMTEXT) {
+	isc_token_t token;
+	dns_name_t name;
+	isc_buffer_t buffer;
+	isc_buffer_t hit_len;
+	isc_buffer_t key_len;
 	unsigned char *start;
-	size_t	       len;
+	size_t len;
 
 	REQUIRE(type == dns_rdatatype_hip);
 
@@ -115,13 +115,13 @@ static inline isc_result_t fromtext_hip(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_hip(ARGS_TOTEXT)
-{
-	isc_region_t  region;
-	dns_name_t    name;
-	unsigned int  length, key_len, hit_len;
+static inline isc_result_t
+totext_hip(ARGS_TOTEXT) {
+	isc_region_t region;
+	dns_name_t name;
+	unsigned int length, key_len, hit_len;
 	unsigned char algorithm;
-	char	      buf[sizeof("225 ")];
+	char buf[sizeof("225 ")];
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
 	REQUIRE(rdata->length != 0);
@@ -186,12 +186,12 @@ static inline isc_result_t totext_hip(ARGS_TOTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t fromwire_hip(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_hip(ARGS_FROMWIRE) {
 	isc_region_t region, rr;
-	dns_name_t   name;
-	uint8_t	     hit_len;
-	uint16_t     key_len;
+	dns_name_t name;
+	uint8_t hit_len;
+	uint16_t key_len;
 
 	REQUIRE(type == dns_rdatatype_hip);
 
@@ -229,8 +229,8 @@ static inline isc_result_t fromwire_hip(ARGS_FROMWIRE)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t towire_hip(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_hip(ARGS_TOWIRE) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
@@ -242,8 +242,8 @@ static inline isc_result_t towire_hip(ARGS_TOWIRE)
 	return (mem_tobuffer(target, region.base, region.length));
 }
 
-static inline int compare_hip(ARGS_COMPARE)
-{
+static inline int
+compare_hip(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
 
@@ -258,11 +258,11 @@ static inline int compare_hip(ARGS_COMPARE)
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t fromstruct_hip(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_hip(ARGS_FROMSTRUCT) {
 	dns_rdata_hip_t *hip = source;
-	dns_rdata_hip_t	 myhip;
-	isc_result_t	 result;
+	dns_rdata_hip_t myhip;
+	isc_result_t result;
 
 	REQUIRE(type == dns_rdatatype_hip);
 	REQUIRE(hip != NULL);
@@ -290,9 +290,9 @@ static inline isc_result_t fromstruct_hip(ARGS_FROMSTRUCT)
 	return (mem_tobuffer(target, hip->servers, hip->servers_len));
 }
 
-static inline isc_result_t tostruct_hip(ARGS_TOSTRUCT)
-{
-	isc_region_t	 region;
+static inline isc_result_t
+tostruct_hip(ARGS_TOSTRUCT) {
+	isc_region_t region;
 	dns_rdata_hip_t *hip = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
@@ -355,8 +355,8 @@ cleanup:
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void freestruct_hip(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_hip(ARGS_FREESTRUCT) {
 	dns_rdata_hip_t *hip = source;
 
 	REQUIRE(hip != NULL);
@@ -373,8 +373,8 @@ static inline void freestruct_hip(ARGS_FREESTRUCT)
 	hip->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_hip(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_hip(ARGS_ADDLDATA) {
 	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
@@ -384,8 +384,8 @@ static inline isc_result_t additionaldata_hip(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_hip(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_hip(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
@@ -394,8 +394,8 @@ static inline isc_result_t digest_hip(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_hip(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_hip(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_hip);
 
 	UNUSED(name);
@@ -406,8 +406,8 @@ static inline bool checkowner_hip(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_hip(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_hip(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_hip);
 
 	UNUSED(rdata);
@@ -418,8 +418,7 @@ static inline bool checknames_hip(ARGS_CHECKNAMES)
 }
 
 isc_result_t
-dns_rdata_hip_first(dns_rdata_hip_t *hip)
-{
+dns_rdata_hip_first(dns_rdata_hip_t *hip) {
 	if (hip->servers_len == 0) {
 		return (ISC_R_NOMORE);
 	}
@@ -428,10 +427,9 @@ dns_rdata_hip_first(dns_rdata_hip_t *hip)
 }
 
 isc_result_t
-dns_rdata_hip_next(dns_rdata_hip_t *hip)
-{
+dns_rdata_hip_next(dns_rdata_hip_t *hip) {
 	isc_region_t region;
-	dns_name_t   name;
+	dns_name_t name;
 
 	if (hip->offset >= hip->servers_len) {
 		return (ISC_R_NOMORE);
@@ -447,8 +445,7 @@ dns_rdata_hip_next(dns_rdata_hip_t *hip)
 }
 
 void
-dns_rdata_hip_current(dns_rdata_hip_t *hip, dns_name_t *name)
-{
+dns_rdata_hip_current(dns_rdata_hip_t *hip, dns_name_t *name) {
 	isc_region_t region;
 
 	REQUIRE(hip->offset < hip->servers_len);
@@ -460,15 +457,15 @@ dns_rdata_hip_current(dns_rdata_hip_t *hip, dns_name_t *name)
 	INSIST(name->length + hip->offset <= hip->servers_len);
 }
 
-static inline int casecompare_hip(ARGS_COMPARE)
-{
+static inline int
+casecompare_hip(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
-	dns_name_t   name1;
-	dns_name_t   name2;
-	int	     order;
-	uint8_t	     hit_len;
-	uint16_t     key_len;
+	dns_name_t name1;
+	dns_name_t name2;
+	int order;
+	uint8_t hit_len;
+	uint16_t key_len;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);

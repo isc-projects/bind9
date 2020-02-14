@@ -147,8 +147,8 @@ struct isc_socket_connev {
 #define ISC_SOCKEVENT_ANYEVENT (0)
 #define ISC_SOCKEVENT_RECVDONE (ISC_EVENTCLASS_SOCKET + 1)
 #define ISC_SOCKEVENT_SENDDONE (ISC_EVENTCLASS_SOCKET + 2)
-#define ISC_SOCKEVENT_NEWCONN (ISC_EVENTCLASS_SOCKET + 3)
-#define ISC_SOCKEVENT_CONNECT (ISC_EVENTCLASS_SOCKET + 4)
+#define ISC_SOCKEVENT_NEWCONN  (ISC_EVENTCLASS_SOCKET + 3)
+#define ISC_SOCKEVENT_CONNECT  (ISC_EVENTCLASS_SOCKET + 4)
 
 /*
  * Internal events.
@@ -169,18 +169,18 @@ typedef enum {
  */
 #define ISC_SOCKSHUT_RECV 0x00000001 /*%< close read side */
 #define ISC_SOCKSHUT_SEND 0x00000002 /*%< close write side */
-#define ISC_SOCKSHUT_ALL 0x00000003  /*%< close them all */
+#define ISC_SOCKSHUT_ALL  0x00000003 /*%< close them all */
 /*@}*/
 
 /*@{*/
 /*!
  * What I/O events to cancel in isc_socket_cancel() calls.
  */
-#define ISC_SOCKCANCEL_RECV 0x00000001	  /*%< cancel recv */
-#define ISC_SOCKCANCEL_SEND 0x00000002	  /*%< cancel send */
-#define ISC_SOCKCANCEL_ACCEPT 0x00000004  /*%< cancel accept */
+#define ISC_SOCKCANCEL_RECV    0x00000001 /*%< cancel recv */
+#define ISC_SOCKCANCEL_SEND    0x00000002 /*%< cancel send */
+#define ISC_SOCKCANCEL_ACCEPT  0x00000004 /*%< cancel accept */
 #define ISC_SOCKCANCEL_CONNECT 0x00000008 /*%< cancel connect */
-#define ISC_SOCKCANCEL_ALL 0x0000000f	  /*%< cancel everything */
+#define ISC_SOCKCANCEL_ALL     0x0000000f /*%< cancel everything */
 /*@}*/
 
 /*@{*/
@@ -188,7 +188,7 @@ typedef enum {
  * Flags for isc_socket_send() and isc_socket_recv() calls.
  */
 #define ISC_SOCKFLAG_IMMEDIATE 0x00000001 /*%< send event only if needed */
-#define ISC_SOCKFLAG_NORETRY 0x00000002	  /*%< drop failed UDP sends */
+#define ISC_SOCKFLAG_NORETRY   0x00000002 /*%< drop failed UDP sends */
 /*@}*/
 
 /*%

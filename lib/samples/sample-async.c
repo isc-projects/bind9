@@ -47,31 +47,29 @@
 #define MAX_QUERIES 100
 
 static dns_client_t *client = NULL;
-static isc_task_t *  query_task = NULL;
+static isc_task_t *query_task = NULL;
 static isc_appctx_t *query_actx = NULL;
-static unsigned int  outstanding_queries = 0;
-static const char *  def_server = "127.0.0.1";
-static FILE *	     fp;
+static unsigned int outstanding_queries = 0;
+static const char *def_server = "127.0.0.1";
+static FILE *fp;
 
 struct query_trans {
-	int		      id;
-	bool		      inuse;
-	dns_rdatatype_t	      type;
-	dns_fixedname_t	      fixedname;
-	dns_name_t *	      qname;
-	dns_namelist_t	      answerlist;
+	int id;
+	bool inuse;
+	dns_rdatatype_t type;
+	dns_fixedname_t fixedname;
+	dns_name_t *qname;
+	dns_namelist_t answerlist;
 	dns_clientrestrans_t *xid;
 };
 
 static struct query_trans query_array[MAX_QUERIES];
 
-static isc_result_t
-dispatch_query(struct query_trans *trans);
+static isc_result_t dispatch_query(struct query_trans *trans);
 
 static void
 ctxs_destroy(isc_mem_t **mctxp, isc_appctx_t **actxp, isc_taskmgr_t **taskmgrp,
-	     isc_socketmgr_t **socketmgrp, isc_timermgr_t **timermgrp)
-{
+	     isc_socketmgr_t **socketmgrp, isc_timermgr_t **timermgrp) {
 	if (*taskmgrp != NULL) {
 		isc_taskmgr_destroy(taskmgrp);
 	}
@@ -95,8 +93,7 @@ ctxs_destroy(isc_mem_t **mctxp, isc_appctx_t **actxp, isc_taskmgr_t **taskmgrp,
 
 static isc_result_t
 ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp, isc_taskmgr_t **taskmgrp,
-	  isc_socketmgr_t **socketmgrp, isc_timermgr_t **timermgrp)
-{
+	  isc_socketmgr_t **socketmgrp, isc_timermgr_t **timermgrp) {
 	isc_result_t result;
 
 	isc_mem_create(mctxp);
@@ -130,12 +127,11 @@ fail:
 }
 
 static isc_result_t
-printdata(dns_rdataset_t *rdataset, dns_name_t *owner)
-{
+printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 	isc_buffer_t target;
 	isc_result_t result;
 	isc_region_t r;
-	char	     t[4096];
+	char t[4096];
 
 	isc_buffer_init(&target, t, sizeof(t));
 
@@ -153,13 +149,12 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner)
 }
 
 static void
-process_answer(isc_task_t *task, isc_event_t *event)
-{
-	struct query_trans *  trans = event->ev_arg;
+process_answer(isc_task_t *task, isc_event_t *event) {
+	struct query_trans *trans = event->ev_arg;
 	dns_clientresevent_t *rev = (dns_clientresevent_t *)event;
-	dns_name_t *	      name;
-	dns_rdataset_t *      rdataset;
-	isc_result_t	      result;
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+	isc_result_t result;
 
 	REQUIRE(task == query_task);
 	REQUIRE(trans->inuse == true);
@@ -173,9 +168,11 @@ process_answer(isc_task_t *task, isc_event_t *event)
 	}
 
 	for (name = ISC_LIST_HEAD(rev->answerlist); name != NULL;
-	     name = ISC_LIST_NEXT(name, link)) {
+	     name = ISC_LIST_NEXT(name, link))
+	{
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
 			(void)printdata(rdataset, name);
 		}
 	}
@@ -206,13 +203,12 @@ process_answer(isc_task_t *task, isc_event_t *event)
 }
 
 static isc_result_t
-dispatch_query(struct query_trans *trans)
-{
+dispatch_query(struct query_trans *trans) {
 	isc_result_t result;
 	unsigned int namelen;
 	isc_buffer_t b;
-	char	     buf[4096]; /* XXX ad hoc constant, but should be enough */
-	char *	     cp;
+	char buf[4096]; /* XXX ad hoc constant, but should be enough */
+	char *cp;
 
 	REQUIRE(trans != NULL);
 	REQUIRE(trans->inuse == false);
@@ -256,12 +252,10 @@ cleanup:
 	return (result);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "usage: sample-async [-s server_address] [-t RR type] "
 			"input_file\n");
 
@@ -269,22 +263,21 @@ usage(void)
 }
 
 int
-main(int argc, char *argv[])
-{
-	int		   ch;
-	isc_textregion_t   tr;
-	isc_mem_t *	   mctx = NULL;
-	isc_taskmgr_t *	   taskmgr = NULL;
-	isc_socketmgr_t *  socketmgr = NULL;
-	isc_timermgr_t *   timermgr = NULL;
-	int		   nservers = 0;
-	const char *	   serveraddr[MAX_SERVERS];
-	isc_sockaddr_t	   sa[MAX_SERVERS];
+main(int argc, char *argv[]) {
+	int ch;
+	isc_textregion_t tr;
+	isc_mem_t *mctx = NULL;
+	isc_taskmgr_t *taskmgr = NULL;
+	isc_socketmgr_t *socketmgr = NULL;
+	isc_timermgr_t *timermgr = NULL;
+	int nservers = 0;
+	const char *serveraddr[MAX_SERVERS];
+	isc_sockaddr_t sa[MAX_SERVERS];
 	isc_sockaddrlist_t servers;
-	dns_rdatatype_t	   type = dns_rdatatype_a;
-	struct in_addr	   inaddr;
-	isc_result_t	   result;
-	int		   i;
+	dns_rdatatype_t type = dns_rdatatype_a;
+	struct in_addr inaddr;
+	isc_result_t result;
+	int i;
 
 	while ((ch = isc_commandline_parse(argc, argv, "s:t:")) != -1) {
 		switch (ch) {

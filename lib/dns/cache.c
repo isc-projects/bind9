@@ -48,7 +48,7 @@
 
 #include "rbtdb.h"
 
-#define CACHE_MAGIC ISC_MAGIC('$', '$', '$', '$')
+#define CACHE_MAGIC	   ISC_MAGIC('$', '$', '$', '$')
 #define VALID_CACHE(cache) ISC_MAGIC_VALID(cache, CACHE_MAGIC)
 
 /*!
@@ -104,17 +104,17 @@ struct cache_cleaner {
 	 */
 
 	dns_cache_t *cache;
-	isc_task_t * task;
+	isc_task_t *task;
 	isc_event_t *resched_event; /*% Sent by cleaner task to
 				     * itself to reschedule */
 	isc_event_t *overmem_event;
 
 	dns_dbiterator_t *iterator;
-	unsigned int	  increment; /*% Number of names to
-				      * clean in one increment */
-	cleaner_state_t state;	     /*% Idle/Busy. */
-	bool		overmem;     /*% The cache is in an overmem state.
-				      * */
+	unsigned int increment; /*% Number of names to
+				 * clean in one increment */
+	cleaner_state_t state;	/*% Idle/Busy. */
+	bool overmem;		/*% The cache is in an overmem state.
+				 * */
 	bool replaceiterator;
 };
 
@@ -124,25 +124,25 @@ struct cache_cleaner {
 
 struct dns_cache {
 	/* Unlocked. */
-	unsigned int   magic;
-	isc_mutex_t    lock;
-	isc_mutex_t    filelock;
-	isc_mem_t *    mctx;  /* Main cache memory */
-	isc_mem_t *    hmctx; /* Heap memory */
-	char *	       name;
+	unsigned int magic;
+	isc_mutex_t lock;
+	isc_mutex_t filelock;
+	isc_mem_t *mctx;  /* Main cache memory */
+	isc_mem_t *hmctx; /* Heap memory */
+	char *name;
 	isc_refcount_t references;
 	isc_refcount_t live_tasks;
 
 	/* Locked by 'lock'. */
 	dns_rdataclass_t rdclass;
-	dns_db_t *	 db;
-	cache_cleaner_t	 cleaner;
-	char *		 db_type;
-	int		 db_argc;
-	char **		 db_argv;
-	size_t		 size;
-	dns_ttl_t	 serve_stale_ttl;
-	isc_stats_t *	 stats;
+	dns_db_t *db;
+	cache_cleaner_t cleaner;
+	char *db_type;
+	int db_argc;
+	char **db_argv;
+	size_t size;
+	dns_ttl_t serve_stale_ttl;
+	isc_stats_t *stats;
 
 	/* Locked by 'filelock'. */
 	char *filename;
@@ -153,22 +153,19 @@ struct dns_cache {
  ***	Functions
  ***/
 
-static isc_result_t
-cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner);
+static isc_result_t cache_cleaner_init(dns_cache_t *cache,
+				       isc_taskmgr_t *taskmgr,
+				       isc_timermgr_t *timermgr,
+				       cache_cleaner_t *cleaner);
 
-static void
-incremental_cleaning_action(isc_task_t *task, isc_event_t *event);
+static void incremental_cleaning_action(isc_task_t *task, isc_event_t *event);
 
-static void
-cleaner_shutdown_action(isc_task_t *task, isc_event_t *event);
+static void cleaner_shutdown_action(isc_task_t *task, isc_event_t *event);
 
-static void
-overmem_cleaning_action(isc_task_t *task, isc_event_t *event);
+static void overmem_cleaning_action(isc_task_t *task, isc_event_t *event);
 
 static inline isc_result_t
-cache_create_db(dns_cache_t *cache, dns_db_t **db)
-{
+cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	isc_result_t result;
 	result = dns_db_create(cache->mctx, cache->db_type, dns_rootname,
 			       dns_dbtype_cache, cache->rdclass, cache->db_argc,
@@ -183,12 +180,11 @@ isc_result_t
 dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
 		 const char *cachename, const char *db_type,
-		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep)
-{
+		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep) {
 	isc_result_t result;
 	dns_cache_t *cache;
-	int	     i, extra = 0;
-	isc_task_t * dbtask;
+	int i, extra = 0;
+	isc_task_t *dbtask;
 
 	REQUIRE(cachep != NULL);
 	REQUIRE(*cachep == NULL);
@@ -237,8 +233,8 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	cache->db_argv = NULL;
 
 	if (cache->db_argc != 0) {
-		cache->db_argv =
-			isc_mem_get(cmctx, cache->db_argc * sizeof(char *));
+		cache->db_argv = isc_mem_get(cmctx,
+					     cache->db_argc * sizeof(char *));
 
 		for (i = 0; i < cache->db_argc; i++) {
 			cache->db_argv[i] = NULL;
@@ -246,8 +242,8 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 
 		cache->db_argv[0] = (char *)hmctx;
 		for (i = extra; i < cache->db_argc; i++) {
-			cache->db_argv[i] =
-				isc_mem_strdup(cmctx, db_argv[i - extra]);
+			cache->db_argv[i] = isc_mem_strdup(cmctx,
+							   db_argv[i - extra]);
 		}
 	}
 
@@ -323,8 +319,7 @@ cleanup_filelock:
 }
 
 static void
-cache_free(dns_cache_t *cache)
-{
+cache_free(dns_cache_t *cache) {
 	REQUIRE(VALID_CACHE(cache));
 
 	isc_refcount_destroy(&cache->references);
@@ -398,8 +393,7 @@ cache_free(dns_cache_t *cache)
 }
 
 void
-dns_cache_attach(dns_cache_t *cache, dns_cache_t **targetp)
-{
+dns_cache_attach(dns_cache_t *cache, dns_cache_t **targetp) {
 	REQUIRE(VALID_CACHE(cache));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
@@ -409,8 +403,7 @@ dns_cache_attach(dns_cache_t *cache, dns_cache_t **targetp)
 }
 
 void
-dns_cache_detach(dns_cache_t **cachep)
-{
+dns_cache_detach(dns_cache_t **cachep) {
 	dns_cache_t *cache;
 
 	REQUIRE(cachep != NULL);
@@ -444,8 +437,7 @@ dns_cache_detach(dns_cache_t **cachep)
 }
 
 void
-dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp)
-{
+dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
 	REQUIRE(VALID_CACHE(cache));
 	REQUIRE(dbp != NULL && *dbp == NULL);
 	REQUIRE(cache->db != NULL);
@@ -456,8 +448,7 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp)
 }
 
 isc_result_t
-dns_cache_setfilename(dns_cache_t *cache, const char *filename)
-{
+dns_cache_setfilename(dns_cache_t *cache, const char *filename) {
 	char *newname;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -476,8 +467,7 @@ dns_cache_setfilename(dns_cache_t *cache, const char *filename)
 }
 
 isc_result_t
-dns_cache_load(dns_cache_t *cache)
-{
+dns_cache_load(dns_cache_t *cache) {
 	isc_result_t result;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -495,8 +485,7 @@ dns_cache_load(dns_cache_t *cache)
 }
 
 isc_result_t
-dns_cache_dump(dns_cache_t *cache)
-{
+dns_cache_dump(dns_cache_t *cache) {
 	isc_result_t result;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -514,8 +503,7 @@ dns_cache_dump(dns_cache_t *cache)
 }
 
 const char *
-dns_cache_getname(dns_cache_t *cache)
-{
+dns_cache_getname(dns_cache_t *cache) {
 	REQUIRE(VALID_CACHE(cache));
 
 	return (cache->name);
@@ -528,8 +516,7 @@ dns_cache_getname(dns_cache_t *cache)
 
 static isc_result_t
 cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner)
-{
+		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner) {
 	isc_result_t result;
 
 	isc_mutex_init(&cleaner->lock);
@@ -605,8 +592,7 @@ cleanup:
 }
 
 static void
-begin_cleaning(cache_cleaner_t *cleaner)
-{
+begin_cleaning(cache_cleaner_t *cleaner) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(CLEANER_IDLE(cleaner));
@@ -663,8 +649,7 @@ begin_cleaning(cache_cleaner_t *cleaner)
 }
 
 static void
-end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event)
-{
+end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event) {
 	isc_result_t result;
 
 	REQUIRE(CLEANER_BUSY(cleaner));
@@ -688,10 +673,9 @@ end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event)
  * or shrinks beyond its lower limit.
  */
 static void
-overmem_cleaning_action(isc_task_t *task, isc_event_t *event)
-{
+overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	cache_cleaner_t *cleaner = event->ev_arg;
-	bool		 want_cleaning = false;
+	bool want_cleaning = false;
 
 	UNUSED(task);
 
@@ -738,12 +722,11 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event)
  * Do incremental cleaning.
  */
 static void
-incremental_cleaning_action(isc_task_t *task, isc_event_t *event)
-{
+incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	cache_cleaner_t *cleaner = event->ev_arg;
-	isc_result_t	 result;
-	unsigned int	 n_names;
-	isc_time_t	 start;
+	isc_result_t result;
+	unsigned int n_names;
+	isc_time_t start;
 
 	UNUSED(task);
 
@@ -857,9 +840,8 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event)
  * Do immediate cleaning.
  */
 isc_result_t
-dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now)
-{
-	isc_result_t	  result;
+dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
+	isc_result_t result;
 	dns_dbiterator_t *iterator = NULL;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -911,10 +893,9 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now)
 }
 
 static void
-water(void *arg, int mark)
-{
+water(void *arg, int mark) {
 	dns_cache_t *cache = arg;
-	bool	     overmem = (mark == ISC_MEM_HIWATER);
+	bool overmem = (mark == ISC_MEM_HIWATER);
 
 	REQUIRE(VALID_CACHE(cache));
 
@@ -935,8 +916,7 @@ water(void *arg, int mark)
 }
 
 void
-dns_cache_setcachesize(dns_cache_t *cache, size_t size)
-{
+dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 	size_t hiwater, lowater;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -978,8 +958,7 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size)
 }
 
 size_t
-dns_cache_getcachesize(dns_cache_t *cache)
-{
+dns_cache_getcachesize(dns_cache_t *cache) {
 	size_t size;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -992,8 +971,7 @@ dns_cache_getcachesize(dns_cache_t *cache)
 }
 
 void
-dns_cache_setservestalettl(dns_cache_t *cache, dns_ttl_t ttl)
-{
+dns_cache_setservestalettl(dns_cache_t *cache, dns_ttl_t ttl) {
 	REQUIRE(VALID_CACHE(cache));
 
 	LOCK(&cache->lock);
@@ -1004,9 +982,8 @@ dns_cache_setservestalettl(dns_cache_t *cache, dns_ttl_t ttl)
 }
 
 dns_ttl_t
-dns_cache_getservestalettl(dns_cache_t *cache)
-{
-	dns_ttl_t    ttl;
+dns_cache_getservestalettl(dns_cache_t *cache) {
+	dns_ttl_t ttl;
 	isc_result_t result;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -1023,8 +1000,7 @@ dns_cache_getservestalettl(dns_cache_t *cache)
  * The cleaner task is shutting down; do the necessary cleanup.
  */
 static void
-cleaner_shutdown_action(isc_task_t *task, isc_event_t *event)
-{
+cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	dns_cache_t *cache = event->ev_arg;
 
 	UNUSED(task);
@@ -1047,11 +1023,10 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event)
 }
 
 isc_result_t
-dns_cache_flush(dns_cache_t *cache)
-{
-	dns_db_t *	  db = NULL, *olddb;
+dns_cache_flush(dns_cache_t *cache) {
+	dns_db_t *db = NULL, *olddb;
 	dns_dbiterator_t *dbiterator = NULL, *olddbiterator = NULL;
-	isc_result_t	  result;
+	isc_result_t result;
 
 	result = cache_create_db(cache, &db);
 	if (result != ISC_R_SUCCESS) {
@@ -1094,9 +1069,8 @@ dns_cache_flush(dns_cache_t *cache)
 }
 
 static isc_result_t
-clearnode(dns_db_t *db, dns_dbnode_t *node)
-{
-	isc_result_t	    result;
+clearnode(dns_db_t *db, dns_dbnode_t *node) {
+	isc_result_t result;
 	dns_rdatasetiter_t *iter = NULL;
 
 	result = dns_db_allrdatasets(db, node, NULL, (isc_stdtime_t)0, &iter);
@@ -1105,7 +1079,8 @@ clearnode(dns_db_t *db, dns_dbnode_t *node)
 	}
 
 	for (result = dns_rdatasetiter_first(iter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iter)) {
+	     result = dns_rdatasetiter_next(iter))
+	{
 		dns_rdataset_t rdataset;
 		dns_rdataset_init(&rdataset);
 
@@ -1127,13 +1102,12 @@ clearnode(dns_db_t *db, dns_dbnode_t *node)
 }
 
 static isc_result_t
-cleartree(dns_db_t *db, const dns_name_t *name)
-{
-	isc_result_t	  result, answer = ISC_R_SUCCESS;
+cleartree(dns_db_t *db, const dns_name_t *name) {
+	isc_result_t result, answer = ISC_R_SUCCESS;
 	dns_dbiterator_t *iter = NULL;
-	dns_dbnode_t *	  node = NULL, *top = NULL;
-	dns_fixedname_t	  fnodename;
-	dns_name_t *	  nodename;
+	dns_dbnode_t *node = NULL, *top = NULL;
+	dns_fixedname_t fnodename;
+	dns_name_t *nodename;
 
 	/*
 	 * Create the node if it doesn't exist so dns_dbiterator_seek()
@@ -1203,17 +1177,15 @@ cleanup:
 }
 
 isc_result_t
-dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name)
-{
+dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name) {
 	return (dns_cache_flushnode(cache, name, false));
 }
 
 isc_result_t
-dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name, bool tree)
-{
-	isc_result_t  result;
+dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name, bool tree) {
+	isc_result_t result;
 	dns_dbnode_t *node = NULL;
-	dns_db_t *    db = NULL;
+	dns_db_t *db = NULL;
 
 	if (tree && dns_name_equal(name, dns_rootname)) {
 		return (dns_cache_flush(cache));
@@ -1249,15 +1221,13 @@ cleanup_db:
 }
 
 isc_stats_t *
-dns_cache_getstats(dns_cache_t *cache)
-{
+dns_cache_getstats(dns_cache_t *cache) {
 	REQUIRE(VALID_CACHE(cache));
 	return (cache->stats);
 }
 
 void
-dns_cache_updatestats(dns_cache_t *cache, isc_result_t result)
-{
+dns_cache_updatestats(dns_cache_t *cache, isc_result_t result) {
 	REQUIRE(VALID_CACHE(cache));
 	if (cache->stats == NULL) {
 		return;
@@ -1287,16 +1257,15 @@ dns_cache_updatestats(dns_cache_t *cache, isc_result_t result)
  */
 typedef struct cache_dumparg {
 	isc_statsformat_t type;
-	void *		  arg;		  /* type dependent argument */
-	int		  ncounters;	  /* for general statistics */
-	int *		  counterindices; /* for general statistics */
-	uint64_t *	  countervalues;  /* for general statistics */
-	isc_result_t	  result;
+	void *arg;		 /* type dependent argument */
+	int ncounters;		 /* for general statistics */
+	int *counterindices;	 /* for general statistics */
+	uint64_t *countervalues; /* for general statistics */
+	isc_result_t result;
 } cache_dumparg_t;
 
 static void
-getcounter(isc_statscounter_t counter, uint64_t val, void *arg)
-{
+getcounter(isc_statscounter_t counter, uint64_t val, void *arg) {
 	cache_dumparg_t *dumparg = arg;
 
 	REQUIRE(counter < dumparg->ncounters);
@@ -1305,8 +1274,7 @@ getcounter(isc_statscounter_t counter, uint64_t val, void *arg)
 
 static void
 getcounters(isc_stats_t *stats, isc_statsformat_t type, int ncounters,
-	    int *indices, uint64_t *values)
-{
+	    int *indices, uint64_t *values) {
 	cache_dumparg_t dumparg;
 
 	memset(values, 0, sizeof(values[0]) * ncounters);
@@ -1320,9 +1288,8 @@ getcounters(isc_stats_t *stats, isc_statsformat_t type, int ncounters,
 }
 
 void
-dns_cache_dumpstats(dns_cache_t *cache, FILE *fp)
-{
-	int	 indices[dns_cachestatscounter_max];
+dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
+	int indices[dns_cachestatscounter_max];
 	uint64_t values[dns_cachestatscounter_max];
 
 	REQUIRE(VALID_CACHE(cache));
@@ -1376,8 +1343,7 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp)
 			goto error; \
 	} while (0)
 static int
-renderstat(const char *name, uint64_t value, xmlTextWriterPtr writer)
-{
+renderstat(const char *name, uint64_t value, xmlTextWriterPtr writer) {
 	int xmlrc;
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counter"));
@@ -1391,11 +1357,10 @@ error:
 }
 
 int
-dns_cache_renderxml(dns_cache_t *cache, void *writer0)
-{
-	int		 indices[dns_cachestatscounter_max];
-	uint64_t	 values[dns_cachestatscounter_max];
-	int		 xmlrc;
+dns_cache_renderxml(dns_cache_t *cache, void *writer0) {
+	int indices[dns_cachestatscounter_max];
+	uint64_t values[dns_cachestatscounter_max];
+	int xmlrc;
 	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -1440,11 +1405,10 @@ error:
 	} while (0)
 
 isc_result_t
-dns_cache_renderjson(dns_cache_t *cache, void *cstats0)
-{
+dns_cache_renderjson(dns_cache_t *cache, void *cstats0) {
 	isc_result_t result = ISC_R_SUCCESS;
-	int	     indices[dns_cachestatscounter_max];
-	uint64_t     values[dns_cachestatscounter_max];
+	int indices[dns_cachestatscounter_max];
+	uint64_t values[dns_cachestatscounter_max];
 	json_object *obj;
 	json_object *cstats = (json_object *)cstats0;
 

@@ -42,12 +42,12 @@
 
 typedef struct dyndb_implementation dyndb_implementation_t;
 struct dyndb_implementation {
-	isc_mem_t *	      mctx;
-	void *		      handle;
+	isc_mem_t *mctx;
+	void *handle;
 	dns_dyndb_register_t *register_func;
-	dns_dyndb_destroy_t * destroy_func;
-	char *		      name;
-	void *		      inst;
+	dns_dyndb_destroy_t *destroy_func;
+	char *name;
+	void *inst;
 	LINK(dyndb_implementation_t) link;
 };
 
@@ -61,22 +61,21 @@ static LIST(dyndb_implementation_t) dyndb_implementations;
 
 /* Locks dyndb_implementations. */
 static isc_mutex_t dyndb_lock;
-static isc_once_t  once = ISC_ONCE_INIT;
+static isc_once_t once = ISC_ONCE_INIT;
 
 static void
-dyndb_initialize(void)
-{
+dyndb_initialize(void) {
 	isc_mutex_init(&dyndb_lock);
 	INIT_LIST(dyndb_implementations);
 }
 
 static dyndb_implementation_t *
-impfind(const char *name)
-{
+impfind(const char *name) {
 	dyndb_implementation_t *imp;
 
 	for (imp = ISC_LIST_HEAD(dyndb_implementations); imp != NULL;
-	     imp = ISC_LIST_NEXT(imp, link)) {
+	     imp = ISC_LIST_NEXT(imp, link))
+	{
 		if (strcasecmp(name, imp->name) == 0) {
 			return (imp);
 		}
@@ -87,10 +86,9 @@ impfind(const char *name)
 #if HAVE_DLFCN_H && HAVE_DLOPEN
 static isc_result_t
 load_symbol(void *handle, const char *filename, const char *symbol_name,
-	    void **symbolp)
-{
+	    void **symbolp) {
 	const char *errmsg;
-	void *	    symbol;
+	void *symbol;
 
 	REQUIRE(handle != NULL);
 	REQUIRE(symbolp != NULL && *symbolp == NULL);
@@ -117,15 +115,14 @@ load_symbol(void *handle, const char *filename, const char *symbol_name,
 
 static isc_result_t
 load_library(isc_mem_t *mctx, const char *filename, const char *instname,
-	     dyndb_implementation_t **impp)
-{
-	isc_result_t		result;
-	void *			handle = NULL;
+	     dyndb_implementation_t **impp) {
+	isc_result_t result;
+	void *handle = NULL;
 	dyndb_implementation_t *imp = NULL;
-	dns_dyndb_register_t *	register_func = NULL;
-	dns_dyndb_destroy_t *	destroy_func = NULL;
-	dns_dyndb_version_t *	version_func = NULL;
-	int			version, flags;
+	dns_dyndb_register_t *register_func = NULL;
+	dns_dyndb_destroy_t *destroy_func = NULL;
+	dns_dyndb_version_t *version_func = NULL;
+	int version, flags;
 
 	REQUIRE(impp != NULL && *impp == NULL);
 
@@ -151,7 +148,8 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 
 	version = version_func(NULL);
 	if (version < (DNS_DYNDB_VERSION - DNS_DYNDB_AGE) ||
-	    version > DNS_DYNDB_VERSION) {
+	    version > DNS_DYNDB_VERSION)
+	{
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
 			      "driver API version mismatch: %d/%d", version,
@@ -200,8 +198,7 @@ cleanup:
 }
 
 static void
-unload_library(dyndb_implementation_t **impp)
-{
+unload_library(dyndb_implementation_t **impp) {
 	dyndb_implementation_t *imp;
 
 	REQUIRE(impp != NULL && *impp != NULL);
@@ -215,8 +212,7 @@ unload_library(dyndb_implementation_t **impp)
 #elif _WIN32
 static isc_result_t
 load_symbol(HMODULE handle, const char *filename, const char *symbol_name,
-	    void **symbolp)
-{
+	    void **symbolp) {
 	void *symbol;
 
 	REQUIRE(handle != NULL);
@@ -240,15 +236,14 @@ load_symbol(HMODULE handle, const char *filename, const char *symbol_name,
 
 static isc_result_t
 load_library(isc_mem_t *mctx, const char *filename, const char *instname,
-	     dyndb_implementation_t **impp)
-{
-	isc_result_t		result;
-	HMODULE			handle;
+	     dyndb_implementation_t **impp) {
+	isc_result_t result;
+	HMODULE handle;
 	dyndb_implementation_t *imp = NULL;
-	dns_dyndb_register_t *	register_func = NULL;
-	dns_dyndb_destroy_t *	destroy_func = NULL;
-	dns_dyndb_version_t *	version_func = NULL;
-	int			version;
+	dns_dyndb_register_t *register_func = NULL;
+	dns_dyndb_destroy_t *destroy_func = NULL;
+	dns_dyndb_version_t *version_func = NULL;
+	int version;
 
 	REQUIRE(impp != NULL && *impp == NULL);
 
@@ -266,7 +261,8 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 
 	version = version_func(NULL);
 	if (version < (DNS_DYNDB_VERSION - DNS_DYNDB_AGE) ||
-	    version > DNS_DYNDB_VERSION) {
+	    version > DNS_DYNDB_VERSION)
+	{
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
 			      "driver API version mismatch: %d/%d", version,
@@ -315,8 +311,7 @@ cleanup:
 }
 
 static void
-unload_library(dyndb_implementation_t **impp)
-{
+unload_library(dyndb_implementation_t **impp) {
 	dyndb_implementation_t *imp;
 
 	REQUIRE(impp != NULL && *impp != NULL);
@@ -330,8 +325,7 @@ unload_library(dyndb_implementation_t **impp)
 #else  /* HAVE_DLFCN_H || _WIN32 */
 static isc_result_t
 load_library(isc_mem_t *mctx, const char *filename, const char *instname,
-	     dyndb_implementation_t **impp)
-{
+	     dyndb_implementation_t **impp) {
 	UNUSED(mctx);
 	UNUSED(filename);
 	UNUSED(instname);
@@ -345,8 +339,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 }
 
 static void
-unload_library(dyndb_implementation_t **impp)
-{
+unload_library(dyndb_implementation_t **impp) {
 	UNUSED(impp);
 }
 #endif /* HAVE_DLFCN_H */
@@ -354,9 +347,8 @@ unload_library(dyndb_implementation_t **impp)
 isc_result_t
 dns_dyndb_load(const char *libname, const char *name, const char *parameters,
 	       const char *file, unsigned long line, isc_mem_t *mctx,
-	       const dns_dyndbctx_t *dctx)
-{
-	isc_result_t		result;
+	       const dns_dyndbctx_t *dctx) {
+	isc_result_t result;
 	dyndb_implementation_t *implementation = NULL;
 
 	REQUIRE(DNS_DYNDBCTX_VALID(dctx));
@@ -390,8 +382,7 @@ cleanup:
 }
 
 void
-dns_dyndb_cleanup(bool exiting)
-{
+dns_dyndb_cleanup(bool exiting) {
 	dyndb_implementation_t *elem;
 	dyndb_implementation_t *prev;
 
@@ -420,8 +411,7 @@ dns_dyndb_cleanup(bool exiting)
 isc_result_t
 dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 		    dns_view_t *view, dns_zonemgr_t *zmgr, isc_task_t *task,
-		    isc_timermgr_t *tmgr, dns_dyndbctx_t **dctxp)
-{
+		    isc_timermgr_t *tmgr, dns_dyndbctx_t **dctxp) {
 	dns_dyndbctx_t *dctx;
 
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
@@ -452,8 +442,7 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 }
 
 void
-dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp)
-{
+dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp) {
 	dns_dyndbctx_t *dctx;
 
 	REQUIRE(dctxp != NULL && DNS_DYNDBCTX_VALID(*dctxp));

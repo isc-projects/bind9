@@ -27,11 +27,10 @@
  * Setup logging to use stderr.
  */
 static isc_result_t
-setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp)
-{
+setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
 	isc_logdestination_t destination;
-	isc_logconfig_t *    logconfig = NULL;
-	isc_log_t *	     log = NULL;
+	isc_logconfig_t *logconfig = NULL;
+	isc_log_t *log = NULL;
 
 	RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig) == ISC_R_SUCCESS);
 	isc_log_setcontext(log);
@@ -53,12 +52,11 @@ setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp)
 }
 
 int
-main(int argc, char **argv)
-{
-	char *	     file;
-	isc_mem_t *  mctx = NULL;
+main(int argc, char **argv) {
+	char *file;
+	isc_mem_t *mctx = NULL;
 	isc_result_t result;
-	isc_log_t *  lctx = NULL;
+	isc_log_t *lctx = NULL;
 
 	if (argc != 2) {
 		printf("usage: %s journal\n", argv[0]);

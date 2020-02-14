@@ -30,15 +30,14 @@
 isc_result_t
 dns_ds_fromkeyrdata(const dns_name_t *owner, dns_rdata_t *key,
 		    dns_dsdigest_t digest_type, unsigned char *digest,
-		    dns_rdata_ds_t *dsrdata)
-{
-	isc_result_t	result;
+		    dns_rdata_ds_t *dsrdata) {
+	isc_result_t result;
 	dns_fixedname_t fname;
-	dns_name_t *	name;
-	unsigned int	digestlen;
-	isc_region_t	r;
-	isc_md_t *	md;
-	isc_md_type_t	md_type = 0;
+	dns_name_t *name;
+	unsigned int digestlen;
+	isc_region_t r;
+	isc_md_t *md;
+	isc_md_type_t md_type = 0;
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->type == dns_rdatatype_dnskey ||
@@ -116,12 +115,11 @@ end:
 isc_result_t
 dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 		  dns_dsdigest_t digest_type, unsigned char *buffer,
-		  dns_rdata_t *rdata)
-{
-	isc_result_t   result;
-	unsigned char  digest[ISC_MAX_MD_SIZE];
+		  dns_rdata_t *rdata) {
+	isc_result_t result;
+	unsigned char digest[ISC_MAX_MD_SIZE];
 	dns_rdata_ds_t ds;
-	isc_buffer_t   b;
+	isc_buffer_t b;
 
 	result = dns_ds_fromkeyrdata(owner, key, digest_type, digest, &ds);
 	if (result != ISC_R_SUCCESS) {

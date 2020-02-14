@@ -34,7 +34,7 @@
 #endif /* ifdef OPENSSL_LEAKS */
 
 #ifdef ISC_TIMER_TRACE
-#define XTRACE(s) fprintf(stderr, "%s\n", (s))
+#define XTRACE(s)      fprintf(stderr, "%s\n", (s))
 #define XTRACEID(s, t) fprintf(stderr, "%s %p\n", (s), (t))
 #define XTRACETIME(s, d) \
 	fprintf(stderr, "%s %u.%09u\n", (s), (d).seconds, (d).nanoseconds)
@@ -52,60 +52,58 @@
 #define XTRACETIMER(s, t, d)
 #endif /* ISC_TIMER_TRACE */
 
-#define TIMER_MAGIC ISC_MAGIC('T', 'I', 'M', 'R')
+#define TIMER_MAGIC    ISC_MAGIC('T', 'I', 'M', 'R')
 #define VALID_TIMER(t) ISC_MAGIC_VALID(t, TIMER_MAGIC)
 
-typedef struct isc__timer    isc__timer_t;
+typedef struct isc__timer isc__timer_t;
 typedef struct isc__timermgr isc__timermgr_t;
 
 struct isc__timer {
 	/*! Not locked. */
-	isc_timer_t	 common;
+	isc_timer_t common;
 	isc__timermgr_t *manager;
-	isc_mutex_t	 lock;
-	isc_refcount_t	 references;
+	isc_mutex_t lock;
+	isc_refcount_t references;
 	/*! Locked by timer lock. */
 	isc_time_t idle;
 	/*! Locked by manager lock. */
-	isc_timertype_t	 type;
-	isc_time_t	 expires;
-	isc_interval_t	 interval;
-	isc_task_t *	 task;
+	isc_timertype_t type;
+	isc_time_t expires;
+	isc_interval_t interval;
+	isc_task_t *task;
 	isc_taskaction_t action;
-	void *		 arg;
-	unsigned int	 index;
-	isc_time_t	 due;
+	void *arg;
+	unsigned int index;
+	isc_time_t due;
 	LINK(isc__timer_t) link;
 };
 
 #define TIMER_MANAGER_MAGIC ISC_MAGIC('T', 'I', 'M', 'M')
-#define VALID_MANAGER(m) ISC_MAGIC_VALID(m, TIMER_MANAGER_MAGIC)
+#define VALID_MANAGER(m)    ISC_MAGIC_VALID(m, TIMER_MANAGER_MAGIC)
 
 struct isc__timermgr {
 	/* Not locked. */
 	isc_timermgr_t common;
-	isc_mem_t *    mctx;
-	isc_mutex_t    lock;
+	isc_mem_t *mctx;
+	isc_mutex_t lock;
 	/* Locked by manager lock. */
 	bool done;
 	LIST(isc__timer_t) timers;
-	unsigned int	nscheduled;
-	isc_time_t	due;
+	unsigned int nscheduled;
+	isc_time_t due;
 	isc_condition_t wakeup;
-	isc_thread_t	thread;
-	isc_heap_t *	heap;
+	isc_thread_t thread;
+	isc_heap_t *heap;
 };
 
-void
-isc_timermgr_poke(isc_timermgr_t *manager0);
+void isc_timermgr_poke(isc_timermgr_t *manager0);
 
 static inline isc_result_t
-schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok)
-{
-	isc_result_t	 result;
+schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok) {
+	isc_result_t result;
 	isc__timermgr_t *manager;
-	isc_time_t	 due;
-	int		 cmp;
+	isc_time_t due;
+	int cmp;
 
 	/*!
 	 * Note: the caller must ensure locking.
@@ -124,7 +122,8 @@ schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok)
 			return (result);
 		}
 		if (timer->type == isc_timertype_limited &&
-		    isc_time_compare(&timer->expires, &due) < 0) {
+		    isc_time_compare(&timer->expires, &due) < 0)
+		{
 			due = timer->expires;
 		}
 	} else {
@@ -132,8 +131,8 @@ schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok)
 			due = timer->expires;
 		} else if (isc_time_isepoch(&timer->expires)) {
 			due = timer->idle;
-		} else if (isc_time_compare(&timer->idle, &timer->expires) <
-			   0) {
+		} else if (isc_time_compare(&timer->idle, &timer->expires) < 0)
+		{
 			due = timer->idle;
 		} else {
 			due = timer->expires;
@@ -189,9 +188,8 @@ schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok)
 }
 
 static inline void
-deschedule(isc__timer_t *timer)
-{
-	bool		 need_wakeup = false;
+deschedule(isc__timer_t *timer) {
+	bool need_wakeup = false;
 	isc__timermgr_t *manager;
 
 	/*
@@ -215,8 +213,7 @@ deschedule(isc__timer_t *timer)
 }
 
 static void
-destroy(isc__timer_t *timer)
-{
+destroy(isc__timer_t *timer) {
 	isc__timermgr_t *manager = timer->manager;
 
 	/*
@@ -243,16 +240,15 @@ isc_result_t
 isc_timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 		 const isc_time_t *expires, const isc_interval_t *interval,
 		 isc_task_t *task, isc_taskaction_t action, void *arg,
-		 isc_timer_t **timerp)
-{
+		 isc_timer_t **timerp) {
 	REQUIRE(VALID_MANAGER(manager0));
 	REQUIRE(task != NULL);
 	REQUIRE(action != NULL);
 
 	isc__timermgr_t *manager;
-	isc__timer_t *	 timer;
-	isc_result_t	 result;
-	isc_time_t	 now;
+	isc__timer_t *timer;
+	isc_result_t result;
+	isc_time_t now;
 
 	/*
 	 * Create a new 'type' timer managed by 'manager'.  The timers
@@ -360,12 +356,11 @@ isc_timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 isc_result_t
 isc_timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 		const isc_time_t *expires, const isc_interval_t *interval,
-		bool purge)
-{
-	isc__timer_t *	 timer;
-	isc_time_t	 now;
+		bool purge) {
+	isc__timer_t *timer;
+	isc_time_t now;
 	isc__timermgr_t *manager;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	/*
 	 * Change the timer's type, expires, and interval values to the given
@@ -437,9 +432,8 @@ isc_timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 }
 
 isc_timertype_t
-isc_timer_gettype(isc_timer_t *timer0)
-{
-	isc__timer_t *	timer;
+isc_timer_gettype(isc_timer_t *timer0) {
+	isc__timer_t *timer;
 	isc_timertype_t t;
 
 	REQUIRE(VALID_TIMER(timer0));
@@ -453,11 +447,10 @@ isc_timer_gettype(isc_timer_t *timer0)
 }
 
 isc_result_t
-isc_timer_touch(isc_timer_t *timer0)
-{
+isc_timer_touch(isc_timer_t *timer0) {
 	isc__timer_t *timer;
-	isc_result_t  result;
-	isc_time_t    now;
+	isc_result_t result;
+	isc_time_t now;
 
 	/*
 	 * Set the last-touched time of 'timer' to the current time.
@@ -486,8 +479,7 @@ isc_timer_touch(isc_timer_t *timer0)
 }
 
 void
-isc_timer_attach(isc_timer_t *timer0, isc_timer_t **timerp)
-{
+isc_timer_attach(isc_timer_t *timer0, isc_timer_t **timerp) {
 	isc__timer_t *timer;
 
 	/*
@@ -503,8 +495,7 @@ isc_timer_attach(isc_timer_t *timer0, isc_timer_t **timerp)
 }
 
 void
-isc_timer_detach(isc_timer_t **timerp)
-{
+isc_timer_detach(isc_timer_t **timerp) {
 	isc__timer_t *timer;
 
 	/*
@@ -523,14 +514,13 @@ isc_timer_detach(isc_timer_t **timerp)
 }
 
 static void
-dispatch(isc__timermgr_t *manager, isc_time_t *now)
-{
-	bool		  done = false, post_event, need_schedule;
+dispatch(isc__timermgr_t *manager, isc_time_t *now) {
+	bool done = false, post_event, need_schedule;
 	isc_timerevent_t *event;
-	isc_eventtype_t	  type = 0;
-	isc__timer_t *	  timer;
-	isc_result_t	  result;
-	bool		  idle;
+	isc_eventtype_t type = 0;
+	isc__timer_t *timer;
+	isc_result_t result;
+	bool idle;
 
 	/*!
 	 * The caller must be holding the manager lock.
@@ -557,8 +547,8 @@ dispatch(isc__timermgr_t *manager, isc_time_t *now)
 					need_schedule = true;
 				}
 			} else if (!isc_time_isepoch(&timer->expires) &&
-				   isc_time_compare(now, &timer->expires) >=
-					   0) {
+				   isc_time_compare(now, &timer->expires) >= 0)
+			{
 				type = ISC_TIMEREVENT_LIFE;
 				post_event = true;
 				need_schedule = false;
@@ -633,11 +623,10 @@ static isc_threadresult_t
 #ifdef _WIN32 /* XXXDCL */
 	WINAPI
 #endif /* ifdef _WIN32 */
-	run(void *uap)
-{
+	run(void *uap) {
 	isc__timermgr_t *manager = uap;
-	isc_time_t	 now;
-	isc_result_t	 result;
+	isc_time_t now;
+	isc_result_t result;
 
 	LOCK(&manager->lock);
 	while (!manager->done) {
@@ -669,8 +658,7 @@ static isc_threadresult_t
 }
 
 static bool
-sooner(void *v1, void *v2)
-{
+sooner(void *v1, void *v2) {
 	isc__timer_t *t1, *t2;
 
 	t1 = v1;
@@ -685,8 +673,7 @@ sooner(void *v1, void *v2)
 }
 
 static void
-set_index(void *what, unsigned int index)
-{
+set_index(void *what, unsigned int index) {
 	isc__timer_t *timer;
 
 	REQUIRE(VALID_TIMER(what));
@@ -696,10 +683,9 @@ set_index(void *what, unsigned int index)
 }
 
 isc_result_t
-isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp)
-{
+isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	isc__timermgr_t *manager;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	/*
 	 * Create a timer manager.
@@ -735,8 +721,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp)
 }
 
 void
-isc_timermgr_poke(isc_timermgr_t *manager0)
-{
+isc_timermgr_poke(isc_timermgr_t *manager0) {
 	isc__timermgr_t *manager;
 
 	REQUIRE(VALID_MANAGER(manager0));
@@ -746,8 +731,7 @@ isc_timermgr_poke(isc_timermgr_t *manager0)
 }
 
 void
-isc_timermgr_destroy(isc_timermgr_t **managerp)
-{
+isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	isc__timermgr_t *manager;
 
 	/*
@@ -787,8 +771,7 @@ isc_timermgr_destroy(isc_timermgr_t **managerp)
 }
 
 isc_result_t
-isc_timermgr_createinctx(isc_mem_t *mctx, isc_timermgr_t **managerp)
-{
+isc_timermgr_createinctx(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	isc_result_t result;
 
 	result = isc_timermgr_create(mctx, managerp);

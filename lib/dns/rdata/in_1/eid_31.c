@@ -16,8 +16,8 @@
 
 #define RRTYPE_EID_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_in_eid(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_in_eid(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_eid);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -30,8 +30,8 @@ static inline isc_result_t fromtext_in_eid(ARGS_FROMTEXT)
 	return (isc_hex_tobuffer(lexer, target, -2));
 }
 
-static inline isc_result_t totext_in_eid(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_in_eid(ARGS_TOTEXT) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_eid);
@@ -55,8 +55,8 @@ static inline isc_result_t totext_in_eid(ARGS_TOTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t fromwire_in_eid(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_in_eid(ARGS_FROMWIRE) {
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_eid);
@@ -77,8 +77,8 @@ static inline isc_result_t fromwire_in_eid(ARGS_FROMWIRE)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t towire_in_eid(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_in_eid(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_eid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
@@ -88,8 +88,8 @@ static inline isc_result_t towire_in_eid(ARGS_TOWIRE)
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int compare_in_eid(ARGS_COMPARE)
-{
+static inline int
+compare_in_eid(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -105,8 +105,8 @@ static inline int compare_in_eid(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_in_eid(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_in_eid(ARGS_FROMSTRUCT) {
 	dns_rdata_in_eid_t *eid = source;
 
 	REQUIRE(type == dns_rdatatype_eid);
@@ -122,10 +122,10 @@ static inline isc_result_t fromstruct_in_eid(ARGS_FROMSTRUCT)
 	return (mem_tobuffer(target, eid->eid, eid->eid_len));
 }
 
-static inline isc_result_t tostruct_in_eid(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_in_eid(ARGS_TOSTRUCT) {
 	dns_rdata_in_eid_t *eid = target;
-	isc_region_t	    r;
+	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_eid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -147,8 +147,8 @@ static inline isc_result_t tostruct_in_eid(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_in_eid(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_in_eid(ARGS_FREESTRUCT) {
 	dns_rdata_in_eid_t *eid = source;
 
 	REQUIRE(eid != NULL);
@@ -165,8 +165,8 @@ static inline void freestruct_in_eid(ARGS_FREESTRUCT)
 	eid->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_in_eid(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_in_eid(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_eid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -177,8 +177,8 @@ static inline isc_result_t additionaldata_in_eid(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_in_eid(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_in_eid(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_eid);
@@ -189,8 +189,8 @@ static inline isc_result_t digest_in_eid(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_in_eid(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_in_eid(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_eid);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -202,8 +202,8 @@ static inline bool checkowner_in_eid(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_in_eid(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_in_eid(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_eid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -214,8 +214,8 @@ static inline bool checknames_in_eid(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_in_eid(ARGS_COMPARE)
-{
+static inline int
+casecompare_in_eid(ARGS_COMPARE) {
 	return (compare_in_eid(rdata1, rdata2));
 }
 

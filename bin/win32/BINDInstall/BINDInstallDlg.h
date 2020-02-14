@@ -29,8 +29,7 @@
 #ifndef BINDINSTALLDLG_H
 #define BINDINSTALLDLG_H
 
-class CBINDInstallDlg : public CDialog
-{
+class CBINDInstallDlg : public CDialog {
       public:
 	CBINDInstallDlg(CWnd *pParent = NULL); /* standard constructor */
 

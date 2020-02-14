@@ -112,19 +112,19 @@
 #define BACKTRACE_MAXFRAME 128
 #endif /* ifndef BACKTRACE_MAXFRAME */
 
-LIBISC_EXTERNAL_DATA extern int		 isc_dscp_check_value;
+LIBISC_EXTERNAL_DATA extern int isc_dscp_check_value;
 LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_hour;
 LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_day;
 LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_month;
 
-static bool	    want_stats = false;
-static char	    program_name[NAME_MAX] = "named";
-static char	    absolute_conffile[PATH_MAX];
-static char	    saved_command_line[4096] = { 0 };
-static char	    ellipsis[5] = { 0 };
-static char	    version[512];
+static bool want_stats = false;
+static char program_name[NAME_MAX] = "named";
+static char absolute_conffile[PATH_MAX];
+static char saved_command_line[4096] = { 0 };
+static char ellipsis[5] = { 0 };
+static char version[512];
 static unsigned int maxsocks = 0;
-static int	    maxudp = 0;
+static int maxudp = 0;
 
 /*
  * -T options:
@@ -148,8 +148,7 @@ static bool disable6 = false;
 static bool disable4 = false;
 
 void
-named_main_earlywarning(const char *format, ...)
-{
+named_main_earlywarning(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
@@ -167,8 +166,7 @@ named_main_earlywarning(const char *format, ...)
 }
 
 void
-named_main_earlyfatal(const char *format, ...)
-{
+named_main_earlyfatal(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
@@ -196,13 +194,12 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 
 static void
 assertion_failed(const char *file, int line, isc_assertiontype_t type,
-		 const char *cond)
-{
-	void *	     tracebuf[BACKTRACE_MAXFRAME];
-	int	     i, nframes;
+		 const char *cond) {
+	void *tracebuf[BACKTRACE_MAXFRAME];
+	int i, nframes;
 	isc_result_t result;
-	const char * logsuffix = "";
-	const char * fname;
+	const char *logsuffix = "";
+	const char *fname;
 
 	/*
 	 * Handle assertion failures.
@@ -271,8 +268,7 @@ library_fatal_error(const char *file, int line, const char *format,
 
 static void
 library_fatal_error(const char *file, int line, const char *format,
-		    va_list args)
-{
+		    va_list args) {
 	/*
 	 * Handle isc_error_fatal() calls from our libraries.
 	 */
@@ -306,14 +302,13 @@ library_fatal_error(const char *file, int line, const char *format,
 	exit(1);
 }
 
-static void
-library_unexpected_error(const char *file, int line, const char *format,
-			 va_list args) ISC_FORMAT_PRINTF(3, 0);
+static void library_unexpected_error(const char *file, int line,
+				     const char *format, va_list args)
+	ISC_FORMAT_PRINTF(3, 0);
 
 static void
 library_unexpected_error(const char *file, int line, const char *format,
-			 va_list args)
-{
+			 va_list args) {
 	/*
 	 * Handle isc_error_unexpected() calls from our libraries.
 	 */
@@ -334,8 +329,7 @@ library_unexpected_error(const char *file, int line, const char *format,
 }
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "usage: named [-4|-6] [-c conffile] [-d debuglevel] "
 			"[-E engine] [-f|-g]\n"
 			"             [-n number_of_cpus] [-p port] [-s] "
@@ -346,23 +340,23 @@ usage(void)
 }
 
 static void
-save_command_line(int argc, char *argv[])
-{
-	int   i;
+save_command_line(int argc, char *argv[]) {
+	int i;
 	char *dst = saved_command_line;
 	char *eob = saved_command_line + sizeof(saved_command_line) - 1;
 	char *rollback = dst;
 
 	for (i = 1; i < argc && dst < eob; i++) {
 		char *src = argv[i];
-		bool  quoted = false;
+		bool quoted = false;
 
 		rollback = dst;
 		*dst++ = ' ';
 
 		while (*src != '\0' && dst < eob) {
 			if (isalnum(*src) || *src == ',' || *src == '-' ||
-			    *src == '_' || *src == '.' || *src == '/') {
+			    *src == '_' || *src == '.' || *src == '/')
+			{
 				*dst++ = *src++;
 			} else if (isprint(*src)) {
 				if (dst + 2 >= eob) {
@@ -391,8 +385,8 @@ save_command_line(int argc, char *argv[])
 					continue;
 				} else {
 					char tmp[5];
-					int  c = snprintf(tmp, sizeof(tmp),
-							  "\\%03o", *src++);
+					int c = snprintf(tmp, sizeof(tmp),
+							 "\\%03o", *src++);
 					if (dst + c >= eob) {
 						goto add_ellipsis;
 					}
@@ -419,10 +413,9 @@ add_ellipsis:
 }
 
 static int
-parse_int(char *arg, const char *desc)
-{
-	char *	 endp;
-	int	 tmp;
+parse_int(char *arg, const char *desc) {
+	char *endp;
+	int tmp;
 	long int ltmp;
 
 	ltmp = strtol(arg, &endp, 10);
@@ -437,9 +430,9 @@ parse_int(char *arg, const char *desc)
 }
 
 static struct flag_def {
-	const char * name;
+	const char *name;
 	unsigned int value;
-	bool	     negate;
+	bool negate;
 } mem_debug_flags[] = { { "none", 0, false },
 			{ "trace", ISC_MEM_DEBUGTRACE, false },
 			{ "record", ISC_MEM_DEBUGRECORD, false },
@@ -453,14 +446,13 @@ static struct flag_def {
 			  { NULL, 0, false } };
 
 static void
-set_flags(const char *arg, struct flag_def *defs, unsigned int *ret)
-{
+set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 	bool clear = false;
 
 	for (;;) {
 		const struct flag_def *def;
-		const char *	       end = strchr(arg, ',');
-		int		       arglen;
+		const char *end = strchr(arg, ',');
+		int arglen;
 		if (end == NULL) {
 			end = arg + strlen(arg);
 		}
@@ -493,13 +485,12 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret)
 }
 
 static void
-printversion(bool verbose)
-{
+printversion(bool verbose) {
 	char rndcconf[PATH_MAX], *dot = NULL;
 #if defined(HAVE_GEOIP2)
-	isc_mem_t *	 mctx = NULL;
-	cfg_parser_t *	 parser = NULL;
-	cfg_obj_t *	 config = NULL;
+	isc_mem_t *mctx = NULL;
+	cfg_parser_t *parser = NULL;
+	cfg_obj_t *config = NULL;
 	const cfg_obj_t *defaults = NULL, *obj = NULL;
 #endif /* if defined(HAVE_GEOIP2) */
 
@@ -604,8 +595,7 @@ printversion(bool verbose)
 }
 
 static void
-parse_fuzz_arg(void)
-{
+parse_fuzz_arg(void) {
 	if (!strncmp(isc_commandline_argument, "client:", 7)) {
 		named_g_fuzz_addr = isc_commandline_argument + 7;
 		named_g_fuzz_type = isc_fuzz_client;
@@ -628,10 +618,9 @@ parse_fuzz_arg(void)
 }
 
 static void
-parse_T_opt(char *option)
-{
+parse_T_opt(char *option) {
 	const char *p;
-	char *	    last = NULL;
+	char *last = NULL;
 	/*
 	 * force the server to behave (or misbehave) in
 	 * specified ways for testing purposes.
@@ -716,10 +705,9 @@ parse_T_opt(char *option)
 }
 
 static void
-parse_command_line(int argc, char *argv[])
-{
-	int	    ch;
-	int	    port;
+parse_command_line(int argc, char *argv[]) {
+	int ch;
+	int port;
 	const char *p;
 
 	save_command_line(argc, argv);
@@ -729,8 +717,8 @@ parse_command_line(int argc, char *argv[])
 	 * both by named and by ntservice hooks.
 	 */
 	isc_commandline_errprint = false;
-	while ((ch = isc_commandline_parse(argc, argv, NAMED_MAIN_ARGS)) !=
-	       -1) {
+	while ((ch = isc_commandline_parse(argc, argv, NAMED_MAIN_ARGS)) != -1)
+	{
 		switch (ch) {
 		case '4':
 			if (disable4) {
@@ -891,8 +879,7 @@ parse_command_line(int argc, char *argv[])
 }
 
 static isc_result_t
-create_managers(void)
-{
+create_managers(void) {
 	isc_result_t result;
 	unsigned int socks;
 
@@ -971,8 +958,7 @@ create_managers(void)
 }
 
 static void
-destroy_managers(void)
-{
+destroy_managers(void) {
 	/*
 	 * isc_nm_closedown() closes all active connections, freeing
 	 * attached clients and other resources and preventing new
@@ -995,12 +981,11 @@ destroy_managers(void)
 }
 
 static void
-dump_symboltable(void)
-{
-	int	     i;
+dump_symboltable(void) {
+	int i;
 	isc_result_t result;
-	const char * fname;
-	const void * addr;
+	const char *fname;
+	const void *addr;
 
 	if (isc__backtrace_nsymbols == 0) {
 		return;
@@ -1026,11 +1011,10 @@ dump_symboltable(void)
 }
 
 static void
-setup(void)
-{
-	isc_result_t	    result;
+setup(void) {
+	isc_result_t result;
 	isc_resourcevalue_t old_openfiles;
-	ns_server_t *	    sctx;
+	ns_server_t *sctx;
 #ifdef HAVE_LIBSCF
 	char *instance = NULL;
 #endif /* ifdef HAVE_LIBSCF */
@@ -1360,8 +1344,7 @@ setup(void)
 }
 
 static void
-cleanup(void)
-{
+cleanup(void) {
 	destroy_managers();
 
 	if (named_g_mapped != NULL) {
@@ -1398,8 +1381,7 @@ cleanup(void)
 static char *memstats = NULL;
 
 void
-named_main_setmemstats(const char *filename)
-{
+named_main_setmemstats(const char *filename) {
 	/*
 	 * Caller has to ensure locking.
 	 */
@@ -1421,11 +1403,10 @@ named_main_setmemstats(const char *filename)
  * Get FMRI for the named process.
  */
 isc_result_t
-named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx)
-{
+named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 	scf_handle_t *h = NULL;
-	int	      namelen;
-	char *	      instance;
+	int namelen;
+	char *instance;
 
 	REQUIRE(ins_name != NULL && *ins_name == NULL);
 
@@ -1487,8 +1468,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx)
 /* main entry point, possibly hooked */
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	isc_result_t result;
 #ifdef HAVE_LIBSCF
 	char *instance = NULL;
@@ -1571,7 +1551,8 @@ main(int argc, char *argv[])
 		int len = strlen(named_g_chrootdir);
 		if (strncmp(named_g_chrootdir, named_g_conffile, len) == 0 &&
 		    (named_g_conffile[len] == '/' ||
-		     named_g_conffile[len] == '\\')) {
+		     named_g_conffile[len] == '\\'))
+		{
 			named_main_earlywarning("config filename (-c %s) "
 						"contains chroot path (-t %s)",
 						named_g_conffile,

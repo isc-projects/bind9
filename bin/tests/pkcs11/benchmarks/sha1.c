@@ -61,14 +61,12 @@
 #define CLOCK_REALTIME 0
 #endif /* ifndef CLOCK_REALTIME */
 
-static int
-clock_gettime(int32_t id, struct timespec *tp);
+static int clock_gettime(int32_t id, struct timespec *tp);
 
 static int
-clock_gettime(int32_t id, struct timespec *tp)
-{
+clock_gettime(int32_t id, struct timespec *tp) {
 	struct timeval tv;
-	int	       result;
+	int result;
 
 	UNUSED(id);
 
@@ -84,23 +82,22 @@ clock_gettime(int32_t id, struct timespec *tp)
 CK_BYTE buf[1024];
 
 int
-main(int argc, char *argv[])
-{
-	isc_result_t	  result;
-	CK_RV		  rv;
-	CK_SLOT_ID	  slot = 0;
+main(int argc, char *argv[]) {
+	isc_result_t result;
+	CK_RV rv;
+	CK_SLOT_ID slot = 0;
 	CK_SESSION_HANDLE hSession = CK_INVALID_HANDLE;
-	CK_MECHANISM	  mech = { CKM_SHA_1, NULL, 0 };
-	CK_ULONG	  len = sizeof(buf);
-	pk11_context_t	  pctx;
-	pk11_optype_t	  op_type = OP_DIGEST;
-	char *		  lib_name = NULL;
-	int		  error = 0;
-	int		  c, errflg = 0;
-	unsigned int	  count = 1000;
-	unsigned int	  i;
-	struct timespec	  starttime;
-	struct timespec	  endtime;
+	CK_MECHANISM mech = { CKM_SHA_1, NULL, 0 };
+	CK_ULONG len = sizeof(buf);
+	pk11_context_t pctx;
+	pk11_optype_t op_type = OP_DIGEST;
+	char *lib_name = NULL;
+	int error = 0;
+	int c, errflg = 0;
+	unsigned int count = 1000;
+	unsigned int i;
+	struct timespec starttime;
+	struct timespec endtime;
 
 	while ((c = isc_commandline_parse(argc, argv, ":m:s:n:")) != -1) {
 		switch (c) {
@@ -143,7 +140,8 @@ main(int argc, char *argv[])
 	result = pk11_get_session(&pctx, op_type, false, false, false, NULL,
 				  slot);
 	if ((result != ISC_R_SUCCESS) && (result != PK11_R_NORANDOMSERVICE) &&
-	    (result != PK11_R_NOAESSERVICE)) {
+	    (result != PK11_R_NOAESSERVICE))
+	{
 		fprintf(stderr, "Error initializing PKCS#11: %s\n",
 			isc_result_totext(result));
 		exit(1);

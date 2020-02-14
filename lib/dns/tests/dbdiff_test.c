@@ -31,13 +31,12 @@
 
 #include "dnstest.h"
 
-#define BUFLEN 255
-#define BIGBUFLEN (64 * 1024)
+#define BUFLEN	    255
+#define BIGBUFLEN   (64 * 1024)
 #define TEST_ORIGIN "test"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -49,8 +48,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -60,8 +58,7 @@ _teardown(void **state)
 
 static void
 test_create(const char *oldfile, dns_db_t **old, const char *newfile,
-	    dns_db_t **newdb)
-{
+	    dns_db_t **newdb) {
 	isc_result_t result;
 
 	result = dns_test_loaddb(old, dns_dbtype_zone, TEST_ORIGIN, oldfile);
@@ -73,11 +70,10 @@ test_create(const char *oldfile, dns_db_t **old, const char *newfile,
 
 /* dns_db_diffx of identical content */
 static void
-diffx_same(void **state)
-{
-	dns_db_t *   newdb = NULL, *olddb = NULL;
+diffx_same(void **state) {
+	dns_db_t *newdb = NULL, *olddb = NULL;
 	isc_result_t result;
-	dns_diff_t   diff;
+	dns_diff_t diff;
 
 	UNUSED(state);
 
@@ -98,13 +94,12 @@ diffx_same(void **state)
 
 /* dns_db_diffx of zone with record added */
 static void
-diffx_add(void **state)
-{
-	dns_db_t *	 newdb = NULL, *olddb = NULL;
+diffx_add(void **state) {
+	dns_db_t *newdb = NULL, *olddb = NULL;
 	dns_difftuple_t *tuple;
-	isc_result_t	 result;
-	dns_diff_t	 diff;
-	int		 count = 0;
+	isc_result_t result;
+	dns_diff_t diff;
+	int count = 0;
 
 	UNUSED(state);
 
@@ -118,7 +113,8 @@ diffx_add(void **state)
 
 	assert_false(ISC_LIST_EMPTY(diff.tuples));
 	for (tuple = ISC_LIST_HEAD(diff.tuples); tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link)) {
+	     tuple = ISC_LIST_NEXT(tuple, link))
+	{
 		assert_int_equal(tuple->op, DNS_DIFFOP_ADD);
 		count++;
 	}
@@ -131,13 +127,12 @@ diffx_add(void **state)
 
 /* dns_db_diffx of zone with record removed */
 static void
-diffx_remove(void **state)
-{
-	dns_db_t *	 newdb = NULL, *olddb = NULL;
+diffx_remove(void **state) {
+	dns_db_t *newdb = NULL, *olddb = NULL;
 	dns_difftuple_t *tuple;
-	isc_result_t	 result;
-	dns_diff_t	 diff;
-	int		 count = 0;
+	isc_result_t result;
+	dns_diff_t diff;
+	int count = 0;
 
 	UNUSED(state);
 
@@ -151,7 +146,8 @@ diffx_remove(void **state)
 
 	assert_false(ISC_LIST_EMPTY(diff.tuples));
 	for (tuple = ISC_LIST_HEAD(diff.tuples); tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link)) {
+	     tuple = ISC_LIST_NEXT(tuple, link))
+	{
 		assert_int_equal(tuple->op, DNS_DIFFOP_DEL);
 		count++;
 	}
@@ -163,8 +159,7 @@ diffx_remove(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(diffx_same, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(diffx_add, _setup, _teardown),
@@ -180,8 +175,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

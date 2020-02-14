@@ -34,25 +34,23 @@
 #include <dns/resolver.h>
 #include <dns/result.h>
 
-static isc_mem_t *	mctx = NULL;
-static isc_taskmgr_t *	taskmgr;
-static dns_view_t *	view = NULL;
-static dns_adbfind_t *	find = NULL;
-static isc_task_t *	task = NULL;
-static dns_fixedname_t	fixed;
-static dns_fixedname_t	target;
-static isc_log_t *	lctx;
+static isc_mem_t *mctx = NULL;
+static isc_taskmgr_t *taskmgr;
+static dns_view_t *view = NULL;
+static dns_adbfind_t *find = NULL;
+static isc_task_t *task = NULL;
+static dns_fixedname_t fixed;
+static dns_fixedname_t target;
+static isc_log_t *lctx;
 static isc_logconfig_t *lcfg;
-static unsigned int	level = 0;
+static unsigned int level = 0;
+
+static void adb_callback(isc_task_t *task, isc_event_t *event);
 
 static void
-adb_callback(isc_task_t *task, isc_event_t *event);
-
-static void
-log_init(void)
-{
+log_init(void) {
 	isc_logdestination_t destination;
-	unsigned int	     flags;
+	unsigned int flags;
 
 	/*
 	 * Setup a logging context.
@@ -80,14 +78,14 @@ log_init(void)
 }
 
 static void
-print_addresses(dns_adbfind_t *adbfind)
-{
+print_addresses(dns_adbfind_t *adbfind) {
 	dns_adbaddrinfo_t *address;
 
 	for (address = ISC_LIST_HEAD(adbfind->list); address != NULL;
-	     address = ISC_LIST_NEXT(address, publink)) {
+	     address = ISC_LIST_NEXT(address, publink))
+	{
 		isc_netaddr_t netaddr;
-		char	      text[ISC_NETADDR_FORMATSIZE];
+		char text[ISC_NETADDR_FORMATSIZE];
 		isc_netaddr_fromsockaddr(&netaddr, &address->sockaddr);
 		isc_netaddr_format(&netaddr, text, sizeof(text));
 		printf("%s\n", text);
@@ -95,8 +93,7 @@ print_addresses(dns_adbfind_t *adbfind)
 }
 
 static void
-print_name(dns_name_t *name)
-{
+print_name(dns_name_t *name) {
 	char text[DNS_NAME_FORMATSIZE];
 
 	dns_name_format(name, text, sizeof(text));
@@ -104,10 +101,9 @@ print_name(dns_name_t *name)
 }
 
 static void
-do_find(bool want_event)
-{
+do_find(bool want_event) {
 	isc_result_t result;
-	bool	     done = false;
+	bool done = false;
 	unsigned int options;
 
 	options = DNS_ADBFIND_INET | DNS_ADBFIND_INET6;
@@ -163,8 +159,7 @@ do_find(bool want_event)
 }
 
 static void
-adb_callback(isc_task_t *etask, isc_event_t *event)
-{
+adb_callback(isc_task_t *etask, isc_event_t *event) {
 	unsigned int type = event->ev_type;
 
 	REQUIRE(etask == task);
@@ -184,24 +179,22 @@ adb_callback(isc_task_t *etask, isc_event_t *event)
 }
 
 static void
-run(isc_task_t *xtask, isc_event_t *event)
-{
+run(isc_task_t *xtask, isc_event_t *event) {
 	UNUSED(xtask);
 	do_find(true);
 	isc_event_free(&event);
 }
 
 int
-main(int argc, char *argv[])
-{
-	bool		   verbose = false;
-	unsigned int	   workers = 2;
-	isc_timermgr_t *   timermgr;
-	int		   ch;
-	isc_socketmgr_t *  socketmgr;
+main(int argc, char *argv[]) {
+	bool verbose = false;
+	unsigned int workers = 2;
+	isc_timermgr_t *timermgr;
+	int ch;
+	isc_socketmgr_t *socketmgr;
 	dns_dispatchmgr_t *dispatchmgr;
-	dns_cache_t *	   cache;
-	isc_buffer_t	   b;
+	dns_cache_t *cache;
+	isc_buffer_t b;
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
 
@@ -258,7 +251,7 @@ main(int argc, char *argv[])
 				      &view) == ISC_R_SUCCESS);
 
 	{
-		unsigned int	attrs;
+		unsigned int attrs;
 		dns_dispatch_t *disp4 = NULL;
 		dns_dispatch_t *disp6 = NULL;
 
@@ -303,8 +296,8 @@ main(int argc, char *argv[])
 	}
 
 	{
-		struct in_addr	   ina;
-		isc_sockaddr_t	   sa;
+		struct in_addr ina;
+		isc_sockaddr_t sa;
 		isc_sockaddrlist_t sal;
 
 		ISC_LIST_INIT(sal);

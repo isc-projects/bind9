@@ -80,9 +80,9 @@
 #include <isc/types.h>
 
 #define ISC_TASKEVENT_FIRSTEVENT (ISC_EVENTCLASS_TASK + 0)
-#define ISC_TASKEVENT_SHUTDOWN (ISC_EVENTCLASS_TASK + 1)
-#define ISC_TASKEVENT_TEST (ISC_EVENTCLASS_TASK + 1)
-#define ISC_TASKEVENT_LASTEVENT (ISC_EVENTCLASS_TASK + 65535)
+#define ISC_TASKEVENT_SHUTDOWN	 (ISC_EVENTCLASS_TASK + 1)
+#define ISC_TASKEVENT_TEST	 (ISC_EVENTCLASS_TASK + 1)
+#define ISC_TASKEVENT_LASTEVENT	 (ISC_EVENTCLASS_TASK + 65535)
 
 /*****
 ***** Tasks.
@@ -126,7 +126,7 @@ struct isc_task {
 	unsigned int magic;
 };
 
-#define ISCAPI_TASK_MAGIC ISC_MAGIC('A', 't', 's', 't')
+#define ISCAPI_TASK_MAGIC    ISC_MAGIC('A', 't', 's', 't')
 #define ISCAPI_TASK_VALID(s) ((s) != NULL && (s)->magic == ISCAPI_TASK_MAGIC)
 
 isc_result_t

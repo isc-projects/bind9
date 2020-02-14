@@ -40,14 +40,13 @@ static char hex_digits[] = { '0', '1', '2', '3', '4', '5', '6', '7',
 
 isc_result_t
 dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
-			 dns_name_t *name)
-{
-	char		     textname[128];
+			 dns_name_t *name) {
+	char textname[128];
 	const unsigned char *bytes;
-	int		     i;
-	char *		     cp;
-	isc_buffer_t	     buffer;
-	unsigned int	     len;
+	int i;
+	char *cp;
+	isc_buffer_t buffer;
+	unsigned int len;
 
 	REQUIRE(address != NULL);
 	UNUSED(options);
@@ -90,29 +89,28 @@ dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
 
 struct dns_byaddr {
 	/* Unlocked. */
-	unsigned int	magic;
-	isc_mem_t *	mctx;
-	isc_mutex_t	lock;
+	unsigned int magic;
+	isc_mem_t *mctx;
+	isc_mutex_t lock;
 	dns_fixedname_t name;
 	/* Locked by lock. */
-	unsigned int	   options;
-	dns_lookup_t *	   lookup;
-	isc_task_t *	   task;
+	unsigned int options;
+	dns_lookup_t *lookup;
+	isc_task_t *task;
 	dns_byaddrevent_t *event;
-	bool		   canceled;
+	bool canceled;
 };
 
-#define BYADDR_MAGIC ISC_MAGIC('B', 'y', 'A', 'd')
+#define BYADDR_MAGIC	ISC_MAGIC('B', 'y', 'A', 'd')
 #define VALID_BYADDR(b) ISC_MAGIC_VALID(b, BYADDR_MAGIC)
 
 #define MAX_RESTARTS 16
 
 static inline isc_result_t
-copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset)
-{
+copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 	isc_result_t result;
-	dns_name_t * name;
-	dns_rdata_t  rdata = DNS_RDATA_INIT;
+	dns_name_t *name;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	/*
 	 * The caller must be holding the byaddr's lock.
@@ -142,11 +140,10 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset)
 }
 
 static void
-lookup_done(isc_task_t *task, isc_event_t *event)
-{
-	dns_byaddr_t *	   byaddr = event->ev_arg;
+lookup_done(isc_task_t *task, isc_event_t *event) {
+	dns_byaddr_t *byaddr = event->ev_arg;
 	dns_lookupevent_t *levent;
-	isc_result_t	   result;
+	isc_result_t result;
 
 	REQUIRE(event->ev_type == DNS_EVENT_LOOKUPDONE);
 	REQUIRE(VALID_BYADDR(byaddr));
@@ -167,11 +164,10 @@ lookup_done(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-bevent_destroy(isc_event_t *event)
-{
+bevent_destroy(isc_event_t *event) {
 	dns_byaddrevent_t *bevent;
-	dns_name_t *	   name, *next_name;
-	isc_mem_t *	   mctx;
+	dns_name_t *name, *next_name;
+	isc_mem_t *mctx;
 
 	REQUIRE(event->ev_type == DNS_EVENT_BYADDRDONE);
 	mctx = event->ev_destroy_arg;
@@ -190,11 +186,10 @@ bevent_destroy(isc_event_t *event)
 isc_result_t
 dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 		  dns_view_t *view, unsigned int options, isc_task_t *task,
-		  isc_taskaction_t action, void *arg, dns_byaddr_t **byaddrp)
-{
-	isc_result_t  result;
+		  isc_taskaction_t action, void *arg, dns_byaddr_t **byaddrp) {
+	isc_result_t result;
 	dns_byaddr_t *byaddr;
-	isc_event_t * ievent;
+	isc_event_t *ievent;
 
 	byaddr = isc_mem_get(mctx, sizeof(*byaddr));
 	byaddr->mctx = NULL;
@@ -251,8 +246,7 @@ cleanup_lock:
 }
 
 void
-dns_byaddr_cancel(dns_byaddr_t *byaddr)
-{
+dns_byaddr_cancel(dns_byaddr_t *byaddr) {
 	REQUIRE(VALID_BYADDR(byaddr));
 
 	LOCK(&byaddr->lock);
@@ -268,8 +262,7 @@ dns_byaddr_cancel(dns_byaddr_t *byaddr)
 }
 
 void
-dns_byaddr_destroy(dns_byaddr_t **byaddrp)
-{
+dns_byaddr_destroy(dns_byaddr_t **byaddrp) {
 	dns_byaddr_t *byaddr;
 
 	REQUIRE(byaddrp != NULL);

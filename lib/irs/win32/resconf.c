@@ -28,14 +28,13 @@
 #define TCPIP_SUBKEY "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters"
 
 isc_result_t
-get_win32_searchlist(irs_resconf_t *conf)
-{
+get_win32_searchlist(irs_resconf_t *conf) {
 	isc_result_t result = ISC_R_SUCCESS;
-	HKEY	     hKey;
-	char	     searchlist[MAX_PATH];
-	DWORD	     searchlen = MAX_PATH;
-	LSTATUS	     status;
-	char *	     cp;
+	HKEY hKey;
+	char searchlist[MAX_PATH];
+	DWORD searchlen = MAX_PATH;
+	LSTATUS status;
+	char *cp;
 
 	REQUIRE(conf != NULL);
 
@@ -65,12 +64,11 @@ get_win32_searchlist(irs_resconf_t *conf)
 }
 
 isc_result_t
-get_win32_nameservers(irs_resconf_t *conf)
-{
-	isc_result_t	result;
-	FIXED_INFO *	FixedInfo;
-	ULONG		BufLen = sizeof(FIXED_INFO);
-	DWORD		dwRetVal;
+get_win32_nameservers(irs_resconf_t *conf) {
+	isc_result_t result;
+	FIXED_INFO *FixedInfo;
+	ULONG BufLen = sizeof(FIXED_INFO);
+	DWORD dwRetVal;
 	IP_ADDR_STRING *pIPAddr;
 
 	REQUIRE(conf != NULL);

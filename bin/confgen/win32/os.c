@@ -20,7 +20,6 @@
 #include <sys/types.h>
 
 int
-set_user(FILE *fd, const char *user)
-{
+set_user(FILE *fd, const char *user) {
 	return (0);
 }

@@ -54,11 +54,10 @@ static isc_logcategory_t categories[] = { { "", 0 },
 					  { NULL, 0 } };
 
 static isc_result_t
-loadzone(dns_db_t **db, const char *origin, const char *filename)
-{
-	isc_result_t	result;
+loadzone(dns_db_t **db, const char *origin, const char *filename) {
+	isc_result_t result;
 	dns_fixedname_t fixed;
-	dns_name_t *	name;
+	dns_name_t *name;
 
 	name = dns_fixedname_initname(&fixed);
 
@@ -78,13 +77,12 @@ loadzone(dns_db_t **db, const char *origin, const char *filename)
 }
 
 int
-main(int argc, char **argv)
-{
-	isc_result_t	     result;
-	char *		     origin, *file1, *file2, *journal;
-	dns_db_t *	     olddb = NULL, *newdb = NULL;
+main(int argc, char **argv) {
+	isc_result_t result;
+	char *origin, *file1, *file2, *journal;
+	dns_db_t *olddb = NULL, *newdb = NULL;
 	isc_logdestination_t destination;
-	isc_logconfig_t *    logconfig = NULL;
+	isc_logconfig_t *logconfig = NULL;
 
 	if (argc != 5) {
 		printf("usage: %s origin file1 file2 journal\n", argv[0]);

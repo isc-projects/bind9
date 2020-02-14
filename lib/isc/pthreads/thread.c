@@ -43,8 +43,7 @@
 
 void
 isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
-		  isc_thread_t *thread)
-{
+		  isc_thread_t *thread) {
 	pthread_attr_t attr;
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
 	defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
@@ -82,8 +81,7 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 }
 
 void
-isc_thread_join(isc_thread_t thread, isc_threadresult_t *result)
-{
+isc_thread_join(isc_thread_t thread, isc_threadresult_t *result) {
 	int ret = pthread_join(thread, result);
 	if (ret != 0) {
 		_FATAL(ret, "pthread_join()");
@@ -95,14 +93,12 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *result)
 #endif					  /* ifdef __NetBSD__ */
 
 void
-isc_thread_setconcurrency(unsigned int level)
-{
+isc_thread_setconcurrency(unsigned int level) {
 	(void)pthread_setconcurrency(level);
 }
 
 void
-isc_thread_setname(isc_thread_t thread, const char *name)
-{
+isc_thread_setname(isc_thread_t thread, const char *name) {
 #if defined(HAVE_PTHREAD_SETNAME_NP) && !defined(__APPLE__)
 	/*
 	 * macOS has pthread_setname_np but only works on the
@@ -122,8 +118,7 @@ isc_thread_setname(isc_thread_t thread, const char *name)
 }
 
 void
-isc_thread_yield(void)
-{
+isc_thread_yield(void) {
 #if defined(HAVE_SCHED_YIELD)
 	sched_yield();
 #elif defined(HAVE_PTHREAD_YIELD)
@@ -134,14 +129,14 @@ isc_thread_yield(void)
 }
 
 isc_result_t
-isc_thread_setaffinity(int cpu)
-{
+isc_thread_setaffinity(int cpu) {
 #if defined(HAVE_CPUSET_SETAFFINITY)
 	cpuset_t cpuset;
 	CPU_ZERO(&cpuset);
 	CPU_SET(cpu, &cpuset);
 	if (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1,
-			       sizeof(cpuset), &cpuset) != 0) {
+			       sizeof(cpuset), &cpuset) != 0)
+	{
 		return (ISC_R_FAILURE);
 	}
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP)

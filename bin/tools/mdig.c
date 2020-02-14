@@ -71,75 +71,75 @@
 			isc_buffer_putstr(b, s);                \
 	}
 
-#define MXNAME (DNS_NAME_MAXTEXT + 1)
-#define COMMSIZE 0xffff
-#define OUTPUTBUF 32767
-#define MAXPORT 0xffff
-#define PORT 53
+#define MXNAME	   (DNS_NAME_MAXTEXT + 1)
+#define COMMSIZE   0xffff
+#define OUTPUTBUF  32767
+#define MAXPORT	   0xffff
+#define PORT	   53
 #define MAXTIMEOUT 0xffff
 #define TCPTIMEOUT 10
 #define UDPTIMEOUT 5
-#define MAXTRIES 0xffffffff
+#define MAXTRIES   0xffffffff
 
-static isc_mem_t *	 mctx;
+static isc_mem_t *mctx;
 static dns_requestmgr_t *requestmgr;
-static const char *	 batchname;
-static FILE *		 batchfp;
-static bool		 have_ipv4 = false;
-static bool		 have_ipv6 = false;
-static bool		 have_src = false;
-static bool		 tcp_mode = false;
-static bool		 besteffort = true;
-static bool		 display_short_form = false;
-static bool		 display_headers = true;
-static bool		 display_comments = true;
-static int		 display_rrcomments = 0;
-static bool		 display_ttlunits = true;
-static bool		 display_ttl = true;
-static bool		 display_class = true;
-static bool		 display_crypto = true;
-static bool		 display_multiline = false;
-static bool		 display_question = true;
-static bool		 display_answer = true;
-static bool		 display_authority = true;
-static bool		 display_additional = true;
-static bool		 display_unknown_format = false;
-static bool		 yaml = false;
-static bool		 continue_on_error = false;
-static uint32_t		 display_splitwidth = 0xffffffff;
-static isc_sockaddr_t	 srcaddr;
-static char *		 server;
-static isc_sockaddr_t	 dstaddr;
-static in_port_t	 port = 53;
-static isc_dscp_t	 dscp = -1;
-static unsigned char	 cookie_secret[33];
-static int		 onfly = 0;
-static char		 hexcookie[81];
+static const char *batchname;
+static FILE *batchfp;
+static bool have_ipv4 = false;
+static bool have_ipv6 = false;
+static bool have_src = false;
+static bool tcp_mode = false;
+static bool besteffort = true;
+static bool display_short_form = false;
+static bool display_headers = true;
+static bool display_comments = true;
+static int display_rrcomments = 0;
+static bool display_ttlunits = true;
+static bool display_ttl = true;
+static bool display_class = true;
+static bool display_crypto = true;
+static bool display_multiline = false;
+static bool display_question = true;
+static bool display_answer = true;
+static bool display_authority = true;
+static bool display_additional = true;
+static bool display_unknown_format = false;
+static bool yaml = false;
+static bool continue_on_error = false;
+static uint32_t display_splitwidth = 0xffffffff;
+static isc_sockaddr_t srcaddr;
+static char *server;
+static isc_sockaddr_t dstaddr;
+static in_port_t port = 53;
+static isc_dscp_t dscp = -1;
+static unsigned char cookie_secret[33];
+static int onfly = 0;
+static char hexcookie[81];
 
 struct query {
 	char textname[MXNAME]; /*% Name we're going to be
 				* looking up */
-	bool		 recurse;
-	bool		 have_aaonly;
-	bool		 have_adflag;
-	bool		 have_cdflag;
-	bool		 have_zflag;
-	bool		 dnssec;
-	bool		 expire;
-	bool		 send_cookie;
-	char *		 cookie;
-	bool		 nsid;
-	dns_rdatatype_t	 rdtype;
+	bool recurse;
+	bool have_aaonly;
+	bool have_adflag;
+	bool have_cdflag;
+	bool have_zflag;
+	bool dnssec;
+	bool expire;
+	bool send_cookie;
+	char *cookie;
+	bool nsid;
+	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	uint16_t	 udpsize;
-	int16_t		 edns;
-	dns_ednsopt_t *	 ednsopts;
-	unsigned int	 ednsoptscnt;
-	unsigned int	 ednsflags;
-	isc_sockaddr_t * ecs_addr;
-	unsigned int	 timeout;
-	unsigned int	 udptimeout;
-	unsigned int	 udpretries;
+	uint16_t udpsize;
+	int16_t edns;
+	dns_ednsopt_t *ednsopts;
+	unsigned int ednsoptscnt;
+	unsigned int ednsflags;
+	isc_sockaddr_t *ecs_addr;
+	unsigned int timeout;
+	unsigned int udptimeout;
+	unsigned int udpretries;
 	ISC_LINK(struct query) link;
 };
 static struct query default_query;
@@ -164,12 +164,11 @@ static const char *const rcodetext[] = {
 
 /*% safe rcodetext[] */
 static char *
-rcode_totext(dns_rcode_t rcode)
-{
+rcode_totext(dns_rcode_t rcode) {
 	static char buf[sizeof("?65535")];
 	union {
 		const char *consttext;
-		char *	    deconsttext;
+		char *deconsttext;
 	} totext;
 
 	if (rcode >= (sizeof(rcodetext) / sizeof(rcodetext[0]))) {
@@ -183,16 +182,15 @@ rcode_totext(dns_rcode_t rcode)
 
 /* receive response event handler */
 static void
-recvresponse(isc_task_t *task, isc_event_t *event)
-{
-	dns_requestevent_t *  reqev = (dns_requestevent_t *)event;
-	isc_result_t	      result;
-	dns_message_t *	      query = NULL, *response = NULL;
-	unsigned int	      parseflags = 0;
-	isc_buffer_t *	      msgbuf = NULL, *buf = NULL;
-	unsigned int	      len = OUTPUTBUF;
-	dns_master_style_t *  style = NULL;
-	unsigned int	      styleflags = 0;
+recvresponse(isc_task_t *task, isc_event_t *event) {
+	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
+	isc_result_t result;
+	dns_message_t *query = NULL, *response = NULL;
+	unsigned int parseflags = 0;
+	isc_buffer_t *msgbuf = NULL, *buf = NULL;
+	unsigned int len = OUTPUTBUF;
+	dns_master_style_t *style = NULL;
+	unsigned int styleflags = 0;
 	dns_messagetextflag_t flags;
 
 	UNUSED(task);
@@ -291,17 +289,18 @@ recvresponse(isc_task_t *task, isc_event_t *event)
 	isc_buffer_allocate(mctx, &buf, len);
 
 	if (yaml) {
-		char	 sockstr[ISC_SOCKADDR_FORMATSIZE];
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 		uint16_t sport;
-		char *	 hash;
-		int	 pf;
+		char *hash;
+		int pf;
 
 		printf("-\n");
 		printf("  type: MESSAGE\n");
 		printf("  message:\n");
 
 		if (((response->flags & DNS_MESSAGEFLAG_RD) != 0) &&
-		    ((response->flags & DNS_MESSAGEFLAG_RA) != 0)) {
+		    ((response->flags & DNS_MESSAGEFLAG_RA) != 0))
+		{
 			printf("    type: RECURSIVE_RESPONSE\n");
 		} else {
 			printf("    type: AUTH_RESPONSE\n");
@@ -384,7 +383,8 @@ recvresponse(isc_task_t *task, isc_event_t *event)
 			       response->counts[DNS_SECTION_ADDITIONAL]);
 
 			if ((response->flags & DNS_MESSAGEFLAG_RD) != 0 &&
-			    (response->flags & DNS_MESSAGEFLAG_RA) == 0) {
+			    (response->flags & DNS_MESSAGEFLAG_RA) == 0)
+			{
 				printf(";; WARNING: recursion requested "
 				       "but not available\n");
 			}
@@ -423,12 +423,12 @@ repopulate_buffer:
 		}
 		CHECK("dns_message_sectiontotext", result);
 	} else if (display_answer) {
-		dns_name_t *	name;
+		dns_name_t *name;
 		dns_rdataset_t *rdataset;
-		isc_result_t	loopresult;
-		dns_name_t	empty_name;
-		dns_rdata_t	rdata = DNS_RDATA_INIT;
-		unsigned int	answerstyleflags = 0;
+		isc_result_t loopresult;
+		dns_name_t empty_name;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		unsigned int answerstyleflags = 0;
 
 		if (!display_crypto) {
 			answerstyleflags |= DNS_STYLEFLAG_NOCRYPTO;
@@ -454,7 +454,8 @@ repopulate_buffer:
 
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			     rdataset = ISC_LIST_NEXT(rdataset, link))
+			{
 				loopresult = dns_rdataset_first(rdataset);
 				while (loopresult == ISC_R_SUCCESS) {
 					dns_rdataset_current(rdataset, &rdata);
@@ -516,8 +517,8 @@ repopulate_buffer:
 		CHECK("dns_message_pseudosectiontotext", result);
 	}
 
-	if (display_headers && display_comments && !display_short_form &&
-	    !yaml) {
+	if (display_headers && display_comments && !display_short_form && !yaml)
+	{
 		printf("\n");
 	}
 
@@ -552,10 +553,9 @@ cleanup:
  */
 static void
 add_opt(dns_message_t *msg, uint16_t udpsize, uint16_t edns, unsigned int flags,
-	dns_ednsopt_t *opts, size_t count)
-{
+	dns_ednsopt_t *opts, size_t count) {
 	dns_rdataset_t *rdataset = NULL;
-	isc_result_t	result;
+	isc_result_t result;
 
 	result = dns_message_buildopt(msg, &rdataset, edns, udpsize, flags,
 				      opts, count);
@@ -565,24 +565,22 @@ add_opt(dns_message_t *msg, uint16_t udpsize, uint16_t edns, unsigned int flags,
 }
 
 static void
-compute_cookie(unsigned char *cookie, size_t len)
-{
+compute_cookie(unsigned char *cookie, size_t len) {
 	/* XXXMPA need to fix, should be per server. */
 	INSIST(len >= 8U);
 	memmove(cookie, cookie_secret, 8);
 }
 
 static isc_result_t
-sendquery(struct query *query, isc_task_t *task)
-{
-	dns_request_t * request;
-	dns_message_t * message;
-	dns_name_t *	qname;
+sendquery(struct query *query, isc_task_t *task) {
+	dns_request_t *request;
+	dns_message_t *message;
+	dns_name_t *qname;
 	dns_rdataset_t *qrdataset;
-	isc_result_t	result;
+	isc_result_t result;
 	dns_fixedname_t queryname;
-	isc_buffer_t	buf;
-	unsigned int	options;
+	isc_buffer_t buf;
+	unsigned int options;
 
 	onfly++;
 
@@ -631,11 +629,12 @@ sendquery(struct query *query, isc_task_t *task)
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
 
 	if (query->udpsize > 0 || query->dnssec || query->edns > -1 ||
-	    query->ecs_addr != NULL) {
+	    query->ecs_addr != NULL)
+	{
 		dns_ednsopt_t opts[EDNSOPTS + DNS_EDNSOPTIONS];
-		unsigned int  flags;
-		int	      i = 0;
-		char	      ecsbuf[20];
+		unsigned int flags;
+		int i = 0;
+		char ecsbuf[20];
 		unsigned char cookie[40];
 
 		if (query->udpsize == 0) {
@@ -654,13 +653,13 @@ sendquery(struct query *query, isc_task_t *task)
 		}
 
 		if (query->ecs_addr != NULL) {
-			uint8_t		     addr[16], family;
-			uint32_t	     plen;
-			struct sockaddr *    sa;
-			struct sockaddr_in * sin;
+			uint8_t addr[16], family;
+			uint32_t plen;
+			struct sockaddr *sa;
+			struct sockaddr_in *sin;
 			struct sockaddr_in6 *sin6;
-			size_t		     addrl;
-			isc_buffer_t	     b;
+			size_t addrl;
+			isc_buffer_t b;
 
 			sa = &query->ecs_addr->type.sa;
 			plen = query->ecs_addr->length;
@@ -714,8 +713,8 @@ sendquery(struct query *query, isc_task_t *task)
 				isc_buffer_t b;
 
 				isc_buffer_init(&b, cookie, sizeof(cookie));
-				result =
-					isc_hex_decodestring(query->cookie, &b);
+				result = isc_hex_decodestring(query->cookie,
+							      &b);
 				CHECK("isc_hex_decodestring", result);
 				opts[i].value = isc_buffer_base(&b);
 				opts[i].length = isc_buffer_usedlength(&b);
@@ -764,8 +763,7 @@ sendquery(struct query *query, isc_task_t *task)
 }
 
 static void
-sendqueries(isc_task_t *task, isc_event_t *event)
-{
+sendqueries(isc_task_t *task, isc_event_t *event) {
 	struct query *query = (struct query *)event->ev_arg;
 
 	isc_event_free(&event);
@@ -783,12 +781,10 @@ sendqueries(isc_task_t *task, isc_event_t *event)
 	return;
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fputs("Usage: mdig @server {global-opt} host\n"
 	      "           {local-opt} [ host {local-opt} [...]]\n",
 	      stderr);
@@ -800,8 +796,7 @@ usage(void)
 
 /*% help */
 static void
-help(void)
-{
+help(void) {
 	fputs("Usage: mdig @server {global-opt} host\n"
 	      "           {local-opt} [ host {local-opt} [...]]\n",
 	      stdout);
@@ -896,13 +891,11 @@ help(void)
 	      stdout);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...)
+ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format, ...)
 	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 static void
-fatal(const char *format, ...)
-{
+fatal(const char *format, ...) {
 	va_list args;
 
 	fflush(stdout);
@@ -916,9 +909,8 @@ fatal(const char *format, ...)
 
 static isc_result_t
 parse_uint_helper(uint32_t *uip, const char *value, uint32_t max,
-		  const char *desc, int base)
-{
-	uint32_t     n;
+		  const char *desc, int base) {
+	uint32_t n;
 	isc_result_t result = isc_parse_uint32(&n, value, base);
 	if (result == ISC_R_SUCCESS && n > max) {
 		result = ISC_R_RANGE;
@@ -933,20 +925,17 @@ parse_uint_helper(uint32_t *uip, const char *value, uint32_t max,
 }
 
 static isc_result_t
-parse_uint(uint32_t *uip, const char *value, uint32_t max, const char *desc)
-{
+parse_uint(uint32_t *uip, const char *value, uint32_t max, const char *desc) {
 	return (parse_uint_helper(uip, value, max, desc, 10));
 }
 
 static isc_result_t
-parse_xint(uint32_t *uip, const char *value, uint32_t max, const char *desc)
-{
+parse_xint(uint32_t *uip, const char *value, uint32_t max, const char *desc) {
 	return (parse_uint_helper(uip, value, max, desc, 0));
 }
 
 static void
-newopts(struct query *query)
-{
+newopts(struct query *query) {
 	size_t len = sizeof(query->ednsopts[0]) * EDNSOPTS;
 	size_t i;
 
@@ -960,9 +949,8 @@ newopts(struct query *query)
 }
 
 static void
-save_opt(struct query *query, char *code, char *value)
-{
-	uint32_t     num;
+save_opt(struct query *query, char *code, char *value) {
+	uint32_t num;
 	isc_buffer_t b;
 	isc_result_t result;
 
@@ -998,14 +986,13 @@ save_opt(struct query *query, char *code, char *value)
 }
 
 static isc_result_t
-parse_netprefix(isc_sockaddr_t **sap, const char *value)
-{
+parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	isc_sockaddr_t *sa = NULL;
-	struct in_addr	in4;
+	struct in_addr in4;
 	struct in6_addr in6;
-	uint32_t	netmask = 0xffffffff;
-	char *		slash = NULL;
-	bool		parsed = false;
+	uint32_t netmask = 0xffffffff;
+	char *slash = NULL;
+	bool parsed = false;
 	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX/128")];
 
 	if (strlcpy(buf, value, sizeof(buf)) >= sizeof(buf)) {
@@ -1070,8 +1057,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value)
  * ISC_R_NOSPACE if that would advance p past 'end'.
  */
 static isc_result_t
-append(const char *text, int len, char **p, char *end)
-{
+append(const char *text, int len, char **p, char *end) {
 	if (len > end - *p) {
 		return (ISC_R_NOSPACE);
 	}
@@ -1081,10 +1067,9 @@ append(const char *text, int len, char **p, char *end)
 }
 
 static isc_result_t
-reverse_octets(const char *in, char **p, char *end)
-{
+reverse_octets(const char *in, char **p, char *end) {
 	const char *dot = strchr(in, '.');
-	int	    len;
+	int len;
 	if (dot != NULL) {
 		isc_result_t result;
 		result = reverse_octets(dot + 1, p, end);
@@ -1099,10 +1084,9 @@ reverse_octets(const char *in, char **p, char *end)
 }
 
 static void
-get_reverse(char *reverse, size_t len, const char *value)
-{
-	int	      r;
-	isc_result_t  result;
+get_reverse(char *reverse, size_t len, const char *value) {
+	int r;
+	isc_result_t result;
 	isc_netaddr_t addr;
 
 	addr.family = AF_INET6;
@@ -1110,8 +1094,8 @@ get_reverse(char *reverse, size_t len, const char *value)
 	if (r > 0) {
 		/* This is a valid IPv6 address. */
 		dns_fixedname_t fname;
-		dns_name_t *	name;
-		unsigned int	options = 0;
+		dns_name_t *name;
+		unsigned int options = 0;
 
 		name = dns_fixedname_initname(&fname);
 		result = dns_byaddr_createptrname(&addr, options, name);
@@ -1145,13 +1129,12 @@ get_reverse(char *reverse, size_t len, const char *value)
  */
 
 static void
-plus_option(char *option, struct query *query, bool global)
-{
+plus_option(char *option, struct query *query, bool global) {
 	isc_result_t result;
-	char *	     cmd, *value, *last = NULL, *code;
-	uint32_t     num;
-	bool	     state = true;
-	size_t	     n;
+	char *cmd, *value, *last = NULL, *code;
+	uint32_t num;
+	bool state = true;
+	size_t n;
 
 	INSIST(option != NULL);
 
@@ -1672,21 +1655,20 @@ static const char *single_dash_opts = "46himv";
 static const char *dash_opts = "46bcfhiptvx";
 static bool
 dash_option(const char *option, char *next, struct query *query, bool global,
-	    bool *setname)
-{
-	char		      opt;
-	const char *	      value;
-	isc_result_t	      result;
-	bool		      value_from_next;
+	    bool *setname) {
+	char opt;
+	const char *value;
+	isc_result_t result;
+	bool value_from_next;
 	isc_consttextregion_t tr;
-	dns_rdatatype_t	      rdtype;
-	dns_rdataclass_t      rdclass;
-	char		      textname[MXNAME];
-	struct in_addr	      in4;
-	struct in6_addr	      in6;
-	in_port_t	      srcport;
-	char *		      hash;
-	uint32_t	      num;
+	dns_rdatatype_t rdtype;
+	dns_rdataclass_t rdclass;
+	char textname[MXNAME];
+	struct in_addr in4;
+	struct in6_addr in6;
+	in_port_t srcport;
+	char *hash;
+	uint32_t num;
 
 	while (strpbrk(option, single_dash_opts) == &option[0]) {
 		/*
@@ -1827,8 +1809,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 }
 
 static struct query *
-clone_default_query()
-{
+clone_default_query() {
 	struct query *query;
 
 	query = isc_mem_allocate(mctx, sizeof(struct query));
@@ -1857,12 +1838,11 @@ clone_default_query()
  * by its nature, so it can't be done in the main argument parser.
  */
 static void
-preparse_args(int argc, char **argv)
-{
-	int    rc;
+preparse_args(int argc, char **argv) {
+	int rc;
 	char **rv;
-	char * option;
-	bool   ipv4only = false, ipv6only = false;
+	char *option;
+	bool ipv4only = false, ipv6only = false;
 
 	rc = argc;
 	rv = argv;
@@ -1911,16 +1891,15 @@ preparse_args(int argc, char **argv)
 }
 
 static void
-parse_args(bool is_batchfile, int argc, char **argv)
-{
+parse_args(bool is_batchfile, int argc, char **argv) {
 	struct query *query = NULL;
-	char	      batchline[MXNAME];
-	int	      bargc;
-	char *	      bargv[64];
-	int	      rc;
-	char **	      rv;
-	bool	      global = true;
-	char *	      last;
+	char batchline[MXNAME];
+	int bargc;
+	char *bargv[64];
+	int rc;
+	char **rv;
+	bool global = true;
+	char *last;
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
@@ -2038,13 +2017,15 @@ parse_args(bool is_batchfile, int argc, char **argv)
 		}
 		while (fgets(batchline, sizeof(batchline), batchfp) != 0) {
 			if (batchline[0] == '\r' || batchline[0] == '\n' ||
-			    batchline[0] == '#' || batchline[0] == ';') {
+			    batchline[0] == '#' || batchline[0] == ';')
+			{
 				continue;
 			}
 			for (bargc = 1, bargv[bargc] = strtok_r(
 						batchline, " \t\r\n", &last);
 			     (bargc < 14) && bargv[bargc]; bargc++,
-			    bargv[bargc] = strtok_r(NULL, " \t\r\n", &last)) {
+			    bargv[bargc] = strtok_r(NULL, " \t\r\n", &last))
+			{
 				/* empty body */
 			}
 
@@ -2065,23 +2046,22 @@ parse_args(bool is_batchfile, int argc, char **argv)
 
 /*% Main processing routine for mdig */
 int
-main(int argc, char *argv[])
-{
-	struct query *	   query;
-	isc_result_t	   result;
-	isc_sockaddr_t	   bind_any;
-	isc_log_t *	   lctx;
-	isc_logconfig_t *  lcfg;
-	isc_taskmgr_t *	   taskmgr;
-	isc_task_t *	   task;
-	isc_timermgr_t *   timermgr;
-	isc_socketmgr_t *  socketmgr;
+main(int argc, char *argv[]) {
+	struct query *query;
+	isc_result_t result;
+	isc_sockaddr_t bind_any;
+	isc_log_t *lctx;
+	isc_logconfig_t *lcfg;
+	isc_taskmgr_t *taskmgr;
+	isc_task_t *task;
+	isc_timermgr_t *timermgr;
+	isc_socketmgr_t *socketmgr;
 	dns_dispatchmgr_t *dispatchmgr;
-	unsigned int	   attrs, attrmask;
-	dns_dispatch_t *   dispatchvx;
-	dns_view_t *	   view;
-	int		   ns;
-	unsigned int	   i;
+	unsigned int attrs, attrmask;
+	dns_dispatch_t *dispatchvx;
+	dns_view_t *view;
+	int ns;
+	unsigned int i;
 
 	RUNCHECK(isc_app_start());
 

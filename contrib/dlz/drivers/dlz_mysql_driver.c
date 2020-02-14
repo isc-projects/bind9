@@ -65,12 +65,12 @@
 static dns_sdlzimplementation_t *dlz_mysql = NULL;
 
 #define dbc_search_limit 30
-#define ALLNODES 1
-#define ALLOWXFR 2
-#define AUTHORITY 3
-#define FINDZONE 4
-#define COUNTZONE 5
-#define LOOKUP 6
+#define ALLNODES	 1
+#define ALLOWXFR	 2
+#define AUTHORITY	 3
+#define FINDZONE	 4
+#define COUNTZONE	 5
+#define LOOKUP		 6
 
 #define safeGet(in) in == NULL ? "" : in
 
@@ -89,7 +89,7 @@ static dns_sdlzimplementation_t *dlz_mysql = NULL;
 static char *
 mysqldrv_escape_string(MYSQL *mysql, const char *instr)
 {
-	char *	     outstr;
+	char *outstr;
 	unsigned int len;
 
 	if (instr == NULL) {
@@ -119,12 +119,12 @@ static isc_result_t
 mysql_get_resultset(const char *zone, const char *record, const char *client,
 		    unsigned int query, void *dbdata, MYSQL_RES **rs)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
-	char *	      querystring = NULL;
-	unsigned int  i = 0;
-	unsigned int  j = 0;
-	int	      qres = 0;
+	char *querystring = NULL;
+	unsigned int i = 0;
+	unsigned int j = 0;
+	int qres = 0;
 
 	if (query != COUNTZONE) {
 		REQUIRE(*rs == NULL);
@@ -228,8 +228,8 @@ mysql_get_resultset(const char *zone, const char *record, const char *client,
 	 * queries.
 	 */
 	if (record != NULL) {
-		dbi->record =
-			mysqldrv_escape_string((MYSQL *)dbi->dbconn, record);
+		dbi->record = mysqldrv_escape_string((MYSQL *)dbi->dbconn,
+						     record);
 		if (dbi->record == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
@@ -243,8 +243,8 @@ mysql_get_resultset(const char *zone, const char *record, const char *client,
 	 * queries.
 	 */
 	if (client != NULL) {
-		dbi->client =
-			mysqldrv_escape_string((MYSQL *)dbi->dbconn, client);
+		dbi->client = mysqldrv_escape_string((MYSQL *)dbi->dbconn,
+						     client);
 		if (dbi->client == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
@@ -360,13 +360,13 @@ static isc_result_t
 mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs)
 {
 	isc_result_t result = ISC_R_NOTFOUND;
-	MYSQL_ROW    row;
+	MYSQL_ROW row;
 	unsigned int fields;
 	unsigned int j;
 	unsigned int len;
-	char *	     tmpString;
-	char *	     endp;
-	int	     ttl;
+	char *tmpString;
+	char *endp;
+	int ttl;
 
 	row = mysql_fetch_row(rs);     /* get a row from the result set */
 	fields = mysql_num_fields(rs); /* how many columns in result set */
@@ -478,7 +478,7 @@ mysql_findzone(void *driverarg, void *dbdata, const char *name,
 	       dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
-	MYSQL_RES *  rs = NULL;
+	MYSQL_RES *rs = NULL;
 	my_ulonglong rows;
 
 	UNUSED(driverarg);
@@ -519,7 +519,7 @@ mysql_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		   const char *client)
 {
 	isc_result_t result;
-	MYSQL_RES *  rs = NULL;
+	MYSQL_RES *rs = NULL;
 	my_ulonglong rows;
 
 	UNUSED(driverarg);
@@ -578,14 +578,14 @@ mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
 	       dns_sdlzallnodes_t *allnodes)
 {
 	isc_result_t result;
-	MYSQL_RES *  rs = NULL;
-	MYSQL_ROW    row;
+	MYSQL_RES *rs = NULL;
+	MYSQL_ROW row;
 	unsigned int fields;
 	unsigned int j;
 	unsigned int len;
-	char *	     tmpString;
-	char *	     endp;
-	int	     ttl;
+	char *tmpString;
+	char *endp;
+	int ttl;
 
 	UNUSED(driverarg);
 
@@ -684,7 +684,7 @@ mysql_authority(const char *zone, void *driverarg, void *dbdata,
 		dns_sdlzlookup_t *lookup)
 {
 	isc_result_t result;
-	MYSQL_RES *  rs = NULL;
+	MYSQL_RES *rs = NULL;
 
 	UNUSED(driverarg);
 
@@ -719,7 +719,7 @@ mysql_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
 	     dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
-	MYSQL_RES *  rs = NULL;
+	MYSQL_RES *rs = NULL;
 
 	UNUSED(driverarg);
 	UNUSED(methods);
@@ -755,19 +755,19 @@ static isc_result_t
 mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 	     void *driverarg, void **dbdata)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *dbi = NULL;
-	char *	      tmp = NULL;
-	char *	      dbname = NULL;
-	char *	      host = NULL;
-	char *	      user = NULL;
-	char *	      pass = NULL;
-	char *	      socket = NULL;
-	int	      port;
-	MYSQL *	      dbc;
-	char *	      endp;
-	int	      j;
-	unsigned int  flags = 0;
+	char *tmp = NULL;
+	char *dbname = NULL;
+	char *host = NULL;
+	char *user = NULL;
+	char *pass = NULL;
+	char *socket = NULL;
+	int port;
+	MYSQL *dbc;
+	char *endp;
+	int j;
+	unsigned int flags = 0;
 #if MYSQL_VERSION_ID >= 50000
 	my_bool auto_reconnect = 1;
 #endif /* if MYSQL_VERSION_ID >= 50000 */
@@ -909,7 +909,8 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 #if MYSQL_VERSION_ID >= 50000
 	/* enable automatic reconnection. */
 	if (mysql_options((MYSQL *)dbi->dbconn, MYSQL_OPT_RECONNECT,
-			  &auto_reconnect) != 0) {
+			  &auto_reconnect) != 0)
+	{
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_WARNING,
 			      "mysql driver failed to set "

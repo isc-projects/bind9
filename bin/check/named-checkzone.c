@@ -42,13 +42,13 @@
 
 #include "check-tool.h"
 
-static int			 quiet = 0;
-static isc_mem_t *		 mctx = NULL;
-dns_zone_t *			 zone = NULL;
-dns_zonetype_t			 zonetype = dns_zone_master;
-static int			 dumpzone = 0;
-static const char *		 output_filename;
-static const char *		 prog_name = NULL;
+static int quiet = 0;
+static isc_mem_t *mctx = NULL;
+dns_zone_t *zone = NULL;
+dns_zonetype_t zonetype = dns_zone_master;
+static int dumpzone = 0;
+static const char *output_filename;
+static const char *prog_name = NULL;
 static const dns_master_style_t *outputstyle = NULL;
 static enum { progmode_check, progmode_compile } progmode;
 
@@ -62,12 +62,10 @@ static enum { progmode_check, progmode_compile } progmode;
 		}                                                             \
 	} while (0)
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr,
 		"usage: %s [-djqvD] [-c class] "
 		"[-f inputformat] [-F outputformat] [-J filename] "
@@ -84,8 +82,7 @@ usage(void)
 }
 
 static void
-destroy(void)
-{
+destroy(void) {
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
 	}
@@ -93,27 +90,26 @@ destroy(void)
 
 /*% main processing routine */
 int
-main(int argc, char **argv)
-{
-	int		      c;
-	char *		      origin = NULL;
-	char *		      filename = NULL;
-	isc_log_t *	      lctx = NULL;
-	isc_result_t	      result;
-	char		      classname_in[] = "IN";
-	char *		      classname = classname_in;
-	const char *	      workdir = NULL;
-	const char *	      inputformatstr = NULL;
-	const char *	      outputformatstr = NULL;
-	dns_masterformat_t    inputformat = dns_masterformat_text;
-	dns_masterformat_t    outputformat = dns_masterformat_text;
+main(int argc, char **argv) {
+	int c;
+	char *origin = NULL;
+	char *filename = NULL;
+	isc_log_t *lctx = NULL;
+	isc_result_t result;
+	char classname_in[] = "IN";
+	char *classname = classname_in;
+	const char *workdir = NULL;
+	const char *inputformatstr = NULL;
+	const char *outputformatstr = NULL;
+	dns_masterformat_t inputformat = dns_masterformat_text;
+	dns_masterformat_t outputformat = dns_masterformat_text;
 	dns_masterrawheader_t header;
-	uint32_t	      rawversion = 1, serialnum = 0;
-	dns_ttl_t	      maxttl = 0;
-	bool		      snset = false;
-	bool		      logdump = false;
-	FILE *		      errout = stdout;
-	char *		      endp;
+	uint32_t rawversion = 1, serialnum = 0;
+	dns_ttl_t maxttl = 0;
+	bool snset = false;
+	bool logdump = false;
+	FILE *errout = stdout;
+	char *endp;
 
 	/*
 	 * Uncomment the following line if memory debugging is needed:
@@ -153,11 +149,11 @@ main(int argc, char **argv)
 
 	/* Compilation specific defaults */
 	if (progmode == progmode_compile) {
-		zone_options |=
-			(DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_FATALNS |
-			 DNS_ZONEOPT_CHECKSPF | DNS_ZONEOPT_CHECKDUPRR |
-			 DNS_ZONEOPT_CHECKNAMES | DNS_ZONEOPT_CHECKNAMESFAIL |
-			 DNS_ZONEOPT_CHECKWILDCARD);
+		zone_options |= (DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_FATALNS |
+				 DNS_ZONEOPT_CHECKSPF | DNS_ZONEOPT_CHECKDUPRR |
+				 DNS_ZONEOPT_CHECKNAMES |
+				 DNS_ZONEOPT_CHECKNAMESFAIL |
+				 DNS_ZONEOPT_CHECKWILDCARD);
 	} else {
 		zone_options |= (DNS_ZONEOPT_CHECKDUPRR | DNS_ZONEOPT_CHECKSPF);
 	}
@@ -168,7 +164,8 @@ main(int argc, char **argv)
 
 	while ((c = isc_commandline_parse(argc, argv,
 					  "c:df:hi:jJ:k:L:l:m:n:qr:s:t:o:vw:DF:"
-					  "M:S:T:W:")) != EOF) {
+					  "M:S:T:W:")) != EOF)
+	{
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -508,7 +505,8 @@ main(int argc, char **argv)
 	if (dumpzone &&
 	    (output_filename == NULL || strcmp(output_filename, "-") == 0 ||
 	     strcmp(output_filename, "/dev/fd/1") == 0 ||
-	     strcmp(output_filename, "/dev/stdout") == 0)) {
+	     strcmp(output_filename, "/dev/stdout") == 0))
+	{
 		errout = stderr;
 		logdump = false;
 	}

@@ -68,23 +68,23 @@ typedef enum { NONE = 0, FILTER = 1, BREAK_DNSSEC = 2 } filter_aaaa_t;
  */
 typedef struct filter_data {
 	filter_aaaa_t mode;
-	uint32_t      flags;
+	uint32_t flags;
 } filter_data_t;
 
 typedef struct filter_instance {
 	ns_plugin_t *module;
-	isc_mem_t *  mctx;
+	isc_mem_t *mctx;
 
 	/*
 	 * Memory pool for use with persistent data.
 	 */
 	isc_mempool_t *datapool;
-	isc_mutex_t    plock;
+	isc_mutex_t plock;
 
 	/*
 	 * Hash table associating a client object with its persistent data.
 	 */
-	isc_ht_t *  ht;
+	isc_ht_t *ht;
 	isc_mutex_t hlock;
 
 	/*
@@ -92,36 +92,36 @@ typedef struct filter_instance {
 	 */
 	filter_aaaa_t v4_aaaa;
 	filter_aaaa_t v6_aaaa;
-	dns_acl_t *   aaaa_acl;
+	dns_acl_t *aaaa_acl;
 } filter_instance_t;
 
 /*
  * Per-client flags set by this module
  */
 #define FILTER_AAAA_RECURSING 0x0001 /* Recursing for A */
-#define FILTER_AAAA_FILTERED 0x0002  /* AAAA was removed from answer */
+#define FILTER_AAAA_FILTERED  0x0002 /* AAAA was removed from answer */
 
 /*
  * Client attribute tests.
  */
-#define WANTDNSSEC(c) (((c)->attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
+#define WANTDNSSEC(c)  (((c)->attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
 #define RECURSIONOK(c) (((c)->query.attributes & NS_QUERYATTR_RECURSIONOK) != 0)
 
 /*
  * Forward declarations of functions referenced in install_hooks().
  */
-static ns_hookresult_t
-filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hookresult_t
-filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hookresult_t
-filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hookresult_t
-filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hookresult_t
-filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hookresult_t
-filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp);
+static ns_hookresult_t filter_qctx_initialize(void *arg, void *cbdata,
+					      isc_result_t *resp);
+static ns_hookresult_t filter_respond_begin(void *arg, void *cbdata,
+					    isc_result_t *resp);
+static ns_hookresult_t filter_respond_any_found(void *arg, void *cbdata,
+						isc_result_t *resp);
+static ns_hookresult_t filter_prep_response_begin(void *arg, void *cbdata,
+						  isc_result_t *resp);
+static ns_hookresult_t filter_query_done_send(void *arg, void *cbdata,
+					      isc_result_t *resp);
+static ns_hookresult_t filter_qctx_destroy(void *arg, void *cbdata,
+					   isc_result_t *resp);
 
 /*%
  * Register the functions to be called at each hook point in 'hooktable', using
@@ -131,8 +131,7 @@ filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp);
  */
 static void
 install_hooks(ns_hooktable_t *hooktable, isc_mem_t *mctx,
-	      filter_instance_t *inst)
-{
+	      filter_instance_t *inst) {
 	const ns_hook_t filter_init = {
 		.action = filter_qctx_initialize,
 		.action_data = inst,
@@ -183,14 +182,12 @@ install_hooks(ns_hooktable_t *hooktable, isc_mem_t *mctx,
 static const char *filter_aaaa_enums[] = { "break-dnssec", NULL };
 
 static isc_result_t
-parse_filter_aaaa(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
-{
+parse_filter_aaaa(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
 }
 
 static void
-doc_filter_aaaa(cfg_printer_t *pctx, const cfg_type_t *type)
-{
+doc_filter_aaaa(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_doc_enum_or_other(pctx, type, &cfg_type_boolean);
 }
 
@@ -214,10 +211,9 @@ static cfg_type_t cfg_type_parameters = {
 
 static isc_result_t
 parse_filter_aaaa_on(const cfg_obj_t *param_obj, const char *param_name,
-		     filter_aaaa_t *dstp)
-{
+		     filter_aaaa_t *dstp) {
 	const cfg_obj_t *obj = NULL;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	result = cfg_map_get(param_obj, param_name, &obj);
 	if (result != ISC_R_SUCCESS) {
@@ -241,12 +237,11 @@ parse_filter_aaaa_on(const cfg_obj_t *param_obj, const char *param_name,
 
 static isc_result_t
 check_syntax(cfg_obj_t *fmap, const void *cfg, isc_mem_t *mctx, isc_log_t *lctx,
-	     void *actx)
-{
-	isc_result_t	 result = ISC_R_SUCCESS;
+	     void *actx) {
+	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *aclobj = NULL;
-	dns_acl_t *	 acl = NULL;
-	filter_aaaa_t	 f4 = NONE, f6 = NONE;
+	dns_acl_t *acl = NULL;
+	filter_aaaa_t f4 = NONE, f6 = NONE;
 
 	cfg_map_get(fmap, "filter-aaaa", &aclobj);
 	if (aclobj == NULL) {
@@ -284,13 +279,12 @@ cleanup:
 static isc_result_t
 parse_parameters(filter_instance_t *inst, const char *parameters,
 		 const void *cfg, const char *cfg_file, unsigned long cfg_line,
-		 isc_mem_t *mctx, isc_log_t *lctx, void *actx)
-{
-	isc_result_t	 result = ISC_R_SUCCESS;
-	cfg_parser_t *	 parser = NULL;
-	cfg_obj_t *	 param_obj = NULL;
+		 isc_mem_t *mctx, isc_log_t *lctx, void *actx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	cfg_parser_t *parser = NULL;
+	cfg_obj_t *param_obj = NULL;
 	const cfg_obj_t *obj = NULL;
-	isc_buffer_t	 b;
+	isc_buffer_t b;
 
 	CHECK(cfg_parser_create(mctx, lctx, &parser));
 
@@ -341,10 +335,9 @@ cleanup:
 isc_result_t
 plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 		unsigned long cfg_line, isc_mem_t *mctx, isc_log_t *lctx,
-		void *actx, ns_hooktable_t *hooktable, void **instp)
-{
+		void *actx, ns_hooktable_t *hooktable, void **instp) {
 	filter_instance_t *inst = NULL;
-	isc_result_t	   result;
+	isc_result_t result;
 
 	isc_log_write(lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
 		      ISC_LOG_INFO,
@@ -398,12 +391,11 @@ cleanup:
 isc_result_t
 plugin_check(const char *parameters, const void *cfg, const char *cfg_file,
 	     unsigned long cfg_line, isc_mem_t *mctx, isc_log_t *lctx,
-	     void *actx)
-{
-	isc_result_t  result = ISC_R_SUCCESS;
+	     void *actx) {
+	isc_result_t result = ISC_R_SUCCESS;
 	cfg_parser_t *parser = NULL;
-	cfg_obj_t *   param_obj = NULL;
-	isc_buffer_t  b;
+	cfg_obj_t *param_obj = NULL;
+	isc_buffer_t b;
 
 	CHECK(cfg_parser_create(mctx, lctx, &parser));
 
@@ -429,8 +421,7 @@ cleanup:
  * the module when it was registered.
  */
 void
-plugin_destroy(void **instp)
-{
+plugin_destroy(void **instp) {
 	filter_instance_t *inst = (filter_instance_t *)*instp;
 
 	if (inst->ht != NULL) {
@@ -455,8 +446,7 @@ plugin_destroy(void **instp)
  * Returns plugin API version for compatibility checks.
  */
 int
-plugin_version(void)
-{
+plugin_version(void) {
 	return (NS_PLUGIN_VERSION);
 }
 
@@ -468,25 +458,25 @@ plugin_version(void)
  * Structure describing the filtering to be applied by process_section().
  */
 typedef struct section_filter {
-	query_ctx_t *	  qctx;
-	filter_aaaa_t	  mode;
-	dns_section_t	  section;
+	query_ctx_t *qctx;
+	filter_aaaa_t mode;
+	dns_section_t section;
 	const dns_name_t *name;
-	dns_rdatatype_t	  type;
-	bool		  only_if_a_exists;
+	dns_rdatatype_t type;
+	bool only_if_a_exists;
 } section_filter_t;
 
 /*
  * Check whether this is an IPv4 client.
  */
 static bool
-is_v4_client(ns_client_t *client)
-{
+is_v4_client(ns_client_t *client) {
 	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET) {
 		return (true);
 	}
 	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
-	    IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr)) {
+	    IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
+	{
 		return (true);
 	}
 	return (false);
@@ -496,20 +486,19 @@ is_v4_client(ns_client_t *client)
  * Check whether this is an IPv6 client.
  */
 static bool
-is_v6_client(ns_client_t *client)
-{
+is_v6_client(ns_client_t *client) {
 	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
-	    !IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr)) {
+	    !IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
+	{
 		return (true);
 	}
 	return (false);
 }
 
 static filter_data_t *
-client_state_get(const query_ctx_t *qctx, filter_instance_t *inst)
-{
+client_state_get(const query_ctx_t *qctx, filter_instance_t *inst) {
 	filter_data_t *client_state = NULL;
-	isc_result_t   result;
+	isc_result_t result;
 
 	LOCK(&inst->hlock);
 	result = isc_ht_find(inst->ht, (const unsigned char *)&qctx->client,
@@ -520,10 +509,9 @@ client_state_get(const query_ctx_t *qctx, filter_instance_t *inst)
 }
 
 static void
-client_state_create(const query_ctx_t *qctx, filter_instance_t *inst)
-{
+client_state_create(const query_ctx_t *qctx, filter_instance_t *inst) {
 	filter_data_t *client_state;
-	isc_result_t   result;
+	isc_result_t result;
 
 	client_state = isc_mempool_get(inst->datapool);
 	if (client_state == NULL) {
@@ -541,10 +529,9 @@ client_state_create(const query_ctx_t *qctx, filter_instance_t *inst)
 }
 
 static void
-client_state_destroy(const query_ctx_t *qctx, filter_instance_t *inst)
-{
+client_state_destroy(const query_ctx_t *qctx, filter_instance_t *inst) {
 	filter_data_t *client_state = client_state_get(qctx, inst);
-	isc_result_t   result;
+	isc_result_t result;
 
 	if (client_state == NULL) {
 		return;
@@ -564,8 +551,7 @@ client_state_destroy(const query_ctx_t *qctx, filter_instance_t *inst)
  * pointers and non-associated rdatasets.
  */
 static void
-mark_as_rendered(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
+mark_as_rendered(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	if (rdataset != NULL && dns_rdataset_isassociated(rdataset)) {
 		rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 	}
@@ -585,11 +571,10 @@ mark_as_rendered(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
  */
 static bool
 process_name(query_ctx_t *qctx, filter_aaaa_t mode, const dns_name_t *name,
-	     dns_rdatatype_t type, bool only_if_a_exists)
-{
+	     dns_rdatatype_t type, bool only_if_a_exists) {
 	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
-	isc_result_t	result;
-	bool		modified = false;
+	isc_result_t result;
+	bool modified = false;
 
 	if (only_if_a_exists) {
 		CHECK(dns_message_findtype(name, dns_rdatatype_a, 0, NULL));
@@ -601,7 +586,8 @@ process_name(query_ctx_t *qctx, filter_aaaa_t mode, const dns_name_t *name,
 
 	if (rdataset != NULL &&
 	    (sigrdataset == NULL || !WANTDNSSEC(qctx->client) ||
-	     mode == BREAK_DNSSEC)) {
+	     mode == BREAK_DNSSEC))
+	{
 		/*
 		 * An RRset of given 'type' was found at 'name' and at least
 		 * one of the following is true:
@@ -631,21 +617,21 @@ cleanup:
  * process_name().
  */
 static void
-process_section(const section_filter_t *filter)
-{
-	query_ctx_t *	  qctx = filter->qctx;
-	filter_aaaa_t	  mode = filter->mode;
-	dns_section_t	  section = filter->section;
+process_section(const section_filter_t *filter) {
+	query_ctx_t *qctx = filter->qctx;
+	filter_aaaa_t mode = filter->mode;
+	dns_section_t section = filter->section;
 	const dns_name_t *name = filter->name;
-	dns_rdatatype_t	  type = filter->type;
-	bool		  only_if_a_exists = filter->only_if_a_exists;
+	dns_rdatatype_t type = filter->type;
+	bool only_if_a_exists = filter->only_if_a_exists;
 
 	dns_message_t *message = qctx->client->message;
-	isc_result_t   result;
+	isc_result_t result;
 
 	for (result = dns_message_firstname(message, section);
 	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(message, section)) {
+	     result = dns_message_nextname(message, section))
+	{
 		dns_name_t *cur = NULL;
 		dns_message_currentname(message, section, &cur);
 		if (name != NULL && !dns_name_equal(name, cur)) {
@@ -676,11 +662,10 @@ process_section(const section_filter_t *filter)
  * object persists.
  */
 static ns_hookresult_t
-filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp)
-{
-	query_ctx_t *	   qctx = (query_ctx_t *)arg;
+filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *)arg;
 	filter_instance_t *inst = (filter_instance_t *)cbdata;
-	filter_data_t *	   client_state;
+	filter_data_t *client_state;
 
 	*resp = ISC_R_UNSET;
 
@@ -698,12 +683,11 @@ filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp)
  * filter-aaaa-on-v6.
  */
 static ns_hookresult_t
-filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp)
-{
-	query_ctx_t *	   qctx = (query_ctx_t *)arg;
+filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *)arg;
 	filter_instance_t *inst = (filter_instance_t *)cbdata;
-	filter_data_t *	   client_state = client_state_get(qctx, inst);
-	isc_result_t	   result;
+	filter_data_t *client_state = client_state_get(qctx, inst);
+	isc_result_t result;
 
 	*resp = ISC_R_UNSET;
 
@@ -715,10 +699,12 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp)
 		result = ns_client_checkaclsilent(qctx->client, NULL,
 						  inst->aaaa_acl, true);
 		if (result == ISC_R_SUCCESS && inst->v4_aaaa != NONE &&
-		    is_v4_client(qctx->client)) {
+		    is_v4_client(qctx->client))
+		{
 			client_state->mode = inst->v4_aaaa;
 		} else if (result == ISC_R_SUCCESS && inst->v6_aaaa != NONE &&
-			   is_v6_client(qctx->client)) {
+			   is_v6_client(qctx->client))
+		{
 			client_state->mode = inst->v6_aaaa;
 		}
 	}
@@ -734,12 +720,11 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp)
  * queries are handled in filter_respond_any_found().)
  */
 static ns_hookresult_t
-filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp)
-{
-	query_ctx_t *	   qctx = (query_ctx_t *)arg;
+filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *)arg;
 	filter_instance_t *inst = (filter_instance_t *)cbdata;
-	filter_data_t *	   client_state = client_state_get(qctx, inst);
-	isc_result_t	   result = ISC_R_UNSET;
+	filter_data_t *client_state = client_state_get(qctx, inst);
+	isc_result_t result = ISC_R_UNSET;
 
 	*resp = ISC_R_UNSET;
 
@@ -750,7 +735,8 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp)
 	if (client_state->mode != BREAK_DNSSEC &&
 	    (client_state->mode != FILTER ||
 	     (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL &&
-	      dns_rdataset_isassociated(qctx->sigrdataset)))) {
+	      dns_rdataset_isassociated(qctx->sigrdataset))))
+	{
 		return (NS_HOOK_CONTINUE);
 	}
 
@@ -786,7 +772,8 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp)
 			client_state->flags |= FILTER_AAAA_FILTERED;
 		} else if (!qctx->authoritative && RECURSIONOK(qctx->client) &&
 			   (result == DNS_R_DELEGATION ||
-			    result == ISC_R_NOTFOUND)) {
+			    result == ISC_R_NOTFOUND))
+		{
 			/*
 			 * This is an ugly kludge to recurse
 			 * for the A and discard the result.
@@ -805,7 +792,8 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp)
 			}
 		}
 	} else if (qctx->qtype == dns_rdatatype_a &&
-		   (client_state->flags & FILTER_AAAA_RECURSING) != 0) {
+		   (client_state->flags & FILTER_AAAA_RECURSING) != 0)
+	{
 		const section_filter_t filter_answer = {
 			.qctx = qctx,
 			.mode = client_state->mode,
@@ -832,11 +820,10 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp)
  * When answering an ANY query, remove AAAA if A is present.
  */
 static ns_hookresult_t
-filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp)
-{
-	query_ctx_t *	   qctx = (query_ctx_t *)arg;
+filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *)arg;
 	filter_instance_t *inst = (filter_instance_t *)cbdata;
-	filter_data_t *	   client_state = client_state_get(qctx, inst);
+	filter_data_t *client_state = client_state_get(qctx, inst);
 
 	*resp = ISC_R_UNSET;
 
@@ -868,11 +855,10 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp)
  * section.
  */
 static ns_hookresult_t
-filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp)
-{
-	query_ctx_t *	   qctx = (query_ctx_t *)arg;
+filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *)arg;
 	filter_instance_t *inst = (filter_instance_t *)cbdata;
-	filter_data_t *	   client_state = client_state_get(qctx, inst);
+	filter_data_t *client_state = client_state_get(qctx, inst);
 
 	*resp = ISC_R_UNSET;
 
@@ -905,9 +891,8 @@ filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp)
  * from hash table and return it to the memory pool.
  */
 static ns_hookresult_t
-filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp)
-{
-	query_ctx_t *	   qctx = (query_ctx_t *)arg;
+filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *)arg;
 	filter_instance_t *inst = (filter_instance_t *)cbdata;
 
 	*resp = ISC_R_UNSET;

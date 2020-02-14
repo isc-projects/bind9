@@ -14,8 +14,8 @@
 
 #define RRTYPE_NINFO_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_ninfo(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_ninfo(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_ninfo);
 
 	UNUSED(type);
@@ -28,8 +28,8 @@ static inline isc_result_t fromtext_ninfo(ARGS_FROMTEXT)
 				     target, callbacks));
 }
 
-static inline isc_result_t totext_ninfo(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_ninfo(ARGS_TOTEXT) {
 	UNUSED(tctx);
 
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
@@ -37,8 +37,8 @@ static inline isc_result_t totext_ninfo(ARGS_TOTEXT)
 	return (generic_totext_txt(rdata, tctx, target));
 }
 
-static inline isc_result_t fromwire_ninfo(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_ninfo(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_ninfo);
 
 	UNUSED(type);
@@ -50,8 +50,8 @@ static inline isc_result_t fromwire_ninfo(ARGS_FROMWIRE)
 				     target));
 }
 
-static inline isc_result_t towire_ninfo(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_ninfo(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	UNUSED(cctx);
@@ -59,8 +59,8 @@ static inline isc_result_t towire_ninfo(ARGS_TOWIRE)
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int compare_ninfo(ARGS_COMPARE)
-{
+static inline int
+compare_ninfo(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -73,15 +73,15 @@ static inline int compare_ninfo(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_ninfo(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_ninfo(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_ninfo);
 
 	return (generic_fromstruct_txt(rdclass, type, source, target));
 }
 
-static inline isc_result_t tostruct_ninfo(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_ninfo(ARGS_TOSTRUCT) {
 	dns_rdata_ninfo_t *ninfo = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
@@ -94,8 +94,8 @@ static inline isc_result_t tostruct_ninfo(ARGS_TOSTRUCT)
 	return (generic_tostruct_txt(rdata, target, mctx));
 }
 
-static inline void freestruct_ninfo(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_ninfo(ARGS_FREESTRUCT) {
 	dns_rdata_ninfo_t *ninfo = source;
 
 	REQUIRE(ninfo != NULL);
@@ -104,8 +104,8 @@ static inline void freestruct_ninfo(ARGS_FREESTRUCT)
 	generic_freestruct_txt(source);
 }
 
-static inline isc_result_t additionaldata_ninfo(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_ninfo(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	UNUSED(rdata);
@@ -115,8 +115,8 @@ static inline isc_result_t additionaldata_ninfo(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_ninfo(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_ninfo(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
@@ -126,8 +126,8 @@ static inline isc_result_t digest_ninfo(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_ninfo(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_ninfo(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_ninfo);
 
 	UNUSED(name);
@@ -138,8 +138,8 @@ static inline bool checkowner_ninfo(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_ninfo(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_ninfo(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	UNUSED(rdata);
@@ -149,14 +149,13 @@ static inline bool checknames_ninfo(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_ninfo(ARGS_COMPARE)
-{
+static inline int
+casecompare_ninfo(ARGS_COMPARE) {
 	return (compare_ninfo(rdata1, rdata2));
 }
 
 isc_result_t
-dns_rdata_ninfo_first(dns_rdata_ninfo_t *ninfo)
-{
+dns_rdata_ninfo_first(dns_rdata_ninfo_t *ninfo) {
 	REQUIRE(ninfo != NULL);
 	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 
@@ -164,8 +163,7 @@ dns_rdata_ninfo_first(dns_rdata_ninfo_t *ninfo)
 }
 
 isc_result_t
-dns_rdata_ninfo_next(dns_rdata_ninfo_t *ninfo)
-{
+dns_rdata_ninfo_next(dns_rdata_ninfo_t *ninfo) {
 	REQUIRE(ninfo != NULL);
 	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 
@@ -173,9 +171,8 @@ dns_rdata_ninfo_next(dns_rdata_ninfo_t *ninfo)
 }
 
 isc_result_t
-dns_rdata_ninfo_current(dns_rdata_ninfo_t *	  ninfo,
-			dns_rdata_ninfo_string_t *string)
-{
+dns_rdata_ninfo_current(dns_rdata_ninfo_t *ninfo,
+			dns_rdata_ninfo_string_t *string) {
 	REQUIRE(ninfo != NULL);
 	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 

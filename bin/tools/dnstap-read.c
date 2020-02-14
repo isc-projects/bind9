@@ -51,10 +51,10 @@
 #include <protobuf-c/protobuf-c.h>
 
 isc_mem_t *mctx = NULL;
-bool	   memrecord = false;
-bool	   printmessage = false;
-bool	   hexmessage = false;
-bool	   yaml = false;
+bool memrecord = false;
+bool printmessage = false;
+bool hexmessage = false;
+bool yaml = false;
 
 const char *program = "dnstap-read";
 
@@ -68,12 +68,11 @@ const char *program = "dnstap-read";
 		}                                                     \
 	} while (0)
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format,
+					    ...) ISC_PLATFORM_NORETURN_POST;
 
 static void
-fatal(const char *format, ...)
-{
+fatal(const char *format, ...) {
 	va_list args;
 
 	fprintf(stderr, "%s: fatal: ", program);
@@ -85,8 +84,7 @@ fatal(const char *format, ...)
 }
 
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "dnstap-read [-mpxy] [filename]\n");
 	fprintf(stderr, "\t-m\ttrace memory allocations\n");
 	fprintf(stderr, "\t-p\tprint the full DNS message\n");
@@ -95,9 +93,8 @@ usage(void)
 }
 
 static void
-print_dtdata(dns_dtdata_t *dt)
-{
-	isc_result_t  result;
+print_dtdata(dns_dtdata_t *dt) {
+	isc_result_t result;
 	isc_buffer_t *b = NULL;
 
 	isc_buffer_allocate(mctx, &b, 2048);
@@ -116,11 +113,10 @@ cleanup:
 }
 
 static void
-print_hex(dns_dtdata_t *dt)
-{
+print_hex(dns_dtdata_t *dt) {
 	isc_buffer_t *b = NULL;
-	isc_result_t  result;
-	size_t	      textlen;
+	isc_result_t result;
+	size_t textlen;
 
 	if (dt->msg == NULL) {
 		return;
@@ -145,10 +141,9 @@ cleanup:
 }
 
 static void
-print_packet(dns_dtdata_t *dt, const dns_master_style_t *style)
-{
+print_packet(dns_dtdata_t *dt, const dns_master_style_t *style) {
 	isc_buffer_t *b = NULL;
-	isc_result_t  result;
+	isc_result_t result;
 
 	if (dt->msg != NULL) {
 		size_t textlen = 2048;
@@ -188,12 +183,11 @@ cleanup:
 }
 
 static void
-print_yaml(dns_dtdata_t *dt)
-{
-	Dnstap__Dnstap *	  frame = dt->frame;
-	Dnstap__Message *	  m = frame->message;
+print_yaml(dns_dtdata_t *dt) {
+	Dnstap__Dnstap *frame = dt->frame;
+	Dnstap__Message *m = frame->message;
 	const ProtobufCEnumValue *ftype, *mtype;
-	static bool		  first = true;
+	static bool first = true;
 
 	ftype = protobuf_c_enum_descriptor_get_value(
 		&dnstap__dnstap__type__descriptor, frame->type);
@@ -265,7 +259,7 @@ print_yaml(dns_dtdata_t *dt)
 
 	if (m->has_query_address) {
 		ProtobufCBinaryData *ip = &m->query_address;
-		char		     buf[100];
+		char buf[100];
 
 		(void)inet_ntop(ip->len == 4 ? AF_INET : AF_INET6, ip->data,
 				buf, sizeof(buf));
@@ -274,7 +268,7 @@ print_yaml(dns_dtdata_t *dt)
 
 	if (m->has_response_address) {
 		ProtobufCBinaryData *ip = &m->response_address;
-		char		     buf[100];
+		char buf[100];
 
 		(void)inet_ntop(ip->len == 4 ? AF_INET : AF_INET6, ip->data,
 				buf, sizeof(buf));
@@ -290,10 +284,10 @@ print_yaml(dns_dtdata_t *dt)
 	}
 
 	if (m->has_query_zone) {
-		isc_result_t	 result;
-		dns_fixedname_t	 fn;
-		dns_name_t *	 name;
-		isc_buffer_t	 b;
+		isc_result_t result;
+		dns_fixedname_t fn;
+		dns_name_t *name;
+		isc_buffer_t b;
 		dns_decompress_t dctx;
 
 		name = dns_fixedname_initname(&fn);
@@ -327,14 +321,13 @@ print_yaml(dns_dtdata_t *dt)
 }
 
 int
-main(int argc, char *argv[])
-{
-	isc_result_t	result;
-	dns_message_t * message = NULL;
-	isc_buffer_t *	b = NULL;
-	dns_dtdata_t *	dt = NULL;
+main(int argc, char *argv[]) {
+	isc_result_t result;
+	dns_message_t *message = NULL;
+	isc_buffer_t *b = NULL;
+	dns_dtdata_t *dt = NULL;
 	dns_dthandle_t *handle = NULL;
-	int		rv = 0, ch;
+	int rv = 0, ch;
 
 	while ((ch = isc_commandline_parse(argc, argv, "mpxy")) != -1) {
 		switch (ch) {
@@ -374,8 +367,8 @@ main(int argc, char *argv[])
 
 	for (;;) {
 		isc_region_t input;
-		uint8_t *    data;
-		size_t	     datalen;
+		uint8_t *data;
+		size_t datalen;
 
 		result = dns_dt_getframe(handle, &data, &datalen);
 		if (result == ISC_R_NOMORE) {

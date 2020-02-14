@@ -31,11 +31,10 @@
  * These static functions are also present in lib/dns/rdata.c.  I'm not
  * sure where they should go. -- bwelling
  */
-static isc_result_t
-str_totext(const char *source, isc_buffer_t *target);
+static isc_result_t str_totext(const char *source, isc_buffer_t *target);
 
-static isc_result_t
-mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
+static isc_result_t mem_tobuffer(isc_buffer_t *target, void *base,
+				 unsigned int length);
 
 static const char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw"
 			     "xyz0123456789+/=";
@@ -43,9 +42,8 @@ static const char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw"
 
 isc_result_t
 isc_base64_totext(isc_region_t *source, int wordlength, const char *wordbreak,
-		  isc_buffer_t *target)
-{
-	char	     buf[5];
+		  isc_buffer_t *target) {
+	char buf[5];
 	unsigned int loops = 0;
 
 	if (wordlength < 4) {
@@ -64,8 +62,8 @@ isc_base64_totext(isc_region_t *source, int wordlength, const char *wordbreak,
 		isc_region_consume(source, 3);
 
 		loops++;
-		if (source->length != 0 &&
-		    (int)((loops + 1) * 4) >= wordlength) {
+		if (source->length != 0 && (int)((loops + 1) * 4) >= wordlength)
+		{
 			loops = 0;
 			RETERR(str_totext(wordbreak, target));
 		}
@@ -92,16 +90,15 @@ isc_base64_totext(isc_region_t *source, int wordlength, const char *wordbreak,
  * State of a base64 decoding process in progress.
  */
 typedef struct {
-	int	      length;	/*%< Desired length of binary data or -1 */
-	isc_buffer_t *target;	/*%< Buffer for resulting binary data */
-	int	      digits;	/*%< Number of buffered base64 digits */
-	bool	      seen_end; /*%< True if "=" end marker seen */
-	int	      val[4];
+	int length;	      /*%< Desired length of binary data or -1 */
+	isc_buffer_t *target; /*%< Buffer for resulting binary data */
+	int digits;	      /*%< Number of buffered base64 digits */
+	bool seen_end;	      /*%< True if "=" end marker seen */
+	int val[4];
 } base64_decode_ctx_t;
 
 static inline void
-base64_decode_init(base64_decode_ctx_t *ctx, int length, isc_buffer_t *target)
-{
+base64_decode_init(base64_decode_ctx_t *ctx, int length, isc_buffer_t *target) {
 	ctx->digits = 0;
 	ctx->seen_end = false;
 	ctx->length = length;
@@ -109,8 +106,7 @@ base64_decode_init(base64_decode_ctx_t *ctx, int length, isc_buffer_t *target)
 }
 
 static inline isc_result_t
-base64_decode_char(base64_decode_ctx_t *ctx, int c)
-{
+base64_decode_char(base64_decode_ctx_t *ctx, int c) {
 	const char *s;
 
 	if (ctx->seen_end) {
@@ -121,7 +117,7 @@ base64_decode_char(base64_decode_ctx_t *ctx, int c)
 	}
 	ctx->val[ctx->digits++] = (int)(s - base64);
 	if (ctx->digits == 4) {
-		int	      n;
+		int n;
 		unsigned char buf[3];
 		if (ctx->val[0] == 64 || ctx->val[1] == 64) {
 			return (ISC_R_BADBASE64);
@@ -169,8 +165,7 @@ base64_decode_char(base64_decode_ctx_t *ctx, int c)
 }
 
 static inline isc_result_t
-base64_decode_finish(base64_decode_ctx_t *ctx)
-{
+base64_decode_finish(base64_decode_ctx_t *ctx) {
 	if (ctx->length > 0) {
 		return (ISC_R_UNEXPECTEDEND);
 	}
@@ -181,13 +176,12 @@ base64_decode_finish(base64_decode_ctx_t *ctx)
 }
 
 isc_result_t
-isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length)
-{
-	unsigned int	    before, after;
+isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
+	unsigned int before, after;
 	base64_decode_ctx_t ctx;
-	isc_textregion_t *  tr;
-	isc_token_t	    token;
-	bool		    eol;
+	isc_textregion_t *tr;
+	isc_token_t token;
+	bool eol;
 
 	REQUIRE(length >= -2);
 
@@ -224,8 +218,7 @@ isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length)
 }
 
 isc_result_t
-isc_base64_decodestring(const char *cstr, isc_buffer_t *target)
-{
+isc_base64_decodestring(const char *cstr, isc_buffer_t *target) {
 	base64_decode_ctx_t ctx;
 
 	base64_decode_init(&ctx, -1, target);
@@ -244,8 +237,7 @@ isc_base64_decodestring(const char *cstr, isc_buffer_t *target)
 }
 
 static isc_result_t
-str_totext(const char *source, isc_buffer_t *target)
-{
+str_totext(const char *source, isc_buffer_t *target) {
 	unsigned int l;
 	isc_region_t region;
 
@@ -262,8 +254,7 @@ str_totext(const char *source, isc_buffer_t *target)
 }
 
 static isc_result_t
-mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length)
-{
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	isc_region_t tr;
 
 	isc_buffer_availableregion(target, &tr);

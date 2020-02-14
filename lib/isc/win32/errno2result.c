@@ -26,8 +26,7 @@
  * not already there.
  */
 isc_result_t
-isc__errno2resultx(int posixerrno, bool dolog, const char *file, int line)
-{
+isc__errno2resultx(int posixerrno, bool dolog, const char *file, int line) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	switch (posixerrno) {

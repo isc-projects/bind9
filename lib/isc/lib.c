@@ -19,7 +19,6 @@
  ***/
 
 void
-isc_lib_register(void)
-{
+isc_lib_register(void) {
 	isc_bind9 = false;
 }

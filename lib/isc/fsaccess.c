@@ -25,13 +25,12 @@
  * <isc/fsaccess.h>.  Could check consistency with sizeof(isc_fsaccess_t)
  * and the number of bits in each function.
  */
-#define STEP (ISC__FSACCESS_PERMISSIONBITS)
+#define STEP  (ISC__FSACCESS_PERMISSIONBITS)
 #define GROUP (STEP)
 #define OTHER (STEP * 2)
 
 void
-isc_fsaccess_add(int trustee, int permission, isc_fsaccess_t *access)
-{
+isc_fsaccess_add(int trustee, int permission, isc_fsaccess_t *access) {
 	REQUIRE(trustee <= 0x7);
 	REQUIRE(permission <= 0xFF);
 
@@ -49,8 +48,7 @@ isc_fsaccess_add(int trustee, int permission, isc_fsaccess_t *access)
 }
 
 void
-isc_fsaccess_remove(int trustee, int permission, isc_fsaccess_t *access)
-{
+isc_fsaccess_remove(int trustee, int permission, isc_fsaccess_t *access) {
 	REQUIRE(trustee <= 0x7);
 	REQUIRE(permission <= 0xFF);
 
@@ -68,8 +66,7 @@ isc_fsaccess_remove(int trustee, int permission, isc_fsaccess_t *access)
 }
 
 static isc_result_t
-check_bad_bits(isc_fsaccess_t access, bool is_dir)
-{
+check_bad_bits(isc_fsaccess_t access, bool is_dir) {
 	isc_fsaccess_t bits;
 
 	/*

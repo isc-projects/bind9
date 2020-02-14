@@ -34,11 +34,10 @@
 #include <dns/view.h>
 
 static void
-done(isc_task_t *task, isc_event_t *event)
-{
+done(isc_task_t *task, isc_event_t *event) {
 	dns_byaddrevent_t *bevent;
-	dns_byaddr_t *	   byaddr;
-	dns_name_t *	   name;
+	dns_byaddr_t *byaddr;
+	dns_name_t *name;
 
 	REQUIRE(event->ev_type == DNS_EVENT_BYADDRDONE);
 	bevent = (dns_byaddrevent_t *)event;
@@ -49,7 +48,8 @@ done(isc_task_t *task, isc_event_t *event)
 
 	if (bevent->result == ISC_R_SUCCESS) {
 		for (name = ISC_LIST_HEAD(bevent->names); name != NULL;
-		     name = ISC_LIST_NEXT(name, link)) {
+		     name = ISC_LIST_NEXT(name, link))
+		{
 			char text[DNS_NAME_FORMATSIZE];
 			dns_name_format(name, text, sizeof(text));
 			printf("%s\n", text);
@@ -64,23 +64,22 @@ done(isc_task_t *task, isc_event_t *event)
 }
 
 int
-main(int argc, char *argv[])
-{
-	isc_mem_t *	   mctx;
-	bool		   verbose = false;
-	unsigned int	   workers = 2;
-	isc_taskmgr_t *	   taskmgr;
-	isc_task_t *	   task;
-	isc_timermgr_t *   timermgr;
-	dns_view_t *	   view;
-	int		   ch;
-	isc_socketmgr_t *  socketmgr;
+main(int argc, char *argv[]) {
+	isc_mem_t *mctx;
+	bool verbose = false;
+	unsigned int workers = 2;
+	isc_taskmgr_t *taskmgr;
+	isc_task_t *task;
+	isc_timermgr_t *timermgr;
+	dns_view_t *view;
+	int ch;
+	isc_socketmgr_t *socketmgr;
 	dns_dispatchmgr_t *dispatchmgr;
-	isc_netaddr_t	   na;
-	dns_byaddr_t *	   byaddr;
-	isc_result_t	   result;
-	unsigned int	   options = 0;
-	dns_cache_t *	   cache;
+	isc_netaddr_t na;
+	dns_byaddr_t *byaddr;
+	isc_result_t result;
+	unsigned int options = 0;
+	dns_cache_t *cache;
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
 
@@ -137,7 +136,7 @@ main(int argc, char *argv[])
 				      &view) == ISC_R_SUCCESS);
 
 	{
-		unsigned int	attrs;
+		unsigned int attrs;
 		dns_dispatch_t *disp4 = NULL;
 		dns_dispatch_t *disp6 = NULL;
 
@@ -183,8 +182,8 @@ main(int argc, char *argv[])
 	}
 
 	{
-		struct in_addr	   ina;
-		isc_sockaddr_t	   sa;
+		struct in_addr ina;
+		isc_sockaddr_t sa;
 		isc_sockaddrlist_t sal;
 
 		ISC_LIST_INIT(sal);

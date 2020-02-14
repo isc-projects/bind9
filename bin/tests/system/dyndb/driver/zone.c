@@ -28,13 +28,12 @@ extern const char *impname;
  */
 isc_result_t
 create_zone(sample_instance_t *const inst, dns_name_t *const name,
-	    dns_zone_t **const rawp)
-{
+	    dns_zone_t **const rawp) {
 	isc_result_t result;
-	dns_zone_t * raw = NULL;
-	const char * zone_argv[1];
-	char	     zone_name[DNS_NAME_FORMATSIZE];
-	dns_acl_t *  acl_any = NULL;
+	dns_zone_t *raw = NULL;
+	const char *zone_argv[1];
+	char zone_name[DNS_NAME_FORMATSIZE];
+	dns_acl_t *acl_any = NULL;
 
 	REQUIRE(inst != NULL);
 	REQUIRE(name != NULL);
@@ -104,12 +103,11 @@ cleanup:
  * to clients.
  */
 static isc_result_t
-publish_zone(sample_instance_t *inst, dns_zone_t *zone)
-{
+publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 	isc_result_t result;
-	bool	     freeze = false;
-	dns_zone_t * zone_in_view = NULL;
-	dns_view_t * view_in_zone = NULL;
+	bool freeze = false;
+	dns_zone_t *zone_in_view = NULL;
+	dns_view_t *view_in_zone = NULL;
 	isc_result_t lock_state = ISC_R_IGNORE;
 
 	REQUIRE(inst != NULL);
@@ -180,15 +178,15 @@ cleanup:
  * on the secure zone!
  */
 static isc_result_t
-load_zone(dns_zone_t *zone)
-{
+load_zone(dns_zone_t *zone) {
 	isc_result_t result;
-	bool	     zone_dynamic;
-	uint32_t     serial;
+	bool zone_dynamic;
+	uint32_t serial;
 
 	result = dns_zone_load(zone, false);
 	if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE &&
-	    result != DNS_R_DYNAMIC && result != DNS_R_CONTINUE) {
+	    result != DNS_R_DYNAMIC && result != DNS_R_CONTINUE)
+	{
 		goto cleanup;
 	}
 	zone_dynamic = (result == DNS_R_DYNAMIC);
@@ -214,8 +212,7 @@ cleanup:
  * Add zone to view and call dns_zone_load().
  */
 isc_result_t
-activate_zone(sample_instance_t *inst, dns_zone_t *raw)
-{
+activate_zone(sample_instance_t *inst, dns_zone_t *raw) {
 	isc_result_t result;
 
 	/*

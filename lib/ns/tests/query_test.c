@@ -36,8 +36,7 @@
 
 #if defined(USE_LIBTOOL) || LD_WRAP
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -49,8 +48,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	ns_test_end();
@@ -66,32 +64,31 @@ _teardown(void **state)
  * Structure containing parameters for ns__query_sfcache_test().
  */
 typedef struct {
-	const ns_test_id_t id;			/* libns test identifier */
-	unsigned int	   qflags;		/* query flags */
-	bool		   cache_entry_present; /* whether a SERVFAIL
-						 * cache entry
-						 * matching the query
-						 * should be
-						 * present */
-	uint32_t cache_entry_flags;		/* NS_FAILCACHE_* flags to
-						 * set for
-						 * the SERVFAIL cache entry
-						 * */
-	bool servfail_expected;			/* whether a cached
-						 * SERVFAIL is
-						 * expected to be returned
-						 * */
+	const ns_test_id_t id;	    /* libns test identifier */
+	unsigned int qflags;	    /* query flags */
+	bool cache_entry_present;   /* whether a SERVFAIL
+				     * cache entry
+				     * matching the query
+				     * should be
+				     * present */
+	uint32_t cache_entry_flags; /* NS_FAILCACHE_* flags to
+				     * set for
+				     * the SERVFAIL cache entry
+				     * */
+	bool servfail_expected;	    /* whether a cached
+				     * SERVFAIL is
+				     * expected to be returned
+				     * */
 } ns__query_sfcache_test_params_t;
 
 /*%
  * Perform a single ns__query_sfcache() check using given parameters.
  */
 static void
-run_sfcache_test(const ns__query_sfcache_test_params_t *test)
-{
+run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	ns_hooktable_t *query_hooks = NULL;
-	query_ctx_t *	qctx = NULL;
-	isc_result_t	result;
+	query_ctx_t *qctx = NULL;
+	isc_result_t result;
 	const ns_hook_t hook = {
 		.action = ns_test_hook_catch_call,
 	};
@@ -130,7 +127,7 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test)
 	 */
 	if (test->cache_entry_present) {
 		isc_interval_t hour;
-		isc_time_t     expire;
+		isc_time_t expire;
 
 		isc_interval_set(&hour, 3600, 0);
 		result = isc_time_nowplusinterval(&expire, &hour);
@@ -171,8 +168,7 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test)
 
 /* test ns__query_sfcache() */
 static void
-ns__query_sfcache_test(void **state)
-{
+ns__query_sfcache_test(void **state) {
 	size_t i;
 
 	const ns__query_sfcache_test_params_t tests[] = {
@@ -260,29 +256,29 @@ ns__query_sfcache_test(void **state)
  * Structure containing parameters for ns__query_start_test().
  */
 typedef struct {
-	const ns_test_id_t id;			/* libns test identifier */
-	const char *	   qname;		/* QNAME */
-	dns_rdatatype_t	   qtype;		/* QTYPE */
-	unsigned int	   qflags;		/* query flags */
-	bool		   disable_name_checks; /* if set to true, owner
-						 * name
-						 *          checks will
-						 * be disabled for the
-						 *          view created
-						 * */
-	bool recursive_service;			/* if set to true, the view
-						 *          created will
-						 * have a cache
-						 *          database
-						 * attached */
-	const char *auth_zone_origin;		/* origin name of the zone
-						 * the
-						 * created view will be
-						 * authoritative for */
-	const char *auth_zone_path;		/* path to load the
-						 * authoritative
-						 * zone from */
-	enum {					/* expected result: */
+	const ns_test_id_t id;	      /* libns test identifier */
+	const char *qname;	      /* QNAME */
+	dns_rdatatype_t qtype;	      /* QTYPE */
+	unsigned int qflags;	      /* query flags */
+	bool disable_name_checks;     /* if set to true, owner
+				       * name
+				       *          checks will
+				       * be disabled for the
+				       *          view created
+				       * */
+	bool recursive_service;	      /* if set to true, the view
+				       *          created will
+				       * have a cache
+				       *          database
+				       * attached */
+	const char *auth_zone_origin; /* origin name of the zone
+				       * the
+				       * created view will be
+				       * authoritative for */
+	const char *auth_zone_path;   /* path to load the
+				       * authoritative
+				       * zone from */
+	enum {			      /* expected result: */
 	       NS__QUERY_START_R_INVALID,
 	       NS__QUERY_START_R_REFUSE, /* query should be REFUSED */
 	       NS__QUERY_START_R_CACHE,	 /* query should be answered from
@@ -296,11 +292,10 @@ typedef struct {
  * Perform a single ns__query_start() check using given parameters.
  */
 static void
-run_start_test(const ns__query_start_test_params_t *test)
-{
+run_start_test(const ns__query_start_test_params_t *test) {
 	ns_hooktable_t *query_hooks = NULL;
-	query_ctx_t *	qctx = NULL;
-	isc_result_t	result;
+	query_ctx_t *qctx = NULL;
+	isc_result_t result;
 	const ns_hook_t hook = {
 		.action = ns_test_hook_catch_call,
 	};
@@ -389,8 +384,8 @@ run_start_test(const ns__query_start_test_params_t *test)
 				 "query context, but some was",
 				 test->id.description, test->id.lineno);
 		}
-		if (qctx->db == NULL ||
-		    qctx->db != qctx->client->view->cachedb) {
+		if (qctx->db == NULL || qctx->db != qctx->client->view->cachedb)
+		{
 			fail_msg("# test \"%s\" on line %d: "
 				 "cache database was expected to be "
 				 "attached to query context, but it was not",
@@ -438,8 +433,7 @@ run_start_test(const ns__query_start_test_params_t *test)
 
 /* test ns__query_start() */
 static void
-ns__query_start_test(void **state)
-{
+ns__query_start_test(void **state) {
 	size_t i;
 
 	const ns__query_start_test_params_t tests[] = {
@@ -609,8 +603,7 @@ ns__query_start_test(void **state)
 #endif /* if defined(USE_LIBTOOL) || LD_WRAP */
 
 int
-main(void)
-{
+main(void) {
 #if defined(USE_LIBTOOL) || LD_WRAP
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(ns__query_sfcache_test, _setup,
@@ -630,8 +623,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 #if __SANITIZE_ADDRESS__
 	/*
 	 * We disable this test when the address sanitizer is in

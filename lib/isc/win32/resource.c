@@ -25,10 +25,9 @@
 #define WIN32_MAX_OPEN_FILES 2048
 
 isc_result_t
-isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value)
-{
+isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	isc_resourcevalue_t rlim_value;
-	int		    wresult;
+	int wresult;
 
 	if (resource != isc_resource_openfiles) {
 		return (ISC_R_NOTIMPLEMENTED);
@@ -50,8 +49,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value)
 }
 
 isc_result_t
-isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value)
-{
+isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 	if (resource != isc_resource_openfiles) {
 		return (ISC_R_NOTIMPLEMENTED);
 	}
@@ -61,7 +59,6 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value)
 }
 
 isc_result_t
-isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value)
-{
+isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 	return (isc_resource_getlimit(resource, value));
 }

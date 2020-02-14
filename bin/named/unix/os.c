@@ -50,16 +50,16 @@
 
 static char *pidfile = NULL;
 static char *lockfile = NULL;
-static int   devnullfd = -1;
-static int   singletonfd = -1;
+static int devnullfd = -1;
+static int singletonfd = -1;
 
 #ifndef ISC_FACILITY
 #define ISC_FACILITY LOG_DAEMON
 #endif /* ifndef ISC_FACILITY */
 
 static struct passwd *runas_pw = NULL;
-static bool	      done_setuid = false;
-static int	      dfd[2] = { -1, -1 };
+static bool done_setuid = false;
+static int dfd[2] = { -1, -1 };
 
 #ifdef HAVE_SYS_CAPABILITY_H
 
@@ -70,8 +70,7 @@ static bool non_root_caps = false;
 #include <sys/prctl.h>
 
 static void
-linux_setcaps(cap_t caps)
-{
+linux_setcaps(cap_t caps) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	if ((getuid() != 0 && !non_root_caps) || non_root) {
@@ -133,13 +132,12 @@ linux_setcaps(cap_t caps)
 	while (0)
 
 static void
-linux_initialprivs(void)
-{
-	cap_t	    caps;
-	cap_t	    curcaps;
+linux_initialprivs(void) {
+	cap_t caps;
+	cap_t curcaps;
 	cap_value_t capval;
-	char	    strbuf[ISC_STRERRORSIZE];
-	int	    err;
+	char strbuf[ISC_STRERRORSIZE];
+	int err;
 
 	/*%
 	 * We don't need most privileges, so we drop them right away.
@@ -196,13 +194,12 @@ linux_initialprivs(void)
 }
 
 static void
-linux_minprivs(void)
-{
-	cap_t	    caps;
-	cap_t	    curcaps;
+linux_minprivs(void) {
+	cap_t caps;
+	cap_t curcaps;
 	cap_value_t capval;
-	char	    strbuf[ISC_STRERRORSIZE];
-	int	    err;
+	char strbuf[ISC_STRERRORSIZE];
+	int err;
 
 	INIT_CAP;
 	/*%
@@ -230,8 +227,7 @@ linux_minprivs(void)
 }
 
 static void
-linux_keepcaps(void)
-{
+linux_keepcaps(void) {
 	char strbuf[ISC_STRERRORSIZE];
 	/*%
 	 * Ask the kernel to allow us to keep our capabilities after we
@@ -254,8 +250,7 @@ linux_keepcaps(void)
 #endif /* HAVE_SYS_CAPABILITY_H */
 
 static void
-setup_syslog(const char *progname)
-{
+setup_syslog(const char *progname) {
 	int options;
 
 	options = LOG_PID;
@@ -266,8 +261,7 @@ setup_syslog(const char *progname)
 }
 
 void
-named_os_init(const char *progname)
-{
+named_os_init(const char *progname) {
 	setup_syslog(progname);
 #ifdef HAVE_SYS_CAPABILITY_H
 	linux_initialprivs();
@@ -278,10 +272,9 @@ named_os_init(const char *progname)
 }
 
 void
-named_os_daemonize(void)
-{
+named_os_daemonize(void) {
 	pid_t pid;
-	char  strbuf[ISC_STRERRORSIZE];
+	char strbuf[ISC_STRERRORSIZE];
 
 	if (pipe(dfd) == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
@@ -348,8 +341,7 @@ named_os_daemonize(void)
 }
 
 void
-named_os_started(void)
-{
+named_os_started(void) {
 	char buf = 0;
 
 	/*
@@ -367,24 +359,22 @@ named_os_started(void)
 }
 
 void
-named_os_opendevnull(void)
-{
+named_os_opendevnull(void) {
 	devnullfd = open("/dev/null", O_RDWR, 0);
 }
 
 void
-named_os_closedevnull(void)
-{
+named_os_closedevnull(void) {
 	if (devnullfd != STDIN_FILENO && devnullfd != STDOUT_FILENO &&
-	    devnullfd != STDERR_FILENO) {
+	    devnullfd != STDERR_FILENO)
+	{
 		close(devnullfd);
 		devnullfd = -1;
 	}
 }
 
 static bool
-all_digits(const char *s)
-{
+all_digits(const char *s) {
 	if (*s == '\0') {
 		return (false);
 	}
@@ -398,8 +388,7 @@ all_digits(const char *s)
 }
 
 void
-named_os_chroot(const char *root)
-{
+named_os_chroot(const char *root) {
 	char strbuf[ISC_STRERRORSIZE];
 #ifdef HAVE_LIBSCF
 	named_smf_chroot = 0;
@@ -425,8 +414,7 @@ named_os_chroot(const char *root)
 }
 
 void
-named_os_inituserinfo(const char *username)
-{
+named_os_inituserinfo(const char *username) {
 	char strbuf[ISC_STRERRORSIZE];
 	if (username == NULL) {
 		return;
@@ -452,8 +440,7 @@ named_os_inituserinfo(const char *username)
 }
 
 void
-named_os_changeuser(void)
-{
+named_os_changeuser(void) {
 	char strbuf[ISC_STRERRORSIZE];
 	if (runas_pw == NULL || done_setuid) {
 		return;
@@ -487,8 +474,7 @@ named_os_changeuser(void)
 }
 
 uid_t
-ns_os_uid(void)
-{
+ns_os_uid(void) {
 	if (runas_pw == NULL) {
 		return (0);
 	}
@@ -496,10 +482,9 @@ ns_os_uid(void)
 }
 
 void
-named_os_adjustnofile(void)
-{
+named_os_adjustnofile(void) {
 #if defined(__linux__)
-	isc_result_t	    result;
+	isc_result_t result;
 	isc_resourcevalue_t newvalue;
 
 	/*
@@ -516,8 +501,7 @@ named_os_adjustnofile(void)
 }
 
 void
-named_os_minprivs(void)
-{
+named_os_minprivs(void) {
 #if defined(HAVE_SYS_CAPABILITY_H)
 	linux_keepcaps();
 	named_os_changeuser();
@@ -526,9 +510,8 @@ named_os_minprivs(void)
 }
 
 static int
-safe_open(const char *filename, mode_t mode, bool append)
-{
-	int	    fd;
+safe_open(const char *filename, mode_t mode, bool append) {
+	int fd;
 	struct stat sb;
 
 	if (stat(filename, &sb) == -1) {
@@ -552,8 +535,7 @@ safe_open(const char *filename, mode_t mode, bool append)
 }
 
 static void
-cleanup_pidfile(void)
-{
+cleanup_pidfile(void) {
 	int n;
 	if (pidfile != NULL) {
 		n = unlink(pidfile);
@@ -566,8 +548,7 @@ cleanup_pidfile(void)
 }
 
 static void
-cleanup_lockfile(void)
-{
+cleanup_lockfile(void) {
 	if (singletonfd != -1) {
 		close(singletonfd);
 		singletonfd = -1;
@@ -590,10 +571,9 @@ cleanup_lockfile(void)
  * nulls. The caller should copy the filename to a fresh buffer first.
  */
 static int
-mkdirpath(char *filename, void (*report)(const char *, ...))
-{
-	char *	     slash = strrchr(filename, '/');
-	char	     strbuf[ISC_STRERRORSIZE];
+mkdirpath(char *filename, void (*report)(const char *, ...)) {
+	char *slash = strrchr(filename, '/');
+	char strbuf[ISC_STRERRORSIZE];
 	unsigned int mode;
 
 	if (slash != NULL && slash != filename) {
@@ -614,7 +594,8 @@ mkdirpath(char *filename, void (*report)(const char *, ...))
 			 * Handle "//", "/./" and "/../" in path.
 			 */
 			if (!strcmp(slash + 1, "") || !strcmp(slash + 1, ".") ||
-			    !strcmp(slash + 1, "..")) {
+			    !strcmp(slash + 1, ".."))
+			{
 				*slash = '/';
 				return (0);
 			}
@@ -629,7 +610,8 @@ mkdirpath(char *filename, void (*report)(const char *, ...))
 			}
 			if (runas_pw != NULL &&
 			    chown(filename, runas_pw->pw_uid,
-				  runas_pw->pw_gid) == -1) {
+				  runas_pw->pw_gid) == -1)
+			{
 				strerror_r(errno, strbuf, sizeof(strbuf));
 				(*report)("couldn't chown '%s': %s", filename,
 					  strbuf);
@@ -645,8 +627,7 @@ error:
 }
 
 static void
-setperms(uid_t uid, gid_t gid)
-{
+setperms(uid_t uid, gid_t gid) {
 #if defined(HAVE_SETEGID) || defined(HAVE_SETRESGID)
 	char strbuf[ISC_STRERRORSIZE];
 #endif /* if defined(HAVE_SETEGID) || defined(HAVE_SETRESGID) */
@@ -694,11 +675,10 @@ setperms(uid_t uid, gid_t gid)
 }
 
 FILE *
-named_os_openfile(const char *filename, mode_t mode, bool switch_user)
-{
-	char  strbuf[ISC_STRERRORSIZE], *f;
+named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
+	char strbuf[ISC_STRERRORSIZE], *f;
 	FILE *fp;
-	int   fd;
+	int fd;
 
 	/*
 	 * Make the containing directory if it doesn't exist.
@@ -764,11 +744,10 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user)
 }
 
 void
-named_os_writepidfile(const char *filename, bool first_time)
-{
+named_os_writepidfile(const char *filename, bool first_time) {
 	FILE *fh;
 	pid_t pid;
-	char  strbuf[ISC_STRERRORSIZE];
+	char strbuf[ISC_STRERRORSIZE];
 	void (*report)(const char *, ...);
 
 	/*
@@ -813,9 +792,8 @@ named_os_writepidfile(const char *filename, bool first_time)
 }
 
 bool
-named_os_issingleton(const char *filename)
-{
-	char	     strbuf[ISC_STRERRORSIZE];
+named_os_issingleton(const char *filename) {
+	char strbuf[ISC_STRERRORSIZE];
 	struct flock lock;
 
 	if (singletonfd != -1) {
@@ -872,16 +850,14 @@ named_os_issingleton(const char *filename)
 }
 
 void
-named_os_shutdown(void)
-{
+named_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
 	cleanup_lockfile();
 }
 
 isc_result_t
-named_os_gethostname(char *buf, size_t len)
-{
+named_os_gethostname(char *buf, size_t len) {
 	int n;
 
 	n = gethostname(buf, len);
@@ -889,8 +865,7 @@ named_os_gethostname(char *buf, size_t len)
 }
 
 void
-named_os_shutdownmsg(char *command, isc_buffer_t *text)
-{
+named_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	char *last, *ptr;
 	pid_t pid;
 
@@ -913,19 +888,17 @@ named_os_shutdownmsg(char *command, isc_buffer_t *text)
 }
 
 void
-named_os_tzset(void)
-{
+named_os_tzset(void) {
 #ifdef HAVE_TZSET
 	tzset();
 #endif /* ifdef HAVE_TZSET */
 }
 
-static char  unamebuf[BUFSIZ];
+static char unamebuf[BUFSIZ];
 static char *unamep = NULL;
 
 static void
-getuname(void)
-{
+getuname(void) {
 #ifdef HAVE_UNAME
 	struct utsname uts;
 
@@ -944,8 +917,7 @@ getuname(void)
 }
 
 char *
-named_os_uname(void)
-{
+named_os_uname(void) {
 	if (unamep == NULL) {
 		getuname();
 	}

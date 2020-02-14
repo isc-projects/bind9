@@ -32,8 +32,7 @@
 #include "dnstest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -45,8 +44,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	dns_test_end();
@@ -54,22 +52,21 @@ _teardown(void **state)
 	return (0);
 }
 
-#define BUFLEN 255
-#define BIGBUFLEN (70 * 1024)
+#define BUFLEN	    255
+#define BIGBUFLEN   (70 * 1024)
 #define TEST_ORIGIN "test"
 
 /* test that dns_acl_isinsecure works */
 static void
-dns_acl_isinsecure_test(void **state)
-{
+dns_acl_isinsecure_test(void **state) {
 	isc_result_t result;
-	dns_acl_t *  any = NULL;
-	dns_acl_t *  none = NULL;
-	dns_acl_t *  notnone = NULL;
-	dns_acl_t *  notany = NULL;
+	dns_acl_t *any = NULL;
+	dns_acl_t *none = NULL;
+	dns_acl_t *notnone = NULL;
+	dns_acl_t *notany = NULL;
 #if defined(HAVE_GEOIP2)
-	dns_acl_t *	  geoip = NULL;
-	dns_acl_t *	  notgeoip = NULL;
+	dns_acl_t *geoip = NULL;
+	dns_acl_t *notgeoip = NULL;
 	dns_aclelement_t *de;
 #endif /* HAVE_GEOIP2 */
 
@@ -137,8 +134,7 @@ dns_acl_isinsecure_test(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(dns_acl_isinsecure_test, _setup,
 						_teardown),
@@ -152,8 +148,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

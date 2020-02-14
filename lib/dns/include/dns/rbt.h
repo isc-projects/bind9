@@ -32,9 +32,9 @@ ISC_LANG_BEGINDECLS
  * Option values for dns_rbt_findnode() and dns_rbt_findname().
  * These are used to form a bitmask.
  */
-#define DNS_RBTFIND_NOOPTIONS 0x00
-#define DNS_RBTFIND_EMPTYDATA 0x01
-#define DNS_RBTFIND_NOEXACT 0x02
+#define DNS_RBTFIND_NOOPTIONS	  0x00
+#define DNS_RBTFIND_EMPTYDATA	  0x01
+#define DNS_RBTFIND_NOEXACT	  0x02
 #define DNS_RBTFIND_NOPREDECESSOR 0x04
 /*@}*/
 

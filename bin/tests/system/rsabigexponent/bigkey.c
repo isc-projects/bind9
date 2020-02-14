@@ -40,21 +40,21 @@
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
 
-dst_key_t *	     key;
-dns_fixedname_t	     fname;
-dns_name_t *	     name;
-unsigned int	     bits = 1024U;
-isc_mem_t *	     mctx;
-isc_log_t *	     log_;
-isc_logconfig_t *    logconfig;
-int		     level = ISC_LOG_WARNING;
+dst_key_t *key;
+dns_fixedname_t fname;
+dns_name_t *name;
+unsigned int bits = 1024U;
+isc_mem_t *mctx;
+isc_log_t *log_;
+isc_logconfig_t *logconfig;
+int level = ISC_LOG_WARNING;
 isc_logdestination_t destination;
-char		     filename[255];
-isc_result_t	     result;
-isc_buffer_t	     buf;
-RSA *		     rsa;
-BIGNUM *	     e;
-EVP_PKEY *	     pkey;
+char filename[255];
+isc_result_t result;
+isc_buffer_t buf;
+RSA *rsa;
+BIGNUM *e;
+EVP_PKEY *pkey;
 
 #define CHECK(op, msg)                                                        \
 	do {                                                                  \
@@ -70,8 +70,7 @@ EVP_PKEY *	     pkey;
 	} while (0)
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	UNUSED(argc);
 	UNUSED(argv);
 
@@ -82,7 +81,8 @@ main(int argc, char **argv)
 	pkey = EVP_PKEY_new();
 
 	if ((rsa == NULL) || (e == NULL) || (pkey == NULL) ||
-	    !EVP_PKEY_set1_RSA(pkey, rsa)) {
+	    !EVP_PKEY_set1_RSA(pkey, rsa))
+	{
 		fprintf(stderr, "fatal error: basic OpenSSL failure\n");
 		exit(1);
 	}

@@ -63,19 +63,18 @@
  */
 
 typedef struct geoip_state {
-	uint16_t	     subtype;
-	const MMDB_s *	     db;
-	isc_netaddr_t	     addr;
+	uint16_t subtype;
+	const MMDB_s *db;
+	isc_netaddr_t addr;
 	MMDB_lookup_result_s mmresult;
-	MMDB_entry_s	     entry;
+	MMDB_entry_s entry;
 } geoip_state_t;
 
 ISC_THREAD_LOCAL geoip_state_t geoip_state = { 0 };
 
 static void
 set_state(const MMDB_s *db, const isc_netaddr_t *addr,
-	  MMDB_lookup_result_s mmresult, MMDB_entry_s entry)
-{
+	  MMDB_lookup_result_s mmresult, MMDB_entry_s entry) {
 	geoip_state.db = db;
 	geoip_state.addr = *addr;
 	geoip_state.mmresult = mmresult;
@@ -83,14 +82,13 @@ set_state(const MMDB_s *db, const isc_netaddr_t *addr,
 }
 
 static geoip_state_t *
-get_entry_for(MMDB_s *const db, const isc_netaddr_t *addr)
-{
-	isc_sockaddr_t	     sa;
+get_entry_for(MMDB_s *const db, const isc_netaddr_t *addr) {
+	isc_sockaddr_t sa;
 	MMDB_lookup_result_s match;
-	int		     err;
+	int err;
 
-	if (db == geoip_state.db &&
-	    isc_netaddr_equal(addr, &geoip_state.addr)) {
+	if (db == geoip_state.db && isc_netaddr_equal(addr, &geoip_state.addr))
+	{
 		return (&geoip_state);
 	}
 
@@ -106,8 +104,7 @@ get_entry_for(MMDB_s *const db, const isc_netaddr_t *addr)
 }
 
 static dns_geoip_subtype_t
-fix_subtype(const dns_geoip_databases_t *geoip, dns_geoip_subtype_t subtype)
-{
+fix_subtype(const dns_geoip_databases_t *geoip, dns_geoip_subtype_t subtype) {
 	dns_geoip_subtype_t ret = subtype;
 
 	switch (subtype) {
@@ -156,8 +153,8 @@ fix_subtype(const dns_geoip_databases_t *geoip, dns_geoip_subtype_t subtype)
 }
 
 static MMDB_s *
-geoip2_database(const dns_geoip_databases_t *geoip, dns_geoip_subtype_t subtype)
-{
+geoip2_database(const dns_geoip_databases_t *geoip,
+		dns_geoip_subtype_t subtype) {
 	switch (subtype) {
 	case dns_geoip_country_code:
 	case dns_geoip_country_name:
@@ -197,13 +194,13 @@ geoip2_database(const dns_geoip_databases_t *geoip, dns_geoip_subtype_t subtype)
 }
 
 static bool
-match_string(MMDB_entry_data_s *value, const char *str)
-{
+match_string(MMDB_entry_data_s *value, const char *str) {
 	REQUIRE(str != NULL);
 
 	if (value == NULL || !value->has_data ||
 	    value->type != MMDB_DATA_TYPE_UTF8_STRING ||
-	    value->utf8_string == NULL) {
+	    value->utf8_string == NULL)
+	{
 		return (false);
 	}
 
@@ -211,11 +208,11 @@ match_string(MMDB_entry_data_s *value, const char *str)
 }
 
 static bool
-match_int(MMDB_entry_data_s *value, const uint32_t ui32)
-{
+match_int(MMDB_entry_data_s *value, const uint32_t ui32) {
 	if (value == NULL || !value->has_data ||
 	    (value->type != MMDB_DATA_TYPE_UINT32 &&
-	     value->type != MMDB_DATA_TYPE_UINT16)) {
+	     value->type != MMDB_DATA_TYPE_UINT16))
+	{
 		return (false);
 	}
 
@@ -223,15 +220,15 @@ match_int(MMDB_entry_data_s *value, const uint32_t ui32)
 }
 
 bool
-dns_geoip_match(const isc_netaddr_t *	     reqaddr,
-		const dns_geoip_databases_t *geoip, const dns_geoip_elem_t *elt)
-{
-	MMDB_s *	    db = NULL;
-	MMDB_entry_data_s   value;
-	geoip_state_t *	    state = NULL;
+dns_geoip_match(const isc_netaddr_t *reqaddr,
+		const dns_geoip_databases_t *geoip,
+		const dns_geoip_elem_t *elt) {
+	MMDB_s *db = NULL;
+	MMDB_entry_data_s value;
+	geoip_state_t *state = NULL;
 	dns_geoip_subtype_t subtype;
-	const char *	    s = NULL;
-	int		    ret;
+	const char *s = NULL;
+	int ret;
 
 	REQUIRE(reqaddr != NULL);
 	REQUIRE(elt != NULL);

@@ -61,14 +61,12 @@
 #define CLOCK_REALTIME 0
 #endif /* ifndef CLOCK_REALTIME */
 
-static int
-clock_gettime(int32_t id, struct timespec *tp);
+static int clock_gettime(int32_t id, struct timespec *tp);
 
 static int
-clock_gettime(int32_t id, struct timespec *tp)
-{
+clock_gettime(int32_t id, struct timespec *tp) {
 	struct timeval tv;
-	int	       result;
+	int result;
 
 	UNUSED(id);
 
@@ -151,42 +149,41 @@ static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
 
 int
-main(int argc, char *argv[])
-{
-	isc_result_t	  result;
-	CK_RV		  rv;
-	CK_SLOT_ID	  slot = 0;
+main(int argc, char *argv[]) {
+	isc_result_t result;
+	CK_RV rv;
+	CK_SLOT_ID slot = 0;
 	CK_SESSION_HANDLE hSession = CK_INVALID_HANDLE;
-	CK_ULONG	  len;
-	CK_ULONG	  slen;
-	CK_OBJECT_HANDLE  hKey = CK_INVALID_HANDLE;
-	CK_OBJECT_CLASS	  kClass = CKO_PRIVATE_KEY;
-	CK_KEY_TYPE	  kType = CKK_RSA;
-	CK_ATTRIBUTE	  kTemplate[] = {
-		     { CKA_CLASS, &kClass, (CK_ULONG)sizeof(kClass) },
-		     { CKA_KEY_TYPE, &kType, (CK_ULONG)sizeof(kType) },
-		     { CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
-		     { CKA_PRIVATE, &truevalue, (CK_ULONG)sizeof(truevalue) },
-		     { CKA_SIGN, &truevalue, (CK_ULONG)sizeof(truevalue) },
-		     { CKA_MODULUS, modulus, (CK_ULONG)sizeof(modulus) },
-		     { CKA_PUBLIC_EXPONENT, pubexp, (CK_ULONG)sizeof(pubexp) },
-		     { CKA_PRIVATE_EXPONENT, privexp, (CK_ULONG)sizeof(privexp) },
-		     { CKA_PRIME_1, prime1, (CK_ULONG)sizeof(prime1) },
-		     { CKA_PRIME_2, prime2, (CK_ULONG)sizeof(prime2) },
-		     { CKA_EXPONENT_1, exp_1, (CK_ULONG)sizeof(exp_1) },
-		     { CKA_EXPONENT_2, exp_2, (CK_ULONG)sizeof(exp_2) },
-		     { CKA_COEFFICIENT, coeff, (CK_ULONG)sizeof(coeff) }
+	CK_ULONG len;
+	CK_ULONG slen;
+	CK_OBJECT_HANDLE hKey = CK_INVALID_HANDLE;
+	CK_OBJECT_CLASS kClass = CKO_PRIVATE_KEY;
+	CK_KEY_TYPE kType = CKK_RSA;
+	CK_ATTRIBUTE kTemplate[] = {
+		{ CKA_CLASS, &kClass, (CK_ULONG)sizeof(kClass) },
+		{ CKA_KEY_TYPE, &kType, (CK_ULONG)sizeof(kType) },
+		{ CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue) },
+		{ CKA_PRIVATE, &truevalue, (CK_ULONG)sizeof(truevalue) },
+		{ CKA_SIGN, &truevalue, (CK_ULONG)sizeof(truevalue) },
+		{ CKA_MODULUS, modulus, (CK_ULONG)sizeof(modulus) },
+		{ CKA_PUBLIC_EXPONENT, pubexp, (CK_ULONG)sizeof(pubexp) },
+		{ CKA_PRIVATE_EXPONENT, privexp, (CK_ULONG)sizeof(privexp) },
+		{ CKA_PRIME_1, prime1, (CK_ULONG)sizeof(prime1) },
+		{ CKA_PRIME_2, prime2, (CK_ULONG)sizeof(prime2) },
+		{ CKA_EXPONENT_1, exp_1, (CK_ULONG)sizeof(exp_1) },
+		{ CKA_EXPONENT_2, exp_2, (CK_ULONG)sizeof(exp_2) },
+		{ CKA_COEFFICIENT, coeff, (CK_ULONG)sizeof(coeff) }
 	};
-	CK_MECHANISM	mech = { CKM_SHA1_RSA_PKCS, NULL, 0 };
-	pk11_context_t	pctx;
-	pk11_optype_t	op_type = OP_RSA;
-	char *		lib_name = NULL;
-	char *		pin = NULL;
-	int		error = 0;
-	int		c, errflg = 0;
-	int		ontoken = 0;
-	unsigned int	count = 1000;
-	unsigned int	i;
+	CK_MECHANISM mech = { CKM_SHA1_RSA_PKCS, NULL, 0 };
+	pk11_context_t pctx;
+	pk11_optype_t op_type = OP_RSA;
+	char *lib_name = NULL;
+	char *pin = NULL;
+	int error = 0;
+	int c, errflg = 0;
+	int ontoken = 0;
+	unsigned int count = 1000;
+	unsigned int i;
 	struct timespec starttime;
 	struct timespec endtime;
 
@@ -243,7 +240,8 @@ main(int argc, char *argv[])
 				  (const char *)pin, slot);
 	if ((result != ISC_R_SUCCESS) && (result != PK11_R_NORANDOMSERVICE) &&
 	    (result != PK11_R_NODIGESTSERVICE) &&
-	    (result != PK11_R_NOAESSERVICE)) {
+	    (result != PK11_R_NOAESSERVICE))
+	{
 		fprintf(stderr, "Error initializing PKCS#11: %s\n",
 			isc_result_totext(result));
 		exit(1);

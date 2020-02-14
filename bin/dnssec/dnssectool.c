@@ -65,15 +65,14 @@ static const char *keystates[KEYSTATES_NVALUES] = {
 	"unretentive",
 };
 
-int	verbose = 0;
-bool	quiet = false;
+int verbose = 0;
+bool quiet = false;
 uint8_t dtype[8];
 
 static fatalcallback_t *fatalcallback = NULL;
 
 void
-fatal(const char *format, ...)
-{
+fatal(const char *format, ...) {
 	va_list args;
 
 	fprintf(stderr, "%s: fatal: ", program);
@@ -88,22 +87,19 @@ fatal(const char *format, ...)
 }
 
 void
-setfatalcallback(fatalcallback_t *callback)
-{
+setfatalcallback(fatalcallback_t *callback) {
 	fatalcallback = callback;
 }
 
 void
-check_result(isc_result_t result, const char *message)
-{
+check_result(isc_result_t result, const char *message) {
 	if (result != ISC_R_SUCCESS) {
 		fatal("%s: %s", message, isc_result_totext(result));
 	}
 }
 
 void
-vbprintf(int level, const char *fmt, ...)
-{
+vbprintf(int level, const char *fmt, ...) {
 	va_list ap;
 	if (level > verbose) {
 		return;
@@ -115,15 +111,13 @@ vbprintf(int level, const char *fmt, ...)
 }
 
 void
-version(const char *name)
-{
+version(const char *name) {
 	fprintf(stderr, "%s %s\n", name, VERSION);
 	exit(0);
 }
 
 void
-sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size)
-{
+sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
 
@@ -133,13 +127,12 @@ sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size)
 }
 
 void
-setup_logging(isc_mem_t *mctx, isc_log_t **logp)
-{
-	isc_result_t	     result;
+setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
+	isc_result_t result;
 	isc_logdestination_t destination;
-	isc_logconfig_t *    logconfig = NULL;
-	isc_log_t *	     log = NULL;
-	int		     level;
+	isc_logconfig_t *logconfig = NULL;
+	isc_log_t *log = NULL;
+	int level;
 
 	if (verbose < 0) {
 		verbose = 0;
@@ -189,8 +182,7 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp)
 }
 
 void
-cleanup_logging(isc_log_t **logp)
-{
+cleanup_logging(isc_log_t **logp) {
 	isc_log_t *log;
 
 	REQUIRE(logp != NULL);
@@ -208,8 +200,7 @@ cleanup_logging(isc_log_t **logp)
 }
 
 static isc_stdtime_t
-time_units(isc_stdtime_t offset, char *suffix, const char *str)
-{
+time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 	switch (suffix[0]) {
 	case 'Y':
 	case 'y':
@@ -253,18 +244,16 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str)
 }
 
 static inline bool
-isnone(const char *str)
-{
+isnone(const char *str) {
 	return ((strcasecmp(str, "none") == 0) ||
 		(strcasecmp(str, "never") == 0));
 }
 
 dns_ttl_t
-strtottl(const char *str)
-{
+strtottl(const char *str) {
 	const char *orig = str;
-	dns_ttl_t   ttl;
-	char *	    endp;
+	dns_ttl_t ttl;
+	char *endp;
 
 	if (isnone(str)) {
 		return ((dns_ttl_t)0);
@@ -279,15 +268,14 @@ strtottl(const char *str)
 }
 
 dst_key_state_t
-strtokeystate(const char *str)
-{
+strtokeystate(const char *str) {
 	if (isnone(str)) {
 		return (DST_KEY_STATE_NA);
 	}
 
 	for (int i = 0; i < KEYSTATES_NVALUES; i++) {
-		if (keystates[i] != NULL &&
-		    strcasecmp(str, keystates[i]) == 0) {
+		if (keystates[i] != NULL && strcasecmp(str, keystates[i]) == 0)
+		{
 			return ((dst_key_state_t)i);
 		}
 	}
@@ -295,13 +283,12 @@ strtokeystate(const char *str)
 }
 
 isc_stdtime_t
-strtotime(const char *str, int64_t now, int64_t base, bool *setp)
-{
-	int64_t	     val, offset;
+strtotime(const char *str, int64_t now, int64_t base, bool *setp) {
+	int64_t val, offset;
 	isc_result_t result;
-	const char * orig = str;
-	char *	     endp;
-	size_t	     n;
+	const char *orig = str;
+	char *endp;
+	size_t n;
 
 	if (isnone(str)) {
 		if (setp != NULL) {
@@ -365,11 +352,10 @@ strtotime(const char *str, int64_t now, int64_t base, bool *setp)
 }
 
 dns_rdataclass_t
-strtoclass(const char *str)
-{
+strtoclass(const char *str) {
 	isc_textregion_t r;
 	dns_rdataclass_t rdclass;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	if (str == NULL) {
 		return (dns_rdataclass_in);
@@ -384,11 +370,10 @@ strtoclass(const char *str)
 }
 
 unsigned int
-strtodsdigest(const char *str)
-{
+strtodsdigest(const char *str) {
 	isc_textregion_t r;
-	dns_dsdigest_t	 alg;
-	isc_result_t	 result;
+	dns_dsdigest_t alg;
+	isc_result_t result;
 
 	DE_CONST(str, r.base);
 	r.length = strlen(str);
@@ -400,16 +385,14 @@ strtodsdigest(const char *str)
 }
 
 static int
-cmp_dtype(const void *ap, const void *bp)
-{
+cmp_dtype(const void *ap, const void *bp) {
 	int a = *(const uint8_t *)ap;
 	int b = *(const uint8_t *)bp;
 	return (a - b);
 }
 
 void
-add_dtype(unsigned int dt)
-{
+add_dtype(unsigned int dt) {
 	unsigned i, n;
 
 	/* ensure there is space for a zero terminator */
@@ -428,10 +411,9 @@ add_dtype(unsigned int dt)
 }
 
 isc_result_t
-try_dir(const char *dirname)
-{
+try_dir(const char *dirname) {
 	isc_result_t result;
-	isc_dir_t    d;
+	isc_dir_t d;
 
 	isc_dir_init(&d);
 	result = isc_dir_open(&d, dirname);
@@ -445,8 +427,7 @@ try_dir(const char *dirname)
  * Check private key version compatibility.
  */
 void
-check_keyversion(dst_key_t *key, char *keystr)
-{
+check_keyversion(dst_key_t *key, char *keystr) {
 	int major, minor;
 	dst_key_getprivateformat(key, &major, &minor);
 	INSIST(major <= DST_MAJOR_VERSION); /* invalid private key */
@@ -464,8 +445,7 @@ check_keyversion(dst_key_t *key, char *keystr)
 }
 
 void
-set_keyversion(dst_key_t *key)
-{
+set_keyversion(dst_key_t *key) {
 	int major, minor;
 	dst_key_getprivateformat(key, &major, &minor);
 	INSIST(major <= DST_MAJOR_VERSION);
@@ -488,18 +468,17 @@ set_keyversion(dst_key_t *key)
 
 bool
 key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
-	      isc_mem_t *mctx, bool *exact)
-{
-	isc_result_t	    result;
-	bool		    conflict = false;
+	      isc_mem_t *mctx, bool *exact) {
+	isc_result_t result;
+	bool conflict = false;
 	dns_dnsseckeylist_t matchkeys;
-	dns_dnsseckey_t *   key = NULL;
-	uint16_t	    id, oldid;
-	uint32_t	    rid, roldid;
-	dns_secalg_t	    alg;
-	char		    filename[NAME_MAX];
-	isc_buffer_t	    fileb;
-	isc_stdtime_t	    now;
+	dns_dnsseckey_t *key = NULL;
+	uint16_t id, oldid;
+	uint32_t rid, roldid;
+	dns_secalg_t alg;
+	char filename[NAME_MAX];
+	isc_buffer_t fileb;
+	isc_stdtime_t now;
 
 	if (exact != NULL) {
 		*exact = false;
@@ -576,8 +555,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 }
 
 bool
-isoptarg(const char *arg, char **argv, void (*usage)(void))
-{
+isoptarg(const char *arg, char **argv, void (*usage)(void)) {
 	if (!strcasecmp(isc_commandline_argument, arg)) {
 		if (argv[isc_commandline_index] == NULL) {
 			fprintf(stderr, "%s: missing argument -%c %s\n",
@@ -595,11 +573,10 @@ isoptarg(const char *arg, char **argv, void (*usage)(void))
 
 #ifdef _WIN32
 void
-InitSockets(void)
-{
-	WORD	wVersionRequested;
+InitSockets(void) {
+	WORD wVersionRequested;
 	WSADATA wsaData;
-	int	err;
+	int err;
 
 	wVersionRequested = MAKEWORD(2, 0);
 
@@ -611,8 +588,7 @@ InitSockets(void)
 }
 
 void
-DestroySockets(void)
-{
+DestroySockets(void) {
 	WSACleanup();
 }
 #endif /* ifdef _WIN32 */

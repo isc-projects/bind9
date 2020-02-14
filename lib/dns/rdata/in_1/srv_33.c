@@ -16,12 +16,12 @@
 
 #define RRTYPE_SRV_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_in_srv(ARGS_FROMTEXT)
-{
-	isc_token_t  token;
-	dns_name_t   name;
+static inline isc_result_t
+fromtext_in_srv(ARGS_FROMTEXT) {
+	isc_token_t token;
+	dns_name_t name;
 	isc_buffer_t buffer;
-	bool	     ok;
+	bool ok;
 
 	REQUIRE(type == dns_rdatatype_srv);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -84,13 +84,13 @@ static inline isc_result_t fromtext_in_srv(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_in_srv(ARGS_TOTEXT)
-{
-	isc_region_t   region;
-	dns_name_t     name;
-	dns_name_t     prefix;
-	bool	       sub;
-	char	       buf[sizeof("64000")];
+static inline isc_result_t
+totext_in_srv(ARGS_TOTEXT) {
+	isc_region_t region;
+	dns_name_t name;
+	dns_name_t prefix;
+	bool sub;
+	char buf[sizeof("64000")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == dns_rdatatype_srv);
@@ -136,9 +136,9 @@ static inline isc_result_t totext_in_srv(ARGS_TOTEXT)
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t fromwire_in_srv(ARGS_FROMWIRE)
-{
-	dns_name_t   name;
+static inline isc_result_t
+fromwire_in_srv(ARGS_FROMWIRE) {
+	dns_name_t name;
 	isc_region_t sr;
 
 	REQUIRE(type == dns_rdatatype_srv);
@@ -167,11 +167,11 @@ static inline isc_result_t fromwire_in_srv(ARGS_FROMWIRE)
 	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
-static inline isc_result_t towire_in_srv(ARGS_TOWIRE)
-{
-	dns_name_t    name;
+static inline isc_result_t
+towire_in_srv(ARGS_TOWIRE) {
+	dns_name_t name;
 	dns_offsets_t offsets;
-	isc_region_t  sr;
+	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_srv);
 	REQUIRE(rdata->length != 0);
@@ -192,13 +192,13 @@ static inline isc_result_t towire_in_srv(ARGS_TOWIRE)
 	return (dns_name_towire(&name, cctx, target));
 }
 
-static inline int compare_in_srv(ARGS_COMPARE)
-{
-	dns_name_t   name1;
-	dns_name_t   name2;
+static inline int
+compare_in_srv(ARGS_COMPARE) {
+	dns_name_t name1;
+	dns_name_t name2;
 	isc_region_t region1;
 	isc_region_t region2;
-	int	     order;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -233,10 +233,10 @@ static inline int compare_in_srv(ARGS_COMPARE)
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static inline isc_result_t fromstruct_in_srv(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_in_srv(ARGS_FROMSTRUCT) {
 	dns_rdata_in_srv_t *srv = source;
-	isc_region_t	    region;
+	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_srv);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -254,11 +254,11 @@ static inline isc_result_t fromstruct_in_srv(ARGS_FROMSTRUCT)
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t tostruct_in_srv(ARGS_TOSTRUCT)
-{
-	isc_region_t	    region;
+static inline isc_result_t
+tostruct_in_srv(ARGS_TOSTRUCT) {
+	isc_region_t region;
 	dns_rdata_in_srv_t *srv = target;
-	dns_name_t	    name;
+	dns_name_t name;
 
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->type == dns_rdatatype_srv);
@@ -284,8 +284,8 @@ static inline isc_result_t tostruct_in_srv(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_in_srv(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_in_srv(ARGS_FREESTRUCT) {
 	dns_rdata_in_srv_t *srv = source;
 
 	REQUIRE(srv != NULL);
@@ -300,15 +300,15 @@ static inline void freestruct_in_srv(ARGS_FREESTRUCT)
 	srv->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_in_srv(ARGS_ADDLDATA)
-{
-	char		buf[sizeof("_65000._tcp")];
+static inline isc_result_t
+additionaldata_in_srv(ARGS_ADDLDATA) {
+	char buf[sizeof("_65000._tcp")];
 	dns_fixedname_t fixed;
-	dns_name_t	name;
-	dns_offsets_t	offsets;
-	isc_region_t	region;
-	uint16_t	port;
-	isc_result_t	result;
+	dns_name_t name;
+	dns_offsets_t offsets;
+	isc_region_t region;
+	uint16_t port;
+	isc_result_t result;
 
 	REQUIRE(rdata->type == dns_rdatatype_srv);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -346,10 +346,10 @@ static inline isc_result_t additionaldata_in_srv(ARGS_ADDLDATA)
 	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa));
 }
 
-static inline isc_result_t digest_in_srv(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_in_srv(ARGS_DIGEST) {
 	isc_region_t r1, r2;
-	dns_name_t   name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_srv);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -364,8 +364,8 @@ static inline isc_result_t digest_in_srv(ARGS_DIGEST)
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline bool checkowner_in_srv(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_in_srv(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_srv);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -377,10 +377,10 @@ static inline bool checkowner_in_srv(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_in_srv(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_in_srv(ARGS_CHECKNAMES) {
 	isc_region_t region;
-	dns_name_t   name;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_srv);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -400,8 +400,8 @@ static inline bool checknames_in_srv(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_in_srv(ARGS_COMPARE)
-{
+static inline int
+casecompare_in_srv(ARGS_COMPARE) {
 	return (compare_in_srv(rdata1, rdata2));
 }
 

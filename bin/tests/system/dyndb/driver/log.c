@@ -9,8 +9,7 @@
 #include <dns/log.h>
 
 void
-log_write(int level, const char *format, ...)
-{
+log_write(int level, const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);

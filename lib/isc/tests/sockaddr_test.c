@@ -31,8 +31,7 @@
 #include "isctest.h"
 
 static int
-_setup(void **state)
-{
+_setup(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -44,8 +43,7 @@ _setup(void **state)
 }
 
 static int
-_teardown(void **state)
-{
+_teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
@@ -55,13 +53,12 @@ _teardown(void **state)
 
 /* test sockaddr hash */
 static void
-sockaddr_hash(void **state)
-{
-	isc_sockaddr_t	addr;
-	struct in_addr	in;
+sockaddr_hash(void **state) {
+	isc_sockaddr_t addr;
+	struct in_addr in;
 	struct in6_addr in6;
-	unsigned int	h1, h2, h3, h4;
-	int		ret;
+	unsigned int h1, h2, h3, h4;
+	int ret;
 
 	UNUSED(state);
 
@@ -82,17 +79,16 @@ sockaddr_hash(void **state)
 
 /* test isc_sockaddr_isnetzero() */
 static void
-sockaddr_isnetzero(void **state)
-{
-	isc_sockaddr_t	addr;
-	struct in_addr	in;
+sockaddr_isnetzero(void **state) {
+	isc_sockaddr_t addr;
+	struct in_addr in;
 	struct in6_addr in6;
-	bool		r;
-	int		ret;
-	size_t		i;
+	bool r;
+	int ret;
+	size_t i;
 	struct {
 		const char *string;
-		bool	    expect;
+		bool expect;
 	} data4[] = {
 		{ "0.0.0.0", true },	      { "0.0.0.1", true },
 		{ "0.0.1.0", true },	      { "0.1.0.0", true },
@@ -105,7 +101,7 @@ sockaddr_isnetzero(void **state)
 	 */
 	struct {
 		const char *string;
-		bool	    expect;
+		bool expect;
 	} data6[] = {
 		{ "::ffff:0.0.0.0", false },
 		{ "::ffff:0.0.0.1", false },
@@ -138,8 +134,7 @@ sockaddr_isnetzero(void **state)
  * and b are equal, and false when they are not equal
  */
 static void
-sockaddr_eqaddrprefix(void **state)
-{
+sockaddr_eqaddrprefix(void **state) {
 	struct in_addr ina_a;
 	struct in_addr ina_b;
 	struct in_addr ina_c;
@@ -167,8 +162,7 @@ sockaddr_eqaddrprefix(void **state)
 }
 
 int
-main(void)
-{
+main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(sockaddr_hash, _setup,
 						_teardown),
@@ -184,8 +178,7 @@ main(void)
 #include <stdio.h>
 
 int
-main(void)
-{
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

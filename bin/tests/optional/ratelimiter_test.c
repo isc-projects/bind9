@@ -19,17 +19,14 @@
 #include <isc/util.h>
 
 isc_ratelimiter_t *rlim = NULL;
-isc_taskmgr_t *	   taskmgr = NULL;
-isc_timermgr_t *   timermgr = NULL;
-isc_task_t *	   g_task = NULL;
-isc_mem_t *	   mctx = NULL;
+isc_taskmgr_t *taskmgr = NULL;
+isc_timermgr_t *timermgr = NULL;
+isc_task_t *g_task = NULL;
+isc_mem_t *mctx = NULL;
 
-static void
-utick(isc_task_t *task, isc_event_t *event);
-static void
-shutdown_rl(isc_task_t *task, isc_event_t *event);
-static void
-shutdown_all(isc_task_t *task, isc_event_t *event);
+static void utick(isc_task_t *task, isc_event_t *event);
+static void shutdown_rl(isc_task_t *task, isc_event_t *event);
+static void shutdown_all(isc_task_t *task, isc_event_t *event);
 
 typedef struct {
 	int milliseconds;
@@ -47,8 +44,7 @@ schedule_t schedule[] = { { 100, utick },	 { 200, utick },
 isc_timer_t *timers[NEVENTS];
 
 static void
-ltick(isc_task_t *task, isc_event_t *event)
-{
+ltick(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	printf("** ltick%s **\n",
 	       (event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ? " ("
@@ -59,8 +55,7 @@ ltick(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-utick(isc_task_t *task, isc_event_t *event)
-{
+utick(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	UNUSED(task);
 	event->ev_action = ltick;
@@ -70,8 +65,7 @@ utick(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-shutdown_rl(isc_task_t *task, isc_event_t *event)
-{
+shutdown_rl(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	UNUSED(event);
 	printf("shutdown ratelimiter\n");
@@ -79,8 +73,7 @@ shutdown_rl(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-shutdown_all(isc_task_t *task, isc_event_t *event)
-{
+shutdown_all(isc_task_t *task, isc_event_t *event) {
 	int i;
 	UNUSED(task);
 	UNUSED(event);
@@ -93,10 +86,9 @@ shutdown_all(isc_task_t *task, isc_event_t *event)
 }
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	isc_interval_t linterval;
-	int	       i;
+	int i;
 
 	UNUSED(argc);
 	UNUSED(argv);
@@ -118,7 +110,7 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < NEVENTS; i++) {
 		isc_interval_t uinterval;
-		int	       ms = schedule[i].milliseconds;
+		int ms = schedule[i].milliseconds;
 		isc_interval_set(&uinterval, ms / 1000, (ms % 1000) * 1000000);
 		timers[i] = NULL;
 		RUNTIME_CHECK(isc_timer_create(timermgr, isc_timertype_once,

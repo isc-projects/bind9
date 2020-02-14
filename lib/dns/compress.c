@@ -25,10 +25,10 @@
 #include <dns/rbt.h>
 #include <dns/result.h>
 
-#define CCTX_MAGIC ISC_MAGIC('C', 'C', 'T', 'X')
+#define CCTX_MAGIC    ISC_MAGIC('C', 'C', 'T', 'X')
 #define VALID_CCTX(x) ISC_MAGIC_VALID(x, CCTX_MAGIC)
 
-#define DCTX_MAGIC ISC_MAGIC('D', 'C', 'T', 'X')
+#define DCTX_MAGIC    ISC_MAGIC('D', 'C', 'T', 'X')
 #define VALID_DCTX(x) ISC_MAGIC_VALID(x, DCTX_MAGIC)
 
 static unsigned char maptolower[] = {
@@ -121,8 +121,7 @@ static unsigned char tableindex[256] = {
  ***/
 
 isc_result_t
-dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx)
-{
+dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 	REQUIRE(cctx != NULL);
 	REQUIRE(mctx != NULL); /* See: rdataset.c:towiresorted(). */
 
@@ -139,10 +138,9 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx)
 }
 
 void
-dns_compress_invalidate(dns_compress_t *cctx)
-{
+dns_compress_invalidate(dns_compress_t *cctx) {
 	dns_compressnode_t *node;
-	unsigned int	    i;
+	unsigned int i;
 
 	REQUIRE(VALID_CCTX(cctx));
 
@@ -167,8 +165,7 @@ dns_compress_invalidate(dns_compress_t *cctx)
 }
 
 void
-dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed)
-{
+dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed) {
 	REQUIRE(VALID_CCTX(cctx));
 
 	cctx->allowed &= ~DNS_COMPRESS_ALL;
@@ -176,22 +173,19 @@ dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed)
 }
 
 unsigned int
-dns_compress_getmethods(dns_compress_t *cctx)
-{
+dns_compress_getmethods(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
 	return (cctx->allowed & DNS_COMPRESS_ALL);
 }
 
 void
-dns_compress_disable(dns_compress_t *cctx)
-{
+dns_compress_disable(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
 	cctx->allowed &= ~DNS_COMPRESS_ENABLED;
 }
 
 void
-dns_compress_setsensitive(dns_compress_t *cctx, bool sensitive)
-{
+dns_compress_setsensitive(dns_compress_t *cctx, bool sensitive) {
 	REQUIRE(VALID_CCTX(cctx));
 
 	if (sensitive) {
@@ -202,16 +196,14 @@ dns_compress_setsensitive(dns_compress_t *cctx, bool sensitive)
 }
 
 bool
-dns_compress_getsensitive(dns_compress_t *cctx)
-{
+dns_compress_getsensitive(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
 
 	return (cctx->allowed & DNS_COMPRESS_CASESENSITIVE);
 }
 
 int
-dns_compress_getedns(dns_compress_t *cctx)
-{
+dns_compress_getedns(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
 	return (cctx->edns);
 }
@@ -223,13 +215,12 @@ dns_compress_getedns(dns_compress_t *cctx)
  */
 bool
 dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
-			dns_name_t *prefix, uint16_t *offset)
-{
-	dns_name_t	    tname;
+			dns_name_t *prefix, uint16_t *offset) {
+	dns_name_t tname;
 	dns_compressnode_t *node = NULL;
-	unsigned int	    labels, i, n;
-	unsigned int	    numlabels;
-	unsigned char *	    p;
+	unsigned int labels, i, n;
+	unsigned int numlabels;
+	unsigned char *p;
 
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name) == true);
@@ -253,7 +244,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 
 	for (n = 0; n < numlabels - 1; n++) {
 		unsigned char ch, llen;
-		unsigned int  firstoffset, length;
+		unsigned int firstoffset, length;
 
 		firstoffset = (unsigned int)(p - name->ndata);
 		length = name->length - firstoffset;
@@ -280,8 +271,8 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 		} else {
 			for (node = cctx->table[i]; node != NULL;
 			     node = node->next) {
-				unsigned int   l, count;
-				unsigned char  c;
+				unsigned int l, count;
+				unsigned char c;
 				unsigned char *label1, *label2;
 
 				if (ISC_UNLIKELY(node->name.length != length)) {
@@ -307,23 +298,23 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 					/* Loop unrolled for performance */
 					while (ISC_LIKELY(count > 3)) {
 						c = maptolower[label1[0]];
-						if (c !=
-						    maptolower[label2[0]]) {
+						if (c != maptolower[label2[0]])
+						{
 							goto cont1;
 						}
 						c = maptolower[label1[1]];
-						if (c !=
-						    maptolower[label2[1]]) {
+						if (c != maptolower[label2[1]])
+						{
 							goto cont1;
 						}
 						c = maptolower[label1[2]];
-						if (c !=
-						    maptolower[label2[2]]) {
+						if (c != maptolower[label2[2]])
+						{
 							goto cont1;
 						}
 						c = maptolower[label1[3]];
-						if (c !=
-						    maptolower[label2[3]]) {
+						if (c != maptolower[label2[3]])
+						{
 							goto cont1;
 						}
 						count -= 4;
@@ -332,8 +323,8 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 					}
 					while (ISC_LIKELY(count-- > 0)) {
 						c = maptolower[*label1++];
-						if (c !=
-						    maptolower[*label2++]) {
+						if (c != maptolower[*label2++])
+						{
 							goto cont1;
 						}
 					}
@@ -371,8 +362,7 @@ found:
 }
 
 static inline unsigned int
-name_length(const dns_name_t *name)
-{
+name_length(const dns_name_t *name) {
 	isc_region_t r;
 	dns_name_toregion(name, &r);
 	return (r.length);
@@ -380,19 +370,18 @@ name_length(const dns_name_t *name)
 
 void
 dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
-		 const dns_name_t *prefix, uint16_t offset)
-{
-	dns_name_t	    tname, xname;
-	unsigned int	    start;
-	unsigned int	    n;
-	unsigned int	    count;
-	unsigned int	    i;
+		 const dns_name_t *prefix, uint16_t offset) {
+	dns_name_t tname, xname;
+	unsigned int start;
+	unsigned int n;
+	unsigned int count;
+	unsigned int i;
 	dns_compressnode_t *node;
-	unsigned int	    length;
-	unsigned int	    tlength;
-	uint16_t	    toffset;
-	unsigned char *	    tmp;
-	isc_region_t	    r;
+	unsigned int length;
+	unsigned int tlength;
+	uint16_t toffset;
+	unsigned char *tmp;
+	isc_region_t r;
 
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
@@ -482,9 +471,8 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 }
 
 void
-dns_compress_rollback(dns_compress_t *cctx, uint16_t offset)
-{
-	unsigned int	    i;
+dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
+	unsigned int i;
 	dns_compressnode_t *node;
 
 	REQUIRE(VALID_CCTX(cctx));
@@ -521,8 +509,8 @@ dns_compress_rollback(dns_compress_t *cctx, uint16_t offset)
  ***/
 
 void
-dns_decompress_init(dns_decompress_t *dctx, int edns, dns_decompresstype_t type)
-{
+dns_decompress_init(dns_decompress_t *dctx, int edns,
+		    dns_decompresstype_t type) {
 	REQUIRE(dctx != NULL);
 	REQUIRE(edns >= -1 && edns <= 255);
 
@@ -533,16 +521,14 @@ dns_decompress_init(dns_decompress_t *dctx, int edns, dns_decompresstype_t type)
 }
 
 void
-dns_decompress_invalidate(dns_decompress_t *dctx)
-{
+dns_decompress_invalidate(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	dctx->magic = 0;
 }
 
 void
-dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed)
-{
+dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	switch (dctx->type) {
@@ -559,24 +545,21 @@ dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed)
 }
 
 unsigned int
-dns_decompress_getmethods(dns_decompress_t *dctx)
-{
+dns_decompress_getmethods(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	return (dctx->allowed);
 }
 
 int
-dns_decompress_edns(dns_decompress_t *dctx)
-{
+dns_decompress_edns(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	return (dctx->edns);
 }
 
 dns_decompresstype_t
-dns_decompress_type(dns_decompress_t *dctx)
-{
+dns_decompress_type(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	return (dctx->type);

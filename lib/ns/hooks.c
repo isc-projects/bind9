@@ -47,13 +47,13 @@
 	} while (0)
 
 struct ns_plugin {
-	isc_mem_t *	      mctx;
-	void *		      handle;
-	void *		      inst;
-	char *		      modpath;
-	ns_plugin_check_t *   check_func;
+	isc_mem_t *mctx;
+	void *handle;
+	void *inst;
+	char *modpath;
+	ns_plugin_check_t *check_func;
 	ns_plugin_register_t *register_func;
-	ns_plugin_destroy_t * destroy_func;
+	ns_plugin_destroy_t *destroy_func;
 	LINK(ns_plugin_t) link;
 };
 
@@ -61,8 +61,7 @@ static ns_hooklist_t default_hooktable[NS_HOOKPOINTS_COUNT];
 LIBNS_EXTERNAL_DATA ns_hooktable_t *ns__hook_table = &default_hooktable;
 
 isc_result_t
-ns_plugin_expandpath(const char *src, char *dst, size_t dstsize)
-{
+ns_plugin_expandpath(const char *src, char *dst, size_t dstsize) {
 	int result;
 
 #ifndef WIN32
@@ -99,8 +98,7 @@ ns_plugin_expandpath(const char *src, char *dst, size_t dstsize)
 #if HAVE_DLFCN_H && HAVE_DLOPEN
 static isc_result_t
 load_symbol(void *handle, const char *modpath, const char *symbol_name,
-	    void **symbolp)
-{
+	    void **symbolp) {
 	void *symbol = NULL;
 
 	REQUIRE(handle != NULL);
@@ -134,16 +132,15 @@ load_symbol(void *handle, const char *modpath, const char *symbol_name,
 }
 
 static isc_result_t
-load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp)
-{
-	isc_result_t	      result;
-	void *		      handle = NULL;
-	ns_plugin_t *	      plugin = NULL;
-	ns_plugin_check_t *   check_func = NULL;
+load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp) {
+	isc_result_t result;
+	void *handle = NULL;
+	ns_plugin_t *plugin = NULL;
+	ns_plugin_check_t *check_func = NULL;
 	ns_plugin_register_t *register_func = NULL;
-	ns_plugin_destroy_t * destroy_func = NULL;
-	ns_plugin_version_t * version_func = NULL;
-	int		      version, flags;
+	ns_plugin_destroy_t *destroy_func = NULL;
+	ns_plugin_version_t *version_func = NULL;
+	int version, flags;
 
 	REQUIRE(pluginp != NULL && *pluginp == NULL);
 
@@ -170,7 +167,8 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp)
 
 	version = version_func();
 	if (version < (NS_PLUGIN_VERSION - NS_PLUGIN_AGE) ||
-	    version > NS_PLUGIN_VERSION) {
+	    version > NS_PLUGIN_VERSION)
+	{
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
 			      "plugin API version mismatch: %d/%d", version,
@@ -219,8 +217,7 @@ cleanup:
 }
 
 static void
-unload_plugin(ns_plugin_t **pluginp)
-{
+unload_plugin(ns_plugin_t **pluginp) {
 	ns_plugin_t *plugin = NULL;
 
 	REQUIRE(pluginp != NULL && *pluginp != NULL);
@@ -247,8 +244,7 @@ unload_plugin(ns_plugin_t **pluginp)
 #elif _WIN32
 static isc_result_t
 load_symbol(HMODULE handle, const char *modpath, const char *symbol_name,
-	    void **symbolp)
-{
+	    void **symbolp) {
 	void *symbol = NULL;
 
 	REQUIRE(handle != NULL);
@@ -271,8 +267,7 @@ load_symbol(HMODULE handle, const char *modpath, const char *symbol_name,
 }
 
 static isc_result_t
-load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp)
-{
+load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp) {
 	isc_result_t result;
 	HMODULE handle;
 	ns_plugin_t *plugin = NULL;
@@ -293,7 +288,8 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp)
 
 	version = version_func();
 	if (version < (NS_PLUGIN_VERSION - NS_PLUGIN_AGE) ||
-	    version > NS_PLUGIN_VERSION) {
+	    version > NS_PLUGIN_VERSION)
+	{
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
 			      "plugin API version mismatch: %d/%d", version,
@@ -342,8 +338,7 @@ cleanup:
 }
 
 static void
-unload_plugin(ns_plugin_t **pluginp)
-{
+unload_plugin(ns_plugin_t **pluginp) {
 	ns_plugin_t *plugin = NULL;
 
 	REQUIRE(pluginp != NULL && *pluginp != NULL);
@@ -370,8 +365,7 @@ unload_plugin(ns_plugin_t **pluginp)
 }
 #else  /* HAVE_DLFCN_H || _WIN32 */
 static isc_result_t
-load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp)
-{
+load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp) {
 	UNUSED(mctx);
 	UNUSED(modpath);
 	UNUSED(pluginp);
@@ -383,8 +377,7 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp)
 }
 
 static void
-unload_plugin(ns_plugin_t **pluginp)
-{
+unload_plugin(ns_plugin_t **pluginp) {
 	UNUSED(pluginp);
 }
 #endif /* HAVE_DLFCN_H */
@@ -393,8 +386,7 @@ isc_result_t
 ns_plugin_register(const char *modpath, const char *parameters, const void *cfg,
 		   const char *cfg_file, unsigned long cfg_line,
 		   isc_mem_t *mctx, isc_log_t *lctx, void *actx,
-		   dns_view_t *view)
-{
+		   dns_view_t *view) {
 	isc_result_t result;
 	ns_plugin_t *plugin = NULL;
 
@@ -427,8 +419,7 @@ cleanup:
 isc_result_t
 ns_plugin_check(const char *modpath, const char *parameters, const void *cfg,
 		const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
-		isc_log_t *lctx, void *actx)
-{
+		isc_log_t *lctx, void *actx) {
 	isc_result_t result;
 	ns_plugin_t *plugin = NULL;
 
@@ -446,8 +437,7 @@ cleanup:
 }
 
 void
-ns_hooktable_init(ns_hooktable_t *hooktable)
-{
+ns_hooktable_init(ns_hooktable_t *hooktable) {
 	int i;
 
 	for (i = 0; i < NS_HOOKPOINTS_COUNT; i++) {
@@ -456,8 +446,7 @@ ns_hooktable_init(ns_hooktable_t *hooktable)
 }
 
 isc_result_t
-ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep)
-{
+ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep) {
 	ns_hooktable_t *hooktable = NULL;
 
 	REQUIRE(tablep != NULL && *tablep == NULL);
@@ -472,11 +461,10 @@ ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep)
 }
 
 void
-ns_hooktable_free(isc_mem_t *mctx, void **tablep)
-{
+ns_hooktable_free(isc_mem_t *mctx, void **tablep) {
 	ns_hooktable_t *table = NULL;
-	ns_hook_t *	hook = NULL, *next = NULL;
-	int		i = 0;
+	ns_hook_t *hook = NULL, *next = NULL;
+	int i = 0;
 
 	REQUIRE(tablep != NULL && *tablep != NULL);
 
@@ -500,8 +488,7 @@ ns_hooktable_free(isc_mem_t *mctx, void **tablep)
 
 void
 ns_hook_add(ns_hooktable_t *hooktable, isc_mem_t *mctx,
-	    ns_hookpoint_t hookpoint, const ns_hook_t *hook)
-{
+	    ns_hookpoint_t hookpoint, const ns_hook_t *hook) {
 	ns_hook_t *copy = NULL;
 
 	REQUIRE(hooktable != NULL);
@@ -521,8 +508,7 @@ ns_hook_add(ns_hooktable_t *hooktable, isc_mem_t *mctx,
 }
 
 void
-ns_plugins_create(isc_mem_t *mctx, ns_plugins_t **listp)
-{
+ns_plugins_create(isc_mem_t *mctx, ns_plugins_t **listp) {
 	ns_plugins_t *plugins = NULL;
 
 	REQUIRE(listp != NULL && *listp == NULL);
@@ -535,10 +521,9 @@ ns_plugins_create(isc_mem_t *mctx, ns_plugins_t **listp)
 }
 
 void
-ns_plugins_free(isc_mem_t *mctx, void **listp)
-{
+ns_plugins_free(isc_mem_t *mctx, void **listp) {
 	ns_plugins_t *list = NULL;
-	ns_plugin_t * plugin = NULL, *next = NULL;
+	ns_plugin_t *plugin = NULL, *next = NULL;
 
 	REQUIRE(listp != NULL && *listp != NULL);
 

@@ -36,10 +36,9 @@
  */
 static isc_result_t
 parse_params(isc_mem_t *mctx, int argc, char **argv, dns_name_t *z1,
-	     dns_name_t *z2)
-{
+	     dns_name_t *z2) {
 	isc_result_t result;
-	int	     i;
+	int i;
 
 	REQUIRE(argv != NULL);
 	REQUIRE(z1 != NULL);
@@ -84,9 +83,8 @@ cleanup:
 isc_result_t
 new_sample_instance(isc_mem_t *mctx, const char *db_name, int argc, char **argv,
 		    const dns_dyndbctx_t *dctx,
-		    sample_instance_t **  sample_instp)
-{
-	isc_result_t	   result;
+		    sample_instance_t **sample_instp) {
+	isc_result_t result;
 	sample_instance_t *inst = NULL;
 
 	REQUIRE(sample_instp != NULL && *sample_instp == NULL);
@@ -137,8 +135,7 @@ cleanup:
  * and add them to inst->view.
  */
 isc_result_t
-load_sample_instance_zones(sample_instance_t *inst)
-{
+load_sample_instance_zones(sample_instance_t *inst) {
 	isc_result_t result;
 
 	result = create_zone(inst, inst->zone1_name, &inst->zone1);
@@ -176,8 +173,7 @@ cleanup:
 }
 
 void
-destroy_sample_instance(sample_instance_t **instp)
-{
+destroy_sample_instance(sample_instance_t **instp) {
 	sample_instance_t *inst;
 	REQUIRE(instp != NULL);
 

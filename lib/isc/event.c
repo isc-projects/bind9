@@ -22,8 +22,7 @@
  ***/
 
 static void
-destroy(isc_event_t *event)
-{
+destroy(isc_event_t *event) {
 	isc_mem_t *mctx = event->ev_destroy_arg;
 
 	isc_mem_put(mctx, event, event->ev_size);
@@ -31,8 +30,7 @@ destroy(isc_event_t *event)
 
 isc_event_t *
 isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
-		   isc_taskaction_t action, void *arg, size_t size)
-{
+		   isc_taskaction_t action, void *arg, size_t size) {
 	isc_event_t *event;
 
 	REQUIRE(size >= sizeof(struct isc_event));
@@ -48,10 +46,9 @@ isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 
 isc_event_t *
 isc_event_constallocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
-			isc_taskaction_t action, const void *arg, size_t size)
-{
+			isc_taskaction_t action, const void *arg, size_t size) {
 	isc_event_t *event;
-	void *	     deconst_arg;
+	void *deconst_arg;
 
 	REQUIRE(size >= sizeof(struct isc_event));
 	REQUIRE(action != NULL);
@@ -79,8 +76,7 @@ isc_event_constallocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 }
 
 void
-isc_event_free(isc_event_t **eventp)
-{
+isc_event_free(isc_event_t **eventp) {
 	isc_event_t *event;
 
 	REQUIRE(eventp != NULL);

@@ -36,8 +36,7 @@
 
 isc_result_t
 isccc_base64_encode(isccc_region_t *source, int wordlength,
-		    const char *wordbreak, isccc_region_t *target)
-{
+		    const char *wordbreak, isccc_region_t *target) {
 	isc_region_t sr;
 	isc_buffer_t tb;
 	isc_result_t result;
@@ -57,8 +56,7 @@ isccc_base64_encode(isccc_region_t *source, int wordlength,
 }
 
 isc_result_t
-isccc_base64_decode(const char *cstr, isccc_region_t *target)
-{
+isccc_base64_decode(const char *cstr, isccc_region_t *target) {
 	isc_buffer_t b;
 	isc_result_t result;
 

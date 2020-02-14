@@ -61,14 +61,12 @@
 #define CLOCK_REALTIME 0
 #endif /* ifndef CLOCK_REALTIME */
 
-static int
-clock_gettime(int32_t id, struct timespec *tp);
+static int clock_gettime(int32_t id, struct timespec *tp);
 
 static int
-clock_gettime(int32_t id, struct timespec *tp)
-{
+clock_gettime(int32_t id, struct timespec *tp) {
 	struct timeval tv;
-	int	       result;
+	int result;
 
 	UNUSED(id);
 
@@ -82,19 +80,18 @@ clock_gettime(int32_t id, struct timespec *tp)
 #endif /* ifndef HAVE_CLOCK_GETTIME */
 
 int
-main(int argc, char *argv[])
-{
-	CK_RV		   rv;
-	CK_SLOT_ID	   slot = 0;
+main(int argc, char *argv[]) {
+	CK_RV rv;
+	CK_SLOT_ID slot = 0;
 	CK_SESSION_HANDLE *hSession;
-	CK_UTF8CHAR *	   pin = NULL;
-	char *		   lib_name = NULL;
-	int		   error = 0;
-	int		   c, errflg = 0;
-	unsigned int	   count = 1000;
-	unsigned int	   i, j;
-	struct timespec	   starttime;
-	struct timespec	   endtime;
+	CK_UTF8CHAR *pin = NULL;
+	char *lib_name = NULL;
+	int error = 0;
+	int c, errflg = 0;
+	unsigned int count = 1000;
+	unsigned int i, j;
+	struct timespec starttime;
+	struct timespec endtime;
 
 	while ((c = isc_commandline_parse(argc, argv, ":m:s:p:n:")) != -1) {
 		switch (c) {

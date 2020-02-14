@@ -53,46 +53,44 @@
 #define SERVERADDRS 10
 
 const char *progname;
-bool	    verbose;
+bool verbose;
 
-static const char *	    admin_conffile;
-static const char *	    admin_keyfile;
-static const char *	    version = VERSION;
-static const char *	    servername = NULL;
-static isc_sockaddr_t	    serveraddrs[SERVERADDRS];
-static isc_sockaddr_t	    local4, local6;
-static bool		    local4set = false, local6set = false;
-static int		    nserveraddrs;
-static int		    currentaddr = 0;
-static unsigned int	    remoteport = 0;
-static isc_socketmgr_t *    socketmgr = NULL;
-static isc_buffer_t *	    databuf;
-static isccc_ccmsg_t	    ccmsg;
-static uint32_t		    algorithm;
-static isccc_region_t	    secret;
-static bool		    failed = false;
-static bool		    c_flag = false;
-static isc_mem_t *	    rndc_mctx;
+static const char *admin_conffile;
+static const char *admin_keyfile;
+static const char *version = VERSION;
+static const char *servername = NULL;
+static isc_sockaddr_t serveraddrs[SERVERADDRS];
+static isc_sockaddr_t local4, local6;
+static bool local4set = false, local6set = false;
+static int nserveraddrs;
+static int currentaddr = 0;
+static unsigned int remoteport = 0;
+static isc_socketmgr_t *socketmgr = NULL;
+static isc_buffer_t *databuf;
+static isccc_ccmsg_t ccmsg;
+static uint32_t algorithm;
+static isccc_region_t secret;
+static bool failed = false;
+static bool c_flag = false;
+static isc_mem_t *rndc_mctx;
 static atomic_uint_fast32_t sends = ATOMIC_VAR_INIT(0);
 static atomic_uint_fast32_t recvs = ATOMIC_VAR_INIT(0);
 static atomic_uint_fast32_t connects = ATOMIC_VAR_INIT(0);
-static char *		    command;
-static char *		    args;
-static char		    program[256];
-static isc_socket_t *	    sock = NULL;
-static uint32_t		    serial;
-static bool		    quiet = false;
-static bool		    showresult = false;
+static char *command;
+static char *args;
+static char program[256];
+static isc_socket_t *sock = NULL;
+static uint32_t serial;
+static bool quiet = false;
+static bool showresult = false;
 
-static void
-rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task);
+static void rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task);
 
 ISC_PLATFORM_NORETURN_PRE static void
 usage(int status) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(int status)
-{
+usage(int status) {
 	fprintf(stderr, "\
 Usage: %s [-b address] [-c config] [-s server] [-p port]\n\
 	[-k key-file ] [-y key] [-r] [-V] [-4 | -6] command\n\
@@ -219,10 +217,9 @@ Version: %s\n",
 #define CMDLINE_FLAGS "46b:c:hk:Mmp:qrs:Vy:"
 
 static void
-preparse_args(int argc, char **argv)
-{
+preparse_args(int argc, char **argv) {
 	bool ipv4only = false, ipv6only = false;
-	int  ch;
+	int ch;
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -248,14 +245,13 @@ preparse_args(int argc, char **argv)
 }
 
 static void
-get_addresses(const char *host, in_port_t port)
-{
+get_addresses(const char *host, in_port_t port) {
 	isc_result_t result;
-	int	     found = 0, count;
+	int found = 0, count;
 
 	if (*host == '/') {
-		result =
-			isc_sockaddr_frompath(&serveraddrs[nserveraddrs], host);
+		result = isc_sockaddr_frompath(&serveraddrs[nserveraddrs],
+					       host);
 		if (result == ISC_R_SUCCESS) {
 			nserveraddrs++;
 		}
@@ -273,8 +269,7 @@ get_addresses(const char *host, in_port_t port)
 }
 
 static void
-rndc_senddone(isc_task_t *task, isc_event_t *event)
-{
+rndc_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 
 	UNUSED(task);
@@ -284,7 +279,8 @@ rndc_senddone(isc_task_t *task, isc_event_t *event)
 	}
 	isc_event_free(&event);
 	if (atomic_fetch_sub_release(&sends, 1) == 1 &&
-	    atomic_load_acquire(&recvs) == 0) {
+	    atomic_load_acquire(&recvs) == 0)
+	{
 		isc_socket_detach(&sock);
 		isc_task_shutdown(task);
 		isc_app_shutdown();
@@ -292,14 +288,13 @@ rndc_senddone(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-rndc_recvdone(isc_task_t *task, isc_event_t *event)
-{
+rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	isccc_sexpr_t *response = NULL;
 	isccc_sexpr_t *data;
 	isccc_region_t source;
-	char *	       errormsg = NULL;
-	char *	       textmsg = NULL;
-	isc_result_t   result;
+	char *errormsg = NULL;
+	char *textmsg = NULL;
+	isc_result_t result;
 
 	atomic_fetch_sub_release(&recvs, 1);
 
@@ -369,18 +364,17 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-rndc_recvnonce(isc_task_t *task, isc_event_t *event)
-{
+rndc_recvnonce(isc_task_t *task, isc_event_t *event) {
 	isccc_sexpr_t *response = NULL;
 	isccc_sexpr_t *_ctrl;
 	isccc_region_t source;
-	isc_result_t   result;
-	uint32_t       nonce;
+	isc_result_t result;
+	uint32_t nonce;
 	isccc_sexpr_t *request = NULL;
-	isccc_time_t   now;
-	isc_region_t   r;
+	isccc_time_t now;
+	isc_region_t r;
 	isccc_sexpr_t *data;
-	isc_buffer_t   b;
+	isc_buffer_t b;
 
 	atomic_fetch_sub_release(&recvs, 1);
 
@@ -463,16 +457,15 @@ rndc_recvnonce(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-rndc_connected(isc_task_t *task, isc_event_t *event)
-{
-	char		   socktext[ISC_SOCKADDR_FORMATSIZE];
+rndc_connected(isc_task_t *task, isc_event_t *event) {
+	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-	isccc_sexpr_t *	   request = NULL;
-	isccc_sexpr_t *	   data;
-	isccc_time_t	   now;
-	isc_region_t	   r;
-	isc_buffer_t	   b;
-	isc_result_t	   result;
+	isccc_sexpr_t *request = NULL;
+	isccc_sexpr_t *data;
+	isccc_time_t now;
+	isc_region_t r;
+	isc_buffer_t b;
+	isc_result_t result;
 
 	atomic_fetch_sub_release(&connects, 1);
 
@@ -531,10 +524,9 @@ rndc_connected(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task)
-{
-	isc_result_t	 result;
-	int		 pf;
+rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task) {
+	isc_result_t result;
+	int pf;
 	isc_sockettype_t type;
 
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
@@ -566,8 +558,7 @@ rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task)
 }
 
 static void
-rndc_start(isc_task_t *task, isc_event_t *event)
-{
+rndc_start(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	currentaddr = 0;
@@ -576,28 +567,27 @@ rndc_start(isc_task_t *task, isc_event_t *event)
 
 static void
 parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
-	     cfg_parser_t **pctxp, cfg_obj_t **configp)
-{
-	isc_result_t	     result;
-	const char *	     conffile = admin_conffile;
-	const cfg_obj_t *    addresses = NULL;
-	const cfg_obj_t *    defkey = NULL;
-	const cfg_obj_t *    options = NULL;
-	const cfg_obj_t *    servers = NULL;
-	const cfg_obj_t *    server = NULL;
-	const cfg_obj_t *    keys = NULL;
-	const cfg_obj_t *    key = NULL;
-	const cfg_obj_t *    defport = NULL;
-	const cfg_obj_t *    secretobj = NULL;
-	const cfg_obj_t *    algorithmobj = NULL;
-	cfg_obj_t *	     config = NULL;
-	const cfg_obj_t *    address = NULL;
+	     cfg_parser_t **pctxp, cfg_obj_t **configp) {
+	isc_result_t result;
+	const char *conffile = admin_conffile;
+	const cfg_obj_t *addresses = NULL;
+	const cfg_obj_t *defkey = NULL;
+	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *servers = NULL;
+	const cfg_obj_t *server = NULL;
+	const cfg_obj_t *keys = NULL;
+	const cfg_obj_t *key = NULL;
+	const cfg_obj_t *defport = NULL;
+	const cfg_obj_t *secretobj = NULL;
+	const cfg_obj_t *algorithmobj = NULL;
+	cfg_obj_t *config = NULL;
+	const cfg_obj_t *address = NULL;
 	const cfg_listelt_t *elt;
-	const char *	     secretstr;
-	const char *	     algorithmstr;
-	static char	     secretarray[1024];
-	const cfg_type_t *   conftype = &cfg_type_rndcconf;
-	bool		     key_only = false;
+	const char *secretstr;
+	const char *algorithmstr;
+	static char secretarray[1024];
+	const cfg_type_t *conftype = &cfg_type_rndcconf;
+	bool key_only = false;
 	const cfg_listelt_t *element;
 
 	if (!isc_file_exists(conffile)) {
@@ -760,13 +750,14 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	}
 	if (result == ISC_R_SUCCESS) {
 		for (element = cfg_list_first(addresses); element != NULL;
-		     element = cfg_list_next(element)) {
+		     element = cfg_list_next(element))
+		{
 			isc_sockaddr_t sa;
 
 			address = cfg_listelt_value(element);
 			if (!cfg_obj_issockaddr(address)) {
-				unsigned int	 myport;
-				const char *	 name;
+				unsigned int myport;
+				const char *name;
 				const cfg_obj_t *obj;
 
 				obj = cfg_tuple_get(address, "name");
@@ -774,8 +765,8 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 				obj = cfg_tuple_get(address, "port");
 				if (cfg_obj_isuint32(obj)) {
 					myport = cfg_obj_asuint32(obj);
-					if (myport > UINT16_MAX ||
-					    myport == 0) {
+					if (myport > UINT16_MAX || myport == 0)
+					{
 						fatal("port %u out of range",
 						      myport);
 					}
@@ -848,24 +839,23 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 }
 
 int
-main(int argc, char **argv)
-{
-	isc_result_t	     result = ISC_R_SUCCESS;
-	bool		     show_final_mem = false;
-	isc_taskmgr_t *	     taskmgr = NULL;
-	isc_task_t *	     task = NULL;
-	isc_log_t *	     log = NULL;
-	isc_logconfig_t *    logconfig = NULL;
+main(int argc, char **argv) {
+	isc_result_t result = ISC_R_SUCCESS;
+	bool show_final_mem = false;
+	isc_taskmgr_t *taskmgr = NULL;
+	isc_task_t *task = NULL;
+	isc_log_t *log = NULL;
+	isc_logconfig_t *logconfig = NULL;
 	isc_logdestination_t logdest;
-	cfg_parser_t *	     pctx = NULL;
-	cfg_obj_t *	     config = NULL;
-	const char *	     keyname = NULL;
-	struct in_addr	     in;
-	struct in6_addr	     in6;
-	char *		     p;
-	size_t		     argslen;
-	int		     ch;
-	int		     i;
+	cfg_parser_t *pctx = NULL;
+	cfg_obj_t *config = NULL;
+	const char *keyname = NULL;
+	struct in_addr in;
+	struct in6_addr in6;
+	char *p;
+	size_t argslen;
+	int ch;
+	int i;
 
 	result = isc_file_progname(*argv, program, sizeof(program));
 	if (result != ISC_R_SUCCESS) {
@@ -1057,8 +1047,8 @@ main(int argc, char **argv)
 	}
 
 	if (atomic_load_acquire(&connects) > 0 ||
-	    atomic_load_acquire(&sends) > 0 ||
-	    atomic_load_acquire(&recvs) > 0) {
+	    atomic_load_acquire(&sends) > 0 || atomic_load_acquire(&recvs) > 0)
+	{
 		isc_socket_cancel(sock, task, ISC_SOCKCANCEL_ALL);
 	}
 

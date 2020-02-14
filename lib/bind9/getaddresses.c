@@ -28,15 +28,14 @@
 
 isc_result_t
 bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
-		   int addrsize, int *addrcount)
-{
-	struct in_addr	in4;
+		   int addrsize, int *addrcount) {
+	struct in_addr in4;
 	struct in6_addr in6;
-	bool		have_ipv4, have_ipv6;
-	int		i;
+	bool have_ipv4, have_ipv6;
+	int i;
 
 	struct addrinfo *ai = NULL, *tmpai, hints;
-	int		 result;
+	int result;
 
 	REQUIRE(hostname != NULL);
 	REQUIRE(addrs != NULL);
@@ -64,7 +63,7 @@ bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
 		*addrcount = 1;
 		return (ISC_R_SUCCESS);
 	} else if (strlen(hostname) <= 127U) {
-		char	 tmpbuf[128], *d;
+		char tmpbuf[128], *d;
 		uint32_t zone = 0;
 
 		strlcpy(tmpbuf, hostname, sizeof(tmpbuf));
@@ -137,8 +136,8 @@ again:
 	}
 	for (tmpai = ai, i = 0; tmpai != NULL && i < addrsize;
 	     tmpai = tmpai->ai_next) {
-		if (tmpai->ai_family != AF_INET &&
-		    tmpai->ai_family != AF_INET6) {
+		if (tmpai->ai_family != AF_INET && tmpai->ai_family != AF_INET6)
+		{
 			continue;
 		}
 		if (tmpai->ai_family == AF_INET) {

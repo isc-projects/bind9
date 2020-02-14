@@ -33,8 +33,7 @@
 #endif /* ifndef MAXHOSTNAMELEN */
 
 static void
-usage()
-{
+usage() {
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
 	fprintf(stderr, "	--edns-version\n");
@@ -51,8 +50,7 @@ usage()
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	if (argc != 2) {
 		usage();
 		return (1);
@@ -77,12 +75,12 @@ main(int argc, char **argv)
 
 	if (strcmp(argv[1], "--gethostname") == 0) {
 		char hostname[MAXHOSTNAMELEN];
-		int  n;
+		int n;
 #ifdef WIN32
 		/* From InitSocket() */
-		WORD	wVersionRequested;
+		WORD wVersionRequested;
 		WSADATA wsaData;
-		int	err;
+		int err;
 
 		wVersionRequested = MAKEWORD(2, 0);
 		err = WSAStartup(wVersionRequested, &wsaData);
@@ -164,9 +162,9 @@ main(int argc, char **argv)
 #ifdef WIN32
 		return (0);
 #elif defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY)
-		int	  s;
-		int	  n = -1;
-		int	  v6only = -1;
+		int s;
+		int n = -1;
+		int v6only = -1;
 		socklen_t len = sizeof(v6only);
 
 		s = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);

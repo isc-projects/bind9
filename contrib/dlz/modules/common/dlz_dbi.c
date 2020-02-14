@@ -98,14 +98,14 @@ build_querylist(const char *query_str, char **zone, char **record,
 		char **client, query_list_t **querylist, unsigned int flags,
 		log_t log)
 {
-	isc_result_t	 result;
-	bool		 foundzone = false;
-	bool		 foundrecord = false;
-	bool		 foundclient = false;
-	char *		 temp_str = NULL;
-	char *		 right_str = NULL;
-	char *		 token = NULL;
-	query_list_t *	 tql;
+	isc_result_t result;
+	bool foundzone = false;
+	bool foundrecord = false;
+	bool foundclient = false;
+	char *temp_str = NULL;
+	char *right_str = NULL;
+	char *token = NULL;
+	query_list_t *tql;
 	query_segment_t *tseg = NULL;
 
 	/* if query string is null, or zero length */
@@ -139,7 +139,8 @@ build_querylist(const char *query_str, char **zone, char **record,
 
 	/* loop through the string and chop it up */
 	for (token = strtok_r(right_str, "$", &temp_str); token;
-	     token = strtok_r(NULL, "$", &temp_str)) {
+	     token = strtok_r(NULL, "$", &temp_str))
+	{
 		/* allocate memory for tseg */
 		tseg = calloc(1, sizeof(query_segment_t));
 		if (tseg == NULL) { /* no memory, clean everything up. */
@@ -275,8 +276,8 @@ char *
 build_querystring(query_list_t *querylist)
 {
 	query_segment_t *tseg = NULL;
-	unsigned int	 length = 0;
-	char *		 qs = NULL;
+	unsigned int length = 0;
+	char *qs = NULL;
 
 	/* start at the top of the list */
 	tseg = DLZ_LIST_HEAD(*querylist);
@@ -324,9 +325,9 @@ build_dbinstance(const char *allnodes_str, const char *allowxfr_str,
 		 const char *lookup_str, const char *countzone_str,
 		 dbinstance_t **dbi, log_t log)
 {
-	isc_result_t  result;
+	isc_result_t result;
 	dbinstance_t *db = NULL;
-	int	      err;
+	int err;
 
 	/* allocate and zero memory for driver structure */
 	db = calloc(1, sizeof(dbinstance_t));
@@ -471,10 +472,10 @@ destroy_dbinstance(dbinstance_t *dbi)
 char *
 get_parameter_value(const char *input, const char *key)
 {
-	int   keylen;
+	int keylen;
 	char *keystart;
-	char  value[255];
-	int   i;
+	char value[255];
+	int i;
 
 	if (key == NULL || input == NULL || *input == '\0') {
 		return (NULL);

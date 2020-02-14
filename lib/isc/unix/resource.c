@@ -28,8 +28,7 @@
 #include "errno2result.h"
 
 static isc_result_t
-resource2rlim(isc_resource_t resource, int *rlim_resource)
-{
+resource2rlim(isc_resource_t resource, int *rlim_resource) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	switch (resource) {
@@ -92,13 +91,12 @@ resource2rlim(isc_resource_t resource, int *rlim_resource)
 }
 
 isc_result_t
-isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value)
-{
+isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	struct rlimit rl;
-	rlim_t	      rlim_value;
-	int	      unixresult;
-	int	      unixresource;
-	isc_result_t  result;
+	rlim_t rlim_value;
+	int unixresult;
+	int unixresource;
+	isc_result_t result;
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS) {
@@ -182,11 +180,10 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value)
 }
 
 isc_result_t
-isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value)
-{
-	int	      unixresource;
+isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
+	int unixresource;
 	struct rlimit rl;
-	isc_result_t  result;
+	isc_result_t result;
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS) {
@@ -202,11 +199,10 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value)
 }
 
 isc_result_t
-isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value)
-{
-	int	      unixresource;
+isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
+	int unixresource;
 	struct rlimit rl;
-	isc_result_t  result;
+	isc_result_t result;
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS) {

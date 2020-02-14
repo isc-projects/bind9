@@ -61,19 +61,19 @@
 
 typedef struct config_data {
 	char *basedir;
-	int   basedirsize;
+	int basedirsize;
 	char *datadir;
-	int   datadirsize;
+	int datadirsize;
 	char *xfrdir;
-	int   xfrdirsize;
-	int   splitcnt;
-	char  separator;
-	char  pathsep;
+	int xfrdirsize;
+	int splitcnt;
+	char separator;
+	char pathsep;
 
 	/* Helper functions from the dlz_dlopen driver */
-	log_t *			 log;
-	dns_sdlz_putrr_t *	 putrr;
-	dns_sdlz_putnamedrr_t *	 putnamedrr;
+	log_t *log;
+	dns_sdlz_putrr_t *putrr;
+	dns_sdlz_putnamedrr_t *putnamedrr;
 	dns_dlz_writeablezone_t *writeable_zone;
 } config_data_t;
 
@@ -88,8 +88,8 @@ typedef DLZ_LIST(dir_entry_t) dlist_t;
 
 /* forward reference */
 
-static void
-b9_add_helper(struct config_data *cd, const char *helper_name, void *ptr);
+static void b9_add_helper(struct config_data *cd, const char *helper_name,
+			  void *ptr);
 
 /*
  * Private methods
@@ -168,7 +168,7 @@ create_path_helper(char *out, const char *in, config_data_t *cd)
 {
 	char *tmpString;
 	char *tmpPtr;
-	int   i;
+	int i;
 
 	tmpString = strdup(in);
 	if (tmpString == NULL) {
@@ -234,11 +234,11 @@ static isc_result_t
 create_path(const char *zone, const char *host, const char *client,
 	    config_data_t *cd, char **path)
 {
-	char *	     tmpPath;
-	int	     pathsize;
-	int	     len;
+	char *tmpPath;
+	int pathsize;
+	int len;
 	isc_result_t result;
-	bool	     isroot = false;
+	bool isroot = false;
 
 	/* special case for root zone */
 	if (strcmp(zone, ".") == 0) {
@@ -363,22 +363,22 @@ static isc_result_t
 process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 	    unsigned int basedirlen)
 {
-	char	     tmp[DIR_PATHMAX + DIR_NAMEMAX];
-	int	     astPos;
-	struct stat  sb;
+	char tmp[DIR_PATHMAX + DIR_NAMEMAX];
+	int astPos;
+	struct stat sb;
 	isc_result_t result = ISC_R_FAILURE;
-	char *	     endp;
-	char *	     type;
-	char *	     ttlStr;
-	char *	     data;
-	char	     host[DIR_NAMEMAX];
-	char *	     tmpString;
-	char *	     tmpPtr;
-	int	     ttl;
-	int	     i;
-	int	     len;
+	char *endp;
+	char *type;
+	char *ttlStr;
+	char *data;
+	char host[DIR_NAMEMAX];
+	char *tmpString;
+	char *tmpPtr;
+	int ttl;
+	int i;
+	int len;
 	dir_entry_t *direntry;
-	bool	     foundHost;
+	bool foundHost;
 
 	tmp[0] = '\0'; /* set 1st byte to '\0' so strcpy works right. */
 	host[0] = '\0';
@@ -584,9 +584,9 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 isc_result_t
 dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
 {
-	isc_result_t   result;
-	char *	       path;
-	struct stat    sb;
+	isc_result_t result;
+	char *path;
+	struct stat sb;
 	config_data_t *cd;
 	path = NULL;
 
@@ -616,15 +616,15 @@ complete_AXFR:
 isc_result_t
 dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
 {
-	isc_result_t   result;
-	dlist_t *      dir_list;
+	isc_result_t result;
+	dlist_t *dir_list;
 	config_data_t *cd = (config_data_t *)dbdata;
-	char *	       basepath;
-	unsigned int   basepathlen;
-	struct stat    sb;
-	dir_t	       dir;
-	dir_entry_t *  dir_entry;
-	dir_entry_t *  next_de;
+	char *basepath;
+	unsigned int basepathlen;
+	struct stat sb;
+	dir_t dir;
+	dir_entry_t *dir_entry;
+	dir_entry_t *next_de;
 
 	basepath = NULL;
 
@@ -734,10 +734,10 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo)
 #endif /* if DLZ_DLOPEN_VERSION < 3 */
 {
-	isc_result_t   result;
+	isc_result_t result;
 	config_data_t *cd = (config_data_t *)dbdata;
-	char *	       path;
-	struct stat    sb;
+	char *path;
+	struct stat sb;
 	path = NULL;
 
 #if DLZ_DLOPEN_VERSION >= 3
@@ -781,11 +781,11 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_clientinfo_t *clientinfo)
 #endif /* if DLZ_DLOPEN_VERSION == 1 */
 {
-	isc_result_t   result = ISC_R_NOTFOUND;
+	isc_result_t result = ISC_R_NOTFOUND;
 	config_data_t *cd = (config_data_t *)dbdata;
-	char *	       path;
-	struct stat    sb;
-	dir_t	       dir;
+	char *path;
+	struct stat sb;
+	dir_t dir;
 	path = NULL;
 
 	UNUSED(lookup);
@@ -851,13 +851,13 @@ isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	   ...)
 {
-	isc_result_t   result = ISC_R_NOMEMORY;
+	isc_result_t result = ISC_R_NOMEMORY;
 	config_data_t *cd;
-	char *	       endp;
-	int	       len;
-	char	       pathsep;
-	const char *   helper_name;
-	va_list	       ap;
+	char *endp;
+	int len;
+	char pathsep;
+	const char *helper_name;
+	va_list ap;
 
 	UNUSED(dlzname);
 

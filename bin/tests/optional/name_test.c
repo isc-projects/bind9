@@ -21,8 +21,7 @@
 #include <dns/result.h>
 
 static void
-print_wirename(isc_region_t *name)
-{
+print_wirename(isc_region_t *name) {
 	unsigned char *ccurr, *cend;
 
 	if (name->length == 0) {
@@ -38,12 +37,11 @@ print_wirename(isc_region_t *name)
 }
 
 static void
-print_name(dns_name_t *name)
-{
+print_name(dns_name_t *name) {
 	isc_result_t result;
 	isc_buffer_t source;
 	isc_region_t r;
-	char	     s[1000];
+	char s[1000];
 
 	isc_buffer_init(&source, s, sizeof(s));
 	if (dns_name_countlabels(name) > 0) {
@@ -64,29 +62,28 @@ print_name(dns_name_t *name)
 }
 
 int
-main(int argc, char *argv[])
-{
-	char		  s[1000];
-	isc_result_t	  result;
-	dns_fixedname_t	  wname, wname2, oname, compname, downname;
-	isc_buffer_t	  source;
-	isc_region_t	  r;
-	dns_name_t *	  name, *comp, *down;
+main(int argc, char *argv[]) {
+	char s[1000];
+	isc_result_t result;
+	dns_fixedname_t wname, wname2, oname, compname, downname;
+	isc_buffer_t source;
+	isc_region_t r;
+	dns_name_t *name, *comp, *down;
 	const dns_name_t *origin;
-	unsigned int	  downcase = 0;
-	size_t		  len;
-	bool		  quiet = false;
-	bool		  concatenate = false;
-	bool		  got_name = false;
-	bool		  check_absolute = false;
-	bool		  check_wildcard = false;
-	bool		  test_downcase = false;
-	bool		  inplace = false;
-	bool		  want_split = false;
-	unsigned int	  labels, split_label = 0;
-	dns_fixedname_t	  fprefix, fsuffix;
-	dns_name_t *	  prefix, *suffix;
-	int		  ch;
+	unsigned int downcase = 0;
+	size_t len;
+	bool quiet = false;
+	bool concatenate = false;
+	bool got_name = false;
+	bool check_absolute = false;
+	bool check_wildcard = false;
+	bool test_downcase = false;
+	bool inplace = false;
+	bool want_split = false;
+	unsigned int labels, split_label = 0;
+	dns_fixedname_t fprefix, fsuffix;
+	dns_name_t *prefix, *suffix;
+	int ch;
 
 	while ((ch = isc_commandline_parse(argc, argv, "acdiqs:w")) != -1) {
 		switch (ch) {
@@ -301,8 +298,8 @@ main(int argc, char *argv[])
 		}
 
 		if (comp != NULL && dns_name_countlabels(name) > 0) {
-			int	       order;
-			unsigned int   nlabels;
+			int order;
+			unsigned int nlabels;
 			dns_namereln_t namereln;
 
 			namereln = dns_name_fullcompare(name, comp, &order,

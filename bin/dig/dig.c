@@ -55,9 +55,9 @@
 dig_lookup_t *default_lookup = NULL;
 
 static atomic_uintptr_t batchname = ATOMIC_VAR_INIT(0);
-static FILE *		batchfp = NULL;
-static char *		argv0;
-static int		addresscount = 0;
+static FILE *batchfp = NULL;
+static char *argv0;
+static int addresscount = 0;
 
 static char domainopt[DNS_NAME_MAXTEXT];
 static char hexcookie[81];
@@ -75,9 +75,8 @@ static const char *const opcodetext[] = {
 };
 
 static const char *
-rcode_totext(dns_rcode_t rcode)
-{
-	static char  buf[64];
+rcode_totext(dns_rcode_t rcode) {
+	static char buf[64];
 	isc_buffer_t b;
 	isc_result_t result;
 
@@ -94,8 +93,7 @@ rcode_totext(dns_rcode_t rcode)
 
 /*% print usage */
 static void
-print_usage(FILE *fp)
-{
+print_usage(FILE *fp) {
 	fputs("Usage:  dig [@global-server] [domain] [q-type] [q-class] "
 	      "{q-opt}\n"
 	      "            {global-d-opt} host [@local-server] {local-d-opt}\n"
@@ -105,17 +103,14 @@ print_usage(FILE *fp)
 
 #if TARGET_OS_IPHONE
 static void
-usage(void)
-{
+usage(void) {
 	fprintf(stderr, "Press <Help> for complete list of options\n");
 }
 #else  /* if TARGET_OS_IPHONE */
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
-usage(void)
-{
+usage(void) {
 	print_usage(stderr);
 	fputs("\nUse \"dig -h\" (or \"dig -h | more\") "
 	      "for complete list of options\n",
@@ -126,15 +121,13 @@ usage(void)
 
 /*% version */
 static void
-version(void)
-{
+version(void) {
 	fputs("DiG " VERSION "\n", stderr);
 }
 
 /*% help */
 static void
-help(void)
-{
+help(void) {
 	print_usage(stdout);
 	fputs("Where:  domain	  is in the Domain Name System\n"
 	      "        q-class  is one of (in,hs,ch,...) [default: in]\n"
@@ -315,10 +308,9 @@ help(void)
  * Callback from dighost.c to print the received message.
  */
 static void
-received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query)
-{
-	uint64_t  diff;
-	time_t	  tnow;
+received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
+	uint64_t diff;
+	time_t tnow;
 	struct tm tmnow;
 #ifdef WIN32
 	wchar_t time_str[100];
@@ -354,12 +346,14 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query)
 		 * wide-character string, which strftime() handles incorrectly.
 		 */
 		if (wcsftime(time_str, sizeof(time_str) / sizeof(time_str[0]),
-			     L"%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U) {
+			     L"%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
+		{
 			printf(";; WHEN: %ls\n", time_str);
 		}
 #else  /* ifdef WIN32 */
 		if (strftime(time_str, sizeof(time_str),
-			     "%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U) {
+			     "%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
+		{
 			printf(";; WHEN: %s\n", time_str);
 		}
 #endif /* ifdef WIN32 */
@@ -405,8 +399,7 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query)
  * XXX print_trying
  */
 static void
-trying(char *frm, dig_lookup_t *lookup)
-{
+trying(char *frm, dig_lookup_t *lookup) {
 	UNUSED(frm);
 	UNUSED(lookup);
 }
@@ -415,11 +408,10 @@ trying(char *frm, dig_lookup_t *lookup)
  * Internal print routine used to print short form replies.
  */
 static isc_result_t
-say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf)
-{
+say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	isc_result_t result;
-	uint64_t     diff;
-	char	     store[sizeof(" in 18446744073709551616 us.")];
+	uint64_t diff;
+	char store[sizeof(" in 18446744073709551616 us.")];
 	unsigned int styleflags = 0;
 
 	if (query->lookup->trace || query->lookup->ns_search_only) {
@@ -471,13 +463,12 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf)
  */
 static isc_result_t
 short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
-	     dig_query_t *query)
-{
-	dns_name_t *	name;
+	     dig_query_t *query) {
+	dns_name_t *name;
 	dns_rdataset_t *rdataset;
-	isc_result_t	result, loopresult;
-	dns_name_t	empty_name;
-	dns_rdata_t	rdata = DNS_RDATA_INIT;
+	isc_result_t result, loopresult;
+	dns_name_t empty_name;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	UNUSED(flags);
 
@@ -494,7 +485,8 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
 
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
 				dns_rdataset_current(rdataset, &rdata);
@@ -519,17 +511,17 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 }
 
 static bool
-isdotlocal(dns_message_t *msg)
-{
-	isc_result_t	     result;
+isdotlocal(dns_message_t *msg) {
+	isc_result_t result;
 	static unsigned char local_ndata[] = { "\005local\0" };
 	static unsigned char local_offsets[] = { 0, 6 };
-	static dns_name_t    local =
-		DNS_NAME_INITABSOLUTE(local_ndata, local_offsets);
+	static dns_name_t local = DNS_NAME_INITABSOLUTE(local_ndata,
+							local_offsets);
 
 	for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
 	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(msg, DNS_SECTION_QUESTION)) {
+	     result = dns_message_nextname(msg, DNS_SECTION_QUESTION))
+	{
 		dns_name_t *name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
 		if (dns_name_issubdomain(name, &local)) {
@@ -544,15 +536,14 @@ isdotlocal(dns_message_t *msg)
  */
 static isc_result_t
 printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
-	     bool headers)
-{
-	isc_result_t	      result;
+	     bool headers) {
+	isc_result_t result;
 	dns_messagetextflag_t flags;
-	isc_buffer_t *	      buf = NULL;
-	unsigned int	      len = OUTPUTBUF;
-	dns_master_style_t *  style = NULL;
-	unsigned int	      styleflags = 0;
-	bool		      isquery = (msg == query->lookup->sendmsg);
+	isc_buffer_t *buf = NULL;
+	unsigned int len = OUTPUTBUF;
+	dns_master_style_t *style = NULL;
+	unsigned int styleflags = 0;
+	bool isquery = (msg == query->lookup->sendmsg);
 
 	UNUSED(msgbuf);
 
@@ -601,7 +592,8 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		}
 	}
 	if (query->lookup->multiline ||
-	    (query->lookup->nottl && query->lookup->noclass)) {
+	    (query->lookup->nottl && query->lookup->noclass))
+	{
 		result = dns_master_stylecreate(&style, styleflags, 24, 24, 24,
 						32, 80, 8, splitwidth, mctx);
 	} else if (query->lookup->nottl || query->lookup->noclass) {
@@ -641,12 +633,12 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 	if (yaml) {
 		enum { Q = 0x1, R = 0x2 }; /* Q:query; R:ecursive */
-		unsigned int   tflag = 0;
+		unsigned int tflag = 0;
 		isc_sockaddr_t saddr;
-		char	       sockstr[ISC_SOCKADDR_FORMATSIZE];
-		uint16_t       sport;
-		char *	       hash;
-		int	       pf;
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
+		uint16_t sport;
+		char *hash;
+		int pf;
 
 		printf("-\n");
 		printf("  type: MESSAGE\n");
@@ -658,7 +650,8 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 				tflag |= R;
 			}
 		} else if (((msg->flags & DNS_MESSAGEFLAG_RD) != 0) &&
-			   ((msg->flags & DNS_MESSAGEFLAG_RA) != 0)) {
+			   ((msg->flags & DNS_MESSAGEFLAG_RA) != 0))
+		{
 			tflag |= R;
 		}
 
@@ -714,7 +707,8 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 		if (query->sock != NULL &&
 		    isc_socket_getsockname(query->sock, &saddr) ==
-			    ISC_R_SUCCESS) {
+			    ISC_R_SUCCESS)
+		{
 			sport = isc_sockaddr_getport(&saddr);
 			isc_sockaddr_format(&saddr, sockstr, sizeof(sockstr));
 			hash = strchr(sockstr, '#');
@@ -788,7 +782,8 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 			if (msg != query->lookup->sendmsg &&
 			    (msg->flags & DNS_MESSAGEFLAG_RD) != 0 &&
-			    (msg->flags & DNS_MESSAGEFLAG_RA) == 0) {
+			    (msg->flags & DNS_MESSAGEFLAG_RA) == 0)
+			{
 				printf(";; WARNING: recursion requested "
 				       "but not available\n");
 			}
@@ -796,7 +791,8 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		if (msg != query->lookup->sendmsg &&
 		    query->lookup->edns != -1 && msg->opt == NULL &&
 		    (msg->rcode == dns_rcode_formerr ||
-		     msg->rcode == dns_rcode_notimp)) {
+		     msg->rcode == dns_rcode_notimp))
+		{
 			printf("\n;; WARNING: EDNS query returned status "
 			       "%s - retry with '%s+noedns'\n",
 			       rcode_totext(msg->rcode),
@@ -910,11 +906,10 @@ repopulate_buffer:
  * print the greeting message when the program first starts up.
  */
 static void
-printgreeting(int argc, char **argv, dig_lookup_t *lookup)
-{
-	int	    i;
+printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
+	int i;
 	static bool first = true;
-	char	    append[MXNAME];
+	char append[MXNAME];
 
 	if (printcmd) {
 		snprintf(lookup->cmdline, sizeof(lookup->cmdline),
@@ -953,13 +948,12 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup)
  */
 
 static void
-plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup)
-{
+plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 	isc_result_t result;
-	char *	     cmd, *value, *last = NULL, *code, *extra;
-	uint32_t     num;
-	bool	     state = true;
-	size_t	     n;
+	char *cmd, *value, *last = NULL, *code, *extra;
+	uint32_t num;
+	bool state = true;
+	size_t n;
 
 	INSIST(option != NULL);
 
@@ -1837,20 +1831,19 @@ static const char *dash_opts = "46bcdfhikmnpqrtvyx";
 static bool
 dash_option(char *option, char *next, dig_lookup_t **lookup,
 	    bool *open_type_class, bool *need_clone, bool config_only, int argc,
-	    char **argv, bool *firstarg)
-{
-	char		 opt, *value, *ptr, *ptr2, *ptr3, *last;
-	isc_result_t	 result;
-	bool		 value_from_next;
+	    char **argv, bool *firstarg) {
+	char opt, *value, *ptr, *ptr2, *ptr3, *last;
+	isc_result_t result;
+	bool value_from_next;
 	isc_textregion_t tr;
-	dns_rdatatype_t	 rdtype;
+	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	char		 textname[MXNAME];
-	struct in_addr	 in4;
-	struct in6_addr	 in6;
-	in_port_t	 srcport;
-	char *		 hash, *cmd;
-	uint32_t	 num;
+	char textname[MXNAME];
+	struct in_addr in4;
+	struct in6_addr in6;
+	in_port_t srcport;
+	char *hash, *cmd;
+	uint32_t num;
 
 	while (strpbrk(option, single_dash_opts) == &option[0]) {
 		/*
@@ -2004,8 +1997,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			*need_clone = true;
 			strlcpy((*lookup)->textname, value,
 				sizeof((*lookup)->textname));
-			(*lookup)->trace_root =
-				((*lookup)->trace || (*lookup)->ns_search_only);
+			(*lookup)->trace_root = ((*lookup)->trace ||
+						 (*lookup)->ns_search_only);
 			(*lookup)->new_search = true;
 			if (*firstarg) {
 				printgreeting(argc, argv, *lookup);
@@ -2103,8 +2096,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			strlcpy((*lookup)->textname, textname,
 				sizeof((*lookup)->textname));
 			debug("looking up %s", (*lookup)->textname);
-			(*lookup)->trace_root =
-				((*lookup)->trace || (*lookup)->ns_search_only);
+			(*lookup)->trace_root = ((*lookup)->trace ||
+						 (*lookup)->ns_search_only);
 			if (!(*lookup)->rdtypeset) {
 				(*lookup)->rdtype = dns_rdatatype_ptr;
 			}
@@ -2141,11 +2134,10 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
  * by its nature, so it can't be done in the main argument parser.
  */
 static void
-preparse_args(int argc, char **argv)
-{
-	int    rc;
+preparse_args(int argc, char **argv) {
+	int rc;
 	char **rv;
-	char * option;
+	char *option;
 
 	rc = argc;
 	rv = argv;
@@ -2207,39 +2199,38 @@ preparse_args(int argc, char **argv)
 }
 
 static int
-split_batchline(char *batchline, char **bargv, int len, const char *msg)
-{
-	int   bargc;
+split_batchline(char *batchline, char **bargv, int len, const char *msg) {
+	int bargc;
 	char *last = NULL;
 
 	REQUIRE(batchline != NULL);
 
 	for (bargc = 1, bargv[bargc] = strtok_r(batchline, " \t\r\n", &last);
 	     bargc < len && bargv[bargc];
-	     bargv[++bargc] = strtok_r(NULL, " \t\r\n", &last)) {
+	     bargv[++bargc] = strtok_r(NULL, " \t\r\n", &last))
+	{
 		debug("%s %d: %s", msg, bargc, bargv[bargc]);
 	}
 	return (bargc);
 }
 
 static void
-parse_args(bool is_batchfile, bool config_only, int argc, char **argv)
-{
-	isc_result_t	 result;
+parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
+	isc_result_t result;
 	isc_textregion_t tr;
-	bool		 firstarg = true;
-	dig_lookup_t *	 lookup = NULL;
-	dns_rdatatype_t	 rdtype;
+	bool firstarg = true;
+	dig_lookup_t *lookup = NULL;
+	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	bool		 open_type_class = true;
-	char		 batchline[MXNAME];
-	int		 bargc;
-	char *		 bargv[64];
-	int		 rc;
-	char **		 rv;
+	bool open_type_class = true;
+	char batchline[MXNAME];
+	int bargc;
+	char *bargv[64];
+	int rc;
+	char **rv;
 #ifndef NOPOSIX
 	char *homedir;
-	char  rcfile[PATH_MAX];
+	char rcfile[PATH_MAX];
 #endif /* ifndef NOPOSIX */
 	bool need_clone = true;
 
@@ -2326,8 +2317,8 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv)
 					return;
 				}
 			} else {
-				addresscount =
-					getaddresses(lookup, &rv[0][1], NULL);
+				addresscount = getaddresses(lookup, &rv[0][1],
+							    NULL);
 				if (addresscount == 0) {
 					fatal("no valid addresses for '%s'\n",
 					      &rv[0][1]);
@@ -2340,7 +2331,8 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv)
 				if (dash_option(&rv[0][1], NULL, &lookup,
 						&open_type_class, &need_clone,
 						config_only, argc, argv,
-						&firstarg)) {
+						&firstarg))
+				{
 					rc--;
 					rv++;
 				}
@@ -2348,7 +2340,8 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv)
 				if (dash_option(&rv[0][1], rv[1], &lookup,
 						&open_type_class, &need_clone,
 						config_only, argc, argv,
-						&firstarg)) {
+						&firstarg))
+				{
 					rc--;
 					rv++;
 				}
@@ -2483,7 +2476,8 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv)
 		if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
 			debug("batch line %s", batchline);
 			if (batchline[0] == '\r' || batchline[0] == '\n' ||
-			    batchline[0] == '#' || batchline[0] == ';') {
+			    batchline[0] == '#' || batchline[0] == ';')
+			{
 				goto next_line;
 			}
 			bargc = split_batchline(batchline, bargv, 14,
@@ -2525,10 +2519,9 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv)
  * for real if there's nothing in the batch file to read.
  */
 static void
-query_finished(void)
-{
-	char  batchline[MXNAME];
-	int   bargc;
+query_finished(void) {
+	char batchline[MXNAME];
+	int bargc;
 	char *bargv[16];
 
 	if (atomic_load(&batchname) == 0) {
@@ -2563,8 +2556,7 @@ query_finished(void)
 }
 
 static void
-dig_error(const char *format, ...)
-{
+dig_error(const char *format, ...) {
 	va_list args;
 
 	if (yaml) {
@@ -2593,8 +2585,7 @@ dig_error(const char *format, ...)
 }
 
 static void
-dig_warning(const char *format, ...)
-{
+dig_warning(const char *format, ...) {
 	va_list args;
 
 	if (!yaml) {
@@ -2609,8 +2600,7 @@ dig_warning(const char *format, ...)
 }
 
 static void
-dig_comments(dig_lookup_t *lookup, const char *format, ...)
-{
+dig_comments(dig_lookup_t *lookup, const char *format, ...) {
 	va_list args;
 
 	if (lookup->comments && !yaml) {
@@ -2625,8 +2615,7 @@ dig_comments(dig_lookup_t *lookup, const char *format, ...)
 }
 
 void
-dig_setup(int argc, char **argv)
-{
+dig_setup(int argc, char **argv) {
 	isc_result_t result;
 
 	ISC_LIST_INIT(lookup_list);
@@ -2655,8 +2644,7 @@ dig_setup(int argc, char **argv)
 }
 
 void
-dig_query_setup(bool is_batchfile, bool config_only, int argc, char **argv)
-{
+dig_query_setup(bool is_batchfile, bool config_only, int argc, char **argv) {
 	debug("dig_query_setup");
 
 	parse_args(is_batchfile, config_only, argc, argv);
@@ -2672,8 +2660,7 @@ dig_query_setup(bool is_batchfile, bool config_only, int argc, char **argv)
 }
 
 void
-dig_startup()
-{
+dig_startup() {
 	isc_result_t result;
 
 	debug("dig_startup()");
@@ -2684,14 +2671,12 @@ dig_startup()
 }
 
 void
-dig_query_start()
-{
+dig_query_start() {
 	start_lookup();
 }
 
 void
-dig_shutdown()
-{
+dig_shutdown() {
 	destroy_lookup(default_lookup);
 	if (atomic_load(&batchname) != 0) {
 		if (batchfp != stdin) {
@@ -2706,8 +2691,7 @@ dig_shutdown()
 
 /*% Main processing routine for dig */
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	dig_setup(argc, argv);
 	dig_query_setup(false, false, argc, argv);
 	dig_startup();

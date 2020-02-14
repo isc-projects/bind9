@@ -32,11 +32,10 @@
  * These static functions are also present in lib/dns/rdata.c.  I'm not
  * sure where they should go. -- bwelling
  */
-static isc_result_t
-str_totext(const char *source, isc_buffer_t *target);
+static isc_result_t str_totext(const char *source, isc_buffer_t *target);
 
-static isc_result_t
-mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
+static isc_result_t mem_tobuffer(isc_buffer_t *target, void *base,
+				 unsigned int length);
 
 /*@}*/
 
@@ -47,9 +46,8 @@ static const char base32hex[] = "0123456789ABCDEFGHIJKLMNOPQRSTUV="
 
 static isc_result_t
 base32_totext(isc_region_t *source, int wordlength, const char *wordbreak,
-	      isc_buffer_t *target, const char base[], char pad)
-{
-	char	     buf[9];
+	      isc_buffer_t *target, const char base[], char pad) {
+	char buf[9];
 	unsigned int loops = 0;
 
 	if (wordlength >= 0 && wordlength < 8) {
@@ -100,7 +98,8 @@ base32_totext(isc_region_t *source, int wordlength, const char *wordbreak,
 
 		loops++;
 		if (source->length != 0 && wordlength >= 0 &&
-		    (int)((loops + 1) * 8) >= wordlength) {
+		    (int)((loops + 1) * 8) >= wordlength)
+		{
 			loops = 0;
 			RETERR(str_totext(wordbreak, target));
 		}
@@ -113,24 +112,21 @@ base32_totext(isc_region_t *source, int wordlength, const char *wordbreak,
 
 isc_result_t
 isc_base32_totext(isc_region_t *source, int wordlength, const char *wordbreak,
-		  isc_buffer_t *target)
-{
+		  isc_buffer_t *target) {
 	return (base32_totext(source, wordlength, wordbreak, target, base32,
 			      '='));
 }
 
 isc_result_t
 isc_base32hex_totext(isc_region_t *source, int wordlength,
-		     const char *wordbreak, isc_buffer_t *target)
-{
+		     const char *wordbreak, isc_buffer_t *target) {
 	return (base32_totext(source, wordlength, wordbreak, target, base32hex,
 			      '='));
 }
 
 isc_result_t
 isc_base32hexnp_totext(isc_region_t *source, int wordlength,
-		       const char *wordbreak, isc_buffer_t *target)
-{
+		       const char *wordbreak, isc_buffer_t *target) {
 	return (base32_totext(source, wordlength, wordbreak, target, base32hex,
 			      0));
 }
@@ -139,21 +135,20 @@ isc_base32hexnp_totext(isc_region_t *source, int wordlength,
  * State of a base32 decoding process in progress.
  */
 typedef struct {
-	int	      length;	/*%< Desired length of binary data or -1 */
-	isc_buffer_t *target;	/*%< Buffer for resulting binary data */
-	int	      digits;	/*%< Number of buffered base32 digits */
-	bool	      seen_end; /*%< True if "=" end marker seen */
-	int	      val[8];
-	const char *  base;    /*%< Which encoding we are using */
-	int	      seen_32; /*%< Number of significant bytes if non
-				* zero */
-	bool pad;	       /*%< Expect padding */
+	int length;	      /*%< Desired length of binary data or -1 */
+	isc_buffer_t *target; /*%< Buffer for resulting binary data */
+	int digits;	      /*%< Number of buffered base32 digits */
+	bool seen_end;	      /*%< True if "=" end marker seen */
+	int val[8];
+	const char *base; /*%< Which encoding we are using */
+	int seen_32;	  /*%< Number of significant bytes if non
+			   * zero */
+	bool pad;	  /*%< Expect padding */
 } base32_decode_ctx_t;
 
 static inline void
 base32_decode_init(base32_decode_ctx_t *ctx, int length, const char base[],
-		   bool pad, isc_buffer_t *target)
-{
+		   bool pad, isc_buffer_t *target) {
 	ctx->digits = 0;
 	ctx->seen_end = false;
 	ctx->seen_32 = 0;
@@ -164,9 +159,8 @@ base32_decode_init(base32_decode_ctx_t *ctx, int length, const char base[],
 }
 
 static inline isc_result_t
-base32_decode_char(base32_decode_ctx_t *ctx, int c)
-{
-	const char * s;
+base32_decode_char(base32_decode_ctx_t *ctx, int c) {
+	const char *s;
 	unsigned int last;
 
 	if (ctx->seen_end) {
@@ -245,7 +239,7 @@ base32_decode_char(base32_decode_ctx_t *ctx, int c)
 	ctx->val[ctx->digits++] = (last == 32) ? 0 : last;
 
 	if (ctx->digits == 8) {
-		int	      n = 5;
+		int n = 5;
 		unsigned char buf[5];
 
 		if (ctx->seen_32 != 0) {
@@ -273,8 +267,7 @@ base32_decode_char(base32_decode_ctx_t *ctx, int c)
 }
 
 static inline isc_result_t
-base32_decode_finish(base32_decode_ctx_t *ctx)
-{
+base32_decode_finish(base32_decode_ctx_t *ctx) {
 	if (ctx->length > 0) {
 		return (ISC_R_UNEXPECTEDEND);
 	}
@@ -295,13 +288,12 @@ base32_decode_finish(base32_decode_ctx_t *ctx)
 
 static isc_result_t
 base32_tobuffer(isc_lex_t *lexer, const char base[], bool pad,
-		isc_buffer_t *target, int length)
-{
-	unsigned int	    before, after;
+		isc_buffer_t *target, int length) {
+	unsigned int before, after;
 	base32_decode_ctx_t ctx;
-	isc_textregion_t *  tr;
-	isc_token_t	    token;
-	bool		    eol;
+	isc_textregion_t *tr;
+	isc_token_t token;
+	bool eol;
 
 	REQUIRE(length >= -2);
 
@@ -338,27 +330,23 @@ base32_tobuffer(isc_lex_t *lexer, const char base[], bool pad,
 }
 
 isc_result_t
-isc_base32_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length)
-{
+isc_base32_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 	return (base32_tobuffer(lexer, base32, true, target, length));
 }
 
 isc_result_t
-isc_base32hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length)
-{
+isc_base32hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 	return (base32_tobuffer(lexer, base32hex, true, target, length));
 }
 
 isc_result_t
-isc_base32hexnp_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length)
-{
+isc_base32hexnp_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 	return (base32_tobuffer(lexer, base32hex, false, target, length));
 }
 
 static isc_result_t
 base32_decodestring(const char *cstr, const char base[], bool pad,
-		    isc_buffer_t *target)
-{
+		    isc_buffer_t *target) {
 	base32_decode_ctx_t ctx;
 
 	base32_decode_init(&ctx, -1, base, pad, target);
@@ -377,27 +365,23 @@ base32_decodestring(const char *cstr, const char base[], bool pad,
 }
 
 isc_result_t
-isc_base32_decodestring(const char *cstr, isc_buffer_t *target)
-{
+isc_base32_decodestring(const char *cstr, isc_buffer_t *target) {
 	return (base32_decodestring(cstr, base32, true, target));
 }
 
 isc_result_t
-isc_base32hex_decodestring(const char *cstr, isc_buffer_t *target)
-{
+isc_base32hex_decodestring(const char *cstr, isc_buffer_t *target) {
 	return (base32_decodestring(cstr, base32hex, true, target));
 }
 
 isc_result_t
-isc_base32hexnp_decodestring(const char *cstr, isc_buffer_t *target)
-{
+isc_base32hexnp_decodestring(const char *cstr, isc_buffer_t *target) {
 	return (base32_decodestring(cstr, base32hex, false, target));
 }
 
 static isc_result_t
 base32_decoderegion(isc_region_t *source, const char base[], bool pad,
-		    isc_buffer_t *target)
-{
+		    isc_buffer_t *target) {
 	base32_decode_ctx_t ctx;
 
 	base32_decode_init(&ctx, -1, base, pad, target);
@@ -411,26 +395,22 @@ base32_decoderegion(isc_region_t *source, const char base[], bool pad,
 }
 
 isc_result_t
-isc_base32_decoderegion(isc_region_t *source, isc_buffer_t *target)
-{
+isc_base32_decoderegion(isc_region_t *source, isc_buffer_t *target) {
 	return (base32_decoderegion(source, base32, true, target));
 }
 
 isc_result_t
-isc_base32hex_decoderegion(isc_region_t *source, isc_buffer_t *target)
-{
+isc_base32hex_decoderegion(isc_region_t *source, isc_buffer_t *target) {
 	return (base32_decoderegion(source, base32hex, true, target));
 }
 
 isc_result_t
-isc_base32hexnp_decoderegion(isc_region_t *source, isc_buffer_t *target)
-{
+isc_base32hexnp_decoderegion(isc_region_t *source, isc_buffer_t *target) {
 	return (base32_decoderegion(source, base32hex, false, target));
 }
 
 static isc_result_t
-str_totext(const char *source, isc_buffer_t *target)
-{
+str_totext(const char *source, isc_buffer_t *target) {
 	unsigned int l;
 	isc_region_t region;
 
@@ -447,8 +427,7 @@ str_totext(const char *source, isc_buffer_t *target)
 }
 
 static isc_result_t
-mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length)
-{
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	isc_region_t tr;
 
 	isc_buffer_availableregion(target, &tr);

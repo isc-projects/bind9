@@ -52,12 +52,12 @@ struct addrinfo {
 #undef NO_ADDRESS
 
 #define NETDB_INTERNAL -1 /* see errno */
-#define NETDB_SUCCESS 0	  /* no problem */
+#define NETDB_SUCCESS  0  /* no problem */
 #define HOST_NOT_FOUND 1  /* Authoritative Answer Host not found */
-#define TRY_AGAIN 2	  /* Non-Authoritative Host not found, or SERVERFAIL */
-#define NO_RECOVERY 3	  /* Non recoverable errors, FORMERR, REFUSED, NOTIMP */
-#define NO_DATA 4	  /* Valid name, no data record of requested type */
-#define NO_ADDRESS NO_DATA /* no address, look for MX record */
+#define TRY_AGAIN      2  /* Non-Authoritative Host not found, or SERVERFAIL */
+#define NO_RECOVERY    3  /* Non recoverable errors, FORMERR, REFUSED, NOTIMP */
+#define NO_DATA	       4  /* Valid name, no data record of requested type */
+#define NO_ADDRESS     NO_DATA /* no address, look for MX record */
 
 /*
  * Error return codes from getaddrinfo()
@@ -78,20 +78,20 @@ struct addrinfo {
 #undef EAI_PROTOCOL
 #undef EAI_MAX
 
-#define EAI_ADDRFAMILY 1 /* address family for hostname not supported */
-#define EAI_AGAIN 2	 /* temporary failure in name resolution */
-#define EAI_BADFLAGS 3	 /* invalid value for ai_flags */
-#define EAI_FAIL 4	 /* non-recoverable failure in name resolution */
-#define EAI_FAMILY 5	 /* ai_family not supported */
-#define EAI_MEMORY 6	 /* memory allocation failure */
-#define EAI_NODATA 7	 /* no address associated with hostname */
-#define EAI_NONAME 8	 /* hostname nor servname provided, or not known */
-#define EAI_SERVICE 9	 /* servname not supported for ai_socktype */
-#define EAI_SOCKTYPE 10	 /* ai_socktype not supported */
-#define EAI_SYSTEM 11	 /* system error returned in errno */
-#define EAI_BADHINTS 12
-#define EAI_PROTOCOL 13
-#define EAI_MAX 14
+#define EAI_ADDRFAMILY 1  /* address family for hostname not supported */
+#define EAI_AGAIN      2  /* temporary failure in name resolution */
+#define EAI_BADFLAGS   3  /* invalid value for ai_flags */
+#define EAI_FAIL       4  /* non-recoverable failure in name resolution */
+#define EAI_FAMILY     5  /* ai_family not supported */
+#define EAI_MEMORY     6  /* memory allocation failure */
+#define EAI_NODATA     7  /* no address associated with hostname */
+#define EAI_NONAME     8  /* hostname nor servname provided, or not known */
+#define EAI_SERVICE    9  /* servname not supported for ai_socktype */
+#define EAI_SOCKTYPE   10 /* ai_socktype not supported */
+#define EAI_SYSTEM     11 /* system error returned in errno */
+#define EAI_BADHINTS   12
+#define EAI_PROTOCOL   13
+#define EAI_MAX	       14
 
 /*
  * Flag values for getaddrinfo()
@@ -100,8 +100,8 @@ struct addrinfo {
 #undef AI_CANONNAME
 #undef AI_NUMERICHOST
 
-#define AI_PASSIVE 0x00000001
-#define AI_CANONNAME 0x00000002
+#define AI_PASSIVE     0x00000001
+#define AI_CANONNAME   0x00000002
 #define AI_NUMERICHOST 0x00000004
 
 /*
@@ -112,10 +112,10 @@ struct addrinfo {
 #undef AI_ADDRCONFIG
 #undef AI_DEFAULT
 
-#define AI_V4MAPPED 0x00000008
-#define AI_ALL 0x00000010
+#define AI_V4MAPPED   0x00000008
+#define AI_ALL	      0x00000010
 #define AI_ADDRCONFIG 0x00000020
-#define AI_DEFAULT (AI_V4MAPPED | AI_ADDRCONFIG)
+#define AI_DEFAULT    (AI_V4MAPPED | AI_ADDRCONFIG)
 
 /*
  * Constants for getnameinfo()
@@ -136,11 +136,11 @@ struct addrinfo {
 #undef NI_DGRAM
 #undef NI_NUMERICSCOPE
 
-#define NI_NOFQDN 0x00000001
-#define NI_NUMERICHOST 0x00000002
-#define NI_NAMEREQD 0x00000004
-#define NI_NUMERICSERV 0x00000008
-#define NI_DGRAM 0x00000010
+#define NI_NOFQDN	0x00000001
+#define NI_NUMERICHOST	0x00000002
+#define NI_NAMEREQD	0x00000004
+#define NI_NUMERICSERV	0x00000008
+#define NI_DGRAM	0x00000010
 #define NI_NUMERICSCOPE 0x00000020 /*2553bis-00*/
 
 /*
@@ -172,9 +172,9 @@ struct rrsetinfo {
 /*
  * Return codes for getrrsetbyname()
  */
-#define ERRSET_SUCCESS 0
+#define ERRSET_SUCCESS	0
 #define ERRSET_NOMEMORY 1
-#define ERRSET_FAIL 2
-#define ERRSET_INVAL 3
+#define ERRSET_FAIL	2
+#define ERRSET_INVAL	3
 
 #endif /* NETDB_H */

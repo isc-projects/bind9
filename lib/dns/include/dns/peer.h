@@ -36,10 +36,10 @@
 #include <dns/types.h>
 
 #define DNS_PEERLIST_MAGIC ISC_MAGIC('s', 'e', 'R', 'L')
-#define DNS_PEER_MAGIC ISC_MAGIC('S', 'E', 'r', 'v')
+#define DNS_PEER_MAGIC	   ISC_MAGIC('S', 'E', 'r', 'v')
 
 #define DNS_PEERLIST_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_PEERLIST_MAGIC)
-#define DNS_PEER_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_PEER_MAGIC)
+#define DNS_PEER_VALID(ptr)	ISC_MAGIC_VALID(ptr, DNS_PEER_MAGIC)
 
 /***
  *** Types

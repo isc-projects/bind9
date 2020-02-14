@@ -14,31 +14,31 @@
 
 #define RRTYPE_SMIMEA_ATTRIBUTES 0
 
-static inline isc_result_t fromtext_smimea(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_smimea(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_smimea);
 
 	return (generic_fromtext_tlsa(rdclass, type, lexer, origin, options,
 				      target, callbacks));
 }
 
-static inline isc_result_t totext_smimea(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_smimea(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_smimea);
 
 	return (generic_totext_tlsa(rdata, tctx, target));
 }
 
-static inline isc_result_t fromwire_smimea(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_smimea(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_smimea);
 
 	return (generic_fromwire_tlsa(rdclass, type, source, dctx, options,
 				      target));
 }
 
-static inline isc_result_t towire_smimea(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_smimea(ARGS_TOWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_smimea);
@@ -50,8 +50,8 @@ static inline isc_result_t towire_smimea(ARGS_TOWIRE)
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int compare_smimea(ARGS_COMPARE)
-{
+static inline int
+compare_smimea(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -66,15 +66,15 @@ static inline int compare_smimea(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t fromstruct_smimea(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_smimea(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_smimea);
 
 	return (generic_fromstruct_tlsa(rdclass, type, source, target));
 }
 
-static inline isc_result_t tostruct_smimea(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_smimea(ARGS_TOSTRUCT) {
 	dns_rdata_smimea_t *smimea = target;
 
 	REQUIRE(rdata != NULL);
@@ -88,8 +88,8 @@ static inline isc_result_t tostruct_smimea(ARGS_TOSTRUCT)
 	return (generic_tostruct_tlsa(rdata, target, mctx));
 }
 
-static inline void freestruct_smimea(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_smimea(ARGS_FREESTRUCT) {
 	dns_rdata_smimea_t *smimea = source;
 
 	REQUIRE(smimea != NULL);
@@ -98,8 +98,8 @@ static inline void freestruct_smimea(ARGS_FREESTRUCT)
 	generic_freestruct_tlsa(source);
 }
 
-static inline isc_result_t additionaldata_smimea(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_smimea(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_smimea);
 
 	UNUSED(rdata);
@@ -109,8 +109,8 @@ static inline isc_result_t additionaldata_smimea(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_smimea(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_smimea(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_smimea);
@@ -120,8 +120,8 @@ static inline isc_result_t digest_smimea(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_smimea(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_smimea(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_smimea);
 
 	UNUSED(name);
@@ -132,8 +132,8 @@ static inline bool checkowner_smimea(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_smimea(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_smimea(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_smimea);
 
 	UNUSED(rdata);
@@ -143,8 +143,8 @@ static inline bool checknames_smimea(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_smimea(ARGS_COMPARE)
-{
+static inline int
+casecompare_smimea(ARGS_COMPARE) {
 	return (compare_smimea(rdata1, rdata2));
 }
 

@@ -120,80 +120,64 @@
  * conversion.
  */
 typedef struct dns_rdata_textctx {
-	const dns_name_t *	origin;	   /*%< Current origin, or NULL. */
-	dns_masterstyle_flags_t flags;	   /*%< DNS_STYLEFLAG_*  */
-	unsigned int		width;	   /*%< Width of rdata column. */
-	const char *		linebreak; /*%< Line break string. */
+	const dns_name_t *origin;      /*%< Current origin, or NULL. */
+	dns_masterstyle_flags_t flags; /*%< DNS_STYLEFLAG_*  */
+	unsigned int width;	       /*%< Width of rdata column. */
+	const char *linebreak;	       /*%< Line break string. */
 } dns_rdata_textctx_t;
 
-static isc_result_t
-txt_totext(isc_region_t *source, bool quote, isc_buffer_t *target);
+static isc_result_t txt_totext(isc_region_t *source, bool quote,
+			       isc_buffer_t *target);
 
-static isc_result_t
-txt_fromtext(isc_textregion_t *source, isc_buffer_t *target);
+static isc_result_t txt_fromtext(isc_textregion_t *source,
+				 isc_buffer_t *target);
 
-static isc_result_t
-txt_fromwire(isc_buffer_t *source, isc_buffer_t *target);
+static isc_result_t txt_fromwire(isc_buffer_t *source, isc_buffer_t *target);
 
-static isc_result_t
-multitxt_totext(isc_region_t *source, isc_buffer_t *target);
+static isc_result_t multitxt_totext(isc_region_t *source, isc_buffer_t *target);
 
-static isc_result_t
-multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target);
+static isc_result_t multitxt_fromtext(isc_textregion_t *source,
+				      isc_buffer_t *target);
 
-static bool
-name_prefix(dns_name_t *name, const dns_name_t *origin, dns_name_t *target);
+static bool name_prefix(dns_name_t *name, const dns_name_t *origin,
+			dns_name_t *target);
 
-static unsigned int
-name_length(const dns_name_t *name);
+static unsigned int name_length(const dns_name_t *name);
 
-static isc_result_t
-str_totext(const char *source, isc_buffer_t *target);
+static isc_result_t str_totext(const char *source, isc_buffer_t *target);
 
-static isc_result_t
-inet_totext(int af, isc_region_t *src, isc_buffer_t *target);
+static isc_result_t inet_totext(int af, isc_region_t *src,
+				isc_buffer_t *target);
 
-static bool
-buffer_empty(isc_buffer_t *source);
+static bool buffer_empty(isc_buffer_t *source);
 
-static void
-buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region);
+static void buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region);
 
-static isc_result_t
-uint32_tobuffer(uint32_t, isc_buffer_t *target);
+static isc_result_t uint32_tobuffer(uint32_t, isc_buffer_t *target);
 
-static isc_result_t
-uint16_tobuffer(uint32_t, isc_buffer_t *target);
+static isc_result_t uint16_tobuffer(uint32_t, isc_buffer_t *target);
 
-static isc_result_t
-uint8_tobuffer(uint32_t, isc_buffer_t *target);
+static isc_result_t uint8_tobuffer(uint32_t, isc_buffer_t *target);
 
-static isc_result_t
-name_tobuffer(const dns_name_t *name, isc_buffer_t *target);
+static isc_result_t name_tobuffer(const dns_name_t *name, isc_buffer_t *target);
 
-static uint32_t
-uint32_fromregion(isc_region_t *region);
+static uint32_t uint32_fromregion(isc_region_t *region);
 
-static uint16_t
-uint16_fromregion(isc_region_t *region);
+static uint16_t uint16_fromregion(isc_region_t *region);
 
-static uint8_t
-uint8_fromregion(isc_region_t *region);
+static uint8_t uint8_fromregion(isc_region_t *region);
 
-static uint8_t
-uint8_consume_fromregion(isc_region_t *region);
+static uint8_t uint8_consume_fromregion(isc_region_t *region);
 
-static isc_result_t
-mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
+static isc_result_t mem_tobuffer(isc_buffer_t *target, void *base,
+				 unsigned int length);
 
-static int
-hexvalue(char value);
+static int hexvalue(char value);
 
-static int
-decvalue(char value);
+static int decvalue(char value);
 
-static void
-default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *, ...)
+static void default_fromtext_callback(dns_rdatacallbacks_t *callbacks,
+				      const char *, ...)
 	ISC_FORMAT_PRINTF(2, 3);
 
 static void
@@ -201,27 +185,22 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 	       dns_rdatacallbacks_t *callbacks, const char *name,
 	       unsigned long line, isc_token_t *token, isc_result_t result);
 
-static void
-fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks);
+static void fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks);
 
-static isc_result_t
-rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-	     isc_buffer_t *target);
+static isc_result_t rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
+				 isc_buffer_t *target);
 
-static void
-warn_badname(const dns_name_t *name, isc_lex_t *lexer,
-	     dns_rdatacallbacks_t *callbacks);
+static void warn_badname(const dns_name_t *name, isc_lex_t *lexer,
+			 dns_rdatacallbacks_t *callbacks);
 
-static void
-warn_badmx(isc_token_t *token, isc_lex_t *lexer,
-	   dns_rdatacallbacks_t *callbacks);
+static void warn_badmx(isc_token_t *token, isc_lex_t *lexer,
+		       dns_rdatacallbacks_t *callbacks);
 
-static uint16_t
-uint16_consume_fromregion(isc_region_t *region);
+static uint16_t uint16_consume_fromregion(isc_region_t *region);
 
-static isc_result_t
-unknown_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-	       isc_buffer_t *target);
+static isc_result_t unknown_totext(dns_rdata_t *rdata,
+				   dns_rdata_textctx_t *tctx,
+				   isc_buffer_t *target);
 
 static inline isc_result_t generic_fromtext_key(ARGS_FROMTEXT);
 
@@ -247,14 +226,12 @@ static isc_result_t generic_tostruct_txt(ARGS_TOSTRUCT);
 
 static void generic_freestruct_txt(ARGS_FREESTRUCT);
 
-static isc_result_t
-generic_txt_first(dns_rdata_txt_t *txt);
+static isc_result_t generic_txt_first(dns_rdata_txt_t *txt);
 
-static isc_result_t
-generic_txt_next(dns_rdata_txt_t *txt);
+static isc_result_t generic_txt_next(dns_rdata_txt_t *txt);
 
-static isc_result_t
-generic_txt_current(dns_rdata_txt_t *txt, dns_rdata_txt_string_t *string);
+static isc_result_t generic_txt_current(dns_rdata_txt_t *txt,
+					dns_rdata_txt_string_t *string);
 
 static isc_result_t generic_totext_ds(ARGS_TOTEXT);
 
@@ -289,8 +266,8 @@ static void generic_freestruct_tlsa(ARGS_FREESTRUCT);
 static unsigned char gc_msdcs_data[] = "\002gc\006_msdcs";
 static unsigned char gc_msdcs_offset[] = { 0, 3 };
 
-static dns_name_t const gc_msdcs =
-	DNS_NAME_INITNONABSOLUTE(gc_msdcs_data, gc_msdcs_offset);
+static dns_name_t const gc_msdcs = DNS_NAME_INITNONABSOLUTE(gc_msdcs_data,
+							    gc_msdcs_offset);
 
 /*%
  *	convert presentation level address to network order binary form.
@@ -300,15 +277,14 @@ static dns_name_t const gc_msdcs =
  *	(1) does not touch `dst' unless it's returning 1.
  */
 static inline int
-locator_pton(const char *src, unsigned char *dst)
-{
+locator_pton(const char *src, unsigned char *dst) {
 	static const char xdigits_l[] = "0123456789abcdef",
 			  xdigits_u[] = "0123456789ABCDEF";
-	unsigned char  tmp[NS_LOCATORSZ];
+	unsigned char tmp[NS_LOCATORSZ];
 	unsigned char *tp = tmp, *endp;
-	const char *   xdigits;
-	int	       ch, seen_xdigits;
-	unsigned int   val;
+	const char *xdigits;
+	int ch, seen_xdigits;
+	unsigned int val;
 
 	memset(tp, '\0', NS_LOCATORSZ);
 	endp = tp + NS_LOCATORSZ;
@@ -359,8 +335,7 @@ locator_pton(const char *src, unsigned char *dst)
 }
 
 static inline isc_result_t
-name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target)
-{
+name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	if (mctx != NULL) {
 		dns_name_dup(source, mctx, target);
 	} else {
@@ -370,8 +345,7 @@ name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target)
 }
 
 static inline void *
-mem_maybedup(isc_mem_t *mctx, void *source, size_t length)
-{
+mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
 	void *copy;
 
 	if (mctx == NULL) {
@@ -384,15 +358,14 @@ mem_maybedup(isc_mem_t *mctx, void *source, size_t length)
 }
 
 static inline isc_result_t
-typemap_fromtext(isc_lex_t *lexer, isc_buffer_t *target, bool allow_empty)
-{
-	isc_token_t	token;
-	unsigned char	bm[8 * 1024]; /* 64k bits */
+typemap_fromtext(isc_lex_t *lexer, isc_buffer_t *target, bool allow_empty) {
+	isc_token_t token;
+	unsigned char bm[8 * 1024]; /* 64k bits */
 	dns_rdatatype_t covered, max_used;
-	int		octet;
-	unsigned int	max_octet, newend, end;
-	int		window;
-	bool		first = true;
+	int octet;
+	unsigned int max_octet, newend, end;
+	int window;
+	bool first = true;
 
 	max_used = 0;
 	bm[0] = 0;
@@ -454,11 +427,10 @@ typemap_fromtext(isc_lex_t *lexer, isc_buffer_t *target, bool allow_empty)
 
 static inline isc_result_t
 typemap_totext(isc_region_t *sr, dns_rdata_textctx_t *tctx,
-	       isc_buffer_t *target)
-{
+	       isc_buffer_t *target) {
 	unsigned int i, j, k;
 	unsigned int window, len;
-	bool	     first = true;
+	bool first = true;
 
 	for (i = 0; i < sr->length; i += len) {
 		if (tctx != NULL &&
@@ -500,11 +472,10 @@ typemap_totext(isc_region_t *sr, dns_rdata_textctx_t *tctx,
 }
 
 static isc_result_t
-typemap_test(isc_region_t *sr, bool allow_empty)
-{
+typemap_test(isc_region_t *sr, bool allow_empty) {
 	unsigned int window, lastwindow = 0;
 	unsigned int len;
-	bool	     first = true;
+	bool first = true;
 	unsigned int i;
 
 	for (i = 0; i < sr->length; i += len) {
@@ -558,7 +529,7 @@ static const char decdigits[] = "0123456789";
 
 #include "code.h"
 
-#define META 0x0001
+#define META	 0x0001
 #define RESERVED 0x0002
 
 /***
@@ -566,8 +537,7 @@ static const char decdigits[] = "0123456789";
  ***/
 
 void
-dns_rdata_init(dns_rdata_t *rdata)
-{
+dns_rdata_init(dns_rdata_t *rdata) {
 	REQUIRE(rdata != NULL);
 
 	rdata->data = NULL;
@@ -580,8 +550,7 @@ dns_rdata_init(dns_rdata_t *rdata)
 }
 
 void
-dns_rdata_reset(dns_rdata_t *rdata)
-{
+dns_rdata_reset(dns_rdata_t *rdata) {
 	REQUIRE(rdata != NULL);
 
 	REQUIRE(!ISC_LINK_LINKED(rdata, link));
@@ -599,8 +568,7 @@ dns_rdata_reset(dns_rdata_t *rdata)
  ***/
 
 void
-dns_rdata_clone(const dns_rdata_t *src, dns_rdata_t *target)
-{
+dns_rdata_clone(const dns_rdata_t *src, dns_rdata_t *target) {
 	REQUIRE(src != NULL);
 	REQUIRE(target != NULL);
 
@@ -621,9 +589,8 @@ dns_rdata_clone(const dns_rdata_t *src, dns_rdata_t *target)
  ***/
 
 int
-dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2)
-{
-	int  result = 0;
+dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2) {
+	int result = 0;
 	bool use_default = false;
 
 	REQUIRE(rdata1 != NULL);
@@ -655,9 +622,8 @@ dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2)
 }
 
 int
-dns_rdata_casecompare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2)
-{
-	int  result = 0;
+dns_rdata_casecompare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2) {
+	int result = 0;
 	bool use_default = false;
 
 	REQUIRE(rdata1 != NULL);
@@ -694,8 +660,7 @@ dns_rdata_casecompare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2)
 
 void
 dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, isc_region_t *r)
-{
+		     dns_rdatatype_t type, isc_region_t *r) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 	REQUIRE(r != NULL);
@@ -710,8 +675,7 @@ dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 }
 
 void
-dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r)
-{
+dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(r != NULL);
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
@@ -724,14 +688,13 @@ isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
 		   dns_decompress_t *dctx, unsigned int options,
-		   isc_buffer_t *target)
-{
+		   isc_buffer_t *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t ss;
 	isc_buffer_t st;
-	bool	     use_default = false;
-	uint32_t     activelength;
+	bool use_default = false;
+	uint32_t activelength;
 	unsigned int length;
 
 	REQUIRE(dctx != NULL);
@@ -795,10 +758,10 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 }
 
 isc_result_t
-dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
+		 isc_buffer_t *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-	bool	     use_default = false;
+	bool use_default = false;
 	isc_region_t tr;
 	isc_buffer_t st;
 
@@ -841,10 +804,9 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
  */
 static isc_result_t
 rdata_validate(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
-	       dns_rdatatype_t type)
-{
+	       dns_rdatatype_t type) {
 	dns_decompress_t dctx;
-	isc_result_t	 result;
+	isc_result_t result;
 
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
 	isc_buffer_setactive(src, isc_buffer_usedlength(src));
@@ -856,11 +818,10 @@ rdata_validate(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
 
 static isc_result_t
 unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		 isc_lex_t *lexer, isc_mem_t *mctx, isc_buffer_t *target)
-{
-	isc_result_t  result;
+		 isc_lex_t *lexer, isc_mem_t *mctx, isc_buffer_t *target) {
+	isc_result_t result;
 	isc_buffer_t *buf = NULL;
-	isc_token_t   token;
+	isc_token_t token;
 
 	if (type == 0 || dns_rdatatype_ismeta(type)) {
 		return (DNS_R_METATYPE);
@@ -909,20 +870,19 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer,
 		   const dns_name_t *origin, unsigned int options,
 		   isc_mem_t *mctx, isc_buffer_t *target,
-		   dns_rdatacallbacks_t *callbacks)
-{
+		   dns_rdatacallbacks_t *callbacks) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t st;
-	isc_token_t  token;
+	isc_token_t token;
 	unsigned int lexoptions = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
 				  ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
-	char *	      name;
+	char *name;
 	unsigned long line;
 	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
 	isc_result_t tresult;
 	unsigned int length;
-	bool	     unknown;
+	bool unknown;
 
 	REQUIRE(origin == NULL || dns_name_isabsolute(origin) == true);
 	if (rdata != NULL) {
@@ -1040,10 +1000,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 static isc_result_t
 unknown_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-	       isc_buffer_t *target)
-{
+	       isc_buffer_t *target) {
 	isc_result_t result;
-	char	     buf[sizeof("65535")];
+	char buf[sizeof("65535")];
 	isc_region_t sr;
 
 	strlcpy(buf, "\\# ", sizeof(buf));
@@ -1087,10 +1046,9 @@ unknown_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 static isc_result_t
 rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-	     isc_buffer_t *target)
-{
+	     isc_buffer_t *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-	bool	     use_default = false;
+	bool use_default = false;
 	unsigned int cur;
 
 	REQUIRE(rdata != NULL);
@@ -1126,8 +1084,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 isc_result_t
 dns_rdata_totext(dns_rdata_t *rdata, const dns_name_t *origin,
-		 isc_buffer_t *target)
-{
+		 isc_buffer_t *target) {
 	dns_rdata_textctx_t tctx;
 
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
@@ -1146,8 +1103,7 @@ isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, const dns_name_t *origin,
 		    dns_masterstyle_flags_t flags, unsigned int width,
 		    unsigned int split_width, const char *linebreak,
-		    isc_buffer_t *target)
-{
+		    isc_buffer_t *target) {
 	dns_rdata_textctx_t tctx;
 
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
@@ -1176,12 +1132,11 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, const dns_name_t *origin,
 
 isc_result_t
 dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, void *source, isc_buffer_t *target)
-{
+		     dns_rdatatype_t type, void *source, isc_buffer_t *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_buffer_t st;
 	isc_region_t region;
-	bool	     use_default = false;
+	bool use_default = false;
 	unsigned int length;
 
 	REQUIRE(source != NULL);
@@ -1215,10 +1170,9 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 }
 
 isc_result_t
-dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
-{
+dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-	bool	     use_default = false;
+	bool use_default = false;
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
@@ -1233,8 +1187,7 @@ dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 void
-dns_rdata_freestruct(void *source)
-{
+dns_rdata_freestruct(void *source) {
 	dns_rdatacommon_t *common = source;
 	REQUIRE(common != NULL);
 
@@ -1243,10 +1196,9 @@ dns_rdata_freestruct(void *source)
 
 isc_result_t
 dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-			 void *arg)
-{
+			 void *arg) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-	bool	     use_default = false;
+	bool use_default = false;
 
 	/*
 	 * Call 'add' for each name and type from 'rdata' which is subject to
@@ -1268,10 +1220,9 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 isc_result_t
-dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-	bool	     use_default = false;
+	bool use_default = false;
 	isc_region_t r;
 
 	/*
@@ -1294,8 +1245,7 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 
 bool
 dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, bool wildcard)
-{
+		     dns_rdatatype_t type, bool wildcard) {
 	bool result;
 
 	CHECKOWNERSWITCH
@@ -1304,8 +1254,7 @@ dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
 
 bool
 dns_rdata_checknames(dns_rdata_t *rdata, const dns_name_t *owner,
-		     dns_name_t *bad)
-{
+		     dns_name_t *bad) {
 	bool result;
 
 	CHECKNAMESSWITCH
@@ -1313,8 +1262,7 @@ dns_rdata_checknames(dns_rdata_t *rdata, const dns_name_t *owner,
 }
 
 unsigned int
-dns_rdatatype_attributes(dns_rdatatype_t type)
-{
+dns_rdatatype_attributes(dns_rdatatype_t type) {
 	RDATATYPE_ATTRIBUTE_SW
 	if (type >= (dns_rdatatype_t)128 && type < (dns_rdatatype_t)255) {
 		return (DNS_RDATATYPEATTR_UNKNOWN | DNS_RDATATYPEATTR_META);
@@ -1323,10 +1271,9 @@ dns_rdatatype_attributes(dns_rdatatype_t type)
 }
 
 isc_result_t
-dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source)
-{
-	unsigned int  hash;
-	unsigned int  n;
+dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
+	unsigned int hash;
+	unsigned int n;
 	unsigned char a, b;
 
 	n = source->length;
@@ -1348,9 +1295,10 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source)
 	RDATATYPE_FROMTEXT_SW(hash, source->base, n, typep);
 
 	if (source->length > 4 && source->length < (4 + sizeof("65000")) &&
-	    strncasecmp("type", source->base, 4) == 0) {
-		char	     buf[sizeof("65000")];
-		char *	     endp;
+	    strncasecmp("type", source->base, 4) == 0)
+	{
+		char buf[sizeof("65000")];
+		char *endp;
 		unsigned int val;
 
 		/*
@@ -1370,16 +1318,14 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source)
 }
 
 isc_result_t
-dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target)
-{
+dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 	RDATATYPE_TOTEXT_SW
 
 	return (dns_rdatatype_tounknowntext(type, target));
 }
 
 isc_result_t
-dns_rdatatype_tounknowntext(dns_rdatatype_t type, isc_buffer_t *target)
-{
+dns_rdatatype_tounknowntext(dns_rdatatype_t type, isc_buffer_t *target) {
 	char buf[sizeof("TYPE65535")];
 
 	snprintf(buf, sizeof(buf), "TYPE%u", type);
@@ -1387,8 +1333,7 @@ dns_rdatatype_tounknowntext(dns_rdatatype_t type, isc_buffer_t *target)
 }
 
 void
-dns_rdatatype_format(dns_rdatatype_t rdtype, char *array, unsigned int size)
-{
+dns_rdatatype_format(dns_rdatatype_t rdtype, char *array, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
@@ -1418,19 +1363,17 @@ dns_rdatatype_format(dns_rdatatype_t rdtype, char *array, unsigned int size)
  */
 
 static unsigned int
-name_length(const dns_name_t *name)
-{
+name_length(const dns_name_t *name) {
 	return (name->length);
 }
 
 static isc_result_t
-txt_totext(isc_region_t *source, bool quote, isc_buffer_t *target)
-{
-	unsigned int   tl;
-	unsigned int   n;
+txt_totext(isc_region_t *source, bool quote, isc_buffer_t *target) {
+	unsigned int tl;
+	unsigned int n;
 	unsigned char *sp;
-	char *	       tp;
-	isc_region_t   region;
+	char *tp;
+	isc_region_t region;
 
 	isc_buffer_availableregion(target, &region);
 	sp = source->base;
@@ -1500,15 +1443,14 @@ txt_totext(isc_region_t *source, bool quote, isc_buffer_t *target)
 }
 
 static isc_result_t
-txt_fromtext(isc_textregion_t *source, isc_buffer_t *target)
-{
-	isc_region_t   tregion;
-	bool	       escape;
-	unsigned int   n, nrem;
-	char *	       s;
+txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
+	isc_region_t tregion;
+	bool escape;
+	unsigned int n, nrem;
+	char *s;
 	unsigned char *t;
-	int	       d;
-	int	       c;
+	int d;
+	int c;
 
 	isc_buffer_availableregion(target, &tregion);
 	s = source->base;
@@ -1576,8 +1518,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target)
 }
 
 static isc_result_t
-txt_fromwire(isc_buffer_t *source, isc_buffer_t *target)
-{
+txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 	unsigned int n;
 	isc_region_t sregion;
 	isc_region_t tregion;
@@ -1608,13 +1549,12 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target)
  * Conversion of TXT-like rdata fields without length limits.
  */
 static isc_result_t
-multitxt_totext(isc_region_t *source, isc_buffer_t *target)
-{
-	unsigned int   tl;
-	unsigned int   n0, n;
+multitxt_totext(isc_region_t *source, isc_buffer_t *target) {
+	unsigned int tl;
+	unsigned int n0, n;
 	unsigned char *sp;
-	char *	       tp;
-	isc_region_t   region;
+	char *tp;
+	isc_region_t region;
 
 	isc_buffer_availableregion(target, &region);
 	sp = source->base;
@@ -1670,15 +1610,14 @@ multitxt_totext(isc_region_t *source, isc_buffer_t *target)
 }
 
 static isc_result_t
-multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target)
-{
-	isc_region_t   tregion;
-	bool	       escape;
-	unsigned int   n, nrem;
-	char *	       s;
+multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
+	isc_region_t tregion;
+	bool escape;
+	unsigned int n, nrem;
+	char *s;
 	unsigned char *t0, *t;
-	int	       d;
-	int	       c;
+	int d;
+	int c;
 
 	s = source->base;
 	n = source->length;
@@ -1739,8 +1678,7 @@ multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target)
 }
 
 static bool
-name_prefix(dns_name_t *name, const dns_name_t *origin, dns_name_t *target)
-{
+name_prefix(dns_name_t *name, const dns_name_t *origin, dns_name_t *target) {
 	int l1, l2;
 
 	if (origin == NULL) {
@@ -1777,8 +1715,7 @@ return_false:
 }
 
 static isc_result_t
-str_totext(const char *source, isc_buffer_t *target)
-{
+str_totext(const char *source, isc_buffer_t *target) {
 	unsigned int l;
 	isc_region_t region;
 
@@ -1795,8 +1732,7 @@ str_totext(const char *source, isc_buffer_t *target)
 }
 
 static isc_result_t
-inet_totext(int af, isc_region_t *src, isc_buffer_t *target)
-{
+inet_totext(int af, isc_region_t *src, isc_buffer_t *target) {
 	char tmpbuf[64];
 
 	/* Note - inet_ntop doesn't do size checking on its input. */
@@ -1811,22 +1747,19 @@ inet_totext(int af, isc_region_t *src, isc_buffer_t *target)
 }
 
 static bool
-buffer_empty(isc_buffer_t *source)
-{
+buffer_empty(isc_buffer_t *source) {
 	return ((source->current == source->active) ? true : false);
 }
 
 static void
-buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region)
-{
+buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region) {
 	isc_buffer_init(buffer, region->base, region->length);
 	isc_buffer_add(buffer, region->length);
 	isc_buffer_setactive(buffer, region->length);
 }
 
 static isc_result_t
-uint32_tobuffer(uint32_t value, isc_buffer_t *target)
-{
+uint32_tobuffer(uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
 	isc_buffer_availableregion(target, &region);
@@ -1838,8 +1771,7 @@ uint32_tobuffer(uint32_t value, isc_buffer_t *target)
 }
 
 static isc_result_t
-uint16_tobuffer(uint32_t value, isc_buffer_t *target)
-{
+uint16_tobuffer(uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
 	if (value > 0xffff) {
@@ -1854,8 +1786,7 @@ uint16_tobuffer(uint32_t value, isc_buffer_t *target)
 }
 
 static isc_result_t
-uint8_tobuffer(uint32_t value, isc_buffer_t *target)
-{
+uint8_tobuffer(uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
 	if (value > 0xff) {
@@ -1870,16 +1801,14 @@ uint8_tobuffer(uint32_t value, isc_buffer_t *target)
 }
 
 static isc_result_t
-name_tobuffer(const dns_name_t *name, isc_buffer_t *target)
-{
+name_tobuffer(const dns_name_t *name, isc_buffer_t *target) {
 	isc_region_t r;
 	dns_name_toregion(name, &r);
 	return (isc_buffer_copyregion(target, &r));
 }
 
 static uint32_t
-uint32_fromregion(isc_region_t *region)
-{
+uint32_fromregion(isc_region_t *region) {
 	uint32_t value;
 
 	REQUIRE(region->length >= 4);
@@ -1891,8 +1820,7 @@ uint32_fromregion(isc_region_t *region)
 }
 
 static uint16_t
-uint16_consume_fromregion(isc_region_t *region)
-{
+uint16_consume_fromregion(isc_region_t *region) {
 	uint16_t r = uint16_fromregion(region);
 
 	isc_region_consume(region, 2);
@@ -1900,24 +1828,21 @@ uint16_consume_fromregion(isc_region_t *region)
 }
 
 static uint16_t
-uint16_fromregion(isc_region_t *region)
-{
+uint16_fromregion(isc_region_t *region) {
 	REQUIRE(region->length >= 2);
 
 	return ((region->base[0] << 8) | region->base[1]);
 }
 
 static uint8_t
-uint8_fromregion(isc_region_t *region)
-{
+uint8_fromregion(isc_region_t *region) {
 	REQUIRE(region->length >= 1);
 
 	return (region->base[0]);
 }
 
 static uint8_t
-uint8_consume_fromregion(isc_region_t *region)
-{
+uint8_consume_fromregion(isc_region_t *region) {
 	uint8_t r = uint8_fromregion(region);
 
 	isc_region_consume(region, 1);
@@ -1925,8 +1850,7 @@ uint8_consume_fromregion(isc_region_t *region)
 }
 
 static isc_result_t
-mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length)
-{
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	isc_region_t tr;
 
 	if (length == 0U) {
@@ -1945,9 +1869,8 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length)
 }
 
 static int
-hexvalue(char value)
-{
-	const char *  s;
+hexvalue(char value) {
+	const char *s;
 	unsigned char c;
 
 	c = (unsigned char)value;
@@ -1965,8 +1888,7 @@ hexvalue(char value)
 }
 
 static int
-decvalue(char value)
-{
+decvalue(char value) {
 	const char *s;
 
 	/*
@@ -1983,8 +1905,8 @@ decvalue(char value)
 }
 
 static void
-default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt, ...)
-{
+default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt,
+			  ...) {
 	va_list ap;
 
 	UNUSED(callbacks);
@@ -1996,8 +1918,7 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt, ...)
 }
 
 static void
-fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks)
-{
+fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks) {
 	if (isc_lex_isfile(lexer) && callbacks != NULL) {
 		const char *name = isc_lex_getsourcename(lexer);
 		if (name == NULL) {
@@ -2011,9 +1932,8 @@ fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks)
 
 static void
 warn_badmx(isc_token_t *token, isc_lex_t *lexer,
-	   dns_rdatacallbacks_t *callbacks)
-{
-	const char *  file;
+	   dns_rdatacallbacks_t *callbacks) {
+	const char *file;
 	unsigned long line;
 
 	if (lexer != NULL) {
@@ -2027,11 +1947,10 @@ warn_badmx(isc_token_t *token, isc_lex_t *lexer,
 
 static void
 warn_badname(const dns_name_t *name, isc_lex_t *lexer,
-	     dns_rdatacallbacks_t *callbacks)
-{
-	const char *  file;
+	     dns_rdatacallbacks_t *callbacks) {
+	const char *file;
 	unsigned long line;
-	char	      namebuf[DNS_NAME_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	if (lexer != NULL) {
 		file = isc_lex_getsourcename(lexer);
@@ -2046,8 +1965,7 @@ warn_badname(const dns_name_t *name, isc_lex_t *lexer,
 static void
 fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 	       dns_rdatacallbacks_t *callbacks, const char *name,
-	       unsigned long line, isc_token_t *token, isc_result_t result)
-{
+	       unsigned long line, isc_token_t *token, isc_result_t result) {
 	if (name == NULL) {
 		name = "UNKNOWN";
 	}
@@ -2090,8 +2008,7 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 }
 
 dns_rdatatype_t
-dns_rdata_covers(dns_rdata_t *rdata)
-{
+dns_rdata_covers(dns_rdata_t *rdata) {
 	if (rdata->type == dns_rdatatype_rrsig) {
 		return (covers_rrsig(rdata));
 	}
@@ -2099,8 +2016,7 @@ dns_rdata_covers(dns_rdata_t *rdata)
 }
 
 bool
-dns_rdatatype_ismeta(dns_rdatatype_t type)
-{
+dns_rdatatype_ismeta(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_META) != 0) {
 		return (true);
 	}
@@ -2108,18 +2024,16 @@ dns_rdatatype_ismeta(dns_rdatatype_t type)
 }
 
 bool
-dns_rdatatype_issingleton(dns_rdatatype_t type)
-{
-	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_SINGLETON) !=
-	    0) {
+dns_rdatatype_issingleton(dns_rdatatype_t type) {
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_SINGLETON) != 0)
+	{
 		return (true);
 	}
 	return (false);
 }
 
 bool
-dns_rdatatype_notquestion(dns_rdatatype_t type)
-{
+dns_rdatatype_notquestion(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_NOTQUESTION) !=
 	    0) {
 		return (true);
@@ -2128,8 +2042,7 @@ dns_rdatatype_notquestion(dns_rdatatype_t type)
 }
 
 bool
-dns_rdatatype_questiononly(dns_rdatatype_t type)
-{
+dns_rdatatype_questiononly(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_QUESTIONONLY) !=
 	    0) {
 		return (true);
@@ -2138,8 +2051,7 @@ dns_rdatatype_questiononly(dns_rdatatype_t type)
 }
 
 bool
-dns_rdatatype_atcname(dns_rdatatype_t type)
-{
+dns_rdatatype_atcname(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATCNAME) != 0) {
 		return (true);
 	}
@@ -2147,20 +2059,19 @@ dns_rdatatype_atcname(dns_rdatatype_t type)
 }
 
 bool
-dns_rdatatype_atparent(dns_rdatatype_t type)
-{
-	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATPARENT) !=
-	    0) {
+dns_rdatatype_atparent(dns_rdatatype_t type) {
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATPARENT) != 0)
+	{
 		return (true);
 	}
 	return (false);
 }
 
 bool
-dns_rdataclass_ismeta(dns_rdataclass_t rdclass)
-{
+dns_rdataclass_ismeta(dns_rdataclass_t rdclass) {
 	if (rdclass == dns_rdataclass_reserved0 ||
-	    rdclass == dns_rdataclass_none || rdclass == dns_rdataclass_any) {
+	    rdclass == dns_rdataclass_none || rdclass == dns_rdataclass_any)
+	{
 		return (true);
 	}
 
@@ -2168,8 +2079,7 @@ dns_rdataclass_ismeta(dns_rdataclass_t rdclass)
 }
 
 bool
-dns_rdatatype_isdnssec(dns_rdatatype_t type)
-{
+dns_rdatatype_isdnssec(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_DNSSEC) != 0) {
 		return (true);
 	}
@@ -2177,8 +2087,7 @@ dns_rdatatype_isdnssec(dns_rdatatype_t type)
 }
 
 bool
-dns_rdatatype_iszonecutauth(dns_rdatatype_t type)
-{
+dns_rdatatype_iszonecutauth(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ZONECUTAUTH) !=
 	    0) {
 		return (true);
@@ -2187,8 +2096,7 @@ dns_rdatatype_iszonecutauth(dns_rdatatype_t type)
 }
 
 bool
-dns_rdatatype_isknown(dns_rdatatype_t type)
-{
+dns_rdatatype_isknown(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_UNKNOWN) == 0) {
 		return (true);
 	}
@@ -2196,8 +2104,7 @@ dns_rdatatype_isknown(dns_rdatatype_t type)
 }
 
 void
-dns_rdata_exists(dns_rdata_t *rdata, dns_rdatatype_t type)
-{
+dns_rdata_exists(dns_rdata_t *rdata, dns_rdatatype_t type) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 
@@ -2209,8 +2116,7 @@ dns_rdata_exists(dns_rdata_t *rdata, dns_rdatatype_t type)
 }
 
 void
-dns_rdata_notexist(dns_rdata_t *rdata, dns_rdatatype_t type)
-{
+dns_rdata_notexist(dns_rdata_t *rdata, dns_rdatatype_t type) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 
@@ -2222,8 +2128,7 @@ dns_rdata_notexist(dns_rdata_t *rdata, dns_rdatatype_t type)
 }
 
 void
-dns_rdata_deleterrset(dns_rdata_t *rdata, dns_rdatatype_t type)
-{
+dns_rdata_deleterrset(dns_rdata_t *rdata, dns_rdatatype_t type) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 
@@ -2235,16 +2140,14 @@ dns_rdata_deleterrset(dns_rdata_t *rdata, dns_rdatatype_t type)
 }
 
 void
-dns_rdata_makedelete(dns_rdata_t *rdata)
-{
+dns_rdata_makedelete(dns_rdata_t *rdata) {
 	REQUIRE(rdata != NULL);
 
 	rdata->rdclass = dns_rdataclass_none;
 }
 
 const char *
-dns_rdata_updateop(dns_rdata_t *rdata, dns_section_t section)
-{
+dns_rdata_updateop(dns_rdata_t *rdata, dns_section_t section) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 

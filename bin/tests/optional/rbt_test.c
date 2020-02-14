@@ -23,16 +23,15 @@
 #include <dns/result.h>
 
 const char *progname;
-isc_mem_t * mctx;
+isc_mem_t *mctx;
 
 #define DNSNAMELEN 255
 
 static dns_name_t *
-create_name(char *s)
-{
-	int		   length;
-	isc_result_t	   result;
-	isc_buffer_t	   source, target;
+create_name(char *s) {
+	int length;
+	isc_result_t result;
+	isc_buffer_t source, target;
 	static dns_name_t *name;
 
 	if (s == NULL || *s == '\0') {
@@ -72,8 +71,7 @@ create_name(char *s)
 }
 
 static void
-delete_name(void *data, void *arg)
-{
+delete_name(void *data, void *arg) {
 	dns_name_t *name;
 
 	UNUSED(arg);
@@ -82,10 +80,9 @@ delete_name(void *data, void *arg)
 }
 
 static void
-print_name(dns_name_t *name)
-{
+print_name(dns_name_t *name) {
 	isc_buffer_t target;
-	char	     buffer[1024];
+	char buffer[1024];
 
 	isc_buffer_init(&target, buffer, sizeof(buffer));
 
@@ -98,14 +95,13 @@ print_name(dns_name_t *name)
 }
 
 static void
-detail(dns_rbt_t *rbt, dns_name_t *name)
-{
-	dns_name_t *	   foundname, *origin, *fullname;
-	dns_fixedname_t	   fixedfoundname, fixedorigin, fixedfullname;
-	dns_rbtnode_t *	   node1, *node2;
+detail(dns_rbt_t *rbt, dns_name_t *name) {
+	dns_name_t *foundname, *origin, *fullname;
+	dns_fixedname_t fixedfoundname, fixedorigin, fixedfullname;
+	dns_rbtnode_t *node1, *node2;
 	dns_rbtnodechain_t chain;
-	isc_result_t	   result;
-	bool		   nodes_should_match = false;
+	isc_result_t result;
+	bool nodes_should_match = false;
 
 	dns_rbtnodechain_init(&chain);
 
@@ -155,8 +151,8 @@ detail(dns_rbt_t *rbt, dns_name_t *name)
 	if (result == ISC_R_SUCCESS) {
 		printf("\n  name from dns_rbtnodechain_current: ");
 
-		result =
-			dns_name_concatenate(foundname, origin, fullname, NULL);
+		result = dns_name_concatenate(foundname, origin, fullname,
+					      NULL);
 		if (result == ISC_R_SUCCESS) {
 			print_name(fullname);
 		} else {
@@ -181,12 +177,11 @@ detail(dns_rbt_t *rbt, dns_name_t *name)
 }
 
 static void
-iterate(dns_rbt_t *rbt, bool forward)
-{
-	dns_name_t	   foundname, *origin;
+iterate(dns_rbt_t *rbt, bool forward) {
+	dns_name_t foundname, *origin;
 	dns_rbtnodechain_t chain;
-	dns_fixedname_t	   fixedorigin;
-	isc_result_t	   result;
+	dns_fixedname_t fixedorigin;
+	isc_result_t result;
 	isc_result_t (*move)(dns_rbtnodechain_t * chain, dns_name_t * name,
 			     dns_name_t * origin);
 
@@ -199,8 +194,8 @@ iterate(dns_rbt_t *rbt, bool forward)
 		printf("iterating forward\n");
 		move = dns_rbtnodechain_next;
 
-		result =
-			dns_rbtnodechain_first(&chain, rbt, &foundname, origin);
+		result = dns_rbtnodechain_first(&chain, rbt, &foundname,
+						origin);
 	} else {
 		printf("iterating backward\n");
 		move = dns_rbtnodechain_prev;
@@ -241,17 +236,16 @@ iterate(dns_rbt_t *rbt, bool forward)
 		printf("... %s\n", dns_result_totext(r));
 
 int
-main(int argc, char **argv)
-{
-	char *		command, *arg, buffer[1024];
-	const char *	whitespace;
-	dns_name_t *	name, *foundname;
+main(int argc, char **argv) {
+	char *command, *arg, buffer[1024];
+	const char *whitespace;
+	dns_name_t *name, *foundname;
 	dns_fixedname_t fixedname;
-	dns_rbt_t *	rbt = NULL;
-	int		length, ch;
-	bool		show_final_mem = false;
-	isc_result_t	result;
-	void *		data;
+	dns_rbt_t *rbt = NULL;
+	int length, ch;
+	bool show_final_mem = false;
+	isc_result_t result;
+	void *data;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL) {

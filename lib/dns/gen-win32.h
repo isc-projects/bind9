@@ -86,8 +86,7 @@ ISC_LANG_BEGINDECLS
  *	Parse argc/argv argument vector.
  */
 int
-isc_commandline_parse(int argc, char *const *argv, const char *options)
-{
+isc_commandline_parse(int argc, char *const *argv, const char *options) {
 	static char *place = ENDOPT;
 	char *	     option; /* Index into *options of option. */
 
@@ -103,7 +102,8 @@ isc_commandline_parse(int argc, char *const *argv, const char *options)
 		}
 
 		if (isc_commandline_index >= argc ||
-		    *(place = argv[isc_commandline_index]) != '-') {
+		    *(place = argv[isc_commandline_index]) != '-')
+		{
 			/*
 			 * Index out of range or points to non-option.
 			 */
@@ -214,8 +214,7 @@ typedef struct {
 } isc_dir_t;
 
 bool
-start_directory(const char *path, isc_dir_t *dir)
-{
+start_directory(const char *path, isc_dir_t *dir) {
 	char pattern[_MAX_PATH], *p;
 
 	/*
@@ -251,8 +250,7 @@ start_directory(const char *path, isc_dir_t *dir)
 }
 
 bool
-next_file(isc_dir_t *dir)
-{
+next_file(isc_dir_t *dir) {
 	if (dir->first_file) {
 		dir->first_file = false;
 	} else if (dir->handle != INVALID_HANDLE_VALUE) {
@@ -273,8 +271,7 @@ next_file(isc_dir_t *dir)
 }
 
 void
-end_directory(isc_dir_t *dir)
-{
+end_directory(isc_dir_t *dir) {
 	if (dir->handle != INVALID_HANDLE_VALUE) {
 		FindClose(dir->handle);
 	}

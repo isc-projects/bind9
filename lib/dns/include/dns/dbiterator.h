@@ -80,7 +80,7 @@ typedef struct dns_dbiteratormethods {
 	isc_result_t (*origin)(dns_dbiterator_t *iterator, dns_name_t *name);
 } dns_dbiteratormethods_t;
 
-#define DNS_DBITERATOR_MAGIC ISC_MAGIC('D', 'N', 'S', 'I')
+#define DNS_DBITERATOR_MAGIC	  ISC_MAGIC('D', 'N', 'S', 'I')
 #define DNS_DBITERATOR_VALID(dbi) ISC_MAGIC_VALID(dbi, DNS_DBITERATOR_MAGIC)
 /*%
  * This structure is actually just the common prefix of a DNS db

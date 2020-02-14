@@ -32,18 +32,12 @@
 
 typedef struct builtin builtin_t;
 
-static isc_result_t
-do_version_lookup(dns_sdblookup_t *lookup);
-static isc_result_t
-do_hostname_lookup(dns_sdblookup_t *lookup);
-static isc_result_t
-do_authors_lookup(dns_sdblookup_t *lookup);
-static isc_result_t
-do_id_lookup(dns_sdblookup_t *lookup);
-static isc_result_t
-do_empty_lookup(dns_sdblookup_t *lookup);
-static isc_result_t
-do_dns64_lookup(dns_sdblookup_t *lookup);
+static isc_result_t do_version_lookup(dns_sdblookup_t *lookup);
+static isc_result_t do_hostname_lookup(dns_sdblookup_t *lookup);
+static isc_result_t do_authors_lookup(dns_sdblookup_t *lookup);
+static isc_result_t do_id_lookup(dns_sdblookup_t *lookup);
+static isc_result_t do_empty_lookup(dns_sdblookup_t *lookup);
+static isc_result_t do_dns64_lookup(dns_sdblookup_t *lookup);
 
 /*
  * We can't use function pointers as the db_data directly
@@ -92,8 +86,7 @@ static const unsigned char hex16[256] = {
 const unsigned char decimal[] = "0123456789";
 
 static size_t
-dns64_rdata(unsigned char *v, size_t start, unsigned char *rdata)
-{
+dns64_rdata(unsigned char *v, size_t start, unsigned char *rdata) {
 	size_t i, j = 0;
 
 	for (i = 0; i < 4U; i++) {
@@ -124,12 +117,11 @@ dns64_rdata(unsigned char *v, size_t start, unsigned char *rdata)
 
 static isc_result_t
 dns64_cname(const dns_name_t *zone, const dns_name_t *name,
-	    dns_sdblookup_t *lookup)
-{
-	size_t	       zlen, nlen, j, len;
-	unsigned char  v[16], n;
-	unsigned int   i;
-	unsigned char  rdata[sizeof("123.123.123.123.in-addr.arpa.")];
+	    dns_sdblookup_t *lookup) {
+	size_t zlen, nlen, j, len;
+	unsigned char v[16], n;
+	unsigned int i;
+	unsigned char rdata[sizeof("123.123.123.123.in-addr.arpa.")];
 	unsigned char *ndata;
 
 	/*
@@ -298,8 +290,7 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 static isc_result_t
 builtin_lookup(const char *zone, const char *name, void *dbdata,
 	       dns_sdblookup_t *lookup, dns_clientinfomethods_t *methods,
-	       dns_clientinfo_t *clientinfo)
-{
+	       dns_clientinfo_t *clientinfo) {
 	builtin_t *b = (builtin_t *)dbdata;
 
 	UNUSED(zone);
@@ -316,8 +307,7 @@ builtin_lookup(const char *zone, const char *name, void *dbdata,
 static isc_result_t
 dns64_lookup(const dns_name_t *zone, const dns_name_t *name, void *dbdata,
 	     dns_sdblookup_t *lookup, dns_clientinfomethods_t *methods,
-	     dns_clientinfo_t *clientinfo)
-{
+	     dns_clientinfo_t *clientinfo) {
 	builtin_t *b = (builtin_t *)dbdata;
 
 	UNUSED(methods);
@@ -331,10 +321,9 @@ dns64_lookup(const dns_name_t *zone, const dns_name_t *name, void *dbdata,
 }
 
 static isc_result_t
-put_txt(dns_sdblookup_t *lookup, const char *text)
-{
+put_txt(dns_sdblookup_t *lookup, const char *text) {
 	unsigned char buf[256];
-	unsigned int  len = strlen(text);
+	unsigned int len = strlen(text);
 	if (len > 255) {
 		len = 255; /* Silently truncate */
 	}
@@ -344,8 +333,7 @@ put_txt(dns_sdblookup_t *lookup, const char *text)
 }
 
 static isc_result_t
-do_version_lookup(dns_sdblookup_t *lookup)
-{
+do_version_lookup(dns_sdblookup_t *lookup) {
 	if (named_g_server->version_set) {
 		if (named_g_server->version == NULL) {
 			return (ISC_R_SUCCESS);
@@ -358,8 +346,7 @@ do_version_lookup(dns_sdblookup_t *lookup)
 }
 
 static isc_result_t
-do_hostname_lookup(dns_sdblookup_t *lookup)
-{
+do_hostname_lookup(dns_sdblookup_t *lookup) {
 	if (named_g_server->hostname_set) {
 		if (named_g_server->hostname == NULL) {
 			return (ISC_R_SUCCESS);
@@ -367,7 +354,7 @@ do_hostname_lookup(dns_sdblookup_t *lookup)
 			return (put_txt(lookup, named_g_server->hostname));
 		}
 	} else {
-		char	     buf[256];
+		char buf[256];
 		isc_result_t result = named_os_gethostname(buf, sizeof(buf));
 		if (result != ISC_R_SUCCESS) {
 			return (result);
@@ -377,10 +364,9 @@ do_hostname_lookup(dns_sdblookup_t *lookup)
 }
 
 static isc_result_t
-do_authors_lookup(dns_sdblookup_t *lookup)
-{
-	isc_result_t	   result;
-	const char **	   p;
+do_authors_lookup(dns_sdblookup_t *lookup) {
+	isc_result_t result;
+	const char **p;
 	static const char *authors[] = {
 		"Mark Andrews",	  "Curtis Blackburn",	"James Brister",
 		"Ben Cottrell",	  "John H. DuBois III", "Francis Dupont",
@@ -408,10 +394,9 @@ do_authors_lookup(dns_sdblookup_t *lookup)
 }
 
 static isc_result_t
-do_id_lookup(dns_sdblookup_t *lookup)
-{
+do_id_lookup(dns_sdblookup_t *lookup) {
 	if (named_g_server->sctx->gethostname != NULL) {
-		char	     buf[256];
+		char buf[256];
 		isc_result_t result;
 
 		result = named_g_server->sctx->gethostname(buf, sizeof(buf));
@@ -427,26 +412,23 @@ do_id_lookup(dns_sdblookup_t *lookup)
 }
 
 static isc_result_t
-do_dns64_lookup(dns_sdblookup_t *lookup)
-{
+do_dns64_lookup(dns_sdblookup_t *lookup) {
 	UNUSED(lookup);
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
-do_empty_lookup(dns_sdblookup_t *lookup)
-{
+do_empty_lookup(dns_sdblookup_t *lookup) {
 	UNUSED(lookup);
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
-builtin_authority(const char *zone, void *dbdata, dns_sdblookup_t *lookup)
-{
+builtin_authority(const char *zone, void *dbdata, dns_sdblookup_t *lookup) {
 	isc_result_t result;
-	const char * contact = "hostmaster";
-	const char * server = "@";
-	builtin_t *  b = (builtin_t *)dbdata;
+	const char *contact = "hostmaster";
+	const char *server = "@";
+	builtin_t *b = (builtin_t *)dbdata;
 
 	UNUSED(zone);
 	UNUSED(dbdata);
@@ -478,8 +460,7 @@ builtin_authority(const char *zone, void *dbdata, dns_sdblookup_t *lookup)
 
 static isc_result_t
 builtin_create(const char *zone, int argc, char **argv, void *driverdata,
-	       void **dbdata)
-{
+	       void **dbdata) {
 	REQUIRE(argc >= 1);
 
 	UNUSED(zone);
@@ -504,8 +485,8 @@ builtin_create(const char *zone, int argc, char **argv, void *driverdata,
 	} else if (strcmp(argv[0], "empty") == 0 ||
 		   strcmp(argv[0], "dns64") == 0) {
 		builtin_t *empty;
-		char *	   server;
-		char *	   contact;
+		char *server;
+		char *contact;
 		/*
 		 * We don't want built-in zones to fail.  Fallback to
 		 * the static configuration if memory allocation fails.
@@ -548,8 +529,7 @@ builtin_create(const char *zone, int argc, char **argv, void *driverdata,
 }
 
 static void
-builtin_destroy(const char *zone, void *driverdata, void **dbdata)
-{
+builtin_destroy(const char *zone, void *driverdata, void **dbdata) {
 	builtin_t *b = (builtin_t *)*dbdata;
 
 	UNUSED(zone);
@@ -560,7 +540,8 @@ builtin_destroy(const char *zone, void *driverdata, void **dbdata)
 	 */
 	if (*dbdata == &version_builtin || *dbdata == &hostname_builtin ||
 	    *dbdata == &authors_builtin || *dbdata == &id_builtin ||
-	    *dbdata == &empty_builtin || *dbdata == &dns64_builtin) {
+	    *dbdata == &empty_builtin || *dbdata == &dns64_builtin)
+	{
 		return;
 	}
 
@@ -580,8 +561,7 @@ static dns_sdbmethods_t dns64_methods = {
 };
 
 isc_result_t
-named_builtin_init(void)
-{
+named_builtin_init(void) {
 	RUNTIME_CHECK(dns_sdb_register("_builtin", &builtin_methods, NULL,
 				       DNS_SDBFLAG_RELATIVEOWNER |
 					       DNS_SDBFLAG_RELATIVERDATA,
@@ -597,8 +577,7 @@ named_builtin_init(void)
 }
 
 void
-named_builtin_deinit(void)
-{
+named_builtin_deinit(void) {
 	dns_sdb_unregister(&builtin_impl);
 	dns_sdb_unregister(&dns64_impl);
 }

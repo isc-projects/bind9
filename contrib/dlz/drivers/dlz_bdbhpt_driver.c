@@ -65,9 +65,9 @@ static dns_sdlzimplementation_t *dlz_bdbhpt = NULL;
 #define bdbhpt_threads DB_THREAD
 
 /* bdbhpt database names */
-#define dlz_data "dns_data"
-#define dlz_zone "dns_zone"
-#define dlz_xfr "dns_xfr"
+#define dlz_data   "dns_data"
+#define dlz_zone   "dns_zone"
+#define dlz_xfr	   "dns_xfr"
 #define dlz_client "dns_client"
 
 /* This structure contains all the Berkeley DB handles
@@ -75,26 +75,27 @@ static dns_sdlzimplementation_t *dlz_bdbhpt = NULL;
  */
 
 typedef struct bdbhpt_instance {
-	DB_ENV *   dbenv;  /*%< bdbhpt environment */
-	DB *	   data;   /*%< dns_data database handle */
-	DB *	   zone;   /*%< zone database handle */
-	DB *	   xfr;	   /*%< zone xfr database handle */
-	DB *	   client; /*%< client database handle */
-	isc_mem_t *mctx;   /*%< memory context */
+	DB_ENV *dbenv;	 /*%< bdbhpt environment */
+	DB *data;	 /*%< dns_data database handle */
+	DB *zone;	 /*%< zone database handle */
+	DB *xfr;	 /*%< zone xfr database handle */
+	DB *client;	 /*%< client database handle */
+	isc_mem_t *mctx; /*%< memory context */
 } bdbhpt_instance_t;
 
 typedef struct bdbhpt_parsed_data {
 	char *host;
 	char *type;
-	int   ttl;
+	int ttl;
 	char *data;
 } bdbhpt_parsed_data_t;
 
 /* forward reference */
 
-static isc_result_t
-bdbhpt_findzone(void *driverarg, void *dbdata, const char *name,
-		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo);
+static isc_result_t bdbhpt_findzone(void *driverarg, void *dbdata,
+				    const char *name,
+				    dns_clientinfomethods_t *methods,
+				    dns_clientinfo_t *clientinfo);
 
 /*%
  * Reverses a string in place.
@@ -238,9 +239,9 @@ static isc_result_t
 bdbhpt_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		    const char *client)
 {
-	isc_result_t	   result;
+	isc_result_t result;
 	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
-	DBT		   key, data;
+	DBT key, data;
 
 	/* check to see if we are authoritative for the zone first. */
 	result = bdbhpt_findzone(driverarg, dbdata, name, NULL, NULL);
@@ -322,16 +323,16 @@ static isc_result_t
 bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
 		dns_sdlzallnodes_t *allnodes)
 {
-	isc_result_t	     result = ISC_R_NOTFOUND;
-	bdbhpt_instance_t *  db = (bdbhpt_instance_t *)dbdata;
-	DBC *		     xfr_cursor = NULL;
-	DBC *		     dns_cursor = NULL;
-	DBT		     xfr_key, xfr_data, dns_key, dns_data;
-	int		     xfr_flags;
-	int		     dns_flags;
-	int		     bdbhptres;
+	isc_result_t result = ISC_R_NOTFOUND;
+	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
+	DBC *xfr_cursor = NULL;
+	DBC *dns_cursor = NULL;
+	DBT xfr_key, xfr_data, dns_key, dns_data;
+	int xfr_flags;
+	int dns_flags;
+	int bdbhptres;
 	bdbhpt_parsed_data_t pd;
-	char *		     tmp = NULL, *tmp_zone, *tmp_zone_host = NULL;
+	char *tmp = NULL, *tmp_zone, *tmp_zone_host = NULL;
 
 	UNUSED(driverarg);
 
@@ -363,7 +364,8 @@ bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
 
 	/* loop through xfr table for specified zone. */
 	while ((bdbhptres = xfr_cursor->c_get(xfr_cursor, &xfr_key, &xfr_data,
-					      xfr_flags)) == 0) {
+					      xfr_flags)) == 0)
+	{
 		xfr_flags = DB_NEXT_DUP;
 
 		/* +1 to allow for space between zone and host names */
@@ -387,7 +389,8 @@ bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
 
 		while ((bdbhptres = dns_cursor->c_get(dns_cursor, &dns_key,
 						      &dns_data, dns_flags)) ==
-		       0) {
+		       0)
+		{
 			dns_flags = DB_NEXT_DUP;
 
 			/* +1 to allow for null term at end of string. */
@@ -489,9 +492,9 @@ static isc_result_t
 bdbhpt_findzone(void *driverarg, void *dbdata, const char *name,
 		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
-	isc_result_t	   result;
+	isc_result_t result;
 	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
-	DBT		   key, data;
+	DBT key, data;
 
 	UNUSED(driverarg);
 	UNUSED(methods);
@@ -544,16 +547,16 @@ bdbhpt_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
 	      dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
 	      dns_clientinfo_t *clientinfo)
 {
-	isc_result_t	   result = ISC_R_NOTFOUND;
+	isc_result_t result = ISC_R_NOTFOUND;
 	bdbhpt_instance_t *db = (bdbhpt_instance_t *)dbdata;
-	DBC *		   data_cursor = NULL;
-	DBT		   key, data;
-	int		   bdbhptres;
-	int		   flags;
+	DBC *data_cursor = NULL;
+	DBT key, data;
+	int bdbhptres;
+	int flags;
 
 	bdbhpt_parsed_data_t pd;
-	char *		     tmp = NULL;
-	char *		     keyStr = NULL;
+	char *tmp = NULL;
+	char *keyStr = NULL;
 
 	UNUSED(driverarg);
 	UNUSED(methods);
@@ -651,7 +654,8 @@ bdbhpt_opendb(DB_ENV *db_env, DBTYPE db_type, DB **db, const char *db_name,
 
 	/* open the database. */
 	if ((result = (*db)->open(*db, NULL, db_file, db_name, db_type,
-				  DB_RDONLY | bdbhpt_threads, 0)) != 0) {
+				  DB_RDONLY | bdbhpt_threads, 0)) != 0)
+	{
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 			      "bdbhpt could not open %s database in %s. "
@@ -667,9 +671,9 @@ static isc_result_t
 bdbhpt_create(const char *dlzname, unsigned int argc, char *argv[],
 	      void *driverarg, void **dbdata)
 {
-	isc_result_t	   result;
-	int		   bdbhptres;
-	int		   bdbFlags = 0;
+	isc_result_t result;
+	int bdbhptres;
+	int bdbFlags = 0;
 	bdbhpt_instance_t *db = NULL;
 
 	UNUSED(dlzname);

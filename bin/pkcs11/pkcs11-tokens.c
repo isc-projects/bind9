@@ -30,12 +30,11 @@
 #include <sys/types.h>
 
 int
-main(int argc, char *argv[])
-{
-	isc_result_t   result;
-	char *	       lib_name = NULL;
-	int	       c, errflg = 0;
-	isc_mem_t *    mctx = NULL;
+main(int argc, char *argv[]) {
+	isc_result_t result;
+	char *lib_name = NULL;
+	int c, errflg = 0;
+	isc_mem_t *mctx = NULL;
 	pk11_context_t pctx;
 
 	while ((c = isc_commandline_parse(argc, argv, ":m:v")) != -1) {
@@ -76,7 +75,8 @@ main(int argc, char *argv[])
 
 	result = pk11_get_session(&pctx, OP_ANY, true, false, false, NULL, 0);
 	if (result == PK11_R_NORANDOMSERVICE ||
-	    result == PK11_R_NODIGESTSERVICE || result == PK11_R_NOAESSERVICE) {
+	    result == PK11_R_NODIGESTSERVICE || result == PK11_R_NOAESSERVICE)
+	{
 		fprintf(stderr, "Warning: %s\n", isc_result_totext(result));
 		fprintf(stderr, "This HSM will not work with BIND 9 "
 				"using native PKCS#11.\n\n");

@@ -24,8 +24,7 @@
 
 isc_result_t
 dns_keydata_todnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
-		     isc_mem_t *mctx)
-{
+		     isc_mem_t *mctx) {
 	REQUIRE(keydata != NULL && dnskey != NULL);
 
 	dnskey->common.rdtype = dns_rdatatype_dnskey;
@@ -50,8 +49,7 @@ dns_keydata_todnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
 isc_result_t
 dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
 		       uint32_t refresh, uint32_t addhd, uint32_t removehd,
-		       isc_mem_t *mctx)
-{
+		       isc_mem_t *mctx) {
 	REQUIRE(keydata != NULL && dnskey != NULL);
 
 	keydata->common.rdtype = dns_rdatatype_keydata;

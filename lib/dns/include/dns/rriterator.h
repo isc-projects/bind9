@@ -65,7 +65,7 @@ typedef struct dns_rriterator {
 	dns_rdata_t	    rdata;
 } dns_rriterator_t;
 
-#define RRITERATOR_MAGIC ISC_MAGIC('R', 'R', 'I', 't')
+#define RRITERATOR_MAGIC    ISC_MAGIC('R', 'R', 'I', 't')
 #define VALID_RRITERATOR(m) ISC_MAGIC_VALID(m, RRITERATOR_MAGIC)
 
 isc_result_t

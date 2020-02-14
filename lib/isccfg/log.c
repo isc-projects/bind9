@@ -31,8 +31,7 @@ LIBISCCFG_EXTERNAL_DATA isc_logmodule_t cfg_modules[] = {
 };
 
 void
-cfg_log_init(isc_log_t *lctx)
-{
+cfg_log_init(isc_log_t *lctx) {
 	REQUIRE(lctx != NULL);
 
 	isc_log_registercategories(lctx, cfg_categories);

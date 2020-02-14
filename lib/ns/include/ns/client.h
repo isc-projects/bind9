@@ -81,7 +81,7 @@
  *** Types
  ***/
 
-#define NS_CLIENT_TCP_BUFFER_SIZE (65535 + 2)
+#define NS_CLIENT_TCP_BUFFER_SIZE  (65535 + 2)
 #define NS_CLIENT_SEND_BUFFER_SIZE 4096
 #define NS_CLIENT_RECV_BUFFER_SIZE 4096
 
@@ -266,25 +266,25 @@ struct ns_client {
 	int32_t rcode_override;
 };
 
-#define NS_CLIENT_MAGIC ISC_MAGIC('N', 'S', 'C', 'c')
+#define NS_CLIENT_MAGIC	   ISC_MAGIC('N', 'S', 'C', 'c')
 #define NS_CLIENT_VALID(c) ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
 
-#define NS_CLIENTATTR_TCP 0x00001
-#define NS_CLIENTATTR_RA 0x00002	 /*%< Client gets recursive service */
-#define NS_CLIENTATTR_PKTINFO 0x00004	 /*%< pktinfo is valid */
-#define NS_CLIENTATTR_MULTICAST 0x00008	 /*%< recv'd from multicast */
+#define NS_CLIENTATTR_TCP	 0x00001
+#define NS_CLIENTATTR_RA	 0x00002 /*%< Client gets recursive service */
+#define NS_CLIENTATTR_PKTINFO	 0x00004 /*%< pktinfo is valid */
+#define NS_CLIENTATTR_MULTICAST	 0x00008 /*%< recv'd from multicast */
 #define NS_CLIENTATTR_WANTDNSSEC 0x00010 /*%< include dnssec records */
-#define NS_CLIENTATTR_WANTNSID 0x00020	 /*%< include nameserver ID */
+#define NS_CLIENTATTR_WANTNSID	 0x00020 /*%< include nameserver ID */
 /* Obsolete: NS_CLIENTATTR_FILTER_AAAA	0x00040 */
 /* Obsolete: NS_CLIENTATTR_FILTER_AAAA_RC 0x00080 */
-#define NS_CLIENTATTR_WANTAD 0x00100	 /*%< want AD in response if possible */
-#define NS_CLIENTATTR_WANTCOOKIE 0x00200 /*%< return a COOKIE */
-#define NS_CLIENTATTR_HAVECOOKIE 0x00400 /*%< has a valid COOKIE */
-#define NS_CLIENTATTR_WANTEXPIRE 0x00800 /*%< return seconds to expire */
-#define NS_CLIENTATTR_HAVEEXPIRE 0x01000 /*%< return seconds to expire */
-#define NS_CLIENTATTR_WANTOPT 0x02000	 /*%< add opt to reply */
-#define NS_CLIENTATTR_HAVEECS 0x04000	 /*%< received an ECS option */
-#define NS_CLIENTATTR_WANTPAD 0x08000	 /*%< pad reply */
+#define NS_CLIENTATTR_WANTAD	   0x00100 /*%< want AD in response if possible */
+#define NS_CLIENTATTR_WANTCOOKIE   0x00200 /*%< return a COOKIE */
+#define NS_CLIENTATTR_HAVECOOKIE   0x00400 /*%< has a valid COOKIE */
+#define NS_CLIENTATTR_WANTEXPIRE   0x00800 /*%< return seconds to expire */
+#define NS_CLIENTATTR_HAVEEXPIRE   0x01000 /*%< return seconds to expire */
+#define NS_CLIENTATTR_WANTOPT	   0x02000 /*%< add opt to reply */
+#define NS_CLIENTATTR_HAVEECS	   0x04000 /*%< received an ECS option */
+#define NS_CLIENTATTR_WANTPAD	   0x08000 /*%< pad reply */
 #define NS_CLIENTATTR_USEKEEPALIVE 0x10000 /*%< use TCP keepalive */
 
 #define NS_CLIENTATTR_NOSETFC 0x20000 /*%< don't set servfail cache */

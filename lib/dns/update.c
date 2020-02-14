@@ -59,7 +59,7 @@
 
 /**************************************************************************/
 
-#define STATE_MAGIC ISC_MAGIC('S', 'T', 'T', 'E')
+#define STATE_MAGIC	       ISC_MAGIC('S', 'T', 'T', 'E')
 #define DNS_STATE_VALID(state) ISC_MAGIC_VALID(state, STATE_MAGIC)
 
 /*%
@@ -188,7 +188,7 @@ typedef struct rr rr_t;
 
 struct rr {
 	/* dns_name_t name; */
-	uint32_t    ttl;
+	uint32_t ttl;
 	dns_rdata_t rdata;
 };
 
@@ -196,16 +196,14 @@ typedef struct update_event update_event_t;
 
 /**************************************************************************/
 
-static void
-update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
-	   const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
+static void update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
+		       const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
 
 static void
 update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
-	   const char *fmt, ...)
-{
+	   const char *fmt, ...) {
 	va_list ap;
-	char	message[4096];
+	char message[4096];
 
 	if (callback == NULL) {
 		return;
@@ -232,9 +230,8 @@ update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
  */
 static isc_result_t
 do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
-	     dns_diff_t *diff)
-{
-	dns_diff_t   temp_diff;
+	     dns_diff_t *diff) {
+	dns_diff_t temp_diff;
 	isc_result_t result;
 
 	/*
@@ -267,10 +264,9 @@ do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
 static isc_result_t
 update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	      dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
-	      dns_rdata_t *rdata)
-{
+	      dns_rdata_t *rdata) {
 	dns_difftuple_t *tuple = NULL;
-	isc_result_t	 result;
+	isc_result_t result;
 	result = dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
@@ -301,33 +297,31 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 /*%
  * Function type for foreach_rrset() iterator actions.
  */
-typedef isc_result_t
-rrset_func(void *data, dns_rdataset_t *rrset);
+typedef isc_result_t rrset_func(void *data, dns_rdataset_t *rrset);
 
 /*%
  * Function type for foreach_rr() iterator actions.
  */
-typedef isc_result_t
-rr_func(void *data, rr_t *rr);
+typedef isc_result_t rr_func(void *data, rr_t *rr);
 
 /*%
  * Internal context struct for foreach_node_rr().
  */
 typedef struct {
 	rr_func *rr_action;
-	void *	 rr_action_data;
+	void *rr_action_data;
 } foreach_node_rr_ctx_t;
 
 /*%
  * Internal helper function for foreach_node_rr().
  */
 static isc_result_t
-foreach_node_rr_action(void *data, dns_rdataset_t *rdataset)
-{
-	isc_result_t	       result;
+foreach_node_rr_action(void *data, dns_rdataset_t *rdataset) {
+	isc_result_t result;
 	foreach_node_rr_ctx_t *ctx = data;
 	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset)) {
+	     result = dns_rdataset_next(rdataset))
+	{
 		rr_t rr = { 0, DNS_RDATA_INIT };
 
 		dns_rdataset_current(rdataset, &rr.rdata);
@@ -352,10 +346,9 @@ foreach_node_rr_action(void *data, dns_rdataset_t *rdataset)
  */
 static isc_result_t
 foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	      rrset_func *action, void *action_data)
-{
-	isc_result_t	    result;
-	dns_dbnode_t *	    node;
+	      rrset_func *action, void *action_data) {
+	isc_result_t result;
+	dns_dbnode_t *node;
 	dns_rdatasetiter_t *iter;
 
 	node = NULL;
@@ -374,7 +367,8 @@ foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	}
 
 	for (result = dns_rdatasetiter_first(iter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iter)) {
+	     result = dns_rdatasetiter_next(iter))
+	{
 		dns_rdataset_t rdataset;
 
 		dns_rdataset_init(&rdataset);
@@ -410,8 +404,7 @@ cleanup_node:
  */
 static isc_result_t
 foreach_node_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-		rr_func *rr_action, void *rr_action_data)
-{
+		rr_func *rr_action, void *rr_action_data) {
 	foreach_node_rr_ctx_t ctx;
 	ctx.rr_action = rr_action;
 	ctx.rr_action_data = rr_action_data;
@@ -430,10 +423,9 @@ foreach_node_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 static isc_result_t
 foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	   dns_rdatatype_t type, dns_rdatatype_t covers, rr_func *rr_action,
-	   void *rr_action_data)
-{
-	isc_result_t   result;
-	dns_dbnode_t * node;
+	   void *rr_action_data) {
+	isc_result_t result;
+	dns_dbnode_t *node;
 	dns_rdataset_t rdataset;
 
 	if (type == dns_rdatatype_any) {
@@ -443,7 +435,8 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 	node = NULL;
 	if (type == dns_rdatatype_nsec3 ||
-	    (type == dns_rdatatype_rrsig && covers == dns_rdatatype_nsec3)) {
+	    (type == dns_rdatatype_rrsig && covers == dns_rdatatype_nsec3))
+	{
 		result = dns_db_findnsec3node(db, name, false, &node);
 	} else {
 		result = dns_db_findnode(db, name, false, &node);
@@ -467,7 +460,8 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	}
 
 	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset)) {
+	     result = dns_rdataset_next(&rdataset))
+	{
 		rr_t rr = { 0, DNS_RDATA_INIT };
 		dns_rdataset_current(&rdataset, &rr.rdata);
 		rr.ttl = rdataset.ttl;
@@ -498,15 +492,13 @@ cleanup_node:
  * Function type for predicate functions that compare a database RR 'db_rr'
  * against an update RR 'update_rr'.
  */
-typedef bool
-rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
+typedef bool rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
 
 /*%
  * Helper function for rrset_exists().
  */
 static isc_result_t
-rrset_exists_action(void *data, rr_t *rr)
-{
+rrset_exists_action(void *data, rr_t *rr) {
 	UNUSED(data);
 	UNUSED(rr);
 	return (ISC_R_EXISTS);
@@ -538,8 +530,7 @@ rrset_exists_action(void *data, rr_t *rr)
  */
 static isc_result_t
 rrset_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	     dns_rdatatype_t type, dns_rdatatype_t covers, bool *exists)
-{
+	     dns_rdatatype_t type, dns_rdatatype_t covers, bool *exists) {
 	isc_result_t result;
 	result = foreach_rr(db, ver, name, type, covers, rrset_exists_action,
 			    NULL);
@@ -553,9 +544,8 @@ rrset_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  */
 static isc_result_t
 rrset_visible(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	      dns_rdatatype_t type, bool *visible)
-{
-	isc_result_t	result;
+	      dns_rdatatype_t type, bool *visible) {
+	isc_result_t result;
 	dns_fixedname_t fixed;
 
 	dns_fixedname_init(&fixed);
@@ -591,8 +581,7 @@ rrset_visible(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  */
 
 static isc_result_t
-name_exists_action(void *data, dns_rdataset_t *rrset)
-{
+name_exists_action(void *data, dns_rdataset_t *rrset) {
 	UNUSED(data);
 	UNUSED(rrset);
 	return (ISC_R_EXISTS);
@@ -602,8 +591,8 @@ name_exists_action(void *data, dns_rdataset_t *rrset)
  * Set '*exists' to true iff the given name exists, to false otherwise.
  */
 static isc_result_t
-name_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *exists)
-{
+name_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+	    bool *exists) {
 	isc_result_t result;
 	result = foreach_rrset(db, ver, name, name_exists_action, NULL);
 	RETURN_EXISTENCE_FLAG;
@@ -626,13 +615,12 @@ name_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *exists)
  * followed by the type and rdata.
  */
 static int
-temp_order(const void *av, const void *bv)
-{
+temp_order(const void *av, const void *bv) {
 	dns_difftuple_t const *const *ap = av;
 	dns_difftuple_t const *const *bp = bv;
-	dns_difftuple_t const *	      a = *ap;
-	dns_difftuple_t const *	      b = *bp;
-	int			      r;
+	dns_difftuple_t const *a = *ap;
+	dns_difftuple_t const *b = *bp;
+	int r;
 	r = dns_name_compare(&a->name, &b->name);
 	if (r != 0) {
 		return (r);
@@ -655,12 +643,12 @@ temp_order(const void *av, const void *bv)
  */
 
 typedef struct {
-	rr_predicate *	 predicate;
-	dns_db_t *	 db;
+	rr_predicate *predicate;
+	dns_db_t *db;
 	dns_dbversion_t *ver;
-	dns_diff_t *	 diff;
-	dns_name_t *	 name;
-	dns_rdata_t *	 update_rr;
+	dns_diff_t *diff;
+	dns_name_t *name;
+	dns_rdata_t *update_rr;
 } conditional_delete_ctx_t;
 
 /*%
@@ -671,8 +659,7 @@ typedef struct {
  * Return true always.
  */
 static bool
-true_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr)
-{
+true_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	UNUSED(update_rr);
 	UNUSED(db_rr);
 	return (true);
@@ -682,8 +669,7 @@ true_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr)
  * Return true if the record is a RRSIG.
  */
 static bool
-rrsig_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr)
-{
+rrsig_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	UNUSED(update_rr);
 	return ((db_rr->type == dns_rdatatype_rrsig) ? true : false);
 }
@@ -692,8 +678,7 @@ rrsig_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr)
  * Internal helper function for delete_if().
  */
 static isc_result_t
-delete_if_action(void *data, rr_t *rr)
-{
+delete_if_action(void *data, rr_t *rr) {
 	conditional_delete_ctx_t *ctx = data;
 	if ((*ctx->predicate)(ctx->update_rr, &rr->rdata)) {
 		isc_result_t result;
@@ -716,8 +701,7 @@ delete_if_action(void *data, rr_t *rr)
 static isc_result_t
 delete_if(rr_predicate *predicate, dns_db_t *db, dns_dbversion_t *ver,
 	  dns_name_t *name, dns_rdatatype_t type, dns_rdatatype_t covers,
-	  dns_rdata_t *update_rr, dns_diff_t *diff)
-{
+	  dns_rdata_t *update_rr, dns_diff_t *diff) {
 	conditional_delete_ctx_t ctx;
 	ctx.predicate = predicate;
 	ctx.db = db;
@@ -739,10 +723,9 @@ delete_if(rr_predicate *predicate, dns_db_t *db, dns_dbversion_t *ver,
  * affected by the update.
  */
 static isc_result_t
-namelist_append_name(dns_diff_t *list, dns_name_t *name)
-{
-	isc_result_t	   result;
-	dns_difftuple_t *  tuple = NULL;
+namelist_append_name(dns_diff_t *list, dns_name_t *name) {
+	isc_result_t result;
+	dns_difftuple_t *tuple = NULL;
 	static dns_rdata_t dummy_rdata = DNS_RDATA_INIT;
 
 	CHECK(dns_difftuple_create(list->mctx, DNS_DIFFOP_EXISTS, name, 0,
@@ -753,11 +736,11 @@ failure:
 }
 
 static isc_result_t
-namelist_append_subdomain(dns_db_t *db, dns_name_t *name, dns_diff_t *affected)
-{
-	isc_result_t	  result;
-	dns_fixedname_t	  fixedname;
-	dns_name_t *	  child;
+namelist_append_subdomain(dns_db_t *db, dns_name_t *name,
+			  dns_diff_t *affected) {
+	isc_result_t result;
+	dns_fixedname_t fixedname;
+	dns_name_t *child;
 	dns_dbiterator_t *dbit = NULL;
 
 	child = dns_fixedname_initname(&fixedname);
@@ -765,7 +748,8 @@ namelist_append_subdomain(dns_db_t *db, dns_name_t *name, dns_diff_t *affected)
 	CHECK(dns_db_createiterator(db, DNS_DB_NONSEC3, &dbit));
 
 	for (result = dns_dbiterator_seek(dbit, name); result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_next(dbit)) {
+	     result = dns_dbiterator_next(dbit))
+	{
 		dns_dbnode_t *node = NULL;
 		CHECK(dns_dbiterator_current(dbit, &node, child));
 		dns_db_detachnode(db, &node);
@@ -788,14 +772,14 @@ failure:
  * Helper function for non_nsec_rrset_exists().
  */
 static isc_result_t
-is_non_nsec_action(void *data, dns_rdataset_t *rrset)
-{
+is_non_nsec_action(void *data, dns_rdataset_t *rrset) {
 	UNUSED(data);
 	if (!(rrset->type == dns_rdatatype_nsec ||
 	      rrset->type == dns_rdatatype_nsec3 ||
 	      (rrset->type == dns_rdatatype_rrsig &&
 	       (rrset->covers == dns_rdatatype_nsec ||
-		rrset->covers == dns_rdatatype_nsec3)))) {
+		rrset->covers == dns_rdatatype_nsec3))))
+	{
 		return (ISC_R_EXISTS);
 	}
 	return (ISC_R_SUCCESS);
@@ -811,8 +795,7 @@ is_non_nsec_action(void *data, dns_rdataset_t *rrset)
  */
 static isc_result_t
 non_nsec_rrset_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-		      bool *exists)
-{
+		      bool *exists) {
 	isc_result_t result;
 	result = foreach_rrset(db, ver, name, is_non_nsec_action, NULL);
 	RETURN_EXISTENCE_FLAG;
@@ -822,19 +805,17 @@ non_nsec_rrset_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  * A comparison function for sorting dns_diff_t:s by name.
  */
 static int
-name_order(const void *av, const void *bv)
-{
+name_order(const void *av, const void *bv) {
 	dns_difftuple_t const *const *ap = av;
 	dns_difftuple_t const *const *bp = bv;
-	dns_difftuple_t const *	      a = *ap;
-	dns_difftuple_t const *	      b = *bp;
+	dns_difftuple_t const *a = *ap;
+	dns_difftuple_t const *b = *bp;
 	return (dns_name_compare(&a->name, &b->name));
 }
 
 static isc_result_t
-uniqify_name_list(dns_diff_t *list)
-{
-	isc_result_t	 result;
+uniqify_name_list(dns_diff_t *list) {
+	isc_result_t result;
 	dns_difftuple_t *p, *q;
 
 	CHECK(dns_diff_sort(list, name_order));
@@ -857,9 +838,8 @@ failure:
 
 static isc_result_t
 is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
-	  bool *cut, bool *unsecure)
-{
-	isc_result_t	result;
+	  bool *cut, bool *unsecure) {
+	isc_result_t result;
 	dns_fixedname_t foundname;
 	dns_fixedname_init(&foundname);
 	result = dns_db_find(db, name, ver, dns_rdatatype_any,
@@ -884,7 +864,8 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 			if (dns_db_find(db, name, ver, dns_rdatatype_ds, 0,
 					(isc_stdtime_t)0, NULL,
 					dns_fixedname_name(&foundname), NULL,
-					NULL) == DNS_R_NXRRSET) {
+					NULL) == DNS_R_NXRRSET)
+			{
 				*unsecure = true;
 			} else {
 				*unsecure = false;
@@ -892,7 +873,8 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 		}
 		return (ISC_R_SUCCESS);
 	} else if (result == DNS_R_GLUE || result == DNS_R_DNAME ||
-		   result == DNS_R_DELEGATION || result == DNS_R_NXDOMAIN) {
+		   result == DNS_R_DELEGATION || result == DNS_R_NXDOMAIN)
+	{
 		*flag = false;
 		*cut = false;
 		if (unsecure != NULL) {
@@ -921,13 +903,12 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 static isc_result_t
 next_active(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	    dns_dbversion_t *ver, dns_name_t *oldname, dns_name_t *newname,
-	    bool forward)
-{
-	isc_result_t	  result;
+	    bool forward) {
+	isc_result_t result;
 	dns_dbiterator_t *dbit = NULL;
-	bool		  has_nsec = false;
-	unsigned int	  wraps = 0;
-	bool		  secure = dns_db_issecure(db);
+	bool has_nsec = false;
+	unsigned int wraps = 0;
+	bool secure = dns_db_issecure(db);
 
 	CHECK(dns_db_createiterator(db, 0, &dbit));
 
@@ -972,7 +953,7 @@ next_active(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 					   0, &has_nsec));
 		} else {
 			dns_fixedname_t ffound;
-			dns_name_t *	found;
+			dns_name_t *found;
 			found = dns_fixedname_initname(&ffound);
 			result = dns_db_find(
 				db, newname, ver, dns_rdatatype_soa,
@@ -981,7 +962,8 @@ next_active(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			    result == DNS_R_EMPTYNAME ||
 			    result == DNS_R_NXRRSET || result == DNS_R_CNAME ||
 			    (result == DNS_R_DELEGATION &&
-			     dns_name_equal(newname, found))) {
+			     dns_name_equal(newname, found)))
+			{
 				has_nsec = true;
 				result = ISC_R_SUCCESS;
 			} else if (result != DNS_R_NXDOMAIN) {
@@ -1004,15 +986,14 @@ failure:
 static isc_result_t
 add_nsec(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	 dns_dbversion_t *ver, dns_name_t *name, dns_ttl_t nsecttl,
-	 dns_diff_t *diff)
-{
-	isc_result_t	 result;
-	dns_dbnode_t *	 node = NULL;
-	unsigned char	 buffer[DNS_NSEC_BUFFERSIZE];
-	dns_rdata_t	 rdata = DNS_RDATA_INIT;
+	 dns_diff_t *diff) {
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	unsigned char buffer[DNS_NSEC_BUFFERSIZE];
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_difftuple_t *tuple = NULL;
-	dns_fixedname_t	 fixedname;
-	dns_name_t *	 target;
+	dns_fixedname_t fixedname;
+	dns_name_t *target;
 
 	target = dns_fixedname_initname(&fixedname);
 
@@ -1054,13 +1035,12 @@ failure:
  */
 static isc_result_t
 add_placeholder_nsec(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-		     dns_diff_t *diff)
-{
-	isc_result_t	 result;
+		     dns_diff_t *diff) {
+	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
-	isc_region_t	 r;
-	unsigned char	 data[1] = { 0 }; /* The root domain, no bits. */
-	dns_rdata_t	 rdata = DNS_RDATA_INIT;
+	isc_region_t r;
+	unsigned char data[1] = { 0 }; /* The root domain, no bits. */
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	r.base = data;
 	r.length = sizeof(data);
@@ -1075,12 +1055,11 @@ failure:
 static isc_result_t
 find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	       isc_mem_t *mctx, unsigned int maxkeys, dst_key_t **keys,
-	       unsigned int *nkeys)
-{
-	isc_result_t  result;
+	       unsigned int *nkeys) {
+	isc_result_t result;
 	isc_stdtime_t now;
 	dns_dbnode_t *node = NULL;
-	const char *  directory = dns_zone_getkeydirectory(zone);
+	const char *directory = dns_zone_getkeydirectory(zone);
 	CHECK(dns_db_findnode(db, dns_db_origin(db), false, &node));
 	isc_stdtime_get(&now);
 	CHECK(dns_dnssec_findzonekeys(db, ver, node, dns_db_origin(db),
@@ -1101,19 +1080,18 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	 dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
 	 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
 	 isc_stdtime_t inception, isc_stdtime_t expire, bool check_ksk,
-	 bool keyset_kskonly)
-{
-	isc_result_t   result;
-	dns_dbnode_t * node = NULL;
-	dns_kasp_t *   kasp = dns_zone_getkasp(zone);
+	 bool keyset_kskonly) {
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 	dns_rdataset_t rdataset;
-	dns_rdata_t    sig_rdata = DNS_RDATA_INIT;
-	dns_stats_t *  dnssecsignstats = dns_zone_getdnssecsignstats(zone);
-	isc_buffer_t   buffer;
-	unsigned char  data[1024]; /* XXX */
-	unsigned int   i, j;
-	bool	       added_sig = false;
-	isc_mem_t *    mctx = diff->mctx;
+	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
+	dns_stats_t *dnssecsignstats = dns_zone_getdnssecsignstats(zone);
+	isc_buffer_t buffer;
+	unsigned char data[1024]; /* XXX */
+	unsigned int i, j;
+	bool added_sig = false;
+	isc_mem_t *mctx = diff->mctx;
 
 	if (kasp != NULL) {
 		check_ksk = false;
@@ -1134,8 +1112,8 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_db_detachnode(db, &node);
 
 #define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
-#define KSK(x) ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
-#define ALG(x) dst_key_alg(x)
+#define KSK(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
+#define ALG(x)	  dst_key_alg(x)
 
 	/*
 	 * If we are honoring KSK flags then we need to check that we
@@ -1197,9 +1175,9 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 * key should sign.
 			 */
 			isc_stdtime_t when;
-			isc_result_t  kresult;
-			bool	      ksk = false;
-			bool	      zsk = false;
+			isc_result_t kresult;
+			bool ksk = false;
+			bool zsk = false;
 
 			kresult = dst_key_getbool(keys[i], DST_BOOL_KSK, &ksk);
 			if (kresult != ISC_R_SUCCESS) {
@@ -1216,7 +1194,8 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 
 			if (type == dns_rdatatype_dnskey ||
 			    type == dns_rdatatype_cdnskey ||
-			    type == dns_rdatatype_cds) {
+			    type == dns_rdatatype_cds)
+			{
 				/*
 				 * DNSKEY RRset is signed with KSK.
 				 * CDS and CDNSKEY RRsets too (RFC 7344, 4.1).
@@ -1251,7 +1230,8 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 */
 			if (type == dns_rdatatype_dnskey ||
 			    type == dns_rdatatype_cdnskey ||
-			    type == dns_rdatatype_cds) {
+			    type == dns_rdatatype_cds)
+			{
 				if (!KSK(keys[i]) && keyset_kskonly) {
 					continue;
 				}
@@ -1302,15 +1282,14 @@ failure:
  */
 static isc_result_t
 del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	    dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys)
-{
-	isc_result_t	  result;
-	dns_dbnode_t *	  node = NULL;
-	dns_rdataset_t	  rdataset;
-	dns_rdata_t	  rdata = DNS_RDATA_INIT;
-	unsigned int	  i;
+	    dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys) {
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
-	bool		  found;
+	bool found;
 
 	dns_rdataset_init(&rdataset);
 
@@ -1334,7 +1313,8 @@ del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	}
 
 	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset)) {
+	     result = dns_rdataset_next(&rdataset))
+	{
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -1385,10 +1365,9 @@ add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		 dns_dbversion_t *ver, dns_name_t *name, bool cut,
 		 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
 		 isc_stdtime_t inception, isc_stdtime_t expire, bool check_ksk,
-		 bool keyset_kskonly, unsigned int *sigs)
-{
-	isc_result_t	    result;
-	dns_dbnode_t *	    node;
+		 bool keyset_kskonly, unsigned int *sigs) {
+	isc_result_t result;
+	dns_dbnode_t *node;
 	dns_rdatasetiter_t *iter;
 
 	node = NULL;
@@ -1407,10 +1386,11 @@ add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	}
 
 	for (result = dns_rdatasetiter_first(iter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iter)) {
-		dns_rdataset_t	rdataset;
+	     result = dns_rdatasetiter_next(iter))
+	{
+		dns_rdataset_t rdataset;
 		dns_rdatatype_t type;
-		bool		flag;
+		bool flag;
 
 		dns_rdataset_init(&rdataset);
 		dns_rdatasetiter_current(iter, &rdataset);
@@ -1468,25 +1448,24 @@ cleanup_node:
 isc_result_t
 dns_update_signatures(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		      dns_dbversion_t *oldver, dns_dbversion_t *newver,
-		      dns_diff_t *diff, uint32_t sigvalidityinterval)
-{
+		      dns_diff_t *diff, uint32_t sigvalidityinterval) {
 	return (dns_update_signaturesinc(log, zone, db, oldver, newver, diff,
 					 sigvalidityinterval, NULL));
 }
 
 struct dns_update_state {
-	unsigned int  magic;
-	dns_diff_t    diffnames;
-	dns_diff_t    affected;
-	dns_diff_t    sig_diff;
-	dns_diff_t    nsec_diff;
-	dns_diff_t    nsec_mindiff;
-	dns_diff_t    work;
-	dst_key_t *   zone_keys[DNS_MAXZONEKEYS];
-	unsigned int  nkeys;
+	unsigned int magic;
+	dns_diff_t diffnames;
+	dns_diff_t affected;
+	dns_diff_t sig_diff;
+	dns_diff_t nsec_diff;
+	dns_diff_t nsec_mindiff;
+	dns_diff_t work;
+	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
+	unsigned int nkeys;
 	isc_stdtime_t inception, expire, keyexpire;
-	dns_ttl_t     nsecttl;
-	bool	      check_ksk, keyset_kskonly, build_nsec3;
+	dns_ttl_t nsecttl;
+	bool check_ksk, keyset_kskonly, build_nsec3;
 	enum { sign_updates,
 	       remove_orphaned,
 	       build_chain,
@@ -1498,8 +1477,7 @@ struct dns_update_state {
 };
 
 static uint32_t
-dns__jitter_expire(dns_zone_t *zone, uint32_t sigvalidityinterval)
-{
+dns__jitter_expire(dns_zone_t *zone, uint32_t sigvalidityinterval) {
 	/* Spread out signatures over time */
 	if (sigvalidityinterval >= 3600U) {
 		uint32_t expiryinterval =
@@ -1522,24 +1500,23 @@ isc_result_t
 dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 dns_dbversion_t *oldver, dns_dbversion_t *newver,
 			 dns_diff_t *diff, uint32_t sigvalidityinterval,
-			 dns_update_state_t **statep)
-{
-	isc_result_t	   result = ISC_R_SUCCESS;
+			 dns_update_state_t **statep) {
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_update_state_t mystate, *state;
 
 	dns_difftuple_t *t, *next;
-	bool		 flag, build_nsec;
-	unsigned int	 i;
-	isc_stdtime_t	 now;
-	dns_rdata_soa_t	 soa;
-	dns_rdata_t	 rdata = DNS_RDATA_INIT;
-	dns_rdataset_t	 rdataset;
-	dns_dbnode_t *	 node = NULL;
-	bool		 unsecure;
-	bool		 cut;
-	dns_rdatatype_t	 privatetype = dns_zone_getprivatetype(zone);
-	unsigned int	 sigs = 0;
-	unsigned int	 maxsigs = dns_zone_getsignatures(zone);
+	bool flag, build_nsec;
+	unsigned int i;
+	isc_stdtime_t now;
+	dns_rdata_soa_t soa;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdataset_t rdataset;
+	dns_dbnode_t *node = NULL;
+	bool unsecure;
+	bool cut;
+	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
+	unsigned int sigs = 0;
+	unsigned int maxsigs = dns_zone_getsignatures(zone);
 
 	if (statep == NULL || *statep == NULL) {
 		if (statep == NULL) {
@@ -1569,8 +1546,8 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 
 		isc_stdtime_get(&now);
 		state->inception = now - 3600; /* Allow for some clock skew. */
-		state->expire =
-			now + dns__jitter_expire(zone, sigvalidityinterval);
+		state->expire = now +
+				dns__jitter_expire(zone, sigvalidityinterval);
 		state->keyexpire = dns_zone_getkeyvalidityinterval(zone);
 		if (state->keyexpire == 0) {
 			state->keyexpire = state->expire;
@@ -1677,7 +1654,8 @@ next_state:
 					isc_stdtime_t exp;
 					if (type == dns_rdatatype_dnskey ||
 					    type == dns_rdatatype_cdnskey ||
-					    type == dns_rdatatype_cds) {
+					    type == dns_rdatatype_cds)
+					{
 						exp = state->keyexpire;
 					} else {
 						exp = state->expire;
@@ -1718,7 +1696,8 @@ next_state:
 
 		/* Remove orphaned NSECs and RRSIG NSECs. */
 		for (t = ISC_LIST_HEAD(state->diffnames.tuples); t != NULL;
-		     t = ISC_LIST_NEXT(t, link)) {
+		     t = ISC_LIST_NEXT(t, link))
+		{
 			CHECK(non_nsec_rrset_exists(db, newver, &t->name,
 						    &flag));
 			if (!flag) {
@@ -1751,10 +1730,11 @@ next_state:
 		 * have its NSEC updated.
 		 */
 		for (t = ISC_LIST_HEAD(state->diffnames.tuples); t != NULL;
-		     t = ISC_LIST_NEXT(t, link)) {
-			bool		existed, exists;
+		     t = ISC_LIST_NEXT(t, link))
+		{
+			bool existed, exists;
 			dns_fixedname_t fixedname;
-			dns_name_t *	prevname;
+			dns_name_t *prevname;
 
 			prevname = dns_fixedname_initname(&fixedname);
 
@@ -1791,7 +1771,8 @@ next_state:
 		 * removing one).
 		 */
 		for (t = ISC_LIST_HEAD(state->diffnames.tuples); t != NULL;
-		     t = ISC_LIST_NEXT(t, link)) {
+		     t = ISC_LIST_NEXT(t, link))
+		{
 			bool ns_existed, dname_existed;
 			bool ns_exists, dname_exists;
 
@@ -1843,7 +1824,7 @@ next_state:
 		 * should be part of the NSEC chain.
 		 */
 		while ((t = ISC_LIST_HEAD(state->affected.tuples)) != NULL) {
-			bool	    exists;
+			bool exists;
 			dns_name_t *name = &t->name;
 
 			CHECK(name_exists(db, newver, name, &exists));
@@ -1904,7 +1885,8 @@ next_state:
 		 * Make them all point at their correct targets.
 		 */
 		for (t = ISC_LIST_HEAD(state->affected.tuples); t != NULL;
-		     t = ISC_LIST_NEXT(t, link)) {
+		     t = ISC_LIST_NEXT(t, link))
+		{
 			CHECK(rrset_exists(db, newver, &t->name,
 					   dns_rdatatype_nsec, 0, &flag));
 			if (flag) {
@@ -1950,8 +1932,8 @@ next_state:
 	case sign_nsec:
 		state->state = sign_nsec;
 		/* Update RRSIG NSECs. */
-		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) !=
-		       NULL) {
+		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) != NULL)
+		{
 			if (t->op == DNS_DIFFOP_DEL) {
 				CHECK(delete_if(true_p, db, newver, &t->name,
 						dns_rdatatype_rrsig,
@@ -1987,8 +1969,8 @@ next_state:
 			ISC_LIST_UNLINK(state->sig_diff.tuples, t, link);
 			dns_diff_appendminimal(diff, &t);
 		}
-		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) !=
-		       NULL) {
+		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) != NULL)
+		{
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			dns_diff_appendminimal(diff, &t);
 		}
@@ -2125,8 +2107,8 @@ next_state:
 	case sign_nsec3:
 		state->state = sign_nsec3;
 		/* Update RRSIG NSEC3s. */
-		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) !=
-		       NULL) {
+		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) != NULL)
+		{
 			if (t->op == DNS_DIFFOP_DEL) {
 				CHECK(delete_if(true_p, db, newver, &t->name,
 						dns_rdatatype_rrsig,
@@ -2159,8 +2141,8 @@ next_state:
 			ISC_LIST_UNLINK(state->sig_diff.tuples, t, link);
 			dns_diff_appendminimal(diff, &t);
 		}
-		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) !=
-		       NULL) {
+		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) != NULL)
+		{
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			dns_diff_appendminimal(diff, &t);
 		}
@@ -2201,8 +2183,7 @@ failure:
 }
 
 static isc_stdtime_t
-epoch_to_yyyymmdd(time_t when)
-{
+epoch_to_yyyymmdd(time_t when) {
 	struct tm *tm;
 
 #if !defined(WIN32)
@@ -2216,10 +2197,9 @@ epoch_to_yyyymmdd(time_t when)
 }
 
 uint32_t
-dns_update_soaserial(uint32_t serial, dns_updatemethod_t method)
-{
+dns_update_soaserial(uint32_t serial, dns_updatemethod_t method) {
 	isc_stdtime_t now;
-	uint32_t      new_serial;
+	uint32_t new_serial;
 
 	switch (method) {
 	case dns_updatemethod_none:

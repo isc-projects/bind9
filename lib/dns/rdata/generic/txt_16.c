@@ -14,10 +14,10 @@
 
 #define RRTYPE_TXT_ATTRIBUTES (0)
 
-static inline isc_result_t generic_fromtext_txt(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+generic_fromtext_txt(ARGS_FROMTEXT) {
 	isc_token_t token;
-	int	    strings;
+	int strings;
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -48,8 +48,8 @@ static inline isc_result_t generic_fromtext_txt(ARGS_FROMTEXT)
 	return (strings == 0 ? ISC_R_UNEXPECTEDEND : ISC_R_SUCCESS);
 }
 
-static inline isc_result_t generic_totext_txt(ARGS_TOTEXT)
-{
+static inline isc_result_t
+generic_totext_txt(ARGS_TOTEXT) {
 	isc_region_t region;
 
 	UNUSED(tctx);
@@ -66,8 +66,8 @@ static inline isc_result_t generic_totext_txt(ARGS_TOTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t generic_fromwire_txt(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+generic_fromwire_txt(ARGS_FROMWIRE) {
 	isc_result_t result;
 
 	UNUSED(type);
@@ -84,31 +84,31 @@ static inline isc_result_t generic_fromwire_txt(ARGS_FROMWIRE)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t fromtext_txt(ARGS_FROMTEXT)
-{
+static inline isc_result_t
+fromtext_txt(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_txt);
 
 	return (generic_fromtext_txt(rdclass, type, lexer, origin, options,
 				     target, callbacks));
 }
 
-static inline isc_result_t totext_txt(ARGS_TOTEXT)
-{
+static inline isc_result_t
+totext_txt(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_txt);
 
 	return (generic_totext_txt(rdata, tctx, target));
 }
 
-static inline isc_result_t fromwire_txt(ARGS_FROMWIRE)
-{
+static inline isc_result_t
+fromwire_txt(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_txt);
 
 	return (generic_fromwire_txt(rdclass, type, source, dctx, options,
 				     target));
 }
 
-static inline isc_result_t towire_txt(ARGS_TOWIRE)
-{
+static inline isc_result_t
+towire_txt(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_txt);
 
 	UNUSED(cctx);
@@ -116,8 +116,8 @@ static inline isc_result_t towire_txt(ARGS_TOWIRE)
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int compare_txt(ARGS_COMPARE)
-{
+static inline int
+compare_txt(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -130,11 +130,11 @@ static inline int compare_txt(ARGS_COMPARE)
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t generic_fromstruct_txt(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+generic_fromstruct_txt(ARGS_FROMSTRUCT) {
 	dns_rdata_txt_t *txt = source;
-	isc_region_t	 region;
-	uint8_t		 length;
+	isc_region_t region;
+	uint8_t length;
 
 	REQUIRE(txt != NULL);
 	REQUIRE(txt->common.rdtype == type);
@@ -158,10 +158,10 @@ static inline isc_result_t generic_fromstruct_txt(ARGS_FROMSTRUCT)
 	return (mem_tobuffer(target, txt->txt, txt->txt_len));
 }
 
-static inline isc_result_t generic_tostruct_txt(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+generic_tostruct_txt(ARGS_TOSTRUCT) {
 	dns_rdata_txt_t *txt = target;
-	isc_region_t	 r;
+	isc_region_t r;
 
 	REQUIRE(txt != NULL);
 	REQUIRE(txt->common.rdclass == rdata->rdclass);
@@ -180,8 +180,8 @@ static inline isc_result_t generic_tostruct_txt(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void generic_freestruct_txt(ARGS_FREESTRUCT)
-{
+static inline void
+generic_freestruct_txt(ARGS_FREESTRUCT) {
 	dns_rdata_txt_t *txt = source;
 
 	REQUIRE(txt != NULL);
@@ -196,15 +196,15 @@ static inline void generic_freestruct_txt(ARGS_FREESTRUCT)
 	txt->mctx = NULL;
 }
 
-static inline isc_result_t fromstruct_txt(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_txt(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_txt);
 
 	return (generic_fromstruct_txt(rdclass, type, source, target));
 }
 
-static inline isc_result_t tostruct_txt(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_txt(ARGS_TOSTRUCT) {
 	dns_rdata_txt_t *txt = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_txt);
@@ -217,8 +217,8 @@ static inline isc_result_t tostruct_txt(ARGS_TOSTRUCT)
 	return (generic_tostruct_txt(rdata, target, mctx));
 }
 
-static inline void freestruct_txt(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_txt(ARGS_FREESTRUCT) {
 	dns_rdata_txt_t *txt = source;
 
 	REQUIRE(txt != NULL);
@@ -227,8 +227,8 @@ static inline void freestruct_txt(ARGS_FREESTRUCT)
 	generic_freestruct_txt(source);
 }
 
-static inline isc_result_t additionaldata_txt(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_txt(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_txt);
 
 	UNUSED(rdata);
@@ -238,8 +238,8 @@ static inline isc_result_t additionaldata_txt(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_txt(ARGS_DIGEST)
-{
+static inline isc_result_t
+digest_txt(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_txt);
@@ -249,8 +249,8 @@ static inline isc_result_t digest_txt(ARGS_DIGEST)
 	return ((digest)(arg, &r));
 }
 
-static inline bool checkowner_txt(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_txt(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_txt);
 
 	UNUSED(name);
@@ -261,8 +261,8 @@ static inline bool checkowner_txt(ARGS_CHECKOWNER)
 	return (true);
 }
 
-static inline bool checknames_txt(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_txt(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_txt);
 
 	UNUSED(rdata);
@@ -272,14 +272,13 @@ static inline bool checknames_txt(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_txt(ARGS_COMPARE)
-{
+static inline int
+casecompare_txt(ARGS_COMPARE) {
 	return (compare_txt(rdata1, rdata2));
 }
 
 static isc_result_t
-generic_txt_first(dns_rdata_txt_t *txt)
-{
+generic_txt_first(dns_rdata_txt_t *txt) {
 	REQUIRE(txt != NULL);
 	REQUIRE(txt->txt != NULL || txt->txt_len == 0);
 
@@ -292,10 +291,9 @@ generic_txt_first(dns_rdata_txt_t *txt)
 }
 
 static isc_result_t
-generic_txt_next(dns_rdata_txt_t *txt)
-{
+generic_txt_next(dns_rdata_txt_t *txt) {
 	isc_region_t r;
-	uint8_t	     length;
+	uint8_t length;
 
 	REQUIRE(txt != NULL);
 	REQUIRE(txt->txt != NULL && txt->txt_len != 0);
@@ -313,8 +311,7 @@ generic_txt_next(dns_rdata_txt_t *txt)
 }
 
 static isc_result_t
-generic_txt_current(dns_rdata_txt_t *txt, dns_rdata_txt_string_t *string)
-{
+generic_txt_current(dns_rdata_txt_t *txt, dns_rdata_txt_string_t *string) {
 	isc_region_t r;
 
 	REQUIRE(txt != NULL);
@@ -335,8 +332,7 @@ generic_txt_current(dns_rdata_txt_t *txt, dns_rdata_txt_string_t *string)
 }
 
 isc_result_t
-dns_rdata_txt_first(dns_rdata_txt_t *txt)
-{
+dns_rdata_txt_first(dns_rdata_txt_t *txt) {
 	REQUIRE(txt != NULL);
 	REQUIRE(txt->common.rdtype == dns_rdatatype_txt);
 
@@ -344,8 +340,7 @@ dns_rdata_txt_first(dns_rdata_txt_t *txt)
 }
 
 isc_result_t
-dns_rdata_txt_next(dns_rdata_txt_t *txt)
-{
+dns_rdata_txt_next(dns_rdata_txt_t *txt) {
 	REQUIRE(txt != NULL);
 	REQUIRE(txt->common.rdtype == dns_rdatatype_txt);
 
@@ -353,8 +348,7 @@ dns_rdata_txt_next(dns_rdata_txt_t *txt)
 }
 
 isc_result_t
-dns_rdata_txt_current(dns_rdata_txt_t *txt, dns_rdata_txt_string_t *string)
-{
+dns_rdata_txt_current(dns_rdata_txt_t *txt, dns_rdata_txt_string_t *string) {
 	REQUIRE(txt != NULL);
 	REQUIRE(txt->common.rdtype == dns_rdatatype_txt);
 

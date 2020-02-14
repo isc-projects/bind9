@@ -23,48 +23,41 @@
 
 /* check handle for NULL and INVALID_HANDLE */
 inline BOOL
-IsValidHandle(HANDLE hHandle)
-{
+IsValidHandle(HANDLE hHandle) {
 	return ((hHandle != NULL) && (hHandle != INVALID_HANDLE_VALUE));
 }
 
 /* validate wait return codes... */
 inline BOOL
-WaitSucceeded(DWORD dwWaitResult, DWORD dwHandleCount)
-{
+WaitSucceeded(DWORD dwWaitResult, DWORD dwHandleCount) {
 	return ((dwWaitResult >= WAIT_OBJECT_0) &&
 		(dwWaitResult < WAIT_OBJECT_0 + dwHandleCount));
 }
 
 inline BOOL
-WaitAbandoned(DWORD dwWaitResult, DWORD dwHandleCount)
-{
+WaitAbandoned(DWORD dwWaitResult, DWORD dwHandleCount) {
 	return ((dwWaitResult >= WAIT_ABANDONED_0) &&
 		(dwWaitResult < WAIT_ABANDONED_0 + dwHandleCount));
 }
 
 inline BOOL
-WaitTimeout(DWORD dwWaitResult)
-{
+WaitTimeout(DWORD dwWaitResult) {
 	return (dwWaitResult == WAIT_TIMEOUT);
 }
 
 inline BOOL
-WaitFailed(DWORD dwWaitResult)
-{
+WaitFailed(DWORD dwWaitResult) {
 	return (dwWaitResult == WAIT_FAILED);
 }
 
 /* compute object indices for waits... */
 inline DWORD
-WaitSucceededIndex(DWORD dwWaitResult)
-{
+WaitSucceededIndex(DWORD dwWaitResult) {
 	return (dwWaitResult - WAIT_OBJECT_0);
 }
 
 inline DWORD
-WaitAbandonedIndex(DWORD dwWaitResult)
-{
+WaitAbandonedIndex(DWORD dwWaitResult) {
 	return (dwWaitResult - WAIT_ABANDONED_0);
 }
 

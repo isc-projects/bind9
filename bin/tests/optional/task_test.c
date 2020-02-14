@@ -22,9 +22,8 @@
 isc_mem_t *mctx = NULL;
 
 static void
-my_callback(isc_task_t *task, isc_event_t *event)
-{
-	int   i, j;
+my_callback(isc_task_t *task, isc_event_t *event) {
+	int i, j;
 	char *name = event->ev_arg;
 
 	j = 0;
@@ -36,8 +35,7 @@ my_callback(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_shutdown(isc_task_t *task, isc_event_t *event)
-{
+my_shutdown(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
 
 	printf("shutdown %s (%p)\n", name, task);
@@ -45,8 +43,7 @@ my_shutdown(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_tick(isc_task_t *task, isc_event_t *event)
-{
+my_tick(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
 
 	printf("task %p tick %s\n", task, name);
@@ -61,15 +58,14 @@ static char foo[] = "foo";
 static char bar[] = "bar";
 
 int
-main(int argc, char *argv[])
-{
-	isc_taskmgr_t *	    manager = NULL;
-	isc_task_t *	    t1 = NULL, *t2 = NULL;
-	isc_task_t *	    t3 = NULL, *t4 = NULL;
-	isc_event_t *	    event;
-	unsigned int	    workers;
-	isc_timermgr_t *    timgr;
-	isc_timer_t *	    ti1, *ti2;
+main(int argc, char *argv[]) {
+	isc_taskmgr_t *manager = NULL;
+	isc_task_t *t1 = NULL, *t2 = NULL;
+	isc_task_t *t3 = NULL, *t4 = NULL;
+	isc_event_t *event;
+	unsigned int workers;
+	isc_timermgr_t *timgr;
+	isc_timer_t *ti1, *ti2;
 	struct isc_interval interval;
 
 	if (argc > 1) {

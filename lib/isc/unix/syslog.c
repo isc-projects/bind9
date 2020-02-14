@@ -20,7 +20,7 @@
 #include <isc/util.h>
 
 static struct dsn_c_pvt_sfnt {
-	int	    val;
+	int val;
 	const char *strval;
 } facilities[] = { { LOG_KERN, "kern" },
 		   { LOG_USER, "user" },
@@ -55,8 +55,7 @@ static struct dsn_c_pvt_sfnt {
 		   { 0, NULL } };
 
 isc_result_t
-isc_syslog_facilityfromstring(const char *str, int *facilityp)
-{
+isc_syslog_facilityfromstring(const char *str, int *facilityp) {
 	int i;
 
 	REQUIRE(str != NULL);

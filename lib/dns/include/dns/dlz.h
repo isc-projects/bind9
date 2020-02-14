@@ -93,7 +93,7 @@ ISC_LANG_BEGINDECLS
  *** Types
  ***/
 
-#define DNS_DLZ_MAGIC ISC_MAGIC('D', 'L', 'Z', 'D')
+#define DNS_DLZ_MAGIC	   ISC_MAGIC('D', 'L', 'Z', 'D')
 #define DNS_DLZ_VALID(dlz) ISC_MAGIC_VALID(dlz, DNS_DLZ_MAGIC)
 
 typedef isc_result_t (*dns_dlzallowzonexfr_t)(void *driverarg, void *dbdata,

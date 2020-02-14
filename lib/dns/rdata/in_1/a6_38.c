@@ -18,16 +18,16 @@
 
 #define RRTYPE_A6_ATTRIBUTES (0)
 
-static inline isc_result_t fromtext_in_a6(ARGS_FROMTEXT)
-{
-	isc_token_t   token;
+static inline isc_result_t
+fromtext_in_a6(ARGS_FROMTEXT) {
+	isc_token_t token;
 	unsigned char addr[16];
 	unsigned char prefixlen;
 	unsigned char octets;
 	unsigned char mask;
-	dns_name_t    name;
-	isc_buffer_t  buffer;
-	bool	      ok;
+	dns_name_t name;
+	isc_buffer_t buffer;
+	bool ok;
 
 	REQUIRE(type == dns_rdatatype_a6);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -94,17 +94,17 @@ static inline isc_result_t fromtext_in_a6(ARGS_FROMTEXT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t totext_in_a6(ARGS_TOTEXT)
-{
-	isc_region_t  sr, ar;
+static inline isc_result_t
+totext_in_a6(ARGS_TOTEXT) {
+	isc_region_t sr, ar;
 	unsigned char addr[16];
 	unsigned char prefixlen;
 	unsigned char octets;
 	unsigned char mask;
-	char	      buf[sizeof("128")];
-	dns_name_t    name;
-	dns_name_t    prefix;
-	bool	      sub;
+	char buf[sizeof("128")];
+	dns_name_t name;
+	dns_name_t prefix;
+	bool sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_a6);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -142,13 +142,13 @@ static inline isc_result_t totext_in_a6(ARGS_TOTEXT)
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t fromwire_in_a6(ARGS_FROMWIRE)
-{
-	isc_region_t  sr;
+static inline isc_result_t
+fromwire_in_a6(ARGS_FROMWIRE) {
+	isc_region_t sr;
 	unsigned char prefixlen;
 	unsigned char octets;
 	unsigned char mask;
-	dns_name_t    name;
+	dns_name_t name;
 
 	REQUIRE(type == dns_rdatatype_a6);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -195,10 +195,10 @@ static inline isc_result_t fromwire_in_a6(ARGS_FROMWIRE)
 	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
-static inline isc_result_t towire_in_a6(ARGS_TOWIRE)
-{
-	isc_region_t  sr;
-	dns_name_t    name;
+static inline isc_result_t
+towire_in_a6(ARGS_TOWIRE) {
+	isc_region_t sr;
+	dns_name_t name;
 	dns_offsets_t offsets;
 	unsigned char prefixlen;
 	unsigned char octets;
@@ -225,15 +225,15 @@ static inline isc_result_t towire_in_a6(ARGS_TOWIRE)
 	return (dns_name_towire(&name, cctx, target));
 }
 
-static inline int compare_in_a6(ARGS_COMPARE)
-{
-	int	      order;
+static inline int
+compare_in_a6(ARGS_COMPARE) {
+	int order;
 	unsigned char prefixlen1, prefixlen2;
 	unsigned char octets;
-	dns_name_t    name1;
-	dns_name_t    name2;
-	isc_region_t  region1;
-	isc_region_t  region2;
+	dns_name_t name1;
+	dns_name_t name2;
+	isc_region_t region1;
+	isc_region_t region2;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -282,14 +282,14 @@ static inline int compare_in_a6(ARGS_COMPARE)
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static inline isc_result_t fromstruct_in_a6(ARGS_FROMSTRUCT)
-{
+static inline isc_result_t
+fromstruct_in_a6(ARGS_FROMSTRUCT) {
 	dns_rdata_in_a6_t *a6 = source;
-	isc_region_t	   region;
-	int		   octets;
-	uint8_t		   bits;
-	uint8_t		   first;
-	uint8_t		   mask;
+	isc_region_t region;
+	int octets;
+	uint8_t bits;
+	uint8_t first;
+	uint8_t mask;
 
 	REQUIRE(type == dns_rdatatype_a6);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -330,12 +330,12 @@ static inline isc_result_t fromstruct_in_a6(ARGS_FROMSTRUCT)
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t tostruct_in_a6(ARGS_TOSTRUCT)
-{
+static inline isc_result_t
+tostruct_in_a6(ARGS_TOSTRUCT) {
 	dns_rdata_in_a6_t *a6 = target;
-	unsigned char	   octets;
-	dns_name_t	   name;
-	isc_region_t	   r;
+	unsigned char octets;
+	dns_name_t name;
+	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_a6);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -375,8 +375,8 @@ static inline isc_result_t tostruct_in_a6(ARGS_TOSTRUCT)
 	return (ISC_R_SUCCESS);
 }
 
-static inline void freestruct_in_a6(ARGS_FREESTRUCT)
-{
+static inline void
+freestruct_in_a6(ARGS_FREESTRUCT) {
 	dns_rdata_in_a6_t *a6 = source;
 
 	REQUIRE(a6 != NULL);
@@ -393,8 +393,8 @@ static inline void freestruct_in_a6(ARGS_FREESTRUCT)
 	a6->mctx = NULL;
 }
 
-static inline isc_result_t additionaldata_in_a6(ARGS_ADDLDATA)
-{
+static inline isc_result_t
+additionaldata_in_a6(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_a6);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -405,12 +405,12 @@ static inline isc_result_t additionaldata_in_a6(ARGS_ADDLDATA)
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t digest_in_a6(ARGS_DIGEST)
-{
-	isc_region_t  r1, r2;
+static inline isc_result_t
+digest_in_a6(ARGS_DIGEST) {
+	isc_region_t r1, r2;
 	unsigned char prefixlen, octets;
-	isc_result_t  result;
-	dns_name_t    name;
+	isc_result_t result;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_a6);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -435,8 +435,8 @@ static inline isc_result_t digest_in_a6(ARGS_DIGEST)
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline bool checkowner_in_a6(ARGS_CHECKOWNER)
-{
+static inline bool
+checkowner_in_a6(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_a6);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -446,10 +446,10 @@ static inline bool checkowner_in_a6(ARGS_CHECKOWNER)
 	return (dns_name_ishostname(name, wildcard));
 }
 
-static inline bool checknames_in_a6(ARGS_CHECKNAMES)
-{
+static inline bool
+checknames_in_a6(ARGS_CHECKNAMES) {
 	isc_region_t region;
-	dns_name_t   name;
+	dns_name_t name;
 	unsigned int prefixlen;
 
 	REQUIRE(rdata->type == dns_rdatatype_a6);
@@ -474,8 +474,8 @@ static inline bool checknames_in_a6(ARGS_CHECKNAMES)
 	return (true);
 }
 
-static inline int casecompare_in_a6(ARGS_COMPARE)
-{
+static inline int
+casecompare_in_a6(ARGS_COMPARE) {
 	return (compare_in_a6(rdata1, rdata2));
 }
 
