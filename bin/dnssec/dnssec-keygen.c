@@ -69,9 +69,11 @@ const char *program = "dnssec-keygen";
 
 isc_log_t *lctx = NULL;
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
-static void progress(int p);
+static void
+progress(int p);
 
 struct keygen_ctx {
 	const char *predecessor;

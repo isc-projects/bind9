@@ -18,9 +18,9 @@
 
 typedef struct dns_rdata_in_nimloc {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	unsigned char *	  nimloc;
-	uint16_t	  nimloc_len;
+	isc_mem_t *mctx;
+	unsigned char *nimloc;
+	uint16_t nimloc_len;
 } dns_rdata_in_nimloc_t;
 
 #endif /* IN_1_NIMLOC_32_H */

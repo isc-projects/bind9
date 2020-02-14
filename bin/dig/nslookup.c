@@ -124,8 +124,10 @@ static const char *rtypetext[] = {
 
 #define N_KNOWN_RRTYPES (sizeof(rtypetext) / sizeof(rtypetext[0]))
 
-static void flush_lookup_list(void);
-static void getinput(isc_task_t *task, isc_event_t *event);
+static void
+flush_lookup_list(void);
+static void
+getinput(isc_task_t *task, isc_event_t *event);
 
 static char *
 rcode_totext(dns_rcode_t rcode) {
@@ -876,7 +878,8 @@ get_next_command(void) {
 	isc_mem_free(mctx, buf);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

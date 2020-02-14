@@ -227,18 +227,25 @@ struct isc__mempool {
 			delete_trace_entry(a, b, c, d, e);                     \
 	} while (0)
 
-static void print_active(isc__mem_t *ctx, FILE *out);
+static void
+print_active(isc__mem_t *ctx, FILE *out);
 
 #endif /* ISC_MEM_TRACKLINES */
 
-static void *isc___mem_get(isc_mem_t *ctx, size_t size FLARG);
-static void isc___mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG);
-static void isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr,
-				   size_t size FLARG);
-static void *isc___mem_allocate(isc_mem_t *ctx, size_t size FLARG);
-static void *isc___mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG);
-static char *isc___mem_strdup(isc_mem_t *mctx, const char *s FLARG);
-static void isc___mem_free(isc_mem_t *ctx, void *ptr FLARG);
+static void *
+isc___mem_get(isc_mem_t *ctx, size_t size FLARG);
+static void
+isc___mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG);
+static void
+isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG);
+static void *
+isc___mem_allocate(isc_mem_t *ctx, size_t size FLARG);
+static void *
+isc___mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG);
+static char *
+isc___mem_strdup(isc_mem_t *mctx, const char *s FLARG);
+static void
+isc___mem_free(isc_mem_t *ctx, void *ptr FLARG);
 
 static isc_memmethods_t memmethods = {
 	isc___mem_get,	    isc___mem_put,	  isc___mem_putanddetach,

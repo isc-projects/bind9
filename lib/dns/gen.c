@@ -173,13 +173,19 @@ static struct ttnam {
 
 static int maxtype = -1;
 
-static char *upper(char *);
-static char *funname(const char *, char *);
-static void doswitch(const char *, const char *, const char *, const char *,
-		     const char *, const char *);
-static void add(int, const char *, int, const char *, const char *);
-static void sd(int, const char *, const char *, char);
-static void insert_into_typenames(int, const char *, const char *);
+static char *
+upper(char *);
+static char *
+funname(const char *, char *);
+static void
+doswitch(const char *, const char *, const char *, const char *, const char *,
+	 const char *);
+static void
+add(int, const char *, int, const char *, const char *);
+static void
+sd(int, const char *, const char *, char);
+static void
+insert_into_typenames(int, const char *, const char *);
 
 /*%
  * If you use more than 10 of these in, say, a printf(), you'll have problems.

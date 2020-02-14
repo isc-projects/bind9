@@ -264,7 +264,8 @@ emit(const char *dir, dns_rdata_t *rdata) {
 	dst_key_free(&key);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

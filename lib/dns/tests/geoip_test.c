@@ -44,8 +44,10 @@ static dns_geoip_databases_t geoip;
 
 static MMDB_s geoip_country, geoip_city, geoip_as, geoip_isp, geoip_domain;
 
-static void load_geoip(const char *dir);
-static void close_geoip(void);
+static void
+load_geoip(const char *dir);
+static void
+close_geoip(void);
 
 static int
 _setup(void **state) {

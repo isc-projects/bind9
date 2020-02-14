@@ -1311,7 +1311,8 @@ dump_rdatasets_map(isc_mem_t *mctx, const dns_name_t *name,
  */
 static const int initial_buffer_length = 1200;
 
-static isc_result_t dumptostreaminc(dns_dumpctx_t *dctx);
+static isc_result_t
+dumptostreaminc(dns_dumpctx_t *dctx);
 
 static void
 dumpctx_destroy(dns_dumpctx_t *dctx) {

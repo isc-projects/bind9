@@ -32,12 +32,18 @@
 
 typedef struct builtin builtin_t;
 
-static isc_result_t do_version_lookup(dns_sdblookup_t *lookup);
-static isc_result_t do_hostname_lookup(dns_sdblookup_t *lookup);
-static isc_result_t do_authors_lookup(dns_sdblookup_t *lookup);
-static isc_result_t do_id_lookup(dns_sdblookup_t *lookup);
-static isc_result_t do_empty_lookup(dns_sdblookup_t *lookup);
-static isc_result_t do_dns64_lookup(dns_sdblookup_t *lookup);
+static isc_result_t
+do_version_lookup(dns_sdblookup_t *lookup);
+static isc_result_t
+do_hostname_lookup(dns_sdblookup_t *lookup);
+static isc_result_t
+do_authors_lookup(dns_sdblookup_t *lookup);
+static isc_result_t
+do_id_lookup(dns_sdblookup_t *lookup);
+static isc_result_t
+do_empty_lookup(dns_sdblookup_t *lookup);
+static isc_result_t
+do_dns64_lookup(dns_sdblookup_t *lookup);
 
 /*
  * We can't use function pointers as the db_data directly

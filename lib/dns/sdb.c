@@ -134,38 +134,48 @@ typedef struct sdb_rdatasetiter {
 
 static int dummy;
 
-static isc_result_t dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin,
-				   dns_dbtype_t type, dns_rdataclass_t rdclass,
-				   unsigned int argc, char *argv[],
-				   void *driverarg, dns_db_t **dbp);
+static isc_result_t
+dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
+	       dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
+	       void *driverarg, dns_db_t **dbp);
 
-static isc_result_t findrdataset(dns_db_t *db, dns_dbnode_t *node,
-				 dns_dbversion_t *version, dns_rdatatype_t type,
-				 dns_rdatatype_t covers, isc_stdtime_t now,
-				 dns_rdataset_t *rdataset,
-				 dns_rdataset_t *sigrdataset);
+static isc_result_t
+findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+	     dns_rdatatype_t type, dns_rdatatype_t covers, isc_stdtime_t now,
+	     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 
-static isc_result_t createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep);
+static isc_result_t
+createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep);
 
-static void destroynode(dns_sdbnode_t *node);
+static void
+destroynode(dns_sdbnode_t *node);
 
-static void detachnode(dns_db_t *db, dns_dbnode_t **targetp);
+static void
+detachnode(dns_db_t *db, dns_dbnode_t **targetp);
 
-static void list_tordataset(dns_rdatalist_t *rdatalist, dns_db_t *db,
-			    dns_dbnode_t *node, dns_rdataset_t *rdataset);
+static void
+list_tordataset(dns_rdatalist_t *rdatalist, dns_db_t *db, dns_dbnode_t *node,
+		dns_rdataset_t *rdataset);
 
-static void dbiterator_destroy(dns_dbiterator_t **iteratorp);
-static isc_result_t dbiterator_first(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_last(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_seek(dns_dbiterator_t *iterator,
-				    const dns_name_t *name);
-static isc_result_t dbiterator_prev(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_next(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_current(dns_dbiterator_t *iterator,
-				       dns_dbnode_t **nodep, dns_name_t *name);
-static isc_result_t dbiterator_pause(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_origin(dns_dbiterator_t *iterator,
-				      dns_name_t *name);
+static void
+dbiterator_destroy(dns_dbiterator_t **iteratorp);
+static isc_result_t
+dbiterator_first(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_last(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name);
+static isc_result_t
+dbiterator_prev(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_next(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
+		   dns_name_t *name);
+static isc_result_t
+dbiterator_pause(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
 
 static dns_dbiteratormethods_t dbiterator_methods = {
 	dbiterator_destroy, dbiterator_first, dbiterator_last,
@@ -173,11 +183,14 @@ static dns_dbiteratormethods_t dbiterator_methods = {
 	dbiterator_current, dbiterator_pause, dbiterator_origin
 };
 
-static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
-static isc_result_t rdatasetiter_first(dns_rdatasetiter_t *iterator);
-static isc_result_t rdatasetiter_next(dns_rdatasetiter_t *iterator);
-static void rdatasetiter_current(dns_rdatasetiter_t *iterator,
-				 dns_rdataset_t *rdataset);
+static void
+rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
+static isc_result_t
+rdatasetiter_first(dns_rdatasetiter_t *iterator);
+static isc_result_t
+rdatasetiter_next(dns_rdatasetiter_t *iterator);
+static void
+rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset);
 
 static dns_rdatasetitermethods_t rdatasetiter_methods = {
 	rdatasetiter_destroy, rdatasetiter_first, rdatasetiter_next,

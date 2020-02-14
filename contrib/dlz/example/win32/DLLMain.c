@@ -14,8 +14,7 @@
  * Called when we enter the DLL
  */
 __declspec(dllexport) BOOL WINAPI
-	DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{
+	DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 	switch (fdwReason) {
 	/*
 	 * The DLL is loading due to process

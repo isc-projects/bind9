@@ -781,7 +781,8 @@ sendqueries(isc_task_t *task, isc_event_t *event) {
 	return;
 }
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {
@@ -891,7 +892,8 @@ help(void) {
 	      stdout);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void fatal(const char *format, ...)
+ISC_PLATFORM_NORETURN_PRE static void
+fatal(const char *format, ...)
 	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 static void

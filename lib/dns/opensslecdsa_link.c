@@ -72,8 +72,8 @@ ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s) {
 }
 #endif /* !HAVE_ECDSA_SIG_GET0 */
 
-static isc_result_t opensslecdsa_todns(const dst_key_t *key,
-				       isc_buffer_t *data);
+static isc_result_t
+opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static isc_result_t
 opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {

@@ -17,13 +17,13 @@
 
 typedef struct dns_rdata_gpos {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	char *		  longitude;
-	char *		  latitude;
-	char *		  altitude;
-	uint8_t		  long_len;
-	uint8_t		  lat_len;
-	uint8_t		  alt_len;
+	isc_mem_t *mctx;
+	char *longitude;
+	char *latitude;
+	char *altitude;
+	uint8_t long_len;
+	uint8_t lat_len;
+	uint8_t alt_len;
 } dns_rdata_gpos_t;
 
 #endif /* GENERIC_GPOS_27_H */

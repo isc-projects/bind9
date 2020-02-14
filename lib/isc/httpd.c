@@ -197,12 +197,18 @@ struct isc_httpdmgr {
 #define ISC_HTTPD_SETSEND(c)	 ((c)->state = ISC_HTTPD_STATESEND)
 #define ISC_HTTPD_SETSENDDONE(c) ((c)->state = ISC_HTTPD_STATESENDDONE)
 
-static void isc_httpd_accept(isc_task_t *, isc_event_t *);
-static void isc_httpd_recvdone(isc_task_t *, isc_event_t *);
-static void isc_httpd_senddone(isc_task_t *, isc_event_t *);
-static isc_result_t process_request(isc_httpd_t *, int);
-static isc_result_t grow_headerspace(isc_httpd_t *);
-static void reset_client(isc_httpd_t *httpd);
+static void
+isc_httpd_accept(isc_task_t *, isc_event_t *);
+static void
+isc_httpd_recvdone(isc_task_t *, isc_event_t *);
+static void
+isc_httpd_senddone(isc_task_t *, isc_event_t *);
+static isc_result_t
+process_request(isc_httpd_t *, int);
+static isc_result_t
+grow_headerspace(isc_httpd_t *);
+static void
+reset_client(isc_httpd_t *httpd);
 
 static isc_httpdaction_t render_404;
 static isc_httpdaction_t render_500;
@@ -211,13 +217,19 @@ static isc_httpdaction_t render_500;
 static void (*finishhook)(void) = NULL;
 #endif /* ENABLE_AFL */
 
-static void maybe_destroy_httpd(isc_httpd_t *);
-static void destroy_httpd(isc_httpd_t *);
-static void maybe_destroy_httpdmgr(isc_httpdmgr_t *);
-static void destroy_httpdmgr(isc_httpdmgr_t *);
+static void
+maybe_destroy_httpd(isc_httpd_t *);
+static void
+destroy_httpd(isc_httpd_t *);
+static void
+maybe_destroy_httpdmgr(isc_httpdmgr_t *);
+static void
+destroy_httpdmgr(isc_httpdmgr_t *);
 
-static void isc_httpdmgr_attach(isc_httpdmgr_t *, isc_httpdmgr_t **);
-static void isc_httpdmgr_detach(isc_httpdmgr_t **);
+static void
+isc_httpdmgr_attach(isc_httpdmgr_t *, isc_httpdmgr_t **);
+static void
+isc_httpdmgr_detach(isc_httpdmgr_t **);
 
 static void
 maybe_destroy_httpd(isc_httpd_t *httpd) {

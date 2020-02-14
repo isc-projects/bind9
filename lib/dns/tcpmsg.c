@@ -32,8 +32,10 @@
 #define TCPMSG_MAGIC	  ISC_MAGIC('T', 'C', 'P', 'm')
 #define VALID_TCPMSG(foo) ISC_MAGIC_VALID(foo, TCPMSG_MAGIC)
 
-static void recv_length(isc_task_t *, isc_event_t *);
-static void recv_message(isc_task_t *, isc_event_t *);
+static void
+recv_length(isc_task_t *, isc_event_t *);
+static void
+recv_message(isc_task_t *, isc_event_t *);
 
 static void
 recv_length(isc_task_t *task, isc_event_t *ev_in) {

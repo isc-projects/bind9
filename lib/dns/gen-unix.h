@@ -43,7 +43,7 @@ extern char *optarg;
 #define isc_commandline_argument optarg
 
 typedef struct {
-	DIR * handle;
+	DIR *handle;
 	char *filename;
 } isc_dir_t;
 

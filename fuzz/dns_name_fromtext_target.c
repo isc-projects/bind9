@@ -22,12 +22,11 @@ int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 
 int
-LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-	isc_buffer_t	buf;
-	isc_result_t	result;
+LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+	isc_buffer_t buf;
+	isc_result_t result;
 	dns_fixedname_t origin;
-	char *		de_const;
+	char *de_const;
 
 	if (size < 5) {
 		return (0);

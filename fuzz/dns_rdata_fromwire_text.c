@@ -42,35 +42,33 @@ int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 
 static void
-nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...)
-{
+nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
 	UNUSED(cb);
 	UNUSED(fmt);
 }
 
 int
-LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-	char		 totext[1024];
-	dns_compress_t	 cctx;
+LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+	char totext[1024];
+	dns_compress_t cctx;
 	dns_decompress_t dctx;
-	dns_rdatatype_t	 rdtype;
+	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	dns_rdatatype_t	 typelist[256] = { 1000 }; /* unknown */
+	dns_rdatatype_t typelist[256] = { 1000 }; /* unknown */
 	dns_rdataclass_t classlist[] = { dns_rdataclass_in, dns_rdataclass_hs,
 					 dns_rdataclass_ch, dns_rdataclass_any,
 					 60 };
-	dns_rdata_t	 rdata1 = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT,
+	dns_rdata_t rdata1 = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT,
 		    rdata3 = DNS_RDATA_INIT;
 	dns_rdatacallbacks_t callbacks;
-	isc_buffer_t	     source, target;
-	isc_lex_t *	     lex = NULL;
-	isc_lexspecials_t    specials;
-	isc_mem_t *	     mctx = NULL;
-	isc_result_t	     result;
-	unsigned char	     fromtext[1024];
-	unsigned char	     fromwire[1024];
-	unsigned char	     towire[1024];
+	isc_buffer_t source, target;
+	isc_lex_t *lex = NULL;
+	isc_lexspecials_t specials;
+	isc_mem_t *mctx = NULL;
+	isc_result_t result;
+	unsigned char fromtext[1024];
+	unsigned char fromwire[1024];
+	unsigned char towire[1024];
 	unsigned int classes = (sizeof(classlist) / sizeof(classlist[0]));
 	unsigned int types = 1, flags, t;
 

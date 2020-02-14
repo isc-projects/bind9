@@ -173,39 +173,50 @@ struct dns_incctx {
 
 #define DNS_AS_STR(t) ((t).value.as_textregion.base)
 
-static isc_result_t openfile_text(dns_loadctx_t *lctx, const char *master_file);
+static isc_result_t
+openfile_text(dns_loadctx_t *lctx, const char *master_file);
 
-static isc_result_t load_text(dns_loadctx_t *lctx);
+static isc_result_t
+load_text(dns_loadctx_t *lctx);
 
-static isc_result_t openfile_raw(dns_loadctx_t *lctx, const char *master_file);
+static isc_result_t
+openfile_raw(dns_loadctx_t *lctx, const char *master_file);
 
-static isc_result_t load_raw(dns_loadctx_t *lctx);
+static isc_result_t
+load_raw(dns_loadctx_t *lctx);
 
-static isc_result_t openfile_map(dns_loadctx_t *lctx, const char *master_file);
+static isc_result_t
+openfile_map(dns_loadctx_t *lctx, const char *master_file);
 
-static isc_result_t load_map(dns_loadctx_t *lctx);
+static isc_result_t
+load_map(dns_loadctx_t *lctx);
 
-static isc_result_t pushfile(const char *master_file, dns_name_t *origin,
-			     dns_loadctx_t *lctx);
+static isc_result_t
+pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx);
 
-static isc_result_t commit(dns_rdatacallbacks_t *, dns_loadctx_t *,
-			   rdatalist_head_t *, dns_name_t *, const char *,
-			   unsigned int);
+static isc_result_t
+commit(dns_rdatacallbacks_t *, dns_loadctx_t *, rdatalist_head_t *,
+       dns_name_t *, const char *, unsigned int);
 
-static bool is_glue(rdatalist_head_t *, dns_name_t *);
+static bool
+is_glue(rdatalist_head_t *, dns_name_t *);
 
-static dns_rdatalist_t *grow_rdatalist(int, dns_rdatalist_t *, int,
-				       rdatalist_head_t *, rdatalist_head_t *,
-				       isc_mem_t *mctx);
+static dns_rdatalist_t *
+grow_rdatalist(int, dns_rdatalist_t *, int, rdatalist_head_t *,
+	       rdatalist_head_t *, isc_mem_t *mctx);
 
-static dns_rdata_t *grow_rdata(int, dns_rdata_t *, int, rdatalist_head_t *,
-			       rdatalist_head_t *, isc_mem_t *);
+static dns_rdata_t *
+grow_rdata(int, dns_rdata_t *, int, rdatalist_head_t *, rdatalist_head_t *,
+	   isc_mem_t *);
 
-static void load_quantum(isc_task_t *task, isc_event_t *event);
+static void
+load_quantum(isc_task_t *task, isc_event_t *event);
 
-static isc_result_t task_send(dns_loadctx_t *lctx);
+static isc_result_t
+task_send(dns_loadctx_t *lctx);
 
-static void loadctx_destroy(dns_loadctx_t *lctx);
+static void
+loadctx_destroy(dns_loadctx_t *lctx);
 
 #define GETTOKENERR(lexer, options, token, eol, err)                      \
 	do {                                                              \

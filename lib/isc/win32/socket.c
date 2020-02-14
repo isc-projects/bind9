@@ -110,7 +110,8 @@ LPFN_GETACCEPTEXSOCKADDRS ISCGetAcceptExSockaddrs;
 	do {             \
 	} while (0)
 #endif /* ifdef ISC_SOCKET_CONSISTENCY_CHECKS */
-static void consistent(isc_socket_t *sock);
+static void
+consistent(isc_socket_t *sock);
 
 /*
  * Define this macro to control the behavior of connection
@@ -354,27 +355,38 @@ enum { SOCKET_RECV, SOCKET_SEND, SOCKET_ACCEPT, SOCKET_CONNECT };
 #define MAXSCATTERGATHER_SEND (ISC_SOCKET_MAXSCATTERGATHER)
 #define MAXSCATTERGATHER_RECV (ISC_SOCKET_MAXSCATTERGATHER)
 
-static isc_result_t socket_create(isc_socketmgr_t *manager0, int pf,
-				  isc_sockettype_t type, isc_socket_t **socketp,
-				  isc_socket_t *dup_socket);
-static isc_threadresult_t WINAPI SocketIoThread(LPVOID ThreadContext);
-static void maybe_free_socket(isc_socket_t **, int);
-static void free_socket(isc_socket_t **, int);
-static bool senddone_is_active(isc_socket_t *sock, isc_socketevent_t *dev);
-static bool acceptdone_is_active(isc_socket_t *sock,
-				 isc_socket_newconnev_t *dev);
-static bool connectdone_is_active(isc_socket_t *sock, isc_socket_connev_t *dev);
-static void send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev);
-static void send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev);
-static void send_acceptdone_event(isc_socket_t *sock,
-				  isc_socket_newconnev_t **adev);
-static void send_connectdone_event(isc_socket_t *sock,
-				   isc_socket_connev_t **cdev);
-static void send_recvdone_abort(isc_socket_t *sock, isc_result_t result);
-static void send_connectdone_abort(isc_socket_t *sock, isc_result_t result);
-static void queue_receive_event(isc_socket_t *sock, isc_task_t *task,
-				isc_socketevent_t *dev);
-static void queue_receive_request(isc_socket_t *sock);
+static isc_result_t
+socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
+	      isc_socket_t **socketp, isc_socket_t *dup_socket);
+static isc_threadresult_t WINAPI
+SocketIoThread(LPVOID ThreadContext);
+static void
+maybe_free_socket(isc_socket_t **, int);
+static void
+free_socket(isc_socket_t **, int);
+static bool
+senddone_is_active(isc_socket_t *sock, isc_socketevent_t *dev);
+static bool
+acceptdone_is_active(isc_socket_t *sock, isc_socket_newconnev_t *dev);
+static bool
+connectdone_is_active(isc_socket_t *sock, isc_socket_connev_t *dev);
+static void
+send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev);
+static void
+send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev);
+static void
+send_acceptdone_event(isc_socket_t *sock, isc_socket_newconnev_t **adev);
+static void
+send_connectdone_event(isc_socket_t *sock, isc_socket_connev_t **cdev);
+static void
+send_recvdone_abort(isc_socket_t *sock, isc_result_t result);
+static void
+send_connectdone_abort(isc_socket_t *sock, isc_result_t result);
+static void
+queue_receive_event(isc_socket_t *sock, isc_task_t *task,
+		    isc_socketevent_t *dev);
+static void
+queue_receive_request(isc_socket_t *sock);
 
 /*
  * This is used to dump the contents of the sock structure
@@ -445,11 +457,10 @@ sock_dump(isc_socket_t *sock) {
 	}
 }
 
-static void socket_log(int lineno, isc_socket_t *sock,
-		       const isc_sockaddr_t *address,
-		       isc_logcategory_t *category, isc_logmodule_t *module,
-		       int level, const char *fmt, ...)
-	ISC_FORMAT_PRINTF(10, 11);
+static void
+socket_log(int lineno, isc_socket_t *sock, const isc_sockaddr_t *address,
+	   isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	   const char *fmt, ...) ISC_FORMAT_PRINTF(10, 11);
 
 /*  This function will add an entry to the I/O completion port
  *  that will signal the I/O thread to exit (gracefully)

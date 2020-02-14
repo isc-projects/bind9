@@ -111,11 +111,16 @@ static const isc_statscounter_t unixstatsindex[] = {
 
 ISC_THREAD_LOCAL int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
 
-static void nmsocket_maybe_destroy(isc_nmsocket_t *sock);
-static void nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle);
-static isc_threadresult_t nm_thread(isc_threadarg_t worker0);
-static void async_cb(uv_async_t *handle);
-static void process_queue(isc__networker_t *worker, isc_queue_t *queue);
+static void
+nmsocket_maybe_destroy(isc_nmsocket_t *sock);
+static void
+nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle);
+static isc_threadresult_t
+nm_thread(isc_threadarg_t worker0);
+static void
+async_cb(uv_async_t *handle);
+static void
+process_queue(isc__networker_t *worker, isc_queue_t *queue);
 
 int
 isc_nm_tid() {

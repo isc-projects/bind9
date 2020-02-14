@@ -41,12 +41,14 @@ typedef struct {
  * libuv hasn't changed.
  */
 
-int uv__tcp_xfer_import(uv_tcp_t *tcp, uv__ipc_socket_xfer_type_t xfer_type,
-			uv__ipc_socket_xfer_info_t *xfer_info);
+int
+uv__tcp_xfer_import(uv_tcp_t *tcp, uv__ipc_socket_xfer_type_t xfer_type,
+		    uv__ipc_socket_xfer_info_t *xfer_info);
 
-int uv__tcp_xfer_export(uv_tcp_t *handle, int target_pid,
-			uv__ipc_socket_xfer_type_t *xfer_type,
-			uv__ipc_socket_xfer_info_t *xfer_info);
+int
+uv__tcp_xfer_export(uv_tcp_t *handle, int target_pid,
+		    uv__ipc_socket_xfer_type_t *xfer_type,
+		    uv__ipc_socket_xfer_info_t *xfer_info);
 
 int
 isc_uv_export(uv_stream_t *stream, isc_uv_stream_info_t *info) {

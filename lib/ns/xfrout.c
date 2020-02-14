@@ -215,7 +215,8 @@ typedef struct ixfr_rrstream {
 } ixfr_rrstream_t;
 
 /* Forward declarations. */
-static void ixfr_rrstream_destroy(rrstream_t **sp);
+static void
+ixfr_rrstream_destroy(rrstream_t **sp);
 
 static rrstream_methods_t ixfr_rrstream_methods;
 
@@ -302,7 +303,8 @@ typedef struct axfr_rrstream {
 /*
  * Forward declarations.
  */
-static void axfr_rrstream_destroy(rrstream_t **rsp);
+static void
+axfr_rrstream_destroy(rrstream_t **rsp);
 
 static rrstream_methods_t axfr_rrstream_methods;
 
@@ -421,7 +423,8 @@ typedef struct soa_rrstream {
 /*
  * Forward declarations.
  */
-static void soa_rrstream_destroy(rrstream_t **rsp);
+static void
+soa_rrstream_destroy(rrstream_t **rsp);
 
 static rrstream_methods_t soa_rrstream_methods;
 
@@ -506,9 +509,11 @@ typedef struct compound_rrstream {
 /*
  * Forward declarations.
  */
-static void compound_rrstream_destroy(rrstream_t **rsp);
+static void
+compound_rrstream_destroy(rrstream_t **rsp);
 
-static isc_result_t compound_rrstream_next(rrstream_t *rs);
+static isc_result_t
+compound_rrstream_next(rrstream_t *rs);
 
 static rrstream_methods_t compound_rrstream_methods;
 
@@ -664,35 +669,40 @@ typedef struct {
 	struct xfr_stats stats; /*%< Transfer statistics */
 } xfrout_ctx_t;
 
-static void xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
-			      unsigned int id, dns_name_t *qname,
-			      dns_rdatatype_t qtype, dns_rdataclass_t qclass,
-			      dns_zone_t *zone, dns_db_t *db,
-			      dns_dbversion_t *ver, isc_quota_t *quota,
-			      rrstream_t *stream, dns_tsigkey_t *tsigkey,
-			      isc_buffer_t *lasttsig, bool verified_tsig,
-			      unsigned int maxtime, unsigned int idletime,
-			      bool many_answers, xfrout_ctx_t **xfrp);
+static void
+xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
+		  dns_name_t *qname, dns_rdatatype_t qtype,
+		  dns_rdataclass_t qclass, dns_zone_t *zone, dns_db_t *db,
+		  dns_dbversion_t *ver, isc_quota_t *quota, rrstream_t *stream,
+		  dns_tsigkey_t *tsigkey, isc_buffer_t *lasttsig,
+		  bool verified_tsig, unsigned int maxtime,
+		  unsigned int idletime, bool many_answers,
+		  xfrout_ctx_t **xfrp);
 
-static void sendstream(xfrout_ctx_t *xfr);
+static void
+sendstream(xfrout_ctx_t *xfr);
 
-static void xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result,
-			    void *arg);
+static void
+xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg);
 
-static void xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result,
-			const char *msg);
+static void
+xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, const char *msg);
 
-static void xfrout_maybe_destroy(xfrout_ctx_t *xfr);
+static void
+xfrout_maybe_destroy(xfrout_ctx_t *xfr);
 
-static void xfrout_ctx_destroy(xfrout_ctx_t **xfrp);
+static void
+xfrout_ctx_destroy(xfrout_ctx_t **xfrp);
 
-static void xfrout_client_shutdown(void *arg, isc_result_t result);
+static void
+xfrout_client_shutdown(void *arg, isc_result_t result);
 
-static void xfrout_log1(ns_client_t *client, dns_name_t *zonename,
-			dns_rdataclass_t rdclass, int level, const char *fmt,
-			...) ISC_FORMAT_PRINTF(5, 6);
+static void
+xfrout_log1(ns_client_t *client, dns_name_t *zonename, dns_rdataclass_t rdclass,
+	    int level, const char *fmt, ...) ISC_FORMAT_PRINTF(5, 6);
 
-static void xfrout_log(xfrout_ctx_t *xfr, int level, const char *fmt, ...)
+static void
+xfrout_log(xfrout_ctx_t *xfr, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
 /**************************************************************************/
@@ -1716,9 +1726,9 @@ xfrout_client_shutdown(void *arg, isc_result_t result) {
  * <client>: transfer of <zone>: <message>
  */
 
-static void xfrout_logv(ns_client_t *client, dns_name_t *zonename,
-			dns_rdataclass_t rdclass, int level, const char *fmt,
-			va_list ap) ISC_FORMAT_PRINTF(5, 0);
+static void
+xfrout_logv(ns_client_t *client, dns_name_t *zonename, dns_rdataclass_t rdclass,
+	    int level, const char *fmt, va_list ap) ISC_FORMAT_PRINTF(5, 0);
 
 static void
 xfrout_logv(ns_client_t *client, dns_name_t *zonename, dns_rdataclass_t rdclass,

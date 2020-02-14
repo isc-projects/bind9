@@ -503,43 +503,58 @@ typedef struct {
 	isc_stdtime_t now;
 } rbtdb_load_t;
 
-static void delete_callback(void *data, void *arg);
-static void rdataset_disassociate(dns_rdataset_t *rdataset);
-static isc_result_t rdataset_first(dns_rdataset_t *rdataset);
-static isc_result_t rdataset_next(dns_rdataset_t *rdataset);
-static void rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
-static void rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
-static unsigned int rdataset_count(dns_rdataset_t *rdataset);
-static isc_result_t rdataset_getnoqname(dns_rdataset_t *rdataset,
-					dns_name_t *name, dns_rdataset_t *neg,
-					dns_rdataset_t *negsig);
-static isc_result_t rdataset_getclosest(dns_rdataset_t *rdataset,
-					dns_name_t *name, dns_rdataset_t *neg,
-					dns_rdataset_t *negsig);
-static inline bool need_headerupdate(rdatasetheader_t *header,
-				     isc_stdtime_t now);
-static void update_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
-			  isc_stdtime_t now);
-static void expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
-			  bool tree_locked, expire_t reason);
-static void overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
-			  isc_stdtime_t now, bool tree_locked);
-static isc_result_t resign_insert(dns_rbtdb_t *rbtdb, int idx,
-				  rdatasetheader_t *newheader);
-static void resign_delete(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
-			  rdatasetheader_t *header);
-static void prune_tree(isc_task_t *task, isc_event_t *event);
-static void rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
-static void rdataset_expire(dns_rdataset_t *rdataset);
-static void rdataset_clearprefetch(dns_rdataset_t *rdataset);
-static void rdataset_setownercase(dns_rdataset_t *rdataset,
-				  const dns_name_t *name);
-static void rdataset_getownercase(const dns_rdataset_t *rdataset,
-				  dns_name_t *name);
-static isc_result_t rdataset_addglue(dns_rdataset_t *rdataset,
-				     dns_dbversion_t *version,
-				     dns_message_t *msg);
-static void free_gluetable(rbtdb_version_t *version);
+static void
+delete_callback(void *data, void *arg);
+static void
+rdataset_disassociate(dns_rdataset_t *rdataset);
+static isc_result_t
+rdataset_first(dns_rdataset_t *rdataset);
+static isc_result_t
+rdataset_next(dns_rdataset_t *rdataset);
+static void
+rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+static void
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
+static unsigned int
+rdataset_count(dns_rdataset_t *rdataset);
+static isc_result_t
+rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+		    dns_rdataset_t *neg, dns_rdataset_t *negsig);
+static isc_result_t
+rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
+		    dns_rdataset_t *neg, dns_rdataset_t *negsig);
+static inline bool
+need_headerupdate(rdatasetheader_t *header, isc_stdtime_t now);
+static void
+update_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, isc_stdtime_t now);
+static void
+expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, bool tree_locked,
+	      expire_t reason);
+static void
+overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start, isc_stdtime_t now,
+	      bool tree_locked);
+static isc_result_t
+resign_insert(dns_rbtdb_t *rbtdb, int idx, rdatasetheader_t *newheader);
+static void
+resign_delete(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
+	      rdatasetheader_t *header);
+static void
+prune_tree(isc_task_t *task, isc_event_t *event);
+static void
+rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
+static void
+rdataset_expire(dns_rdataset_t *rdataset);
+static void
+rdataset_clearprefetch(dns_rdataset_t *rdataset);
+static void
+rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name);
+static void
+rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
+static isc_result_t
+rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
+		 dns_message_t *msg);
+static void
+free_gluetable(rbtdb_version_t *version);
 
 static dns_rdatasetmethods_t rdataset_methods = { rdataset_disassociate,
 						  rdataset_first,
@@ -577,11 +592,14 @@ static dns_rdatasetmethods_t slab_methods = {
 	NULL  /* addglue */
 };
 
-static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
-static isc_result_t rdatasetiter_first(dns_rdatasetiter_t *iterator);
-static isc_result_t rdatasetiter_next(dns_rdatasetiter_t *iterator);
-static void rdatasetiter_current(dns_rdatasetiter_t *iterator,
-				 dns_rdataset_t *rdataset);
+static void
+rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
+static isc_result_t
+rdatasetiter_first(dns_rdatasetiter_t *iterator);
+static isc_result_t
+rdatasetiter_next(dns_rdatasetiter_t *iterator);
+static void
+rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset);
 
 static dns_rdatasetitermethods_t rdatasetiter_methods = {
 	rdatasetiter_destroy, rdatasetiter_first, rdatasetiter_next,
@@ -602,18 +620,25 @@ typedef struct rbtdb_rdatasetiter {
  * the address of either "chain" or "nsec3chain", depending on which RBT is
  * being traversed at given time.
  */
-static void dbiterator_destroy(dns_dbiterator_t **iteratorp);
-static isc_result_t dbiterator_first(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_last(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_seek(dns_dbiterator_t *iterator,
-				    const dns_name_t *name);
-static isc_result_t dbiterator_prev(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_next(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_current(dns_dbiterator_t *iterator,
-				       dns_dbnode_t **nodep, dns_name_t *name);
-static isc_result_t dbiterator_pause(dns_dbiterator_t *iterator);
-static isc_result_t dbiterator_origin(dns_dbiterator_t *iterator,
-				      dns_name_t *name);
+static void
+dbiterator_destroy(dns_dbiterator_t **iteratorp);
+static isc_result_t
+dbiterator_first(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_last(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name);
+static isc_result_t
+dbiterator_prev(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_next(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
+		   dns_name_t *name);
+static isc_result_t
+dbiterator_pause(dns_dbiterator_t *iterator);
+static isc_result_t
+dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
 
 static dns_dbiteratormethods_t dbiterator_methods = {
 	dbiterator_destroy, dbiterator_first, dbiterator_last,
@@ -647,12 +672,17 @@ typedef struct rbtdb_dbiterator {
 #define IS_STUB(rbtdb)	(((rbtdb)->common.attributes & DNS_DBATTR_STUB) != 0)
 #define IS_CACHE(rbtdb) (((rbtdb)->common.attributes & DNS_DBATTR_CACHE) != 0)
 
-static void free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event);
-static void overmem(dns_db_t *db, bool over);
-static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version);
-static void setownercase(rdatasetheader_t *header, const dns_name_t *name);
+static void
+free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event);
+static void
+overmem(dns_db_t *db, bool over);
+static void
+setnsec3parameters(dns_db_t *db, rbtdb_version_t *version);
+static void
+setownercase(rdatasetheader_t *header, const dns_name_t *name);
 
-static bool match_header_version(rbtdb_file_header_t *header);
+static bool
+match_header_version(rbtdb_file_header_t *header);
 
 /* Pad to 32 bytes */
 static char FILE_VERSION[32] = "\0";

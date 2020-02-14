@@ -102,22 +102,22 @@ typedef struct {
 } sqlite3_res_t;
 
 /* forward references */
-isc_result_t dlz_findzonedb(void *dbdata, const char *name,
-			    dns_clientinfomethods_t *methods,
-			    dns_clientinfo_t *clientinfo);
+isc_result_t
+dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
+	       dns_clientinfo_t *clientinfo);
 
-void dlz_destroy(void *dbdata);
+void
+dlz_destroy(void *dbdata);
 
-static void b9_add_helper(sqlite3_instance_t *db, const char *helper_name,
-			  void *ptr);
+static void
+b9_add_helper(sqlite3_instance_t *db, const char *helper_name, void *ptr);
 
 /*
  * Private methods
  */
 
 void
-sqlite3_destroy(dbinstance_t *db)
-{
+sqlite3_destroy(dbinstance_t *db) {
 	/* release DB connection */
 	if (db->dbconn != NULL) {
 		sqlite3_close((sqlite3 *)db->dbconn);
@@ -135,8 +135,7 @@ sqlite3_destroy(dbinstance_t *db)
  * multithreaded operation.
  */
 static void
-sqlite3_destroy_dblist(db_list_t *dblist)
-{
+sqlite3_destroy_dblist(db_list_t *dblist) {
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -163,8 +162,7 @@ sqlite3_destroy_dblist(db_list_t *dblist)
  * multithreaded operation.
  */
 static dbinstance_t *
-sqlite3_find_avail(sqlite3_instance_t *sqlite3)
-{
+sqlite3_find_avail(sqlite3_instance_t *sqlite3) {
 	dbinstance_t *dbi = NULL, *head;
 	int count = 0;
 
@@ -203,8 +201,7 @@ sqlite3_find_avail(sqlite3_instance_t *sqlite3)
  * want special characters in the string causing problems.
  */
 static char *
-escape_string(const char *instr)
-{
+escape_string(const char *instr) {
 	char *outstr;
 	char *ptr;
 	unsigned int len;
@@ -252,8 +249,7 @@ escape_string(const char *instr)
  */
 static isc_result_t
 sqlite3_get_resultset(const char *zone, const char *record, const char *client,
-		      unsigned int query, void *dbdata, sqlite3_res_t **rsp)
-{
+		      unsigned int query, void *dbdata, sqlite3_res_t **rsp) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
@@ -476,8 +472,7 @@ cleanup:
  */
 
 char **
-sqlite3_fetch_row(sqlite3_res_t *rs)
-{
+sqlite3_fetch_row(sqlite3_res_t *rs) {
 	char **retval = NULL;
 	if (rs != NULL) {
 		if (rs->pnRow > 0U && rs->curRow < rs->pnRow) {
@@ -490,8 +485,7 @@ sqlite3_fetch_row(sqlite3_res_t *rs)
 }
 
 unsigned int
-sqlite3_num_fields(sqlite3_res_t *rs)
-{
+sqlite3_num_fields(sqlite3_res_t *rs) {
 	unsigned int retval = 0;
 	if (rs != NULL) {
 		retval = rs->pnColumn;
@@ -500,8 +494,7 @@ sqlite3_num_fields(sqlite3_res_t *rs)
 }
 
 unsigned int
-sqlite3_num_rows(sqlite3_res_t *rs)
-{
+sqlite3_num_rows(sqlite3_res_t *rs) {
 	unsigned int retval = 0;
 	if (rs != NULL) {
 		retval = rs->pnRow;
@@ -510,8 +503,7 @@ sqlite3_num_rows(sqlite3_res_t *rs)
 }
 
 void
-sqlite3_free_result(sqlite3_res_t *rs)
-{
+sqlite3_free_result(sqlite3_res_t *rs) {
 	if (rs != NULL) {
 		sqlite3_free_table(rs->pazResult);
 		free(rs);
@@ -520,8 +512,7 @@ sqlite3_free_result(sqlite3_res_t *rs)
 
 static isc_result_t
 sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
-		   sqlite3_res_t *rs)
-{
+		   sqlite3_res_t *rs) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	char **row;
 	unsigned int fields;
@@ -633,8 +624,7 @@ sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
 /*% determine if the zone is supported by (in) the database */
 isc_result_t
 dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
-	       dns_clientinfo_t *clientinfo)
-{
+	       dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	sqlite3_res_t *rs = NULL;
 	sqlite3_uint64 rows;
@@ -671,8 +661,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 
 /*% Determine if the client is allowed to perform a zone transfer */
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
-{
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	isc_result_t result;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
 	sqlite3_res_t *rs = NULL;
@@ -724,8 +713,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
  * query.
  */
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
-{
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
 	sqlite3_res_t *rs = NULL;
@@ -828,8 +816,7 @@ cleanup:
  * use this function to get that information for named.
  */
 isc_result_t
-dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
-{
+dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 	isc_result_t result;
 	sqlite3_res_t *rs = NULL;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
@@ -860,8 +847,7 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup)
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
-	   dns_clientinfo_t *clientinfo)
-{
+	   dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	sqlite3_res_t *rs = NULL;
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
@@ -893,8 +879,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
  */
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
-	   ...)
-{
+	   ...) {
 	isc_result_t result = ISC_R_FAILURE;
 	sqlite3_instance_t *s3 = NULL;
 	dbinstance_t *dbi = NULL;
@@ -1080,8 +1065,7 @@ cleanup:
  * Destroy the module.
  */
 void
-dlz_destroy(void *dbdata)
-{
+dlz_destroy(void *dbdata) {
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
 #if PTHREADS
 	/* cleanup the list of DBI's */
@@ -1101,8 +1085,7 @@ dlz_destroy(void *dbdata)
  * Return the version of the API
  */
 int
-dlz_version(unsigned int *flags)
-{
+dlz_version(unsigned int *flags) {
 	*flags |= (DNS_SDLZFLAG_RELATIVEOWNER | DNS_SDLZFLAG_RELATIVERDATA |
 		   DNS_SDLZFLAG_THREADSAFE);
 	return (DLZ_DLOPEN_VERSION);
@@ -1112,8 +1095,7 @@ dlz_version(unsigned int *flags)
  * Register a helper function from the bind9 dlz_dlopen driver
  */
 static void
-b9_add_helper(sqlite3_instance_t *db, const char *helper_name, void *ptr)
-{
+b9_add_helper(sqlite3_instance_t *db, const char *helper_name, void *ptr) {
 	if (strcmp(helper_name, "log") == 0) {
 		db->log = (log_t *)ptr;
 	}

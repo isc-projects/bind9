@@ -102,30 +102,37 @@
 #define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
-static void destroy(dns_validator_t *val);
+static void
+destroy(dns_validator_t *val);
 
-static isc_result_t select_signing_key(dns_validator_t *val,
-				       dns_rdataset_t *rdataset);
+static isc_result_t
+select_signing_key(dns_validator_t *val, dns_rdataset_t *rdataset);
 
-static isc_result_t validate_answer(dns_validator_t *val, bool resume);
+static isc_result_t
+validate_answer(dns_validator_t *val, bool resume);
 
-static isc_result_t validate_dnskey(dns_validator_t *val);
+static isc_result_t
+validate_dnskey(dns_validator_t *val);
 
-static isc_result_t validate_nx(dns_validator_t *val, bool resume);
+static isc_result_t
+validate_nx(dns_validator_t *val, bool resume);
 
-static isc_result_t proveunsecure(dns_validator_t *val, bool have_ds,
-				  bool resume);
+static isc_result_t
+proveunsecure(dns_validator_t *val, bool have_ds, bool resume);
 
-static void validator_logv(dns_validator_t *val, isc_logcategory_t *category,
-			   isc_logmodule_t *module, int level, const char *fmt,
-			   va_list ap) ISC_FORMAT_PRINTF(5, 0);
+static void
+validator_logv(dns_validator_t *val, isc_logcategory_t *category,
+	       isc_logmodule_t *module, int level, const char *fmt, va_list ap)
+	ISC_FORMAT_PRINTF(5, 0);
 
-static void validator_log(void *val, int level, const char *fmt, ...)
+static void
+validator_log(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
-static void validator_logcreate(dns_validator_t *val, dns_name_t *name,
-				dns_rdatatype_t type, const char *caller,
-				const char *operation);
+static void
+validator_logcreate(dns_validator_t *val, dns_name_t *name,
+		    dns_rdatatype_t type, const char *caller,
+		    const char *operation);
 
 /*%
  * Ensure the validator's rdatasets are marked as expired.

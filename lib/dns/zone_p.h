@@ -25,7 +25,7 @@ ISC_LANG_BEGINDECLS
 
 typedef struct {
 	dns_diff_t *diff;
-	bool	    offline;
+	bool offline;
 } dns__zonediff_t;
 
 isc_result_t

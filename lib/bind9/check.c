@@ -60,8 +60,9 @@
 #include <dst/result.h>
 #include <pk11/site.h>
 
-static isc_result_t fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab,
-			      bool writeable, isc_log_t *logctxlogc);
+static isc_result_t
+fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
+	  isc_log_t *logctxlogc);
 
 static void
 freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {

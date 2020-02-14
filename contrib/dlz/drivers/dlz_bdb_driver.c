@@ -94,10 +94,9 @@ typedef struct parsed_data {
 
 /* forward reference */
 
-static isc_result_t bdb_findzone(void *driverarg, void *dbdata,
-				 const char *name,
-				 dns_clientinfomethods_t *methods,
-				 dns_clientinfo_t *clientinfo);
+static isc_result_t
+bdb_findzone(void *driverarg, void *dbdata, const char *name,
+	     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo);
 
 /*%
  * Parses the DBT from the Berkeley DB into a parsed_data record
@@ -108,8 +107,7 @@ static isc_result_t bdb_findzone(void *driverarg, void *dbdata,
  */
 
 static isc_result_t
-bdb_parse_data(char *in, parsed_data_t *pd)
-{
+bdb_parse_data(char *in, parsed_data_t *pd) {
 	char *endp, *ttlStr;
 	char *tmp = in;
 	char *lastchar = (char *)&tmp[strlen(tmp) + 1];
@@ -209,8 +207,7 @@ bdb_parse_data(char *in, parsed_data_t *pd)
 
 static isc_result_t
 bdb_allowzonexfr(void *driverarg, void *dbdata, const char *name,
-		 const char *client)
-{
+		 const char *client) {
 	isc_result_t result;
 	bdb_instance_t *db = (bdb_instance_t *)dbdata;
 	DBC *client_cursor = NULL;
@@ -280,8 +277,7 @@ xfr_cleanup:
 
 static isc_result_t
 bdb_allnodes(const char *zone, void *driverarg, void *dbdata,
-	     dns_sdlzallnodes_t *allnodes)
-{
+	     dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	bdb_instance_t *db = (bdb_instance_t *)dbdata;
 	DBC *zone_cursor = NULL;
@@ -361,8 +357,7 @@ allnodes_cleanup:
  */
 
 static void
-bdb_cleanup(bdb_instance_t *db)
-{
+bdb_cleanup(bdb_instance_t *db) {
 	isc_mem_t *mctx;
 
 	/* close databases */
@@ -395,8 +390,7 @@ bdb_cleanup(bdb_instance_t *db)
 
 static isc_result_t
 bdb_findzone(void *driverarg, void *dbdata, const char *name,
-	     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
-{
+	     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	bdb_instance_t *db = (bdb_instance_t *)dbdata;
 	DBC *zone_cursor = NULL;
@@ -459,8 +453,7 @@ findzone_cleanup:
 static isc_result_t
 bdb_lookup(const char *zone, const char *name, void *driverarg, void *dbdata,
 	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
-	   dns_clientinfo_t *clientinfo)
-{
+	   dns_clientinfo_t *clientinfo) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	bdb_instance_t *db = (bdb_instance_t *)dbdata;
 	DBC *zone_cursor = NULL;
@@ -581,8 +574,7 @@ lookup_cleanup:
 
 static isc_result_t
 bdb_opendb(DB_ENV *db_env, DBTYPE db_type, DB **db, const char *db_name,
-	   char *db_file, int flags)
-{
+	   char *db_file, int flags) {
 	int result;
 
 	/* Initialize the database. */
@@ -622,8 +614,7 @@ bdb_opendb(DB_ENV *db_env, DBTYPE db_type, DB **db, const char *db_name,
 
 static isc_result_t
 bdb_create(const char *dlzname, unsigned int argc, char *argv[],
-	   void *driverarg, void **dbdata)
-{
+	   void *driverarg, void **dbdata) {
 	isc_result_t result;
 	int bdbres;
 	bdb_instance_t *db = NULL;
@@ -738,8 +729,7 @@ init_cleanup:
 }
 
 static void
-bdb_destroy(void *driverarg, void *dbdata)
-{
+bdb_destroy(void *driverarg, void *dbdata) {
 	UNUSED(driverarg);
 
 	bdb_cleanup((bdb_instance_t *)dbdata);
@@ -767,8 +757,7 @@ static dns_sdlzmethods_t dlz_bdb_methods = {
  * Wrapper around dns_sdlzregister().
  */
 isc_result_t
-dlz_bdb_init(void)
-{
+dlz_bdb_init(void) {
 	isc_result_t result;
 
 	/*
@@ -796,8 +785,7 @@ dlz_bdb_init(void)
  * Wrapper around dns_sdlzunregister().
  */
 void
-dlz_bdb_clear(void)
-{
+dlz_bdb_clear(void) {
 	/*
 	 * Write debugging message to log
 	 */

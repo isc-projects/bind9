@@ -17,11 +17,11 @@
 
 typedef struct dns_rdata_sshfp {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	uint8_t		  algorithm;
-	uint8_t		  digest_type;
-	uint16_t	  length;
-	unsigned char *	  digest;
+	isc_mem_t *mctx;
+	uint8_t algorithm;
+	uint8_t digest_type;
+	uint16_t length;
+	unsigned char *digest;
 } dns_rdata_sshfp_t;
 
 #endif /* GENERIC_SSHFP_44_H */

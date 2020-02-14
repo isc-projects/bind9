@@ -63,8 +63,7 @@ struct dlz_example_data {
 };
 
 static bool
-single_valued(const char *type)
-{
+single_valued(const char *type) {
 	const char *single[] = { "soa", "cname", NULL };
 	int i;
 
@@ -81,8 +80,7 @@ single_valued(const char *type)
  */
 static isc_result_t
 add_name(struct dlz_example_data *state, struct record *list, const char *name,
-	 const char *type, dns_ttl_t ttl, const char *data)
-{
+	 const char *type, dns_ttl_t ttl, const char *data) {
 	int i;
 	bool single = single_valued(type);
 	int first_empty = -1;
@@ -139,8 +137,7 @@ add_name(struct dlz_example_data *state, struct record *list, const char *name,
  */
 static isc_result_t
 del_name(struct dlz_example_data *state, struct record *list, const char *name,
-	 const char *type, dns_ttl_t ttl, const char *data)
-{
+	 const char *type, dns_ttl_t ttl, const char *data) {
 	int i;
 
 	UNUSED(state);
@@ -161,8 +158,7 @@ del_name(struct dlz_example_data *state, struct record *list, const char *name,
 }
 
 static isc_result_t
-fmt_address(isc_sockaddr_t *addr, char *buffer, size_t size)
-{
+fmt_address(isc_sockaddr_t *addr, char *buffer, size_t size) {
 	char addr_buf[100];
 	const char *ret;
 	uint16_t port = 0;
@@ -194,8 +190,7 @@ fmt_address(isc_sockaddr_t *addr, char *buffer, size_t size)
  * Return the version of the API
  */
 int
-dlz_version(unsigned int *flags)
-{
+dlz_version(unsigned int *flags) {
 	UNUSED(flags);
 	return (DLZ_DLOPEN_VERSION);
 }
@@ -205,8 +200,7 @@ dlz_version(unsigned int *flags)
  */
 static void
 b9_add_helper(struct dlz_example_data *state, const char *helper_name,
-	      void *ptr)
-{
+	      void *ptr) {
 	if (strcmp(helper_name, "log") == 0) {
 		state->log = (log_t *)ptr;
 	}
@@ -226,8 +220,7 @@ b9_add_helper(struct dlz_example_data *state, const char *helper_name,
  */
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
-	   ...)
-{
+	   ...) {
 	struct dlz_example_data *state;
 	const char *helper_name;
 	va_list ap;
@@ -311,8 +304,7 @@ failure:
  * Shut down the backend
  */
 void
-dlz_destroy(void *dbdata)
-{
+dlz_destroy(void *dbdata) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	if (state->log != NULL) {
@@ -328,8 +320,7 @@ dlz_destroy(void *dbdata)
  */
 isc_result_t
 dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
-	       dns_clientinfo_t *clientinfo)
-{
+	       dns_clientinfo_t *clientinfo) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_sockaddr_t *src;
 	char addrbuf[100];
@@ -397,8 +388,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
-	   dns_clientinfo_t *clientinfo)
-{
+	   dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	bool found = false;
@@ -501,8 +491,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
  * See if a zone transfer is allowed
  */
 isc_result_t
-dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
-{
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	UNUSED(client);
 
 	/* Just say yes for all our zones */
@@ -513,8 +502,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client)
  * Perform a zone transfer
  */
 isc_result_t
-dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
-{
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	int i;
 
@@ -545,8 +533,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes)
  * Start a transaction
  */
 isc_result_t
-dlz_newversion(const char *zone, void *dbdata, void **versionp)
-{
+dlz_newversion(const char *zone, void *dbdata, void **versionp) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	if (state->transaction_started) {
@@ -569,8 +556,7 @@ dlz_newversion(const char *zone, void *dbdata, void **versionp)
  * End a transaction
  */
 void
-dlz_closeversion(const char *zone, bool commit, void *dbdata, void **versionp)
-{
+dlz_closeversion(const char *zone, bool commit, void *dbdata, void **versionp) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	if (!state->transaction_started) {
@@ -630,8 +616,7 @@ dlz_closeversion(const char *zone, bool commit, void *dbdata, void **versionp)
  * Configure a writeable zone
  */
 isc_result_t
-dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata)
-{
+dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_result_t result;
 
@@ -674,8 +659,7 @@ dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata)
 bool
 dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
 	     const char *type, const char *key, uint32_t keydatalen,
-	     unsigned char *keydata, void *dbdata)
-{
+	     unsigned char *keydata, void *dbdata) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	UNUSED(tcpaddr);
@@ -704,8 +688,7 @@ dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
 
 static isc_result_t
 modrdataset(struct dlz_example_data *state, const char *name,
-	    const char *rdatastr, struct record *list)
-{
+	    const char *rdatastr, struct record *list) {
 	char *full_name, *dclass, *type, *data, *ttlstr, *buf;
 	char absolute[1024];
 	isc_result_t result;
@@ -768,8 +751,7 @@ error:
 
 isc_result_t
 dlz_addrdataset(const char *name, const char *rdatastr, void *dbdata,
-		void *version)
-{
+		void *version) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	if (version != (void *)&state->transaction_started) {
@@ -786,8 +768,7 @@ dlz_addrdataset(const char *name, const char *rdatastr, void *dbdata,
 
 isc_result_t
 dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
-		void *version)
-{
+		void *version) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	if (version != (void *)&state->transaction_started) {
@@ -805,8 +786,8 @@ dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
 }
 
 isc_result_t
-dlz_delrdataset(const char *name, const char *type, void *dbdata, void *version)
-{
+dlz_delrdataset(const char *name, const char *type, void *dbdata,
+		void *version) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	if (version != (void *)&state->transaction_started) {

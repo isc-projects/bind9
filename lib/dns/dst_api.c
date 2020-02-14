@@ -135,32 +135,36 @@ static dst_func_t *dst_t_func[DST_MAX_ALGS];
 
 static bool dst_initialized = false;
 
-void gss_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
+void
+gss_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 /*
  * Static functions.
  */
-static dst_key_t *get_key_struct(const dns_name_t *name, unsigned int alg,
-				 unsigned int flags, unsigned int protocol,
-				 unsigned int bits, dns_rdataclass_t rdclass,
-				 dns_ttl_t ttl, isc_mem_t *mctx);
-static isc_result_t write_public_key(const dst_key_t *key, int type,
-				     const char *directory);
-static isc_result_t write_key_state(const dst_key_t *key, int type,
-				    const char *directory);
-static isc_result_t buildfilename(dns_name_t *name, dns_keytag_t id,
-				  unsigned int alg, unsigned int type,
-				  const char *directory, isc_buffer_t *out);
-static isc_result_t computeid(dst_key_t *key);
-static isc_result_t frombuffer(const dns_name_t *name, unsigned int alg,
-			       unsigned int flags, unsigned int protocol,
-			       dns_rdataclass_t rdclass, isc_buffer_t *source,
-			       isc_mem_t *mctx, dst_key_t **keyp);
+static dst_key_t *
+get_key_struct(const dns_name_t *name, unsigned int alg, unsigned int flags,
+	       unsigned int protocol, unsigned int bits,
+	       dns_rdataclass_t rdclass, dns_ttl_t ttl, isc_mem_t *mctx);
+static isc_result_t
+write_public_key(const dst_key_t *key, int type, const char *directory);
+static isc_result_t
+write_key_state(const dst_key_t *key, int type, const char *directory);
+static isc_result_t
+buildfilename(dns_name_t *name, dns_keytag_t id, unsigned int alg,
+	      unsigned int type, const char *directory, isc_buffer_t *out);
+static isc_result_t
+computeid(dst_key_t *key);
+static isc_result_t
+frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
+	   unsigned int protocol, dns_rdataclass_t rdclass,
+	   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp);
 
-static isc_result_t algorithm_status(unsigned int alg);
+static isc_result_t
+algorithm_status(unsigned int alg);
 
-static isc_result_t addsuffix(char *filename, int len, const char *dirname,
-			      const char *ofilename, const char *suffix);
+static isc_result_t
+addsuffix(char *filename, int len, const char *dirname, const char *ofilename,
+	  const char *suffix);
 
 #define RETERR(x)                            \
 	do {                                 \

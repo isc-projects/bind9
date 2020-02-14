@@ -122,10 +122,12 @@ int lookup_counter = 0;
 static char servercookie[256];
 
 #ifdef HAVE_LIBIDN2
-static void idn_locale_to_ace(const char *src, char *dst, size_t dstlen);
-static void idn_ace_to_locale(const char *src, char **dst);
-static isc_result_t idn_output_filter(isc_buffer_t *buffer,
-				      unsigned int used_org);
+static void
+idn_locale_to_ace(const char *src, char *dst, size_t dstlen);
+static void
+idn_ace_to_locale(const char *src, char **dst);
+static isc_result_t
+idn_output_filter(isc_buffer_t *buffer, unsigned int used_org);
 #endif /* HAVE_LIBIDN2 */
 
 isc_socket_t *keep = NULL;
@@ -227,19 +229,26 @@ void (*dighost_shutdown)(void);
 
 /* forward declarations */
 
-static void cancel_lookup(dig_lookup_t *lookup);
+static void
+cancel_lookup(dig_lookup_t *lookup);
 
-static void recv_done(isc_task_t *task, isc_event_t *event);
+static void
+recv_done(isc_task_t *task, isc_event_t *event);
 
-static void send_udp(dig_query_t *query);
+static void
+send_udp(dig_query_t *query);
 
-static void connect_timeout(isc_task_t *task, isc_event_t *event);
+static void
+connect_timeout(isc_task_t *task, isc_event_t *event);
 
-static void launch_next_query(dig_query_t *query, bool include_question);
+static void
+launch_next_query(dig_query_t *query, bool include_question);
 
-static void check_next_lookup(dig_lookup_t *lookup);
+static void
+check_next_lookup(dig_lookup_t *lookup);
 
-static bool next_origin(dig_lookup_t *oldlookup);
+static bool
+next_origin(dig_lookup_t *oldlookup);
 
 static int
 count_dots(char *string) {
@@ -2718,7 +2727,8 @@ force_timeout(dig_query_t *query) {
 	}
 }
 
-static void connect_done(isc_task_t *task, isc_event_t *event);
+static void
+connect_done(isc_task_t *task, isc_event_t *event);
 
 /*%
  * Unlike send_udp, this can't be called multiple times with the same

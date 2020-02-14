@@ -45,7 +45,8 @@ static isc_log_t *lctx;
 static isc_logconfig_t *lcfg;
 static unsigned int level = 0;
 
-static void adb_callback(isc_task_t *task, isc_event_t *event);
+static void
+adb_callback(isc_task_t *task, isc_event_t *event);
 
 static void
 log_init(void) {

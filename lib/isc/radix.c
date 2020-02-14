@@ -24,17 +24,21 @@
 
 #define BIT_TEST(f, b) (((f) & (b)) != 0)
 
-static isc_result_t _new_prefix(isc_mem_t *mctx, isc_prefix_t **target,
-				int family, void *dest, int bitlen);
+static isc_result_t
+_new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
+	    int bitlen);
 
-static void _deref_prefix(isc_prefix_t *prefix);
+static void
+_deref_prefix(isc_prefix_t *prefix);
 
-static isc_result_t _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target,
-				isc_prefix_t *prefix);
+static isc_result_t
+_ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix);
 
-static int _comp_with_mask(void *addr, void *dest, u_int mask);
+static int
+_comp_with_mask(void *addr, void *dest, u_int mask);
 
-static void _clear_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
+static void
+_clear_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
 
 static isc_result_t
 _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,

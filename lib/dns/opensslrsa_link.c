@@ -179,7 +179,8 @@ RSA_test_flags(const RSA *r, int flags) {
 
 #endif /* !HAVE_RSA_SET0_KEY */
 
-static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
+static isc_result_t
+opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static isc_result_t
 opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {

@@ -196,20 +196,20 @@ LIBISC_EXTERNAL_DATA isc_log_t *isc_lctx = NULL;
 /*!
  * Forward declarations.
  */
-static isc_result_t assignchannel(isc_logconfig_t *lcfg,
-				  unsigned int category_id,
-				  const isc_logmodule_t *module,
-				  isc_logchannel_t *channel);
+static isc_result_t
+assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
+	      const isc_logmodule_t *module, isc_logchannel_t *channel);
 
-static isc_result_t sync_channellist(isc_logconfig_t *lcfg);
+static isc_result_t
+sync_channellist(isc_logconfig_t *lcfg);
 
-static isc_result_t greatest_version(isc_logfile_t *file, int versions,
-				     int *greatest);
+static isc_result_t
+greatest_version(isc_logfile_t *file, int versions, int *greatest);
 
-static void isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
-			 isc_logmodule_t *module, int level, bool write_once,
-			 const char *format, va_list args)
-	ISC_FORMAT_PRINTF(6, 0);
+static void
+isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
+	     isc_logmodule_t *module, int level, bool write_once,
+	     const char *format, va_list args) ISC_FORMAT_PRINTF(6, 0);
 
 /*@{*/
 /*!

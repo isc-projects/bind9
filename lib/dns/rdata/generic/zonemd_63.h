@@ -20,12 +20,12 @@
  */
 typedef struct dns_rdata_zonemd {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	uint32_t	  serial;
-	uint8_t		  digest_type;
-	uint8_t		  reserved;
-	unsigned char *	  digest;
-	uint16_t	  length;
+	isc_mem_t *mctx;
+	uint32_t serial;
+	uint8_t digest_type;
+	uint8_t reserved;
+	unsigned char *digest;
+	uint16_t length;
 } dns_rdata_zonemd_t;
 
 #endif /* GENERIC_ZONEMD_63_H */

@@ -160,24 +160,30 @@
 
 /*! \struct addrinfo
  */
-static struct addrinfo *ai_concat(struct addrinfo *ai1, struct addrinfo *ai2),
+static struct addrinfo *
+ai_concat(struct addrinfo *ai1, struct addrinfo *ai2),
 	*ai_reverse(struct addrinfo *oai),
 	*ai_clone(struct addrinfo *oai, int family),
 	*ai_alloc(int family, int addrlen);
 #ifdef AF_LOCAL
-static int get_local(const char *name, int socktype, struct addrinfo **res);
+static int
+get_local(const char *name, int socktype, struct addrinfo **res);
 #endif /* ifdef AF_LOCAL */
 
-static int resolve_name(int family, const char *hostname, int flags,
-			struct addrinfo **aip, int socktype, int port);
+static int
+resolve_name(int family, const char *hostname, int flags, struct addrinfo **aip,
+	     int socktype, int port);
 
-static int add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
-		    int socktype, int port);
-static int add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
-		    int socktype, int port);
-static void set_order(int, int (**)(const char *, int, struct addrinfo **, int,
-				    int));
-static void _freeaddrinfo(struct addrinfo *ai);
+static int
+add_ipv4(const char *hostname, int flags, struct addrinfo **aip, int socktype,
+	 int port);
+static int
+add_ipv6(const char *hostname, int flags, struct addrinfo **aip, int socktype,
+	 int port);
+static void
+set_order(int, int (**)(const char *, int, struct addrinfo **, int, int));
+static void
+_freeaddrinfo(struct addrinfo *ai);
 
 #define FOUND_IPV4 0x1
 #define FOUND_IPV6 0x2

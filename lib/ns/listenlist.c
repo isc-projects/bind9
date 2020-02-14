@@ -20,7 +20,8 @@
 
 #include <ns/listenlist.h>
 
-static void destroy(ns_listenlist_t *list);
+static void
+destroy(ns_listenlist_t *list);
 
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,

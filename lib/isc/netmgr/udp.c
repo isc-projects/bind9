@@ -29,13 +29,16 @@
 #include "netmgr-int.h"
 #include "uv-compat.h"
 
-static isc_result_t udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
-				    isc_sockaddr_t *peer);
+static isc_result_t
+udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
+		isc_sockaddr_t *peer);
 
-static void udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
-			const struct sockaddr *addr, unsigned flags);
+static void
+udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
+	    const struct sockaddr *addr, unsigned flags);
 
-static void udp_send_cb(uv_udp_send_t *req, int status);
+static void
+udp_send_cb(uv_udp_send_t *req, int status);
 
 isc_result_t
 isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,

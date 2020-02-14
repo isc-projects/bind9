@@ -107,8 +107,10 @@ struct named_controls {
 	isccc_symtab_t *symtab;
 };
 
-static void control_newconn(isc_task_t *task, isc_event_t *event);
-static void control_recvmessage(isc_task_t *task, isc_event_t *event);
+static void
+control_newconn(isc_task_t *task, isc_event_t *event);
+static void
+control_recvmessage(isc_task_t *task, isc_event_t *event);
 
 #define CLOCKSKEW 300
 

@@ -33,7 +33,7 @@ class CDirBrowse : public CDialog {
 	/* Construction */
       public:
 	CDirBrowse(CString initialDir = "\\",
-		   CWnd *  pParent = NULL); /* standard
+		   CWnd *pParent = NULL); /* standard
 					   * constructor
 					   */
 	CString

@@ -46,7 +46,8 @@ typedef struct {
 } librpz_emsg_t;
 #endif /* ifdef USE_DNSRPS */
 
-static bool link_dnsrps(librpz_emsg_t *emsg);
+static bool
+link_dnsrps(librpz_emsg_t *emsg);
 
 #define USAGE "usage: [-ap] [-n domain] [-w sec.onds]\n"
 

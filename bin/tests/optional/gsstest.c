@@ -72,9 +72,12 @@ static gss_ctx_id_t *gssctxp = &gssctx;
 #define PORT	53
 #define TIMEOUT 30
 
-static void initctx1(isc_task_t *task, isc_event_t *event);
-static void sendquery(isc_task_t *task, isc_event_t *event);
-static void setup();
+static void
+initctx1(isc_task_t *task, isc_event_t *event);
+static void
+sendquery(isc_task_t *task, isc_event_t *event);
+static void
+setup();
 
 static void
 console(isc_task_t *task, isc_event_t *event) {

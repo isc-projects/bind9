@@ -80,8 +80,10 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes) {
 	return (ISC_R_SUCCESS);
 }
 #elif defined(BACKTRACE_GCC)
-extern int _Unwind_Backtrace(void *fn, void *a);
-extern void *_Unwind_GetIP(void *ctx);
+extern int
+_Unwind_Backtrace(void *fn, void *a);
+extern void *
+_Unwind_GetIP(void *ctx);
 
 typedef struct {
 	void **result;

@@ -186,7 +186,8 @@ static dns_ttl_t maxttl = 0;
 		UNLOCK(&statslock); \
 	}
 
-static void sign(isc_task_t *task, isc_event_t *event);
+static void
+sign(isc_task_t *task, isc_event_t *event);
 
 /*%
  * Store a copy of 'name' in 'fzonecut' and return a pointer to that copy.
@@ -3123,7 +3124,8 @@ print_version(FILE *fp) {
 	fprintf(fp, "; dnssec_signzone version " VERSION "\n");
 }
 
-ISC_PLATFORM_NORETURN_PRE static void usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

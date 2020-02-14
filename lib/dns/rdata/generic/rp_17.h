@@ -17,9 +17,9 @@
 
 typedef struct dns_rdata_rp {
 	dns_rdatacommon_t common;
-	isc_mem_t *	  mctx;
-	dns_name_t	  mail;
-	dns_name_t	  text;
+	isc_mem_t *mctx;
+	dns_name_t mail;
+	dns_name_t text;
 } dns_rdata_rp_t;
 
 #endif /* GENERIC_RP_17_H */

@@ -101,23 +101,38 @@ struct dns_request {
  *** Forward
  ***/
 
-static void mgr_destroy(dns_requestmgr_t *requestmgr);
-static void mgr_shutdown(dns_requestmgr_t *requestmgr);
-static unsigned int mgr_gethash(dns_requestmgr_t *requestmgr);
-static void send_shutdown_events(dns_requestmgr_t *requestmgr);
+static void
+mgr_destroy(dns_requestmgr_t *requestmgr);
+static void
+mgr_shutdown(dns_requestmgr_t *requestmgr);
+static unsigned int
+mgr_gethash(dns_requestmgr_t *requestmgr);
+static void
+send_shutdown_events(dns_requestmgr_t *requestmgr);
 
-static isc_result_t req_render(dns_message_t *message, isc_buffer_t **buffer,
-			       unsigned int options, isc_mem_t *mctx);
-static void req_senddone(isc_task_t *task, isc_event_t *event);
-static void req_response(isc_task_t *task, isc_event_t *event);
-static void req_timeout(isc_task_t *task, isc_event_t *event);
-static isc_socket_t *req_getsocket(dns_request_t *request);
-static void req_connected(isc_task_t *task, isc_event_t *event);
-static void req_sendevent(dns_request_t *request, isc_result_t result);
-static void req_cancel(dns_request_t *request);
-static void req_destroy(dns_request_t *request);
-static void req_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
-static void do_cancel(isc_task_t *task, isc_event_t *event);
+static isc_result_t
+req_render(dns_message_t *message, isc_buffer_t **buffer, unsigned int options,
+	   isc_mem_t *mctx);
+static void
+req_senddone(isc_task_t *task, isc_event_t *event);
+static void
+req_response(isc_task_t *task, isc_event_t *event);
+static void
+req_timeout(isc_task_t *task, isc_event_t *event);
+static isc_socket_t *
+req_getsocket(dns_request_t *request);
+static void
+req_connected(isc_task_t *task, isc_event_t *event);
+static void
+req_sendevent(dns_request_t *request, isc_result_t result);
+static void
+req_cancel(dns_request_t *request);
+static void
+req_destroy(dns_request_t *request);
+static void
+req_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
+static void
+do_cancel(isc_task_t *task, isc_event_t *event);
 
 /***
  *** Public
