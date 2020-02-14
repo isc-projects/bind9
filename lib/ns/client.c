@@ -79,7 +79,6 @@
  * task to change the client, then the client will have to be locked.
  */
 
-#define NS_CLIENT_TRACE
 #ifdef NS_CLIENT_TRACE
 #define CTRACE(m)                                                         \
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT, \
