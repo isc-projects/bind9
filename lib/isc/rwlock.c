@@ -400,14 +400,10 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			break;
 		}
 
-		while (1) {
-			int_fast32_t zero = 0;
-			if (atomic_compare_exchange_weak_acq_rel(
-				    &rwl->cnt_and_flag, &zero, WRITER_ACTIVE))
-			{
-				break;
-			}
-
+		while (!atomic_compare_exchange_weak_acq_rel(
+			&rwl->cnt_and_flag, &(int_fast32_t){ 0 },
+			WRITER_ACTIVE))
+		{
 			/* Another active reader or writer is working. */
 			LOCK(&rwl->lock);
 			if (atomic_load_acquire(&rwl->cnt_and_flag) != 0) {
@@ -494,8 +490,8 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	} else {
 		/* Try locking without entering the waiting queue. */
 		int_fast32_t zero = 0;
-		if (!atomic_compare_exchange_weak_acq_rel(&rwl->cnt_and_flag,
-							  &zero, WRITER_ACTIVE))
+		if (!atomic_compare_exchange_strong_acq_rel(
+			    &rwl->cnt_and_flag, &zero, WRITER_ACTIVE))
 		{
 			return (ISC_R_LOCKBUSY);
 		}
@@ -519,28 +515,26 @@ isc_result_t
 isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 	REQUIRE(VALID_RWLOCK(rwl));
 
-	{
-		int_fast32_t reader_incr = READER_INCR;
+	int_fast32_t reader_incr = READER_INCR;
 
-		/* Try to acquire write access. */
-		atomic_compare_exchange_weak_acq_rel(
-			&rwl->cnt_and_flag, &reader_incr, WRITER_ACTIVE);
+	/* Try to acquire write access. */
+	atomic_compare_exchange_strong_acq_rel(&rwl->cnt_and_flag, &reader_incr,
+					       WRITER_ACTIVE);
+	/*
+	 * There must have been no writer, and there must have
+	 * been at least one reader.
+	 */
+	INSIST((reader_incr & WRITER_ACTIVE) == 0 &&
+	       (reader_incr & ~WRITER_ACTIVE) != 0);
+
+	if (reader_incr == READER_INCR) {
 		/*
-		 * There must have been no writer, and there must have
-		 * been at least one reader.
+		 * We are the only reader and have been upgraded.
+		 * Now jump into the head of the writer waiting queue.
 		 */
-		INSIST((reader_incr & WRITER_ACTIVE) == 0 &&
-		       (reader_incr & ~WRITER_ACTIVE) != 0);
-
-		if (reader_incr == READER_INCR) {
-			/*
-			 * We are the only reader and have been upgraded.
-			 * Now jump into the head of the writer waiting queue.
-			 */
-			atomic_fetch_sub_release(&rwl->write_completions, 1);
-		} else {
-			return (ISC_R_LOCKBUSY);
-		}
+		atomic_fetch_sub_release(&rwl->write_completions, 1);
+	} else {
+		return (ISC_R_LOCKBUSY);
 	}
 
 	return (ISC_R_SUCCESS);
