@@ -938,9 +938,9 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 #define DO_ERROR(r)                          \
 	do {                                 \
-		if (best_effort)             \
+		if (best_effort) {           \
 			seen_problem = true; \
-		else {                       \
+		} else {                     \
 			result = r;          \
 			goto cleanup;        \
 		}                            \

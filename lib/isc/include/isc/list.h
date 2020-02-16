@@ -48,10 +48,11 @@
 
 #define __ISC_LIST_PREPENDUNSAFE(list, elt, link)       \
 	do {                                            \
-		if ((list).head != NULL)                \
+		if ((list).head != NULL) {              \
 			(list).head->link.prev = (elt); \
-		else                                    \
+		} else {                                \
 			(list).tail = (elt);            \
+		}                                       \
 		(elt)->link.prev = NULL;                \
 		(elt)->link.next = (list).head;         \
 		(list).head = (elt);                    \
@@ -68,10 +69,11 @@
 
 #define __ISC_LIST_APPENDUNSAFE(list, elt, link)        \
 	do {                                            \
-		if ((list).tail != NULL)                \
+		if ((list).tail != NULL) {              \
 			(list).tail->link.next = (elt); \
-		else                                    \
+		} else {                                \
 			(list).head = (elt);            \
+		}                                       \
 		(elt)->link.prev = (list).tail;         \
 		(elt)->link.next = NULL;                \
 		(list).tail = (elt);                    \
@@ -88,15 +90,15 @@
 
 #define __ISC_LIST_UNLINKUNSAFE_TYPE(list, elt, link, type)             \
 	do {                                                            \
-		if ((elt)->link.next != NULL)                           \
+		if ((elt)->link.next != NULL) {                         \
 			(elt)->link.next->link.prev = (elt)->link.prev; \
-		else {                                                  \
+		} else {                                                \
 			ISC_INSIST((list).tail == (elt));               \
 			(list).tail = (elt)->link.prev;                 \
 		}                                                       \
-		if ((elt)->link.prev != NULL)                           \
+		if ((elt)->link.prev != NULL) {                         \
 			(elt)->link.prev->link.next = (elt)->link.next; \
-		else {                                                  \
+		} else {                                                \
 			ISC_INSIST((list).head == (elt));               \
 			(list).head = (elt)->link.next;                 \
 		}                                                       \
@@ -122,9 +124,9 @@
 
 #define __ISC_LIST_INSERTBEFOREUNSAFE(list, before, elt, link)  \
 	do {                                                    \
-		if ((before)->link.prev == NULL)                \
+		if ((before)->link.prev == NULL) {              \
 			ISC_LIST_PREPEND(list, elt, link);      \
-		else {                                          \
+		} else {                                        \
 			(elt)->link.prev = (before)->link.prev; \
 			(before)->link.prev = (elt);            \
 			(elt)->link.prev->link.next = (elt);    \
@@ -141,9 +143,9 @@
 
 #define __ISC_LIST_INSERTAFTERUNSAFE(list, after, elt, link)   \
 	do {                                                   \
-		if ((after)->link.next == NULL)                \
+		if ((after)->link.next == NULL) {              \
 			ISC_LIST_APPEND(list, elt, link);      \
-		else {                                         \
+		} else {                                       \
 			(elt)->link.next = (after)->link.next; \
 			(after)->link.next = (elt);            \
 			(elt)->link.next->link.prev = (elt);   \
@@ -160,9 +162,9 @@
 
 #define ISC_LIST_APPENDLIST(list1, list2, link)                 \
 	do {                                                    \
-		if (ISC_LIST_EMPTY(list1))                      \
+		if (ISC_LIST_EMPTY(list1)) {                    \
 			(list1) = (list2);                      \
-		else if (!ISC_LIST_EMPTY(list2)) {              \
+		} else if (!ISC_LIST_EMPTY(list2)) {            \
 			(list1).tail->link.next = (list2).head; \
 			(list2).head->link.prev = (list1).tail; \
 			(list1).tail = (list2).tail;            \
@@ -173,9 +175,9 @@
 
 #define ISC_LIST_PREPENDLIST(list1, list2, link)                \
 	do {                                                    \
-		if (ISC_LIST_EMPTY(list1))                      \
+		if (ISC_LIST_EMPTY(list1)) {                    \
 			(list1) = (list2);                      \
-		else if (!ISC_LIST_EMPTY(list2)) {              \
+		} else if (!ISC_LIST_EMPTY(list2)) {            \
 			(list2).tail->link.next = (list1).head; \
 			(list1).head->link.prev = (list2).tail; \
 			(list1).head = (list2).head;            \
