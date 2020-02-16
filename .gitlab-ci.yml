@@ -21,7 +21,7 @@ variables:
   SCAN_BUILD: scan-build-9
   SYMBOLIZER: /usr/lib/llvm-9/bin/llvm-symbolizer
   ASAN_SYMBOLIZER_PATH: "$SYMBOLIZER"
-  CLANG_FORMAT: clang-format-11
+  CLANG_FORMAT: clang-format-10
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
 
