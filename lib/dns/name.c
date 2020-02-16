@@ -99,10 +99,9 @@ static unsigned char maptolower[] = {
 		var = (default_offsets);
 
 #define SETUP_OFFSETS(name, var, default_offsets) \
-	if ((name)->offsets != NULL)              \
+	if ((name)->offsets != NULL) {            \
 		var = (name)->offsets;            \
-	else                                      \
-	{                                         \
+	} else {                                  \
 		var = (default_offsets);          \
 		set_offsets(name, var, NULL);     \
 	}

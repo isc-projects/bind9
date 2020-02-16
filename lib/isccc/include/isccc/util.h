@@ -83,21 +83,21 @@
 #define GETC16(v, w, d)                      \
 	do {                                 \
 		GET8(v, w);                  \
-		if (v == 0)                  \
+		if (v == 0) {                \
 			d = ISCCC_TRUE;      \
-		else                         \
-		{                            \
+		} else {                     \
 			d = ISCCC_FALSE;     \
 			if (v == 255)        \
 				GET16(v, w); \
 		}                            \
 	} while (0)
 
-#define GETC32(v, w)                 \
-	do {                         \
-		GET24(v, w);         \
-		if (v == 0xffffffu)  \
-			GET32(v, w); \
+#define GETC32(v, w)                  \
+	do {                          \
+		GET24(v, w);          \
+		if (v == 0xffffffu) { \
+			GET32(v, w);  \
+		}                     \
 	} while (0)
 
 #define GET_OFFSET(v, w) GET32(v, w)
@@ -112,10 +112,11 @@
 	do {                                                                  \
 		GET8(v, w);                                                   \
 		if (v > 127) {                                                \
-			if (v < 255)                                          \
+			if (v < 255) {                                        \
 				v = ((v & 0x7f) << 16) | ISCCC_RDATATYPE_SIG; \
-			else                                                  \
+			} else {                                              \
 				GET32(v, w);                                  \
+			}                                                     \
 		}                                                             \
 	} while (0)
 
@@ -162,23 +163,21 @@
 		w += 8;                                   \
 	} while (0)
 
-#define PUTC16(v, w)                  \
-	do {                          \
-		if (v > 0 && v < 255) \
-			PUT8(v, w);   \
-		else                  \
-		{                     \
-			PUT8(255, w); \
-			PUT16(v, w);  \
-		}                     \
+#define PUTC16(v, w)                    \
+	do {                            \
+		if (v > 0 && v < 255) { \
+			PUT8(v, w);     \
+		} else {                \
+			PUT8(255, w);   \
+			PUT16(v, w);    \
+		}                       \
 	} while (0)
 
 #define PUTC32(v, w)                         \
 	do {                                 \
-		if (v < 0xffffffU)           \
+		if (v < 0xffffffU) {         \
 			PUT24(v, w);         \
-		else                         \
-		{                            \
+		} else {                     \
 			PUT24(0xffffffU, w); \
 			PUT32(v, w);         \
 		}                            \
