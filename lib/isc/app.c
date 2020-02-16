@@ -228,8 +228,6 @@ isc_result_t
 isc_app_ctxrun(isc_appctx_t *ctx) {
 	isc_event_t *event, *next_event;
 	isc_task_t *task;
-	bool exp_false = false;
-	bool exp_true = true;
 
 	REQUIRE(VALID_APPCTX(ctx));
 
@@ -237,8 +235,8 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	REQUIRE(main_thread == GetCurrentThread());
 #endif /* ifdef WIN32 */
 
-	if (atomic_compare_exchange_weak_acq_rel(&ctx->running, &exp_false,
-						 true) == true)
+	if (atomic_compare_exchange_strong_acq_rel(
+		    &ctx->running, &(bool){ false }, true) == true)
 	{
 		/*
 		 * Post any on-run events (in FIFO order).
@@ -344,9 +342,9 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 			}
 		}
 #endif /* WIN32 */
-		exp_true = true;
-		if (atomic_compare_exchange_weak_acq_rel(&ctx->want_reload,
-							 &exp_true, false)) {
+		if (atomic_compare_exchange_strong_acq_rel(
+			    &ctx->want_reload, &(bool){ true }, false))
+		{
 			return (ISC_R_RELOAD);
 		}
 
@@ -363,10 +361,9 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 isc_result_t
 isc_app_run(void) {
 	isc_result_t result;
-	bool exp_false = false;
 
-	REQUIRE(atomic_compare_exchange_weak_acq_rel(&is_running, &exp_false,
-						     true) == true);
+	REQUIRE(atomic_compare_exchange_strong_acq_rel(
+			&is_running, &(bool){ false }, true) == true);
 	result = isc_app_ctxrun(&isc_g_appctx);
 	atomic_store_release(&is_running, false);
 
@@ -380,8 +377,6 @@ isc_app_isrunning() {
 
 void
 isc_app_ctxshutdown(isc_appctx_t *ctx) {
-	bool exp_false = false;
-
 	REQUIRE(VALID_APPCTX(ctx));
 
 	REQUIRE(atomic_load_acquire(&ctx->running));
@@ -389,8 +384,8 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 	/* If ctx->shutdown_requested == true, we are already shutting
 	 * down and we want to just bail out.
 	 */
-	if (atomic_compare_exchange_weak_acq_rel(&ctx->shutdown_requested,
-						 &exp_false, true))
+	if (atomic_compare_exchange_strong_acq_rel(&ctx->shutdown_requested,
+						   &(bool){ false }, true))
 	{
 #ifdef WIN32
 		SetEvent(ctx->hEvents[SHUTDOWN_EVENT]);
@@ -480,10 +475,9 @@ isc_app_finish(void) {
 
 void
 isc_app_block(void) {
-	bool exp_false = false;
 	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
-	REQUIRE(atomic_compare_exchange_weak_acq_rel(&isc_g_appctx.blocked,
-						     &exp_false, true));
+	REQUIRE(atomic_compare_exchange_strong_acq_rel(&isc_g_appctx.blocked,
+						       &(bool){ false }, true));
 
 #ifdef WIN32
 	blockedthread = GetCurrentThread();
@@ -499,11 +493,9 @@ isc_app_block(void) {
 
 void
 isc_app_unblock(void) {
-	bool exp_true = true;
-
 	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
-	REQUIRE(atomic_compare_exchange_weak_acq_rel(&isc_g_appctx.blocked,
-						     &exp_true, false));
+	REQUIRE(atomic_compare_exchange_strong_acq_rel(&isc_g_appctx.blocked,
+						       &(bool){ true }, false));
 
 #ifdef WIN32
 	REQUIRE(blockedthread == GetCurrentThread());
