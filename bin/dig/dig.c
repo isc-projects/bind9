@@ -42,12 +42,13 @@
 #include <dig/dig.h>
 #include <pk11/site.h>
 
-#define ADD_STRING(b, s)                                        \
-	{                                                       \
-		if (strlen(s) >= isc_buffer_availablelength(b)) \
-			return ((ISC_R_NOSPACE));               \
-		else                                            \
-			isc_buffer_putstr(b, s);                \
+#define ADD_STRING(b, s)                                          \
+	{                                                         \
+		if (strlen(s) >= isc_buffer_availablelength(b)) { \
+			return (ISC_R_NOSPACE);                   \
+		} else {                                          \
+			isc_buffer_putstr(b, s);                  \
+		}                                                 \
 	}
 
 #define DIG_MAX_ADDRESSES 20
