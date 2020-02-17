@@ -2981,8 +2981,8 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 		if (result != ISC_R_SUCCESS) {
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, p_name,
 				     rpz_type, "allrdatasets()", result);
-			CTRACE(ISC_LOG_ERROR, "rpz_find_p: allrdatasets "
-					      "failed");
+			CTRACE(ISC_LOG_ERROR,
+			       "rpz_find_p: allrdatasets failed");
 			return (DNS_R_SERVFAIL);
 		}
 		if (qtype == dns_rdatatype_aaaa &&

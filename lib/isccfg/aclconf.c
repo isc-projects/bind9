@@ -102,8 +102,8 @@ get_acl_def(const cfg_obj_t *cctx, const char *name, const cfg_obj_t **ret) {
 	for (elt = cfg_list_first(acls); elt != NULL; elt = cfg_list_next(elt))
 	{
 		const cfg_obj_t *acl = cfg_listelt_value(elt);
-		const char *aclname = cfg_obj_asstring(cfg_tuple_get(acl, "nam"
-									  "e"));
+		const char *aclname =
+			cfg_obj_asstring(cfg_tuple_get(acl, "name"));
 		if (strcasecmp(aclname, name) == 0) {
 			if (ret != NULL) {
 				*ret = cfg_tuple_get(acl, "value");
@@ -573,9 +573,8 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 	{
 		subtype = dns_geoip_city_metrocode;
 		de.geoip_elem.as_int = atoi(search);
-	} else if (strcasecmp(stype, "tz") == 0 || strcasecmp(stype, "timezon"
-								     "e") == 0)
-	{
+	} else if (strcasecmp(stype, "tz") == 0 ||
+		   strcasecmp(stype, "timezone") == 0) {
 		subtype = dns_geoip_city_timezonecode;
 		strlcpy(de.geoip_elem.as_string, search,
 			sizeof(de.geoip_elem.as_string));

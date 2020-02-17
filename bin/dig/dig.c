@@ -1206,10 +1206,9 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 							lookup->ednsflags = 0;
 							break;
 						}
-						result = parse_xint(&num, value,
-								    0xffff,
-								    "ednsflag"
-								    "s");
+						result = parse_xint(
+							&num, value, 0xffff,
+							"ednsflags");
 						if (result != ISC_R_SUCCESS) {
 							warn("Couldn't parse "
 							     "ednsflags");

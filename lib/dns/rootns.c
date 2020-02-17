@@ -290,9 +290,8 @@ report(dns_view_t *view, dns_name_t *name, bool missing, dns_rdata_t *rdata) {
 	isc_buffer_t buffer;
 	isc_result_t result;
 
-	if (strcmp(view->name, "_bind") != 0 && strcmp(view->name, "_defaul"
-								   "t") != 0)
-	{
+	if (strcmp(view->name, "_bind") != 0 &&
+	    strcmp(view->name, "_default") != 0) {
 		viewname = view->name;
 		sep = ": view ";
 	}
@@ -468,9 +467,8 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 
 	isc_stdtime_get(&now);
 
-	if (strcmp(view->name, "_bind") != 0 && strcmp(view->name, "_defaul"
-								   "t") != 0)
-	{
+	if (strcmp(view->name, "_bind") != 0 &&
+	    strcmp(view->name, "_default") != 0) {
 		viewname = view->name;
 		sep = ": view ";
 	}

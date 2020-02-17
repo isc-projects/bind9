@@ -1362,10 +1362,9 @@ plus_option(char *option, struct query *query, bool global) {
 							query->ednsflags = 0;
 							break;
 						}
-						result = parse_xint(&num, value,
-								    0xffff,
-								    "ednsflag"
-								    "s");
+						result = parse_xint(
+							&num, value, 0xffff,
+							"ednsflags");
 						CHECK("parse_xint(ednsflags)",
 						      result);
 						query->ednsflags = num;

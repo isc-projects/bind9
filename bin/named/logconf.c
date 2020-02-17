@@ -139,8 +139,8 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 	if (fileobj != NULL) {
 		const cfg_obj_t *pathobj = cfg_tuple_get(fileobj, "file");
 		const cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
-		const cfg_obj_t *versionsobj = cfg_tuple_get(fileobj, "version"
-								      "s");
+		const cfg_obj_t *versionsobj = cfg_tuple_get(fileobj,
+							     "versions");
 		const cfg_obj_t *suffixobj = cfg_tuple_get(fileobj, "suffix");
 		int32_t versions = ISC_LOG_ROLLNEVER;
 		isc_log_rollsuffix_t suffix = isc_log_rollsuffix_increment;
@@ -169,8 +169,8 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 			versions = cfg_obj_asuint32(versionsobj);
 		} else if (versionsobj != NULL &&
 			   cfg_obj_isstring(versionsobj) &&
-			   strcasecmp(cfg_obj_asstring(versionsobj), "unlimite"
-								     "d") == 0)
+			   strcasecmp(cfg_obj_asstring(versionsobj),
+				      "unlimited") == 0)
 		{
 			versions = ISC_LOG_ROLLINFINITE;
 		}

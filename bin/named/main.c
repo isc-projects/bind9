@@ -782,12 +782,8 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':
-			named_g_cpus = parse_int(isc_commandline_argument, "num"
-									   "ber"
-									   " of"
-									   " cp"
-									   "u"
-									   "s");
+			named_g_cpus = parse_int(isc_commandline_argument,
+						 "number of cpus");
 			if (named_g_cpus == 0) {
 				named_g_cpus = 1;
 			}
@@ -805,11 +801,8 @@ parse_command_line(int argc, char *argv[]) {
 			want_stats = true;
 			break;
 		case 'S':
-			maxsocks = parse_int(isc_commandline_argument, "max "
-								       "number "
-								       "of "
-								       "socket"
-								       "s");
+			maxsocks = parse_int(isc_commandline_argument,
+					     "max number of sockets");
 			break;
 		case 't':
 			/* XXXJAB should we make a copy? */

@@ -361,9 +361,8 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, mctx, &handle), "dns_dt_"
-								     "openfil"
-								     "e");
+	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, mctx, &handle),
+	       "dns_dt_openfile");
 
 	for (;;) {
 		isc_region_t input;

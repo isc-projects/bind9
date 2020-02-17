@@ -2196,9 +2196,8 @@ do_next_command(char *cmdline) {
 	if (strcasecmp(word, "realm") == 0) {
 		return (evaluate_realm(cmdline));
 	}
-	if (strcasecmp(word, "check-names") == 0 || strcasecmp(word, "checkname"
-								     "s") == 0)
-	{
+	if (strcasecmp(word, "check-names") == 0 ||
+	    strcasecmp(word, "checknames") == 0) {
 		return (evaluate_checknames(cmdline));
 	}
 	if (strcasecmp(word, "gsstsig") == 0) {
