@@ -272,7 +272,15 @@ add_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size FLARG) {
 		return;
 	}
 
+#ifdef __COVERITY__
+	/*
+	 * Use simple conversion from pointer to hash to avoid
+	 * tainting 'ptr' due to byte swap in isc_hash_function.
+	 */
+	hash = (uintptr_t)ptr >> 3;
+#else
 	hash = isc_hash_function(&ptr, sizeof(ptr), true);
+#endif
 	idx = hash % DEBUG_TABLE_COUNT;
 
 	dl = malloc(sizeof(debuglink_t));
@@ -308,7 +316,15 @@ delete_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size,
 		return;
 	}
 
+#ifdef __COVERITY__
+	/*
+	 * Use simple conversion from pointer to hash to avoid
+	 * tainting 'ptr' due to byte swap in isc_hash_function.
+	 */
+	hash = (uintptr_t)ptr >> 3;
+#else
 	hash = isc_hash_function(&ptr, sizeof(ptr), true);
+#endif
 	idx = hash % DEBUG_TABLE_COUNT;
 
 	dl = ISC_LIST_HEAD(mctx->debuglist[idx]);
