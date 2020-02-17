@@ -5383,8 +5383,8 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, void *writer0) {
 			TRY0(xmlTextWriterEndElement(writer)); /* name */
 		}
 
-		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "reference"
-								   "s"));
+		TRY0(xmlTextWriterStartElement(writer,
+					       ISC_XMLCHAR "references"));
 		TRY0(xmlTextWriterWriteFormatString(
 			writer, "%d",
 			(int)isc_refcount_current(&sock->references)));
@@ -5397,19 +5397,17 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, void *writer0) {
 		if (sock->connected) {
 			isc_sockaddr_format(&sock->peer_address, peerbuf,
 					    sizeof(peerbuf));
-			TRY0(xmlTextWriterWriteElement(writer,
-						       ISC_XMLCHAR "peer-"
-								   "address",
-						       ISC_XMLCHAR peerbuf));
+			TRY0(xmlTextWriterWriteElement(
+				writer, ISC_XMLCHAR "peer-address",
+				ISC_XMLCHAR peerbuf));
 		}
 
 		len = sizeof(addr);
 		if (getsockname(sock->fd, &addr.type.sa, (void *)&len) == 0) {
 			isc_sockaddr_format(&addr, peerbuf, sizeof(peerbuf));
-			TRY0(xmlTextWriterWriteElement(writer,
-						       ISC_XMLCHAR "local-"
-								   "address",
-						       ISC_XMLCHAR peerbuf));
+			TRY0(xmlTextWriterWriteElement(
+				writer, ISC_XMLCHAR "local-address",
+				ISC_XMLCHAR peerbuf));
 		}
 
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "states"));
@@ -5419,16 +5417,14 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, void *writer0) {
 						       ISC_XMLCHAR "listener"));
 		}
 		if (sock->connected) {
-			TRY0(xmlTextWriterWriteElement(writer,
-						       ISC_XMLCHAR "state",
-						       ISC_XMLCHAR "connecte"
-								   "d"));
+			TRY0(xmlTextWriterWriteElement(
+				writer, ISC_XMLCHAR "state",
+				ISC_XMLCHAR "connected"));
 		}
 		if (sock->connecting) {
-			TRY0(xmlTextWriterWriteElement(writer,
-						       ISC_XMLCHAR "state",
-						       ISC_XMLCHAR "connectin"
-								   "g"));
+			TRY0(xmlTextWriterWriteElement(
+				writer, ISC_XMLCHAR "state",
+				ISC_XMLCHAR "connecting"));
 		}
 		if (sock->bound) {
 			TRY0(xmlTextWriterWriteElement(writer,

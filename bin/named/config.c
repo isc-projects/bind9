@@ -670,8 +670,8 @@ resume:
 		const char *keystr;
 		isc_buffer_t b;
 
-		addr = cfg_tuple_get(cfg_listelt_value(element), "masterselemen"
-								 "t");
+		addr = cfg_tuple_get(cfg_listelt_value(element),
+				     "masterselement");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
 
 		if (!cfg_obj_issockaddr(addr)) {

@@ -737,9 +737,8 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 
 	isc__mem_t *ctx;
 
-	STATIC_ASSERT((ALIGNMENT_SIZE & (ALIGNMENT_SIZE - 1)) == 0, "wrong "
-								    "alignment "
-								    "size");
+	STATIC_ASSERT((ALIGNMENT_SIZE & (ALIGNMENT_SIZE - 1)) == 0,
+		      "wrong alignment size");
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 

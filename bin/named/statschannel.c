@@ -1843,10 +1843,9 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 		if (gluecachestats != NULL) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "counters"));
-			TRY0(xmlTextWriterWriteAttribute(writer,
-							 ISC_XMLCHAR "type",
-							 ISC_XMLCHAR "gluecach"
-								     "e"));
+			TRY0(xmlTextWriterWriteAttribute(
+				writer, ISC_XMLCHAR "type",
+				ISC_XMLCHAR "gluecache"));
 
 			result = dump_counters(
 				gluecachestats, isc_statsformat_xml, writer,
@@ -1884,10 +1883,9 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 		if (dnssecsignstats != NULL) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "counters"));
-			TRY0(xmlTextWriterWriteAttribute(writer,
-							 ISC_XMLCHAR "type",
-							 ISC_XMLCHAR "dnssec-"
-								     "sign"));
+			TRY0(xmlTextWriterWriteAttribute(
+				writer, ISC_XMLCHAR "type",
+				ISC_XMLCHAR "dnssec-sign"));
 
 			dumparg.result = ISC_R_SUCCESS;
 			dns_dnssecsignstats_dump(dnssecsignstats,
@@ -1905,11 +1903,9 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 		if (dnssecrefreshstats != NULL) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "counters"));
-			TRY0(xmlTextWriterWriteAttribute(writer,
-							 ISC_XMLCHAR "type",
-							 ISC_XMLCHAR "dnssec-"
-								     "refres"
-								     "h"));
+			TRY0(xmlTextWriterWriteAttribute(
+				writer, ISC_XMLCHAR "type",
+				ISC_XMLCHAR "dnssec-refresh"));
 
 			dumparg.result = ISC_R_SUCCESS;
 			dns_dnssecsignstats_dump(dnssecrefreshstats,
@@ -2356,8 +2352,8 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	TRY0(xmlTextWriterEndElement(writer)); /* /views */
 
 	if ((flags & STATS_XML_NET) != 0) {
-		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "socketmg"
-								   "r"));
+		TRY0(xmlTextWriterStartElement(writer,
+					       ISC_XMLCHAR "socketmgr"));
 		TRY0(isc_socketmgr_renderxml(named_g_socketmgr, writer));
 		TRY0(xmlTextWriterEndElement(writer)); /* /socketmgr */
 	}
