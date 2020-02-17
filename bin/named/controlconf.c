@@ -1223,12 +1223,12 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	}
 
 	if (result == ISC_R_SUCCESS && type == isc_sockettype_unix) {
-		listener->perm = cfg_obj_asuint32(cfg_tuple_get(control, "per"
-									 "m"));
-		listener->owner = cfg_obj_asuint32(cfg_tuple_get(control, "owne"
-									  "r"));
-		listener->group = cfg_obj_asuint32(cfg_tuple_get(control, "grou"
-									  "p"));
+		listener->perm =
+			cfg_obj_asuint32(cfg_tuple_get(control, "perm"));
+		listener->owner =
+			cfg_obj_asuint32(cfg_tuple_get(control, "owner"));
+		listener->group =
+			cfg_obj_asuint32(cfg_tuple_get(control, "group"));
 		result = isc_socket_permunix(&listener->address, listener->perm,
 					     listener->owner, listener->group);
 	}

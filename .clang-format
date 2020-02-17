@@ -55,7 +55,7 @@ MaxEmptyLinesToKeep: 1
 PenaltyBreakAssignment: 30
 PenaltyBreakComment: 10
 PenaltyBreakFirstLessLess: 0
-PenaltyBreakString: 10
+PenaltyBreakString: 80
 PenaltyExcessCharacter: 100
 Standard: Cpp11
 ContinuationIndentWidth: 8

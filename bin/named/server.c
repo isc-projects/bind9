@@ -2143,8 +2143,8 @@ conf_dnsrps(dns_view_t *view, const cfg_obj_t **maps, bool nsip_enabled,
 			s = cfg_obj_asstring(cfg_tuple_get(obj, "policy name"));
 			conf_dnsrps_sadd(&ctx, " policy %s", s);
 			if (strcasecmp(s, "cname") == 0) {
-				s = cfg_obj_asstring(cfg_tuple_get(obj, "cnam"
-									"e"));
+				s = cfg_obj_asstring(
+					cfg_tuple_get(obj, "cname"));
 				conf_dnsrps_sadd(&ctx, " %s", s);
 			}
 		}
@@ -3421,9 +3421,8 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "type", &obj);
-		if (obj != NULL && strcasecmp(cfg_obj_asstring(obj), "forwar"
-								     "d") == 0)
-		{
+		if (obj != NULL &&
+		    strcasecmp(cfg_obj_asstring(obj), "forward") == 0) {
 			obj = NULL;
 			(void)cfg_map_get(zoptions, "forward", &obj);
 			if (obj == NULL) {
@@ -5766,9 +5765,8 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 		if (!cfg_obj_issockaddr(alternate)) {
 			dns_fixedname_t fixed;
 			dns_name_t *name;
-			const char *str =
-				cfg_obj_asstring(cfg_tuple_get(alternate, "nam"
-									  "e"));
+			const char *str = cfg_obj_asstring(
+				cfg_tuple_get(alternate, "name"));
 			isc_buffer_t buffer;
 			in_port_t myport = port;
 
@@ -6086,8 +6084,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	if (zclass != view->rdclass) {
 		const char *vname = NULL;
 		if (vconfig != NULL) {
-			vname = cfg_obj_asstring(cfg_tuple_get(vconfig, "nam"
-									"e"));
+			vname = cfg_obj_asstring(
+				cfg_tuple_get(vconfig, "name"));
 		} else {
 			vname = "<default view>";
 		}
@@ -9099,10 +9097,8 @@ load_configuration(const char *filename, named_server_t *server,
 	} else {
 		const cfg_obj_t *logobj = NULL;
 
-		CHECKM(isc_logconfig_create(named_g_lctx, &logc), "creating "
-								  "new logging "
-								  "configuratio"
-								  "n");
+		CHECKM(isc_logconfig_create(named_g_lctx, &logc),
+		       "creating new logging configuration");
 
 		logobj = NULL;
 		(void)cfg_map_get(config, "logging", &logobj);
@@ -9110,25 +9106,16 @@ load_configuration(const char *filename, named_server_t *server,
 			CHECKM(named_logconfig(logc, logobj), "configuring "
 							      "logging");
 		} else {
-			CHECKM(named_log_setdefaultchannels(logc), "setting up "
-								   "default "
-								   "logging "
-								   "channels");
-			CHECKM(named_log_setunmatchedcategory(logc), "setting "
-								     "up "
-								     "default "
-								     "'category"
-								     " unmatche"
-								     "d'");
-			CHECKM(named_log_setdefaultcategory(logc), "setting up "
-								   "default "
-								   "'category "
-								   "default'");
+			CHECKM(named_log_setdefaultchannels(logc),
+			       "setting up default logging channels");
+			CHECKM(named_log_setunmatchedcategory(logc),
+			       "setting up default 'category unmatched'");
+			CHECKM(named_log_setdefaultcategory(logc),
+			       "setting up default 'category default'");
 		}
 
-		CHECKM(isc_logconfig_use(named_g_lctx, logc), "installing "
-							      "logging "
-							      "configuration");
+		CHECKM(isc_logconfig_use(named_g_lctx, logc),
+		       "installing logging configuration");
 		logc = NULL;
 
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -9220,9 +9207,8 @@ load_configuration(const char *filename, named_server_t *server,
 	obj = NULL;
 	result = named_config_get(maps, "recursing-file", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	CHECKM(setstring(server, &server->recfile, cfg_obj_asstring(obj)), "str"
-									   "du"
-									   "p");
+	CHECKM(setstring(server, &server->recfile, cfg_obj_asstring(obj)),
+	       "strdup");
 
 	obj = NULL;
 	result = named_config_get(maps, "version", &obj);
@@ -9517,10 +9503,8 @@ view_loaded(void *arg) {
 				      "all zones loaded");
 		}
 
-		CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr), "forcing "
-								    "zone "
-								    "maintenanc"
-								    "e");
+		CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr),
+			   "forcing zone maintenance");
 
 		named_os_started();
 
@@ -9670,10 +9654,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 				     &named_g_addparser),
 		   "creating additional configuration parser");
 
-	CHECKFATAL(load_configuration(named_g_conffile, server, true), "loading"
-								       " config"
-								       "uratio"
-								       "n");
+	CHECKFATAL(load_configuration(named_g_conffile, server, true),
+		   "loading configuration");
 
 	CHECKFATAL(load_zones(server, true, false), "loading zones");
 #ifdef ENABLE_AFL
@@ -9876,10 +9858,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	 * startup and shutdown of the server, as well as all exclusive
 	 * tasks.
 	 */
-	CHECKFATAL(isc_task_create(named_g_taskmgr, 0, &server->task), "creatin"
-								       "g "
-								       "server "
-								       "task");
+	CHECKFATAL(isc_task_create(named_g_taskmgr, 0, &server->task),
+		   "creating server task");
 	isc_task_setname(server->task, "server", server);
 	isc_taskmgr_setexcltask(named_g_taskmgr, server->task);
 
@@ -9970,9 +9950,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->flushonshutdown = false;
 
 	server->controls = NULL;
-	CHECKFATAL(named_controls_create(server, &server->controls), "named_"
-								     "controls_"
-								     "create");
+	CHECKFATAL(named_controls_create(server, &server->controls),
+		   "named_controls_create");
 	server->dispatchgen = 0;
 	ISC_LIST_INIT(server->dispatches);
 
@@ -11403,9 +11382,9 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 				CHECK(putstr(text, "\n"));
 			}
 			CHECK(putstr(text, "DNSSEC validation is "));
-			CHECK(putstr(text, view->enablevalidation ? "enabled"
-								  : "disable"
-								    "d"));
+			CHECK(putstr(text, view->enablevalidation
+						   ? "enabled"
+						   : "disabled"));
 			CHECK(putstr(text, " (view "));
 			CHECK(putstr(text, view->name));
 			CHECK(putstr(text, ")"));
@@ -11754,9 +11733,9 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "query logging is %s\n",
-		 ns_server_getoption(server->sctx, NS_SERVER_LOGQUERIES) ? "ON"
-									 : "OF"
-									   "F");
+		 ns_server_getoption(server->sctx, NS_SERVER_LOGQUERIES)
+			 ? "ON"
+			 : "OFF");
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "recursive clients: %u/%u/%u\n",
@@ -11777,10 +11756,9 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 
 	if (server->reload_status != NAMED_RELOAD_DONE) {
 		snprintf(line, sizeof(line), "reload/reconfig %s\n",
-			 server->reload_status == NAMED_RELOAD_FAILED ? "failed"
-								      : "in "
-									"progre"
-									"ss");
+			 (server->reload_status == NAMED_RELOAD_FAILED
+				  ? "failed"
+				  : "in progress"));
 		CHECK(putstr(text, line));
 	}
 
@@ -12192,9 +12170,8 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	isc_task_endexclusive(server->task);
 
 	view = dns_zone_getview(zone);
-	if (strcmp(view->name, "_default") == 0 || strcmp(view->name, "_bin"
-								      "d") == 0)
-	{
+	if (strcmp(view->name, "_default") == 0 ||
+	    strcmp(view->name, "_bind") == 0) {
 		vname = "";
 		sep = "";
 	} else {
@@ -12317,9 +12294,8 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
 	}
 
 	view = dns_zone_getview(mayberaw);
-	if (strcmp(view->name, "_default") == 0 || strcmp(view->name, "_bin"
-								      "d") == 0)
-	{
+	if (strcmp(view->name, "_default") == 0 ||
+	    strcmp(view->name, "_bind") == 0) {
 		vname = "";
 		sep = "";
 	} else {
