@@ -104,7 +104,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		       isc_socketmgr_t *socketmgr, isc_nm_t *nm,
 		       dns_dispatchmgr_t *dispatchmgr, isc_task_t *task,
 		       unsigned int udpdisp, dns_geoip_databases_t *geoip,
-		       ns_interfacemgr_t **mgrp);
+		       int ncpus, ns_interfacemgr_t **mgrp);
 /*%<
  * Create a new interface manager.
  *

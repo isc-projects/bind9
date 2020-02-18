@@ -112,6 +112,21 @@
 #define NS_CLIENT_DROPPORT 1
 #endif /* ifndef NS_CLIENT_DROPPORT */
 
+#define CLIENT_NMCTXS_PERCPU 8
+/*%<
+ * Number of 'mctx pools' for clients. (Should this be configurable?)
+ * When enabling threads, we use a pool of memory contexts shared by
+ * client objects, since concurrent access to a shared context would cause
+ * heavy contentions.  The above constant is expected to be enough for
+ * completely avoiding contentions among threads for an authoritative-only
+ * server.
+ */
+
+#define CLIENT_NTASKS_PERCPU 32
+/*%<
+ * Number of tasks to be used by clients - those are used only when recursing
+ */
+
 #if defined(_WIN32) && !defined(_WIN64)
 LIBNS_EXTERNAL_DATA atomic_uint_fast32_t ns_client_requests;
 #else  /* if defined(_WIN32) && !defined(_WIN64) */
@@ -133,6 +148,8 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 	       const unsigned char *secret, isc_buffer_t *buf);
 static void
 get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp);
+static void
+get_clienttask(ns_clientmgr_t *manager, isc_task_t **taskp);
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -2231,37 +2248,31 @@ ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 static void
 get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 	isc_mem_t *clientmctx;
-#if CLIENT_NMCTXS > 0
-	unsigned int nextmctx;
-#endif /* if CLIENT_NMCTXS > 0 */
-
 	MTRACE("clientmctx");
 
-#if CLIENT_NMCTXS > 0
-	LOCK(&manager->lock);
-	if (isc_nm_tid() >= 0) {
-		nextmctx = isc_nm_tid();
-	} else {
-		nextmctx = manager->nextmctx++;
-		if (manager->nextmctx == CLIENT_NMCTXS) {
-			manager->nextmctx = 0;
-		}
-
-		INSIST(nextmctx < CLIENT_NMCTXS);
+	int tid = isc_nm_tid();
+	if (tid < 0) {
+		tid = isc_random_uniform(manager->ncpus);
 	}
-
+	int rand = isc_random_uniform(CLIENT_NMCTXS_PERCPU);
+	int nextmctx = (rand * manager->ncpus) + tid;
 	clientmctx = manager->mctxpool[nextmctx];
-	if (clientmctx == NULL) {
-		isc_mem_create(&clientmctx);
-		isc_mem_setname(clientmctx, "client", NULL);
-		manager->mctxpool[nextmctx] = clientmctx;
-	}
-	UNLOCK(&manager->lock);
-#else  /* if CLIENT_NMCTXS > 0 */
-	clientmctx = manager->mctx;
-#endif /* if CLIENT_NMCTXS > 0 */
 
 	isc_mem_attach(clientmctx, mctxp);
+}
+
+static void
+get_clienttask(ns_clientmgr_t *manager, isc_task_t **taskp) {
+	MTRACE("clienttask");
+
+	int tid = isc_nm_tid();
+	if (tid < 0) {
+		tid = isc_random_uniform(manager->ncpus);
+	}
+
+	int rand = isc_random_uniform(CLIENT_NTASKS_PERCPU);
+	int nexttask = (rand * manager->ncpus) + tid;
+	isc_task_attach(manager->taskpool[nexttask], taskp);
 }
 
 isc_result_t
@@ -2285,10 +2296,8 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		get_clientmctx(mgr, &client->mctx);
 		clientmgr_attach(mgr, &client->manager);
 		ns_server_attach(mgr->sctx, &client->sctx);
-		result = isc_task_create(mgr->taskmgr, 20, &client->task);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		get_clienttask(mgr, &client->task);
+
 		result = dns_message_create(client->mctx,
 					    DNS_MESSAGE_INTENTPARSE,
 					    &client->message);
@@ -2412,22 +2421,19 @@ clientmgr_detach(ns_clientmgr_t **mp) {
 
 static void
 clientmgr_destroy(ns_clientmgr_t *manager) {
-#if CLIENT_NMCTXS > 0
 	int i;
-#endif /* if CLIENT_NMCTXS > 0 */
 
 	MTRACE("clientmgr_destroy");
 
 	isc_refcount_destroy(&manager->references);
 	manager->magic = 0;
 
-#if CLIENT_NMCTXS > 0
-	for (i = 0; i < CLIENT_NMCTXS; i++) {
-		if (manager->mctxpool[i] != NULL) {
-			isc_mem_detach(&manager->mctxpool[i]);
-		}
+	for (i = 0; i < manager->ncpus * CLIENT_NMCTXS_PERCPU; i++) {
+		isc_mem_detach(&manager->mctxpool[i]);
 	}
-#endif /* if CLIENT_NMCTXS > 0 */
+	isc_mem_put(manager->mctx, manager->mctxpool,
+		    manager->ncpus * CLIENT_NMCTXS_PERCPU *
+			    sizeof(isc_mem_t *));
 
 	if (manager->interface != NULL) {
 		ns_interface_detach(&manager->interface);
@@ -2440,13 +2446,14 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 		isc_task_detach(&manager->excl);
 	}
 
-	for (i = 0; i < CLIENT_NTASKS; i++) {
+	for (i = 0; i < manager->ncpus * CLIENT_NTASKS_PERCPU; i++) {
 		if (manager->taskpool[i] != NULL) {
 			isc_task_detach(&manager->taskpool[i]);
 		}
 	}
 	isc_mem_put(manager->mctx, manager->taskpool,
-		    CLIENT_NTASKS * sizeof(isc_task_t *));
+		    manager->ncpus * CLIENT_NTASKS_PERCPU *
+			    sizeof(isc_task_t *));
 	ns_server_detach(&manager->sctx);
 
 	isc_mem_put(manager->mctx, manager, sizeof(*manager));
@@ -2455,12 +2462,11 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 isc_result_t
 ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 		    isc_timermgr_t *timermgr, ns_interface_t *interface,
-		    ns_clientmgr_t **managerp) {
+		    int ncpus, ns_clientmgr_t **managerp) {
 	ns_clientmgr_t *manager;
 	isc_result_t result;
-#if CLIENT_NMCTXS > 0
 	int i;
-#endif /* if CLIENT_NMCTXS > 0 */
+	int npools;
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	*manager = (ns_clientmgr_t){ .magic = 0 };
@@ -2477,27 +2483,35 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	manager->mctx = mctx;
 	manager->taskmgr = taskmgr;
 	manager->timermgr = timermgr;
+	manager->ncpus = ncpus;
 
 	ns_interface_attach(interface, &manager->interface);
 
 	manager->exiting = false;
-	manager->taskpool = isc_mem_get(mctx,
-					CLIENT_NTASKS * sizeof(isc_task_t *));
-	for (i = 0; i < CLIENT_NTASKS; i++) {
+	int ntasks = CLIENT_NTASKS_PERCPU * manager->ncpus;
+	manager->taskpool = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
+	for (i = 0; i < ntasks; i++) {
 		manager->taskpool[i] = NULL;
-		isc_task_create(manager->taskmgr, 20, &manager->taskpool[i]);
+		result = isc_task_create_bound(manager->taskmgr, 20,
+					       &manager->taskpool[i],
+					       i % CLIENT_NTASKS_PERCPU);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	isc_refcount_init(&manager->references, 1);
 	manager->sctx = NULL;
 	ns_server_attach(sctx, &manager->sctx);
 
 	ISC_LIST_INIT(manager->recursing);
-#if CLIENT_NMCTXS > 0
-	manager->nextmctx = 0;
-	for (i = 0; i < CLIENT_NMCTXS; i++) {
-		manager->mctxpool[i] = NULL; /* will be created on-demand */
+
+	npools = CLIENT_NMCTXS_PERCPU * manager->ncpus;
+	manager->mctxpool = isc_mem_get(manager->mctx,
+					npools * sizeof(isc_mem_t *));
+	for (i = 0; i < npools; i++) {
+		manager->mctxpool[i] = NULL;
+		isc_mem_create(&manager->mctxpool[i]);
+		isc_mem_setname(manager->mctxpool[i], "client", NULL);
 	}
-#endif /* if CLIENT_NMCTXS > 0 */
+
 	manager->magic = MANAGER_MAGIC;
 
 	MTRACE("create");
