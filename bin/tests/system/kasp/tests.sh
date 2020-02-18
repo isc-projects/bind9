@@ -1603,21 +1603,18 @@ dnssec_verify
 TSIG=""
 
 #
-# Testing ZSK Pre-Publication rollover.
+# Testing DNSSEC introduction.
 #
 
 #
-# Zone: step1.zsk-prepub.autosign.
+# Zone: step1.enable-dnssec.autosign.
 #
-zone_properties "ns3" "step1.zsk-prepub.autosign" "zsk-prepub" "3600" "2" "10.53.0.3"
-# Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
-key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "no" "yes"
-key_timings "KEY1" "published" "active" "retired" "none" "none"
-key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes" "no"
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
-key_timings "KEY2" "published" "active" "retired" "none" "none"
-# Initially only two keys.
+zone_properties "ns3" "step1.enable-dnssec.autosign" "enable-dnssec" "300" "1" "10.53.0.3"
+# The DNSKEY and signatures are introduced first, the DS remains hidden.
+key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_timings "KEY1" "published" "active" "none" "none" "none"
+key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
+key_clear "KEY2"
 key_clear "KEY3"
 check_keys
 check_apex
@@ -1646,11 +1643,85 @@ check_next_key_event() {
 	status=$((status+ret))
 }
 
+# Next key event is when the DNSKEY RRset becomes OMNIPRESENT: DNSKEY TTL plus
+# publish safety plus the zone propagation delay: 900 seconds.
+check_next_key_event 900
+
+#
+# Zone: step2.enable-dnssec.autosign.
+#
+zone_properties "ns3" "step2.enable-dnssec.autosign" "enable-dnssec" "300" "1" "10.53.0.3"
+# The DNSKEY and signatures are introduced first, the DS remains hidden.
+key_states "KEY1" "omnipresent" "omnipresent" "rumoured" "omnipresent" "hidden"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the zone signatures become OMNIPRESENT: max-zone-ttl
+# plus zone propagation delay plus retire safety minus the already elapsed
+# 900 seconds: 12h + 300s + 20m - 900 = 44700 - 900 = 43800 seconds
+check_next_key_event 43800
+
+#
+# Zone: step3.enable-dnssec.autosign.
+#
+zone_properties "ns3" "step3.enable-dnssec.autosign" "enable-dnssec" "300" "1" "10.53.0.3"
+# The DS can be introduced.
+key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "rumoured"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the DS can move to the OMNIPRESENT state.  This occurs
+# when the parent registration and propagation delay have passed, plus the
+# DS TTL and retire safety delay: 1d + 1h + 2h + 20m = 27h20m = 98400 seconds
+check_next_key_event 98400
+
+#
+# Zone: step4.enable-dnssec.autosign.
+#
+zone_properties "ns3" "step4.enable-dnssec.autosign" "enable-dnssec" "300" "1" "10.53.0.3"
+# The DS is omnipresent.
+key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is never, the zone dnssec-policy has been established. So we
+# fall back to the default loadkeys interval.
+check_next_key_event 3600
+
+#
+# Testing ZSK Pre-Publication rollover.
+#
+
+#
+# Zone: step1.zsk-prepub.autosign.
+#
+zone_properties "ns3" "step1.zsk-prepub.autosign" "zsk-prepub" "3600" "2" "10.53.0.3"
+# Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
+key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "no" "yes"
+key_timings "KEY1" "published" "active" "retired" "none" "none"
+key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes" "no"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+key_timings "KEY2" "published" "active" "retired" "none" "none"
+# Initially only two keys.
+key_clear "KEY3"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
 # Next key event is when the successor ZSK needs to be published.  That is
 # the ZSK lifetime - prepublication time.  The prepublication time is DNSKEY
 # TTL plus publish safety plus the zone propagation delay.  For the
 # zsk-prepub policy that means: 30d - 3600s + 1d + 1h = 2498400 seconds.
 check_next_key_event 2498400
+
 #
 # Zone: step2.zsk-prepub.autosign.
 #
