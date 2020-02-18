@@ -196,6 +196,7 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 
 		worker->ievents = isc_queue_new(mgr->mctx, 128);
 		worker->ievents_prio = isc_queue_new(mgr->mctx, 128);
+		worker->recvbuf = isc_mem_get(mctx, ISC_NETMGR_RECVBUF_SIZE);
 
 		/*
 		 * We need to do this here and not in nm_thread to avoid a
@@ -268,6 +269,8 @@ nm_destroy(isc_nm_t **mgr0) {
 
 		isc_queue_destroy(worker->ievents);
 		isc_queue_destroy(worker->ievents_prio);
+		isc_mem_put(mgr->mctx, worker->recvbuf,
+			    ISC_NETMGR_RECVBUF_SIZE);
 		isc_thread_join(worker->thread, NULL);
 	}
 
@@ -960,14 +963,14 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(isc__nm_in_netthread());
-	REQUIRE(size <= 65536);
+	REQUIRE(size <= ISC_NETMGR_RECVBUF_SIZE);
 
 	worker = &sock->mgr->workers[sock->tid];
 	INSIST(!worker->recvbuf_inuse);
 
 	buf->base = worker->recvbuf;
 	worker->recvbuf_inuse = true;
-	buf->len = size;
+	buf->len = ISC_NETMGR_RECVBUF_SIZE;
 }
 
 void
@@ -982,8 +985,13 @@ isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf) {
 	worker = &sock->mgr->workers[sock->tid];
 
 	REQUIRE(worker->recvbuf_inuse);
+	if (buf->base > worker->recvbuf &&
+	    buf->base <= worker->recvbuf + ISC_NETMGR_RECVBUF_SIZE)
+	{
+		/* Can happen in case of recvmmsg */
+		return;
+	}
 	REQUIRE(buf->base == worker->recvbuf);
-
 	worker->recvbuf_inuse = false;
 }
 
