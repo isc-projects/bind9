@@ -471,6 +471,9 @@
 /* Define to 1 if you have the `uv_handle_set_data' function. */
 #undef HAVE_UV_HANDLE_SET_DATA
 
+/* Define to 1 if you have the `uv_import' function. */
+#undef HAVE_UV_IMPORT
+
 /* Use zlib library */
 #undef HAVE_ZLIB
 

@@ -33,6 +33,14 @@ uv_handle_set_data(uv_handle_t *handle, void *data) {
 }
 #endif /* ifndef HAVE_UV_HANDLE_SET_DATA */
 
+#ifdef HAVE_UV_IMPORT
+
+#define isc_uv_stream_info_t uv_stream_info_t
+#define isc_uv_export	     uv_export
+#define isc_uv_import	     uv_import
+
+#else
+
 /*
  * These functions are not available in libuv, but they're very internal
  * to libuv. We should try to get them merged upstream.
@@ -69,3 +77,5 @@ isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info);
  * Imports uv_stream_info_t value into uv_stream_t to initialize a
  * shared stream.
  */
+
+#endif

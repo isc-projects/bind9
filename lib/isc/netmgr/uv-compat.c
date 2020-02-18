@@ -15,6 +15,7 @@
 
 #include <isc/util.h>
 
+#ifndef HAVE_UV_IMPORT
 /*
  * XXXWPK: This code goes into libuv internals and it's platform dependent.
  * It's ugly, we shouldn't do it, but the alternative with passing sockets
@@ -185,3 +186,5 @@ isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 	return (uv_tcp_open(tcp, info->fd));
 }
 #endif /* ifdef WIN32 */
+
+#endif /* ifndef HAVE_UV_IMPORT */

@@ -667,7 +667,7 @@ LIBS="$LIBS $LIBUV_LIBS"
 
 # Those functions are only provided in newer versions of libuv, we'll be emulating them
 # for now
-AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data])
+AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import])
 
 #
 # flockfile is usually provided by pthreads
