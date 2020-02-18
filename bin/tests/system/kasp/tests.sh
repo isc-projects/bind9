@@ -1629,7 +1629,8 @@ check_next_key_event() {
 	ret=0
 	grep "zone ${ZONE}.*: next key event in .* seconds" "${DIR}/named.run" > "keyevent.out.$ZONE.test$n" || log_error "no next key event for zone ${ZONE}"
 
-	_time=$(awk '{print $10}' < "keyevent.out.$ZONE.test$n")
+	# Get the latest next key event.
+	_time=$(awk '{print $10}' < "keyevent.out.$ZONE.test$n" | tail -1)
 
 	# The next key event time must within 60 seconds of the
 	# expected time.
@@ -2081,7 +2082,7 @@ dnssec_verify
 check_next_key_event 13708800
 
 #
-# Testing CSK key rollover (1).
+# Testing CSK key rollover (2).
 #
 
 #
@@ -2217,6 +2218,164 @@ dnssec_verify
 
 # Next key event is when the new successor needs to be published.
 check_next_key_event 14684400
+
+#
+# Testing algorithm rollover.
+#
+
+#
+# Zone: step1.algorithm-roll.kasp
+#
+zone_properties "ns6" "step1.algorithm-roll.kasp" "rsasha1" "3600" "2" "10.53.0.6"
+# The KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
+key_properties "KEY1" "ksk" "0" "5" "RSASHA1" "2048" "no" "yes"
+key_timings "KEY1" "published" "active" "none" "none" "none"
+key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+key_properties "KEY2" "zsk" "0" "5" "RSASHA1" "2048" "yes" "no"
+key_timings "KEY2" "published" "active" "none" "none" "none"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+key_clear "KEY3"
+key_clear "KEY4"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the successor keys need to be published.
+# Since the lifetime of the keys are unlimited, so default to loadkeys
+# interval.
+check_next_key_event 3600
+
+# Reconfig dnssec-policy (triggering algorithm roll).
+echo_i "reconfig dnssec-policy to trigger algorithm rollover"
+copy_setports ns6/named2.conf.in ns6/named.conf
+rndc_reconfig ns6 10.53.0.6
+
+zone_properties "ns6" "step1.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+# The RSAHSHA1 keys are outroducing.
+key_timings "KEY1" "published" "active" "retired" "none" "none"
+key_states "KEY1" "hidden" "omnipresent" "none" "omnipresent" "omnipresent"
+key_timings "KEY2" "published" "active" "retired" "none" "none"
+key_states "KEY2" "hidden" "omnipresent" "omnipresent" "none" "none"
+# The ECDSAP256SHA256 keys are introducing.
+key_properties "KEY3" "ksk" "0" "13" "ECDSAP256SHA256" "256" "no" "yes"
+key_timings "KEY3" "published" "active" "none" "none" "none"
+key_states "KEY3" "omnipresent" "rumoured" "none" "rumoured" "hidden"
+key_properties "KEY4" "zsk" "0" "13" "ECDSAP256SHA256" "256" "yes" "no"
+key_timings "KEY4" "published" "active" "none" "none" "none"
+key_states "KEY4" "omnipresent" "rumoured" "rumoured" "none" "none"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the ecdsa256 keys have been propagated.
+# This is the DNSKEY TTL plus publish safety plus zone propagation delay:
+# 3 times an hour: 10800 seconds.
+check_next_key_event 10800
+
+#
+# Zone: step2.algorithm-roll.kasp
+#
+zone_properties "ns6" "step2.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+# The RSAHSHA1 keys are outroducing, but need to stay present until the new
+# algorithm chain of trust has been established. Thus the properties, timings
+# and states of the KEY1 and KEY2 are the same as above.
+#
+# The ECDSAP256SHA256 keys are introducing. The DNSKEY RRset is omnipresent,
+# but the zone signatures are not.
+key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "hidden"
+key_states "KEY4" "omnipresent" "omnipresent" "rumoured" "none" "none"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when all zone signatures are signed with the new
+# algorithm.  This is the max-zone-ttl plus zone propagation delay
+# plus retire safety: 6h + 1h + 2h.  But three hours have already passed
+# (the time it took to make the DNSKEY omnipresent), so the next event
+# should be scheduled in 6 hour: 21600 seconds.
+check_next_key_event 21600
+
+#
+# Zone: step3.algorithm-roll.kasp
+#
+zone_properties "ns6" "step3.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+# The RSAHSHA1 keys are outroducing, and it is time to swap the DS.
+key_states "KEY1" "hidden" "omnipresent" "none" "omnipresent" "unretentive"
+# The ECDSAP256SHA256 keys are introducing. The DNSKEY RRset and all signatures
+# are now omnipresent, so the DS can be introduced.
+key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "rumoured"
+key_states "KEY4" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the DS becomes OMNIPRESENT. This happens after the
+# parent registration delay, parent propagation delay, retire safety delay,
+# and DS TTL: 24h + 1h + 2h + 2h = 29h = 104400 seconds.
+check_next_key_event 104400
+
+#
+# Zone: step4.algorithm-roll.kasp
+#
+zone_properties "ns6" "step4.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+# The old DS is HIDDEN, we can remove the old algorithm DNSKEY/RRSIG records.
+key_properties "KEY1" "ksk" "0" "5" "RSASHA1" "2048" "no" "no"
+key_states "KEY1" "hidden" "unretentive" "none" "unretentive" "hidden"
+key_properties "KEY2" "zsk" "0" "5" "RSASHA1" "2048" "no" "no"
+key_states "KEY2" "hidden" "unretentive" "unretentive" "none" "none"
+# The ECDSAP256SHA256 DS is now OMNIPRESENT.
+key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the old DNSKEY becomes HIDDEN.  This happens after the
+# DNSKEY TTL plus zone propagation delay (2h).
+check_next_key_event 7200
+
+#
+# Zone: step5.algorithm-roll.kasp
+#
+zone_properties "ns6" "step5.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+# The DNSKEY becomes HIDDEN.
+key_states "KEY1" "hidden" "hidden" "none" "hidden" "hidden"
+key_states "KEY2" "hidden" "hidden" "unretentive" "none" "none"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the RSASHA1 signatures become HIDDEN.  This happens
+# after the max-zone-ttl plus zone propagation delay plus retire safety
+# (6h + 1h + 2h) minus the time already passed since the UNRETENTIVE state has
+# been reached (2h): 9h - 2h = 7h = 25200
+check_next_key_event 25200
+
+#
+# Zone: step6.algorithm-roll.kasp
+#
+zone_properties "ns6" "step6.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+# The zone signatures should now also be HIDDEN.
+key_states "KEY2" "hidden" "hidden" "hidden" "none" "none"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is never since we established the policy and the keys have
+# an unlimited lifetime.  Fallback to the default loadkeys interval.
+check_next_key_event 3600
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
