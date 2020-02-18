@@ -339,7 +339,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 /*
  * isc__nm_udp_send sends buf to a peer on a socket.
  * It tries to find a proper sibling/child socket so that we won't have
- * to jump to other thread.
+ * to jump to another thread.
  */
 isc_result_t
 isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
@@ -380,10 +380,9 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	}
 
 	/*
-	 * If we're in netthread - send it directly
-	 * If the original packet was received over a regular socket
-	 * - send it over the same thread (assuming cpu affinity)
-	 * Otherwise - use a random thread.
+	 * If we're in the network thread, we can send directly.  If the
+	 * handle is associated with a UDP socket, we can reuse its thread
+	 * (assuming CPU affinity). Otherwise, pick a thread at random.
 	 */
 	if (isc__nm_in_netthread()) {
 		ntid = isc_nm_tid();

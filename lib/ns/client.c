@@ -2330,6 +2330,10 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		isc_mem_t *oldmctx = client->mctx;
 		ns_query_t query = client->query;
 
+		/*
+		 * Retain these values from the existing client, but
+		 * zero every thing else.
+		 */
 		*client = (ns_client_t){ .magic = 0,
 					 .mctx = oldmctx,
 					 .manager = oldmgr,
