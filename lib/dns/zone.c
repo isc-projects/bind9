@@ -19619,17 +19619,28 @@ zone_rekey(dns_zone_t *zone) {
 	/*
 	 * If keymgr provided a next time, use the calculated next rekey time.
 	 */
-	if (kasp != NULL && nexttime > 0) {
+	if (kasp != NULL) {
 		isc_time_t timenext;
+		uint32_t nexttime_seconds;
 
-		DNS_ZONE_TIME_ADD(&timenow, nexttime - now, &timenext);
+		/*
+		 * Set the key refresh timer to the next scheduled key event
+		 * or to 'dnssec-loadkeys-interval' seconds in the future
+		 * if no next key event is scheduled (nexttime == 0).
+		 */
+		if (nexttime > 0) {
+			nexttime_seconds = nexttime - now;
+		} else {
+			nexttime_seconds = zone->refreshkeyinterval;
+		}
+
+		DNS_ZONE_TIME_ADD(&timenow, nexttime_seconds, &timenext);
 		zone->refreshkeytime = timenext;
 		zone_settimer(zone, &timenow);
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
 
 		dnssec_log(zone, ISC_LOG_DEBUG(3),
-			   "next key event in %u seconds: %s", (nexttime - now),
-			   timebuf);
+			   "next key event in %u seconds", nexttime_seconds);
 		dnssec_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
 	}
 	/*
