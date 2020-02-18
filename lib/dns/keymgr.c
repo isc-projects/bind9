@@ -546,8 +546,15 @@ keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		 * chain of trust (can be this key).
 		 */
 		dnskey_omnipresent[DST_KEY_DS] = NA;
-		(void)dst_key_getstate(dkey->key, DST_KEY_DS,
-				       &dnskey_omnipresent[DST_KEY_DS]);
+		if (next_state != NA &&
+		    dst_key_id(dkey->key) == dst_key_id(key->key))
+		{
+			/* Check next state rather than current state. */
+			dnskey_omnipresent[DST_KEY_DS] = next_state;
+		} else {
+			(void)dst_key_getstate(dkey->key, DST_KEY_DS,
+					       &dnskey_omnipresent[DST_KEY_DS]);
+		}
 		if (!keymgr_key_exists_with_state(
 			    keyring, key, type, next_state, dnskey_omnipresent,
 			    na, false, match_algorithms))
