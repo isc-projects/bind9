@@ -150,6 +150,53 @@ $SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O full -f $zonefile $infile > sign
 $SETTIME -s -I now -g HIDDEN "$ZSK" > settime.out.$zone.3 2>&1
 
 #
+# The zones at enable-dnssec.autosign represent the various steps of the
+# initial signing of a zone.
+#
+
+# Step 1:
+# This is an unsigned zone and named should perform the initial steps of
+# introducing the DNSSEC records in the right order.
+setup step1.enable-dnssec.autosign
+cp template.db.in $zonefile
+
+# Step 2:
+# The DNSKEY has been published long enough to become OMNIPRESENT.
+setup step2.enable-dnssec.autosign
+CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
+TpubN="now-900s"
+$SETTIME -s -P $TpubN -A $TpubN -g $O -k $R $TpubN -r $R $TpubN -d $H $TpubN -z $R $TpubN "$CSK" > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 "$CSK" >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 3:
+# The zone signatures have been published long enough to become OMNIPRESENT.
+setup step3.enable-dnssec.autosign
+CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
+TpubN="now-44700s"
+TactN="now-43800s"
+$SETTIME -s -P $TpubN -A $TpubN -g $O -k $O $TactN -r $O $TactN -d $H $TpubN -z $R $TpubN "$CSK" > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 "$CSK" >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+setup step3.enable-dnssec.autosign
+
+# Step 4:
+# The DS has been submitted long enough ago to become OMNIPRESENT.
+# Add 27 hour plus retire safety of 20 minutes (98400 seconds) to the times.
+setup step4.enable-dnssec.autosign
+CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
+TpubN="now-143100s"
+TactN="now-142200s"
+TomnN="now-98400s"
+$SETTIME -s -P $TpubN -A $TpubN -g $O -k $O $TactN -r $O $TactN -d $R $TomnN -z $O $TomnN "$CSK" > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 "$CSK" >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+setup step3.enable-dnssec.autosign
+
+#
 # The zones at zsk-prepub.autosign represent the various steps of a ZSK
 # Pre-Publication rollover.
 #
