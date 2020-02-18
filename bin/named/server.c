@@ -9621,7 +9621,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 			   named_g_mctx, server->sctx, named_g_taskmgr,
 			   named_g_timermgr, named_g_socketmgr, named_g_nm,
 			   named_g_dispatchmgr, server->task, named_g_udpdisp,
-			   geoip, &server->interfacemgr),
+			   geoip, named_g_cpus, &server->interfacemgr),
 		   "creating interface manager");
 
 	CHECKFATAL(isc_timer_create(named_g_timermgr, isc_timertype_inactive,
