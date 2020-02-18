@@ -283,11 +283,6 @@ zone "step5.ksk-doubleksk.autosign" {
 	file "step5.ksk-doubleksk.autosign.db";
 	dnssec-policy "ksk-doubleksk";
 };
-zone "step6.ksk-doubleksk.autosign" {
-	type master;
-	file "step6.ksk-doubleksk.autosign.db";
-	dnssec-policy "ksk-doubleksk";
-};
 
 /*
  * Zones for testing CSK rollover steps.
