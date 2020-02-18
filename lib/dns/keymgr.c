@@ -1000,14 +1000,22 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 			 * TTLsig is the maximum TTL of all zone RRSIG
 			 * records.  This translates to:
 			 *
-			 *     Dsgn + zone-propragation-delay + max-zone-ttl.
+			 *     Dsgn + zone-propagation-delay + max-zone-ttl.
 			 *
 			 * We will also add the retire-safety interval.
 			 */
-			nexttime = lastchange + dns_kasp_signdelay(kasp) +
-				   dns_kasp_zonemaxttl(kasp) +
+			nexttime = lastchange + dns_kasp_zonemaxttl(kasp) +
 				   dns_kasp_zonepropagationdelay(kasp) +
 				   dns_kasp_retiresafety(kasp);
+			/*
+			 * Only add the sign delay Dsgn if there is an actual
+			 * predecessor key.
+			 */
+			uint32_t pre;
+			if (dst_key_getnum(key->key, DST_NUM_PREDECESSOR,
+					   &pre) == ISC_R_SUCCESS) {
+				nexttime += dns_kasp_signdelay(kasp);
+			}
 			break;
 		default:
 			nexttime = now;
