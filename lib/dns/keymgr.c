@@ -1297,6 +1297,39 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		}
 	}
 
+	/* Do we need to remove keys? */
+	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring);
+	     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
+	{
+		bool found_match = false;
+
+		/* Make sure this key knows about roles. */
+		keymgr_key_init_role(dkey);
+
+		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
+		     kkey = ISC_LIST_NEXT(kkey, link))
+		{
+			if (keymgr_dnsseckey_kaspkey_match(dkey, kkey)) {
+				found_match = true;
+				dst_key_format(dkey->key, keystr,
+					       sizeof(keystr));
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_DEBUG(1),
+					      "keymgr: DNSKEY %s (%s) matches "
+					      "policy %s", keystr,
+					      keymgr_keyrole(dkey->key),
+					      dns_kasp_getname(kasp));
+				break;
+			}
+		}
+
+		/* No match, so retire unwanted retire key. */
+		if (!found_match) {
+			keymgr_key_retire(dkey, now);
+		}
+	}
+
 	/* Create keys according to the policy, if come in short. */
 	for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 	     kkey = ISC_LIST_NEXT(kkey, link))
@@ -1309,9 +1342,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring);
 		     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
 		{
-			/* Make sure this key knows about roles. */
-			keymgr_key_init_role(dkey);
-
 			if (keymgr_dnsseckey_kaspkey_match(dkey, kkey)) {
 				/* Found a match. */
 
