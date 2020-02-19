@@ -59,3 +59,4 @@ timestamp
 /compile_commands.json
 /cppcheck_html/
 /cppcheck.results
+/util/check-make-install
