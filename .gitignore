@@ -61,3 +61,4 @@ timestamp
 /cppcheck_html/
 /cppcheck.results
 /tsan
+/util/check-make-install
