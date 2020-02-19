@@ -1328,6 +1328,8 @@ AS_CASE([$with_zlib],
        [yes],[PKG_CHECK_MODULES([ZLIB], [zlib],
                                 [AC_DEFINE([HAVE_ZLIB], [1], [Use zlib library])])],
        [AC_MSG_ERROR([Specifying zlib installation path is not supported, adjust PKG_CONFIG_PATH instead])])
+AC_SUBST([ZLIB_CFLAGS])
+AC_SUBST([ZLIB_LIBS])
 
 #
 # In solaris 10, SMF can manage named service
@@ -2914,8 +2916,8 @@ report() {
     echo "Configuration summary:"
     echo "-------------------------------------------------------------------------------"
     echo "Optional features enabled:"
-    if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
-	echo "        Mutex lock type: $locktype"
+    if test "yes" = "$enable_full_report" -o "standard" = "$with_locktype"; then
+	echo "    Mutex lock type: $with_locktype"
     fi
     test "small" = "$with_tuning" && echo "    Small-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
@@ -2929,7 +2931,7 @@ report() {
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
 	test "X$LIBXML2_LIBS" = "X" || echo "    XML statistics (--with-libxml2)"
 	test "X$JSON_C_LIBS" = "X" || echo "    JSON statistics (--with-json-c): $JSON_C_CFLAGS $JSON_C_LIBS"
-	test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
+	test "X$ZLIB_LIBS" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 	test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
 	test "no" = "$with_libidn2" || echo "    IDN support (--with-libidn2)"
     fi
@@ -3007,7 +3009,7 @@ report() {
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
     test "X$LIBXML2_LIBS" = "X" && echo "    XML statistics (--with-libxml2)"
     test "X$JSON_C_LIBS" = "X" && echo "    JSON statistics (--with-json-c)"
-    test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
+    test "X$ZLIB_LIBS" = "X" && echo "    HTTP zlib compression (--with-zlib)"
     test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
     test "no" = "$with_libidn2" && echo "    IDN support (--with-libidn2)"
 
