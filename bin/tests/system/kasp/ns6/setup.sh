@@ -19,6 +19,7 @@ setup() {
 	echo_i "setting up zone: $zone"
 	zonefile="${zone}.db"
 	infile="${zone}.db.infile"
+	echo "$zone" >> zones.2
 }
 
 private_type_record() {
@@ -46,7 +47,6 @@ U="UNRETENTIVE"
 # Step 1:
 # Introduce the first key. This will immediately be active.
 setup step1.algorithm-roll.kasp
-echo "$zone" >> zones
 KSK=$($KEYGEN -a RSASHA1 -f KSK -L 3600 $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a RSASHA1 -L 3600 $zone 2> keygen.out.$zone.2)
 TactN="now"
