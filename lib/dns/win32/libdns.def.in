@@ -1351,6 +1351,7 @@ dns_zone_setssutable
 dns_zone_setstatistics
 dns_zone_setstatlevel
 dns_zone_setstats
+dns_zone_setstream
 dns_zone_settask
 dns_zone_settype
 dns_zone_setupdateacl
