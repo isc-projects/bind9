@@ -890,7 +890,7 @@ validator_callback_nsec(isc_task_t *task, isc_event_t *event) {
 				/*
 				 * If we are validating a wildcard response
 				 * clabels will not be zero.  We then need
-				 * to check if the generated wilcard from
+				 * to check if the generated wildcard from
 				 * dns_nsec_noexistnodata is consistent with
 				 * the wildcard used to generate the response.
 				 */

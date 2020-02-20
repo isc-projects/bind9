@@ -1234,7 +1234,7 @@ main(int argc, char *argv[]) {
 	}
 
 	/*
-	 * Sucessfully do nothing if there's neither CDNSKEY nor CDS
+	 * Successfully do nothing if there's neither CDNSKEY nor CDS
 	 * RFC 7344 section 4.1 first paragraph
 	 */
 	if (!dns_rdataset_isassociated(&cdnskey_set) &&

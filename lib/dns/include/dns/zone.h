@@ -315,7 +315,7 @@ dns_zone_setstream(dns_zone_t *zone, const FILE *stream,
 void
 dns_zone_setmaxrecords(dns_zone_t *zone, uint32_t records);
 /*%<
- * 	Sets the maximim number of records permitted in a zone.
+ * 	Sets the maximum number of records permitted in a zone.
  *	0 implies unlimited.
  *
  * Requires:
@@ -328,7 +328,7 @@ dns_zone_setmaxrecords(dns_zone_t *zone, uint32_t records);
 uint32_t
 dns_zone_getmaxrecords(dns_zone_t *zone);
 /*%<
- * 	Gets the maximim number of records permitted in a zone.
+ * 	Gets the maximum number of records permitted in a zone.
  *	0 implies unlimited.
  *
  * Requires:

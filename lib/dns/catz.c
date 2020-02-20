@@ -1615,7 +1615,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 
 	/*
 	 * DSCP value has no default, but when it is specified, it is identical
-	 * for all masters and cannot be overriden for a specific master IP, so
+	 * for all masters and cannot be overridden for a specific master IP, so
 	 * use the DSCP value set for the first master
 	 */
 	if (entry->opts.masters.count > 0 && entry->opts.masters.dscps[0] >= 0)

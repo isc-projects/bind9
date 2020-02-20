@@ -12,7 +12,7 @@
 ############################################################################
 #
 # This tool acts as a TCP/UDP proxy and delays all incoming packets by 500
-# miliseconds.
+# milliseconds.
 #
 # We use it to check pipelining - a client sents 8 questions over a
 # pipelined connection - that require asking a normal (examplea) and a
@@ -108,7 +108,7 @@ class TCPDelayer(threading.Thread):
 class UDPDelayer(threading.Thread):
     """ Every incoming UDP packet is put in a queue for DELAY time, then
         it's sent to (ip, port). We remember the query id to send the
-        response we get to a proper source, responsed are not delayed.
+        response we get to a proper source, responses are not delayed.
     """
     def __init__(self, usock, ip, port):
         threading.Thread.__init__(self)

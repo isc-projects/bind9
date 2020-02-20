@@ -47,7 +47,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
  *  \param[in] ref pointer to reference counter.
  *  \returns current value of reference counter.
  *
- *   Undo implict promotion to 64 bits in our Windows implementation of
+ *   Undo implicit promotion to 64 bits in our Windows implementation of
  *   atomic_load_explicit() by casting to uint_fast32_t.
  */
 

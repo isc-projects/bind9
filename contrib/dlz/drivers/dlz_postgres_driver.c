@@ -522,7 +522,7 @@ postgres_get_resultset(const char *zone, const char *record, const char *client,
 				break;
 			}
 		}
-		/* result set ok, break outter loop */
+		/* result set ok, break outer loop */
 		if (PQresultStatus(*rs) == PGRES_TUPLES_OK) {
 #if 0
 			/* temporary logging message */
@@ -682,7 +682,7 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs) {
 					      DNS_LOGCATEGORY_DATABASE,
 					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 					      "Postgres driver ttl must be "
-					      "a postive number");
+					      "a positive number");
 			}
 			/* ok, now tell Bind about it. */
 			result = dns_sdlz_putrr(lookup, PQgetvalue(rs, i, 1),
@@ -870,7 +870,7 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "Postgres driver ttl must be "
-				      "a postive number");
+				      "a positive number");
 		}
 		if (fields == 4) {
 			/* tell Bind about it. */
@@ -891,7 +891,7 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 			tmpString = isc_mem_allocate(named_g_mctx, len + 1);
 			/* copy this field to tmpString */
 			strcpy(tmpString, PQgetvalue(rs, i, 3));
-			/* concatonate the rest, with spaces between */
+			/* concatenate the rest, with spaces between */
 			for (j = 4; j < fields; j++) {
 				strcat(tmpString, " ");
 				strcat(tmpString, PQgetvalue(rs, i, j));
