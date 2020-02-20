@@ -547,8 +547,7 @@ keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		 */
 		dnskey_omnipresent[DST_KEY_DS] = NA;
 		if (next_state != NA &&
-		    dst_key_id(dkey->key) == dst_key_id(key->key))
-		{
+		    dst_key_id(dkey->key) == dst_key_id(key->key)) {
 			/* Check next state rather than current state. */
 			dnskey_omnipresent[DST_KEY_DS] = next_state;
 		} else {
@@ -1298,8 +1297,8 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	}
 
 	/* Do we need to remove keys? */
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring);
-	     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
+	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
+	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
 		bool found_match = false;
 
@@ -1317,8 +1316,8 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					      DNS_LOGMODULE_DNSSEC,
 					      ISC_LOG_DEBUG(1),
 					      "keymgr: DNSKEY %s (%s) matches "
-					      "policy %s", keystr,
-					      keymgr_keyrole(dkey->key),
+					      "policy %s",
+					      keystr, keymgr_keyrole(dkey->key),
 					      dns_kasp_getname(kasp));
 				break;
 			}
