@@ -65,3 +65,6 @@
 #define atomic_compare_exchange_weak_acq_rel(o, e, d) \
 	atomic_compare_exchange_weak_explicit(        \
 		(o), (e), (d), memory_order_acq_rel, memory_order_acquire)
+#define atomic_compare_exchange_strong_acq_rel(o, e, d) \
+	atomic_compare_exchange_strong_explicit(        \
+		(o), (e), (d), memory_order_acq_rel, memory_order_acquire)
