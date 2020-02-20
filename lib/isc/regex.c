@@ -152,7 +152,7 @@ isc_regex_validate(const char *c) {
 				}
 				++c;
 				break;
-			case '|': /* alternative seperator */
+			case '|': /* alternative separator */
 				if (!have_atom) {
 					FAIL("no atom");
 				}

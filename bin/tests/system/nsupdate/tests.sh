@@ -534,8 +534,8 @@ done
 
 ret=0
 echo_i "check that 'nsupdate -l' with a missing keyfile reports the missing file"
-$NSUPDATE -4 -p ${PORT} -l -k ns1/nonexistant.key 2> nsupdate.out < /dev/null
-grep ns1/nonexistant.key nsupdate.out > /dev/null || ret=1
+$NSUPDATE -4 -p ${PORT} -l -k ns1/nonexistent.key 2> nsupdate.out < /dev/null
+grep ns1/nonexistent.key nsupdate.out > /dev/null || ret=1
 if test $ret -ne 0
 then
 echo_i "failed"; status=1

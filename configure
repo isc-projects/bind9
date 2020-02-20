@@ -23037,7 +23037,7 @@ $as_echo "not found" >&6; }
 $as_echo "" >&6; }
 		for dd in $bdbdirs
 		do
-			# Skip nonexistant directories
+			# Skip nonexistent directories
 			if test ! -d "$dd"
 			then
 				continue

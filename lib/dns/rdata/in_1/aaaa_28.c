@@ -227,7 +227,7 @@ checkowner_in_aaaa(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 
 	/*
-	 * Handle Active Diretory gc._msdcs.<forest> name.
+	 * Handle Active Directory gc._msdcs.<forest> name.
 	 */
 	if (dns_name_countlabels(name) > 2U) {
 		dns_name_init(&prefix, NULL);

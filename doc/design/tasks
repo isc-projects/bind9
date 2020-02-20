@@ -14,7 +14,7 @@ When a task is shutdown:
 	Any attempts to add shutdown events with isc_task_onshutdown()
 	will fail, since the task is already shutting down
 
-Task shutdown can be initiated explicity, via a call to isc_task_shutdown(),
+Task shutdown can be initiated explicitly, via a call to isc_task_shutdown(),
 or implicitly, when the following conditions occur:
 
 	The "shutting down" attribute of the task is not set
@@ -60,7 +60,7 @@ to the task queue.
 
 Event action (callback) rules:
   * no locks held on your behald when entering a callback.
-  * not allowed to block, except when aquiring a lock.
+  * not allowed to block, except when acquiring a lock.
   * not allowed to hold a lock when exiting the callback.
 
 

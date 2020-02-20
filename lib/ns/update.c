@@ -1688,38 +1688,38 @@ static isc_result_t
 remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
 	isc_result_t result;
 	bool ns_exists;
-	dns_difftuple_t *tupple;
+	dns_difftuple_t *tuple;
 	dns_diff_t temp_diff;
 
 	dns_diff_init(diff->mctx, &temp_diff);
 
-	for (tupple = ISC_LIST_HEAD(diff->tuples); tupple != NULL;
-	     tupple = ISC_LIST_NEXT(tupple, link))
+	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL;
+	     tuple = ISC_LIST_NEXT(tuple, link))
 	{
-		if (!((tupple->op == DNS_DIFFOP_DEL &&
-		       tupple->rdata.type == dns_rdatatype_ns) ||
-		      (tupple->op == DNS_DIFFOP_ADD &&
-		       tupple->rdata.type == dns_rdatatype_ds)))
+		if (!((tuple->op == DNS_DIFFOP_DEL &&
+		       tuple->rdata.type == dns_rdatatype_ns) ||
+		      (tuple->op == DNS_DIFFOP_ADD &&
+		       tuple->rdata.type == dns_rdatatype_ds)))
 		{
 			continue;
 		}
-		CHECK(rrset_exists(db, newver, &tupple->name, dns_rdatatype_ns,
+		CHECK(rrset_exists(db, newver, &tuple->name, dns_rdatatype_ns,
 				   0, &ns_exists));
 		if (ns_exists &&
-		    !dns_name_equal(&tupple->name, dns_db_origin(db))) {
+		    !dns_name_equal(&tuple->name, dns_db_origin(db))) {
 			continue;
 		}
-		CHECK(delete_if(true_p, db, newver, &tupple->name,
+		CHECK(delete_if(true_p, db, newver, &tuple->name,
 				dns_rdatatype_ds, 0, NULL, &temp_diff));
 	}
 	result = ISC_R_SUCCESS;
 
 failure:
-	for (tupple = ISC_LIST_HEAD(temp_diff.tuples); tupple != NULL;
-	     tupple = ISC_LIST_HEAD(temp_diff.tuples))
+	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
+	     tuple = ISC_LIST_HEAD(temp_diff.tuples))
 	{
-		ISC_LIST_UNLINK(temp_diff.tuples, tupple, link);
-		dns_diff_appendminimal(diff, &tupple);
+		ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
+		dns_diff_appendminimal(diff, &tuple);
 	}
 	return (result);
 }
@@ -2159,7 +2159,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		next = ISC_LIST_NEXT(tuple, link);
 		if ((tuple->rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
 			/*
-			 * If we havn't had any adds then the tuple->ttl must
+			 * If we haven't had any adds then the tuple->ttl must
 			 * be the original ttl and should be used for any
 			 * future changes.
 			 */
@@ -2185,7 +2185,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
 	     tuple = next) {
 		/*
-		 * If we havn't had any adds then the tuple->ttl must be the
+		 * If we haven't had any adds then the tuple->ttl must be the
 		 * original ttl and should be used for any future changes.
 		 */
 		if (!ttl_good) {
@@ -2197,7 +2197,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 
 			/*
 			 * Look for any deletes which match this ADD ignoring
-			 * flags.  We don't need to explictly remove them as
+			 * flags.  We don't need to explicitly remove them as
 			 * they will be removed a side effect of processing
 			 * the add.
 			 */
@@ -2254,7 +2254,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 
 			/*
 			 * Remove any existing CREATE request to add an
-			 * otherwise indentical chain with a reversed
+			 * otherwise identical chain with a reversed
 			 * OPTOUT state.
 			 */
 			buf[2] ^= DNS_NSEC3FLAG_OPTOUT;

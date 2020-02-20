@@ -387,7 +387,7 @@ void
 isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len);
 /*%<
  * Format the time 't' into the buffer 'buf' of length 'len',
- * using the format "yyyymmddhhmmsssss" userful for file timestamping.
+ * using the format "yyyymmddhhmmsssss" useful for file timestamping.
  * If the text does not fit in the buffer, the result is indeterminate,
  * but is always guaranteed to be null terminated.
  *

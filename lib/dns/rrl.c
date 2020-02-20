@@ -555,7 +555,7 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr,
 		}
 
 		/*
-		 * Discard prevous hash table when all of its entries are old.
+		 * Discard previous hash table when all of its entries are old.
 		 */
 		age = delta_rrl_time(rrl->old_hash->check_time, now);
 		if (age > rrl->window) {
@@ -1205,7 +1205,7 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 	}
 
 	/*
-	 * Log occassionally in the rate-limit category.
+	 * Log occasionally in the rate-limit category.
 	 */
 	if ((!e->logged || e->log_secs >= DNS_RRL_MAX_LOG_SECS) &&
 	    isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DROP))

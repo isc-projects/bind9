@@ -651,9 +651,9 @@ nibbles(char *numbuf, size_t length, unsigned int width, char mode, int value) {
 		}
 		count++;
 		/*
-		 * If width is non zero then we need to add a label seperator.
+		 * If width is non zero then we need to add a label separator.
 		 * If value is non zero then we need to add another label and
-		 * that requires a label seperator.
+		 * that requires a label separator.
 		 */
 		if (width > 0 || value != 0) {
 			if (length > 0U) {

@@ -20,7 +20,7 @@
 
 /*
  * Check the wire format of the Regexp field.
- * Don't allow embeded NUL's.
+ * Don't allow embedded NUL's.
  */
 static inline isc_result_t
 txt_valid_regex(const unsigned char *txt) {

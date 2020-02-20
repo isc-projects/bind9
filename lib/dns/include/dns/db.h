@@ -684,7 +684,7 @@ dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
  *
  * dns_db_findnodeext() (findnode extended) also accepts parameters
  * 'methods' and 'clientinfo', which, when provided, enable the database to
- * retreive information about the client from the caller, and modify its
+ * retrieve information about the client from the caller, and modify its
  * response on the basis of that information.
  *
  * Notes:
@@ -734,7 +734,7 @@ dns_db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
  * Find the best match for 'name' and 'type' in version 'version' of 'db'.
  *
  * dns_db_findext() (find extended) also accepts parameters 'methods'
- * and 'clientinfo', which when provided enable the database to retreive
+ * and 'clientinfo', which when provided enable the database to retrieve
  * information about the client from the caller, and modify its response
  * on the basis of this information.
  *
@@ -1452,7 +1452,7 @@ dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep);
 isc_result_t
 dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 			  dns_hash_t *hash, uint8_t *flags,
-			  uint16_t *interations, unsigned char *salt,
+			  uint16_t *iterations, unsigned char *salt,
 			  size_t *salt_length);
 /*%<
  * Get the NSEC3 parameters that are associated with this zone.

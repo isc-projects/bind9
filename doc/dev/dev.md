@@ -374,7 +374,7 @@ on failure (setting `errno` to indicate what the nature of the problem
 was), BIND style always keeps indication of the function's success or
 failure separate from its returned data.  Similarly, the C library
 function `fread()` returns the number of characters read and then
-depends on `feof()` and `ferror()` to determine whether an error occured
+depends on `feof()` and `ferror()` to determine whether an error occurred
 or the end of file was reached, but BIND's version uses result codes:
 
         char buffer[BUFSIZ];

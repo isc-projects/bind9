@@ -141,7 +141,7 @@ dns_dnsrps_server_create(void) {
 	/*
 	 * Stop now without complaining if librpz is not available.
 	 * Complain later if and when librpz is needed for a view with
-	 * "dnsrps-enable yse" (including the default view).
+	 * "dnsrps-enable yes" (including the default view).
 	 */
 	if (librpz == NULL) {
 		return (ISC_R_SUCCESS);

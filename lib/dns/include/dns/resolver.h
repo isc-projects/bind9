@@ -577,7 +577,7 @@ dns_resolver_getretryinterval(dns_resolver_t *resolver);
 void
 dns_resolver_setretryinterval(dns_resolver_t *resolver, unsigned int interval);
 /*%<
- * Sets the amount of time, in millseconds, that is waited for a reply
+ * Sets the amount of time, in milliseconds, that is waited for a reply
  * to a server before another server is tried.  Interacts with the
  * value of dns_resolver_getnonbackofftries() by trying that number of times
  * at this interval, before doing exponential backoff and doubling the interval
@@ -716,7 +716,7 @@ dns_resolver_getquotaresponse(dns_resolver_t *resolver, dns_quotatype_t which);
  * are exceeded. If 'which' is set to quotatype "zone", then the
  * result specified in 'resp' will be used when the fetches-per-zone
  * quota is exceeded by a fetch.  If 'which' is set to quotatype "server",
- * then the reuslt specified in 'resp' will be used when the
+ * then the result specified in 'resp' will be used when the
  * fetches-per-server quota has been exceeded for all the
  * authoritative servers for a zone.  Valid choices are
  * DNS_R_DROP or DNS_R_SERVFAIL.

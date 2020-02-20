@@ -564,7 +564,7 @@ isoptarg(const char *arg, char **argv, void (*usage)(void)) {
 			usage();
 		}
 		isc_commandline_argument = argv[isc_commandline_index];
-		/* skip to next arguement */
+		/* skip to next argument */
 		isc_commandline_index++;
 		return (true);
 	}

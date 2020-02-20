@@ -115,7 +115,7 @@ dns_keytable_add(dns_keytable_t *keytable, bool managed, bool initial,
  * should only be used when adding managed-keys from configuration.
  * This indicates the key is in "initializing" state, and has not yet
  * been confirmed with a key refresh query.  Once a key refresh query
- * has validated, we update the keynode with inital == false.)
+ * has validated, we update the keynode with initial == false.)
  *
  * Notes:
  *

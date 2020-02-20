@@ -445,7 +445,7 @@
 	      <term><command>"increment"</command></term>
               <listitem>
                 <para>Increment the SOA serial number using RFC 1982
-                      arithmetics.</para>
+                      arithmetic.</para>
 	      </listitem>
             </varlistentry>
 
