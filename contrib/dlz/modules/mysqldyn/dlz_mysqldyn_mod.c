@@ -838,7 +838,9 @@ notify(mysql_data_t *state, const char *zone, int sn) {
 static mysql_record_t *
 makerecord(mysql_data_t *state, const char *name, const char *rdatastr) {
 	mysql_record_t *new_record;
-	char *real_name, *dclass, *type, *data, *ttlstr, *buf;
+	char *real_name = NULL, *dclass = NULL, *type = NULL;
+	char *data = NULL, *ttlstr = NULL, *buf = NULL;
+	char *saveptr = NULL;
 	dns_ttl_t ttlvalue;
 
 	new_record = (mysql_record_t *)malloc(sizeof(mysql_record_t));
@@ -1174,7 +1176,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		}
 
 		while ((row = mysql_fetch_row(res)) != NULL) {
-			char host[1024], admin[1024], data[1024];
+			char host[1024], admin[1024], data[4096];
 			int ttl;
 
 			sscanf(row[7], "%d", &ttl);
@@ -1182,9 +1184,9 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 			fqhn(row[1], zone, admin);
 
 			/* zone admin serial refresh retry expire min */
-			sprintf(data, "%s%s %s%s %s %s %s %s %s", host,
-				dot(host), admin, dot(admin), row[2], row[3],
-				row[4], row[5], row[6]);
+			snprintf(data, sizeof(data), "%s%s %s%s %s %s %s %s %s",
+				 host, dot(host), admin, dot(admin), row[2],
+				 row[3], row[4], row[5], row[6]);
 
 			result = state->putrr(lookup, "soa", ttl, data);
 			if (result != ISC_R_SUCCESS) {
