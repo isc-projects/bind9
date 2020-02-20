@@ -70,7 +70,7 @@ typedef struct {
 
 static void
 completion_init(completion_t *completion) {
-	atomic_store(&completion->done, false);
+	atomic_init(&completion->done, false);
 	completion->socket = NULL;
 }
 
