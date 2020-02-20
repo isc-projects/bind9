@@ -423,7 +423,7 @@ docs:sid:amd64:
   artifacts:
     paths:
       - doc/arm/
-    expire_in: "1 day"
+    expire_in: "1 month"
 
 push:docs:sid:amd64:
   <<: *debian_sid_amd64_image
