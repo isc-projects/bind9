@@ -465,6 +465,9 @@ dnssec_verify()
 	status=$((status+ret))
 }
 
+# Default next key event threshold. May be extended by wait periods.
+next_key_event_threshold=100
+
 ###############################################################################
 # Tests                                                                       #
 ###############################################################################
@@ -611,7 +614,6 @@ check_key "KEY1" "$id"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-
 #
 # named
 #
@@ -648,6 +650,8 @@ do
 done
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
+
+next_key_event_threshold=$((next_key_event_threshold+i))
 
 #
 # Zone: default.kasp.
@@ -1632,10 +1636,10 @@ check_next_key_event() {
 	# Get the latest next key event.
 	_time=$(awk '{print $10}' < "keyevent.out.$ZONE.test$n" | tail -1)
 
-	# The next key event time must within 60 seconds of the
+	# The next key event time must within threshold of the
 	# expected time.
-	_expectmin=$((_expect-60))
-	_expectmax=$((_expect+60))
+	_expectmin=$((_expect-next_key_event_threshold))
+	_expectmax=$((_expect+next_key_event_threshold))
 
 	test $_expectmin -le "$_time" || log_error "bad next key event time ${_time} for zone ${ZONE} (expect ${_expect})"
 	test $_expectmax -ge "$_time" || log_error "bad next key event time ${_time} for zone ${ZONE} (expect ${_expect})"
@@ -2271,6 +2275,34 @@ check_next_key_event 3600
 echo_i "reconfig dnssec-policy to trigger algorithm rollover"
 copy_setports ns6/named2.conf.in ns6/named.conf
 rndc_reconfig ns6 10.53.0.6
+
+#  The NSEC record at the apex of the zone and its RRSIG records are
+#  added as part of the last step in signing a zone.  We wait for the
+#  NSEC records to appear before proceeding with a counter to prevent
+#  infinite loops if there is a error.
+#
+n=$((n+1))
+echo_i "waiting for reconfig signing changes to take effect ($n)"
+i=0
+while [ $i -lt 30 ]
+do
+	ret=0
+	while read -r zone
+	do
+		dig_with_opts "$zone" @10.53.0.6 nsec > "dig.out.ns6.test$n.$zone" || ret=1
+		grep "NS SOA" "dig.out.ns6.test$n.$zone" > /dev/null || ret=1
+		grep "$zone\..*IN.*RRSIG" "dig.out.ns6.test$n.$zone" > /dev/null || ret=1
+	done < ns6/zones.2
+
+	i=$((i+1))
+	if [ $ret = 0 ]; then break; fi
+	echo_i "waiting ... ($i)"
+	sleep 1
+done
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+next_key_event_threshold=$((next_key_event_threshold+i))
 
 #
 # Testing KSK/ZSK algorithm rollover.
