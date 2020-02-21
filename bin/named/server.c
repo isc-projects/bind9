@@ -4382,7 +4382,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * When the view's configuration changes, the cached data may become
 	 * invalid because it reflects our old view of the world.  We check
 	 * some of the configuration parameters that could invalidate the cache
-	 * or otherwise make it unsharable, but there are other configuration
+	 * or otherwise make it unshareable, but there are other configuration
 	 * options that should be checked.  For example, if a view uses a
 	 * forwarder, changes in the forwarder configuration may invalidate
 	 * the cache.  At the moment, it's the administrator's responsibility to
@@ -8640,7 +8640,7 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 
 	/*
-	 * Determing the default DSCP code point.
+	 * Determining the default DSCP code point.
 	 */
 	CHECKM(named_config_getdscp(config, &named_g_dscp), "dscp");
 

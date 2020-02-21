@@ -742,7 +742,7 @@ void
 dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		  const unsigned char *cookie, size_t len);
 /*%<
- * Record the COOKIE associated with this addresss.  If
+ * Record the COOKIE associated with this address.  If
  * cookie is NULL or len is zero the recorded COOKIE is cleared.
  *
  * Requires:
@@ -754,7 +754,7 @@ size_t
 dns_adb_getcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		  unsigned char *cookie, size_t len);
 /*
- * Retieve the saved COOKIE value and store it in 'cookie' which has
+ * Retrieve the saved COOKIE value and store it in 'cookie' which has
  * size 'len'.
  *
  * Requires:

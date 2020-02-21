@@ -144,7 +144,7 @@ type name.
 |Parameter|Description |
 |---------|-----------------------|
 |`class`|This argument should be ignored when used with a class-generic RR type, otherwise `REQUIRE(class == <value>)` should be present at the start of the function.|
-|`type`|This should be tested with a `REQUIRE(type == <value>)` statement at the begining of the function.|
+|`type`|This should be tested with a `REQUIRE(type == <value>)` statement at the beginning of the function.|
 |`lexer`|This is used to read the input text stream.|
 |`origin`|This is a absolute name used to qualify unqualified / partially qualified domain names in the text stream.  It is passed to the name parsing routines.|
 |`downcase`|This is passed to the name parsing routines to determine whether to downcase the names it generates or leave them in the case they are presented in.|
@@ -210,7 +210,7 @@ decompression methods if there is a domain name in the rdata.
 |Parameter|Description |
 |---------|-----------------------|
 |`class`|This argument should be ignored when used with a class-generic RR type otherwise `REQUIRE(class == <value>)` should be present at the start of the function.|
-|`type`|This should be tested with a `REQUIRE(type == <value>)` statement at the begining of the function.|
+|`type`|This should be tested with a `REQUIRE(type == <value>)` statement at the beginning of the function.|
 |`source`|This is a `BINARY` buffer with the `active` region containing a resource record in wire format.|
 |`dctx`|This is the decompression context and is passed to `dns_name_fromwire()`, along with `downcase`, to enable a compressed domain name to be extracted from the source.|
 |`downcase`|This is passed to `dns_name_fromwire()` to say whether the extracted domain name should be downcased during the extraction.|

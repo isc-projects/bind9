@@ -739,7 +739,7 @@ verifynsec3(const vctx_t *vctx, const dns_name_t *name,
 	}
 
 	/*
-	 * We don't use dns_db_find() here as it works with the choosen
+	 * We don't use dns_db_find() here as it works with the chosen
 	 * nsec3 chain and we may also be called with uncommitted data
 	 * from dnssec-signzone so the secure status of the zone may not
 	 * be up to date.

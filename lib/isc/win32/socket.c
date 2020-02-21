@@ -1470,7 +1470,7 @@ consistent(isc_socket_t *sock) {
 /*
  * Maybe free the socket.
  *
- * This function will verify tht the socket is no longer in use in any way,
+ * This function will verify that the socket is no longer in use in any way,
  * either internally or externally.  This is the only place where this
  * check is to be made; if some bit of code believes that IT is done with
  * the socket (e.g., some reference counter reaches zero), it should call
@@ -2300,7 +2300,7 @@ connectdone_is_active(isc_socket_t *sock, isc_socket_connev_t *dev) {
 /* */
 /* One specific one is when a TCP SYN scan is used.  In this situation, */
 /* Windows responds with the SYN-ACK, but the scanner never responds with */
-/* the 3rd packet, the ACK.  Windows consiers this a partially open connection.
+/* the 3rd packet, the ACK.  Windows considers this a partially open connection.
  */
 /* Most Unix networking stacks, and Windows without McAfee installed, will */
 /* not return this to the caller.  However, with this product installed, */
@@ -2338,7 +2338,7 @@ restart_accept(isc_socket_t *parent, IoCompletionInfo *lpo) {
 		    0,				   /* Length of Buffer */
 		    sizeof(SOCKADDR_STORAGE) + 16, /* Local address length + 16
 						    */
-		    sizeof(SOCKADDR_STORAGE) + 16, /* Remote address lengh + 16
+		    sizeof(SOCKADDR_STORAGE) + 16, /* Remote address length + 16
 						    */
 		    (LPDWORD)&lpo->received_bytes, /* Bytes Recved */
 		    (LPOVERLAPPED)lpo		   /* Overlapped structure */
@@ -3195,7 +3195,7 @@ isc_socket_accept(isc_socket_t *sock, isc_task_t *task, isc_taskaction_t action,
 		    0,				   /* Length of Buffer */
 		    sizeof(SOCKADDR_STORAGE) + 16, /* Local address length + 16
 						    */
-		    sizeof(SOCKADDR_STORAGE) + 16, /* Remote address lengh + 16
+		    sizeof(SOCKADDR_STORAGE) + 16, /* Remote address length + 16
 						    */
 		    (LPDWORD)&lpo->received_bytes, /* Bytes Recved */
 		    (LPOVERLAPPED)lpo		   /* Overlapped structure */

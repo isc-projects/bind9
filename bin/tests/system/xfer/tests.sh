@@ -33,7 +33,7 @@ status=$((status+tmp))
 n=$((n+1))
 echo_i "testing basic zone transfer functionality (from secondary) ($n)"
 #
-# Spin to allow the zone to tranfer.
+# Spin to allow the zone to transfer.
 #
 for i in 1 2 3 4 5
 do
@@ -55,7 +55,7 @@ $DIG $DIGOPTS tsigzone. @10.53.0.2 axfr -y tsigzone.:1234abcd8765 > dig.out.ns2.
 grep "^;" dig.out.ns2.test$n | cat_i
 
 #
-# Spin to allow the zone to tranfer.
+# Spin to allow the zone to transfer.
 #
 for i in 1 2 3 4 5
 do

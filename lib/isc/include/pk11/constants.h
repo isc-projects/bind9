@@ -17,7 +17,7 @@
 /*! \file pk11/constants.h */
 
 /*%
- * Static arrays of data used for key template initalization
+ * Static arrays of data used for key template initialization
  */
 static CK_BYTE pk11_ecc_prime256v1[] = { 0x06, 0x08, 0x2a, 0x86, 0x48,
 					 0xce, 0x3d, 0x03, 0x01, 0x07 };

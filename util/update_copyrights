@@ -150,7 +150,7 @@ foreach $file (keys %file_types) {
 		s/^(\s{0,3}\d*\.)\s(\[\w{1,5}\])\s+(\S+)/$1\t$2\t\t$3/;
 		s/^(\s{0,3}\d*\.)\s(\[\w{6,}\])\s+(\S+)/$1\t$2\t$3/;
 		# Convert 8 spaces into tabs if at start of line
-		# or preceeded by tabs.
+		# or preceded by tabs.
 		s/^(\t*)        /$1\t/ while (/^\t*        /);
 		# Remove trailing white space.
 		s/[ \t]*$//;
@@ -523,7 +523,7 @@ foreach $file (keys %file_types) {
 			# tab if at start of line or proceeded by tabs.
 			# s/^(\t*) {1,7}\t/$1\t/ while (/^\t* {1,7}\t/);
 			# Convert 8 spaces into tabs if at start of line
-			# or preceeded by tabs.
+			# or preceded by tabs.
 			# s/^(\t*) {8}/$1\t/ while (/^\t* {8}/);
 			# Remove trailing white space.
 			s/[ \t]*$//;

@@ -660,7 +660,7 @@ init_desc(void) {
 		dnstapstats_index[i++] = dns_dnstapcounter_##counterid;        \
 	} while (0)
 	i = 0;
-	SET_DNSTAPSTATDESC(success, "dnstap messges written", "DNSTAPsuccess");
+	SET_DNSTAPSTATDESC(success, "dnstap messages written", "DNSTAPsuccess");
 	SET_DNSTAPSTATDESC(drop, "dnstap messages dropped", "DNSTAPdropped");
 	INSIST(i == dns_dnstapcounter_max);
 

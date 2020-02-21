@@ -4021,7 +4021,7 @@ found:
 		 * DS records live above the zone cut in ordinary zone so
 		 * we want to ignore any referral.
 		 *
-		 * Stub zones don't have anything "above" the delgation so
+		 * Stub zones don't have anything "above" the delegation so
 		 * we always return a referral.
 		 */
 		if (node->find_callback &&
@@ -9129,7 +9129,7 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 		 * Note that "%d node of %d in tree" can report things like
 		 * "flush_deletions: 59 nodes of 41 in tree".  This means
 		 * That some nodes appear on the deletions list more than
-		 * once.  Only the last occurence will actually be deleted.
+		 * once.  Only the last occurrence will actually be deleted.
 		 */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),

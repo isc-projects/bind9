@@ -290,7 +290,7 @@ isc_task_create_bound(isc_taskmgr_t *manager0, unsigned int quantum,
 	if (threadid == -1) {
 		/*
 		 * Task is not pinned to a queue, it's threadid will be
-		 * choosen when first task will be sent to it - either
+		 * chosen when first task will be sent to it - either
 		 * randomly or specified by isc_task_sendto.
 		 */
 		task->bound = false;
@@ -1076,7 +1076,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			 * bit.
 			 *
 			 * Broadcasting on halt_cond seems suboptimal, but
-			 * exclusive tasks are rare enought that we don't
+			 * exclusive tasks are rare enough that we don't
 			 * care.
 			 */
 			LOCK(&manager->halt_lock);

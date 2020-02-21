@@ -69,7 +69,7 @@
 #define safeGet(in) in == NULL ? "" : in
 
 /*%
- * Structure to hold everthing needed by this "instance" of the MySQL
+ * Structure to hold everything needed by this "instance" of the MySQL
  * module remember, the module code is only loaded once, but may have
  * many separate instances.
  */
@@ -479,7 +479,7 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 			if (*endp != '\0' || ttl < 0) {
 				db->log(ISC_LOG_ERROR, "MySQL module ttl must "
 						       "be "
-						       "a postive number");
+						       "a positive number");
 				return (ISC_R_FAILURE);
 			}
 
@@ -519,7 +519,7 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 			if (*endp != '\0' || ttl < 0) {
 				db->log(ISC_LOG_ERROR, "MySQL module ttl must "
 						       "be "
-						       "a postive number");
+						       "a positive number");
 				free(tmpString);
 				return (ISC_R_FAILURE);
 			}
@@ -676,7 +676,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 		ttl = strtol(safeGet(row[0]), &endp, 10);
 		if (*endp != '\0' || ttl < 0) {
 			db->log(ISC_LOG_ERROR, "MySQL module ttl must be "
-					       "a postive number");
+					       "a positive number");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}

@@ -106,7 +106,7 @@ isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len);
  * isc_hmac_final:
  * @hmac: HMAC context
  * @digest: the output buffer
- * @digestlen: the lenth of the data written to @digest
+ * @digestlen: the length of the data written to @digest
  *
  * This function retrieves the message authentication code from @hmac and places
  * it in @digest, which must have space for the hash function output.  If the

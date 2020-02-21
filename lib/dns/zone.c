@@ -467,7 +467,7 @@ typedef enum {
 	DNS_ZONEFLG_EXPIRED = 0x00000080U,     /*%< zone has expired */
 	DNS_ZONEFLG_NEEDREFRESH = 0x00000100U, /*%< refresh check needed */
 	DNS_ZONEFLG_UPTODATE = 0x00000200U,    /*%< zone contents are
-						* uptodate */
+						* up-to-date */
 	DNS_ZONEFLG_NEEDNOTIFY = 0x00000400U,  /*%< need to send out notify
 						* messages */
 	DNS_ZONEFLG_DIFFONRELOAD = 0x00000800U, /*%< generate a journal diff on
@@ -6351,7 +6351,7 @@ dns_zone_setdb(dns_zone_t *zone, dns_db_t *db) {
 }
 
 /*
- * Co-ordinates the starting of routine jobs.
+ * Coordinates the starting of routine jobs.
  */
 void
 dns_zone_maintenance(dns_zone_t *zone) {
@@ -11127,7 +11127,7 @@ zone_expire(dns_zone_t *zone) {
 	 * An RPZ zone has expired; before unloading it, we must
 	 * first remove it from the RPZ summary database. The
 	 * easiest way to do this is "update" it with an empty
-	 * database so that the update callback synchonizes
+	 * database so that the update callback synchronizes
 	 * the diff automatically.
 	 */
 	if (zone->rpzs != NULL && zone->rpz_num != DNS_RPZ_INVALID_NUM) {
@@ -15807,10 +15807,10 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 	}
 
 	/*
-	 * walk nsec3param rdataset making a list of parameters (note that
+	 * Walk nsec3param rdataset making a list of parameters (note that
 	 * multiple simultaneous nsec3 chains are annoyingly legal -- this
-	 * is why we use an nsec3list, even tho we will usually only have
-	 * one)
+	 * is why we use an nsec3list, even though we will usually only
+	 * have one).
 	 */
 	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset))
@@ -18201,7 +18201,7 @@ dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	setrl(zmgr->refreshrl, &zmgr->serialqueryrate, value);
-	/* XXXMPA seperate out once we have the code to support this. */
+	/* XXXMPA separate out once we have the code to support this. */
 	setrl(zmgr->startuprefreshrl, &zmgr->startupserialqueryrate, value);
 }
 

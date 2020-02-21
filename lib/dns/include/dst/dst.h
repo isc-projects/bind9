@@ -387,7 +387,7 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 		      isc_mem_t *mctx, dst_key_t **keyp);
 /*%<
  * Reads a key from permanent storage.  The key can either be a public or
- * private key, or a key stae. It is specified by filename.  If a private key
+ * private key, or a key state. It is specified by filename.  If a private key
  * or key state is specified, the public key must also be present.
  *
  * If 'dirname' is not NULL, and 'filename' is a relative path,

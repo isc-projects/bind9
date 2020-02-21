@@ -904,7 +904,7 @@ create_managers(void) {
 	/*
 	 * We have ncpus network threads, ncpus worker threads, ncpus
 	 * old network threads - make it 4x just to be safe. The memory
-	 * impact is neglible.
+	 * impact is negligible.
 	 */
 	isc_hp_init(4 * named_g_cpus);
 	named_g_nm = isc_nm_start(named_g_mctx, named_g_cpus);

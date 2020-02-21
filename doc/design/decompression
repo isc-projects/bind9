@@ -14,7 +14,7 @@ Overview.
 	send it.  This fits with the priciple of being liberal with
 	what you accept and strict with what you send.
 
-	There are a few cases where it does not make sence to accept
+	There are a few cases where it does not make sense to accept
 	compression pointers of a given type. i.e. the first domain name
 	in a message, local compression pointers in the ownername of a RR
 	or in a question.

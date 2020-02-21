@@ -287,7 +287,7 @@ n=`expr $n + 1`
 echo_i "RT21594 regression test NXDOMAIN answers ($n)"
 ret=0
 # Check that resolver accepts the non-authoritative positive answers.
-$DIG $DIGOPTS +tcp noexistant @10.53.0.5 txt > dig.ns5.out.${n} || ret=1
+$DIG $DIGOPTS +tcp noexistent @10.53.0.5 txt > dig.ns5.out.${n} || ret=1
 grep "status: NXDOMAIN" dig.ns5.out.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -462,7 +462,7 @@ sleep ${interval:-0}
 $DIG $DIGOPTS @10.53.0.5 fetch.tld txt > dig.out.2.${n} || ret=1
 ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
 sleep 1
-# check that prefetch occured
+# check that prefetch occurred
 $DIG $DIGOPTS @10.53.0.5 fetch.tld txt > dig.out.3.${n} || ret=1
 ttl=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.3.${n}`
 test ${ttl:-0} -gt ${ttl2:-1} || ret=1
@@ -481,7 +481,7 @@ sleep ${interval:-0}
 $DIG $DIGOPTS @10.53.0.5 ds.example.net ds > dig.out.2.${n} || ret=1
 dsttl2=`awk '$4 == "DS" && $7 == "2" { print $2 }' dig.out.2.${n}`
 sleep 1
-# check that prefetch occured
+# check that prefetch occurred
 $DIG $DIGOPTS @10.53.0.5 ds.example.net ds +dnssec > dig.out.3.${n} || ret=1
 dsttl=`awk '$4 == "DS" && $7 == "2" { print $2 }' dig.out.3.${n}`
 sigttl=`awk '$4 == "RRSIG" && $5 == "DS" { print $2 }' dig.out.3.${n}`
@@ -506,7 +506,7 @@ no_prefetch() {
 	# the previous one.
 	$DIG $DIGOPTS @10.53.0.7 fetch.example.net txt > dig.out.2.${n} || return 1
 	ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
-        # check that prefetch has not occured
+        # check that prefetch has not occurred
         if [ $ttl2 -ge $tmp_ttl ]; then
                 return 1
         fi

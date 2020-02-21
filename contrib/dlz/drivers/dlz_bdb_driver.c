@@ -113,7 +113,7 @@ bdb_parse_data(char *in, parsed_data_t *pd) {
 	char *lastchar = (char *)&tmp[strlen(tmp) + 1];
 
 	/*%
-	 * String should be formated as:
+	 * String should be formatted as:
 	 * zone(a space)host(a space)ttl(a space)type(a space)remaining data
 	 * examples:
 	 * example.com www 10 A 127.0.0.1
@@ -193,7 +193,7 @@ bdb_parse_data(char *in, parsed_data_t *pd) {
 	if (*endp != '\0' || pd->ttl < 0) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-			      "BDB driver ttl must be a postive number");
+			      "BDB driver ttl must be a positive number");
 		return (ISC_R_FAILURE);
 	}
 

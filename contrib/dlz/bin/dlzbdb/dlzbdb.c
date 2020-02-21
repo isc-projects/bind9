@@ -160,7 +160,7 @@ typedef struct bdb_instance {
 #define bulk 4 /* bulk load data */
 
 /*%
- * quit macro is used instead of exit.  quit always trys to close the lexer
+ * quit macro is used instead of exit.  quit always tries to close the lexer
  * and the BDB database before exiting.
  */
 
@@ -199,7 +199,7 @@ typedef struct bdb_instance {
 	}
 
 /*%
- * checkInvalidParam is used to only allow paramters which make sense for
+ * checkInvalidParam is used to only allow parameters which make sense for
  * the operation selected.  I.E. passing the key parameter makes no sense
  * for the add operation, and thus it isn't allowed.
  */
@@ -214,7 +214,7 @@ typedef struct bdb_instance {
 	}
 
 /*%
- * checkInvalidOption is used to only allow paramters which make sense for
+ * checkInvalidOption is used to only allow parameters which make sense for
  * the operation selected - but checks boolean options.
  * I.E. passing the "b" bare_list parameter makes no sense for the add
  * operation, and thus it isn't allowed.
@@ -772,7 +772,7 @@ operation_add(void) {
 	checkInvalidParam(c_ip, "i", "for add operation");
 	checkInvalidOption(list_everything, true, "e", "for add operation");
 
-	/* if open lexer fails it alread prints error messages. */
+	/* if open lexer fails it already prints error messages. */
 	if (open_lexer() != ISC_R_SUCCESS) {
 		quit(4);
 	}

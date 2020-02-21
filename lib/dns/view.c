@@ -2009,7 +2009,7 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 }
 
 /*
- * Create path to a directory and a filename contructed from viewname.
+ * Create path to a directory and a filename constructed from viewname.
  * This is a front-end to isc_file_sanitize(), allowing backward
  * compatibility to older versions when a file couldn't be expected
  * to be in the specified directory but might be in the current working

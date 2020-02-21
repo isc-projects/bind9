@@ -204,7 +204,7 @@ query(void) {
 		ERRCONT(result, "dns_name_fromtext");
 
 		result = dns_db_find(db, dns_fixedname_name(&name),
-				     NULL /*vesion*/, dns_rdatatype_a,
+				     NULL /*version*/, dns_rdatatype_a,
 				     0 /*options*/, 0 /*time*/, NULL /*nodep*/,
 				     dns_fixedname_name(&found), &rdataset,
 				     &sigset);

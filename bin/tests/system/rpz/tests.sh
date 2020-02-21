@@ -176,7 +176,7 @@ ck_soa() {
     done
 }
 
-# (re)load the reponse policy zones with the rules in the file $TEST_FILE
+# (re)load the response policy zones with the rules in the file $TEST_FILE
 load_db () {
     if test -n "$TEST_FILE"; then
         copy_setports $TEST_FILE tmp
@@ -586,7 +586,7 @@ EOF
   rndc_reload ns2 $ns2 bl.tld2
   ck_soa 2 bl.tld2 $ns3
   nochange a7-1.tld2				# 19 PASSTHRU
-  # ensure that a clock tick has occured so that named will do the reload
+  # ensure that a clock tick has occurred so that named will do the reload
   sleep 1
   cp ns2/blv3.tld2.db.in ns2/bl.tld2.db
   rndc_reload ns2 $ns2 bl.tld2
@@ -887,7 +887,7 @@ EOF
     grep "fast-expire/IN: response-policy zone expired" ns3/named.run > /dev/null || setret "failed"
   fi
 
-  # RPZ 'CNAME *.' (NODATA) trumps DNS64.  Test against various DNS64 senarios.
+  # RPZ 'CNAME *.' (NODATA) trumps DNS64.  Test against various DNS64 scenarios.
   for label in a-only no-a-no-aaaa a-plus-aaaa
   do
     for type in AAAA A
