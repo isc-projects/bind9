@@ -22,7 +22,7 @@ any, libraries will write log messages.
 FUNDAMENTALS
 
 This section describes the basics of how the system works, introduces
-terms and defines C preprocessor symbols used in conjuction with
+terms and defines C preprocessor symbols used in conjunction with
 logging functions.  Actual uses of functions are demonstrated in the
 following two sections.
 
@@ -115,7 +115,7 @@ no version control.
 Since null channels go nowhere, no additional destination
 specification is necessary.
 
-The words "destination" and "channel" can be used interchangably in
+The words "destination" and "channel" can be used interchangeably in
 some contexts.  Referring to a file channel, for example, means a
 channel that has a file destination.
 
@@ -154,7 +154,7 @@ corresponding print strings appear in a log message:
 
 You can set all four of those options with ISC_LOG_PRINTALL.
 
-Syslog channels do not need ISC_LOG_PRINTTIME, but it is usally a good
+Syslog channels do not need ISC_LOG_PRINTTIME, but it is usually a good
 idea for file and file descriptor feeds.
 
 The additional option does not affect formatting.  It is
@@ -286,7 +286,7 @@ rudimentary initialization of both.
   if (isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS))
           oops_it_didnt_work();
 
-3) Initalize any additional libraries.  The convention for the name of
+3) Initialize any additional libraries.  The convention for the name of
 the initialization function is {library}_log_init, with just a pointer
 to the logging context as an argument.  The function can only be
 called once in a program or it will generate an assertion error.
@@ -376,7 +376,7 @@ isc_log_usechannel().  When it is all ready:
 
   result = isc_logconfig_use(lctx, newlcfg);
 
-If the new configration is successfully installed, then the old one
+If the new configuration is successfully installed, then the old one
 will be destroyed, freeing all memory it used.
 
 There are three additional functions you might find useful in your
@@ -479,7 +479,7 @@ ISC_LOG_PRINTMODULE.  On rare occasion it might be necessary to
 differentiate very similar messages in the same module.
 
 When available, include standard library return codes via %s in the
-format string, with strerrr(errno) from the system libary or functions
+format string, with strerrr(errno) from the system library or functions
 like isc_result_totext(result) and dns_result_totext(result).
 
 THINGS I AM NOT KEEN ABOUT

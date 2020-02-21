@@ -91,7 +91,7 @@ is set for a zone.
    signing process.  This likely will go away in favor of a new method.
 
 1. `sig-validity-interval`: Specifies the number of days a signature is valid.
-   The second optional value is the refresh interval. Thos option will
+   The second optional value is the refresh interval. Those option will
    be replaced by KASP configuration values "signatures-validity" and
    "signatures-refresh".
 

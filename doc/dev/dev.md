@@ -33,7 +33,7 @@
 
 ### <a name="reviews"></a>The code review process
 
-Every line of code comitted to BIND has been reviewed by ISC engineers
+Every line of code committed to BIND has been reviewed by ISC engineers
 first.
 
 The code review process is a dialog between the original author and the
@@ -54,7 +54,7 @@ maintenance and support burden for changes that would only be useful
 to a tiny niche).  Second, whether the approach taken is consistent
 with ISC's open-internet goals, BIND architecture, and DNS best
 practices.  Third, the contribution is checked for correctness and
-completness.
+completeness.
 
 Obvious bottlenecks and places where performance or reliability may suffer
 are noted as part of the review.
@@ -243,7 +243,7 @@ libraries.
 #### <a name="layout"></a> Source tree layout
 
 * `bind9/bin`: binaries
-    * `bind9/bin/named`: source code for the `named` binary; includes server configuration, interface manager, client manger, and high-level processing logic for query, update, and xfer.
+    * `bind9/bin/named`: source code for the `named` binary; includes server configuration, interface manager, client manager, and high-level processing logic for query, update, and xfer.
     * `bind9/bin/dnssec`: DNSSEC-related tools written in C:
       `dnssec-keygen`, `dnssec-signzone`, `dnssec-settime`,
       `dnssec-revoke`, `dnssec-keyfromlabel`, `dnssec-dsfromkey`,
@@ -380,7 +380,7 @@ or the end of file was reached, but BIND's version uses result codes:
         char buffer[BUFSIZ];
         size_t n;
 
-        result = isc_stdio_read(buffer, 1, sizeof(bufer), fp, &n);
+        result = isc_stdio_read(buffer, 1, sizeof(buffer), fp, &n);
         if (result == ISC_R_SUCCESS) {
                 /* Do something with 'buffer'. */
         } else if (result == ISC_R_EOF) {
@@ -403,7 +403,7 @@ in header files called `result.h` (for example, the result codes defined
 for the ISC library are in `lib/isc/include/isc/result.h`.
 
 ISC library result codes (many of which are generically useful elsewhere)
-begin with `ISC_R`: examples inclue `ISC_R_SUCCESS`, `ISC_R_FAILURE`,
+begin with `ISC_R`: examples include `ISC_R_SUCCESS`, `ISC_R_FAILURE`,
 `ISC_R_NOMEMORY`, etc. 
 
 DNS library result codes begin with `DNS_R`: `DNS_R_SERVFAIL`, `DNS_R_NXRRSET`,
@@ -884,7 +884,7 @@ success:
         }
 
 In some cases, calling an iterator function causes the acquisition of
-database and/or node locks.  Rather than reaquire these locks every time
+database and/or node locks.  Rather than reacquire these locks every time
 one of these functions is called, they are often simply held until the
 iterator is destroyed.  If a caller wishes to hold an iterator open but not
 use it for a while, it should call the iterator's `pause()` function (such
@@ -999,7 +999,7 @@ Other channels may be configured by the user via `named.conf`.
 
 `ISC_LOG_DYNAMIC` indicates to the logging system that
 debugging messages are desired, but only at the current debugging level
-of the program.  The debugging level can be modifid dynamically at
+of the program.  The debugging level can be modified dynamically at
 runtime; in `named` this can be done by the `"rndc trace"` command.
 When the debugging level is 0 (turned off), then no debugging messages are
 written to the channel.  If the debugging level is raised, only debugging
@@ -1070,7 +1070,7 @@ the following steps need to be taken to initialize it.
                 oops_it_didnt_work();
         }
 
-1. Initalize any additional libraries.  The convention for the name of
+1. Initialize any additional libraries.  The convention for the name of
    the initialization function is `{library}_log_init()`, with a pointer to
    the logging context as an argument.  The function can only be called
    once in a program or it will generate an assertion.
@@ -1337,7 +1337,7 @@ In most cases this can just be a function that returns `true`.
 "checknames" checks the contents of the rdata with the given
 owner name to ensure that it meets externally defined syntax rules.
 If `false` is returned, then `bad` will point to the name that
-caused the probelm.
+caused the problem.
 
         static int
         casecompare[_<class>]_<type>(const dns_rdata_t *rdata1,
@@ -1398,7 +1398,7 @@ associated event is triggered.
          */
         isc_socket_recv(sock, &region, 1, recvdone, NULL);
 
-A timer is set for a specifed time in the future, and the event will
+A timer is set for a specified time in the future, and the event will
 be triggered at that time.
 
         /*
