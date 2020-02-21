@@ -1201,7 +1201,7 @@ RFC 2136                       DNS Update                     April 1997
 
    7.10. Deferral of SOA SERIAL autoincrements is made possible so that
    serial numbers can be conserved and wraparound at 2**32 can be made
-   an infrequent occurance.  Visible (to DNS clients) SOA SERIALs need
+   an infrequent occurrence.  Visible (to DNS clients) SOA SERIALs need
    to differ if the zone differs.  Note that the Authority Section SOA
    in a QUERY response is a form of visibility, for the purposes of this
    prerequisite.

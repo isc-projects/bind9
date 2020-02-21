@@ -313,8 +313,8 @@ BIND 9.4.0
   * dig: report the number of extra bytes still left in the packet after
     processing all the records.
   * Support for IPSECKEY rdata type.
-  * Raise the UDP recieve buffer size to 32k if it is less than 32k.
-  * x86 and x86_64 now have seperate atomic locking implementations.
+  * Raise the UDP receive buffer size to 32k if it is less than 32k.
+  * x86 and x86_64 now have separate atomic locking implementations.
   * named-checkconf now validates update-policy entries.
   * Attempt to make the amount of work performed in a iteration self
     tuning. The covers nodes clean from the cache per iteration, nodes
@@ -331,8 +331,8 @@ BIND 9.4.0
   * dig now warns if 'RA' is not set in the answer when 'RD' was set in
     the query. host/nslookup skip servers that fail to set 'RA' when 'RD'
     is set unless a server is explicitly set.
-  * Integrate contibuted DLZ code into named.
-  * Integrate contibuted IDN code from JPNIC.
+  * Integrate contributed DLZ code into named.
+  * Integrate contributed IDN code from JPNIC.
   * libbind: corresponds to that from BIND 8.4.7.
 
 BIND 9.3.0

@@ -1743,7 +1743,7 @@ difficult.
 
 Every resolver implementation uses slightly different algorithms, and
 typically spends much more logic dealing with errors of various sorts
-than typical occurances.  This section outlines a recommended basic
+than typical occurrences.  This section outlines a recommended basic
 strategy for resolver operation, but leaves details to [RFC-1035].
 
 5.3.1. Stub resolvers
@@ -2865,13 +2865,13 @@ RFC 1034             Domain Concepts and Facilities        November 1987
                 Facilities," RFC-882, USC/Information Sciences
                 Institute, November 1983.
 
-                Superceeded by this memo.
+                Superseded by this memo.
 
 [RFC-883]       P. Mockapetris, "Domain names - Implementation and
                 Specification," RFC-883, USC/Information Sciences
                 Institute, November 1983.
 
-                Superceeded by this memo.
+                Superseded by this memo.
 
 [RFC-920]       J. Postel and J. Reynolds, "Domain Requirements",
                 RFC-920, USC/Information Sciences Institute

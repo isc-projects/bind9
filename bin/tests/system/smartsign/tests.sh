@@ -162,7 +162,7 @@ grep "key id = $czinactive\$" $cfile.signed > /dev/null || {
 # should not be there, hence the &&
 grep "key id = $ckprerevoke\$" $cfile.signed > /dev/null && {
 	ret=1
-	echo_i "found unexpect child pre-revoke ZSK id = $ckprerevoke"
+	echo_i "found unexpected child pre-revoke ZSK id = $ckprerevoke"
 }
 grep "key id = $czgenerated\$" $cfile.signed > /dev/null && {
 	ret=1

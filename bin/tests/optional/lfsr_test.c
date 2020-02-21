@@ -31,7 +31,7 @@ main(int argc, char **argv) {
 	UNUSED(argv);
 
 	/*
-	 * Verify that returned values are reproducable.
+	 * Verify that returned values are reproducible.
 	 */
 	isc_lfsr_init(&lfsr1, 0, 32, 0x80000057U, 0, NULL, NULL);
 	for (i = 0; i < 32; i++) {

@@ -668,7 +668,7 @@ mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
 			}
 			/* copy this field to tmpString */
 			strcpy(tmpString, safeGet(row[3]));
-			/* concatonate the rest, with spaces between */
+			/* concatenate the rest, with spaces between */
 			for (j=4; j < fields; j++) {
 				strcat(tmpString, " ");
 				strcat(tmpString, safeGet(row[j]));
@@ -814,7 +814,7 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (ISC_R_FAILURE);
 	}
 
-	/* parse connection string and get paramters. */
+	/* parse connection string and get parameters. */
 
 	/* get db name - required */
 	dbname = getParameterValue(argv[1], "dbname=");

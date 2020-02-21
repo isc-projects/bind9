@@ -124,7 +124,7 @@ bdb_parse_data(char *in, parsed_data_t *pd) {
 	char *lastchar = (char *) &tmp[strlen(tmp) + 1];
 
 	/*%
-	 * String should be formated as:
+	 * String should be formatted as:
 	 * zone(a space)host(a space)ttl(a space)type(a space)remaining data
 	 * examples:
 	 * example.com www 10 A 127.0.0.1

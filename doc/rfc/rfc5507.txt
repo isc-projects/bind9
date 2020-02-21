@@ -677,7 +677,7 @@ RFC 5507         Design Choices When Expanding the DNS        April 2009
 
 
    a subtype is reduced to hoping that whatever scheme one has come up
-   with will not accidently conflict with somebody else's subtyping
+   with will not accidentally conflict with somebody else's subtyping
    scheme, and that it will not be possible to mis-parse one
    application's use of TXT Resource Records as data intended for a
    different application.  Any attempt to impose a standardized format

@@ -653,7 +653,7 @@
 	include/idn/utf8.h, include/idn/version.h: include export.h. mark
 	exportable functions with IDN_EXPORT macro.
 	* lib/make.wnt: modify to create DLLs.
-	* configure.in: add existance check for pwd.h.
+	* configure.in: add existence check for pwd.h.
 	* configure, include/config.h.in: rebuilt.
 	* lib/resconf.c, lib/localencoding.c: port to Win32.
 	* include/mdn/version.h: include <idn/version.h> for the declaration

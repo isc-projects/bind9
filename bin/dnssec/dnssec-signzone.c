@@ -1126,7 +1126,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 
 /*
  * See if the node contains any non RRSIG/NSEC records and report to
- * caller.  Clean out extranous RRSIG records for node.
+ * caller.  Clean out extraneous RRSIG records for node.
  */
 static inline bool
 active_node(dns_dbnode_t *node) {

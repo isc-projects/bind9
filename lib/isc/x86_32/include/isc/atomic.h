@@ -120,7 +120,7 @@ isc_atomic_cmpxchg(int32_t *p, int32_t cmpval, int32_t val) {
 
 #elif defined(ISC_PLATFORM_USESTDASM)
 /*
- * The followings are "generic" assembly code which implements the same
+ * The following are "generic" assembly code which implements the same
  * functionality in case the gcc extension cannot be used.  It should be
  * better to avoid inlining below, since we directly refer to specific
  * positions of the stack frame, which would not actually point to the

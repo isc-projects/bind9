@@ -662,7 +662,7 @@ RFC 4193          Unique Local IPv6 Unicast Addresses       October 2005
 
       - Can be used for inter-site VPNs.
 
-      - If accidently leaked outside of a site via routing or DNS, there
+      - If accidentally leaked outside of a site via routing or DNS, there
         is no conflict with any other addresses.
 
 

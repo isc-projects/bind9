@@ -309,7 +309,7 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
         the size limitations of DNS RRs may be overcome in the MIME case
         by using the "Content-Type: message/external-body" mechanism.
 
-        3 - Text tagged data.  The data potion consists of text formated
+        3 - Text tagged data.  The data potion consists of text formatted
         as specified in the TXT RR except that the first and every
         subsequent odd numbered text item is considered to be a tag
         labeling the immediately following text item.  If there are an
@@ -337,7 +337,7 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
         the data portion is indicated by an initial BER encoded OID
         which is prefixed by a one octet unsigned length count for the
         OID.  The subcoding octet is available for whatever use the
-        private formating wishes to make of it.
+        private formatting wishes to make of it.
 
         253 - Private coding format indicated by a domain name.  The
         format of the data portion is indicated by an initial wire
@@ -351,13 +351,13 @@ D. Eastlake 3rd                                                 [Page 6]
 INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
 
-        use the private formating wishes to make of it.
+        use the private formatting wishes to make of it.
 
         254 - Private coding format indicated by a URI.  The format of
         the data portion is indicated by an initial URI [RFC 2396] which
         is terminated by a zero (null) valued octet followed by the data
         with that format.  The subcoding octet is available for whatever
-        use the private formating wishes to make of it.  The manner in
+        use the private formatting wishes to make of it.  The manner in
         which the URI specifies the format is not defined but presumably
         the retriever will recognize the URI by some pattern match.
 

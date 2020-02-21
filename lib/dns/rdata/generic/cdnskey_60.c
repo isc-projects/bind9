@@ -163,7 +163,7 @@ static inline int
 casecompare_cdnskey(ARGS_COMPARE) {
 
 	/*
-	 * Treat ALG 253 (private DNS) subtype name case sensistively.
+	 * Treat ALG 253 (private DNS) subtype name case sensitively.
 	 */
 	return (compare_cdnskey(rdata1, rdata2));
 }

@@ -124,7 +124,7 @@ INTERNET-DRAFT              DNS Compression                    June 1999
 4. Local Compression
 
    We often observe a certain locality in the domain names used as owner
-   and occuring in the RDATA section, e.g. in MX or NS RRs but also in
+   and occurring in the RDATA section, e.g. in MX or NS RRs but also in
    newer RR types [RFC1183]:
 
       host.foo.bar.example  RP  adm.foo.bar.example  adm.persons.bar.example
@@ -167,7 +167,7 @@ INTERNET-DRAFT              DNS Compression                    June 1999
       relative to the start of RDATA is determined by subtracting 256
       from the value of the pointer.
 
-   Local pointers MUST point to a previous occurence of the same name in
+   Local pointers MUST point to a previous occurrence of the same name in
    the same RR.  Even domain names in another RR of the same type cannot
    serve as compression targets since the order of RRs in an RRSet is
    not necessarily stable.  The length of the compressed name(s) MUST be

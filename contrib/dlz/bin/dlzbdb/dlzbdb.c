@@ -165,7 +165,7 @@ typedef struct bdb_instance {
 
 
 /*%
- * quit macro is used instead of exit.  quit always trys to close the lexer
+ * quit macro is used instead of exit.  quit always tries to close the lexer
  * and the BDB database before exiting.
  */
 
@@ -191,7 +191,7 @@ typedef struct bdb_instance {
 					 "be specified once\n", y); quit(2);}
 
 /*%
- * checkInvalidParam is used to only allow paramters which make sense for
+ * checkInvalidParam is used to only allow parameters which make sense for
  * the operation selected.  I.E. passing the key parameter makes no sense
  * for the add operation, and thus it isn't allowed.
  */
@@ -200,7 +200,7 @@ typedef struct bdb_instance {
 						"may not be specified %s\n", y, z); quit(2);}
 
 /*%
- * checkInvalidOption is used to only allow paramters which make sense for
+ * checkInvalidOption is used to only allow parameters which make sense for
  * the operation selected - but checks boolean options.
  * I.E. passing the "b" bare_list parameter makes no sense for the add
  * operation, and thus it isn't allowed.
@@ -768,7 +768,7 @@ operation_add(void) {
 	checkInvalidOption(list_everything, true, "e",
 			   "for add operation");
 
-	/* if open lexer fails it alread prints error messages. */
+	/* if open lexer fails it already prints error messages. */
 	if (open_lexer() != ISC_R_SUCCESS) {
 		quit(4);
 	}

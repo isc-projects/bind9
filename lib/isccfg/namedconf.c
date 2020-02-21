@@ -2731,7 +2731,7 @@ doc_minimal(cfg_printer_t *pctx, const cfg_type_t *type) {
 	doc_enum_or_other(pctx, type, &cfg_type_boolean);
 }
 static cfg_type_t cfg_type_minimal = {
-	"mimimal", parse_minimal, cfg_print_ustring, doc_minimal,
+	"minimal", parse_minimal, cfg_print_ustring, doc_minimal,
 	&cfg_rep_string, minimal_enums,
 };
 
@@ -3303,7 +3303,7 @@ static cfg_type_t cfg_type_bracketed_aml = {
 /*%
  * The socket address syntax in the "controls" statement is silly.
  * It allows both socket address families, but also allows "*",
- * whis is gratuitously interpreted as the IPv4 wildcard address.
+ * which is gratuitously interpreted as the IPv4 wildcard address.
  */
 static unsigned int controls_sockaddr_flags =
 	CFG_ADDR_V4OK | CFG_ADDR_V6OK | CFG_ADDR_WILDOK;

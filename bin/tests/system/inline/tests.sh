@@ -153,7 +153,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking that update has been transfered and has been signed ($n)"
+echo_i "checking that update has been transferred and has been signed ($n)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9 10
 do
@@ -231,7 +231,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking that update has been transfered and has been signed, noixfr ($n)"
+echo_i "checking that update has been transferred and has been signed, noixfr ($n)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10
 do
@@ -739,7 +739,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking that the change has not been transfered due to notify ($n)"
+echo_i "checking that the change has not been transferred due to notify ($n)"
 ret=0
 for i in 0 1 2 3 4 5 6 7 8 9
 do

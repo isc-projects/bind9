@@ -131,7 +131,7 @@ isc_regex_validate(const char *c) {
 					--group;
 				++c;
 				break;
-			case '|':	/* alternative seperator */
+			case '|':	/* alternative separator */
 				if (!have_atom)
 					FAIL("no atom");
 				have_atom = false;

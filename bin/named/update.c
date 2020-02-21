@@ -2113,7 +2113,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		next = ISC_LIST_NEXT(tuple, link);
 		if ((tuple->rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
 			/*
-			 * If we havn't had any adds then the tuple->ttl must
+			 * If we haven't had any adds then the tuple->ttl must
 			 * be the original ttl and should be used for any
 			 * future changes.
 			 */
@@ -2140,7 +2140,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
 	     tuple != NULL; tuple = next) {
 		/*
-		 * If we havn't had any adds then the tuple->ttl must be the
+		 * If we haven't had any adds then the tuple->ttl must be the
 		 * original ttl and should be used for any future changes.
 		 */
 		if (!ttl_good) {
@@ -2152,7 +2152,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 
 			/*
 			 * Look for any deletes which match this ADD ignoring
-			 * flags.  We don't need to explictly remove them as
+			 * flags.  We don't need to explicitly remove them as
 			 * they will be removed a side effect of processing
 			 * the add.
 			 */
@@ -2208,7 +2208,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 
 			/*
 			 * Remove any existing CREATE request to add an
-			 * otherwise indentical chain with a reversed
+			 * otherwise identical chain with a reversed
 			 * OPTOUT state.
 			 */
 			buf[2] ^= DNS_NSEC3FLAG_OPTOUT;
@@ -2529,7 +2529,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_zone_getssutable(zone, &ssutable);
 
 	/*
-	 * Update message processing can leak record existance information
+	 * Update message processing can leak record existence information
 	 * so check that we are allowed to query this zone.  Additionally
 	 * if we would refuse all updates for this zone we bail out here.
 	 */

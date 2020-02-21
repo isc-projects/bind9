@@ -56,7 +56,7 @@ dns_dns64_create(isc_mem_t *mctx, isc_netaddr_t *prefix,
  * clients apply.  'mapped' defines which A records are candidated for
  * mapping.  If 'mapped' is NULL then all A records will be mapped.
  * 'excluded' defines which AAAA are to be treated as non-existent for the
- * purposed of determining whether to perform syntesis.  If 'excluded' is
+ * purposed of determining whether to perform synthesis.  If 'excluded' is
  * NULL then no AAAA records prevent synthesis.
  *
  * If DNS_DNS64_RECURSIVE_ONLY is set then the record will only match if
@@ -151,7 +151,7 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 /*
  * Determine if there are any non-excluded AAAA records in from the
  * matching dns64 records in the list starting at 'dns64'.  If there
- * is a non-exluded address return true.  If all addresses are
+ * is a non-excluded address return true.  If all addresses are
  * excluded in the matched records return false.   If no records
  * match then return true.
  *

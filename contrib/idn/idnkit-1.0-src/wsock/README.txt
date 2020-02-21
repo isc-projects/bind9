@@ -507,7 +507,7 @@
     |                                           +--------+ +--------+ |
     +-----------------------------------------------------------------+
 
-    Logging level can be selected from the followings.
+    Logging level can be selected from the following.
 	None	no logging at all
 	Fatal   only records fatal errors
 	Error	also records non-fatal errors

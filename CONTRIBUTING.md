@@ -99,7 +99,7 @@ e-mail is not a secure choice for communications concerning undisclosed
 security issues so please encrypt your communications to us if possible,
 using the [ISC Security Officer public key](https://www.isc.org/downloads/software-support-policy/openpgp-key/).
 
-Do not discuss undisclosed security vulnerabilites on any public mailing list.
+Do not discuss undisclosed security vulnerabilities on any public mailing list.
 ISC has a long history of handling reported vulnerabilities promptly and
 effectively and we respect and acknowledge responsible reporters.
 

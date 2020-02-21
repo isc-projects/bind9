@@ -478,7 +478,7 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2);
  * \li	Because it only needs to test for equality, dns_name_equal() can be
  *	significantly faster than dns_name_fullcompare() or dns_name_compare().
  *
- * \li	Offsets tables are not used in the comparision.
+ * \li	Offsets tables are not used in the comparison.
  *
  * \li	It makes no sense for one of the names to be relative and the
  *	other absolute.  If both names are relative, then to be meaningfully

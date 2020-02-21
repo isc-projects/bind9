@@ -78,7 +78,7 @@ pkcs_C_Initialize(CK_VOID_PTR pReserved) {
 
 	if (lib_name == NULL)
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
-	/* Visual Studio convertion issue... */
+	/* Visual Studio conversion issue... */
 	if (*lib_name == ' ')
 		lib_name++;
 

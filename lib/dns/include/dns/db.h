@@ -724,7 +724,7 @@ dns_db_findnodeext(dns_db_t *db, dns_name_t *name, bool create,
  *
  * dns_db_findnodeext() (findnode extended) also accepts parameters
  * 'methods' and 'clientinfo', which, when provided, enable the database to
- * retreive information about the client from the caller, and modify its
+ * retrieve information about the client from the caller, and modify its
  * response on the basis of that information.
  *
  * Notes:
@@ -774,7 +774,7 @@ dns_db_findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  * Find the best match for 'name' and 'type' in version 'version' of 'db'.
  *
  * dns_db_findext() (find extended) also accepts parameters 'methods'
- * and 'clientinfo', which when provided enable the database to retreive
+ * and 'clientinfo', which when provided enable the database to retrieve
  * information about the client from the caller, and modify its response
  * on the basis of this information.
  *

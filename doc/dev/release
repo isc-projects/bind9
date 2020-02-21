@@ -121,7 +121,7 @@ release.
       sh util/altbuild.sh v9_1
 
    Alteratively, you can do this after building the kit, by giving
-   the kit .tar.gz file as an argument to altbuild.sh instad of
+   the kit .tar.gz file as an argument to altbuild.sh instead of
    the CVS tag.
 
  - If you can (= your system is similar enough to the one Tale is using),

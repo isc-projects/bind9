@@ -912,7 +912,7 @@ xfrin_create(isc_mem_t *mctx,
 	isc_sockaddr_setport(&xfr->sourceaddr, 0);
 
 	/*
-	 * Reserve 2 bytes for TCP length at the begining of the buffer.
+	 * Reserve 2 bytes for TCP length at the beginning of the buffer.
 	 */
 	isc_buffer_init(&xfr->qbuffer, &xfr->qbuffer_data[2],
 			sizeof(xfr->qbuffer_data) - 2);

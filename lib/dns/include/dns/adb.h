@@ -766,7 +766,7 @@ size_t
 dns_adb_getcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		  unsigned char *cookie, size_t len);
 /*
- * Retieve the saved COOKIE value and store it in 'cookie' which has
+ * Retrieve the saved COOKIE value and store it in 'cookie' which has
  * size 'len'.
  *
  * Requires:

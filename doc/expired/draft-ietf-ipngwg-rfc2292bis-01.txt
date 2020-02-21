@@ -2344,7 +2344,7 @@ INTERNET-DRAFT        Advanced Sockets API for IPv6         Oct 22, 1999
    the updated "previous" total length computed by advancing past the
    option that was returned and past any options that didn't match the
    type.  This returned "previous" length can then be passed to
-   subsequent calls to inet6_opt_find() for finding the next occurance
+   subsequent calls to inet6_opt_find() for finding the next occurrence
    of the same option type.
 
    If an option of the specified type is not located, the return value

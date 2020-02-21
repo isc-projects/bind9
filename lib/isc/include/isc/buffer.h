@@ -127,7 +127,7 @@ ISC_LANG_BEGINDECLS
 /*@}*/
 
 /*!
- * Size granularity for dynamically resizeable buffers; when reserving
+ * Size granularity for dynamically resizable buffers; when reserving
  * space in a buffer, we round the allocated buffer length up to the
  * nearest * multiple of this value.
  */

@@ -141,7 +141,7 @@ bdbhpt_parse_data(char *in, bdbhpt_parsed_data_t *pd) {
 	char *lastchar = (char *) &tmp[strlen(tmp)];
 
 	/*%
-	 * String should be formated as:
+	 * String should be formatted as:
 	 *   replication_id
 	 *   (a space)
 	 *   host_name
@@ -498,7 +498,7 @@ bdbhpt_findzone(void *driverarg, void *dbdata, const char *name,
 
 	/*
 	 * reverse string to take advantage of BDB locality of reference
-	 * if we need futher lookups because the zone doesn't match the
+	 * if we need further lookups because the zone doesn't match the
 	 * first time.
 	 */
 	key.data = bdbhpt_strrev(key.data);
@@ -693,7 +693,7 @@ bdbhpt_create(const char *dlzname, unsigned int argc, char *argv[],
 		break;
 		/*
 		 * Private mode. No inter-process communication & no locking.
-		 * Lowest saftey - highest speed.
+		 * Lowest safety - highest speed.
 		 */
 	case 'P':
 	case 'p':

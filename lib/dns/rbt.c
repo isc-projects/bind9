@@ -234,7 +234,7 @@ getdata(dns_rbtnode_t *node, file_header_t *header) {
  *
  * &lt;name_data&gt; contains the name of the node when it was created.
  * &lt;oldoffsetlen&gt; contains the length of &lt;offsets&gt; when the node was created.
- * &lt;offsets&gt; contains the offets into name for each label when the node was
+ * &lt;offsets&gt; contains the offsets into name for each label when the node was
  * created.
  */
 

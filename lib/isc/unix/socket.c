@@ -5638,7 +5638,7 @@ isc__socket_bind(isc_socket_t *sock0, isc_sockaddr_t *sockaddr,
 /*
  * Enable this only for specific OS versions, and only when they have repaired
  * their problems with it.  Until then, this is is broken and needs to be
- * diabled by default.  See RT22589 for details.
+ * disabled by default.  See RT22589 for details.
  */
 #undef ENABLE_ACCEPTFILTER
 

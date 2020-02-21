@@ -120,7 +120,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			   isc_region_t *region, unsigned int reservelen)
 {
 	/*
-	 * Use &removed as a sentinal pointer for duplicate
+	 * Use &removed as a sentinel pointer for duplicate
 	 * rdata as rdata.data == NULL is valid.
 	 */
 	static unsigned char removed;

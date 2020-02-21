@@ -694,7 +694,7 @@ RFC 1101     DNS Encoding of Network Names and Other Types    April 1989
                Specification", RFC 883, USC/Information Sciences
                Institute, November 1983.
 
-               Superceeded by RFC 1035.
+               Superseded by RFC 1035.
 
    [RFC 920]   Postel, J. and J. Reynolds, "Domain Requirements", RFC
                920, October 1984.

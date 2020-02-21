@@ -2400,7 +2400,7 @@ resquery_send(resquery_t *query) {
 #if DNS_EDNS_VERSION > 0
 			/*
 			 * Some EDNS(0) servers don't ignore unknown options
-			 * as it was not a explict requirement of RFC 2671.
+			 * as it was not a explicit requirement of RFC 2671.
 			 * Only send COOKIE to EDNS(1) servers.
 			 */
 			if (version < 1)
@@ -4206,7 +4206,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 }
 
 /*
- * Fetch Creation, Joining, and Cancelation.
+ * Fetch Creation, Joining, and Cancellation.
  */
 
 static inline isc_result_t
@@ -5048,7 +5048,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		inc_stats(res, dns_resstatscounter_valnegsuccess);
 
 		/*
-		 * Cache DS NXDOMAIN seperately to other types.
+		 * Cache DS NXDOMAIN separately to other types.
 		 */
 		if (fctx->rmessage->rcode == dns_rcode_nxdomain &&
 		    fctx->type != dns_rdatatype_ds)
@@ -8606,7 +8606,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		dns_rdatatype_t covers;
 
 		/*
-		 * Cache DS NXDOMAIN seperately to other types.
+		 * Cache DS NXDOMAIN separately to other types.
 		 */
 		if (message->rcode == dns_rcode_nxdomain &&
 		    fctx->type != dns_rdatatype_ds)

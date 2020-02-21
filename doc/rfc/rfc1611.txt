@@ -1262,7 +1262,7 @@ RFC 1611               DNS Server MIB Extensions                May 1994
                "IP address of host which was the source of the most
                recent successful zone transfer for this zone.  If
                unknown (e.g., zone has never been successfully
-               transfered) or irrelevant (e.g., zone was loaded from
+               transferred) or irrelevant (e.g., zone was loaded from
                stable storage), this value should be 0.0.0.0."
        ::= { dnsServZoneEntry 9 }
 

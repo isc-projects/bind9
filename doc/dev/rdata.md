@@ -21,7 +21,7 @@ for encoding, decoding and comparing dns data preventing the problems that
 occurred in BIND 8.x and earlier, in which there were multiple places in the
 code base that decoded wire format to internal format or compared rdata,
 sometimes with subtly different behaviour (bugs), and sometimes failing to
-support a particular type, leading to internal inconsistancy.
+support a particular type, leading to internal inconsistency.
 
 Each of these generic routines calls type-specific routines that provide
 the type-specific details.
@@ -35,7 +35,7 @@ on how to do this.
 Adding a new rdata type requires determining whether the new rdata type is
 class-specific or generic, writing code to perform the rdata operations for the
 type, then integrating it into the build by placing the code into the rdata
-hierachy at the correct location under `lib/dns/rdata`.  Running `make clean`
+hierarchy at the correct location under `lib/dns/rdata`.  Running `make clean`
 followed by `make` in `lib/dns` will cause the new rdata type to be picked up
 and compiled.
 
@@ -144,7 +144,7 @@ type name.
 |Parameter|Description |
 |---------|-----------------------|
 |`class`|This argument should be ignored when used with a class-generic RR type, otherwise `REQUIRE(class == <value>)` should be present at the start of the function.|
-|`type`|This should be tested with a `REQUIRE(type == <value>)` statement at the begining of the function.|
+|`type`|This should be tested with a `REQUIRE(type == <value>)` statement at the beginning of the function.|
 |`lexer`|This is used to read the input text stream.|
 |`origin`|This is a absolute name used to qualify unqualified / partially qualified domain names in the text stream.  It is passed to the name parsing routines.|
 |`downcase`|This is passed to the name parsing routines to determine whether to downcase the names it generates or leave them in the case they are presented in.|
@@ -210,7 +210,7 @@ decompression methods if there is a domain name in the rdata.
 |Parameter|Description |
 |---------|-----------------------|
 |`class`|This argument should be ignored when used with a class-generic RR type otherwise `REQUIRE(class == <value>)` should be present at the start of the function.|
-|`type`|This should be tested with a `REQUIRE(type == <value>)` statement at the begining of the function.|
+|`type`|This should be tested with a `REQUIRE(type == <value>)` statement at the beginning of the function.|
 |`source`|This is a `BINARY` buffer with the `active` region containing a resource record in wire format.|
 |`dctx`|This is the decompression context and is passed to `dns_name_fromwire()`, along with `downcase`, to enable a compressed domain name to be extracted from the source.|
 |`downcase`|This is passed to `dns_name_fromwire()` to say whether the extracted domain name should be downcased during the extraction.|

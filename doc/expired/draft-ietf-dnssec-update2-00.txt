@@ -247,7 +247,7 @@ INTERNET-DRAFT             Secure DNS Update                 August 1998
    DNS security also permits the storage of public keys in the DNS via
    KEY RRs.  These KEY RRs are also, of course, authenticated by SIG
    RRs.  KEY RRs for zones may be stored in their superzone and/or their
-   authoritive subzone servers so that the secure DNS tree of zones can
+   authoritative subzone servers so that the secure DNS tree of zones can
    be traversed by a security aware resolver.
 
 
@@ -723,7 +723,7 @@ INTERNET-DRAFT             Secure DNS Update                 August 1998
    specified in draft-ietf-dnssec-secext2-*.txt, a public request
    signature is a SIG RR occurring at the end of a request with a type
    covered field of zero.  As specified in draft-ietf-dnsind-tsig-*.txt,
-   a secret key request signature is a TSIG RR occuring at the end of
+   a secret key request signature is a TSIG RR occurring at the end of
    the request.  Each request SIG or TSIG signs the entire request,
    including DNS header, but excluding any other request signatures and
    with the ARCOUNT in the DNS header set to what it would be without
