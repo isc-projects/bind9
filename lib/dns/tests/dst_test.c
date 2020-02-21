@@ -209,10 +209,17 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_context_verify(ctx, &sigreg);
 
+	/*
+	 * Compute the expected signature and emit it
+	 * so the precomputed signature can be updated.
+	 * This should only be done if the covered data
+	 * is updated.
+	 */
 	if (expect && result != ISC_R_SUCCESS) {
 		isc_result_t result2;
+		dst_context_destroy(&ctx);
 		result2 = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL,
-					    false, 0, &ctx);
+					     false, 0, &ctx);
 		assert_int_equal(result2, ISC_R_SUCCESS);
 
 		result2 = dst_context_adddata(ctx, &datareg);
@@ -234,17 +241,15 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 
 		isc_hex_totext(&r, 0, "", &hb);
 
-		fprintf(stderr, "%s\n", hexbuf);
-
-		dst_context_destroy(&ctx);
+		fprintf(stderr, "# %s:\n# %s\n", sigpath, hexbuf);
 	}
-
-	assert_true((expect && (result == ISC_R_SUCCESS)) ||
-		    (!expect && (result != ISC_R_SUCCESS)));
 
 	isc_mem_put(mctx, data, size + 1);
 	dst_context_destroy(&ctx);
 	dst_key_free(&key);
+
+	assert_true((expect && (result == ISC_R_SUCCESS)) ||
+		    (!expect && (result != ISC_R_SUCCESS)));
 
 	return;
 }
