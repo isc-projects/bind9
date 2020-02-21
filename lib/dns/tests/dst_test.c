@@ -26,6 +26,7 @@
 #include <cmocka.h>
 
 #include <isc/file.h>
+#include <isc/hex.h>
 #include <isc/print.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -218,8 +219,9 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 		isc_result_t result2;
 
 		dst_context_destroy(&ctx);
-		result2 = dst_context_create(
-			key, dt_mctx, DNS_LOGCATEGORY_GENERAL, false, 0, &ctx);
+		result2 = dst_context_create3(key, mctx,
+					      DNS_LOGCATEGORY_GENERAL, false,
+					      &ctx);
 		assert_int_equal(result2, ISC_R_SUCCESS);
 
 		result2 = dst_context_adddata(ctx, &datareg);
