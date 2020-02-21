@@ -1349,7 +1349,7 @@ dns_dnssec_get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	 * These two cases are rare enough that we will set hint_publish
 	 * anyway when hint_sign is set, because BIND 9 natively does not
 	 * support the ZSK Double-RRSIG method, and when introducing a new
-	 * algorihtm, we strive to publish its signatures and DNSKEY records
+	 * algorithm, we strive to publish its signatures and DNSKEY records
 	 * at the same time.
 	 */
 	if (key->hint_sign && publish == 0) {
@@ -2158,7 +2158,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			}
 		}
 
-		/* Printable version of key1 (the newly aquired key) */
+		/* Printable version of key1 (the newly acquired key) */
 		dst_key_format(key1->key, keystr1, sizeof(keystr1));
 
 		/* No match found in keys; add the new key. */

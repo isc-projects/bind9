@@ -142,7 +142,7 @@ struct query_ctx {
 	bool authoritative;		    /* authoritative query? */
 	bool want_restart;		    /* CNAME chain or other
 					     * restart needed */
-	bool		need_wildcardproof; /* wilcard proof needed */
+	bool		need_wildcardproof; /* wildcard proof needed */
 	bool		nxrewrite;	    /* negative answer from RPZ */
 	bool		findcoveringnsec;   /* lookup covering NSEC */
 	bool		answer_has_ns;	    /* NS is in answer */

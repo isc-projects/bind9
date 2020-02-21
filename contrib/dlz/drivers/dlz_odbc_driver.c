@@ -89,7 +89,7 @@ typedef struct {
 } odbc_db_t;
 
 /*
- * Structure to hold everthing needed by this "instance" of the odbc driver
+ * Structure to hold everything needed by this "instance" of the odbc driver
  * remember, the driver code is only loaded once, but may have many separate
  * instances
  */
@@ -119,7 +119,7 @@ safeLen(void *a) {
 	return (strlen((char *)a));
 }
 
-/*% propertly cleans up an odbc_instance_t */
+/*% properly cleans up an odbc_instance_t */
 
 static void
 destroy_odbc_instance(odbc_instance_t *odbc_inst) {
@@ -402,9 +402,9 @@ odbc_makesafe(char *to, const char *from, size_t length) {
  * database instance (DBI).  It will then run the query and hopefully
  * obtain a result set.  The data base instance that is used is returned
  * to the caller so they can get the data from the result set from it.
- * If successfull, it will be the responsibility of the caller to close
+ * If successful, it will be the responsibility of the caller to close
  * the cursor, and unlock the mutex of the DBI when they are done with it.
- * If not successfull, this function will perform all the cleanup.
+ * If not successful, this function will perform all the cleanup.
  */
 
 static isc_result_t
@@ -593,7 +593,7 @@ odbc_get_resultset(const char *zone, const char *record, const char *client,
 			if (result != ISC_R_SUCCESS) {
 				break;
 			}
-			/* incase this is the last time through the loop */
+			/* in case this is the last time through the loop */
 			result = ISC_R_FAILURE;
 		} else {
 			result = ISC_R_SUCCESS;
@@ -638,7 +638,7 @@ cleanup: /* it's always good to cleanup after yourself */
 /*%
  * Gets a single field from the ODBC statement.  The memory for the
  * returned data is dynamically allocated.  If this method is successful
- * it is the reponsibility of the caller to free the memory using
+ * it is the responsibility of the caller to free the memory using
  * isc_mem_free(named_g_mctx, *ptr);
  */
 
@@ -667,7 +667,7 @@ odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data) {
 /*%
  * Gets multiple fields from the ODBC statement.  The memory for the
  * returned data is dynamically allocated.  If this method is successful
- * it is the reponsibility of the caller to free the memory using
+ * it is the responsibility of the caller to free the memory using
  * isc_mem_free(named_g_mctx, *ptr);
  */
 
@@ -820,7 +820,7 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi) {
 						      DNS_LOGMODULE_DLZ,
 						      ISC_LOG_ERROR,
 						      "Odbc driver ttl must "
-						      "be a postive number");
+						      "be a positive number");
 					result = ISC_R_FAILURE;
 				} else {
 					/*
@@ -1043,7 +1043,7 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 					      DNS_LOGCATEGORY_DATABASE,
 					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 					      "Odbc driver ttl must be "
-					      "a postive number");
+					      "a positive number");
 				result = ISC_R_FAILURE;
 			} else {
 				/* successful converting TTL, tell Bind  */
@@ -1206,7 +1206,7 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 	odbc_inst = isc_mem_get(named_g_mctx, sizeof(odbc_instance_t));
 	memset(odbc_inst, 0, sizeof(odbc_instance_t));
 
-	/* parse connection string and get paramters. */
+	/* parse connection string and get parameters. */
 
 	/* get odbc database dsn - required */
 	odbc_inst->dsn = (SQLCHAR *)getParameterValue(argv[2], "dsn=");

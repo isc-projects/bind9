@@ -211,7 +211,7 @@ rdata_additionadata(dns_rdata_t *rdata) {
  * We are currently only checking that the calls do not trigger
  * assertion failures.
  *
- * XXXMPA A future extention could be to record the expected
+ * XXXMPA A future extension could be to record the expected
  * result and the expected value of 'bad'.
  */
 static void
@@ -883,25 +883,25 @@ static void
 amtrelay(void **state) {
 	text_ok_t text_ok[] = {
 		TEXT_INVALID(""), TEXT_INVALID("0"), TEXT_INVALID("0 0"),
-		/* gatway type 0 */
+		/* gateway type 0 */
 		TEXT_VALID("0 0 0"), TEXT_VALID("0 1 0"),
 		TEXT_INVALID("0 2 0"),	 /* discovery out of range */
-		TEXT_VALID("255 1 0"),	 /* max precendence */
+		TEXT_VALID("255 1 0"),	 /* max precedence */
 		TEXT_INVALID("256 1 0"), /* precedence out of range */
 
 		/* IPv4 gateway */
-		TEXT_INVALID("0 0 1"), /* no addresss */
+		TEXT_INVALID("0 0 1"), /* no address */
 		TEXT_VALID("0 0 1 0.0.0.0"),
 		TEXT_INVALID("0 0 1 0.0.0.0 x"), /* extra */
-		TEXT_INVALID("0 0 1 0.0.0.0.0"), /* bad addresss */
-		TEXT_INVALID("0 0 1 ::"),	 /* bad addresss */
-		TEXT_INVALID("0 0 1 ."),	 /* bad addresss */
+		TEXT_INVALID("0 0 1 0.0.0.0.0"), /* bad address */
+		TEXT_INVALID("0 0 1 ::"),	 /* bad address */
+		TEXT_INVALID("0 0 1 ."),	 /* bad address */
 
 		/* IPv6 gateway */
-		TEXT_INVALID("0 0 2"), /* no addresss */
+		TEXT_INVALID("0 0 2"), /* no address */
 		TEXT_VALID("0 0 2 ::"), TEXT_INVALID("0 0 2 :: xx"), /* extra */
-		TEXT_INVALID("0 0 2 0.0.0.0"), /* bad addresss */
-		TEXT_INVALID("0 0 2 ."),       /* bad addresss */
+		TEXT_INVALID("0 0 2 0.0.0.0"), /* bad address */
+		TEXT_INVALID("0 0 2 ."),       /* bad address */
 
 		/* hostname gateway */
 		TEXT_INVALID("0 0 3"), /* no name */

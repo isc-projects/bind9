@@ -816,7 +816,7 @@ hashlist_hasdup(hashlist_t *l) {
 	size_t entries = l->entries;
 
 	/*
-	 * Skip initial speculative wild card hashs.
+	 * Skip initial speculative wild card hashes.
 	 */
 	while (entries > 0U && next[l->length - 1] != 0U) {
 		next += l->length;
@@ -1186,7 +1186,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 
 /*
  * See if the node contains any non RRSIG/NSEC records and report to
- * caller.  Clean out extranous RRSIG records for node.
+ * caller.  Clean out extraneous RRSIG records for node.
  */
 static inline bool
 active_node(dns_dbnode_t *node) {
@@ -1380,7 +1380,7 @@ setsoaserial(uint32_t serial, dns_updatemethod_t method) {
 		/* Set SOA serial to the value provided. */
 		new_serial = serial;
 	} else {
-		/* Increment SOA serial using RFC 1982 arithmetics */
+		/* Increment SOA serial using RFC 1982 arithmetic */
 		new_serial = (old_serial + 1) & 0xFFFFFFFF;
 		if (new_serial == 0) {
 			new_serial = 1;
@@ -2399,7 +2399,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 				      salt_len, false);
 		dns_db_detachnode(gdb, &node);
 		/*
-		 * Add hashs for empty nodes.  Use closest encloser logic.
+		 * Add hashes for empty nodes.  Use closest encloser logic.
 		 * The closest encloser either has data or is a empty
 		 * node for another <name,nextname> span so we don't add
 		 * it here.  Empty labels on nextname are within the span.

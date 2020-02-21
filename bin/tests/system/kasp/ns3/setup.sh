@@ -245,7 +245,7 @@ setup step5.zsk-prepub.autosign
 KSK=$($KEYGEN -a ECDSAP256SHA256 -f KSK -L 3600 $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a ECDSAP256SHA256 -L 3600 $zone 2> keygen.out.$zone.2)
 ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 $zone 2> keygen.out.$zone.3)
-# Substract DNSKEY TTL from all the times (1h).
+# Subtract DNSKEY TTL from all the times (1h).
 TactN="now-962h"
 TretN="now-242h"
 TpubN1="now-268h"
@@ -358,7 +358,7 @@ setup step5.ksk-doubleksk.autosign
 KSK1=$($KEYGEN -a ECDSAP256SHA256 -f KSK -L 7200 $zone 2> keygen.out.$zone.1)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -f KSK -L 7200 $zone 2> keygen.out.$zone.2)
 ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200 $zone 2> keygen.out.$zone.3)
-# Substract DNSKEY TTL from all the times (2h).
+# Subtract DNSKEY TTL from all the times (2h).
 TactN="now-1492h"
 TretN="now-52h"
 TpubN1="now-102h"
@@ -469,7 +469,7 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > si
 setup step5.csk-roll.autosign
 CSK1=$($KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
-# Substract DNSKEY TTL plus zone propagation delay from all the times (2h).
+# Subtract DNSKEY TTL plus zone propagation delay from all the times (2h).
 TactN="now-4470h"
 TretN="now-6h"
 TdeaN="now-2h"
@@ -520,7 +520,7 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > si
 setup step7.csk-roll.autosign
 CSK1=$($KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
-# Substract DNSKEY TTL plus zone propagation delay from all the times (2h).
+# Subtract DNSKEY TTL plus zone propagation delay from all the times (2h).
 TactN="now-5093h"
 TretN="now-629h"
 TdeaN="now-625h"
@@ -630,7 +630,7 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > si
 setup step5.csk-roll2.autosign
 CSK1=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
-# Substract Dreg + Iret (174h).
+# Subtract Dreg + Iret (174h).
 TactN="now-4676h"
 TretN="now-212h"
 TpubN1="now-215h"
@@ -650,7 +650,7 @@ setup step6.csk-roll2.autosign
 CSK1=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 
-# Substract DNSKEY TTL plus zone propagation delay (2h).
+# Subtract DNSKEY TTL plus zone propagation delay (2h).
 TactN="now-4678h"
 TretN="now-214h"
 TdeaN="now-2h"

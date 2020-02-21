@@ -398,7 +398,7 @@ mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs) {
 					      DNS_LOGCATEGORY_DATABASE,
 					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 					      "mysql driver ttl must be "
-					      "a postive number");
+					      "a positive number");
 			}
 			result = dns_sdlz_putrr(lookup, safeGet(row[1]), ttl,
 						safeGet(row[2]));
@@ -435,7 +435,7 @@ mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs) {
 					      DNS_LOGCATEGORY_DATABASE,
 					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 					      "mysql driver ttl must be "
-					      "a postive number");
+					      "a positive number");
 			}
 			/* ok, now tell Bind about it. */
 			result = dns_sdlz_putrr(lookup, safeGet(row[1]), ttl,
@@ -618,7 +618,7 @@ mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "mysql driver ttl must be "
-				      "a postive number");
+				      "a positive number");
 		}
 		if (fields == 4) {
 			/* tell Bind about it. */
@@ -638,7 +638,7 @@ mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
 			tmpString = isc_mem_allocate(named_g_mctx, len + 1);
 			/* copy this field to tmpString */
 			strcpy(tmpString, safeGet(row[3]));
-			/* concatonate the rest, with spaces between */
+			/* concatenate the rest, with spaces between */
 			for (j = 4; j < fields; j++) {
 				strcat(tmpString, " ");
 				strcat(tmpString, safeGet(row[j]));
@@ -784,7 +784,7 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (ISC_R_FAILURE);
 	}
 
-	/* parse connection string and get paramters. */
+	/* parse connection string and get parameters. */
 
 	/* get db name - required */
 	dbname = getParameterValue(argv[1], "dbname=");

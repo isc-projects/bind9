@@ -553,7 +553,7 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 		ttl = strtol(ttlStr, &endp, 10);
 		if (*endp != '\0' || ttl < 0) {
 			cd->log(ISC_LOG_ERROR, "Filesystem driver "
-					       "ttl must be a postive number");
+					       "ttl must be a positive number");
 		}
 
 		/* pass data back to Bind */
@@ -931,7 +931,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	cd->splitcnt = strtol(argv[4], &endp, 10);
 	if (*endp != '\0' || cd->splitcnt < 0) {
 		cd->log(ISC_LOG_ERROR, "Directory split count must be zero (0) "
-				       "or a postive number");
+				       "or a positive number");
 	}
 
 	/* get and store our separator character */

@@ -899,7 +899,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_task_t *task,
 	isc_sockaddr_setport(&xfr->sourceaddr, 0);
 
 	/*
-	 * Reserve 2 bytes for TCP length at the begining of the buffer.
+	 * Reserve 2 bytes for TCP length at the beginning of the buffer.
 	 */
 	isc_buffer_init(&xfr->qbuffer, &xfr->qbuffer_data[2],
 			sizeof(xfr->qbuffer_data) - 2);

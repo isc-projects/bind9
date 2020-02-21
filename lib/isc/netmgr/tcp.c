@@ -164,7 +164,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
 	if (quota != NULL) {
 		/*
 		 * We don't attach to quota, just assign - to avoid
-		 * increasing quota unnecesarily.
+		 * increasing quota unnecessarily.
 		 */
 		nsock->pquota = quota;
 	}

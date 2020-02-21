@@ -1384,7 +1384,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 	if (disp->refcount == 0) {
 		/*
-		 * This dispatcher is shutting down.  Force cancelation.
+		 * This dispatcher is shutting down.  Force cancellation.
 		 */
 		tcpmsg->result = ISC_R_CANCELED;
 	}
@@ -2768,7 +2768,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 			result = open_socket(sockmgr, &localaddr_bound, 0,
 					     &sock, NULL, false);
 			/*
-			 * Continue if the port choosen is already in use
+			 * Continue if the port chosen is already in use
 			 * or the OS has reserved it.
 			 */
 			if (result == ISC_R_NOPERM || result == ISC_R_ADDRINUSE)
@@ -3441,7 +3441,7 @@ do_cancel(dns_dispatch_t *disp) {
 
 	/*
 	 * Search for the first response handler without packets outstanding
-	 * unless a specific hander is given.
+	 * unless a specific handler is given.
 	 */
 	LOCK(&qid->lock);
 	for (resp = linear_first(qid); resp != NULL && resp->item_out;

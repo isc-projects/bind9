@@ -34,7 +34,7 @@ UDP restart:
 /*
  * If too many recv()'s are already running, just return.
  *
- * If noone is attached to us, just return.
+ * If no one is attached to us, just return.
  *
  * Allocate a new buffer to receive into.
  * If no more buffers:

@@ -2903,7 +2903,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name, dns_rpz_zone_t *rpz,
 		 */
 		if (labels - first < 2) {
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, suffix,
-				     rpz_type, "concatentate()", result);
+				     rpz_type, "concatenate()", result);
 			return (ISC_R_FAILURE);
 		}
 		/*
@@ -2911,7 +2911,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name, dns_rpz_zone_t *rpz,
 		 */
 		if (first == 0) {
 			rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, suffix,
-				     rpz_type, "concatentate()", result);
+				     rpz_type, "concatenate()", result);
 		}
 		++first;
 	}
@@ -4089,7 +4089,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		 * 2nd zone matters until after recursing to get the A RRs and
 		 * testing them in the first zone.
 		 * Do not bother saving the work from this attempt,
-		 * because recusion is so slow.
+		 * because recursion is so slow.
 		 */
 		if (qresult_type == qresult_type_recurse) {
 			goto cleanup;
@@ -4121,7 +4121,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		}
 		/*
 		 * We are finished checking the IP addresses for the qname.
-		 * Start with IPv4 if we will check NS IP addesses.
+		 * Start with IPv4 if we will check NS IP addresses.
 		 */
 		st->state |= DNS_RPZ_DONE_QNAME_IP;
 		st->state &= ~DNS_RPZ_DONE_IPv4;
@@ -5245,7 +5245,7 @@ root_key_sentinel_detect(query_ctx_t *qctx) {
 		}
 		qctx->client->query.root_key_sentinel_is_ta = true;
 		/*
-		 * Simplify processing by disabling agressive
+		 * Simplify processing by disabling aggressive
 		 * negative caching.
 		 */
 		qctx->findcoveringnsec = false;
@@ -5260,7 +5260,7 @@ root_key_sentinel_detect(query_ctx_t *qctx) {
 		}
 		qctx->client->query.root_key_sentinel_not_ta = true;
 		/*
-		 * Simplify processing by disabling agressive
+		 * Simplify processing by disabling aggressive
 		 * negative caching.
 		 */
 		qctx->findcoveringnsec = false;
@@ -6521,7 +6521,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		}
 		case DNS_RPZ_POLICY_CNAME:
 			/*
-			 * Add overridding CNAME from a named.conf
+			 * Add overriding CNAME from a named.conf
 			 * response-policy statement
 			 */
 			result = query_rpzcname(qctx,
@@ -7304,7 +7304,7 @@ cleanup:
 }
 
 /*%
- * Build a repsonse for a "normal" query, for a type other than ANY,
+ * Build a response for a "normal" query, for a type other than ANY,
  * for which we have an answer (either positive or negative).
  */
 static isc_result_t
@@ -8825,7 +8825,7 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 	isc_result_t result;
 
 	/*
-	 * Detemine the correct TTL to use for the SOA and RRSIG
+	 * Determine the correct TTL to use for the SOA and RRSIG
 	 */
 	ttl = query_synthttl(*soardatasetp, *sigsoardatasetp, qctx->rdataset,
 			     qctx->sigrdataset, NULL, NULL);
@@ -9043,7 +9043,7 @@ query_synthnxdomain(query_ctx_t *qctx, dns_name_t *nowild,
 	CCTRACE(ISC_LOG_DEBUG(3), "query_synthnxdomain");
 
 	/*
-	 * Detemine the correct TTL to use for the SOA and RRSIG
+	 * Determine the correct TTL to use for the SOA and RRSIG
 	 */
 	ttl = query_synthttl(*soardatasetp, *sigsoardatasetp, qctx->rdataset,
 			     qctx->sigrdataset, nowildrdataset,
@@ -9167,7 +9167,7 @@ checksignames(dns_name_t *signer, dns_rdataset_t *sigrdataset) {
 /*%
  * Handle covering NSEC responses.
  *
- * Verify the NSEC record is apropriate for the QNAME; if not,
+ * Verify the NSEC record is appropriate for the QNAME; if not,
  * redo the initial query without DNS_DBFIND_COVERINGNSEC.
  *
  * If the covering NSEC proves that the name exists but not the type,
@@ -9797,7 +9797,7 @@ cleanup:
 }
 
 /*%
- * Add CNAME to repsonse.
+ * Add CNAME to response.
  */
 static isc_result_t
 query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {

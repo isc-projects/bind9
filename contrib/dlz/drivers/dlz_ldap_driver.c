@@ -85,7 +85,7 @@ static dns_sdlzimplementation_t *dlz_ldap = NULL;
 #define LOOKUP		 5
 
 /*%
- * Structure to hold everthing needed by this "instance" of the LDAP
+ * Structure to hold everything needed by this "instance" of the LDAP
  * driver remember, the driver code is only loaded once, but may have
  * many separate instances.
  */
@@ -382,7 +382,7 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 
 			/* skip empty attributes. */
 			if (vals == NULL || vals[0] == NULL) {
-				/* increment attibute pointer */
+				/* increment attribute pointer */
 				attribute = attrs[++i];
 				/* start loop over */
 				continue;
@@ -407,7 +407,7 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 						      DNS_LOGMODULE_DLZ,
 						      ISC_LOG_ERROR,
 						      "LDAP driver ttl must "
-						      "be a postive number");
+						      "be a positive number");
 					goto cleanup;
 				}
 				break;
@@ -443,7 +443,7 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char **attrs, void *ptr,
 			ldap_value_free(vals);
 			vals = NULL;
 
-			/* increment attibute pointer */
+			/* increment attribute pointer */
 			attribute = attrs[++i];
 		} /* end while (attribute != NULL) */
 
@@ -701,7 +701,7 @@ ldap_get_results(const char *zone, const char *record, const char *client,
 			}
 		}
 
-		/* perform ldap search syncronously */
+		/* perform ldap search synchronously */
 		ldap_result =
 			ldap_search_s((LDAP *)dbi->dbconn, ldap_url->lud_dn,
 				      ldap_url->lud_scope, ldap_url->lud_filter,

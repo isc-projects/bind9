@@ -100,7 +100,7 @@ Overview
 	configurations to be identified earlier providing for a more stable
 	DNS.
 
-Compatability:
+Compatibility:
 
 	Zones are required to be configuration file compatable with
 	BIND 8.x.

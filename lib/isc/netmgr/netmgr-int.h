@@ -292,7 +292,7 @@ struct isc_nm {
 	atomic_bool paused;
 
 	/*
-	 * Acive connections are being closed and new connections are
+	 * Active connections are being closed and new connections are
 	 * no longer allowed.
 	 */
 	atomic_bool closing;
@@ -306,7 +306,7 @@ struct isc_nm {
 	atomic_bool interlocked;
 
 	/*
-	 * Timeout values for TCP connections, coresponding to
+	 * Timeout values for TCP connections, corresponding to
 	 * tcp-intiial-timeout, tcp-idle-timeout, tcp-keepalive-timeout,
 	 * and tcp-advertised-timeout. Note that these are stored in
 	 * milliseconds so they can be used directly with the libuv timer,
@@ -438,7 +438,7 @@ struct isc_nmsocket {
 
 	/*%
 	 * TCPDNS socket has exceeded the maximum number of
-	 * simultaneous requests per connecton, so will be temporarily
+	 * simultaneous requests per connection, so will be temporarily
 	 * restricted from pipelining.
 	 */
 	atomic_bool overlimit;
@@ -571,7 +571,7 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		  isc_sockaddr_t *local);
 /*%<
  * Get a handle for the socket 'sock', allocating a new one
- * if there isn't one availbale in 'sock->inactivehandles'.
+ * if there isn't one available in 'sock->inactivehandles'.
  *
  * If 'peer' is not NULL, set the handle's peer address to 'peer',
  * otherwise set it to 'sock->peer'.
@@ -584,7 +584,7 @@ isc__nm_uvreq_t *
 isc__nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock);
 /*%<
  * Get a UV request structure for the socket 'sock', allocating a
- * new one if there isn't one availbale in 'sock->inactivereqs'.
+ * new one if there isn't one available in 'sock->inactivereqs'.
  */
 
 void
@@ -635,7 +635,7 @@ isc_result_t
 isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		 void *cbarg);
 /*%<
- * Back-end implemenation of isc_nm_send() for UDP handles.
+ * Back-end implementation of isc_nm_send() for UDP handles.
  */
 
 void
@@ -653,7 +653,7 @@ isc_result_t
 isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		 void *cbarg);
 /*%<
- * Back-end implemenation of isc_nm_send() for TCP handles.
+ * Back-end implementation of isc_nm_send() for TCP handles.
  */
 
 void
@@ -695,7 +695,7 @@ isc_result_t
 isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
 /*%<
- * Back-end implemenation of isc_nm_send() for TCPDNS handles.
+ * Back-end implementation of isc_nm_send() for TCPDNS handles.
  */
 
 void
