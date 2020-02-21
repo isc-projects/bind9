@@ -16,14 +16,14 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 * dnssec-signzone should add cds and/or cdnskey to zone apex iff the
   DNSKEY is published and is signing the DNSKEY RRset.  CDS and CDNSKEY
   records are only removed if there is a deletion date set (implicit on
-  matching DNSKEY going inactive / unpublished or explict).
+  matching DNSKEY going inactive / unpublished or explicit).
 
   Non-matching CDS and CDNSKEY are removed.
 
 * auto-dnssec maintain should cds and/or cdnskey to zone apex iff the 
   DNSKEY is published and is signing the DNSKEY RRset.   CDS and CDNSKEY
   records are only removed if there is a deletion date set (implicit on
-  matching DNSKEY going inactive / unpublished or explict).
+  matching DNSKEY going inactive / unpublished or explicit).
 
 * UPDATE should check that CDS and CDNSKEY match a active DNSKEY that
   is signing the DNSKEY RRset and ignore otherwise.  This should be

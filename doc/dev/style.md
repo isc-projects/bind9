@@ -274,7 +274,7 @@ Historically, when a controlling statement such as `if` or `else` had
 only a single action associated with it, then BIND style specified that
 no bracing was to used around that action.  This has been revised: in
 newly added code, braces are now preferred around all control statement
-code blocks.  Note that legacy code has not yet been udpated to adhere to
+code blocks.  Note that legacy code has not yet been updated to adhere to
 this.
 
 Good:
@@ -481,7 +481,7 @@ with printf, and also when a simple (non-compound) value is being used in
 assignment or as part of a calculation.
 
 If a statement containing a ternary operator spills over more than one
-line, put the `?` and `:` at the begginning of the following lines with two
+line, put the `?` and `:` at the beginning of the following lines with two
 additional spaces of indent.
 
 Using the ternary operator to specify a return value is very rarely
@@ -675,7 +675,7 @@ In some cases, structures are specific to a single C file and are
 opaque outside that file.  In these cases, the `typedef` occurs in the
 associated header file, but the structure definition in the C file
 itself.  Examples of this include the zone object `dns_zone_t`;
-the structure is only acessable via get/set functions in
+the structure is only accessible via get/set functions in
 `lib/dns/zone.c`.  Other times, structure members can be accessed
 from outside the C file where they are implemented; examples include
 `dns_view_t`.  Which way to implement a particular object is up to
@@ -768,7 +768,7 @@ on failure?
 If there is a chance the library call may not be completely portable,
 edit `configure.in` to check for it on the local system and only call
 it from within a suitable `#ifdef`.  If the function is nonoptional,
-it may be necessary to add your own implentation of it (or copy one
+it may be necessary to add your own implementation of it (or copy one
 from a source with a BSD-compatible license).
 
 BIND provides portable internal versions of many common library calls.

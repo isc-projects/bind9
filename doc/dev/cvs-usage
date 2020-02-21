@@ -24,7 +24,7 @@ Here's how the 9.0 release branch was created:
 
 
 
-Renaming files by respository copy
+Renaming files by repository copy
 
 
 When you need to rename or move a file that is under CVS control, use
