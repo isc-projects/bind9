@@ -127,7 +127,7 @@ INTERNET-DRAFT                                          Indirect KEY RRs
    KEY RRs can be associated with users, zones, and hosts or other end
    entities named in the DNS.
 
-   For reasons given below, in many cases it will be desireable to store
+   For reasons given below, in many cases it will be desirable to store
    a key or keys elsewhere and merely point to it from the KEY RR.
    Indirect key storage makes it possible to point to a key service via
    a URL, to have a compact pointer to a larger key or set of keys, to
@@ -185,7 +185,7 @@ INTERNET-DRAFT                                          Indirect KEY RRs
    DNS.
 
    When the algorithm byte of a KEY RR has thae value 252, the "public
-   key" portion of the RR is formated as follows:
+   key" portion of the RR is formatted as follows:
 
                         1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

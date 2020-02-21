@@ -106,7 +106,7 @@ sdlzh_destroy_sqldbinstance(dbinstance_t *dbi);
 char *
 sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char* key);
 
-/* Compatability with existing DLZ drivers */
+/* Compatibility with existing DLZ drivers */
 
 #define	build_querystring	sdlzh_build_querystring
 #define	build_sqldbinstance	sdlzh_build_sqldbinstance

@@ -115,7 +115,7 @@ ck_soa() {
     done
 }
 
-# (re)load the reponse policy zones with the rules in the file $TEST_FILE
+# (re)load the response policy zones with the rules in the file $TEST_FILE
 load_db () {
     if test -n "$TEST_FILE"; then
         copy_setports $TEST_FILE tmp
@@ -726,7 +726,7 @@ EOF
   $DIG -p ${PORT} @$ns3 ns example.com > dig.out.delegation
   grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
 
-  # RPZ 'CNAME *.' (NODATA) trumps DNS64.  Test against various DNS64 senarios.
+  # RPZ 'CNAME *.' (NODATA) trumps DNS64.  Test against various DNS64 scenarios.
   for label in a-only no-a-no-aaaa a-plus-aaaa
   do
     for type in AAAA A

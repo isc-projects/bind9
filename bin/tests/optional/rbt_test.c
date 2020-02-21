@@ -226,7 +226,7 @@ iterate(dns_rbt_t *rbt, bool forward) {
 
 			} else {
 				if (result != ISC_R_NOMORE)
-				       printf("UNEXEPCTED ITERATION ERROR: %s",
+				       printf("UNEXPECTED ITERATION ERROR: %s",
 					      dns_result_totext(result));
 				break;
 			}

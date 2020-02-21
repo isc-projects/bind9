@@ -697,7 +697,7 @@ static idn_result_t
 roundtrip_check(idn_converter_t ctx, const unsigned long *from, const char *to)
 {
 	/*
-	 * One problem with iconv() convertion is that
+	 * One problem with iconv() conversion is that
 	 * iconv() doesn't signal an error if the input
 	 * string contains characters which are valid but
 	 * do not have mapping to the output codeset.

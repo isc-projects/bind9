@@ -46,7 +46,7 @@ ISC_LANG_BEGINDECLS
  */
 struct dns_catz_entry_options {
 	/*
-	 * Options that can be overriden in catalog zone
+	 * Options that can be overridden in catalog zone
 	 */
 	/* default-masters definition */
 	dns_ipkeylist_t masters;

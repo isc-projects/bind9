@@ -374,7 +374,7 @@ expectations.
 
     If a zone is being attacked by a masquerader, and parents do not
     make any statements about the security of child zones, then an
-    easy and successfull attack may occur.  An attacker only needs
+    easy and successful attack may occur.  An attacker only needs
     to supply either fake name server records or glue records to
     redirect queries.
 

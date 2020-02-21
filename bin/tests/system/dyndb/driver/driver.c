@@ -148,7 +148,7 @@ dyndb_destroy(void **instp) {
 
 /*
  * Driver version is called when loading the driver to ensure there
- * is no API mismatch betwen the driver and the caller.
+ * is no API mismatch between the driver and the caller.
  */
 int
 dyndb_version(unsigned int *flags) {

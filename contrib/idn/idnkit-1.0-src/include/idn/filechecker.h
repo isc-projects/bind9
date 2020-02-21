@@ -105,7 +105,7 @@ idn__filechecker_destroy(idn__filechecker_t ctx);
  *
  * Check if there is any characters pecified by the context 'ctx' in
  * the UCS4 string 'str'.  If there are none, NULL is stored in '*found'.
- * Otherwise, the pointer to the first occurence of such character is
+ * Otherwise, the pointer to the first occurrence of such character is
  * stored in '*found'.
  *
  * Returns:

@@ -2335,14 +2335,14 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 	/*
 	 * Check that a RFC 1918 / ULA reverse zone is not forward first
-	 * unless explictly configured to be so.
+	 * unless explicitly configured to be so.
 	 */
 	if (ztype == CFG_ZONE_FORWARD && (rfc1918 || ula)) {
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "forward", &obj);
 		if (obj == NULL) {
 			/*
-			 * Forward mode not explicity configured.
+			 * Forward mode not explicitly configured.
 			 */
 			if (voptions != NULL)
 				cfg_map_get(voptions, "forward", &obj);
@@ -3963,7 +3963,7 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 			result = ISC_R_FAILURE;
 
 	/*
-	 * Use case insensitive comparision as not all file systems are
+	 * Use case insensitive comparison as not all file systems are
 	 * case sensitive. This will prevent people using FOO.DB and foo.db
 	 * on case sensitive file systems but that shouldn't be a major issue.
 	 */

@@ -354,7 +354,7 @@ know to ask for this from a parent-serving name server.
 2.1 Negative Answer Bitmap
 
 The Negative Answer Bitmap indicates the mechanism for use in denying
-the existance of data.  The bitmap is 16 bits, the most significant
+the existence of data.  The bitmap is 16 bits, the most significant
 bit called 0, least significant is 15.
 
    Bit  0 = The parent doesn't know what the child uses (1=Yes)
@@ -541,7 +541,7 @@ interpretation of this option is undefined.
 
 3. Master File Representation
 
-The SEC RR fields are to be represented as hexidecimal fields, with a
+The SEC RR fields are to be represented as hexadecimal fields, with a
 preceeding '0x', or in decimal format.  Hexidecimal SHOULD be used.
 
 For example, the SEC RR representing a zone that use signed NXT

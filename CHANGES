@@ -58,7 +58,7 @@
 
 	--- 9.11.13 released ---
 
-5315.	[bug]		Apply the inital RRSIG expiration spread fixed
+5315.	[bug]		Apply the initial RRSIG expiration spread fixed
 			to all dynamically created records in the zone
 			including NSEC3. Also fix the signature clusters
 			when the server has been offline for prolonged
@@ -690,7 +690,7 @@
 4965.	[func]		Add support for marking options as deprecated.
 			[GL #322]
 
-4964.	[bug]		Reduce the probabilty of double signature when deleting
+4964.	[bug]		Reduce the probability of double signature when deleting
 			a DNSKEY by checking if the node is otherwise signed
 			by the algorithm of the key to be deleted. [GL #240]
 
@@ -991,7 +991,7 @@
 			[RT #46725]
 
 4831.	[bug]		Convert the RRSIG expirytime to 64 bits for
-			comparisions in diff.c:resign. [RT #46710]
+			comparisons in diff.c:resign. [RT #46710]
 
 4830.	[bug]		Failure to configure ATF when requested did not cause
 			an error in top-level configure script. [RT #46655]
@@ -5204,7 +5204,7 @@
 
 3518.	[bug]		Increase the size of dns_rrl_key.s.rtype by one bit
 			so that all dns_rrl_rtype_t enum values fit regardless
-			of whether it is teated as signed or unsigned by
+			of whether it is treated as signed or unsigned by
 			the compiler. [RT #32792]
 
 3517.	[bug]		Reorder destruction to avoid shutdown race. [RT #32777]
@@ -6279,7 +6279,7 @@
 
 	--- 9.9.0b1 released ---
 
-3186.	[bug]		Version/db mis-match in rpz code. [RT #26180]
+3186.	[bug]		Version/db mismatch in rpz code. [RT #26180]
 
 3185.	[func]		New 'rndc signing' option for auto-dnssec zones:
 			 - 'rndc signing -list' displays the current
@@ -6944,7 +6944,7 @@
 2998.	[func]		Add isc_task_beginexclusive and isc_task_endexclusive
 			to the task api. [RT #22776]
 
-2997.	[func]		named -V now reports the OpenSSL and libxml2 verions
+2997.	[func]		named -V now reports the OpenSSL and libxml2 versions
 			it was compiled against. [RT #22687]
 
 2996.	[security]	Temporarily disable SO_ACCEPTFILTER support.
@@ -9927,7 +9927,7 @@
 2096.	[bug]		libbind: handle applications that fail to detect
 			res_init() failures better.
 
-2095.	[port]		libbind: alway prototype inet_cidr_ntop_ipv6() and
+2095.	[port]		libbind: always prototype inet_cidr_ntop_ipv6() and
 			net_cidr_ntop_ipv6(). [RT #16388]
 
 2094.	[contrib]	Update named-bootconf.  [RT #16404]
@@ -9983,7 +9983,7 @@
 2076.	[bug]		Several files were missing #include <config.h>
 			causing build failures on OSF. [RT #16341]
 
-2075.	[bug]		The spillat timer event hander could leak memory.
+2075.	[bug]		The spillat timer event handler could leak memory.
 			[RT #16357]
 
 2074.	[bug]		dns_request_createvia2(), dns_request_createvia3(),
@@ -10856,7 +10856,7 @@
 1796.	[func]		"rndc freeze/thaw" now freezes/thaws all zones.
 
 1795.	[bug]		"rndc dumpdb" was not fully documented.  Minor
-			formating issues with "rndc dumpdb -all".  [RT #13396]
+			formatting issues with "rndc dumpdb -all".  [RT #13396]
 
 1794.	[func]		Named and named-checkzone can now both check for
 			non-terminal wildcard records.
@@ -12033,7 +12033,7 @@
 			acl.
 
 1393.	[port]		Bind to individual IPv6 interfaces if IPV6_IPV6ONLY
-			is not available in the kernel to prevent accidently
+			is not available in the kernel to prevent accidentally
 			listening on IPv4 interfaces.
 
 1392.	[bug]		named-checkzone: update usage.
@@ -13761,7 +13761,7 @@
  839.	[func]		Dump packets for which there was no view or that the
 			class could not be determined to category "unmatched".
 
- 838.	[port]		UnixWare 7.x.x is now suported by
+ 838.	[port]		UnixWare 7.x.x is now supported by
 			bin/tests/system/ifconfig.sh.
 
  837.	[cleanup]	Multi-threading is now enabled by default only on

@@ -184,7 +184,7 @@ version_test(void **state) {
 	result = dns_db_newversion(db, &new);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	/* Delete the rdataset from the new verison */
+	/* Delete the rdataset from the new version */
 	result = dns_db_deleterdataset(db, node, new, dns_rdatatype_a, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 

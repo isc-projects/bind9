@@ -743,7 +743,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "%s with trust %s",
 			      val->frdataset.type == dns_rdatatype_ds ?
-			      "dsset" : "ds non-existance",
+			      "dsset" : "ds non-existence",
 			      dns_trust_totext(val->frdataset.trust));
 		have_dsset = (val->frdataset.type == dns_rdatatype_ds);
 		name = dns_fixedname_name(&val->fname);
@@ -916,7 +916,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 				/*
 				 * If we are validating a wildcard response
 				 * clabels will not be zero.  We then need
-				 * to check if the generated wilcard from
+				 * to check if the generated wildcard from
 				 * dns_nsec_noexistnodata is consistent with
 				 * the wildcard used to generate the response.
 				 */

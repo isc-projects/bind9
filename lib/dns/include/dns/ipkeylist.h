@@ -80,8 +80,8 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n);
  * \li	'n' >= ipkl->count
  *
  * Returns:
- * \li	#ISC_R_SUCCESS if successs
- * \li	#ISC_R_NOMEMORY if there's no memory, ipkeylist is left untoched
+ * \li	#ISC_R_SUCCESS if success
+ * \li	#ISC_R_NOMEMORY if there's no memory, ipkeylist is left untouched
  */
 
 #endif

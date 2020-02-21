@@ -186,7 +186,7 @@ main(int argc, char *argv[]) {
 
 	pk11_result_register();
 
-	/* Allocate hanles */
+	/* Allocate handles */
 	hKey = (CK_SESSION_HANDLE *)
 		malloc(count * sizeof(CK_SESSION_HANDLE));
 	if (hKey == NULL) {

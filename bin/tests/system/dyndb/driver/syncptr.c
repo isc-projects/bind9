@@ -226,7 +226,7 @@ syncptr(sample_instance_t *inst, dns_name_t *name,
 	result = syncptr_find_zone(inst, addr_rdata,
 				   dns_fixedname_name(&ptr_name), &ptr_zone);
 	if (result != ISC_R_SUCCESS) {
-		log_error_r("PTR record synchonization skipped: reverse zone "
+		log_error_r("PTR record synchronization skipped: reverse zone "
 			    "is not managed by driver instance '%s'",
 			    inst->db_name);
 		goto cleanup;

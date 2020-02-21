@@ -219,7 +219,7 @@ RFC 2535                DNS Security Extensions               March 1999
    considerations.
 
    Section 11 specified IANA considerations for allocation of additional
-   values of paramters defined in this document.
+   values of parameters defined in this document.
 
 
 

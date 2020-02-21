@@ -77,7 +77,7 @@
 #define LOOKUP 5
 
 /*%
- * Structure to hold everthing needed by this "instance" of the LDAP
+ * Structure to hold everything needed by this "instance" of the LDAP
  * driver remember, the driver code is only loaded once, but may have
  * many separate instances.
  */
@@ -381,7 +381,7 @@ ldap_process_results(ldap_instance_t *db, LDAP *dbc, LDAPMessage *msg,
 
 			/* skip empty attributes. */
 			if (vals == NULL || vals[0] == NULL) {
-				/* increment attibute pointer */
+				/* increment attribute pointer */
 				attribute = attrs[++i];
 				/* start loop over */
 				continue;
@@ -437,7 +437,7 @@ ldap_process_results(ldap_instance_t *db, LDAP *dbc, LDAPMessage *msg,
 			ldap_value_free(vals);
 			vals = NULL;
 
-			/* increment attibute pointer */
+			/* increment attribute pointer */
 			attribute = attrs[++i];
 		}
 
@@ -686,7 +686,7 @@ ldap_get_results(const char *zone, const char *record,
 			}
 		}
 
-		/* perform ldap search syncronously */
+		/* perform ldap search synchronously */
 		ldap_result = ldap_search_s((LDAP *) dbi->dbconn,
 					    ldap_url->lud_dn,
 					    ldap_url->lud_scope,

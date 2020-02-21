@@ -1246,7 +1246,7 @@ get_local(const char *name, int socktype, struct addrinfo **res) {
 
 /*!
  * Allocate an addrinfo structure, and a sockaddr structure
- * of the specificed length.  We initialize:
+ * of the specified length.  We initialize:
  *	ai_addrlen
  *	ai_family
  *	ai_addr

@@ -193,7 +193,7 @@ adjust_lru(dns_tsigkey_t *tkey) {
 		RWLOCK(&tkey->ring->lock, isc_rwlocktype_write);
 		/*
 		 * We may have been removed from the LRU list between
-		 * removing the read lock and aquiring the write lock.
+		 * removing the read lock and acquiring the write lock.
 		 */
 		if (ISC_LINK_LINKED(tkey, link) &&
 		    tkey->ring->lru.tail != tkey)

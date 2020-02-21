@@ -151,7 +151,7 @@ RFC 2538            Storing Certificates in the DNS           March 1999
    certificate section (see 2.3 below).  (NOTE: X.509 certificates do
    not include their X.500 directory type designating OID as a prefix.)
 
-   The SPKI type is reserved to indicate a certificate formated as to be
+   The SPKI type is reserved to indicate a certificate formatted as to be
    specified by the IETF SPKI working group.
 
    The PGP type indicates a Pretty Good Privacy certificate as described

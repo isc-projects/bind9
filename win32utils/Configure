@@ -578,7 +578,7 @@ my @help = (
 "  clean                 (command) clean up generated files\n",
 "  <none>                (command) print a summary of the configuration\n",
 "\nOptional Features:\n",
-"  enable-intrinsics     enable instrinsic/atomic functions [default=yes]\n",
+"  enable-intrinsics     enable intrinsic/atomic functions [default=yes]\n",
 "  enable-native-pkcs11  use native PKCS#11 for all crypto [default=no]\n",
 "  enable-openssl-hash   use OpenSSL for hash functions [default=yes]\n",
 "  enable-isc-spnego     use SPNEGO from lib/dns [default=yes]\n",

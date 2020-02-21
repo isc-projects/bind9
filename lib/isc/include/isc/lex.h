@@ -177,7 +177,7 @@ isc_lex_getcomments(isc_lex_t *lex);
  *\li	'lex' is a valid lexer.
  *
  * Returns:
- *\li	The commenting sytles which are currently allowed.
+ *\li	The commenting styles which are currently allowed.
  */
 
 void

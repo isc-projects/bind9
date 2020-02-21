@@ -370,7 +370,7 @@ RFC 2915                      NAPTR DNS RR                September 2000
 
 subst_expr   = delim-char  ere  delim-char  repl  delim-char  *flags
 delim-char   = "/" / "!" / ... <Any non-digit or non-flag character
-               other than backslash '\'. All occurances of a delim_char
+               other than backslash '\'. All occurrences of a delim_char
                in a subst_expr must be the same character.>
 ere          = POSIX Extended Regular Expression
 repl         = 1 * ( OCTET /  backref )
@@ -620,7 +620,7 @@ Mealling & Daniel           Standards Track                    [Page 11]
 RFC 2915                      NAPTR DNS RR                September 2000
 
 
-   character, literal occurances of a backslash must be escaped by
+   character, literal occurrences of a backslash must be escaped by
    another backslash.  For the case of the cid.urn.arpa record above,
    the regular expression entered into the master file should be
    "/urn:cid:.+@([^\\.]+\\.)(.*)$/\\2/i".  When the client code actually

@@ -305,7 +305,7 @@ generic_freestruct_tlsa(ARGS_FREESTRUCT);
 #define NS_LOCATORSZ	8
 
 /*
- * Active Diretory gc._msdcs.<forest> prefix.
+ * Active Directory gc._msdcs.<forest> prefix.
  */
 static unsigned char gc_msdcs_data[]  = "\002gc\006_msdcs";
 static unsigned char gc_msdcs_offset [] = { 0, 3 };

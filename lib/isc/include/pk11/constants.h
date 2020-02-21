@@ -16,7 +16,7 @@
 /*! \file pk11/constants.h */
 
 /*%
- * Static arrays of data used for key template initalization
+ * Static arrays of data used for key template initialization
  */
 #ifdef WANT_ECC_CURVES
 #if HAVE_PKCS11_ECDSA

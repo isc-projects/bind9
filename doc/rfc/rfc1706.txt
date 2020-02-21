@@ -215,7 +215,7 @@ RFC 1706                      DNS NSAP RRs                  October 1994
              47.0005.80.005a00.0000.1000.0020.00800a123456.00.
 
    Other NSAP formats have different lengths and different
-   administratively defined field widths to accomodate different
+   administratively defined field widths to accommodate different
    requirements. For more information on NSAP formats in use see RFC
    1629 [1].
 

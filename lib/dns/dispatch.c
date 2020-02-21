@@ -1364,7 +1364,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 	if (disp->refcount == 0) {
 		/*
-		 * This dispatcher is shutting down.  Force cancelation.
+		 * This dispatcher is shutting down.  Force cancellation.
 		 */
 		tcpmsg->result = ISC_R_CANCELED;
 	}
@@ -3593,7 +3593,7 @@ do_cancel(dns_dispatch_t *disp) {
 
 	/*
 	 * Search for the first response handler without packets outstanding
-	 * unless a specific hander is given.
+	 * unless a specific handler is given.
 	 */
 	LOCK(&qid->lock);
 	for (resp = linear_first(qid);

@@ -111,7 +111,7 @@ typedef struct obj_lock {
 static obj_lock_t *obj_lock_hash[OBJLOCKHASH_SIZE];
 
 /*
- * This variable is to prevent IDN processing occuring more than once for
+ * This variable is to prevent IDN processing occurring more than once for
  * a single name resolution.  This will happen if some resolver function
  * is implemented using another function (e.g. gethostbyname() implemented
  * using gethostbyname2()).

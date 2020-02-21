@@ -94,7 +94,7 @@ checkjitter () {
 	# This number has been tuned for `sig-validity-interval 10 2`, as
 	# 1. 1. signature expiration dates should be spread out across at most 8 (10-2) days
 	# 2. we remove first and last day to remove frequency outlier, we are left with 6 (8-2) days
-	# 3. we substract one more day to allow test pass on day boundaries, etc. leaving us with 5 (6-1) days
+	# 3. we subtract one more day to allow test pass on day boundaries, etc. leaving us with 5 (6-1) days
 	for _num in $_expiretimes
 	do
 		_count=$((_count+1))

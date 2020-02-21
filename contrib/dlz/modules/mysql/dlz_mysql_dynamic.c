@@ -69,7 +69,7 @@
 #define safeGet(in) in == NULL ? "" : in
 
 /*%
- * Structure to hold everthing needed by this "instance" of the MySQL
+ * Structure to hold everything needed by this "instance" of the MySQL
  * module remember, the module code is only loaded once, but may have
  * many separate instances.
  */

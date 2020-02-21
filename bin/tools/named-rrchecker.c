@@ -42,7 +42,7 @@ usage(void) {
 	fprintf(stderr, "usage: named-rrchecker [-o origin] [-hpCPTu]\n");
 	fprintf(stderr, "\t-h: print this help message\n");
 	fprintf(stderr, "\t-o origin: set origin to be used when "
-			"interpeting the record\n");
+			"interpreting the record\n");
 	fprintf(stderr, "\t-p: print the record in canonical format\n");
 	fprintf(stderr, "\t-C: list the supported class names\n");
 	fprintf(stderr, "\t-P: list the supported private type names\n");

@@ -4745,7 +4745,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name,
 		 */
 		if (labels-first < 2) {
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, suffix,
-				     rpz_type, " concatentate()", result);
+				     rpz_type, " concatenate()", result);
 			return (ISC_R_FAILURE);
 		}
 		/*
@@ -4753,7 +4753,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name,
 		 */
 		if (first == 0) {
 			rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, suffix,
-				     rpz_type, " concatentate()", result);
+				     rpz_type, " concatenate()", result);
 		}
 		++first;
 	}
@@ -5637,7 +5637,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 		 * 2nd zone matters until after recursing to get the A RRs and
 		 * testing them in the first zone.
 		 * Do not bother saving the work from this attempt,
-		 * because recusion is so slow.
+		 * because recursion is so slow.
 		 */
 		if (qresult_type == RPZ_QRESULT_TYPE_RECURSE)
 			goto cleanup;
@@ -7569,7 +7569,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				goto cleanup;
 			case DNS_RPZ_POLICY_CNAME:
 				/*
-				 * Add overridding CNAME from a named.conf
+				 * Add overriding CNAME from a named.conf
 				 * response-policy statement
 				 */
 				result = rpz_add_cname(client, rpz_st,

@@ -1234,7 +1234,7 @@ verifynode(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 		 * If we are not at a delegation then everything should be
 		 * signed.  If we are at a delegation then only the DS set
 		 * is signed.  The NS set is not signed at a delegation but
-		 * its existance is recorded in the bit map.  Anything else
+		 * its existence is recorded in the bit map.  Anything else
 		 * other than NSEC and DS is not signed at a delegation.
 		 */
 		if (rdataset.type != dns_rdatatype_rrsig &&
@@ -1928,7 +1928,7 @@ isoptarg(const char *arg, char **argv, void(*usage)(void)) {
 			usage();
 		}
 		isc_commandline_argument = argv[isc_commandline_index];
-		/* skip to next arguement */
+		/* skip to next argument */
 		isc_commandline_index++;
 		return (true);
 	}

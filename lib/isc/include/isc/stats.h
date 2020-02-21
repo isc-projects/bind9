@@ -116,7 +116,7 @@ void
 isc_stats_set(isc_stats_t *stats, uint64_t val,
 	      isc_statscounter_t counter);
 /*%<
- * Set the given counter to the specfied value.
+ * Set the given counter to the specified value.
  *
  * Requires:
  *\li	'stats' is a valid isc_stats_t.
@@ -126,7 +126,7 @@ void
 isc_stats_set(isc_stats_t *stats, uint64_t val,
 	      isc_statscounter_t counter);
 /*%<
- * Set the given counter to the specfied value.
+ * Set the given counter to the specified value.
  *
  * Requires:
  *\li	'stats' is a valid isc_stats_t.

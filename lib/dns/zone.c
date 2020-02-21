@@ -470,7 +470,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_EXPIRED	0x00000080U	/*%< zone has expired */
 #define DNS_ZONEFLG_NEEDREFRESH	0x00000100U	/*%< refresh check needed */
 #define DNS_ZONEFLG_UPTODATE	0x00000200U	/*%< zone contents are
-						 * uptodate */
+						 * up-to-date */
 #define DNS_ZONEFLG_NEEDNOTIFY	0x00000400U	/*%< need to send out notify
 						 * messages */
 #define DNS_ZONEFLG_DIFFONRELOAD 0x00000800U	/*%< generate a journal diff on
@@ -6067,7 +6067,7 @@ dns_zone_setdb(dns_zone_t *zone, dns_db_t *db) {
 }
 
 /*
- * Co-ordinates the starting of routine jobs.
+ * Coordinates the starting of routine jobs.
  */
 void
 dns_zone_maintenance(dns_zone_t *zone) {
@@ -17124,7 +17124,7 @@ dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	setrl(zmgr->refreshrl, &zmgr->serialqueryrate, value);
-	/* XXXMPA seperate out once we have the code to support this. */
+	/* XXXMPA separate out once we have the code to support this. */
 	setrl(zmgr->startuprefreshrl, &zmgr->startupserialqueryrate, value);
 }
 

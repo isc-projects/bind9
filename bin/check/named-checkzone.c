@@ -502,7 +502,7 @@ main(int argc, char **argv) {
 		dumpzone = 1;
 
 	/*
-	 * If we are outputing to stdout then send the informational
+	 * If we are printing to stdout then send the informational
 	 * output to stderr.
 	 */
 	if (dumpzone &&

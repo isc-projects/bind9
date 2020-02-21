@@ -60,7 +60,7 @@ Wellington, Gudmundsson           Expires February 1999         [Page 1]
 Internet-Draft            dnssec-secfail-00.txt              August 1998
 
 
-     verification.  The end resolver must be notified of this occurence
+     verification.  The end resolver must be notified of this occurrence
      in such a way that it will not confuse it with another error.
 
 

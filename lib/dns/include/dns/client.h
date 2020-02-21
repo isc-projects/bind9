@@ -443,7 +443,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 			dns_clientreqtrans_t **transp);
 
 /*%<
- * Send a DNS request containig a query message 'query' to 'server'.
+ * Send a DNS request containing a query message 'query' to 'server'.
  *
  * 'parseoptions' will be used when the response packet is parsed, and will be
  * passed to dns_message_parse() via dns_request_getresponse().  See

@@ -492,7 +492,7 @@ dlz_findzonedb(void *dbdata, const char *name,
 
 	/*
 	 * reverse string to take advantage of BDB locality of reference
-	 * if we need futher lookups because the zone doesn't match the
+	 * if we need further lookups because the zone doesn't match the
 	 * first time.
 	 */
 	key.data = bdbhpt_strrev(key.data);
@@ -708,7 +708,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 		/*
 		 * Private mode. No inter-process communication & no locking.
-		 * Lowest saftey - highest speed.
+		 * Lowest safety - highest speed.
 		 */
 	case 'P':
 	case 'p':

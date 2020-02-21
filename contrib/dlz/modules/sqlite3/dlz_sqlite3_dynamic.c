@@ -69,7 +69,7 @@
 #define safeGet(in) in == NULL ? "" : in
 
 /*%
- * Structure to hold everthing needed by this "instance" of the SQLite3
+ * Structure to hold everything needed by this "instance" of the SQLite3
  * module remember, the module code is only loaded once, but may have
  * many separate instances.
  */

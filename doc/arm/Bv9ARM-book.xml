@@ -417,7 +417,7 @@
 	    checking whether the SERIAL field has been updated; if so,
 	    a new transfer request is initiated. The timing of these
 	    refresh queries is controlled by the SOA REFRESH and RETRY
-	    fields, but can be overrridden with the
+	    fields, but can be overridden with the
 	    <command>max-refresh-time</command>,
 	    <command>min-refresh-time</command>,
 	    <command>max-retry-time</command>, and

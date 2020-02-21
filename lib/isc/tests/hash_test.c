@@ -336,7 +336,7 @@ isc_sha224_test(void **state) {
 		isc_sha224_final(digest, &sha224);
 		/*
 		*API inconsistency BUG HERE
-		* in order to be consistant with the other isc_hash_final
+		* in order to be consistent with the other isc_hash_final
 		* functions the call should be
 		* isc_sha224_final(&sha224, digest);
 		 */
@@ -466,7 +466,7 @@ isc_sha256_test(void **state) {
 		isc_sha256_final(digest, &sha256);
 		/*
 		*API inconsistency BUG HERE
-		* in order to be consistant with the other isc_hash_final
+		* in order to be consistent with the other isc_hash_final
 		* functions the call should be
 		* isc_sha224_final(&sha224, digest);
 		 */
@@ -610,7 +610,7 @@ isc_sha384_test(void **state) {
 		isc_sha384_final(digest, &sha384);
 		/*
 		*API inconsistency BUG HERE
-		* in order to be consistant with the other isc_hash_final
+		* in order to be consistent with the other isc_hash_final
 		* functions the call should be
 		* isc_sha224_final(&sha224, digest);
 		 */
@@ -755,7 +755,7 @@ isc_sha512_test(void **state) {
 		isc_sha512_final(digest, &sha512);
 		/*
 		*API inconsistency BUG HERE
-		* in order to be consistant with the other isc_hash_final
+		* in order to be consistent with the other isc_hash_final
 		* functions the call should be
 		* isc_sha224_final(&sha224, digest);
 		 */

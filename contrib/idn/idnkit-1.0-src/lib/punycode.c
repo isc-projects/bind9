@@ -293,7 +293,7 @@ idn__punycode_encode(idn_converter_t ctx, void *privdata,
 		/*
 		 * Find the smallest code point equal to or greater
 		 * than 'cur_code'.  Also remember the index of the
-		 * last occurence of the code point.
+		 * last occurrence of the code point.
 		 */
 		for (next_code = MAX_UCS, uidx = fromlen - 1;
 		     uidx >= 0; uidx--) {
