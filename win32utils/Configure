@@ -438,7 +438,7 @@ my @help = (
 "  with-iconv[=PATH]     path of the iconv DLL [default=same than idn]\n",
 "  with-zlib[=PATH]      build with zlib library yes|no|path\n",
 "  with-vcredist[=PATH]  visual C++ redistributable package yes|path\n",
-"  with-tuning=OPTION    tune for platform size (large|default)\n",
+"  with-tuning=OPTION    tune for platform size (small|default)\n",
 "  with-cross-compile    32 / 64 bit build / host platforms\n",
 "\nOptional Visual Studio project parameters:\n",
 "  with-tools-version=VERSION     set the ToolsVersion attribute to VERSION\n",
@@ -856,8 +856,8 @@ sub mywith {
             $cross_compile = "yes";
         }
     } elsif ($key =~ /^tuning$/i) {
-        if ($val =~ /^large$/i) {
-            $tuning = "large";
+        if ($val =~ /^small$/i) {
+            $tuning = "small";
         }
     } elsif ($key =~ /^tools-version$/i) {
         $configvar{"TOOLS_VERSION"} = $val;
@@ -2127,7 +2127,7 @@ if (!grep { -f and -x } $vcredist_path) {
 }
 
 # tuning
-if ($tuning eq "large") {
+if ($tuning ne "small") {
     $configdefh{"TUNE_LARGE"} = 1;
 }
 
