@@ -72,7 +72,7 @@ UDP listener sockets automatically create an array of 'child' sockets,
 each associated with one networker, and all listening on the same address
 via `SO_REUSEADDR`.  (The parent's reference counter is used for all the
 parent and child sockets together; none are destroyed until there are no
-remaining referenes to any of tem.)
+remaining references to any of tem.)
 
 ## TCP listening
 

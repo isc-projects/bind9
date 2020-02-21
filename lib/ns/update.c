@@ -2577,7 +2577,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_zone_getssutable(zone, &ssutable);
 
 	/*
-	 * Update message processing can leak record existance information
+	 * Update message processing can leak record existence information
 	 * so check that we are allowed to query this zone.  Additionally
 	 * if we would refuse all updates for this zone we bail out here.
 	 */

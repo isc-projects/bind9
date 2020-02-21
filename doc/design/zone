@@ -7,7 +7,7 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 Overview
 
 	Zones are the unit of delegation in the DNS and may go from holding
-	RR's only at the zone top to holding the complete hierachy (private
+	RR's only at the zone top to holding the complete hierarchy (private
 	roots zones).  Zones have an associated database which is the
 	container for the RR sets that make up the zone.
 
@@ -56,7 +56,7 @@ Overview
 		support IXFR requests.  While the entire contents of the old
 		version does not need to be kept, a change log needs to be
 		kept.  An index into this log would be useful in speeding
-		up replies. These versions have an explict expiry date.
+		up replies. These versions have an explicit expiry date.
 
 		"How long are we going to keep them operationally?"
                 While there are expriry dates based on last update /
@@ -102,7 +102,7 @@ Overview
 
 Compatibility:
 
-	Zones are required to be configuration file compatable with
+	Zones are required to be configuration file compatible with
 	BIND 8.x.
 
 Types:

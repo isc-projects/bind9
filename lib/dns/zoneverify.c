@@ -945,7 +945,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 		 * If we are not at a delegation then everything should be
 		 * signed.  If we are at a delegation then only the DS set
 		 * is signed.  The NS set is not signed at a delegation but
-		 * its existance is recorded in the bit map.  Anything else
+		 * its existence is recorded in the bit map.  Anything else
 		 * other than NSEC and DS is not signed at a delegation.
 		 */
 		if (rdataset.type != dns_rdatatype_rrsig &&

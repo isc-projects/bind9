@@ -9,7 +9,7 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 * check that each RRSIG set has a valid RRSIG and that all DNSKEY algorithms
 	in use are checked.
 * provide a mechanism to mark DNSKEY algorithms to be ignored to support
-	verification of zones that are in the processs of adding/removing
+	verification of zones that are in the process of adding/removing
 	support for a algorithm.
 * provide a mechanism to check the zone as of a specified date and time.
 * check that RRSIG won't expire within the TTL interval.
