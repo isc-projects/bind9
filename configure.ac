@@ -2915,7 +2915,7 @@ report() {
     if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
 	echo "        Mutex lock type: $locktype"
     fi
-    test "large" = "$use_tuning" && echo "    Large-system tuning (--with-tuning)"
+    test "small" = "$with_tuning" && echo "    Small-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--enable-geoip)"
@@ -2975,7 +2975,7 @@ report() {
 
     echo "Features disabled or unavailable on this platform:"
     test "no" = "$found_ipv6" && echo "    IPv6 support (--enable-ipv6)"
-    test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
+    test "small" = "$with_tuning" || echo "    Small-system tuning (--with-tuning)"
 
     test "no" = "$use_dnstap" && \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
