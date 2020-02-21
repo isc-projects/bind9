@@ -34,7 +34,7 @@ Algorithms_, Cormen, Leiserson, and Rivest, MIT Press / McGraw Hill,
 
 In BIND9, the red-black tree implementation uses DNS names as keys,
 and can store arbitrary data with each key value.  "name" and "key"
-are used interchangably in this document.
+are used interchangeably in this document.
 
 The basic red-black tree algorithm is further adapted for use in BIND9
 to incorporate the notion of hierarchy, creating a tree of red-black
@@ -227,7 +227,7 @@ Each node in the tree of trees is represented by the following structure:
           /*
            * The following bitfields add up to a total bitwidth of 32.
            * The range of values necessary for each item is indicated,
-           * but in the case of "attributes" the field is wider to accomodate
+           * but in the case of "attributes" the field is wider to accommodate
            * possible future expansion.  "offsetlen" could be one bit
            * narrower by always adjusting its value by 1 to find the real
            * offsetlen, but doing so does not gain anything (except perhaps

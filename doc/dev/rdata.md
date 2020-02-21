@@ -21,7 +21,7 @@ for encoding, decoding and comparing dns data preventing the problems that
 occurred in BIND 8.x and earlier, in which there were multiple places in the
 code base that decoded wire format to internal format or compared rdata,
 sometimes with subtly different behaviour (bugs), and sometimes failing to
-support a particular type, leading to internal inconsistancy.
+support a particular type, leading to internal inconsistency.
 
 Each of these generic routines calls type-specific routines that provide
 the type-specific details.
@@ -35,7 +35,7 @@ on how to do this.
 Adding a new rdata type requires determining whether the new rdata type is
 class-specific or generic, writing code to perform the rdata operations for the
 type, then integrating it into the build by placing the code into the rdata
-hierachy at the correct location under `lib/dns/rdata`.  Running `make clean`
+hierarchy at the correct location under `lib/dns/rdata`.  Running `make clean`
 followed by `make` in `lib/dns` will cause the new rdata type to be picked up
 and compiled.
 
