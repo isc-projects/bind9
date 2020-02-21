@@ -92,6 +92,7 @@ static cfg_type_t cfg_type_dnstapoutput;
 static cfg_type_t cfg_type_dyndb;
 static cfg_type_t cfg_type_plugin;
 static cfg_type_t cfg_type_ixfrdifftype;
+static cfg_type_t cfg_type_ixfrratio;
 static cfg_type_t cfg_type_key;
 static cfg_type_t cfg_type_logfile;
 static cfg_type_t cfg_type_logging;
@@ -2203,6 +2204,8 @@ static cfg_clausedef_t zone_clauses[] = {
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_ZONE_REDIRECT },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_ANCIENT },
+	{ "max-ixfr-ratio", &cfg_type_ixfrratio,
+	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR },
 	{ "max-journal-size", &cfg_type_size,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR },
 	{ "max-records", &cfg_type_uint32,
@@ -2739,6 +2742,28 @@ static cfg_type_t cfg_type_sizeorpercent = {
 	"size_or_percent",	   parse_size_or_percent, cfg_print_ustring,
 	doc_parse_size_or_percent, &cfg_rep_string,	  sizeorpercent_enums
 };
+
+/*%
+ * An IXFR size ratio: percentage, or "unlimited".
+ */
+
+static isc_result_t
+parse_ixfrratio(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_percentage, ret));
+}
+
+static void
+doc_ixfrratio(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "( unlimited | ");
+	cfg_doc_terminal(pctx, &cfg_type_percentage);
+	cfg_print_cstr(pctx, " )");
+}
+
+static const char *ixfrratio_enums[] = { "unlimited", NULL };
+static cfg_type_t cfg_type_ixfrratio = { "ixfr_ratio", parse_ixfrratio,
+					 NULL,	       doc_ixfrratio,
+					 NULL,	       ixfrratio_enums };
 
 /*%
  * optional_keyvalue

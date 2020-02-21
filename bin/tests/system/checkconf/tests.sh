@@ -559,8 +559,15 @@ awk 'BEGIN { ok = 0; } /cut here/ { ok = 1; getline } ok == 1 { print }' good-ka
 [ -s good-kasp.conf.in ] || ret=1
 $CHECKCONF -p good-kasp.conf.in | grep -v '^good-kasp.conf.in:' > good-kasp.conf.out 2>&1 || ret=1
 cmp good-kasp.conf.in good-kasp.conf.out || ret=1
-
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check that max-ixfr-ratio 100% generates a warning ($n)"
+ret=0
+$CHECKCONF warn-maxratio1.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "exceeds 100%" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 echo_i "exit status: $status"

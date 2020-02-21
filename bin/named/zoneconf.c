@@ -1399,6 +1399,15 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		}
 
 		obj = NULL;
+		result = named_config_get(maps, "max-ixfr-ratio", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		if (cfg_obj_isstring(obj)) {
+			dns_zone_setixfrratio(zone, 0);
+		} else {
+			dns_zone_setixfrratio(zone, cfg_obj_aspercentage(obj));
+		}
+
+		obj = NULL;
 		result = named_config_get(maps, "request-expire", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setrequestexpire(zone, cfg_obj_asboolean(obj));
