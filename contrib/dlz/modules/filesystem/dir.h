@@ -16,6 +16,7 @@
 
 #include <dirent.h>
 
+#include <dlz_minimal.h>
 #include <sys/types.h>
 
 #define DIR_NAMEMAX 256
