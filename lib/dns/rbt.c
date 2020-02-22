@@ -282,21 +282,6 @@ NODENAME(dns_rbtnode_t *node, dns_name_t *name) {
 	name->attributes |= DNS_NAMEATTR_READONLY;
 }
 
-void
-dns_rbtnode_nodename(dns_rbtnode_t *node, dns_name_t *name) {
-	name->length = NAMELEN(node);
-	name->labels = OFFSETLEN(node);
-	name->ndata = NAME(node);
-	name->offsets = OFFSETS(node);
-	name->attributes = ATTRS(node);
-	name->attributes |= DNS_NAMEATTR_READONLY;
-}
-
-dns_rbtnode_t *
-dns_rbt_root(dns_rbt_t *rbt) {
-	return (rbt->root);
-}
-
 #ifdef DEBUG
 #define inline
 /*
@@ -528,18 +513,39 @@ match_header_version(file_header_t *header) {
 	return (true);
 }
 
+unsigned int
+dns__rbtnode_namelen(dns_rbtnode_t *node) {
+	dns_name_t current;
+	unsigned int len = 0;
+
+	REQUIRE(DNS_RBTNODE_VALID(node));
+
+	dns_name_init(&current, NULL);
+
+	do {
+		if (node != NULL) {
+			NODENAME(node, &current);
+			len += current.length;
+		} else {
+			len += 1;
+			break;
+		}
+
+		node = get_upper_node(node);
+	} while (!dns_name_isabsolute(&current));
+
+	return (len);
+}
+
 static isc_result_t
 serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left, uintptr_t right,
 	       uintptr_t down, uintptr_t parent, uintptr_t data,
 	       uint64_t *crc) {
+	isc_result_t result;
 	dns_rbtnode_t temp_node;
 	off_t file_position;
-	unsigned char *node_data;
+	unsigned char *node_data = NULL;
 	size_t datasize;
-	isc_result_t result;
-#ifdef DEBUG
-	dns_name_t nodename;
-#endif /* ifdef DEBUG */
 
 	INSIST(node != NULL);
 
@@ -582,6 +588,8 @@ serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left, uintptr_t right,
 		temp_node.data_is_relative = 1;
 	}
 
+	temp_node.fullnamelen = dns__rbtnode_namelen(node);
+
 	node_data = (unsigned char *)node + sizeof(dns_rbtnode_t);
 	datasize = NODE_SIZE(node) - sizeof(dns_rbtnode_t);
 
@@ -590,10 +598,8 @@ serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left, uintptr_t right,
 	CHECK(isc_stdio_write(node_data, 1, datasize, file, NULL));
 
 #ifdef DEBUG
-	dns_name_init(&nodename, NULL);
-	NODENAME(node, &nodename);
 	fprintf(stderr, "serialize ");
-	dns_name_print(&nodename, stderr);
+	dns_name_print(name, stderr);
 	fprintf(stderr, "\n");
 	hexdump("node header", (unsigned char *)&temp_node,
 		sizeof(dns_rbtnode_t));

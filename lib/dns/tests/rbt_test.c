@@ -1184,6 +1184,47 @@ rbt_nodechain(void **state) {
 	test_context_teardown(ctx);
 }
 
+/* Test addname return values */
+static void
+rbtnode_namelen(void **state) {
+	isc_result_t result;
+	test_context_t *ctx = NULL;
+	dns_rbtnode_t *node;
+	unsigned int len;
+
+	UNUSED(state);
+
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
+
+	ctx = test_context_setup();
+
+	node = NULL;
+	result = insert_helper(ctx->rbt, ".", &node);
+	len = dns__rbtnode_namelen(node);
+	assert_int_equal(result, ISC_R_EXISTS);
+	assert_int_equal(len, 1);
+	node = NULL;
+
+	result = insert_helper(ctx->rbt, "a.b.c.d.e.f.g.h.i.j.k.l.m", &node);
+	len = dns__rbtnode_namelen(node);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(len, 27);
+
+	node = NULL;
+	result = insert_helper(ctx->rbt, "isc.org", &node);
+	len = dns__rbtnode_namelen(node);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(len, 9);
+
+	node = NULL;
+	result = insert_helper(ctx->rbt, "example.com", &node);
+	len = dns__rbtnode_namelen(node);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(len, 13);
+
+	test_context_teardown(ctx);
+}
+
 #if defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)
 
 /*
@@ -1323,6 +1364,8 @@ main(void) {
 		cmocka_unit_test_setup_teardown(rbt_deletename, _setup,
 						_teardown),
 		cmocka_unit_test_setup_teardown(rbt_nodechain, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(rbtnode_namelen, _setup,
 						_teardown),
 #if defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)
 		cmocka_unit_test_setup_teardown(benchmark, _setup, _teardown),

@@ -7,6 +7,7 @@ EXPORTS
 dns__rbt_checkproperties
 dns__rbt_getheight
 dns__rbtnode_getdistance
+dns__rbtnode_namelen
 dns__zone_findkeys
 dns__zone_loadpending
 dns__zone_updatesigs
@@ -765,10 +766,8 @@ dns_rbt_nodecount
 dns_rbt_printdot
 dns_rbt_printnodeinfo
 dns_rbt_printtext
-dns_rbt_root
 dns_rbt_serialize_align
 dns_rbt_serialize_tree
-dns_rbtnode_nodename
 dns_rbtnodechain_current
 dns_rbtnodechain_down
 dns_rbtnodechain_first
@@ -870,6 +869,7 @@ dns_rdataslab_equal
 dns_rdataslab_equalx
 dns_rdataslab_fromrdataset
 dns_rdataslab_merge
+dns_rdataslab_rdatasize
 dns_rdataslab_size
 dns_rdataslab_subtract
 dns_rdatatype_atcname

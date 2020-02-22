@@ -362,6 +362,34 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
 }
 
 unsigned int
+dns_rdataslab_rdatasize(unsigned char *slab, unsigned int reservelen) {
+	unsigned int count, length, rdatalen = 0;
+	unsigned char *current;
+
+	REQUIRE(slab != NULL);
+
+	current = slab + reservelen;
+	count = *current++ * 256;
+	count += *current++;
+#if DNS_RDATASET_FIXED
+	current += (4 * count);
+#endif /* if DNS_RDATASET_FIXED */
+	while (count > 0) {
+		count--;
+		length = *current++ * 256;
+		length += *current++;
+		rdatalen += length;
+#if DNS_RDATASET_FIXED
+		current += length + 2;
+#else  /* if DNS_RDATASET_FIXED */
+		current += length;
+#endif /* if DNS_RDATASET_FIXED */
+	}
+
+	return (rdatalen);
+}
+
+unsigned int
 dns_rdataslab_count(unsigned char *slab, unsigned int reservelen) {
 	unsigned int count;
 	unsigned char *current;
