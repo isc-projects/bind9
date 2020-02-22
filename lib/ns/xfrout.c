@@ -225,10 +225,10 @@ static rrstream_methods_t ixfr_rrstream_methods;
 
 static isc_result_t
 ixfr_rrstream_create(isc_mem_t *mctx, const char *journal_filename,
-		     uint32_t begin_serial, uint32_t end_serial,
+		     uint32_t begin_serial, uint32_t end_serial, size_t *sizep,
 		     rrstream_t **sp) {
-	ixfr_rrstream_t *s;
 	isc_result_t result;
+	ixfr_rrstream_t *s = NULL;
 
 	INSIST(sp != NULL && *sp == NULL);
 
@@ -241,7 +241,7 @@ ixfr_rrstream_create(isc_mem_t *mctx, const char *journal_filename,
 	CHECK(dns_journal_open(mctx, journal_filename, DNS_JOURNAL_READ,
 			       &s->journal));
 	CHECK(dns_journal_iter_init(s->journal, begin_serial, end_serial,
-				    NULL));
+				    sizep));
 
 	*sp = (rrstream_t *)s;
 	return (ISC_R_SUCCESS);
@@ -960,6 +960,26 @@ got_soa:
 
 	current_serial = dns_soa_getserial(&current_soa_tuple->rdata);
 	if (reqtype == dns_rdatatype_ixfr) {
+		size_t jsize;
+		uint64_t dbsize;
+
+		/*
+		 * Outgoing IXFR may have been disabled for this peer
+		 * or globally.
+		 */
+		if ((client->attributes & NS_CLIENTATTR_TCP) != 0) {
+			bool provide_ixfr;
+
+			provide_ixfr = client->view->provideixfr;
+			if (peer != NULL) {
+				(void)dns_peer_getprovideixfr(peer,
+							      &provide_ixfr);
+			}
+			if (provide_ixfr == false) {
+				goto axfr_fallback;
+			}
+		}
+
 		if (!have_soa) {
 			FAILC(DNS_R_FORMERR, "IXFR request missing SOA");
 		}
@@ -1011,7 +1031,7 @@ got_soa:
 		if (journalfile != NULL) {
 			result = ixfr_rrstream_create(
 				mctx, journalfile, begin_serial, current_serial,
-				&data_stream);
+				&jsize, &data_stream);
 		} else {
 			result = ISC_R_NOTFOUND;
 		}
@@ -1024,6 +1044,32 @@ got_soa:
 			goto axfr_fallback;
 		}
 		CHECK(result);
+
+		result = dns_db_getsize(db, ver, NULL, &dbsize);
+		if (result == ISC_R_SUCCESS) {
+			uint32_t ratio = dns_zone_getixfrratio(zone);
+			if (ratio != 0 && ((100 * jsize) / dbsize) > ratio) {
+				data_stream->methods->destroy(&data_stream);
+				data_stream = NULL;
+				xfrout_log1(client, question_name,
+					    question_class, ISC_LOG_DEBUG(4),
+					    "IXFR delta size (%zu bytes) "
+					    "exceeds the maximum ratio to "
+					    "database size "
+					    "(%" PRIu64 " bytes), "
+					    "falling back to AXFR",
+					    jsize, dbsize);
+				mnemonic = "AXFR-style IXFR";
+				goto axfr_fallback;
+			} else {
+				xfrout_log1(client, question_name,
+					    question_class, ISC_LOG_DEBUG(4),
+					    "IXFR delta size (%zu bytes); "
+					    "database size "
+					    "(%" PRIu64 " bytes)",
+					    jsize, dbsize);
+			}
+		}
 		is_ixfr = true;
 	} else {
 	axfr_fallback:
