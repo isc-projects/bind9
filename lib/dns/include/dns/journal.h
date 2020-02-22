@@ -190,10 +190,16 @@ dns_journal_last_serial(dns_journal_t *j);
 
 isc_result_t
 dns_journal_iter_init(dns_journal_t *j, uint32_t begin_serial,
-		      uint32_t end_serial);
+		      uint32_t end_serial, size_t *xfrsizep);
 /*%<
  * Prepare to iterate over the transactions that will bring the database
  * from SOA serial number 'begin_serial' to 'end_serial'.
+ *
+ * If 'xfrsizep' is not NULL, then on success it will be set to the
+ * total size of all records in the iteration (excluding headers). This
+ * is meant to be a rough approximation of the size of an incremental
+ * zone transfer, though it does not account for DNS message overhead
+ * or name compression.)
  *
  * Returns:
  *\li	ISC_R_SUCCESS
