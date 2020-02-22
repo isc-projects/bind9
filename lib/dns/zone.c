@@ -15743,7 +15743,7 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 		return (DNS_R_UNCHANGED);
 	}
 
-	CHECK(dns_journal_iter_init(journal, start, end));
+	CHECK(dns_journal_iter_init(journal, start, end, NULL));
 	for (result = dns_journal_first_rr(journal); result == ISC_R_SUCCESS;
 	     result = dns_journal_next_rr(journal))
 	{

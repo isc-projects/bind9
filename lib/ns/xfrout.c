@@ -240,7 +240,8 @@ ixfr_rrstream_create(isc_mem_t *mctx, const char *journal_filename,
 
 	CHECK(dns_journal_open(mctx, journal_filename, DNS_JOURNAL_READ,
 			       &s->journal));
-	CHECK(dns_journal_iter_init(s->journal, begin_serial, end_serial));
+	CHECK(dns_journal_iter_init(s->journal, begin_serial, end_serial,
+				    NULL));
 
 	*sp = (rrstream_t *)s;
 	return (ISC_R_SUCCESS);
