@@ -10,12 +10,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2019-08-12
+.\"      Date: 2020-02-07
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2019\-08\-12" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2020\-02\-07" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -97,6 +97,31 @@ dlz \fIstring\fR {
 .if n \{\
 .RE
 .\}
+.SH "DNSSEC-POLICY"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+dnssec\-policy \fIstring\fR {
+	dnskey\-ttl \fIduration\fR;
+	keys { ( csk | ksk | zsk ) ( key\-directory ) lifetime ( \fIduration\fR | unlimited )
+	    algorithm \fIinteger\fR [ \fIinteger\fR ]; \&.\&.\&. };
+	max\-zone\-ttl \fIduration\fR;
+	parent\-ds\-ttl \fIduration\fR;
+	parent\-propagation\-delay \fIduration\fR;
+	parent\-registration\-delay \fIduration\fR;
+	publish\-safety \fIduration\fR;
+	retire\-safety \fIduration\fR;
+	signatures\-refresh \fIduration\fR;
+	signatures\-validity \fIduration\fR;
+	signatures\-validity\-dnskey \fIduration\fR;
+	zone\-propagation\-delay \fIduration\fR;
+};
+.fi
+.if n \{\
+.RE
+.\}
 .SH "DYNDB"
 .sp
 .if n \{\
@@ -150,7 +175,7 @@ logging {
 .\}
 .SH "MANAGED-KEYS"
 .PP
-Deprecated \- see TRUST\-ANCHORS\&.
+Deprecated \- see DNSSEC\-KEYS\&.
 .sp
 .if n \{\
 .RS 4
@@ -262,6 +287,7 @@ options {
 	dnssec\-dnskey\-kskonly \fIboolean\fR;
 	dnssec\-loadkeys\-interval \fIinteger\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
+	dnssec\-policy \fIstring\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
 	dnssec\-validation ( yes | no | auto );
@@ -411,8 +437,8 @@ options {
 	    \fIinteger\fR;
 	response\-policy { zone \fIstring\fR [ add\-soa \fIboolean\fR ] [ log
 	    \fIboolean\fR ] [ max\-policy\-ttl \fIduration\fR ] [ min\-update\-interval
-	    \fIduration\fR ] [ policy ( cname | disabled | drop | given | no\-op |
-	    nodata | nxdomain | passthru | tcp\-only \fIquoted_string\fR ) ] [
+	    \fIduration\fR ] [ policy ( cname | disabled | drop | given | no\-op
+	    | nodata | nxdomain | passthru | tcp\-only \fIquoted_string\fR ) ] [
 	    recursive\-only \fIboolean\fR ] [ nsip\-enable \fIboolean\fR ] [
 	    nsdname\-enable \fIboolean\fR ]; \&.\&.\&. } [ add\-soa \fIboolean\fR ] [
 	    break\-dnssec \fIboolean\fR ] [ max\-policy\-ttl \fIduration\fR ] [
@@ -567,7 +593,7 @@ trust\-anchors { \fIstring\fR ( static\-key |
 .\}
 .SH "TRUSTED-KEYS"
 .PP
-Deprecated \- see TRUST\-ANCHORS\&.
+Deprecated \- see DNSSEC\-KEYS\&.
 .sp
 .if n \{\
 .RS 4
@@ -657,6 +683,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 	dnssec\-dnskey\-kskonly \fIboolean\fR;
 	dnssec\-loadkeys\-interval \fIinteger\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
+	dnssec\-policy \fIstring\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
 	dnssec\-validation ( yes | no | auto );
@@ -780,8 +807,8 @@ view \fIstring\fR [ \fIclass\fR ] {
 	    \fIinteger\fR;
 	response\-policy { zone \fIstring\fR [ add\-soa \fIboolean\fR ] [ log
 	    \fIboolean\fR ] [ max\-policy\-ttl \fIduration\fR ] [ min\-update\-interval
-	    \fIduration\fR ] [ policy ( cname | disabled | drop | given | no\-op |
-	    nodata | nxdomain | passthru | tcp\-only \fIquoted_string\fR ) ] [
+	    \fIduration\fR ] [ policy ( cname | disabled | drop | given | no\-op
+	    | nodata | nxdomain | passthru | tcp\-only \fIquoted_string\fR ) ] [
 	    recursive\-only \fIboolean\fR ] [ nsip\-enable \fIboolean\fR ] [
 	    nsdname\-enable \fIboolean\fR ]; \&.\&.\&. } [ add\-soa \fIboolean\fR ] [
 	    break\-dnssec \fIboolean\fR ] [ max\-policy\-ttl \fIduration\fR ] [
@@ -1062,30 +1089,6 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	use\-alt\-transfer\-source \fIboolean\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zone\-statistics ( full | terse | none | \fIboolean\fR );
-};
-.fi
-.if n \{\
-.RE
-.\}
-.SH "DNSSEC-POLICY"
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-dnssec\-policy \fIstring\fR {
-	dnskey\-ttl \fIduration\fR;
-	keys { ( csk | ksk | zsk ) key\-directory lifetime \fIduration\fR algorithm \fIinteger\fR [ \fIinteger\fR ] ; \&.\&.\&. };
-	parent\-ds\-ttl \fIduration\fR;
-	parent\-propagation\-delay \fIduration\fR;
-	parent\-registration\-delay \fIduration\fR;
-	publish\-safety \fIduration\fR;
-	retire\-safety \fIduration\fR;
-	signatures\-refresh \fIduration\fR;
-	signatures\-validity \fIduration\fR;
-	signatures\-validity\-dnskey \fIduration\fR;
-	zone\-max\-ttl \fIduration\fR;
-	zone\-propagation\-delay \fIduration\fR;
 };
 .fi
 .if n \{\

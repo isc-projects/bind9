@@ -10,6 +10,21 @@
 -->
 ### Functional enhancements from prior major releases of BIND 9
 
+#### BIND 9.16
+
+BIND 9.16 (a stable branch based on the 9.15 development branch)
+includes a number of changes from BIND 9.14 and earlier releases.
+New features include:
+
+* New `dnssec-policy` statement to configure a key and signing policy
+  for zones, enabling automatic key regeneration and rollover.
+* New network manager based on `libuv`.
+* Added support for the new GeoIP2 geolocation API, `libmaxminddb`.
+* Improved DNSSEC trust anchor configuration using the `trust-anchors`
+  statement, permitting configuration of trust anchors in DS as well as
+  DNSKEY format.
+* YAML output for `dig`, `mdig`, and `delv`.
+
 #### BIND 9.14
 
 BIND 9.14 (a stable branch based on the 9.13 development branch)
