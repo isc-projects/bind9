@@ -1,3 +1,10 @@
+5362.	[func]		Limit the size of IXFR responses so that AXFR will
+			be used instead if it would be smaller. This is
+			controlled by the "max-ixfr-ratio" option, which
+			is a percentage representing the ratio of IXFR size
+			to the size of the entire zone. This value cannot
+			exceed 100%, which is the default. [GL #1515]
+
 5361.	[bug]		named might not accept new connections after
 			hitting tcp-clients quota. [GL #1643]
 
