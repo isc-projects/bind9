@@ -670,6 +670,9 @@
 ./bin/tests/system/idna/tests.sh		SH	2018,2019,2020
 ./bin/tests/system/ifconfig.bat			BAT	2016,2018,2019,2020
 ./bin/tests/system/ifconfig.sh			SH	2000,2001,2002,2003,2004,2007,2008,2009,2010,2012,2013,2016,2018,2019,2020
+./bin/tests/system/include-multiplecfg/clean.sh	SH	2020
+./bin/tests/system/include-multiplecfg/setup.sh	SH	2020
+./bin/tests/system/include-multiplecfg/tests.sh	SH	2020
 ./bin/tests/system/inline/clean.sh		SH	2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
 ./bin/tests/system/inline/ns1/sign.sh		SH	2011,2012,2014,2016,2017,2018,2019,2020
 ./bin/tests/system/inline/ns3/sign.sh		SH	2011,2012,2013,2014,2016,2017,2018,2019,2020
@@ -2134,6 +2137,7 @@
 ./lib/isc/error.c				C	1998,1999,2000,2001,2004,2005,2007,2015,2016,2018,2019,2020
 ./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005,2007,2014,2016,2017,2018,2019,2020
 ./lib/isc/fsaccess.c				C	2000,2001,2004,2005,2007,2016,2017,2018,2019,2020
+./lib/isc/glob.c				C	2020
 ./lib/isc/hash.c				C	2003,2004,2005,2006,2007,2009,2013,2014,2015,2016,2017,2018,2019,2020
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007,2008,2013,2014,2015,2016,2018,2019,2020
@@ -2167,6 +2171,7 @@
 ./lib/isc/include/isc/formatcheck.h		C	2000,2001,2004,2005,2006,2007,2016,2018,2019,2020
 ./lib/isc/include/isc/fsaccess.h		C	2000,2001,2004,2005,2006,2007,2009,2016,2018,2019,2020
 ./lib/isc/include/isc/fuzz.h			C	2017,2018,2019,2020
+./lib/isc/include/isc/glob.h			C	2020
 ./lib/isc/include/isc/hash.h			C	2003,2004,2005,2006,2007,2009,2013,2014,2015,2016,2017,2018,2019,2020
 ./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2012,2016,2018,2019,2020
 ./lib/isc/include/isc/hex.h			C	2000,2001,2004,2005,2006,2007,2008,2016,2018,2019,2020
