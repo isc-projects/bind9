@@ -524,7 +524,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  *\li	#ISC_R_NOMEMORY	Resource limit: Out of memory
  */
 
-/* Attention: next four comments PRECEED code */
+/* Attention: next four comments PRECEDE code */
 /*!
  *   \brief
  * Write a message to the log channels.

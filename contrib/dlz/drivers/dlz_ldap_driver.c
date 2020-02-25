@@ -422,7 +422,7 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char ** attrs,
 						      DNS_LOGMODULE_DLZ,
 						      ISC_LOG_ERROR,
 						      "LDAP driver ttl must "
-						      "be a postive number");
+						      "be a positive number");
 					goto cleanup;
 				}
 				break;

@@ -475,7 +475,7 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 			if (*endp != '\0' || ttl < 0) {
 				db->log(ISC_LOG_ERROR,
 					"MySQL module ttl must be "
-					"a postive number");
+					"a positive number");
 				return (ISC_R_FAILURE);
 			}
 
@@ -514,7 +514,7 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 			if (*endp != '\0' || ttl < 0) {
 				db->log(ISC_LOG_ERROR,
 					"MySQL module ttl must be "
-					"a postive number");
+					"a positive number");
 				free(tmpString);
 				return (ISC_R_FAILURE);
 			}
@@ -672,7 +672,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 		if (*endp != '\0' || ttl < 0) {
 			db->log(ISC_LOG_ERROR,
 				"MySQL module ttl must be "
-				"a postive number");
+				"a positive number");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}

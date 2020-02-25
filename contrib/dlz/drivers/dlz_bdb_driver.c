@@ -196,7 +196,7 @@ bdb_parse_data(char *in, parsed_data_t *pd) {
 	if (*endp != '\0' || pd->ttl < 0) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-			      "BDB driver ttl must be a postive number");
+			      "BDB driver ttl must be a positive number");
 		return ISC_R_FAILURE;
 	}
 

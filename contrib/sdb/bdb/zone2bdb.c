@@ -42,7 +42,7 @@
  * Returns a valid 'DB' handle.
  *
  * Requires:
- *	'file' is a valid non-existant path.
+ *	'file' is a valid non-existent path.
  */
 DB *
 bdb_init(const char *file)

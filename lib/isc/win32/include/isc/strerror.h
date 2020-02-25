@@ -22,7 +22,7 @@ ISC_LANG_BEGINDECLS
 #define ISC_STRERRORSIZE 128
 
 /*
- * Provide a thread safe wrapper to strerrror().
+ * Provide a thread safe wrapper to strerror().
  *
  * Requires:
  * 	'buf' to be non NULL.

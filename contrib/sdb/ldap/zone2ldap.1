@@ -7,7 +7,7 @@ zone2ldap  [-D Bind DN] [-w Bind Password] [-b Base DN] [-z Zone] [-f Zone File 
 zone2ldap will parse a complete BIND 9 format DNS zone file, and load
 the contents into an LDAP directory, for use with the LDAP sdb back-end.
 
-If the zone already exists, zone2ldap will exit succesfully. If the zone does not exists, or 
+If the zone already exists, zone2ldap will exit successfully. If the zone does not exists, or
 partially exists, zone2ldap will attempt to add all/missing zone data.
 
 .SS Options
@@ -18,7 +18,7 @@ If the zone you are loading is different from the base, then you will need to te
 base is. 
 .TP
 -v 
-Print version information, and immediatly exit.
+Print version information, and immediately exit.
 .TP
 -f 
 Zone file.  Bind 9.1 compatible zone file, from which zone information will be read.
@@ -31,7 +31,7 @@ LDAP Bind password, corresponding the the value of "-b".
 .TP
 -h 
 LDAP Directory host. This is the hostname of the LDAP system you wish to store zone information on.
-An LDAP server should be listening on port 389 of the target system. This may be ommited, and will default
+An LDAP server should be listening on port 389 of the target system. This may be omitted, and will default
 to "localhost".
 .TP
 -c 

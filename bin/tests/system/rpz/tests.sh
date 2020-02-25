@@ -487,7 +487,7 @@ EOF
 	sleep 1
   done
   nochange a7-1.tld2				# 19 PASSTHRU
-  # ensure that a clock tick has occured so that the reload takes effect
+  # ensure that a clock tick has occurred so that the reload takes effect
   sleep 1
   cp ns2/blv3.tld2.db.in ns2/bl.tld2.db
   goodsoa="rpz.tld2. hostmaster.ns.tld2. 3 3600 1200 604800 60"

@@ -56,7 +56,7 @@ unsigned char key[20];
  *
  * 'out' MUST point to an array of at least len * 2 + 1
  *
- * Return values: ISC_R_SUCCESS if the operation is sucessful
+ * Return values: ISC_R_SUCCESS if the operation is successful
  */
 static isc_result_t
 tohexstr(unsigned char *d, unsigned int len, char *out, size_t out_size) {

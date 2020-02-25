@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lwresutil.c,v 1.34 2007/06/19 23:47:22 tbox Exp $ */
-
 /*! \file */
 
 /**
@@ -53,7 +51,7 @@
  *    they are controlled through the \link lwres_gabn.c lwres_gabn*\endlink functions.
  *
  *    The lightweight resolver uses lwres_getaddrsbyname() to perform
- *    foward lookups. Hostname name is looked up using the resolver
+ *    forward lookups. Hostname name is looked up using the resolver
  *    context ctx for memory allocation. addrtypes is a bitmask
  *    indicating which type of addresses are to be looked up. Current
  *    values for this bitmask are #LWRES_ADDRTYPE_V4 for IPv4 addresses

@@ -24,7 +24,7 @@ typedef pthread_once_t isc_once_t;
 
 #ifdef ISC_PLATFORM_BRACEPTHREADONCEINIT
 /*!
- * This accomodates systems that define PTHRAD_ONCE_INIT improperly.
+ * This accommodates systems that define PTHRAD_ONCE_INIT improperly.
  */
 #define ISC_ONCE_INIT { PTHREAD_ONCE_INIT }
 #else

@@ -13,8 +13,8 @@
  * \brief
  * Main program for the Lightweight Resolver Daemon.
  *
- * To paraphrase the old saying about X11, "It's not a lightweight deamon
- * for resolvers, it's a deamon for lightweight resolvers".
+ * To paraphrase the old saying about X11, "It's not a lightweight daemon
+ * for resolvers, it's a daemon for lightweight resolvers".
  */
 
 #include <config.h>

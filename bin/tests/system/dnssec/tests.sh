@@ -191,7 +191,7 @@ status=`expr $status + $ret`
 
 if [ -x ${DELV} ] ; then
    ret=0
-   echo_i "checking postive validation NSEC using dns_client ($n)"
+   echo_i "checking positive validation NSEC using dns_client ($n)"
    $DELV $DELVOPTS @10.53.0.4 a a.example > delv.out$n || ret=1
    grep "a.example..*10.0.0.1" delv.out$n > /dev/null || ret=1
    grep "a.example..*.RRSIG.A [0-9][0-9]* 2 300 .*" delv.out$n > /dev/null || ret=1

@@ -674,7 +674,7 @@ fix_mustbedelegationornxdomain(dns_message_t *message, fetchctx_t *fctx) {
 	 * zone.  So a response to an explicit query for this type should be
 	 * excluded from delegation-only fixup.
 	 *
-	 * SOA, NS, and DNSKEY can only exist at a zone apex, so a postive
+	 * SOA, NS, and DNSKEY can only exist at a zone apex, so a positive
 	 * response to a query for these types can never violate the
 	 * delegation-only assumption: if the query name is below a
 	 * zone cut, the response should normally be a referral, which should
@@ -2455,7 +2455,7 @@ resquery_send(resquery_t *query) {
 		query->ednsversion = -1;
 
 	/*
-	 * Record the UDP EDNS size choosen.
+	 * Record the UDP EDNS size chosen.
 	 */
 	query->udpsize = udpsize;
 

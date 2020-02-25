@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: entropy.h,v 1.35 2009/10/19 02:37:08 marka Exp $ */
-
 #ifndef ISC_ENTROPY_H
 #define ISC_ENTROPY_H 1
 
@@ -237,7 +235,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
  * \brief Extract data from the entropy pool.  This may load the pool from various
  * sources.
  *
- * Do this by stiring the pool and returning a part of hash as randomness.
+ * Do this by stirring the pool and returning a part of hash as randomness.
  * Note that no secrets are given away here since parts of the hash are
  * xored together before returned.
  *

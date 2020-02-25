@@ -364,7 +364,7 @@ main(int argc, char **argv) {
 	lookup("moghedien.flame.org.");		/* should fetch */
 	lookup("mailrelay.flame.org.");		/* should fetch */
 	lookup("ipv4v6.flame.org.");		/* should fetch */
-	lookup("nonexistant.flame.org.");	/* should fail to be found */
+	lookup("nonexistent.flame.org.");	/* should fail to be found */
 	lookup("foobar.badns.flame.org.");	/* should fail utterly (NS) */
 	lookup("i.root-servers.net.");		/* Should be in hints */
 	lookup("www.firstcard.com.");
@@ -386,7 +386,7 @@ main(int argc, char **argv) {
 	lookup("moghedien.flame.org.");		/* should fetch */
 	lookup("mailrelay.flame.org.");		/* should fetch */
 	lookup("ipv4v6.flame.org.");		/* should fetch */
-	lookup("nonexistant.flame.org.");	/* should fail to be found */
+	lookup("nonexistent.flame.org.");	/* should fail to be found */
 	lookup("foobar.badns.flame.org.");	/* should fail utterly (NS) */
 	lookup("i.root-servers.net.");		/* Should be in hints */
 	CUNLOCK();

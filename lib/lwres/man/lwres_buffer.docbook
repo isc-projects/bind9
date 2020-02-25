@@ -273,7 +273,7 @@ void
       initializes the
       <type>lwres_buffer_t</type>
       <parameter>*b</parameter>
-      and assocates it with the memory region of size
+      and associates it with the memory region of size
       <parameter>length</parameter>
       bytes starting at location
       <parameter>base.</parameter>

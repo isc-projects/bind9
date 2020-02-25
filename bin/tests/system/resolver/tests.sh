@@ -454,7 +454,7 @@ sleep ${interval:-0}
 $DIG $DIGOPTS @10.53.0.5 fetch.tld txt > dig.out.2.${n} || ret=1
 ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
 sleep 1
-# check that prefetch occured
+# check that prefetch occurred
 $DIG $DIGOPTS @10.53.0.5 fetch.tld txt > dig.out.3.${n} || ret=1
 ttl=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.3.${n}`
 test ${ttl:-0} -gt ${ttl2:-1} || ret=1
@@ -473,7 +473,7 @@ sleep ${interval:-0}
 $DIG $DIGOPTS @10.53.0.5 ds.example.net ds > dig.out.2.${n} || ret=1
 dsttl2=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.2.${n}`
 sleep 1
-# check that prefetch occured
+# check that prefetch occurred
 $DIG $DIGOPTS @10.53.0.5 ds.example.net ds +dnssec > dig.out.3.${n} || ret=1
 dsttl=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.3.${n}`
 sigttl=`awk '$4 == "RRSIG" && $5 == "DS" { print $2 }' dig.out.3.${n}`
@@ -498,7 +498,7 @@ no_prefetch() {
 	# the previous one.
 	$DIG $DIGOPTS @10.53.0.7 fetch.example.net txt > dig.out.2.${n} || return 1
 	ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
-        # check that prefetch has not occured
+        # check that prefetch has not occurred
         if [ $ttl2 -ge $tmp_ttl ]; then
                 return 1
         fi

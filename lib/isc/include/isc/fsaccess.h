@@ -94,7 +94,7 @@
  * probable that something could be cobbled together in NT 5 with inheritance,
  * it can't really be done in NT 4 as a single property that you could
  * set on a directory.  You'd need to coordinate something with file creation
- * so that every file created had DELETE set for the owner but noone else.
+ * so that every file created had DELETE set for the owner but no one else.
  *
  * On Unix systems, setting #ISC_FSACCESS_LISTDIRECTORY sets READ.
  * ... setting either #ISC_FSACCESS_CREATECHILD or #ISC_FSACCESS_DELETECHILD

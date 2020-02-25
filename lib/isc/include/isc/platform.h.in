@@ -239,7 +239,7 @@
 @ISC_PLATFORM_USETHREADS@
 
 /*
- * Defined if unistd.h does not cause fd_set to be delared.
+ * Defined if unistd.h does not cause fd_set to be declared.
  */
 @ISC_PLATFORM_NEEDSYSSELECTH@
 

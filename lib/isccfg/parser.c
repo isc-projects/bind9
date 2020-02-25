@@ -3017,10 +3017,10 @@ parser_complain(cfg_parser_t *pctx, bool is_warning,
 		snprintf(where, sizeof(where), "%s: ", pctx->buf_name);
 
 	len = vsnprintf(message, sizeof(message), format, args);
-#define ELIPSIS " ... "
+#define ELLIPSIS " ... "
 	if (len >= sizeof(message)) {
-		message[sizeof(message) - sizeof(ELIPSIS)] = 0;
-		strlcat(message, ELIPSIS, sizeof(message));
+		message[sizeof(message) - sizeof(ELLIPSIS)] = 0;
+		strlcat(message, ELLIPSIS, sizeof(message));
 	}
 
 	if ((flags & (CFG_LOG_NEAR|CFG_LOG_BEFORE|CFG_LOG_NOPREP)) != 0) {

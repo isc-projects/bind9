@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
 
@@ -1488,7 +1486,7 @@ dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep);
 isc_result_t
 dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 			  dns_hash_t *hash, uint8_t *flags,
-			  uint16_t *interations,
+			  uint16_t *iterations,
 			  unsigned char *salt, size_t *salt_length);
 /*%<
  * Get the NSEC3 parameters that are associated with this zone.

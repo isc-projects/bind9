@@ -229,7 +229,7 @@ isc_hash_function_reverse(const void *data, size_t length,
  * useful in incremental hashing; for example, a previously hashed
  * value for 'com' can be used as input when hashing 'example.com'.
  *
- * This is a new variant of isc_hash_calc() and will supercede
+ * This is a new variant of isc_hash_calc() and will supersede
  * isc_hash_calc() eventually.
  *
  * 'data' is the data to be hashed.

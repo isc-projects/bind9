@@ -30,7 +30,7 @@ zone "nsec" { type master; file "nsec.db.signed"; };
 zone "private.nsec" { type master; file "private.nsec.db.signed"; };
 
 /*
- * The contents of nsec3 and private.nsec3 are specially choosen to
+ * The contents of nsec3 and private.nsec3 are specially chosen to
  * have separate NSEC3 records for the "no qname proof" and the
  * "closest encloser proof".
  */
