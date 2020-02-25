@@ -23,7 +23,7 @@ while (<>) {
     $lines .= $_ . "\n";
 }
 
-my $mkey = '#define TRUST_ANCHORS "\\' . "\n" . $lines . "\"\n";
+my $mkey = "#define TRUST_ANCHORS \\\n\t\"\\\n" . $lines . "\"\n";
 
 print "#ifndef BIND_KEYS_H\n";
 print "#define BIND_KEYS_H 1\n";

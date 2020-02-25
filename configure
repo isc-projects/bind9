@@ -18272,6 +18272,8 @@ fi ;; #(
     as_fn_error $? "Specifying zlib installation path is not supported, adjust PKG_CONFIG_PATH instead" "$LINENO" 5 ;;
 esac
 
+
+
 #
 # In solaris 10, SMF can manage named service
 #
@@ -25997,8 +25999,8 @@ report() {
     echo "Configuration summary:"
     echo "-------------------------------------------------------------------------------"
     echo "Optional features enabled:"
-    if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
-	echo "        Mutex lock type: $locktype"
+    if test "yes" = "$enable_full_report" -o "standard" = "$with_locktype"; then
+	echo "    Mutex lock type: $with_locktype"
     fi
     test "large" = "$use_tuning" && echo "    Large-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
@@ -26012,7 +26014,7 @@ report() {
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
 	test "X$LIBXML2_LIBS" = "X" || echo "    XML statistics (--with-libxml2)"
 	test "X$JSON_C_LIBS" = "X" || echo "    JSON statistics (--with-json-c): $JSON_C_CFLAGS $JSON_C_LIBS"
-	test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
+	test "X$ZLIB_LIBS" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 	test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
 	test "no" = "$with_libidn2" || echo "    IDN support (--with-libidn2)"
     fi
@@ -26090,7 +26092,7 @@ report() {
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
     test "X$LIBXML2_LIBS" = "X" && echo "    XML statistics (--with-libxml2)"
     test "X$JSON_C_LIBS" = "X" && echo "    JSON statistics (--with-json-c)"
-    test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
+    test "X$ZLIB_LIBS" = "X" && echo "    HTTP zlib compression (--with-zlib)"
     test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
     test "no" = "$with_libidn2" && echo "    IDN support (--with-libidn2)"
 
