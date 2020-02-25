@@ -322,7 +322,7 @@ main (int argc, char **argv)
 		    sprintf (fullbasedn, "%s", ctmp);
 		}
 	      result = ldap_add_s (conn, fullbasedn, base_attrs);
-	      ldap_result_check ("intial ldap_add_s", fullbasedn, result);
+	      ldap_result_check ("initial ldap_add_s", fullbasedn, result);
 	    }
 
 	}
@@ -432,7 +432,7 @@ locate_by_dn (char *dn)
  * If locate_by_dn does not return, alloc a new ldap_info structure, and then
  * calloc a LDAPMod array, fill in the default "everyone needs this" information,
  * including object classes and dc's. If it locate_by_dn does return, then we'll
- * realloc for more LDAPMod structs, and appened the new data.  If an LDAPMod exists
+ * realloc for more LDAPMod structs, and append the new data.  If an LDAPMod exists
  * for the parameter we're adding, then we'll realloc the mod_values array, and
  * add the new value to the existing LDAPMod. Finnaly, it assures linkage exists
  * within the Run queue linked ilst*/

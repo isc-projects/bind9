@@ -409,7 +409,7 @@ mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs)
 					      DNS_LOGCATEGORY_DATABASE,
 					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 					      "mysql driver ttl must be "
-					      "a postive number");
+					      "a positive number");
 			}
 			result = dns_sdlz_putrr(lookup, safeGet(row[1]), ttl,
 						safeGet(row[2]));
@@ -458,7 +458,7 @@ mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs)
 					      DNS_LOGCATEGORY_DATABASE,
 					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 					      "mysql driver ttl must be "
-					      "a postive number");
+					      "a positive number");
 			}
 			/* ok, now tell Bind about it. */
 			result = dns_sdlz_putrr(lookup, safeGet(row[1]),
@@ -638,7 +638,7 @@ mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "mysql driver ttl must be "
-				      "a postive number");
+				      "a positive number");
 		}
 		if (fields == 4) {
 			/* tell Bind about it. */

@@ -1589,7 +1589,7 @@ consistent(isc_socket_t *sock) {
 /*
  * Maybe free the socket.
  *
- * This function will verify tht the socket is no longer in use in any way,
+ * This function will verify that the socket is no longer in use in any way,
  * either internally or externally.  This is the only place where this
  * check is to be made; if some bit of code believes that IT is done with
  * the socket (e.g., some reference counter reaches zero), it should call

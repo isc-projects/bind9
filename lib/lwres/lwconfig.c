@@ -217,7 +217,7 @@ lwres_strdup(lwres_context_t *ctx, const char *str) {
 	return (p);
 }
 
-/*% intializes data structure for subsequent config parsing. */
+/*% initializes data structure for subsequent config parsing. */
 void
 lwres_conf_init(lwres_context_t *ctx) {
 	int i;

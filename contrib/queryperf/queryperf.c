@@ -1152,7 +1152,7 @@ next_input_line(char *line, int n) {
 
 /*
  * identify_directive:
- *   Gives us a numerical value equivelant for a directive string
+ *   Gives us a numerical value equivalent for a directive string
  *
  *   Returns the value for the directive
  *   Returns -1 if not a valid directive
@@ -1654,7 +1654,7 @@ register_response(unsigned short int id, unsigned int rcode, char *qname,
 
 /*
  * process_single_response:
- *   Receive from the given socket & process an invididual response packet.
+ *   Receive from the given socket & process an individual response packet.
  *   Remove it from the list of open queries (status[]) and decrement the
  *   number of outstanding queries if it matches an open query.
  */

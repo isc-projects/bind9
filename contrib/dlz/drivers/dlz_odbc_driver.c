@@ -899,7 +899,7 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 						      DNS_LOGMODULE_DLZ,
 						      ISC_LOG_ERROR,
 						      "Odbc driver ttl must "
-						      "be a postive number");
+						      "be a positive number");
 					result = ISC_R_FAILURE;
 				} else {
 					/*
@@ -1131,7 +1131,7 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 					      DNS_LOGCATEGORY_DATABASE,
 					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 					      "Odbc driver ttl must be "
-					      "a postive number");
+					      "a positive number");
 				result = ISC_R_FAILURE;
 			} else {
 				/* successful converting TTL, tell Bind  */

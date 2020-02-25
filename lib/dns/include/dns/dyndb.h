@@ -22,7 +22,7 @@ ISC_LANG_BEGINDECLS
 
 /*!
  * \brief
- * Context for intializing a dyndb module.
+ * Context for initializing a dyndb module.
  *
  * This structure passes global server data to which a dyndb
  * module will need access -- the server memory context, hash
@@ -71,7 +71,7 @@ typedef isc_result_t dns_dyndb_register_t(isc_mem_t *mctx,
  * 'parameters' contains the driver configuration text. 'dctx' is the
  * initialization context set up in dns_dyndb_createctx().
  *
- * '*instp' must be set to the driver instance handle if the functino
+ * '*instp' must be set to the driver instance handle if the function
  * is successful.
  *
  * Returns:

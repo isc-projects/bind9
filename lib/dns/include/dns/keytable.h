@@ -427,7 +427,7 @@ dns_keynode_detach(isc_mem_t *mctx, dns_keynode_t **target);
 void
 dns_keynode_detachall(isc_mem_t *mctx, dns_keynode_t **target);
 /*%<
- * Detach a keynode and all its succesors.
+ * Detach a keynode and all its successors.
  */
 
 isc_result_t

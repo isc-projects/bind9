@@ -403,7 +403,7 @@ ldap_process_results(ldap_instance_t *db, LDAP *dbc, LDAPMessage *msg,
 				if (*endp != '\0' || ttl < 0) {
 					db->log(ISC_LOG_ERROR,
 						"LDAP driver ttl must "
-						"be a postive number");
+						"be a positive number");
 					goto cleanup;
 				}
 				break;

@@ -560,7 +560,7 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "Filesystem driver "
-				      "ttl must be a postive number");
+				      "ttl must be a positive number");
 		}
 
 		/* pass data back to Bind */
@@ -938,7 +938,7 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 			      "Directory split count must be zero (0) "
-			      "or a postive number");
+			      "or a positive number");
 	}
 
 	/* get and store our separator character */

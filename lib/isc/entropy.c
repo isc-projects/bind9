@@ -527,7 +527,7 @@ get_from_callback(isc_entropysource_t *source, unsigned int desired,
  * Extract some number of bytes from the random pool, decreasing the
  * estimate of randomness as each byte is extracted.
  *
- * Do this by stiring the pool and returning a part of hash as randomness.
+ * Do this by stirring the pool and returning a part of hash as randomness.
  * Note that no secrets are given away here since parts of the hash are
  * xored together before returned.
  *

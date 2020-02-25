@@ -14751,7 +14751,7 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 	/*
 	 * walk nsec3param rdataset making a list of parameters (note that
 	 * multiple simultaneous nsec3 chains are annoyingly legal -- this
-	 * is why we use an nsec3list, even tho we will usually only have
+	 * is why we use an nsec3list, even though we will usually only have
 	 * one)
 	 */
 	for (result = dns_rdataset_first(&rdataset);

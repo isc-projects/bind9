@@ -2904,7 +2904,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 			result = open_socket(sockmgr, &localaddr_bound,
 					     0, &sock, NULL);
 			/*
-			 * Continue if the port choosen is already in use
+			 * Continue if the port chosen is already in use
 			 * or the OS has reserved it.
 			 */
 			if (result == ISC_R_NOPERM ||

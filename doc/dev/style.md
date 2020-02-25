@@ -647,7 +647,7 @@ support it.  Is it in the POSIX standard?  If so, how long has it been
 there? (BIND is still run on some operating systems released in the
 1990s.)  Is its behavior the same on all platforms?  Is its signature
 the same?  Are integer parameters the same size and signedness?  Does it
-alwasy return the same values on success, and set the same `errno` codes
+always return the same values on success, and set the same `errno` codes
 on failure?
 
 If there is a chance the library call may not be completely portable,

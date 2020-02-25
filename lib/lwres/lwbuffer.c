@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lwbuffer.c,v 1.15 2007/06/19 23:47:22 tbox Exp $ */
-
 /*! \file */
 
 /**
@@ -62,7 +60,7 @@
  *   b-c == optional active region.
  * \endverbatim
  *
- *    lwres_buffer_init() initializes the lwres_buffer_t *b and assocates it
+ *    lwres_buffer_init() initializes the lwres_buffer_t *b and associates it
  *    with the memory region of size length bytes starting at location base.
  *
  *    lwres_buffer_invalidate() marks the buffer *b as invalid. Invalidating

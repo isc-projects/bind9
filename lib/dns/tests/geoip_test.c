@@ -629,7 +629,7 @@ netspeed(void **state) {
 
 /*
  * GeoIP best-database matching
- * (With no specified databse and a city database available, answers
+ * (With no specified database and a city database available, answers
  * should come from city database.  With city database unavailable, region
  * database.  Region database unavailable, country database.)
  */

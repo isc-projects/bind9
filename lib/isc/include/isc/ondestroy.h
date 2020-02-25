@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ondestroy.h,v 1.14 2007/06/19 23:47:18 tbox Exp $ */
-
 #ifndef ISC_ONDESTROY_H
 #define ISC_ONDESTROY_H 1
 
@@ -100,7 +98,7 @@ isc_ondestroy_notify(isc_ondestroy_t *ondest, void *sender);
  * Dispatches the event(s) to the task(s) that were given in
  * isc_ondestroy_register call(s) (done via calls to
  * isc_task_sendanddetach()).  Before dispatch, the sender value of each
- * event structure is set to the value of the sender paramater. The
+ * event structure is set to the value of the sender parameter. The
  * internal structures of the ondest parameter are cleaned out, so no other
  * cleanup is needed.
  */

@@ -694,7 +694,7 @@ verifynsec(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	result = dns_rdataset_next(&rdataset);
 	if (result != ISC_R_NOMORE) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		fprintf(stderr, "Multipe NSEC records for %s\n", namebuf);
+		fprintf(stderr, "Multiple NSEC records for %s\n", namebuf);
 		goto failure;
 
 	}
@@ -1073,7 +1073,7 @@ verifynsec3(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	check_result(result, "dns_nsec3_hashname()");
 
 	/*
-	 * We don't use dns_db_find() here as it works with the choosen
+	 * We don't use dns_db_find() here as it works with the chosen
 	 * nsec3 chain and we may also be called with uncommitted data
 	 * from dnssec-signzone so the secure status of the zone may not
 	 * be up to date.

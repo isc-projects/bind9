@@ -2,8 +2,6 @@ Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: lwres,v 1.6 2004/03/05 05:04:46 marka Exp $
-
 This document describes the bind v9 lightweight resolver.
 
 WHY LWRES?
@@ -134,7 +132,7 @@ various options, including search lists, sort lists, etc.
 
 API
 
-The simpliest interface is to call lwres_getaddrsbyname() or
+The simplest interface is to call lwres_getaddrsbyname() or
 lwres_getnamebyaddr(), both of which are blocking calls.  That is, a
 packet is transmitted to the local lightweight resolver, and the call
 will not return until a response is received or the timeout period

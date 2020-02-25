@@ -648,7 +648,7 @@ void CBINDInstallDlg::OnInstall() {
 	}
 	catch(DWORD dw)	{
 		CString msg;
-		msg.Format("A fatal error occured\n(%s)", GetErrMessage(dw));
+		msg.Format("A fatal error occurred\n(%s)", GetErrMessage(dw));
 		MessageBox(msg);
 		SetCurrent(IDS_CLEANUP);
 		FailedInstall();

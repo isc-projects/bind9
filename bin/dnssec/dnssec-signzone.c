@@ -802,7 +802,7 @@ hashlist_hasdup(hashlist_t *l) {
 	size_t entries = l->entries;
 
 	/*
-	 * Skip initial speculative wild card hashs.
+	 * Skip initial speculative wild card hashes.
 	 */
 	while (entries > 0U && next[l->length-1] != 0U) {
 		next += l->length;
@@ -2312,7 +2312,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 				      salt, salt_len, false);
 		dns_db_detachnode(gdb, &node);
 		/*
-		 * Add hashs for empty nodes.  Use closest encloser logic.
+		 * Add hashes for empty nodes.  Use closest encloser logic.
 		 * The closest encloser either has data or is a empty
 		 * node for another <name,nextname> span so we don't add
 		 * it here.  Empty labels on nextname are within the span.

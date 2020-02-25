@@ -204,7 +204,7 @@ uint64_t xscount;				/* sent counters */
 uint64_t xrcount;				/* received counters */
 
 /*
- * statictics counters and accumulators
+ * statistics counters and accumulators
  */
 
 uint64_t recverr, tooshort, locallimit;		/* error counters */
@@ -2356,7 +2356,7 @@ main(const int argc, char * const argv[])
 	(void) pthread_cancel(sender);
 	(void) pthread_cancel(receiver);
 
-	/* main statictics */
+	/* main statistics */
 	printf("connect: %llu, sent: %llu, received: %llu\n",
 	       (unsigned long long) xccount,
 	       (unsigned long long) xscount,

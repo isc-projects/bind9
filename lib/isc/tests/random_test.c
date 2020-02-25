@@ -659,7 +659,7 @@ isc_rng_runs_bytes(void **state) {
 	random_test(runs);
 }
 
-/* Block frequncy test for the RNG */
+/* Block frequency test for the RNG */
 static void
 isc_rng_blockfrequency_bytes(void **state) {
 	UNUSED(state);

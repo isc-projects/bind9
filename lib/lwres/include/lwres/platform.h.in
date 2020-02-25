@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: platform.h.in,v 1.21 2007/06/19 23:47:23 tbox Exp $ */
-
 /*! \file */
 
 #ifndef LWRES_PLATFORM_H
@@ -65,7 +63,7 @@
 @LWRES_PLATFORM_HAVEINADDR6@
 
 /*
- * Defined if unistd.h does not cause fd_set to be delared.
+ * Defined if unistd.h does not cause fd_set to be declared.
  */
 @LWRES_PLATFORM_NEEDSYSSELECTH@
 

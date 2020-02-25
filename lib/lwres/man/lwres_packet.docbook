@@ -128,7 +128,7 @@ struct lwres_lwpacket {
               is a request or a reply. Flag values can be set, but not defined
               by
               the caller.
-              This field is filled in by the application wit the exception of
+              This field is filled in by the application with the exception of
               the
               LWRES_LWPACKETFLAG_RESPONSE bit, which is set by the library in
               the

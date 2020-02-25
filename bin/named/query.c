@@ -5667,7 +5667,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 			goto cleanup;
 		/*
 		 * We are finished checking the IP addresses for the qname.
-		 * Start with IPv4 if we will check NS IP addesses.
+		 * Start with IPv4 if we will check NS IP addresses.
 		 */
 		st->state |= DNS_RPZ_DONE_QNAME_IP;
 		st->state &= ~DNS_RPZ_DONE_IPv4;
