@@ -9,9 +9,9 @@
  * information regarding copyright ownership.
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 
 #include <isc/errno.h>
 #include <isc/glob.h>
@@ -26,11 +26,12 @@
 #include <stdlib.h>
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
+
 #include <isc/list.h>
 #define GLOB_WIN_IMPL 1
-#define GLOB_ERR     0x0004  /* Return on error. */
-#define GLOB_NOSPACE (-1)
-#define GLOB_NOMATCH (-3)
+#define GLOB_ERR      0x0004 /* Return on error. */
+#define GLOB_NOSPACE  (-1)
+#define GLOB_NOMATCH  (-3)
 
 /* custom glob implementation for windows */
 static int
@@ -52,19 +53,18 @@ isc_glob(const char *pattern, glob_t *pglob) {
 	int rc = glob(pattern, GLOB_ERR, NULL, pglob);
 
 	switch (rc) {
-		case 0:
-			return (ISC_R_SUCCESS);
+	case 0:
+		return (ISC_R_SUCCESS);
 
-		case GLOB_NOMATCH:
-			return (ISC_R_FILENOTFOUND);
+	case GLOB_NOMATCH:
+		return (ISC_R_FILENOTFOUND);
 
-		case GLOB_NOSPACE:
-			return (ISC_R_NOMEMORY);
+	case GLOB_NOSPACE:
+		return (ISC_R_NOMEMORY);
 
-		default:
-			return (errno != 0 ? isc_errno_toresult(errno) : ISC_R_IOERROR);
+	default:
+		return (errno != 0 ? isc_errno_toresult(errno) : ISC_R_IOERROR);
 	}
-
 }
 
 void
@@ -103,12 +103,8 @@ map_error(DWORD win_err_code) {
 /* add file in directory dir, that matches glob expression
  * provided in function glob(), to the linked list fl */
 static int
-append_file(isc_mem_t *mctx,
-	    file_list_t *fl,
-	    const char *dir,
-	    const char *file,
-	    size_t full_path_len)
-{
+append_file(isc_mem_t *mctx, file_list_t *fl, const char *dir, const char *file,
+	    size_t full_path_len) {
 	file_path_t *fp = isc_mem_get(mctx, sizeof(file_path_t));
 	fp->path = isc_mem_get(mctx, full_path_len + 1);
 	_snprintf(fp->path, full_path_len + 1, "%s%s", dir, file);
@@ -126,7 +122,8 @@ path_cmp(const void *path1, const void *path2) {
 static int
 glob(const char *pattern, int flags, void *unused, glob_t *pglob) {
 	char path[MAX_PATH];
-	WIN32_FIND_DATAA find_data;;
+	WIN32_FIND_DATAA find_data;
+	;
 	HANDLE hnd;
 
 	REQUIRE(pattern != NULL);
@@ -153,7 +150,8 @@ glob(const char *pattern, int flags, void *unused, glob_t *pglob) {
 
 	// strip filename from path.
 	size_t dir_len = strlen(path);
-	while (dir_len > 0 && path[dir_len - 1] != '/' && path[dir_len - 1] != '\\') {
+	while (dir_len > 0 && path[dir_len - 1] != '/' &&
+	       path[dir_len - 1] != '\\') {
 		dir_len--;
 	}
 
@@ -173,18 +171,16 @@ glob(const char *pattern, int flags, void *unused, glob_t *pglob) {
 			goto fail;
 		}
 
-		append_file(pglob->mctx,
-			    (file_list_t *)pglob->reserved,
-			    path,
-			    find_data.cFileName,
-			    full_path_len);
+		append_file(pglob->mctx, (file_list_t *)pglob->reserved, path,
+			    find_data.cFileName, full_path_len);
 
 		entries++;
 	} while (FindNextFileA(hnd, &find_data));
 
 	FindClose(hnd);
 
-	pglob->gl_pathv = isc_mem_get(pglob->mctx, (entries + 1) * sizeof(char*));
+	pglob->gl_pathv = isc_mem_get(pglob->mctx,
+				      (entries + 1) * sizeof(char *));
 	pglob->gl_pathv[entries] = NULL;
 	pglob->gl_pathc = entries;
 
@@ -192,11 +188,12 @@ glob(const char *pattern, int flags, void *unused, glob_t *pglob) {
 
 	size_t e = 0;
 	file_path_t *fp;
-	for (fp = ISC_LIST_HEAD(*fl); fp != NULL; fp = ISC_LIST_NEXT(fp, link)) {
+	for (fp = ISC_LIST_HEAD(*fl); fp != NULL; fp = ISC_LIST_NEXT(fp, link))
+	{
 		pglob->gl_pathv[e++] = fp->path;
 	}
 
-	qsort(pglob->gl_pathv, pglob->gl_pathc, sizeof(char*), path_cmp);
+	qsort(pglob->gl_pathv, pglob->gl_pathc, sizeof(char *), path_cmp);
 
 	return (0);
 
@@ -213,14 +210,13 @@ fail:
 }
 
 void
-globfree(glob_t* pglob) {
+globfree(glob_t *pglob) {
 	REQUIRE(pglob != NULL);
 	REQUIRE(pglob->mctx != NULL);
 
 	/* first free memory used by char ** gl_pathv */
 	if (pglob->gl_pathv) {
-		isc_mem_put(pglob->mctx,
-			    pglob->gl_pathv,
+		isc_mem_put(pglob->mctx, pglob->gl_pathv,
 			    (pglob->gl_pathc + 1) * sizeof(char *));
 		pglob->gl_pathv = NULL;
 	}

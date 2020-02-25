@@ -19,13 +19,14 @@
 #include <glob.h>
 #else
 #include <stddef.h>
+
 #include <isc/mem.h>
 
 typedef struct {
-    size_t      gl_pathc;
-    char      **gl_pathv;
-    isc_mem_t  *mctx;
-    void       *reserved;
+	size_t	   gl_pathc;
+	char **	   gl_pathv;
+	isc_mem_t *mctx;
+	void *	   reserved;
 } glob_t;
 
 #endif

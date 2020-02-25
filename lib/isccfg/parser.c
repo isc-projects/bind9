@@ -12,11 +12,11 @@
 /*! \file */
 
 #include <ctype.h>
+#include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
@@ -2395,11 +2395,13 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 			/* Allow include to specify a pattern that follows
 			 * the same rules as the shell e.g "/path/zone*.conf" */
 			glob_t glob_obj;
-			CHECK(isc_glob(includename->value.string.base, &glob_obj));
+			CHECK(isc_glob(includename->value.string.base,
+				       &glob_obj));
 			cfg_obj_destroy(pctx, &includename);
 
 			for (size_t i = 0; i < glob_obj.gl_pathc; ++i) {
-				CHECK(parser_openfile(pctx, glob_obj.gl_pathv[i]));
+				CHECK(parser_openfile(pctx,
+						      glob_obj.gl_pathv[i]));
 			}
 
 			isc_globfree(&glob_obj);
