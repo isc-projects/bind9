@@ -282,14 +282,10 @@ ret=0
 # almost right away, this should trigger 10 zsk and 1 ksk sign operations.
 # However, the DNSSEC maintenance assumes when we see the SOA record we have
 # walked the whole zone, since the SOA record should always have the most
-# recent signature.  This however is not always the case, for example when
-# the signature expiration is the same, `dns_db_getsigningtime could return
-# the SOA RRset before a competing RRset. This happens here and so the
-# SOA RRset is updated and resigned twice at startup, that explains the
-# additional zsk sign operation (11 instead of 10).
-echo "${refresh_prefix} ${zsk_id}: 11" > zones.expect
+# recent signature.
+echo "${refresh_prefix} ${zsk_id}: 10" > zones.expect
 echo "${refresh_prefix} ${ksk_id}: 1" >> zones.expect
-echo "${sign_prefix} ${zsk_id}: 11" >> zones.expect
+echo "${sign_prefix} ${zsk_id}: 10" >> zones.expect
 echo "${sign_prefix} ${ksk_id}: 1" >> zones.expect
 cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
@@ -317,9 +313,9 @@ echo update add $zone. 300 in txt "nsupdate added me"
 echo send
 ) | $NSUPDATE
 # This should trigger the resign of SOA, TXT and NSEC (+3 zsk).
-echo "${refresh_prefix} ${zsk_id}: 11" > zones.expect
+echo "${refresh_prefix} ${zsk_id}: 10" > zones.expect
 echo "${refresh_prefix} ${ksk_id}: 1" >> zones.expect
-echo "${sign_prefix} ${zsk_id}: 14" >> zones.expect
+echo "${sign_prefix} ${zsk_id}: 13" >> zones.expect
 echo "${sign_prefix} ${ksk_id}: 1" >> zones.expect
 cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
@@ -345,9 +341,9 @@ zsk=$("$KEYGEN" -K ns2 -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 $SETTIME -K ns2 -P now -A never $zsk.key > /dev/null
 loadkeys_on 2 $zone || ret=1
 # This should trigger the resign of SOA (+1 zsk) and DNSKEY (+1 ksk).
-echo "${refresh_prefix} ${zsk_id}: 12" > zones.expect
+echo "${refresh_prefix} ${zsk_id}: 11" > zones.expect
 echo "${refresh_prefix} ${ksk_id}: 2" >> zones.expect
-echo "${sign_prefix} ${zsk_id}: 15" >> zones.expect
+echo "${sign_prefix} ${zsk_id}: 14" >> zones.expect
 echo "${sign_prefix} ${ksk_id}: 2" >> zones.expect
 cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
