@@ -50,7 +50,7 @@ OBJS =		pk11.@O@ pk11_result.@O@ \
 		backtrace.@O@ base32.@O@ base64.@O@ \
 		bind9.@O@ buffer.@O@ bufferlist.@O@ \
 		commandline.@O@ counter.@O@ crc64.@O@ error.@O@ entropy.@O@ \
-		event.@O@ hash.@O@ ht.@O@ heap.@O@ hex.@O@ \
+		event.@O@ glob.@O@ hash.@O@ ht.@O@ heap.@O@ hex.@O@ \
 		hmac.@O@ hp.@O@ httpd.@O@ iterated_hash.@O@ \
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
 		md.@O@ mem.@O@ mutexblock.@O@ \
@@ -71,7 +71,7 @@ SRCS =		pk11.c pk11_result.c \
 		aes.c app.c assertions.c astack.c \
 		backtrace.c base32.c base64.c bind9.c \
 		buffer.c bufferlist.c commandline.c counter.c crc64.c \
-		entropy.c error.c event.c hash.c ht.c heap.c \
+		entropy.c error.c event.c glob.c hash.c ht.c heap.c \
 		hex.c hmac.c hp.c httpd.c iterated_hash.c \
 		lex.c lfsr.c lib.c log.c \
 		md.c mem.c mutexblock.c \

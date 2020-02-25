@@ -2602,6 +2602,8 @@ AC_SUBST(DLZ_DRIVER_MYSQL_INCLUDES)
 AC_SUBST(DLZ_DRIVER_MYSQL_LIBS)
 AC_SUBST_FILE(DLZ_DRIVER_RULES)
 
+AC_CHECK_HEADERS([glob.h])
+
 if test "yes" = "$cross_compiling"; then
 	if test -z "$BUILD_CC"; then
 		AC_MSG_ERROR([BUILD_CC not set])

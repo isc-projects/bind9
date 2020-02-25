@@ -232,6 +232,8 @@ isc_fsaccess_add
 isc_fsaccess_changeowner
 isc_fsaccess_remove
 isc_fsaccess_set
+isc_glob
+isc_globfree
 isc_hash_function
 isc_hash_get_initializer
 isc_hash_set_initializer

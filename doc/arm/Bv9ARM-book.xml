@@ -3497,7 +3497,8 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 
 	<para>
 	  The <command>include</command> statement inserts the
-	  specified file at the point where the <command>include</command>
+          specified file (or files if a valid glob expression is detected)
+          at the point where the <command>include</command>
 	  statement is encountered. The <command>include</command>
 		statement facilitates the administration of configuration
 	  files
