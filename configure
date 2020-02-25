@@ -818,6 +818,8 @@ MKDEPCC
 ZLIB
 JSONSTATS
 XMLSTATS
+LIBXML2_LIBS
+LIBXML2_CFLAGS
 NZDTARGETS
 NZDSRCS
 NZD_TOOLS
@@ -1108,6 +1110,8 @@ PYTHON
 MAXMINDDB_CFLAGS
 MAXMINDDB_LIBS
 MAXMINDDB_PREFIX
+LIBXML2_CFLAGS
+LIBXML2_LIBS
 CMOCKA_CFLAGS
 CMOCKA_LIBS
 KYUA'
@@ -1798,7 +1802,8 @@ Optional Packages:
   --with-aes              Crypto AES
   --with-cc-alg=ALG       deprecated
   --with-lmdb=PATH        build with LMDB library [yes|no|path]
-  --with-libxml2=PATH     build with libxml2 library [yes|no|path]
+  --with-libxml2=PATH     build with libxml2 library (auto|yes|no|path)
+                          [default=auto]
   --with-libjson=PATH     build with libjson0 library [yes|no|path]
   --with-zlib=PATH        build with zlib for HTTP compression [default=yes]
   --with-purify=PATH      use Rational purify
@@ -1859,6 +1864,10 @@ Some influential environment variables:
               linker flags for MAXMINDDB, overriding pkg-config
   MAXMINDDB_PREFIX
               value of prefix for libmaxminddb, overriding pkg-config
+  LIBXML2_CFLAGS
+              C compiler flags for LIBXML2, overriding pkg-config
+  LIBXML2_LIBS
+              linker flags for LIBXML2, overriding pkg-config
   CMOCKA_CFLAGS
               C compiler flags for CMOCKA, overriding pkg-config
   CMOCKA_LIBS linker flags for CMOCKA, overriding pkg-config
@@ -18338,55 +18347,206 @@ fi
 #
 # was --with-libxml2 specified?
 #
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml2 library" >&5
-$as_echo_n "checking for libxml2 library... " >&6; }
 
 # Check whether --with-libxml2 was given.
 if test "${with_libxml2+set}" = set; then :
-  withval=$with_libxml2; use_libxml2="$withval"
+  withval=$with_libxml2;
 else
-  use_libxml2="auto"
+  with_libxml2="auto"
 fi
 
 
-case "$use_libxml2" in
-	no)
-		DST_LIBXML2_INC=""
-		;;
-	auto|yes)
-		case X`(xml2-config --version) 2>/dev/null` in
-		X2.[6789].*)
-			libxml2_libs=`xml2-config --libs`
-			libxml2_cflags=`xml2-config --cflags`
-			;;
-		*)
-			if test "yes" = "$use_libxml2" ; then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+LIBXML2_CFLAGS=
+LIBXML2_LIBS=
+case $with_libxml2 in #(
+  no) :
+    : ;; #(
+  auto) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 >= 2.6.0" >&5
+$as_echo_n "checking for libxml-2.0 >= 2.6.0... " >&6; }
+
+if test -n "$LIBXML2_CFLAGS"; then
+    pkg_cv_LIBXML2_CFLAGS="$LIBXML2_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxml-2.0 >= 2.6.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxml-2.0 >= 2.6.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 >= 2.6.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$LIBXML2_LIBS"; then
+    pkg_cv_LIBXML2_LIBS="$LIBXML2_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxml-2.0 >= 2.6.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxml-2.0 >= 2.6.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 >= 2.6.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-				as_fn_error $? "required libxml2 version not available" "$LINENO" 5
-			else
-				libxml2_libs=
-				libxml2_cflags=
-			fi
-			;;
-		esac
-		;;
-	*)
-		if test -f "$use_libxml2/bin/xml2-config" ; then
-			libxml2_libs=`$use_libxml2/bin/xml2-config --libs`
-			libxml2_cflags=`$use_libxml2/bin/xml2-config --cflags`
-		fi
-		;;
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBXML2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libxml-2.0 >= 2.6.0" 2>&1`
+        else
+	        LIBXML2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libxml-2.0 >= 2.6.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBXML2_PKG_ERRORS" >&5
+
+	:
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	:
+else
+	LIBXML2_CFLAGS=$pkg_cv_LIBXML2_CFLAGS
+	LIBXML2_LIBS=$pkg_cv_LIBXML2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	:
+fi ;; #(
+  yes) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 >= 2.6.0" >&5
+$as_echo_n "checking for libxml-2.0 >= 2.6.0... " >&6; }
+
+if test -n "$LIBXML2_CFLAGS"; then
+    pkg_cv_LIBXML2_CFLAGS="$LIBXML2_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxml-2.0 >= 2.6.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxml-2.0 >= 2.6.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 >= 2.6.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$LIBXML2_LIBS"; then
+    pkg_cv_LIBXML2_LIBS="$LIBXML2_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxml-2.0 >= 2.6.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxml-2.0 >= 2.6.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 >= 2.6.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBXML2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libxml-2.0 >= 2.6.0" 2>&1`
+        else
+	        LIBXML2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libxml-2.0 >= 2.6.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBXML2_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (libxml-2.0 >= 2.6.0) were not met:
+
+$LIBXML2_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables LIBXML2_CFLAGS
+and LIBXML2_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables LIBXML2_CFLAGS
+and LIBXML2_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	LIBXML2_CFLAGS=$pkg_cv_LIBXML2_CFLAGS
+	LIBXML2_LIBS=$pkg_cv_LIBXML2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi ;; #(
+  *) :
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml2 library in $with_libxml2" >&5
+$as_echo_n "checking for libxml2 library in $with_libxml2... " >&6; }
+	 if test -x "$with_libxml2/bin/xml2-config"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+		LIBXML2_LIBS=`$with_libxml2/bin/xml2-config --libs`
+		LIBXML2_CFLAGS=`$with_libxml2/bin/xml2-config --cflags`
+else
+  as_fn_error $? "not found" "$LINENO" 5
+fi ;;
 esac
 
-if test "X$libxml2_libs" != "X"
-then
-	CFLAGS="$CFLAGS $libxml2_cflags"
-	LIBS="$LIBS $libxml2_libs"
-	#
-	# Sanity check xml2-config output.
-	#
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+if test -n "$LIBXML2_LIBS"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether linking with libxml2 works" >&5
+$as_echo_n "checking whether linking with libxml2 works... " >&6; }
+       CFLAGS="$CFLAGS $LIBXML2_CFLAGS"
+       LIBS="$LIBS $LIBXML2_LIBS"
+       #
+       # Sanity check xml2-config output.
+       #
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <libxml/xmlwriter.h>
 int
@@ -18401,16 +18561,16 @@ if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 else
-  as_fn_error $? "xml2-config returns badness" "$LINENO" 5
+  as_fn_error $? "no" "$LINENO" 5
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
 $as_echo "#define HAVE_LIBXML2 1" >>confdefs.h
 
-	XMLSTATS=1
+       XMLSTATS=1
 else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
