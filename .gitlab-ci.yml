@@ -1201,3 +1201,34 @@ respdiff:sid:amd64:
     untracked: true
     expire_in: "1 day"
     when: on_failure
+
+# ABI check
+
+abi-check:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: build
+  dependencies:
+    - autoreconf:sid:amd64
+  needs:
+    - autoreconf:sid:amd64
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    BIND_BASELINE_VERSION: v9_11_16
+  script:
+    - *configure
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
+    - cd refbind/
+    - *configure
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - cd ..
+    - util/api-checker.sh . refbind
+  artifacts:
+    paths:
+      - "*.html"
+      - "abi-*.dump"
+    expire_in: "1 week"
+  only:
+    - master@isc-projects/bind9
+    - /^v9_[1-9][0-9]$/@isc-projects/bind9
