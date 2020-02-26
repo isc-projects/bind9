@@ -129,6 +129,7 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 	cctx->mctx = mctx;
 	cctx->count = 0;
 	cctx->allowed = DNS_COMPRESS_ENABLED;
+	cctx->arena_off = 0;
 
 	memset(&cctx->table[0], 0, sizeof(cctx->table));
 
@@ -382,6 +383,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	uint16_t toffset;
 	unsigned char *tmp;
 	isc_region_t r;
+	bool allocated = false;
 
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
@@ -407,7 +409,13 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	start = 0;
 	dns_name_toregion(name, &r);
 	length = r.length;
-	tmp = isc_mem_get(cctx->mctx, length);
+	if (cctx->arena_off + length < DNS_COMPRESS_ARENA_SIZE) {
+		tmp = &cctx->arena[cctx->arena_off];
+		cctx->arena_off += length;
+	} else {
+		allocated = true;
+		tmp = isc_mem_get(cctx->mctx, length);
+	}
 	/*
 	 * Copy name data to 'tmp' and make 'r' use 'tmp'.
 	 */
@@ -448,7 +456,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		 * 'node->r.base' becomes 'tmp' when start == 0.
 		 * Record this by setting 0x8000 so it can be freed later.
 		 */
-		if (start == 0) {
+		if (start == 0 && allocated) {
 			toffset |= 0x8000;
 		}
 		node->offset = toffset;
@@ -466,7 +474,11 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	}
 
 	if (start == 0) {
-		isc_mem_put(cctx->mctx, tmp, length);
+		if (!allocated) {
+			cctx->arena_off -= length;
+		} else {
+			isc_mem_put(cctx->mctx, tmp, length);
+		}
 	}
 }
 
