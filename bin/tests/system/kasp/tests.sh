@@ -99,6 +99,7 @@ key_clear() {
 key_clear "KEY1"
 key_clear "KEY2"
 key_clear "KEY3"
+key_clear "KEY4"
 
 ###############################################################################
 # Utilities                                                                   #
@@ -142,24 +143,20 @@ log_error() {
 	test $_log -eq 1 && echo_i "error: $1"
 	ret=$((ret+1))
 }
-
-# Set zone properties for testing keys.
-# $1: Key directory
-# $2: Zone name
-# $3: Policy name
-# $4: DNSKEY TTL
-# $5: Number of keys
-# $6: Name server
-#
-# This will set the following environment variables for testing:
-# DIR, ZONE, POLICY, DNSKEY_TTL, NUM_KEYS, SERVER
-zone_properties() {
+# Set server key-directory ($1) and address ($2) for testing keys.
+set_server() {
 	DIR=$1
-	ZONE=$2
-	POLICY=$3
-	DNSKEY_TTL=$4
-	NUM_KEYS=$5
-	SERVER=$6
+	SERVER=$2
+}
+# Set zone name for testing keys.
+set_zone() {
+	ZONE=$1
+}
+# Set policy settings (name $1, number of keys $2, dnskey ttl $3) for testing keys.
+set_policy() {
+	POLICY=$1
+	NUM_KEYS=$2
+	DNSKEY_TTL=$3
 }
 
 # Set key properties for testing keys.
@@ -229,8 +226,7 @@ key_states() {
 }
 
 # Check the key $1 with id $2.
-# This requires environment variables to be set with 'zone_properties',
-# 'key_properties', 'key_timings', and 'key_states'.
+# This requires environment variables to be set.
 #
 # This will set the following environment variables for testing:
 # BASE_FILE="${_dir}/K${_zone}.+${_alg_numpad}+${_key_idpad}"
@@ -404,8 +400,7 @@ check_key() {
 }
 
 # Check the key with key id $1 and see if it is unused.
-# This requires environment variables to be set with 'zone_properties',
-# and 'key_properties'.
+# This requires environment variables to be set.
 #
 # This will set the following environment variables for testing:
 # BASE_FILE="${_dir}/K${_zone}.+${_alg_numpad}+${_key_idpad}"
@@ -475,14 +470,16 @@ next_key_event_threshold=100
 #
 # dnssec-keygen
 #
-zone_properties "keys" "kasp" "kasp" "200" "10.53.0.1"
+set_zone "kasp"
+set_policy "kasp" "4" "200"
+set_server "keys" "10.53.0.1"
 
 n=$((n+1))
 echo_i "check that 'dnssec-keygen -k' (configured policy) creates valid files ($n)"
 ret=0
 $KEYGEN -K keys -k "$POLICY" -l kasp.conf "$ZONE" > "keygen.out.$POLICY.test$n" 2>/dev/null || ret=1
 lines=$(wc -l < "keygen.out.$POLICY.test$n")
-test "$lines" -eq 4 || log_error "wrong number of keys created for policy kasp: $lines"
+test "$lines" -eq $NUM_KEYS || log_error "wrong number of keys created for policy kasp: $lines"
 # Temporarily don't log errors because we are searching multiple files.
 _log=0
 
@@ -503,7 +500,7 @@ key_timings "KEY4" "none" "none" "none" "none" "none"
 key_states "KEY4" "none" "none" "none" "none" "none"
 
 lines=$(get_keyids "$DIR" "$ZONE" | wc -l)
-test "$lines" -eq 4 || log_error "bad number of key ids"
+test "$lines" -eq $NUM_KEYS || log_error "bad number of key ids"
 
 ids=$(get_keyids "$DIR" "$ZONE")
 for id in $ids; do
@@ -530,7 +527,10 @@ _log=1
 n=$((n+1))
 echo_i "check that 'dnssec-keygen -k' (default policy) creates valid files ($n)"
 ret=0
-zone_properties "." "kasp" "default" "3600" "10.53.0.1"
+set_zone "kasp"
+set_policy "default" "1" "3600"
+set_server "." "10.53.0.1"
+
 key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "none" "none" "none" "none" "none"
 key_states "KEY1" "none" "none" "none" "none" "none"
@@ -547,13 +547,12 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check that 'dnssec-keygen -k' (default policy) creates valid files ($n)"
 ret=0
-zone_properties "." "kasp" "default" "3600" "10.53.0.1"
 key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "none" "none" "none" "none" "none"
 key_states "KEY1" "none" "none" "none" "none" "none"
 $KEYGEN -k "$POLICY" "$ZONE" > "keygen.out.$POLICY.test$n" 2>/dev/null || ret=1
 lines=$(wc -l < "keygen.out.$POLICY.test$n")
-test "$lines" -eq 1 || log_error "wrong number of keys created for policy default: $lines"
+test "$lines" -eq $NUM_KEYS || log_error "wrong number of keys created for policy default: $lines"
 ids=$(get_keyids "$DIR" "$ZONE")
 for id in $ids; do
 	check_key "KEY1" "$id"
@@ -658,7 +657,10 @@ next_key_event_threshold=$((next_key_event_threshold+i))
 #
 
 # Check the zone with default kasp policy has loaded and is signed.
-zone_properties "ns3" "default.kasp" "default" "3600" "1" "10.53.0.3"
+set_zone "default.kasp"
+set_policy "default" "1" "3600"
+set_server "ns3" "10.53.0.3"
+
 key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 # The first key is immediately published and activated.
 key_timings "KEY1" "published" "active" "none" "none" "none" "none"
@@ -744,7 +746,10 @@ status=$((status+ret))
 #
 # Zone: rsasha1.kasp.
 #
-zone_properties "ns3" "rsasha1.kasp" "rsasha1" "1234" "3" "10.53.0.3"
+set_zone "rsasha1.kasp"
+set_policy "rsasha1" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 key_properties "KEY1" "ksk" "315360000" "5" "RSASHA1" "2048" "no" "yes"
 key_properties "KEY2" "zsk" "157680000" "5" "RSASHA1" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "5" "RSASHA1" "2000" "yes" "no"
@@ -1067,7 +1072,10 @@ dnssec_verify
 #
 # Zone: unsigned.kasp.
 #
-zone_properties "ns3" "unsigned.kasp" "none" "0" "0" "10.53.0.3"
+set_zone "unsigned.kasp"
+set_policy "none" "0" "0"
+set_server "ns3" "10.53.0.3"
+
 key_clear "KEY1"
 key_clear "KEY2"
 key_clear "KEY3"
@@ -1079,7 +1087,10 @@ check_subdomain
 #
 # Zone: unlimited.kasp.
 #
-zone_properties "ns3" "unlimited.kasp" "unlimited" "1234" "1" "10.53.0.3"
+set_zone "unlimited.kasp"
+set_policy "unlimited" "1" "1234"
+set_server "ns3" "10.53.0.3"
+
 key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_clear "KEY2"
 key_clear "KEY3"
@@ -1096,7 +1107,10 @@ dnssec_verify
 #
 # Zone: inherit.kasp.
 #
-zone_properties "ns3" "inherit.kasp" "rsasha1" "1234" "3" "10.53.0.3"
+set_zone "inherit.kasp"
+set_policy "rsasha1" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 key_properties "KEY1" "ksk" "315360000" "5" "RSASHA1" "2048" "no" "yes"
 key_properties "KEY2" "zsk" "157680000" "5" "RSASHA1" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "5" "RSASHA1" "2000" "yes" "no"
@@ -1119,7 +1133,10 @@ dnssec_verify
 #
 # Zone: dnssec-keygen.kasp.
 #
-zone_properties "ns3" "dnssec-keygen.kasp" "rsasha1" "1234" "3" "10.53.0.3"
+set_zone "dnssec-keygen.kasp"
+set_policy "rsasha1" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 # key_properties, key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1129,7 +1146,10 @@ dnssec_verify
 #
 # Zone: some-keys.kasp.
 #
-zone_properties "ns3" "some-keys.kasp" "rsasha1" "1234" "3" "10.53.0.3"
+set_zone "some-keys.kasp"
+set_policy "rsasha1" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 # key_properties, key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1139,7 +1159,10 @@ dnssec_verify
 #
 # Zone: legacy-keys.kasp.
 #
-zone_properties "ns3" "legacy-keys.kasp" "rsasha1" "1234" "3" "10.53.0.3"
+set_zone "legacy-keys.kasp"
+set_policy "rsasha1" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 # key_properties, key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1151,7 +1174,10 @@ dnssec_verify
 #
 # There are more pregenerated keys than needed, hence the number of keys is
 # six, not three.
-zone_properties "ns3" "pregenerated.kasp" "rsasha1" "1234" "6" "10.53.0.3"
+set_zone "pregenerated.kasp"
+set_policy "rsasha1" "6" "1234"
+set_server "ns3" "10.53.0.3"
+
 # key_properties, key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1162,7 +1188,10 @@ dnssec_verify
 # Zone: rumoured.kasp.
 #
 # There are three keys in rumoured state.
-zone_properties "ns3" "rumoured.kasp" "rsasha1" "1234" "3" "10.53.0.3"
+set_zone "rumoured.kasp"
+set_policy "rsasha1" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 # key_properties, key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1172,7 +1201,10 @@ dnssec_verify
 #
 # Zone: secondary.kasp.
 #
-zone_properties "ns3" "secondary.kasp" "rsasha1" "1234" "3" "10.53.0.3"
+set_zone "secondary.kasp"
+set_policy "rsasha1" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 # KSK properties, timings and states same as above.
 check_keys
 check_apex
@@ -1218,7 +1250,10 @@ status=$((status+ret))
 #
 # Zone: rsasha1-nsec3.kasp.
 #
-zone_properties "ns3" "rsasha1-nsec3.kasp" "rsasha1-nsec3" "1234" "3" "10.53.0.3"
+set_zone "rsasha1-nsec3.kasp"
+set_policy "rsasha1-nsec3" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 key_properties "KEY1" "ksk" "315360000" "7" "NSEC3RSASHA1" "2048" "no" "yes"
 key_properties "KEY2" "zsk" "157680000" "7" "NSEC3RSASHA1" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "7" "NSEC3RSASHA1" "2000" "yes" "no"
@@ -1231,7 +1266,10 @@ dnssec_verify
 #
 # Zone: rsasha256.kasp.
 #
-zone_properties "ns3" "rsasha256.kasp" "rsasha256" "1234" "3" "10.53.0.3"
+set_zone "rsasha256.kasp"
+set_policy "rsasha256" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 key_properties "KEY1" "ksk" "315360000" "8" "RSASHA256" "2048" "no" "yes"
 key_properties "KEY2" "zsk" "157680000" "8" "RSASHA256" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "8" "RSASHA256" "2000" "yes" "no"
@@ -1244,7 +1282,10 @@ dnssec_verify
 #
 # Zone: rsasha512.kasp.
 #
-zone_properties "ns3" "rsasha512.kasp" "rsasha512" "1234" "3" "10.53.0.3"
+set_zone "rsasha512.kasp"
+set_policy "rsasha512" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 key_properties "KEY1" "ksk" "315360000" "10" "RSASHA512" "2048" "no" "yes"
 key_properties "KEY2" "zsk" "157680000" "10" "RSASHA512" "2048" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "10" "RSASHA512" "2000" "yes" "no"
@@ -1257,7 +1298,10 @@ dnssec_verify
 #
 # Zone: ecdsa256.kasp.
 #
-zone_properties "ns3" "ecdsa256.kasp" "ecdsa256" "1234" "3" "10.53.0.3"
+set_zone "ecdsa256.kasp"
+set_policy "ecdsa256" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 key_properties "KEY1" "ksk" "315360000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_properties "KEY2" "zsk" "157680000" "13" "ECDSAP256SHA256" "256" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes" "no"
@@ -1270,7 +1314,10 @@ dnssec_verify
 #
 # Zone: ecdsa512.kasp.
 #
-zone_properties "ns3" "ecdsa384.kasp" "ecdsa384" "1234" "3" "10.53.0.3"
+set_zone "ecdsa384.kasp"
+set_policy "ecdsa384" "3" "1234"
+set_server "ns3" "10.53.0.3"
+
 key_properties "KEY1" "ksk" "315360000" "14" "ECDSAP384SHA384" "384" "no" "yes"
 key_properties "KEY2" "zsk" "157680000" "14" "ECDSAP384SHA384" "384" "yes" "no"
 key_properties "KEY3" "zsk" "31536000" "14" "ECDSAP384SHA384" "384" "yes" "no"
@@ -1285,7 +1332,10 @@ dnssec_verify
 #
 # Zone: expired-sigs.autosign.
 #
-zone_properties "ns3" "expired-sigs.autosign" "autosign" "300" "2" "10.53.0.3"
+set_zone "expired-sigs.autosign"
+set_policy "autosign" "2" "300"
+set_server "ns3" "10.53.0.3"
+
 # Both KSK and ZSK stay OMNIPRESENT.
 key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
@@ -1347,7 +1397,10 @@ check_rrsig_refresh
 #
 # Zone: fresh-sigs.autosign.
 #
-zone_properties "ns3" "fresh-sigs.autosign" "autosign" "300" "2" "10.53.0.3"
+set_zone "fresh-sigs.autosign"
+set_policy "autosign" "2" "300"
+set_server "ns3" "10.53.0.3"
+
 # key_properties, key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1399,7 +1452,10 @@ check_rrsig_reuse
 #
 # Zone: unfresh-sigs.autosign.
 #
-zone_properties "ns3" "unfresh-sigs.autosign" "autosign" "300" "2" "10.53.0.3"
+set_zone "unfresh-sigs.autosign"
+set_policy "autosign" "2" "300"
+set_server "ns3" "10.53.0.3"
+
 # key_properties, key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1410,7 +1466,10 @@ check_rrsig_refresh
 #
 # Zone: zsk-missing.autosign.
 #
-zone_properties "ns3" "zsk-missing.autosign" "autosign" "300" "2" "10.53.0.3"
+set_zone "zsk-missing.autosign"
+set_policy "autosign" "2" "300"
+set_server "ns3" "10.53.0.3"
+
 # KSK stays OMNIPRESENT.
 key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
@@ -1421,7 +1480,10 @@ key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
 #
 # Zone: zsk-retired.autosign.
 #
-zone_properties "ns3" "zsk-retired.autosign" "autosign" "300" "3" "10.53.0.3"
+set_zone "zsk-retired.autosign"
+set_policy "autosign" "2" "300"
+set_server "ns3" "10.53.0.3"
+
 # KSK properties, timings and states same as above.
 # The ZSK goal is set to HIDDEN but records stay OMNIPRESENT until the new ZSK
 # is active.
@@ -1453,61 +1515,81 @@ key_clear "KEY1"
 key_clear "KEY2"
 key_clear "KEY3"
 
-zone_properties "ns2" "unsigned.tld" "none" "0" "0" "10.53.0.2"
+set_zone "unsigned.tld"
+set_policy "none" "0" "0"
+set_server "ns2" "10.53.0.2"
 TSIG=""
 check_keys
 check_apex
 check_subdomain
 
-zone_properties "ns4" "none.inherit.signed" "none" "0" "0" "10.53.0.4"
+set_zone "none.inherit.signed"
+set_policy "none" "0" "0"
+set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha1:sha1:$SHA1"
 check_keys
 check_apex
 check_subdomain
 
-zone_properties "ns4" "none.override.signed" "none" "0" "0" "10.53.0.4"
+set_zone "none.override.signed"
+set_policy "none" "0" "0"
+set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha224:sha224:$SHA224"
 check_keys
 check_apex
 check_subdomain
 
-zone_properties "ns4" "inherit.none.signed" "none" "0" "0" "10.53.0.4"
+set_zone "inherit.none.signed"
+set_policy "none" "0" "0"
+set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha256:sha256:$SHA256"
 check_keys
 check_apex
 check_subdomain
 
-zone_properties "ns4" "none.none.signed" "none" "0" "0" "10.53.0.4"
+set_zone "none.none.signed"
+set_policy "none" "0" "0"
+set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha256:sha256:$SHA256"
 check_keys
 check_apex
 check_subdomain
 
-zone_properties "ns5" "inherit.inherit.unsigned" "none" "0" "0" "10.53.0.5"
+set_zone "inherit.inherit.unsigned"
+set_policy "none" "0" "0"
+set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha1:sha1:$SHA1"
 check_keys
 check_apex
 check_subdomain
 
-zone_properties "ns5" "none.inherit.unsigned" "none" "0" "0" "10.53.0.5"
+set_zone "none.inherit.unsigned"
+set_policy "none" "0" "0"
+set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha1:sha1:$SHA1"
 check_keys
 check_apex
 check_subdomain
 
-zone_properties "ns5" "none.override.unsigned" "none" "0" "0" "10.53.0.5"
+set_zone "none.override.unsigned"
+set_policy "none" "0" "0"
+set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha224:sha224:$SHA224"
 check_keys
 check_apex
 check_subdomain
 
-zone_properties "ns5" "inherit.none.unsigned" "none" "0" "0" "10.53.0.5"
+set_zone "inherit.none.unsigned"
+set_policy "none" "0" "0"
+set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha256:sha256:$SHA256"
 check_keys
 check_apex
 check_subdomain
 
-zone_properties "ns5" "none.none.unsigned" "none" "0" "0" "10.53.0.5"
+set_zone "none.none.unsigned"
+set_policy "none" "0" "0"
+set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha256:sha256:$SHA256"
 check_keys
 check_apex
@@ -1523,35 +1605,45 @@ key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "published" "active" "none" "none" "none"
 key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 
-zone_properties "ns2" "signed.tld" "default" "3600" "1" "10.53.0.2"
+set_zone "signed.tld"
+set_policy "default" "1" "3600"
+set_server "ns2" "10.53.0.2"
 TSIG=""
 check_keys
 check_apex
 check_subdomain
 dnssec_verify
 
-zone_properties "ns4" "override.inherit.signed" "default" "3600" "1" "10.53.0.4"
+set_zone "override.inherit.signed"
+set_policy "default" "1" "3600"
+set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha1:sha1:$SHA1"
 check_keys
 check_apex
 check_subdomain
 dnssec_verify
 
-zone_properties "ns4" "inherit.override.signed" "default" "3600" "1" "10.53.0.4"
+set_zone "inherit.override.signed"
+set_policy "default" "1" "3600"
+set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha224:sha224:$SHA224"
 check_keys
 check_apex
 check_subdomain
 dnssec_verify
 
-zone_properties "ns5" "override.inherit.unsigned" "default" "3600" "1" "10.53.0.5"
+set_zone "override.inherit.unsigned"
+set_policy "default" "1" "3600"
+set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha1:sha1:$SHA1"
 check_keys
 check_apex
 check_subdomain
 dnssec_verify
 
-zone_properties "ns5" "inherit.override.unsigned" "default" "3600" "1" "10.53.0.5"
+set_zone "inherit.override.unsigned"
+set_policy "default" "1" "3600"
+set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha224:sha224:$SHA224"
 check_keys
 check_apex
@@ -1568,35 +1660,45 @@ key_properties "KEY1" "csk" "0" "14" "ECDSAP384SHA384" "384" "yes" "yes"
 key_timings "KEY1" "published" "active" "none" "none" "none"
 key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 
-zone_properties "ns4" "inherit.inherit.signed" "test" "3600" "1" "10.53.0.4"
+set_zone "inherit.inherit.signed"
+set_policy "test" "1" "3600"
+set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha1:sha1:$SHA1"
 check_keys
 check_apex
 check_subdomain
 dnssec_verify
 
-zone_properties "ns4" "override.override.signed" "test" "3600" "1" "10.53.0.4"
+set_zone "override.override.signed"
+set_policy "test" "1" "3600"
+set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha224:sha224:$SHA224"
 check_keys
 check_apex
 check_subdomain
 dnssec_verify
 
-zone_properties "ns4" "override.none.signed" "test" "3600" "1" "10.53.0.4"
+set_zone "override.none.signed"
+set_policy "test" "1" "3600"
+set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha256:sha256:$SHA256"
 check_keys
 check_apex
 check_subdomain
 dnssec_verify
 
-zone_properties "ns5" "override.override.unsigned" "test" "3600" "1" "10.53.0.5"
+set_zone "override.override.unsigned"
+set_policy "test" "1" "3600"
+set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha224:sha224:$SHA224"
 check_keys
 check_apex
 check_subdomain
 dnssec_verify
 
-zone_properties "ns5" "override.none.unsigned" "test" "3600" "1" "10.53.0.5"
+set_zone "override.none.unsigned"
+set_policy "test" "1" "3600"
+set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha256:sha256:$SHA256"
 check_keys
 check_apex
@@ -1613,7 +1715,10 @@ TSIG=""
 #
 # Zone: step1.enable-dnssec.autosign.
 #
-zone_properties "ns3" "step1.enable-dnssec.autosign" "enable-dnssec" "300" "1" "10.53.0.3"
+set_zone "step1.enable-dnssec.autosign"
+set_policy "enable-dnssec" "1" "300"
+set_server "ns3" "10.53.0.3"
+
 # The DNSKEY and signatures are introduced first, the DS remains hidden.
 key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "published" "active" "none" "none" "none"
@@ -1655,7 +1760,10 @@ check_next_key_event 900
 #
 # Zone: step2.enable-dnssec.autosign.
 #
-zone_properties "ns3" "step2.enable-dnssec.autosign" "enable-dnssec" "300" "1" "10.53.0.3"
+set_zone "step2.enable-dnssec.autosign"
+set_policy "enable-dnssec" "1" "300"
+set_server "ns3" "10.53.0.3"
+
 # The DNSKEY and signatures are introduced first, the DS remains hidden.
 key_states "KEY1" "omnipresent" "omnipresent" "rumoured" "omnipresent" "hidden"
 check_keys
@@ -1671,7 +1779,10 @@ check_next_key_event 43800
 #
 # Zone: step3.enable-dnssec.autosign.
 #
-zone_properties "ns3" "step3.enable-dnssec.autosign" "enable-dnssec" "300" "1" "10.53.0.3"
+set_zone "step3.enable-dnssec.autosign"
+set_policy "enable-dnssec" "1" "300"
+set_server "ns3" "10.53.0.3"
+
 # The DS can be introduced.
 key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "rumoured"
 check_keys
@@ -1687,7 +1798,10 @@ check_next_key_event 98400
 #
 # Zone: step4.enable-dnssec.autosign.
 #
-zone_properties "ns3" "step4.enable-dnssec.autosign" "enable-dnssec" "300" "1" "10.53.0.3"
+set_zone "step4.enable-dnssec.autosign"
+set_policy "enable-dnssec" "1" "300"
+set_server "ns3" "10.53.0.3"
+
 # The DS is omnipresent.
 key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
 check_keys
@@ -1706,7 +1820,10 @@ check_next_key_event 3600
 #
 # Zone: step1.zsk-prepub.autosign.
 #
-zone_properties "ns3" "step1.zsk-prepub.autosign" "zsk-prepub" "3600" "2" "10.53.0.3"
+set_zone "step1.zsk-prepub.autosign"
+set_policy "zsk-prepub" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
 key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
@@ -1730,7 +1847,10 @@ check_next_key_event 2498400
 #
 # Zone: step2.zsk-prepub.autosign.
 #
-zone_properties "ns3" "step2.zsk-prepub.autosign" "zsk-prepub" "3600" "3" "10.53.0.3"
+set_zone "step2.zsk-prepub.autosign"
+set_policy "zsk-prepub" "3" "3600"
+set_server "ns3" "10.53.0.3"
+
 # KSK (KEY1) doesn't change.
 # ZSK (KEY2) remains active, no change in properties/timings/states.
 # New ZSK (KEY3) is prepublished.
@@ -1750,7 +1870,10 @@ check_next_key_event 93600
 #
 # Zone: step3.zsk-prepub.autosign.
 #
-zone_properties "ns3" "step3.zsk-prepub.autosign" "zsk-prepub" "3600" "3" "10.53.0.3"
+set_zone "step3.zsk-prepub.autosign"
+set_policy "zsk-prepub" "3" "3600"
+set_server "ns3" "10.53.0.3"
+
 # KSK (KEY1) doesn't change.
 # ZSK (KEY2) properties and timing metadata same as above.
 # ZSK (KEY2) no longer is actively signing, RRSIG state in UNRETENTIVE.
@@ -1778,7 +1901,10 @@ check_next_key_event 867600
 #
 # Zone: step4.zsk-prepub.autosign.
 #
-zone_properties "ns3" "step4.zsk-prepub.autosign" "zsk-prepub" "3600" "3" "10.53.0.3"
+set_zone "step4.zsk-prepub.autosign"
+set_policy "zsk-prepub" "3" "3600"
+set_server "ns3" "10.53.0.3"
+
 # KSK (KEY1) doesn't change.
 # ZSK (KEY2) properties and timing metadata same as above.
 # ZSK (KEY2) DNSKEY is no longer needed.
@@ -1800,7 +1926,10 @@ check_next_key_event 7200
 #
 # Zone: step5.zsk-prepub.autosign.
 #
-zone_properties "ns3" "step5.zsk-prepub.autosign" "zsk-prepub" "3600" "3" "10.53.0.3"
+set_zone "step5.zsk-prepub.autosign"
+set_policy "zsk-prepub" "3" "3600"
+set_server "ns3" "10.53.0.3"
+
 # KSK (KEY1) doesn't change.
 # ZSK (KEY2) properties and timing metadata same as above.
 # ZSK (KEY3) DNSKEY is now completely HIDDEN and removed.
@@ -1824,7 +1953,10 @@ check_next_key_event 1627200
 #
 # Zone: step1.ksk-doubleksk.autosign.
 #
-zone_properties "ns3" "step1.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "2" "10.53.0.3"
+set_zone "step1.ksk-doubleksk.autosign"
+set_policy "ksk-doubleksk" "2" "7200"
+set_server "ns3" "10.53.0.3"
+
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
 key_properties "KEY1" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
@@ -1849,7 +1981,10 @@ check_next_key_event 5000400
 #
 # Zone: step2.ksk-doubleksk.autosign.
 #
-zone_properties "ns3" "step2.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3" "10.53.0.3"
+set_zone "step2.ksk-doubleksk.autosign"
+set_policy "ksk-doubleksk" "3" "7200"
+set_server "ns3" "10.53.0.3"
+
 # ZSK (KEY2) doesn't change.
 # KSK (KEY1) remains active, no change in properties/timings/states.
 # New KSK (KEY3) is prepublished (and signs DNSKEY RRset).
@@ -1869,7 +2004,10 @@ check_next_key_event 97200
 #
 # Zone: step3.ksk-doubleksk.autosign.
 #
-zone_properties "ns3" "step3.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3" "10.53.0.3"
+set_zone "step3.ksk-doubleksk.autosign"
+set_policy "ksk-doubleksk" "3" "7200"
+set_server "ns3" "10.53.0.3"
+
 # ZSK (KEY2) doesn't change.
 # KSK (KEY1) DS will be removed, so it is UNRETENTIVE.
 key_states "KEY1" "hidden" "omnipresent" "none" "omnipresent" "unretentive"
@@ -1892,7 +2030,10 @@ check_next_key_event 266400
 #
 # Zone: step4.ksk-doubleksk.autosign.
 #
-zone_properties "ns3" "step4.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3" "10.53.0.3"
+set_zone "step4.ksk-doubleksk.autosign"
+set_policy "ksk-doubleksk" "3" "7200"
+set_server "ns3" "10.53.0.3"
+
 # ZSK (KEY2) doesn't change.
 # KSK (KEY1) DNSKEY can be removed.
 key_properties "KEY1" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "no" "no"
@@ -1912,7 +2053,10 @@ check_next_key_event 10800
 #
 # Zone: step5.ksk-doubleksk.autosign.
 #
-zone_properties "ns3" "step5.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3" "10.53.0.3"
+set_zone "step5.ksk-doubleksk.autosign"
+set_policy "ksk-doubleksk" "3" "7200"
+set_server "ns3" "10.53.0.3"
+
 # ZSK (KEY2) doesn't change.
 # KSK (KEY1) DNSKEY is now HIDDEN.
 key_states "KEY1" "hidden" "hidden" "none" "hidden" "hidden"
@@ -1935,7 +2079,10 @@ check_next_key_event 4813200
 #
 # Zone: step1.csk-roll.autosign.
 #
-zone_properties "ns3" "step1.csk-roll.autosign" "csk-roll" "3600" "1" "10.53.0.3"
+set_zone "step1.csk-roll.autosign"
+set_policy "csk-roll" "1" "3600"
+set_server "ns3" "10.53.0.3"
+
 # The CSK (KEY1) starts in OMNIPRESENT.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
@@ -1958,8 +2105,11 @@ check_next_key_event 15973200
 #
 # Zone: step2.csk-roll.autosign.
 #
+set_zone "step2.csk-roll.autosign"
+set_policy "csk-roll" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # Set key properties for testing keys.
-zone_properties "ns3" "step2.csk-roll.autosign" "csk-roll" "3600" "2" "10.53.0.3"
 # CSK (KEY1) remains active, no change in properties/timings/states.
 # New CSK (KEY2) is prepublished (and signs DNSKEY RRset).
 key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
@@ -1978,8 +2128,11 @@ check_next_key_event 10800
 #
 # Zone: step3.csk-roll.autosign.
 #
+set_zone "step3.csk-roll.autosign"
+set_policy "csk-roll" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # Set key properties for testing keys.
-zone_properties "ns3" "step3.csk-roll.autosign" "csk-roll" "3600" "2" "10.53.0.3"
 # CSK (KEY1) DS and ZRRSIG will be removed, so it is UNRETENTIVE.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_states "KEY1" "hidden" "omnipresent" "unretentive" "omnipresent" "unretentive"
@@ -2006,7 +2159,10 @@ check_next_key_event 100800
 #
 # Zone: step4.csk-roll.autosign.
 #
-zone_properties "ns3" "step4.csk-roll.autosign" "csk-roll" "3600" "2" "10.53.0.3"
+set_zone "step4.csk-roll.autosign"
+set_policy "csk-roll" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # The old CSK (KEY1) DS is hidden.  We still need to keep the DNSKEY public
 # but can remove the KRRSIG records.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
@@ -2027,7 +2183,10 @@ check_next_key_event 7200
 #
 # Zone: step5.csk-roll.autosign.
 #
-zone_properties "ns3" "step5.csk-roll.autosign" "csk-roll" "3600" "2" "10.53.0.3"
+set_zone "step5.csk-roll.autosign"
+set_policy "csk-roll" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # The old CSK (KEY1) KRRSIG records are now all hidden.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_states "KEY1" "hidden" "omnipresent" "unretentive" "hidden" "hidden"
@@ -2047,7 +2206,10 @@ check_next_key_event 2149200
 #
 # Zone: step6.csk-roll.autosign.
 #
-zone_properties "ns3" "step6.csk-roll.autosign" "csk-roll" "3600" "2" "10.53.0.3"
+set_zone "step6.csk-roll.autosign"
+set_policy "csk-roll" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # The old CSK (KEY1) DNSKEY can be removed.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_states "KEY1" "hidden" "unretentive" "hidden" "hidden" "hidden"
@@ -2067,7 +2229,10 @@ check_next_key_event 7200
 #
 # Zone: step7.csk-roll.autosign.
 #
-zone_properties "ns3" "step7.csk-roll.autosign" "csk-roll" "3600" "2" "10.53.0.3"
+set_zone "step7.csk-roll.autosign"
+set_policy "csk-roll" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # The old CSK (KEY1) is now completely HIDDEN.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_states "KEY1" "hidden" "hidden" "hidden" "hidden" "hidden"
@@ -2092,7 +2257,10 @@ check_next_key_event 13708800
 #
 # Zone: step1.csk-roll2.autosign.
 #
-zone_properties "ns3" "step1.csk-roll2.autosign" "csk-roll2" "3600" "1" "10.53.0.3"
+set_zone "step1.csk-roll2.autosign"
+set_policy "csk-roll2" "1" "3600"
+set_server "ns3" "10.53.0.3"
+
 # The CSK (KEY1) starts in OMNIPRESENT.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
@@ -2115,8 +2283,11 @@ check_next_key_event 15454800
 #
 # Zone: step2.csk-roll2.autosign.
 #
+set_zone "step2.csk-roll2.autosign"
+set_policy "csk-roll2" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # Set key properties for testing keys.
-zone_properties "ns3" "step2.csk-roll2.autosign" "csk-roll2" "3600" "2" "10.53.0.3"
 # CSK (KEY1) remains active, no change in properties/timings/states.
 # New CSK (KEY2) is prepublished (and signs DNSKEY RRset).
 key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
@@ -2135,8 +2306,11 @@ check_next_key_event 10800
 #
 # Zone: step3.csk-roll2.autosign.
 #
+set_zone "step3.csk-roll2.autosign"
+set_policy "csk-roll2" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # Set key properties for testing keys.
-zone_properties "ns3" "step3.csk-roll2.autosign" "csk-roll2" "3600" "2" "10.53.0.3"
 # CSK (KEY1) DS and ZRRSIG will be removed, so it is UNRETENTIVE.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_states "KEY1" "hidden" "omnipresent" "unretentive" "omnipresent" "unretentive"
@@ -2164,7 +2338,10 @@ check_next_key_event 136800
 #
 # Zone: step4.csk-roll2.autosign.
 #
-zone_properties "ns3" "step4.csk-roll2.autosign" "csk-roll2" "3600" "2" "10.53.0.3"
+set_zone "step4.csk-roll2.autosign"
+set_policy "csk-roll2" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # The old CSK (KEY1) ZRRSIG is now HIDDEN.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_states "KEY1" "hidden" "omnipresent" "hidden" "omnipresent" "unretentive"
@@ -2188,7 +2365,10 @@ check_next_key_event 478800
 #
 # Zone: step5.csk-roll2.autosign.
 #
-zone_properties "ns3" "step5.csk-roll2.autosign" "csk-roll2" "3600" "2" "10.53.0.3"
+set_zone "step5.csk-roll2.autosign"
+set_policy "csk-roll2" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # The old CSK (KEY1) DNSKEY can be removed.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_states "KEY1" "hidden" "unretentive" "hidden" "unretentive" "hidden"
@@ -2208,7 +2388,10 @@ check_next_key_event 7200
 #
 # Zone: step6.csk-roll2.autosign.
 #
-zone_properties "ns3" "step6.csk-roll2.autosign" "csk-roll" "3600" "2" "10.53.0.3"
+set_zone "step6.csk-roll2.autosign"
+set_policy "csk-roll2" "2" "3600"
+set_server "ns3" "10.53.0.3"
+
 # The old CSK (KEY1) is now completely HIDDEN.
 key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_states "KEY1" "hidden" "hidden" "hidden" "hidden" "hidden"
@@ -2230,7 +2413,10 @@ check_next_key_event 14684400
 #
 # Zone: step1.algorithm-roll.kasp
 #
-zone_properties "ns6" "step1.algorithm-roll.kasp" "rsasha1" "3600" "2" "10.53.0.6"
+set_zone "step1.algorithm-roll.kasp"
+set_policy "rsasha1" "2" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
 key_properties "KEY1" "ksk" "0" "5" "RSASHA1" "2048" "no" "yes"
 key_timings "KEY1" "published" "active" "none" "none" "none"
@@ -2253,7 +2439,10 @@ check_next_key_event 3600
 #
 # Zone: step1.csk-algorithm-roll.kasp
 #
-zone_properties "ns6" "step1.csk-algorithm-roll.kasp" "csk-algoroll" "3600" "1" "10.53.0.6"
+set_zone "step1.csk-algorithm-roll.kasp"
+set_policy "csk-algoroll" "1" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The CSK (KEY1) starta in OMNIPRESENT.
 key_properties "KEY1" "csk" "0" "5" "RSASHA1" "2048" "yes" "yes"
 key_timings "KEY1" "published" "active" "none" "none" "none"
@@ -2311,7 +2500,10 @@ next_key_event_threshold=$((next_key_event_threshold+i))
 #
 # Zone: step1.algorithm-roll.kasp
 #
-zone_properties "ns6" "step1.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+set_zone "step1.algorithm-roll.kasp"
+set_policy "ecdsa256" "4" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The RSAHSHA1 keys are outroducing.
 key_properties "KEY1" "ksk" "0" "5" "RSASHA1" "2048" "no" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
@@ -2340,7 +2532,10 @@ check_next_key_event 10800
 #
 # Zone: step2.algorithm-roll.kasp
 #
-zone_properties "ns6" "step2.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+set_zone "step2.algorithm-roll.kasp"
+set_policy "ecdsa256" "4" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The RSAHSHA1 keys are outroducing, but need to stay present until the new
 # algorithm chain of trust has been established. Thus the properties, timings
 # and states of the KEY1 and KEY2 are the same as above.
@@ -2365,7 +2560,10 @@ check_next_key_event 21600
 #
 # Zone: step3.algorithm-roll.kasp
 #
-zone_properties "ns6" "step3.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+set_zone "step3.algorithm-roll.kasp"
+set_policy "ecdsa256" "4" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The RSAHSHA1 keys are outroducing, and it is time to swap the DS.
 key_states "KEY1" "hidden" "omnipresent" "none" "omnipresent" "unretentive"
 # The ECDSAP256SHA256 keys are introducing. The DNSKEY RRset and all signatures
@@ -2386,7 +2584,10 @@ check_next_key_event 104400
 #
 # Zone: step4.algorithm-roll.kasp
 #
-zone_properties "ns6" "step4.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+set_zone "step4.algorithm-roll.kasp"
+set_policy "ecdsa256" "4" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The old DS is HIDDEN, we can remove the old algorithm DNSKEY/RRSIG records.
 key_properties "KEY1" "ksk" "0" "5" "RSASHA1" "2048" "no" "no"
 key_states "KEY1" "hidden" "unretentive" "none" "unretentive" "hidden"
@@ -2407,7 +2608,10 @@ check_next_key_event 7200
 #
 # Zone: step5.algorithm-roll.kasp
 #
-zone_properties "ns6" "step5.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+set_zone "step5.algorithm-roll.kasp"
+set_policy "ecdsa256" "4" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The DNSKEY becomes HIDDEN.
 key_states "KEY1" "hidden" "hidden" "none" "hidden" "hidden"
 key_states "KEY2" "hidden" "hidden" "unretentive" "none" "none"
@@ -2426,7 +2630,10 @@ check_next_key_event 25200
 #
 # Zone: step6.algorithm-roll.kasp
 #
-zone_properties "ns6" "step6.algorithm-roll.kasp" "ecdsa256" "3600" "4" "10.53.0.6"
+set_zone "step6.algorithm-roll.kasp"
+set_policy "ecdsa256" "4" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The zone signatures should now also be HIDDEN.
 key_states "KEY2" "hidden" "hidden" "hidden" "none" "none"
 
@@ -2446,7 +2653,10 @@ check_next_key_event 3600
 #
 # Zone: step1.csk-algorithm-roll.kasp
 #
-zone_properties "ns6" "step1.csk-algorithm-roll.kasp" "csk-algoroll" "3600" "2" "10.53.0.6"
+set_zone "step1.csk-algorithm-roll.kasp"
+set_policy "csk-algoroll" "2" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The RSAHSHA1 key is outroducing.
 key_properties "KEY1" "csk" "0" "5" "RSASHA1" "2048" "yes" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
@@ -2471,7 +2681,10 @@ check_next_key_event 10800
 #
 # Zone: step2.csk-algorithm-roll.kasp
 #
-zone_properties "ns6" "step2.csk-algorithm-roll.kasp" "csk-algoroll" "3600" "2" "10.53.0.6"
+set_zone "step2.csk-algorithm-roll.kasp"
+set_policy "csk-algoroll" "2" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The RSAHSHA1 key is outroducing, but need to stay present until the new
 # algorithm chain of trust has been established. Thus the properties, timings
 # and states of KEY1 is the same as above.
@@ -2495,7 +2708,10 @@ check_next_key_event 21600
 #
 # Zone: step3.csk-algorithm-roll.kasp
 #
-zone_properties "ns6" "step3.csk-algorithm-roll.kasp" "csk-algoroll" "3600" "2" "10.53.0.6"
+set_zone "step3.csk-algorithm-roll.kasp"
+set_policy "csk-algoroll" "2" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The RSAHSHA1 key is outroducing, and it is time to swap the DS.
 key_states "KEY1" "hidden" "omnipresent" "omnipresent" "omnipresent" "unretentive"
 # The ECDSAP256SHA256 key is introducing. The DNSKEY RRset and all signatures
@@ -2515,7 +2731,10 @@ check_next_key_event 104400
 #
 # Zone: step4.csk-algorithm-roll.kasp
 #
-zone_properties "ns6" "step4.csk-algorithm-roll.kasp" "csk-algoroll" "3600" "2" "10.53.0.6"
+set_zone "step4.csk-algorithm-roll.kasp"
+set_policy "csk-algoroll" "2" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The old DS is HIDDEN, we can remove the old algorithm DNSKEY/RRSIG records.
 key_properties "KEY1" "csk" "0" "5" "RSASHA1" "2048" "no" "no"
 key_states "KEY1" "hidden" "unretentive" "unretentive" "unretentive" "hidden"
@@ -2534,7 +2753,10 @@ check_next_key_event 7200
 #
 # Zone: step5.csk-algorithm-roll.kasp
 #
-zone_properties "ns6" "step5.csk-algorithm-roll.kasp" "csk-algoroll" "3600" "2" "10.53.0.6"
+set_zone "step5.csk-algorithm-roll.kasp"
+set_policy "csk-algoroll" "2" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The DNSKEY becomes HIDDEN.
 key_states "KEY1" "hidden" "hidden" "unretentive" "hidden" "hidden"
 
@@ -2552,7 +2774,10 @@ check_next_key_event 25200
 #
 # Zone: step6.csk-algorithm-roll.kasp
 #
-zone_properties "ns6" "step6.csk-algorithm-roll.kasp" "csk-algoroll" "3600" "2" "10.53.0.6"
+set_zone "step6.csk-algorithm-roll.kasp"
+set_policy "csk-algoroll" "2" "3600"
+set_server "ns6" "10.53.0.6"
+
 # The zone signatures should now also be HIDDEN.
 key_states "KEY1" "hidden" "hidden" "hidden" "hidden" "hidden"
 
