@@ -317,8 +317,10 @@ typedef uint32_t                    rbtdb_rdatatype_t;
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_cname)
 #define RBTDB_RDATATYPE_SIGDNAME \
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_dname)
-#define RBTDB_RDATATYPE_SIGDDS \
+#define RBTDB_RDATATYPE_SIGDS \
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_ds)
+#define RBTDB_RDATATYPE_SIGSOA \
+		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_soa)
 #define RBTDB_RDATATYPE_NCACHEANY \
 		RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
 
@@ -1137,14 +1139,19 @@ ttl_sooner(void *v1, void *v2) {
 	return (h1->rdh_ttl < h2->rdh_ttl);
 }
 
+/*%
+ * Return which RRset should be resigned sooner.  If the RRsets have the
+ * same signing time, prefer the other RRset over the SOA RRset.
+ */
 static bool
 resign_sooner(void *v1, void *v2) {
 	rdatasetheader_t *h1 = v1;
 	rdatasetheader_t *h2 = v2;
 
 	return (h1->resign < h2->resign ||
-		(h1->resign == h2->resign &&
-		 h1->resign_lsb < h2->resign_lsb));
+		(h1->resign == h2->resign && h1->resign_lsb < h2->resign_lsb) ||
+		(h1->resign == h2->resign && h1->resign_lsb == h2->resign_lsb &&
+		 h2->type == RBTDB_RDATATYPE_SIGSOA));
 }
 
 /*%
@@ -6384,7 +6391,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		    (header->type == dns_rdatatype_a ||
 		     header->type == dns_rdatatype_aaaa ||
 		     header->type == dns_rdatatype_ds ||
-		     header->type == RBTDB_RDATATYPE_SIGDDS) &&
+		     header->type == RBTDB_RDATATYPE_SIGDS) &&
 		    !header_nx && !newheader_nx &&
 		    header->trust >= newheader->trust &&
 		    dns_rdataslab_equal((unsigned char *)header,
