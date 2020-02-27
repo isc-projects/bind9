@@ -18341,10 +18341,11 @@ zone_rekey(dns_zone_t *zone) {
 
 	dns_db_closeversion(db, &ver, true);
 
+	LOCK_ZONE(zone);
+
 	if (commit) {
 		dns_difftuple_t *tuple;
 
-		LOCK_ZONE(zone);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 
 		zone_needdump(zone, DNS_DUMP_DELAY);
@@ -18462,10 +18463,8 @@ zone_rekey(dns_zone_t *zone) {
 		 * Schedule the next resigning event
 		 */
 		set_resigntime(zone);
-		UNLOCK_ZONE(zone);
 	}
 
-	LOCK_ZONE(zone);
 	isc_time_settoepoch(&zone->refreshkeytime);
 
 	/*
