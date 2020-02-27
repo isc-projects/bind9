@@ -10338,8 +10338,14 @@ dns_zone_markdirty(dns_zone_t *zone) {
 		}
 
 		/* XXXMPA make separate call back */
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			set_resigntime(zone);
+			if (zone->task != NULL) {
+				isc_time_t now;
+				TIME_NOW(&now);
+				zone_settimer(zone, &now);
+			}
+		}
 	}
 	if (secure != NULL)
 		UNLOCK_ZONE(secure);
