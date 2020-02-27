@@ -664,6 +664,7 @@ typedef struct {
 	bool shuttingdown;
 	bool poll;
 	const char *mnemonic;	/* Style of transfer */
+	uint32_t end_serial;	/* Serial number after XFR is done */
 	struct xfr_stats stats; /*%< Transfer statistics */
 } xfrout_ctx_t;
 
@@ -1109,6 +1110,7 @@ have_stream:
 			(format == dns_many_answers) ? true : false, &xfr);
 	}
 
+	xfr->end_serial = current_serial;
 	xfr->mnemonic = mnemonic;
 	stream = NULL;
 	quota = NULL;
@@ -1722,10 +1724,11 @@ xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 			   "%s ended: "
 			   "%" PRIu64 " messages, %" PRIu64 " records, "
 			   "%" PRIu64 " bytes, "
-			   "%u.%03u secs (%u bytes/sec)",
+			   "%u.%03u secs (%u bytes/sec) (serial %u)",
 			   xfr->mnemonic, xfr->stats.nmsg, xfr->stats.nrecs,
 			   xfr->stats.nbytes, (unsigned int)(msecs / 1000),
-			   (unsigned int)(msecs % 1000), (unsigned int)persec);
+			   (unsigned int)(msecs % 1000), (unsigned int)persec,
+			   xfr->end_serial);
 
 		/*
 		 * We're done, unreference the handle and destroy the xfr
