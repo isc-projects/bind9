@@ -6882,14 +6882,15 @@ zone_resigninc(dns_zone_t *zone) {
 	if (version != NULL) {
 		dns_db_closeversion(db, &version, false);
 		dns_db_detach(&db);
-	} else if (db != NULL)
+	} else if (db != NULL) {
 		dns_db_detach(&db);
+	}
+
+	LOCK_ZONE(zone);
 	if (result == ISC_R_SUCCESS) {
-		LOCK_ZONE(zone);
 		set_resigntime(zone);
 		zone_needdump(zone, DNS_DUMP_DELAY);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-		UNLOCK_ZONE(zone);
 	} else {
 		/*
 		 * Something failed.  Retry in 5 minutes.
@@ -6898,6 +6899,7 @@ zone_resigninc(dns_zone_t *zone) {
 		isc_interval_set(&ival, 300, 0);
 		isc_time_nowplusinterval(&zone->resigntime, &ival);
 	}
+	UNLOCK_ZONE(zone);
 
 	INSIST(version == NULL);
 }
@@ -9291,6 +9293,7 @@ zone_sign(dns_zone_t *zone) {
 		dns_db_detach(&db);
 	}
 
+	LOCK_ZONE(zone);
 	if (ISC_LIST_HEAD(zone->signing) != NULL) {
 		isc_interval_t interval;
 		if (zone->update_disabled || result != ISC_R_SUCCESS) {
@@ -9302,6 +9305,7 @@ zone_sign(dns_zone_t *zone) {
 	} else {
 		isc_time_settoepoch(&zone->signingtime);
 	}
+	UNLOCK_ZONE(zone);
 
 	INSIST(version == NULL);
 }
@@ -18907,7 +18911,8 @@ zone_rekey(dns_zone_t *zone) {
 
 	result = ISC_R_SUCCESS;
 
- failure:
+failure:
+	LOCK_ZONE(zone);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * Something went wrong; try again in ten minutes or
@@ -18917,6 +18922,7 @@ zone_rekey(dns_zone_t *zone) {
 				 ISC_MIN(zone->refreshkeyinterval, 600), 0);
 		isc_time_nowplusinterval(&zone->refreshkeytime, &ival);
 	}
+	UNLOCK_ZONE(zone);
 
 	dns_diff_clear(&diff);
 	dns_diff_clear(&_sig_diff);
