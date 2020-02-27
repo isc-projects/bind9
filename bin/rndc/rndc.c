@@ -160,7 +160,7 @@ command is one of the following:\n\
   scan		Scan available network interfaces for changes.\n\
   secroots [view ...]\n\
 		Write security roots to the secroots file.\n\
-  serve-stale [ yes | no | reset | status ] [class [view]]\n\
+  serve-stale [ on | off | reset | status ] [class [view]]\n\
 		Control whether stale answers are returned\n\
   showzone zone [class [view]]\n\
 		Print a zone's configuration.\n\
@@ -204,7 +204,7 @@ command is one of the following:\n\
 		Delete a TKEY-negotiated TSIG key.\n\
   tsig-list	List all currently active TSIG keys, including both statically\n\
 		configured and TKEY-negotiated keys.\n\
-  validation [ yes | no | status ] [view]\n\
+  validation [ on | off | status ] [view]\n\
 		Enable / disable DNSSEC validation.\n\
   zonestatus zone [class [view]]\n\
 		Display the current status of a zone.\n\
