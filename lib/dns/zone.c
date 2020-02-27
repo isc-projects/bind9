@@ -3818,6 +3818,8 @@ set_resigntime(dns_zone_t *zone) {
 	uint32_t nanosecs;
 	dns_db_t *db = NULL;
 
+	INSIST(LOCKED_ZONE(zone));
+
 	/* We only re-sign zones that can be dynamically updated */
 	if (zone->update_disabled) {
 		return;
@@ -7130,8 +7132,8 @@ failure:
 		dns_db_detach(&db);
 	}
 	if (result == ISC_R_SUCCESS) {
-		set_resigntime(zone);
 		LOCK_ZONE(zone);
+		set_resigntime(zone);
 		zone_needdump(zone, DNS_DUMP_DELAY);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 		UNLOCK_ZONE(zone);
@@ -8848,7 +8850,9 @@ done:
 		nsec3chain = ISC_LIST_HEAD(cleanup);
 	}
 
+	LOCK_ZONE(zone);
 	set_resigntime(zone);
+	UNLOCK_ZONE(zone);
 
 failure:
 	if (result != ISC_R_SUCCESS) {
@@ -9586,14 +9590,13 @@ pauseall:
 		signing = ISC_LIST_HEAD(cleanup);
 	}
 
+	LOCK_ZONE(zone);
 	set_resigntime(zone);
-
 	if (commit) {
-		LOCK_ZONE(zone);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 		zone_needdump(zone, DNS_DUMP_DELAY);
-		UNLOCK_ZONE(zone);
 	}
+	UNLOCK_ZONE(zone);
 
 failure:
 	if (result != ISC_R_SUCCESS) {
