@@ -14571,6 +14571,11 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	zone->sourceserialset = true;
 	zone_needdump(zone, DNS_DUMP_DELAY);
 
+	/*
+	 * Set resign time to make sure it is set to the earliest
+	 * signature expiration.
+	 */
+	set_resigntime(zone);
 	TIME_NOW(&timenow);
 	zone_settimer(zone, &timenow);
 	UNLOCK_ZONE(zone);
