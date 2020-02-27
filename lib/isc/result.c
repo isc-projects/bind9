@@ -15,9 +15,9 @@
 #include <stdlib.h>
 
 #include <isc/lib.h>
-#include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/resultclass.h>
+#include <isc/rwlock.h>
 #include <isc/util.h>
 
 typedef struct resulttable {
@@ -182,7 +182,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 static isc_once_t once = ISC_ONCE_INIT;
 static resulttable_list_t description_tables;
 static resulttable_list_t identifier_tables;
-static isc_mutex_t lock;
+static isc_rwlock_t lock;
 
 static isc_result_t
 register_table(resulttable_list_t *tables, unsigned int base,
@@ -207,11 +207,11 @@ register_table(resulttable_list_t *tables, unsigned int base,
 	table->set = set;
 	ISC_LINK_INIT(table, link);
 
-	LOCK(&lock);
+	RWLOCK(&lock, isc_rwlocktype_write);
 
 	ISC_LIST_APPEND(*tables, table, link);
 
-	UNLOCK(&lock);
+	RWUNLOCK(&lock, isc_rwlocktype_write);
 
 	return (ISC_R_SUCCESS);
 }
@@ -220,7 +220,7 @@ static void
 initialize_action(void) {
 	isc_result_t result;
 
-	isc_mutex_init(&lock);
+	isc_rwlock_init(&lock, 0, 0);
 	ISC_LIST_INIT(description_tables);
 	ISC_LIST_INIT(identifier_tables);
 
@@ -254,7 +254,7 @@ isc_result_tomany_helper(resulttable_list_t *tables, isc_result_t result) {
 
 	initialize();
 
-	LOCK(&lock);
+	RWLOCK(&lock, isc_rwlocktype_read);
 
 	text = NULL;
 	for (table = ISC_LIST_HEAD(*tables); table != NULL;
@@ -270,7 +270,7 @@ isc_result_tomany_helper(resulttable_list_t *tables, isc_result_t result) {
 		text = "(result code text not available)";
 	}
 
-	UNLOCK(&lock);
+	RWUNLOCK(&lock, isc_rwlocktype_read);
 
 	return (text);
 }
