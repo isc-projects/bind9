@@ -1625,8 +1625,9 @@ Optional Features:
   --enable-devpoll        use /dev/poll when available [default=yes]
   --disable-geoip         support GeoIP2 geolocation ACLs if available
                           [default=yes]
-  --enable-pthread-rwlock use pthread rwlock instead of internal rwlock
-                          implementation (EXPERIMENTAL)
+  --disable-pthread-rwlock
+                          use internal rwlock implementation instead of
+                          pthread rwlock
   --enable-fips-mode      enable FIPS mode in OpenSSL library [default=no]
   --enable-native-pkcs11  use native PKCS11 for public-key crypto [default=no]
   --enable-backtrace      log stack backtrace on abort [default=yes]
@@ -16040,13 +16041,13 @@ esac
 
 
 #
-# Do we want to use pthread rwlock? (useful for ThreadSanitizer)
+# Do we want to use pthread rwlock?
 #
 # Check whether --enable-pthread_rwlock was given.
 if test "${enable_pthread_rwlock+set}" = set; then :
   enableval=$enable_pthread_rwlock;
 else
-  enable_pthread_rwlock=no
+  enable_pthread_rwlock=yes
 fi
 
 
