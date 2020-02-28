@@ -1519,7 +1519,7 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	dns_view_t *view = NULL;
 	dns_keytable_t *secroots = NULL;
 	dns_name_t *name = NULL;
-	char dsbuf[DNS_DS_BUFFERSIZE];
+	char rdatabuf[DST_KEY_MAXSIZE];
 	unsigned char digest[ISC_MAX_MD_SIZE];
 	dns_rdata_ds_t ds;
 	dns_decompress_t dctx;
@@ -1543,7 +1543,7 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 		goto cleanup;
 	}
 
-	isc_buffer_init(&b, dsbuf, sizeof(dsbuf));
+	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
 	dns_rdata_init(&rdata);
 	isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
