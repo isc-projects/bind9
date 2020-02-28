@@ -198,21 +198,12 @@ set_zonesigning() {
 # Set key timing metadata. Set to "none" to unset.
 # These times are hard to test, so it is just an indication that we expect the
 # respective timing metadata in the key files.
-# $1: Key to update
-# $2: Published
-# $3: Active
-# $4: Retired
-# $5: Revoked
-# $6: Removed
-#
-# This will update either the KEY1, KEY2 or KEY3 array.
-key_timings() {
+# $1: Key to update (KEY1, KEY2, ...)
+# $2: Time to update (PUBLISHED, ACTIVE, RETIRED, REVOKED, or REMOVED).
+# $3: Value
+set_keytime() {
 	key_set "$1" "EXPECT" "yes"
-	key_set "$1" "PUBLISHED" "$2"
-	key_set "$1" "ACTIVE" "$3"
-	key_set "$1" "RETIRED" "$4"
-	key_set "$1" "REVOKED" "$5"
-	key_set "$1" "REMOVED" "$6"
+	key_set "$1" "$2" "$3"
 }
 
 # Set key state metadata. Set to "none" to unset.
@@ -498,17 +489,11 @@ set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 
-key_timings "KEY1" "none" "none" "none" "none" "none"
-key_states "KEY1" "none" "none" "none" "none" "none"
-
 set_keyrole      "KEY2" "ksk"
 set_keylifetime  "KEY2" "31536000"
 set_keyalgorithm "KEY2" "8" "RSASHA256" "2048"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
-
-key_timings "KEY2" "none" "none" "none" "none" "none"
-key_states "KEY2" "none" "none" "none" "none" "none"
 
 set_keyrole      "KEY3" "zsk"
 set_keylifetime  "KEY3" "2592000"
@@ -516,17 +501,11 @@ set_keyalgorithm "KEY3" "8" "RSASHA256" "1024"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "yes"
 
-key_timings "KEY3" "none" "none" "none" "none" "none"
-key_states "KEY3" "none" "none" "none" "none" "none"
-
 set_keyrole      "KEY4" "zsk"
 set_keylifetime  "KEY4" "16070400"
 set_keyalgorithm "KEY4" "8" "RSASHA256" "2000"
 set_keysigning   "KEY4" "no"
 set_zonesigning  "KEY4" "yes"
-
-key_timings "KEY4" "none" "none" "none" "none" "none"
-key_states "KEY4" "none" "none" "none" "none" "none"
 
 lines=$(get_keyids "$DIR" "$ZONE" | wc -l)
 test "$lines" -eq $NUM_KEYS || log_error "bad number of key ids"
@@ -566,9 +545,6 @@ set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 
-key_timings "KEY1" "none" "none" "none" "none" "none"
-key_states "KEY1" "none" "none" "none" "none" "none"
-
 key_clear "KEY2"
 key_clear "KEY3"
 key_clear "KEY4"
@@ -607,7 +583,7 @@ ret=0
 cp "$STATE_FILE" "$CMP_FILE"
 now=$(date +%Y%m%d%H%M%S)
 $SETTIME -s -P "$now" -g "omnipresent" -k "rumoured" "$now" -z "omnipresent" "$now" -r "rumoured" "$now" -d "hidden" "$now" "$BASE_FILE" > /dev/null || log_error "settime failed"
-key_timings "KEY1" "published" "none" "none" "none" "none"
+set_keytime "KEY1" "PUBLISHED" "yes"
 key_states "KEY1" "omnipresent" "rumoured" "omnipresent" "rumoured" "hidden"
 check_key "KEY1" "$id"
 test "$ret" -eq 0 || echo_i "failed"
@@ -618,7 +594,7 @@ echo_i "check that 'dnssec-settime -s' also unsets publish time metadata and sta
 ret=0
 cp "$STATE_FILE" "$CMP_FILE"
 $SETTIME -s -P "none" -g "none" -k "none" "$now" -z "none" "$now" -r "none" "$now" -d "none" "$now" "$BASE_FILE" > /dev/null || log_error "settime failed"
-key_timings "KEY1" "none" "none" "none" "none" "none"
+set_keytime "KEY1" "PUBLISHED" "none"
 key_states "KEY1" "none" "none" "none" "none" "none"
 check_key "KEY1" "$id"
 test "$ret" -eq 0 || echo_i "failed"
@@ -630,7 +606,7 @@ ret=0
 cp "$STATE_FILE" "$CMP_FILE"
 now=$(date +%Y%m%d%H%M%S)
 $SETTIME -s -A "$now" -g "HIDDEN" -k "UNRETENTIVE" "$now" -z "UNRETENTIVE" "$now" -r "OMNIPRESENT" "$now" -d "OMNIPRESENT" "$now" "$BASE_FILE" > /dev/null || log_error "settime failed"
-key_timings "KEY1" "none" "active" "none" "none" "none"
+set_keytime "KEY1" "ACTIVE" "yes"
 key_states "KEY1" "hidden" "unretentive" "unretentive" "omnipresent" "omnipresent"
 check_key "KEY1" "$id"
 test "$ret" -eq 0 || echo_i "failed"
@@ -691,7 +667,8 @@ set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 
 # The first key is immediately published and activated.
-key_timings "KEY1" "published" "active" "none" "none" "none" "none"
+set_keytime "KEY1" "PUBLISHED" "yes"
+set_keytime "KEY1" "ACTIVE"    "yes"
 # DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
 key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 
@@ -797,12 +774,19 @@ set_keylifetime  "KEY3" "31536000"
 set_keyalgorithm "KEY3" "5" "RSASHA1" "2000"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "yes"
-
 # The first keys are immediately published and activated.
 # Because lifetime > 0, retired timing is also set.
-key_timings "KEY1" "published" "active" "retired" "none" "none"
-key_timings "KEY2" "published" "active" "retired" "none" "none"
-key_timings "KEY3" "published" "active" "retired" "none" "none"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "yes"
+
+set_keytime  "KEY2" "PUBLISHED"    "yes"
+set_keytime  "KEY2" "ACTIVE"       "yes"
+set_keytime  "KEY2" "RETIRED"      "yes"
+
+set_keytime  "KEY3" "PUBLISHED"    "yes"
+set_keytime  "KEY3" "ACTIVE"       "yes"
+set_keytime  "KEY3" "RETIRED"      "yes"
 # KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
 # ZSK: DNSKEY, RRSIG (zsk) published.
 key_states "KEY1" "omnipresent" "rumoured" "none" "rumoured" "hidden"
@@ -1144,7 +1128,9 @@ set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 
 # The first key is immediately published and activated.
-key_timings "KEY1" "published" "active" "none" "none" "none"
+set_keytime "KEY1" "PUBLISHED" "yes"
+set_keytime "KEY1" "ACTIVE"    "yes"
+set_keytime "KEY1" "RETIRED"   "none"
 # DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
 key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 
@@ -1182,9 +1168,17 @@ set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "yes"
 # The first keys are immediately published and activated.
 # Because lifetime > 0, retired timing is also set.
-key_timings "KEY1" "published" "active" "retired" "none" "none"
-key_timings "KEY2" "published" "active" "retired" "none" "none"
-key_timings "KEY3" "published" "active" "retired" "none" "none"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "yes"
+
+set_keytime  "KEY2" "PUBLISHED"    "yes"
+set_keytime  "KEY2" "ACTIVE"       "yes"
+set_keytime  "KEY2" "RETIRED"      "yes"
+
+set_keytime  "KEY3" "PUBLISHED"    "yes"
+set_keytime  "KEY3" "ACTIVE"       "yes"
+set_keytime  "KEY3" "RETIRED"      "yes"
 # KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
 # ZSK: DNSKEY, RRSIG (zsk) published.
 key_states "KEY1" "omnipresent" "rumoured" "none" "rumoured" "hidden"
@@ -1420,12 +1414,17 @@ set_keylifetime  "KEY2" "31536000"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
+# Key timings.
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "yes"
 
+set_keytime  "KEY2" "PUBLISHED"    "yes"
+set_keytime  "KEY2" "ACTIVE"       "yes"
+set_keytime  "KEY2" "RETIRED"      "yes"
 # Both KSK and ZSK stay OMNIPRESENT.
-key_timings "KEY1" "published" "active" "retired" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
 key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
-key_timings "KEY2" "published" "active" "retired" "none" "none"
 # Expect only two keys.
 key_clear "KEY3"
 key_clear "KEY4"
@@ -1567,13 +1566,15 @@ set_keylifetime  "KEY3" "31536000"
 set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "no"
+# Key timings.
+set_keytime "KEY3" "PUBLISHED" "yes"
+set_keytime "KEY3" "ACTIVE"    "yes"
+set_keytime "KEY3" "RETIRED"   "yes"
 # The ZSK goal is set to HIDDEN but records stay OMNIPRESENT until the new ZSK
 # is active.
-key_timings "KEY2" "published" "active" "retired" "none" "none"
 key_states "KEY2" "hidden" "omnipresent" "omnipresent" "none" "none"
 # A new ZSK should be introduced, so expect a key with goal OMNIPRESENT,
 # the DNSKEY introduced (RUMOURED) and the signatures HIDDEN.
-key_timings "KEY3" "published" "active" "retired" "none" "none"
 key_states "KEY3" "omnipresent" "rumoured" "hidden" "none" "none"
 
 #
@@ -1688,7 +1689,10 @@ set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 
-key_timings "KEY1" "published" "active" "none" "none" "none"
+set_keytime "KEY1" "PUBLISHED" "yes"
+set_keytime "KEY1" "ACTIVE"    "yes"
+set_keytime "KEY1" "RETIRED"   "none"
+
 key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 
 set_zone "signed.tld"
@@ -1807,13 +1811,16 @@ set_zone "step1.enable-dnssec.autosign"
 set_policy "enable-dnssec" "1" "300"
 set_server "ns3" "10.53.0.3"
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "csk"
 set_keylifetime  "KEY1" "0"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
+# Key timings.
+set_keytime "KEY1" "PUBLISHED" "yes"
+set_keytime "KEY1" "ACTIVE"    "yes"
 # The DNSKEY and signatures are introduced first, the DS remains hidden.
-key_timings "KEY1" "published" "active" "none" "none" "none"
 key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 # This policy lists only one key (CSK).
 key_clear "KEY2"
@@ -1919,6 +1926,7 @@ set_zone "step1.zsk-prepub.autosign"
 set_policy "zsk-prepub" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "63072000"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
@@ -1931,11 +1939,17 @@ set_keylifetime  "KEY2" "2592000"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
+# Key timings.
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "yes"
+
+set_keytime  "KEY2" "PUBLISHED"    "yes"
+set_keytime  "KEY2" "ACTIVE"       "yes"
+set_keytime  "KEY2" "RETIRED"      "yes"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
-key_timings "KEY1" "published" "active" "retired" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
 key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
-key_timings "KEY2" "published" "active" "retired" "none" "none"
 # Initially only two keys.
 key_clear "KEY3"
 key_clear "KEY4"
@@ -1958,15 +1972,18 @@ set_zone "step2.zsk-prepub.autosign"
 set_policy "zsk-prepub" "3" "3600"
 set_server "ns3" "10.53.0.3"
 # New ZSK (KEY3) is prepublished, but not yet signing.
+key_clear        "KEY3"
 set_keyrole      "KEY3" "zsk"
 set_keylifetime  "KEY3" "2592000"
 set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "no"
-# KSK (KEY1) doesn't change.
-# ZSK (KEY2) remains active, no change in properties/timings/states.
+# Key timings.
+set_keytime "KEY3" "PUBLISHED" "yes"
+set_keytime "KEY3" "ACTIVE"    "yes"
+set_keytime "KEY3" "RETIRED"   "yes"
+# Key states.
 key_states "KEY3" "omnipresent" "rumoured" "hidden" "none" "none"
-key_timings "KEY3" "published" "active" "retired" "none" "none"
 
 check_keys
 check_apex
@@ -2039,7 +2056,7 @@ set_zone "step5.zsk-prepub.autosign"
 set_policy "zsk-prepub" "3" "3600"
 set_server "ns3" "10.53.0.3"
 # ZSK (KEY3) DNSKEY is now completely HIDDEN and removed.
-key_timings "KEY2" "published" "active" "retired" "none" "removed"
+set_keytime "KEY2" "REMOVED" "yes"
 key_states "KEY2" "hidden" "hidden" "hidden" "none" "none"
 
 # ZSK (KEY3) remains actively signing, staying in OMNIPRESENT.
@@ -2064,6 +2081,7 @@ set_zone "step1.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "2" "7200"
 set_server "ns3" "10.53.0.3"
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "5184000"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
@@ -2076,10 +2094,16 @@ set_keylifetime  "KEY2" "31536000"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
+# Key timings.
+set_keytime  "KEY1" "PUBLISHED" "yes"
+set_keytime  "KEY1" "ACTIVE"    "yes"
+set_keytime  "KEY1" "RETIRED"   "yes"
+
+set_keytime  "KEY2" "PUBLISHED" "yes"
+set_keytime  "KEY2" "ACTIVE"    "yes"
+set_keytime  "KEY2" "RETIRED"   "yes"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
-key_timings "KEY1" "published" "active" "retired" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_timings "KEY2" "published" "active" "retired" "none" "none"
 key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
 # Initially only two keys.
 key_clear "KEY3"
@@ -2104,13 +2128,18 @@ set_zone "step2.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "3" "7200"
 set_server "ns3" "10.53.0.3"
 # New KSK (KEY3) is prepublished (and signs DNSKEY RRset).
+key_clear        "KEY3"
 set_keyrole      "KEY3" "ksk"
 set_keylifetime  "KEY3" "5184000"
 set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "yes"
 set_zonesigning  "KEY3" "no"
+# Key timings.
+set_keytime "KEY3" "PUBLISHED" "yes"
+set_keytime "KEY3" "ACTIVE"    "yes"
+set_keytime "KEY3" "RETIRED"   "yes"
+# Key states.
 key_states "KEY3" "omnipresent" "rumoured" "none" "rumoured" "hidden"
-key_timings "KEY3" "published" "active" "retired" "none" "none"
 
 check_keys
 check_apex
@@ -2199,13 +2228,17 @@ set_zone "step1.csk-roll.autosign"
 set_policy "csk-roll" "1" "3600"
 set_server "ns3" "10.53.0.3"
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "csk"
 set_keylifetime  "KEY1" "16070400"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
+# Key timings.
+set_keytime "KEY1" "PUBLISHED" "yes"
+set_keytime "KEY1" "ACTIVE"    "yes"
+set_keytime "KEY1" "RETIRED"   "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
-key_timings "KEY1" "published" "active" "retired" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
 # Initially only one key.
 key_clear "KEY2"
@@ -2231,13 +2264,18 @@ set_zone "step2.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # New CSK (KEY2) is prepublished (signs DNSKEY RRset, but not yet other RRsets).
+key_clear        "KEY2"
 set_keyrole      "KEY2" "csk"
 set_keylifetime  "KEY2" "16070400"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
+# Key timings.
+set_keytime "KEY2" "PUBLISHED" "yes"
+set_keytime "KEY2" "ACTIVE"    "yes"
+set_keytime "KEY2" "RETIRED"   "yes"
+# Key states.
 key_states "KEY2" "omnipresent" "rumoured" "hidden" "rumoured" "hidden"
-key_timings "KEY2" "published" "active" "retired" "none" "none"
 
 check_keys
 check_apex
@@ -2384,13 +2422,17 @@ set_zone "step1.csk-roll2.autosign"
 set_policy "csk-roll2" "1" "3600"
 set_server "ns3" "10.53.0.3"
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "csk"
 set_keylifetime  "KEY1" "16070400"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
+# Key timings.
+set_keytime "KEY1" "PUBLISHED" "yes"
+set_keytime "KEY1" "ACTIVE"    "yes"
+set_keytime "KEY1" "RETIRED"   "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
-key_timings "KEY1" "published" "active" "retired" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
 # Initially only one key.
 key_clear "KEY2"
@@ -2416,13 +2458,18 @@ set_zone "step2.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # New CSK (KEY2) is prepublished (signs DNSKEY RRset, but not yet other RRsets).
+key_clear        "KEY2"
 set_keyrole      "KEY2" "csk"
 set_keylifetime  "KEY2" "16070400"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
+# Key timings.
+set_keytime "KEY2" "PUBLISHED" "yes"
+set_keytime "KEY2" "ACTIVE"    "yes"
+set_keytime "KEY2" "RETIRED"   "yes"
+# Key states.
 key_states "KEY2" "omnipresent" "rumoured" "hidden" "rumoured" "hidden"
-key_timings "KEY2" "published" "active" "retired" "none" "none"
 
 check_keys
 check_apex
@@ -2547,6 +2594,7 @@ set_zone "step1.algorithm-roll.kasp"
 set_policy "rsasha1" "2" "3600"
 set_server "ns6" "10.53.0.6"
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "0"
 set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
@@ -2561,10 +2609,14 @@ set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
 key_clear "KEY3"
 key_clear "KEY4"
+# Key timings.
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+
+set_keytime  "KEY2" "PUBLISHED"    "yes"
+set_keytime  "KEY2" "ACTIVE"       "yes"
 # The KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
-key_timings "KEY1" "published" "active" "none" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_timings "KEY2" "published" "active" "none" "none" "none"
 key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
 
 check_keys
@@ -2584,6 +2636,7 @@ set_zone "step1.csk-algorithm-roll.kasp"
 set_policy "csk-algoroll" "1" "3600"
 set_server "ns6" "10.53.0.6"
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "csk"
 set_keylifetime  "KEY1" "0"
 set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
@@ -2592,8 +2645,10 @@ set_zonesigning  "KEY1" "yes"
 key_clear "KEY2"
 key_clear "KEY3"
 key_clear "KEY4"
+# Key timings.
+set_keytime "KEY1" "PUBLISHED" "yes"
+set_keytime "KEY1" "ACTIVE"    "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
-key_timings "KEY1" "published" "active" "none" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
 
 check_keys
@@ -2650,36 +2705,46 @@ set_zone "step1.algorithm-roll.kasp"
 set_policy "ecdsa256" "4" "3600"
 set_server "ns6" "10.53.0.6"
 # Old RSASHA1 keys.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "0"
 set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "no"
+key_clear        "KEY2"
 set_keyrole      "KEY2" "zsk"
 set_keylifetime  "KEY2" "0"
 set_keyalgorithm "KEY2" "5" "RSASHA1" "2048"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
 # New ECDSAP256SHA256 keys.
+key_clear        "KEY3"
 set_keyrole      "KEY3" "ksk"
 set_keylifetime  "KEY3" "0"
 set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "yes"
 set_zonesigning  "KEY3" "no"
+key_clear        "KEY4"
 set_keyrole      "KEY4" "zsk"
 set_keylifetime  "KEY4" "0"
 set_keyalgorithm "KEY4" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY4" "no"
 set_zonesigning  "KEY4" "yes"
 # The RSAHSHA1 keys are outroducing.
-key_timings "KEY1" "published" "active" "retired" "none" "none"
+set_keytime "KEY1" "PUBLISHED" "yes"
+set_keytime "KEY1" "ACTIVE"    "yes"
+set_keytime "KEY1" "RETIRED"   "yes"
+set_keytime "KEY2" "PUBLISHED" "yes"
+set_keytime "KEY2" "ACTIVE"    "yes"
+set_keytime "KEY2" "RETIRED"   "yes"
 key_states "KEY1" "hidden" "omnipresent" "none" "omnipresent" "omnipresent"
-key_timings "KEY2" "published" "active" "retired" "none" "none"
 key_states "KEY2" "hidden" "omnipresent" "omnipresent" "none" "none"
 # The ECDSAP256SHA256 keys are introducing.
-key_timings "KEY3" "published" "active" "none" "none" "none"
+set_keytime "KEY3" "PUBLISHED" "yes"
+set_keytime "KEY3" "ACTIVE"    "yes"
+set_keytime "KEY4" "PUBLISHED" "yes"
+set_keytime "KEY4" "ACTIVE"    "yes"
 key_states "KEY3" "omnipresent" "rumoured" "none" "rumoured" "hidden"
-key_timings "KEY4" "published" "active" "none" "none" "none"
 key_states "KEY4" "omnipresent" "rumoured" "rumoured" "none" "none"
 
 check_keys
@@ -2822,6 +2887,7 @@ set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 # New ECDSAP256SHA256 key.
+key_clear	 "KEY2"
 set_keyrole      "KEY2" "csk"
 set_keylifetime  "KEY2" "0"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
@@ -2830,10 +2896,13 @@ set_zonesigning  "KEY2" "yes"
 key_clear "KEY3"
 key_clear "KEY4"
 # The RSAHSHA1 key is outroducing.
-key_timings "KEY1" "published" "active" "retired" "none" "none"
+set_keytime "KEY1" "PUBLISHED" "yes"
+set_keytime "KEY1" "ACTIVE"    "yes"
+set_keytime "KEY1" "RETIRED"   "yes"
 key_states "KEY1" "hidden" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
 # The ECDSAP256SHA256 key is introducing.
-key_timings "KEY2" "published" "active" "none" "none" "none"
+set_keytime "KEY2" "PUBLISHED" "yes"
+set_keytime "KEY2" "ACTIVE"    "yes"
 key_states "KEY2" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 
 check_keys
