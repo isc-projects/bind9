@@ -718,6 +718,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 		for (int i = 0; i < sock->nchildren; i++) {
 			if (!atomic_load(&sock->children[i].destroying)) {
 				nmsocket_cleanup(&sock->children[i], false);
+				if (sock->statsindex != NULL) {
+					isc__nm_decstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
+				}
 			}
 		}
 
@@ -728,6 +731,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 			    sock->nchildren * sizeof(*sock));
 		sock->children = NULL;
 		sock->nchildren = 0;
+	}
+	if (sock->statsindex != NULL) {
+			isc__nm_decstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 	}
 
 	if (sock->tcphandle != NULL) {
@@ -843,8 +849,6 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock) {
 	if (sock->children != NULL) {
 		for (int i = 0; i < sock->nchildren; i++) {
 			atomic_store(&sock->children[i].active, false);
-			isc__nm_decstats(sock->mgr,
-					 sock->statsindex[STATID_ACTIVE]);
 		}
 	}
 

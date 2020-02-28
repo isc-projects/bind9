@@ -650,9 +650,6 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	}
 
 	isc__nm_free_uvbuf(sock, buf);
-	if (sock->quota) {
-		isc_quota_detach(&sock->quota);
-	}
 
 	/*
 	 * This might happen if the inner socket is closing.  It means that
@@ -680,6 +677,7 @@ accept_connection(isc_nmsocket_t *ssock) {
 	struct sockaddr_storage ss;
 	isc_sockaddr_t local;
 	int r;
+	bool overquota = false;
 
 	REQUIRE(VALID_NMSOCK(ssock));
 	REQUIRE(ssock->tid == isc_nm_tid());
@@ -693,10 +691,26 @@ accept_connection(isc_nmsocket_t *ssock) {
 
 	if (ssock->pquota != NULL) {
 		result = isc_quota_attach(ssock->pquota, &quota);
+		/*
+		 * We share the quota between sockets - we need to  have at
+		 * least one active connection here to restart listening
+		 * when the quota is available again (in tcp_close_direct).
+		 */
 		if (result != ISC_R_SUCCESS) {
-			isc__nm_incstats(ssock->mgr,
-					 ssock->statsindex[STATID_ACCEPTFAIL]);
-			return (result);
+			ssock->overquota++;
+			overquota = true;
+			if (ssock->conns > 0) {
+				isc__nm_incstats(
+					ssock->mgr,
+					ssock->statsindex[STATID_ACCEPTFAIL]);
+				return (result);
+			}
+			/*
+			 * We share the quota between sockets - we need to  have
+			 * at least one active connection here to restart
+			 * listening when the quota is available again (in
+			 * tcp_close_direct).
+			 */
 		}
 	}
 
@@ -743,6 +757,7 @@ accept_connection(isc_nmsocket_t *ssock) {
 	}
 
 	isc_nmsocket_attach(ssock, &csock->server);
+	ssock->conns++;
 
 	handle = isc__nmhandle_get(csock, NULL, &local);
 
@@ -761,6 +776,9 @@ error:
 	if (csock->quota != NULL) {
 		isc_quota_detach(&csock->quota);
 	}
+	if (overquota) {
+		ssock->overquota--;
+	}
 	/* We need to detach it properly to make sure uv_close is called. */
 	isc_nmsocket_detach(&csock);
 	return (result);
@@ -775,9 +793,6 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 
 	result = accept_connection(ssock);
 	if (result != ISC_R_SUCCESS) {
-		if (result == ISC_R_QUOTA || result == ISC_R_SOFTQUOTA) {
-			ssock->overquota = true;
-		}
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
 			      "TCP connection failed: %s",
@@ -910,17 +925,22 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_tcpsocket);
+	isc_nmsocket_t *ssock = sock->server;
 
 	if (sock->quota != NULL) {
-		isc_nmsocket_t *ssock = sock->server;
-
 		isc_quota_detach(&sock->quota);
-
-		if (ssock->overquota) {
+	}
+	if (ssock != NULL) {
+		ssock->conns--;
+		while (ssock->conns == 0 && ssock->overquota > 0) {
+			ssock->overquota--;
 			isc_result_t result = accept_connection(ssock);
-			if (result != ISC_R_QUOTA && result != ISC_R_SOFTQUOTA)
-			{
-				ssock->overquota = false;
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+					      ISC_LOGMODULE_NETMGR,
+					      ISC_LOG_ERROR,
+					      "TCP connection failed: %s",
+					      isc_result_totext(result));
 			}
 		}
 	}

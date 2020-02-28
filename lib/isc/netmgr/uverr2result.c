@@ -37,6 +37,8 @@ isc___nm_uverr2result(int uverr, bool dolog, const char *file,
 		return (ISC_R_INVALIDFILE);
 	case UV_ENOENT:
 		return (ISC_R_FILENOTFOUND);
+	case UV_EAGAIN:
+		return (ISC_R_NOCONN);
 	case UV_EACCES:
 	case UV_EPERM:
 		return (ISC_R_NOPERM);
