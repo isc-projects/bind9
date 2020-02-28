@@ -1467,7 +1467,7 @@ struct dns_update_state {
 	dns_diff_t work;
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	unsigned int nkeys;
-	isc_stdtime_t inception, expire, keyexpire;
+	isc_stdtime_t inception, expire, soaexpire, keyexpire;
 	dns_ttl_t nsecttl;
 	bool check_ksk, keyset_kskonly, build_nsec3;
 	enum { sign_updates,
@@ -1552,6 +1552,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		state->inception = now - 3600; /* Allow for some clock skew. */
 		state->expire = now +
 				dns__jitter_expire(zone, sigvalidityinterval);
+		state->soaexpire = now + sigvalidityinterval;
 		state->keyexpire = dns_zone_getkeyvalidityinterval(zone);
 		if (state->keyexpire == 0) {
 			state->keyexpire = state->expire;
@@ -1661,6 +1662,8 @@ next_state:
 					    type == dns_rdatatype_cds)
 					{
 						exp = state->keyexpire;
+					} else if (type == dns_rdatatype_soa) {
+						exp = state->soaexpire;
 					} else {
 						exp = state->expire;
 					}

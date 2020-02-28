@@ -417,7 +417,8 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking master zone that was updated while offline is correct ($n)"
 ret=0
-serial=`$DIG $DIGOPTS +nodnssec +short @10.53.0.3 updated SOA | awk '{print $3}'`
+$DIG $DIGOPTS +nodnssec +short @10.53.0.3 updated SOA >dig.out.ns2.soa.test$n
+serial=`awk '{print $3}' dig.out.ns2.soa.test$n`
 # serial should have changed
 [ "$serial" = "2000042407" ] && ret=1
 # e.updated should exist and should be signed
@@ -428,9 +429,10 @@ grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
 # of master2.db, and should show a minimal diff: no more than 8 added
 # records (SOA/RRSIG, 2 x NSEC/RRSIG, A/RRSIG), and 4 removed records
 # (SOA/RRSIG, NSEC/RRSIG).
-serial=`$JOURNALPRINT ns3/updated.db.signed.jnl | head -1 | awk '{print $4}'`
+$JOURNALPRINT ns3/updated.db.signed.jnl >journalprint.out.test$n
+serial=`awk '/Source serial =/ {print $4}' journalprint.out.test$n`
 [ "$serial" = "2000042408" ] || ret=1
-diffsize=`$JOURNALPRINT ns3/updated.db.signed.jnl | wc -l`
+diffsize=`wc -l < journalprint.out.test$n`
 [ "$diffsize" -le 13 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
