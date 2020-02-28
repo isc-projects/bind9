@@ -34,6 +34,13 @@
 #include "uv-compat.h"
 
 /*%
+ * How many isc_nmhandles and isc_nm_uvreqs will we be
+ * caching for reuse in a socket.
+ */
+#define ISC_NM_HANDLES_STACK_SIZE 600
+#define ISC_NM_REQS_STACK_SIZE	  600
+
+/*%
  * Shortcut index arrays to get access to statistics counters.
  */
 
@@ -898,14 +905,14 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 
 	family = iface->addr.type.sa.sa_family;
 
-	*sock = (isc_nmsocket_t){
-		.type = type,
-		.iface = iface,
-		.fd = -1,
-		.ah_size = 32,
-		.inactivehandles = isc_astack_new(mgr->mctx, 60),
-		.inactivereqs = isc_astack_new(mgr->mctx, 60)
-	};
+	*sock = (isc_nmsocket_t){ .type = type,
+				  .iface = iface,
+				  .fd = -1,
+				  .ah_size = 32,
+				  .inactivehandles = isc_astack_new(
+					  mgr->mctx, ISC_NM_HANDLES_STACK_SIZE),
+				  .inactivereqs = isc_astack_new(
+					  mgr->mctx, ISC_NM_REQS_STACK_SIZE) };
 
 	isc_nm_attach(mgr, &sock->mgr);
 	sock->uv_handle.handle.data = sock;
