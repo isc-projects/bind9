@@ -15630,6 +15630,11 @@ failure:
 		dns_zone_detach(&zone->rss_raw);
 	}
 	if (result != ISC_R_SUCCESS) {
+		LOCK_ZONE(zone);
+		set_resigntime(zone);
+		TIME_NOW(&timenow);
+		zone_settimer(zone, &timenow);
+		UNLOCK_ZONE(zone);
 		dns_zone_log(zone, level, "receive_secure_serial: %s",
 			     dns_result_totext(result));
 	}
