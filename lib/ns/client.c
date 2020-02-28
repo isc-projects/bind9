@@ -79,7 +79,6 @@
  * task to change the client, then the client will have to be locked.
  */
 
-#define NS_CLIENT_TRACE
 #ifdef NS_CLIENT_TRACE
 #define CTRACE(m)                                                         \
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT, \
@@ -189,21 +188,20 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
 
 static void
 ns_client_endrequest(ns_client_t *client) {
-	INSIST(client->naccepts == 0);
-	INSIST(client->nreads == 0);
-	INSIST(client->nsends == 0);
-	INSIST(client->nrecvs == 0);
 	INSIST(client->nupdates == 0);
 	INSIST(client->state == NS_CLIENTSTATE_WORKING ||
 	       client->state == NS_CLIENTSTATE_RECURSING);
 
 	CTRACE("endrequest");
 
-	LOCK(&client->manager->reclock);
-	if (ISC_LINK_LINKED(client, rlink)) {
-		ISC_LIST_UNLINK(client->manager->recursing, client, rlink);
+	if (client->state == NS_CLIENTSTATE_RECURSING) {
+		LOCK(&client->manager->reclock);
+		if (ISC_LINK_LINKED(client, rlink)) {
+			ISC_LIST_UNLINK(client->manager->recursing, client,
+					rlink);
+		}
+		UNLOCK(&client->manager->reclock);
 	}
-	UNLOCK(&client->manager->reclock);
 
 	if (client->cleanup != NULL) {
 		(client->cleanup)(client);
@@ -1619,7 +1617,7 @@ ns__client_put_cb(void *client0) {
 		clientmgr_detach(&client->manager);
 	}
 
-	isc_mem_put(client->mctx, client->recvbuf, NS_CLIENT_RECV_BUFFER_SIZE);
+	isc_mem_put(client->mctx, client->sendbuf, NS_CLIENT_SEND_BUFFER_SIZE);
 	if (client->opt != NULL) {
 		INSIST(dns_rdataset_isassociated(client->opt));
 		dns_rdataset_disassociate(client->opt);
@@ -1709,7 +1707,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	}
 
 	client->state = NS_CLIENTSTATE_READY;
-	client->dscp = ifp->dscp;
 
 	isc_task_pause(client->task);
 	if (client->handle == NULL) {
@@ -2313,8 +2310,8 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 			goto cleanup;
 		}
 
-		client->recvbuf = isc_mem_get(client->mctx,
-					      NS_CLIENT_RECV_BUFFER_SIZE);
+		client->sendbuf = isc_mem_get(client->mctx,
+					      NS_CLIENT_SEND_BUFFER_SIZE);
 		/*
 		 * Set magic earlier than usual because ns_query_init()
 		 * and the functions it calls will require it.
@@ -2328,24 +2325,27 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		ns_clientmgr_t *oldmgr = client->manager;
 		ns_server_t *sctx = client->sctx;
 		isc_task_t *task = client->task;
-		unsigned char *recvbuf = client->recvbuf;
+		unsigned char *sendbuf = client->sendbuf;
 		dns_message_t *message = client->message;
 		isc_mem_t *oldmctx = client->mctx;
 		ns_query_t query = client->query;
 
+		/*
+		 * Retain these values from the existing client, but
+		 * zero every thing else.
+		 */
 		*client = (ns_client_t){ .magic = 0,
 					 .mctx = oldmctx,
 					 .manager = oldmgr,
 					 .sctx = sctx,
 					 .task = task,
-					 .recvbuf = recvbuf,
+					 .sendbuf = sendbuf,
 					 .message = message,
 					 .query = query };
 	}
 
 	client->state = NS_CLIENTSTATE_INACTIVE;
 	client->udpsize = 512;
-	client->dscp = -1;
 	client->ednsversion = -1;
 	dns_name_init(&client->signername, NULL);
 	dns_ecs_init(&client->ecs);
@@ -2362,9 +2362,9 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (client->recvbuf != NULL) {
-		isc_mem_put(client->mctx, client->recvbuf,
-			    NS_CLIENT_RECV_BUFFER_SIZE);
+	if (client->sendbuf != NULL) {
+		isc_mem_put(client->mctx, client->sendbuf,
+			    NS_CLIENT_SEND_BUFFER_SIZE);
 	}
 
 	if (client->message != NULL) {

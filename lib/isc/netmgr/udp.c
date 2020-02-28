@@ -97,6 +97,10 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 #endif /* ifdef WIN32 */
 		RUNTIME_CHECK(res == 0);
 
+#ifdef SO_INCOMING_CPU
+		setsockopt(csock->fd, SOL_SOCKET, SO_INCOMING_CPU, &(int){ 1 },
+			   sizeof(int));
+#endif
 		ievent = isc__nm_get_ievent(mgr, netievent_udplisten);
 		ievent->sock = csock;
 		isc__nm_enqueue_ievent(&mgr->workers[i],
@@ -284,8 +288,6 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_result_t result;
 	isc_nmhandle_t *nmhandle = NULL;
 	isc_sockaddr_t sockaddr;
-	isc_sockaddr_t localaddr;
-	struct sockaddr_storage laddr;
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc_region_t region;
 	uint32_t maxudp;
@@ -319,13 +321,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	result = isc_sockaddr_fromsockaddr(&sockaddr, addr);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	uv_udp_getsockname(handle, (struct sockaddr *)&laddr,
-			   &(int){ sizeof(struct sockaddr_storage) });
-	result = isc_sockaddr_fromsockaddr(&localaddr,
-					   (struct sockaddr *)&laddr);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	nmhandle = isc__nmhandle_get(sock, &sockaddr, &localaddr);
+	nmhandle = isc__nmhandle_get(sock, &sockaddr, NULL);
 	region.base = (unsigned char *)buf->base;
 	region.length = nrecv;
 
@@ -343,7 +339,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 /*
  * isc__nm_udp_send sends buf to a peer on a socket.
  * It tries to find a proper sibling/child socket so that we won't have
- * to jump to other thread.
+ * to jump to another thread.
  */
 isc_result_t
 isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
@@ -383,8 +379,15 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		return (ISC_R_CANCELED);
 	}
 
+	/*
+	 * If we're in the network thread, we can send directly.  If the
+	 * handle is associated with a UDP socket, we can reuse its thread
+	 * (assuming CPU affinity). Otherwise, pick a thread at random.
+	 */
 	if (isc__nm_in_netthread()) {
 		ntid = isc_nm_tid();
+	} else if (sock->type == isc_nm_udpsocket) {
+		ntid = sock->tid;
 	} else {
 		ntid = (int)isc_random_uniform(sock->nchildren);
 	}
