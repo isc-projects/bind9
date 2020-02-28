@@ -26,11 +26,27 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/stdtime.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
 #include "netmgr-int.h"
 #include "uv-compat.h"
+
+static atomic_uint_fast32_t last_tcpquota_log = ATOMIC_VAR_INIT(0);
+
+static bool
+can_log_tcp_quota() {
+	isc_stdtime_t now, last;
+
+	isc_stdtime_get(&now);
+	last = atomic_exchange_relaxed(&last_tcpquota_log, now);
+	if (now != last) {
+		return (true);
+	}
+
+	return (false);
+}
 
 static int
 tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req);
@@ -691,10 +707,15 @@ accept_connection(isc_nmsocket_t *ssock) {
 
 	if (ssock->pquota != NULL) {
 		result = isc_quota_attach(ssock->pquota, &quota);
+
 		/*
-		 * We share the quota between sockets - we need to  have at
-		 * least one active connection here to restart listening
-		 * when the quota is available again (in tcp_close_direct).
+		 * We share the quota between all TCP sockets. Others
+		 * may have used up all the quota slots, in which case
+		 * this socket could starve. So we only fail here if we
+		 * already had at least one active connection on this
+		 * socket. This guarantees that we'll maintain some level
+		 * of service while over quota, and will resume normal
+		 * service when the quota comes back down.
 		 */
 		if (result != ISC_R_SUCCESS) {
 			ssock->overquota++;
@@ -705,12 +726,6 @@ accept_connection(isc_nmsocket_t *ssock) {
 					ssock->statsindex[STATID_ACCEPTFAIL]);
 				return (result);
 			}
-			/*
-			 * We share the quota between sockets - we need to  have
-			 * at least one active connection here to restart
-			 * listening when the quota is available again (in
-			 * tcp_close_direct).
-			 */
 		}
 	}
 
@@ -792,11 +807,14 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 	UNUSED(status);
 
 	result = accept_connection(ssock);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
-			      "TCP connection failed: %s",
-			      isc_result_totext(result));
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOCONN) {
+		if ((result != ISC_R_QUOTA && result != ISC_R_SOFTQUOTA) ||
+		    can_log_tcp_quota()) {
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+				      "TCP connection failed: %s",
+				      isc_result_totext(result));
+		}
 	}
 }
 
@@ -935,7 +953,12 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		while (ssock->conns == 0 && ssock->overquota > 0) {
 			ssock->overquota--;
 			isc_result_t result = accept_connection(ssock);
-			if (result != ISC_R_SUCCESS) {
+			if (result == ISC_R_SUCCESS || result == ISC_R_NOCONN) {
+				continue;
+			}
+			if ((result != ISC_R_QUOTA &&
+			     result != ISC_R_SOFTQUOTA) ||
+			    can_log_tcp_quota()) {
 				isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 					      ISC_LOGMODULE_NETMGR,
 					      ISC_LOG_ERROR,

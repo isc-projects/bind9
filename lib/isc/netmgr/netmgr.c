@@ -719,7 +719,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 			if (!atomic_load(&sock->children[i].destroying)) {
 				nmsocket_cleanup(&sock->children[i], false);
 				if (sock->statsindex != NULL) {
-					isc__nm_decstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
+					isc__nm_decstats(
+						sock->mgr,
+						sock->statsindex[STATID_ACTIVE]);
 				}
 			}
 		}
@@ -733,7 +735,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 		sock->nchildren = 0;
 	}
 	if (sock->statsindex != NULL) {
-			isc__nm_decstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
+		isc__nm_decstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 	}
 
 	if (sock->tcphandle != NULL) {
