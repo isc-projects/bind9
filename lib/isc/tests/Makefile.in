@@ -22,7 +22,7 @@ CINCLUDES =	-I. -Iinclude ${ISC_INCLUDES} \
 		${ZLIB_CFLAGS}
 CDEFINES =	-DTESTS="\"${top_builddir}/lib/isc/tests/\""
 
-ISCLIBS =	../libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS}
+ISCLIBS =	../libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
 ISCDEPLIBS =	../libisc.@A@
 
 LIBS =		@LIBS@ @CMOCKA_LIBS@
