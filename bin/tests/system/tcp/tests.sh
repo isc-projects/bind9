@@ -98,6 +98,16 @@ close_connections() {
 	send_command "close" "${1}" || return 1
 }
 
+# Check TCP connections are working normally before opening
+# multiple connections
+n=$((n + 1))
+echo_i "checking TCP query repsonse ($n)"
+ret=0
+dig_with_opts +tcp @10.53.0.5 txt.example > dig.out.test$n
+grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 # Check TCP statistics after server startup before using them as a baseline for
 # subsequent checks.
 n=$((n + 1))
@@ -159,6 +169,18 @@ check_stats_limit() {
 	assert_int_equal "${TCP_HIGH}" "${TCP_LIMIT}" "TCP high-water value" || return 1
 }
 retry 2 check_stats_limit || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+# Check TCP connections are working normally before opening
+# multiple connections
+n=$((n + 1))
+echo_i "checking TCP response recovery ($n)"
+ret=0
+# "0" closes all connections
+close_connections 0 || ret=1
+dig_with_opts +tcp @10.53.0.5 txt.example > dig.out.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

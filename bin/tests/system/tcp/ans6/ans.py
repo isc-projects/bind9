@@ -98,7 +98,9 @@ def open_connections(active_conns, count, host, port):
 
 
 def close_connections(active_conns, count):
-    log('Closing %d connections...' % count)
+    log('Closing %s connections...' % "all" if count == 0 else str(count))
+    if count == 0:
+        count = len(active_conns)
     for _ in range(count):
         sock = active_conns.pop(0)
         sock.close()
