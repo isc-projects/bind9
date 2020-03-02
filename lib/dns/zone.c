@@ -5001,6 +5001,14 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	    DNS_ZONE_FLAG(zone->secure, DNS_ZONEFLG_LOADED))
 	{
 		DNS_ZONE_CLRFLAG(zone->secure, DNS_ZONEFLG_LOADPENDING);
+		/*
+		 * Re-start zone maintenance if it had been stalled
+		 * due to DNS_ZONEFLG_LOADPENDING being set when
+		 * zone_maintenance was called.
+		 */
+		if (zone->secure->task != NULL) {
+			zone_settimer(zone->secure, &now);
+		}
 	}
 
 	return (result);
