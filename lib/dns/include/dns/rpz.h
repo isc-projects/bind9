@@ -203,6 +203,7 @@ struct dns_rpz_popt {
 	bool		break_dnssec;
 	bool		qname_wait_recurse;
 	bool		nsip_wait_recurse;
+	bool		nsdname_wait_recurse;
 	unsigned int	min_ns_labels;
 	dns_rpz_num_t	num_zones;
 };
