@@ -395,7 +395,6 @@ $DIG $DIGOPTS @10.53.0.3 e.master A > dig.out.ns6.test$n
 grep "10.0.0.5" dig.out.ns6.test$n > /dev/null || ans=1
 grep "ANSWER: 2," dig.out.ns6.test$n > /dev/null || ans=1
 grep "flags:.* ad[ ;]" dig.out.ns6.test$n > /dev/null || ans=1
-
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1378,6 +1377,25 @@ echo_i "check that zonestatus reports 'type: slave' for a inline slave zone ($n)
 ret=0
 $RNDCCMD 10.53.0.3 zonestatus bits > rndc.out.ns3.test$n
 grep "type: slave" rndc.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking reload of touched inline zones ($n)"
+echo_ic "pre-reload 'next key event'"
+nextpart ns8/named.run > nextpart.pre$n.out
+count=`grep "zone example[0-9][0-9].com/IN (signed): next key event:" nextpart.pre$n.out | wc -l`
+echo_ic "found: $count/16"
+[ $count -eq 16 ] || ret=1
+echo_ic "touch and reload"
+touch ns8/example??.com.db
+$RNDCCMD 10.53.0.8 reload 2>&1 | sed 's/^/ns3 /' | cat_i
+sleep 5
+echo_ic "post-reload 'next key event'"
+nextpart ns8/named.run > nextpart.post$n.out
+count=`grep "zone example[0-9][0-9].com/IN (signed): next key event:" nextpart.post$n.out | wc -l`
+echo_ic "found: $count/16"
+[ $count -eq 16 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
