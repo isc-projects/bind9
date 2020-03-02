@@ -150,6 +150,14 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now) {
 		newsize = bc->size * 2 + 1;
 	} else {
 		newsize = (bc->size - 1) / 2;
+#ifdef __clang_analyzer__
+		/*
+		 * XXXWPK there's a bug in clang static analyzer -
+		 * `value % newsize` is considered undefined even though
+		 * we check if newsize is larger than 0. This helps.
+		 */
+		newsize += 1;
+#endif
 	}
 	RUNTIME_CHECK(newsize > 0);
 
