@@ -207,21 +207,12 @@ set_keytime() {
 }
 
 # Set key state metadata. Set to "none" to unset.
-# $1: Key to update
-# $2: Goal state
-# $3: DNSKEY state
-# $4: RRSIG state (zsk)
-# $5: RRSIG state (ksk)
-# $6: DS state
-#
-# This will update either the KEY1, KEY2, OR KEY3 array.
-key_states() {
+# $1: Key to update (KEY1, KEY2, ...)
+# $2: Key state to update (GOAL, STATE_DNSKEY, STATE_ZRRSIG, STATE_KRRSIG, or STATE_DS)
+# $3: Value
+set_keystate() {
 	key_set "$1" "EXPECT" "yes"
-	key_set "$1" "GOAL" "$2"
-	key_set "$1" "STATE_DNSKEY" "$3"
-	key_set "$1" "STATE_ZRRSIG" "$4"
-	key_set "$1" "STATE_KRRSIG" "$5"
-	key_set "$1" "STATE_DS" "$6"
+	key_set "$1" "$2" "$3"
 }
 
 # Check the key $1 with id $2.
@@ -583,8 +574,12 @@ ret=0
 cp "$STATE_FILE" "$CMP_FILE"
 now=$(date +%Y%m%d%H%M%S)
 $SETTIME -s -P "$now" -g "omnipresent" -k "rumoured" "$now" -z "omnipresent" "$now" -r "rumoured" "$now" -d "hidden" "$now" "$BASE_FILE" > /dev/null || log_error "settime failed"
-set_keytime "KEY1" "PUBLISHED" "yes"
-key_states "KEY1" "omnipresent" "rumoured" "omnipresent" "rumoured" "hidden"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "hidden"
 check_key "KEY1" "$id"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -594,8 +589,12 @@ echo_i "check that 'dnssec-settime -s' also unsets publish time metadata and sta
 ret=0
 cp "$STATE_FILE" "$CMP_FILE"
 $SETTIME -s -P "none" -g "none" -k "none" "$now" -z "none" "$now" -r "none" "$now" -d "none" "$now" "$BASE_FILE" > /dev/null || log_error "settime failed"
-set_keytime "KEY1" "PUBLISHED" "none"
-key_states "KEY1" "none" "none" "none" "none" "none"
+set_keytime  "KEY1" "PUBLISHED"    "none"
+set_keystate "KEY1" "GOAL"         "none"
+set_keystate "KEY1" "STATE_DNSKEY" "none"
+set_keystate "KEY1" "STATE_KRRSIG" "none"
+set_keystate "KEY1" "STATE_ZRRSIG" "none"
+set_keystate "KEY1" "STATE_DS"     "none"
 check_key "KEY1" "$id"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -606,8 +605,12 @@ ret=0
 cp "$STATE_FILE" "$CMP_FILE"
 now=$(date +%Y%m%d%H%M%S)
 $SETTIME -s -A "$now" -g "HIDDEN" -k "UNRETENTIVE" "$now" -z "UNRETENTIVE" "$now" -r "OMNIPRESENT" "$now" -d "OMNIPRESENT" "$now" "$BASE_FILE" > /dev/null || log_error "settime failed"
-set_keytime "KEY1" "ACTIVE" "yes"
-key_states "KEY1" "hidden" "unretentive" "unretentive" "omnipresent" "omnipresent"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keystate "KEY1" "GOAL"         "hidden"
+set_keystate "KEY1" "STATE_DNSKEY" "unretentive"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "unretentive"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
 check_key "KEY1" "$id"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -667,10 +670,14 @@ set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 
 # The first key is immediately published and activated.
-set_keytime "KEY1" "PUBLISHED" "yes"
-set_keytime "KEY1" "ACTIVE"    "yes"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
 # DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
-key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
 
 n=$((n+1))
 echo_i "check key is created for zone ${ZONE} ($n)"
@@ -755,6 +762,7 @@ set_zone "rsasha1.kasp"
 set_policy "rsasha1" "3" "1234"
 set_server "ns3" "10.53.0.3"
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "315360000"
 set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
@@ -789,9 +797,19 @@ set_keytime  "KEY3" "ACTIVE"       "yes"
 set_keytime  "KEY3" "RETIRED"      "yes"
 # KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
 # ZSK: DNSKEY, RRSIG (zsk) published.
-key_states "KEY1" "omnipresent" "rumoured" "none" "rumoured" "hidden"
-key_states "KEY2" "omnipresent" "rumoured" "rumoured" "none" "none"
-key_states "KEY3" "omnipresent" "rumoured" "rumoured" "none" "none"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
+
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_ZRRSIG" "rumoured"
+# Three keys only.
 key_clear "KEY4"
 
 # Check keys for a configured zone. This verifies:
@@ -1128,11 +1146,15 @@ set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 
 # The first key is immediately published and activated.
-set_keytime "KEY1" "PUBLISHED" "yes"
-set_keytime "KEY1" "ACTIVE"    "yes"
-set_keytime "KEY1" "RETIRED"   "none"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "none"
 # DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
-key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
 
 check_keys
 check_apex
@@ -1147,6 +1169,7 @@ set_policy "rsasha1" "3" "1234"
 set_server "ns3" "10.53.0.3"
 
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "315360000"
 set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
@@ -1181,9 +1204,19 @@ set_keytime  "KEY3" "ACTIVE"       "yes"
 set_keytime  "KEY3" "RETIRED"      "yes"
 # KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
 # ZSK: DNSKEY, RRSIG (zsk) published.
-key_states "KEY1" "omnipresent" "rumoured" "none" "rumoured" "hidden"
-key_states "KEY2" "omnipresent" "rumoured" "rumoured" "none" "none"
-key_states "KEY3" "omnipresent" "rumoured" "rumoured" "none" "none"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
+
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_ZRRSIG" "rumoured"
+# Three keys only.
 key_clear "KEY4"
 
 check_keys
@@ -1402,6 +1435,7 @@ set_zone "expired-sigs.autosign"
 set_policy "autosign" "2" "300"
 set_server "ns3" "10.53.0.3"
 # Key properties.
+key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "63072000"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
@@ -1423,8 +1457,14 @@ set_keytime  "KEY2" "PUBLISHED"    "yes"
 set_keytime  "KEY2" "ACTIVE"       "yes"
 set_keytime  "KEY2" "RETIRED"      "yes"
 # Both KSK and ZSK stay OMNIPRESENT.
-key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 # Expect only two keys.
 key_clear "KEY3"
 key_clear "KEY4"
@@ -1567,15 +1607,19 @@ set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "no"
 # Key timings.
-set_keytime "KEY3" "PUBLISHED" "yes"
-set_keytime "KEY3" "ACTIVE"    "yes"
-set_keytime "KEY3" "RETIRED"   "yes"
+set_keytime  "KEY3" "PUBLISHED"    "yes"
+set_keytime  "KEY3" "ACTIVE"       "yes"
+set_keytime  "KEY3" "RETIRED"      "yes"
 # The ZSK goal is set to HIDDEN but records stay OMNIPRESENT until the new ZSK
 # is active.
-key_states "KEY2" "hidden" "omnipresent" "omnipresent" "none" "none"
+set_keystate "KEY2" "GOAL"         "hidden"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 # A new ZSK should be introduced, so expect a key with goal OMNIPRESENT,
 # the DNSKEY introduced (RUMOURED) and the signatures HIDDEN.
-key_states "KEY3" "omnipresent" "rumoured" "hidden" "none" "none"
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_ZRRSIG" "hidden"
 
 #
 # Test dnssec-policy inheritance.
@@ -1689,11 +1733,15 @@ set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 
-set_keytime "KEY1" "PUBLISHED" "yes"
-set_keytime "KEY1" "ACTIVE"    "yes"
-set_keytime "KEY1" "RETIRED"   "none"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "none"
 
-key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
 
 set_zone "signed.tld"
 set_policy "default" "1" "3600"
@@ -1818,10 +1866,14 @@ set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 # Key timings.
-set_keytime "KEY1" "PUBLISHED" "yes"
-set_keytime "KEY1" "ACTIVE"    "yes"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
 # The DNSKEY and signatures are introduced first, the DS remains hidden.
-key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
 # This policy lists only one key (CSK).
 key_clear "KEY2"
 key_clear "KEY3"
@@ -1865,8 +1917,10 @@ check_next_key_event 900
 set_zone "step2.enable-dnssec.autosign"
 set_policy "enable-dnssec" "1" "300"
 set_server "ns3" "10.53.0.3"
-# The DNSKEY and signatures are introduced first, the DS remains hidden.
-key_states "KEY1" "omnipresent" "omnipresent" "rumoured" "omnipresent" "hidden"
+# The DNSKEY is omnipresent, but the zone signatures not yet.
+# Thus, the DS remains hidden.
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
 
 check_keys
 check_apex
@@ -1885,7 +1939,8 @@ set_zone "step3.enable-dnssec.autosign"
 set_policy "enable-dnssec" "1" "300"
 set_server "ns3" "10.53.0.3"
 # The DS can be introduced.
-key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "rumoured"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "rumoured"
 
 check_keys
 check_apex
@@ -1904,7 +1959,7 @@ set_zone "step4.enable-dnssec.autosign"
 set_policy "enable-dnssec" "1" "300"
 set_server "ns3" "10.53.0.3"
 # The DS is omnipresent.
-key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keystate "KEY1" "STATE_DS" "omnipresent"
 
 check_keys
 check_apex
@@ -1948,8 +2003,14 @@ set_keytime  "KEY2" "PUBLISHED"    "yes"
 set_keytime  "KEY2" "ACTIVE"       "yes"
 set_keytime  "KEY2" "RETIRED"      "yes"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
-key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 # Initially only two keys.
 key_clear "KEY3"
 key_clear "KEY4"
@@ -1979,11 +2040,13 @@ set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "no"
 # Key timings.
-set_keytime "KEY3" "PUBLISHED" "yes"
-set_keytime "KEY3" "ACTIVE"    "yes"
-set_keytime "KEY3" "RETIRED"   "yes"
+set_keytime  "KEY3" "PUBLISHED" "yes"
+set_keytime  "KEY3" "ACTIVE"    "yes"
+set_keytime  "KEY3" "RETIRED"   "yes"
 # Key states.
-key_states "KEY3" "omnipresent" "rumoured" "hidden" "none" "none"
+set_keystate "KEY3" "GOAL"   "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_ZRRSIG" "hidden"
 
 check_keys
 check_apex
@@ -2004,9 +2067,11 @@ set_server "ns3" "10.53.0.3"
 # ZSK (KEY2) no longer is actively signing, RRSIG state in UNRETENTIVE.
 # New ZSK (KEY3) is now actively signing, RRSIG state in RUMOURED.
 set_zonesigning  "KEY2" "no"
+set_keystate     "KEY2" "GOAL" "hidden"
+set_keystate     "KEY2" "STATE_ZRRSIG" "unretentive"
 set_zonesigning  "KEY3" "yes"
-key_states "KEY2" "hidden" "omnipresent" "unretentive" "none" "none"
-key_states "KEY3" "omnipresent" "omnipresent" "rumoured" "none" "none"
+set_keystate     "KEY3" "STATE_DNSKEY" "omnipresent"
+set_keystate     "KEY3" "STATE_ZRRSIG" "rumoured"
 
 check_keys
 check_apex
@@ -2036,8 +2101,9 @@ set_policy "zsk-prepub" "3" "3600"
 set_server "ns3" "10.53.0.3"
 # ZSK (KEY2) DNSKEY is no longer needed.
 # ZSK (KEY3) is now actively signing, RRSIG state in RUMOURED.
-key_states "KEY2" "hidden" "unretentive" "hidden" "none" "none"
-key_states "KEY3" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+set_keystate "KEY2" "STATE_DNSKEY" "unretentive"
+set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
+set_keystate "KEY3" "STATE_ZRRSIG" "omnipresent"
 
 check_keys
 check_apex
@@ -2056,8 +2122,8 @@ set_zone "step5.zsk-prepub.autosign"
 set_policy "zsk-prepub" "3" "3600"
 set_server "ns3" "10.53.0.3"
 # ZSK (KEY3) DNSKEY is now completely HIDDEN and removed.
-set_keytime "KEY2" "REMOVED" "yes"
-key_states "KEY2" "hidden" "hidden" "hidden" "none" "none"
+set_keytime  "KEY2" "REMOVED" "yes"
+set_keystate "KEY2" "STATE_DNSKEY" "hidden"
 
 # ZSK (KEY3) remains actively signing, staying in OMNIPRESENT.
 check_keys
@@ -2103,8 +2169,14 @@ set_keytime  "KEY2" "PUBLISHED" "yes"
 set_keytime  "KEY2" "ACTIVE"    "yes"
 set_keytime  "KEY2" "RETIRED"   "yes"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
-key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 # Initially only two keys.
 key_clear "KEY3"
 key_clear "KEY4"
@@ -2135,11 +2207,14 @@ set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "yes"
 set_zonesigning  "KEY3" "no"
 # Key timings.
-set_keytime "KEY3" "PUBLISHED" "yes"
-set_keytime "KEY3" "ACTIVE"    "yes"
-set_keytime "KEY3" "RETIRED"   "yes"
+set_keytime  "KEY3" "PUBLISHED" "yes"
+set_keytime  "KEY3" "ACTIVE"    "yes"
+set_keytime  "KEY3" "RETIRED"   "yes"
 # Key states.
-key_states "KEY3" "omnipresent" "rumoured" "none" "rumoured" "hidden"
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY3" "STATE_DS"     "hidden"
 
 check_keys
 check_apex
@@ -2158,9 +2233,13 @@ set_zone "step3.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "3" "7200"
 set_server "ns3" "10.53.0.3"
 # KSK (KEY1) DS will be removed, so it is UNRETENTIVE.
-key_states "KEY1" "hidden" "omnipresent" "none" "omnipresent" "unretentive"
+set_keystate "KEY1" "GOAL"         "hidden"
+set_keystate "KEY1" "STATE_DS"     "unretentive"
 # New KSK (KEY3) has its DS submitted.
-key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "rumoured"
+set_keystate "KEY3" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY3" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY3" "STATE_DS"     "rumoured"
+
 check_keys
 check_apex
 check_subdomain
@@ -2183,9 +2262,11 @@ set_policy "ksk-doubleksk" "3" "7200"
 set_server "ns3" "10.53.0.3"
 # KSK (KEY1) DNSKEY can be removed.
 set_keysigning "KEY1" "no"
-key_states "KEY1" "hidden" "unretentive" "none" "unretentive" "hidden"
+set_keystate   "KEY1" "STATE_DNSKEY" "unretentive"
+set_keystate   "KEY1" "STATE_KRRSIG" "unretentive"
+set_keystate   "KEY1" "STATE_DS"     "hidden"
 # New KSK (KEY3) DS is now OMNIPRESENT.
-key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+set_keystate   "KEY3" "STATE_DS"     "omnipresent"
 
 check_keys
 check_apex
@@ -2204,7 +2285,8 @@ set_zone "step5.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "3" "7200"
 set_server "ns3" "10.53.0.3"
 # KSK (KEY1) DNSKEY is now HIDDEN.
-key_states "KEY1" "hidden" "hidden" "none" "hidden" "hidden"
+set_keystate "KEY1" "STATE_DNSKEY" "hidden"
+set_keystate "KEY1" "STATE_KRRSIG" "hidden"
 
 check_keys
 check_apex
@@ -2235,11 +2317,15 @@ set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 # Key timings.
-set_keytime "KEY1" "PUBLISHED" "yes"
-set_keytime "KEY1" "ACTIVE"    "yes"
-set_keytime "KEY1" "RETIRED"   "yes"
+set_keytime  "KEY1" "PUBLISHED" "yes"
+set_keytime  "KEY1" "ACTIVE"    "yes"
+set_keytime  "KEY1" "RETIRED"   "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
-key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
 # Initially only one key.
 key_clear "KEY2"
 key_clear "KEY3"
@@ -2271,11 +2357,15 @@ set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
 # Key timings.
-set_keytime "KEY2" "PUBLISHED" "yes"
-set_keytime "KEY2" "ACTIVE"    "yes"
-set_keytime "KEY2" "RETIRED"   "yes"
+set_keytime  "KEY2" "PUBLISHED" "yes"
+set_keytime  "KEY2" "ACTIVE"    "yes"
+set_keytime  "KEY2" "RETIRED"   "yes"
 # Key states.
-key_states "KEY2" "omnipresent" "rumoured" "hidden" "rumoured" "hidden"
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
+set_keystate "KEY2" "STATE_DS"     "hidden"
 
 check_keys
 check_apex
@@ -2297,10 +2387,15 @@ set_server "ns3" "10.53.0.3"
 set_zonesigning  "KEY1" "no"
 set_zonesigning  "KEY2" "yes"
 # CSK (KEY1) DS and ZRRSIG will be removed, so it is UNRETENTIVE.
-key_states "KEY1" "hidden" "omnipresent" "unretentive" "omnipresent" "unretentive"
+set_keystate "KEY1" "GOAL"         "hidden"
+set_keystate "KEY1" "STATE_ZRRSIG" "unretentive"
+set_keystate "KEY1" "STATE_DS"     "unretentive"
 # New CSK (KEY2) has its DS submitted, and is signing, so the DS and ZRRSIG
 # are in RUMOURED state.
-key_states "KEY2" "omnipresent" "omnipresent" "rumoured" "omnipresent" "rumoured"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+set_keystate "KEY2" "STATE_DS"     "rumoured"
 
 check_keys
 check_apex
@@ -2333,9 +2428,10 @@ set_server "ns3" "10.53.0.3"
 set_keysigning   "KEY1" "no"
 # The old CSK (KEY1) DS is hidden.  We still need to keep the DNSKEY public
 # but can remove the KRRSIG records.
-key_states "KEY1" "hidden" "omnipresent" "unretentive" "unretentive" "hidden"
+set_keystate "KEY1" "STATE_KRRSIG" "unretentive"
+set_keystate "KEY1" "STATE_DS"     "hidden"
 # The new CSK (KEY2) DS is now OMNIPRESENT.
-key_states "KEY2" "omnipresent" "omnipresent" "rumoured" "omnipresent" "omnipresent"
+set_keystate "KEY2" "STATE_DS"     "omnipresent"
 
 check_keys
 check_apex
@@ -2354,7 +2450,7 @@ set_zone "step5.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) KRRSIG records are now all hidden.
-key_states "KEY1" "hidden" "omnipresent" "unretentive" "hidden" "hidden"
+set_keystate "KEY1" "STATE_KRRSIG" "hidden"
 
 check_keys
 check_apex
@@ -2374,10 +2470,12 @@ check_next_key_event 2149200
 set_zone "step6.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
 set_server "ns3" "10.53.0.3"
-# The old CSK (KEY1) ZRRSIG records are now all hidden.
-key_states "KEY1" "hidden" "unretentive" "hidden" "hidden" "hidden"
+# The old CSK (KEY1) ZRRSIG records are now all hidden (so the DNSKEY can
+# be removed).
+set_keystate "KEY1" "STATE_DNSKEY" "unretentive"
+set_keystate "KEY1" "STATE_ZRRSIG" "hidden"
 # The new CSK (KEY2) is now fully OMNIPRESENT.
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 
 check_keys
 check_apex
@@ -2396,9 +2494,7 @@ set_zone "step7.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) is now completely HIDDEN.
-key_states "KEY1" "hidden" "hidden" "hidden" "hidden" "hidden"
-# The new CSK (KEY2) is now fully OMNIPRESENT.
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "hidden"
 
 check_keys
 check_apex
@@ -2429,11 +2525,15 @@ set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 # Key timings.
-set_keytime "KEY1" "PUBLISHED" "yes"
-set_keytime "KEY1" "ACTIVE"    "yes"
-set_keytime "KEY1" "RETIRED"   "yes"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
-key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
 # Initially only one key.
 key_clear "KEY2"
 key_clear "KEY3"
@@ -2465,11 +2565,15 @@ set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
 # Key timings.
-set_keytime "KEY2" "PUBLISHED" "yes"
-set_keytime "KEY2" "ACTIVE"    "yes"
-set_keytime "KEY2" "RETIRED"   "yes"
+set_keytime  "KEY2" "PUBLISHED"    "yes"
+set_keytime  "KEY2" "ACTIVE"       "yes"
+set_keytime  "KEY2" "RETIRED"      "yes"
 # Key states.
-key_states "KEY2" "omnipresent" "rumoured" "hidden" "rumoured" "hidden"
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
+set_keystate "KEY2" "STATE_DS"     "hidden"
 
 check_keys
 check_apex
@@ -2487,14 +2591,18 @@ check_next_key_event 10800
 set_zone "step3.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
 set_server "ns3" "10.53.0.3"
-# Swap zone signing role.
-set_zonesigning  "KEY1" "no"
-set_zonesigning  "KEY2" "yes"
 # CSK (KEY1) DS and ZRRSIG will be removed, so it is UNRETENTIVE.
-key_states "KEY1" "hidden" "omnipresent" "unretentive" "omnipresent" "unretentive"
+set_zonesigning  "KEY1" "no"
+set_keystate     "KEY1" "GOAL"         "hidden"
+set_keystate     "KEY1" "STATE_ZRRSIG" "unretentive"
+set_keystate     "KEY1" "STATE_DS"     "unretentive"
 # New CSK (KEY2) has its DS submitted, and is signing, so the DS and ZRRSIG
 # are in RUMOURED state.
-key_states "KEY2" "omnipresent" "omnipresent" "rumoured" "omnipresent" "rumoured"
+set_zonesigning  "KEY2" "yes"
+set_keystate     "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate     "KEY2" "STATE_KRRSIG" "omnipresent"
+set_keystate     "KEY2" "STATE_ZRRSIG" "rumoured"
+set_keystate     "KEY2" "STATE_DS"     "rumoured"
 
 check_keys
 check_apex
@@ -2525,9 +2633,10 @@ set_zone "step4.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) ZRRSIG is now HIDDEN.
-key_states "KEY1" "hidden" "omnipresent" "hidden" "omnipresent" "unretentive"
+set_keystate "KEY1" "STATE_ZRRSIG" "hidden"
 # The new CSK (KEY2) ZRRSIG is now OMNIPRESENT.
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+
 check_keys
 check_apex
 check_subdomain
@@ -2550,9 +2659,11 @@ set_policy "csk-roll2" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) DNSKEY can be removed.
 set_keysigning   "KEY1" "no"
-key_states "KEY1" "hidden" "unretentive" "hidden" "unretentive" "hidden"
+set_keystate     "KEY1" "STATE_DNSKEY" "unretentive"
+set_keystate     "KEY1" "STATE_KRRSIG" "unretentive"
+set_keystate     "KEY1" "STATE_DS"     "hidden"
 # The new CSK (KEY2) is now fully OMNIPRESENT.
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keystate     "KEY2" "STATE_DS"     "omnipresent"
 
 check_keys
 check_apex
@@ -2571,9 +2682,8 @@ set_zone "step6.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) is now completely HIDDEN.
-key_states "KEY1" "hidden" "hidden" "hidden" "hidden" "hidden"
-# The new CSK (KEY2) is now fully OMNIPRESENT.
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "hidden"
+set_keystate "KEY1" "STATE_KRRSIG" "hidden"
 
 check_keys
 check_apex
@@ -2616,8 +2726,14 @@ set_keytime  "KEY1" "ACTIVE"       "yes"
 set_keytime  "KEY2" "PUBLISHED"    "yes"
 set_keytime  "KEY2" "ACTIVE"       "yes"
 # The KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
-key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 
 check_keys
 check_apex
@@ -2646,10 +2762,14 @@ key_clear "KEY2"
 key_clear "KEY3"
 key_clear "KEY4"
 # Key timings.
-set_keytime "KEY1" "PUBLISHED" "yes"
-set_keytime "KEY1" "ACTIVE"    "yes"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
-key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
 
 check_keys
 check_apex
@@ -2711,6 +2831,7 @@ set_keylifetime  "KEY1" "0"
 set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "no"
+
 key_clear        "KEY2"
 set_keyrole      "KEY2" "zsk"
 set_keylifetime  "KEY2" "0"
@@ -2724,6 +2845,7 @@ set_keylifetime  "KEY3" "0"
 set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "yes"
 set_zonesigning  "KEY3" "no"
+
 key_clear        "KEY4"
 set_keyrole      "KEY4" "zsk"
 set_keylifetime  "KEY4" "0"
@@ -2731,21 +2853,33 @@ set_keyalgorithm "KEY4" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY4" "no"
 set_zonesigning  "KEY4" "yes"
 # The RSAHSHA1 keys are outroducing.
-set_keytime "KEY1" "PUBLISHED" "yes"
-set_keytime "KEY1" "ACTIVE"    "yes"
-set_keytime "KEY1" "RETIRED"   "yes"
-set_keytime "KEY2" "PUBLISHED" "yes"
-set_keytime "KEY2" "ACTIVE"    "yes"
-set_keytime "KEY2" "RETIRED"   "yes"
-key_states "KEY1" "hidden" "omnipresent" "none" "omnipresent" "omnipresent"
-key_states "KEY2" "hidden" "omnipresent" "omnipresent" "none" "none"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "yes"
+set_keystate "KEY1" "GOAL"         "hidden"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+set_keytime  "KEY2" "PUBLISHED"    "yes"
+set_keytime  "KEY2" "ACTIVE"       "yes"
+set_keytime  "KEY2" "RETIRED"      "yes"
+set_keystate "KEY2" "GOAL"         "hidden"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 # The ECDSAP256SHA256 keys are introducing.
-set_keytime "KEY3" "PUBLISHED" "yes"
-set_keytime "KEY3" "ACTIVE"    "yes"
-set_keytime "KEY4" "PUBLISHED" "yes"
-set_keytime "KEY4" "ACTIVE"    "yes"
-key_states "KEY3" "omnipresent" "rumoured" "none" "rumoured" "hidden"
-key_states "KEY4" "omnipresent" "rumoured" "rumoured" "none" "none"
+set_keytime  "KEY3" "PUBLISHED"    "yes"
+set_keytime  "KEY3" "ACTIVE"       "yes"
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY3" "STATE_DS"     "hidden"
+
+set_keytime  "KEY4" "PUBLISHED"    "yes"
+set_keytime  "KEY4" "ACTIVE"       "yes"
+set_keystate "KEY4" "GOAL"         "omnipresent"
+set_keystate "KEY4" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY4" "STATE_ZRRSIG" "rumoured"
 
 check_keys
 check_apex
@@ -2769,8 +2903,9 @@ set_server "ns6" "10.53.0.6"
 #
 # The ECDSAP256SHA256 keys are introducing. The DNSKEY RRset is omnipresent,
 # but the zone signatures are not.
-key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "hidden"
-key_states "KEY4" "omnipresent" "omnipresent" "rumoured" "none" "none"
+set_keystate "KEY3" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY3" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY4" "STATE_DNSKEY" "omnipresent"
 
 check_keys
 check_apex
@@ -2791,11 +2926,11 @@ set_zone "step3.algorithm-roll.kasp"
 set_policy "ecdsa256" "4" "3600"
 set_server "ns6" "10.53.0.6"
 # The RSAHSHA1 keys are outroducing, and it is time to swap the DS.
-key_states "KEY1" "hidden" "omnipresent" "none" "omnipresent" "unretentive"
+set_keystate "KEY1" "STATE_DS"     "unretentive"
 # The ECDSAP256SHA256 keys are introducing. The DNSKEY RRset and all signatures
 # are now omnipresent, so the DS can be introduced.
-key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "rumoured"
-key_states "KEY4" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+set_keystate "KEY3" "STATE_DS"     "rumoured"
+set_keystate "KEY4" "STATE_ZRRSIG" "omnipresent"
 
 check_keys
 check_apex
@@ -2815,11 +2950,16 @@ set_policy "ecdsa256" "4" "3600"
 set_server "ns6" "10.53.0.6"
 # The old DS is HIDDEN, we can remove the old algorithm DNSKEY/RRSIG records.
 set_keysigning   "KEY1" "no"
-key_states "KEY1" "hidden" "unretentive" "none" "unretentive" "hidden"
+set_keystate     "KEY1" "STATE_DNSKEY" "unretentive"
+set_keystate     "KEY1" "STATE_KRRSIG" "unretentive"
+set_keystate     "KEY1" "STATE_DS"     "hidden"
+
 set_zonesigning  "KEY2" "no"
-key_states "KEY2" "hidden" "unretentive" "unretentive" "none" "none"
+set_keystate     "KEY2" "GOAL"         "hidden"
+set_keystate     "KEY2" "STATE_DNSKEY" "unretentive"
+set_keystate     "KEY2" "STATE_ZRRSIG" "unretentive"
 # The ECDSAP256SHA256 DS is now OMNIPRESENT.
-key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+set_keystate     "KEY3" "STATE_DS"     "omnipresent"
 
 check_keys
 check_apex
@@ -2837,8 +2977,9 @@ set_zone "step5.algorithm-roll.kasp"
 set_policy "ecdsa256" "4" "3600"
 set_server "ns6" "10.53.0.6"
 # The DNSKEY becomes HIDDEN.
-key_states "KEY1" "hidden" "hidden" "none" "hidden" "hidden"
-key_states "KEY2" "hidden" "hidden" "unretentive" "none" "none"
+set_keystate "KEY1" "STATE_DNSKEY" "hidden"
+set_keystate "KEY1" "STATE_KRRSIG" "hidden"
+set_keystate "KEY2" "STATE_DNSKEY" "hidden"
 
 check_keys
 check_apex
@@ -2857,8 +2998,8 @@ check_next_key_event 25200
 set_zone "step6.algorithm-roll.kasp"
 set_policy "ecdsa256" "4" "3600"
 set_server "ns6" "10.53.0.6"
-# The zone signatures should now also be HIDDEN.
-key_states "KEY2" "hidden" "hidden" "hidden" "none" "none"
+# The old zone signatures (KEY2) should now also be HIDDEN.
+set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
 
 check_keys
 check_apex
@@ -2896,14 +3037,22 @@ set_zonesigning  "KEY2" "yes"
 key_clear "KEY3"
 key_clear "KEY4"
 # The RSAHSHA1 key is outroducing.
-set_keytime "KEY1" "PUBLISHED" "yes"
-set_keytime "KEY1" "ACTIVE"    "yes"
-set_keytime "KEY1" "RETIRED"   "yes"
-key_states "KEY1" "hidden" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "yes"
+set_keystate "KEY1" "GOAL"         "hidden"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
 # The ECDSAP256SHA256 key is introducing.
-set_keytime "KEY2" "PUBLISHED" "yes"
-set_keytime "KEY2" "ACTIVE"    "yes"
-key_states "KEY2" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
+set_keytime  "KEY2" "PUBLISHED"    "yes"
+set_keytime  "KEY2" "ACTIVE"       "yes"
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+set_keystate "KEY2" "STATE_DS"     "hidden"
 
 check_keys
 check_apex
@@ -2927,7 +3076,8 @@ set_server "ns6" "10.53.0.6"
 #
 # The ECDSAP256SHA256 keys are introducing. The DNSKEY RRset is omnipresent,
 # but the zone signatures are not.
-key_states "KEY2" "omnipresent" "omnipresent" "rumoured" "omnipresent" "hidden"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_KRRSIG" "omnipresent"
 
 check_keys
 check_apex
@@ -2948,10 +3098,11 @@ set_zone "step3.csk-algorithm-roll.kasp"
 set_policy "csk-algoroll" "2" "3600"
 set_server "ns6" "10.53.0.6"
 # The RSAHSHA1 key is outroducing, and it is time to swap the DS.
-key_states "KEY1" "hidden" "omnipresent" "omnipresent" "omnipresent" "unretentive"
+set_keystate "KEY1" "STATE_DS"     "unretentive"
 # The ECDSAP256SHA256 key is introducing. The DNSKEY RRset and all signatures
 # are now omnipresent, so the DS can be introduced.
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY2" "STATE_DS"     "rumoured"
 
 check_keys
 check_apex
@@ -2972,9 +3123,12 @@ set_server "ns6" "10.53.0.6"
 # The old DS is HIDDEN, we can remove the old algorithm DNSKEY/RRSIG records.
 set_keysigning   "KEY1" "no"
 set_zonesigning  "KEY1" "no"
-key_states "KEY1" "hidden" "unretentive" "unretentive" "unretentive" "hidden"
+set_keystate     "KEY1" "STATE_DNSKEY" "unretentive"
+set_keystate     "KEY1" "STATE_KRRSIG" "unretentive"
+set_keystate     "KEY1" "STATE_ZRRSIG" "unretentive"
+set_keystate     "KEY1" "STATE_DS"     "hidden"
 # The ECDSAP256SHA256 DS is now OMNIPRESENT.
-key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+set_keystate     "KEY2" "STATE_DS"     "omnipresent"
 
 check_keys
 check_apex
@@ -2992,7 +3146,8 @@ set_zone "step5.csk-algorithm-roll.kasp"
 set_policy "csk-algoroll" "2" "3600"
 set_server "ns6" "10.53.0.6"
 # The DNSKEY becomes HIDDEN.
-key_states "KEY1" "hidden" "hidden" "unretentive" "hidden" "hidden"
+set_keystate "KEY1" "STATE_DNSKEY" "hidden"
+set_keystate "KEY1" "STATE_KRRSIG" "hidden"
 
 check_keys
 check_apex
@@ -3012,7 +3167,7 @@ set_zone "step6.csk-algorithm-roll.kasp"
 set_policy "csk-algoroll" "2" "3600"
 set_server "ns6" "10.53.0.6"
 # The zone signatures should now also be HIDDEN.
-key_states "KEY1" "hidden" "hidden" "hidden" "hidden" "hidden"
+set_keystate "KEY1" "STATE_ZRRSIG" "hidden"
 
 check_keys
 check_apex
