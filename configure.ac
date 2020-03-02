@@ -2393,58 +2393,38 @@ AC_SUBST(NZDTARGETS)
 #
 # was --with-libxml2 specified?
 #
-AC_MSG_CHECKING(for libxml2 library)
-AC_ARG_WITH(libxml2,
-	    AS_HELP_STRING([--with-libxml2[=PATH]],
-			   [build with libxml2 library [yes|no|path]]),
-	    use_libxml2="$withval", use_libxml2="auto")
+AC_ARG_WITH([libxml2],
+	    [AS_HELP_STRING([--with-libxml2[=PATH]],
+			   [build with libxml2 library (auto|yes|no|path) [default=auto]])],
+	    [:], [with_libxml2="auto"])
 
-case "$use_libxml2" in
-	no)
-		DST_LIBXML2_INC=""
-		;;
-	auto|yes)
-		case X`(xml2-config --version) 2>/dev/null` in
-		X2.[[6789]].*)
-			libxml2_libs=`xml2-config --libs`
-			libxml2_cflags=`xml2-config --cflags`
-			;;
-		*)
-			if test "yes" = "$use_libxml2" ; then
-				AC_MSG_RESULT(no)
-				AC_MSG_ERROR(required libxml2 version not available)
-			else
-				libxml2_libs=
-				libxml2_cflags=
-			fi
-			;;
-		esac
-		;;
-	*)
-		if test -f "$use_libxml2/bin/xml2-config" ; then
-			libxml2_libs=`$use_libxml2/bin/xml2-config --libs`
-			libxml2_cflags=`$use_libxml2/bin/xml2-config --cflags`
-		fi
-		;;
-esac
+LIBXML2_CFLAGS=
+LIBXML2_LIBS=
+AS_CASE([$with_libxml2],
+	[no],[:],
+	[auto],[PKG_CHECK_MODULES([LIBXML2], [libxml-2.0 >= 2.6.0], [:], [:])],
+	[yes],[PKG_CHECK_MODULES([LIBXML2], [libxml-2.0 >= 2.6.0])],
+	[AC_MSG_CHECKING([for libxml2 library in $with_libxml2])
+	 AS_IF([test -x "$with_libxml2/bin/xml2-config"],
+	       [AC_MSG_RESULT([yes])
+		LIBXML2_LIBS=`$with_libxml2/bin/xml2-config --libs`
+		LIBXML2_CFLAGS=`$with_libxml2/bin/xml2-config --cflags`],
+	       [AC_MSG_ERROR([not found])])])
 
-if test "X$libxml2_libs" != "X"
-then
-	CFLAGS="$CFLAGS $libxml2_cflags"
-	LIBS="$LIBS $libxml2_libs"
-	#
-	# Sanity check xml2-config output.
-	#
-	AC_TRY_LINK([#include <libxml/xmlwriter.h>],
-		    [return(xmlTextWriterStartElement(NULL, NULL));],
-		    AC_MSG_RESULT(yes),
-		    AC_MSG_ERROR(xml2-config returns badness))
-	AC_DEFINE(HAVE_LIBXML2, 1, [Define if libxml2 was found])
-	XMLSTATS=1
-else
-	AC_MSG_RESULT(no)
-fi
-AC_SUBST(XMLSTATS)
+AS_IF([test -n "$LIBXML2_LIBS"],
+      [AC_MSG_CHECKING([whether linking with libxml2 works])
+       CFLAGS="$CFLAGS $LIBXML2_CFLAGS"
+       LIBS="$LIBS $LIBXML2_LIBS"
+       #
+       # Sanity check xml2-config output.
+       #
+       AC_TRY_LINK([#include <libxml/xmlwriter.h>],
+		   [return(xmlTextWriterStartElement(NULL, NULL));],
+		   [AC_MSG_RESULT([yes])],
+		   [AC_MSG_ERROR([no])])
+       AC_DEFINE([HAVE_LIBXML2], [1], [Define if libxml2 was found])
+       XMLSTATS=1])
+AC_SUBST([XMLSTATS])
 
 #
 # was --with-libjson specified?
