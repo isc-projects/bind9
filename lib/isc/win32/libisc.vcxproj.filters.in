@@ -302,12 +302,6 @@
     <ClInclude Include="..\include\pkcs11\pkcs11.h">
       <Filter>Pkcs11 Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\pkcs11\pkcs11f.h">
-      <Filter>Pkcs11 Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\pkcs11\pkcs11t.h">
-      <Filter>Pkcs11 Header Files</Filter>
-    </ClInclude>
 @END PKCS11
     <ClInclude Include="include\isc\bind_registry.h">
       <Filter>Win32 Header Files</Filter>

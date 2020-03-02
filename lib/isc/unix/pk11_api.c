@@ -40,7 +40,7 @@ pkcs_C_Initialize(CK_VOID_PTR pReserved) {
 	CK_C_Initialize sym;
 
 	if (hPK11 != NULL)
-		return (CKR_LIBRARY_ALREADY_INITIALIZED);
+		return (CKR_CRYPTOKI_ALREADY_INITIALIZED);
 
 	hPK11 = dlopen(pk11_get_lib_name(), RTLD_NOW);
 
@@ -48,11 +48,11 @@ pkcs_C_Initialize(CK_VOID_PTR pReserved) {
 		snprintf(loaderrmsg, sizeof(loaderrmsg),
 			 "dlopen(\"%s\") failed: %s\n",
 			 pk11_get_lib_name(), dlerror());
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	}
 	sym = (CK_C_Initialize)dlsym(hPK11, "C_Initialize");
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(pReserved);
 }
 
@@ -66,13 +66,13 @@ pkcs_C_Finalize(CK_VOID_PTR pReserved) {
 	CK_RV rv;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	sym = (CK_C_Finalize)dlsym(hPK11, "C_Finalize");
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	rv = (*sym)(pReserved);
 	if ((rv == CKR_OK) && (dlclose(hPK11) != 0))
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	hPK11 = NULL;
 	return (rv);
 }
@@ -85,13 +85,13 @@ pkcs_C_GetSlotList(CK_BBOOL tokenPresent, CK_SLOT_ID_PTR pSlotList,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_GetSlotList)dlsym(hPK11, "C_GetSlotList");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(tokenPresent, pSlotList, pulCount);
 }
 
@@ -101,13 +101,13 @@ pkcs_C_GetTokenInfo(CK_SLOT_ID slotID, CK_TOKEN_INFO_PTR pInfo) {
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_GetTokenInfo)dlsym(hPK11, "C_GetTokenInfo");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(slotID, pInfo);
 }
 
@@ -119,14 +119,14 @@ pkcs_C_GetMechanismInfo(CK_SLOT_ID slotID, CK_MECHANISM_TYPE type,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_GetMechanismInfo)dlsym(hPK11,
 						   "C_GetMechanismInfo");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(slotID, type, pInfo);
 }
 
@@ -147,14 +147,14 @@ pkcs_C_OpenSession(CK_SLOT_ID slotID, CK_FLAGS flags,
 		snprintf(loaderrmsg, sizeof(loaderrmsg),
 			 "dlopen(\"%s\") failed: %s\n",
 			 pk11_get_lib_name(), dlerror());
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	}
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_OpenSession)dlsym(hPK11, "C_OpenSession");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(slotID, flags, pApplication, Notify, phSession);
 }
 
@@ -164,13 +164,13 @@ pkcs_C_CloseSession(CK_SESSION_HANDLE hSession) {
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_CloseSession)dlsym(hPK11, "C_CloseSession");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession);
 }
 
@@ -182,13 +182,13 @@ pkcs_C_Login(CK_SESSION_HANDLE hSession, CK_USER_TYPE userType,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_Login)dlsym(hPK11, "C_Login");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, userType, pPin, usPinLen);
 }
 
@@ -198,13 +198,13 @@ pkcs_C_Logout(CK_SESSION_HANDLE hSession) {
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_Logout)dlsym(hPK11, "C_Logout");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession);
 }
 
@@ -216,13 +216,13 @@ pkcs_C_CreateObject(CK_SESSION_HANDLE hSession, CK_ATTRIBUTE_PTR pTemplate,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_CreateObject)dlsym(hPK11, "C_CreateObject");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pTemplate, usCount, phObject);
 }
 
@@ -232,13 +232,13 @@ pkcs_C_DestroyObject(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE hObject) {
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_DestroyObject)dlsym(hPK11, "C_DestroyObject");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, hObject);
 }
 
@@ -250,14 +250,14 @@ pkcs_C_GetAttributeValue(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE hObject,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_GetAttributeValue)dlsym(hPK11,
 						    "C_GetAttributeValue");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, hObject, pTemplate, usCount);
 }
 
@@ -269,14 +269,14 @@ pkcs_C_SetAttributeValue(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE hObject,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_SetAttributeValue)dlsym(hPK11,
 						    "C_SetAttributeValue");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, hObject, pTemplate, usCount);
 }
 
@@ -288,13 +288,13 @@ pkcs_C_FindObjectsInit(CK_SESSION_HANDLE hSession, CK_ATTRIBUTE_PTR pTemplate,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_FindObjectsInit)dlsym(hPK11, "C_FindObjectsInit");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pTemplate, usCount);
 }
 
@@ -306,13 +306,13 @@ pkcs_C_FindObjects(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE_PTR phObject,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_FindObjects)dlsym(hPK11, "C_FindObjects");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, phObject, usMaxObjectCount, pusObjectCount);
 }
 
@@ -323,14 +323,14 @@ pkcs_C_FindObjectsFinal(CK_SESSION_HANDLE hSession)
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_FindObjectsFinal)dlsym(hPK11,
 						   "C_FindObjectsFinal");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession);
 }
 
@@ -342,13 +342,13 @@ pkcs_C_EncryptInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_EncryptInit)dlsym(hPK11, "C_EncryptInit");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pMechanism, hKey);
 }
 
@@ -361,13 +361,13 @@ pkcs_C_Encrypt(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_Encrypt)dlsym(hPK11, "C_Encrypt");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pData, ulDataLen,
 		      pEncryptedData, pulEncryptedDataLen);
 }
@@ -378,13 +378,13 @@ pkcs_C_DigestInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism) {
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_DigestInit)dlsym(hPK11, "C_DigestInit");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pMechanism);
 }
 
@@ -396,13 +396,13 @@ pkcs_C_DigestUpdate(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pPart,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_DigestUpdate)dlsym(hPK11, "C_DigestUpdate");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pPart, ulPartLen);
 }
 
@@ -414,13 +414,13 @@ pkcs_C_DigestFinal(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pDigest,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_DigestFinal)dlsym(hPK11, "C_DigestFinal");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pDigest, pulDigestLen);
 }
 
@@ -432,13 +432,13 @@ pkcs_C_SignInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_SignInit)dlsym(hPK11, "C_SignInit");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pMechanism, hKey);
 }
 
@@ -451,13 +451,13 @@ pkcs_C_Sign(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_Sign)dlsym(hPK11, "C_Sign");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pData, ulDataLen, pSignature, pulSignatureLen);
 }
 
@@ -469,13 +469,13 @@ pkcs_C_SignUpdate(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pPart,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_SignUpdate)dlsym(hPK11, "C_SignUpdate");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pPart, ulPartLen);
 }
 
@@ -487,13 +487,13 @@ pkcs_C_SignFinal(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pSignature,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_SignFinal)dlsym(hPK11, "C_SignFinal");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pSignature, pulSignatureLen);
 }
 
@@ -505,13 +505,13 @@ pkcs_C_VerifyInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_VerifyInit)dlsym(hPK11, "C_VerifyInit");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pMechanism, hKey);
 }
 
@@ -524,13 +524,13 @@ pkcs_C_Verify(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_Verify)dlsym(hPK11, "C_Verify");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pData, ulDataLen, pSignature, ulSignatureLen);
 }
 
@@ -542,13 +542,13 @@ pkcs_C_VerifyUpdate(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pPart,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_VerifyUpdate)dlsym(hPK11, "C_VerifyUpdate");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pPart, ulPartLen);
 }
 
@@ -560,13 +560,13 @@ pkcs_C_VerifyFinal(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pSignature,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_VerifyFinal)dlsym(hPK11, "C_VerifyFinal");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pSignature, ulSignatureLen);
 }
 
@@ -579,13 +579,13 @@ pkcs_C_GenerateKey(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_GenerateKey)dlsym(hPK11, "C_GenerateKey");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pMechanism, pTemplate, ulCount, phKey);
 }
 
@@ -603,13 +603,13 @@ pkcs_C_GenerateKeyPair(CK_SESSION_HANDLE hSession,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_GenerateKeyPair)dlsym(hPK11, "C_GenerateKeyPair");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession,
 		      pMechanism,
 		      pPublicKeyTemplate,
@@ -629,13 +629,13 @@ pkcs_C_DeriveKey(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_DeriveKey)dlsym(hPK11, "C_DeriveKey");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession,
 		      pMechanism,
 		      hBaseKey,
@@ -652,13 +652,13 @@ pkcs_C_SeedRandom(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pSeed,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_SeedRandom)dlsym(hPK11, "C_SeedRandom");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, pSeed, ulSeedLen);
 }
 
@@ -670,12 +670,12 @@ pkcs_C_GenerateRandom(CK_SESSION_HANDLE hSession, CK_BYTE_PTR RandomData,
 	static void *pPK11 = NULL;
 
 	if (hPK11 == NULL)
-		return (CKR_LIBRARY_FAILED_TO_LOAD);
+		return (CKR_LIBRARY_LOAD_FAILED);
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_GenerateRandom)dlsym(hPK11, "C_GenerateRandom");
 	}
 	if (sym == NULL)
-		return (CKR_SYMBOL_RESOLUTION_FAILED);
+		return (CKR_FUNCTION_NOT_SUPPORTED);
 	return (*sym)(hSession, RandomData, ulRandomLen);
 }
