@@ -714,6 +714,7 @@
 ./bin/tests/system/inline/ns5/named.conf.post	X	2011,2014,2016,2018,2019,2020
 ./bin/tests/system/inline/ns5/named.conf.pre	X	2011,2016,2018,2019,2020
 ./bin/tests/system/inline/ns7/sign.sh		SH	2017,2018,2019,2020
+./bin/tests/system/inline/ns8/sign.sh		SH	2020
 ./bin/tests/system/inline/setup.sh		SH	2011,2012,2013,2014,2016,2017,2018,2019,2020
 ./bin/tests/system/inline/tests.sh		SH	2011,2012,2013,2014,2016,2017,2018,2019,2020
 ./bin/tests/system/integrity/clean.sh		SH	2017,2018,2019,2020
