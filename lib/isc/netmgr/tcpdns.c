@@ -43,6 +43,9 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg);
 static void
 resume_processing(void *arg);
 
+static void
+tcpdns_close_direct(isc_nmsocket_t *sock);
+
 static inline size_t
 dnslen(unsigned char *base) {
 	return ((base[0] << 8) + (base[1]));
@@ -79,7 +82,6 @@ static void
 timer_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = (isc_nmsocket_t *)uv_handle_get_data(handle);
 	INSIST(VALID_NMSOCK(sock));
-	atomic_store(&sock->closed, true);
 	isc_nmsocket_detach(&sock);
 }
 
@@ -90,9 +92,7 @@ dnstcp_readtimeout(uv_timer_t *timer) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-
-	isc_nmsocket_detach(&sock->outer);
-	uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
+	tcpdns_close_direct(sock);
 }
 
 /*
@@ -492,18 +492,29 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 static void
 tcpdns_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tid == isc_nm_tid());
-	if (sock->outer != NULL) {
-		sock->outer->rcb.recv = NULL;
-		isc_nmsocket_detach(&sock->outer);
-	}
-	if (sock->listener != NULL) {
-		isc_nmsocket_detach(&sock->listener);
-	}
 	/* We don't need atomics here, it's all in single network thread */
 	if (sock->timer_initialized) {
+		/*
+		 * We need to fire the timer callback to clean it up,
+		 * it will then call us again (via detach) so that we
+		 * can finally close the socket.
+		 */
 		sock->timer_initialized = false;
 		uv_timer_stop(&sock->timer);
 		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
+	} else {
+		/*
+		 * At this point we're certain that there are no external
+		 * references, we can close everything.
+		 */
+		if (sock->outer != NULL) {
+			sock->outer->rcb.recv = NULL;
+			isc_nmsocket_detach(&sock->outer);
+		}
+		if (sock->listener != NULL) {
+			isc_nmsocket_detach(&sock->listener);
+		}
+		atomic_store(&sock->closed, true);
 	}
 }
 
