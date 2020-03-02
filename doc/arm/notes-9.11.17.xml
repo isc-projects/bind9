@@ -1,0 +1,29 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.11.17"><info><title>Notes for BIND 9.11.17</title></info>
+
+  <section xml:id="relnotes-9.11.17-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          The <command>configure</command> option
+          <command>--with-libxml2</command> now uses
+          <command>pkg-config</command> to detect libxml2 library
+          availability.  You will either have to install
+          <command>pkg-config</command> or specify the exact path where
+          libxml2 has been installed on your system. [GL #1635]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>
