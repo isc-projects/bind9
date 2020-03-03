@@ -1,3 +1,7 @@
+5366.	[bug]		Fix a race condition with the keymgr when the same
+			zone plus dnssec-policy is configured in multiple
+			views. [GL #1653]
+
 5365.	[bug]		Algorithm rollover was stuck on submitting DS
 			because keymgr thought it would move to an invalid
 			state.  Fixed by when checking the current key,
