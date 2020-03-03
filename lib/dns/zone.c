@@ -5246,6 +5246,14 @@ done:
 	if (inline_raw(zone) && DNS_ZONE_FLAG(zone->secure, DNS_ZONEFLG_LOADED))
 	{
 		DNS_ZONE_CLRFLAG(zone->secure, DNS_ZONEFLG_LOADPENDING);
+		/*
+		 * Re-start zone maintenance if it had been stalled
+		 * due to DNS_ZONEFLG_LOADPENDING being set when
+		 * zone_maintenance was called.
+		 */
+		if (zone->secure->task != NULL) {
+			zone_settimer(zone->secure, &now);
+		}
 	}
 
 	zone_debuglog(zone, "zone_postload", 99, "done");
