@@ -11133,6 +11133,13 @@ example.com                 CNAME   rpz-tcp-only.
 	    records need to be refreshed.
 	  </para>
 	  <para>
+	    Keys are not shared among zones, which means that one set of keys
+	    per zone will be generated even if they have the same policy.
+	    If multiple views are configured with different versions of the
+	    same zone, each separate version will use the same set of signing
+	    keys.
+	  </para>
+	  <para>
 	    Multiple key and signing policies can be configured.  To
 	    attach a policy to a zone, add a <command>dnssec-policy</command>
 	    option to the <command>zone</command> statement, specifying he
