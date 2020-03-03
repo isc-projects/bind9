@@ -11,4 +11,15 @@
 
 <section xml:id="relnotes-9.17.0"><info><title>Notes for BIND 9.17.0</title></info>
 
+  <section xml:id="relnotes-9.11.16-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+	  Fixed re-signing issues with inline zones which resulted in
+	  records being re-signed late or not at all.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
 </section>
