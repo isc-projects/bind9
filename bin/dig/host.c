@@ -153,6 +153,7 @@ show_usage(void) {
 "       -l lists all hosts in a domain, using AXFR\n"
 "       -m set memory debugging flag (trace|record|usage)\n"
 "       -N changes the number of dots allowed before root lookup is done\n"
+"       -p specifies the port on the server to query\n"
 "       -r disables recursive processing\n"
 "       -R specifies number of retries for UDP packets\n"
 "       -s a SERVFAIL response should stop query\n"
@@ -598,7 +599,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
 	return (result);
 }
 
-static const char * optstring = "46ac:dilnm:rst:vVwCDN:R:TUW:";
+static const char * optstring = "46ac:dilnm:p:rst:vVwCDN:R:TUW:";
 
 /*% version */
 static void
@@ -647,6 +648,7 @@ pre_parse_args(int argc, char **argv) {
 		case 'l': break;
 		case 'n': break;
 		case 'N': break;
+		case 'p': break;
 		case 'r': break;
 		case 'R': break;
 		case 's': break;
@@ -685,6 +687,7 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 	lookup = make_empty_lookup();
 
 	lookup->servfail_stops = false;
+	lookup->besteffort = false;
 	lookup->comments = false;
 	short_form = !verbose;
 
@@ -844,6 +847,9 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 			break;
 		case 's':
 			lookup->servfail_stops = true;
+			break;
+		case 'p':
+			port = atoi(isc_commandline_argument);
 			break;
 		}
 	}
