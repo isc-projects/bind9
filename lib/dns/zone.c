@@ -7279,6 +7279,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		int zsk_count = 0;
 		bool approved;
 
+		LOCK(&kasp->lock);
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
 		{
@@ -7289,6 +7290,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 				zsk_count++;
 			}
 		}
+		UNLOCK(&kasp->lock);
 
 		if (type == dns_rdatatype_dnskey ||
 		    type == dns_rdatatype_cdnskey || type == dns_rdatatype_cds)
@@ -19423,6 +19425,10 @@ zone_rekey(dns_zone_t *zone) {
 	kasp = dns_zone_getkasp(zone);
 	fullsign = DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_FULLSIGN);
 
+	if (kasp != NULL) {
+		LOCK(&kasp->lock);
+	}
+
 	result = dns_dnssec_findmatchingkeys(&zone->origin, dir, now, mctx,
 					     &keys);
 	if (result != ISC_R_SUCCESS) {
@@ -19431,9 +19437,9 @@ zone_rekey(dns_zone_t *zone) {
 			   isc_result_totext(result));
 	}
 
-	if (kasp && (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND)) {
+	if (kasp != NULL &&
+	    (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND)) {
 		ttl = dns_kasp_dnskeyttl(kasp);
-
 		result = dns_keymgr_run(&zone->origin, zone->rdclass, dir, mctx,
 					&keys, kasp, now, &nexttime);
 		if (result != ISC_R_SUCCESS) {
@@ -19442,6 +19448,10 @@ zone_rekey(dns_zone_t *zone) {
 				   isc_result_totext(result));
 			goto failure;
 		}
+	}
+
+	if (kasp != NULL) {
+		UNLOCK(&kasp->lock);
 	}
 
 	if (result == ISC_R_SUCCESS) {

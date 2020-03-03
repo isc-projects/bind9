@@ -26,3 +26,6 @@ do
 	zonefile="${zone}.db"
 	cp template.db.in $zonefile
 done
+
+cp example1.db.in example1.db
+cp example2.db.in example2.db
