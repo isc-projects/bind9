@@ -1,3 +1,7 @@
+5357.	[bug]		Newly added RRSIG records with expiry times before
+			the previous earliest expiry times might not be
+			re-signed in time.  The was a side effect of 5315.
+
 	--- 9.14.11 released ---
 
 5353.	[doc]		Document port and dscp parameters in forwarders
