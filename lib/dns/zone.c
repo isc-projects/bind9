@@ -3818,6 +3818,8 @@ set_resigntime(dns_zone_t *zone) {
 	uint32_t nanosecs;
 	dns_db_t *db = NULL;
 
+	INSIST(LOCKED_ZONE(zone));
+
 	/* We only re-sign zones that can be dynamically updated */
 	if (zone->update_disabled) {
 		return;
@@ -7129,12 +7131,12 @@ failure:
 	} else if (db != NULL) {
 		dns_db_detach(&db);
 	}
+
+	LOCK_ZONE(zone);
 	if (result == ISC_R_SUCCESS) {
 		set_resigntime(zone);
-		LOCK_ZONE(zone);
 		zone_needdump(zone, DNS_DUMP_DELAY);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-		UNLOCK_ZONE(zone);
 	} else {
 		/*
 		 * Something failed.  Retry in 5 minutes.
@@ -7143,6 +7145,7 @@ failure:
 		isc_interval_set(&ival, 300, 0);
 		isc_time_nowplusinterval(&zone->resigntime, &ival);
 	}
+	UNLOCK_ZONE(zone);
 
 	INSIST(version == NULL);
 }
@@ -8848,7 +8851,9 @@ done:
 		nsec3chain = ISC_LIST_HEAD(cleanup);
 	}
 
+	LOCK_ZONE(zone);
 	set_resigntime(zone);
+	UNLOCK_ZONE(zone);
 
 failure:
 	if (result != ISC_R_SUCCESS) {
@@ -9586,14 +9591,13 @@ pauseall:
 		signing = ISC_LIST_HEAD(cleanup);
 	}
 
+	LOCK_ZONE(zone);
 	set_resigntime(zone);
-
 	if (commit) {
-		LOCK_ZONE(zone);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 		zone_needdump(zone, DNS_DUMP_DELAY);
-		UNLOCK_ZONE(zone);
 	}
+	UNLOCK_ZONE(zone);
 
 failure:
 	if (result != ISC_R_SUCCESS) {
@@ -9640,6 +9644,7 @@ cleanup:
 		dns_db_detach(&db);
 	}
 
+	LOCK_ZONE(zone);
 	if (ISC_LIST_HEAD(zone->signing) != NULL) {
 		isc_interval_t interval;
 		if (zone->update_disabled || result != ISC_R_SUCCESS) {
@@ -9651,6 +9656,7 @@ cleanup:
 	} else {
 		isc_time_settoepoch(&zone->signingtime);
 	}
+	UNLOCK_ZONE(zone);
 
 	INSIST(version == NULL);
 }
@@ -11052,6 +11058,11 @@ again:
 		/* XXXMPA make separate call back */
 		if (result == ISC_R_SUCCESS) {
 			set_resigntime(zone);
+			if (zone->task != NULL) {
+				isc_time_t now;
+				TIME_NOW(&now);
+				zone_settimer(zone, &now);
+			}
 		}
 	}
 	if (secure != NULL) {
@@ -15594,6 +15605,11 @@ nextevent:
 	zone->sourceserialset = true;
 	zone_needdump(zone, DNS_DUMP_DELAY);
 
+	/*
+	 * Set resign time to make sure it is set to the earliest
+	 * signature expiration.
+	 */
+	set_resigntime(zone);
 	TIME_NOW(&timenow);
 	zone_settimer(zone, &timenow);
 	UNLOCK_ZONE(zone);
@@ -15614,6 +15630,11 @@ failure:
 		dns_zone_detach(&zone->rss_raw);
 	}
 	if (result != ISC_R_SUCCESS) {
+		LOCK_ZONE(zone);
+		set_resigntime(zone);
+		TIME_NOW(&timenow);
+		zone_settimer(zone, &timenow);
+		UNLOCK_ZONE(zone);
 		dns_zone_log(zone, level, "receive_secure_serial: %s",
 			     dns_result_totext(result));
 	}
@@ -19457,10 +19478,11 @@ zone_rekey(dns_zone_t *zone) {
 
 	dns_db_closeversion(db, &ver, true);
 
+	LOCK_ZONE(zone);
+
 	if (commit) {
 		dns_difftuple_t *tuple;
 
-		LOCK_ZONE(zone);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 
 		zone_needdump(zone, DNS_DUMP_DELAY);
@@ -19582,10 +19604,8 @@ zone_rekey(dns_zone_t *zone) {
 		 * Schedule the next resigning event
 		 */
 		set_resigntime(zone);
-		UNLOCK_ZONE(zone);
 	}
 
-	LOCK_ZONE(zone);
 	isc_time_settoepoch(&zone->refreshkeytime);
 
 	/*
@@ -19643,6 +19663,7 @@ zone_rekey(dns_zone_t *zone) {
 	result = ISC_R_SUCCESS;
 
 failure:
+	LOCK_ZONE(zone);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * Something went wrong; try again in ten minutes or
@@ -19652,6 +19673,7 @@ failure:
 				 0);
 		isc_time_nowplusinterval(&zone->refreshkeytime, &ival);
 	}
+	UNLOCK_ZONE(zone);
 
 	dns_diff_clear(&diff);
 	dns_diff_clear(&_sig_diff);

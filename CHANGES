@@ -1,3 +1,7 @@
+5357.	[bug]		Newly added RRSIG records with expiry times before
+			the previous earliest expiry times might not be
+			re-signed in time.  The was a side effect of 5315.
+
 	--- 9.16.0 released ---
 
 5356.	[func]		Update dnssec-policy configuration statements:
