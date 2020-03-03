@@ -28,6 +28,8 @@ TSIG=""
 SHA1="FrSt77yPTFx6hTs4i2tKLB9LmE0="
 SHA224="hXfwwwiag2QGqblopofai9NuW28q/1rH4CaTnA=="
 SHA256="R16NojROxtxH/xbDl//ehDsHm5DjWTQ2YXV+hGC2iBY="
+VIEW1="YPfMoAk6h+3iN8MDRQC004iSNHY="
+VIEW2="4xILSZQnuO1UKubXHkYUsvBRPu8="
 
 ###############################################################################
 # Key properties                                                              #
@@ -1799,6 +1801,7 @@ dnssec_verify
 # ns4/override.none.signed
 # ns5/override.override.unsigned
 # ns5/override.none.unsigned
+# ns4/example.net (both views)
 set_keyrole      "KEY1" "csk"
 set_keylifetime  "KEY1" "0"
 set_keyalgorithm "KEY1" "14" "ECDSAP384SHA384" "384"
@@ -1849,6 +1852,39 @@ check_keys
 check_apex
 check_subdomain
 dnssec_verify
+
+set_keydir "ns4"
+set_zone "example.net"
+set_server "ns4" "10.53.0.4"
+TSIG="hmac-sha1:keyforview1:$VIEW1"
+check_keys
+check_apex
+dnssec_verify
+n=$((n+1))
+# check subdomain
+echo_i "check TXT example.net (view example1) rrset is signed correctly ($n)"
+ret=0
+dig_with_opts "view.${ZONE}" "@${SERVER}" TXT > "dig.out.$DIR.test$n.txt" || log_error "dig view.${ZONE} TXT failed"
+grep "status: NOERROR" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "mismatch status in DNS response"
+grep "view.${ZONE}\..*${DEFAULT_TTL}.*IN.*TXT.*view1" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "missing view.${ZONE} TXT record in response"
+check_signatures TXT "dig.out.$DIR.test$n.txt" "ZSK"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+TSIG="hmac-sha1:keyforview2:$VIEW2"
+check_keys
+check_apex
+dnssec_verify
+n=$((n+1))
+# check subdomain
+echo_i "check TXT example.net (view example2) rrset is signed correctly ($n)"
+ret=0
+dig_with_opts "view.${ZONE}" "@${SERVER}" TXT > "dig.out.$DIR.test$n.txt" || log_error "dig view.${ZONE} TXT failed"
+grep "status: NOERROR" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "mismatch status in DNS response"
+grep "view.${ZONE}\..*${DEFAULT_TTL}.*IN.*TXT.*view2" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "missing view.${ZONE} TXT record in response"
+check_signatures TXT "dig.out.$DIR.test$n.txt" "ZSK"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Clear TSIG.
 TSIG=""

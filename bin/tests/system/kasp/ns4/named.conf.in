@@ -26,6 +26,16 @@ key "sha256" {
 	secret "R16NojROxtxH/xbDl//ehDsHm5DjWTQ2YXV+hGC2iBY=";
 };
 
+key "keyforview1" {
+	algorithm "hmac-sha1";
+	secret "YPfMoAk6h+3iN8MDRQC004iSNHY=";
+};
+
+key "keyforview2" {
+	algorithm "hmac-sha1";
+	secret "4xILSZQnuO1UKubXHkYUsvBRPu8=";
+};
+
 dnssec-policy "test" {
 	keys {
 		csk key-directory lifetime 0 algorithm 14;
@@ -113,5 +123,23 @@ view "none" {
 		type master;
 		dnssec-policy "none";
 		file "none.none.signed.db";
+	};
+};
+
+view "example1" {
+	match-clients { key "keyforview1"; };
+
+	zone "example.net" {
+		type master;
+		file "example1.db";
+	};
+};
+
+view "example2" {
+	match-clients { key "keyforview2"; };
+
+	zone "example.net" {
+		type master;
+		file "example2.db";
 	};
 };
