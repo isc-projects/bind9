@@ -247,6 +247,9 @@ extern void mock_assert(const int result, const char* const expression,
 #define _assert_int_not_equal(a, b, f, l) \
 	(((a) != (b)) ? (void)0 : (_assert_int_not_equal(a, b, f, l), abort()))
 #else /* UNIT_TESTING */
+
+#ifndef CPPCHECK
+
 /*
  * Assertions
  */
@@ -260,6 +263,19 @@ extern void mock_assert(const int result, const char* const expression,
 #define INSIST(e)			ISC_INSIST(e)
 /*% Invariant Assertion */
 #define INVARIANT(e)			ISC_INVARIANT(e)
+
+#else /* CPPCHECK */
+
+/*% Require Assertion */
+#define REQUIRE(e)			if (!(e)) abort()
+/*% Ensure Assertion */
+#define ENSURE(e)			if (!(e)) abort()
+/*% Insist Assertion */
+#define INSIST(e)			if (!(e)) abort()
+/*% Invariant Assertion */
+#define INVARIANT(e)			if (!(e)) abort()
+
+#endif /* CPPCHECK */
 
 #endif /* UNIT_TESTING */
 

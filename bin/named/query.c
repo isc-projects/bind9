@@ -6836,7 +6836,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		snprintf(qbuf, sizeof(qbuf), "<unset>");
 
 	snprintf(mbuf, sizeof(mbuf) - 1,
-		 "client attr:0x%x, query attr:0x%X, restarts:%d, "
+		 "client attr:0x%x, query attr:0x%X, restarts:%u, "
 		 "origqname:%s, timer:%d, authdb:%d, referral:%d",
 		 client->attributes,
 		 client->query.attributes,
