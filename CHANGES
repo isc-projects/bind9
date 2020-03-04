@@ -1,3 +1,6 @@
+5368.	[bug]		Named failed to restart if 'rndc addzone' names
+			contained special characters (e.g. '/'). [GL #1655]
+
 5358.	[bug]		Inline master zones whose master files were touched
 			but otherwise unchanged and were subsequently reloaded
 			may have stopped re-signing. [GL !3135]
