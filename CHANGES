@@ -1,3 +1,6 @@
+5360.	[bug]		delv could fail to load trust anchors in DNSKEY
+			format. [GL #1647]
+
 5359.	[func]		"rndc nta -d" and "rndc secroots" now include
 			"validate-except" entries when listing negative
 			trust anchors. These are indicated by the keyword
