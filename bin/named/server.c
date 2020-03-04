@@ -7802,15 +7802,15 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data, isc_buffer_t **text,
 	INSIST(zone_config != NULL && zone_config_len > 0);
 
 	/* zone zonename { config; }; */
-	result = isc_buffer_reserve(text, 5 + zone_name_len + 1 +
+	result = isc_buffer_reserve(text, 6 + zone_name_len + 2 +
 						  zone_config_len + 2);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	CHECK(putstr(text, "zone "));
+	CHECK(putstr(text, "zone \""));
 	CHECK(putmem(text, (const void *)zone_name, zone_name_len));
-	CHECK(putstr(text, " "));
+	CHECK(putstr(text, "\" "));
 	CHECK(putmem(text, (const void *)zone_config, zone_config_len));
 	CHECK(putstr(text, ";\n"));
 
