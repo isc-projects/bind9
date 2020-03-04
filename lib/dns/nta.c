@@ -539,13 +539,12 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
 			dns_name_t *name;
 			isc_time_t t;
 
-			/*
-			 * Skip "validate-except" entries.
-			 */
+			name = dns_fixedname_initname(&fn);
+			dns_rbt_fullnamefromnode(node, name);
+			dns_name_format(name, nbuf, sizeof(nbuf));
+
 			if (n->expiry != 0xffffffffU) {
-				name = dns_fixedname_initname(&fn);
-				dns_rbt_fullnamefromnode(node, name);
-				dns_name_format(name, nbuf, sizeof(nbuf));
+				/* Normal NTA entries */
 				isc_time_set(&t, n->expiry, 0);
 				isc_time_formattimestamp(&t, tbuf,
 							 sizeof(tbuf));
@@ -557,11 +556,18 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
 					 n->expiry <= now ? "expired"
 							  : "expiry",
 					 tbuf);
-				first = false;
-				result = putstr(buf, obuf);
-				if (result != ISC_R_SUCCESS) {
-					goto cleanup;
-				}
+			} else {
+				/* "validate-except" entries */
+				snprintf(obuf, sizeof(obuf), "%s%s%s%s: %s",
+					 first ? "" : "\n", nbuf,
+					 view != NULL ? "/" : "",
+					 view != NULL ? view : "", "permanent");
+			}
+
+			first = false;
+			result = putstr(buf, obuf);
+			if (result != ISC_R_SUCCESS) {
+				goto cleanup;
 			}
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
@@ -576,31 +582,6 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
 cleanup:
 	dns_rbtnodechain_invalidate(&chain);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
-	return (result);
-}
-
-isc_result_t
-dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
-	isc_result_t result;
-	isc_buffer_t *text = NULL;
-	int len = 4096;
-
-	isc_buffer_allocate(ntatable->view->mctx, &text, len);
-
-	result = dns_ntatable_totext(ntatable, NULL, &text);
-
-	if (isc_buffer_usedlength(text) != 0) {
-		(void)putstr(&text, "\n");
-	} else if (result == ISC_R_SUCCESS) {
-		(void)putstr(&text, "none");
-	} else {
-		(void)putstr(&text, "could not dump NTA table: ");
-		(void)putstr(&text, isc_result_totext(result));
-	}
-
-	fprintf(fp, "%.*s", (int)isc_buffer_usedlength(text),
-		(char *)isc_buffer_base(text));
-	isc_buffer_free(&text);
 	return (result);
 }
 

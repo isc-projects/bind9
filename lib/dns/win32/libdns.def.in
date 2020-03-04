@@ -673,7 +673,6 @@ dns_ntatable_covered
 dns_ntatable_create
 dns_ntatable_delete
 dns_ntatable_detach
-dns_ntatable_dump
 dns_ntatable_save
 dns_ntatable_totext
 dns_opcode_totext
