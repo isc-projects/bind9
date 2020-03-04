@@ -1743,7 +1743,7 @@ check_secroots_layout named.secroots.test$n || ret=1
 linecount=$(grep -c "./${DEFAULT_ALGORITHM}/$keyid ; static" named.secroots.test$n || true)
 [ "$linecount" -eq 1 ] || ret=1
 linecount=$(< named.secroots.test$n wc -l)
-[ "$linecount" -eq 9 ] || ret=1
+[ "$linecount" -eq 10 ] || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1863,14 +1863,14 @@ rndccmd 10.53.0.4 nta badds.example 2>&1 | sed 's/^/ns4 /' | cat_i
 rndccmd 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.1
 lines=$(wc -l < rndc.out.ns4.test$n.1)
-[ "$lines" -eq 2 ] || ret=1
+[ "$lines" -eq 3 ] || ret=1
 rndccmd 10.53.0.4 nta secure.example 2>&1 | sed 's/^/ns4 /' | cat_i
 rndccmd 10.53.0.4 nta fakenode.secure.example 2>&1 | sed 's/^/ns4 /' | cat_i
 # reload should maintain NTAs
 rndc_reload ns4 10.53.0.4
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.2
 lines=$(wc -l < rndc.out.ns4.test$n.2)
-[ "$lines" -eq 4 ] || ret=1
+[ "$lines" -eq 5 ] || ret=1
 # shellcheck disable=SC2016
 start=$($PERL -e 'print time()."\n";')
 
@@ -2077,7 +2077,7 @@ sleep 4
 #
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.3
 lines=$(wc -l < rndc.out.ns4.test$n.3)
-[ "$lines" -eq 1 ] || ret=1
+[ "$lines" -eq 2 ] || ret=1
 grep "bogus.example/_default: expiry" rndc.out.ns4.test$n.3 > /dev/null || ret=1
 dig_with_opts b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.4 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.4 > /dev/null && ret=1
@@ -2101,7 +2101,7 @@ n=$((n+1))
 echo_i "testing loading regular attribute from NTA file ($n)"
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
 lines=$(wc -l < rndc.out.ns4.test$n.1)
-[ "$lines" -eq 0 ] || ret=1
+[ "$lines" -eq 1 ] || ret=1
 # initially, secure.example. validates with AD=1
 dig_with_opts a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null && ret=1
@@ -2159,7 +2159,7 @@ n=$((n+1))
 echo_i "testing loading forced attribute from NTA file ($n)"
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
 lines=$(wc -l < rndc.out.ns4.test$n.1)
-[ "$lines" -eq 0 ] || ret=1
+[ "$lines" -eq 1 ] || ret=1
 # initially, secure.example. validates with AD=1
 dig_with_opts a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null && ret=1
@@ -2240,10 +2240,11 @@ echo_i "sleeping for an additional 4 seconds for ns4 to fully startup"
 sleep 4
 
 # dump the NTA to a file (omit validate-except entries)
-echo_i "testing 'rndc nta'"
-rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
+echo_i "testing 'rndc nta -d' with NTA"
+rndccmd 10.53.0.4 nta -d | grep -v ": permanent" > rndc.out.ns4.test$n.1 2>/dev/null
 # "corp" is configured as a validate-except domain and thus should be
-# omitted. only "secure.example" should be in the dump at this point.
+# removed by the grep -v above. only "secure.example" should appear in
+# the dump.
 lines=$(wc -l < rndc.out.ns4.test$n.1)
 [ "$lines" -eq 1 ] || ret=1
 grep 'secure.example' rndc.out.ns4.test$n.1 > /dev/null || ret=1
@@ -2265,11 +2266,28 @@ else
     echo_i "skipped ntadiff test; install PERL module Time::Piece"
 fi
 
+echo_i "testing 'rndc nta' lifetime clamping"
+rndccmd 10.53.0.4 nta -d | grep ": permanent" > rndc.out.ns4.test$n.1 2>/dev/null
+# "corp" is configured as a validate-except domain and thus should be
+# the only entry in the dump.
+lines=$(wc -l < rndc.out.ns4.test$n.1)
+[ "$lines" -eq 1 ] || ret=1
+grep 'corp/_default' rndc.out.ns4.test$n.1 > /dev/null || ret=1
+
 # cleanup
 rndccmd 10.53.0.4 nta -remove secure.example > rndc.out.ns4.test$n.3 2>/dev/null
 
 n=$((n+1))
-if [ "$ret" -ne 0 ]; then echo_i "failed - NTA lifetime clamping failed"; fi
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "testing 'rndc nta -d' displays validate-except entries"
+rndccmd 10.53.0.4 nta -d | grep ": permanent" > rndc.out.ns4.test$n.1 2>/dev/null
+lines=$(wc -l < rndc.out.ns4.test$n.1)
+[ "$lines" -eq 1 ] || ret=1
+grep 'corp/_default' rndc.out.ns4.test$n.1 > /dev/null || ret=1
+n=$((n+1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "checking that NTAs work with 'forward only;' to a validating resolver ($n)"

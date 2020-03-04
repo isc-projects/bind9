@@ -11,6 +11,21 @@
 
 <section xml:id="relnotes-9.17.0"><info><title>Notes for BIND 9.17.0</title></info>
 
+  <section xml:id="relnotes-9.17.0-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+	  The <command>rndc nta -dump</command> and
+	  <command>rndc secroots</command> commands now both include
+	  <command>validate-except</command> entries when listing negative
+	  trust anchors. These are indicated by the keyword
+	  <literal>permanent</literal> in place of the expiry
+	  date. [GL #1532]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="relnotes-9.17.0-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
