@@ -26,11 +26,27 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/stdtime.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
 #include "netmgr-int.h"
 #include "uv-compat.h"
+
+static atomic_uint_fast32_t last_tcpquota_log = ATOMIC_VAR_INIT(0);
+
+static bool
+can_log_tcp_quota() {
+	isc_stdtime_t now, last;
+
+	isc_stdtime_get(&now);
+	last = atomic_exchange_relaxed(&last_tcpquota_log, now);
+	if (now != last) {
+		return (true);
+	}
+
+	return (false);
+}
 
 static int
 tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req);
@@ -650,9 +666,6 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	}
 
 	isc__nm_free_uvbuf(sock, buf);
-	if (sock->quota) {
-		isc_quota_detach(&sock->quota);
-	}
 
 	/*
 	 * This might happen if the inner socket is closing.  It means that
@@ -680,6 +693,7 @@ accept_connection(isc_nmsocket_t *ssock) {
 	struct sockaddr_storage ss;
 	isc_sockaddr_t local;
 	int r;
+	bool overquota = false;
 
 	REQUIRE(VALID_NMSOCK(ssock));
 	REQUIRE(ssock->tid == isc_nm_tid());
@@ -693,10 +707,25 @@ accept_connection(isc_nmsocket_t *ssock) {
 
 	if (ssock->pquota != NULL) {
 		result = isc_quota_attach(ssock->pquota, &quota);
+
+		/*
+		 * We share the quota between all TCP sockets. Others
+		 * may have used up all the quota slots, in which case
+		 * this socket could starve. So we only fail here if we
+		 * already had at least one active connection on this
+		 * socket. This guarantees that we'll maintain some level
+		 * of service while over quota, and will resume normal
+		 * service when the quota comes back down.
+		 */
 		if (result != ISC_R_SUCCESS) {
-			isc__nm_incstats(ssock->mgr,
-					 ssock->statsindex[STATID_ACCEPTFAIL]);
-			return (result);
+			ssock->overquota++;
+			overquota = true;
+			if (ssock->conns > 0) {
+				isc__nm_incstats(
+					ssock->mgr,
+					ssock->statsindex[STATID_ACCEPTFAIL]);
+				return (result);
+			}
 		}
 	}
 
@@ -743,6 +772,7 @@ accept_connection(isc_nmsocket_t *ssock) {
 	}
 
 	isc_nmsocket_attach(ssock, &csock->server);
+	ssock->conns++;
 
 	handle = isc__nmhandle_get(csock, NULL, &local);
 
@@ -761,6 +791,9 @@ error:
 	if (csock->quota != NULL) {
 		isc_quota_detach(&csock->quota);
 	}
+	if (overquota) {
+		ssock->overquota--;
+	}
 	/* We need to detach it properly to make sure uv_close is called. */
 	isc_nmsocket_detach(&csock);
 	return (result);
@@ -774,14 +807,14 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 	UNUSED(status);
 
 	result = accept_connection(ssock);
-	if (result != ISC_R_SUCCESS) {
-		if (result == ISC_R_QUOTA || result == ISC_R_SOFTQUOTA) {
-			ssock->overquota = true;
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOCONN) {
+		if ((result != ISC_R_QUOTA && result != ISC_R_SOFTQUOTA) ||
+		    can_log_tcp_quota()) {
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+				      "TCP connection failed: %s",
+				      isc_result_totext(result));
 		}
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
-			      "TCP connection failed: %s",
-			      isc_result_totext(result));
 	}
 }
 
@@ -910,17 +943,27 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_tcpsocket);
+	isc_nmsocket_t *ssock = sock->server;
 
 	if (sock->quota != NULL) {
-		isc_nmsocket_t *ssock = sock->server;
-
 		isc_quota_detach(&sock->quota);
-
-		if (ssock->overquota) {
+	}
+	if (ssock != NULL) {
+		ssock->conns--;
+		while (ssock->conns == 0 && ssock->overquota > 0) {
+			ssock->overquota--;
 			isc_result_t result = accept_connection(ssock);
-			if (result != ISC_R_QUOTA && result != ISC_R_SOFTQUOTA)
-			{
-				ssock->overquota = false;
+			if (result == ISC_R_SUCCESS || result == ISC_R_NOCONN) {
+				continue;
+			}
+			if ((result != ISC_R_QUOTA &&
+			     result != ISC_R_SOFTQUOTA) ||
+			    can_log_tcp_quota()) {
+				isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+					      ISC_LOGMODULE_NETMGR,
+					      ISC_LOG_ERROR,
+					      "TCP connection failed: %s",
+					      isc_result_totext(result));
 			}
 		}
 	}

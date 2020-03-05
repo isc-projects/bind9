@@ -1,3 +1,6 @@
+5361.	[bug]		named might not accept new connections after
+			hitting tcp-clients quota. [GL #1643]
+
 5360.	[bug]		delv could fail to load trust anchors in DNSKEY
 			format. [GL #1647]
 

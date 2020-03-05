@@ -369,7 +369,16 @@ struct isc_nmsocket {
 	 */
 	isc_quota_t *quota;
 	isc_quota_t *pquota;
-	bool overquota;
+
+	/*%
+	 * How many connections we have not accepted due to quota?
+	 * When we close a connection we need to accept a new one.
+	 */
+	int overquota;
+	/*%
+	 * How many active connections we have?
+	 */
+	int conns;
 
 	/*%
 	 * Socket statistics
