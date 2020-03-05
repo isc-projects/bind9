@@ -259,7 +259,8 @@ stages:
     fi
 
 .setup_softhsm: &setup_softhsm |
-    sh -x bin/tests/prepare-softhsm2.sh
+    export SLOT=$(sh -x bin/tests/prepare-softhsm2.sh)
+    test -n "${SLOT}" && test "${SLOT}" -gt 0
 
 .system_test: &system_test_job
   <<: *default_triggering_rules
