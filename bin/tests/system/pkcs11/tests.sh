@@ -26,7 +26,7 @@ have_ecc=`grep ecc supported`
 if [ "x$have_ecc" != "x" ]; then
     algs=$algs"ecc "
 fi
-have_ecx=`grep ecc supported`
+have_ecx=`grep ecx supported`
 if [ "x$have_ecx" != "x" ]; then
     algs=$algs"ecx "
 fi
