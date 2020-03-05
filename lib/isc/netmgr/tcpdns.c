@@ -245,7 +245,9 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 		 * We have a packet: stop timeout timers
 		 */
 		atomic_store(&dnssock->outer->processing, true);
-		uv_timer_stop(&dnssock->timer);
+		if (dnssock->timer_initialized) {
+			uv_timer_stop(&dnssock->timer);
+		}
 
 		if (atomic_load(&dnssock->sequential)) {
 			/*
@@ -387,8 +389,10 @@ resume_processing(void *arg) {
 	if (atomic_load(&sock->ah) == 0) {
 		/* Nothing is active; sockets can timeout now */
 		atomic_store(&sock->outer->processing, false);
-		uv_timer_start(&sock->timer, dnstcp_readtimeout,
-			       sock->read_timeout, 0);
+		if (sock->timer_initialized) {
+			uv_timer_start(&sock->timer, dnstcp_readtimeout,
+				       sock->read_timeout, 0);
+		}
 	}
 
 	/*
@@ -401,7 +405,9 @@ resume_processing(void *arg) {
 		result = processbuffer(sock, &handle);
 		if (result == ISC_R_SUCCESS) {
 			atomic_store(&sock->outer->processing, true);
-			uv_timer_stop(&sock->timer);
+			if (sock->timer_initialized) {
+				uv_timer_stop(&sock->timer);
+			}
 			isc_nmhandle_unref(handle);
 		} else if (sock->outer != NULL) {
 			isc_nm_resumeread(sock->outer);
@@ -429,7 +435,9 @@ resume_processing(void *arg) {
 			break;
 		}
 
-		uv_timer_stop(&sock->timer);
+		if (sock->timer_initialized) {
+			uv_timer_stop(&sock->timer);
+		}
 		atomic_store(&sock->outer->processing, true);
 		isc_nmhandle_unref(dnshandle);
 	} while (atomic_load(&sock->ah) < TCPDNS_CLIENTS_PER_CONN);
