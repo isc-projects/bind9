@@ -1979,6 +1979,7 @@
 ./bin/tests/system/resolver/ns4/named.conf.in	CONF-C	2018,2019,2020
 ./bin/tests/system/resolver/ns4/named.noaa	TXT.BRIEF	2010,2016,2018,2019,2020
 ./bin/tests/system/resolver/ns4/root.db		ZONE	2010,2014,2015,2016,2017,2018,2019,2020
+./bin/tests/system/resolver/ns4/sourcens.db	ZONE	2020
 ./bin/tests/system/resolver/ns4/tld1.db		ZONE	2012,2014,2016,2018,2019,2020
 ./bin/tests/system/resolver/ns4/tld2.db		ZONE	2012,2014,2016,2018,2019,2020
 ./bin/tests/system/resolver/ns5/child.server.db	ZONE	2011,2016,2018,2019,2020
@@ -1994,6 +1995,7 @@
 ./bin/tests/system/resolver/ns6/named.conf.in	CONF-C	2018,2019,2020
 ./bin/tests/system/resolver/ns6/no-edns-version.tld.db	ZONE	2014,2016,2018,2019,2020
 ./bin/tests/system/resolver/ns6/root.db		ZONE	2010,2011,2014,2016,2018,2019,2020
+./bin/tests/system/resolver/ns6/targetns.db	ZONE	2020
 ./bin/tests/system/resolver/ns6/to-be-removed.tld.db.in	ZONE	2012,2016,2018,2019,2020
 ./bin/tests/system/resolver/ns7/all-cnames.db	ZONE	2014,2016,2018,2019,2020
 ./bin/tests/system/resolver/ns7/edns-version.tld.db	ZONE	2014,2016,2018,2019,2020
