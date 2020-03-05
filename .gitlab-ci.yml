@@ -1300,3 +1300,35 @@ build:coverity:sid:amd64:
     paths:
       - cov-analysis-linux64.md5
       - cov-analysis-linux64.tgz
+
+# Respdiff test
+
+respdiff:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: system
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    BIND_BASELINE_VERSION: v9_11_3
+  script:
+    - ./configure --without-make-clean
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - *setup_interfaces
+    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
+    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
+    - cd refbind/
+    - ./configure --without-make-clean
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - cd ../bind-qa/bind9/respdiff
+    - bash respdiff.sh -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}/refbind" "${CI_PROJECT_DIR}"
+  dependencies:
+    - tarball-create:sid:amd64
+  needs: ["tarball-create:sid:amd64"]
+  only:
+    - tags
+  artifacts:
+    paths:
+      - refbind
+    untracked: true
+    expire_in: "1 day"
+    when: on_failure
