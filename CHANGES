@@ -1,3 +1,6 @@
+5360.	[bug]		delv could fail to load trust anchors in DNSKEY
+			format. [GL #1647]
+
 5358.	[bug]		Inline master zones whose master files were touched
 			but otherwise unchanged and were subsequently reloaded
 			may have stopped re-signing. [GL !3135]
