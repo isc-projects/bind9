@@ -5325,8 +5325,6 @@ AC_CONFIG_COMMANDS(
 #
 
 AC_CONFIG_FILES([
-  make/Makefile
-  make/mkdep
 	Makefile
 	bin/Makefile
 	bin/check/Makefile
@@ -5340,12 +5338,10 @@ AC_CONFIG_FILES([
 	bin/nsupdate/Makefile
 	bin/pkcs11/Makefile
 	bin/python/Makefile
-	bin/python/isc/Makefile
-	bin/python/isc/utils.py
-	bin/python/isc/tests/Makefile
 	bin/python/dnssec-checkds.py
 	bin/python/dnssec-coverage.py
 	bin/python/dnssec-keymgr.py
+	bin/python/isc/Makefile
 	bin/python/isc/__init__.py
 	bin/python/isc/checkds.py
 	bin/python/isc/coverage.py
@@ -5358,8 +5354,10 @@ AC_CONFIG_FILES([
 	bin/python/isc/keyzone.py
 	bin/python/isc/policy.py
 	bin/python/isc/rndc.py
+	bin/python/isc/tests/Makefile
 	bin/python/isc/tests/dnskey_test.py
 	bin/python/isc/tests/policy_test.py
+	bin/python/isc/utils.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
 	bin/tests/headerdep_test.sh
@@ -5427,8 +5425,8 @@ AC_CONFIG_FILES([
 	lib/isc/include/isc/platform.h
 	lib/isc/include/pk11/Makefile
 	lib/isc/include/pkcs11/Makefile
-	lib/isc/tests/Makefile
 	lib/isc/nls/Makefile
+	lib/isc/tests/Makefile
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile
@@ -5453,6 +5451,8 @@ AC_CONFIG_FILES([
 	lib/lwres/unix/include/lwres/Makefile
 	lib/samples/Makefile
 	lib/samples/Makefile-postinstall
+	make/Makefile
+	make/mkdep
 	unit/unittest.sh
 ])
 
