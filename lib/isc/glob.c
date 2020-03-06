@@ -123,7 +123,7 @@ static int
 glob(const char *pattern, int flags, void *unused, glob_t *pglob) {
 	char path[MAX_PATH];
 	WIN32_FIND_DATAA find_data;
-	;
+	int ec;
 	HANDLE hnd;
 
 	REQUIRE(pattern != NULL);
@@ -159,6 +159,7 @@ glob(const char *pattern, int flags, void *unused, glob_t *pglob) {
 
 	isc_mem_create(&pglob->mctx);
 	pglob->reserved = isc_mem_get(pglob->mctx, sizeof(file_list_t));
+	ISC_LIST_INIT(*(file_list_t *)pglob->reserved);
 
 	size_t entries = 0;
 
@@ -198,7 +199,7 @@ glob(const char *pattern, int flags, void *unused, glob_t *pglob) {
 	return (0);
 
 fail:
-	int ec = errno;
+	ec = errno;
 
 	FindClose(hnd);
 
