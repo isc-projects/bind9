@@ -2878,6 +2878,7 @@ AC_CONFIG_FILES([
 	make/Makefile
 	make/mkdep
 	unit/unittest.sh
+	util/check-make-install
 ])
 
 #
