@@ -97,6 +97,15 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
  */
 
 unsigned int
+dns_rdataslab_rdatasize(unsigned char *slab, unsigned int reservelen);
+/*%<
+ * Return the size of the rdata in an rdataslab.
+ *
+ * Requires:
+ *\li	'slab' points to a slab.
+ */
+
+unsigned int
 dns_rdataslab_count(unsigned char *slab, unsigned int reservelen);
 /*%<
  * Return the number of records in the rdataslab

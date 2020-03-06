@@ -10,12 +10,12 @@
  */
 
 options {
-	query-source address 10.53.0.4;
-	notify-source 10.53.0.4;
-	transfer-source 10.53.0.4;
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.4; };
+	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
 	recursion no;
 	notify yes;
@@ -27,22 +27,5 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.4 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
-};
-
-view "primary" {
-	ixfr-from-differences yes;
-	request-ixfr yes;
-	zone "test" IN {
-		type slave;
-		file "mytest.db";
-		masters { 10.53.0.3; };
-		max-ixfr-ratio unlimited;
-	};
-	zone "sub.test" IN {
-		type slave;
-		file "subtest.db";
-		request-ixfr no;
-		masters { 10.53.0.3; };
-	};
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
