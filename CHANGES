@@ -1,3 +1,20 @@
+5365.	[bug]		Algorithm rollover was stuck on submitting DS
+			because keymgr thought it would move to an invalid
+			state.  Fixed by when checking the current key,
+			check it against the desired state, not the existing
+			state. [GL #1626]
+
+5364.	[bug]		Algorithm rollover waited too long before introducing
+			zone signatures.  It waited to make sure all signatures
+			were resigned, but when introducing a new algorithm,
+			all signatures are resigned immediately.  Only
+			add the sign delay if there is a predecessor key.
+			[GL #1625]
+
+5363.	[bug]		When changing a dnssec-policy, existing keys with
+			properties that no longer match were not being retired.
+			[GL #1624]
+
 5362.	[func]		Limit the size of IXFR responses so that AXFR will
 			be used instead if it would be smaller. This is
 			controlled by the "max-ixfr-ratio" option, which
