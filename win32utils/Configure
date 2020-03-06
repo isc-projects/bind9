@@ -1324,15 +1324,18 @@ if ($use_libuv eq "auto") {
             last;
         }
     }
-    $configdefh{"HAVE_UV_HANDLE_SET_DATA"} = 1;
-    $configdefh{"HAVE_UV_HANDLE_GET_DATA"} = 1;
-    $configdefh{"HAVE_UV_IMPORT"} = 1;
-
 
     # If we have one use it otherwise report the error
     if ($use_libuv eq "auto") {
         die "can't find an libuv built directory at sibling root\n";
     }
+
+    # When a libuv version exposing uv_import() and uv_export() is released, the
+    # following three config.h macros will need to be conditionally defined for
+    # that libuv version and all later ones.
+    # $configdefh{"HAVE_UV_HANDLE_SET_DATA"} = 1;
+    # $configdefh{"HAVE_UV_HANDLE_GET_DATA"} = 1;
+    # $configdefh{"HAVE_UV_IMPORT"} = 1;
 }
 # falls into (so no else)
 if ($use_libuv eq "yes") {
@@ -1359,6 +1362,12 @@ if ($use_libuv eq "yes") {
     $configinc{"LIBUV_INC"} = "$libuv_inc";
     $configlib{"LIBUV_LIB"} = "$libuv_lib";
     $configdll{"LIBUV_DLL"} = "$libuv_dll";
+    # When a libuv version exposing uv_import() and uv_export() is released, the
+    # following three config.h macros will need to be conditionally defined for
+    # that libuv version and all later ones.
+    # $configdefh{"HAVE_UV_HANDLE_SET_DATA"} = 1;
+    # $configdefh{"HAVE_UV_HANDLE_GET_DATA"} = 1;
+    # $configdefh{"HAVE_UV_IMPORT"} = 1;
 }
 
 # with-openssl
