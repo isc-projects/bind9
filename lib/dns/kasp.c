@@ -90,6 +90,7 @@ destroy(dns_kasp_t *kasp) {
 	}
 	INSIST(ISC_LIST_EMPTY(kasp->keys));
 
+	isc_mutex_destroy(&kasp->lock);
 	isc_mem_free(kasp->mctx, kasp->name);
 	isc_mem_putanddetach(&kasp->mctx, kasp, sizeof(*kasp));
 }
