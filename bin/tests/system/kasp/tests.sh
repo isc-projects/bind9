@@ -1144,7 +1144,6 @@ set_keylifetime  "KEY1" "0"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
-
 # The first key is immediately published and activated.
 set_keytime  "KEY1" "PUBLISHED"    "yes"
 set_keytime  "KEY1" "ACTIVE"       "yes"
@@ -1230,7 +1229,7 @@ dnssec_verify
 set_zone "dnssec-keygen.kasp"
 set_policy "rsasha1" "3" "1234"
 set_server "ns3" "10.53.0.3"
-# key properties, timings and states same as above.
+# Key properties, timings and states same as above.
 
 check_keys
 check_apex
@@ -1243,7 +1242,7 @@ dnssec_verify
 set_zone "some-keys.kasp"
 set_policy "rsasha1" "3" "1234"
 set_server "ns3" "10.53.0.3"
-# key properties, timings and states same as above.
+# Key properties, timings and states same as above.
 
 check_keys
 check_apex
@@ -1256,7 +1255,7 @@ dnssec_verify
 set_zone "legacy-keys.kasp"
 set_policy "rsasha1" "3" "1234"
 set_server "ns3" "10.53.0.3"
-# key properties, timings and states same as above.
+# Key properties, timings and states same as above.
 
 check_keys
 check_apex
@@ -1271,7 +1270,7 @@ dnssec_verify
 set_zone "pregenerated.kasp"
 set_policy "rsasha1" "6" "1234"
 set_server "ns3" "10.53.0.3"
-# key properties, timings and states same as above.
+# Key properties, timings and states same as above.
 
 check_keys
 check_apex
@@ -1285,7 +1284,7 @@ dnssec_verify
 set_zone "rumoured.kasp"
 set_policy "rsasha1" "3" "1234"
 set_server "ns3" "10.53.0.3"
-# key properties, timings and states same as above.
+# Key properties, timings and states same as above.
 
 check_keys
 check_apex
@@ -1298,7 +1297,7 @@ dnssec_verify
 set_zone "secondary.kasp"
 set_policy "rsasha1" "3" "1234"
 set_server "ns3" "10.53.0.3"
-# key properties, timings and states same as above.
+# Key properties, timings and states same as above.
 
 check_keys
 check_apex
