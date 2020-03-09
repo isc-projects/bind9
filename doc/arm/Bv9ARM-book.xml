@@ -17759,56 +17759,56 @@ allow-query { !{ !10/8; any; }; key example; };
 	  <para>
 	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/">http://www.ietf.org/rfc/</link>.
 	  </para>
-	  <bibliography>
-	    <bibliodiv><info><title>Standards</title></info>
+	  <bibliography><title/>
+	    <bibliodiv><title>Standards</title>
 	      <!-- one of (BIBLIOENTRY BIBLIOMIXED) -->
 
 	      <biblioentry>
 		<abbrev>RFC974</abbrev>
 		<author><personname><surname>Partridge</surname><firstname>C.</firstname></personname></author>
-		<citetitle>Mail Routing and the Domain System</citetitle>
+		<title>Mail Routing and the Domain System</title>
 		<pubdate>January 1986</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1034</abbrev>
 		<author><personname><surname>Mockapetris</surname><firstname>P.V.</firstname></personname></author>
-		<citetitle>Domain Names — Concepts and Facilities</citetitle>
+		<title>Domain Names — Concepts and Facilities</title>
 		<pubdate>November 1987</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1035</abbrev>
-		<author><personname><surname>Mockapetris</surname><firstname>P. V.</firstname></personname></author> <citetitle>Domain Names — Implementation and
-		  Specification</citetitle>
+		<author><personname><surname>Mockapetris</surname><firstname>P. V.</firstname></personname></author> <title>Domain Names — Implementation and
+		  Specification</title>
 		<pubdate>November 1987</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv xml:id="proposed_standards" xreflabel="Proposed Standards"><info><title>Proposed Standards</title></info>
+	    <bibliodiv xml:id="proposed_standards" xreflabel="Proposed Standards"><title>Proposed Standards</title>
 
 	      <!-- one of (BIBLIOENTRY BIBLIOMIXED) -->
 	      <biblioentry>
 		<abbrev>RFC2181</abbrev>
 		<author><personname><surname>Elz</surname><firstname>R., R. Bush</firstname></personname></author>
-		<citetitle>Clarifications to the <acronym>DNS</acronym>
-		  Specification</citetitle>
+		<title>Clarifications to the <acronym>DNS</acronym>
+		  Specification</title>
 		<pubdate>July 1997</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC2308</abbrev>
 		<author><personname><surname>Andrews</surname><firstname>M.</firstname></personname></author>
-		<citetitle>Negative Caching of <acronym>DNS</acronym>
-		  Queries</citetitle>
+		<title>Negative Caching of <acronym>DNS</acronym>
+		  Queries</title>
 		<pubdate>March 1998</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1995</abbrev>
 		<author><personname><surname>Ohta</surname><firstname>M.</firstname></personname></author>
-		<citetitle>Incremental Zone Transfer in <acronym>DNS</acronym></citetitle>
+		<title>Incremental Zone Transfer in <acronym>DNS</acronym></title>
 		<pubdate>August 1996</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1996</abbrev>
 		<author><personname><surname>Vixie</surname><firstname>P.</firstname></personname></author>
-		<citetitle>A Mechanism for Prompt Notification of Zone Changes</citetitle>
+		<title>A Mechanism for Prompt Notification of Zone Changes</title>
 		<pubdate>August 1996</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17819,7 +17819,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>Y.</firstname><surname>Rekhter</surname></personname></author>
 		  <author><personname><firstname>J.</firstname><surname>Bound</surname></personname></author>
 		</authorgroup>
-		<citetitle>Dynamic Updates in the Domain Name System</citetitle>
+		<title>Dynamic Updates in the Domain Name System</title>
 		<pubdate>April 1997</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17827,7 +17827,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><firstname>P.</firstname><surname>Vixie</surname></personname></author>
 		</authorgroup>
-		<citetitle>Extension Mechanisms for DNS (EDNS0)</citetitle>
+		<title>Extension Mechanisms for DNS (EDNS0)</title>
 		<pubdate>August 1997</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17835,7 +17835,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><firstname>M.</firstname><surname>Crawford</surname></personname></author>
 		</authorgroup>
-		<citetitle>Non-Terminal DNS Name Redirection</citetitle>
+		<title>Non-Terminal DNS Name Redirection</title>
 		<pubdate>August 1999</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17846,7 +17846,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>D.</firstname><surname>Eastlake</surname><lineage>3rd</lineage></personname></author>
 		  <author><personname><firstname>B.</firstname><surname>Wellington</surname></personname></author>
 		</authorgroup>
-		<citetitle>Secret Key Transaction Authentication for <acronym>DNS</acronym> (TSIG)</citetitle>
+		<title>Secret Key Transaction Authentication for <acronym>DNS</acronym> (TSIG)</title>
 		<pubdate>May 2000</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17854,7 +17854,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><firstname>D.</firstname><surname>Eastlake</surname><lineage>3rd</lineage></personname></author>
 		</authorgroup>
-		<citetitle>Secret Key Establishment for DNS (TKEY RR)</citetitle>
+		<title>Secret Key Establishment for DNS (TKEY RR)</title>
 		<pubdate>September 2000</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17862,7 +17862,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><firstname>D.</firstname><surname>Eastlake</surname><lineage>3rd</lineage></personname></author>
 		</authorgroup>
-		<citetitle>DNS Request and Transaction Signatures (SIG(0)s)</citetitle>
+		<title>DNS Request and Transaction Signatures (SIG(0)s)</title>
 		<pubdate>September 2000</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17870,7 +17870,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><firstname>B.</firstname><surname>Wellington</surname></personname></author>
 		</authorgroup>
-		<citetitle>Secure Domain Name System (DNS) Dynamic Update</citetitle>
+		<title>Secure Domain Name System (DNS) Dynamic Update</title>
 		<pubdate>November 2000</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17883,20 +17883,20 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>J.</firstname><surname>Westhead</surname></personname></author>
 		  <author><personname><firstname>R.</firstname><surname>Hall</surname></personname></author>
 		</authorgroup>
-		<citetitle>Generic Security Service Algorithm for Secret
+		<title>Generic Security Service Algorithm for Secret
 		       Key Transaction Authentication for DNS
-		       (GSS-TSIG)</citetitle>
+		       (GSS-TSIG)</title>
 		<pubdate>October 2003</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv><info><title><acronym>DNS</acronym> Security Proposed Standards</title></info>
+	    <bibliodiv><title><acronym>DNS</acronym> Security Proposed Standards</title>
 
 	      <biblioentry>
 		<abbrev>RFC3225</abbrev>
 		<authorgroup>
 		  <author><personname><firstname>D.</firstname><surname>Conrad</surname></personname></author>
 		</authorgroup>
-		<citetitle>Indicating Resolver Support of DNSSEC</citetitle>
+		<title>Indicating Resolver Support of DNSSEC</title>
 		<pubdate>December 2001</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17905,7 +17905,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>D.</firstname><surname>Atkins</surname></personname></author>
 		  <author><personname><firstname>R.</firstname><surname>Austein</surname></personname></author>
 		</authorgroup>
-		<citetitle>Threat Analysis of the Domain Name System (DNS)</citetitle>
+		<title>Threat Analysis of the Domain Name System (DNS)</title>
 		<pubdate>August 2004</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17917,7 +17917,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>D.</firstname><surname>Massey</surname></personname></author>
 		  <author><personname><firstname>S.</firstname><surname>Rose</surname></personname></author>
 		</authorgroup>
-		<citetitle>DNS Security Introduction and Requirements</citetitle>
+		<title>DNS Security Introduction and Requirements</title>
 		<pubdate>March 2005</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17929,7 +17929,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>D.</firstname><surname>Massey</surname></personname></author>
 		  <author><personname><firstname>S.</firstname><surname>Rose</surname></personname></author>
 		</authorgroup>
-		<citetitle>Resource Records for the DNS Security Extensions</citetitle>
+		<title>Resource Records for the DNS Security Extensions</title>
 		<pubdate>March 2005</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17941,19 +17941,19 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>D.</firstname><surname>Massey</surname></personname></author>
 		  <author><personname><firstname>S.</firstname><surname>Rose</surname></personname></author>
 		</authorgroup>
-		<citetitle>Protocol Modifications for the DNS
-		       Security Extensions</citetitle>
+		<title>Protocol Modifications for the DNS
+		       Security Extensions</title>
 		<pubdate>March 2005</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv><info><title>Other Important RFCs About <acronym>DNS</acronym>
-		Implementation</title></info>
+	    <bibliodiv><title>Other Important RFCs About <acronym>DNS</acronym>
+		Implementation</title>
 
 	      <biblioentry>
 		<abbrev>RFC1535</abbrev>
 		<author><personname><surname>Gavron</surname><firstname>E.</firstname></personname></author>
-		<citetitle>A Security Problem and Proposed Correction With Widely
-		  Deployed <acronym>DNS</acronym> Software</citetitle>
+		<title>A Security Problem and Proposed Correction With Widely
+		  Deployed <acronym>DNS</acronym> Software</title>
 		<pubdate>October 1993</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17965,8 +17965,8 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>P.</firstname><surname>Danzig</surname></personname></author>
 		  <author><personname><firstname>S.</firstname><surname>Miller</surname></personname></author>
 		</authorgroup>
-		<citetitle>Common <acronym>DNS</acronym> Implementation
-		  Errors and Suggested Fixes</citetitle>
+		<title>Common <acronym>DNS</acronym> Implementation
+		  Errors and Suggested Fixes</title>
 		<pubdate>October 1993</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17975,7 +17975,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Elz</surname><firstname>R.</firstname></personname></author>
 		  <author><personname><firstname>R.</firstname><surname>Bush</surname></personname></author>
 		</authorgroup>
-		<citetitle>Serial Number Arithmetic</citetitle>
+		<title>Serial Number Arithmetic</title>
 		<pubdate>August 1996</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17984,12 +17984,12 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Morishita</surname><firstname>Y.</firstname></personname></author>
 		  <author><personname><firstname>T.</firstname><surname>Jinmei</surname></personname></author>
 		</authorgroup>
-		<citetitle>Common Misbehaviour Against <acronym>DNS</acronym>
-		Queries for IPv6 Addresses</citetitle>
+		<title>Common Misbehaviour Against <acronym>DNS</acronym>
+		Queries for IPv6 Addresses</title>
 		<pubdate>May 2005</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv><info><title>Resource Record Types</title></info>
+	    <bibliodiv><title>Resource Record Types</title>
 
 	      <biblioentry>
 		<abbrev>RFC1183</abbrev>
@@ -17999,7 +17999,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>R.</firstname><surname>Ullmann</surname></personname></author>
 		  <author><personname><firstname>P.</firstname><surname>Mockapetris</surname></personname></author>
 		</authorgroup>
-		<citetitle>New <acronym>DNS</acronym> RR Definitions</citetitle>
+		<title>New <acronym>DNS</acronym> RR Definitions</title>
 		<pubdate>October 1990</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18008,7 +18008,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Manning</surname><firstname>B.</firstname></personname></author>
 		  <author><personname><firstname>R.</firstname><surname>Colella</surname></personname></author>
 		</authorgroup>
-		<citetitle><acronym>DNS</acronym> NSAP Resource Records</citetitle>
+		<title><acronym>DNS</acronym> NSAP Resource Records</title>
 		<pubdate>October 1994</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18017,8 +18017,8 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Daniel</surname><firstname>R.</firstname></personname></author>
 		  <author><personname><firstname>M.</firstname><surname>Mealling</surname></personname></author>
 		</authorgroup>
-		<citetitle>Resolution of Uniform Resource Identifiers using
-		  the Domain Name System</citetitle>
+		<title>Resolution of Uniform Resource Identifiers using
+		  the Domain Name System</title>
 		<pubdate>June 1997</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18029,9 +18029,9 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>T.</firstname><firstname>Goodwin</firstname></personname></author>
 		  <author><personname><firstname>I.</firstname><surname>Dickinson</surname></personname></author>
 		</authorgroup>
-		<citetitle>A Means for Expressing Location Information in the
+		<title>A Means for Expressing Location Information in the
 		  Domain
-		  Name System</citetitle>
+		  Name System</title>
 		<pubdate>January 1996</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18040,35 +18040,35 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Gulbrandsen</surname><firstname>A.</firstname></personname></author>
 		  <author><personname><firstname>P.</firstname><surname>Vixie</surname></personname></author>
 		</authorgroup>
-		<citetitle>A <acronym>DNS</acronym> RR for Specifying the
+		<title>A <acronym>DNS</acronym> RR for Specifying the
 		  Location of
-		  Services</citetitle>
+		  Services</title>
 		<pubdate>October 1996</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC2163</abbrev>
 		<author><personname><surname>Allocchio</surname><firstname>A.</firstname></personname></author>
-		<citetitle>Using the Internet <acronym>DNS</acronym> to
+		<title>Using the Internet <acronym>DNS</acronym> to
 		  Distribute MIXER
-		  Conformant Global Address Mapping</citetitle>
+		  Conformant Global Address Mapping</title>
 		<pubdate>January 1998</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC2230</abbrev>
 		<author><personname><surname>Atkinson</surname><firstname>R.</firstname></personname></author>
-		<citetitle>Key Exchange Delegation Record for the <acronym>DNS</acronym></citetitle>
+		<title>Key Exchange Delegation Record for the <acronym>DNS</acronym></title>
 		<pubdate>October 1997</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC2536</abbrev>
 		<author><personname><surname>Eastlake</surname><firstname>D.</firstname><lineage>3rd</lineage></personname></author>
-		<citetitle>DSA KEYs and SIGs in the Domain Name System (DNS)</citetitle>
+		<title>DSA KEYs and SIGs in the Domain Name System (DNS)</title>
 		<pubdate>March 1999</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC2537</abbrev>
 		<author><personname><surname>Eastlake</surname><firstname>D.</firstname><lineage>3rd</lineage></personname></author>
-		<citetitle>RSA/MD5 KEYs and SIGs in the Domain Name System (DNS)</citetitle>
+		<title>RSA/MD5 KEYs and SIGs in the Domain Name System (DNS)</title>
 		<pubdate>March 1999</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18077,7 +18077,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Eastlake</surname><firstname>D.</firstname><lineage>3rd</lineage></personname></author>
 		  <author><personname><surname>Gudmundsson</surname><firstname>O.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Storing Certificates in the Domain Name System (DNS)</citetitle>
+		<title>Storing Certificates in the Domain Name System (DNS)</title>
 		<pubdate>March 1999</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18085,7 +18085,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Eastlake</surname><firstname>D.</firstname><lineage>3rd</lineage></personname></author>
 		</authorgroup>
-		<citetitle>Storage of Diffie-Hellman Keys in the Domain Name System (DNS)</citetitle>
+		<title>Storage of Diffie-Hellman Keys in the Domain Name System (DNS)</title>
 		<pubdate>March 1999</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18093,7 +18093,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Eastlake</surname><firstname>D.</firstname><lineage>3rd</lineage></personname></author>
 		</authorgroup>
-		<citetitle>Detached Domain Name System (DNS) Information</citetitle>
+		<title>Detached Domain Name System (DNS) Information</title>
 		<pubdate>March 1999</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18101,26 +18101,26 @@ allow-query { !{ !10/8; any; }; key example; };
 		<author><personname><surname>Gulbrandsen</surname><firstname>A.</firstname></personname></author>
 		<author><personname><surname>Vixie</surname><firstname>P.</firstname></personname></author>
 		<author><personname><surname>Esibov</surname><firstname>L.</firstname></personname></author>
-		<citetitle>A DNS RR for specifying the location of services (DNS SRV)</citetitle>
+		<title>A DNS RR for specifying the location of services (DNS SRV)</title>
 		<pubdate>February 2000</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC2915</abbrev>
 		<author><personname><surname>Mealling</surname><firstname>M.</firstname></personname></author>
 		<author><personname><surname>Daniel</surname><firstname>R.</firstname></personname></author>
-		<citetitle>The Naming Authority Pointer (NAPTR) DNS Resource Record</citetitle>
+		<title>The Naming Authority Pointer (NAPTR) DNS Resource Record</title>
 		<pubdate>September 2000</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC3110</abbrev>
 		<author><personname><surname>Eastlake</surname><firstname>D.</firstname><lineage>3rd</lineage></personname></author>
-		<citetitle>RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)</citetitle>
+		<title>RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)</title>
 		<pubdate>May 2001</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC3123</abbrev>
 		<author><personname><surname>Koch</surname><firstname>P.</firstname></personname></author>
-		<citetitle>A DNS RR Type for Lists of Address Prefixes (APL RR)</citetitle>
+		<title>A DNS RR Type for Lists of Address Prefixes (APL RR)</title>
 		<pubdate>June 2001</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18131,37 +18131,37 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>V.</firstname><surname>Ksinant</surname></personname></author>
 		  <author><personname><firstname>M.</firstname><surname>Souissi</surname></personname></author>
 		</authorgroup>
-		<citetitle><acronym>DNS</acronym> Extensions to support IP
-		  version 6</citetitle>
+		<title><acronym>DNS</acronym> Extensions to support IP
+		  version 6</title>
 		<pubdate>October 2003</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC3597</abbrev>
 		<author><personname><surname>Gustafsson</surname><firstname>A.</firstname></personname></author>
-		<citetitle>Handling of Unknown DNS Resource Record (RR) Types</citetitle>
+		<title>Handling of Unknown DNS Resource Record (RR) Types</title>
 		<pubdate>September 2003</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv><info><title><acronym>DNS</acronym> and the Internet</title></info>
+	    <bibliodiv><title><acronym>DNS</acronym> and the Internet</title>
 
 	      <biblioentry>
 		<abbrev>RFC1101</abbrev>
 		<author><personname><surname>Mockapetris</surname><firstname>P. V.</firstname></personname></author>
-		<citetitle><acronym>DNS</acronym> Encoding of Network Names
-		  and Other Types</citetitle>
+		<title><acronym>DNS</acronym> Encoding of Network Names
+		  and Other Types</title>
 		<pubdate>April 1989</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1123</abbrev>
 		<author><personname><surname>Braden</surname><surname>R.</surname></personname></author>
-		<citetitle>Requirements for Internet Hosts - Application and
-		  Support</citetitle>
+		<title>Requirements for Internet Hosts - Application and
+		  Support</title>
 		<pubdate>October 1989</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1591</abbrev>
 		<author><personname><surname>Postel</surname><firstname>J.</firstname></personname></author>
-		<citetitle>Domain Name System Structure and Delegation</citetitle>
+		<title>Domain Name System Structure and Delegation</title>
 		<pubdate>March 1994</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18171,7 +18171,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>G.</firstname><surname>de Groot</surname></personname></author>
 		  <author><personname><firstname>P.</firstname><surname>Vixie</surname></personname></author>
 		</authorgroup>
-		<citetitle>Classless IN-ADDR.ARPA Delegation</citetitle>
+		<title>Classless IN-ADDR.ARPA Delegation</title>
 		<pubdate>March 1998</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18179,7 +18179,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Internet Architecture Board</surname></personname></author>
 		</authorgroup>
-		<citetitle>IAB Technical Comment on the Unique DNS Root</citetitle>
+		<title>IAB Technical Comment on the Unique DNS Root</title>
 		<pubdate>May 2000</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18189,30 +18189,30 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Brunner-Williams</surname><firstname>E.</firstname></personname></author>
 		  <author><personname><surname>Manning</surname><firstname>B.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Domain Name System (DNS) IANA Considerations</citetitle>
+		<title>Domain Name System (DNS) IANA Considerations</title>
 		<pubdate>September 2000</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv><info><title><acronym>DNS</acronym> Operations</title></info>
+	    <bibliodiv><title><acronym>DNS</acronym> Operations</title>
 
 	      <biblioentry>
 		<abbrev>RFC1033</abbrev>
 		<author><personname><surname>Lottor</surname><firstname>M.</firstname></personname></author>
-		<citetitle>Domain administrators operations guide</citetitle>
+		<title>Domain administrators operations guide</title>
 		<pubdate>November 1987</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1537</abbrev>
 		<author><personname><surname>Beertema</surname><firstname>P.</firstname></personname></author>
-		<citetitle>Common <acronym>DNS</acronym> Data File
-		  Configuration Errors</citetitle>
+		<title>Common <acronym>DNS</acronym> Data File
+		  Configuration Errors</title>
 		<pubdate>October 1993</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1912</abbrev>
 		<author><personname><surname>Barr</surname><firstname>D.</firstname></personname></author>
-		<citetitle>Common <acronym>DNS</acronym> Operational and
-		  Configuration Errors</citetitle>
+		<title>Common <acronym>DNS</acronym> Operational and
+		  Configuration Errors</title>
 		<pubdate>February 1996</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18221,7 +18221,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Manning</surname><firstname>B.</firstname></personname></author>
 		  <author><personname><firstname>P.</firstname><surname>Vixie</surname></personname></author>
 		</authorgroup>
-		<citetitle>Operational Criteria for Root Name Servers</citetitle>
+		<title>Operational Criteria for Root Name Servers</title>
 		<pubdate>October 1996</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18230,12 +18230,12 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Hamilton</surname><firstname>M.</firstname></personname></author>
 		  <author><personname><firstname>R.</firstname><surname>Wright</surname></personname></author>
 		</authorgroup>
-		<citetitle>Use of <acronym>DNS</acronym> Aliases for
-		  Network Services</citetitle>
+		<title>Use of <acronym>DNS</acronym> Aliases for
+		  Network Services</title>
 		<pubdate>October 1997</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv><info><title>Internationalized Domain Names</title></info>
+	    <bibliodiv><title>Internationalized Domain Names</title>
 
 	      <biblioentry>
 		<abbrev>RFC2825</abbrev>
@@ -18243,8 +18243,8 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>IAB</surname></personname></author>
 		  <author><personname><surname>Daigle</surname><firstname>R.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>A Tangled Web: Issues of I18N, Domain Names,
-		       and the Other Internet protocols</citetitle>
+		<title>A Tangled Web: Issues of I18N, Domain Names,
+		       and the Other Internet protocols</title>
 		<pubdate>May 2000</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18254,7 +18254,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Hoffman</surname><firstname>P.</firstname></personname></author>
 		  <author><personname><surname>Costello</surname><firstname>A.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Internationalizing Domain Names in Applications (IDNA)</citetitle>
+		<title>Internationalizing Domain Names in Applications (IDNA)</title>
 		<pubdate>March 2003</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18263,7 +18263,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Hoffman</surname><firstname>P.</firstname></personname></author>
 		  <author><personname><surname>Blanchet</surname><firstname>M.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Nameprep: A Stringprep Profile for Internationalized Domain Names</citetitle>
+		<title>Nameprep: A Stringprep Profile for Internationalized Domain Names</title>
 		<pubdate>March 2003</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18271,13 +18271,13 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Costello</surname><firstname>A.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Punycode: A Bootstring encoding of Unicode
+		<title>Punycode: A Bootstring encoding of Unicode
 		       for Internationalized Domain Names in
-		       Applications (IDNA)</citetitle>
+		       Applications (IDNA)</title>
 		<pubdate>March 2003</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv><info><title>Other <acronym>DNS</acronym>-related RFCs</title></info>
+	    <bibliodiv><title>Other <acronym>DNS</acronym>-related RFCs</title>
 
 	      <note>
 		<para>
@@ -18289,27 +18289,27 @@ allow-query { !{ !10/8; any; }; key example; };
 	      <biblioentry>
 		<abbrev>RFC1464</abbrev>
 		<author><personname><surname>Rosenbaum</surname><firstname>R.</firstname></personname></author>
-		<citetitle>Using the Domain Name System To Store Arbitrary String
-		  Attributes</citetitle>
+		<title>Using the Domain Name System To Store Arbitrary String
+		  Attributes</title>
 		<pubdate>May 1993</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1713</abbrev>
 		<author><personname><surname>Romao</surname><firstname>A.</firstname></personname></author>
-		<citetitle>Tools for <acronym>DNS</acronym> Debugging</citetitle>
+		<title>Tools for <acronym>DNS</acronym> Debugging</title>
 		<pubdate>November 1994</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC1794</abbrev>
 		<author><personname><surname>Brisco</surname><firstname>T.</firstname></personname></author>
-		<citetitle><acronym>DNS</acronym> Support for Load
-		  Balancing</citetitle>
+		<title><acronym>DNS</acronym> Support for Load
+		  Balancing</title>
 		<pubdate>April 1995</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC2240</abbrev>
 		<author><personname><surname>Vaughan</surname><firstname>O.</firstname></personname></author>
-		<citetitle>A Legal Basis for Domain Name Allocation</citetitle>
+		<title>A Legal Basis for Domain Name Allocation</title>
 		<pubdate>November 1997</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18319,13 +18319,13 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>T.</firstname><surname>Wolf</surname></personname></author>
 		  <author><personname><firstname>G.</firstname><surname>Oglesby</surname></personname></author>
 		</authorgroup>
-		<citetitle>Domain Names and Company Name Retrieval</citetitle>
+		<title>Domain Names and Company Name Retrieval</title>
 		<pubdate>May 1998</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC2352</abbrev>
 		<author><personname><surname>Vaughan</surname><firstname>O.</firstname></personname></author>
-		<citetitle>A Convention For Using Legal Names as Domain Names</citetitle>
+		<title>A Convention For Using Legal Names as Domain Names</title>
 		<pubdate>May 1998</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18333,7 +18333,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Klensin</surname><firstname>J.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Reflections on the DNS, RFC 1591, and Categories of Domains</citetitle>
+		<title>Reflections on the DNS, RFC 1591, and Categories of Domains</title>
 		<pubdate>February 2001</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18341,8 +18341,8 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Hardie</surname><firstname>T.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Distributing Authoritative Name Servers via
-		       Shared Unicast Addresses</citetitle>
+		<title>Distributing Authoritative Name Servers via
+		       Shared Unicast Addresses</title>
 		<pubdate>April 2002</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18351,11 +18351,11 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Durand</surname><firstname>A.</firstname></personname></author>
 		  <author><personname><firstname>J.</firstname><surname>Ihren</surname></personname></author>
 		</authorgroup>
-		<citetitle>DNS IPv6 Transport Operational Guidelines</citetitle>
+		<title>DNS IPv6 Transport Operational Guidelines</title>
 		<pubdate>September 2004</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv><info><title>Obsolete and Unimplemented Experimental RFC</title></info>
+	    <bibliodiv><title>Obsolete and Unimplemented Experimental RFC</title>
 
 	      <biblioentry>
 		<abbrev>RFC1712</abbrev>
@@ -18365,8 +18365,8 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><firstname>S.</firstname><surname>Pleitner</surname></personname></author>
 		  <author><personname><firstname>D.</firstname><surname>Baldoni</surname></personname></author>
 		</authorgroup>
-		<citetitle><acronym>DNS</acronym> Encoding of Geographical
-		  Location</citetitle>
+		<title><acronym>DNS</acronym> Encoding of Geographical
+		  Location</title>
 		<pubdate>November 1994</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18374,7 +18374,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Crawford</surname><firstname>M.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Binary Labels in the Domain Name System</citetitle>
+		<title>Binary Labels in the Domain Name System</title>
 		<pubdate>August 1999</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18383,12 +18383,12 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Crawford</surname><firstname>M.</firstname></personname></author>
 		  <author><personname><surname>Huitema</surname><firstname>C.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>DNS Extensions to Support IPv6 Address Aggregation
-		       and Renumbering</citetitle>
+		<title>DNS Extensions to Support IPv6 Address Aggregation
+		       and Renumbering</title>
 		<pubdate>July 2000</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
-	    <bibliodiv><info><title>Obsoleted DNS Security RFCs</title></info>
+	    <bibliodiv><title>Obsoleted DNS Security RFCs</title>
 
 	      <note>
 		<para>
@@ -18402,13 +18402,13 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Eastlake</surname><lineage>3rd</lineage><firstname>D.</firstname></personname></author>
 		  <author><personname><firstname>C.</firstname><surname>Kaufman</surname></personname></author>
 		</authorgroup>
-		<citetitle>Domain Name System Security Extensions</citetitle>
+		<title>Domain Name System Security Extensions</title>
 		<pubdate>January 1997</pubdate>
 	      </biblioentry>
 	      <biblioentry>
 		<abbrev>RFC2137</abbrev>
 		<author><personname><surname>Eastlake</surname><lineage>3rd</lineage><firstname>D.</firstname></personname></author>
-		<citetitle>Secure Domain Name System Dynamic Update</citetitle>
+		<title>Secure Domain Name System Dynamic Update</title>
 		<pubdate>April 1997</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18416,7 +18416,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Eastlake</surname><lineage>3rd</lineage><firstname>D.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Domain Name System Security Extensions</citetitle>
+		<title>Domain Name System Security Extensions</title>
 		<pubdate>March 1999</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18424,8 +18424,8 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Wellington</surname><firstname>B.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Domain Name System Security (DNSSEC)
-		       Signing Authority</citetitle>
+		<title>Domain Name System Security (DNSSEC)
+		       Signing Authority</title>
 		<pubdate>November 2000</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18433,7 +18433,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Lewis</surname><firstname>E.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>DNS Security Extension Clarification on Zone Status</citetitle>
+		<title>DNS Security Extension Clarification on Zone Status</title>
 		<pubdate>March 2001</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18442,7 +18442,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Massey</surname><firstname>D.</firstname></personname></author>
 		  <author><personname><surname>Rose</surname><firstname>S.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Limiting the Scope of the KEY Resource Record (RR)</citetitle>
+		<title>Limiting the Scope of the KEY Resource Record (RR)</title>
 		<pubdate>December 2002</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18451,7 +18451,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Wellington</surname><firstname>B.</firstname></personname></author>
 		  <author><personname><surname>Gudmundsson</surname><firstname>O.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Redefinition of DNS Authenticated Data (AD) bit</citetitle>
+		<title>Redefinition of DNS Authenticated Data (AD) bit</title>
 		<pubdate>November 2003</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18459,7 +18459,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Gudmundsson</surname><firstname>O.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Delegation Signer (DS) Resource Record (RR)</citetitle>
+		<title>Delegation Signer (DS) Resource Record (RR)</title>
 		<pubdate>December 2003</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18467,7 +18467,7 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Weiler</surname><firstname>S.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Legacy Resolver Compatibility for Delegation Signer (DS)</citetitle>
+		<title>Legacy Resolver Compatibility for Delegation Signer (DS)</title>
 		<pubdate>May 2004</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18477,8 +18477,8 @@ allow-query { !{ !10/8; any; }; key example; };
 		  <author><personname><surname>Schlyter</surname><firstname>J.</firstname></personname></author>
 		  <author><personname><surname>Lewis</surname><firstname>E.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>Domain Name System KEY (DNSKEY) Resource Record
-		      (RR) Secure Entry Point (SEP) Flag</citetitle>
+		<title>Domain Name System KEY (DNSKEY) Resource Record
+		      (RR) Secure Entry Point (SEP) Flag</title>
 		<pubdate>April 2004</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -18486,13 +18486,13 @@ allow-query { !{ !10/8; any; }; key example; };
 		<authorgroup>
 		  <author><personname><surname>Schlyter</surname><firstname>J.</firstname></personname></author>
 		</authorgroup>
-		<citetitle>DNS Security (DNSSEC) NextSECure (NSEC) RDATA Format</citetitle>
+		<title>DNS Security (DNSSEC) NextSECure (NSEC) RDATA Format</title>
 		<pubdate>August 2004</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
 	  </bibliography>
 	</section>
-	<section xml:id="internet_drafts"><info><title>Internet Drafts</title></info>
+	<section xml:id="internet_drafts"><title>Internet Drafts</title>
 
 	  <para>
 	    Internet Drafts (IDs) are rough-draft working documents of
@@ -18508,13 +18508,13 @@ allow-query { !{ !10/8; any; }; key example; };
 	<section xml:id="more_about_bind"><info><title>Other Documents About <acronym>BIND</acronym></title></info>
 
 	  <para/>
-	  <bibliography>
+	  <bibliography><title/>
 	    <biblioentry>
 	      <authorgroup>
 		<author><personname><surname>Albitz</surname><firstname>Paul</firstname></personname></author>
 		<author><personname><firstname>Cricket</firstname><surname>Liu</surname></personname></author>
 	      </authorgroup>
-	      <citetitle><acronym>DNS</acronym> and <acronym>BIND</acronym></citetitle>
+	      <title><acronym>DNS</acronym> and <acronym>BIND</acronym></title>
 	      <copyright>
 		<year>1998</year>
 		<holder>Sebastopol, CA: O'Reilly and Associates</holder>
