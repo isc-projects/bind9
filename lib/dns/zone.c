@@ -20451,7 +20451,6 @@ rss_post(dns_zone_t *zone, isc_event_t *event) {
 	dns_db_currentversion(db, &oldver);
 	result = dns_db_newversion(db, &newver);
 	if (result != ISC_R_SUCCESS) {
-		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 		dnssec_log(zone, ISC_LOG_ERROR,
 			   "setnsec3param:dns_db_newversion -> %s",
 			   dns_result_totext(result));
