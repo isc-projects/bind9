@@ -1141,7 +1141,6 @@ system:clang:openbsd6.6:amd64:
   needs: ["clang:openbsd6.6:amd64"]
   only:
     - schedules
-    - tags
     - web
 
 # Jobs with libtool disabled
