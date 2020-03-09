@@ -14,13 +14,12 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>  /* Non-portable. */
+#include <sys/types.h> /* Non-portable. */
 
 #include <isc/fsaccess.h>
 #include <isc/print.h>
 #include <isc/result.h>
-
-#include <sys/stat.h>  /* Non-portable. */
-#include <sys/types.h> /* Non-portable. */
 
 #define PATH "/tmp/fsaccess"
 

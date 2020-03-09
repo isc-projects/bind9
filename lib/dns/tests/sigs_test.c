@@ -42,10 +42,10 @@
 #include <dns/types.h>
 #include <dns/zone.h>
 
+#include <dst/dst.h>
+
 #include "../zone_p.h"
 #include "dnstest.h"
-
-#include <dst/dst.h>
 
 static int
 _setup(void **state) {

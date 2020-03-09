@@ -33,13 +33,10 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/name.h>
 
-#include <isccfg/namedconf.h>
-
-#include "util.h"
-
-#include <bind9/getaddresses.h>
 #include <isccc/alist.h>
 #include <isccc/base64.h>
 #include <isccc/cc.h>
@@ -48,7 +45,12 @@
 #include <isccc/sexpr.h>
 #include <isccc/types.h>
 #include <isccc/util.h>
-#include <pk11/site.h>
+
+#include <isccfg/namedconf.h>
+
+#include <bind9/getaddresses.h>
+
+#include "util.h"
 
 #define SERVERADDRS 10
 

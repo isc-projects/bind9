@@ -15,11 +15,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "fuzz.h"
-
-#include <sys/stat.h>
 
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 

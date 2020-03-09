@@ -15,6 +15,11 @@
 
 #include <stdbool.h>
 
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+#include <openssl/x509.h>
+
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/safe.h>
@@ -23,16 +28,12 @@
 
 #include <dns/keyvalues.h>
 
+#include <dst/result.h>
+
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
 #include "openssl_shim.h"
-
-#include <dst/result.h>
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/objects.h>
-#include <openssl/x509.h>
 
 #define DST_RET(a)        \
 	{                 \

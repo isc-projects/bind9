@@ -27,13 +27,14 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
-#include <dst/result.h>
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
 #include <pk11/result.h>
 #include <pk11/site.h>
 #include <pkcs11/eddsa.h>
 #include <pkcs11/pkcs11.h>
+
+#include <dst/result.h>
 
 /* was 32 octets, Petr Spacek suggested 1024, SoftHSMv2 uses 256... */
 #ifndef PINLEN

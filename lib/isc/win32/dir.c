@@ -13,6 +13,7 @@
 #include <io.h>
 #include <process.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <isc/assertions.h>
 #include <isc/dir.h>
@@ -22,8 +23,6 @@
 #include <isc/util.h>
 
 #include "errno2result.h"
-
-#include <sys/stat.h>
 
 #define ISC_DIR_MAGIC  ISC_MAGIC('D', 'I', 'R', '*')
 #define VALID_DIR(dir) ISC_MAGIC_VALID(dir, ISC_DIR_MAGIC)

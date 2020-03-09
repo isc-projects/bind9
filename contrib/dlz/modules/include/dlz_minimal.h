@@ -28,7 +28,6 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-
 #include <sys/socket.h>
 #include <sys/types.h>
 #ifdef ISC_PLATFORM_HAVESYSUNH

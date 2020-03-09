@@ -11,11 +11,10 @@
 
 #include <errno.h>
 #include <stdbool.h>
-
-#include "errno2result.h"
-
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include "errno2result.h"
 
 /*! \file
  * \brief

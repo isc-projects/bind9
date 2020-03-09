@@ -27,13 +27,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <isc/print.h>
 #include <isc/util.h>
-
-#include <sys/stat.h>
-#include <sys/types.h>
 
 #ifdef USE_DNSRPS
 #define LIBRPZ_LIB_OPEN DNSRPS_LIB_OPEN

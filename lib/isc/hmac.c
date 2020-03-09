@@ -9,6 +9,9 @@
  * information regarding copyright ownership.
  */
 
+#include <openssl/hmac.h>
+#include <openssl/opensslv.h>
+
 #include <isc/assertions.h>
 #include <isc/hmac.h>
 #include <isc/md.h>
@@ -19,9 +22,6 @@
 #include <isc/util.h>
 
 #include "openssl_shim.h"
-
-#include <openssl/hmac.h>
-#include <openssl/opensslv.h>
 
 isc_hmac_t *
 isc_hmac_new(void) {

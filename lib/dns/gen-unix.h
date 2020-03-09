@@ -29,11 +29,10 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <unistd.h> /* XXXDCL Required for ?. */
+#include <sys/types.h> /* Required on some systems for dirent.h. */
+#include <unistd.h>    /* XXXDCL Required for ?. */
 
 #include <isc/lang.h>
-
-#include <sys/types.h> /* Required on some systems for dirent.h. */
 
 #ifdef NEED_OPTARG
 extern char *optarg;

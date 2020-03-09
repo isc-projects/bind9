@@ -15,14 +15,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <unistd.h>
-
 #include <sys/types.h>
+#include <unistd.h>
 
 #ifndef WIN32
 #include <inttypes.h>
 #include <signal.h>
-
 #include <sys/time.h>
 #endif /* WIN32 */
 

@@ -16,6 +16,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/types.h> /* dev_t FreeBSD 2.1 */
 #include <time.h>
 
 #include <isc/dir.h>
@@ -30,8 +31,6 @@
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
-
-#include <sys/types.h> /* dev_t FreeBSD 2.1 */
 
 #define LCTX_MAGIC	    ISC_MAGIC('L', 'c', 't', 'x')
 #define VALID_CONTEXT(lctx) ISC_MAGIC_VALID(lctx, LCTX_MAGIC)

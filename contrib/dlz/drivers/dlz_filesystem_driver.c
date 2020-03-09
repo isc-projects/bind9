@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <isc/dir.h>
 #include <isc/mem.h>
@@ -61,7 +62,6 @@
 
 #include <dlz/dlz_filesystem_driver.h>
 #include <named/globals.h>
-#include <sys/stat.h>
 
 static dns_sdlzimplementation_t *dlz_fs = NULL;
 

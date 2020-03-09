@@ -62,9 +62,8 @@
 #include <named/globals.h>
 
 /* temporarily include time. */
-#include <time.h>
-
 #include <libpq-fe.h>
+#include <time.h>
 
 static dns_sdlzimplementation_t *dlz_postgres = NULL;
 

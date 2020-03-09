@@ -14,6 +14,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <isc/mem.h>
@@ -37,8 +38,6 @@
 #include <dns/stats.h>
 #include <dns/tcpmsg.h>
 #include <dns/types.h>
-
-#include <sys/types.h>
 
 typedef ISC_LIST(dns_dispentry_t) dns_displist_t;
 

@@ -10,7 +10,6 @@
  */
 
 #include "openssl_shim.h"
-
 #include <stdlib.h>
 #include <string.h>
 

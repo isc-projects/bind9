@@ -15,7 +15,6 @@
  */
 
 #include "driver.h"
-
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>

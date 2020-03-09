@@ -12,16 +12,16 @@
 #ifndef DST_OPENSSL_H
 #define DST_OPENSSL_H 1
 
-#include <isc/lang.h>
-#include <isc/log.h>
-#include <isc/result.h>
-
 #include <openssl/bn.h>
 #include <openssl/conf.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+
+#include <isc/lang.h>
+#include <isc/log.h>
+#include <isc/result.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 /*

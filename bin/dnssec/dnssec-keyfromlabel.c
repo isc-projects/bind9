@@ -24,6 +24,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -34,7 +36,6 @@
 #include <dns/secalg.h>
 
 #include <dst/dst.h>
-#include <pk11/site.h>
 
 #if USE_PKCS11
 #include <pk11/result.h>

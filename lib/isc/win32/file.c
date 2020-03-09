@@ -18,6 +18,8 @@
 #include <process.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/utime.h>
 
 #include <isc/file.h>
 #include <isc/md.h>
@@ -32,9 +34,6 @@
 #include <isc/util.h>
 
 #include "errno2result.h"
-
-#include <sys/stat.h>
-#include <sys/utime.h>
 
 static const char alphnum[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv"
 			      "wxyz0123456789";

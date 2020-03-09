@@ -15,16 +15,14 @@
  */
 
 #include "dir.h"
-
 #include <ctype.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "dlz_minimal.h"
-
-#include <sys/stat.h>
-#include <sys/types.h>
 
 void
 dir_init(dir_t *dir) {

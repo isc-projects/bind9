@@ -11,10 +11,9 @@
 
 #ifndef WIN32
 #include <netdb.h>
-#include <unistd.h>
-
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 #endif /* ifndef WIN32 */
 
 #include <stdbool.h>
