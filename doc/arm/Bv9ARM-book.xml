@@ -11638,65 +11638,58 @@ view "external" {
 		<!--colspec colname="2" colnum="2" colsep="0" colwidth="4.017in"/-->
 		<colspec colname="1" colnum="1" colsep="0" colwidth="*"/>
 		<colspec colname="2" colnum="2" colsep="0" colwidth="4*"/>
-		<tbody>
+		<tbody valign="top">
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
-			<varname>master</varname>
+			<varname>primary</varname>
 		      </para>
 		    </entry>
 		    <entry colname="2">
 		      <para>
 			The server has a master copy of the data
 			for the zone and will be able to provide authoritative
-			answers for it. Type <varname>primary</varname> is
-			a synonym for <varname>master</varname>.
+			answers for it. Type <varname>master</varname> is
+			a synonym for <varname>primary</varname>.
 		      </para>
 		    </entry>
 		  </row>
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
-			<varname>slave</varname>
+			<varname>secondary</varname>
 		      </para>
 		    </entry>
 		    <entry colname="2">
 		      <para>
-			A slave zone is a replica of a master
-			zone. Type <varname>secondary</varname> is a
-			synonym for <varname>slave</varname>.
+			A secondary zone is a replica of a master
+			zone. Type <varname>slave</varname> is a
+			synonym for <varname>secondary</varname>.
 			The <command>masters</command> list
 			specifies one or more IP addresses
 			of master servers that the slave contacts to update
-			its copy of the zone.
-			Masters list elements can also be names of other
-			masters lists.
-			By default, transfers are made from port 53 on the
-			servers; this can
-			be changed for all servers by specifying a port number
-			before the
-			list of IP addresses, or on a per-server basis after
-			the IP address.
+			its copy of the zone.  Masters list elements can
+			also be names of other masters lists.  By default,
+			transfers are made from port 53 on the servers;
+			this can be changed for all servers by specifying
+			a port number before the list of IP addresses,
+			or on a per-server basis after the IP address.
 			Authentication to the master can also be done with
-			per-server TSIG keys.
-			If a file is specified, then the
+			per-server TSIG keys.  If a file is specified, then the
 			replica will be written to this file whenever the zone
-			is changed,
-			and reloaded from this file on a server restart. Use
-			of a file is
-			recommended, since it often speeds server startup and
-			eliminates
-			a needless waste of bandwidth. Note that for large
-			numbers (in the
-			tens or hundreds of thousands) of zones per server, it
-			is best to
-			use a two-level naming scheme for zone filenames. For
-			example,
-			a slave server for the zone <literal>example.com</literal> might place
+			is changed, and reloaded from this file on a server
+			restart. Use of a file is recommended, since it
+			often speeds server startup and eliminates a
+			needless waste of bandwidth. Note that for large
+			numbers (in the tens or hundreds of thousands) of
+			zones per server, it is best to use a two-level
+			naming scheme for zone filenames. For example,
+			a slave server for the zone
+			<literal>example.com</literal> might place
 			the zone contents into a file called
-			<filename>ex/example.com</filename> where <filename>ex/</filename> is
-			just the first two letters of the zone name. (Most
-			operating systems
+			<filename>ex/example.com</filename> where
+			<filename>ex/</filename> is just the first two
+			letters of the zone name. (Most operating systems
 			behave very slowly if you put 100000 files into
 			a single directory.)
 		      </para>
@@ -11768,87 +11761,23 @@ view "external" {
 		    </entry>
 		    <entry colname="2">
 		      <para>
-		        <emphasis role="bold">Note:</emphasis> using
-		        this zone type with any zone other than the root
-		        zone should be considered
-		        <emphasis>experimental</emphasis> and may cause
-		        performance issues, especially for zones which
-		        are large and/or frequently updated.
-		      </para>
-		      <para>
-		        A mirror zone acts like a zone of type
-		        <userinput>secondary</userinput> whose data is
-		        subject to DNSSEC validation before being used
-		        in answers.  Validation is performed during the
-		        zone transfer process (for both AXFR and IXFR),
-		        and again when the zone file is loaded from disk
-		        when <command>named</command> is restarted.  If
+		        A mirror zone is similar to a zone of type
+			<userinput>secondary</userinput>, except its data
+			is subject to DNSSEC validation before being used
+			in answers.  Validation is applied to the entire
+			zone during the zone transfer process, and again
+			when the zone file is loaded from disk when
+			<command>named</command> is restarted.  If
 		        validation of a new version of a mirror zone
 		        fails, a retransfer is scheduled and the most
 		        recent correctly validated version of that zone
-		        is used until it expires; if a newer version of
-		        that zone is later correctly validated, it
-		        replaces the previously used version.  If no
-		        usable zone data is available for a mirror zone
-		        (either because it was never loaded from disk
-		        and has not yet been transferred from a primary
-		        server or because its most recent correctly
-		        validated version expired), traditional DNS
-		        recursion will be used to look up the answers
-		        instead.
-		      </para>
-		      <para>
-		        While any zone may be configured with this type,
-		        it is intended to be used to set up a fast local
-		        copy of the root zone, similar to the one
-		        described in RFC 7706.  Note, however, that
-		        mirror zones are not supposed to augment the
-		        example configuration provided by RFC 7706 but
-		        rather to replace it altogether.
-		      </para>
-		      <para>
-		        A default list of primary servers for the IANA
-		        root zone is built into <command>named</command>
-		        and thus its mirroring can be enabled using the
-		        following configuration:
-		      </para>
-<programlisting>zone "." {
-	type mirror;
-};</programlisting>
-		      <para>
-		        In order to set up mirroring of any other zone,
-		        an explicit list of primary servers needs to be
-		        provided using the <command>masters</command>
-		        option (see <xref linkend="masters_grammar"/>
-		        for details).
-		      </para>
-		      <para>
-		        To make mirror zone contents persist between
-		        <command>named</command> restarts, use the
-		        <xref endterm="file_option_term" linkend="file_option"/>
-		        option.
-		      </para>
-		      <para>
-		        Mirror zone validation always happens for the
-		        entire zone contents, i.e. no "incremental
-		        validation" takes place, even for IXFRs.  This
-		        is required to ensure that each version of the
-		        zone used by the resolver is fully
-		        self-consistent with respect to DNSSEC.  Other,
-		        more efficient zone verification methods may be
-		        added in the future.
-		      </para>
-		      <para>
-		        For validation to succeed, a key-signing key
-		        (KSK) for the zone must be configured as a trust
-		        anchor in <filename>named.conf</filename>: that
-		        is, a key for the zone must be specified in
-		        <command>trust-anchors</command>.  In the case
-		        of the root zone, you may also rely on the
-		        built-in root trust anchor, which is enabled
-			when <xref endterm="dnssec_validation_term"
-			  linkend="dnssec_validation"/> is set to the
-			default value <userinput>auto</userinput>.
+			is used until it either expires or a newer version
+			validates correctly. If no usable zone data is
+			available for a mirror zone at all, either due to
+			transfer failure or expiration, traditional DNS
+			recursion is used to look up the answers instead.
+			Mirror zones cannot be used in a view that does
+			not have recursion enabled.
 		      </para>
 		      <para>
 			Answers coming from a mirror zone look almost
@@ -11859,33 +11788,57 @@ view "external" {
 		        bit ("authenticated data") is.
 		      </para>
 		      <para>
-		        Since mirror zones are intended to be used by
-		        recursive resolvers, adding one to a view with
-		        recursion disabled is considered to be a
-		        configuration error.
+			Mirror zones are intended to be used to set up a
+			fast local copy of the root zone, similar to the
+			one described in RFC 7706.  A default list of primary
+			servers for the IANA root zone is built into
+			<command>named</command> and thus its mirroring
+			can be enabled using the following configuration:
+		      </para>
+<programlisting>zone "." {
+	type mirror;
+};</programlisting>
+		      <para>
+			Other zones can be configured as mirror zones,
+			but this should be considered
+			<emphasis>experimental</emphasis> and may cause
+			performance issues, especially with zones that
+			are large and/or frequently updated.
+			Mirroring a zone other than root requires an
+			explicit list of primary servers to be provided
+			using the <command>masters</command> option
+			(see <xref linkend="masters_grammar"/>
+			for details), and a key-signing key (KSK)
+			for the specified zone to be explicitly
+			configured as a trust anchor.
+		      </para>
+		      <para>
+		        To make mirror zone contents persist between
+		        <command>named</command> restarts, use the
+		        <xref endterm="file_option_term" linkend="file_option"/>
+		        option.
 		      </para>
 		      <para>
 		        When configuring NOTIFY for a mirror zone, only
 		        <userinput>notify no;</userinput> and
 		        <userinput>notify explicit;</userinput> can be
-		        used.  Using any other <command>notify</command>
-		        setting at the zone level is a configuration
-		        error.  Using any other
+		        used at the zone level.  Using any other
 		        <command>notify</command> setting at the
 		        <command>options</command> or
 		        <command>view</command> level will cause
 		        that setting to be overridden with
 		        <userinput>notify explicit;</userinput> for the
-		        mirror zone in question.  Since the global
-		        default for the <command>notify</command> option
-		        is <userinput>yes</userinput>, mirror zones are
-		        by default configured with
+			mirror zone.  The global default for the
+			<command>notify</command> option is
+			<userinput>yes</userinput>, so mirror
+			zones are by default configured with
 		        <userinput>notify explicit;</userinput>.
 		      </para>
 		      <para>
 		        Outgoing transfers of mirror zones are disabled
 		        by default but may be enabled using
-		        <xref endterm="allow_transfer_term" linkend="allow_transfer"/>.
+			<xref endterm="allow_transfer_term"
+			  linkend="allow_transfer"/>.
 		      </para>
 		    </entry>
 		  </row>
