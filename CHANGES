@@ -1,3 +1,7 @@
+5367.	[bug]		Fixed a flaw in the calculation of zone database
+			size so that "max-journal-size default" will use
+			the correct limit. [GL #1661]
+
 5366.	[bug]		Fix a race condition with the keymgr when the same
 			zone plus dnssec-policy is configured in multiple
 			views. [GL #1653]

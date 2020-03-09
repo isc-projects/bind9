@@ -5927,19 +5927,27 @@ resign_delete(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 	}
 }
 
+static inline uint64_t
+recordsize(rdatasetheader_t *header, unsigned int namelen) {
+	return (dns_rdataslab_rdatasize((unsigned char *)header,
+					sizeof(*header)) +
+		sizeof(dns_ttl_t) + sizeof(dns_rdatatype_t) +
+		sizeof(dns_rdataclass_t) + namelen);
+}
+
 static void
 update_recordsandbytes(bool add, rbtdb_version_t *rbtversion,
-		       rdatasetheader_t *header) {
+		       rdatasetheader_t *header, unsigned int namelen) {
 	unsigned char *hdr = (unsigned char *)header;
 	size_t hdrsize = sizeof(*header);
 
 	RWLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 	if (add) {
 		rbtversion->records += dns_rdataslab_count(hdr, hdrsize);
-		rbtversion->bytes += dns_rdataslab_size(hdr, hdrsize);
+		rbtversion->bytes += recordsize(header, namelen);
 	} else {
 		rbtversion->records -= dns_rdataslab_count(hdr, hdrsize);
-		rbtversion->bytes -= dns_rdataslab_size(hdr, hdrsize);
+		rbtversion->bytes -= recordsize(header, namelen);
 	}
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 }
@@ -5950,6 +5958,8 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
       dns_rdataset_t *addedrdataset, isc_stdtime_t now) {
 	rbtdb_changed_t *changed = NULL;
 	rdatasetheader_t *topheader, *topheader_prev, *header, *sigheader;
+	dns_fixedname_t fname;
+	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	unsigned char *merged;
 	isc_result_t result;
 	bool header_nx;
@@ -5967,6 +5977,8 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	/*
 	 * Caller must be holding the node lock.
 	 */
+
+	dns_rbt_fullnamefromnode(rbtnode, nodename);
 
 	if ((options & DNS_DBADD_MERGE) != 0) {
 		REQUIRE(rbtversion != NULL);
@@ -6343,7 +6355,8 @@ find_header:
 			newheader->next = topheader->next;
 			if (rbtversion != NULL && !header_nx) {
 				update_recordsandbytes(false, rbtversion,
-						       header);
+						       header,
+						       nodename->length);
 			}
 			free_rdataset(rbtdb, rbtdb->common.mctx, header);
 		} else {
@@ -6395,7 +6408,8 @@ find_header:
 			}
 			if (rbtversion != NULL && !header_nx) {
 				update_recordsandbytes(false, rbtversion,
-						       header);
+						       header,
+						       nodename->length);
 			}
 		}
 	} else {
@@ -6472,7 +6486,8 @@ find_header:
 	}
 
 	if (rbtversion != NULL && !newheader_nx) {
-		update_recordsandbytes(true, rbtversion, newheader);
+		update_recordsandbytes(true, rbtversion, newheader,
+				       nodename->length);
 	}
 
 	/*
@@ -6836,6 +6851,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
 	rbtdb_version_t *rbtversion = version;
+	dns_fixedname_t fname;
+	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	rdatasetheader_t *topheader, *topheader_prev, *header, *newheader;
 	unsigned char *subresult;
 	isc_region_t region;
@@ -6844,6 +6861,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(rbtversion != NULL && rbtversion->rbtdb == rbtdb);
+
+	dns_rbt_fullnamefromnode(rbtnode, nodename);
 
 	if (rbtdb->common.methods == &zone_methods) {
 		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
@@ -6960,7 +6979,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			 * to additional info.  We need to clear these fields
 			 * to avoid having duplicated references.
 			 */
-			update_recordsandbytes(true, rbtversion, newheader);
+			update_recordsandbytes(true, rbtversion, newheader,
+					       nodename->length);
 		} else if (result == DNS_R_NXRRSET) {
 			/*
 			 * This subtraction would remove all of the rdata;
@@ -6995,7 +7015,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 * topheader.
 		 */
 		INSIST(rbtversion->serial >= topheader->serial);
-		update_recordsandbytes(false, rbtversion, header);
+		update_recordsandbytes(false, rbtversion, header,
+				       nodename->length);
 		if (topheader_prev != NULL) {
 			topheader_prev->next = newheader;
 		} else {
@@ -7362,8 +7383,13 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize, void *arg,
 				return (ISC_R_INVALIDFILE);
 			}
 		}
-		update_recordsandbytes(true, rbtdb->current_version, header);
+
+		update_recordsandbytes(true, rbtdb->current_version, header,
+				       rbtnode->fullnamelen);
 	}
+
+	/* We're done deserializing; clear fullnamelen */
+	rbtnode->fullnamelen = 0;
 
 	return (ISC_R_SUCCESS);
 }
