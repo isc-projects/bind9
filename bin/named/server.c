@@ -16,6 +16,8 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <isc/aes.h>
@@ -91,6 +93,9 @@
 #include <dns/zone.h>
 #include <dns/zt.h>
 
+#include <dst/dst.h>
+#include <dst/result.h>
+
 #include <isccfg/grammar.h>
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
@@ -101,12 +106,9 @@
 #include <ns/listenlist.h>
 
 #include <bind9/check.h>
-#include <dst/dst.h>
-#include <dst/result.h>
+
 #include <named/config.h>
 #include <named/control.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #if defined(HAVE_GEOIP2)
 #include <named/geoip.h>
 #endif /* HAVE_GEOIP2 */

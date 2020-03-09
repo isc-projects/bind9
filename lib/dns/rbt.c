@@ -13,6 +13,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 
 #include <isc/crc64.h>
 #include <isc/file.h>
@@ -26,8 +27,6 @@
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <sys/stat.h>
 
 /*%
  * This define is so dns/name.h (included by dns/fixedname.h) uses more

@@ -83,9 +83,9 @@
 #include <dns/zoneverify.h>
 #include <dns/zt.h>
 
-#include "zone_p.h"
-
 #include <dst/dst.h>
+
+#include "zone_p.h"
 
 #define ZONE_MAGIC	     ISC_MAGIC('Z', 'O', 'N', 'E')
 #define DNS_ZONE_VALID(zone) ISC_MAGIC_VALID(zone, ZONE_MAGIC)

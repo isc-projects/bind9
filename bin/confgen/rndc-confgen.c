@@ -37,15 +37,17 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/keyvalues.h>
 #include <dns/name.h>
 
-#include "keygen.h"
-#include "util.h"
+#include <dst/dst.h>
 
 #include <confgen/os.h>
-#include <dst/dst.h>
-#include <pk11/site.h>
+
+#include "keygen.h"
+#include "util.h"
 
 #define DEFAULT_KEYNAME "rndc-key"
 #define DEFAULT_SERVER	"127.0.0.1"

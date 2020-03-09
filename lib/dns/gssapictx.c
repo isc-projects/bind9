@@ -37,10 +37,10 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
-#include "dst_internal.h"
-
 #include <dst/gssapi.h>
 #include <dst/result.h>
+
+#include "dst_internal.h"
 
 /*
  * If we're using our own SPNEGO implementation (see configure.in),

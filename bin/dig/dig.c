@@ -26,6 +26,8 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
 #include <dns/masterdump.h>
@@ -40,7 +42,6 @@
 #include <dns/tsig.h>
 
 #include <dig/dig.h>
-#include <pk11/site.h>
 
 #define ADD_STRING(b, s)                                          \
 	{                                                         \

@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
@@ -28,8 +29,6 @@
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
-
-#include <sys/types.h>
 
 void
 InitSockets(void);

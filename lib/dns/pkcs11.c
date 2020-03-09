@@ -13,14 +13,14 @@
 
 #include <isc/util.h>
 
+#include <pk11/internal.h>
+#include <pk11/pk11.h>
+
 #include <dns/log.h>
 #include <dns/result.h>
 
 #include "dst_internal.h"
 #include "dst_pkcs11.h"
-
-#include <pk11/internal.h>
-#include <pk11/pk11.h>
 
 isc_result_t
 dst__pkcs11_toresult(const char *funcname, const char *file, int line,

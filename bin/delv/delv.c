@@ -12,11 +12,10 @@
 #include <bind.keys.h>
 
 #ifndef WIN32
-#include <netdb.h>
-#include <signal.h>
-
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #endif /* ifndef WIN32 */
@@ -66,11 +65,12 @@
 #include <dns/secalg.h>
 #include <dns/view.h>
 
+#include <dst/dst.h>
+#include <dst/result.h>
+
 #include <isccfg/log.h>
 #include <isccfg/namedconf.h>
 
-#include <dst/dst.h>
-#include <dst/result.h>
 #include <irs/netdb.h>
 #include <irs/resconf.h>
 

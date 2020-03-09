@@ -22,9 +22,10 @@
 #include <dns/name.h>
 #include <dns/tkey.h>
 
+#include <dst/gssapi.h>
+
 #include <isccfg/cfg.h>
 
-#include <dst/gssapi.h>
 #include <named/tkeyconf.h>
 
 #define RETERR(x)                            \

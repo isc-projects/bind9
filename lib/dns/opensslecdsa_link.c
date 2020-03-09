@@ -15,6 +15,11 @@
 
 #include <stdbool.h>
 
+#include <openssl/bn.h>
+#include <openssl/ecdsa.h>
+#include <openssl/err.h>
+#include <openssl/objects.h>
+
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/string.h>
@@ -22,15 +27,11 @@
 
 #include <dns/keyvalues.h>
 
+#include <dst/result.h>
+
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
-
-#include <dst/result.h>
-#include <openssl/bn.h>
-#include <openssl/ecdsa.h>
-#include <openssl/err.h>
-#include <openssl/objects.h>
 
 #ifndef NID_X9_62_prime256v1
 #error "P-256 group is not known (NID_X9_62_prime256v1)"

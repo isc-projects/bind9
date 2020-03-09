@@ -28,11 +28,11 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include "../dst_internal.h"
-#include "dnstest.h"
-
 #include <dst/dst.h>
 #include <dst/result.h>
+
+#include "../dst_internal.h"
+#include "dnstest.h"
 
 static int
 _setup(void **state) {

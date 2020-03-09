@@ -12,7 +12,6 @@
 /*! \file */
 
 #include "errno2result.h"
-
 #include <stdbool.h>
 
 #include <isc/platform.h>

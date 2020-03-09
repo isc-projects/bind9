@@ -15,12 +15,11 @@
 /*! \file */
 
 #include <dirent.h>
+#include <sys/types.h> /* Required on some systems. */
 
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/result.h>
-
-#include <sys/types.h> /* Required on some systems. */
 
 /*% Directory Entry */
 typedef struct isc_direntry {

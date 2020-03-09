@@ -5,7 +5,6 @@
  */
 
 #include "zone.h"
-
 #include <inttypes.h>
 #include <stdbool.h>
 

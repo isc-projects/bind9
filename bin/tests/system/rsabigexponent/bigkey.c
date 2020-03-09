@@ -23,6 +23,12 @@
 
 #define DST_KEY_INTERNAL
 
+#include <openssl/bn.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+#include <openssl/rsa.h>
+
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -34,11 +40,6 @@
 
 #include <dst/dst.h>
 #include <dst/result.h>
-#include <openssl/bn.h>
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/objects.h>
-#include <openssl/rsa.h>
 
 dst_key_t *key;
 dns_fixedname_t fname;

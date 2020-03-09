@@ -76,14 +76,13 @@
 #define _WINSOCKAPI_ /* Prevent inclusion of winsock.h in windows.h */
 #endif		     /* ifndef _WINSOCKAPI_ */
 
+#include <sys/types.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
 #include <isc/ipv6.h>
 #include <isc/lang.h>
 #include <isc/types.h>
-
-#include <sys/types.h>
 
 /*
  * This is here because named client, interfacemgr.c, etc. use the name as

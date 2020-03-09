@@ -52,12 +52,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "dir.h"
 #include "dlz_list.h"
 #include "dlz_minimal.h"
-
-#include <sys/stat.h>
 
 typedef struct config_data {
 	char *basedir;

@@ -33,10 +33,10 @@
 
 #include <dns/log.h>
 
+#include <dst/result.h>
+
 #include "dst_internal.h"
 #include "dst_openssl.h"
-
-#include <dst/result.h>
 
 static isc_mem_t *dst__mctx = NULL;
 

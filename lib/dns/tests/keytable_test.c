@@ -38,9 +38,9 @@
 #include <dns/rootns.h>
 #include <dns/view.h>
 
-#include "dnstest.h"
-
 #include <dst/dst.h>
+
+#include "dnstest.h"
 
 static int
 _setup(void **state) {

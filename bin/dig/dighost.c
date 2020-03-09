@@ -57,6 +57,8 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
@@ -72,14 +74,16 @@
 #include <dns/result.h>
 #include <dns/tsig.h>
 
-#include <isccfg/namedconf.h>
-
-#include <bind9/getaddresses.h>
-#include <dig/dig.h>
 #include <dst/dst.h>
 #include <dst/result.h>
+
+#include <isccfg/namedconf.h>
+
 #include <irs/resconf.h>
-#include <pk11/site.h>
+
+#include <bind9/getaddresses.h>
+
+#include <dig/dig.h>
 
 #if USE_PKCS11
 #include <pk11/result.h>

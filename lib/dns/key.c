@@ -19,9 +19,9 @@
 
 #include <dns/keyvalues.h>
 
-#include "dst_internal.h"
-
 #include <dst/dst.h>
+
+#include "dst_internal.h"
 
 uint16_t
 dst_region_computeid(const isc_region_t *source) {

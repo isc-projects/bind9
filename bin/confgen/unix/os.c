@@ -15,11 +15,11 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <confgen/os.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 int
 set_user(FILE *fd, const char *user) {

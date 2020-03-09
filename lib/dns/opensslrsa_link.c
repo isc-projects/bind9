@@ -14,21 +14,23 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <openssl/bn.h>
+#include <openssl/err.h>
+#include <openssl/objects.h>
+#include <openssl/rsa.h>
+
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
+#include <dst/result.h>
+
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
-
-#include <dst/result.h>
-#include <openssl/bn.h>
-#include <openssl/err.h>
-#include <openssl/objects.h>
-#include <openssl/rsa.h>
-#include <pk11/site.h>
 #if !defined(OPENSSL_NO_ENGINE)
 #include <openssl/engine.h>
 #endif /* if !defined(OPENSSL_NO_ENGINE) */

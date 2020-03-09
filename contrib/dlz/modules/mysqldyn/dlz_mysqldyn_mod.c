@@ -43,22 +43,23 @@
 #include <ifaddrs.h>
 #include <inttypes.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
+
+#include <mysql/errmsg.h>
+#include <mysql/mysql.h>
 
 #include <dlz_list.h>
 #include <dlz_minimal.h>
 #include <dlz_pthread.h>
-#include <mysql/errmsg.h>
-#include <mysql/mysql.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 
 /*
  * The SQL queries that will be used for lookups and updates are defined

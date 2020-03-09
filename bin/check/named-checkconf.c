@@ -38,9 +38,9 @@
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
-#include "check-tool.h"
-
 #include <bind9/check.h>
+
+#include "check-tool.h"
 
 static const char *program = "named-checkconf";
 

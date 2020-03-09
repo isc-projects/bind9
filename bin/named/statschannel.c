@@ -43,9 +43,8 @@
 #include <named/statschannel.h>
 
 #if HAVE_JSON_C
-#include <linkhash.h>
-
 #include <json_object.h>
+#include <linkhash.h>
 #endif /* HAVE_JSON_C */
 
 #if HAVE_LIBXML2

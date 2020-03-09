@@ -23,15 +23,14 @@
 #include <errno.h>
 #include <io.h>
 #include <stdbool.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <isc/file.h>
 #include <isc/stat.h>
 #include <isc/string.h>
 
 #include "errno2result.h"
-
-#include <sys/stat.h>
-#include <sys/types.h>
 
 /*
  * The OS-independent part of the API is in lib/isc.

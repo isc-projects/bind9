@@ -14,12 +14,11 @@
 #include <stdbool.h>
 #include <stddef.h> /* NULL */
 #include <stdlib.h> /* NULL */
+#include <sys/time.h>
 #include <syslog.h>
 
 #include <isc/stdtime.h>
 #include <isc/util.h>
-
-#include <sys/time.h>
 
 #ifndef ISC_FIX_TV_USEC
 #define ISC_FIX_TV_USEC 1

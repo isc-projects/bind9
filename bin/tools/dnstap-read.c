@@ -31,6 +31,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <protobuf-c/protobuf-c.h>
+
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/hex.h>
@@ -47,8 +49,6 @@
 #include <dns/result.h>
 
 #include "lib/dns/dnstap.pb-c.h"
-
-#include <protobuf-c/protobuf-c.h>
 
 isc_mem_t *mctx = NULL;
 bool memrecord = false;
