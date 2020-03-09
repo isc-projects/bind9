@@ -23,8 +23,8 @@ dlz <string> {
 
 dnssec-policy <string> {
         dnskey-ttl <duration>;
-        keys { ( csk | ksk | zsk ) ( key-directory ) lifetime ( <duration> | unlimited )
-            algorithm <integer> [ <integer> ]; ... };
+        keys { ( csk | ksk | zsk ) [ ( key-directory ) ] lifetime
+            <duration_or_unlimited> algorithm <string> [ <integer> ]; ... };
         max-zone-ttl <duration>;
         parent-ds-ttl <duration>;
         parent-propagation-delay <duration>;
@@ -239,6 +239,7 @@ options {
         max-cache-ttl <duration>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // ancient
+        max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <duration>;
         max-records <integer>;
@@ -599,6 +600,7 @@ view <string> [ <class> ] {
         max-cache-ttl <duration>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // ancient
+        max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <duration>;
         max-records <integer>;
@@ -823,6 +825,7 @@ view <string> [ <class> ] {
                     port <integer> ] ) [ key <string> ]; ... };
                 max-ixfr-log-size ( default | unlimited |
                     <sizeval> ); // ancient
+                max-ixfr-ratio ( unlimited | <percentage> );
                 max-journal-size ( default | unlimited | <sizeval> );
                 max-records <integer>;
                 max-refresh-time <integer>;
@@ -927,6 +930,7 @@ zone <string> [ <class> ] {
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // ancient
+        max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-records <integer>;
         max-refresh-time <integer>;
