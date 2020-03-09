@@ -42,11 +42,12 @@
 #include <dns/name.h>
 #include <dns/result.h>
 
-#include "keygen.h"
-#include "util.h"
+#include <dst/dst.h>
 
 #include <confgen/os.h>
-#include <dst/dst.h>
+
+#include "keygen.h"
+#include "util.h"
 
 #define KEYGEN_DEFAULT	"tsig-key"
 #define CONFGEN_DEFAULT "ddns-key"

@@ -39,6 +39,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/kasp.h>
@@ -49,13 +51,12 @@
 #include <dns/result.h>
 #include <dns/secalg.h>
 
+#include <dst/dst.h>
+
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
-
-#include <dst/dst.h>
-#include <pk11/site.h>
 
 #if USE_PKCS11
 #include <pk11/result.h>

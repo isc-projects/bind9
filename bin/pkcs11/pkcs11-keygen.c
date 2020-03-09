@@ -59,6 +59,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include <isc/commandline.h>
 #include <isc/print.h>
@@ -70,7 +71,6 @@
 #include <pk11/pk11.h>
 #include <pk11/result.h>
 #include <pkcs11/eddsa.h>
-#include <sys/types.h>
 
 /* Define static key template values */
 static CK_BBOOL truevalue = TRUE;

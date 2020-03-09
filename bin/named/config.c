@@ -25,6 +25,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
@@ -32,13 +34,13 @@
 #include <dns/tsig.h>
 #include <dns/zone.h>
 
+#include <dst/dst.h>
+
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
-#include <dst/dst.h>
 #include <named/config.h>
 #include <named/globals.h>
-#include <pk11/site.h>
 
 /*% default configuration */
 static char defaultconf[] = "\

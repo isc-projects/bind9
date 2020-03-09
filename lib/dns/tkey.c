@@ -23,6 +23,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -37,11 +39,10 @@
 #include <dns/tkey.h>
 #include <dns/tsig.h>
 
-#include "dst_internal.h"
-
 #include <dst/dst.h>
 #include <dst/gssapi.h>
-#include <pk11/site.h>
+
+#include "dst_internal.h"
 
 #define TEMP_BUFFER_SZ	   8192
 #define TKEY_RANDOM_AMOUNT 16

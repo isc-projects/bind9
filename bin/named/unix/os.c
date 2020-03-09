@@ -12,7 +12,6 @@
 /*! \file */
 #include <stdarg.h>
 #include <stdbool.h>
-
 #include <sys/stat.h>
 #include <sys/types.h> /* dev_t FreeBSD 2.1 */
 #ifdef HAVE_UNAME

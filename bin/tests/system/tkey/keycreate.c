@@ -26,6 +26,8 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/dispatch.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -38,7 +40,6 @@
 #include <dns/view.h>
 
 #include <dst/result.h>
-#include <pk11/site.h>
 
 #define CHECK(str, x)                                        \
 	{                                                    \

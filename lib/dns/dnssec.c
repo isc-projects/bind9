@@ -23,6 +23,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/db.h>
 #include <dns/diff.h>
 #include <dns/dnssec.h>
@@ -40,7 +42,6 @@
 #include <dns/tsig.h> /* for DNS_TSIG_FUDGE */
 
 #include <dst/result.h>
-#include <pk11/site.h>
 
 LIBDNS_EXTERNAL_DATA isc_stats_t *dns_dnssec_stats;
 

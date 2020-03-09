@@ -20,11 +20,11 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include "dst_internal.h"
-#include "dst_parse.h"
-
 #include <dst/gssapi.h>
 #include <dst/result.h>
+
+#include "dst_internal.h"
+#include "dst_parse.h"
 
 #define INITIAL_BUFFER_SIZE 1024
 #define BUFFER_EXTRA	    1024

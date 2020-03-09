@@ -11,15 +11,15 @@
 
 /*! \file isc/aes.c */
 
+#include <openssl/evp.h>
+#include <openssl/opensslv.h>
+
 #include <isc/aes.h>
 #include <isc/assertions.h>
 #include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
-
-#include <openssl/evp.h>
-#include <openssl/opensslv.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 #define EVP_CIPHER_CTX_new()   &(_context), EVP_CIPHER_CTX_init(&_context)

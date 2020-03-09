@@ -13,7 +13,6 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -74,9 +73,9 @@
 #include <devpoll.h>
 #endif /* if defined(HAVE_SYS_DEVPOLL_H) */
 
-#include "errno2result.h"
-
 #include <netinet/tcp.h>
+
+#include "errno2result.h"
 
 #ifdef ENABLE_TCP_FASTOPEN
 #include <netinet/tcp.h>

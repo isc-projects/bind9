@@ -58,7 +58,6 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "dlz_perl_driver.h"
-
 #include <EXTERN.h>
 #include <perl.h>
 #include <stdio.h>

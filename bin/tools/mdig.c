@@ -49,8 +49,9 @@
 #include <dns/types.h>
 #include <dns/view.h>
 
-#include <bind9/getaddresses.h>
 #include <dst/result.h>
+
+#include <bind9/getaddresses.h>
 
 #define CHECK(str, x)                                                       \
 	{                                                                   \

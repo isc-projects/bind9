@@ -38,10 +38,11 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include "dst_internal.h"
+#include <pk11/site.h>
 
 #include <dst/result.h>
-#include <pk11/site.h>
+
+#include "dst_internal.h"
 #ifdef HAVE_FIPS_MODE
 #include "dst_openssl.h" /* FIPS_mode() prototype */
 #endif			 /* ifdef HAVE_FIPS_MODE */

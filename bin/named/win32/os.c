@@ -18,6 +18,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <syslog.h>
 
 #include <isc/ntpaths.h>
@@ -32,8 +34,6 @@
 #include <named/main.h>
 #include <named/ntservice.h>
 #include <named/os.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 static char *lockfile = NULL;
 static char *pidfile = NULL;

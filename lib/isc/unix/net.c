@@ -10,7 +10,6 @@
  */
 
 #include <stdbool.h>
-
 #include <sys/types.h>
 
 #if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux__)
@@ -21,6 +20,7 @@
 #endif /* if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux__) */
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/uio.h>
 #include <unistd.h>
 
 #include <isc/log.h>
@@ -30,8 +30,6 @@
 #include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <sys/uio.h>
 
 #ifndef socklen_t
 #define socklen_t unsigned int

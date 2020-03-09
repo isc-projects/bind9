@@ -15,6 +15,7 @@
 #include <named/fuzz.h>
 
 #ifdef ENABLE_AFL
+#include <arpa/inet.h>
 #include <errno.h>
 #include <pthread.h>
 #include <signal.h>
@@ -30,7 +31,6 @@
 
 #include <dns/log.h>
 
-#include <arpa/inet.h>
 #include <named/globals.h>
 #include <named/log.h>
 #include <named/server.h>

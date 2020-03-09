@@ -52,11 +52,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <mysql/mysql.h>
+
 #include <dlz_dbi.h>
 #include <dlz_list.h>
 #include <dlz_minimal.h>
 #include <dlz_pthread.h>
-#include <mysql/mysql.h>
 
 #define dbc_search_limit 30
 #define ALLNODES	 1

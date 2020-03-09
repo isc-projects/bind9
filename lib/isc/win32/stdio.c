@@ -11,14 +11,13 @@
 
 #include <errno.h>
 #include <io.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <isc/stdio.h>
 #include <isc/util.h>
 
 #include "errno2result.h"
-
-#include <sys/stat.h>
-#include <sys/types.h>
 
 isc_result_t
 isc_stdio_open(const char *filename, const char *mode, FILE **fp) {

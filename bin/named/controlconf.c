@@ -31,9 +31,6 @@
 
 #include <dns/result.h>
 
-#include <isccfg/namedconf.h>
-
-#include <bind9/check.h>
 #include <isccc/alist.h>
 #include <isccc/cc.h>
 #include <isccc/ccmsg.h>
@@ -42,6 +39,11 @@
 #include <isccc/sexpr.h>
 #include <isccc/symtab.h>
 #include <isccc/util.h>
+
+#include <isccfg/namedconf.h>
+
+#include <bind9/check.h>
+
 #include <named/config.h>
 #include <named/control.h>
 #include <named/log.h>

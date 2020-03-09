@@ -10,13 +10,12 @@
  */
 
 #ifndef WIN32
-#include <netdb.h>
-#include <unistd.h>
-
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 #endif /* ifndef WIN32 */
 
 #include <stdio.h>

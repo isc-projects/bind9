@@ -12,7 +12,6 @@
 /*! \file */
 
 #include "keygen.h"
-
 #include <stdarg.h>
 #include <stdlib.h>
 
@@ -24,14 +23,16 @@
 #include <isc/result.h>
 #include <isc/string.h>
 
+#include <pk11/site.h>
+
 #include <dns/keyvalues.h>
 #include <dns/name.h>
 
-#include "util.h"
+#include <dst/dst.h>
 
 #include <confgen/os.h>
-#include <dst/dst.h>
-#include <pk11/site.h>
+
+#include "util.h"
 
 /*%
  * Convert algorithm type to string.

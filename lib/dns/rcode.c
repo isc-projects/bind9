@@ -24,6 +24,8 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/cert.h>
 #include <dns/ds.h>
 #include <dns/dsdigest.h>
@@ -34,8 +36,6 @@
 #include <dns/result.h>
 #include <dns/secalg.h>
 #include <dns/secproto.h>
-
-#include <pk11/site.h>
 
 #define RETERR(x)                        \
 	do {                             \

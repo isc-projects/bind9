@@ -18,9 +18,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <unistd.h>
-
 #include <sys/mman.h>
+#include <unistd.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -48,9 +47,9 @@
 #include <dns/rbt.h>
 #include <dns/result.h>
 
-#include "dnstest.h"
-
 #include <dst/dst.h>
+
+#include "dnstest.h"
 
 #ifndef MAP_FILE
 #define MAP_FILE 0

@@ -152,10 +152,10 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
-#include "dst_internal.h"
-
 #include <dst/gssapi.h>
 #include <dst/result.h>
+
+#include "dst_internal.h"
 
 /*
  * The API we export

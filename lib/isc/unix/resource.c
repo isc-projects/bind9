@@ -11,15 +11,14 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <sys/resource.h>
+#include <sys/time.h> /* Required on some systems for <sys/resource.h>. */
+#include <sys/types.h>
 
 #include <isc/platform.h>
 #include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/util.h>
-
-#include <sys/resource.h>
-#include <sys/time.h> /* Required on some systems for <sys/resource.h>. */
-#include <sys/types.h>
 
 #ifdef __linux__
 #include <linux/fs.h> /* To get the large NR_OPEN. */

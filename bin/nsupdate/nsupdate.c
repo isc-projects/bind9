@@ -45,6 +45,8 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/callbacks.h>
 #include <dns/dispatch.h>
 #include <dns/dnssec.h>
@@ -66,11 +68,11 @@
 #include <dns/tkey.h>
 #include <dns/tsig.h>
 
+#include <dst/dst.h>
+
 #include <isccfg/namedconf.h>
 
-#include <dst/dst.h>
 #include <irs/resconf.h>
-#include <pk11/site.h>
 
 #ifdef GSSAPI
 #include <dst/gssapi.h>
