@@ -4044,7 +4044,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-# Wait until new ZSK becomes active.
+# Make new ZSK active.
 echo_i "make ZSK $ZSK_ID inactive and make new ZSK $ZSK_ID2 active for zone $zone ($n)"
 ret=0
 $SETTIME -I now -K ns2 $ZSK > /dev/null
@@ -4109,18 +4109,11 @@ zsk3=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$
 keyfile_to_key_id "$zsk3" > ns2/$zone.zsk.id3
 ZSK_ID3=`cat ns2/$zone.zsk.id3`
 
-echo_i "load new ZSK $ZSK_ID3 for $zone ($n)"
-ret=0
-dnssec_loadkeys_on 2 $zone || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-# Wait until new ZSK becomes active.
-echo_i "delete old ZSK $ZSK_ID make ZSK $ZSK_ID2 inactive and make new ZSK $ZSK_ID3 active for zone $zone ($n)"
+# Schedule the new ZSK (ZSK3) to become active.
+echo_i "delete old ZSK $ZSK_ID schedule ZSK $ZSK_ID2 inactive and new ZSK $ZSK_ID3 active for zone $zone ($n)"
 $SETTIME -D now -K ns2 $ZSK > /dev/null
-$SETTIME -I +5 -K ns2 $zsk2 > /dev/null
-$SETTIME -A +5 -K ns2 $zsk3 > /dev/null
+$SETTIME -I +3600 -K ns2 $zsk2 > /dev/null
+$SETTIME -A +3600 -K ns2 $zsk3 > /dev/null
 dnssec_loadkeys_on 2 $zone || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -4173,6 +4166,15 @@ do
   status=$((status+ret))
 done
 
+# Make the new ZSK (ZSK3) active.
+echo_i "make new ZSK $ZSK_ID3 active for zone $zone ($n)"
+$SETTIME -I +1 -K ns2 $zsk2 > /dev/null
+$SETTIME -A +1 -K ns2 $zsk3 > /dev/null
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 # Wait for newest ZSK to become active.
 echo_i "wait until new ZSK $ZSK_ID3 active and ZSK $ZSK_ID2 inactive"
 for i in 1 2 3 4 5 6 7 8 9 10; do
@@ -4182,6 +4184,18 @@ for i in 1 2 3 4 5 6 7 8 9 10; do
     [ "$ret" -eq 0 ] && break
     sleep 1
 done
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Update the zone that requires a resign of the SOA RRset.
+echo_i "update the zone with $zone IN TXT nsupdate added me one more time"
+(
+echo zone $zone
+echo server 10.53.0.2 "$PORT"
+echo update add $zone. 300 in txt "nsupdate added me one more time"
+echo send
+) | $NSUPDATE
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -4203,7 +4217,24 @@ do
   status=$((status+ret))
 done
 
+for qtype in "SOA" "TXT"
+do
+  echo_i "checking $qtype RRset is signed with ZSK only, new ZSK active (update-check-ksk and dnssec-ksk-only) ($n)"
+  ret=0
+  dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
+  test "$lines" -eq 1 || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID3$" > /dev/null || ret=1
+  n=$((n+1))
+  test "$ret" -eq 0 || echo_i "failed"
+  status=$((status+ret))
+done
+
 echo_i "checking secroots output with multiple views ($n)"
+ret=0
 rndccmd 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 cp ns4/named.secroots named.secroots.test$n
 check_secroots_layout named.secroots.test$n || ret=1
