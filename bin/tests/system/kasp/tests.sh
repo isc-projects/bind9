@@ -1597,7 +1597,7 @@ set_server "ns3" "10.53.0.3"
 # Zone: zsk-retired.autosign.
 #
 set_zone "zsk-retired.autosign"
-set_policy "autosign" "2" "300"
+set_policy "autosign" "3" "300"
 set_server "ns3" "10.53.0.3"
 # The third key is not yet expected to be signing.
 set_keyrole      "KEY3" "zsk"
@@ -1619,6 +1619,12 @@ set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 set_keystate "KEY3" "GOAL"         "omnipresent"
 set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY3" "STATE_ZRRSIG" "hidden"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+check_rrsig_refresh
 
 #
 # Test dnssec-policy inheritance.
