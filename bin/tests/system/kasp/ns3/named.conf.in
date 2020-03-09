@@ -203,6 +203,30 @@ zone "zsk-retired.autosign" {
 };
 
 /*
+ * Zones for testing enabling DNSSEC.
+ */
+zone "step1.enable-dnssec.autosign" {
+	type master;
+	file "step1.enable-dnssec.autosign.db";
+	dnssec-policy "enable-dnssec";
+};
+zone "step2.enable-dnssec.autosign" {
+	type master;
+	file "step2.enable-dnssec.autosign.db";
+	dnssec-policy "enable-dnssec";
+};
+zone "step3.enable-dnssec.autosign" {
+	type master;
+	file "step3.enable-dnssec.autosign.db";
+	dnssec-policy "enable-dnssec";
+};
+zone "step4.enable-dnssec.autosign" {
+	type master;
+	file "step4.enable-dnssec.autosign.db";
+	dnssec-policy "enable-dnssec";
+};
+
+/*
  * Zones for testing ZSK Pre-Publication steps.
  */
 zone "step1.zsk-prepub.autosign" {
@@ -257,11 +281,6 @@ zone "step4.ksk-doubleksk.autosign" {
 zone "step5.ksk-doubleksk.autosign" {
 	type master;
 	file "step5.ksk-doubleksk.autosign.db";
-	dnssec-policy "ksk-doubleksk";
-};
-zone "step6.ksk-doubleksk.autosign" {
-	type master;
-	file "step6.ksk-doubleksk.autosign.db";
 	dnssec-policy "ksk-doubleksk";
 };
 

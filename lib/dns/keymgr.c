@@ -546,8 +546,14 @@ keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		 * chain of trust (can be this key).
 		 */
 		dnskey_omnipresent[DST_KEY_DS] = NA;
-		(void)dst_key_getstate(dkey->key, DST_KEY_DS,
-				       &dnskey_omnipresent[DST_KEY_DS]);
+		if (next_state != NA &&
+		    dst_key_id(dkey->key) == dst_key_id(key->key)) {
+			/* Check next state rather than current state. */
+			dnskey_omnipresent[DST_KEY_DS] = next_state;
+		} else {
+			(void)dst_key_getstate(dkey->key, DST_KEY_DS,
+					       &dnskey_omnipresent[DST_KEY_DS]);
+		}
 		if (!keymgr_key_exists_with_state(
 			    keyring, key, type, next_state, dnskey_omnipresent,
 			    na, false, match_algorithms))
@@ -993,14 +999,22 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 			 * TTLsig is the maximum TTL of all zone RRSIG
 			 * records.  This translates to:
 			 *
-			 *     Dsgn + zone-propragation-delay + max-zone-ttl.
+			 *     Dsgn + zone-propagation-delay + max-zone-ttl.
 			 *
 			 * We will also add the retire-safety interval.
 			 */
-			nexttime = lastchange + dns_kasp_signdelay(kasp) +
-				   dns_kasp_zonemaxttl(kasp) +
+			nexttime = lastchange + dns_kasp_zonemaxttl(kasp) +
 				   dns_kasp_zonepropagationdelay(kasp) +
 				   dns_kasp_retiresafety(kasp);
+			/*
+			 * Only add the sign delay Dsgn if there is an actual
+			 * predecessor key.
+			 */
+			uint32_t pre;
+			if (dst_key_getnum(key->key, DST_NUM_PREDECESSOR,
+					   &pre) == ISC_R_SUCCESS) {
+				nexttime += dns_kasp_signdelay(kasp);
+			}
 			break;
 		default:
 			nexttime = now;
@@ -1282,6 +1296,39 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		}
 	}
 
+	/* Do we need to remove keys? */
+	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
+	     dkey = ISC_LIST_NEXT(dkey, link))
+	{
+		bool found_match = false;
+
+		/* Make sure this key knows about roles. */
+		keymgr_key_init_role(dkey);
+
+		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
+		     kkey = ISC_LIST_NEXT(kkey, link))
+		{
+			if (keymgr_dnsseckey_kaspkey_match(dkey, kkey)) {
+				found_match = true;
+				dst_key_format(dkey->key, keystr,
+					       sizeof(keystr));
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_DEBUG(1),
+					      "keymgr: DNSKEY %s (%s) matches "
+					      "policy %s",
+					      keystr, keymgr_keyrole(dkey->key),
+					      dns_kasp_getname(kasp));
+				break;
+			}
+		}
+
+		/* No match, so retire unwanted retire key. */
+		if (!found_match) {
+			keymgr_key_retire(dkey, now);
+		}
+	}
+
 	/* Create keys according to the policy, if come in short. */
 	for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 	     kkey = ISC_LIST_NEXT(kkey, link))
@@ -1294,9 +1341,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring);
 		     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
 		{
-			/* Make sure this key knows about roles. */
-			keymgr_key_init_role(dkey);
-
 			if (keymgr_dnsseckey_kaspkey_match(dkey, kkey)) {
 				/* Found a match. */
 
