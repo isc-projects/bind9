@@ -1442,7 +1442,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			} else if (strcasecmp(arg, "maintain") == 0) {
 				allow = maint = true;
 			} else if (strcasecmp(arg, "off") == 0) {
-				;
+				/* Default */
 			} else {
 				INSIST(0);
 				ISC_UNREACHABLE();
@@ -1591,7 +1591,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				dns_zone_setkeyopt(zone, DNS_ZONEKEY_NORESIGN,
 						   true);
 			} else if (strcasecmp(arg, "maintain") == 0) {
-				;
+				/* Default */
 			} else {
 				INSIST(0);
 				ISC_UNREACHABLE();
