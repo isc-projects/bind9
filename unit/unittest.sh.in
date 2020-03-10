@@ -38,25 +38,18 @@ then
 	# show backtrace via gdb(1).
 	broken_tests=$(kyua_report | awk '$2 == "->" && ( $3 == "broken:" || $3 == "failed:" ) { print $1 }')
 	if [ -n "${CI}" ] && [ "$(id -u)" -eq 0 ] && [ -n "${broken_tests}" ] && [ -n "${GDB}" ]; then
-		if grep '^#define USE_LIBTOOL 1$' "${TOP}/config.h" >/dev/null; then
-			# kyua debug command misidentifies broken binary when libtool is used
-			# to configure BIND (see https://github.com/jmmv/kyua/issues/207).
-			# Here we try "trick" kyua use our custom gdb script instead
-			# of using gdb(1) directly. That's why this part needs to be run as root
-			# and, for safety reasons, only in the CI.
-			mv "${GDB}" "${GDB}.orig"
-			cp "${TOP}/unit/gdb" "${GDB}"
-			for test in ${broken_tests}; do
-				echo
-				${KYUA} debug "${test}"
-			done
-			mv "${GDB}.orig" "${GDB}"
-		else
-			for test in ${broken_tests}; do
-				echo
-				${KYUA} debug "${test}"
-			done
-		fi
+		# kyua debug command misidentifies broken binary when libtool is used
+		# to configure BIND (see https://github.com/jmmv/kyua/issues/207).
+		# Here we try "trick" kyua use our custom gdb script instead
+		# of using gdb(1) directly. That's why this part needs to be run as root
+		# and, for safety reasons, only in the CI.
+		mv "${GDB}" "${GDB}.orig"
+		cp "${TOP}/unit/gdb" "${GDB}"
+		for test in ${broken_tests}; do
+			echo
+			${KYUA} debug "${test}"
+		done
+		mv "${GDB}.orig" "${GDB}"
 	fi
 
 	if [ "${status}" -eq 0 ]

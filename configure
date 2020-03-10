@@ -710,6 +710,7 @@ DST_EXTRA_OBJS
 USE_ISC_SPNEGO
 READLINE_LIB
 BIND9_CO_RULE
+INSTALL_LIBRARY
 LIBTOOL_MODE_UNINSTALL
 LIBTOOL_MODE_LINK
 LIBTOOL_MODE_INSTALL
@@ -745,7 +746,6 @@ PKCS11_TOOLS
 PKCS11_TEST
 OPENSSL_LIBS
 OPENSSL_CFLAGS
-INSTALL_LIBRARY
 ALWAYS_DEFINES
 LIBUV_LIBS
 LIBUV_CFLAGS
@@ -907,7 +907,6 @@ with_geoip2
 enable_geoip
 with_maxminddb
 with_locktype
-with_libtool
 enable_pthread_rwlock
 with_openssl
 enable_fips_mode
@@ -1661,7 +1660,6 @@ Optional Packages:
   --with-maxminddb=PATH   Build with MaxMind GeoIP2 support (auto|yes|no|path)
                           [default=auto]
   --with-locktype=ARG     Specify mutex lock type (adaptive or standard)
-  --with-libtool          use GNU libtool
   --with-openssl=DIR      root of the OpenSSL directory
   --with-pkcs11=PATH      Build with PKCS11 support [no|path] (PATH is for the
                           PKCS11 provider)
@@ -11938,6 +11936,9 @@ CC=$lt_save_CC
 # Only expand once:
 
 
+if test -z "$LIBTOOL"; then :
+  as_fn_error $? "The libtool script could not be found." "$LINENO" 5
+fi
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
 # incompatible versions:
@@ -15989,51 +15990,6 @@ done
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libtool" >&5
-$as_echo_n "checking for libtool... " >&6; }
-
-# Check whether --with-libtool was given.
-if test "${with_libtool+set}" = set; then :
-  withval=$with_libtool; use_libtool="$withval"
-else
-  use_libtool="no"
-fi
-
-
-case $use_libtool in
-	yes)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-		O=lo
-		A=la
-		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile'
-		LIBTOOL_MODE_INSTALL='--mode=install'
-		LIBTOOL_MODE_LINK='--mode=link'
-		LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
-		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-
-$as_echo "#define USE_LIBTOOL 1" >>confdefs.h
-
-		;;
-	*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		O=o
-		A=a
-		LIBTOOL=
-
-		LIBTOOL_MKDEP_SED=
-		LIBTOOL_MODE_COMPILE=
-		LIBTOOL_MODE_INSTALL=
-		LIBTOOL_MODE_LINK=
-		LIBTOOL_MODE_UNINSTALL=
-		INSTALL_LIBRARY='${INSTALL_DATA}'
-		;;
-esac
-
-
 #
 # Do we want to use pthread rwlock?
 #
@@ -18766,7 +18722,16 @@ fi
 # File name extension for static archive files, for those few places
 # where they are treated differently from dynamic ones.
 #
+O=lo
+A=la
 SA=a
+LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
+LIBTOOL_MODE_COMPILE='--mode=compile'
+LIBTOOL_MODE_INSTALL='--mode=install'
+LIBTOOL_MODE_LINK='--mode=link'
+LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
+INSTALL_LIBRARY='${INSTALL_PROGRAM}'
+
 
 
 
@@ -22291,47 +22256,21 @@ if test "$with_dlopen" = "yes"; then :
 		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_CFLAGS="-fPIC"
 		 SO_LDFLAGS=""
-		 if test "$use_libtool" = "yes"; then :
-
-			 SO_LDFLAGS="-Xcompiler -shared"
-			 SO_LD="${CC}"
-
-else
-
-			 SO_LDFLAGS="-shared"
-			 SO_LD="${CC}"
-
-fi
+		 SO_LDFLAGS="-Xcompiler -shared"
+		 SO_LD="${CC}"
 	        ;; #(
   *-freebsd*|*-openbsd*|*-netbsd*) :
 
 		 LDFLAGS="${LDFLAGS} -Wl,-E"
 		 SO_CFLAGS="-fpic"
-		 if test "$use_libtool" = "yes"; then :
-
-			 SO_LDFLAGS="-Xcompiler -shared"
-			 SO_LD="${CC}"
-
-else
-
-			 SO_LDFLAGS="-shared"
-			 SO_LD="${CC}"
-
-fi
+		 SO_LDFLAGS="-Xcompiler -shared"
+		 SO_LD="${CC}"
 	        ;; #(
   *-darwin*) :
 
 		 SO_CFLAGS="-fPIC"
                  SO_LD="${CC}"
-		 if test "$use_libtool" = "yes"; then :
-
-			 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
-
-else
-
-			 SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
-
-fi
+		 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
 	        ;; #(
   *-solaris*) :
 
@@ -22351,20 +22290,10 @@ fi
 	        ;;
 esac
        if test "$GCC" = "yes"; then :
-
-	       SO_CFLAGS="-fPIC"
-	       if test -z "$SO_LD"; then :
-  if test "$use_libtool" = "yes"; then :
-
-			      SO_LDFLAGS="-Xcompiler -shared"
-			      SO_LD="${CC}"
-
-else
-
-			      SO_LDFLAGS="-shared"
-			      SO_LD="${CC}"
-
-fi
+  SO_CFLAGS="-fPIC"
+	      if test -z "$SO_LD"; then :
+  SO_LDFLAGS="-Xcompiler -shared"
+		     SO_LD="${CC}"
 
 fi
 
@@ -25990,7 +25919,6 @@ report() {
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_backtrace" && \
 	echo "    Print backtrace on crash (--enable-backtrace)"
-    test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "yes" = "$want_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
     test "no" = "$with_cmocka" || echo "    CMocka Unit Testing Framework (--with-cmocka)"
@@ -26047,7 +25975,6 @@ report() {
     test "yes" = "$want_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
 
-    test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "no" = "$with_cmocka" && echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"

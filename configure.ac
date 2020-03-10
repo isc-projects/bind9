@@ -45,6 +45,8 @@ AC_DEFINE([__APPLE_USE_RFC_3542], [1], [Select RFC3542 IPv6 API on macOS])
 AC_PROG_MAKE_SET
 
 AC_PROG_LIBTOOL
+AS_IF([test -z "$LIBTOOL"],
+      [AC_MSG_ERROR([The libtool script could not be found.])])
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AX_POSIX_SHELL
@@ -679,40 +681,6 @@ AC_CHECK_FUNCS([flockfile getc_unlocked])
 AC_CHECK_FUNCS([sysconf])
 
 AC_SUBST(ALWAYS_DEFINES)
-
-AC_MSG_CHECKING(for libtool)
-AC_ARG_WITH(libtool, AS_HELP_STRING([--with-libtool], [use GNU libtool]),
-	    use_libtool="$withval", use_libtool="no")
-
-case $use_libtool in
-	yes)
-		AC_MSG_RESULT(yes)
-		AM_PROG_LIBTOOL
-		O=lo
-		A=la
-		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile'
-		LIBTOOL_MODE_INSTALL='--mode=install'
-		LIBTOOL_MODE_LINK='--mode=link'
-		LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
-		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-		AC_DEFINE([USE_LIBTOOL],[1],[Define if libtool is used for compilation])
-		;;
-	*)
-		AC_MSG_RESULT(no)
-		O=o
-		A=a
-		LIBTOOL=
-		AC_SUBST(LIBTOOL)
-		LIBTOOL_MKDEP_SED=
-		LIBTOOL_MODE_COMPILE=
-		LIBTOOL_MODE_INSTALL=
-		LIBTOOL_MODE_LINK=
-		LIBTOOL_MODE_UNINSTALL=
-		INSTALL_LIBRARY='${INSTALL_DATA}'
-		;;
-esac
-AC_SUBST(INSTALL_LIBRARY)
 
 #
 # Do we want to use pthread rwlock?
@@ -1479,7 +1447,15 @@ AS_IF([test "$enable_backtrace" = "yes"],
 # File name extension for static archive files, for those few places
 # where they are treated differently from dynamic ones.
 #
+O=lo
+A=la
 SA=a
+LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
+LIBTOOL_MODE_COMPILE='--mode=compile'
+LIBTOOL_MODE_INSTALL='--mode=install'
+LIBTOOL_MODE_LINK='--mode=link'
+LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
+INSTALL_LIBRARY='${INSTALL_PROGRAM}'
 
 AC_SUBST(O)
 AC_SUBST(A)
@@ -1489,6 +1465,7 @@ AC_SUBST(LIBTOOL_MODE_COMPILE)
 AC_SUBST(LIBTOOL_MODE_INSTALL)
 AC_SUBST(LIBTOOL_MODE_LINK)
 AC_SUBST(LIBTOOL_MODE_UNINSTALL)
+AC_SUBST(INSTALL_LIBRARY)
 
 BIND9_CO_RULE=".c.$O:"
 AC_SUBST(BIND9_CO_RULE)
@@ -2398,33 +2375,19 @@ AS_IF([test "$with_dlopen" = "yes"],
 		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_CFLAGS="-fPIC"
 		 SO_LDFLAGS=""
-		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -shared"
-			 SO_LD="${CC}"
-		       ],[
-			 SO_LDFLAGS="-shared"
-			 SO_LD="${CC}"
-		       ])
+		 SO_LDFLAGS="-Xcompiler -shared"
+		 SO_LD="${CC}"
 	       ],
 	       [*-freebsd*|*-openbsd*|*-netbsd*],[
 		 LDFLAGS="${LDFLAGS} -Wl,-E"
 		 SO_CFLAGS="-fpic"
-		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -shared"
-			 SO_LD="${CC}"
-		       ],[
-			 SO_LDFLAGS="-shared"
-			 SO_LD="${CC}"
-		       ])
+		 SO_LDFLAGS="-Xcompiler -shared"
+		 SO_LD="${CC}"
 	       ],
 	       [*-darwin*],[
 		 SO_CFLAGS="-fPIC"
                  SO_LD="${CC}"
-		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
-		       ],[
-			 SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
-		       ])
+		 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
 	       ],
 	       [*-solaris*],[
 		 SO_CFLAGS="-KPIC"
@@ -2439,17 +2402,12 @@ AS_IF([test "$with_dlopen" = "yes"],
 	       [
 		 SO_CFLAGS="-fPIC"
 	       ])
-       AS_IF([test "$GCC" = "yes"],[
-	       SO_CFLAGS="-fPIC"
-	       AS_IF([test -z "$SO_LD"],
-		     [AS_IF([test "$use_libtool" = "yes"],[
-			      SO_LDFLAGS="-Xcompiler -shared"
-			      SO_LD="${CC}"
-			    ],[
-			      SO_LDFLAGS="-shared"
-			      SO_LD="${CC}"
-			    ])
-		     ])
+       AS_IF([test "$GCC" = "yes"],
+	     [SO_CFLAGS="-fPIC"
+	      AS_IF([test -z "$SO_LD"],
+		    [SO_LDFLAGS="-Xcompiler -shared"
+		     SO_LD="${CC}"
+		    ])
 	     ])
        # If we still don't know how to make shared objects, don't make any.
        AS_IF([test -n "$SO_LD"],
@@ -2902,7 +2860,6 @@ report() {
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_backtrace" && \
 	echo "    Print backtrace on crash (--enable-backtrace)"
-    test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "yes" = "$want_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
     test "no" = "$with_cmocka" || echo "    CMocka Unit Testing Framework (--with-cmocka)"
@@ -2959,7 +2916,6 @@ report() {
     test "yes" = "$want_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
 
-    test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "no" = "$with_cmocka" && echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"

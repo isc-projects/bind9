@@ -116,19 +116,14 @@ backtrace_test_nosymtbl@EXEEXT@: ${srcdir}/backtrace_test.c ${ISCDEPLIBS}
 backtrace_test@EXEEXT@: ${srcdir}/backtrace_test.c backtrace_test_nosymtbl@EXEEXT@
 	#first step: create a first symbol table
 	rm -f symtbl.c
-	if test X${MKSYMTBL_PROGRAM} != X; then \
-	${MKSYMTBL_PROGRAM} ${top_srcdir}/util/mksymtbl.pl \
-	backtrace_test_nosymtbl@EXEEXT@; else \
-	cp ${top_srcdir}/lib/isc/backtrace-emptytbl.c symtbl.c; fi
+	cp ${top_srcdir}/lib/isc/backtrace-emptytbl.c symtbl.c
 	#second step: build a binary with the first symbol table
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} \
 	-o $@0 ${srcdir}/backtrace_test.c symtbl.c \
 	${ISCNOSYMLIBS} ${LIBS}
 	rm -f symtbl.c
 	#third step: create a second symbol table
-	if test X${MKSYMTBL_PROGRAM} != X; then \
-	${MKSYMTBL_PROGRAM} ${top_srcdir}/util/mksymtbl.pl $@0; else \
-	cp ${top_srcdir}/lib/isc/backtrace-emptytbl.c symtbl.c; fi
+	cp ${top_srcdir}/lib/isc/backtrace-emptytbl.c symtbl.c
 	#fourth step: build the final binary
 	rm -f $@0
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} \
