@@ -31,6 +31,7 @@ CINCLUDES =	-I. -I${top_srcdir}/lib/dns -Iinclude ${DNS_INCLUDES} \
 		${OPENSSL_CFLAGS} @DST_GSSAPI_INC@ \
 		${JSON_C_CFLAGS} \
 		${LIBXML2_CFLAGS} \
+		${LMDB_CFLAGS} \
 		${MAXMINDDB_CFLAGS}
 
 CDEFINES =	@USE_GSSAPI@ ${USE_ISC_SPNEGO}
@@ -41,7 +42,7 @@ ISCLIBS =	../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
-LIBS =		${MAXMINDDB_LIBS} @LIBS@
+LIBS =		${MAXMINDDB_LIBS} ${LMDB_LIBS} @LIBS@
 
 # Alphabetically
 
