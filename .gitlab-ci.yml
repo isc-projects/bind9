@@ -1350,7 +1350,7 @@ abi-check:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    BIND_BASELINE_VERSION: v9_16_0
+    BIND_BASELINE_VERSION: v9_16_1
   script:
     - *configure
     - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
