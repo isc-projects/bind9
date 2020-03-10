@@ -501,9 +501,6 @@ isc_sockaddr_fromsockaddr(isc_sockaddr_t *isa, const struct sockaddr *sa) {
 	default:
 		return (ISC_R_NOTIMPLEMENTED);
 	}
-	if (length == 0) {
-		return (ISC_R_NOTIMPLEMENTED);
-	}
 
 	memset(isa, 0, sizeof(isc_sockaddr_t));
 	memcpy(isa, sa, length);
