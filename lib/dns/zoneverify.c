@@ -1611,6 +1611,7 @@ check_dnskey(vctx_t *vctx) {
 		is_ksk = ((dnskey.flags & DNS_KEYFLAG_KSK) != 0);
 
 		if ((dnskey.flags & DNS_KEYOWNER_ZONE) == 0) {
+			/* Non zone key, skip. */
 		} else if ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0) {
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
 			    !dns_dnssec_selfsigns(&rdata, vctx->origin,
