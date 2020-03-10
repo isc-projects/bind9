@@ -94,7 +94,6 @@ AS_IF([test "$enable_developer" = "yes"],
        test "${enable_querytrace+set}" = set || enable_querytrace=yes
        test "${with_cmocka+set}" = set || with_cmocka=yes
        test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
-       test "${enable_symtable+set}" = set || enable_symtable=all
        test "${enable_warn_error+set}" = set || enable_warn_error=yes
        test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
        test "${with_zlib+set}" = set || with_zlib=yes
@@ -1475,46 +1474,6 @@ AS_IF([test "$enable_backtrace" = "yes"],
 	  )],
 	 [AC_DEFINE([HAVE_LIBCTRACE], [1], [define if system have backtrace function])]
        )])
-
-AC_ARG_ENABLE(symtable,
-	      AS_HELP_STRING([--enable-symtable],
-			     [use internal symbol table for backtrace
-			      [all|minimal(default)|none]]),
-		want_symtable="$enableval",  want_symtable="minimal")
-case $want_symtable in
-yes|all|minimal)     # "yes" is a hidden value equivalent to "minimal"
-	if test "" = "$PERL"
-	then
-		AC_MSG_ERROR([Internal symbol table requires perl but no perl is found.
-Install perl or explicitly disable the feature by --disable-symtable.])
-	fi
-	if test "yes" = "$use_libtool"; then
-		AC_MSG_WARN([Internal symbol table does not work with libtool.  Disabling symbol table.])
-	else
-		# we generate the internal symbol table only for those systems
-		# known to work to avoid unexpected build failure.  Also, warn
-		# about unsupported systems when the feature is enabled
-		#  manually.
-		case $host_os in
-		freebsd*|netbsd*|openbsd*|linux*|solaris*|darwin*)
-			MKSYMTBL_PROGRAM="$PERL"
-			if test "all" = "$want_symtable"; then
-				ALWAYS_MAKE_SYMTABLE="yes"
-			fi
-			;;
-		*)
-			if test "yes" = "$want_symtable" -o "all" = "$want_symtable"
-			then
-				AC_MSG_WARN([this system is not known to generate internal symbol table safely; disabling it])
-			fi
-		esac
-	fi
-	;;
-*)
-	;;
-esac
-AC_SUBST(MKSYMTBL_PROGRAM)
-AC_SUBST(ALWAYS_MAKE_SYMTABLE)
 
 #
 # File name extension for static archive files, for those few places
@@ -2943,10 +2902,6 @@ report() {
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_backtrace" && \
 	echo "    Print backtrace on crash (--enable-backtrace)"
-    test "minimal" = "$want_symtable" && \
-	echo "    Use symbol table for backtrace, named only (--enable-symtable)"
-    test "yes" = "$want_symtable" -o "all" = "$want_symtable" && \
-	echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
     test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "yes" = "$want_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
