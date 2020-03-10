@@ -2492,7 +2492,8 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 			output_style = &dns_master_style_default;
 		result = dns_master_dumpinc3(zone->mctx, zone->db, version,
 					     output_style, zone->masterfile,
-					     zone->task, dump_done, zone,						     &zone->dctx, zone->masterformat,
+					     zone->task, dump_done, zone,
+					     &zone->dctx, zone->masterformat,
 					     &rawdata);
 		dns_db_closeversion(zone->db, &version, false);
 	} else
@@ -19250,7 +19251,6 @@ rss_post(dns_zone_t *zone, isc_event_t *event) {
 	dns_db_currentversion(db, &oldver);
 	result = dns_db_newversion(db, &newver);
 	if (result != ISC_R_SUCCESS) {
-		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "setnsec3param:dns_db_newversion -> %s",
 			     dns_result_totext(result));
