@@ -3105,14 +3105,22 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 
 static void
 print_time(FILE *fp) {
-	time_t currenttime;
+	time_t currenttime = time(NULL);
+#ifdef _MSC_VER
+	struct tm *tm = localtime(&currenttime); /* Thread specific. */
+#else
+	struct tm t, *tm = localtime_r(&currenttime, &t);
+#endif
+	unsigned int flen;
+	char timebuf[80];
 
 	if (outputformat != dns_masterformat_text) {
 		return;
 	}
 
-	currenttime = time(NULL);
-	fprintf(fp, "; File written on %s", ctime(&currenttime));
+	flen = strftime(timebuf, sizeof(timebuf), "%a %b %e %H:%M:%S %Y", tm);
+	INSIST(flen > 0U && flen < sizeof(timebuf));
+	fprintf(fp, "; File written on %s\n", timebuf);
 }
 
 static void
