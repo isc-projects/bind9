@@ -1168,70 +1168,51 @@ AC_SUBST(DNS_CRYPTO_LIBS)
 #
 # was --with-lmdb specified?
 #
-AC_MSG_CHECKING(for lmdb library)
-AC_ARG_WITH(lmdb,
-	    AS_HELP_STRING([--with-lmdb[=PATH]],
-			   [build with LMDB library [yes|no|path]]),
-    use_lmdb="$withval", use_lmdb="auto")
 
-have_lmdb=""
-case "$use_lmdb" in
-	no)
-		lmdb_libs=""
-		;;
-	auto|yes)
-		for d in /usr /usr/local /opt/local
-		do
-			if test -f "${d}/include/lmdb.h"
-			then
-				if test ${d} != /usr
-				then
-					lmdb_cflags="-I ${d}/include"
-					LIBS="$LIBS -L${d}/lib"
-				fi
-				have_lmdb="yes"
-			fi
-		done
-		;;
-	*)
-		if test -f "${use_lmdb}/include/lmdb.h"
-		then
-			lmdb_cflags="-I${use_lmdb}/include"
-			LIBS="$LIBS -L${use_lmdb}/lib"
-			have_lmdb="yes"
-		else
-			AC_MSG_ERROR([$use_lmdb/include/lmdb.h not found.])
-		fi
-		;;
-esac
+AC_ARG_WITH([lmdb],
+	    [AS_HELP_STRING([--with-lmdb=@<:@PATH@:>@],
+			    [use LMDB library @<:@default=auto@:>@, optionally specify the prefix for lmdb library])],
+	    [:],
+	    [with_lmdb="auto"])
 
-if test "X${have_lmdb}" != "X"
-then
-	AC_MSG_RESULT(yes)
-	AC_SEARCH_LIBS([mdb_env_create], [lmdb], [],
-		       [AC_MSG_ERROR([found lmdb include but not library.])
-			have_lmdb=""])
-elif test "X$use_lmdb" = Xyes
-then
-	AC_MSG_ERROR([include/lmdb.h not found.])
-else
-	AC_MSG_RESULT(no)
-fi
+ac_lib_lmdb_found=no
+AS_CASE([$with_lmdb],
+	[no],[],
+	[auto|yes], [PKG_CHECK_MODULES([LMDB], [lmdb],
+				       [ac_lib_lmdb_found=yes],
+				       [for ac_lib_lmdb_path in /usr /usr/local /opt /opt/local; do
+						AX_LIB_LMDB([$ac_lib_lmdb_path],
+							    [ac_lib_lmdb_found=yes
+							     break])
+					done
+				       ])],
+	[AX_LIB_LMDB([$with_lmdb],[ac_lib_lmdb_found=yes])])
 
-NZD_TOOLS=""
+# don't fail when in automatic mode
+AS_IF([test "$with_lmdb" = "auto" && test "$ac_lib_lmdb_found" = "no"],
+      [with_lmdb=no])
+
+# hard fail when LMDB requested, but not found
+AS_IF([test "$with_lmdb" != "no" && test "$ac_lib_lmdb_found" != "yes"],
+      [AC_MSG_ERROR([LMDB requested, but not found])])
+
+AS_IF([test "$ac_lib_lmdb_found" = "yes"],
+      [AC_DEFINE([HAVE_LMDB], [1], [Use lmdb library])])
+
+AC_SUBST([LMDB_CFLAGS])
+AC_SUBST([LMDB_LIBS])
+#AM_CONDITIONAL([HAVE_LMDB], [test "$ac_lib_lmdb_found" = "yes"])
+
+NZD_TOOLS=
 NZDSRCS=
 NZDTARGETS=
-if test "X${have_lmdb}" != "X"
-then
-	CFLAGS="$CFLAGS $lmdb_cflags"
-	AC_DEFINE(HAVE_LMDB, 1, [Define if lmdb was found])
-	NZD_TOOLS="nzd"
-	NZDSRCS='${NZDSRCS}'
-	NZDTARGETS='${NZDTARGETS}'
-fi
-AC_SUBST(NZD_TOOLS)
-AC_SUBST(NZDSRCS)
-AC_SUBST(NZDTARGETS)
+AS_IF([test -n "$LMDB_LIBS"],
+      [NZD_TOOLS="nzd"
+       NZDSRCS='${NZDSRCS}'
+       NZDTARGETS='${NZDTARGETS}'])
+AC_SUBST([NZD_TOOLS])
+AC_SUBST([NZDSRCS])
+AC_SUBST([NZDTARGETS])
 
 #
 # was --with-libxml2 specified?
