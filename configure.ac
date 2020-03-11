@@ -45,6 +45,8 @@ AC_DEFINE([__APPLE_USE_RFC_3542], [1], [Select RFC3542 IPv6 API on macOS])
 AC_PROG_MAKE_SET
 
 AC_PROG_LIBTOOL
+AS_IF([test -z "$LIBTOOL"],
+      [AC_MSG_ERROR([The libtool script could not be found.])])
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AX_POSIX_SHELL
@@ -54,7 +56,6 @@ AC_SUBST(STD_CDEFINES)
 AC_SUBST(STD_CWARNINGS)
 AC_SUBST(CCOPT)
 AC_SUBST(CCNOOPT)
-AC_SUBST(BACKTRACECFLAGS)
 
 #
 # Use pkg-config
@@ -94,7 +95,6 @@ AS_IF([test "$enable_developer" = "yes"],
        test "${enable_querytrace+set}" = set || enable_querytrace=yes
        test "${with_cmocka+set}" = set || with_cmocka=yes
        test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
-       test "${enable_symtable+set}" = set || enable_symtable=all
        test "${enable_warn_error+set}" = set || enable_warn_error=yes
        test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
        test "${with_zlib+set}" = set || with_zlib=yes
@@ -680,40 +680,6 @@ AC_CHECK_FUNCS([flockfile getc_unlocked])
 AC_CHECK_FUNCS([sysconf])
 
 AC_SUBST(ALWAYS_DEFINES)
-
-AC_MSG_CHECKING(for libtool)
-AC_ARG_WITH(libtool, AS_HELP_STRING([--with-libtool], [use GNU libtool]),
-	    use_libtool="$withval", use_libtool="no")
-
-case $use_libtool in
-	yes)
-		AC_MSG_RESULT(yes)
-		AM_PROG_LIBTOOL
-		O=lo
-		A=la
-		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile'
-		LIBTOOL_MODE_INSTALL='--mode=install'
-		LIBTOOL_MODE_LINK='--mode=link'
-		LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
-		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-		AC_DEFINE([USE_LIBTOOL],[1],[Define if libtool is used for compilation])
-		;;
-	*)
-		AC_MSG_RESULT(no)
-		O=o
-		A=a
-		LIBTOOL=
-		AC_SUBST(LIBTOOL)
-		LIBTOOL_MKDEP_SED=
-		LIBTOOL_MODE_COMPILE=
-		LIBTOOL_MODE_INSTALL=
-		LIBTOOL_MODE_LINK=
-		LIBTOOL_MODE_UNINSTALL=
-		INSTALL_LIBRARY='${INSTALL_DATA}'
-		;;
-esac
-AC_SUBST(INSTALL_LIBRARY)
 
 #
 # Do we want to use pthread rwlock?
@@ -1458,69 +1424,27 @@ case $use_profiler in
 esac
 
 #
-# enable/disable dumping stack backtrace.  Also check if the system supports
-# glibc-compatible backtrace() function.
+# Check if the system supports glibc-compatible backtrace() function.
 #
-AC_ARG_ENABLE([backtrace],
-	      [AS_HELP_STRING([--enable-backtrace],
-			      [log stack backtrace on abort [default=yes]])],
-	      [], [enable_backtrace="yes"])
+AC_CHECK_HEADERS([execinfo.h],
+		 [AC_SEARCH_LIBS([backtrace], [execinfo],
+				 [AC_CHECK_FUNCS([backtrace backtrace_symbols])])])
 
-AS_IF([test "$enable_backtrace" = "yes"],
-      [AC_DEFINE([USE_BACKTRACE], [1], [define if we can use backtrace])
-       AC_LINK_IFELSE(
-	 [AC_LANG_PROGRAM(
-	    [[#include <execinfo.h>]],
-	    [[return (backtrace((void **)0, 0));]]
-	  )],
-	 [AC_DEFINE([HAVE_LIBCTRACE], [1], [define if system have backtrace function])]
-       )])
-
-AC_ARG_ENABLE(symtable,
-	      AS_HELP_STRING([--enable-symtable],
-			     [use internal symbol table for backtrace
-			      [all|minimal(default)|none]]),
-		want_symtable="$enableval",  want_symtable="minimal")
-case $want_symtable in
-yes|all|minimal)     # "yes" is a hidden value equivalent to "minimal"
-	if test "" = "$PERL"
-	then
-		AC_MSG_ERROR([Internal symbol table requires perl but no perl is found.
-Install perl or explicitly disable the feature by --disable-symtable.])
-	fi
-	if test "yes" = "$use_libtool"; then
-		AC_MSG_WARN([Internal symbol table does not work with libtool.  Disabling symbol table.])
-	else
-		# we generate the internal symbol table only for those systems
-		# known to work to avoid unexpected build failure.  Also, warn
-		# about unsupported systems when the feature is enabled
-		#  manually.
-		case $host_os in
-		freebsd*|netbsd*|openbsd*|linux*|solaris*|darwin*)
-			MKSYMTBL_PROGRAM="$PERL"
-			if test "all" = "$want_symtable"; then
-				ALWAYS_MAKE_SYMTABLE="yes"
-			fi
-			;;
-		*)
-			if test "yes" = "$want_symtable" -o "all" = "$want_symtable"
-			then
-				AC_MSG_WARN([this system is not known to generate internal symbol table safely; disabling it])
-			fi
-		esac
-	fi
-	;;
-*)
-	;;
-esac
-AC_SUBST(MKSYMTBL_PROGRAM)
-AC_SUBST(ALWAYS_MAKE_SYMTABLE)
+# AM_CONDITIONAL([HAVE_BACKTRACE], [test "$ac_cv_func_backtrace" = "yes"])
 
 #
 # File name extension for static archive files, for those few places
 # where they are treated differently from dynamic ones.
 #
+O=lo
+A=la
 SA=a
+LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
+LIBTOOL_MODE_COMPILE='--mode=compile'
+LIBTOOL_MODE_INSTALL='--mode=install'
+LIBTOOL_MODE_LINK='--mode=link'
+LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
+INSTALL_LIBRARY='${INSTALL_PROGRAM}'
 
 AC_SUBST(O)
 AC_SUBST(A)
@@ -1530,6 +1454,7 @@ AC_SUBST(LIBTOOL_MODE_COMPILE)
 AC_SUBST(LIBTOOL_MODE_INSTALL)
 AC_SUBST(LIBTOOL_MODE_LINK)
 AC_SUBST(LIBTOOL_MODE_UNINSTALL)
+AC_SUBST(INSTALL_LIBRARY)
 
 BIND9_CO_RULE=".c.$O:"
 AC_SUBST(BIND9_CO_RULE)
@@ -2439,33 +2364,19 @@ AS_IF([test "$with_dlopen" = "yes"],
 		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_CFLAGS="-fPIC"
 		 SO_LDFLAGS=""
-		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -shared"
-			 SO_LD="${CC}"
-		       ],[
-			 SO_LDFLAGS="-shared"
-			 SO_LD="${CC}"
-		       ])
+		 SO_LDFLAGS="-Xcompiler -shared"
+		 SO_LD="${CC}"
 	       ],
 	       [*-freebsd*|*-openbsd*|*-netbsd*],[
 		 LDFLAGS="${LDFLAGS} -Wl,-E"
 		 SO_CFLAGS="-fpic"
-		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -shared"
-			 SO_LD="${CC}"
-		       ],[
-			 SO_LDFLAGS="-shared"
-			 SO_LD="${CC}"
-		       ])
+		 SO_LDFLAGS="-Xcompiler -shared"
+		 SO_LD="${CC}"
 	       ],
 	       [*-darwin*],[
 		 SO_CFLAGS="-fPIC"
                  SO_LD="${CC}"
-		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
-		       ],[
-			 SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
-		       ])
+		 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
 	       ],
 	       [*-solaris*],[
 		 SO_CFLAGS="-KPIC"
@@ -2480,17 +2391,12 @@ AS_IF([test "$with_dlopen" = "yes"],
 	       [
 		 SO_CFLAGS="-fPIC"
 	       ])
-       AS_IF([test "$GCC" = "yes"],[
-	       SO_CFLAGS="-fPIC"
-	       AS_IF([test -z "$SO_LD"],
-		     [AS_IF([test "$use_libtool" = "yes"],[
-			      SO_LDFLAGS="-Xcompiler -shared"
-			      SO_LD="${CC}"
-			    ],[
-			      SO_LDFLAGS="-shared"
-			      SO_LD="${CC}"
-			    ])
-		     ])
+       AS_IF([test "$GCC" = "yes"],
+	     [SO_CFLAGS="-fPIC"
+	      AS_IF([test -z "$SO_LD"],
+		    [SO_LDFLAGS="-Xcompiler -shared"
+		     SO_LD="${CC}"
+		    ])
 	     ])
        # If we still don't know how to make shared objects, don't make any.
        AS_IF([test -n "$SO_LD"],
@@ -2943,11 +2849,6 @@ report() {
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_backtrace" && \
 	echo "    Print backtrace on crash (--enable-backtrace)"
-    test "minimal" = "$want_symtable" && \
-	echo "    Use symbol table for backtrace, named only (--enable-symtable)"
-    test "yes" = "$want_symtable" -o "all" = "$want_symtable" && \
-	echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
-    test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "yes" = "$want_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
     test "no" = "$with_cmocka" || echo "    CMocka Unit Testing Framework (--with-cmocka)"
@@ -3004,7 +2905,6 @@ report() {
     test "yes" = "$want_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
 
-    test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "no" = "$with_cmocka" && echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"

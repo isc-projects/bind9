@@ -64,7 +64,6 @@ OBJS =		pk11.@O@ pk11_result.@O@ \
 		string.@O@ symtab.@O@ task.@O@ taskpool.@O@ \
 		tm.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${THREADOBJS}
-SYMTBLOBJS =	backtrace-emptytbl.@O@
 
 # Alphabetically
 SRCS =		pk11.c pk11_result.c \
@@ -102,19 +101,19 @@ version.@O@: version.c
 		-DLIBAGE=${LIBAGE} \
 		-c ${srcdir}/version.c
 
-libisc.@SA@: ${OBJS} ${SYMTBLOBJS}
-	${AR} ${ARFLAGS} $@ ${OBJS} ${SYMTBLOBJS}
+libisc.@SA@: ${OBJS}
+	${AR} ${ARFLAGS} $@ ${OBJS}
 	${RANLIB} $@
 
 libisc-nosymtbl.@SA@: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
 	${RANLIB} $@
 
-libisc.la: ${OBJS} ${SYMTBLOBJS}
+libisc.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libisc.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} ${SYMTBLOBJS} ${LIBS}
+		${OBJS} ${LIBS}
 
 libisc-nosymtbl.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \

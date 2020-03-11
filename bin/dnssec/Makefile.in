@@ -24,7 +24,6 @@ CWARNINGS =
 DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
@@ -33,8 +32,6 @@ ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 DEPLIBS =	${DNSDEPLIBS} ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
 
 LIBS =		${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
-
-NOSYMLIBS =	${DNSLIBS} ${ISCCFGLIBS} ${ISCNOSYMLIBS} @LIBS@
 
 # Alphabetically
 TARGETS =	dnssec-cds@EXEEXT@ dnssec-dsfromkey@EXEEXT@ \

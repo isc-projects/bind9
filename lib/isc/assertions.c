@@ -95,9 +95,8 @@ static void
 default_callback(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond) {
 	void *tracebuf[BACKTRACE_MAXFRAME];
-	int i, nframes;
+	int nframes;
 	const char *logsuffix = ".";
-	const char *fname;
 	isc_result_t result;
 
 	result = isc_backtrace_gettrace(tracebuf, BACKTRACE_MAXFRAME, &nframes);
@@ -109,20 +108,16 @@ default_callback(const char *file, int line, isc_assertiontype_t type,
 		isc_assertion_typetotext(type), cond, logsuffix);
 
 	if (result == ISC_R_SUCCESS) {
-		for (i = 0; i < nframes; i++) {
-			unsigned long offset;
-
-			fname = NULL;
-			result = isc_backtrace_getsymbol(tracebuf[i], &fname,
-							 &offset);
-			if (result == ISC_R_SUCCESS) {
-				fprintf(stderr, "#%d %p in %s()+0x%lx\n", i,
-					tracebuf[i], fname, offset);
-			} else {
-				fprintf(stderr, "#%d %p in ??\n", i,
-					tracebuf[i]);
-			}
+#if HAVE_BACKTRACE_SYMBOLS
+		char **strs = backtrace_symbols(tracebuf, nframes);
+		for (int i = 0; i < nframes; i++) {
+			fprintf(stderr, "%s\n", strs[i]);
 		}
+#else  /* HAVE_BACKTRACE_SYMBOLS */
+		for (int i = 0; i < nframes; i++) {
+			fprintf(stderr, "#%d %p in ??\n", i, tracebuf[i]);
+		}
+#endif /* HAVE_BACKTRACE_SYMBOLS */
 	}
 	fflush(stderr);
 }

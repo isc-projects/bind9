@@ -38,7 +38,6 @@
 
 #include "nstest.h"
 
-#if defined(USE_LIBTOOL) || LD_WRAP
 static int
 _setup(void **state) {
 	isc_result_t result;
@@ -139,20 +138,15 @@ notify_start(void **state) {
 	ns_test_cleanup_zone();
 	isc_nmhandle_unref(client->handle);
 }
-#endif /* if defined(USE_LIBTOOL) || LD_WRAP */
 
 int
 main(void) {
-#if defined(USE_LIBTOOL) || LD_WRAP
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(notify_start, _setup,
 						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
-#else  /* if defined(USE_LIBTOOL) || LD_WRAP */
-	print_message("1..0 # Skip notify_test requires libtool or LD_WRAP\n");
-#endif /* if defined(USE_LIBTOOL) || LD_WRAP */
 }
 #else /* HAVE_CMOCKA && !__SANITIZE_ADDRESS__ */
 

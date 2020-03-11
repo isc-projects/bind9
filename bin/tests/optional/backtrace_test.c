@@ -16,16 +16,11 @@
 #include <isc/print.h>
 #include <isc/result.h>
 
-const char *expected_symbols[] = { "func3", "func2", "func1", "main" };
-
 static int
 func3() {
 	void *tracebuf[16];
-	int i, nframes;
-	int error = 0;
-	const char *fname;
+	int nframes;
 	isc_result_t result;
-	unsigned long offset;
 
 	result = isc_backtrace_gettrace(tracebuf, 16, &nframes);
 	if (result != ISC_R_SUCCESS) {
@@ -35,39 +30,12 @@ func3() {
 	}
 
 	if (nframes < 4) {
-		error++;
-	}
-
-	for (i = 0; i < 4 && i < nframes; i++) {
-		fname = NULL;
-		result = isc_backtrace_getsymbol(tracebuf[i], &fname, &offset);
-		if (result != ISC_R_SUCCESS) {
-			error++;
-			continue;
-		}
-		if (strcmp(fname, expected_symbols[i]) != 0) {
-			error++;
-		}
-	}
-
-	if (error) {
 		printf("Unexpected result:\n");
 		printf("  # of frames: %d (expected: at least 4)\n", nframes);
-		printf("  symbols:\n");
-		for (i = 0; i < nframes; i++) {
-			fname = NULL;
-			result = isc_backtrace_getsymbol(tracebuf[i], &fname,
-							 &offset);
-			if (result == ISC_R_SUCCESS) {
-				printf("  [%d] %s\n", i, fname);
-			} else {
-				printf("  [%d] %p getsymbol failed: %s\n", i,
-				       tracebuf[i], isc_result_totext(result));
-			}
-		}
+		return (1);
 	}
 
-	return (error);
+	return (0);
 }
 
 static int

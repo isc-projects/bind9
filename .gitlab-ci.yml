@@ -1143,30 +1143,6 @@ system:clang:openbsd6.6:amd64:
     - schedules
     - web
 
-# Jobs with libtool disabled
-
-nolibtool:sid:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-libtool --with-dlopen"
-  <<: *debian_sid_amd64_image
-  <<: *build_job
-
-system:nolibtool:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - nolibtool:sid:amd64
-  needs: ["nolibtool:sid:amd64"]
-
-unit:nolibtool:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - nolibtool:sid:amd64
-  needs: ["nolibtool:sid:amd64"]
-
 # Jobs for Visual Studio 2017 builds on Windows (amd64)
 
 msvc:windows:amd64:

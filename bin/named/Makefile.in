@@ -61,7 +61,6 @@ DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
 NSLIBS =	../../lib/ns/libns.@A@
 
@@ -80,11 +79,6 @@ LIBS =		${NSLIBS} ${DNSLIBS} ${BIND9LIBS} \
 		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBCAP_LIBS@ \
 		@LIBS@
 
-NOSYMLIBS =	${NSLIBS} ${DNSLIBS} ${BIND9LIBS} \
-		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCNOSYMLIBS} \
-		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBCAP_LIBS@ \
-		@LIBS@
-
 SUBDIRS =	unix
 
 TARGETS =	named@EXEEXT@
@@ -100,8 +94,6 @@ OBJS =		builtin.@O@ config.@O@ control.@O@ \
 		${DLZDRIVER_OBJS} ${DBDRIVER_OBJS}
 
 UOBJS =		unix/os.@O@ unix/dlz_dlopen_driver.@O@
-
-SYMOBJS =	symtbl.@O@
 
 GEOIP2LINKSRCS = geoip.c
 
@@ -148,7 +140,6 @@ server.@O@: server.c
 		-DVERSION=\"${VERSION}\" -c ${srcdir}/server.c
 
 named@EXEEXT@: ${OBJS} ${DEPLIBS}
-	export MAKE_SYMTABLE="yes"; \
 	export BASEOBJS="${OBJS} ${UOBJS}"; \
 	${FINALBUILDCMD}
 
@@ -184,6 +175,3 @@ uninstall::
 	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${sbindir}/named@EXEEXT@
 
 @DLZ_DRIVER_RULES@
-
-named-symtbl.@O@: named-symtbl.c
-	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} -c named-symtbl.c

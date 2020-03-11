@@ -461,9 +461,6 @@
     <ClCompile Include="..\backtrace.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\backtrace-emptytbl.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\base32.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>

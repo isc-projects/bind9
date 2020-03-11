@@ -414,7 +414,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\app.c" />
     <ClCompile Include="..\assertions.c" />
     <ClCompile Include="..\astack.c" />
-    <ClCompile Include="..\backtrace-emptytbl.c" />
     <ClCompile Include="..\backtrace.c" />
     <ClCompile Include="..\base32.c" />
     <ClCompile Include="..\base64.c" />
