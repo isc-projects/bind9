@@ -64,16 +64,17 @@
 /***
  *** Imports.
  ***/
-#include <arpa/inet.h> /* Contractual promise. */
 #include <inttypes.h>
-#include <net/if.h>
-#include <netinet/in.h> /* Contractual promise. */
-#include <sys/socket.h> /* Contractual promise. */
-#include <sys/types.h>
 
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
+
+#include <arpa/inet.h> /* Contractual promise. */
+#include <net/if.h>
+#include <netinet/in.h> /* Contractual promise. */
+#include <sys/socket.h> /* Contractual promise. */
+#include <sys/types.h>
 
 #ifndef IN6ADDR_LOOPBACK_INIT
 #ifdef s6_addr
