@@ -30,6 +30,28 @@
     </itemizedlist>
   </section>
 
+  <section xml:id="relnotes-9.17.0-new"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          When a secondary server receives a large incremental zone
+          transfer (IXFR), it can have a negative impact on query
+          performance while the incremental changes are applied to
+          the zone. To address this, <command>named</command> can now
+          limit the size of IXFR responses it sends in response to zone
+          transfer requests. If an IXFR response would be larger than an
+          AXFR of the entire zone, it will send an AXFR resonse instead.
+        </para>
+        <para>
+          This behavior is controlled by the <command>max-ixfr-ratio</command>
+          option - a percentage value representing the ratio of IXFR size
+          to the size of a full zone transfer. The default is
+          <literal>100%</literal>. [GL #1515]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="relnotes-9.17.0-changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
@@ -43,7 +65,7 @@
           with the notable exception of Ubuntu 18.04 (Bionic) which is a work in
           progress. If you are running on an affected operating system, compile
           BIND 9 with <command>--disable-pthread-rwlock</command> until a fixed
-          version of glibc is available.
+          version of glibc is available. [GL !3125]
         </para>
       </listitem>
       <listitem>
@@ -65,28 +87,6 @@
         <para>
           Fixed re-signing issues with inline zones which resulted in
           records being re-signed late or not at all.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.17.0-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          When a secondary server receives a large incremental zone
-          transfer (IXFR), it can have a negative impact on query
-          performance while the incremental changes are applied to
-          the zone. To address this, <command>named</command> can now
-          limit the size of IXFR responses it sends in response to zone
-          transfer requests. If an IXFR response would be larger than an
-          AXFR of the entire zone, it will send an AXFR resonse instead.
-        </para>
-        <para>
-          This behavior is controlled by the <command>max-ixfr-ratio</command>
-          option - a percentage value representing the ratio of IXFR size
-          to the size of a full zone transfer. The default is
-          <literal>100%</literal>. [GL #1515]
         </para>
       </listitem>
     </itemizedlist>
