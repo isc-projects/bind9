@@ -11,6 +11,25 @@
 
 <section xml:id="relnotes-9.16.1"><info><title>Notes for BIND 9.16.1</title></info>
 
+  <section xml:id="relnotes-9.16.1-known"><info><title>Known Issues</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          UDP network ports used for listening can no longer simultaneously be
+          used for sending traffic.  An example configuration which triggers
+          this issue would be one which uses the same
+          <replaceable>address:port</replaceable> pair for
+          <command>listen-on(-v6)</command> statements as for
+          <command>notify-source(-v6)</command> or
+          <command>transfer-source(-v6)</command>.  While this issue affects all
+          operating systems, it only triggers log messages (e.g. "unable to
+          create dispatch for reserved port") on some of them.  There are
+          currently no plans to make such a combination of settings work again.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="relnotes-9.16.1-changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
