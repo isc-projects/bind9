@@ -8964,7 +8964,7 @@ example.com                 CNAME   rpz-tcp-only.
           <p>
             If the anchor type is <span class="command"><strong>static-ds</strong></span> or
             <span class="command"><strong>initial-ds</strong></span>, then it is followed with the
-            key tag, algorithm, digest type, and the hexidecimal
+            key tag, algorithm, digest type, and the hexadecimal
             representation of the key digest. This is identical to the
             text representation of a DS record.  Spaces, tabs, newlines
             and carriage returns are ignored.
@@ -9126,6 +9126,13 @@ example.com                 CNAME   rpz-tcp-only.
             records need to be refreshed.
           </p>
           <p>
+            Keys are not shared among zones, which means that one set of keys
+            per zone will be generated even if they have the same policy.
+            If multiple views are configured with different versions of the
+            same zone, each separate version will use the same set of signing
+            keys.
+          </p>
+          <p>
             Multiple key and signing policies can be configured.  To
             attach a policy to a zone, add a <span class="command"><strong>dnssec-policy</strong></span>
             option to the <span class="command"><strong>zone</strong></span> statement, specifying he
@@ -9279,7 +9286,7 @@ example.com                 CNAME   rpz-tcp-only.
 <dd>
                 <p>
                   A margin that is added to the pre-publication
-                  interval in rollover timing calcuations to give some
+                  interval in rollover timing calculations to give some
                   extra time to cover unforeseen events. This increases
                   the time that keys are published before becoming active.
                   The default is <code class="constant">PT1H</code> (1 hour).
@@ -10259,7 +10266,7 @@ view "external" {
                       <p>
                         If a redirect zone is configured with a
                         <code class="option">masters</code> option, then it is
-                        transfered in as if it were a slave zone.
+                        transferred in as if it were a slave zone.
                         Otherwise, it is loaded from a file as if it
                         were a master zone.
                       </p>
@@ -15341,6 +15348,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.16.0 (Stable Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.16.1 (Stable Release)</p>
 </body>
 </html>
