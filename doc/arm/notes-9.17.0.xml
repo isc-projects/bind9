@@ -49,6 +49,19 @@
           <literal>100%</literal>. [GL #1515]
         </para>
       </listitem>
+      <listitem>
+	<para>
+	  A new RPZ option <command>nsdname-wait-recurse</command>
+	  controls whether RPZ-NSDNAME rules should always be applied
+	  even if the names of authoritative name servers for the query
+	  name need to be looked up recurively first.  The default is
+	  <userinput>yes</userinput>.  Setting it to
+	  <userinput>no</userinput> speeds up initial responses by skipping
+	  RPZ-NSDNAME rules when name server domain names are not yet
+	  in the cache. The names will be looked up in the background and
+	  the rule will be applied for subsequent queries. [GL #1138]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

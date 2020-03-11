@@ -1,3 +1,8 @@
+5369.	[func]		Add the ability to specify whether or not to wait
+			for nameserver domain names to be looked up, with
+			a new RPZ modifying directive 'nsdname-wait-recurse'.
+			[GL #1138]
+
 5368.	[bug]		Named failed to restart if 'rndc addzone' names
 			contained special characters (e.g. '/'). [GL #1655]
 
