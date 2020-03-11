@@ -40,18 +40,6 @@
 #include <isc/types.h>
 
 /***
- *** Types
- ***/
-struct isc_backtrace_symmap {
-	void *	    addr;
-	const char *symbol;
-};
-
-LIBISC_EXTERNAL_DATA extern const int isc__backtrace_nsymbols;
-LIBISC_EXTERNAL_DATA extern const isc_backtrace_symmap_t
-	isc__backtrace_symtable[];
-
-/***
  *** Functions
  ***/
 
@@ -76,49 +64,6 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes);
  *\li	#ISC_R_FAILURE
  *\li	#ISC_R_NOTFOUND
  *\li	#ISC_R_NOTIMPLEMENTED
- */
-
-isc_result_t
-isc_backtrace_getsymbolfromindex(int index, const void **addrp,
-				 const char **symbolp);
-/*%<
- * Returns the content of the internal symbol table of the given index.
- * On success, *addrsp and *symbolp point to the address and the symbol of
- * the 'index'th entry of the table, respectively.  If 'index' is not in the
- * range of the symbol table, ISC_R_RANGE will be returned.
- *
- * Requires
- *
- *\li	'addrp' must be non NULL && '*addrp' == NULL.
- *
- *\li	'symbolp' must be non NULL && '*symbolp' == NULL.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_RANGE
- */
-
-isc_result_t
-isc_backtrace_getsymbol(const void *addr, const char **symbolp,
-			unsigned long *offsetp);
-/*%<
- * Searches the internal symbol table for the symbol that most matches the
- * given 'addr'.  On success, '*symbolp' will point to the name of function
- * to which the address 'addr' belong, and '*offsetp' will store the offset
- * from the function's entry address to 'addr'.
- *
- * Requires (note that these are not ensured by assertion checks, see above):
- *
- *\li	'symbolp' must be non NULL && '*symbolp' == NULL.
- *
- *\li	'offsetp' must be non NULL.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_FAILURE
- *\li	#ISC_R_NOTFOUND
  */
 ISC_LANG_ENDDECLS
 

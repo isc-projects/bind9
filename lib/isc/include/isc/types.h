@@ -31,13 +31,11 @@
 
 /* Core Types.  Alphabetized by defined type. */
 
-typedef struct isc_astack	    isc_astack_t; /*%< Array-based fast stack */
-typedef struct isc_appctx	    isc_appctx_t; /*%< Application context */
-typedef struct isc_backtrace_symmap isc_backtrace_symmap_t; /*%< Symbol Table
-							     * Entry */
-typedef struct isc_buffer isc_buffer_t;			    /*%< Buffer */
-typedef ISC_LIST(isc_buffer_t) isc_bufferlist_t;	    /*%< Buffer List */
-typedef struct isc_constregion	   isc_constregion_t;	    /*%< Const region */
+typedef struct isc_astack isc_astack_t;		 /*%< Array-based fast stack */
+typedef struct isc_appctx isc_appctx_t;		 /*%< Application context */
+typedef struct isc_buffer isc_buffer_t;		 /*%< Buffer */
+typedef ISC_LIST(isc_buffer_t) isc_bufferlist_t; /*%< Buffer List */
+typedef struct isc_constregion	   isc_constregion_t;	  /*%< Const region */
 typedef struct isc_consttextregion isc_consttextregion_t; /*%< Const Text Region
 							   */
 typedef struct isc_counter isc_counter_t;		  /*%< Counter */

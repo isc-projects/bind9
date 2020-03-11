@@ -200,7 +200,6 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	int i, nframes;
 	isc_result_t result;
 	const char *logsuffix = "";
-	const char *fname;
 
 	/*
 	 * Handle assertion failures.
@@ -224,27 +223,10 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 			      isc_assertion_typetotext(type), cond, logsuffix);
 		if (result == ISC_R_SUCCESS) {
 			for (i = 0; i < nframes; i++) {
-				unsigned long offset;
-
-				fname = NULL;
-				result = isc_backtrace_getsymbol(
-					tracebuf[i], &fname, &offset);
-				if (result == ISC_R_SUCCESS) {
-					isc_log_write(named_g_lctx,
-						      NAMED_LOGCATEGORY_GENERAL,
-						      NAMED_LOGMODULE_MAIN,
-						      ISC_LOG_CRITICAL,
-						      "#%d %p in %s()+0x%lx", i,
-						      tracebuf[i], fname,
-						      offset);
-				} else {
-					isc_log_write(named_g_lctx,
-						      NAMED_LOGCATEGORY_GENERAL,
-						      NAMED_LOGMODULE_MAIN,
-						      ISC_LOG_CRITICAL,
-						      "#%d %p in ??", i,
-						      tracebuf[i]);
-				}
+				isc_log_write(
+					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+					NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+					"#%d %p in ??", i, tracebuf[i]);
 			}
 		}
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -975,36 +957,6 @@ destroy_managers(void) {
 }
 
 static void
-dump_symboltable(void) {
-	int i;
-	isc_result_t result;
-	const char *fname;
-	const void *addr;
-
-	if (isc__backtrace_nsymbols == 0) {
-		return;
-	}
-
-	if (!isc_log_wouldlog(named_g_lctx, ISC_LOG_DEBUG(99))) {
-		return;
-	}
-
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_DEBUG(99), "Symbol table:");
-
-	for (i = 0, result = ISC_R_SUCCESS; result == ISC_R_SUCCESS; i++) {
-		addr = NULL;
-		fname = NULL;
-		result = isc_backtrace_getsymbolfromindex(i, &addr, &fname);
-		if (result == ISC_R_SUCCESS) {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_MAIN, ISC_LOG_DEBUG(99),
-				      "[%d] %p %s", i, addr, fname);
-		}
-	}
-}
-
-static void
 setup(void) {
 	isc_result_t result;
 	isc_resourcevalue_t old_openfiles;
@@ -1190,8 +1142,6 @@ setup(void) {
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "----------------------------------------------------");
-
-	dump_symboltable();
 
 	/*
 	 * Get the initial resource limits.

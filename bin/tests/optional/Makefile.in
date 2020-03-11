@@ -24,12 +24,10 @@ PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 
 DNSLIBS =	../../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
-ISCNOSYMLIBS =	../../../lib/isc/libisc-nosymtbl.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
 ISCCFGLIBS = 	../../../lib/isccfg/libisccfg.@A@
 
 DNSDEPLIBS =	../../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../../lib/isc/libisc.@A@
-ISCDEPNOSYMLIBS = ../../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGDEPLIBS = ../../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
@@ -44,7 +42,6 @@ TARGETS =	@XTARGETS@
 XTARGETS =	adb_test@EXEEXT@ \
 		byaddr_test@EXEEXT@ \
 		backtrace_test@EXEEXT@ \
-		backtrace_test_nosymtbl@EXEEXT@ \
 		byname_test@EXEEXT@ \
 		db_test@EXEEXT@ \
 		gsstest@EXEEXT@ \
@@ -109,26 +106,9 @@ adb_test@EXEEXT@: adb_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ adb_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-backtrace_test_nosymtbl@EXEEXT@: ${srcdir}/backtrace_test.c ${ISCDEPLIBS}
+backtrace_test@EXEEXT@: ${srcdir}/backtrace_test.c ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} -o $@ \
 	${srcdir}/backtrace_test.c ${ISCLIBS} ${LIBS}
-
-backtrace_test@EXEEXT@: ${srcdir}/backtrace_test.c backtrace_test_nosymtbl@EXEEXT@
-	#first step: create a first symbol table
-	rm -f symtbl.c
-	cp ${top_srcdir}/lib/isc/backtrace-emptytbl.c symtbl.c
-	#second step: build a binary with the first symbol table
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} \
-	-o $@0 ${srcdir}/backtrace_test.c symtbl.c \
-	${ISCNOSYMLIBS} ${LIBS}
-	rm -f symtbl.c
-	#third step: create a second symbol table
-	cp ${top_srcdir}/lib/isc/backtrace-emptytbl.c symtbl.c
-	#fourth step: build the final binary
-	rm -f $@0
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} \
-	-o $@ ${srcdir}/backtrace_test.c symtbl.c ${ISCNOSYMLIBS} ${LIBS}
-	rm -f symtbl.c
 
 nsecify@EXEEXT@: nsecify.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ nsecify.@O@ \
