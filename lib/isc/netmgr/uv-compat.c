@@ -10,7 +10,6 @@
  */
 
 #include "uv-compat.h"
-
 #include <unistd.h>
 
 #include <isc/util.h>
@@ -92,7 +91,6 @@ isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 #else /* WIN32 */
 /* Adapted from libuv/src/unix/internal.h */
 #include <fcntl.h>
-
 #include <sys/ioctl.h>
 
 static int

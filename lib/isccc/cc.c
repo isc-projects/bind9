@@ -36,6 +36,8 @@
 #include <isc/print.h>
 #include <isc/safe.h>
 
+#include <pk11/site.h>
+
 #include <isccc/alist.h>
 #include <isccc/base64.h>
 #include <isccc/cc.h>
@@ -44,7 +46,6 @@
 #include <isccc/symtab.h>
 #include <isccc/symtype.h>
 #include <isccc/util.h>
-#include <pk11/site.h>
 
 #define MAX_TAGS     256
 #define DUP_LIFETIME 900

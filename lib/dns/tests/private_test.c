@@ -31,9 +31,9 @@
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 
-#include "dnstest.h"
-
 #include <dst/dst.h>
+
+#include "dnstest.h"
 
 static dns_rdatatype_t privatetype = 65534;
 

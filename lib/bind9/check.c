@@ -35,6 +35,8 @@
 #include <isc/symtab.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/acl.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
@@ -47,6 +49,9 @@
 #include <dns/secalg.h>
 #include <dns/ssu.h>
 
+#include <dst/dst.h>
+#include <dst/result.h>
+
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
@@ -56,9 +61,6 @@
 #include <ns/hooks.h>
 
 #include <bind9/check.h>
-#include <dst/dst.h>
-#include <dst/result.h>
-#include <pk11/site.h>
 
 static isc_result_t
 fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,

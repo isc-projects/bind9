@@ -10,6 +10,10 @@
  */
 
 #include <stdlib.h>
+#include <sys/param.h>
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <isc/app.h>
@@ -28,11 +32,6 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 #include <dns/zone.h>
-
-#include <sys/param.h>
-#include <sys/select.h>
-#include <sys/time.h>
-#include <sys/types.h>
 
 static int debug = 0;
 static int quiet = 0;

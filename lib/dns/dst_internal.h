@@ -43,14 +43,15 @@
 #include <pk11/site.h>
 #endif /* USE_PKCS11 */
 
-#include <dns/time.h>
-
-#include <dst/dst.h>
 #include <openssl/dh.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
+
+#include <dns/time.h>
+
+#include <dst/dst.h>
 
 ISC_LANG_BEGINDECLS
 

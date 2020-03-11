@@ -51,6 +51,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <protobuf-c/protobuf-c.h>
+
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/log.h>
@@ -77,8 +79,6 @@
 #include <dns/view.h>
 
 #include "dnstap.pb-c.h"
-
-#include <protobuf-c/protobuf-c.h>
 
 #define DTENV_MAGIC	 ISC_MAGIC('D', 't', 'n', 'v')
 #define VALID_DTENV(env) ISC_MAGIC_VALID(env, DTENV_MAGIC)

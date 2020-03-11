@@ -51,9 +51,9 @@
 #include <dns/rbt.h>
 #include <dns/result.h>
 
-#include "dnstest.h"
-
 #include <dst/dst.h>
+
+#include "dnstest.h"
 
 typedef struct {
 	dns_rbt_t *rbt;

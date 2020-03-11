@@ -16,6 +16,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/time.h> /* Required for struct timeval on some platforms. */
 #include <syslog.h>
 #include <time.h>
 
@@ -27,8 +28,6 @@
 #include <isc/time.h>
 #include <isc/tm.h>
 #include <isc/util.h>
-
-#include <sys/time.h> /* Required for struct timeval on some platforms. */
 
 #define NS_PER_S  1000000000 /*%< Nanoseconds per second. */
 #define NS_PER_US 1000	     /*%< Nanoseconds per microsecond. */

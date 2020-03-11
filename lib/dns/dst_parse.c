@@ -24,7 +24,6 @@
  */
 
 #include "dst_parse.h"
-
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -39,13 +38,13 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/log.h>
 #include <dns/time.h>
 
 #include "dst/result.h"
 #include "dst_internal.h"
-
-#include <pk11/site.h>
 
 #define DST_AS_STR(t) ((t).value.as_textregion.base)
 

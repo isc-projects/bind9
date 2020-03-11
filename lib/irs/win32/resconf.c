@@ -22,7 +22,6 @@
 #define HAVE_GET_WIN32_NAMESERVERS 1
 
 #include "../resconf.c"
-
 #include <iphlpapi.h>
 
 #define TCPIP_SUBKEY "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters"

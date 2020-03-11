@@ -12,7 +12,6 @@
 /*! \file */
 
 #include "nstest.h"
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>

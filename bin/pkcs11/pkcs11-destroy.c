@@ -50,6 +50,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include <isc/commandline.h>
 #include <isc/print.h>
@@ -58,7 +59,6 @@
 
 #include <pk11/pk11.h>
 #include <pk11/result.h>
-#include <sys/types.h>
 
 #ifdef WIN32
 #define sleep(x) Sleep(x)

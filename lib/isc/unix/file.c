@@ -46,11 +46,10 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <time.h>   /* Required for utimes on some platforms. */
-#include <unistd.h> /* Required for mkstemp on NetBSD. */
-
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <time.h>   /* Required for utimes on some platforms. */
+#include <unistd.h> /* Required for mkstemp on NetBSD. */
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>

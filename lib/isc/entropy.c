@@ -9,13 +9,13 @@
  * information regarding copyright ownership.
  */
 
+#include <openssl/err.h>
+#include <openssl/rand.h>
+
 #include <isc/types.h>
 #include <isc/util.h>
 
 #include "entropy_private.h"
-
-#include <openssl/err.h>
-#include <openssl/rand.h>
 
 void
 isc_entropy_get(void *buf, size_t buflen) {

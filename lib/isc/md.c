@@ -11,14 +11,14 @@
 
 #include <stdio.h>
 
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/opensslv.h>
+
 #include <isc/md.h>
 #include <isc/util.h>
 
 #include "openssl_shim.h"
-
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/opensslv.h>
 
 isc_md_t *
 isc_md_new(void) {

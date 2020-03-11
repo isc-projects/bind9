@@ -26,10 +26,10 @@
 #include <isc/print.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include "../dst_internal.h"
 #include "dnstest.h"
-
-#include <pk11/site.h>
 
 static int
 _setup(void **state) {

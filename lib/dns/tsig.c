@@ -24,6 +24,8 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
@@ -36,10 +38,9 @@
 #include <dns/result.h>
 #include <dns/tsig.h>
 
-#include "tsig_p.h"
-
 #include <dst/result.h>
-#include <pk11/site.h>
+
+#include "tsig_p.h"
 
 #define TSIG_MAGIC	  ISC_MAGIC('T', 'S', 'I', 'G')
 #define VALID_TSIG_KEY(x) ISC_MAGIC_VALID(x, TSIG_MAGIC)

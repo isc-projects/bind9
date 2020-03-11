@@ -20,18 +20,19 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/keyvalues.h>
-
-#include "dst_internal.h"
-#include "dst_parse.h"
-#include "dst_pkcs11.h"
-
-#include <dst/result.h>
 #include <pk11/constants.h>
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
 #include <pkcs11/eddsa.h>
 #include <pkcs11/pkcs11.h>
+
+#include <dns/keyvalues.h>
+
+#include <dst/result.h>
+
+#include "dst_internal.h"
+#include "dst_parse.h"
+#include "dst_pkcs11.h"
 
 /*
  * FIPS 186-3 EDDSA keys:
