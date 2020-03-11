@@ -10,31 +10,33 @@
 -->
 
 <section xml:id="relnotes-9.17.0"><info><title>Notes for BIND 9.17.0</title></info>
-  <para>
-    System-provided pthread rwlocks implementation is used by default instead of
-    built-in ISC implementation of rwlocks. Please be aware that unpatched glibc
-    version from 2.26 had a <link xmlns:xlink="http://www.w3.org/1999/xlink"
-    xlink:href="https://sourceware.org/bugzilla/show_bug.cgi?id=23844">bug</link>
-    that could cause BIND 9 to deadlock.  The fix has been released as part of
-    glibc release 2.30, and various Linux distributions have patched their glibc
-    version with a notable exception of Ubuntu 18.04 (Bionic) which is work in
-    progress. If you are running on affected system (e.g. Ubuntu 18.04) you need
-    to compile BIND 9 with --disable-pthread-rwlock until Canonical releases
-    <link xmlns:xlink="http://www.w3.org/1999/xlink"
-    xlink:href="https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/1864864">fixed
-    version</link>.
-  </para>
 
   <section xml:id="relnotes-9.17.0-changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
         <para>
-	  The <command>rndc nta -dump</command> and
-	  <command>rndc secroots</command> commands now both include
-	  <command>validate-except</command> entries when listing negative
-	  trust anchors. These are indicated by the keyword
-	  <literal>permanent</literal> in place of the expiry
-	  date. [GL #1532]
+          System-provided pthread rwlocks implementation is used by default instead of
+          built-in ISC implementation of rwlocks. Please be aware that unpatched glibc
+          version from 2.26 had a <link xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="https://sourceware.org/bugzilla/show_bug.cgi?id=23844">bug</link>
+          that could cause BIND 9 to deadlock.  The fix has been released as part of
+          glibc release 2.30, and various Linux distributions have patched their glibc
+          version with a notable exception of Ubuntu 18.04 (Bionic) which is work in
+          progress. If you are running on affected system (e.g. Ubuntu 18.04) you need
+          to compile BIND 9 with --disable-pthread-rwlock until Canonical releases
+          <link xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/1864864">fixed
+          version</link>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The <command>rndc nta -dump</command> and
+          <command>rndc secroots</command> commands now both include
+          <command>validate-except</command> entries when listing negative
+          trust anchors. These are indicated by the keyword
+          <literal>permanent</literal> in place of the expiry
+          date. [GL #1532]
         </para>
       </listitem>
     </itemizedlist>
@@ -44,8 +46,8 @@
     <itemizedlist>
       <listitem>
         <para>
-	  Fixed re-signing issues with inline zones which resulted in
-	  records being re-signed late or not at all.
+          Fixed re-signing issues with inline zones which resulted in
+          records being re-signed late or not at all.
         </para>
       </listitem>
     </itemizedlist>
@@ -54,21 +56,21 @@
   <section xml:id="relnotes-9.17.0-new"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
-	<para>
-	  When a secondary server receives a large incremental zone
-	  transfer (IXFR), it can have a negative impact on query
-	  performance while the incremental changes are applied to
-	  the zone. To address this, <command>named</command> can now
-	  limit the size of IXFR responses it sends in response to zone
-	  transfer requests. If an IXFR response would be larger than an
-	  AXFR of the entire zone, it will send an AXFR resonse instead.
-	</para>
-	<para>
-	  This behavior is controlled by the <command>max-ixfr-ratio</command>
-	  option - a percentage value representing the ratio of IXFR size
-	  to the size of a full zone transfer. This value cannot exceed
-	  100%, which is also the default. [GL #1515]
-	</para>
+        <para>
+          When a secondary server receives a large incremental zone
+          transfer (IXFR), it can have a negative impact on query
+          performance while the incremental changes are applied to
+          the zone. To address this, <command>named</command> can now
+          limit the size of IXFR responses it sends in response to zone
+          transfer requests. If an IXFR response would be larger than an
+          AXFR of the entire zone, it will send an AXFR resonse instead.
+        </para>
+        <para>
+          This behavior is controlled by the <command>max-ixfr-ratio</command>
+          option - a percentage value representing the ratio of IXFR size
+          to the size of a full zone transfer. This value cannot exceed
+          100%, which is also the default. [GL #1515]
+        </para>
       </listitem>
     </itemizedlist>
   </section>
