@@ -15,18 +15,16 @@
     <itemizedlist>
       <listitem>
         <para>
-          System-provided pthread rwlocks implementation is used by default instead of
-          built-in ISC implementation of rwlocks. Please be aware that unpatched glibc
-          version from 2.26 had a <link xmlns:xlink="http://www.w3.org/1999/xlink"
-          xlink:href="https://sourceware.org/bugzilla/show_bug.cgi?id=23844">bug</link>
-          that could cause BIND 9 to deadlock.  The fix has been released as part of
-          glibc release 2.30, and various Linux distributions have patched their glibc
-          version with a notable exception of Ubuntu 18.04 (Bionic) which is work in
-          progress. If you are running on affected system (e.g. Ubuntu 18.04) you need
-          to compile BIND 9 with --disable-pthread-rwlock until Canonical releases
-          <link xmlns:xlink="http://www.w3.org/1999/xlink"
-          xlink:href="https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/1864864">fixed
-          version</link>.
+          The system-provided POSIX Threads read-write lock implementation is
+          now used by default instead of the native BIND 9 implementation.
+          Please be aware that glibc versions 2.26 through 2.29 had a
+          <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://sourceware.org/bugzilla/show_bug.cgi?id=23844">bug</link>
+          that could cause BIND 9 to deadlock. A fix was released in glibc 2.30,
+          and most current Linux distributions have patched or updated glibc,
+          with the notable exception of Ubuntu 18.04 (Bionic) which is a work in
+          progress. If you are running on an affected operating system, compile
+          BIND 9 with <command>--disable-pthread-rwlock</command> until a fixed
+          version of glibc is available.
         </para>
       </listitem>
     </itemizedlist>
