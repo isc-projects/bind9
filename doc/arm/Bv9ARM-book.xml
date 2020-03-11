@@ -9843,17 +9843,35 @@ deny-answer-aliases { "example.net"; };
 		<listitem>
 		  <para>
 		    NSDNAME triggers match names of authoritative servers
-		    for the query name, a parent of the query name, a CNAME for
-		    query name, or a parent of a CNAME.
-		    They are encoded as subdomains of
-		    <command>rpz-nsdname</command> relativized
-		    to the RPZ origin name.
-		    NSIP triggers match IP addresses in A and
-		    AAAA RRsets for domains that can be checked against NSDNAME
-		    policy records.
-		    The <command>nsdname-enable</command> phrase turns NSDNAME
+		    for the query name, a parent of the query name, a CNAME
+		    for query name, or a parent of a CNAME.  They are
+		    encoded as subdomains of <command>rpz-nsdname</command>
+		    relativized to the RPZ origin name.  NSIP triggers match
+		    IP addresses in A and AAAA RRsets for domains that can
+		    be checked against NSDNAME policy records.  The
+		    <command>nsdname-enable</command> phrase turns NSDNAME
 		    triggers off or on for a single policy zone or all
 		    zones.
+		  </para>
+		  <para>
+		    If authoritative nameservers for the query name are not
+		    yet known, <command>named</command> will recursively
+		    look up the authoritative servers for the query name
+		    before applying an RPZ-NSDNAME rule.
+		    This can cause a processing delay. To speed up
+		    processing at the cost of precision, the
+		    <command>nsdname-wait-recurse</command> option
+		    can be used: when set to <userinput>no</userinput>,
+		    RPZ-NSDNAME rules will only be applied when authoritative
+		    servers for the query name have already been looked up and
+		    cached.  If authoritative servers for the query name
+		    are not in the cache, then the RPZ-NSDNAME rule will be
+		    ignored, but the authoritative servers for the query name
+		    will be looked up in the background, and the rule will be
+		    applied to subsequent queries. The default is
+		    <userinput>yes</userinput>, meaning RPZ-NSDNAME
+		    rules should always be applied even if authoritative
+		    servers for the query name need to be looked up first.
 		  </para>
 		</listitem>
 	      </varlistentry>
