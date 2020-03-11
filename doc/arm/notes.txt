@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.16
+Release Notes for BIND Version 9.11.17
 
 Introduction
 
@@ -35,6 +35,20 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.17
+
+Feature Changes
+
+  * The configure option --with-libxml2 now uses pkg-config to detect
+    libxml2 library availability. You will either have to install
+    pkg-config or specify the exact path where libxml2 has been installed
+    on your system. [GL #1635]
+
+Bug Fixes
+
+  * Fixed re-signing issues with inline zones which resulted in records
+    being re-signed late or not at all.
 
 Notes for BIND 9.11.16
 

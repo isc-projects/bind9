@@ -36,11 +36,12 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.16</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.17</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.17">Notes for BIND 9.11.17</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.16">Notes for BIND 9.11.16</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.15">Notes for BIND 9.11.15</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.14">Notes for BIND 9.11.14</a></span></dt>
@@ -65,7 +66,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.16</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.17</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -121,6 +122,37 @@
   </p>
 </div>
 
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.17"></a>Notes for BIND 9.11.17</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.17-changes"></a>Feature Changes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          The <span class="command"><strong>configure</strong></span> option
+          <span class="command"><strong>--with-libxml2</strong></span> now uses
+          <span class="command"><strong>pkg-config</strong></span> to detect libxml2 library
+          availability.  You will either have to install
+          <span class="command"><strong>pkg-config</strong></span> or specify the exact path where
+          libxml2 has been installed on your system. [GL #1635]
+        </p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.17-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          Fixed re-signing issues with inline zones which resulted in
+          records being re-signed late or not at all.
+        </p>
+      </li></ul></div>
+  </div>
+
+</div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.16"></a>Notes for BIND 9.11.16</h3></div></div></div>
@@ -2041,6 +2073,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.16 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.17 (Extended Support Version)</p>
 </body>
 </html>
