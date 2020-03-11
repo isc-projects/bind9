@@ -18,7 +18,7 @@
 #define BIND_SERVICE_NAME "named"
 
 void
-ntservice_init();
+     ntservice_init();
 void UpdateSCM(DWORD);
 void
 ServiceControl(DWORD dwCtrlCode);

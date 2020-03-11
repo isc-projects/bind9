@@ -26,8 +26,8 @@
 ISC_LANG_BEGINDECLS
 
 typedef pthread_t isc_thread_t;
-typedef void *isc_threadresult_t;
-typedef void *isc_threadarg_t;
+typedef void *	  isc_threadresult_t;
+typedef void *	  isc_threadarg_t;
 typedef isc_threadresult_t (*isc_threadfunc_t)(isc_threadarg_t);
 
 void
