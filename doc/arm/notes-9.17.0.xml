@@ -43,7 +43,7 @@
           with the notable exception of Ubuntu 18.04 (Bionic) which is a work in
           progress. If you are running on an affected operating system, compile
           BIND 9 with <command>--disable-pthread-rwlock</command> until a fixed
-          version of glibc is available.
+          version of glibc is available. [GL !3125]
         </para>
       </listitem>
       <listitem>
