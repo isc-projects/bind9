@@ -1853,7 +1853,6 @@ check_apex
 check_subdomain
 dnssec_verify
 
-set_keydir "ns4"
 set_zone "example.net"
 set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha1:keyforview1:$VIEW1"
