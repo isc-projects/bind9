@@ -95,7 +95,7 @@ static void
 default_callback(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond) {
 	void *tracebuf[BACKTRACE_MAXFRAME];
-	int i, nframes;
+	int nframes;
 	const char *logsuffix = ".";
 	isc_result_t result;
 
@@ -108,9 +108,16 @@ default_callback(const char *file, int line, isc_assertiontype_t type,
 		isc_assertion_typetotext(type), cond, logsuffix);
 
 	if (result == ISC_R_SUCCESS) {
-		for (i = 0; i < nframes; i++) {
+#if HAVE_BACKTRACE_SYMBOLS
+		char **strs = backtrace_symbols(tracebuf, nframes);
+		for (int i = 0; i < nframes; i++) {
+			fprintf(stderr, "%s\n", strs[i]);
+		}
+#else  /* HAVE_BACKTRACE_SYMBOLS */
+		for (int i = 0; i < nframes; i++) {
 			fprintf(stderr, "#%d %p in ??\n", i, tracebuf[i]);
 		}
+#endif /* HAVE_BACKTRACE_SYMBOLS */
 	}
 	fflush(stderr);
 }

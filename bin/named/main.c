@@ -197,7 +197,7 @@ static void
 assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond) {
 	void *tracebuf[BACKTRACE_MAXFRAME];
-	int i, nframes;
+	int nframes;
 	isc_result_t result;
 	const char *logsuffix = "";
 
@@ -222,12 +222,22 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 			      "%s:%d: %s(%s) failed%s", file, line,
 			      isc_assertion_typetotext(type), cond, logsuffix);
 		if (result == ISC_R_SUCCESS) {
-			for (i = 0; i < nframes; i++) {
+#if HAVE_BACKTRACE_SYMBOLS
+			char **strs = backtrace_symbols(tracebuf, nframes);
+			for (int i = 0; i < nframes; i++) {
+				isc_log_write(named_g_lctx,
+					      NAMED_LOGCATEGORY_GENERAL,
+					      NAMED_LOGMODULE_MAIN,
+					      ISC_LOG_CRITICAL, "%s", strs[i]);
+			}
+#else  /* HAVE_BACKTRACE_SYMBOLS */
+			for (int i = 0; i < nframes; i++) {
 				isc_log_write(
 					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 					NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 					"#%d %p in ??", i, tracebuf[i]);
 			}
+#endif /* HAVE_BACKTRACE_SYMBOLS */
 		}
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,

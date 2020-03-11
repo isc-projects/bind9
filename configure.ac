@@ -56,7 +56,6 @@ AC_SUBST(STD_CDEFINES)
 AC_SUBST(STD_CWARNINGS)
 AC_SUBST(CCOPT)
 AC_SUBST(CCNOOPT)
-AC_SUBST(BACKTRACECFLAGS)
 
 #
 # Use pkg-config
@@ -1425,23 +1424,13 @@ case $use_profiler in
 esac
 
 #
-# enable/disable dumping stack backtrace.  Also check if the system supports
-# glibc-compatible backtrace() function.
+# Check if the system supports glibc-compatible backtrace() function.
 #
-AC_ARG_ENABLE([backtrace],
-	      [AS_HELP_STRING([--enable-backtrace],
-			      [log stack backtrace on abort [default=yes]])],
-	      [], [enable_backtrace="yes"])
+AC_CHECK_HEADERS([execinfo.h],
+		 [AC_SEARCH_LIBS([backtrace], [execinfo],
+				 [AC_CHECK_FUNCS([backtrace backtrace_symbols])])])
 
-AS_IF([test "$enable_backtrace" = "yes"],
-      [AC_DEFINE([USE_BACKTRACE], [1], [define if we can use backtrace])
-       AC_LINK_IFELSE(
-	 [AC_LANG_PROGRAM(
-	    [[#include <execinfo.h>]],
-	    [[return (backtrace((void **)0, 0));]]
-	  )],
-	 [AC_DEFINE([HAVE_LIBCTRACE], [1], [define if system have backtrace function])]
-       )])
+# AM_CONDITIONAL([HAVE_BACKTRACE], [test "$ac_cv_func_backtrace" = "yes"])
 
 #
 # File name extension for static archive files, for those few places

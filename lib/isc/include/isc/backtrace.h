@@ -37,6 +37,10 @@
  ***	Imports
  ***/
 
+#if HAVE_BACKTRACE_SYMBOLS
+#include <execinfo.h>
+#endif /* HAVE_BACKTRACE_SYMBOLS */
+
 #include <isc/types.h>
 
 /***
