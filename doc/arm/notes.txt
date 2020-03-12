@@ -56,7 +56,7 @@ New Features
     incremental changes are applied to the zone. To address this, named
     can now limit the size of IXFR responses it sends in response to zone
     transfer requests. If an IXFR response would be larger than an AXFR of
-    the entire zone, it will send an AXFR resonse instead.
+    the entire zone, it will send an AXFR response instead.
 
     This behavior is controlled by the max-ixfr-ratio option - a
     percentage value representing the ratio of IXFR size to the size of a
