@@ -40,7 +40,7 @@
           the zone. To address this, <command>named</command> can now
           limit the size of IXFR responses it sends in response to zone
           transfer requests. If an IXFR response would be larger than an
-          AXFR of the entire zone, it will send an AXFR resonse instead.
+          AXFR of the entire zone, it will send an AXFR response instead.
         </para>
         <para>
           This behavior is controlled by the <command>max-ixfr-ratio</command>
