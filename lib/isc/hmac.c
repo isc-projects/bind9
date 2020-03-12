@@ -41,7 +41,7 @@ isc_hmac_free(isc_hmac_t *hmac) {
 
 isc_result_t
 isc_hmac_init(isc_hmac_t *hmac, const void *key, size_t keylen,
-	      isc_md_type_t md_type) {
+	      const isc_md_type_t *md_type) {
 	REQUIRE(hmac != NULL);
 	REQUIRE(key != NULL);
 
@@ -95,7 +95,7 @@ isc_hmac_final(isc_hmac_t *hmac, unsigned char *digest,
 	return (ISC_R_SUCCESS);
 }
 
-isc_md_type_t
+const isc_md_type_t *
 isc_hmac_get_md_type(isc_hmac_t *hmac) {
 	REQUIRE(hmac != NULL);
 
@@ -117,7 +117,7 @@ isc_hmac_get_block_size(isc_hmac_t *hmac) {
 }
 
 isc_result_t
-isc_hmac(isc_md_type_t type, const void *key, const int keylen,
+isc_hmac(const isc_md_type_t *type, const void *key, const int keylen,
 	 const unsigned char *buf, const size_t len, unsigned char *digest,
 	 unsigned int *digestlen) {
 	isc_result_t res;
