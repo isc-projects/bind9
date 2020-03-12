@@ -271,29 +271,42 @@
 
       <p>
         The incremental zone transfer (IXFR) protocol is a way for
-        slave servers to transfer only changed data, instead of having to
+        secondary servers to transfer only changed data, instead of having to
         transfer the entire zone. The IXFR protocol is specified in RFC
         1995. See <a class="xref" href="Bv9ARM.ch10.html#proposed_standards" title="Proposed Standards">Proposed Standards</a>.
       </p>
 
       <p>
-        When acting as a master, <acronym class="acronym">BIND</acronym> 9
+        When acting as a primary server, <acronym class="acronym">BIND</acronym> 9
         supports IXFR for those zones
         where the necessary change history information is available. These
-        include master zones maintained by dynamic update and slave zones
+        include primary zones maintained by dynamic update and secondary zones
         whose data was obtained by IXFR.  For manually maintained master
-        zones, and for slave zones obtained by performing a full zone
+        zones, and for secondary zones obtained by performing a full zone
         transfer (AXFR), IXFR is supported only if the option
         <span class="command"><strong>ixfr-from-differences</strong></span> is set
         to <strong class="userinput"><code>yes</code></strong>.
       </p>
 
       <p>
-        When acting as a slave, <acronym class="acronym">BIND</acronym> 9 will
+        When acting as a secondary server, <acronym class="acronym">BIND</acronym> 9 will
         attempt to use IXFR unless
         it is explicitly disabled. For more information about disabling
         IXFR, see the description of the <span class="command"><strong>request-ixfr</strong></span> clause
         of the <span class="command"><strong>server</strong></span> statement.
+      </p>
+
+      <p>
+        When a secondary server receives a zone via AXFR, it creates a
+        new copy of the zone database and then swaps it into place; during
+        the loading process, queries continue to be served from the old
+        database with no interference. When receiving a zone via IXFR,
+        however, changes are applied to the running zone, which may
+        degrade query performance during the transfer.  If a server
+        receiving an IXFR request determines that the response size would
+        be similar in size to an AXFR response, it may wish to send AXFR
+        instead. The threshold at which this determination is made can
+        be configured using the <span class="command"><strong>max-ixfr-ratio</strong></span> option.
       </p>
     </div>
 

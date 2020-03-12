@@ -23,8 +23,8 @@ dlz <string> {
 
 dnssec-policy <string> {
         dnskey-ttl <duration>;
-        keys { ( csk | ksk | zsk ) ( key-directory ) lifetime ( <duration> | unlimited )
-            algorithm <integer> [ <integer> ]; ... };
+        keys { ( csk | ksk | zsk ) [ ( key-directory ) ] lifetime
+            <duration_or_unlimited> algorithm <string> [ <integer> ]; ... };
         max-zone-ttl <duration>;
         parent-ds-ttl <duration>;
         parent-propagation-delay <duration>;
@@ -206,7 +206,7 @@ options {
         fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
         fstrm-set-output-queue-size <integer>; // not configured
         fstrm-set-reopen-interval <duration>; // not configured
-        geoip-directory ( <quoted_string> | none );
+        geoip-directory ( <quoted_string> | none ); // not configured
         geoip-use-ecs <boolean>; // obsolete
         glue-cache <boolean>;
         has-old-clients <boolean>; // ancient
@@ -227,7 +227,7 @@ options {
         listen-on-v6 [ port <integer> ] [ dscp
             <integer> ] {
             <address_match_element>; ... }; // may occur multiple times
-        lmdb-mapsize <sizeval>;
+        lmdb-mapsize <sizeval>; // non-operational
         lock-file ( <quoted_string> | none );
         maintain-ixfr-base <boolean>; // ancient
         managed-keys-directory <quoted_string>;
@@ -239,6 +239,7 @@ options {
         max-cache-ttl <duration>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // ancient
+        max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <duration>;
         max-records <integer>;
@@ -581,7 +582,7 @@ view <string> [ <class> ] {
         }; // may occur multiple times
         key-directory <quoted_string>;
         lame-ttl <duration>;
-        lmdb-mapsize <sizeval>;
+        lmdb-mapsize <sizeval>; // non-operational
         maintain-ixfr-base <boolean>; // ancient
         managed-keys { <string> (
             static-key | initial-key
@@ -599,6 +600,7 @@ view <string> [ <class> ] {
         max-cache-ttl <duration>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // ancient
+        max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <duration>;
         max-records <integer>;
@@ -823,6 +825,7 @@ view <string> [ <class> ] {
                     port <integer> ] ) [ key <string> ]; ... };
                 max-ixfr-log-size ( default | unlimited |
                     <sizeval> ); // ancient
+                max-ixfr-ratio ( unlimited | <percentage> );
                 max-journal-size ( default | unlimited | <sizeval> );
                 max-records <integer>;
                 max-refresh-time <integer>;
@@ -927,6 +930,7 @@ zone <string> [ <class> ] {
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // ancient
+        max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-records <integer>;
         max-refresh-time <integer>;
