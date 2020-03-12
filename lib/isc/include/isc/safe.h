@@ -16,11 +16,10 @@
 
 #include <isc/lang.h>
 
-#include <openssl/crypto.h>
-
 ISC_LANG_BEGINDECLS
 
-#define isc_safe_memequal(s1, s2, n) !CRYPTO_memcmp(s1, s2, n)
+int
+isc_safe_memequal(const void *, const void *, size_t);
 
 /*%<
  * Returns true iff. two blocks of memory are equal, otherwise
@@ -28,7 +27,9 @@ ISC_LANG_BEGINDECLS
  *
  */
 
-#define isc_safe_memwipe(ptr, len) OPENSSL_cleanse(ptr, len)
+void
+isc_safe_memwipe(void *, size_t);
+
 /*%<
  * Clear the memory of length `len` pointed to by `ptr`.
  *

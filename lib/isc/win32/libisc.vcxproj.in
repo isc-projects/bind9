@@ -464,6 +464,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\region.c" />
     <ClCompile Include="..\result.c" />
     <ClCompile Include="..\rwlock.c" />
+    <ClCompile Include="..\safe.c" />
     <ClCompile Include="..\serial.c" />
     <ClCompile Include="..\siphash.c" />
     <ClCompile Include="..\sockaddr.c" />
