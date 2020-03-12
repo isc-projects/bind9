@@ -29,9 +29,8 @@ struct isc_astack {
 
 isc_astack_t *
 isc_astack_new(isc_mem_t *mctx, size_t size) {
-	isc_astack_t *stack =
-		isc_mem_get(mctx,
-			    sizeof(isc_astack_t) + size * sizeof(uintptr_t));
+	isc_astack_t *stack = isc_mem_get(
+		mctx, sizeof(isc_astack_t) + size * sizeof(uintptr_t));
 
 	*stack = (isc_astack_t){
 		.size = size,
@@ -49,7 +48,7 @@ isc_astack_trypush(isc_astack_t *stack, void *obj) {
 			UNLOCK(&stack->lock);
 			return (false);
 		}
-		stack->nodes[stack->pos++] = (uintptr_t) obj;
+		stack->nodes[stack->pos++] = (uintptr_t)obj;
 		UNLOCK(&stack->lock);
 		return (true);
 	} else {
@@ -67,7 +66,7 @@ isc_astack_pop(isc_astack_t *stack) {
 		rv = stack->nodes[--stack->pos];
 	}
 	UNLOCK(&stack->lock);
-	return ((void*) rv);
+	return ((void *)rv);
 }
 
 void
@@ -80,5 +79,5 @@ isc_astack_destroy(isc_astack_t *stack) {
 
 	isc_mem_putanddetach(&stack->mctx, stack,
 			     sizeof(struct isc_astack) +
-			      stack->size * sizeof(uintptr_t));
+				     stack->size * sizeof(uintptr_t));
 }

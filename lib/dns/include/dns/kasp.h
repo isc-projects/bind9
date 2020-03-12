@@ -13,8 +13,8 @@
 #define DNS_KASP_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/kasp.h
  * \brief
@@ -35,84 +35,84 @@ ISC_LANG_BEGINDECLS
 
 /* Stores a KASP key */
 struct dns_kasp_key {
-	isc_mem_t*			mctx;
+	isc_mem_t *mctx;
 
 	/* Locked by themselves. */
-	isc_refcount_t			references;
+	isc_refcount_t references;
 
 	/* Under owner's locking control. */
-	ISC_LINK(struct dns_kasp_key)   link;
+	ISC_LINK(struct dns_kasp_key) link;
 
 	/* Configuration */
-	uint32_t			lifetime;
-	uint32_t			algorithm;
-	int				length;
-	uint8_t				role;
+	uint32_t lifetime;
+	uint8_t	 algorithm;
+	int	 length;
+	uint8_t	 role;
 };
 
 /* Stores a DNSSEC policy */
 struct dns_kasp {
-	unsigned int			magic;
-	isc_mem_t*			mctx;
-	char*				name;
+	unsigned int magic;
+	isc_mem_t *  mctx;
+	char *	     name;
 
 	/* Internals. */
-	isc_mutex_t			lock;
-	bool				frozen;
+	isc_mutex_t lock;
+	bool	    frozen;
 
 	/* Locked by themselves. */
-	isc_refcount_t			references;
+	isc_refcount_t references;
 
 	/* Under owner's locking control. */
-	ISC_LINK(struct dns_kasp)	link;
+	ISC_LINK(struct dns_kasp) link;
 
 	/* Configuration: signatures */
-	uint32_t			signatures_refresh;
-	uint32_t			signatures_validity;
-	uint32_t			signatures_validity_dnskey;
+	uint32_t signatures_refresh;
+	uint32_t signatures_validity;
+	uint32_t signatures_validity_dnskey;
 
 	/* Configuration: Keys */
-	dns_kasp_keylist_t		keys;
-	dns_ttl_t			dnskey_ttl;
+	dns_kasp_keylist_t keys;
+	dns_ttl_t	   dnskey_ttl;
 
 	/* Configuration: Timings */
-	uint32_t			publish_safety;
-	uint32_t			retire_safety;
+	uint32_t publish_safety;
+	uint32_t retire_safety;
 
 	/* Zone settings */
-	dns_ttl_t			zone_max_ttl;
-	uint32_t			zone_propagation_delay;
+	dns_ttl_t zone_max_ttl;
+	uint32_t  zone_propagation_delay;
 
 	/* Parent settings */
-	dns_ttl_t			parent_ds_ttl;
-	uint32_t			parent_propagation_delay;
-	uint32_t			parent_registration_delay;
+	dns_ttl_t parent_ds_ttl;
+	uint32_t  parent_propagation_delay;
+	uint32_t  parent_registration_delay;
 
-	// TODO: The rest of the KASP configuration
+	/* TODO: The rest of the KASP configuration */
 };
 
-#define DNS_KASP_MAGIC			ISC_MAGIC('K','A','S','P')
-#define DNS_KASP_VALID(kasp)		ISC_MAGIC_VALID(kasp, DNS_KASP_MAGIC)
+#define DNS_KASP_MAGIC	     ISC_MAGIC('K', 'A', 'S', 'P')
+#define DNS_KASP_VALID(kasp) ISC_MAGIC_VALID(kasp, DNS_KASP_MAGIC)
 
 /* Defaults */
-#define DNS_KASP_SIG_REFRESH		(86400*5)
-#define DNS_KASP_SIG_VALIDITY		(86400*14)
-#define DNS_KASP_SIG_VALIDITY_DNSKEY	(86400*14)
-#define DNS_KASP_KEY_TTL		(3600)
-#define DNS_KASP_DS_TTL			(3600)
-#define DNS_KASP_PUBLISH_SAFETY		(300)
-#define DNS_KASP_RETIRE_SAFETY		(300)
-#define DNS_KASP_ZONE_MAXTTL		(86400)
-#define DNS_KASP_ZONE_PROPDELAY		(300)
-#define DNS_KASP_PARENT_PROPDELAY	(3600)
-#define DNS_KASP_PARENT_REGDELAY	(86400)
+#define DNS_KASP_SIG_REFRESH	     (86400 * 5)
+#define DNS_KASP_SIG_VALIDITY	     (86400 * 14)
+#define DNS_KASP_SIG_VALIDITY_DNSKEY (86400 * 14)
+#define DNS_KASP_KEY_TTL	     (3600)
+#define DNS_KASP_DS_TTL		     (86400)
+#define DNS_KASP_PUBLISH_SAFETY	     (3600)
+#define DNS_KASP_RETIRE_SAFETY	     (3600)
+#define DNS_KASP_ZONE_MAXTTL	     (86400)
+#define DNS_KASP_ZONE_PROPDELAY	     (300)
+#define DNS_KASP_PARENT_PROPDELAY    (3600)
+#define DNS_KASP_PARENT_REGDELAY     (86400)
 
 /* Key roles */
-#define DNS_KASP_KEY_ROLE_KSK		0x01
-#define DNS_KASP_KEY_ROLE_ZSK		0x02
+#define DNS_KASP_KEY_ROLE_KSK 0x01
+#define DNS_KASP_KEY_ROLE_ZSK 0x02
 
 isc_result_t
-dns_kasp_create(isc_mem_t *mctx, const char* name, dns_kasp_t **kaspp);
+dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp);
 /*%<
  * Create a KASP.
  *
@@ -192,7 +192,7 @@ dns_kasp_thaw(dns_kasp_t *kasp);
  *\li   'kasp' is no longer frozen.
  */
 
-const char*
+const char *
 dns_kasp_getname(dns_kasp_t *kasp);
 /*%<
  * Get kasp name.
@@ -545,7 +545,7 @@ dns_kasp_key_create(dns_kasp_t *kasp, dns_kasp_key_t **keyp);
  */
 
 void
-dns_kasp_key_destroy(dns_kasp_key_t* key);
+dns_kasp_key_destroy(dns_kasp_key_t *key);
 /*%<
  * Destroy a KASP key.
  *

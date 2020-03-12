@@ -9,18 +9,19 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #ifndef RNDC_OS_H
 #define RNDC_OS_H 1
 
-#include <isc/lang.h>
 #include <stdio.h>
+
+#include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
 
-int set_user(FILE *fd, const char *user);
+int
+set_user(FILE *fd, const char *user);
 /*%<
  * Set the owner of the file referenced by 'fd' to 'user'.
  * Returns:
@@ -30,4 +31,4 @@ int set_user(FILE *fd, const char *user);
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* ifndef RNDC_OS_H */

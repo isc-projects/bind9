@@ -55,6 +55,9 @@ cksk4=`$REVOKE $cksk3`
 echo_i "setting up sync key"
 cksk5=`$KEYGEN -q -a rsasha1 -fk -P now+1mo -A now+1mo -Psync now $czone`
 
+echo_i "and future sync key"
+cksk6=`$KEYGEN -q -a rsasha1 -fk -P now+1mo -A now+1mo -Psync now+1mo $czone`
+
 echo_i "generating parent keys"
 pzsk=`$KEYGEN -q -a rsasha1 $pzone`
 pksk=`$KEYGEN -q -a rsasha1 -fk $pzone`
@@ -165,7 +168,7 @@ grep "key id = $czinactive\$" $cfile.signed > /dev/null || {
 # should not be there, hence the &&
 grep "key id = $ckprerevoke\$" $cfile.signed > /dev/null && {
 	ret=1
-	echo_i "found unexpect child pre-revoke ZSK id = $ckprerevoke"
+	echo_i "found unexpected child pre-revoke ZSK id = $ckprerevoke"
 }
 grep "key id = $czgenerated\$" $cfile.signed > /dev/null && {
 	ret=1
@@ -348,6 +351,7 @@ awk 'BEGIN { r=1 } $2 == "CDS" { r=0 } END { exit r }' $cfile.signed || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+# this also checks that the future sync record is not yet published
 echo_i "checking sync record deletion"
 ret=0
 $SETTIME -P now -A now -Dsync now ${cksk5} > /dev/null

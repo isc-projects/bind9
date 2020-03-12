@@ -32,8 +32,9 @@ fromtext_cname(ARGS_FROMTEXT) {
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return (ISC_R_SUCCESS);
 }
@@ -163,8 +164,9 @@ freestruct_cname(ARGS_FREESTRUCT) {
 
 	REQUIRE(cname != NULL);
 
-	if (cname->mctx == NULL)
+	if (cname->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&cname->cname, cname->mctx);
 	cname->mctx = NULL;
@@ -197,7 +199,6 @@ digest_cname(ARGS_DIGEST) {
 
 static inline bool
 checkowner_cname(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_cname);
 
 	UNUSED(name);
@@ -210,7 +211,6 @@ checkowner_cname(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_cname(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_cname);
 
 	UNUSED(rdata);
@@ -225,4 +225,4 @@ casecompare_cname(ARGS_COMPARE) {
 	return (compare_cname(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_CNAME_5_C */
+#endif /* RDATA_GENERIC_CNAME_5_C */

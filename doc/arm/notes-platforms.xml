@@ -17,11 +17,12 @@
     C compiler.
   </para>
   <para>
-    The OpenSSL cryptography library must be available for the target
-    platform.  A PKCS#11 provider can be used instead for Public Key
-    cryptography (i.e., DNSSEC signing and validation), but OpenSSL is
-    still required for general cryptography operations such as hashing
-    and random number generation.
+    The <filename>libuv</filename> asynchronous I/O library and the
+    OpenSSL cryptography library must be available for the target
+    platform.  A PKCS#11 provider can be used instead of OpenSSL for
+    Public Key cryptography (i.e., DNSSEC signing and validation),
+    but OpenSSL is still required for general cryptography operations
+    such as hashing and random number generation.
   </para>
   <para>
     More information can be found in the <filename>PLATFORMS.md</filename>

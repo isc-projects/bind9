@@ -43,9 +43,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma once
+
 #include <isc/atomic.h>
-#include <isc/string.h>
 #include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -59,8 +61,14 @@
  * in the file HazardPointers.hpp.
  */
 
-typedef void
-(isc_hp_deletefunc_t)(void *);
+typedef void(isc_hp_deletefunc_t)(void *);
+
+void
+isc_hp_init(int max_threads);
+/*%<
+ * Initialize hazard pointer constants - isc__hp_max_threads. If more threads
+ * will try to access hp it will assert.
+ */
 
 isc_hp_t *
 isc_hp_new(isc_mem_t *mctx, size_t max_hps, isc_hp_deletefunc_t *deletefunc);

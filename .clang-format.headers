@@ -1,0 +1,61 @@
+BasedOnStyle: LLVM
+IndentWidth: 8
+UseTab: Always
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:      false
+  AfterEnum:       false
+  AfterStruct:     false
+  AfterUnion:      false
+  AfterControlStatement: MultiLine
+  AfterFunction:   false # should also be MultiLine, but not yet supported
+  AfterExternBlock: false
+  BeforeElse:      false
+  IndentBraces:    false
+  SplitEmptyFunction: true
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+AlwaysBreakAfterReturnType: All
+Cpp11BracedListStyle: false
+ColumnLimit: 80
+AlignAfterOpenBracket: Align
+AlignConsecutiveDeclarations: true
+AlignConsecutiveMacros: true
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true
+AlwaysBreakBeforeMultilineStrings: false
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+AlignEscapedNewlines: Left
+DerivePointerAlignment: false
+PointerAlignment: Right
+PointerBindsToType: false
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^<isc/'
+    Priority:        2
+  - Regex:           '^<dns/'
+    Priority:        3
+  - Regex:           '^<iscccc/'
+    Priority:        4
+  - Regex:           '^<isccfg/'
+    Priority:        5
+  - Regex:           '^<ns/'
+    Priority:        6
+  - Regex:           '^<bind9/)'
+    Priority:        7
+  - Regex:           '^(<[^/]*)/)'
+    Priority:        8
+  - Regex:           '<[[:alnum:].]+>'
+    Priority:        1
+  - Regex:           '".*"'
+    Priority:        9
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+PenaltyBreakAssignment: 30
+PenaltyBreakComment: 10
+PenaltyBreakFirstLessLess: 0
+PenaltyBreakString: 80
+PenaltyExcessCharacter: 100
+Standard: Cpp11
+ContinuationIndentWidth: 8

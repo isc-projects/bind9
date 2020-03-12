@@ -50,12 +50,12 @@ OBJS =		pk11.@O@ pk11_result.@O@ \
 		backtrace.@O@ base32.@O@ base64.@O@ \
 		bind9.@O@ buffer.@O@ bufferlist.@O@ \
 		commandline.@O@ counter.@O@ crc64.@O@ error.@O@ entropy.@O@ \
-		event.@O@ hash.@O@ ht.@O@ heap.@O@ hex.@O@ \
+		event.@O@ glob.@O@ hash.@O@ ht.@O@ heap.@O@ hex.@O@ \
 		hmac.@O@ hp.@O@ httpd.@O@ iterated_hash.@O@ \
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
 		md.@O@ mem.@O@ mutexblock.@O@ \
 		netmgr/netmgr.@O@ netmgr/tcp.@O@ netmgr/udp.@O@ \
-		netmgr/tcpdns.@O@ netmgr/uverr2result.@O@ \
+		netmgr/tcpdns.@O@ netmgr/uverr2result.@O@ netmgr/uv-compat.@O@ \
 		netaddr.@O@ netscope.@O@ nonce.@O@ openssl_shim.@O@ pool.@O@ \
 		parseint.@O@ portset.@O@ queue.@O@ quota.@O@ \
 		radix.@O@ random.@O@ ratelimiter.@O@ \
@@ -64,14 +64,13 @@ OBJS =		pk11.@O@ pk11_result.@O@ \
 		string.@O@ symtab.@O@ task.@O@ taskpool.@O@ \
 		tm.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${THREADOBJS}
-SYMTBLOBJS =	backtrace-emptytbl.@O@
 
 # Alphabetically
 SRCS =		pk11.c pk11_result.c \
 		aes.c app.c assertions.c astack.c \
 		backtrace.c base32.c base64.c bind9.c \
 		buffer.c bufferlist.c commandline.c counter.c crc64.c \
-		entropy.c error.c event.c hash.c ht.c heap.c \
+		entropy.c error.c event.c glob.c hash.c ht.c heap.c \
 		hex.c hmac.c hp.c httpd.c iterated_hash.c \
 		lex.c lfsr.c lib.c log.c \
 		md.c mem.c mutexblock.c \
@@ -102,19 +101,19 @@ version.@O@: version.c
 		-DLIBAGE=${LIBAGE} \
 		-c ${srcdir}/version.c
 
-libisc.@SA@: ${OBJS} ${SYMTBLOBJS}
-	${AR} ${ARFLAGS} $@ ${OBJS} ${SYMTBLOBJS}
+libisc.@SA@: ${OBJS}
+	${AR} ${ARFLAGS} $@ ${OBJS}
 	${RANLIB} $@
 
 libisc-nosymtbl.@SA@: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
 	${RANLIB} $@
 
-libisc.la: ${OBJS} ${SYMTBLOBJS}
+libisc.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libisc.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} ${SYMTBLOBJS} ${LIBS}
+		${OBJS} ${LIBS}
 
 libisc-nosymtbl.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \

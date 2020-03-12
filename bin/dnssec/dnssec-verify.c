@@ -47,9 +47,9 @@
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdataclass.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
@@ -62,7 +62,7 @@
 
 #if USE_PKCS11
 #include <pk11/result.h>
-#endif
+#endif /* if USE_PKCS11 */
 
 #include "dnssectool.h"
 
@@ -71,10 +71,10 @@ const char *program = "dnssec-verify";
 static isc_stdtime_t now;
 static isc_mem_t *mctx = NULL;
 static dns_masterformat_t inputformat = dns_masterformat_text;
-static dns_db_t *gdb;			/* The database */
-static dns_dbversion_t *gversion;	/* The database version */
-static dns_rdataclass_t gclass;		/* The class */
-static dns_name_t *gorigin;		/* The database origin */
+static dns_db_t *gdb;		  /* The database */
+static dns_dbversion_t *gversion; /* The database version */
+static dns_rdataclass_t gclass;	  /* The class */
+static dns_name_t *gorigin;	  /* The database origin */
 static bool ignore_kskflag = false;
 static bool keyset_kskonly = false;
 
@@ -105,12 +105,13 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 
 	name = dns_fixedname_initname(&fname);
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed converting name '%s' to dns format: %s",
-		      origin, isc_result_totext(result));
+	if (result != ISC_R_SUCCESS) {
+		fatal("failed converting name '%s' to dns format: %s", origin,
+		      isc_result_totext(result));
+	}
 
-	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
-			       rdclass, 0, NULL, db);
+	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone, rdclass, 0,
+			       NULL, db);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*db, file, inputformat, 0);
@@ -129,10 +130,10 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 			      "use -o to specify a different zone origin",
 			      origin, file);
 		}
-		/* FALLTHROUGH */
+	/* FALLTHROUGH */
 	default:
-		fatal("failed loading zone from '%s': %s",
-		      file, isc_result_totext(result));
+		fatal("failed loading zone from '%s': %s", file,
+		      isc_result_totext(result));
 	}
 }
 
@@ -159,11 +160,13 @@ usage(void) {
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-E engine:\n");
 #if USE_PKCS11
-	fprintf(stderr, "\t\tpath to PKCS#11 provider library "
-		"(default is %s)\n", PK11_LIB_LOCATION);
-#else
+	fprintf(stderr,
+		"\t\tpath to PKCS#11 provider library "
+		"(default is %s)\n",
+		PK11_LIB_LOCATION);
+#else  /* if USE_PKCS11 */
 	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
-#endif
+#endif /* if USE_PKCS11 */
 	fprintf(stderr, "\t-x:\tDNSKEY record signed with KSKs only, "
 			"not ZSKs\n");
 	fprintf(stderr, "\t-z:\tAll records signed with KSKs\n");
@@ -182,8 +185,7 @@ main(int argc, char *argv[]) {
 	char *endp;
 	int ch;
 
-#define CMDLINE_FLAGS \
-	"c:E:hm:o:I:qv:Vxz"
+#define CMDLINE_FLAGS "c:E:hm:o:I:qv:Vxz"
 
 	/*
 	 * Process memory debugging argument first.
@@ -192,15 +194,23 @@ main(int argc, char *argv[]) {
 		switch (ch) {
 		case 'm':
 			if (strcasecmp(isc_commandline_argument, "record") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+			}
 			if (strcasecmp(isc_commandline_argument, "trace") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+			}
 			if (strcasecmp(isc_commandline_argument, "usage") == 0)
+			{
 				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
-			if (strcasecmp(isc_commandline_argument, "size") == 0)
+			}
+			if (strcasecmp(isc_commandline_argument, "size") == 0) {
 				isc_mem_debugging |= ISC_MEM_DEBUGSIZE;
-			if (strcasecmp(isc_commandline_argument, "mctx") == 0)
+			}
+			if (strcasecmp(isc_commandline_argument, "mctx") == 0) {
 				isc_mem_debugging |= ISC_MEM_DEBUGCTX;
+			}
 			break;
 		default:
 			break;
@@ -213,7 +223,7 @@ main(int argc, char *argv[]) {
 
 #if USE_PKCS11
 	pk11_result_register();
-#endif
+#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;
@@ -242,8 +252,9 @@ main(int argc, char *argv[]) {
 		case 'v':
 			endp = NULL;
 			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0')
+			if (*endp != '\0') {
 				fatal("verbose level must be numeric");
+			}
 			break;
 
 		case 'q':
@@ -259,9 +270,10 @@ main(int argc, char *argv[]) {
 			break;
 
 		case '?':
-			if (isc_commandline_option != '?')
+			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
+			}
 			/* FALLTHROUGH */
 
 		case 'h':
@@ -273,16 +285,17 @@ main(int argc, char *argv[]) {
 			version(program);
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n",
-				program, isc_commandline_option);
+			fprintf(stderr, "%s: unhandled option -%c\n", program,
+				isc_commandline_option);
 			exit(1);
 		}
 	}
 
 	result = dst_lib_init(mctx, engine);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
+	}
 
 	isc_stdtime_get(&now);
 
@@ -293,8 +306,9 @@ main(int argc, char *argv[]) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	if (argc < 1)
+	if (argc < 1) {
 		usage();
+	}
 
 	file = argv[0];
 
@@ -304,16 +318,18 @@ main(int argc, char *argv[]) {
 	POST(argc);
 	POST(argv);
 
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = file;
+	}
 
 	if (inputformatstr != NULL) {
-		if (strcasecmp(inputformatstr, "text") == 0)
+		if (strcasecmp(inputformatstr, "text") == 0) {
 			inputformat = dns_masterformat_text;
-		else if (strcasecmp(inputformatstr, "raw") == 0)
+		} else if (strcasecmp(inputformatstr, "raw") == 0) {
 			inputformat = dns_masterformat_raw;
-		else
+		} else {
 			fatal("unknown file format: %s\n", inputformatstr);
+		}
 	}
 
 	gdb = NULL;
@@ -326,21 +342,20 @@ main(int argc, char *argv[]) {
 	result = dns_db_newversion(gdb, &gversion);
 	check_result(result, "dns_db_newversion()");
 
-	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, NULL,
-				       mctx, ignore_kskflag, keyset_kskonly,
-				       report);
+	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, NULL, mctx,
+				       ignore_kskflag, keyset_kskonly, report);
 
 	dns_db_closeversion(gdb, &gversion, false);
 	dns_db_detach(&gdb);
 
 	cleanup_logging(&log);
 	dst_lib_destroy();
-	dns_name_destroy();
-	if (verbose > 10)
+	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
+	}
 	isc_mem_destroy(&mctx);
 
-	(void) isc_app_finish();
+	(void)isc_app_finish();
 
 	return (result == ISC_R_SUCCESS ? 0 : 1);
 }

@@ -9,18 +9,17 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/task.h
  * \brief The task system provides a lightweight execution context, which is
  * basically an event queue.
-
+ *
  * When a task's event queue is non-empty, the
  * task is runnable.  A small work crew of threads, typically one per CPU,
  * execute runnable tasks by dispatching the events on the tasks' event
@@ -68,7 +67,6 @@
  * unsend events which they have sent.
  */
 
-
 /***
  *** Imports.
  ***/
@@ -77,18 +75,18 @@
 
 #include <isc/eventclass.h>
 #include <isc/lang.h>
-#include <isc/stdtime.h>
 #include <isc/netmgr.h>
+#include <isc/stdtime.h>
 #include <isc/types.h>
 
-#define ISC_TASKEVENT_FIRSTEVENT	(ISC_EVENTCLASS_TASK + 0)
-#define ISC_TASKEVENT_SHUTDOWN		(ISC_EVENTCLASS_TASK + 1)
-#define ISC_TASKEVENT_TEST		(ISC_EVENTCLASS_TASK + 1)
-#define ISC_TASKEVENT_LASTEVENT		(ISC_EVENTCLASS_TASK + 65535)
+#define ISC_TASKEVENT_FIRSTEVENT (ISC_EVENTCLASS_TASK + 0)
+#define ISC_TASKEVENT_SHUTDOWN	 (ISC_EVENTCLASS_TASK + 1)
+#define ISC_TASKEVENT_TEST	 (ISC_EVENTCLASS_TASK + 1)
+#define ISC_TASKEVENT_LASTEVENT	 (ISC_EVENTCLASS_TASK + 65535)
 
 /*****
- ***** Tasks.
- *****/
+***** Tasks.
+*****/
 
 ISC_LANG_BEGINDECLS
 
@@ -97,8 +95,8 @@ ISC_LANG_BEGINDECLS
  ***/
 
 typedef enum {
-		isc_taskmgrmode_normal = 0,
-		isc_taskmgrmode_privileged
+	isc_taskmgrmode_normal = 0,
+	isc_taskmgrmode_privileged
 } isc_taskmgrmode_t;
 
 /*%
@@ -111,26 +109,25 @@ typedef enum {
  * all task invariants.
  */
 struct isc_taskmgr {
-	unsigned int		impmagic;
-	unsigned int		magic;
+	unsigned int impmagic;
+	unsigned int magic;
 };
 
-#define ISCAPI_TASKMGR_MAGIC	ISC_MAGIC('A','t','m','g')
-#define ISCAPI_TASKMGR_VALID(m)	((m) != NULL && \
-				 (m)->magic == ISCAPI_TASKMGR_MAGIC)
+#define ISCAPI_TASKMGR_MAGIC ISC_MAGIC('A', 't', 'm', 'g')
+#define ISCAPI_TASKMGR_VALID(m) \
+	((m) != NULL && (m)->magic == ISCAPI_TASKMGR_MAGIC)
 
 /*%
  * This is the common prefix of a task object.  The same note as
  * that for the taskmgr structure applies.
  */
 struct isc_task {
-	unsigned int		impmagic;
-	unsigned int		magic;
+	unsigned int impmagic;
+	unsigned int magic;
 };
 
-#define ISCAPI_TASK_MAGIC	ISC_MAGIC('A','t','s','t')
-#define ISCAPI_TASK_VALID(s)	((s) != NULL && \
-				 (s)->magic == ISCAPI_TASK_MAGIC)
+#define ISCAPI_TASK_MAGIC    ISC_MAGIC('A', 't', 's', 't')
+#define ISCAPI_TASK_VALID(s) ((s) != NULL && (s)->magic == ISCAPI_TASK_MAGIC)
 
 isc_result_t
 isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
@@ -258,7 +255,6 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
  *		all resources used by the task will be freed.
  */
 
-
 unsigned int
 isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 		    isc_eventtype_t last, void *tag);
@@ -286,8 +282,7 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
  */
 
 unsigned int
-isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
-	       void *tag);
+isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type, void *tag);
 /*%<
  * Purge events from a task's event queue.
  *
@@ -378,8 +373,8 @@ isc_task_unsendrange(isc_task_t *task, void *sender, isc_eventtype_t first,
  */
 
 unsigned int
-isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
-		void *tag, isc_eventlist_t *events);
+isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type, void *tag,
+		isc_eventlist_t *events);
 /*%<
  * Remove events from a task's event queue.
  *
@@ -409,8 +404,7 @@ isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
  */
 
 isc_result_t
-isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action,
-		    void *arg);
+isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg);
 /*%<
  * Send a shutdown event with action 'action' and argument 'arg' when
  * 'task' is shutdown.
@@ -430,7 +424,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action,
  *\li	When the task is shutdown, shutdown events requested with
  *	isc_task_onshutdown() will be appended to the task's event queue.
  *
-
+ *
  * Returns:
  *
  *\li	#ISC_R_SUCCESS
@@ -643,17 +637,16 @@ isc_task_privilege(isc_task_t *task);
  */
 
 /*****
- ***** Task Manager.
- *****/
+***** Task Manager.
+*****/
 
 isc_result_t
-isc_taskmgr_createinctx(isc_mem_t *mctx,
-			unsigned int workers, unsigned int default_quantum,
-			isc_taskmgr_t **managerp);
+isc_taskmgr_createinctx(isc_mem_t *mctx, unsigned int workers,
+			unsigned int default_quantum, isc_taskmgr_t **managerp);
 isc_result_t
 isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
-		   unsigned int default_quantum,
-		   isc_nm_t *nm, isc_taskmgr_t **managerp);
+		   unsigned int default_quantum, isc_nm_t *nm,
+		   isc_taskmgr_t **managerp);
 /*%<
  * Create a new task manager.  isc_taskmgr_createinctx() also associates
  * the new manager with the specified application context.
@@ -777,15 +770,14 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp);
  *
  * Requires:
  *\li	'manager' is a valid task manager.
-
+ *
  *\li	taskp != NULL && *taskp == NULL
  */
-
 
 #ifdef HAVE_LIBXML2
 int
 isc_taskmgr_renderxml(isc_taskmgr_t *mgr, void *writer0);
-#endif
+#endif /* ifdef HAVE_LIBXML2 */
 
 #ifdef HAVE_JSON_C
 isc_result_t

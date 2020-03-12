@@ -472,7 +472,7 @@ $CHECKZONE -D -s full "$zone" $signedfile 2> /dev/null | \
     awk '{$2 = "3600"; print}' > $patchedfile
 
 #
-# Seperate DNSSEC records.
+# Separate DNSSEC records.
 #
 zone=split-dnssec.example.
 infile=split-dnssec.example.db.in
@@ -486,7 +486,7 @@ echo "\$INCLUDE \"$signedfile\"" >> "$zonefile"
 "$SIGNER" -P -D -o "$zone" "$zonefile" > /dev/null
 
 #
-# Seperate DNSSEC records smart signing.
+# Separate DNSSEC records smart signing.
 #
 zone=split-smart.example.
 infile=split-smart.example.db.in

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_OPCODE_H
 #define DNS_OPCODE_H 1
 
@@ -21,7 +20,8 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target);
+isc_result_t
+dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target);
 /*%<
  * Put a textual representation of error 'opcode' into 'target'.
  *

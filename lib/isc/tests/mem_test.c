@@ -11,12 +11,11 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <fcntl.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -30,12 +29,11 @@
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
-#include <isc/util.h>
 #include <isc/thread.h>
 #include <isc/time.h>
+#include <isc/util.h>
 
 #include "../mem_p.h"
-
 #include "isctest.h"
 
 static int
@@ -59,17 +57,16 @@ _teardown(void **state) {
 	return (0);
 }
 
-#define	MP1_FREEMAX	10
-#define	MP1_FILLCNT	10
-#define	MP1_MAXALLOC	30
+#define MP1_FREEMAX  10
+#define MP1_FILLCNT  10
+#define MP1_MAXALLOC 30
 
-#define	MP2_FREEMAX	25
-#define	MP2_FILLCNT	25
+#define MP2_FREEMAX 25
+#define MP2_FILLCNT 25
 
 /* general memory system tests */
 static void
 isc_mem_test(void **state) {
-	isc_result_t result;
 	void *items1[50];
 	void *items2[50];
 	void *tmp;
@@ -79,11 +76,8 @@ isc_mem_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mempool_create(test_mctx, 24, &mp1);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_mempool_create(test_mctx, 31, &mp2);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mempool_create(test_mctx, 24, &mp1);
+	isc_mempool_create(test_mctx, 31, &mp2);
 
 	isc_mempool_setfreemax(mp1, MP1_FREEMAX);
 	isc_mempool_setfillcount(mp1, MP1_FILLCNT);
@@ -148,8 +142,7 @@ isc_mem_test(void **state) {
 	isc_mempool_destroy(&mp1);
 	isc_mempool_destroy(&mp2);
 
-	result = isc_mempool_create(test_mctx, 2, &mp1);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mempool_create(test_mctx, 2, &mp1);
 
 	tmp = isc_mempool_get(mp1);
 	assert_non_null(tmp);
@@ -319,7 +312,6 @@ isc_mem_recordflag_test(void **state) {
 	p = strchr(p + 1, '\n');
 	assert_non_null(p);
 	assert_int_equal(strlen(p), 1);
-
 }
 
 /* test mem with trace flag */
@@ -372,16 +364,16 @@ isc_mem_traceflag_test(void **state) {
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 }
-#endif
+#endif /* if ISC_MEM_TRACKLINES */
 
 #if !defined(__SANITIZE_THREAD__)
 
-#define ITERS 512
-#define NUM_ITEMS 1024 //768
+#define ITERS	  512
+#define NUM_ITEMS 1024 /* 768 */
 #define ITEM_SIZE 65534
 
-static void *
-mem_thread(void *arg) {
+static isc_threadresult_t
+mem_thread(isc_threadarg_t arg) {
 	void *items[NUM_ITEMS];
 	size_t size = *((size_t *)arg);
 
@@ -394,7 +386,7 @@ mem_thread(void *arg) {
 		}
 	}
 
-	return (NULL);
+	return ((isc_threadresult_t)0);
 }
 
 static void
@@ -430,8 +422,8 @@ isc_mem_benchmark(void **state) {
 	       (nthreads * ITERS * NUM_ITEMS) / (t / 1000000.0));
 }
 
-static void *
-mempool_thread(void *arg) {
+static isc_threadresult_t
+mempool_thread(isc_threadarg_t arg) {
 	isc_mempool_t *mp = (isc_mempool_t *)arg;
 	void *items[NUM_ITEMS];
 
@@ -444,7 +436,7 @@ mempool_thread(void *arg) {
 		}
 	}
 
-	return (NULL);
+	return ((isc_threadresult_t)0);
 }
 
 static void
@@ -460,8 +452,7 @@ isc_mempool_benchmark(void **state) {
 
 	isc_mutex_init(&mplock);
 
-	result = isc_mempool_create(test_mctx, ITEM_SIZE, &mp);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mempool_create(test_mctx, ITEM_SIZE, &mp);
 
 	isc_mempool_associatelock(mp, &mplock);
 
@@ -504,27 +495,32 @@ isc_mempool_benchmark(void **state) {
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(isc_mem_test,
-				_setup, _teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_total_test,
-				_setup, _teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_inuse_test,
-				_setup, _teardown),
+		cmocka_unit_test_setup_teardown(isc_mem_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(isc_mem_total_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(isc_mem_inuse_test, _setup,
+						_teardown),
 
-#if ISC_MEM_TRACKLINES
-		cmocka_unit_test_setup_teardown(isc_mem_noflags_test,
-				_setup, _teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_recordflag_test,
-				_setup, _teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_traceflag_test,
-				_setup, _teardown),
-#endif
 #if !defined(__SANITIZE_THREAD__)
-		cmocka_unit_test_setup_teardown(isc_mem_benchmark,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(isc_mempool_benchmark,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(isc_mem_benchmark, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(isc_mempool_benchmark, _setup,
+						_teardown),
 #endif /* __SANITIZE_THREAD__ */
+#if ISC_MEM_TRACKLINES
+		cmocka_unit_test_setup_teardown(isc_mem_noflags_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(isc_mem_recordflag_test, _setup,
+						_teardown),
+		/*
+		 * traceflag_test closes stderr, which causes weird
+		 * side effects for any next test trying to use libuv.
+		 * This test has to be the last one to avoid problems.
+		 */
+		cmocka_unit_test_setup_teardown(isc_mem_traceflag_test, _setup,
+						_teardown),
+#endif /* if ISC_MEM_TRACKLINES */
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -536,9 +532,8 @@ main(void) {
 
 int
 main(void) {
-		printf("1..0 # Skipped: cmocka not available\n");
-			return (0);
-
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

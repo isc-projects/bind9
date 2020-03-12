@@ -9,11 +9,10 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
-#include <stdbool.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/mem.h>
 #include <isc/portset.h>
@@ -29,7 +28,7 @@
  * the second most significant bit of buf[0] corresponds to port 1.
  */
 struct isc_portset {
-	unsigned int nports;	/*%< number of ports in the set */
+	unsigned int nports; /*%< number of ports in the set */
 	uint32_t buf[ISC_PORTSET_BUFSIZE];
 };
 
@@ -107,8 +106,7 @@ isc_portset_remove(isc_portset_t *portset, in_port_t port) {
 
 void
 isc_portset_addrange(isc_portset_t *portset, in_port_t port_lo,
-		     in_port_t port_hi)
-{
+		     in_port_t port_hi) {
 	in_port_t p;
 
 	REQUIRE(portset != NULL);
@@ -122,8 +120,7 @@ isc_portset_addrange(isc_portset_t *portset, in_port_t port_lo,
 
 void
 isc_portset_removerange(isc_portset_t *portset, in_port_t port_lo,
-			in_port_t port_hi)
-{
+			in_port_t port_hi) {
 	in_port_t p;
 
 	REQUIRE(portset != NULL);

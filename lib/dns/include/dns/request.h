@@ -9,13 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/request.h
  *
@@ -36,19 +35,19 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/event.h>
+#include <isc/lang.h>
 
 #include <dns/types.h>
 
-#define DNS_REQUESTOPT_TCP 0x00000001U
-#define DNS_REQUESTOPT_CASE 0x00000002U
+#define DNS_REQUESTOPT_TCP     0x00000001U
+#define DNS_REQUESTOPT_CASE    0x00000002U
 #define DNS_REQUESTOPT_FIXEDID 0x00000004U
-#define DNS_REQUESTOPT_SHARE 0x00000008U
+#define DNS_REQUESTOPT_SHARE   0x00000008U
 
 typedef struct dns_requestevent {
 	ISC_EVENT_COMMON(struct dns_requestevent);
-	isc_result_t result;
+	isc_result_t   result;
 	dns_request_t *request;
 } dns_requestevent_t;
 
@@ -160,8 +159,7 @@ dns_requestmgr_detach(dns_requestmgr_t **requestmgrp);
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   const isc_sockaddr_t *address, unsigned int options,
-		   dns_tsigkey_t *key,
-		   unsigned int timeout, isc_task_t *task,
+		   dns_tsigkey_t *key, unsigned int timeout, isc_task_t *task,
 		   isc_taskaction_t action, void *arg,
 		   dns_request_t **requestp);
 /*%<
@@ -197,11 +195,11 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 isc_result_t
 dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		      const isc_sockaddr_t *srcaddr,
-		      const isc_sockaddr_t *destaddr,
-		      isc_dscp_t dscp, unsigned int options,
-		      dns_tsigkey_t *key, unsigned int timeout,
-		      unsigned int udptimeout, unsigned int udpretries,
-		      isc_task_t *task, isc_taskaction_t action, void *arg,
+		      const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
+		      unsigned int options, dns_tsigkey_t *key,
+		      unsigned int timeout, unsigned int udptimeout,
+		      unsigned int udpretries, isc_task_t *task,
+		      isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp);
 /*%<
  * Create and send a request.
@@ -241,11 +239,10 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 isc_result_t
 dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      const isc_sockaddr_t *srcaddr,
-		      const isc_sockaddr_t *destaddr,
-		      isc_dscp_t dscp, unsigned int options,
-		      unsigned int timeout, unsigned int udptimeout,
-		      unsigned int udpretries, isc_task_t *task,
-		      isc_taskaction_t action, void *arg,
+		      const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
+		      unsigned int options, unsigned int timeout,
+		      unsigned int udptimeout, unsigned int udpretries,
+		      isc_task_t *task, isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp);
 /*!<
  * \brief Create and send a request.

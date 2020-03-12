@@ -25,8 +25,7 @@ CWARNINGS =
 
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS}
-ISCLIBS =	../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS}
+ISCLIBS =	../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
 IRSLIBS =	../../lib/irs/libirs.@A@
 
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
@@ -37,7 +36,6 @@ IRSDEPLIBS =	../../lib/irs/libirs.@A@
 DEPLIBS =	${DNSDEPLIBS} ${IRSDEPLIBS} ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
 
 LIBS =		${DNSLIBS} ${IRSLIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
-NOSYMLIBS =	${DNSLIBS} ${IRSLIBS} ${ISCCFGLIBS} ${ISCNOSYMLIBS} @LIBS@
 
 SUBDIRS =
 

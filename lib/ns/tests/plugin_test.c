@@ -11,13 +11,12 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <limits.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,7 +29,8 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-ISC_PLATFORM_NORETURN_PRE void _fail(const char * const file, const int line) ISC_PLATFORM_NORETURN_POST;
+ISC_PLATFORM_NORETURN_PRE void
+_fail(const char *const file, const int line) ISC_PLATFORM_NORETURN_POST;
 
 #include <ns/hooks.h>
 
@@ -63,11 +63,13 @@ _teardown(void **state) {
  * Structure containing parameters for run_full_path_test().
  */
 typedef struct {
-	const ns_test_id_t id;	/* libns test identifier */
-	const char *input;	/* source string - plugin name or path */
-	size_t output_size;	/* size of target char array to allocate */
-	isc_result_t result;	/* expected return value */
-	const char *output;	/* expected output string */
+	const ns_test_id_t id; /* libns test identifier */
+	const char *input;     /* source string - plugin name or path
+				* */
+	size_t output_size;    /* size of target char array to
+				* allocate */
+	isc_result_t result;   /* expected return value */
+	const char *output;    /* expected output string */
 } ns_plugin_expandpath_test_params_t;
 
 /*%
@@ -75,8 +77,7 @@ typedef struct {
  */
 static void
 run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
-		   void **state)
-{
+		   void **state) {
 	char **target = (char **)state;
 	isc_result_t result;
 
@@ -94,8 +95,7 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	/*
 	 * Call ns_plugin_expandpath().
 	 */
-	result = ns_plugin_expandpath(test->input,
-					 *target, test->output_size);
+	result = ns_plugin_expandpath(test->input, *target, test->output_size);
 
 	/*
 	 * Check return value.
@@ -103,9 +103,9 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	if (result != test->result) {
 		fail_msg("# test \"%s\" on line %d: "
 			 "expected result %d (%s), got %d (%s)",
-			 test->id.description, test->id.lineno,
-			 test->result, isc_result_totext(test->result),
-			 result, isc_result_totext(result));
+			 test->id.description, test->id.lineno, test->result,
+			 isc_result_totext(test->result), result,
+			 isc_result_totext(result));
 	}
 
 	/*
@@ -114,8 +114,8 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	if (result == ISC_R_SUCCESS && strcmp(*target, test->output) != 0) {
 		fail_msg("# test \"%s\" on line %d: "
 			 "expected output \"%s\", got \"%s\"",
-			 test->id.description, test->id.lineno,
-			 test->output, *target);
+			 test->id.description, test->id.lineno, test->output,
+			 *target);
 	}
 
 	isc_mem_free(mctx, *target);
@@ -148,9 +148,9 @@ ns_plugin_expandpath_test(void **state) {
 			.result = ISC_R_SUCCESS,
 #ifndef WIN32
 			.output = NAMED_PLUGINDIR "/foo.so",
-#else
+#else  /* ifndef WIN32 */
 			.output = "foo.so",
-#endif
+#endif /* ifndef WIN32 */
 		},
 		{
 			NS_TEST_ID("no space at all in target buffer"),
@@ -177,7 +177,7 @@ ns_plugin_expandpath_test(void **state) {
 			.output_size = 7,
 			.result = ISC_R_NOSPACE,
 		},
-#endif
+#endif /* ifndef WIN32 */
 	};
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
@@ -204,4 +204,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

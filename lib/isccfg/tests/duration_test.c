@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,26 +34,24 @@
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
-#define CHECK(r) \
-	do { \
-		result = (r); \
+#define CHECK(r)                             \
+	do {                                 \
+		result = (r);                \
 		if (result != ISC_R_SUCCESS) \
-			goto cleanup; \
+			goto cleanup;        \
 	} while (0)
 
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
-static isc_logcategory_t categories[] = {
-		{ "",                0 },
-		{ "client",          0 },
-		{ "network",         0 },
-		{ "update",          0 },
-		{ "queries",         0 },
-		{ "unmatched",       0 },
-		{ "update-security", 0 },
-		{ "query-errors",    0 },
-		{ NULL,              0 }
-};
+static isc_logcategory_t categories[] = { { "", 0 },
+					  { "client", 0 },
+					  { "network", 0 },
+					  { "update", 0 },
+					  { "queries", 0 },
+					  { "unmatched", 0 },
+					  { "update-security", 0 },
+					  { "query-errors", 0 },
+					  { NULL, 0 } };
 
 static void
 cleanup() {
@@ -84,21 +81,19 @@ setup() {
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	CHECK(isc_log_createchannel(logconfig, "stderr",
-				    ISC_LOG_TOFILEDESC,
-				    ISC_LOG_DYNAMIC,
-				    &destination, 0));
+	CHECK(isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
+				    ISC_LOG_DYNAMIC, &destination, 0));
 	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 
 	return (ISC_R_SUCCESS);
 
-  cleanup:
+cleanup:
 	cleanup();
 	return (result);
 }
 
 struct duration_conf {
-	const char* string;
+	const char *string;
 	uint32_t time;
 };
 typedef struct duration_conf duration_conf_t;
@@ -110,24 +105,24 @@ cfg_obj_asduration_test(void **state) {
 	duration_conf_t durations[] = {
 		{ .string = "PT0S", .time = 0 },
 		{ .string = "PT42S", .time = 42 },
-		{ .string = "PT10M", .time = 600 },
-		{ .string = "PT10M4S", .time = 604 },
-		{ .string = "PT2H", .time = 7200 },
-		{ .string = "PT2H3S", .time = 7203 },
-		{ .string = "PT2H1M3S", .time = 7263 },
-		{ .string = "P7D", .time = 604800 },
-		{ .string = "P7DT2H", .time = 612000 },
+		{ .string = "PT10m", .time = 600 },
+		{ .string = "PT10m4S", .time = 604 },
+		{ .string = "pT2H", .time = 7200 },
+		{ .string = "Pt2H3S", .time = 7203 },
+		{ .string = "PT2h1m3s", .time = 7263 },
+		{ .string = "p7d", .time = 604800 },
+		{ .string = "P7DT2h", .time = 612000 },
 		{ .string = "P2W", .time = 1209600 },
 		{ .string = "P3M", .time = 8035200 },
 		{ .string = "P3MT10M", .time = 8035800 },
-		{ .string = "P5Y", .time = 157680000 },
+		{ .string = "p5y", .time = 157680000 },
 		{ .string = "P5YT2H", .time = 157687200 },
 		{ .string = "P1Y1M1DT1H1M1S", .time = 34304461 },
 		{ .string = "0", .time = 0 },
 		{ .string = "30", .time = 30 },
 		{ .string = "42s", .time = 42 },
 		{ .string = "10m", .time = 600 },
-		{ .string = "2h", .time = 7200 },
+		{ .string = "2H", .time = 7200 },
 		{ .string = "7d", .time = 604800 },
 		{ .string = "2w", .time = 1209600 },
 	};
@@ -161,8 +156,7 @@ cfg_obj_asduration_test(void **state) {
 
 		(void)cfg_map_get(c1, "dnssec-policy", &kasps);
 		assert_non_null(kasps);
-		for (element = cfg_list_first(kasps);
-		     element != NULL;
+		for (element = cfg_list_first(kasps); element != NULL;
 		     element = cfg_list_next(element))
 		{
 			const cfg_obj_t *d1 = NULL;
@@ -204,4 +198,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

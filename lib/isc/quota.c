@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <stddef.h>
@@ -17,7 +16,6 @@
 #include <isc/atomic.h>
 #include <isc/quota.h>
 #include <isc/util.h>
-
 
 void
 isc_quota_init(isc_quota_t *quota, unsigned int max) {

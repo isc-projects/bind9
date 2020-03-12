@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,8 +22,8 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/time.h>
 #include <isc/result.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 /* parse http time stamp */
@@ -244,4 +243,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

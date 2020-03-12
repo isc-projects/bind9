@@ -16,8 +16,10 @@
 
 #include <isc/types.h>
 
-isc_result_t named_builtin_init(void);
+isc_result_t
+named_builtin_init(void);
 
-void named_builtin_deinit(void);
+void
+named_builtin_deinit(void);
 
 #endif /* NAMED_BUILTIN_H */

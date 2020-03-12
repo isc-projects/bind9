@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000, 2001, 2004, 2005, 2007, 2013-2019 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000, 2001, 2004, 2005, 2007, 2013-2020 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -366,7 +366,8 @@
 	    allowed to incrementally re-sign over time.
 	  </p>
 	  <p>
-	    This command requires that the
+	    This command requires that the zone is configured with a
+	    <span class="command"><strong>dnssec-policy</strong></span>, or that the
 	    <span class="command"><strong>auto-dnssec</strong></span> zone option
 	    be set to <code class="literal">maintain</code>,
 	    and also requires the zone to be configured to
@@ -653,7 +654,7 @@
 <dd>
 	  <p>
 	    Dump the security roots (i.e., trust anchors
-	    configured via <span class="command"><strong>dnssec-keys</strong></span> statements, or the
+	    configured via <span class="command"><strong>trust-anchors</strong></span> statements, or the
 	    managed-keys or trusted-keys statements (both deprecated), or
 	    via <span class="command"><strong>dnssec-validation auto</strong></span>) and negative trust
 	    anchors for the specified views.  If no view is specified, all
@@ -721,7 +722,8 @@
 	    re-signed with the new key set.
 	  </p>
 	  <p>
-	    This command requires that the
+	    This command requires that the zone is configured with a
+	    <span class="command"><strong>dnssec-policy</strong></span>, or that the
 	    <span class="command"><strong>auto-dnssec</strong></span> zone option be set
 	    to <code class="literal">allow</code> or
 	    <code class="literal">maintain</code>,
@@ -914,6 +916,8 @@
 	  <p>
 	    Enable, disable, or check the current status of
 	    DNSSEC validation.  By default, validation is enabled.
+	    The cache is flushed when validation is turned on or off
+	    to avoid using data that might differ between states.
 	  </p>
 	</dd>
 <dt><span class="term"><strong class="userinput"><code>zonestatus <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>

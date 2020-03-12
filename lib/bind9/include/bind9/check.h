@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef BIND9_CHECK_H
 #define BIND9_CHECK_H 1
 

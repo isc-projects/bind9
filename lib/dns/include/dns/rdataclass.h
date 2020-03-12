@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_RDATACLASS_H
 #define DNS_RDATACLASS_H 1
 
@@ -76,8 +75,7 @@ dns_rdataclass_tounknowntext(dns_rdataclass_t rdclass, isc_buffer_t *target);
  */
 
 void
-dns_rdataclass_format(dns_rdataclass_t rdclass,
-		      char *array, unsigned int size);
+dns_rdataclass_format(dns_rdataclass_t rdclass, char *array, unsigned int size);
 /*%<
  * Format a human-readable representation of the class 'rdclass'
  * into the character array 'array', which is of size 'size'.

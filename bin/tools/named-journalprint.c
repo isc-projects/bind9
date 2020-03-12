@@ -9,8 +9,9 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
+
+#include <stdlib.h>
 
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -21,8 +22,6 @@
 #include <dns/log.h>
 #include <dns/result.h>
 #include <dns/types.h>
-
-#include <stdlib.h>
 
 /*
  * Setup logging to use stderr.
@@ -43,11 +42,10 @@ setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
 	RUNTIME_CHECK(isc_log_createchannel(logconfig, "stderr",
-					    ISC_LOG_TOFILEDESC,
-					    ISC_LOG_DYNAMIC,
+					    ISC_LOG_TOFILEDESC, ISC_LOG_DYNAMIC,
 					    &destination, 0) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
-					 NULL, NULL) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
+		      ISC_R_SUCCESS);
 
 	*logp = log;
 	return (ISC_R_SUCCESS);
@@ -62,7 +60,7 @@ main(int argc, char **argv) {
 
 	if (argc != 2) {
 		printf("usage: %s journal\n", argv[0]);
-		return(1);
+		return (1);
 	}
 
 	file = argv[1];
@@ -71,9 +69,10 @@ main(int argc, char **argv) {
 	RUNTIME_CHECK(setup_logging(mctx, stderr, &lctx) == ISC_R_SUCCESS);
 
 	result = dns_journal_print(mctx, file, stdout);
-	if (result == DNS_R_NOJOURNAL)
+	if (result == DNS_R_NOJOURNAL) {
 		fprintf(stderr, "%s\n", dns_result_totext(result));
+	}
 	isc_log_destroy(&lctx);
 	isc_mem_detach(&mctx);
-	return(result != ISC_R_SUCCESS ? 1 : 0);
+	return (result != ISC_R_SUCCESS ? 1 : 0);
 }

@@ -5,7 +5,7 @@ named.lock
 named.pid
 named.run
 /feature-test
-**/test.output
+/test.output.*
 /systests.output
 /random.data
 parallel.mk

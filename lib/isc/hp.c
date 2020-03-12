@@ -47,63 +47,54 @@
 
 #include <isc/atomic.h>
 #include <isc/hp.h>
-#include <isc/string.h>
 #include <isc/mem.h>
+#include <isc/once.h>
+#include <isc/string.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
 #define HP_MAX_THREADS 128
-#define HP_MAX_HPS 4			/* This is named 'K' in the HP paper */
-#define CLPAD (128 / sizeof(uintptr_t))
-#define HP_THRESHOLD_R 0		/* This is named 'R' in the HP paper */
+static int isc__hp_max_threads = HP_MAX_THREADS;
+#define HP_MAX_HPS     4 /* This is named 'K' in the HP paper */
+#define CLPAD	       (128 / sizeof(uintptr_t))
+#define HP_THRESHOLD_R 0 /* This is named 'R' in the HP paper */
 
 /* Maximum number of retired objects per thread */
-#define MAX_RETIRED (HP_MAX_THREADS * HP_MAX_HPS)
+static int isc__hp_max_retired = HP_MAX_THREADS * HP_MAX_HPS;
 
 #define TID_UNKNOWN -1
 
-static atomic_int_fast32_t tid_v_base;
-static bool tid_v_initialized;
+static atomic_int_fast32_t tid_v_base = ATOMIC_VAR_INIT(0);
 
-#if defined(HAVE_TLS)
-#if defined(HAVE_THREAD_LOCAL)
-#include <threads.h>
-static thread_local int tid_v = TID_UNKNOWN;
-#elif defined(HAVE___THREAD)
-static __thread int tid_v = TID_UNKNOWN;
-#elif defined(HAVE___DECLSPEC_THREAD)
-static __declspec( thread ) int tid_v = TID_UNKNOWN;
-#else  /* if defined(HAVE_THREAD_LOCAL) */
-#error "Unknown method for defining a TLS variable!"
-#endif /* if defined(HAVE_THREAD_LOCAL) */
-#else  /* if defined(HAVE_TLS) */
-#error "Thread-local storage support is required!"
-#endif /* if defined(HAVE_TLS) */
+ISC_THREAD_LOCAL int tid_v = TID_UNKNOWN;
 
 typedef struct retirelist {
-	int			size;
-	uintptr_t		list[MAX_RETIRED];
+	int size;
+	uintptr_t *list;
 } retirelist_t;
 
 struct isc_hp {
-	int			max_hps;
-	isc_mem_t		*mctx;
-	atomic_uintptr_t	*hp[HP_MAX_THREADS];
-	retirelist_t		*rl[HP_MAX_THREADS];
-	isc_hp_deletefunc_t	*deletefunc;
+	int max_hps;
+	isc_mem_t *mctx;
+	atomic_uintptr_t **hp;
+	retirelist_t **rl;
+	isc_hp_deletefunc_t *deletefunc;
 };
 
 static inline int
 tid() {
-	if (!tid_v_initialized) {
-		atomic_init(&tid_v_base, 0);
-		tid_v_initialized = true;
-	}
 	if (tid_v == TID_UNKNOWN) {
 		tid_v = atomic_fetch_add(&tid_v_base, 1);
-		REQUIRE(tid_v < HP_MAX_THREADS);
+		REQUIRE(tid_v < isc__hp_max_threads);
 	}
 
 	return (tid_v);
+}
+
+void
+isc_hp_init(int max_threads) {
+	isc__hp_max_threads = max_threads;
+	isc__hp_max_retired = max_threads * HP_MAX_HPS;
 }
 
 isc_hp_t *
@@ -114,21 +105,23 @@ isc_hp_new(isc_mem_t *mctx, size_t max_hps, isc_hp_deletefunc_t *deletefunc) {
 		max_hps = HP_MAX_HPS;
 	}
 
-	*hp = (isc_hp_t){
-		.max_hps = max_hps,
-		.deletefunc = deletefunc
-	};
+	*hp = (isc_hp_t){ .max_hps = max_hps, .deletefunc = deletefunc };
 
 	isc_mem_attach(mctx, &hp->mctx);
 
-	for (int i = 0; i < HP_MAX_THREADS; i++) {
+	hp->hp = isc_mem_get(mctx, isc__hp_max_threads * sizeof(hp->hp[0]));
+	hp->rl = isc_mem_get(mctx, isc__hp_max_threads * sizeof(hp->rl[0]));
+
+	for (int i = 0; i < isc__hp_max_threads; i++) {
 		hp->hp[i] = isc_mem_get(mctx, CLPAD * 2 * sizeof(hp->hp[i][0]));
 		hp->rl[i] = isc_mem_get(mctx, sizeof(*hp->rl[0]));
-		*hp->rl[i] = (retirelist_t) { .size = 0 };
+		*hp->rl[i] = (retirelist_t){ .size = 0 };
 
 		for (int j = 0; j < hp->max_hps; j++) {
 			atomic_init(&hp->hp[i][j], 0);
 		}
+		hp->rl[i]->list = isc_mem_get(
+			hp->mctx, isc__hp_max_retired * sizeof(uintptr_t));
 	}
 
 	return (hp);
@@ -136,17 +129,20 @@ isc_hp_new(isc_mem_t *mctx, size_t max_hps, isc_hp_deletefunc_t *deletefunc) {
 
 void
 isc_hp_destroy(isc_hp_t *hp) {
-	for (int i = 0; i < HP_MAX_THREADS; i++) {
+	for (int i = 0; i < isc__hp_max_threads; i++) {
 		isc_mem_put(hp->mctx, hp->hp[i],
-			    CLPAD * 2 * sizeof(uintptr_t));
+			    CLPAD * 2 * sizeof(hp->hp[i][0]));
 
 		for (int j = 0; j < hp->rl[i]->size; j++) {
 			void *data = (void *)hp->rl[i]->list[j];
 			hp->deletefunc(data);
 		}
-
+		isc_mem_put(hp->mctx, hp->rl[i]->list,
+			    isc__hp_max_retired * sizeof(uintptr_t));
 		isc_mem_put(hp->mctx, hp->rl[i], sizeof(*hp->rl[0]));
 	}
+	isc_mem_put(hp->mctx, hp->hp, isc__hp_max_threads * sizeof(hp->hp[0]));
+	isc_mem_put(hp->mctx, hp->rl, isc__hp_max_threads * sizeof(hp->rl[0]));
 
 	isc_mem_putanddetach(&hp->mctx, hp, sizeof(*hp));
 }
@@ -158,7 +154,8 @@ isc_hp_clear(isc_hp_t *hp) {
 	}
 }
 
-void isc_hp_clear_one(isc_hp_t *hp, int ihp) {
+void
+isc_hp_clear_one(isc_hp_t *hp, int ihp) {
 	atomic_store_release(&hp->hp[tid()][ihp], 0);
 }
 
@@ -188,7 +185,7 @@ isc_hp_protect_release(isc_hp_t *hp, int ihp, atomic_uintptr_t ptr) {
 void
 isc_hp_retire(isc_hp_t *hp, uintptr_t ptr) {
 	hp->rl[tid()]->list[hp->rl[tid()]->size++] = ptr;
-	INSIST(hp->rl[tid()]->size < MAX_RETIRED);
+	INSIST(hp->rl[tid()]->size < isc__hp_max_retired);
 
 	if (hp->rl[tid()]->size < HP_THRESHOLD_R) {
 		return;
@@ -197,11 +194,9 @@ isc_hp_retire(isc_hp_t *hp, uintptr_t ptr) {
 	for (int iret = 0; iret < hp->rl[tid()]->size; iret++) {
 		uintptr_t obj = hp->rl[tid()]->list[iret];
 		bool can_delete = true;
-		for (int itid = 0;
-		     itid < HP_MAX_THREADS && can_delete;
-		     itid++)
-		{
-			for (int ihp = hp->max_hps-1; ihp >= 0; ihp--) {
+		for (int itid = 0; itid < isc__hp_max_threads && can_delete;
+		     itid++) {
+			for (int ihp = hp->max_hps - 1; ihp >= 0; ihp--) {
 				if (atomic_load(&hp->hp[itid][ihp]) == obj) {
 					can_delete = false;
 					break;
@@ -211,10 +206,9 @@ isc_hp_retire(isc_hp_t *hp, uintptr_t ptr) {
 
 		if (can_delete) {
 			size_t bytes = (hp->rl[tid()]->size - iret) *
-				sizeof(hp->rl[tid()]->list[0]);
+				       sizeof(hp->rl[tid()]->list[0]);
 			memmove(&hp->rl[tid()]->list[iret],
-				&hp->rl[tid()]->list[iret + 1],
-				bytes);
+				&hp->rl[tid()]->list[iret + 1], bytes);
 			hp->rl[tid()]->size--;
 			hp->deletefunc((void *)obj);
 		}

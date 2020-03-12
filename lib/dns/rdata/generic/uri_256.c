@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef GENERIC_URI_256_C
 #define GENERIC_URI_256_C 1
 
@@ -32,8 +31,9 @@ fromtext_uri(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -41,17 +41,19 @@ fromtext_uri(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
 	 * Target URI
 	 */
-	RETERR(isc_lex_getmastertoken(lexer, &token,
-				      isc_tokentype_qstring, false));
-	if (token.type != isc_tokentype_qstring)
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
+				      false));
+	if (token.type != isc_tokentype_qstring) {
 		RETTOK(DNS_R_SYNTAX);
+	}
 	RETTOK(multitxt_fromtext(&token.value.as_textregion, target));
 	return (ISC_R_SUCCESS);
 }
@@ -107,8 +109,9 @@ fromwire_uri(ARGS_FROMWIRE) {
 	 * Priority, weight
 	 */
 	isc_buffer_activeregion(source, &region);
-	if (region.length < 4)
+	if (region.length < 4) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	/*
 	 * Priority, weight and target URI
@@ -149,8 +152,9 @@ compare_uri(ARGS_COMPARE) {
 	 * Priority
 	 */
 	order = memcmp(r1.base, r2.base, 2);
-	if (order != 0)
+	if (order != 0) {
 		return (order < 0 ? -1 : 1);
+	}
 	isc_region_consume(&r1, 2);
 	isc_region_consume(&r2, 2);
 
@@ -158,8 +162,9 @@ compare_uri(ARGS_COMPARE) {
 	 * Weight
 	 */
 	order = memcmp(r1.base, r2.base, 2);
-	if (order != 0)
+	if (order != 0) {
 		return (order < 0 ? -1 : 1);
+	}
 	isc_region_consume(&r1, 2);
 	isc_region_consume(&r2, 2);
 
@@ -213,16 +218,18 @@ tostruct_uri(ARGS_TOSTRUCT) {
 	/*
 	 * Priority
 	 */
-	if (sr.length < 2)
+	if (sr.length < 2) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	uri->priority = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/*
 	 * Weight
 	 */
-	if (sr.length < 2)
+	if (sr.length < 2) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	uri->weight = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
@@ -231,8 +238,9 @@ tostruct_uri(ARGS_TOSTRUCT) {
 	 */
 	uri->tgt_len = sr.length;
 	uri->target = mem_maybedup(mctx, sr.base, sr.length);
-	if (uri->target == NULL)
+	if (uri->target == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	uri->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -240,16 +248,18 @@ tostruct_uri(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_uri(ARGS_FREESTRUCT) {
-	dns_rdata_uri_t *uri = (dns_rdata_uri_t *) source;
+	dns_rdata_uri_t *uri = (dns_rdata_uri_t *)source;
 
 	REQUIRE(uri != NULL);
 	REQUIRE(uri->common.rdtype == dns_rdatatype_uri);
 
-	if (uri->mctx == NULL)
+	if (uri->mctx == NULL) {
 		return;
+	}
 
-	if (uri->target != NULL)
+	if (uri->target != NULL) {
 		isc_mem_free(uri->mctx, uri->target);
+	}
 	uri->mctx = NULL;
 }
 
@@ -277,7 +287,6 @@ digest_uri(ARGS_DIGEST) {
 
 static inline bool
 checkowner_uri(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_uri);
 
 	UNUSED(name);
@@ -290,7 +299,6 @@ checkowner_uri(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_uri(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_uri);
 
 	UNUSED(rdata);

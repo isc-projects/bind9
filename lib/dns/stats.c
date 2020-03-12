@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <inttypes.h>
@@ -25,8 +24,8 @@
 #include <dns/rdatatype.h>
 #include <dns/stats.h>
 
-#define DNS_STATS_MAGIC			ISC_MAGIC('D', 's', 't', 't')
-#define DNS_STATS_VALID(x)		ISC_MAGIC_VALID(x, DNS_STATS_MAGIC)
+#define DNS_STATS_MAGIC	   ISC_MAGIC('D', 's', 't', 't')
+#define DNS_STATS_VALID(x) ISC_MAGIC_VALID(x, DNS_STATS_MAGIC)
 
 /*%
  * Statistics types.
@@ -42,67 +41,86 @@ typedef enum {
 
 /*%
  * It doesn't make sense to have 2^16 counters for all possible types since
- * most of them won't be used.  We have counters for the first 256 types and
- * those explicitly supported in the rdata implementation.
- * XXXJT: this introduces tight coupling with the rdata implementation.
- * Ideally, we should have rdata handle this type of details.
+ * most of them won't be used.  We have counters for the first 256 types.
+ *
+ * A rdtypecounter is now 8 bits for RRtypes and 3 bits for flags:
+ *
+ *       0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+ *     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+ *     |  |  |  |  |  |  S  |NX|         RRType        |
+ *     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+ *
+ * If the 8 bits for RRtype are all zero, this is an Other RRtype.
  */
+#define RDTYPECOUNTER_MAXTYPE 0x00ff
+
 /*
- * types, !types, nxdomain, stale types, stale !types, stale nxdomain,
- * ancient types, ancient !types, ancient nxdomain
+ *
+ * Bit 7 is the NXRRSET (NX) flag and indicates whether this is a
+ * positive (0) or a negative (1) RRset.
  */
-enum {
-	/* For 0-255, we use the rdtype value as counter indices */
-	rdtypecounter_dlv = 256,	/* for dns_rdatatype_dlv */
-	rdtypecounter_others = 257,	/* anything else */
-	rdtypecounter_max = 258,
-	/* The following are used for nxrrset rdataset */
-	rdtypenxcounter_max = rdtypecounter_max * 2,
-	/* nxdomain counter */
-	rdtypecounter_nxdomain = rdtypenxcounter_max,
-	/* stale counters offset */
-	rdtypecounter_stale = rdtypecounter_nxdomain + 1,
-	rdtypecounter_stale_max = rdtypecounter_stale + rdtypecounter_max,
-	rdtypenxcounter_stale_max = rdtypecounter_stale_max + rdtypecounter_max,
-	rdtypecounter_stale_nxdomain = rdtypenxcounter_stale_max,
-	/* ancient counters offset */
-	rdtypecounter_ancient = rdtypecounter_stale_nxdomain + 1,
-	rdtypecounter_ancient_max = rdtypecounter_ancient + rdtypecounter_max,
-	rdtypenxcounter_ancient_max = rdtypecounter_ancient_max +
-				      rdtypecounter_max,
-	rdtypecounter_ancient_nxdomain = rdtypenxcounter_ancient_max,
-	/* limit of number counter types */
-	rdatasettypecounter_max = rdtypecounter_ancient_nxdomain + 1,
-};
+#define RDTYPECOUNTER_NXRRSET 0x0100
+
+/*
+ * Then bit 5 and 6 mostly tell you if this counter is for an active,
+ * stale, or ancient RRtype:
+ *
+ *     S = 0 (0b00) means Active
+ *     S = 1 (0b01) means Stale
+ *     S = 2 (0b10) means Ancient
+ *
+ * Since a counter cannot be stale and ancient at the same time, we
+ * treat S = 0x11 as a special case to deal with NXDOMAIN counters.
+ */
+#define RDTYPECOUNTER_STALE    (1 << 9)
+#define RDTYPECOUNTER_ANCIENT  (1 << 10)
+#define RDTYPECOUNTER_NXDOMAIN ((1 << 9) | (1 << 10))
+
+/*
+ * S = 0x11 indicates an NXDOMAIN counter and in this case the RRtype
+ * field signals the expiry of this cached item:
+ *
+ *     RRType = 0 (0b00) means Active
+ *     RRType = 1 (0b01) means Stale
+ *     RRType = 2 (0b02) means Ancient
+ *
+ */
+#define RDTYPECOUNTER_NXDOMAIN_STALE   1
+#define RDTYPECOUNTER_NXDOMAIN_ANCIENT 2
+
+/*
+ * The maximum value for rdtypecounter is for an ancient NXDOMAIN.
+ */
+#define RDTYPECOUNTER_MAXVAL 0x0602
 
 /* dnssec maximum key id */
 static int dnssec_keyid_max = 65535;
 
 struct dns_stats {
-	unsigned int	magic;
-	dns_statstype_t	type;
-	isc_mem_t	*mctx;
-	isc_stats_t	*counters;
-	isc_refcount_t	references;
+	unsigned int magic;
+	dns_statstype_t type;
+	isc_mem_t *mctx;
+	isc_stats_t *counters;
+	isc_refcount_t references;
 };
 
 typedef struct rdatadumparg {
-	dns_rdatatypestats_dumper_t	fn;
-	void				*arg;
+	dns_rdatatypestats_dumper_t fn;
+	void *arg;
 } rdatadumparg_t;
 
 typedef struct opcodedumparg {
-	dns_opcodestats_dumper_t	fn;
-	void				*arg;
+	dns_opcodestats_dumper_t fn;
+	void *arg;
 } opcodedumparg_t;
 
 typedef struct rcodedumparg {
-	dns_rcodestats_dumper_t		fn;
-	void				*arg;
+	dns_rcodestats_dumper_t fn;
+	void *arg;
 } rcodedumparg_t;
 typedef struct dnssecsigndumparg {
-	dns_dnssecsignstats_dumper_t	fn;
-	void				*arg;
+	dns_dnssecsignstats_dumper_t fn;
+	void *arg;
 } dnssecsigndumparg_t;
 
 void
@@ -125,6 +143,7 @@ dns_stats_detach(dns_stats_t **statsp) {
 	*statsp = NULL;
 
 	if (isc_refcount_decrement(&stats->references) == 1) {
+		isc_refcount_destroy(&stats->references);
 		isc_stats_detach(&stats->counters);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 	}
@@ -135,8 +154,7 @@ dns_stats_detach(dns_stats_t **statsp) {
  */
 static isc_result_t
 create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
-	     dns_stats_t **statsp)
-{
+	     dns_stats_t **statsp) {
 	dns_stats_t *stats;
 	isc_result_t result;
 
@@ -146,8 +164,9 @@ create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 	isc_refcount_init(&stats->references, 1);
 
 	result = isc_stats_create(mctx, &stats->counters, ncounters);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto clean_mutex;
+	}
 
 	stats->magic = DNS_STATS_MAGIC;
 	stats->type = type;
@@ -157,7 +176,7 @@ create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 
 	return (ISC_R_SUCCESS);
 
-  clean_mutex:
+clean_mutex:
 	isc_mem_put(mctx, stats, sizeof(*stats));
 
 	return (result);
@@ -174,8 +193,12 @@ isc_result_t
 dns_rdatatypestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_rdtype, rdtypecounter_max,
-			     statsp));
+	/*
+	 * Create rdtype statistics for the first 255 RRtypes,
+	 * plus one additional for other RRtypes.
+	 */
+	return (create_stats(mctx, dns_statstype_rdtype,
+			     (RDTYPECOUNTER_MAXTYPE + 1), statsp));
 }
 
 isc_result_t
@@ -183,7 +206,7 @@ dns_rdatasetstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	return (create_stats(mctx, dns_statstype_rdataset,
-			     rdatasettypecounter_max, statsp));
+			     (RDTYPECOUNTER_MAXVAL + 1), statsp));
 }
 
 isc_result_t
@@ -197,16 +220,16 @@ isc_result_t
 dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_rcode,
-			     dns_rcode_badcookie + 1, statsp));
+	return (create_stats(mctx, dns_statstype_rcode, dns_rcode_badcookie + 1,
+			     statsp));
 }
 
 isc_result_t
 dns_dnssecsignstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_dnssec,
-			     dnssec_keyid_max, statsp));
+	return (create_stats(mctx, dns_statstype_dnssec, dnssec_keyid_max,
+			     statsp));
 }
 
 /*%
@@ -219,52 +242,62 @@ dns_generalstats_increment(dns_stats_t *stats, isc_statscounter_t counter) {
 	isc_stats_increment(stats->counters, counter);
 }
 
+inline static isc_statscounter_t
+rdatatype2counter(dns_rdatatype_t type) {
+	if (type > (dns_rdatatype_t)RDTYPECOUNTER_MAXTYPE) {
+		return (0);
+	}
+	return ((isc_statscounter_t)type);
+}
+
 void
 dns_rdatatypestats_increment(dns_stats_t *stats, dns_rdatatype_t type) {
-	int counter;
+	isc_statscounter_t counter;
 
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_rdtype);
 
-	if (type == dns_rdatatype_dlv)
-		counter = rdtypecounter_dlv;
-	else if (type > dns_rdatatype_any)
-		counter = rdtypecounter_others;
-	else
-		counter = (int)type;
-
-	isc_stats_increment(stats->counters, (isc_statscounter_t)counter);
+	counter = rdatatype2counter(type);
+	isc_stats_increment(stats->counters, counter);
 }
 
 static inline void
 update_rdatasetstats(dns_stats_t *stats, dns_rdatastatstype_t rrsettype,
-		     bool increment)
-{
-	int counter;
-	dns_rdatatype_t rdtype;
+		     bool increment) {
+	isc_statscounter_t counter;
 
 	if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
-	     DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) != 0) {
-		counter = rdtypecounter_nxdomain;
+	     DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) != 0)
+	{
+		counter = RDTYPECOUNTER_NXDOMAIN;
+
+		/*
+		 * This is an NXDOMAIN counter, save the expiry value
+		 * (active, stale, or ancient) value in the RRtype part.
+		 */
+		if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
+		     DNS_RDATASTATSTYPE_ATTR_ANCIENT) != 0) {
+			counter |= RDTYPECOUNTER_NXDOMAIN_ANCIENT;
+		} else if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
+			    DNS_RDATASTATSTYPE_ATTR_STALE) != 0)
+		{
+			counter += RDTYPECOUNTER_NXDOMAIN_STALE;
+		}
 	} else {
-		rdtype = DNS_RDATASTATSTYPE_BASE(rrsettype);
-		if (rdtype == dns_rdatatype_dlv)
-			counter = (int)rdtypecounter_dlv;
-		else if (rdtype > dns_rdatatype_any)
-			counter = (int)rdtypecounter_others;
-		else
-			counter = (int)rdtype;
+		counter = rdatatype2counter(DNS_RDATASTATSTYPE_BASE(rrsettype));
 
 		if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
-		     DNS_RDATASTATSTYPE_ATTR_NXRRSET) != 0)
-			counter += rdtypecounter_max;
-	}
+		     DNS_RDATASTATSTYPE_ATTR_NXRRSET) != 0) {
+			counter |= RDTYPECOUNTER_NXRRSET;
+		}
 
-	if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
-	     DNS_RDATASTATSTYPE_ATTR_ANCIENT) != 0) {
-		counter += rdtypecounter_ancient;
-	} else if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
-	     DNS_RDATASTATSTYPE_ATTR_STALE) != 0) {
-		counter += rdtypecounter_stale;
+		if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
+		     DNS_RDATASTATSTYPE_ATTR_ANCIENT) != 0) {
+			counter |= RDTYPECOUNTER_ANCIENT;
+		} else if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
+			    DNS_RDATASTATSTYPE_ATTR_STALE) != 0)
+		{
+			counter |= RDTYPECOUNTER_STALE;
+		}
 	}
 
 	if (increment) {
@@ -275,8 +308,8 @@ update_rdatasetstats(dns_stats_t *stats, dns_rdatastatstype_t rrsettype,
 }
 
 void
-dns_rdatasetstats_increment(dns_stats_t *stats, dns_rdatastatstype_t rrsettype)
-{
+dns_rdatasetstats_increment(dns_stats_t *stats,
+			    dns_rdatastatstype_t rrsettype) {
 	REQUIRE(DNS_STATS_VALID(stats) &&
 		stats->type == dns_statstype_rdataset);
 
@@ -284,8 +317,8 @@ dns_rdatasetstats_increment(dns_stats_t *stats, dns_rdatastatstype_t rrsettype)
 }
 
 void
-dns_rdatasetstats_decrement(dns_stats_t *stats, dns_rdatastatstype_t rrsettype)
-{
+dns_rdatasetstats_decrement(dns_stats_t *stats,
+			    dns_rdatastatstype_t rrsettype) {
 	REQUIRE(DNS_STATS_VALID(stats) &&
 		stats->type == dns_statstype_rdataset);
 
@@ -303,8 +336,9 @@ void
 dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code) {
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_rcode);
 
-	if (code <= dns_rcode_badcookie)
+	if (code <= dns_rcode_badcookie) {
 		isc_stats_increment(stats->counters, (isc_statscounter_t)code);
+	}
 }
 
 void
@@ -319,28 +353,23 @@ dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id) {
  */
 void
 dns_generalstats_dump(dns_stats_t *stats, dns_generalstats_dumper_t dump_fn,
-		      void *arg, unsigned int options)
-{
+		      void *arg, unsigned int options) {
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_general);
 
-	isc_stats_dump(stats->counters, (isc_stats_dumper_t)dump_fn,
-		       arg, options);
+	isc_stats_dump(stats->counters, (isc_stats_dumper_t)dump_fn, arg,
+		       options);
 }
 
 static void
 dump_rdentry(int rdcounter, uint64_t value, dns_rdatastatstype_t attributes,
-	     dns_rdatatypestats_dumper_t dump_fn, void * arg)
-{
+	     dns_rdatatypestats_dumper_t dump_fn, void *arg) {
 	dns_rdatatype_t rdtype = dns_rdatatype_none; /* sentinel */
 	dns_rdatastatstype_t type;
 
-	if (rdcounter == rdtypecounter_others)
+	if ((rdcounter & RDTYPECOUNTER_MAXTYPE) == 0) {
 		attributes |= DNS_RDATASTATSTYPE_ATTR_OTHERTYPE;
-	else {
-		if (rdcounter == rdtypecounter_dlv)
-			rdtype = dns_rdatatype_dlv;
-		else
-			rdtype = (dns_rdatatype_t)rdcounter;
+	} else {
+		rdtype = (dns_rdatatype_t)(rdcounter & RDTYPECOUNTER_MAXTYPE);
 	}
 	type = DNS_RDATASTATSTYPE_VALUE((dns_rdatastatstype_t)rdtype,
 					attributes);
@@ -356,8 +385,7 @@ rdatatype_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 
 void
 dns_rdatatypestats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
-			void *arg0, unsigned int options)
-{
+			void *arg0, unsigned int options) {
 	rdatadumparg_t arg;
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_rdtype);
 
@@ -369,54 +397,44 @@ dns_rdatatypestats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
 static void
 rdataset_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 	rdatadumparg_t *rdatadumparg = arg;
-	unsigned int attributes;
-	bool dump = true;
+	unsigned int attributes = 0;
 
-	if (counter < rdtypecounter_max) {
-		attributes = 0;
-	} else if (counter < rdtypenxcounter_max) {
-		counter -= rdtypecounter_max;
-		attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
-	} else if (counter == rdtypecounter_nxdomain) {
-		counter = 0;
-		attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
-	} else if (counter < rdtypecounter_stale_max) {
-		counter -= rdtypecounter_stale;
-		attributes = DNS_RDATASTATSTYPE_ATTR_STALE;
-	} else if (counter < rdtypenxcounter_stale_max) {
-		counter -= rdtypecounter_stale_max;
-		attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET |
-			     DNS_RDATASTATSTYPE_ATTR_STALE;
-	} else if (counter == rdtypecounter_stale_nxdomain) {
-		counter = 0;
-		attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN |
-			     DNS_RDATASTATSTYPE_ATTR_STALE;
-	} else if (counter < rdtypecounter_ancient_max) {
-		counter -= rdtypecounter_ancient;
-		attributes = DNS_RDATASTATSTYPE_ATTR_ANCIENT;
-	} else if (counter < rdtypenxcounter_ancient_max) {
-		counter -= rdtypecounter_ancient_max;
-		attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET |
-			     DNS_RDATASTATSTYPE_ATTR_ANCIENT;
-	} else if (counter == rdtypecounter_ancient_nxdomain) {
-		counter = 0;
-		attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN |
-			     DNS_RDATASTATSTYPE_ATTR_ANCIENT;
+	if ((counter & RDTYPECOUNTER_NXDOMAIN) == RDTYPECOUNTER_NXDOMAIN) {
+		attributes |= DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
+
+		/*
+		 * This is an NXDOMAIN counter, check the RRtype part for the
+		 * expiry value (active, stale, or ancient).
+		 */
+		if ((counter & RDTYPECOUNTER_MAXTYPE) ==
+		    RDTYPECOUNTER_NXDOMAIN_STALE) {
+			attributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
+		} else if ((counter & RDTYPECOUNTER_MAXTYPE) ==
+			   RDTYPECOUNTER_NXDOMAIN_ANCIENT) {
+			attributes |= DNS_RDATASTATSTYPE_ATTR_ANCIENT;
+		}
 	} else {
-		/* Out of bounds, do not dump entry. */
-		dump = false;
+		if ((counter & RDTYPECOUNTER_MAXTYPE) == 0) {
+			attributes |= DNS_RDATASTATSTYPE_ATTR_OTHERTYPE;
+		}
+		if ((counter & RDTYPECOUNTER_NXRRSET) != 0) {
+			attributes |= DNS_RDATASTATSTYPE_ATTR_NXRRSET;
+		}
+
+		if ((counter & RDTYPECOUNTER_STALE) != 0) {
+			attributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
+		} else if ((counter & RDTYPECOUNTER_ANCIENT) != 0) {
+			attributes |= DNS_RDATASTATSTYPE_ATTR_ANCIENT;
+		}
 	}
 
-	if (dump) {
-		dump_rdentry(counter, value, attributes, rdatadumparg->fn,
+	dump_rdentry(counter, value, attributes, rdatadumparg->fn,
 		     rdatadumparg->arg);
-	}
 }
 
 void
 dns_rdatasetstats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
-		       void *arg0, unsigned int options)
-{
+		       void *arg0, unsigned int options) {
 	rdatadumparg_t arg;
 
 	REQUIRE(DNS_STATS_VALID(stats) &&
@@ -436,13 +454,11 @@ dnssec_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 
 void
 dns_dnssecsignstats_dump(dns_stats_t *stats,
-			 dns_dnssecsignstats_dumper_t dump_fn,
-			 void *arg0, unsigned int options)
-{
+			 dns_dnssecsignstats_dumper_t dump_fn, void *arg0,
+			 unsigned int options) {
 	dnssecsigndumparg_t arg;
 
-	REQUIRE(DNS_STATS_VALID(stats) &&
-		stats->type == dns_statstype_dnssec);
+	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_dnssec);
 
 	arg.fn = dump_fn;
 	arg.arg = arg0;
@@ -465,8 +481,7 @@ rcode_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 
 void
 dns_opcodestats_dump(dns_stats_t *stats, dns_opcodestats_dumper_t dump_fn,
-		     void *arg0, unsigned int options)
-{
+		     void *arg0, unsigned int options) {
 	opcodedumparg_t arg;
 
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_opcode);
@@ -478,8 +493,7 @@ dns_opcodestats_dump(dns_stats_t *stats, dns_opcodestats_dumper_t dump_fn,
 
 void
 dns_rcodestats_dump(dns_stats_t *stats, dns_rcodestats_dumper_t dump_fn,
-		     void *arg0, unsigned int options)
-{
+		    void *arg0, unsigned int options) {
 	rcodedumparg_t arg;
 
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_rcode);
@@ -492,27 +506,21 @@ dns_rcodestats_dump(dns_stats_t *stats, dns_rcodestats_dumper_t dump_fn,
 /***
  *** Obsolete variables and functions follow:
  ***/
-LIBDNS_EXTERNAL_DATA const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] =
-	{
-	"success",
-	"referral",
-	"nxrrset",
-	"nxdomain",
-	"recursion",
-	"failure",
-	"duplicate",
-	"dropped"
-	};
+LIBDNS_EXTERNAL_DATA const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] = {
+	"success",   "referral", "nxrrset",   "nxdomain",
+	"recursion", "failure",	 "duplicate", "dropped"
+};
 
 isc_result_t
 dns_stats_alloccounters(isc_mem_t *mctx, uint64_t **ctrp) {
 	int i;
-	uint64_t *p =
-		isc_mem_get(mctx, DNS_STATS_NCOUNTERS * sizeof(uint64_t));
-	if (p == NULL)
+	uint64_t *p = isc_mem_get(mctx, DNS_STATS_NCOUNTERS * sizeof(uint64_t));
+	if (p == NULL) {
 		return (ISC_R_NOMEMORY);
-	for (i = 0; i < DNS_STATS_NCOUNTERS; i++)
+	}
+	for (i = 0; i < DNS_STATS_NCOUNTERS; i++) {
 		p[i] = 0;
+	}
 	*ctrp = p;
 	return (ISC_R_SUCCESS);
 }

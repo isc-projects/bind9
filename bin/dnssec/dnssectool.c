@@ -21,7 +21,7 @@
 
 #ifdef _WIN32
 #include <Winsock2.h>
-#endif
+#endif /* ifdef _WIN32 */
 
 #include <isc/base32.h>
 #include <isc/buffer.h>
@@ -46,10 +46,10 @@
 #include <dns/name.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
-#include <dns/rdatastruct.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/secalg.h>
@@ -59,7 +59,10 @@
 
 #define KEYSTATES_NVALUES 4
 static const char *keystates[KEYSTATES_NVALUES] = {
-	"hidden", "rumoured", "omnipresent", "unretentive",
+	"hidden",
+	"rumoured",
+	"omnipresent",
+	"unretentive",
 };
 
 int verbose = 0;
@@ -77,8 +80,9 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-	if (fatalcallback != NULL)
+	if (fatalcallback != NULL) {
 		(*fatalcallback)();
+	}
 	exit(1);
 }
 
@@ -89,15 +93,17 @@ setfatalcallback(fatalcallback_t *callback) {
 
 void
 check_result(isc_result_t result, const char *message) {
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("%s: %s", message, isc_result_totext(result));
+	}
 }
 
 void
 vbprintf(int level, const char *fmt, ...) {
 	va_list ap;
-	if (level > verbose)
+	if (level > verbose) {
 		return;
+	}
 	va_start(ap, fmt);
 	fprintf(stderr, "%s: ", program);
 	vfprintf(stderr, fmt, ap);
@@ -128,8 +134,9 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 	isc_log_t *log = NULL;
 	int level;
 
-	if (verbose < 0)
+	if (verbose < 0) {
 		verbose = 0;
+	}
 	switch (verbose) {
 	case 0:
 		/*
@@ -163,15 +170,13 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	result = isc_log_createchannel(logconfig, "stderr",
-				       ISC_LOG_TOFILEDESC,
-				       level,
-				       &destination,
-				       ISC_LOG_PRINTTAG|ISC_LOG_PRINTLEVEL);
+	result = isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
+				       level, &destination,
+				       ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
 	check_result(result, "isc_log_createchannel()");
 
-	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
-					 NULL, NULL) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
+		      ISC_R_SUCCESS);
 
 	*logp = log;
 }
@@ -185,8 +190,9 @@ cleanup_logging(isc_log_t **logp) {
 	log = *logp;
 	*logp = NULL;
 
-	if (log == NULL)
+	if (log == NULL) {
 		return;
+	}
 
 	isc_log_destroy(&log);
 	isc_log_setcontext(NULL);
@@ -196,35 +202,45 @@ cleanup_logging(isc_log_t **logp) {
 static isc_stdtime_t
 time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 	switch (suffix[0]) {
-	    case 'Y': case 'y':
+	case 'Y':
+	case 'y':
 		return (offset * (365 * 24 * 3600));
-	    case 'M': case 'm':
+	case 'M':
+	case 'm':
 		switch (suffix[1]) {
-		    case 'O': case 'o':
+		case 'O':
+		case 'o':
 			return (offset * (30 * 24 * 3600));
-		    case 'I': case 'i':
+		case 'I':
+		case 'i':
 			return (offset * 60);
-		    case '\0':
+		case '\0':
 			fatal("'%s' ambiguous: use 'mi' for minutes "
-			      "or 'mo' for months", str);
-		    default:
+			      "or 'mo' for months",
+			      str);
+		default:
 			fatal("time value %s is invalid", str);
 		}
 		/* NOTREACHED */
 		break;
-	    case 'W': case 'w':
+	case 'W':
+	case 'w':
 		return (offset * (7 * 24 * 3600));
-	    case 'D': case 'd':
+	case 'D':
+	case 'd':
 		return (offset * (24 * 3600));
-	    case 'H': case 'h':
+	case 'H':
+	case 'h':
 		return (offset * 3600);
-	    case 'S': case 's': case '\0':
+	case 'S':
+	case 's':
+	case '\0':
 		return (offset);
-	    default:
+	default:
 		fatal("time value %s is invalid", str);
 	}
 	/* NOTREACHED */
-	return(0); /* silence compiler warning */
+	return (0); /* silence compiler warning */
 }
 
 static inline bool
@@ -239,12 +255,14 @@ strtottl(const char *str) {
 	dns_ttl_t ttl;
 	char *endp;
 
-	if (isnone(str))
-		return ((dns_ttl_t) 0);
+	if (isnone(str)) {
+		return ((dns_ttl_t)0);
+	}
 
 	ttl = strtol(str, &endp, 0);
-	if (ttl == 0 && endp == str)
+	if (ttl == 0 && endp == str) {
 		fatal("TTL must be numeric");
+	}
 	ttl = time_units(ttl, endp, orig);
 	return (ttl);
 }
@@ -256,18 +274,16 @@ strtokeystate(const char *str) {
 	}
 
 	for (int i = 0; i < KEYSTATES_NVALUES; i++) {
-		if (keystates[i] != NULL &&
-		    strcasecmp(str, keystates[i]) == 0) {
-			return (dst_key_state_t) i;
+		if (keystates[i] != NULL && strcasecmp(str, keystates[i]) == 0)
+		{
+			return ((dst_key_state_t)i);
 		}
 	}
 	fatal("unknown key state");
 }
 
 isc_stdtime_t
-strtotime(const char *str, int64_t now, int64_t base,
-	  bool *setp)
-{
+strtotime(const char *str, int64_t now, int64_t base, bool *setp) {
 	int64_t val, offset;
 	isc_result_t result;
 	const char *orig = str;
@@ -275,16 +291,19 @@ strtotime(const char *str, int64_t now, int64_t base,
 	size_t n;
 
 	if (isnone(str)) {
-		if (setp != NULL)
+		if (setp != NULL) {
 			*setp = false;
-		return ((isc_stdtime_t) 0);
+		}
+		return ((isc_stdtime_t)0);
 	}
 
-	if (setp != NULL)
+	if (setp != NULL) {
 		*setp = true;
+	}
 
-	if ((str[0] == '0' || str[0] == '-') && str[1] == '\0')
-		return ((isc_stdtime_t) 0);
+	if ((str[0] == '0' || str[0] == '-') && str[1] == '\0') {
+		return ((isc_stdtime_t)0);
+	}
 
 	/*
 	 * We accept times in the following formats:
@@ -295,18 +314,19 @@ strtotime(const char *str, int64_t now, int64_t base,
 	 */
 	n = strspn(str, "0123456789");
 	if ((n == 8u || n == 14u) &&
-	    (str[n] == '\0' || str[n] == '-' || str[n] == '+'))
-	{
+	    (str[n] == '\0' || str[n] == '-' || str[n] == '+')) {
 		char timestr[15];
 
 		strlcpy(timestr, str, sizeof(timestr));
 		timestr[n] = 0;
-		if (n == 8u)
+		if (n == 8u) {
 			strlcat(timestr, "000000", sizeof(timestr));
+		}
 		result = dns_time64_fromtext(timestr, &val);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fatal("time value %s is invalid: %s", orig,
 			      isc_result_totext(result));
+		}
 		base = val;
 		str += n;
 	} else if (strncmp(str, "now", 3) == 0) {
@@ -314,20 +334,21 @@ strtotime(const char *str, int64_t now, int64_t base,
 		str += 3;
 	}
 
-	if (str[0] == '\0')
-		return ((isc_stdtime_t) base);
-	else if (str[0] == '+') {
+	if (str[0] == '\0') {
+		return ((isc_stdtime_t)base);
+	} else if (str[0] == '+') {
 		offset = strtol(str + 1, &endp, 0);
-		offset = time_units((isc_stdtime_t) offset, endp, orig);
+		offset = time_units((isc_stdtime_t)offset, endp, orig);
 		val = base + offset;
 	} else if (str[0] == '-') {
 		offset = strtol(str + 1, &endp, 0);
-		offset = time_units((isc_stdtime_t) offset, endp, orig);
+		offset = time_units((isc_stdtime_t)offset, endp, orig);
 		val = base - offset;
-	} else
+	} else {
 		fatal("time value %s is invalid", orig);
+	}
 
-	return ((isc_stdtime_t) val);
+	return ((isc_stdtime_t)val);
 }
 
 dns_rdataclass_t
@@ -336,13 +357,15 @@ strtoclass(const char *str) {
 	dns_rdataclass_t rdclass;
 	isc_result_t result;
 
-	if (str == NULL)
-		return dns_rdataclass_in;
+	if (str == NULL) {
+		return (dns_rdataclass_in);
+	}
 	DE_CONST(str, r.base);
 	r.length = strlen(str);
 	result = dns_rdataclass_fromtext(&rdclass, &r);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("unknown class %s", str);
+	}
 	return (rdclass);
 }
 
@@ -355,8 +378,9 @@ strtodsdigest(const char *str) {
 	DE_CONST(str, r.base);
 	r.length = strlen(str);
 	result = dns_dsdigest_fromtext(&alg, &r);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("unknown DS algorithm %s", str);
+	}
 	return (alg);
 }
 
@@ -372,14 +396,14 @@ add_dtype(unsigned int dt) {
 	unsigned i, n;
 
 	/* ensure there is space for a zero terminator */
-	n = sizeof(dtype)/sizeof(dtype[0]) - 1;
+	n = sizeof(dtype) / sizeof(dtype[0]) - 1;
 	for (i = 0; i < n; i++) {
 		if (dtype[i] == dt) {
 			return;
 		}
 		if (dtype[i] == 0) {
 			dtype[i] = dt;
-			qsort(dtype, i+1, 1, cmp_dtype);
+			qsort(dtype, i + 1, 1, cmp_dtype);
 			return;
 		}
 	}
@@ -408,14 +432,16 @@ check_keyversion(dst_key_t *key, char *keystr) {
 	dst_key_getprivateformat(key, &major, &minor);
 	INSIST(major <= DST_MAJOR_VERSION); /* invalid private key */
 
-	if (major < DST_MAJOR_VERSION || minor < DST_MINOR_VERSION)
+	if (major < DST_MAJOR_VERSION || minor < DST_MINOR_VERSION) {
 		fatal("Key %s has incompatible format version %d.%d, "
 		      "use -f to force upgrade to new version.",
 		      keystr, major, minor);
-	if (minor > DST_MINOR_VERSION)
+	}
+	if (minor > DST_MINOR_VERSION) {
 		fatal("Key %s has incompatible format version %d.%d, "
 		      "use -f to force downgrade to current version.",
 		      keystr, major, minor);
+	}
 }
 
 void
@@ -424,9 +450,10 @@ set_keyversion(dst_key_t *key) {
 	dst_key_getprivateformat(key, &major, &minor);
 	INSIST(major <= DST_MAJOR_VERSION);
 
-	if (major != DST_MAJOR_VERSION || minor != DST_MINOR_VERSION)
+	if (major != DST_MAJOR_VERSION || minor != DST_MINOR_VERSION) {
 		dst_key_setprivateformat(key, DST_MAJOR_VERSION,
 					 DST_MINOR_VERSION);
+	}
 
 	/*
 	 * If the key is from a version older than 1.3, set
@@ -441,8 +468,7 @@ set_keyversion(dst_key_t *key) {
 
 bool
 key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
-	      isc_mem_t *mctx, bool *exact)
-{
+	      isc_mem_t *mctx, bool *exact) {
 	isc_result_t result;
 	bool conflict = false;
 	dns_dnsseckeylist_t matchkeys;
@@ -454,8 +480,9 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	isc_buffer_t fileb;
 	isc_stdtime_t now;
 
-	if (exact != NULL)
+	if (exact != NULL) {
 		*exact = false;
+	}
 
 	id = dst_key_id(dstkey);
 	rid = dst_key_rid(dstkey);
@@ -468,23 +495,26 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	 */
 	if (alg == DST_ALG_DH) {
 		isc_buffer_init(&fileb, filename, sizeof(filename));
-		result = dst_key_buildfilename(dstkey, DST_TYPE_PRIVATE,
-					       dir, &fileb);
-		if (result != ISC_R_SUCCESS)
+		result = dst_key_buildfilename(dstkey, DST_TYPE_PRIVATE, dir,
+					       &fileb);
+		if (result != ISC_R_SUCCESS) {
 			return (true);
+		}
 		return (isc_file_exists(filename));
 	}
 
 	ISC_LIST_INIT(matchkeys);
 	isc_stdtime_get(&now);
 	result = dns_dnssec_findmatchingkeys(name, dir, now, mctx, &matchkeys);
-	if (result == ISC_R_NOTFOUND)
+	if (result == ISC_R_NOTFOUND) {
 		return (false);
+	}
 
 	while (!ISC_LIST_EMPTY(matchkeys) && !conflict) {
 		key = ISC_LIST_HEAD(matchkeys);
-		if (dst_key_alg(key->key) != alg)
+		if (dst_key_alg(key->key) != alg) {
 			goto next;
+		}
 
 		oldid = dst_key_id(key->key);
 		roldid = dst_key_rid(key->key);
@@ -492,20 +522,24 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 		if (oldid == rid || roldid == id || id == oldid) {
 			conflict = true;
 			if (id != oldid) {
-				if (verbose > 1)
-					fprintf(stderr, "Key ID %d could "
+				if (verbose > 1) {
+					fprintf(stderr,
+						"Key ID %d could "
 						"collide with %d\n",
 						id, oldid);
+				}
 			} else {
-				if (exact != NULL)
+				if (exact != NULL) {
 					*exact = true;
-				if (verbose > 1)
+				}
+				if (verbose > 1) {
 					fprintf(stderr, "Key ID %d exists\n",
 						id);
+				}
 			}
 		}
 
- next:
+	next:
 		ISC_LIST_UNLINK(matchkeys, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
@@ -521,7 +555,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 }
 
 bool
-isoptarg(const char *arg, char **argv, void(*usage)(void)) {
+isoptarg(const char *arg, char **argv, void (*usage)(void)) {
 	if (!strcasecmp(isc_commandline_argument, arg)) {
 		if (argv[isc_commandline_index] == NULL) {
 			fprintf(stderr, "%s: missing argument -%c %s\n",
@@ -530,7 +564,7 @@ isoptarg(const char *arg, char **argv, void(*usage)(void)) {
 			usage();
 		}
 		isc_commandline_argument = argv[isc_commandline_index];
-		/* skip to next arguement */
+		/* skip to next argument */
 		isc_commandline_index++;
 		return (true);
 	}
@@ -546,7 +580,7 @@ InitSockets(void) {
 
 	wVersionRequested = MAKEWORD(2, 0);
 
-	err = WSAStartup( wVersionRequested, &wsaData );
+	err = WSAStartup(wVersionRequested, &wsaData);
 	if (err != 0) {
 		fprintf(stderr, "WSAStartup() failed: %d\n", err);
 		exit(1);
@@ -557,4 +591,4 @@ void
 DestroySockets(void) {
 	WSACleanup();
 }
-#endif
+#endif /* ifdef _WIN32 */

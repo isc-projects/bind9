@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /* RFC3658 */
 
 #ifndef RDATA_GENERIC_DLV_32769_C
@@ -21,7 +20,6 @@
 
 static inline isc_result_t
 fromtext_dlv(ARGS_FROMTEXT) {
-
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	return (generic_fromtext_ds(rdclass, type, lexer, origin, options,
@@ -30,7 +28,6 @@ fromtext_dlv(ARGS_FROMTEXT) {
 
 static inline isc_result_t
 totext_dlv(ARGS_TOTEXT) {
-
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
 
 	return (generic_totext_ds(rdata, tctx, target));
@@ -38,7 +35,6 @@ totext_dlv(ARGS_TOTEXT) {
 
 static inline isc_result_t
 fromwire_dlv(ARGS_FROMWIRE) {
-
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	return (generic_fromwire_ds(rdclass, type, source, dctx, options,
@@ -76,7 +72,6 @@ compare_dlv(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_dlv(ARGS_FROMSTRUCT) {
-
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	return (generic_fromstruct_ds(rdclass, type, source, target));
@@ -103,11 +98,13 @@ freestruct_dlv(ARGS_FREESTRUCT) {
 	REQUIRE(dlv != NULL);
 	REQUIRE(dlv->common.rdtype == dns_rdatatype_dlv);
 
-	if (dlv->mctx == NULL)
+	if (dlv->mctx == NULL) {
 		return;
+	}
 
-	if (dlv->digest != NULL)
+	if (dlv->digest != NULL) {
 		isc_mem_free(dlv->mctx, dlv->digest);
+	}
 	dlv->mctx = NULL;
 }
 
@@ -135,7 +132,6 @@ digest_dlv(ARGS_DIGEST) {
 
 static inline bool
 checkowner_dlv(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	UNUSED(name);
@@ -148,7 +144,6 @@ checkowner_dlv(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_dlv(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
 
 	UNUSED(rdata);
@@ -163,4 +158,4 @@ casecompare_dlv(ARGS_COMPARE) {
 	return (compare_dlv(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_DLV_32769_C */
+#endif /* RDATA_GENERIC_DLV_32769_C */

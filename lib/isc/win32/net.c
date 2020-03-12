@@ -30,21 +30,22 @@
  * The last resort defaults: use all non well known port space
  */
 #ifndef ISC_NET_PORTRANGELOW
-#define ISC_NET_PORTRANGELOW 1024
-#endif	/* ISC_NET_PORTRANGELOW */
+#define ISC_NET_PORTRANGELOW 32768
+#endif /* ISC_NET_PORTRANGELOW */
 #ifndef ISC_NET_PORTRANGEHIGH
 #define ISC_NET_PORTRANGEHIGH 65535
-#endif	/* ISC_NET_PORTRANGEHIGH */
+#endif /* ISC_NET_PORTRANGEHIGH */
 
-static isc_once_t 	once = ISC_ONCE_INIT;
-static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
-static isc_once_t 	once_ipv6pktinfo = ISC_ONCE_INIT;
-static isc_result_t	ipv4_result = ISC_R_NOTFOUND;
-static isc_result_t	ipv6_result = ISC_R_NOTFOUND;
-static isc_result_t	ipv6only_result = ISC_R_NOTFOUND;
-static isc_result_t	ipv6pktinfo_result = ISC_R_NOTFOUND;
+static isc_once_t once = ISC_ONCE_INIT;
+static isc_once_t once_ipv6only = ISC_ONCE_INIT;
+static isc_once_t once_ipv6pktinfo = ISC_ONCE_INIT;
+static isc_result_t ipv4_result = ISC_R_NOTFOUND;
+static isc_result_t ipv6_result = ISC_R_NOTFOUND;
+static isc_result_t ipv6only_result = ISC_R_NOTFOUND;
+static isc_result_t ipv6pktinfo_result = ISC_R_NOTFOUND;
 
-void InitSockets(void);
+void
+InitSockets(void);
 
 static isc_result_t
 try_proto(int domain) {
@@ -63,8 +64,7 @@ try_proto(int domain) {
 		default:
 			strerror_r(errval, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "socket() failed: %s",
-					 strbuf);
+					 "socket() failed: %s", strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 	}
@@ -109,7 +109,7 @@ try_ipv6only(void) {
 	SOCKET s;
 	int on;
 	char strbuf[ISC_STRERRORSIZE];
-#endif
+#endif /* ifdef IPV6_V6ONLY */
 	isc_result_t result;
 
 	result = isc_net_probeipv6();
@@ -121,13 +121,12 @@ try_ipv6only(void) {
 #ifndef IPV6_V6ONLY
 	ipv6only_result = ISC_R_NOTFOUND;
 	return;
-#else
+#else  /* ifndef IPV6_V6ONLY */
 	/* check for TCP sockets */
 	s = socket(PF_INET6, SOCK_STREAM, 0);
 	if (s == INVALID_SOCKET) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "socket() failed: %s",
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "socket() failed: %s",
 				 strbuf);
 		ipv6only_result = ISC_R_UNEXPECTED;
 		return;
@@ -146,8 +145,7 @@ try_ipv6only(void) {
 	s = socket(PF_INET6, SOCK_DGRAM, 0);
 	if (s == INVALID_SOCKET) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "socket() failed: %s",
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "socket() failed: %s",
 				 strbuf);
 		ipv6only_result = ISC_R_UNEXPECTED;
 		return;
@@ -170,8 +168,8 @@ close:
 
 static void
 initialize_ipv6only(void) {
-	RUNTIME_CHECK(isc_once_do(&once_ipv6only,
-				  try_ipv6only) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_once_do(&once_ipv6only, try_ipv6only) ==
+		      ISC_R_SUCCESS);
 }
 
 #ifdef __notyet__
@@ -198,8 +196,7 @@ try_ipv6pktinfo(void) {
 	s = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	if (s == INVALID_SOCKET) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "socket() failed: %s",
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "socket() failed: %s",
 				 strbuf);
 		ipv6pktinfo_result = ISC_R_UNEXPECTED;
 		return;
@@ -207,11 +204,11 @@ try_ipv6pktinfo(void) {
 
 #ifdef IPV6_RECVPKTINFO
 	optname = IPV6_RECVPKTINFO;
-#else
+#else  /* ifdef IPV6_RECVPKTINFO */
 	optname = IPV6_PKTINFO;
-#endif
+#endif /* ifdef IPV6_RECVPKTINFO */
 	on = 1;
-	if (setsockopt(s, IPPROTO_IPV6, optname, (const char *) &on,
+	if (setsockopt(s, IPPROTO_IPV6, optname, (const char *)&on,
 		       sizeof(on)) < 0) {
 		ipv6pktinfo_result = ISC_R_NOTFOUND;
 		goto close;
@@ -226,8 +223,8 @@ close:
 
 static void
 initialize_ipv6pktinfo(void) {
-	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo,
-				  try_ipv6pktinfo) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo, try_ipv6pktinfo) ==
+		      ISC_R_SUCCESS);
 }
 #endif /* __notyet__ */
 
@@ -258,35 +255,39 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high) {
 		*high = ISC_NET_PORTRANGEHIGH;
 	}
 
-	return (ISC_R_SUCCESS);	/* we currently never fail in this function */
+	return (ISC_R_SUCCESS); /* we currently never fail in this function */
 }
 
 void
 isc_net_disableipv4(void) {
 	initialize();
-	if (ipv4_result == ISC_R_SUCCESS)
+	if (ipv4_result == ISC_R_SUCCESS) {
 		ipv4_result = ISC_R_DISABLED;
+	}
 }
 
 void
 isc_net_disableipv6(void) {
 	initialize();
-	if (ipv6_result == ISC_R_SUCCESS)
+	if (ipv6_result == ISC_R_SUCCESS) {
 		ipv6_result = ISC_R_DISABLED;
+	}
 }
 
 void
 isc_net_enableipv4(void) {
 	initialize();
-	if (ipv4_result == ISC_R_DISABLED)
+	if (ipv4_result == ISC_R_DISABLED) {
 		ipv4_result = ISC_R_SUCCESS;
+	}
 }
 
 void
 isc_net_enableipv6(void) {
 	initialize();
-	if (ipv6_result == ISC_R_DISABLED)
+	if (ipv6_result == ISC_R_DISABLED) {
 		ipv6_result = ISC_R_SUCCESS;
+	}
 }
 
 unsigned int

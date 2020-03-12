@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <errno.h>
@@ -38,10 +37,11 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	 * If we have a range error ts.tv_sec is most probably a signed
 	 * 32 bit value.  Set ts.tv_sec to INT_MAX.  This is a kludge.
 	 */
-	if (result == ISC_R_RANGE)
+	if (result == ISC_R_RANGE) {
 		ts.tv_sec = INT_MAX;
-	else if (result != ISC_R_SUCCESS)
+	} else if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	/*!
 	 * POSIX defines a timespec's tv_nsec as long.  isc_time_nanoseconds
@@ -52,18 +52,19 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	do {
 #if ISC_MUTEX_PROFILE
 		presult = pthread_cond_timedwait(c, &m->mutex, &ts);
-#else
+#else  /* if ISC_MUTEX_PROFILE */
 		presult = pthread_cond_timedwait(c, m, &ts);
-#endif
-		if (presult == 0)
+#endif /* if ISC_MUTEX_PROFILE */
+		if (presult == 0) {
 			return (ISC_R_SUCCESS);
-		if (presult == ETIMEDOUT)
+		}
+		if (presult == ETIMEDOUT) {
 			return (ISC_R_TIMEDOUT);
+		}
 	} while (presult == EINTR);
 
 	strerror_r(presult, strbuf, sizeof(strbuf));
 	UNEXPECTED_ERROR(__FILE__, __LINE__,
-			 "pthread_cond_timedwait() returned %s",
-			 strbuf);
+			 "pthread_cond_timedwait() returned %s", strbuf);
 	return (ISC_R_UNEXPECTED);
 }

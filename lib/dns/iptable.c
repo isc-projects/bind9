@@ -18,7 +18,8 @@
 
 #include <dns/acl.h>
 
-static void destroy_iptable(dns_iptable_t *dtab);
+static void
+destroy_iptable(dns_iptable_t *dtab);
 
 /*
  * Create a new IP table and the underlying radix structure
@@ -36,13 +37,14 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
 	tab->magic = DNS_IPTABLE_MAGIC;
 
 	result = isc_radix_create(mctx, &tab->radix, RADIX_MAXBITS);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	*target = tab;
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	dns_iptable_detach(&tab);
 	return (result);
 }
@@ -55,8 +57,7 @@ static bool dns_iptable_pos = true;
  */
 isc_result_t
 dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
-		      uint16_t bitlen, bool pos)
-{
+		      uint16_t bitlen, bool pos) {
 	isc_result_t result;
 	isc_prefix_t pfx;
 	isc_radix_node_t *node = NULL;
@@ -70,7 +71,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 	result = isc_radix_insert(tab->radix, &node, NULL, &pfx);
 	if (result != ISC_R_SUCCESS) {
 		isc_refcount_destroy(&pfx.refcount);
-		return(result);
+		return (result);
 	}
 
 	/* If a node already contains data, don't overwrite it */
@@ -78,16 +79,17 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 		/* "any" or "none" */
 		INSIST(pfx.bitlen == 0);
 		for (i = 0; i < RADIX_FAMILIES; i++) {
-			if (node->data[i] == NULL)
+			if (node->data[i] == NULL) {
 				node->data[i] = pos ? &dns_iptable_pos
 						    : &dns_iptable_neg;
+			}
 		}
 	} else {
 		/* any other prefix */
 		int fam = ISC_RADIX_FAMILY(&pfx);
 		if (node->data[fam] == NULL) {
 			node->data[fam] = pos ? &dns_iptable_pos
-						 : &dns_iptable_neg;
+					      : &dns_iptable_neg;
 		}
 	}
 
@@ -99,18 +101,18 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
  * Merge one IP table into another one.
  */
 isc_result_t
-dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos)
-{
+dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos) {
 	isc_result_t result;
 	isc_radix_node_t *node, *new_node;
 	int i, max_node = 0;
 
-	RADIX_WALK (source->radix->head, node) {
+	RADIX_WALK(source->radix->head, node) {
 		new_node = NULL;
-		result = isc_radix_insert (tab->radix, &new_node, node, NULL);
+		result = isc_radix_insert(tab->radix, &new_node, node, NULL);
 
-		if (result != ISC_R_SUCCESS)
-			return(result);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
 
 		/*
 		 * If we're negating a nested ACL, then we should
@@ -122,14 +124,16 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos)
 		 */
 		for (i = 0; i < RADIX_FAMILIES; i++) {
 			if (!pos) {
-				if (node->data[i] &&
-				    *(bool *) node->data[i])
+				if (node->data[i] && *(bool *)node->data[i]) {
 					new_node->data[i] = &dns_iptable_neg;
+				}
 			}
-			if (node->node_num[i] > max_node)
+			if (node->node_num[i] > max_node) {
 				max_node = node->node_num[i];
+			}
 		}
-	} RADIX_WALK_END;
+	}
+	RADIX_WALK_END;
 
 	tab->radix->num_added_node += max_node;
 	return (ISC_R_SUCCESS);
@@ -156,7 +160,6 @@ dns_iptable_detach(dns_iptable_t **tabp) {
 
 static void
 destroy_iptable(dns_iptable_t *dtab) {
-
 	REQUIRE(DNS_IPTABLE_VALID(dtab));
 
 	if (dtab->radix != NULL) {

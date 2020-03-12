@@ -9,9 +9,9 @@
  * information regarding copyright ownership.
  */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/region.h>
@@ -35,11 +35,13 @@ dst_region_computeid(const isc_region_t *source) {
 	p = source->base;
 	size = source->length;
 
-	for (ac = 0; size > 1; size -= 2, p += 2)
+	for (ac = 0; size > 1; size -= 2, p += 2) {
 		ac += ((*p) << 8) + *(p + 1);
+	}
 
-	if (size > 0)
+	if (size > 0) {
 		ac += ((*p) << 8);
+	}
 	ac += (ac >> 16) & 0xffff;
 
 	return ((uint16_t)(ac & 0xffff));
@@ -59,11 +61,13 @@ dst_region_computerid(const isc_region_t *source) {
 
 	ac = ((*p) << 8) + *(p + 1);
 	ac |= DNS_KEYFLAG_REVOKE;
-	for (size -= 2, p +=2; size > 1; size -= 2, p += 2)
+	for (size -= 2, p += 2; size > 1; size -= 2, p += 2) {
 		ac += ((*p) << 8) + *(p + 1);
+	}
 
-	if (size > 0)
+	if (size > 0) {
 		ac += ((*p) << 8);
+	}
 	ac += (ac >> 16) & 0xffff;
 
 	return ((uint16_t)(ac & 0xffff));
@@ -121,13 +125,16 @@ bool
 dst_key_iszonekey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 
-	if ((key->key_flags & DNS_KEYTYPE_NOAUTH) != 0)
+	if ((key->key_flags & DNS_KEYTYPE_NOAUTH) != 0) {
 		return (false);
-	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
+	}
+	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
 		return (false);
+	}
 	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
-	    key->key_proto != DNS_KEYPROTO_ANY)
+	    key->key_proto != DNS_KEYPROTO_ANY) {
 		return (false);
+	}
 	return (true);
 }
 
@@ -135,13 +142,16 @@ bool
 dst_key_isnullkey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 
-	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
+	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY) {
 		return (false);
-	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
+	}
+	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
 		return (false);
+	}
 	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
-	    key->key_proto != DNS_KEYPROTO_ANY)
+	    key->key_proto != DNS_KEYPROTO_ANY) {
 		return (false);
+	}
 	return (true);
 }
 

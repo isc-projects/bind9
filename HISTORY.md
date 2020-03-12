@@ -10,6 +10,21 @@
 -->
 ### Functional enhancements from prior major releases of BIND 9
 
+#### BIND 9.16
+
+BIND 9.16 (a stable branch based on the 9.15 development branch)
+includes a number of changes from BIND 9.14 and earlier releases.
+New features include:
+
+* New `dnssec-policy` statement to configure a key and signing policy
+  for zones, enabling automatic key regeneration and rollover.
+* New network manager based on `libuv`.
+* Added support for the new GeoIP2 geolocation API, `libmaxminddb`.
+* Improved DNSSEC trust anchor configuration using the `trust-anchors`
+  statement, permitting configuration of trust anchors in DS as well as
+  DNSKEY format.
+* YAML output for `dig`, `mdig`, and `delv`.
+
 #### BIND 9.14
 
 BIND 9.14 (a stable branch based on the 9.13 development branch)
@@ -150,7 +165,7 @@ releases.  New features include:
 - "rndc modzone" reconfigures a single zone, without requiring the entire
   server to be reconfigured.
 - "rndc showzone" displays the current configuration of a zone.
-- "rndc managed-keys" can be used to check the status of RFC 5001 managed
+- "rndc managed-keys" can be used to check the status of RFC 5011 managed
   trust anchors, or to force trust anchors to be refreshed.
 - "max-cache-size" can now be set to a percentage of available memory. The
   default is 90%.
@@ -533,8 +548,8 @@ BIND 9.4.0
 - dig: report the number of extra bytes still left in the packet after
   processing all the records.
 - Support for IPSECKEY rdata type.
-- Raise the UDP recieve buffer size to 32k if it is less than 32k.
-- x86 and x86_64 now have seperate atomic locking implementations.
+- Raise the UDP receive buffer size to 32k if it is less than 32k.
+- x86 and x86_64 now have separate atomic locking implementations.
 - named-checkconf now validates update-policy entries.
 - Attempt to make the amount of work performed in a iteration self tuning.
   The covers nodes clean from the cache per iteration, nodes written to
@@ -551,8 +566,8 @@ BIND 9.4.0
 - dig now warns if 'RA' is not set in the answer when 'RD' was set in the
   query.  host/nslookup skip servers that fail to set 'RA' when 'RD' is set
   unless a server is explicitly set.
-- Integrate contibuted DLZ code into named.
-- Integrate contibuted IDN code from JPNIC.
+- Integrate contributed DLZ code into named.
+- Integrate contributed IDN code from JPNIC.
 - libbind: corresponds to that from BIND 8.4.7.
 
 #### BIND 9.3.0

@@ -12,10 +12,12 @@
 /*! \file */
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -23,17 +25,14 @@
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/name.h>
-#include <isc/print.h>
 #include <dns/result.h>
 #include <dns/types.h>
 
-#include <stdlib.h>
-
-#define CHECK(r) \
-	do { \
-		result = (r); \
+#define CHECK(r)                             \
+	do {                                 \
+		result = (r);                \
 		if (result != ISC_R_SUCCESS) \
-		goto cleanup; \
+			goto cleanup;        \
 	} while (0)
 
 isc_mem_t *mctx = NULL;
@@ -44,17 +43,15 @@ static bool dst_active = false;
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
  */
-static isc_logcategory_t categories[] = {
-		{ "",                0 },
-		{ "client",          0 },
-		{ "network",         0 },
-		{ "update",          0 },
-		{ "queries",         0 },
-		{ "unmatched",       0 },
-		{ "update-security", 0 },
-		{ "query-errors",    0 },
-		{ NULL,              0 }
-};
+static isc_logcategory_t categories[] = { { "", 0 },
+					  { "client", 0 },
+					  { "network", 0 },
+					  { "update", 0 },
+					  { "queries", 0 },
+					  { "unmatched", 0 },
+					  { "update-security", 0 },
+					  { "query-errors", 0 },
+					  { NULL, 0 } };
 
 static isc_result_t
 loadzone(dns_db_t **db, const char *origin, const char *filename) {
@@ -65,13 +62,15 @@ loadzone(dns_db_t **db, const char *origin, const char *filename) {
 	name = dns_fixedname_initname(&fixed);
 
 	result = dns_name_fromstring(name, origin, 0, NULL);
-	if (result != ISC_R_SUCCESS)
-		return(result);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, db);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_db_load(*db, filename, dns_masterformat_text, 0);
 	return (result);
@@ -111,9 +110,8 @@ main(int argc, char **argv) {
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	CHECK(isc_log_createchannel(logconfig, "stderr",
-				    ISC_LOG_TOFILEDESC, ISC_LOG_DYNAMIC,
-				    &destination, 0));
+	CHECK(isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
+				    ISC_LOG_DYNAMIC, &destination, 0));
 	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 
 	dns_result_register();
@@ -132,24 +130,28 @@ main(int argc, char **argv) {
 
 	result = dns_db_diff(mctx, newdb, NULL, olddb, NULL, journal);
 
-  cleanup:
-	if (result != ISC_R_SUCCESS)
+cleanup:
+	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "%s\n", isc_result_totext(result));
+	}
 
-	if (newdb != NULL)
+	if (newdb != NULL) {
 		dns_db_detach(&newdb);
-	if (olddb != NULL)
+	}
+	if (olddb != NULL) {
 		dns_db_detach(&olddb);
+	}
 
-	if (lctx != NULL)
+	if (lctx != NULL) {
 		isc_log_destroy(&lctx);
+	}
 	if (dst_active) {
 		dst_lib_destroy();
 		dst_active = false;
 	}
-	if (mctx != NULL)
+	if (mctx != NULL) {
 		isc_mem_destroy(&mctx);
+	}
 
-	return(result != ISC_R_SUCCESS ? 1 : 0);
+	return (result != ISC_R_SUCCESS ? 1 : 0);
 }
-

@@ -11,13 +11,12 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -71,16 +70,17 @@ make_dispatchset(unsigned int ndisps) {
 	dns_dispatch_t *disp = NULL;
 
 	result = dns_dispatchmgr_create(dt_mctx, &dispatchmgr);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	isc_sockaddr_any(&any);
 	attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
-	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
-				     &any, 512, 6, 1024, 17, 19, attrs,
-				     attrs, &disp);
-	if (result != ISC_R_SUCCESS)
+	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr, &any, 512,
+				     6, 1024, 17, 19, attrs, attrs, &disp);
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_dispatchset_create(dt_mctx, socketmgr, taskmgr, disp,
 					&dset, ndisps);
@@ -179,11 +179,11 @@ nameserver(isc_task_t *task, isc_event_t *event) {
 
 	memmove(buf1, ev->region.base, 12);
 	memset(buf1 + 12, 0, 4);
-	buf1[2] |= 0x80;	/* qr=1 */
+	buf1[2] |= 0x80; /* qr=1 */
 
 	memmove(buf2, ev->region.base, 12);
 	memset(buf2 + 12, 1, 4);
-	buf2[2] |= 0x80;	/* qr=1 */
+	buf2[2] |= 0x80; /* qr=1 */
 
 	/*
 	 * send message to be discarded.
@@ -194,8 +194,9 @@ nameserver(isc_task_t *task, isc_event_t *event) {
 	isc_socket_attach(sock, &dummy);
 	result = isc_socket_sendto(sock, &region, task, senddone, sock,
 				   &ev->address, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		isc_socket_detach(&dummy);
+	}
 
 	/*
 	 * send nextitem message.
@@ -206,8 +207,9 @@ nameserver(isc_task_t *task, isc_event_t *event) {
 	isc_socket_attach(sock, &dummy);
 	result = isc_socket_sendto(sock, &region, task, senddone, sock,
 				   &ev->address, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		isc_socket_detach(&dummy);
+	}
 	isc_event_free(&event);
 }
 
@@ -215,7 +217,7 @@ static dns_dispatch_t *dispatch = NULL;
 static dns_dispentry_t *dispentry = NULL;
 static atomic_bool first = ATOMIC_VAR_INIT(true);
 static isc_sockaddr_t local;
-static isc_refcount_t responses;
+static atomic_uint_fast32_t responses;
 
 static void
 response(isc_task_t *task, isc_event_t *event) {
@@ -224,7 +226,7 @@ response(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	isc_refcount_increment(&responses);
+	atomic_fetch_add_relaxed(&responses, 1);
 	if (atomic_compare_exchange_strong(&first, &exp_true, false)) {
 		isc_result_t result = dns_dispatch_getnext(dispentry, &devent);
 		assert_int_equal(result, ISC_R_SUCCESS);
@@ -261,7 +263,7 @@ dispatch_getnext(void **state) {
 
 	UNUSED(state);
 
-	isc_refcount_init(&responses, 0);
+	atomic_init(&responses, 0);
 
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -272,9 +274,9 @@ dispatch_getnext(void **state) {
 	ina.s_addr = htonl(INADDR_LOOPBACK);
 	isc_sockaddr_fromin(&local, &ina, 0);
 	attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
-	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
-				     &local, 512, 6, 1024, 17, 19, attrs,
-				     attrs, &dispatch);
+	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr, &local,
+				     512, 6, 1024, 17, 19, attrs, attrs,
+				     &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -313,7 +315,7 @@ dispatch_getnext(void **state) {
 	result = isc_app_run();
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	assert_int_equal(isc_refcount_current(&responses), 2);
+	assert_int_equal(atomic_load_acquire(&responses), 2);
 
 	/*
 	 * Shutdown nameserver.
@@ -332,12 +334,12 @@ dispatch_getnext(void **state) {
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(dispatchset_create,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(dispatchset_get,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(dispatch_getnext,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(dispatchset_create, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(dispatchset_get, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(dispatch_getnext, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -353,4 +355,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

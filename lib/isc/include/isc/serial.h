@@ -9,12 +9,11 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_SERIAL_H
 #define ISC_SERIAL_H 1
 
-#include <stdbool.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/lang.h>
 #include <isc/types.h>

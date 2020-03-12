@@ -22,8 +22,7 @@ isc_mem_t *mctx;
 isc_symtab_t *st;
 
 static void
-undefine_action(char *key, unsigned int type, isc_symvalue_t value, void *arg)
-{
+undefine_action(char *key, unsigned int type, isc_symvalue_t value, void *arg) {
 	UNUSED(arg);
 
 	INSIST(type == 1);
@@ -75,13 +74,15 @@ main(int argc, char *argv[]) {
 		if (cp[0] == '!') {
 			cp++;
 			result = isc_symtab_undefine(st, cp, 1);
-			if (trace || result != ISC_R_SUCCESS)
+			if (trace || result != ISC_R_SUCCESS) {
 				printf("undefine('%s'): %s\n", cp,
 				       isc_result_totext(result));
+			}
 		} else {
 			key = cp;
-			while (*cp != '\0' && *cp != ' ' && *cp != '\t')
+			while (*cp != '\0' && *cp != ' ' && *cp != '\t') {
 				cp++;
+			}
 			if (*cp == '\0') {
 				result = isc_symtab_lookup(st, key, 0, &value);
 				if (trace || result != ISC_R_SUCCESS) {
@@ -100,12 +101,12 @@ main(int argc, char *argv[]) {
 				result = isc_symtab_define(st, key, 1, value,
 							   exists_policy);
 				if (trace || result != ISC_R_SUCCESS) {
-					printf("define('%s', '%s'): %s\n",
-					       key, cp,
-					       isc_result_totext(result));
-					if (result != ISC_R_SUCCESS)
-						undefine_action(key, 1,
-							value, NULL);
+					printf("define('%s', '%s'): %s\n", key,
+					       cp, isc_result_totext(result));
+					if (result != ISC_R_SUCCESS) {
+						undefine_action(key, 1, value,
+								NULL);
+					}
 				}
 			}
 		}

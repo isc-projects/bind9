@@ -17,25 +17,25 @@
 #include <isc/stats.h>
 #include <isc/util.h>
 
-#include <dns/tkey.h>
 #include <dns/stats.h>
+#include <dns/tkey.h>
 
 #include <ns/query.h>
 #include <ns/server.h>
 #include <ns/stats.h>
 
-#define SCTX_MAGIC		ISC_MAGIC('S','c','t','x')
-#define SCTX_VALID(s)		ISC_MAGIC_VALID(s, SCTX_MAGIC)
+#define SCTX_MAGIC    ISC_MAGIC('S', 'c', 't', 'x')
+#define SCTX_VALID(s) ISC_MAGIC_VALID(s, SCTX_MAGIC)
 
-#define CHECKFATAL(op) 						\
-	do { result = (op);					\
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);		\
-	} while (0)						\
+#define CHECKFATAL(op)                                  \
+	do {                                            \
+		result = (op);                          \
+		RUNTIME_CHECK(result == ISC_R_SUCCESS); \
+	} while (0)
 
 isc_result_t
 ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
-		 ns_server_t **sctxp)
-{
+		 ns_server_t **sctxp) {
 	ns_server_t *sctx;
 	isc_result_t result;
 
@@ -86,11 +86,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpoutstats6,
 				    dns_sizecounter_out_max));
-
-	sctx->initialtimo = 300;
-	sctx->idletimo = 300;
-	sctx->keepalivetimo = 300;
-	sctx->advertisedtimo = 300;
 
 	sctx->udpsize = 4096;
 	sctx->transfer_tcp_message_size = 20480;
@@ -217,37 +212,7 @@ ns_server_setserverid(ns_server_t *sctx, const char *serverid) {
 }
 
 void
-ns_server_settimeouts(ns_server_t *sctx, unsigned int initial,
-		      unsigned int idle, unsigned int keepalive,
-		      unsigned int advertised)
-{
-	REQUIRE(SCTX_VALID(sctx));
-
-	sctx->initialtimo = initial;
-	sctx->idletimo = idle;
-	sctx->keepalivetimo = keepalive;
-	sctx->advertisedtimo = advertised;
-}
-
-void
-ns_server_gettimeouts(ns_server_t *sctx, unsigned int *initial,
-		      unsigned int *idle, unsigned int *keepalive,
-		      unsigned int *advertised)
-{
-	REQUIRE(SCTX_VALID(sctx));
-	REQUIRE(initial != NULL && idle != NULL &&
-		keepalive != NULL && advertised != NULL);
-
-	*initial = sctx->initialtimo;
-	*idle = sctx->idletimo;
-	*keepalive = sctx->keepalivetimo;
-	*advertised = sctx->advertisedtimo;
-}
-
-void
-ns_server_setoption(ns_server_t *sctx, unsigned int option,
-		    bool value)
-{
+ns_server_setoption(ns_server_t *sctx, unsigned int option, bool value) {
 	REQUIRE(SCTX_VALID(sctx));
 	if (value) {
 		sctx->options |= option;

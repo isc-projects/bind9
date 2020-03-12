@@ -45,6 +45,12 @@
 /* define if the ARM yield instruction is available */
 #undef HAVE_ARM_YIELD
 
+/* Define to 1 if you have the `backtrace' function. */
+#undef HAVE_BACKTRACE
+
+/* Define to 1 if you have the `backtrace_symbols' function. */
+#undef HAVE_BACKTRACE_SYMBOLS
+
 /* Define to 1 if the compiler supports __builtin_clz. */
 #undef HAVE_BUILTIN_CLZ
 
@@ -150,6 +156,9 @@
 /* Define to 1 if you have the `EVP_sha512' function. */
 #undef HAVE_EVP_SHA512
 
+/* Define to 1 if you have the <execinfo.h> header file. */
+#undef HAVE_EXECINFO_H
+
 /* Define to 1 if you have the `explicit_bzero' function. */
 #undef HAVE_EXPLICIT_BZERO
 
@@ -176,6 +185,9 @@
 
 /* Define to 1 if you have the `getrandom' function. */
 #undef HAVE_GETRANDOM
+
+/* Define to 1 if you have the <glob.h> header file. */
+#undef HAVE_GLOB_H
 
 /* Define to use gperftools CPU profiler. */
 #undef HAVE_GPERFTOOLS_PROFILER
@@ -227,9 +239,6 @@
 
 /* Define to 1 if you have the <krb5/krb5.h> header file. */
 #undef HAVE_KRB5_KRB5_H
-
-/* define if system have backtrace function */
-#undef HAVE_LIBCTRACE
 
 /* Define if libidn2 was found */
 #undef HAVE_LIBIDN2
@@ -465,6 +474,15 @@
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
 
+/* Define to 1 if you have the `uv_handle_get_data' function. */
+#undef HAVE_UV_HANDLE_GET_DATA
+
+/* Define to 1 if you have the `uv_handle_set_data' function. */
+#undef HAVE_UV_HANDLE_SET_DATA
+
+/* Define to 1 if you have the `uv_import' function. */
+#undef HAVE_UV_IMPORT
+
 /* Use zlib library */
 #undef HAVE_ZLIB
 
@@ -534,11 +552,8 @@
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
-/* Define to use large-system tuning. */
+/* Define to use default system tuning. */
 #undef TUNE_LARGE
-
-/* define if we can use backtrace */
-#undef USE_BACKTRACE
 
 /* Enable DNS Response Policy Service API */
 #undef USE_DNSRPS
@@ -546,9 +561,6 @@
 /* Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make
    non-blocking. */
 #undef USE_FIONBIO_IOCTL
-
-/* Define if libtool is used for compilation */
-#undef USE_LIBTOOL
 
 /* define if OpenSSL is used for Public-Key Cryptography */
 #undef USE_OPENSSL

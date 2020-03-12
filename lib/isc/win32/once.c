@@ -11,16 +11,15 @@
 
 #include <windows.h>
 
-#include <isc/once.h>
 #include <isc/assertions.h>
+#include <isc/once.h>
 #include <isc/util.h>
 
 isc_result_t
-isc_once_do(isc_once_t *controller, void(*function)(void)) {
+isc_once_do(isc_once_t *controller, void (*function)(void)) {
 	REQUIRE(controller != NULL && function != NULL);
 
 	if (controller->status == ISC_ONCE_INIT_NEEDED) {
-
 		if (InterlockedDecrement(&controller->counter) == 0) {
 			if (controller->status == ISC_ONCE_INIT_NEEDED) {
 				function();

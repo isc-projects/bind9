@@ -13,11 +13,10 @@
 
 #if HAVE_CMOCKA && !__SANITIZE_ADDRESS__
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +38,6 @@
 
 #include "nstest.h"
 
-#if defined(USE_LIBTOOL) || LD_WRAP
 static int
 _setup(void **state) {
 	isc_result_t result;
@@ -110,8 +108,8 @@ notify_start(void **state) {
 	 * (XXX: use better message mocking method when available.)
 	 */
 
-	result = ns_test_getdata("testdata/notify/notify1.msg",
-				  ndata, sizeof(ndata), &nsize);
+	result = ns_test_getdata("testdata/notify/notify1.msg", ndata,
+				 sizeof(ndata), &nsize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&nbuf, ndata, nsize);
 	isc_buffer_add(&nbuf, nsize);
@@ -140,20 +138,15 @@ notify_start(void **state) {
 	ns_test_cleanup_zone();
 	isc_nmhandle_unref(client->handle);
 }
-#endif
 
 int
 main(void) {
-#if defined(USE_LIBTOOL) || LD_WRAP
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(notify_start,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(notify_start, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
-#else
-	print_message("1..0 # Skip notify_test requires libtool or LD_WRAP\n");
-#endif
 }
 #else /* HAVE_CMOCKA && !__SANITIZE_ADDRESS__ */
 
@@ -167,7 +160,7 @@ main(void) {
 	 * the use, as libuv will trigger errors.
 	 */
 	printf("1..0 # Skip ASAN is in use\n");
-#else /* __SANITIZE_ADDRESS__ */
+#else  /* __SANITIZE_ADDRESS__ */
 	printf("1..0 # Skip cmocka not available\n");
 #endif /* __SANITIZE_ADDRESS__ */
 	return (0);

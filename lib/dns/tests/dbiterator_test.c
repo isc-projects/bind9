@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -31,9 +30,9 @@
 
 #include "dnstest.h"
 
-#define	BUFLEN		255
-#define	BIGBUFLEN	(64 * 1024)
-#define TEST_ORIGIN	"test"
+#define BUFLEN	    255
+#define BIGBUFLEN   (64 * 1024)
+#define TEST_ORIGIN "test"
 
 static int
 _setup(void **state) {
@@ -114,12 +113,13 @@ test_walk(const char *filename, int nodes) {
 	result = dns_db_createiterator(db, 0, &iter);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	for (result = dns_dbiterator_first(iter);
-	     result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_next(iter)) {
+	for (result = dns_dbiterator_first(iter); result == ISC_R_SUCCESS;
+	     result = dns_dbiterator_next(iter))
+	{
 		result = dns_dbiterator_current(iter, &node, name);
-		if (result == DNS_R_NEWORIGIN)
+		if (result == DNS_R_NEWORIGIN) {
 			result = ISC_R_SUCCESS;
+		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);
 		i++;
@@ -164,12 +164,13 @@ test_reverse(const char *filename) {
 	result = dns_db_createiterator(db, 0, &iter);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	for (result = dns_dbiterator_last(iter);
-	     result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_prev(iter)) {
+	for (result = dns_dbiterator_last(iter); result == ISC_R_SUCCESS;
+	     result = dns_dbiterator_prev(iter))
+	{
 		result = dns_dbiterator_current(iter, &node, name);
-		if (result == DNS_R_NEWORIGIN)
+		if (result == DNS_R_NEWORIGIN) {
 			result = ISC_R_SUCCESS;
+		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);
 		i++;
@@ -223,8 +224,9 @@ test_seek_node(const char *filename, int nodes) {
 
 	while (result == ISC_R_SUCCESS) {
 		result = dns_dbiterator_current(iter, &node, name);
-		if (result == DNS_R_NEWORIGIN)
+		if (result == DNS_R_NEWORIGIN) {
 			result = ISC_R_SUCCESS;
+		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);
 		result = dns_dbiterator_next(iter);
@@ -356,22 +358,22 @@ int
 main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(create, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(create_nsec3,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(create_nsec3, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(walk, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(walk_nsec3, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(reverse, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(reverse_nsec3,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(reverse_nsec3, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(seek_node, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(seek_node_nsec3,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(seek_node_nsec3, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(seek_empty, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(seek_empty_nsec3,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(seek_empty_nsec3, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(seek_nx, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(seek_nx_nsec3,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(seek_nx_nsec3, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -387,4 +389,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

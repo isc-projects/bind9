@@ -42,4 +42,4 @@ dlz_bdb_init(void);
 void
 dlz_bdb_clear(void);
 
-#endif
+#endif /* ifndef DLZ_BDB_DRIVER_H */

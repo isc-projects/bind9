@@ -11,6 +11,7 @@ ns__interfacemgr_getif
 ns__interfacemgr_nextif
 ns__query_sfcache
 ns__query_start
+ns__client_tcpconn
 ns_client_aclmsg
 ns_client_addopt
 ns_client_checkacl
@@ -87,10 +88,8 @@ ns_server_attach
 ns_server_create
 ns_server_detach
 ns_server_getoption
-ns_server_gettimeouts
 ns_server_setoption
 ns_server_setserverid
-ns_server_settimeouts
 ns_sortlist_addrorder1
 ns_sortlist_addrorder2
 ns_sortlist_byaddrsetup

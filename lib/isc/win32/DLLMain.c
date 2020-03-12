@@ -9,17 +9,15 @@
  * information regarding copyright ownership.
  */
 
-#include <windows.h>
 #include <stdio.h>
+#include <windows.h>
 
 /*
  * Called when we enter the DLL
  */
-__declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
-					  DWORD fdwReason, LPVOID lpvReserved)
-{
-	switch (fdwReason)
-	{
+__declspec(dllexport) BOOL WINAPI
+	DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
+	switch (fdwReason) {
 	/*
 	 * The DLL is loading due to process
 	 * initialization or a call to LoadLibrary.
@@ -47,4 +45,3 @@ __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
 	}
 	return (TRUE);
 }
-

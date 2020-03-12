@@ -20,16 +20,14 @@
 
 static inline isc_result_t
 fromtext_dnskey(ARGS_FROMTEXT) {
-
 	REQUIRE(type == dns_rdatatype_dnskey);
 
-	return (generic_fromtext_key(rdclass, type, lexer, origin,
-				     options, target, callbacks));
+	return (generic_fromtext_key(rdclass, type, lexer, origin, options,
+				     target, callbacks));
 }
 
 static inline isc_result_t
 totext_dnskey(ARGS_TOTEXT) {
-
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_dnskey);
 
@@ -38,11 +36,10 @@ totext_dnskey(ARGS_TOTEXT) {
 
 static inline isc_result_t
 fromwire_dnskey(ARGS_FROMWIRE) {
-
 	REQUIRE(type == dns_rdatatype_dnskey);
 
-	return (generic_fromwire_key(rdclass, type, source, dctx,
-				     options, target));
+	return (generic_fromwire_key(rdclass, type, source, dctx, options,
+				     target));
 }
 
 static inline isc_result_t
@@ -79,7 +76,6 @@ compare_dnskey(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_dnskey(ARGS_FROMSTRUCT) {
-
 	REQUIRE(type == dns_rdatatype_dnskey);
 
 	return (generic_fromstruct_key(rdclass, type, source, target));
@@ -102,7 +98,7 @@ tostruct_dnskey(ARGS_TOSTRUCT) {
 
 static inline void
 freestruct_dnskey(ARGS_FREESTRUCT) {
-	dns_rdata_dnskey_t *dnskey = (dns_rdata_dnskey_t *) source;
+	dns_rdata_dnskey_t *dnskey = (dns_rdata_dnskey_t *)source;
 
 	REQUIRE(dnskey != NULL);
 	REQUIRE(dnskey->common.rdtype == dns_rdatatype_dnskey);
@@ -112,7 +108,6 @@ freestruct_dnskey(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_dnskey(ARGS_ADDLDATA) {
-
 	REQUIRE(rdata->type == dns_rdatatype_dnskey);
 
 	UNUSED(rdata);
@@ -136,7 +131,6 @@ digest_dnskey(ARGS_DIGEST) {
 
 static inline bool
 checkowner_dnskey(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_dnskey);
 
 	UNUSED(name);
@@ -149,7 +143,6 @@ checkowner_dnskey(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_dnskey(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_dnskey);
 
@@ -162,11 +155,10 @@ checknames_dnskey(ARGS_CHECKNAMES) {
 
 static inline int
 casecompare_dnskey(ARGS_COMPARE) {
-
 	/*
-	 * Treat ALG 253 (private DNS) subtype name case sensistively.
+	 * Treat ALG 253 (private DNS) subtype name case sensitively.
 	 */
 	return (compare_dnskey(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_DNSKEY_48_C */
+#endif /* RDATA_GENERIC_DNSKEY_48_C */

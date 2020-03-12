@@ -35,6 +35,7 @@
       <year>2017</year>
       <year>2018</year>
       <year>2019</year>
+      <year>2020</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <!-- insert copyright end -->
@@ -414,7 +415,7 @@
 	    checking whether the SERIAL field has been updated; if so,
 	    a new transfer request is initiated. The timing of these
 	    refresh queries is controlled by the SOA REFRESH and RETRY
-	    fields, but can be overrridden with the
+	    fields, but can be overridden with the
 	    <command>max-refresh-time</command>,
 	    <command>min-refresh-time</command>,
 	    <command>max-retry-time</command>, and
@@ -582,7 +583,7 @@
     <section xml:id="cpu_req"><info><title>CPU Requirements</title></info>
       <para>
 	CPU requirements for <acronym>BIND</acronym> 9 range from
-	i486-class machines
+	i386-class machines
 	for serving of static zones without caching, to enterprise-class
 	machines if you intend to process many dynamic updates and DNSSEC
 	signed zones, serving many thousands of queries per second.
@@ -632,9 +633,9 @@
 	ISC <acronym>BIND</acronym> 9 compiles and runs on a large
 	number
 	of Unix-like operating systems and on
-	Microsoft Windows Server 2003 and 2008, and Windows XP and Vista.
+	Microsoft Windows Server 2012 R2, 2016 and Windows 10.
 	For an up-to-date
-	list of supported systems, see the README file in the top level
+	list of supported systems, see the PLATFORMS file in the top level
 	directory
 	of the BIND 9 source distribution.
       </para>
@@ -747,7 +748,7 @@ zone "eng.example.com" {
       </para>
 
       <para>
-	For example, if you have three WWW servers with network addresses
+	For example, if you have three HTTP servers with network addresses
 	of 10.0.0.1, 10.0.0.2 and 10.0.0.3, a set of records such as the
 	following means that clients will connect to each machine one third
 	of the time:
@@ -1473,29 +1474,42 @@ controls {
 
       <para>
 	The incremental zone transfer (IXFR) protocol is a way for
-	slave servers to transfer only changed data, instead of having to
+	secondary servers to transfer only changed data, instead of having to
 	transfer the entire zone. The IXFR protocol is specified in RFC
 	1995. See <xref linkend="proposed_standards"/>.
       </para>
 
       <para>
-	When acting as a master, <acronym>BIND</acronym> 9
+	When acting as a primary server, <acronym>BIND</acronym> 9
 	supports IXFR for those zones
 	where the necessary change history information is available. These
-	include master zones maintained by dynamic update and slave zones
+	include primary zones maintained by dynamic update and secondary zones
 	whose data was obtained by IXFR.  For manually maintained master
-	zones, and for slave zones obtained by performing a full zone
+	zones, and for secondary zones obtained by performing a full zone
 	transfer (AXFR), IXFR is supported only if the option
 	<command>ixfr-from-differences</command> is set
 	to <userinput>yes</userinput>.
       </para>
 
       <para>
-	When acting as a slave, <acronym>BIND</acronym> 9 will
+	When acting as a secondary server, <acronym>BIND</acronym> 9 will
 	attempt to use IXFR unless
 	it is explicitly disabled. For more information about disabling
 	IXFR, see the description of the <command>request-ixfr</command> clause
 	of the <command>server</command> statement.
+      </para>
+
+      <para>
+	When a secondary server receives a zone via AXFR, it creates a
+	new copy of the zone database and then swaps it into place; during
+	the loading process, queries continue to be served from the old
+	database with no interference. When receiving a zone via IXFR,
+	however, changes are applied to the running zone, which may
+	degrade query performance during the transfer.  If a server
+	receiving an IXFR request determines that the response size would
+	be similar in size to an AXFR response, it may wish to send AXFR
+	instead. The threshold at which this determination is made can
+	be configured using the <command>max-ixfr-ratio</command> option.
       </para>
     </section>
 
@@ -2212,7 +2226,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	  <userinput>yes</userinput>, DNSSEC validation will only occur
 	  if at least one trust anchor has been explicitly configured
 	  in <filename>named.conf</filename>
-	  using a <command>dnssec-keys</command> statement (or the
+	  using a <command>trust-anchors</command> statement (or the
 	  <command>managed-keys</command> and <command>trusted-keys</command>
 	  statements, both deprecated).
 	</para>
@@ -2227,7 +2241,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 	<para>
-	  The keys specified in <command>dnssec-keys</command>
+	  The keys specified in <command>trust-anchors</command>
 	  copies of DNSKEY RRs for zones that are used to form the
 	  first link in the cryptographic chain of trust.  Keys configured
 	  with the keyword <command>static-key</command> or
@@ -2241,7 +2255,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 	<para>
-	  <command>dnssec-keys</command> is described in more detail
+	  <command>trust-anchors</command> is described in more detail
 	  later in this document.
 	</para>
 
@@ -2264,7 +2278,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 <programlisting>
-dnssec-keys {
+trust-anchors {
 	/* Root Key */
 	"." initial-key 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
 				 JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
@@ -3202,7 +3216,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    </row>
 	    <row rowsep="0">
 	      <entry colname="1">
-		<para><command>dnssec-keys</command></para>
+		<para><command>trust-anchors</command></para>
 	      </entry>
 	      <entry colname="2">
 		<para>
@@ -3223,9 +3237,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	      </entry>
 	      <entry colname="2">
 		<para>
-		  is identical to <command>dnssec-keys</command>;
+		  is identical to <command>trust-anchors</command>;
 		  this option is deprecated in favor
-		  of <command>dnssec-keys</command> with
+		  of <command>trust-anchors</command> with
 		  the <command>initial-key</command> keyword,
 		  and may be removed in a future release.
 		</para>
@@ -3239,7 +3253,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		<para>
 		  defines permanent trusted DNSSEC keys;
 		  this option is deprecated in favor
-		  of <command>dnssec-keys</command> with
+		  of <command>trust-anchors</command> with
 		  the <command>static-key</command> keyword,
 		  and may be removed in a future release.
 		</para>
@@ -3496,7 +3510,8 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 
 	<para>
 	  The <command>include</command> statement inserts the
-	  specified file at the point where the <command>include</command>
+          specified file (or files if a valid glob expression is detected)
+          at the point where the <command>include</command>
 	  statement is encountered. The <command>include</command>
 		statement facilitates the administration of configuration
 	  files
@@ -3963,69 +3978,64 @@ category notify { null; };
 	<section xml:id="query_errors"><info><title>The <command>query-errors</command> Category</title></info>
 	  <para>
 	    The <command>query-errors</command> category is
-	    specifically intended for debugging purposes: To identify
-	    why and how specific queries result in responses which
-	    indicate an error.
-	    Messages of this category are therefore only logged
-	    with <command>debug</command> levels.
+	    used to indicate why and how specific queries resulted in
+	    responses which indicate an error.  Normally, these messages
+	    will be logged at <command>debug</command> logging levels;
+	    note, however, that if query logging is active, some will be
+	    logged at <command>info</command>. The logging levels are
+	    described below:
 	  </para>
 
 	  <para>
-	    At the debug levels of 1 or higher, each response with the
-	    rcode of SERVFAIL is logged as follows:
+	    At <command>debug</command> level 1 or higher - or at
+	    <command>info</command>, when query logging is active - each
+	    response with response code SERVFAIL will be logged as follows:
 	  </para>
 	  <para>
 	    <computeroutput>client 127.0.0.1#61502: query failed (SERVFAIL) for www.example.com/IN/AAAA at query.c:3880</computeroutput>
 	  </para>
 	  <para>
-	    This means an error resulting in SERVFAIL was
-	    detected at line 3880 of source file
-	    <filename>query.c</filename>.
-	    Log messages of this level will particularly
-	    help identify the cause of SERVFAIL for an
-	    authoritative server.
+	    This means an error resulting in SERVFAIL was detected at line
+	    3880 of source file <filename>query.c</filename>.  Log messages
+	    of this level will particularly help identify the cause of
+	    SERVFAIL for an authoritative server.
 	  </para>
 	  <para>
-	    At the debug levels of 2 or higher, detailed context
-	    information of recursive resolutions that resulted in
-	    SERVFAIL is logged.
-	    The log message will look like as follows:
+	    At <command>debug</command> level 2 or higher, detailed
+	    context information about recursive resolutions that resulted in
+	    SERVFAIL will be logged.  The log message will look like this:
 	  </para>
 	  <para>
 <!-- NOTE: newlines and some spaces added so this would fit on page -->
 	    <programlisting>
 fetch completed at resolver.c:2970 for www.example.com/A
-in 30.000183: timed out/success [domain:example.com,
-referral:2,restart:7,qrysent:8,timeout:5,lame:0,neterr:0,
+in 10.000183: timed out/success [domain:example.com,
+referral:2,restart:7,qrysent:8,timeout:5,lame:0,quota:0,neterr:0,
 badresp:1,adberr:0,findfail:0,valfail:0]
 	    </programlisting>
 	  </para>
 	  <para>
 	    The first part before the colon shows that a recursive
 	    resolution for AAAA records of www.example.com completed
-	    in 30.000183 seconds and the final result that led to the
+	    in 10.000183 seconds and the final result that led to the
 	    SERVFAIL was determined at line 2970 of source file
 	    <filename>resolver.c</filename>.
 	  </para>
 	  <para>
 	    The following part shows the detected final result and the
-	    latest result of DNSSEC validation.
-	    The latter is always success when no validation attempt
-	    is made.
-	    In this example, this query resulted in SERVFAIL probably
-	    because all name servers are down or unreachable, leading
-	    to a timeout in 30 seconds.
-	    DNSSEC validation was probably not attempted.
+	    latest result of DNSSEC validation.  The latter is always
+	    "success" when no validation attempt was made.  In this example,
+	    this query probably resulted in SERVFAIL because all name
+	    servers are down or unreachable, leading to a timeout in 10
+	    seconds.  DNSSEC validation was probably not attempted.
 	  </para>
 	  <para>
-	    The last part enclosed in square brackets shows statistics
-	    information collected for this particular resolution
-	    attempt.
-	    The <varname>domain</varname> field shows the deepest zone
-	    that the resolver reached;
-	    it is the zone where the error was finally detected.
-	    The meaning of the other fields is summarized in the
-	    following table.
+	    The last part, enclosed in square brackets, shows statistics
+	    collected for this particular resolution attempt.
+	    The <varname>domain</varname> field shows the deepest zone that
+	    the resolver reached; it is the zone where the error was
+	    finally detected.  The meaning of the other fields is
+	    summarized in the following table.
 	  </para>
 
 	  <informaltable colsep="0" rowsep="0">
@@ -4101,6 +4111,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		</row>
 		<row rowsep="0">
 		  <entry colname="1">
+		    <para><varname>quota</varname></para>
+		  </entry>
+		  <entry colname="2">
+		    <para>
+		      The number of times the resolver was unable
+		      to send a query because it had exceeded the
+		      permissible fetch quota for a server.
+		    </para>
+		  </entry>
+		</row>
+		<row rowsep="0">
+		  <entry colname="1">
 		    <para><varname>neterr</varname></para>
 		  </entry>
 		  <entry colname="2">
@@ -4169,20 +4191,17 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    </tgroup>
 	  </informaltable>
 	  <para>
-	    At the debug levels of 3 or higher, the same messages
-	    as those at the debug 1 level are logged for other errors
-	    than SERVFAIL.
-	    Note that negative responses such as NXDOMAIN are not
-	    regarded as errors here.
+	    At <command>debug</command> level 3 or higher, the same
+	    messages as those at <command>debug</command> level 1 will be
+	    logged for other errors than SERVFAIL. Note that negative
+	    responses such as NXDOMAIN are not errors, and are not logged
+	    at this debug level.
 	  </para>
 	  <para>
-	    At the debug levels of 4 or higher, the same messages
-	    as those at the debug 2 level are logged for other errors
-	    than SERVFAIL.
-	    Unlike the above case of level 3, messages are logged for
-	    negative responses.
-	    This is because any unexpected results can be difficult to
-	    debug in the recursion case.
+	    At <command>debug</command> level 4 or higher, the
+	    detailed context information logged at <command>debug</command>
+	    level 2 will be logged for other errors than SERVFAIL and
+	    for negative resonses such as NXDOMAIN.
 	  </para>
 	</section>
       </section>
@@ -4467,9 +4486,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		    The number of seconds to wait between attempts to
 		    reopen a closed output stream. The minimum is 1 second,
 		    the maximum is 600 seconds (10 minutes), and the default
-		    is 5 seconds.
-		    For convenience, TTL-style time unit suffixes may be
-		    used to specify the value.
+		    is 5 seconds.  For convenience, TTL-style time unit
+		    suffixes may be used to specify the value.  It also
+		    accepts ISO 8601 duration formats.
 		  </simpara>
 		</listitem>
 	      </itemizedlist>
@@ -4624,7 +4643,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		track managed DNSSEC keys (i.e., those configured using
 		the <command>initial-key</command> or
 		<command>initial-ds</command> keywords in a
-		<command>dnssec-keys</command> statement).  By default,
+		<command>trust-anchors</command> statement).  By default,
 		this is the working directory.  The directory
 		<emphasis>must</emphasis> be writable by the effective
 		user ID of the <command>named</command> process.
@@ -4646,6 +4665,25 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		compatibility after upgrade, if a file using the old
 		name format is found to exist, it will be used instead
 		of the new format.)
+	      </para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><command>max-ixfr-ratio</command></term>
+	    <listitem>
+	      <para>
+		Sets the size threshold (expressed as a percentage
+		of the size of the full zone) beyond which
+		<command>named</command> will choose to use an AXFR
+		response rather than IXFR when answering zone transfer
+		requests.  See <xref linkend="incremental_zone_transfers"/>.
+	      </para>
+	      <para>
+		The minimum value is <literal>1%</literal>. The keyword
+		<literal>unlimited</literal> disables ratio checking and
+		allows IXFRs of any size.  The default is
+		<literal>100%</literal>.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -5062,7 +5100,7 @@ options {
 		as insecure.
 	      </para>
 	      <para>
-		Configured trust anchors in <command>dnssec-keys</command>
+		Configured trust anchors in <command>trust-anchors</command>
 		(or <command>managed-keys</command> or
 		<command>trusted-keys</command>, both deprecated)
 		that match a disabled algorithm will be ignored and treated
@@ -5100,7 +5138,7 @@ options {
 		they are secure.  If <userinput>no</userinput>, then normal
 		DNSSEC validation applies allowing for insecure answers to
 		be accepted.  The specified domain must be defined as a
-		trust anchor, for instance in a <command>dnssec-keys</command>
+		trust anchor, for instance in a <command>trust-anchors</command>
 		statement, or <command>dnssec-validation auto</command> must
 		be active.
 	      </para>
@@ -5271,8 +5309,11 @@ options {
 		<para>
 		  For convenience, TTL-style time unit suffixes can be
 		  used to specify the NTA lifetime in seconds, minutes
-		  or hours.  <option>nta-lifetime</option> defaults to
-		  one hour.  It cannot exceed one week.
+		  or hours.  It also accepts ISO 8601 duration formats.
+		</para>
+		<para>
+		 <option>nta-lifetime</option> defaults to one hour.  It
+		 cannot exceed one week.
 		</para>
 	    </listitem>
 	  </varlistentry>
@@ -5305,9 +5346,13 @@ options {
 		<para>
 		  For convenience, TTL-style time unit suffixes can be
 		  used to specify the NTA recheck interval in seconds,
-		  minutes or hours.  The default is five minutes.  It
-		  cannot be longer than <option>nta-lifetime</option>
-		  (which cannot be longer than a week).
+		  minutes or hours.  It also accepts ISO 8601 duration
+		  formats.
+		</para>
+		<para>
+		  The default is five minutes.  It cannot be longer than
+		  <option>nta-lifetime</option> (which cannot be longer
+		  than a week).
 		</para>
 	    </listitem>
 	  </varlistentry>
@@ -5318,7 +5363,10 @@ options {
 	      <para>
 		Specifies a maximum permissible TTL value in seconds.
 		For convenience, TTL-style time unit suffixes may be
-		used to specify the maximum value.
+		used to specify the maximum value. It also
+                accepts ISO 8601 duration formats.
+	      </para>
+	      <para>
 		When loading a zone file using a
 		<option>masterfile-format</option> of
 		<constant>text</constant> or <constant>raw</constant>,
@@ -6217,7 +6265,7 @@ options {
 		  Causes <command>named</command> to send specially-formed
 		  queries once per day to domains for which trust anchors
 		  have been configured via, e.g.,
-		  <command>dnssec-keys</command> or
+		  <command>trust-anchors</command> or
 		  <command>dnssec-validation auto</command>.
 		</para>
 		<para>
@@ -6432,7 +6480,7 @@ options {
 		<para>
 		  If set to <userinput>yes</userinput>, DNSSEC validation is
 		  enabled, but a trust anchor must be manually configured
-		  using a <command>dnssec-keys</command> statement (or
+		  using a <command>trust-anchors</command> statement (or
 		  the <command>managed-keys</command> or the
 		  <command>trusted-keys</command> statements, both deprecated).
 		  If there is no configured trust anchor, validation will
@@ -6520,11 +6568,22 @@ options {
 	      <term><command>querylog</command></term>
 	      <listitem>
 		<para>
-		  Specify whether query logging should be started when <command>named</command>
-		  starts.
-		  If <command>querylog</command> is not specified,
-		  then the query logging
-		  is determined by the presence of the logging category <command>queries</command>.
+		  Query logging provides a complete log of all incoming
+		  queries and all query errors. This provides more insight
+		  into the server's activity, but with a cost to
+		  performance which may be significant on heavily-loaded
+		  servers.
+		</para>
+		<para>
+		  The <command>querylog</command> option specifies
+		  whether query logging should be active when
+		  <command>named</command> first starts.
+		  If <command>querylog</command> is not specified, then
+		  query logging is determined by the presence of the
+		  logging category <command>queries</command>.
+		  Query logging can also be activated at runtime using the
+		  command <command>rndc querylog on</command>, or
+		  deactivated with <command>rndc querylog off</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6855,9 +6914,11 @@ options {
 	      <term><command>forwarders</command></term>
 	      <listitem>
 		<para>
-		  Specifies the IP addresses to be used
-		  for forwarding. The default is the empty list (no
-		  forwarding).
+		  Specifies a list of IP addresses to which queries shall be
+		  forwarded. The default is the empty list (no forwarding).
+		  Each address in the list can be associated with an optional
+		  port number and/or DSCP value, and a default port number and
+		  DSCP value can be set for the entire list.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8463,7 +8524,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  <command>listen-on</command> configuration), and
 		  will stop listening on interfaces that have gone away.
 		  For convenience, TTL-style time unit suffixes may be
-		  used to specify the value.
+		  used to specify the value.  It also accepts ISO 8601
+		  duration formats.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8744,9 +8806,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  stores negative answers. <command>min-ncache-ttl</command> is
 		  used to set a minimum retention time for these answers in the
 		  server in seconds.  For convenience, TTL-style time unit
-		  suffixes may be used to specify the value.  The default
-		  <command>min-ncache-ttl</command> is <literal>0</literal>
-		  seconds.  <command>min-ncache-ttl</command> cannot exceed 90
+		  suffixes may be used to specify the value.  It also
+                  accepts ISO 8601 duration formats.
+		</para>
+		<para>
+		  The default <command>min-ncache-ttl</command> is
+		  <literal>0</literal> seconds.
+		  <command>min-ncache-ttl</command> cannot exceed 90
 		  seconds and will be truncated to 90 seconds if set to a
 		  greater value.
 		</para>
@@ -8758,10 +8824,14 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  Sets the minimum time for which the server will cache ordinary
-		  (positive) answers in seconds. For convenience, TTL-style time
-		  unit suffixes may be used to specify the value. The default
-		  <command>min-cache-ttl</command> is <literal>0</literal>
-		  seconds. <command>min-cache-ttl</command> cannot exceed 90
+		  (positive) answers in seconds.  For convenience, TTL-style
+		  time unit suffixes may be used to specify the value.  It also
+                  accepts ISO 8601 duration formats.
+		</para>
+		<para>
+		  The default <command>min-cache-ttl</command> is
+		  <literal>0</literal> seconds.
+		  <command>min-cache-ttl</command> cannot exceed 90
 		  seconds and will be truncated to 90 seconds if set to a
 		  greater value.
 		</para>
@@ -8773,15 +8843,19 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  To reduce network traffic and increase performance,
-		  the server stores negative answers. <command>max-ncache-ttl</command> is
+		  the server stores negative answers.
+		  <command>max-ncache-ttl</command> is
 		  used to set a maximum retention time for these answers in
-		  the server in seconds.
-		  For convenience, TTL-style time unit suffixes may be
-		  used to specify the value.  The default
-		  <command>max-ncache-ttl</command> is <literal>10800</literal> seconds (3 hours).
-		  <command>max-ncache-ttl</command> cannot exceed
-		  7 days and will
-		  be silently truncated to 7 days if set to a greater value.
+		  the server in seconds.  For convenience, TTL-style time unit
+		  suffixes may be used to specify the value.  It also accepts
+		  ISO 8601 duration formats.
+		</para>
+		<para>
+		  The default <command>max-ncache-ttl</command> is
+		  <literal>10800</literal> seconds (3 hours).
+		  <command>max-ncache-ttl</command> cannot exceed 7 days and
+		  will be silently truncated to 7 days if set to a greater
+		  value.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8793,7 +8867,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  Sets the maximum time for which the server will
 		  cache ordinary (positive) answers in seconds.
 		  For convenience, TTL-style time unit suffixes may be
-		  used to specify the value.
+		  used to specify the value.  It also accepts ISO 8601
+		  duration formats.
+		</para>
+		<para>
 		  The default is 604800 (one week).
 		  A value of zero may cause all queries to return
 		  SERVFAIL, because of lost caches of intermediate
@@ -9272,6 +9349,11 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  The default is the real version number of this server.
 		  Specifying <command>version none</command>
 		  disables processing of the queries.
+		</para>
+		<para>
+		  Setting <command>version</command> to any value
+		  (including <literal>none</literal>) will also
+		  disable queries for <literal>authors.bind TXT CH</literal>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -10099,7 +10181,9 @@ deny-answer-aliases { "example.net"; };
 	    The <command>max-policy-ttl</command> clause changes the
 	    maximum seconds from its default of 5.
 	    For convenience, TTL-style time unit suffixes may be
-	    used to specify the value.
+	    used to specify the value.  It also accepts ISO 8601 duration
+	    formats.
+
 	  </para>
 
 	  <para>
@@ -10195,7 +10279,8 @@ example.com                 CNAME   rpz-tcp-only.
 	    recent update, then the changes will not be carried out until this
 	    interval has elapsed.  The default is <literal>60</literal> seconds.
 	    For convenience, TTL-style time unit suffixes may be
-	    used to specify the value.
+	    used to specify the value.  It also accepts ISO 8601 duration
+	    formats.
 	  </para>
 	</section>
 
@@ -10848,14 +10933,14 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	</section>
 
-	<section xml:id="dnssec_keys"><info><title><command>dnssec-keys</command> Statement Grammar</title></info>
-	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="dnssec-keys.grammar.xml"/>
+	<section xml:id="trust_anchors"><info><title><command>trust-anchors</command> Statement Grammar</title></info>
+	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="trust-anchors.grammar.xml"/>
 	</section>
-	<section xml:id="dnssec-keys"><info><title><command>dnssec-keys</command> Statement Definition
+	<section xml:id="trust-anchors"><info><title><command>trust-anchors</command> Statement Definition
 	    and Usage</title></info>
 
 	  <para>
-	    The <command>dnssec-keys</command> statement defines DNSSEC
+	    The <command>trust-anchors</command> statement defines DNSSEC
 	    trust anchors.  DNSSEC is described in <xref linkend="DNSSEC"/>.
 	  </para>
 	  <para>
@@ -10874,21 +10959,21 @@ example.com                 CNAME   rpz-tcp-only.
 	    the <command>validate-except</command> option).
 	  </para>
 	  <para>
-	    All keys listed in <command>dnssec-keys</command>, and
+	    All keys listed in <command>trust-anchors</command>, and
 	    their corresponding zones, are deemed to exist regardless
 	    of what parent zones say.  Only keys configured as trust anchors
 	    are used to validate the DNSKEY RRset for the corresponding
 	    name. The parent's DS RRset will not be used.
 	  </para>
 	  <para>
-	    <command>dnssec-keys</command> may be set at the top level
+	    <command>trust-anchors</command> may be set at the top level
 	    of <filename>named.conf</filename> or within a view.  If it is
 	    set in both places, the configurations are additive: keys
 	    defined at the top level are inherited by all views, but keys
 	    defined in a view are only used within that view.
 	  </para>
 	  <para>
-	    The <command>dnssec-keys</command> statement can contain
+	    The <command>trust-anchors</command> statement can contain
 	    multiple trust anchor entries, each consisting of a
 	    domain name, followed by an "anchor type" keyword indicating
 	    the trust anchor's format, followed by the key or digest data.
@@ -10905,7 +10990,7 @@ example.com                 CNAME   rpz-tcp-only.
 	  <para>
 	    If the anchor type is <command>static-ds</command> or
 	    <command>initial-ds</command>, then it is followed with the
-	    key tag, algorithm, digest type, and the hexidecimal
+	    key tag, algorithm, digest type, and the hexadecimal
 	    representation of the key digest. This is identical to the
 	    text representation of a DS record.  Spaces, tabs, newlines
 	    and carriage returns are ignored.
@@ -10928,7 +11013,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    <command>static-ds</command> would be unable to validate
 	    this zone any longer; it would reply with a SERVFAIL response
 	    code.  This would continue until the resolver operator had
-	    updated the <command>dnssec-keys</command> statement with
+	    updated the <command>trust-anchors</command> statement with
 	    the new key.
 	  </para>
 	  <para>
@@ -10956,15 +11041,14 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	  <para>
 	    It is not possible to mix static with initial trust anchors
-	    for the same domain name. It is also not possible to mix
-	    <command>key</command> with <command>ds</command> trust anchors.
+	    for the same domain name.
 	  </para>
 	  <para>
 	    The first time <command>named</command> runs with an
 	    <command>initial-key</command> or <command>initial-ds</command>
 	    configured in <filename>named.conf</filename>, it fetches the
 	    DNSKEY RRset directly from the zone apex, and validates it
-	    using the trust anchor specified in <command>dnssec-keys</command>.
+	    using the trust anchor specified in <command>trust-anchors</command>.
 	    If the DNSKEY RRset is validly signed by a key matching
 	    the trust anchor, then it is used as the basis for a new
 	    managed keys database.
@@ -10973,10 +11057,10 @@ example.com                 CNAME   rpz-tcp-only.
 	    From that point on, whenever <command>named</command> runs, it
 	    sees the <command>initial-key</command> or
 	    <command>initial-ds</command> listed in
-	    <command>dnssec-keys</command>, checks to
+	    <command>trust-anchors</command>, checks to
 	    make sure RFC 5011 key maintenance has already been initialized
 	    for the specified domain, and if so, it simply moves on.  The
-	    key specified in the <command>dnssec-keys</command>
+	    key specified in the <command>trust-anchors</command>
 	    statement is not used to validate answers; it is
 	    superseded by the key or keys stored in the managed keys
 	    database.
@@ -10985,7 +11069,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    The next time <command>named</command> runs after an
 	    <command>initial-key</command> or <command>initial-ds</command>
 	    trust anchor has been <emphasis>removed</emphasis> from the
-	    <command>dnssec-keys</command> statement (or changed to
+	    <command>trust-anchors</command> statement (or changed to
 	    a <command>static-key</command> or <command>static-ds</command>),
 	    the corresponding keys will be removed from the managed keys
 	    database, and RFC 5011 key maintenance will no longer be used
@@ -11036,33 +11120,96 @@ example.com                 CNAME   rpz-tcp-only.
 	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="dnssec-policy.grammar.xml"/>
 	</section>
 
-	<section xml:id="dnssec_policy"><info><title><command>dnssec-policy</command> Statement Definition
-	    and Usage</title></info>
+	<section xml:id="dnssec_policy"><info><title><command>dnssec-policy</command> Statement Definition and Usage</title></info>
 
 	  <para>
 	    The <command>dnssec-policy</command> statement defines a key and
 	    signing policy (KASP) for zones.
 	  </para>
 	  <para>
-	    KASP is used to determine how one or more zones need to be signed
-	    with DNSSEC.  For example, how often RRSIG records need to be
-	    refreshed, or what cryptographic algorithms to use.
+	    A KASP determines how one or more zones will be signed
+	    with DNSSEC. For example, it specifies how often keys should
+	    roll, which cryptographic algorithms to use, and how often RRSIG
+	    records need to be refreshed.
 	  </para>
 	  <para>
-	    You can configure multiple policies.  To attach a policy to a zone
-	    simply add <userinput>dnssec-policy "policy_name"</userinput>
-	    option to the <command>zone</command> statement with a matching
-	    policy name.
+	    Keys are not shared among zones, which means that one set of keys
+	    per zone will be generated even if they have the same policy.
+	    If multiple views are configured with different versions of the
+	    same zone, each separate version will use the same set of signing
+	    keys.
+	  </para>
+	  <para>
+	    Multiple key and signing policies can be configured.  To
+	    attach a policy to a zone, add a <command>dnssec-policy</command>
+	    option to the <command>zone</command> statement, specifying he
+	    name of the policy that should be used.
+	  </para>
+	  <para>
+	    Key rollover timing is computed for each key according to
+	    the key lifetime defined in the KASP.  The lifetime may be
+	    modified by zone TTLs and propagation delays, in order to
+	    prevent validation failures.  When a key reaches the end of its
+	    lifetime,
+	    <command>named</command> will generate and publish a new key
+	    automatically, then deactivate the old key and activate the
+	    new one, and finally retire the old key according to a computed
+	    schedule.
+	  </para>
+	  <para>
+	    Zone-signing key (ZSK) rollovers require no operator input.
+	    Key-signing key (KSK) and combined signing key (CSK) rollovers
+	    require action to be taken to submit a DS record to the parent.
+	    Rollover timing for KSKs and CSKs is adjusted to take into account
+	    delays in processing and propagating DS updates.
+	  </para>
+	  <para>
+	    There are two predefined <command>dnssec-policy</command> names:
+	    <command>none</command> and <command>default</command>.
+	    Setting a zone's policy to
+	    <command>none</command> is the same as not setting
+	    <command>dnssec-policy</command> at all; the zone will not
+	    be signed.  Policy <command>default</command> causes the
+	    zone to be signed with a single combined signing key (CSK)
+	    using algorithm ECDSAP256SHA256; this key will have an
+	    unlimited lifetime. (A verbose copy of this policy
+	    may be found in the source tree, in the file
+	    <filename>doc/misc/dnssec-policy.default.conf</filename>.)
+	    <note>
+	      The default signing policy may change in future releases.
+	      This could result in changes to your signing policy
+	      occurring when you upgrade to a new version of BIND. Check
+	      the release notes carefully when upgrading to be informed
+	      of such changes. To prevent policy changes on upgrade,
+	      use an explicitly defined <command>dnssec-policy</command>
+	      rather than <command>default</command>.
+	    </note>
+	  </para>
+	  <para>
+	    If a <command>dnssec-policy</command> statement is modified
+	    and the server restarted or reconfigured, <command>named</command>
+	    will attempt to change the policy smoothly from the old one to
+	    the new. For example, if the key algorithm is changed, then
+	    a new key will be generated with the new algorithm, and the old
+	    algorithm will be retired when the existing key's lifetime ends.
+	    <note>
+	      Rolling to a new policy while another key rollover is
+	      already in progress is not yet supported, and may result in
+	      unexpected behavior.
+	    </note>
+	  </para>
+	  <para>
+	    The following options can be specified in a
+	    <command>dnssec-policy</command> statement:
 	  </para>
 
 	  <variablelist>
-
 	    <varlistentry>
 	      <term><command>dnskey-ttl</command></term>
 	      <listitem>
 		<para>
-		  The TTL of the DNSKEY resource records.
-		  Default is <constant>3600</constant> seconds.
+		  The TTL to use when generating DNSKEY resource records.
+		  The default is 1 hour (3600 seconds).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11071,42 +11218,73 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>keys</command></term>
 	      <listitem>
 		<para>
-		  A list of keys to use.  Each line represents one key. Here is
-		  an example (for illustration purposes only) of some possible
-		  keys in a <command>dnssec-policy</command>:
+		  A list specifying the algorithms and roles to use when
+		  generating keys and signing the zone.
+		  Entries in this list do not represent specific
+		  DNSSEC keys, which may be changed on a regular basis,
+		  but the roles that keys will play in the signing policy.
+		  For example, configuring a KSK of algorithm RSASHA256 ensures
+		  that the DNSKEY RRset will always include a key-signing key
+		  for that algorithm.
+		</para>
+		<para>
+		  Here is an example (for illustration purposes only) of
+		  some possible entries in a <command>keys</command>
+		  list:
 		</para>
 
 <programlisting>keys {
-    ksk key-directory lifetime P5Y algorithm 8 2048;
-    zsk key-directory lifetime P30D algorithm 8;
-    csk key-directory lifetime P6MT12H3M15S algorithm 13;
+    ksk key-directory lifetime unlimited algorithm rsasha1 2048;
+    zsk lifetime P30D algorithm 8;
+    csk lifetime P6MT12H3M15S algorithm ecdsa256;
 };
 </programlisting>
 
 		<para>
-		  This example lists three keys. The first token determines
-		  what RRsets the key will sign. If set to
-		  <userinput>ksk</userinput> the key will sign the DNSKEY, CDS,
-		  and CDNSKEY RRsets, if set to <userinput>zsk</userinput> the
-		  key will sign the other RRsets, and if set to
-		  <userinput>csk</userinput> the key will sign all RRsets.
+		  This example specifies that three keys should be used
+		  in the zone. The first token determines which role the
+		  key will play in signing RRsets.  If set to
+		  <userinput>ksk</userinput>, then this will be
+		  a key-signing key; it will have the KSK flag set and
+		  will only be used to sign DNSKEY, CDS, and CDNSKEY RRsets.
+		  If set to <userinput>zsk</userinput>, this will be
+		  a zone-signing key; the KSK flag will be unset, and
+		  the key will sign all RRsets <emphasis>except</emphasis>
+		  DNSKEY, CDS, and CDNSKEY. If set to
+		  <userinput>csk</userinput> the key will have the KSK
+		  flag set and will be used to sign all RRsets.
 		</para>
 		<para>
-		  The following part determines where the key will be stored.
-		  Currently keys can only be stored in the configured
-		  <command>key-directory</command>.
+		  An optional second token determines where the key will
+		  be stored.  Currently, keys can only be stored in the
+		  configured <command>key-directory</command>. This token
+		  may be used in the future to store keys in hardware
+		  service modules or separate directories.
 		</para>
 		<para>
-		  The third token tells how long the key may be used.  In the
-		  example the first key has a lifetime of 5 years, the second
-		  key may be used for 30 days and the third key has a rather
-		  peculiar lifetime of 6 months, 12 hours, 3 minutes and 15
-		  seconds.
+		  The <command>lifetime</command> parameter specifies how
+		  long a key may be used before rolling over.  In the
+		  example above, the first key will have an unlimited
+		  lifetime, the second key may be used for 30 days, and the
+		  third key has a rather peculiar lifetime of 6 months,
+		  12 hours, 3 minutes and 15 seconds.  A lifetime of 0
+		  seconds is the same as <command>unlimited</command>.
 		</para>
 		<para>
-		  The last token(s) are the key's algorithm and algorithm
-		  length.  The length may be omitted as shown in the
-		  example for the second and third key.
+		  Note that the lifetime of a key may be extended if
+		  retiring it too soon would cause validation failures.
+		  For example, if the key were configured to roll more
+		  frequently than its own TTL, its lifetime would
+		  automatically be extended to account for this.
+		</para>
+		<para>
+		  The <command>algorithm</command> parameter specifies
+		  the key's algorithm, expressed either as a string
+		  ("rsasha256", "ecdsa384", etc) or as a decimal number.
+		  An optional second parameter specifies the key's size
+		  in size in bits. If it is omitted, as shown in the
+		  example for the second and third keys, an appropriate
+		  default size for the algorithm will be used.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11115,10 +11293,11 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>publish-safety</command></term>
 	      <listitem>
 		<para>
-		  A margin that is added to the publish interval in key
-		  timing equations to give some extra time to cover
-		  unforeseen events.  Default is <constant>PT5M</constant>
-		  (5 minutes).
+		  A margin that is added to the pre-publication
+		  interval in rollover timing calculations to give some
+		  extra time to cover unforeseen events. This increases
+		  the time that keys are published before becoming active.
+		  The default is <constant>PT1H</constant> (1 hour).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11127,10 +11306,11 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>retire-safety</command></term>
 	      <listitem>
 		<para>
-		  A margin that is added to the retire interval in key
-		  timing equations to give some extra time to cover
-		  unforeseen events.  Default is <constant>PT5M</constant>
-		  (5 minutes).
+		  A margin that is added to the post-publication interval
+		  in rollover timing calculations to give some extra time
+		  to cover unforeseen events. This increases the time a key
+		  remains published after it is no longer active.  The
+		  default is <constant>PT1H</constant> (1 hour).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11139,13 +11319,12 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>signatures-refresh</command></term>
 	      <listitem>
 		<para>
-		  This determines when a RRSIG record needs to be
-		  refreshed.  The signatures is renewed when the time until
-		  the expiration time is closer than
-		  <command>signatures-refresh</command>.
-		  <command>signatures-resign</command> interval.  Default
-		  is <constant>P5D</constant> (5 days), meaning a signature
-		  that will expire in 5 days or sooner will be refreshed.
+		  This determines how frequently an RRSIG record needs to be
+		  refreshed.  The signature is renewed when the time until
+		  the expiration time is closer than the specified interval.
+		  The default is <constant>P5D</constant> (5 days), meaning
+		  signatures that will expire in 5 days or sooner will be
+		  refreshed.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11154,8 +11333,8 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>signatures-validity</command></term>
 	      <listitem>
 		<para>
-		  The validity period of an RRSIG record (minus the
-		  inception offset and jitter). Default is
+		  The validity period of an RRSIG record (subject to
+		  inception offset and jitter). The default is
 		  <constant>P2W</constant> (2 weeks).
 		</para>
 	      </listitem>
@@ -11165,30 +11344,31 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>signatures-validity-dnskey</command></term>
 	      <listitem>
 		<para>
-		  Like <command>signatures-validity</command> but for
-		  DNSKEY records. Default is <constant>P2W</constant> (2
-		  weeks).
+		  Similar to <command>signatures-validity</command> but for
+		  DNSKEY records. The default is <constant>P2W</constant>
+		  (2 weeks).
 		</para>
 	      </listitem>
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>zone-max-ttl</command></term>
+	      <term><command>max-zone-ttl</command></term>
 	      <listitem>
 		<para>
-		  Like <command>max-zone-ttl</command>, specifies the
-		  maximum permissible TTL value in seconds. When loading a
-		  zone file using a <option>masterfile-format</option> or
+		  Like the <command>max-zone-ttl</command> zone option,
+		  this specifies the maximum permissible TTL value in
+		  seconds for the zone. When loading a zone file using
+		  a <option>masterfile-format</option> of
 		  <constant>text</constant> or <constant>raw</constant>,
 		  any record encountered with a TTL higher than
-		  <option>zone-max-ttl</option> will be capped to the
+		  <option>max-zone-ttl</option> will be capped at the
 		  maximum permissible TTL value.
 		</para>
 		<para>
 		  This is needed in DNSSEC-maintained zones because when
 		  rolling to a new DNSKEY, the old key needs to remain
 		  available until RRSIG records have expired from caches.
-		  The <option>zone-max-ttl</option> option guarantees that
+		  The <option>max-zone-ttl</option> option guarantees that
 		  the largest TTL in the zone will be no higher than the
 		  set value.
 		</para>
@@ -11199,8 +11379,8 @@ example.com                 CNAME   rpz-tcp-only.
 		</para>
 		<para>
 		  The default value is <constant>PT24H</constant> (24 hours).
-		  A <option>zone-max-ttl</option> of zero is treated as if
-		  the default value is in use.
+		  A <option>max-zone-ttl</option> of zero is treated as if
+		  the default value were in use.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11209,10 +11389,10 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>zone-propagation-delay</command></term>
 	      <listitem>
 		<para>
-		  The expected propagation delay from when a zone is
-		  updated and when the new version of the zone is served by
-		  all its name servers.  Default is
-		  <constant>PT5M</constant> (5 minutes).
+		  The expected propagation delay from the time when a zone
+		  is first updated to the time when the new version of the
+		  zone will be served by all secondary servers.  The default
+		  is <constant>PT5M</constant> (5 minutes).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11221,8 +11401,8 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>parent-ds-ttl</command></term>
 	      <listitem>
 		<para>
-		  The TTL of the DS RRset that the parent uses.  Default is
-		  <constant>PT1H</constant> (1 hour).
+		  The TTL of the DS RRset that the parent zone uses.  The
+		  default is <constant>P1D</constant> (1 day).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11231,10 +11411,10 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>parent-propagation-delay</command></term>
 	      <listitem>
 		<para>
-		  The expected propagation delay from when the parent zone
-		  is updated and when the new version of the parent zone is
-		  served by all its name servers.  Default is
-		  <constant>PT1H</constant> (1 hour).
+		  The expected propagation delay from the time when the
+		  parent zone is updated to the time when the new version
+		  is served by all of the parent zone's name servers.
+		  The default is <constant>PT1H</constant> (1 hour).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11243,9 +11423,9 @@ example.com                 CNAME   rpz-tcp-only.
 	      <term><command>parent-registration-delay</command></term>
 	      <listitem>
 		<para>
-		  The expected registration delay from when a DS RRset
-		  change is requested and when the DS RRset has been
-		  updated in the parent zone.  Default is
+		  The expected registration delay from the time when a DS
+		  RRset change is requested to the time when the DS RRset
+		  will be updated in the parent zone.  The default is
 		  <constant>P1D</constant> (1 day).
 	      </para>
 	      </listitem>
@@ -11261,7 +11441,7 @@ example.com                 CNAME   rpz-tcp-only.
 
 	  <para>
 	    The <command>managed-keys</command> statement has been
-	    deprecated in favor of <xref linkend="dnssec_keys"/>
+	    deprecated in favor of <xref linkend="trust_anchors"/>
 	    with the <command>initial-key</command> keyword.
 	  </para>
 	</section>
@@ -11274,7 +11454,7 @@ example.com                 CNAME   rpz-tcp-only.
 
 	  <para>
 	    The <command>trusted-keys</command> statement has been
-	    deprecated in favor of <xref linkend="dnssec_keys"/>
+	    deprecated in favor of <xref linkend="trust_anchors"/>
 	    with the <command>static-key</command> keyword.
 	  </para>
 	</section>
@@ -11663,7 +11843,7 @@ view "external" {
 		        (KSK) for the zone must be configured as a trust
 		        anchor in <filename>named.conf</filename>: that
 		        is, a key for the zone must be specified in
-		        <command>dnssec-keys</command>.  In the case
+		        <command>trust-anchors</command>.  In the case
 		        of the root zone, you may also rely on the
 		        built-in root trust anchor, which is enabled
 			when <xref endterm="dnssec_validation_term"
@@ -11858,7 +12038,7 @@ view "external" {
 		      <para>
 			If a redirect zone is configured with a
 			<option>masters</option> option, then it is
-			transfered in as if it were a slave zone.
+			transferred in as if it were a slave zone.
 			Otherwise, it is loaded from a file as if it
 			were a master zone.
 		      </para>
@@ -12131,9 +12311,16 @@ view "external" {
 		<term><command>dnssec-policy</command></term>
 		<listitem>
 		  <para>
-		    The key and signing policy for this zone.  Set to
-		    <userinput>"default"</userinput> if you want to make use
-		    of the default policy.
+		    Specifies which key and signing policy (KASP) should
+		    be used for this zone.  This is a string referring to
+		    a <command>dnssec-policy</command> statement.
+		    There are two built-in policies:
+		    <userinput>default</userinput> allows you to use the
+		    default policy, and <userinput>none</userinput> means
+		    not to use any DNSSEC policy, keeping the zone unsigned.
+		    The default is <userinput>none</userinput>.
+		    See <xref linkend="dnssec_policy_grammar"/> for
+		    more details.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -12272,6 +12459,17 @@ view "external" {
 		    Allow the default journal's filename to be overridden.
 		    The default is the zone's filename with "<filename>.jnl</filename>" appended.
 		    This is applicable to <command>master</command> and <command>slave</command> zones.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>max-ixfr-ratio</command></term>
+		<listitem>
+		  <para>
+		    See the description of
+		    <command>max-ixfr-ratio</command> in
+		    <xref linkend="options"/>.
 		  </para>
 		</listitem>
 	      </varlistentry>

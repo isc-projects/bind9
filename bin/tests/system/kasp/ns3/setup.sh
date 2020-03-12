@@ -43,7 +43,8 @@ U="UNRETENTIVE"
 # Set up zones that will be initially signed.
 #
 for zn in default rsasha1 dnssec-keygen some-keys legacy-keys pregenerated \
-	  rsasha1-nsec3 rsasha256 rsasha512 ecdsa256 ecdsa384 inherit
+	  rumoured rsasha1-nsec3 rsasha256 rsasha512 ecdsa256 ecdsa384 \
+	  inherit unlimited
 do
 	setup "${zn}.kasp"
 	cp template.db.in "$zonefile"
@@ -71,6 +72,16 @@ $KEYGEN -a RSASHA1 -f KSK  -L 1234 $zone > keygen.out.$zone.2 2>&1
 zone="pregenerated.kasp"
 $KEYGEN -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.1 2>&1
 $KEYGEN -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.2 2>&1
+
+zone="rumoured.kasp"
+Tpub="now"
+Tact="now+1d"
+KSK=$($KEYGEN  -a RSASHA1 -f KSK  -L 1234 $zone 2> keygen.out.$zone.1)
+ZSK1=$($KEYGEN -a RSASHA1 -b 2000 -L 1234 $zone 2> keygen.out.$zone.2)
+ZSK2=$($KEYGEN -a RSASHA1         -L 1234 $zone 2> keygen.out.$zone.3)
+$SETTIME -s -P $Tpub -A $Tact -g $O -k $R $Tpub -r $R $Tpub -d $H $Tpub  "$KSK"  > settime.out.$zone.1 2>&1
+$SETTIME -s -P $Tpub -A $Tact -g $O -k $R $Tpub -z $R $Tpub              "$ZSK1" > settime.out.$zone.2 2>&1
+$SETTIME -s -P $Tpub -A $Tact -g $O -k $R $Tpub -z $R $Tpub              "$ZSK2" > settime.out.$zone.2 2>&1
 
 #
 # Set up zones that are already signed.
@@ -139,6 +150,53 @@ $SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O full -f $zonefile $infile > sign
 $SETTIME -s -I now -g HIDDEN "$ZSK" > settime.out.$zone.3 2>&1
 
 #
+# The zones at enable-dnssec.autosign represent the various steps of the
+# initial signing of a zone.
+#
+
+# Step 1:
+# This is an unsigned zone and named should perform the initial steps of
+# introducing the DNSSEC records in the right order.
+setup step1.enable-dnssec.autosign
+cp template.db.in $zonefile
+
+# Step 2:
+# The DNSKEY has been published long enough to become OMNIPRESENT.
+setup step2.enable-dnssec.autosign
+CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
+TpubN="now-900s"
+$SETTIME -s -P $TpubN -A $TpubN -g $O -k $R $TpubN -r $R $TpubN -d $H $TpubN -z $R $TpubN "$CSK" > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 "$CSK" >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 3:
+# The zone signatures have been published long enough to become OMNIPRESENT.
+setup step3.enable-dnssec.autosign
+CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
+TpubN="now-44700s"
+TactN="now-43800s"
+$SETTIME -s -P $TpubN -A $TpubN -g $O -k $O $TactN -r $O $TactN -d $H $TpubN -z $R $TpubN "$CSK" > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 "$CSK" >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+setup step3.enable-dnssec.autosign
+
+# Step 4:
+# The DS has been submitted long enough ago to become OMNIPRESENT.
+# Add 27 hour plus retire safety of 20 minutes (98400 seconds) to the times.
+setup step4.enable-dnssec.autosign
+CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
+TpubN="now-143100s"
+TactN="now-142200s"
+TomnN="now-98400s"
+$SETTIME -s -P $TpubN -A $TpubN -g $O -k $O $TactN -r $O $TactN -d $R $TomnN -z $O $TomnN "$CSK" > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 "$CSK" >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+setup step3.enable-dnssec.autosign
+
+#
 # The zones at zsk-prepub.autosign represent the various steps of a ZSK
 # Pre-Publication rollover.
 #
@@ -190,7 +248,7 @@ TpubN1="now-26h"
 TretN1="now+30d"
 $SETTIME -s -P $TactN  -A $TactN            -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN -I now     -g $H -k $O $TactN  -z $O $TactN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -S "$ZSK1"             -i 0                                                     "$ZSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$ZSK1"           -i 0                                                     "$ZSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A now    -I $TretN1 -g $O -k $R $TpubN1 -z $H $TpubN1             "$ZSK2" > settime.out.$zone.4 2>&1
 cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 13 "$KSK"  >> "$infile"
@@ -223,7 +281,7 @@ TactN1="${TretN}"
 TretN1="now+479h"
 $SETTIME -s -P $TactN  -A $TactN             -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -z $U $TretN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -S "$ZSK1"              -i 0                                                     "$ZSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$ZSK1"            -i 0                                                     "$ZSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.4 2>&1
 cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 $SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
@@ -234,7 +292,7 @@ setup step5.zsk-prepub.autosign
 KSK=$($KEYGEN -a ECDSAP256SHA256 -f KSK -L 3600 $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a ECDSAP256SHA256 -L 3600 $zone 2> keygen.out.$zone.2)
 ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 $zone 2> keygen.out.$zone.3)
-# Substract DNSKEY TTL from all the times (1h).
+# Subtract DNSKEY TTL from all the times (1h).
 TactN="now-962h"
 TretN="now-242h"
 TpubN1="now-268h"
@@ -242,7 +300,7 @@ TactN1="${TretN}"
 TretN1="now+478h"
 $SETTIME -s -P $TactN  -A $TactN                   -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN -D now -g $H -k $U $TretN  -z $U $TretN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -S "$ZSK1"              -i 0                                                           "$ZSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$ZSK1"            -i 0                                                           "$ZSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1       -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.4 2>&1
 cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 13 "$KSK"  >> "$infile"
@@ -300,7 +358,7 @@ TretN="now+1d"
 TpubN1="now-27h"
 TretN1="now+61d"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$KSK1"              -i 0                                                        "$KSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$KSK1"            -i 0                                                        "$KSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TretN  -I $TretN1 -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN             -g $O -k $O $TactN   -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
@@ -332,7 +390,7 @@ TsbmN1="now-74h"
 TactN1="${TretN}"
 TretN1="now+1390h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$KSK1"              -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$KSK1"            -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN             -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
@@ -347,7 +405,7 @@ setup step5.ksk-doubleksk.autosign
 KSK1=$($KEYGEN -a ECDSAP256SHA256 -f KSK -L 7200 $zone 2> keygen.out.$zone.1)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -f KSK -L 7200 $zone 2> keygen.out.$zone.2)
 ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200 $zone 2> keygen.out.$zone.3)
-# Substract DNSKEY TTL from all the times (2h).
+# Subtract DNSKEY TTL from all the times (2h).
 TactN="now-1492h"
 TretN="now-52h"
 TpubN1="now-102h"
@@ -355,7 +413,7 @@ TsbmN1="now-75h"
 TactN1="${TretN}"
 TretN1="now+1388h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $U $TretN  -r $U $TretN  -d $H $TretN  "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$KSK1"              -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$KSK1"            -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TactN1 -r $O $TactN1 -d $O $TactN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN             -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
@@ -412,7 +470,7 @@ TretN="now+1d"
 TpubN1="now-3h"
 TretN1="now+187d"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  -z $O $TactN  "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                      "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                      "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TretN  -I $TretN1 -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 -z $H $TpubN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -445,7 +503,7 @@ TsbmN1="now-28h"
 TactN1="${TretN}"
 TretN1="now+4460h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 -z $U $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 -z $R $TsbmN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -458,7 +516,7 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > si
 setup step5.csk-roll.autosign
 CSK1=$($KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
-# Substract DNSKEY TTL plus zone propagation delay from all the times (2h).
+# Subtract DNSKEY TTL plus zone propagation delay from all the times (2h).
 TactN="now-4470h"
 TretN="now-6h"
 TdeaN="now-2h"
@@ -467,7 +525,7 @@ TsbmN1="now-30h"
 TactN1="${TretN}"
 TretN1="now+4458h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $U $TdeaN  -d $H $TdeaN  -z $U $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $O $TdeaN  -z $R $TsbmN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -497,7 +555,7 @@ TsbmN1="now-627h"
 TactN1="${TretN}"
 TretN1="now+3837h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $H $TdeaN  -d $H $TdeaN  -z $U $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $O $TdeaN  -z $R $TsbmN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -509,7 +567,7 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > si
 setup step7.csk-roll.autosign
 CSK1=$($KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
-# Substract DNSKEY TTL plus zone propagation delay from all the times (2h).
+# Subtract DNSKEY TTL plus zone propagation delay from all the times (2h).
 TactN="now-5093h"
 TretN="now-629h"
 TdeaN="now-625h"
@@ -518,7 +576,7 @@ TsbmN1="now-629h"
 TactN1="${TretN}"
 TretN1="now+3835h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $U now-2h  -r $H $TdeaN  -d $H $TdeaN  -z $H $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                     "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $O $TdeaN  -z $O $TsbmN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -575,7 +633,7 @@ TretN="now+1w"
 TpubN1="now-3h"
 TretN1="now+193d"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  -z $O $TactN  "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                      "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                      "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TretN  -I $TretN1 -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 -z $H $TpubN1 "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -606,7 +664,7 @@ TpubN1="now-41h"
 TactN1="${TretN}"
 TretN1="now+4426"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN -r $O $TactN  -d $U $TretN -z $U $TretN "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                  "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                  "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TretN -r $O $TretN  -d $R $TretN -z $R $TretN "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -619,14 +677,14 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > si
 setup step5.csk-roll2.autosign
 CSK1=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
-# Substract Dreg + Iret (174h).
+# Subtract Dreg + Iret (174h).
 TactN="now-4676h"
 TretN="now-212h"
 TpubN1="now-215h"
 TactN1="${TretN}"
 TretN1="now+4252h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN -r $O $TactN -d $U $TretN -z $H $TretN "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                 "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                 "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TretN -r $O $TretN -d $R $TretN -z $O $TretN "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
@@ -638,7 +696,8 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > si
 setup step6.csk-roll2.autosign
 CSK1=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1)
-# Substract DNSKEY TTL plus zone propagation delay (2h).
+
+# Subtract DNSKEY TTL plus zone propagation delay (2h).
 TactN="now-4678h"
 TretN="now-214h"
 TdeaN="now-2h"
@@ -646,7 +705,7 @@ TpubN1="now-217h"
 TactN1="${TretN}"
 TretN1="now+4250h"
 $SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $U $TdeaN -r $U $TdeaN -d $H $TretN -z $H $TretN "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"              -i 0                                                                 "$CSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -S "$CSK1"            -i 0                                                                 "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TretN -r $O $TretN -d $O $TretN -z $O $TretN "$CSK2" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"

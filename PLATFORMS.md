@@ -12,15 +12,29 @@
 
 In general, this version of BIND will build and run on any POSIX-compliant
 system with a C11-compliant C compiler, BSD-style sockets with RFC-compliant
-IPv6 support, POSIX-compliant threads, and the OpenSSL cryptography library.
-Atomic operations support from the compiler is needed, either in the form of
-builtin operations, C11 atomics or the Interlocked family of functions on
-Windows.
+IPv6 support, POSIX-compliant threads, the `libuv` asynchronous I/O library,
+and the OpenSSL cryptography library.
 
-BIND 9.15 requires fairly recent version of libuv library to run (>= 1.x).  For
-some of the older systems listed below, you will have to install updated libuv
-package from sources such as EPEL, PPA and other native sources for updated
-packages.  The other option is to install libuv from sources.
+The following C11 features are used in BIND 9:
+
+* Atomic operations support from the compiler is needed, either in the form of
+  builtin operations, C11 atomics, or the `Interlocked` family of functions on
+  Windows.
+
+* Thread Local Storage support from the compiler is needed, either in the form
+  of C11 `_Thread_local`/`thread_local`, the `__thread` GCC extension, or
+  the `__declspec(thread)` MSVC extension on Windows.
+
+BIND 9.17 requires a fairly recent version of `libuv` (at least 1.x).  For
+some of the older systems listed below, you will have to install an updated
+`libuv` package from sources such as EPEL, PPA, or other native sources for
+updated packages. The other option is to build and install `libuv` from
+source.
+
+Certain optional BIND features have additional library dependencies.
+These include `libxml2` and `libjson-c` for statistics, `libmaxminddb` for
+geolocation, `libfstrm` and `libprotobuf-c` for DNSTAP, and `libidn2` for
+internationalized domain name conversion.
 
 ISC regularly tests BIND on many operating systems and architectures, but
 lacks the resources to test all of them. Consequently, ISC is only able to
@@ -28,15 +42,15 @@ offer support on a "best effort" basis for some.
 
 ### Regularly tested platforms
 
-As of Dec 2019, BIND 9.15 is fully supported and regularly tested on the
+As of Mar 2020, BIND 9.17 is fully supported and regularly tested on the
 following systems:
 
 * Debian 9, 10
 * Ubuntu LTS 16.04, 18.04
-* Fedora 30
+* Fedora 31
 * Red Hat Enterprise Linux / CentOS 7, 8
 * FreeBSD 11.3, 12.0
-* OpenBSD 6.5
+* OpenBSD 6.6
 * Alpine Linux
 
 The amd64, i386, armhf and arm64 CPU architectures are all fully supported.
@@ -63,12 +77,13 @@ Server 2012 R2, none of these are tested regularly by ISC.
 
 ### Community maintained
 
-These systems may not all have easily available the required dependencies for
-building BIND although it will be possible in many cases to compile those
-directly from source. The community and interested parties may wish to help with
-maintenance and we welcome patch contributions, although we cannot guarantee
-that we will accept them.  All contributions will be assessed against the risk
-of adverse effect on officially supported platforms.
+These systems may not all have the required dependencies for building BIND
+easily available, although it will be possible in many cases to compile
+those directly from source. The community and interested parties may wish
+to help with maintenance, and we welcome patch contributions, although we
+cannot guarantee that we will accept them.  All contributions will be
+assessed against the risk of adverse effect on officially supported
+platforms.
 
 * Platforms past or close to their respective EOL dates, such as:
     * Ubuntu 14.04, 18.10
@@ -78,7 +93,7 @@ of adverse effect on officially supported platforms.
 
 ## Unsupported platforms
 
-These are platforms on which BIND 9.15 is known *not* to build or run:
+These are platforms on which BIND 9.17 is known *not* to build or run:
 
 * Platforms without at least OpenSSL 1.0.2
 * Windows 10 / x86
@@ -87,6 +102,4 @@ These are platforms on which BIND 9.15 is known *not* to build or run:
 * Platforms that don't support IPv6 Advanced Socket API (RFC 3542)
 * Platforms that don't support atomic operations (via compiler or library)
 * Linux without NPTL (Native POSIX Thread Library)
-* Platforms where libuv cannot be compiled
-
-## Platform quirks
+* Platforms on which `libuv` cannot be compiled

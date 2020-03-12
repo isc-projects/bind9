@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -23,8 +22,8 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/symtab.h>
 #include <isc/print.h>
+#include <isc/symtab.h>
 #include <isc/util.h>
 
 #include "isctest.h"
@@ -90,8 +89,9 @@ symtab_grow(void **state) {
 		assert_non_null(value.as_pointer);
 		result = isc_symtab_define(st, key, 1, value, policy);
 		assert_int_equal(result, ISC_R_SUCCESS);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			undefine(key, 1, value, NULL);
+		}
 	}
 
 	/*
@@ -150,8 +150,7 @@ symtab_grow(void **state) {
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(symtab_grow,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(symtab_grow, _setup, _teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -167,4 +166,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

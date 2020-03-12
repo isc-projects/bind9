@@ -11,10 +11,9 @@
 
 #if HAVE_CMOCKA
 
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -26,6 +25,7 @@
 
 #include <dns/lib.h>
 #include <dns/result.h>
+
 #include <dst/result.h>
 
 /*
@@ -42,18 +42,17 @@ ids(void **state) {
 	dst_result_register();
 
 	for (result = ISC_RESULTCLASS_DNS;
-	     result < (ISC_RESULTCLASS_DNS + DNS_R_NRESULTS);
-	     result++)
+	     result < (ISC_RESULTCLASS_DNS + DNS_R_NRESULTS); result++)
 	{
 		str = isc_result_toid(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 
 		str = isc_result_totext(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 	}
 
 	str = isc_result_toid(result);
@@ -65,18 +64,17 @@ ids(void **state) {
 	assert_string_equal(str, "(result code text not available)");
 
 	for (result = ISC_RESULTCLASS_DST;
-	     result < (ISC_RESULTCLASS_DST + DST_R_NRESULTS);
-	     result++)
+	     result < (ISC_RESULTCLASS_DST + DST_R_NRESULTS); result++)
 	{
 		str = isc_result_toid(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 
 		str = isc_result_totext(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 	}
 
 	str = isc_result_toid(result);
@@ -93,13 +91,13 @@ ids(void **state) {
 	{
 		str = isc_result_toid(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 
 		str = isc_result_totext(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 	}
 
 	str = isc_result_toid(result);
@@ -130,4 +128,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

@@ -4,6 +4,7 @@
  * Copyright (C) 2009-2015  Red Hat ; see COPYRIGHT for license
  */
 
+#include "zone.h"
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -13,11 +14,10 @@
 #include <dns/view.h>
 #include <dns/zone.h>
 
-#include "util.h"
 #include "instance.h"
 #include "lock.h"
 #include "log.h"
-#include "zone.h"
+#include "util.h"
 
 extern const char *impname;
 
@@ -26,9 +26,8 @@ extern const char *impname;
  * until it is explicitly added to a view.
  */
 isc_result_t
-create_zone(sample_instance_t * const inst, dns_name_t * const name,
-	    dns_zone_t ** const rawp)
-{
+create_zone(sample_instance_t *const inst, dns_name_t *const name,
+	    dns_zone_t **const rawp) {
 	isc_result_t result;
 	dns_zone_t *raw = NULL;
 	const char *zone_argv[1];
@@ -43,8 +42,7 @@ create_zone(sample_instance_t * const inst, dns_name_t * const name,
 
 	result = dns_zone_create(&raw, inst->mctx);
 	if (result != ISC_R_SUCCESS) {
-		log_write(ISC_LOG_ERROR,
-			  "create_zone: dns_zone_create -> %s\n",
+		log_write(ISC_LOG_ERROR, "create_zone: dns_zone_create -> %s\n",
 			  isc_result_totext(result));
 		goto cleanup;
 	}
@@ -70,8 +68,7 @@ create_zone(sample_instance_t * const inst, dns_name_t * const name,
 	/* This is completely insecure - use some sensible values instead! */
 	result = dns_acl_any(inst->mctx, &acl_any);
 	if (result != ISC_R_SUCCESS) {
-		log_write(ISC_LOG_ERROR,
-			  "create_zone: dns_acl_any -> %s\n",
+		log_write(ISC_LOG_ERROR, "create_zone: dns_acl_any -> %s\n",
 			  isc_result_totext(result));
 		goto cleanup;
 	}
@@ -88,12 +85,14 @@ cleanup:
 	log_error_r("failed to create new zone '%s'", zone_name);
 
 	if (raw != NULL) {
-		if (dns_zone_getmgr(raw) != NULL)
+		if (dns_zone_getmgr(raw) != NULL) {
 			dns_zonemgr_releasezone(inst->zmgr, raw);
+		}
 		dns_zone_detach(&raw);
 	}
-	if (acl_any != NULL)
+	if (acl_any != NULL) {
 		dns_acl_detach(&acl_any);
+	}
 
 	return (result);
 }
@@ -116,8 +115,9 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 	/* Return success if the zone is already in the view as expected. */
 	result = dns_view_findzone(inst->view, dns_zone_getorigin(zone),
 				   &zone_in_view);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		goto cleanup;
+	}
 
 	view_in_zone = dns_zone_getview(zone);
 	if (view_in_zone != NULL) {
@@ -161,10 +161,12 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 	}
 
 cleanup:
-	if (zone_in_view != NULL)
+	if (zone_in_view != NULL) {
 		dns_zone_detach(&zone_in_view);
-	if (freeze)
+	}
+	if (freeze) {
 		dns_view_freeze(inst->view);
+	}
 	run_exclusive_exit(inst, lock_state);
 
 	return (result);
@@ -181,9 +183,11 @@ load_zone(dns_zone_t *zone) {
 	uint32_t serial;
 
 	result = dns_zone_load(zone, false);
-	if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE
-	    && result != DNS_R_DYNAMIC && result != DNS_R_CONTINUE)
+	if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE &&
+	    result != DNS_R_DYNAMIC && result != DNS_R_CONTINUE)
+	{
 		goto cleanup;
+	}
 	zone_dynamic = (result == DNS_R_DYNAMIC);
 
 	result = dns_zone_getserial(zone, &serial);
@@ -195,8 +199,9 @@ load_zone(dns_zone_t *zone) {
 	}
 	dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u", serial);
 
-	if (zone_dynamic)
+	if (zone_dynamic) {
 		dns_zone_notify(zone);
+	}
 
 cleanup:
 	return (result);
@@ -216,16 +221,14 @@ activate_zone(sample_instance_t *inst, dns_zone_t *raw) {
 	 */
 	result = publish_zone(inst, raw);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(raw, ISC_LOG_ERROR,
-			     "cannot add zone to view: %s",
+		dns_zone_log(raw, ISC_LOG_ERROR, "cannot add zone to view: %s",
 			     dns_result_totext(result));
 		goto cleanup;
 	}
 
 	result = load_zone(raw);
 	if (result != ISC_R_SUCCESS) {
-		log_write(ISC_LOG_ERROR,
-			  "activate_zone: load_zone -> %s\n",
+		log_write(ISC_LOG_ERROR, "activate_zone: load_zone -> %s\n",
 			  isc_result_totext(result));
 		goto cleanup;
 	}

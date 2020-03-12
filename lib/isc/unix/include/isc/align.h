@@ -13,6 +13,6 @@
 
 #ifdef HAVE_STDALIGN_H
 #include <stdalign.h>
-#else
-#define alignas(x) __attribute__ ((__aligned__ (x)))
-#endif
+#else /* ifdef HAVE_STDALIGN_H */
+#define alignas(x) __attribute__((__aligned__(x)))
+#endif /* ifdef HAVE_STDALIGN_H */

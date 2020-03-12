@@ -11,6 +11,7 @@
 
 /*! \file */
 
+#include "nstest.h"
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -26,9 +27,9 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/random.h>
-#include <isc/string.h>
 #include <isc/socket.h>
 #include <isc/stdio.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -47,8 +48,6 @@
 #include <ns/hooks.h>
 #include <ns/interfacemgr.h>
 #include <ns/server.h>
-
-#include "nstest.h"
 
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
@@ -75,8 +74,8 @@ static dns_zone_t *served_zone = NULL;
 /*
  * We don't want to use netmgr-based client accounting, we need to emulate it.
  */
-atomic_uint_fast32_t client_refs[16];
-atomic_uintptr_t client_addrs[16];
+atomic_uint_fast32_t client_refs[32];
+atomic_uintptr_t client_addrs[32];
 
 void
 __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle);
@@ -86,12 +85,12 @@ __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	ns_client_t *client = (ns_client_t *)handle;
 	int i;
 
-	for (i = 0; i < 16; i++) {
-		if (atomic_load(&client_addrs[i]) == (uintptr_t) client) {
+	for (i = 0; i < 32; i++) {
+		if (atomic_load(&client_addrs[i]) == (uintptr_t)client) {
 			break;
 		}
 	}
-	REQUIRE(i < 16);
+	REQUIRE(i < 32);
 
 	if (atomic_fetch_sub(&client_refs[i], 1) == 1) {
 		dns_view_detach(&client->view);
@@ -106,23 +105,20 @@ __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle) {
 /*
  * Logging categories: this needs to match the list in lib/ns/log.c.
  */
-static isc_logcategory_t categories[] = {
-		{ "",                0 },
-		{ "client",          0 },
-		{ "network",         0 },
-		{ "update",          0 },
-		{ "queries",         0 },
-		{ "unmatched",       0 },
-		{ "update-security", 0 },
-		{ "query-errors",    0 },
-		{ NULL,              0 }
-};
+static isc_logcategory_t categories[] = { { "", 0 },
+					  { "client", 0 },
+					  { "network", 0 },
+					  { "update", 0 },
+					  { "queries", 0 },
+					  { "unmatched", 0 },
+					  { "update-security", 0 },
+					  { "query-errors", 0 },
+					  { NULL, 0 } };
 
 static isc_result_t
 matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-	  dns_message_t *message, dns_aclenv_t *env,
-	  isc_result_t *sigresultp, dns_view_t **viewp)
-{
+	  dns_message_t *message, dns_aclenv_t *env, isc_result_t *sigresultp,
+	  dns_view_t **viewp) {
 	UNUSED(srcaddr);
 	UNUSED(destaddr);
 	UNUSED(message);
@@ -184,7 +180,7 @@ cleanup_managers(void) {
 		isc_socketmgr_destroy(&socketmgr);
 	}
 	ns_test_nap(500000);
-	if (nm != NULL ){
+	if (nm != NULL) {
 		/*
 		 * Force something in the workqueue as a workaround
 		 * for libuv bug - not sending uv_close callback.
@@ -215,6 +211,7 @@ scan_interfaces(isc_task_t *task, isc_event_t *event) {
 static isc_result_t
 create_managers(void) {
 	isc_result_t result;
+	in_port_t port = 5300 + isc_random8();
 	ns_listenlist_t *listenon = NULL;
 	isc_event_t *event = NULL;
 	ncpus = isc_os_ncpus();
@@ -234,17 +231,16 @@ create_managers(void) {
 
 	CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
-	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr,
-				     socketmgr, nm, dispatchmgr, maintask,
-				     ncpus, NULL, &interfacemgr));
+	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, socketmgr,
+				     nm, dispatchmgr, maintask, ncpus, NULL,
+				     ncpus, &interfacemgr));
 
-	CHECK(ns_listenlist_default(mctx, 5300, -1, true, &listenon));
+	CHECK(ns_listenlist_default(mctx, port, -1, true, &listenon));
 	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
 	ns_listenlist_detach(&listenon);
 
 	event = isc_event_allocate(mctx, maintask, ISC_TASKEVENT_TEST,
-				   scan_interfaces, NULL,
-				   sizeof (isc_event_t));
+				   scan_interfaces, NULL, sizeof(isc_event_t));
 	isc_task_send(maintask, &event);
 
 	/*
@@ -260,7 +256,7 @@ create_managers(void) {
 
 	return (ISC_R_SUCCESS);
 
-  cleanup:
+cleanup:
 	cleanup_managers();
 	return (result);
 }
@@ -304,8 +300,7 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 		destination.file.versions = ISC_LOG_ROLLNEVER;
 		destination.file.maximum_size = 0;
 		CHECK(isc_log_createchannel(logconfig, "stderr",
-					    ISC_LOG_TOFILEDESC,
-					    ISC_LOG_DYNAMIC,
+					    ISC_LOG_TOFILEDESC, ISC_LOG_DYNAMIC,
 					    &destination, 0));
 		CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 	}
@@ -327,7 +322,7 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 
 	return (ISC_R_SUCCESS);
 
-  cleanup:
+cleanup:
 	ns_test_end();
 	return (result);
 }
@@ -351,9 +346,7 @@ ns_test_end(void) {
 }
 
 isc_result_t
-ns_test_makeview(const char *name, bool with_cache,
-		 dns_view_t **viewp)
-{
+ns_test_makeview(const char *name, bool with_cache, dns_view_t **viewp) {
 	dns_cache_t *cache = NULL;
 	dns_view_t *view = NULL;
 	isc_result_t result;
@@ -377,9 +370,10 @@ ns_test_makeview(const char *name, bool with_cache,
 
 	return (ISC_R_SUCCESS);
 
- cleanup:
-	if (view != NULL)
+cleanup:
+	if (view != NULL) {
 		dns_view_detach(&view);
+	}
 	return (result);
 }
 
@@ -395,22 +389,23 @@ ns_test_makeview(const char *name, bool with_cache,
  */
 isc_result_t
 ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
-		 bool keepview)
-{
+		 bool keepview) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
 	dns_name_t *origin;
 
-	if (view == NULL)
+	if (view == NULL) {
 		CHECK(dns_view_create(mctx, dns_rdataclass_in, "view", &view));
-	else if (!keepview)
+	} else if (!keepview) {
 		keepview = true;
+	}
 
 	zone = *zonep;
-	if (zone == NULL)
+	if (zone == NULL) {
 		CHECK(dns_zone_create(&zone, mctx));
+	}
 
 	isc_buffer_constinit(&buffer, name, strlen(name));
 	isc_buffer_add(&buffer, strlen(name));
@@ -422,18 +417,21 @@ ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	dns_zone_setclass(zone, view->rdclass);
 	dns_view_addzone(view, zone);
 
-	if (!keepview)
+	if (!keepview) {
 		dns_view_detach(&view);
+	}
 
 	*zonep = zone;
 
 	return (ISC_R_SUCCESS);
 
-  cleanup:
-	if (zone != NULL)
+cleanup:
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
-	if (view != NULL)
+	}
+	if (view != NULL) {
 		dns_view_detach(&view);
+	}
 	return (result);
 }
 
@@ -453,8 +451,9 @@ ns_test_managezone(dns_zone_t *zone) {
 	REQUIRE(zonemgr != NULL);
 
 	result = dns_zonemgr_setsize(zonemgr, 1);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	result = dns_zonemgr_managezone(zonemgr, zone);
 	return (result);
@@ -476,8 +475,7 @@ ns_test_closezonemgr(void) {
 
 isc_result_t
 ns_test_serve_zone(const char *zonename, const char *filename,
-		   dns_view_t *view)
-{
+		   dns_view_t *view) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 
@@ -549,9 +547,7 @@ ns_test_cleanup_zone(void) {
 }
 
 isc_result_t
-ns_test_getclient(ns_interface_t *ifp0, bool tcp,
-		  ns_client_t **clientp)
-{
+ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp) {
 	isc_result_t result;
 	ns_client_t *client = isc_mem_get(mctx, sizeof(ns_client_t));
 	int i;
@@ -561,18 +557,18 @@ ns_test_getclient(ns_interface_t *ifp0, bool tcp,
 
 	result = ns__client_setup(client, clientmgr, true);
 
-	for (i = 0; i < 16; i++) {
-		if (atomic_load(&client_addrs[i]) == (uintptr_t) NULL ||
-		    atomic_load(&client_addrs[i]) == (uintptr_t) client)
+	for (i = 0; i < 32; i++) {
+		if (atomic_load(&client_addrs[i]) == (uintptr_t)NULL ||
+		    atomic_load(&client_addrs[i]) == (uintptr_t)client)
 		{
 			break;
 		}
 	}
-	REQUIRE(i < 16);
+	REQUIRE(i < 32);
 
 	atomic_store(&client_refs[i], 2);
-	atomic_store(&client_addrs[i], (uintptr_t) client);
-	client->handle = (isc_nmhandle_t *) client; /* Hack */
+	atomic_store(&client_addrs[i], (uintptr_t)client);
+	client->handle = (isc_nmhandle_t *)client; /* Hack */
 	*clientp = client;
 
 	return (result);
@@ -584,8 +580,7 @@ ns_test_getclient(ns_interface_t *ifp0, bool tcp,
  */
 static isc_result_t
 attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
-			   dns_rdatatype_t qtype, unsigned int qflags)
-{
+			   dns_rdatatype_t qtype, unsigned int qflags) {
 	dns_rdataset_t *qrdataset = NULL;
 	dns_message_t *message = NULL;
 	unsigned char query[65536];
@@ -763,8 +758,7 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 
 isc_result_t
 ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
-		    query_ctx_t **qctxp)
-{
+		    query_ctx_t **qctxp) {
 	ns_client_t *client = NULL;
 	isc_result_t result;
 
@@ -840,6 +834,7 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 	REQUIRE(*qctxp != NULL);
 
 	qctx = *qctxp;
+	*qctxp = NULL;
 
 	if (qctx->zone != NULL) {
 		dns_zone_detach(&qctx->zone);
@@ -852,12 +847,10 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 	}
 
 	isc_mem_put(mctx, qctx, sizeof(*qctx));
-	*qctxp = NULL;
 }
 
 ns_hookresult_t
-ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp)
-{
+ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp) {
 	UNUSED(arg);
 	UNUSED(data);
 
@@ -879,33 +872,34 @@ ns_test_nap(uint32_t usec) {
 	nanosleep(&ts, NULL);
 #elif HAVE_USLEEP
 	usleep(usec);
-#else
+#else  /* ifdef HAVE_NANOSLEEP */
 	/*
 	 * No fractional-second sleep function is available, so we
 	 * round up to the nearest second and sleep instead
 	 */
 	sleep((usec / 1000000) + 1);
-#endif
+#endif /* ifdef HAVE_NANOSLEEP */
 }
 
 isc_result_t
 ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
-	       const char *testfile)
-{
-	isc_result_t		result;
-	dns_fixedname_t		fixed;
-	dns_name_t		*name;
+	       const char *testfile) {
+	isc_result_t result;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
 
 	name = dns_fixedname_initname(&fixed);
 
 	result = dns_name_fromstring(name, origin, 0, NULL);
-	if (result != ISC_R_SUCCESS)
-		return(result);
-
-	result = dns_db_create(mctx, "rbt", name, dbtype, dns_rdataclass_in,
-			       0, NULL, db);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
+
+	result = dns_db_create(mctx, "rbt", name, dbtype, dns_rdataclass_in, 0,
+			       NULL, db);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	result = dns_db_load(*db, testfile, dns_masterformat_text, 0);
 	return (result);
@@ -913,12 +907,13 @@ ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 
 static int
 fromhex(char c) {
-	if (c >= '0' && c <= '9')
+	if (c >= '0' && c <= '9') {
 		return (c - '0');
-	else if (c >= 'a' && c <= 'f')
+	} else if (c >= 'a' && c <= 'f') {
 		return (c - 'a' + 10);
-	else if (c >= 'A' && c <= 'F')
+	} else if (c >= 'A' && c <= 'F') {
 		return (c - 'A' + 10);
+	}
 
 	printf("bad input format: %02x\n", c);
 	exit(3);
@@ -926,9 +921,8 @@ fromhex(char c) {
 }
 
 isc_result_t
-ns_test_getdata(const char *file, unsigned char *buf,
-		 size_t bufsiz, size_t *sizep)
-{
+ns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
+		size_t *sizep) {
 	isc_result_t result;
 	unsigned char *bp;
 	char *rp, *wp;
@@ -938,8 +932,9 @@ ns_test_getdata(const char *file, unsigned char *buf,
 	int n;
 
 	result = isc_stdio_open(file, "r", &f);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	bp = buf;
 	while (fgets(s, sizeof(s), f) != NULL) {
@@ -947,21 +942,25 @@ ns_test_getdata(const char *file, unsigned char *buf,
 		wp = s;
 		len = 0;
 		while (*rp != '\0') {
-			if (*rp == '#')
+			if (*rp == '#') {
 				break;
-			if (*rp != ' ' && *rp != '\t' &&
-			    *rp != '\r' && *rp != '\n') {
+			}
+			if (*rp != ' ' && *rp != '\t' && *rp != '\r' &&
+			    *rp != '\n') {
 				*wp++ = *rp;
 				len++;
 			}
 			rp++;
 		}
-		if (len == 0U)
+		if (len == 0U) {
 			continue;
-		if (len % 2 != 0U)
+		}
+		if (len % 2 != 0U) {
 			CHECK(ISC_R_UNEXPECTEDEND);
-		if (len > bufsiz * 2)
+		}
+		if (len > bufsiz * 2) {
 			CHECK(ISC_R_NOSPACE);
+		}
 		rp = s;
 		for (i = 0; i < len; i += 2) {
 			n = fromhex(*rp++);
@@ -971,12 +970,11 @@ ns_test_getdata(const char *file, unsigned char *buf,
 		}
 	}
 
-
 	*sizep = bp - buf;
 
 	result = ISC_R_SUCCESS;
 
- cleanup:
+cleanup:
 	isc_stdio_close(f);
 	return (result);
 }

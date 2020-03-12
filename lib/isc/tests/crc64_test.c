@@ -13,10 +13,9 @@
 
 #if HAVE_CMOCKA
 
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,11 +23,11 @@
 #include <cmocka.h>
 
 #include <isc/crc64.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/util.h>
-#include <isc/print.h>
 
-#define TEST_INPUT(x) (x), sizeof(x)-1
+#define TEST_INPUT(x) (x), sizeof(x) - 1
 
 typedef struct hash_testcase {
 	const char *input;
@@ -48,9 +47,7 @@ isc_crc64_init_test(void **state) {
 }
 
 static void
-_crc64(const char *buf, size_t buflen,
-       const char *result, const int repeats)
-{
+_crc64(const char *buf, size_t buflen, const char *result, const int repeats) {
 	uint64_t crc;
 
 	isc_crc64_init(&crc);
@@ -65,7 +62,7 @@ _crc64(const char *buf, size_t buflen,
 	char hex[16 + 1];
 	snprintf(hex, sizeof(hex), "%016" PRIX64, crc);
 
-	assert_memory_equal(hex, result, (result?strlen(result):0));
+	assert_memory_equal(hex, result, (result ? strlen(result) : 0));
 }
 
 /* 64-bit cyclic redundancy check */
@@ -77,8 +74,7 @@ isc_crc64_test(void **state) {
 	_crc64(TEST_INPUT("a"), "CE73F427ACC0A99A", 1);
 	_crc64(TEST_INPUT("abc"), "048B813AF9F49702", 1);
 	_crc64(TEST_INPUT("message digest"), "5273F9EA7A357BF4", 1);
-	_crc64(TEST_INPUT("abcdefghijklmnopqrstuvwxyz"),
-	       "59F079F9218BAAA1", 1);
+	_crc64(TEST_INPUT("abcdefghijklmnopqrstuvwxyz"), "59F079F9218BAAA1", 1);
 	_crc64(TEST_INPUT("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm"
 			  "nopqrstuvwxyz0123456789"),
 	       "A36DA8F71E78B6FB", 1);
@@ -107,4 +103,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

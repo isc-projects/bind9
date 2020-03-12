@@ -9,13 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_STAT_H
 #define ISC_STAT_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*
  * Portable <sys/stat.h> support.
@@ -40,7 +39,7 @@
  *** Imports.
  ***/
 
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #endif /* ISC_STAT_H */

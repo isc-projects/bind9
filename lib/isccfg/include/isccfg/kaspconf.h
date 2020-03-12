@@ -9,15 +9,14 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISCCFG_KASPCONF_H
 #define ISCCFG_KASPCONF_H 1
 
 #include <isc/lang.h>
 
-#include <isccfg/cfg.h>
-
 #include <dns/types.h>
+
+#include <isccfg/cfg.h>
 
 /***
  *** Functions
@@ -26,7 +25,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
+cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 		    dns_kasplist_t *kasplist, dns_kasp_t **kaspp);
 /*%<
  * Create and configure a KASP. If 'config' is NULL, the default configuration
@@ -37,6 +36,8 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
  * Requires:
  *
  *\li  'mctx' is a valid memory context.
+ *
+ *\li  'logctx' is a valid logging context.
  *
  *\li  'name' is a valid C string.
  *

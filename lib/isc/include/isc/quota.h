@@ -9,13 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_QUOTA_H
 #define ISC_QUOTA_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/quota.h
  *
@@ -36,18 +35,17 @@
 #include <isc/types.h>
 
 /*****
- ***** Types.
- *****/
+***** Types.
+*****/
 
 ISC_LANG_BEGINDECLS
 
 /*% isc_quota structure */
 struct isc_quota {
-	atomic_uint_fast32_t 		max;
-	atomic_uint_fast32_t 		used;
-	atomic_uint_fast32_t		soft;
+	atomic_uint_fast32_t max;
+	atomic_uint_fast32_t used;
+	atomic_uint_fast32_t soft;
 };
-
 
 void
 isc_quota_init(isc_quota_t *quota, unsigned int max);

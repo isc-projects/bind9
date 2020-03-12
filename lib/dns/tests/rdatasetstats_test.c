@@ -11,13 +11,12 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -78,8 +77,7 @@ set_nxdomainstats(dns_stats_t *stats) {
 }
 
 static void
-mark_stale(dns_stats_t *stats, dns_rdatatype_t type, int from, int to)
-{
+mark_stale(dns_stats_t *stats, dns_rdatatype_t type, int from, int to) {
 	dns_rdatastatstype_t which;
 	unsigned int attributes;
 
@@ -101,8 +99,7 @@ mark_stale(dns_stats_t *stats, dns_rdatatype_t type, int from, int to)
 }
 
 static void
-mark_nxdomain_stale(dns_stats_t *stats, int from, int to)
-{
+mark_nxdomain_stale(dns_stats_t *stats, int from, int to) {
 	dns_rdatastatstype_t which;
 	unsigned int attributes;
 
@@ -121,7 +118,7 @@ verify_active_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 	unsigned int attributes;
 #if debug
 	unsigned int type;
-#endif
+#endif /* if debug */
 
 	UNUSED(which);
 	UNUSED(arg);
@@ -137,9 +134,10 @@ verify_active_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_STALE) ? "#" : " ",
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
 		type, (unsigned)value);
-#endif
+#endif /* if debug */
 	if ((attributes & DNS_RDATASTATSTYPE_ATTR_ANCIENT) == 0 &&
-	    (attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0) {
+	    (attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0)
+	{
 		assert_int_equal(value, 1);
 	} else {
 		assert_int_equal(value, 0);
@@ -151,7 +149,7 @@ verify_stale_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 	unsigned int attributes;
 #if debug
 	unsigned int type;
-#endif
+#endif /* if debug */
 
 	UNUSED(which);
 	UNUSED(arg);
@@ -167,7 +165,7 @@ verify_stale_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_STALE) ? "#" : " ",
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
 		type, (unsigned)value);
-#endif
+#endif /* if debug */
 	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) != 0) {
 		assert_int_equal(value, 1);
 	} else {
@@ -180,7 +178,7 @@ verify_ancient_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 	unsigned int attributes;
 #if debug
 	unsigned int type;
-#endif
+#endif /* if debug */
 
 	UNUSED(which);
 	UNUSED(arg);
@@ -196,7 +194,7 @@ verify_ancient_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_STALE) ? "#" : " ",
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
 		type, (unsigned)value);
-#endif
+#endif /* if debug */
 	if ((attributes & DNS_RDATASTATSTYPE_ATTR_ANCIENT) != 0) {
 		assert_int_equal(value, 1);
 	} else {
@@ -223,12 +221,11 @@ rdatasetstats(void **state, bool servestale) {
 	result = dns_rdatasetstats_create(dt_mctx, &stats);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	/* First 256 types. */
-	for (i = 0; i <= 255; i++) {
+	/* First 255 types. */
+	for (i = 1; i <= 255; i++) {
 		set_typestats(stats, (dns_rdatatype_t)i);
 	}
 	/* Specials */
-	set_typestats(stats, dns_rdatatype_dlv);
 	set_typestats(stats, (dns_rdatatype_t)1000);
 	set_nxdomainstats(stats);
 
@@ -237,12 +234,10 @@ rdatasetstats(void **state, bool servestale) {
 
 	if (servestale) {
 		/* Mark stale */
-		for (i = 0; i <= 255; i++) {
+		for (i = 1; i <= 255; i++) {
 			mark_stale(stats, (dns_rdatatype_t)i, 0,
 				   DNS_RDATASTATSTYPE_ATTR_STALE);
 		}
-		mark_stale(stats, dns_rdatatype_dlv, 0,
-			   DNS_RDATASTATSTYPE_ATTR_STALE);
 		mark_stale(stats, (dns_rdatatype_t)1000, 0,
 			   DNS_RDATASTATSTYPE_ATTR_STALE);
 		mark_nxdomain_stale(stats, 0, DNS_RDATASTATSTYPE_ATTR_STALE);
@@ -255,12 +250,10 @@ rdatasetstats(void **state, bool servestale) {
 	}
 
 	/* Mark ancient */
-	for (i = 0; i <= 255; i++) {
+	for (i = 1; i <= 255; i++) {
 		mark_stale(stats, (dns_rdatatype_t)i, from,
 			   DNS_RDATASTATSTYPE_ATTR_ANCIENT);
 	}
-	mark_stale(stats, dns_rdatatype_dlv, from,
-		   DNS_RDATASTATSTYPE_ATTR_ANCIENT);
 	mark_stale(stats, (dns_rdatatype_t)1000, from,
 		   DNS_RDATASTATSTYPE_ATTR_ANCIENT);
 	mark_nxdomain_stale(stats, from, DNS_RDATASTATSTYPE_ATTR_ANCIENT);
@@ -295,11 +288,10 @@ int
 main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(
-					test_rdatasetstats_active_stale_ancient,
-					_setup, _teardown),
+			test_rdatasetstats_active_stale_ancient, _setup,
+			_teardown),
 		cmocka_unit_test_setup_teardown(
-					test_rdatasetstats_active_ancient,
-					_setup, _teardown),
+			test_rdatasetstats_active_ancient, _setup, _teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -315,4 +307,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

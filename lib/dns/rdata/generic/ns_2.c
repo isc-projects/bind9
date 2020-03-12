@@ -27,21 +27,25 @@ fromtext_ns(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(callbacks);
 
-	RETERR(isc_lex_getmastertoken(lexer, &token,isc_tokentype_string,
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	ok = true;
-	if ((options & DNS_RDATA_CHECKNAMES) != 0)
+	if ((options & DNS_RDATA_CHECKNAMES) != 0) {
 		ok = dns_name_ishostname(&name, false);
-	if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
+	}
+	if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0) {
 		RETTOK(DNS_R_BADNAME);
-	if (!ok && callbacks != NULL)
+	}
+	if (!ok && callbacks != NULL) {
 		warn_badname(&name, lexer, callbacks);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -170,8 +174,9 @@ freestruct_ns(ARGS_FREESTRUCT) {
 
 	REQUIRE(ns != NULL);
 
-	if (ns->mctx == NULL)
+	if (ns->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&ns->name, ns->mctx);
 	ns->mctx = NULL;
@@ -208,7 +213,6 @@ digest_ns(ARGS_DIGEST) {
 
 static inline bool
 checkowner_ns(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_ns);
 
 	UNUSED(name);
@@ -232,8 +236,9 @@ checknames_ns(ARGS_CHECKNAMES) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ishostname(&name, false)) {
-		if (bad != NULL)
+		if (bad != NULL) {
 			dns_name_clone(&name, bad);
+		}
 		return (false);
 	}
 	return (true);
@@ -244,4 +249,4 @@ casecompare_ns(ARGS_COMPARE) {
 	return (compare_ns(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_NS_2_C */
+#endif /* RDATA_GENERIC_NS_2_C */

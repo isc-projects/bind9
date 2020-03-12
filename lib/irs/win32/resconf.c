@@ -22,11 +22,9 @@
 #define HAVE_GET_WIN32_NAMESERVERS 1
 
 #include "../resconf.c"
-
 #include <iphlpapi.h>
 
-#define TCPIP_SUBKEY	\
-	"SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters"
+#define TCPIP_SUBKEY "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters"
 
 isc_result_t
 get_win32_searchlist(irs_resconf_t *conf) {
@@ -74,7 +72,7 @@ get_win32_nameservers(irs_resconf_t *conf) {
 
 	REQUIRE(conf != NULL);
 
-	FixedInfo = (FIXED_INFO *) GlobalAlloc(GPTR, BufLen);
+	FixedInfo = (FIXED_INFO *)GlobalAlloc(GPTR, BufLen);
 	if (FixedInfo == NULL) {
 		return (ISC_R_NOMEMORY);
 	}
@@ -98,8 +96,7 @@ get_win32_nameservers(irs_resconf_t *conf) {
 	}
 
 	if (ISC_LIST_EMPTY(conf->searchlist) &&
-	    strlen(FixedInfo->DomainName) > 0)
-	{
+	    strlen(FixedInfo->DomainName) > 0) {
 		result = add_search(conf, FixedInfo->DomainName);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
@@ -122,7 +119,7 @@ get_win32_nameservers(irs_resconf_t *conf) {
 		pIPAddr = pIPAddr->Next;
 	}
 
- cleanup:
+cleanup:
 	if (FixedInfo != NULL) {
 		GlobalFree(FixedInfo);
 	}

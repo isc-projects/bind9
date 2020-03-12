@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_DNS64_H
 #define DNS_DNS64_H 1
 
@@ -24,21 +23,23 @@ ISC_LANG_BEGINDECLS
 /*
  * dns_dns64_create() flags.
  */
-#define DNS_DNS64_RECURSIVE_ONLY	0x01	/* If set then this record
-						 * only applies to recursive
-						 * queries.
-						 */
-#define DNS_DNS64_BREAK_DNSSEC		0x02	/* If set then still perform
-						 * DNSSEC synthesis even
-						 * though the result would
-						 * fail validation.
-						 */
+#define DNS_DNS64_RECURSIVE_ONLY          \
+	0x01 /* If set then this record   \
+	      * only applies to recursive \
+	      * queries.                  \
+	      */
+#define DNS_DNS64_BREAK_DNSSEC            \
+	0x02 /* If set then still perform \
+	      * DNSSEC synthesis even     \
+	      * though the result would   \
+	      * fail validation.          \
+	      */
 
 /*
  * dns_dns64_aaaaok() and dns_dns64_aaaafroma() flags.
  */
-#define DNS_DNS64_RECURSIVE		0x01	/* Recursive query. */
-#define DNS_DNS64_DNSSEC		0x02	/* DNSSEC sensitive query. */
+#define DNS_DNS64_RECURSIVE 0x01 /* Recursive query. */
+#define DNS_DNS64_DNSSEC    0x02 /* DNSSEC sensitive query. */
 
 isc_result_t
 dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
@@ -56,7 +57,7 @@ dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
  * clients apply.  'mapped' defines which A records are candidated for
  * mapping.  If 'mapped' is NULL then all A records will be mapped.
  * 'excluded' defines which AAAA are to be treated as non-existent for the
- * purposed of determining whether to perform syntesis.  If 'excluded' is
+ * purposed of determining whether to perform synthesis.  If 'excluded' is
  * NULL then no AAAA records prevent synthesis.
  *
  * If DNS_DNS64_RECURSIVE_ONLY is set then the record will only match if
@@ -146,12 +147,12 @@ dns_dns64_unlink(dns_dns64list_t *list, dns_dns64_t *dns64);
 bool
 dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		 const dns_name_t *reqsigner, const dns_aclenv_t *env,
-		 unsigned int flags, dns_rdataset_t *rdataset,
-		 bool *aaaaok, size_t aaaaoklen);
+		 unsigned int flags, dns_rdataset_t *rdataset, bool *aaaaok,
+		 size_t aaaaoklen);
 /*
  * Determine if there are any non-excluded AAAA records in from the
  * matching dns64 records in the list starting at 'dns64'.  If there
- * is a non-exluded address return true.  If all addresses are
+ * is a non-excluded address return true.  If all addresses are
  * excluded in the matched records return false.   If no records
  * match then return true.
  *

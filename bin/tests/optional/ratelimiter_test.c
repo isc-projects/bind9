@@ -12,10 +12,10 @@
 #include <isc/app.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/ratelimiter.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
-#include <isc/ratelimiter.h>
 #include <isc/util.h>
 
 isc_ratelimiter_t *rlim = NULL;
@@ -24,28 +24,25 @@ isc_timermgr_t *timermgr = NULL;
 isc_task_t *g_task = NULL;
 isc_mem_t *mctx = NULL;
 
-static void utick(isc_task_t *task, isc_event_t *event);
-static void shutdown_rl(isc_task_t *task, isc_event_t *event);
-static void shutdown_all(isc_task_t *task, isc_event_t *event);
+static void
+utick(isc_task_t *task, isc_event_t *event);
+static void
+shutdown_rl(isc_task_t *task, isc_event_t *event);
+static void
+shutdown_all(isc_task_t *task, isc_event_t *event);
 
 typedef struct {
 	int milliseconds;
 	void (*fun)(isc_task_t *, isc_event_t *);
 } schedule_t;
 
-schedule_t schedule[] = {
-	{   100, utick },
-	{   200, utick },
-	{   300, utick },
-	{  3000, utick },
-	{  3100, utick },
-	{  3200, utick },
-	{  3300, shutdown_rl },
-	{  5000, utick },
-	{  6000, shutdown_all }
-};
+schedule_t schedule[] = { { 100, utick },	 { 200, utick },
+			  { 300, utick },	 { 3000, utick },
+			  { 3100, utick },	 { 3200, utick },
+			  { 3300, shutdown_rl }, { 5000, utick },
+			  { 6000, shutdown_all } };
 
-#define NEVENTS (int)(sizeof(schedule)/sizeof(schedule[0]))
+#define NEVENTS (int)(sizeof(schedule) / sizeof(schedule[0]))
 
 isc_timer_t *timers[NEVENTS];
 
@@ -53,8 +50,10 @@ static void
 ltick(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	printf("** ltick%s **\n",
-	       (event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ?
-	       " (canceled)" : "");
+	       (event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ? " ("
+								      "canceled"
+								      ")"
+								    : "");
 	isc_event_free(&event);
 }
 
@@ -65,8 +64,7 @@ utick(isc_task_t *task, isc_event_t *event) {
 	event->ev_action = ltick;
 	event->ev_sender = NULL;
 	result = isc_ratelimiter_enqueue(rlim, g_task, &event);
-	printf("enqueue: %s\n",
-	       result == ISC_R_SUCCESS ? "ok" : "failed");
+	printf("enqueue: %s\n", result == ISC_R_SUCCESS ? "ok" : "failed");
 }
 
 static void
@@ -104,13 +102,11 @@ main(int argc, char *argv[]) {
 	isc_mem_create(&mctx);
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, 3, 0, NULL, &taskmgr) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &g_task) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &g_task) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_ratelimiter_create(mctx, timermgr, g_task,
-					     &rlim) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_ratelimiter_create(mctx, timermgr, g_task, &rlim) ==
+		      ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_ratelimiter_setinterval(rlim, &linterval) ==
 		      ISC_R_SUCCESS);
@@ -118,13 +114,11 @@ main(int argc, char *argv[]) {
 	for (i = 0; i < NEVENTS; i++) {
 		isc_interval_t uinterval;
 		int ms = schedule[i].milliseconds;
-		isc_interval_set(&uinterval,  ms / 1000,
-				 (ms % 1000) * 1000000);
+		isc_interval_set(&uinterval, ms / 1000, (ms % 1000) * 1000000);
 		timers[i] = NULL;
-		RUNTIME_CHECK(isc_timer_create(timermgr,
-					       isc_timertype_once, NULL,
-					       &uinterval,
-					       g_task, schedule[i].fun, NULL,
+		RUNTIME_CHECK(isc_timer_create(timermgr, isc_timertype_once,
+					       NULL, &uinterval, g_task,
+					       schedule[i].fun, NULL,
 					       &timers[i]) == ISC_R_SUCCESS);
 	}
 

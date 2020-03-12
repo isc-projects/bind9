@@ -11,12 +11,11 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -80,7 +79,7 @@ count_zone(dns_zone_t *zone, void *uap) {
 static isc_result_t
 load_done(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 	/* We treat zt as a pointer to a boolean for testing purposes */
-	atomic_bool *done = (atomic_bool *) zt;
+	atomic_bool *done = (atomic_bool *)zt;
 
 	UNUSED(zone);
 	UNUSED(task);
@@ -92,7 +91,7 @@ load_done(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 
 static isc_result_t
 all_done(void *arg) {
-	atomic_bool *done = (atomic_bool *) arg;
+	atomic_bool *done = (atomic_bool *)arg;
 
 	atomic_store(done, true);
 	isc_app_shutdown();
@@ -137,8 +136,8 @@ apply(void **state) {
 	assert_non_null(view->zonetable);
 
 	assert_int_equal(nzones, 0);
-	result = dns_zt_apply(view->zonetable, false, NULL,
-			      count_zone, &nzones);
+	result = dns_zt_apply(view->zonetable, false, NULL, count_zone,
+			      &nzones);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(nzones, 1);
 
@@ -163,13 +162,15 @@ asyncload_zone(void **state) {
 	dns_zone_t *zone = NULL;
 	dns_view_t *view = NULL;
 	dns_db_t *db = NULL;
-	FILE* zonefile, *origfile;
+	FILE *zonefile, *origfile;
 	char buf[4096];
-	atomic_bool done = ATOMIC_VAR_INIT(false);
+	atomic_bool done;
 	int i = 0;
 	struct args args;
 
 	UNUSED(state);
+
+	atomic_init(&done, false);
 
 	result = dns_test_makezone("foo", &zone, NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -193,8 +194,8 @@ asyncload_zone(void **state) {
 	fwrite(buf, 1, n, zonefile);
 	fflush(zonefile);
 
-	dns_zone_setfile(zone, "./zone.data",
-			 dns_masterformat_text, &dns_master_style_default);
+	dns_zone_setfile(zone, "./zone.data", dns_masterformat_text,
+			 &dns_master_style_default);
 
 	args.arg1 = zone;
 	args.arg2 = &done;
@@ -202,8 +203,9 @@ asyncload_zone(void **state) {
 	isc_app_onrun(dt_mctx, maintask, start_zone_asyncload, &args);
 
 	isc_app_run();
-	while (dns__zone_loadpending(zone) && i++ < 5000)
+	while (dns__zone_loadpending(zone) && i++ < 5000) {
 		dns_test_nap(1000);
+	}
 	assert_true(atomic_load(&done));
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
@@ -224,8 +226,9 @@ asyncload_zone(void **state) {
 
 	isc_app_run();
 
-	while (dns__zone_loadpending(zone) && i++ < 5000)
+	while (dns__zone_loadpending(zone) && i++ < 5000) {
 		dns_test_nap(1000);
+	}
 	assert_true(atomic_load(&done));
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
@@ -240,16 +243,18 @@ asyncload_zone(void **state) {
 
 	isc_app_run();
 
-	while (dns__zone_loadpending(zone) && i++ < 5000)
+	while (dns__zone_loadpending(zone) && i++ < 5000) {
 		dns_test_nap(1000);
+	}
 	assert_true(atomic_load(&done));
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_non_null(db);
-	if (db != NULL)
+	if (db != NULL) {
 		dns_db_detach(&db);
+	}
 
 	dns_test_releasezone(zone);
 	dns_test_closezonemgr();
@@ -266,22 +271,24 @@ asyncload_zt(void **state) {
 	dns_view_t *view;
 	dns_zt_t *zt = NULL;
 	dns_db_t *db = NULL;
-	atomic_bool done = ATOMIC_VAR_INIT(false);
+	atomic_bool done;
 	int i = 0;
 	struct args args;
 
 	UNUSED(state);
 
+	atomic_init(&done, false);
+
 	result = dns_test_makezone("foo", &zone1, NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_zone_setfile(zone1, "testdata/zt/zone1.db",
-			 dns_masterformat_text, &dns_master_style_default);
+	dns_zone_setfile(zone1, "testdata/zt/zone1.db", dns_masterformat_text,
+			 &dns_master_style_default);
 	view = dns_zone_getview(zone1);
 
 	result = dns_test_makezone("bar", &zone2, view, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_zone_setfile(zone2, "testdata/zt/zone1.db",
-			 dns_masterformat_text, &dns_master_style_default);
+	dns_zone_setfile(zone2, "testdata/zt/zone1.db", dns_masterformat_text,
+			 &dns_master_style_default);
 
 	/* This one will fail to load */
 	result = dns_test_makezone("fake", &zone3, view, false);
@@ -319,14 +326,16 @@ asyncload_zt(void **state) {
 	result = dns_zone_getdb(zone1, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(db);
-	if (db != NULL)
+	if (db != NULL) {
 		dns_db_detach(&db);
+	}
 
 	result = dns_zone_getdb(zone2, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(db);
-	if (db != NULL)
+	if (db != NULL) {
 		dns_db_detach(&db);
+	}
 
 	dns_test_releasezone(zone3);
 	dns_test_releasezone(zone2);
@@ -343,10 +352,10 @@ int
 main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(apply, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(asyncload_zone,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(asyncload_zt,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(asyncload_zone, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(asyncload_zt, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -362,4 +371,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

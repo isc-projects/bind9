@@ -1,8 +1,16 @@
 #!/bin/sh
+
+# Find the top of the BIND9 tree.
+export TOP=@abs_top_builddir@
 KYUA=@KYUA@
 UNITTESTS=@UNITTESTS@
 CMOCKA_MESSAGE_OUTPUT=TAP
 export CMOCKA_MESSAGE_OUTPUT
+GDB="$(command -v gdb)"
+
+kyua_report() {
+	${KYUA} --logfile /dev/null report --results-file "${KYUA_RESULT:-LATEST}"
+}
 
 status=0
 if [ -n "${UNITTESTS}" ] && [ -f Kyuafile ]
@@ -13,14 +21,43 @@ then
 	${KYUA} -v parallelism="${TEST_PARALLEL_JOBS:-1}" --logfile kyua.log --loglevel debug test --results-file "${KYUA_RESULT:-NEW}"
 	status=$?
 
-	${KYUA} --logfile /dev/null report --results-file "${KYUA_RESULT:-LATEST}"
+	kyua_report
 
-	if [ "${status}" -eq "0" ]
+	if command -v sysctl >/dev/null; then
+		if [ "$(uname -s)" = "Linux" ] && [ "$(sysctl -n kernel.core_uses_pid)" -ne 1 ]; then
+			echo "kernel.core_uses_pid is not set on the Linux host"
+			echo "kyua may not find core file of broken tests"
+		fi
+	else
+		echo "sysctl command is not present, can't check kernel.core_uses_pid."
+		echo "kyua may not find core file of broken tests"
+	fi
+
+	# Use kyua-debug(1) facility to gather additional data on failed tests.
+	# Some runs will just show verbose information from the run, some will
+	# show backtrace via gdb(1).
+	broken_tests=$(kyua_report | awk '$2 == "->" && ( $3 == "broken:" || $3 == "failed:" ) { print $1 }')
+	if [ -n "${CI}" ] && [ "$(id -u)" -eq 0 ] && [ -n "${broken_tests}" ] && [ -n "${GDB}" ]; then
+		# kyua debug command misidentifies broken binary when libtool is used
+		# to configure BIND (see https://github.com/jmmv/kyua/issues/207).
+		# Here we try "trick" kyua use our custom gdb script instead
+		# of using gdb(1) directly. That's why this part needs to be run as root
+		# and, for safety reasons, only in the CI.
+		mv "${GDB}" "${GDB}.orig"
+		cp "${TOP}/unit/gdb" "${GDB}"
+		for test in ${broken_tests}; do
+			echo
+			${KYUA} debug "${test}"
+		done
+		mv "${GDB}.orig" "${GDB}"
+	fi
+
+	if [ "${status}" -eq 0 ]
 	then
 		rm -f kyua.log
 		echo "R:PASS"
 	else
-		echo "R:FAIL"
+		echo "R:FAIL:status:${status}"
 	fi
 	echo "E:unit:$(date)"
 fi

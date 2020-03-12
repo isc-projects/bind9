@@ -223,6 +223,9 @@ my @substdefh = ("CONFIGARGS",
                  "HAVE_HMAC_CTX_GET_MD",
                  "HAVE_HMAC_CTX_NEW",
                  "HAVE_HMAC_CTX_RESET",
+                 "HAVE_UV_HANDLE_GET_DATA",
+                 "HAVE_UV_HANDLE_SET_DATA",
+                 "HAVE_UV_IMPORT",
     );
 
 # for platform.h
@@ -409,7 +412,7 @@ my @help = (
 "  clean                 (command) clean up generated files\n",
 "  <none>                (command) print a summary of the configuration\n",
 "\nOptional Features:\n",
-"  enable-intrinsics     enable instrinsic/atomic functions [default=yes]\n",
+"  enable-intrinsics     enable intrinsic/atomic functions [default=yes]\n",
 "  enable-native-pkcs11  use native PKCS#11 for all crypto [default=no]\n",
 "  enable-openssl-hash   use OpenSSL for hash functions [default=yes]\n",
 "  enable-isc-spnego     use SPNEGO from lib/dns [default=yes]\n",
@@ -435,7 +438,7 @@ my @help = (
 "  with-iconv[=PATH]     path of the iconv DLL [default=same than idn]\n",
 "  with-zlib[=PATH]      build with zlib library yes|no|path\n",
 "  with-vcredist[=PATH]  visual C++ redistributable package yes|path\n",
-"  with-tuning=OPTION    tune for platform size (large|default)\n",
+"  with-tuning=OPTION    tune for platform size (small|default)\n",
 "  with-cross-compile    32 / 64 bit build / host platforms\n",
 "\nOptional Visual Studio project parameters:\n",
 "  with-tools-version=VERSION     set the ToolsVersion attribute to VERSION\n",
@@ -853,8 +856,8 @@ sub mywith {
             $cross_compile = "yes";
         }
     } elsif ($key =~ /^tuning$/i) {
-        if ($val =~ /^large$/i) {
-            $tuning = "large";
+        if ($val =~ /^small$/i) {
+            $tuning = "small";
         }
     } elsif ($key =~ /^tools-version$/i) {
         $configvar{"TOOLS_VERSION"} = $val;
@@ -1326,6 +1329,13 @@ if ($use_libuv eq "auto") {
     if ($use_libuv eq "auto") {
         die "can't find an libuv built directory at sibling root\n";
     }
+
+    # When a libuv version exposing uv_import() and uv_export() is released, the
+    # following three config.h macros will need to be conditionally defined for
+    # that libuv version and all later ones.
+    # $configdefh{"HAVE_UV_HANDLE_SET_DATA"} = 1;
+    # $configdefh{"HAVE_UV_HANDLE_GET_DATA"} = 1;
+    # $configdefh{"HAVE_UV_IMPORT"} = 1;
 }
 # falls into (so no else)
 if ($use_libuv eq "yes") {
@@ -1352,6 +1362,12 @@ if ($use_libuv eq "yes") {
     $configinc{"LIBUV_INC"} = "$libuv_inc";
     $configlib{"LIBUV_LIB"} = "$libuv_lib";
     $configdll{"LIBUV_DLL"} = "$libuv_dll";
+    # When a libuv version exposing uv_import() and uv_export() is released, the
+    # following three config.h macros will need to be conditionally defined for
+    # that libuv version and all later ones.
+    # $configdefh{"HAVE_UV_HANDLE_SET_DATA"} = 1;
+    # $configdefh{"HAVE_UV_HANDLE_GET_DATA"} = 1;
+    # $configdefh{"HAVE_UV_IMPORT"} = 1;
 }
 
 # with-openssl
@@ -2120,7 +2136,7 @@ if (!grep { -f and -x } $vcredist_path) {
 }
 
 # tuning
-if ($tuning eq "large") {
+if ($tuning ne "small") {
     $configdefh{"TUNE_LARGE"} = 1;
 }
 

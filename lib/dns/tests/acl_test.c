@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,9 +52,9 @@ _teardown(void **state) {
 	return (0);
 }
 
-#define	BUFLEN		255
-#define	BIGBUFLEN	(70 * 1024)
-#define TEST_ORIGIN	"test"
+#define BUFLEN	    255
+#define BIGBUFLEN   (70 * 1024)
+#define TEST_ORIGIN "test"
 
 /* test that dns_acl_isinsecure works */
 static void
@@ -103,8 +102,8 @@ dns_acl_isinsecure_test(void **state) {
 	de->type = dns_aclelementtype_geoip;
 	de->negative = false;
 	assert_true(geoip->length < geoip->alloc);
-	geoip->node_count++;
-	de->node_num = geoip->node_count;
+	dns_acl_node_count(geoip)++;
+	de->node_num = dns_acl_node_count(geoip);
 	geoip->length++;
 
 	result = dns_acl_create(dt_mctx, 1, &notgeoip);
@@ -114,15 +113,15 @@ dns_acl_isinsecure_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 #endif /* HAVE_GEOIP2 */
 
-	assert_true(dns_acl_isinsecure(any));		/* any; */
-	assert_false(dns_acl_isinsecure(none));		/* none; */
-	assert_false(dns_acl_isinsecure(notany));	/* !any; */
-	assert_false(dns_acl_isinsecure(notnone));	/* !none; */
+	assert_true(dns_acl_isinsecure(any));	   /* any; */
+	assert_false(dns_acl_isinsecure(none));	   /* none; */
+	assert_false(dns_acl_isinsecure(notany));  /* !any; */
+	assert_false(dns_acl_isinsecure(notnone)); /* !none; */
 
 #if defined(HAVE_GEOIP2)
-	assert_true(dns_acl_isinsecure(geoip));		/* geoip; */
-	assert_false(dns_acl_isinsecure(notgeoip));	/* !geoip; */
-#endif /* HAVE_GEOIP2 */
+	assert_true(dns_acl_isinsecure(geoip));	    /* geoip; */
+	assert_false(dns_acl_isinsecure(notgeoip)); /* !geoip; */
+#endif						    /* HAVE_GEOIP2 */
 
 	dns_acl_detach(&any);
 	dns_acl_detach(&none);
@@ -137,8 +136,8 @@ dns_acl_isinsecure_test(void **state) {
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(dns_acl_isinsecure_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(dns_acl_isinsecure_test, _setup,
+						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
@@ -154,4 +153,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

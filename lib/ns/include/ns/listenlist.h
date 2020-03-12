@@ -13,8 +13,8 @@
 #define NS_LISTENLIST_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief
@@ -35,21 +35,21 @@
  *** Types
  ***/
 
-typedef struct ns_listenelt ns_listenelt_t;
+typedef struct ns_listenelt  ns_listenelt_t;
 typedef struct ns_listenlist ns_listenlist_t;
 
 struct ns_listenelt {
-	isc_mem_t *	       		mctx;
-	in_port_t			port;
-	isc_dscp_t			dscp;  /* -1 = not set, 0..63 */
-	dns_acl_t *	       		acl;
-	ISC_LINK(ns_listenelt_t)	link;
+	isc_mem_t *mctx;
+	in_port_t  port;
+	isc_dscp_t dscp; /* -1 = not set, 0..63 */
+	dns_acl_t *acl;
+	ISC_LINK(ns_listenelt_t) link;
 };
 
 struct ns_listenlist {
-	isc_mem_t *			mctx;
-	int				refcount;
-	ISC_LIST(ns_listenelt_t)	elts;
+	isc_mem_t *mctx;
+	int	   refcount;
+	ISC_LIST(ns_listenelt_t) elts;
 };
 
 /***
@@ -97,5 +97,3 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
  */
 
 #endif /* NS_LISTENLIST_H */
-
-

@@ -11,12 +11,11 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -36,6 +35,8 @@
 #if defined(HAVE_GEOIP2)
 #include <maxminddb.h>
 
+#include "../geoip2.c"
+
 /* Use GeoIP2 databases from the 'geoip2' system test */
 #define TEST_GEOIP_DATA "../../../bin/tests/system/geoip2/data"
 
@@ -43,8 +44,10 @@ static dns_geoip_databases_t geoip;
 
 static MMDB_s geoip_country, geoip_city, geoip_as, geoip_isp, geoip_domain;
 
-static void load_geoip(const char *dir);
-static void close_geoip(void);
+static void
+load_geoip(const char *dir);
+static void
+close_geoip(void);
 
 static int
 _setup(void **state) {
@@ -88,8 +91,7 @@ open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
 
 static void
 load_geoip(const char *dir) {
-	geoip.country = open_geoip2(dir, "GeoIP2-Country.mmdb",
-				     &geoip_country);
+	geoip.country = open_geoip2(dir, "GeoIP2-Country.mmdb", &geoip_country);
 	geoip.city = open_geoip2(dir, "GeoIP2-City.mmdb", &geoip_city);
 	geoip.as = open_geoip2(dir, "GeoLite2-ASN.mmdb", &geoip_as);
 	geoip.isp = open_geoip2(dir, "GeoIP2-ISP.mmdb", &geoip_isp);
@@ -106,9 +108,79 @@ close_geoip(void) {
 }
 
 static bool
+/* Check if an MMDB entry of a given subtype exists for the given IP */
+entry_exists(dns_geoip_subtype_t subtype, const char *addr) {
+	struct in6_addr in6;
+	struct in_addr in4;
+	isc_netaddr_t na;
+	MMDB_s *db;
+
+	if (inet_pton(AF_INET6, addr, &in6) == 1) {
+		isc_netaddr_fromin6(&na, &in6);
+	} else if (inet_pton(AF_INET, addr, &in4) == 1) {
+		isc_netaddr_fromin(&na, &in4);
+	} else {
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
+	db = geoip2_database(&geoip, fix_subtype(&geoip, subtype));
+
+	return (db != NULL && get_entry_for(db, &na) != NULL);
+}
+
+/*
+ * Baseline test - check if get_entry_for() works as expected, i.e. that its
+ * return values are consistent with the contents of the test MMDBs found in
+ * bin/tests/system/geoip2/data/ (10.53.0.1 and fd92:7065:b8e:ffff::1 should be
+ * present in all databases, 192.0.2.128 should only be present in the country
+ * database, ::1 should be absent from all databases).
+ */
+static void
+baseline(void **state) {
+	dns_geoip_subtype_t subtype;
+
+	UNUSED(state);
+
+	subtype = dns_geoip_city_name;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_false(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
+
+	subtype = dns_geoip_country_name;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_true(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
+
+	subtype = dns_geoip_domain_name;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_false(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
+
+	subtype = dns_geoip_isp_name;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_false(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
+
+	subtype = dns_geoip_as_asnum;
+
+	assert_true(entry_exists(subtype, "10.53.0.1"));
+	assert_false(entry_exists(subtype, "192.0.2.128"));
+	assert_true(entry_exists(subtype, "fd92:7065:b8e:ffff::1"));
+	assert_false(entry_exists(subtype, "::1"));
+}
+
+static bool
 do_lookup_string(const char *addr, dns_geoip_subtype_t subtype,
-		 const char *string)
-{
+		 const char *string) {
 	dns_geoip_elem_t elt;
 	struct in_addr in4;
 	isc_netaddr_t na;
@@ -124,8 +196,7 @@ do_lookup_string(const char *addr, dns_geoip_subtype_t subtype,
 
 static bool
 do_lookup_string_v6(const char *addr, dns_geoip_subtype_t subtype,
-		    const char *string)
-{
+		    const char *string) {
 	dns_geoip_elem_t elt;
 	struct in6_addr in6;
 	isc_netaddr_t na;
@@ -153,15 +224,15 @@ country(void **state) {
 	match = do_lookup_string("10.53.0.1", dns_geoip_country_code, "AU");
 	assert_true(match);
 
-	match = do_lookup_string("10.53.0.1",
-				 dns_geoip_country_name, "Australia");
+	match = do_lookup_string("10.53.0.1", dns_geoip_country_name,
+				 "Australia");
 	assert_true(match);
 
 	match = do_lookup_string("192.0.2.128", dns_geoip_country_code, "O1");
 	assert_true(match);
 
-	match = do_lookup_string("192.0.2.128",
-				 dns_geoip_country_name, "Other");
+	match = do_lookup_string("192.0.2.128", dns_geoip_country_name,
+				 "Other");
 	assert_true(match);
 }
 
@@ -196,32 +267,30 @@ city(void **state) {
 		skip();
 	}
 
-	match = do_lookup_string("10.53.0.1",
-				 dns_geoip_city_continentcode, "NA");
+	match = do_lookup_string("10.53.0.1", dns_geoip_city_continentcode,
+				 "NA");
 	assert_true(match);
 
-	match = do_lookup_string("10.53.0.1",
-				 dns_geoip_city_countrycode, "US");
+	match = do_lookup_string("10.53.0.1", dns_geoip_city_countrycode, "US");
 	assert_true(match);
 
-	match = do_lookup_string("10.53.0.1",
-				 dns_geoip_city_countryname, "United States");
+	match = do_lookup_string("10.53.0.1", dns_geoip_city_countryname,
+				 "United States");
 	assert_true(match);
 
-	match = do_lookup_string("10.53.0.1",
-				 dns_geoip_city_region, "CA");
+	match = do_lookup_string("10.53.0.1", dns_geoip_city_region, "CA");
 	assert_true(match);
 
-	match = do_lookup_string("10.53.0.1",
-				 dns_geoip_city_regionname, "California");
+	match = do_lookup_string("10.53.0.1", dns_geoip_city_regionname,
+				 "California");
 	assert_true(match);
 
-	match = do_lookup_string("10.53.0.1",
-				 dns_geoip_city_name, "Redwood City");
+	match = do_lookup_string("10.53.0.1", dns_geoip_city_name,
+				 "Redwood City");
 	assert_true(match);
 
-	match = do_lookup_string("10.53.0.1",
-				 dns_geoip_city_postalcode, "94063");
+	match = do_lookup_string("10.53.0.1", dns_geoip_city_postalcode,
+				 "94063");
 	assert_true(match);
 }
 
@@ -324,8 +393,7 @@ domain(void **state) {
 		skip();
 	}
 
-	match = do_lookup_string("10.53.0.5",
-				 dns_geoip_domain_name, "five.es");
+	match = do_lookup_string("10.53.0.5", dns_geoip_domain_name, "five.es");
 	assert_true(match);
 }
 #endif /* HAVE_GEOIP2 */
@@ -334,20 +402,17 @@ int
 main(void) {
 #if defined(HAVE_GEOIP2)
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(country, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(country_v6, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(city, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(city_v6, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(asnum, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(isp, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(org, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(domain, _setup, _teardown),
+		cmocka_unit_test(baseline),   cmocka_unit_test(country),
+		cmocka_unit_test(country_v6), cmocka_unit_test(city),
+		cmocka_unit_test(city_v6),    cmocka_unit_test(asnum),
+		cmocka_unit_test(isp),	      cmocka_unit_test(org),
+		cmocka_unit_test(domain),
 	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-#else
+	return (cmocka_run_group_tests(tests, _setup, _teardown));
+#else  /* if defined(HAVE_GEOIP2) */
 	print_message("1..0 # Skip GeoIP not enabled\n");
-#endif
+#endif /* if defined(HAVE_GEOIP2) */
 }
 
 #else /* HAVE_CMOCKA */

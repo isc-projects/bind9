@@ -18,7 +18,6 @@
 
 static inline isc_result_t
 fromtext_in_nimloc(ARGS_FROMTEXT) {
-
 	REQUIRE(type == dns_rdatatype_nimloc);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -47,8 +46,8 @@ totext_in_nimloc(ARGS_TOTEXT) {
 	if (tctx->width == 0) {
 		RETERR(isc_hex_totext(&region, 60, "", target));
 	} else {
-		RETERR(isc_hex_totext(&region, tctx->width - 2,
-				      tctx->linebreak, target));
+		RETERR(isc_hex_totext(&region, tctx->width - 2, tctx->linebreak,
+				      target));
 	}
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" )", target));
@@ -192,7 +191,6 @@ digest_in_nimloc(ARGS_DIGEST) {
 
 static inline bool
 checkowner_in_nimloc(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_nimloc);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -206,7 +204,6 @@ checkowner_in_nimloc(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_in_nimloc(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_nimloc);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -222,4 +219,4 @@ casecompare_in_nimloc(ARGS_COMPARE) {
 	return (compare_in_nimloc(rdata1, rdata2));
 }
 
-#endif	/* RDATA_IN_1_NIMLOC_32_C */
+#endif /* RDATA_IN_1_NIMLOC_32_C */

@@ -458,7 +458,7 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check that using dnssec-keys and managed-keys generates an error ($n)"
+echo_i "check that using trust-anchors and managed-keys generates an error ($n)"
 ret=0
 $CHECKCONF check-mixed-keys.conf > checkconf.out$n 2>/dev/null && ret=1
 grep "use of managed-keys is not allowed" checkconf.out$n > /dev/null || ret=1
@@ -475,9 +475,9 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking named-checkconf kasp warnings ($n)"
+echo_i "checking named-checkconf kasp errors ($n)"
 ret=0
-$CHECKCONF kasp-and-other-dnssec-options.conf > checkconf.out$n 2>&1
+$CHECKCONF kasp-and-other-dnssec-options.conf > checkconf.out$n 2>&1 && ret=1
 grep "'auto-dnssec maintain;' cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "dnskey-sig-validity: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "dnssec-dnskey-kskonly: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
@@ -486,6 +486,14 @@ grep "dnssec-update-mode: cannot be configured if dnssec-policy is also set" < c
 grep "inline-signing: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "sig-validity-interval: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "update-check-ksk: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking named-checkconf kasp predefined key lengths ($n)"
+ret=0
+$CHECKCONF kasp-ignore-keylen.conf > checkconf.out$n 2>&1 || ret=1
+grep "dnssec-policy: key algorithm ecdsa256 has predefined length; ignoring length value 2048" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -503,8 +511,15 @@ awk 'BEGIN { ok = 0; } /cut here/ { ok = 1; getline } ok == 1 { print }' good-ka
 [ -s good-kasp.conf.in ] || ret=1
 $CHECKCONF -p good-kasp.conf.in | grep -v '^good-kasp.conf.in:' > good-kasp.conf.out 2>&1 || ret=1
 cmp good-kasp.conf.in good-kasp.conf.out || ret=1
-
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check that max-ixfr-ratio 100% generates a warning ($n)"
+ret=0
+$CHECKCONF warn-maxratio1.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "exceeds 100%" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 echo_i "exit status: $status"

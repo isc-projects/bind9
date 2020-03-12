@@ -15,6 +15,7 @@
 #include <inttypes.h>
 
 #include <isc/types.h>
+
 #include <dns/types.h>
 
 /*%
@@ -22,12 +23,12 @@
  * store masters for a slave zone, created by parsing config options.
  */
 struct dns_ipkeylist {
-	isc_sockaddr_t		*addrs;
-	isc_dscp_t		*dscps;
-	dns_name_t		**keys;
-	dns_name_t		**labels;
-	uint32_t		count;
-	uint32_t		allocated;
+	isc_sockaddr_t *addrs;
+	isc_dscp_t *	dscps;
+	dns_name_t **	keys;
+	dns_name_t **	labels;
+	uint32_t	count;
+	uint32_t	allocated;
 };
 
 void
@@ -80,8 +81,8 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n);
  * \li	'n' >= ipkl->count
  *
  * Returns:
- * \li	#ISC_R_SUCCESS if successs
- * \li	#ISC_R_NOMEMORY if there's no memory, ipkeylist is left untoched
+ * \li	#ISC_R_SUCCESS if success
+ * \li	#ISC_R_NOMEMORY if there's no memory, ipkeylist is left untouched
  */
 
-#endif
+#endif /* ifndef DNS_IPKEYLIST_H */

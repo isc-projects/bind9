@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef IRS_DNSCONF_H
 #define IRS_DNSCONF_H 1
 
@@ -23,9 +22,9 @@
  * Notes:
  * This module is very experimental and the configuration syntax or library
  * interfaces may change in future versions.  Currently, only static
- * key configuration is supported; "trusted-keys" and "dnssec-keys"/
+ * key configuration is supported; "trusted-keys" and "trust-anchors"/
  * "managed-keys" statements will be parsed exactly as they are in
- * named.conf, except that "dnssec-keys" and "managed-keys" entries will
+ * named.conf, except that "trust-anchors" and "managed-keys" entries will
  * be treated as if they were configured with "static-key", even if they
  * were actually configured with "initial-key".
  */
@@ -38,9 +37,9 @@
  * 'keydatabuf' members with the dst_key_fromdns() function.
  */
 typedef struct irs_dnsconf_dnskey {
-	dns_name_t				*keyname;
-	isc_buffer_t				*keydatabuf;
-	ISC_LINK(struct irs_dnsconf_dnskey)	link;
+	dns_name_t *  keyname;
+	isc_buffer_t *keydatabuf;
+	ISC_LINK(struct irs_dnsconf_dnskey) link;
 } irs_dnsconf_dnskey_t;
 
 typedef ISC_LIST(irs_dnsconf_dnskey_t) irs_dnsconf_dnskeylist_t;

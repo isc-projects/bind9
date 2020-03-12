@@ -16,7 +16,6 @@
 
 static inline isc_result_t
 fromtext_ninfo(ARGS_FROMTEXT) {
-
 	REQUIRE(type == dns_rdatatype_ninfo);
 
 	UNUSED(type);
@@ -31,7 +30,6 @@ fromtext_ninfo(ARGS_FROMTEXT) {
 
 static inline isc_result_t
 totext_ninfo(ARGS_TOTEXT) {
-
 	UNUSED(tctx);
 
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
@@ -41,7 +39,6 @@ totext_ninfo(ARGS_TOTEXT) {
 
 static inline isc_result_t
 fromwire_ninfo(ARGS_FROMWIRE) {
-
 	REQUIRE(type == dns_rdatatype_ninfo);
 
 	UNUSED(type);
@@ -55,7 +52,6 @@ fromwire_ninfo(ARGS_FROMWIRE) {
 
 static inline isc_result_t
 towire_ninfo(ARGS_TOWIRE) {
-
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	UNUSED(cctx);
@@ -79,7 +75,6 @@ compare_ninfo(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_ninfo(ARGS_FROMSTRUCT) {
-
 	REQUIRE(type == dns_rdatatype_ninfo);
 
 	return (generic_fromstruct_txt(rdclass, type, source, target));
@@ -133,7 +128,6 @@ digest_ninfo(ARGS_DIGEST) {
 
 static inline bool
 checkowner_ninfo(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_ninfo);
 
 	UNUSED(name);
@@ -146,7 +140,6 @@ checkowner_ninfo(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_ninfo(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	UNUSED(rdata);
@@ -163,7 +156,6 @@ casecompare_ninfo(ARGS_COMPARE) {
 
 isc_result_t
 dns_rdata_ninfo_first(dns_rdata_ninfo_t *ninfo) {
-
 	REQUIRE(ninfo != NULL);
 	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 
@@ -172,7 +164,6 @@ dns_rdata_ninfo_first(dns_rdata_ninfo_t *ninfo) {
 
 isc_result_t
 dns_rdata_ninfo_next(dns_rdata_ninfo_t *ninfo) {
-
 	REQUIRE(ninfo != NULL);
 	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 
@@ -181,12 +172,10 @@ dns_rdata_ninfo_next(dns_rdata_ninfo_t *ninfo) {
 
 isc_result_t
 dns_rdata_ninfo_current(dns_rdata_ninfo_t *ninfo,
-			dns_rdata_ninfo_string_t *string)
-{
-
+			dns_rdata_ninfo_string_t *string) {
 	REQUIRE(ninfo != NULL);
 	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 
 	return (generic_txt_current(ninfo, string));
 }
-#endif	/* RDATA_GENERIC_NINFO_56_C */
+#endif /* RDATA_GENERIC_NINFO_56_C */

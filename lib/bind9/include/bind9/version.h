@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file bind9/version.h */
 
 #include <isc/platform.h>

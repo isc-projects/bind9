@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_UPDATE_H
 #define DNS_UPDATE_H 1
 
@@ -23,8 +22,8 @@
 
 #include <isc/lang.h>
 
-#include <dns/types.h>
 #include <dns/diff.h>
+#include <dns/types.h>
 
 typedef struct {
 	void (*func)(void *arg, dns_zone_t *zone, int level,

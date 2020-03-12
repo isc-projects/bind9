@@ -82,7 +82,7 @@ struct isc_socketevent {
         unsigned int            dscp;           /*%< UDP dscp value */
 };
 
-A convience function will be provided to allocate and intialize the structure.
+A convenience function will be provided to allocate and initialize the structure.
 
 isc_socketevent_t *
 isc_socket_socketevent(isc_socket_t *sock0, isc_eventtype_t eventtype,

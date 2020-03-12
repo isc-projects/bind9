@@ -14,20 +14,20 @@
 
 #ifndef CKK_EDDSA
 #ifdef PK11_SOFTHSMV2_FLAVOR
-#define CKK_EDDSA               0x00008003UL
-#endif
-#endif
+#define CKK_EDDSA 0x00008003UL
+#endif /* ifdef PK11_SOFTHSMV2_FLAVOR */
+#endif /* ifndef CKK_EDDSA */
 
 #ifndef CKM_EDDSA_KEY_PAIR_GEN
 #ifdef PK11_SOFTHSMV2_FLAVOR
-#define CKM_EDDSA_KEY_PAIR_GEN         0x00009040UL
-#endif
-#endif
+#define CKM_EDDSA_KEY_PAIR_GEN 0x00009040UL
+#endif /* ifdef PK11_SOFTHSMV2_FLAVOR */
+#endif /* ifndef CKM_EDDSA_KEY_PAIR_GEN */
 
 #ifndef CKM_EDDSA
 #ifdef PK11_SOFTHSMV2_FLAVOR
-#define CKM_EDDSA                      0x00009041UL
-#endif
-#endif
+#define CKM_EDDSA 0x00009041UL
+#endif /* ifdef PK11_SOFTHSMV2_FLAVOR */
+#endif /* ifndef CKM_EDDSA */
 
 #endif /* _EDDSA_H_ */

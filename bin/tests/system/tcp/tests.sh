@@ -78,22 +78,11 @@ refresh_tcp_stats() {
 	TCP_HIGH="$(sed -n "s/^TCP high-water: \([0-9][0-9]*\)/\1/p" rndc.out.$n)"
 }
 
-wait_for_log() {
-	msg=$1
-	file=$2
-	for _ in 1 2 3 4 5 6 7 8 9 10; do
-		nextpartpeek "$file" | grep "$msg" > /dev/null && return
-		sleep 1
-	done
-	echo_i "exceeded time limit waiting for '$msg' in $file"
-	ret=1
-}
-
 # Send a command to the tool script listening on 10.53.0.6.
 send_command() {
 	nextpart ans6/ans.run > /dev/null
 	echo "$*" | "${PERL}" "${SYSTEMTESTTOP}/send.pl" 10.53.0.6 "${CONTROLPORT}"
-	wait_for_log "result=" ans6/ans.run
+	wait_for_log_peek 10 "result=" ans6/ans.run || ret=1
 	if ! nextpartpeek ans6/ans.run | grep -qF "result=OK"; then
 		return 1
 	fi
@@ -109,13 +98,27 @@ close_connections() {
 	send_command "close" "${1}" || return 1
 }
 
+# Check TCP connections are working normally before opening
+# multiple connections
+n=$((n + 1))
+echo_i "checking TCP query repsonse ($n)"
+ret=0
+dig_with_opts +tcp @10.53.0.5 txt.example > dig.out.test$n
+grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 # Check TCP statistics after server startup before using them as a baseline for
 # subsequent checks.
 n=$((n + 1))
 echo_i "TCP high-water: check initial statistics ($n)"
 ret=0
 refresh_tcp_stats
-assert_int_equal "${TCP_CUR}" 1 "current TCP clients count" || ret=1
+assert_int_equal "${TCP_CUR}" 0 "current TCP clients count" || ret=1
+# We compare initial tcp-highwater value with 1 because as part of the
+# system test startup, the script start.pl executes dig to check if target
+# named is running, and that increments tcp-quota by one.
+assert_int_equal "${TCP_HIGH}" 1 "tcp-highwater count" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -166,12 +169,20 @@ check_stats_limit() {
 	assert_int_equal "${TCP_HIGH}" "${TCP_LIMIT}" "TCP high-water value" || return 1
 }
 retry 2 check_stats_limit || ret=1
-close_connections $((TCP_LIMIT + 1)) || :
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-# wait for connections to close
-sleep 5
+# Check TCP connections are working normally before opening
+# multiple connections
+n=$((n + 1))
+echo_i "checking TCP response recovery ($n)"
+ret=0
+# "0" closes all connections
+close_connections 0 || ret=1
+dig_with_opts +tcp @10.53.0.5 txt.example > dig.out.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

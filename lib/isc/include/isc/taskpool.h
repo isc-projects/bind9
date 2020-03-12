@@ -9,13 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_TASKPOOL_H
 #define ISC_TASKPOOL_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/taskpool.h
  * \brief A task pool is a mechanism for sharing a small number of tasks
@@ -29,7 +28,6 @@
  * could result from creating a separate task for each object.
  */
 
-
 /***
  *** Imports.
  ***/
@@ -42,19 +40,18 @@
 ISC_LANG_BEGINDECLS
 
 /*****
- ***** Types.
- *****/
+***** Types.
+*****/
 
 typedef struct isc_taskpool isc_taskpool_t;
 
 /*****
- ***** Functions.
- *****/
+***** Functions.
+*****/
 
 isc_result_t
-isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
-		    unsigned int ntasks, unsigned int quantum,
-		    isc_taskpool_t **poolp);
+isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx, unsigned int ntasks,
+		    unsigned int quantum, isc_taskpool_t **poolp);
 /*%<
  * Create a task pool of "ntasks" tasks, each with quantum
  * "quantum".
@@ -94,7 +91,7 @@ isc_taskpool_size(isc_taskpool_t *pool);
 
 isc_result_t
 isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size,
-					isc_taskpool_t **targetp);
+		    isc_taskpool_t **targetp);
 
 /*%<
  * If 'size' is larger than the number of tasks in the pool pointed to by

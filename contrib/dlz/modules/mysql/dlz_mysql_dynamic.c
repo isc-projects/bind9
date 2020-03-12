@@ -34,7 +34,8 @@
  */
 
 /*
- * Copyright (C) 1999-2001, 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2001, 2013, 2016  Internet Systems Consortium, Inc.
+ * ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -46,40 +47,40 @@
  * update support
  */
 
-#include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
-
-#include <dlz_minimal.h>
-#include <dlz_list.h>
-#include <dlz_dbi.h>
-#include <dlz_pthread.h>
+#include <string.h>
 
 #include <mysql/mysql.h>
 
+#include <dlz_dbi.h>
+#include <dlz_list.h>
+#include <dlz_minimal.h>
+#include <dlz_pthread.h>
+
 #define dbc_search_limit 30
-#define ALLNODES 1
-#define ALLOWXFR 2
-#define AUTHORITY 3
-#define FINDZONE 4
-#define COUNTZONE 5
-#define LOOKUP 6
+#define ALLNODES	 1
+#define ALLOWXFR	 2
+#define AUTHORITY	 3
+#define FINDZONE	 4
+#define COUNTZONE	 5
+#define LOOKUP		 6
 
 #define safeGet(in) in == NULL ? "" : in
 
 /*%
- * Structure to hold everthing needed by this "instance" of the MySQL
+ * Structure to hold everything needed by this "instance" of the MySQL
  * module remember, the module code is only loaded once, but may have
  * many separate instances.
  */
 typedef struct {
 #if PTHREADS
-	db_list_t    *db; /*%< handle to a list of DB */
+	db_list_t *db; /*%< handle to a list of DB */
 	int dbcount;
-#else
+#else  /* if PTHREADS */
 	dbinstance_t *db; /*%< handle to DB */
-#endif
+#endif /* if PTHREADS */
 
 	unsigned int flags;
 	char *dbname;
@@ -98,8 +99,7 @@ typedef struct {
 
 /* forward references */
 isc_result_t
-dlz_findzonedb(void *dbdata, const char *name,
-	       dns_clientinfomethods_t *methods,
+dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo);
 
 void
@@ -115,8 +115,9 @@ b9_add_helper(mysql_instance_t *db, const char *helper_name, void *ptr);
 void
 mysql_destroy(dbinstance_t *db) {
 	/* release DB connection */
-	if (db->dbconn != NULL)
-		mysql_close((MYSQL *) db->dbconn);
+	if (db->dbconn != NULL) {
+		mysql_close((MYSQL *)db->dbconn);
+	}
 
 	/* destroy DB instance */
 	destroy_dbinstance(db);
@@ -166,9 +167,9 @@ mysql_find_avail_conn(mysql_instance_t *mysql) {
 	/* loop through list */
 	while (count < dbc_search_limit) {
 		/* try to lock on the mutex */
-		if (dlz_mutex_trylock(&dbi->lock) == 0)
+		if (dlz_mutex_trylock(&dbi->lock) == 0) {
 			return (dbi); /* success, return the DBI for use. */
-
+		}
 		/* not successful, keep trying */
 		dbi = DLZ_LIST_NEXT(dbi, link);
 
@@ -181,7 +182,8 @@ mysql_find_avail_conn(mysql_instance_t *mysql) {
 
 	mysql->log(ISC_LOG_INFO,
 		   "MySQL module unable to find available connection "
-		   "after searching %d times", count);
+		   "after searching %d times",
+		   count);
 	return (NULL);
 }
 #endif /* PTHREADS */
@@ -195,17 +197,18 @@ mysql_find_avail_conn(mysql_instance_t *mysql) {
  */
 static char *
 mysqldrv_escape_string(MYSQL *mysql, const char *instr) {
-
 	char *outstr;
 	unsigned int len;
 
-	if (instr == NULL)
+	if (instr == NULL) {
 		return (NULL);
+	}
 
 	len = strlen(instr);
 	outstr = malloc((2 * len * sizeof(char)) + 1);
-	if (outstr == NULL)
+	if (outstr == NULL) {
 		return (NULL);
+	}
 
 	mysql_real_escape_string(mysql, outstr, instr, len);
 
@@ -222,10 +225,8 @@ mysqldrv_escape_string(MYSQL *mysql, const char *instr) {
  * a result set.
  */
 static isc_result_t
-mysql_get_resultset(const char *zone, const char *record,
-		    const char *client, unsigned int query,
-		    void *dbdata, MYSQL_RES **rs)
-{
+mysql_get_resultset(const char *zone, const char *record, const char *client,
+		    unsigned int query, void *dbdata, MYSQL_RES **rs) {
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
@@ -237,7 +238,7 @@ mysql_get_resultset(const char *zone, const char *record,
 #if PTHREADS
 	/* find an available DBI from the list */
 	dbi = mysql_find_avail_conn(db);
-#else /* PTHREADS */
+#else  /* PTHREADS */
 	/*
 	 * only 1 DBI - no need to lock instance lock either
 	 * only 1 thread in the whole process, no possible contention.
@@ -250,7 +251,7 @@ mysql_get_resultset(const char *zone, const char *record,
 	}
 
 	/* what type of query are we going to run? */
-	switch(query) {
+	switch (query) {
 	case ALLNODES:
 		if (dbi->allnodes_q == NULL) {
 			result = ISC_R_NOTIMPLEMENTED;
@@ -271,9 +272,9 @@ mysql_get_resultset(const char *zone, const char *record,
 		break;
 	case FINDZONE:
 		if (dbi->findzone_q == NULL) {
-			db->log(ISC_LOG_DEBUG(2),
-				"No query specified for findzone.  "
-				"Findzone requires a query");
+			db->log(ISC_LOG_DEBUG(2), "No query specified for "
+						  "findzone.  "
+						  "Findzone requires a query");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
@@ -286,66 +287,69 @@ mysql_get_resultset(const char *zone, const char *record,
 		break;
 	case LOOKUP:
 		if (dbi->lookup_q == NULL) {
-			db->log(ISC_LOG_DEBUG(2),
-				"No query specified for lookup.  "
-				"Lookup requires a query");
+			db->log(ISC_LOG_DEBUG(2), "No query specified for "
+						  "lookup.  "
+						  "Lookup requires a query");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
 		break;
 	default:
-		db->log(ISC_LOG_ERROR,
-			"Incorrect query flag passed to "
-			"mysql_get_resultset");
+		db->log(ISC_LOG_ERROR, "Incorrect query flag passed to "
+				       "mysql_get_resultset");
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;
 	}
 
-
 	if (zone != NULL) {
-		if (dbi->zone != NULL)
+		if (dbi->zone != NULL) {
 			free(dbi->zone);
+		}
 
-		dbi->zone = mysqldrv_escape_string((MYSQL *) dbi->dbconn,
-						   zone);
+		dbi->zone = mysqldrv_escape_string((MYSQL *)dbi->dbconn, zone);
 		if (dbi->zone == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else
+	} else {
 		dbi->zone = NULL;
+	}
 
 	if (record != NULL) {
-		if (dbi->record != NULL)
+		if (dbi->record != NULL) {
 			free(dbi->record);
+		}
 
-		dbi->record = mysqldrv_escape_string((MYSQL *) dbi->dbconn,
+		dbi->record = mysqldrv_escape_string((MYSQL *)dbi->dbconn,
 						     record);
 		if (dbi->record == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else
+	} else {
 		dbi->record = NULL;
+	}
 
 	if (client != NULL) {
-		if (dbi->client != NULL)
+		if (dbi->client != NULL) {
 			free(dbi->client);
+		}
 
-		dbi->client = mysqldrv_escape_string((MYSQL *) dbi->dbconn,
+		dbi->client = mysqldrv_escape_string((MYSQL *)dbi->dbconn,
 						     client);
 		if (dbi->client == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-	} else
+	} else {
 		dbi->client = NULL;
+	}
 
 	/*
 	 * what type of query are we going to run?  this time we build
 	 * the actual query to run.
 	 */
-	switch(query) {
+	switch (query) {
 	case ALLNODES:
 		querystring = build_querystring(dbi->allnodes_q);
 		break;
@@ -365,10 +369,10 @@ mysql_get_resultset(const char *zone, const char *record,
 		querystring = build_querystring(dbi->lookup_q);
 		break;
 	default:
-		db->log(ISC_LOG_ERROR,
-			"Incorrect query flag passed to "
-			"mysql_get_resultset");
-		result = ISC_R_UNEXPECTED; goto cleanup;
+		db->log(ISC_LOG_ERROR, "Incorrect query flag passed to "
+				       "mysql_get_resultset");
+		result = ISC_R_UNEXPECTED;
+		goto cleanup;
 	}
 
 	if (querystring == NULL) {
@@ -381,25 +385,30 @@ mysql_get_resultset(const char *zone, const char *record,
 
 	/* attempt query up to 3 times. */
 	for (i = 0; i < 3; i++) {
-		qres = mysql_query((MYSQL *) dbi->dbconn, querystring);
-		if (qres == 0)
+		qres = mysql_query((MYSQL *)dbi->dbconn, querystring);
+		if (qres == 0) {
 			break;
-		for (j = 0; j < 4; j++)
-		     if (mysql_ping((MYSQL *) dbi->dbconn) == 0)
-			     break;
+		}
+		for (j = 0; j < 4; j++) {
+			if (mysql_ping((MYSQL *)dbi->dbconn) == 0) {
+				break;
+			}
+		}
 	}
 
 	if (qres == 0) {
 		result = ISC_R_SUCCESS;
 		if (query != COUNTZONE) {
-			*rs = mysql_store_result((MYSQL *) dbi->dbconn);
-			if (*rs == NULL)
+			*rs = mysql_store_result((MYSQL *)dbi->dbconn);
+			if (*rs == NULL) {
 				result = ISC_R_FAILURE;
+			}
 		}
-	} else
+	} else {
 		result = ISC_R_FAILURE;
+	}
 
- cleanup:
+cleanup:
 	if (dbi->zone != NULL) {
 		free(dbi->zone);
 		dbi->zone = NULL;
@@ -414,10 +423,11 @@ mysql_get_resultset(const char *zone, const char *record,
 	}
 
 	/* release the lock so another thread can use this dbi */
-	(void) dlz_mutex_unlock(&dbi->lock);
+	(void)dlz_mutex_unlock(&dbi->lock);
 
-	if (querystring != NULL)
+	if (querystring != NULL) {
 		free(querystring);
+	}
 
 	return (result);
 }
@@ -429,8 +439,7 @@ mysql_get_resultset(const char *zone, const char *record,
  */
 static isc_result_t
 mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
-		 MYSQL_RES *rs)
-{
+		 MYSQL_RES *rs) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	MYSQL_ROW row;
 	unsigned int fields;
@@ -439,12 +448,12 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 	char *endp;
 	int ttl;
 
-	fields = mysql_num_fields(rs);	/* how many columns in result set */
-	row = mysql_fetch_row(rs);	/* get a row from the result set */
+	fields = mysql_num_fields(rs); /* how many columns in result set */
+	row = mysql_fetch_row(rs);     /* get a row from the result set */
 	while (row != NULL) {
 		unsigned int len = 0;
 
-		switch(fields) {
+		switch (fields) {
 		case 1:
 			/*
 			 * one column in rs, it's the data field.  use
@@ -469,14 +478,14 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 			 */
 			ttl = strtol(safeGet(row[0]), &endp, 10);
 			if (*endp != '\0' || ttl < 0) {
-				db->log(ISC_LOG_ERROR,
-					"MySQL module ttl must be "
-					"a postive number");
+				db->log(ISC_LOG_ERROR, "MySQL module ttl must "
+						       "be "
+						       "a positive number");
 				return (ISC_R_FAILURE);
 			}
 
 			result = db->putrr(lookup, safeGet(row[1]), ttl,
-						safeGet(row[2]));
+					   safeGet(row[2]));
 			break;
 		default:
 			/*
@@ -493,9 +502,10 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 			 */
 			tmpString = malloc(len + 1);
 			if (tmpString == NULL) {
-				db->log(ISC_LOG_ERROR,
-					"MySQL module unable to allocate "
-					"memory for temporary string");
+				db->log(ISC_LOG_ERROR, "MySQL module unable to "
+						       "allocate "
+						       "memory for temporary "
+						       "string");
 				mysql_free_result(rs);
 				return (ISC_R_FAILURE);
 			}
@@ -508,22 +518,22 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 
 			ttl = strtol(safeGet(row[0]), &endp, 10);
 			if (*endp != '\0' || ttl < 0) {
-				db->log(ISC_LOG_ERROR,
-					"MySQL module ttl must be "
-					"a postive number");
+				db->log(ISC_LOG_ERROR, "MySQL module ttl must "
+						       "be "
+						       "a positive number");
 				free(tmpString);
 				return (ISC_R_FAILURE);
 			}
 
-			result = db->putrr(lookup, safeGet(row[1]),
-					   ttl, tmpString);
+			result = db->putrr(lookup, safeGet(row[1]), ttl,
+					   tmpString);
 			free(tmpString);
 		}
 
 		if (result != ISC_R_SUCCESS) {
 			mysql_free_result(rs);
-			db->log(ISC_LOG_ERROR,
-				"putrr returned error: %d", result);
+			db->log(ISC_LOG_ERROR, "putrr returned error: %d",
+				result);
 			return (ISC_R_FAILURE);
 		}
 
@@ -540,10 +550,8 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 
 /*% determine if the zone is supported by (in) the database */
 isc_result_t
-dlz_findzonedb(void *dbdata, const char *name,
-	       dns_clientinfomethods_t *methods,
-	       dns_clientinfo_t *clientinfo)
-{
+dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
+	       dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 	my_ulonglong rows;
@@ -554,12 +562,12 @@ dlz_findzonedb(void *dbdata, const char *name,
 
 	result = mysql_get_resultset(name, NULL, NULL, FINDZONE, dbdata, &rs);
 	if (result != ISC_R_SUCCESS || rs == NULL) {
-		if (rs != NULL)
+		if (rs != NULL) {
 			mysql_free_result(rs);
+		}
 
-		db->log(ISC_LOG_ERROR,
-			"MySQL module unable to return "
-			"result set for findzone query");
+		db->log(ISC_LOG_ERROR, "MySQL module unable to return "
+				       "result set for findzone query");
 
 		return (ISC_R_FAILURE);
 	}
@@ -587,8 +595,9 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 
 	/* first check if the zone is supported by the database. */
 	result = dlz_findzonedb(dbdata, name, NULL, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOTFOUND);
+	}
 
 	/*
 	 * if we get to this point we know the zone is supported by
@@ -596,17 +605,17 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	 * transfer is allowed for this client and did the config file
 	 * have an allow zone xfr query.
 	 */
-	result = mysql_get_resultset(name, NULL, client, ALLOWXFR,
-				     dbdata, &rs);
-	if (result == ISC_R_NOTIMPLEMENTED)
+	result = mysql_get_resultset(name, NULL, client, ALLOWXFR, dbdata, &rs);
+	if (result == ISC_R_NOTIMPLEMENTED) {
 		return (result);
+	}
 
 	if (result != ISC_R_SUCCESS || rs == NULL) {
-		if (rs != NULL)
+		if (rs != NULL) {
 			mysql_free_result(rs);
-		db->log(ISC_LOG_ERROR,
-			"MySQL module unable to return "
-			"result set for allow xfr query");
+		}
+		db->log(ISC_LOG_ERROR, "MySQL module unable to return "
+				       "result set for allow xfr query");
 		return (ISC_R_FAILURE);
 	}
 
@@ -616,8 +625,9 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	 */
 	rows = mysql_num_rows(rs);
 	mysql_free_result(rs);
-	if (rows > 0)
+	if (rows > 0) {
 		return (ISC_R_SUCCESS);
+	}
 
 	return (ISC_R_NOPERM);
 }
@@ -640,35 +650,34 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	int ttl;
 
 	result = mysql_get_resultset(zone, NULL, NULL, ALLNODES, dbdata, &rs);
-	if (result == ISC_R_NOTIMPLEMENTED)
+	if (result == ISC_R_NOTIMPLEMENTED) {
 		return (result);
+	}
 
 	/* if we didn't get a result set, log an err msg. */
 	if (result != ISC_R_SUCCESS) {
-		db->log(ISC_LOG_ERROR,
-			"MySQL module unable to return "
-			"result set for all nodes query");
+		db->log(ISC_LOG_ERROR, "MySQL module unable to return "
+				       "result set for all nodes query");
 		goto cleanup;
 	}
 
 	result = ISC_R_NOTFOUND;
 
-	fields = mysql_num_fields(rs);	/* how many columns in result set */
-	row = mysql_fetch_row(rs);	/* get a row from the result set */
+	fields = mysql_num_fields(rs); /* how many columns in result set */
+	row = mysql_fetch_row(rs);     /* get a row from the result set */
 	while (row != NULL) {
 		if (fields < 4) {
-			db->log(ISC_LOG_ERROR,
-				"MySQL module too few fields returned "
-				"by all nodes query");
+			db->log(ISC_LOG_ERROR, "MySQL module too few fields "
+					       "returned "
+					       "by all nodes query");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
 
 		ttl = strtol(safeGet(row[0]), &endp, 10);
 		if (*endp != '\0' || ttl < 0) {
-			db->log(ISC_LOG_ERROR,
-				"MySQL module ttl must be "
-				"a postive number");
+			db->log(ISC_LOG_ERROR, "MySQL module ttl must be "
+					       "a positive number");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
@@ -689,9 +698,10 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 
 			tmpString = malloc(len + 1);
 			if (tmpString == NULL) {
-				db->log(ISC_LOG_ERROR,
-					"MySQL module unable to allocate "
-					"memory for temporary string");
+				db->log(ISC_LOG_ERROR, "MySQL module unable to "
+						       "allocate "
+						       "memory for temporary "
+						       "string");
 				result = ISC_R_FAILURE;
 				goto cleanup;
 			}
@@ -703,14 +713,14 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 			}
 
 			result = db->putnamedrr(allnodes, safeGet(row[2]),
-						safeGet(row[1]),
-						ttl, tmpString);
+						safeGet(row[1]), ttl,
+						tmpString);
 			free(tmpString);
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			db->log(ISC_LOG_ERROR,
-				"putnamedrr returned error: %s", result);
+			db->log(ISC_LOG_ERROR, "putnamedrr returned error: %s",
+				result);
 			result = ISC_R_FAILURE;
 			break;
 		}
@@ -718,9 +728,10 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 		row = mysql_fetch_row(rs);
 	}
 
- cleanup:
-	if (rs != NULL)
+cleanup:
+	if (rs != NULL) {
 		mysql_free_result(rs);
+	}
 
 	return (result);
 }
@@ -736,15 +747,16 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
 
 	result = mysql_get_resultset(zone, NULL, NULL, AUTHORITY, dbdata, &rs);
-	if (result == ISC_R_NOTIMPLEMENTED)
+	if (result == ISC_R_NOTIMPLEMENTED) {
 		return (result);
+	}
 
 	if (result != ISC_R_SUCCESS) {
-		if (rs != NULL)
+		if (rs != NULL) {
 			mysql_free_result(rs);
-		db->log(ISC_LOG_ERROR,
-			"MySQL module unable to return "
-			"result set for authority query");
+		}
+		db->log(ISC_LOG_ERROR, "MySQL module unable to return "
+				       "result set for authority query");
 		return (ISC_R_FAILURE);
 	}
 
@@ -757,11 +769,9 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 
 /*% If zone is supported, lookup up a (or multiple) record(s) in it */
 isc_result_t
-dlz_lookup(const char *zone, const char *name,
-	   void *dbdata, dns_sdlzlookup_t *lookup,
-	   dns_clientinfomethods_t *methods,
-	   dns_clientinfo_t *clientinfo)
-{
+dlz_lookup(const char *zone, const char *name, void *dbdata,
+	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
+	   dns_clientinfo_t *clientinfo) {
 	isc_result_t result;
 	MYSQL_RES *rs = NULL;
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
@@ -773,11 +783,11 @@ dlz_lookup(const char *zone, const char *name,
 
 	/* if we didn't get a result set, log an err msg. */
 	if (result != ISC_R_SUCCESS) {
-		if (rs != NULL)
+		if (rs != NULL) {
 			mysql_free_result(rs);
-		db->log(ISC_LOG_ERROR,
-			"MySQL module unable to return "
-			"result set for lookup query");
+		}
+		db->log(ISC_LOG_ERROR, "MySQL module unable to return "
+				       "result set for lookup query");
 		return (ISC_R_FAILURE);
 	}
 
@@ -792,9 +802,8 @@ dlz_lookup(const char *zone, const char *name,
  * Create an instance of the module.
  */
 isc_result_t
-dlz_create(const char *dlzname, unsigned int argc, char *argv[],
-	   void **dbdata, ...)
-{
+dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
+	   ...) {
 	isc_result_t result = ISC_R_FAILURE;
 	mysql_instance_t *mysql = NULL;
 	dbinstance_t *dbi = NULL;
@@ -804,8 +813,8 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	int j;
 	const char *helper_name;
 #if MYSQL_VERSION_ID >= 50000
-        my_bool auto_reconnect = 1;
-#endif
+	my_bool auto_reconnect = 1;
+#endif /* if MYSQL_VERSION_ID >= 50000 */
 #if PTHREADS
 	int dbcount;
 	int i;
@@ -816,59 +825,58 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate memory for MySQL instance */
 	mysql = calloc(1, sizeof(mysql_instance_t));
-	if (mysql == NULL)
+	if (mysql == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 	memset(mysql, 0, sizeof(mysql_instance_t));
 
 	/* Fill in the helper functions */
 	va_start(ap, dbdata);
-	while ((helper_name = va_arg(ap, const char*)) != NULL)
-		b9_add_helper(mysql, helper_name, va_arg(ap, void*));
+	while ((helper_name = va_arg(ap, const char *)) != NULL) {
+		b9_add_helper(mysql, helper_name, va_arg(ap, void *));
+	}
 	va_end(ap);
 
 #if PTHREADS
 	/* if debugging, let user know we are multithreaded. */
 	mysql->log(ISC_LOG_DEBUG(1), "MySQL module running multithreaded");
-#else /* PTHREADS */
+#else  /* PTHREADS */
 	/* if debugging, let user know we are single threaded. */
 	mysql->log(ISC_LOG_DEBUG(1), "MySQL module running single threaded");
 #endif /* PTHREADS */
 
 	/* verify we have at least 4 arg's passed to the module */
 	if (argc < 4) {
-		mysql->log(ISC_LOG_ERROR,
-			   "MySQL module requires "
-			   "at least 4 command line args.");
+		mysql->log(ISC_LOG_ERROR, "MySQL module requires "
+					  "at least 4 command line args.");
 		return (ISC_R_FAILURE);
 	}
 
 	/* no more than 8 arg's should be passed to the module */
 	if (argc > 8) {
-		mysql->log(ISC_LOG_ERROR,
-			   "MySQL module cannot accept "
-			   "more than 7 command line args.");
+		mysql->log(ISC_LOG_ERROR, "MySQL module cannot accept "
+					  "more than 7 command line args.");
 		return (ISC_R_FAILURE);
 	}
 
 	/* get db name - required */
 	mysql->dbname = get_parameter_value(argv[1], "dbname=");
 	if (mysql->dbname == NULL) {
-		mysql->log(ISC_LOG_ERROR,
-			   "MySQL module requires a dbname parameter.");
+		mysql->log(ISC_LOG_ERROR, "MySQL module requires a dbname "
+					  "parameter.");
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
 
 	/* get db port.  Not required, but must be > 0 if specified */
 	tmp = get_parameter_value(argv[1], "port=");
-	if (tmp == NULL)
+	if (tmp == NULL) {
 		mysql->port = 0;
-	else {
+	} else {
 		mysql->port = strtol(tmp, &endp, 10);
 		if (*endp != '\0' || mysql->port < 0) {
-			mysql->log(ISC_LOG_ERROR,
-				   "Mysql module: port "
-				   "must be a positive number.");
+			mysql->log(ISC_LOG_ERROR, "Mysql module: port "
+						  "must be a positive number.");
 			free(tmp);
 			result = ISC_R_FAILURE;
 			goto cleanup;
@@ -885,36 +893,39 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	tmp = get_parameter_value(argv[1], "compress=");
 	if (tmp != NULL) {
-		if (strcasecmp(tmp, "true") == 0)
+		if (strcasecmp(tmp, "true") == 0) {
 			mysql->flags |= CLIENT_COMPRESS;
+		}
 		free(tmp);
 	}
 
 	tmp = get_parameter_value(argv[1], "ssl=");
 	if (tmp != NULL) {
-		if (strcasecmp(tmp, "true") == 0)
+		if (strcasecmp(tmp, "true") == 0) {
 			mysql->flags |= CLIENT_SSL;
+		}
 		free(tmp);
 	}
 
 	tmp = get_parameter_value(argv[1], "space=");
 	if (tmp != NULL) {
-		if (strcasecmp(tmp, "ignore") == 0)
+		if (strcasecmp(tmp, "ignore") == 0) {
 			mysql->flags |= CLIENT_IGNORE_SPACE;
+		}
 		free(tmp);
 	}
 
 #if PTHREADS
 	/* multithreaded build can have multiple DB connections */
 	tmp = get_parameter_value(argv[1], "threads=");
-	if (tmp == NULL)
+	if (tmp == NULL) {
 		dbcount = 1;
-	else {
+	} else {
 		dbcount = strtol(tmp, &endp, 10);
 		if (*endp != '\0' || dbcount < 1) {
-			mysql->log(ISC_LOG_ERROR,
-				   "MySQL database connection count "
-				   "must be positive.");
+			mysql->log(ISC_LOG_ERROR, "MySQL database connection "
+						  "count "
+						  "must be positive.");
 			free(tmp);
 			result = ISC_R_FAILURE;
 			goto cleanup;
@@ -938,26 +949,26 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	 */
 	for (i = 0; i < dbcount; i++) {
 #endif /* PTHREADS */
-		switch(argc) {
+		switch (argc) {
 		case 4:
-			result = build_dbinstance(NULL, NULL, NULL,
-						  argv[2], argv[3], NULL,
-						  &dbi, mysql->log);
+			result = build_dbinstance(NULL, NULL, NULL, argv[2],
+						  argv[3], NULL, &dbi,
+						  mysql->log);
 			break;
 		case 5:
-			result = build_dbinstance(NULL, NULL, argv[4],
-						  argv[2], argv[3], NULL,
-						  &dbi, mysql->log);
+			result = build_dbinstance(NULL, NULL, argv[4], argv[2],
+						  argv[3], NULL, &dbi,
+						  mysql->log);
 			break;
 		case 6:
 			result = build_dbinstance(argv[5], NULL, argv[4],
-						  argv[2], argv[3], NULL,
-						  &dbi, mysql->log);
+						  argv[2], argv[3], NULL, &dbi,
+						  mysql->log);
 			break;
 		case 7:
 			result = build_dbinstance(argv[5], argv[6], argv[4],
-						  argv[2], argv[3], NULL,
-						  &dbi, mysql->log);
+						  argv[2], argv[3], NULL, &dbi,
+						  mysql->log);
 			break;
 		case 8:
 			result = build_dbinstance(argv[5], argv[6], argv[4],
@@ -968,11 +979,10 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 			result = ISC_R_FAILURE;
 		}
 
-
 		if (result != ISC_R_SUCCESS) {
-			mysql->log(ISC_LOG_ERROR,
-				   "MySQL module could not create "
-				   "database instance object.");
+			mysql->log(ISC_LOG_ERROR, "MySQL module could not "
+						  "create "
+						  "database instance object.");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
@@ -981,20 +991,21 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		/* when multithreaded, build a list of DBI's */
 		DLZ_LINK_INIT(dbi, link);
 		DLZ_LIST_APPEND(*(mysql->db), dbi, link);
-#else
-		/*
-		 * when single threaded, hold onto the one connection
-		 * instance.
-		 */
-		mysql->db = dbi;
-#endif
+#else  /* if PTHREADS */
+	/*
+	 * when single threaded, hold onto the one connection
+	 * instance.
+	 */
+	mysql->db = dbi;
+#endif /* if PTHREADS */
 
 		/* create and set db connection */
 		dbi->dbconn = mysql_init(NULL);
 		if (dbi->dbconn == NULL) {
-			mysql->log(ISC_LOG_ERROR,
-				   "MySQL module could not allocate "
-				   "memory for database connection");
+			mysql->log(ISC_LOG_ERROR, "MySQL module could not "
+						  "allocate "
+						  "memory for database "
+						  "connection");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
@@ -1003,30 +1014,33 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 #if MYSQL_VERSION_ID >= 50000
 		/* enable automatic reconnection. */
-		if (mysql_options((MYSQL *) dbi->dbconn, MYSQL_OPT_RECONNECT,
-				  &auto_reconnect) != 0) {
-			mysql->log(ISC_LOG_WARNING,
-				   "MySQL module failed to set "
-				   "MYSQL_OPT_RECONNECT option, continuing");
+		if (mysql_options((MYSQL *)dbi->dbconn, MYSQL_OPT_RECONNECT,
+				  &auto_reconnect) != 0)
+		{
+			mysql->log(ISC_LOG_WARNING, "MySQL module failed to "
+						    "set "
+						    "MYSQL_OPT_RECONNECT "
+						    "option, continuing");
 		}
-#endif
+#endif /* if MYSQL_VERSION_ID >= 50000 */
 
 		for (j = 0; dbc == NULL && j < 4; j++) {
-			dbc = mysql_real_connect((MYSQL *) dbi->dbconn,
-						 mysql->host, mysql->user,
-						 mysql->pass, mysql->dbname,
-						 mysql->port, mysql->socket,
-						 mysql->flags);
-			if (dbc == NULL)
+			dbc = mysql_real_connect(
+				(MYSQL *)dbi->dbconn, mysql->host, mysql->user,
+				mysql->pass, mysql->dbname, mysql->port,
+				mysql->socket, mysql->flags);
+			if (dbc == NULL) {
 				mysql->log(ISC_LOG_ERROR,
 					   "MySQL connection failed: %s",
-					   mysql_error((MYSQL *) dbi->dbconn));
+					   mysql_error((MYSQL *)dbi->dbconn));
+			}
 		}
 
 		if (dbc == NULL) {
-			mysql->log(ISC_LOG_ERROR,
-				   "MySQL module failed to create "
-				   "database connection after 4 attempts");
+			mysql->log(ISC_LOG_ERROR, "MySQL module failed to "
+						  "create "
+						  "database connection after 4 "
+						  "attempts");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
@@ -1041,7 +1055,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	dlz_destroy(mysql);
 
 	return (result);
@@ -1055,22 +1069,28 @@ dlz_destroy(void *dbdata) {
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
 #if PTHREADS
 	/* cleanup the list of DBI's */
-	if (db->db != NULL)
+	if (db->db != NULL) {
 		mysql_destroy_dblist((db_list_t *)(db->db));
-#else /* PTHREADS */
+	}
+#else  /* PTHREADS */
 	mysql_destroy(db);
 #endif /* PTHREADS */
 
-	if (db->dbname != NULL)
+	if (db->dbname != NULL) {
 		free(db->dbname);
-	if (db->host != NULL)
+	}
+	if (db->host != NULL) {
 		free(db->host);
-	if (db->user != NULL)
+	}
+	if (db->user != NULL) {
 		free(db->user);
-	if (db->pass != NULL)
+	}
+	if (db->pass != NULL) {
 		free(db->pass);
-	if (db->socket != NULL)
+	}
+	if (db->socket != NULL) {
 		free(db->socket);
+	}
 }
 
 /*
@@ -1078,8 +1098,7 @@ dlz_destroy(void *dbdata) {
  */
 int
 dlz_version(unsigned int *flags) {
-	*flags |= (DNS_SDLZFLAG_RELATIVEOWNER |
-		   DNS_SDLZFLAG_RELATIVERDATA |
+	*flags |= (DNS_SDLZFLAG_RELATIVEOWNER | DNS_SDLZFLAG_RELATIVERDATA |
 		   DNS_SDLZFLAG_THREADSAFE);
 	return (DLZ_DLOPEN_VERSION);
 }
@@ -1089,12 +1108,16 @@ dlz_version(unsigned int *flags) {
  */
 static void
 b9_add_helper(mysql_instance_t *db, const char *helper_name, void *ptr) {
-	if (strcmp(helper_name, "log") == 0)
+	if (strcmp(helper_name, "log") == 0) {
 		db->log = (log_t *)ptr;
-	if (strcmp(helper_name, "putrr") == 0)
+	}
+	if (strcmp(helper_name, "putrr") == 0) {
 		db->putrr = (dns_sdlz_putrr_t *)ptr;
-	if (strcmp(helper_name, "putnamedrr") == 0)
+	}
+	if (strcmp(helper_name, "putnamedrr") == 0) {
 		db->putnamedrr = (dns_sdlz_putnamedrr_t *)ptr;
-	if (strcmp(helper_name, "writeable_zone") == 0)
+	}
+	if (strcmp(helper_name, "writeable_zone") == 0) {
 		db->writeable_zone = (dns_dlz_writeablezone_t *)ptr;
+	}
 }

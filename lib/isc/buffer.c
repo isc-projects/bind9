@@ -12,8 +12,8 @@
 /*! \file */
 
 #include <inttypes.h>
-#include <stdbool.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -260,10 +260,11 @@ isc_buffer_compact(isc_buffer_t *b) {
 		(void)memmove(b->base, src, (size_t)length);
 	}
 
-	if (b->active > b->current)
+	if (b->active > b->current) {
 		b->active -= b->current;
-	else
+	} else {
 		b->active = 0;
+	}
 	b->current = 0;
 	b->used = length;
 }
@@ -429,8 +430,7 @@ isc__buffer_putuint48(isc_buffer_t *b, uint64_t val) {
 
 void
 isc__buffer_putmem(isc_buffer_t *b, const unsigned char *base,
-		   unsigned int length)
-{
+		   unsigned int length) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
 	if (ISC_UNLIKELY(b->autore)) {
@@ -468,7 +468,7 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source) {
 
 void
 isc_buffer_putdecint(isc_buffer_t *b, int64_t v) {
-	unsigned int l=0;
+	unsigned int l = 0;
 	unsigned char *cp;
 	char buf[21];
 	isc_result_t result;
@@ -500,9 +500,7 @@ isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src) {
 
 	isc_buffer_usedregion(src, &region);
 
-	result = isc_buffer_allocate(mctx, &dst, region.length);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(mctx, &dst, region.length);
 
 	result = isc_buffer_copyregion(dst, &region);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); /* NOSPACE is impossible */
@@ -536,18 +534,13 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
-		    unsigned int length)
-{
-	isc_buffer_t *dbuf;
-	unsigned char * bdata;
-	REQUIRE(dynbuffer != NULL);
-	REQUIRE(*dynbuffer == NULL);
+		    unsigned int length) {
+	REQUIRE(dynbuffer != NULL && *dynbuffer == NULL);
 
-	dbuf = isc_mem_get(mctx, sizeof(isc_buffer_t));
-
-	bdata = isc_mem_get(mctx, length);
+	isc_buffer_t *dbuf = isc_mem_get(mctx, sizeof(isc_buffer_t));
+	unsigned char *bdata = isc_mem_get(mctx, length);
 
 	isc_buffer_init(dbuf, bdata, length);
 
@@ -556,8 +549,6 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 	dbuf->mctx = mctx;
 
 	*dynbuffer = dbuf;
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -602,7 +593,7 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 		    (*dynbuffer)->length);
 
 	(*dynbuffer)->base = bdata;
-	(*dynbuffer)->length = (unsigned int) len;
+	(*dynbuffer)->length = (unsigned int)len;
 
 	return (ISC_R_SUCCESS);
 }
@@ -617,7 +608,7 @@ isc_buffer_free(isc_buffer_t **dynbuffer) {
 	REQUIRE((*dynbuffer)->mctx != NULL);
 
 	dbuf = *dynbuffer;
-	*dynbuffer = NULL;	/* destroy external reference */
+	*dynbuffer = NULL; /* destroy external reference */
 	mctx = dbuf->mctx;
 	dbuf->mctx = NULL;
 

@@ -23,13 +23,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 #ifndef ISCCC_BASE64_H
 #define ISCCC_BASE64_H 1
 
 /*! \file isccc/base64.h */
 
 #include <isc/lang.h>
+
 #include <isccc/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -40,7 +40,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 isccc_base64_encode(isccc_region_t *source, int wordlength,
-		  const char *wordbreak, isccc_region_t *target);
+		    const char *wordbreak, isccc_region_t *target);
 /*%<
  * Convert data into base64 encoded text.
  *

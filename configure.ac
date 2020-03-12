@@ -7,7 +7,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-AC_INIT(BIND, [9.15], [info@isc.org], [], [https://www.isc.org/downloads/BIND/])
+AC_INIT(BIND, [9.17], [info@isc.org], [], [https://www.isc.org/downloads/])
 AC_PREREQ([2.60])
 
 #
@@ -45,6 +45,8 @@ AC_DEFINE([__APPLE_USE_RFC_3542], [1], [Select RFC3542 IPv6 API on macOS])
 AC_PROG_MAKE_SET
 
 AC_PROG_LIBTOOL
+AS_IF([test -z "$LIBTOOL"],
+      [AC_MSG_ERROR([The libtool script could not be found.])])
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AX_POSIX_SHELL
@@ -54,13 +56,14 @@ AC_SUBST(STD_CDEFINES)
 AC_SUBST(STD_CWARNINGS)
 AC_SUBST(CCOPT)
 AC_SUBST(CCNOOPT)
-AC_SUBST(BACKTRACECFLAGS)
 
 #
 # Use pkg-config
 #
 
 PKG_PROG_PKG_CONFIG
+AS_IF([test -z "$PKG_CONFIG"],
+      [AC_MSG_ERROR([The pkg-config script could not be found or is too old.])])
 
 AC_ARG_ENABLE(buffer_useinline,
 	      AS_HELP_STRING([--enable-buffer-useinline],
@@ -92,7 +95,6 @@ AS_IF([test "$enable_developer" = "yes"],
        test "${enable_querytrace+set}" = set || enable_querytrace=yes
        test "${with_cmocka+set}" = set || with_cmocka=yes
        test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
-       test "${enable_symtable+set}" = set || enable_symtable=all
        test "${enable_warn_error+set}" = set || enable_warn_error=yes
        test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
        test "${with_zlib+set}" = set || with_zlib=yes
@@ -202,7 +204,12 @@ except: exit(1)'
 testply='try: import ply
 except: exit(1)'
 
+testsetup='try: from distutils.core import setup
+except: exit(1)'
+
 default_with_python="python python3 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
+
+AC_ARG_VAR([PYTHON], [path to python executable])
 
 AC_ARG_WITH([python],
 	    AS_HELP_STRING([--with-python=PATH],
@@ -218,6 +225,7 @@ AS_IF([test "$with_python" = "yes"],
 
 AS_IF([test "$with_python" = "no"],
       [AC_MSG_CHECKING([for Python support])
+       unset PYTHON
        AC_MSG_RESULT([disabled])],
       [for p in $with_python
        do
@@ -250,6 +258,13 @@ AS_IF([test "$with_python" = "no"],
 
 	 AC_MSG_CHECKING([Python module 'ply'])
 	 AS_IF(["$PYTHON" -c "$testply" 2>/dev/null],
+	       [AC_MSG_RESULT([yes])],
+	       [AC_MSG_RESULT([no])
+		unset PYTHON
+		continue])
+
+	 AC_MSG_CHECKING([Python module 'distutils.core setup'])
+	 AS_IF(["$PYTHON" -c "$testsetup" 2>/dev/null],
 	       [AC_MSG_RESULT([yes])],
 	       [AC_MSG_RESULT([no])
 		unset PYTHON
@@ -376,7 +391,7 @@ AC_CHECK_HEADERS([threads.h],
 			     AC_DEFINE([HAVE_THREAD_LOCAL],[1],[Define if thread_local keyword is available])
 			     AC_DEFINE([HAVE_TLS],[1],[Define if Thread-Local Storage is available])
 			 ],[
-			     AC_MSG_RESULT([no])
+			     AC_MSG_ERROR([Thread Local Storage support required, update your toolchain to build BIND 9])
 			 ])
 		 ],[
 		     AC_MSG_CHECKING([for Thread-Local Storage using __thread])
@@ -392,7 +407,7 @@ AC_CHECK_HEADERS([threads.h],
 			     AC_DEFINE([HAVE___THREAD],[1],[Define if __thread keyword is available])
 			     AC_DEFINE([HAVE_TLS],[1],[Define if Thread-Local Storage is available])
 			 ],[
-			     AC_MSG_RESULT([no])
+			     AC_MSG_ERROR([Thread Local Storage support required, update your toolchain to build BIND 9])
 			 ])
 		 ])
 
@@ -650,6 +665,10 @@ AX_SAVE_FLAGS([libuv])
 CFLAGS="$CFLAGS $LIBUV_CFLAGS"
 LIBS="$LIBS $LIBUV_LIBS"
 
+# Those functions are only provided in newer versions of libuv, we'll be emulating them
+# for now
+AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import])
+
 #
 # flockfile is usually provided by pthreads
 #
@@ -662,56 +681,19 @@ AC_CHECK_FUNCS([sysconf])
 
 AC_SUBST(ALWAYS_DEFINES)
 
-AC_MSG_CHECKING(for libtool)
-AC_ARG_WITH(libtool, AS_HELP_STRING([--with-libtool], [use GNU libtool]),
-	    use_libtool="$withval", use_libtool="no")
-
-case $use_libtool in
-	yes)
-		AC_MSG_RESULT(yes)
-		AM_PROG_LIBTOOL
-		O=lo
-		A=la
-		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile'
-		LIBTOOL_MODE_INSTALL='--mode=install'
-		LIBTOOL_MODE_LINK='--mode=link'
-		LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
-		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-		AC_DEFINE([USE_LIBTOOL],[1],[Define if libtool is used for compilation])
-		;;
-	*)
-		AC_MSG_RESULT(no)
-		O=o
-		A=a
-		LIBTOOL=
-		AC_SUBST(LIBTOOL)
-		LIBTOOL_MKDEP_SED=
-		LIBTOOL_MODE_COMPILE=
-		LIBTOOL_MODE_INSTALL=
-		LIBTOOL_MODE_LINK=
-		LIBTOOL_MODE_UNINSTALL=
-		INSTALL_LIBRARY='${INSTALL_DATA}'
-		;;
-esac
-AC_SUBST(INSTALL_LIBRARY)
-
 #
-# Do we want to use pthread rwlock? (useful for ThreadSanitizer)
+# Do we want to use pthread rwlock?
 #
 AC_ARG_ENABLE([pthread_rwlock],
-	      [AS_HELP_STRING([--enable-pthread-rwlock],
-			      [use pthread rwlock instead of internal rwlock implementation (EXPERIMENTAL)])],
-	      [], [enable_pthread_rwlock=no])
+	      [AS_HELP_STRING([--disable-pthread-rwlock],
+			      [use internal rwlock implementation instead of pthread rwlock])],
+	      [], [enable_pthread_rwlock=yes])
 
 AS_IF([test "$enable_pthread_rwlock" = "yes"],
       [AC_CHECK_FUNCS([pthread_rwlock_rdlock], [],
 		      [AC_MSG_ERROR([pthread_rwlock_rdlock requested but not found])])
        AC_DEFINE([USE_PTHREAD_RWLOCK],[1],[Define if you want to use pthread rwlock implementation])
       ])
-
-AS_IF([test "$enable_pthread_rwlock" = "yes" -a "$enable_developer" != "yes"],
-      [AC_MSG_ERROR([pthread rwlock is not meant used in production and the developer mode must be enabled])])
 
 CRYPTO=OpenSSL
 
@@ -1312,6 +1294,8 @@ AS_CASE([$with_zlib],
        [yes],[PKG_CHECK_MODULES([ZLIB], [zlib],
                                 [AC_DEFINE([HAVE_ZLIB], [1], [Use zlib library])])],
        [AC_MSG_ERROR([Specifying zlib installation path is not supported, adjust PKG_CONFIG_PATH instead])])
+AC_SUBST([ZLIB_CFLAGS])
+AC_SUBST([ZLIB_LIBS])
 
 #
 # In solaris 10, SMF can manage named service
@@ -1440,69 +1424,27 @@ case $use_profiler in
 esac
 
 #
-# enable/disable dumping stack backtrace.  Also check if the system supports
-# glibc-compatible backtrace() function.
+# Check if the system supports glibc-compatible backtrace() function.
 #
-AC_ARG_ENABLE([backtrace],
-	      [AS_HELP_STRING([--enable-backtrace],
-			      [log stack backtrace on abort [default=yes]])],
-	      [], [enable_backtrace="yes"])
+AC_CHECK_HEADERS([execinfo.h],
+		 [AC_SEARCH_LIBS([backtrace], [execinfo],
+				 [AC_CHECK_FUNCS([backtrace backtrace_symbols])])])
 
-AS_IF([test "$enable_backtrace" = "yes"],
-      [AC_DEFINE([USE_BACKTRACE], [1], [define if we can use backtrace])
-       AC_LINK_IFELSE(
-	 [AC_LANG_PROGRAM(
-	    [[#include <execinfo.h>]],
-	    [[return (backtrace((void **)0, 0));]]
-	  )],
-	 [AC_DEFINE([HAVE_LIBCTRACE], [1], [define if system have backtrace function])]
-       )])
-
-AC_ARG_ENABLE(symtable,
-	      AS_HELP_STRING([--enable-symtable],
-			     [use internal symbol table for backtrace
-			      [all|minimal(default)|none]]),
-		want_symtable="$enableval",  want_symtable="minimal")
-case $want_symtable in
-yes|all|minimal)     # "yes" is a hidden value equivalent to "minimal"
-	if test "" = "$PERL"
-	then
-		AC_MSG_ERROR([Internal symbol table requires perl but no perl is found.
-Install perl or explicitly disable the feature by --disable-symtable.])
-	fi
-	if test "yes" = "$use_libtool"; then
-		AC_MSG_WARN([Internal symbol table does not work with libtool.  Disabling symbol table.])
-	else
-		# we generate the internal symbol table only for those systems
-		# known to work to avoid unexpected build failure.  Also, warn
-		# about unsupported systems when the feature is enabled
-		#  manually.
-		case $host_os in
-		freebsd*|netbsd*|openbsd*|linux*|solaris*|darwin*)
-			MKSYMTBL_PROGRAM="$PERL"
-			if test "all" = "$want_symtable"; then
-				ALWAYS_MAKE_SYMTABLE="yes"
-			fi
-			;;
-		*)
-			if test "yes" = "$want_symtable" -o "all" = "$want_symtable"
-			then
-				AC_MSG_WARN([this system is not known to generate internal symbol table safely; disabling it])
-			fi
-		esac
-	fi
-	;;
-*)
-	;;
-esac
-AC_SUBST(MKSYMTBL_PROGRAM)
-AC_SUBST(ALWAYS_MAKE_SYMTABLE)
+# AM_CONDITIONAL([HAVE_BACKTRACE], [test "$ac_cv_func_backtrace" = "yes"])
 
 #
 # File name extension for static archive files, for those few places
 # where they are treated differently from dynamic ones.
 #
+O=lo
+A=la
 SA=a
+LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
+LIBTOOL_MODE_COMPILE='--mode=compile'
+LIBTOOL_MODE_INSTALL='--mode=install'
+LIBTOOL_MODE_LINK='--mode=link'
+LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
+INSTALL_LIBRARY='${INSTALL_PROGRAM}'
 
 AC_SUBST(O)
 AC_SUBST(A)
@@ -1512,6 +1454,7 @@ AC_SUBST(LIBTOOL_MODE_COMPILE)
 AC_SUBST(LIBTOOL_MODE_INSTALL)
 AC_SUBST(LIBTOOL_MODE_LINK)
 AC_SUBST(LIBTOOL_MODE_UNINSTALL)
+AC_SUBST(INSTALL_LIBRARY)
 
 BIND9_CO_RULE=".c.$O:"
 AC_SUBST(BIND9_CO_RULE)
@@ -2217,23 +2160,15 @@ AC_CHECK_FUNCS(setlocale)
 #
 # was --with-tuning specified?
 #
-AC_ARG_WITH(tuning,
+AC_ARG_WITH([tuning],
 	    AS_HELP_STRING([--with-tuning=ARG],
-			   [Specify server tuning (large or default)]),
-	    use_tuning="$withval", use_tuning="no")
+			   [Specify server tuning (default or small)]),
+	    [],[with_tuning=no])
 
-case "$use_tuning" in
-	large)
-		AC_DEFINE(TUNE_LARGE, 1, [Define to use large-system tuning.])
-		AC_MSG_RESULT(using large-system tuning)
-		;;
-	no|default)
-		AC_MSG_RESULT(using default tuning)
-		;;
-	yes|*)
-		AC_MSG_ERROR([You must specify "large" or "default" for --with-tuning.])
-		;;
-esac
+AS_CASE([$with_tuning],
+	[small],[AC_MSG_NOTICE(using small system tuning)],
+	[AC_DEFINE(TUNE_LARGE, 1, [Define to use default system tuning.])
+	 AC_MSG_NOTICE(using default system tuning)])
 
 #
 # was --enable-querytrace specified?
@@ -2429,33 +2364,19 @@ AS_IF([test "$with_dlopen" = "yes"],
 		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_CFLAGS="-fPIC"
 		 SO_LDFLAGS=""
-		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -shared"
-			 SO_LD="${CC}"
-		       ],[
-			 SO_LDFLAGS="-shared"
-			 SO_LD="${CC}"
-		       ])
+		 SO_LDFLAGS="-Xcompiler -shared"
+		 SO_LD="${CC}"
 	       ],
 	       [*-freebsd*|*-openbsd*|*-netbsd*],[
 		 LDFLAGS="${LDFLAGS} -Wl,-E"
 		 SO_CFLAGS="-fpic"
-		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -shared"
-			 SO_LD="${CC}"
-		       ],[
-			 SO_LDFLAGS="-shared"
-			 SO_LD="${CC}"
-		       ])
+		 SO_LDFLAGS="-Xcompiler -shared"
+		 SO_LD="${CC}"
 	       ],
 	       [*-darwin*],[
 		 SO_CFLAGS="-fPIC"
                  SO_LD="${CC}"
-		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
-		       ],[
-			 SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
-		       ])
+		 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
 	       ],
 	       [*-solaris*],[
 		 SO_CFLAGS="-KPIC"
@@ -2470,17 +2391,12 @@ AS_IF([test "$with_dlopen" = "yes"],
 	       [
 		 SO_CFLAGS="-fPIC"
 	       ])
-       AS_IF([test "$GCC" = "yes"],[
-	       SO_CFLAGS="-fPIC"
-	       AS_IF([test -z "$SO_LD"],
-		     [AS_IF([test "$use_libtool" = "yes"],[
-			      SO_LDFLAGS="-Xcompiler -shared"
-			      SO_LD="${CC}"
-			    ],[
-			      SO_LDFLAGS="-shared"
-			      SO_LD="${CC}"
-			    ])
-		     ])
+       AS_IF([test "$GCC" = "yes"],
+	     [SO_CFLAGS="-fPIC"
+	      AS_IF([test -z "$SO_LD"],
+		    [SO_LDFLAGS="-Xcompiler -shared"
+		     SO_LD="${CC}"
+		    ])
 	     ])
        # If we still don't know how to make shared objects, don't make any.
        AS_IF([test -n "$SO_LD"],
@@ -2593,6 +2509,8 @@ AC_SUBST(DLZ_SYSTEM_TEST)
 AC_SUBST(DLZ_DRIVER_MYSQL_INCLUDES)
 AC_SUBST(DLZ_DRIVER_MYSQL_LIBS)
 AC_SUBST_FILE(DLZ_DRIVER_RULES)
+
+AC_CHECK_HEADERS([glob.h])
 
 if test "yes" = "$cross_compiling"; then
 	if test -z "$BUILD_CC"; then
@@ -2749,8 +2667,6 @@ AC_CONFIG_COMMANDS(
 #
 
 AC_CONFIG_FILES([
-	make/Makefile
-	make/mkdep
 	Makefile
 	bin/Makefile
 	bin/check/Makefile
@@ -2765,12 +2681,10 @@ AC_CONFIG_FILES([
 	bin/pkcs11/Makefile
 	bin/plugins/Makefile
 	bin/python/Makefile
-	bin/python/isc/Makefile
-	bin/python/isc/utils.py
-	bin/python/isc/tests/Makefile
 	bin/python/dnssec-checkds.py
 	bin/python/dnssec-coverage.py
 	bin/python/dnssec-keymgr.py
+	bin/python/isc/Makefile
 	bin/python/isc/__init__.py
 	bin/python/isc/checkds.py
 	bin/python/isc/coverage.py
@@ -2783,8 +2697,10 @@ AC_CONFIG_FILES([
 	bin/python/isc/keyzone.py
 	bin/python/isc/policy.py
 	bin/python/isc/rndc.py
+	bin/python/isc/tests/Makefile
 	bin/python/isc/tests/dnskey_test.py
 	bin/python/isc/tests/policy_test.py
+	bin/python/isc/utils.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
 	bin/tests/headerdep_test.sh
@@ -2821,6 +2737,7 @@ AC_CONFIG_FILES([
 	doc/xsl/isc-docbook-html.xsl
 	doc/xsl/isc-manpage.xsl
 	doc/xsl/isc-notes-html.xsl
+	fuzz/Makefile
 	lib/Makefile
 	lib/bind9/Makefile
 	lib/bind9/include/Makefile
@@ -2836,9 +2753,6 @@ AC_CONFIG_FILES([
 	lib/irs/include/irs/netdb.h
 	lib/irs/include/irs/platform.h
 	lib/irs/tests/Makefile
-	lib/isc/pthreads/Makefile
-	lib/isc/pthreads/include/Makefile
-	lib/isc/pthreads/include/isc/Makefile
 	lib/isc/Makefile
 	lib/isc/include/Makefile
 	lib/isc/include/isc/Makefile
@@ -2846,6 +2760,9 @@ AC_CONFIG_FILES([
 	lib/isc/include/pk11/Makefile
 	lib/isc/include/pkcs11/Makefile
 	lib/isc/netmgr/Makefile
+	lib/isc/pthreads/Makefile
+	lib/isc/pthreads/include/Makefile
+	lib/isc/pthreads/include/isc/Makefile
 	lib/isc/tests/Makefile
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
@@ -2864,8 +2781,10 @@ AC_CONFIG_FILES([
 	lib/ns/tests/Makefile
 	lib/samples/Makefile
 	lib/samples/Makefile-postinstall
+	make/Makefile
+	make/mkdep
 	unit/unittest.sh
-	fuzz/Makefile
+	util/check-make-install
 ])
 
 #
@@ -2904,10 +2823,10 @@ report() {
     echo "Configuration summary:"
     echo "-------------------------------------------------------------------------------"
     echo "Optional features enabled:"
-    if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
-	echo "        Mutex lock type: $locktype"
+    if test "yes" = "$enable_full_report" -o "standard" = "$with_locktype"; then
+	echo "    Mutex lock type: $with_locktype"
     fi
-    test "large" = "$use_tuning" && echo "    Large-system tuning (--with-tuning)"
+    test "small" = "$with_tuning" && echo "    Small-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--enable-geoip)"
@@ -2919,7 +2838,7 @@ report() {
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
 	test "X$LIBXML2_LIBS" = "X" || echo "    XML statistics (--with-libxml2)"
 	test "X$JSON_C_LIBS" = "X" || echo "    JSON statistics (--with-json-c): $JSON_C_CFLAGS $JSON_C_LIBS"
-	test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
+	test "X$ZLIB_LIBS" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 	test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
 	test "no" = "$with_libidn2" || echo "    IDN support (--with-libidn2)"
     fi
@@ -2930,11 +2849,6 @@ report() {
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_backtrace" && \
 	echo "    Print backtrace on crash (--enable-backtrace)"
-    test "minimal" = "$want_symtable" && \
-	echo "    Use symbol table for backtrace, named only (--enable-symtable)"
-    test "yes" = "$want_symtable" -o "all" = "$want_symtable" && \
-	echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
-    test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "yes" = "$want_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
     test "no" = "$with_cmocka" || echo "    CMocka Unit Testing Framework (--with-cmocka)"
@@ -2967,7 +2881,7 @@ report() {
 
     echo "Features disabled or unavailable on this platform:"
     test "no" = "$found_ipv6" && echo "    IPv6 support (--enable-ipv6)"
-    test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
+    test "small" = "$with_tuning" || echo "    Small-system tuning (--with-tuning)"
 
     test "no" = "$use_dnstap" && \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
@@ -2991,13 +2905,12 @@ report() {
     test "yes" = "$want_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
 
-    test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "no" = "$with_cmocka" && echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
     test "X$LIBXML2_LIBS" = "X" && echo "    XML statistics (--with-libxml2)"
     test "X$JSON_C_LIBS" = "X" && echo "    JSON statistics (--with-json-c)"
-    test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
+    test "X$ZLIB_LIBS" = "X" && echo "    HTTP zlib compression (--with-zlib)"
     test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
     test "no" = "$with_libidn2" && echo "    IDN support (--with-libidn2)"
 

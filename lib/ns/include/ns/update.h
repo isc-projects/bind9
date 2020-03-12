@@ -13,8 +13,8 @@
 #define NS_UPDATE_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief
@@ -25,8 +25,8 @@
  *** Imports
  ***/
 
-#include <dns/types.h>
 #include <dns/result.h>
+#include <dns/types.h>
 
 /***
  *** Types.

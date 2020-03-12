@@ -314,6 +314,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\file.h" />
     <ClInclude Include="..\include\isc\formatcheck.h" />
     <ClInclude Include="..\include\isc\fsaccess.h" />
+    <ClInclude Include="..\include\isc\glob.h" />
     <ClInclude Include="..\include\isc\hash.h" />
     <ClInclude Include="..\include\isc\heap.h" />
     <ClInclude Include="..\include\isc\hex.h" />
@@ -413,7 +414,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\app.c" />
     <ClCompile Include="..\assertions.c" />
     <ClCompile Include="..\astack.c" />
-    <ClCompile Include="..\backtrace-emptytbl.c" />
     <ClCompile Include="..\backtrace.c" />
     <ClCompile Include="..\base32.c" />
     <ClCompile Include="..\base64.c" />
@@ -426,6 +426,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\entropy.c" />
     <ClCompile Include="..\error.c" />
     <ClCompile Include="..\event.c" />
+    <ClCompile Include="..\glob.c" />
     <ClCompile Include="..\hash.c" />
     <ClCompile Include="..\heap.c" />
     <ClCompile Include="..\hex.c" />
@@ -446,6 +447,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\netmgr\tcp.c" />
     <ClCompile Include="..\netmgr\udp.c" />
     <ClCompile Include="..\netmgr\uverr2result.c" />
+    <ClCompile Include="..\netmgr\uv-compat.c" />
     <ClCompile Include="..\netmgr\tcpdns.c" />
     <ClCompile Include="..\netscope.c" />
     <ClCompile Include="..\nonce.c" />

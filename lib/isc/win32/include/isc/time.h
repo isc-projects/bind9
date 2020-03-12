@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
 
@@ -34,7 +33,7 @@ struct isc_interval {
 	int64_t interval;
 };
 
-LIBISC_EXTERNAL_DATA extern const isc_interval_t * const isc_interval_zero;
+LIBISC_EXTERNAL_DATA extern const isc_interval_t *const isc_interval_zero;
 
 /*
  * ISC_FORMATHTTPTIMESTAMP_SIZE needs to be 30 in C locale and potentially
@@ -46,8 +45,8 @@ LIBISC_EXTERNAL_DATA extern const isc_interval_t * const isc_interval_zero;
 ISC_LANG_BEGINDECLS
 
 void
-isc_interval_set(isc_interval_t *i,
-		 unsigned int seconds, unsigned int nanoseconds);
+isc_interval_set(isc_interval_t *i, unsigned int seconds,
+		 unsigned int nanoseconds);
 /*
  * Set 'i' to a value representing an interval of 'seconds' seconds and
  * 'nanoseconds' nanoseconds, suitable for use in isc_time_add() and
@@ -84,7 +83,7 @@ struct isc_time {
 	FILETIME absolute;
 };
 
-LIBISC_EXTERNAL_DATA extern const isc_time_t * const isc_time_epoch;
+LIBISC_EXTERNAL_DATA extern const isc_time_t *const isc_time_epoch;
 
 void
 isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds);
@@ -351,7 +350,7 @@ void
 isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len);
 /*%<
  * Format the time 't' into the buffer 'buf' of length 'len',
- * using the format "yyyymmddhhmmsssss" userful for file timestamping.
+ * using the format "yyyymmddhhmmsssss" useful for file timestamping.
  * If the text does not fit in the buffer, the result is indeterminate,
  * but is always guaranteed to be null terminated.
  *

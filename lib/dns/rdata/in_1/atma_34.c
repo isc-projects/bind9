@@ -22,7 +22,7 @@ fromtext_in_atma(ARGS_FROMTEXT) {
 	isc_textregion_t *sr;
 	int n;
 	bool valid = false;
-	bool lastwasperiod = true;	/* leading periods not allowed */
+	bool lastwasperiod = true; /* leading periods not allowed */
 	int digits = 0;
 	unsigned char c = 0;
 
@@ -284,7 +284,6 @@ digest_in_atma(ARGS_DIGEST) {
 
 static inline bool
 checkowner_in_atma(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_atma);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -298,7 +297,6 @@ checkowner_in_atma(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_in_atma(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_atma);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
@@ -314,4 +312,4 @@ casecompare_in_atma(ARGS_COMPARE) {
 	return (compare_in_atma(rdata1, rdata2));
 }
 
-#endif	/* RDATA_IN_1_atma_22_C */
+#endif /* RDATA_IN_1_atma_22_C */

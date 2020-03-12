@@ -10,10 +10,10 @@
  */
 
 #include <stdio.h>
-#include <windows.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <syslog.h>
+#include <windows.h>
 
 #include <isc/bindevt.h>
 #include <isc/result.h>
@@ -27,39 +27,37 @@ static int debug_level = 0;
 static struct dsn_c_pvt_sfnt {
 	int val;
 	const char *strval;
-} facilities[] = {
-	{ LOG_KERN,		"kern" },
-	{ LOG_USER,		"user" },
-	{ LOG_MAIL,		"mail" },
-	{ LOG_DAEMON,		"daemon" },
-	{ LOG_AUTH,		"auth" },
-	{ LOG_SYSLOG,		"syslog" },
-	{ LOG_LPR,		"lpr" },
+} facilities[] = { { LOG_KERN, "kern" },
+		   { LOG_USER, "user" },
+		   { LOG_MAIL, "mail" },
+		   { LOG_DAEMON, "daemon" },
+		   { LOG_AUTH, "auth" },
+		   { LOG_SYSLOG, "syslog" },
+		   { LOG_LPR, "lpr" },
 #ifdef LOG_NEWS
-	{ LOG_NEWS,		"news" },
-#endif
+		   { LOG_NEWS, "news" },
+#endif /* ifdef LOG_NEWS */
 #ifdef LOG_UUCP
-	{ LOG_UUCP,		"uucp" },
-#endif
+		   { LOG_UUCP, "uucp" },
+#endif /* ifdef LOG_UUCP */
 #ifdef LOG_CRON
-	{ LOG_CRON,		"cron" },
-#endif
+		   { LOG_CRON, "cron" },
+#endif /* ifdef LOG_CRON */
 #ifdef LOG_AUTHPRIV
-	{ LOG_AUTHPRIV,		"authpriv" },
-#endif
+		   { LOG_AUTHPRIV, "authpriv" },
+#endif /* ifdef LOG_AUTHPRIV */
 #ifdef LOG_FTP
-	{ LOG_FTP,		"ftp" },
-#endif
-	{ LOG_LOCAL0,		"local0"},
-	{ LOG_LOCAL1,		"local1"},
-	{ LOG_LOCAL2,		"local2"},
-	{ LOG_LOCAL3,		"local3"},
-	{ LOG_LOCAL4,		"local4"},
-	{ LOG_LOCAL5,		"local5"},
-	{ LOG_LOCAL6,		"local6"},
-	{ LOG_LOCAL7,		"local7"},
-	{ 0,			NULL }
-};
+		   { LOG_FTP, "ftp" },
+#endif /* ifdef LOG_FTP */
+		   { LOG_LOCAL0, "local0" },
+		   { LOG_LOCAL1, "local1" },
+		   { LOG_LOCAL2, "local2" },
+		   { LOG_LOCAL3, "local3" },
+		   { LOG_LOCAL4, "local4" },
+		   { LOG_LOCAL5, "local5" },
+		   { LOG_LOCAL6, "local6" },
+		   { LOG_LOCAL7, "local7" },
+		   { 0, NULL } };
 
 isc_result_t
 isc_syslog_facilityfromstring(const char *str, int *facilityp) {
@@ -164,8 +162,8 @@ NTReportError(const char *name, const char *str) {
 
 	hNTAppLog = RegisterEventSource(NULL, name);
 
-	ReportEvent(hNTAppLog, EVENTLOG_ERROR_TYPE, 0,
-		    BIND_ERR_MSG, NULL, 1, 0, buf, NULL);
+	ReportEvent(hNTAppLog, EVENTLOG_ERROR_TYPE, 0, BIND_ERR_MSG, NULL, 1, 0,
+		    buf, NULL);
 
 	DeregisterEventSource(hNTAppLog);
 }

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*
  * This implements external update-policy rules.  This allows permission
  * to update a zone to be checked by consulting an external daemon (e.g.,
@@ -24,7 +23,7 @@
 #ifdef ISC_PLATFORM_HAVESYSUNH
 #include <sys/socket.h>
 #include <sys/un.h>
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -36,24 +35,22 @@
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
-#include <dns/name.h>
-#include <dns/ssu.h>
 #include <dns/log.h>
+#include <dns/name.h>
 #include <dns/rdatatype.h>
+#include <dns/ssu.h>
 
 #include <dst/dst.h>
-
 
 static void
 ssu_e_log(int level, const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_SECURITY,
-		       DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(level), fmt, ap);
+	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_SECURITY, DNS_LOGMODULE_ZONE,
+		       ISC_LOG_DEBUG(level), fmt, ap);
 	va_end(ap);
 }
-
 
 /*
  * Connect to a UNIX domain socket.
@@ -67,8 +64,9 @@ ux_socket_connect(const char *path) {
 	REQUIRE(path != NULL);
 
 	if (strlen(path) > sizeof(addr.sun_path)) {
-		ssu_e_log(3, "ssu_external: socket path '%s' "
-			     "longer than system maximum %zu",
+		ssu_e_log(3,
+			  "ssu_external: socket path '%s' "
+			  "longer than system maximum %zu",
 			  path, sizeof(addr.sun_path));
 		return (-1);
 	}
@@ -89,13 +87,14 @@ ux_socket_connect(const char *path) {
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
 		char strbuf[ISC_STRERRORSIZE];
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		ssu_e_log(3, "ssu_external: unable to connect to "
-			     "socket '%s' - %s",
+		ssu_e_log(3,
+			  "ssu_external: unable to connect to "
+			  "socket '%s' - %s",
 			  path, strbuf);
 		close(fd);
 		return (-1);
 	}
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 	return (fd);
 }
 
@@ -113,11 +112,10 @@ ux_socket_connect(const char *path) {
  * the authorization server.
  */
 bool
-dns_ssu_external_match(const dns_name_t *identity,
-		       const dns_name_t *signer, const dns_name_t *name,
-		       const isc_netaddr_t *tcpaddr, dns_rdatatype_t type,
-		       const dst_key_t *key, isc_mem_t *mctx)
-{
+dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
+		       const dns_name_t *name, const isc_netaddr_t *tcpaddr,
+		       dns_rdatatype_t type, const dst_key_t *key,
+		       isc_mem_t *mctx) {
 	char b_identity[DNS_NAME_FORMATSIZE];
 	char b_signer[DNS_NAME_FORMATSIZE];
 	char b_name[DNS_NAME_FORMATSIZE];
@@ -128,7 +126,7 @@ dns_ssu_external_match(const dns_name_t *identity,
 	int fd;
 	const char *sock_path;
 	unsigned int req_len;
-	isc_region_t token_region = {NULL, 0};
+	isc_region_t token_region = { NULL, 0 };
 	unsigned char *data;
 	isc_buffer_t buf;
 	uint32_t token_len = 0;
@@ -147,14 +145,16 @@ dns_ssu_external_match(const dns_name_t *identity,
 	sock_path = &b_identity[6];
 
 	fd = ux_socket_connect(sock_path);
-	if (fd == -1)
+	if (fd == -1) {
 		return (false);
+	}
 
 	if (key != NULL) {
 		dst_key_format(key, b_key, sizeof(b_key));
 		tkey_token = dst_key_tkeytoken(key);
-	} else
+	} else {
 		b_key[0] = 0;
+	}
 
 	if (tkey_token != NULL) {
 		isc_buffer_region(tkey_token, &token_region);
@@ -162,31 +162,32 @@ dns_ssu_external_match(const dns_name_t *identity,
 	}
 
 	/* Format the request elements */
-	if (signer != NULL)
+	if (signer != NULL) {
 		dns_name_format(signer, b_signer, sizeof(b_signer));
-	else
+	} else {
 		b_signer[0] = 0;
+	}
 
 	dns_name_format(name, b_name, sizeof(b_name));
 
-	if (tcpaddr != NULL)
+	if (tcpaddr != NULL) {
 		isc_netaddr_format(tcpaddr, b_addr, sizeof(b_addr));
-	else
+	} else {
 		b_addr[0] = 0;
+	}
 
 	dns_rdatatype_format(type, b_type, sizeof(b_type));
 
 	/* Work out how big the request will be */
-	req_len = sizeof(uint32_t)     + /* Format version */
-		  sizeof(uint32_t)     + /* Length */
+	req_len = sizeof(uint32_t) +	 /* Format version */
+		  sizeof(uint32_t) +	 /* Length */
 		  strlen(b_signer) + 1 + /* Signer */
-		  strlen(b_name) + 1   + /* Name */
-		  strlen(b_addr) + 1   + /* Address */
-		  strlen(b_type) + 1   + /* Type */
-		  strlen(b_key) + 1    + /* Key */
-		  sizeof(uint32_t)     + /* tkey_token length */
-		  token_len;             /* tkey_token */
-
+		  strlen(b_name) + 1 +	 /* Name */
+		  strlen(b_addr) + 1 +	 /* Address */
+		  strlen(b_type) + 1 +	 /* Type */
+		  strlen(b_key) + 1 +	 /* Key */
+		  sizeof(uint32_t) +	 /* tkey_token length */
+		  token_len;		 /* tkey_token */
 
 	/* format the buffer */
 	data = isc_mem_allocate(mctx, req_len);
@@ -208,15 +209,16 @@ dns_ssu_external_match(const dns_name_t *identity,
 	isc_buffer_putuint8(&buf, 0);
 
 	isc_buffer_putuint32(&buf, token_len);
-	if (tkey_token && token_len != 0)
+	if (tkey_token && token_len != 0) {
 		isc_buffer_putmem(&buf, token_region.base, token_len);
+	}
 
 	ENSURE(isc_buffer_availablelength(&buf) == 0);
 
 	/* Send the request */
 	ret = write(fd, data, req_len);
 	isc_mem_free(mctx, data);
-	if (ret != (ssize_t) req_len) {
+	if (ret != (ssize_t)req_len) {
 		char strbuf[ISC_STRERRORSIZE];
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to send request - %s",
@@ -227,7 +229,7 @@ dns_ssu_external_match(const dns_name_t *identity,
 
 	/* Receive the reply */
 	ret = read(fd, &reply, sizeof(uint32_t));
-	if (ret != (ssize_t) sizeof(uint32_t)) {
+	if (ret != (ssize_t)sizeof(uint32_t)) {
 		char strbuf[ISC_STRERRORSIZE];
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to receive reply - %s",

@@ -9,10 +9,10 @@
  * information regarding copyright ownership.
  */
 
+#include "errno2result.h"
 #include <stdbool.h>
 #include <winsock2.h>
 
-#include "errno2result.h"
 #include <isc/result.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
@@ -25,16 +25,14 @@
  * not already there.
  */
 isc_result_t
-isc__errno2resultx(int posixerrno, bool dolog,
-		   const char *file, int line)
-{
+isc__errno2resultx(int posixerrno, bool dolog, const char *file, int line) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	switch (posixerrno) {
 	case ENOTDIR:
 	case WSAELOOP:
 	case WSAEINVAL:
-	case EINVAL:		/* XXX sometimes this is not for files */
+	case EINVAL: /* XXX sometimes this is not for files */
 	case ENAMETOOLONG:
 	case WSAENAMETOOLONG:
 	case EBADF:
@@ -55,7 +53,7 @@ isc__errno2resultx(int posixerrno, bool dolog,
 #ifdef EOVERFLOW
 	case EOVERFLOW:
 		return (ISC_R_RANGE);
-#endif
+#endif /* ifdef EOVERFLOW */
 	case ENFILE:
 	case EMFILE:
 	case WSAEMFILE:

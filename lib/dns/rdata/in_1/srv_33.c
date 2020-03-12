@@ -35,8 +35,9 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -44,8 +45,9 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -53,8 +55,9 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffffU)
+	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -64,16 +67,20 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 				      false));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	ok = true;
-	if ((options & DNS_RDATA_CHECKNAMES) != 0)
+	if ((options & DNS_RDATA_CHECKNAMES) != 0) {
 		ok = dns_name_ishostname(&name, false);
-	if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
+	}
+	if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0) {
 		RETTOK(DNS_R_BADNAME);
-	if (!ok && callbacks != NULL)
+	}
+	if (!ok && callbacks != NULL) {
 		warn_badname(&name, lexer, callbacks);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -148,8 +155,9 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 	 * Priority, weight, port.
 	 */
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length < 6)
+	if (sr.length < 6) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 	RETERR(mem_tobuffer(target, sr.base, 6));
 	isc_buffer_forward(source, 6);
 
@@ -203,8 +211,9 @@ compare_in_srv(ARGS_COMPARE) {
 	 * Priority, weight, port.
 	 */
 	order = memcmp(rdata1->data, rdata2->data, 6);
-	if (order != 0)
+	if (order != 0) {
 		return (order < 0 ? -1 : 1);
+	}
 
 	/*
 	 * Target.
@@ -283,8 +292,9 @@ freestruct_in_srv(ARGS_FREESTRUCT) {
 	REQUIRE(srv->common.rdclass == dns_rdataclass_in);
 	REQUIRE(srv->common.rdtype == dns_rdatatype_srv);
 
-	if (srv->mctx == NULL)
+	if (srv->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&srv->target, srv->mctx);
 	srv->mctx = NULL;
@@ -310,24 +320,28 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 
-	if (dns_name_equal(&name, dns_rootname))
+	if (dns_name_equal(&name, dns_rootname)) {
 		return (ISC_R_SUCCESS);
+	}
 
 	result = (add)(arg, &name, dns_rdatatype_a);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	dns_fixedname_init(&fixed);
 	snprintf(buf, sizeof(buf), "_%u._tcp", port);
-	result = dns_name_fromstring2(dns_fixedname_name(&fixed), buf, NULL,
-				      0, NULL);
-	if (result != ISC_R_SUCCESS)
+	result = dns_name_fromstring2(dns_fixedname_name(&fixed), buf, NULL, 0,
+				      NULL);
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_SUCCESS);
+	}
 
 	result = dns_name_concatenate(dns_fixedname_name(&fixed), &name,
 				      dns_fixedname_name(&fixed), NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_SUCCESS);
+	}
 
 	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa));
 }
@@ -352,7 +366,6 @@ digest_in_srv(ARGS_DIGEST) {
 
 static inline bool
 checkowner_in_srv(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_srv);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
@@ -379,8 +392,9 @@ checknames_in_srv(ARGS_CHECKNAMES) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ishostname(&name, false)) {
-		if (bad != NULL)
+		if (bad != NULL) {
 			dns_name_clone(&name, bad);
+		}
 		return (false);
 	}
 	return (true);
@@ -391,4 +405,4 @@ casecompare_in_srv(ARGS_COMPARE) {
 	return (compare_in_srv(rdata1, rdata2));
 }
 
-#endif	/* RDATA_IN_1_SRV_33_C */
+#endif /* RDATA_IN_1_SRV_33_C */

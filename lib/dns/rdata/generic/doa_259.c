@@ -356,4 +356,4 @@ casecompare_doa(ARGS_COMPARE) {
 	return (compare_doa(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_DOA_259_C */
+#endif /* RDATA_GENERIC_DOA_259_C */

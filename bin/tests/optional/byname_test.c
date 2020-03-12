@@ -45,7 +45,8 @@ static isc_log_t *lctx;
 static isc_logconfig_t *lcfg;
 static unsigned int level = 0;
 
-static void adb_callback(isc_task_t *task, isc_event_t *event);
+static void
+adb_callback(isc_task_t *task, isc_event_t *event);
 
 static void
 log_init(void) {
@@ -69,10 +70,9 @@ log_init(void) {
 	destination.file.maximum_size = 0;
 	flags = ISC_LOG_PRINTTIME;
 	RUNTIME_CHECK(isc_log_createchannel(lcfg, "_default",
-					    ISC_LOG_TOFILEDESC,
-					    ISC_LOG_DYNAMIC,
-					    &destination, flags) ==
-		      ISC_R_SUCCESS);
+					    ISC_LOG_TOFILEDESC, ISC_LOG_DYNAMIC,
+					    &destination,
+					    flags) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_log_usechannel(lcfg, "_default", NULL, NULL) ==
 		      ISC_R_SUCCESS);
 	isc_log_setdebuglevel(lctx, level);
@@ -82,9 +82,9 @@ static void
 print_addresses(dns_adbfind_t *adbfind) {
 	dns_adbaddrinfo_t *address;
 
-	for (address = ISC_LIST_HEAD(adbfind->list);
-	     address != NULL;
-	     address = ISC_LIST_NEXT(address, publink)) {
+	for (address = ISC_LIST_HEAD(adbfind->list); address != NULL;
+	     address = ISC_LIST_NEXT(address, publink))
+	{
 		isc_netaddr_t netaddr;
 		char text[ISC_NETADDR_FORMATSIZE];
 		isc_netaddr_fromsockaddr(&netaddr, &address->sockaddr);
@@ -108,13 +108,13 @@ do_find(bool want_event) {
 	unsigned int options;
 
 	options = DNS_ADBFIND_INET | DNS_ADBFIND_INET6;
-	if (want_event)
+	if (want_event) {
 		options |= DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_EMPTYEVENT;
+	}
 	dns_fixedname_init(&target);
 	result = dns_adb_createfind(view->adb, task, adb_callback, NULL,
-				    dns_fixedname_name(&fixed),
-				    dns_rootname, 0, options, 0,
-				    dns_fixedname_name(&target), 0,
+				    dns_fixedname_name(&fixed), dns_rootname, 0,
+				    options, 0, dns_fixedname_name(&target), 0,
 				    0, NULL, &find);
 	if (result == ISC_R_SUCCESS) {
 		if (!ISC_LIST_EMPTY(find->list)) {
@@ -152,8 +152,9 @@ do_find(bool want_event) {
 	}
 
 	if (done) {
-		if (find != NULL)
+		if (find != NULL) {
 			dns_adb_destroyfind(&find);
+		}
 		isc_app_shutdown();
 	}
 }
@@ -167,9 +168,9 @@ adb_callback(isc_task_t *etask, isc_event_t *event) {
 	isc_event_free(&event);
 	dns_adb_destroyfind(&find);
 
-	if (type == DNS_EVENT_ADBMOREADDRESSES)
+	if (type == DNS_EVENT_ADBMOREADDRESSES) {
 		do_find(false);
-	else if (type == DNS_EVENT_ADBNOMOREADDRESSES) {
+	} else if (type == DNS_EVENT_ADBNOMOREADDRESSES) {
 		printf("no more addresses\n");
 		isc_app_shutdown();
 	} else {
@@ -229,13 +230,12 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, NULL, &taskmgr) ==
 		      ISC_R_SUCCESS);
 	task = NULL;
-	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task) == ISC_R_SUCCESS);
 	isc_task_setname(task, "byname", NULL);
 
 	dispatchmgr = NULL;
-	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
-		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr) ==
+		      ISC_R_SUCCESS);
 
 	timermgr = NULL;
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) == ISC_R_SUCCESS);
@@ -261,13 +261,11 @@ main(int argc, char *argv[]) {
 			isc_sockaddr_any(&any4);
 
 			attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
-			RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr,
-							  socketmgr,
-							  taskmgr, &any4,
-							  512, 6, 1024,
-							  17, 19, attrs,
-							  attrs, &disp4)
-				      == ISC_R_SUCCESS);
+			RUNTIME_CHECK(
+				dns_dispatch_getudp(dispatchmgr, socketmgr,
+						    taskmgr, &any4, 512, 6,
+						    1024, 17, 19, attrs, attrs,
+						    &disp4) == ISC_R_SUCCESS);
 			INSIST(disp4 != NULL);
 		}
 
@@ -277,27 +275,25 @@ main(int argc, char *argv[]) {
 			isc_sockaddr_any6(&any6);
 
 			attrs = DNS_DISPATCHATTR_IPV6 | DNS_DISPATCHATTR_UDP;
-			RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr,
-							  socketmgr,
-							  taskmgr, &any6,
-							  512, 6, 1024,
-							  17, 19, attrs,
-							  attrs, &disp6)
-				      == ISC_R_SUCCESS);
+			RUNTIME_CHECK(
+				dns_dispatch_getudp(dispatchmgr, socketmgr,
+						    taskmgr, &any6, 512, 6,
+						    1024, 17, 19, attrs, attrs,
+						    &disp6) == ISC_R_SUCCESS);
 			INSIST(disp6 != NULL);
 		}
 
 		RUNTIME_CHECK(dns_view_createresolver(view, taskmgr, 10, 1,
-						      socketmgr,
-						      timermgr, 0,
-						      dispatchmgr,
-						      disp4, disp6) ==
-		      ISC_R_SUCCESS);
+						      socketmgr, timermgr, 0,
+						      dispatchmgr, disp4,
+						      disp6) == ISC_R_SUCCESS);
 
-		if (disp4 != NULL)
+		if (disp4 != NULL) {
 			dns_dispatch_detach(&disp4);
-		if (disp6 != NULL)
+		}
+		if (disp6 != NULL) {
 			dns_dispatch_detach(&disp6);
+		}
 	}
 
 	{
@@ -311,8 +307,8 @@ main(int argc, char *argv[]) {
 		ISC_LIST_APPEND(sal, &sa, link);
 
 		RUNTIME_CHECK(dns_fwdtable_add(view->fwdtable, dns_rootname,
-					       &sal, dns_fwdpolicy_only)
-			      == ISC_R_SUCCESS);
+					       &sal, dns_fwdpolicy_only) ==
+			      ISC_R_SUCCESS);
 	}
 
 	dns_view_setcache(view, cache, false);
@@ -327,8 +323,8 @@ main(int argc, char *argv[]) {
 	dns_fixedname_init(&fixed);
 	dns_fixedname_init(&target);
 	RUNTIME_CHECK(dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					dns_rootname, 0, NULL) ==
-		      ISC_R_SUCCESS);
+					dns_rootname, 0,
+					NULL) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_app_onrun(mctx, task, run, NULL) == ISC_R_SUCCESS);
 
@@ -347,8 +343,9 @@ main(int argc, char *argv[]) {
 
 	isc_log_destroy(&lctx);
 
-	if (verbose)
+	if (verbose) {
 		isc_mem_stats(mctx, stdout);
+	}
 	isc_mem_destroy(&mctx);
 
 	isc_app_finish();

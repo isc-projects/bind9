@@ -9,7 +9,10 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
+
 #include <inttypes.h>
+
 #include <isc/mem.h>
 #include <isc/types.h>
 

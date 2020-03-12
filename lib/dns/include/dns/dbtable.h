@@ -9,13 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_DBTABLE_H
 #define DNS_DBTABLE_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/dbtable.h
  * \brief
@@ -44,7 +43,7 @@
 
 #include <dns/types.h>
 
-#define DNS_DBTABLEFIND_NOEXACT		0x01
+#define DNS_DBTABLEFIND_NOEXACT 0x01
 
 ISC_LANG_BEGINDECLS
 

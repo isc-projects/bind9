@@ -35,7 +35,10 @@ typedef struct {
 	const char *rdata;
 } zonechange_t;
 
-#define ZONECHANGE_SENTINEL { 0, NULL, 0, NULL, NULL }
+#define ZONECHANGE_SENTINEL            \
+	{                              \
+		0, NULL, 0, NULL, NULL \
+	}
 
 extern isc_mem_t *dt_mctx;
 extern isc_log_t *lctx;
@@ -97,8 +100,8 @@ dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 		const char *testfile);
 
 isc_result_t
-dns_test_getdata(const char *file, unsigned char *buf,
-		 size_t bufsiz, size_t *sizep);
+dns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
+		 size_t *sizep);
 
 char *
 dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen);

@@ -9,13 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_DBITERATOR_H
 #define DNS_DBITERATOR_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/dbiterator.h
  * \brief
@@ -51,8 +50,8 @@
  */
 
 /*****
- ***** Imports
- *****/
+***** Imports
+*****/
 
 #include <stdbool.h>
 
@@ -64,26 +63,25 @@
 ISC_LANG_BEGINDECLS
 
 /*****
- ***** Types
- *****/
+***** Types
+*****/
 
 typedef struct dns_dbiteratormethods {
-	void		(*destroy)(dns_dbiterator_t **iteratorp);
-	isc_result_t	(*first)(dns_dbiterator_t *iterator);
-	isc_result_t	(*last)(dns_dbiterator_t *iterator);
-	isc_result_t	(*seek)(dns_dbiterator_t *iterator,
-				const dns_name_t *name);
-	isc_result_t	(*prev)(dns_dbiterator_t *iterator);
-	isc_result_t	(*next)(dns_dbiterator_t *iterator);
-	isc_result_t	(*current)(dns_dbiterator_t *iterator,
-				   dns_dbnode_t **nodep, dns_name_t *name);
-	isc_result_t	(*pause)(dns_dbiterator_t *iterator);
-	isc_result_t	(*origin)(dns_dbiterator_t *iterator,
-				  dns_name_t *name);
+	void (*destroy)(dns_dbiterator_t **iteratorp);
+	isc_result_t (*first)(dns_dbiterator_t *iterator);
+	isc_result_t (*last)(dns_dbiterator_t *iterator);
+	isc_result_t (*seek)(dns_dbiterator_t *iterator,
+			     const dns_name_t *name);
+	isc_result_t (*prev)(dns_dbiterator_t *iterator);
+	isc_result_t (*next)(dns_dbiterator_t *iterator);
+	isc_result_t (*current)(dns_dbiterator_t *iterator,
+				dns_dbnode_t **nodep, dns_name_t *name);
+	isc_result_t (*pause)(dns_dbiterator_t *iterator);
+	isc_result_t (*origin)(dns_dbiterator_t *iterator, dns_name_t *name);
 } dns_dbiteratormethods_t;
 
-#define DNS_DBITERATOR_MAGIC	     ISC_MAGIC('D','N','S','I')
-#define DNS_DBITERATOR_VALID(dbi)    ISC_MAGIC_VALID(dbi, DNS_DBITERATOR_MAGIC)
+#define DNS_DBITERATOR_MAGIC	  ISC_MAGIC('D', 'N', 'S', 'I')
+#define DNS_DBITERATOR_VALID(dbi) ISC_MAGIC_VALID(dbi, DNS_DBITERATOR_MAGIC)
 /*%
  * This structure is actually just the common prefix of a DNS db
  * implementation's version of a dns_dbiterator_t.
@@ -96,11 +94,11 @@ typedef struct dns_dbiteratormethods {
  */
 struct dns_dbiterator {
 	/* Unlocked. */
-	unsigned int			magic;
-	dns_dbiteratormethods_t *	methods;
-	dns_db_t *			db;
-	bool			relative_names;
-	bool			cleaning;
+	unsigned int		 magic;
+	dns_dbiteratormethods_t *methods;
+	dns_db_t *		 db;
+	bool			 relative_names;
+	bool			 cleaning;
 };
 
 void
@@ -222,14 +220,12 @@ dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
  * Returns:
  *
  *\li	#ISC_R_SUCCESS
- *\li	#DNS_R_NEWORIGIN			If this iterator was created with
- *					'relative_names' set to true,
- *					then #DNS_R_NEWORIGIN will be returned
- *					when the origin the names are
- *					relative to changes.  This result
- *					can occur only when 'name' is not
- *					NULL.  This is also a successful
- *					result.
+ *\li	#DNS_R_NEWORIGIN			If this iterator was created
+ * with 'relative_names' set to true, then #DNS_R_NEWORIGIN will be returned
+ *when
+ * the origin the names are relative to changes.  This result can occur only
+ *when
+ *'name' is not NULL.  This is also a successful result.
  *
  *\li	Other results are possible, depending on the DB implementation.
  */

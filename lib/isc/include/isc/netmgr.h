@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include <config.h>
-
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/types.h>
@@ -46,7 +44,16 @@ isc_nm_destroy(isc_nm_t **mgr0);
  * for all other references to be gone.
  */
 
-/* Return thread id of current thread, or ISC_NETMGR_TID_UNKNOWN */
+void
+isc_nm_closedown(isc_nm_t *mgr);
+/*%<
+ * Close down all active connections, freeing associated resources;
+ * prevent new connections from being established. This can optionally
+ * be called prior to shutting down the netmgr, to stop all processing
+ * before shutting down the task manager.
+ */
+
+/* Return thread ID of current thread, or ISC_NETMGR_TID_UNKNOWN */
 int
 isc_nm_tid(void);
 
@@ -95,7 +102,7 @@ isc_nmhandle_getdata(isc_nmhandle_t *handle);
 void *
 isc_nmhandle_getextra(isc_nmhandle_t *handle);
 
-typedef void (*isc_nm_opaquecb)(void *arg);
+typedef void (*isc_nm_opaquecb_t)(void *arg);
 
 bool
 isc_nmhandle_is_stream(isc_nmhandle_t *handle);
@@ -109,12 +116,24 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle);
  */
 void
 isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
-		     isc_nm_opaquecb doreset, isc_nm_opaquecb dofree);
+		     isc_nm_opaquecb_t doreset, isc_nm_opaquecb_t dofree);
 
 isc_sockaddr_t
 isc_nmhandle_peeraddr(isc_nmhandle_t *handle);
+/*%<
+ * Return the peer address for the given handle.
+ */
 isc_sockaddr_t
 isc_nmhandle_localaddr(isc_nmhandle_t *handle);
+/*%<
+ * Return the local address for the given handle.
+ */
+
+isc_nm_t *
+isc_nmhandle_netmgr(isc_nmhandle_t *handle);
+/*%<
+ * Return a pointer to the netmgr object for the given handle.
+ */
 
 typedef void (*isc_nm_recv_cb_t)(isc_nmhandle_t *handle, isc_region_t *region,
 				 void *cbarg);
@@ -141,9 +160,8 @@ typedef void (*isc_nm_cb_t)(isc_nmhandle_t *handle, isc_result_t result,
  */
 
 isc_result_t
-isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface,
-		 isc_nm_recv_cb_t cb, void *cbarg,
-		 size_t extrasize, isc_nmsocket_t **sockp);
+isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
+		 void *cbarg, size_t extrasize, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for UDP packets on interface 'iface' using net manager
  * 'mgr'.
@@ -198,8 +216,8 @@ isc_nm_resumeread(isc_nmsocket_t *sock);
  */
 
 isc_result_t
-isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region,
-	    isc_nm_cb_t cb, void *cbarg);
+isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
+	    void *cbarg);
 /*%<
  * Send the data in 'region' via 'handle'. Afterward, the callback 'cb' is
  * called with the argument 'cbarg'.
@@ -209,10 +227,9 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region,
  */
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
-		 isc_nm_cb_t cb, void *cbarg,
-		 size_t extrahandlesize, isc_quota_t *quota,
-		 isc_nmsocket_t **rv);
+isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
+		 void *cbarg, size_t extrahandlesize, int backlog,
+		 isc_quota_t *quota, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for raw messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -230,8 +247,8 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
  * quota. This allows us to enforce TCP client quota limits.
  *
  * NOTE: This is currently only called inside isc_nm_listentcpdns(), which
- * creates a 'wrapper' socket that sends and receives DNS messages -
- * prepended with a two-byte length field - and handles buffering.
+ * creates a 'wrapper' socket that sends and receives DNS messages
+ * prepended with a two-byte length field, and handles buffering.
  */
 
 void
@@ -241,24 +258,31 @@ isc_nm_tcp_stoplistening(isc_nmsocket_t *sock);
  */
 
 isc_result_t
-isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
-		     isc_nm_recv_cb_t cb, void *arg,
-		     size_t extrahandlesize, isc_quota_t *quota,
-		     isc_nmsocket_t **sockp);
+isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
+		    void *cbarg, isc_nm_cb_t accept_cb, void *accept_cbarg,
+		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
+		    isc_nmsocket_t **sockp);
 /*%<
  * Start listening for DNS messages over the TCP interface 'iface', using
  * net manager 'mgr'.
  *
  * On success, 'sockp' will be updated to contain a new listening TCPDNS
- * socket. This is a wrapper around a TCP socket, and handles DNS length
- * processing.
+ * socket. This is a wrapper around a raw TCP socket, which sends and
+ * receives DNS messages via that socket. It handles message buffering
+ * and pipelining, and automatically prepends messages with a two-byte
+ * length field.
  *
  * When a complete DNS message is received on the socket, 'cb' will be
  * called with 'cbarg' as its argument.
  *
+ * When a new TCP connection is accepted, 'accept_cb' will be called
+ * with 'accept_cbarg' as its argument.
+ *
  * When handles are allocated for the socket, 'extrasize' additional bytes
  * will be allocated along with the handle for an associated object
  * (typically ns_client).
+ *
+ * 'quota' is passed to isc_nm_listentcp() when opening the raw TCP socket.
  */
 
 void
@@ -270,15 +294,72 @@ isc_nm_tcpdns_stoplistening(isc_nmsocket_t *sock);
 void
 isc_nm_tcpdns_sequential(isc_nmhandle_t *handle);
 /*%<
- * Disable pipelining on this connection. Each DNS packet
- * will be only processed after the previous completes.
+ * Disable pipelining on this connection. Each DNS packet will be only
+ * processed after the previous completes.
  *
- * This cannot be reversed once set for a given connection
+ * The socket must be unpaused after the query is processed.  This is done
+ * the response is sent, or if we're dropping the query, it will be done
+ * when a handle is fully dereferenced by calling the socket's
+ * closehandle_cb callback.
+ *
+ * Note: This can only be run while a message is being processed; if it is
+ * run before any messages are read, no messages will be read.
+ *
+ * Also note: once this has been set, it cannot be reversed for a given
+ * connection.
+ */
+
+void
+isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle);
+/*%<
+ * Enable keepalive on this connection.
+ *
+ * When keepalive is active, we switch to using the keepalive timeout
+ * to determine when to close a connection, rather than the idle timeout.
+ */
+
+void
+isc_nm_tcp_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
+		       uint32_t keepalive, uint32_t advertised);
+/*%<
+ * Sets the initial, idle, and keepalive timeout values to use for
+ * TCP connections, and the timeout value to advertise in responses using
+ * the EDNS TCP Keepalive option (which should ordinarily be the same
+ * as 'keepalive'), in tenths of seconds.
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+void
+isc_nm_tcp_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
+		       uint32_t *keepalive, uint32_t *advertised);
+/*%<
+ * Gets the initial, idle, keepalive, or advertised timeout values,
+ * in tenths of seconds.
+ *
+ * Any integer pointer parameter not set to NULL will be updated to
+ * contain the corresponding timeout value.
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
  */
 
 void
 isc_nm_maxudp(isc_nm_t *mgr, uint32_t maxudp);
 /*%<
- * Simulate a broken firewall that blocks UDP messages larger
- * than a given size.
+ * Simulate a broken firewall that blocks UDP messages larger than a given
+ * size.
+ */
+
+void
+isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats);
+/*%<
+ * Set a socket statistics counter set 'stats' for 'mgr'.
+ *
+ * Requires:
+ *\li	'mgr' is valid and doesn't have stats already set.
+ *
+ *\li	stats is a valid set of statistics counters supporting the
+ *	full range of socket-related stats counter numbers.
  */

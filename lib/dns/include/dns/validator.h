@@ -9,13 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/validator.h
  *
@@ -48,14 +47,14 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/event.h>
+#include <isc/lang.h>
 #include <isc/mutex.h>
 
 #include <dns/fixedname.h>
-#include <dns/types.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h> /* for dns_rdata_rrsig_t */
+#include <dns/types.h>
 
 #include <dst/dst.h>
 
@@ -72,39 +71,39 @@
  */
 typedef struct dns_validatorevent {
 	ISC_EVENT_COMMON(struct dns_validatorevent);
-	dns_validator_t *		validator;
-	isc_result_t			result;
+	dns_validator_t *validator;
+	isc_result_t	 result;
 	/*
 	 * Name and type of the response to be validated.
 	 */
-	dns_name_t *			name;
-	dns_rdatatype_t			type;
+	dns_name_t *	name;
+	dns_rdatatype_t type;
 	/*
 	 * Rdata and RRSIG (if any) for positive responses.
 	 */
-	dns_rdataset_t *		rdataset;
-	dns_rdataset_t *		sigrdataset;
+	dns_rdataset_t *rdataset;
+	dns_rdataset_t *sigrdataset;
 	/*
 	 * The full response.  Required for negative responses.
 	 * Also required for positive wildcard responses.
 	 */
-	dns_message_t *			message;
+	dns_message_t *message;
 	/*
 	 * Proofs to be cached.
 	 */
-	dns_name_t *			proofs[4];
+	dns_name_t *proofs[4];
 	/*
 	 * Optout proof seen.
 	 */
-	bool			optout;
+	bool optout;
 	/*
 	 * Answer is secure.
 	 */
-	bool			secure;
+	bool secure;
 } dns_validatorevent_t;
 
-#define DNS_VALIDATOR_NOQNAMEPROOF 0
-#define DNS_VALIDATOR_NODATAPROOF 1
+#define DNS_VALIDATOR_NOQNAMEPROOF    0
+#define DNS_VALIDATOR_NODATAPROOF     1
 #define DNS_VALIDATOR_NOWILDCARDPROOF 2
 #define DNS_VALIDATOR_CLOSESTENCLOSER 3
 
@@ -117,46 +116,47 @@ typedef struct dns_validatorevent {
  */
 struct dns_validator {
 	/* Unlocked. */
-	unsigned int			magic;
-	isc_mutex_t			lock;
-	dns_view_t *			view;
+	unsigned int magic;
+	isc_mutex_t  lock;
+	dns_view_t * view;
 	/* Locked by lock. */
-	unsigned int			options;
-	unsigned int			attributes;
-	dns_validatorevent_t *		event;
-	dns_fetch_t *			fetch;
-	dns_validator_t *		subvalidator;
-	dns_validator_t *		parent;
-	dns_keytable_t *		keytable;
-	dst_key_t *			key;
-	dns_rdata_rrsig_t *		siginfo;
-	isc_task_t *			task;
-	isc_taskaction_t		action;
-	void *				arg;
-	unsigned int			labels;
-	dns_rdataset_t *		currentset;
-	dns_rdataset_t *		keyset;
-	dns_rdataset_t *		dsset;
-	dns_rdataset_t			frdataset;
-	dns_rdataset_t			fsigrdataset;
-	dns_fixedname_t			fname;
-	dns_fixedname_t			wild;
-	dns_fixedname_t			closest;
-	ISC_LINK(dns_validator_t)	link;
-	bool				mustbesecure;
-	unsigned int			depth;
-	unsigned int			authcount;
-	unsigned int			authfail;
-	isc_stdtime_t			start;
+	unsigned int	      options;
+	unsigned int	      attributes;
+	dns_validatorevent_t *event;
+	dns_fetch_t *	      fetch;
+	dns_validator_t *     subvalidator;
+	dns_validator_t *     parent;
+	dns_keytable_t *      keytable;
+	dns_keynode_t *	      keynode;
+	dst_key_t *	      key;
+	dns_rdata_rrsig_t *   siginfo;
+	isc_task_t *	      task;
+	isc_taskaction_t      action;
+	void *		      arg;
+	unsigned int	      labels;
+	dns_rdataset_t *      currentset;
+	dns_rdataset_t *      keyset;
+	dns_rdataset_t *      dsset;
+	dns_rdataset_t	      frdataset;
+	dns_rdataset_t	      fsigrdataset;
+	dns_fixedname_t	      fname;
+	dns_fixedname_t	      wild;
+	dns_fixedname_t	      closest;
+	ISC_LINK(dns_validator_t) link;
+	bool	      mustbesecure;
+	unsigned int  depth;
+	unsigned int  authcount;
+	unsigned int  authfail;
+	isc_stdtime_t start;
 };
 
 /*%
  * dns_validator_create() options.
  */
 /* obsolete: #define DNS_VALIDATOR_DLV	0x0001U */
-#define DNS_VALIDATOR_DEFER		0x0002U
-#define DNS_VALIDATOR_NOCDFLAG		0x0004U
-#define DNS_VALIDATOR_NONTA		0x0008U  /*% Ignore NTA table */
+#define DNS_VALIDATOR_DEFER    0x0002U
+#define DNS_VALIDATOR_NOCDFLAG 0x0004U
+#define DNS_VALIDATOR_NONTA    0x0008U /*% Ignore NTA table */
 
 ISC_LANG_BEGINDECLS
 

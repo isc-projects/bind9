@@ -19,8 +19,8 @@
 #include <isc/lang.h>
 #include <isc/md.h>
 #include <isc/platform.h>
-#include <isc/types.h>
 #include <isc/result.h>
+#include <isc/types.h>
 
 #include <openssl/hmac.h>
 
@@ -45,8 +45,8 @@ typedef HMAC_CTX isc_hmac_t;
  */
 isc_result_t
 isc_hmac(isc_md_type_t type, const void *key, const int keylen,
-	 const unsigned char *buf, const size_t len,
-	 unsigned char *digest, unsigned int *digestlen);
+	 const unsigned char *buf, const size_t len, unsigned char *digest,
+	 unsigned int *digestlen);
 
 /**
  * isc_hmac_new:
@@ -77,8 +77,8 @@ isc_hmac_free(isc_hmac_t *hmac);
  */
 
 isc_result_t
-isc_hmac_init(isc_hmac_t *hmac, const void *key,
-	      size_t keylen, isc_md_type_t type);
+isc_hmac_init(isc_hmac_t *hmac, const void *key, size_t keylen,
+	      isc_md_type_t type);
 
 /**
  * isc_hmac_reset:
@@ -106,7 +106,7 @@ isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len);
  * isc_hmac_final:
  * @hmac: HMAC context
  * @digest: the output buffer
- * @digestlen: the lenth of the data written to @digest
+ * @digestlen: the length of the data written to @digest
  *
  * This function retrieves the message authentication code from @hmac and places
  * it in @digest, which must have space for the hash function output.  If the

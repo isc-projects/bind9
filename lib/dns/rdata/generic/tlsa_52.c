@@ -31,8 +31,9 @@ generic_fromtext_tlsa(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -40,8 +41,9 @@ generic_fromtext_tlsa(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -49,8 +51,9 @@ generic_fromtext_tlsa(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      false));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
+	}
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -98,16 +101,19 @@ generic_totext_tlsa(ARGS_TOTEXT) {
 	/*
 	 * Certificate Association Data.
 	 */
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" (", target));
+	}
 	RETERR(str_totext(tctx->linebreak, target));
-	if (tctx->width == 0) /* No splitting */
+	if (tctx->width == 0) { /* No splitting */
 		RETERR(isc_hex_totext(&sr, 0, "", target));
-	else
-		RETERR(isc_hex_totext(&sr, tctx->width - 2,
-				      tctx->linebreak, target));
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+	} else {
+		RETERR(isc_hex_totext(&sr, tctx->width - 2, tctx->linebreak,
+				      target));
+	}
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(" )", target));
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -122,8 +128,9 @@ generic_fromwire_tlsa(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &sr);
 
-	if (sr.length < 3)
+	if (sr.length < 3) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -131,7 +138,6 @@ generic_fromwire_tlsa(ARGS_FROMWIRE) {
 
 static inline isc_result_t
 fromtext_tlsa(ARGS_FROMTEXT) {
-
 	REQUIRE(type == dns_rdatatype_tlsa);
 
 	return (generic_fromtext_tlsa(rdclass, type, lexer, origin, options,
@@ -140,7 +146,6 @@ fromtext_tlsa(ARGS_FROMTEXT) {
 
 static inline isc_result_t
 totext_tlsa(ARGS_TOTEXT) {
-
 	REQUIRE(rdata->type == dns_rdatatype_tlsa);
 
 	return (generic_totext_tlsa(rdata, tctx, target));
@@ -148,7 +153,6 @@ totext_tlsa(ARGS_TOTEXT) {
 
 static inline isc_result_t
 fromwire_tlsa(ARGS_FROMWIRE) {
-
 	REQUIRE(type == dns_rdatatype_tlsa);
 
 	return (generic_fromwire_tlsa(rdclass, type, source, dctx, options,
@@ -226,8 +230,9 @@ generic_tostruct_tlsa(ARGS_TOSTRUCT) {
 	tlsa->length = region.length;
 
 	tlsa->data = mem_maybedup(mctx, region.base, region.length);
-	if (tlsa->data == NULL)
+	if (tlsa->data == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	tlsa->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -239,17 +244,18 @@ generic_freestruct_tlsa(ARGS_FREESTRUCT) {
 
 	REQUIRE(tlsa != NULL);
 
-	if (tlsa->mctx == NULL)
+	if (tlsa->mctx == NULL) {
 		return;
+	}
 
-	if (tlsa->data != NULL)
+	if (tlsa->data != NULL) {
 		isc_mem_free(tlsa->mctx, tlsa->data);
+	}
 	tlsa->mctx = NULL;
 }
 
 static inline isc_result_t
 fromstruct_tlsa(ARGS_FROMSTRUCT) {
-
 	REQUIRE(type == dns_rdatatype_tlsa);
 
 	return (generic_fromstruct_tlsa(rdclass, type, source, target));
@@ -303,7 +309,6 @@ digest_tlsa(ARGS_DIGEST) {
 
 static inline bool
 checkowner_tlsa(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_tlsa);
 
 	UNUSED(name);
@@ -316,7 +321,6 @@ checkowner_tlsa(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_tlsa(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_tlsa);
 
 	UNUSED(rdata);
@@ -331,4 +335,4 @@ casecompare_tlsa(ARGS_COMPARE) {
 	return (compare_tlsa(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_TLSA_52_C */
+#endif /* RDATA_GENERIC_TLSA_52_C */

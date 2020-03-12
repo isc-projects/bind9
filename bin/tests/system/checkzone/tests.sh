@@ -182,5 +182,27 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that named-compilezone works when reading input from stdin ($n)"
+ret=0
+# Step 1: take raw input from stdin and convert it to text/relative format.
+# Last argument "-" is optional, but it says more explicitly that we're reading from stdin.
+cat zones/zone1.db | ./named-compilezone -f text -F text -s relative \
+        -o zones/zone1_stdin.txt zone1.com - > /dev/null || ret=1
+status=`expr $status + $ret`
+
+ret=0
+# Step 2: take raw input from file and convert it to text format.
+./named-compilezone -f text -F text -s relative -o zones/zone1_file.txt \
+        zone1.com zones/zone1.db > /dev/null || ret=1
+status=`expr $status + $ret`
+
+ret=0
+# Step 3: Ensure that output conversion from stdin is the same as the output conversion from a file.
+$DIFF zones/zone1_file.txt zones/zone1_stdin.txt >/dev/null 2>&1 || ret=1
+status=`expr $status + $ret`
+
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

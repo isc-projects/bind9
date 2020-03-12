@@ -15,8 +15,7 @@
 
 void
 dns_clientinfomethods_init(dns_clientinfomethods_t *methods,
-			   dns_clientinfo_sourceip_t sourceip)
-{
+			   dns_clientinfo_sourceip_t sourceip) {
 	methods->version = DNS_CLIENTINFOMETHODS_VERSION;
 	methods->age = DNS_CLIENTINFOMETHODS_AGE;
 	methods->sourceip = sourceip;

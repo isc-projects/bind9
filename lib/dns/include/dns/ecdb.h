@@ -9,13 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_ECDB_H
 #define DNS_ECDB_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /* TBD */
 

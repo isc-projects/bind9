@@ -11,16 +11,16 @@ Overview.
 
 	In general the resolver / nameserver should accept any compression
 	method at any time regardless of whether it was legal to
-	send it.  This fits with the priciple of being liberal with
+	send it.  This fits with the principle of being liberal with
 	what you accept and strict with what you send.
 
-	There are a few cases where it does not make sence to accept
+	There are a few cases where it does not make sense to accept
 	compression pointers of a given type. i.e. the first domain name
 	in a message, local compression pointers in the ownername of a RR
 	or in a question.
 
 	When performing regression testing however we should be as strict
-	as possible.  Hence we need to be able modifiy the behaviour of the
+	as possible.  Hence we need to be able modify the behaviour of the
 	decompression routines.
 
 	To be able to decompress a domain name we need some or all of the
@@ -53,13 +53,13 @@ Functions:
 	void
 	dns_decompress_init(dns_decompress_t *dctx, int edns,
 			    bool strict);
-	initalise dctx
+	initialise dctx
 	dctx->ownername is invalidated
 
 	void
 	dns_decompress_localinit(dns_decompress_t *dctx, dns_name_t *name,
 				 isc_buffer_t *source);
-	initalise dctx->ownername
+	initialise dctx->ownername
 	record source->current to dctx->rdata
 
 	void

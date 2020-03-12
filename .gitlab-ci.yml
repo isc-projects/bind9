@@ -17,9 +17,19 @@ variables:
 
   MAKE: make
   CONFIGURE: ./configure
+  CLANG: clang-9
   SCAN_BUILD: scan-build-9
+  SYMBOLIZER: /usr/lib/llvm-9/bin/llvm-symbolizer
+  ASAN_SYMBOLIZER_PATH: "$SYMBOLIZER"
+  CLANG_FORMAT: clang-format-10
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
+
+  # Pass run-time flags to AddressSanitizer to get core dumps on error.
+  ASAN_OPTIONS_COMMON: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
+
+  TARBALL_COMPRESSOR: xz
+  TARBALL_EXTENSION: xz
 
 stages:
   - precheck
@@ -29,6 +39,7 @@ stages:
   - docs
   - push
   - postcheck
+  - release
 
 ### Runner Tag Templates
 
@@ -44,6 +55,11 @@ stages:
     - linux
     - amd64
 
+.linux-arm64: &linux_arm64
+  tags:
+    - linux
+    - arm64
+
 .linux-i386: &linux_i386
   tags:
     - linux
@@ -51,15 +67,15 @@ stages:
 
 .openbsd-amd64: &openbsd_amd64
   tags:
-    - openbsd
+    - libvirt
     - amd64
 
 ### Docker Image Templates
 
 # Alpine Linux
 
-.alpine-3.10-amd64: &alpine_3_10_amd64_image
-  image: "$CI_REGISTRY_IMAGE:alpine-3.10-amd64"
+.alpine-3.11-amd64: &alpine_3_11_amd64_image
+  image: "$CI_REGISTRY_IMAGE:alpine-3.11-amd64"
   <<: *linux_amd64
 
 # CentOS
@@ -98,14 +114,24 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
   <<: *linux_amd64
 
+.debian-sid-arm64: &debian_sid_arm64_image
+  image: "$CI_REGISTRY_IMAGE:debian-sid-arm64"
+  <<: *linux_arm64
+
 .debian-sid-i386: &debian_sid_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
   <<: *linux_i386
 
+# openSUSE Tumbleweed
+
+.tumbleweed-latest-amd64: &tumbleweed_latest_amd64_image
+  image: "$CI_REGISTRY_IMAGE:tumbleweed-latest-amd64"
+  <<: *linux_amd64
+
 # Fedora
 
-.fedora-30-amd64: &fedora_30_amd64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-30-amd64"
+.fedora-31-amd64: &fedora_31_amd64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-31-amd64"
   <<: *linux_amd64
 
 # Ubuntu
@@ -133,12 +159,14 @@ stages:
     - merge_requests
     - tags
     - web
+    - schedules
 
 .release-branch-triggering-rules: &release_branch_triggering_rules
   only:
     - merge_requests
     - tags
     - web
+    - schedules
     - master@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
@@ -159,7 +187,7 @@ stages:
       - configure
       - ltmain.sh
       - m4/libtool.m4
-    expire_in: "1 week"
+    expire_in: "1 day"
 
 .configure: &configure |
     ${CONFIGURE} \
@@ -174,23 +202,55 @@ stages:
     --without-make-clean \
     $EXTRA_CONFIGURE \
     || cat config.log
-    
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
+    - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
   script:
     - *configure
     - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
+    - test -z "${RUN_MAKE_INSTALL}" || sh util/check-make-install
   dependencies:
     - autoreconf:sid:amd64
   needs:
     - autoreconf:sid:amd64
   artifacts:
     untracked: true
-    expire_in: "1 week"
+    expire_in: "1 day"
+
+.windows_build: &windows_build_job
+  stage: build
+  tags:
+    - windows
+    - amd64
+  script:
+    - 'Push-Location "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build"'
+    - '& cmd.exe /C "vcvarsall.bat x64 & set" | Foreach-Object { if ($_ -match "(.*?)=(.*)") { Set-Item -force -path "Env:\$($matches[1])" -value "$($matches[2])" } }'
+    - 'Pop-Location'
+    - 'Set-Location win32utils'
+    - '& "C:/Strawberry/perl/bin/perl.exe" Configure
+         "with-tools-version=15.0"
+         "with-platform-toolset=v141"
+         "with-platform-version=10.0.17763.0"
+         "with-vcredist=C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Redist/MSVC/14.16.27012/vcredist_x64.exe"
+         "with-openssl=C:/OpenSSL"
+         "with-libxml2=C:/libxml2"
+         "with-libuv=C:/libuv"
+         "without-python"
+         "with-system-tests"
+         x64'
+    - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
+    - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
+  dependencies: []
+  needs:
+    - autoreconf:sid:amd64
+  artifacts:
+    untracked: true
+    expire_in: "1 day"
 
 .setup_interfaces: &setup_interfaces |
     if [ "$(id -u)" -eq "0" ]; then
@@ -200,12 +260,12 @@ stages:
     fi
 
 .setup_softhsm: &setup_softhsm |
-    sh -x util/prepare-softhsm2.sh
+    export SLOT=$(sh -x bin/tests/prepare-softhsm2.sh)
+    test -n "${SLOT}" && test "${SLOT}" -gt 0
 
 .system_test: &system_test_job
   <<: *default_triggering_rules
   stage: system
-  retry: 2
   before_script:
     - *setup_interfaces
     - *setup_softhsm
@@ -214,7 +274,7 @@ stages:
     - test -s bin/tests/system/systests.output
   artifacts:
     untracked: true
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
 
 .kyua_report: &kyua_report_html |
@@ -223,6 +283,30 @@ stages:
        --results-file "$KYUA_RESULT" \
        --results-filter "" \
        --output kyua_html
+
+.windows_system_test: &windows_system_test_job
+  stage: system
+  tags:
+    - windows
+    - amd64
+  script:
+    - 'Push-Location bin/tests/system'
+    - '$ifIndex = Get-NetIPInterface -AddressFamily IPv4 -InterfaceMetric 75 | Select-Object -ExpandProperty ifIndex'
+    - '& C:/tools/cygwin/bin/sed.exe -i "s/^exit.*/netsh interface ipv4 set dnsservers $ifIndex dhcp/; s/\(name\|interface\)=Loopback/$ifIndex/;" ifconfig.bat'
+    - '& C:/tools/cygwin/bin/sed.exe -i "s/kill -f/kill -W/;" conf.sh stop.pl'
+    - '& cmd.exe /C ifconfig.bat up; ""'
+    - 'Start-Sleep 2'
+    - '$Env:Path = "C:/tools/cygwin/bin;$Env:Path"'
+    - '& sh.exe runall.sh $TEST_PARALLEL_JOBS'
+    - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
+  artifacts:
+    untracked: true
+    expire_in: "1 day"
+    when: on_failure
+  only:
+    - schedules
+    - tags
+    - web
 
 .unit_test: &unit_test_job
   <<: *default_triggering_rules
@@ -238,7 +322,7 @@ stages:
       - kyua.log
       - kyua.results
       - kyua_html/
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
 
 .cppcheck_args: &run_cppcheck |
@@ -276,7 +360,7 @@ stages:
       - compile_commands.json
       - cppcheck.results
       - cppcheck_html/
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
 
 ### Job Definitions
@@ -293,8 +377,11 @@ misc:sid:amd64:
     - sh util/checklibs.sh > checklibs.out
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
-    - rm CHANGES.tmp
     - perl util/check-changes CHANGES
+    - test ! -f CHANGES.SE || sh util/tabify-changes < CHANGES.SE > CHANGES.tmp
+    - test ! -f CHANGES.SE || diff -urNap CHANGES.SE CHANGES.tmp
+    - test ! -f CHANGES.SE || perl util/check-changes master=0 CHANGES.SE
+    - rm CHANGES.tmp
     - perl -w util/merge_copyrights
     - diff -urNap util/copyrights util/newcopyrights
     - rm util/newcopyrights
@@ -307,8 +394,14 @@ misc:sid:amd64:
     paths:
       - util/newcopyrights
       - checklibs.out
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
+
+💾:sid:amd64:
+  <<: *precheck_job
+  script:
+    - if [ -r .clang-format ]; then "${CLANG_FORMAT}" -i -style=file $(git ls-files '*.c' '*.h'); fi
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
 🐞:sid:amd64:
   <<: *precheck_job
@@ -316,6 +409,23 @@ misc:sid:amd64:
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+
+tarball-create:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script:
+    - source version
+    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
+    - git archive --prefix="${BIND_DIRECTORY}/" --output="${BIND_DIRECTORY}.tar" HEAD
+    - mkdir "${BIND_DIRECTORY}"
+    - echo "SRCID=$(git rev-list --max-count=1 HEAD | cut -b1-7)" > "${BIND_DIRECTORY}/srcid"
+    - tar --append --file="${BIND_DIRECTORY}.tar" "${BIND_DIRECTORY}/srcid"
+    - ${TARBALL_COMPRESSOR} "${BIND_DIRECTORY}.tar"
+  artifacts:
+    paths:
+      - bind-*.tar.${TARBALL_EXTENSION}
+  only:
+    - tags
 
 # Jobs for doc builds on Debian Sid (amd64)
 
@@ -346,29 +456,29 @@ push:docs:sid:amd64:
     - master@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
-# Jobs for regular GCC builds on Alpine Linux 3.10 (amd64)
+# Jobs for regular GCC builds on Alpine Linux 3.11 (amd64)
 
-gcc:alpine3.10:amd64:
+gcc:alpine3.11:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-dnstap"
-  <<: *alpine_3_10_amd64_image
+  <<: *alpine_3_11_amd64_image
   <<: *build_job
 
-system:gcc:alpine3.10:amd64:
-  <<: *alpine_3_10_amd64_image
+system:gcc:alpine3.11:amd64:
+  <<: *alpine_3_11_amd64_image
   <<: *system_test_job
   dependencies:
-    - gcc:alpine3.10:amd64
-  needs: ["gcc:alpine3.10:amd64"]
+    - gcc:alpine3.11:amd64
+  needs: ["gcc:alpine3.11:amd64"]
 
-unit:gcc:alpine3.10:amd64:
-  <<: *alpine_3_10_amd64_image
+unit:gcc:alpine3.11:amd64:
+  <<: *alpine_3_11_amd64_image
   <<: *unit_test_job
   dependencies:
-    - gcc:alpine3.10:amd64
-  needs: ["gcc:alpine3.10:amd64"]
+    - gcc:alpine3.11:amd64
+  needs: ["gcc:alpine3.11:amd64"]
 
 # Jobs for regular GCC builds on CentOS 6 (amd64)
 
@@ -527,7 +637,7 @@ scan-build:buster:amd64:
   <<: *debian_buster_amd64_image
   stage: postcheck
   variables:
-    CC: clang-9
+    CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON}"
     CONFIGURE: "${SCAN_BUILD} ./configure"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
@@ -541,7 +651,7 @@ scan-build:buster:amd64:
   artifacts:
     paths:
       - scan-build.reports/
-    expire_in: "1 week"
+    expire_in: "1 day"
     when: on_failure
 
 # Jobs for regular GCC builds on Debian Sid (amd64)
@@ -577,6 +687,94 @@ cppcheck:gcc:sid:amd64:
     - gcc:sid:amd64
   needs: ["gcc:sid:amd64"]
 
+# Job for out-of-tree GCC build on Debian Sid (amd64)
+
+oot:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    CONFIGURE: ../configure
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    RUN_MAKE_INSTALL: 1
+    OOT_BUILD_WORKSPACE: workspace
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+# Jobs for tarball GCC builds on Debian Sid (amd64)
+
+tarball:sid:amd64:
+  variables:
+    CC: gcc
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    RUN_MAKE_INSTALL: 1
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+  before_script:
+    - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
+    - rm -f bind-*.tar.${TARBALL_EXTENSION}
+    - cd bind-*
+  dependencies:
+    - tarball-create:sid:amd64
+  needs: ["tarball-create:sid:amd64"]
+  only:
+    - tags
+
+system:tarball:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  before_script:
+    - cd bind-*
+    - *setup_interfaces
+  dependencies:
+    - tarball:sid:amd64
+  needs: ["tarball:sid:amd64"]
+  only:
+    - tags
+
+unit:tarball:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  before_script:
+    - cd bind-*
+  dependencies:
+    - tarball:sid:amd64
+  needs: ["tarball:sid:amd64"]
+  only:
+    - tags
+
+# Jobs for regular GCC builds on Debian Sid (arm64)
+
+gcc:sid:arm64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    RUN_MAKE_INSTALL: 1
+    MAKE: bear make
+  <<: *debian_sid_arm64_image
+  <<: *build_job
+
+system:gcc:sid:arm64:
+  <<: *debian_sid_arm64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:sid:arm64
+  needs: ["gcc:sid:arm64"]
+
+unit:gcc:sid:arm64:
+  <<: *debian_sid_arm64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:sid:arm64
+  needs: ["gcc:sid:arm64"]
+
+cppcheck:gcc:sid:arm64:
+  <<: *debian_sid_arm64_image
+  <<: *cppcheck_job
+  dependencies:
+    - gcc:sid:arm64
+  needs: ["gcc:sid:arm64"]
+
 # Jobs for regular GCC builds on Debian Sid (i386)
 
 gcc:sid:i386:
@@ -601,29 +799,53 @@ unit:gcc:sid:i386:
     - gcc:sid:i386
   needs: ["gcc:sid:i386"]
 
-# Jobs for regular GCC builds on Fedora 30 (amd64)
+# Jobs for regular GCC builds on openSUSE Tumbleweed (amd64)
 
-gcc:fedora30:amd64:
+gcc:tumbleweed:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *tumbleweed_latest_amd64_image
+  <<: *build_job
+
+system:gcc:tumbleweed:amd64:
+  <<: *tumbleweed_latest_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:tumbleweed:amd64
+  needs: ["gcc:tumbleweed:amd64"]
+
+unit:gcc:tumbleweed:amd64:
+  <<: *tumbleweed_latest_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:tumbleweed:amd64
+  needs: ["gcc:tumbleweed:amd64"]
+
+# Jobs for regular GCC builds on Fedora 31 (amd64)
+
+gcc:fedora31:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O1"
     EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *fedora_30_amd64_image
+  <<: *fedora_31_amd64_image
   <<: *build_job
 
-system:gcc:fedora30:amd64:
-  <<: *fedora_30_amd64_image
+system:gcc:fedora31:amd64:
+  <<: *fedora_31_amd64_image
   <<: *system_test_job
   dependencies:
-    - gcc:fedora30:amd64
-  needs: ["gcc:fedora30:amd64"]
+    - gcc:fedora31:amd64
+  needs: ["gcc:fedora31:amd64"]
 
-unit:gcc:fedora30:amd64:
-  <<: *fedora_30_amd64_image
+unit:gcc:fedora31:amd64:
+  <<: *fedora_31_amd64_image
   <<: *unit_test_job
   dependencies:
-    - gcc:fedora30:amd64
-  needs: ["gcc:fedora30:amd64"]
+    - gcc:fedora31:amd64
+  needs: ["gcc:fedora31:amd64"]
 
 # Jobs for regular GCC builds on Ubuntu 16.04 Xenial Xerus (amd64)
 
@@ -678,7 +900,6 @@ unit:gcc:bionic:amd64:
 asan:sid:amd64:
   variables:
     CC: gcc
-    ASAN_OPTIONS: "detect_leaks=0"
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2"
@@ -686,6 +907,8 @@ asan:sid:amd64:
   <<: *build_job
 
 system:asan:sid:amd64:
+  variables:
+    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
@@ -693,11 +916,70 @@ system:asan:sid:amd64:
   needs: ["asan:sid:amd64"]
 
 unit:asan:sid:amd64:
+  variables:
+    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
     - asan:sid:amd64
   needs: ["asan:sid:amd64"]
+
+# Jobs for GCC builds with TSAN enabled on Debian Sid (amd64)
+
+tsan:buster:amd64:
+  <<: *debian_buster_amd64_image
+  <<: *build_job
+  variables:
+    CC: "${CLANG}"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    LDFLAGS: "-fsanitize=thread"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
+
+system:tsan:buster:amd64:
+  variables:
+    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER exitcode=0"
+  before_script:
+    - *setup_interfaces
+    - echo $TSAN_OPTIONS
+  <<: *debian_buster_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - tsan:buster:amd64
+  needs: ["tsan:buster:amd64"]
+  allow_failure: true
+  after_script:
+    - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+  artifacts:
+    expire_in: "1 day"
+    paths:
+      - bin/tests/system/*/tsan.*
+      - bin/tests/system/*/*/tsan.*
+      - tsan/
+    when: on_failure
+
+unit:tsan:buster:amd64:
+  variables:
+    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER"
+  before_script:
+    - echo $TSAN_OPTIONS
+    - lib/isc/tests/result_test
+  <<: *debian_buster_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - tsan:buster:amd64
+  needs: ["tsan:buster:amd64"]
+  allow_failure: true
+  after_script:
+    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+  artifacts:
+    expire_in: "1 day"
+    paths:
+      - lib/*/tests/tsan.*
+      - tsan/
+      - kyua.log
+      - kyua.results
+      - kyua_html/
+    when: on_failure
 
 rwlock:sid:amd64:
   variables:
@@ -730,20 +1012,19 @@ mutexatomics:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-#system:mutexatomics:sid:amd64:
-#  <<: *debian_sid_amd64_image
-#  <<: *system_test_job
-#  dependencies:
-#    - mutexatomics:sid:amd64
-#    - mutexatomics:sid:amd64
-#  allow_failure: true
+system:mutexatomics:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - mutexatomics:sid:amd64
+  needs: ["mutexatomics:sid:amd64"]
 
-#unit:mutexatomics:sid:amd64:
-#  <<: *debian_sid_amd64_image
-#  <<: *unit_test_job
-#  dependencies:
-#    - mutexatomics:sid:amd64
-#  allow_failure: true
+unit:mutexatomics:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - mutexatomics:sid:amd64
+  needs: ["mutexatomics:sid:amd64"]
 
 # Jobs for Clang builds on Debian Stretch (amd64)
 
@@ -841,107 +1122,220 @@ unit:clang:freebsd12.0:amd64:
     - clang:freebsd12.0:amd64
   needs: ["clang:freebsd12.0:amd64"]
 
-# Jobs for Clang builds on OpenBSD 6.5 (amd64)
+# Jobs for Clang builds on OpenBSD 6.6 (amd64)
 
-clang:openbsd6.5:amd64:
+clang:openbsd6.6:amd64:
   variables:
     CC: clang
+    USER: gitlab-runner
   <<: *openbsd_amd64
   <<: *build_job
 
-system:clang:openbsd6.5:amd64:
+system:clang:openbsd6.6:amd64:
   <<: *openbsd_amd64
   <<: *system_test_job
-  dependencies:
-    - clang:openbsd6.5:amd64
-  needs: ["clang:openbsd6.5:amd64"]
-  only:
-    - tags
-    - web
-
-# Jobs with libtool disabled
-
-nolibtool:sid:amd64:
   variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-libtool --with-dlopen"
-  <<: *debian_sid_amd64_image
-  <<: *build_job
-
-system:nolibtool:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
+    USER: gitlab-runner
   dependencies:
-    - nolibtool:sid:amd64
-  needs: ["nolibtool:sid:amd64"]
-
-unit:nolibtool:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - nolibtool:sid:amd64
-  needs: ["nolibtool:sid:amd64"]
+    - clang:openbsd6.6:amd64
+  needs: ["clang:openbsd6.6:amd64"]
+  only:
+    - schedules
+    - web
 
 # Jobs for Visual Studio 2017 builds on Windows (amd64)
 
 msvc:windows:amd64:
+  <<: *windows_build_job
   <<: *default_triggering_rules
-  stage: build
-  tags:
-    - windows
-    - amd64
   variables:
     VSCONF: Release
-  script:
-    - 'Push-Location "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build"'
-    - '& cmd.exe /C "vcvarsall.bat x64 & set" | Foreach-Object { if ($_ -match "(.*?)=(.*)") { Set-Item -force -path "Env:\$($matches[1])" -value "$($matches[2])" } }'
-    - 'Pop-Location'
-    - 'Set-Location win32utils'
-    - '& "C:/Strawberry/perl/bin/perl.exe" Configure
-         "with-tools-version=15.0"
-         "with-platform-toolset=v141"
-         "with-platform-version=10.0.17763.0"
-         "with-vcredist=C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Redist/MSVC/14.16.27012/vcredist_x64.exe"
-         "with-openssl=C:/OpenSSL"
-         "with-libxml2=C:/libxml2"
-         "with-libuv=C:/libuv"
-         "without-python"
-         "with-system-tests"
-         x64'
-    - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
-    - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
-  dependencies: []
-  needs:
-    - autoreconf:sid:amd64
-  artifacts:
-    untracked: true
-    expire_in: "1 week"
 
 system:msvc:windows:amd64:
-  stage: system
-  tags:
-    - windows
-    - amd64
+  <<: *windows_system_test_job
   variables:
     VSCONF: Release
-  script:
-    - 'Push-Location bin/tests/system'
-    - '$ifIndex = Get-NetIPInterface -AddressFamily IPv4 -InterfaceMetric 75 | Select-Object -ExpandProperty ifIndex'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/^exit.*/netsh interface ipv4 set dnsservers $ifIndex dhcp/; s/\(name\|interface\)=Loopback/$ifIndex/;" ifconfig.bat'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/kill -f/kill -W/;" conf.sh stop.pl'
-    - '& cmd.exe /C ifconfig.bat up; ""'
-    - 'Start-Sleep 2'
-    - '$Env:Path = "C:/tools/cygwin/bin;$Env:Path"'
-    - '& sh.exe runall.sh $TEST_PARALLEL_JOBS'
-    - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
   dependencies:
     - msvc:windows:amd64
   needs: ["msvc:windows:amd64"]
+
+msvc-debug:windows:amd64:
+  <<: *windows_build_job
+  variables:
+    VSCONF: Debug
+  only:
+    - schedules
+    - tags
+    - web
+
+system:msvc-debug:windows:amd64:
+  <<: *windows_system_test_job
+  variables:
+    VSCONF: Debug
+  dependencies:
+    - msvc-debug:windows:amd64
+  needs: ["msvc-debug:windows:amd64"]
+
+# Job producing a release tarball
+
+release:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: release
+  script:
+    # Determine BIND version
+    - source version
+    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
+    # Remove redundant files and system test utilities from Windows build artifacts
+    - find Build/Release/ -name "*.pdb" -print -delete
+    - find Build/Debug/ \( -name "*.bsc" -o -name "*.idb" \) -print -delete
+    - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
+    # Create Windows zips
+    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" | tee Build/Release/SHA256 Build/Debug/SHA256
+    - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
+    - ( cd Build/Debug; zip "../../BIND${BIND_DIRECTORY#bind-}.debug.x64.zip" * )
+    # Prepare release tarball contents (tarballs + zips + documentation)
+    - mkdir -p release/doc/arm
+    - pushd release
+    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
+    - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
+    - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
+    - mv "${BIND_DIRECTORY}"/doc/arm/{Bv9ARM{*.html,.pdf},man.*,notes.{html,pdf,txt}} doc/arm/
+    - rm -rf "${BIND_DIRECTORY}"
+    - cp doc/arm/notes.html "RELEASE-NOTES-${BIND_DIRECTORY}.html"
+    - cp doc/arm/notes.pdf "RELEASE-NOTES-${BIND_DIRECTORY}.pdf"
+    - cp doc/arm/notes.txt "RELEASE-NOTES-${BIND_DIRECTORY}.txt"
+    - popd
+    # Create release tarball
+    - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
+  dependencies:
+    - tarball-create:sid:amd64
+    - msvc:windows:amd64
+    - msvc-debug:windows:amd64
+  only:
+    - tags
   artifacts:
-    untracked: true
+    paths:
+      - "*.tar.gz"
+    expire_in: "1 day"
+
+# Coverity Scan analysis upload
+
+.coverity_cache_prep: &coverity_cache_prep |
+  test -f cov-analysis-linux64.md5 && test -f cov-analysis-linux64.tgz || (
+  curl --output cov-analysis-linux64.md5 https://scan.coverity.com/download/linux64 \
+       --form project=$COVERITY_SCAN_PROJECT_NAME \
+       --form token=$COVERITY_SCAN_TOKEN \
+       --form md5=1
+  curl --output cov-analysis-linux64.tgz https://scan.coverity.com/download/linux64 \
+       --form project=$COVERITY_SCAN_PROJECT_NAME \
+       --form token=$COVERITY_SCAN_TOKEN
+  )
+  test "$(md5sum cov-analysis-linux64.tgz | awk '{ print $1 }')" = "$(cat cov-analysis-linux64.md5)"
+  tar --extract --gzip --file=cov-analysis-linux64.tgz
+  test -d cov-analysis-linux64-2019.03
+
+.coverity_build: &coverity_build |
+  cov-analysis-linux64-2019.03/bin/cov-build --dir cov-int sh -c 'make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1'
+  tar --create --gzip --file=cov-int.tar.gz cov-int/
+  curl -v https://scan.coverity.com/builds?project=$COVERITY_SCAN_PROJECT_NAME \
+       --form token=$COVERITY_SCAN_TOKEN \
+       --form email=bind-changes@isc.org \
+       --form file=@cov-int.tar.gz \
+       --form version="$(git rev-parse --short HEAD)" \
+       --form description="$(git rev-parse --short HEAD) / $CI_COMMIT_TITLE / $CI_COMMIT_REF_NAME:$CI_PIPELINE_ID" 2>&1 \
+       | tee curl-response.txt
+  grep -q 'Build successfully submitted' curl-response.txt
+
+build:coverity:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: build
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+  script:
+    - *coverity_cache_prep
+    - *configure
+    - *coverity_build
+  dependencies:
+    - autoreconf:sid:amd64
+  needs:
+    - autoreconf:sid:amd64
+  artifacts:
+    paths:
+      - curl-response.txt
+      - cov-int.tar.gz
     expire_in: "1 week"
     when: on_failure
   only:
+    variables:
+      - $COVERITY_SCAN_PROJECT_NAME
+      - $COVERITY_SCAN_TOKEN
+  cache:
+    key: cov-analysis-linux64-2019.03
+    paths:
+      - cov-analysis-linux64.md5
+      - cov-analysis-linux64.tgz
+
+# Respdiff test
+
+respdiff:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: system
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    BIND_BASELINE_VERSION: v9_11_3
+  script:
+    - ./configure --without-make-clean
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - *setup_interfaces
+    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
+    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
+    - cd refbind/
+    - ./configure --without-make-clean
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - cd ../bind-qa/bind9/respdiff
+    - bash respdiff.sh -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}/refbind" "${CI_PROJECT_DIR}"
+  dependencies:
+    - tarball-create:sid:amd64
+  needs: ["tarball-create:sid:amd64"]
+  only:
     - tags
-    - web
+  artifacts:
+    paths:
+      - refbind
+    untracked: true
+    expire_in: "1 day"
+    when: on_failure
+
+# ABI check
+
+abi-check:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: build
+  dependencies:
+    - autoreconf:sid:amd64
+  needs:
+    - autoreconf:sid:amd64
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    BIND_BASELINE_VERSION: v9_16_0
+  script:
+    - *configure
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
+    - cd refbind/
+    - *configure
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - cd ..
+    - util/api-checker.sh . refbind
+  artifacts:
+    paths:
+      - "*.html"
+      - "abi-*.dump"
+    expire_in: "1 week"
+  only:
+    - master@isc-projects/bind9
+    - /^v9_[1-9][0-9]$/@isc-projects/bind9

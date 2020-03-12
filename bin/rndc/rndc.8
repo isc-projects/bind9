@@ -1,4 +1,4 @@
-.\" Copyright (C) 2000, 2001, 2004, 2005, 2007, 2013-2019 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2000, 2001, 2004, 2005, 2007, 2013-2020 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -276,7 +276,8 @@ See also
 Fetch all DNSSEC keys for the given zone from the key directory\&. If they are within their publication period, merge them into the zone\*(Aqs DNSKEY RRset\&. Unlike
 \fBrndc sign\fR, however, the zone is not immediately re\-signed by the new keys, but is allowed to incrementally re\-sign over time\&.
 .sp
-This command requires that the
+This command requires that the zone is configured with a
+\fBdnssec\-policy\fR, or that the
 \fBauto\-dnssec\fR
 zone option be set to
 maintain, and also requires the zone to be configured to allow dynamic DNS\&. (See "Dynamic Update Policies" in the Administrator Reference Manual for more details\&.)
@@ -515,7 +516,7 @@ timer\&.
 \fBsecroots \fR\fB[\-]\fR\fB \fR\fB[\fIview \&.\&.\&.\fR]\fR
 .RS 4
 Dump the security roots (i\&.e\&., trust anchors configured via
-\fBdnssec\-keys\fR
+\fBtrust\-anchors\fR
 statements, or the managed\-keys or trusted\-keys statements (both deprecated), or via
 \fBdnssec\-validation auto\fR) and negative trust anchors for the specified views\&. If no view is specified, all views are dumped\&. Security roots will indicate whether they are configured as trusted keys, managed keys, or initializing managed keys (managed keys that have not yet been updated by a successful key refresh query)\&.
 .sp
@@ -566,7 +567,8 @@ Fetch all DNSSEC keys for the given zone from the key directory (see the
 \fBkey\-directory\fR
 option in the BIND 9 Administrator Reference Manual)\&. If they are within their publication period, merge them into the zone\*(Aqs DNSKEY RRset\&. If the DNSKEY RRset is changed, then the zone is automatically re\-signed with the new key set\&.
 .sp
-This command requires that the
+This command requires that the zone is configured with a
+\fBdnssec\-policy\fR, or that the
 \fBauto\-dnssec\fR
 zone option be set to
 allow
@@ -702,7 +704,7 @@ in each view\&. The list includes both statically configured keys and dynamic TK
 .PP
 \fBvalidation ( on | off | status ) \fR\fB[\fIview \&.\&.\&.\fR]\fR\fB \fR
 .RS 4
-Enable, disable, or check the current status of DNSSEC validation\&. By default, validation is enabled\&.
+Enable, disable, or check the current status of DNSSEC validation\&. By default, validation is enabled\&. The cache is flushed when validation is turned on or off to avoid using data that might differ between states\&.
 .RE
 .PP
 \fBzonestatus \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR
@@ -743,5 +745,5 @@ BIND 9 Administrator Reference Manual\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2000, 2001, 2004, 2005, 2007, 2013-2019 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2000, 2001, 2004, 2005, 2007, 2013-2020 Internet Systems Consortium, Inc. ("ISC")
 .br

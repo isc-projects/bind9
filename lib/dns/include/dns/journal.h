@@ -9,13 +9,12 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/journal.h
  * \brief
@@ -32,22 +31,22 @@
 #include <isc/lang.h>
 #include <isc/magic.h>
 
-#include <dns/name.h>
 #include <dns/diff.h>
+#include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/types.h>
 
 /***
  *** Defines.
  ***/
-#define DNS_JOURNALOPT_RESIGN	0x00000001
+#define DNS_JOURNALOPT_RESIGN 0x00000001
 
-#define DNS_JOURNAL_READ	0x00000000	/* false */
-#define DNS_JOURNAL_CREATE	0x00000001	/* true */
-#define DNS_JOURNAL_WRITE	0x00000002
+#define DNS_JOURNAL_READ   0x00000000 /* false */
+#define DNS_JOURNAL_CREATE 0x00000001 /* true */
+#define DNS_JOURNAL_WRITE  0x00000002
 
-#define DNS_JOURNAL_SIZE_MAX	INT32_MAX
-#define DNS_JOURNAL_SIZE_MIN	4096
+#define DNS_JOURNAL_SIZE_MAX INT32_MAX
+#define DNS_JOURNAL_SIZE_MIN 4096
 
 /***
  *** Types
@@ -64,7 +63,6 @@
  */
 typedef struct dns_journal dns_journal_t;
 
-
 /***
  *** Functions
  ***/
@@ -80,7 +78,6 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
  * Create a diff tuple for the current database SOA.
  * XXX this probably belongs somewhere else.
  */
-
 
 /*@{*/
 #define DNS_SERIAL_GT(a, b) ((int)(((a) - (b)) & 0xFFFFFFFF) > 0)
@@ -192,11 +189,17 @@ dns_journal_last_serial(dns_journal_t *j);
  */
 
 isc_result_t
-dns_journal_iter_init(dns_journal_t *j,
-		      uint32_t begin_serial, uint32_t end_serial);
+dns_journal_iter_init(dns_journal_t *j, uint32_t begin_serial,
+		      uint32_t end_serial, size_t *xfrsizep);
 /*%<
  * Prepare to iterate over the transactions that will bring the database
  * from SOA serial number 'begin_serial' to 'end_serial'.
+ *
+ * If 'xfrsizep' is not NULL, then on success it will be set to the
+ * total size of all records in the iteration (excluding headers). This
+ * is meant to be a rough approximation of the size of an incremental
+ * zone transfer, though it does not account for DNS message overhead
+ * or name compression.)
  *
  * Returns:
  *\li	ISC_R_SUCCESS
@@ -264,8 +267,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file);
 /* For debugging not general use */
 
 isc_result_t
-dns_db_diff(isc_mem_t *mctx,
-	    dns_db_t *dba, dns_dbversion_t *dbvera,
+dns_db_diff(isc_mem_t *mctx, dns_db_t *dba, dns_dbversion_t *dbvera,
 	    dns_db_t *dbb, dns_dbversion_t *dbverb,
 	    const char *journal_filename);
 

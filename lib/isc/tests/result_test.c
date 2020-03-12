@@ -11,10 +11,9 @@
 
 #if HAVE_CMOCKA
 
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -67,13 +66,13 @@ tables(void **state) {
 	for (result = 0; result < ISC_R_NRESULTS; result++) {
 		str = isc_result_toid(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 
 		str = isc_result_totext(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 	}
 
 	str = isc_result_toid(result);
@@ -85,18 +84,17 @@ tables(void **state) {
 	assert_string_equal(str, "(result code text not available)");
 
 	for (result = ISC_RESULTCLASS_PK11;
-	     result < (ISC_RESULTCLASS_PK11 + PK11_R_NRESULTS);
-	     result++)
+	     result < (ISC_RESULTCLASS_PK11 + PK11_R_NRESULTS); result++)
 	{
 		str = isc_result_toid(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 
 		str = isc_result_totext(result);
 		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
+		assert_string_not_equal(str, "(result code text not "
+					     "available)");
 	}
 
 	str = isc_result_toid(result);
@@ -129,4 +127,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

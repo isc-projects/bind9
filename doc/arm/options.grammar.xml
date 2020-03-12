@@ -90,6 +90,7 @@
 	<command>dnssec-dnskey-kskonly</command> <replaceable>boolean</replaceable>;
 	<command>dnssec-loadkeys-interval</command> <replaceable>integer</replaceable>;
 	<command>dnssec-must-be-secure</command> <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
+	<command>dnssec-policy</command> <replaceable>string</replaceable>;
 	<command>dnssec-secure-to-insecure</command> <replaceable>boolean</replaceable>;
 	<command>dnssec-update-mode</command> ( maintain | no-resign );
 	<command>dnssec-validation</command> ( yes | no | auto );
@@ -239,8 +240,8 @@
 	    <replaceable>integer</replaceable>;
 	<command>response-policy</command> { zone <replaceable>string</replaceable> [ add-soa <replaceable>boolean</replaceable> ] [ log
 	    <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>duration</replaceable> ] [ min-update-interval
-	    <replaceable>duration</replaceable> ] [ policy ( cname | disabled | drop | given | no-op |
-	    <command>nodata</command> | nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
+	    <replaceable>duration</replaceable> ] [ policy ( cname | disabled | drop | given | no-op
+	    | nodata | nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
 	    <command>recursive-only</command> <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
 	    <command>nsdname-enable</command> <replaceable>boolean</replaceable> ]; ... } [ add-soa <replaceable>boolean</replaceable> ] [
 	    <command>break-dnssec</command> <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>duration</replaceable> ] [

@@ -18,9 +18,9 @@
  * The attributes do not include DNS_RDATATYPEATTR_SINGLETON
  * because we must be able to handle a parent/child NSEC pair.
  */
-#define RRTYPE_NSEC_ATTRIBUTES \
-	( DNS_RDATATYPEATTR_DNSSEC | DNS_RDATATYPEATTR_ZONECUTAUTH | \
-	  DNS_RDATATYPEATTR_ATCNAME )
+#define RRTYPE_NSEC_ATTRIBUTES                                      \
+	(DNS_RDATATYPEATTR_DNSSEC | DNS_RDATATYPEATTR_ZONECUTAUTH | \
+	 DNS_RDATATYPEATTR_ATCNAME)
 
 static inline isc_result_t
 fromtext_nsec(ARGS_FROMTEXT) {
@@ -41,8 +41,9 @@ fromtext_nsec(ARGS_FROMTEXT) {
 				      false));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	if (origin == NULL)
+	if (origin == NULL) {
 		origin = dns_rootname;
+	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 
 	return (typemap_fromtext(lexer, target, false));
@@ -175,15 +176,17 @@ tostruct_nsec(ARGS_TOSTRUCT) {
 
 	nsec->len = region.length;
 	nsec->typebits = mem_maybedup(mctx, region.base, region.length);
-	if (nsec->typebits == NULL)
+	if (nsec->typebits == NULL) {
 		goto cleanup;
+	}
 
 	nsec->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
- cleanup:
-	if (mctx != NULL)
+cleanup:
+	if (mctx != NULL) {
 		dns_name_free(&nsec->next, mctx);
+	}
 	return (ISC_R_NOMEMORY);
 }
 
@@ -194,12 +197,14 @@ freestruct_nsec(ARGS_FREESTRUCT) {
 	REQUIRE(nsec != NULL);
 	REQUIRE(nsec->common.rdtype == dns_rdatatype_nsec);
 
-	if (nsec->mctx == NULL)
+	if (nsec->mctx == NULL) {
 		return;
+	}
 
 	dns_name_free(&nsec->next, nsec->mctx);
-	if (nsec->typebits != NULL)
+	if (nsec->typebits != NULL) {
 		isc_mem_free(nsec->mctx, nsec->typebits);
+	}
 	nsec->mctx = NULL;
 }
 
@@ -226,20 +231,18 @@ digest_nsec(ARGS_DIGEST) {
 
 static inline bool
 checkowner_nsec(ARGS_CHECKOWNER) {
+	REQUIRE(type == dns_rdatatype_nsec);
 
-       REQUIRE(type == dns_rdatatype_nsec);
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
 
-       UNUSED(name);
-       UNUSED(type);
-       UNUSED(rdclass);
-       UNUSED(wildcard);
-
-       return (true);
+	return (true);
 }
 
 static inline bool
 checknames_nsec(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_nsec);
 
 	UNUSED(rdata);
@@ -273,12 +276,13 @@ casecompare_nsec(ARGS_COMPARE) {
 	dns_name_fromregion(&name2, &region2);
 
 	order = dns_name_rdatacompare(&name1, &name2);
-	if (order != 0)
+	if (order != 0) {
 		return (order);
+	}
 
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
 
 	return (isc_region_compare(&region1, &region2));
 }
-#endif	/* RDATA_GENERIC_NSEC_47_C */
+#endif /* RDATA_GENERIC_NSEC_47_C */

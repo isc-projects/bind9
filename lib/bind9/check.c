@@ -40,6 +40,7 @@
 #include <dns/acl.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
+#include <dns/kasp.h>
 #include <dns/keyvalues.h>
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
@@ -54,6 +55,7 @@
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
+#include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
 
 #include <ns/hooks.h>
@@ -86,16 +88,15 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 	dns_fixedname_init(&fixed);
 	obj = cfg_tuple_get(ent, "class");
 	if (cfg_obj_isstring(obj)) {
-
 		DE_CONST(cfg_obj_asstring(obj), r.base);
 		r.length = strlen(r.base);
 		tresult = dns_rdataclass_fromtext(&rdclass, &r);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "rrset-order: invalid class '%s'",
-				    r.base);
-			if (result == ISC_R_SUCCESS)
+				    "rrset-order: invalid class '%s'", r.base);
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		}
 	}
 
@@ -106,10 +107,10 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 		tresult = dns_rdatatype_fromtext(&rdtype, &r);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "rrset-order: invalid type '%s'",
-				    r.base);
-			if (result == ISC_R_SUCCESS)
+				    "rrset-order: invalid type '%s'", r.base);
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		}
 	}
 
@@ -123,8 +124,9 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "rrset-order: invalid name '%s'", str);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		}
 	}
 
@@ -133,30 +135,34 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 	    strcasecmp("order", cfg_obj_asstring(obj)) != 0) {
 		cfg_obj_log(ent, logctx, ISC_LOG_ERROR,
 			    "rrset-order: keyword 'order' missing");
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
+		}
 	}
 
 	obj = cfg_tuple_get(ent, "ordering");
 	if (!cfg_obj_isstring(obj)) {
-	    cfg_obj_log(ent, logctx, ISC_LOG_ERROR,
-			"rrset-order: missing ordering");
-		if (result == ISC_R_SUCCESS)
+		cfg_obj_log(ent, logctx, ISC_LOG_ERROR,
+			    "rrset-order: missing ordering");
+		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
+		}
 	} else if (strcasecmp(cfg_obj_asstring(obj), "fixed") == 0) {
 #if !DNS_RDATASET_FIXED
 		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
 			    "rrset-order: order 'fixed' was disabled at "
 			    "compilation time");
-#endif
+#endif /* if !DNS_RDATASET_FIXED */
 	} else if (strcasecmp(cfg_obj_asstring(obj), "random") != 0 &&
 		   strcasecmp(cfg_obj_asstring(obj), "cyclic") != 0 &&
-		   strcasecmp(cfg_obj_asstring(obj), "none") != 0) {
+		   strcasecmp(cfg_obj_asstring(obj), "none") != 0)
+	{
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "rrset-order: invalid order '%s'",
 			    cfg_obj_asstring(obj));
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
+		}
 	}
 	return (result);
 }
@@ -168,16 +174,17 @@ check_order(const cfg_obj_t *options, isc_log_t *logctx) {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *obj = NULL;
 
-	if (cfg_map_get(options, "rrset-order", &obj) != ISC_R_SUCCESS)
+	if (cfg_map_get(options, "rrset-order", &obj) != ISC_R_SUCCESS) {
 		return (result);
+	}
 
-	for (element = cfg_list_first(obj);
-	     element != NULL;
+	for (element = cfg_list_first(obj); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		tresult = check_orderent(cfg_listelt_value(element), logctx);
-		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
 			result = tresult;
+		}
 	}
 	return (result);
 }
@@ -197,8 +204,9 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 
 	(void)cfg_map_get(options, "dual-stack-servers", &alternates);
 
-	if (alternates == NULL)
+	if (alternates == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 
 	obj = cfg_tuple_get(alternates, "port");
 	if (cfg_obj_isuint32(obj)) {
@@ -206,29 +214,32 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 		if (val > UINT16_MAX) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_RANGE;
+			}
 		}
 	}
 	obj = cfg_tuple_get(alternates, "addresses");
-	for (element = cfg_list_first(obj);
-	     element != NULL;
-	     element = cfg_list_next(element)) {
+	for (element = cfg_list_first(obj); element != NULL;
+	     element = cfg_list_next(element))
+	{
 		value = cfg_listelt_value(element);
-		if (cfg_obj_issockaddr(value))
+		if (cfg_obj_issockaddr(value)) {
 			continue;
+		}
 		obj = cfg_tuple_get(value, "name");
 		str = cfg_obj_asstring(obj);
 		isc_buffer_constinit(&buffer, str, strlen(str));
 		isc_buffer_add(&buffer, strlen(str));
 		name = dns_fixedname_initname(&fixed);
-		tresult = dns_name_fromtext(name, &buffer, dns_rootname,
-					    0, NULL);
+		tresult = dns_name_fromtext(name, &buffer, dns_rootname, 0,
+					    NULL);
 		if (tresult != ISC_R_SUCCESS) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "bad name '%s'", str);
-			if (result == ISC_R_SUCCESS)
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR, "bad name '%s'",
+				    str);
+			if (result == ISC_R_SUCCESS) {
 				result = tresult;
+			}
 		}
 		obj = cfg_tuple_get(value, "port");
 		if (cfg_obj_isuint32(obj)) {
@@ -236,8 +247,9 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 			if (val > UINT16_MAX) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "port '%u' out of range", val);
-				if (result == ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS) {
 					result = ISC_R_RANGE;
+				}
 			}
 		}
 	}
@@ -245,9 +257,8 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 }
 
 static isc_result_t
-check_forward(const cfg_obj_t *options,  const cfg_obj_t *global,
-	      isc_log_t *logctx)
-{
+check_forward(const cfg_obj_t *options, const cfg_obj_t *global,
+	      isc_log_t *logctx) {
 	const cfg_obj_t *forward = NULL;
 	const cfg_obj_t *forwarders = NULL;
 
@@ -289,15 +300,14 @@ disabled_algorithms(const cfg_obj_t *disabled, isc_log_t *logctx) {
 	isc_buffer_add(&b, strlen(str));
 	tresult = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	if (tresult != ISC_R_SUCCESS) {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-			    "bad domain name '%s'", str);
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR, "bad domain name '%s'",
+			    str);
 		result = tresult;
 	}
 
 	obj = cfg_tuple_get(disabled, "algorithms");
 
-	for (element = cfg_list_first(obj);
-	     element != NULL;
+	for (element = cfg_list_first(obj); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		isc_textregion_t r;
@@ -335,15 +345,14 @@ disabled_ds_digests(const cfg_obj_t *disabled, isc_log_t *logctx) {
 	isc_buffer_add(&b, strlen(str));
 	tresult = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	if (tresult != ISC_R_SUCCESS) {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-			    "bad domain name '%s'", str);
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR, "bad domain name '%s'",
+			    str);
 		result = tresult;
 	}
 
 	obj = cfg_tuple_get(disabled, "digests");
 
-	for (element = cfg_list_first(obj);
-	     element != NULL;
+	for (element = cfg_list_first(obj); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		isc_textregion_t r;
@@ -367,8 +376,7 @@ disabled_ds_digests(const cfg_obj_t *disabled, isc_log_t *logctx) {
 static isc_result_t
 nameexist(const cfg_obj_t *obj, const char *name, int value,
 	  isc_symtab_t *symtab, const char *fmt, isc_log_t *logctx,
-	  isc_mem_t *mctx)
-{
+	  isc_mem_t *mctx) {
 	char *key;
 	const char *file;
 	unsigned int line;
@@ -385,8 +393,9 @@ nameexist(const cfg_obj_t *obj, const char *name, int value,
 		file = cfg_obj_file(symvalue.as_cpointer);
 		line = cfg_obj_line(symvalue.as_cpointer);
 
-		if (file == NULL)
+		if (file == NULL) {
 			file = "<unknown file>";
+		}
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR, fmt, key, file, line);
 		isc_mem_free(mctx, key);
 		result = ISC_R_EXISTS;
@@ -398,8 +407,7 @@ nameexist(const cfg_obj_t *obj, const char *name, int value,
 
 static isc_result_t
 mustbesecure(const cfg_obj_t *secure, isc_symtab_t *symtab, isc_log_t *logctx,
-	     isc_mem_t *mctx)
-{
+	     isc_mem_t *mctx) {
 	const cfg_obj_t *obj;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	const char *str;
@@ -415,8 +423,8 @@ mustbesecure(const cfg_obj_t *secure, isc_symtab_t *symtab, isc_log_t *logctx,
 	isc_buffer_add(&b, strlen(str));
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-			    "bad domain name '%s'", str);
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR, "bad domain name '%s'",
+			    str);
 	} else {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		result = nameexist(secure, namebuf, 1, symtab,
@@ -429,9 +437,8 @@ mustbesecure(const cfg_obj_t *secure, isc_symtab_t *symtab, isc_log_t *logctx,
 
 static isc_result_t
 checkacl(const char *aclname, cfg_aclconfctx_t *actx, const cfg_obj_t *zconfig,
-	 const cfg_obj_t *voptions, const cfg_obj_t *config,
-	 isc_log_t *logctx, isc_mem_t *mctx)
-{
+	 const cfg_obj_t *voptions, const cfg_obj_t *config, isc_log_t *logctx,
+	 isc_mem_t *mctx) {
 	isc_result_t result;
 	const cfg_obj_t *aclobj = NULL;
 	const cfg_obj_t *options;
@@ -441,40 +448,47 @@ checkacl(const char *aclname, cfg_aclconfctx_t *actx, const cfg_obj_t *zconfig,
 		options = cfg_tuple_get(zconfig, "options");
 		cfg_map_get(options, aclname, &aclobj);
 	}
-	if (voptions != NULL && aclobj == NULL)
+	if (voptions != NULL && aclobj == NULL) {
 		cfg_map_get(voptions, aclname, &aclobj);
+	}
 	if (config != NULL && aclobj == NULL) {
 		options = NULL;
 		cfg_map_get(config, "options", &options);
-		if (options != NULL)
+		if (options != NULL) {
 			cfg_map_get(options, aclname, &aclobj);
+		}
 	}
-	if (aclobj == NULL)
+	if (aclobj == NULL) {
 		return (ISC_R_SUCCESS);
-	result = cfg_acl_fromconfig(aclobj, config, logctx,
-				    actx, mctx, 0, &acl);
-	if (acl != NULL)
+	}
+	result = cfg_acl_fromconfig(aclobj, config, logctx, actx, mctx, 0,
+				    &acl);
+	if (acl != NULL) {
 		dns_acl_detach(&acl);
+	}
 	return (result);
 }
 
 static isc_result_t
 check_viewacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
-	       const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx)
-{
+	       const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS, tresult;
 	int i = 0;
 
-	static const char *acls[] = { "allow-query", "allow-query-on",
+	static const char *acls[] = {
+		"allow-query",	     "allow-query-on",
 		"allow-query-cache", "allow-query-cache-on",
-		"blackhole", "keep-response-order", "match-clients",
-		"match-destinations", "sortlist", NULL };
+		"blackhole",	     "keep-response-order",
+		"match-clients",     "match-destinations",
+		"sortlist",	     NULL
+	};
 
 	while (acls[i] != NULL) {
 		tresult = checkacl(acls[i++], actx, NULL, voptions, config,
 				   logctx, mctx);
-		if (tresult != ISC_R_SUCCESS)
+		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
+		}
 	}
 	return (result);
 }
@@ -483,8 +497,7 @@ static const unsigned char zeros[16];
 
 static isc_result_t
 check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
-	    const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx)
-{
+	    const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *dns64 = NULL;
 	const cfg_obj_t *options;
@@ -495,21 +508,23 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	int nbytes;
 	int i;
 
-	static const char *acls[] = { "clients", "exclude", "mapped", NULL};
+	static const char *acls[] = { "clients", "exclude", "mapped", NULL };
 
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		cfg_map_get(voptions, "dns64", &dns64);
+	}
 	if (config != NULL && dns64 == NULL) {
 		options = NULL;
 		cfg_map_get(config, "options", &options);
-		if (options != NULL)
+		if (options != NULL) {
 			cfg_map_get(options, "dns64", &dns64);
+		}
 	}
-	if (dns64 == NULL)
+	if (dns64 == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 
-	for (element = cfg_list_first(dns64);
-	     element != NULL;
+	for (element = cfg_list_first(dns64); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		map = cfg_listelt_value(element);
@@ -525,13 +540,15 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 
 		if (na.type.in6.s6_addr[8] != 0) {
 			cfg_obj_log(map, logctx, ISC_LOG_ERROR,
-				 "invalid prefix, bits [64..71] must be zero");
+				    "invalid prefix, bits [64..71] must be "
+				    "zero");
 			result = ISC_R_FAILURE;
 			continue;
 		}
 
 		if (prefixlen != 32 && prefixlen != 40 && prefixlen != 48 &&
-		    prefixlen != 56 && prefixlen != 64 && prefixlen != 96) {
+		    prefixlen != 56 && prefixlen != 64 && prefixlen != 96)
+		{
 			cfg_obj_log(map, logctx, ISC_LOG_ERROR,
 				    "bad prefix length %u [32/40/48/56/64/96]",
 				    prefixlen);
@@ -547,12 +564,14 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 				isc_result_t tresult;
 
 				tresult = cfg_acl_fromconfig(obj, config,
-							     logctx, actx,
-							     mctx, 0, &acl);
-				if (acl != NULL)
+							     logctx, actx, mctx,
+							     0, &acl);
+				if (acl != NULL) {
 					dns_acl_detach(&acl);
-				if (tresult != ISC_R_SUCCESS)
+				}
+				if (tresult != ISC_R_SUCCESS) {
 					result = tresult;
+				}
 			}
 		}
 
@@ -567,8 +586,9 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 				continue;
 			}
 			nbytes = prefixlen / 8 + 4;
-			if (prefixlen <= 64)
+			if (prefixlen <= 64) {
 				nbytes++;
+			}
 			if (memcmp(sa.type.in6.s6_addr, zeros, nbytes) != 0) {
 				char netaddrbuf[ISC_NETADDR_FORMATSIZE];
 				isc_netaddr_format(&sa, netaddrbuf,
@@ -585,31 +605,30 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	return (result);
 }
 
-#define CHECK_RRL(cond, pat, val1, val2)				\
-	do {								\
-		if (!(cond)) {						\
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,		\
-				    pat, val1, val2);			\
-			if (result == ISC_R_SUCCESS)			\
-				result = ISC_R_RANGE;			\
-		    }							\
+#define CHECK_RRL(cond, pat, val1, val2)                                   \
+	do {                                                               \
+		if (!(cond)) {                                             \
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR, pat, val1, \
+				    val2);                                 \
+			if (result == ISC_R_SUCCESS)                       \
+				result = ISC_R_RANGE;                      \
+		}                                                          \
 	} while (0)
 
-#define CHECK_RRL_RATE(rate, def, max_rate, name)			\
-	do {								\
-		obj = NULL;						\
-		mresult = cfg_map_get(map, name, &obj);			\
-		if (mresult == ISC_R_SUCCESS) {				\
-			rate = cfg_obj_asuint32(obj);			\
-			CHECK_RRL(rate <= max_rate, name" %d > %d",	\
-				  rate, max_rate);			\
-		}							\
+#define CHECK_RRL_RATE(rate, def, max_rate, name)                          \
+	do {                                                               \
+		obj = NULL;                                                \
+		mresult = cfg_map_get(map, name, &obj);                    \
+		if (mresult == ISC_R_SUCCESS) {                            \
+			rate = cfg_obj_asuint32(obj);                      \
+			CHECK_RRL(rate <= max_rate, name " %d > %d", rate, \
+				  max_rate);                               \
+		}                                                          \
 	} while (0)
 
 static isc_result_t
 check_ratelimit(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
-		const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx)
-{
+		const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t mresult;
 	const cfg_obj_t *map = NULL;
@@ -624,24 +643,28 @@ check_ratelimit(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	int responses_per_second;
 	int slip;
 
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		cfg_map_get(voptions, "rate-limit", &map);
+	}
 	if (config != NULL && map == NULL) {
 		options = NULL;
 		cfg_map_get(config, "options", &options);
-		if (options != NULL)
+		if (options != NULL) {
 			cfg_map_get(options, "rate-limit", &map);
+		}
 	}
-	if (map == NULL)
+	if (map == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 
 	min_entries = 500;
 	obj = NULL;
 	mresult = cfg_map_get(map, "min-table-size", &obj);
 	if (mresult == ISC_R_SUCCESS) {
 		min_entries = cfg_obj_asuint32(obj);
-		if (min_entries < 1)
+		if (min_entries < 1) {
 			min_entries = 1;
+		}
 	}
 
 	obj = NULL;
@@ -649,8 +672,8 @@ check_ratelimit(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	if (mresult == ISC_R_SUCCESS) {
 		i = cfg_obj_asuint32(obj);
 		CHECK_RRL(i >= min_entries,
-			  "max-table-size %d < min-table-size %d",
-			  i, min_entries);
+			  "max-table-size %d < min-table-size %d", i,
+			  min_entries);
 	}
 
 	CHECK_RRL_RATE(responses_per_second, 0, DNS_RRL_MAX_RATE,
@@ -697,8 +720,8 @@ check_ratelimit(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	if (mresult == ISC_R_SUCCESS) {
 		i = cfg_obj_asuint32(obj);
 		CHECK_RRL(i >= 16 && i <= DNS_RRL_MAX_PREFIX,
-			  "ipv6-prefix-length %d < 16 or > %d",
-			  i, DNS_RRL_MAX_PREFIX);
+			  "ipv6-prefix-length %d < 16 or > %d", i,
+			  DNS_RRL_MAX_PREFIX);
 	}
 
 	obj = NULL;
@@ -707,12 +730,14 @@ check_ratelimit(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 		dns_acl_t *acl = NULL;
 		isc_result_t tresult;
 
-		tresult = cfg_acl_fromconfig(obj, config, logctx, actx,
-					     mctx, 0, &acl);
-		if (acl != NULL)
+		tresult = cfg_acl_fromconfig(obj, config, logctx, actx, mctx, 0,
+					     &acl);
+		if (acl != NULL) {
 			dns_acl_detach(&acl);
-		if (result == ISC_R_SUCCESS)
+		}
+		if (result == ISC_R_SUCCESS) {
 			result = tresult;
+		}
 	}
 
 	return (result);
@@ -725,8 +750,7 @@ check_ratelimit(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 static isc_result_t
 check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 		    const char *viewname, const cfg_obj_t *config,
-		    isc_log_t *logctx, isc_mem_t *mctx)
-{
+		    isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *options, *aclobj, *obj = NULL;
 	dns_acl_t *acl = NULL;
 	isc_result_t result = ISC_R_SUCCESS, tresult;
@@ -737,18 +761,21 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	static const char *acls[] = { "allow-recursion", "allow-recursion-on",
 				      NULL };
 
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		cfg_map_get(voptions, "recursion", &obj);
+	}
 	if (obj == NULL && config != NULL) {
 		options = NULL;
 		cfg_map_get(config, "options", &options);
-		if (options != NULL)
+		if (options != NULL) {
 			cfg_map_get(options, "recursion", &obj);
+		}
 	}
-	if (obj == NULL)
+	if (obj == NULL) {
 		recursion = true;
-	else
+	} else {
 		recursion = cfg_obj_asboolean(obj);
+	}
 
 	if (viewname == NULL) {
 		viewname = "";
@@ -759,25 +786,30 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 		aclobj = options = NULL;
 		acl = NULL;
 
-		if (voptions != NULL)
+		if (voptions != NULL) {
 			cfg_map_get(voptions, acls[i], &aclobj);
+		}
 		if (config != NULL && aclobj == NULL) {
 			options = NULL;
 			cfg_map_get(config, "options", &options);
-			if (options != NULL)
+			if (options != NULL) {
 				cfg_map_get(options, acls[i], &aclobj);
+			}
 		}
-		if (aclobj == NULL)
+		if (aclobj == NULL) {
 			continue;
+		}
 
-		tresult = cfg_acl_fromconfig(aclobj, config, logctx,
-					    actx, mctx, 0, &acl);
+		tresult = cfg_acl_fromconfig(aclobj, config, logctx, actx, mctx,
+					     0, &acl);
 
-		if (tresult != ISC_R_SUCCESS)
+		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
+		}
 
-		if (acl == NULL)
+		if (acl == NULL) {
 			continue;
+		}
 
 		if (recursion == false && !dns_acl_isnone(acl)) {
 			cfg_obj_log(aclobj, logctx, ISC_LOG_WARNING,
@@ -786,8 +818,9 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 				    acls[i], forview, viewname);
 		}
 
-		if (acl != NULL)
+		if (acl != NULL) {
 			dns_acl_detach(&acl);
+		}
 	}
 
 	return (result);
@@ -805,7 +838,7 @@ typedef struct {
 	unsigned int min;
 	unsigned int max;
 } fstrmtable;
-#endif
+#endif /* ifdef HAVE_DNSTAP */
 
 typedef enum {
 	optlevel_config,
@@ -816,24 +849,24 @@ typedef enum {
 
 static isc_result_t
 check_dscp(const cfg_obj_t *options, isc_log_t *logctx) {
-       isc_result_t result = ISC_R_SUCCESS;
-       const cfg_obj_t *obj = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	const cfg_obj_t *obj = NULL;
 
-       /*
-	* Check that DSCP setting is within range
-	*/
-       obj = NULL;
-       (void)cfg_map_get(options, "dscp", &obj);
-       if (obj != NULL) {
-	       uint32_t dscp = cfg_obj_asuint32(obj);
-	       if (dscp >= 64) {
-		       cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				   "'dscp' out of range (0-63)");
-		       result = ISC_R_FAILURE;
-	       }
-       }
+	/*
+	 * Check that DSCP setting is within range
+	 */
+	obj = NULL;
+	(void)cfg_map_get(options, "dscp", &obj);
+	if (obj != NULL) {
+		uint32_t dscp = cfg_obj_asuint32(obj);
+		if (dscp >= 64) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'dscp' out of range (0-63)");
+			result = ISC_R_FAILURE;
+		}
+	}
 
-       return (result);
+	return (result);
 }
 
 static isc_result_t
@@ -845,24 +878,22 @@ check_name(const char *str) {
 }
 
 static bool
-kasp_name_allowed(const cfg_listelt_t *element)
-{
-	const char* name = cfg_obj_asstring(cfg_tuple_get(
-		cfg_listelt_value(element), "name"));
+kasp_name_allowed(const cfg_listelt_t *element) {
+	const char *name = cfg_obj_asstring(
+		cfg_tuple_get(cfg_listelt_value(element), "name"));
 
 	if (strcmp("none", name) == 0) {
-		return false;
+		return (false);
 	}
 	if (strcmp("default", name) == 0) {
-		return false;
+		return (false);
 	}
-	return true;
+	return (true);
 }
 
 static isc_result_t
 check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
-	      optlevel_t optlevel)
-{
+	      optlevel_t optlevel) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	unsigned int i;
@@ -881,61 +912,43 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	 * (scale * value) <= UINT32_MAX
 	 */
 	static intervaltable intervals[] = {
-		{ "heartbeat-interval", 60, 28 * 24 * 60 },	/* 28 days */
-		{ "interface-interval", 60, 28 * 24 * 60 },	/* 28 days */
-		{ "max-transfer-idle-in", 60, 28 * 24 * 60 },	/* 28 days */
-		{ "max-transfer-idle-out", 60, 28 * 24 * 60 },	/* 28 days */
-		{ "max-transfer-time-in", 60, 28 * 24 * 60 },	/* 28 days */
-		{ "max-transfer-time-out", 60, 28 * 24 * 60 },	/* 28 days */
-		{ "statistics-interval", 60, 28 * 24 * 60 },	/* 28 days */
+		{ "heartbeat-interval", 60, 28 * 24 * 60 },    /* 28 days */
+		{ "interface-interval", 60, 28 * 24 * 60 },    /* 28 days */
+		{ "max-transfer-idle-in", 60, 28 * 24 * 60 },  /* 28 days */
+		{ "max-transfer-idle-out", 60, 28 * 24 * 60 }, /* 28 days */
+		{ "max-transfer-time-in", 60, 28 * 24 * 60 },  /* 28 days */
+		{ "max-transfer-time-out", 60, 28 * 24 * 60 }, /* 28 days */
+		{ "statistics-interval", 60, 28 * 24 * 60 },   /* 28 days */
 
 		/* minimum and maximum cache and negative cache TTLs */
-		{ "min-cache-ttl", 1, MAX_MIN_CACHE_TTL },	/* 90 secs */
-		{ "max-cache-ttl", 1, UINT32_MAX },		/* no limit */
-		{ "min-ncache-ttl", 1, MAX_MIN_NCACHE_TTL},	/* 90 secs */
-		{ "max-ncache-ttl", 1, MAX_MAX_NCACHE_TTL },	/*  7 days */
+		{ "min-cache-ttl", 1, MAX_MIN_CACHE_TTL },   /* 90 secs */
+		{ "max-cache-ttl", 1, UINT32_MAX },	     /* no limit */
+		{ "min-ncache-ttl", 1, MAX_MIN_NCACHE_TTL }, /* 90 secs */
+		{ "max-ncache-ttl", 1, MAX_MAX_NCACHE_TTL }, /*  7 days */
 	};
 
-	static const char *server_contact[] = {
-		"empty-server", "empty-contact",
-		"dns64-server", "dns64-contact",
-		NULL
-	};
+	static const char *server_contact[] = { "empty-server", "empty-contact",
+						"dns64-server", "dns64-contact",
+						NULL };
 
 #ifdef HAVE_DNSTAP
 	static fstrmtable fstrm[] = {
-		{
-			"fstrm-set-buffer-hint",
-			FSTRM_IOTHR_BUFFER_HINT_MIN,
-			FSTRM_IOTHR_BUFFER_HINT_MAX
-		},
-		{
-			"fstrm-set-flush-timeout",
-			FSTRM_IOTHR_FLUSH_TIMEOUT_MIN,
-			FSTRM_IOTHR_FLUSH_TIMEOUT_MAX
-		},
-		{
-			"fstrm-set-input-queue-size",
-			FSTRM_IOTHR_INPUT_QUEUE_SIZE_MIN,
-			FSTRM_IOTHR_INPUT_QUEUE_SIZE_MAX
-		},
-		{
-			"fstrm-set-output-notify-threshold",
-			FSTRM_IOTHR_QUEUE_NOTIFY_THRESHOLD_MIN,
-			0
-		},
-		{
-			"fstrm-set-output-queue-size",
-			FSTRM_IOTHR_OUTPUT_QUEUE_SIZE_MIN,
-			FSTRM_IOTHR_OUTPUT_QUEUE_SIZE_MAX
-		},
-		{
-			"fstrm-set-reopen-interval",
-			FSTRM_IOTHR_REOPEN_INTERVAL_MIN,
-			FSTRM_IOTHR_REOPEN_INTERVAL_MAX
-		}
+		{ "fstrm-set-buffer-hint", FSTRM_IOTHR_BUFFER_HINT_MIN,
+		  FSTRM_IOTHR_BUFFER_HINT_MAX },
+		{ "fstrm-set-flush-timeout", FSTRM_IOTHR_FLUSH_TIMEOUT_MIN,
+		  FSTRM_IOTHR_FLUSH_TIMEOUT_MAX },
+		{ "fstrm-set-input-queue-size",
+		  FSTRM_IOTHR_INPUT_QUEUE_SIZE_MIN,
+		  FSTRM_IOTHR_INPUT_QUEUE_SIZE_MAX },
+		{ "fstrm-set-output-notify-threshold",
+		  FSTRM_IOTHR_QUEUE_NOTIFY_THRESHOLD_MIN, 0 },
+		{ "fstrm-set-output-queue-size",
+		  FSTRM_IOTHR_OUTPUT_QUEUE_SIZE_MIN,
+		  FSTRM_IOTHR_OUTPUT_QUEUE_SIZE_MAX },
+		{ "fstrm-set-reopen-interval", FSTRM_IOTHR_REOPEN_INTERVAL_MIN,
+		  FSTRM_IOTHR_REOPEN_INTERVAL_MAX }
 	};
-#endif
+#endif /* ifdef HAVE_DNSTAP */
 
 	/*
 	 * Check that fields specified in units of time other than seconds
@@ -945,8 +958,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		uint32_t val;
 		obj = NULL;
 		(void)cfg_map_get(options, intervals[i].name, &obj);
-		if (obj == NULL)
+		if (obj == NULL) {
 			continue;
+		}
 		if (cfg_obj_isduration(obj)) {
 			val = cfg_obj_asduration(obj);
 		} else {
@@ -955,8 +969,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		if (val > intervals[i].max) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "%s '%u' is out of range (0..%u)",
-				    intervals[i].name, val,
-				    intervals[i].max);
+				    intervals[i].name, val, intervals[i].max);
 			result = ISC_R_RANGE;
 		} else if (val > (UINT32_MAX / intervals[i].scale)) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
@@ -974,23 +987,53 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	if (obj != NULL) {
 		bool bad_kasp = false;
 		bool bad_name = false;
+
 		if (optlevel != optlevel_config && !cfg_obj_isstring(obj)) {
 			bad_kasp = true;
 		} else if (optlevel == optlevel_config) {
+			dns_kasplist_t list;
+			dns_kasp_t *kasp = NULL, *kasp_next = NULL;
+
+			ISC_LIST_INIT(list);
+
 			if (cfg_obj_islist(obj)) {
 				for (element = cfg_list_first(obj);
 				     element != NULL;
 				     element = cfg_list_next(element))
 				{
-					if (!cfg_obj_istuple(
-						    cfg_listelt_value(element)))
-					{
+					isc_result_t ret;
+					cfg_obj_t *kconfig =
+						cfg_listelt_value(element);
+
+					if (!cfg_obj_istuple(kconfig)) {
 						bad_kasp = true;
+						continue;
 					}
 					if (!kasp_name_allowed(element)) {
 						bad_name = true;
+						continue;
+					}
+
+					ret = cfg_kasp_fromconfig(kconfig, mctx,
+								  logctx, &list,
+								  &kasp);
+					if (ret != ISC_R_SUCCESS) {
+						if (result == ISC_R_SUCCESS) {
+							result = ret;
+						}
+					}
+
+					if (kasp != NULL) {
+						dns_kasp_detach(&kasp);
 					}
 				}
+			}
+
+			for (kasp = ISC_LIST_HEAD(list); kasp != NULL;
+			     kasp = kasp_next) {
+				kasp_next = ISC_LIST_NEXT(kasp, link);
+				ISC_LIST_UNLINK(list, kasp, link);
+				dns_kasp_detach(&kasp);
 			}
 		}
 
@@ -1025,7 +1068,8 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		if (val != 0 && (val < 35 || val > 4096)) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "max-rsa-exponent-size '%u' is out of "
-				    "range (35..4096)", val);
+				    "range (35..4096)",
+				    val);
 			result = ISC_R_RANGE;
 		}
 	}
@@ -1037,8 +1081,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 
 		validity = cfg_obj_asuint32(cfg_tuple_get(obj, "validity"));
 		resignobj = cfg_tuple_get(obj, "re-sign");
-		if (!cfg_obj_isvoid(resignobj))
+		if (!cfg_obj_isvoid(resignobj)) {
 			resign = cfg_obj_asuint32(resignobj);
+		}
 
 		if (validity > 3660 || validity == 0) { /* 10 years */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
@@ -1055,11 +1100,13 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 					    validity);
 				result = ISC_R_RANGE;
 			} else if ((validity > 7 && validity < resign) ||
-				   (validity <= 7 && validity * 24 < resign)) {
+				   (validity <= 7 && validity * 24 < resign))
+			{
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "validity interval (%u days) "
 					    "less than re-signing interval "
-					    "(%u %s)", validity, resign,
+					    "(%u %s)",
+					    validity, resign,
 					    (validity > 7) ? "days" : "hours");
 				result = ISC_R_RANGE;
 			}
@@ -1079,11 +1126,10 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		uint32_t keyvalidity;
 
 		keyvalidity = cfg_obj_asuint32(obj);
-		if (keyvalidity > 3660) {		 /* 10 years */
+		if (keyvalidity > 3660) { /* 10 years */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "%s '%u' is out of range (0..3660)",
-				    "dnskey-sig-validity",
-				    keyvalidity);
+				    "dnskey-sig-validity", keyvalidity);
 			result = ISC_R_RANGE;
 		}
 
@@ -1099,21 +1145,22 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	(void)cfg_map_get(options, "preferred-glue", &obj);
 	if (obj != NULL) {
 		str = cfg_obj_asstring(obj);
-		if (strcasecmp(str, "a") != 0 &&
-		    strcasecmp(str, "aaaa") != 0 &&
+		if (strcasecmp(str, "a") != 0 && strcasecmp(str, "aaaa") != 0 &&
 		    strcasecmp(str, "none") != 0)
+		{
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "preferred-glue unexpected value '%s'",
 				    str);
+		}
 	}
 
 	obj = NULL;
 	(void)cfg_map_get(options, "root-delegation-only", &obj);
 	if (obj != NULL) {
 		if (!cfg_obj_isvoid(obj)) {
-			for (element = cfg_list_first(obj);
-			     element != NULL;
-			     element = cfg_list_next(element)) {
+			for (element = cfg_list_first(obj); element != NULL;
+			     element = cfg_list_next(element))
+			{
 				const cfg_obj_t *exclude;
 
 				exclude = cfg_listelt_value(element);
@@ -1135,14 +1182,14 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "disable-algorithms", &obj);
 	if (obj != NULL) {
-		for (element = cfg_list_first(obj);
-		     element != NULL;
+		for (element = cfg_list_first(obj); element != NULL;
 		     element = cfg_list_next(element))
 		{
 			obj = cfg_listelt_value(element);
 			tresult = disabled_algorithms(obj, logctx);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
+			}
 		}
 	}
 
@@ -1152,14 +1199,14 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "disable-ds-digests", &obj);
 	if (obj != NULL) {
-		for (element = cfg_list_first(obj);
-		     element != NULL;
+		for (element = cfg_list_first(obj); element != NULL;
 		     element = cfg_list_next(element))
 		{
 			obj = cfg_listelt_value(element);
 			tresult = disabled_ds_digests(obj, logctx);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
+			}
 		}
 	}
 
@@ -1174,8 +1221,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "auto-dnssec may only be activated at the "
 				    "zone level");
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		}
 	}
 
@@ -1185,18 +1233,20 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "dnssec-must-be-secure", &obj);
 	if (obj != NULL) {
-		tresult = isc_symtab_create(mctx, 100, freekey, mctx,
-					    false, &symtab);
-		if (tresult != ISC_R_SUCCESS)
+		tresult = isc_symtab_create(mctx, 100, freekey, mctx, false,
+					    &symtab);
+		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
-		for (element = cfg_list_first(obj);
-		     element != NULL;
+		}
+		for (element = cfg_list_first(obj); element != NULL;
 		     element = cfg_list_next(element))
 		{
 			obj = cfg_listelt_value(element);
 			tresult = mustbesecure(obj, symtab, logctx, mctx);
 			if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
+			{
 				result = tresult;
+			}
 		}
 		if (symtab != NULL) {
 			isc_symtab_destroy(&symtab);
@@ -1206,7 +1256,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	/*
 	 * Check server/contacts for syntactic validity.
 	 */
-	for (i= 0; server_contact[i] != NULL; i++) {
+	for (i = 0; server_contact[i] != NULL; i++) {
 		obj = NULL;
 		(void)cfg_map_get(options, server_contact[i], &obj);
 		if (obj != NULL) {
@@ -1215,8 +1265,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "%s: invalid name '%s'",
 					    server_contact[i], str);
-				if (result == ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS) {
 					result = ISC_R_FAILURE;
+				}
 			}
 		}
 	}
@@ -1226,8 +1277,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	 */
 	obj = NULL;
 	(void)cfg_map_get(options, "disable-empty-zone", &obj);
-	for (element = cfg_list_first(obj);
-	     element != NULL;
+	for (element = cfg_list_first(obj); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		obj = cfg_listelt_value(element);
@@ -1236,8 +1286,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "disable-empty-zone: invalid name '%s'",
 				    str);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		}
 	}
 
@@ -1248,31 +1299,36 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "server-id", &obj);
 	if (obj != NULL && cfg_obj_isstring(obj) &&
-	    strlen(cfg_obj_asstring(obj)) > 1024U) {
+	    strlen(cfg_obj_asstring(obj)) > 1024U)
+	{
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "'server-id' too big (>1024 bytes)");
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
+		}
 	}
 
 	tresult = check_dscp(options, logctx);
-	if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
 		result = tresult;
+	}
 
 	obj = NULL;
 	(void)cfg_map_get(options, "nta-lifetime", &obj);
 	if (obj != NULL) {
 		lifetime = cfg_obj_asduration(obj);
-		if (lifetime > 604800) {	/* 7 days */
+		if (lifetime > 604800) { /* 7 days */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'nta-lifetime' cannot exceed one week");
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_RANGE;
+			}
 		} else if (lifetime == 0) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'nta-lifetime' may not be zero");
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_RANGE;
+			}
 		}
 	}
 
@@ -1280,34 +1336,37 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	(void)cfg_map_get(options, "nta-recheck", &obj);
 	if (obj != NULL) {
 		uint32_t recheck = cfg_obj_asduration(obj);
-		if (recheck > 604800) {		/* 7 days */
+		if (recheck > 604800) { /* 7 days */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'nta-recheck' cannot exceed one week");
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_RANGE;
+			}
 		}
 
-		if (recheck > lifetime)
+		if (recheck > lifetime) {
 			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
 				    "'nta-recheck' (%d seconds) is "
 				    "greater than 'nta-lifetime' "
-				    "(%d seconds)", recheck, lifetime);
+				    "(%d seconds)",
+				    recheck, lifetime);
+		}
 	}
 
 	obj = NULL;
-	(void) cfg_map_get(options, "cookie-algorithm", &obj);
+	(void)cfg_map_get(options, "cookie-algorithm", &obj);
 	if (obj != NULL) {
 		ccalg = cfg_obj_asstring(obj);
 	}
 
 	obj = NULL;
-	(void) cfg_map_get(options, "cookie-secret", &obj);
+	(void)cfg_map_get(options, "cookie-secret", &obj);
 	if (obj != NULL) {
 		unsigned char secret[32];
 
-		for (element = cfg_list_first(obj);
-		     element != NULL;
-		     element = cfg_list_next(element)) {
+		for (element = cfg_list_first(obj); element != NULL;
+		     element = cfg_list_next(element))
+		{
 			unsigned int usedlength;
 
 			obj = cfg_listelt_value(element);
@@ -1325,8 +1384,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 					    "string");
 			}
 			if (tresult != ISC_R_SUCCESS) {
-				if (result == ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS) {
 					result = tresult;
+				}
 				continue;
 			}
 
@@ -1334,16 +1394,21 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			if (strcasecmp(ccalg, "aes") == 0 &&
 			    usedlength != ISC_AES128_KEYLENGTH) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "AES cookie-secret must be 128 bits");
-				if (result == ISC_R_SUCCESS)
+					    "AES cookie-secret must be 128 "
+					    "bits");
+				if (result == ISC_R_SUCCESS) {
 					result = ISC_R_RANGE;
+				}
 			}
 			if (strcasecmp(ccalg, "siphash24") == 0 &&
-			    usedlength != ISC_SIPHASH24_KEY_LENGTH) {
+			    usedlength != ISC_SIPHASH24_KEY_LENGTH)
+			{
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "SipHash-2-4 cookie-secret must be 128 bits");
-				if (result == ISC_R_SUCCESS)
+					    "SipHash-2-4 cookie-secret must be "
+					    "128 bits");
+				if (result == ISC_R_SUCCESS) {
 					result = ISC_R_RANGE;
+				}
 			}
 		}
 	}
@@ -1353,9 +1418,10 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		uint32_t value;
 
 		obj = NULL;
-		(void) cfg_map_get(options, fstrm[i].name, &obj);
-		if (obj == NULL)
+		(void)cfg_map_get(options, fstrm[i].name, &obj);
+		if (obj == NULL) {
 			continue;
+		}
 
 		if (cfg_obj_isduration(obj)) {
 			value = cfg_obj_asduration(obj);
@@ -1364,17 +1430,19 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		}
 		if (value < fstrm[i].min ||
 		    (fstrm[i].max != 0U && value > fstrm[i].max)) {
-			if (fstrm[i].max != 0U)
+			if (fstrm[i].max != 0U) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "%s '%u' out of range (%u..%u)",
-					    fstrm[i].name, value,
-					    fstrm[i].min, fstrm[i].max);
-			else
+					    fstrm[i].name, value, fstrm[i].min,
+					    fstrm[i].max);
+			} else {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "%s out of range (%u < %u)",
 					    fstrm[i].name, value, fstrm[i].min);
-			if (result == ISC_R_SUCCESS)
+			}
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_RANGE;
+			}
 		}
 
 		if (strcmp(fstrm[i].name, "fstrm-set-input-queue-size") == 0) {
@@ -1388,15 +1456,16 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 					    "%s '%u' not a power-of-2",
 					    fstrm[i].name,
 					    cfg_obj_asuint32(obj));
-				if (result == ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS) {
 					result = ISC_R_RANGE;
+				}
 			}
 		}
 	}
 
 	/* Check that dnstap-ouput values are consistent */
 	obj = NULL;
-	(void) cfg_map_get(options, "dnstap-output", &obj);
+	(void)cfg_map_get(options, "dnstap-output", &obj);
 	if (obj != NULL) {
 		const cfg_obj_t *obj2;
 		dns_dtmode_t dmode;
@@ -1405,49 +1474,51 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		if (obj2 == NULL) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "dnstap-output mode not found");
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		} else {
-			if (strcasecmp(cfg_obj_asstring(obj2), "file") == 0)
+			if (strcasecmp(cfg_obj_asstring(obj2), "file") == 0) {
 				dmode = dns_dtmode_file;
-			else
+			} else {
 				dmode = dns_dtmode_unix;
+			}
 
 			obj2 = cfg_tuple_get(obj, "size");
 			if (obj2 != NULL && !cfg_obj_isvoid(obj2) &&
-			    dmode == dns_dtmode_unix)
-			{
+			    dmode == dns_dtmode_unix) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "dnstap-output size "
 					    "cannot be set with mode unix");
-				if (result == ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS) {
 					result = ISC_R_FAILURE;
+				}
 			}
 
 			obj2 = cfg_tuple_get(obj, "versions");
 			if (obj2 != NULL && !cfg_obj_isvoid(obj2) &&
-			    dmode == dns_dtmode_unix)
-			{
+			    dmode == dns_dtmode_unix) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "dnstap-output versions "
 					    "cannot be set with mode unix");
-				if (result == ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS) {
 					result = ISC_R_FAILURE;
+				}
 			}
 
 			obj2 = cfg_tuple_get(obj, "suffix");
 			if (obj2 != NULL && !cfg_obj_isvoid(obj2) &&
-			    dmode == dns_dtmode_unix)
-			{
+			    dmode == dns_dtmode_unix) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "dnstap-output suffix "
 					    "cannot be set with mode unix");
-				if (result == ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS) {
 					result = ISC_R_FAILURE;
+				}
 			}
 		}
 	}
-#endif
+#endif /* ifdef HAVE_DNSTAP */
 
 	obj = NULL;
 	(void)cfg_map_get(options, "lmdb-mapsize", &obj);
@@ -1455,23 +1526,23 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		uint64_t mapsize = cfg_obj_asuint64(obj);
 
 		if (mapsize < (1ULL << 20)) { /* 1 megabyte */
-			cfg_obj_log(obj, logctx,
-				    ISC_LOG_ERROR,
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'lmdb-mapsize "
 				    "%" PRId64 "' "
 				    "is too small",
 				    mapsize);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_RANGE;
+			}
 		} else if (mapsize > (1ULL << 40)) { /* 1 terabyte */
-			cfg_obj_log(obj, logctx,
-				    ISC_LOG_ERROR,
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'lmdb-mapsize "
 				    "%" PRId64 "' "
 				    "is too large",
 				    mapsize);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_RANGE;
+			}
 		}
 	}
 
@@ -1480,8 +1551,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	if (obj != NULL && cfg_obj_asuint32(obj) == 0U) {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "'resolver-nonbackoff-tries' must be >= 1");
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_RANGE;
+		}
 	}
 
 	obj = NULL;
@@ -1495,20 +1567,39 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		}
 	}
 
+	obj = NULL;
+	(void)cfg_map_get(options, "max-ixfr-ratio", &obj);
+	if (obj != NULL && cfg_obj_ispercentage(obj)) {
+		uint32_t percent = cfg_obj_aspercentage(obj);
+		if (percent == 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'ixfr-max-ratio' must be a nonzero "
+				    "percentage or 'unlimited')");
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_RANGE;
+			}
+		} else if (percent > 100) {
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "'ixfr-max-ratio %d%%' exceeds 100%%",
+				    percent);
+		}
+	}
+
 	return (result);
 }
 
 static isc_result_t
-get_masters_def(const cfg_obj_t *cctx, const char *name, const cfg_obj_t **ret) {
+get_masters_def(const cfg_obj_t *cctx, const char *name,
+		const cfg_obj_t **ret) {
 	isc_result_t result;
 	const cfg_obj_t *masters = NULL;
 	const cfg_listelt_t *elt;
 
 	result = cfg_map_get(cctx, "masters", &masters);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-	for (elt = cfg_list_first(masters);
-	     elt != NULL;
+	}
+	for (elt = cfg_list_first(masters); elt != NULL;
 	     elt = cfg_list_next(elt)) {
 		const cfg_obj_t *list;
 		const char *listname;
@@ -1526,8 +1617,7 @@ get_masters_def(const cfg_obj_t *cctx, const char *name, const cfg_obj_t **ret) 
 
 static isc_result_t
 validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
-		 uint32_t *countp, isc_log_t *logctx, isc_mem_t *mctx)
-{
+		 uint32_t *countp, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	uint32_t count = 0;
@@ -1545,20 +1635,17 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 		return (result);
 	}
 
- newlist:
+newlist:
 	list = cfg_tuple_get(obj, "addresses");
 	element = cfg_list_first(list);
- resume:
-	for ( ;
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
+resume:
+	for (; element != NULL; element = cfg_list_next(element)) {
 		const char *listname;
 		const cfg_obj_t *addr;
 		const cfg_obj_t *key;
 
-		addr = cfg_tuple_get(cfg_listelt_value(element),
-				     "masterselement");
+		addr = cfg_tuple_get(cfg_listelt_value(element), "masterselemen"
+								 "t");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
 
 		if (cfg_obj_issockaddr(addr)) {
@@ -1569,19 +1656,22 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 				    "unexpected token '%s'",
 				    cfg_obj_asstring(key));
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		}
 		listname = cfg_obj_asstring(addr);
 		symvalue.as_cpointer = addr;
 		tresult = isc_symtab_define(symtab, listname, 1, symvalue,
 					    isc_symexists_reject);
-		if (tresult == ISC_R_EXISTS)
+		if (tresult == ISC_R_EXISTS) {
 			continue;
+		}
 		tresult = get_masters_def(config, listname, &obj);
 		if (tresult != ISC_R_SUCCESS) {
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = tresult;
+			}
 			cfg_obj_log(addr, logctx, ISC_LOG_ERROR,
 				    "unable to find masters list '%s'",
 				    listname);
@@ -1589,7 +1679,7 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 		}
 		/* Grow stack? */
 		if (stackcount == pushed) {
-			void * newstack;
+			void *newstack;
 			uint32_t newlen = stackcount + 16;
 			size_t newsize, oldsize;
 
@@ -1638,12 +1728,12 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 
 	/* Check for "update-policy local;" */
 	if (cfg_obj_isstring(policy) &&
-	    strcmp("local", cfg_obj_asstring(policy)) == 0)
+	    strcmp("local", cfg_obj_asstring(policy)) == 0) {
 		return (ISC_R_SUCCESS);
+	}
 
 	/* Now check the grant policy */
-	for (element = cfg_list_first(policy);
-	     element != NULL;
+	for (element = cfg_list_first(policy); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *stmt = cfg_listelt_value(element);
@@ -1675,9 +1765,8 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		 * There is no name field for subzone and dname is void
 		 */
 		if (mtype == dns_ssumatchtype_subdomain &&
-		    cfg_obj_isvoid(dname))
-		{
-			str = ".";	/* Use "." as a replacement. */
+		    cfg_obj_isvoid(dname)) {
+			str = "."; /* Use "." as a replacement. */
 		} else {
 			str = cfg_obj_asstring(dname);
 		}
@@ -1709,7 +1798,8 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		case dns_ssumatchtype_selfwild:
 			if (tresult == ISC_R_SUCCESS &&
 			    (!dns_name_equal(id, name) &&
-			     !dns_name_equal(dns_rootname, name))) {
+			     !dns_name_equal(dns_rootname, name)))
+			{
 				cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
 					    "identity and name fields are not "
 					    "the same");
@@ -1745,7 +1835,8 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			if (tresult == ISC_R_SUCCESS) {
 				cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
 					    "missing name field type '%s' "
-					    "found", str);
+					    "found",
+					    str);
 				result = ISC_R_FAILURE;
 				break;
 			}
@@ -1755,8 +1846,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			ISC_UNREACHABLE();
 		}
 
-		for (element2 = cfg_list_first(typelist);
-		     element2 != NULL;
+		for (element2 = cfg_list_first(typelist); element2 != NULL;
 		     element2 = cfg_list_next(element2))
 		{
 			const cfg_obj_t *typeobj;
@@ -1788,14 +1878,16 @@ check_nonzero(const cfg_obj_t *options, isc_log_t *logctx) {
 	unsigned int i;
 
 	static const char *nonzero[] = { "max-retry-time", "min-retry-time",
-				 "max-refresh-time", "min-refresh-time" };
+					 "max-refresh-time",
+					 "min-refresh-time" };
 	/*
 	 * Check if value is zero.
 	 */
 	for (i = 0; i < sizeof(nonzero) / sizeof(nonzero[0]); i++) {
 		obj = NULL;
 		if (cfg_map_get(options, nonzero[i], &obj) == ISC_R_SUCCESS &&
-		    cfg_obj_asuint32(obj) == 0) {
+		    cfg_obj_asuint32(obj) == 0)
+		{
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'%s' must not be zero", nonzero[i]);
 			result = ISC_R_FAILURE;
@@ -1810,8 +1902,7 @@ check_nonzero(const cfg_obj_t *options, isc_log_t *logctx) {
  */
 static bool
 check_mirror_zone_notify(const cfg_obj_t *zoptions, const char *znamestr,
-			 isc_log_t *logctx)
-{
+			 isc_log_t *logctx) {
 	bool notify_configuration_ok = true;
 	const cfg_obj_t *obj = NULL;
 
@@ -1844,7 +1935,8 @@ check_mirror_zone_notify(const cfg_obj_t *zoptions, const char *znamestr,
 	if (!notify_configuration_ok) {
 		cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
 			    "zone '%s': mirror zones can only be used with "
-			    "'notify no;' or 'notify explicit;'", znamestr);
+			    "'notify no;' or 'notify explicit;'",
+			    znamestr);
 	}
 
 	return (notify_configuration_ok);
@@ -1860,8 +1952,7 @@ check_mirror_zone_notify(const cfg_obj_t *zoptions, const char *znamestr,
 static bool
 check_recursion(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		const cfg_obj_t *goptions, isc_log_t *logctx,
-		cfg_aclconfctx_t *actx, isc_mem_t *mctx)
-{
+		cfg_aclconfctx_t *actx, isc_mem_t *mctx) {
 	dns_acl_t *acl = NULL;
 	const cfg_obj_t *obj;
 	isc_result_t result;
@@ -1904,7 +1995,7 @@ check_recursion(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		retval = !dns_acl_isnone(acl);
 	}
 
- cleanup:
+cleanup:
 	if (acl != NULL) {
 		dns_acl_detach(&acl);
 	}
@@ -1915,10 +2006,9 @@ check_recursion(const cfg_obj_t *config, const cfg_obj_t *voptions,
 static isc_result_t
 check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       const cfg_obj_t *config, isc_symtab_t *symtab,
-	       isc_symtab_t *files, isc_symtab_t *inview,
-	       const char *viewname, dns_rdataclass_t defclass,
-	       cfg_aclconfctx_t *actx, isc_log_t *logctx, isc_mem_t *mctx)
-{
+	       isc_symtab_t *files, isc_symtab_t *inview, const char *viewname,
+	       dns_rdataclass_t defclass, cfg_aclconfctx_t *actx,
+	       isc_log_t *logctx, isc_mem_t *mctx) {
 	const char *znamestr;
 	const char *typestr = NULL;
 	const char *target = NULL;
@@ -1961,8 +2051,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 	zoptions = cfg_tuple_get(zconfig, "options");
 
-	if (config != NULL)
+	if (config != NULL) {
 		cfg_map_get(config, "options", &goptions);
+	}
 
 	inviewobj = NULL;
 	(void)cfg_map_get(zoptions, "in-view", &inviewobj);
@@ -1980,8 +2071,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		typestr = cfg_obj_asstring(obj);
 		if (strcasecmp(typestr, "master") == 0 ||
-		    strcasecmp(typestr, "primary") == 0)
-		{
+		    strcasecmp(typestr, "primary") == 0) {
 			ztype = CFG_ZONE_MASTER;
 		} else if (strcasecmp(typestr, "slave") == 0 ||
 			   strcasecmp(typestr, "secondary") == 0)
@@ -2003,8 +2093,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			ztype = CFG_ZONE_REDIRECT;
 		} else {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "zone '%s': invalid type %s",
-				    znamestr, typestr);
+				    "zone '%s': invalid type %s", znamestr,
+				    typestr);
 			return (ISC_R_FAILURE);
 		}
 
@@ -2024,8 +2114,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		result = dns_rdataclass_fromtext(&zclass, &r);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "zone '%s': invalid class %s",
-				    znamestr, r.base);
+				    "zone '%s': invalid class %s", znamestr,
+				    r.base);
 			return (ISC_R_FAILURE);
 		}
 		if (zclass != defclass) {
@@ -2061,23 +2151,31 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		zname = dns_fixedname_name(&fixedname);
 		dns_name_format(zname, namebuf, sizeof(namebuf));
 		tresult = nameexist(zconfig, namebuf,
-				    ztype == CFG_ZONE_HINT ? 1 :
-				     ztype == CFG_ZONE_REDIRECT ? 2 : 3,
-				    symtab, "zone '%s': already exists "
-				    "previous definition: %s:%u", logctx, mctx);
-		if (tresult != ISC_R_SUCCESS)
+				    ztype == CFG_ZONE_HINT
+					    ? 1
+					    : ztype == CFG_ZONE_REDIRECT ? 2
+									 : 3,
+				    symtab,
+				    "zone '%s': already exists "
+				    "previous definition: %s:%u",
+				    logctx, mctx);
+		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
-		if (dns_name_equal(zname, dns_rootname))
+		}
+		if (dns_name_equal(zname, dns_rootname)) {
 			root = true;
-		else if (dns_name_isrfc1918(zname))
+		} else if (dns_name_isrfc1918(zname)) {
 			rfc1918 = true;
-		else if (dns_name_isula(zname))
+		} else if (dns_name_isula(zname)) {
 			ula = true;
+		}
 		tmp += strlen(tmp);
 		len -= strlen(tmp);
 		(void)snprintf(tmp, len, "%u/%s", zclass,
-			       (ztype == CFG_ZONE_INVIEW) ? target :
-				(viewname != NULL) ? viewname : "_default");
+			       (ztype == CFG_ZONE_INVIEW)
+				       ? target
+				       : (viewname != NULL) ? viewname
+							    : "_default");
 		switch (ztype) {
 		case CFG_ZONE_INVIEW:
 			tresult = isc_symtab_lookup(inview, namebuf, 0, NULL);
@@ -2108,14 +2206,16 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			{
 				isc_symvalue_t symvalue;
 				symvalue.as_cpointer = NULL;
-				tresult = isc_symtab_define(inview, tmp, 1,
-							    symvalue,
-							    isc_symexists_replace);
+				tresult = isc_symtab_define(
+					inview, tmp, 1, symvalue,
+					isc_symexists_replace);
 				if (tresult == ISC_R_NOMEMORY) {
 					isc_mem_free(mctx, tmp);
 				}
-				if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS &&
+				    tresult != ISC_R_SUCCESS) {
 					result = tresult;
+				}
 			}
 			break;
 
@@ -2130,19 +2230,22 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		unsigned int maxopts = 1;
 
 		(void)cfg_map_get(zoptions, "forward", &fwd);
-		if (fwd != NULL)
+		if (fwd != NULL) {
 			maxopts++;
+		}
 		fwd = NULL;
 		(void)cfg_map_get(zoptions, "forwarders", &fwd);
-		if (fwd != NULL)
+		if (fwd != NULL) {
 			maxopts++;
+		}
 		if (cfg_map_count(zoptions) > maxopts) {
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 				    "zone '%s': 'in-view' used "
 				    "with incompatible zone options",
 				    znamestr);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		}
 		return (result);
 	}
@@ -2150,8 +2253,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Check if value is zero.
 	 */
-	if (check_nonzero(zoptions, logctx) != ISC_R_SUCCESS)
+	if (check_nonzero(zoptions, logctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
+	}
 
 	/*
 	 * Check if a dnssec-policy is set.
@@ -2160,7 +2264,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	(void)cfg_map_get(zoptions, "dnssec-policy", &obj);
 	if (obj != NULL) {
 		const cfg_obj_t *kasps = NULL;
-		const char* kaspname = cfg_obj_asstring(obj);
+		const char *kaspname = cfg_obj_asstring(obj);
 
 		if (strcmp(kaspname, "default") == 0) {
 			has_dnssecpolicy = true;
@@ -2171,9 +2275,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			for (element = cfg_list_first(kasps); element != NULL;
 			     element = cfg_list_next(element))
 			{
-				const char* kn = cfg_obj_asstring(
-				       cfg_tuple_get(cfg_listelt_value(element),
-						     "name"));
+				const char *kn = cfg_obj_asstring(cfg_tuple_get(
+					cfg_listelt_value(element), "name"));
 				if (strcmp(kaspname, kn) == 0) {
 					has_dnssecpolicy = true;
 				}
@@ -2214,8 +2317,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Check that ACLs expand correctly.
 	 */
 	for (i = 0; i < (sizeof(acls) / sizeof(acls[0])); i++) {
-		tresult = checkacl(acls[i], actx, zconfig,
-				   voptions, config, logctx, mctx);
+		tresult = checkacl(acls[i], actx, zconfig, voptions, config,
+				   logctx, mctx);
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -2242,18 +2345,21 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		obj = NULL;
 		tresult = cfg_map_get(zoptions, "notify", &obj);
-		if (tresult != ISC_R_SUCCESS && voptions != NULL)
+		if (tresult != ISC_R_SUCCESS && voptions != NULL) {
 			tresult = cfg_map_get(voptions, "notify", &obj);
-		if (tresult != ISC_R_SUCCESS && goptions != NULL)
+		}
+		if (tresult != ISC_R_SUCCESS && goptions != NULL) {
 			tresult = cfg_map_get(goptions, "notify", &obj);
+		}
 		if (tresult == ISC_R_SUCCESS) {
-			if (cfg_obj_isboolean(obj))
+			if (cfg_obj_isboolean(obj)) {
 				donotify = cfg_obj_asboolean(obj);
-			else {
+			} else {
 				const char *notifystr = cfg_obj_asstring(obj);
 				if (ztype != CFG_ZONE_MASTER &&
-				    strcasecmp(notifystr, "master-only") == 0)
+				    strcasecmp(notifystr, "master-only") == 0) {
 					donotify = false;
+				}
 			}
 		}
 
@@ -2262,18 +2368,23 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (tresult == ISC_R_SUCCESS && !donotify) {
 			cfg_obj_log(zoptions, logctx, ISC_LOG_WARNING,
 				    "zone '%s': 'also-notify' set but "
-				    "'notify' is disabled", znamestr);
+				    "'notify' is disabled",
+				    znamestr);
 		}
-		if (tresult != ISC_R_SUCCESS && voptions != NULL)
+		if (tresult != ISC_R_SUCCESS && voptions != NULL) {
 			tresult = cfg_map_get(voptions, "also-notify", &obj);
-		if (tresult != ISC_R_SUCCESS && goptions != NULL)
+		}
+		if (tresult != ISC_R_SUCCESS && goptions != NULL) {
 			tresult = cfg_map_get(goptions, "also-notify", &obj);
+		}
 		if (tresult == ISC_R_SUCCESS && donotify) {
 			uint32_t count;
-			tresult = validate_masters(obj, config, &count,
-						   logctx, mctx);
+			tresult = validate_masters(obj, config, &count, logctx,
+						   mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
+			{
 				result = tresult;
+			}
 		}
 	}
 
@@ -2294,10 +2405,12 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			result = ISC_R_FAILURE;
 		} else {
 			uint32_t count;
-			tresult = validate_masters(obj, config, &count,
-						   logctx, mctx);
+			tresult = validate_masters(obj, config, &count, logctx,
+						   mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
+			{
 				result = tresult;
+			}
 			if (tresult == ISC_R_SUCCESS && count == 0) {
 				cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
 					    "zone '%s': empty 'masters' entry",
@@ -2316,7 +2429,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{
 		cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
 			    "zone '%s': mirror zones cannot be used if "
-			    "recursion is disabled", znamestr);
+			    "recursion is disabled",
+			    znamestr);
 		result = ISC_R_FAILURE;
 	}
 
@@ -2341,8 +2455,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			result = ISC_R_FAILURE;
 		} else if (res2 == ISC_R_SUCCESS) {
 			res3 = check_update_policy(obj, logctx);
-			if (res3 != ISC_R_SUCCESS)
+			if (res3 != ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		}
 
 		/*
@@ -2350,33 +2465,37 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		 * we should also check for allow-update at the
 		 * view and options levels.
 		 */
-		if (res1 != ISC_R_SUCCESS && voptions != NULL)
+		if (res1 != ISC_R_SUCCESS && voptions != NULL) {
 			res1 = cfg_map_get(voptions, "allow-update", &au);
-		if (res1 != ISC_R_SUCCESS && goptions != NULL)
+		}
+		if (res1 != ISC_R_SUCCESS && goptions != NULL) {
 			res1 = cfg_map_get(goptions, "allow-update", &au);
+		}
 
-		if (res2 == ISC_R_SUCCESS)
+		if (res2 == ISC_R_SUCCESS) {
 			ddns = true;
-		else if (res1 == ISC_R_SUCCESS) {
+		} else if (res1 == ISC_R_SUCCESS) {
 			dns_acl_t *acl = NULL;
-			res1 = cfg_acl_fromconfig(au, config, logctx,
-						  actx, mctx, 0, &acl);
+			res1 = cfg_acl_fromconfig(au, config, logctx, actx,
+						  mctx, 0, &acl);
 			if (res1 != ISC_R_SUCCESS) {
 				cfg_obj_log(au, logctx, ISC_LOG_ERROR,
 					    "acl expansion failed: %s",
 					    isc_result_totext(result));
 				result = ISC_R_FAILURE;
 			} else if (acl != NULL) {
-				if (!dns_acl_isnone(acl))
+				if (!dns_acl_isnone(acl)) {
 					ddns = true;
+				}
 				dns_acl_detach(&acl);
 			}
 		}
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
-		if (res1 == ISC_R_SUCCESS)
+		if (res1 == ISC_R_SUCCESS) {
 			signing = cfg_obj_asboolean(obj);
+		}
 
 		if (signing && has_dnssecpolicy) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
@@ -2396,16 +2515,21 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "'auto-dnssec %s;' requires%s "
 					    "inline-signing to be configured "
-					    "for the zone", arg,
-					    (ztype == CFG_ZONE_MASTER) ?
-					    " dynamic DNS or" : "");
+					    "for the zone",
+					    arg,
+					    (ztype == CFG_ZONE_MASTER) ? " dyna"
+									 "mic "
+									 "DNS "
+									 "or"
+								       : "");
 				result = ISC_R_FAILURE;
 			}
 			if (has_dnssecpolicy) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "'auto-dnssec %s;' cannot be "
 					    "configured if dnssec-policy is "
-					    "also set", arg);
+					    "also set",
+					    arg);
 				result = ISC_R_FAILURE;
 			}
 		}
@@ -2414,19 +2538,19 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		res1 = cfg_map_get(zoptions, "sig-signing-type", &obj);
 		if (res1 == ISC_R_SUCCESS) {
 			uint32_t type = cfg_obj_asuint32(obj);
-			if (type < 0xff00U || type > 0xffffU)
+			if (type < 0xff00U || type > 0xffffU) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "sig-signing-type: %u out of "
-					    "range [%u..%u]", type,
-					    0xff00U, 0xffffU);
+					    "range [%u..%u]",
+					    type, 0xff00U, 0xffffU);
+			}
 			result = ISC_R_FAILURE;
 		}
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-dnskey-kskonly", &obj);
 		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SLAVE &&
-		    !signing)
-		{
+		    !signing) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "dnssec-dnskey-kskonly: requires "
 				    "inline-signing when used in slave zone");
@@ -2451,8 +2575,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-loadkeys-interval", &obj);
 		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SLAVE &&
-		    !signing)
-		{
+		    !signing) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "dnssec-loadkeys-interval: requires "
 				    "inline-signing when used in slave zone");
@@ -2462,8 +2585,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "update-check-ksk", &obj);
 		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SLAVE &&
-		    !signing)
-		{
+		    !signing) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "update-check-ksk: requires "
 				    "inline-signing when used in slave zone");
@@ -2496,15 +2618,13 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		(void)cfg_map_get(zoptions, "dialup", &obj);
 		if (obj != NULL && cfg_obj_isstring(obj)) {
 			const char *str = cfg_obj_asstring(obj);
-			for (i = 0;
-			     i < sizeof(dialups) / sizeof(dialups[0]);
-			     i++)
-			{
-				if (strcasecmp(dialups[i].name, str) != 0)
+			for (i = 0; i < sizeof(dialups) / sizeof(dialups[0]);
+			     i++) {
+				if (strcasecmp(dialups[i].name, str) != 0) {
 					continue;
+				}
 				if ((dialups[i].allowed & ztype) == 0) {
-					cfg_obj_log(obj, logctx,
-						    ISC_LOG_ERROR,
+					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 						    "dialup type '%s' is not "
 						    "allowed in '%s' "
 						    "zone '%s'",
@@ -2516,7 +2636,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			if (i == sizeof(dialups) / sizeof(dialups[0])) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "invalid dialup type '%s' in zone "
-					    "'%s'", str, znamestr);
+					    "'%s'",
+					    str, znamestr);
 				result = ISC_R_FAILURE;
 			}
 		}
@@ -2527,37 +2648,43 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	obj = NULL;
 	if (root) {
-		if (voptions != NULL)
+		if (voptions != NULL) {
 			(void)cfg_map_get(voptions, "forwarders", &obj);
-		if (obj == NULL && goptions != NULL)
+		}
+		if (obj == NULL && goptions != NULL) {
 			(void)cfg_map_get(goptions, "forwarders", &obj);
+		}
 	}
-	if (check_forward(zoptions, obj, logctx) != ISC_R_SUCCESS)
+	if (check_forward(zoptions, obj, logctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
+	}
 
 	/*
 	 * Check that a RFC 1918 / ULA reverse zone is not forward first
-	 * unless explictly configured to be so.
+	 * unless explicitly configured to be so.
 	 */
 	if (ztype == CFG_ZONE_FORWARD && (rfc1918 || ula)) {
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "forward", &obj);
 		if (obj == NULL) {
 			/*
-			 * Forward mode not explicity configured.
+			 * Forward mode not explicitly configured.
 			 */
-			if (voptions != NULL)
+			if (voptions != NULL) {
 				cfg_map_get(voptions, "forward", &obj);
-			if (obj == NULL && goptions != NULL)
+			}
+			if (obj == NULL && goptions != NULL) {
 				cfg_map_get(goptions, "forward", &obj);
+			}
 			if (obj == NULL ||
-			    strcasecmp(cfg_obj_asstring(obj), "first") == 0)
+			    strcasecmp(cfg_obj_asstring(obj), "first") == 0) {
 				cfg_obj_log(zconfig, logctx, ISC_LOG_WARNING,
 					    "inherited 'forward first;' for "
 					    "%s zone '%s' - did you want "
 					    "'forward only;'?",
 					    rfc1918 ? "rfc1918" : "ula",
 					    znamestr);
+			}
 		}
 	}
 
@@ -2567,8 +2694,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "server-addresses", &obj);
 	if (ztype == CFG_ZONE_STATICSTUB && obj != NULL) {
-		for (element = cfg_list_first(obj);
-		     element != NULL;
+		for (element = cfg_list_first(obj); element != NULL;
 		     element = cfg_list_next(element))
 		{
 			isc_sockaddr_t sa;
@@ -2593,8 +2719,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "server-names", &obj);
 	if (zname != NULL && ztype == CFG_ZONE_STATICSTUB && obj != NULL) {
-		for (element = cfg_list_first(obj);
-		     element != NULL;
+		for (element = cfg_list_first(obj); element != NULL;
 		     element = cfg_list_next(element))
 		{
 			const char *snamestr;
@@ -2608,12 +2733,13 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			isc_buffer_constinit(&b2, snamestr, strlen(snamestr));
 			isc_buffer_add(&b2, strlen(snamestr));
 			sname = dns_fixedname_initname(&fixed_sname);
-			tresult = dns_name_fromtext(sname, &b2, dns_rootname,
-						    0, NULL);
+			tresult = dns_name_fromtext(sname, &b2, dns_rootname, 0,
+						    NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 					    "server-name '%s' is not a valid "
-					    "name", snamestr);
+					    "name",
+					    snamestr);
 				result = ISC_R_FAILURE;
 			} else if (dns_name_issubdomain(sname, zname)) {
 				cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
@@ -2648,10 +2774,12 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	if (masterformat == dns_masterformat_map) {
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "max-zone-ttl", &obj);
-		if (obj == NULL && voptions != NULL)
+		if (obj == NULL && voptions != NULL) {
 			(void)cfg_map_get(voptions, "max-zone-ttl", &obj);
-		if (obj == NULL && goptions !=NULL)
+		}
+		if (obj == NULL && goptions != NULL) {
 			(void)cfg_map_get(goptions, "max-zone-ttl", &obj);
+		}
 		if (obj != NULL) {
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 				    "zone '%s': 'max-zone-ttl' is not "
@@ -2674,8 +2802,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			break;
 		case ISC_R_FILENOTFOUND:
 			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-				    "key-directory: '%s' does not exist",
-				    dir);
+				    "key-directory: '%s' does not exist", dir);
 			break;
 		case ISC_R_INVALIDFILE:
 			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
@@ -2684,8 +2811,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			break;
 		default:
 			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-				    "key-directory: '%s' %s",
-				    dir, isc_result_totext(tresult));
+				    "key-directory: '%s' %s", dir,
+				    isc_result_totext(tresult));
 			result = tresult;
 		}
 	}
@@ -2694,8 +2821,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Check various options.
 	 */
 	tresult = check_options(zoptions, logctx, mctx, optlevel_zone);
-	if (tresult != ISC_R_SUCCESS)
+	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
+	}
 
 	/*
 	 * If the zone type is rbt/rbt64 then master/hint zones
@@ -2706,21 +2834,22 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	obj = NULL;
 	dlz = false;
 	tresult = cfg_map_get(zoptions, "dlz", &obj);
-	if (tresult == ISC_R_SUCCESS)
+	if (tresult == ISC_R_SUCCESS) {
 		dlz = true;
+	}
 
 	obj = NULL;
 	tresult = cfg_map_get(zoptions, "database", &obj);
 	if (dlz && tresult == ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-				    "zone '%s': cannot specify both 'dlz' "
-				    "and 'database'", znamestr);
+			    "zone '%s': cannot specify both 'dlz' "
+			    "and 'database'",
+			    znamestr);
 		result = ISC_R_FAILURE;
-	} else if (!dlz &&
-	    (tresult == ISC_R_NOTFOUND ||
-	    (tresult == ISC_R_SUCCESS &&
-	     (strcmp("rbt", cfg_obj_asstring(obj)) == 0 ||
-	      strcmp("rbt64", cfg_obj_asstring(obj)) == 0))))
+	} else if (!dlz && (tresult == ISC_R_NOTFOUND ||
+			    (tresult == ISC_R_SUCCESS &&
+			     (strcmp("rbt", cfg_obj_asstring(obj)) == 0 ||
+			      strcmp("rbt64", cfg_obj_asstring(obj)) == 0))))
 	{
 		isc_result_t res1;
 		const cfg_obj_t *fileobj = NULL;
@@ -2728,34 +2857,34 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
 		if ((tresult != ISC_R_SUCCESS &&
-		    (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_HINT ||
-		     (ztype == CFG_ZONE_SLAVE && res1 == ISC_R_SUCCESS &&
-		      cfg_obj_asboolean(obj)))))
+		     (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_HINT ||
+		      (ztype == CFG_ZONE_SLAVE && res1 == ISC_R_SUCCESS &&
+		       cfg_obj_asboolean(obj)))))
 		{
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-			    "zone '%s': missing 'file' entry",
-			    znamestr);
+				    "zone '%s': missing 'file' entry",
+				    znamestr);
 			result = tresult;
 		} else if (tresult == ISC_R_SUCCESS &&
 			   (ztype == CFG_ZONE_SLAVE ||
 			    ztype == CFG_ZONE_MIRROR || ddns))
 		{
 			tresult = fileexist(fileobj, files, true, logctx);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
+			}
 		} else if (tresult == ISC_R_SUCCESS &&
-			   (ztype == CFG_ZONE_MASTER ||
-			    ztype == CFG_ZONE_HINT))
+			   (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_HINT))
 		{
 			tresult = fileexist(fileobj, files, false, logctx);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
+			}
 		}
 	}
 
 	return (result);
 }
-
 
 typedef struct keyalgorithms {
 	const char *name;
@@ -2782,7 +2911,7 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 		{ "hmac-sha256", 256 },
 		{ "hmac-sha384", 384 },
 		{ "hmac-sha512", 512 },
-		{  NULL, 0 }
+		{ NULL, 0 }
 	};
 
 	(void)cfg_map_get(key, "algorithm", &algobj);
@@ -2798,8 +2927,8 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 	isc_buffer_init(&buf, secretbuf, sizeof(secretbuf));
 	result = isc_base64_decodestring(cfg_obj_asstring(secretobj), &buf);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(secretobj, logctx, ISC_LOG_ERROR,
-			    "bad secret '%s'", isc_result_totext(result));
+		cfg_obj_log(secretobj, logctx, ISC_LOG_ERROR, "bad secret '%s'",
+			    isc_result_totext(result));
 		return (result);
 	}
 
@@ -2809,7 +2938,9 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 		if (strncasecmp(algorithms[i].name, algorithm, len) == 0 &&
 		    (algorithm[len] == '\0' ||
 		     (algorithms[i].size != 0 && algorithm[len] == '-')))
+		{
 			break;
+		}
 	}
 	if (algorithms[i].name == NULL) {
 		cfg_obj_log(algobj, logctx, ISC_LOG_ERROR,
@@ -2824,26 +2955,28 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 			    digestbits > algorithms[i].size) {
 				cfg_obj_log(algobj, logctx, ISC_LOG_ERROR,
 					    "key '%s' digest-bits too large "
-					    "[%u..%u]", keyname,
-					    algorithms[i].size / 2,
+					    "[%u..%u]",
+					    keyname, algorithms[i].size / 2,
 					    algorithms[i].size);
 				return (ISC_R_RANGE);
 			}
 			if ((digestbits % 8) != 0) {
 				cfg_obj_log(algobj, logctx, ISC_LOG_ERROR,
 					    "key '%s' digest-bits not multiple"
-					    " of 8", keyname);
+					    " of 8",
+					    keyname);
 				return (ISC_R_RANGE);
 			}
 			/*
 			 * Recommended minima for hmac algorithms.
 			 */
 			if ((digestbits < (algorithms[i].size / 2U) ||
-			     (digestbits < 80U)))
+			     (digestbits < 80U))) {
 				cfg_obj_log(algobj, logctx, ISC_LOG_WARNING,
 					    "key '%s' digest-bits too small "
-					    "[<%u]", keyname,
-					    algorithms[i].size/2);
+					    "[<%u]",
+					    keyname, algorithms[i].size / 2);
+			}
 		} else {
 			cfg_obj_log(algobj, logctx, ISC_LOG_ERROR,
 				    "key '%s': unable to parse digest-bits",
@@ -2856,8 +2989,7 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 
 static isc_result_t
 fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
-	  isc_log_t *logctx)
-{
+	  isc_log_t *logctx) {
 	isc_result_t result;
 	isc_symvalue_t symvalue;
 	unsigned int line;
@@ -2870,8 +3002,8 @@ fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 			line = cfg_obj_line(symvalue.as_cpointer);
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "writeable file '%s': already in use: "
-				    "%s:%u", cfg_obj_asstring(obj),
-				    file, line);
+				    "%s:%u",
+				    cfg_obj_asstring(obj), file, line);
 			return (ISC_R_EXISTS);
 		}
 		result = isc_symtab_lookup(symtab, cfg_obj_asstring(obj), 2,
@@ -2881,8 +3013,8 @@ fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 			line = cfg_obj_line(symvalue.as_cpointer);
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "writeable file '%s': already in use: "
-				    "%s:%u", cfg_obj_asstring(obj),
-				    file, line);
+				    "%s:%u",
+				    cfg_obj_asstring(obj), file, line);
 			return (ISC_R_EXISTS);
 		}
 		return (ISC_R_SUCCESS);
@@ -2902,9 +3034,8 @@ fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
  * Check the key contents for validity.
  */
 static isc_result_t
-check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
-	      isc_mem_t *mctx, isc_log_t *logctx)
-{
+check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab, isc_mem_t *mctx,
+	      isc_log_t *logctx) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t fname;
 	dns_name_t *name;
@@ -2913,8 +3044,7 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
 	const cfg_listelt_t *element;
 
 	name = dns_fixedname_initname(&fname);
-	for (element = cfg_list_first(keys);
-	     element != NULL;
+	for (element = cfg_list_first(keys); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *key = cfg_listelt_value(element);
@@ -2925,8 +3055,7 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
 
 		isc_buffer_constinit(&b, keyid, strlen(keyid));
 		isc_buffer_add(&b, strlen(keyid));
-		tresult = dns_name_fromtext(name, &b, dns_rootname,
-					    0, NULL);
+		tresult = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 				    "key '%s': bad key name", keyid);
@@ -2934,8 +3063,9 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
 			continue;
 		}
 		tresult = bind9_check_key(key, logctx);
-		if (tresult != ISC_R_SUCCESS)
+		if (tresult != ISC_R_SUCCESS) {
 			return (tresult);
+		}
 
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		keyname = isc_mem_strdup(mctx, namebuf);
@@ -2946,13 +3076,15 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
 			const char *file;
 			unsigned int line;
 
-			RUNTIME_CHECK(isc_symtab_lookup(symtab, keyname,
-					    1, &symvalue) == ISC_R_SUCCESS);
+			RUNTIME_CHECK(isc_symtab_lookup(symtab, keyname, 1,
+							&symvalue) ==
+				      ISC_R_SUCCESS);
 			file = cfg_obj_file(symvalue.as_cpointer);
 			line = cfg_obj_line(symvalue.as_cpointer);
 
-			if (file == NULL)
+			if (file == NULL) {
 				file = "<unknown file>";
+			}
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 				    "key '%s': already exists "
 				    "previous definition: %s:%u",
@@ -2970,12 +3102,10 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
 static struct {
 	const char *v4;
 	const char *v6;
-} sources[] = {
-	{ "transfer-source", "transfer-source-v6" },
-	{ "notify-source", "notify-source-v6" },
-	{ "query-source", "query-source-v6" },
-	{ NULL, NULL }
-};
+} sources[] = { { "transfer-source", "transfer-source-v6" },
+		{ "notify-source", "notify-source-v6" },
+		{ "query-source", "query-source-v6" },
+		{ NULL, NULL } };
 
 /*
  * RNDC keys are not normalised unlike TSIG keys.
@@ -2988,25 +3118,25 @@ rndckey_exists(const cfg_obj_t *keylist, const char *keyname) {
 	const cfg_obj_t *obj;
 	const char *str;
 
-	if (keylist == NULL)
+	if (keylist == NULL) {
 		return (false);
+	}
 
-	for (element = cfg_list_first(keylist);
-	     element != NULL;
+	for (element = cfg_list_first(keylist); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(cfg_map_getname(obj));
-		if (!strcasecmp(str, keyname))
+		if (!strcasecmp(str, keyname)) {
 			return (true);
+		}
 	}
 	return (false);
 }
 
 static isc_result_t
 check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
-	      isc_symtab_t *symtab, isc_log_t *logctx)
-{
+	      isc_symtab_t *symtab, isc_log_t *logctx) {
 	dns_fixedname_t fname;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
@@ -3025,12 +3155,15 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	dns_name_t *keyname;
 
 	servers = NULL;
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "server", &servers);
-	if (servers == NULL)
+	}
+	if (servers == NULL) {
 		(void)cfg_map_get(config, "server", &servers);
-	if (servers == NULL)
+	}
+	if (servers == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 
 	for (e1 = cfg_list_first(servers); e1 != NULL; e1 = cfg_list_next(e1)) {
 		v1 = cfg_listelt_value(e1);
@@ -3044,22 +3177,24 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			isc_netaddr_format(&n1, buf, sizeof(buf));
 			cfg_obj_log(v1, logctx, ISC_LOG_ERROR,
 				    "server '%s/%u': invalid prefix "
-				    "(extra bits specified)", buf, p1);
+				    "(extra bits specified)",
+				    buf, p1);
 			result = tresult;
 		}
 		source = 0;
 		do {
 			obj = NULL;
-			if (n1.family == AF_INET)
+			if (n1.family == AF_INET) {
 				xfr = sources[source].v6;
-			else
+			} else {
 				xfr = sources[source].v4;
+			}
 			(void)cfg_map_get(v1, xfr, &obj);
 			if (obj != NULL) {
 				isc_netaddr_format(&n1, buf, sizeof(buf));
 				cfg_obj_log(v1, logctx, ISC_LOG_ERROR,
-					    "server '%s/%u': %s not legal",
-					    buf, p1, xfr);
+					    "server '%s/%u': %s not legal", buf,
+					    p1, xfr);
 				result = ISC_R_FAILURE;
 			}
 		} while (sources[++source].v4 != NULL);
@@ -3071,8 +3206,9 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				const char *file = cfg_obj_file(v1);
 				unsigned int line = cfg_obj_line(v1);
 
-				if (file == NULL)
+				if (file == NULL) {
 					file = "<unknown file>";
+				}
 
 				isc_netaddr_format(&n2, buf, sizeof(buf));
 				cfg_obj_log(v2, logctx, ISC_LOG_ERROR,
@@ -3112,16 +3248,15 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	return (result);
 }
 
-#define ROOT_KSK_STATIC		0x01
-#define ROOT_KSK_MANAGED	0x02
-#define ROOT_KSK_ANY		0x03
-#define ROOT_KSK_2010		0x04
-#define ROOT_KSK_2017		0x08
+#define ROOT_KSK_STATIC	 0x01
+#define ROOT_KSK_MANAGED 0x02
+#define ROOT_KSK_ANY	 0x03
+#define ROOT_KSK_2010	 0x04
+#define ROOT_KSK_2017	 0x08
 
 static isc_result_t
-check_trust_anchor(const cfg_obj_t *key, bool managed,
-		   unsigned int *flagsp, isc_log_t *logctx)
-{
+check_trust_anchor(const cfg_obj_t *key, bool managed, unsigned int *flagsp,
+		   isc_log_t *logctx) {
 	const char *str = NULL, *namestr = NULL;
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname = NULL;
@@ -3129,16 +3264,14 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 	isc_region_t r;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
-	uint32_t n1, n2, n3;
+	uint32_t rdata1, rdata2, rdata3;
 	unsigned char data[4096];
 	const char *atstr = NULL;
-	enum {
-		INIT_DNSKEY,
-		STATIC_DNSKEY,
-		INIT_DS,
-		STATIC_DS,
-		TRUSTED
-	} anchortype;
+	enum { INIT_DNSKEY,
+	       STATIC_DNSKEY,
+	       INIT_DS,
+	       STATIC_DS,
+	       TRUSTED } anchortype;
 
 	/*
 	 * The 2010 and 2017 IANA root keys - these are used below
@@ -3146,79 +3279,64 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 	 * static trust anchor configurations.
 	 */
 	static const unsigned char root_ksk_2010[] = {
-		0x03, 0x01, 0x00, 0x01, 0xa8, 0x00, 0x20, 0xa9,
-		0x55, 0x66, 0xba, 0x42, 0xe8, 0x86, 0xbb, 0x80,
-		0x4c, 0xda, 0x84, 0xe4, 0x7e, 0xf5, 0x6d, 0xbd,
-		0x7a, 0xec, 0x61, 0x26, 0x15, 0x55, 0x2c, 0xec,
-		0x90, 0x6d, 0x21, 0x16, 0xd0, 0xef, 0x20, 0x70,
-		0x28, 0xc5, 0x15, 0x54, 0x14, 0x4d, 0xfe, 0xaf,
-		0xe7, 0xc7, 0xcb, 0x8f, 0x00, 0x5d, 0xd1, 0x82,
-		0x34, 0x13, 0x3a, 0xc0, 0x71, 0x0a, 0x81, 0x18,
-		0x2c, 0xe1, 0xfd, 0x14, 0xad, 0x22, 0x83, 0xbc,
-		0x83, 0x43, 0x5f, 0x9d, 0xf2, 0xf6, 0x31, 0x32,
-		0x51, 0x93, 0x1a, 0x17, 0x6d, 0xf0, 0xda, 0x51,
-		0xe5, 0x4f, 0x42, 0xe6, 0x04, 0x86, 0x0d, 0xfb,
-		0x35, 0x95, 0x80, 0x25, 0x0f, 0x55, 0x9c, 0xc5,
-		0x43, 0xc4, 0xff, 0xd5, 0x1c, 0xbe, 0x3d, 0xe8,
-		0xcf, 0xd0, 0x67, 0x19, 0x23, 0x7f, 0x9f, 0xc4,
-		0x7e, 0xe7, 0x29, 0xda, 0x06, 0x83, 0x5f, 0xa4,
-		0x52, 0xe8, 0x25, 0xe9, 0xa1, 0x8e, 0xbc, 0x2e,
-		0xcb, 0xcf, 0x56, 0x34, 0x74, 0x65, 0x2c, 0x33,
-		0xcf, 0x56, 0xa9, 0x03, 0x3b, 0xcd, 0xf5, 0xd9,
-		0x73, 0x12, 0x17, 0x97, 0xec, 0x80, 0x89, 0x04,
-		0x1b, 0x6e, 0x03, 0xa1, 0xb7, 0x2d, 0x0a, 0x73,
-		0x5b, 0x98, 0x4e, 0x03, 0x68, 0x73, 0x09, 0x33,
-		0x23, 0x24, 0xf2, 0x7c, 0x2d, 0xba, 0x85, 0xe9,
-		0xdb, 0x15, 0xe8, 0x3a, 0x01, 0x43, 0x38, 0x2e,
-		0x97, 0x4b, 0x06, 0x21, 0xc1, 0x8e, 0x62, 0x5e,
-		0xce, 0xc9, 0x07, 0x57, 0x7d, 0x9e, 0x7b, 0xad,
-		0xe9, 0x52, 0x41, 0xa8, 0x1e, 0xbb, 0xe8, 0xa9,
-		0x01, 0xd4, 0xd3, 0x27, 0x6e, 0x40, 0xb1, 0x14,
-		0xc0, 0xa2, 0xe6, 0xfc, 0x38, 0xd1, 0x9c, 0x2e,
-		0x6a, 0xab, 0x02, 0x64, 0x4b, 0x28, 0x13, 0xf5,
-		0x75, 0xfc, 0x21, 0x60, 0x1e, 0x0d, 0xee, 0x49,
-		0xcd, 0x9e, 0xe9, 0x6a, 0x43, 0x10, 0x3e, 0x52,
-		0x4d, 0x62, 0x87, 0x3d
+		0x03, 0x01, 0x00, 0x01, 0xa8, 0x00, 0x20, 0xa9, 0x55, 0x66,
+		0xba, 0x42, 0xe8, 0x86, 0xbb, 0x80, 0x4c, 0xda, 0x84, 0xe4,
+		0x7e, 0xf5, 0x6d, 0xbd, 0x7a, 0xec, 0x61, 0x26, 0x15, 0x55,
+		0x2c, 0xec, 0x90, 0x6d, 0x21, 0x16, 0xd0, 0xef, 0x20, 0x70,
+		0x28, 0xc5, 0x15, 0x54, 0x14, 0x4d, 0xfe, 0xaf, 0xe7, 0xc7,
+		0xcb, 0x8f, 0x00, 0x5d, 0xd1, 0x82, 0x34, 0x13, 0x3a, 0xc0,
+		0x71, 0x0a, 0x81, 0x18, 0x2c, 0xe1, 0xfd, 0x14, 0xad, 0x22,
+		0x83, 0xbc, 0x83, 0x43, 0x5f, 0x9d, 0xf2, 0xf6, 0x31, 0x32,
+		0x51, 0x93, 0x1a, 0x17, 0x6d, 0xf0, 0xda, 0x51, 0xe5, 0x4f,
+		0x42, 0xe6, 0x04, 0x86, 0x0d, 0xfb, 0x35, 0x95, 0x80, 0x25,
+		0x0f, 0x55, 0x9c, 0xc5, 0x43, 0xc4, 0xff, 0xd5, 0x1c, 0xbe,
+		0x3d, 0xe8, 0xcf, 0xd0, 0x67, 0x19, 0x23, 0x7f, 0x9f, 0xc4,
+		0x7e, 0xe7, 0x29, 0xda, 0x06, 0x83, 0x5f, 0xa4, 0x52, 0xe8,
+		0x25, 0xe9, 0xa1, 0x8e, 0xbc, 0x2e, 0xcb, 0xcf, 0x56, 0x34,
+		0x74, 0x65, 0x2c, 0x33, 0xcf, 0x56, 0xa9, 0x03, 0x3b, 0xcd,
+		0xf5, 0xd9, 0x73, 0x12, 0x17, 0x97, 0xec, 0x80, 0x89, 0x04,
+		0x1b, 0x6e, 0x03, 0xa1, 0xb7, 0x2d, 0x0a, 0x73, 0x5b, 0x98,
+		0x4e, 0x03, 0x68, 0x73, 0x09, 0x33, 0x23, 0x24, 0xf2, 0x7c,
+		0x2d, 0xba, 0x85, 0xe9, 0xdb, 0x15, 0xe8, 0x3a, 0x01, 0x43,
+		0x38, 0x2e, 0x97, 0x4b, 0x06, 0x21, 0xc1, 0x8e, 0x62, 0x5e,
+		0xce, 0xc9, 0x07, 0x57, 0x7d, 0x9e, 0x7b, 0xad, 0xe9, 0x52,
+		0x41, 0xa8, 0x1e, 0xbb, 0xe8, 0xa9, 0x01, 0xd4, 0xd3, 0x27,
+		0x6e, 0x40, 0xb1, 0x14, 0xc0, 0xa2, 0xe6, 0xfc, 0x38, 0xd1,
+		0x9c, 0x2e, 0x6a, 0xab, 0x02, 0x64, 0x4b, 0x28, 0x13, 0xf5,
+		0x75, 0xfc, 0x21, 0x60, 0x1e, 0x0d, 0xee, 0x49, 0xcd, 0x9e,
+		0xe9, 0x6a, 0x43, 0x10, 0x3e, 0x52, 0x4d, 0x62, 0x87, 0x3d
 	};
 	static const unsigned char root_ksk_2017[] = {
-		0x03, 0x01, 0x00, 0x01, 0xac, 0xff, 0xb4, 0x09,
-		0xbc, 0xc9, 0x39, 0xf8, 0x31, 0xf7, 0xa1, 0xe5,
-		0xec, 0x88, 0xf7, 0xa5, 0x92, 0x55, 0xec, 0x53,
-		0x04, 0x0b, 0xe4, 0x32, 0x02, 0x73, 0x90, 0xa4,
-		0xce, 0x89, 0x6d, 0x6f, 0x90, 0x86, 0xf3, 0xc5,
-		0xe1, 0x77, 0xfb, 0xfe, 0x11, 0x81, 0x63, 0xaa,
-		0xec, 0x7a, 0xf1, 0x46, 0x2c, 0x47, 0x94, 0x59,
-		0x44, 0xc4, 0xe2, 0xc0, 0x26, 0xbe, 0x5e, 0x98,
-		0xbb, 0xcd, 0xed, 0x25, 0x97, 0x82, 0x72, 0xe1,
-		0xe3, 0xe0, 0x79, 0xc5, 0x09, 0x4d, 0x57, 0x3f,
-		0x0e, 0x83, 0xc9, 0x2f, 0x02, 0xb3, 0x2d, 0x35,
-		0x13, 0xb1, 0x55, 0x0b, 0x82, 0x69, 0x29, 0xc8,
-		0x0d, 0xd0, 0xf9, 0x2c, 0xac, 0x96, 0x6d, 0x17,
-		0x76, 0x9f, 0xd5, 0x86, 0x7b, 0x64, 0x7c, 0x3f,
-		0x38, 0x02, 0x9a, 0xbd, 0xc4, 0x81, 0x52, 0xeb,
-		0x8f, 0x20, 0x71, 0x59, 0xec, 0xc5, 0xd2, 0x32,
-		0xc7, 0xc1, 0x53, 0x7c, 0x79, 0xf4, 0xb7, 0xac,
-		0x28, 0xff, 0x11, 0x68, 0x2f, 0x21, 0x68, 0x1b,
-		0xf6, 0xd6, 0xab, 0xa5, 0x55, 0x03, 0x2b, 0xf6,
-		0xf9, 0xf0, 0x36, 0xbe, 0xb2, 0xaa, 0xa5, 0xb3,
-		0x77, 0x8d, 0x6e, 0xeb, 0xfb, 0xa6, 0xbf, 0x9e,
-		0xa1, 0x91, 0xbe, 0x4a, 0xb0, 0xca, 0xea, 0x75,
-		0x9e, 0x2f, 0x77, 0x3a, 0x1f, 0x90, 0x29, 0xc7,
-		0x3e, 0xcb, 0x8d, 0x57, 0x35, 0xb9, 0x32, 0x1d,
-		0xb0, 0x85, 0xf1, 0xb8, 0xe2, 0xd8, 0x03, 0x8f,
-		0xe2, 0x94, 0x19, 0x92, 0x54, 0x8c, 0xee, 0x0d,
-		0x67, 0xdd, 0x45, 0x47, 0xe1, 0x1d, 0xd6, 0x3a,
-		0xf9, 0xc9, 0xfc, 0x1c, 0x54, 0x66, 0xfb, 0x68,
-		0x4c, 0xf0, 0x09, 0xd7, 0x19, 0x7c, 0x2c, 0xf7,
-		0x9e, 0x79, 0x2a, 0xb5, 0x01, 0xe6, 0xa8, 0xa1,
-		0xca, 0x51, 0x9a, 0xf2, 0xcb, 0x9b, 0x5f, 0x63,
-		0x67, 0xe9, 0x4c, 0x0d, 0x47, 0x50, 0x24, 0x51,
-		0x35, 0x7b, 0xe1, 0xb5
+		0x03, 0x01, 0x00, 0x01, 0xac, 0xff, 0xb4, 0x09, 0xbc, 0xc9,
+		0x39, 0xf8, 0x31, 0xf7, 0xa1, 0xe5, 0xec, 0x88, 0xf7, 0xa5,
+		0x92, 0x55, 0xec, 0x53, 0x04, 0x0b, 0xe4, 0x32, 0x02, 0x73,
+		0x90, 0xa4, 0xce, 0x89, 0x6d, 0x6f, 0x90, 0x86, 0xf3, 0xc5,
+		0xe1, 0x77, 0xfb, 0xfe, 0x11, 0x81, 0x63, 0xaa, 0xec, 0x7a,
+		0xf1, 0x46, 0x2c, 0x47, 0x94, 0x59, 0x44, 0xc4, 0xe2, 0xc0,
+		0x26, 0xbe, 0x5e, 0x98, 0xbb, 0xcd, 0xed, 0x25, 0x97, 0x82,
+		0x72, 0xe1, 0xe3, 0xe0, 0x79, 0xc5, 0x09, 0x4d, 0x57, 0x3f,
+		0x0e, 0x83, 0xc9, 0x2f, 0x02, 0xb3, 0x2d, 0x35, 0x13, 0xb1,
+		0x55, 0x0b, 0x82, 0x69, 0x29, 0xc8, 0x0d, 0xd0, 0xf9, 0x2c,
+		0xac, 0x96, 0x6d, 0x17, 0x76, 0x9f, 0xd5, 0x86, 0x7b, 0x64,
+		0x7c, 0x3f, 0x38, 0x02, 0x9a, 0xbd, 0xc4, 0x81, 0x52, 0xeb,
+		0x8f, 0x20, 0x71, 0x59, 0xec, 0xc5, 0xd2, 0x32, 0xc7, 0xc1,
+		0x53, 0x7c, 0x79, 0xf4, 0xb7, 0xac, 0x28, 0xff, 0x11, 0x68,
+		0x2f, 0x21, 0x68, 0x1b, 0xf6, 0xd6, 0xab, 0xa5, 0x55, 0x03,
+		0x2b, 0xf6, 0xf9, 0xf0, 0x36, 0xbe, 0xb2, 0xaa, 0xa5, 0xb3,
+		0x77, 0x8d, 0x6e, 0xeb, 0xfb, 0xa6, 0xbf, 0x9e, 0xa1, 0x91,
+		0xbe, 0x4a, 0xb0, 0xca, 0xea, 0x75, 0x9e, 0x2f, 0x77, 0x3a,
+		0x1f, 0x90, 0x29, 0xc7, 0x3e, 0xcb, 0x8d, 0x57, 0x35, 0xb9,
+		0x32, 0x1d, 0xb0, 0x85, 0xf1, 0xb8, 0xe2, 0xd8, 0x03, 0x8f,
+		0xe2, 0x94, 0x19, 0x92, 0x54, 0x8c, 0xee, 0x0d, 0x67, 0xdd,
+		0x45, 0x47, 0xe1, 0x1d, 0xd6, 0x3a, 0xf9, 0xc9, 0xfc, 0x1c,
+		0x54, 0x66, 0xfb, 0x68, 0x4c, 0xf0, 0x09, 0xd7, 0x19, 0x7c,
+		0x2c, 0xf7, 0x9e, 0x79, 0x2a, 0xb5, 0x01, 0xe6, 0xa8, 0xa1,
+		0xca, 0x51, 0x9a, 0xf2, 0xcb, 0x9b, 0x5f, 0x63, 0x67, 0xe9,
+		0x4c, 0x0d, 0x47, 0x50, 0x24, 0x51, 0x35, 0x7b, 0xe1, 0xb5
 	};
 	static const unsigned char root_ds_1_2017[] = {
-		0xae, 0x1e, 0xa5, 0xb9, 0x74, 0xd4, 0xc8, 0x58,
-		0xb7, 0x40, 0xbd, 0x03, 0xe3, 0xce, 0xd7, 0xeb,
-		0xfc, 0xbd, 0x17, 0x24
+		0xae, 0x1e, 0xa5, 0xb9, 0x74, 0xd4, 0xc8, 0x58, 0xb7, 0x40,
+		0xbd, 0x03, 0xe3, 0xce, 0xd7, 0xeb, 0xfc, 0xbd, 0x17, 0x24
 	};
 	static const unsigned char root_ds_2_2017[] = {
 		0xe0, 0x6d, 0x44, 0xb8, 0x0b, 0x8f, 0x1d, 0x39,
@@ -3228,13 +3346,13 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 	};
 
 	/* if DNSKEY, flags; if DS, key tag */
-	n1 = cfg_obj_asuint32(cfg_tuple_get(key, "n1"));
+	rdata1 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata1"));
 
 	/* if DNSKEY, protocol; if DS, algorithm */
-	n2 = cfg_obj_asuint32(cfg_tuple_get(key, "n2"));
+	rdata2 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata2"));
 
 	/* if DNSKEY, algorithm; if DS, digest type */
-	n3 = cfg_obj_asuint32(cfg_tuple_get(key, "n3"));
+	rdata3 = cfg_obj_asuint32(cfg_tuple_get(key, "rdata3"));
 
 	namestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 
@@ -3279,27 +3397,27 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 		anchortype = TRUSTED;
 	}
 
-	switch(anchortype) {
+	switch (anchortype) {
 	case INIT_DNSKEY:
 	case STATIC_DNSKEY:
 	case TRUSTED:
-		if (n1 > 0xffff) {
+		if (rdata1 > 0xffff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "flags too big: %u", n1);
+				    "flags too big: %u", rdata1);
 			result = ISC_R_RANGE;
 		}
-		if (n1 & DNS_KEYFLAG_REVOKE) {
+		if (rdata1 & DNS_KEYFLAG_REVOKE) {
 			cfg_obj_log(key, logctx, ISC_LOG_WARNING,
 				    "key flags revoke bit set");
 		}
-		if (n2 > 0xff)  {
+		if (rdata2 > 0xff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "protocol too big: %u", n2);
+				    "protocol too big: %u", rdata2);
 			result = ISC_R_RANGE;
 		}
-		if (n3 > 0xff) {
+		if (rdata3 > 0xff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "algorithm too big: %u\n", n3);
+				    "algorithm too big: %u\n", rdata3);
 			result = ISC_R_RANGE;
 		}
 
@@ -3309,14 +3427,14 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 		tresult = isc_base64_decodestring(str, &b);
 
 		if (tresult != ISC_R_SUCCESS) {
-			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "%s", isc_result_totext(tresult));
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR, "%s",
+				    isc_result_totext(tresult));
 			result = ISC_R_FAILURE;
 		} else {
 			isc_buffer_usedregion(&b, &r);
 
-			if ((n3 == DST_ALG_RSASHA1) &&
-			    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
+			if ((rdata3 == DST_ALG_RSASHA1) && r.length > 1 &&
+			    r.base[0] == 1 && r.base[1] == 3)
 			{
 				cfg_obj_log(key, logctx, ISC_LOG_WARNING,
 					    "%s '%s' has a weak exponent",
@@ -3329,11 +3447,10 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 			/*
 			 * Flag any use of a root key, regardless of content.
 			 */
-			*flagsp |=
-				(managed ? ROOT_KSK_MANAGED : ROOT_KSK_STATIC);
+			*flagsp |= (managed ? ROOT_KSK_MANAGED
+					    : ROOT_KSK_STATIC);
 
-
-			if (n1 == 257 && n2 == 3 && n3 == 8 &&
+			if (rdata1 == 257 && rdata2 == 3 && rdata3 == 8 &&
 			    (isc_buffer_usedlength(&b) ==
 			     sizeof(root_ksk_2010)) &&
 			    memcmp(data, root_ksk_2010,
@@ -3342,7 +3459,7 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 				*flagsp |= ROOT_KSK_2010;
 			}
 
-			if (n1 == 257 && n2 == 3 && n3 == 8 &&
+			if (rdata1 == 257 && rdata2 == 3 && rdata3 == 8 &&
 			    (isc_buffer_usedlength(&b) ==
 			     sizeof(root_ksk_2017)) &&
 			    memcmp(data, root_ksk_2017,
@@ -3355,19 +3472,19 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 
 	case INIT_DS:
 	case STATIC_DS:
-		if (n1 > 0xffff) {
+		if (rdata1 > 0xffff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "key tag too big: %u", n1);
+				    "key tag too big: %u", rdata1);
 			result = ISC_R_RANGE;
 		}
-		if (n2 > 0xff) {
+		if (rdata2 > 0xff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "algorithm too big: %u\n", n2);
+				    "algorithm too big: %u\n", rdata2);
 			result = ISC_R_RANGE;
 		}
-		if (n3 > 0xff) {
+		if (rdata3 > 0xff) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "digest type too big: %u", 32);
+				    "digest type too big: %u", rdata3);
 			result = ISC_R_RANGE;
 		}
 
@@ -3377,8 +3494,8 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 		tresult = isc_hex_decodestring(str, &b);
 
 		if (tresult != ISC_R_SUCCESS) {
-			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "%s", isc_result_totext(tresult));
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR, "%s",
+				    isc_result_totext(tresult));
 			result = ISC_R_FAILURE;
 		}
 		if (result == ISC_R_SUCCESS &&
@@ -3386,10 +3503,10 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 			/*
 			 * Flag any use of a root key, regardless of content.
 			 */
-			*flagsp |=
-				(managed ? ROOT_KSK_MANAGED : ROOT_KSK_STATIC);
+			*flagsp |= (managed ? ROOT_KSK_MANAGED
+					    : ROOT_KSK_STATIC);
 
-			if (n1 == 20326 && n2 == 8 && n3 == 1 &&
+			if (rdata1 == 20326 && rdata2 == 8 && rdata3 == 1 &&
 			    (isc_buffer_usedlength(&b) ==
 			     sizeof(root_ds_1_2017)) &&
 			    memcmp(data, root_ds_1_2017,
@@ -3398,7 +3515,7 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 				*flagsp |= ROOT_KSK_2017;
 			}
 
-			if (n1 == 20326 && n2 == 8 && n3 == 2 &&
+			if (rdata1 == 20326 && rdata2 == 8 && rdata3 == 2 &&
 			    (isc_buffer_usedlength(&b) ==
 			     sizeof(root_ds_2_2017)) &&
 			    memcmp(data, root_ds_2_2017,
@@ -3410,15 +3527,14 @@ check_trust_anchor(const cfg_obj_t *key, bool managed,
 		break;
 	}
 
- cleanup:
+cleanup:
 	return (result);
 }
 
 static isc_result_t
 record_static_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 		   const cfg_obj_t *keylist, isc_log_t *logctx,
-		   bool autovalidation)
-{
+		   bool autovalidation) {
 	isc_result_t result, ret = ISC_R_SUCCESS;
 	const cfg_listelt_t *elt;
 	dns_fixedname_t fixed;
@@ -3427,10 +3543,8 @@ record_static_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 
 	name = dns_fixedname_initname(&fixed);
 
-	for (elt = cfg_list_first(keylist);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	for (elt = cfg_list_first(keylist); elt != NULL;
+	     elt = cfg_list_next(elt)) {
 		const char *initmethod;
 		const cfg_obj_t *init = NULL;
 		const cfg_obj_t *obj = cfg_listelt_value(elt);
@@ -3483,8 +3597,7 @@ record_static_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 
 static isc_result_t
 check_initializing_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
-			isc_log_t *logctx)
-{
+			isc_log_t *logctx) {
 	isc_result_t result, ret = ISC_R_SUCCESS;
 	const cfg_listelt_t *elt;
 	dns_fixedname_t fixed;
@@ -3493,10 +3606,8 @@ check_initializing_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
 
 	name = dns_fixedname_initname(&fixed);
 
-	for (elt = cfg_list_first(keylist);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	for (elt = cfg_list_first(keylist); elt != NULL;
+	     elt = cfg_list_next(elt)) {
 		const cfg_obj_t *obj = cfg_listelt_value(elt);
 		const cfg_obj_t *init = NULL;
 		const char *str;
@@ -3530,7 +3641,8 @@ check_initializing_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
 				    "cannot be used for the "
 				    "same domain. "
 				    "static key defined at "
-				    "%s:%u", file, line);
+				    "%s:%u",
+				    file, line);
 
 			ret = ISC_R_FAILURE;
 		}
@@ -3540,8 +3652,8 @@ check_initializing_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
 }
 
 static isc_result_t
-record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx, const cfg_obj_t *keylist)
-{
+record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
+	       const cfg_obj_t *keylist) {
 	isc_result_t result, ret = ISC_R_SUCCESS;
 	const cfg_listelt_t *elt;
 	dns_fixedname_t fixed;
@@ -3550,10 +3662,8 @@ record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx, const cfg_obj_t *keylist)
 
 	name = dns_fixedname_initname(&fixed);
 
-	for (elt = cfg_list_first(keylist);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	for (elt = cfg_list_first(keylist); elt != NULL;
+	     elt = cfg_list_next(elt)) {
 		const char *initmethod;
 		const cfg_obj_t *init = NULL;
 		const cfg_obj_t *obj = cfg_listelt_value(elt);
@@ -3593,72 +3703,13 @@ record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx, const cfg_obj_t *keylist)
 	return (ret);
 }
 
-static isc_result_t
-check_non_ds_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
-		  isc_log_t *logctx)
-{
-	isc_result_t result, ret = ISC_R_SUCCESS;
-	const cfg_listelt_t *elt;
-	dns_fixedname_t fixed;
-	dns_name_t *name;
-	char namebuf[DNS_NAME_FORMATSIZE];
-
-	name = dns_fixedname_initname(&fixed);
-
-	for (elt = cfg_list_first(keylist);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
-		const cfg_obj_t *obj = cfg_listelt_value(elt);
-		const cfg_obj_t *init = NULL;
-		const char *str;
-		isc_symvalue_t symvalue;
-
-		init = cfg_tuple_get(obj, "anchortype");
-		if (cfg_obj_isvoid(init) ||
-		    strcasecmp(cfg_obj_asstring(init), "static-ds") == 0 ||
-		    strcasecmp(cfg_obj_asstring(init), "initial-ds") == 0)
-		{
-			/* DS-style entry, skip it */
-			continue;
-		}
-
-		str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
-		result = dns_name_fromstring(name, str, 0, NULL);
-		if (result != ISC_R_SUCCESS) {
-			continue;
-		}
-
-		dns_name_format(name, namebuf, sizeof(namebuf));
-		result = isc_symtab_lookup(symtab, namebuf, 1, &symvalue);
-		if (result == ISC_R_SUCCESS) {
-			const char *file = cfg_obj_file(symvalue.as_cpointer);
-			unsigned int line = cfg_obj_line(symvalue.as_cpointer);
-			if (file == NULL) {
-				file = "<unknown file>";
-			}
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "ds-style and key-style keys "
-				    "cannot be used for the "
-				    "same domain. "
-				    "ds-style defined at "
-				    "%s:%u", file, line);
-
-			ret = ISC_R_FAILURE;
-		}
-	}
-
-	return (ret);
-}
-
 /*
  * Check for conflicts between static and initialiizing keys.
  */
 static isc_result_t
-check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
+check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 		   const cfg_obj_t *global_tkeys, const cfg_obj_t *view_tkeys,
-		   bool autovalidation, isc_mem_t *mctx, isc_log_t *logctx)
-{
+		   bool autovalidation, isc_mem_t *mctx, isc_log_t *logctx) {
 	isc_result_t result, tresult;
 	const cfg_listelt_t *elt = NULL;
 	const cfg_obj_t *keylist = NULL;
@@ -3676,16 +3727,14 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 
 	/*
 	 * First we record all the static keys (i.e., old-style
-	 * trusted-keys and dnssec-keys configured with "static-key"),
+	 * trusted-keys and trust-anchors configured with "static-key"),
 	 * and all the DS-style trust anchors.
 	 */
-	for (elt = cfg_list_first(global_dkeys);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	for (elt = cfg_list_first(global_ta); elt != NULL;
+	     elt = cfg_list_next(elt)) {
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(statictab, mctx, keylist,
-					     logctx, autovalidation);
+		tresult = record_static_keys(statictab, mctx, keylist, logctx,
+					     autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3696,13 +3745,11 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 		}
 	}
 
-	for (elt = cfg_list_first(view_dkeys);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	for (elt = cfg_list_first(view_ta); elt != NULL;
+	     elt = cfg_list_next(elt)) {
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(statictab, mctx, keylist,
-					     logctx, autovalidation);
+		tresult = record_static_keys(statictab, mctx, keylist, logctx,
+					     autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3713,25 +3760,21 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 		}
 	}
 
-	for (elt = cfg_list_first(global_tkeys);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	for (elt = cfg_list_first(global_tkeys); elt != NULL;
+	     elt = cfg_list_next(elt)) {
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(statictab, mctx, keylist,
-					     logctx, autovalidation);
+		tresult = record_static_keys(statictab, mctx, keylist, logctx,
+					     autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
 	}
 
-	for (elt = cfg_list_first(view_tkeys);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	for (elt = cfg_list_first(view_tkeys); elt != NULL;
+	     elt = cfg_list_next(elt)) {
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(statictab, mctx, keylist,
-					     logctx, autovalidation);
+		tresult = record_static_keys(statictab, mctx, keylist, logctx,
+					     autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3739,42 +3782,27 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 
 	/*
 	 * Next, ensure that there's no conflict between the
-	 * static keys and the dnssec-keys configured with "initial-key",
-	 * or between DS-style and DNSKEY-style dnssec-keys.
+	 * static keys and the trust-anchors configured with "initial-key".
 	 */
-	for (elt = cfg_list_first(global_dkeys);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	for (elt = cfg_list_first(global_ta); elt != NULL;
+	     elt = cfg_list_next(elt)) {
 		keylist = cfg_listelt_value(elt);
 		tresult = check_initializing_keys(statictab, keylist, logctx);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
-
-		tresult = check_non_ds_keys(dstab, keylist, logctx);
-		if (result == ISC_R_SUCCESS) {
-			result = tresult;
-		}
 	}
 
-	for (elt = cfg_list_first(view_dkeys);
-	     elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	for (elt = cfg_list_first(view_ta); elt != NULL;
+	     elt = cfg_list_next(elt)) {
 		keylist = cfg_listelt_value(elt);
 		tresult = check_initializing_keys(statictab, keylist, logctx);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
-
-		tresult = check_non_ds_keys(dstab, keylist, logctx);
-		if (result == ISC_R_SUCCESS) {
-			result = tresult;
-		}
 	}
 
- cleanup:
+cleanup:
 	if (statictab != NULL) {
 		isc_symtab_destroy(&statictab);
 	}
@@ -3784,16 +3812,12 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	return (result);
 }
 
-typedef enum {
-	special_zonetype_rpz,
-	special_zonetype_catz
-} special_zonetype_t;
+typedef enum { special_zonetype_rpz, special_zonetype_catz } special_zonetype_t;
 
 static isc_result_t
 check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	       const char *viewname, isc_symtab_t *symtab, isc_log_t *logctx,
-	       special_zonetype_t specialzonetype)
-{
+	       special_zonetype_t specialzonetype) {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *obj, *nameobj, *zoneobj;
 	const char *zonename, *zonetype;
@@ -3814,8 +3838,7 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	name = dns_fixedname_initname(&fixed);
 	obj = cfg_tuple_get(rpz_obj, "zone list");
 
-	for (element = cfg_list_first(obj);
-	     element != NULL;
+	for (element = cfg_list_first(obj); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		obj = cfg_listelt_value(element);
@@ -3827,7 +3850,8 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 			if (++num_zones > 64) {
 				cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
 					    "more than 64 response policy "
-					    "zones in view '%s'", viewname);
+					    "zones in view '%s'",
+					    viewname);
 				return (ISC_R_FAILURE);
 			}
 		}
@@ -3835,9 +3859,10 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 		tresult = dns_name_fromstring(name, zonename, 0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
-				   "bad domain name '%s'", zonename);
-			if (result == ISC_R_SUCCESS)
+				    "bad domain name '%s'", zonename);
+			if (result == ISC_R_SUCCESS) {
 				result = tresult;
+			}
 			continue;
 		}
 		dns_name_format(name, namebuf, sizeof(namebuf));
@@ -3845,12 +3870,15 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 		if (tresult == ISC_R_SUCCESS) {
 			obj = NULL;
 			zoneobj = value.as_cpointer;
-			if (zoneobj != NULL && cfg_obj_istuple(zoneobj))
+			if (zoneobj != NULL && cfg_obj_istuple(zoneobj)) {
 				zoneobj = cfg_tuple_get(zoneobj, "options");
-			if (zoneobj != NULL && cfg_obj_ismap(zoneobj))
+			}
+			if (zoneobj != NULL && cfg_obj_ismap(zoneobj)) {
 				(void)cfg_map_get(zoneobj, "type", &obj);
-			if (obj != NULL)
+			}
+			if (obj != NULL) {
 				zonetype = cfg_obj_asstring(obj);
+			}
 		}
 		if (strcasecmp(zonetype, "primary") != 0 &&
 		    strcasecmp(zonetype, "master") != 0 &&
@@ -3860,8 +3888,9 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 			cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
 				    "%s '%s'%s%s is not a master or slave zone",
 				    rpz_catz, zonename, forview, viewname);
-			if (result == ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
+			}
 		}
 	}
 	return (result);
@@ -3888,14 +3917,13 @@ struct check_one_plugin_data {
 static isc_result_t
 check_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 		 const char *plugin_path, const char *parameters,
-		 void *callback_data)
-{
+		 void *callback_data) {
 	struct check_one_plugin_data *data = callback_data;
 	char full_path[PATH_MAX];
 	isc_result_t result;
 
-	result = ns_plugin_expandpath(plugin_path,
-				      full_path, sizeof(full_path));
+	result = ns_plugin_expandpath(plugin_path, full_path,
+				      sizeof(full_path));
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, data->lctx, ISC_LOG_ERROR,
 			    "%s: plugin check failed: "
@@ -3909,35 +3937,34 @@ check_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 				 data->mctx, data->lctx, data->actx);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, data->lctx, ISC_LOG_ERROR,
-			    "%s: plugin check failed: %s",
-			    full_path, isc_result_totext(result));
+			    "%s: plugin check failed: %s", full_path,
+			    isc_result_totext(result));
 		*data->check_result = result;
 	}
 
 	return (ISC_R_SUCCESS);
 }
-#endif
+#endif /* ifdef HAVE_DLOPEN */
 
 static isc_result_t
 check_dnstap(const cfg_obj_t *voptions, const cfg_obj_t *config,
-	     isc_log_t *logctx)
-{
+	     isc_log_t *logctx) {
 #ifdef HAVE_DNSTAP
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *obj = NULL;
 
 	if (config != NULL) {
-		(void) cfg_map_get(config, "options", &options);
+		(void)cfg_map_get(config, "options", &options);
 	}
 	if (options != NULL) {
-		(void) cfg_map_get(options, "dnstap-output", &obj);
+		(void)cfg_map_get(options, "dnstap-output", &obj);
 	}
 	if (obj == NULL) {
 		if (voptions != NULL) {
-			(void) cfg_map_get(voptions, "dnstap", &obj);
+			(void)cfg_map_get(voptions, "dnstap", &obj);
 		}
 		if (options != NULL && obj == NULL) {
-			(void) cfg_map_get(options, "dnstap", &obj);
+			(void)cfg_map_get(options, "dnstap", &obj);
 		}
 		if (obj != NULL) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
@@ -3947,30 +3974,29 @@ check_dnstap(const cfg_obj_t *voptions, const cfg_obj_t *config,
 		}
 	}
 	return (ISC_R_SUCCESS);
-#else
+#else  /* ifdef HAVE_DNSTAP */
 	UNUSED(voptions);
 	UNUSED(config);
 	UNUSED(logctx);
 
 	return (ISC_R_SUCCESS);
-#endif
+#endif /* ifdef HAVE_DNSTAP */
 }
 
 static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
 	       isc_symtab_t *files, bool check_plugins, isc_symtab_t *inview,
-	       isc_log_t *logctx, isc_mem_t *mctx)
-{
+	       isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *zones = NULL;
 	const cfg_obj_t *view_tkeys = NULL, *global_tkeys = NULL;
 	const cfg_obj_t *view_mkeys = NULL, *global_mkeys = NULL;
-	const cfg_obj_t *view_dkeys = NULL, *global_dkeys = NULL;
+	const cfg_obj_t *view_ta = NULL, *global_ta = NULL;
 	const cfg_obj_t *check_keys[2] = { NULL, NULL };
 	const cfg_obj_t *keys = NULL;
 #ifndef HAVE_DLOPEN
 	const cfg_obj_t *dyndb = NULL;
-#endif
+#endif /* ifndef HAVE_DLOPEN */
 	const cfg_listelt_t *element, *element2;
 	isc_symtab_t *symtab = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -3992,53 +4018,57 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	/*
 	 * The most relevant options for this view
 	 */
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		opts = voptions;
-	else
+	} else {
 		opts = options;
+	}
 
 	/*
 	 * Check that all zone statements are syntactically correct and
 	 * there are no duplicate zones.
 	 */
-	tresult = isc_symtab_create(mctx, 1000, freekey, mctx,
-				    false, &symtab);
-	if (tresult != ISC_R_SUCCESS)
+	tresult = isc_symtab_create(mctx, 1000, freekey, mctx, false, &symtab);
+	if (tresult != ISC_R_SUCCESS) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	cfg_aclconfctx_create(mctx, &actx);
 
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "zone", &zones);
-	else
+	} else {
 		(void)cfg_map_get(config, "zone", &zones);
+	}
 
-	for (element = cfg_list_first(zones);
-	     element != NULL;
+	for (element = cfg_list_first(zones); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *zone = cfg_listelt_value(element);
 
-		tresult = check_zoneconf(zone, voptions, config, symtab,
-					 files, inview, viewname, vclass,
-					 actx, logctx, mctx);
-		if (tresult != ISC_R_SUCCESS)
+		tresult = check_zoneconf(zone, voptions, config, symtab, files,
+					 inview, viewname, vclass, actx, logctx,
+					 mctx);
+		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
+		}
 	}
 
 #ifndef HAVE_DLOPEN
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "dyndb", &dyndb);
-	else
+	} else {
 		(void)cfg_map_get(config, "dyndb", &dyndb);
+	}
 
 	if (dyndb != NULL) {
 		cfg_obj_log(dyndb, logctx, ISC_LOG_ERROR,
 			    "dynamic loading of databases is not supported");
-		if (tresult != ISC_R_SUCCESS)
+		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_NOTIMPLEMENTED;
+		}
 	}
-#endif
+#endif /* ifndef HAVE_DLOPEN */
 
 	/*
 	 * Check that the response-policy and catalog-zones options
@@ -4046,20 +4076,20 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 */
 	if (opts != NULL) {
 		obj = NULL;
-		if ((cfg_map_get(opts, "response-policy",
-				 &obj) == ISC_R_SUCCESS) &&
-		    (check_rpz_catz("response-policy zone", obj,
-				    viewname, symtab, logctx,
+		if ((cfg_map_get(opts, "response-policy", &obj) ==
+		     ISC_R_SUCCESS) &&
+		    (check_rpz_catz("response-policy zone", obj, viewname,
+				    symtab, logctx,
 				    special_zonetype_rpz) != ISC_R_SUCCESS))
 		{
 			result = ISC_R_FAILURE;
 		}
 
 		obj = NULL;
-		if ((cfg_map_get(opts, "catalog-zones",
-				 &obj) == ISC_R_SUCCESS) &&
-		    (check_rpz_catz("catalog zone", obj,
-				    viewname, symtab, logctx,
+		if ((cfg_map_get(opts, "catalog-zones", &obj) ==
+		     ISC_R_SUCCESS) &&
+		    (check_rpz_catz("catalog zone", obj, viewname, symtab,
+				    logctx,
 				    special_zonetype_catz) != ISC_R_SUCCESS))
 		{
 			result = ISC_R_FAILURE;
@@ -4072,42 +4102,50 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that forwarding is reasonable.
 	 */
 	if (opts != NULL && check_forward(opts, NULL, logctx) != ISC_R_SUCCESS)
+	{
 		result = ISC_R_FAILURE;
+	}
 
 	/*
 	 * Check non-zero options at the global and view levels.
 	 */
 	if (options != NULL && check_nonzero(options, logctx) != ISC_R_SUCCESS)
+	{
 		result = ISC_R_FAILURE;
-	if (voptions != NULL &&check_nonzero(voptions, logctx) != ISC_R_SUCCESS)
+	}
+	if (voptions != NULL &&
+	    check_nonzero(voptions, logctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
+	}
 
 	/*
 	 * Check that dual-stack-servers is reasonable.
 	 */
-	if (opts != NULL && check_dual_stack(opts, logctx) != ISC_R_SUCCESS)
+	if (opts != NULL && check_dual_stack(opts, logctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
+	}
 
 	/*
 	 * Check that rrset-order is reasonable.
 	 */
-	if (opts != NULL && check_order(opts, logctx) != ISC_R_SUCCESS)
+	if (opts != NULL && check_order(opts, logctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
+	}
 
 	/*
 	 * Check that all key statements are syntactically correct and
 	 * there are no duplicate keys.
 	 */
-	tresult = isc_symtab_create(mctx, 1000, freekey, mctx,
-				    false, &symtab);
-	if (tresult != ISC_R_SUCCESS)
+	tresult = isc_symtab_create(mctx, 1000, freekey, mctx, false, &symtab);
+	if (tresult != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	(void)cfg_map_get(config, "key", &keys);
 	tresult = check_keylist(keys, symtab, mctx, logctx);
-	if (tresult == ISC_R_EXISTS)
+	if (tresult == ISC_R_EXISTS) {
 		result = ISC_R_FAILURE;
-	else if (tresult != ISC_R_SUCCESS) {
+	} else if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 		goto cleanup;
 	}
@@ -4116,9 +4154,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		keys = NULL;
 		(void)cfg_map_get(voptions, "key", &keys);
 		tresult = check_keylist(keys, symtab, mctx, logctx);
-		if (tresult == ISC_R_EXISTS)
+		if (tresult == ISC_R_EXISTS) {
 			result = ISC_R_FAILURE;
-		else if (tresult != ISC_R_SUCCESS) {
+		} else if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
 			goto cleanup;
 		}
@@ -4127,8 +4165,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	/*
 	 * Global servers can refer to keys in views.
 	 */
-	if (check_servers(config, voptions, symtab, logctx) != ISC_R_SUCCESS)
+	if (check_servers(config, voptions, symtab, logctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
+	}
 
 	isc_symtab_destroy(&symtab);
 
@@ -4137,11 +4176,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 */
 	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "trusted-keys", &view_tkeys);
-		(void)cfg_map_get(voptions, "dnssec-keys", &view_dkeys);
+		(void)cfg_map_get(voptions, "trust-anchors", &view_ta);
 		(void)cfg_map_get(voptions, "managed-keys", &view_mkeys);
 	}
 	(void)cfg_map_get(config, "trusted-keys", &global_tkeys);
-	(void)cfg_map_get(config, "dnssec-keys", &global_dkeys);
+	(void)cfg_map_get(config, "trust-anchors", &global_ta);
 	(void)cfg_map_get(config, "managed-keys", &global_mkeys);
 
 	/*
@@ -4154,8 +4193,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			unsigned int flags = 0;
 
 			for (element = cfg_list_first(check_keys[i]);
-			     element != NULL;
-			     element = cfg_list_next(element))
+			     element != NULL; element = cfg_list_next(element))
 			{
 				const cfg_obj_t *keylist =
 					cfg_listelt_value(element);
@@ -4164,9 +4202,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				     element2 = cfg_list_next(element2))
 				{
 					obj = cfg_listelt_value(element2);
-					tresult = check_trust_anchor(obj, false,
-								    &flags,
-								    logctx);
+					tresult = check_trust_anchor(
+						obj, false, &flags, logctx);
 					if (tresult != ISC_R_SUCCESS) {
 						result = tresult;
 					}
@@ -4178,7 +4215,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    ISC_LOG_WARNING,
 					    "trusted-keys entry for the root "
 					    "zone WILL FAIL after key "
-					    "rollover - use dnssec-keys "
+					    "rollover - use trust-anchors "
 					    "with initial-key "
 					    "or initial-ds instead.");
 			}
@@ -4191,31 +4228,29 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check dnssec/managed-keys. (Only one or the other can be used.)
 	 */
 	if ((view_mkeys != NULL || global_mkeys != NULL) &&
-	    (view_dkeys != NULL || global_dkeys != NULL))
+	    (view_ta != NULL || global_ta != NULL))
 	{
 		keys = (view_mkeys != NULL) ? view_mkeys : global_mkeys;
 
 		cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
 			    "use of managed-keys is not allowed when "
-			    "dnssec-keys is also in use");
+			    "trust-anchors is also in use");
 		result = ISC_R_FAILURE;
-
 	}
 
-	if (view_dkeys == NULL && global_dkeys == NULL) {
-		view_dkeys = view_mkeys;
-		global_dkeys = global_mkeys;
+	if (view_ta == NULL && global_ta == NULL) {
+		view_ta = view_mkeys;
+		global_ta = global_mkeys;
 	}
 
-	check_keys[0] = view_dkeys;
-	check_keys[1] = global_dkeys;
+	check_keys[0] = view_ta;
+	check_keys[1] = global_ta;
 	for (i = 0; i < 2; i++) {
 		if (check_keys[i] != NULL) {
 			unsigned int flags = 0;
 
 			for (element = cfg_list_first(check_keys[i]);
-			     element != NULL;
-			     element = cfg_list_next(element))
+			     element != NULL; element = cfg_list_next(element))
 			{
 				const cfg_obj_t *keylist =
 					cfg_listelt_value(element);
@@ -4224,9 +4259,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				     element2 = cfg_list_next(element2))
 				{
 					obj = cfg_listelt_value(element2);
-					tresult = check_trust_anchor(obj, true,
-								    &flags,
-								    logctx);
+					tresult = check_trust_anchor(
+						obj, true, &flags, logctx);
 					if (tresult != ISC_R_SUCCESS) {
 						result = tresult;
 					}
@@ -4238,14 +4272,13 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    ISC_LOG_WARNING,
 					    "static entry for the root "
 					    "zone WILL FAIL after key "
-					    "rollover - use dnssec-keys "
+					    "rollover - use trust-anchors "
 					    "with initial-key "
 					    "or initial-ds instead.");
 			}
 
 			if ((flags & ROOT_KSK_2010) != 0 &&
-			    (flags & ROOT_KSK_2017) == 0)
-			{
+			    (flags & ROOT_KSK_2017) == 0) {
 				cfg_obj_log(check_keys[i], logctx,
 					    ISC_LOG_WARNING,
 					    "initial-key entry for the root "
@@ -4258,14 +4291,14 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	}
 
 	if ((tflags & ROOT_KSK_ANY) != 0 && (dflags & ROOT_KSK_ANY) != 0) {
-		keys = (view_dkeys != NULL) ? view_dkeys : global_dkeys;
+		keys = (view_ta != NULL) ? view_ta : global_ta;
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "both trusted-keys and dnssec-keys "
+			    "both trusted-keys and trust-anchors "
 			    "for the root zone are present");
 	}
 
 	if ((dflags & ROOT_KSK_ANY) == ROOT_KSK_ANY) {
-		keys = (view_dkeys != NULL) ? view_dkeys : global_dkeys;
+		keys = (view_ta != NULL) ? view_ta : global_ta;
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
 			    "both initial and static entries for the "
 			    "root zone are present");
@@ -4282,9 +4315,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		autovalidation = true;
 	}
 
-	tresult = check_ta_conflicts(global_dkeys, view_dkeys,
-				     global_tkeys, view_tkeys,
-				     autovalidation, mctx, logctx);
+	tresult = check_ta_conflicts(global_ta, view_ta, global_tkeys,
+				     view_tkeys, autovalidation, mctx, logctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
@@ -4293,11 +4325,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check options.
 	 */
 	if (voptions != NULL) {
-		tresult = check_options(voptions, logctx, mctx,
-					optlevel_view);
+		tresult = check_options(voptions, logctx, mctx, optlevel_view);
 	} else {
-		tresult = check_options(config, logctx, mctx,
-					optlevel_config);
+		tresult = check_options(config, logctx, mctx, optlevel_config);
 	}
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
@@ -4313,8 +4343,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		result = tresult;
 	}
 
-	tresult = check_recursionacls(actx, voptions, viewname,
-				      config, logctx, mctx);
+	tresult = check_recursionacls(actx, voptions, viewname, config, logctx,
+				      mctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
@@ -4358,28 +4388,23 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	}
 #endif /* HAVE_DLOPEN */
 
- cleanup:
-	if (symtab != NULL)
+cleanup:
+	if (symtab != NULL) {
 		isc_symtab_destroy(&symtab);
-	if (actx != NULL)
+	}
+	if (actx != NULL) {
 		cfg_aclconfctx_detach(&actx);
+	}
 
 	return (result);
 }
 
-static const char *
-default_channels[] = {
-	"default_syslog",
-	"default_stderr",
-	"default_debug",
-	"null",
-	NULL
-};
+static const char *default_channels[] = { "default_syslog", "default_stderr",
+					  "default_debug", "null", NULL };
 
 static isc_result_t
 bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
-		    isc_mem_t *mctx)
-{
+		    isc_mem_t *mctx) {
 	const cfg_obj_t *categories = NULL;
 	const cfg_obj_t *category;
 	const cfg_obj_t *channels = NULL;
@@ -4400,25 +4425,27 @@ bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
 	int i;
 
 	(void)cfg_map_get(config, "logging", &logobj);
-	if (logobj == NULL)
+	if (logobj == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 
 	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	symvalue.as_cpointer = NULL;
 	for (i = 0; default_channels[i] != NULL; i++) {
 		tresult = isc_symtab_define(symtab, default_channels[i], 1,
 					    symvalue, isc_symexists_replace);
-		if (tresult != ISC_R_SUCCESS)
+		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
+		}
 	}
 
 	cfg_map_get(logobj, "channel", &channels);
 
-	for (element = cfg_list_first(channels);
-	     element != NULL;
+	for (element = cfg_list_first(channels); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		channel = cfg_listelt_value(element);
@@ -4429,31 +4456,36 @@ bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
 		(void)cfg_map_get(channel, "null", &nullobj);
 		(void)cfg_map_get(channel, "stderr", &stderrobj);
 		i = 0;
-		if (fileobj != NULL)
+		if (fileobj != NULL) {
 			i++;
-		if (syslogobj != NULL)
+		}
+		if (syslogobj != NULL) {
 			i++;
-		if (nullobj != NULL)
+		}
+		if (nullobj != NULL) {
 			i++;
-		if (stderrobj != NULL)
+		}
+		if (stderrobj != NULL) {
 			i++;
+		}
 		if (i != 1) {
 			cfg_obj_log(channel, logctx, ISC_LOG_ERROR,
-				    "channel '%s': exactly one of file, syslog, "
+				    "channel '%s': exactly one of file, "
+				    "syslog, "
 				    "null, and stderr must be present",
-				     channelname);
+				    channelname);
 			result = ISC_R_FAILURE;
 		}
-		tresult = isc_symtab_define(symtab, channelname, 1,
-					    symvalue, isc_symexists_replace);
-		if (tresult != ISC_R_SUCCESS)
+		tresult = isc_symtab_define(symtab, channelname, 1, symvalue,
+					    isc_symexists_replace);
+		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
+		}
 	}
 
 	cfg_map_get(logobj, "category", &categories);
 
-	for (element = cfg_list_first(categories);
-	     element != NULL;
+	for (element = cfg_list_first(categories); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		category = cfg_listelt_value(element);
@@ -4464,8 +4496,7 @@ bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
 			result = ISC_R_FAILURE;
 		}
 		channels = cfg_tuple_get(category, "destinations");
-		for (delement = cfg_list_first(channels);
-		     delement != NULL;
+		for (delement = cfg_list_first(channels); delement != NULL;
 		     delement = cfg_list_next(delement))
 		{
 			channel = cfg_listelt_value(delement);
@@ -4486,8 +4517,7 @@ bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
 
 static isc_result_t
 bind9_check_controlskeys(const cfg_obj_t *control, const cfg_obj_t *keylist,
-			 isc_log_t *logctx)
-{
+			 isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *control_keylist;
 	const cfg_listelt_t *element;
@@ -4495,11 +4525,11 @@ bind9_check_controlskeys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 	const char *keyval;
 
 	control_keylist = cfg_tuple_get(control, "keys");
-	if (cfg_obj_isvoid(control_keylist))
+	if (cfg_obj_isvoid(control_keylist)) {
 		return (ISC_R_SUCCESS);
+	}
 
-	for (element = cfg_list_first(control_keylist);
-	     element != NULL;
+	for (element = cfg_list_first(control_keylist); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		key = cfg_listelt_value(element);
@@ -4516,8 +4546,7 @@ bind9_check_controlskeys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 
 static isc_result_t
 bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
-		     isc_mem_t *mctx)
-{
+		     isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS, tresult;
 	cfg_aclconfctx_t *actx = NULL;
 	const cfg_listelt_t *element, *element2;
@@ -4535,8 +4564,9 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 	int i;
 
 	(void)cfg_map_get(config, "controls", &controlslist);
-	if (controlslist == NULL)
+	if (controlslist == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 
 	(void)cfg_map_get(config, "key", &keylist);
 
@@ -4546,33 +4576,36 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 	 * INET: Check allow clause.
 	 * UNIX: Check "perm" for sanity, check path length.
 	 */
-	for (element = cfg_list_first(controlslist);
-	     element != NULL;
-	     element = cfg_list_next(element)) {
+	for (element = cfg_list_first(controlslist); element != NULL;
+	     element = cfg_list_next(element))
+	{
 		controls = cfg_listelt_value(element);
 		unixcontrols = NULL;
 		inetcontrols = NULL;
 		(void)cfg_map_get(controls, "unix", &unixcontrols);
 		(void)cfg_map_get(controls, "inet", &inetcontrols);
-		for (element2 = cfg_list_first(inetcontrols);
-		     element2 != NULL;
-		     element2 = cfg_list_next(element2)) {
+		for (element2 = cfg_list_first(inetcontrols); element2 != NULL;
+		     element2 = cfg_list_next(element2))
+		{
 			control = cfg_listelt_value(element2);
 			allow = cfg_tuple_get(control, "allow");
 			tresult = cfg_acl_fromconfig(allow, config, logctx,
 						     actx, mctx, 0, &acl);
-			if (acl != NULL)
+			if (acl != NULL) {
 				dns_acl_detach(&acl);
-			if (tresult != ISC_R_SUCCESS)
+			}
+			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
+			}
 			tresult = bind9_check_controlskeys(control, keylist,
 							   logctx);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
+			}
 		}
-		for (element2 = cfg_list_first(unixcontrols);
-		     element2 != NULL;
-		     element2 = cfg_list_next(element2)) {
+		for (element2 = cfg_list_first(unixcontrols); element2 != NULL;
+		     element2 = cfg_list_next(element2))
+		{
 			control = cfg_listelt_value(element2);
 			path = cfg_obj_asstring(cfg_tuple_get(control, "path"));
 			tresult = isc_sockaddr_frompath(&addr, path);
@@ -4585,26 +4618,30 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 			perm = cfg_obj_asuint32(cfg_tuple_get(control, "perm"));
 			for (i = 0; i < 3; i++) {
 #ifdef NEED_SECURE_DIRECTORY
-				mask = (0x1 << (i*3));	/* SEARCH */
-#else
-				mask = (0x6 << (i*3)); 	/* READ + WRITE */
-#endif
-				if ((perm & mask) == mask)
+				mask = (0x1 << (i * 3)); /* SEARCH */
+#else  /* ifdef NEED_SECURE_DIRECTORY */
+				mask = (0x6 << (i * 3)); /* READ + WRITE */
+#endif /* ifdef NEED_SECURE_DIRECTORY */
+				if ((perm & mask) == mask) {
 					break;
+				}
 			}
 			if (i == 0) {
 				cfg_obj_log(control, logctx, ISC_LOG_WARNING,
 					    "unix control '%s' allows access "
-					    "to everyone", path);
+					    "to everyone",
+					    path);
 			} else if (i == 3) {
 				cfg_obj_log(control, logctx, ISC_LOG_WARNING,
 					    "unix control '%s' allows access "
-					    "to nobody", path);
+					    "to nobody",
+					    path);
 			}
 			tresult = bind9_check_controlskeys(control, keylist,
 							   logctx);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
+			}
 		}
 	}
 	cfg_aclconfctx_detach(&actx);
@@ -4613,8 +4650,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 
 isc_result_t
 bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
-		      isc_log_t *logctx, isc_mem_t *mctx)
-{
+		      isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *views = NULL;
 	const cfg_obj_t *acls = NULL;
@@ -4627,51 +4663,61 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 	isc_symtab_t *files = NULL;
 	isc_symtab_t *inview = NULL;
 
-	static const char *builtin[] = { "localhost", "localnets",
-					 "any", "none"};
+	static const char *builtin[] = { "localhost", "localnets", "any",
+					 "none" };
 
 	(void)cfg_map_get(config, "options", &options);
 
-	if (options != NULL &&
-	    check_options(options, logctx, mctx,
-			  optlevel_options) != ISC_R_SUCCESS)
+	if (options != NULL && check_options(options, logctx, mctx,
+					     optlevel_options) != ISC_R_SUCCESS)
+	{
 		result = ISC_R_FAILURE;
+	}
 
-	if (bind9_check_logging(config, logctx, mctx) != ISC_R_SUCCESS)
+	if (bind9_check_logging(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
+	}
 
-	if (bind9_check_controls(config, logctx, mctx) != ISC_R_SUCCESS)
+	if (bind9_check_controls(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
+	}
 
 	(void)cfg_map_get(config, "view", &views);
 
-	if (views != NULL && options != NULL)
-		if (check_dual_stack(options, logctx) != ISC_R_SUCCESS)
+	if (views != NULL && options != NULL) {
+		if (check_dual_stack(options, logctx) != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 
+			/*
+			 * Use case insensitive comparison as not all file
+			 * systems are case sensitive. This will prevent people
+			 * using FOO.DB and foo.db on case sensitive file
+			 * systems but that shouldn't be a major issue.
+			 */
+		}
+	}
+
 	/*
-	 * Use case insensitive comparision as not all file systems are
+	 * Use case insensitive comparison as not all file systems are
 	 * case sensitive. This will prevent people using FOO.DB and foo.db
 	 * on case sensitive file systems but that shouldn't be a major issue.
 	 */
-	tresult = isc_symtab_create(mctx, 100, NULL, NULL, false,
-				    &files);
+	tresult = isc_symtab_create(mctx, 100, NULL, NULL, false, &files);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 		goto cleanup;
 	}
 
-	tresult = isc_symtab_create(mctx, 100, freekey, mctx,
-				    true, &inview);
+	tresult = isc_symtab_create(mctx, 100, freekey, mctx, true, &inview);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 		goto cleanup;
 	}
 
 	if (views == NULL) {
-		tresult = check_viewconf(config, NULL, NULL,
-					 dns_rdataclass_in, files,
-					 check_plugins, inview, logctx, mctx);
+		tresult = check_viewconf(config, NULL, NULL, dns_rdataclass_in,
+					 files, check_plugins, inview, logctx,
+					 mctx);
 		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
@@ -4701,8 +4747,7 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		result = tresult;
 		goto cleanup;
 	}
-	for (velement = cfg_list_first(views);
-	     velement != NULL;
+	for (velement = cfg_list_first(views); velement != NULL;
 	     velement = cfg_list_next(velement))
 	{
 		const cfg_obj_t *view = cfg_listelt_value(velement);
@@ -4721,10 +4766,11 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 			DE_CONST(cfg_obj_asstring(vclassobj), r.base);
 			r.length = strlen(r.base);
 			tresult = dns_rdataclass_fromtext(&vclass, &r);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(vclassobj, logctx, ISC_LOG_ERROR,
 					    "view '%s': invalid class %s",
 					    cfg_obj_asstring(vname), r.base);
+			}
 		}
 		symtype = vclass + 1;
 		if (tresult == ISC_R_SUCCESS && symtab != NULL) {
@@ -4736,7 +4782,9 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 				const char *file;
 				unsigned int line;
 				RUNTIME_CHECK(isc_symtab_lookup(symtab, key,
-					 symtype, &symvalue) == ISC_R_SUCCESS);
+								symtype,
+								&symvalue) ==
+					      ISC_R_SUCCESS);
 				file = cfg_obj_file(symvalue.as_cpointer);
 				line = cfg_obj_line(symvalue.as_cpointer);
 				cfg_obj_log(view, logctx, ISC_LOG_ERROR,
@@ -4749,19 +4797,23 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 			} else if ((strcasecmp(key, "_bind") == 0 &&
 				    vclass == dns_rdataclass_ch) ||
 				   (strcasecmp(key, "_default") == 0 &&
-				    vclass == dns_rdataclass_in)) {
+				    vclass == dns_rdataclass_in))
+			{
 				cfg_obj_log(view, logctx, ISC_LOG_ERROR,
 					    "attempt to redefine builtin view "
-					    "'%s'", key);
+					    "'%s'",
+					    key);
 				result = ISC_R_EXISTS;
 			}
 		}
-		if (tresult == ISC_R_SUCCESS)
-			tresult = check_viewconf(config, voptions, key,
-						 vclass, files, check_plugins,
-						 inview, logctx, mctx);
-		if (tresult != ISC_R_SUCCESS)
+		if (tresult == ISC_R_SUCCESS) {
+			tresult = check_viewconf(config, voptions, key, vclass,
+						 files, check_plugins, inview,
+						 logctx, mctx);
+		}
+		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
+		}
 	}
 
 	if (views != NULL && options != NULL) {
@@ -4782,44 +4834,47 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		const cfg_listelt_t *elt2;
 		const char *aclname;
 
-		for (elt = cfg_list_first(acls);
-		     elt != NULL;
+		for (elt = cfg_list_first(acls); elt != NULL;
 		     elt = cfg_list_next(elt)) {
 			const cfg_obj_t *acl = cfg_listelt_value(elt);
 			unsigned int line = cfg_obj_line(acl);
 			unsigned int i;
 
 			aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
-			for (i = 0;
-			     i < sizeof(builtin) / sizeof(builtin[0]);
-			     i++)
+			for (i = 0; i < sizeof(builtin) / sizeof(builtin[0]);
+			     i++) {
 				if (strcasecmp(aclname, builtin[i]) == 0) {
-					cfg_obj_log(acl, logctx, ISC_LOG_ERROR,
-						    "attempt to redefine "
-						    "builtin acl '%s'",
-						    aclname);
-					result = ISC_R_FAILURE;
-					break;
+					{
+						cfg_obj_log(acl, logctx,
+							    ISC_LOG_ERROR,
+							    "attempt to "
+							    "redefine "
+							    "builtin acl '%s'",
+							    aclname);
+						result = ISC_R_FAILURE;
+						break;
+					}
 				}
+			}
 
-			for (elt2 = cfg_list_next(elt);
-			     elt2 != NULL;
+			for (elt2 = cfg_list_next(elt); elt2 != NULL;
 			     elt2 = cfg_list_next(elt2)) {
 				const cfg_obj_t *acl2 = cfg_listelt_value(elt2);
 				const char *name;
-				name = cfg_obj_asstring(cfg_tuple_get(acl2,
-								      "name"));
+				name = cfg_obj_asstring(
+					cfg_tuple_get(acl2, "name"));
 				if (strcasecmp(aclname, name) == 0) {
 					const char *file = cfg_obj_file(acl);
 
-					if (file == NULL)
+					if (file == NULL) {
 						file = "<unknown file>";
+					}
 
 					cfg_obj_log(acl2, logctx, ISC_LOG_ERROR,
 						    "attempt to redefine "
 						    "acl '%s' previous "
 						    "definition: %s:%u",
-						     name, file, line);
+						    name, file, line);
 					result = ISC_R_FAILURE;
 				}
 			}
@@ -4832,32 +4887,31 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		const cfg_listelt_t *elt2;
 		const char *aclname;
 
-		for (elt = cfg_list_first(kals);
-		     elt != NULL;
+		for (elt = cfg_list_first(kals); elt != NULL;
 		     elt = cfg_list_next(elt)) {
 			const cfg_obj_t *acl = cfg_listelt_value(elt);
 
 			aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
 
-			for (elt2 = cfg_list_next(elt);
-			     elt2 != NULL;
+			for (elt2 = cfg_list_next(elt); elt2 != NULL;
 			     elt2 = cfg_list_next(elt2)) {
 				const cfg_obj_t *acl2 = cfg_listelt_value(elt2);
 				const char *name;
-				name = cfg_obj_asstring(cfg_tuple_get(acl2,
-								      "name"));
+				name = cfg_obj_asstring(
+					cfg_tuple_get(acl2, "name"));
 				if (strcasecmp(aclname, name) == 0) {
 					const char *file = cfg_obj_file(acl);
 					unsigned int line = cfg_obj_line(acl);
 
-					if (file == NULL)
+					if (file == NULL) {
 						file = "<unknown file>";
+					}
 
 					cfg_obj_log(acl2, logctx, ISC_LOG_ERROR,
 						    "attempt to redefine "
 						    "kal '%s' previous "
 						    "definition: %s:%u",
-						     name, file, line);
+						    name, file, line);
 					result = ISC_R_FAILURE;
 				}
 			}
@@ -4865,12 +4919,15 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 	}
 
 cleanup:
-	if (symtab != NULL)
+	if (symtab != NULL) {
 		isc_symtab_destroy(&symtab);
-	if (inview != NULL)
+	}
+	if (inview != NULL) {
 		isc_symtab_destroy(&inview);
-	if (files != NULL)
+	}
+	if (files != NULL) {
 		isc_symtab_destroy(&files);
+	}
 
 	return (result);
 }

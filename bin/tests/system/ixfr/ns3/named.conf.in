@@ -37,6 +37,7 @@ view "primary" {
 	zone "test" IN {
 		type master;
 		file "mytest.db";
+		max-ixfr-ratio 75%;
 	};
 	zone "sub.test" IN {
 		type master;

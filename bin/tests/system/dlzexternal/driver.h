@@ -9,6 +9,9 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
+
+#include <dns/dlz_dlopen.h>
 
 /*
  * This header includes the declarations of entry points.

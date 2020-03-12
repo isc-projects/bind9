@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,8 +26,8 @@
 #include <isc/mem.h>
 #include <isc/util.h>
 
-#include <irs/types.h>
 #include <irs/resconf.h>
+#include <irs/types.h>
 
 static isc_mem_t *mctx = NULL;
 
@@ -56,66 +55,40 @@ irs_resconf_load_test(void **state) {
 		isc_result_t (*check)(irs_resconf_t *resconf);
 		isc_result_t checkres;
 	} tests[] = {
-		{
-			"testdata/domain.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/nameserver-v4.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/nameserver-v6.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/nameserver-v6-scoped.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/options-debug.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/options-ndots.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/options-timeout.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/options-unknown.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/options.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/options-bad-ndots.conf", ISC_R_RANGE,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/options-empty.conf", ISC_R_UNEXPECTEDEND,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/port.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/resolv.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/search.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/sortlist-v4.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/timeout.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
-			"testdata/unknown.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}
-
+		{ "testdata/domain.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		{ "testdata/nameserver-v4.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/nameserver-v6.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/nameserver-v6-scoped.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/options-debug.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/options-ndots.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/options-timeout.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/options-unknown.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/options.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		{ "testdata/options-bad-ndots.conf", ISC_R_RANGE, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/options-empty.conf", ISC_R_UNEXPECTEDEND, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/port.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		{ "testdata/resolv.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		{ "testdata/search.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		{ "testdata/sortlist-v4.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/timeout.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		{ "testdata/unknown.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS }
 	};
 
 	UNUSED(state);
 
 	setup_test();
 
-	for (i = 0; i < sizeof(tests)/sizeof(tests[1]); i++) {
+	for (i = 0; i < sizeof(tests) / sizeof(tests[1]); i++) {
 		result = irs_resconf_load(mctx, tests[i].file, &resconf);
 		if (result != tests[i].loadres) {
 			fail_msg("# unexpected result %s loading %s",
@@ -123,8 +96,7 @@ irs_resconf_load_test(void **state) {
 		}
 
 		if (result == ISC_R_SUCCESS && resconf == NULL) {
-			fail_msg("# NULL on success loading %s",
-				 tests[i].file);
+			fail_msg("# NULL on success loading %s", tests[i].file);
 		} else if (result != ISC_R_SUCCESS && resconf != NULL) {
 			fail_msg("# non-NULL on failure loading %s",
 				 tests[i].file);
@@ -165,4 +137,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

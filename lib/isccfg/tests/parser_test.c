@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <sched.h> /* IWYU pragma: keep */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,26 +34,24 @@
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
-#define CHECK(r) \
-	do { \
-		result = (r); \
+#define CHECK(r)                             \
+	do {                                 \
+		result = (r);                \
 		if (result != ISC_R_SUCCESS) \
-			goto cleanup; \
+			goto cleanup;        \
 	} while (0)
 
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
-static isc_logcategory_t categories[] = {
-		{ "",                0 },
-		{ "client",          0 },
-		{ "network",         0 },
-		{ "update",          0 },
-		{ "queries",         0 },
-		{ "unmatched",       0 },
-		{ "update-security", 0 },
-		{ "query-errors",    0 },
-		{ NULL,              0 }
-};
+static isc_logcategory_t categories[] = { { "", 0 },
+					  { "client", 0 },
+					  { "network", 0 },
+					  { "update", 0 },
+					  { "queries", 0 },
+					  { "unmatched", 0 },
+					  { "update-security", 0 },
+					  { "query-errors", 0 },
+					  { NULL, 0 } };
 
 static void
 cleanup() {
@@ -84,15 +81,13 @@ setup() {
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	CHECK(isc_log_createchannel(logconfig, "stderr",
-				    ISC_LOG_TOFILEDESC,
-				    ISC_LOG_DYNAMIC,
-				    &destination, 0));
+	CHECK(isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
+				    ISC_LOG_DYNAMIC, &destination, 0));
 	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 
 	return (ISC_R_SUCCESS);
 
-  cleanup:
+cleanup:
 	cleanup();
 	return (result);
 }
@@ -117,8 +112,8 @@ parse_buffer_test(void **state) {
 	result = cfg_parser_create(mctx, lctx, &p1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = cfg_parse_buffer(p1, &buf1, "text1", 0,
-				  &cfg_type_namedconf, 0, &c1);
+	result = cfg_parse_buffer(p1, &buf1, "text1", 0, &cfg_type_namedconf, 0,
+				  &c1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(p1->line, 5);
 
@@ -129,8 +124,8 @@ parse_buffer_test(void **state) {
 	result = cfg_parser_create(mctx, lctx, &p2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = cfg_parse_buffer(p2, &buf2, "text2", 100,
-				  &cfg_type_namedconf, 0, &c2);
+	result = cfg_parse_buffer(p2, &buf2, "text2", 100, &cfg_type_namedconf,
+				  0, &c2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(p2->line, 104);
 
@@ -204,4 +199,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

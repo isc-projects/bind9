@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef IRS_CONTEXT_H
 #define IRS_CONTEXT_H 1
 
@@ -22,6 +21,7 @@
  */
 
 #include <dns/types.h>
+
 #include <irs/types.h>
 
 ISC_LANG_BEGINDECLS

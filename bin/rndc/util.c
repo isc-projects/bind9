@@ -9,17 +9,15 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
+#include "util.h"
 #include <stdarg.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <isc/print.h>
-
-#include "util.h"
 
 extern bool verbose;
 extern const char *progname;

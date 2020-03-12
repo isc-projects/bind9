@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000-2019 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2020 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -67,9 +67,11 @@
 <dt><span class="section"><a href="Bv9ARM.ch05.html#statschannels"><span class="command"><strong>statistics-channels</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#statistics_channels"><span class="command"><strong>statistics-channels</strong></span> Statement Definition and
               Usage</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_keys"><span class="command"><strong>dnssec-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec-keys"><span class="command"><strong>dnssec-keys</strong></span> Statement Definition
+<dt><span class="section"><a href="Bv9ARM.ch05.html#trust_anchors"><span class="command"><strong>trust-anchors</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#trust-anchors"><span class="command"><strong>trust-anchors</strong></span> Statement Definition
             and Usage</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_policy_grammar"><span class="command"><strong>dnssec-policy</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_policy"><span class="command"><strong>dnssec-policy</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#managed-keys"><span class="command"><strong>managed-keys</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#managed_keys"><span class="command"><strong>managed-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
@@ -807,6 +809,17 @@
 </tr>
 <tr>
 <td>
+                <p><span class="command"><strong>dnssec-policy</strong></span></p>
+              </td>
+<td>
+                <p>
+                  describes a DNSSEC key and signing policy for zones.
+                  See <a class="xref" href="Bv9ARM.ch05.html#dnssec_policy_grammar" title="dnssec-policy Statement Grammar">the section called &#8220;<span class="command"><strong>dnssec-policy</strong></span> Statement Grammar&#8221;</a> for details.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
                 <p><span class="command"><strong>include</strong></span></p>
               </td>
 <td>
@@ -885,15 +898,18 @@
 </tr>
 <tr>
 <td>
-                <p><span class="command"><strong>dnssec-keys</strong></span></p>
+                <p><span class="command"><strong>trust-anchors</strong></span></p>
               </td>
 <td>
                 <p>
-                  defines DNSSEC keys: if used with the
-                  <span class="command"><strong>initial-key</strong></span> keyword,
-                  keys are kept up to date using RFC 5011
-                  trust anchor maintenance, and if used with
-                  <span class="command"><strong>static-key</strong></span>, keys are permanent.
+                  defines DNSSEC trust anchors: if used with
+                  the <span class="command"><strong>initial-key</strong></span> or
+                  <span class="command"><strong>initial-ds</strong></span> keyword,
+                  trust anchors are kept up to date using RFC
+                  5011 trust anchor maintenance, and if used with
+                  <span class="command"><strong>static-key</strong></span> or
+                  <span class="command"><strong>static-ds</strong></span>, trust anchors
+                  are permanent.
                 </p>
               </td>
 </tr>
@@ -903,9 +919,9 @@
               </td>
 <td>
                 <p>
-                  is identical to <span class="command"><strong>dnssec-keys</strong></span>;
+                  is identical to <span class="command"><strong>trust-anchors</strong></span>;
                   this option is deprecated in favor
-                  of <span class="command"><strong>dnssec-keys</strong></span> with
+                  of <span class="command"><strong>trust-anchors</strong></span> with
                   the <span class="command"><strong>initial-key</strong></span> keyword,
                   and may be removed in a future release.
                 </p>
@@ -919,7 +935,7 @@
                 <p>
                   defines permanent trusted DNSSEC keys;
                   this option is deprecated in favor
-                  of <span class="command"><strong>dnssec-keys</strong></span> with
+                  of <span class="command"><strong>trust-anchors</strong></span> with
                   the <span class="command"><strong>static-key</strong></span> keyword,
                   and may be removed in a future release.
                 </p>
@@ -1204,7 +1220,8 @@
 
         <p>
           The <span class="command"><strong>include</strong></span> statement inserts the
-          specified file at the point where the <span class="command"><strong>include</strong></span>
+          specified file (or files if a valid glob expression is detected)
+          at the point where the <span class="command"><strong>include</strong></span>
           statement is encountered. The <span class="command"><strong>include</strong></span>
                 statement facilitates the administration of configuration
           files
@@ -2125,41 +2142,40 @@ category notify { null; };
 <a name="query_errors"></a>The <span class="command"><strong>query-errors</strong></span> Category</h4></div></div></div>
           <p>
             The <span class="command"><strong>query-errors</strong></span> category is
-            specifically intended for debugging purposes: To identify
-            why and how specific queries result in responses which
-            indicate an error.
-            Messages of this category are therefore only logged
-            with <span class="command"><strong>debug</strong></span> levels.
+            used to indicate why and how specific queries resulted in
+            responses which indicate an error.  Normally, these messages
+            will be logged at <span class="command"><strong>debug</strong></span> logging levels;
+            note, however, that if query logging is active, some will be
+            logged at <span class="command"><strong>info</strong></span>. The logging levels are
+            described below:
           </p>
 
           <p>
-            At the debug levels of 1 or higher, each response with the
-            rcode of SERVFAIL is logged as follows:
+            At <span class="command"><strong>debug</strong></span> level 1 or higher - or at
+            <span class="command"><strong>info</strong></span>, when query logging is active - each
+            response with response code SERVFAIL will be logged as follows:
           </p>
           <p>
             <code class="computeroutput">client 127.0.0.1#61502: query failed (SERVFAIL) for www.example.com/IN/AAAA at query.c:3880</code>
           </p>
           <p>
-            This means an error resulting in SERVFAIL was
-            detected at line 3880 of source file
-            <code class="filename">query.c</code>.
-            Log messages of this level will particularly
-            help identify the cause of SERVFAIL for an
-            authoritative server.
+            This means an error resulting in SERVFAIL was detected at line
+            3880 of source file <code class="filename">query.c</code>.  Log messages
+            of this level will particularly help identify the cause of
+            SERVFAIL for an authoritative server.
           </p>
           <p>
-            At the debug levels of 2 or higher, detailed context
-            information of recursive resolutions that resulted in
-            SERVFAIL is logged.
-            The log message will look like as follows:
+            At <span class="command"><strong>debug</strong></span> level 2 or higher, detailed
+            context information about recursive resolutions that resulted in
+            SERVFAIL will be logged.  The log message will look like this:
           </p>
           <p>
 
             </p>
 <pre class="programlisting">
 fetch completed at resolver.c:2970 for www.example.com/A
-in 30.000183: timed out/success [domain:example.com,
-referral:2,restart:7,qrysent:8,timeout:5,lame:0,neterr:0,
+in 10.000183: timed out/success [domain:example.com,
+referral:2,restart:7,qrysent:8,timeout:5,lame:0,quota:0,neterr:0,
 badresp:1,adberr:0,findfail:0,valfail:0]
             </pre>
 <p>
@@ -2167,29 +2183,25 @@ badresp:1,adberr:0,findfail:0,valfail:0]
           <p>
             The first part before the colon shows that a recursive
             resolution for AAAA records of www.example.com completed
-            in 30.000183 seconds and the final result that led to the
+            in 10.000183 seconds and the final result that led to the
             SERVFAIL was determined at line 2970 of source file
             <code class="filename">resolver.c</code>.
           </p>
           <p>
             The following part shows the detected final result and the
-            latest result of DNSSEC validation.
-            The latter is always success when no validation attempt
-            is made.
-            In this example, this query resulted in SERVFAIL probably
-            because all name servers are down or unreachable, leading
-            to a timeout in 30 seconds.
-            DNSSEC validation was probably not attempted.
+            latest result of DNSSEC validation.  The latter is always
+            "success" when no validation attempt was made.  In this example,
+            this query probably resulted in SERVFAIL because all name
+            servers are down or unreachable, leading to a timeout in 10
+            seconds.  DNSSEC validation was probably not attempted.
           </p>
           <p>
-            The last part enclosed in square brackets shows statistics
-            information collected for this particular resolution
-            attempt.
-            The <code class="varname">domain</code> field shows the deepest zone
-            that the resolver reached;
-            it is the zone where the error was finally detected.
-            The meaning of the other fields is summarized in the
-            following table.
+            The last part, enclosed in square brackets, shows statistics
+            collected for this particular resolution attempt.
+            The <code class="varname">domain</code> field shows the deepest zone that
+            the resolver reached; it is the zone where the error was
+            finally detected.  The meaning of the other fields is
+            summarized in the following table.
           </p>
 
           <div class="informaltable">
@@ -2267,6 +2279,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 </tr>
 <tr>
 <td>
+                    <p><code class="varname">quota</code></p>
+                  </td>
+<td>
+                    <p>
+                      The number of times the resolver was unable
+                      to send a query because it had exceeded the
+                      permissible fetch quota for a server.
+                    </p>
+                  </td>
+</tr>
+<tr>
+<td>
                     <p><code class="varname">neterr</code></p>
                   </td>
 <td>
@@ -2335,20 +2359,17 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 </table>
           </div>
           <p>
-            At the debug levels of 3 or higher, the same messages
-            as those at the debug 1 level are logged for other errors
-            than SERVFAIL.
-            Note that negative responses such as NXDOMAIN are not
-            regarded as errors here.
+            At <span class="command"><strong>debug</strong></span> level 3 or higher, the same
+            messages as those at <span class="command"><strong>debug</strong></span> level 1 will be
+            logged for other errors than SERVFAIL. Note that negative
+            responses such as NXDOMAIN are not errors, and are not logged
+            at this debug level.
           </p>
           <p>
-            At the debug levels of 4 or higher, the same messages
-            as those at the debug 2 level are logged for other errors
-            than SERVFAIL.
-            Unlike the above case of level 3, messages are logged for
-            negative responses.
-            This is because any unexpected results can be difficult to
-            debug in the recursion case.
+            At <span class="command"><strong>debug</strong></span> level 4 or higher, the
+            detailed context information logged at <span class="command"><strong>debug</strong></span>
+            level 2 will be logged for other errors than SERVFAIL and
+            for negative resonses such as NXDOMAIN.
           </p>
         </div>
       </div>
@@ -2418,7 +2439,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port
 	    <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key
 	    <em class="replaceable"><code>string</code></em> ]; ... } ] [ zone-directory <em class="replaceable"><code>quoted_string</code></em> ] [
-	    <span class="command"><strong>in-memory</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>ttlval</code></em> ]; ... };
+	    <span class="command"><strong>in-memory</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>duration</code></em> ]; ... };
 	<span class="command"><strong>check-dup-records</strong></span> ( fail | warn | ignore );
 	<span class="command"><strong>check-integrity</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>check-mx</strong></span> ( fail | warn | ignore );
@@ -2463,6 +2484,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>dnssec-must-be-secure</strong></span> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnssec-policy</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
 	<span class="command"><strong>dnssec-validation</strong></span> ( yes | no | auto );
@@ -2500,18 +2522,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>fstrm-set-output-notify-threshold</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>fstrm-set-output-queue-model</strong></span> ( mpsc | spsc );
 	<span class="command"><strong>fstrm-set-output-queue-size</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>fstrm-set-reopen-interval</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>fstrm-set-reopen-interval</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>geoip-directory</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
 	<span class="command"><strong>glue-cache</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>heartbeat-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>hostname</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
 	<span class="command"><strong>inline-signing</strong></span> <em class="replaceable"><code>boolean</code></em>;
-	<span class="command"><strong>interface-interval</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>interface-interval</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>ixfr-from-differences</strong></span> ( primary | master | secondary | slave |
 	    <em class="replaceable"><code>boolean</code></em> );
 	<span class="command"><strong>keep-response-order</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
 	<span class="command"><strong>key-directory</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
-	<span class="command"><strong>lame-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>lame-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>listen-on</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp
 	    <em class="replaceable"><code>integer</code></em> ] {
 	    <em class="replaceable"><code>address_match_element</code></em>; ... };
@@ -2525,28 +2547,28 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>masterfile-style</strong></span> ( full | relative );
 	<span class="command"><strong>match-mapped-addresses</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>max-cache-size</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> | <em class="replaceable"><code>percentage</code></em> );
-	<span class="command"><strong>max-cache-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>max-cache-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>max-clients-per-query</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-journal-size</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
-	<span class="command"><strong>max-ncache-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>max-ncache-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-recursion-depth</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-recursion-queries</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-rsa-exponent-size</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>max-stale-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>max-stale-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>max-transfer-idle-in</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-transfer-time-in</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-udp-size</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>max-zone-ttl</strong></span> ( unlimited | <em class="replaceable"><code>ttlval</code></em> );
+	<span class="command"><strong>max-zone-ttl</strong></span> ( unlimited | <em class="replaceable"><code>duration</code></em> );
 	<span class="command"><strong>memstatistics</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>memstatistics-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
 	<span class="command"><strong>message-compression</strong></span> <em class="replaceable"><code>boolean</code></em>;
-	<span class="command"><strong>min-cache-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
-	<span class="command"><strong>min-ncache-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>min-cache-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
+	<span class="command"><strong>min-ncache-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>minimal-any</strong></span> <em class="replaceable"><code>boolean</code></em>;
@@ -2563,8 +2585,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ]
 	    [ dscp <em class="replaceable"><code>integer</code></em> ];
 	<span class="command"><strong>notify-to-soa</strong></span> <em class="replaceable"><code>boolean</code></em>;
-	<span class="command"><strong>nta-lifetime</strong></span> <em class="replaceable"><code>ttlval</code></em>;
-	<span class="command"><strong>nta-recheck</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>nta-lifetime</strong></span> <em class="replaceable"><code>duration</code></em>;
+	<span class="command"><strong>nta-recheck</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>nxdomain-redirect</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>pid-file</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
 	<span class="command"><strong>port</strong></span> <em class="replaceable"><code>integer</code></em>;
@@ -2611,13 +2633,13 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>response-padding</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... } block-size
 	    <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>response-policy</strong></span> { zone <em class="replaceable"><code>string</code></em> [ add-soa <em class="replaceable"><code>boolean</code></em> ] [ log
-	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [ min-update-interval
-	    <em class="replaceable"><code>ttlval</code></em> ] [ policy ( cname | disabled | drop | given | no-op |
-	    <span class="command"><strong>nodata</strong></span> | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [
+	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [ min-update-interval
+	    <em class="replaceable"><code>duration</code></em> ] [ policy ( cname | disabled | drop | given | no-op
+	    | nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [
 	    <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [
 	    <span class="command"><strong>nsdname-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ]; ... } [ add-soa <em class="replaceable"><code>boolean</code></em> ] [
-	    <span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [
-	    <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>ttlval</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [
+	    <span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>duration</code></em> ] [
+	    <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>duration</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [
 	    <span class="command"><strong>nsip-wait-recurse</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ]
 	    [ recursive-only <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [
 	    <span class="command"><strong>nsdname-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ dnsrps-enable <em class="replaceable"><code>boolean</code></em> ] [
@@ -2631,7 +2653,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>serial-query-rate</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>serial-update-method</strong></span> ( date | increment | unixtime );
 	<span class="command"><strong>server-id</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none | hostname );
-	<span class="command"><strong>servfail-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>servfail-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>session-keyalg</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>session-keyfile</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
 	<span class="command"><strong>session-keyname</strong></span> <em class="replaceable"><code>string</code></em>;
@@ -2642,7 +2664,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>sortlist</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
 	<span class="command"><strong>stacksize</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
 	<span class="command"><strong>stale-answer-enable</strong></span> <em class="replaceable"><code>boolean</code></em>;
-	<span class="command"><strong>stale-answer-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>stale-answer-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
 	<span class="command"><strong>startup-notify-rate</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>statistics-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
 	<span class="command"><strong>synth-from-dnssec</strong></span> <em class="replaceable"><code>boolean</code></em>;
@@ -2933,9 +2955,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                     The number of seconds to wait between attempts to
                     reopen a closed output stream. The minimum is 1 second,
                     the maximum is 600 seconds (10 minutes), and the default
-                    is 5 seconds.
-                    For convenience, TTL-style time unit suffixes may be
-                    used to specify the value.
+                    is 5 seconds.  For convenience, TTL-style time unit
+                    suffixes may be used to specify the value.  It also
+                    accepts ISO 8601 duration formats.
                   
                 </li>
 </ul></div>
@@ -3068,8 +3090,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
               <p>
                 Specifies the directory in which to store the files that
                 track managed DNSSEC keys (i.e., those configured using
-                the <span class="command"><strong>initial-key</strong></span> keyword in a
-                <span class="command"><strong>dnssec-keys</strong></span> statement).  By default,
+                the <span class="command"><strong>initial-key</strong></span> or
+                <span class="command"><strong>initial-ds</strong></span> keywords in a
+                <span class="command"><strong>trust-anchors</strong></span> statement).  By default,
                 this is the working directory.  The directory
                 <span class="emphasis"><em>must</em></span> be writable by the effective
                 user ID of the <span class="command"><strong>named</strong></span> process.
@@ -3091,6 +3114,22 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 compatibility after upgrade, if a file using the old
                 name format is found to exist, it will be used instead
                 of the new format.)
+              </p>
+            </dd>
+<dt><span class="term"><span class="command"><strong>max-ixfr-ratio</strong></span></span></dt>
+<dd>
+              <p>
+                Sets the size threshold (expressed as a percentage
+                of the size of the full zone) beyond which
+                <span class="command"><strong>named</strong></span> will choose to use an AXFR
+                response rather than IXFR when answering zone transfer
+                requests.  See <a class="xref" href="Bv9ARM.ch04.html#incremental_zone_transfers" title="Incremental Zone Transfers (IXFR)">the section called &#8220;Incremental Zone Transfers (IXFR)&#8221;</a>.
+              </p>
+              <p>
+                The minimum value is <code class="literal">1%</code>. The keyword
+                <code class="literal">unlimited</code> disables ratio checking and
+                allows IXFRs of any size.  The default is
+                <code class="literal">100%</code>.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>new-zones-directory</strong></span></span></dt>
@@ -3211,7 +3250,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 the first time; if unsuccessful, the server will
                 will terminate, under the assumption that another
                 server is already running.  If not specified, the default is
-                <code class="filename">/var/run/named/named.lock</code>.
+                <code class="filename">none</code>.
               </p>
               <p>
                 Specifying <span class="command"><strong>lock-file none</strong></span> disables the
@@ -3437,7 +3476,7 @@ options {
                 as insecure.
               </p>
               <p>
-                Configured trust anchors in <span class="command"><strong>dnssec-keys</strong></span>
+                Configured trust anchors in <span class="command"><strong>trust-anchors</strong></span>
                 (or <span class="command"><strong>managed-keys</strong></span> or
                 <span class="command"><strong>trusted-keys</strong></span>, both deprecated)
                 that match a disabled algorithm will be ignored and treated
@@ -3469,7 +3508,7 @@ options {
                 they are secure.  If <strong class="userinput"><code>no</code></strong>, then normal
                 DNSSEC validation applies allowing for insecure answers to
                 be accepted.  The specified domain must be defined as a
-                trust anchor, for instance in a <span class="command"><strong>dnssec-keys</strong></span>
+                trust anchor, for instance in a <span class="command"><strong>trust-anchors</strong></span>
                 statement, or <span class="command"><strong>dnssec-validation auto</strong></span> must
                 be active.
               </p>
@@ -3628,8 +3667,11 @@ options {
                 <p>
                   For convenience, TTL-style time unit suffixes can be
                   used to specify the NTA lifetime in seconds, minutes
-                  or hours.  <code class="option">nta-lifetime</code> defaults to
-                  one hour.  It cannot exceed one week.
+                  or hours.  It also accepts ISO 8601 duration formats.
+                </p>
+                <p>
+                 <code class="option">nta-lifetime</code> defaults to one hour.  It
+                 cannot exceed one week.
                 </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>nta-recheck</strong></span></span></dt>
@@ -3659,9 +3701,13 @@ options {
                 <p>
                   For convenience, TTL-style time unit suffixes can be
                   used to specify the NTA recheck interval in seconds,
-                  minutes or hours.  The default is five minutes.  It
-                  cannot be longer than <code class="option">nta-lifetime</code>
-                  (which cannot be longer than a week).
+                  minutes or hours.  It also accepts ISO 8601 duration
+                  formats.
+                </p>
+                <p>
+                  The default is five minutes.  It cannot be longer than
+                  <code class="option">nta-lifetime</code> (which cannot be longer
+                  than a week).
                 </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>max-zone-ttl</strong></span></span></dt>
@@ -3669,7 +3715,10 @@ options {
               <p>
                 Specifies a maximum permissible TTL value in seconds.
                 For convenience, TTL-style time unit suffixes may be
-                used to specify the maximum value.
+                used to specify the maximum value. It also
+                accepts ISO 8601 duration formats.
+              </p>
+              <p>
                 When loading a zone file using a
                 <code class="option">masterfile-format</code> of
                 <code class="constant">text</code> or <code class="constant">raw</code>,
@@ -3788,15 +3837,21 @@ options {
 <dt><span class="term"><span class="command"><strong>automatic-interface-scan</strong></span></span></dt>
 <dd>
                 <p>
-                  If <strong class="userinput"><code>yes</code></strong> and supported by the OS,
-                  automatically rescan network interfaces when the interface
-                  addresses are added or removed.  The default is
-                  <strong class="userinput"><code>yes</code></strong>.
+                  If <strong class="userinput"><code>yes</code></strong> and supported by the operating
+                  system, automatically rescan network interfaces when the
+                  interface addresses are added or removed.  The default is
+                  <strong class="userinput"><code>yes</code></strong>.  This configuration option does
+                  not affect time based <span class="command"><strong>interface-interval</strong></span>
+                  option, and it is recommended to set the time based
+                  <span class="command"><strong>interface-interval</strong></span> to 0 when the operator
+                  confirms that automatic interface scanning is supported by the
+                  operating system.
                 </p>
                 <p>
-                  Currently the OS needs to support routing sockets for
-                  <span class="command"><strong>automatic-interface-scan</strong></span> to be
-                  supported.
+                  The <span class="command"><strong>automatic-interface-scan</strong></span> implementation
+                  uses routing sockets for the network interface discovery,
+                  and therefore the operating system has to support the routing
+                  sockets for this feature to work.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>allow-new-zones</strong></span></span></dt>
@@ -4305,6 +4360,17 @@ options {
                   response to a UDP request from a cookie aware client.
                   BADCOOKIE is sent if there is a bad or no existent
                   server cookie.
+                  The default is <strong class="userinput"><code>no</code></strong>.
+                </p>
+                <p>
+                  Set this to <strong class="userinput"><code>yes</code></strong> to test that DNS
+                  COOKIE clients correctly handle BADCOOKIE or if you are
+                  getting a lot of forged DNS requests with DNS COOKIES
+                  present. Setting this to <strong class="userinput"><code>yes</code></strong> will
+                  result in reduced amplification effect in a reflection
+                  attack, as the BADCOOKIE response will be smaller than
+                  a full response, while also requiring a legitimate client
+                  to follow up with a second query with the new, valid, cookie.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>answer-cookie</strong></span></span></dt>
@@ -4347,6 +4413,7 @@ options {
                   do not send a correct COOKIE option may be limited
                   to receiving smaller responses via the
                   <span class="command"><strong>nocookie-udp-size</strong></span> option.
+                  The default is <strong class="userinput"><code>yes</code></strong>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>stale-answer-enable</strong></span></span></dt>
@@ -4464,7 +4531,7 @@ options {
                   Causes <span class="command"><strong>named</strong></span> to send specially-formed
                   queries once per day to domains for which trust anchors
                   have been configured via, e.g.,
-                  <span class="command"><strong>dnssec-keys</strong></span> or
+                  <span class="command"><strong>trust-anchors</strong></span> or
                   <span class="command"><strong>dnssec-validation auto</strong></span>.
                 </p>
                 <p>
@@ -4655,7 +4722,7 @@ options {
                 <p>
                   If set to <strong class="userinput"><code>yes</code></strong>, DNSSEC validation is
                   enabled, but a trust anchor must be manually configured
-                  using a <span class="command"><strong>dnssec-keys</strong></span> statement (or
+                  using a <span class="command"><strong>trust-anchors</strong></span> statement (or
                   the <span class="command"><strong>managed-keys</strong></span> or the
                   <span class="command"><strong>trusted-keys</strong></span> statements, both deprecated).
                   If there is no configured trust anchor, validation will
@@ -4735,11 +4802,22 @@ options {
 <dt><span class="term"><span class="command"><strong>querylog</strong></span></span></dt>
 <dd>
                 <p>
-                  Specify whether query logging should be started when <span class="command"><strong>named</strong></span>
-                  starts.
-                  If <span class="command"><strong>querylog</strong></span> is not specified,
-                  then the query logging
-                  is determined by the presence of the logging category <span class="command"><strong>queries</strong></span>.
+                  Query logging provides a complete log of all incoming
+                  queries and all query errors. This provides more insight
+                  into the server's activity, but with a cost to
+                  performance which may be significant on heavily-loaded
+                  servers.
+                </p>
+                <p>
+                  The <span class="command"><strong>querylog</strong></span> option specifies
+                  whether query logging should be active when
+                  <span class="command"><strong>named</strong></span> first starts.
+                  If <span class="command"><strong>querylog</strong></span> is not specified, then
+                  query logging is determined by the presence of the
+                  logging category <span class="command"><strong>queries</strong></span>.
+                  Query logging can also be activated at runtime using the
+                  command <span class="command"><strong>rndc querylog on</strong></span>, or
+                  deactivated with <span class="command"><strong>rndc querylog off</strong></span>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>check-names</strong></span></span></dt>
@@ -4959,7 +5037,9 @@ options {
                 <p>
                   Synthesize answers from cached NSEC, NSEC3 and
                   other RRsets that have been proved to be correct
-                  using DNSSEC.  The default is <span class="command"><strong>yes</strong></span>.
+                  using DNSSEC.  The default is <span class="command"><strong>no</strong></span>,
+                  but it will become <span class="command"><strong>yes</strong></span> again
+                  in the future releases.
                 </p>
                 <p>
                   Note:
@@ -5016,9 +5096,11 @@ options {
 <dt><span class="term"><span class="command"><strong>forwarders</strong></span></span></dt>
 <dd>
                 <p>
-                  Specifies the IP addresses to be used
-                  for forwarding. The default is the empty list (no
-                  forwarding).
+                  Specifies a list of IP addresses to which queries shall be
+                  forwarded. The default is the empty list (no forwarding).
+                  Each address in the list can be associated with an optional
+                  port number and/or DSCP value, and a default port number and
+                  DSCP value can be set for the entire list.
                 </p>
               </dd>
 </dl></div>
@@ -6469,14 +6551,16 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   minutes. The default
                   is 60 minutes. The maximum value is 28 days (40320 minutes).
                   If set to 0, interface scanning will only occur when
-                  the configuration file is  loaded. After the scan, the
-                  server will
-                  begin listening for queries on any newly discovered
-                  interfaces (provided they are allowed by the
+                  the configuration file is loaded, or when
+                  <span class="command"><strong>automatic-interface-scan</strong></span> is enabled
+                  and supported by the operating system. After the scan, the
+                  server will begin listening for queries on any newly
+                  discovered interfaces (provided they are allowed by the
                   <span class="command"><strong>listen-on</strong></span> configuration), and
                   will stop listening on interfaces that have gone away.
                   For convenience, TTL-style time unit suffixes may be
-                  used to specify the value.
+                  used to specify the value.  It also accepts ISO 8601
+                  duration formats.
                 </p>
               </dd>
 </dl></div>
@@ -6511,7 +6595,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
             The first element (which may be an IP address, an IP prefix, an
             ACL name or a nested <span class="command"><strong>address_match_list</strong></span>) of
             each top level list is checked against the source address of
-            the query until a match is found.
+            the query until a match is found. When the addresses in the
+            first element overlap, the first rule to match gets selected.
           </p>
           <p>
             Once the source address of the query has been matched, if the
@@ -6755,9 +6840,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   stores negative answers. <span class="command"><strong>min-ncache-ttl</strong></span> is
                   used to set a minimum retention time for these answers in the
                   server in seconds.  For convenience, TTL-style time unit
-                  suffixes may be used to specify the value.  The default
-                  <span class="command"><strong>min-ncache-ttl</strong></span> is <code class="literal">0</code>
-                  seconds.  <span class="command"><strong>min-ncache-ttl</strong></span> cannot exceed 90
+                  suffixes may be used to specify the value.  It also
+                  accepts ISO 8601 duration formats.
+                </p>
+                <p>
+                  The default <span class="command"><strong>min-ncache-ttl</strong></span> is
+                  <code class="literal">0</code> seconds.
+                  <span class="command"><strong>min-ncache-ttl</strong></span> cannot exceed 90
                   seconds and will be truncated to 90 seconds if set to a
                   greater value.
                 </p>
@@ -6766,10 +6855,14 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <dd>
                 <p>
                   Sets the minimum time for which the server will cache ordinary
-                  (positive) answers in seconds. For convenience, TTL-style time
-                  unit suffixes may be used to specify the value. The default
-                  <span class="command"><strong>min-cache-ttl</strong></span> is <code class="literal">0</code>
-                  seconds. <span class="command"><strong>min-cache-ttl</strong></span> cannot exceed 90
+                  (positive) answers in seconds.  For convenience, TTL-style
+                  time unit suffixes may be used to specify the value.  It also
+                  accepts ISO 8601 duration formats.
+                </p>
+                <p>
+                  The default <span class="command"><strong>min-cache-ttl</strong></span> is
+                  <code class="literal">0</code> seconds.
+                  <span class="command"><strong>min-cache-ttl</strong></span> cannot exceed 90
                   seconds and will be truncated to 90 seconds if set to a
                   greater value.
                 </p>
@@ -6778,15 +6871,19 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <dd>
                 <p>
                   To reduce network traffic and increase performance,
-                  the server stores negative answers. <span class="command"><strong>max-ncache-ttl</strong></span> is
+                  the server stores negative answers.
+                  <span class="command"><strong>max-ncache-ttl</strong></span> is
                   used to set a maximum retention time for these answers in
-                  the server in seconds.
-                  For convenience, TTL-style time unit suffixes may be
-                  used to specify the value.  The default
-                  <span class="command"><strong>max-ncache-ttl</strong></span> is <code class="literal">10800</code> seconds (3 hours).
-                  <span class="command"><strong>max-ncache-ttl</strong></span> cannot exceed
-                  7 days and will
-                  be silently truncated to 7 days if set to a greater value.
+                  the server in seconds.  For convenience, TTL-style time unit
+                  suffixes may be used to specify the value.  It also accepts
+                  ISO 8601 duration formats.
+                </p>
+                <p>
+                  The default <span class="command"><strong>max-ncache-ttl</strong></span> is
+                  <code class="literal">10800</code> seconds (3 hours).
+                  <span class="command"><strong>max-ncache-ttl</strong></span> cannot exceed 7 days and
+                  will be silently truncated to 7 days if set to a greater
+                  value.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>max-cache-ttl</strong></span></span></dt>
@@ -6795,7 +6892,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   Sets the maximum time for which the server will
                   cache ordinary (positive) answers in seconds.
                   For convenience, TTL-style time unit suffixes may be
-                  used to specify the value.
+                  used to specify the value.  It also accepts ISO 8601
+                  duration formats.
+                </p>
+                <p>
                   The default is 604800 (one week).
                   A value of zero may cause all queries to return
                   SERVFAIL, because of lost caches of intermediate
@@ -6821,6 +6921,20 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   either in the configuration file using
                   <span class="command"><strong>stale-answer-enable</strong></span> or via
                   <span class="command"><strong>rndc serve-stale on</strong></span>.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>resolver-nonbackoff-tries</strong></span></span></dt>
+<dd>
+                <p>
+                  Specifies how many retries occur before exponential
+                  backoff kicks in.  The default is <strong class="userinput"><code>3</code></strong>.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>resolver-retry-interval</strong></span></span></dt>
+<dd>
+                <p>
+                  The base retry interval in milliseconds.
+                  The default is <strong class="userinput"><code>800</code></strong>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>sig-validity-interval</strong></span></span></dt>
@@ -7205,6 +7319,11 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   The default is the real version number of this server.
                   Specifying <span class="command"><strong>version none</strong></span>
                   disables processing of the queries.
+                </p>
+                <p>
+                  Setting <span class="command"><strong>version</strong></span> to any value
+                  (including <code class="literal">none</code>) will also
+                  disable queries for <code class="literal">authors.bind TXT CH</code>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>hostname</strong></span></span></dt>
@@ -7989,7 +8108,9 @@ deny-answer-aliases { "example.net"; };
             The <span class="command"><strong>max-policy-ttl</strong></span> clause changes the
             maximum seconds from its default of 5.
             For convenience, TTL-style time unit suffixes may be
-            used to specify the value.
+            used to specify the value.  It also accepts ISO 8601 duration
+            formats.
+
           </p>
 
           <p>
@@ -8085,7 +8206,8 @@ example.com                 CNAME   rpz-tcp-only.
             recent update, then the changes will not be carried out until this
             interval has elapsed.  The default is <code class="literal">60</code> seconds.
             For convenience, TTL-style time unit suffixes may be
-            used to specify the value.
+            used to specify the value.  It also accepts ISO 8601 duration
+            formats.
           </p>
         </div>
 
@@ -8795,29 +8917,30 @@ example.com                 CNAME   rpz-tcp-only.
 
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="dnssec_keys"></a><span class="command"><strong>dnssec-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="trust_anchors"></a><span class="command"><strong>trust-anchors</strong></span> Statement Grammar</h3></div></div></div>
         <pre class="programlisting">
-<span class="command"><strong>dnssec-keys</strong></span> { <em class="replaceable"><code>string</code></em> ( static-key |
-    <span class="command"><strong>initial-key</strong></span> ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
+<span class="command"><strong>trust-anchors</strong></span> { <em class="replaceable"><code>string</code></em> ( static-key |
+    <span class="command"><strong>initial-key</strong></span> | static-ds | initial-ds )
+    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
     <em class="replaceable"><code>quoted_string</code></em>; ... };
 </pre>
         </div>
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="dnssec-keys"></a><span class="command"><strong>dnssec-keys</strong></span> Statement Definition
+<a name="trust-anchors"></a><span class="command"><strong>trust-anchors</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 
           <p>
-            The <span class="command"><strong>dnssec-keys</strong></span> statement defines DNSSEC
+            The <span class="command"><strong>trust-anchors</strong></span> statement defines DNSSEC
             trust anchors.  DNSSEC is described in <a class="xref" href="Bv9ARM.ch04.html#DNSSEC" title="DNSSEC">the section called &#8220;DNSSEC&#8221;</a>.
           </p>
           <p>
-            A trust anchor is defined when the public key for
-            a non-authoritative zone is known, but cannot be securely
-            obtained through DNS, either because it is the DNS root zone
-            or because its parent zone is unsigned.  Once a key has been
-            configured as a trust anchor, it is treated as if it had
-            been validated and proven secure.
+            A trust anchor is defined when the public key or public key
+            digest for a non-authoritative zone is known, but cannot be
+            securely obtained through DNS, either because it is the DNS
+            root zone or because its parent zone is unsigned.  Once a key
+            or digest has been configured as a trust anchor, it is treated
+            as if it had been validated and proven secure.
           </p>
           <p>
             The resolver attempts DNSSEC validation on all DNS data
@@ -8827,35 +8950,47 @@ example.com                 CNAME   rpz-tcp-only.
             the <span class="command"><strong>validate-except</strong></span> option).
           </p>
           <p>
-            All keys listed in <span class="command"><strong>dnssec-keys</strong></span>, and
+            All keys listed in <span class="command"><strong>trust-anchors</strong></span>, and
             their corresponding zones, are deemed to exist regardless
-            of what parent zones say.   Only keys configured as trust anchors
+            of what parent zones say.  Only keys configured as trust anchors
             are used to validate the DNSKEY RRset for the corresponding
-            name.  The parent's DS RRset will not be used.
+            name. The parent's DS RRset will not be used.
           </p>
           <p>
-            The <span class="command"><strong>dnssec-keys</strong></span> statement can contain
-            multiple key entries, each consisting of the key's
-            domain name, followed by the <span class="command"><strong>static-key</strong></span> or
-            <span class="command"><strong>initial-key</strong></span> keyword, then the key's flags,
-            protocol, algorithm, and the Base64 representation of the key
-            data.  Spaces, tabs, newlines and carriage returns are ignored
-            in the key data, so the configuration may be split up into
-            multiple lines.
-          </p>
-          <p>
-            <span class="command"><strong>dnssec-keys</strong></span> may be set at the top level
+            <span class="command"><strong>trust-anchors</strong></span> may be set at the top level
             of <code class="filename">named.conf</code> or within a view.  If it is
             set in both places, the configurations are additive: keys
             defined at the top level are inherited by all views, but keys
             defined in a view are only used within that view.
           </p>
           <p>
-            <span class="command"><strong>dnssec-keys</strong></span> entries can be configured with
-            two keywords: <span class="command"><strong>static-key</strong></span> or
-            <span class="command"><strong>initial-key</strong></span>.  Keys configured with
-            <span class="command"><strong>static-key</strong></span> are immutable,
-            while keys configured with <span class="command"><strong>initial-key</strong></span>
+            The <span class="command"><strong>trust-anchors</strong></span> statement can contain
+            multiple trust anchor entries, each consisting of a
+            domain name, followed by an "anchor type" keyword indicating
+            the trust anchor's format, followed by the key or digest data.
+          </p>
+          <p>
+            If the anchor type is <span class="command"><strong>static-key</strong></span> or
+            <span class="command"><strong>initial-key</strong></span>, then it is followed with the
+            key's flags, protocol, algorithm, and the Base64 representation
+            of the public key data. This is identical to the text
+            representation of a DNSKEY record.  Spaces, tabs, newlines and
+            carriage returns are ignored in the key data, so the
+            configuration may be split up into multiple lines.
+          </p>
+          <p>
+            If the anchor type is <span class="command"><strong>static-ds</strong></span> or
+            <span class="command"><strong>initial-ds</strong></span>, then it is followed with the
+            key tag, algorithm, digest type, and the hexadecimal
+            representation of the key digest. This is identical to the
+            text representation of a DS record.  Spaces, tabs, newlines
+            and carriage returns are ignored.
+          </p>
+          <p>
+            Trust anchors configured with the
+            <span class="command"><strong>static-key</strong></span> or <span class="command"><strong>static-ds</strong></span>
+            anchor types are immutable, while keys configured with
+            <span class="command"><strong>initial-key</strong></span> or <span class="command"><strong>initial-ds</strong></span>
             can be kept up to date automatically, without intervention
             from the resolver operator. (<span class="command"><strong>static-key</strong></span>
             keys are identical to keys configured using the deprecated
@@ -8865,62 +9000,71 @@ example.com                 CNAME   rpz-tcp-only.
             Suppose, for example, that a zone's key-signing
             key was compromised, and the zone owner had to revoke and
             replace the key.  A resolver which had the original key
-            configured as a <span class="command"><strong>static-key</strong></span> would be
-            unable to validate this zone any longer; it would
-            reply with a SERVFAIL response code.  This would
-            continue until the resolver operator had updated the
-            <span class="command"><strong>dnssec-keys</strong></span> statement with the new key.
+            configured using <span class="command"><strong>static-key</strong></span> or
+            <span class="command"><strong>static-ds</strong></span> would be unable to validate
+            this zone any longer; it would reply with a SERVFAIL response
+            code.  This would continue until the resolver operator had
+            updated the <span class="command"><strong>trust-anchors</strong></span> statement with
+            the new key.
           </p>
           <p>
             If, however, the trust anchor had been configured with
-            <span class="command"><strong>initial-key</strong></span> instead, then the
-            zone owner could add a "stand-by" key to their zone in advance.
-            <span class="command"><strong>named</strong></span> would store the stand-by key, and
-            when the original key was revoked, <span class="command"><strong>named</strong></span>
-            would be able to transition smoothly to the new key.  It would
-            also recognize that the old key had been revoked, and cease
-            using that key to validate answers, minimizing the damage that
-            the compromised key could do. This is the process used to
-            keep the ICANN root DNSSEC key up to date.
+            <span class="command"><strong>initial-key</strong></span> or <span class="command"><strong>initial-ds</strong></span>
+            instead, then the zone owner could add a "stand-by" key to
+            their zone in advance.  <span class="command"><strong>named</strong></span> would store
+            the stand-by key, and when the original key was revoked,
+            <span class="command"><strong>named</strong></span> would be able to transition smoothly
+            to the new key.  It would also recognize that the old key had
+            been revoked, and cease using that key to validate answers,
+            minimizing the damage that the compromised key could do.
+            This is the process used to keep the ICANN root DNSSEC key
+            up to date.
           </p>
           <p>
-            Whereas <span class="command"><strong>static-key</strong></span>
-            keys continue to be trusted until they are removed from
+            Whereas <span class="command"><strong>static-key</strong></span> and
+            <span class="command"><strong>static-ds</strong></span> trust anchors continue
+            to be trusted until they are removed from
             <code class="filename">named.conf</code>, an
-            <span class="command"><strong>initial-key</strong></span> is only trusted
-            <span class="emphasis"><em>once</em></span>: for as long as it
+            <span class="command"><strong>initial-key</strong></span> or <span class="command"><strong>initial-ds</strong></span>
+            is only trusted <span class="emphasis"><em>once</em></span>: for as long as it
             takes to load the managed key database and start the RFC 5011
             key maintenance process.
           </p>
           <p>
+            It is not possible to mix static with initial trust anchors
+            for the same domain name.
+          </p>
+          <p>
             The first time <span class="command"><strong>named</strong></span> runs with an
-            <span class="command"><strong>initial-key</strong></span> configured in
-            <code class="filename">named.conf</code>, it fetches the
+            <span class="command"><strong>initial-key</strong></span> or <span class="command"><strong>initial-ds</strong></span>
+            configured in <code class="filename">named.conf</code>, it fetches the
             DNSKEY RRset directly from the zone apex, and validates it
-            using the key specified in <span class="command"><strong>dnssec-keys</strong></span>.
-            If the DNSKEY RRset is validly signed, then it is
-            used as the basis for a new managed keys database.
+            using the trust anchor specified in <span class="command"><strong>trust-anchors</strong></span>.
+            If the DNSKEY RRset is validly signed by a key matching
+            the trust anchor, then it is used as the basis for a new
+            managed keys database.
           </p>
           <p>
             From that point on, whenever <span class="command"><strong>named</strong></span> runs, it
-            sees the <span class="command"><strong>initial-key</strong></span> listed in
-            <span class="command"><strong>dnssec-keys</strong></span>, checks to
+            sees the <span class="command"><strong>initial-key</strong></span> or
+            <span class="command"><strong>initial-ds</strong></span> listed in
+            <span class="command"><strong>trust-anchors</strong></span>, checks to
             make sure RFC 5011 key maintenance has already been initialized
             for the specified domain, and if so, it simply moves on.  The
-            key specified in the <span class="command"><strong>dnssec-keys</strong></span>
+            key specified in the <span class="command"><strong>trust-anchors</strong></span>
             statement is not used to validate answers; it is
             superseded by the key or keys stored in the managed keys
             database.
           </p>
           <p>
             The next time <span class="command"><strong>named</strong></span> runs after an
-            <span class="command"><strong>initial-key</strong></span> has been
-            <span class="emphasis"><em>removed</em></span> from the
-            <span class="command"><strong>dnssec-keys</strong></span> statement (or changed to
-            a <span class="command"><strong>static-key</strong></span>), the corresponding
-            zone will be removed from the managed keys database,
-            and RFC 5011 key maintenance will no longer be used for that
-            domain.
+            <span class="command"><strong>initial-key</strong></span> or <span class="command"><strong>initial-ds</strong></span>
+            trust anchor has been <span class="emphasis"><em>removed</em></span> from the
+            <span class="command"><strong>trust-anchors</strong></span> statement (or changed to
+            a <span class="command"><strong>static-key</strong></span> or <span class="command"><strong>static-ds</strong></span>),
+            the corresponding keys will be removed from the managed keys
+            database, and RFC 5011 key maintenance will no longer be used
+            for that domain.
           </p>
           <p>
             In the current implementation, the managed keys database
@@ -8965,12 +9109,319 @@ example.com                 CNAME   rpz-tcp-only.
 
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
+<a name="dnssec_policy_grammar"></a><span class="command"><strong>dnssec-policy</strong></span> Statement Grammar</h3></div></div></div>
+        <pre class="programlisting">
+<span class="command"><strong>dnssec-policy</strong></span> <em class="replaceable"><code>string</code></em> {
+    <span class="command"><strong>dnskey-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>keys</strong></span> { ( csk | ksk | zsk ) key-directory lifetime ( <em class="replaceable"><code>duration</code></em> | unlimited ) algorithm <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ] ; ... };
+    <span class="command"><strong>max-zone-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>parent-ds-ttl</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>parent-propagation-delay</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>parent-registration-delay</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>publish-safety</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>retire-safety</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>signatures-refresh</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>signatures-validity</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>signatures-validity-dnskey</strong></span> <em class="replaceable"><code>duration</code></em>;
+    <span class="command"><strong>zone-propagation-delay</strong></span> <em class="replaceable"><code>duration</code></em>;
+};
+</pre>
+        </div>
+
+        <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="dnssec_policy"></a><span class="command"><strong>dnssec-policy</strong></span> Statement Definition and Usage</h3></div></div></div>
+
+          <p>
+            The <span class="command"><strong>dnssec-policy</strong></span> statement defines a key and
+            signing policy (KASP) for zones.
+          </p>
+          <p>
+            A KASP determines how one or more zones will be signed
+            with DNSSEC. For example, it specifies how often keys should
+            roll, which cryptographic algorithms to use, and how often RRSIG
+            records need to be refreshed.
+          </p>
+          <p>
+            Keys are not shared among zones, which means that one set of keys
+            per zone will be generated even if they have the same policy.
+            If multiple views are configured with different versions of the
+            same zone, each separate version will use the same set of signing
+            keys.
+          </p>
+          <p>
+            Multiple key and signing policies can be configured.  To
+            attach a policy to a zone, add a <span class="command"><strong>dnssec-policy</strong></span>
+            option to the <span class="command"><strong>zone</strong></span> statement, specifying he
+            name of the policy that should be used.
+          </p>
+          <p>
+            Key rollover timing is computed for each key according to
+            the key lifetime defined in the KASP.  The lifetime may be
+            modified by zone TTLs and propagation delays, in order to
+            prevent validation failures.  When a key reaches the end of its
+            lifetime,
+            <span class="command"><strong>named</strong></span> will generate and publish a new key
+            automatically, then deactivate the old key and activate the
+            new one, and finally retire the old key according to a computed
+            schedule.
+          </p>
+          <p>
+            Zone-signing key (ZSK) rollovers require no operator input.
+            Key-signing key (KSK) and combined signing key (CSK) rollovers
+            require action to be taken to submit a DS record to the parent.
+            Rollover timing for KSKs and CSKs is adjusted to take into account
+            delays in processing and propagating DS updates.
+          </p>
+          <p>
+            There are two predefined <span class="command"><strong>dnssec-policy</strong></span> names:
+            <span class="command"><strong>none</strong></span> and <span class="command"><strong>default</strong></span>.
+            Setting a zone's policy to
+            <span class="command"><strong>none</strong></span> is the same as not setting
+            <span class="command"><strong>dnssec-policy</strong></span> at all; the zone will not
+            be signed.  Policy <span class="command"><strong>default</strong></span> causes the
+            zone to be signed with a single combined signing key (CSK)
+            using algorithm ECDSAP256SHA256; this key will have an
+            unlimited lifetime. (A verbose copy of this policy
+            may be found in the source tree, in the file
+            <code class="filename">doc/misc/dnssec-policy.default.conf</code>.)
+            </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Note</h3>
+              The default signing policy may change in future releases.
+              This could result in changes to your signing policy
+              occurring when you upgrade to a new version of BIND. Check
+              the release notes carefully when upgrading to be informed
+              of such changes. To prevent policy changes on upgrade,
+              use an explicitly defined <span class="command"><strong>dnssec-policy</strong></span>
+              rather than <span class="command"><strong>default</strong></span>.
+            </div>
+<p>
+          </p>
+          <p>
+            If a <span class="command"><strong>dnssec-policy</strong></span> statement is modified
+            and the server restarted or reconfigured, <span class="command"><strong>named</strong></span>
+            will attempt to change the policy smoothly from the old one to
+            the new. For example, if the key algorithm is changed, then
+            a new key will be generated with the new algorithm, and the old
+            algorithm will be retired when the existing key's lifetime ends.
+            </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Note</h3>
+              Rolling to a new policy while another key rollover is
+              already in progress is not yet supported, and may result in
+              unexpected behavior.
+            </div>
+<p>
+          </p>
+          <p>
+            The following options can be specified in a
+            <span class="command"><strong>dnssec-policy</strong></span> statement:
+          </p>
+
+          <div class="variablelist"><dl class="variablelist">
+<dt><span class="term"><span class="command"><strong>dnskey-ttl</strong></span></span></dt>
+<dd>
+                <p>
+                  The TTL to use when generating DNSKEY resource records.
+                  The default is 1 hour (3600 seconds).
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>keys</strong></span></span></dt>
+<dd>
+                <p>
+                  A list specifying the algorithms and roles to use when
+                  generating keys and signing the zone.
+                  Entries in this list do not represent specific
+                  DNSSEC keys, which may be changed on a regular basis,
+                  but the roles that keys will play in the signing policy.
+                  For example, configuring a KSK of algorithm RSASHA256 ensures
+                  that the DNSKEY RRset will always include a key-signing key
+                  for that algorithm.
+                </p>
+                <p>
+                  Here is an example (for illustration purposes only) of
+                  some possible entries in a <span class="command"><strong>keys</strong></span>
+                  list:
+                </p>
+
+<pre class="programlisting">keys {
+    ksk key-directory lifetime unlimited algorithm rsasha1 2048;
+    zsk lifetime P30D algorithm 8;
+    csk lifetime P6MT12H3M15S algorithm ecdsa256;
+};
+</pre>
+
+                <p>
+                  This example specifies that three keys should be used
+                  in the zone. The first token determines which role the
+                  key will play in signing RRsets.  If set to
+                  <strong class="userinput"><code>ksk</code></strong>, then this will be
+                  a key-signing key; it will have the KSK flag set and
+                  will only be used to sign DNSKEY, CDS, and CDNSKEY RRsets.
+                  If set to <strong class="userinput"><code>zsk</code></strong>, this will be
+                  a zone-signing key; the KSK flag will be unset, and
+                  the key will sign all RRsets <span class="emphasis"><em>except</em></span>
+                  DNSKEY, CDS, and CDNSKEY. If set to
+                  <strong class="userinput"><code>csk</code></strong> the key will have the KSK
+                  flag set and will be used to sign all RRsets.
+                </p>
+                <p>
+                  An optional second token determines where the key will
+                  be stored.  Currently, keys can only be stored in the
+                  configured <span class="command"><strong>key-directory</strong></span>. This token
+                  may be used in the future to store keys in hardware
+                  service modules or separate directories.
+                </p>
+                <p>
+                  The <span class="command"><strong>lifetime</strong></span> parameter specifies how
+                  long a key may be used before rolling over.  In the
+                  example above, the first key will have an unlimited
+                  lifetime, the second key may be used for 30 days, and the
+                  third key has a rather peculiar lifetime of 6 months,
+                  12 hours, 3 minutes and 15 seconds.  A lifetime of 0
+                  seconds is the same as <span class="command"><strong>unlimited</strong></span>.
+                </p>
+                <p>
+                  Note that the lifetime of a key may be extended if
+                  retiring it too soon would cause validation failures.
+                  For example, if the key were configured to roll more
+                  frequently than its own TTL, its lifetime would
+                  automatically be extended to account for this.
+                </p>
+                <p>
+                  The <span class="command"><strong>algorithm</strong></span> parameter specifies
+                  the key's algorithm, expressed either as a string
+                  ("rsasha256", "ecdsa384", etc) or as a decimal number.
+                  An optional second parameter specifies the key's size
+                  in size in bits. If it is omitted, as shown in the
+                  example for the second and third keys, an appropriate
+                  default size for the algorithm will be used.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>publish-safety</strong></span></span></dt>
+<dd>
+                <p>
+                  A margin that is added to the pre-publication
+                  interval in rollover timing calculations to give some
+                  extra time to cover unforeseen events. This increases
+                  the time that keys are published before becoming active.
+                  The default is <code class="constant">PT1H</code> (1 hour).
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>retire-safety</strong></span></span></dt>
+<dd>
+                <p>
+                  A margin that is added to the post-publication interval
+                  in rollover timing calculations to give some extra time
+                  to cover unforeseen events. This increases the time a key
+                  remains published after it is no longer active.  The
+                  default is <code class="constant">PT1H</code> (1 hour).
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>signatures-refresh</strong></span></span></dt>
+<dd>
+                <p>
+                  This determines how frequently an RRSIG record needs to be
+                  refreshed.  The signature is renewed when the time until
+                  the expiration time is closer than the specified interval.
+                  The default is <code class="constant">P5D</code> (5 days), meaning
+                  signatures that will expire in 5 days or sooner will be
+                  refreshed.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>signatures-validity</strong></span></span></dt>
+<dd>
+                <p>
+                  The validity period of an RRSIG record (subject to
+                  inception offset and jitter). The default is
+                  <code class="constant">P2W</code> (2 weeks).
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>signatures-validity-dnskey</strong></span></span></dt>
+<dd>
+                <p>
+                  Similar to <span class="command"><strong>signatures-validity</strong></span> but for
+                  DNSKEY records. The default is <code class="constant">P2W</code>
+                  (2 weeks).
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>max-zone-ttl</strong></span></span></dt>
+<dd>
+                <p>
+                  Like the <span class="command"><strong>max-zone-ttl</strong></span> zone option,
+                  this specifies the maximum permissible TTL value in
+                  seconds for the zone. When loading a zone file using
+                  a <code class="option">masterfile-format</code> of
+                  <code class="constant">text</code> or <code class="constant">raw</code>,
+                  any record encountered with a TTL higher than
+                  <code class="option">max-zone-ttl</code> will be capped at the
+                  maximum permissible TTL value.
+                </p>
+                <p>
+                  This is needed in DNSSEC-maintained zones because when
+                  rolling to a new DNSKEY, the old key needs to remain
+                  available until RRSIG records have expired from caches.
+                  The <code class="option">max-zone-ttl</code> option guarantees that
+                  the largest TTL in the zone will be no higher than the
+                  set value.
+                </p>
+                <p>
+                  (NOTE: Because <code class="constant">map</code>-format files
+                  load directly into memory, this option cannot be
+                  used with them.)
+                </p>
+                <p>
+                  The default value is <code class="constant">PT24H</code> (24 hours).
+                  A <code class="option">max-zone-ttl</code> of zero is treated as if
+                  the default value were in use.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>zone-propagation-delay</strong></span></span></dt>
+<dd>
+                <p>
+                  The expected propagation delay from the time when a zone
+                  is first updated to the time when the new version of the
+                  zone will be served by all secondary servers.  The default
+                  is <code class="constant">PT5M</code> (5 minutes).
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>parent-ds-ttl</strong></span></span></dt>
+<dd>
+                <p>
+                  The TTL of the DS RRset that the parent zone uses.  The
+                  default is <code class="constant">P1D</code> (1 day).
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>parent-propagation-delay</strong></span></span></dt>
+<dd>
+                <p>
+                  The expected propagation delay from the time when the
+                  parent zone is updated to the time when the new version
+                  is served by all of the parent zone's name servers.
+                  The default is <code class="constant">PT1H</code> (1 hour).
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>parent-registration-delay</strong></span></span></dt>
+<dd>
+                <p>
+                  The expected registration delay from the time when a DS
+                  RRset change is requested to the time when the DS RRset
+                  will be updated in the parent zone.  The default is
+                  <code class="constant">P1D</code> (1 day).
+              </p>
+              </dd>
+</dl></div>
+        </div>
+
+        <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
 <a name="managed-keys"></a><span class="command"><strong>managed-keys</strong></span> Statement Grammar</h3></div></div></div>
         <pre class="programlisting">
 <span class="command"><strong>managed-keys</strong></span> { <em class="replaceable"><code>string</code></em> ( static-key
-    | initial-key ) <em class="replaceable"><code>integer</code></em>
-    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
-    <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated
+    | initial-key | static-ds |
+    <span class="command"><strong>initial-ds</strong></span> ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
+    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated
 </pre>
         </div>
         <div class="section">
@@ -8980,7 +9431,7 @@ example.com                 CNAME   rpz-tcp-only.
 
           <p>
             The <span class="command"><strong>managed-keys</strong></span> statement has been
-            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#dnssec_keys" title="dnssec-keys Statement Grammar">the section called &#8220;<span class="command"><strong>dnssec-keys</strong></span> Statement Grammar&#8221;</a>
+            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#trust_anchors" title="trust-anchors Statement Grammar">the section called &#8220;<span class="command"><strong>trust-anchors</strong></span> Statement Grammar&#8221;</a>
             with the <span class="command"><strong>initial-key</strong></span> keyword.
           </p>
         </div>
@@ -9001,7 +9452,7 @@ example.com                 CNAME   rpz-tcp-only.
 
           <p>
             The <span class="command"><strong>trusted-keys</strong></span> statement has been
-            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#dnssec_keys" title="dnssec-keys Statement Grammar">the section called &#8220;<span class="command"><strong>dnssec-keys</strong></span> Statement Grammar&#8221;</a>
+            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#trust_anchors" title="trust-anchors Statement Grammar">the section called &#8220;<span class="command"><strong>trust-anchors</strong></span> Statement Grammar&#8221;</a>
             with the <span class="command"><strong>static-key</strong></span> keyword.
           </p>
         </div>
@@ -9180,6 +9631,7 @@ view "external" {
 	<span class="command"><strong>dnskey-sig-validity</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>dnssec-policy</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
 	<span class="command"><strong>file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
@@ -9195,7 +9647,7 @@ view "external" {
 	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>max-zone-ttl</strong></span> ( unlimited | <em class="replaceable"><code>ttlval</code></em> );
+	<span class="command"><strong>max-zone-ttl</strong></span> ( unlimited | <em class="replaceable"><code>duration</code></em> );
 	<span class="command"><strong>notify</strong></span> ( explicit | master-only | <em class="replaceable"><code>boolean</code></em> );
 	<span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
@@ -9231,6 +9683,7 @@ view "external" {
 	<span class="command"><strong>dnskey-sig-validity</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>dnssec-policy</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
 	<span class="command"><strong>file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
 	<span class="command"><strong>forward</strong></span> ( first | only );
@@ -9386,7 +9839,7 @@ view "external" {
 	<span class="command"><strong>masterfile-style</strong></span> ( full | relative );
 	<span class="command"><strong>masters</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
 	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>max-zone-ttl</strong></span> ( unlimited | <em class="replaceable"><code>ttlval</code></em> );
+	<span class="command"><strong>max-zone-ttl</strong></span> ( unlimited | <em class="replaceable"><code>duration</code></em> );
 	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
 };
 </pre>
@@ -9636,7 +10089,7 @@ view "external" {
                         (KSK) for the zone must be configured as a trust
                         anchor in <code class="filename">named.conf</code>: that
                         is, a key for the zone must be specified in
-                        <span class="command"><strong>dnssec-keys</strong></span>.  In the case
+                        <span class="command"><strong>trust-anchors</strong></span>.  In the case
                         of the root zone, you may also rely on the
                         built-in root trust anchor, which is enabled
                         when <a class="xref" href="Bv9ARM.ch05.html#dnssec_validation"><span class="command"><strong>dnssec-validation</strong></span></a> is set to the
@@ -9830,7 +10283,7 @@ view "external" {
                       <p>
                         If a redirect zone is configured with a
                         <code class="option">masters</code> option, then it is
-                        transfered in as if it were a slave zone.
+                        transferred in as if it were a slave zone.
                         Otherwise, it is loaded from a file as if it
                         were a master zone.
                       </p>
@@ -10052,6 +10505,21 @@ view "external" {
           Usage&#8221;</a>.
                   </p>
                 </dd>
+<dt><span class="term"><span class="command"><strong>dnssec-policy</strong></span></span></dt>
+<dd>
+                  <p>
+                    Specifies which key and signing policy (KASP) should
+                    be used for this zone.  This is a string referring to
+                    a <span class="command"><strong>dnssec-policy</strong></span> statement.
+                    There are two built-in policies:
+                    <strong class="userinput"><code>default</code></strong> allows you to use the
+                    default policy, and <strong class="userinput"><code>none</code></strong> means
+                    not to use any DNSSEC policy, keeping the zone unsigned.
+                    The default is <strong class="userinput"><code>none</code></strong>.
+                    See <a class="xref" href="Bv9ARM.ch05.html#dnssec_policy_grammar" title="dnssec-policy Statement Grammar">the section called &#8220;<span class="command"><strong>dnssec-policy</strong></span> Statement Grammar&#8221;</a> for
+                    more details.
+                  </p>
+                </dd>
 <dt><span class="term"><span class="command"><strong>dnssec-update-mode</strong></span></span></dt>
 <dd>
                   <p>
@@ -10161,6 +10629,15 @@ view "external" {
                     Allow the default journal's filename to be overridden.
                     The default is the zone's filename with "<code class="filename">.jnl</code>" appended.
                     This is applicable to <span class="command"><strong>master</strong></span> and <span class="command"><strong>slave</strong></span> zones.
+                  </p>
+                </dd>
+<dt><span class="term"><span class="command"><strong>max-ixfr-ratio</strong></span></span></dt>
+<dd>
+                  <p>
+                    See the description of
+                    <span class="command"><strong>max-ixfr-ratio</strong></span> in
+                    <a class="xref" href="Bv9ARM.ch05.html#options" title="options Statement Definition and Usage">the section called &#8220;<span class="command"><strong>options</strong></span> Statement Definition and
+          Usage&#8221;</a>.
                   </p>
                 </dd>
 <dt><span class="term"><span class="command"><strong>max-journal-size</strong></span></span></dt>
@@ -14897,6 +15374,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.5 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.17.0 (Development Release)</p>
 </body>
 </html>

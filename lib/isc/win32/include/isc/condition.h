@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_CONDITION_H
 #define ISC_CONDITION_H 1
 
@@ -23,15 +22,14 @@
 typedef struct isc_condition_thread isc_condition_thread_t;
 
 struct isc_condition_thread {
-	unsigned long				th;
-	HANDLE					handle[2];
-	ISC_LINK(isc_condition_thread_t)	link;
-
+	unsigned long th;
+	HANDLE	      handle[2];
+	ISC_LINK(isc_condition_thread_t) link;
 };
 
 typedef struct isc_condition {
-	HANDLE 		events[2];
-	unsigned int	waiters;
+	HANDLE	     events[2];
+	unsigned int waiters;
 	ISC_LIST(isc_condition_thread_t) threadlist;
 } isc_condition_t;
 

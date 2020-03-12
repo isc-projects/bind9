@@ -40,25 +40,13 @@ rndccmd() {
     "$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "$CONTROLPORT" -s "$@"
 }
 
-# TODO: Move wait_for_log and loadkeys_on to conf.sh.common
-wait_for_log() {
-        msg=$1
-        file=$2
-
-        for i in 1 2 3 4 5 6 7 8 9 10; do
-                nextpart "$file" | grep "$msg" > /dev/null && return
-                sleep 1
-        done
-        echo_i "exceeded time limit waiting for '$msg' in $file"
-        ret=1
-}
-
+# TODO: Move loadkeys_on to conf.sh.common
 dnssec_loadkeys_on() {
 	nsidx=$1
 	zone=$2
 	nextpart ns${nsidx}/named.run > /dev/null
 	rndccmd 10.53.0.${nsidx} loadkeys ${zone} | sed "s/^/ns${nsidx} /" | cat_i
-	wait_for_log "next key event" ns${nsidx}/named.run
+	wait_for_log 20 "next key event" ns${nsidx}/named.run || return 1
 }
 
 # convert private-type records to readable form
@@ -111,6 +99,22 @@ israw1 () {
 # strip NS and RRSIG NS from input
 stripns () {
     awk '($4 == "NS") || ($4 == "RRSIG" && $5 == "NS") { next} { print }' "$1"
+}
+
+#
+# Ensure there is not multiple consecutive blank lines.
+# Ensure there is a blank line before "Start view" and
+# "Negative trust anchors:".
+# Ensure there is not a blank line before "Secure roots:".
+#
+check_secroots_layout () {
+	tr -d '\r' < "$1" | \
+	awk '$0 == "" { if (empty) exit(1); empty=1; next }
+	     /Start view/ { if (!empty) exit(1) }
+	     /Secure roots:/ { if (empty) exit(1) }
+	     /Negative trust anchors:/ { if (!empty) exit(1) }
+	     { empty=0 }'
+	return $?
 }
 
 # Check that for a query against a validating resolver where the
@@ -1070,6 +1074,23 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "checking insecurity proof works using negative cache ($n)"
+ret=0
+rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
+dig_with_opts +cd @10.53.0.4 insecure.example. ds > dig.out.ns4.test$n.1 || ret=1
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
+do
+        dig_with_opts @10.53.0.4 nonexistent.insecure.example. > dig.out.ns4.test$n.2 || ret=1
+	if grep "status: NXDOMAIN" dig.out.ns4.test$n.2 >/dev/null; then
+		break
+	fi
+	sleep 1
+done
+grep "status: NXDOMAIN" dig.out.ns4.test$n.2 >/dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking positive validation RSASHA256 NSEC ($n)"
 ret=0
 dig_with_opts +noauth a.rsasha256.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
@@ -1268,7 +1289,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "basic dnssec-signzone checks:"
-echo_i " two DNSKEYs ($n)"
+echo_ic "two DNSKEYs ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1280,7 +1301,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " one non-KSK DNSKEY ($n)"
+echo_ic "one non-KSK DNSKEY ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1292,7 +1313,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " one KSK DNSKEY ($n)"
+echo_ic "one KSK DNSKEY ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1304,7 +1325,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " three DNSKEY ($n)"
+echo_ic "three DNSKEY ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1316,7 +1337,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " three DNSKEY, one private key missing ($n)"
+echo_ic "three DNSKEY, one private key missing ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1328,7 +1349,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " four DNSKEY ($n)"
+echo_ic "four DNSKEY ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1340,7 +1361,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " two DNSKEY, both private keys missing ($n)"
+echo_ic "two DNSKEY, both private keys missing ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1352,7 +1373,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i " two DNSKEY, one private key missing ($n)"
+echo_ic "two DNSKEY, one private key missing ($n)"
 ret=0
 (
 cd signer/general || exit 1
@@ -1715,9 +1736,10 @@ status=$((status+ret))
 # Test that "rndc secroots" is able to dump trusted keys
 echo_i "checking rndc secroots ($n)"
 ret=0
-rndccmd 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 keyid=$(cat ns1/managed.key.id)
+rndccmd 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 cp ns4/named.secroots named.secroots.test$n
+check_secroots_layout named.secroots.test$n || ret=1
 linecount=$(grep -c "./${DEFAULT_ALGORITHM}/$keyid ; static" named.secroots.test$n || true)
 [ "$linecount" -eq 1 ] || ret=1
 linecount=$(< named.secroots.test$n wc -l)
@@ -1841,14 +1863,14 @@ rndccmd 10.53.0.4 nta badds.example 2>&1 | sed 's/^/ns4 /' | cat_i
 rndccmd 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.1
 lines=$(wc -l < rndc.out.ns4.test$n.1)
-[ "$lines" -eq 2 ] || ret=1
+[ "$lines" -eq 3 ] || ret=1
 rndccmd 10.53.0.4 nta secure.example 2>&1 | sed 's/^/ns4 /' | cat_i
 rndccmd 10.53.0.4 nta fakenode.secure.example 2>&1 | sed 's/^/ns4 /' | cat_i
 # reload should maintain NTAs
 rndc_reload ns4 10.53.0.4
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.2
 lines=$(wc -l < rndc.out.ns4.test$n.2)
-[ "$lines" -eq 4 ] || ret=1
+[ "$lines" -eq 5 ] || ret=1
 # shellcheck disable=SC2016
 start=$($PERL -e 'print time()."\n";')
 
@@ -1872,10 +1894,12 @@ dig_with_opts a.fakenode.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.7 || 
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.7 > /dev/null && ret=1
 echo_i "dumping secroots"
 rndccmd 10.53.0.4 secroots | sed 's/^/ns4 /' | cat_i
-grep "bogus.example: expiry" ns4/named.secroots > /dev/null || ret=1
-grep "badds.example: expiry" ns4/named.secroots > /dev/null || ret=1
-grep "secure.example: expiry" ns4/named.secroots > /dev/null || ret=1
-grep "fakenode.secure.example: expiry" ns4/named.secroots > /dev/null || ret=1
+cp ns4/named.secroots named.secroots.test$n
+check_secroots_layout named.secroots.test$n || ret=1
+grep "bogus.example: expiry" named.secroots.test$n > /dev/null || ret=1
+grep "badds.example: expiry" named.secroots.test$n > /dev/null || ret=1
+grep "secure.example: expiry" named.secroots.test$n > /dev/null || ret=1
+grep "fakenode.secure.example: expiry" named.secroots.test$n > /dev/null || ret=1
 
 if [ "$ret" -ne 0 ]; then echo_i "failed - with NTA's in place failed"; fi
 status=$((status+ret))
@@ -2053,7 +2077,7 @@ sleep 4
 #
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.3
 lines=$(wc -l < rndc.out.ns4.test$n.3)
-[ "$lines" -eq 1 ] || ret=1
+[ "$lines" -eq 2 ] || ret=1
 grep "bogus.example/_default: expiry" rndc.out.ns4.test$n.3 > /dev/null || ret=1
 dig_with_opts b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.4 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.4 > /dev/null && ret=1
@@ -2077,7 +2101,7 @@ n=$((n+1))
 echo_i "testing loading regular attribute from NTA file ($n)"
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
 lines=$(wc -l < rndc.out.ns4.test$n.1)
-[ "$lines" -eq 0 ] || ret=1
+[ "$lines" -eq 1 ] || ret=1
 # initially, secure.example. validates with AD=1
 dig_with_opts a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null && ret=1
@@ -2135,7 +2159,7 @@ n=$((n+1))
 echo_i "testing loading forced attribute from NTA file ($n)"
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
 lines=$(wc -l < rndc.out.ns4.test$n.1)
-[ "$lines" -eq 0 ] || ret=1
+[ "$lines" -eq 1 ] || ret=1
 # initially, secure.example. validates with AD=1
 dig_with_opts a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null && ret=1
@@ -2216,10 +2240,11 @@ echo_i "sleeping for an additional 4 seconds for ns4 to fully startup"
 sleep 4
 
 # dump the NTA to a file (omit validate-except entries)
-echo_i "testing 'rndc nta'"
-rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
+echo_i "testing 'rndc nta -d' with NTA"
+rndccmd 10.53.0.4 nta -d | grep -v ": permanent" > rndc.out.ns4.test$n.1 2>/dev/null
 # "corp" is configured as a validate-except domain and thus should be
-# omitted. only "secure.example" should be in the dump at this point.
+# removed by the grep -v above. only "secure.example" should appear in
+# the dump.
 lines=$(wc -l < rndc.out.ns4.test$n.1)
 [ "$lines" -eq 1 ] || ret=1
 grep 'secure.example' rndc.out.ns4.test$n.1 > /dev/null || ret=1
@@ -2241,11 +2266,28 @@ else
     echo_i "skipped ntadiff test; install PERL module Time::Piece"
 fi
 
+echo_i "testing 'rndc nta' lifetime clamping"
+rndccmd 10.53.0.4 nta -d | grep ": permanent" > rndc.out.ns4.test$n.1 2>/dev/null
+# "corp" is configured as a validate-except domain and thus should be
+# the only entry in the dump.
+lines=$(wc -l < rndc.out.ns4.test$n.1)
+[ "$lines" -eq 1 ] || ret=1
+grep 'corp/_default' rndc.out.ns4.test$n.1 > /dev/null || ret=1
+
 # cleanup
 rndccmd 10.53.0.4 nta -remove secure.example > rndc.out.ns4.test$n.3 2>/dev/null
 
 n=$((n+1))
-if [ "$ret" -ne 0 ]; then echo_i "failed - NTA lifetime clamping failed"; fi
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "testing 'rndc nta -d' displays validate-except entries"
+rndccmd 10.53.0.4 nta -d | grep ": permanent" > rndc.out.ns4.test$n.1 2>/dev/null
+lines=$(wc -l < rndc.out.ns4.test$n.1)
+[ "$lines" -eq 1 ] || ret=1
+grep 'corp/_default' rndc.out.ns4.test$n.1 > /dev/null || ret=1
+n=$((n+1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "checking that NTAs work with 'forward only;' to a validating resolver ($n)"
@@ -3293,6 +3335,24 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "check that a CDS deletion record is accepted ($n)"
+ret=0
+(
+echo zone cds-update.secure
+echo server 10.53.0.2 "$PORT"
+echo update delete cds-update.secure CDS
+echo update add cds-update.secure 0 CDS 0 0 0 00
+echo send
+) | $NSUPDATE > nsupdate.out.test$n 2>&1
+dig_with_opts +noall +answer @10.53.0.2 cds cds-update.secure > dig.out.test$n
+lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
+test "${lines:-10}" -eq 1 || ret=1
+lines=$(tr -d '\r' < dig.out.test$n | awk '$4 == "CDS" && $5 == "0" && $6 == "0" && $7 == "0" && $8 == "00" {print}' | wc -l)
+test "$lines" -eq 1 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "check that CDS records are signed using KSK when added by nsupdate ($n)"
 ret=0
 (
@@ -3316,8 +3376,9 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "check that CDS records are signed only using KSK when added by"
-echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
 ret=0
+keyid=$(cat ns2/cds-kskonly.secure.id)
 (
 echo zone cds-kskonly.secure
 echo server 10.53.0.2 "$PORT"
@@ -3332,8 +3393,34 @@ echo send
 dig_with_opts +noall +answer @10.53.0.2 cds cds-kskonly.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
+lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDS" && $11 == id {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 2 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "check that CDS deletion records are signed only using KSK when added by"
+echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+ret=0
+keyid=$(cat ns2/cds-kskonly.secure.id)
+(
+echo zone cds-kskonly.secure
+echo server 10.53.0.2 "$PORT"
+echo update delete cds-kskonly.secure CDS
+echo update add cds-kskonly.secure 0 CDS 0 0 0 00
+echo send
+) | $NSUPDATE
+dig_with_opts +noall +answer @10.53.0.2 cds cds-kskonly.secure > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDS" && $11 == id {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+lines=$(tr -d '\r' < dig.out.test$n | awk '$4 == "CDS" && $5 == "0" && $6 == "0" && $7 == "0" && $8 == "00" {print}' | wc -l)
+test "$lines" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3473,6 +3560,24 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "check that a CDNSKEY deletion record is accepted ($n)"
+ret=0
+(
+echo zone cdnskey-update.secure
+echo server 10.53.0.2 "$PORT"
+echo update delete cdnskey-update.secure CDNSKEY
+echo update add cdnskey-update.secure 0 CDNSKEY 0 3 0 AA==
+echo send
+) | $NSUPDATE > nsupdate.out.test$n 2>&1
+dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
+lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
+test "${lines:-10}" -eq 1 || ret=1
+lines=$(tr -d '\r' < dig.out.test$n | awk '$4 == "CDNSKEY" && $5 == "0" && $6 == "3" && $7 == "0" && $8 == "AA==" {print}' | wc -l)
+test "${lines:-10}" -eq 1 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking that unknown DNSKEY algorithm + unknown NSEC3 has algorithm validates as insecure ($n)"
 ret=0
 dig_with_opts +noauth +noadd +nodnssec +adflag @10.53.0.3 dnskey-nsec3-unknown.example A > dig.out.ns3.test$n
@@ -3504,8 +3609,9 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "check that CDNSKEY records are signed only using KSK when added by"
-echo_i "   nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
 ret=0
+keyid=$(cat ns2/cdnskey-kskonly.secure.id)
 (
 echo zone cdnskey-kskonly.secure
 echo server 10.53.0.2 "$PORT"
@@ -3517,8 +3623,34 @@ echo send
 dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-kskonly.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
+lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDNSKEY" && $11 == id {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "check that CDNSKEY deletion records are signed only using KSK when added by"
+echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+ret=0
+keyid=$(cat ns2/cdnskey-kskonly.secure.id)
+(
+echo zone cdnskey-kskonly.secure
+echo server 10.53.0.2 "$PORT"
+echo update delete cdnskey-kskonly.secure CDNSKEY
+echo update add cdnskey-kskonly.secure 0 CDNSKEY 0 3 0 AA==
+echo send
+) | $NSUPDATE
+dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-kskonly.secure > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDNSKEY" && $11 == id {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+lines=$(tr -d '\r' < dig.out.test$n | awk '$4 == "CDNSKEY" && $5 == "0" && $6 == "3" && $7 == "0" && $8 == "AA==" {print}' | wc -l)
+test "${lines:-10}" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3647,7 +3779,15 @@ dig_with_opts . dnskey +ednsopt=KEY-TAG:fffe +ednsopt=KEY-TAG:fffd @10.53.0.1 > 
 grep "trust-anchor-telemetry './IN' from .* 65534" ns1/named.run > /dev/null || ret=1
 grep "trust-anchor-telemetry './IN' from .* 65533" ns1/named.run > /dev/null && ret=1
 $PERL $SYSTEMTESTTOP/stop.pl dnssec ns1 || ret=1
+nextpart ns1/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} dnssec ns1 || ret=1
+n=$(($n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "waiting for root server to finish reloading ($n)"
+ret=0
+wait_for_log 20 "all zones loaded" ns1/named.run || ret=1
 n=$(($n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3694,12 +3834,12 @@ status=$((status+ret))
 # DNSSEC tests related to unsupported, disabled and revoked trust anchors.
 #
 
-# This nameserver (ns8) is loaded with a bunch of trust anchors.  Some of them
-# are good (enabled.managed, enabled.trusted, secure.managed, secure.trusted),
-# and some of them are bad (disabled.managed, revoked.managed, unsupported.managed,
-# disabled.trusted, revoked.trusted, unsupported.trusted).  Make sure that the bad
-# trust anchors are ignored.  This is tested by looking for the corresponding
-# lines in the logfile.
+# This nameserver (ns8) is loaded with a bunch of trust anchors.  Some of
+# them are good (enabled.managed, enabled.trusted, secure.managed,
+# secure.trusted), and some of them are bad (disabled.managed,
+# revoked.managed, unsupported.managed, disabled.trusted, revoked.trusted,
+# unsupported.trusted).  Make sure that the bad trust anchors are ignored.
+# This is tested by looking for the corresponding lines in the logfile.
 echo_i "checking that keys with unsupported algorithms and disabled algorithms are ignored ($n)"
 ret=0
 grep -q "ignoring static-key for 'disabled\.trusted\.': algorithm is disabled" ns8/named.run || ret=1
@@ -3904,7 +4044,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-# Wait until new ZSK becomes active.
+# Make new ZSK active.
 echo_i "make ZSK $ZSK_ID inactive and make new ZSK $ZSK_ID2 active for zone $zone ($n)"
 ret=0
 $SETTIME -I now -K ns2 $ZSK > /dev/null
@@ -3969,18 +4109,11 @@ zsk3=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$
 keyfile_to_key_id "$zsk3" > ns2/$zone.zsk.id3
 ZSK_ID3=`cat ns2/$zone.zsk.id3`
 
-echo_i "load new ZSK $ZSK_ID3 for $zone ($n)"
-ret=0
-dnssec_loadkeys_on 2 $zone || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-# Wait until new ZSK becomes active.
-echo_i "delete old ZSK $ZSK_ID make ZSK $ZSK_ID2 inactive and make new ZSK $ZSK_ID3 active for zone $zone ($n)"
+# Schedule the new ZSK (ZSK3) to become active.
+echo_i "delete old ZSK $ZSK_ID schedule ZSK $ZSK_ID2 inactive and new ZSK $ZSK_ID3 active for zone $zone ($n)"
 $SETTIME -D now -K ns2 $ZSK > /dev/null
-$SETTIME -I +5 -K ns2 $zsk2 > /dev/null
-$SETTIME -A +5 -K ns2 $zsk3 > /dev/null
+$SETTIME -I +3600 -K ns2 $zsk2 > /dev/null
+$SETTIME -A +3600 -K ns2 $zsk3 > /dev/null
 dnssec_loadkeys_on 2 $zone || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -4033,6 +4166,15 @@ do
   status=$((status+ret))
 done
 
+# Make the new ZSK (ZSK3) active.
+echo_i "make new ZSK $ZSK_ID3 active for zone $zone ($n)"
+$SETTIME -I +1 -K ns2 $zsk2 > /dev/null
+$SETTIME -A +1 -K ns2 $zsk3 > /dev/null
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 # Wait for newest ZSK to become active.
 echo_i "wait until new ZSK $ZSK_ID3 active and ZSK $ZSK_ID2 inactive"
 for i in 1 2 3 4 5 6 7 8 9 10; do
@@ -4042,6 +4184,18 @@ for i in 1 2 3 4 5 6 7 8 9 10; do
     [ "$ret" -eq 0 ] && break
     sleep 1
 done
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Update the zone that requires a resign of the SOA RRset.
+echo_i "update the zone with $zone IN TXT nsupdate added me one more time"
+(
+echo zone $zone
+echo server 10.53.0.2 "$PORT"
+echo update add $zone. 300 in txt "nsupdate added me one more time"
+echo send
+) | $NSUPDATE
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -4062,6 +4216,31 @@ do
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status+ret))
 done
+
+for qtype in "SOA" "TXT"
+do
+  echo_i "checking $qtype RRset is signed with ZSK only, new ZSK active (update-check-ksk and dnssec-ksk-only) ($n)"
+  ret=0
+  dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
+  test "$lines" -eq 1 || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID3$" > /dev/null || ret=1
+  n=$((n+1))
+  test "$ret" -eq 0 || echo_i "failed"
+  status=$((status+ret))
+done
+
+echo_i "checking secroots output with multiple views ($n)"
+ret=0
+rndccmd 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
+cp ns4/named.secroots named.secroots.test$n
+check_secroots_layout named.secroots.test$n || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

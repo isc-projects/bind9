@@ -1,6 +1,7 @@
 #ifndef BIND_KEYS_H
 #define BIND_KEYS_H 1
-#define DNSSEC_KEYS "\
+#define TRUST_ANCHORS \
+	"\
 # The bind.keys file is used to override the built-in DNSSEC trust anchors\n\
 # which are included as part of BIND 9.  The only trust anchors it contains\n\
 # are for the DNS root zone (\".\").  Trust anchors for any other zones MUST\n\
@@ -29,7 +30,7 @@
 # See https://data.iana.org/root-anchors/root-anchors.xml for current trust\n\
 # anchor information for the root zone.\n\
 \n\
-dnssec-keys {\n\
+trust-anchors {\n\
         # This key (20326) was published in the root zone in 2017.\n\
         . initial-key 257 3 8 \"AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3\n\
                 +/4RgWOq7HrxRixHlFlExOLAJr5emLvN7SWXgnLh4+B5xQlNVz8Og8kv\n\

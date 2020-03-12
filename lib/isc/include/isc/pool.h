@@ -13,8 +13,8 @@
 #define ISC_OBJPOOL_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file isc/pool.h
  * \brief An object pool is a mechanism for sharing a small pool of
@@ -25,7 +25,6 @@
  * but it would create a different set of problems for them each to have an
  * independent task or memory context.
  */
-
 
 /***
  *** Imports.
@@ -38,26 +37,22 @@
 ISC_LANG_BEGINDECLS
 
 /*****
- ***** Types.
- *****/
+***** Types.
+*****/
 
-typedef void
-(*isc_pooldeallocator_t)(void **object);
+typedef void (*isc_pooldeallocator_t)(void **object);
 
-typedef isc_result_t
-(*isc_poolinitializer_t)(void **target, void *arg);
+typedef isc_result_t (*isc_poolinitializer_t)(void **target, void *arg);
 
 typedef struct isc_pool isc_pool_t;
 
 /*****
- ***** Functions.
- *****/
+***** Functions.
+*****/
 
 isc_result_t
-isc_pool_create(isc_mem_t *mctx, unsigned int count,
-		isc_pooldeallocator_t free,
-		isc_poolinitializer_t init, void *initarg,
-		isc_pool_t **poolp);
+isc_pool_create(isc_mem_t *mctx, unsigned int count, isc_pooldeallocator_t free,
+		isc_poolinitializer_t init, void *initarg, isc_pool_t **poolp);
 /*%<
  * Create a pool of "count" object pointers. If 'free' is not NULL,
  * it points to a function that will detach the objects.  'init'

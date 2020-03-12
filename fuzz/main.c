@@ -9,14 +9,14 @@
  * information regarding copyright ownership.
  */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <fcntl.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "fuzz.h"
 
@@ -24,8 +24,8 @@
 
 #include <dirent.h>
 
-static void test_all_from(const char *dirname)
-{
+static void
+test_all_from(const char *dirname) {
 	DIR *dirp;
 	struct dirent *dp;
 
@@ -44,8 +44,8 @@ static void test_all_from(const char *dirname)
 		if (dp->d_name[0] == '.') {
 			continue;
 		}
-		snprintf(filename, sizeof(filename), "%s/%s",
-			 dirname, dp->d_name);
+		snprintf(filename, sizeof(filename), "%s/%s", dirname,
+			 dp->d_name);
 
 		if ((fd = open(filename, O_RDONLY)) == -1) {
 			fprintf(stderr, "Failed to open %s: %s\n", filename,
@@ -62,23 +62,22 @@ static void test_all_from(const char *dirname)
 		data = malloc(st.st_size);
 		n = read(fd, data, st.st_size);
 		if (n == st.st_size) {
-			printf("testing %zd bytes from %s\n",
-			       n, filename);
+			printf("testing %zd bytes from %s\n", n, filename);
 			fflush(stdout);
 			LLVMFuzzerTestOneInput((const uint8_t *)data, n);
 			fflush(stderr);
 		} else {
 			if (n < 0) {
 				fprintf(stderr,
-					"Failed to read %zd bytes from %s: %s\n",
-					(ssize_t) st.st_size, filename,
+					"Failed to read %zd bytes from %s: "
+					"%s\n",
+					(ssize_t)st.st_size, filename,
 					strerror(errno));
 			} else {
 				fprintf(stderr,
 					"Failed to read %zd bytes from %s"
 					", got %zd\n",
-					(ssize_t) st.st_size, filename,
-					n);
+					(ssize_t)st.st_size, filename, n);
 			}
 		}
 		free(data);
@@ -89,15 +88,15 @@ static void test_all_from(const char *dirname)
 	closedir(dirp);
 }
 
-int main(int argc, char **argv)
-{
+int
+main(int argc, char **argv) {
 	char corpusdir[PATH_MAX];
 	const char *target = strrchr(argv[0], '/');
 
 	UNUSED(argc);
 	UNUSED(argv);
 
-	target = target ? target + 1 : argv[0];
+	target = (target != NULL) ? target + 1 : argv[0];
 	if (strncmp(target, "lt-", 3) == 0) {
 		target += 3;
 	}
@@ -106,13 +105,13 @@ int main(int argc, char **argv)
 
 	test_all_from(corpusdir);
 
-	return 0;
+	return (0);
 }
 
 #elif __AFL_COMPILER
 
-int main(int argc, char **argv)
-{
+int
+main(int argc, char **argv) {
 	int ret;
 	unsigned char buf[64 * 1024];
 
@@ -120,19 +119,19 @@ int main(int argc, char **argv)
 	UNUSED(argv);
 
 #ifdef __AFL_LOOP
-	while (__AFL_LOOP(10000)) { // only works with afl-clang-fast
-#else
+	while (__AFL_LOOP(10000)) { /* only works with afl-clang-fast */
+#else  /* ifdef __AFL_LOOP */
 	{
-#endif
+#endif /* ifdef __AFL_LOOP */
 		ret = fread(buf, 1, sizeof(buf), stdin);
 		if (ret < 0) {
-			return 0;
+			return (0);
 		}
 
 		LLVMFuzzerTestOneInput(buf, ret);
 	}
 
-	return 0;
+	return (0);
 }
 
 #endif /* FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */

@@ -24,13 +24,11 @@
 
 #include <ns/lib.h>
 
-
 /***
  *** Globals
  ***/
 
-LIBNS_EXTERNAL_DATA unsigned int			ns_pps = 0U;
-
+LIBNS_EXTERNAL_DATA unsigned int ns_pps = 0U;
 
 /***
  *** Private
@@ -62,13 +60,15 @@ ns_lib_init(void) {
 	 * abort, on any failure.
 	 */
 	result = isc_once_do(&init_once, initialize);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
-	if (!initialize_done)
+	if (!initialize_done) {
 		return (ISC_R_FAILURE);
+	}
 
-	isc_refcount_increment(&references);
+	isc_refcount_increment0(&references);
 
 	return (ISC_R_SUCCESS);
 }
@@ -76,6 +76,7 @@ ns_lib_init(void) {
 void
 ns_lib_shutdown(void) {
 	if (isc_refcount_decrement(&references) == 1) {
+		isc_refcount_destroy(&references);
 		if (ns_g_mctx != NULL) {
 			isc_mem_detach(&ns_g_mctx);
 		}

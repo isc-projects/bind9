@@ -23,3 +23,4 @@ rm -f ./dig.out.nn.*
 rm -f ./ns*/named.lock
 rm -f ./ns*/managed-keys.bind*
 rm -f ./ns2/example.db ./ns2/K* ./ns2/keyid ./ns2/keydata
+rm -f ./*/anchor.*

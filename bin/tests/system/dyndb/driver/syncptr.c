@@ -4,6 +4,8 @@
  * Copyright (C) 2009-2015  Red Hat ; see COPYRIGHT for license
  */
 
+#include "syncptr.h"
+
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/netaddr.h>
@@ -17,7 +19,6 @@
 #include <dns/zone.h>
 
 #include "instance.h"
-#include "syncptr.h"
 #include "util.h"
 
 /* Almost random value. See eventclass.h */
@@ -32,7 +33,8 @@ struct syncptrevent {
 	isc_mem_t *mctx;
 	dns_zone_t *zone;
 	dns_diff_t diff;
-	dns_fixedname_t ptr_target_name; /* referenced by owner name in tuple */
+	dns_fixedname_t ptr_target_name; /* referenced by owner name in
+					  * tuple */
 	isc_buffer_t b; /* referenced by target name in tuple */
 	unsigned char buf[DNS_NAME_MAXWIRE];
 };
@@ -82,8 +84,9 @@ syncptr_write(isc_task_t *task, isc_event_t *event) {
 
 cleanup:
 	if (db != NULL) {
-		if (version != NULL)
+		if (version != NULL) {
 			dns_db_closeversion(db, &version, true);
+		}
 		dns_db_detach(&db);
 	}
 	dns_zone_detach(&pevent->zone);
@@ -105,9 +108,8 @@ cleanup:
  * 			  does not exist or is not managed by this driver.
  */
 static isc_result_t
-syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata,
-		  dns_name_t *name, dns_zone_t **zone)
-{
+syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata, dns_name_t *name,
+		  dns_zone_t **zone) {
 	isc_result_t result;
 	isc_netaddr_t isc_ip; /* internal net address representation */
 	dns_rdata_in_a_t ipv4;
@@ -148,9 +150,9 @@ syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata,
 
 	/* Find a zone containing owner name of the PTR record. */
 	result = dns_zt_find(inst->view->zonetable, name, 0, NULL, zone);
-	if (result == DNS_R_PARTIALMATCH)
+	if (result == DNS_R_PARTIALMATCH) {
 		result = ISC_R_SUCCESS;
-	else if (result != ISC_R_SUCCESS) {
+	} else if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
 			  "syncptr_find_zone: dns_zt_find -> %s\n",
 			  isc_result_totext(result));
@@ -160,16 +162,16 @@ syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata,
 	/* Make sure that the zone is managed by this driver. */
 	if (*zone != inst->zone1 && *zone != inst->zone2) {
 		dns_zone_detach(zone);
-		log_write(ISC_LOG_INFO,
-			  "syncptr_find_zone: zone not managed");
+		log_write(ISC_LOG_INFO, "syncptr_find_zone: zone not managed");
 		result = ISC_R_NOTFOUND;
 	}
 
 cleanup:
-	if (rdata->type == dns_rdatatype_a)
+	if (rdata->type == dns_rdatatype_a) {
 		dns_rdata_freestruct(&ipv4);
-	else
+	} else {
 		dns_rdata_freestruct(&ipv6);
+	}
 
 	return (result);
 }
@@ -192,9 +194,8 @@ cleanup:
  * 			 memory allocation error, etc.
  */
 static isc_result_t
-syncptr(sample_instance_t *inst, dns_name_t *name,
-	dns_rdata_t *addr_rdata, dns_ttl_t ttl, dns_diffop_t op)
-{
+syncptr(sample_instance_t *inst, dns_name_t *name, dns_rdata_t *addr_rdata,
+	dns_ttl_t ttl, dns_diffop_t op) {
 	isc_result_t result;
 	isc_mem_t *mctx = inst->mctx;
 	dns_fixedname_t ptr_name;
@@ -209,10 +210,9 @@ syncptr(sample_instance_t *inst, dns_name_t *name,
 	DNS_RDATACOMMON_INIT(&ptr_struct, dns_rdatatype_ptr, dns_rdataclass_in);
 	dns_name_init(&ptr_struct.ptr, NULL);
 
-	pevent = (syncptrevent_t *)isc_event_allocate(inst->mctx, inst,
-						      SYNCPTR_WRITE_EVENT,
-						      syncptr_write, NULL,
-						      sizeof(syncptrevent_t));
+	pevent = (syncptrevent_t *)isc_event_allocate(
+		inst->mctx, inst, SYNCPTR_WRITE_EVENT, syncptr_write, NULL,
+		sizeof(syncptrevent_t));
 	isc_buffer_init(&pevent->b, pevent->buf, sizeof(pevent->buf));
 	dns_fixedname_init(&pevent->ptr_target_name);
 
@@ -220,7 +220,7 @@ syncptr(sample_instance_t *inst, dns_name_t *name,
 	result = syncptr_find_zone(inst, addr_rdata,
 				   dns_fixedname_name(&ptr_name), &ptr_zone);
 	if (result != ISC_R_SUCCESS) {
-		log_error_r("PTR record synchonization skipped: reverse zone "
+		log_error_r("PTR record synchronization skipped: reverse zone "
 			    "is not managed by driver instance '%s'",
 			    inst->db_name);
 		goto cleanup;
@@ -262,14 +262,18 @@ syncptr(sample_instance_t *inst, dns_name_t *name,
 	isc_task_send(task, (isc_event_t **)&pevent);
 
 cleanup:
-	if (ptr_zone != NULL)
+	if (ptr_zone != NULL) {
 		dns_zone_detach(&ptr_zone);
-	if (tp != NULL)
+	}
+	if (tp != NULL) {
 		dns_difftuple_free(&tp);
-	if (task != NULL)
+	}
+	if (task != NULL) {
 		isc_task_detach(&task);
-	if (pevent != NULL)
+	}
+	if (pevent != NULL) {
 		isc_event_free((isc_event_t **)&pevent);
+	}
 
 	return (result);
 }
@@ -283,22 +287,23 @@ cleanup:
  * 			 the rdata
  */
 isc_result_t
-syncptrs(sample_instance_t *inst, dns_name_t *name,
-	 dns_rdataset_t *rdataset, dns_diffop_t op)
-{
+syncptrs(sample_instance_t *inst, dns_name_t *name, dns_rdataset_t *rdataset,
+	 dns_diffop_t op) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 
-	for (result = dns_rdataset_first(rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset)) {
+	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
 		dns_rdataset_current(rdataset, &rdata);
 		result = syncptr(inst, name, &rdata, rdataset->ttl, op);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 			goto cleanup;
+		}
 	}
-	if (result == ISC_R_NOMORE)
+	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
+	}
 
 cleanup:
 	return (result);

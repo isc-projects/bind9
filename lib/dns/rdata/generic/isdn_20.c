@@ -56,8 +56,9 @@ totext_isdn(ARGS_TOTEXT) {
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, true, target));
-	if (region.length == 0)
+	if (region.length == 0) {
 		return (ISC_R_SUCCESS);
+	}
 	RETERR(str_totext(" ", target));
 	return (txt_totext(&region, true, target));
 }
@@ -72,8 +73,9 @@ fromwire_isdn(ARGS_FROMWIRE) {
 	UNUSED(options);
 
 	RETERR(txt_fromwire(source, target));
-	if (buffer_empty(source))
+	if (buffer_empty(source)) {
 		return (ISC_R_SUCCESS);
+	}
 	return (txt_fromwire(source, target));
 }
 
@@ -117,8 +119,9 @@ fromstruct_isdn(ARGS_FROMSTRUCT) {
 
 	RETERR(uint8_tobuffer(isdn->isdn_len, target));
 	RETERR(mem_tobuffer(target, isdn->isdn, isdn->isdn_len));
-	if (isdn->subaddress == NULL)
+	if (isdn->subaddress == NULL) {
 		return (ISC_R_SUCCESS);
+	}
 	RETERR(uint8_tobuffer(isdn->subaddress_len, target));
 	return (mem_tobuffer(target, isdn->subaddress, isdn->subaddress_len));
 }
@@ -141,8 +144,9 @@ tostruct_isdn(ARGS_TOSTRUCT) {
 	isdn->isdn_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	isdn->isdn = mem_maybedup(mctx, r.base, isdn->isdn_len);
-	if (isdn->isdn == NULL)
+	if (isdn->isdn == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 	isc_region_consume(&r, isdn->isdn_len);
 
 	if (r.length == 0) {
@@ -153,16 +157,18 @@ tostruct_isdn(ARGS_TOSTRUCT) {
 		isc_region_consume(&r, 1);
 		isdn->subaddress = mem_maybedup(mctx, r.base,
 						isdn->subaddress_len);
-		if (isdn->subaddress == NULL)
+		if (isdn->subaddress == NULL) {
 			goto cleanup;
+		}
 	}
 
 	isdn->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
- cleanup:
-	if (mctx != NULL && isdn->isdn != NULL)
+cleanup:
+	if (mctx != NULL && isdn->isdn != NULL) {
 		isc_mem_free(mctx, isdn->isdn);
+	}
 	return (ISC_R_NOMEMORY);
 }
 
@@ -172,13 +178,16 @@ freestruct_isdn(ARGS_FREESTRUCT) {
 
 	REQUIRE(isdn != NULL);
 
-	if (isdn->mctx == NULL)
+	if (isdn->mctx == NULL) {
 		return;
+	}
 
-	if (isdn->isdn != NULL)
+	if (isdn->isdn != NULL) {
 		isc_mem_free(isdn->mctx, isdn->isdn);
-	if (isdn->subaddress != NULL)
+	}
+	if (isdn->subaddress != NULL) {
 		isc_mem_free(isdn->mctx, isdn->subaddress);
+	}
 	isdn->mctx = NULL;
 }
 
@@ -206,7 +215,6 @@ digest_isdn(ARGS_DIGEST) {
 
 static inline bool
 checkowner_isdn(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_isdn);
 
 	UNUSED(name);
@@ -219,7 +227,6 @@ checkowner_isdn(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_isdn(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_isdn);
 
 	UNUSED(rdata);
@@ -234,4 +241,4 @@ casecompare_isdn(ARGS_COMPARE) {
 	return (compare_isdn(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_ISDN_20_C */
+#endif /* RDATA_GENERIC_ISDN_20_C */

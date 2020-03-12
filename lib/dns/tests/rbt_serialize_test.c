@@ -11,13 +11,12 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <fcntl.h>
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -47,7 +46,6 @@
 #include <dns/name.h>
 #include <dns/rbt.h>
 #include <dns/result.h>
-#include <dns/result.h>
 
 #include <dst/dst.h>
 
@@ -55,7 +53,7 @@
 
 #ifndef MAP_FILE
 #define MAP_FILE 0
-#endif
+#endif /* ifndef MAP_FILE */
 
 /* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
@@ -92,33 +90,34 @@ typedef struct rbt_testdata {
 	data_holder_t data;
 } rbt_testdata_t;
 
-#define DATA_ITEM(name) { (name), sizeof(name) - 1, { sizeof(name), (name) } }
+#define DATA_ITEM(name)                                            \
+	{                                                          \
+		(name), sizeof(name) - 1, { sizeof(name), (name) } \
+	}
 
-rbt_testdata_t testdata[] = {
-	DATA_ITEM("first.com."),
-	DATA_ITEM("one.net."),
-	DATA_ITEM("two.com."),
-	DATA_ITEM("three.org."),
-	DATA_ITEM("asdf.com."),
-	DATA_ITEM("ghjkl.com."),
-	DATA_ITEM("1.edu."),
-	DATA_ITEM("2.edu."),
-	DATA_ITEM("3.edu."),
-	DATA_ITEM("123.edu."),
-	DATA_ITEM("1236.com."),
-	DATA_ITEM("and_so_forth.com."),
-	DATA_ITEM("thisisalongname.com."),
-	DATA_ITEM("a.b."),
-	DATA_ITEM("test.net."),
-	DATA_ITEM("whoknows.org."),
-	DATA_ITEM("blargh.com."),
-	DATA_ITEM("www.joe.com."),
-	DATA_ITEM("test.com."),
-	DATA_ITEM("isc.org."),
-	DATA_ITEM("uiop.mil."),
-	DATA_ITEM("last.fm."),
-	{ NULL, 0, { 0, NULL } }
-};
+rbt_testdata_t testdata[] = { DATA_ITEM("first.com."),
+			      DATA_ITEM("one.net."),
+			      DATA_ITEM("two.com."),
+			      DATA_ITEM("three.org."),
+			      DATA_ITEM("asdf.com."),
+			      DATA_ITEM("ghjkl.com."),
+			      DATA_ITEM("1.edu."),
+			      DATA_ITEM("2.edu."),
+			      DATA_ITEM("3.edu."),
+			      DATA_ITEM("123.edu."),
+			      DATA_ITEM("1236.com."),
+			      DATA_ITEM("and_so_forth.com."),
+			      DATA_ITEM("thisisalongname.com."),
+			      DATA_ITEM("a.b."),
+			      DATA_ITEM("test.net."),
+			      DATA_ITEM("whoknows.org."),
+			      DATA_ITEM("blargh.com."),
+			      DATA_ITEM("www.joe.com."),
+			      DATA_ITEM("test.com."),
+			      DATA_ITEM("isc.org."),
+			      DATA_ITEM("uiop.mil."),
+			      DATA_ITEM("last.fm."),
+			      { NULL, 0, { 0, NULL } } };
 
 static void
 delete_data(void *data, void *arg) {
@@ -130,7 +129,7 @@ static isc_result_t
 write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 	isc_result_t result;
 	size_t ret = 0;
-	data_holder_t *data = (data_holder_t *)datap;
+	data_holder_t *data;
 	data_holder_t temp;
 	off_t where;
 
@@ -138,7 +137,8 @@ write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 
 	REQUIRE(file != NULL);
 	REQUIRE(crc != NULL);
-	REQUIRE(data != NULL);
+	REQUIRE(datap != NULL);
+	data = (data_holder_t *)datap;
 	REQUIRE((data->len == 0 && data->data == NULL) ||
 		(data->len != 0 && data->data != NULL));
 
@@ -148,9 +148,9 @@ write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 	}
 
 	temp = *data;
-	temp.data = (data->len == 0
-		     ? NULL
-		     : (char *)((uintptr_t)where + sizeof(data_holder_t)));
+	temp.data = (data->len == 0 ? NULL
+				    : (char *)((uintptr_t)where +
+					       sizeof(data_holder_t)));
 
 	isc_crc64_update(crc, (void *)&temp, sizeof(temp));
 	ret = fwrite(&temp, sizeof(data_holder_t), 1, file);
@@ -182,8 +182,7 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg, uint64_t *crc) {
 
 	data = p->data;
 
-	if (data == NULL ||
-	    (data->len == 0 && data->data != NULL) ||
+	if (data == NULL || (data->len == 0 && data->data != NULL) ||
 	    (data->len != 0 && data->data == NULL))
 	{
 		return (ISC_R_INVALIDFILE);
@@ -191,7 +190,7 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg, uint64_t *crc) {
 
 	size = max - ((char *)p - (char *)base);
 
-	if (data->len > (int) size || data->data > (const char *) max) {
+	if (data->len > (int)size || data->data > (const char *)max) {
 		return (ISC_R_INVALIDFILE);
 	}
 
@@ -279,7 +278,7 @@ check_test_data(dns_rbt_t *rbt) {
 
 		data = NULL;
 		result = dns_rbt_findname(rbt, name, 0, foundname,
-					  (void *) &data);
+					  (void *)&data);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		testdatap++;
@@ -335,8 +334,8 @@ serialize_test(void **state) {
 	fd = open("zone.bin", O_RDWR);
 	assert_int_not_equal(fd, -1);
 	isc_file_getsizefd(fd, &filesize);
-	base = mmap(NULL, filesize, PROT_READ|PROT_WRITE,
-		    MAP_FILE|MAP_PRIVATE, fd, 0);
+	base = mmap(NULL, filesize, PROT_READ | PROT_WRITE,
+		    MAP_FILE | MAP_PRIVATE, fd, 0);
 	assert_true(base != NULL && base != MAP_FAILED);
 	close(fd);
 
@@ -396,23 +395,24 @@ deserialize_corrupt_test(void **state) {
 		fd = open("zone.bin", O_RDWR);
 		assert_int_not_equal(fd, -1);
 		isc_file_getsizefd(fd, &filesize);
-		base = mmap(NULL, filesize, PROT_READ|PROT_WRITE,
-			    MAP_FILE|MAP_PRIVATE, fd, 0);
+		base = mmap(NULL, filesize, PROT_READ | PROT_WRITE,
+			    MAP_FILE | MAP_PRIVATE, fd, 0);
 		assert_true(base != NULL && base != MAP_FAILED);
 		close(fd);
 
 		/* Randomly fuzz a portion of the memory */
+		/* cppcheck-suppress nullPointerArithmeticRedundantCheck */
 		p = base + (isc_random_uniform(filesize));
+		/* cppcheck-suppress nullPointerArithmeticRedundantCheck */
 		q = base + filesize;
 		q -= (isc_random_uniform(q - p));
 		while (p++ < q) {
 			*p = isc_random8();
 		}
 
-		result = dns_rbt_deserialize_tree(base, filesize, 0, dt_mctx,
-						  delete_data, NULL,
-						  fix_data, NULL,
-						  NULL, &rbt_deserialized);
+		result = dns_rbt_deserialize_tree(
+			base, filesize, 0, dt_mctx, delete_data, NULL, fix_data,
+			NULL, NULL, &rbt_deserialized);
 
 		/* Test to make sure we have a valid tree */
 		assert_true(result == ISC_R_SUCCESS ||
@@ -453,8 +453,8 @@ serialize_align_test(void **state) {
 int
 main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(serialize_test,
-						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(serialize_test, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(deserialize_corrupt_test,
 						_setup, _teardown),
 		cmocka_unit_test(serialize_align_test),
@@ -484,4 +484,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

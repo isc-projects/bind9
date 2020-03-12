@@ -11,12 +11,11 @@
 
 #if HAVE_CMOCKA
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -26,8 +25,8 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
-#include <isc/stdio.h>
 #include <isc/print.h>
+#include <isc/stdio.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -44,7 +43,7 @@
 #define TAPSOCK "testdata/dnstap/dnstap.sock"
 
 #define TAPSAVED "testdata/dnstap/dnstap.saved"
-#define TAPTEXT "testdata/dnstap/dnstap.text"
+#define TAPTEXT	 "testdata/dnstap/dnstap.text"
 
 static int
 _setup(void **state) {
@@ -69,8 +68,8 @@ _teardown(void **state) {
 
 static void
 cleanup() {
-	(void) isc_file_remove(TAPFILE);
-	(void) isc_file_remove(TAPSOCK);
+	(void)isc_file_remove(TAPFILE);
+	(void)isc_file_remove(TAPSOCK);
 }
 
 /* set up dnstap environment */
@@ -88,8 +87,8 @@ create_test(void **state) {
 	assert_non_null(fopt);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(dt_mctx, dns_dtmode_file, TAPFILE,
-			       &fopt, NULL, &dtenv);
+	result = dns_dt_create(dt_mctx, dns_dtmode_file, TAPFILE, &fopt, NULL,
+			       &dtenv);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	if (dtenv != NULL) {
 		dns_dt_detach(&dtenv);
@@ -104,8 +103,8 @@ create_test(void **state) {
 	assert_non_null(fopt);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(dt_mctx, dns_dtmode_unix, TAPSOCK,
-			       &fopt, NULL, &dtenv);
+	result = dns_dt_create(dt_mctx, dns_dtmode_unix, TAPSOCK, &fopt, NULL,
+			       &dtenv);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	if (dtenv != NULL) {
 		dns_dt_detach(&dtenv);
@@ -132,8 +131,6 @@ create_test(void **state) {
 	}
 
 	cleanup();
-
-	dns_dt_shutdown();
 }
 
 /* send dnstap messages */
@@ -173,8 +170,8 @@ send_test(void **state) {
 	assert_non_null(fopt);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(dt_mctx, dns_dtmode_file, TAPFILE,
-			       &fopt, NULL, &dtenv);
+	result = dns_dt_create(dt_mctx, dns_dtmode_file, TAPFILE, &fopt, NULL,
+			       &dtenv);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_dt_attach(dtenv, &view->dtenv);
@@ -208,14 +205,14 @@ send_test(void **state) {
 	isc_time_set(&p, now - 3600, 0); /* past */
 	isc_time_set(&f, now + 3600, 0); /* future */
 
-	result = dns_test_getdata("testdata/dnstap/query.auth",
-				  qambuffer, sizeof(qambuffer), &qasize);
+	result = dns_test_getdata("testdata/dnstap/query.auth", qambuffer,
+				  sizeof(qambuffer), &qasize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&qamsg, qambuffer, qasize);
 	isc_buffer_add(&qamsg, qasize);
 
-	result = dns_test_getdata("testdata/dnstap/response.auth",
-				  rambuffer, sizeof(rambuffer), &rasize);
+	result = dns_test_getdata("testdata/dnstap/response.auth", rambuffer,
+				  sizeof(rambuffer), &rasize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&ramsg, rambuffer, rasize);
 	isc_buffer_add(&ramsg, rasize);
@@ -263,7 +260,6 @@ send_test(void **state) {
 
 	dns_dt_detach(&view->dtenv);
 	dns_dt_detach(&dtenv);
-	dns_dt_shutdown();
 	dns_view_detach(&view);
 
 	result = dns_dt_open(TAPFILE, dns_dtmode_file, dt_mctx, &handle);
@@ -357,7 +353,7 @@ totext_test(void **state) {
 		result = dns_dt_datatotext(dtdata, &b);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		assert_string_equal((char *) isc_buffer_base(b), s);
+		assert_string_equal((char *)isc_buffer_base(b), s);
 
 		dns_dtdata_free(&dtdata);
 		isc_buffer_free(&b);
@@ -383,7 +379,7 @@ main(void) {
 	setenv("TZ", "PST8", 1);
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
-#else
+#else  /* if HAVE_DNSTAP */
 	print_message("1..0 # Skip dnstap not enabled\n");
 #endif /* HAVE_DNSTAP */
 }

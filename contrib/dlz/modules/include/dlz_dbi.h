@@ -35,8 +35,8 @@
 
 #include <stdbool.h>
 
-#include <dlz_minimal.h>
 #include <dlz_list.h>
+#include <dlz_minimal.h>
 #include <dlz_pthread.h>
 
 #ifndef DLZ_DBI_H
@@ -45,10 +45,10 @@
 /*
  * Types
  */
-#define REQUIRE_CLIENT	0x01
-#define REQUIRE_QUERY	0x02
-#define REQUIRE_RECORD	0x04
-#define REQUIRE_ZONE	0x08
+#define REQUIRE_CLIENT 0x01
+#define REQUIRE_QUERY  0x02
+#define REQUIRE_RECORD 0x04
+#define REQUIRE_ZONE   0x08
 
 typedef struct query_segment query_segment_t;
 typedef DLZ_LIST(query_segment_t) query_list_t;
@@ -61,10 +61,10 @@ typedef struct driverinstance driverinstance_t;
  * special tokens are %zone%, %record%, %client%
  */
 struct query_segment {
-	void				*cmd;
-	unsigned int			strlen;
-	bool			direct;
-	DLZ_LINK(query_segment_t)	link;
+	void *	     cmd;
+	unsigned int strlen;
+	bool	     direct;
+	DLZ_LINK(query_segment_t) link;
 };
 
 /*%
@@ -75,19 +75,19 @@ struct query_segment {
  * make sure no two threads try to use the same DBI at a time.
  */
 struct dbinstance {
-	void			*dbconn;
-	query_list_t		*allnodes_q;
-	query_list_t		*allowxfr_q;
-	query_list_t		*authority_q;
-	query_list_t		*findzone_q;
-	query_list_t		*lookup_q;
-	query_list_t		*countzone_q;
-	char			*query_buf;
-	char			*zone;
-	char			*record;
-	char			*client;
-	dlz_mutex_t		lock;
-	DLZ_LINK(dbinstance_t)	link;
+	void *	      dbconn;
+	query_list_t *allnodes_q;
+	query_list_t *allowxfr_q;
+	query_list_t *authority_q;
+	query_list_t *findzone_q;
+	query_list_t *lookup_q;
+	query_list_t *countzone_q;
+	char *	      query_buf;
+	char *	      zone;
+	char *	      record;
+	char *	      client;
+	dlz_mutex_t   lock;
+	DLZ_LINK(dbinstance_t) link;
 };
 
 /*
@@ -99,7 +99,7 @@ destroy_querylist(query_list_t **querylist);
 
 isc_result_t
 build_querylist(const char *query_str, char **zone, char **record,
-		char **client, query_list_t **querylist, unsigned int flags, 
+		char **client, query_list_t **querylist, unsigned int flags,
 		log_t log);
 
 char *
@@ -115,6 +115,6 @@ void
 destroy_dbinstance(dbinstance_t *dbi);
 
 char *
-get_parameter_value(const char *input, const char* key);
+get_parameter_value(const char *input, const char *key);
 
 #endif /* DLZ_DBI_H */

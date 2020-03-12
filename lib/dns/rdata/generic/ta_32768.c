@@ -18,7 +18,6 @@
 
 static inline isc_result_t
 fromtext_ta(ARGS_FROMTEXT) {
-
 	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromtext_ds(rdclass, type, lexer, origin, options,
@@ -27,7 +26,6 @@ fromtext_ta(ARGS_FROMTEXT) {
 
 static inline isc_result_t
 totext_ta(ARGS_TOTEXT) {
-
 	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	return (generic_totext_ds(rdata, tctx, target));
@@ -35,7 +33,6 @@ totext_ta(ARGS_TOTEXT) {
 
 static inline isc_result_t
 fromwire_ta(ARGS_FROMWIRE) {
-
 	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromwire_ds(rdclass, type, source, dctx, options,
@@ -73,7 +70,6 @@ compare_ta(ARGS_COMPARE) {
 
 static inline isc_result_t
 fromstruct_ta(ARGS_FROMSTRUCT) {
-
 	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromstruct_ds(rdclass, type, source, target));
@@ -103,11 +99,13 @@ freestruct_ta(ARGS_FREESTRUCT) {
 	REQUIRE(ds != NULL);
 	REQUIRE(ds->common.rdtype == dns_rdatatype_ta);
 
-	if (ds->mctx == NULL)
+	if (ds->mctx == NULL) {
 		return;
+	}
 
-	if (ds->digest != NULL)
+	if (ds->digest != NULL) {
 		isc_mem_free(ds->mctx, ds->digest);
+	}
 	ds->mctx = NULL;
 }
 
@@ -135,7 +133,6 @@ digest_ta(ARGS_DIGEST) {
 
 static inline bool
 checkowner_ta(ARGS_CHECKOWNER) {
-
 	REQUIRE(type == dns_rdatatype_ta);
 
 	UNUSED(name);
@@ -148,7 +145,6 @@ checkowner_ta(ARGS_CHECKOWNER) {
 
 static inline bool
 checknames_ta(ARGS_CHECKNAMES) {
-
 	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	UNUSED(rdata);
@@ -163,4 +159,4 @@ casecompare_ta(ARGS_COMPARE) {
 	return (compare_ta(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_TA_32768_C */
+#endif /* RDATA_GENERIC_TA_32768_C */

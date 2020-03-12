@@ -13,8 +13,8 @@
 #define DNS_GEOIP_H 1
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file dns/geoip.h
  * \brief
@@ -34,9 +34,9 @@
 #include <isc/netaddr.h>
 #include <isc/refcount.h>
 
+#include <dns/iptable.h>
 #include <dns/name.h>
 #include <dns/types.h>
-#include <dns/iptable.h>
 
 /***
  *** Types
@@ -79,19 +79,19 @@ typedef enum {
 
 typedef struct dns_geoip_elem {
 	dns_geoip_subtype_t subtype;
-	void *db;
+	void *		    db;
 	union {
 		char as_string[256];
-		int as_int;
+		int  as_int;
 	};
 } dns_geoip_elem_t;
 
 struct dns_geoip_databases {
-	void *country;		/* GeoIP2-Country or GeoLite2-Country */
-	void *city;		/* GeoIP2-CIty or GeoLite2-City */
-	void *domain;		/* GeoIP2-Domain */
-	void *isp;		/* GeoIP2-ISP */
-	void *as;		/* GeoIP2-ASN or GeoLite2-ASN */
+	void *country; /* GeoIP2-Country or GeoLite2-Country */
+	void *city;    /* GeoIP2-CIty or GeoLite2-City */
+	void *domain;  /* GeoIP2-Domain */
+	void *isp;     /* GeoIP2-ISP */
+	void *as;      /* GeoIP2-ASN or GeoLite2-ASN */
 };
 
 /***
@@ -101,12 +101,9 @@ struct dns_geoip_databases {
 ISC_LANG_BEGINDECLS
 
 bool
-dns_geoip_match(const isc_netaddr_t *reqaddr,
+dns_geoip_match(const isc_netaddr_t *	     reqaddr,
 		const dns_geoip_databases_t *geoip,
-		const dns_geoip_elem_t *elt);
-
-void
-dns_geoip_shutdown(void);
+		const dns_geoip_elem_t *     elt);
 
 ISC_LANG_ENDDECLS
 

@@ -15,8 +15,8 @@
 
 #include <string.h>
 
-#include "isc/platform.h"
 #include "isc/lang.h"
+#include "isc/platform.h"
 
 ISC_LANG_BEGINDECLS
 
@@ -28,7 +28,7 @@ strlcpy(char *dst, const char *src, size_t size);
 #if !defined(HAVE_STRLCAT)
 size_t
 strlcat(char *dst, const char *src, size_t size);
-#endif
+#endif /* if !defined(HAVE_STRLCAT) */
 
 int
 isc_string_strerror_r(int errnum, char *buf, size_t buflen);

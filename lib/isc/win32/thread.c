@@ -17,8 +17,7 @@
 
 void
 isc_thread_create(isc_threadfunc_t start, isc_threadarg_t arg,
-		  isc_thread_t *threadp)
-{
+		  isc_thread_t *threadp) {
 	isc_thread_t thread;
 	unsigned int id;
 
@@ -46,8 +45,8 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp) {
 	}
 	if (rp != NULL && !GetExitCodeThread(thread, rp)) {
 		isc_error_fatal(__FILE__, __LINE__,
-				"GetExitCodeThread() failed: %d", GetLastError());
-
+				"GetExitCodeThread() failed: %d",
+				GetLastError());
 	}
 	(void)CloseHandle(thread);
 
@@ -72,26 +71,4 @@ isc_result_t
 isc_thread_setaffinity(int cpu) {
 	/* no-op on Windows for now */
 	return (ISC_R_SUCCESS);
-}
-
-void *
-isc_thread_key_getspecific(isc_thread_key_t key) {
-	return(TlsGetValue(key));
-}
-
-int
-isc_thread_key_setspecific(isc_thread_key_t key, void *value) {
-	return (TlsSetValue(key, value) ? 0 : GetLastError());
-}
-
-int
-isc_thread_key_create(isc_thread_key_t *key, void (*func)(void *)) {
-	*key = TlsAlloc();
-
-	return ((*key != -1) ? 0 : GetLastError());
-}
-
-int
-isc_thread_key_delete(isc_thread_key_t key) {
-	return (TlsFree(key) ? 0 : GetLastError());
 }

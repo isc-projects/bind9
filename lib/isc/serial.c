@@ -9,11 +9,10 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
-#include <stdbool.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/serial.h>
 
@@ -22,8 +21,9 @@ isc_serial_lt(uint32_t a, uint32_t b) {
 	/*
 	 * Undefined => false
 	 */
-	if (a == (b ^ 0x80000000U))
+	if (a == (b ^ 0x80000000U)) {
 		return (false);
+	}
 	return (((int32_t)(a - b) < 0) ? true : false);
 }
 

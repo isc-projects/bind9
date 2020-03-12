@@ -9,16 +9,16 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_RBTDB_H
 #define DNS_RBTDB_H 1
 
 #include <isc/lang.h>
+
 #include <dns/types.h>
 
 /*****
- ***** Module Info
- *****/
+***** Module Info
+*****/
 
 /*! \file
  * \brief

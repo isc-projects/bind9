@@ -9,15 +9,15 @@
  * information regarding copyright ownership.
  */
 
-#include <confgen/os.h>
-
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <errno.h>
-#include <stdio.h>
+#include <fcntl.h>
 #include <io.h>
+#include <stdio.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <confgen/os.h>
 
 int
 set_user(FILE *fd, const char *user) {

@@ -355,6 +355,15 @@ typedef __int64 off_t;
 /* Define to 1 if you have the `HMAC_CTX_reset' function. */
 @HAVE_HMAC_CTX_RESET@
 
+/* Define to 1 if you have the `uv_handle_get_data' function. */
+@HAVE_UV_HANDLE_GET_DATA@
+
+/* Define to 1 if you have the `uv_handle_set_data' function. */
+@HAVE_UV_HANDLE_SET_DATA@
+
+/* Define to 1 if you have the `uv_import' function. */
+@HAVE_UV_IMPORT@
+
 /*
  * Define to nothing if C supports flexible array members, and to 1 if it does
  * not. That way, with a declaration like `struct s { int n; double

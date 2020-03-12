@@ -11,16 +11,15 @@
 
 #include <stdio.h>
 
-#include <isc/md.h>
 #include <isc/iterated_hash.h>
+#include <isc/md.h>
 #include <isc/util.h>
 
 int
-isc_iterated_hash(unsigned char *out,
-		  const unsigned int hashalg, const int iterations,
-		  const unsigned char *salt, const int saltlength,
-		  const unsigned char *in, const int inlength)
-{
+isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
+		  const int iterations, const unsigned char *salt,
+		  const int saltlength, const unsigned char *in,
+		  const int inlength) {
 	isc_md_t *md;
 	isc_result_t result;
 	int n = 0;

@@ -11,11 +11,10 @@
 
 #if HAVE_CMOCKA
 
+#include <fcntl.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-
-#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -27,14 +26,14 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#define NAME "internal"
-#define SHA "3bed2cb3a3acf7b6a8ef408420cc682d5520e26976d354254f528c965612054f"
+#define NAME	  "internal"
+#define SHA	  "3bed2cb3a3acf7b6a8ef408420cc682d5520e26976d354254f528c965612054f"
 #define TRUNC_SHA "3bed2cb3a3acf7b6"
 
-#define BAD1 "in/internal"
+#define BAD1	 "in/internal"
 #define BADHASH1 "8bbb97a888791399"
 
-#define BAD2 "Internal"
+#define BAD2	 "Internal"
 #define BADHASH2 "2ea1842b445b0c81"
 
 #define F(x) "testdata/file/" x ".test"
@@ -96,18 +95,18 @@ isc_file_template_test(void **state) {
 
 	assert_return_code(chdir(TESTS), 0);
 
-	result = isc_file_template("/absolute/path", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("/absolute/path", "file-XXXXXXXX", buf,
+				   sizeof(buf));
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "/absolute/file-XXXXXXXX");
 
-	result = isc_file_template("relative/path", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("relative/path", "file-XXXXXXXX", buf,
+				   sizeof(buf));
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "relative/file-XXXXXXXX");
 
-	result = isc_file_template("/trailing/slash/", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("/trailing/slash/", "file-XXXXXXXX", buf,
+				   sizeof(buf));
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "/trailing/slash/file-XXXXXXXX");
 
@@ -120,8 +119,8 @@ isc_file_template_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "/file-XXXXXXXX");
 
-	result = isc_file_template("noslash", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("noslash", "file-XXXXXXXX", buf,
+				   sizeof(buf));
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf, "file-XXXXXXXX");
 
@@ -150,4 +149,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* if HAVE_CMOCKA */

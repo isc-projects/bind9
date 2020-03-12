@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
 
@@ -22,7 +21,7 @@
 #include <isc/types.h>
 #ifdef ISC_PLATFORM_HAVESYSUNH
 #include <sys/un.h>
-#endif
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 
 struct isc_sockaddr {
 	union {
@@ -31,21 +30,25 @@ struct isc_sockaddr {
 		struct sockaddr_in6	sin6;
 		struct sockaddr_storage ss;
 #ifdef ISC_PLATFORM_HAVESYSUNH
-		struct sockaddr_un	sunix;
-#endif
-	}				type;
-	unsigned int			length;		/* XXXRTH beginning? */
-	ISC_LINK(struct isc_sockaddr)	link;
+		struct sockaddr_un sunix;
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+	} type;
+	unsigned int length; /* XXXRTH beginning? */
+	ISC_LINK(struct isc_sockaddr) link;
 };
 
-#define ISC_SOCKADDR_CMPADDR	  0x0001	/*%< compare the address
-						 *   sin_addr/sin6_addr */
-#define ISC_SOCKADDR_CMPPORT 	  0x0002	/*%< compare the port
-						 *   sin_port/sin6_port */
-#define ISC_SOCKADDR_CMPSCOPE     0x0004	/*%< compare the scope
-						 *   sin6_scope */
-#define ISC_SOCKADDR_CMPSCOPEZERO 0x0008	/*%< when comparing scopes
-						 *   zero scopes always match */
+#define ISC_SOCKADDR_CMPADDR            \
+	0x0001 /*%< compare the address \
+		*   sin_addr/sin6_addr */
+#define ISC_SOCKADDR_CMPPORT         \
+	0x0002 /*%< compare the port \
+		*   sin_port/sin6_port */
+#define ISC_SOCKADDR_CMPSCOPE         \
+	0x0004 /*%< compare the scope \
+		*   sin6_scope */
+#define ISC_SOCKADDR_CMPSCOPEZERO         \
+	0x0008 /*%< when comparing scopes \
+		*   zero scopes always match */
 
 ISC_LANG_BEGINDECLS
 
@@ -233,9 +236,9 @@ isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path);
 isc_result_t
 isc_sockaddr_fromsockaddr(isc_sockaddr_t *isa, const struct sockaddr *sa);
 
-
-#define ISC_SOCKADDR_FORMATSIZE \
-	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX%SSSSSSSSSS#YYYYY")
+#define ISC_SOCKADDR_FORMATSIZE                                            \
+	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX%SSSSSSSSSS#" \
+	       "YYYYY")
 /*%<
  * Minimum size of array to pass to isc_sockaddr_format().
  */

@@ -9,6 +9,9 @@
  * information regarding copyright ownership.
  */
 
+#include <openssl/hmac.h>
+#include <openssl/opensslv.h>
+
 #include <isc/assertions.h>
 #include <isc/hmac.h>
 #include <isc/md.h>
@@ -17,9 +20,6 @@
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
-
-#include <openssl/hmac.h>
-#include <openssl/opensslv.h>
 
 #include "openssl_shim.h"
 
@@ -40,9 +40,8 @@ isc_hmac_free(isc_hmac_t *hmac) {
 }
 
 isc_result_t
-isc_hmac_init(isc_hmac_t *hmac, const void *key,
-	      size_t keylen, isc_md_type_t md_type)
-{
+isc_hmac_init(isc_hmac_t *hmac, const void *key, size_t keylen,
+	      isc_md_type_t md_type) {
 	REQUIRE(hmac != NULL);
 	REQUIRE(key != NULL);
 
@@ -61,7 +60,7 @@ isc_result_t
 isc_hmac_reset(isc_hmac_t *hmac) {
 	REQUIRE(hmac != NULL);
 
-	if  (HMAC_CTX_reset(hmac) != 1) {
+	if (HMAC_CTX_reset(hmac) != 1) {
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
@@ -85,8 +84,7 @@ isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len) {
 
 isc_result_t
 isc_hmac_final(isc_hmac_t *hmac, unsigned char *digest,
-	       unsigned int *digestlen)
-{
+	       unsigned int *digestlen) {
 	REQUIRE(hmac != NULL);
 	REQUIRE(digest != NULL);
 
@@ -120,9 +118,8 @@ isc_hmac_get_block_size(isc_hmac_t *hmac) {
 
 isc_result_t
 isc_hmac(isc_md_type_t type, const void *key, const int keylen,
-	 const unsigned char *buf, const size_t len,
-	 unsigned char *digest, unsigned int *digestlen)
-{
+	 const unsigned char *buf, const size_t len, unsigned char *digest,
+	 unsigned int *digestlen) {
 	isc_hmac_t *hmac = NULL;
 	isc_result_t res;
 
@@ -142,7 +139,7 @@ isc_hmac(isc_md_type_t type, const void *key, const int keylen,
 	if (res != ISC_R_SUCCESS) {
 		goto end;
 	}
- end:
+end:
 	isc_hmac_free(hmac);
 
 	return (res);

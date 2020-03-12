@@ -28,13 +28,11 @@
 
 #include <dst/dst.h>
 
-
 /***
  *** Globals
  ***/
 
-LIBDNS_EXTERNAL_DATA unsigned int			dns_pps = 0U;
-
+LIBDNS_EXTERNAL_DATA unsigned int dns_pps = 0U;
 
 /***
  *** Functions
@@ -57,22 +55,26 @@ initialize(void) {
 	isc_mem_create(&dns_g_mctx);
 	dns_result_register();
 	result = dns_ecdb_register(dns_g_mctx, &dbimp);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_mctx;
+	}
 
 	result = dst_lib_init(dns_g_mctx, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_db;
+	}
 
 	initialize_done = true;
 	return;
 
-  cleanup_db:
-	if (dbimp != NULL)
+cleanup_db:
+	if (dbimp != NULL) {
 		dns_ecdb_unregister(&dbimp);
-  cleanup_mctx:
-	if (dns_g_mctx != NULL)
+	}
+cleanup_mctx:
+	if (dns_g_mctx != NULL) {
 		isc_mem_detach(&dns_g_mctx);
+	}
 }
 
 isc_result_t
@@ -85,13 +87,15 @@ dns_lib_init(void) {
 	 * abort, on any failure.
 	 */
 	result = isc_once_do(&init_once, initialize);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
-	if (!initialize_done)
+	if (!initialize_done) {
 		return (ISC_R_FAILURE);
+	}
 
-	isc_refcount_increment(&references);
+	isc_refcount_increment0(&references);
 
 	return (ISC_R_SUCCESS);
 }

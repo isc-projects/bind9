@@ -21,16 +21,17 @@
 
 #include <dns/log.h>
 
-#define TEST_FILE "/tmp/test_log"
-#define SYSLOG_FILE "/var/log/daemon.log"
+#define TEST_FILE     "/tmp/test_log"
+#define SYSLOG_FILE   "/var/log/daemon.log"
 #define FILE_VERSIONS 10
 
 char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
 
-#define CHECK(expr) result = expr; \
-	if (result != ISC_R_SUCCESS) { \
-		fprintf(stderr, "%s: " #expr "%s: exiting\n", \
-			progname, isc_result_totext(result)); \
+#define CHECK(expr)                                                     \
+	result = expr;                                                  \
+	if (result != ISC_R_SUCCESS) {                                  \
+		fprintf(stderr, "%s: " #expr "%s: exiting\n", progname, \
+			isc_result_totext(result));                     \
 	}
 
 int
@@ -47,10 +48,11 @@ main(int argc, char **argv) {
 	const isc_logmodule_t *module;
 
 	progname = strrchr(*argv, '/');
-	if (progname != NULL)
+	if (progname != NULL) {
 		progname++;
-	else
+	} else {
 		progname = *argv;
+	}
 
 	syslog_file = SYSLOG_FILE;
 	file_versions = FILE_VERSIONS;
@@ -67,12 +69,14 @@ main(int argc, char **argv) {
 			file_versions = atoi(isc_commandline_argument);
 			if (file_versions < 0 &&
 			    file_versions != ISC_LOG_ROLLNEVER &&
-			    file_versions != ISC_LOG_ROLLINFINITE) {
-				fprintf(stderr, "%s: file rotations must be "
+			    file_versions != ISC_LOG_ROLLINFINITE)
+			{
+				fprintf(stderr,
+					"%s: file rotations must be "
 					"%d (ISC_LOG_ROLLNEVER),\n\t"
 					"%d (ISC_LOG_ROLLINFINITE) "
-					"or > 0\n", progname,
-					ISC_LOG_ROLLNEVER,
+					"or > 0\n",
+					progname, ISC_LOG_ROLLNEVER,
 					ISC_LOG_ROLLINFINITE);
 				exit(1);
 			}
@@ -94,10 +98,11 @@ main(int argc, char **argv) {
 
 	fprintf(stderr, "EXPECT:\n%s%d%s%s%s",
 		"8 lines to stderr (first 4 numbered, #3 repeated)\n",
-		file_versions == 0 || file_versions == ISC_LOG_ROLLNEVER ? 1 :
-		file_versions > 0 ? file_versions + 1 : FILE_VERSIONS + 1,
-		" " TEST_FILE " files, and\n",
-		"2 lines to syslog\n",
+		file_versions == 0 || file_versions == ISC_LOG_ROLLNEVER
+			? 1
+			: file_versions > 0 ? file_versions + 1
+					    : FILE_VERSIONS + 1,
+		" " TEST_FILE " files, and\n", "2 lines to syslog\n",
 		"lines ending with exclamation marks are errors\n\n");
 
 	isc_log_opensyslog(progname, LOG_PID, LOG_DAEMON);
@@ -119,17 +124,19 @@ main(int argc, char **argv) {
 	 * Test isc_log_categorybyname and isc_log_modulebyname.
 	 */
 	category = isc_log_categorybyname(lctx, "notify");
-	if (category != NULL)
+	if (category != NULL) {
 		fprintf(stderr, "%s category found. (expected)\n",
 			category->name);
-	else
+	} else {
 		fprintf(stderr, "notify category not found!\n");
+	}
 
 	module = isc_log_modulebyname(lctx, "xyzzy");
-	if (module != NULL)
+	if (module != NULL) {
 		fprintf(stderr, "%s module found!\n", module->name);
-	else
+	} else {
 		fprintf(stderr, "xyzzy module not found. (expected)\n");
+	}
 
 	/*
 	 * Create a file channel to test file opening, size limiting and
@@ -140,13 +147,10 @@ main(int argc, char **argv) {
 	destination.file.maximum_size = 1;
 	destination.file.versions = file_versions;
 
-	CHECK(isc_log_createchannel(lcfg, "file_test", ISC_LOG_TOFILE,
-				    ISC_LOG_INFO, &destination,
-				    ISC_LOG_PRINTTIME|
-				    ISC_LOG_PRINTTAG|
-				    ISC_LOG_PRINTLEVEL|
-				    ISC_LOG_PRINTCATEGORY|
-				    ISC_LOG_PRINTMODULE));
+	CHECK(isc_log_createchannel(
+		lcfg, "file_test", ISC_LOG_TOFILE, ISC_LOG_INFO, &destination,
+		ISC_LOG_PRINTTIME | ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL |
+			ISC_LOG_PRINTCATEGORY | ISC_LOG_PRINTMODULE));
 
 	/*
 	 * Create a dynamic debugging channel to a file descriptor.
@@ -155,9 +159,8 @@ main(int argc, char **argv) {
 
 	CHECK(isc_log_createchannel(lcfg, "debug_test", ISC_LOG_TOFILEDESC,
 				    ISC_LOG_DYNAMIC, &destination,
-				    ISC_LOG_PRINTTIME|
-				    ISC_LOG_PRINTLEVEL|
-				    ISC_LOG_DEBUGONLY));
+				    ISC_LOG_PRINTTIME | ISC_LOG_PRINTLEVEL |
+					    ISC_LOG_DEBUGONLY));
 
 	/*
 	 * Test the usability of the four predefined logging channels.
@@ -171,19 +174,15 @@ main(int argc, char **argv) {
 	CHECK(isc_log_usechannel(lcfg, "default_debug",
 				 DNS_LOGCATEGORY_DATABASE,
 				 DNS_LOGMODULE_CACHE));
-	CHECK(isc_log_usechannel(lcfg, "null",
-				 DNS_LOGCATEGORY_DATABASE,
-				 NULL));
+	CHECK(isc_log_usechannel(lcfg, "null", DNS_LOGCATEGORY_DATABASE, NULL));
 
 	/*
 	 * Use the custom channels.
 	 */
-	CHECK(isc_log_usechannel(lcfg, "file_test",
-				 DNS_LOGCATEGORY_GENERAL,
+	CHECK(isc_log_usechannel(lcfg, "file_test", DNS_LOGCATEGORY_GENERAL,
 				 DNS_LOGMODULE_DB));
 
-	CHECK(isc_log_usechannel(lcfg, "debug_test",
-				 DNS_LOGCATEGORY_GENERAL,
+	CHECK(isc_log_usechannel(lcfg, "debug_test", DNS_LOGCATEGORY_GENERAL,
 				 DNS_LOGMODULE_RBTDB));
 
 	fprintf(stderr, "\n==> stderr begin\n");
@@ -232,38 +231,37 @@ main(int argc, char **argv) {
 	 * Write to the file channel.
 	 */
 	if (file_versions >= 0 || file_versions == ISC_LOG_ROLLINFINITE) {
-
 		/*
 		 * If file_versions is 0 or ISC_LOG_ROLLINFINITE, write
 		 * the "should not appear" and "should be in file" messages
 		 * to ensure they get rolled.
 		 */
-		if (file_versions <= 0)
+		if (file_versions <= 0) {
 			file_versions = FILE_VERSIONS;
-
-		else
+		} else {
 			isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
 				      "This should be rolled over "
 				      "and not appear!");
+		}
 
-		for (i = file_versions - 1; i >= 0; i--)
+		for (i = file_versions - 1; i >= 0; i--) {
 			isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
 				      "should be in file %d/%d", i,
 				      file_versions - 1);
+		}
 
-		isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
-			      "should be in base file");
+		isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DB,
+			      ISC_LOG_NOTICE, "should be in base file");
 	} else {
 		file_versions = FILE_VERSIONS;
-		for (i = 1; i <= file_versions; i++)
+		for (i = 1; i <= file_versions; i++) {
 			isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
 				      "This is message %d in the log file", i);
+		}
 	}
-
 
 	/*
 	 * Write a debugging message to a category that has no
@@ -277,7 +275,8 @@ main(int argc, char **argv) {
 	 * Write debugging messages to a dynamic debugging channel.
 	 */
 	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
-		      ISC_LOG_CRITICAL, "This critical message should "
+		      ISC_LOG_CRITICAL,
+		      "This critical message should "
 		      "not appear because the debug level is 0!");
 
 	isc_log_setdebuglevel(lctx, 3);
@@ -315,8 +314,8 @@ main(int argc, char **argv) {
 	 */
 	fputc('\n', stderr);
 	if (system("head " TEST_FILE "*; rm -f " TEST_FILE "*") != 0) {
-		fprintf(stderr, "system(\"head " TEST_FILE "*; rm -f "
-			TEST_FILE "*\") failed\n");
+		fprintf(stderr, "system(\"head " TEST_FILE "*; rm -f " TEST_FILE
+				"*\") failed\n");
 		goto cleanup;
 	}
 
@@ -333,11 +332,12 @@ main(int argc, char **argv) {
 	}
 	fputc('\n', stderr);
 
- cleanup:
+cleanup:
 	isc_log_destroy(&lctx);
 
-	if (show_final_mem)
+	if (show_final_mem) {
 		isc_mem_stats(mctx, stderr);
+	}
 
 	return (0);
 }

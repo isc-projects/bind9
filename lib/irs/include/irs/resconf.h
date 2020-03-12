@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef IRS_RESCONF_H
 #define IRS_RESCONF_H 1
 
@@ -28,8 +27,8 @@
  * in the "resolv.conf" file.
  */
 typedef struct irs_resconf_search {
-	char					*domain;
-	ISC_LINK(struct irs_resconf_search)	link;
+	char *domain;
+	ISC_LINK(struct irs_resconf_search) link;
 } irs_resconf_search_t;
 
 typedef ISC_LIST(irs_resconf_search_t) irs_resconf_searchlist_t;

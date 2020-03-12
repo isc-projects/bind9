@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 /*! \file */
 
 #include <inttypes.h>
@@ -25,21 +24,21 @@
 #include <isc/stats.h>
 #include <isc/util.h>
 
-#define ISC_STATS_MAGIC			ISC_MAGIC('S', 't', 'a', 't')
-#define ISC_STATS_VALID(x)		ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
+#define ISC_STATS_MAGIC	   ISC_MAGIC('S', 't', 'a', 't')
+#define ISC_STATS_VALID(x) ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
 
 #if defined(_WIN32) && !defined(_WIN64)
-	typedef atomic_int_fast32_t isc__atomic_statcounter_t;
-#else
-	typedef atomic_int_fast64_t isc__atomic_statcounter_t;
-#endif
+typedef atomic_int_fast32_t isc__atomic_statcounter_t;
+#else  /* if defined(_WIN32) && !defined(_WIN64) */
+typedef atomic_int_fast64_t isc__atomic_statcounter_t;
+#endif /* if defined(_WIN32) && !defined(_WIN64) */
 
 struct isc_stats {
-	unsigned int			magic;
-	isc_mem_t			*mctx;
-	isc_refcount_t			references;
-	int				ncounters;
-	isc__atomic_statcounter_t	*counters;
+	unsigned int magic;
+	isc_mem_t *mctx;
+	isc_refcount_t references;
+	int ncounters;
+	isc__atomic_statcounter_t *counters;
 };
 
 static isc_result_t
@@ -82,9 +81,10 @@ isc_stats_detach(isc_stats_t **statsp) {
 	*statsp = NULL;
 
 	if (isc_refcount_decrement(&stats->references) == 1) {
+		isc_refcount_destroy(&stats->references);
 		isc_mem_put(stats->mctx, stats->counters,
 			    sizeof(isc__atomic_statcounter_t) *
-				stats->ncounters);
+				    stats->ncounters);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 	}
 }
@@ -122,9 +122,8 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter) {
 }
 
 void
-isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
-	       void *arg, unsigned int options)
-{
+isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
+	       unsigned int options) {
 	int i;
 
 	REQUIRE(ISC_STATS_VALID(stats));
@@ -140,9 +139,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 }
 
 void
-isc_stats_set(isc_stats_t *stats, uint64_t val,
-	      isc_statscounter_t counter)
-{
+isc_stats_set(isc_stats_t *stats, uint64_t val, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
@@ -150,10 +147,9 @@ isc_stats_set(isc_stats_t *stats, uint64_t val,
 			      memory_order_relaxed);
 }
 
-void isc_stats_update_if_greater(isc_stats_t *stats,
-				 isc_statscounter_t counter,
-				 isc_statscounter_t value)
-{
+void
+isc_stats_update_if_greater(isc_stats_t *stats, isc_statscounter_t counter,
+			    isc_statscounter_t value) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
@@ -164,16 +160,14 @@ void isc_stats_update_if_greater(isc_stats_t *stats,
 			break;
 		}
 	} while (!atomic_compare_exchange_strong(&stats->counters[counter],
-						 &curr_value,
-						 value));
+						 &curr_value, value));
 }
 
 isc_statscounter_t
-isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter)
-{
+isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
 	return (atomic_load_explicit(&stats->counters[counter],
-				    memory_order_relaxed));
+				     memory_order_relaxed));
 }

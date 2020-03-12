@@ -21,15 +21,15 @@
 #include <isc/refcount.h>
 #include <isc/util.h>
 
-#define COUNTER_MAGIC			ISC_MAGIC('C', 'n', 't', 'r')
-#define VALID_COUNTER(r)		ISC_MAGIC_VALID(r, COUNTER_MAGIC)
+#define COUNTER_MAGIC	 ISC_MAGIC('C', 'n', 't', 'r')
+#define VALID_COUNTER(r) ISC_MAGIC_VALID(r, COUNTER_MAGIC)
 
 struct isc_counter {
-	unsigned int	magic;
-	isc_mem_t	*mctx;
-	isc_refcount_t		references;
-	atomic_uint_fast32_t	limit;
-	atomic_uint_fast32_t	used;
+	unsigned int magic;
+	isc_mem_t *mctx;
+	isc_refcount_t references;
+	atomic_uint_fast32_t limit;
+	atomic_uint_fast32_t used;
 };
 
 isc_result_t
@@ -90,6 +90,7 @@ isc_counter_attach(isc_counter_t *source, isc_counter_t **targetp) {
 
 static void
 destroy(isc_counter_t *counter) {
+	isc_refcount_destroy(&counter->references);
 	counter->magic = 0;
 	isc_mem_putanddetach(&counter->mctx, counter, sizeof(*counter));
 }
@@ -100,9 +101,8 @@ isc_counter_detach(isc_counter_t **counterp) {
 
 	REQUIRE(counterp != NULL && *counterp != NULL);
 	counter = *counterp;
-	REQUIRE(VALID_COUNTER(counter));
-
 	*counterp = NULL;
+	REQUIRE(VALID_COUNTER(counter));
 
 	if (isc_refcount_decrement(&counter->references) == 1) {
 		destroy(counter);
