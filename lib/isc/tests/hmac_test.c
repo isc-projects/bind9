@@ -84,7 +84,7 @@ isc_hmac_free_test(void **state) {
 
 static void
 isc_hmac_test(isc_hmac_t *hmac, const void *key, size_t keylen,
-	      isc_md_type_t type, const char *buf, size_t buflen,
+	      const isc_md_type_t *type, const char *buf, size_t buflen,
 	      const char *result, const int repeats) {
 	assert_non_null(hmac);
 	assert_int_equal(isc_hmac_init(hmac, key, keylen, type), ISC_R_SUCCESS);

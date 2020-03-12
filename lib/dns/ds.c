@@ -37,7 +37,7 @@ dns_ds_fromkeyrdata(const dns_name_t *owner, dns_rdata_t *key,
 	unsigned int digestlen;
 	isc_region_t r;
 	isc_md_t *md;
-	isc_md_type_t md_type = 0;
+	const isc_md_type_t *md_type = NULL;
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->type == dns_rdatatype_dnskey ||
