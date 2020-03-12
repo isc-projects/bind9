@@ -109,6 +109,89 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.17.0"></a>Notes for BIND 9.17.0</h3></div></div></div>
 
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.17.0-known"></a>Known Issues</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          UDP network ports used for listening can no longer simultaneously be
+          used for sending traffic.  An example configuration which triggers
+          this issue would be one which uses the same
+          <em class="replaceable"><code>address:port</code></em> pair for
+          <span class="command"><strong>listen-on(-v6)</strong></span> statements as for
+          <span class="command"><strong>notify-source(-v6)</strong></span> or
+          <span class="command"><strong>transfer-source(-v6)</strong></span>.  While this issue affects all
+          operating systems, it only triggers log messages (e.g. "unable to
+          create dispatch for reserved port") on some of them.  There are
+          currently no plans to make such a combination of settings work again.
+        </p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.17.0-new"></a>New Features</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          When a secondary server receives a large incremental zone
+          transfer (IXFR), it can have a negative impact on query
+          performance while the incremental changes are applied to
+          the zone. To address this, <span class="command"><strong>named</strong></span> can now
+          limit the size of IXFR responses it sends in response to zone
+          transfer requests. If an IXFR response would be larger than an
+          AXFR of the entire zone, it will send an AXFR resonse instead.
+        </p>
+        <p>
+          This behavior is controlled by the <span class="command"><strong>max-ixfr-ratio</strong></span>
+          option - a percentage value representing the ratio of IXFR size
+          to the size of a full zone transfer. The default is
+          <code class="literal">100%</code>. [GL #1515]
+        </p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.17.0-changes"></a>Feature Changes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          The system-provided POSIX Threads read-write lock implementation is
+          now used by default instead of the native BIND 9 implementation.
+          Please be aware that glibc versions 2.26 through 2.29 had a
+          <a class="link" href="https://sourceware.org/bugzilla/show_bug.cgi?id=23844" target="_top">bug</a>
+          that could cause BIND 9 to deadlock. A fix was released in glibc 2.30,
+          and most current Linux distributions have patched or updated glibc,
+          with the notable exception of Ubuntu 18.04 (Bionic) which is a work in
+          progress. If you are running on an affected operating system, compile
+          BIND 9 with <span class="command"><strong>--disable-pthread-rwlock</strong></span> until a fixed
+          version of glibc is available. [GL !3125]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          The <span class="command"><strong>rndc nta -dump</strong></span> and
+          <span class="command"><strong>rndc secroots</strong></span> commands now both include
+          <span class="command"><strong>validate-except</strong></span> entries when listing negative
+          trust anchors. These are indicated by the keyword
+          <code class="literal">permanent</code> in place of the expiry
+          date. [GL #1532]
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.17.0-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          Fixed re-signing issues with inline zones which resulted in
+          records being re-signed late or not at all.
+        </p>
+      </li></ul></div>
+  </div>
+
 </div>
 
   <div class="section">

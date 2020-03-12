@@ -1220,7 +1220,8 @@
 
         <p>
           The <span class="command"><strong>include</strong></span> statement inserts the
-          specified file at the point where the <span class="command"><strong>include</strong></span>
+          specified file (or files if a valid glob expression is detected)
+          at the point where the <span class="command"><strong>include</strong></span>
           statement is encountered. The <span class="command"><strong>include</strong></span>
                 statement facilitates the administration of configuration
           files
@@ -3113,6 +3114,22 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 compatibility after upgrade, if a file using the old
                 name format is found to exist, it will be used instead
                 of the new format.)
+              </p>
+            </dd>
+<dt><span class="term"><span class="command"><strong>max-ixfr-ratio</strong></span></span></dt>
+<dd>
+              <p>
+                Sets the size threshold (expressed as a percentage
+                of the size of the full zone) beyond which
+                <span class="command"><strong>named</strong></span> will choose to use an AXFR
+                response rather than IXFR when answering zone transfer
+                requests.  See <a class="xref" href="Bv9ARM.ch04.html#incremental_zone_transfers" title="Incremental Zone Transfers (IXFR)">the section called &#8220;Incremental Zone Transfers (IXFR)&#8221;</a>.
+              </p>
+              <p>
+                The minimum value is <code class="literal">1%</code>. The keyword
+                <code class="literal">unlimited</code> disables ratio checking and
+                allows IXFRs of any size.  The default is
+                <code class="literal">100%</code>.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>new-zones-directory</strong></span></span></dt>
@@ -9126,6 +9143,13 @@ example.com                 CNAME   rpz-tcp-only.
             records need to be refreshed.
           </p>
           <p>
+            Keys are not shared among zones, which means that one set of keys
+            per zone will be generated even if they have the same policy.
+            If multiple views are configured with different versions of the
+            same zone, each separate version will use the same set of signing
+            keys.
+          </p>
+          <p>
             Multiple key and signing policies can be configured.  To
             attach a policy to a zone, add a <span class="command"><strong>dnssec-policy</strong></span>
             option to the <span class="command"><strong>zone</strong></span> statement, specifying he
@@ -10605,6 +10629,15 @@ view "external" {
                     Allow the default journal's filename to be overridden.
                     The default is the zone's filename with "<code class="filename">.jnl</code>" appended.
                     This is applicable to <span class="command"><strong>master</strong></span> and <span class="command"><strong>slave</strong></span> zones.
+                  </p>
+                </dd>
+<dt><span class="term"><span class="command"><strong>max-ixfr-ratio</strong></span></span></dt>
+<dd>
+                  <p>
+                    See the description of
+                    <span class="command"><strong>max-ixfr-ratio</strong></span> in
+                    <a class="xref" href="Bv9ARM.ch05.html#options" title="options Statement Definition and Usage">the section called &#8220;<span class="command"><strong>options</strong></span> Statement Definition and
+          Usage&#8221;</a>.
                   </p>
                 </dd>
 <dt><span class="term"><span class="command"><strong>max-journal-size</strong></span></span></dt>
