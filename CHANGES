@@ -1,3 +1,5 @@
+5367.	[placeholder]
+
 5366.	[bug]		Fix a race condition with the keymgr when the same
 			zone plus dnssec-policy is configured in multiple
 			views. [GL #1653]
