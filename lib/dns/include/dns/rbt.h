@@ -105,6 +105,13 @@ struct dns_rbtnode {
 	unsigned int down_is_relative : 1;
 	unsigned int data_is_relative : 1;
 
+	/*
+	 * full name length; set during serialization, and used
+	 * during deserialization to calculate database size.
+	 * should be cleared after use.
+	 */
+	unsigned int fullnamelen : 8; /*%< range is 1..255 */
+
 	/* node needs to be cleaned from rpz */
 	unsigned int rpz : 1;
 	unsigned int : 0; /* end of bitfields c/o tree lock */
@@ -152,9 +159,8 @@ struct dns_rbtnode {
 	uint8_t : 0; /* start of bitfields c/o node lock */
 	uint8_t dirty : 1;
 	uint8_t wild : 1;
-	uint8_t : 0;	  /* end of bitfields c/o node lock */
-	uint16_t locknum; /* note that this is not in the bitfield
-			   * */
+	uint8_t : 0;		/* end of bitfields c/o node lock */
+	uint16_t       locknum; /* note that this is not in the bitfield */
 	isc_refcount_t references;
 	/*@}*/
 };
@@ -1029,12 +1035,12 @@ dns_rbtnodechain_nextflat(dns_rbtnodechain_t *chain, dns_name_t *name);
  * Find the next node at the current depth in DNSSEC order.
  */
 
-void
-dns_rbtnode_nodename(dns_rbtnode_t *node, dns_name_t *name);
-
-dns_rbtnode_t *
-dns_rbt_root(dns_rbt_t *rbt);
-
+unsigned int
+dns__rbtnode_namelen(dns_rbtnode_t *node);
+/*%<
+ * Returns the length of the full name of the node. Used only internally
+ * and in unit tests.
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RBT_H */

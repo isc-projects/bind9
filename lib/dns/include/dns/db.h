@@ -1470,8 +1470,12 @@ isc_result_t
 dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
 	       uint64_t *bytes);
 /*%<
- * Get the number of records in the given version of the database as well
- * as the number bytes used to store those records.
+ * On success if 'records' is not NULL, it is set to the number of records
+ * in the given version of the database. If 'bytes' is not NULL, it is
+ * set to the approximate number of bytes needed to transfer the records,
+ * counting name, TTL, type, class, and rdata for each RR.  (This is meant
+ * to be a rough approximation of the size of a full zone transfer, though
+ * it does not take into account DNS message overhead or name compression.)
  *
  * Requires:
  * \li	'db' is a valid zone database.
