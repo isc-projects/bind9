@@ -25,9 +25,9 @@
 
 isc_hmac_t *
 isc_hmac_new(void) {
-	isc_hmac_t *hmac = HMAC_CTX_new();
+	HMAC_CTX *hmac = HMAC_CTX_new();
 	RUNTIME_CHECK(hmac != NULL);
-	return (hmac);
+	return ((struct hmac *)hmac);
 }
 
 void
@@ -120,10 +120,8 @@ isc_result_t
 isc_hmac(const isc_md_type_t *type, const void *key, const int keylen,
 	 const unsigned char *buf, const size_t len, unsigned char *digest,
 	 unsigned int *digestlen) {
-	isc_hmac_t *hmac = NULL;
 	isc_result_t res;
-
-	hmac = isc_hmac_new();
+	isc_hmac_t *hmac = isc_hmac_new();
 
 	res = isc_hmac_init(hmac, key, keylen, type);
 	if (res != ISC_R_SUCCESS) {
