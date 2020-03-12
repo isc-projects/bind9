@@ -34,8 +34,6 @@
 #include <pkcs11/eddsa.h>
 #include <pkcs11/pkcs11.h>
 
-#include <dst/result.h>
-
 /* was 32 octets, Petr Spacek suggested 1024, SoftHSMv2 uses 256... */
 #ifndef PINLEN
 #define PINLEN 256
@@ -422,7 +420,7 @@ free_session_list(pk11_sessionlist_t *slist) {
 		if (sp->session != CK_INVALID_HANDLE) {
 			rv = pkcs_C_CloseSession(sp->session);
 			if (rv != CKR_OK) {
-				ret = DST_R_CRYPTOFAILURE;
+				ret = ISC_R_CRYPTOFAILURE;
 			}
 		}
 		LOCK(&sessionlock);
@@ -445,7 +443,7 @@ setup_session(pk11_session_t *sp, pk11_token_t *token, bool rw) {
 	rv = pkcs_C_OpenSession(token->slotid, flags, NULL_PTR, NULL_PTR,
 				&sp->session);
 	if (rv != CKR_OK) {
-		return (DST_R_CRYPTOFAILURE);
+		return (ISC_R_CRYPTOFAILURE);
 	}
 	return (ISC_R_SUCCESS);
 }
