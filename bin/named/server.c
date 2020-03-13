@@ -7038,6 +7038,7 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data,
 	const char *zone_config;
 	size_t zone_config_len;
 	cfg_obj_t *zoneconf = NULL;
+	char bufname[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(view != NULL);
 	REQUIRE(key != NULL);
@@ -7062,20 +7063,20 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data,
 	INSIST(zone_config != NULL && zone_config_len > 0);
 
 	/* zone zonename { config; }; */
-	result = isc_buffer_reserve(text, 5 + zone_name_len + 1 +
+	result = isc_buffer_reserve(text, 6 + zone_name_len + 2 +
 				    zone_config_len + 2);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	CHECK(putstr(text, "zone "));
+	CHECK(putstr(text, "zone \""));
 	CHECK(putmem(text, (const void *) zone_name, zone_name_len));
-	CHECK(putstr(text, " "));
+	CHECK(putstr(text, "\" "));
 	CHECK(putmem(text, (const void *) zone_config, zone_config_len));
 	CHECK(putstr(text, ";\n"));
 
 	cfg_parser_reset(ns_g_addparser);
-	result = cfg_parse_buffer3(ns_g_addparser, *text, zone_name, 0,
+	result = cfg_parse_buffer3(ns_g_addparser, *text, bufname, 0,
 				   &cfg_type_addzoneconf, &zoneconf);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
