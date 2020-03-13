@@ -1,3 +1,6 @@
+5368.	[bug]		Named failed to restart if 'rndc addzone' names
+			contained special characters (e.g. '/'). [GL #1655]
+
 5367.	[bug]		Fixed a flaw in the calculation of zone database
 			size so that "max-journal-size default" will use
 			the correct limit. [GL #1661]
