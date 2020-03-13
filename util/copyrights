@@ -493,6 +493,7 @@
 ./bin/tests/system/digdelv/ans4/startme		X	2017,2018,2019,2020
 ./bin/tests/system/digdelv/ans5/ans.pl		PERL	2019,2020
 ./bin/tests/system/digdelv/ans6/ans.pl		PERL	2019,2020
+./bin/tests/system/digdelv/ans7/ans.pl		PERL	2020
 ./bin/tests/system/digdelv/clean.sh		SH	2015,2016,2018,2019,2020
 ./bin/tests/system/digdelv/ns2/sign.sh		SH	2018,2019,2020
 ./bin/tests/system/digdelv/prereq.sh		SH	2018,2019,2020

@@ -799,6 +799,7 @@ addlookup(char *opt) {
 	lookup->section_authority = section_authority;
 	lookup->section_additional = section_additional;
 	lookup->new_search = true;
+	lookup->besteffort = false;
 	if (nofail) {
 		lookup->servfail_stops = false;
 	}
