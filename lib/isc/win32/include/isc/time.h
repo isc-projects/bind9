@@ -13,12 +13,37 @@
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
 
+#include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <windows.h>
 
 #include <isc/lang.h>
 #include <isc/types.h>
+
+/***
+ *** POSIX Shims
+ ***/
+
+inline struct tm *
+gmtime_r(const time_t *clock, struct tm *result) {
+	errno_t ret = gmtime_s(result, clock);
+	if (ret != 0) {
+		errno = ret;
+		return (NULL);
+	}
+	return (result);
+}
+
+inline struct tm *
+localtime_r(const time_t *clock, struct tm *result) {
+	errno_t ret = localtime_s(result, clock);
+	if (ret != 0) {
+		errno = ret;
+		return (NULL);
+	}
+	return (result);
+}
 
 /***
  *** Intervals

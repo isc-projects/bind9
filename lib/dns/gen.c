@@ -689,11 +689,7 @@ main(int argc, char **argv) {
 	}
 
 	if (now != -1) {
-#ifdef _MSC_VER
-		struct tm *tm = gmtime(&now); /* Thread specific. */
-#else
 		struct tm t, *tm = gmtime_r(&now, &t);
-#endif
 
 		if (tm != NULL && tm->tm_year > 104) {
 			n = snprintf(year, sizeof(year), "-%d",

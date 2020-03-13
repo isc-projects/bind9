@@ -121,14 +121,15 @@ printtime(dst_key_t *key, int type, const char *tag, bool epoch,
 	} else if (epoch) {
 		fprintf(stream, "%d\n", (int) when);
 	} else {
-		time_t now = (time_t)when;
-#ifdef _MSC_VER
-		struct tm *tm = localtime(&now); /* Thread specific. */
-#else
+		time_t now = when;
 		struct tm t, *tm = localtime_r(&now, &t);
-#endif
 		unsigned int flen;
 		char timebuf[80];
+
+		if (tm == NULL) {
+			fprintf(stream, "INVALID\n");
+			return;
+		}
 
 		flen = strftime(timebuf, sizeof(timebuf),
 				"%a %b %e %H:%M:%S %Y", tm);

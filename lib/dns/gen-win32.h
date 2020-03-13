@@ -62,6 +62,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <windows.h>
 
 #include <isc/lang.h>
@@ -266,6 +267,16 @@ void
 end_directory(isc_dir_t *dir) {
 	if (dir->handle != INVALID_HANDLE_VALUE)
 		FindClose(dir->handle);
+}
+
+inline struct tm *
+gmtime_r(const time_t *clock, struct tm *result) {
+	errno_t ret = gmtime_s(result, clock);
+	if (ret != 0) {
+		errno = ret;
+		return (NULL);
+	}
+	return (result);
 }
 
 ISC_LANG_ENDDECLS
