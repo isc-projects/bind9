@@ -27,6 +27,7 @@
 #include <isc/mem.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/rwlock.h>
 #include <isc/stat.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -38,6 +39,11 @@
 
 #define LCFG_MAGIC	   ISC_MAGIC('L', 'c', 'f', 'g')
 #define VALID_CONFIG(lcfg) ISC_MAGIC_VALID(lcfg, LCFG_MAGIC)
+
+#define RDLOCK(lp)   RWLOCK(lp, isc_rwlocktype_read);
+#define WRLOCK(lp)   RWLOCK(lp, isc_rwlocktype_write);
+#define RDUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_read);
+#define WRUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_write);
 
 /*
  * XXXDCL make dynamic?
@@ -137,9 +143,11 @@ struct isc_log {
 	isc_logmodule_t *modules;
 	unsigned int module_count;
 	int debug_level;
+	isc_rwlock_t lcfg_rwl;
+	/* Locked by isc_log lcfg_rwl */
+	isc_logconfig_t *logconfig;
 	isc_mutex_t lock;
 	/* Locked by isc_log lock. */
-	atomic_uintptr_t logconfig;
 	char buffer[LOG_BUFFER_SIZE];
 	ISC_LIST(isc_logmessage_t) messages;
 };
@@ -253,6 +261,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 	ISC_LIST_INIT(lctx->messages);
 
 	isc_mutex_init(&lctx->lock);
+	isc_rwlock_init(&lctx->lcfg_rwl, 0, 0);
 
 	/*
 	 * Normally setting the magic number is the last step done
@@ -269,7 +278,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 
 	sync_channellist(lcfg);
 
-	atomic_init(&lctx->logconfig, (uintptr_t)lcfg);
+	lctx->logconfig = lcfg;
 
 	*lctxp = lctx;
 	if (lcfgp != NULL) {
@@ -350,8 +359,10 @@ isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg) {
 	 */
 	sync_channellist(lcfg);
 
-	old_cfg = (isc_logconfig_t *)atomic_exchange_acq_rel(&lctx->logconfig,
-							     (uintptr_t)lcfg);
+	WRLOCK(&lctx->lcfg_rwl);
+	old_cfg = lctx->logconfig;
+	lctx->logconfig = lcfg;
+	WRUNLOCK(&lctx->lcfg_rwl);
 
 	isc_logconfig_destroy(&old_cfg);
 }
@@ -369,12 +380,16 @@ isc_log_destroy(isc_log_t **lctxp) {
 	*lctxp = NULL;
 	mctx = lctx->mctx;
 
-	lcfg = (isc_logconfig_t *)atomic_exchange_acq_rel(&lctx->logconfig,
-							  (uintptr_t)NULL);
+	WRLOCK(&lctx->lcfg_rwl);
+	lcfg = lctx->logconfig;
+	lctx->logconfig = NULL;
+	WRUNLOCK(&lctx->lcfg_rwl);
+
 	if (lcfg != NULL) {
 		isc_logconfig_destroy(&lcfg);
 	}
 
+	isc_rwlock_destroy(&lctx->lcfg_rwl);
 	isc_mutex_destroy(&lctx->lock);
 
 	while ((message = ISC_LIST_HEAD(lctx->messages)) != NULL) {
@@ -401,7 +416,6 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	isc_logconfig_t *lcfg;
 	isc_mem_t *mctx;
 	isc_logchannel_t *channel;
-	isc_logchannellist_t *item;
 	char *filename;
 	unsigned int i;
 
@@ -414,8 +428,11 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	 * This function cannot be called with a logconfig that is in
 	 * use by a log context.
 	 */
-	REQUIRE(lcfg->lctx != NULL &&
-		atomic_load_acquire(&lcfg->lctx->logconfig) != (uintptr_t)lcfg);
+	REQUIRE(lcfg->lctx != NULL);
+
+	RDLOCK(&lcfg->lctx->lcfg_rwl);
+	REQUIRE(lcfg->lctx->logconfig != lcfg);
+	RDUNLOCK(&lcfg->lctx->lcfg_rwl);
 
 	mctx = lcfg->lctx->mctx;
 
@@ -442,6 +459,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	}
 
 	for (i = 0; i < lcfg->channellist_count; i++) {
+		isc_logchannellist_t *item;
 		while ((item = ISC_LIST_HEAD(lcfg->channellists[i])) != NULL) {
 			ISC_LIST_UNLINK(lcfg->channellists[i], item, link);
 			isc_mem_put(mctx, item, sizeof(*item));
@@ -673,6 +691,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		break;
 
 	default:
+		INSIST(0);
 		ISC_UNREACHABLE();
 	}
 
@@ -693,7 +712,6 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		   const isc_logmodule_t *module) {
 	isc_log_t *lctx;
 	isc_logchannel_t *channel;
-	unsigned int i;
 
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(name != NULL);
@@ -722,7 +740,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		 * Assign to all categories.  Note that this includes
 		 * the default channel.
 		 */
-		for (i = 0; i < lctx->category_count; i++) {
+		for (size_t i = 0; i < lctx->category_count; i++) {
 			assignchannel(lcfg, i, module, channel);
 		}
 	}
@@ -785,22 +803,19 @@ isc_log_setcontext(isc_log_t *lctx) {
 
 void
 isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level) {
-	isc_logchannel_t *channel;
-
 	REQUIRE(VALID_CONTEXT(lctx));
-	REQUIRE(atomic_load_acquire(&lctx->logconfig) != (uintptr_t)NULL);
-
-	LOCK(&lctx->lock);
 
 	lctx->debug_level = level;
 	/*
 	 * Close ISC_LOG_DEBUGONLY channels if level is zero.
 	 */
-	if (lctx->debug_level == 0) {
-		isc_logconfig_t *lcfg = (isc_logconfig_t *)atomic_load_acquire(
-			&lctx->logconfig);
+	if (level == 0) {
+		RDLOCK(&lctx->lcfg_rwl);
+		isc_logconfig_t *lcfg = lctx->logconfig;
 		if (lcfg != NULL) {
-			for (channel = ISC_LIST_HEAD(lcfg->channels);
+			LOCK(&lctx->lock);
+			for (isc_logchannel_t *channel =
+				     ISC_LIST_HEAD(lcfg->channels);
 			     channel != NULL;
 			     channel = ISC_LIST_NEXT(channel, link))
 			{
@@ -812,9 +827,10 @@ isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level) {
 					FILE_STREAM(channel) = NULL;
 				}
 			}
+			UNLOCK(&lctx->lock);
 		}
+		WRUNLOCK(&lctx->lcfg_rwl);
 	}
-	UNLOCK(&lctx->lock);
 }
 
 unsigned int
@@ -870,16 +886,14 @@ isc_log_opensyslog(const char *tag, int options, int facility) {
 
 void
 isc_log_closefilelogs(isc_log_t *lctx) {
-	isc_logchannel_t *channel;
-
 	REQUIRE(VALID_CONTEXT(lctx));
 
-	LOCK(&lctx->lock);
-	isc_logconfig_t *lcfg =
-		(isc_logconfig_t *)atomic_load_acquire(&lctx->logconfig);
+	RDLOCK(&lctx->lcfg_rwl);
+	isc_logconfig_t *lcfg = lctx->logconfig;
 	if (lcfg != NULL) {
-		for (channel = ISC_LIST_HEAD(lcfg->channels); channel != NULL;
-		     channel = ISC_LIST_NEXT(channel, link))
+		LOCK(&lctx->lock);
+		for (isc_logchannel_t *channel = ISC_LIST_HEAD(lcfg->channels);
+		     channel != NULL; channel = ISC_LIST_NEXT(channel, link))
 		{
 			if (channel->type == ISC_LOG_TOFILE &&
 			    FILE_STREAM(channel) != NULL) {
@@ -887,8 +901,9 @@ isc_log_closefilelogs(isc_log_t *lctx) {
 				FILE_STREAM(channel) = NULL;
 			}
 		}
+		UNLOCK(&lctx->lock);
 	}
-	UNLOCK(&lctx->lock);
+	RDUNLOCK(&lctx->lcfg_rwl);
 }
 
 /****
@@ -1397,8 +1412,9 @@ isc_log_open(isc_logchannel_t *channel) {
 	return (result);
 }
 
-bool ISC_NO_SANITIZE
+bool
 isc_log_wouldlog(isc_log_t *lctx, int level) {
+	bool ret = false;
 	/*
 	 * Try to avoid locking the mutex for messages which can't
 	 * possibly be logged to any channels -- primarily debugging
@@ -1408,25 +1424,20 @@ isc_log_wouldlog(isc_log_t *lctx, int level) {
 	 * highest_level, or if there is a dynamic channel and the level is
 	 * less than or equal to the debug level, the main loop must be
 	 * entered to see if the message should really be output.
-	 *
-	 * NOTE: this is UNLOCKED access to the logconfig.  However,
-	 * the worst thing that can happen is that a bad decision is made
-	 * about returning without logging, and that's not a big concern,
-	 * because that's a risk anyway if the logconfig is being
-	 * dynamically changed.
 	 */
 	if (lctx == NULL) {
 		return (false);
 	}
 
-	isc_logconfig_t *lcfg =
-		(isc_logconfig_t *)atomic_load_acquire(&lctx->logconfig);
-	if (lcfg == NULL) {
-		return (false);
+	RDLOCK(&lctx->lcfg_rwl);
+	isc_logconfig_t *lcfg = lctx->logconfig;
+	if (lcfg != NULL) {
+		ret = (level <= lcfg->highest_level ||
+		       (lcfg->dynamic && level <= lctx->debug_level));
 	}
+	RDUNLOCK(&lctx->lcfg_rwl);
 
-	return (level <= lcfg->highest_level ||
-		(lcfg->dynamic && level <= lctx->debug_level));
+	return (ret);
 }
 
 static void
@@ -1443,7 +1454,6 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	bool matched = false;
 	bool printtime, iso8601, utc, printtag, printcolon;
 	bool printcategory, printmodule, printlevel, buffered;
-	isc_logconfig_t *lcfg;
 	isc_logchannel_t *channel;
 	isc_logchannellist_t *category_channels;
 	isc_result_t result;
@@ -1474,11 +1484,12 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	iso8601l_string[0] = '\0';
 	iso8601z_string[0] = '\0';
 
+	RDLOCK(&lctx->lcfg_rwl);
 	LOCK(&lctx->lock);
 
 	lctx->buffer[0] = '\0';
 
-	lcfg = (isc_logconfig_t *)atomic_load_acquire(&lctx->logconfig);
+	isc_logconfig_t *lcfg = lctx->logconfig;
 
 	category_channels = ISC_LIST_HEAD(lcfg->channellists[category->id]);
 
@@ -1647,8 +1658,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 						 * Unlock the mutex and
 						 * get the hell out of Dodge.
 						 */
-						UNLOCK(&lctx->lock);
-						return;
+						goto unlock;
 					}
 
 					message = ISC_LIST_NEXT(message, link);
@@ -1811,5 +1821,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		}
 	} while (1);
 
+unlock:
 	UNLOCK(&lctx->lock);
+	RDUNLOCK(&lctx->lcfg_rwl);
 }
