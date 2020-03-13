@@ -8209,7 +8209,7 @@ getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 	rdatasetheader_t *header = NULL, *this;
 	unsigned int i;
 	isc_result_t result = ISC_R_NOTFOUND;
-	unsigned int locknum;
+	unsigned int locknum = 0;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -8217,38 +8217,64 @@ getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 
 	for (i = 0; i < rbtdb->node_lock_count; i++) {
 		NODE_LOCK(&rbtdb->node_locks[i].lock, isc_rwlocktype_read);
+
+		/*
+		 * Find for the earliest signing time among all of the
+		 * heaps, each of which is covered by a different bucket
+		 * lock.
+		 */
 		this = isc_heap_element(rbtdb->heaps[i], 1);
 		if (this == NULL) {
+			/* Nothing found; unlock and try the next heap. */
 			NODE_UNLOCK(&rbtdb->node_locks[i].lock,
 				    isc_rwlocktype_read);
 			continue;
 		}
-		if (header == NULL)
+
+		if (header == NULL) {
+			/*
+			 * Found a signing time: retain the bucket lock and
+			 * preserve the lock number so we can unlock it
+			 * later.
+			 */
 			header = this;
-		else if (resign_sooner(this, header)) {
-			locknum = header->node->locknum;
+			locknum = i;
+		} else if (resign_sooner(this, header)) {
+			/*
+			 * Found an earlier signing time; release the
+			 * previous bucket lock and retain this one instead.
+			 */
 			NODE_UNLOCK(&rbtdb->node_locks[locknum].lock,
 				    isc_rwlocktype_read);
 			header = this;
-		} else
+			locknum = i;
+		} else {
+			/*
+			 * Earliest signing time in this heap isn't
+			 * an improvement; unlock and try the next heap.
+			 */
 			NODE_UNLOCK(&rbtdb->node_locks[i].lock,
 				    isc_rwlocktype_read);
+		}
 	}
 
-	if (header == NULL)
-		goto unlock;
+	if (header != NULL) {
+		/*
+		 * Found something; pass back the answer and unlock
+		 * the bucket.
+		 */
+		bind_rdataset(rbtdb, header->node, header, 0, rdataset);
 
-	bind_rdataset(rbtdb, header->node, header, 0, rdataset);
+		if (foundname != NULL) {
+			dns_rbt_fullnamefromnode(header->node, foundname);
+		}
 
-	if (foundname != NULL)
-		dns_rbt_fullnamefromnode(header->node, foundname);
+		NODE_UNLOCK(&rbtdb->node_locks[locknum].lock,
+			    isc_rwlocktype_read);
 
-	NODE_UNLOCK(&rbtdb->node_locks[header->node->locknum].lock,
-		    isc_rwlocktype_read);
+		result = ISC_R_SUCCESS;
+	}
 
-	result = ISC_R_SUCCESS;
-
- unlock:
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 
 	return (result);
