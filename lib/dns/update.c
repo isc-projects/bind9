@@ -2191,14 +2191,10 @@ failure:
 
 static isc_stdtime_t
 epoch_to_yyyymmdd(time_t when) {
-	struct tm *tm;
-
-#if !defined(WIN32)
-	struct tm tm0;
-	tm = localtime_r(&when, &tm0);
-#else  /* if !defined(WIN32) */
-	tm = localtime(&when);
-#endif /* if !defined(WIN32) */
+	struct tm t, *tm = localtime_r(&when, &t);
+	if (tm == NULL) {
+		return (0);
+	}
 	return (((tm->tm_year + 1900) * 10000) + ((tm->tm_mon + 1) * 100) +
 		tm->tm_mday);
 }
