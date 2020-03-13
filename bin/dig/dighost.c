@@ -60,6 +60,7 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/opcode.h>
 #include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
@@ -4016,6 +4017,33 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
+	}
+	if (msg->opcode != l->opcode) {
+		isc_buffer_t bb;
+		char expect[20] = { 0 }, got[20] = { 0 };
+
+		isc_buffer_init(&bb, &expect, sizeof(expect));
+		result = dns_opcode_totext(l->opcode, &bb);
+		check_result(result, "dns_opcode_totext");
+
+		isc_buffer_init(&bb, &got, sizeof(got));
+		result = dns_opcode_totext(msg->opcode, &bb);
+		check_result(result, "dns_opcode_totext");
+
+		printf(";; Warning: Opcode mismatch: expected %s, got %s",
+		       expect, got);
+
+		dns_message_destroy(&msg);
+		if (l->tcp_mode) {
+			isc_event_free(&event);
+			clear_query(query);
+			cancel_lookup(l);
+			check_next_lookup(l);
+			UNLOCK_LOOKUP;
+			return;
+		} else {
+			goto udp_mismatch;
+		}
 	}
 	if (msg->counts[DNS_SECTION_QUESTION] != 0) {
 		match = true;

@@ -815,8 +815,10 @@ addlookup(char *opt) {
 	lookup->section_authority = section_authority;
 	lookup->section_additional = section_additional;
 	lookup->new_search = true;
-	if (nofail)
+	lookup->besteffort = false;
+	if (nofail) {
 		lookup->servfail_stops = false;
+	}
 	ISC_LIST_INIT(lookup->q);
 	ISC_LINK_INIT(lookup, link);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
