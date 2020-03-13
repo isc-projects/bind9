@@ -108,7 +108,7 @@ static void
 show_usage(void) {
 	fputs("Usage: host [-aCdilrTvVw] [-c class] [-N ndots] [-t type] [-W "
 	      "time]\n"
-	      "            [-R number] [-m flag] hostname [server]\n"
+	      "            [-R number] [-m flag] [-p port] hostname [server]\n"
 	      "       -a is equivalent to -v -t ANY\n"
 	      "       -A is like -a but omits RRSIG, NSEC, NSEC3\n"
 	      "       -c specifies query class for non-IN data\n"
@@ -118,6 +118,7 @@ show_usage(void) {
 	      "       -m set memory debugging flag (trace|record|usage)\n"
 	      "       -N changes the number of dots allowed before root lookup "
 	      "is done\n"
+	      "       -p specifies the port on the server to query\n"
 	      "       -r disables recursive processing\n"
 	      "       -R specifies number of retries for UDP packets\n"
 	      "       -s a SERVFAIL response should stop query\n"
@@ -575,7 +576,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	return (result);
 }
 
-static const char *optstring = "46aAc:dilnm:rst:vVwCDN:R:TUW:";
+static const char *optstring = "46aAc:dilnm:p:rst:vVwCDN:R:TUW:";
 
 /*% version */
 static void
@@ -639,6 +640,8 @@ pre_parse_args(int argc, char **argv) {
 			break;
 		case 'N':
 			break;
+		case 'p':
+			break;
 		case 'r':
 			break;
 		case 'R':
@@ -686,6 +689,7 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 	lookup = make_empty_lookup();
 
 	lookup->servfail_stops = false;
+	lookup->besteffort = false;
 	lookup->comments = false;
 	short_form = !verbose;
 
@@ -840,6 +844,9 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 			break;
 		case 's':
 			lookup->servfail_stops = true;
+			break;
+		case 'p':
+			port = atoi(isc_commandline_argument);
 			break;
 		}
 	}

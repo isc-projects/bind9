@@ -39,6 +39,7 @@ DNSTAPREAD=$TOP/bin/tools/dnstap-read
 DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
 FEATURETEST=$TOP/bin/tests/system/feature-test
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
+HOST=$TOP/bin/dig/host
 IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
 JOURNALPRINT=$TOP/bin/tools/named-journalprint
 KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
