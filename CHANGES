@@ -1,3 +1,6 @@
+5368.	[bug]		Named failed to restart if 'rndc addzone' names
+			contained special characters (e.g. '/'). [GL #1655]
+
 5367.	[placeholder]
 
 5366.	[bug]		Fix a race condition with the keymgr when the same
