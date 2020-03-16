@@ -32,7 +32,6 @@
 #define NS_PER_S  1000000000 /*%< Nanoseconds per second. */
 #define NS_PER_US 1000	     /*%< Nanoseconds per microsecond. */
 #define NS_PER_MS 1000000    /*%< Nanoseconds per millisecond. */
-#define US_PER_S  1000000    /*%< Microseconds per second. */
 
 #if defined(CLOCK_REALTIME_COARSE)
 #define CLOCKSOURCE CLOCK_REALTIME_COARSE

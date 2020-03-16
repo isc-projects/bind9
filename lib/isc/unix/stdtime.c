@@ -11,68 +11,41 @@
 
 /*! \file */
 
+#include <errno.h>
 #include <stdbool.h>
 #include <stddef.h> /* NULL */
 #include <stdlib.h> /* NULL */
-#include <sys/time.h>
 #include <syslog.h>
+#include <time.h>
 
 #include <isc/stdtime.h>
+#include <isc/strerr.h>
 #include <isc/util.h>
 
-#ifndef ISC_FIX_TV_USEC
-#define ISC_FIX_TV_USEC 1
-#endif /* ifndef ISC_FIX_TV_USEC */
+#define NS_PER_S 1000000000 /*%< Nanoseconds per second. */
 
-#define US_PER_S 1000000
-
-#if ISC_FIX_TV_USEC
-static inline void
-fix_tv_usec(struct timeval *tv) {
-	bool fixed = false;
-
-	if (tv->tv_usec < 0) {
-		fixed = true;
-		do {
-			tv->tv_sec -= 1;
-			tv->tv_usec += US_PER_S;
-		} while (tv->tv_usec < 0);
-	} else if (tv->tv_usec >= US_PER_S) {
-		fixed = true;
-		do {
-			tv->tv_sec += 1;
-			tv->tv_usec -= US_PER_S;
-		} while (tv->tv_usec >= US_PER_S);
-	}
-	/*
-	 * Call syslog directly as we are called from the logging functions.
-	 */
-	if (fixed) {
-		(void)syslog(LOG_ERR, "gettimeofday returned bad tv_usec: "
-				      "corrected");
-	}
-}
-#endif /* if ISC_FIX_TV_USEC */
+#if defined(CLOCK_REALTIME_COARSE)
+#define CLOCKSOURCE CLOCK_REALTIME_COARSE
+#elif defined(CLOCK_REALTIME_FAST)
+#define CLOCKSOURCE CLOCK_REALTIME_FAST
+#else /* if defined(CLOCK_REALTIME_COARSE) */
+#define CLOCKSOURCE CLOCK_REALTIME
+#endif /* if defined(CLOCK_REALTIME_COARSE) */
 
 void
 isc_stdtime_get(isc_stdtime_t *t) {
-	struct timeval tv;
-
-	/*
-	 * Set 't' to the number of seconds since 00:00:00 UTC, January 1,
-	 * 1970.
-	 */
-
 	REQUIRE(t != NULL);
 
-	RUNTIME_CHECK(gettimeofday(&tv, NULL) != -1);
+	struct timespec ts;
 
-#if ISC_FIX_TV_USEC
-	fix_tv_usec(&tv);
-	INSIST(tv.tv_usec >= 0);
-#else  /* if ISC_FIX_TV_USEC */
-	INSIST(tv.tv_usec >= 0 && tv.tv_usec < US_PER_S);
-#endif /* if ISC_FIX_TV_USEC */
+	if (clock_gettime(CLOCKSOURCE, &ts) == -1) {
+		char strbuf[ISC_STRERRORSIZE];
+		strerror_r(errno, strbuf, sizeof(strbuf));
+		isc_error_fatal(__FILE__, __LINE__, "clock_gettime failed: %s",
+				strbuf);
+	}
 
-	*t = (unsigned int)tv.tv_sec;
+	REQUIRE(ts.tv_sec > 0 && ts.tv_nsec > 0 && ts.tv_nsec < NS_PER_S);
+
+	*t = (unsigned int)ts.tv_sec;
 }
