@@ -944,28 +944,28 @@ unit:clang:freebsd11.3:amd64:
     - clang:freebsd11.3:amd64
   needs: ["clang:freebsd11.3:amd64"]
 
-# Jobs for Clang builds on FreeBSD 12.0 (amd64)
+# Jobs for Clang builds on FreeBSD 12.1 (amd64)
 
-clang:freebsd12.0:amd64:
+clang:freebsd12.1:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-dnstap"
   <<: *freebsd_amd64
   <<: *build_job
 
-system:clang:freebsd12.0:amd64:
+system:clang:freebsd12.1:amd64:
   <<: *freebsd_amd64
   <<: *system_test_job
   dependencies:
-    - clang:freebsd12.0:amd64
-  needs: ["clang:freebsd12.0:amd64"]
+    - clang:freebsd12.1:amd64
+  needs: ["clang:freebsd12.1:amd64"]
 
-unit:clang:freebsd12.0:amd64:
+unit:clang:freebsd12.1:amd64:
   <<: *freebsd_amd64
   <<: *unit_test_job
   dependencies:
-    - clang:freebsd12.0:amd64
-  needs: ["clang:freebsd12.0:amd64"]
+    - clang:freebsd12.1:amd64
+  needs: ["clang:freebsd12.1:amd64"]
 
 # Jobs for Clang builds on OpenBSD 6.6 (amd64)
 
