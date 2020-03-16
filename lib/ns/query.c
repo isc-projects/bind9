@@ -2826,7 +2826,10 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 		 */
 		if (rpz_type == DNS_RPZ_TYPE_IP) {
 			result = DNS_R_NXRRSET;
-		} else if (!client->view->rpzs->p.nsip_wait_recurse) {
+		} else if (!client->view->rpzs->p.nsip_wait_recurse ||
+			   (!client->view->rpzs->p.nsdname_wait_recurse &&
+			    rpz_type == DNS_RPZ_TYPE_NSDNAME))
+		{
 			query_rpzfetch(client, name, type);
 			result = DNS_R_NXRRSET;
 		} else {

@@ -474,15 +474,17 @@ for mode in native dnsrps; do
     status=1
   }
 
-  # Check for invalid prefix length error
-  t=`expr $t + 1`
-  echo_i "testing for invalid prefix length error (${t})"
-  add_test_marker 10.53.0.2
-  run_server invalidprefixlength
-  grep "invalid rpz IP address \"1000.4.0.53.10.rpz-client-ip.invalidprefixlength\"; invalid prefix length of 1000$" ns2/named.run > /dev/null || {
-    echo_ic "failed: expected that invalid prefix length error would be logged"
-    status=1
-  }
+  if [ "$mode" = "native" ]; then
+    # Check for invalid prefix length error
+    t=`expr $t + 1`
+    echo_i "testing for invalid prefix length error (${t})"
+    add_test_marker 10.53.0.2
+    run_server invalidprefixlength
+    grep "invalid rpz IP address \"1000.4.0.53.10.rpz-client-ip.invalidprefixlength\"; invalid prefix length of 1000$" ns2/named.run > /dev/null || {
+      echo_ic "failed: expected that invalid prefix length error would be logged"
+      status=1
+    }
+  fi
 
   t=`expr $t + 1`
   echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' ($t)"
@@ -493,10 +495,10 @@ for mode in native dnsrps; do
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.yes.$t
   t2=`$PERL -e 'print time()."\n";'`
   p1=`expr $t2 - $t1`
-  echo_i "elasped time $p1 seconds"
+  echo_i "elapsed time $p1 seconds"
 
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
-  cp -f ns3/named2.conf ns3/named.conf
+  copy_setports ns3/named2.conf.in ns3/named.conf
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
 
   echo_i "timing 'nsip-wait-recurse no'"
@@ -504,11 +506,43 @@ for mode in native dnsrps; do
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.no.$t
   t4=`$PERL -e 'print time()."\n";'`
   p2=`expr $t4 - $t3`
-  echo_i "elasped time $p2 seconds"
+  echo_i "elapsed time $p2 seconds"
 
   if test $p1 -le $p2; then ret=1; fi
   if test $ret != 0; then echo_i "failed"; fi
   status=`expr $status + $ret`
+
+  $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
+  # restore original named.conf
+  copy_setports ns3/named1.conf.in ns3/named.conf
+  $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
+
+  t=`expr $t + 1`
+  echo_i "checking 'nsdname-wait-recurse no' is faster than 'nsdname-wait-recurse yes' ($t)"
+  add_test_marker 10.53.0.2
+  echo_i "timing 'nsdname-wait-recurse yes' (default)"
+  ret=0
+  t1=`$PERL -e 'print time()."\n";'`
+  $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.yes.$t
+  t2=`$PERL -e 'print time()."\n";'`
+  p1=`expr $t2 - $t1`
+  echo_i "elapsed time $p1 seconds"
+
+  $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
+  copy_setports ns3/named3.conf.in ns3/named.conf
+  $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
+
+  echo_i "timing 'nsdname-wait-recurse no'"
+  t3=`$PERL -e 'print time()."\n";'`
+  $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.no.$t
+  t4=`$PERL -e 'print time()."\n";'`
+  p2=`expr $t4 - $t3`
+  echo_i "elapsed time $p2 seconds"
+
+  if test $p1 -le $p2; then ret=1; fi
+  if test $ret != 0; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
 
   [ $status -ne 0 ] && pf=fail || pf=pass
   case $mode in

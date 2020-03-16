@@ -2557,6 +2557,13 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 		zones->p.qname_wait_recurse = false;
 	}
 
+	sub_obj = cfg_tuple_get(rpz_obj, "nsdname-wait-recurse");
+	if (cfg_obj_isvoid(sub_obj) || cfg_obj_asboolean(sub_obj)) {
+		zones->p.nsdname_wait_recurse = true;
+	} else {
+		zones->p.nsdname_wait_recurse = false;
+	}
+
 	sub_obj = cfg_tuple_get(rpz_obj, "nsip-wait-recurse");
 	if (cfg_obj_isvoid(sub_obj) || cfg_obj_asboolean(sub_obj)) {
 		zones->p.nsip_wait_recurse = true;
