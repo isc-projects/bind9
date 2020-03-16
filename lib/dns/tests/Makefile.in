@@ -16,7 +16,7 @@ VERSION=@BIND9_VERSION@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} ${ISC_INCLUDES} \
-		@DST_OPENSSL_INC@
+		@DST_OPENSSL_INC@ ${MAXMINDDB_CFLAGS}
 CDEFINES =	@CRYPTO@ -DTESTS="\"${top_builddir}/lib/dns/tests/\""
 
 ISCLIBS =	../../isc/libisc.@A@
