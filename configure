@@ -733,6 +733,9 @@ LIBXML2_CFLAGS
 NZDTARGETS
 NZDSRCS
 NZD_TOOLS
+LMDB_LDFLAGS
+LMDB_LIBS
+LMDB_CFLAGS
 DNS_CRYPTO_LIBS
 DNS_GSSAPI_LIBS
 DST_GSSAPI_INC
@@ -970,6 +973,8 @@ LIBUV_CFLAGS
 LIBUV_LIBS
 OPENSSL_CFLAGS
 OPENSSL_LIBS
+LMDB_CFLAGS
+LMDB_LIBS
 LIBXML2_CFLAGS
 LIBXML2_LIBS
 JSON_C_CFLAGS
@@ -1663,7 +1668,8 @@ Optional Packages:
   --with-gssapi=PATH|/path/krb5-config
                           Specify path for system-supplied GSSAPI
                           [default=auto]
-  --with-lmdb=PATH        build with LMDB library [yes|no|path]
+  --with-lmdb=[PATH]      use LMDB library [default=auto], optionally specify
+                          the prefix for lmdb library
   --with-libxml2          build with libxml2 library [yes|no|auto] (default is
                           auto)
   --with-libjson          deprecated, use --with-json-c
@@ -1732,6 +1738,8 @@ Some influential environment variables:
               C compiler flags for OPENSSL, overriding pkg-config
   OPENSSL_LIBS
               linker flags for OPENSSL, overriding pkg-config
+  LMDB_CFLAGS C compiler flags for LMDB, overriding pkg-config
+  LMDB_LIBS   linker flags for LMDB, overriding pkg-config
   LIBXML2_CFLAGS
               C compiler flags for LIBXML2, overriding pkg-config
   LIBXML2_LIBS
@@ -17514,53 +17522,96 @@ DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS"
 #
 # was --with-lmdb specified?
 #
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for lmdb library" >&5
-$as_echo_n "checking for lmdb library... " >&6; }
+
 
 # Check whether --with-lmdb was given.
 if test "${with_lmdb+set}" = set; then :
-  withval=$with_lmdb; use_lmdb="$withval"
+  withval=$with_lmdb; :
 else
-  use_lmdb="auto"
+  with_lmdb="auto"
 fi
 
 
-have_lmdb=""
-case "$use_lmdb" in
-	no)
-		lmdb_libs=""
-		;;
-	auto|yes)
-		for d in /usr /usr/local /opt/local
-		do
-			if test -f "${d}/include/lmdb.h"
-			then
-				if test ${d} != /usr
-				then
-					lmdb_cflags="-I ${d}/include"
-					LIBS="$LIBS -L${d}/lib"
-				fi
-				have_lmdb="yes"
-			fi
-		done
-		;;
-	*)
-		if test -f "${use_lmdb}/include/lmdb.h"
-		then
-			lmdb_cflags="-I${use_lmdb}/include"
-			LIBS="$LIBS -L${use_lmdb}/lib"
-			have_lmdb="yes"
-		else
-			as_fn_error $? "$use_lmdb/include/lmdb.h not found." "$LINENO" 5
-		fi
-		;;
-esac
+ac_lib_lmdb_found=no
+case $with_lmdb in #(
+  no) :
+     ;; #(
+  auto|yes) :
 
-if test "X${have_lmdb}" != "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for lmdb" >&5
+$as_echo_n "checking for lmdb... " >&6; }
+
+if test -n "$LMDB_CFLAGS"; then
+    pkg_cv_LMDB_CFLAGS="$LMDB_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"lmdb\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "lmdb") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LMDB_CFLAGS=`$PKG_CONFIG --cflags "lmdb" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$LMDB_LIBS"; then
+    pkg_cv_LMDB_LIBS="$LMDB_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"lmdb\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "lmdb") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LMDB_LIBS=`$PKG_CONFIG --libs "lmdb" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LMDB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "lmdb" 2>&1`
+        else
+	        LMDB_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "lmdb" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LMDB_PKG_ERRORS" >&5
+
+	for ac_lib_lmdb_path in /usr /usr/local /opt /opt/local; do
+						if test -z "$ac_lib_lmdb_path"; then :
+  as_fn_error $? "Path cannot be empty" "$LINENO" 5
+fi
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lmdb header in $ac_lib_lmdb_path" >&5
+$as_echo_n "checking for lmdb header in $ac_lib_lmdb_path... " >&6; }
+	  if test -r "$ac_lib_lmdb_path/include/lmdb.h"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing mdb_env_create" >&5
+		 LMDB_CFLAGS="-I$ac_lib_lmdb_path/include"
+		 LMDB_LIBS="-L$ac_lib_lmdb_path/lib"
+		 saved_CFLAGS="$CFLAGS"
+		 saved_LIBS="$LIBS"
+		 CFLAGS="$CFLAGS $LMDB_CFLAGS"
+		 LIBS="$LIBS $LMDB_LIBS"
+		 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing mdb_env_create" >&5
 $as_echo_n "checking for library containing mdb_env_create... " >&6; }
 if ${ac_cv_search_mdb_env_create+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -17613,32 +17664,250 @@ $as_echo "$ac_cv_search_mdb_env_create" >&6; }
 ac_res=$ac_cv_search_mdb_env_create
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  LMDB_LIBS="$LMDB_LIBS $ac_cv_search_mdb_env_create"
+
+
+				 ac_lib_lmdb_found=yes
+							     break
 
 else
-  as_fn_error $? "found lmdb include but not library." "$LINENO" 5
-			have_lmdb=""
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+				 LMDB_CFLAGS=""
+				 LMDB_LIBS=""
+
+
 fi
 
-elif test "X$use_lmdb" = Xyes
-then
-	as_fn_error $? "include/lmdb.h not found." "$LINENO" 5
+		 CFLAGS="$saved_CFLAGS"
+		 LIBS="$saved_LIBS"
+
 else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
+					done
 
-NZD_TOOLS=""
-NZDSRCS=
-NZDTARGETS=
-if test "X${have_lmdb}" != "X"
-then
-	CFLAGS="$CFLAGS $lmdb_cflags"
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	for ac_lib_lmdb_path in /usr /usr/local /opt /opt/local; do
+						if test -z "$ac_lib_lmdb_path"; then :
+  as_fn_error $? "Path cannot be empty" "$LINENO" 5
+fi
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lmdb header in $ac_lib_lmdb_path" >&5
+$as_echo_n "checking for lmdb header in $ac_lib_lmdb_path... " >&6; }
+	  if test -r "$ac_lib_lmdb_path/include/lmdb.h"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+		 LMDB_CFLAGS="-I$ac_lib_lmdb_path/include"
+		 LMDB_LIBS="-L$ac_lib_lmdb_path/lib"
+		 saved_CFLAGS="$CFLAGS"
+		 saved_LIBS="$LIBS"
+		 CFLAGS="$CFLAGS $LMDB_CFLAGS"
+		 LIBS="$LIBS $LMDB_LIBS"
+		 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing mdb_env_create" >&5
+$as_echo_n "checking for library containing mdb_env_create... " >&6; }
+if ${ac_cv_search_mdb_env_create+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char mdb_env_create ();
+int
+main ()
+{
+return mdb_env_create ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' lmdb; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_mdb_env_create=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_mdb_env_create+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_mdb_env_create+:} false; then :
+
+else
+  ac_cv_search_mdb_env_create=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_mdb_env_create" >&5
+$as_echo "$ac_cv_search_mdb_env_create" >&6; }
+ac_res=$ac_cv_search_mdb_env_create
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  LMDB_LIBS="$LMDB_LIBS $ac_cv_search_mdb_env_create"
+
+
+				 ac_lib_lmdb_found=yes
+							     break
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+				 LMDB_CFLAGS=""
+				 LMDB_LIBS=""
+
+
+fi
+
+		 CFLAGS="$saved_CFLAGS"
+		 LIBS="$saved_LIBS"
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+					done
+
+else
+	LMDB_CFLAGS=$pkg_cv_LMDB_CFLAGS
+	LMDB_LIBS=$pkg_cv_LMDB_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	ac_lib_lmdb_found=yes
+fi ;; #(
+  *) :
+    if test -z "$with_lmdb"; then :
+  as_fn_error $? "Path cannot be empty" "$LINENO" 5
+fi
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lmdb header in $with_lmdb" >&5
+$as_echo_n "checking for lmdb header in $with_lmdb... " >&6; }
+	  if test -r "$with_lmdb/include/lmdb.h"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+		 LMDB_CFLAGS="-I$with_lmdb/include"
+		 LMDB_LIBS="-L$with_lmdb/lib"
+		 saved_CFLAGS="$CFLAGS"
+		 saved_LIBS="$LIBS"
+		 CFLAGS="$CFLAGS $LMDB_CFLAGS"
+		 LIBS="$LIBS $LMDB_LIBS"
+		 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing mdb_env_create" >&5
+$as_echo_n "checking for library containing mdb_env_create... " >&6; }
+if ${ac_cv_search_mdb_env_create+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char mdb_env_create ();
+int
+main ()
+{
+return mdb_env_create ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' lmdb; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_mdb_env_create=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_mdb_env_create+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_mdb_env_create+:} false; then :
+
+else
+  ac_cv_search_mdb_env_create=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_mdb_env_create" >&5
+$as_echo "$ac_cv_search_mdb_env_create" >&6; }
+ac_res=$ac_cv_search_mdb_env_create
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  LMDB_LIBS="$LMDB_LIBS $ac_cv_search_mdb_env_create"
+
+
+				 ac_lib_lmdb_found=yes
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+				 LMDB_CFLAGS=""
+				 LMDB_LIBS=""
+
+
+fi
+
+		 CFLAGS="$saved_CFLAGS"
+		 LIBS="$saved_LIBS"
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi ;;
+esac
+
+# don't fail when in automatic mode
+if test "$with_lmdb" = "auto" && test "$ac_lib_lmdb_found" = "no"; then :
+  with_lmdb=no
+fi
+
+# hard fail when LMDB requested, but not found
+if test "$with_lmdb" != "no" && test "$ac_lib_lmdb_found" != "yes"; then :
+  as_fn_error $? "LMDB requested, but not found" "$LINENO" 5
+fi
+
+if test "$ac_lib_lmdb_found" = "yes"; then :
 
 $as_echo "#define HAVE_LMDB 1" >>confdefs.h
 
-	NZD_TOOLS="nzd"
-	NZDSRCS='${NZDSRCS}'
-	NZDTARGETS='${NZDTARGETS}'
+fi
+
+
+
+#AM_CONDITIONAL([HAVE_LMDB], [test "$ac_lib_lmdb_found" = "yes"])
+
+NZD_TOOLS=
+NZDSRCS=
+NZDTARGETS=
+if test -n "$LMDB_LIBS"; then :
+  NZD_TOOLS="nzd"
+       NZDSRCS='${NZDSRCS}'
+       NZDTARGETS='${NZDTARGETS}'
 fi
 
 

@@ -261,7 +261,7 @@
 /* Define to 1 if you have the <linux/rtnetlink.h> header file. */
 #undef HAVE_LINUX_RTNETLINK_H
 
-/* Define if lmdb was found */
+/* Use lmdb library */
 #undef HAVE_LMDB
 
 /* Define to 1 if you have the <locale.h> header file. */
