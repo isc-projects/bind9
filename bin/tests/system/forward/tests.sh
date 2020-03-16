@@ -199,8 +199,9 @@ echo_i "checking that priming queries are not forwarded ($n)"
 ret=0
 nextpart ns7/named.run >/dev/null
 dig_with_opts +noadd +noauth txt.example1. txt @10.53.0.7 > dig.out.$n.f7 || ret=1
+received_pattern="received packet from 10\.53\.0\.1"
 start_pattern="sending packet to 10\.53\.0\.1"
-retry_quiet 5 wait_for_log ns7/named.run "$start_pattern" || ret=1
+retry_quiet 5 wait_for_log ns7/named.run "$received_pattern" || ret=1
 check_sent 1 ns7/named.run "$start_pattern" ";\.[[:space:]]*IN[[:space:]]*NS$" || ret=1
 sent=`grep -c "10.53.0.7#.* (.): query '\./NS/IN' approved" ns4/named.run`
 [ "$sent" -eq 0 ] || ret=1
