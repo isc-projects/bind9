@@ -337,11 +337,7 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		}
 		printf(";; SERVER: %s(%s)\n", fromtext, query->servname);
 		time(&tnow);
-#if !defined(WIN32)
 		(void)localtime_r(&tnow, &tmnow);
-#else  /* if !defined(WIN32) */
-		tmnow = *localtime(&tnow);
-#endif /* if !defined(WIN32) */
 
 #ifdef WIN32
 		/*
