@@ -11,6 +11,7 @@
 
 #if HAVE_CMOCKA
 
+#include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -191,7 +192,7 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 	}
 
 	expected_event_type = ISC_TIMEREVENT_LIFE;
-	if ((isc_timertype_t)event->ev_arg == isc_timertype_ticker) {
+	if ((uintptr_t)event->ev_arg == isc_timertype_ticker) {
 		expected_event_type = ISC_TIMEREVENT_TICK;
 	}
 
