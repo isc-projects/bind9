@@ -29,6 +29,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <isc/assertions.h>
@@ -249,7 +250,7 @@ list_towire(isccc_sexpr_t *list, isc_buffer_t **buffer) {
 static isc_result_t
 sign(unsigned char *data, unsigned int length, unsigned char *hmac,
      uint32_t algorithm, isccc_region_t *secret) {
-	isc_md_type_t md_type;
+	const isc_md_type_t *md_type;
 	isc_result_t result;
 	isccc_region_t source, target;
 	unsigned char digest[ISC_MAX_MD_SIZE];
@@ -370,7 +371,7 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer, uint32_t algorithm,
 static isc_result_t
 verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
        uint32_t algorithm, isccc_region_t *secret) {
-	isc_md_type_t md_type;
+	const isc_md_type_t *md_type;
 	isccc_region_t source;
 	isccc_region_t target;
 	isc_result_t result;

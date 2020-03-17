@@ -61,6 +61,12 @@ isc__mem_reallocate
 isc__mem_strdup
 isc__mempool_get
 isc__mempool_put
+isc__md_md5
+isc__md_sha1
+isc__md_sha224
+isc__md_sha256
+isc__md_sha384
+isc__md_sha512
 isc_socket_accept
 isc_socket_attach
 isc_socket_bind
