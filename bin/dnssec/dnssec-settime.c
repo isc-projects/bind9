@@ -25,6 +25,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/string.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>
@@ -114,7 +115,6 @@ usage(void) {
 static void
 printtime(dst_key_t *key, int type, const char *tag, bool epoch, FILE *stream) {
 	isc_result_t result;
-	const char *output = NULL;
 	isc_stdtime_t when;
 
 	if (tag != NULL) {
@@ -127,9 +127,20 @@ printtime(dst_key_t *key, int type, const char *tag, bool epoch, FILE *stream) {
 	} else if (epoch) {
 		fprintf(stream, "%d\n", (int)when);
 	} else {
-		time_t timet = when;
-		output = ctime(&timet);
-		fprintf(stream, "%s", output);
+		time_t now = when;
+		struct tm t, *tm = localtime_r(&now, &t);
+		unsigned int flen;
+		char timebuf[80];
+
+		if (tm == NULL) {
+			fprintf(stream, "INVALID\n");
+			return;
+		}
+
+		flen = strftime(timebuf, sizeof(timebuf),
+				"%a %b %e %H:%M:%S %Y", tm);
+		INSIST(flen > 0U && flen < sizeof(timebuf));
+		fprintf(stream, "%s\n", timebuf);
 	}
 }
 

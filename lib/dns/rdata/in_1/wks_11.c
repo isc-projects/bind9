@@ -78,7 +78,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	isc_token_t token;
 	isc_region_t region;
 	struct in_addr addr;
-	char *e;
+	char *e = NULL;
 	long proto;
 	unsigned char bm[8 * 1024]; /* 64k bits */
 	long port;
@@ -138,8 +138,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 				     false));
 
 	proto = strtol(DNS_AS_STR(token), &e, 10);
-	if (*e == 0) {
-	} else if (!mygetprotobyname(DNS_AS_STR(token), &proto)) {
+	if (*e != '\0' && !mygetprotobyname(DNS_AS_STR(token), &proto)) {
 		CHECKTOK(DNS_R_UNKNOWNPROTO);
 	}
 
@@ -175,9 +174,8 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 		}
 
 		port = strtol(DNS_AS_STR(token), &e, 10);
-		if (*e == 0) {
-		} else if (!mygetservbyname(service, ps, &port) &&
-			   !mygetservbyname(DNS_AS_STR(token), ps, &port))
+		if (*e != 0 && !mygetservbyname(service, ps, &port) &&
+		    !mygetservbyname(DNS_AS_STR(token), ps, &port))
 		{
 			CHECKTOK(DNS_R_UNKNOWNSERVICE);
 		}
