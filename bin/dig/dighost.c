@@ -4420,7 +4420,7 @@ idn_output_filter(isc_buffer_t *buffer, unsigned int used_org) {
 	 * Copy name from 'buffer' to 'src' and terminate it with NULL.
 	 */
 	srclen = isc_buffer_usedlength(buffer) - used_org;
-	if (srclen > sizeof(src)) {
+	if (srclen >= sizeof(src)) {
 		warn("Input name too long to perform IDN conversion");
 		return (ISC_R_SUCCESS);
 	}
