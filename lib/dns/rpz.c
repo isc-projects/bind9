@@ -696,13 +696,14 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 			       (tgt_ip->w[3]>>8) & 0xffU,
 			       (tgt_ip->w[3]>>16) & 0xffU,
 			       (tgt_ip->w[3]>>24) & 0xffU);
-		if (len < 0 || len > (int)sizeof(str)) {
+		if (len < 0 || (size_t)len >= sizeof(str)) {
 			return (ISC_R_FAILURE);
 		}
 	} else {
 		len = snprintf(str, sizeof(str), "%d", tgt_prefix);
-		if (len == -1)
+		if (len < 0 || (size_t)len >= sizeof(str)) {
 			return (ISC_R_FAILURE);
+		}
 		for (i = 0; i < DNS_RPZ_CIDR_WORDS; i++) {
 			w[i*2+1] = ((tgt_ip->w[DNS_RPZ_CIDR_WORDS-1-i] >> 16)
 				    & 0xffff);
@@ -732,15 +733,19 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 		}
 
 		for (n = 0; n <= 7; ++n) {
-			INSIST(len < (int)sizeof(str));
+			INSIST(len > 0 && (size_t)len < sizeof(str));
 			if (n == best_first) {
-				len += snprintf(str + len, sizeof(str) - len,
-						".zz");
+				i = snprintf(str + len, sizeof(str) - len,
+					     ".zz");
 				n += best_len - 1;
 			} else {
-				len += snprintf(str + len, sizeof(str) - len,
-						".%x", w[n]);
+				i = snprintf(str + len, sizeof(str) - len,
+					     ".%x", w[n]);
 			}
+			if (i < 0 || (size_t)i >= (size_t)(sizeof(str) - len)) {
+				return (ISC_R_FAILURE);
+			}
+			len += i;
 		}
 	}
 

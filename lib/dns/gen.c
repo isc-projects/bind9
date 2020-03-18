@@ -689,7 +689,8 @@ main(int argc, char **argv) {
 	}
 
 	if (now != -1) {
-		struct tm *tm = gmtime(&now);
+		struct tm t, *tm = gmtime_r(&now, &t);
+
 		if (tm != NULL && tm->tm_year > 104) {
 			n = snprintf(year, sizeof(year), "-%d",
 				     tm->tm_year + 1900);

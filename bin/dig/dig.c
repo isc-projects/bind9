@@ -277,11 +277,7 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 			printf(";; Query time: %ld msec\n", (long) diff / 1000);
 		printf(";; SERVER: %s(%s)\n", fromtext, query->servname);
 		time(&tnow);
-#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
 		(void)localtime_r(&tnow, &tmnow);
-#else
-		tmnow  = *localtime(&tnow);
-#endif
 
 #ifdef WIN32
 		/*
