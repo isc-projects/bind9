@@ -985,18 +985,16 @@ main(int argc, char **argv) {
 	   isc_taskmgr_create(rndc_mctx, 1, 0, NULL, &taskmgr));
 	DO("create task", isc_task_create(taskmgr, 0, &task));
 
-	DO("create logging context",
-	   isc_log_create(rndc_mctx, &log, &logconfig));
+	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);
-	DO("setting log tag", isc_log_settag(logconfig, progname));
+	isc_log_settag(logconfig, progname);
 	logdest.file.stream = stderr;
 	logdest.file.name = NULL;
 	logdest.file.versions = ISC_LOG_ROLLNEVER;
 	logdest.file.maximum_size = 0;
-	DO("creating log channel",
-	   isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-				 ISC_LOG_INFO, &logdest,
-				 ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL));
+	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
+			      ISC_LOG_INFO, &logdest,
+			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
 	DO("enabling log channel",
 	   isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 

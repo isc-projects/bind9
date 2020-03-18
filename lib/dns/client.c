@@ -445,10 +445,7 @@ dns_client_create(dns_client_t **clientp, unsigned int options) {
 		goto cleanup;
 	}
 #if 0
-	result = isc_log_create(mctx, &lctx, &logconfig);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
 	dns_log_setcontext(lctx);
