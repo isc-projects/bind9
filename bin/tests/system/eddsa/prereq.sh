@@ -9,7 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+set -e
 
-exec $SHELL ../testcrypto.sh eddsa
+. "$SYSTEMTESTTOP/conf.sh"
+
+if ! $SHELL ../testcrypto.sh eddsa; then
+	exit 1
+fi

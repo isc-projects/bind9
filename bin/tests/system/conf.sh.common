@@ -37,7 +37,7 @@ export LANG=C
 # SEQUENTIAL_UNIX in conf.sh.in; those that only run on windows should
 # be added to SEQUENTIAL_WINDOWS in conf.sh.win32.
 #
-SEQUENTIAL_COMMON="eddsa tkey"
+SEQUENTIAL_COMMON="tkey"
 
 #
 # These tests can use ports assigned by the caller (other than 5300
@@ -58,7 +58,7 @@ PARALLEL_COMMON="dnssec rpzrecurse serve-stale \
 	checkconf checknames checkzone \
 	cookie database digdelv dlz dlzexternal \
 	dns64 dscp dsdigest dyndb \
-	ecdsa ednscompliance emptyzones \
+	ecdsa eddsa ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip2 glue idna include-multiplecfg \
 	inline integrity ixfr \
