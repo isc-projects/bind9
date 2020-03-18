@@ -51,9 +51,10 @@
 
 #define RUNCHECK(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
 
-#define PORT	5300
 #define TIMEOUT 30
 
+static char *ip_address;
+static int port;
 static isc_mem_t *mctx;
 static dns_tsigkey_t *tsigkey;
 static dns_tsig_keyring_t *ring;
@@ -114,10 +115,10 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	result = ISC_R_FAILURE;
-	if (inet_pton(AF_INET, "10.53.0.1", &inaddr) != 1) {
+	if (inet_pton(AF_INET, ip_address, &inaddr) != 1) {
 		CHECK("inet_pton", result);
 	}
-	isc_sockaddr_fromin(&address, &inaddr, PORT);
+	isc_sockaddr_fromin(&address, &inaddr, port);
 
 	query = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
@@ -155,7 +156,7 @@ main(int argc, char **argv) {
 
 	RUNCHECK(isc_app_start());
 
-	if (argc < 2) {
+	if (argc < 4) {
 		fprintf(stderr, "I:no key to delete\n");
 		exit(-1);
 	}
@@ -163,7 +164,9 @@ main(int argc, char **argv) {
 		fprintf(stderr, "I:The -r options has been deprecated\n");
 		exit(-1);
 	}
-	keyname = argv[1];
+	ip_address = argv[1];
+	port = atoi(argv[2]);
+	keyname = argv[3];
 
 	dns_result_register();
 

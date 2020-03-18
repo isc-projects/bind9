@@ -52,8 +52,10 @@
 
 #define RUNCHECK(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
 
-#define PORT	5300
 #define TIMEOUT 30
+
+static char *ip_address = NULL;
+static int port = 0;
 
 static dst_key_t *ourkey;
 static isc_mem_t *mctx;
@@ -141,10 +143,10 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	result = ISC_R_FAILURE;
-	if (inet_pton(AF_INET, "10.53.0.1", &inaddr) != 1) {
+	if (inet_pton(AF_INET, ip_address, &inaddr) != 1) {
 		CHECK("inet_pton", result);
 	}
-	isc_sockaddr_fromin(&address, &inaddr, PORT);
+	isc_sockaddr_fromin(&address, &inaddr, port);
 
 	dns_fixedname_init(&keyname);
 	isc_buffer_constinit(&namestr, "tkeytest.", 9);
@@ -210,18 +212,16 @@ main(int argc, char *argv[]) {
 
 	RUNCHECK(isc_app_start());
 
-	if (argc < 2) {
+	if (argc < 4) {
 		fprintf(stderr, "I:no DH key provided\n");
 		exit(-1);
 	}
-	if (strcmp(argv[1], "-r") == 0) {
-		fprintf(stderr, "I:the -r option has been deprecated\n");
-		exit(-1);
-	}
-	ourkeyname = argv[1];
+	ip_address = argv[1];
+	port = atoi(argv[2]);
+	ourkeyname = argv[3];
 
-	if (argc >= 3) {
-		ownername_str = argv[2];
+	if (argc >= 5) {
+		ownername_str = argv[4];
 	}
 
 	dns_result_register();
