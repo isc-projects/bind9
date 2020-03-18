@@ -274,7 +274,7 @@ main(int argc, char *argv[]) {
 
 	lctx = NULL;
 	lcfg = NULL;
-	RUNCHECK(isc_log_create(mctx, &lctx, &lcfg));
+	isc_log_create(mctx, &lctx, &lcfg);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 

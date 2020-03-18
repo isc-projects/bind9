@@ -62,8 +62,7 @@ int ctx_init(void) {
 
 	isc_mem_create(&ctx.mem);
 
-	if (isc_log_create(ctx.mem, &ctx.log, &ctx.logcfg) != ISC_R_SUCCESS)
-		goto done;
+	isc_log_create(ctx.mem, &ctx.log, &ctx.logcfg);
 
 	isc_log_setcontext(ctx.log);
 	dns_log_init(ctx.log);

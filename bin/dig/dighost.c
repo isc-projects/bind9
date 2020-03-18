@@ -1394,9 +1394,7 @@ setup_libs(void) {
 	isc_mem_create(&mctx);
 	isc_mem_setname(mctx, "dig", NULL);
 
-	result = isc_log_create(mctx, &lctx, &logconfig);
-	check_result(result, "isc_log_create");
-
+	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
 	dns_log_setcontext(lctx);

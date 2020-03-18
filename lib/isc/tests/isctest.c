@@ -116,8 +116,7 @@ isc_test_begin(FILE *logfile, bool start_managers, unsigned int workers) {
 		isc_logconfig_t *logconfig = NULL;
 
 		INSIST(test_lctx == NULL);
-		CHECK(isc_log_create(test_mctx, &test_lctx, &logconfig));
-
+		isc_log_create(test_mctx, &test_lctx, &logconfig);
 		isc_log_registercategories(test_lctx, categories);
 		isc_log_setcontext(test_lctx);
 
@@ -125,9 +124,8 @@ isc_test_begin(FILE *logfile, bool start_managers, unsigned int workers) {
 		destination.file.name = NULL;
 		destination.file.versions = ISC_LOG_ROLLNEVER;
 		destination.file.maximum_size = 0;
-		CHECK(isc_log_createchannel(logconfig, "stderr",
-					    ISC_LOG_TOFILEDESC, ISC_LOG_DYNAMIC,
-					    &destination, 0));
+		isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
+				      ISC_LOG_DYNAMIC, &destination, 0);
 		CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 	}
 

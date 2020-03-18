@@ -73,7 +73,7 @@ setup() {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
-	CHECK(isc_log_create(mctx, &lctx, &logconfig));
+	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_registercategories(lctx, categories);
 	isc_log_setcontext(lctx);
 
@@ -81,8 +81,8 @@ setup() {
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	CHECK(isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-				    ISC_LOG_DYNAMIC, &destination, 0));
+	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
+			      ISC_LOG_DYNAMIC, &destination, 0);
 	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 
 	return (ISC_R_SUCCESS);

@@ -183,7 +183,7 @@ LIBISC_EXTERNAL_DATA extern isc_logmodule_t   isc_modules[];
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
 /*%<
  * Establish a new logging context, with default channels.
@@ -203,13 +203,9 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
  *\li	*lcfgp will point to a valid logging configuration if all of the
  *	necessary memory was allocated, or NULL otherwise.
  *\li	On failure, no additional memory is allocated.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		Success
- *\li	#ISC_R_NOMEMORY		Resource limit: Out of memory
  */
 
-isc_result_t
+void
 isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
 /*%<
  * Create the data structure that holds all of the configurable information
@@ -249,13 +245,9 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
  *\li	*lcfgp will point to a valid logging context if all of the necessary
  *	memory was allocated, or NULL otherwise.
  *\li	On failure, no additional memory is allocated.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		Success
- *\li	#ISC_R_NOMEMORY		Resource limit: Out of memory
  */
 
-isc_result_t
+void
 isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
 /*%<
  * Associate a new configuration with a logging context.
@@ -274,10 +266,6 @@ isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
  *
  * Ensures:
  *\li	Future calls to isc_log_write will use the new configuration.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		Success
- *\li	#ISC_R_NOMEMORY		Resource limit: Out of memory
  */
 
 void
@@ -388,7 +376,7 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]);
  *	used with isc_log_usechannel() and isc_log_write().
  */
 
-isc_result_t
+void
 isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		      unsigned int type, int level,
 		      const isc_logdestination_t *destination,
@@ -449,12 +437,6 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
  *		No additional memory is being used by the logging context.
  *		Any channel that previously existed with the given name
  *		is not redefined.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		Success
- *\li	#ISC_R_NOMEMORY		Resource limit: Out of memory
- *\li	#ISC_R_UNEXPECTED	type was out of range and REQUIRE()
- *					was disabled.
  */
 
 isc_result_t
@@ -699,7 +681,7 @@ isc_log_getduplicateinterval(isc_logconfig_t *lcfg);
  *\li	The current duplicate filtering interval.
  */
 
-isc_result_t
+void
 isc_log_settag(isc_logconfig_t *lcfg, const char *tag);
 /*%<
  * Set the program name or other identifier for #ISC_LOG_PRINTTAG.
@@ -717,10 +699,6 @@ isc_log_settag(isc_logconfig_t *lcfg, const char *tag);
  *\li	Setting the tag to NULL or the empty string will also cause the
  *	#ISC_LOG_PRINTTAG channel flag to not print anything.  If tag equals the
  *	empty string, calls to isc_log_gettag will return NULL.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS	Success
- *\li	#ISC_R_NOMEMORY  Resource Limit: Out of memory
  *
  * XXXDCL when creating a new isc_logconfig_t, it might be nice if the tag
  * of the currently active isc_logconfig_t was inherited.  this does not

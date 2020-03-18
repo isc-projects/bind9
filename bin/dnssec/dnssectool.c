@@ -128,7 +128,6 @@ sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 
 void
 setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
-	isc_result_t result;
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 	isc_log_t *log = NULL;
@@ -153,12 +152,11 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 		break;
 	}
 
-	RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig) == ISC_R_SUCCESS);
+	isc_log_create(mctx, &log, &logconfig);
 	isc_log_setcontext(log);
 	dns_log_init(log);
 	dns_log_setcontext(log);
-
-	RUNTIME_CHECK(isc_log_settag(logconfig, program) == ISC_R_SUCCESS);
+	isc_log_settag(logconfig, program);
 
 	/*
 	 * Set up a channel similar to default_stderr except:
@@ -170,10 +168,9 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	result = isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-				       level, &destination,
-				       ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
-	check_result(result, "isc_log_createchannel()");
+	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC, level,
+			      &destination,
+			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
 
 	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
 		      ISC_R_SUCCESS);
