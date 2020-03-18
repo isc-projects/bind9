@@ -9,21 +9,22 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+set -e
+
+. "$SYSTEMTESTTOP/conf.sh"
 
 zone=.
 infile=root.db.in
 zonefile=root.db
 
-key1=`$KEYGEN -q -a ECDSAP256SHA256 -n zone $zone`
-key2=`$KEYGEN -q -a ECDSAP384SHA384 -n zone -f KSK $zone`
-$DSFROMKEY -a sha-384 $key2.key > dsset-384
+key1=$($KEYGEN -q -a ECDSAP256SHA256 -n zone "$zone")
+key2=$($KEYGEN -q -a ECDSAP384SHA384 -n zone -f KSK "$zone")
+$DSFROMKEY -a sha-384 "$key2.key" > dsset-384
 
-cat $infile $key1.key $key2.key > $zonefile
+cat "$infile" "$key1.key" "$key2.key" > $zonefile
 
-$SIGNER -P -g -o $zone $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -P -g -o "$zone" "$zonefile" > /dev/null 2> signer.err || cat signer.err
 
 # Configure the resolving server with a static key.
-keyfile_to_static_ds $key1 > trusted.conf
+keyfile_to_static_ds "$key1" > trusted.conf
 cp trusted.conf ../ns2/trusted.conf
