@@ -92,7 +92,7 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
  */
 static isc_result_t
 channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_logdestination_t dest;
 	unsigned int type;
 	unsigned int flags = 0;
@@ -271,14 +271,12 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 		}
 	}
 
-	if (logconfig == NULL) {
-		result = ISC_R_SUCCESS;
-	} else {
-		result = isc_log_createchannel(logconfig, channelname, type,
-					       level, &dest, flags);
+	if (logconfig != NULL) {
+		isc_log_createchannel(logconfig, channelname, type, level,
+				      &dest, flags);
 	}
 
-	if (result == ISC_R_SUCCESS && type == ISC_LOG_TOFILE) {
+	if (type == ISC_LOG_TOFILE) {
 		FILE *fp;
 
 		/*
@@ -333,7 +331,7 @@ named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 	const cfg_obj_t *catname;
 
 	if (logconfig != NULL) {
-		CHECK(named_log_setdefaultchannels(logconfig));
+		named_log_setdefaultchannels(logconfig);
 	}
 
 	(void)cfg_map_get(logstmt, "channel", &channels);

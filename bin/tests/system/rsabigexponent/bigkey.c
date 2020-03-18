@@ -107,19 +107,20 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 	CHECK(dst_lib_init(mctx, NULL), "dst_lib_init()");
-	CHECK(isc_log_create(mctx, &log_, &logconfig), "isc_log_create()");
+	isc_log_create(mctx, &log_, &logconfig);
 	isc_log_setcontext(log_);
 	dns_log_init(log_);
 	dns_log_setcontext(log_);
-	CHECK(isc_log_settag(logconfig, "bigkey"), "isc_log_settag()");
+	isc_log_settag(logconfig, "bigkey");
+
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	CHECK(isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-				    level, &destination,
-				    ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL),
-	      "isc_log_createchannel()");
+	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC, level,
+			      &destination,
+			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
+
 	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL), "isc_log_"
 								   "usechannel("
 								   ")");

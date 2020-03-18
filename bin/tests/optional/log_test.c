@@ -112,9 +112,9 @@ main(int argc, char **argv) {
 	lcfg = NULL;
 
 	isc_mem_create(&mctx);
-	CHECK(isc_log_create(mctx, &lctx, &lcfg));
+	isc_log_create(mctx, &lctx, &lcfg);
 
-	CHECK(isc_log_settag(lcfg, progname));
+	isc_log_settag(lcfg, progname);
 
 	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
@@ -147,20 +147,20 @@ main(int argc, char **argv) {
 	destination.file.maximum_size = 1;
 	destination.file.versions = file_versions;
 
-	CHECK(isc_log_createchannel(
+	isc_log_createchannel(
 		lcfg, "file_test", ISC_LOG_TOFILE, ISC_LOG_INFO, &destination,
 		ISC_LOG_PRINTTIME | ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL |
-			ISC_LOG_PRINTCATEGORY | ISC_LOG_PRINTMODULE));
+			ISC_LOG_PRINTCATEGORY | ISC_LOG_PRINTMODULE);
 
 	/*
 	 * Create a dynamic debugging channel to a file descriptor.
 	 */
 	destination.file.stream = stderr;
 
-	CHECK(isc_log_createchannel(lcfg, "debug_test", ISC_LOG_TOFILEDESC,
-				    ISC_LOG_DYNAMIC, &destination,
-				    ISC_LOG_PRINTTIME | ISC_LOG_PRINTLEVEL |
-					    ISC_LOG_DEBUGONLY));
+	isc_log_createchannel(lcfg, "debug_test", ISC_LOG_TOFILEDESC,
+			      ISC_LOG_DYNAMIC, &destination,
+			      ISC_LOG_PRINTTIME | ISC_LOG_PRINTLEVEL |
+				      ISC_LOG_DEBUGONLY);
 
 	/*
 	 * Test the usability of the four predefined logging channels.

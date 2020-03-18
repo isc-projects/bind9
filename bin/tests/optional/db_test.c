@@ -402,8 +402,7 @@ main(int argc, char *argv[]) {
 				    DNS_DBFIND_VALIDATEGLUE);
 			break;
 		case 'l':
-			RUNTIME_CHECK(isc_log_create(mctx, &lctx, NULL) ==
-				      ISC_R_SUCCESS);
+			isc_log_create(mctx, &lctx, NULL);
 			isc_log_setcontext(lctx);
 			dns_log_init(lctx);
 			dns_log_setcontext(lctx);

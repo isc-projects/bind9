@@ -72,8 +72,7 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 
-	result = isc_log_create(mctx, &lctx, &lcfg);
-	check_result(result, "isc_log_create()");
+	isc_log_create(mctx, &lctx, &lcfg);
 	isc_log_setcontext(lctx);
 
 	/*
@@ -83,10 +82,9 @@ main(int argc, char **argv) {
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	result = isc_log_createchannel(lcfg, "_default", ISC_LOG_TOFILEDESC,
-				       ISC_LOG_DYNAMIC, &destination,
-				       ISC_LOG_PRINTTIME);
-	check_result(result, "isc_log_createchannel()");
+	isc_log_createchannel(lcfg, "_default", ISC_LOG_TOFILEDESC,
+			      ISC_LOG_DYNAMIC, &destination, ISC_LOG_PRINTTIME);
+
 	result = isc_log_usechannel(lcfg, "_default", NULL, NULL);
 	check_result(result, "isc_log_usechannel()");
 

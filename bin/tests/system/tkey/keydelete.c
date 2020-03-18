@@ -172,7 +172,7 @@ main(int argc, char **argv) {
 
 	log = NULL;
 	logconfig = NULL;
-	RUNCHECK(isc_log_create(mctx, &log, &logconfig));
+	isc_log_create(mctx, &log, &logconfig);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 

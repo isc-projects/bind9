@@ -1066,9 +1066,7 @@ the following steps need to be taken to initialize it.
         isc_logconfig_t *lcfg;
 
         isc_mem_create(&mctx);
-        if (isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS)) {
-                oops_it_didnt_work();
-        }
+        isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS);
 
 1. Initialize any additional libraries.  The convention for the name of
    the initialization function is `{library}_log_init()`, with a pointer to
@@ -1091,24 +1089,16 @@ the following steps need to be taken to initialize it.
         destination.file.name = "/var/log/example";
         destination.file.maximum_size = 0;              /* No byte limit. */
         destination.file.versions = ISC_LOG_ROLLNEVER;  /* External rolling. */
-        result = isc_log_createchannel(lcfg, "sample1", ISC_LOG_TOFILE,
-                                       ISC_LOG_DYNAMIC, &destination,
-                                        ISC_LOG_PRINTTIME);
-        if (result != ISC_R_SUCCESS)
-                oops_it_didnt_work();
+        isc_log_createchannel(lcfg, "sample1", ISC_LOG_TOFILE, ISC_LOG_DYNAMIC,
+                              &destination, ISC_LOG_PRINTTIME);
 
         destination.file.stream = stdout;
-        result = isc_log_createchannel(lcfg, "sample2", ISC_LOG_TOFILEDESC,
-                                       ISC_LOG_INFO, &destination,
-                                       ISC_LOG_PRINTTIME);
-        if (result != ISC_R_SUCCESS)
-                oops_it_didnt_work();
+        isc_log_createchannel(lcfg, "sample2", ISC_LOG_TOFILEDESC,
+                              ISC_LOG_INFO, &destination, ISC_LOG_PRINTTIME);
 
         destination.facility = LOG_ERR;
-        result = isc_log_createchannel(lcfg, "sample3", ISC_LOG_SYSLOG,
-                                       ISC_LOG_ERROR, &destination, 0);
-        if (result != ISC_R_SUCCESS)
-                oops_it_didnt_work();
+        isc_log_createchannel(lcfg, "sample3", ISC_LOG_SYSLOG, ISC_LOG_ERROR,
+                              &destination, 0);
 
    `ISC_LOG_DYNAMIC` is used to define a channel that wants any of the
    messages up to the current debugging level of the program.

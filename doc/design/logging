@@ -283,8 +283,7 @@ rudimentary initialization of both.
   isc_logconfig_t *lcfg;
 
   isc_mem_create(&mctx);
-  if (isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS))
-          oops_it_didnt_work();
+  isc_log_create(mctx, &lctx, &lcfg);
 
 3) Initialize any additional libraries.  The convention for the name of
 the initialization function is {library}_log_init, with just a pointer
@@ -374,7 +373,7 @@ configuration, first create the new configuration with:
 and then configure newlcfg with isc_log_createchannel() and
 isc_log_usechannel().  When it is all ready:
 
-  result = isc_logconfig_use(lctx, newlcfg);
+  isc_logconfig_use(lctx, newlcfg);
 
 If the new configuration is successfully installed, then the old one
 will be destroyed, freeing all memory it used.

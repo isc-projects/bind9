@@ -196,11 +196,11 @@ LIBISC_EXTERNAL_DATA isc_log_t *isc_lctx = NULL;
 /*!
  * Forward declarations.
  */
-static isc_result_t
+static void
 assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 	      const isc_logmodule_t *module, isc_logchannel_t *channel);
 
-static isc_result_t
+static void
 sync_channellist(isc_logconfig_t *lcfg);
 
 static isc_result_t
@@ -232,74 +232,55 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 /*
  * Establish a new logging context, with default channels.
  */
-isc_result_t
+void
 isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 	isc_log_t *lctx;
 	isc_logconfig_t *lcfg = NULL;
-	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(lctxp != NULL && *lctxp == NULL);
 	REQUIRE(lcfgp == NULL || *lcfgp == NULL);
 
 	lctx = isc_mem_get(mctx, sizeof(*lctx));
-	if (lctx != NULL) {
-		lctx->mctx = NULL;
-		isc_mem_attach(mctx, &lctx->mctx);
-		lctx->categories = NULL;
-		lctx->category_count = 0;
-		lctx->modules = NULL;
-		lctx->module_count = 0;
-		lctx->debug_level = 0;
+	lctx->mctx = NULL;
+	isc_mem_attach(mctx, &lctx->mctx);
+	lctx->categories = NULL;
+	lctx->category_count = 0;
+	lctx->modules = NULL;
+	lctx->module_count = 0;
+	lctx->debug_level = 0;
 
-		ISC_LIST_INIT(lctx->messages);
+	ISC_LIST_INIT(lctx->messages);
 
-		isc_mutex_init(&lctx->lock);
+	isc_mutex_init(&lctx->lock);
 
-		/*
-		 * Normally setting the magic number is the last step done
-		 * in a creation function, but a valid log context is needed
-		 * by isc_log_registercategories and isc_logconfig_create.
-		 * If either fails, the lctx is destroyed and not returned
-		 * to the caller.
-		 */
-		lctx->magic = LCTX_MAGIC;
+	/*
+	 * Normally setting the magic number is the last step done
+	 * in a creation function, but a valid log context is needed
+	 * by isc_log_registercategories and isc_logconfig_create.
+	 * If either fails, the lctx is destroyed and not returned
+	 * to the caller.
+	 */
+	lctx->magic = LCTX_MAGIC;
 
-		isc_log_registercategories(lctx, isc_categories);
-		isc_log_registermodules(lctx, isc_modules);
-		result = isc_logconfig_create(lctx, &lcfg);
-	} else {
-		result = ISC_R_NOMEMORY;
+	isc_log_registercategories(lctx, isc_categories);
+	isc_log_registermodules(lctx, isc_modules);
+	isc_logconfig_create(lctx, &lcfg);
+
+	sync_channellist(lcfg);
+
+	atomic_init(&lctx->logconfig, (uintptr_t)lcfg);
+
+	*lctxp = lctx;
+	if (lcfgp != NULL) {
+		*lcfgp = lcfg;
 	}
-
-	if (result == ISC_R_SUCCESS) {
-		result = sync_channellist(lcfg);
-	}
-
-	if (result == ISC_R_SUCCESS) {
-		atomic_init(&lctx->logconfig, (uintptr_t)lcfg);
-
-		*lctxp = lctx;
-		if (lcfgp != NULL) {
-			*lcfgp = lcfg;
-		}
-	} else {
-		if (lcfg != NULL) {
-			isc_logconfig_destroy(&lcfg);
-		}
-		if (lctx != NULL) {
-			isc_log_destroy(&lctx);
-		}
-	}
-
-	return (result);
 }
 
-isc_result_t
+void
 isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 	isc_logconfig_t *lcfg;
 	isc_logdestination_t destination;
-	isc_result_t result = ISC_R_SUCCESS;
 	int level = ISC_LOG_INFO;
 
 	REQUIRE(lcfgp != NULL && *lcfgp == NULL);
@@ -321,60 +302,42 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 	 * Create the default channels:
 	 *   	default_syslog, default_stderr, default_debug and null.
 	 */
-	if (result == ISC_R_SUCCESS) {
-		destination.facility = LOG_DAEMON;
-		result = isc_log_createchannel(lcfg, "default_syslog",
-					       ISC_LOG_TOSYSLOG, level,
-					       &destination, 0);
-	}
+	destination.facility = LOG_DAEMON;
+	isc_log_createchannel(lcfg, "default_syslog", ISC_LOG_TOSYSLOG, level,
+			      &destination, 0);
 
-	if (result == ISC_R_SUCCESS) {
-		destination.file.stream = stderr;
-		destination.file.name = NULL;
-		destination.file.versions = ISC_LOG_ROLLNEVER;
-		destination.file.suffix = isc_log_rollsuffix_increment;
-		destination.file.maximum_size = 0;
-		result = isc_log_createchannel(lcfg, "default_stderr",
-					       ISC_LOG_TOFILEDESC, level,
-					       &destination, ISC_LOG_PRINTTIME);
-	}
+	destination.file.stream = stderr;
+	destination.file.name = NULL;
+	destination.file.versions = ISC_LOG_ROLLNEVER;
+	destination.file.suffix = isc_log_rollsuffix_increment;
+	destination.file.maximum_size = 0;
+	isc_log_createchannel(lcfg, "default_stderr", ISC_LOG_TOFILEDESC, level,
+			      &destination, ISC_LOG_PRINTTIME);
 
-	if (result == ISC_R_SUCCESS) {
-		/*
-		 * Set the default category's channel to default_stderr,
-		 * which is at the head of the channels list because it was
-		 * just created.
-		 */
-		default_channel.channel = ISC_LIST_HEAD(lcfg->channels);
+	/*
+	 * Set the default category's channel to default_stderr,
+	 * which is at the head of the channels list because it was
+	 * just created.
+	 */
+	default_channel.channel = ISC_LIST_HEAD(lcfg->channels);
 
-		destination.file.stream = stderr;
-		destination.file.name = NULL;
-		destination.file.versions = ISC_LOG_ROLLNEVER;
-		destination.file.suffix = isc_log_rollsuffix_increment;
-		destination.file.maximum_size = 0;
-		result = isc_log_createchannel(
-			lcfg, "default_debug", ISC_LOG_TOFILEDESC,
-			ISC_LOG_DYNAMIC, &destination, ISC_LOG_PRINTTIME);
-	}
+	destination.file.stream = stderr;
+	destination.file.name = NULL;
+	destination.file.versions = ISC_LOG_ROLLNEVER;
+	destination.file.suffix = isc_log_rollsuffix_increment;
+	destination.file.maximum_size = 0;
+	isc_log_createchannel(lcfg, "default_debug", ISC_LOG_TOFILEDESC,
+			      ISC_LOG_DYNAMIC, &destination, ISC_LOG_PRINTTIME);
 
-	if (result == ISC_R_SUCCESS) {
-		result = isc_log_createchannel(lcfg, "null", ISC_LOG_TONULL,
-					       ISC_LOG_DYNAMIC, NULL, 0);
-	}
+	isc_log_createchannel(lcfg, "null", ISC_LOG_TONULL, ISC_LOG_DYNAMIC,
+			      NULL, 0);
 
-	if (result == ISC_R_SUCCESS) {
-		*lcfgp = lcfg;
-	} else {
-		isc_logconfig_destroy(&lcfg);
-	}
-
-	return (result);
+	*lcfgp = lcfg;
 }
 
-isc_result_t
+void
 isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg) {
 	isc_logconfig_t *old_cfg;
-	isc_result_t result;
 
 	REQUIRE(VALID_CONTEXT(lctx));
 	REQUIRE(VALID_CONFIG(lcfg));
@@ -385,17 +348,12 @@ isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg) {
 	 * They won't be equal if isc_log_usechannel has not been called
 	 * since any call to isc_log_registercategories.
 	 */
-	result = sync_channellist(lcfg);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	sync_channellist(lcfg);
 
 	old_cfg = (isc_logconfig_t *)atomic_exchange_acq_rel(&lctx->logconfig,
 							     (uintptr_t)lcfg);
 
 	isc_logconfig_destroy(&old_cfg);
-
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -650,7 +608,7 @@ isc_log_modulebyname(isc_log_t *lctx, const char *name) {
 	return (NULL);
 }
 
-isc_result_t
+void
 isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		      unsigned int type, int level,
 		      const isc_logdestination_t *destination,
@@ -715,9 +673,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		break;
 
 	default:
-		isc_mem_free(mctx, channel->name);
-		isc_mem_put(mctx, channel, sizeof(*channel));
-		return (ISC_R_UNEXPECTED);
+		ISC_UNREACHABLE();
 	}
 
 	ISC_LIST_PREPEND(lcfg->channels, channel, link);
@@ -729,8 +685,6 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 	if (strcmp(name, "default_stderr") == 0) {
 		default_channel.channel = channel;
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -739,7 +693,6 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		   const isc_logmodule_t *module) {
 	isc_log_t *lctx;
 	isc_logchannel_t *channel;
-	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
 
 	REQUIRE(VALID_CONFIG(lcfg));
@@ -763,21 +716,18 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 	}
 
 	if (category != NULL) {
-		result = assignchannel(lcfg, category->id, module, channel);
+		assignchannel(lcfg, category->id, module, channel);
 	} else {
 		/*
 		 * Assign to all categories.  Note that this includes
 		 * the default channel.
 		 */
 		for (i = 0; i < lctx->category_count; i++) {
-			result = assignchannel(lcfg, i, module, channel);
-			if (result != ISC_R_SUCCESS) {
-				break;
-			}
+			assignchannel(lcfg, i, module, channel);
 		}
 	}
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -888,7 +838,7 @@ isc_log_getduplicateinterval(isc_logconfig_t *lcfg) {
 	return (lcfg->duplicate_interval);
 }
 
-isc_result_t
+void
 isc_log_settag(isc_logconfig_t *lcfg, const char *tag) {
 	REQUIRE(VALID_CONFIG(lcfg));
 
@@ -903,8 +853,6 @@ isc_log_settag(isc_logconfig_t *lcfg, const char *tag) {
 		}
 		lcfg->tag = NULL;
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 char *
@@ -947,12 +895,11 @@ isc_log_closefilelogs(isc_log_t *lctx) {
 **** Internal functions
 ****/
 
-static isc_result_t
+static void
 assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 	      const isc_logmodule_t *module, isc_logchannel_t *channel) {
 	isc_logchannellist_t *new_item;
 	isc_log_t *lctx;
-	isc_result_t result;
 
 	REQUIRE(VALID_CONFIG(lcfg));
 
@@ -965,10 +912,7 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 	/*
 	 * Ensure lcfg->channellist_count == lctx->category_count.
 	 */
-	result = sync_channellist(lcfg);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	sync_channellist(lcfg);
 
 	new_item = isc_mem_get(lctx->mctx, sizeof(*new_item));
 
@@ -990,15 +934,13 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 			lcfg->dynamic = true;
 		}
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 /*
  * This would ideally be part of isc_log_registercategories(), except then
  * that function would have to return isc_result_t instead of void.
  */
-static isc_result_t
+static void
 sync_channellist(isc_logconfig_t *lcfg) {
 	unsigned int bytes;
 	isc_log_t *lctx;
@@ -1011,7 +953,7 @@ sync_channellist(isc_logconfig_t *lcfg) {
 	REQUIRE(lctx->category_count != 0);
 
 	if (lctx->category_count == lcfg->channellist_count) {
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	bytes = lctx->category_count * sizeof(ISC_LIST(isc_logchannellist_t));
@@ -1029,8 +971,6 @@ sync_channellist(isc_logconfig_t *lcfg) {
 
 	lcfg->channellists = lists;
 	lcfg->channellist_count = lctx->category_count;
-
-	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1721,16 +1661,12 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				size = sizeof(isc_logmessage_t) +
 				       strlen(lctx->buffer) + 1;
 				message = isc_mem_get(lctx->mctx, size);
-				{
-					message->text = (char *)(message + 1);
-					size -= sizeof(isc_logmessage_t);
-					strlcpy(message->text, lctx->buffer,
-						size);
-					TIME_NOW(&message->time);
-					ISC_LINK_INIT(message, link);
-					ISC_LIST_APPEND(lctx->messages, message,
-							link);
-				}
+				message->text = (char *)(message + 1);
+				size -= sizeof(isc_logmessage_t);
+				strlcpy(message->text, lctx->buffer, size);
+				TIME_NOW(&message->time);
+				ISC_LINK_INIT(message, link);
+				ISC_LIST_APPEND(lctx->messages, message, link);
 			}
 		}
 

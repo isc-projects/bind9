@@ -45,7 +45,7 @@ named_log_init(bool safe);
  * as root.
  */
 
-isc_result_t
+void
 named_log_setdefaultchannels(isc_logconfig_t *lcfg);
 /*%
  * Set up logging channels according to the named defaults, which
@@ -53,7 +53,7 @@ named_log_setdefaultchannels(isc_logconfig_t *lcfg);
  * this just means setting up default_debug.
  */
 
-isc_result_t
+void
 named_log_setsafechannels(isc_logconfig_t *lcfg);
 /*%
  * Like named_log_setdefaultchannels(), but omits any logging to files.
