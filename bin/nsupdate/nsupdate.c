@@ -812,9 +812,7 @@ setup_system(void) {
 
 	dns_result_register();
 
-	result = isc_log_create(gmctx, &glctx, &logconfig);
-	check_result(result, "isc_log_create");
-
+	isc_log_create(gmctx, &glctx, &logconfig);
 	isc_log_setcontext(glctx);
 	dns_log_init(glctx);
 	dns_log_setcontext(glctx);

@@ -9103,8 +9103,7 @@ load_configuration(const char *filename, named_server_t *server,
 	} else {
 		const cfg_obj_t *logobj = NULL;
 
-		CHECKM(isc_logconfig_create(named_g_lctx, &logc),
-		       "creating new logging configuration");
+		isc_logconfig_create(named_g_lctx, &logc);
 
 		logobj = NULL;
 		(void)cfg_map_get(config, "logging", &logobj);
@@ -9112,16 +9111,14 @@ load_configuration(const char *filename, named_server_t *server,
 			CHECKM(named_logconfig(logc, logobj), "configuring "
 							      "logging");
 		} else {
-			CHECKM(named_log_setdefaultchannels(logc),
-			       "setting up default logging channels");
+			named_log_setdefaultchannels(logc);
 			CHECKM(named_log_setunmatchedcategory(logc),
 			       "setting up default 'category unmatched'");
 			CHECKM(named_log_setdefaultcategory(logc),
 			       "setting up default 'category default'");
 		}
 
-		CHECKM(isc_logconfig_use(named_g_lctx, logc),
-		       "installing logging configuration");
+		isc_logconfig_use(named_g_lctx, logc);
 		logc = NULL;
 
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,

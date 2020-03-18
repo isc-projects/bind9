@@ -271,11 +271,7 @@ setup_logging(FILE *errout) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
-	result = isc_log_create(mctx, &lctx, &logconfig);
-	if (result != ISC_R_SUCCESS) {
-		fatal("Couldn't set up logging");
-	}
-
+	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_registercategories(lctx, categories);
 	isc_log_registermodules(lctx, modules);
 	isc_log_setcontext(lctx);
@@ -287,20 +283,12 @@ setup_logging(FILE *errout) {
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-
-	result = isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-				       ISC_LOG_DYNAMIC, &destination,
-				       ISC_LOG_PRINTPREFIX);
-	if (result != ISC_R_SUCCESS) {
-		fatal("Couldn't set up log channel 'stderr'");
-	}
+	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
+			      ISC_LOG_DYNAMIC, &destination,
+			      ISC_LOG_PRINTPREFIX);
 
 	isc_log_setdebuglevel(lctx, loglevel);
-
-	result = isc_log_settag(logconfig, ";; ");
-	if (result != ISC_R_SUCCESS) {
-		fatal("Couldn't set log tag");
-	}
+	isc_log_settag(logconfig, ";; ");
 
 	result = isc_log_usechannel(logconfig, "stderr",
 				    ISC_LOGCATEGORY_DEFAULT, NULL);
@@ -309,12 +297,9 @@ setup_logging(FILE *errout) {
 	}
 
 	if (resolve_trace && loglevel < 1) {
-		result = isc_log_createchannel(
-			logconfig, "resolver", ISC_LOG_TOFILEDESC,
-			ISC_LOG_DEBUG(1), &destination, ISC_LOG_PRINTPREFIX);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Couldn't set up log channel 'resolver'");
-		}
+		isc_log_createchannel(logconfig, "resolver", ISC_LOG_TOFILEDESC,
+				      ISC_LOG_DEBUG(1), &destination,
+				      ISC_LOG_PRINTPREFIX);
 
 		result = isc_log_usechannel(logconfig, "resolver",
 					    DNS_LOGCATEGORY_RESOLVER,
@@ -325,12 +310,9 @@ setup_logging(FILE *errout) {
 	}
 
 	if (validator_trace && loglevel < 3) {
-		result = isc_log_createchannel(
-			logconfig, "validator", ISC_LOG_TOFILEDESC,
-			ISC_LOG_DEBUG(3), &destination, ISC_LOG_PRINTPREFIX);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Couldn't set up log channel 'validator'");
-		}
+		isc_log_createchannel(logconfig, "validator",
+				      ISC_LOG_TOFILEDESC, ISC_LOG_DEBUG(3),
+				      &destination, ISC_LOG_PRINTPREFIX);
 
 		result = isc_log_usechannel(logconfig, "validator",
 					    DNS_LOGCATEGORY_DNSSEC,
@@ -341,12 +323,9 @@ setup_logging(FILE *errout) {
 	}
 
 	if (message_trace && loglevel < 10) {
-		result = isc_log_createchannel(
-			logconfig, "messages", ISC_LOG_TOFILEDESC,
-			ISC_LOG_DEBUG(10), &destination, ISC_LOG_PRINTPREFIX);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Couldn't set up log channel 'messages'");
-		}
+		isc_log_createchannel(logconfig, "messages", ISC_LOG_TOFILEDESC,
+				      ISC_LOG_DEBUG(10), &destination,
+				      ISC_LOG_PRINTPREFIX);
 
 		result = isc_log_usechannel(logconfig, "messages",
 					    DNS_LOGCATEGORY_RESOLVER,

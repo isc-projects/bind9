@@ -458,7 +458,7 @@ main(int argc, char *argv[]) {
 	mctx = NULL;
 	isc_mem_create(&mctx);
 
-	RUNCHECK(isc_log_create(mctx, &lctx, &lcfg));
+	isc_log_create(mctx, &lctx, &lcfg);
 	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
 	dns_log_setcontext(lctx);
@@ -470,9 +470,9 @@ main(int argc, char *argv[]) {
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	RUNCHECK(isc_log_createchannel(lcfg, "_default", ISC_LOG_TOFILEDESC,
-				       ISC_LOG_DYNAMIC, &destination,
-				       ISC_LOG_PRINTTIME));
+	isc_log_createchannel(lcfg, "_default", ISC_LOG_TOFILEDESC,
+			      ISC_LOG_DYNAMIC, &destination, ISC_LOG_PRINTTIME);
+
 	RUNCHECK(isc_log_usechannel(lcfg, "_default", NULL, NULL));
 
 	isc_log_setdebuglevel(lctx, 9);
