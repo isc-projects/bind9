@@ -2497,6 +2497,7 @@
 ./bin/tests/system/win32/pipequeries.vcxproj.in	X	2016,2017,2018,2019,2020
 ./bin/tests/system/win32/pipequeries.vcxproj.user	X	2016,2018,2019,2020
 ./bin/tests/system/xfer/ans5/badkeydata		X	2011,2018,2019,2020
+./bin/tests/system/xfer/ans5/badmessageid	X	2020
 ./bin/tests/system/xfer/ans5/goodaxfr		X	2011,2018,2019,2020
 ./bin/tests/system/xfer/ans5/partial		X	2011,2018,2019,2020
 ./bin/tests/system/xfer/ans5/unknownkey		X	2011,2018,2019,2020
