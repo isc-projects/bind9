@@ -385,6 +385,28 @@ $DIGCMD nil. TXT | grep 'incorrect key AXFR' >/dev/null && {
 }
 
 n=$((n+1))
+echo_i "bad message id ($n)"
+
+$SENDCMD < ans5/badmessageid
+
+# Uncomment to see AXFR stream with mismatching IDs.
+# $DIG $DIGOPTS @10.53.0.5 -y tsig_key:LSAnCU+Z nil. AXFR +all
+
+$RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
+
+sleep 2
+
+nextpart ns4/named.run | grep "unexpected message id" > /dev/null || {
+    echo_i "failed: expected status was not logged"
+    status=$((status+1))
+}
+
+$DIGCMD nil. TXT | grep 'bad message id' >/dev/null && {
+    echo_i "failed"
+    status=$((status+1))
+}
+
+n=$((n+1))
 echo_i "check that we ask for and get a EDNS EXPIRE response ($n)"
 # force a refresh query
 $RNDCCMD 10.53.0.7 refresh edns-expire 2>&1 | sed 's/^/ns7 /' | cat_i
