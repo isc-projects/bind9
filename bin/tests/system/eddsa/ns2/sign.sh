@@ -9,8 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+set -e
+
+. "$SYSTEMTESTTOP/conf.sh"
 
 zone=example.com.
 zonefile=example.com.db
@@ -22,7 +23,7 @@ for i in Xexample.com.+015+03613.key Xexample.com.+015+03613.private \
 	 Xexample.com.+016+09713.key Xexample.com.+016+09713.private \
 	 Xexample.com.+016+38353.key Xexample.com.+016+38353.private
 do
-	cp $i `echo $i | sed s/X/K/`
+	cp "$i" "$(echo $i | sed s/X/K/)"
 done
 
-$SIGNER -P -z -s $starttime -e $endtime -o $zone $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -P -z -s "$starttime" -e "$endtime" -o "$zone" "$zonefile" > /dev/null 2> signer.err || cat signer.err
