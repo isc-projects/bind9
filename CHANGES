@@ -5,33 +5,27 @@
 			size so that "max-journal-size default" will use
 			the correct limit. [GL #1661]
 
+	--- 9.16.1 released ---
+
 5366.	[bug]		Fix a race condition with the keymgr when the same
 			zone plus dnssec-policy is configured in multiple
 			views. [GL #1653]
 
 5365.	[bug]		Algorithm rollover was stuck on submitting DS
 			because keymgr thought it would move to an invalid
-			state.  Fixed by when checking the current key,
-			check it against the desired state, not the existing
-			state. [GL #1626]
+			state.  Fixed by checking the current key against
+			the desired state, not the existing state. [GL #1626]
 
 5364.	[bug]		Algorithm rollover waited too long before introducing
 			zone signatures.  It waited to make sure all signatures
-			were resigned, but when introducing a new algorithm,
-			all signatures are resigned immediately.  Only
+			were regenerated, but when introducing a new algorithm,
+			all signatures are regenerated immediately.  Only
 			add the sign delay if there is a predecessor key.
 			[GL #1625]
 
 5363.	[bug]		When changing a dnssec-policy, existing keys with
 			properties that no longer match were not being retired.
 			[GL #1624]
-
-5362.	[func]		Limit the size of IXFR responses so that AXFR will
-			be used instead if it would be smaller. This is
-			controlled by the "max-ixfr-ratio" option, which
-			is a percentage representing the ratio of IXFR size
-			to the size of the entire zone. This value cannot
-			exceed 100%, which is the default. [GL #1515]
 
 5361.	[bug]		named might not accept new connections after
 			hitting tcp-clients quota. [GL #1643]
@@ -45,7 +39,8 @@
 
 5357.	[bug]		Newly added RRSIG records with expiry times before
 			the previous earliest expiry times might not be
-			re-signed in time.  The was a side effect of 5315.
+			re-signed in time.  This was a side effect of 5315.
+			[GL !3137]
 
 	--- 9.16.0 released ---
 
