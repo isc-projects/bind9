@@ -316,7 +316,7 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 }
 
 void
-isc_nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
+isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcpdnslistener);
 
@@ -326,7 +326,7 @@ isc_nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
 	sock->rcbarg = NULL;
 
 	if (sock->outer != NULL) {
-		isc_nm_tcp_stoplistening(sock->outer);
+		isc_nm_stoplistening(sock->outer);
 		isc_nmsocket_detach(&sock->outer);
 	}
 }
@@ -494,7 +494,7 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	*(uint16_t *)t->region.base = htons(region->length);
 	memmove(t->region.base + 2, region->base, region->length);
 
-	return (isc__nm_tcp_send(t->handle, &t->region, tcpdnssend_cb, t));
+	return (isc_nm_send(t->handle, &t->region, tcpdnssend_cb, t));
 }
 
 static void
