@@ -461,14 +461,13 @@ isc_nm_maxudp
 isc_nm_send
 isc_nm_setstats
 isc_nm_start
+isc_nm_stoplistening
 isc_nm_tcp_gettimeouts
 isc_nm_tcp_settimeouts
-isc_nmsocket_detach
 isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
-isc_nm_tcpdns_stoplistening
 isc_nm_tid
-isc_nm_udp_stoplistening
+isc_nmsocket_detach
 isc__nm_acquire_interlocked
 isc__nm_drop_interlocked
 isc__nm_acquire_interlocked_force

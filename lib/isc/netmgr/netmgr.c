@@ -607,10 +607,10 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 			isc__nm_async_tcpchildlisten(worker, ievent);
 			break;
 		case netievent_tcpstartread:
-			isc__nm_async_startread(worker, ievent);
+			isc__nm_async_tcp_startread(worker, ievent);
 			break;
 		case netievent_tcppauseread:
-			isc__nm_async_pauseread(worker, ievent);
+			isc__nm_async_tcp_pauseread(worker, ievent);
 			break;
 		case netievent_tcpsend:
 			isc__nm_async_tcpsend(worker, ievent);
@@ -1315,6 +1315,62 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		return (isc__nm_tcp_send(handle, region, cb, cbarg));
 	case isc_nm_tcpdnssocket:
 		return (isc__nm_tcpdns_send(handle, region, cb, cbarg));
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
+isc_result_t
+isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	switch (handle->sock->type) {
+	case isc_nm_tcpsocket:
+		return (isc__nm_tcp_read(handle, cb, cbarg));
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
+isc_result_t
+isc_nm_pauseread(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	switch (sock->type) {
+	case isc_nm_tcpsocket:
+		return (isc__nm_tcp_pauseread(sock));
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
+isc_result_t
+isc_nm_resumeread(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	switch (sock->type) {
+	case isc_nm_tcpsocket:
+		return (isc__nm_tcp_resumeread(sock));
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
+void
+isc_nm_stoplistening(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	switch (sock->type) {
+	case isc_nm_udplistener:
+		isc__nm_udp_stoplistening(sock);
+		break;
+	case isc_nm_tcpdnslistener:
+		isc__nm_tcpdns_stoplistening(sock);
+		break;
+	case isc_nm_tcplistener:
+		isc__nm_tcp_stoplistening(sock);
+		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

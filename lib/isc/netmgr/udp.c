@@ -219,7 +219,7 @@ stoplistening(isc_nmsocket_t *sock) {
 }
 
 void
-isc_nm_udp_stoplistening(isc_nmsocket_t *sock) {
+isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	isc__netievent_udpstop_t *ievent = NULL;
 
 	/* We can't be launched from network thread, we'd deadlock */
