@@ -670,12 +670,13 @@ scan-build:
     when: on_failure
 
 # Jobs for regular GCC builds on Debian Sid (amd64)
+# Also tests configration option: --without-lmdb.
 
 gcc:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O3"
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2 --without-lmdb"
     RUN_MAKE_INSTALL: 1
   <<: *debian_sid_amd64_image
   <<: *build_job
@@ -699,13 +700,14 @@ cppcheck:
   <<: *cppcheck_job
 
 # Job for out-of-tree GCC build on Debian Sid (amd64)
+# Also tests configration option: --with-lmdb.
 
 gcc:out-of-tree:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     CONFIGURE: ../configure
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2 --with-lmdb"
     RUN_MAKE_INSTALL: 1
     OOT_BUILD_WORKSPACE: workspace
   <<: *base_image
