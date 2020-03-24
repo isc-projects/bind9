@@ -829,7 +829,7 @@ isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level) {
 			}
 			UNLOCK(&lctx->lock);
 		}
-		WRUNLOCK(&lctx->lcfg_rwl);
+		RDUNLOCK(&lctx->lcfg_rwl);
 	}
 }
 
