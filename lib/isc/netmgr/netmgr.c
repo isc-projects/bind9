@@ -603,8 +603,11 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcplisten:
 			isc__nm_async_tcplisten(worker, ievent);
 			break;
-		case netievent_tcpchildlisten:
-			isc__nm_async_tcpchildlisten(worker, ievent);
+		case netievent_tcpchildaccept:
+			isc__nm_async_tcpchildaccept(worker, ievent);
+			break;
+		case netievent_tcpaccept:
+			isc__nm_async_tcpaccept(worker, ievent);
 			break;
 		case netievent_tcpstartread:
 			isc__nm_async_tcp_startread(worker, ievent);
@@ -617,9 +620,6 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 			break;
 		case netievent_tcpstop:
 			isc__nm_async_tcpstop(worker, ievent);
-			break;
-		case netievent_tcpchildstop:
-			isc__nm_async_tcpchildstop(worker, ievent);
 			break;
 		case netievent_tcpclose:
 			isc__nm_async_tcpclose(worker, ievent);
@@ -922,6 +922,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 					  sock->ah_size * sizeof(size_t));
 	sock->ah_handles = isc_mem_allocate(
 		mgr->mctx, sock->ah_size * sizeof(isc_nmhandle_t *));
+	ISC_LINK_INIT(&sock->quotacb, link);
 	for (size_t i = 0; i < 32; i++) {
 		sock->ah_frees[i] = i;
 		sock->ah_handles[i] = NULL;
@@ -939,7 +940,6 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 		break;
 	case isc_nm_tcpsocket:
 	case isc_nm_tcplistener:
-	case isc_nm_tcpchildlistener:
 		if (family == AF_INET) {
 			sock->statsindex = tcp4statsindex;
 		} else {
