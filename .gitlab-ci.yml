@@ -85,10 +85,6 @@ stages:
 
 # Debian
 
-.debian-jessie-amd64: &debian_jessie_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-jessie-amd64"
-  <<: *linux_amd64
-
 .debian-stretch-amd64: &debian_stretch_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-stretch-amd64"
   <<: *linux_amd64
@@ -527,30 +523,6 @@ unit:gcc:centos8:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:centos8:amd64
-      artifacts: true
-
-# Jobs for regular GCC builds on Debian 8 Jessie (amd64)
-
-gcc:jessie:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--without-cmocka --with-python --disable-geoip"
-  <<: *debian_jessie_amd64_image
-  <<: *build_job
-
-system:gcc:jessie:amd64:
-  <<: *debian_jessie_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:jessie:amd64
-      artifacts: true
-
-unit:gcc:jessie:amd64:
-  <<: *debian_jessie_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:jessie:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Debian 9 Stretch (amd64)
