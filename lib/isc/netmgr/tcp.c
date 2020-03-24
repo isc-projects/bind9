@@ -377,7 +377,7 @@ isc__nm_async_tcpchildlisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc_nm_tcp_stoplistening(isc_nmsocket_t *sock) {
+isc__nm_tcp_stoplistening(isc_nmsocket_t *sock) {
 	isc__netievent_tcpstop_t *ievent = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -519,7 +519,7 @@ readtimeout_cb(uv_timer_t *handle) {
 }
 
 isc_result_t
-isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
+isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	isc_nmsocket_t *sock = NULL;
 	isc__netievent_startread_t *ievent = NULL;
 
@@ -534,8 +534,8 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	ievent->sock = sock;
 
 	if (sock->tid == isc_nm_tid()) {
-		isc__nm_async_startread(&sock->mgr->workers[sock->tid],
-					(isc__netievent_t *)ievent);
+		isc__nm_async_tcp_startread(&sock->mgr->workers[sock->tid],
+					    (isc__netievent_t *)ievent);
 		isc__nm_put_ievent(sock->mgr, ievent);
 	} else {
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
@@ -546,7 +546,7 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 }
 
 void
-isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
+isc__nm_async_tcp_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_startread_t *ievent = (isc__netievent_startread_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 	int r;
@@ -569,7 +569,7 @@ isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 isc_result_t
-isc_nm_pauseread(isc_nmsocket_t *sock) {
+isc__nm_tcp_pauseread(isc_nmsocket_t *sock) {
 	isc__netievent_pauseread_t *ievent = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -583,8 +583,8 @@ isc_nm_pauseread(isc_nmsocket_t *sock) {
 	ievent->sock = sock;
 
 	if (sock->tid == isc_nm_tid()) {
-		isc__nm_async_pauseread(&sock->mgr->workers[sock->tid],
-					(isc__netievent_t *)ievent);
+		isc__nm_async_tcp_pauseread(&sock->mgr->workers[sock->tid],
+					    (isc__netievent_t *)ievent);
 		isc__nm_put_ievent(sock->mgr, ievent);
 	} else {
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
@@ -595,7 +595,7 @@ isc_nm_pauseread(isc_nmsocket_t *sock) {
 }
 
 void
-isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ev0) {
+isc__nm_async_tcp_pauseread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_pauseread_t *ievent = (isc__netievent_pauseread_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
@@ -609,7 +609,7 @@ isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 isc_result_t
-isc_nm_resumeread(isc_nmsocket_t *sock) {
+isc__nm_tcp_resumeread(isc_nmsocket_t *sock) {
 	isc__netievent_startread_t *ievent = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -625,8 +625,8 @@ isc_nm_resumeread(isc_nmsocket_t *sock) {
 	ievent->sock = sock;
 
 	if (sock->tid == isc_nm_tid()) {
-		isc__nm_async_startread(&sock->mgr->workers[sock->tid],
-					(isc__netievent_t *)ievent);
+		isc__nm_async_tcp_startread(&sock->mgr->workers[sock->tid],
+					    (isc__netievent_t *)ievent);
 		isc__nm_put_ievent(sock->mgr, ievent);
 	} else {
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],

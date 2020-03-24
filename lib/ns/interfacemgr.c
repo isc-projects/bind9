@@ -553,11 +553,11 @@ cleanup_interface:
 void
 ns_interface_shutdown(ns_interface_t *ifp) {
 	if (ifp->udplistensocket != NULL) {
-		isc_nm_udp_stoplistening(ifp->udplistensocket);
+		isc_nm_stoplistening(ifp->udplistensocket);
 		isc_nmsocket_detach(&ifp->udplistensocket);
 	}
 	if (ifp->tcplistensocket != NULL) {
-		isc_nm_tcpdns_stoplistening(ifp->tcplistensocket);
+		isc_nm_stoplistening(ifp->tcplistensocket);
 		isc_nmsocket_detach(&ifp->tcplistensocket);
 	}
 	if (ifp->clientmgr != NULL) {
