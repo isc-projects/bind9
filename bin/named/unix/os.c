@@ -842,7 +842,7 @@ named_os_shutdownmsg(char *command, isc_buffer_t *text) {
 
 
 	/* Skip the command name. */
-	if ((ptr = strtok_r(command, " \t", &last)) == NULL) {
+	if (strtok_r(command, " \t", &last) == NULL) {
 		return;
 	}
 
