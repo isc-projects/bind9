@@ -4123,7 +4123,7 @@ if test "yes" = "$use_atomic"; then
 	alpha*-*)
 		arch=alpha
 	;;
-	powerpc-*|powerpc64-*)
+	powerpc-*|powerpc64*-*|powerpc64el-*)
 		arch=powerpc
 	;;
 	mips-*|mipsel-*|mips64-*|mips64el-*)
