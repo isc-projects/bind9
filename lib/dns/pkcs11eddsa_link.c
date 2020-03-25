@@ -519,10 +519,10 @@ pkcs11eddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 	switch (key->key_alg) {
 	case DST_ALG_ED25519:
-		key->key_size = DNS_KEY_ED25519SIZE;
+		key->key_size = DNS_KEY_ED25519SIZE * 8;
 		break;
 	case DST_ALG_ED448:
-		key->key_size = DNS_KEY_ED448SIZE;
+		key->key_size = DNS_KEY_ED448SIZE * 8;
 		break;
 	default:
 		INSIST(0);
@@ -673,7 +673,7 @@ pkcs11eddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_forward(data, len);
 	key->keydata.pkey = ec;
-	key->key_size = len;
+	key->key_size = len * 8;
 
 	return (ISC_R_SUCCESS);
 }
@@ -929,10 +929,10 @@ pkcs11eddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	memset(&priv, 0, sizeof(priv));
 	switch (key->key_alg) {
 	case DST_ALG_ED25519:
-		key->key_size = DNS_KEY_ED25519SIZE;
+		key->key_size = DNS_KEY_ED25519SIZE * 8;
 		break;
 	case DST_ALG_ED448:
-		key->key_size = DNS_KEY_ED448SIZE;
+		key->key_size = DNS_KEY_ED448SIZE * 8;
 		break;
 	default:
 		INSIST(0);
@@ -1052,10 +1052,10 @@ pkcs11eddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	key->label = isc_mem_strdup(key->mctx, label);
 	switch (key->key_alg) {
 	case DST_ALG_ED25519:
-		key->key_size = DNS_KEY_ED25519SIZE;
+		key->key_size = DNS_KEY_ED25519SIZE * 8;
 		break;
 	case DST_ALG_ED448:
-		key->key_size = DNS_KEY_ED448SIZE;
+		key->key_size = DNS_KEY_ED448SIZE * 8;
 		break;
 	default:
 		INSIST(0);
