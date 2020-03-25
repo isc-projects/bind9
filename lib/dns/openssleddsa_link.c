@@ -425,7 +425,6 @@ static bool
 openssleddsa_isprivate(const dst_key_t *key) {
 	EVP_PKEY *pkey = key->keydata.pkey;
 	int len;
-	unsigned long err;
 
 	if (pkey == NULL)
 		return (false);
@@ -434,8 +433,9 @@ openssleddsa_isprivate(const dst_key_t *key) {
 	if (len > 0)
 		return (true);
 	/* can check if first error is EC_R_INVALID_PRIVATE_KEY */
-	while ((err = ERR_get_error()) != 0)
+	while (ERR_get_error() != 0) {
 		/**/;
+	}
 
 	return (false);
 }
