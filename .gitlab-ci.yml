@@ -15,11 +15,10 @@ variables:
   BUILD_PARALLEL_JOBS: 6
   TEST_PARALLEL_JOBS: 6
 
-  MAKE_COMMAND: make
   CONFIGURE: ./configure
-  CLANG: clang-9
-  SCAN_BUILD: scan-build-9
-  SYMBOLIZER: /usr/lib/llvm-9/bin/llvm-symbolizer
+  CLANG: clang-10
+  SCAN_BUILD: scan-build-10
+  SYMBOLIZER: /usr/lib/llvm-10/bin/llvm-symbolizer
   ASAN_SYMBOLIZER_PATH: "$SYMBOLIZER"
   CLANG_FORMAT: clang-format-10
 
@@ -148,6 +147,12 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
   <<: *linux_i386
 
+# Base image
+# This is a meta image that is used as a base for non-specific jobs
+
+.base: &base_image
+  <<: *debian_buster_amd64_image
+
 ### Job Templates
 
 .default-triggering-rules: &default_triggering_rules
@@ -168,12 +173,12 @@ stages:
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   stage: precheck
 
 .autoconf: &autoconf_job
   <<: *release_branch_triggering_rules
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   stage: precheck
   script:
     - autoreconf -fi
@@ -203,11 +208,11 @@ stages:
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
   script:
     - *configure
-    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
     - test -z "${RUN_MAKE_INSTALL}" || sh util/check-make-install
   needs:
-    - job: autoreconf:sid:amd64
+    - job: autoreconf
       artifacts: true
   artifacts:
     untracked: true
@@ -237,7 +242,7 @@ stages:
     - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
     - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
   needs:
-    - job: autoreconf:sid:amd64
+    - job: autoreconf
       artifacts: false
   artifacts:
     untracked: true
@@ -314,34 +319,22 @@ stages:
     when: on_failure
 
 .cppcheck_args: &run_cppcheck |
-  cppcheck --enable=warning,performance,portability,information,missingInclude \
-           --include=config.h \
-           --quiet \
-           --std=c11 \
-           --language=c \
-           --project=compile_commands.json \
-           --error-exitcode=2 \
-           -j ${TEST_PARALLEL_JOBS:-1} \
-           --xml \
-           --output-file=cppcheck.results \
-           --relative-paths="$CI_PROJECT_DIR" \
-           --inline-suppr \
-           --suppressions-list=util/suppressions.txt
+  cppcheck --enable=warning,performance,portability,information,missingInclude --include=config.h --std=c11 --language=c --project=compile_commands.json --error-exitcode=2 -j ${TEST_PARALLEL_JOBS:-1} --xml --output-file=cppcheck.results --relative-paths="$CI_PROJECT_DIR" --inline-suppr --suppressions-list=util/suppressions.txt
 
 .cppcheck_report: &cppcheck_report_html |
-  cppcheck-htmlreport --title="BIND 9 ($CI_COMMIT_SHORT_SHA) Cppcheck Report" \
-                      --file=cppcheck.results \
-                      --report-dir=cppcheck_html/
+  cppcheck-htmlreport --title="BIND 9 ($CI_COMMIT_SHORT_SHA) Cppcheck Report" --file=cppcheck.results --report-dir=cppcheck_html/
 
 .cppcheck: &cppcheck_job
   <<: *default_triggering_rules
   stage: postcheck
   before_script:
+    - pip3 install compiledb
+  script:
+    - *configure
+    - (make -nwk all || true) | compiledb
     - export GCC_VERSION=$(gcc --version | sed -n 's/.*\([0-9]\+\)\.[0-9]\+\.[0-9]\+.*/\1/p')
     - sed -i "/gcc\",/a\"-DCPPCHECK\", \"-D__STDC__\", \"-D__GNUC__=${GCC_VERSION}\"," compile_commands.json
-  script:
     - *run_cppcheck
-  after_script:
     - *cppcheck_report_html
   artifacts:
     paths:
@@ -350,15 +343,18 @@ stages:
       - cppcheck_html/
     expire_in: "1 day"
     when: on_failure
+  needs:
+    - job: autoreconf
+      artifacts: true
 
 ### Job Definitions
 
 # Jobs in the precheck stage
 
-autoreconf:sid:amd64:
+autoreconf:
   <<: *autoconf_job
 
-misc:sid:amd64:
+misc:
   <<: *precheck_job
   script:
     - sh util/check-ans-prereq.sh
@@ -386,24 +382,23 @@ misc:sid:amd64:
     expire_in: "1 day"
     when: on_failure
 
-💾:sid:amd64:
+clang-format:
   <<: *precheck_job
   needs: []
   script:
     - if [ -r .clang-format ]; then "${CLANG_FORMAT}" -i -style=file $(git ls-files '*.c' '*.h'); fi
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
-🐞:sid:amd64:
+coccinelle:
   <<: *precheck_job
-  <<: *debian_buster_amd64_image
   needs: []
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
-tarball-create:sid:amd64:
+tarball-create:
   stage: precheck
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   script:
     - source version
     - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
@@ -420,27 +415,27 @@ tarball-create:sid:amd64:
 
 # Jobs for doc builds on Debian Sid (amd64)
 
-docs:sid:amd64:
+docs:
   <<: *release_branch_triggering_rules
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   stage: docs
   script:
     - ./configure || cat config.log
     - make -C doc/misc docbook
     - make -C doc/arm Bv9ARM.html
   needs:
-    - job: autoreconf:sid:amd64
+    - job: autoreconf
       artifacts: true
   artifacts:
     paths:
       - doc/arm/
     expire_in: "1 month"
 
-push:docs:sid:amd64:
-  <<: *debian_sid_amd64_image
+push:docs:
+  <<: *base_image
   stage: push
   needs:
-    - job: docs:sid:amd64
+    - job: docs
       artifacts: false
   script:
     - curl -X POST -F token=$GITLAB_PAGES_DOCS_TRIGGER_TOKEN -F ref=master $GITLAB_PAGES_DOCS_TRIGGER_URL
@@ -600,9 +595,9 @@ unit:gcc:buster:amd64:
                 -o scan-build.reports \
                 make -j${BUILD_PARALLEL_JOBS:-1} all V=1
 
-scan-build:buster:amd64:
+scan-build:
   <<: *default_triggering_rules
-  <<: *debian_buster_amd64_image
+  <<: *base_image
   stage: postcheck
   variables:
     CC: "${CLANG}"
@@ -613,7 +608,7 @@ scan-build:buster:amd64:
     - *configure
     - *scan_build
   needs:
-    - job: autoreconf:sid:amd64
+    - job: autoreconf
       artifacts: true
   artifacts:
     paths:
@@ -629,7 +624,6 @@ gcc:sid:amd64:
     CFLAGS: "${CFLAGS_COMMON} -O3"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
     RUN_MAKE_INSTALL: 1
-    MAKE_COMMAND: bear --use-cc=${CC} --verbose make
   <<: *debian_sid_amd64_image
   <<: *build_job
 
@@ -647,64 +641,61 @@ unit:gcc:sid:amd64:
     - job: gcc:sid:amd64
       artifacts: true
 
-cppcheck:gcc:sid:amd64:
-  <<: *debian_sid_amd64_image
+cppcheck:
+  <<: *base_image
   <<: *cppcheck_job
-  needs:
-    - job: gcc:sid:amd64
-      artifacts: true
 
 # Job for out-of-tree GCC build on Debian Sid (amd64)
 
-oot:sid:amd64:
+out-of-tree:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O3"
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     CONFIGURE: ../configure
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
     RUN_MAKE_INSTALL: 1
     OOT_BUILD_WORKSPACE: workspace
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   <<: *build_job
 
 # Jobs for tarball GCC builds on Debian Sid (amd64)
 
-tarball:sid:amd64:
+tarball:
   variables:
     CC: gcc
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
     RUN_MAKE_INSTALL: 1
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   <<: *build_job
   before_script:
     - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
     - rm -f bind-*.tar.${TARBALL_EXTENSION}
     - cd bind-*
   needs:
-    - job: tarball-create:sid:amd64
+    - job: tarball-create
       artifacts: true
   only:
     - tags
 
-system:tarball:sid:amd64:
-  <<: *debian_sid_amd64_image
+system:tarball:
+  <<: *base_image
   <<: *system_test_job
   before_script:
     - cd bind-*
     - *setup_interfaces
   needs:
-    - job: tarball:sid:amd64
+    - job: tarball
       artifacts: true
   only:
     - tags
 
-unit:tarball:sid:amd64:
-  <<: *debian_sid_amd64_image
+unit:tarball:
+  <<: *base_image
   <<: *unit_test_job
   before_script:
     - cd bind-*
   needs:
-    - job: tarball:sid:amd64
+    - job: tarball
       artifacts: true
   only:
     - tags
@@ -714,8 +705,8 @@ unit:tarball:sid:amd64:
 gcc:sid:arm64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_arm64_image
   <<: *build_job
 
@@ -739,7 +730,7 @@ gcc:sid:i386:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2 --without-python"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-python"
   <<: *debian_sid_i386_image
   <<: *build_job
 
@@ -853,56 +844,83 @@ unit:gcc:bionic:amd64:
     - job: gcc:bionic:amd64
       artifacts: true
 
-# Jobs for GCC builds with ASAN enabled on Debian Sid (amd64)
+# Jobs for builds with ASAN enabled
 
-asan:sid:amd64:
+gcc:asan:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   <<: *build_job
 
-system:asan:sid:amd64:
+system:gcc:asan:
   variables:
     ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   <<: *system_test_job
   needs:
-    - job: asan:sid:amd64
+    - job: gcc:asan
       artifacts: true
 
-unit:asan:sid:amd64:
+unit:gcc:asan:
   variables:
     ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: asan:sid:amd64
+    - job: gcc:asan
       artifacts: true
 
-# Jobs for GCC builds with TSAN enabled on Debian Sid (amd64)
+clang:asan:
+  variables:
+    CC: ${CLANG}
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    LDFLAGS: "-fsanitize=address,undefined"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *base_image
+  <<: *build_job
 
-tsan:buster:amd64:
-  <<: *debian_buster_amd64_image
+system:clang:asan:
+  variables:
+    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
+  <<: *base_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:asan
+      artifacts: true
+
+unit:clang:asan:
+  variables:
+    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
+  <<: *base_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:asan
+      artifacts: true
+
+# Jobs for builds with TSAN enabled
+
+gcc:tsan:
+  <<: *base_image
   <<: *build_job
   variables:
-    CC: "${CLANG}"
+    CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
 
-system:tsan:buster:amd64:
+system:gcc:tsan:
   variables:
     TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER exitcode=0"
   before_script:
     - *setup_interfaces
     - echo $TSAN_OPTIONS
-  <<: *debian_buster_amd64_image
+  <<: *base_image
   <<: *system_test_job
   needs:
-    - job: tsan:buster:amd64
+    - job: gcc:tsan
       artifacts: true
   allow_failure: true
   after_script:
@@ -915,16 +933,16 @@ system:tsan:buster:amd64:
       - tsan/
     when: on_failure
 
-unit:tsan:buster:amd64:
+unit:gcc:tsan:
   variables:
     TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER"
   before_script:
     - echo $TSAN_OPTIONS
     - lib/isc/tests/result_test
-  <<: *debian_buster_amd64_image
+  <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: tsan:buster:amd64
+    - job: gcc:tsan
       artifacts: true
   allow_failure: true
   after_script:
@@ -939,100 +957,130 @@ unit:tsan:buster:amd64:
       - kyua_html/
     when: on_failure
 
-rwlock:sid:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Wall -Wextra -O2 -g -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
-  <<: *debian_sid_amd64_image
+clang:tsan:
+  <<: *base_image
   <<: *build_job
+  variables:
+    CC: "${CLANG}"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    LDFLAGS: "-fsanitize=thread"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
 
-system:rwlock:sid:amd64:
-  <<: *debian_sid_amd64_image
+system:clang:tsan:
+  variables:
+    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER exitcode=0"
+  before_script:
+    - *setup_interfaces
+    - echo $TSAN_OPTIONS
+  <<: *base_image
   <<: *system_test_job
   needs:
-    - job: rwlock:sid:amd64
+    - job: clang:tsan
       artifacts: true
+  allow_failure: true
+  after_script:
+    - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+  artifacts:
+    expire_in: "1 day"
+    paths:
+      - bin/tests/system/*/tsan.*
+      - bin/tests/system/*/*/tsan.*
+      - tsan/
+    when: on_failure
 
-unit:rwlock:sid:amd64:
-  <<: *debian_sid_amd64_image
+unit:clang:tsan:
+  variables:
+    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER"
+  before_script:
+    - echo $TSAN_OPTIONS
+    - lib/isc/tests/result_test
+  <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: rwlock:sid:amd64
+    - job: clang:tsan
       artifacts: true
+  allow_failure: true
+  after_script:
+    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+  artifacts:
+    expire_in: "1 day"
+    paths:
+      - lib/*/tests/tsan.*
+      - tsan/
+      - kyua.log
+      - kyua.results
+      - kyua_html/
+    when: on_failure
 
 # Jobs for mutex-based atomics on Debian SID (amd64)
-mutexatomics:sid:amd64:
+mutexatomics:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DISC_MEM_USE_INTERNAL_MALLOC=0"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-mutex-atomics"
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   <<: *build_job
 
-system:mutexatomics:sid:amd64:
-  <<: *debian_sid_amd64_image
+system:mutexatomics:
+  <<: *base_image
   <<: *system_test_job
   needs:
-    - job: mutexatomics:sid:amd64
+    - job: mutexatomics
       artifacts: true
 
-unit:mutexatomics:sid:amd64:
-  <<: *debian_sid_amd64_image
+unit:mutexatomics:
+  <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: mutexatomics:sid:amd64
+    - job: mutexatomics
       artifacts: true
 
-# Jobs for Clang builds on Debian Stretch (amd64)
+# Jobs for Clang builds on Debian Buster (amd64)
 
-clang:stretch:amd64:
+clang:buster:amd64:
   variables:
-    CC: clang
+    CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
     EXTRA_CONFIGURE: "--with-python=python3"
-  <<: *debian_stretch_amd64_image
+  <<: *debian_buster_amd64_image
   <<: *build_job
 
-unit:clang:stretch:amd64:
-  <<: *debian_stretch_amd64_image
-  <<: *unit_test_job
+system:clang:buster:amd64:
+  <<: *debian_buster_amd64_image
+  <<: *system_test_job
   needs:
-    - job: clang:stretch:amd64
+    - job: clang:buster:amd64
       artifacts: true
 
-# Jobs for Clang builds on Debian Stretch (i386)
-
-clang:stretch:i386:
-  variables:
-    CC: clang
-    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
-    EXTRA_CONFIGURE: "--with-python=python2"
-  <<: *debian_stretch_i386_image
-  <<: *build_job
+unit:clang:buster:amd64:
+  <<: *debian_buster_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: clang:buster:amd64
+      artifacts: true
 
 # Jobs for PKCS#11-enabled GCC builds on Debian Sid (amd64)
 
-pkcs11:sid:amd64:
+pkcs11:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so"
-  <<: *debian_sid_amd64_image
+  <<: *base_image
   <<: *build_job
 
-system:pkcs11:sid:amd64:
-  <<: *debian_sid_amd64_image
+system:pkcs11:
+  <<: *base_image
   <<: *system_test_job
   needs:
-    - job: pkcs11:sid:amd64
+    - job: pkcs11
       artifacts: true
 
-unit:pkcs11:sid:amd64:
-  <<: *debian_sid_amd64_image
+unit:pkcs11:
+  <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: pkcs11:sid:amd64
+    - job: pkcs11
       artifacts: true
 
 # Jobs for Clang builds on FreeBSD 11.3 (amd64)
@@ -1168,8 +1216,8 @@ system:msvc-debug:windows:amd64:
 
 # Job producing a release tarball
 
-release:sid:amd64:
-  <<: *debian_sid_amd64_image
+release:
+  <<: *base_image
   stage: release
   script:
     # Determine BIND version
@@ -1198,7 +1246,7 @@ release:sid:amd64:
     # Create release tarball
     - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
   needs:
-    - job: tarball-create:sid:amd64
+    - job: tarball-create
       artifacts: true
     - job: msvc:windows:amd64
       artifacts: true
@@ -1239,19 +1287,19 @@ release:sid:amd64:
        | tee curl-response.txt
   grep -q 'Build successfully submitted' curl-response.txt
 
-build:coverity:sid:amd64:
-  <<: *debian_sid_amd64_image
-  stage: build
+coverity:
+  <<: *base_image
+  stage: postcheck
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O3"
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
   script:
     - *coverity_cache_prep
     - *configure
     - *coverity_build
   needs:
-    - job: autoreconf:sid:amd64
+    - job: autoreconf
       artifacts: true
   artifacts:
     paths:
@@ -1271,26 +1319,26 @@ build:coverity:sid:amd64:
 
 # Respdiff test
 
-respdiff:sid:amd64:
-  <<: *debian_sid_amd64_image
+respdiff:
+  <<: *base_image
   stage: system
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O3"
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     BIND_BASELINE_VERSION: v9_11_3
   script:
     - ./configure --without-make-clean
-    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
     - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
     - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
     - cd refbind/
     - ./configure --without-make-clean
-    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - cd ../bind-qa/bind9/respdiff
     - bash respdiff.sh -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}/refbind" "${CI_PROJECT_DIR}"
   needs:
-    - job: tarball-create:sid:amd64
+    - job: tarball-create
       artifacts: true
   only:
     - tags
@@ -1303,11 +1351,11 @@ respdiff:sid:amd64:
 
 # ABI check
 
-abi-check:sid:amd64:
-  <<: *debian_sid_amd64_image
+abi-check:
+  <<: *base_image
   stage: build
   needs:
-    - job: autoreconf:sid:amd64
+    - job: autoreconf
       artifacts: true
   variables:
     CC: gcc
@@ -1315,11 +1363,11 @@ abi-check:sid:amd64:
     BIND_BASELINE_VERSION: v9_16_1
   script:
     - *configure
-    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
     - cd refbind/
     - *configure
-    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - cd ..
     - util/api-checker.sh . refbind
   artifacts:
