@@ -19,6 +19,9 @@
 #include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/x509.h>
+#if !defined(OPENSSL_NO_ENGINE)
+#include <openssl/engine.h>
+#endif /* if !defined(OPENSSL_NO_ENGINE) */
 
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -93,6 +96,10 @@ raw_key_to_ossl(unsigned int key_alg, int private, const unsigned char *key,
 	*key_len = len;
 	return (ISC_R_SUCCESS);
 }
+
+static isc_result_t
+openssleddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
+		       const char *pin);
 
 static isc_result_t
 openssleddsa_createctx(dst_key_t *key, dst_context_t *dctx) {
@@ -423,10 +430,10 @@ openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 	isc_result_t ret;
-	EVP_PKEY *pkey;
 	dst_private_t priv;
 	unsigned char *buf = NULL;
 	size_t len;
+	int i;
 
 	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
 		key->key_alg == DST_ALG_ED448);
@@ -440,20 +447,39 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 		return (dst__privstruct_writefile(key, &priv, directory));
 	}
 
-	pkey = key->keydata.pkey;
-	if (key->key_alg == DST_ALG_ED25519) {
-		len = DNS_KEY_ED25519SIZE;
-	} else {
-		len = DNS_KEY_ED448SIZE;
+	i = 0;
+
+	if (openssleddsa_isprivate(key)) {
+		if (key->key_alg == DST_ALG_ED25519) {
+			len = DNS_KEY_ED25519SIZE;
+		} else {
+			len = DNS_KEY_ED448SIZE;
+		}
+		buf = isc_mem_get(key->mctx, len);
+		if (EVP_PKEY_get_raw_private_key(key->keydata.pkey, buf,
+						 &len) != 1)
+			DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
+		priv.elements[i].tag = TAG_EDDSA_PRIVATEKEY;
+		priv.elements[i].length = len;
+		priv.elements[i].data = buf;
+		i++;
+	}
+	if (key->engine != NULL) {
+		priv.elements[i].tag = TAG_EDDSA_ENGINE;
+		priv.elements[i].length = (unsigned short)strlen(key->engine) +
+					  1;
+		priv.elements[i].data = (unsigned char *)key->engine;
+		i++;
+	}
+	if (key->label != NULL) {
+		priv.elements[i].tag = TAG_EDDSA_LABEL;
+		priv.elements[i].length = (unsigned short)strlen(key->label) +
+					  1;
+		priv.elements[i].data = (unsigned char *)key->label;
+		i++;
 	}
 
-	buf = isc_mem_get(key->mctx, len);
-	if (EVP_PKEY_get_raw_private_key(pkey, buf, &len) != 1)
-		DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
-	priv.elements[0].tag = TAG_EDDSA_PRIVATEKEY;
-	priv.elements[0].length = len;
-	priv.elements[0].data = buf;
-	priv.nelements = 1;
+	priv.nelements = i;
 	ret = dst__privstruct_writefile(key, &priv, directory);
 
 err:
@@ -464,17 +490,11 @@ err:
 }
 
 static isc_result_t
-eddsa_check(EVP_PKEY *privkey, dst_key_t *pub) {
-	EVP_PKEY *pkey;
-
-	if (pub == NULL) {
+eddsa_check(EVP_PKEY *pkey, EVP_PKEY *pubpkey) {
+	if (pubpkey == NULL) {
 		return (ISC_R_SUCCESS);
 	}
-	pkey = pub->keydata.pkey;
-	if (pkey == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-	if (EVP_PKEY_cmp(privkey, pkey) == 1) {
+	if (EVP_PKEY_cmp(pkey, pubpkey) == 1) {
 		return (ISC_R_SUCCESS);
 	}
 	return (ISC_R_FAILURE);
@@ -484,7 +504,9 @@ static isc_result_t
 openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
-	EVP_PKEY *pkey = NULL;
+	int i, privkey_index = -1;
+	const char *engine = NULL, *label = NULL;
+	EVP_PKEY *pkey = NULL, *pubpkey = NULL;
 	size_t len;
 	isc_mem_t *mctx = key->mctx;
 
@@ -511,13 +533,48 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		return (ISC_R_SUCCESS);
 	}
 
-	len = priv.elements[0].length;
-	ret = raw_key_to_ossl(key->key_alg, 1, priv.elements[0].data, &len,
-			      &pkey);
+	if (pub != NULL) {
+		pubpkey = pub->keydata.pkey;
+	}
+
+	for (i = 0; i < priv.nelements; i++) {
+		switch (priv.elements[i].tag) {
+		case TAG_EDDSA_ENGINE:
+			engine = (char *)priv.elements[i].data;
+			break;
+		case TAG_EDDSA_LABEL:
+			label = (char *)priv.elements[i].data;
+			break;
+		case TAG_EDDSA_PRIVATEKEY:
+			privkey_index = i;
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (label != NULL) {
+		ret = openssleddsa_fromlabel(key, engine, label, NULL);
+		if (ret != ISC_R_SUCCESS) {
+			goto err;
+		}
+		if (eddsa_check(key->keydata.pkey, pubpkey) != ISC_R_SUCCESS) {
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		}
+		DST_RET(ISC_R_SUCCESS);
+	}
+
+	if (privkey_index < 0) {
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	}
+
+	len = priv.elements[privkey_index].length;
+	ret = raw_key_to_ossl(key->key_alg, 1,
+			      priv.elements[privkey_index].data, &len, &pkey);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
-	if (eddsa_check(pkey, pub) != ISC_R_SUCCESS) {
+	if (eddsa_check(pkey, pubpkey) != ISC_R_SUCCESS) {
 		EVP_PKEY_free(pkey);
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
@@ -529,6 +586,79 @@ err:
 	dst__privstruct_free(&priv, mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
 	return (ret);
+}
+
+static isc_result_t
+openssleddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
+		       const char *pin) {
+#if !defined(OPENSSL_NO_ENGINE)
+	isc_result_t ret;
+	ENGINE *e;
+	EVP_PKEY *pkey = NULL, *pubpkey = NULL;
+	int baseid = EVP_PKEY_NONE;
+
+	UNUSED(pin);
+
+	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
+		key->key_alg == DST_ALG_ED448);
+
+#if HAVE_OPENSSL_ED25519
+	if (key->key_alg == DST_ALG_ED25519) {
+		baseid = EVP_PKEY_ED25519;
+	}
+#endif /* if HAVE_OPENSSL_ED25519 */
+#if HAVE_OPENSSL_ED448
+	if (key->key_alg == DST_ALG_ED448) {
+		baseid = EVP_PKEY_ED448;
+	}
+#endif /* if HAVE_OPENSSL_ED448 */
+	if (baseid == EVP_PKEY_NONE) {
+		return (ISC_R_NOTIMPLEMENTED);
+	}
+
+	if (engine == NULL) {
+		return (DST_R_NOENGINE);
+	}
+	e = dst__openssl_getengine(engine);
+	if (e == NULL) {
+		return (DST_R_NOENGINE);
+	}
+	pkey = ENGINE_load_private_key(e, label, NULL, NULL);
+	if (pkey == NULL) {
+		return (dst__openssl_toresult2("ENGINE_load_private_key",
+					       ISC_R_NOTFOUND));
+	}
+	if (EVP_PKEY_base_id(pkey) != baseid) {
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	}
+
+	pubpkey = ENGINE_load_public_key(e, label, NULL, NULL);
+	if (eddsa_check(pkey, pubpkey) != ISC_R_SUCCESS) {
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	}
+
+	key->engine = isc_mem_strdup(key->mctx, engine);
+	key->label = isc_mem_strdup(key->mctx, label);
+	key->key_size = EVP_PKEY_bits(pkey);
+	key->keydata.pkey = pkey;
+	pkey = NULL;
+	ret = ISC_R_SUCCESS;
+
+err:
+	if (pubpkey != NULL) {
+		EVP_PKEY_free(pubpkey);
+	}
+	if (pkey != NULL) {
+		EVP_PKEY_free(pkey);
+	}
+	return (ret);
+#else  /* if !defined(OPENSSL_NO_ENGINE) */
+	UNUSED(key);
+	UNUSED(engine);
+	UNUSED(label);
+	UNUSED(pin);
+	return (DST_R_NOENGINE);
+#endif /* if !defined(OPENSSL_NO_ENGINE) */
 }
 
 static dst_func_t openssleddsa_functions = {
@@ -550,7 +680,7 @@ static dst_func_t openssleddsa_functions = {
 	openssleddsa_tofile,
 	openssleddsa_parse,
 	NULL, /*%< cleanup */
-	NULL, /*%< fromlabel */
+	openssleddsa_fromlabel,
 	NULL, /*%< dump */
 	NULL, /*%< restore */
 };
