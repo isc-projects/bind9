@@ -45,7 +45,7 @@ isc_stdtime_get(isc_stdtime_t *t) {
 				strbuf);
 	}
 
-	REQUIRE(ts.tv_sec > 0 && ts.tv_nsec > 0 && ts.tv_nsec < NS_PER_S);
+	REQUIRE(ts.tv_sec > 0 && ts.tv_nsec >= 0 && ts.tv_nsec < NS_PER_S);
 
-	*t = (unsigned int)ts.tv_sec;
+	*t = (isc_stdtime_t)ts.tv_sec;
 }
