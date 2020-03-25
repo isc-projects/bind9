@@ -1251,6 +1251,7 @@ setup(void) {
 #endif /* if CONTRIB_DLZ */
 
 	named_server_create(named_g_mctx, &named_g_server);
+	ENSURE(named_g_server != NULL);
 	sctx = named_g_server->sctx;
 
 	/*
