@@ -1035,21 +1035,28 @@ unit:mutexatomics:
     - job: mutexatomics
       artifacts: true
 
-# Jobs for Clang builds on Debian Stretch (amd64)
+# Jobs for Clang builds on Debian Buster (amd64)
 
-clang:stretch:amd64:
+clang:buster:amd64:
   variables:
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
     EXTRA_CONFIGURE: "--with-python=python3"
-  <<: *debian_stretch_amd64_image
+  <<: *debian_buster_amd64_image
   <<: *build_job
 
-unit:clang:stretch:amd64:
-  <<: *debian_stretch_amd64_image
+system:clang:buster:amd64:
+  <<: *debian_buster_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: clang:buster:amd64
+      artifacts: true
+
+unit:clang:buster:amd64:
+  <<: *debian_buster_amd64_image
   <<: *unit_test_job
   needs:
-    - job: clang:stretch:amd64
+    - job: clang:buster:amd64
       artifacts: true
 
 # Jobs for PKCS#11-enabled GCC builds on Debian Sid (amd64)
