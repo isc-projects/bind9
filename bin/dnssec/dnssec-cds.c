@@ -754,6 +754,8 @@ ds_from_cds(dns_rdatalist_t *dslist, isc_buffer_t *buf, dns_rdata_t *cds) {
 	dns_rdata_ds_t ds;
 	dns_rdata_t *rdata;
 
+	REQUIRE(buf != NULL);
+
 	rdata = rdata_get();
 
 	result = dns_rdata_tostruct(cds, &ds, NULL);
@@ -771,6 +773,8 @@ ds_from_cdnskey(dns_rdatalist_t *dslist, isc_buffer_t *buf,
 		dns_rdata_t *cdnskey) {
 	isc_result_t result;
 	unsigned i, n;
+
+	REQUIRE(buf != NULL);
 
 	n = sizeof(dtype) / sizeof(dtype[0]);
 	for (i = 0; i < n; i++) {
