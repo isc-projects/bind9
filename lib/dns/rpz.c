@@ -1114,7 +1114,8 @@ trim_zbits(dns_rpz_zbits_t zbits, dns_rpz_zbits_t found) {
 	x = zbits & found;
 	x &= (~x + 1);
 	x = (x << 1) - 1;
-	return (zbits &= x);
+	zbits &= x;
+	return (zbits);
 }
 
 /*
