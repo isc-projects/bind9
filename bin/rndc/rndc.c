@@ -214,6 +214,8 @@ get_addresses(const char *host, in_port_t port) {
 	isc_result_t result;
 	int found = 0, count;
 
+	REQUIRE(host != NULL);
+
 	if (*host == '/') {
 		result = isc_sockaddr_frompath(&serveraddrs[nserveraddrs],
 					       host);
@@ -944,8 +946,9 @@ main(int argc, char **argv) {
 	if (strcmp(command, "restart") == 0)
 		fatal("'%s' is not implemented", command);
 
-	if (nserveraddrs == 0)
+	if (nserveraddrs == 0 && servername != NULL) {
 		get_addresses(servername, (in_port_t) remoteport);
+	}
 
 	DO("post event", isc_app_onrun(rndc_mctx, task, rndc_start, NULL));
 

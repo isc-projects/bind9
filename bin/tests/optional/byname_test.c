@@ -318,6 +318,7 @@ main(int argc, char *argv[]) {
 		isc_sockaddr_fromin(&sa, &ina, 53);
 		ISC_LIST_APPEND(sal, &sa, link);
 
+		REQUIRE(DNS_VIEW_VALID(view));
 		RUNTIME_CHECK(dns_fwdtable_add(view->fwdtable, dns_rootname,
 					       &sal, dns_fwdpolicy_only)
 			      == ISC_R_SUCCESS);
