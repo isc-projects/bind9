@@ -1360,8 +1360,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			goto cleanup_context;
 		}
 		msg->verified_sig = 1;
-	} else if (tsig.error != dns_tsigerror_badsig &&
-		   tsig.error != dns_tsigerror_badkey)
+	} else if (!response || (tsig.error != dns_tsigerror_badsig &&
+				 tsig.error != dns_tsigerror_badkey))
 	{
 		tsig_log(msg->tsigkey, 2, "signature was empty");
 		return (DNS_R_TSIGVERIFYFAILURE);
@@ -1409,7 +1409,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		}
 	}
 
-	if (tsig.error != dns_rcode_noerror) {
+	if (response && tsig.error != dns_rcode_noerror) {
 		msg->tsigstatus = tsig.error;
 		if (tsig.error == dns_tsigerror_badtime) {
 			ret = DNS_R_CLOCKSKEW;
