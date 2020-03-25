@@ -54,6 +54,11 @@ stages:
     - linux
     - amd64
 
+.linux-arm64: &linux_arm64
+  tags:
+    - linux
+    - arm64
+
 .linux-i386: &linux_i386
   tags:
     - linux
@@ -103,6 +108,10 @@ stages:
 .debian-sid-amd64: &debian_sid_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
   <<: *linux_amd64
+
+.debian-sid-arm64: &debian_sid_arm64_image
+  image: "$CI_REGISTRY_IMAGE:debian-sid-arm64"
+  <<: *linux_arm64
 
 .debian-sid-i386: &debian_sid_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
@@ -292,9 +301,9 @@ stages:
     expire_in: "1 day"
     when: on_failure
   only:
+    - schedules
     - tags
     - web
-    - schedules
 
 .unit_test: &unit_test_job
   <<: *default_triggering_rules
@@ -592,7 +601,7 @@ scan-build:
   <<: *base_image
   stage: postcheck
   variables:
-    CC: clang-9
+    CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON}"
     CONFIGURE: "${SCAN_BUILD} ./configure"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
@@ -1049,30 +1058,6 @@ unit:clang:buster:amd64:
   <<: *unit_test_job
   needs:
     - job: clang:buster:amd64
-      artifacts: true
-
-# Jobs for nocrypto builds
-
-nocrypto:
-  variables:
-    CC: gcc
-    CFLAGS: "-Wall -Wextra -Og -g"
-    EXTRA_CONFIGURE: "--with-openssl=no"
-  <<: *base_image
-  <<: *build_job
-
-system:nocrypto:
-  <<: *base_image
-  <<: *system_test_job
-  needs:
-    - job: nocrypto
-      artifacts: true
-
-unit:nocrypto:
-  <<: *base_image
-  <<: *unit_test_job
-  needs:
-    - job: nocrypto
       artifacts: true
 
 # Jobs for PKCS#11-enabled GCC builds on Debian Sid (amd64)
