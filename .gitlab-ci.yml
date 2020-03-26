@@ -917,9 +917,6 @@ gcc:tsan:
 system:gcc:tsan:
   variables:
     TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  before_script:
-    - *setup_interfaces
-    - echo $TSAN_OPTIONS
   <<: *base_image
   <<: *system_test_job
   needs:
@@ -939,9 +936,6 @@ system:gcc:tsan:
 unit:gcc:tsan:
   variables:
     TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  before_script:
-    - echo $TSAN_OPTIONS
-    - lib/isc/tests/result_test
   <<: *base_image
   <<: *unit_test_job
   needs:
@@ -972,9 +966,6 @@ clang:tsan:
 system:clang:tsan:
   variables:
     TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  before_script:
-    - *setup_interfaces
-    - echo $TSAN_OPTIONS
   <<: *base_image
   <<: *system_test_job
   needs:
@@ -994,9 +985,6 @@ system:clang:tsan:
 unit:clang:tsan:
   variables:
     TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  before_script:
-    - echo $TSAN_OPTIONS
-    - lib/isc/tests/result_test
   <<: *base_image
   <<: *unit_test_job
   needs:
