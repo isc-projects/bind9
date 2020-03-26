@@ -365,8 +365,6 @@ stages:
 .cppcheck: &cppcheck_job
   <<: *default_triggering_rules
   stage: postcheck
-  before_script:
-    - pip3 install compiledb
   script:
     - *configure
     - (make -nwk all || true) | compiledb
