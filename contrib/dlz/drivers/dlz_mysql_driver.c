@@ -62,6 +62,10 @@
 #include <dlz/sdlz_helper.h>
 #include <named/globals.h>
 
+#if !defined(LIBMARIADB) && MYSQL_VERSION_ID >= 80000
+typedef bool my_bool;
+#endif /* !defined(LIBMARIADB) && MYSQL_VERSION_ID >= 80000 */
+
 static dns_sdlzimplementation_t *dlz_mysql = NULL;
 
 #define dbc_search_limit 30
@@ -759,9 +763,6 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 	char *endp;
 	int j;
 	unsigned int flags = 0;
-#if MYSQL_VERSION_ID >= 50000
-	my_bool auto_reconnect = 1;
-#endif /* if MYSQL_VERSION_ID >= 50000 */
 
 	UNUSED(driverarg);
 	UNUSED(dlzname);
@@ -897,21 +898,21 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 	pass = getParameterValue(argv[1], "pass=");
 	socket = getParameterValue(argv[1], "socket=");
 
-#if MYSQL_VERSION_ID >= 50000
 	/* enable automatic reconnection. */
 	if (mysql_options((MYSQL *)dbi->dbconn, MYSQL_OPT_RECONNECT,
-			  &auto_reconnect) != 0)
+			  &(my_bool){ 1 }) != 0)
 	{
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_WARNING,
 			      "mysql driver failed to set "
-			      "MYSQL_OPT_RECONNECT option, continuing");
+			      "MYSQL_OPT_RECONNECT option, "
+			      "continuing");
 	}
-#endif /* if MYSQL_VERSION_ID >= 50000 */
 
-	for (j = 0; dbc == NULL && j < 4; j++)
+	for (j = 0; dbc == NULL && j < 4; j++) {
 		dbc = mysql_real_connect((MYSQL *)dbi->dbconn, host, user, pass,
 					 dbname, port, socket, flags);
+	}
 
 	/* let user know if we couldn't connect. */
 	if (dbc == NULL) {

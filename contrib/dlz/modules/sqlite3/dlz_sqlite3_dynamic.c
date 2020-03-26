@@ -887,9 +887,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	char *tmp = NULL;
 	char *endp;
 	const char *helper_name;
-#if SQLITE3_VERSION_ID >= 50000
-	my_bool auto_reconnect = 1;
-#endif /* if SQLITE3_VERSION_ID >= 50000 */
 #if PTHREADS
 	int dbcount;
 	int i, ret;

@@ -61,6 +61,10 @@
 #include <dlz_minimal.h>
 #include <dlz_pthread.h>
 
+#if !defined(LIBMARIADB) && MYSQL_VERSION_ID >= 80000
+typedef bool my_bool;
+#endif /* !defined(LIBMARIADB) && MYSQL_VERSION_ID >= 80000 */
+
 /*
  * The SQL queries that will be used for lookups and updates are defined
  * here.  They will be processed into queries by the build_query()
@@ -1020,7 +1024,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	 */
 	if (mysql_thread_safe()) {
 		for (n = 0; n < MAX_DBI; n++) {
-			my_bool opt = 1;
 			dlz_mutex_init(&state->db[n].mutex, NULL);
 			dlz_mutex_lock(&state->db[n].mutex);
 			state->db[n].id = n;
@@ -1029,7 +1032,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 			mysql_options(state->db[n].sock,
 				      MYSQL_READ_DEFAULT_GROUP, modname);
 			mysql_options(state->db[n].sock, MYSQL_OPT_RECONNECT,
-				      &opt);
+				      &(my_bool){ 1 });
 			dlz_mutex_unlock(&state->db[n].mutex);
 		}
 

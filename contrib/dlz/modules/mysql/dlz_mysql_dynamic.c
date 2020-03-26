@@ -59,6 +59,10 @@
 #include <dlz_minimal.h>
 #include <dlz_pthread.h>
 
+#if !defined(LIBMARIADB) && MYSQL_VERSION_ID >= 80000
+typedef bool my_bool;
+#endif /* !defined(LIBMARIADB) && MYSQL_VERSION_ID >= 80000 */
+
 #define dbc_search_limit 30
 #define ALLNODES	 1
 #define ALLOWXFR	 2
@@ -812,9 +816,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	char *endp;
 	int j;
 	const char *helper_name;
-#if MYSQL_VERSION_ID >= 50000
-	my_bool auto_reconnect = 1;
-#endif /* if MYSQL_VERSION_ID >= 50000 */
 #if PTHREADS
 	int dbcount;
 	int i;
@@ -1012,17 +1013,15 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 
 		dbc = NULL;
 
-#if MYSQL_VERSION_ID >= 50000
 		/* enable automatic reconnection. */
 		if (mysql_options((MYSQL *)dbi->dbconn, MYSQL_OPT_RECONNECT,
-				  &auto_reconnect) != 0)
+				  &(my_bool){ 1 }) != 0)
 		{
 			mysql->log(ISC_LOG_WARNING, "MySQL module failed to "
 						    "set "
 						    "MYSQL_OPT_RECONNECT "
 						    "option, continuing");
 		}
-#endif /* if MYSQL_VERSION_ID >= 50000 */
 
 		for (j = 0; dbc == NULL && j < 4; j++) {
 			dbc = mysql_real_connect(
