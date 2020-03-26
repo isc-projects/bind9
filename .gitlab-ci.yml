@@ -684,7 +684,7 @@ cppcheck:
 
 # Job for out-of-tree GCC build on Debian Sid (amd64)
 
-out-of-tree:
+gcc:out-of-tree:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
@@ -697,7 +697,7 @@ out-of-tree:
 
 # Jobs for tarball GCC builds on Debian Sid (amd64)
 
-tarball:
+gcc:tarball:
   variables:
     CC: gcc
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
@@ -714,25 +714,25 @@ tarball:
   only:
     - tags
 
-system:tarball:
+system:gcc:tarball:
   <<: *base_image
   <<: *system_test_job
   before_script:
     - cd bind-*
     - *setup_interfaces
   needs:
-    - job: tarball
+    - job: gcc:tarball
       artifacts: true
   only:
     - tags
 
-unit:tarball:
+unit:gcc:tarball:
   <<: *base_image
   <<: *unit_test_job
   before_script:
     - cd bind-*
   needs:
-    - job: tarball
+    - job: gcc:tarball
       artifacts: true
   only:
     - tags
@@ -994,7 +994,7 @@ unit:clang:tsan:
       artifacts: true
 
 # Jobs for mutex-based atomics on Debian SID (amd64)
-mutexatomics:
+gcc:mutexatomics:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DISC_MEM_USE_INTERNAL_MALLOC=0"
@@ -1002,18 +1002,18 @@ mutexatomics:
   <<: *base_image
   <<: *build_job
 
-system:mutexatomics:
+system:gcc:mutexatomics:
   <<: *base_image
   <<: *system_test_job
   needs:
-    - job: mutexatomics
+    - job: gcc:mutexatomics
       artifacts: true
 
-unit:mutexatomics:
+unit:gcc:mutexatomics:
   <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: mutexatomics
+    - job: gcc:mutexatomics
       artifacts: true
 
 # Jobs for Clang builds on Debian Buster (amd64)
@@ -1042,7 +1042,7 @@ unit:clang:buster:amd64:
 
 # Jobs for PKCS#11-enabled GCC builds on Debian Sid (amd64)
 
-pkcs11:
+gcc:pkcs11:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
@@ -1050,18 +1050,18 @@ pkcs11:
   <<: *base_image
   <<: *build_job
 
-system:pkcs11:
+system:gcc:pkcs11:
   <<: *base_image
   <<: *system_test_job
   needs:
-    - job: pkcs11
+    - job: gcc:pkcs11
       artifacts: true
 
-unit:pkcs11:
+unit:gcc:pkcs11:
   <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: pkcs11
+    - job: gcc:pkcs11
       artifacts: true
 
 # Jobs for Clang builds on FreeBSD 11.3 (amd64)
