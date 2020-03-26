@@ -26,6 +26,7 @@ variables:
 
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
   ASAN_OPTIONS_COMMON: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
+  TSAN_OPTIONS_COMMON: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER"
 
   TARBALL_COMPRESSOR: xz
   TARBALL_EXTENSION: xz
@@ -97,10 +98,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-stretch-amd64"
   <<: *linux_amd64
 
-.debian-stretch-i386: &debian_stretch_i386_image
-  image: "$CI_REGISTRY_IMAGE:debian-stretch-i386"
-  <<: *linux_i386
-
 .debian-buster-amd64: &debian_buster_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   <<: *linux_amd64
@@ -135,17 +132,9 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
   <<: *linux_amd64
 
-.ubuntu-xenial-i386: &ubuntu_xenial_i386_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-i386"
-  <<: *linux_i386
-
 .ubuntu-bionic-amd64: &ubuntu_bionic_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-amd64"
   <<: *linux_amd64
-
-.ubuntu-bionic-i386: &ubuntu_bionic_i386_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
-  <<: *linux_i386
 
 # Base image
 # This is a meta image that is used as a base for non-specific jobs
@@ -259,7 +248,7 @@ stages:
     export SLOT=$(sh -x bin/tests/prepare-softhsm2.sh)
     test -n "${SLOT}" && test "${SLOT}" -gt 0
 
-.system_test: &system_test_job
+.system_test_common: &system_test_common
   <<: *default_triggering_rules
   stage: system
   before_script:
@@ -268,9 +257,25 @@ stages:
   script:
     - ( cd bin/tests/system && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
+
+.system_test: &system_test_job
+  <<: *system_test_common
   artifacts:
     untracked: true
     expire_in: "1 day"
+    when: on_failure
+
+.system_test_tsan: &system_test_tsan_job
+  <<: *system_test_common
+  allow_failure: true
+  after_script:
+    - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+  artifacts:
+    expire_in: "1 day"
+    paths:
+      - bin/tests/system/*/tsan.*
+      - bin/tests/system/*/*/tsan.*
+      - tsan/
     when: on_failure
 
 .kyua_report: &kyua_report_html |
@@ -304,7 +309,7 @@ stages:
     - tags
     - web
 
-.unit_test: &unit_test_job
+.unit_test_common: &unit_test_common
   <<: *default_triggering_rules
   stage: unit
   before_script:
@@ -313,9 +318,28 @@ stages:
     - make unit
   after_script:
     - *kyua_report_html
+
+.unit_test: &unit_test_job
+  <<: *unit_test_common
   artifacts:
     untracked: true
     expire_in: "1 day"
+    when: on_failure
+
+.unit_test_tsan: &unit_test_tsan_job
+  <<: *unit_test_common
+  allow_failure: true
+  after_script:
+    - *kyua_report_html
+    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+  artifacts:
+    expire_in: "1 day"
+    paths:
+      - lib/*/tests/tsan.*
+      - tsan/
+      - kyua.log
+      - kyua.results
+      - kyua_html/
     when: on_failure
 
 .cppcheck_args: &run_cppcheck |
@@ -327,8 +351,6 @@ stages:
 .cppcheck: &cppcheck_job
   <<: *default_triggering_rules
   stage: postcheck
-  before_script:
-    - pip3 install compiledb
   script:
     - *configure
     - (make -nwk all || true) | compiledb
@@ -647,7 +669,7 @@ cppcheck:
 
 # Job for out-of-tree GCC build on Debian Sid (amd64)
 
-out-of-tree:
+gcc:out-of-tree:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
@@ -660,7 +682,7 @@ out-of-tree:
 
 # Jobs for tarball GCC builds on Debian Sid (amd64)
 
-tarball:
+gcc:tarball:
   variables:
     CC: gcc
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
@@ -677,25 +699,25 @@ tarball:
   only:
     - tags
 
-system:tarball:
+system:gcc:tarball:
   <<: *base_image
   <<: *system_test_job
   before_script:
     - cd bind-*
     - *setup_interfaces
   needs:
-    - job: tarball
+    - job: gcc:tarball
       artifacts: true
   only:
     - tags
 
-unit:tarball:
+unit:gcc:tarball:
   <<: *base_image
   <<: *unit_test_job
   before_script:
     - cd bind-*
   needs:
-    - job: tarball
+    - job: gcc:tarball
       artifacts: true
   only:
     - tags
@@ -913,49 +935,21 @@ gcc:tsan:
 
 system:gcc:tsan:
   variables:
-    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER exitcode=0"
-  before_script:
-    - *setup_interfaces
-    - echo $TSAN_OPTIONS
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
   <<: *base_image
-  <<: *system_test_job
+  <<: *system_test_tsan_job
   needs:
     - job: gcc:tsan
       artifacts: true
-  allow_failure: true
-  after_script:
-    - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-  artifacts:
-    expire_in: "1 day"
-    paths:
-      - bin/tests/system/*/tsan.*
-      - bin/tests/system/*/*/tsan.*
-      - tsan/
-    when: on_failure
 
 unit:gcc:tsan:
   variables:
-    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER"
-  before_script:
-    - echo $TSAN_OPTIONS
-    - lib/isc/tests/result_test
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
   <<: *base_image
-  <<: *unit_test_job
+  <<: *unit_test_tsan_job
   needs:
     - job: gcc:tsan
       artifacts: true
-  allow_failure: true
-  after_script:
-    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-  artifacts:
-    expire_in: "1 day"
-    paths:
-      - lib/*/tests/tsan.*
-      - tsan/
-      - kyua.log
-      - kyua.results
-      - kyua_html/
-    when: on_failure
 
 clang:tsan:
   <<: *base_image
@@ -968,52 +962,24 @@ clang:tsan:
 
 system:clang:tsan:
   variables:
-    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER exitcode=0"
-  before_script:
-    - *setup_interfaces
-    - echo $TSAN_OPTIONS
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
   <<: *base_image
-  <<: *system_test_job
+  <<: *system_test_tsan_job
   needs:
     - job: clang:tsan
       artifacts: true
-  allow_failure: true
-  after_script:
-    - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-  artifacts:
-    expire_in: "1 day"
-    paths:
-      - bin/tests/system/*/tsan.*
-      - bin/tests/system/*/*/tsan.*
-      - tsan/
-    when: on_failure
 
 unit:clang:tsan:
   variables:
-    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER"
-  before_script:
-    - echo $TSAN_OPTIONS
-    - lib/isc/tests/result_test
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
   <<: *base_image
-  <<: *unit_test_job
+  <<: *unit_test_tsan_job
   needs:
     - job: clang:tsan
       artifacts: true
-  allow_failure: true
-  after_script:
-    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-  artifacts:
-    expire_in: "1 day"
-    paths:
-      - lib/*/tests/tsan.*
-      - tsan/
-      - kyua.log
-      - kyua.results
-      - kyua_html/
-    when: on_failure
 
 # Jobs for mutex-based atomics on Debian SID (amd64)
-mutexatomics:
+gcc:mutexatomics:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DISC_MEM_USE_INTERNAL_MALLOC=0"
@@ -1021,18 +987,18 @@ mutexatomics:
   <<: *base_image
   <<: *build_job
 
-system:mutexatomics:
+system:gcc:mutexatomics:
   <<: *base_image
   <<: *system_test_job
   needs:
-    - job: mutexatomics
+    - job: gcc:mutexatomics
       artifacts: true
 
-unit:mutexatomics:
+unit:gcc:mutexatomics:
   <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: mutexatomics
+    - job: gcc:mutexatomics
       artifacts: true
 
 # Jobs for Clang builds on Debian Buster (amd64)
@@ -1061,7 +1027,7 @@ unit:clang:buster:amd64:
 
 # Jobs for PKCS#11-enabled GCC builds on Debian Sid (amd64)
 
-pkcs11:
+gcc:pkcs11:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
@@ -1069,18 +1035,18 @@ pkcs11:
   <<: *base_image
   <<: *build_job
 
-system:pkcs11:
+system:gcc:pkcs11:
   <<: *base_image
   <<: *system_test_job
   needs:
-    - job: pkcs11
+    - job: gcc:pkcs11
       artifacts: true
 
-unit:pkcs11:
+unit:gcc:pkcs11:
   <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: pkcs11
+    - job: gcc:pkcs11
       artifacts: true
 
 # Jobs for Clang builds on FreeBSD 11.3 (amd64)
