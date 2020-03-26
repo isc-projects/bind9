@@ -20,6 +20,7 @@
 #include <isc/stats.h>
 #include <isc/util.h>
 
+#include <dns/log.h>
 #include <dns/opcode.h>
 #include <dns/rdatatype.h>
 #include <dns/stats.h>
@@ -93,8 +94,18 @@ typedef enum {
  */
 #define RDTYPECOUNTER_MAXVAL 0x0602
 
-/* dnssec maximum key id */
-static int dnssec_keyid_max = 65535;
+/*
+ * DNSSEC sign statistics.
+ *
+ * Per key we maintain 3 counters. The first is actually no counter but
+ * a key id reference. The second is the number of signatures the key created.
+ * The third is the number of signatures refreshed by the key.
+ */
+
+/* Maximum number of keys to keep track of for DNSSEC signing statistics. */
+static int dnssec_max_keys = 4;
+/* Attribute to signal whether a counter is actually a key id. */
+#define DNSSECSIGNSTATS_IS_KEY 0x10000
 
 struct dns_stats {
 	unsigned int magic;
@@ -228,7 +239,11 @@ isc_result_t
 dns_dnssecsignstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_dnssec, dnssec_keyid_max,
+	/*
+	 * Create two counters per key, one is the key id, the other two are
+	 * the actual counters for creating and refreshing signatures.
+	 */
+	return (create_stats(mctx, dns_statstype_dnssec, dnssec_max_keys * 3,
 			     statsp));
 }
 
@@ -342,10 +357,64 @@ dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code) {
 }
 
 void
-dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id) {
+dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id,
+			      bool refresh) {
+	isc_statscounter_t operation;
+	uint32_t kval;
+
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_dnssec);
 
-	isc_stats_increment(stats->counters, (isc_statscounter_t)id);
+	kval = (uint32_t)id;
+	kval |= DNSSECSIGNSTATS_IS_KEY;
+
+	/* What operation are we counting? */
+	if (refresh) {
+		operation = (isc_statscounter_t)dnssec_max_keys * 2;
+	} else {
+		operation = (isc_statscounter_t)dnssec_max_keys;
+	}
+
+	/* Look up correct counter. */
+	for (int i = 0; i < dnssec_max_keys; i++) {
+		uint32_t counter = isc_stats_get_counter(stats->counters, i);
+		if (counter == kval) {
+			/* Match */
+			isc_stats_increment(stats->counters, operation + i);
+			return;
+		}
+	}
+
+	/* No match found. Store key in unused slot. */
+	for (int i = 0; i < dnssec_max_keys; i++) {
+		uint32_t counter = isc_stats_get_counter(stats->counters, i);
+		if (counter == 0) {
+			isc_stats_set(stats->counters, kval, i);
+			isc_stats_increment(stats->counters, operation + i);
+			return;
+		}
+	}
+
+	/* No room, rotate keys. */
+	for (int i = 1; i < dnssec_max_keys; i++) {
+		uint32_t keyv = isc_stats_get_counter(stats->counters, i);
+		uint32_t sign = isc_stats_get_counter(stats->counters,
+						      (dnssec_max_keys + i));
+		uint32_t refr = isc_stats_get_counter(
+			stats->counters, (dnssec_max_keys * 2 + i));
+
+		isc_stats_set(stats->counters, keyv, i - 1);
+		isc_stats_set(stats->counters, sign, dnssec_max_keys + i - 1);
+		isc_stats_set(stats->counters, refr,
+			      dnssec_max_keys * 2 + i - 1);
+	}
+
+	/* Reset counters for new key. */
+	isc_stats_set(stats->counters, kval, dnssec_max_keys - 1);
+	isc_stats_set(stats->counters, 0, 2 * dnssec_max_keys - 1);
+	isc_stats_set(stats->counters, 0, 3 * dnssec_max_keys - 1);
+
+	/* And increment the counter for the given operation. */
+	isc_stats_increment(stats->counters, operation + dnssec_max_keys - 1);
 }
 
 /*%
@@ -452,8 +521,41 @@ dnssec_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 	dnssecarg->fn((dns_keytag_t)counter, value, dnssecarg->arg);
 }
 
+static void
+dnssec_statsdump(isc_stats_t *stats, bool refresh, isc_stats_dumper_t dump_fn,
+		 void *arg, unsigned int options) {
+	int i;
+	isc_statscounter_t operation;
+
+	if (refresh) {
+		operation = (isc_statscounter_t)dnssec_max_keys * 2;
+	} else {
+		operation = (isc_statscounter_t)dnssec_max_keys;
+	}
+
+	for (i = 0; i < dnssec_max_keys; i++) {
+		uint32_t kval, val;
+		dns_keytag_t id;
+
+		kval = isc_stats_get_counter(stats, i);
+		if (kval == 0) {
+			continue;
+		}
+
+		val = isc_stats_get_counter(stats, (operation + i));
+		if ((options & ISC_STATSDUMP_VERBOSE) == 0 && val == 0) {
+			continue;
+		}
+
+		id = (dns_keytag_t)kval;
+		id &= ~DNSSECSIGNSTATS_IS_KEY;
+
+		dump_fn((isc_statscounter_t)id, val, arg);
+	}
+}
+
 void
-dns_dnssecsignstats_dump(dns_stats_t *stats,
+dns_dnssecsignstats_dump(dns_stats_t *stats, bool refresh,
 			 dns_dnssecsignstats_dumper_t dump_fn, void *arg0,
 			 unsigned int options) {
 	dnssecsigndumparg_t arg;
@@ -462,7 +564,9 @@ dns_dnssecsignstats_dump(dns_stats_t *stats,
 
 	arg.fn = dump_fn;
 	arg.arg = arg0;
-	isc_stats_dump(stats->counters, dnssec_dumpcb, &arg, options);
+
+	dnssec_statsdump(stats->counters, refresh, dnssec_dumpcb, &arg,
+			 options);
 }
 
 static void

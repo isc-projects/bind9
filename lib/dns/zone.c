@@ -337,7 +337,6 @@ struct dns_zone {
 	isc_stats_t *requeststats;
 	dns_stats_t *rcvquerystats;
 	dns_stats_t *dnssecsignstats;
-	dns_stats_t *dnssecrefreshstats;
 	uint32_t notifydelay;
 	dns_isselffunc_t isself;
 	void *isselfarg;
@@ -1088,7 +1087,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->requeststats = NULL;
 	zone->rcvquerystats = NULL;
 	zone->dnssecsignstats = NULL;
-	zone->dnssecrefreshstats = NULL;
 	zone->notifydelay = 5;
 	zone->isself = NULL;
 	zone->isselfarg = NULL;
@@ -1265,9 +1263,6 @@ zone_free(dns_zone_t *zone) {
 	}
 	if (zone->dnssecsignstats != NULL) {
 		dns_stats_detach(&zone->dnssecsignstats);
-	}
-	if (zone->dnssecrefreshstats != NULL) {
-		dns_stats_detach(&zone->dnssecrefreshstats);
 	}
 	if (zone->db != NULL) {
 		zone_detachdb(zone);
@@ -6714,7 +6709,6 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	dns_dbnode_t *node = NULL;
 	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 	dns_stats_t *dnssecsignstats;
-	dns_stats_t *dnssecrefreshstats;
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	unsigned char data[1024]; /* XXX */
@@ -6888,16 +6882,13 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 
 		/* Update DNSSEC sign statistics. */
 		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
-		dnssecrefreshstats = dns_zone_getdnssecrefreshstats(zone);
 		if (dnssecsignstats != NULL) {
+			/* Generated a new signature. */
 			dns_dnssecsignstats_increment(
-				dns_zone_getdnssecsignstats(zone),
-				dst_key_id(keys[i]));
-		}
-		if (dnssecrefreshstats != NULL) {
+				dnssecsignstats, dst_key_id(keys[i]), false);
+			/* This is a refresh. */
 			dns_dnssecsignstats_increment(
-				dns_zone_getdnssecrefreshstats(zone),
-				dst_key_id(keys[i]));
+				dnssecsignstats, dst_key_id(keys[i]), true);
 		}
 	}
 
@@ -7358,7 +7349,6 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_stats_t *dnssecsignstats;
-	dns_stats_t *dnssecrefreshstats;
 
 	isc_buffer_t buffer;
 	unsigned char data[1024];
@@ -7477,16 +7467,13 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 
 		/* Update DNSSEC sign statistics. */
 		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
-		dnssecrefreshstats = dns_zone_getdnssecrefreshstats(zone);
 		if (dnssecsignstats != NULL) {
-			dns_dnssecsignstats_increment(
-				dns_zone_getdnssecsignstats(zone),
-				dst_key_id(key));
-		}
-		if (dnssecrefreshstats != NULL) {
-			dns_dnssecsignstats_increment(
-				dns_zone_getdnssecrefreshstats(zone),
-				dst_key_id(key));
+			/* Generated a new signature. */
+			dns_dnssecsignstats_increment(dnssecsignstats,
+						      dst_key_id(key), false);
+			/* This is a refresh. */
+			dns_dnssecsignstats_increment(dnssecsignstats,
+						      dst_key_id(key), true);
 		}
 
 		(*signatures)--;
@@ -18420,29 +18407,11 @@ dns_zone_setdnssecsignstats(dns_zone_t *zone, dns_stats_t *stats) {
 	UNLOCK_ZONE(zone);
 }
 
-void
-dns_zone_setdnssecrefreshstats(dns_zone_t *zone, dns_stats_t *stats) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	if (stats != NULL && zone->dnssecrefreshstats == NULL) {
-		dns_stats_attach(stats, &zone->dnssecrefreshstats);
-	}
-	UNLOCK_ZONE(zone);
-}
-
 dns_stats_t *
 dns_zone_getdnssecsignstats(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->dnssecsignstats);
-}
-
-dns_stats_t *
-dns_zone_getdnssecrefreshstats(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return (zone->dnssecrefreshstats);
 }
 
 isc_stats_t *
