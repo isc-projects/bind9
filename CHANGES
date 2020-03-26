@@ -1,3 +1,8 @@
+5370.	[bug]		Deactivation of a netmgr handle associated with a
+			socket could be skipped in some circumstances.
+			Fixed by deactivating the netmgr handle before
+			scheduling the asynchronous close routine. [GL #1700]
+
 5368.	[bug]		Named failed to restart if 'rndc addzone' names
 			contained special characters (e.g. '/'). [GL #1655]
 

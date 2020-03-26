@@ -1164,7 +1164,15 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	}
 
 	/*
-	 * The handle is closed. If the socket has a callback configured
+	 * Temporarily reference the socket to ensure that it can't
+	 * be deleted by another thread while we're deactivating the
+	 * handle.
+	 */
+	isc_nmsocket_attach(sock, &tmp);
+	nmhandle_deactivate(sock, handle);
+
+	/*
+	 * The handle is gone now. If the socket has a callback configured
 	 * for that (e.g., to perform cleanup after request processing),
 	 * call it now, or schedule it to run asynchronously.
 	 */
@@ -1174,27 +1182,16 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		} else {
 			isc__netievent_closecb_t *event = isc__nm_get_ievent(
 				sock->mgr, netievent_closecb);
+			/*
+			 * The socket will be finally detached by the closecb
+			 * event handler.
+			 */
 			isc_nmsocket_attach(sock, &event->sock);
-			event->handle = handle;
 			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 					       (isc__netievent_t *)event);
-
-			/*
-			 * If we're doing this asynchronously, then the
-			 * async event will take care of cleaning up the
-			 * handle and closing the socket.
-			 */
-			return;
 		}
 	}
 
-	/*
-	 * Temporarily reference the socket to ensure that it can't
-	 * be deleted by another thread while we're deactivating the
-	 * handle.
-	 */
-	isc_nmsocket_attach(sock, &tmp);
-	nmhandle_deactivate(sock, handle);
 	isc_nmsocket_detach(&tmp);
 }
 
@@ -1330,8 +1327,6 @@ isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(ievent->sock->closehandle_cb != NULL);
 
 	UNUSED(worker);
-
-	nmhandle_deactivate(ievent->sock, ievent->handle);
 
 	ievent->sock->closehandle_cb(ievent->sock);
 	isc_nmsocket_detach(&ievent->sock);
