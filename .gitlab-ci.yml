@@ -947,6 +947,7 @@ unit:gcc:tsan:
       artifacts: true
   allow_failure: true
   after_script:
+    - *kyua_report_html
     - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
   artifacts:
     expire_in: "1 day"
@@ -986,6 +987,7 @@ unit:clang:tsan:
       artifacts: true
   allow_failure: true
   after_script:
+    - *kyua_report_html
     - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
   artifacts:
     expire_in: "1 day"
