@@ -163,7 +163,6 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 	int left;
 	int plus;
 	int space;
-	int neg;
 	int64_t tmpi;
 	uint64_t tmpui;
 	unsigned long width;
@@ -200,7 +199,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 		/*
 		 * Reset flags.
 		 */
-		dot = neg = space = plus = left = zero = alt = h = l = q = z = 0;
+		dot = space = plus = left = zero = alt = h = l = q = z = 0;
 		width = precision = 0;
 		head = "";
 		pad = zeropad = 0;
