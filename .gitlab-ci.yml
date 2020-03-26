@@ -321,7 +321,7 @@ stages:
     - tags
     - web
 
-.unit_test: &unit_test_job
+.unit_test_common: &unit_test_common
   <<: *default_triggering_rules
   stage: unit
   before_script:
@@ -330,9 +330,28 @@ stages:
     - make unit
   after_script:
     - *kyua_report_html
+
+.unit_test: &unit_test_job
+  <<: *unit_test_common
   artifacts:
     untracked: true
     expire_in: "1 day"
+    when: on_failure
+
+.unit_test_tsan: &unit_test_tsan_job
+  <<: *unit_test_common
+  allow_failure: true
+  after_script:
+    - *kyua_report_html
+    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+  artifacts:
+    expire_in: "1 day"
+    paths:
+      - lib/*/tests/tsan.*
+      - tsan/
+      - kyua.log
+      - kyua.results
+      - kyua_html/
     when: on_failure
 
 .cppcheck_args: &run_cppcheck |
@@ -941,23 +960,10 @@ unit:gcc:tsan:
   variables:
     TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
   <<: *base_image
-  <<: *unit_test_job
+  <<: *unit_test_tsan_job
   needs:
     - job: gcc:tsan
       artifacts: true
-  allow_failure: true
-  after_script:
-    - *kyua_report_html
-    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-  artifacts:
-    expire_in: "1 day"
-    paths:
-      - lib/*/tests/tsan.*
-      - tsan/
-      - kyua.log
-      - kyua.results
-      - kyua_html/
-    when: on_failure
 
 clang:tsan:
   <<: *base_image
@@ -981,23 +987,10 @@ unit:clang:tsan:
   variables:
     TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
   <<: *base_image
-  <<: *unit_test_job
+  <<: *unit_test_tsan_job
   needs:
     - job: clang:tsan
       artifacts: true
-  allow_failure: true
-  after_script:
-    - *kyua_report_html
-    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-  artifacts:
-    expire_in: "1 day"
-    paths:
-      - lib/*/tests/tsan.*
-      - tsan/
-      - kyua.log
-      - kyua.results
-      - kyua_html/
-    when: on_failure
 
 # Jobs for mutex-based atomics on Debian SID (amd64)
 mutexatomics:
