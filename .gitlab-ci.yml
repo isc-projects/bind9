@@ -98,10 +98,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-stretch-amd64"
   <<: *linux_amd64
 
-.debian-stretch-i386: &debian_stretch_i386_image
-  image: "$CI_REGISTRY_IMAGE:debian-stretch-i386"
-  <<: *linux_i386
-
 .debian-buster-amd64: &debian_buster_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   <<: *linux_amd64
@@ -136,17 +132,9 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
   <<: *linux_amd64
 
-.ubuntu-xenial-i386: &ubuntu_xenial_i386_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-i386"
-  <<: *linux_i386
-
 .ubuntu-bionic-amd64: &ubuntu_bionic_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-amd64"
   <<: *linux_amd64
-
-.ubuntu-bionic-i386: &ubuntu_bionic_i386_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
-  <<: *linux_i386
 
 # Base image
 # This is a meta image that is used as a base for non-specific jobs
