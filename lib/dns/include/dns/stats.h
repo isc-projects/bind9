@@ -684,9 +684,11 @@ dns_rcodestats_increment(dns_stats_t *stats, dns_opcode_t code);
  */
 
 void
-dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id);
+dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id,
+			      bool refresh);
 /*%<
- * Increment the statistics counter for the DNSKEY 'id'.
+ * Increment the statistics counter for the DNSKEY 'id'. If 'refresh' is set
+ * to true, update the refresh counter, otherwise update the sign counter.
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_dnssecsignstats_create().
@@ -737,7 +739,7 @@ dns_rdatasetstats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
  */
 
 void
-dns_dnssecsignstats_dump(dns_stats_t *		      stats,
+dns_dnssecsignstats_dump(dns_stats_t *stats, bool refresh,
 			 dns_dnssecsignstats_dumper_t dump_fn, void *arg,
 			 unsigned int options);
 /*%<

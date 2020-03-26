@@ -1,3 +1,10 @@
+5373.	[bug]		Collecting DNSSEC signing operations introduced by
+			GL #513 (change 5254) allocated counters for every
+			possible key id per zone which results in a lot of
+			wasted memory. Fix by tracking up to four keys
+			per zone, rotate counters when keys are replaced.
+			[GL #1179]
+
 5372.	[bug]		Fix migration from existing DNSSEC key files using
 			auto-dnssec maintain to dnssec-policy. [GL #1706]
 
