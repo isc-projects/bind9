@@ -60,6 +60,10 @@
 #include <dlz_list.h>
 #include <dlz_pthread.h>
 
+#if !defined(LIBMARIADB) && MYSQL_VERSION_ID >= 80000
+typedef bool my_bool;
+#endif /* !defined(LIBMARIADB) && MYSQL_VERSION_ID >= 80000 */
+
 /*
  * The SQL queries that will be used for lookups and updates are defined
  * here.  They will be processed into queries by the build_query()
