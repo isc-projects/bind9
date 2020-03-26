@@ -70,8 +70,8 @@ getzones() {
         *) return 1 ;;
     esac
     file=`$PERL fetch.pl -p ${EXTRAPORT1} $path`
-    cp $file $file.$1.$2
-    $PERL zones-${1}.pl $file 2>/dev/null | sort > zones.out.$2
+    cp $file $file.$1.$3
+    $PERL zones-${1}.pl $file $2 2>/dev/null | sort > zones.out.$3
     result=$?
     return $result
 }
@@ -292,11 +292,11 @@ rm -f zones.expect
 # Fetch and check the dnssec sign statistics.
 echo_i "fetching zone stats data after zone maintenance at startup ($n)"
 if [ $PERL_XML ]; then
-    getzones xml x$n || ret=1
+    getzones xml $zone x$n || ret=1
     cmp zones.out.x$n zones.expect.$n || ret=1
 fi
 if [ $PERL_JSON ]; then
-    getzones json j$n || ret=1
+    getzones json $zone j$n || ret=1
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -322,11 +322,11 @@ rm -f zones.expect
 # Fetch and check the dnssec sign statistics.
 echo_i "fetching zone stats data after dynamic update ($n)"
 if [ $PERL_XML ]; then
-    getzones xml x$n || ret=1
+    getzones xml $zone x$n || ret=1
     cmp zones.out.x$n zones.expect.$n || ret=1
 fi
 if [ $PERL_JSON ]; then
-    getzones json j$n || ret=1
+    getzones json $zone j$n || ret=1
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -349,13 +349,36 @@ cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
 # Fetch and check the dnssec sign statistics.
 if [ $PERL_XML ]; then
-    getzones xml x$n || ret=1
+    getzones xml $zone x$n || ret=1
     cmp zones.out.x$n zones.expect.$n || ret=1
 fi
 if [ $PERL_JSON ]; then
-    getzones json j$n || ret=1
+    getzones json $zone j$n || ret=1
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+# 4. Test a zone with more than four keys.
+zone="manykeys"
+ksk8_id=`cat ns2/$zone.ksk8.id`
+zsk8_id=`cat ns2/$zone.zsk8.id`
+ksk13_id=`cat ns2/$zone.ksk13.id`
+zsk13_id=`cat ns2/$zone.zsk13.id`
+ksk14_id=`cat ns2/$zone.ksk14.id`
+zsk14_id=`cat ns2/$zone.zsk14.id`
+
+ret=0
+echo_i "fetch zone stats data for a zone with many keys ($n)"
+# Fetch and check the dnssec sign statistics.
+if [ $PERL_XML ]; then
+    getzones xml $zone x$n || ret=1
+fi
+if [ $PERL_JSON ]; then
+    getzones json $zone j$n || ret=1
+fi
+# The output is gibberish, but at least make sure it does not crash.
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
