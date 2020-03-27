@@ -35,6 +35,17 @@ controls {
 	inet 10.53.0.6 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+/* This is a zone that migrates to dnssec-policy. */
+zone "migrate.kasp" {
+	type master;
+	file "migrate.kasp.db";
+	allow-update { any; };
+	dnssec-policy "migrate";
+};
+
+/*
+ * Zones for testing KSK/ZSK algorithm roll.
+ */
 zone "step1.algorithm-roll.kasp" {
 	type master;
 	file "step1.algorithm-roll.kasp.db";
