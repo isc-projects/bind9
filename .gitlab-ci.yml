@@ -199,6 +199,7 @@ stages:
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
+    - pip3 install pytest requests || pip install pytest requests || true
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
@@ -256,6 +257,7 @@ stages:
   before_script:
     - *setup_interfaces
     - *setup_softhsm
+    - pip3 install pytest requests || pip install pytest requests || true
   script:
     - cd bin/tests/system
     - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1 || make -j${TEST_PARALLEL_JOBS:-1} -k recheck V=1
@@ -441,6 +443,7 @@ pylint:
   before_script:
     - pip3 install pylint
     - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
+    - pip3 install pytest requests || pip install pytest requests
   script:
     - *configure
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -v 'ans\.py')
