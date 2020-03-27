@@ -109,6 +109,39 @@ export CONTROLPORT
 export LOWPORT
 export HIGHPORT
 
+restart=false
+
+start_servers_failed() {
+    echoinfo "I:$systest:starting servers failed"
+    echofail "R:$systest:FAIL"
+    echoend  "E:$systest:$(date_with_args)"
+    exit 1
+}
+
+start_servers() {
+    echoinfo "I:$systest:starting servers"
+    if $restart; then
+        $PERL start.pl --restart --port "$PORT" "$systest" || start_fail
+    else
+        restart=true
+        $PERL start.pl --port "$PORT" "$systest" || start_fail
+    fi
+}
+
+stop_servers_failed() {
+    echoinfo "I:$systest:stopping servers failed"
+    echofail "R:$systest:FAIL"
+    echoend  "E:$systest:$(date_with_args)"
+    exit 1
+}
+
+stop_servers() {
+    if $stopservers; then
+        echoinfo "I:$systest:stopping servers"
+        $PERL stop.pl "$systest" || stop_servers_failed
+    fi
+}
+
 echostart "S:$systest:`date`"
 echoinfo  "T:$systest:1:A"
 echoinfo  "A:$systest:System test $systest"
@@ -166,17 +199,40 @@ then
    ( cd $systest && $SHELL setup.sh "$@" )
 fi
 
-# Start name servers running
-$PERL start.pl --port $PORT $systest
-if [ $? -ne 0 ]; then
-    echofail "R:$systest:FAIL"
-    echoend  "E:$systest:`date $dateargs`"
-    exit 1
+status=0
+run=0
+# Run the tests
+if [ -r "$systest/tests.sh" ]; then
+    start_servers
+    ( cd "$systest" && $SHELL tests.sh "$@" )
+    status=$?
+    run=$((run+1))
+    stop_servers
 fi
 
-# Run the tests
-( cd $systest ; $SHELL tests.sh "$@" )
-status=$?
+if [ -n "$PYTEST" ]; then
+    run=$((run+1))
+    for test in $(cd "${systest}" && find . -name "tests*.py"); do
+	start_servers
+	rm -f "$systest/$test.status"
+	test_status=0
+	(cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
+	if [ -f "$systest/$test.status" ]; then
+	    echo_i "FAILED"
+	    test_status=$(cat "$systest/$test.status")
+	fi
+	status=$((status+test_status))
+	stop_servers
+    done
+else
+    echoinfo "I:$systest:pytest not installed, skipping python tests"
+fi
+
+if [ "$run" -eq "0" ]; then
+    echoinfo "I:$systest:No tests were found and run"
+    status=255
+fi
+
 
 if $stopservers
 then

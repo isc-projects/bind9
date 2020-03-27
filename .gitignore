@@ -12,6 +12,7 @@
 *_test
 *.ipch # vscode/intellisense precompiled header
 *~
+__pycache__/
 .ccache/
 .cproject
 .deps/
