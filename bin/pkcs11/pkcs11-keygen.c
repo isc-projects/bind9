@@ -80,12 +80,10 @@ static CK_BBOOL falsevalue = FALSE;
 typedef enum { key_unknown, key_rsa, key_ecc, key_ecx } key_class_t;
 
 /*
- * Private key template: usable for most key classes without
- * modificaton; override CKA_SIGN with CKA_DERIVE for DH
+ * Private key template
  */
 #define PRIVATE_LABEL	    0
 #define PRIVATE_SIGN	    1
-#define PRIVATE_DERIVE	    1
 #define PRIVATE_TOKEN	    2
 #define PRIVATE_PRIVATE	    3
 #define PRIVATE_SENSITIVE   4

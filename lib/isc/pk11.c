@@ -77,7 +77,6 @@ struct pk11_token {
 static ISC_LIST(pk11_token_t) tokens;
 
 static pk11_token_t *best_rsa_token;
-static pk11_token_t *best_dh_token;
 static pk11_token_t *best_ecdsa_token;
 static pk11_token_t *best_eddsa_token;
 
@@ -245,9 +244,6 @@ pk11_finalize(void) {
 		ISC_LIST_UNLINK(tokens, token, link);
 		if (token == best_rsa_token) {
 			best_rsa_token = NULL;
-		}
-		if (token == best_dh_token) {
-			best_dh_token = NULL;
 		}
 		if (token == best_ecdsa_token) {
 			best_ecdsa_token = NULL;
@@ -1073,7 +1069,6 @@ pk11_dump_tokens(void) {
 
 	printf("DEFAULTS\n");
 	printf("\tbest_rsa_token=%p\n", best_rsa_token);
-	printf("\tbest_dh_token=%p\n", best_dh_token);
 	printf("\tbest_ecdsa_token=%p\n", best_ecdsa_token);
 	printf("\tbest_eddsa_token=%p\n", best_eddsa_token);
 
