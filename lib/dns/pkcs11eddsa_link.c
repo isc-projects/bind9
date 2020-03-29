@@ -168,10 +168,10 @@ pkcs11eddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	if (ec->ontoken && (dctx->use == DO_SIGN)) {
 		slotid = ec->slot;
 	} else {
-		slotid = pk11_get_best_token(OP_EC);
+		slotid = pk11_get_best_token(OP_EDDSA);
 	}
-	ret = pk11_get_session(pk11_ctx, OP_EC, true, false, ec->reqlogon, NULL,
-			       slotid);
+	ret = pk11_get_session(pk11_ctx, OP_EDDSA, true, false, ec->reqlogon,
+			       NULL, slotid);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
@@ -288,10 +288,10 @@ pkcs11eddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	if (ec->ontoken && (dctx->use == DO_SIGN)) {
 		slotid = ec->slot;
 	} else {
-		slotid = pk11_get_best_token(OP_EC);
+		slotid = pk11_get_best_token(OP_EDDSA);
 	}
-	ret = pk11_get_session(pk11_ctx, OP_EC, true, false, ec->reqlogon, NULL,
-			       slotid);
+	ret = pk11_get_session(pk11_ctx, OP_EDDSA, true, false, ec->reqlogon,
+			       NULL, slotid);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
@@ -474,8 +474,8 @@ pkcs11eddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	UNUSED(callback);
 
 	pk11_ctx = isc_mem_get(key->mctx, sizeof(*pk11_ctx));
-	ret = pk11_get_session(pk11_ctx, OP_EC, true, false, false, NULL,
-			       pk11_get_best_token(OP_EC));
+	ret = pk11_get_session(pk11_ctx, OP_EDDSA, true, false, false, NULL,
+			       pk11_get_best_token(OP_EDDSA));
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
@@ -798,14 +798,14 @@ pkcs11eddsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	memmove(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
 	attr->ulValueLen = pubattr->ulValueLen;
 
-	ret = pk11_parse_uri(ec, label, key->mctx, OP_EC);
+	ret = pk11_parse_uri(ec, label, key->mctx, OP_EDDSA);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
 
 	pk11_ctx = isc_mem_get(key->mctx, sizeof(*pk11_ctx));
-	ret = pk11_get_session(pk11_ctx, OP_EC, true, false, ec->reqlogon, NULL,
-			       ec->slot);
+	ret = pk11_get_session(pk11_ctx, OP_EDDSA, true, false, ec->reqlogon,
+			       NULL, ec->slot);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
@@ -997,14 +997,14 @@ pkcs11eddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	attr[0].type = CKA_EC_PARAMS;
 	attr[1].type = CKA_VALUE;
 
-	ret = pk11_parse_uri(ec, label, key->mctx, OP_EC);
+	ret = pk11_parse_uri(ec, label, key->mctx, OP_EDDSA);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
 
 	pk11_ctx = isc_mem_get(key->mctx, sizeof(*pk11_ctx));
-	ret = pk11_get_session(pk11_ctx, OP_EC, true, false, ec->reqlogon, NULL,
-			       ec->slot);
+	ret = pk11_get_session(pk11_ctx, OP_EDDSA, true, false, ec->reqlogon,
+			       NULL, ec->slot);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
