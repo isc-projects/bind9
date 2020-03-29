@@ -234,10 +234,8 @@ isc_result_t
 dst__pkcs11dsa_init(struct dst_func **funcp);
 isc_result_t
 dst__pkcs11ecdsa_init(struct dst_func **funcp);
-#if defined(HAVE_PKCS11_ED25519) || defined(HAVE_PKCS11_ED448)
 isc_result_t
 dst__pkcs11eddsa_init(struct dst_func **funcp);
-#endif /* if defined(HAVE_PKCS11_ED25519) || defined(HAVE_PKCS11_ED448) */
 #endif /* USE_PKCS11 */
 #ifdef GSSAPI
 isc_result_t
