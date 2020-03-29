@@ -24,7 +24,6 @@
 #include <pk11/constants.h>
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
-#include <pkcs11/eddsa.h>
 #include <pkcs11/pkcs11.h>
 
 #include <dns/keyvalues.h>
@@ -39,17 +38,17 @@
  * FIPS 186-3 EDDSA keys:
  *  mechanisms:
  *    CKM_EDDSA,
- *    CKM_EDDSA_KEY_PAIR_GEN
+ *    CKM_EC_EDWARDS_KEY_PAIR_GEN
  *  domain parameters:
  *    CKA_EC_PARAMS (choice with OID namedCurve)
  *  public keys:
  *    object class CKO_PUBLIC_KEY
- *    key type CKK_EDDSA
+ *    key type CKK_EC_EDWARDS
  *    attribute CKA_EC_PARAMS (choice with OID namedCurve)
  *    attribute CKA_EC_POINT (big int A, CKA_VALUE on the token)
  *  private keys:
  *    object class CKO_PRIVATE_KEY
- *    key type CKK_EDDSA
+ *    key type CKK_EC_EDWARDS
  *    attribute CKA_EC_PARAMS (choice with OID namedCurve)
  *    attribute CKA_VALUE (big int k)
  */
@@ -114,7 +113,7 @@ pkcs11eddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	CK_MECHANISM mech = { CKM_EDDSA, NULL, 0 };
 	CK_OBJECT_HANDLE hKey = CK_INVALID_HANDLE;
 	CK_OBJECT_CLASS keyClass = CKO_PRIVATE_KEY;
-	CK_KEY_TYPE keyType = CKK_EDDSA;
+	CK_KEY_TYPE keyType = CKK_EC_EDWARDS;
 	CK_ATTRIBUTE keyTemplate[] = {
 		{ CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
 		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
@@ -242,7 +241,7 @@ pkcs11eddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	CK_MECHANISM mech = { CKM_EDDSA, NULL, 0 };
 	CK_OBJECT_HANDLE hKey = CK_INVALID_HANDLE;
 	CK_OBJECT_CLASS keyClass = CKO_PUBLIC_KEY;
-	CK_KEY_TYPE keyType = CKK_EDDSA;
+	CK_KEY_TYPE keyType = CKK_EC_EDWARDS;
 	CK_ATTRIBUTE keyTemplate[] = {
 		{ CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
 		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
@@ -422,10 +421,10 @@ pkcs11eddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 static isc_result_t
 pkcs11eddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	CK_RV rv;
-	CK_MECHANISM mech = { CKM_EDDSA_KEY_PAIR_GEN, NULL, 0 };
+	CK_MECHANISM mech = { CKM_EC_EDWARDS_KEY_PAIR_GEN, NULL, 0 };
 	CK_OBJECT_HANDLE pub = CK_INVALID_HANDLE;
 	CK_OBJECT_CLASS pubClass = CKO_PUBLIC_KEY;
-	CK_KEY_TYPE keyType = CKK_EDDSA;
+	CK_KEY_TYPE keyType = CKK_EC_EDWARDS;
 	CK_ATTRIBUTE pubTemplate[] = {
 		{ CKA_CLASS, &pubClass, (CK_ULONG)sizeof(pubClass) },
 		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
@@ -721,7 +720,7 @@ pkcs11eddsa_fetch(dst_key_t *key, const char *engine, const char *label,
 		  dst_key_t *pub) {
 	CK_RV rv;
 	CK_OBJECT_CLASS keyClass = CKO_PRIVATE_KEY;
-	CK_KEY_TYPE keyType = CKK_EDDSA;
+	CK_KEY_TYPE keyType = CKK_EC_EDWARDS;
 	CK_ATTRIBUTE searchTemplate[] = {
 		{ CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
 		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
@@ -933,7 +932,7 @@ pkcs11eddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	CK_RV rv;
 	CK_OBJECT_HANDLE hKey = CK_INVALID_HANDLE;
 	CK_OBJECT_CLASS keyClass = CKO_PUBLIC_KEY;
-	CK_KEY_TYPE keyType = CKK_EDDSA;
+	CK_KEY_TYPE keyType = CKK_EC_EDWARDS;
 	CK_ATTRIBUTE searchTemplate[] = {
 		{ CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass) },
 		{ CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType) },
