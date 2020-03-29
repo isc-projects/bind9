@@ -289,12 +289,6 @@ typedef __int64 off_t;
 /* Define if native PKCS#11 is used as cryptographic library provider */
 @USE_PKCS11@
 
-/* Define if your PKCS11 provider supports Ed25519. */
-@HAVE_PKCS11_ED25519@
-
-/* Define if your PKCS11 provider supports Ed448. */
-@HAVE_PKCS11_ED448@
-
 /* HMAC_*() return ints */
 @HMAC_RETURN_INT@
 
