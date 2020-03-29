@@ -64,7 +64,8 @@ usage(void) {
 			"        DH | RSASHA1 |\n"
 			"        NSEC3RSASHA1 |\n"
 			"        RSASHA256 | RSASHA512 |\n"
-			"        ECDSAP256SHA256 | ECDSAP384SHA384\n");
+			"        ECDSAP256SHA256 | ECDSAP384SHA384 |\n"
+			"        ED25519 | ED448\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
 	fprintf(stderr, "    -E <engine>:\n");
