@@ -72,7 +72,6 @@
 #include <pk11/constants.h>
 #include <pk11/pk11.h>
 #include <pk11/result.h>
-#include <pkcs11/eddsa.h>
 
 /* Define static key template values */
 static CK_BBOOL truevalue = TRUE;
@@ -331,10 +330,6 @@ main(int argc, char *argv[]) {
 
 		break;
 	case key_ecx:
-#ifndef CKM_EDDSA_KEY_PAIR_GEN
-		fprintf(stderr, "CKM_EDDSA_KEY_PAIR_GEN is not defined\n");
-		usage();
-#else /* ifndef CKM_EDDSA_KEY_PAIR_GEN */
 		op_type = OP_EDDSA;
 		if (bits == 0) {
 			bits = 256;
@@ -344,7 +339,7 @@ main(int argc, char *argv[]) {
 			exit(2);
 		}
 
-		mech.mechanism = CKM_EDDSA_KEY_PAIR_GEN;
+		mech.mechanism = CKM_EC_EDWARDS_KEY_PAIR_GEN;
 		mech.pParameter = NULL;
 		mech.ulParameterLen = 0;
 
@@ -361,7 +356,6 @@ main(int argc, char *argv[]) {
 			public_template[4].ulValueLen = sizeof(pk11_ecx_ed448);
 		}
 
-#endif /* ifndef CKM_EDDSA_KEY_PAIR_GEN */
 		break;
 	case key_unknown:
 		usage();

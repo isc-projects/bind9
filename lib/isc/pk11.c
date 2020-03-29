@@ -31,7 +31,6 @@
 #include <pk11/pk11.h>
 #include <pk11/result.h>
 #include <pk11/site.h>
-#include <pkcs11/eddsa.h>
 #include <pkcs11/pkcs11.h>
 
 #include <dst/result.h>
@@ -603,16 +602,14 @@ scan_slots(void) {
 			}
 		}
 
-#if defined(CKM_EDDSA_KEY_PAIR_GEN) && defined(CKM_EDDSA) && defined(CKK_EDDSA)
 		/* Check for EDDSA support */
-		/* XXXOND: This was already broken */
 		bad = false;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA_KEY_PAIR_GEN,
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_EC_EDWARDS_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
 			bad = true;
-			PK11_TRACEM(CKM_EDDSA_KEY_PAIR_GEN);
+			PK11_TRACEM(CKM_EC_EDWARDS_KEY_PAIR_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0) ||
@@ -627,8 +624,6 @@ scan_slots(void) {
 				best_eddsa_token = token;
 			}
 		}
-#endif /* if defined(CKM_EDDSA_KEY_PAIR_GEN) && defined(CKM_EDDSA) && \
-	* defined(CKK_EDDSA) */
 	}
 
 	if (slotList != NULL) {
