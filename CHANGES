@@ -1,3 +1,7 @@
+5390.	[security]	Replaying a TSIG BADTIME response as a request could
+			trigger an assertion failure. (CVE-2020-8617)
+			[GL #1703]
+
 5376.	[bug]		Fix ineffective DNS rebinding protection when BIND is
 			configured as a forwarding DNS server. Thanks to Tobias
 			Klein. [GL #1574]
