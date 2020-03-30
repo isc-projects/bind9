@@ -156,11 +156,11 @@ typedef struct dns_include dns_include_t;
 
 #define DNS_ZONE_CHECKLOCK
 #ifdef DNS_ZONE_CHECKLOCK
-#define LOCK_ZONE(z)                          \
-	do {                                  \
-		LOCK(&(z)->lock);             \
-		INSIST((z)->locked == false); \
-		(z)->locked = true;           \
+#define LOCK_ZONE(z)                  \
+	do {                          \
+		LOCK(&(z)->lock);     \
+		INSIST(!(z)->locked); \
+		(z)->locked = true;   \
 	} while (0)
 #define UNLOCK_ZONE(z)               \
 	do {                         \
@@ -172,7 +172,7 @@ typedef struct dns_include dns_include_t;
 	do {                                            \
 		result = isc_mutex_trylock(&(z)->lock); \
 		if (result == ISC_R_SUCCESS) {          \
-			INSIST((z)->locked == false);   \
+			INSIST(!(z)->locked);           \
 			(z)->locked = true;             \
 		}                                       \
 	} while (0)
@@ -10775,7 +10775,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 		 */
 
 #ifdef ENABLE_AFL
-		if (dns_fuzzing_resolver == false) {
+		if (!dns_fuzzing_resolver) {
 #endif /* ifdef ENABLE_AFL */
 			result = dns_resolver_createfetch(
 				zone->view->resolver, kname,
@@ -12779,7 +12779,7 @@ next_master:
 			 * Did we get a good answer from all the masters?
 			 */
 			for (j = 0; j < zone->masterscnt; j++) {
-				if (zone->mastersok[j] == false) {
+				if (!zone->mastersok[j]) {
 					{
 						done = false;
 						break;
@@ -13303,7 +13303,7 @@ next_master:
 			 * Did we get a good answer from all the masters?
 			 */
 			for (j = 0; j < zone->masterscnt; j++) {
-				if (zone->mastersok[j] == false) {
+				if (!zone->mastersok[j]) {
 					{
 						done = false;
 						break;
@@ -17018,7 +17018,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		if (peer == NULL || result != ISC_R_SUCCESS) {
 			use_ixfr = zone->requestixfr;
 		}
-		if (use_ixfr == false) {
+		if (!use_ixfr) {
 			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
 				      ISC_LOG_DEBUG(1),
 				      "IXFR disabled, "

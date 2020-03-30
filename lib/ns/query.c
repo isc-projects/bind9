@@ -5910,7 +5910,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		sigrdataset = NULL;
 	}
 
-	if (client->query.timerset == false) {
+	if (!client->query.timerset) {
 		ns_client_settimeout(client, 60);
 	}
 

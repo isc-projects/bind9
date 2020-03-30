@@ -1512,7 +1512,7 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 	for (view = ISC_LIST_HEAD(*list); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (allclasses == false && view->rdclass != rdclass) {
+		if (!allclasses && view->rdclass != rdclass) {
 			continue;
 		}
 

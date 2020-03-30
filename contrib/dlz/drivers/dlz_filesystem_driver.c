@@ -489,7 +489,7 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 				 * are performing a zone xfr and we
 				 * could not find a host entry.
 				 */
-			} else if (dir_list != NULL && foundHost == false) {
+			} else if (dir_list != NULL && !foundHost) {
 				continue;
 			}
 		} else { /* if we cannot stat entry, skip it. */

@@ -280,7 +280,7 @@ update_log(ns_client_t *client, dns_zone_t *zone, int level, const char *fmt,
 		return;
 	}
 
-	if (isc_log_wouldlog(ns_lctx, level) == false) {
+	if (!isc_log_wouldlog(ns_lctx, level)) {
 		return;
 	}
 

@@ -643,7 +643,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		 */
 		if ((ctx->style.flags & DNS_STYLEFLAG_NO_CLASS) == 0 &&
 		    ((ctx->style.flags & DNS_STYLEFLAG_OMIT_CLASS) == 0 ||
-		     ctx->class_printed == false))
+		     !ctx->class_printed))
 		{
 			unsigned int class_start;
 			INDENT_TO(class_column);
@@ -919,7 +919,7 @@ dump_rdataset(isc_mem_t *mctx, const dns_name_t *name, dns_rdataset_t *rdataset,
 	 */
 
 	if ((ctx->style.flags & DNS_STYLEFLAG_TTL) != 0) {
-		if (ctx->current_ttl_valid == false ||
+		if (!ctx->current_ttl_valid ||
 		    ctx->current_ttl != rdataset->ttl) {
 			if ((ctx->style.flags & DNS_STYLEFLAG_COMMENT) != 0) {
 				isc_buffer_clear(buffer);

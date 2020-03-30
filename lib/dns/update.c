@@ -210,7 +210,7 @@ update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
 		return;
 	}
 
-	if (isc_log_wouldlog(dns_lctx, level) == false) {
+	if (!isc_log_wouldlog(dns_lctx, level)) {
 		return;
 	}
 

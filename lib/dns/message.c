@@ -1652,8 +1652,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			}
 			free_name = free_rdataset = false;
 		}
-		INSIST(free_name == false);
-		INSIST(free_rdataset == false);
+		INSIST(!free_name);
+		INSIST(!free_rdataset);
 	}
 
 	/*
