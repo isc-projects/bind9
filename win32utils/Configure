@@ -1587,8 +1587,6 @@ EOF
     }
 }
 
-# check FIPS_mode
-
 # with-eddsa
 if ($use_openssl eq "no") {
     $use_eddsa = "no";
