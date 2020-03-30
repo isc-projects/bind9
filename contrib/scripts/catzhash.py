@@ -15,16 +15,18 @@
 # "domain.example" can be represented in a catalog zone called
 # "catalog.example" by adding the following record:
 #
-# 5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN PTR domain.example.
+# 5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. \
+#    IN PTR domain.example.
 #
 # The label "5960775ba382e7a4e09263fc06e7c00569b6a05c" is the output of
 # this script when run with the argument "domain.example".
 
 import sys
-import dns.name
 import hashlib
+import dns.name
 
 if len(sys.argv) < 2:
     print("Usage: %s name" % sys.argv[0])
 
-print (hashlib.sha1(dns.name.from_text(sys.argv[1]).to_wire()).hexdigest())
+NAME = dns.name.from_text(sys.argv[1]).to_wire()
+print(hashlib.sha1(NAME).hexdigest())
