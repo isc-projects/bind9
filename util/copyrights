@@ -2314,6 +2314,7 @@
 ./lib/isc/tests/netaddr_test.c			C	2016,2018,2019,2020
 ./lib/isc/tests/parse_test.c			C	2012,2013,2016,2018,2019,2020
 ./lib/isc/tests/pool_test.c			C	2013,2016,2018,2019,2020
+./lib/isc/tests/quota_test.c			C	2020
 ./lib/isc/tests/radix_test.c			C	2014,2016,2018,2019,2020
 ./lib/isc/tests/random_test.c			C	2014,2015,2016,2017,2018,2019,2020
 ./lib/isc/tests/regex_test.c			C	2013,2015,2016,2018,2019,2020
