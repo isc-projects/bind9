@@ -73,17 +73,16 @@ pkcs11eddsa_fetch(dst_key_t *key, const char *engine, const char *label,
 static isc_result_t
 pkcs11eddsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	isc_buffer_t *buf = NULL;
-	isc_result_t result;
 
 	UNUSED(key);
 	REQUIRE(dctx->key->key_alg == DST_ALG_ED25519 ||
 		dctx->key->key_alg == DST_ALG_ED448);
 
-	result = isc_buffer_allocate(dctx->mctx, &buf, 16);
+	isc_buffer_allocate(dctx->mctx, &buf, 16);
 	isc_buffer_setautorealloc(buf, true);
 	dctx->ctxdata.generic = buf;
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -101,28 +100,15 @@ pkcs11eddsa_destroyctx(dst_context_t *dctx) {
 static isc_result_t
 pkcs11eddsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	isc_buffer_t *buf = (isc_buffer_t *)dctx->ctxdata.generic;
-	isc_buffer_t *nbuf = NULL;
-	isc_region_t r;
-	unsigned int length;
 	isc_result_t result;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ED25519 ||
 		dctx->key->key_alg == DST_ALG_ED448);
 
 	result = isc_buffer_copyregion(buf, data);
-	if (result == ISC_R_SUCCESS) {
-		return (ISC_R_SUCCESS);
-	}
+	INSIST(result == ISC_R_SUCCESS);
 
-	length = isc_buffer_length(buf) + data->length + 64;
-	isc_buffer_allocate(dctx->mctx, &nbuf, length);
-	isc_buffer_usedregion(buf, &r);
-	(void)isc_buffer_copyregion(nbuf, &r);
-	(void)isc_buffer_copyregion(nbuf, data);
-	isc_buffer_free(&buf);
-	dctx->ctxdata.generic = nbuf;
-
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static isc_result_t
