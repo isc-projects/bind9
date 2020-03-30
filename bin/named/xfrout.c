@@ -961,26 +961,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 
 	current_serial = dns_soa_getserial(&current_soa_tuple->rdata);
 	if (reqtype == dns_rdatatype_ixfr) {
-		/*
-		 * Outgoing IXFR may have been disabled for this peer
-		 * or globally.
-		 */
-		if ((client->attributes & NS_CLIENTATTR_TCP) != 0) {
-			bool provide_ixfr;
-
-			provide_ixfr = client->view->provideixfr;
-			if (peer != NULL) {
-				(void) dns_peer_getprovideixfr(peer,
-							       &provide_ixfr);
-			}
-			if (provide_ixfr == false) {
-				goto axfr_fallback;
-			}
-		}
-
-		if (! have_soa) {
-			FAILC(DNS_R_FORMERR,
-			      "IXFR request missing SOA");
+		if (!have_soa) {
+			FAILC(DNS_R_FORMERR, "IXFR request missing SOA");
 		}
 
 		begin_serial = dns_soa_getserial(&soa_rdata);
@@ -1003,6 +985,29 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			is_poll = true;
 			goto have_stream;
 		}
+
+		/*
+		 * Outgoing IXFR may have been disabled for this peer
+		 * or globally.
+		 */
+		if ((client->attributes & NS_CLIENTATTR_TCP) != 0) {
+			bool provide_ixfr;
+
+			provide_ixfr = client->view->provideixfr;
+			if (peer != NULL) {
+				(void)dns_peer_getprovideixfr(peer,
+							      &provide_ixfr);
+			}
+			if (!provide_ixfr) {
+				xfrout_log1(client, question_name,
+					    question_class, ISC_LOG_DEBUG(4),
+					    "IXFR delta response disabled due "
+					    "to 'provide-ixfr no;' being set");
+				mnemonic = "AXFR-style IXFR";
+				goto axfr_fallback;
+			}
+		}
+
 		journalfile = is_dlz ? NULL : dns_zone_getjournal(zone);
 		if (journalfile != NULL) {
 			result = ixfr_rrstream_create(mctx,
