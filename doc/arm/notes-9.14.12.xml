@@ -15,6 +15,13 @@
     <itemizedlist>
       <listitem>
         <para>
+          Replaying a TSIG BADTIME response as a request could
+          trigger an assertion failure. This was disclosed in
+          CVE-2020-8617. [GL #1703]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           DNS rebinding protection was ineffective when BIND 9 is configured as
           a forwarding DNS server. Found and responsibly reported by Tobias
           Klein. [GL #1574]
