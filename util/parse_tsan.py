@@ -10,10 +10,21 @@
 # information regarding copyright ownership.
 ############################################################################
 
-import sys, os, os.path, re
+"""Parse the ThreadSanizer reports, unify them and put them into unique dirs."""
+
+import sys
+import os
+import os.path
+import re
 from hashlib import sha256
 
+
 class State:
+    """Class that holds state of the TSAN parser."""
+
+    # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-few-public-methods
+
     inside = False
     block = ""
     last_line = None
@@ -25,10 +36,12 @@ class State:
     pointers = {}
     p_index = 1
 
-    def init(self):
+    def __init__(self):
         self.reset()
 
     def reset(self):
+        """Reset the object to initial state"""
+
         self.inside = False
         self.block = ""
 
@@ -41,72 +54,73 @@ class State:
         self.t_index = 1
         self.p_index = 1
 
-top = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-out = os.path.join(top, "tsan")
+TOP = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-if not os.path.isdir(out):
-    os.mkdir(out)
+OUT = os.path.join(TOP, "tsan")
+
+if not os.path.isdir(OUT):
+    os.mkdir(OUT)
 
 # Regular Expressions
-mutex = re.compile(r"M\d+")
-thread = re.compile(r"T\d+")
-stack = re.compile(r"\s\(\S+\+0x\S+\)")
-pointer = re.compile(r"0x[0-9a-f]+")
-pid = re.compile(r"\(pid=\d+,?\)")
-tid = re.compile(r"tid=\d+,?\s*")
-worker = re.compile(r"\s+'(isc-worker|isc-net-)\d+'")
-path = re.compile(top + "/")
+MUTEX = re.compile(r"M\d+")
+THREAD = re.compile(r"T\d+")
+STACK = re.compile(r"\s\(\S+\+0x\S+\)")
+POINTER = re.compile(r"0x[0-9a-f]+")
+PID = re.compile(r"\(pid=\d+,?\)")
+TID = re.compile(r"tid=\d+,?\s*")
+WORKER = re.compile(r"\s+'(isc-worker|isc-net-)\d+'")
+PATH = re.compile(TOP + "/")
 
-s = State()
-
+S = State()
 
 with open(sys.argv[1], "r", encoding='utf-8') as f:
-    lines = f.readlines()
-    for line in lines:
+    for line in f.readlines():
         if line == "==================\n":
-           if not s.inside:
-               s.inside = True
-           else:
-               dname = os.path.join(out, sha256(s.last_line.encode('utf-8')).hexdigest())
-               if not os.path.isdir(dname):
-                   os.mkdir(dname)
-               fname = os.path.join(dname, sha256(s.block.encode('utf-8')).hexdigest() + ".tsan")
-               if not os.path.isfile(fname):
-                   with open(fname, "w", encoding='utf-8') as w:
-                       w.write(s.block)
-               s.reset()
+            if not S.inside:
+                S.inside = True
+            else:
+                dname = sha256(S.last_line.encode('utf-8')).hexdigest()
+                dname = os.path.join(OUT, dname)
+                if not os.path.isdir(dname):
+                    os.mkdir(dname)
+                fname = sha256(S.block.encode('utf-8')).hexdigest() + ".tsan"
+                fname = os.path.join(dname, fname)
+                if not os.path.isfile(fname):
+                    with open(fname, "w", encoding='utf-8') as w:
+                        w.write(S.block)
+                S.reset()
         else:
-            for m in mutex.finditer(line):
+            for m in MUTEX.finditer(line):
                 k = m.group()
-                if k not in s.mutexes:
-                    s.mutexes[k] = s.m_index
-                    s.m_index += 1
-            for m in thread.finditer(line):
+                if k not in S.mutexes:
+                    S.mutexes[k] = S.m_index
+                    S.m_index += 1
+            for m in THREAD.finditer(line):
                 k = m.group()
-                if k not in s.threads:
-                    s.threads[k] = s.t_index
-                    s.t_index += 1
-            for m in pointer.finditer(line):
+                if k not in S.threads:
+                    S.threads[k] = S.t_index
+                    S.t_index += 1
+            for m in POINTER.finditer(line):
                 k = m.group()
-                if k not in s.pointers:
-                    s.pointers[k] = s.p_index
-                    s.p_index += 1
-            for k, v in s.mutexes.items():
+                if k not in S.pointers:
+                    S.pointers[k] = S.p_index
+                    S.p_index += 1
+            for k, v in S.mutexes.items():
                 r = re.compile(k)
                 line = r.sub("M%s" % v, line)
-            for k, v in s.threads.items():
+            for k, v in S.threads.items():
                 r = re.compile(k)
                 line = r.sub("T%s" % v, line)
-            for k, v in s.pointers.items():
+            for k, v in S.pointers.items():
                 r = re.compile(k)
                 line = r.sub("0x%s" % str(v).zfill(12), line)
 
-            line = stack.sub("", line)
-            line = pid.sub("", line)
-            line = tid.sub("", line)
-            line = worker.sub("", line)
-            line = path.sub("", line)
+            line = STACK.sub("", line)
+            line = PID.sub("", line)
+            line = TID.sub("", line)
+            line = WORKER.sub("", line)
+            line = PATH.sub("", line)
 
-            s.block += line
-            s.last_line = line
+            S.block += line
+            S.last_line = line
