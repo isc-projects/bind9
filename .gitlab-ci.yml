@@ -418,6 +418,37 @@ coccinelle:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
+flake8:
+  <<: *default_triggering_rules
+  <<: *base_image
+  stage: postcheck
+  needs:
+    - job: autoreconf
+      artifacts: true
+  before_script:
+    - pip3 install flake8
+  script:
+    - *configure
+    - flake8 --max-line-length=80 $(git ls-files '*.py' | grep -v 'ans\.py')
+  only:
+    - merge_requests
+
+pylint:
+  <<: *default_triggering_rules
+  <<: *base_image
+  stage: postcheck
+  needs:
+    - job: autoreconf
+      artifacts: true
+  before_script:
+    - pip3 install pylint
+    - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
+  script:
+    - *configure
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -v 'ans\.py')
+  only:
+    - merge_requests
+
 tarball-create:
   stage: precheck
   <<: *base_image
