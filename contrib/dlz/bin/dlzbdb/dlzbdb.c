@@ -434,7 +434,7 @@ bdb_opendb(DBTYPE db_type, DB **db_out, const char *db_name, int flags) {
 		return (ISC_R_FAILURE);
 	}
 
-	if (create_allowed == true) {
+	if (create_allowed) {
 		createFlag = DB_CREATE;
 	}
 	/* open the database. */
@@ -537,7 +537,7 @@ insert_data(void) {
 					data_type = 'b';
 				}
 			} else if (data_type == 'c' || data_type == 'C') {
-				if (have_czone == true) {
+				if (have_czone) {
 					isc_buffer_putstr(
 						&buf2, token.value.as_pointer);
 					/* add string terminator to buffer */
@@ -634,7 +634,7 @@ openBDB(void) {
 	}
 
 	/* open BDB environment */
-	if (create_allowed == true) {
+	if (create_allowed) {
 		/* allowed to create new files */
 		bdbres = db.dbenv->open(db.dbenv, db_envdir,
 					DB_INIT_CDB | DB_INIT_MPOOL | DB_CREATE,
@@ -917,7 +917,7 @@ operation_listOrDelete(bool dlt) {
 	int curIndex = 0;
 
 	/* verify that only allowed parameters were passed. */
-	if (dlt == true) {
+	if (dlt) {
 		checkInvalidParam(zone, "z", "for delete operation");
 		checkInvalidParam(host, "h", "for delete operation");
 		checkInvalidOption(list_everything, true, "e",
@@ -944,7 +944,7 @@ operation_listOrDelete(bool dlt) {
 	memset(&bdbdata, 0, sizeof(bdbdata));
 
 	/* Dump database in "dlzbdb" bulk format */
-	if (list_everything == true) {
+	if (list_everything) {
 		if (bulk_write('c', db.client, db.cursor, &bdbkey, &bdbdata) !=
 		    ISC_R_SUCCESS) {
 			return;
@@ -969,7 +969,7 @@ operation_listOrDelete(bool dlt) {
 		bdbkey.data = &recno;
 		bdbkey.size = sizeof(recno);
 
-		if (dlt == true) {
+		if (dlt) {
 			bdbres = db.data->del(db.data, NULL, &bdbkey, 0);
 		} else {
 			bdbdata.flags = DB_DBT_REALLOC;
@@ -1082,7 +1082,7 @@ operation_listOrDelete(bool dlt) {
 	/* if client_zone was passed */
 	if (c_zone != NULL) {
 		/* create a cursor and make sure it worked. */
-		if (dlt == true) {
+		if (dlt) {
 			/* open read-write cursor */
 			bdbres = db.client->cursor(db.client, NULL, &db.cursor,
 						   DB_WRITECURSOR);

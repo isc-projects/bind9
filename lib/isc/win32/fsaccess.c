@@ -204,7 +204,7 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 	}
 
 	/* For directories check the directory-specific bits */
-	if (isdir == true) {
+	if (isdir) {
 		if ((caccess & ISC_FSACCESS_CREATECHILD) != 0) {
 			NTFSbits |= FILE_ADD_SUBDIRECTORY | FILE_ADD_FILE;
 		}

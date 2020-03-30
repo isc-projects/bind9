@@ -907,7 +907,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	unsigned int length;
 	bool unknown;
 
-	REQUIRE(origin == NULL || dns_name_isabsolute(origin) == true);
+	REQUIRE(origin == NULL || dns_name_isabsolute(origin));
 	if (rdata != NULL) {
 		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
@@ -1075,8 +1075,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	unsigned int cur;
 
 	REQUIRE(rdata != NULL);
-	REQUIRE(tctx->origin == NULL ||
-		dns_name_isabsolute(tctx->origin) == true);
+	REQUIRE(tctx->origin == NULL || dns_name_isabsolute(tctx->origin));
 
 	/*
 	 * Some DynDNS meta-RRs have empty rdata.
@@ -1407,7 +1406,7 @@ txt_totext(isc_region_t *source, bool quote, isc_buffer_t *target) {
 
 	REQUIRE(n + 1 <= source->length);
 	if (n == 0U) {
-		REQUIRE(quote == true);
+		REQUIRE(quote);
 	}
 
 	if (quote) {

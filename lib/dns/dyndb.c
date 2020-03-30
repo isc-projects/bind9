@@ -403,7 +403,7 @@ dns_dyndb_cleanup(bool exiting) {
 	}
 	UNLOCK(&dyndb_lock);
 
-	if (exiting == true) {
+	if (exiting) {
 		isc_mutex_destroy(&dyndb_lock);
 	}
 }

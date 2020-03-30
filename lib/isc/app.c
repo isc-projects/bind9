@@ -233,8 +233,8 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	REQUIRE(main_thread == GetCurrentThread());
 #endif /* ifdef WIN32 */
 
-	if (atomic_compare_exchange_strong_acq_rel(
-		    &ctx->running, &(bool){ false }, true) == true)
+	if (atomic_compare_exchange_strong_acq_rel(&ctx->running,
+						   &(bool){ false }, true))
 	{
 		/*
 		 * Post any on-run events (in FIFO order).
@@ -360,8 +360,8 @@ isc_result_t
 isc_app_run(void) {
 	isc_result_t result;
 
-	REQUIRE(atomic_compare_exchange_strong_acq_rel(
-			&is_running, &(bool){ false }, true) == true);
+	REQUIRE(atomic_compare_exchange_strong_acq_rel(&is_running,
+						       &(bool){ false }, true));
 	result = isc_app_ctxrun(&isc_g_appctx);
 	atomic_store_release(&is_running, false);
 

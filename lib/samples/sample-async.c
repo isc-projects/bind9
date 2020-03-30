@@ -157,7 +157,7 @@ process_answer(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	REQUIRE(task == query_task);
-	REQUIRE(trans->inuse == true);
+	REQUIRE(trans->inuse);
 	REQUIRE(outstanding_queries > 0);
 
 	printf("answer[%2d]\n", trans->id);
