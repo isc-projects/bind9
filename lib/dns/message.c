@@ -1806,7 +1806,7 @@ truncated:
 	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		return (DNS_R_RECOVERABLE);
 	}
-	if (seen_problem == true) {
+	if (seen_problem) {
 		return (DNS_R_RECOVERABLE);
 	}
 	return (ISC_R_SUCCESS);

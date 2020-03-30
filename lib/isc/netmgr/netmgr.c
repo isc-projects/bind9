@@ -1416,7 +1416,7 @@ isc__nm_drop_interlocked(isc_nm_t *mgr) {
 	LOCK(&mgr->lock);
 	bool success = atomic_compare_exchange_strong(&mgr->interlocked,
 						      &(bool){ true }, false);
-	INSIST(success == true);
+	INSIST(success);
 	BROADCAST(&mgr->wkstatecond);
 	UNLOCK(&mgr->lock);
 }

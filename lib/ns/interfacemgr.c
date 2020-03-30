@@ -521,8 +521,7 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		goto cleanup_interface;
 	}
 
-	if (((mgr->sctx->options & NS_SERVER_NOTCP) == 0) && accept_tcp == true)
-	{
+	if (((mgr->sctx->options & NS_SERVER_NOTCP) == 0) && accept_tcp) {
 		result = ns_interface_listentcp(ifp);
 		if (result != ISC_R_SUCCESS) {
 			if ((result == ISC_R_ADDRINUSE) &&
@@ -817,16 +816,16 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 	 * unless explicitly allowed.
 	 */
 #ifndef ISC_ALLOW_MAPPED
-	if (scan_ipv6 == true && isc_net_probe_ipv6only() != ISC_R_SUCCESS) {
+	if (scan_ipv6 && isc_net_probe_ipv6only() != ISC_R_SUCCESS) {
 		ipv6only = false;
 		log_explicit = true;
 	}
 #endif /* ifndef ISC_ALLOW_MAPPED */
-	if (scan_ipv6 == true && isc_net_probe_ipv6pktinfo() != ISC_R_SUCCESS) {
+	if (scan_ipv6 && isc_net_probe_ipv6pktinfo() != ISC_R_SUCCESS) {
 		ipv6pktinfo = false;
 		log_explicit = true;
 	}
-	if (scan_ipv6 == true && ipv6only && ipv6pktinfo) {
+	if (scan_ipv6 && ipv6only && ipv6pktinfo) {
 		for (le = ISC_LIST_HEAD(mgr->listenon6->elts); le != NULL;
 		     le = ISC_LIST_NEXT(le, link))
 		{
@@ -991,7 +990,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 				continue;
 			}
 
-			if (adjusting == false && dolistenon == true) {
+			if (adjusting == false && dolistenon) {
 				setup_listenon(mgr, &interface, le->port);
 				dolistenon = false;
 			}
@@ -1012,7 +1011,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 			 * interface, we need to listen on the address
 			 * explicitly.
 			 */
-			if (adjusting == true) {
+			if (adjusting) {
 				ns_listenelt_t *ele;
 
 				match = 0;
@@ -1031,7 +1030,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 						match = 0;
 					}
 				}
-				if (ipv6_wildcard == true && match == 0) {
+				if (ipv6_wildcard && match == 0) {
 					continue;
 				}
 			}
@@ -1054,8 +1053,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 			} else {
 				bool addr_in_use = false;
 
-				if (adjusting == false && ipv6_wildcard == true)
-				{
+				if (adjusting == false && ipv6_wildcard) {
 					continue;
 				}
 
@@ -1078,15 +1076,13 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 					"%s"
 					"listening on %s interface "
 					"%s, %s",
-					(adjusting == true) ? "additionally "
-							    : "",
+					(adjusting) ? "additionally " : "",
 					(family == AF_INET) ? "IPv4" : "IPv6",
 					interface.name, sabuf);
 
 				result = ns_interface_setup(
 					mgr, &listen_sockaddr, interface.name,
-					&ifp,
-					(adjusting == true) ? false : true,
+					&ifp, (adjusting) ? false : true,
 					le->dscp, &addr_in_use);
 
 				tried_listening = true;

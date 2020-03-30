@@ -304,7 +304,7 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 				dst_key_free(&newkey);
 			}
 		}
-	} while (conflict == true);
+	} while (conflict);
 
 	INSIST(!conflict);
 	dst_key_setnum(newkey, DST_NUM_LIFETIME, dns_kasp_key_lifetime(kkey));

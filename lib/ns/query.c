@@ -10906,7 +10906,7 @@ ns_query_done(query_ctx_t *qctx) {
 	query_glueanswer(qctx);
 
 	if (qctx->client->message->rcode == dns_rcode_nxdomain &&
-	    qctx->view->auth_nxdomain == true)
+	    qctx->view->auth_nxdomain)
 	{
 		qctx->client->message->flags |= DNS_MESSAGEFLAG_AA;
 	}

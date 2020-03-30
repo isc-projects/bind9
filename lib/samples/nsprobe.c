@@ -533,7 +533,7 @@ request_done(isc_task_t *task, isc_event_t *event) {
 	dns_rdatatype_t type;
 
 	REQUIRE(task == probe_task);
-	REQUIRE(trans != NULL && trans->inuse == true);
+	REQUIRE(trans != NULL && trans->inuse);
 	rmessage = rev->rmessage;
 	REQUIRE(rmessage == trans->rmessage);
 	INSIST(outstanding_probes > 0);
@@ -787,7 +787,7 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	REQUIRE(task == probe_task);
-	REQUIRE(trans->inuse == true);
+	REQUIRE(trans->inuse);
 	REQUIRE(pns != NULL);
 	INSIST(outstanding_probes > 0);
 
@@ -925,7 +925,7 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 	struct probe_ns *pns;
 
 	REQUIRE(task == probe_task);
-	REQUIRE(trans->inuse == true);
+	REQUIRE(trans->inuse);
 	INSIST(outstanding_probes > 0);
 
 	for (name = ISC_LIST_HEAD(rev->answerlist); name != NULL;

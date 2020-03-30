@@ -195,8 +195,8 @@ void
 isc__taskmgr_resume(isc_taskmgr_t *manager0);
 
 #define DEFAULT_DEFAULT_QUANTUM 25
-#define FINISHED(m)                                      \
-	(atomic_load_relaxed(&((m)->exiting)) == true && \
+#define FINISHED(m)                              \
+	(atomic_load_relaxed(&((m)->exiting)) && \
 	 atomic_load(&(m)->tasks_count) == 0)
 
 /*%
@@ -1677,7 +1677,7 @@ isc_task_endexclusive(isc_task_t *task0) {
 		isc_nm_resume(manager->nm);
 	}
 	LOCK(&manager->halt_lock);
-	REQUIRE(atomic_load_relaxed(&manager->exclusive_req) == true);
+	REQUIRE(atomic_load_relaxed(&manager->exclusive_req));
 	atomic_store_relaxed(&manager->exclusive_req, false);
 	while (manager->halted > 0) {
 		BROADCAST(&manager->halt_cond);
