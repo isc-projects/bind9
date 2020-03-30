@@ -14,7 +14,8 @@ Notes for BIND 9.17.2
 Security Fixes
 ~~~~~~~~~~~~~~
 
--  None.
+-  Replaying a TSIG BADTIME response as a request could trigger an
+   assertion failure. This was disclosed in CVE-2020-8617. [GL #1703]
 
 Known Issues
 ~~~~~~~~~~~~
