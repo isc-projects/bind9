@@ -3848,16 +3848,14 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		}
 	}
 
-	if (dns_name_countlabels(&fctx->domain) > 2) {
-		result = isc_counter_increment(fctx->qc);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-				      "exceeded max queries resolving '%s'",
-				      fctx->info);
-			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
-			return;
-		}
+	result = isc_counter_increment(fctx->qc);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+			      "exceeded max queries resolving '%s'",
+			      fctx->info);
+		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+		return;
 	}
 
 	bucketnum = fctx->bucketnum;
