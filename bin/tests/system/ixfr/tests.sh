@@ -268,13 +268,40 @@ if [ $tret -eq 1 ]; then
 fi
 
 n=$((n+1))
-echo_i "test 'provide-ixfr no;' ($n)"
+echo_i "test 'provide-ixfr no;' (serial < current) ($n)"
 ret=0
+nextpart ns5/named.run > /dev/null
 # Should be "AXFR style" response
 $DIG $DIGOPTS ixfr=1 test @10.53.0.5 > dig.out1.test$n || ret=1
 # Should be "switch to TCP" response
 $DIG $DIGOPTS ixfr=1 +notcp test @10.53.0.5 > dig.out2.test$n || ret=1
 awk '$4 == "SOA" { soacnt++} END {if (soacnt == 2) exit(0); else exit(1);}' dig.out1.test$n || ret=1
+awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out2.test$n || ret=1
+msg="IXFR delta response disabled due to 'provide-ixfr no;' being set"
+nextpart ns5/named.run | grep "$msg" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "test 'provide-ixfr no;' (serial = current) ($n)"
+ret=0
+# Should be "AXFR style" response
+$DIG $DIGOPTS ixfr=3 test @10.53.0.5 > dig.out1.test$n || ret=1
+# Should be "switch to TCP" response
+$DIG $DIGOPTS ixfr=3 +notcp test @10.53.0.5 > dig.out2.test$n || ret=1
+awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1.test$n || ret=1
+awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out2.test$n || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "test 'provide-ixfr no;' (serial > current) ($n)"
+ret=0
+# Should be "AXFR style" response
+$DIG $DIGOPTS ixfr=4 test @10.53.0.5 > dig.out1.test$n || ret=1
+# Should be "switch to TCP" response
+$DIG $DIGOPTS ixfr=4 +notcp test @10.53.0.5 > dig.out2.test$n || ret=1
+awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1.test$n || ret=1
 awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out2.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
