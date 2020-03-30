@@ -388,6 +388,25 @@ $DIGCMD nil. TXT | grep 'incorrect key AXFR' >/dev/null && {
 }
 
 n=$((n+1))
+echo_i "bad question section ($n)"
+
+sendcmd < ans5/wrongname
+
+$RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
+
+sleep 2
+
+nextpart ns4/named.run | grep "question name mismatch" > /dev/null || {
+    echo_i "failed: expected status was not logged"
+    status=$((status+1))
+}
+
+$DIGCMD nil. TXT | grep 'wrong question AXFR' >/dev/null && {
+    echo_i "failed"
+    status=$((status+1))
+}
+
+n=$((n+1))
 echo_i "bad message id ($n)"
 
 sendcmd < ans5/badmessageid

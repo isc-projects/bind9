@@ -934,6 +934,7 @@
 ./bin/tests/system/xfer/ans5/unknownkey		X	2011,2018,2019,2020
 ./bin/tests/system/xfer/ans5/unsigned		X	2011,2018,2019,2020
 ./bin/tests/system/xfer/ans5/wrongkey		X	2011,2018,2019,2020
+./bin/tests/system/xfer/ans5/wrongname		X	2020
 ./bin/tests/system/xfer/axfr-stats.good		X	2019,2020
 ./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014,2015,2016,2018,2019,2020
 ./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
