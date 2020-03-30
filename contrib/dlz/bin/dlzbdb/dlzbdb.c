@@ -1116,7 +1116,7 @@ operation_listOrDelete(bool dlt) {
 		}
 
 		while (bdbres == 0) {
-			if (dlt == false) {
+			if (!dlt) {
 				printf("%.*s | %.*s\n", (int)bdbkey.size,
 				       (char *)bdbkey.data, (int)bdbdata.size,
 				       (char *)bdbdata.data);

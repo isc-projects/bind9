@@ -504,7 +504,7 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	isc_result_t result;
 	ns_interface_t *ifp = NULL;
 	REQUIRE(ifpret != NULL && *ifpret == NULL);
-	REQUIRE(addr_in_use == NULL || *addr_in_use == false);
+	REQUIRE(addr_in_use == NULL || !*addr_in_use);
 
 	result = ns_interface_create(mgr, addr, name, &ifp);
 	if (result != ISC_R_SUCCESS) {
@@ -882,7 +882,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 		return (result);
 	}
 
-	if (adjusting == false) {
+	if (!adjusting) {
 		result = clearacl(mgr->mctx, &mgr->aclenv.localhost);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_iter;
@@ -912,10 +912,10 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 		if (family != AF_INET && family != AF_INET6) {
 			continue;
 		}
-		if (scan_ipv4 == false && family == AF_INET) {
+		if (!scan_ipv4 && family == AF_INET) {
 			continue;
 		}
-		if (scan_ipv6 == false && family == AF_INET6) {
+		if (!scan_ipv6 && family == AF_INET6) {
 			continue;
 		}
 
@@ -935,7 +935,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 			continue;
 		}
 
-		if (adjusting == false) {
+		if (!adjusting) {
 			/*
 			 * If running with -T fixedlocal, then we only
 			 * want 127.0.0.1 and ::1 in the localhost ACL.
@@ -990,7 +990,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 				continue;
 			}
 
-			if (adjusting == false && dolistenon) {
+			if (!adjusting && dolistenon) {
 				setup_listenon(mgr, &interface, le->port);
 				dolistenon = false;
 			}
@@ -1053,7 +1053,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 			} else {
 				bool addr_in_use = false;
 
-				if (adjusting == false && ipv6_wildcard) {
+				if (!adjusting && ipv6_wildcard) {
 					continue;
 				}
 

@@ -518,7 +518,7 @@ ns_client_send(ns_client_t *client) {
 			dns_compress_setsensitive(&cctx, true);
 		}
 
-		if (client->view->msgcompression == false) {
+		if (!client->view->msgcompression) {
 			dns_compress_disable(&cctx);
 		}
 	}

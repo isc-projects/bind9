@@ -266,7 +266,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	 * simply be made pending and we will get it when we call
 	 * sigwait().
 	 */
-	while (atomic_load_acquire(&ctx->want_shutdown) == false) {
+	while (!atomic_load_acquire(&ctx->want_shutdown)) {
 #ifdef WIN32
 		DWORD dwWaitResult = WaitForMultipleObjects(
 			NUM_EVENTS, ctx->hEvents, FALSE, INFINITE);
@@ -424,7 +424,7 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	/*
 	 * Don't send the reload signal if we're shutting down.
 	 */
-	if (atomic_load_acquire(&ctx->shutdown_requested) == false) {
+	if (!atomic_load_acquire(&ctx->shutdown_requested)) {
 #ifdef WIN32
 		SetEvent(ctx->hEvents[RELOAD_EVENT]);
 #else  /* WIN32 */

@@ -529,7 +529,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	if (sdlz->dlzimp->methods->newversion == NULL) {
-		REQUIRE(create == false);
+		REQUIRE(!create);
 	}
 
 	isc_buffer_init(&b, namestr, sizeof(namestr));

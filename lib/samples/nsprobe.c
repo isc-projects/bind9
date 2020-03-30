@@ -997,7 +997,7 @@ probe_domain(struct probe_trans *trans) {
 	char *cp;
 
 	REQUIRE(trans != NULL);
-	REQUIRE(trans->inuse == false);
+	REQUIRE(!trans->inuse);
 	REQUIRE(outstanding_probes < MAX_PROBES);
 
 	/* Construct domain */
