@@ -68,9 +68,6 @@
 	"83655D23DCA3AD961C62F356208552BB9ED529077096966D" \
 	"670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF"
 
-static isc_result_t
-openssldh_todns(const dst_key_t *key, isc_buffer_t *data);
-
 static BIGNUM *bn2 = NULL, *bn768 = NULL, *bn1024 = NULL, *bn1536 = NULL;
 
 #if !HAVE_DH_GET0_KEY
