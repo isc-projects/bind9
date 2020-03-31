@@ -1,3 +1,6 @@
+5374.	[bug]		Statistics counters counting recursive clients and
+			active connections could underflow. [GL #1087]
+
 5373.	[bug]		Collecting DNSSEC signing operations introduced by
 			GL #513 (change 5254) allocated counters for every
 			possible key id per zone which results in a lot of
