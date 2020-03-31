@@ -55,7 +55,12 @@
     <itemizedlist>
       <listitem>
         <para>
-	  None.
+	  When an RPZ policy zone was updated via zone transfer
+	  and a large number of records were deleted, <command>named</command>
+	  could become nonresponsive for a short period while deleted
+	  names were removed from the RPZ summary database. This database
+	  cleanup is now done incrementally over a longer period of time,
+	  reducing such delays. [GL #1447]
         </para>
       </listitem>
     </itemizedlist>
