@@ -20,6 +20,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#define WANT_ECX_CURVES
 #include <pk11/constants.h>
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
@@ -399,16 +400,16 @@ pkcs11eddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 #define SETCURVE()                                                             \
 	if (key->key_alg == DST_ALG_ED25519) {                                 \
 		attr->pValue = isc_mem_get(key->mctx,                          \
-					   sizeof(pk11_ecc_ed25519));          \
+					   sizeof(pk11_ecx_ed25519));          \
                                                                                \
-		memmove(attr->pValue, pk11_ecc_ed25519,                        \
-			sizeof(pk11_ecc_ed25519));                             \
-		attr->ulValueLen = sizeof(pk11_ecc_ed25519);                   \
+		memmove(attr->pValue, pk11_ecx_ed25519,                        \
+			sizeof(pk11_ecx_ed25519));                             \
+		attr->ulValueLen = sizeof(pk11_ecx_ed25519);                   \
 	} else {                                                               \
-		attr->pValue = isc_mem_get(key->mctx, sizeof(pk11_ecc_ed448)); \
+		attr->pValue = isc_mem_get(key->mctx, sizeof(pk11_ecx_ed448)); \
                                                                                \
-		memmove(attr->pValue, pk11_ecc_ed448, sizeof(pk11_ecc_ed448)); \
-		attr->ulValueLen = sizeof(pk11_ecc_ed448);                     \
+		memmove(attr->pValue, pk11_ecx_ed448, sizeof(pk11_ecx_ed448)); \
+		attr->ulValueLen = sizeof(pk11_ecx_ed448);                     \
 	}
 
 #define FREECURVE()                                                     \
@@ -639,14 +640,14 @@ pkcs11eddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	attr = ec->repr;
 	attr->type = CKA_EC_PARAMS;
 	if (key->key_alg == DST_ALG_ED25519) {
-		attr->pValue = isc_mem_get(key->mctx, sizeof(pk11_ecc_ed25519));
-		memmove(attr->pValue, pk11_ecc_ed25519,
-			sizeof(pk11_ecc_ed25519));
-		attr->ulValueLen = sizeof(pk11_ecc_ed25519);
+		attr->pValue = isc_mem_get(key->mctx, sizeof(pk11_ecx_ed25519));
+		memmove(attr->pValue, pk11_ecx_ed25519,
+			sizeof(pk11_ecx_ed25519));
+		attr->ulValueLen = sizeof(pk11_ecx_ed25519);
 	} else {
-		attr->pValue = isc_mem_get(key->mctx, sizeof(pk11_ecc_ed448));
-		memmove(attr->pValue, pk11_ecc_ed448, sizeof(pk11_ecc_ed448));
-		attr->ulValueLen = sizeof(pk11_ecc_ed448);
+		attr->pValue = isc_mem_get(key->mctx, sizeof(pk11_ecx_ed448));
+		memmove(attr->pValue, pk11_ecx_ed448, sizeof(pk11_ecx_ed448));
+		attr->ulValueLen = sizeof(pk11_ecx_ed448);
 	}
 
 	attr++;

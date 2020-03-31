@@ -20,6 +20,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#define WANT_ECC_CURVES
 #include <pk11/constants.h>
 #include <pk11/internal.h>
 #include <pk11/pk11.h>

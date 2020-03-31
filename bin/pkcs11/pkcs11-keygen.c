@@ -67,6 +67,8 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#define WANT_ECC_CURVES
+#define WANT_ECX_CURVES
 #include <pk11/constants.h>
 #include <pk11/pk11.h>
 #include <pk11/result.h>
@@ -351,12 +353,12 @@ main(int argc, char *argv[]) {
 		id_offset = ECC_ID;
 
 		if (bits == 256) {
-			public_template[4].pValue = pk11_ecc_ed25519;
+			public_template[4].pValue = pk11_ecx_ed25519;
 			public_template[4].ulValueLen =
-				sizeof(pk11_ecc_ed25519);
+				sizeof(pk11_ecx_ed25519);
 		} else {
-			public_template[4].pValue = pk11_ecc_ed448;
-			public_template[4].ulValueLen = sizeof(pk11_ecc_ed448);
+			public_template[4].pValue = pk11_ecx_ed448;
+			public_template[4].ulValueLen = sizeof(pk11_ecx_ed448);
 		}
 
 #endif /* ifndef CKM_EDDSA_KEY_PAIR_GEN */
