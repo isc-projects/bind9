@@ -3476,9 +3476,7 @@ Tuning
 ``max-recursion-queries``
    Sets the maximum number of iterative queries that may be sent while
    servicing a recursive query. If more queries are sent, the recursive
-   query is terminated and returns SERVFAIL. Queries to look up top
-   level domains such as "com" and "net" and the DNS root zone are
-   exempt from this limitation. The default is 75.
+   query is terminated and returns SERVFAIL. The default is 75.
 
 ``notify-delay``
    The delay, in seconds, between sending sets of notify messages for a
