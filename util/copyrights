@@ -1470,6 +1470,7 @@
 ./doc/arm/mirror.zoneopt.xml			SGML	2018,2019,2020
 ./doc/arm/notes-9.16.0.xml			SGML	2020
 ./doc/arm/notes-9.16.1.xml			SGML	2020
+./doc/arm/notes-9.16.2.xml			SGML	2020
 ./doc/arm/notes-download.xml			SGML	2019,2020
 ./doc/arm/notes-eol.xml				SGML	2019,2020
 ./doc/arm/notes-intro.xml			SGML	2019,2020
