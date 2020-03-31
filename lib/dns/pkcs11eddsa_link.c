@@ -62,13 +62,8 @@
 static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
 
-static isc_result_t
-pkcs11eddsa_todns(const dst_key_t *key, isc_buffer_t *data);
 static void
 pkcs11eddsa_destroy(dst_key_t *key);
-static isc_result_t
-pkcs11eddsa_fetch(dst_key_t *key, const char *engine, const char *label,
-		  dst_key_t *pub);
 
 static isc_result_t
 pkcs11eddsa_createctx(dst_key_t *key, dst_context_t *dctx) {
