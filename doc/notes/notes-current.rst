@@ -132,6 +132,9 @@ Feature Changes
    :rfc:`3493` and :rfc:`3542`, this change was introduced in 9.16.0
    but accudently ommited from documentation.
 
+-  The question section is now checked when processing AXFR, IXFR
+   and SOA replies while transferring a zone in. [GL #1683]
+
 Bug Fixes
 ~~~~~~~~~
 
