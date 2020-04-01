@@ -1,3 +1,7 @@
+5412.	[bug]		'provide-ixfr no;' fail to return up-to-date responses
+			when the serial was greater than or equal to the
+			current serial. [GL #1714]
+
 5409.	[performance]	When looking up NSEC3 data in a zone database, skip
 			the check for empty non-terminal nodes; the NSEC3
 			tree doesn't have any. [GL #1834]
