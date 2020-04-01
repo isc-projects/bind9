@@ -1,3 +1,8 @@
+5371.	[bug]		Improve incremental updates of the RPZ summary
+			database to reduce delays that could occur when
+			a policy zone update included a large number of
+			record deletions. [GL #1447]
+
 5370.	[bug]		Deactivation of a netmgr handle associated with a
 			socket could be skipped in some circumstances.
 			Fixed by deactivating the netmgr handle before
