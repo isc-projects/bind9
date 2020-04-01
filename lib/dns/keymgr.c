@@ -1228,7 +1228,7 @@ transition:
  *
  */
 static void
-keymgr_key_init(dns_dnsseckey_t *key, isc_stdtime_t now) {
+keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	bool ksk, zsk;
 	isc_result_t ret;
 	isc_stdtime_t active = 0, pub = 0, syncpub = 0;
@@ -1254,15 +1254,34 @@ keymgr_key_init(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	/* Get time metadata. */
 	ret = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
 	if (active <= now && ret == ISC_R_SUCCESS) {
-		dnskey_state = RUMOURED;
+		dns_ttl_t key_ttl = dst_key_getttl(key->key);
+		key_ttl += dns_kasp_zonepropagationdelay(kasp);
+		if ((active + key_ttl) <= now) {
+			dnskey_state = OMNIPRESENT;
+		} else {
+			dnskey_state = RUMOURED;
+		}
 	}
 	ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &pub);
 	if (pub <= now && ret == ISC_R_SUCCESS) {
-		zrrsig_state = RUMOURED;
+		dns_ttl_t zone_ttl = dns_kasp_zonemaxttl(kasp);
+		zone_ttl += dns_kasp_zonepropagationdelay(kasp);
+		if ((pub + zone_ttl) <= now) {
+			zrrsig_state = OMNIPRESENT;
+		} else {
+			zrrsig_state = RUMOURED;
+		}
 	}
 	ret = dst_key_gettime(key->key, DST_TIME_SYNCPUBLISH, &syncpub);
 	if (syncpub <= now && ret == ISC_R_SUCCESS) {
-		ds_state = RUMOURED;
+		dns_ttl_t ds_ttl = dns_kasp_dsttl(kasp);
+		ds_ttl += dns_kasp_parentregistrationdelay(kasp);
+		ds_ttl += dns_kasp_parentpropagationdelay(kasp);
+		if ((syncpub + ds_ttl) <= now) {
+			ds_state = OMNIPRESENT;
+		} else {
+			ds_state = RUMOURED;
+		}
 	}
 
 	/* Set key states for all keys that do not have them. */
@@ -1342,7 +1361,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	{
 		bool found_match = false;
 
-		keymgr_key_init(dkey, now);
+		keymgr_key_init(dkey, kasp, now);
 
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
@@ -1511,7 +1530,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			dst_key_setttl(dst_key, dns_kasp_dnskeyttl(kasp));
 			dst_key_settime(dst_key, DST_TIME_CREATED, now);
 			RETERR(dns_dnsseckey_create(mctx, &dst_key, &newkey));
-			keymgr_key_init(newkey, now);
+			keymgr_key_init(newkey, kasp, now);
 		} else {
 			newkey = candidate;
 			dst_key_setnum(newkey->key, DST_NUM_LIFETIME, lifetime);

@@ -35,12 +35,19 @@ controls {
 	inet 10.53.0.6 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-/* This is a zone that migrates to dnssec-policy. */
+/* These are zones that migrate to dnssec-policy. */
 zone "migrate.kasp" {
 	type master;
 	file "migrate.kasp.db";
 	allow-update { any; };
 	dnssec-policy "migrate";
+};
+
+zone "migrate-nomatch.kasp" {
+	type master;
+	file "migrate-nomatch.kasp.db";
+	allow-update { any; };
+	dnssec-policy "migrate-nomatch";
 };
 
 /*
