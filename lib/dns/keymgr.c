@@ -1402,21 +1402,13 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					      keystr, keymgr_keyrole(dkey->key),
 					      dns_kasp_getname(kasp));
 
-				/* Initialize lifetime and goal, if not set. */
+				/* Initialize lifetime if not set. */
 				uint32_t l;
 				if (dst_key_getnum(dkey->key, DST_NUM_LIFETIME,
 						   &l) != ISC_R_SUCCESS) {
 					dst_key_setnum(dkey->key,
 						       DST_NUM_LIFETIME,
 						       lifetime);
-				}
-
-				dst_key_state_t goal;
-				if (dst_key_getstate(dkey->key, DST_KEY_GOAL,
-						     &goal) != ISC_R_SUCCESS) {
-					dst_key_setstate(dkey->key,
-							 DST_KEY_GOAL,
-							 OMNIPRESENT);
 				}
 
 				if (active_key) {
@@ -1440,6 +1432,19 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 						keymgr_key_retire(dkey, now);
 					}
 					continue;
+				}
+
+				/*
+				 * This is possibly an active key created
+				 * outside dnssec-policy.  Initialize goal,
+				 * if not set.
+				 */
+				dst_key_state_t goal;
+				if (dst_key_getstate(dkey->key, DST_KEY_GOAL,
+						     &goal) != ISC_R_SUCCESS) {
+					dst_key_setstate(dkey->key,
+							 DST_KEY_GOAL,
+							 OMNIPRESENT);
 				}
 
 				/*

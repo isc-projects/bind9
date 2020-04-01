@@ -52,8 +52,10 @@ private_type_record $zone 5 "$ZSK" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Set up a zone with auto-dnssec maintain to migrate to dnssec-policy, but this
-# time the existing keys do not match the policy.
-setup migrate-nomatch.kasp
+# time the existing keys do not match the policy.  The existing keys are
+# 1024 bits RSASHA1 keys, and will be migrated to a dnssec-policy that
+# dictates 2048 bits RSASHA1 keys.
+setup migrate-nomatch-alglen.kasp
 echo "$zone" >> zones
 KSK=$($KEYGEN -a RSASHA1 -b 1024 -f KSK -L 300 $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a RSASHA1 -b 1024 -L 300 $zone 2> keygen.out.$zone.2)

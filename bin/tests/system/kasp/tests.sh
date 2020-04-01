@@ -2920,11 +2920,11 @@ _migrate_zsk=$(key_get KEY2 ID)
 #
 # Testing migration with unmatched existing keys.
 #
-set_zone "migrate-nomatch.kasp"
+set_zone "migrate-nomatch-alglen.kasp"
 set_policy "none" "2" "300"
 set_server "ns6" "10.53.0.6"
 
-init_migration_nomatch() {
+init_migration_nomatch_alglen() {
 	key_clear        "KEY1"
 	key_set          "KEY1" "LEGACY" "yes"
 	set_keyrole      "KEY1" "ksk"
@@ -2957,7 +2957,7 @@ init_migration_nomatch() {
 	set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
 	set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 }
-init_migration_nomatch
+init_migration_nomatch_alglen
 
 # Make sure the zone is signed with legacy keys.
 check_keys
@@ -2966,8 +2966,8 @@ check_subdomain
 dnssec_verify
 
 # Remember legacy key tags.
-_migratenomatch_ksk=$(key_get KEY1 ID)
-_migratenomatch_zsk=$(key_get KEY2 ID)
+_migratenomatch_alglen_ksk=$(key_get KEY1 ID)
+_migratenomatch_alglen_zsk=$(key_get KEY2 ID)
 
 # Reconfig dnssec-policy (triggering algorithm roll and other dnssec-policy
 # changes).
@@ -3033,13 +3033,13 @@ ret=0
 status=$((status+ret))
 
 # Test migration to dnssec-policy, existing keys do not match.
-set_zone "migrate-nomatch.kasp"
-set_policy "migrate-nomatch" "4" "300"
+set_zone "migrate-nomatch-alglen.kasp"
+set_policy "migrate-nomatch-alglen" "4" "300"
 set_server "ns6" "10.53.0.6"
 
 # The legacy keys need to be retired, but otherwise stay present until the
 # new keys are omnipresent, and can be used to construct a chain of trust.
-init_migration_nomatch
+init_migration_nomatch_alglen
 
 key_set      "KEY1" "LEGACY"  "no"
 set_keytime  "KEY1" "RETIRED" "yes"
@@ -3059,7 +3059,7 @@ set_keyrole      "KEY4" "zsk"
 set_keylifetime  "KEY4" "5184000"
 set_keyalgorithm "KEY4" "5" "RSASHA1" "2048"
 set_keysigning   "KEY4" "no"
-# This key is not active yet, first the DNSKEY needs to be omnipresent.
+# This key is considered to be prepublished, so it is not yet signing.
 set_zonesigning  "KEY4" "no"
 
 set_keytime  "KEY3" "PUBLISHED"    "yes"
@@ -3086,8 +3086,8 @@ dnssec_verify
 n=$((n+1))
 echo_i "check that of zone ${ZONE} migration to dnssec-policy keeps existing keys ($n)"
 ret=0
-[ $_migratenomatch_ksk == $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
-[ $_migratenomatch_zsk == $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+[ $_migratenomatch_alglen_ksk == $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_migratenomatch_alglen_zsk == $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
 status=$((status+ret))
 
 #
