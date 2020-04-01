@@ -78,7 +78,7 @@ key_clear() {
 	key_set "$1" "ROLE" 'none'
 	key_set "$1" "KSK" 'no'
 	key_set "$1" "ZSK" 'no'
-	key_set "$1" "LIFETIME" '0'
+	key_set "$1" "LIFETIME" 'none'
 	key_set "$1" "ALG_NUM" '0'
 	key_set "$1" "ALG_STR" 'none'
 	key_set "$1" "ALG_LEN" '0'
@@ -286,7 +286,7 @@ check_key() {
 	[ "$ret" -eq 0 ] || log_error "${BASE_FILE} files missing"
 	[ "$ret" -eq 0 ] || return
 
-	test $_log -eq 1 && echo_i "check key $BASE_FILE"
+	test $_log -eq 1 && echo_i "check key file $BASE_FILE"
 
 	# Check the public key file.
 	grep "This is a ${_role2} key, keyid ${_key_id}, for ${_zone}." "$KEY_FILE" > /dev/null || log_error "mismatch top comment in $KEY_FILE"
@@ -297,7 +297,11 @@ check_key() {
 	# Now check the key state file.
 	if [ "$_legacy" == "no" ]; then
 		grep "This is the state of key ${_key_id}, for ${_zone}." "$STATE_FILE" > /dev/null || log_error "mismatch top comment in $STATE_FILE"
-		grep "Lifetime: ${_lifetime}" "$STATE_FILE" > /dev/null || log_error "mismatch lifetime in $STATE_FILE"
+		if [ "$_lifetime" == "none" ]; then
+			grep "Lifetime: " "$STATE_FILE" > /dev/null && log_error "unexpected lifetime in $STATE_FILE"
+		else
+			grep "Lifetime: ${_lifetime}" "$STATE_FILE" > /dev/null || log_error "mismatch lifetime in $STATE_FILE"
+		fi
 		grep "Algorithm: ${_alg_num}" "$STATE_FILE" > /dev/null || log_error "mismatch algorithm in $STATE_FILE"
 		grep "Length: ${_length}" "$STATE_FILE" > /dev/null || log_error "mismatch length in $STATE_FILE"
 		grep "KSK: ${_ksk}" "$STATE_FILE" > /dev/null || log_error "mismatch ksk in $STATE_FILE"
@@ -882,7 +886,7 @@ check_keys()
 	for _id in $_ids; do
 		# There are three key files with the same algorithm.
 		# Check them until a match is found.
-		echo_i "check key $_id"
+		echo_i "check key id $_id"
 
 		if [ "no" = "$(key_get KEY1 ID)" ] && [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
 			ret=0
@@ -897,19 +901,19 @@ check_keys()
 		if [ "no" = "$(key_get KEY3 ID)" ] && [ "$(key_get KEY3 EXPECT)" = "yes"  ]; then
 			ret=0
 			check_key "KEY3" "$_id"
-			test "$ret" -eq 0 && key_set KEY3 ID "$KEY_ID" && continue
+			test "$ret" -eq 0 && key_set KEY3 "ID" "$KEY_ID" && continue
 		fi
 		if [ "no" = "$(key_get KEY4 ID)" ] && [ "$(key_get KEY4 EXPECT)" = "yes"  ]; then
 			ret=0
 			check_key "KEY4" "$_id"
-			test "$ret" -eq 0 && key_set KEY4 ID "$KEY_ID" && continue
+			test "$ret" -eq 0 && key_set KEY4 "ID" "$KEY_ID" && continue
 		fi
 
 		# This may be an unused key. Assume algorithm of KEY1.
 		ret=0 && key_unused "$_id" "$(key_get KEY1 ALG_NUM)"
 		test "$ret" -eq 0 && continue
 
-		# If ret is still non-zero, non of the files matched.
+		# If ret is still non-zero, none of the files matched.
 		test "$ret" -eq 0 || echo_i "failed"
 		status=$((status+1))
 	done
@@ -919,15 +923,19 @@ check_keys()
 
 	ret=0
 	if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
+		echo_i "KEY1 ID $(key_get KEY1 ID)"
 		test "no" = "$(key_get KEY1 ID)" && log_error "No KEY1 found for zone ${ZONE}"
 	fi
 	if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
+		echo_i "KEY2 ID $(key_get KEY2 ID)"
 		test "no" = "$(key_get KEY2 ID)" && log_error "No KEY2 found for zone ${ZONE}"
 	fi
 	if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
+		echo_i "KEY3 ID $(key_get KEY3 ID)"
 		test "no" = "$(key_get KEY3 ID)" && log_error "No KEY3 found for zone ${ZONE}"
 	fi
 	if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
+		echo_i "KEY4 ID $(key_get KEY4 ID)"
 		test "no" = "$(key_get KEY4 ID)" && log_error "No KEY4 found for zone ${ZONE}"
 	fi
 	test "$ret" -eq 0 || echo_i "failed"
