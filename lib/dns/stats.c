@@ -106,6 +106,9 @@ typedef enum {
 static int dnssec_max_keys = 4;
 /* Attribute to signal whether a counter is actually a key id. */
 #define DNSSECSIGNSTATS_IS_KEY 0x10000
+/* DNSSEC sign operation (sign or refresh) */
+#define DNSSECSIGNSTATS_SIGN	1
+#define DNSSECSIGNSTATS_REFRESH 2
 
 struct dns_stats {
 	unsigned int magic;
@@ -359,7 +362,7 @@ dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code) {
 void
 dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id,
 			      bool refresh) {
-	isc_statscounter_t operation;
+	isc_statscounter_t operation = DNSSECSIGNSTATS_SIGN;
 	uint32_t kval;
 
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_dnssec);
@@ -369,52 +372,54 @@ dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id,
 
 	/* What operation are we counting? */
 	if (refresh) {
-		operation = (isc_statscounter_t)dnssec_max_keys * 2;
-	} else {
-		operation = (isc_statscounter_t)dnssec_max_keys;
+		operation = DNSSECSIGNSTATS_REFRESH;
 	}
 
 	/* Look up correct counter. */
 	for (int i = 0; i < dnssec_max_keys; i++) {
-		uint32_t counter = isc_stats_get_counter(stats->counters, i);
+		int idx = 3 * i;
+		uint32_t counter = isc_stats_get_counter(stats->counters, idx);
 		if (counter == kval) {
 			/* Match */
-			isc_stats_increment(stats->counters, operation + i);
+			isc_stats_increment(stats->counters, (idx + operation));
 			return;
 		}
 	}
 
 	/* No match found. Store key in unused slot. */
 	for (int i = 0; i < dnssec_max_keys; i++) {
-		uint32_t counter = isc_stats_get_counter(stats->counters, i);
+		int idx = 3 * i;
+		uint32_t counter = isc_stats_get_counter(stats->counters, idx);
 		if (counter == 0) {
-			isc_stats_set(stats->counters, kval, i);
-			isc_stats_increment(stats->counters, operation + i);
+			isc_stats_set(stats->counters, kval, idx);
+			isc_stats_increment(stats->counters, (idx + operation));
 			return;
 		}
 	}
 
 	/* No room, rotate keys. */
 	for (int i = 1; i < dnssec_max_keys; i++) {
-		uint32_t keyv = isc_stats_get_counter(stats->counters, i);
+		int gidx = 3 * i; /* Get key (get index, gidx) */
+		uint32_t keyv = isc_stats_get_counter(stats->counters, gidx);
 		uint32_t sign = isc_stats_get_counter(stats->counters,
-						      (dnssec_max_keys + i));
-		uint32_t refr = isc_stats_get_counter(
-			stats->counters, (dnssec_max_keys * 2 + i));
+						      (gidx + 1));
+		uint32_t refr = isc_stats_get_counter(stats->counters,
+						      (gidx + 2));
 
-		isc_stats_set(stats->counters, keyv, i - 1);
-		isc_stats_set(stats->counters, sign, dnssec_max_keys + i - 1);
-		isc_stats_set(stats->counters, refr,
-			      dnssec_max_keys * 2 + i - 1);
+		int sidx = gidx - 3; /* Set key, (set index, sidx) */
+		isc_stats_set(stats->counters, keyv, sidx);
+		isc_stats_set(stats->counters, sign, (sidx + 1));
+		isc_stats_set(stats->counters, refr, (sidx + 2));
 	}
 
-	/* Reset counters for new key. */
-	isc_stats_set(stats->counters, kval, dnssec_max_keys - 1);
-	isc_stats_set(stats->counters, 0, 2 * dnssec_max_keys - 1);
-	isc_stats_set(stats->counters, 0, 3 * dnssec_max_keys - 1);
+	/* Reset counters for new key (new index, nidx). */
+	int nidx = 3 * (dnssec_max_keys - 1);
+	isc_stats_set(stats->counters, kval, nidx);
+	isc_stats_set(stats->counters, 0, (nidx + 1));
+	isc_stats_set(stats->counters, 0, (nidx + 2));
 
 	/* And increment the counter for the given operation. */
-	isc_stats_increment(stats->counters, operation + dnssec_max_keys - 1);
+	isc_stats_increment(stats->counters, (nidx + operation));
 }
 
 /*%
@@ -525,24 +530,23 @@ static void
 dnssec_statsdump(isc_stats_t *stats, bool refresh, isc_stats_dumper_t dump_fn,
 		 void *arg, unsigned int options) {
 	int i;
-	isc_statscounter_t operation;
+	isc_statscounter_t operation = DNSSECSIGNSTATS_SIGN;
 
 	if (refresh) {
-		operation = (isc_statscounter_t)dnssec_max_keys * 2;
-	} else {
-		operation = (isc_statscounter_t)dnssec_max_keys;
+		operation = DNSSECSIGNSTATS_REFRESH;
 	}
 
 	for (i = 0; i < dnssec_max_keys; i++) {
+		int idx = 3 * i;
 		uint32_t kval, val;
 		dns_keytag_t id;
 
-		kval = isc_stats_get_counter(stats, i);
+		kval = isc_stats_get_counter(stats, idx);
 		if (kval == 0) {
 			continue;
 		}
 
-		val = isc_stats_get_counter(stats, (operation + i));
+		val = isc_stats_get_counter(stats, (idx + operation));
 		if ((options & ISC_STATSDUMP_VERBOSE) == 0 && val == 0) {
 			continue;
 		}
