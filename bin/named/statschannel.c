@@ -2705,49 +2705,49 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 		if (dnssecsignstats != NULL) {
 			stats_dumparg_t dumparg;
-			json_object *counters = json_object_new_object();
-			CHECKMEM(counters);
+			json_object *sign_counters = json_object_new_object();
+			CHECKMEM(sign_counters);
 
 			dumparg.type = isc_statsformat_json;
-			dumparg.arg = counters;
+			dumparg.arg = sign_counters;
 			dumparg.result = ISC_R_SUCCESS;
 			dns_dnssecsignstats_dump(
 				dnssecsignstats, dns_dnssecsignstats_sign,
 				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
-				json_object_put(counters);
+				json_object_put(sign_counters);
 				goto error;
 			}
 
-			if (json_object_get_object(counters)->count != 0) {
+			if (json_object_get_object(sign_counters)->count != 0) {
 				json_object_object_add(zoneobj, "dnssec-sign",
-						       counters);
+						       sign_counters);
 			} else {
-				json_object_put(counters);
+				json_object_put(sign_counters);
 			}
-		}
 
-		if (dnssecsignstats != NULL) {
-			stats_dumparg_t dumparg;
-			json_object *counters = json_object_new_object();
-			CHECKMEM(counters);
+			json_object *refresh_counters =
+				json_object_new_object();
+			CHECKMEM(refresh_counters);
 
 			dumparg.type = isc_statsformat_json;
-			dumparg.arg = counters;
+			dumparg.arg = refresh_counters;
 			dumparg.result = ISC_R_SUCCESS;
 			dns_dnssecsignstats_dump(
 				dnssecsignstats, dns_dnssecsignstats_refresh,
 				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
-				json_object_put(counters);
+				json_object_put(refresh_counters);
 				goto error;
 			}
 
-			if (json_object_get_object(counters)->count != 0) {
-				json_object_object_add(
-					zoneobj, "dnssec-refresh", counters);
+			if (json_object_get_object(refresh_counters)->count !=
+			    0) {
+				json_object_object_add(zoneobj,
+						       "dnssec-refresh",
+						       refresh_counters);
 			} else {
-				json_object_put(counters);
+				json_object_put(refresh_counters);
 			}
 		}
 	}
