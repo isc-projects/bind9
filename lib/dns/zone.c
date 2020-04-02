@@ -6923,13 +6923,15 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 		if (dnssecsignstats != NULL) {
 			/* Generated a new signature. */
-			dns_dnssecsignstats_increment(
-				dnssecsignstats, ID(keys[i]),
-				(uint8_t)ALG(keys[i]), false);
+			dns_dnssecsignstats_increment(dnssecsignstats,
+						      ID(keys[i]),
+						      (uint8_t)ALG(keys[i]),
+						      dns_dnssecsignstats_sign);
 			/* This is a refresh. */
 			dns_dnssecsignstats_increment(
 				dnssecsignstats, ID(keys[i]),
-				(uint8_t)ALG(keys[i]), true);
+				(uint8_t)ALG(keys[i]),
+				dns_dnssecsignstats_refresh);
 		}
 	}
 
@@ -7511,10 +7513,12 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		if (dnssecsignstats != NULL) {
 			/* Generated a new signature. */
 			dns_dnssecsignstats_increment(dnssecsignstats, ID(key),
-						      ALG(key), false);
+						      ALG(key),
+						      dns_dnssecsignstats_sign);
 			/* This is a refresh. */
-			dns_dnssecsignstats_increment(dnssecsignstats, ID(key),
-						      ALG(key), true);
+			dns_dnssecsignstats_increment(
+				dnssecsignstats, ID(key), ALG(key),
+				dns_dnssecsignstats_refresh);
 		}
 
 		(*signatures)--;
