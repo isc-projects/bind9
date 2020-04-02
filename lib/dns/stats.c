@@ -106,9 +106,6 @@ typedef enum {
 static int dnssec_max_keys = 4;
 /* Key id mask */
 #define DNSSECSIGNSTATS_KEY_ID_MASK 0x0000FFFF
-/* DNSSEC sign operation (sign or refresh) */
-#define DNSSECSIGNSTATS_SIGN	1
-#define DNSSECSIGNSTATS_REFRESH 2
 
 struct dns_stats {
 	unsigned int magic;
@@ -361,19 +358,13 @@ dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code) {
 
 void
 dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
-			      bool refresh) {
-	isc_statscounter_t operation = DNSSECSIGNSTATS_SIGN;
+			      dnssecsignstats_type_t operation) {
 	uint32_t kval;
 
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_dnssec);
 
 	/* Shift algorithm in front of key tag, which is 16 bits */
 	kval = (uint32_t)(alg << 16 | id);
-
-	/* What operation are we counting? */
-	if (refresh) {
-		operation = DNSSECSIGNSTATS_REFRESH;
-	}
 
 	/* Look up correct counter. */
 	for (int i = 0; i < dnssec_max_keys; i++) {
@@ -401,22 +392,24 @@ dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 	for (int i = 1; i < dnssec_max_keys; i++) {
 		int gidx = 3 * i; /* Get key (get index, gidx) */
 		uint32_t keyv = isc_stats_get_counter(stats->counters, gidx);
-		uint32_t sign = isc_stats_get_counter(stats->counters,
-						      (gidx + 1));
-		uint32_t refr = isc_stats_get_counter(stats->counters,
-						      (gidx + 2));
+		uint32_t sign = isc_stats_get_counter(
+			stats->counters, (gidx + dns_dnssecsignstats_sign));
+		uint32_t refr = isc_stats_get_counter(
+			stats->counters, (gidx + dns_dnssecsignstats_refresh));
 
-		int sidx = gidx - 3; /* Set key, (set index, sidx) */
+		int sidx = 3 * (i - 1); /* Set key, (set index, sidx) */
 		isc_stats_set(stats->counters, keyv, sidx);
-		isc_stats_set(stats->counters, sign, (sidx + 1));
-		isc_stats_set(stats->counters, refr, (sidx + 2));
+		isc_stats_set(stats->counters, sign,
+			      (sidx + dns_dnssecsignstats_sign));
+		isc_stats_set(stats->counters, refr,
+			      (sidx + dns_dnssecsignstats_refresh));
 	}
 
 	/* Reset counters for new key (new index, nidx). */
 	int nidx = 3 * (dnssec_max_keys - 1);
 	isc_stats_set(stats->counters, kval, nidx);
-	isc_stats_set(stats->counters, 0, (nidx + 1));
-	isc_stats_set(stats->counters, 0, (nidx + 2));
+	isc_stats_set(stats->counters, 0, (nidx + dns_dnssecsignstats_sign));
+	isc_stats_set(stats->counters, 0, (nidx + dns_dnssecsignstats_refresh));
 
 	/* And increment the counter for the given operation. */
 	isc_stats_increment(stats->counters, (nidx + operation));
@@ -527,14 +520,9 @@ dnssec_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 }
 
 static void
-dnssec_statsdump(isc_stats_t *stats, bool refresh, isc_stats_dumper_t dump_fn,
-		 void *arg, unsigned int options) {
+dnssec_statsdump(isc_stats_t *stats, dnssecsignstats_type_t operation,
+		 isc_stats_dumper_t dump_fn, void *arg, unsigned int options) {
 	int i;
-	isc_statscounter_t operation = DNSSECSIGNSTATS_SIGN;
-
-	if (refresh) {
-		operation = DNSSECSIGNSTATS_REFRESH;
-	}
 
 	for (i = 0; i < dnssec_max_keys; i++) {
 		int idx = 3 * i;
@@ -558,7 +546,7 @@ dnssec_statsdump(isc_stats_t *stats, bool refresh, isc_stats_dumper_t dump_fn,
 }
 
 void
-dns_dnssecsignstats_dump(dns_stats_t *stats, bool refresh,
+dns_dnssecsignstats_dump(dns_stats_t *stats, dnssecsignstats_type_t operation,
 			 dns_dnssecsignstats_dumper_t dump_fn, void *arg0,
 			 unsigned int options) {
 	dnssecsigndumparg_t arg;
@@ -568,7 +556,7 @@ dns_dnssecsignstats_dump(dns_stats_t *stats, bool refresh,
 	arg.fn = dump_fn;
 	arg.arg = arg0;
 
-	dnssec_statsdump(stats->counters, refresh, dnssec_dumpcb, &arg,
+	dnssec_statsdump(stats->counters, operation, dnssec_dumpcb, &arg,
 			 options);
 }
 

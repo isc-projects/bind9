@@ -1260,9 +1260,10 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		added_sig = true;
 		/* Update DNSSEC sign statistics. */
 		if (dnssecsignstats != NULL) {
-			dns_dnssecsignstats_increment(
-				dnssecsignstats, ID(keys[i]),
-				(uint8_t)ALG(keys[i]), false);
+			dns_dnssecsignstats_increment(dnssecsignstats,
+						      ID(keys[i]),
+						      (uint8_t)ALG(keys[i]),
+						      dns_dnssecsignstats_sign);
 		}
 	}
 	if (!added_sig) {

@@ -1887,9 +1887,9 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 				ISC_XMLCHAR "dnssec-sign"));
 
 			dumparg.result = ISC_R_SUCCESS;
-			dns_dnssecsignstats_dump(dnssecsignstats, false,
-						 dnssecsignstat_dump, &dumparg,
-						 0);
+			dns_dnssecsignstats_dump(
+				dnssecsignstats, dns_dnssecsignstats_sign,
+				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
 				goto error;
 			}
@@ -1905,9 +1905,9 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 				ISC_XMLCHAR "dnssec-refresh"));
 
 			dumparg.result = ISC_R_SUCCESS;
-			dns_dnssecsignstats_dump(dnssecsignstats, true,
-						 dnssecsignstat_dump, &dumparg,
-						 0);
+			dns_dnssecsignstats_dump(
+				dnssecsignstats, dns_dnssecsignstats_refresh,
+				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
 				goto error;
 			}
@@ -2711,9 +2711,9 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 			dumparg.type = isc_statsformat_json;
 			dumparg.arg = counters;
 			dumparg.result = ISC_R_SUCCESS;
-			dns_dnssecsignstats_dump(dnssecsignstats, false,
-						 dnssecsignstat_dump, &dumparg,
-						 0);
+			dns_dnssecsignstats_dump(
+				dnssecsignstats, dns_dnssecsignstats_sign,
+				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
 				json_object_put(counters);
 				goto error;
@@ -2735,9 +2735,9 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 			dumparg.type = isc_statsformat_json;
 			dumparg.arg = counters;
 			dumparg.result = ISC_R_SUCCESS;
-			dns_dnssecsignstats_dump(dnssecsignstats, true,
-						 dnssecsignstat_dump, &dumparg,
-						 0);
+			dns_dnssecsignstats_dump(
+				dnssecsignstats, dns_dnssecsignstats_refresh,
+				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
 				json_object_put(counters);
 				goto error;
