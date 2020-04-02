@@ -1117,6 +1117,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 
 #define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
 #define KSK(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
+#define ID(x)	  dst_key_id(x)
 #define ALG(x)	  dst_key_alg(x)
 
 	/*
@@ -1260,7 +1261,8 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		/* Update DNSSEC sign statistics. */
 		if (dnssecsignstats != NULL) {
 			dns_dnssecsignstats_increment(
-				dnssecsignstats, dst_key_id(keys[i]), false);
+				dnssecsignstats, ID(keys[i]),
+				(uint8_t)ALG(keys[i]), false);
 		}
 	}
 	if (!added_sig) {

@@ -120,6 +120,7 @@
  */
 #define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
 #define KSK(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
+#define ID(x)	  dst_key_id(x)
 #define ALG(x)	  dst_key_alg(x)
 
 /*
@@ -6923,10 +6924,12 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 		if (dnssecsignstats != NULL) {
 			/* Generated a new signature. */
 			dns_dnssecsignstats_increment(
-				dnssecsignstats, dst_key_id(keys[i]), false);
+				dnssecsignstats, ID(keys[i]),
+				(uint8_t)ALG(keys[i]), false);
 			/* This is a refresh. */
 			dns_dnssecsignstats_increment(
-				dnssecsignstats, dst_key_id(keys[i]), true);
+				dnssecsignstats, ID(keys[i]),
+				(uint8_t)ALG(keys[i]), true);
 		}
 	}
 
@@ -7507,11 +7510,11 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 		if (dnssecsignstats != NULL) {
 			/* Generated a new signature. */
-			dns_dnssecsignstats_increment(dnssecsignstats,
-						      dst_key_id(key), false);
+			dns_dnssecsignstats_increment(dnssecsignstats, ID(key),
+						      ALG(key), false);
 			/* This is a refresh. */
-			dns_dnssecsignstats_increment(dnssecsignstats,
-						      dst_key_id(key), true);
+			dns_dnssecsignstats_increment(dnssecsignstats, ID(key),
+						      ALG(key), true);
 		}
 
 		(*signatures)--;

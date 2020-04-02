@@ -104,8 +104,8 @@ typedef enum {
 
 /* Maximum number of keys to keep track of for DNSSEC signing statistics. */
 static int dnssec_max_keys = 4;
-/* Attribute to signal whether a counter is actually a key id. */
-#define DNSSECSIGNSTATS_IS_KEY 0x10000
+/* Key id mask */
+#define DNSSECSIGNSTATS_KEY_ID_MASK 0x0000FFFF
 /* DNSSEC sign operation (sign or refresh) */
 #define DNSSECSIGNSTATS_SIGN	1
 #define DNSSECSIGNSTATS_REFRESH 2
@@ -360,15 +360,15 @@ dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code) {
 }
 
 void
-dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id,
+dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 			      bool refresh) {
 	isc_statscounter_t operation = DNSSECSIGNSTATS_SIGN;
 	uint32_t kval;
 
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_dnssec);
 
-	kval = (uint32_t)id;
-	kval |= DNSSECSIGNSTATS_IS_KEY;
+	/* Shift algorithm in front of key tag, which is 16 bits */
+	kval = (uint32_t)(alg << 16 | id);
 
 	/* What operation are we counting? */
 	if (refresh) {
@@ -551,8 +551,7 @@ dnssec_statsdump(isc_stats_t *stats, bool refresh, isc_stats_dumper_t dump_fn,
 			continue;
 		}
 
-		id = (dns_keytag_t)kval;
-		id &= ~DNSSECSIGNSTATS_IS_KEY;
+		id = (dns_keytag_t)kval & DNSSECSIGNSTATS_KEY_ID_MASK;
 
 		dump_fn((isc_statscounter_t)id, val, arg);
 	}
