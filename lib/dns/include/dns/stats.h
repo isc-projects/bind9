@@ -684,7 +684,7 @@ dns_rcodestats_increment(dns_stats_t *stats, dns_opcode_t code);
  */
 
 void
-dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id,
+dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 			      bool refresh);
 /*%<
  * Increment the statistics counter for the DNSKEY 'id'. If 'refresh' is set
