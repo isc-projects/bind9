@@ -2918,7 +2918,59 @@ _migrate_ksk=$(key_get KEY1 ID)
 _migrate_zsk=$(key_get KEY2 ID)
 
 #
-# Testing migration with unmatched existing keys.
+# Testing migration with unmatched existing keys (different algorithm).
+#
+set_zone "migrate-nomatch-algnum.kasp"
+set_policy "none" "2" "300"
+set_server "ns6" "10.53.0.6"
+
+init_migration_nomatch_algnum() {
+	key_clear        "KEY1"
+	key_set          "KEY1" "LEGACY" "yes"
+	set_keyrole      "KEY1" "ksk"
+	set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
+	set_keysigning   "KEY1" "yes"
+	set_zonesigning  "KEY1" "no"
+
+	key_clear        "KEY2"
+	key_set          "KEY2" "LEGACY" "yes"
+	set_keyrole      "KEY2" "zsk"
+	set_keyalgorithm "KEY2" "5" "RSASHA1" "1024"
+	set_keysigning   "KEY2" "no"
+	set_zonesigning  "KEY2" "yes"
+
+	key_clear        "KEY3"
+	key_clear        "KEY4"
+
+	set_keytime  "KEY1" "PUBLISHED"    "yes"
+	set_keytime  "KEY1" "ACTIVE"       "yes"
+	set_keytime  "KEY1" "RETIRED"      "none"
+	set_keystate "KEY1" "GOAL"         "omnipresent"
+	set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+	set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+	set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+	set_keytime  "KEY2" "PUBLISHED"    "yes"
+	set_keytime  "KEY2" "ACTIVE"       "yes"
+	set_keytime  "KEY2" "RETIRED"      "none"
+	set_keystate "KEY2" "GOAL"         "omnipresent"
+	set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+	set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+}
+init_migration_nomatch_algnum
+
+# Make sure the zone is signed with legacy keys.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Remember legacy key tags.
+_migratenomatch_algnum_ksk=$(key_get KEY1 ID)
+_migratenomatch_algnum_zsk=$(key_get KEY2 ID)
+
+#
+# Testing migration with unmatched existing keys (different length).
 #
 set_zone "migrate-nomatch-alglen.kasp"
 set_policy "none" "2" "300"
@@ -3032,7 +3084,64 @@ ret=0
 [ $_migrate_zsk == $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
 status=$((status+ret))
 
-# Test migration to dnssec-policy, existing keys do not match.
+# Test migration to dnssec-policy, existing keys do not match key algorithm.
+set_zone "migrate-nomatch-algnum.kasp"
+set_policy "migrate-nomatch-algnum" "4" "300"
+set_server "ns6" "10.53.0.6"
+
+# The legacy keys need to be retired, but otherwise stay present until the
+# new keys are omnipresent, and can be used to construct a chain of trust.
+init_migration_nomatch_algnum
+
+key_set      "KEY1" "LEGACY"  "no"
+set_keytime  "KEY1" "RETIRED" "yes"
+set_keystate "KEY1" "GOAL"    "hidden"
+
+key_set      "KEY2" "LEGACY"  "no"
+set_keytime  "KEY2" "RETIRED" "yes"
+set_keystate "KEY2" "GOAL"    "hidden"
+
+set_keyrole      "KEY3" "ksk"
+set_keylifetime  "KEY3" "0"
+set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY3" "yes"
+set_zonesigning  "KEY3" "no"
+
+set_keyrole      "KEY4" "zsk"
+set_keylifetime  "KEY4" "5184000"
+set_keyalgorithm "KEY4" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY4" "no"
+set_zonesigning  "KEY4" "yes"
+
+set_keytime  "KEY3" "PUBLISHED"    "yes"
+set_keytime  "KEY3" "ACTIVE"       "yes"
+set_keytime  "KEY3" "RETIRED"      "none"
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY3" "STATE_DS"     "hidden"
+
+set_keytime  "KEY4" "PUBLISHED"    "yes"
+set_keytime  "KEY4" "ACTIVE"       "yes"
+set_keytime  "KEY4" "RETIRED"      "yes"
+set_keystate "KEY4" "GOAL"         "omnipresent"
+set_keystate "KEY4" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY4" "STATE_ZRRSIG" "rumoured"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Check key tags, should be the same.
+n=$((n+1))
+echo_i "check that of zone ${ZONE} migration to dnssec-policy keeps existing keys ($n)"
+ret=0
+[ $_migratenomatch_algnum_ksk == $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_migratenomatch_algnum_zsk == $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+status=$((status+ret))
+
+# Test migration to dnssec-policy, existing keys do not match key length.
 set_zone "migrate-nomatch-alglen.kasp"
 set_policy "migrate-nomatch-alglen" "4" "300"
 set_server "ns6" "10.53.0.6"
