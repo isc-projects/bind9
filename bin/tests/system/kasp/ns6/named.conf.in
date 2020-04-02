@@ -46,6 +46,15 @@ zone "migrate.kasp" {
 	update-check-ksk yes;
 };
 
+zone "migrate-nomatch-algnum.kasp" {
+	type master;
+	file "migrate-nomatch-algnum.kasp.db";
+	auto-dnssec maintain;
+	allow-update { any; };
+	dnssec-dnskey-kskonly yes;
+	update-check-ksk yes;
+};
+
 zone "migrate-nomatch-alglen.kasp" {
 	type master;
 	file "migrate-nomatch-alglen.kasp.db";

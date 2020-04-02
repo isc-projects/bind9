@@ -53,6 +53,24 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 
 # Set up a zone with auto-dnssec maintain to migrate to dnssec-policy, but this
 # time the existing keys do not match the policy.  The existing keys are
+# RSASHA1 keys, and will be migrated to a dnssec-policy that dictates
+# ECDSAP256SHA256 keys.
+setup migrate-nomatch-algnum.kasp
+echo "$zone" >> zones
+KSK=$($KEYGEN -a RSASHA1 -b 2048 -f KSK -L 300 $zone 2> keygen.out.$zone.1)
+ZSK=$($KEYGEN -a RSASHA1 -b 1024 -L 300 $zone 2> keygen.out.$zone.2)
+Tds="now-24h"    # Time according to dnssec-policy that DS will be OMNIPRESENT
+Tkey="now-3900s" # DNSKEY TTL + propagation delay
+Tsig="now-12h"   # Zone's maximum TTL + propagation delay
+$SETTIME -P $Tkey -P sync $Tds -A $Tkey "$KSK" > settime.out.$zone.1 2>&1
+$SETTIME -P $Tsig -A $Tsig "$ZSK" > settime.out.$zone.2 2>&1
+cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
+private_type_record $zone 5 "$KSK" >> "$infile"
+private_type_record $zone 5 "$ZSK" >> "$infile"
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Set up a zone with auto-dnssec maintain to migrate to dnssec-policy, but this
+# time the existing keys do not match the policy.  The existing keys are
 # 1024 bits RSASHA1 keys, and will be migrated to a dnssec-policy that
 # dictates 2048 bits RSASHA1 keys.
 setup migrate-nomatch-alglen.kasp
