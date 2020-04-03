@@ -63,6 +63,14 @@
 	  reducing such delays. [GL #1447]
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  Migration to dnssec-policy from existing DNSSEC strategy with
+	  auto-dnssec maintain did not work due to bad initializing of the
+	  key states.  Fixed by looking closely at the time metadata to
+	  set the key states to the correct values. [GL #1706]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
