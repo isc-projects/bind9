@@ -177,9 +177,9 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
  */
 
 void
-isc_nm_udp_stoplistening(isc_nmsocket_t *sock);
+isc_nm_stoplistening(isc_nmsocket_t *sock);
 /*%<
- * Stop listening for UDP packets on socket 'sock'.
+ * Stop listening on socket 'sock'.
  */
 
 void
@@ -251,12 +251,6 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
  * prepended with a two-byte length field, and handles buffering.
  */
 
-void
-isc_nm_tcp_stoplistening(isc_nmsocket_t *sock);
-/*%<
- * Stop listening on TCP socket 'sock'.
- */
-
 isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		    void *cbarg, isc_nm_cb_t accept_cb, void *accept_cbarg,
@@ -283,12 +277,6 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
  * (typically ns_client).
  *
  * 'quota' is passed to isc_nm_listentcp() when opening the raw TCP socket.
- */
-
-void
-isc_nm_tcpdns_stoplistening(isc_nmsocket_t *sock);
-/*%<
- * Stop listening on TCPDNS socket 'sock'.
  */
 
 void
