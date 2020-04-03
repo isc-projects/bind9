@@ -1814,7 +1814,6 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 		isc_stats_t *gluecachestats;
 		dns_stats_t *rcvquerystats;
 		dns_stats_t *dnssecsignstats;
-		dns_stats_t *dnssecrefreshstats;
 		uint64_t nsstat_values[ns_statscounter_max];
 		uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 
@@ -1880,6 +1879,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 		if (dnssecsignstats != NULL) {
+			/* counters type="dnssec-sign"*/
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "counters"));
 			TRY0(xmlTextWriterWriteAttribute(
@@ -1887,19 +1887,17 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 				ISC_XMLCHAR "dnssec-sign"));
 
 			dumparg.result = ISC_R_SUCCESS;
-			dns_dnssecsignstats_dump(dnssecsignstats,
-						 dnssecsignstat_dump, &dumparg,
-						 0);
+			dns_dnssecsignstats_dump(
+				dnssecsignstats, dns_dnssecsignstats_sign,
+				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
 				goto error;
 			}
 
 			/* counters type="dnssec-sign"*/
 			TRY0(xmlTextWriterEndElement(writer));
-		}
 
-		dnssecrefreshstats = dns_zone_getdnssecrefreshstats(zone);
-		if (dnssecrefreshstats != NULL) {
+			/* counters type="dnssec-refresh"*/
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "counters"));
 			TRY0(xmlTextWriterWriteAttribute(
@@ -1907,9 +1905,9 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 				ISC_XMLCHAR "dnssec-refresh"));
 
 			dumparg.result = ISC_R_SUCCESS;
-			dns_dnssecsignstats_dump(dnssecrefreshstats,
-						 dnssecsignstat_dump, &dumparg,
-						 0);
+			dns_dnssecsignstats_dump(
+				dnssecsignstats, dns_dnssecsignstats_refresh,
+				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
 				goto error;
 			}
@@ -2626,7 +2624,6 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 		isc_stats_t *gluecachestats;
 		dns_stats_t *rcvquerystats;
 		dns_stats_t *dnssecsignstats;
-		dns_stats_t *dnssecrefreshstats;
 		uint64_t nsstat_values[ns_statscounter_max];
 		uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 
@@ -2708,50 +2705,49 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 		if (dnssecsignstats != NULL) {
 			stats_dumparg_t dumparg;
-			json_object *counters = json_object_new_object();
-			CHECKMEM(counters);
+			json_object *sign_counters = json_object_new_object();
+			CHECKMEM(sign_counters);
 
 			dumparg.type = isc_statsformat_json;
-			dumparg.arg = counters;
+			dumparg.arg = sign_counters;
 			dumparg.result = ISC_R_SUCCESS;
-			dns_dnssecsignstats_dump(dnssecsignstats,
-						 dnssecsignstat_dump, &dumparg,
-						 0);
+			dns_dnssecsignstats_dump(
+				dnssecsignstats, dns_dnssecsignstats_sign,
+				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
-				json_object_put(counters);
+				json_object_put(sign_counters);
 				goto error;
 			}
 
-			if (json_object_get_object(counters)->count != 0) {
+			if (json_object_get_object(sign_counters)->count != 0) {
 				json_object_object_add(zoneobj, "dnssec-sign",
-						       counters);
+						       sign_counters);
 			} else {
-				json_object_put(counters);
+				json_object_put(sign_counters);
 			}
-		}
 
-		dnssecrefreshstats = dns_zone_getdnssecrefreshstats(zone);
-		if (dnssecrefreshstats != NULL) {
-			stats_dumparg_t dumparg;
-			json_object *counters = json_object_new_object();
-			CHECKMEM(counters);
+			json_object *refresh_counters =
+				json_object_new_object();
+			CHECKMEM(refresh_counters);
 
 			dumparg.type = isc_statsformat_json;
-			dumparg.arg = counters;
+			dumparg.arg = refresh_counters;
 			dumparg.result = ISC_R_SUCCESS;
-			dns_dnssecsignstats_dump(dnssecrefreshstats,
-						 dnssecsignstat_dump, &dumparg,
-						 0);
+			dns_dnssecsignstats_dump(
+				dnssecsignstats, dns_dnssecsignstats_refresh,
+				dnssecsignstat_dump, &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS) {
-				json_object_put(counters);
+				json_object_put(refresh_counters);
 				goto error;
 			}
 
-			if (json_object_get_object(counters)->count != 0) {
-				json_object_object_add(
-					zoneobj, "dnssec-refresh", counters);
+			if (json_object_get_object(refresh_counters)->count !=
+			    0) {
+				json_object_object_add(zoneobj,
+						       "dnssec-refresh",
+						       refresh_counters);
 			} else {
-				json_object_put(counters);
+				json_object_put(refresh_counters);
 			}
 		}
 	}
