@@ -103,7 +103,8 @@ typedef enum {
  */
 
 /* Maximum number of keys to keep track of for DNSSEC signing statistics. */
-static int dnssec_max_keys = 4;
+static int dnssecsign_max_keys = 4;
+static int dnssecsign_block_size = 3;
 /* Key id mask */
 #define DNSSECSIGNSTATS_KEY_ID_MASK 0x0000FFFF
 
@@ -243,8 +244,8 @@ dns_dnssecsignstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	 * Create two counters per key, one is the key id, the other two are
 	 * the actual counters for creating and refreshing signatures.
 	 */
-	return (create_stats(mctx, dns_statstype_dnssec, dnssec_max_keys * 3,
-			     statsp));
+	return (create_stats(mctx, dns_statstype_dnssec,
+			     dnssecsign_max_keys * 3, statsp));
 }
 
 /*%
@@ -367,8 +368,8 @@ dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 	kval = (uint32_t)(alg << 16 | id);
 
 	/* Look up correct counter. */
-	for (int i = 0; i < dnssec_max_keys; i++) {
-		int idx = 3 * i;
+	for (int i = 0; i < dnssecsign_max_keys; i++) {
+		int idx = i * dnssecsign_block_size;
 		uint32_t counter = isc_stats_get_counter(stats->counters, idx);
 		if (counter == kval) {
 			/* Match */
@@ -378,8 +379,8 @@ dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 	}
 
 	/* No match found. Store key in unused slot. */
-	for (int i = 0; i < dnssec_max_keys; i++) {
-		int idx = 3 * i;
+	for (int i = 0; i < dnssecsign_max_keys; i++) {
+		int idx = i * dnssecsign_block_size;
 		uint32_t counter = isc_stats_get_counter(stats->counters, idx);
 		if (counter == 0) {
 			isc_stats_set(stats->counters, kval, idx);
@@ -389,15 +390,17 @@ dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 	}
 
 	/* No room, rotate keys. */
-	for (int i = 1; i < dnssec_max_keys; i++) {
-		int gidx = 3 * i; /* Get key (get index, gidx) */
+	for (int i = 1; i < dnssecsign_max_keys; i++) {
+		int gidx = i * dnssecsign_block_size; /* Get key (get index,
+							 gidx) */
 		uint32_t keyv = isc_stats_get_counter(stats->counters, gidx);
 		uint32_t sign = isc_stats_get_counter(
 			stats->counters, (gidx + dns_dnssecsignstats_sign));
 		uint32_t refr = isc_stats_get_counter(
 			stats->counters, (gidx + dns_dnssecsignstats_refresh));
 
-		int sidx = 3 * (i - 1); /* Set key, (set index, sidx) */
+		int sidx = (i - 1) * dnssecsign_block_size; /* Set key, (set
+							       index, sidx) */
 		isc_stats_set(stats->counters, keyv, sidx);
 		isc_stats_set(stats->counters, sign,
 			      (sidx + dns_dnssecsignstats_sign));
@@ -406,7 +409,7 @@ dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 	}
 
 	/* Reset counters for new key (new index, nidx). */
-	int nidx = 3 * (dnssec_max_keys - 1);
+	int nidx = (dnssecsign_max_keys - 1) * dnssecsign_block_size;
 	isc_stats_set(stats->counters, kval, nidx);
 	isc_stats_set(stats->counters, 0, (nidx + dns_dnssecsignstats_sign));
 	isc_stats_set(stats->counters, 0, (nidx + dns_dnssecsignstats_refresh));
@@ -524,8 +527,8 @@ dnssec_statsdump(isc_stats_t *stats, dnssecsignstats_type_t operation,
 		 isc_stats_dumper_t dump_fn, void *arg, unsigned int options) {
 	int i;
 
-	for (i = 0; i < dnssec_max_keys; i++) {
-		int idx = 3 * i;
+	for (i = 0; i < dnssecsign_max_keys; i++) {
+		int idx = dnssecsign_block_size * i;
 		uint32_t kval, val;
 		dns_keytag_t id;
 
