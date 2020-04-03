@@ -112,7 +112,7 @@ struct isc_logconfig {
 	ISC_LIST(isc_logchannellist_t) * channellists;
 	unsigned int channellist_count;
 	unsigned int duplicate_interval;
-	int highest_level;
+	int_fast32_t highest_level;
 	char *tag;
 	bool dynamic;
 };
@@ -142,7 +142,7 @@ struct isc_log {
 	unsigned int category_count;
 	isc_logmodule_t *modules;
 	unsigned int module_count;
-	int debug_level;
+	atomic_int_fast32_t debug_level;
 	isc_rwlock_t lcfg_rwl;
 	/* Locked by isc_log lcfg_rwl */
 	isc_logconfig_t *logconfig;
@@ -150,6 +150,8 @@ struct isc_log {
 	/* Locked by isc_log lock. */
 	char buffer[LOG_BUFFER_SIZE];
 	ISC_LIST(isc_logmessage_t) messages;
+	atomic_bool dynamic;
+	atomic_int_fast32_t highest_level;
 };
 
 /*!
@@ -174,9 +176,9 @@ static const int syslog_map[] = { LOG_DEBUG,   LOG_INFO, LOG_NOTICE,
  * channellist in the log context, it must come first in isc_categories[].
  */
 LIBISC_EXTERNAL_DATA isc_logcategory_t isc_categories[] = { { "default",
-							      0 }, /* "default"
-								    * must come
-								    * first. */
+							      0 }, /* "default
+								      must come
+								      first. */
 							    { "general", 0 },
 							    { NULL, 0 } };
 
@@ -210,6 +212,9 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 
 static void
 sync_channellist(isc_logconfig_t *lcfg);
+
+static void
+sync_highest_level(isc_log_t *lctx, isc_logconfig_t *lcfg);
 
 static isc_result_t
 greatest_version(isc_logfile_t *file, int versions, int *greatest);
@@ -256,7 +261,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 	lctx->category_count = 0;
 	lctx->modules = NULL;
 	lctx->module_count = 0;
-	lctx->debug_level = 0;
+	atomic_init(&lctx->debug_level, 0);
 
 	ISC_LIST_INIT(lctx->messages);
 
@@ -279,6 +284,9 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 	sync_channellist(lcfg);
 
 	lctx->logconfig = lcfg;
+
+	atomic_init(&lctx->highest_level, lcfg->highest_level);
+	atomic_init(&lctx->dynamic, lcfg->dynamic);
 
 	*lctxp = lctx;
 	if (lcfgp != NULL) {
@@ -309,7 +317,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 
 	/*
 	 * Create the default channels:
-	 *   	default_syslog, default_stderr, default_debug and null.
+	 *      default_syslog, default_stderr, default_debug and null.
 	 */
 	destination.facility = LOG_DAEMON;
 	isc_log_createchannel(lcfg, "default_syslog", ISC_LOG_TOSYSLOG, level,
@@ -362,6 +370,7 @@ isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg) {
 	WRLOCK(&lctx->lcfg_rwl);
 	old_cfg = lctx->logconfig;
 	lctx->logconfig = lcfg;
+	sync_highest_level(lctx, lcfg);
 	WRUNLOCK(&lctx->lcfg_rwl);
 
 	isc_logconfig_destroy(&old_cfg);
@@ -379,6 +388,11 @@ isc_log_destroy(isc_log_t **lctxp) {
 	lctx = *lctxp;
 	*lctxp = NULL;
 	mctx = lctx->mctx;
+
+	/* Stop the logging as a first thing */
+	atomic_store_release(&lctx->debug_level, 0);
+	atomic_store_release(&lctx->highest_level, 0);
+	atomic_store_release(&lctx->dynamic, false);
 
 	WRLOCK(&lctx->lcfg_rwl);
 	lcfg = lctx->logconfig;
@@ -400,7 +414,6 @@ isc_log_destroy(isc_log_t **lctxp) {
 	}
 
 	lctx->buffer[0] = '\0';
-	lctx->debug_level = 0;
 	lctx->categories = NULL;
 	lctx->category_count = 0;
 	lctx->modules = NULL;
@@ -745,6 +758,13 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		}
 	}
 
+	/*
+	 * Update the highest logging level, if the current lcfg is in use.
+	 */
+	if (lcfg->lctx->logconfig == lcfg) {
+		sync_highest_level(lctx, lcfg);
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -805,7 +825,7 @@ void
 isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level) {
 	REQUIRE(VALID_CONTEXT(lctx));
 
-	lctx->debug_level = level;
+	atomic_store_release(&lctx->debug_level, level);
 	/*
 	 * Close ISC_LOG_DEBUGONLY channels if level is zero.
 	 */
@@ -837,7 +857,7 @@ unsigned int
 isc_log_getdebuglevel(isc_log_t *lctx) {
 	REQUIRE(VALID_CONTEXT(lctx));
 
-	return (lctx->debug_level);
+	return (atomic_load_acquire(&lctx->debug_level));
 }
 
 void
@@ -986,6 +1006,12 @@ sync_channellist(isc_logconfig_t *lcfg) {
 
 	lcfg->channellists = lists;
 	lcfg->channellist_count = lctx->category_count;
+}
+
+static void
+sync_highest_level(isc_log_t *lctx, isc_logconfig_t *lcfg) {
+	atomic_store(&lctx->highest_level, lcfg->highest_level);
+	atomic_store(&lctx->dynamic, lcfg->dynamic);
 }
 
 static isc_result_t
@@ -1414,7 +1440,6 @@ isc_log_open(isc_logchannel_t *channel) {
 
 bool
 isc_log_wouldlog(isc_log_t *lctx, int level) {
-	bool ret = false;
 	/*
 	 * Try to avoid locking the mutex for messages which can't
 	 * possibly be logged to any channels -- primarily debugging
@@ -1429,15 +1454,16 @@ isc_log_wouldlog(isc_log_t *lctx, int level) {
 		return (false);
 	}
 
-	RDLOCK(&lctx->lcfg_rwl);
-	isc_logconfig_t *lcfg = lctx->logconfig;
-	if (lcfg != NULL) {
-		ret = (level <= lcfg->highest_level ||
-		       (lcfg->dynamic && level <= lctx->debug_level));
+	if (level <= atomic_load_acquire(&lctx->highest_level)) {
+		return (true);
 	}
-	RDUNLOCK(&lctx->lcfg_rwl);
+	if (atomic_load_acquire(&lctx->dynamic) &&
+	    level <= atomic_load_acquire(&lctx->debug_level))
+	{
+		return (true);
+	}
 
-	return (ret);
+	return (false);
 }
 
 static void
@@ -1494,13 +1520,13 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	category_channels = ISC_LIST_HEAD(lcfg->channellists[category->id]);
 
 	/*
-	 * XXXDCL add duplicate filtering? (To not write multiple times to
-	 * the same source via various channels).
+	 * XXXDCL add duplicate filtering? (To not write multiple times
+	 * to the same source via various channels).
 	 */
 	do {
 		/*
-		 * If the channel list end was reached and a match was made,
-		 * everything is finished.
+		 * If the channel list end was reached and a match was
+		 * made, everything is finished.
 		 */
 		if (category_channels == NULL && matched) {
 			break;
@@ -1510,8 +1536,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		    category_channels != ISC_LIST_HEAD(lcfg->channellists[0]))
 		{
 			/*
-			 * No category/module pair was explicitly configured.
-			 * Try the category named "default".
+			 * No category/module pair was explicitly
+			 * configured. Try the category named "default".
 			 */
 			category_channels =
 				ISC_LIST_HEAD(lcfg->channellists[0]);
@@ -1520,8 +1546,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		if (category_channels == NULL && !matched) {
 			/*
 			 * No matching module was explicitly configured
-			 * for the category named "default".  Use the internal
-			 * default channel.
+			 * for the category named "default".  Use the
+			 * internal default channel.
 			 */
 			category_channels = &default_channel;
 		}
@@ -1538,13 +1564,14 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		channel = category_channels->channel;
 		category_channels = ISC_LIST_NEXT(category_channels, link);
 
-		if (((channel->flags & ISC_LOG_DEBUGONLY) != 0) &&
-		    lctx->debug_level == 0) {
+		int_fast32_t dlevel = atomic_load_acquire(&lctx->debug_level);
+		if (((channel->flags & ISC_LOG_DEBUGONLY) != 0) && dlevel == 0)
+		{
 			continue;
 		}
 
 		if (channel->level == ISC_LOG_DYNAMIC) {
-			if (lctx->debug_level < level) {
+			if (dlevel < level) {
 				continue;
 			}
 		} else if (channel->level < level) {
@@ -1600,17 +1627,18 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 						 lcfg->duplicate_interval, 0);
 
 				/*
-				 * 'oldest' is the age of the oldest messages
-				 * which fall within the duplicate_interval
-				 * range.
+				 * 'oldest' is the age of the oldest
+				 * messages which fall within the
+				 * duplicate_interval range.
 				 */
 				TIME_NOW(&oldest);
 				if (isc_time_subtract(&oldest, &interval,
 						      &oldest) != ISC_R_SUCCESS)
 				{
 					/*
-					 * Can't effectively do the checking
-					 * without having a valid time.
+					 * Can't effectively do the
+					 * checking without having a
+					 * valid time.
 					 */
 					message = NULL;
 				} else {
@@ -1622,15 +1650,18 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 							     &oldest) < 0) {
 						/*
 						 * This message is older
-						 * than the duplicate_interval,
-						 * so it should be dropped from
-						 * the history.
+						 * than the
+						 * duplicate_interval,
+						 * so it should be
+						 * dropped from the
+						 * history.
 						 *
-						 * Setting the interval to be
-						 * to be longer will obviously
-						 * not cause the expired
-						 * message to spring back into
-						 * existence.
+						 * Setting the interval
+						 * to be to be longer
+						 * will obviously not
+						 * cause the expired
+						 * message to spring
+						 * back into existence.
 						 */
 						next = ISC_LIST_NEXT(message,
 								     link);
@@ -1648,15 +1679,17 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 					}
 
 					/*
-					 * This message is in the duplicate
-					 * filtering interval ...
+					 * This message is in the
+					 * duplicate filtering interval
+					 * ...
 					 */
 					if (strcmp(lctx->buffer,
 						   message->text) == 0) {
 						/*
-						 * ... and it is a duplicate.
-						 * Unlock the mutex and
-						 * get the hell out of Dodge.
+						 * ... and it is a
+						 * duplicate. Unlock the
+						 * mutex and get the
+						 * hell out of Dodge.
 						 */
 						goto unlock;
 					}
@@ -1713,11 +1746,12 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				/*
 				 * If the file can be rolled, OR
 				 * If the file no longer exists, OR
-				 * If the file is less than the maximum size,
-				 *    (such as if it had been renamed and
-				 *     a new one touched, or it was truncated
-				 *     in place)
-				 * ... then close it to trigger reopening.
+				 * If the file is less than the maximum
+				 * size, (such as if it had been renamed
+				 * and a new one touched, or it was
+				 * truncated in place)
+				 * ... then close it to trigger
+				 * reopening.
 				 */
 				if (FILE_VERSIONS(channel) !=
 					    ISC_LOG_ROLLNEVER ||
@@ -1743,7 +1777,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				    (channel->flags & ISC_LOG_OPENERR) == 0)
 				{
 					syslog(LOG_ERR,
-					       "isc_log_open '%s' failed: %s",
+					       "isc_log_open '%s' "
+					       "failed: %s",
 					       FILE_NAME(channel),
 					       isc_result_totext(result));
 					channel->flags |= ISC_LOG_OPENERR;
@@ -1774,8 +1809,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 			/*
 			 * If the file now exceeds its maximum size
-			 * threshold, note it so that it will not be logged
-			 * to any more.
+			 * threshold, note it so that it will not be
+			 * logged to any more.
 			 */
 			if (FILE_MAXSIZE(channel) > 0) {
 				INSIST(channel->type == ISC_LOG_TOFILE);
