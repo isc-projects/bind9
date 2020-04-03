@@ -140,18 +140,18 @@ main(int argc, char **argv) {
 		case 'w':
 			seconds = strtod(optarg, &p);
 			if (seconds <= 0 || *p != '\0') {
-				fputs(USAGE, stderr);
+				fprintf(stderr, USAGE);
 				return (1);
 			}
 			usleep((int)(seconds * 1000.0 * 1000.0));
 			return (0);
 
 		default:
-			fputs(USAGE, stderr);
+			fprintf(stderr, USAGE);
 			return (1);
 		}
 	}
-	fputs(USAGE, stderr);
+	fprintf(stderr, USAGE);
 	return (1);
 }
 

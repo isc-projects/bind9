@@ -1150,7 +1150,7 @@ print_active(isc__mem_t *mctx, FILE *out) {
 		unsigned int i;
 		bool found;
 
-		fputs("Dump of all outstanding memory allocations:\n", out);
+		fprintf(out, "Dump of all outstanding memory allocations:\n");
 		found = false;
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
 			dl = ISC_LIST_HEAD(mctx->debuglist[i]);
@@ -1172,7 +1172,7 @@ print_active(isc__mem_t *mctx, FILE *out) {
 		}
 
 		if (!found) {
-			fputs("\tNone.\n", out);
+			fprintf(out, "\tNone.\n");
 		}
 	}
 }
@@ -1219,7 +1219,7 @@ isc_mem_stats(isc_mem_t *ctx0, FILE *out) {
 	 */
 	pool = ISC_LIST_HEAD(ctx->pools);
 	if (pool != NULL) {
-		fputs("[Pool statistics]\n", out);
+		fprintf(out, "[Pool statistics]\n");
 		fprintf(out, "%15s %10s %10s %10s %10s %10s %10s %10s %1s\n",
 			"name", "size", "maxalloc", "allocated", "freecount",
 			"freemax", "fillcount", "gets", "L");

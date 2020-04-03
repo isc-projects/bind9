@@ -859,7 +859,7 @@ get_next_command(void) {
 			add_history(ptr);
 		}
 #else  /* ifdef HAVE_READLINE */
-		fputs("> ", stderr);
+		fprintf(stderr, "> ");
 		fflush(stderr);
 		ptr = fgets(buf, COMMSIZE, stdin);
 #endif /* ifdef HAVE_READLINE */

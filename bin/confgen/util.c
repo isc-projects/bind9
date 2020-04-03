@@ -30,7 +30,7 @@ notify(const char *fmt, ...) {
 		va_start(ap, fmt);
 		vfprintf(stderr, fmt, ap);
 		va_end(ap);
-		fputs("\n", stderr);
+		fprintf(stderr, "\n");
 	}
 }
 
