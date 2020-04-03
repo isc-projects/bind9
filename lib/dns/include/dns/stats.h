@@ -491,6 +491,14 @@ LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
 #define DNS_RDATASTATSTYPE_ATTR(type)  ((type) >> 16)
 #define DNS_RDATASTATSTYPE_VALUE(b, a) (((a) << 16) | (b))
 
+/*%
+ * Types of DNSSEC sign statistics operations.
+ */
+typedef enum {
+	dns_dnssecsignstats_sign = 1,
+	dns_dnssecsignstats_refresh = 2
+} dnssecsignstats_type_t;
+
 /*%<
  * Types of dump callbacks.
  */
@@ -684,9 +692,11 @@ dns_rcodestats_increment(dns_stats_t *stats, dns_opcode_t code);
  */
 
 void
-dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id);
+dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
+			      dnssecsignstats_type_t operation);
 /*%<
- * Increment the statistics counter for the DNSKEY 'id'.
+ * Increment the statistics counter for the DNSKEY 'id'. The 'operation'
+ * determines what counter is incremented.
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_dnssecsignstats_create().
@@ -737,7 +747,7 @@ dns_rdatasetstats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
  */
 
 void
-dns_dnssecsignstats_dump(dns_stats_t *		      stats,
+dns_dnssecsignstats_dump(dns_stats_t *stats, dnssecsignstats_type_t operation,
 			 dns_dnssecsignstats_dumper_t dump_fn, void *arg,
 			 unsigned int options);
 /*%<

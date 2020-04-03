@@ -45,7 +45,9 @@
     <itemizedlist>
       <listitem>
         <para>
-	  None.
+	  The DNSSEC sign statistics used lots of memory.  The number of keys
+	  to track is reduced to four per zone, which should be enough for
+	  99% of all signed zones. [GL #1179]
         </para>
       </listitem>
     </itemizedlist>
