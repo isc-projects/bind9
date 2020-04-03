@@ -43,13 +43,13 @@
  * Set key state to HIDDEN and change last changed to now,
  * only if key state has not been set before.
  */
-#define INITIALIZE_STATE(key, state, time)                                    \
+#define INITIALIZE_STATE(key, state, time, target)                            \
 	do {                                                                  \
 		dst_key_state_t s;                                            \
 		if (dst_key_getstate((key), (state), &s) == ISC_R_NOTFOUND) { \
 			isc_stdtime_t t;                                      \
 			dst_key_gettime((key), DST_TIME_CREATED, &t);         \
-			dst_key_setstate((key), (state), HIDDEN);             \
+			dst_key_setstate((key), (state), target);             \
 			dst_key_settime((key), (time), t);                    \
 		}                                                             \
 	} while (0)
@@ -105,7 +105,7 @@ static isc_stdtime_t
 keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 			   uint32_t lifetime, isc_stdtime_t now) {
 	isc_result_t ret;
-	isc_stdtime_t active, retire, prepub;
+	isc_stdtime_t active, retire, pub, prepub;
 	bool ksk = false;
 
 	REQUIRE(key != NULL);
@@ -125,13 +125,20 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 	if (ret != ISC_R_SUCCESS) {
 		uint32_t klifetime = 0;
 		/*
-		 * An active key must have an activate timing metadata.
+		 * An active key must have publish and activate timing
+		 * metadata.
 		 */
 		ret = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
 		if (ret != ISC_R_SUCCESS) {
 			/* Super weird, but if it happens, set it to now. */
 			dst_key_settime(key->key, DST_TIME_ACTIVATE, now);
 			active = now;
+		}
+		ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &pub);
+		if (ret != ISC_R_SUCCESS) {
+			/* Super weird, but if it happens, set it to now. */
+			dst_key_settime(key->key, DST_TIME_PUBLISH, now);
+			pub = now;
 		}
 
 		ret = dst_key_getnum(key->key, DST_NUM_LIFETIME, &klifetime);
@@ -1214,19 +1221,25 @@ transition:
 }
 
 /*
- * See if this key needs to be initialized with a role.  A key created and
- * derived from a dnssec-policy will have the required metadata available,
- * otherwise these may be missing and need to be initialized.
+ * See if this key needs to be initialized with properties.  A key created
+ * and derived from a dnssec-policy will have the required metadata available,
+ * otherwise these may be missing and need to be initialized.  The key states
+ * will be initialized according to existing timing metadata.
  *
  */
 static void
-keymgr_key_init_role(dns_dnsseckey_t *key) {
+keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	bool ksk, zsk;
 	isc_result_t ret;
+	isc_stdtime_t active = 0, pub = 0, syncpub = 0;
+	dst_key_state_t dnskey_state = HIDDEN;
+	dst_key_state_t ds_state = HIDDEN;
+	dst_key_state_t zrrsig_state = HIDDEN;
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->key != NULL);
 
+	/* Initialize role. */
 	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
 	if (ret != ISC_R_SUCCESS) {
 		ksk = ((dst_key_flags(key->key) & DNS_KEYFLAG_KSK) != 0);
@@ -1236,6 +1249,52 @@ keymgr_key_init_role(dns_dnsseckey_t *key) {
 	if (ret != ISC_R_SUCCESS) {
 		zsk = ((dst_key_flags(key->key) & DNS_KEYFLAG_KSK) == 0);
 		dst_key_setbool(key->key, DST_BOOL_ZSK, zsk);
+	}
+
+	/* Get time metadata. */
+	ret = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
+	if (active <= now && ret == ISC_R_SUCCESS) {
+		dns_ttl_t key_ttl = dst_key_getttl(key->key);
+		key_ttl += dns_kasp_zonepropagationdelay(kasp);
+		if ((active + key_ttl) <= now) {
+			dnskey_state = OMNIPRESENT;
+		} else {
+			dnskey_state = RUMOURED;
+		}
+	}
+	ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &pub);
+	if (pub <= now && ret == ISC_R_SUCCESS) {
+		dns_ttl_t zone_ttl = dns_kasp_zonemaxttl(kasp);
+		zone_ttl += dns_kasp_zonepropagationdelay(kasp);
+		if ((pub + zone_ttl) <= now) {
+			zrrsig_state = OMNIPRESENT;
+		} else {
+			zrrsig_state = RUMOURED;
+		}
+	}
+	ret = dst_key_gettime(key->key, DST_TIME_SYNCPUBLISH, &syncpub);
+	if (syncpub <= now && ret == ISC_R_SUCCESS) {
+		dns_ttl_t ds_ttl = dns_kasp_dsttl(kasp);
+		ds_ttl += dns_kasp_parentregistrationdelay(kasp);
+		ds_ttl += dns_kasp_parentpropagationdelay(kasp);
+		if ((syncpub + ds_ttl) <= now) {
+			ds_state = OMNIPRESENT;
+		} else {
+			ds_state = RUMOURED;
+		}
+	}
+
+	/* Set key states for all keys that do not have them. */
+	INITIALIZE_STATE(key->key, DST_KEY_DNSKEY, DST_TIME_DNSKEY,
+			 dnskey_state);
+	if (ksk) {
+		INITIALIZE_STATE(key->key, DST_KEY_KRRSIG, DST_TIME_KRRSIG,
+				 dnskey_state);
+		INITIALIZE_STATE(key->key, DST_KEY_DS, DST_TIME_DS, ds_state);
+	}
+	if (zsk) {
+		INITIALIZE_STATE(key->key, DST_KEY_ZRRSIG, DST_TIME_ZRRSIG,
+				 zrrsig_state);
 	}
 }
 
@@ -1302,23 +1361,13 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	{
 		bool found_match = false;
 
-		/* Make sure this key knows about roles. */
-		keymgr_key_init_role(dkey);
+		keymgr_key_init(dkey, kasp, now);
 
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
 		{
 			if (keymgr_dnsseckey_kaspkey_match(dkey, kkey)) {
 				found_match = true;
-				dst_key_format(dkey->key, keystr,
-					       sizeof(keystr));
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-					      DNS_LOGMODULE_DNSSEC,
-					      ISC_LOG_DEBUG(1),
-					      "keymgr: DNSKEY %s (%s) matches "
-					      "policy %s",
-					      keystr, keymgr_keyrole(dkey->key),
-					      dns_kasp_getname(kasp));
 				break;
 			}
 		}
@@ -1343,8 +1392,17 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		{
 			if (keymgr_dnsseckey_kaspkey_match(dkey, kkey)) {
 				/* Found a match. */
+				dst_key_format(dkey->key, keystr,
+					       sizeof(keystr));
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_DEBUG(1),
+					      "keymgr: DNSKEY %s (%s) matches "
+					      "policy %s",
+					      keystr, keymgr_keyrole(dkey->key),
+					      dns_kasp_getname(kasp));
 
-				/* Initialize lifetime. */
+				/* Initialize lifetime if not set. */
 				uint32_t l;
 				if (dst_key_getnum(dkey->key, DST_NUM_LIFETIME,
 						   &l) != ISC_R_SUCCESS) {
@@ -1353,18 +1411,49 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 						       lifetime);
 				}
 
-				if (dst_key_goal(dkey->key) == OMNIPRESENT) {
-					if (active_key != NULL) {
+				if (active_key) {
+					/* We already have an active key that
+					 * matches the kasp policy.
+					 */
+					if (!dst_key_is_unused(dkey->key) &&
+					    (dst_key_goal(dkey->key) ==
+					     OMNIPRESENT) &&
+					    !keymgr_key_is_successor(
+						    dkey->key,
+						    active_key->key) &&
+					    !keymgr_key_is_successor(
+						    active_key->key, dkey->key))
+					{
 						/*
 						 * Multiple signing keys match
 						 * the kasp key configuration.
-						 * Retire excess keys.
+						 * Retire excess keys in use.
 						 */
 						keymgr_key_retire(dkey, now);
-					} else {
-						/* Save the matched key. */
-						active_key = dkey;
 					}
+					continue;
+				}
+
+				/*
+				 * This is possibly an active key created
+				 * outside dnssec-policy.  Initialize goal,
+				 * if not set.
+				 */
+				dst_key_state_t goal;
+				if (dst_key_getstate(dkey->key, DST_KEY_GOAL,
+						     &goal) != ISC_R_SUCCESS) {
+					dst_key_setstate(dkey->key,
+							 DST_KEY_GOAL,
+							 OMNIPRESENT);
+				}
+
+				/*
+				 * Save the matched key only if it is active
+				 * or desires to be active.
+				 */
+				if (dst_key_goal(dkey->key) == OMNIPRESENT ||
+				    dst_key_is_active(dkey->key, now)) {
+					active_key = dkey;
 				}
 			}
 		}
@@ -1377,7 +1466,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 				isc_log_write(
 					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
-					"keymgr: DNSKEY %s (%s) matches "
+					"keymgr: DNSKEY %s (%s) is active in "
 					"policy %s",
 					keystr, keymgr_keyrole(active_key->key),
 					dns_kasp_getname(kasp));
@@ -1446,6 +1535,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			dst_key_setttl(dst_key, dns_kasp_dnskeyttl(kasp));
 			dst_key_settime(dst_key, DST_TIME_CREATED, now);
 			RETERR(dns_dnsseckey_create(mctx, &dst_key, &newkey));
+			keymgr_key_init(newkey, kasp, now);
 		} else {
 			newkey = candidate;
 			dst_key_setnum(newkey->key, DST_NUM_LIFETIME, lifetime);
@@ -1510,27 +1600,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	/* Walked all kasp key configurations.  Append new keys. */
 	if (!ISC_LIST_EMPTY(newkeys)) {
 		ISC_LIST_APPENDLIST(*keyring, newkeys, link);
-	}
-
-	/* Initialize key states (for keys that don't have them yet). */
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
-		bool ksk = false, zsk = false;
-
-		/* Set key states for all keys that do not have them. */
-		INITIALIZE_STATE(dkey->key, DST_KEY_DNSKEY, DST_TIME_DNSKEY);
-		(void)dst_key_getbool(dkey->key, DST_BOOL_KSK, &ksk);
-		if (ksk) {
-			INITIALIZE_STATE(dkey->key, DST_KEY_KRRSIG,
-					 DST_TIME_KRRSIG);
-			INITIALIZE_STATE(dkey->key, DST_KEY_DS, DST_TIME_DS);
-		}
-		(void)dst_key_getbool(dkey->key, DST_BOOL_ZSK, &zsk);
-		if (zsk) {
-			INITIALIZE_STATE(dkey->key, DST_KEY_ZRRSIG,
-					 DST_TIME_ZRRSIG);
-		}
 	}
 
 	/* Read to update key states. */

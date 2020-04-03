@@ -24,6 +24,7 @@ options {
 	listen-on-v6 { none; };
 	allow-transfer { any; };
 	recursion no;
+	key-directory ".";
 };
 
 key rndc_key {
@@ -35,6 +36,35 @@ controls {
 	inet 10.53.0.6 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+/* These are zones that migrate to dnssec-policy. */
+zone "migrate.kasp" {
+	type master;
+	file "migrate.kasp.db";
+	auto-dnssec maintain;
+	allow-update { any; };
+	dnssec-dnskey-kskonly yes;
+	update-check-ksk yes;
+};
+
+zone "migrate-nomatch-algnum.kasp" {
+	type master;
+	file "migrate-nomatch-algnum.kasp.db";
+	auto-dnssec maintain;
+	allow-update { any; };
+	dnssec-dnskey-kskonly yes;
+	update-check-ksk yes;
+};
+
+zone "migrate-nomatch-alglen.kasp" {
+	type master;
+	file "migrate-nomatch-alglen.kasp.db";
+	auto-dnssec maintain;
+	allow-update { any; };
+	dnssec-dnskey-kskonly yes;
+	update-check-ksk yes;
+};
+
+/* These are alorithm rollover test zones. */
 zone "step1.algorithm-roll.kasp" {
 	type master;
 	file "step1.algorithm-roll.kasp.db";

@@ -55,6 +55,7 @@ VIEW2="4xILSZQnuO1UKubXHkYUsvBRPu8="
 # STATE_DS=18
 # EXPECT_ZRRSIG=19
 # EXPECT_KRRSIG=20
+# LEGACY=21
 
 key_key() {
 	echo "${1}__${2}"
@@ -77,7 +78,7 @@ key_clear() {
 	key_set "$1" "ROLE" 'none'
 	key_set "$1" "KSK" 'no'
 	key_set "$1" "ZSK" 'no'
-	key_set "$1" "LIFETIME" '0'
+	key_set "$1" "LIFETIME" 'none'
 	key_set "$1" "ALG_NUM" '0'
 	key_set "$1" "ALG_STR" 'none'
 	key_set "$1" "ALG_LEN" '0'
@@ -93,6 +94,7 @@ key_clear() {
 	key_set "$1" "STATE_DS" 'none'
 	key_set "$1" "EXPECT_ZRRSIG" 'no'
 	key_set "$1" "EXPECT_KRRSIG" 'no'
+	key_set "$1" "LEGACY" 'no'
 }
 
 # Start clear.
@@ -238,6 +240,7 @@ check_key() {
 	_length=$(key_get "$1" "ALG_LEN")
 	_dnskey_ttl="$DNSKEY_TTL"
 	_lifetime=$(key_get "$1" LIFETIME)
+	_legacy=$(key_get "$1" LEGACY)
 
 	_published=$(key_get "$1" PUBLISHED)
 	_active=$(key_get "$1" ACTIVE)
@@ -277,10 +280,13 @@ check_key() {
 	# Check file existence.
 	[ -s "$KEY_FILE" ] || ret=1
 	[ -s "$PRIVATE_FILE" ] || ret=1
-	[ -s "$STATE_FILE" ] || ret=1
+	if [ "$_legacy" == "no" ]; then
+		[ -s "$STATE_FILE" ] || ret=1
+	fi
+	[ "$ret" -eq 0 ] || log_error "${BASE_FILE} files missing"
 	[ "$ret" -eq 0 ] || return
 
-	test $_log -eq 1 && echo_i "check key $BASE_FILE"
+	test $_log -eq 1 && echo_i "check key file $BASE_FILE"
 
 	# Check the public key file.
 	grep "This is a ${_role2} key, keyid ${_key_id}, for ${_zone}." "$KEY_FILE" > /dev/null || log_error "mismatch top comment in $KEY_FILE"
@@ -289,106 +295,134 @@ check_key() {
 	grep "Private-key-format: v1.3" "$PRIVATE_FILE" > /dev/null || log_error "mismatch private key format in $PRIVATE_FILE"
 	grep "Algorithm: ${_alg_num} (${_alg_string})" "$PRIVATE_FILE" > /dev/null || log_error "mismatch algorithm in $PRIVATE_FILE"
 	# Now check the key state file.
-	grep "This is the state of key ${_key_id}, for ${_zone}." "$STATE_FILE" > /dev/null || log_error "mismatch top comment in $STATE_FILE"
-	grep "Lifetime: ${_lifetime}" "$STATE_FILE" > /dev/null || log_error "mismatch lifetime in $STATE_FILE"
-	grep "Algorithm: ${_alg_num}" "$STATE_FILE" > /dev/null || log_error "mismatch algorithm in $STATE_FILE"
-	grep "Length: ${_length}" "$STATE_FILE" > /dev/null || log_error "mismatch length in $STATE_FILE"
-	grep "KSK: ${_ksk}" "$STATE_FILE" > /dev/null || log_error "mismatch ksk in $STATE_FILE"
-	grep "ZSK: ${_zsk}" "$STATE_FILE" > /dev/null || log_error "mismatch zsk in $STATE_FILE"
+	if [ "$_legacy" == "no" ]; then
+		grep "This is the state of key ${_key_id}, for ${_zone}." "$STATE_FILE" > /dev/null || log_error "mismatch top comment in $STATE_FILE"
+		if [ "$_lifetime" == "none" ]; then
+			grep "Lifetime: " "$STATE_FILE" > /dev/null && log_error "unexpected lifetime in $STATE_FILE"
+		else
+			grep "Lifetime: ${_lifetime}" "$STATE_FILE" > /dev/null || log_error "mismatch lifetime in $STATE_FILE"
+		fi
+		grep "Algorithm: ${_alg_num}" "$STATE_FILE" > /dev/null || log_error "mismatch algorithm in $STATE_FILE"
+		grep "Length: ${_length}" "$STATE_FILE" > /dev/null || log_error "mismatch length in $STATE_FILE"
+		grep "KSK: ${_ksk}" "$STATE_FILE" > /dev/null || log_error "mismatch ksk in $STATE_FILE"
+		grep "ZSK: ${_zsk}" "$STATE_FILE" > /dev/null || log_error "mismatch zsk in $STATE_FILE"
 
-	# Check key states.
-	if [ "$_goal" = "none" ]; then
-		grep "GoalState: " "$STATE_FILE" > /dev/null && log_error "unexpected goal state in $STATE_FILE"
-	else
-		grep "GoalState: ${_goal}" "$STATE_FILE" > /dev/null || log_error "mismatch goal state in $STATE_FILE"
-	fi
+		# Check key states.
+		if [ "$_goal" = "none" ]; then
+			grep "GoalState: " "$STATE_FILE" > /dev/null && log_error "unexpected goal state in $STATE_FILE"
+		else
+			grep "GoalState: ${_goal}" "$STATE_FILE" > /dev/null || log_error "mismatch goal state in $STATE_FILE"
+		fi
 
-	if [ "$_state_dnskey" = "none" ]; then
-		grep "DNSKEYState: " "$STATE_FILE" > /dev/null && log_error "unexpected dnskey state in $STATE_FILE"
-		grep "DNSKEYChange: " "$STATE_FILE" > /dev/null && log_error "unexpected dnskey change in $STATE_FILE"
-	else
-		grep "DNSKEYState: ${_state_dnskey}" "$STATE_FILE" > /dev/null || log_error "mismatch dnskey state in $STATE_FILE"
-		grep "DNSKEYChange: " "$STATE_FILE" > /dev/null || log_error "mismatch dnskey change in $STATE_FILE"
-	fi
+		if [ "$_state_dnskey" = "none" ]; then
+			grep "DNSKEYState: " "$STATE_FILE" > /dev/null && log_error "unexpected dnskey state in $STATE_FILE"
+			grep "DNSKEYChange: " "$STATE_FILE" > /dev/null && log_error "unexpected dnskey change in $STATE_FILE"
+		else
+			grep "DNSKEYState: ${_state_dnskey}" "$STATE_FILE" > /dev/null || log_error "mismatch dnskey state in $STATE_FILE"
+			grep "DNSKEYChange: " "$STATE_FILE" > /dev/null || log_error "mismatch dnskey change in $STATE_FILE"
+		fi
 
-	if [ "$_state_zrrsig" = "none" ]; then
-		grep "ZRRSIGState: " "$STATE_FILE" > /dev/null && log_error "unexpected zrrsig state in $STATE_FILE"
-		grep "ZRRSIGChange: " "$STATE_FILE" > /dev/null && log_error "unexpected zrrsig change in $STATE_FILE"
-	else
-		grep "ZRRSIGState: ${_state_zrrsig}" "$STATE_FILE" > /dev/null || log_error "mismatch zrrsig state in $STATE_FILE"
-		grep "ZRRSIGChange: " "$STATE_FILE" > /dev/null || log_error "mismatch zrrsig change in $STATE_FILE"
-	fi
+		if [ "$_state_zrrsig" = "none" ]; then
+			grep "ZRRSIGState: " "$STATE_FILE" > /dev/null && log_error "unexpected zrrsig state in $STATE_FILE"
+			grep "ZRRSIGChange: " "$STATE_FILE" > /dev/null && log_error "unexpected zrrsig change in $STATE_FILE"
+		else
+			grep "ZRRSIGState: ${_state_zrrsig}" "$STATE_FILE" > /dev/null || log_error "mismatch zrrsig state in $STATE_FILE"
+			grep "ZRRSIGChange: " "$STATE_FILE" > /dev/null || log_error "mismatch zrrsig change in $STATE_FILE"
+		fi
 
-	if [ "$_state_krrsig" = "none" ]; then
-		grep "KRRSIGState: " "$STATE_FILE" > /dev/null && log_error "unexpected krrsig state in $STATE_FILE"
-		grep "KRRSIGChange: " "$STATE_FILE" > /dev/null && log_error "unexpected krrsig change in $STATE_FILE"
-	else
-		grep "KRRSIGState: ${_state_krrsig}" "$STATE_FILE" > /dev/null || log_error "mismatch krrsig state in $STATE_FILE"
-		grep "KRRSIGChange: " "$STATE_FILE" > /dev/null || log_error "mismatch krrsig change in $STATE_FILE"
-	fi
+		if [ "$_state_krrsig" = "none" ]; then
+			grep "KRRSIGState: " "$STATE_FILE" > /dev/null && log_error "unexpected krrsig state in $STATE_FILE"
+			grep "KRRSIGChange: " "$STATE_FILE" > /dev/null && log_error "unexpected krrsig change in $STATE_FILE"
+		else
+			grep "KRRSIGState: ${_state_krrsig}" "$STATE_FILE" > /dev/null || log_error "mismatch krrsig state in $STATE_FILE"
+			grep "KRRSIGChange: " "$STATE_FILE" > /dev/null || log_error "mismatch krrsig change in $STATE_FILE"
+		fi
 
-	if [ "$_state_ds" = "none" ]; then
-		grep "DSState: " "$STATE_FILE" > /dev/null && log_error "unexpected ds state in $STATE_FILE"
-		grep "DSChange: " "$STATE_FILE" > /dev/null && log_error "unexpected ds change in $STATE_FILE"
-	else
-		grep "DSState: ${_state_ds}" "$STATE_FILE" > /dev/null || log_error "mismatch ds state in $STATE_FILE"
-		grep "DSChange: " "$STATE_FILE" > /dev/null || log_error "mismatch ds change in $STATE_FILE"
+		if [ "$_state_ds" = "none" ]; then
+			grep "DSState: " "$STATE_FILE" > /dev/null && log_error "unexpected ds state in $STATE_FILE"
+			grep "DSChange: " "$STATE_FILE" > /dev/null && log_error "unexpected ds change in $STATE_FILE"
+		else
+			grep "DSState: ${_state_ds}" "$STATE_FILE" > /dev/null || log_error "mismatch ds state in $STATE_FILE"
+			grep "DSChange: " "$STATE_FILE" > /dev/null || log_error "mismatch ds change in $STATE_FILE"
+		fi
 	fi
 
 	# Check timing metadata.
 	if [ "$_published" = "none" ]; then
 		grep "; Publish:" "$KEY_FILE" > /dev/null && log_error "unexpected publish comment in $KEY_FILE"
 		grep "Publish:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected publish in $PRIVATE_FILE"
-		grep "Published: " "$STATE_FILE" > /dev/null && log_error "unexpected publish in $STATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Published: " "$STATE_FILE" > /dev/null && log_error "unexpected publish in $STATE_FILE"
+		fi
 	else
-		grep "; Publish:" "$KEY_FILE" > /dev/null || log_error "mismatch publish comment in $KEY_FILE ($KEY_PUBLISHED)"
-		grep "Publish:" "$PRIVATE_FILE" > /dev/null || log_error "mismatch publish in $PRIVATE_FILE ($KEY_PUBLISHED)"
-		grep "Published:" "$STATE_FILE" > /dev/null || log_error "mismatch publish in $STATE_FILE ($KEY_PUBLISHED)"
+		grep "; Publish:" "$KEY_FILE" > /dev/null || log_error "mismatch publish comment in $KEY_FILE"
+		grep "Publish:" "$PRIVATE_FILE" > /dev/null || log_error "mismatch publish in $PRIVATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Published:" "$STATE_FILE" > /dev/null || log_error "mismatch publish in $STATE_FILE"
+		fi
 	fi
 
 	if [ "$_active" = "none" ]; then
 		grep "; Activate:" "$KEY_FILE" > /dev/null && log_error "unexpected active comment in $KEY_FILE"
 		grep "Activate:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected active in $PRIVATE_FILE"
-		grep "Active: " "$STATE_FILE" > /dev/null && log_error "unexpected active in $STATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Active: " "$STATE_FILE" > /dev/null && log_error "unexpected active in $STATE_FILE"
+		fi
 	else
 		grep "; Activate:" "$KEY_FILE" > /dev/null || log_error "mismatch active comment in $KEY_FILE"
 		grep "Activate:" "$PRIVATE_FILE" > /dev/null || log_error "mismatch active in $PRIVATE_FILE"
-		grep "Active: " "$STATE_FILE" > /dev/null || log_error "mismatch active in $STATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Active: " "$STATE_FILE" > /dev/null || log_error "mismatch active in $STATE_FILE"
+		fi
 	fi
 
 	if [ "$_retired" = "none" ]; then
 		grep "; Inactive:" "$KEY_FILE" > /dev/null && log_error "unexpected retired comment in $KEY_FILE"
 		grep "Inactive:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected retired in $PRIVATE_FILE"
-		grep "Retired: " "$STATE_FILE" > /dev/null && log_error "unexpected retired in $STATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Retired: " "$STATE_FILE" > /dev/null && log_error "unexpected retired in $STATE_FILE"
+		fi
 	else
 		grep "; Inactive:" "$KEY_FILE" > /dev/null || log_error "mismatch retired comment in $KEY_FILE"
 		grep "Inactive:" "$PRIVATE_FILE" > /dev/null || log_error "mismatch retired in $PRIVATE_FILE"
-		grep "Retired: " "$STATE_FILE" > /dev/null || log_error "mismatch retired in $STATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Retired: " "$STATE_FILE" > /dev/null || log_error "mismatch retired in $STATE_FILE"
+		fi
 	fi
 
 	if [ "$_revoked" = "none" ]; then
 		grep "; Revoke:" "$KEY_FILE" > /dev/null && log_error "unexpected revoked comment in $KEY_FILE"
 		grep "Revoke:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected revoked in $PRIVATE_FILE"
-		grep "Revoked: " "$STATE_FILE" > /dev/null && log_error "unexpected revoked in $STATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Revoked: " "$STATE_FILE" > /dev/null && log_error "unexpected revoked in $STATE_FILE"
+		fi
 	else
 		grep "; Revoke:" "$KEY_FILE" > /dev/null || log_error "mismatch revoked comment in $KEY_FILE"
 		grep "Revoke:" "$PRIVATE_FILE" > /dev/null || log_error "mismatch revoked in $PRIVATE_FILE"
-		grep "Revoked: " "$STATE_FILE" > /dev/null || log_error "mismatch revoked in $STATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Revoked: " "$STATE_FILE" > /dev/null || log_error "mismatch revoked in $STATE_FILE"
+		fi
 	fi
 
 	if [ "$_removed" = "none" ]; then
 		grep "; Delete:" "$KEY_FILE" > /dev/null && log_error "unexpected removed comment in $KEY_FILE"
 		grep "Delete:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected removed in $PRIVATE_FILE"
-		grep "Removed: " "$STATE_FILE" > /dev/null && log_error "unexpected removed in $STATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Removed: " "$STATE_FILE" > /dev/null && log_error "unexpected removed in $STATE_FILE"
+		fi
 	else
 		grep "; Delete:" "$KEY_FILE" > /dev/null || log_error "mismatch removed comment in $KEY_FILE"
 		grep "Delete:" "$PRIVATE_FILE" > /dev/null || log_error "mismatch removed in $PRIVATE_FILE"
-		grep "Removed: " "$STATE_FILE" > /dev/null || log_error "mismatch removed in $STATE_FILE"
+		if [ "$_legacy" == "no" ]; then
+			grep "Removed: " "$STATE_FILE" > /dev/null || log_error "mismatch removed in $STATE_FILE"
+		fi
 	fi
 
 	grep "; Created:" "$KEY_FILE" > /dev/null || log_error "mismatch created comment in $KEY_FILE"
 	grep "Created:" "$PRIVATE_FILE" > /dev/null || log_error "mismatch created in $PRIVATE_FILE"
-	grep "Generated: " "$STATE_FILE" > /dev/null || log_error "mismatch generated in $STATE_FILE"
+	if [ "$_legacy" == "no" ]; then
+		grep "Generated: " "$STATE_FILE" > /dev/null || log_error "mismatch generated in $STATE_FILE"
+	fi
 }
 
 # Check the key with key id $1 and see if it is unused.
@@ -424,20 +458,24 @@ key_unused() {
 
 	# Check timing metadata.
 	grep "; Publish:" "$KEY_FILE" > /dev/null && log_error "unexpected publish comment in $KEY_FILE"
-	grep "Publish:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected publish in $PRIVATE_FILE"
-	grep "Published: " "$STATE_FILE" > /dev/null && log_error "unexpected publish in $STATE_FILE"
 	grep "; Activate:" "$KEY_FILE" > /dev/null && log_error "unexpected active comment in $KEY_FILE"
-	grep "Activate:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected active in $PRIVATE_FILE"
-	grep "Active: " "$STATE_FILE" > /dev/null && log_error "unexpected active in $STATE_FILE"
 	grep "; Inactive:" "$KEY_FILE" > /dev/null && log_error "unexpected retired comment in $KEY_FILE"
-	grep "Inactive:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected retired in $PRIVATE_FILE"
-	grep "Retired: " "$STATE_FILE" > /dev/null && log_error "unexpected retired in $STATE_FILE"
 	grep "; Revoke:" "$KEY_FILE" > /dev/null && log_error "unexpected revoked comment in $KEY_FILE"
-	grep "Revoke:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected revoked in $PRIVATE_FILE"
-	grep "Revoked: " "$STATE_FILE" > /dev/null && log_error "unexpected revoked in $STATE_FILE"
 	grep "; Delete:" "$KEY_FILE" > /dev/null && log_error "unexpected removed comment in $KEY_FILE"
+
+	grep "Publish:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected publish in $PRIVATE_FILE"
+	grep "Activate:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected active in $PRIVATE_FILE"
+	grep "Inactive:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected retired in $PRIVATE_FILE"
+	grep "Revoke:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected revoked in $PRIVATE_FILE"
 	grep "Delete:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected removed in $PRIVATE_FILE"
-	grep "Removed: " "$STATE_FILE" > /dev/null && log_error "unexpected removed in $STATE_FILE"
+
+	if [ "$_legacy" == "no" ]; then
+		grep "Published: " "$STATE_FILE" > /dev/null && log_error "unexpected publish in $STATE_FILE"
+		grep "Active: " "$STATE_FILE" > /dev/null && log_error "unexpected active in $STATE_FILE"
+		grep "Retired: " "$STATE_FILE" > /dev/null && log_error "unexpected retired in $STATE_FILE"
+		grep "Revoked: " "$STATE_FILE" > /dev/null && log_error "unexpected revoked in $STATE_FILE"
+		grep "Removed: " "$STATE_FILE" > /dev/null && log_error "unexpected removed in $STATE_FILE"
+	fi
 }
 
 # Test: dnssec-verify zone $1.
@@ -848,7 +886,7 @@ check_keys()
 	for _id in $_ids; do
 		# There are three key files with the same algorithm.
 		# Check them until a match is found.
-		echo_i "check key $_id"
+		echo_i "check key id $_id"
 
 		if [ "no" = "$(key_get KEY1 ID)" ] && [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
 			ret=0
@@ -863,19 +901,19 @@ check_keys()
 		if [ "no" = "$(key_get KEY3 ID)" ] && [ "$(key_get KEY3 EXPECT)" = "yes"  ]; then
 			ret=0
 			check_key "KEY3" "$_id"
-			test "$ret" -eq 0 && key_set KEY3 ID "$KEY_ID" && continue
+			test "$ret" -eq 0 && key_set KEY3 "ID" "$KEY_ID" && continue
 		fi
 		if [ "no" = "$(key_get KEY4 ID)" ] && [ "$(key_get KEY4 EXPECT)" = "yes"  ]; then
 			ret=0
 			check_key "KEY4" "$_id"
-			test "$ret" -eq 0 && key_set KEY4 ID "$KEY_ID" && continue
+			test "$ret" -eq 0 && key_set KEY4 "ID" "$KEY_ID" && continue
 		fi
 
 		# This may be an unused key. Assume algorithm of KEY1.
 		ret=0 && key_unused "$_id" "$(key_get KEY1 ALG_NUM)"
 		test "$ret" -eq 0 && continue
 
-		# If ret is still non-zero, non of the files matched.
+		# If ret is still non-zero, none of the files matched.
 		test "$ret" -eq 0 || echo_i "failed"
 		status=$((status+1))
 	done
@@ -885,15 +923,19 @@ check_keys()
 
 	ret=0
 	if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
+		echo_i "KEY1 ID $(key_get KEY1 ID)"
 		test "no" = "$(key_get KEY1 ID)" && log_error "No KEY1 found for zone ${ZONE}"
 	fi
 	if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
+		echo_i "KEY2 ID $(key_get KEY2 ID)"
 		test "no" = "$(key_get KEY2 ID)" && log_error "No KEY2 found for zone ${ZONE}"
 	fi
 	if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
+		echo_i "KEY3 ID $(key_get KEY3 ID)"
 		test "no" = "$(key_get KEY3 ID)" && log_error "No KEY3 found for zone ${ZONE}"
 	fi
 	if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
+		echo_i "KEY4 ID $(key_get KEY4 ID)"
 		test "no" = "$(key_get KEY4 ID)" && log_error "No KEY4 found for zone ${ZONE}"
 	fi
 	test "$ret" -eq 0 || echo_i "failed"
@@ -2821,7 +2863,166 @@ dnssec_verify
 # interval.
 check_next_key_event 3600
 
-# Reconfig dnssec-policy (triggering algorithm roll).
+#
+# Testing good migration.
+#
+set_zone "migrate.kasp"
+set_policy "none" "2" "300"
+set_server "ns6" "10.53.0.6"
+
+init_migration_match() {
+	key_clear        "KEY1"
+	key_set          "KEY1" "LEGACY" "yes"
+	set_keyrole      "KEY1" "ksk"
+	set_keylifetime  "KEY1" "0"
+	set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+	set_keysigning   "KEY1" "yes"
+	set_zonesigning  "KEY1" "no"
+
+	key_clear        "KEY2"
+	key_set          "KEY2" "LEGACY" "yes"
+	set_keyrole      "KEY2" "zsk"
+	set_keylifetime  "KEY2" "5184000"
+	set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+	set_keysigning   "KEY2" "no"
+	set_zonesigning  "KEY2" "yes"
+
+	key_clear        "KEY3"
+	key_clear        "KEY4"
+
+	set_keytime  "KEY1" "PUBLISHED"    "yes"
+	set_keytime  "KEY1" "ACTIVE"       "yes"
+	set_keytime  "KEY1" "RETIRED"      "none"
+	set_keystate "KEY1" "GOAL"         "omnipresent"
+	set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+	set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+	set_keystate "KEY1" "STATE_DS"     "rumoured"
+
+	set_keytime  "KEY2" "PUBLISHED"    "yes"
+	set_keytime  "KEY2" "ACTIVE"       "yes"
+	set_keytime  "KEY2" "RETIRED"      "none"
+	set_keystate "KEY2" "GOAL"         "omnipresent"
+	set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+	set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+}
+init_migration_match
+
+# Make sure the zone is signed with legacy keys.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Remember legacy key tags.
+_migrate_ksk=$(key_get KEY1 ID)
+_migrate_zsk=$(key_get KEY2 ID)
+
+#
+# Testing migration with unmatched existing keys (different algorithm).
+#
+set_zone "migrate-nomatch-algnum.kasp"
+set_policy "none" "2" "300"
+set_server "ns6" "10.53.0.6"
+
+init_migration_nomatch_algnum() {
+	key_clear        "KEY1"
+	key_set          "KEY1" "LEGACY" "yes"
+	set_keyrole      "KEY1" "ksk"
+	set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
+	set_keysigning   "KEY1" "yes"
+	set_zonesigning  "KEY1" "no"
+
+	key_clear        "KEY2"
+	key_set          "KEY2" "LEGACY" "yes"
+	set_keyrole      "KEY2" "zsk"
+	set_keyalgorithm "KEY2" "5" "RSASHA1" "1024"
+	set_keysigning   "KEY2" "no"
+	set_zonesigning  "KEY2" "yes"
+
+	key_clear        "KEY3"
+	key_clear        "KEY4"
+
+	set_keytime  "KEY1" "PUBLISHED"    "yes"
+	set_keytime  "KEY1" "ACTIVE"       "yes"
+	set_keytime  "KEY1" "RETIRED"      "none"
+	set_keystate "KEY1" "GOAL"         "omnipresent"
+	set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+	set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+	set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+	set_keytime  "KEY2" "PUBLISHED"    "yes"
+	set_keytime  "KEY2" "ACTIVE"       "yes"
+	set_keytime  "KEY2" "RETIRED"      "none"
+	set_keystate "KEY2" "GOAL"         "omnipresent"
+	set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+	set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+}
+init_migration_nomatch_algnum
+
+# Make sure the zone is signed with legacy keys.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Remember legacy key tags.
+_migratenomatch_algnum_ksk=$(key_get KEY1 ID)
+_migratenomatch_algnum_zsk=$(key_get KEY2 ID)
+
+#
+# Testing migration with unmatched existing keys (different length).
+#
+set_zone "migrate-nomatch-alglen.kasp"
+set_policy "none" "2" "300"
+set_server "ns6" "10.53.0.6"
+
+init_migration_nomatch_alglen() {
+	key_clear        "KEY1"
+	key_set          "KEY1" "LEGACY" "yes"
+	set_keyrole      "KEY1" "ksk"
+	set_keyalgorithm "KEY1" "5" "RSASHA1" "1024"
+	set_keysigning   "KEY1" "yes"
+	set_zonesigning  "KEY1" "no"
+
+	key_clear        "KEY2"
+	key_set          "KEY2" "LEGACY" "yes"
+	set_keyrole      "KEY2" "zsk"
+	set_keyalgorithm "KEY2" "5" "RSASHA1" "1024"
+	set_keysigning   "KEY2" "no"
+	set_zonesigning  "KEY2" "yes"
+
+	key_clear        "KEY3"
+	key_clear        "KEY4"
+
+	set_keytime  "KEY1" "PUBLISHED"    "yes"
+	set_keytime  "KEY1" "ACTIVE"       "yes"
+	set_keytime  "KEY1" "RETIRED"      "none"
+	set_keystate "KEY1" "GOAL"         "omnipresent"
+	set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+	set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+	set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+	set_keytime  "KEY2" "PUBLISHED"    "yes"
+	set_keytime  "KEY2" "ACTIVE"       "yes"
+	set_keytime  "KEY2" "RETIRED"      "none"
+	set_keystate "KEY2" "GOAL"         "omnipresent"
+	set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+	set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+}
+init_migration_nomatch_alglen
+
+# Make sure the zone is signed with legacy keys.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Remember legacy key tags.
+_migratenomatch_alglen_ksk=$(key_get KEY1 ID)
+_migratenomatch_alglen_zsk=$(key_get KEY2 ID)
+
+# Reconfig dnssec-policy (triggering algorithm roll and other dnssec-policy
+# changes).
 echo_i "reconfig dnssec-policy to trigger algorithm rollover"
 copy_setports ns6/named2.conf.in ns6/named.conf
 rndc_reconfig ns6 10.53.0.6
@@ -2853,6 +3054,150 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 next_key_event_threshold=$((next_key_event_threshold+i))
+
+#
+# Testing migration.
+#
+set_zone "migrate.kasp"
+set_policy "migrate" "2" "300"
+set_server "ns6" "10.53.0.6"
+
+# Key properties, timings and metadata should be the same as legacy keys above.
+# However, because the zsk has a lifetime, kasp will set the retired time.
+init_migration_match
+
+key_set     "KEY1" "LEGACY"  "no"
+
+key_set     "KEY2" "LEGACY"  "no"
+set_keytime "KEY2" "RETIRED" "yes"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Check key tags, should be the same.
+n=$((n+1))
+echo_i "check that of zone ${ZONE} migration to dnssec-policy uses the same keys ($n)"
+ret=0
+[ $_migrate_ksk == $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_migrate_zsk == $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+status=$((status+ret))
+
+# Test migration to dnssec-policy, existing keys do not match key algorithm.
+set_zone "migrate-nomatch-algnum.kasp"
+set_policy "migrate-nomatch-algnum" "4" "300"
+set_server "ns6" "10.53.0.6"
+
+# The legacy keys need to be retired, but otherwise stay present until the
+# new keys are omnipresent, and can be used to construct a chain of trust.
+init_migration_nomatch_algnum
+
+key_set      "KEY1" "LEGACY"  "no"
+set_keytime  "KEY1" "RETIRED" "yes"
+set_keystate "KEY1" "GOAL"    "hidden"
+
+key_set      "KEY2" "LEGACY"  "no"
+set_keytime  "KEY2" "RETIRED" "yes"
+set_keystate "KEY2" "GOAL"    "hidden"
+
+set_keyrole      "KEY3" "ksk"
+set_keylifetime  "KEY3" "0"
+set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY3" "yes"
+set_zonesigning  "KEY3" "no"
+
+set_keyrole      "KEY4" "zsk"
+set_keylifetime  "KEY4" "5184000"
+set_keyalgorithm "KEY4" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY4" "no"
+set_zonesigning  "KEY4" "yes"
+
+set_keytime  "KEY3" "PUBLISHED"    "yes"
+set_keytime  "KEY3" "ACTIVE"       "yes"
+set_keytime  "KEY3" "RETIRED"      "none"
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY3" "STATE_DS"     "hidden"
+
+set_keytime  "KEY4" "PUBLISHED"    "yes"
+set_keytime  "KEY4" "ACTIVE"       "yes"
+set_keytime  "KEY4" "RETIRED"      "yes"
+set_keystate "KEY4" "GOAL"         "omnipresent"
+set_keystate "KEY4" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY4" "STATE_ZRRSIG" "rumoured"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Check key tags, should be the same.
+n=$((n+1))
+echo_i "check that of zone ${ZONE} migration to dnssec-policy keeps existing keys ($n)"
+ret=0
+[ $_migratenomatch_algnum_ksk == $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_migratenomatch_algnum_zsk == $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+status=$((status+ret))
+
+# Test migration to dnssec-policy, existing keys do not match key length.
+set_zone "migrate-nomatch-alglen.kasp"
+set_policy "migrate-nomatch-alglen" "4" "300"
+set_server "ns6" "10.53.0.6"
+
+# The legacy keys need to be retired, but otherwise stay present until the
+# new keys are omnipresent, and can be used to construct a chain of trust.
+init_migration_nomatch_alglen
+
+key_set      "KEY1" "LEGACY"  "no"
+set_keytime  "KEY1" "RETIRED" "yes"
+set_keystate "KEY1" "GOAL"    "hidden"
+
+key_set      "KEY2" "LEGACY"  "no"
+set_keytime  "KEY2" "RETIRED" "yes"
+set_keystate "KEY2" "GOAL"    "hidden"
+
+set_keyrole      "KEY3" "ksk"
+set_keylifetime  "KEY3" "0"
+set_keyalgorithm "KEY3" "5" "RSASHA1" "2048"
+set_keysigning   "KEY3" "yes"
+set_zonesigning  "KEY3" "no"
+
+set_keyrole      "KEY4" "zsk"
+set_keylifetime  "KEY4" "5184000"
+set_keyalgorithm "KEY4" "5" "RSASHA1" "2048"
+set_keysigning   "KEY4" "no"
+# This key is considered to be prepublished, so it is not yet signing.
+set_zonesigning  "KEY4" "no"
+
+set_keytime  "KEY3" "PUBLISHED"    "yes"
+set_keytime  "KEY3" "ACTIVE"       "yes"
+set_keytime  "KEY3" "RETIRED"      "none"
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY3" "STATE_DS"     "hidden"
+
+set_keytime  "KEY4" "PUBLISHED"    "yes"
+set_keytime  "KEY4" "ACTIVE"       "yes"
+set_keytime  "KEY4" "RETIRED"      "yes"
+set_keystate "KEY4" "GOAL"         "omnipresent"
+set_keystate "KEY4" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY4" "STATE_ZRRSIG" "hidden"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Check key tags, should be the same.
+n=$((n+1))
+echo_i "check that of zone ${ZONE} migration to dnssec-policy keeps existing keys ($n)"
+ret=0
+[ $_migratenomatch_alglen_ksk == $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_migratenomatch_alglen_zsk == $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+status=$((status+ret))
 
 #
 # Testing KSK/ZSK algorithm rollover.
