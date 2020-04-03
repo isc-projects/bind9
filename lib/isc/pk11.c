@@ -646,6 +646,9 @@ pk11_get_best_token(pk11_optype_t optype) {
 		token = best_eddsa_token;
 		break;
 	default:
+		break;
+	}
+	if (token == NULL) {
 		return (0);
 	}
 	return (token->slotid);
