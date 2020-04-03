@@ -108,3 +108,5 @@ rsa_test_CPPFLAGS =		\
 	$(OPENSSL_CFLAGS)
 
 unit-local: check
+
+LOG_COMPILER = $(builddir)/../../unit-test-driver.sh

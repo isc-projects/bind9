@@ -1637,6 +1637,9 @@ AC_CONFIG_FILES([lib/isc/tests/Makefile
 		 lib/isccc/tests/Makefile
 		 lib/isccfg/tests/Makefile])
 
+AC_CONFIG_FILES([lib/unit-test-driver.sh],
+		[chmod +x lib/unit-test-driver.sh])
+
 # System Tests
 
 AC_CONFIG_FILES([bin/tests/Makefile
