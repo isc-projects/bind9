@@ -718,11 +718,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 		for (int i = 0; i < sock->nchildren; i++) {
 			if (!atomic_load(&sock->children[i].destroying)) {
 				nmsocket_cleanup(&sock->children[i], false);
-				if (sock->statsindex != NULL) {
-					isc__nm_decstats(
-						sock->mgr,
-						sock->statsindex[STATID_ACTIVE]);
-				}
 			}
 		}
 

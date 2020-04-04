@@ -2463,6 +2463,13 @@ prefetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 	UNLOCK(&client->query.fetchlock);
 
+	/*
+	 * We're done prefetching, detach from quota.
+	 */
+	if (client->recursionquota != NULL) {
+		isc_quota_detach(&client->recursionquota);
+	}
+
 	free_devent(client, &event, &devent);
 	isc_nmhandle_unref(client->handle);
 }
@@ -2488,6 +2495,9 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&client->sctx->recursionquota,
 					  &client->recursionquota);
+		if (result == ISC_R_SOFTQUOTA) {
+			isc_quota_detach(&client->recursionquota);
+		}
 		if (result != ISC_R_SUCCESS) {
 			return;
 		}
@@ -2698,6 +2708,9 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&client->sctx->recursionquota,
 					  &client->recursionquota);
+		if (result == ISC_R_SOFTQUOTA) {
+			isc_quota_detach(&client->recursionquota);
+		}
 		if (result != ISC_R_SUCCESS) {
 			return;
 		}
