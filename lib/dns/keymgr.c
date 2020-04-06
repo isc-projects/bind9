@@ -40,17 +40,15 @@
 	} while (0)
 
 /*
- * Set key state to HIDDEN and change last changed to now,
- * only if key state has not been set before.
+ * Set key state to `target` state and change last changed
+ * to `time`, only if key state has not been set before.
  */
-#define INITIALIZE_STATE(key, state, time, target)                            \
+#define INITIALIZE_STATE(key, state, timing, target, time)                    \
 	do {                                                                  \
 		dst_key_state_t s;                                            \
 		if (dst_key_getstate((key), (state), &s) == ISC_R_NOTFOUND) { \
-			isc_stdtime_t t;                                      \
-			dst_key_gettime((key), DST_TIME_CREATED, &t);         \
-			dst_key_setstate((key), (state), target);             \
-			dst_key_settime((key), (time), t);                    \
+			dst_key_setstate((key), (state), (target));           \
+			dst_key_settime((key), (timing), time);               \
 		}                                                             \
 	} while (0)
 
@@ -1286,15 +1284,16 @@ keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 
 	/* Set key states for all keys that do not have them. */
 	INITIALIZE_STATE(key->key, DST_KEY_DNSKEY, DST_TIME_DNSKEY,
-			 dnskey_state);
+			 dnskey_state, now);
 	if (ksk) {
 		INITIALIZE_STATE(key->key, DST_KEY_KRRSIG, DST_TIME_KRRSIG,
-				 dnskey_state);
-		INITIALIZE_STATE(key->key, DST_KEY_DS, DST_TIME_DS, ds_state);
+				 dnskey_state, now);
+		INITIALIZE_STATE(key->key, DST_KEY_DS, DST_TIME_DS, ds_state,
+				 now);
 	}
 	if (zsk) {
 		INITIALIZE_STATE(key->key, DST_KEY_ZRRSIG, DST_TIME_ZRRSIG,
-				 zrrsig_state);
+				 zrrsig_state, now);
 	}
 }
 
