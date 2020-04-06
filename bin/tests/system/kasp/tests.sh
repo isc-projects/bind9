@@ -490,6 +490,24 @@ dnssec_verify()
 	status=$((status+ret))
 }
 
+# Wait for the zone to be signed.
+# The apex NSEC record indicates that it is signed.
+_wait_for_nsec() {
+	dig_with_opts "@${SERVER}" -y "$TSIG" "$ZONE" NSEC > "dig.out.nsec.test$n" || return 1
+	grep "NS SOA" "dig.out.nsec.test$n" > /dev/null || return 1
+	grep "${ZONE}\..*IN.*RRSIG" "dig.out.nsec.test$n" > /dev/null || return 1
+	return 0
+}
+
+wait_for_nsec() {
+	n=$((n+1))
+	ret=0
+	echo_i "wait for ${ZONE} to be signed ($n)"
+	retry_quiet 10 _wait_for_nsec  || log_error "wait for ${ZONE} to be signed failed"
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+}
+
 # Default next key event threshold. May be extended by wait periods.
 next_key_event_threshold=100
 
@@ -1854,6 +1872,7 @@ set_zone "inherit.inherit.signed"
 set_policy "test" "1" "3600"
 set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha1:sha1:$SHA1"
+wait_for_nsec
 check_keys
 check_apex
 check_subdomain
@@ -1863,6 +1882,7 @@ set_zone "override.override.signed"
 set_policy "test" "1" "3600"
 set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha224:sha224:$SHA224"
+wait_for_nsec
 check_keys
 check_apex
 check_subdomain
@@ -1872,6 +1892,7 @@ set_zone "override.none.signed"
 set_policy "test" "1" "3600"
 set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha256:sha256:$SHA256"
+wait_for_nsec
 check_keys
 check_apex
 check_subdomain
@@ -1881,6 +1902,7 @@ set_zone "override.override.unsigned"
 set_policy "test" "1" "3600"
 set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha224:sha224:$SHA224"
+wait_for_nsec
 check_keys
 check_apex
 check_subdomain
@@ -1890,6 +1912,7 @@ set_zone "override.none.unsigned"
 set_policy "test" "1" "3600"
 set_server "ns5" "10.53.0.5"
 TSIG="hmac-sha256:sha256:$SHA256"
+wait_for_nsec
 check_keys
 check_apex
 check_subdomain
@@ -1898,6 +1921,7 @@ dnssec_verify
 set_zone "example.net"
 set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha1:keyforview1:$VIEW1"
+wait_for_nsec
 check_keys
 check_apex
 dnssec_verify
@@ -1913,6 +1937,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 TSIG="hmac-sha1:keyforview2:$VIEW2"
+wait_for_nsec
 check_keys
 check_apex
 dnssec_verify
