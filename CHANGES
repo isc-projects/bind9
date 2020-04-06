@@ -2,6 +2,8 @@
 			is configured as a forwarding DNS server. [GL #1574]
 			(Thanks to Tobias Klein)
 
+5375.	[test]		Fix timing issue in kasp test. [GL #1669]
+
 5374.	[bug]		Statistics counters counting recursive clients and
 			active connections could underflow. [GL #1087]
 
