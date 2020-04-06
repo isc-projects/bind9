@@ -1,3 +1,6 @@
+5386.	[cleanup]	Address Coverity warnings in keymgr.c [GL #1737]
+
+
 5385.	[func]		Make ISC rwlock implementation the default again.
 			[GL #1753]
 
