@@ -193,9 +193,9 @@ TactN="now-40h"
 TpubN1="now-40h"
 TactN1="now-31h"
 TremN="now-2h"
-$SETTIME -s -P $TactN  -A $TactN  -I now -g $H -k $U $TremN  -r $U $TremN  -d $H $TremN  "$KSK1" > settime.out.$zone.1 2>&1
+$SETTIME -s -P $TactN  -A $TactN  -I now -g $H -k $U $TremN  -r $U $TremN  -d $H $TactN1 "$KSK1" > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TactN  -A $TactN  -I now -g $H -k $U $TremN  -z $U $TremN                "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -P $TpubN1 -A $TactN1        -g $O -k $O $TpubN1 -r $O $TpubN1 -d $O $TremN  "$KSK2" > settime.out.$zone.1 2>&1
+$SETTIME -s -P $TpubN1 -A $TactN1        -g $O -k $O $TpubN1 -r $O $TpubN1 -d $O $TactN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1        -g $O -k $O $TpubN1 -z $R $TpubN1               "$ZSK2" > settime.out.$zone.2 2>&1
 # Fake lifetime of old algorithm keys.
 echo "Lifetime: 0" >> "${KSK1}.state"
@@ -218,10 +218,11 @@ ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 $zone 2> keygen.out.$zone.2)
 TactN="now-47h"
 TpubN1="now-47h"
 TactN1="now-38h"
-TremN="now-9h"
-$SETTIME -s -P $TactN  -A $TactN  -I now -g $H -k $U $TremN  -r $U $TremN  -d $H $TremN  "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -P $TactN  -A $TactN  -I now -g $H -k $U $TremN  -z $U $TremN                "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -P $TpubN1 -A $TactN1        -g $O -k $O $TpubN1 -r $O $TpubN1 -d $O $TremN  "$KSK2" > settime.out.$zone.1 2>&1
+TdeaN="now-9h"
+TremN="now-7h"
+$SETTIME -s -P $TactN  -A $TactN  -I now -g $H -k $H $TremN  -r $U $TdeaN  -d $H $TactN1 "$KSK1" > settime.out.$zone.1 2>&1
+$SETTIME -s -P $TactN  -A $TactN  -I now -g $H -k $H $TremN  -z $U $TdeaN                "$ZSK1" > settime.out.$zone.2 2>&1
+$SETTIME -s -P $TpubN1 -A $TactN1        -g $O -k $O $TpubN1 -r $O $TpubN1 -d $O $TactN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -P $TpubN1 -A $TactN1        -g $O -k $O $TpubN1 -z $R $TpubN1               "$ZSK2" > settime.out.$zone.2 2>&1
 # Fake lifetime of old algorithm keys.
 echo "Lifetime: 0" >> "${KSK1}.state"
@@ -333,9 +334,10 @@ TactN="now-47h"
 TpubN1="now-47h"
 TactN1="now-44h"
 TsubN1="now-38h"
-TremN="now-9h"
-$SETTIME -s -P $TactN  -A $TactN  -I now -g $H -k $U $TremN  -r $U $TremN  -z $U $TremN  -d $H $TremN  "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -P $TpubN1 -A $TpubN1        -g $O -k $O $TactN1 -r $O $TactN1 -z $O $TsubN1 -d $O $TremN  "$CSK2" > settime.out.$zone.1 2>&1
+TdeaN="now-9h"
+TremN="now-7h"
+$SETTIME -s -P $TactN  -A $TactN  -I now -g $H -k $H $TremN  -r $U $TdeaN  -z $U $TdeaN  -d $H $TactN1 "$CSK1" > settime.out.$zone.1 2>&1
+$SETTIME -s -P $TpubN1 -A $TpubN1        -g $O -k $O $TactN1 -r $O $TactN1 -z $O $TsubN1 -d $O $TactN1 "$CSK2" > settime.out.$zone.1 2>&1
 # Fake lifetime of old algorithm keys.
 echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
