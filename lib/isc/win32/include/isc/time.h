@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <time.h>
 #include <windows.h>
 
 #include <isc/lang.h>
