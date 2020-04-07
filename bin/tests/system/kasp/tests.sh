@@ -2893,7 +2893,7 @@ check_next_key_event 3600
 # Testing good migration.
 #
 set_zone "migrate.kasp"
-set_policy "none" "2" "300"
+set_policy "none" "2" "7200"
 set_server "ns6" "10.53.0.6"
 
 init_migration_match() {
@@ -3090,7 +3090,7 @@ next_key_event_threshold=$((next_key_event_threshold+i))
 # Testing migration.
 #
 set_zone "migrate.kasp"
-set_policy "migrate" "2" "300"
+set_policy "migrate" "2" "7200"
 set_server "ns6" "10.53.0.6"
 
 # Key properties, timings and metadata should be the same as legacy keys above.
