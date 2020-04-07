@@ -16,8 +16,8 @@ $TTL 300
 			3600    ; minimum (1 hour)
 			)
 
-			NS	ns3
-ns3			A	10.53.0.3
+			NS	ns6
+ns6			A	10.53.0.6
 
 a			A	10.0.0.1
 b			A	10.0.0.2
