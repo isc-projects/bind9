@@ -42,8 +42,8 @@ U="UNRETENTIVE"
 # Set up a zone with auto-dnssec maintain to migrate to dnssec-policy.
 setup migrate.kasp
 echo "$zone" >> zones
-KSK=$($KEYGEN -a ECDSAP256SHA256 -f KSK -L 300 $zone 2> keygen.out.$zone.1)
-ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 300 $zone 2> keygen.out.$zone.2)
+KSK=$($KEYGEN -a ECDSAP256SHA256 -f KSK -L 7200 $zone 2> keygen.out.$zone.1)
+ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200 $zone 2> keygen.out.$zone.2)
 $SETTIME -P now -P sync now -A now "$KSK" > settime.out.$zone.1 2>&1
 $SETTIME -P now -A now "$ZSK" > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
