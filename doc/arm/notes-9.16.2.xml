@@ -15,7 +15,9 @@
     <itemizedlist>
       <listitem>
         <para>
-	  None.
+	  DNS rebinding protection was ineffective when BIND 9 is configured as
+	  a forwarding DNS server.  Found and responsibly reported by Tobias
+	  Klein.  [GL #1574]
         </para>
       </listitem>
     </itemizedlist>
