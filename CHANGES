@@ -1,3 +1,5 @@
+5377.	[placeholder]
+
 5376.	[bug]		Fix DNS ineffective rebinding protection when BIND 9
 			is configured as a forwarding DNS server. [GL #1574]
 			(Thanks to Tobias Klein)
