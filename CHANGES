@@ -1,3 +1,16 @@
+5384.	[bug]		Deactivate the handle before sending the async close
+			callback. [GL #1700]
+
+5383.	[func]		Add a quota attach function with a callback, cleanup
+			the isc_quota API. [GL !3280]
+
+5382.	[bug]		Use clock_gettime() instead of gettimeofday() for
+			isc_stdtime() function. [GL #1679]
+
+5381.	[bug]		Fix logging API data race by adding rwlock and cache
+			the logging levels in stdatomic variables to restore
+			the performance to original levels. [GL #1675, #1717]
+
 5380.	[contrib]	Fix building the MySQL DLZ modules against MySQL 8
 			libraries. [GL #1678]
 
