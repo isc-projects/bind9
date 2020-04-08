@@ -87,6 +87,31 @@ zone "secondary.kasp" {
 	dnssec-policy "rsasha1";
 };
 
+/* A dynamic zone with dnssec-policy. */
+zone "dynamic.kasp" {
+	type master;
+	file "dynamic.kasp.db";
+	dnssec-policy "default";
+	allow-update { any; };
+};
+
+/* A dynamic inline-signed zone with dnssec-policy. */
+zone "dynamic-inline-signing.kasp" {
+	type master;
+	file "dynamic-inline-signing.kasp.db";
+	dnssec-policy "default";
+	allow-update { any; };
+	inline-signing yes;
+};
+
+/* An inline-signed zone with dnssec-policy. */
+zone "inline-signing.kasp" {
+	type master;
+	file "inline-signing.kasp.db";
+	dnssec-policy "default";
+	inline-signing yes;
+};
+
 /*
  * A configured dnssec-policy but some keys already created.
  */
