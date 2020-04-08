@@ -49,8 +49,6 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp) {
 				GetLastError());
 	}
 	(void)CloseHandle(thread);
-
-	return (ISC_R_SUCCESS);
 }
 
 void
