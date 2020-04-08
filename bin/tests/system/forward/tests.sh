@@ -210,5 +210,18 @@ sent=`grep -c "10.53.0.7#.* (.): query '\./NS/IN' approved" ns1/named.run`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=$((n+1))
+echo_i "checking that rebinding protection works in forward only mode ($n)"
+ret=0
+# 10.53.0.5 will forward target.malicious. query to 10.53.0.4
+# which in turn will return a CNAME for subdomain.rebind.
+# to honor the option deny-answer-aliases { "rebind"; };
+# ns5 should return a SERVFAIL to avoid potential rebinding attacks
+dig_with_opts +noadd +noauth @10.53.0.5 target.malicious. > dig.out.$n || ret=1
+grep "status: SERVFAIL" dig.out.$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
