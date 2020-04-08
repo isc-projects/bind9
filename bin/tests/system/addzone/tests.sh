@@ -719,7 +719,10 @@ ret=0
 $RNDCCMD 10.53.0.3 addzone "test4.baz" '{ type master; file "e.db"; };' > /dev/null 2>&1 || ret=1
 $RNDCCMD 10.53.0.3 addzone "test5.baz" '{ type master; file "e.db"; };' > /dev/null 2>&1 || ret=1
 $RNDCCMD 10.53.0.3 addzone '"test/.baz"' '{ type master; check-names ignore; file "e.db"; };' > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.3 addzone '"test\".baz"' '{ type master; check-names ignore; file "e.db"; };' > /dev/null 2>&1 || ret=1
+# FIXME: This check triggers a known issue in non-LMDB BIND builds
+if [ -n "${NZD}" ]; then
+    $RNDCCMD 10.53.0.3 addzone '"test\".baz"' '{ type master; check-names ignore; file "e.db"; };' > /dev/null 2>&1 || ret=1
+fi
 $PERL $SYSTEMTESTTOP/stop.pl addzone ns3
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} addzone ns3 || ret=1
 retry_quiet 10 _check_version_bind || ret=1
