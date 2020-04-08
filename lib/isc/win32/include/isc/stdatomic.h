@@ -18,6 +18,8 @@
 #include <stdint.h>
 #include <windows.h>
 
+#pragma warning(disable : 4133)
+
 #define InterlockedExchangeAdd8	    _InterlockedExchangeAdd8
 #define InterlockedCompareExchange8 _InterlockedCompareExchange8
 
