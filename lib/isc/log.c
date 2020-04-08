@@ -1454,13 +1454,15 @@ isc_log_wouldlog(isc_log_t *lctx, int level) {
 		return (false);
 	}
 
-	if (level <= atomic_load_acquire(&lctx->highest_level)) {
+	int highest_level = atomic_load_acquire(&lctx->highest_level);
+	if (level <= highest_level) {
 		return (true);
 	}
-	if (atomic_load_acquire(&lctx->dynamic) &&
-	    level <= atomic_load_acquire(&lctx->debug_level))
-	{
-		return (true);
+	if (atomic_load_acquire(&lctx->dynamic)) {
+		int debug_level = atomic_load_acquire(&lctx->debug_level);
+		if (level <= debug_level) {
+			return (true);
+		}
 	}
 
 	return (false);
