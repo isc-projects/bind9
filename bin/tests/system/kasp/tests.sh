@@ -13,6 +13,7 @@
 SYSTEMTESTTOP=..
 . "$SYSTEMTESTTOP/conf.sh"
 
+start_time="$(TZ=UTC date +%s)"
 status=0
 n=0
 
@@ -2892,7 +2893,7 @@ check_next_key_event 3600
 # Testing good migration.
 #
 set_zone "migrate.kasp"
-set_policy "none" "2" "300"
+set_policy "none" "2" "7200"
 set_server "ns6" "10.53.0.6"
 
 init_migration_match() {
@@ -3052,6 +3053,11 @@ echo_i "reconfig dnssec-policy to trigger algorithm rollover"
 copy_setports ns6/named2.conf.in ns6/named.conf
 rndc_reconfig ns6 10.53.0.6
 
+# Calculate time passed to correctly check for next key events.
+now="$(TZ=UTC date +%s)"
+time_passed=$((now-start_time))
+echo_i "${time_passed} seconds passed between start of tests and reconfig"
+
 #  The NSEC record at the apex of the zone and its RRSIG records are
 #  added as part of the last step in signing a zone.  We wait for the
 #  NSEC records to appear before proceeding with a counter to prevent
@@ -3084,7 +3090,7 @@ next_key_event_threshold=$((next_key_event_threshold+i))
 # Testing migration.
 #
 set_zone "migrate.kasp"
-set_policy "migrate" "2" "300"
+set_policy "migrate" "2" "7200"
 set_server "ns6" "10.53.0.6"
 
 # Key properties, timings and metadata should be the same as legacy keys above.
@@ -3326,8 +3332,11 @@ dnssec_verify
 # algorithm.  This is the max-zone-ttl plus zone propagation delay
 # plus retire safety: 6h + 1h + 2h.  But three hours have already passed
 # (the time it took to make the DNSKEY omnipresent), so the next event
-# should be scheduled in 6 hour: 21600 seconds.
-check_next_key_event 21600
+# should be scheduled in 6 hour: 21600 seconds.  Prevent intermittent
+# false positives on slow platforms by subtracting the number of seconds
+# which passed between key creation and invoking 'rndc reconfig'.
+next_time=$((21600-time_passed))
+check_next_key_event $next_time
 
 #
 # Zone: step3.algorithm-roll.kasp
@@ -3399,8 +3408,11 @@ dnssec_verify
 # Next key event is when the RSASHA1 signatures become HIDDEN.  This happens
 # after the max-zone-ttl plus zone propagation delay plus retire safety
 # (6h + 1h + 2h) minus the time already passed since the UNRETENTIVE state has
-# been reached (2h): 9h - 2h = 7h = 25200
-check_next_key_event 25200
+# been reached (2h): 9h - 2h = 7h = 25200 seconds. Prevent intermittent
+# false positives on slow platforms by subtracting the number of seconds
+# which passed between key creation and invoking 'rndc reconfig'.
+next_time=$((25200-time_passed))
+check_next_key_event $next_time
 
 #
 # Zone: step6.algorithm-roll.kasp
@@ -3498,8 +3510,11 @@ dnssec_verify
 # algorithm.  This is the max-zone-ttl plus zone propagation delay
 # plus retire safety: 6h + 1h + 2h.  But three hours have already passed
 # (the time it took to make the DNSKEY omnipresent), so the next event
-# should be scheduled in 6 hour: 21600 seconds.
-check_next_key_event 21600
+# should be scheduled in 6 hour: 21600 seconds.  Prevent intermittent
+# false positives on slow platforms by subtracting the number of seconds
+# which passed between key creation and invoking 'rndc reconfig'.
+next_time=$((21600-time_passed))
+check_next_key_event $next_time
 
 #
 # Zone: step3.csk-algorithm-roll.kasp
@@ -3567,8 +3582,11 @@ dnssec_verify
 # Next key event is when the RSASHA1 signatures become HIDDEN.  This happens
 # after the max-zone-ttl plus zone propagation delay plus retire safety
 # (6h + 1h + 2h) minus the time already passed since the UNRETENTIVE state has
-# been reached (2h): 9h - 2h = 7h = 25200
-check_next_key_event 25200
+# been reached (2h): 9h - 2h = 7h = 25200 seconds.  Prevent intermittent
+# false positives on slow platforms by subtracting the number of seconds
+# which passed between key creation and invoking 'rndc reconfig'.
+next_time=$((25200-time_passed))
+check_next_key_event $next_time
 
 #
 # Zone: step6.csk-algorithm-roll.kasp
