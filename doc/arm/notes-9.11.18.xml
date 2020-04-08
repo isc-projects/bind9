@@ -15,9 +15,9 @@
     <itemizedlist>
       <listitem>
         <para>
-	  DNS rebinding protection was ineffective when BIND 9 is configured as
-	  a forwarding DNS server.  Found and responsibly reported by Tobias
-	  Klein.  [GL #1574]
+          DNS rebinding protection was ineffective when BIND 9 is configured as
+          a forwarding DNS server. Found and responsibly reported by Tobias
+          Klein. [GL #1574]
         </para>
       </listitem>
     </itemizedlist>
@@ -27,37 +27,13 @@
     <itemizedlist>
       <listitem>
         <para>
-	  None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.18-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-	  None.
-	</para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.18-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-	  None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.18-bugs"><info><title>Bug Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-	  None.
+          We have received reports that in some circumstances, receipt of an
+          IXFR can cause the processing of queries to slow significantly. Some
+          of these were related to RPZ processing, which has been fixed in this
+          release (see below). Others appear to occur where there are
+          NSEC3-related changes (such as an operator changing the NSEC3 salt
+          used in the hash calculation). These are being investigated.
+          [GL #1685]
         </para>
       </listitem>
     </itemizedlist>
