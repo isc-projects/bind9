@@ -713,164 +713,6 @@ status=$((status+ret))
 
 next_key_event_threshold=$((next_key_event_threshold+i))
 
-#
-# Zone: default.kasp.
-#
-
-# Check the zone with default kasp policy has loaded and is signed.
-set_zone "default.kasp"
-set_policy "default" "1" "3600"
-set_server "ns3" "10.53.0.3"
-# Key properties.
-set_keyrole      "KEY1" "csk"
-set_keylifetime  "KEY1" "0"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
-set_keysigning   "KEY1" "yes"
-set_zonesigning  "KEY1" "yes"
-
-# The first key is immediately published and activated.
-set_keytime  "KEY1" "PUBLISHED"    "yes"
-set_keytime  "KEY1" "ACTIVE"       "yes"
-# DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
-set_keystate "KEY1" "GOAL"         "omnipresent"
-set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
-set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
-set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
-set_keystate "KEY1" "STATE_DS"     "hidden"
-
-n=$((n+1))
-echo_i "check key is created for zone ${ZONE} ($n)"
-ret=0
-ids=$(get_keyids "$DIR" "$ZONE")
-for id in $ids; do
-	check_key "KEY1" "$id"
-done
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-# Verify signed zone.
-dnssec_verify "$ZONE"
-
-# Test DNSKEY query.
-qtype="DNSKEY"
-n=$((n+1))
-echo_i "check ${qtype} rrset is signed correctly for zone ${ZONE} ($n)"
-ret=0
-dig_with_opts "$ZONE" "@${SERVER}" $qtype > "dig.out.$DIR.test$n" || log_error "dig ${ZONE} ${qtype} failed"
-grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || log_error "mismatch status in DNS response"
-grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${qtype}.*257.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || log_error "missing ${qtype} record in response"
-lines=$(get_keys_which_signed $qtype "dig.out.$DIR.test$n" | wc -l)
-test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
-get_keys_which_signed $qtype "dig.out.$DIR.test$n" | grep "^${KEY_ID}$" > /dev/null || log_error "${qtype} RRset not signed with key ${KEY_ID}"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-# Test SOA query.
-qtype="SOA"
-n=$((n+1))
-echo_i "check ${qtype} rrset is signed correctly for zone ${ZONE} ($n)"
-ret=0
-dig_with_opts "$ZONE" "@${SERVER}" $qtype > "dig.out.$DIR.test$n" || log_error "dig ${ZONE} ${qtype} failed"
-grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || log_error "mismatch status in DNS response"
-grep "${ZONE}\..*${DEFAULT_TTL}.*IN.*${qtype}.*mname1\..*\." "dig.out.$DIR.test$n" > /dev/null || log_error "missing ${qtype} record in response"
-lines=$(get_keys_which_signed $qtype "dig.out.$DIR.test$n" | wc -l)
-test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
-get_keys_which_signed $qtype "dig.out.$DIR.test$n" | grep "^${KEY_ID}$" > /dev/null || log_error "${qtype} RRset not signed with key ${KEY_ID}"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-# Update zone.
-n=$((n+1))
-echo_i "check that we can update unsigned zone file and new record gets signed for zone ${ZONE} ($n)"
-ret=0
-cp "${DIR}/template2.db.in" "${DIR}/${ZONE}.db"
-rndccmd 10.53.0.3 reload "$ZONE" > /dev/null || log_error "rndc reload zone ${ZONE} failed"
-_log=0
-i=0
-while [ $i -lt 5 ]
-do
-	ret=0
-
-	dig_with_opts "a.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n.a" || log_error "dig a.${ZONE} A failed"
-	grep "status: NOERROR" "dig.out.$DIR.test$n.a" > /dev/null || log_error "mismatch status in DNS response"
-	grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.11" "dig.out.$DIR.test$n.a" > /dev/null || log_error "missing a.${ZONE} A record in response"
-	lines=$(get_keys_which_signed A "dig.out.$DIR.test$n.a" | wc -l)
-	test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
-	get_keys_which_signed A "dig.out.$DIR.test$n.a" | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with key ${KEY_ID}"
-
-	dig_with_opts "d.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n".d || log_error "dig d.${ZONE} A failed"
-	grep "status: NOERROR" "dig.out.$DIR.test$n".d > /dev/null || log_error "mismatch status in DNS response"
-	grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.4" "dig.out.$DIR.test$n".d > /dev/null || log_error "missing d.${ZONE} A record in response"
-	lines=$(get_keys_which_signed A "dig.out.$DIR.test$n".d | wc -l)
-	test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
-	get_keys_which_signed A "dig.out.$DIR.test$n".d | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with key ${KEY_ID}"
-
-	i=$((i+1))
-	if [ $ret = 0 ]; then break; fi
-	echo_i "waiting ... ($i)"
-	sleep 1
-done
-_log=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-#
-# Zone: rsasha1.kasp.
-#
-set_zone "rsasha1.kasp"
-set_policy "rsasha1" "3" "1234"
-set_server "ns3" "10.53.0.3"
-# Key properties.
-key_clear        "KEY1"
-set_keyrole      "KEY1" "ksk"
-set_keylifetime  "KEY1" "315360000"
-set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
-set_keysigning   "KEY1" "yes"
-set_zonesigning  "KEY1" "no"
-
-key_clear        "KEY2"
-set_keyrole      "KEY2" "zsk"
-set_keylifetime  "KEY2" "157680000"
-set_keyalgorithm "KEY2" "5" "RSASHA1" "2048"
-set_keysigning   "KEY2" "no"
-set_zonesigning  "KEY2" "yes"
-
-key_clear        "KEY3"
-set_keyrole      "KEY3" "zsk"
-set_keylifetime  "KEY3" "31536000"
-set_keyalgorithm "KEY3" "5" "RSASHA1" "2000"
-set_keysigning   "KEY3" "no"
-set_zonesigning  "KEY3" "yes"
-# The first keys are immediately published and activated.
-# Because lifetime > 0, retired timing is also set.
-set_keytime  "KEY1" "PUBLISHED"    "yes"
-set_keytime  "KEY1" "ACTIVE"       "yes"
-set_keytime  "KEY1" "RETIRED"      "yes"
-
-set_keytime  "KEY2" "PUBLISHED"    "yes"
-set_keytime  "KEY2" "ACTIVE"       "yes"
-set_keytime  "KEY2" "RETIRED"      "yes"
-
-set_keytime  "KEY3" "PUBLISHED"    "yes"
-set_keytime  "KEY3" "ACTIVE"       "yes"
-set_keytime  "KEY3" "RETIRED"      "yes"
-# KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
-# ZSK: DNSKEY, RRSIG (zsk) published.
-set_keystate "KEY1" "GOAL"         "omnipresent"
-set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
-set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
-set_keystate "KEY1" "STATE_DS"     "hidden"
-
-set_keystate "KEY2" "GOAL"         "omnipresent"
-set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
-set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
-
-set_keystate "KEY3" "GOAL"         "omnipresent"
-set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
-set_keystate "KEY3" "STATE_ZRRSIG" "rumoured"
-# Three keys only.
-key_clear "KEY4"
-
 # Check keys for a configured zone. This verifies:
 # 1. The right number of keys exist in the key pool ($1).
 # 2. The right number of keys is active. Checks KEY1, KEY2, KEY3, and KEY4.
@@ -1173,6 +1015,164 @@ check_subdomain() {
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
 }
+
+#
+# Zone: default.kasp.
+#
+
+# Check the zone with default kasp policy has loaded and is signed.
+set_zone "default.kasp"
+set_policy "default" "1" "3600"
+set_server "ns3" "10.53.0.3"
+# Key properties.
+set_keyrole      "KEY1" "csk"
+set_keylifetime  "KEY1" "0"
+set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY1" "yes"
+set_zonesigning  "KEY1" "yes"
+
+# The first key is immediately published and activated.
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+# DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Update zone.
+n=$((n+1))
+echo_i "check that we can update unsigned zone file and new record gets signed for zone ${ZONE} ($n)"
+ret=0
+cp "${DIR}/template2.db.in" "${DIR}/${ZONE}.db"
+rndccmd 10.53.0.3 reload "$ZONE" > /dev/null || log_error "rndc reload zone ${ZONE} failed"
+_log=0
+i=0
+while [ $i -lt 5 ]
+do
+	ret=0
+
+	dig_with_opts "a.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n.a" || log_error "dig a.${ZONE} A failed"
+	grep "status: NOERROR" "dig.out.$DIR.test$n.a" > /dev/null || log_error "mismatch status in DNS response"
+	grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.11" "dig.out.$DIR.test$n.a" > /dev/null || log_error "missing a.${ZONE} A record in response"
+	lines=$(get_keys_which_signed A "dig.out.$DIR.test$n.a" | wc -l)
+	test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
+	get_keys_which_signed A "dig.out.$DIR.test$n.a" | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with key ${KEY_ID}"
+
+	dig_with_opts "d.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n".d || log_error "dig d.${ZONE} A failed"
+	grep "status: NOERROR" "dig.out.$DIR.test$n".d > /dev/null || log_error "mismatch status in DNS response"
+	grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.4" "dig.out.$DIR.test$n".d > /dev/null || log_error "missing d.${ZONE} A record in response"
+	lines=$(get_keys_which_signed A "dig.out.$DIR.test$n".d | wc -l)
+	test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
+	get_keys_which_signed A "dig.out.$DIR.test$n".d | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with key ${KEY_ID}"
+
+	i=$((i+1))
+	if [ $ret = 0 ]; then break; fi
+	echo_i "waiting ... ($i)"
+	sleep 1
+done
+_log=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+#
+# Zone: dynamic.kasp
+#
+set_zone "dynamic.kasp"
+set_policy "default" "1" "3600"
+set_server "ns3" "10.53.0.3"
+# Key properties, timings and states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: dynamic-inline-signing.kasp
+#
+set_zone "dynamic-inline-signing.kasp"
+set_policy "default" "1" "3600"
+set_server "ns3" "10.53.0.3"
+# Key properties, timings and states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: inline-signing.kasp
+#
+set_zone "inline-signing.kasp"
+set_policy "default" "1" "3600"
+set_server "ns3" "10.53.0.3"
+# Key properties, timings and states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: rsasha1.kasp.
+#
+set_zone "rsasha1.kasp"
+set_policy "rsasha1" "3" "1234"
+set_server "ns3" "10.53.0.3"
+# Key properties.
+key_clear        "KEY1"
+set_keyrole      "KEY1" "ksk"
+set_keylifetime  "KEY1" "315360000"
+set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
+set_keysigning   "KEY1" "yes"
+set_zonesigning  "KEY1" "no"
+
+key_clear        "KEY2"
+set_keyrole      "KEY2" "zsk"
+set_keylifetime  "KEY2" "157680000"
+set_keyalgorithm "KEY2" "5" "RSASHA1" "2048"
+set_keysigning   "KEY2" "no"
+set_zonesigning  "KEY2" "yes"
+
+key_clear        "KEY3"
+set_keyrole      "KEY3" "zsk"
+set_keylifetime  "KEY3" "31536000"
+set_keyalgorithm "KEY3" "5" "RSASHA1" "2000"
+set_keysigning   "KEY3" "no"
+set_zonesigning  "KEY3" "yes"
+# The first keys are immediately published and activated.
+# Because lifetime > 0, retired timing is also set.
+set_keytime  "KEY1" "PUBLISHED"    "yes"
+set_keytime  "KEY1" "ACTIVE"       "yes"
+set_keytime  "KEY1" "RETIRED"      "yes"
+
+set_keytime  "KEY2" "PUBLISHED"    "yes"
+set_keytime  "KEY2" "ACTIVE"       "yes"
+set_keytime  "KEY2" "RETIRED"      "yes"
+
+set_keytime  "KEY3" "PUBLISHED"    "yes"
+set_keytime  "KEY3" "ACTIVE"       "yes"
+set_keytime  "KEY3" "RETIRED"      "yes"
+# KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
+# ZSK: DNSKEY, RRSIG (zsk) published.
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
+
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_ZRRSIG" "rumoured"
+# Three keys only.
+key_clear "KEY4"
 
 check_keys
 check_apex

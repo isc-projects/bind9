@@ -1809,6 +1809,11 @@ dns_zone_isdynamic(dns_zone_t *zone, bool ignore_freeze) {
 		return (true);
 	}
 
+	/* Kasp zones are always dynamic. */
+	if (dns_zone_getkasp(zone) != NULL) {
+		return (true);
+	}
+
 	/* If !ignore_freeze, we need check whether updates are disabled.  */
 	if (zone->type == dns_zone_master &&
 	    (!zone->update_disabled || ignore_freeze) &&
@@ -2054,8 +2059,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 		goto cleanup;
 	}
 
-	is_dynamic = dns_zone_isdynamic(zone, false) ||
-		     dns_zone_getkasp(zone) != NULL;
+	is_dynamic = dns_zone_isdynamic(zone, false);
 	if (zone->db != NULL && is_dynamic) {
 		/*
 		 * This is a slave, stub, dynamically updated, or kasp enabled
@@ -3909,7 +3913,6 @@ check_nsec3param(dns_zone_t *zone, dns_db_t *db) {
 	bool dynamic = (zone->type == dns_zone_master)
 			       ? dns_zone_isdynamic(zone, false)
 			       : false;
-	dynamic = dynamic || dns_zone_getkasp(zone);
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findnode(db, &zone->origin, false, &node);
@@ -4842,8 +4845,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 * journal file if it isn't, as we wouldn't be able to apply
 	 * updates otherwise.
 	 */
-	is_dynamic = dns_zone_isdynamic(zone, true) ||
-		     dns_zone_getkasp(zone) != NULL;
+	is_dynamic = dns_zone_isdynamic(zone, true);
 	if (zone->journal != NULL && is_dynamic &&
 	    !DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS))
 	{
@@ -5140,8 +5142,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			resume_addnsec3chain(zone);
 		}
 
-		is_dynamic = dns_zone_isdynamic(zone, false) ||
-			     dns_zone_getkasp(zone) != NULL;
+		is_dynamic = dns_zone_isdynamic(zone, false);
 		if (zone->type == dns_zone_master &&
 		    !DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_NORESIGN) &&
 		    is_dynamic && dns_db_issecure(db))
@@ -20928,8 +20929,7 @@ dns_zone_setserial(dns_zone_t *zone, uint32_t serial) {
 	LOCK_ZONE(zone);
 
 	if (!inline_secure(zone)) {
-		if (!dns_zone_isdynamic(zone, true) &&
-		    dns_zone_getkasp(zone) == NULL) {
+		if (!dns_zone_isdynamic(zone, true)) {
 			result = DNS_R_NOTDYNAMIC;
 			goto failure;
 		}
