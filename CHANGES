@@ -1,8 +1,7 @@
 5380.	[contrib]	Fix building the MySQL DLZ modules against MySQL 8
 			libraries. [GL #1678]
 
-5379.	[doc]		Cleanup serve-stale related options that leaked into
-			BIND 9.11 release. [GL !3265]
+5379.	[placeholder]
 
 5378.	[bug]		Fix assertion in nslookup when receiving invalid DNS
 			data. [GL #1652]
