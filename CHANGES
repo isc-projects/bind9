@@ -1,18 +1,18 @@
-5380.	[contrib]	Fix building the MySQL DLZ modules against MySQL 8
+5380.	[contrib]	Fix building MySQL DLZ modules against MySQL 8
 			libraries. [GL #1678]
 
-5379.	[doc]		Cleanup serve-stale related options that leaked into
-			BIND 9.11 release. [GL !3265]
+5379.	[doc]		Clean up serve-stale related options that leaked into
+			the BIND 9.11 release. [GL !3265]
 
-5378.	[bug]		Fix assertion in nslookup when receiving invalid DNS
-			data. [GL #1652]
+5378.	[bug]		Receiving invalid DNS data was triggering an assertion
+			failure in nslookup. [GL #1652]
 
-5377.	[feature]	Detect atomic operations support on ppc64le. [GL !3295]
-			Thanks to Petr Menšik.
+5377.	[feature]	Detect atomic operations support on ppc64le. Thanks to
+			Petr Menšík. [GL !3295]
 
-5376.	[bug]		Fix DNS ineffective rebinding protection when BIND 9
-			is configured as a forwarding DNS server. [GL #1574]
-			(Thanks to Tobias Klein)
+5376.	[bug]		Fix ineffective DNS rebinding protection when BIND is
+			configured as a forwarding DNS server. Thanks to Tobias
+			Klein. [GL #1574]
 
 5368.	[bug]		Named failed to restart if 'rndc addzone' names
 			contained special characters (e.g. '/'). [GL #1655]
