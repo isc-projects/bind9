@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.17
+Release Notes for BIND Version 9.11.18
 
 Introduction
 
@@ -35,6 +35,24 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.18
+
+Security Fixes
+
+  * DNS rebinding protection was ineffective when BIND 9 is configured as
+    a forwarding DNS server. Found and responsibly reported by Tobias
+    Klein. [GL #1574]
+
+Known Issues
+
+  * We have received reports that in some circumstances, receipt of an
+    IXFR can cause the processing of queries to slow significantly. Some
+    of these were related to RPZ processing, which has been fixed in this
+    release (see below). Others appear to occur where there are
+    NSEC3-related changes (such as an operator changing the NSEC3 salt
+    used in the hash calculation). These are being investigated. [GL
+    #1685]
 
 Notes for BIND 9.11.17
 

@@ -39,7 +39,7 @@
 host \- DNS lookup utility
 .SH "SYNOPSIS"
 .HP \w'\fBhost\fR\ 'u
-\fBhost\fR [\fB\-aCdlnrsTUwv\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-N\ \fR\fB\fIndots\fR\fR] [\fB\-R\ \fR\fB\fInumber\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-W\ \fR\fB\fIwait\fR\fR] [\fB\-m\ \fR\fB\fIflag\fR\fR] [[\fB\-4\fR] | [\fB\-6\fR]] [\fB\-v\fR] [\fB\-V\fR] {name} [server]
+\fBhost\fR [\fB\-aCdlnrsTUwv\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-N\ \fR\fB\fIndots\fR\fR] [\fB\-p\ \fR\fB\fIport\fR\fR] [\fB\-R\ \fR\fB\fInumber\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-W\ \fR\fB\fIwait\fR\fR] [\fB\-m\ \fR\fB\fIflag\fR\fR] [[\fB\-4\fR] | [\fB\-6\fR]] [\fB\-v\fR] [\fB\-V\fR] {name} [server]
 .SH "DESCRIPTION"
 .PP
 \fBhost\fR
@@ -132,6 +132,11 @@ or
 \fBdomain\fR
 directive in
 /etc/resolv\&.conf\&.
+.RE
+.PP
+\-p \fIport\fR
+.RS 4
+Specify the port on the server to query\&. The default is 53\&.
 .RE
 .PP
 \-r
