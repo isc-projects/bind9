@@ -1,3 +1,5 @@
+	--- 9.16.2 released ---
+
 5383.	[func]		Add a quota attach function with a callback and clean up
 			the isc_quota API. [GL !3280]
 
