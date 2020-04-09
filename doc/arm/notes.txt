@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.17.0
+Release Notes for BIND Version 9.17.1
 
 Introduction
 
@@ -36,6 +36,59 @@ www.isc.org/download/. There you will find additional information about
 each release, source code, and pre-compiled versions for Microsoft Windows
 operating systems.
 
+Notes for BIND 9.17.1
+
+Security Fixes
+
+  * DNS rebinding protection was ineffective when BIND 9 is configured as
+    a forwarding DNS server. Found and responsibly reported by Tobias
+    Klein. [GL #1574]
+
+Known Issues
+
+  * We have received reports that in some circumstances, receipt of an
+    IXFR can cause the processing of queries to slow significantly. Some
+    of these were related to RPZ processing, which has been fixed in this
+    release (see below). Others appear to occur where there are
+    NSEC3-related changes (such as an operator changing the NSEC3 salt
+    used in the hash calculation). These are being investigated. [GL
+    #1685]
+
+New Features
+
+  * A new option, nsdname-wait-recurse, has been added to the
+    response-policy clause in the configuration file. When set to no, RPZ
+    NSDNAME rules are only applied if the authoritative nameservers for
+    the query name have been looked up and are present in the cache. If
+    this information is not present, the RPZ NSDNAME rules are ignored,
+    but the information is looked up in the background and applied to
+    subsequent queries. The default is yes, meaning that RPZ NSDNAME rules
+    should always be applied, even if the information needs to be looked
+    up first. [GL #1138]
+
+Feature Changes
+
+  * The previous DNSSEC sign statistics used lots of memory. The number of
+    keys to track is reduced to four per zone, which should be enough for
+    99% of all signed zones. [GL #1179]
+
+Bug Fixes
+
+  * When an RPZ policy zone was updated via zone transfer and a large
+    number of records was deleted, named could become nonresponsive for a
+    short period while deleted names were removed from the RPZ summary
+    database. This database cleanup is now done incrementally over a
+    longer period of time, reducing such delays. [GL #1447]
+
+  * When trying to migrate an already-signed zone from auto-dnssec
+    maintain to one based on dnssec-policy, the existing keys were
+    immediately deleted and replaced with new ones. As the key rollover
+    timing constraints were not being followed, it was possible that some
+    clients would not have been able to validate responses until all old
+    DNSSEC information had timed out from caches. BIND now looks at the
+    time metadata of the existing keys and incorporates it into its DNSSEC
+    policy operation. [GL #1706]
+
 Notes for BIND 9.17.0
 
 Known Issues
@@ -61,6 +114,14 @@ New Features
     This behavior is controlled by the max-ixfr-ratio option - a
     percentage value representing the ratio of IXFR size to the size of a
     full zone transfer. The default is 100%. [GL #1515]
+
+  * A new RPZ option nsdname-wait-recurse controls whether RPZ-NSDNAME
+    rules should always be applied even if the names of authoritative name
+    servers for the query name need to be looked up recurively first. The
+    default is yes. Setting it to no speeds up initial responses by
+    skipping RPZ-NSDNAME rules when name server domain names are not yet
+    in the cache. The names will be looked up in the background and the
+    rule will be applied for subsequent queries. [GL #1138]
 
 Feature Changes
 
