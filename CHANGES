@@ -1,48 +1,46 @@
-5384.	[bug]		Deactivate the handle before sending the async close
-			callback. [GL #1700]
-
-5383.	[func]		Add a quota attach function with a callback, cleanup
+5383.	[func]		Add a quota attach function with a callback and clean up
 			the isc_quota API. [GL !3280]
 
 5382.	[bug]		Use clock_gettime() instead of gettimeofday() for
 			isc_stdtime() function. [GL #1679]
 
-5381.	[bug]		Fix logging API data race by adding rwlock and cache
-			the logging levels in stdatomic variables to restore
-			the performance to original levels. [GL #1675, #1717]
+5381.	[bug]		Fix logging API data race by adding rwlock and caching
+			logging levels in stdatomic variables to restore
+			performance to original levels. [GL #1675] [GL #1717]
 
-5380.	[contrib]	Fix building the MySQL DLZ modules against MySQL 8
+5380.	[contrib]	Fix building MySQL DLZ modules against MySQL 8
 			libraries. [GL #1678]
 
 5379.	[placeholder]
 
-5378.	[bug]		Fix assertion in nslookup when receiving invalid DNS
-			data. [GL #1652]
+5378.	[bug]		Receiving invalid DNS data was triggering an assertion
+			failure in nslookup. [GL #1652]
 
 5377.	[placeholder]
 
-5376.	[bug]		Fix DNS ineffective rebinding protection when BIND 9
-			is configured as a forwarding DNS server. [GL #1574]
-			(Thanks to Tobias Klein)
+5376.	[bug]		Fix ineffective DNS rebinding protection when BIND is
+			configured as a forwarding DNS server. Thanks to Tobias
+			Klein. [GL #1574]
 
-5375.	[test]		Fix timing issue in kasp test. [GL #1669]
+5375.	[test]		Fix timing issues in the "kasp" system test. [GL #1669]
 
-5374.	[bug]		Statistics counters counting recursive clients and
+5374.	[bug]		Statistics counters tracking recursive clients and
 			active connections could underflow. [GL #1087]
 
-5373.	[bug]		Collecting DNSSEC signing operations introduced by
-			GL #513 (change 5254) allocated counters for every
-			possible key id per zone which results in a lot of
-			wasted memory. Fix by tracking up to four keys
-			per zone, rotate counters when keys are replaced.
-			This fixes the immediate problem of the high
-			memory usage, but should be improved in a future
-			release by growing and shrinking the number of
-			keys to track triggered by key rollover events.
-			[GL #1179]
+5373.	[bug]		Collecting statistics for DNSSEC signing operations
+			(change 5254) caused an array of significant size (over
+			100 kB) to be allocated for each configured zone. Each
+			of these arrays is tracking all possible key IDs; this
+			could trigger an out-of-memory condition on servers with
+			a high enough number of zones configured. Fixed by
+			tracking up to four keys per zone and rotating counters
+			when keys are replaced. This fixes the immediate problem
+			of high memory usage, but should be improved in a future
+			release by growing or shrinking the number of keys to
+			track upon key rollover events. [GL #1179]
 
-5372.	[bug]		Fix migration from existing DNSSEC key files using
-			auto-dnssec maintain to dnssec-policy. [GL #1706]
+5372.	[bug]		Fix migration from existing DNSSEC key files
+			("auto-dnssec maintain") to "dnssec-policy". [GL #1706]
 
 5371.	[bug]		Improve incremental updates of the RPZ summary
 			database to reduce delays that could occur when
@@ -54,10 +52,9 @@
 			Fixed by deactivating the netmgr handle before
 			scheduling the asynchronous close routine. [GL #1700]
 
-5369.	[func]		Add the ability to specify whether or not to wait
-			for nameserver domain names to be looked up, with
-			a new RPZ modifying directive 'nsdname-wait-recurse'.
-			[GL #1138]
+5369.	[func]		Add the ability to specify whether to wait for
+			nameserver domain names to be looked up, with a new RPZ
+			modifying directive 'nsdname-wait-recurse'. [GL #1138]
 
 5368.	[bug]		Named failed to restart if 'rndc addzone' names
 			contained special characters (e.g. '/'). [GL #1655]
