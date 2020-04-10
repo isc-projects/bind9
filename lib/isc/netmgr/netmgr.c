@@ -417,9 +417,9 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 		isc_nm_pause(mgr);
 		isc_nm_resume(mgr);
 #ifdef WIN32
-		_sleep(1000);
+		_sleep(10);
 #else  /* ifdef WIN32 */
-		usleep(1000000);
+		usleep(10000);
 #endif /* ifdef WIN32 */
 	}
 
