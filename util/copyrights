@@ -1045,6 +1045,7 @@
 ./bin/tests/system/statschannel/clean.sh	SH	2015,2016,2017,2018,2019,2020
 ./bin/tests/system/statschannel/conftest.py	PYTHON	2020
 ./bin/tests/system/statschannel/fetch.pl	PERL	2015,2016,2018,2019,2020
+./bin/tests/system/statschannel/generic.py	PYTHON	2020
 ./bin/tests/system/statschannel/helper.py	PYTHON	2020
 ./bin/tests/system/statschannel/mem-xml.pl	PERL	2017,2018,2019,2020
 ./bin/tests/system/statschannel/ns2/sign.sh	SH	2019,2020

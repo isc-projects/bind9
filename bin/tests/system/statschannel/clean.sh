@@ -26,4 +26,4 @@ rm -f ns2/Kmanykeys* ns2/manykeys.*.id
 rm -f ns2/*.db.signed* ns2/dsset-*. ns2/*.jbk
 rm -f ns2/dnssec.db.signed* ns2/dsset-dnssec.
 rm -f ns3/*.db
-rm -rf /.cache /__pycache__
+rm -rf ./.cache ./__pycache__

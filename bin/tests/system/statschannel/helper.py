@@ -9,7 +9,15 @@
 # information regarding copyright ownership.
 ############################################################################
 
+import os
+import os.path
+
+from collections import defaultdict
 from datetime import datetime, timedelta
+
+import dns.message
+import dns.query
+import dns.rcode
 
 # ISO datetime format without msec
 fmt = '%Y-%m-%dT%H:%M:%SZ'
@@ -21,15 +29,18 @@ now = datetime.utcnow().replace(microsecond=0)
 dayzero = datetime.utcfromtimestamp(0).replace(microsecond=0)
 
 
+TIMEOUT = 10
+
+
 # Generic helper functions
-def check_expires(expires, min, max):
-    assert expires >= min
-    assert expires <= max
+def check_expires(expires, min_time, max_time):
+    assert expires >= min_time
+    assert expires <= max_time
 
 
-def check_refresh(refresh, min, max):
-    assert refresh >= min
-    assert refresh <= max
+def check_refresh(refresh, min_time, max_time):
+    assert refresh >= min_time
+    assert refresh <= max_time
 
 
 def check_loaded(loaded, expected):
@@ -47,12 +58,96 @@ def check_zone_timers(loaded, expires, refresh, loaded_exp):
     check_loaded(loaded, loaded_exp)
 
 
-def zone_mtime(zonedir, name):
-    import os
-    import os.path
-    from datetime import datetime
+#
+# The output is gibberish, but at least make sure it does not crash.
+#
+def check_manykeys(name, zone=None):
+    # pylint: disable=unused-argument
+    assert name == "manykeys"
 
-    si = os.stat(os.path.join(zonedir, "{}.db".format(name)))
+
+def zone_mtime(zonedir, name):
+
+    try:
+        si = os.stat(os.path.join(zonedir, "{}.db".format(name)))
+    except FileNotFoundError:
+        return dayzero
+
     mtime = datetime.utcfromtimestamp(si.st_mtime).replace(microsecond=0)
 
     return mtime
+
+
+def zone_keyid(nameserver, zone, key):
+    with open(f'{nameserver}/{zone}.{key}.id') as f:
+        keyid = f.read().strip()
+        print(f'{zone}-{key} ID: {keyid}')
+    return keyid
+
+
+def create_msg(qname, qtype):
+    msg = dns.message.make_query(qname, qtype, want_dnssec=True,
+                                 use_edns=0, payload=4096)
+
+    return msg
+
+
+def udp_query(ip, port, msg):
+
+    ans = dns.query.udp(msg, ip, TIMEOUT, port=port)
+    assert ans.rcode() == dns.rcode.NOERROR
+
+    return ans
+
+
+def tcp_query(ip, port, msg):
+
+    ans = dns.query.tcp(msg, ip, TIMEOUT, port=port)
+    assert ans.rcode() == dns.rcode.NOERROR
+
+    return ans
+
+
+def create_expected(data):
+    expected = {"dns-tcp-requests-sizes-received-ipv4": defaultdict(int),
+                "dns-tcp-responses-sizes-sent-ipv4": defaultdict(int),
+                "dns-tcp-requests-sizes-received-ipv6": defaultdict(int),
+                "dns-tcp-responses-sizes-sent-ipv6": defaultdict(int),
+                "dns-udp-requests-sizes-received-ipv4": defaultdict(int),
+                "dns-udp-requests-sizes-received-ipv6": defaultdict(int),
+                "dns-udp-responses-sizes-sent-ipv4": defaultdict(int),
+                "dns-udp-responses-sizes-sent-ipv6": defaultdict(int),
+                }
+
+    for k, v in data.items():
+        for kk, vv in v.items():
+            expected[k][kk] += vv
+
+    return expected
+
+
+def update_expected(expected, key, msg):
+    msg_len = len(msg.to_wire())
+    bucket_num = (msg_len // 16) * 16
+    bucket = "{}-{}".format(bucket_num, bucket_num + 15)
+
+    expected[key][bucket] += 1
+
+
+def check_traffic(data, expected):
+    def ordered(obj):
+        if isinstance(obj, dict):
+            return sorted((k, ordered(v)) for k, v in obj.items())
+        if isinstance(obj, list):
+            return sorted(ordered(x) for x in obj)
+        return obj
+
+    ordered_data = ordered(data)
+    ordered_expected = ordered(expected)
+
+    assert len(ordered_data) == 8
+    assert len(ordered_expected) == 8
+    assert len(data) == len(ordered_data)
+    assert len(expected) == len(ordered_expected)
+
+    assert ordered_data == ordered_expected
