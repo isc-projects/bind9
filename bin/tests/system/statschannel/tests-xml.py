@@ -10,15 +10,18 @@
 # information regarding copyright ownership.
 ############################################################################
 
-import pytest
+import xml.etree.ElementTree as ET
 from datetime import datetime
-from helper import fmt, zone_mtime, check_zone_timers, dayzero
+
+import pytest
+import requests
+
+import generic
+from helper import fmt
 
 
 # XML helper functions
-def fetch_xml(statsip, statsport):
-    import xml.etree.ElementTree as ET
-    import requests
+def fetch_zones_xml(statsip, statsport):
 
     r = requests.get("http://{}:{}/xml/v3/zones".format(statsip, statsport))
     assert r.status_code == 200
@@ -35,7 +38,38 @@ def fetch_xml(statsip, statsport):
     return default_view.find('zones').findall('zone')
 
 
-def load_timers_from_xml(zone, primary=True):
+def fetch_traffic_xml(statsip, statsport):
+
+    def load_counters(data):
+        out = {}
+        for counter in data.findall("counter"):
+            out[counter.attrib['name']] = int(counter.text)
+
+        return out
+
+    r = requests.get("http://{}:{}/xml/v3/traffic".format(statsip, statsport))
+    assert r.status_code == 200
+
+    root = ET.fromstring(r.text)
+
+    traffic = {}
+    for ip in ["ipv4", "ipv6"]:
+        for proto in ["udp", "tcp"]:
+            proto_root = root.find("traffic").find(ip).find(proto)
+            for counters in proto_root.findall("counters"):
+                if counters.attrib['type'] == "request-size":
+                    key = "dns-{}-requests-sizes-received-{}".format(proto, ip)
+                else:
+                    key = "dns-{}-responses-sizes-sent-{}".format(proto, ip)
+
+                values = load_counters(counters)
+                traffic[key] = values
+
+    return traffic
+
+
+def load_timers_xml(zone, primary=True):
+
     name = zone.attrib['name']
 
     loaded_el = zone.find('loaded')
@@ -58,27 +92,39 @@ def load_timers_from_xml(zone, primary=True):
     return (name, loaded, expires, refresh)
 
 
+def load_zone_xml(zone):
+    name = zone.attrib['name']
+
+    return name
+
+
 @pytest.mark.xml
 @pytest.mark.requests
 def test_zone_timers_primary_xml(statsport):
-    statsip = "10.53.0.1"
-    zonedir = "ns1"
-
-    zones = fetch_xml(statsip, statsport)
-
-    for zone in zones:
-        (name, loaded, expires, refresh) = load_timers_from_xml(zone, True)
-        mtime = zone_mtime(zonedir, name)
-        check_zone_timers(loaded, expires, refresh, mtime)
+    generic.test_zone_timers_primary(fetch_zones_xml, load_timers_xml,
+                                     statsip="10.53.0.1", statsport=statsport,
+                                     zonedir="ns1")
 
 
 @pytest.mark.xml
 @pytest.mark.requests
 def test_zone_timers_secondary_xml(statsport):
-    statsip = "10.53.0.3"
+    generic.test_zone_timers_secondary(fetch_zones_xml, load_timers_xml,
+                                       statsip="10.53.0.3", statsport=statsport,
+                                       zonedir="ns3")
 
-    zones = fetch_xml(statsip, statsport)
 
-    for zone in zones:
-        (name, loaded, expires, refresh) = load_timers_from_xml(zone, False)
-        check_zone_timers(loaded, expires, refresh, dayzero)
+@pytest.mark.xml
+@pytest.mark.requests
+def test_zone_with_many_keys_xml(statsport):
+    generic.test_zone_with_many_keys(fetch_zones_xml, load_zone_xml,
+                                     statsip="10.53.0.2", statsport=statsport)
+
+
+@pytest.mark.xml
+@pytest.mark.requests
+@pytest.mark.dnspython
+def test_traffic_xml(port, statsport):
+    generic.test_traffic(fetch_traffic_xml,
+                         statsip="10.53.0.2", statsport=statsport,
+                         port=port)

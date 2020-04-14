@@ -10,24 +10,37 @@
 # information regarding copyright ownership.
 ############################################################################
 
-import pytest
 from datetime import datetime
-from helper import fmt, zone_mtime, check_zone_timers, dayzero
+
+import pytest
+import requests
+
+import generic
+from helper import fmt
 
 
 # JSON helper functions
-def fetch_json(statsip, statsport):
-    import requests
+def fetch_zones_json(statsip, statsport):
 
     r = requests.get("http://{}:{}/json/v1/zones".format(statsip, statsport))
     assert r.status_code == 200
 
     data = r.json()
-
     return data["views"]["_default"]["zones"]
 
 
-def load_timers_from_json(zone, primary=True):
+def fetch_traffic_json(statsip, statsport):
+
+    r = requests.get("http://{}:{}/json/v1/traffic".format(statsip, statsport))
+    assert r.status_code == 200
+
+    data = r.json()
+
+    return data["traffic"]
+
+
+def load_timers_json(zone, primary=True):
+
     name = zone['name']
 
     # Check if the primary zone timer exists
@@ -49,27 +62,39 @@ def load_timers_from_json(zone, primary=True):
     return (name, loaded, expires, refresh)
 
 
+def load_zone_json(zone):
+    name = zone['name']
+
+    return name
+
+
 @pytest.mark.json
 @pytest.mark.requests
 def test_zone_timers_primary_json(statsport):
-    statsip = "10.53.0.1"
-    zonedir = "ns1"
-
-    zones = fetch_json(statsip, statsport)
-
-    for zone in zones:
-        (name, loaded, expires, refresh) = load_timers_from_json(zone, True)
-        mtime = zone_mtime(zonedir, name)
-        check_zone_timers(loaded, expires, refresh, mtime)
+    generic.test_zone_timers_primary(fetch_zones_json, load_timers_json,
+                                     statsip="10.53.0.1", statsport=statsport,
+                                     zonedir="ns1")
 
 
 @pytest.mark.json
 @pytest.mark.requests
 def test_zone_timers_secondary_json(statsport):
-    statsip = "10.53.0.3"
+    generic.test_zone_timers_secondary(fetch_zones_json, load_timers_json,
+                                       statsip="10.53.0.3", statsport=statsport,
+                                       zonedir="ns3")
 
-    zones = fetch_json(statsip, statsport)
 
-    for zone in zones:
-        (name, loaded, expires, refresh) = load_timers_from_json(zone, False)
-        check_zone_timers(loaded, expires, refresh, dayzero)
+@pytest.mark.json
+@pytest.mark.requests
+def test_zone_with_many_keys_json(statsport):
+    generic.test_zone_with_many_keys(fetch_zones_json, load_zone_json,
+                                     statsip="10.53.0.2", statsport=statsport)
+
+
+@pytest.mark.json
+@pytest.mark.requests
+@pytest.mark.dnspython
+def test_traffic_json(port, statsport):
+    generic.test_traffic(fetch_traffic_json,
+                         statsip="10.53.0.2", statsport=statsport,
+                         port=port)

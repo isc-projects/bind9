@@ -82,15 +82,12 @@
   	dnssec-secure-to-insecure <boolean>;
   	dnssec-update-mode ( maintain | no-resign );
   	dnssec-validation ( yes | no | auto );
-  	dnstap { ( all | auth | client | forwarder |
-  	    resolver | update ) [ ( query | response ) ];
-  	    ... };
-  	dnstap-identity ( <quoted_string> | none |
-  	    hostname );
-  	dnstap-output ( file | unix ) <quoted_string> [
-  	    size ( unlimited | <size> ) ] [ versions (
-  	    unlimited | <integer> ) ] [ suffix ( increment
-  	    | timestamp ) ];
+  	dnstap { ( all | auth | client | forwarder | resolver | update ) [
+  	    ( query | response ) ]; ... };
+  	dnstap-identity ( <quoted_string> | none | hostname );
+  	dnstap-output ( file | unix ) <quoted_string> [ size ( unlimited |
+  	    <size> ) ] [ versions ( unlimited | <integer> ) ] [ suffix (
+  	    increment | timestamp ) ];
   	dnstap-version ( <quoted_string> | none );
   	dscp <integer>;
   	dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
