@@ -66,7 +66,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 
 	for (size_t i = 0; i < mgr->nworkers; i++) {
 		uint16_t family = iface->addr.type.sa.sa_family;
-		int res;
+		int res = 0;
 
 		isc__netievent_udplisten_t *ievent = NULL;
 		isc_nmsocket_t *csock = &nsock->children[i];
@@ -84,22 +84,40 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 
 		/*
 		 * This is SO_REUSE**** hell:
-		 * On Linux SO_REUSEPORT allows multiple sockets to bind to
-		 * the same host:port pair.
-		 * On Windows the same thing is achieved with SO_REUSEADDR
+		 *
+		 * Generally, the SO_REUSEADDR socket option allows reuse of
+		 * local addresses.  On Windows, it also allows a socket to
+		 * forcibly bind to a port in use by another socket.
+		 *
+		 * On Linux, SO_REUSEPORT socket option allows sockets to be
+		 * bound to an identical socket address. For UDP sockets, the
+		 * use of this option can provide better distribution of
+		 * incoming datagrams to multiple processes (or threads) as
+		 * compared to the traditional technique of having multiple
+		 * processes compete to receive datagrams on the same socket.
+		 *
+		 * On FreeBSD, the same thing is achieved with SO_REUSEPORT_LB.
+		 *
 		 */
-#ifdef WIN32
+#if defined(SO_REUSEADDR)
 		res = setsockopt(csock->fd, SOL_SOCKET, SO_REUSEADDR,
 				 &(int){ 1 }, sizeof(int));
-#else  /* ifdef WIN32 */
+		RUNTIME_CHECK(res == 0);
+#endif
+#if defined(SO_REUSEPORT_LB)
+		res = setsockopt(csock->fd, SOL_SOCKET, SO_REUSEPORT_LB,
+				 &(int){ 1 }, sizeof(int));
+		RUNTIME_CHECK(res == 0);
+#elif defined(SO_REUSEPORT)
 		res = setsockopt(csock->fd, SOL_SOCKET, SO_REUSEPORT,
 				 &(int){ 1 }, sizeof(int));
-#endif /* ifdef WIN32 */
 		RUNTIME_CHECK(res == 0);
+#endif
 
 #ifdef SO_INCOMING_CPU
-		setsockopt(csock->fd, SOL_SOCKET, SO_INCOMING_CPU, &(int){ 1 },
-			   sizeof(int));
+		res = setsockopt(csock->fd, SOL_SOCKET, SO_INCOMING_CPU,
+				 &(int){ 1 }, sizeof(int));
+		RUNTIME_CHECK(res == 0);
 #endif
 		ievent = isc__nm_get_ievent(mgr, netievent_udplisten);
 		ievent->sock = csock;
