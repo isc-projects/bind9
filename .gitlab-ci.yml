@@ -446,7 +446,7 @@ pylint:
     - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
   script:
     - *configure
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -v 'ans\.py')
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -v 'ans\.py' | grep -v 'contrib/queryperf/')
   only:
     - merge_requests
 
