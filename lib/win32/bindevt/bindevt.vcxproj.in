@@ -44,6 +44,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\..\..\Build\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
+    <IntDirSharingDetected>None</IntDirSharingDetected>
     <CustomBuildBeforeTargets>ResourceCompile</CustomBuildBeforeTargets>
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
   </PropertyGroup>
@@ -51,6 +52,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\..\..\Build\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
+    <IntDirSharingDetected>None</IntDirSharingDetected>
     <CustomBuildBeforeTargets>ResourceCompile</CustomBuildBeforeTargets>
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
   </PropertyGroup>
