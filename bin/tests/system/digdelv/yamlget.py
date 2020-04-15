@@ -9,25 +9,22 @@
 # information regarding copyright ownership.
 ############################################################################
 
-try:
-    import yaml
-except:
-    print("No python yaml module, skipping")
-    exit(1)
-
-import subprocess
-import pprint
 import sys
 
-f = open(sys.argv[1], "r")
-for item in yaml.safe_load_all(f):
-    for key in sys.argv[2:]:
-        try:
-            key = int(key)
-        except: pass
-        try:
-            item = item[key]
-        except:
-            print('error: index not found')
-            exit(1)
-    print (item)
+try:
+    import yaml
+except (ModuleNotFoundError, ImportError):
+    print("No python yaml module, skipping")
+    sys.exit(1)
+
+with open(sys.argv[1], "r") as f:
+    for item in yaml.safe_load_all(f):
+        for key in sys.argv[2:]:
+            try:
+                key = int(key)
+            except ValueError:
+                pass
+            if key not in item:
+                print('error: index not found')
+                sys.exit(1)
+        print(item)
