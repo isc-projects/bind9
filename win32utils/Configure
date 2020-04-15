@@ -2725,6 +2725,13 @@ sub makesrcid {
         close SIN;
     }
 
+    if ($srcid eq "unset_id" and -d "..\\.git") {
+        $data = `git rev-list --max-count=1 HEAD`;
+        if (length($data) > 0) {
+            $srcid = substr($data, 0, 7);
+        }
+    }
+
     # Now set up the output version file
 
     my $ThisDate = scalar localtime();
