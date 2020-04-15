@@ -3675,8 +3675,9 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry, bool debug,
 	}
 
 	if (adb != NULL && adb->quota != 0 && adb->atr_freq != 0) {
+		uint_fast32_t quota = atomic_load_relaxed(&entry->quota);
 		fprintf(f, " [atr %0.2f] [quota %" PRIuFAST32 "]", entry->atr,
-			atomic_load_relaxed(&entry->quota));
+			quota);
 	}
 
 	fprintf(f, "\n");
