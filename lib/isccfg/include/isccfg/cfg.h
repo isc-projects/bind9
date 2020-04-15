@@ -597,7 +597,7 @@ typedef isc_result_t(pluginlist_cb_t)(const cfg_obj_t *config,
 
 isc_result_t
 cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
-		       isc_log_t *lctx, pluginlist_cb_t callback,
+		       isc_log_t *lctx, pluginlist_cb_t *callback,
 		       void *callback_data);
 /*%<
  * For every "plugin" stanza present in 'list' (which in turn is a part of
