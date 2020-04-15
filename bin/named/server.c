@@ -12086,12 +12086,10 @@ cleanup:
 
 isc_result_t
 named_server_tsiglist(named_server_t *server, isc_buffer_t **text) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_view_t *view;
 	unsigned int foundkeys = 0;
 
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
@@ -12100,7 +12098,6 @@ named_server_tsiglist(named_server_t *server, isc_buffer_t **text) {
 				       &foundkeys);
 		RWUNLOCK(&view->statickeys->lock, isc_rwlocktype_read);
 		if (result != ISC_R_SUCCESS) {
-			isc_task_endexclusive(server->task);
 			return (result);
 		}
 		RWLOCK(&view->dynamickeys->lock, isc_rwlocktype_read);
@@ -12108,11 +12105,9 @@ named_server_tsiglist(named_server_t *server, isc_buffer_t **text) {
 				       &foundkeys);
 		RWUNLOCK(&view->dynamickeys->lock, isc_rwlocktype_read);
 		if (result != ISC_R_SUCCESS) {
-			isc_task_endexclusive(server->task);
 			return (result);
 		}
 	}
-	isc_task_endexclusive(server->task);
 
 	if (foundkeys == 0) {
 		CHECK(putstr(text, "no tsig keys found."));
@@ -14161,7 +14156,6 @@ named_server_showzone(named_server_t *server, isc_lex_t *lex,
 	dns_view_t *view = NULL;
 	dns_zone_t *zone = NULL;
 	ns_cfgctx_t *cfg = NULL;
-	bool exclusive = false;
 #ifdef HAVE_LMDB
 	cfg_obj_t *nzconfig = NULL;
 #endif /* HAVE_LMDB */
@@ -14185,10 +14179,6 @@ named_server_showzone(named_server_t *server, isc_lex_t *lex,
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
-
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	exclusive = true;
 
 	if (!added) {
 		/* Find the view statement */
@@ -14247,9 +14237,6 @@ cleanup:
 #endif /* HAVE_LMDB */
 	if (isc_buffer_usedlength(*text) > 0) {
 		(void)putnull(text);
-	}
-	if (exclusive) {
-		isc_task_endexclusive(server->task);
 	}
 
 	return (result);
