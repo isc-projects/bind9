@@ -44,11 +44,13 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>.\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
+    <IntDirSharingDetected>None</IntDirSharingDetected>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|@PLATFORM@'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>.\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
+    <IntDirSharingDetected>None</IntDirSharingDetected>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|@PLATFORM@'">
     <ClCompile>

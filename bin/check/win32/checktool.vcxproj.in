@@ -48,12 +48,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|@PLATFORM@'">
     <IntDir>.\$(Configuration)\</IntDir>
+    <IntDirSharingDetected>None</IntDirSharingDetected>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|@PLATFORM@'">
     <OutDir>.\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|@PLATFORM@'">
     <IntDir>.\$(Configuration)\</IntDir>
+    <IntDirSharingDetected>None</IntDirSharingDetected>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|@PLATFORM@'">
     <ClCompile>

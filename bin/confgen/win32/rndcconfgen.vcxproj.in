@@ -44,12 +44,14 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\..\..\Build\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
+    <IntDirSharingDetected>None</IntDirSharingDetected>
     <TargetName>rndc-confgen</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|@PLATFORM@'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\..\..\Build\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
+    <IntDirSharingDetected>None</IntDirSharingDetected>
     <TargetName>rndc-confgen</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|@PLATFORM@'">
