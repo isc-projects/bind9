@@ -15,6 +15,7 @@
 #include <windows.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <direct.h>
 
 #include <isc/lang.h>
 #include <isc/platform.h>
