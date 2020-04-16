@@ -2147,6 +2147,9 @@ cfg_map_count(const cfg_obj_t *mapobj) {
 	return (isc_symtab_count(map->symtab));
 }
 
+#if _WIN32
+#pragma warning(disable : 4090)
+#endif
 const char *
 cfg_map_firstclause(const cfg_type_t *map, const void **clauses,
 		    unsigned int *idx)
@@ -2169,8 +2172,14 @@ cfg_map_firstclause(const cfg_type_t *map, const void **clauses,
 			return (NULL);
 	}
 	return ((*clauseset)[*idx].name);
+#if _WIN32
+#pragma warning(default : 4090)
+#endif
 }
 
+#if _WIN32
+#pragma warning(disable : 4090)
+#endif
 const char *
 cfg_map_nextclause(const cfg_type_t *map, const void **clauses,
 		   unsigned int *idx)
@@ -2194,6 +2203,9 @@ cfg_map_nextclause(const cfg_type_t *map, const void **clauses,
 			return (NULL);
 	}
 	return ((*clauseset)[*idx].name);
+#if _WIN32
+#pragma warning(default : 4090)
+#endif
 }
 
 /* Parse an arbitrary token, storing its raw text representation. */
