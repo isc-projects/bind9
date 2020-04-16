@@ -2275,9 +2275,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			for (element = cfg_list_first(kasps); element != NULL;
 			     element = cfg_list_next(element))
 			{
-				const char *kn = cfg_obj_asstring(cfg_tuple_get(
-					cfg_listelt_value(element), "name"));
-				if (strcmp(kaspname, kn) == 0) {
+				const cfg_obj_t *kobj = cfg_tuple_get(
+					cfg_listelt_value(element), "name");
+				if (strcmp(kaspname, cfg_obj_asstring(kobj)) ==
+				    0) {
 					has_dnssecpolicy = true;
 				}
 			}
@@ -2495,13 +2496,14 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
 		if (res1 == ISC_R_SUCCESS) {
 			signing = cfg_obj_asboolean(obj);
-		}
-
-		if (signing && has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "inline-signing: cannot be configured if "
-				    "dnssec-policy is also set");
-			result = ISC_R_FAILURE;
+			if (has_dnssecpolicy && !ddns && !signing) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "'inline-signing;' cannot be set "
+					    "to 'no' "
+					    "if dnssec-policy is also set on a "
+					    "non-dynamic DNS zone");
+				result = ISC_R_FAILURE;
+			}
 		}
 
 		obj = NULL;
@@ -2511,7 +2513,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			arg = cfg_obj_asstring(obj);
 		}
 		if (strcasecmp(arg, "off") != 0) {
-			if (!ddns && !signing) {
+			if (!ddns && !signing && strcasecmp(arg, "off") != 0) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "'auto-dnssec %s;' requires%s "
 					    "inline-signing to be configured "
@@ -2524,7 +2526,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 								       : "");
 				result = ISC_R_FAILURE;
 			}
-			if (has_dnssecpolicy) {
+
+			if (strcasecmp(arg, "off") != 0 && has_dnssecpolicy) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "'auto-dnssec %s;' cannot be "
 					    "configured if dnssec-policy is "
