@@ -137,9 +137,15 @@ static struct afd {
 			goto cleanup; \
 	} while (0)
 
+#ifdef _WIN32
+int
+getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
+	    DWORD hostlen, char *serv, DWORD servlen, int flags) {
+#else
 int
 getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 	    socklen_t hostlen, char *serv, socklen_t servlen, int flags) {
+#endif
 	struct afd *afd = NULL;
 	struct servent *sp;
 	unsigned short port = 0;

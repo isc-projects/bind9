@@ -230,9 +230,7 @@ stages:
          x64'
     - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
     - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
-  needs:
-    - job: autoreconf
-      artifacts: false
+  needs: []
   artifacts:
     untracked: true
     expire_in: "1 day"

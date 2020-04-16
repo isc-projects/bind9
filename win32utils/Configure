@@ -640,8 +640,9 @@ getversion();
 
 sub appargs {
     my $arg = $_[0];
-    # escape backslashes, spaces and double quotes
-    $arg =~ s/([\\ "])/\\$1/g;
+    # escape backslashes and double quotes
+    $arg =~ s/([\\"])/\\$1/g;
+    $arg =~ s/([\s])/\\\\$1/g;
     if (defined($configdefh{"CONFIGARGS"})) {
         $configdefh{"CONFIGARGS"} .= " " . $arg;
     } else {

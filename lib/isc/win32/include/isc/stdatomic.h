@@ -18,6 +18,9 @@
 #include <stdint.h>
 #include <windows.h>
 
+#pragma warning(disable : 4133)
+#pragma warning(disable : 4090)
+
 #define InterlockedExchangeAdd8	    _InterlockedExchangeAdd8
 #define InterlockedCompareExchange8 _InterlockedCompareExchange8
 
@@ -242,7 +245,7 @@ atomic_add_abort() {
 	atomic_fetch_sub_explicit(obj, arg, memory_order_seq_cst)
 
 #define atomic_fetch_and_explicit8(obj, arg, order) \
-	InterlockedAnd8((atomic_int_fast8_t)obj, arg)
+	InterlockedAnd8((atomic_int_fast8_t *)obj, arg)
 
 #define atomic_fetch_and_explicit32(obj, arg, order)                         \
 	(order == memory_order_relaxed                                       \
@@ -297,7 +300,7 @@ atomic_and_abort() {
 	atomic_fetch_and_explicit(obj, arg, memory_order_seq_cst)
 
 #define atomic_fetch_or_explicit8(obj, arg, order) \
-	InterlockedOr8((atomic_int_fast8_t)obj, arg)
+	InterlockedOr8((atomic_int_fast8_t *)obj, arg)
 
 #define atomic_fetch_or_explicit32(obj, arg, order)                            \
 	(order == memory_order_relaxed                                         \

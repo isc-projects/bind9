@@ -22,16 +22,15 @@
 
 #if HAVE_GLOB_H
 #include <glob.h>
-#elif defined(_WIN32) || defined(_WIN64)
+#elif defined(_WIN32)
 #include <stdlib.h>
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 
 #include <isc/list.h>
-#define GLOB_WIN_IMPL 1
-#define GLOB_ERR      0x0004 /* Return on error. */
-#define GLOB_NOSPACE  (-1)
-#define GLOB_NOMATCH  (-3)
+#define GLOB_ERR     0x0004 /* Return on error. */
+#define GLOB_NOSPACE (-1)
+#define GLOB_NOMATCH (-3)
 
 /* custom glob implementation for windows */
 static int
@@ -73,7 +72,7 @@ isc_globfree(glob_t *pglob) {
 	globfree(pglob);
 }
 
-#ifdef GLOB_WIN_IMPL
+#if defined(_WIN32)
 
 typedef struct file_path file_path_t;
 
@@ -102,7 +101,7 @@ map_error(DWORD win_err_code) {
 
 /* add file in directory dir, that matches glob expression
  * provided in function glob(), to the linked list fl */
-static int
+static void
 append_file(isc_mem_t *mctx, file_list_t *fl, const char *dir, const char *file,
 	    size_t full_path_len) {
 	file_path_t *fp = isc_mem_get(mctx, sizeof(file_path_t));
@@ -242,4 +241,4 @@ globfree(glob_t *pglob) {
 	pglob->mctx = NULL;
 }
 
-#endif /* GLOB_WIN_IMPL */
+#endif /* defined(_WIN32) */
