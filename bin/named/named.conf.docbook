@@ -168,7 +168,7 @@ logging {
   </refsection>
 
   <refsection><info><title>MANAGED-KEYS</title></info>
-  <para>Deprecated - see DNSSEC-KEYS.</para>
+  <para>Deprecated - see TRUST-ANCHORS.</para>
     <literallayout class="normal">
 managed-keys { <replaceable>string</replaceable> ( static-key
     | initial-key | static-ds |
@@ -550,7 +550,7 @@ trust-anchors { <replaceable>string</replaceable> ( static-key |
   </refsection>
 
   <refsection><info><title>TRUSTED-KEYS</title></info>
-  <para>Deprecated - see DNSSEC-KEYS.</para>
+  <para>Deprecated - see TRUST-ANCHORS.</para>
     <literallayout class="normal">
 trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
     <replaceable>integer</replaceable> <replaceable>integer</replaceable>
