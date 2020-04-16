@@ -111,7 +111,7 @@ struct dns_xfrin_ctx {
 	dns_name_t name; /*%< Name of zone to transfer */
 	dns_rdataclass_t rdclass;
 
-	bool checkid;
+	bool checkid, logit;
 	dns_messageid_t id;
 
 	/*%
@@ -836,6 +836,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_task_t *task,
 	dns_name_init(&xfr->name, NULL);
 	xfr->rdclass = rdclass;
 	xfr->checkid = true;
+	xfr->logit = true;
 	xfr->id = (dns_messageid_t)isc_random16();
 	xfr->reqtype = reqtype;
 	xfr->dscp = dscp;
@@ -1146,6 +1147,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	}
 
 	xfr->checkid = true;
+	xfr->logit = true;
 	xfr->id++;
 	xfr->nmsg = 0;
 	xfr->nrecs = 0;
@@ -1316,6 +1318,12 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		xfr->state = XFRST_SOAQUERY;
 		(void)xfrin_start(xfr);
 		return;
+	} else if (!xfr->checkid && msg->id != xfr->id && xfr->logit) {
+		xfrin_log(xfr, ISC_LOG_WARNING,
+			  "detected message ID mismatch on incoming AXFR "
+			  "stream, transfer will fail in BIND 9.17.2 and "
+			  "later if AXFR source is not fixed");
+		xfr->logit = false;
 	}
 
 	/*
