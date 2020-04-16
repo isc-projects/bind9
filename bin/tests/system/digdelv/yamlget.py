@@ -24,7 +24,7 @@ with open(sys.argv[1], "r") as f:
                 key = int(key)
             except ValueError:
                 pass
-            if key not in item:
-                print('error: index not found')
-                sys.exit(1)
+
+            item = item[key]
+
         print(item)
