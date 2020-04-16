@@ -6046,6 +6046,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	dns_zone_t *raw = NULL;	  /* New or reused raw zone */
 	dns_zone_t *dupzone = NULL;
 	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *voptions = NULL;
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *typeobj = NULL;
 	const cfg_obj_t *forwarders = NULL;
@@ -6064,11 +6065,16 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	const char *ztypestr;
 	dns_rpz_num_t rpz_num;
 	bool zone_is_catz = false;
+	bool zone_maybe_inline = false;
+	bool inline_signing = false;
 
 	options = NULL;
 	(void)cfg_map_get(config, "options", &options);
 
 	zoptions = cfg_tuple_get(zconfig, "options");
+	if (vconfig != NULL) {
+		voptions = cfg_tuple_get(vconfig, "options");
+	}
 
 	/*
 	 * Get the zone origin as a dns_name_t.
@@ -6401,19 +6407,71 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 */
 	dns_zone_setadded(zone, added);
 
+	/*
+	 * Determine if we need to set up inline signing.
+	 */
+	zone_maybe_inline = ((strcasecmp(ztypestr, "primary") == 0 ||
+			      strcasecmp(ztypestr, "master") == 0 ||
+			      strcasecmp(ztypestr, "secondary") == 0 ||
+			      strcasecmp(ztypestr, "slave") == 0));
+
 	signing = NULL;
-	if ((strcasecmp(ztypestr, "primary") == 0 ||
-	     strcasecmp(ztypestr, "master") == 0 ||
-	     strcasecmp(ztypestr, "secondary") == 0 ||
-	     strcasecmp(ztypestr, "slave") == 0) &&
-	    ((cfg_map_get(zoptions, "inline-signing", &signing) ==
-		      ISC_R_SUCCESS &&
-	      cfg_obj_asboolean(signing)) ||
-	     (cfg_map_get(zoptions, "dnssec-policy", &signing) ==
-		      ISC_R_SUCCESS &&
-	      signing != NULL &&
-	      strcmp(cfg_obj_asstring(signing), "none") != 0)))
+	inline_signing = (zone_maybe_inline &&
+			  ((cfg_map_get(zoptions, "inline-signing", &signing) ==
+				    ISC_R_SUCCESS &&
+			    cfg_obj_asboolean(signing))));
+
+	/*
+	 * If inline-signing is not set, perhaps implictly through a
+	 * dnssec-policy.  Since automated DNSSEC maintenance requires
+	 * a dynamic zone, or inline-siging to be enabled, check if
+	 * the zone with dnssec-policy allows updates.  If not, enable
+	 * inline-signing.
+	 */
+	signing = NULL;
+	if (zone_maybe_inline && !inline_signing &&
+	    cfg_map_get(zoptions, "dnssec-policy", &signing) == ISC_R_SUCCESS &&
+	    signing != NULL && strcmp(cfg_obj_asstring(signing), "none") != 0)
 	{
+		isc_result_t res;
+		bool zone_is_dynamic = false;
+		const cfg_obj_t *au = NULL;
+		const cfg_obj_t *up = NULL;
+
+		if (cfg_map_get(zoptions, "update-policy", &up) ==
+		    ISC_R_SUCCESS) {
+			zone_is_dynamic = true;
+		} else {
+			res = cfg_map_get(zoptions, "allow-update", &au);
+			if (res != ISC_R_SUCCESS && voptions != NULL) {
+				res = cfg_map_get(voptions, "allow-update",
+						  &au);
+			}
+			if (res != ISC_R_SUCCESS && options != NULL) {
+				res = cfg_map_get(options, "allow-update", &au);
+			}
+			if (res == ISC_R_SUCCESS) {
+				dns_acl_t *acl = NULL;
+				cfg_aclconfctx_t *actx = NULL;
+				res = cfg_acl_fromconfig(au, config,
+							 named_g_lctx, actx,
+							 mctx, 0, &acl);
+				if (res == ISC_R_SUCCESS && acl != NULL &&
+				    !dns_acl_isnone(acl)) {
+					zone_is_dynamic = true;
+				}
+				if (acl != NULL) {
+					dns_acl_detach(&acl);
+				}
+			}
+		}
+
+		if (!zone_is_dynamic) {
+			inline_signing = true;
+		}
+	}
+
+	if (inline_signing) {
 		dns_zone_getraw(zone, &raw);
 		if (raw == NULL) {
 			CHECK(dns_zone_create(&raw, mctx));
