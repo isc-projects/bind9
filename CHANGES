@@ -1,5 +1,9 @@
-5386.	[cleanup]	Address Coverity warnings in keymgr.c [GL #1737]
+5388.	[func]		Reject AXFR streams where the message id is not
+			consistent. [GL #1674]
 
+5387.	[placeholder]
+
+5386.	[cleanup]	Address Coverity warnings in keymgr.c [GL #1737]
 
 5385.	[func]		Make ISC rwlock implementation the default again.
 			[GL #1753]
