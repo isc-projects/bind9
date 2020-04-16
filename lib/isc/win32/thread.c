@@ -48,6 +48,8 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp) {
 		return (ISC_R_UNEXPECTED);
 	}
 	(void)CloseHandle(thread);
+
+	return (ISC_R_SUCCESS);
 }
 
 void
