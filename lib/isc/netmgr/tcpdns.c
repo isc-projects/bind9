@@ -38,7 +38,8 @@
  */
 
 static void
-dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg);
+dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
+		 isc_region_t *region, void *arg);
 
 static void
 resume_processing(void *arg);
@@ -187,7 +188,7 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 
 		if (listener != NULL && listener->rcb.recv != NULL) {
 			listener->rcb.recv(
-				dnshandle,
+				dnshandle, ISC_R_SUCCESS,
 				&(isc_region_t){ .base = dnssock->buf + 2,
 						 .length = len },
 				listener->rcbarg);
@@ -212,7 +213,8 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
  * a complete DNS packet and, if so - call the callback
  */
 static void
-dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
+dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
+		 isc_region_t *region, void *arg) {
 	isc_nmsocket_t *dnssock = (isc_nmsocket_t *)arg;
 	unsigned char *base = NULL;
 	bool done = false;
@@ -222,9 +224,10 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(dnssock->tid == isc_nm_tid());
 
-	if (region == NULL) {
+	if (region == NULL || eresult != ISC_R_SUCCESS) {
 		/* Connection closed */
 		isc_nmhandle_unref(handle);
+		dnssock->result = eresult;
 		if (dnssock->self != NULL) {
 			isc__nmsocket_detach(&dnssock->self);
 		}

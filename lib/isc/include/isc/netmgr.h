@@ -122,26 +122,27 @@ isc_nmhandle_netmgr(isc_nmhandle_t *handle);
  * Return a pointer to the netmgr object for the given handle.
  */
 
-typedef void (*isc_nm_recv_cb_t)(isc_nmhandle_t *handle, isc_region_t *region,
-				 void *cbarg);
+typedef void (*isc_nm_recv_cb_t)(isc_nmhandle_t *handle, isc_result_t eresult,
+				 isc_region_t *region, void *cbarg);
 /*%<
  * Callback function to be used when receiving a packet.
  *
  * 'handle' the handle that can be used to send back the answer.
- * 'region' contains the received data. It will be freed after
- *          return by caller.
+ * 'eresult' the result of the event.
+ * 'region' contains the received data, if any. It will be freed
+ *          after return by caller.
  * 'cbarg'  the callback argument passed to isc_nm_listenudp(),
  *          isc_nm_listentcpdns(), or isc_nm_read().
  */
 
-typedef void (*isc_nm_cb_t)(isc_nmhandle_t *handle, isc_result_t result,
+typedef void (*isc_nm_cb_t)(isc_nmhandle_t *handle, isc_result_t eresult,
 			    void *cbarg);
 /*%<
  * Callback function for other network completion events (send, connect,
  * accept).
  *
  * 'handle' the handle on which the event took place.
- * 'result' the result of the event.
+ * 'eresult' the result of the event.
  * 'cbarg'  the callback argument passed to isc_nm_send(),
  *          isc_nm_tcp_connect(), or isc_nm_listentcp()
  */
