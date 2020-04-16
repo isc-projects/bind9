@@ -36,11 +36,12 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.17</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.18</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.18">Notes for BIND 9.11.18</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.17">Notes for BIND 9.11.17</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.16">Notes for BIND 9.11.16</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.15">Notes for BIND 9.11.15</a></span></dt>
@@ -66,7 +67,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.17</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.18</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -122,6 +123,39 @@
   </p>
 </div>
 
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.18"></a>Notes for BIND 9.11.18</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.18-security"></a>Security Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          DNS rebinding protection was ineffective when BIND 9 is configured as
+          a forwarding DNS server. Found and responsibly reported by Tobias
+          Klein. [GL #1574]
+        </p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.18-known"></a>Known Issues</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          We have received reports that in some circumstances, receipt of an
+          IXFR can cause the processing of queries to slow significantly. Some
+          of these were related to RPZ processing, which has been fixed in this
+          release (see below). Others appear to occur where there are
+          NSEC3-related changes (such as an operator changing the NSEC3 salt
+          used in the hash calculation). These are being investigated.
+          [GL #1685]
+        </p>
+      </li></ul></div>
+  </div>
+
+</div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.17"></a>Notes for BIND 9.11.17</h3></div></div></div>
@@ -2073,6 +2107,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.17 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.18 (Extended Support Version)</p>
 </body>
 </html>
