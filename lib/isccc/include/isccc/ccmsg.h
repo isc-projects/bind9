@@ -32,39 +32,37 @@
 
 #include <isc/buffer.h>
 #include <isc/lang.h>
-#include <isc/socket.h>
+#include <isc/netmgr.h>
+#include <isc/sockaddr.h>
 
 /*% ISCCC Message Structure */
 typedef struct isccc_ccmsg {
 	/* private (don't touch!) */
-	unsigned int	 magic;
-	uint32_t	 size;
-	isc_buffer_t	 buffer;
-	unsigned int	 maxsize;
-	isc_mem_t *	 mctx;
-	isc_socket_t *	 sock;
-	isc_task_t *	 task;
-	isc_taskaction_t action;
-	void *		 arg;
-	isc_event_t	 event;
+	unsigned int	magic;
+	uint32_t	size;
+	isc_buffer_t *	buffer;
+	unsigned int	maxsize;
+	isc_mem_t *	mctx;
+	isc_nmhandle_t *handle;
+	isc_nm_cb_t	cb;
+	void *		cbarg;
 	/* public (read-only) */
-	isc_result_t   result;
-	isc_sockaddr_t address;
+	isc_result_t result;
 } isccc_ccmsg_t;
 
 ISC_LANG_BEGINDECLS
 
 void
-isccc_ccmsg_init(isc_mem_t *mctx, isc_socket_t *sock, isccc_ccmsg_t *ccmsg);
+isccc_ccmsg_init(isc_mem_t *mctx, isc_nmhandle_t *handle, isccc_ccmsg_t *ccmsg);
 /*%
  * Associate a cc message state with a given memory context and
- * TCP socket.
+ * netmgr handle.
  *
  * Requires:
  *
- *\li	"mctx" and "sock" be non-NULL and valid types.
+ *\li	"mctx" be a valid memory context.
  *
- *\li	"sock" be a read/write TCP socket.
+ *\li	"handle" be a netmgr handle for a stream socket.
  *
  *\li	"ccmsg" be non-NULL and an uninitialized or invalidated structure.
  *
@@ -86,8 +84,7 @@ isccc_ccmsg_setmaxsize(isccc_ccmsg_t *ccmsg, unsigned int maxsize);
  */
 
 isc_result_t
-isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_task_t *task,
-			isc_taskaction_t action, void *arg);
+isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_nm_cb_t cb, void *cbarg);
 /*%
  * Schedule an event to be delivered when a command channel message is
  * readable, or when an error occurs on the socket.
@@ -96,12 +93,10 @@ isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_task_t *task,
  *
  *\li	"ccmsg" be valid.
  *
- *\li	"task", "taskaction", and "arg" be valid.
- *
  * Returns:
  *
  *\li	#ISC_R_SUCCESS		-- no error
- *\li	Anything that the isc_socket_recv() call can return.  XXXMLG
+ *\li	Anything that the isc_nm_read() call can return.
  *
  * Notes:
  *
