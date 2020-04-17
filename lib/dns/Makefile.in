@@ -217,7 +217,7 @@ rdata.@O@: include
 
 rbtdb64.@O@: rbtdb64.c rbtdb.c
 
-depend: include
+depend: include @DNSTAPSRCS@
 subdirs: include
 ${OBJS}: include
 
