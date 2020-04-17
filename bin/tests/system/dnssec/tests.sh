@@ -3248,6 +3248,15 @@ do
 	1|5|7|8|10) # RSA algorithms
 	    key1=$($KEYGEN -a "$alg" -b "1024" -n zone example 2> keygen.err || true)
 	    ;;
+	15|16)
+	    key1=$($KEYGEN -a "$alg" -b "1024" -n zone example 2> keygen.err || true)
+	    # Soft-fail	in case HSM doesn't support Edwards curves
+	    if grep "not found" keygen.err > /dev/null && [ "$CRYPTO" = "pkcs11" ]; then
+		echo_i "Algorithm $alg not supported by HSM: skipping"
+		alg=$((alg+1))
+		continue
+	    fi
+	    ;;
 	*)
 	    key1=$($KEYGEN -a "$alg" -n zone example 2> keygen.err || true)
     esac
