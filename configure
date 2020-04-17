@@ -1624,9 +1624,8 @@ Optional Features:
   --enable-devpoll        use /dev/poll when available [default=yes]
   --disable-geoip         support GeoIP2 geolocation ACLs if available
                           [default=yes]
-  --disable-pthread-rwlock
-                          use internal rwlock implementation instead of
-                          pthread rwlock
+  --enable-pthread-rwlock use pthread rwlock instead of internal rwlock
+                          implementation
   --enable-fips-mode      enable FIPS mode in OpenSSL library [default=no]
   --enable-native-pkcs11  use native PKCS11 for public-key crypto [default=no]
   --disable-tcp-fastopen  disable TCP Fast Open support [default=yes]
@@ -16001,7 +16000,7 @@ done
 if test "${enable_pthread_rwlock+set}" = set; then :
   enableval=$enable_pthread_rwlock;
 else
-  enable_pthread_rwlock=yes
+  enable_pthread_rwlock=no
 fi
 
 

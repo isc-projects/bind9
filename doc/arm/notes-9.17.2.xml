@@ -45,7 +45,8 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          The default rwlock implementation has been changed back to the native
+          BIND 9 rwlock implementation. [GL #1753]
         </para>
       </listitem>
     </itemizedlist>
