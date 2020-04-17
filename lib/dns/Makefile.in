@@ -83,7 +83,7 @@ PORTDNSOBJS =	client.@O@ ecdb.@O@
 OBJS=		@DNSTAPOBJS@ ${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} \
 		${PORTDNSOBJS} @GEOIP2LINKOBJS@
 
-DSTSRCS =	@DST_EXTRA_SRCS@ @PKCS11LINKSRCS@ \
+DSTSRCS =	@DST_EXTRA_SRCS@ \
 		dst_api.c dst_parse.c \
 		dst_result.c gssapi_link.c gssapictx.c hmac_link.c \
 		openssl_link.c openssldh_link.c \
@@ -96,7 +96,7 @@ GEOIPL2INKSRCS = geoip2.c
 
 DNSTAPSRCS = dnstap.c dnstap.pb-c.c
 
-DNSSRCS =	acl.c adb.c badcache. byaddr.c \
+DNSSRCS =	acl.c adb.c badcache.c byaddr.c \
 		cache.c callbacks.c clientinfo.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
 		dlz.c dns64.c dnsrps.c dnssec.c ds.c dyndb.c \
@@ -204,7 +204,7 @@ newrr::
 
 rdata.@O@: include
 
-depend: include
+depend: include @DNSTAPSRCS@
 subdirs: include
 ${OBJS}: include
 
