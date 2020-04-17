@@ -1,3 +1,6 @@
+5385.	[func]		Make ISC rwlock implementation the default again.
+			[GL #1753]
+
 5384.	[bug]		With dnssec-policy, inline-signing was implicitly set
 			to yes.  Change and only set inline-signing to yes
 			if the zone is not dynamic. [GL #1709]
