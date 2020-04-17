@@ -21,6 +21,8 @@ PDFOBJS = Bv9ARM.pdf notes.pdf
 
 NOTESXML = notes-download.xml notes-eol.xml notes-intro.xml notes-license.xml \
 	   notes-thankyou.xml \
+	   notes-9.11.19.xml \
+	   notes-9.11.18.xml \
 	   notes-9.11.17.xml \
 	   notes-9.11.16.xml \
 	   notes-9.11.15.xml \
