@@ -238,6 +238,7 @@ my %configtest;
 
 my @substtest = ("CHECKDS",
                  "COVERAGE",
+                 "CRYPTO",
                  "DNSTAP",
                  "FSTRM_CAPTURE",
                  "JSONSTATS",
@@ -1423,8 +1424,10 @@ if ($use_openssl eq "yes") {
 
 if ($cryptolib eq "openssl") {
     $configdefh{"USE_OPENSSL"} = 1;
+    $configtest{"CRYPTO"} = "OpenSSL";
 } else {
     $configdefh{"USE_PKCS11"} = 1;
+    $configtest{"CRYPTO"} = "pkcs11";
 }
 
 # check OpenSSL
