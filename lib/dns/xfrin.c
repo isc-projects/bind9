@@ -111,7 +111,6 @@ struct dns_xfrin_ctx {
 	dns_name_t name; /*%< Name of zone to transfer */
 	dns_rdataclass_t rdclass;
 
-	bool checkid;
 	dns_messageid_t id;
 
 	/*%
@@ -551,9 +550,6 @@ redo:
 				  xfr->ixfr.request_serial, xfr->end_serial);
 			FAIL(DNS_R_UPTODATE);
 		}
-		if (xfr->reqtype == dns_rdatatype_axfr) {
-			xfr->checkid = false;
-		}
 		xfr->state = XFRST_FIRSTDATA;
 		break;
 
@@ -835,7 +831,6 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_task_t *task,
 
 	dns_name_init(&xfr->name, NULL);
 	xfr->rdclass = rdclass;
-	xfr->checkid = true;
 	xfr->id = (dns_messageid_t)isc_random16();
 	xfr->reqtype = reqtype;
 	xfr->dscp = dscp;
@@ -1145,7 +1140,6 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 					  &xfr->ixfr.request_serial));
 	}
 
-	xfr->checkid = true;
 	xfr->id++;
 	xfr->nmsg = 0;
 	xfr->nrecs = 0;
@@ -1289,7 +1283,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
 	    msg->opcode != dns_opcode_query || msg->rdclass != xfr->rdclass ||
-	    (xfr->checkid && msg->id != xfr->id))
+	    msg->id != xfr->id)
 	{
 		if (result == ISC_R_SUCCESS && msg->rcode != dns_rcode_noerror)
 		{
