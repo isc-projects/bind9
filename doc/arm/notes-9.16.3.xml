@@ -38,6 +38,13 @@
 	  None.
         </para>
       </listitem>
+      <listitem>
+        <para>
+          The native PKCS#11 EdDSA implementation has been updated to PKCS#11
+          v3.0 and thus made operational again.  Contributed by Aaron Thompson.
+	  [GL !3326]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
