@@ -10,6 +10,10 @@
 			or reconfiguration if an RPZ zone was still being
 			updated. [GL #1779]
 
+5389.	[bug]		Finish the PKCS#11 code cleanup, fix couple of smaller
+			bugs and use PKCS#11 v3.0 EdDSA macros and constants.
+			Thanks to Aaron Thompson. [GL !3391]
+
 5387.	[func]		Warn about AXFR streams that are incompatible with
 			BIND 9.17.2.  [GL #1674]
 
