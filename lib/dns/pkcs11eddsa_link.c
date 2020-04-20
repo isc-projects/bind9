@@ -137,10 +137,16 @@ pkcs11eddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		key->key_alg == DST_ALG_ED448);
 	REQUIRE(ec != NULL);
 
-	if (key->key_alg == DST_ALG_ED25519) {
+	switch (key->key_alg) {
+	case DST_ALG_ED25519:
 		siglen = DNS_SIG_ED25519SIZE;
-	} else {
+		break;
+	case DST_ALG_ED448:
 		siglen = DNS_SIG_ED448SIZE;
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	pk11_ctx = isc_mem_get(dctx->mctx, sizeof(*pk11_ctx));
@@ -396,16 +402,22 @@ pkcs11eddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 #define SETCURVE()                                                             \
-	if (key->key_alg == DST_ALG_ED25519) {                                 \
+	switch (key->key_alg) {                                                \
+	case DST_ALG_ED25519:                                                  \
 		attr->pValue = isc_mem_get(key->mctx,                          \
 					   sizeof(PK11_ECX_ED25519));          \
 		memmove(attr->pValue, PK11_ECX_ED25519,                        \
 			sizeof(PK11_ECX_ED25519));                             \
 		attr->ulValueLen = sizeof(PK11_ECX_ED25519);                   \
-	} else {                                                               \
+		break;                                                         \
+	case DST_ALG_ED448:                                                    \
 		attr->pValue = isc_mem_get(key->mctx, sizeof(PK11_ECX_ED448)); \
 		memmove(attr->pValue, PK11_ECX_ED448, sizeof(PK11_ECX_ED448)); \
 		attr->ulValueLen = sizeof(PK11_ECX_ED448);                     \
+		break;                                                         \
+	default:                                                               \
+		INSIST(0);                                                     \
+		ISC_UNREACHABLE();                                             \
 	}
 
 #define FREECURVE()                                                     \
@@ -507,10 +519,16 @@ pkcs11eddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
 	isc_mem_put(key->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
-	if (key->key_alg == DST_ALG_ED25519) {
+	switch (key->key_alg) {
+	case DST_ALG_ED25519:
 		key->key_size = DNS_KEY_ED25519SIZE;
-	} else {
+		break;
+	case DST_ALG_ED448:
 		key->key_size = DNS_KEY_ED448SIZE;
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	return (ISC_R_SUCCESS);
@@ -582,10 +600,16 @@ pkcs11eddsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 	REQUIRE(key->keydata.pkey != NULL);
 
-	if (key->key_alg == DST_ALG_ED25519) {
+	switch (key->key_alg) {
+	case DST_ALG_ED25519:
 		len = DNS_KEY_ED25519SIZE;
-	} else {
+		break;
+	case DST_ALG_ED448:
 		len = DNS_KEY_ED448SIZE;
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	ec = key->keydata.pkey;
@@ -614,10 +638,16 @@ pkcs11eddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
 		key->key_alg == DST_ALG_ED448);
 
-	if (key->key_alg == DST_ALG_ED25519) {
+	switch (key->key_alg) {
+	case DST_ALG_ED25519:
 		len = DNS_KEY_ED25519SIZE;
-	} else {
+		break;
+	case DST_ALG_ED448:
 		len = DNS_KEY_ED448SIZE;
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	isc_buffer_remainingregion(data, &r);
@@ -635,16 +665,8 @@ pkcs11eddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	attr = ec->repr;
 	attr->type = CKA_EC_PARAMS;
-	if (key->key_alg == DST_ALG_ED25519) {
-		attr->pValue = isc_mem_get(key->mctx, sizeof(PK11_ECX_ED25519));
-		memmove(attr->pValue, PK11_ECX_ED25519,
-			sizeof(PK11_ECX_ED25519));
-		attr->ulValueLen = sizeof(PK11_ECX_ED25519);
-	} else {
-		attr->pValue = isc_mem_get(key->mctx, sizeof(PK11_ECX_ED448));
-		memmove(attr->pValue, PK11_ECX_ED448, sizeof(PK11_ECX_ED448));
-		attr->ulValueLen = sizeof(PK11_ECX_ED448);
-	}
+	SETCURVE();
+
 	attr++;
 	attr->type = CKA_EC_POINT;
 	attr->pValue = isc_mem_get(key->mctx, len);
@@ -907,10 +929,16 @@ pkcs11eddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
-	if (key->key_alg == DST_ALG_ED25519) {
+	switch (key->key_alg) {
+	case DST_ALG_ED25519:
 		key->key_size = DNS_KEY_ED25519SIZE;
-	} else {
+		break;
+	case DST_ALG_ED448:
 		key->key_size = DNS_KEY_ED448SIZE;
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	return (ISC_R_SUCCESS);
@@ -1024,10 +1052,16 @@ pkcs11eddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	}
 
 	key->label = isc_mem_strdup(key->mctx, label);
-	if (key->key_alg == DST_ALG_ED25519) {
+	switch (key->key_alg) {
+	case DST_ALG_ED25519:
 		key->key_size = DNS_KEY_ED25519SIZE;
-	} else {
+		break;
+	case DST_ALG_ED448:
 		key->key_size = DNS_KEY_ED448SIZE;
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	pk11_return_session(pk11_ctx);
