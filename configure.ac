@@ -849,6 +849,7 @@ AS_CASE([$enable_native_pkcs11],
 AC_SUBST([PKCS11_TEST])
 AC_SUBST([PKCS11_TOOLS])
 
+AC_SUBST([CRYPTO])
 AS_CASE([$CRYPTO],
 	[pkcs11],[AC_DEFINE([USE_PKCS11], [1], [define if PKCS11 is used for Public-Key Cryptography])],
 	[AC_DEFINE([USE_OPENSSL], [1], [define if OpenSSL is used for Public-Key Cryptography])])
