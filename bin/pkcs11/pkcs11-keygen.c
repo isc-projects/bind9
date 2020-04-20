@@ -67,8 +67,6 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#define WANT_ECC_CURVES
-#define WANT_ECX_CURVES
 #include <pk11/constants.h>
 #include <pk11/pk11.h>
 #include <pk11/result.h>
@@ -76,6 +74,12 @@
 /* Define static key template values */
 static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
+
+/* Static arrays of data used for key template initialization */
+static CK_BYTE pk11_ecc_prime256v1[] = PK11_ECC_PRIME256V1;
+static CK_BYTE pk11_ecc_secp384r1[] = PK11_ECC_SECP384R1;
+static CK_BYTE pk11_ecx_ed25519[] = PK11_ECX_ED25519;
+static CK_BYTE pk11_ecx_ed448[] = PK11_ECX_ED448;
 
 /* Key class: RSA, ECC, ECX, or unknown */
 typedef enum { key_unknown, key_rsa, key_ecc, key_ecx } key_class_t;

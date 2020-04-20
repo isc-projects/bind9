@@ -20,7 +20,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#define WANT_ECC_CURVES
 #include <pk11/constants.h>
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
@@ -422,18 +421,17 @@ pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 #define SETCURVE()                                                       \
 	if (key->key_alg == DST_ALG_ECDSA256) {                          \
 		attr->pValue = isc_mem_get(key->mctx,                    \
-					   sizeof(pk11_ecc_prime256v1)); \
-                                                                         \
-		memmove(attr->pValue, pk11_ecc_prime256v1,               \
-			sizeof(pk11_ecc_prime256v1));                    \
-		attr->ulValueLen = sizeof(pk11_ecc_prime256v1);          \
+					   sizeof(PK11_ECC_PRIME256V1)); \
+		memmove(attr->pValue, PK11_ECC_PRIME256V1,               \
+			sizeof(PK11_ECC_PRIME256V1));                    \
+		attr->ulValueLen = sizeof(PK11_ECC_PRIME256V1);          \
 	} else {                                                         \
 		attr->pValue = isc_mem_get(key->mctx,                    \
-					   sizeof(pk11_ecc_secp384r1));  \
+					   sizeof(PK11_ECC_SECP384R1));  \
                                                                          \
-		memmove(attr->pValue, pk11_ecc_secp384r1,                \
-			sizeof(pk11_ecc_secp384r1));                     \
-		attr->ulValueLen = sizeof(pk11_ecc_secp384r1);           \
+		memmove(attr->pValue, PK11_ECC_SECP384R1,                \
+			sizeof(PK11_ECC_SECP384R1));                     \
+		attr->ulValueLen = sizeof(PK11_ECC_SECP384R1);           \
 	}
 
 #define FREECURVE()                                                     \
@@ -668,18 +666,18 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	attr->type = CKA_EC_PARAMS;
 	if (key->key_alg == DST_ALG_ECDSA256) {
 		attr->pValue = isc_mem_get(key->mctx,
-					   sizeof(pk11_ecc_prime256v1));
-		memmove(attr->pValue, pk11_ecc_prime256v1,
-			sizeof(pk11_ecc_prime256v1));
-		attr->ulValueLen = sizeof(pk11_ecc_prime256v1);
+					   sizeof(PK11_ECC_PRIME256V1));
+		memmove(attr->pValue, PK11_ECC_PRIME256V1,
+			sizeof(PK11_ECC_PRIME256V1));
+		attr->ulValueLen = sizeof(PK11_ECC_PRIME256V1);
 	} else {
 		attr->pValue = isc_mem_get(key->mctx,
-					   sizeof(pk11_ecc_secp384r1));
-		memmove(attr->pValue, pk11_ecc_secp384r1,
-			sizeof(pk11_ecc_secp384r1));
-		attr->ulValueLen = sizeof(pk11_ecc_secp384r1);
-	}
+					   sizeof(PK11_ECC_SECP384R1));
 
+		memmove(attr->pValue, PK11_ECC_SECP384R1,
+			sizeof(PK11_ECC_SECP384R1));
+		attr->ulValueLen = sizeof(PK11_ECC_SECP384R1);
+	}
 	attr++;
 	attr->type = CKA_EC_POINT;
 	attr->pValue = isc_mem_get(key->mctx, len + 3);

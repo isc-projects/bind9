@@ -9,27 +9,27 @@
  * information regarding copyright ownership.
  */
 
-#ifndef PK11_CONSTANTS_H
-#define PK11_CONSTANTS_H 1
+#pragma once
 
-#include <pk11/pk11.h>
+#include <inttypes.h>
 
 /*! \file pk11/constants.h */
 
 /*%
  * Static arrays of data used for key template initialization
  */
-#ifdef WANT_ECC_CURVES
-static CK_BYTE pk11_ecc_prime256v1[] = { 0x06, 0x08, 0x2a, 0x86, 0x48,
-					 0xce, 0x3d, 0x03, 0x01, 0x07 };
-static CK_BYTE pk11_ecc_secp384r1[] = {
-	0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x22
-};
-#endif /* WANT_ECC_CURVES */
-
-#ifdef WANT_ECX_CURVES
-static CK_BYTE pk11_ecx_ed25519[] = { 0x06, 0x03, 0x2b, 0x65, 0x70 };
-static CK_BYTE pk11_ecx_ed448[] = { 0x06, 0x03, 0x2b, 0x65, 0x71 };
-#endif /* WANT_ECX_CURVES */
-
-#endif /* PK11_CONSTANTS_H */
+#define PK11_ECC_PRIME256V1                                                \
+	(uint8_t[]) {                                                      \
+		0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07 \
+	}
+#define PK11_ECC_SECP384R1 \
+	(uint8_t[]) { 0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x22 }
+#define PK11_ECX_ED25519                                                     \
+	(uint8_t[]) {                                                        \
+		0x13, 0xc, 'e', 'd', 'w', 'a', 'r', 'd', 's', '2', '5', '5', \
+			'1', '9'                                             \
+	}
+#define PK11_ECX_ED448                                                      \
+	(uint8_t[]) {                                                       \
+		0x13, 0xa, 'e', 'd', 'w', 'a', 'r', 'd', 's', '4', '4', '8' \
+	}
