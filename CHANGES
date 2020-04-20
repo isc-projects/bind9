@@ -1,3 +1,6 @@
+5387.	[func]		Warn about AXFR streams that are incompatible with
+			BIND 9.17.2.  [GL #1674]
+
 5386.	[cleanup]	Address Coverity warnings in keymgr.c [GL #1737]
 
 
