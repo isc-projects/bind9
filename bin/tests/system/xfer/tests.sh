@@ -21,29 +21,24 @@ n=0
 n=`expr $n + 1`
 echo_i "testing basic zone transfer functionality (from primary) ($n)"
 tmp=0
-$DIG $DIGOPTS example. \
-	@10.53.0.2 axfr > dig.out.ns2.test$n || tmp=1
+$DIG $DIGOPTS example. @10.53.0.2 axfr > dig.out.ns2.test$n || tmp=1
 grep "^;" dig.out.ns2.test$n | cat_i
-
 digcomp dig1.good dig.out.ns2.test$n || tmp=1
-
 if test $tmp != 0 ; then echo_i "failed"; fi
 status=`expr $status + $tmp`
 
 n=`expr $n + 1`
 echo_i "testing basic zone transfer functionality (from secondary) ($n)"
+tmp=0
 #
 # Spin to allow the zone to transfer.
 #
-for i in 1 2 3 4 5
-do
-    tmp=0
-    $DIG $DIGOPTS example. \
-	@10.53.0.3 axfr > dig.out.ns3.test$n || tmp=1
-    grep "^;" dig.out.ns3.test$n > /dev/null || break
-    echo_i "plain zone re-transfer"
-    sleep 5
-done
+wait_for_xfer () {
+	$DIG $DIGOPTS example. @10.53.0.3 axfr > dig.out.ns3.test$n || return 1
+	grep "^;" dig.out.ns3.test$n > /dev/null && return 1
+	return 0
+}
+retry_quiet 25 wait_for_xfer || tmp=1
 grep "^;" dig.out.ns3.test$n | cat_i
 digcomp dig1.good dig.out.ns3.test$n || tmp=1
 if test $tmp != 0 ; then echo_i "failed"; fi
@@ -51,25 +46,23 @@ status=`expr $status + $tmp`
 
 n=`expr $n + 1`
 echo_i "testing TSIG signed zone transfers ($n)"
-$DIG $DIGOPTS tsigzone. @10.53.0.2 axfr -y tsigzone.:1234abcd8765 > dig.out.ns2.test$n || status=1
+tmp=0
+$DIG $DIGOPTS tsigzone. @10.53.0.2 axfr -y tsigzone.:1234abcd8765 > dig.out.ns2.test$n || tmp=1
 grep "^;" dig.out.ns2.test$n | cat_i
 
 #
 # Spin to allow the zone to transfer.
 #
-for i in 1 2 3 4 5
-do
-tmp=0
-	$DIG $DIGOPTS tsigzone. @10.53.0.3 axfr -y tsigzone.:1234abcd8765 > dig.out.ns3.test$n || tmp=1
-	grep "^;" dig.out.ns3.test$n > /dev/null
-	if test $? -ne 0 ; then break; fi
-	echo_i "plain zone re-transfer"
-	sleep 5
-done
-if test $tmp -eq 1 ; then status=1; fi
+wait_for_xfer_tsig () {
+	$DIG $DIGOPTS tsigzone. @10.53.0.3 axfr -y tsigzone.:1234abcd8765 > dig.out.ns3.test$n || return 1
+	grep "^;" dig.out.ns3.test$n > /dev/null && return 1
+	return 0
+}
+retry_quiet 25 wait_for_xfer_tsig || tmp=1
 grep "^;" dig.out.ns3.test$n | cat_i
-
-digcomp dig.out.ns2.test$n dig.out.ns3.test$n || status=1
+digcomp dig.out.ns2.test$n dig.out.ns3.test$n || tmp=1
+if test $tmp != 0 ; then echo_i "failed"; fi
+status=$((status+tmp))
 
 echo_i "reload servers for in preparation for ixfr-from-differences tests"
 
@@ -115,6 +108,7 @@ sleep 3
 
 n=`expr $n + 1`
 echo_i "testing zone is dumped after successful transfer ($n)"
+tmp=0
 $DIG $DIGOPTS +noall +answer +multi @10.53.0.2 \
 	slave. soa > dig.out.ns2.test$n || tmp=1
 grep "1397051952 ; serial" dig.out.ns2.test$n > /dev/null 2>&1 || tmp=1
@@ -126,38 +120,36 @@ n=`expr $n + 1`
 echo_i "testing ixfr-from-differences yes; ($n)"
 tmp=0
 
-for i in 0 1 2 3 4 5 6 7 8 9
-do
-	a=0 b=0 c=0 d=0
-	echo_i "wait for reloads..."
+echo_i "wait for reloads..."
+wait_for_reloads() (
 	$DIG $DIGOPTS @10.53.0.6 +noall +answer soa master > dig.out.soa1.ns6.test$n
-	grep "1397051953" dig.out.soa1.ns6.test$n > /dev/null && a=1
+	grep "1397051953" dig.out.soa1.ns6.test$n > /dev/null || return 1
 	$DIG $DIGOPTS @10.53.0.1 +noall +answer soa slave  > dig.out.soa2.ns1.test$n
-	grep "1397051953" dig.out.soa2.ns1.test$n > /dev/null && b=1
+	grep "1397051953" dig.out.soa2.ns1.test$n > /dev/null || return 1
 	$DIG $DIGOPTS @10.53.0.2 +noall +answer soa example > dig.out.soa3.ns2.test$n
-	grep "1397051953" dig.out.soa3.ns2.test$n > /dev/null && c=1
-	[ $a -eq 1 -a $b -eq 1 -a $c -eq 1 ] && break
-	sleep 2
-done
+	grep "1397051953" dig.out.soa3.ns2.test$n > /dev/null || return 1
+	return 0
+)
+retry_quiet 20 wait_for_reloads || tmp=1
 
-for i in 0 1 2 3 4 5 6 7 8 9
-do
+echo_i "wait for transfers..."
+wait_for_transfers() (
 	a=0 b=0 c=0 d=0
-	echo_i "wait for transfers..."
 	$DIG $DIGOPTS @10.53.0.3 +noall +answer soa example > dig.out.soa1.ns3.test$n
 	grep "1397051953" dig.out.soa1.ns3.test$n > /dev/null && a=1
 	$DIG $DIGOPTS @10.53.0.3 +noall +answer soa master > dig.out.soa2.ns3.test$n
 	grep "1397051953" dig.out.soa2.ns3.test$n > /dev/null && b=1
 	$DIG $DIGOPTS @10.53.0.6 +noall +answer soa slave  > dig.out.soa3.ns6.test$n
 	grep "1397051953" dig.out.soa3.ns6.test$n > /dev/null && c=1
-	[ $a -eq 1 -a $b -eq 1 -a $c -eq 1 ] && break
+	[ $a -eq 1 -a $b -eq 1 -a $c -eq 1 ] && return 0
 
 	# re-notify if necessary
 	$RNDCCMD 10.53.0.6 notify master 2>&1 | sed 's/^/ns6 /' | cat_i
 	$RNDCCMD 10.53.0.1 notify slave 2>&1 | sed 's/^/ns1 /' | cat_i
 	$RNDCCMD 10.53.0.2 notify example 2>&1 | sed 's/^/ns2 /' | cat_i
-	sleep 2
-done
+	return 1
+)
+retry_quiet 20 wait_for_transfers || tmp=1
 
 $DIG $DIGOPTS example. \
 	@10.53.0.3 axfr > dig.out.ns3.test$n || tmp=1
@@ -260,10 +252,10 @@ DIGCMD="$DIG $DIGOPTS @10.53.0.4"
 SENDCMD="$PERL ../send.pl 10.53.0.5 $EXTRAPORT1"
 
 echo_i "testing that incorrectly signed transfers will fail..."
-echo_i "initial correctly-signed transfer should succeed"
+n=$((n+1))
+echo_i "initial correctly-signed transfer should succeed ($n)"
 
 $SENDCMD < ans5/goodaxfr
-sleep 1
 
 # Initially, ns4 is not authoritative for anything.
 # Now that ans is up and running with the right data, we make ns4
@@ -277,124 +269,140 @@ zone "nil" {
 };
 EOF
 
-cur=`awk 'END {print NR}' ns4/named.run`
+nextpart ns4/named.run >/dev/null
 
 $RNDCCMD 10.53.0.4 reload | sed 's/^/ns4 /' | cat_i
 
-for i in 0 1 2 3 4 5 6 7 8 9
-do
+wait_for_soa() (
 	$DIGCMD nil. SOA > dig.out.ns4.test$n
-	grep SOA dig.out.ns4.test$n > /dev/null && break
-	sleep 1
-done
+	grep SOA dig.out.ns4.test$n > /dev/null
+)
+retry_quiet 10 wait_for_soa
 
-sed -n "$cur,\$p" < ns4/named.run | grep "Transfer status: success" > /dev/null || {
+nextpart ns4/named.run | grep "Transfer status: success" > /dev/null || {
     echo_i "failed: expected status was not logged"
     status=`expr $status + 1`
 }
-cur=`awk 'END {print NR}' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'initial AXFR' >/dev/null || {
     echo_i "failed"
     status=`expr $status + 1`
 }
 
-echo_i "unsigned transfer"
+n=$((n+1))
+echo_i "unsigned transfer ($n)"
 
 $SENDCMD < ans5/unsigned
-sleep 1
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
 sleep 2
 
-sed -n "$cur,\$p" < ns4/named.run | grep "Transfer status: expected a TSIG or SIG(0)" > /dev/null || {
+nextpart ns4/named.run | grep "Transfer status: expected a TSIG or SIG(0)" > /dev/null || {
     echo_i "failed: expected status was not logged"
     status=`expr $status + 1`
 }
-cur=`awk 'END {print NR}' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'unsigned AXFR' >/dev/null && {
     echo_i "failed"
     status=`expr $status + 1`
 }
 
-echo_i "bad keydata"
+n=$((n+1))
+echo_i "bad keydata ($n)"
 
 $SENDCMD < ans5/badkeydata
-sleep 1
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
 sleep 2
 
-sed -n "$cur,\$p" < ns4/named.run | grep "Transfer status: tsig verify failure" > /dev/null || {
+nextpart ns4/named.run | grep "Transfer status: tsig verify failure" > /dev/null || {
     echo_i "failed: expected status was not logged"
     status=`expr $status + 1`
 }
-cur=`awk 'END {print NR}' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'bad keydata AXFR' >/dev/null && {
     echo_i "failed"
     status=`expr $status + 1`
 }
 
-echo_i "partially-signed transfer"
+n=$((n+1))
+echo_i "partially-signed transfer ($n)"
 
 $SENDCMD < ans5/partial
-sleep 1
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
 sleep 2
 
-sed -n "$cur,\$p" < ns4/named.run | grep "Transfer status: expected a TSIG or SIG(0)" > /dev/null || {
+nextpart ns4/named.run | grep "Transfer status: expected a TSIG or SIG(0)" > /dev/null || {
     echo_i "failed: expected status was not logged"
     status=`expr $status + 1`
 }
-cur=`awk 'END {print NR}' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'partially signed AXFR' >/dev/null && {
     echo_i "failed"
     status=`expr $status + 1`
 }
 
-echo_i "unknown key"
+n=$((n+1))
+echo_i "unknown key ($n)"
 
 $SENDCMD < ans5/unknownkey
-sleep 1
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
 sleep 2
 
-sed -n "$cur,\$p" < ns4/named.run | grep "tsig key 'tsig_key': key name and algorithm do not match" > /dev/null || {
+nextpart ns4/named.run | grep "tsig key 'tsig_key': key name and algorithm do not match" > /dev/null || {
     echo_i "failed: expected status was not logged"
     status=`expr $status + 1`
 }
-cur=`awk 'END {print NR}' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'unknown key AXFR' >/dev/null && {
     echo_i "failed"
     status=`expr $status + 1`
 }
 
-echo_i "incorrect key"
+n=$((n+1))
+echo_i "incorrect key ($n)"
 
 $SENDCMD < ans5/wrongkey
-sleep 1
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
 sleep 2
 
-sed -n "$cur,\$p" < ns4/named.run | grep "tsig key 'tsig_key': key name and algorithm do not match" > /dev/null || {
+nextpart ns4/named.run | grep "tsig key 'tsig_key': key name and algorithm do not match" > /dev/null || {
     echo_i "failed: expected status was not logged"
     status=`expr $status + 1`
 }
-cur=`awk 'END {print NR}' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'incorrect key AXFR' >/dev/null && {
+    echo_i "failed"
+    status=`expr $status + 1`
+}
+
+n=`expr $n + 1`
+echo_i "bad message id ($n)"
+
+$SENDCMD < ans5/badmessageid
+
+# Uncomment to see AXFR stream with mismatching IDs.
+# $DIG $DIGOPTS @10.53.0.5 -y tsig_key:LSAnCU+Z nil. AXFR +all
+
+$RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
+
+sleep 2
+
+msg="detected message ID mismatch on incoming AXFR stream, transfer will fail in BIND 9.17.2 and later if AXFR source is not fixed"
+nextpart ns4/named.run | grep "$msg" > /dev/null || {
+    echo_i "failed: expected status was not logged"
+    status=`expr $status + 1`
+}
+
+$DIGCMD nil. TXT | grep 'bad message id' >/dev/null || {
     echo_i "failed"
     status=`expr $status + 1`
 }
@@ -438,14 +446,15 @@ $DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.1.test$n
 grep "status: NOERROR," dig.out.1.test$n > /dev/null || tmp=1
 $PERL $SYSTEMTESTTOP/stop.pl xfer ns3
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} xfer ns3
-$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.2.test$n
-grep "status: NOERROR," dig.out.2.test$n > /dev/null || tmp=1
-if [ "$tmp" -eq 0 ]
-then
+check_mapped () {
+	$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.2.test$n
+	grep "status: NOERROR," dig.out.2.test$n > /dev/null || return 1
 	$DIG -p ${PORT} axfr mapped @10.53.0.3 > dig.out.3.test$n
-	digcomp knowngood.mapped dig.out.3.test$n || tmp=1
-fi
-if test $tmp != 0 ; then echo_i "failed"; fi
+	digcomp knowngood.mapped dig.out.3.test$n || return 1
+	return 0
+}
+retry_quiet 10 check_mapped || tmp=1
+[ "$tmp" -ne 0 ] && echo_i "failed"
 status=`expr $status + $tmp`
 
 n=`expr $n + 1`
@@ -458,19 +467,15 @@ status=`expr $status + $tmp`
 n=`expr $n + 1`
 echo_i "test that a zone with too many records is rejected (IXFR) ($n)"
 tmp=0
-grep "'ixfr-too-big./IN.*: too many records" ns6/named.run >/dev/null && tmp=1
+nextpart ns6/named.run > /dev/null
 $NSUPDATE << EOF
 zone ixfr-too-big
 server 10.53.0.1 ${PORT}
 update add the-31st-record.ixfr-too-big 0 TXT this is it
 send
 EOF
-for i in 1 2 3 4 5 6 7 8
-do
-    grep "'ixfr-too-big/IN'.*: too many records" ns6/named.run >/dev/null && break
-    sleep 1
-done
-grep "'ixfr-too-big/IN'.*: too many records" ns6/named.run >/dev/null || tmp=1
+msg="'ixfr-too-big/IN' from 10.53.0.1#${PORT}: Transfer status: too many records"
+wait_for_log 10 "$msg" ns6/named.run || tmp=1
 if test $tmp != 0 ; then echo_i "failed"; fi
 status=`expr $status + $tmp`
 
