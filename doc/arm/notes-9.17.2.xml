@@ -25,7 +25,12 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          In this release, the build system has been significantly changed (see
+          below), and there's number of unresolved issues that you need to be
+          aware of if you are using a development release.  Please refer to
+          GitLab issue #4 https://gitlab.isc.org/isc-projects/bind9/-/issues/4
+          for a list of not yet resolved issues that will be fixed in the
+          following releases.
         </para>
       </listitem>
     </itemizedlist>
@@ -35,7 +40,12 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          The BIND 9 build system has been changed to use the normal build tool
+          stack consisting of autoconf+automake+libtool.  This should not make
+          any difference for people building BIND 9 from the release tarballs,
+          but if you are building BIND 9 from the git repository, or you are
+          using non-standard <command>./configure</command> option, you will
+          need to pay extra attention. [GL #4]
         </para>
       </listitem>
     </itemizedlist>
