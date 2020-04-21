@@ -9,15 +9,14 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL ../genzone.sh 1 6 7 >ns1/slave.db
-$SHELL ../genzone.sh 1 6 7 >ns1/edns-expire.db
-$SHELL ../genzone.sh 2 3 >ns2/example.db
-$SHELL ../genzone.sh 2 3 >ns2/tsigzone.db
-$SHELL ../genzone.sh 6 3 >ns6/master.db
-$SHELL ../genzone.sh 7 >ns7/master2.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 1 6 7 >ns1/slave.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 1 6 7 >ns1/edns-expire.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 3 >ns2/example.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 3 >ns2/tsigzone.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 6 3 >ns6/master.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 7 >ns7/master2.db
 
 cp -f ns4/root.db.in ns4/root.db
 $PERL -e 'for ($i=0;$i<10000;$i++){ printf("x%u 0 in a 10.53.0.1\n", $i);}' >> ns4/root.db

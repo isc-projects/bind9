@@ -9,14 +9,14 @@
  * information regarding copyright ownership.
  */
 
-#ifndef PK11_PK11_H
-#define PK11_PK11_H 1
+#pragma once
 
 /*! \file pk11/pk11.h */
 
 #include <stdbool.h>
 #include <unistd.h>
 
+#include <isc/attributes.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/types.h>
@@ -134,9 +134,9 @@ isc_result_t
 pk11_parse_uri(pk11_object_t *obj, const char *label, isc_mem_t *mctx,
 	       pk11_optype_t optype);
 
-ISC_PLATFORM_NORETURN_PRE void
+ISC_NORETURN void
 pk11_error_fatalcheck(const char *file, int line, const char *funcname,
-		      CK_RV rv) ISC_PLATFORM_NORETURN_POST;
+		      CK_RV rv);
 
 void
 pk11_dump_tokens(void);
@@ -284,5 +284,3 @@ pkcs_C_GenerateRandom(CK_SESSION_HANDLE hSession, CK_BYTE_PTR RandomData,
 		      CK_ULONG ulRandomLen);
 
 ISC_LANG_ENDDECLS
-
-#endif /* PK11_PK11_H */

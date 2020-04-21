@@ -148,7 +148,7 @@ LIBDNS_EXTERNAL_DATA const dns_name_t *dns_wildcardname = &wild;
 /*
  * dns_name_t to text post-conversion procedure.
  */
-ISC_THREAD_LOCAL dns_name_totextfilter_t *totext_filter_proc = NULL;
+static thread_local dns_name_totextfilter_t *totext_filter_proc = NULL;
 
 static void
 set_offsets(const dns_name_t *name, unsigned char *offsets,

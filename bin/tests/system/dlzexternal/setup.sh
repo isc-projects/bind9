@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 $DDNSCONFGEN -q -z example.nil > ns1/ddns.key

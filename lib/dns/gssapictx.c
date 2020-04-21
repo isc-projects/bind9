@@ -14,6 +14,25 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
+#if HAVE_GSSAPI_GSSAPI_H
+#include <gssapi/gssapi.h>
+#elif HAVE_GSSAPI_H
+#include <gssapi.h>
+#endif
+
+#if HAVE_GSSAPI_GSSAPI_KRB5_H
+#include <gssapi/gssapi_krb5.h>
+#elif HAVE_GSSAPI_KRB5_H
+#include <gssapi_krb5.h>
+#endif
+
+#if HAVE_KRB5_KRB5_H
+#include <krb5/krb5.h>
+#elif HAVE_KRB5_H
+#include <krb5.h>
+#endif
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
@@ -42,50 +61,23 @@
 
 #include "dst_internal.h"
 
-/*
- * If we're using our own SPNEGO implementation (see configure.in),
- * pull it in now.  Otherwise, we just use whatever GSSAPI supplies.
- */
-#if defined(GSSAPI) && defined(USE_ISC_SPNEGO)
-#include "spnego.h"
-#define gss_accept_sec_context gss_accept_sec_context_spnego
-#define gss_init_sec_context   gss_init_sec_context_spnego
-#endif /* if defined(GSSAPI) && defined(USE_ISC_SPNEGO) */
-
-/*
- * Solaris8 apparently needs an explicit OID set, and Solaris10 needs
- * one for anything but Kerberos.  Supplying an explicit OID set
- * doesn't appear to hurt anything in other implementations, so we
- * always use one.  If we're not using our own SPNEGO implementation,
- * we include SPNEGO's OID.
- */
-#ifdef GSSAPI
-#ifdef WIN32
-#include <krb5/krb5.h>
-#else /* ifdef WIN32 */
-#include ISC_PLATFORM_KRB5HEADER
-#endif /* ifdef WIN32 */
-
+#ifndef GSS_KRB5_MECHANISM
 static unsigned char krb5_mech_oid_bytes[] = { 0x2a, 0x86, 0x48, 0x86, 0xf7,
 					       0x12, 0x01, 0x02, 0x02 };
+static gss_OID_desc __gss_krb5_mechanism_oid_desc = {
+	sizeof(krb5_mech_oid_bytes), krb5_mech_oid_bytes
+};
+#define GSS_KRB5_MECHANISM (&__gss_krb5_mechanism_oid_desc)
+#endif /* ifndef GSS_KRB5_MECHANISM */
 
-#ifndef USE_ISC_SPNEGO
+#ifndef GSS_SPNEGO_MECHANISM
 static unsigned char spnego_mech_oid_bytes[] = { 0x2b, 0x06, 0x01,
 						 0x05, 0x05, 0x02 };
-#endif /* ifndef USE_ISC_SPNEGO */
-
-static gss_OID_desc mech_oid_set_array[] = {
-	{ sizeof(krb5_mech_oid_bytes), krb5_mech_oid_bytes },
-#ifndef USE_ISC_SPNEGO
-	{ sizeof(spnego_mech_oid_bytes), spnego_mech_oid_bytes },
-#endif /* ifndef USE_ISC_SPNEGO */
+static gss_OID_desc __gss_spnego_mechanism_oid_desc = {
+	sizeof(spnego_mech_oid_bytes), spnego_mech_oid_bytes
 };
-
-static gss_OID_set_desc mech_oid_set = { sizeof(mech_oid_set_array) /
-						 sizeof(*mech_oid_set_array),
-					 mech_oid_set_array };
-
-#endif /* ifdef GSSAPI */
+#define GSS_SPNEGO_MECHANISM (&__gss_spnego_mechanism_oid_desc)
+#endif /* ifndef GSS_SPNEGO_MECHANISM */
 
 #define REGION_TO_GBUFFER(r, gb)          \
 	do {                              \
@@ -106,7 +98,6 @@ static gss_OID_set_desc mech_oid_set = { sizeof(mech_oid_set_array) /
 			goto out;            \
 	} while (0)
 
-#ifdef GSSAPI
 static inline void
 name_to_gbuffer(const dns_name_t *name, isc_buffer_t *buffer,
 		gss_buffer_desc *gbuffer) {
@@ -187,9 +178,7 @@ log_cred(const gss_cred_id_t cred) {
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
 	}
 }
-#endif /* ifdef GSSAPI */
 
-#ifdef GSSAPI
 /*
  * check for the most common configuration errors.
  *
@@ -243,12 +232,43 @@ check_config(const char *gss_name) {
 	}
 	krb5_free_context(krb5_ctx);
 }
-#endif /* ifdef GSSAPI */
+
+static OM_uint32
+mech_oid_set_create(OM_uint32 *minor, gss_OID_set *mech_oid_set) {
+	OM_uint32 gret;
+
+	gret = gss_create_empty_oid_set(minor, mech_oid_set);
+	if (gret != GSS_S_COMPLETE) {
+		return (gret);
+	}
+
+	gret = gss_add_oid_set_member(minor, GSS_KRB5_MECHANISM, mech_oid_set);
+	if (gret != GSS_S_COMPLETE) {
+		goto release;
+	}
+
+	gret = gss_add_oid_set_member(minor, GSS_SPNEGO_MECHANISM,
+				      mech_oid_set);
+	if (gret != GSS_S_COMPLETE) {
+		goto release;
+	}
+
+release:
+	REQUIRE(gss_release_oid_set(minor, mech_oid_set) == GSS_S_COMPLETE);
+
+	return (gret);
+}
+
+static void
+mech_oid_set_release(gss_OID_set *mech_oid_set) {
+	OM_uint32 minor;
+
+	REQUIRE(gss_release_oid_set(&minor, mech_oid_set) == GSS_S_COMPLETE);
+}
 
 isc_result_t
 dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 		       gss_cred_id_t *cred) {
-#ifdef GSSAPI
 	isc_result_t result;
 	isc_buffer_t namebuf;
 	gss_name_t gname;
@@ -258,6 +278,7 @@ dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 	OM_uint32 lifetime;
 	gss_cred_usage_t usage;
 	char buf[1024];
+	gss_OID_set mech_oid_set;
 
 	REQUIRE(cred != NULL && *cred == NULL);
 
@@ -301,7 +322,14 @@ dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 		usage = GSS_C_ACCEPT;
 	}
 
-	gret = gss_acquire_cred(&minor, gname, GSS_C_INDEFINITE, &mech_oid_set,
+	gret = mech_oid_set_create(&minor, &mech_oid_set);
+	if (gret != GSS_S_COMPLETE) {
+		gss_log(3, "failed to create OID_set: %s",
+			gss_error_tostring(gret, minor, buf, sizeof(buf)));
+		return (ISC_R_FAILURE);
+	}
+
+	gret = gss_acquire_cred(&minor, gname, GSS_C_INDEFINITE, mech_oid_set,
 				usage, cred, NULL, &lifetime);
 
 	if (gret != GSS_S_COMPLETE) {
@@ -324,6 +352,8 @@ dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 	result = ISC_R_SUCCESS;
 
 cleanup:
+	mech_oid_set_release(&mech_oid_set);
+
 	if (gname != NULL) {
 		gret = gss_release_name(&minor, &gname);
 		if (gret != GSS_S_COMPLETE) {
@@ -334,22 +364,12 @@ cleanup:
 	}
 
 	return (result);
-#else  /* ifdef GSSAPI */
-	REQUIRE(cred != NULL && *cred == NULL);
-
-	UNUSED(name);
-	UNUSED(initiate);
-	UNUSED(cred);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
 bool
 dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 				    const dns_name_t *name,
 				    const dns_name_t *realm, bool subdomain) {
-#ifdef GSSAPI
 	char sbuf[DNS_NAME_FORMATSIZE];
 	char rbuf[DNS_NAME_FORMATSIZE];
 	char *sname;
@@ -421,20 +441,12 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	}
 
 	return (true);
-#else  /* ifdef GSSAPI */
-	UNUSED(signer);
-	UNUSED(name);
-	UNUSED(realm);
-	UNUSED(subdomain);
-	return (false);
-#endif /* ifdef GSSAPI */
 }
 
 bool
 dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 				  const dns_name_t *name,
 				  const dns_name_t *realm, bool subdomain) {
-#ifdef GSSAPI
 	char sbuf[DNS_NAME_FORMATSIZE];
 	char rbuf[DNS_NAME_FORMATSIZE];
 	char *sname;
@@ -509,18 +521,10 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	}
 
 	return (true);
-#else  /* ifdef GSSAPI */
-	UNUSED(signer);
-	UNUSED(name);
-	UNUSED(realm);
-	UNUSED(subdomain);
-	return (false);
-#endif /* ifdef GSSAPI */
 }
 
 isc_result_t
 dst_gssapi_releasecred(gss_cred_id_t *cred) {
-#ifdef GSSAPI
 	OM_uint32 gret, minor;
 	char buf[1024];
 
@@ -535,14 +539,8 @@ dst_gssapi_releasecred(gss_cred_id_t *cred) {
 	*cred = NULL;
 
 	return (ISC_R_SUCCESS);
-#else  /* ifdef GSSAPI */
-	UNUSED(cred);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
-#ifdef GSSAPI
 /*
  * Format a gssapi error message info into a char ** on the given memory
  * context. This is used to return gssapi error messages back up the
@@ -564,13 +562,11 @@ gss_err_message(isc_mem_t *mctx, uint32_t major, uint32_t minor,
 		(*err_message) = isc_mem_strdup(mctx, estr);
 	}
 }
-#endif /* ifdef GSSAPI */
 
 isc_result_t
 dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
 		   isc_mem_t *mctx, char **err_message) {
-#ifdef GSSAPI
 	isc_region_t r;
 	isc_buffer_t namebuf;
 	gss_name_t gname;
@@ -652,16 +648,6 @@ out:
 	}
 	(void)gss_release_name(&minor, &gname);
 	return (result);
-#else  /* ifdef GSSAPI */
-	UNUSED(name);
-	UNUSED(intoken);
-	UNUSED(outtoken);
-	UNUSED(gssctx);
-	UNUSED(mctx);
-	UNUSED(err_message);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
 isc_result_t
@@ -669,7 +655,6 @@ dst_gssapi_acceptctx(gss_cred_id_t cred, const char *gssapi_keytab,
 		     isc_region_t *intoken, isc_buffer_t **outtoken,
 		     gss_ctx_id_t *ctxout, dns_name_t *principal,
 		     isc_mem_t *mctx) {
-#ifdef GSSAPI
 	isc_region_t r;
 	isc_buffer_t namebuf;
 	gss_buffer_desc gnamebuf = GSS_C_EMPTY_BUFFER, gintoken,
@@ -691,7 +676,6 @@ dst_gssapi_acceptctx(gss_cred_id_t cred, const char *gssapi_keytab,
 	}
 
 	if (gssapi_keytab != NULL) {
-#if defined(ISC_PLATFORM_GSSAPI_KRB5_HEADER) || defined(WIN32)
 		gret = gsskrb5_register_acceptor_identity(gssapi_keytab);
 		if (gret != GSS_S_COMPLETE) {
 			gss_log(3,
@@ -701,27 +685,6 @@ dst_gssapi_acceptctx(gss_cred_id_t cred, const char *gssapi_keytab,
 				gss_error_tostring(gret, 0, buf, sizeof(buf)));
 			return (DNS_R_INVALIDTKEY);
 		}
-#else  /* if defined(ISC_PLATFORM_GSSAPI_KRB5_HEADER) || defined(WIN32) */
-		/*
-		 * Minimize memory leakage by only setting KRB5_KTNAME
-		 * if it needs to change.
-		 */
-		const char *old = getenv("KRB5_KTNAME");
-		if (old == NULL || strcmp(old, gssapi_keytab) != 0) {
-			size_t size;
-			char *kt;
-
-			size = strlen(gssapi_keytab) + 13;
-			kt = malloc(size);
-			if (kt == NULL) {
-				return (ISC_R_NOMEMORY);
-			}
-			snprintf(kt, size, "KRB5_KTNAME=%s", gssapi_keytab);
-			if (putenv(kt) != 0) {
-				return (ISC_R_NOMEMORY);
-			}
-		}
-#endif /* if defined(ISC_PLATFORM_GSSAPI_KRB5_HEADER) || defined(WIN32) */
 	}
 
 	log_cred(cred);
@@ -819,22 +782,10 @@ out:
 	}
 
 	return (result);
-#else  /* ifdef GSSAPI */
-	UNUSED(cred);
-	UNUSED(gssapi_keytab);
-	UNUSED(intoken);
-	UNUSED(outtoken);
-	UNUSED(ctxout);
-	UNUSED(principal);
-	UNUSED(mctx);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
 isc_result_t
 dst_gssapi_deletectx(isc_mem_t *mctx, gss_ctx_id_t *gssctx) {
-#ifdef GSSAPI
 	OM_uint32 gret, minor;
 	char buf[1024];
 
@@ -850,16 +801,10 @@ dst_gssapi_deletectx(isc_mem_t *mctx, gss_ctx_id_t *gssctx) {
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
 	}
 	return (ISC_R_SUCCESS);
-#else  /* ifdef GSSAPI */
-	UNUSED(mctx);
-	UNUSED(gssctx);
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
 char *
 gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
-#ifdef GSSAPI
 	gss_buffer_desc msg_minor = GSS_C_EMPTY_BUFFER,
 			msg_major = GSS_C_EMPTY_BUFFER;
 	OM_uint32 msg_ctx, minor_stat;
@@ -884,12 +829,6 @@ gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
 		(void)gss_release_buffer(&minor_stat, &msg_minor);
 	}
 	return (buf);
-#else  /* ifdef GSSAPI */
-	snprintf(buf, buflen, "GSSAPI error: Major = %u, Minor = %u.", major,
-		 minor);
-
-	return (buf);
-#endif /* ifdef GSSAPI */
 }
 
 void

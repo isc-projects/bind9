@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#if USE_PKCS11
-
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -2061,5 +2059,3 @@ dst__pkcs11rsa_init(dst_func_t **funcp) {
 	}
 	return (ISC_R_SUCCESS);
 }
-
-#endif /* USE_PKCS11 */

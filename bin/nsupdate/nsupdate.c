@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -74,14 +75,23 @@
 
 #include <irs/resconf.h>
 
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 #include <dst/gssapi.h>
-#ifdef WIN32
+
+#if HAVE_KRB5_KRB5_H
 #include <krb5/krb5.h>
-#else /* ifdef WIN32 */
-#include ISC_PLATFORM_KRB5HEADER
-#endif /* ifdef WIN32 */
-#endif /* ifdef GSSAPI */
+#elif HAVE_KRB5_H
+#include <krb5.h>
+#endif
+
+#if HAVE_GSSAPI_GSSAPI_H
+#include <gssapi/gssapi.h>
+#elif HAVE_GSSAPI_H
+#include <gssapi.h>
+#endif
+
+#endif /* HAVE_GSSAPI */
+
 #include <bind9/getaddresses.h>
 
 #if defined(HAVE_READLINE)
@@ -189,9 +199,8 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 static void
 send_update(dns_name_t *zonename, isc_sockaddr_t *master);
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...)
-	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void
 debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
@@ -199,7 +208,7 @@ debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 static void
 ddebug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 static dns_fixedname_t fkname;
 static isc_sockaddr_t *kserver = NULL;
 static char *realm = NULL;
@@ -212,7 +221,7 @@ typedef struct nsu_gssinfo {
 } nsu_gssinfo_t;
 
 static void
-failed_gssrequest();
+failed_gssrequest(void);
 static void
 start_gssrequest(dns_name_t *master);
 static void
@@ -220,7 +229,7 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		dns_request_t **request, gss_ctx_id_t context);
 static void
 recvgss(isc_task_t *task, isc_event_t *event);
-#endif /* GSSAPI */
+#endif /* HAVE_GSSAPI */
 
 static void
 error(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
@@ -1005,7 +1014,7 @@ get_addresses(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 
 static void
 version(void) {
-	fputs("nsupdate " VERSION "\n", stderr);
+	fprintf(stderr, "nsupdate %s\n", PACKAGE_VERSION);
 }
 
 #define PARSE_ARGS_FMT "46dDML:y:ghilovk:p:Pr:R::t:Tu:V"
@@ -1228,13 +1237,13 @@ parse_args(int argc, char **argv) {
 		exit(1);
 	}
 
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 	if (usegsstsig && (keyfile != NULL || keystr != NULL)) {
 		fprintf(stderr, "%s: cannot specify -g with -k or -y\n",
 			argv[0]);
 		exit(1);
 	}
-#else  /* ifdef GSSAPI */
+#else  /* HAVE_GSSAPI */
 	if (usegsstsig) {
 		fprintf(stderr,
 			"%s: cannot specify -g	or -o, "
@@ -1242,7 +1251,7 @@ parse_args(int argc, char **argv) {
 			argv[0]);
 		exit(1);
 	}
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 
 	if (argv[isc_commandline_index] != NULL) {
 		if (strcmp(argv[isc_commandline_index], "-") == 0) {
@@ -1698,7 +1707,7 @@ evaluate_zone(char *cmdline) {
 
 static uint16_t
 evaluate_realm(char *cmdline) {
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 	char *word;
 	char buf[1024];
 	int n;
@@ -1720,10 +1729,10 @@ evaluate_realm(char *cmdline) {
 	}
 	realm = isc_mem_strdup(gmctx, buf);
 	return (STATUS_MORE);
-#else  /* ifdef GSSAPI */
+#else  /* HAVE_GSSAPI */
 	UNUSED(cmdline);
 	return (STATUS_SYNTAX);
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 }
 
 static uint16_t
@@ -2201,25 +2210,25 @@ do_next_command(char *cmdline) {
 		return (evaluate_checknames(cmdline));
 	}
 	if (strcasecmp(word, "gsstsig") == 0) {
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 		usegsstsig = true;
 		use_win2k_gsstsig = false;
-#else  /* ifdef GSSAPI */
+#else  /* HAVE_GSSAPI */
 		fprintf(stderr, "gsstsig not supported\n");
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 		return (STATUS_MORE);
 	}
 	if (strcasecmp(word, "oldgsstsig") == 0) {
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 		usegsstsig = true;
 		use_win2k_gsstsig = true;
-#else  /* ifdef GSSAPI */
+#else  /* HAVE_GSSAPI */
 		fprintf(stderr, "gsstsig not supported\n");
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 		return (STATUS_MORE);
 	}
 	if (strcasecmp(word, "help") == 0) {
-		fprintf(stdout, "nsupdate " VERSION ":\n"
+		fprintf(stdout, "nsupdate " PACKAGE_VERSION ":\n"
 				"local address [port]      (set local "
 				"resolver)\n"
 				"server address [port]     (set master server "
@@ -2261,7 +2270,7 @@ do_next_command(char *cmdline) {
 		return (STATUS_MORE);
 	}
 	if (strcasecmp(word, "version") == 0) {
-		fprintf(stdout, "nsupdate " VERSION "\n");
+		fprintf(stdout, "nsupdate " PACKAGE_VERSION "\n");
 		return (STATUS_MORE);
 	}
 	fprintf(stderr, "incorrect section name: %s\n", word);
@@ -2770,7 +2779,7 @@ lookforsoa:
 	}
 	dns_rdata_freestruct(&soa);
 
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 	if (usegsstsig) {
 		dns_name_init(&tmpzonename, NULL);
 		dns_name_dup(zname, gmctx, &tmpzonename);
@@ -2781,10 +2790,10 @@ lookforsoa:
 		send_update(zname, &master_servers[master_inuse]);
 		setzoneclass(dns_rdataclass_none);
 	}
-#else  /* ifdef GSSAPI */
+#else  /* HAVE_GSSAPI */
 	send_update(zname, &master_servers[master_inuse]);
 	setzoneclass(dns_rdataclass_none);
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 
 	dns_message_destroy(&soaquery);
 	dns_request_destroy(&request);
@@ -2838,7 +2847,7 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	requests++;
 }
 
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 
 /*
  * Get the realm from the users kerberos ticket if possible
@@ -2893,7 +2902,7 @@ get_ticket_realm(isc_mem_t *mctx) {
 }
 
 static void
-failed_gssrequest() {
+failed_gssrequest(void) {
 	seenerror = true;
 
 	dns_name_free(&tmpzonename, gmctx);
@@ -3199,7 +3208,7 @@ done:
 	dns_message_destroy(&rcvmsg);
 	ddebug("Out of recvgss");
 }
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 
 static void
 start_update(void) {
@@ -3298,7 +3307,7 @@ cleanup(void) {
 		dns_message_destroy(&answer);
 	}
 
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 	if (tsigkey != NULL) {
 		ddebug("detach tsigkey x%p", tsigkey);
 		dns_tsigkey_detach(&tsigkey);
@@ -3321,7 +3330,7 @@ cleanup(void) {
 	if (dns_name_dynamic(&restart_master)) {
 		dns_name_free(&restart_master, gmctx);
 	}
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 
 	if (sig0key != NULL) {
 		dst_key_free(&sig0key);

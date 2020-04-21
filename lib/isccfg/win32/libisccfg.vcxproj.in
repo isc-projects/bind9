@@ -125,7 +125,6 @@
     <ClCompile Include="..\namedconf.c" />
     <ClCompile Include="..\parser.c" />
     <ClCompile Include="DLLMain.c" />
-    <ClCompile Include="version.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\isccfg\aclconf.h" />
@@ -135,7 +134,6 @@
     <ClInclude Include="..\include\isccfg\kaspconf.h" />
     <ClInclude Include="..\include\isccfg\log.h" />
     <ClInclude Include="..\include\isccfg\namedconf.h" />
-    <ClInclude Include="..\include\isccfg\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

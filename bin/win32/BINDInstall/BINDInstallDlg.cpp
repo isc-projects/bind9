@@ -151,9 +151,6 @@ const FileData installFiles[] =
 	{"krb5_64.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #endif
 #endif
-#ifdef HAVE_GEOIP
-	{"libgeoip.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
-#endif
 #ifdef WITH_IDN
 	{"idnkit.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"iconv.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
@@ -190,10 +187,6 @@ const FileData installFiles[] =
 	{"pkcs11-keygen.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-list.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-tokens.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
-#endif
-#ifdef USE_PYTHON
-	{"dnssec-checkds.py", FileData::BinDir, FileData::Normal, FALSE, FALSE},
-	{"dnssec-coverage.py", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 #endif
 	{"readme1st.txt", FileData::BinDir, FileData::Trivial, FALSE, TRUE},
 	{NULL, -1, -1}

@@ -17,7 +17,7 @@ status=0
 list=`git grep -l snprintf lib bin |
       grep '\.c$' |
       grep -vE -e '(lib/bind|lib/dns/rdata|lib/dns/gen.c)' \
-	       -e '(lib/isc/win32/time.c|dlzexternal/driver.c)' |
+	       -e '(lib/isc/win32/time.c|dlzexternal/driver/driver.c)' |
       xargs grep -EL "(isc/print.h|print_p.h)" 2> /dev/null`
 [ -n "$list" ] && {
     status=1

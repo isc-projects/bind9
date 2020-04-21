@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 THISDIR=`pwd`
 CONFDIR="ns1"
@@ -63,7 +62,6 @@ status=0
 n=0
 
 cd $CONFDIR
-export SYSTEMTESTTOP=../..
 
 echo_i "testing log file validity (named -g + only plain files allowed)"
 

@@ -121,12 +121,10 @@
     <ClCompile Include="..\check.c" />
     <ClCompile Include="..\getaddresses.c" />
     <ClCompile Include="DLLMain.c" />
-    <ClCompile Include="version.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bind9\check.h" />
     <ClInclude Include="..\include\bind9\getaddresses.h" />
-    <ClInclude Include="..\include\bind9\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

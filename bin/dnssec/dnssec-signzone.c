@@ -33,6 +33,7 @@
 
 #include <isc/app.h>
 #include <isc/atomic.h>
+#include <isc/attributes.h>
 #include <isc/base32.h>
 #include <isc/commandline.h>
 #include <isc/event.h>
@@ -3125,11 +3126,11 @@ print_version(FILE *fp) {
 		return;
 	}
 
-	fprintf(fp, "; dnssec_signzone version " VERSION "\n");
+	fprintf(fp, "; dnssec_signzone version %s\n", PACKAGE_VERSION);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {
@@ -3138,7 +3139,7 @@ usage(void) {
 
 	fprintf(stderr, "\n");
 
-	fprintf(stderr, "Version: %s\n", VERSION);
+	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-S:\tsmart signing: automatically finds key files\n"

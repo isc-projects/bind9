@@ -33,7 +33,7 @@
 #endif /* ifndef MAXHOSTNAMELEN */
 
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
 	fprintf(stderr, "	--edns-version\n");
@@ -103,19 +103,15 @@ main(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "--gssapi") == 0) {
-#if defined(GSSAPI)
+#if HAVE_GSSAPI
 		return (0);
-#else  /* if defined(GSSAPI) */
+#else  /* HAVE_GSSAPI */
 		return (1);
-#endif /* if defined(GSSAPI) */
+#endif /* HAVE_GSSAPI */
 	}
 
 	if (strcmp(argv[1], "--have-dlopen") == 0) {
-#if defined(HAVE_DLOPEN) && defined(ISC_DLZ_DLOPEN)
 		return (0);
-#else  /* if defined(HAVE_DLOPEN) && defined(ISC_DLZ_DLOPEN) */
-		return (1);
-#endif /* if defined(HAVE_DLOPEN) && defined(ISC_DLZ_DLOPEN) */
 	}
 
 	if (strcmp(argv[1], "--have-geoip2") == 0) {

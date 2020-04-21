@@ -70,7 +70,7 @@ typedef struct geoip_state {
 	MMDB_entry_s entry;
 } geoip_state_t;
 
-ISC_THREAD_LOCAL geoip_state_t geoip_state = { 0 };
+static thread_local geoip_state_t geoip_state = { 0 };
 
 static void
 set_state(const MMDB_s *db, const isc_netaddr_t *addr,

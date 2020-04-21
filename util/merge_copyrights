@@ -36,8 +36,9 @@ while (<CHANGES>) {
 	       /\.git/ |		# git directory
 	       /\.gitignore |   # .gitignore files
 	       /\.gitattributes |   # .gitattributes files
-	       /\.clang-format |   # .clang-format files
-	       Makefile.in  |   # build system doesn't need to have copyright
+	       /\.clang-format  |   # .clang-format files
+	       /ChangeLog       |   #
+	       Makefile.(am|in) |   # build system doesn't need to have copyright
 	       /m4/ |           # build system doesn't need to have copyright
 	       /configure   |   # build system doesn't need to have copyright
 	       /fuzz/.*\.in/ |  # ignore fuzz corpus
@@ -112,7 +113,7 @@ while (<CHANGES>) {
 	    $file_types{$_} = "CONF-SH";
 	} elsif ($base =~ /\.md$/) {
 	    $file_types{$_} = "MKD";
-	} elsif ($base =~ /(\/\.(gitignore|gitattributes)|Kyuafile|\.(gif|jpg))$/i) {
+	} elsif ($base =~ /(\/\.(gitignore|gitattributes)|\.(gif|jpg))$/i) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.(def|dep|dsp|dsw|mak|sln)$/i) {
 	    $file_types{$_} = "X";

@@ -15,7 +15,8 @@
 #
 
 # Find the top of the BIND9 tree.
-TOP=@abs_top_builddir@
+TOP_BUILDDIR=@abs_top_builddir@
+TOP_SRCDIR=@abs_top_srcdir@
 
 # Provide TMPDIR variable for tests that need it.
 TMPDIR=${TMPDIR:-/tmp}
@@ -24,54 +25,51 @@ TMPDIR=${TMPDIR:-/tmp}
 CYGWIN=""
 
 # Load common values shared between windows and unix/linux.
-. $TOP/bin/tests/system/conf.sh.common
+. $TOP_SRCDIR/bin/tests/system/conf.sh.common
 
-ARPANAME=$TOP/bin/tools/arpaname
-CDS=$TOP/bin/dnssec/dnssec-cds
-CHECKCONF=$TOP/bin/check/named-checkconf
-CHECKDS=$TOP/bin/python/dnssec-checkds
-CHECKZONE=$TOP/bin/check/named-checkzone
-COVERAGE=$TOP/bin/python/dnssec-coverage
-DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
-DELV=$TOP/bin/delv/delv
-DIG=$TOP/bin/dig/dig
-DNSTAPREAD=$TOP/bin/tools/dnstap-read
-DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
-FEATURETEST=$TOP/bin/tests/system/feature-test
+ARPANAME=$TOP_BUILDDIR/bin/tools/arpaname
+CDS=$TOP_BUILDDIR/bin/dnssec/dnssec-cds
+CHECKCONF=$TOP_BUILDDIR/bin/check/named-checkconf
+CHECKZONE=$TOP_BUILDDIR/bin/check/named-checkzone
+DDNSCONFGEN=$TOP_BUILDDIR/bin/confgen/ddns-confgen
+DELV=$TOP_BUILDDIR/bin/delv/delv
+DIG=$TOP_BUILDDIR/bin/dig/dig
+DNSTAPREAD=$TOP_BUILDDIR/bin/tools/dnstap-read
+DSFROMKEY=$TOP_BUILDDIR/bin/dnssec/dnssec-dsfromkey
+FEATURETEST=$TOP_BUILDDIR/bin/tests/system/feature-test
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
-HOST=$TOP/bin/dig/host
-IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
-JOURNALPRINT=$TOP/bin/tools/named-journalprint
-KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
-KEYGEN=$TOP/bin/dnssec/dnssec-keygen
-KEYMGR=$TOP/bin/python/dnssec-keymgr
-MDIG=$TOP/bin/tools/mdig
-NAMED=$TOP/bin/named/named
-NSEC3HASH=$TOP/bin/tools/nsec3hash
-NSLOOKUP=$TOP/bin/dig/nslookup
-NSUPDATE=$TOP/bin/nsupdate/nsupdate
-NZD2NZF=$TOP/bin/tools/named-nzd2nzf
-PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
-PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-RESOLVE=$TOP/lib/samples/resolve
-REVOKE=$TOP/bin/dnssec/dnssec-revoke
-RNDC=$TOP/bin/rndc/rndc
-RNDCCONFGEN=$TOP/bin/confgen/rndc-confgen
-RRCHECKER=$TOP/bin/tools/named-rrchecker
-SETTIME=$TOP/bin/dnssec/dnssec-settime
-SIGNER=$TOP/bin/dnssec/dnssec-signzone
-TSIGKEYGEN=$TOP/bin/confgen/tsig-keygen
-VERIFY=$TOP/bin/dnssec/dnssec-verify
-WIRETEST=$TOP/bin/tests/wire_test
+HOST=$TOP_BUILDDIR/bin/dig/host
+IMPORTKEY=$TOP_BUILDDIR/bin/dnssec/dnssec-importkey
+JOURNALPRINT=$TOP_BUILDDIR/bin/tools/named-journalprint
+KEYFRLAB=$TOP_BUILDDIR/bin/dnssec/dnssec-keyfromlabel
+KEYGEN=$TOP_BUILDDIR/bin/dnssec/dnssec-keygen
+MDIG=$TOP_BUILDDIR/bin/tools/mdig
+NAMED=$TOP_BUILDDIR/bin/named/named
+NSEC3HASH=$TOP_BUILDDIR/bin/tools/nsec3hash
+NSLOOKUP=$TOP_BUILDDIR/bin/dig/nslookup
+NSUPDATE=$TOP_BUILDDIR/bin/nsupdate/nsupdate
+NZD2NZF=$TOP_BUILDDIR/bin/tools/named-nzd2nzf
+PK11DEL="$TOP_BUILDDIR/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
+PK11GEN="$TOP_BUILDDIR/bin/pkcs11/pkcs11-keygen -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
+PK11LIST="$TOP_BUILDDIR/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p ${HSMPIN:-1234}"
+RESOLVE=$TOP_BUILDDIR/lib/samples/resolve
+REVOKE=$TOP_BUILDDIR/bin/dnssec/dnssec-revoke
+RNDC=$TOP_BUILDDIR/bin/rndc/rndc
+RNDCCONFGEN=$TOP_BUILDDIR/bin/confgen/rndc-confgen
+RRCHECKER=$TOP_BUILDDIR/bin/tools/named-rrchecker
+SETTIME=$TOP_BUILDDIR/bin/dnssec/dnssec-settime
+SIGNER=$TOP_BUILDDIR/bin/dnssec/dnssec-signzone
+TSIGKEYGEN=$TOP_BUILDDIR/bin/confgen/tsig-keygen
+VERIFY=$TOP_BUILDDIR/bin/dnssec/dnssec-verify
+WIRETEST=$TOP_BUILDDIR/bin/tests/wire_test
 
-BIGKEY=$TOP/bin/tests/system/rsabigexponent/bigkey
-GENCHECK=$TOP/bin/tests/system/rndc/gencheck
-KEYCREATE=$TOP/bin/tests/system/tkey/keycreate
-KEYDELETE=$TOP/bin/tests/system/tkey/keydelete
-MAKEJOURNAL=$TOP/bin/tests/makejournal
-PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
-SAMPLEUPDATE=$TOP/lib/samples/sample-update
+BIGKEY=$TOP_BUILDDIR/bin/tests/system/rsabigexponent/bigkey
+GENCHECK=$TOP_BUILDDIR/bin/tests/system/rndc/gencheck
+KEYCREATE=$TOP_BUILDDIR/bin/tests/system/tkey/keycreate
+KEYDELETE=$TOP_BUILDDIR/bin/tests/system/tkey/keydelete
+MAKEJOURNAL=$TOP_BUILDDIR/bin/tests/system/makejournal
+PIPEQUERIES=$TOP_BUILDDIR/bin/tests/system/pipelined/pipequeries
+SAMPLEUPDATE=$TOP_BUILDDIR/lib/samples/sample-update
 
 # we don't want a KRB5_CONFIG setting breaking the tests
 KRB5_CONFIG=/dev/null
@@ -82,7 +80,7 @@ KRB5_CONFIG=/dev/null
 SEQUENTIAL_UNIX="@PKCS11_TEST@"
 SEQUENTIALDIRS="$SEQUENTIAL_COMMON $SEQUENTIAL_UNIX"
 
-PARALLEL_UNIX="@CHECKDS@ @COVERAGE@ @DNSTAP@ @KEYMGR@ logfileconfig"
+PARALLEL_UNIX="@DNSTAP@ logfileconfig"
 PARALLELDIRS="$PARALLEL_COMMON $PARALLEL_UNIX"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
@@ -126,5 +124,6 @@ MAXMINDDB_LIBS="@MAXMINDDB_LIBS@"
 HAVEGEOIP2=${MAXMINDDB_LIBS:+1}
 ZLIB_LIBS="@ZLIB_LIBS@"
 HAVEZLIB=${ZLIB_LIBS:+1}
-NZD=@NZD_TOOLS@
+LMDB_LIBS="@LMDB_LIBS@"
+NZD=${LMDB_LIBS:+1}
 CRYPTO=@CRYPTO@

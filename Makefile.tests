@@ -1,0 +1,10 @@
+# Hey Emacs, this is -*- makefile-automake -*- file!
+# vim: filetype=automake
+
+AM_CPPFLAGS +=					\
+	$(CMOCKA_CFLAGS)			\
+	-DTESTS=\"$(abs_srcdir)\"		\
+	-DNAMED_PLUGINDIR=\"$(libdir)/named\"
+
+LDADD =			\
+	$(CMOCKA_LIBS)

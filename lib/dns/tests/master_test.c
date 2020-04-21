@@ -23,6 +23,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/dir.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -140,7 +141,8 @@ setup_master(void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
 }
 
 static isc_result_t
-test_master(const char *testfile, dns_masterformat_t format,
+test_master(const char *workdir, const char *testfile,
+	    dns_masterformat_t format,
 	    void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
 	    void (*error)(struct dns_rdatacallbacks *, const char *, ...)) {
 	isc_result_t result;
@@ -161,9 +163,17 @@ test_master(const char *testfile, dns_masterformat_t format,
 		callbacks.error = error;
 	}
 
+	if (workdir != NULL) {
+		result = isc_dir_chdir(workdir);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+	}
+
 	result = dns_master_loadfile(testfile, &dns_origin, &dns_origin,
 				     dns_rdataclass_in, true, 0, &callbacks,
 				     NULL, NULL, dt_mctx, format, 0);
+
 	return (result);
 }
 
@@ -183,7 +193,7 @@ load_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master1.data",
+	result = test_master(SRCDIR, "testdata/master/master1.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -198,7 +208,7 @@ unexpected_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master2.data",
+	result = test_master(SRCDIR, "testdata/master/master2.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_UNEXPECTEDEND);
 }
@@ -214,7 +224,7 @@ noowner_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master3.data",
+	result = test_master(SRCDIR, "testdata/master/master3.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, DNS_R_NOOWNER);
 }
@@ -230,7 +240,7 @@ nottl_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master4.data",
+	result = test_master(SRCDIR, "testdata/master/master4.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -246,7 +256,7 @@ badclass_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master5.data",
+	result = test_master(SRCDIR, "testdata/master/master5.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, DNS_R_BADCLASS);
 }
@@ -261,7 +271,7 @@ toobig_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master15.data",
+	result = test_master(SRCDIR, "testdata/master/master15.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_NOSPACE);
 }
@@ -276,7 +286,7 @@ maxrdata_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master16.data",
+	result = test_master(SRCDIR, "testdata/master/master16.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -291,7 +301,7 @@ dnskey_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master6.data",
+	result = test_master(SRCDIR, "testdata/master/master6.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -309,7 +319,7 @@ dnsnokey_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master7.data",
+	result = test_master(SRCDIR, "testdata/master/master7.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_UNEXPECTEDEND);
 }
@@ -324,7 +334,7 @@ include_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master8.data",
+	result = test_master(SRCDIR, "testdata/master/master8.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, DNS_R_SEENINCLUDE);
 }
@@ -341,6 +351,9 @@ master_includelist_test(void **state) {
 	UNUSED(state);
 
 	result = setup_master(nullmsg, nullmsg);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_dir_chdir(SRCDIR);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_master_loadfile(
@@ -365,7 +378,7 @@ includefail_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master9.data",
+	result = test_master(SRCDIR, "testdata/master/master9.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, DNS_R_BADCLASS);
 }
@@ -380,7 +393,7 @@ blanklines_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master10.data",
+	result = test_master(SRCDIR, "testdata/master/master10.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -396,7 +409,7 @@ leadingzero_test(void **state) {
 
 	UNUSED(state);
 
-	result = test_master("testdata/master/master11.data",
+	result = test_master(SRCDIR, "testdata/master/master11.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -447,21 +460,21 @@ loadraw_test(void **state) {
 	UNUSED(state);
 
 	/* Raw format version 0 */
-	result = test_master("testdata/master/master12.data",
+	result = test_master(BUILDDIR, "testdata/master/master12.data",
 			     dns_masterformat_raw, nullmsg, nullmsg);
 	assert_string_equal(isc_result_totext(result), "success");
 	assert_true(headerset);
 	assert_int_equal(header.flags, 0);
 
 	/* Raw format version 1, no source serial  */
-	result = test_master("testdata/master/master13.data",
+	result = test_master(BUILDDIR, "testdata/master/master13.data",
 			     dns_masterformat_raw, nullmsg, nullmsg);
 	assert_string_equal(isc_result_totext(result), "success");
 	assert_true(headerset);
 	assert_int_equal(header.flags, 0);
 
 	/* Raw format version 1, source serial == 2011120101 */
-	result = test_master("testdata/master/master14.data",
+	result = test_master(BUILDDIR, "testdata/master/master14.data",
 			     dns_masterformat_raw, nullmsg, nullmsg);
 	assert_string_equal(isc_result_totext(result), "success");
 	assert_true(headerset);
@@ -501,8 +514,14 @@ dumpraw_test(void **state) {
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	result = isc_dir_chdir(SRCDIR);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
 	result = dns_db_load(db, "testdata/master/master1.data",
 			     dns_masterformat_text, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_dir_chdir(BUILDDIR);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_db_currentversion(db, &version);
@@ -512,7 +531,7 @@ dumpraw_test(void **state) {
 				 dns_masterformat_raw, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = test_master("test.dump", dns_masterformat_raw, nullmsg,
+	result = test_master(NULL, "test.dump", dns_masterformat_raw, nullmsg,
 			     nullmsg);
 	assert_string_equal(isc_result_totext(result), "success");
 	assert_true(headerset);
@@ -528,7 +547,7 @@ dumpraw_test(void **state) {
 				 dns_masterformat_raw, &header);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = test_master("test.dump", dns_masterformat_raw, nullmsg,
+	result = test_master(NULL, "test.dump", dns_masterformat_raw, nullmsg,
 			     nullmsg);
 	assert_string_equal(isc_result_totext(result), "success");
 	assert_true(headerset);
@@ -573,7 +592,7 @@ neworigin_test(void **state) {
 	UNUSED(state);
 
 	warn_expect_value = "record with inherited owner";
-	result = test_master("testdata/master/master17.data",
+	result = test_master(SRCDIR, "testdata/master/master17.data",
 			     dns_masterformat_text, warn_expect, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(warn_expect_result);

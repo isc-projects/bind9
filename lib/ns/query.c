@@ -5782,7 +5782,7 @@ static atomic_uint_fast32_t last_soft, last_hard;
 #ifdef ISC_MUTEX_ATOMICS
 static isc_once_t last_once = ISC_ONCE_INIT;
 static void
-last_init() {
+last_init(void) {
 	atomic_init(&last_soft, 0);
 	atomic_init(&last_hard, 0);
 }

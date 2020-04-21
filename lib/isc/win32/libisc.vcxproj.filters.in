@@ -266,9 +266,6 @@
     <ClInclude Include="..\include\isc\util.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\version.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
 @IF PKCS11
     <ClInclude Include="..\include\pk11\constants.h">
       <Filter>Library Header Files</Filter>
@@ -433,9 +430,6 @@
       <Filter>Win32 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="time.c">
-      <Filter>Win32 Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="version.c">
       <Filter>Win32 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="win32os.c">

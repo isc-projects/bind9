@@ -223,7 +223,6 @@
     <ClCompile Include="..\zoneverify.c" />
     <ClCompile Include="..\zt.c" />
     <ClCompile Include="DLLMain.c" />
-    <ClCompile Include="version.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code.h" />

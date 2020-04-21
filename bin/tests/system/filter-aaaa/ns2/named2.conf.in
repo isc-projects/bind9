@@ -23,7 +23,7 @@ options {
 	minimal-responses no;
 };
 
-plugin query "../../../../plugins/lib/filter-aaaa.so" {
+plugin query "../../../../plugins/filter-aaaa.la" {
 	filter-aaaa-on-v6 yes;
 	filter-aaaa { fd92:7065:b8e:ffff::2; };
 };

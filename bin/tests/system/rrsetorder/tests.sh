@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short +nocookie"
@@ -251,7 +250,7 @@ fi
 
 echo_i "Re-starting slave"
 
-$PERL $SYSTEMTESTTOP/start.pl --noclean --port ${PORT} rrsetorder ns2
+start --noclean --port ${PORT} rrsetorder ns2
 
 #
 #

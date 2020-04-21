@@ -9,12 +9,14 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_THREAD_H
-#define ISC_THREAD_H 1
+#pragma once
 
 /*! \file */
 
 #include <pthread.h>
+#if HAVE_THREADS_H
+#include <threads.h>
+#endif
 
 #if defined(HAVE_PTHREAD_NP_H)
 #include <pthread_np.h>
@@ -50,23 +52,4 @@ isc_thread_setaffinity(int cpu);
 
 #define isc_thread_self (unsigned long)pthread_self
 
-/***
- *** Thread-Local Storage
- ***/
-
-#if defined(HAVE_TLS)
-#if defined(HAVE_THREAD_LOCAL)
-#include <threads.h>
-#define ISC_THREAD_LOCAL static thread_local
-#elif defined(HAVE___THREAD)
-#define ISC_THREAD_LOCAL static __thread
-#else /* if defined(HAVE_THREAD_LOCAL) */
-#error "Unknown method for defining a TLS variable!"
-#endif /* if defined(HAVE_THREAD_LOCAL) */
-#else  /* if defined(HAVE_TLS) */
-#error "Thread-local storage support is required!"
-#endif /* if defined(HAVE_TLS) */
-
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_THREAD_H */

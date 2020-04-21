@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -79,8 +80,8 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 	return (ISC_R_SUCCESS);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {

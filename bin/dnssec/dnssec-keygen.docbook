@@ -108,13 +108,6 @@
       line.  For DNSSEC keys, this must match the name of the zone for
       which the key is being generated.
     </para>
-    <para>
-      The <command>dnssec-keymgr</command> command acts as a wrapper
-      around <command>dnssec-keygen</command>, generating and updating keys
-      as needed to enforce defined security policies such as key rollover
-      scheduling. Using <command>dnssec-keymgr</command> may be preferable
-      to direct use of <command>dnssec-keygen</command>.
-    </para>
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>

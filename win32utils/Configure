@@ -25,25 +25,7 @@ my $configfile = "..\\config.h";
 my $platformfile = "..\\lib\\isc\\win32\\include\\isc\\platform.h";
 my $confshfile = "..\\bin\\tests\\system\\conf.sh";
 
-my @filelist = ("..\\bin\\python\\dnssec-checkds.py",
-                "..\\bin\\python\\dnssec-coverage.py",
-                "..\\bin\\python\\dnssec-keymgr.py",
-                "..\\bin\\python\\isc\\__init__.py",
-                "..\\bin\\python\\isc\\checkds.py",
-                "..\\bin\\python\\isc\\coverage.py",
-                "..\\bin\\python\\isc\\dnskey.py",
-                "..\\bin\\python\\isc\\eventlist.py",
-                "..\\bin\\python\\isc\\keydict.py",
-                "..\\bin\\python\\isc\\keyevent.py",
-                "..\\bin\\python\\isc\\keymgr.py",
-                "..\\bin\\python\\isc\\keyseries.py",
-                "..\\bin\\python\\isc\\keyzone.py",
-                "..\\bin\\python\\isc\\policy.py",
-                "..\\bin\\python\\isc\\rndc.py",
-                "..\\bin\\python\\isc\\tests\\dnskey_test.py",
-                "..\\bin\\python\\isc\\tests\\policy_test.py",
-                "..\\bin\\python\\isc\\utils.py",
-                "..\\lib\\dns\\win32\\libdns.def",
+my @filelist = ("..\\lib\\dns\\win32\\libdns.def",
                 "..\\lib\\isc\\win32\\libisc.def");
 
 my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
@@ -130,8 +112,8 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\bin\\tests\\win32\\backtrace_test.vcxproj.filters",
                    "..\\bin\\tests\\win32\\inter_test.vcxproj",
                    "..\\bin\\tests\\win32\\inter_test.vcxproj.filters",
-                   "..\\bin\\tests\\win32\\makejournal.vcxproj",
-                   "..\\bin\\tests\\win32\\makejournal.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\makejournal.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\makejournal.vcxproj.filters",
                    "..\\bin\\tests\\win32\\rwlock_test.vcxproj",
                    "..\\bin\\tests\\win32\\rwlock_test.vcxproj.filters",
                    "..\\bin\\tests\\win32\\shutdown_test.vcxproj",
@@ -191,7 +173,7 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
 
 my %configdefh;
 
-my @substdefh = ("CONFIGARGS",
+my @substdefh = ("PACKAGE_CONFIGARGS",
                  "DNS_RDATASET_FIXED",
                  "HAVE_GEOIP2",
                  "HAVE_LIBXML2",
@@ -236,13 +218,10 @@ my @substdefp = ();
 
 my %configtest;
 
-my @substtest = ("CHECKDS",
-                 "COVERAGE",
-                 "CRYPTO",
+my @substtest = ("CRYPTO",
                  "DNSTAP",
                  "FSTRM_CAPTURE",
                  "JSONSTATS",
-                 "KEYMGR",
                  "NZD_TOOLS",
                  "XMLSTATS",
                  "ZLIB"),
@@ -307,17 +286,14 @@ my @substvar = ("BIND9_VERSION",
                 "COPTY",
                 "DLZ_SYSTEM_TEST",
                 "EXEEXT",
-                "expanded_sysconfdir",
                 "INTRINSIC",
                 "MACHINE",
                 "OPENSSL_PATH",
                 "PLATFORM",
-                "PKCS11_TOOLS",
                 "PLATFORM_TOOLSET",
                 "prefix",
                 "PSSUSPEND",
                 "PYTHON",
-                "PYTHON_INSTALL_DIR",
                 "TOOLS_VERSION",
                 "VCREDIST_PATH",
                 "WINDOWS_TARGET_PLATFORM_VERSION"),
@@ -637,19 +613,19 @@ sub appargs {
     # escape backslashes and double quotes
     $arg =~ s/([\\"])/\\$1/g;
     $arg =~ s/([\s])/\\\\$1/g;
-    if (defined($configdefh{"CONFIGARGS"})) {
-        $configdefh{"CONFIGARGS"} .= " " . $arg;
+    if (defined($configdefh{"PACKAGE_CONFIGARGS"})) {
+        $configdefh{"PACKAGE_CONFIGARGS"} .= " " . $arg;
     } else {
-        $configdefh{"CONFIGARGS"} = $arg;
+        $configdefh{"PACKAGE_CONFIGARGS"} = $arg;
     }
 }
 
-if (!$configdefh{"CONFIGARGS"}) {
+if (!$configdefh{"PACKAGE_CONFIGARGS"}) {
     # CONFIGARGS default is "default"
-    $configdefh{"CONFIGARGS"} = "\"default\"";
+    $configdefh{"PACKAGE_CONFIGARGS"} = "\"default\"";
 } else {
-    my $val = $configdefh{"CONFIGARGS"};
-    $configdefh{"CONFIGARGS"} = "\"'$val'\"";
+    my $val = $configdefh{"PACKAGE_CONFIGARGS"};
+    $configdefh{"PACKAGE_CONFIGARGS"} = "\"'$val'\"";
 }
 
 # parse enable/disable
@@ -1641,7 +1617,6 @@ if ($cryptolib ne "") {
 # with-pkcs11
 if ($use_pkcs11 ne "no") {
     $configcond{"PKCS11"} = 1;
-    $configvar{"PKCS11_TOOLS"} = "pkcs11";
     $configdefd{"PK11_LIB_LOCATION"} = "PK11_LIB_LOCATION=\"$pkcs11_path\"";
 }
 
@@ -1996,73 +1971,12 @@ if ($use_python ne "no") {
     if ($python_command !~ /\.exe$/i) {
         $python_command = $python_command . ".exe";
     }
-    # tried to use the full path without success here
-    if ($verbose) {
-        print "checking for python module 'argparse'\n";
-    }
-    my $pythonret = `"$python_command" -c "import argparse" 2>&1`;
-    if ($? != 0) {
-        if ($use_python ne "auto") {
-            die "can't find python module 'argparse': $pythonret\n";
-        } else {
-            print STDERR "can't find python module 'argparse': $pythonret\n";
-            $use_python = "no";
-        }
-    }
-    if ($use_python ne "no") {
-        if ($verbose) {
-            print "checking for python module 'ply'\n";
-        }
-        $pythonret = `"$python_command" -c "from ply import *" 2>&1`;
-        if ($? != 0) {
-            if ($use_python ne "auto") {
-                die "can't find python module 'ply': $pythonret\n";
-            } else {
-                print STDERR "can't find python module 'ply': $pythonret\n";
-                $use_python = "no";
-            }
-        }
-    }
-    if ($use_python ne "no") {
-        if ($verbose) {
-            print "checking for python module 'win32api'\n";
-        }
-        $pythonret = `"$python_command" -c "import win32api" 2>&1`;
-        if ($? != 0) {
-            if ($use_python ne "auto") {
-                die "can't find python module 'win32api': $pythonret\n";
-            } else {
-                print STDERR
-                    "can't find python module 'win32api': $pythonret\n";
-                $use_python = "no";
-            }
-        }
-    }
-    if ($use_python ne "no") {
-        if ($verbose) {
-            print "checking for python module 'win32con'\n";
-        }
-        $pythonret = `"$python_command" -c "import win32con" 2>&1`;
-        if ($? != 0) {
-            if ($use_python ne "auto") {
-                die "can't find python module 'win32con': $pythonret\n";
-            } else {
-                print STDERR
-                    "can't find python module 'win32con': $pythonret\n";
-                $use_python = "no";
-            }
-        }
-    }
     if ($use_python ne "no") {
         $configcond{"PYTHON"} = 1;
         $configdefd{"USE_PYTHON"} = "USE_PYTHON";
         $configvar{"PYTHON"} = "$python_command";
-        $configtest{"CHECKDS"} = "checkds";
-        $configtest{"COVERAGE"} = "coverage";
-        $configtest{"KEYMGR"} = "keymgr";
         # Doesn't matter
         $configvar{"prefix"} = "__prefix__";
-        $configvar{"expanded_sysconfdir"} = "__prefix__\\etc";
     }
 }
 
@@ -2710,11 +2624,6 @@ sub makeinstallfile {
         print LOUT "pkcs11-keygen.exe-BNFF\n";
         print LOUT "pkcs11-list.exe-BNFF\n";
         print LOUT "pkcs11-tokens.exe-BNFF\n";
-    }
-    if ($use_python ne "no") {
-        print LOUT "dnssec-checkds.py-BNFF\n";
-        print LOUT "dnssec-coverage.py-BNFF\n";
-        print LOUT "dnssec-keymgr.py-BNFF\n";
     }
     print LOUT "readme1st.txt-BTFT\n";
     close LOUT;

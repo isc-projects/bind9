@@ -42,7 +42,7 @@
 #define DNS_CONF "/etc/dns.conf"
 #endif /* ifndef DNS_CONF */
 
-ISC_THREAD_LOCAL irs_context_t *irs_context = NULL;
+static thread_local irs_context_t *irs_context = NULL;
 
 struct irs_context {
 	/*

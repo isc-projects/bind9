@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
@@ -644,23 +643,6 @@ $RNDCCMD 10.53.0.6 reconfig > /dev/null || ret=1
 sleep 1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
-
-if [ -x "$PYTHON" ]; then
-    n=`expr $n + 1`
-    echo_i "test rndc python bindings ($n)"
-    ret=0
-    $PYTHON > python.out.1.test$n << EOF
-import sys
-sys.path.insert(0, '../../../../bin/python')
-from isc import *
-r = rndc(('10.53.0.5', ${CONTROLPORT}), 'hmac-sha256', '1234abcd8765')
-result = r.call('status')
-print(result['text'])
-EOF
-    grep 'server is up and running' python.out.1.test$n > /dev/null 2>&1 || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=`expr $status + $ret`
-fi
 
 n=`expr $n + 1`
 echo_i "check 'rndc \"\"' is handled ($n)"

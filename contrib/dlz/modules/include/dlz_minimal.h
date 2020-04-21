@@ -31,9 +31,9 @@
 
 #include <sys/socket.h>
 #include <sys/types.h>
-#ifdef ISC_PLATFORM_HAVESYSUNH
+#ifndef _WIN32
 #include <sys/un.h>
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#endif /* ifndef _WIN32 */
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <netinet/in.h>
@@ -104,9 +104,9 @@ typedef struct isc_sockaddr {
 		struct sockaddr	    sa;
 		struct sockaddr_in  sin;
 		struct sockaddr_in6 sin6;
-#ifdef ISC_PLATFORM_HAVESYSUNH
+#ifndef _WIN32
 		struct sockaddr_un sunix;
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#endif /* ifndef _WIN32 */
 	} type;
 	unsigned int length;
 	void *	     link;

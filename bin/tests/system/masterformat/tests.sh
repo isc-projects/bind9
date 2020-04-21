@@ -10,7 +10,6 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-SYSTEMTESTTOP=..
 . "$SYSTEMTESTTOP/conf.sh"
 
 status=0
@@ -81,7 +80,7 @@ stomp () {
 
 restart () {
     sleep 1
-    $PERL "$SYSTEMTESTTOP/start.pl" --noclean --restart --port "${PORT}" masterformat ns3
+    start --noclean --restart --port "${PORT}" masterformat ns3
 }
 
 dig_with_opts() {

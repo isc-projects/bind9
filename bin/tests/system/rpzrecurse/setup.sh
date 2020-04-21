@@ -13,7 +13,6 @@
 
 set -e
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 USAGE="$0: [-DNx]"

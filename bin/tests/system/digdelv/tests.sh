@@ -10,7 +10,6 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-SYSTEMTESTTOP=..
 . "$SYSTEMTESTTOP/conf.sh"
 
 set -e
@@ -19,7 +18,7 @@ status=0
 n=0
 
 sendcmd() {
-    "$PERL" "$SYSTEMTESTTOP/send.pl" "${1}" "$EXTRAPORT1"
+    send "${1}" "$EXTRAPORT1"
 }
 
 dig_with_opts() {

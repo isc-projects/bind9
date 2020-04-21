@@ -9,4 +9,3 @@ dlopen
 keycreate
 keydelete
 gssapi_krb
-makejournal

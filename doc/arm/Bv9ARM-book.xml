@@ -18553,13 +18553,10 @@ allow-query { !{ !10/8; any; }; key example; };
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/delv/delv.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/dig.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-cds.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/python/dnssec-checkds.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/python/dnssec-coverage.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-dsfromkey.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-importkey.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-keyfromlabel.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-keygen.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/python/dnssec-keymgr.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-revoke.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-settime.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-signzone.docbook"/>

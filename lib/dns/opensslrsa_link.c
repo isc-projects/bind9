@@ -9,7 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#if !USE_PKCS11
+/*! \file */
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -1193,7 +1193,3 @@ dst__opensslrsa_init(dst_func_t **funcp, unsigned char algorithm) {
 	}
 	return (ISC_R_SUCCESS);
 }
-
-#endif /* !USE_PKCS11 */
-
-/*! \file */

@@ -125,16 +125,13 @@
     <ClCompile Include="..\getnameinfo.c" />
     <ClCompile Include="DLLMain.c" />
     <ClCompile Include="resconf.c" />
-    <ClCompile Include="version.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\irs\context.h" />
     <ClInclude Include="..\include\irs\dnsconf.h" />
     <ClInclude Include="..\include\irs\netdb.h" />
-    <ClInclude Include="..\include\irs\platform.h" />
     <ClInclude Include="..\include\irs\resconf.h" />
     <ClInclude Include="..\include\irs\types.h" />
-    <ClInclude Include="..\include\irs\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

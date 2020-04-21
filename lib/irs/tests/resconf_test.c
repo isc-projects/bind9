@@ -32,7 +32,7 @@
 static isc_mem_t *mctx = NULL;
 
 static void
-setup_test() {
+setup_test(void) {
 	isc_mem_create(&mctx);
 
 	/*

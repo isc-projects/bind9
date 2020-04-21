@@ -9,7 +9,6 @@
 
 # test response rate limiting
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"

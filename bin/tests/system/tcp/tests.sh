@@ -11,7 +11,6 @@
 
 set -e
 
-SYSTEMTESTTOP=..
 # shellcheck source=../conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
@@ -81,7 +80,7 @@ refresh_tcp_stats() {
 # Send a command to the tool script listening on 10.53.0.6.
 send_command() {
 	nextpart ans6/ans.run > /dev/null
-	echo "$*" | "${PERL}" "${SYSTEMTESTTOP}/send.pl" 10.53.0.6 "${CONTROLPORT}"
+	echo "$*" | send 10.53.0.6 "${CONTROLPORT}"
 	wait_for_log_peek 10 "result=" ans6/ans.run || ret=1
 	if ! nextpartpeek ans6/ans.run | grep -qF "result=OK"; then
 		return 1

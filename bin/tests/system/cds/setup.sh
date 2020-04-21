@@ -11,7 +11,6 @@
 
 set -eu
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 touch empty

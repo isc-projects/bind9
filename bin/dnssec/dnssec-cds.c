@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/file.h>
@@ -1020,8 +1021,8 @@ nsdiff(uint32_t ttl, dns_rdataset_t *oldset, dns_rdataset_t *newset) {
 	}
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {
@@ -1029,7 +1030,7 @@ usage(void) {
 	fprintf(stderr,
 		"    %s options [options] -f <file> -d <path> <domain>\n",
 		program);
-	fprintf(stderr, "Version: %s\n", VERSION);
+	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "Options:\n"
 			"    -a <algorithm>     digest algorithm (SHA-1 / "
 			"SHA-256 / SHA-384)\n"

@@ -135,7 +135,7 @@ typedef struct ioq {
 	struct fstrm_iothr_queue *ioq;
 } dt__ioq_t;
 
-ISC_THREAD_LOCAL dt__ioq_t dt_ioq = { 0 };
+static thread_local dt__ioq_t dt_ioq = { 0 };
 
 static atomic_uint_fast32_t global_generation;
 

@@ -231,9 +231,9 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	RETERR(dst__pkcs11eddsa_init(&dst_t_func[DST_ALG_ED25519]));
 	RETERR(dst__pkcs11eddsa_init(&dst_t_func[DST_ALG_ED448]));
 #endif /* USE_PKCS11 */
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 
 	dst_initialized = true;
 	return (ISC_R_SUCCESS);

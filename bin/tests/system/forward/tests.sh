@@ -8,7 +8,6 @@
 # information regarding copyright ownership.
 
 #shellcheck source=conf.sh
-SYSTEMTESTTOP=..
 . "$SYSTEMTESTTOP/conf.sh"
 
 dig_with_opts() (
@@ -16,7 +15,7 @@ dig_with_opts() (
 )
 
 sendcmd() (
-	"$PERL" ../send.pl 10.53.0.6 "$EXTRAPORT1"
+	send 10.53.0.6 "$EXTRAPORT1"
 )
 
 root=10.53.0.1
@@ -105,10 +104,10 @@ echo_i "checking for negative caching of forwarder response ($n)"
 ret=0
 dig_with_opts nonexist. txt @10.53.0.5 > dig.out.$n.f2 || ret=1
 grep "status: NXDOMAIN" dig.out.$n.f2 > /dev/null || ret=1
-$PERL ../stop.pl forward ns4 || ret=1
+stop forward ns4 || ret=1
 dig_with_opts nonexist. txt @10.53.0.5 > dig.out.$n.f2 || ret=1
 grep "status: NXDOMAIN" dig.out.$n.f2 > /dev/null || ret=1
-$PERL ../start.pl --restart --noclean --port "${PORT}" forward ns4 || ret=1
+start --restart --noclean --port "${PORT}" forward ns4 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

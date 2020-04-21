@@ -9,7 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#if !USE_PKCS11
+/*! \file */
 
 #if HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448
 
@@ -33,7 +33,6 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
-#include "openssl_shim.h"
 
 #define DST_RET(a)        \
 	{                 \
@@ -777,7 +776,3 @@ dst__openssleddsa_init(dst_func_t **funcp) {
 }
 
 #endif /* HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448 */
-
-#endif /* !USE_PKCS11 */
-
-/*! \file */

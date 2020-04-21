@@ -16,6 +16,7 @@
 #include <unistd.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
@@ -782,8 +783,8 @@ sendqueries(isc_task_t *task, isc_event_t *event) {
 	return;
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {
@@ -893,9 +894,8 @@ help(void) {
 	      stdout);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...)
-	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void
 fatal(const char *format, ...) {
@@ -1715,7 +1715,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 			 */
 			break;
 		case 'v':
-			fputs("mDiG " VERSION "\n", stderr);
+			fprintf(stderr, "mDiG %s\n", PACKAGE_VERSION);
 			exit(0);
 			break;
 		}
@@ -1811,7 +1811,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 }
 
 static struct query *
-clone_default_query() {
+clone_default_query(void) {
 	struct query *query;
 
 	query = isc_mem_allocate(mctx, sizeof(struct query));

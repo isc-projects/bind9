@@ -191,9 +191,9 @@ static void
 initialize_action(void) {
 	ipv4_result = try_proto(PF_INET);
 	ipv6_result = try_proto(PF_INET6);
-#ifdef ISC_PLATFORM_HAVESYSUNH
+#ifndef _WIN32
 	unix_result = try_proto(PF_UNIX);
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#endif /* ifndef _WIN32 */
 }
 
 static void
@@ -418,7 +418,7 @@ make_nonblock(int fd) {
 	ret = ioctl(fd, FIONBIO, (char *)&on);
 #else  /* ifdef USE_FIONBIO_IOCTL */
 	flags = fcntl(fd, F_GETFL, 0);
-	flags |= PORT_NONBLOCK;
+	flags |= O_NONBLOCK;
 	ret = fcntl(fd, F_SETFL, flags);
 #endif /* ifdef USE_FIONBIO_IOCTL */
 

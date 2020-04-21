@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="-p ${PORT} -b 10.53.0.1 +dnssec +time=2 +tries=1 +multi"
@@ -224,10 +223,10 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that loading a correctly signed mirror zone from disk succeeds ($n)"
 ret=0
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mirror ns3
+stop --use-rndc --port ${CONTROLPORT} mirror ns3
 cat ns2/verify-load.db.good.signed > ns3/verify-load.db.mirror
 nextpart ns3/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
+start --noclean --restart --port ${PORT} mirror ns3
 wait_for_load verify-load ${UPDATED_SERIAL_GOOD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-load SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null && ret=1
@@ -239,7 +238,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that loading a journal for an incorrectly signed mirror zone fails ($n)"
 ret=0
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mirror ns3
+stop --use-rndc --port ${CONTROLPORT} mirror ns3
 cp ns3/verify-journal.db.mirror ns3/verify-ixfr.db.mirror
 cp ns3/verify-journal.db.bad.mirror.jnl ns3/verify-ixfr.db.mirror.jnl
 # Temporarily disable transfers of the "verify-ixfr" zone on ns2.  This is
@@ -254,7 +253,7 @@ sed '/^zone "verify-ixfr" {$/,/^};$/ {
 mv ns2/named.conf.modified ns2/named.conf
 rndc_reconfig ns2 10.53.0.2
 nextpart ns3/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
+start --noclean --restart --port ${PORT} mirror ns3
 wait_for_load verify-ixfr ${UPDATED_SERIAL_BAD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
@@ -274,11 +273,11 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that loading a journal for a correctly signed mirror zone succeeds ($n)"
 ret=0
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mirror ns3
+stop --use-rndc --port ${CONTROLPORT} mirror ns3
 cp ns3/verify-journal.db.mirror ns3/verify-ixfr.db.mirror
 cp ns3/verify-journal.db.good.mirror.jnl ns3/verify-ixfr.db.mirror.jnl
 nextpart ns3/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
+start --noclean --restart --port ${PORT} mirror ns3
 wait_for_load verify-ixfr ${UPDATED_SERIAL_GOOD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null && ret=1
@@ -416,10 +415,10 @@ mv ns2/named.conf.modified ns2/named.conf
 rndc_reconfig ns2 10.53.0.2
 # Stop ns3, update the timestamp of the zone file to one far in the past, then
 # restart ns3.
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mirror ns3
+stop --use-rndc --port ${CONTROLPORT} mirror ns3
 touch -t 200001010000 ns3/initially-unavailable.db.mirror
 nextpart ns3/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
+start --noclean --restart --port ${PORT} mirror ns3
 # Ensure named attempts to retransfer the zone due to its expiry.
 wait_for_transfer initially-unavailable
 # Ensure the expected messages were logged.

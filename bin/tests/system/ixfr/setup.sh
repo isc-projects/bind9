@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 $SHELL clean.sh
@@ -60,7 +59,7 @@ testdb sub.test. 3 61 > ns3/subtest1.db
 
 # Set up a large zone
 i=0
-$SHELL ../genzone.sh 3 > ns3/large.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 3 > ns3/large.db
 while [ $i -lt 10000 ]; do
     echo "record$i 10 IN TXT this is record %i" >> ns3/large.db
     i=$((i+1))

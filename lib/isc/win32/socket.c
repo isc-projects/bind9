@@ -3672,7 +3672,7 @@ isc_socket_socketevent(isc_mem_t *mctx, void *sender, isc_eventtype_t eventtype,
 }
 
 bool
-isc_socket_hasreuseport() {
+isc_socket_hasreuseport(void) {
 	return (false);
 }
 

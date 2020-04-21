@@ -17,6 +17,12 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#if HAVE_GSSAPI_GSSAPI_H
+#include <gssapi/gssapi.h>
+#elif HAVE_GSSAPI_H
+#include <gssapi.h>
+#endif
+
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/platform.h>
@@ -24,23 +30,16 @@
 
 #include <dns/types.h>
 
-#ifdef GSSAPI
-#ifdef WIN32
 /*
- * MSVC does not like macros in #include lines.
+ * Define dummy opaque typedefs if we are not using GSSAPI
+ *
+ * FIXME: Make the gssapi types completely opaque and include <gssapi.h> only
+ * internally.
  */
-#include <gssapi/gssapi.h>
-#include <gssapi/gssapi_krb5.h>
-#else /* ifdef WIN32 */
-#include ISC_PLATFORM_GSSAPIHEADER
-#ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER
-#include ISC_PLATFORM_GSSAPI_KRB5_HEADER
-#endif /* ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER */
-#endif /* ifdef WIN32 */
-#ifndef GSS_SPNEGO_MECHANISM
-#define GSS_SPNEGO_MECHANISM ((void *)0)
-#endif /* ifndef GSS_SPNEGO_MECHANISM */
-#endif /* ifdef GSSAPI */
+#if !HAVE_GSSAPI
+typedef void *gss_cred_id_t;
+typedef void *gss_ctx_id_t;
+#endif
 
 ISC_LANG_BEGINDECLS
 

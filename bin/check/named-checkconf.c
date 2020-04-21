@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <isc/attributes.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/hash.h>
@@ -56,8 +57,8 @@ isc_log_t *logc = NULL;
 	} while (0)
 
 /*% usage */
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {
@@ -655,7 +656,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'v':
-			printf(VERSION "\n");
+			printf("%s\n", PACKAGE_VERSION);
 			exit(0);
 
 		case 'x':

@@ -27,9 +27,6 @@
     <ClCompile Include="DLLMain.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="version.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\acl.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -621,9 +618,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\validator.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dns\version.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\view.h">

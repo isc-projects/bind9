@@ -12,7 +12,6 @@
 set -e
 
 # shellcheck source=conf.sh
-SYSTEMTESTTOP=..
 . "$SYSTEMTESTTOP/conf.sh"
 
 dig_with_opts() {

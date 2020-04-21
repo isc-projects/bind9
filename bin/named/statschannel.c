@@ -52,7 +52,7 @@
 #define ISC_XMLCHAR (const xmlChar *)
 #endif /* HAVE_LIBXML2 */
 
-#include "bind9.xsl.h"
+#include "xsl_p.h"
 
 struct named_statschannel {
 	/* Unlocked */
@@ -1988,7 +1988,7 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR nowstr));
 	TRY0(xmlTextWriterEndElement(writer)); /* current-time */
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "version"));
-	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR named_g_version));
+	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR PACKAGE_VERSION));
 	TRY0(xmlTextWriterEndElement(writer)); /* version */
 
 	if ((flags & STATS_XML_SERVER) != 0) {
@@ -2825,7 +2825,7 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 	obj = json_object_new_string(nowstr);
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "current-time", obj);
-	obj = json_object_new_string(named_g_version);
+	obj = json_object_new_string(PACKAGE_VERSION);
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "version", obj);
 
@@ -3472,6 +3472,7 @@ render_xsl(const char *url, isc_httpdurl_t *urlinfo, const char *querystring,
 	   isc_httpdfree_t **freecb, void **freecb_args) {
 	isc_result_t result;
 	char *_headers = NULL;
+	char *p;
 
 	UNUSED(url);
 	UNUSED(querystring);
@@ -3530,7 +3531,8 @@ render_xsl(const char *url, isc_httpdurl_t *urlinfo, const char *querystring,
 send:
 	*retcode = 200;
 	*retmsg = "OK";
-	isc_buffer_reinit(b, xslmsg, strlen(xslmsg));
+	DE_CONST(xslmsg, p);
+	isc_buffer_reinit(b, p, strlen(xslmsg));
 	isc_buffer_add(b, strlen(xslmsg));
 end:
 	free(_headers);

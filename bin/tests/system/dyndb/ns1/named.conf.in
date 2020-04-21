@@ -33,5 +33,5 @@ controls {
 	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-dyndb sample "../driver/lib/sample.so" { ipv4.example.nil. in-addr.arpa. };
-dyndb sample2 "../driver/lib/sample.so" { ipv6.example.nil. 8.b.d.0.1.0.0.2.ip6.arpa. };
+dyndb sample "../driver/sample.la" { ipv4.example.nil. in-addr.arpa. };
+dyndb sample2 "../driver/sample.la" { ipv6.example.nil. 8.b.d.0.1.0.0.2.ip6.arpa. };

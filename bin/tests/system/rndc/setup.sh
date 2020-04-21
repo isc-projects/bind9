@@ -9,14 +9,13 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL ../genzone.sh 2 >ns2/nil.db
-$SHELL ../genzone.sh 2 >ns2/other.db
-$SHELL ../genzone.sh 2 >ns2/static.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns2/nil.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns2/other.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns2/static.db
 
-$SHELL ../genzone.sh 2 >ns6/huge.zone.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns6/huge.zone.db
 awk 'END { for (i = 1; i <= 1000000; i++)
      printf "host%d IN A 10.53.0.6\n", i; }' < /dev/null >> ns6/huge.zone.db
 

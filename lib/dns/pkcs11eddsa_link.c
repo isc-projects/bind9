@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#if USE_PKCS11
-
 #include <stdbool.h>
 
 #include <isc/mem.h>
@@ -1111,5 +1109,3 @@ dst__pkcs11eddsa_init(dst_func_t **funcp) {
 	}
 	return (ISC_R_SUCCESS);
 }
-
-#endif /* USE_PKCS11 */

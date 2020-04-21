@@ -54,8 +54,9 @@ if (!$test) {
 }
 
 # Global variables
-my $topdir = abs_path($ENV{'SYSTEMTESTTOP'});
-my $testdir = abs_path($topdir . "/" . $test);
+my $builddir = $ENV{'builddir'};
+my $srcdir = $ENV{'srcdir'};
+my $testdir = "$builddir/$test";
 
 if (! -d $testdir) {
 	die "No test directory: \"$testdir\"\n";

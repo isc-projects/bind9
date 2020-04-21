@@ -16,6 +16,7 @@
 
 #include <stdarg.h>
 
+#include <isc/attributes.h>
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/likely.h>
@@ -37,14 +38,12 @@ isc_error_unexpected(const char *, int, const char *, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
 /*% fatal error */
-ISC_PLATFORM_NORETURN_PRE void
-isc_error_fatal(const char *, int, const char *, ...)
-	ISC_FORMAT_PRINTF(3, 4) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN void
+isc_error_fatal(const char *, int, const char *, ...) ISC_FORMAT_PRINTF(3, 4);
 
 /*% runtimecheck error */
-ISC_PLATFORM_NORETURN_PRE void
-isc_error_runtimecheck(const char *, int,
-		       const char *) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN void
+isc_error_runtimecheck(const char *, int, const char *);
 
 #define ISC_ERROR_RUNTIMECHECK(cond) \
 	((void)(ISC_LIKELY(cond) ||  \

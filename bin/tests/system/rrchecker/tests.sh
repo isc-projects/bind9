@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
@@ -39,7 +38,7 @@ EOF
 n=`expr $n + 1`
 echo_i "check conversions to canonical format ($n)"
 ret=0
-$SHELL ../genzone.sh 0 > tempzone
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 0 > tempzone
 $CHECKZONE -Dq . tempzone | sed '/^;/d' > checkzone.out$n
 while read -r name tt cl ty rest
 do

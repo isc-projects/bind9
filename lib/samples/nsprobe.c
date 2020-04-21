@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/lib.h>
@@ -1038,8 +1039,8 @@ cleanup:
 	return (result);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {

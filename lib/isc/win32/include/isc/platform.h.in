@@ -16,18 +16,12 @@
  ***** Platform-dependent defines.
  *****/
 
-#if _MSC_VER > 1400
-#define HAVE_TLS 1
-#define HAVE___DECLSPEC_THREAD 1
-#endif
-
 /*
  * Some compatibility cludges
  */
 
-#if defined(_WIN32) || defined(_WIN64)
 /* We are on Windows */
-# define strtok_r strtok_s
+#define strtok_r strtok_s
 
 #define ISC_STRERRORSIZE 128
 
@@ -39,14 +33,6 @@
 #if _MSC_VER < 1914
 typedef uint32_t socklen_t;
 #endif
-
-#endif
-
-/*
- * Remove __attribute__ ((foo)) on Windows
- */
-
-#define __attribute__(attribute) /* do nothing */
 
 /*
  * Limits
@@ -65,17 +51,6 @@ typedef uint32_t socklen_t;
  ***/
 
 #undef MSG_TRUNC
-
-/*
- * Define if the platform has <sys/un.h>.
- */
-#undef ISC_PLATFORM_HAVESYSUNH
-
-/*
- * Defines for the noreturn attribute.
- */
-#define ISC_PLATFORM_NORETURN_PRE __declspec(noreturn)
-#define ISC_PLATFORM_NORETURN_POST
 
 /*
  * Set up a macro for importing and exporting from the DLL
