@@ -1858,6 +1858,14 @@ cleanup_quantum(isc_task_t *task, isc_event_t *event) {
 
 	name = dns_fixedname_initname(&fname);
 
+	LOCK(&rpz->rpzs->maint_lock);
+
+	/* Check that we aren't shutting down. */
+	if (rpz->rpzs->zones[rpz->num] == NULL) {
+		UNLOCK(&rpz->rpzs->maint_lock);
+		goto cleanup;
+	}
+
 	for (result = isc_ht_iter_first(iter);
 	     result == ISC_R_SUCCESS && count++ < DNS_RPZ_QUANTUM;
 	     result = isc_ht_iter_delcurrent_next(iter))
@@ -1886,6 +1894,7 @@ cleanup_quantum(isc_task_t *task, isc_event_t *event) {
 			       iter, rpz, NULL, NULL);
 		nevent = &rpz->updateevent;
 		isc_task_send(rpz->rpzs->updater, &nevent);
+		UNLOCK(&rpz->rpzs->maint_lock);
 		return;
 	} else if (result == ISC_R_NOMORE) {
 		isc_ht_t *tmpht = NULL;
@@ -1898,11 +1907,14 @@ cleanup_quantum(isc_task_t *task, isc_event_t *event) {
 		rpz->nodes = rpz->newnodes;
 		rpz->newnodes = tmpht;
 
+		UNLOCK(&rpz->rpzs->maint_lock);
 		finish_update(rpz);
 		dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
 			      "rpz: %s: reload done", domain);
+	} else {
+		UNLOCK(&rpz->rpzs->maint_lock);
 	}
 
 	/*
@@ -1945,6 +1957,14 @@ update_quantum(isc_task_t *task, isc_event_t *event) {
 	name = dns_fixedname_initname(&fixname);
 
 	dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
+
+	LOCK(&rpz->rpzs->maint_lock);
+
+	/* Check that we aren't shutting down. */
+	if (rpz->rpzs->zones[rpz->num] == NULL) {
+		UNLOCK(&rpz->rpzs->maint_lock);
+		goto cleanup;
+	}
 
 	while (result == ISC_R_SUCCESS && count++ < DNS_RPZ_QUANTUM) {
 		char namebuf[DNS_NAME_FORMATSIZE];
@@ -2046,6 +2066,7 @@ update_quantum(isc_task_t *task, isc_event_t *event) {
 			       rpz, NULL, NULL);
 		nevent = &rpz->updateevent;
 		isc_task_send(rpz->rpzs->updater, &nevent);
+		UNLOCK(&rpz->rpzs->maint_lock);
 		return;
 	} else if (result == ISC_R_NOMORE) {
 		/*
@@ -2060,12 +2081,16 @@ update_quantum(isc_task_t *task, isc_event_t *event) {
 			       NULL, rpz, NULL, NULL);
 		nevent = &rpz->updateevent;
 		isc_task_send(rpz->rpzs->updater, &nevent);
+		UNLOCK(&rpz->rpzs->maint_lock);
 		return;
 	}
 
 	/*
 	 * If we're here, something went wrong, so clean up.
 	 */
+	UNLOCK(&rpz->rpzs->maint_lock);
+
+cleanup:
 	if (rpz->updbit != NULL) {
 		dns_dbiterator_destroy(&rpz->updbit);
 	}
@@ -2199,10 +2224,11 @@ rpz_detach(dns_rpz_zone_t **rpzp) {
 		if (dns_name_dynamic(&rpz->cname)) {
 			dns_name_free(&rpz->cname, rpzs->mctx);
 		}
-		if (rpz->dbversion != NULL) {
-			dns_db_closeversion(rpz->db, &rpz->dbversion, false);
-		}
 		if (rpz->db != NULL) {
+			if (rpz->dbversion != NULL) {
+				dns_db_closeversion(rpz->db, &rpz->dbversion,
+						    false);
+			}
 			dns_db_updatenotify_unregister(
 				rpz->db, dns_rpz_dbupdate_callback, rpz);
 			dns_db_detach(&rpz->db);
@@ -2215,9 +2241,14 @@ rpz_detach(dns_rpz_zone_t **rpzp) {
 			if (rpz->newnodes != NULL) {
 				isc_ht_destroy(&rpz->newnodes);
 			}
-			dns_db_closeversion(rpz->updb, &rpz->updbversion,
-					    false);
-			dns_db_detach(&rpz->updb);
+			if (rpz->updb != NULL) {
+				if (rpz->updbversion != NULL) {
+					dns_db_closeversion(rpz->updb,
+							    &rpz->updbversion,
+							    false);
+				}
+				dns_db_detach(&rpz->updb);
+			}
 		}
 
 		isc_timer_reset(rpz->updatetimer, isc_timertype_inactive, NULL,
@@ -2248,8 +2279,7 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 	*rpzsp = NULL;
 
 	if (isc_refcount_decrement(&rpzs->refs) == 1) {
-		isc_task_destroy(&rpzs->updater);
-
+		LOCK(&rpzs->maint_lock);
 		/*
 		 * Forget the last of view's rpz machinery after
 		 * the last reference.
@@ -2262,6 +2292,7 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 				rpz_detach(&rpz);
 			}
 		}
+		UNLOCK(&rpzs->maint_lock);
 		rpz_detach_rpzs(&rpzs);
 	}
 }
@@ -2285,6 +2316,7 @@ rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 		if (rpzs->rbt != NULL) {
 			dns_rbt_destroy(&rpzs->rbt);
 		}
+		isc_task_destroy(&rpzs->updater);
 		isc_mutex_destroy(&rpzs->maint_lock);
 		isc_rwlock_destroy(&rpzs->search_lock);
 		isc_refcount_destroy(&rpzs->refs);
