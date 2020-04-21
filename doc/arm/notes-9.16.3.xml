@@ -15,7 +15,9 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          Replaying a TSIG BADTIME response as a request could
+          trigger an assertion failure. This was disclosed in
+          CVE-2020-8617. [GL #1703]
         </para>
       </listitem>
     </itemizedlist>
