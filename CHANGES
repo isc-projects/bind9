@@ -33,6 +33,10 @@
 			desired values. This has been fixed. [GL #1042]
 			[GL #1090]
 
+5390.	[security]	Replaying a TSIG BADTIME response as a request could
+			trigger an assertion failure. (CVE-2020-8617)
+			[GL #1703]
+
 5387.	[func]		Warn about AXFR streams with inconsistent message IDs.
 			[GL #1674]
 
