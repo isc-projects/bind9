@@ -210,7 +210,8 @@ isc_quota_callback_test(void **state) {
 
 	/* Release the quotas that we did not released in the callback */
 	for (i = 0; i < 5; i++) {
-		isc_quota_detach(&quotas[i]);
+		qp = &quota;
+		isc_quota_detach(&qp);
 	}
 
 	for (i = 6; i < 20; i++) {
