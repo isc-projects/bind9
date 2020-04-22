@@ -1,3 +1,7 @@
+5392.	[bug]		It was possible for named to crash during shutdown
+			or reconfiguration if an RPZ zone was still being
+			updated. [GL #1779]
+
 5387.	[func]		Warn about AXFR streams that are incompatible with
 			BIND 9.17.2.  [GL #1674]
 
