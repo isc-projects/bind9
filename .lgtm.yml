@@ -1,0 +1,35 @@
+extraction:
+  cpp:
+    prepare:
+      packages:
+      - "libxml2-dev"
+      - "libjson-c-dev"
+      - "libssl-dev"
+      - "zlib1g-dev"
+      - "libcmocka-dev"
+      - "pkg-config"
+      - "libcap2-dev"
+      - "libedit-dev"
+      - "libidn2-dev"
+      - "libmaxminddb-dev"
+      - "libuv1-dev"
+    configure:
+      command:
+      - "autoreconf -fi"
+      - "CFLAGS=\"-Og -g\" ./configure --enable-developer"
+path_classifiers:
+  test:
+    - "lib/*/tests/"
+    - "bin/tests/"
+  docs:
+    - "**/*.xml"
+    - "**/*.docbook"
+    - "**/*.html"
+    - "**/*.1"
+    - "**/*.5"
+    - "**/*.8"
+queries:
+  - exclude: libltdl/
+  - exclude: fuzz/
+  - exclude: "bin/tests/system/*/ans*/*.py"
+  - exclude: cpp/use-of-goto
