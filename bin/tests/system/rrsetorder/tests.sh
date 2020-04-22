@@ -19,7 +19,7 @@ status=0
 GOOD_RANDOM="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24"
 GOOD_RANDOM_NO=24
 
-if grep "^#define DNS_RDATASET_FIXED" $TOP/config.h > /dev/null 2>&1 ; then
+if grep "^#define DNS_RDATASET_FIXED" "$TOP_BUILDDIR/config.h" > /dev/null 2>&1 ; then
     test_fixed=true
 else
     echo_i "Order 'fixed' disabled at compile time"
