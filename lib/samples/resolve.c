@@ -51,7 +51,6 @@
 
 #include <dst/dst.h>
 
-#include <irs/netdb.h>
 #include <irs/resconf.h>
 
 static char *algname;

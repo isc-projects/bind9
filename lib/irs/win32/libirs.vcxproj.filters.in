@@ -21,39 +21,12 @@
     <ClCompile Include="DLLMain.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\context.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dnsconf.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\gai_strerror.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\getaddrinfo.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\getnameinfo.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="resconf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\irs\context.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\irs\dnsconf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\irs\netdb.h.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\irs\resconf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\irs\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

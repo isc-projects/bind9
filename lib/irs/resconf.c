@@ -51,7 +51,6 @@
 #include <isc/sockaddr.h>
 #include <isc/util.h>
 
-#include <irs/netdb.h>
 #include <irs/resconf.h>
 
 #define IRS_RESCONF_MAGIC    ISC_MAGIC('R', 'E', 'S', 'c')
