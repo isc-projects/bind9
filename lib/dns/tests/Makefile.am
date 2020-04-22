@@ -94,3 +94,15 @@ dnstap_test_LDADD =		\
 	$(LDADD)		\
 	$(DNSTAP_LIBS)
 endif
+
+dh_test_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(OPENSSL_CFLAGS)
+
+dst_test_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(OPENSSL_CFLAGS)
+
+rsa_test_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(OPENSSL_CFLAGS)
