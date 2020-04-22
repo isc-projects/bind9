@@ -74,7 +74,6 @@ libdns_la_HEADERS =			\
 	include/dns/dyndb.h		\
 	include/dns/ecs.h		\
 	include/dns/edns.h		\
-	include/dns/ecdb.h		\
 	include/dns/events.h		\
 	include/dns/fixedname.h		\
 	include/dns/forward.h		\
@@ -248,7 +247,6 @@ libdns_la_SOURCES =			\
 	zonekey.c			\
 	zt.c				\
 	client.c			\
-	ecdb.c				\
 	rdatalist_p.h			\
 	tsig_p.h			\
 	zone_p.h

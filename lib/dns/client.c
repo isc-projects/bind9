@@ -358,14 +358,13 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 }
 
 static isc_result_t
-createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, unsigned int options,
-	   isc_taskmgr_t *taskmgr, unsigned int ntasks,
-	   isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
-	   dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
-	   dns_dispatch_t *dispatchv6, dns_view_t **viewp) {
+createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
+	   unsigned int ntasks, isc_socketmgr_t *socketmgr,
+	   isc_timermgr_t *timermgr, dns_dispatchmgr_t *dispatchmgr,
+	   dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
+	   dns_view_t **viewp) {
 	isc_result_t result;
 	dns_view_t *view = NULL;
-	const char *dbtype;
 
 	result = dns_view_create(mctx, rdclass, DNS_CLIENTVIEW_NAME, &view);
 	if (result != ISC_R_SUCCESS) {
@@ -387,17 +386,7 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, unsigned int options,
 		return (result);
 	}
 
-	/*
-	 * Set cache DB.
-	 * XXX: it may be better if specific DB implementations can be
-	 * specified via some configuration knob.
-	 */
-	if ((options & DNS_CLIENTCREATEOPT_USECACHE) != 0) {
-		dbtype = "rbt";
-	} else {
-		dbtype = "ecdb";
-	}
-	result = dns_db_create(mctx, dbtype, dns_rootname, dns_dbtype_cache,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       rdclass, 0, NULL, &view->cachedb);
 	if (result != ISC_R_SUCCESS) {
 		dns_view_detach(&view);
@@ -505,6 +494,8 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 	REQUIRE(socketmgr != NULL);
 	REQUIRE(clientp != NULL && *clientp == NULL);
 
+	UNUSED(options);
+
 	client = isc_mem_get(mctx, sizeof(*client));
 
 	isc_mutex_init(&client->lock);
@@ -558,9 +549,9 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 	isc_refcount_init(&client->references, 1);
 
 	/* Create the default view for class IN */
-	result = createview(mctx, dns_rdataclass_in, options, taskmgr,
-			    RESOLVER_NTASKS, socketmgr, timermgr, dispatchmgr,
-			    dispatchv4, dispatchv6, &view);
+	result = createview(mctx, dns_rdataclass_in, taskmgr, RESOLVER_NTASKS,
+			    socketmgr, timermgr, dispatchmgr, dispatchv4,
+			    dispatchv6, &view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_references;
 	}

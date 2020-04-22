@@ -1713,7 +1713,7 @@ main(int argc, char *argv[]) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t *rdataset;
 	dns_namelist_t namelist;
-	unsigned int resopt, clopt;
+	unsigned int resopt;
 	isc_appctx_t *actx = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
@@ -1760,9 +1760,8 @@ main(int argc, char *argv[]) {
 #endif /* ifndef WIN32 */
 
 	/* Create client */
-	clopt = DNS_CLIENTCREATEOPT_USECACHE;
-	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
-				    clopt, &client, srcaddr4, srcaddr6);
+	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr, 0,
+				    &client, srcaddr4, srcaddr6);
 	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "dns_client_create: %s",
 			 isc_result_totext(result));

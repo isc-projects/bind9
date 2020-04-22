@@ -22,7 +22,6 @@
 #include <isc/util.h>
 
 #include <dns/db.h>
-#include <dns/ecdb.h>
 #include <dns/lib.h>
 #include <dns/result.h>
 
@@ -40,7 +39,6 @@ LIBDNS_EXTERNAL_DATA unsigned int dns_pps = 0U;
 
 static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_mem_t *dns_g_mctx = NULL;
-static dns_dbimplementation_t *dbimp = NULL;
 static bool initialize_done = false;
 static isc_refcount_t references;
 
@@ -54,23 +52,15 @@ initialize(void) {
 
 	isc_mem_create(&dns_g_mctx);
 	dns_result_register();
-	result = dns_ecdb_register(dns_g_mctx, &dbimp);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_mctx;
-	}
 
 	result = dst_lib_init(dns_g_mctx, NULL);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_db;
+		goto cleanup_mctx;
 	}
 
 	initialize_done = true;
 	return;
 
-cleanup_db:
-	if (dbimp != NULL) {
-		dns_ecdb_unregister(&dbimp);
-	}
 cleanup_mctx:
 	if (dns_g_mctx != NULL) {
 		isc_mem_detach(&dns_g_mctx);
@@ -107,9 +97,6 @@ dns_lib_shutdown(void) {
 
 		isc_refcount_destroy(&references);
 
-		if (dbimp != NULL) {
-			dns_ecdb_unregister(&dbimp);
-		}
 		if (dns_g_mctx != NULL) {
 			isc_mem_detach(&dns_g_mctx);
 		}

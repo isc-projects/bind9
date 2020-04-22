@@ -380,8 +380,6 @@ dns_dyndb_load
 dns_dyndb_cleanup
 dns_dyndb_createctx
 dns_dyndb_destroyctx
-dns_ecdb_register
-dns_ecdb_unregister
 dns_ecs_init
 dns_ecs_format
 dns_fixedname_init
