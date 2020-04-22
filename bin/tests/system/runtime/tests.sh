@@ -203,7 +203,7 @@ if [ "$(id -u)" -eq 0 ] && [ -z "$CYGWIN" ]; then
     if [ "$?" -eq 0 ]; then
         copy_setports ns2/named-alt9.conf.in "${TEMP_NAMED_DIR}/named-alt9.conf"
         export SOFTHSM2_CONF="${TEMP_NAMED_DIR}/softhsm2.conf"
-        sh "$TOP/bin/tests/prepare-softhsm2.sh"
+        sh "$TOP_SRCDIR/bin/tests/prepare-softhsm2.sh"
         chown -R nobody: "${TEMP_NAMED_DIR}"
         chmod 0700 "${TEMP_NAMED_DIR}"
         ( cd "${TEMP_NAMED_DIR}" && $NAMED -u nobody -c named-alt9.conf -d 99 -g -U 4 >> named$n.run 2>&1 & ) || ret=1
