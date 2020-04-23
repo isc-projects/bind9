@@ -326,7 +326,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\json.h" />
     <ClInclude Include="..\include\isc\lang.h" />
     <ClInclude Include="..\include\isc\lex.h" />
-    <ClInclude Include="..\include\isc\lfsr.h" />
     <ClInclude Include="..\include\isc\lib.h" />
     <ClInclude Include="..\include\isc\list.h" />
     <ClInclude Include="..\include\isc\log.h" />
@@ -434,7 +433,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\httpd.c" />
     <ClCompile Include="..\iterated_hash.c" />
     <ClCompile Include="..\lex.c" />
-    <ClCompile Include="..\lfsr.c" />
     <ClCompile Include="..\lib.c" />
     <ClCompile Include="..\log.c" />
     <ClCompile Include="..\md.c" />

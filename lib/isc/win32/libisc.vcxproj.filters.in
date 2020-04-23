@@ -131,9 +131,6 @@
     <ClInclude Include="..\include\isc\lex.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\lfsr.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\lib.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -513,9 +510,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\lex.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lfsr.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\lib.c">
