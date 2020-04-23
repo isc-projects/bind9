@@ -328,10 +328,6 @@ isc_lex_setsourceline
 isc_lex_setsourcename
 isc_lex_setspecials
 isc_lex_ungettoken
-isc_lfsr_generate
-isc_lfsr_generate32
-isc_lfsr_init
-isc_lfsr_skip
 isc_lib_register
 isc_log_categorybyname
 isc_log_closefilelogs
