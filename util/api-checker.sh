@@ -49,12 +49,12 @@ check_program w3m
 # generate ABI dump file for them.
 while read -r SO; do
 	APIFILE="$(dirname "${SO}")/../api"
-	pushd "$(dirname "${APIFILE}")"
-	GIT_REVISION=$(git rev-parse HEAD | cut -c 1-10)
-	popd
+	APIFILE_DIR=$(dirname "${APIFILE}")
+	GIT_HEAD_REV=$(git -C "${APIFILE_DIR}" rev-parse HEAD | cut -c 1-10)
+	GIT_HEAD_UNIX_TIME=$(git -C "${APIFILE_DIR}" log -1 --format=%ct HEAD)
 	# Get LIBINTERFACE, LIBREVISION, LIBAGE from the 'api' file.
 	eval "$(grep -v "^#" "${APIFILE}" | tr -d " ")"
-	VERSION="${LIBINTERFACE}.${LIBREVISION}.${LIBAGE}-${GIT_REVISION}"
+	VERSION="${LIBINTERFACE}.${LIBREVISION}.${LIBAGE}-${GIT_HEAD_UNIX_TIME}-${GIT_HEAD_REV}"
 	abi-dumper "${SO}" -o abi-"$(basename "${SO}" .so)-${VERSION}".dump -lver "${VERSION}"
 done < <(find "${TESTBIND}"/lib/*/.libs/ "${REFBIND}"/lib/*/.libs/ -name '*.so')
 
