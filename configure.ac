@@ -1248,7 +1248,8 @@ AC_ARG_ENABLE([dnstap],
 AS_IF([test "$enable_dnstap" != "no"],
       [PKG_CHECK_MODULES([DNSTAP], [libfstrm libprotobuf-c], [],
 			 [AC_MSG_FAILURE([Required libraries (fstrm, protobuf-c) were not found, please install them.])])
-       AC_PATH_PROG([PROTOC_C], [protoc-c], [])
+       AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture])
+       AC_PATH_PROG([PROTOC_C], [protoc-c])
        AS_IF([test -z "$PROTOC_C"],
 	     [AC_MSG_ERROR([protoc-c compiler not found])])
        AC_DEFINE([HAVE_DNSTAP], 1, [Define to 1 to enable dnstap support])
