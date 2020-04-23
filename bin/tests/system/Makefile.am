@@ -43,7 +43,7 @@ tkey_keycreate_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
 	$(LIBDNS_CFLAGS)
 
-tkey_keycreate_LDADD =	\
+tkey_keycreate_LDADD =		\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
 
@@ -51,9 +51,21 @@ tkey_keydelete_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
 	$(LIBDNS_CFLAGS)
 
-tkey_keydelete_LDADD =	\
+tkey_keydelete_LDADD =		\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
+
+if HAVE_DNSTAP
+check_PROGRAMS += wire_test
+
+wire_test_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(LIBDNS_CFLAGS)
+
+wire_test_LDADD =		\
+	$(LDADD)		\
+	$(LIBDNS_LIBS)
+endif HAVE_DNSTAP
 
 TESTS = \
 	acl additional addzone allow-query auth autosign \
