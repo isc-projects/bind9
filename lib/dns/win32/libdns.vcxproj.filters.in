@@ -87,9 +87,6 @@
     <ClCompile Include="..\dyndb.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ecdb.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\ecs.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -412,9 +409,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\dyndb.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dns\ecdb.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\ecs.h">

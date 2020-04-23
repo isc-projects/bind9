@@ -62,12 +62,6 @@ ISC_LANG_BEGINDECLS
  ***/
 
 /*%
- * Optional flags for dns_client_create(x).
- */
-/*%< Enable caching resolution results (experimental). */
-#define DNS_CLIENTCREATEOPT_USECACHE 0x8000
-
-/*%
  * Optional flags for dns_client_(start)resolve.
  */
 /*%< Do not return DNSSEC data (e.g. RRSIGS) with response. */
@@ -183,7 +177,6 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
  * families. If only one is NULL, then the other address will be used
  * as the local address, and the other protocol family will not be used.
  *
- * If the DNS_CLIENTCREATEOPT_USECACHE flag is set in 'options',
  * dns_client_create(x) will create a cache database with the view.
  *
  * Requires:
