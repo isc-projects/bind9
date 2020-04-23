@@ -31,10 +31,7 @@ open(CHANGES, "git ls-files | sed 's;^;./;' | sort |") || die "git ls-files: $!"
 while (<CHANGES>) {
     chomp;
 
-    next if (m%/\.\# |		# CVS old conflict file
-	       /CVS/ |		# CVS directory
-	       /\.git/ |		# git directory
-	       /\.gitignore |   # .gitignore files
+    next if (m%/\. |         # just ignore all hidden files
 	       util/newcopyrights | # our output
 	       \.bak$ |		# created by update_copyrights
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
