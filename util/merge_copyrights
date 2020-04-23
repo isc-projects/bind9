@@ -31,12 +31,8 @@ open(CHANGES, "git ls-files | sed 's;^;./;' | sort |") || die "git ls-files: $!"
 while (<CHANGES>) {
     chomp;
 
-    next if (m%/\.\# |		# CVS old conflict file
-	       /CVS/ |		# CVS directory
-	       /\.git/ |		# git directory
-	       /\.gitignore |   # .gitignore files
-	       /\.gitattributes |   # .gitattributes files
-	       /\.clang-format |   # .clang-format files
+    next if (m%/\. |         # just ignore all hidden files
+	       /ChangeLog       |   #
 	       Makefile.in  |   # build system doesn't need to have copyright
 	       /m4/ |           # build system doesn't need to have copyright
 	       /configure   |   # build system doesn't need to have copyright
@@ -58,7 +54,6 @@ while (<CHANGES>) {
 	       /cocci/.* |      # coccinelle spatch files
 	       \.conf$ |        # configuration files
 	       \.conf\.in$ |    # configuration files
-	       \.dir-locals\.el | # emacs local variables
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
 	       doc/(draft|expired|rfc)/ |	# imported
 	       \.txt$		# text files don't really need copyright
