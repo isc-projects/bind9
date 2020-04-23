@@ -58,6 +58,7 @@ AC_DEFINE([PACKAGE_BUILDER], ["make"], [make or Visual Studio])
 AC_CONFIG_SRCDIR([bin/named/main.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects dist-xz -Wall -Werror])
 AM_SILENT_RULES([yes])
+AM_EXTRA_RECURSIVE_TARGETS([test unit])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])

@@ -63,3 +63,5 @@ md_test_LDADD =		\
 random_test_LDADD =	\
 	$(LDADD)	\
 	-lm
+
+unit-local: check

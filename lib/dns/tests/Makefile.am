@@ -106,3 +106,5 @@ dst_test_CPPFLAGS =		\
 rsa_test_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
 	$(OPENSSL_CFLAGS)
+
+unit-local: check

@@ -320,7 +320,7 @@ stages:
   before_script:
     - *setup_softhsm
   script:
-    - cd lib && make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
+    - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
 
 .unit_test: &unit_test_job
   <<: *unit_test_common
