@@ -1,3 +1,6 @@
+5393.	[cleanup]	Unused or redundant APIs were removed from libirs.
+			[GL #1758]
+
 5392.	[bug]		It was possible for named to crash during shutdown
 			or reconfiguration if an RPZ zone was still being
 			updated. [GL #1779]
