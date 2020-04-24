@@ -37,24 +37,37 @@ else
 	clean=true
 fi
 
-while getopts "knp:r-:" flag; do
-    case "$flag" in
-	-) case "${OPTARG}" in
-               keep) stopservers=false ;;
-               noclean) clean=false ;;
-           esac
-           ;;
-	k) stopservers=false ;;
-	n) clean=false ;;
-	p) baseport=$OPTARG ;;
-	*) echo "invalid option" >&2; exit 1 ;;
-    esac
+do_run=false
+log_flags="-r"
+while getopts "knp:r-:" OPT; do
+	log_flags="$log_flags -$OPT$OPTARG"
+	if [ "$OPT" = "-" ] && [ -n "$OPTARG" ]; then
+		OPT="${OPTARG%%=*}"
+		OPTARG="${OPTARG#$OPT}"
+		OPTARG="${OPTARG#=}"
+	fi
+
+	case "$OPT" in
+		k | keep) stopservers=false ;;
+		n | noclean) clean=false ;;
+		p | port) baseport=$OPTARG ;;
+		r | run) do_run=true ;;
+		s | skip) exit 77 ;;
+		-) break ;;
+		*) echo "invalid option" >&2; exit 1 ;;
+	esac
 done
+
 shift $((OPTIND-1))
 
+if ! $do_run; then
+	env - TESTS="$1" TEST_SUITE_LOG=run.log LOG_DRIVER_FLAGS="--verbose yes --color-tests yes" LOG_FLAGS="$log_flags" make -e check
+	exit $?
+fi
+
 if [ $# -eq 0 ]; then
-    echofail "Usage: $0 [-k] [-n] [-p <PORT>] test-directory [test-options]" >&2;
-    exit 1
+	echofail "Usage: $0 [-k] [-n] [-p <PORT>] test-directory [test-options]" >&2;
+	exit 1
 fi
 
 systest=$(basename "${1%%/}")

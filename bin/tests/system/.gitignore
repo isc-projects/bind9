@@ -15,7 +15,7 @@ parallel.mk
 /get_base_port.state
 /get_base_port.lock
 /run.sh
+/run.log
 /start.sh
 /stop.sh
-/system-test-driver.sh
 /ifconfig.sh

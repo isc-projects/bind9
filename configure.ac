@@ -1595,8 +1595,6 @@ AC_CONFIG_FILES([bin/tests/system/start.sh],
 		[chmod +x bin/tests/system/start.sh])
 AC_CONFIG_FILES([bin/tests/system/stop.sh],
 		[chmod +x bin/tests/system/stop.sh])
-AC_CONFIG_FILES([bin/tests/system/system-test-driver.sh],
-		[chmod +x bin/tests/system/system-test-driver.sh])
 
 # Misc
 
