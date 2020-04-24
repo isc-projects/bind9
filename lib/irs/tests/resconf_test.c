@@ -27,7 +27,6 @@
 #include <isc/util.h>
 
 #include <irs/resconf.h>
-#include <irs/types.h>
 
 static isc_mem_t *mctx = NULL;
 

@@ -8,7 +8,6 @@ AM_CPPFLAGS +=			\
 noinst_PROGRAMS =		\
 	resolve			\
 	sample-async		\
-	sample-gai		\
 	sample-update		\
 	sample-request		\
 	nsprobe
@@ -18,9 +17,6 @@ resolve_LDADD = $(LIBISC_LIBS) $(LIBIRS_LIBS) $(LIBDNS_LIBS)
 
 sample_async_SOURCES = sample-async.c
 sample_async_LDADD = $(LIBISC_LIBS) $(LIBDNS_LIBS)
-
-sample_gai_SOURCES = sample-gai.c
-sample_gai_LDADD = $(LIBIRS_LIBS)
 
 sample_update_SOURCES = sample-update.c
 sample_update_LDADD = $(LIBISC_LIBS) $(LIBDNS_LIBS)

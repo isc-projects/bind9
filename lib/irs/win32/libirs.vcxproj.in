@@ -118,20 +118,10 @@
     <None Include="libirs.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\context.c" />
-    <ClCompile Include="..\dnsconf.c" />
-    <ClCompile Include="..\gai_strerror.c" />
-    <ClCompile Include="..\getaddrinfo.c" />
-    <ClCompile Include="..\getnameinfo.c" />
-    <ClCompile Include="DLLMain.c" />
     <ClCompile Include="resconf.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\irs\context.h" />
-    <ClInclude Include="..\include\irs\dnsconf.h" />
-    <ClInclude Include="..\include\irs\netdb.h" />
     <ClInclude Include="..\include\irs\resconf.h" />
-    <ClInclude Include="..\include\irs\types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

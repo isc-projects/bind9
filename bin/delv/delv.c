@@ -72,7 +72,6 @@
 #include <isccfg/log.h>
 #include <isccfg/namedconf.h>
 
-#include <irs/netdb.h>
 #include <irs/resconf.h>
 
 #define CHECK(r)                             \
