@@ -31,6 +31,8 @@ variables:
   TARBALL_COMPRESSOR: xz
   TARBALL_EXTENSION: xz
 
+  AM_COLOR_TESTS: always
+
 stages:
   - autoconf
   - precheck
