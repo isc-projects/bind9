@@ -158,6 +158,7 @@ systems.
 
 To build on a UNIX or Linux system, use:
 
+		$ autoreconf -fi (if you are building in the git repository)
 		$ ./configure
 		$ make
 
@@ -187,6 +188,21 @@ This can be downloaded from
 or, if you have Xcode already installed, you can run `xcode-select
 --install`.  (Note that an Apple ID may be required to access the download
 page.)
+
+#### <a name="dependencies"> Dependencies
+
+To build BIND you need to following packages installed:
+
+    libuv
+    pkg-config / pkgconfig / pkgconf
+
+To build BIND from the git repository you will need the following tools
+installed:
+
+    autoconf (includes autoreconf)
+    automake
+    libtool
+    libltdl-dev (Debian) / libtool-ltdl-dev (Fedora/CentOS) / libltdl (FreeBSD)
 
 #### <a name="opts"/> Compile-time options
 
