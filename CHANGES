@@ -1,4 +1,8 @@
-5399.	[func]		Add engine support to OpenSSL EdDSA implementation.
+5401.	[bug]		The number of input queues allocated during dnstap
+			initialization was too low, which could prevent some
+			dnstap data from being logged. [GL #1795]
+
+5400.	[func]		Add engine support to OpenSSL EdDSA implementation.
 			[GL #1763]
 
 5399.	[func]		Add engine support to OpenSSL ECDSA implementation.
