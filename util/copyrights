@@ -546,6 +546,7 @@
 ./bin/tests/system/dnstap/README		TXT.BRIEF	2019,2020
 ./bin/tests/system/dnstap/clean.sh		SH	2015,2016,2017,2018,2019,2020
 ./bin/tests/system/dnstap/large-answer.fstrm	X	2019,2020
+./bin/tests/system/dnstap/ns3/named.args	X	2020
 ./bin/tests/system/dnstap/setup.sh		SH	2018,2019,2020
 ./bin/tests/system/dnstap/tests.sh		SH	2015,2016,2017,2018,2019,2020
 ./bin/tests/system/dnstap/ydump.py		PYTHON	2016,2017,2018,2019,2020

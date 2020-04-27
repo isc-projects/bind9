@@ -3672,7 +3672,11 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 		}
 
 		fopt = fstrm_iothr_options_init();
-		fstrm_iothr_options_set_num_input_queues(fopt, named_g_cpus);
+		/*
+		 * Both network threads and worker threads may log dnstap data.
+		 */
+		fstrm_iothr_options_set_num_input_queues(fopt,
+							 2 * named_g_cpus);
 		fstrm_iothr_options_set_queue_model(
 			fopt, FSTRM_IOTHR_QUEUE_MODEL_MPSC);
 
