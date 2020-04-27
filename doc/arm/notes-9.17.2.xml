@@ -15,7 +15,8 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          A bug in dnstap initialization could prevent some dnstap data from
+          being logged, especially on recursive resolvers. [GL #1795]
         </para>
       </listitem>
     </itemizedlist>
