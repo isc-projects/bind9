@@ -10,7 +10,9 @@
 			updated. [GL #1779]
 
 5391.	[func]		The BIND 9 build system has been changed to use the
-			usual stack of autoconf+automake+libtool.  [GL #4]
+			usual stack of autoconf+automake+libtool.  If building
+			from the git repository run "autoreconf -fi" first.
+			[GL #4]
 
 5390.	[placeholder]
 
