@@ -43,8 +43,9 @@
           The BIND 9 build system has been changed to use the normal build tool
           stack consisting of autoconf+automake+libtool.  This should not make
           any difference for people building BIND 9 from the release tarballs,
-          but if you are building BIND 9 from the git repository, or you are
-          using non-standard <command>./configure</command> option, you will
+          but if you are building BIND 9 from the git repository you will need
+          to run "autoreconf -fi" first. If you are using non-standard
+          <command>./configure</command> option, you will
           need to pay extra attention. [GL #4]
         </para>
       </listitem>
