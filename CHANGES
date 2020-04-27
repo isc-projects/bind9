@@ -1,3 +1,7 @@
+5394.	[cleanup]	Don't change effective uid/gid in named_os_openfile()
+			if named is already running under specified uid/gid.
+			[GL #1042] [GL #1090]
+
 5393.	[cleanup]	Unused or redundant APIs were removed from libirs.
 			[GL #1758]
 
