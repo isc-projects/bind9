@@ -170,9 +170,9 @@ LOG_DRIVER = $(top_srcdir)/custom-test-driver
 AM_LOG_DRIVER_FLAGS = $(LOG_DRIVER_V)
 
 LOG_COMPILER = $(builddir)/run.sh
-AM_LOG_FLAGS = -r -p "$$("$(srcdir)/get_base_port.sh")"
+AM_LOG_FLAGS = -r
 
 $(TESTS): run.sh
 
 clean-local:
-	-rm -f get_base_port.state get_base_port.lock
+	-rm -f get_ports.state get_ports.lock
