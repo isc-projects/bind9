@@ -4,3 +4,4 @@ disable=
     C0115, # missing-class-docstring
     C0116, # missing-function-docstring
     R0801, # duplicate-code
+    C0103, # invalid-name
