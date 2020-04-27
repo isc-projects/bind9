@@ -106,12 +106,12 @@ XMLLINT=@XMLLINT@
 XSLTPROC=@XSLTPROC@
 
 # PERL will be an empty string if no perl interpreter was found.
-PERL=@PERL@
+PERL=$(command -v "@PERL@")
 
 # Windows process management leave empty
 PSSUSPEND=
 
-PYTHON=@PYTHON@
+PYTHON=$(command -v "@PYTHON@")
 
 #
 # Determine if we support various optional features.
