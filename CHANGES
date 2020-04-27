@@ -1,3 +1,7 @@
+5394.	[cleanup]	Don't change effective uid/gid in named_os_openfile()
+			if named is already running under specified uid/gid.
+			[GL #1042] [GL #1090]
+
 5392.	[bug]		It was possible for named to crash during shutdown
 			or reconfiguration if an RPZ zone was still being
 			updated. [GL #1779]
