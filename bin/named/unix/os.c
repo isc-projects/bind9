@@ -42,6 +42,7 @@
 #include <isc/result.h>
 #include <isc/strerror.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <named/globals.h>
 #include <named/main.h>
@@ -786,6 +787,7 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 	return (-1);
 }
 
+#ifndef HAVE_LINUXTHREADS
 static void
 setperms(uid_t uid, gid_t gid) {
 #if defined(HAVE_SETEGID) || defined(HAVE_SETRESGID)
@@ -829,6 +831,7 @@ setperms(uid_t uid, gid_t gid) {
 	}
 #endif
 }
+#endif /* !HAVE_LINUXTHREADS */
 
 FILE *
 ns_os_openfile(const char *filename, mode_t mode, bool switch_user) {
@@ -853,17 +856,20 @@ ns_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 	free(f);
 
 	if (switch_user && runas_pw != NULL) {
-#ifndef HAVE_LINUXTHREADS
+		uid_t olduid = getuid();
 		gid_t oldgid = getgid();
-#endif
+#ifdef HAVE_LINUXTHREADS
+		REQUIRE(olduid == runas_pw->pw_uid);
+		REQUIRE(oldgid == runas_pw->pw_gid);
+#else
 		/* Set UID/GID to the one we'll be running with eventually */
 		setperms(runas_pw->pw_uid, runas_pw->pw_gid);
-
+#endif
 		fd = safe_open(filename, mode, false);
 
 #ifndef HAVE_LINUXTHREADS
 		/* Restore UID/GID to root */
-		setperms(0, oldgid);
+		setperms(olduid, oldgid);
 #endif /* HAVE_LINUXTHREADS */
 
 		if (fd == -1) {
