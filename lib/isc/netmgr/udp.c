@@ -118,14 +118,18 @@ void
 isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_udplisten_t *ievent = (isc__netievent_udplisten_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
-	int r, flags = 0;
+	int r, uv_bind_flags = 0;
+	int uv_init_flags = 0;
 
 	REQUIRE(sock->type == isc_nm_udpsocket);
 	REQUIRE(sock->iface != NULL);
 	REQUIRE(sock->parent != NULL);
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	uv_udp_init(&worker->loop, &sock->uv_handle.udp);
+#ifdef UV_UDP_RECVMMSG
+	uv_init_flags |= UV_UDP_RECVMMSG;
+#endif
+	uv_udp_init_ex(&worker->loop, &sock->uv_handle.udp, uv_init_flags);
 	uv_handle_set_data(&sock->uv_handle.handle, NULL);
 	isc_nmsocket_attach(sock, (isc_nmsocket_t **)&sock->uv_handle.udp.data);
 
@@ -137,11 +141,11 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	if (sock->iface->addr.type.sa.sa_family == AF_INET6) {
-		flags = UV_UDP_IPV6ONLY;
+		uv_bind_flags |= UV_UDP_IPV6ONLY;
 	}
 
 	r = uv_udp_bind(&sock->uv_handle.udp,
-			&sock->parent->iface->addr.type.sa, flags);
+			&sock->parent->iface->addr.type.sa, uv_bind_flags);
 	if (r < 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
 	}
