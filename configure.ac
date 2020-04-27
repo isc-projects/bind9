@@ -58,6 +58,7 @@ AC_DEFINE([PACKAGE_BUILDER], ["make"], [make or Visual Studio])
 AC_CONFIG_SRCDIR([bin/named/main.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects dist-xz -Wall -Werror])
 AM_SILENT_RULES([yes])
+AM_EXTRA_RECURSIVE_TARGETS([test unit])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -1248,7 +1249,8 @@ AC_ARG_ENABLE([dnstap],
 AS_IF([test "$enable_dnstap" != "no"],
       [PKG_CHECK_MODULES([DNSTAP], [libfstrm libprotobuf-c], [],
 			 [AC_MSG_FAILURE([Required libraries (fstrm, protobuf-c) were not found, please install them.])])
-       AC_PATH_PROG([PROTOC_C], [protoc-c], [])
+       AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture])
+       AC_PATH_PROG([PROTOC_C], [protoc-c])
        AS_IF([test -z "$PROTOC_C"],
 	     [AC_MSG_ERROR([protoc-c compiler not found])])
        AC_DEFINE([HAVE_DNSTAP], 1, [Define to 1 to enable dnstap support])
@@ -1594,8 +1596,6 @@ AC_CONFIG_FILES([bin/tests/system/start.sh],
 		[chmod +x bin/tests/system/start.sh])
 AC_CONFIG_FILES([bin/tests/system/stop.sh],
 		[chmod +x bin/tests/system/stop.sh])
-AC_CONFIG_FILES([bin/tests/system/system-test-driver.sh],
-		[chmod +x bin/tests/system/system-test-driver.sh])
 
 # Misc
 

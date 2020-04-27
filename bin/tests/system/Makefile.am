@@ -43,7 +43,7 @@ tkey_keycreate_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
 	$(LIBDNS_CFLAGS)
 
-tkey_keycreate_LDADD =	\
+tkey_keycreate_LDADD =		\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
 
@@ -51,9 +51,21 @@ tkey_keydelete_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
 	$(LIBDNS_CFLAGS)
 
-tkey_keydelete_LDADD =	\
+tkey_keydelete_LDADD =		\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
+
+if HAVE_DNSTAP
+check_PROGRAMS += wire_test
+
+wire_test_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(LIBDNS_CFLAGS)
+
+wire_test_LDADD =		\
+	$(LDADD)		\
+	$(LIBDNS_LIBS)
+endif HAVE_DNSTAP
 
 TESTS = \
 	acl additional addzone allow-query auth autosign \
@@ -149,7 +161,20 @@ check:
 	exit 1
 endif !HAVE_PERL
 
-LOG_COMPILER = $(builddir)/system-test-driver.sh
+LOG_DRIVER_V = $(LOG_DRIVER_V_@AM_V@)
+LOG_DRIVER_V_ = $(LOG_DRIVER_V_@AM_DEFAULT_V@)
+LOG_DRIVER_V_0 = --verbose no
+LOG_DRIVER_V_1 = --verbose yes
+
+LOG_DRIVER = $(top_srcdir)/custom-test-driver
+AM_LOG_DRIVER_FLAGS = $(LOG_DRIVER_V)
+
+LOG_COMPILER = $(builddir)/run.sh
+AM_LOG_FLAGS = -r
+
+$(TESTS): run.sh
 
 clean-local:
-	-rm -f get_base_port.state get_base_port.lock
+	-rm -f get_ports.state get_ports.lock
+
+test-local: check

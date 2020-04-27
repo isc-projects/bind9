@@ -43,3 +43,5 @@ query_test_LDFLAGS =			\
 	-Wl,--wrap=isc_nmhandle_unref
 
 endif
+
+unit-local: check

@@ -13,3 +13,5 @@ check_PROGRAMS =	\
 	result_test
 
 TESTS = $(check_PROGRAMS)
+
+unit-local: check

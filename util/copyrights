@@ -523,7 +523,7 @@
 ./bin/tests/system/geoip2/prereq.sh		SH	2019,2020
 ./bin/tests/system/geoip2/setup.sh		SH	2019,2020
 ./bin/tests/system/geoip2/tests.sh		SH	2019,2020
-./bin/tests/system/get_base_port.sh		SH	2020
+./bin/tests/system/get_ports.sh			SH	2020
 ./bin/tests/system/glue/clean.sh		SH	2000,2001,2004,2007,2012,2014,2015,2016,2018,2019,2020
 ./bin/tests/system/glue/fi.good			X	2000,2001,2018,2019,2020
 ./bin/tests/system/glue/noglue.good		X	2000,2001,2018,2019,2020
@@ -888,7 +888,6 @@
 ./bin/tests/system/synthfromdnssec/ns1/sign.sh	SH	2017,2018,2019,2020
 ./bin/tests/system/synthfromdnssec/setup.sh	SH	2017,2018,2019,2020
 ./bin/tests/system/synthfromdnssec/tests.sh	SH	2017,2018,2019,2020
-./bin/tests/system/system-test-driver.sh.in	X	2020
 ./bin/tests/system/tcp/ans6/ans.py		PYTHON	2019,2020
 ./bin/tests/system/tcp/clean.sh			SH	2014,2016,2018,2019,2020
 ./bin/tests/system/tcp/setup.sh			SH	2018,2019,2020
@@ -972,6 +971,7 @@
 ./bin/tests/system/win32/pipequeries.vcxproj.filters.in	X	2016,2018,2019,2020
 ./bin/tests/system/win32/pipequeries.vcxproj.in	X	2016,2017,2018,2019,2020
 ./bin/tests/system/win32/pipequeries.vcxproj.user	X	2016,2018,2019,2020
+./bin/tests/system/wire_test.c			C	2020
 ./bin/tests/system/xfer/ans5/badkeydata		X	2011,2018,2019,2020
 ./bin/tests/system/xfer/ans5/badmessageid	X	2020
 ./bin/tests/system/xfer/ans5/goodaxfr		X	2011,2018,2019,2020
@@ -1023,7 +1023,6 @@
 ./bin/tests/win32/timer_test.vcxproj.filters.in	X	2013,2015,2018,2019,2020
 ./bin/tests/win32/timer_test.vcxproj.in		X	2013,2015,2016,2017,2018,2019,2020
 ./bin/tests/win32/timer_test.vcxproj.user	X	2013,2018,2019,2020
-./bin/tests/wire_test.c				C	1999,2000,2001,2004,2005,2007,2015,2016,2018,2019,2020
 ./bin/tools/arpaname.1				MAN	DOCBOOK
 ./bin/tools/arpaname.c				C	2009,2015,2016,2018,2019,2020
 ./bin/tools/arpaname.docbook			SGML	2009,2014,2015,2016,2018,2019,2020
@@ -1191,6 +1190,7 @@
 ./contrib/scripts/named-bootconf.sh		SH.PORTION	1999,2000,2001,2004,2006,2007,2012,2014,2016,2018,2019,2020
 ./contrib/scripts/nanny.pl			PERL	2000,2001,2004,2007,2012,2014,2016,2018,2019,2020
 ./contrib/scripts/zone-edit.sh.in		SH	2010,2012,2014,2016,2018,2019,2020
+./custom-test-driver				X	2020
 ./doc/arm/Bv9ARM-book.xml			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
 ./doc/arm/Bv9ARM.ch01.html			X	2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
 ./doc/arm/Bv9ARM.ch02.html			X	2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020

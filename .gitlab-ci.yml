@@ -31,6 +31,8 @@ variables:
   TARBALL_COMPRESSOR: xz
   TARBALL_EXTENSION: xz
 
+  AM_COLOR_TESTS: always
+
 stages:
   - autoconf
   - precheck
@@ -255,8 +257,10 @@ stages:
     - *setup_interfaces
     - *setup_softhsm
   script:
-    - ( cd bin/tests/system && make -j${TEST_PARALLEL_JOBS:-1} -k check V=1 ) || cat bin/tests/system/test-suite.log
-    - test -s bin/tests/system/test-suite.log
+    - cd bin/tests/system
+    - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1 || make -j${TEST_PARALLEL_JOBS:-1} -k recheck V=1
+  after_script:
+    - cat bin/tests/system/test-suite.log
 
 .system_test: &system_test_job
   <<: *system_test_common
@@ -269,6 +273,7 @@ stages:
   <<: *system_test_common
   allow_failure: true
   after_script:
+    - cat bin/tests/system/test-suite.log
     - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
   artifacts:
     expire_in: "1 day"
@@ -315,7 +320,7 @@ stages:
   before_script:
     - *setup_softhsm
   script:
-    - cd lib && make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
+    - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
 
 .unit_test: &unit_test_job
   <<: *unit_test_common

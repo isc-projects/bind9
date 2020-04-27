@@ -62,7 +62,7 @@ KEYDATA="$(< ns2/keydata sed -e 's/+/[+]/g')"
 NOSPLIT="$(< ns2/keydata sed -e 's/+/[+]/g' -e 's/ //g')"
 
 HAS_PYYAML=0
-if [ -n "$PYTHON" ] ; then
+if [ -x "$PYTHON" ] ; then
 	$PYTHON -c "import yaml" 2> /dev/null && HAS_PYYAML=1
 fi
 
@@ -789,11 +789,14 @@ if [ -x "$DIG" ] ; then
     echo_i "check dig +yaml output ($n)"
     ret=0
     dig_with_opts +qr +yaml @10.53.0.3 any ns2.example > dig.out.test$n 2>&1 || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 0 message query_message_data status || ret=1)
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data status > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "NOERROR" ] || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 1 message response_message_data status || ret=1)
+    $PYTHON yamlget.py dig.out.test$n 1 message response_message_data status > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "NOERROR" ] || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 1 message response_message_data QUESTION_SECTION 0 || ret=1)
+    $PYTHON yamlget.py dig.out.test$n 1 message response_message_data QUESTION_SECTION 0 > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "ns2.example. IN ANY" ] || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -860,9 +863,11 @@ if [ -x "$MDIG" ] ; then
     echo_i "check mdig +yaml output ($n)"
     ret=0
     mdig_with_opts +yaml @10.53.0.3 -t any ns2.example > dig.out.test$n 2>&1 || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 0 message response_message_data status || ret=1)
+    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data status > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "NOERROR" ] || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 0 message response_message_data QUESTION_SECTION 0 || ret=1)
+    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data QUESTION_SECTION 0 > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "ns2.example. IN ANY" ] || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -1110,11 +1115,14 @@ if [ -x "$DELV" ] ; then
     echo_i "check delv +yaml output ($n)"
     ret=0
     delv_with_opts +yaml @10.53.0.3 any ns2.example > delv.out.test$n 2>&1 || ret=1
-    value=$($PYTHON yamlget.py delv.out.test$n status || ret=1)
+    $PYTHON yamlget.py delv.out.test$n status > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "success" ] || ret=1
-    value=$($PYTHON yamlget.py delv.out.test$n query_name || ret=1)
+    $PYTHON yamlget.py delv.out.test$n query_name > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "ns2.example" ] || ret=1
-    value=$($PYTHON yamlget.py delv.out.test$n records 0 answer_not_validated 0 || ret=1)
+    $PYTHON yamlget.py delv.out.test$n records 0 answer_not_validated 0 > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     count=$(echo $value | wc -w )
     [ ${count:-0} -eq 5 ] || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi

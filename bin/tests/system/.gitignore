@@ -12,10 +12,10 @@ named.run
 parallel.mk
 /*.log
 /*.trs
-/get_base_port.state
-/get_base_port.lock
+/get_ports.state
+/get_ports.lock
 /run.sh
+/run.log
 /start.sh
 /stop.sh
-/system-test-driver.sh
 /ifconfig.sh

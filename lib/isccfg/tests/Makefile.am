@@ -15,3 +15,5 @@ check_PROGRAMS = \
 	parser_test
 
 TESTS = $(check_PROGRAMS)
+
+unit-local: check

@@ -8,7 +8,7 @@ LDADD +=			\
 	libisctest.la		\
 	$(LIBISC_LIBS)
 
-noinst_LTLIBRARIES = libisctest.la
+check_LTLIBRARIES = libisctest.la
 libisctest_la_SOURCES = isctest.c isctest.h
 
 check_PROGRAMS =	\
@@ -63,3 +63,5 @@ md_test_LDADD =		\
 random_test_LDADD =	\
 	$(LDADD)	\
 	-lm
+
+unit-local: check

@@ -61,7 +61,7 @@ SETTIME=$TOP_BUILDDIR/bin/dnssec/dnssec-settime
 SIGNER=$TOP_BUILDDIR/bin/dnssec/dnssec-signzone
 TSIGKEYGEN=$TOP_BUILDDIR/bin/confgen/tsig-keygen
 VERIFY=$TOP_BUILDDIR/bin/dnssec/dnssec-verify
-WIRETEST=$TOP_BUILDDIR/bin/tests/wire_test
+WIRETEST=$TOP_BUILDDIR/bin/tests/system/wire_test
 
 BIGKEY=$TOP_BUILDDIR/bin/tests/system/rsabigexponent/bigkey
 GENCHECK=$TOP_BUILDDIR/bin/tests/system/rndc/gencheck
@@ -106,12 +106,12 @@ XMLLINT=@XMLLINT@
 XSLTPROC=@XSLTPROC@
 
 # PERL will be an empty string if no perl interpreter was found.
-PERL=@PERL@
+PERL=$(command -v "@PERL@")
 
 # Windows process management leave empty
 PSSUSPEND=
 
-PYTHON=@PYTHON@
+PYTHON=$(command -v "@PYTHON@")
 
 #
 # Determine if we support various optional features.
