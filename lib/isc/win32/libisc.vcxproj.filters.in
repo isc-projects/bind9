@@ -587,6 +587,9 @@
     <ClCompile Include="..\rwlock.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\safe.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\serial.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
