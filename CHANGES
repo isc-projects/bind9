@@ -1,3 +1,7 @@
+5394.	[cleanup]	Don't change effective uid/gid in named_os_openfile()
+			if named is already running under specified uid/gid.
+			[GL #1042] [GL #1090]
+
 5387.	[func]		Warn about AXFR streams that are incompatible with
 			BIND 9.17.2.  [GL #1674]
 

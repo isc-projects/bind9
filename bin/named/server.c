@@ -6541,7 +6541,7 @@ static isc_result_t
 generate_session_key(const char *filename, const char *keynamestr,
 		     dns_name_t *keyname, const char *algstr,
 		     dns_name_t *algname, unsigned int algtype,
-		     uint16_t bits, isc_mem_t *mctx,
+		     uint16_t bits, isc_mem_t *mctx, bool first_time,
 		     dns_tsigkey_t **tsigkeyp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -6584,7 +6584,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 					&tsigkey));
 
 	/* Dump the key to the key file. */
-	fp = ns_os_openfile(filename, S_IRUSR|S_IWUSR, true);
+	fp = ns_os_openfile(filename, S_IRUSR|S_IWUSR, first_time);
 	if (fp == NULL) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -6630,7 +6630,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 
 static isc_result_t
 configure_session_key(const cfg_obj_t **maps, ns_server_t *server,
-		      isc_mem_t *mctx)
+		      isc_mem_t *mctx, bool first_time)
 {
 	const char *keyfile, *keynamestr, *algstr;
 	unsigned int algtype;
@@ -6724,7 +6724,7 @@ configure_session_key(const cfg_obj_t **maps, ns_server_t *server,
 
 		CHECK(generate_session_key(keyfile, keynamestr, keyname, algstr,
 					   algname, algtype, bits, mctx,
-					   &server->sessionkey));
+					   first_time, &server->sessionkey));
 	}
 
 	return (result);
@@ -8029,7 +8029,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * turns out that a session key is really needed but doesn't exist,
 	 * we'll treat it as a fatal error then.
 	 */
-	(void)configure_session_key(maps, server, ns_g_mctx);
+	(void)configure_session_key(maps, server, ns_g_mctx, first_time);
 
 	views = NULL;
 	(void)cfg_map_get(config, "view", &views);
