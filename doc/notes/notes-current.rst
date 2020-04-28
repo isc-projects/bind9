@@ -29,6 +29,11 @@ Known Issues
 
 .. _relnotes-9.16.4-changes:
 
+-  ``named`` and ``named-checkzone`` now reject master zones that
+   have a DS RRset at the zone apex.  Attempts to add DS records
+   at the zone apex via UPDATE will be logged but otherwise ignored.
+   DS records belong in the parent zone, not at the zone apex. [GL #1798]
+
 Feature Changes
 ---------------
 
