@@ -626,6 +626,7 @@ error:
 	return (-1);
 }
 
+#if !HAVE_SYS_CAPABILITY_H
 static void
 setperms(uid_t uid, gid_t gid) {
 #if defined(HAVE_SETEGID) || defined(HAVE_SETRESGID)
@@ -673,6 +674,7 @@ setperms(uid_t uid, gid_t gid) {
 	}
 #endif /* if defined(HAVE_SETEUID) */
 }
+#endif /* !HAVE_SYS_CAPABILITY_H */
 
 FILE *
 named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
