@@ -2021,6 +2021,8 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 		printtime(key, DST_TIME_INACTIVE, "Retired", fp);
 		printtime(key, DST_TIME_REVOKE, "Revoked", fp);
 		printtime(key, DST_TIME_DELETE, "Removed", fp);
+		printtime(key, DST_TIME_SYNCPUBLISH, "PublishCDS", fp);
+		printtime(key, DST_TIME_SYNCDELETE, "DeleteCDS", fp);
 
 		printtime(key, DST_TIME_DNSKEY, "DNSKEYChange", fp);
 		printtime(key, DST_TIME_ZRRSIG, "ZRRSIGChange", fp);
