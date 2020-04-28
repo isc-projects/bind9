@@ -22,9 +22,7 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <openssl/hmac.h>
-
-typedef HMAC_CTX isc_hmac_t;
+typedef void isc_hmac_t;
 
 /**
  * isc_hmac:
