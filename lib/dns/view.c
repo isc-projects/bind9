@@ -16,8 +16,8 @@
 #include <stdbool.h>
 
 #ifdef HAVE_LMDB
-#include <lmdb.h>
-#endif /* ifdef HAVE_LMDB */
+#include <dns/lmdb.h>
+#endif /* HAVE_LMDB */
 
 #include <isc/atomic.h>
 #include <isc/file.h>

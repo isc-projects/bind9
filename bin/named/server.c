@@ -128,7 +128,7 @@
 #endif /* ifdef HAVE_LIBSCF */
 
 #ifdef HAVE_LMDB
-#include <lmdb.h>
+#include <dns/lmdb.h>
 #define count_newzones	   count_newzones_db
 #define configure_newzones configure_newzones_db
 #define dumpzone	   dumpzone_db

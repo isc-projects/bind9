@@ -18,15 +18,17 @@ VERSION=@BIND9_VERSION@
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
 		${BIND9_INCLUDES} \
 		${OPENSSL_CFLAGS} \
-		${MAXMINDDB_CFLAGS}
+		${PROTOBUF_C_CFLAGS} \
+		${MAXMINDDB_CFLAGS} \
+		${LMDB_CFLAGS}
 
 CDEFINES =	-DVERSION=\"${VERSION}\"
 CWARNINGS =
 
-DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ @NO_LIBTOOL_DNSLIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
-ISCLIBS =	../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
+ISCLIBS =	../../lib/isc/libisc.@A@ @NO_LIBTOOL_ISCLIBS@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @NO_LIBTOOL_ISCLIBS@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
@@ -90,12 +92,12 @@ mdig@EXEEXT@: mdig.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS}
 
 dnstap-read@EXEEXT@: dnstap-read.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="dnstap-read.@O@"; \
-	export LIBS0="${DNSLIBS}"; \
+	export LIBS0="${DNSLIBS} ${PROTOBUF_C_LIBS}"; \
 	${FINALBUILDCMD}
 
 named-nzd2nzf@EXEEXT@: named-nzd2nzf.@O@ ${NZDDEPLIBS}
 	export BASEOBJS="named-nzd2nzf.@O@"; \
-	export LIBS0="${ISCCFGLIBS} ${ISCCCLIBS} ${BIND9LIBS} ${DNSLIBS}"; \
+	export LIBS0="${ISCCFGLIBS} ${ISCCCLIBS} ${BIND9LIBS} ${DNSLIBS} ${LMDB_LIBS}"; \
 	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}
