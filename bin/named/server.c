@@ -7313,7 +7313,8 @@ static isc_result_t
 generate_session_key(const char *filename, const char *keynamestr,
 		     const dns_name_t *keyname, const char *algstr,
 		     const dns_name_t *algname, unsigned int algtype,
-		     uint16_t bits, isc_mem_t *mctx, dns_tsigkey_t **tsigkeyp) {
+		     uint16_t bits, isc_mem_t *mctx, bool first_time,
+		     dns_tsigkey_t **tsigkeyp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dst_key_t *key = NULL;
 	isc_buffer_t key_txtbuffer;
@@ -7354,7 +7355,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 					NULL, now, now, mctx, NULL, &tsigkey));
 
 	/* Dump the key to the key file. */
-	fp = named_os_openfile(filename, S_IRUSR | S_IWUSR, true);
+	fp = named_os_openfile(filename, S_IRUSR | S_IWUSR, first_time);
 	if (fp == NULL) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -7405,7 +7406,7 @@ cleanup:
 
 static isc_result_t
 configure_session_key(const cfg_obj_t **maps, named_server_t *server,
-		      isc_mem_t *mctx) {
+		      isc_mem_t *mctx, bool first_time) {
 	const char *keyfile, *keynamestr, *algstr;
 	unsigned int algtype;
 	dns_fixedname_t fname;
@@ -7501,7 +7502,7 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 
 		CHECK(generate_session_key(keyfile, keynamestr, keyname, algstr,
 					   algname, algtype, bits, mctx,
-					   &server->sessionkey));
+					   first_time, &server->sessionkey));
 	}
 
 	return (result);
@@ -8882,7 +8883,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * turns out that a session key is really needed but doesn't exist,
 	 * we'll treat it as a fatal error then.
 	 */
-	(void)configure_session_key(maps, server, named_g_mctx);
+	(void)configure_session_key(maps, server, named_g_mctx, first_time);
 
 	/*
 	 * Create the DNSSEC key and signing policies (KASP).
