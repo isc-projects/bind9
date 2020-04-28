@@ -25,6 +25,20 @@ CINCLUDES =	-I. -I./include -I${srcdir}/include \
 CDEFINES =
 CWARNINGS =
 
+ISCLIBS =	../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
+
+ISCDEPLIBS =	../../lib/isc/libisc.@A@
+
+DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
+
+DNSDEPLIBS =	../../lib/dns/libdns.@A@
+
+ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
+
+ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
+
+LIBS =		@LIBS@
+
 # Alphabetically
 OBJS =		context.@O@ \
 		dnsconf.@O@ \
@@ -36,8 +50,6 @@ SRCS =		context.c \
 		dnsconf.c \
 		gai_strerror.c getaddrinfo.c getnameinfo.c \
 		resconf.c
-
-LIBS =		@LIBS@
 
 SUBDIRS =	include
 TESTDIRS =	@UNITTESTS@
@@ -61,7 +73,7 @@ libirs.la: ${OBJS} version.@O@
 	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libirs.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} version.@O@ ${LIBS}
+		${OBJS} version.@O@ ${ISCLIBS} ${DNSLIBS} ${ISCCFGLIBS} ${LIBS}
 
 timestamp: libirs.@A@
 	touch timestamp
