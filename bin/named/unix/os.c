@@ -39,6 +39,7 @@
 #include <isc/result.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <named/globals.h>
 #include <named/main.h>
@@ -414,7 +415,6 @@ named_os_chroot(const char *root) {
 
 void
 named_os_inituserinfo(const char *username) {
-	char strbuf[ISC_STRERRORSIZE];
 	if (username == NULL) {
 		return;
 	}
@@ -431,6 +431,7 @@ named_os_inituserinfo(const char *username) {
 	}
 
 	if (getuid() == 0) {
+		char strbuf[ISC_STRERRORSIZE];
 		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0) {
 			strerror_r(errno, strbuf, sizeof(strbuf));
 			named_main_earlyfatal("initgroups(): %s", strbuf);
@@ -625,6 +626,7 @@ error:
 	return (-1);
 }
 
+#if !HAVE_SYS_CAPABILITY_H
 static void
 setperms(uid_t uid, gid_t gid) {
 #if defined(HAVE_SETEGID) || defined(HAVE_SETRESGID)
@@ -672,6 +674,7 @@ setperms(uid_t uid, gid_t gid) {
 	}
 #endif /* if defined(HAVE_SETEUID) */
 }
+#endif /* HAVE_SYS_CAPABILITY_H */
 
 FILE *
 named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
@@ -696,14 +699,21 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 	free(f);
 
 	if (switch_user && runas_pw != NULL) {
+		uid_t olduid = getuid();
 		gid_t oldgid = getgid();
+#if HAVE_SYS_CAPABILITY_H
+		REQUIRE(olduid == runas_pw->pw_uid);
+		REQUIRE(oldgid == runas_pw->pw_gid);
+#else /* HAVE_SYS_CAPABILITY_H */
 		/* Set UID/GID to the one we'll be running with eventually */
 		setperms(runas_pw->pw_uid, runas_pw->pw_gid);
-
+#endif
 		fd = safe_open(filename, mode, false);
 
-		/* Restore UID/GID to root */
-		setperms(0, oldgid);
+#if !HAVE_SYS_CAPABILITY_H
+		/* Restore UID/GID to previous uid/gid */
+		setperms(olduid, oldgid);
+#endif
 
 		if (fd == -1) {
 			fd = safe_open(filename, mode, false);
