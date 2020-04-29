@@ -1359,7 +1359,7 @@ AS_IF([test "$GCC" = "yes"],
 
 AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
 		      [STD_CWARNINGS="$STD_CWARNINGS -fno-strict-aliasing"])
-AX_CHECK_COMPILE_FLAG([-fno-delete-null-pointer-checks],
+AX_CHECK_COMPILE_FLAG([-Werror -fno-delete-null-pointer-checks],
 		      [STC_CWARNINGS="$STD_CWARNINGS -fno-delete-null-pointer-checks"])
 AS_IF([test "$enable_warn_shadow" = "yes"],
       [AX_CHECK_COMPILE_FLAG([-Wshadow],
