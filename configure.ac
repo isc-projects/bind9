@@ -140,7 +140,8 @@ STD_CPPFLAGS="-D_FORTIFY_SOURCE=2"
 #
 AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
 		      [STD_CFLAGS="$STD_CFLAGS -fno-strict-aliasing"])
-AX_CHECK_COMPILE_FLAG([-fno-delete-null-pointer-checks],
+# Clang only issues a warning so use -Werror to force a error.
+AX_CHECK_COMPILE_FLAG([-Werror -fno-delete-null-pointer-checks],
 		      [STD_CFLAGS="$STD_CFLAGS -fno-delete-null-pointer-checks"])
 AX_CHECK_COMPILE_FLAG([-fdiagnostics-show-option],
 		      [STD_CFLAGS="$STD_CFLAGS -fdiagnostics-show-option"])
