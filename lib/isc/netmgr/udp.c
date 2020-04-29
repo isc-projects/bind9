@@ -295,22 +295,24 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc_region_t region;
 	uint32_t maxudp;
+	bool free_buf = true;
 
 	REQUIRE(VALID_NMSOCK(sock));
 
-	/*
-	 * We can ignore the flags; currently the only one in use by libuv
-	 * is UV_UDP_PARTIAL, which only occurs if the receive buffer is
-	 * too small, which can't happen here.
-	 */
+#ifdef UV_UDP_MMSG_CHUNK
+	free_buf = ((flags & UV_UDP_MMSG_CHUNK) == 0);
+#else
 	UNUSED(flags);
+#endif
 
 	/*
 	 * If addr == NULL that's the end of stream - we can
 	 * free the buffer and bail.
 	 */
 	if (addr == NULL) {
-		isc__nm_free_uvbuf(sock, buf);
+		if (free_buf) {
+			isc__nm_free_uvbuf(sock, buf);
+		}
 		return;
 	}
 
@@ -331,7 +333,9 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	INSIST(sock->rcb.recv != NULL);
 	sock->rcb.recv(nmhandle, &region, sock->rcbarg);
-	isc__nm_free_uvbuf(sock, buf);
+	if (free_buf) {
+		isc__nm_free_uvbuf(sock, buf);
+	}
 
 	/*
 	 * If the recv callback wants to hold on to the handle,
