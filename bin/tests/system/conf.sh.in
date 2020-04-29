@@ -112,6 +112,7 @@ PERL=$(command -v "@PERL@")
 PSSUSPEND=
 
 PYTHON=$(command -v "@PYTHON@")
+PYTEST=@PYTEST@
 
 #
 # Determine if we support various optional features.
@@ -127,3 +128,5 @@ HAVEZLIB=${ZLIB_LIBS:+1}
 LMDB_LIBS="@LMDB_LIBS@"
 NZD=${LMDB_LIBS:+1}
 CRYPTO=@CRYPTO@
+
+export HAVEXMLSTATS HAVEJSONSTATS
