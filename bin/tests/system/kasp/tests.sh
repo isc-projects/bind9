@@ -34,28 +34,28 @@ VIEW2="4xILSZQnuO1UKubXHkYUsvBRPu8="
 ###############################################################################
 # Key properties                                                              #
 ###############################################################################
-# ID=0
-# EXPECT=1
-# ROLE=2
-# KSK=3
-# ZSK=4
-# LIFETIME=5
-# ALG_NUM=6
-# ALG_STR=7
-# ALG_LEN=8
-# PUBLISHED=9
-# ACTIVE=10
-# RETIRED=11
-# REVOKED=12
-# REMOVED=13
-# GOAL=14
-# STATE_DNSKEY=15
-# STATE_ZRRSIG=16
-# STATE_KRRSIG=17
-# STATE_DS=18
-# EXPECT_ZRRSIG=19
-# EXPECT_KRRSIG=20
-# LEGACY=21
+# ID
+# EXPECT
+# ROLE
+# KSK
+# ZSK
+# LIFETIME
+# ALG_NUM
+# ALG_STR
+# ALG_LEN
+# PUBLISHED
+# ACTIVE
+# RETIRED
+# REVOKED
+# REMOVED
+# GOAL
+# STATE_DNSKEY
+# STATE_ZRRSIG
+# STATE_KRRSIG
+# STATE_DS
+# EXPECT_ZRRSIG
+# EXPECT_KRRSIG
+# LEGACY
 
 key_key() {
 	echo "${1}__${2}"
