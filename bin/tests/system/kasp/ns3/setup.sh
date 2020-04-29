@@ -278,7 +278,7 @@ ZSK1=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsktimes $zone 2> keygen.out.$
 ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $newtimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $O -k $O $TactN  -r $O $TactN  -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $O $TactN  -z $O $TactN               "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -g $O -k $R $TpubN1 -z $H $TpubN1              "$ZSK2" > settime.out.$zone.4 2>&1
+$SETTIME -s -g $O -k $R $TpubN1 -z $H $TpubN1              "$ZSK2" > settime.out.$zone.3 2>&1
 # Set key rollover relationship.
 key_successor $ZSK1 $ZSK2
 # Sign zone.
@@ -316,7 +316,7 @@ ZSK1=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsktimes $zone 2> keygen.out.$
 ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $newtimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $O $TactN  -z $U $TretN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.4 2>&1
+$SETTIME -s -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.3 2>&1
 # Set key rollover relationship.
 key_successor $ZSK1 $ZSK2
 # Sign zone.
@@ -340,7 +340,7 @@ ZSK1=$($KEYGEN -a ECDSAP256SHA256  -L 3600        $zsktimes $zone 2> keygen.out.
 ZSK2=$($KEYGEN -a ECDSAP256SHA256  -L 3600        $newtimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $U $TretN  -z $U $TretN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.4 2>&1
+$SETTIME -s -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.3 2>&1
 # Set key rollover relationship.
 key_successor $ZSK1 $ZSK2
 # Sign zone.
@@ -407,8 +407,8 @@ KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
 ZSK=$($KEYGEN  -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 "$KSK2" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TactN   -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
+$SETTIME -s -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 "$KSK2" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $O -k $O $TactN   -z $O $TactN                "$ZSK"  > settime.out.$zone.3 2>&1
 # Set key rollover relationship.
 key_successor $KSK1 $KSK2
 # Sign zone.
@@ -444,8 +444,8 @@ KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
 ZSK=$($KEYGEN  -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 "$KSK2" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
+$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 "$KSK2" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.3 2>&1
 # Set key rollover relationship.
 key_successor $KSK1 $KSK2
 # Sign zone.
@@ -472,8 +472,8 @@ KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
 ZSK=$($KEYGEN  -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $H -k $U $TretN  -r $U $TretN  -d $H $TretN  "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TactN1 -r $O $TactN1 -d $O $TactN1 "$KSK2" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
+$SETTIME -s -g $O -k $O $TactN1 -r $O $TactN1 -d $O $TactN1 "$KSK2" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.3 2>&1
 # Set key rollover relationship.
 key_successor $KSK1 $KSK2
 # Sign zone.
@@ -535,7 +535,7 @@ newtimes="-P ${TpubN1} -A ${TretN} -I ${TretN1}"
 CSK1=$($KEYGEN -k csk-roll -l policies/autosign.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll -l policies/autosign.conf $newtimes $zone 2> keygen.out.$zone.2)
 $SETTIME -s -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  -z $O $TactN  "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 -z $H $TpubN1 "$CSK2" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 -z $H $TpubN1 "$CSK2" > settime.out.$zone.2 2>&1
 # Set key rollover relationship.
 key_successor $CSK1 $CSK2
 # Sign zone.
