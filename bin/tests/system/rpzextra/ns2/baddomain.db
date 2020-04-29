@@ -1,0 +1,16 @@
+$TTL 300
+
+@	IN	SOA ns1	root.baddomain. (
+	2020040101
+	4h
+	1h
+	1w
+	60
+)
+
+             IN	NS    ns1
+
+ns1          IN	A     10.53.0.2
+
+baddomain.  IN A     10.53.0.2
+www         IN A     10.53.0.3

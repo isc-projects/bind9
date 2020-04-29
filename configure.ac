@@ -284,6 +284,7 @@ AC_PATH_PROGS([PYTEST], [pytest-3 pytest pytest-pypy], [])
 AS_IF([test -z "$PYTEST"],
       [AC_MSG_WARN([pytest not found, some system tests will be skipped])])
 AC_SUBST([PYTEST])
+AM_CONDITIONAL([HAVE_PYTEST], [test -n "$PYTEST"])
 
 AX_PYTHON_MODULE([dns])
 AM_CONDITIONAL([HAVE_PYMOD_DNS], [test "$HAVE_PYMOD_DNS" = "yes"])
