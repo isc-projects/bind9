@@ -32,6 +32,14 @@ private_type_record() {
 	printf "%s. 0 IN TYPE65534 %s 5 %02x%04x0000\n" "$_zone" "\\#" "$_algorithm" "$_id"
 }
 
+# Set in the key state files the Predecessor/Successor fields.
+# Key $1 is the predecessor of key $2.
+key_successor() {
+	id1=$(keyfile_to_key_id "$1")
+	id2=$(keyfile_to_key_id "$2")
+	echo "Predecessor: ${id1}" >> "${2}.state"
+	echo "Successor: ${id2}" >> "${1}.state"
+}
 
 # Make lines shorter by storing key states in environment variables.
 H="HIDDEN"
@@ -308,8 +316,10 @@ ZSK1=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsktimes $zone 2> keygen.out.$
 ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $newtimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $O $TactN  -z $U $TretN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -S "$ZSK1"            -i 0                                                     "$ZSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.4 2>&1
+# Set key rollover relationship.
+key_successor $ZSK1 $ZSK2
+# Sign zone.
 cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 $SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
@@ -330,8 +340,10 @@ ZSK1=$($KEYGEN -a ECDSAP256SHA256  -L 3600        $zsktimes $zone 2> keygen.out.
 ZSK2=$($KEYGEN -a ECDSAP256SHA256  -L 3600        $newtimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $U $TretN  -z $U $TretN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -S "$ZSK1"            -i 0                                                           "$ZSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.4 2>&1
+# Set key rollover relationship.
+key_successor $ZSK1 $ZSK2
+# Sign zone.
 cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 13 "$KSK"  >> "$infile"
 private_type_record $zone 13 "$ZSK1" >> "$infile"
@@ -395,9 +407,11 @@ KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
 ZSK=$($KEYGEN  -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$KSK1"            -i 0                                                        "$KSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $TactN   -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
+# Set key rollover relationship.
+key_successor $KSK1 $KSK2
+# Sign zone.
 cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone 13 "$KSK1" >> "$infile"
 private_type_record $zone 13 "$KSK2" >> "$infile"
@@ -430,9 +444,11 @@ KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
 ZSK=$($KEYGEN  -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$KSK1"            -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
+# Set key rollover relationship.
+key_successor $KSK1 $KSK2
+# Sign zone.
 cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone 13 "$KSK1" >> "$infile"
 private_type_record $zone 13 "$KSK2" >> "$infile"
@@ -456,9 +472,11 @@ KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
 ZSK=$($KEYGEN  -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $H -k $U $TretN  -r $U $TretN  -d $H $TretN  "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$KSK1"            -i 0                                                       "$KSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -g $O -k $O $TactN1 -r $O $TactN1 -d $O $TactN1 "$KSK2" > settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.2 2>&1
+# Set key rollover relationship.
+key_successor $KSK1 $KSK2
+# Sign zone.
 cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone 13 "$KSK1" >> "$infile"
 private_type_record $zone 13 "$KSK2" >> "$infile"
@@ -517,8 +535,10 @@ newtimes="-P ${TpubN1} -A ${TretN} -I ${TretN1}"
 CSK1=$($KEYGEN -k csk-roll -l policies/autosign.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll -l policies/autosign.conf $newtimes $zone 2> keygen.out.$zone.2)
 $SETTIME -s -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  -z $O $TactN  "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -S "$CSK1"            -i 0                                                                      "$CSK2" > settime.out.$zone.3 2>&1
 $SETTIME -s -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 -z $H $TpubN1 "$CSK2" > settime.out.$zone.1 2>&1
+# Set key rollover relationship.
+key_successor $CSK1 $CSK2
+# Sign zone.
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 13 "$CSK1" >> "$infile"
 private_type_record $zone 13 "$CSK2" >> "$infile"
