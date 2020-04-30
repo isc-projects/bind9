@@ -490,10 +490,15 @@ load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx) {
 			continue;
 
 		classobj = cfg_tuple_get(vconfig, "class");
-		CHECK(config_getclass(classobj, dns_rdataclass_in,
-					 &viewclass));
-		if (dns_rdataclass_ismeta(viewclass))
+		tresult = config_getclass(classobj, dns_rdataclass_in,
+					  &viewclass);
+		if (tresult != ISC_R_SUCCESS) {
+			CHECK(tresult);
+		}
+
+		if (dns_rdataclass_ismeta(viewclass)) {
 			CHECK(ISC_R_FAILURE);
+		}
 
 		dns_rdataclass_format(viewclass, buf, sizeof(buf));
 		vname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
