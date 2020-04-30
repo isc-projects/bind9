@@ -98,7 +98,7 @@ TESTS = 			\
 	geoip2			\
 	glue			\
 	idna			\
-	include-multipecfg 	\
+	include-multiplecfg 	\
 	inline			\
 	integrity		\
 	kasp			\
