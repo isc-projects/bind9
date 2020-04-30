@@ -943,7 +943,7 @@ system:clang:asan:
   <<: *base_image
   <<: *system_test_job
   needs:
-    - job: gcc:asan
+    - job: clang:asan
       artifacts: true
 
 unit:clang:asan:
@@ -952,7 +952,7 @@ unit:clang:asan:
   <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: gcc:asan
+    - job: clang:asan
       artifacts: true
 
 # Jobs for builds with TSAN enabled
