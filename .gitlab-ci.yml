@@ -262,6 +262,7 @@ stages:
   artifacts:
     untracked: true
     expire_in: "1 day"
+    when: always
 
 .windows_build: &windows_build_job
   stage: build
