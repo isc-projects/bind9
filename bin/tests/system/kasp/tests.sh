@@ -2281,9 +2281,6 @@ set_keylifetime  "KEY1" "0"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
-# Key timings.
-set_keytime  "KEY1" "PUBLISHED"    "yes"
-set_keytime  "KEY1" "ACTIVE"       "yes"
 # The DNSKEY and signatures are introduced first, the DS remains hidden.
 set_keystate "KEY1" "GOAL"         "omnipresent"
 set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
@@ -2296,6 +2293,20 @@ key_clear "KEY3"
 key_clear "KEY4"
 
 check_keys
+
+# The first key is immediately published and activated.
+created=$(key_get KEY1 CREATED)
+set_keytime     "KEY1" "PUBLISHED"   "${created}"
+set_keytime     "KEY1" "ACTIVE"      "${created}"
+# The DS can be published if the DNSKEY and RRSIG records are
+# OMNIPRESENT.  This happens after max-zone-ttl (12h) plus
+# publish-safety (5m) plus zone-propagation-delay (5m) =
+# 43200 + 300 + 300 = 43800.
+set_addkeytime  "KEY1" "SYNCPUBLISH" "${created}" 43800
+# Key lifetime is unlimited, so not setting RETIRED and REMOVED.
+
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2339,6 +2350,15 @@ set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
 set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
 
 check_keys
+
+# The key was published and activated 900 seconds ago (with settime).
+created=$(key_get KEY1 CREATED)
+set_addkeytime  "KEY1" "PUBLISHED"   "${created}" -900
+set_addkeytime  "KEY1" "ACTIVE"      "${created}" -900
+set_addkeytime  "KEY1" "SYNCPUBLISH" "${created}" 43800
+
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2359,6 +2379,15 @@ set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
 set_keystate "KEY1" "STATE_DS"     "rumoured"
 
 check_keys
+
+# The key was published and activated 44700 seconds ago (with settime).
+created=$(key_get KEY1 CREATED)
+set_addkeytime  "KEY1" "PUBLISHED"   "${created}" -44700
+set_addkeytime  "KEY1" "ACTIVE"      "${created}" -44700
+set_keytime     "KEY1" "SYNCPUBLISH" "${created}"
+
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2378,6 +2407,15 @@ set_server "ns3" "10.53.0.3"
 set_keystate "KEY1" "STATE_DS" "omnipresent"
 
 check_keys
+
+# The key was published and activated 143100 seconds ago (with settime).
+created=$(key_get KEY1 CREATED)
+set_addkeytime  "KEY1" "PUBLISHED"   "${created}" -143100
+set_addkeytime  "KEY1" "ACTIVE"      "${created}" -143100
+set_addkeytime  "KEY1" "SYNCPUBLISH" "${created}" -98400
+
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify

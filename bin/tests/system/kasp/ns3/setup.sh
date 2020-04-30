@@ -183,8 +183,18 @@ cp template.db.in $zonefile
 # Step 2:
 # The DNSKEY has been published long enough to become OMNIPRESENT.
 setup step2.enable-dnssec.autosign
+# DNSKEY TTL:             300 seconds
+# zone-propagation-delay: 5 minutes (300 seconds)
+# publish-safety:         5 minutes (300 seconds)
+# Total:                  900 seconds
 TpubN="now-900s"
-keytimes="-P ${TpubN} -A ${TpubN}"
+# RRSIG TTL:              12 hour (43200 seconds)
+# zone-propagation-delay: 5 minutes (300 seconds)
+# retire-safety:          20 minutes (1200 seconds)
+# Already passed time:    -900 seconds
+# Total:                  43800 seconds
+TsbmN="now+43800s"
+keytimes="-P ${TpubN} -P sync ${TsbmN} -A ${TpubN}"
 CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $keytimes $zone 2> keygen.out.$zone.1)
 $SETTIME -s -g $O -k $R $TpubN -r $R $TpubN -d $H $TpubN -z $R $TpubN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
@@ -194,11 +204,15 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > si
 # Step 3:
 # The zone signatures have been published long enough to become OMNIPRESENT.
 setup step3.enable-dnssec.autosign
+# Passed time since publications: 43800 + 900 = 44700 seconds.
 TpubN="now-44700s"
-TactN="now-43800s"
-keytimes="-P ${TpubN} -A ${TpubN}"
+# The key is secure for using in chain of trust when the DNSKEY is OMNIPRESENT.
+TcotN="now-43800s"
+# We can submit the DS now.
+TsbmN="now"
+keytimes="-P ${TpubN} -P sync ${TsbmN} -A ${TpubN}"
 CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $keytimes $zone 2> keygen.out.$zone.1)
-$SETTIME -s -g $O -k $O $TactN -r $O $TactN -d $H $TpubN -z $R $TpubN "$CSK" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $TcotN -r $O $TcotN -d $H $TpubN -z $R $TpubN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone 13 "$CSK" >> "$infile"
 $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
@@ -206,14 +220,20 @@ setup step3.enable-dnssec.autosign
 
 # Step 4:
 # The DS has been submitted long enough ago to become OMNIPRESENT.
-# Add 27 hour plus retire safety of 20 minutes (98400 seconds) to the times.
 setup step4.enable-dnssec.autosign
+# DS TTL:                    1 day (86400 seconds)
+# parent-registration-delay: 1 day (86400 seconds)
+# parent-propagation-delay:  1 hour (3600 seconds)
+# retire-safety:             20 minutes (1200 seconds)
+# Total aditional time:      98400 seconds
+# 44700 + 98400 = 143100
 TpubN="now-143100s"
-TactN="now-142200s"
-TomnN="now-98400s"
-keytimes="-P ${TpubN} -A ${TpubN}"
+# 43800 + 98400 = 142200
+TcotN="now-142200s"
+TsbmN="now-98400s"
+keytimes="-P ${TpubN} -P sync ${TsbmN} -A ${TpubN}"
 CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $keytimes $zone 2> keygen.out.$zone.1)
-$SETTIME -s -g $O -k $O $TactN -r $O $TactN -d $R $TomnN -z $O $TomnN "$CSK" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $TcotN -r $O $TcotN -d $R $TsbmN -z $O $TsbmN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone 13 "$CSK" >> "$infile"
 $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
