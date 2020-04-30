@@ -67,27 +67,82 @@ wire_test_LDADD =		\
 	$(LIBDNS_LIBS)
 endif HAVE_DNSTAP
 
-TESTS = \
-	acl additional addzone allow-query auth autosign \
-	builtin cacheclean case catz cds \
-	checkconf checknames checkzone \
-	cookie database dlz dlzexternal \
-	dns64 dscp dsdigest dyndb \
-	ednscompliance emptyzones \
-	filter-aaaa formerr \
-	geoip2 glue idna inline integrity keepalive \
-	legacy limits logfileconfig \
-	masterfile masterformat metadata mirror mkeys \
-	names notify nslookup \
-	padding pending \
-	redirect rndc rootkeysentinel rpz \
-	rrchecker rrl rrsetorder rsabigexponent runtime \
-	sfcache smartsign sortlist \
-	spf staticstub stub synthfromdnssec \
-	tools tsig tsiggss \
-	unknown verify views wildcard \
-	xferquota zonechecks \
-	ecdsa tkey
+TESTS = 			\
+	acl			\
+	additional		\
+	addzone			\
+	allow-query		\
+	auth			\
+	autosign		\
+	builtin			\
+	cacheclean		\
+	case			\
+	catz			\
+	cds			\
+	checkconf		\
+	checknames		\
+	checkzone		\
+	cookie			\
+	database		\
+	dlz			\
+	dlzexternal		\
+	dns64			\
+	dscp			\
+	dsdigest		\
+	dyndb			\
+	ecdsa			\
+	ednscompliance		\
+	emptyzones		\
+	filter-aaaa		\
+	formerr			\
+	geoip2			\
+	glue			\
+	idna			\
+	include-multipecfg 	\
+	inline			\
+	integrity		\
+	kasp			\
+	keepalive		\
+	legacy			\
+	limits			\
+	logfileconfig		\
+	masterfile		\
+	masterformat		\
+	metadata		\
+	mirror			\
+	mkeys			\
+	names			\
+	notify			\
+	nslookup		\
+	padding			\
+	pending			\
+	redirect		\
+	rndc			\
+	rootkeysentinel		\
+	rpz			\
+	rrchecker		\
+	rrl			\
+	rrsetorder		\
+	rsabigexponent		\
+	runtime			\
+	sfcache			\
+	smartsign		\
+	sortlist		\
+	spf			\
+	staticstub		\
+	stub			\
+	synthfromdnssec		\
+	tkey			\
+	tools			\
+	tsig			\
+	tsiggss			\
+	ttl			\
+	unknown			\
+	verify			\
+	views			\
+	wildcard		\
+	xferquota		\
+	zonechecks
 
 # eddsa test is broken
 # TESTS += eddsa
@@ -105,7 +160,6 @@ endif # HAVE_LMDB
 if HAVE_PERLMOD_NET_DNS
 
 TESTS +=		\
-	zero		\
 	digdelv		\
 	dnssec		\
 	fetchlimit	\
@@ -115,7 +169,8 @@ TESTS +=		\
 	resolver	\
 	rpzrecurse	\
 	statistics	\
-	upforwd
+	upforwd		\
+	zero
 
 if HAVE_DNSTAP
 TESTS += dnstap
