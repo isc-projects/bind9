@@ -471,13 +471,13 @@ openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 #if HAVE_OPENSSL_ED25519
 	if (key->key_alg == DST_ALG_ED25519) {
 		nid = NID_ED25519;
-		key->key_size = DNS_KEY_ED25519SIZE;
+		key->key_size = DNS_KEY_ED25519SIZE * 8;
 	}
 #endif /* if HAVE_OPENSSL_ED25519 */
 #if HAVE_OPENSSL_ED448
 	if (key->key_alg == DST_ALG_ED448) {
 		nid = NID_ED448;
-		key->key_size = DNS_KEY_ED448SIZE;
+		key->key_size = DNS_KEY_ED448SIZE * 8;
 	}
 #endif /* if HAVE_OPENSSL_ED448 */
 	if (nid == 0) {
@@ -606,7 +606,7 @@ openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	}
 	isc_buffer_forward(data, len);
 	key->keydata.pkey = pkey;
-	key->key_size = len;
+	key->key_size = len * 8;
 	return (ISC_R_SUCCESS);
 }
 
@@ -733,7 +733,7 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
 	key->keydata.pkey = pkey;
-	key->key_size = len;
+	key->key_size = len * 8;
 	ret = ISC_R_SUCCESS;
 
 err:

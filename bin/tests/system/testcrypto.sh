@@ -29,11 +29,27 @@ while test "$#" -gt 0; do
                 alg="-a RSASHA1"
                 msg="RSA cryptography"
                 ;;
-        ecdsa|ECDSA)
-                alg="-a ecdsap256sha256"
+	rsasha256|RSASHA256)
+                alg="-a RSASHA256"
+                msg="RSA cryptography"
+                ;;
+	rsasha512|RSASHA512)
+                alg="-a RSASHA512"
+                msg="RSA cryptography"
+                ;;
+        ecdsa|ECDSA|ecdsap256sha256|ECDSAP256SHA256)
+                alg="-a ECDSAP256SHA256"
                 msg="ECDSA cryptography"
                 ;;
-        eddsa|EDDSA)
+        ecdsap384sha384|ECDSAP384SHA384)
+                alg="-a ECDSAP384SHA384"
+                msg="ECDSA cryptography"
+                ;;
+        eddsa|EDDSA|ed25519|ED25519)
+                alg="-a ED25519"
+                msg="EDDSA cryptography"
+                ;;
+        ed448|ED448)
                 alg="-a ED25519"
                 msg="EDDSA cryptography"
                 ;;
