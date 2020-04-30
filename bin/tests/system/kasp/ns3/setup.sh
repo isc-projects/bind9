@@ -71,8 +71,8 @@ zone="dnssec-keygen.kasp"
 $KEYGEN -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.1 2>&1
 
 zone="some-keys.kasp"
-$KEYGEN -P none -A none -a RSASHA1 -b 2000 -L 1234 $zone > keygen.out.$zone.1 2>&1
-$KEYGEN -P none -A none -a RSASHA1 -f KSK  -L 1234 $zone > keygen.out.$zone.2 2>&1
+$KEYGEN -G -a RSASHA1 -b 2000 -L 1234 $zone > keygen.out.$zone.1 2>&1
+$KEYGEN -G -a RSASHA1 -f KSK  -L 1234 $zone > keygen.out.$zone.2 2>&1
 
 zone="legacy.kasp"
 $KEYGEN -a RSASHA1 -b 2000 -L 1234 $zone > keygen.out.$zone.1 2>&1
