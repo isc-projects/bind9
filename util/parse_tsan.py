@@ -80,14 +80,14 @@ with open(sys.argv[1], "r", encoding='utf-8') as f:
             if not S.inside:
                 S.inside = True
             else:
-                dname = sha256(S.last_line.encode('utf-8')).hexdigest()
-                dname = os.path.join(OUT, dname)
-                if not os.path.isdir(dname):
-                    os.mkdir(dname)
-                fname = sha256(S.block.encode('utf-8')).hexdigest() + ".tsan"
-                fname = os.path.join(dname, fname)
-                if not os.path.isfile(fname):
-                    with open(fname, "w", encoding='utf-8') as w:
+                DNAME = sha256(S.last_line.encode('utf-8')).hexdigest()
+                DNAME = os.path.join(OUT, DNAME)
+                if not os.path.isdir(DNAME):
+                    os.mkdir(DNAME)
+                FNAME = sha256(S.block.encode('utf-8')).hexdigest() + ".tsan"
+                FNAME = os.path.join(DNAME, FNAME)
+                if not os.path.isfile(FNAME):
+                    with open(FNAME, "w", encoding='utf-8') as w:
                         w.write(S.block)
                 S.reset()
         else:
