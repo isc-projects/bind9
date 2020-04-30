@@ -15,7 +15,7 @@ options {
 	query-source address 10.53.0.1;
 	notify-source 10.53.0.1;
 	transfer-source 10.53.0.1;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
@@ -30,23 +30,5 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.1 port 9953 allow { any; } keys { rndc_key; };
-};
-
-zone "rsa.example." {
-	type master;
-	file "rsa.example.db.signed";
-	allow-update { any; };
-};
-
-zone "ecc.example." {
-	type master;
-	file "ecc.example.db.signed";
-	allow-update { any; };
-};
-
-zone "ecx.example." {
-	type master;
-	file "ecx.example.db.signed";
-	allow-update { any; };
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
