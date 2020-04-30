@@ -170,9 +170,10 @@ keymgr_settime_syncpublish(dns_dnsseckey_t *key, dns_kasp_t *kasp, bool first) {
  * This function can have side effects:
  * 1. If there is no active time set, which would be super weird, set it now.
  * 2. If there is no published time set, also super weird, set it now.
- * 3. If the lifetime is not set, it will be set now.
- * 4. If there should be a retire time and it is not set, it will be set now.
- * 5. The removed time is adjusted accordingly.
+ * 3. If there is no syncpublished time set, set it now.
+ * 4. If the lifetime is not set, it will be set now.
+ * 5. If there should be a retire time and it is not set, it will be set now.
+ * 6. The removed time is adjusted accordingly.
  *
  * This returns when the successor key needs to be published in the zone.
  * A special value of 0 means there is no need for a successor.
@@ -189,34 +190,66 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 	REQUIRE(key->key != NULL);
 
 	active = 0;
+	pub = 0;
 	retire = 0;
+
+	/*
+	 * An active key must have publish and activate timing
+	 * metadata.
+	 */
+	ret = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
+	if (ret != ISC_R_SUCCESS) {
+		/* Super weird, but if it happens, set it to now. */
+		dst_key_settime(key->key, DST_TIME_ACTIVATE, now);
+		active = now;
+	}
+	ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &pub);
+	if (ret != ISC_R_SUCCESS) {
+		/* Super weird, but if it happens, set it to now. */
+		dst_key_settime(key->key, DST_TIME_PUBLISH, now);
+		pub = now;
+	}
+
+	/*
+	 * Calculate prepublication time.
+	 */
 	prepub = dst_key_getttl(key->key) + dns_kasp_publishsafety(kasp) +
 		 dns_kasp_zonepropagationdelay(kasp);
 	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
 	if (ret == ISC_R_SUCCESS && ksk) {
-		/* Add registration delay to the prepublication time. */
-		prepub += dns_kasp_parentregistrationdelay(kasp);
+		isc_stdtime_t syncpub;
+
+		/*
+		 * Set PublishCDS if not set.
+		 */
+		ret = dst_key_gettime(key->key, DST_TIME_SYNCPUBLISH, &syncpub);
+		if (ret != ISC_R_SUCCESS) {
+			uint32_t tag;
+			isc_stdtime_t syncpub1, syncpub2;
+
+			syncpub1 = pub + prepub;
+			syncpub2 = 0;
+			ret = dst_key_getnum(key->key, DST_NUM_PREDECESSOR,
+					     &tag);
+			if (ret != ISC_R_SUCCESS) {
+				/*
+				 * No predecessor, wait for zone to be
+				 * completely signed.
+				 */
+				syncpub2 = pub + dns_kasp_zonemaxttl(kasp) +
+					   dns_kasp_publishsafety(kasp) +
+					   dns_kasp_zonepropagationdelay(kasp);
+			}
+
+			syncpub = syncpub1 > syncpub2 ? syncpub1 : syncpub2;
+			dst_key_settime(key->key, DST_TIME_SYNCPUBLISH,
+					syncpub);
+		}
 	}
 
 	ret = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
 	if (ret != ISC_R_SUCCESS) {
 		uint32_t klifetime = 0;
-		/*
-		 * An active key must have publish and activate timing
-		 * metadata.
-		 */
-		ret = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
-		if (ret != ISC_R_SUCCESS) {
-			/* Super weird, but if it happens, set it to now. */
-			dst_key_settime(key->key, DST_TIME_ACTIVATE, now);
-			active = now;
-		}
-		ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &pub);
-		if (ret != ISC_R_SUCCESS) {
-			/* Super weird, but if it happens, set it to now. */
-			dst_key_settime(key->key, DST_TIME_PUBLISH, now);
-			pub = now;
-		}
 
 		ret = dst_key_getnum(key->key, DST_NUM_LIFETIME, &klifetime);
 		if (ret != ISC_R_SUCCESS) {
