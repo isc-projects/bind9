@@ -121,7 +121,7 @@ start_servers_failed() {
 start_servers() {
     echoinfo "I:$systest:starting servers"
     if $restart; then
-        $PERL start.pl --restart --port "$PORT" "$systest" || start_fail
+        $PERL start.pl --restart --port "$PORT" "$systest" || start_servers_failed
     else
         restart=true
         $PERL start.pl --port "$PORT" "$systest" || start_fail
