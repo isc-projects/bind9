@@ -94,7 +94,6 @@ named_LDADD =					\
 	$(LIBISCCC_LIBS)			\
 	$(LIBISCCFG_LIBS)			\
 	$(LIBBIND9_LIBS)			\
-	$(LIBLTDL_LIBS)				\
 	$(OPENSSL_LIBS)				\
 	$(LIBCAP_LIBS)				\
 	$(LMDB_LIBS)				\
