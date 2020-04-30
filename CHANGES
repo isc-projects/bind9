@@ -1,3 +1,7 @@
+5398.	[bug]		Named could fail to restart if a zone added with
+			'rndc addzone' contained a double quote (") in
+			its name.  [GL #1695]
+
 5397.	[func]		Update PKCS#11 EdDSA implementation to PKCS#11 v3.0.
 			Thanks to Aaron Thompson. [GL !3326]
 
