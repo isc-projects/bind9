@@ -1,3 +1,6 @@
+5396.	[func]		Use UV_UDP_RECVMMSG flag to enable recvmmsg support in
+			libuv >= 1.37. [GL #1797]
+
 5395.	[placeholder]
 
 5394.	[cleanup]	Don't change effective uid/gid in named_os_openfile()
