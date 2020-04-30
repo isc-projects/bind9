@@ -48,8 +48,7 @@ libns_la_CPPFLAGS =				\
 
 libns_la_LIBADD =	\
 	$(LIBISC_LIBS)	\
-	$(LIBDNS_LIBS)	\
-	$(LIBLTDL_LIBS)
+	$(LIBDNS_LIBS)
 
 libns_la_LDFLAGS =		\
 	$(libns_VERSION_INFO)

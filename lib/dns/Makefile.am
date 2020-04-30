@@ -290,8 +290,7 @@ libdns_la_LDFLAGS =		\
 
 libdns_la_LIBADD =		\
 	$(LIBISC_LIBS)		\
-	$(OPENSSL_LIBS)		\
-	$(LIBLTDL_LIBS)
+	$(OPENSSL_LIBS)
 
 if HAVE_JSON_C
 libdns_la_CPPFLAGS +=		\
