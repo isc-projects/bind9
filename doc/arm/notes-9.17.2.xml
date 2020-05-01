@@ -53,7 +53,7 @@
         <para>
           The native PKCS#11 EdDSA implementation has been updated to PKCS#11
           v3.0 and thus made operational again.  Contributed by Aaron Thompson.
-	  [GL !3326]
+          [GL !3326]
         </para>
       </listitem>
     </itemizedlist>
@@ -65,6 +65,13 @@
         <para>
           The default rwlock implementation has been changed back to the native
           BIND 9 rwlock implementation. [GL #1753]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Message ids in inbound AXFR transfers are now checked for
+          consistency.  Streams with inconsistent message ids are rejected.
+          [GL #1674]
         </para>
       </listitem>
     </itemizedlist>
