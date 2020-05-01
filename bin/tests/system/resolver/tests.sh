@@ -257,6 +257,40 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check that the resolver limits the number of NS records it follows in a referral response ($n)"
+# ns5 is the recusor being tested.  ns4 holds the sourcens zone containing names with varying numbers of NS
+# records pointing to non-existent nameservers in the targetns zone on ns6.
+ret=0
+$RNDCCMD 10.53.0.5 flush || ret=1   # Ensure cache is empty before doing this test
+for nscount in 1 2 3 4 5 6 7 8 9 10
+do
+        # Verify number of NS records at source server
+        $DIG $DIGOPTS +norecurse @10.53.0.4 target${nscount}.sourcens ns > dig.ns4.out.${nscount}.${n}
+        sourcerecs=`grep NS dig.ns4.out.${nscount}.${n} | grep -v ';' | wc -l`
+        test $sourcerecs -eq $nscount || ret=1
+        test $sourcerecs -eq $nscount || echo_i "NS count incorrect for target${nscount}.sourcens"
+        # Expected queries = 2 * number of NS records, up to a maximum of 10.
+        expected=`expr 2 \* $nscount`
+        if [ $expected -gt 10 ]; then expected=10; fi
+        # Work out the queries made by checking statistics on the target before and after the test
+        $RNDCCMD 10.53.0.6 stats || ret=1
+        initial_count=`awk '/responses sent/ {print $1}' ns6/named.stats`
+        mv ns6/named.stats ns6/named.stats.initial.${nscount}.${n}
+        $DIG $DIGOPTS @10.53.0.5 target${nscount}.sourcens A > dig.ns5.out.${nscount}.${n} || ret=1
+        $RNDCCMD 10.53.0.6 stats || ret=1
+        final_count=`awk '/responses sent/ {print $1}' ns6/named.stats`
+        mv ns6/named.stats ns6/named.stats.final.${nscount}.${n}
+        # Check number of queries during the test is as expected
+        actual=`expr $final_count - $initial_count`
+        if [ $actual -ne $expected ]; then
+                echo_i "query count error: $nscount NS records: expected queries $expected, actual $actual"
+                ret=1
+        fi
+done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "RT21594 regression test check setup ($n)"
 ret=0
 # Check that "aa" is not being set by the authoritative server.
