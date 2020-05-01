@@ -215,7 +215,7 @@ restart () {
             done
         fi
     fi
-    start_server --noclean --restart_server --port ${PORT} rpz ns$1
+    start_server --noclean --restart --port ${PORT} rpz ns$1
     load_db
     dnsrps_loaded
     sleep 1
@@ -482,7 +482,7 @@ for mode in native dnsrps; do
       continue
     else
       echo_i "running DNSRPS sub-test"
-      start_server --noclean --restart_server --port ${PORT} rpz
+      start_server --noclean --restart --port ${PORT} rpz
       sleep 3
     fi
     ;;

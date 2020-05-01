@@ -2057,7 +2057,7 @@ echo_i "waiting till 14s have passed since NTAs were added before restarting ns4
 $PERL -e 'my $delay = '"$start"' + 14 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 
 if
-    start_server --noclean --restart_server --port "$PORT" dnssec ns4
+    start_server --noclean --restart --port "$PORT" dnssec ns4
 then
     echo_i "restarted server ns4"
 else
@@ -2123,7 +2123,7 @@ echo "secure.example. regular $future" > ns4/_default.nta
 start=$($PERL -e 'print time()."\n";')
 
 if
-    start_server --noclean --restart_server --port "$PORT" dnssec ns4
+    start_server --noclean --restart --port "$PORT" dnssec ns4
 then
     echo_i "restarted server ns4"
 else
@@ -2179,7 +2179,7 @@ echo "secure.example. forced $future" > ns4/_default.nta
 start=$($PERL -e 'print time()."\n";')
 
 if
-    start_server --noclean --restart_server --port "$PORT" dnssec ns4
+    start_server --noclean --restart --port "$PORT" dnssec ns4
 then
     echo_i "restarted server ns4"
 else
@@ -2227,7 +2227,7 @@ echo "secure.example. forced $future" > ns4/_default.nta
 added=$($PERL -e 'print time()."\n";')
 
 if
-    start_server --noclean --restart_server --port "$PORT" dnssec ns4
+    start_server --noclean --restart --port "$PORT" dnssec ns4
 then
     echo_i "restarted server ns4"
 else
@@ -3789,7 +3789,7 @@ grep "trust-anchor-telemetry './IN' from .* 65534" ns1/named.run > /dev/null || 
 grep "trust-anchor-telemetry './IN' from .* 65533" ns1/named.run > /dev/null && ret=1
 $PERL $SYSTEMTESTTOP/stop.pl dnssec ns1 || ret=1
 nextpart ns1/named.run > /dev/null
-start_server --noclean --restart_server --port ${PORT} dnssec ns1 || ret=1
+start_server --noclean --restart --port ${PORT} dnssec ns1 || ret=1
 n=$(($n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))

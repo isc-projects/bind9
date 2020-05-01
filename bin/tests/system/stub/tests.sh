@@ -55,7 +55,7 @@ digcomp knowngood.dig.out.rec dig.out.ns3 || ret=1
 	$PERL $SYSTEMTESTTOP/stop.pl stub ns3
 
 	echo_i "re-starting stub server"
-	start_server --noclean --restart_server --port ${PORT} stub ns3
+	start_server --noclean --restart --port ${PORT} stub ns3
 }
 done
 
