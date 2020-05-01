@@ -56,6 +56,12 @@
           [GL !3326]
         </para>
       </listitem>
+      <listitem>
+	<para>
+	  The OpenSSL ECDSA implementation has been updated to support PKCS#11
+	  via OpenSSL engine (see engine_pkcs11 from libp11 project). [GL #1534]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
