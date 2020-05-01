@@ -1,3 +1,6 @@
+5399.	[func]		Add engine support to OpenSSL EdDSA implementation.
+			[GL #1763]
+
 5399.	[func]		Add engine support to OpenSSL ECDSA implementation.
 			[GL #1534]
 
