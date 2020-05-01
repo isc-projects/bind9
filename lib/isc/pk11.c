@@ -31,7 +31,6 @@
 #include <pk11/pk11.h>
 #include <pk11/result.h>
 #include <pk11/site.h>
-#include <pkcs11/eddsa.h>
 #include <pkcs11/pkcs11.h>
 
 #include <dst/result.h>
@@ -79,7 +78,6 @@ struct pk11_token {
 static ISC_LIST(pk11_token_t) tokens;
 
 static pk11_token_t *best_rsa_token;
-static pk11_token_t *best_dh_token;
 static pk11_token_t *best_ecdsa_token;
 static pk11_token_t *best_eddsa_token;
 
@@ -247,9 +245,6 @@ pk11_finalize(void) {
 		ISC_LIST_UNLINK(tokens, token, link);
 		if (token == best_rsa_token) {
 			best_rsa_token = NULL;
-		}
-		if (token == best_dh_token) {
-			best_dh_token = NULL;
 		}
 		if (token == best_ecdsa_token) {
 			best_ecdsa_token = NULL;
@@ -607,16 +602,14 @@ scan_slots(void) {
 			}
 		}
 
-#if defined(CKM_EDDSA_KEY_PAIR_GEN) && defined(CKM_EDDSA) && defined(CKK_EDDSA)
 		/* Check for EDDSA support */
-		/* XXXOND: This was already broken */
 		bad = false;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA_KEY_PAIR_GEN,
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_EC_EDWARDS_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
 			bad = true;
-			PK11_TRACEM(CKM_EDDSA_KEY_PAIR_GEN);
+			PK11_TRACEM(CKM_EC_EDWARDS_KEY_PAIR_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0) ||
@@ -631,8 +624,6 @@ scan_slots(void) {
 				best_eddsa_token = token;
 			}
 		}
-#endif /* if defined(CKM_EDDSA_KEY_PAIR_GEN) && defined(CKM_EDDSA) && \
-	* defined(CKK_EDDSA) */
 	}
 
 	if (slotList != NULL) {
@@ -655,6 +646,9 @@ pk11_get_best_token(pk11_optype_t optype) {
 		token = best_eddsa_token;
 		break;
 	default:
+		break;
+	}
+	if (token == NULL) {
 		return (0);
 	}
 	return (token->slotid);
@@ -1075,7 +1069,6 @@ pk11_dump_tokens(void) {
 
 	printf("DEFAULTS\n");
 	printf("\tbest_rsa_token=%p\n", best_rsa_token);
-	printf("\tbest_dh_token=%p\n", best_dh_token);
 	printf("\tbest_ecdsa_token=%p\n", best_ecdsa_token);
 	printf("\tbest_eddsa_token=%p\n", best_eddsa_token);
 

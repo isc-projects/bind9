@@ -93,9 +93,9 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 	pk11_result_register();
-#endif /* if HAVE_PKCS11 */
+#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;

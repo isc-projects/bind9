@@ -203,8 +203,6 @@ my @substdefh = ("CONFIGARGS",
                  "USE_BACKTRACE",
                  "USE_OPENSSL",
                  "USE_PKCS11",
-                 "HAVE_PKCS11_ED25519",
-                 "HAVE_PKCS11_ED448",
                  "HAVE_READLINE",
                  "HAVE_ZLIB",
                  "ISC_LIST_CHECKINIT",
@@ -240,6 +238,7 @@ my %configtest;
 
 my @substtest = ("CHECKDS",
                  "COVERAGE",
+                 "CRYPTO",
                  "DNSTAP",
                  "FSTRM_CAPTURE",
                  "JSONSTATS",
@@ -368,8 +367,6 @@ my @enablelist = ("developer",
 
 my @withlist = ("aes",
                 "cross-compile",
-                "ecdsa",
-                "eddsa",
                 "extra-tests",
                 "gssapi",
                 "geoip2",
@@ -427,7 +424,6 @@ my @help = (
 "  with-openssl[=PATH]   build with OpenSSL yes|path (mandatory)\n",
 "  with-libuv[=PATH]     build with libuv yes|path (mandatory)\n",
 "  with-pkcs11[=PATH]    build with PKCS#11 support yes|no|provider-path\n",
-"  with-eddsa            crypto EDDSA yes|all|no\n",
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
 "  with-libxml2[=PATH]   build with libxml2 library yes|no|path\n",
 "  with-geoip2[=PATH]    build with GeoIP2 support yes|no|path\n",
@@ -475,8 +471,6 @@ my $use_openssl = "auto";
 my $openssl_path = "..\\..\\";
 my $use_pkcs11 = "no";
 my $pkcs11_path = "unknown";
-my $use_eddsa = "auto";
-my $use_ed448 = "auto";
 my $use_aes = "auto";
 my $use_gssapi = "no";
 my $validation_default = "auto";
@@ -762,15 +756,6 @@ sub mywith {
             $pkcs11_path = $val;
             $pkcs11_path =~ s/\.dll$//i;
         }
-    } elsif ($key =~ /^eddsa$/i) {
-        if ($val =~ /^no$/i) {
-            $use_eddsa = "no";
-        } elsif ($val !~ /^no$/i) {
-            $use_eddsa = "yes";
-            if ($val =~ /^all$/i) {
-                $use_ed448 = "yes";
-            }
-        }
     } elsif ($key =~ /^aes$/i) {
         if ($val =~ /^no$/i) {
             $use_aes = "no";
@@ -973,17 +958,6 @@ if ($verbose) {
         print "pkcs11: disabled\n";
     } else {
         print "pkcs11-provider-path: $pkcs11_path\n";
-    }
-    print "ecdsa: enabled\n";
-    if ($use_eddsa eq "no") {
-        print "eddsa: disabled\n";
-    } else {
-        print "ed25519: enabled\n";
-        if ($use_ed448 eq "no") {
-            print "ed448: disabled\n";
-        } else {
-            print "ed448: enabled\n";
-        }
     }
     if ($use_aes eq "no") {
         print "aes: disabled\n";
@@ -1247,26 +1221,6 @@ if ($enable_native_pkcs11 eq "yes") {
             print "native PKCS#11 support: no PKCS#11 provider defined?\n";
         }
     }
-    if ($use_eddsa eq "no") {
-        if ($verbose) {
-            print "no EDDSA support in native PKCS#11\n";
-        }
-    } else {
-        if ($verbose) {
-            print "enabled Ed25519 support in native PKCS#11\n";
-        }
-        $configdefh{"HAVE_PKCS11_ED25519"} = 1;
-        if ($use_ed448 eq "no") {
-            if ($verbose) {
-                print "no Ed448 support in native PKCS#11\n";
-            }
-        } else {
-            if ($verbose) {
-                print "enabled Ed448 support in native PKCS#11\n";
-            }
-            $configdefh{"HAVE_PKCS11_ED448"} = 1;
-        }
-    }
 }
 
 # enable-fixed-rrset
@@ -1470,8 +1424,10 @@ if ($use_openssl eq "yes") {
 
 if ($cryptolib eq "openssl") {
     $configdefh{"USE_OPENSSL"} = 1;
+    $configtest{"CRYPTO"} = "OpenSSL";
 } else {
     $configdefh{"USE_PKCS11"} = 1;
+    $configtest{"CRYPTO"} = "pkcs11";
 }
 
 # check OpenSSL
@@ -1587,15 +1543,9 @@ EOF
     }
 }
 
-# check FIPS_mode
-
-# with-eddsa
-if ($use_openssl eq "no") {
-    $use_eddsa = "no";
-}
-if ($use_eddsa eq "auto") {
+if ($use_openssl eq "yes") {
     if ($verbose) {
-        print "checking for OpenSSL ED25519 support\n";
+        print "checking for OpenSSL Ed25519 support\n";
     }
     open F, ">tested25519.c" || die $!;
     print F << 'EOF';
@@ -1619,31 +1569,24 @@ EOF
     $compret = `cl /nologo /MD /I "$include" tested25519.c "$library"`;
     if (grep { -f and -x } ".\\tested25519.exe") {
         `.\\tested25519.exe`;
-        if ($? != 0) {
+        if ($? == 0) {
+            $configdefh{"HAVE_OPENSSL_ED25519"} = 1;
+        } else {
             if ($verbose) {
-                print "EDDSA test failed: disabling EDDSA\n";
+                print "Ed25519 test failed: disabling Ed25519\n";
             }
-            $use_eddsa = "no";
         }
     } else {
         if ($verbose) {
-            print "can't compile EDDSA test: $compret\n";
-            print "disabling EDDSA\n";
+            print "can't compile Ed25519 test: $compret\n";
+            print "disabling Ed25519\n";
         }
-    $use_eddsa = "no";
     }
 }
 
-if ($use_eddsa ne "no") {
-    $use_eddsa = "yes";
-    $configdefh{"HAVE_OPENSSL_ED25519"} = 1;
-} else {
-    $use_ed448 = "no";
-}
-
-if ($use_ed448 eq "auto") {
+if ($use_openssl eq "yes") {
     if ($verbose) {
-        print "checking for OpenSSL ED448 support\n";
+        print "checking for OpenSSL Ed448 support\n";
     }
     open F, ">tested448.c" || die $!;
     print F << 'EOF';
@@ -1667,24 +1610,19 @@ EOF
     $compret = `cl /nologo /MD /I "$include" tested448.c "$library"`;
     if (grep { -f and -x } ".\\tested448.exe") {
         `.\\tested448.exe`;
-        if ($? != 0) {
+        if ($? == 0) {
+            $configdefh{"HAVE_OPENSSL_ED448"} = 1;
+        } else {
             if ($verbose) {
-                print "ED448 test failed: disabling ED448\n";
+                print "Ed448 test failed: disabling Ed448\n";
             }
-            $use_ed448 = "no";
         }
     } else {
         if ($verbose) {
-            print "can't compile ED448 test: $compret\n";
-            print "disabling ED448\n";
+            print "can't compile Ed448 test: $compret\n";
+            print "disabling Ed448\n";
         }
-    $use_ed448 = "no";
     }
-}
-
-if ($use_ed448 ne "no") {
-    $use_ed448 = "yes";
-    $configdefh{"HAVE_OPENSSL_ED448"} = 1;
 }
 
 # with-aes
@@ -2928,8 +2866,6 @@ exit 0;
 #  --with-python supported
 #  --with-openssl supported
 #  --with-pkcs11 supported
-#  --with-ecdsa supported
-#  --with-eddsa supported
 #  --with-aes supported
 #  --with-randomdev not supported on WIN32 (makes no sense)
 #  --with-geoip2 supported

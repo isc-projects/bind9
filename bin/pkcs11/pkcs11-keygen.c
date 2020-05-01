@@ -70,22 +70,25 @@
 #include <pk11/constants.h>
 #include <pk11/pk11.h>
 #include <pk11/result.h>
-#include <pkcs11/eddsa.h>
 
 /* Define static key template values */
 static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
 
+/* Static arrays of data used for key template initialization */
+static CK_BYTE pk11_ecc_prime256v1[] = PK11_ECC_PRIME256V1;
+static CK_BYTE pk11_ecc_secp384r1[] = PK11_ECC_SECP384R1;
+static CK_BYTE pk11_ecx_ed25519[] = PK11_ECX_ED25519;
+static CK_BYTE pk11_ecx_ed448[] = PK11_ECX_ED448;
+
 /* Key class: RSA, ECC, ECX, or unknown */
 typedef enum { key_unknown, key_rsa, key_ecc, key_ecx } key_class_t;
 
 /*
- * Private key template: usable for most key classes without
- * modificaton; override CKA_SIGN with CKA_DERIVE for DH
+ * Private key template
  */
 #define PRIVATE_LABEL	    0
 #define PRIVATE_SIGN	    1
-#define PRIVATE_DERIVE	    1
 #define PRIVATE_TOKEN	    2
 #define PRIVATE_PRIVATE	    3
 #define PRIVATE_SENSITIVE   4
@@ -331,10 +334,6 @@ main(int argc, char *argv[]) {
 
 		break;
 	case key_ecx:
-#ifndef CKM_EDDSA_KEY_PAIR_GEN
-		fprintf(stderr, "CKM_EDDSA_KEY_PAIR_GEN is not defined\n");
-		usage();
-#else /* ifndef CKM_EDDSA_KEY_PAIR_GEN */
 		op_type = OP_EDDSA;
 		if (bits == 0) {
 			bits = 256;
@@ -344,7 +343,7 @@ main(int argc, char *argv[]) {
 			exit(2);
 		}
 
-		mech.mechanism = CKM_EDDSA_KEY_PAIR_GEN;
+		mech.mechanism = CKM_EC_EDWARDS_KEY_PAIR_GEN;
 		mech.pParameter = NULL;
 		mech.ulParameterLen = 0;
 
@@ -353,15 +352,14 @@ main(int argc, char *argv[]) {
 		id_offset = ECC_ID;
 
 		if (bits == 256) {
-			public_template[4].pValue = pk11_ecc_ed25519;
+			public_template[4].pValue = pk11_ecx_ed25519;
 			public_template[4].ulValueLen =
-				sizeof(pk11_ecc_ed25519);
+				sizeof(pk11_ecx_ed25519);
 		} else {
-			public_template[4].pValue = pk11_ecc_ed448;
-			public_template[4].ulValueLen = sizeof(pk11_ecc_ed448);
+			public_template[4].pValue = pk11_ecx_ed448;
+			public_template[4].ulValueLen = sizeof(pk11_ecx_ed448);
 		}
 
-#endif /* ifndef CKM_EDDSA_KEY_PAIR_GEN */
 		break;
 	case key_unknown:
 		usage();

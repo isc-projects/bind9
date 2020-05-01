@@ -122,6 +122,7 @@ HAVEXMLSTATS=@XMLSTATS@
 HAVEJSONSTATS=@JSONSTATS@
 HAVEZLIB=@ZLIB@
 NZD=@NZD_TOOLS@
+CRYPTO=@CRYPTO@
 
 # The rest is shared between Windows and Unices
 . $TOP/bin/tests/system/conf.sh.common

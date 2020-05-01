@@ -228,12 +228,8 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA512]));
 	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
 	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
-#ifdef HAVE_PKCS11_ED25519
 	RETERR(dst__pkcs11eddsa_init(&dst_t_func[DST_ALG_ED25519]));
-#endif /* ifdef HAVE_PKCS11_ED25519 */
-#ifdef HAVE_PKCS11_ED448
 	RETERR(dst__pkcs11eddsa_init(&dst_t_func[DST_ALG_ED448]));
-#endif /* ifdef HAVE_PKCS11_ED448 */
 #endif /* USE_PKCS11 */
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
