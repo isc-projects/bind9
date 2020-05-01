@@ -124,7 +124,7 @@ start_servers() {
         $PERL start.pl --restart --port "$PORT" "$systest" || start_servers_failed
     else
         restart=true
-        $PERL start.pl --port "$PORT" "$systest" || start_fail
+        $PERL start.pl --port "$PORT" "$systest" || start_servers_failed
     fi
 }
 
