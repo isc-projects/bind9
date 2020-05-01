@@ -31,6 +31,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -62,6 +63,7 @@ static isc_logcategory_t categories[] = {
 static void
 cleanup() {
 	if (lctx != NULL) {
+		isc_log_setcontext(NULL);
 		isc_log_destroy(&lctx);
 	}
 	if (mctx != NULL) {
@@ -100,6 +102,92 @@ setup() {
 	return (result);
 }
 
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = setup();
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	cleanup();
+
+	return (0);
+}
+
+/* mimic calling nzf_append() */
+static void
+append(void *arg, const char *str, int len) {
+	char *buf = arg;
+	size_t l = strlen(buf);
+	snprintf(buf + l, 1024 - l, "%.*s", len, str);
+}
+
+static void
+addzoneconf(void **state) {
+	isc_result_t result;
+	isc_buffer_t b;
+	cfg_parser_t *p = NULL;
+	const char *tests[] = {
+		"zone \"test4.baz\" { type master; file \"e.db\"; };",
+		"zone \"test/.baz\" { type master; file \"e.db\"; };",
+		"zone \"test\\\".baz\" { type master; file \"e.db\"; };",
+		"zone \"test\\.baz\" { type master; file \"e.db\"; };",
+		"zone \"test\\\\.baz\" { type master; file \"e.db\"; };",
+		"zone \"test\\032.baz\" { type master; file \"e.db\"; };",
+		"zone \"test\\010.baz\" { type master; file \"e.db\"; };"
+	};
+	char buf[1024];
+
+	UNUSED(state);
+
+	/* Parse with default line numbering */
+	result = cfg_parser_create(mctx, lctx, &p);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+#define ARRAYSIZE(x) (sizeof(x) / sizeof(x[0]))
+
+	for (size_t i = 0; i < ARRAYSIZE(tests); i++) {
+		cfg_obj_t *conf = NULL;
+		const cfg_obj_t *obj = NULL, *zlist = NULL;
+
+		isc_buffer_constinit(&b, tests[i], strlen(tests[i]));
+		isc_buffer_add(&b, strlen(tests[i]));
+
+		result = cfg_parse_buffer3(p, &b, "text1", 0,
+					   &cfg_type_namedconf, &conf);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		/*
+		 * Mimic calling nzf_append() from bin/named/server.c
+		 * and check that the output matches the input.
+		 */
+		result = cfg_map_get(conf, "zone", &zlist);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		obj = cfg_listelt_value(cfg_list_first(zlist));
+		assert_ptr_not_equal(obj, NULL);
+
+		strlcpy(buf, "zone ", sizeof(buf));
+		cfg_printx(obj, CFG_PRINTER_ONELINE, append, buf);
+		strlcat(buf, ";", sizeof(buf));
+		assert_string_equal(tests[i], buf);
+
+		cfg_obj_destroy(p, &conf);
+		cfg_parser_reset(p);
+	}
+
+	cfg_parser_destroy(&p);
+}
+
 /* test cfg_parse_buffer() */
 static void
 parse_buffer_test(void **state) {
@@ -110,8 +198,6 @@ parse_buffer_test(void **state) {
 	cfg_obj_t *c1 = NULL, *c2 = NULL;
 
 	UNUSED(state);
-
-	setup();
 
 	isc_buffer_init(&buf1, &text[0], sizeof(text) - 1);
 	isc_buffer_add(&buf1, sizeof(text) - 1);
@@ -142,8 +228,6 @@ parse_buffer_test(void **state) {
 
 	cfg_parser_destroy(&p1);
 	cfg_parser_destroy(&p2);
-
-	cleanup();
 }
 
 /* test cfg_map_firstclause() */
@@ -189,12 +273,13 @@ cfg_map_nextclause_test(void **state) {
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(addzoneconf),
 		cmocka_unit_test(parse_buffer_test),
 		cmocka_unit_test(cfg_map_firstclause_test),
 		cmocka_unit_test(cfg_map_nextclause_test),
 	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	return (cmocka_run_group_tests(tests, _setup, _teardown));
 }
 
 #else /* HAVE_CMOCKA */

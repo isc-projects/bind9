@@ -1216,7 +1216,12 @@ cfg_print_ustring(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 static void
 print_qstring(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_cstr(pctx, "\"");
-	cfg_print_ustring(pctx, obj);
+	for (size_t i = 0; i < obj->value.string.length; i++) {
+		if (obj->value.string.base[i] == '"') {
+			cfg_print_cstr(pctx, "\\");
+		}
+		cfg_print_chars(pctx, &obj->value.string.base[i], 1);
+	}
 	cfg_print_cstr(pctx, "\"");
 }
 
