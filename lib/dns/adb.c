@@ -404,14 +404,13 @@ static void log_quota(dns_adbentry_t *entry, const char *fmt, ...)
  */
 #define FIND_WANTEVENT(fn)      (((fn)->options & DNS_ADBFIND_WANTEVENT) != 0)
 #define FIND_WANTEMPTYEVENT(fn) (((fn)->options & DNS_ADBFIND_EMPTYEVENT) != 0)
-#define FIND_AVOIDFETCHES(fn)   (((fn)->options & DNS_ADBFIND_AVOIDFETCHES) \
-				 != 0)
-#define FIND_STARTATZONE(fn)    (((fn)->options & DNS_ADBFIND_STARTATZONE) \
-				 != 0)
-#define FIND_HINTOK(fn)         (((fn)->options & DNS_ADBFIND_HINTOK) != 0)
-#define FIND_GLUEOK(fn)         (((fn)->options & DNS_ADBFIND_GLUEOK) != 0)
-#define FIND_HAS_ADDRS(fn)      (!ISC_LIST_EMPTY((fn)->list))
-#define FIND_RETURNLAME(fn)     (((fn)->options & DNS_ADBFIND_RETURNLAME) != 0)
+#define FIND_AVOIDFETCHES(fn)	(((fn)->options & DNS_ADBFIND_AVOIDFETCHES) != 0)
+#define FIND_STARTATZONE(fn)	(((fn)->options & DNS_ADBFIND_STARTATZONE) != 0)
+#define FIND_HINTOK(fn)		(((fn)->options & DNS_ADBFIND_HINTOK) != 0)
+#define FIND_GLUEOK(fn)		(((fn)->options & DNS_ADBFIND_GLUEOK) != 0)
+#define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
+#define FIND_RETURNLAME(fn)	(((fn)->options & DNS_ADBFIND_RETURNLAME) != 0)
+#define FIND_NOFETCH(fn)	(((fn)->options & DNS_ADBFIND_NOFETCH) != 0)
 
 /*
  * These are currently used on simple unsigned ints, so they are
@@ -3155,21 +3154,26 @@ dns_adb_createfind2(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Listen to negative cache hints, and don't start
 		 * another query.
 		 */
-		if (NCACHE_RESULT(result) || AUTH_NX(result))
+		if (NCACHE_RESULT(result) || AUTH_NX(result)) {
 			goto fetch;
+		}
 
-		if (!NAME_FETCH_V6(adbname))
+		if (!NAME_FETCH_V6(adbname)) {
 			wanted_fetches |= DNS_ADBFIND_INET6;
+		}
 	}
 
  fetch:
 	if ((WANT_INET(wanted_addresses) && NAME_HAS_V4(adbname)) ||
 	    (WANT_INET6(wanted_addresses) && NAME_HAS_V6(adbname)))
+	{
 		have_address = true;
-	else
+	} else {
 		have_address = false;
-	if (wanted_fetches != 0 &&
-	    ! (FIND_AVOIDFETCHES(find) && have_address)) {
+	}
+	if (wanted_fetches != 0 && !(FIND_AVOIDFETCHES(find) && have_address) &&
+	    !FIND_NOFETCH(find))
+	{
 		/*
 		 * We're missing at least one address family.  Either the
 		 * caller hasn't instructed us to avoid fetches, or we don't
@@ -3177,8 +3181,9 @@ dns_adb_createfind2(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * be acceptable so we have to launch fetches.
 		 */
 
-		if (FIND_STARTATZONE(find))
+		if (FIND_STARTATZONE(find)) {
 			start_at_zone = true;
+		}
 
 		/*
 		 * Start V4.
