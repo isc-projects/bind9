@@ -144,7 +144,7 @@ status=`expr $status + $ret`
 
 echo_i "stop and restart slave"
 $PERL $SYSTEMTESTTOP/stop.pl unknown ns2
-start --noclean --restart --port ${PORT} unknown ns2
+start_server --noclean --restart --port ${PORT} unknown ns2
 
 # server may be answering queries before zones are loaded,
 # so retry a few times if this query fails
@@ -168,7 +168,7 @@ status=`expr $status + $ret`
 
 echo_i "stop and restart inline slave"
 $PERL $SYSTEMTESTTOP/stop.pl unknown ns3
-start --noclean --restart --port ${PORT} unknown ns3
+start_server --noclean --restart --port ${PORT} unknown ns3
 
 # server may be answering queries before zones are loaded,
 # so retry a few times if this query fails

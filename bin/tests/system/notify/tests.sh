@@ -140,12 +140,12 @@ digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 status=`expr $ret + $status`
 
 echo_i "stopping master and restarting with example4 then waiting up to 45 seconds"
-stop notify ns2
+stop_server notify ns2
 
 rm -f ns2/example.db
 cp -f ns2/example4.db ns2/example.db
 
-start --noclean --restart --port ${PORT} notify ns2
+start_server --noclean --restart --port ${PORT} notify ns2
 
 try=0
 while test $try -lt 45

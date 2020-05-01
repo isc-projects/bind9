@@ -80,7 +80,7 @@ stomp () {
 
 restart () {
     sleep 1
-    start --noclean --restart --port "${PORT}" masterformat ns3
+    start_server --noclean --restart_server --port "${PORT}" masterformat ns3
 }
 
 dig_with_opts() {

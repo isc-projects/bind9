@@ -250,7 +250,7 @@ fi
 
 echo_i "Re-starting slave"
 
-start --noclean --port ${PORT} rrsetorder ns2
+start_server --noclean --port ${PORT} rrsetorder ns2
 
 #
 #

@@ -447,7 +447,7 @@ tmp=0
 $DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.1.test$n
 grep "status: NOERROR," dig.out.1.test$n > /dev/null || tmp=1
 $PERL $SYSTEMTESTTOP/stop.pl xfer ns3
-start --noclean --restart --port ${PORT} xfer ns3
+start_server --noclean --restart --port ${PORT} xfer ns3
 check_mapped () {
 	$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.2.test$n
 	grep "status: NOERROR," dig.out.2.test$n > /dev/null || return 1

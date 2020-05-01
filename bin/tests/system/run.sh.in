@@ -26,7 +26,7 @@ export builddir
 export srcdir
 
 date_with_args() (
-    date -R
+    date "+%Y-%m-%dT%T%z"
 )
 
 stopservers=true
