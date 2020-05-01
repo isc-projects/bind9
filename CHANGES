@@ -5,6 +5,9 @@
 5397.	[func]		Update PKCS#11 EdDSA implementation to PKCS#11 v3.0.
 			Thanks to Aaron Thompson. [GL !3326]
 
+5396.	[func]		Use UV_UDP_RECVMMSG flag to enable recvmmsg support in
+			libuv >= 1.37. [GL #1797]
+
 5394.	[cleanup]	Don't change effective uid/gid in named_os_openfile()
 			if named is already running under specified uid/gid.
 			[GL #1042] [GL #1090]

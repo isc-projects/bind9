@@ -996,7 +996,7 @@ isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf) {
 	if (buf->base > worker->recvbuf &&
 	    buf->base <= worker->recvbuf + ISC_NETMGR_RECVBUF_SIZE)
 	{
-		/* Can happen in case of recvmmsg */
+		/* Can happen in case of out-of-order recvmmsg in libuv1.36 */
 		return;
 	}
 	REQUIRE(buf->base == worker->recvbuf);
