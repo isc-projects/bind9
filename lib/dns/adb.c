@@ -414,6 +414,7 @@ static void log_quota(dns_adbentry_t *entry, const char *fmt, ...)
 #define FIND_GLUEOK(fn)         (((fn)->options & DNS_ADBFIND_GLUEOK) != 0)
 #define FIND_HAS_ADDRS(fn)      (!ISC_LIST_EMPTY((fn)->list))
 #define FIND_RETURNLAME(fn)     (((fn)->options & DNS_ADBFIND_RETURNLAME) != 0)
+#define FIND_NOFETCH(fn)	(((fn)->options & DNS_ADBFIND_NOFETCH) != 0)
 
 /*
  * These are currently used on simple unsigned ints, so they are
@@ -3117,11 +3118,14 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  fetch:
 	if ((WANT_INET(wanted_addresses) && NAME_HAS_V4(adbname)) ||
 	    (WANT_INET6(wanted_addresses) && NAME_HAS_V6(adbname)))
+	{
 		have_address = true;
-	else
+	} else {
 		have_address = false;
-	if (wanted_fetches != 0 &&
-	    ! (FIND_AVOIDFETCHES(find) && have_address)) {
+	}
+	if (wanted_fetches != 0 && !(FIND_AVOIDFETCHES(find) && have_address) &&
+	    !FIND_NOFETCH(find))
+	{
 		/*
 		 * We're missing at least one address family.  Either the
 		 * caller hasn't instructed us to avoid fetches, or we don't
