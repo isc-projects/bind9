@@ -192,6 +192,18 @@ digcomp() {
     return $result
 }
 
+start_server() {
+    $PERL "$TOP_SRCDIR/bin/tests/system/start.pl" "$@"
+}
+
+stop_server() {
+    $PERL "$TOP_SRCDIR/bin/tests/system/stop.pl" "$@"
+}
+
+send() {
+    $PERL "$TOP_SRCDIR/bin/tests/system/send.pl" "$@"
+}
+
 #
 # Useful variables in test scripts
 #
