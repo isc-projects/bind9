@@ -273,21 +273,13 @@ typedef isc_event_t intev_t;
 #endif /* ifndef USE_CMSG */
 #endif /* ifdef SO_TIMESTAMP */
 
-/*%
- * The size to raise the receive buffer to (from BIND 8).
- */
-#ifdef TUNE_LARGE
-#ifdef sun
-#define RCVBUFSIZE (1 * 1024 * 1024)
-#define SNDBUFSIZE (1 * 1024 * 1024)
-#else /* ifdef sun */
-#define RCVBUFSIZE (16 * 1024 * 1024)
-#define SNDBUFSIZE (16 * 1024 * 1024)
-#endif /* ifdef sun */
-#else  /* ifdef TUNE_LARGE */
-#define RCVBUFSIZE (32 * 1024)
-#define SNDBUFSIZE (32 * 1024)
-#endif /* TUNE_LARGE */
+#if defined(SO_RCVBUF) && defined(ISC_RECV_BUFFER_SIZE)
+#define SET_RCVBUF
+#endif
+
+#if defined(SO_SNDBUF) && defined(ISC_SEND_BUFFER_SIZE)
+#define SET_SNDBUF
+#endif
 
 /*%
  * Instead of calculating the cmsgbuf lengths every time we take
@@ -1944,9 +1936,9 @@ free_socket(isc__socket_t **socketp) {
 	isc_mem_put(sock->manager->mctx, sock, sizeof(*sock));
 }
 
-#ifdef SO_RCVBUF
+#if defined(SET_RCVBUF)
 static isc_once_t rcvbuf_once = ISC_ONCE_INIT;
-static int rcvbuf = RCVBUFSIZE;
+static int rcvbuf = ISC_RECV_BUFFER_SIZE;
 
 static void
 set_rcvbuf(void) {
@@ -2002,9 +1994,9 @@ cleanup:
 }
 #endif /* ifdef SO_RCVBUF */
 
-#ifdef SO_SNDBUF
+#if defined(SET_SNDBUF)
 static isc_once_t sndbuf_once = ISC_ONCE_INIT;
-static int sndbuf = SNDBUFSIZE;
+static int sndbuf = ISC_SEND_BUFFER_SIZE;
 
 static void
 set_sndbuf(void) {
@@ -2107,10 +2099,10 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 #if defined(USE_CMSG) || defined(SO_NOSIGPIPE)
 	int on = 1;
 #endif /* if defined(USE_CMSG) || defined(SO_NOSIGPIPE) */
-#if defined(SO_RCVBUF) || defined(SO_SNDBUF)
+#if defined(SET_RCVBUF) || defined(SET_SNDBUF)
 	socklen_t optlen;
 	int size = 0;
-#endif /* if defined(SO_RCVBUF) || defined(SO_SNDBUF) */
+#endif
 
 again:
 	if (dup_socket == NULL) {
@@ -2273,7 +2265,7 @@ again:
 		set_tcp_maxseg(sock, 1280 - 20 - 40); /* 1280 - TCP - IPV6 */
 	}
 
-#if defined(USE_CMSG) || defined(SO_RCVBUF) || defined(SO_SNDBUF)
+#if defined(USE_CMSG) || defined(SET_RCVBUF) || defined(SET_SNDBUF)
 	if (sock->type == isc_sockettype_udp) {
 #if defined(USE_CMSG)
 #if defined(SO_TIMESTAMP)
@@ -2362,7 +2354,7 @@ again:
 		}
 #endif /* if defined(IP_DONTFRAG) */
 
-#if defined(SO_RCVBUF)
+#if defined(SET_RCVBUF)
 		optlen = sizeof(size);
 		if (getsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF, (void *)&size,
 			       &optlen) == 0 &&
@@ -2380,9 +2372,9 @@ again:
 						 sock->fd, rcvbuf, strbuf);
 			}
 		}
-#endif /* if defined(SO_RCVBUF) */
+#endif /* if defined(SET_RCVBUF) */
 
-#if defined(SO_SNDBUF)
+#if defined(SET_SNDBUF)
 		optlen = sizeof(size);
 		if (getsockopt(sock->fd, SOL_SOCKET, SO_SNDBUF, (void *)&size,
 			       &optlen) == 0 &&
@@ -2426,7 +2418,7 @@ again:
 				 sock->fd, strbuf);
 	}
 #endif /* ifdef IP_RECVTOS */
-#endif /* defined(USE_CMSG) || defined(SO_RCVBUF) || defined(SO_SNDBUF) */
+#endif /* defined(USE_CMSG) || defined(SET_RCVBUF) || defined(SET_SNDBUF) */
 
 setup_done:
 	inc_stats(manager->stats, sock->statsindex[STATID_OPEN]);
