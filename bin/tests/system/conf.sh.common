@@ -192,11 +192,11 @@ digcomp() {
     return $result
 }
 
-start() {
+start_server() {
     $PERL "$TOP_SRCDIR/bin/tests/system/start.pl" "$@"
 }
 
-stop() {
+stop_server() {
     $PERL "$TOP_SRCDIR/bin/tests/system/stop.pl" "$@"
 }
 

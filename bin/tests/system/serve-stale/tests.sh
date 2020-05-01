@@ -1055,7 +1055,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "start ns4"
-start --noclean --restart --port ${PORT} serve-stale ns4
+start_server --noclean --restart --port ${PORT} serve-stale ns4
 
 n=$((n+1))
 echo_i "verify ancient cache statistics (serve-stale disabled) ($n)"
