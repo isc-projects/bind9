@@ -248,7 +248,7 @@ setup step3.enable-dnssec.autosign
 # Introduce the first key. This will immediately be active.
 setup step1.zsk-prepub.autosign
 TactN="now"
-ksktimes="-P ${TactN} -A ${TactN}"
+ksktimes="-P ${TactN} -A ${TactN} -P sync ${TactN}"
 zsktimes="-P ${TactN} -A ${TactN}"
 KSK=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsktimes $zone 2> keygen.out.$zone.2)
@@ -262,12 +262,31 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # Step 2:
 # It is time to pre-publish the successor ZSK.
 setup step2.zsk-prepub.autosign
-# According to RFC 7583: Tpub(N+1) <= Tact(N) + Lzsk - Ipub
-# Also: Ipub = Dprp + TTLkey (+publish-safety)
-# so:   Tact(N) = Tpub(N+1) + Ipub - Lzsk = now + (1d2h) - 30d =
-#       now + 26h - 30d = now − 694h
+# According to RFC 7583:
+# Tpub(N+1) <= Tact(N) + Lzsk - Ipub
+# Ipub = Dprp + TTLkey (+publish-safety)
+#
+#                 |3|   |4|      |5|  |6|
+#                  |     |        |    |
+#   Key N          |<-------Lzsk------>|
+#                  |     |        |    |
+#   Key N+1        |     |<-Ipub->|<-->|
+#                  |     |        |    |
+#   Key N         Tact
+#   Key N+1             Tpub     Trdy Tact
+#
+#                       Tnow
+#
+# Lzsk:           30d
+# Dprp:           1h
+# TTLkey:         1h
+# publish-safety: 1d
+# Ipub:           26h
+#
+# Tact(N) = Tnow + Ipub - Lzsk = now + 26h - 30d
+#         = now + 26h - 30d = now − 694h
 TactN="now-694h"
-ksktimes="-P ${TactN} -A ${TactN}"
+ksktimes="-P ${TactN} -A ${TactN} -P sync ${TactN}"
 zsktimes="-P ${TactN} -A ${TactN}"
 KSK=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsktimes $zone 2> keygen.out.$zone.2)
@@ -282,17 +301,49 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # After the publication interval has passed the DNSKEY of the successor ZSK
 # is OMNIPRESENT and the zone can thus be signed with the successor ZSK.
 setup step3.zsk-prepub.autosign
-# According to RFC 7583: Tpub(N+1) <= Tact(N) + Lzsk - Ipub
-# Also: Tret(N) = Tact(N+1) = Tact(N) + Lzsk
-# so:   Tact(N) = Tact(N+1) - Lzsk = now - 30d
-# and:  Tpub(N+1) = Tact(N+1) - Ipub = now - 26h
-# and:  Tret(N+1) = Tact(N+1) + Lzsk
+# According to RFC 7583:
+#
+# Tpub(N+1) <= Tact(N) + Lzsk - Ipub
+# Tret(N) = Tact(N+1) = Tact(N) + Lzsk
+# Trem(N) = Tret(N) + Iret
+# Iret = Dsgn + Dprp + TTLsig (+retire-safety)
+#
+#                 |3|   |4|      |5|  |6|      |7|   |8|
+#                  |     |        |    |        |     |
+#   Key N          |<-------Lzsk------>|<-Iret->|<--->|
+#                  |     |        |    |        |     |
+#   Key N+1        |     |<-Ipub->|<-->|<---Lzsk---- - -
+#                  |     |        |    |        |     |
+#   Key N         Tact                Tret     Tdea  Trem
+#   Key N+1             Tpub     Trdy Tact
+#
+#                                     Tnow
+#
+# Lzsk:          30d
+# Ipub:          26h
+# Dsgn:          1w
+# Dprp:          1h
+# TTLsig:        1d
+# retire-safety: 2d
+# Iret:          10d1h = 241h
+#
+# Tact(N)   = Tnow - Lzsk = now - 30d
+# Tret(N)   = now
+# Trem(N)   = Tnow + Iret = now + 241h
+# Tpub(N+1) = Tnow - Ipub = now - 26h
+# Tret(N+1) = Tnow + Lzsk = now + 30d
+# Trem(N+1) = Tnow + Lzsk + Iret = now + 30d + 241h
+#           = now + 961h
 TactN="now-30d"
+TretN="now"
+TremN="now+241h"
 TpubN1="now-26h"
+TactN1="now"
 TretN1="now+30d"
-ksktimes="-P ${TactN}  -A ${TactN}"
-zsktimes="-P ${TactN}  -A ${TactN} -I now"
-newtimes="-P ${TpubN1} -A now -I ${TretN1}"
+TremN1="now+961h"
+ksktimes="-P ${TactN}  -A ${TactN}  -P sync ${TactN}"
+zsktimes="-P ${TactN}  -A ${TactN}  -I ${TretN}  -D ${TremN}"
+newtimes="-P ${TpubN1} -A ${TactN1} -I ${TretN1} -D ${TremN1}"
 KSK=$($KEYGEN  -a ECDSAP256SHA256 -L 3600 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsktimes $zone 2> keygen.out.$zone.2)
 ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $newtimes $zone 2> keygen.out.$zone.3)
@@ -312,25 +363,48 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # After the retire interval has passed the predecessor DNSKEY can be
 # removed from the zone.
 setup step4.zsk-prepub.autosign
-# According to RFC 7583: Tret(N) = Tact(N) + Lzsk
-# Also: Tdea(N) = Tret(N) + Iret
-# Also: Iret = Dsgn + Dprp + TTLsig (+retire-safety)
-# so:   Tact(N) = Tdea(N) - Iret - Lzsk = now - (1w1h1d2d) - 30d =
-#       now - (10d1h) - 30d = now - 961h
-# and:  Tret(N) = Tdea(N) - Iret = now - (10d1h) = now - 241h
-# and:  Tpub(N+1) = Tdea(N) - Iret - Ipub = now - (10d1h) - 26h =
-#       now - 267h
-# and:  Tact(N+1) = Tdea(N) - Iret = Tret(N)
-# and:  Tret(N+1) = Tdea(N) - Iret + Lzsk = now - (10d1h) + 30d =
-#       now + 479h
+# According to RFC 7583:
+# Tret(N) = Tact(N) + Lzsk
+# Tdea(N) = Tret(N) + Iret
+#
+#                 |3|   |4|      |5|  |6|      |7|   |8|
+#                  |     |        |    |        |     |
+#   Key N          |<-------Lzsk------>|<-Iret->|<--->|
+#                  |     |        |    |        |     |
+#   Key N+1        |     |<-Ipub->|<-->|<---Lzsk---- - -
+#                  |     |        |    |        |     |
+#   Key N         Tact                Tret     Tdea  Trem
+#   Key N+1             Tpub     Trdy Tact
+#
+#                                                    Tnow
+#
+# Lzsk: 30d
+# Ipub: 26h
+# Iret: 241h
+#
+# Tact(N)   = Tnow - Iret - Lzsk
+#           = now - 241h - 30d = now - 241h - 720h
+#           = now - 961h
+# Tret(N)   = Tnow - Iret = now - 241h
+# Trem(N)   = Tnow
+# Tpub(N+1) = Tnow - Iret - Ipub
+#           = now - 241h - 26h
+#           = now - 267h
+# Tact(N+1) = Tnow - Iret = Tret(N)
+# Tret(N+1) = Tnow - Iret + Lzsk
+#           = now - 241h + 30d = now - 241h + 720h
+#           = now + 479h
+# Trem(N+1) = Tnow + Lzsk = now + 30d
 TactN="now-961h"
 TretN="now-241h"
+TremN="now"
 TpubN1="now-267h"
 TactN1="${TretN}"
 TretN1="now+479h"
-ksktimes="-P ${TactN}  -A ${TactN}"
-zsktimes="-P ${TactN}  -A ${TactN}  -I ${TretN}"
-newtimes="-P ${TpubN1} -A ${TactN1} -I ${TretN1}"
+TremN1="now+30d"
+ksktimes="-P ${TactN}  -A ${TactN}  -P sync ${TactN}"
+zsktimes="-P ${TactN}  -A ${TactN}  -I ${TretN}  -D ${TremN}"
+newtimes="-P ${TpubN1} -A ${TactN1} -I ${TretN1} -D ${TremN1}"
 KSK=$($KEYGEN  -a ECDSAP256SHA256 -L 3600 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsktimes $zone 2> keygen.out.$zone.2)
 ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $newtimes $zone 2> keygen.out.$zone.3)
@@ -347,20 +421,31 @@ $SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O full -f $zonefile $infile > sign
 # The predecessor DNSKEY is removed long enough that is has become HIDDEN.
 setup step5.zsk-prepub.autosign
 # Subtract DNSKEY TTL from all the times (1h).
+# Tact(N)   = now - 961h - 1h = now - 962h
+# Tret(N)   = now - 241h - 1h = now - 242h
+# Tdea(N)   = now - 2d - 1h = now - 49h
+# Trem(N)   = now - 1h
+# Tpub(N+1) = now - 267h - 1h = now - 268h
+# Tact(N+1) = Tret(N)
+# Tret(N+1) = now + 479h - 1h = now + 478h
+# Trem(N+1) = now + 30d - 1h = now + 719h
 TactN="now-962h"
 TretN="now-242h"
+TremN="now-1h"
+TdeaN="now-49h"
 TpubN1="now-268h"
 TactN1="${TretN}"
 TretN1="now+478h"
-ksktimes="-P ${TactN}  -A ${TactN}"
-zsktimes="-P ${TactN}  -A ${TactN}  -I ${TretN}  -D now"
-newtimes="-P ${TpubN1} -A ${TactN1} -I ${TretN1}"
+TremN1="now+719h"
+ksktimes="-P ${TactN}  -A ${TactN}  -P sync ${TactN}"
+zsktimes="-P ${TactN}  -A ${TactN}  -I ${TretN}  -D ${TremN}"
+newtimes="-P ${TpubN1} -A ${TactN1} -I ${TretN1} -D ${TremN1}"
 KSK=$($KEYGEN  -a ECDSAP256SHA256  -L 3600 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a ECDSAP256SHA256  -L 3600        $zsktimes $zone 2> keygen.out.$zone.2)
 ZSK2=$($KEYGEN -a ECDSAP256SHA256  -L 3600        $newtimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $O -k $O $TactN  -r $O $TactN -d $O $TactN "$KSK"  > settime.out.$zone.1 2>&1
-$SETTIME -s -g $H -k $U $TretN  -z $U $TretN              "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -g $H -k $U $TdeaN  -z $H $TdeaN              "$ZSK1" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $O -k $O $TactN1 -z $O $TdeaN              "$ZSK2" > settime.out.$zone.3 2>&1
 # Set key rollover relationship.
 key_successor $ZSK1 $ZSK2
 # Sign zone.
