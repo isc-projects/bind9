@@ -19,7 +19,7 @@ rm -f ./*/named.run ./*/named.run.prev
 rm -f ./*/named.secroots
 rm -f ./*/tmp* ./*/*.jnl ./*/*.bk ./*/*.jbk
 rm -f ./*/trusted.conf ./*/managed.conf ./*/revoked.conf
-rm -f ./Kexample.*
+rm -f ./Kexample.* ./Kkeygen* ./keygen*.err
 rm -f ./canonical?.*
 rm -f ./delv.out*
 rm -f ./delve.out*

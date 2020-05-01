@@ -2,6 +2,9 @@
 			'rndc addzone' contained a double quote (") in
 			its name.  [GL #1695]
 
+5397.	[func]		Update PKCS#11 EdDSA implementation to PKCS#11 v3.0.
+			Thanks to Aaron Thompson. [GL !3326]
+
 5394.	[cleanup]	Don't change effective uid/gid in named_os_openfile()
 			if named is already running under specified uid/gid.
 			[GL #1042] [GL #1090]

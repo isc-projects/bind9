@@ -3220,6 +3220,7 @@ ret=0
 alg=1
 until test $alg -eq 256
 do
+    zone="keygen-$alg."
     case $alg in
 	2) # Diffie Helman
 	    alg=$((alg+1))
@@ -3228,21 +3229,21 @@ do
 	    alg=$((alg+1))
 	    continue;;
 	1|5|7|8|10) # RSA algorithms
-	    key1=$($KEYGEN -a "$alg" -b "1024" -n zone example 2> keygen.err || true)
+	    key1=$($KEYGEN -a "$alg" -b "1024" -n zone "$zone" 2> "keygen-$alg.err" || true)
 	    ;;
 	15|16)
-	    key1=$($KEYGEN -a "$alg" -b "1024" -n zone example 2> keygen.err || true)
+	    key1=$($KEYGEN -a "$alg" -n zone "$zone" 2> "keygen-$alg.err" || true)
 	    # Soft-fail	in case HSM doesn't support Edwards curves
-	    if grep "not found" keygen.err > /dev/null && [ "$CRYPTO" = "pkcs11" ]; then
+	    if grep "not found" "keygen-$alg.err" > /dev/null && [ "$CRYPTO" = "pkcs11" ]; then
 		echo_i "Algorithm $alg not supported by HSM: skipping"
 		alg=$((alg+1))
 		continue
 	    fi
 	    ;;
 	*)
-	    key1=$($KEYGEN -a "$alg" -n zone example 2> keygen.err || true)
+	    key1=$($KEYGEN -a "$alg" -n zone "$zone" 2> "keygen-$alg.err" || true)
     esac
-    if grep "unsupported algorithm" keygen.err > /dev/null
+    if grep "unsupported algorithm" "keygen-$alg.err" > /dev/null
     then
 	alg=$((alg+1))
 	continue
@@ -3250,7 +3251,7 @@ do
     if test -z "$key1"
     then
 	echo_i "'$KEYGEN -a $alg': failed"
-	cat keygen.err
+	cat "keygen-$alg.err"
 	ret=1
 	alg=$((alg+1))
 	continue
