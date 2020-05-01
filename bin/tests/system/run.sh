@@ -18,6 +18,10 @@ SYSTEMTESTTOP="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 export SYSTEMTESTTOP
 
+date_with_args() (
+    date "+%Y-%m-%dT%T%z"
+)
+
 stopservers=true
 baseport=5300
 
@@ -142,7 +146,7 @@ stop_servers() {
     fi
 }
 
-echostart "S:$systest:`date`"
+echostart "S:$systest:$(date_with_args)"
 echoinfo  "T:$systest:1:A"
 echoinfo  "A:$systest:System test $systest"
 echoinfo  "I:$systest:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
@@ -151,14 +155,14 @@ if [ x${PERL:+set} = x ]
 then
     echowarn "I:$systest:Perl not available.  Skipping test."
     echowarn "R:$systest:UNTESTED"
-    echoend  "E:$systest:`date $dateargs`"
+    echoend  "E:$systest:$(date_with_args)"
     exit 0;
 fi
 
 $PERL testsock.pl -p $PORT  || {
     echowarn "I:$systest:Network interface aliases not set up.  Skipping test."
     echowarn "R:$systest:UNTESTED"
-    echoend  "E:$systest:`date $dateargs`"
+    echoend  "E:$systest:$(date_with_args)"
     exit 0;
 }
 
@@ -171,7 +175,7 @@ if [ $result -eq 0 ]; then
 else
     echowarn "I:$systest:Prerequisites missing, skipping test."
     [ $result -eq 255 ] && echowarn "R:$systest:SKIPPED" || echowarn "R:$systest:UNTESTED"
-    echoend "E:$systest:`date $dateargs`"
+    echoend "E:$systest:$(date_with_args)"
     exit 0
 fi
 
@@ -183,7 +187,7 @@ then
 else
     echowarn "I:$systest:Need PKCS#11, skipping test."
     echowarn "R:$systest:PKCS11ONLY"
-    echoend  "E:$systest:`date $dateargs`"
+    echoend  "E:$systest:$(date_with_args)"
     exit 0
 fi
 
@@ -302,6 +306,6 @@ else
     fi
 fi
 
-echoend "E:$systest:`date $dateargs`"
+echoend "E:$systest:$(date_with_args)"
 
 exit $status
