@@ -89,6 +89,12 @@
           [GL #1674]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          BIND 9 no longer sets the recv and send buffer sizes for sockets, relying
+          on system defaults instead. [GL #1713]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
