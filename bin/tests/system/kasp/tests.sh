@@ -329,9 +329,9 @@ check_key() {
 	grep "; Created:" "$KEY_FILE" > "${ZONE}.${KEY_ID}.${_alg_num}.created" || log_error "mismatch created comment in $KEY_FILE"
 	KEY_CREATED=$(awk '{print $3}' < "${ZONE}.${KEY_ID}.${_alg_num}.created")
 
-	grep "Created: ${_created}" "$PRIVATE_FILE" > /dev/null || log_error "mismatch created in $PRIVATE_FILE"
+	grep "Created: ${KEY_CREATED}" "$PRIVATE_FILE" > /dev/null || log_error "mismatch created in $PRIVATE_FILE"
 	if [ "$_legacy" == "no" ]; then
-		grep "Generated: ${_created}" "$STATE_FILE" > /dev/null || log_error "mismatch generated in $STATE_FILE"
+		grep "Generated: ${KEY_CREATED}" "$STATE_FILE" > /dev/null || log_error "mismatch generated in $STATE_FILE"
 	fi
 
 	test $_log -eq 1 && echo_i "check key file $BASE_FILE"
@@ -2434,28 +2434,56 @@ check_next_key_event 3600
 set_zone "step1.zsk-prepub.autosign"
 set_policy "zsk-prepub" "2" "3600"
 set_server "ns3" "10.53.0.3"
+# Policy parameters.
+# Lksk:      2 years (63072000 seconds)
+# Lzsk:      30 days (2592000 seconds)
+# Iret(KSK): DS TTL (1d) + Dreg (1d) + DprpP (1h) + retire-safety (2d)
+# Iret(KSK): 4d1h (349200 seconds)
+# Iret(ZSK): 10d1h (867600 seconds).
+Lksk=63072000
+Lzsk=2592000
+IretKSK=349200
+IretZSK=867600
+
+set_retired_removed() {
+	_Lkey=$2
+	_Iret=$3
+
+	_active=$(key_get $1 ACTIVE)
+	set_addkeytime "${1}" "RETIRED" "${_active}"  "${_Lkey}"
+	_retired=$(key_get $1 RETIRED)
+	set_addkeytime "${1}" "REMOVED" "${_retired}" "${_Iret}"
+}
+
+zsk_prepub_predecessor_keytimes() {
+	_addtime=$1
+
+	_created=$(key_get KEY1 CREATED)
+	set_addkeytime      "KEY1" "PUBLISHED"   "${_created}" "${_addtime}"
+	set_addkeytime      "KEY1" "SYNCPUBLISH" "${_created}" "${_addtime}"
+	set_addkeytime      "KEY1" "ACTIVE"      "${_created}" "${_addtime}"
+	set_retired_removed "KEY1" "${Lksk}" "${IretKSK}"
+
+	_created=$(key_get KEY2 CREATED)
+	set_addkeytime      "KEY2" "PUBLISHED"   "${_created}" "${_addtime}"
+	set_addkeytime      "KEY2" "ACTIVE"      "${_created}" "${_addtime}"
+	set_retired_removed "KEY2" "${Lzsk}" "${IretZSK}"
+}
+
 # Key properties.
 key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
-set_keylifetime  "KEY1" "63072000"
+set_keylifetime  "KEY1" "${Lksk}"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "no"
 
 key_clear        "KEY2"
 set_keyrole      "KEY2" "zsk"
-set_keylifetime  "KEY2" "2592000"
+set_keylifetime  "KEY2" "${Lzsk}"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
-# Key timings.
-set_keytime  "KEY1" "PUBLISHED"    "yes"
-set_keytime  "KEY1" "ACTIVE"       "yes"
-set_keytime  "KEY1" "RETIRED"      "yes"
-
-set_keytime  "KEY2" "PUBLISHED"    "yes"
-set_keytime  "KEY2" "ACTIVE"       "yes"
-set_keytime  "KEY2" "RETIRED"      "yes"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
 set_keystate "KEY1" "GOAL"         "omnipresent"
 set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
@@ -2470,6 +2498,11 @@ key_clear "KEY3"
 key_clear "KEY4"
 
 check_keys
+
+# These keys are immediately published and activated.
+zsk_prepub_predecessor_keytimes 0
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2489,20 +2522,30 @@ set_server "ns3" "10.53.0.3"
 # New ZSK (KEY3) is prepublished, but not yet signing.
 key_clear        "KEY3"
 set_keyrole      "KEY3" "zsk"
-set_keylifetime  "KEY3" "2592000"
+set_keylifetime  "KEY3" "${Lzsk}"
 set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "no"
-# Key timings.
-set_keytime  "KEY3" "PUBLISHED" "yes"
-set_keytime  "KEY3" "ACTIVE"    "yes"
-set_keytime  "KEY3" "RETIRED"   "yes"
 # Key states.
-set_keystate "KEY3" "GOAL"   "omnipresent"
+set_keystate "KEY3" "GOAL"         "omnipresent"
 set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY3" "STATE_ZRRSIG" "hidden"
 
 check_keys
+
+# The old keys were activated 694 hours ago (2498400 seconds).
+zsk_prepub_predecessor_keytimes -2498400
+# The new ZSK is published now.
+created=$(key_get KEY3 CREATED)
+set_keytime "KEY3" "PUBLISHED" "${created}"
+# The new ZSK becomes active when the DNSKEY is OMNIPRESENT.
+# Ipub: TTLkey (1h) + Dprp (1h) + publish-safety (1d)
+# Ipub: 26 hour (93600 seconds).
+IpubZSK=93600
+set_addkeytime "KEY3" "ACTIVE" "${created}" "${IpubZSK}"
+set_retired_removed "KEY3" "${Lzsk}" "${IretZSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2528,6 +2571,16 @@ set_keystate     "KEY3" "STATE_DNSKEY" "omnipresent"
 set_keystate     "KEY3" "STATE_ZRRSIG" "rumoured"
 
 check_keys
+
+# The old keys are activated 30 days ago (2592000 seconds).
+zsk_prepub_predecessor_keytimes -2592000
+# The new ZSK is published 26 hours ago (93600 seconds).
+created=$(key_get KEY3 CREATED)
+set_addkeytime "KEY3" "PUBLISHED"   "${created}" -93600
+set_keytime    "KEY3" "ACTIVE"      "${created}"
+set_retired_removed "KEY3" "${Lzsk}" "${IretZSK}"
+check_keytimes
+
 check_apex
 # Subdomain still has good signatures of ZSK (KEY2).
 # Set expected zone signing on for KEY2 and off for KEY3,
@@ -2560,6 +2613,17 @@ set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
 set_keystate "KEY3" "STATE_ZRRSIG" "omnipresent"
 
 check_keys
+
+# The old keys are activated 961 hours ago (3459600 seconds).
+zsk_prepub_predecessor_keytimes -3459600
+# The new ZSK is published 267 hours ago (961200 seconds).
+created=$(key_get KEY3 CREATED)
+set_addkeytime "KEY3" "PUBLISHED"   "${created}"   -961200
+published=$(key_get KEY3 PUBLISHED)
+set_addkeytime "KEY3" "ACTIVE"      "${published}" "${IpubZSK}"
+set_retired_removed "KEY3" "${Lzsk}" "${IretZSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2575,12 +2639,21 @@ check_next_key_event 7200
 set_zone "step5.zsk-prepub.autosign"
 set_policy "zsk-prepub" "3" "3600"
 set_server "ns3" "10.53.0.3"
-# ZSK (KEY3) DNSKEY is now completely HIDDEN and removed.
-set_keytime  "KEY2" "REMOVED" "yes"
+# ZSK (KEY2) DNSKEY is now completely HIDDEN and removed.
 set_keystate "KEY2" "STATE_DNSKEY" "hidden"
 
-# ZSK (KEY3) remains actively signing, staying in OMNIPRESENT.
 check_keys
+
+# The old keys are activated 962 hours ago (3463200 seconds).
+zsk_prepub_predecessor_keytimes -3463200
+# The new ZSK is published 268 hours ago (964800 seconds).
+created=$(key_get KEY3 CREATED)
+set_addkeytime "KEY3" "PUBLISHED"   "${created}"   -964800
+published=$(key_get KEY3 PUBLISHED)
+set_addkeytime "KEY3" "ACTIVE"      "${published}" "${IpubZSK}"
+set_retired_removed "KEY3" "${Lzsk}" "${IretZSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
