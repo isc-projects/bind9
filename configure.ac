@@ -146,13 +146,10 @@ AX_CHECK_COMPILE_FLAG([-Werror -fno-delete-null-pointer-checks],
 AX_CHECK_COMPILE_FLAG([-fdiagnostics-show-option],
 		      [STD_CFLAGS="$STD_CFLAGS -fdiagnostics-show-option"])
 
-AC_ARG_ENABLE([warn_error],
-	      [AS_HELP_STRING([--enable-warn-error],
-			      [turn on -Werror when compiling])],
-	      [],[enable_warn_error=no])
-AS_IF([test "$enable_warn_error" = "yes"],
-      [STD_CFLAGS="$STD_CFLAGS -Werror"])
-
+#
+# Change defaults for developers if not explicity set.
+# Needs to be before the option is tested.
+#
 AC_ARG_ENABLE([developer],
 	      [AS_HELP_STRING([--enable-developer],
 			      [enable developer build settings])])
@@ -169,6 +166,13 @@ AS_IF([test "$enable_developer" = "yes"],
 
 AC_SUBST([STD_CFLAGS])
 AC_SUBST([STD_CPPFLAGS])
+
+AC_ARG_ENABLE([warn_error],
+	      [AS_HELP_STRING([--enable-warn-error],
+			      [turn on -Werror when compiling])],
+	      [],[enable_warn_error=no])
+AS_IF([test "$enable_warn_error" = "yes"],
+      [STD_CFLAGS="$STD_CFLAGS -Werror"])
 
 #
 # Use pkg-config
@@ -244,8 +248,6 @@ esac
 
 #
 # Perl is optional; it is used only by some of the system test scripts.
-# Note: the backtrace feature (see below) uses perl to build the symbol table,
-# but it still compiles without perl, in which case an empty table will be used.
 #
 AC_PATH_PROGS([PERL], [perl5 perl])
 AC_SUBST([PERL])
@@ -1391,10 +1393,10 @@ AC_ARG_ENABLE(querytrace,
 	      AS_HELP_STRING([--enable-querytrace],
 			     [enable very verbose query trace logging
 				[default=no]]),
-	      want_querytrace="$enableval", want_querytrace="no")
+	      enable_querytrace="$enableval", enable_querytrace="no")
 
 AC_MSG_CHECKING([whether to enable query trace logging])
-case "$want_querytrace" in
+case "$enable_querytrace" in
 yes)
 	AC_MSG_RESULT(yes)
 	AC_DEFINE(WANT_QUERYTRACE, 1, [Define to enable very verbose query trace logging.])
@@ -1509,7 +1511,7 @@ AS_IF([test "$enable_dnsrps" != "no"],[
 	AC_DEFINE([USE_DNSRPS], [1], [Enable DNS Response Policy Service API])
       ])
 
-# FIXME
+# FIXME BEGIN
 #sinclude(contrib/dlz/config.dlz.in)
 # AC_MSG_CHECKING(contributed DLZ drivers)
 #
@@ -1534,6 +1536,15 @@ AS_IF([test "$enable_dnsrps" != "no"],[
 # AC_SUBST(DLZ_DRIVER_MYSQL_INCLUDES)
 # AC_SUBST(DLZ_DRIVER_MYSQL_LIBS)
 # AC_SUBST_FILE(DLZ_DRIVER_RULES)
+# this ensures the configure summary report comes out right
+test -z "$with_dlz_bdb" && with_dlz_bdb=no
+test -z "$with_dlz_ldap" && with_dlz_ldap=no
+test -z "$with_dlz_mysql" && with_dlz_mysql=no
+test -z "$with_dlz_odbc" && with_dlz_odbc=no
+test -z "$with_dlz_postgres" && with_dlz_postgres=no
+test -z "$with_dlz_filesystem" && with_dlz_filesystem=no
+test -z "$with_dlz_stub" && with_dlz_stub=no
+# FIXME END
 
 AC_CHECK_HEADERS([glob.h])
 
@@ -1626,31 +1637,28 @@ report() {
 	echo "    Mutex lock type: $with_locktype"
     fi
     test "small" = "$with_tuning" && echo "    Small-system tuning (--with-tuning)"
-    test "no" = "$use_dnstap" || \
+    test "no" = "$enable_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--enable-geoip)"
-    test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
+    test -z "$GSSAPI_LIBS" || echo "    GSS-API (--with-gssapi)"
 
     # these lines are only printed if run with --enable-full-report
     if test "yes" = "$enable_full_report"; then
-	test "no" = "$found_ipv6" || echo "    IPv6 support (--enable-ipv6)"
-	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
-	test "X$LIBXML2_LIBS" = "X" || echo "    XML statistics (--with-libxml2)"
-	test "X$JSON_C_LIBS" = "X" || echo "    JSON statistics (--with-json-c): $JSON_C_CFLAGS $JSON_C_LIBS"
-	test "X$ZLIB_LIBS" = "X" || echo "    HTTP zlib compression (--with-zlib)"
-	test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
-	test "no" = "$with_libidn2" || echo "    IDN support (--with-libidn2)"
+	test -z "$PYTHON" || echo "    Python tools (--with-python)"
+	test -z "$LIBXML2_LIBS" || echo "    XML statistics (--with-libxml2)"
+	test -z "$JSON_C_LIBS" || echo "    JSON statistics (--with-json-c): $JSON_C_CFLAGS $JSON_C_LIBS"
+	test -z "$ZLIB_LIBS" || echo "    HTTP zlib compression (--with-zlib)"
+	test -z "$LMDB_LIBS" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
+	test -z "$LIBIDN2_LIBS" || echo "    IDN support (--with-libidn2)"
     fi
 
     test "yes" = "$enable_dnsrps" && \
 	echo "    DNS Response Policy Service interface (--enable-dnsrps)"
-    test "yes" = "$enable_fixed" && \
+    test "yes" = "$enable_fixed_rrset" && \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
-    test "yes" = "$enable_backtrace" && \
-	echo "    Print backtrace on crash (--enable-backtrace)"
-    test "yes" = "$want_querytrace" && \
+    test "yes" = "$enable_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
-    test "no" = "$with_cmocka" || echo "    CMocka Unit Testing Framework (--with-cmocka)"
+    test -z "$HAVE_CMOCKA" || echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "auto" = "$validation_default" && echo "    DNSSEC validation active by default (--enable-auto-validation)"
 
@@ -1660,58 +1668,56 @@ report() {
     )
 
     echo "    Dynamically loadable zone (DLZ) drivers:"
-    test "no" = "$use_dlz_bdb" || \
+    test "no" = "$with_dlz_bdb" || \
 	echo "        Berkeley DB (--with-dlz-bdb)"
-    test "no" = "$use_dlz_ldap" || \
+    test "no" = "$with_dlz_ldap" || \
 	echo "        LDAP (--with-dlz-ldap)"
-    test "no" = "$use_dlz_mysql" || \
+    test "no" = "$with_dlz_mysql" || \
 	echo "        MySQL (--with-dlz-mysql)"
-    test "no" = "$use_dlz_odbc" || \
+    test "no" = "$with_dlz_odbc" || \
 	echo "        ODBC (--with-dlz-odbc)"
-    test "no" = "$use_dlz_postgres" || \
+    test "no" = "$with_dlz_postgres" || \
 	echo "        Postgres (--with-dlz-postgres)"
-    test "no" = "$use_dlz_filesystem" || \
+    test "no" = "$with_dlz_filesystem" || \
 	echo "        Filesystem (--with-dlz-filesystem)"
-    test "no" = "$use_dlz_stub" || \
+    test "no" = "$with_dlz_stub" || \
 	echo "        Stub (--with-dlz-stub)"
-    test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
+    test "$with_dlz_bdb $with_dlz_ldap $with_dlz_mysql $with_dlz_odbc $with_dlz_postgres $with_dlz_filesystem $with_dlz_stub" = "no no no no no no no" && \
+            echo "        None"
 
     echo "-------------------------------------------------------------------------------"
 
     echo "Features disabled or unavailable on this platform:"
-    test "no" = "$found_ipv6" && echo "    IPv6 support (--enable-ipv6)"
     test "small" = "$with_tuning" || echo "    Small-system tuning (--with-tuning)"
 
-    test "no" = "$use_dnstap" && \
+    test "no" = "$enable_dnstap" && \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test -z "$MAXMINDDB_LIBS" && echo "    GeoIP2 access control (--enable-geoip)"
-    test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
+    test -z "$GSSAPI_LIBS" && echo "    GSS-API (--with-gssapi)"
 
     test "no" = "$enable_dnsrps" && \
 	echo "    DNS Response Policy Service interface (--enable-dnsrps)"
 
-    test "yes" = "$enable_fixed" || \
+    test "yes" = "$enable_fixed_rrset" || \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 
-    test "yes" = "$validation_default" && echo "    DNSSEC validation requires configuration (--enablee-auto-validation)"
+    test "yes" = "$validation_default" && echo "    DNSSEC validation requires configuration (--enable-auto-validation)"
 
     test "$CRYPTO" = "pkcs11" || (
 	echo "    Using PKCS#11 for Public-Key Cryptography (--with-native-pkcs11)"
     )
 
-    test "yes" = "$enable_backtrace" || \
-	echo "    Print backtrace on crash (--enable-backtrace)"
-    test "yes" = "$want_querytrace" || \
+    test "yes" = "$enable_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
 
     test "no" = "$with_cmocka" && echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
-    test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
-    test "X$LIBXML2_LIBS" = "X" && echo "    XML statistics (--with-libxml2)"
-    test "X$JSON_C_LIBS" = "X" && echo "    JSON statistics (--with-json-c)"
-    test "X$ZLIB_LIBS" = "X" && echo "    HTTP zlib compression (--with-zlib)"
-    test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
-    test "no" = "$with_libidn2" && echo "    IDN support (--with-libidn2)"
+    test -z "$PYTHON" && echo "    Python tools (--with-python)"
+    test -z "$LIBXML2_LIBS" && echo "    XML statistics (--with-libxml2)"
+    test -z "$JSON_C_LIBS" && echo "    JSON statistics (--with-json-c)"
+    test -z "$ZLIB_LIBS" && echo "    HTTP zlib compression (--with-zlib)"
+    test -z "$LMDB_LIBS" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
+    test -z "$LIBIDN2_LIBS" && echo "    IDN support (--with-libidn2)"
 
     echo "-------------------------------------------------------------------------------"
     echo "Configured paths:"
@@ -1726,6 +1732,7 @@ report() {
     echo "LDFLAGS: $LDFLAGS"
 
     if test "X$ac_unrecognized_opts" != "X"; then
+        echo "-------------------------------------------------------------------------------"
 	echo "Unrecognized options:"
 	echo "    $ac_unrecognized_opts"
     fi
