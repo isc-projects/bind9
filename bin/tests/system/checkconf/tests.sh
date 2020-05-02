@@ -356,6 +356,13 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check that named-checkconf -z returns error when a later view is okay ($n)"
+ret=0
+$CHECKCONF -z check-missing-zone.conf > checkconf.out$n 2>&1 && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check that named-checkconf prints max-cache-size <percentage> correctly ($n)"
 ret=0
 $CHECKCONF -p max-cache-size-good.conf > checkconf.out$n 2>&1 || ret=1

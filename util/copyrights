@@ -762,6 +762,7 @@
 ./bin/tests/system/checkconf/check-dlv-ksk-key.conf	CONF-C	2018,2019,2020
 ./bin/tests/system/checkconf/check-dup-records-fail.conf	CONF-C	2014,2016,2018,2019,2020
 ./bin/tests/system/checkconf/check-dup-records.db	ZONE	2014,2016,2018,2019,2020
+./bin/tests/system/checkconf/check-missing-zone.conf	CONF-C	2020
 ./bin/tests/system/checkconf/check-mx-cname-fail.conf	CONF-C	2014,2016,2018,2019,2020
 ./bin/tests/system/checkconf/check-mx-cname.db	ZONE	2014,2016,2018,2019,2020
 ./bin/tests/system/checkconf/check-mx-fail.conf	CONF-C	2014,2016,2018,2019,2020
