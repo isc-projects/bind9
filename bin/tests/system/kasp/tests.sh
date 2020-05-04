@@ -1297,11 +1297,11 @@ set_keytimes_algorithm_policy() {
 	set_addkeytime "KEY1" "SYNCPUBLISH" "${published}" 90300
 	# Key lifetime is 10 years, 315360000 seconds.
 	set_addkeytime "KEY1" "RETIRED"     "${published}" 315360000
-	# The key is removed after the retire time plus DS TTL (1d), parent
-	# registration delay (1d), parent propagation delay (1h),
-	# and retire safety (1h) = 86400 + 86400 + 3600 + 3600 = 180000.
+	# The key is removed after the retire time plus DS TTL (1d),
+	# parent propagation delay (1h), and retire safety (1h) =
+	# 86400 + 3600 + 3600 = 93600.
 	retired=$(key_get KEY1 RETIRED)
-	set_addkeytime "KEY1" "REMOVED"     "${retired}"   180000
+	set_addkeytime "KEY1" "REMOVED"     "${retired}"   93600
 
 	# The first ZSKs are immediately published and activated.
 	created=$(key_get KEY2 CREATED)
@@ -1738,11 +1738,11 @@ set_keytimes_autosign_policy() {
 	# Key lifetime is 2 years, 63072000 seconds.
 	active=$(key_get KEY1 ACTIVE)
 	set_addkeytime "KEY1" "RETIRED"     "${active}"  63072000
-	# The key is removed after the retire time plus DS TTL (1d), parent
-	# registration delay (1d), propagation delay (1h), retire safety (1h) =
-	# 86400 + 86400 + 3600 + 3600 = 180000
+	# The key is removed after the retire time plus DS TTL (1d),
+	# parent propagation delay (1h), retire safety (1h) =
+	# 86400 + 3600 + 3600 = 93600
 	retired=$(key_get KEY1 RETIRED)
-	set_addkeytime "KEY1" "REMOVED"     "${retired}" 180000
+	set_addkeytime "KEY1" "REMOVED"     "${retired}" 93600
 
 	# The ZSK was published six months ago (with settime).
 	created=$(key_get KEY2 CREATED)
@@ -2428,22 +2428,24 @@ check_next_key_event 3600
 # Testing ZSK Pre-Publication rollover.
 #
 
+# Policy parameters.
+# Lksk:      2 years (63072000 seconds)
+# Lzsk:      30 days (2592000 seconds)
+# Iret(KSK): DS TTL (1d) + DprpP (1h) + retire-safety (2d)
+# Iret(KSK): 3d1h (262800 seconds)
+# Iret(ZSK): RRSIG TTL (1d) + Dprp (1h) + Dsgn (1w) + retire-safety (2d)
+# Iret(ZSK): 10d1h (867600 seconds)
+Lksk=63072000
+Lzsk=2592000
+IretKSK=262800
+IretZSK=867600
+
 #
 # Zone: step1.zsk-prepub.autosign.
 #
 set_zone "step1.zsk-prepub.autosign"
 set_policy "zsk-prepub" "2" "3600"
 set_server "ns3" "10.53.0.3"
-# Policy parameters.
-# Lksk:      2 years (63072000 seconds)
-# Lzsk:      30 days (2592000 seconds)
-# Iret(KSK): DS TTL (1d) + Dreg (1d) + DprpP (1h) + retire-safety (2d)
-# Iret(KSK): 4d1h (349200 seconds)
-# Iret(ZSK): 10d1h (867600 seconds).
-Lksk=63072000
-Lzsk=2592000
-IretKSK=349200
-IretZSK=867600
 
 set_retired_removed() {
 	_Lkey=$2
@@ -2455,7 +2457,7 @@ set_retired_removed() {
 	set_addkeytime "${1}" "REMOVED" "${_retired}" "${_Iret}"
 }
 
-zsk_prepub_predecessor_keytimes() {
+rollover_predecessor_keytimes() {
 	_addtime=$1
 
 	_created=$(key_get KEY1 CREATED)
@@ -2500,7 +2502,7 @@ key_clear "KEY4"
 check_keys
 
 # These keys are immediately published and activated.
-zsk_prepub_predecessor_keytimes 0
+rollover_predecessor_keytimes 0
 check_keytimes
 
 check_apex
@@ -2534,7 +2536,7 @@ set_keystate "KEY3" "STATE_ZRRSIG" "hidden"
 check_keys
 
 # The old keys were activated 694 hours ago (2498400 seconds).
-zsk_prepub_predecessor_keytimes -2498400
+rollover_predecessor_keytimes -2498400
 # The new ZSK is published now.
 created=$(key_get KEY3 CREATED)
 set_keytime "KEY3" "PUBLISHED" "${created}"
@@ -2573,7 +2575,7 @@ set_keystate     "KEY3" "STATE_ZRRSIG" "rumoured"
 check_keys
 
 # The old keys are activated 30 days ago (2592000 seconds).
-zsk_prepub_predecessor_keytimes -2592000
+rollover_predecessor_keytimes -2592000
 # The new ZSK is published 26 hours ago (93600 seconds).
 created=$(key_get KEY3 CREATED)
 set_addkeytime "KEY3" "PUBLISHED"   "${created}" -93600
@@ -2615,7 +2617,7 @@ set_keystate "KEY3" "STATE_ZRRSIG" "omnipresent"
 check_keys
 
 # The old keys are activated 961 hours ago (3459600 seconds).
-zsk_prepub_predecessor_keytimes -3459600
+rollover_predecessor_keytimes -3459600
 # The new ZSK is published 267 hours ago (961200 seconds).
 created=$(key_get KEY3 CREATED)
 set_addkeytime "KEY3" "PUBLISHED"   "${created}"   -961200
@@ -2645,7 +2647,7 @@ set_keystate "KEY2" "STATE_DNSKEY" "hidden"
 check_keys
 
 # The old keys are activated 962 hours ago (3463200 seconds).
-zsk_prepub_predecessor_keytimes -3463200
+rollover_predecessor_keytimes -3463200
 # The new ZSK is published 268 hours ago (964800 seconds).
 created=$(key_get KEY3 CREATED)
 set_addkeytime "KEY3" "PUBLISHED"   "${created}"   -964800

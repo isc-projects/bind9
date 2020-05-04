@@ -263,6 +263,7 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # It is time to pre-publish the successor ZSK.
 setup step2.zsk-prepub.autosign
 # According to RFC 7583:
+#
 # Tpub(N+1) <= Tact(N) + Lzsk - Ipub
 # Ipub = Dprp + TTLkey (+publish-safety)
 #
@@ -364,6 +365,7 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # removed from the zone.
 setup step4.zsk-prepub.autosign
 # According to RFC 7583:
+#
 # Tret(N) = Tact(N) + Lzsk
 # Tdea(N) = Tret(N) + Iret
 #

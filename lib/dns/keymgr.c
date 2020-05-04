@@ -118,7 +118,6 @@ keymgr_settime_remove(dns_dnsseckey_t *key, dns_kasp_t *kasp) {
 	if (ret == ISC_R_SUCCESS && ksk) {
 		/* KSK: Iret = DprpP + TTLds */
 		ksk_remove = retire + dns_kasp_dsttl(kasp) +
-			     dns_kasp_parentregistrationdelay(kasp) +
 			     dns_kasp_parentpropagationdelay(kasp) +
 			     dns_kasp_retiresafety(kasp);
 	}
@@ -245,6 +244,11 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 			dst_key_settime(key->key, DST_TIME_SYNCPUBLISH,
 					syncpub);
 		}
+
+		/*
+		 * Include registration delay in prepublication time.
+		 */
+		prepub += dns_kasp_parentregistrationdelay(kasp);
 	}
 
 	ret = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
