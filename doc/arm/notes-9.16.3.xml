@@ -84,6 +84,12 @@
       </listitem>
       <listitem>
         <para>
+          BIND 9 no longer sets the recv and send buffer sizes for sockets, relying
+          on system defaults instead. [GL #1713]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           When running on a system with Linux capabilities support,
           <command>named</command> drops root privileges very soon after system
           startup. This was causing a spurious log message, <quote>unable to set

@@ -2,6 +2,9 @@
 			success if errors were found in one view but not in a
 			subsequent one. [GL #1807]
 
+5403.	[func]		Don't set udp recv/send buffer sizes, sockets will
+			use system defaults. [GL #1713]
+
 5402.	[bug]		Enable SO_REUSEADDR on all platforms, and either
 			SO_REUSEPORT_LB on FreeBSD, or SO_REUSEPORT on Linux.
 			[GL !3365]
