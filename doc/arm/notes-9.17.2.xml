@@ -33,6 +33,17 @@
           for a list of not yet resolved issues that will be fixed in the
           following releases.
         </para>
+        <para>
+          BIND crashes on startup when linked against libuv 1.36.  This issue is
+          related to recvmmsg() support in libuv which was first included in
+          libuv 1.35.  The problem was addressed in libuv 1.37, but the relevant
+          libuv code change requires a special flag to be set during library
+          initialization in order for recvmmsg() support to be enabled.  This
+          BIND release sets that special flag when required, so recvmmsg()
+          support is now enabled when BIND is compiled against either libuv 1.35
+          or libuv 1.37+; libuv 1.36 is still not usable with BIND. [GL #1761]
+          [GL #1797]
+        </para>
       </listitem>
     </itemizedlist>
   </section>
