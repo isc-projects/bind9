@@ -47,6 +47,11 @@
           keys to track is reduced to four per zone, which should be enough for
           99% of all signed zones. [GL #1179]
         </para>
+        <para>
+          Message IDs in inbound AXFR transfers are now checked for consistency.
+          Log messages are emitted for streams with inconsistent message IDs.
+          [GL #1674]
+        </para>
       </listitem>
     </itemizedlist>
   </section>
