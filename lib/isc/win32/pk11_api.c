@@ -35,7 +35,7 @@ getpass(const char *prompt) {
 	int cnt;
 
 	h = GetStdHandle(STD_INPUT_HANDLE);
-	fputs(prompt, stderr);
+	fprintf(stderr, "%s", prompt);
 	fflush(stderr);
 	fflush(stdout);
 	FlushConsoleInputBuffer(h);
@@ -54,7 +54,7 @@ getpass(const char *prompt) {
 
 	SetConsoleMode(h, mode);
 	buf[cnt] = '\0';
-	fputs("\n", stderr);
+	fprintf(stderr, "\n");
 	return (buf);
 }
 

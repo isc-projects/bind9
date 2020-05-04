@@ -281,7 +281,7 @@ hex_dump(isc_buffer_t *b) {
 	for (len = 0; len < r.length; len++) {
 		printf("%02x ", r.base[len]);
 		if (len % 16 == 15) {
-			fputs("         ", stdout);
+			printf("         ");
 			for (i = len - 15; i <= len; i++) {
 				if (r.base[i] >= '!' && r.base[i] <= '}') {
 					putchar(r.base[i]);
@@ -294,9 +294,9 @@ hex_dump(isc_buffer_t *b) {
 	}
 	if (len % 16 != 0) {
 		for (i = len; (i % 16) != 0; i++) {
-			fputs("   ", stdout);
+			printf("   ");
 		}
-		fputs("         ", stdout);
+		printf("         ");
 		for (i = ((len >> 4) << 4); i < len; i++) {
 			if (r.base[i] >= '!' && r.base[i] <= '}') {
 				putchar(r.base[i]);
@@ -3058,7 +3058,7 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 
 			dighost_error("no response from %s\n", buf);
 		} else {
-			fputs(l->cmdline, stdout);
+			printf("%s", l->cmdline);
 			dighost_error("connection timed out; "
 				      "no servers could be reached\n");
 		}
