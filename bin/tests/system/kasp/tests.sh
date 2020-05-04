@@ -2669,6 +2669,18 @@ check_next_key_event 1627200
 # Testing KSK Double-KSK rollover.
 #
 
+# Policy parameters.
+# Lksk:      60 days (5184000 seconds)
+# Lzsk:      1 year (31536000 seconds)
+# Iret(KSK): DS TTL (1h) + DprpP (1h) + retire-safety (2d)
+# Iret(KSK): 50h (180000 seconds)
+# Iret(ZSK): RRSIG TTL (1d) + Dprp (1h) + Dsgn (1w) + retire-safety (2d)
+# Iret(ZSK): 10d1h (867600 seconds)
+Lksk=5184000
+Lzsk=31536000
+IretKSK=180000
+IretZSK=867600
+
 #
 # Zone: step1.ksk-doubleksk.autosign.
 #
@@ -2678,25 +2690,17 @@ set_server "ns3" "10.53.0.3"
 # Key properties.
 key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
-set_keylifetime  "KEY1" "5184000"
+set_keylifetime  "KEY1" "${Lksk}"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "no"
 
 key_clear        "KEY2"
 set_keyrole      "KEY2" "zsk"
-set_keylifetime  "KEY2" "31536000"
+set_keylifetime  "KEY2" "${Lzsk}"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
-# Key timings.
-set_keytime  "KEY1" "PUBLISHED" "yes"
-set_keytime  "KEY1" "ACTIVE"    "yes"
-set_keytime  "KEY1" "RETIRED"   "yes"
-
-set_keytime  "KEY2" "PUBLISHED" "yes"
-set_keytime  "KEY2" "ACTIVE"    "yes"
-set_keytime  "KEY2" "RETIRED"   "yes"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
 set_keystate "KEY1" "GOAL"         "omnipresent"
 set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
@@ -2711,6 +2715,11 @@ key_clear "KEY3"
 key_clear "KEY4"
 
 check_keys
+
+# These keys are immediately published and activated.
+rollover_predecessor_keytimes 0
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2731,14 +2740,10 @@ set_server "ns3" "10.53.0.3"
 # New KSK (KEY3) is prepublished (and signs DNSKEY RRset).
 key_clear        "KEY3"
 set_keyrole      "KEY3" "ksk"
-set_keylifetime  "KEY3" "5184000"
+set_keylifetime  "KEY3" "${Lksk}"
 set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "yes"
 set_zonesigning  "KEY3" "no"
-# Key timings.
-set_keytime  "KEY3" "PUBLISHED" "yes"
-set_keytime  "KEY3" "ACTIVE"    "yes"
-set_keytime  "KEY3" "RETIRED"   "yes"
 # Key states.
 set_keystate "KEY3" "GOAL"         "omnipresent"
 set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
@@ -2746,6 +2751,27 @@ set_keystate "KEY3" "STATE_KRRSIG" "rumoured"
 set_keystate "KEY3" "STATE_DS"     "hidden"
 
 check_keys
+
+# The old keys were activated 1413 hours ago (5086800 seconds).
+rollover_predecessor_keytimes -5086800
+# The new KSK is published now.
+created=$(key_get KEY3 CREATED)
+set_keytime    "KEY3" "PUBLISHED"   "${created}"
+# The new KSK should publish the CDS after the prepublication time.
+# TTLkey:         2h
+# DprpC:          1h
+# publish-safety: 1d
+# IpubC:          27h (97200 seconds)
+IpubC=97200
+set_addkeytime "KEY3" "SYNCPUBLISH" "${created}" "${IpubC}"
+# The new KSK becomes active after the registration delay.
+# Dreg:           1d (86400 seconds)
+Dreg=86400
+syncpub=$(key_get KEY3 SYNCPUBLISH)
+set_addkeytime "KEY3" "ACTIVE"      "${syncpub}" "${Dreg}"
+set_retired_removed "KEY3" "${Lksk}" "${IretKSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2770,6 +2796,20 @@ set_keystate "KEY3" "STATE_KRRSIG" "omnipresent"
 set_keystate "KEY3" "STATE_DS"     "rumoured"
 
 check_keys
+
+# The old keys were activated 59 days ago (5097600 seconds).
+rollover_predecessor_keytimes -5097600
+# The new KSK is published 27 hours ago (97200 seconds).
+created=$(key_get KEY3 CREATED)
+set_addkeytime "KEY3" "PUBLISHED"   "${created}" -97200
+# The new KSK CDS is published now.
+set_keytime    "KEY3" "SYNCPUBLISH" "${created}"
+# The new KSK becomes active Dreg (1d) later.
+syncpub=$(key_get KEY3 SYNCPUBLISH)
+set_addkeytime "KEY3" "ACTIVE"      "${syncpub}" "${Dreg}"
+set_retired_removed "KEY3" "${Lksk}" "${IretKSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2798,6 +2838,19 @@ set_keystate   "KEY1" "STATE_DS"     "hidden"
 set_keystate   "KEY3" "STATE_DS"     "omnipresent"
 
 check_keys
+
+# The old keys were activated 1490 hours ago (5364000 seconds).
+rollover_predecessor_keytimes -5364000
+# The new KSK is published 101 hours ago (363600 seconds).
+created=$(key_get KEY3 CREATED)
+set_addkeytime "KEY3" "PUBLISHED"   "${created}"   -363600
+published=$(key_get KEY3 PUBLISHED)
+set_addkeytime "KEY3" "SYNCPUBLISH" "${published}" "${IpubC}"
+syncpub=$(key_get KEY3 SYNCPUBLISH)
+set_addkeytime "KEY3" "ACTIVE"      "${syncpub}"    "${Dreg}"
+set_retired_removed "KEY3" "${Lksk}" "${IretKSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2818,6 +2871,19 @@ set_keystate "KEY1" "STATE_DNSKEY" "hidden"
 set_keystate "KEY1" "STATE_KRRSIG" "hidden"
 
 check_keys
+
+# The old KSK is activated 1492 hours ago (5371200 seconds).
+rollover_predecessor_keytimes -5371200
+# The new KSK is published 103 hours ago (370800 seconds).
+created=$(key_get KEY3 CREATED)
+set_addkeytime "KEY3" "PUBLISHED"   "${created}"   -370800
+published=$(key_get KEY3 PUBLISHED)
+set_addkeytime "KEY3" "SYNCPUBLISH" "${published}" "${IpubC}"
+syncpub=$(key_get KEY3 SYNCPUBLISH)
+set_addkeytime "KEY3" "ACTIVE"      "${syncpub}"   "${Dreg}"
+set_retired_removed "KEY3" "${Lksk}" "${IretKSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
