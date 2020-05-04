@@ -45,7 +45,9 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          Message IDs in inbound AXFR transfers are now checked for consistency.
+          Log messages are emitted for streams with inconsistent message IDs.
+          [GL #1674]
         </para>
       </listitem>
     </itemizedlist>
