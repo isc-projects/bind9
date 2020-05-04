@@ -1141,10 +1141,12 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 {
 	dns_sdb_t *sdb = (dns_sdb_t *)db;
 	sdb_dbiterator_t *sdbiter;
-	dns_sdbimplementation_t *imp = sdb->implementation;
+	dns_sdbimplementation_t *imp;
 	isc_result_t result;
 
 	REQUIRE(VALID_SDB(sdb));
+
+	imp = sdb->implementation;
 
 	if (imp->methods->allnodes == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
@@ -1193,7 +1195,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rdatalist_t *list;
 	dns_sdbnode_t *sdbnode = (dns_sdbnode_t *)node;
 
-	REQUIRE(VALID_SDBNODE(node));
+	REQUIRE(VALID_SDBNODE(sdbnode));
 
 	UNUSED(db);
 	UNUSED(version);
