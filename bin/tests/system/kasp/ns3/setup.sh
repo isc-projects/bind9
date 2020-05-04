@@ -466,7 +466,7 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # Introduce the first key. This will immediately be active.
 setup step1.ksk-doubleksk.autosign
 TactN="now"
-ksktimes="-P ${TactN} -A ${TactN}"
+ksktimes="-P ${TactN} -A ${TactN} -P sync ${TactN}"
 zsktimes="-P ${TactN} -A ${TactN}"
 KSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.2)
@@ -478,12 +478,44 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # Step 2:
 # It is time to submit the introduce the new KSK.
 setup step2.ksk-doubleksk.autosign
-# According to RFC 7583: Tpub(N+1) <= Tact(N) + Lksk - Dreg - IpubC
-# Also: IpubC = DprpC + TTLkey (+publish-safety)
-# so:   Tact(N) = Tpub(N+1) - Lksk + Dreg + IpubC = now - 60d + (1d3h)
-#       now - 1440h + 27h = now - 1413h
+# According to RFC 7583:
+#
+# Tpub(N+1) <= Tact(N) + Lksk - Dreg - IpubC
+# IpubC = DprpC + TTLkey (+publish-safety)
+#
+#                       |1|       |2|   |3|      |4|
+#                        |         |     |        |
+#       Key N            |<-IpubC->|<--->|<-Dreg->|<-----Lksk--- - -
+#                        |         |     |        |
+#       Key N+1          |         |     |        |
+#                        |         |     |        |
+#       Key N           Tpub      Trdy  Tsbm     Tact
+#       Key N+1
+#
+#               (continued ...)
+#
+#                   |5|       |6|   |7|      |8|      |9|    |10|
+#                    |         |     |        |        |       |
+#       Key N   - - --------------Lksk------->|<-Iret->|<----->|
+#                    |         |     |        |        |       |
+#       Key N+1      |<-IpubC->|<--->|<-Dreg->|<--------Lksk----- - -
+#                    |         |     |        |        |       |
+#       Key N                                Tret     Tdea    Trem
+#       Key N+1     Tpub      Trdy  Tsbm     Tact
+#
+#                   Tnow
+#
+# Lksk:           60d
+# Dreg:           1d
+# DprpC:          1h
+# TTLkey:         2h
+# publish-safety: 1d
+# IpubC:          27h
+#
+# Tact(N) = Tnow - Lksk + Dreg + IpubC = now - 60d + 27h
+#         = now - 1440h + 27h = now - 1413h
 TactN="now-1413h"
-ksktimes="-P ${TactN} -A ${TactN}"
+ksktimes="-P ${TactN} -A ${TactN} -P sync ${TactN}"
 zsktimes="-P ${TactN} -A ${TactN}"
 KSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.2)
@@ -497,18 +529,53 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # Step 3:
 # It is time to submit the DS.
 setup step3.ksk-doubleksk.autosign
-# According to RFC 7583: Tsbm(N+1) >= Trdy(N+1)
-# Also: Tact(N+1) = Tsbm(N+1) + Dreg
-# so:   Tact(N) = Tsbm(N+1) + Dreg - Lksk = now + 1d - 60d = now - 59d
-# and:  Tret(N) = Tsbm(N+1) + Dreg = now + 1d
-# and:  Tpub(N+1) <= Tsbm(N+1) - IpubC = now + 27h
-# and:  Tret(N+1) = Tsbm(N+1) + Dreg + Lksk = 1d + 60d
+# According to RFC 7583:
+#
+# Tsbm(N+1) >= Trdy(N+1)
+# Tact(N+1) = Tsbm(N+1) + Dreg
+# Iret = DprpP + TTLds (+retire-safety)
+#
+#                   |5|       |6|   |7|      |8|      |9|    |10|
+#                    |         |     |        |        |       |
+#       Key N   - - --------------Lksk------->|<-Iret->|<----->|
+#                    |         |     |        |        |       |
+#       Key N+1      |<-IpubC->|<--->|<-Dreg->|<--------Lksk----- - -
+#                    |         |     |        |        |       |
+#       Key N                                Tret     Tdea    Trem
+#       Key N+1     Tpub      Trdy  Tsbm     Tact
+#
+#                                   Tnow
+#
+# Lksk:           60d
+# Dreg:           1d
+# DprpP:          1h
+# TTLds:          1h
+# retire-safety:  2d
+# Iret:           50h
+# DprpC:          1h
+# TTLkey:         2h
+# publish-safety: 1d
+# IpubC:          27h
+#
+# Tact(N)    = Tnow + Dreg - Lksk = now + 1d - 60d = now - 59d
+# Tret(N)    = Tnow + Dreg = now + 1d
+# Trem(N)    = Tnow + Dreg + Iret = now + 1d + 50h = now + 74h
+# Tpub(N+1)  = Tnow - IpubC = now - 27h
+# Tsbm(N+1)  = now
+# Tact(N+1)  = Tret(N)
+# Tret(N+1)  = Tnow + Dreg + Lksk = now + 1d + 60d = now + 61d
+# Trem(N+1)  = Tnow + Dreg + Lksk + Iret = now + 61d + 50h
+#            = now + 1464h + 50h = 1514h
 TactN="now-59d"
 TretN="now+1d"
+TremN="now+74h"
 TpubN1="now-27h"
+TsbmN1="now"
+TactN1="${TretN}"
 TretN1="now+61d"
-ksktimes="-P ${TactN}  -A ${TactN}  -I ${TretN}"
-newtimes="-P ${TpubN1} -A ${TactN1} -I ${TretN1}"
+TremN1="now+1514h"
+ksktimes="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I ${TretN}  -D ${TremN}"
+newtimes="-P ${TpubN1} -A ${TactN1} -P sync ${TsbmN1} -I ${TretN1} -D ${TremN1}"
 zsktimes="-P ${TactN}  -A ${TactN}"
 KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
@@ -528,24 +595,47 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # Step 4:
 # The DS should be swapped now.
 setup step4.ksk-doubleksk.autosign
-# According to RFC 7583: Tdea(N) = Tret(N) + Iret
-# Also: Tret(N) = Tsbm(N+1) + Dreg
-# Also: Tact(N+1) = Tret(N)
-# Also: Iret = DprpP + TTLds (+retire-safety)
-# so:   Tact(N) = Tdea(N) - Lksk - Iret = now - 60d - 2d2h = now - 1490h
-# and:  Tret(N) = Tdea(N) - Iret = now - 2d2h = 50h
-# and:  Tpub(N+1) = Tdea(N) - Iret - Dreg - IpubC = now - 50h - 1d - 1d3h = now - 101h
-# and:  Tsbm(N+1) = Tdea(N) - Iret - Dreg = now - 50h - 1d = now - 74h
-# and:  Tact(N+1) = Tret(N)
-# and:  Tret(N+1) = Tdea(N) + Lksk - Iret = now + 60d - 2d2h = now + 1390h
+# According to RFC 7583:
+#
+# Tret(N)   = Tsbm(N+1) + Dreg
+# Tdea(N)   = Tret(N) + Iret
+# Tact(N+1) = Tret(N)
+#
+#                   |5|       |6|   |7|      |8|      |9|    |10|
+#                    |         |     |        |        |       |
+#       Key N   - - --------------Lksk------->|<-Iret->|<----->|
+#                    |         |     |        |        |       |
+#       Key N+1      |<-IpubC->|<--->|<-Dreg->|<--------Lksk----- - -
+#                    |         |     |        |        |       |
+#       Key N                                Tret     Tdea    Trem
+#       Key N+1     Tpub      Trdy  Tsbm     Tact
+#
+#                                                             Tnow
+#
+# Lksk: 60d
+# Dreg: 1d
+# Iret: 50h
+#
+# Tact(N)   = Tnow - Lksk - Iret = now - 60d - 50h
+#           = now - 1440h - 50h = now - 1490h
+# Tret(N)   = Tnow - Iret = now - 50h
+# Trem(N)   = Tnow
+# Tpub(N+1) = Tnow - Iret - Dreg - IpubC = now - 50h - 1d - 27h
+#           = now - 101h
+# Tsbm(N+1) = Tnow - Iret - Dreg = now - 50h - 1d = now - 74h
+# Tact(N+1) = Tret(N)
+# Tret(N+1) = Tnow + Lksk - Iret = now + 60d - 50h = now + 1390h
+# Trem(N+1) = Tnow + Lksk = now + 60d
 TactN="now-1490h"
 TretN="now-50h"
+TremN="now"
 TpubN1="now-101h"
 TsbmN1="now-74h"
 TactN1="${TretN}"
 TretN1="now+1390h"
-ksktimes="-P ${TactN}  -A ${TactN}  -I ${TretN}"
-newtimes="-P ${TpubN1} -A ${TactN1} -I ${TretN1}"
+TremN1="now+60d"
+ksktimes="-P ${TactN}  -A ${TactN} -P sync ${TactN}  -I ${TretN}  -D ${TremN}"
+newtimes="-P ${TpubN1} -A ${TretN} -P sync ${TsbmN1} -I ${TretN1} -D ${TremN1}"
 zsktimes="-P ${TactN}  -A ${TactN}"
 KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
@@ -566,14 +656,24 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # The predecessor DNSKEY is removed long enough that is has become HIDDEN.
 setup step5.ksk-doubleksk.autosign
 # Subtract DNSKEY TTL from all the times (2h).
+# Tact(N)   = now - 1490h - 2h = now - 1492h
+# Tret(N)   = now - 52h - 2h = now - 52h
+# Trem(N)   = now - 2h
+# Tpub(N+1) = now - 101h - 2h = now - 103h
+# Tsbm(N+1) = now - 74h - 2h = now - 76h
+# Tact(N+1) = Tret(N)
+# Tret(N+1) = now + 1390h - 2h = now + 1388h
+# Trem(N+1) = now + 60d + 2h = now + 1442h
 TactN="now-1492h"
 TretN="now-52h"
-TpubN1="now-102h"
-TsbmN1="now-75h"
+TremN="now-2h"
+TpubN1="now-103h"
+TsbmN1="now-76h"
 TactN1="${TretN}"
 TretN1="now+1388h"
-ksktimes="-P ${TactN}  -A ${TactN}  -I ${TretN}"
-newtimes="-P ${TpubN1} -A ${TactN1} -I ${TretN1}"
+TremN1="now+1438h"
+ksktimes="-P ${TactN}  -A ${TactN} -P sync ${TactN}  -I ${TretN}  -D ${TremN}"
+newtimes="-P ${TpubN1} -A ${TretN} -P sync ${TsbmN1} -I ${TretN1} -D ${TremN1}"
 zsktimes="-P ${TactN}  -A ${TactN}"
 KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
