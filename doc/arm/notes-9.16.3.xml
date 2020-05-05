@@ -43,6 +43,14 @@
     <itemizedlist>
       <listitem>
         <para>
+          BIND 9 no longer sets the recv and send buffer sizes for sockets, relying
+          on system defaults instead. [GL #1713]
+        </para>
+        <para>
+          The default rwlock implementation has been changed back to the native
+          BIND 9 rwlock implementation. [GL #1753]
+        </para>
+        <para>
           The native PKCS#11 EdDSA implementation has been updated to PKCS#11
           v3.0 and thus made operational again.  Contributed by Aaron Thompson.
 	  [GL !3326]
@@ -65,14 +73,6 @@
           Message IDs in inbound AXFR transfers are now checked for consistency.
           Log messages are emitted for streams with inconsistent message IDs.
           [GL #1674]
-        </para>
-        <para>
-          The default rwlock implementation has been changed back to the native
-          BIND 9 rwlock implementation. [GL #1753]
-        </para>
-        <para>
-          BIND 9 no longer sets the recv and send buffer sizes for sockets, relying
-          on system defaults instead. [GL #1713]
         </para>
       </listitem>
     </itemizedlist>
