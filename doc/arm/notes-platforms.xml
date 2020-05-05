@@ -15,7 +15,7 @@
     cleanup, and some very old code has been removed that supported
     obsolete operating systems and operating systems for which ISC is
     no longer able to perform quality assurance testing. Specifically,
-    workarounds for UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster
+    workarounds for UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster,
     and IRIX have been removed.
   </para>
   <para>
@@ -28,7 +28,7 @@
     More information can be found in the <filename>PLATFORM.md</filename>
     file that is included in the source distribution of BIND 9.  If your
     platform compiler and system libraries provide the above features,
-    BIND 9 should compile and run. If that isn't the case, the BIND
+    BIND 9 should compile and run. If that is not the case, the BIND
     development team will generally accept patches that add support
     for systems that are still supported by their respective vendors.
   </para>

@@ -15,9 +15,9 @@
     <itemizedlist>
       <listitem>
         <para>
-	  DNS rebinding protection was ineffective when BIND 9 is configured as
-	  a forwarding DNS server.  Found and responsibly reported by Tobias
-	  Klein.  [GL #1574]
+          DNS rebinding protection was ineffective when BIND 9 is configured as
+          a forwarding DNS server. Found and responsibly reported by Tobias
+          Klein. [GL #1574]
         </para>
       </listitem>
     </itemizedlist>
@@ -27,8 +27,8 @@
     <itemizedlist>
       <listitem>
         <para>
-	  Fixed re-signing issues with inline zones which resulted in
-	  records being re-signed late or not at all.
+          Fixed re-signing issues with inline zones which resulted in
+          records being re-signed late or not at all.
         </para>
       </listitem>
     </itemizedlist>
