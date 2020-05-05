@@ -18,9 +18,10 @@ statefile=get_ports.state
 port_min=5001
 port_max=32767
 
-get_random() {
-    dd if=/dev/urandom bs=1 count=2 2>/dev/null | od -tu2 -An
-}
+get_random() (
+    # shellcheck disable=SC2005,SC2046
+    echo $(dd if=/dev/urandom bs=1 count=2 2>/dev/null | od -tu2 -An) | sed -e 's/^0*//'
+)
 
 get_port() {
     tries=10
@@ -36,7 +37,8 @@ get_port() {
 		    port="$1"
 		else
 		    port_range=$((port_max-port_min))
-		    port=$(($(get_random)%port_range+port_range))
+		    port_random=$(get_random)
+		    port=$((port_random%port_range+port_min))
 		fi
 	    fi
 
