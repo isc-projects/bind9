@@ -80,4 +80,4 @@ while read -r HTMLREPORT; do
 	TXTREPORT="${HTMLREPORT/.html/.txt}"
 	echo "  w3m: ${HTMLREPORT} -> ${TXTREPORT}"
 	w3m -dump -cols 75 -O ascii -T text/html "${HTMLREPORT}" > "${TXTREPORT}"
-done < <(find . -maxdepth 1 -name '*.html')
+done < <(find . -maxdepth 1 -name '*-lib*.html')
