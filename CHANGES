@@ -2,16 +2,18 @@
 			success if errors were found in one view but not in a
 			subsequent one. [GL #1807]
 
-5398.	[bug]		Named could fail to restart if a zone added with
-			'rndc addzone' contained a double quote (") in
-			its name.  [GL #1695]
+5398.	[bug]		Named could fail to restart if a zone with a double
+			quote (") in its name was added with 'rndc addzone'.
+			[GL #1695]
 
-5394.	[cleanup]	Don't change effective uid/gid in named_os_openfile()
-			if named is already running under specified uid/gid.
-			[GL #1042] [GL #1090]
+5394.	[cleanup]	Named formerly attempted to change the effective UID and
+			GID in named_os_openfile(), which could trigger a
+			spurious log message if they were already set to the
+			desired values. This has been fixed. [GL #1042]
+			[GL #1090]
 
-5387.	[func]		Warn about AXFR streams that are incompatible with
-			BIND 9.17.2.  [GL #1674]
+5387.	[func]		Warn about AXFR streams with inconsistent message IDs.
+			[GL #1674]
 
 	--- 9.11.18 released ---
 
