@@ -121,8 +121,8 @@ stages:
 
 # Fedora
 
-.fedora-31-amd64: &fedora_31_amd64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-31-amd64"
+.fedora-32-amd64: &fedora_32_amd64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-32-amd64"
   <<: *linux_amd64
 
 # Ubuntu
@@ -133,6 +133,10 @@ stages:
 
 .ubuntu-bionic-amd64: &ubuntu_bionic_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-amd64"
+  <<: *linux_amd64
+
+.ubuntu-focal-amd64: &ubuntu_focal_amd64_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-focal-amd64"
   <<: *linux_amd64
 
 # Base image
@@ -895,6 +899,30 @@ unit:gcc:bionic:amd64:
     - job: gcc:bionic:amd64
       artifacts: true
 
+# Jobs for regular GCC builds on Ubuntu 20.04 Focal Fossa (amd64)
+
+gcc:focal:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *ubuntu_focal_amd64_image
+  <<: *build_job
+
+system:gcc:focal:amd64:
+  <<: *ubuntu_focal_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:focal:amd64
+      artifacts: true
+
+unit:gcc:focal:amd64:
+  <<: *ubuntu_focal_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:focal:amd64
+      artifacts: true
+
 # Jobs for ASAN builds on Debian 10 "buster" (amd64)
 
 gcc:asan:
@@ -1079,25 +1107,25 @@ unit:gcc:softhsm2.4:
     - job: gcc:softhsm2.4
       artifacts: true
 
-# Jobs for PKCS#11-enabled GCC builds on Fedora 31 (amd64)
+# Jobs for PKCS#11-enabled GCC builds on Fedora 32 (amd64)
 
 gcc:softhsm2.6:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O1"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-native-pkcs11 --with-pkcs11=/usr/lib64/pkcs11/libsofthsm2.so"
-  <<: *fedora_31_amd64_image
+  <<: *fedora_32_amd64_image
   <<: *build_job
 
 system:gcc:softhsm2.6:
-  <<: *fedora_31_amd64_image
+  <<: *fedora_32_amd64_image
   <<: *system_test_job
   needs:
     - job: gcc:softhsm2.6
       artifacts: true
 
 unit:gcc:softhsm2.6:
-  <<: *fedora_31_amd64_image
+  <<: *fedora_32_amd64_image
   <<: *unit_test_job
   needs:
     - job: gcc:softhsm2.6
