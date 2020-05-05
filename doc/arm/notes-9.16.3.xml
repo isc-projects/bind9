@@ -70,6 +70,11 @@
 	  engine and there's only proof-of-concept as of this moment.
 	  Contributed by Aaron Thompson. [GL #1763]
 	</para>
+        <para>
+          Message IDs in inbound AXFR transfers are now checked for consistency.
+          Log messages are emitted for streams with inconsistent message IDs.
+          [GL #1674]
+        </para>
       </listitem>
     </itemizedlist>
   </section>
