@@ -11,7 +11,8 @@
 
 <section xml:id="end_of_life"><info><title>End of Life</title></info>
   <para>
-    The end of life date for BIND 9.14 has not yet been determined.
+    BIND 9.16 has replaced 9.14 as the current stable version.
+    This BIND release is the last one in the BIND 9.14 release train.
     For those needing long term support, the current Extended Support
     Version (ESV) is BIND 9.11, which will be supported until at
     least December 2021. See
