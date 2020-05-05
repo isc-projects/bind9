@@ -13,7 +13,7 @@
   <para>
     BIND 9.16 has replaced 9.14 as the current stable version.
     This BIND release is the last one in the BIND 9.14 release train.
-    For those needing long term support, the current Extended Support
+    For those needing long-term support, the current Extended Support
     Version (ESV) is BIND 9.11, which will be supported until at
     least December 2021. See
     <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://kb.isc.org/docs/aa-00896">https://kb.isc.org/docs/aa-00896</link>
