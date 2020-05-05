@@ -253,11 +253,6 @@ else
     exit $status
 fi
 
-# Shutdown
-$PERL stop.pl $systest
-
-status=`expr $status + $?`
-
 if [ $status != 0 ]; then
     echofail "R:$systest:FAIL"
     # Do not clean up - we need the evidence.
