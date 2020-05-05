@@ -21,26 +21,6 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes-9.11.19-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.19-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes-9.11.19-changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
@@ -57,10 +37,10 @@
     <itemizedlist>
       <listitem>
         <para>
-          When running on a system with Linux capabilities support,
+          When running on a system with support for Linux capabilities,
           <command>named</command> drops root privileges very soon after system
-          startup. This was causing a spurious log message, <quote>unable to set
-          effective uid to 0: Operation not permitted</quote>, which has now been
+          startup. This was causing a spurious log message, "unable to set
+          effective uid to 0: Operation not permitted", which has now been
           silenced. [GL #1042] [GL #1090]
         </para>
       </listitem>
