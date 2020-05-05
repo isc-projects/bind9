@@ -44,6 +44,14 @@
           silenced. [GL #1042] [GL #1090]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          When built without LMDB support, <command>named</command> failed to
+          restart after a zone with a double quote (") in its name was added
+          with <command>rndc addzone</command>. Thanks to Alberto Fernández.
+          [GL #1695]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
