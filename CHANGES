@@ -1,3 +1,5 @@
+	--- 9.16.3 released ---
+
 5404.	[bug]		'named-checkconf -z' could incorrectly indicate
 			success if errors were found in one view but not in a
 			subsequent one. [GL #1807]
