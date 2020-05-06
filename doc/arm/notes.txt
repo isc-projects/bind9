@@ -72,7 +72,7 @@ Bug Fixes
 
   * When built without LMDB support, named failed to restart after a zone
     with a double quote (") in its name was added with rndc addzone.
-    Thanks to Alberto Fern?ndez. [GL #1695]
+    Thanks to Alberto Fernández. [GL #1695]
 
 Notes for BIND 9.11.18
 
@@ -733,7 +733,7 @@ New Features
 
     dnssec-keymgr now takes a -r randomfile option.
 
-    (Many thanks to Sebasti?n Castro for his assistance in developing this
+    (Many thanks to Sebastián Castro for his assistance in developing this
     tool at the IETF 95 Hackathon in Buenos Aires, April 2016.)
 
   * The serial number of a dynamically updatable zone can now be set using
