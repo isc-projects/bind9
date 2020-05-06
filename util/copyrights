@@ -293,6 +293,7 @@
 ./bin/tests/system/cookie/clean.sh		SH	2014,2015,2016,2018,2019,2020
 ./bin/tests/system/cookie/setup.sh		SH	2018,2019,2020
 ./bin/tests/system/cookie/tests.sh		SH	2014,2015,2016,2017,2018,2019,2020
+./bin/tests/system/custom-test-driver		X	2020
 ./bin/tests/system/database/clean.sh		SH	2011,2012,2014,2016,2018,2019,2020
 ./bin/tests/system/database/setup.sh		SH	2011,2012,2016,2018,2019,2020
 ./bin/tests/system/database/tests.sh		SH	2011,2012,2016,2018,2019,2020
@@ -1123,7 +1124,6 @@
 ./contrib/scripts/named-bootconf.sh		SH.PORTION	1999,2000,2001,2004,2006,2007,2012,2014,2016,2018,2019,2020
 ./contrib/scripts/nanny.pl			PERL	2000,2001,2004,2007,2012,2014,2016,2018,2019,2020
 ./contrib/scripts/zone-edit.sh.in		SH	2010,2012,2014,2016,2018,2019,2020
-./custom-test-driver				X	2020
 ./doc/arm/advanced.rst				RST	2020
 ./doc/arm/catz.rst				RST	2020
 ./doc/arm/conf.py				PYTHON	2020
