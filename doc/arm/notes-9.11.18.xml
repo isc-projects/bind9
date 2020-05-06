@@ -29,11 +29,10 @@
         <para>
           We have received reports that in some circumstances, receipt of an
           IXFR can cause the processing of queries to slow significantly. Some
-          of these were related to RPZ processing, which has been fixed in this
-          release (see below). Others appear to occur where there are
-          NSEC3-related changes (such as an operator changing the NSEC3 salt
-          used in the hash calculation). These are being investigated.
-          [GL #1685]
+          of these are related to RPZ processing, others appear to occur where
+          there are NSEC3-related changes (such as an operator changing the
+          NSEC3 salt used in the hash calculation). These are being
+          investigated.  [GL #1685]
         </para>
       </listitem>
     </itemizedlist>
