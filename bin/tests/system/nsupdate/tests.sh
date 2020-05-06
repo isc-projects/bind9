@@ -32,6 +32,8 @@ RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 status=0
 n=0
 
+nextpartreset ns3/named.run
+
 # wait for zone transfer to complete
 tries=0
 while true; do
@@ -1086,6 +1088,25 @@ if test $ret -ne 0
 then
 echo_i "failed"; status=1
 fi
+
+echo_i "check that DS to the zone apex is ignored ($n)"
+$DIG $DIGOPTS +tcp +norec example DS @10.53.0.3 > dig.out.pre.test$n || ret=1
+grep "status: NOERROR" dig.out.pre.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.pre.test$n > /dev/null || ret=1
+nextpart ns3/named.run > /dev/null
+# specify zone to override the default of adding to parent zone
+$NSUPDATE -d <<END > nsupdate.out-$n 2>&1 || ret=1
+server 10.53.0.3 ${PORT}
+zone example
+update add example 0 in DS 14364 10 2 FD03B2312C8F0FE72C1751EFA1007D743C94EC91594FF0047C23C37CE119BA0C
+send
+END
+msg=": attempt to add a DS record at zone apex ignored"
+nextpart ns3/named.run | grep "$msg" > /dev/null || ret=1
+$DIG $DIGOPTS +tcp +norec example DS @10.53.0.3 > dig.out.post.test$n || ret=1
+grep "status: NOERROR" dig.out.post.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.post.test$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 if $FEATURETEST --gssapi ; then
   n=`expr $n + 1`
