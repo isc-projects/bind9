@@ -140,19 +140,6 @@ branch, 9.14. New features include:
   DNSKEY format.
 * YAML output for `dig`, `mdig`, and `delv`.
 
-#### BIND 9.16.1
-
-BIND 9.16.1 is a maintenance release.
-
-#### BIND 9.16.2
-
-BIND 9.16.2 is a maintenance release.
-
-#### BIND 9.16.3
-
-BIND 9.16.3 is a maintenance release, and addresses the security
-vulnerabilities disclosed in CVE-2020-8616 and CVE-2020-8617.
-
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
