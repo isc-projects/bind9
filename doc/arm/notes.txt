@@ -110,7 +110,7 @@ Bug Fixes
 
   * When built without LMDB support, named failed to restart after a zone
     with a double quote (") in its name was added with rndc addzone.
-    Thanks to Alberto Fern?ndez. [GL #1695]
+    Thanks to Alberto Fernández. [GL #1695]
 
 Notes for BIND 9.16.2
 
