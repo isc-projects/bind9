@@ -27,6 +27,8 @@
 			in server-addresses statements due to an uninitialized
 			DSCP value. [GL #1812]
 
+	--- 9.16.3 released ---
+
 5404.	[bug]		'named-checkconf -z' could incorrectly indicate
 			success if errors were found in one view but not in a
 			subsequent one. [GL #1807]
