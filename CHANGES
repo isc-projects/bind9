@@ -1,3 +1,5 @@
+	--- 9.14.12 released ---
+
 5395.	[security]	Further limit the number of queries that can be
 			triggered from a request.  Root and TLD servers
 			are no longer exempt from max-recursion-queries.

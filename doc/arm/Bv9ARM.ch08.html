@@ -36,12 +36,13 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.14.11</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.14.12</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_platforms">Supported Platforms</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_download">Download</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.14.12">Notes for BIND 9.14.12</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.14.11">Notes for BIND 9.14.11</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.14.10">Notes for BIND 9.14.10</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes-9.14.9">Notes for BIND 9.14.9</a></span></dt>
@@ -62,7 +63,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.14.11</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.14.12</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -96,7 +97,7 @@
     cleanup, and some very old code has been removed that supported
     obsolete operating systems and operating systems for which ISC is
     no longer able to perform quality assurance testing. Specifically,
-    workarounds for UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster
+    workarounds for UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster,
     and IRIX have been removed.
   </p>
   <p>
@@ -109,7 +110,7 @@
     More information can be found in the <code class="filename">PLATFORM.md</code>
     file that is included in the source distribution of BIND 9.  If your
     platform compiler and system libraries provide the above features,
-    BIND 9 should compile and run. If that isn't the case, the BIND
+    BIND 9 should compile and run. If that is not the case, the BIND
     development team will generally accept patches that add support
     for systems that are still supported by their respective vendors.
   </p>
@@ -135,6 +136,54 @@
   </p>
 </div>
 
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.14.12"></a>Notes for BIND 9.14.12</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.14.12-security"></a>Security Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          To prevent exhaustion of server resources by a maliciously configured
+          domain, the number of recursive queries that can be triggered by a
+          request before aborting recursion has been further limited. Root and
+          top-level domain servers are no longer exempt from the
+          <span class="command"><strong>max-recursion-queries</strong></span> limit. Fetches for missing
+          name server address records are limited to 4 for any domain. This
+          issue was disclosed in CVE-2020-8616. [GL #1388]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          Replaying a TSIG BADTIME response as a request could
+          trigger an assertion failure. This was disclosed in
+          CVE-2020-8617. [GL #1703]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          DNS rebinding protection was ineffective when BIND 9 was configured
+          as a forwarding DNS server. Found and responsibly reported by Tobias
+          Klein. [GL #1574]
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.14.12-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          Fixed re-signing issues with inline zones which resulted in
+          records being re-signed late or not at all.
+        </p>
+      </li></ul></div>
+  </div>
+
+</div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.14.11"></a>Notes for BIND 9.14.11</h3></div></div></div>
@@ -1057,8 +1106,9 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="end_of_life"></a>End of Life</h3></div></div></div>
   <p>
-    The end of life date for BIND 9.14 has not yet been determined.
-    For those needing long term support, the current Extended Support
+    BIND 9.16 has replaced 9.14 as the current stable version.
+    This BIND release is the last one in the BIND 9.14 release train.
+    For those needing long-term support, the current Extended Support
     Version (ESV) is BIND 9.11, which will be supported until at
     least December 2021. See
     <a class="link" href="https://kb.isc.org/docs/aa-00896" target="_top">https://kb.isc.org/docs/aa-00896</a>
@@ -1092,6 +1142,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.11 (Stable Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.12 (Stable Release)</p>
 </body>
 </html>
