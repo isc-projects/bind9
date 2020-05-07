@@ -214,6 +214,10 @@ if HAVE_PKCS11
 TESTS += pkcs11
 endif
 
+if HAVE_PYTEST
+TESTS += rpzextra
+endif
+
 else !HAVE_PERL
 check:
 	echo Perl is not available, no tests were ran

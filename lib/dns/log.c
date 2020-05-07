@@ -20,26 +20,13 @@
  * \#define to <dns/log.h>.
  */
 LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
-	{ "notify", 0 },
-	{ "database", 0 },
-	{ "security", 0 },
-	{ "_placeholder", 0 },
-	{ "dnssec", 0 },
-	{ "resolver", 0 },
-	{ "xfer-in", 0 },
-	{ "xfer-out", 0 },
-	{ "dispatch", 0 },
-	{ "lame-servers", 0 },
-	{ "delegation-only", 0 },
-	{ "edns-disabled", 0 },
-	{ "rpz", 0 },
-	{ "rate-limit", 0 },
-	{ "cname", 0 },
-	{ "spill", 0 },
-	{ "dnstap", 0 },
-	{ "zoneload", 0 },
-	{ "nsid", 0 },
-	{ NULL, 0 }
+	{ "notify", 0 },       { "database", 0 },	 { "security", 0 },
+	{ "_placeholder", 0 }, { "dnssec", 0 },		 { "resolver", 0 },
+	{ "xfer-in", 0 },      { "xfer-out", 0 },	 { "dispatch", 0 },
+	{ "lame-servers", 0 }, { "delegation-only", 0 }, { "edns-disabled", 0 },
+	{ "rpz", 0 },	       { "rate-limit", 0 },	 { "cname", 0 },
+	{ "spill", 0 },	       { "dnstap", 0 },		 { "zoneload", 0 },
+	{ "nsid", 0 },	       { "rpz-passthru", 0 },	 { NULL, 0 }
 };
 
 /*%

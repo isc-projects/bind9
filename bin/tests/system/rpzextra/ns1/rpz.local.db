@@ -1,0 +1,18 @@
+$TTL 300
+
+@	IN	SOA	localhost.rpz.local root.rpz.local. (
+	2020022500	; serial number
+	60			; refresh every minute
+	60			; retry every minute
+	432000		; expire in 5 days
+	60			; negative caching ttl, 1 minute
+)
+
+
+                IN	NS	LOCALHOST.
+
+allowed       IN	CNAME	rpz-passthru.
+*.allowed     IN	CNAME	rpz-passthru.
+
+baddomain     IN	CNAME	.
+*.baddomain   IN	CNAME	.

@@ -69,18 +69,24 @@
         </para>
       </listitem>
       <listitem>
-	<para>
-	  The OpenSSL ECDSA implementation has been updated to support PKCS#11
-	  via OpenSSL engine (see engine_pkcs11 from libp11 project). [GL #1534]
-	</para>
+        <para>
+          The OpenSSL ECDSA implementation has been updated to support PKCS#11
+          via OpenSSL engine (see engine_pkcs11 from libp11 project). [GL #1534]
+        </para>
       </listitem>
       <listitem>
-	<para>
-	  The OpenSSL EdDSA implementation has been updated to support PKCS#11
-	  via OpenSSL engine.  Please note that you need EdDSA capable OpenSSL
-	  engine and there's only proof-of-concept as of this moment.
-	  Contributed by Aaron Thompson. [GL #1763]
-	</para>
+        <para>
+          The OpenSSL EdDSA implementation has been updated to support PKCS#11
+          via OpenSSL engine.  Please note that you need EdDSA capable OpenSSL
+          engine and there's only proof-of-concept as of this moment.
+          Contributed by Aaron Thompson. [GL #1763]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Added a new logging category "rpz-passthru", it allows RPZ passthru
+          actions to be logged into a separate channel. [GL #54]
+        </para>
       </listitem>
     </itemizedlist>
   </section>

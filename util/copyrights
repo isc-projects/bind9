@@ -705,6 +705,11 @@
 ./bin/tests/system/rpz/test5			X	2018,2019,2020
 ./bin/tests/system/rpz/test6			X	2018,2019,2020
 ./bin/tests/system/rpz/tests.sh			SH	2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
+./bin/tests/system/rpzextra/clean.sh		SH	2020
+./bin/tests/system/rpzextra/conftest.py		PYTHON	2020
+./bin/tests/system/rpzextra/ns1/named.args	X	2020
+./bin/tests/system/rpzextra/setup.sh		SH	2020
+./bin/tests/system/rpzextra/tests-rpz-passthru-logging.py	PYTHON-BIN	2020
 ./bin/tests/system/rpzrecurse/README		TXT.BRIEF	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ans5/ans.pl	PERL	2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/clean.sh		SH	2015,2016,2017,2018,2019,2020
