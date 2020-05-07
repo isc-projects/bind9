@@ -58,7 +58,7 @@ AC_DEFINE([PACKAGE_BUILDER], ["make"], [make or Visual Studio])
 AC_CONFIG_SRCDIR([bin/named/main.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects dist-xz -Wall -Werror])
 AM_SILENT_RULES([yes])
-AM_EXTRA_RECURSIVE_TARGETS([test unit])
+AM_EXTRA_RECURSIVE_TARGETS([test unit doc])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -116,6 +116,7 @@ AS_IF([test -z "$LIBTOOL"],
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AX_POSIX_SHELL
+AC_PROG_MKDIR_P
 
 # Initialize libtool
 LT_INIT([dlopen])
@@ -1267,6 +1268,37 @@ AS_IF([test "$enable_dnstap" != "no"],
 AC_SUBST([DNSTAP_CFLAGS])
 AC_SUBST([DNSTAP_LIBS])
 AM_CONDITIONAL([HAVE_DNSTAP], [test "$enable_dnstap" != "no"])
+#
+# The following sections deal with tools used for formatting
+# the documentation.  They are all optional, unless you are
+# a developer editing the documentation source.
+#
+
+#
+# Look for sphinx-build
+#
+AC_ARG_VAR([SPHINX_BUILD], [path to sphinx-build binary used to build the documentation])
+AC_PATH_PROG([SPHINX_BUILD], [sphinx-build], [:])
+AM_CONDITIONAL([HAVE_SPHINX_BUILD], [test "$SPHINX_BUILD" != ":"])
+
+AC_PATH_PROG([XELATEX], [xelatex], [:])
+AC_PATH_PROG([LATEXMK], [latexmk], [:])
+AM_CONDITIONAL([HAVE_XELATEX], [test "$XELATEX" != ":" && test "$LATEXMK" != ":"])
+
+#
+# Pull release date from CHANGES file last modification date
+# for reproducible builds
+#
+release_date=`date -r CHANGES +%Y-%m-%d`
+AC_SUBST([RELEASE_DATE], $release_date)
+
+#
+# Look for Doxygen
+#
+AC_PATH_PROGS([DOXYGEN], [doxygen])
+
+AC_CONFIG_FILES([doc/doxygen/doxygen-input-filter],
+		[chmod +x doc/doxygen/doxygen-input-filter])
 
 #
 # Look for curl
@@ -1583,6 +1615,13 @@ AC_CONFIG_FILES([lib/Makefile
 		 lib/isccc/Makefile
 		 lib/bind9/Makefile
 		 lib/samples/Makefile])
+
+# Documentation
+
+AC_CONFIG_FILES([doc/Makefile
+		 doc/arm/Makefile
+		 doc/man/Makefile
+		 doc/misc/Makefile])
 
 # Generated headers
 
