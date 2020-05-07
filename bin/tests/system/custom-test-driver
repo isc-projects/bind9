@@ -1,7 +1,7 @@
 #! /bin/sh
 # test-driver - basic testsuite driver script.
 
-scriptversion=2020-04-24.14; # UTC
+scriptversion=2020-05-06.12; # UTC
 
 # Copyright (C) 2011-2020 Free Software Foundation, Inc.
 #
@@ -65,6 +65,7 @@ while test $# -gt 0; do
   --test-name) test_name=$2; shift;;
   --log-file) log_file=$2; shift;;
   --trs-file) trs_file=$2; shift;;
+  --status-file) status_file=$2; shift;;
   --color-tests) color_tests=$2; shift;;
   --expect-failure) expect_failure=$2; shift;;
   --enable-hard-errors) enable_hard_errors=$2; shift;;
@@ -106,9 +107,10 @@ trap "st=130; $do_exit" 2
 trap "st=141; $do_exit" 13
 trap "st=143; $do_exit" 15
 
+# Set default
+test x"$status_file" = x && status_file=$(mktemp ./custom-test-runner.XXXXXX)
 # Test script is run here.
 if test $verbose = yes; then
-  status_file=$(mktemp)
   ("$@" 2>&1; echo $? > "$status_file") | tee $log_file
 else
   "$@" >$log_file 2>&1; echo $? > "$status_file"

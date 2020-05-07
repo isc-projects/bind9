@@ -225,7 +225,7 @@ LOG_DRIVER_V_ = $(LOG_DRIVER_V_@AM_DEFAULT_V@)
 LOG_DRIVER_V_0 = --verbose no
 LOG_DRIVER_V_1 = --verbose yes
 
-LOG_DRIVER = $(top_srcdir)/custom-test-driver
+LOG_DRIVER = $(srcdir)/custom-test-driver
 AM_LOG_DRIVER_FLAGS = $(LOG_DRIVER_V)
 
 LOG_COMPILER = $(builddir)/run.sh
