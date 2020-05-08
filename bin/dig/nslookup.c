@@ -788,6 +788,8 @@ addlookup(char *opt) {
 	lookup->aaonly = aaonly;
 	lookup->retries = tries;
 	lookup->udpsize = 0;
+	lookup->setqid = false;
+	lookup->qid = 0;
 	lookup->comments = comments;
 	if (lookup->rdtype == dns_rdatatype_any && !tcpmode_set) {
 		lookup->tcp_mode = true;

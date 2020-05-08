@@ -1489,6 +1489,24 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 		break;
 	case 'q':
 		switch (cmd[1]) {
+		case 'i': /* qid */
+			FULLCHECK("qid");
+			if (!state) {
+				lookup->setqid = false;
+				lookup->qid = 0;
+				break;
+			}
+			if (value == NULL) {
+				goto need_value;
+			}
+			result = parse_uint(&num, value, MAXQID, "qid");
+			if (result != ISC_R_SUCCESS) {
+				warn("Couldn't parse qid");
+				goto exit_or_usage;
+			}
+			lookup->setqid = true;
+			lookup->qid = num;
+			break;
 		case 'r': /* qr */
 			FULLCHECK("qr");
 			lookup->qr = state;

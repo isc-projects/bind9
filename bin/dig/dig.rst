@@ -426,6 +426,10 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    mandatory. Responses to padded queries may also be padded, but only
    if the query uses TCP or DNS COOKIE.
 
+``+qid=value``
+ 
+   Specify the query ID to use when sending queries.
+
 ``+[no]qr``
    Toggles the display of the query message as it is sent. By default, the query
    is not printed.
