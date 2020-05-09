@@ -3512,7 +3512,7 @@ activeempty(rbtdb_search_t *search, dns_rbtnodechain_t *chain,
 }
 
 static inline bool
-activeemtpynode(rbtdb_search_t *search, dns_name_t *qname, dns_name_t *wname) {
+activeemptynode(rbtdb_search_t *search, dns_name_t *qname, dns_name_t *wname) {
 	dns_fixedname_t fnext;
 	dns_fixedname_t forigin;
 	dns_fixedname_t fprev;
@@ -3736,7 +3736,7 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 				NODE_UNLOCK(lock, isc_rwlocktype_read);
 				if (header != NULL ||
 				    activeempty(search, &wchain, wname)) {
-					if (activeemtpynode(search, qname,
+					if (activeemptynode(search, qname,
 							    wname)) {
 						return (ISC_R_NOTFOUND);
 					}
@@ -4131,7 +4131,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rdatasetheader_t *foundsig, *cnamesig, *nsecsig;
 	rbtdb_rdatatype_t sigtype;
 	bool active;
-	dns_rbtnodechain_t chain;
 	nodelock_t *lock;
 	dns_rbt_t *tree;
 
@@ -4211,8 +4210,15 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				goto tree_exit;
 		}
 
-		chain = search.chain;
-		active = activeempty(&search, &chain, name);
+		active = false;
+		if ((options & DNS_DBFIND_FORCENSEC3) == 0) {
+			/*
+			 * The NSEC3 tree won't have empty nodes,
+			 * so it isn't necessary to check for them.
+			 */
+			dns_rbtnodechain_t chain = search.chain;
+			active = activeempty(&search, &chain, name);
+		}
 
 		/*
 		 * If we're here, then the name does not exist, is not
