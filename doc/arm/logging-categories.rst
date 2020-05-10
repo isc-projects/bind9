@@ -145,6 +145,10 @@
 |                            | files, rewritten responses, and at the highest     |
 |                            | ``debug`` levels, mere rewriting attempts.         |
 +----------------------------+----------------------------------------------------+
+| ``rpz-passthru``           | Information about RPZ PASSTHRU policy activity.    |
+|                            | This category allows the whitelist policy activity |
+|                            | to be logged into a dedicated channel.             |
++----------------------------+----------------------------------------------------+
 | ``security``               | Approval and denial of requests.                   |
 +----------------------------+----------------------------------------------------+
 | ``serve-stale``            | Whether or not a stale answer is used following a  |
