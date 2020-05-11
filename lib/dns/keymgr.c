@@ -121,6 +121,10 @@ keymgr_settime_remove(dns_dnsseckey_t *key, dns_kasp_t *kasp) {
 			     dns_kasp_parentpropagationdelay(kasp) +
 			     dns_kasp_retiresafety(kasp);
 	}
+	if (zsk && ksk) {
+		ksk_remove += dns_kasp_parentregistrationdelay(kasp);
+	}
+
 	remove = ksk_remove > zsk_remove ? ksk_remove : zsk_remove;
 	dst_key_settime(key->key, DST_TIME_DELETE, remove);
 }
@@ -183,7 +187,7 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 			   uint32_t lifetime, isc_stdtime_t now) {
 	isc_result_t ret;
 	isc_stdtime_t active, retire, pub, prepub;
-	bool ksk = false;
+	bool zsk = false, ksk = false;
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->key != NULL);
@@ -244,7 +248,10 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 			dst_key_settime(key->key, DST_TIME_SYNCPUBLISH,
 					syncpub);
 		}
+	}
 
+	(void)dst_key_getbool(key->key, DST_BOOL_ZSK, &zsk);
+	if (!zsk && ksk) {
 		/*
 		 * Include registration delay in prepublication time.
 		 */
@@ -1697,6 +1704,8 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 				       dst_key_id(newkey->key));
 			(void)dst_key_gettime(active_key->key,
 					      DST_TIME_INACTIVE, &retire);
+			active = retire;
+
 			/*
 			 * If prepublication time and/or retire time are
 			 * in the past (before the new key was created), use
@@ -1704,16 +1713,15 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			 * effectively immediately making the key active.
 			 */
 			if (prepub < created) {
-				retire += (created - prepub);
+				active += (created - prepub);
 				prepub = created;
 			}
-			if (retire < created) {
-				retire = created;
+			if (active < created) {
+				active = created;
 			}
 			dst_key_settime(newkey->key, DST_TIME_PUBLISH, prepub);
-			dst_key_settime(newkey->key, DST_TIME_ACTIVATE, retire);
+			dst_key_settime(newkey->key, DST_TIME_ACTIVATE, active);
 			keymgr_settime_syncpublish(newkey, kasp, false);
-			active = retire;
 		}
 
 		/* This key wants to be present. */
