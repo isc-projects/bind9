@@ -2670,7 +2670,7 @@ check_next_key_event 1627200
 #
 
 # Policy parameters.
-# Lksk:      60 days (5184000 seconds)
+# Lksk:      60 days (16070400 seconds)
 # Lzsk:      1 year (31536000 seconds)
 # Iret(KSK): DS TTL (1h) + DprpP (1h) + retire-safety (2d)
 # Iret(KSK): 50h (180000 seconds)
@@ -2898,6 +2898,28 @@ check_next_key_event 4813200
 # Testing CSK key rollover (1).
 #
 
+# Policy parameters.
+# Lcsk:      186 days (5184000 seconds)
+# Iret(KSK): DS TTL (1h) + DprpP (1h) + retire-safety (2h)
+# Iret(KSK): 4h (14400 seconds)
+# Iret(ZSK): RRSIG TTL (1d) + Dprp (1h) + Dsgn (25d) + retire-safety (2h)
+# Iret(ZSK): 26d3h (2257200 seconds)
+Lcsk=16070400
+IretKSK=14400
+IretZSK=2257200
+IretCSK=$IretZSK
+
+csk_rollover_predecessor_keytimes() {
+	_addksktime=$1
+	_addzsktime=$2
+
+	_created=$(key_get KEY1 CREATED)
+	set_addkeytime      "KEY1" "PUBLISHED"   "${_created}" "${_addksktime}"
+	set_addkeytime      "KEY1" "SYNCPUBLISH" "${_created}" "${_addzsktime}"
+	set_addkeytime      "KEY1" "ACTIVE"      "${_created}" "${_addzsktime}"
+	set_retired_removed "KEY1" "${Lcsk}" "${IretCSK}"
+}
+
 #
 # Zone: step1.csk-roll.autosign.
 #
@@ -2907,14 +2929,10 @@ set_server "ns3" "10.53.0.3"
 # Key properties.
 key_clear        "KEY1"
 set_keyrole      "KEY1" "csk"
-set_keylifetime  "KEY1" "16070400"
+set_keylifetime  "KEY1" "${Lcsk}"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
-# Key timings.
-set_keytime  "KEY1" "PUBLISHED" "yes"
-set_keytime  "KEY1" "ACTIVE"    "yes"
-set_keytime  "KEY1" "RETIRED"   "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
 set_keystate "KEY1" "GOAL"         "omnipresent"
 set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
@@ -2927,16 +2945,20 @@ key_clear "KEY3"
 key_clear "KEY4"
 
 check_keys
+
+# This key is immediately published and activated.
+csk_rollover_predecessor_keytimes 0 0
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
 
-# Next key event is when the successor CSK needs to be published.  That is
-# the CSK lifetime - prepublication time - DS registration delay.  The
-# prepublication time is DNSKEY TTL plus publish safety plus the zone
-# propagation delay.  For the csk-roll policy that means:
-# 6mo - 1d - 3h = 15973200 seconds.
-check_next_key_event 15973200
+# Next key event is when the successor CSK needs to be published.
+# This is Lcsk - Ipub - Dreg.
+# Lcsk: 186d (16070400 seconds)
+# Ipub: 3h   (10800 seconds)
+check_next_key_event 16059600
 
 #
 # Zone: step2.csk-roll.autosign.
@@ -2951,10 +2973,6 @@ set_keylifetime  "KEY2" "16070400"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
-# Key timings.
-set_keytime  "KEY2" "PUBLISHED" "yes"
-set_keytime  "KEY2" "ACTIVE"    "yes"
-set_keytime  "KEY2" "RETIRED"   "yes"
 # Key states.
 set_keystate "KEY2" "GOAL"         "omnipresent"
 set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
@@ -2963,6 +2981,21 @@ set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
 set_keystate "KEY2" "STATE_DS"     "hidden"
 
 check_keys
+
+# This key was activated 4437 hours ago (15973200 seconds)
+# and started signing 4461 hours ago (16059600 seconds).
+csk_rollover_predecessor_keytimes -15973200 -16059600
+# The new CSK is published now.
+created=$(key_get KEY2 CREATED)
+set_keytime    "KEY2" "PUBLISHED"   "${created}"
+# The new CSK should publish the CDS after the prepublication time.
+# Ipub: 3 hour (10800 seconds)
+Ipub="10800"
+set_addkeytime "KEY2" "SYNCPUBLISH" "${created}" "${Ipub}"
+set_addkeytime "KEY2" "ACTIVE"      "${created}" "${Ipub}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -2993,6 +3026,19 @@ set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
 set_keystate "KEY2" "STATE_DS"     "rumoured"
 
 check_keys
+
+# This key was activated 185 days ago (15984000 seconds)
+# and started signing 186 days ago (16070400 seconds).
+csk_rollover_predecessor_keytimes -15984000 -16070400
+# The new CSK is published three hours ago, CDS must be published now.
+# Also signatures are being introduced now.
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "PUBLISHED"   "${created}" "-${Ipub}"
+set_keytime    "KEY2" "SYNCPUBLISH" "${created}"
+set_keytime    "KEY2" "ACTIVE"      "${created}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 # Subdomain still has good signatures of old CSK (KEY1).
 # Set expected zone signing on for KEY1 and off for KEY2,
@@ -3020,7 +3066,7 @@ set_zone "step4.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) is no longer signing the DNSKEY RRset.
-set_keysigning   "KEY1" "no"
+set_keysigning "KEY1" "no"
 # The old CSK (KEY1) DS is hidden.  We still need to keep the DNSKEY public
 # but can remove the KRRSIG records.
 set_keystate "KEY1" "STATE_KRRSIG" "unretentive"
@@ -3029,6 +3075,19 @@ set_keystate "KEY1" "STATE_DS"     "hidden"
 set_keystate "KEY2" "STATE_DS"     "omnipresent"
 
 check_keys
+
+# This key was activated 4468 hours ago (16084800 seconds)
+# and started signing 4492 hours ago (16171200 seconds).
+csk_rollover_predecessor_keytimes -16084800 -16171200
+# The new CSK started signing 1d4h ago (100800 seconds).
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "ACTIVE"      "${created}" -100800
+set_addkeytime "KEY2" "SYNCPUBLISH" "${created}" -100800
+syncpub=$(key_get KEY2 SYNCPUBLISH)
+set_addkeytime "KEY2" "PUBLISHED"   "${syncpub}" "-${Ipub}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -3048,6 +3107,19 @@ set_server "ns3" "10.53.0.3"
 set_keystate "KEY1" "STATE_KRRSIG" "hidden"
 
 check_keys
+
+# This key was activated 4470 hours ago (16092000 seconds)
+# and started signing 4494 hours ago (16178400 seconds).
+csk_rollover_predecessor_keytimes -16092000 -16178400
+# The new CSK started signing 1d6h ago (108000 seconds).
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "ACTIVE"      "${created}" -108000
+set_addkeytime "KEY2" "SYNCPUBLISH" "${created}" -108000
+syncpub=$(key_get KEY2 SYNCPUBLISH)
+set_addkeytime "KEY2" "PUBLISHED"   "${syncpub}" "-${Ipub}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -3073,6 +3145,19 @@ set_keystate "KEY1" "STATE_ZRRSIG" "hidden"
 set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 
 check_keys
+
+# This key was activated 5067 hours ago (18241200 seconds)
+# and started signing 5091 hours ago (18327600 seconds).
+csk_rollover_predecessor_keytimes -18241200 -18327600
+# The new CSK is activated 627 hours ago (2257200 seconds).
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "ACTIVE"      "${created}" -2257200
+set_addkeytime "KEY2" "SYNCPUBLISH" "${created}" -2257200
+syncpub=$(key_get KEY2 SYNCPUBLISH)
+set_addkeytime "KEY2" "PUBLISHED"   "${syncpub}" "-${Ipub}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -3092,19 +3177,47 @@ set_server "ns3" "10.53.0.3"
 set_keystate "KEY1" "STATE_DNSKEY" "hidden"
 
 check_keys
+
+# This key was activated 5069 hours ago (18248400 seconds)
+# and started signing 5093 hours ago (18334800 seconds).
+csk_rollover_predecessor_keytimes -18248400 -18334800
+# The new CSK is activated 629 hours ago (2264400 seconds).
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "ACTIVE"      "${created}" -2264400
+set_addkeytime "KEY2" "SYNCPUBLISH" "${created}" -2264400
+syncpub=$(key_get KEY2 SYNCPUBLISH)
+set_addkeytime "KEY2" "PUBLISHED"   "${syncpub}" "-${Ipub}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
 
-# Next key event is when the new successor needs to be published.  This is the
-# CSK lifetime minus Ipub minus Dreg minus Iret minus DNSKEY TTL minus zone
-# propagation delay.  For the csk-roll this is:
-# 6mo - 3h - 1d - 26d3h - 1h - 1h = 6mo - 27d8h = 13708800 seconds.
-check_next_key_event 13708800
+# Next key event is when the new successor needs to be published.
+# This is the Lcsk, minus time passed since the key started signing,
+# minus the prepublication time.
+# Lcsk:        186d (16070400 seconds)
+# Time passed: 629h (2264400 seconds)
+# Ipub:        3h   (10800 seconds)
+check_next_key_event 13795200
 
 #
 # Testing CSK key rollover (2).
 #
+
+# Policy parameters.
+# Lcsk:      186 days (16070400 seconds)
+# Dreg:    : 1w (604800 seconds)
+# Iret(KSK): DS TTL (1h) + DprpP (1h) + retire-safety (1h)
+# Iret(KSK): 3h (10800 seconds)
+# Iret(ZSK): RRSIG TTL (1d) + Dprp (1h) + Dsgn (12h) + retire-safety (1h)
+# Iret(ZSK): 38h (136800 seconds)
+Lcsk=16070400
+Dreg=604800
+IretKSK=10800
+IretZSK=136800
+IretCSK=$((Dreg+IretKSK))
 
 #
 # Zone: step1.csk-roll2.autosign.
@@ -3135,16 +3248,20 @@ key_clear "KEY3"
 key_clear "KEY4"
 
 check_keys
+
+# This key is immediately published and activated.
+csk_rollover_predecessor_keytimes 0 0
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
 
-# Next key event is when the successor CSK needs to be published.  That is
-# the CSK lifetime - prepublication time - DS registration delay.  The
-# prepublication time is DNSKEY TTL plus publish safety plus the zone
-# propagation delay.  For the csk-roll2 policy that means:
-# 6mo - 3h - 1w = 15454800 seconds.
-check_next_key_event 15454800
+# Next key event is when the successor CSK needs to be published.
+# This is Lcsk - Ipub - Dreg.
+# Lcsk: 186d (16070400 seconds)
+# Ipub: 3h   (10800 seconds)
+check_next_key_event 16059600
 
 #
 # Zone: step2.csk-roll2.autosign.
@@ -3171,6 +3288,20 @@ set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
 set_keystate "KEY2" "STATE_DS"     "hidden"
 
 check_keys
+
+# This key was activated 4293 hours ago (15454800 seconds)
+# and started signing 4461 hours ago (16059600 seconds).
+csk_rollover_predecessor_keytimes -15454800 -16059600
+# The new CSK is published now.
+created=$(key_get KEY2 CREATED)
+set_keytime    "KEY2" "PUBLISHED"   "${created}"
+# The new CSK should publish the CDS after the prepublication time.
+# Ipub: 3 hour (10800 seconds)
+Ipub="10800"
+set_addkeytime "KEY2" "SYNCPUBLISH" "${created}" "${Ipub}"
+set_addkeytime "KEY2" "ACTIVE"      "${created}" "${Ipub}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -3200,6 +3331,19 @@ set_keystate     "KEY2" "STATE_ZRRSIG" "rumoured"
 set_keystate     "KEY2" "STATE_DS"     "rumoured"
 
 check_keys
+
+# This key was activated 179 days ago (15465600 seconds)
+# and started signing 186 days ago (16070400 seconds).
+csk_rollover_predecessor_keytimes -15465600 -16070400
+# The new CSK is published three hours ago, CDS must be published now.
+# Also signatures are being introduced now.
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "PUBLISHED"   "${created}" "-${Ipub}"
+set_keytime    "KEY2" "SYNCPUBLISH" "${created}"
+set_keytime    "KEY2" "ACTIVE"      "${created}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 # Subdomain still has good signatures of old CSK (KEY1).
 # Set expected zone signing on for KEY1 and off for KEY2,
@@ -3233,6 +3377,19 @@ set_keystate "KEY1" "STATE_ZRRSIG" "hidden"
 set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
 
 check_keys
+
+# This key was activated 4334 hours ago (15602400 seconds)
+# and started signing 4502 hours ago (16207200 seconds).
+csk_rollover_predecessor_keytimes -15602400 -16207200
+# The new CSK was published 41 hours (147600 seconds) ago.
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "PUBLISHED"   "${created}"   -147600
+published=$(key_get KEY2 PUBLISHED)
+set_addkeytime "KEY2" "SYNCPUBLISH" "${published}" "${Ipub}"
+set_addkeytime "KEY2" "ACTIVE"      "${published}" "${Ipub}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -3261,6 +3418,19 @@ set_keystate     "KEY1" "STATE_DS"     "hidden"
 set_keystate     "KEY2" "STATE_DS"     "omnipresent"
 
 check_keys
+
+# This key was activated 4467 hours ago (16081200 seconds)
+# and started signing 4635 hours ago (16686000 seconds).
+csk_rollover_predecessor_keytimes -16081200 -16686000
+# The new CSK was published 174 hours (626400 seconds) ago.
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "PUBLISHED"   "${created}"   -626400
+published=$(key_get KEY2 PUBLISHED)
+set_addkeytime "KEY2" "SYNCPUBLISH" "${published}" "${Ipub}"
+set_addkeytime "KEY2" "ACTIVE"      "${published}" "${Ipub}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
@@ -3281,12 +3451,28 @@ set_keystate "KEY1" "STATE_DNSKEY" "hidden"
 set_keystate "KEY1" "STATE_KRRSIG" "hidden"
 
 check_keys
+
+# This key was activated 4469 hours ago (16088400 seconds)
+# and started signing 4637 hours ago (16693200 seconds).
+csk_rollover_predecessor_keytimes -16088400 -16693200
+# The new CSK was published 176 hours (633600 seconds) ago.
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "PUBLISHED"   "${created}"   -633600
+published=$(key_get KEY2 PUBLISHED)
+set_addkeytime "KEY2" "SYNCPUBLISH" "${published}" "${Ipub}"
+set_addkeytime "KEY2" "ACTIVE"      "${published}" "${Ipub}"
+set_retired_removed "KEY2" "${Lcsk}" "${IretCSK}"
+check_keytimes
+
 check_apex
 check_subdomain
 dnssec_verify
 
 # Next key event is when the new successor needs to be published.
-check_next_key_event 14684400
+# This is the Lcsk, minus time passed since the key was published.
+# Lcsk:        186d (16070400 seconds)
+# Time passed: 176h (633600 seconds)
+check_next_key_event 15436800
 
 #
 # Testing algorithm rollover.
