@@ -397,6 +397,7 @@ misc:
     - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
     - xmllint --noout --nonet --html `git ls-files '*.html'`
     - sh util/check-win32util-configure
+    - sh util/check-categories.sh
   needs: []
   artifacts:
     paths:
