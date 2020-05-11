@@ -4091,11 +4091,16 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 
 			if (optlen != 0) {
 				int i;
+				bool utf8ok = false;
 
 				ADD_STRING(target, " ");
 
 				optdata = isc_buffer_current(&optbuf);
-				if (optcode != DNS_OPT_EDE) {
+				if (optcode == DNS_OPT_EDE) {
+					utf8ok = isc_utf8_valid(optdata,
+								optlen);
+				}
+				if (!utf8ok) {
 					for (i = 0; i < optlen; i++) {
 						const char *sep;
 						switch (optcode) {
@@ -4160,6 +4165,9 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				}
 				for (i = 0; i < optlen; i++) {
 					if (isprint(optdata[i])) {
+						isc_buffer_putmem(
+							target, &optdata[i], 1);
+					} else if (utf8ok && optdata[i] > 127) {
 						isc_buffer_putmem(
 							target, &optdata[i], 1);
 					} else {
