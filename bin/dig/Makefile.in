@@ -26,10 +26,10 @@ CDEFINES =	-DVERSION=\"${VERSION}\"
 CWARNINGS =
 
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
-DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ @NO_LIBTOOL_DNSLIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
-ISCLIBS =	../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS} ${ZLIB_LIBS}
+ISCLIBS =	../../lib/isc/libisc.@A@ @NO_LIBTOOL_ISCLIBS@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @NO_LIBTOOL_ISCLIBS@
 IRSLIBS =	../../lib/irs/libirs.@A@
 
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@

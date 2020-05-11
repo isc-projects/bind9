@@ -666,14 +666,16 @@ AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 AC_MSG_CHECKING(for libuv)
 PKG_CHECK_MODULES([LIBUV], [libuv >= 1.0.0], [],
 		  [AC_MSG_ERROR([libuv not found])])
+AC_SUBST([LIBUV_CFLAGS])
+AC_SUBST([LIBUV_LIBS])
+
 AX_SAVE_FLAGS([libuv])
-
 CFLAGS="$CFLAGS $LIBUV_CFLAGS"
-LIBS="$LIBS $LIBUV_LIBS"
-
+LIBS="$LDFLAGS $LIBUV_LIBS"
 # Those functions are only provided in newer versions of libuv, we'll be emulating them
 # for now
 AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import])
+AX_RESTORE_FLAGS([libuv])
 
 #
 # flockfile is usually provided by pthreads
@@ -690,7 +692,8 @@ AC_SUBST(ALWAYS_DEFINES)
 AC_MSG_CHECKING(for libtool)
 AC_ARG_WITH(libtool, AS_HELP_STRING([--with-libtool], [use GNU libtool]),
 	    use_libtool="$withval", use_libtool="no")
-
+NO_LIBTOOL_ISCLIBS=
+NO_LIBTOOL_DNSLIBS=
 case $use_libtool in
 	yes)
 		AC_MSG_RESULT(yes)
@@ -717,9 +720,13 @@ case $use_libtool in
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_MODE_UNINSTALL=
 		INSTALL_LIBRARY='${INSTALL_DATA}'
+		NO_LIBTOOL_ISCLIBS='${NO_LIBTOOL_ISCLIBS}'
+		NO_LIBTOOL_DNSLIBS='${NO_LIBTOOL_DNSLIBS}'
 		;;
 esac
 AC_SUBST(INSTALL_LIBRARY)
+AC_SUBST(NO_LIBTOOL_ISCLIBS)
+AC_SUBST(NO_LIBTOOL_DNSLIBS)
 
 #
 # Do we want to use pthread rwlock?
@@ -1218,7 +1225,7 @@ AC_ARG_WITH(lmdb,
 have_lmdb=""
 case "$use_lmdb" in
 	no)
-		lmdb_libs=""
+		LMDB_LIBS=""
 		;;
 	auto|yes)
 		for d in /usr /usr/local /opt/local
@@ -1227,8 +1234,8 @@ case "$use_lmdb" in
 			then
 				if test ${d} != /usr
 				then
-					lmdb_cflags="-I ${d}/include"
-					LIBS="$LIBS -L${d}/lib"
+					LMDB_CFLAGS="-I ${d}/include"
+					LMDB_LIBS="-L${d}/lib"
 				fi
 				have_lmdb="yes"
 			fi
@@ -1237,8 +1244,8 @@ case "$use_lmdb" in
 	*)
 		if test -f "${use_lmdb}/include/lmdb.h"
 		then
-			lmdb_cflags="-I${use_lmdb}/include"
-			LIBS="$LIBS -L${use_lmdb}/lib"
+			LMDB_CFLAGS="-I${use_lmdb}/include"
+			LMDB_LIBS="-L${use_lmdb}/lib"
 			have_lmdb="yes"
 		else
 			AC_MSG_ERROR([$use_lmdb/include/lmdb.h not found.])
@@ -1249,22 +1256,28 @@ esac
 if test "X${have_lmdb}" != "X"
 then
 	AC_MSG_RESULT(yes)
+	AX_SAVE_FLAGS([lmdb])
+	CFLAGS="$CFLAGS $LMDB_CFLAGS"
+	LIBS="$LIBS $LMDB_LIBS"
 	AC_SEARCH_LIBS([mdb_env_create], [lmdb], [],
 		       [AC_MSG_ERROR([found lmdb include but not library.])
 			have_lmdb=""])
+	LMDB_LIBS="$LMDB_LIBS $ac_cv_search_mdb_env_create"
+	AX_RESTORE_FLAGS([lmdb])
 elif test "X$use_lmdb" = Xyes
 then
 	AC_MSG_ERROR([include/lmdb.h not found.])
 else
 	AC_MSG_RESULT(no)
 fi
+AC_SUBST([LMDB_CFLAGS])
+AC_SUBST([LMDB_LIBS])
 
 NZD_TOOLS=""
 NZDSRCS=
 NZDTARGETS=
 if test "X${have_lmdb}" != "X"
 then
-	CFLAGS="$CFLAGS $lmdb_cflags"
 	AC_DEFINE(HAVE_LMDB, 1, [Define if lmdb was found])
 	NZD_TOOLS="nzd"
 	NZDSRCS='${NZDSRCS}'
@@ -1922,11 +1935,11 @@ if test "x$use_dnstap" != "xno"; then
 	    # before protobuf-c-1.0.0
 	    if test -f $withval/include/google/protobuf-c/protobuf-c.h
 	    then
-		CFLAGS="$CFLAGS -I$withval/include/google"
+		PROTOBUF_C_CFLAGS="-I$withval/include/google"
 	    else
-		CFLAGS="$CFLAGS -I$withval/include"
+		PROTOBUF_C_CFLAGS="-I$withval/include"
 	    fi
-	    LDFLAGS="$LDFLAGS -L$withval/lib"
+	    PROTOBUF_C_LIBS="-L$withval/lib"
 	    AC_PATH_PROG([PROTOC_C], [protoc-c], [],
 			 [$PATH$PATH_SEPARATOR$withval/bin])
 	], [
@@ -1934,12 +1947,16 @@ if test "x$use_dnstap" != "xno"; then
 	    # before protobuf-c-1.0.0
 	    if test -f /usr/include/google/protobuf-c/protobuf-c.h
 	    then
-		CFLAGS="$CFLAGS -I/usr/include/google"
+		PROTOBUF_C_CFLAGS="-I/usr/include/google"
 	    else
 		if test -f /usr/local/include/google/protobuf-c/protobuf-c.h
 		then
-		    CFLAGS="$CFLAGS -I/usr/local/include/google"
-		    LDFLAGS="$LDFLAGS -L/usr/local/lib"
+		    PROTOBUF_C_CFLAGS="-I/usr/local/include/google"
+		    PROTOBUF_C_LIBS="-L/usr/local/lib"
+		elif test -f /opt/local/include/google/protobuf-c/protobuf-c.h
+		then
+		    PROTOBUF_C_CFLAGS="-I/opt/local/include/google"
+		    PROTOBUF_C_LIBS="-L/opt/local/lib"
 		fi
 	    fi
 	    AC_PATH_PROG([PROTOC_C],[protoc-c])
@@ -1949,18 +1966,42 @@ if test "x$use_dnstap" != "xno"; then
 	fi
 	AC_ARG_WITH([libfstrm], AS_HELP_STRING([--with-libfstrm=path],
 		    [Path where libfstrm is installed, for dnstap]), [
-	    CFLAGS="$CFLAGS -I$withval/include"
-	    LDFLAGS="$LDFLAGS -L$withval/lib"
+	    FSTRM_CFLAGS="-I$withval/include"
+	    FSTRM_LIBS="-L$withval/lib"
 	    AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture], [], [$PATH$PATH_SEPARATOR$withval/bin])
 	],[
-	    AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture])
+	    for d in /usr /usr/local /opt/local
+	    do
+		if test -f "${d}/include/fstrm.h"
+		then
+		    if test ${d} != /usr
+		    then
+			FSTRM_CFLAGS="-I${d}/include"
+			FSTRM_LIBS="-L${d}/lib"
+		    fi
+		    have_fstrm="$d"
+		    break
+		fi
+	    done
+	    if test -z "$have_fstrm"; then
+		AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture])
+	    else
+		AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture], [], [$PATH$PATH_SEPARATOR$have_fstrm/bin])
+	    fi
 	])
+	AX_SAVE_FLAGS([dnstap])
+	CFLAGS="$CFLAGS $PROTOBUF_C_CFLAGS $FSTRM_CFLAGS"
+	LIBS="$LDFLAGS $PROTOBUF_C_LIBS $FSTRM_LIBS"
 
 	AC_SEARCH_LIBS([fstrm_iothr_init], [fstrm], [],
 		       AC_MSG_ERROR([The fstrm library was not found. Please install fstrm!]))
+	FSTRM_LIBS="$FSTRM_LIBS $ac_cv_search_fstrm_iothr_init"
+
 	AC_SEARCH_LIBS([protobuf_c_message_pack], [protobuf-c], [],
 		       AC_MSG_ERROR([The protobuf-c library was not found. Please install protobuf-c!]))
+	PROTOBUF_C_LIBS="$PROTOBUF_C_LIBS $ac_cv_search_protobuf_c_message_pack"
 
+	AX_RESTORE_FLAGS([dnstap])
 	AC_DEFINE(HAVE_DNSTAP, 1, [Define to 1 to enable dnstap support])
 	DNSTAP=dnstap
 	DNSTAPSRCS='${DNSTAPSRCS}'
@@ -1971,6 +2012,10 @@ AC_SUBST(DNSTAP)
 AC_SUBST(DNSTAPSRCS)
 AC_SUBST(DNSTAPOBJS)
 AC_SUBST(DNSTAPTARGETS)
+AC_SUBST([PROTOBUF_C_CFLAGS])
+AC_SUBST([PROTOBUF_C_LIBS])
+AC_SUBST([FSTRM_CFLAGS])
+AC_SUBST([FSTRM_LIBS])
 
 #
 #  The following sets up how non-blocking i/o is established.
@@ -2434,7 +2479,8 @@ AS_IF([test "$pic_mode" = "no"],
 
 AS_CASE([$with_dlopen],
 	[auto|yes],[
-	  AC_SEARCH_LIBS([dlopen],[dl])
+	  # -fsanitize=thread hijacks dlopen and dlclose so use dlsym.
+	  AC_SEARCH_LIBS([dlsym],[dl])
 	  AC_CHECK_FUNCS([dlopen dlclose dlsym],
 			 [with_dlopen="yes"],
 			 [with_dlopen="no"])
