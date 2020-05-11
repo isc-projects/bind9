@@ -1452,6 +1452,7 @@ dig_ednsoptname_t optnames[] = {
 	{ 12, "PAD" },	       /* shorthand */
 	{ 13, "CHAIN" },       /* RFC 7901 */
 	{ 14, "KEY-TAG" },     /* RFC 8145 */
+	{ 15, "EDE" },	       /* ietf-dnsop-extended-error-16 */
 	{ 16, "CLIENT-TAG" },  /* draft-bellis-dnsop-edns-tags */
 	{ 17, "SERVER-TAG" },  /* draft-bellis-dnsop-edns-tags */
 	{ 26946, "DEVICEID" }, /* Brian Hartvigsen */
