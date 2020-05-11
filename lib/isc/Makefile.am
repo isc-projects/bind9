@@ -88,6 +88,7 @@ libisc_la_HEADERS =			\
 	include/isc/timer.h		\
 	include/isc/tm.h		\
 	include/isc/types.h		\
+	include/isc/utf8.h		\
 	include/isc/util.h		\
 	pthreads/include/isc/condition.h\
 	pthreads/include/isc/mutex.h	\
@@ -205,6 +206,7 @@ libisc_la_SOURCES =		\
 	taskpool.c		\
 	timer.c			\
 	tm.c			\
+	utf8.c			\
 	pthreads/condition.c	\
 	pthreads/mutex.c	\
 	pthreads/thread.c	\
