@@ -3944,7 +3944,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					continue;
 				}
 			} else if (optcode == DNS_OPT_EDE) {
-				ADD_STRING(target, "; EDE:");
+				ADD_STRING(target, "; EDE");
 				if (optlen >= 2U) {
 					uint16_t ede;
 					ede = isc_buffer_getuint16(&optbuf);
@@ -3962,7 +3962,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					/* Malformed */
 					optdata = isc_buffer_current(&optbuf);
 					snprintf(buf, sizeof(buf),
-						 " %02x (\"%c\")\n", optdata[0],
+						 ": %02x (\"%c\")\n",
+						 optdata[0],
 						 isprint(optdata[0])
 							 ? optdata[0]
 							 : '.');
@@ -4002,10 +4003,15 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 			if (optlen != 0) {
 				int i;
+				bool utf8ok = false;
 				ADD_STRING(target, ": ");
 
 				optdata = isc_buffer_current(&optbuf);
-				if (optcode != DNS_OPT_EDE) {
+				if (optcode == DNS_OPT_EDE) {
+					utf8ok = isc_utf8_valid(optdata,
+								optlen);
+				}
+				if (!utf8ok) {
 					for (i = 0; i < optlen; i++) {
 						const char *sep;
 						switch (optcode) {
@@ -4064,12 +4070,15 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				if (isc_buffer_availablelength(target) < optlen)
 					return (ISC_R_NOSPACE);
 				for (i = 0; i < optlen; i++) {
-					if (isprint(optdata[i]))
-						isc_buffer_putmem(target,
-								  &optdata[i],
-								  1);
-					else
+					if (isprint(optdata[i])) {
+						isc_buffer_putmem(
+							target, &optdata[i], 1);
+					} else if (utf8ok && optdata[i] > 127) {
+						isc_buffer_putmem(
+							target, &optdata[i], 1);
+					} else {
 						isc_buffer_putstr(target, ".");
+					}
 				}
 				if (optcode != DNS_OPT_EDE) {
 					ADD_STRING(target, "\")");
