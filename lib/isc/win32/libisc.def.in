@@ -754,6 +754,8 @@ isc_timermgr_destroy
 isc_timermgr_poke
 isc_tm_timegm
 isc_tm_strptime
+isc_utf8_bom
+isc_utf8_valid
 isc_win32os_versioncheck
 openlog
 @IF PKCS11
