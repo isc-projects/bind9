@@ -21,6 +21,8 @@
 Release Notes
 =============
 
+.. contents::
+
 Introduction
 ------------
 
