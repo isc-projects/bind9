@@ -1,7 +1,7 @@
 #! /bin/sh
 # test-driver - basic testsuite driver script.
 
-scriptversion=2020-05-06.12; # UTC
+scriptversion=2020-05-12.10; # UTC
 
 # Copyright (C) 2011-2020 Free Software Foundation, Inc.
 #
@@ -116,6 +116,7 @@ else
   "$@" >$log_file 2>&1; echo $? > "$status_file"
 fi
 read -r estatus < "$status_file"
+rm "$status_file"
 
 if test $enable_hard_errors = no && test $estatus -eq 99; then
   tweaked_estatus=1
