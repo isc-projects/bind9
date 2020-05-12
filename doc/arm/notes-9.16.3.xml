@@ -81,6 +81,14 @@
           [GL #1674]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          The zone timers are now exported to the statistics channel.  For the
+          primary zones, only the loaded time is exported.  For the secondary
+          zones, the exported timers also include expire and refresh times.
+          Contributed by Paul Frieden, Verizon Media. [GL #1232]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
