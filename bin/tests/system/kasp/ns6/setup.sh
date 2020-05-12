@@ -97,7 +97,7 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 setup step1.algorithm-roll.kasp
 echo "$zone" >> zones
 TactN="now"
-ksktimes="-P ${TactN} -A ${TactN}"
+ksktimes="-P ${TactN} -A ${TactN} -P sync ${TactN}"
 zsktimes="-P ${TactN} -A ${TactN}"
 KSK=$($KEYGEN -a RSASHA1 -L 3600 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a RSASHA1 -L 3600        $zsktimes $zone 2> keygen.out.$zone.2)
@@ -266,7 +266,7 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 setup step1.csk-algorithm-roll.kasp
 echo "$zone" >> zones
 TactN="now"
-csktimes="-P ${TactN} -A ${TactN}"
+csktimes="-P ${TactN} -P sync ${TactN} -A ${TactN}"
 CSK=$($KEYGEN -k csk-algoroll -l policies/csk1.conf $csktimes $zone 2> keygen.out.$zone.1)
 $SETTIME -s -g $O -k $O $TactN -r $O $TactN -z $O $TactN -d $O $TactN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
