@@ -18,12 +18,8 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. _relnotes:
-
 Release Notes
 =============
-
-.. _relnotes_intro:
 
 Introduction
 ------------
@@ -34,8 +30,6 @@ on this branch. With each development release leading up to the stable
 BIND 9.18 release, this document will be updated with additional
 features added and bugs fixed. Please see the file CHANGES for a more
 detailed list of changes and bug fixes.
-
-.. _relnotes_platforms:
 
 Supported Platforms
 -------------------
@@ -57,8 +51,6 @@ system libraries provide the above features, BIND 9 should compile and
 run. If that is not the case, the BIND development team will generally
 accept patches that add support for systems that are still supported by
 their respective vendors.
-
-.. _relnotes_download:
 
 Download
 --------
@@ -92,8 +84,6 @@ without changes.
 Those wishing to discuss license compliance may contact ISC at
 https://www.isc.org/contact/.
 
-.. _end_of_life:
-
 End of Life
 -----------
 
@@ -104,8 +94,6 @@ For those needing long term support, the current Extended Support
 Version (ESV) is BIND 9.11, which will be supported until at least
 December 2021. See https://kb.isc.org/docs/aa-00896 for details of
 ISC's software support policy.
-
-.. _relnotes_thanks:
 
 Thank You
 ---------
