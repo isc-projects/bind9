@@ -84,47 +84,7 @@ http://www.isc.org/downloads/. There you will find additional
 information about each release, source code, and pre-compiled versions
 for Microsoft Windows operating systems.
 
-.. _relnotes_security:
-
-Security Fixes
---------------
-
--  None.
-
-.. _relnotes_features:
-
-New Features
-------------
-
--  The new ``add-soa`` option specifies whether or not the
-   ``response-policy`` zone's SOA record should be included in the
-   additional section of RPZ responses. [GL #865]
-
-.. _relnotes_removed:
-
-Removed Features
-----------------
-
--  The ``dnssec-enable`` option has been deprecated and no longer has
-   any effect. DNSSEC responses are always enabled if signatures and
-   other DNSSEC data are present. [GL #866]
-
-.. _relnotes_changes:
-
-Feature Changes
----------------
-
--  None.
-
-.. _relnotes_bugs:
-
-Bug Fixes
----------
-
--  The ``allow-update`` and ``allow-update-forwarding`` options were
-   inadvertently treated as configuration errors when used at the
-   ``options`` or ``view`` level. This has now been corrected. [GL #913]
-
+.. include:: ../notes/notes-current.rst
 .. include:: ../notes/notes-9.17.1.rst
 .. include:: ../notes/notes-9.17.0.rst
 
