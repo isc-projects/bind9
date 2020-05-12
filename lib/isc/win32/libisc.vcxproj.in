@@ -370,6 +370,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\timer.h" />
     <ClInclude Include="..\include\isc\tm.h" />
     <ClInclude Include="..\include\isc\types.h" />
+    <ClInclude Include="..\include\isc\utf8.h" />
     <ClInclude Include="..\include\isc\util.h" />
 @IF PKCS11
     <ClInclude Include="..\include\pk11\constants.h" />
@@ -471,6 +472,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\taskpool.c" />
     <ClCompile Include="..\timer.c" />
     <ClCompile Include="..\tm.c" />
+    <ClCompile Include="..\utf8.c" />
 @IF PKCS11
     <ClCompile Include="..\pk11.c" />
     <ClCompile Include="..\pk11_result.c" />

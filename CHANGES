@@ -1,3 +1,6 @@
+5408.	[protocol]	Print Extended DNS Errors if present in OPT record.
+			[GL #1835]
+
 5407.	[func]		The zone timers are now exported to the statistics
 			channel.  Thanks to Paul Frieden, Verizon Media.
 			[GL #1232]
