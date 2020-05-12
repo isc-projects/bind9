@@ -125,6 +125,8 @@ Bug Fixes
    inadvertently treated as configuration errors when used at the
    ``options`` or ``view`` level. This has now been corrected. [GL #913]
 
+.. include:: ../notes/notes-9.17.0.rst
+
 .. _relnotes_license:
 
 License
