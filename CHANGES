@@ -1,3 +1,7 @@
+5407.	[func]		The zone timers are now exported to the statistics
+			channel.  Thanks to Paul Frieden, Verizon Media.
+			[GL #1232]
+
 5406.	[func]		Added a new logging category "rpz-passthru". It allows
 			RPZ passthru actions to be logged into a separate
 			channel. [GL #54]
