@@ -32,7 +32,7 @@ HEADERS =	aes.h app.h assertions.h boolean.h backtrace.h base32.h base64.h \
 		region.h resource.h result.h resultclass.h rwlock.h \
 		safe.h serial.h siphash.h sha1.h sha2.h sockaddr.h socket.h \
 		stats.h stdatomic.h stdio.h stdlib.h string.h symtab.h task.h \
-		taskpool.h timer.h tm.h types.h util.h version.h \
+		taskpool.h timer.h tm.h types.h utf8.h util.h version.h \
 		xml.h
 
 SUBDIRS =

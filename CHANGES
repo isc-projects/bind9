@@ -2,6 +2,9 @@
 			the check for empty non-terminal nodes; the NSEC3
 			tree doesn't have any. [GL #1834]
 
+5408.	[protocol]	Print Extended DNS Errors if present in OPT record.
+			[GL #1835]
+
 5405.	[bug]		'named-checkconf -p' could include spurious text
 			in server-addresses statements due to an uninitialized
 			DSCP value. [GL #1812]
