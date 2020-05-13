@@ -114,11 +114,13 @@ setup step2.algorithm-roll.kasp
 # The time passed since the new algorithm keys have been introduced is 3 hours.
 TactN="now-3h"
 TpubN1="now-3h"
-TactN1="now+6h"
-ksk1times="-P ${TactN}  -A ${TactN}  -I now"
-zsk1times="-P ${TactN}  -A ${TactN}  -I now"
-ksk2times="-P ${TpubN1} -A ${TpubN1}"
-zsk2times="-P ${TpubN1} -A ${TactN1}"
+# Tsbm(N+1) = TpubN1 + Ipub = now + TTLsig + Dprp + publish-safety =
+# now - 3h + 6h + 1h + 1h = now + 5h
+TsbmN1="now+5h"
+ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I now"
+zsk1times="-P ${TactN}  -A ${TactN}                    -I now"
+ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
+zsk2times="-P ${TpubN1} -A ${TpubN1}"
 KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
@@ -142,12 +144,13 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 setup step3.algorithm-roll.kasp
 # The time passed since the new algorithm keys have been introduced is 9 hours.
 TactN="now-9h"
+TretN="now-6h"
 TpubN1="now-9h"
-TactN1="now"
-ksk1times="-P ${TactN}  -A ${TactN}  -I now"
-zsk1times="-P ${TactN}  -A ${TactN}  -I now"
-ksk2times="-P ${TpubN1} -A ${TactN1}"
-zsk2times="-P ${TpubN1} -A ${TactN1}"
+TsbmN1="now-1h"
+ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I ${TretN}"
+zsk1times="-P ${TactN}  -A ${TactN}                    -I ${TretN}"
+ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
+zsk2times="-P ${TpubN1} -A ${TpubN1}"
 KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
@@ -171,12 +174,14 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 setup step4.algorithm-roll.kasp
 # The time passed since the DS has been swapped is 29 hours.
 TactN="now-38h"
+TretN="now-35h"
 TpubN1="now-38h"
+TsbmN1="now-30h"
 TactN1="now-29h"
-ksk1times="-P ${TactN}  -A ${TactN}  -I now"
-zsk1times="-P ${TactN}  -A ${TactN}  -I now"
-ksk2times="-P ${TpubN1} -A ${TactN1}"
-zsk2times="-P ${TpubN1} -A ${TactN1}"
+ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I ${TretN}"
+zsk1times="-P ${TactN}  -A ${TactN}                    -I ${TretN}"
+ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
+zsk2times="-P ${TpubN1} -A ${TpubN1}"
 KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
@@ -200,13 +205,15 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 setup step5.algorithm-roll.kasp
 # The time passed since the DNSKEY has been removed is 2 hours.
 TactN="now-40h"
-TpubN1="now-40h"
-TactN1="now-31h"
+TretN="now-37h"
 TremN="now-2h"
-ksk1times="-P ${TactN}  -A ${TactN}  -I now"
-zsk1times="-P ${TactN}  -A ${TactN}  -I now"
-ksk2times="-P ${TpubN1} -A ${TactN1}"
-zsk2times="-P ${TpubN1} -A ${TactN1}"
+TpubN1="now-40h"
+TsbmN1="now-32h"
+TactN1="now-31h"
+ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I ${TretN}"
+zsk1times="-P ${TactN}  -A ${TactN}                    -I ${TretN}"
+ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
+zsk2times="-P ${TpubN1} -A ${TpubN1}"
 KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
@@ -230,14 +237,16 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 setup step6.algorithm-roll.kasp
 # Additional time passed: 7h.
 TactN="now-47h"
+TretN="now-44h"
+TremN="now-7h"
 TpubN1="now-47h"
+TsbmN1="now-39h"
 TactN1="now-38h"
 TdeaN="now-9h"
-TremN="now-7h"
-ksk1times="-P ${TactN}  -A ${TactN}  -I now"
-zsk1times="-P ${TactN}  -A ${TactN}  -I now"
-ksk2times="-P ${TpubN1} -A ${TactN1}"
-zsk2times="-P ${TpubN1} -A ${TactN1}"
+ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I ${TretN}"
+zsk1times="-P ${TactN}  -A ${TactN}                    -I ${TretN}"
+ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
+zsk2times="-P ${TpubN1} -A ${TpubN1}"
 KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
 ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
@@ -279,7 +288,7 @@ setup step2.csk-algorithm-roll.kasp
 # The time passed since the new algorithm keys have been introduced is 3 hours.
 TactN="now-3h"
 TpubN1="now-3h"
-csktimes="-P ${TactN}  -A ${TactN}  -I now"
+csktimes="-P ${TactN}  -A ${TactN} -P sync ${TactN} -I now"
 newtimes="-P ${TpubN1} -A ${TpubN1}"
 CSK1=$($KEYGEN -k csk-algoroll -l policies/csk1.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-algoroll -l policies/csk2.conf $newtimes $zone 2> keygen.out.$zone.2)
@@ -297,9 +306,10 @@ $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > sig
 setup step3.csk-algorithm-roll.kasp
 # The time passed since the new algorithm keys have been introduced is 9 hours.
 TactN="now-9h"
+TretN="now-6h"
 TpubN1="now-9h"
 TactN1="now-6h"
-csktimes="-P ${TactN}  -A ${TactN}  -I now"
+csktimes="-P ${TactN}  -A ${TactN} -P sync ${TactN} -I ${TretN}"
 newtimes="-P ${TpubN1} -A ${TpubN1}"
 CSK1=$($KEYGEN -k csk-algoroll -l policies/csk1.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-algoroll -l policies/csk2.conf $newtimes $zone 2> keygen.out.$zone.2)
@@ -317,10 +327,11 @@ $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > sig
 setup step4.csk-algorithm-roll.kasp
 # The time passed since the DS has been swapped is 29 hours.
 TactN="now-38h"
+TretN="now-35h"
 TpubN1="now-38h"
 TactN1="now-35h"
 TsubN1="now-29h"
-csktimes="-P ${TactN}  -A ${TactN}  -I now"
+csktimes="-P ${TactN}  -A ${TactN} -P sync ${TactN} -I ${TretN}"
 newtimes="-P ${TpubN1} -A ${TpubN1}"
 CSK1=$($KEYGEN -k csk-algoroll -l policies/csk1.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-algoroll -l policies/csk2.conf $newtimes $zone 2> keygen.out.$zone.2)
@@ -338,11 +349,12 @@ $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > sig
 setup step5.csk-algorithm-roll.kasp
 # The time passed since the DNSKEY has been removed is 2 hours.
 TactN="now-40h"
+TretN="now-37h"
+TremN="now-2h"
 TpubN1="now-40h"
 TactN1="now-37h"
 TsubN1="now-31h"
-TremN="now-2h"
-csktimes="-P ${TactN}  -A ${TactN} -I now"
+csktimes="-P ${TactN}  -A ${TactN} -P sync ${TactN} -I ${TretN}"
 newtimes="-P ${TpubN1} -A ${TpubN1}"
 CSK1=$($KEYGEN -k csk-algoroll -l policies/csk1.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-algoroll -l policies/csk2.conf $newtimes $zone 2> keygen.out.$zone.2)
@@ -360,12 +372,13 @@ $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > sig
 setup step6.csk-algorithm-roll.kasp
 # Additional time passed: 7h.
 TactN="now-47h"
+TretN="now-44h"
+TdeaN="now-9h"
+TremN="now-7h"
 TpubN1="now-47h"
 TactN1="now-44h"
 TsubN1="now-38h"
-TdeaN="now-9h"
-TremN="now-7h"
-csktimes="-P ${TactN}  -A ${TactN}  -I now"
+csktimes="-P ${TactN}  -A ${TactN} -P sync ${TactN} -I ${TretN}"
 newtimes="-P ${TpubN1} -A ${TpubN1}"
 CSK1=$($KEYGEN -k csk-algoroll -l policies/csk1.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-algoroll -l policies/csk2.conf $newtimes $zone 2> keygen.out.$zone.2)
