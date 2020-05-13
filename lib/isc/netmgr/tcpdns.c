@@ -393,13 +393,45 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	dnslistensock->accept_cbarg = accept_cbarg;
 	dnslistensock->extrahandlesize = extrahandlesize;
 
-	/*
-	 * dnslistensock will be a DNS 'wrapper' around a connected
-	 * stream. We set dnslistensock->outer to a socket listening
-	 * for a TCP connection.
-	 */
 	result = isc_nm_listentcp(mgr, iface, dnslisten_acceptcb, dnslistensock,
 				  extrahandlesize, backlog, quota,
+				  &dnslistensock->outer);
+	if (result == ISC_R_SUCCESS) {
+		atomic_store(&dnslistensock->listening, true);
+		*sockp = dnslistensock;
+		return (ISC_R_SUCCESS);
+	} else {
+		atomic_store(&dnslistensock->closed, true);
+		isc__nmsocket_detach(&dnslistensock);
+		return (result);
+	}
+}
+
+/*
+ * isc_nm_listentlsdns works exactly as listentcpdns but on an SSL socket.
+ */
+isc_result_t
+isc_nm_listentlsdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
+		    void *cbarg, isc_nm_accept_cb_t accept_cb,
+		    void *accept_cbarg, size_t extrahandlesize, int backlog,
+		    isc_quota_t *quota, SSL_CTX *sslctx,
+		    isc_nmsocket_t **sockp) {
+	isc_nmsocket_t *dnslistensock = isc_mem_get(mgr->mctx,
+						    sizeof(*dnslistensock));
+	isc_result_t result;
+
+	REQUIRE(VALID_NM(mgr));
+	REQUIRE(sslctx != NULL);
+
+	isc__nmsocket_init(dnslistensock, mgr, isc_nm_tcpdnslistener, iface);
+	dnslistensock->recv_cb = cb;
+	dnslistensock->recv_cbarg = cbarg;
+	dnslistensock->accept_cb = accept_cb;
+	dnslistensock->accept_cbarg = accept_cbarg;
+	dnslistensock->extrahandlesize = extrahandlesize;
+
+	result = isc_nm_listentls(mgr, iface, dnslisten_acceptcb, dnslistensock,
+				  extrahandlesize, backlog, quota, sslctx,
 				  &dnslistensock->outer);
 	if (result == ISC_R_SUCCESS) {
 		atomic_store(&dnslistensock->listening, true);
@@ -430,7 +462,16 @@ isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__nmsocket_clearcb(sock);
 
 	if (sock->outer != NULL) {
-		isc__nm_tcp_stoplistening(sock->outer);
+		switch (sock->outer->type) {
+		case isc_nm_tcplistener:
+			isc__nm_tcp_stoplistening(sock->outer);
+			break;
+		case isc_nm_tlslistener:
+			isc__nm_tls_stoplistening(sock->outer);
+			break;
+		default:
+			INSIST(0);
+		}
 		isc__nmsocket_detach(&sock->outer);
 	}
 
@@ -559,6 +600,7 @@ resume_processing(void *arg) {
 static void
 tcpdnssend_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc__nm_uvreq_t *req = (isc__nm_uvreq_t *)cbarg;
+	REQUIRE(VALID_UVREQ(req));
 
 	UNUSED(handle);
 
@@ -803,6 +845,25 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	isc_mem_attach(mgr->mctx, &conn->mctx);
 	return (isc_nm_tcpconnect(mgr, local, peer, tcpdnsconnect_cb, conn,
 				  timeout, 0));
+}
+
+isc_result_t
+isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
+		     size_t extrahandlesize) {
+	tcpconnect_t *conn = isc_mem_get(mgr->mctx, sizeof(tcpconnect_t));
+	SSL_CTX *ctx = NULL;
+
+	*conn = (tcpconnect_t){ .cb = cb,
+				.cbarg = cbarg,
+				.extrahandlesize = extrahandlesize };
+	isc_mem_attach(mgr->mctx, &conn->mctx);
+
+	ctx = SSL_CTX_new(SSLv23_client_method());
+	isc_result_t result = isc_nm_tlsconnect(
+		mgr, local, peer, tcpdnsconnect_cb, conn, ctx, timeout, 0);
+	SSL_CTX_free(ctx);
+	return (result);
 }
 
 void
