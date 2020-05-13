@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "NAMED" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
+.TH "NAMED" "8" "@RELEASE_DATE@" "@BIND9_VERSION@" "BIND 9"
 .SH NAME
 named \- Internet domain name server
 .

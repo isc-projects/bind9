@@ -679,17 +679,12 @@ CMOCKA_CFLAGS
 LIBIDN2_LDFLAGS
 LIBIDN2_LIBS
 LIBIDN2_CFLAGS
-XSLT_DOCBOOK_MAKETOC_XHTML
-XSLT_DOCBOOK_MAKETOC_HTML
-XSLT_DOCBOOK_CHUNKTOC_XHTML
-XSLT_DOCBOOK_CHUNKTOC_HTML
-XSLT_DOCBOOK_CHUNK_XHTML
-XSLT_DOCBOOK_CHUNK_HTML
-XSLT_DOCBOOK_STYLE_MAN
-XSLT_DOCBOOK_STYLE_XHTML
-XSLT_DOCBOOK_STYLE_HTML
 CURL
 DOXYGEN
+MANSRCS
+PDFTARGET
+HTMLTARGET
+PDFLATEX
 RELEASE_DATE
 HAVE_XELATEX_FALSE
 HAVE_XELATEX_TRUE
@@ -751,6 +746,7 @@ ISC_PLATFORM_GSSAPIHEADER
 ISC_PLATFORM_HAVEGSSAPI
 KRB5_CONFIG
 CRYPTO
+PKCS11_MANS
 PKCS11_TOOLS
 PKCS11_TEST
 OPENSSL_LIBS
@@ -947,7 +943,6 @@ enable_fixed_rrset
 enable_dnstap
 with_protobuf_c
 with_libfstrm
-with_docbook_xsl
 with_libidn2
 with_cmocka
 with_tuning
@@ -1710,7 +1705,6 @@ Optional Packages:
   --with-readline=LIBSPEC specify readline library [default auto]
   --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
   --with-libfstrm=path    Path where libfstrm is installed, for dnstap
-  --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
   --with-libidn2=PATH     enable IDN support using GNU libidn2
                           [yes|no(default)|path]
   --with-cmocka=detect    enable CMocka based tests (default is detect)
@@ -17173,6 +17167,7 @@ esac
 
 PKCS11_TOOLS=
 PKCS11_TEST=
+PKCS11_MANS=
 #
 # was --enable-native-pkcs11 specified?
 #
@@ -17193,6 +17188,7 @@ $as_echo "no" >&6; } ;; #(
   yes) :
     PKCS11_TOOLS=pkcs11
 	       PKCS11_TEST=pkcs11
+	       PKCS11_MANS='${pkcs11_man8_MANS}'
 	       CRYPTO=pkcs11
 	       if $use_threads; then :
   :
@@ -17216,6 +17212,7 @@ done
   *) :
      ;;
 esac
+
 
 
 
@@ -21069,6 +21066,115 @@ release_date=`date -r CHANGES +%Y-%m-%d`
 RELEASE_DATE=$release_date
 
 
+# Don't build the documentation if the sphinx-build is not present
+PDFTARGET=
+HTMLTARGET=
+MANSRCS=
+if test -n "$SPHINX_BUILD"; then :
+
+	  MANSRCS='$(MANPAGES_IN)'
+	  HTMLTARGET='html dirhtml'
+	  for ac_prog in pdflatex
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PDFLATEX+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PDFLATEX in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PDFLATEX="$PDFLATEX" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PDFLATEX="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PDFLATEX=$ac_cv_path_PDFLATEX
+if test -n "$PDFLATEX"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PDFLATEX" >&5
+$as_echo "$PDFLATEX" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$PDFLATEX" && break
+done
+
+	  for ac_prog in latexmk
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_LATEXMK+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $LATEXMK in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_LATEXMK="$LATEXMK" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_LATEXMK="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+LATEXMK=$ac_cv_path_LATEXMK
+if test -n "$LATEXMK"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LATEXMK" >&5
+$as_echo "$LATEXMK" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$LATEXMK" && break
+done
+
+	  if test -n "$PDFLATEX" && test -n "$LATEXMK"; then :
+
+		    PDFTARGET='pdf'
+
+fi
+
+fi
+
+
+
+
 #
 # Look for Doxygen
 #
@@ -21163,262 +21269,6 @@ else
 $as_echo "no" >&6; }
 fi
 
-
-
-
-#
-# Subroutine for searching for an ordinary file (e.g., a stylesheet)
-# in a number of directories:
-#
-#   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
-#
-# If the file FILENAME is found in one of the DIRECTORIES, the shell
-# variable VARIABLE is defined to its absolute pathname.  Otherwise,
-# it is set to FILENAME, with no directory prefix (that's not terribly
-# useful, but looks less confusing in substitutions than leaving it
-# empty).  The variable VARIABLE will be substituted into output files.
-#
-
-
-
-#
-# Look for Docbook-XSL stylesheets.  Location probably varies by system.
-# If it's not explicitly specified, guess where it might be found, based on
-# where SGML stuff lives on some systems (FreeBSD is the only one we're sure
-# of at the moment).
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Docbook-XSL path" >&5
-$as_echo_n "checking for Docbook-XSL path... " >&6; }
-
-# Check whether --with-docbook-xsl was given.
-if test "${with_docbook_xsl+set}" = set; then :
-  withval=$with_docbook_xsl; docbook_path="$withval"
-else
-  docbook_path="auto"
-fi
-
-case "$docbook_path" in
-auto)
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: auto" >&5
-$as_echo "auto" >&6; }
-	docbook_xsl_trees="/usr/pkg/share/xsl/docbook /usr/local/share/xsl/docbook-ns /usr/local/share/xsl/docbook /usr/share/xsl/docbook /usr/share/sgml/docbook/xsl-stylesheets /opt/local/share/xsl/docbook-xsl /opt/local/share/xsl/docbook-xsl-nons /usr/share/xml/docbook/stylesheet/docbook-xsl"
-	;;
-*)
-	docbook_xsl_trees="$withval"
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $docbook_xsl_trees" >&5
-$as_echo "$docbook_xsl_trees" >&6; }
-	;;
-esac
-
-#
-# Look for stylesheets we need.
-#
-
-
-XSLT_DOCBOOK_STYLE_HTML=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for html/docbook.xsl" >&5
-$as_echo_n "checking for html/docbook.xsl... " >&6; }
-for d in $docbook_xsl_trees
-do
-	f=$d/html/docbook.xsl
-	if test -f $f
-	then
-		XSLT_DOCBOOK_STYLE_HTML=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DOCBOOK_STYLE_HTML" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DOCBOOK_STYLE_HTML=html/docbook.xsl
-fi
-
-
-
-XSLT_DOCBOOK_STYLE_XHTML=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xhtml/docbook.xsl" >&5
-$as_echo_n "checking for xhtml/docbook.xsl... " >&6; }
-for d in $docbook_xsl_trees
-do
-	f=$d/xhtml/docbook.xsl
-	if test -f $f
-	then
-		XSLT_DOCBOOK_STYLE_XHTML=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DOCBOOK_STYLE_XHTML" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DOCBOOK_STYLE_XHTML=xhtml/docbook.xsl
-fi
-
-
-
-XSLT_DOCBOOK_STYLE_MAN=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for manpages/docbook.xsl" >&5
-$as_echo_n "checking for manpages/docbook.xsl... " >&6; }
-for d in $docbook_xsl_trees
-do
-	f=$d/manpages/docbook.xsl
-	if test -f $f
-	then
-		XSLT_DOCBOOK_STYLE_MAN=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DOCBOOK_STYLE_MAN" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DOCBOOK_STYLE_MAN=manpages/docbook.xsl
-fi
-
-
-
-XSLT_DOCBOOK_CHUNK_HTML=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for html/chunk.xsl" >&5
-$as_echo_n "checking for html/chunk.xsl... " >&6; }
-for d in $docbook_xsl_trees
-do
-	f=$d/html/chunk.xsl
-	if test -f $f
-	then
-		XSLT_DOCBOOK_CHUNK_HTML=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DOCBOOK_CHUNK_HTML" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DOCBOOK_CHUNK_HTML=html/chunk.xsl
-fi
-
-
-
-XSLT_DOCBOOK_CHUNK_XHTML=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xhtml/chunk.xsl" >&5
-$as_echo_n "checking for xhtml/chunk.xsl... " >&6; }
-for d in $docbook_xsl_trees
-do
-	f=$d/xhtml/chunk.xsl
-	if test -f $f
-	then
-		XSLT_DOCBOOK_CHUNK_XHTML=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DOCBOOK_CHUNK_XHTML" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DOCBOOK_CHUNK_XHTML=xhtml/chunk.xsl
-fi
-
-
-
-XSLT_DOCBOOK_CHUNKTOC_HTML=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for html/chunktoc.xsl" >&5
-$as_echo_n "checking for html/chunktoc.xsl... " >&6; }
-for d in $docbook_xsl_trees
-do
-	f=$d/html/chunktoc.xsl
-	if test -f $f
-	then
-		XSLT_DOCBOOK_CHUNKTOC_HTML=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DOCBOOK_CHUNKTOC_HTML" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DOCBOOK_CHUNKTOC_HTML=html/chunktoc.xsl
-fi
-
-
-
-XSLT_DOCBOOK_CHUNKTOC_XHTML=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xhtml/chunktoc.xsl" >&5
-$as_echo_n "checking for xhtml/chunktoc.xsl... " >&6; }
-for d in $docbook_xsl_trees
-do
-	f=$d/xhtml/chunktoc.xsl
-	if test -f $f
-	then
-		XSLT_DOCBOOK_CHUNKTOC_XHTML=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DOCBOOK_CHUNKTOC_XHTML" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DOCBOOK_CHUNKTOC_XHTML=xhtml/chunktoc.xsl
-fi
-
-
-
-XSLT_DOCBOOK_MAKETOC_HTML=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for html/maketoc.xsl" >&5
-$as_echo_n "checking for html/maketoc.xsl... " >&6; }
-for d in $docbook_xsl_trees
-do
-	f=$d/html/maketoc.xsl
-	if test -f $f
-	then
-		XSLT_DOCBOOK_MAKETOC_HTML=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DOCBOOK_MAKETOC_HTML" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DOCBOOK_MAKETOC_HTML=html/maketoc.xsl
-fi
-
-
-
-XSLT_DOCBOOK_MAKETOC_XHTML=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xhtml/maketoc.xsl" >&5
-$as_echo_n "checking for xhtml/maketoc.xsl... " >&6; }
-for d in $docbook_xsl_trees
-do
-	f=$d/xhtml/maketoc.xsl
-	if test -f $f
-	then
-		XSLT_DOCBOOK_MAKETOC_XHTML=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DOCBOOK_MAKETOC_XHTML" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DOCBOOK_MAKETOC_XHTML=xhtml/maketoc.xsl
-fi
 
 
 
@@ -23987,7 +23837,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delv/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/plugins/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/python/dnssec-keymgr.py bin/python/isc/Makefile bin/python/isc/__init__.py bin/python/isc/checkds.py bin/python/isc/coverage.py bin/python/isc/dnskey.py bin/python/isc/eventlist.py bin/python/isc/keydict.py bin/python/isc/keyevent.py bin/python/isc/keymgr.py bin/python/isc/keyseries.py bin/python/isc/keyzone.py bin/python/isc/policy.py bin/python/isc/rndc.py bin/python/isc/tests/Makefile bin/python/isc/tests/dnskey_test.py bin/python/isc/tests/policy_test.py bin/python/isc/utils.py bin/rndc/Makefile bin/tests/Makefile bin/tests/headerdep_test.sh bin/tests/optional/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/dlzs.conf bin/tests/system/dyndb/Makefile bin/tests/system/dyndb/driver/Makefile bin/tests/system/pipelined/Makefile bin/tests/system/rndc/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/arm/noteversion.xml doc/arm/pkgversion.xml doc/arm/releaseinfo.xml doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/tex/Makefile doc/tex/armstyle.sty doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-manpage.xsl doc/xsl/isc-notes-html.xsl fuzz/Makefile lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/irs/tests/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/netmgr/Makefile lib/isc/pthreads/Makefile lib/isc/pthreads/include/Makefile lib/isc/pthreads/include/isc/Makefile lib/isc/tests/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccc/tests/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/isccfg/tests/Makefile lib/ns/Makefile lib/ns/include/Makefile lib/ns/include/ns/Makefile lib/ns/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall make/Makefile make/mkdep unit/unittest.sh util/check-make-install"
+ac_config_files="$ac_config_files Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delv/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/plugins/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/python/dnssec-keymgr.py bin/python/isc/Makefile bin/python/isc/__init__.py bin/python/isc/checkds.py bin/python/isc/coverage.py bin/python/isc/dnskey.py bin/python/isc/eventlist.py bin/python/isc/keydict.py bin/python/isc/keyevent.py bin/python/isc/keymgr.py bin/python/isc/keyseries.py bin/python/isc/keyzone.py bin/python/isc/policy.py bin/python/isc/rndc.py bin/python/isc/tests/Makefile bin/python/isc/tests/dnskey_test.py bin/python/isc/tests/policy_test.py bin/python/isc/utils.py bin/rndc/Makefile bin/tests/Makefile bin/tests/headerdep_test.sh bin/tests/optional/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/dlzs.conf bin/tests/system/dyndb/Makefile bin/tests/system/dyndb/driver/Makefile bin/tests/system/pipelined/Makefile bin/tests/system/rndc/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/man/Makefile doc/misc/Makefile fuzz/Makefile lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/irs/tests/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/netmgr/Makefile lib/isc/pthreads/Makefile lib/isc/pthreads/include/Makefile lib/isc/pthreads/include/isc/Makefile lib/isc/tests/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccc/tests/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/isccfg/tests/Makefile lib/ns/Makefile lib/ns/include/Makefile lib/ns/include/ns/Makefile lib/ns/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall make/Makefile make/mkdep unit/unittest.sh util/check-make-install"
 
 
 #
@@ -25056,20 +24906,11 @@ do
     "contrib/scripts/zone-edit.sh") CONFIG_FILES="$CONFIG_FILES contrib/scripts/zone-edit.sh" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "doc/arm/Makefile") CONFIG_FILES="$CONFIG_FILES doc/arm/Makefile" ;;
-    "doc/arm/noteversion.xml") CONFIG_FILES="$CONFIG_FILES doc/arm/noteversion.xml" ;;
-    "doc/arm/pkgversion.xml") CONFIG_FILES="$CONFIG_FILES doc/arm/pkgversion.xml" ;;
-    "doc/arm/releaseinfo.xml") CONFIG_FILES="$CONFIG_FILES doc/arm/releaseinfo.xml" ;;
     "doc/doxygen/Doxyfile") CONFIG_FILES="$CONFIG_FILES doc/doxygen/Doxyfile" ;;
     "doc/doxygen/Makefile") CONFIG_FILES="$CONFIG_FILES doc/doxygen/Makefile" ;;
     "doc/doxygen/doxygen-input-filter") CONFIG_FILES="$CONFIG_FILES doc/doxygen/doxygen-input-filter" ;;
+    "doc/man/Makefile") CONFIG_FILES="$CONFIG_FILES doc/man/Makefile" ;;
     "doc/misc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/misc/Makefile" ;;
-    "doc/tex/Makefile") CONFIG_FILES="$CONFIG_FILES doc/tex/Makefile" ;;
-    "doc/tex/armstyle.sty") CONFIG_FILES="$CONFIG_FILES doc/tex/armstyle.sty" ;;
-    "doc/xsl/Makefile") CONFIG_FILES="$CONFIG_FILES doc/xsl/Makefile" ;;
-    "doc/xsl/isc-docbook-chunk.xsl") CONFIG_FILES="$CONFIG_FILES doc/xsl/isc-docbook-chunk.xsl" ;;
-    "doc/xsl/isc-docbook-html.xsl") CONFIG_FILES="$CONFIG_FILES doc/xsl/isc-docbook-html.xsl" ;;
-    "doc/xsl/isc-manpage.xsl") CONFIG_FILES="$CONFIG_FILES doc/xsl/isc-manpage.xsl" ;;
-    "doc/xsl/isc-notes-html.xsl") CONFIG_FILES="$CONFIG_FILES doc/xsl/isc-notes-html.xsl" ;;
     "fuzz/Makefile") CONFIG_FILES="$CONFIG_FILES fuzz/Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "lib/bind9/Makefile") CONFIG_FILES="$CONFIG_FILES lib/bind9/Makefile" ;;

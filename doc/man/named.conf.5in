@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "NAMED.CONF" "5" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
+.TH "NAMED.CONF" "5" "@RELEASE_DATE@" "@BIND9_VERSION@" "BIND 9"
 .SH NAME
 named.conf \- configuration file for **named**
 .
@@ -349,7 +349,6 @@ options {
       max\-cache\-size ( default | unlimited | sizeval | percentage );
       max\-cache\-ttl duration;
       max\-clients\-per\-query integer;
-      max\-ixfr\-ratio ( unlimited | percentage );
       max\-journal\-size ( default | unlimited | sizeval );
       max\-ncache\-ttl duration;
       max\-records integer;
@@ -441,11 +440,10 @@ options {
           nsdname\-enable boolean ]; ... } [ add\-soa boolean ] [
           break\-dnssec boolean ] [ max\-policy\-ttl duration ] [
           min\-update\-interval duration ] [ min\-ns\-dots integer ] [
-          nsip\-wait\-recurse boolean ] [ nsdname\-wait\-recurse boolean
-          ] [ qname\-wait\-recurse boolean ] [ recursive\-only boolean ]
-          [ nsip\-enable boolean ] [ nsdname\-enable boolean ] [
-          dnsrps\-enable boolean ] [ dnsrps\-options { unspecified\-text
-          } ];
+          nsip\-wait\-recurse boolean ] [ qname\-wait\-recurse boolean ]
+          [ recursive\-only boolean ] [ nsip\-enable boolean ] [
+          nsdname\-enable boolean ] [ dnsrps\-enable boolean ] [
+          dnsrps\-options { unspecified\-text } ];
       root\-delegation\-only [ exclude { string; ... } ];
       root\-key\-sentinel boolean;
       rrset\-order { [ class string ] [ type string ] [ name
@@ -730,7 +728,6 @@ view string [ class ] {
       max\-cache\-size ( default | unlimited | sizeval | percentage );
       max\-cache\-ttl duration;
       max\-clients\-per\-query integer;
-      max\-ixfr\-ratio ( unlimited | percentage );
       max\-journal\-size ( default | unlimited | sizeval );
       max\-ncache\-ttl duration;
       max\-records integer;
@@ -813,11 +810,10 @@ view string [ class ] {
           nsdname\-enable boolean ]; ... } [ add\-soa boolean ] [
           break\-dnssec boolean ] [ max\-policy\-ttl duration ] [
           min\-update\-interval duration ] [ min\-ns\-dots integer ] [
-          nsip\-wait\-recurse boolean ] [ nsdname\-wait\-recurse boolean
-          ] [ qname\-wait\-recurse boolean ] [ recursive\-only boolean ]
-          [ nsip\-enable boolean ] [ nsdname\-enable boolean ] [
-          dnsrps\-enable boolean ] [ dnsrps\-options { unspecified\-text
-          } ];
+          nsip\-wait\-recurse boolean ] [ qname\-wait\-recurse boolean ]
+          [ recursive\-only boolean ] [ nsip\-enable boolean ] [
+          nsdname\-enable boolean ] [ dnsrps\-enable boolean ] [
+          dnsrps\-options { unspecified\-text } ];
       root\-delegation\-only [ exclude { string; ... } ];
       root\-key\-sentinel boolean;
       rrset\-order { [ class string ] [ type string ] [ name
@@ -939,7 +935,6 @@ view string [ class ] {
               masters [ port integer ] [ dscp integer ] { ( masters
                   | ipv4_address [ port integer ] | ipv6_address [
                   port integer ] ) [ key string ]; ... };
-              max\-ixfr\-ratio ( unlimited | percentage );
               max\-journal\-size ( default | unlimited | sizeval );
               max\-records integer;
               max\-refresh\-time integer;
@@ -1046,7 +1041,6 @@ zone string [ class ] {
       masters [ port integer ] [ dscp integer ] { ( masters |
           ipv4_address [ port integer ] | ipv6_address [ port
           integer ] ) [ key string ]; ... };
-      max\-ixfr\-ratio ( unlimited | percentage );
       max\-journal\-size ( default | unlimited | sizeval );
       max\-records integer;
       max\-refresh\-time integer;

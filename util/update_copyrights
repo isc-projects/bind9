@@ -178,7 +178,7 @@ foreach $file (keys %file_types) {
         $sgml_comment = 0;
         $mkd_comment = 0;
         $man_comment = 0;
-	$rst_comment = 0;
+        $rst_comment = 0;
         $python_comment = 0;
         $python_bin_comment = 0;
         $start_comment = "";
@@ -340,7 +340,7 @@ foreach $file (keys %file_types) {
 			if (/^<!DOCTYPE.*\[$/) {
 				while (!eof(SOURCE)) {
 					$_ = <SOURCE>;
- 					next if (eof(SOURCE));
+					next if (eof(SOURCE));
 					$before_copyright =
 						 "$before_copyright$_";
 					if (/]>$/) {

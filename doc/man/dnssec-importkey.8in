@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "DNSSEC-IMPORTKEY" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
+.TH "DNSSEC-IMPORTKEY" "8" "@RELEASE_DATE@" "@BIND9_VERSION@" "BIND 9"
 .SH NAME
 dnssec-importkey \- import DNSKEY records from external systems so they can be managed
 .
@@ -39,7 +39,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .sp
 \fBdnssec\-importkey\fP reads a public DNSKEY record and generates a pair
 of .key/.private files. The DNSKEY record may be read from an existing
-\&.key file, in which case a corresponding .private file will be
+.key file, in which case a corresponding .private file will be
 generated, or it may be read from any other file or from the standard
 input, in which case both .key and .private files will be generated.
 .sp

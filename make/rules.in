@@ -336,19 +336,7 @@ INSTALL_SCRIPT =	@INSTALL_SCRIPT@
 INSTALL_DATA =		@INSTALL_DATA@
 INSTALL_LIBRARY =	@INSTALL_LIBRARY@
 
-###
-### Programs used when generating documentation.  It's ok for these
-### not to exist when not generating documentation.
-###
-
-XSLTPROC =		@XSLTPROC@ --novalid --xinclude --nonet
-XMLLINT =		@XMLLINT@
 PERL =			@PERL@
-LATEX =			@LATEX@
-PDFLATEX =		@PDFLATEX@
-DBLATEX =		@DBLATEX@
-W3M =			@W3M@
-PANDOC =		@PANDOC@
 
 ###
 ### Script language program used to create internal symbol tables

@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "FILTER-AAAA" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
+.TH "FILTER-AAAA" "8" "@RELEASE_DATE@" "@BIND9_VERSION@" "BIND 9"
 .SH NAME
 filter-aaaa \- filter AAAA in DNS responses when A is present
 .
