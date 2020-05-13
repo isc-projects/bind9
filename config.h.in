@@ -444,6 +444,9 @@
 /* Define if Thread-Local Storage is available */
 #undef HAVE_TLS
 
+/* Define to 1 if you have the `TLS_server_method' function. */
+#undef HAVE_TLS_SERVER_METHOD
+
 /* Define to 1 if you have the `tzset' function. */
 #undef HAVE_TZSET
 
@@ -473,6 +476,12 @@
 
 /* Define to 1 if you have the `uv_import' function. */
 #undef HAVE_UV_IMPORT
+
+/* Define to 1 if you have the `uv_translate_sys_error' function. */
+#undef HAVE_UV_TRANSLATE_SYS_ERROR
+
+/* Define to 1 if you have the `uv_udp_connect' function. */
+#undef HAVE_UV_UDP_CONNECT
 
 /* Use zlib library */
 #undef HAVE_ZLIB

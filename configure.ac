@@ -783,7 +783,7 @@ CRYPTO=OpenSSL
 #
 # OpenSSL/LibreSSL is mandatory
 #
-PKG_CHECK_MODULES([OPENSSL], [libcrypto], [],
+PKG_CHECK_MODULES([OPENSSL], [libssl libcrypto], [],
 		  [AX_CHECK_OPENSSL([:],[AC_MSG_FAILURE([OpenSSL/LibreSSL not found])])])
 
 AX_SAVE_FLAGS([openssl])
@@ -873,6 +873,8 @@ AC_CHECK_FUNCS([EVP_aes_128_ecb EVP_aes_192_ecb EVP_aes_256_ecb], [:],
 # Check for OpenSSL 1.1.x/LibreSSL functions
 #
 AC_CHECK_FUNCS([DH_get0_key ECDSA_SIG_get0 RSA_set0_key])
+
+AC_CHECK_FUNCS([TLS_server_method])
 
 #
 # Check whether FIPS mode is available and whether we should enable it
