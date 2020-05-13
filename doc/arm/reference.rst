@@ -23,15 +23,6 @@
 BIND 9 Configuration Reference
 ==============================
 
-BIND 9 configuration is broadly similar to BIND 8; however, there are a
-few new areas of configuration, such as views. BIND 8 configuration
-files should work with few alterations in BIND 9, although more complex
-configurations should be reviewed to check if they can be more
-efficiently implemented using the new features found in BIND 9.
-
-BIND 4 configuration files can be converted to the new format using the
-shell script ``contrib/named-bootconf/named-bootconf.sh``.
-
 .. _configuration_file_elements:
 
 Configuration File Elements
@@ -64,7 +55,7 @@ file documentation:
         An IPv4 address with exactly four elements in ``dotted_decimal`` notation.
 
     ``ip6_addr``
-        An IPv6 address, such as ``2001:db8::1234` IPv6 scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character ('%') as delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, in order to be robust against system configuration changes.  However, since there is no standard mapping for such names and identifier values, currently only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have the ambiguity, and need to be disambiguated.
+        An IPv6 address, such as ``2001:db8::1234``. IPv6 scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character ('%') as delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, to be robust against system configuration changes. However, since there is no standard mapping for such names and identifier values, currently only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have ambiguity and need to be disambiguated.
 
     ``ip_addr``
         An ``ip4_addr`` or ``ip6_addr``.
@@ -89,7 +80,7 @@ file documentation:
         A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
 
     ``fixedpoint``
-        A non-negative real number that can be specified to the nearest one hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the context in which it is used.
+        A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
 
     ``path_name``
         A quoted string which will be used as a pathname, such as ``zones/master/my.test.domain``.
@@ -99,17 +90,17 @@ file documentation:
 
     ``size_spec``
         A 64-bit unsigned integer, or the keywords ``unlimited`` or ``default``. Integers may take values 0 <= value <= 18446744073709551615, though certain parameters (such as ``max-journal-size``) may use a more limited range within these extremes. In most cases, setting a value to 0 does not literally mean zero; it means "undefined" or "as big as possible", depending on the context. See the explanations of particular parameters that use ``size_spec`` for details on how they interpret its use. Numeric values can optionally be followed by a scaling factor: ``K`` or ``k`` for kilobytes, ``M`` or ``m`` for megabytes, and ``G`` or ``g`` for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.
-        ``unlimited`` generally means "as big as possible", and is usually the best way to safely set a very large number.
+        ``unlimited`` generally means "as big as possible," and is usually the best way to safely set a very large number.
         ``default`` uses the limit that was in force when the server was started.
 
     ``size_or_percent``
-            ``size_spec`` or integer value followed by'%' to represent percents. The behavior is exactly the same as ``size_spec``, but ``size_or_percent`` allows also to specify a positive integer value followed by '%' sign to represent percents.
+         A ``size_spec`` or integer value followed by '%' to represent percent. The behavior is exactly the same as ``size_spec``, but ``size_or_percent`` also allows specifying a positive integer value followed by the '%' sign to represent percent.
 
     ``yes_or_no``
-        Either ``yes`` or ``no``. The words ``true`` numbers ``1`` and ``0``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
+        Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
 
     ``dialup_option``
-        One of ``yes``, ``no``, ``notify``, ``notify-passive``, ``refresh`` or  ``passive``. When used in a zone, ``notify-passive``, ``refresh``, and ``passive`` are restricted to slave and stub zones.
+        One of ``yes``, ``no``, ``notify``, ``notify-passive``, ``refresh``, or  ``passive``. When used in a zone, ``notify-passive``, ``refresh``, and ``passive`` are restricted to secondary and stub zones.
 
 .. _address_match_lists:
 
@@ -147,7 +138,7 @@ list can be any of the following:
 Elements can be negated with a leading exclamation mark (``!``), and the
 match list names "any", "none", "localhost", and "localnets" are
 predefined. More information on those names can be found in the
-description of the acl statement.
+description of the ``acl`` statement.
 
 The addition of the key clause made the name of this syntactic element
 something of a misnomer, since security keys can be used to validate
@@ -182,7 +173,7 @@ of whether either is negated. For example, in ``1.2.3/24; ! 1.2.3.13;``
 the 1.2.3.13 element is completely useless because the algorithm will
 match any lookup for 1.2.3.13 to the 1.2.3/24 element. Using
 ``! 1.2.3.13; 1.2.3/24`` fixes that problem by having 1.2.3.13 blocked
-by the negation, but all other 1.2.3.\* hosts fall through.
+by the negation, but all other 1.2.3.\* hosts pass through.
 
 .. _comment_syntax:
 
@@ -256,8 +247,8 @@ line, as in C++ comments. For example:
 
 .. warning::
 
-   You cannot use the semicolon (``;``) character to start a comment such
-   as you would in a zone file. The semicolon indicates the end of a
+   The semicolon (``;``) character cannot start a comment, unlike
+   in a zone file. The semicolon indicates the end of a
    configuration statement.
 
 .. _Configuration_File_Grammar:
@@ -266,55 +257,56 @@ Configuration File Grammar
 --------------------------
 
 A BIND 9 configuration consists of statements and comments. Statements
-end with a semicolon. Statements and comments are the only elements that
+end with a semicolon; statements and comments are the only elements that
 can appear without enclosing braces. Many statements contain a block of
 sub-statements, which are also terminated with a semicolon.
 
 The following statements are supported:
 
     ``acl``
-        defines a named IP address matching list, for access control and other uses.
+        Defines a named IP address matching list, for access control and other uses.
 
     ``controls``
-        declares control channels to be used by the ``rndc`` utility.
+        Declares control channels to be used by the ``rndc`` utility.
 
     ``dnssec-policy``
-        describes a DNSSEC key and signing policy for zones. See :ref:`dnssec-policy Grammar <dnssec_policy_grammar>` for details.
+        Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec-policy Grammar <dnssec_policy_grammar>` for details.
 
     ``include``
-        includes a file.
+        Includes a file.
 
     ``key``
-        specifies key information for use in authentication and authorization using TSIG.
+        Specifies key information for use in authentication and authorization using TSIG.
 
     ``logging``
-        specifies what the server logs, and where the log messages are sent.
+        Specifies what the server logs, and where the log messages are sent.
 
     ``masters``
-        defines a named masters list for inclusion in stub and slave zones' ``masters`` or ``also-notify`` lists.
+        Defines a named masters list for inclusion in stub and secondary zones' ``masters`` or ``also-notify`` lists.
 
     ``options``
-        controls global server configuration options and sets defaults for other statements.
+        Controls global server configuration options and sets defaults for other statements.
 
     ``server``
-        sets certain configuration options on a per-server basis.
+        Sets certain configuration options on a per-server basis.
 
     ``statistics-channels``
-        declares communication channels to get access to ``named`` statistics.
+        Declares communication channels to get access to ``named`` statistics.
 
     ``trust-anchors``
-        defines DNSSEC trust anchors: if used with the ``initial-key`` or ``initial-ds`` keyword, trust anchors are kept up to date using :rfc:`5011` trust anchor maintenance, and if used with ``static-key`` or ``static-ds``, keys are permanent.
+        Defines DNSSEC trust anchors: if used with the ``initial-key`` or ``initial-ds`` keyword, trust anchors are kept up-to-date using :rfc:`5011` trust anchor maintenance; if used with ``static-key`` or ``static-ds``, keys are permanent.
 
     ``managed-keys``
-        is identical to ``trust-anchors``; this option is deprecated in favor of ``trust-anchors`` with the ``initial-key`` keyword, and may be removed in a future release. for backward compatibility.
+        Is identical to ``trust-anchors``; this option is deprecated in favor of ``trust-anchors`` with the ``initial-key`` keyword, and may be removed in a future release.
 
     ``trusted-keys``
-        defines permanent trusted DNSSEC keys; this option is deprecated in favor of ``trust-anchors`` with the ``static-key`` keyword, and may be removed in a future release.                                  |
+        Defines permanent trusted DNSSEC keys; this option is deprecated in favor of ``trust-anchors`` with the ``static-key`` keyword, and may be removed in a future release.
+
     ``view``
-        defines a view.
+        Defines a view.
 
     ``zone``
-        defines a zone.
+        Defines a zone.
 
 The ``logging`` and ``options`` statements may only occur once per
 configuration.
@@ -347,7 +339,7 @@ The following ACLs are built-in:
         Matches the IPv4 and IPv6 addresses of all network interfaces on the system. When addresses are added or removed, the ``localhost`` ACL element is updated to reflect the changes.
 
     ``localnets``
-        Matches any host on an IPv4 or IPv6 network for which the system has an interface. When addresses are added or removed, the ``localnets`` ACL element is updated to reflect the changes. Some systems do not provide a way to determine the prefix lengths of local IPv6  addresses. In such a case, ``localnets`` only matches the local IPv6 addresses, just like ``localhost``.
+        Matches any host on an IPv4 or IPv6 network for which the system has an interface. When addresses are added or removed, the ``localnets`` ACL element is updated to reflect the changes. Some systems do not provide a way to determine the prefix lengths of local IPv6  addresses; in such a case, ``localnets`` only matches the local IPv6 addresses, just like ``localhost``.
 
 .. _controls_grammar:
 
@@ -369,9 +361,9 @@ and retrieve non-DNS results from a name server.
 An ``inet`` control channel is a TCP socket listening at the specified
 ``ip_port`` on the specified ``ip_addr``, which can be an IPv4 or IPv6
 address. An ``ip_addr`` of ``*`` (asterisk) is interpreted as the IPv4
-wildcard address; connections will be accepted on any of the system's
+wildcard address; connections are accepted on any of the system's
 IPv4 addresses. To listen on the IPv6 wildcard address, use an
-``ip_addr`` of ``::``. If you will only use ``rndc`` on the local host,
+``ip_addr`` of ``::``. If ``rndc`` is only used on the local host,
 using the loopback address (``127.0.0.1`` or ``::1``) is recommended for
 maximum security.
 
@@ -381,19 +373,19 @@ be used for ``ip_port``.
 The ability to issue commands over the control channel is restricted by
 the ``allow`` and ``keys`` clauses. Connections to the control channel
 are permitted based on the ``address_match_list``. This is for simple IP
-address based filtering only; any ``key_id`` elements of the
+address-based filtering only; any ``key_id`` elements of the
 ``address_match_list`` are ignored.
 
 A ``unix`` control channel is a UNIX domain socket listening at the
 specified path in the file system. Access to the socket is specified by
-the ``perm``, ``owner`` and ``group`` clauses. Note on some platforms
-(SunOS and Solaris) the permissions (``perm``) are applied to the parent
+the ``perm``, ``owner``, and ``group`` clauses. Note that on some platforms
+(SunOS and Solaris), the permissions (``perm``) are applied to the parent
 directory as the permissions on the socket itself are ignored.
 
 The primary authorization mechanism of the command channel is the
 ``key_list``, which contains a list of ``key_id``\ s. Each ``key_id`` in
 the ``key_list`` is authorized to execute commands over the control
-channel. See :ref:`admin_tools`) for information about
+channel. See :ref:`admin_tools` for information about
 configuring keys in ``rndc``.
 
 If the ``read-only`` clause is enabled, the control channel is limited
@@ -402,33 +394,13 @@ to the following set of read-only commands: ``nta -dump``, ``null``,
 ``read-only`` is not enabled and the control channel allows read-write
 access.
 
-If no ``controls`` statement is present, ``named`` will set up a default
+If no ``controls`` statement is present, ``named`` sets up a default
 control channel listening on the loopback address 127.0.0.1 and its IPv6
-counterpart ::1. In this case, and also when the ``controls`` statement
-is present but does not have a ``keys`` clause, ``named`` will attempt
+counterpart, ::1. In this case, and also when the ``controls`` statement
+is present but does not have a ``keys`` clause, ``named`` attempts
 to load the command channel key from the file ``rndc.key`` in ``/etc``
 (or whatever ``sysconfdir`` was specified as when BIND was built). To
 create a ``rndc.key`` file, run ``rndc-confgen -a``.
-
-The ``rndc.key`` feature was created to ease the transition of systems
-from BIND 8, which did not have digital signatures on its command
-channel messages and thus did not have a ``keys`` clause. It makes it
-possible to use an existing BIND 8 configuration file in BIND 9
-unchanged, and still have ``rndc`` work the same way ``ndc`` worked in
-BIND 8, simply by executing the command ``rndc-confgen -a`` after BIND 9
-is installed.
-
-Since the ``rndc.key`` feature is only intended to allow the
-backward-compatible usage of BIND 8 configuration files, this feature
-does not have a high degree of configurability. You cannot easily change
-the key name or the size of the secret, so you should make a
-``rndc.conf`` with your own key if you wish to change those things. The
-``rndc.key`` file also has its permissions set such that only the owner
-of the file (the user that ``named`` is running as) can access it. If
-you desire greater flexibility in allowing other users to access
-``rndc`` commands, then you need to create a ``rndc.conf`` file and make
-it group readable by a group that contains the users who should have
-access.
 
 To disable the command channel, use an empty ``controls`` statement:
 ``controls { };``.
@@ -483,7 +455,7 @@ matching this name, algorithm, and secret.
 
 The algorithm_id is a string that specifies a security/authentication
 algorithm. The ``named`` server supports ``hmac-md5``, ``hmac-sha1``,
-``hmac-sha224``, ``hmac-sha256``, ``hmac-sha384`` and ``hmac-sha512``
+``hmac-sha224``, ``hmac-sha256``, ``hmac-sha384``, and ``hmac-sha512``
 TSIG authentication. Truncated hashes are supported by appending the
 minimum number of required bits preceded by a dash, e.g.
 ``hmac-sha1-80``. The secret_string is the secret to be used by the
@@ -503,13 +475,13 @@ algorithm, and is treated as a Base64 encoded string.
 
 The ``logging`` statement configures a wide variety of logging options
 for the name server. Its ``channel`` phrase associates output methods,
-format options and severity levels with a name that can then be used
+format options, and severity levels with a name that can then be used
 with the ``category`` phrase to select how various classes of messages
 are logged.
 
 Only one ``logging`` statement is used to define as many channels and
-categories as are wanted. If there is no ``logging`` statement, the
-logging configuration will be:
+categories as desired. If there is no ``logging`` statement, the
+logging configuration is:
 
 ::
 
@@ -520,7 +492,7 @@ logging configuration will be:
 
 If ``named`` is started with the ``-L`` option, it logs to the specified
 file at startup, instead of using syslog. In this case the logging
-configuration will be:
+configuration is:
 
 ::
 
@@ -530,7 +502,7 @@ configuration will be:
    };
 
 The logging configuration is only established when the entire
-configuration file has been parsed. When the server is starting up, all
+configuration file has been parsed. When the server starts up, all
 logging messages regarding syntax errors in the configuration file go to
 the default channels, or to standard error if the ``-g`` option was
 specified.
@@ -540,15 +512,15 @@ specified.
 The ``channel`` Phrase
 ^^^^^^^^^^^^^^^^^^^^^^
 
-All log output goes to one or more *channels*; you can make as many of
-them as you want.
+All log output goes to one or more ``channels``\ s; there is no limit to
+the number of channels that can be created.
 
 Every channel definition must include a destination clause that says
-whether messages selected for the channel go to a file, to a particular
-syslog facility, to the standard error stream, or are discarded. It can
-optionally also limit the message severity level that will be accepted
+whether messages selected for the channel go to a file, go to a particular
+syslog facility, go to the standard error stream, or are discarded. The definition can
+optionally also limit the message severity level that is accepted
 by the channel (the default is ``info``), and whether to include a
-``named``-generated time stamp, the category name and/or severity level
+``named``-generated time stamp, the category name, and/or severity level
 (the default is not to include any).
 
 The ``null`` destination clause causes all messages sent to the channel
@@ -558,15 +530,15 @@ meaningless.
 The ``file`` destination clause directs the channel to a disk file. It
 can include additional arguments to specify how large the file is
 allowed to become before it is rolled to a backup file (``size``), how
-many backup versions of the file will be saved each time this happens
+many backup versions of the file are saved each time this happens
 (``versions``), and the format to use for naming backup versions
 (``suffix``).
 
 The ``size`` option is used to limit log file growth. If the file ever
-exceeds the specified size, then ``named`` will stop writing to the file
+exceeds the specified size, then ``named`` stops writing to the file
 unless it has a ``versions`` option associated with it. If backup
 versions are kept, the files are rolled as described below. If there is
-no ``versions`` option, no more data will be written to the log until
+no ``versions`` option, no more data is written to the log until
 some out-of-band mechanism removes or truncates the log to less than the
 maximum size. The default behavior is not to limit the size of the file.
 
@@ -888,7 +860,7 @@ resonses such as NXDOMAIN.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``masters`` lists allow for a common set of masters to be easily used by
-multiple stub and slave zones in their ``masters`` or ``also-notify``
+multiple stub and secondary zones in their ``masters`` or ``also-notify``
 lists.
 
 .. _options_grammar:
@@ -1644,14 +1616,14 @@ Boolean Options
    ``zone`` statements, in which case it overrides the global ``dialup``
    option.
 
-   If the zone is a master zone, then the server will send out a NOTIFY
-   request to all the slaves (default). This should trigger the zone
-   serial number check in the slave (providing it supports NOTIFY)
-   allowing the slave to verify the zone while the connection is active.
+   If the zone is a primary zone, then the server will send out a NOTIFY
+   request to all the secondaries (default). This should trigger the zone
+   serial number check in the secondary (providing it supports NOTIFY),
+   allowing the secondary to verify the zone while the connection is active.
    The set of servers to which NOTIFY is sent can be controlled by
    ``notify`` and ``also-notify``.
 
-   If the zone is a slave or stub zone, then the server will suppress
+   If the zone is a secondary or stub zone, then the server will suppress
    the regular "zone up to date" (refresh) queries and only perform them
    when the ``heartbeat-interval`` expires in addition to sending NOTIFY
    requests.
@@ -1763,25 +1735,25 @@ Boolean Options
    If ``yes`` (the default), DNS NOTIFY messages are sent when a zone
    the server is authoritative for changes, see :ref:`notify`.
    The messages are sent to the servers listed in the zone's NS records
-   (except the master server identified in the SOA MNAME field), and to
+   (except the primary server identified in the SOA MNAME field), and to
    any servers listed in the ``also-notify`` option.
 
-   If ``master-only``, notifies are only sent for master zones. If
+   If ``master-only``, notifies are only sent for primary zones. If
    ``explicit``, notifies are sent only to servers explicitly listed
    using ``also-notify``. If ``no``, no notifies are sent.
 
    The ``notify`` option may also be specified in the ``zone``
    statement, in which case it overrides the ``options notify``
    statement. It would only be necessary to turn off this option if it
-   caused slaves to crash.
+   caused secondary zones to crash.
 
 ``notify-to-soa``
    If ``yes`` do not check the nameservers in the NS RRset against the
    SOA MNAME. Normally a NOTIFY message is not sent to the SOA MNAME
    (SOA ORIGIN) as it is supposed to contain the name of the ultimate
-   master. Sometimes, however, a slave is listed as the SOA MNAME in
-   hidden master configurations and in that case you would want the
-   ultimate master to still send NOTIFY messages to all the nameservers
+   primary server. Sometimes, however, a secondary server is listed as the SOA MNAME in
+   hidden primary configurations; in that case, the
+   ultimate primary should be set to still send NOTIFY messages to all the nameservers
    listed in the NS RRset.
 
 ``recursion``
@@ -1954,16 +1926,16 @@ Boolean Options
    this option is discouraged.
 
 ``ixfr-from-differences``
-   When ``yes`` and the server loads a new version of a master zone from
-   its zone file or receives a new version of a slave file via zone
+   When ``yes`` and the server loads a new version of a primary zone from
+   its zone file or receives a new version of a secondary file via zone
    transfer, it will compare the new version to the previous one and
    calculate a set of differences. The differences are then logged in
    the zone's journal file such that the changes can be transmitted to
-   downstream slaves as an incremental zone transfer.
+   downstream secondaries as an incremental zone transfer.
 
    By allowing incremental zone transfers to be used for non-dynamic
    zones, this option saves bandwidth at the expense of increased CPU
-   and memory consumption at the master. In particular, if the new
+   and memory consumption at the primary server. In particular, if the new
    version of a zone is completely different from the previous one, the
    set of differences will be of a size comparable to the combined size
    of the old and new zone version, and the server will need to
@@ -1978,9 +1950,9 @@ Boolean Options
    ``ixfr-from-differences`` setting is ignored for that zone.
 
 ``multi-master``
-   This should be set when you have multiple masters for a zone and the
+   This should be set when you have multiple primary servers for a zone and the
    addresses refer to different machines. If ``yes``, ``named`` will not
-   log when the serial number on the master is less than what ``named``
+   log when the serial number on the primary is less than what ``named``
    currently has. The default is ``no``.
 
 ``auto-dnssec``
@@ -2094,7 +2066,7 @@ Boolean Options
    owner name ends in IN-ADDR.ARPA, IP6.ARPA, or IP6.INT).
 
 ``check-dup-records``
-   Check master zones for records that are treated as different by
+   Check primary zones for records that are treated as different by
    DNSSEC but are semantically equal in plain DNS. The default is to
    ``warn``. Other possible values are ``fail`` and ``ignore``.
 
@@ -2107,11 +2079,11 @@ Boolean Options
    This option is used to check for non-terminal wildcards. The use of
    non-terminal wildcards is almost always as a result of a failure to
    understand the wildcard matching algorithm (:rfc:`1034`). This option
-   affects master zones. The default (``yes``) is to check for
+   affects primary zones. The default (``yes``) is to check for
    non-terminal wildcards and issue a warning.
 
 ``check-integrity``
-   Perform post load zone integrity checks on master zones. This checks
+   Perform post load zone integrity checks on primary zones. This checks
    that MX and SRV records refer to address (A or AAAA) records and that
    glue address records exist for delegated zones. For MX and SRV
    records only in-zone hostnames are checked (for out-of-zone hostnames
@@ -2341,7 +2313,7 @@ for details on how to specify IP address lists.
    be allowed by the other.
 
 ``allow-update``
-   When set in the ``zone`` statement for a master zone, specifies which
+   When set in the ``zone`` statement for a primary zone, specifies which
    hosts are allowed to submit Dynamic DNS updates to that zone. The
    default is to deny updates from all hosts.
 
@@ -2354,19 +2326,19 @@ for details on how to specify IP address lists.
    allowing updates.
 
 ``allow-update-forwarding``
-   When set in the ``zone`` statement for a slave zone, specifies which
+   When set in the ``zone`` statement for a secondary zone, specifies which
    hosts are allowed to submit Dynamic DNS updates and have them be
-   forwarded to the master. The default is ``{ none; }``, which means
+   forwarded to the primary. The default is ``{ none; }``, which means
    that no update forwarding will be performed.
 
    To enable update forwarding, specify
    ``allow-update-forwarding { any; };``. in the ``zone`` statement.
    Specifying values other than ``{ none; }`` or ``{ any; }`` is usually
    counterproductive; the responsibility for update access control
-   should rest with the master server, not the slave.
+   should rest with the primary server, not the secondary.
 
-   Note that enabling the update forwarding feature on a slave server
-   may expose master servers to attacks if they rely on insecure
+   Note that enabling the update forwarding feature on a secondary server
+   may expose primary servers to attacks if they rely on insecure
    IP-address-based access control; see :ref:`dynamic_update_security` for more details.
 
    In general this option should only be set at the ``zone`` level.
@@ -2662,9 +2634,9 @@ options apply to zone transfers.
    one per second; when set to zero, it will be silently raised to one.
 
 ``serial-query-rate``
-   Slave servers will periodically query master servers to find out if
+   Slave servers will periodically query primary servers to find out if
    zone serial numbers have changed. Each such query uses a minute
-   amount of the slave server's network bandwidth. To limit the amount
+   amount of the secondary server's network bandwidth. To limit the amount
    of bandwidth used, BIND 9 limits the rate at which queries are sent.
    The value of the ``serial-query-rate`` option, an integer, is the
    maximum number of queries sent per second. The default is 20 per
@@ -2674,11 +2646,11 @@ options apply to zone transfers.
 ``transfer-format``
    Zone transfers can be sent using two different formats,
    ``one-answer`` and ``many-answers``. The ``transfer-format`` option
-   is used on the master server to determine which format it sends.
+   is used on the primary server to determine which format it sends.
    ``one-answer`` uses one DNS message per resource record transferred.
    ``many-answers`` packs as many resource records as possible into a
    message. ``many-answers`` is more efficient, but is only supported by
-   relatively new slave servers, such as BIND 9, BIND 8.x and BIND 4.9.5
+   relatively new secondary servers, such as BIND 9, BIND 8.x and BIND 4.9.5
    onwards. The ``many-answers`` format is also supported by recent
    Microsoft Windows nameservers. The default is ``many-answers``.
    ``transfer-format`` may be overridden on a per-server basis by using
@@ -2707,7 +2679,7 @@ options apply to zone transfers.
 ``transfers-in``
    The maximum number of inbound zone transfers that can be running
    concurrently. The default value is ``10``. Increasing
-   ``transfers-in`` may speed up the convergence of slave zones, but it
+   ``transfers-in`` may speed up the convergence of secondary zones, but it
    also may increase the load on the local system.
 
 ``transfers-out``
@@ -2719,7 +2691,7 @@ options apply to zone transfers.
    The maximum number of inbound zone transfers that can be concurrently
    transferring from a given remote name server. The default value is
    ``2``. Increasing ``transfers-per-ns`` may speed up the convergence
-   of slave zones, but it also may increase the load on the remote name
+   of secondary zones, but it also may increase the load on the remote name
    server. ``transfers-per-ns`` may be overridden on a per-server basis
    by using the ``transfers`` phrase of the ``server`` statement.
 
@@ -2764,7 +2736,7 @@ options apply to zone transfers.
 ``notify-source``
    ``notify-source`` determines which local source address, and
    optionally UDP port, will be used to send NOTIFY messages. This
-   address must appear in the slave server's ``masters`` zone clause or
+   address must appear in the secondary server's ``masters`` zone clause or
    in an ``allow-notify`` clause. This statement sets the
    ``notify-source`` for all zones, but can be overridden on a per-zone
    or per-view basis by including a ``notify-source`` statement within
@@ -3383,12 +3355,12 @@ Tuning
    These options control the server's behavior on refreshing a zone
    (querying for SOA changes) or retrying failed transfers. Usually the
    SOA values for the zone are used, up to a hard-coded maximum expiry
-   of 24 weeks. However, these values are set by the master, giving
-   slave server administrators little control over their contents.
+   of 24 weeks. However, these values are set by the primary, giving
+   secondary server administrators little control over their contents.
 
    These options allow the administrator to set a minimum and maximum
    refresh and retry time in seconds per-zone, per-view, or globally.
-   These options are valid for slave and stub zones, and clamp the SOA
+   These options are valid for secondary and stub zones, and clamp the SOA
    refresh and retry times to the specified values.
 
    The following defaults apply. ``min-refresh-time`` 300 seconds,
@@ -3443,7 +3415,7 @@ Tuning
 ``masterfile-format``
    Specifies the file format of zone files (see :ref:`zonefile_format`).
    The default value is ``text``, which
-   is the standard textual representation, except for slave zones, in
+   is the standard textual representation, except for secondary zones, in
    which the default value is ``raw``. Files in other formats than
    ``text`` are typically expected to be generated by the
    ``named-compilezone`` tool, or dumped by ``named``.
@@ -4373,15 +4345,15 @@ as bogus will prevent further queries to it. The default value of
 
 The ``provide-ixfr`` clause determines whether the local server, acting
 as master, will respond with an incremental zone transfer when the given
-remote server, a slave, requests it. If set to ``yes``, incremental
+remote server, a secondary, requests it. If set to ``yes``, incremental
 transfer will be provided whenever possible. If set to ``no``, all
 transfers to the remote server will be non-incremental. If not set, the
 value of the ``provide-ixfr`` option in the view or global options block
 is used as a default.
 
 The ``request-ixfr`` clause determines whether the local server, acting
-as a slave, will request incremental zone transfers from the given
-remote server, a master. If not set, the value of the ``request-ixfr``
+as a secondary, will request incremental zone transfers from the given
+remote server, a primary. If not set, the value of the ``request-ixfr``
 option in the view or global options block is used as a default. It may
 also be set in the zone block and, if set there, it will override the
 global or view setting for that zone.
@@ -4391,12 +4363,12 @@ fall back to AXFR. Therefore, there is no need to manually list which
 servers support IXFR and which ones do not; the global default of
 ``yes`` should always work. The purpose of the ``provide-ixfr`` and
 ``request-ixfr`` clauses is to make it possible to disable the use of
-IXFR even when both master and slave claim to support it, for example if
+IXFR even when both primary and secondary claim to support it, for example if
 one of the servers is buggy and crashes or corrupts data when IXFR is
 used.
 
 The ``request-expire`` clause determines whether the local server, when
-acting as a slave, will request the EDNS EXPIRE value. The EDNS EXPIRE
+acting as a secondary, will request the EDNS EXPIRE value. The EDNS EXPIRE
 value indicates the remaining time before the zone data will expire and
 need to be be refreshed. This is used when a secondary server transfers
 a zone from another secondary server; when transferring from the
@@ -4709,7 +4681,7 @@ filename, a hash of the view name), followed by the suffix ``.mkeys``.
 When the key database is changed, the zone is updated. As with any other
 dynamic zone, changes will be written into a journal file, e.g.,
 ``managed-keys.bind.jnl`` or ``internal.mkeys.jnl``. Changes are
-committed to the master file as soon as possible afterward; this will
+committed to the primary file as soon as possible afterward; this will
 usually occur within 30 seconds. So, whenever ``named`` is using
 automatic key maintenance, the zone file and journal file can be
 expected to exist in the working directory. (For this reason among
@@ -5120,14 +5092,14 @@ it is an ``in-view`` configuration. Its acceptable values include:
 ``secondary``
     A secondary zone is a replica of a primary zone. Type ``slave`` is a
     synonym for ``secondary``. The ``masters`` list specifies one or more IP
-    addresses of master servers that the slave contacts to update
+    addresses of primary servers that the secondary contacts to update
     its copy of the zone.  Masters list elements can
     also be names of other masters lists.  By default,
     transfers are made from port 53 on the servers;
     this can be changed for all servers by specifying
     a port number before the list of IP addresses,
     or on a per-server basis after the IP address.
-    Authentication to the master can also be done with
+    Authentication to the primary can also be done with
     per-server TSIG keys.  If a file is specified, then the
     replica will be written to this file
     whenever the zone
@@ -5138,30 +5110,25 @@ it is an ``in-view`` configuration. Its acceptable values include:
     numbers (in the tens or hundreds of thousands) of
     zones per server, it is best to use a two-level
     naming scheme for zone filenames. For example,
-    a slave server for the zone
+    a secondary server for the zone
     ``example.com`` might place
     the zone contents into a file called
     ``ex/example.com`` where
     ``ex/`` is just the first two
     letters of the zone name. (Most operating systems
-    behave very slowly if you put 100000 files into a single directory.)
+    behave very slowly if there are 100000 files in a single directory.)
 
 ``stub``
-   A stub zone is similar to a slave zone, except that it replicates only
-   the NS records of a master zone instead of the entire zone. Stub zones
+   A stub zone is similar to a secondary zone, except that it replicates only
+   the NS records of a primary zone instead of the entire zone. Stub zones
    are not a standard part of the DNS; they are a feature specific to the
    BIND implementation.
 
-   Stub zones can be used to eliminate the need for glue NS record in a parent
+   Stub zones can be used to eliminate the need for a glue NS record in a parent
    zone at the expense of maintaining a stub zone entry and a set of name
    server addresses in ``named.conf``. This usage is not recommended for
-   new configurations, and BIND 9 supports it only in a limited way. In BIND
-   4/8, zone transfers of a parent zone included the NS records from stub
-   children of that zone. This meant that, in some cases, users could get
-   away with configuring child stubs only in the master server for the parent
-   zone. BIND 9 never mixes together zone data from different zones in this
-   way. Therefore, if a BIND 9 master serving a parent zone has child stub
-   zones configured, all the slave servers for the parent zone also need to
+   new configurations, and BIND 9 supports it only in a limited way. If a BIND 9 primary serving a parent zone has child stub
+   zones configured, all the secondary servers for the parent zone also need to
    have the same child stub zones configured.
 
    Stub zones can also be used as a way of forcing the resolution of a given
@@ -5231,7 +5198,7 @@ it is an ``in-view`` configuration. Its acceptable values include:
 ``static-stub``
    A static-stub zone is similar to a stub zone with the following
    exceptions: the zone data is statically configured, rather than
-   transferred from a master server; when recursion is necessary for a query
+   transferred from a primary server; when recursion is necessary for a query
    that matches a static-stub zone, the locally configured data (nameserver
    names and glue addresses) is always used even if different authoritative
    information is cached.
@@ -5297,13 +5264,13 @@ it is an ``in-view`` configuration. Its acceptable values include:
    limited to A and AAAA records.
 
    If a redirect zone is configured with a ``masters`` option, then it is
-   transferred in as if it were a slave zone. Otherwise, it is loaded from a
-   file as if it were a master zone.
+   transferred in as if it were a secondary zone. Otherwise, it is loaded from a
+   file as if it were a primary zone.
 
    Because redirect zones are not referenced directly by name, they are not
-   kept in the zone lookup table with normal master and slave zones. To reload
+   kept in the zone lookup table with normal primary and secondary zones. To reload
    a redirect zone, use ``rndc reload -redirect``, and to retransfer a
-   redirect zone configured as slave, use ``rndc retransfer -redirect``.
+   redirect zone configured as a secondary, use ``rndc retransfer -redirect``.
    When using ``rndc reload`` without specifying a zone name, redirect
    zones will be reloaded along with other zones.
 
@@ -5362,8 +5329,8 @@ Zone Options
 ``also-notify``
    Only meaningful if ``notify`` is active for this zone. The set of
    machines that will receive a ``DNS NOTIFY`` message for this zone is
-   made up of all the listed name servers (other than the primary
-   master) for the zone plus any IP addresses specified with
+   made up of all the listed name servers (other than the primary)
+   for the zone plus any IP addresses specified with
    ``also-notify``. A port may be specified with each ``also-notify``
    address to send the notify messages to a port other than the default
    of 53. A TSIG key may also be specified to cause the ``NOTIFY`` to be
@@ -5372,7 +5339,7 @@ Zone Options
 
 ``check-names``
    This option is used to restrict the character set and syntax of
-   certain domain names in master files and/or DNS responses received
+   certain domain names in primary files and/or DNS responses received
    from the network. The default varies according to zone type. For
    ``master`` zones the default is ``fail``. For ``slave`` zones the
    default is ``warn``. It is not implemented for ``hint`` zones.
@@ -5526,7 +5493,7 @@ Zone Options
    can be specified in the ``server-names`` option, but "ns.example.net"
    cannot, and will be rejected by the configuration parser.
 
-   A non empty list for this option will internally configure the apex
+   A non-empty list for this option will internally configure the apex
    NS RR with the specified names. For example, if "example.com" is
    configured as a static-stub zone with "ns1.example.net" and
    "ns2.example.net" in a ``server-names`` option, the following RRs
@@ -6179,7 +6146,7 @@ Textual expression of RRs
 RRs are represented in binary form in the packets of the DNS protocol,
 and are usually represented in highly encoded form when stored in a name
 server or resolver. In the examples provided in :rfc:`1034`, a style
-similar to that used in master files was employed in order to show the
+similar to that used in primary files was employed in order to show the
 contents of RRs. In this format, most RRs are shown on a single line,
 although continuation lines are possible using parentheses.
 
@@ -6337,7 +6304,7 @@ Other Zone File Directives
 
 The Master File Format was initially defined in :rfc:`1035` and has
 subsequently been extended. While the Master File Format itself is class
-independent all records in a Master File must be of the same class.
+independent, all records in a Master File must be of the same class.
 
 Master File Directives include ``$ORIGIN``, ``$INCLUDE``, and ``$TTL.``
 

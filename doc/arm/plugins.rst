@@ -37,7 +37,7 @@ added in the future.
 The only plugin currently included in BIND is ``filter-aaaa.so``, which
 replaces the ``filter-aaaa`` feature that previously existed natively as
 part of ``named``. The code for this feature has been removed from
-``named``, and can no longer be configured using standard ``named.conf``
+``named`` and can no longer be configured using standard ``named.conf``
 syntax, but linking in the ``filter-aaaa.so`` plugin provides identical
 functionality.
 
@@ -59,7 +59,7 @@ indicates that this is a query plugin.
 Multiple ``plugin`` statements can be specified, to load different
 plugins or multiple instances of the same plugin.
 
-*parameters* are passed as an opaque string to the plugin's initialization
+``parameters`` are passed as an opaque string to the plugin's initialization
 routine. Configuration syntax will differ depending on the module.
 
 Developing Plugins
