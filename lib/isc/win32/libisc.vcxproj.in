@@ -413,6 +413,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\netmgr\uverr2result.c" />
     <ClCompile Include="..\netmgr\uv-compat.c" />
     <ClCompile Include="..\netmgr\tcpdns.c" />
+    <ClCompile Include="..\netmgr\tls.c" />
     <ClCompile Include="..\netscope.c" />
     <ClCompile Include="..\nonce.c" />
     <ClCompile Include="..\openssl_shim.c" />

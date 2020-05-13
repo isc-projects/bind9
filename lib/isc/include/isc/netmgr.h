@@ -16,6 +16,8 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
+typedef struct ssl_ctx_st isc_ssl_ctx_t;
+
 /*
  * Replacement for isc_sockettype_t provided by socket.h.
  */
@@ -351,6 +353,16 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
  * 'quota' is passed to isc_nm_listentcp() when opening the raw TCP socket.
  */
 
+isc_result_t
+isc_nm_listentlsdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
+		    void *cbarg, isc_nm_accept_cb_t accept_cb,
+		    void *accept_cbarg, size_t extrahandlesize, int backlog,
+		    isc_quota_t *quota, isc_ssl_ctx_t *sslctx,
+		    isc_nmsocket_t **sockp);
+/*%<
+ * Same as isc_nm_listentcpdns but for an SSL (DoT) socket.
+ */
+
 void
 isc_nm_tcpdns_sequential(isc_nmhandle_t *handle);
 /*%<
@@ -405,6 +417,17 @@ isc_nm_tcp_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
  * \li	'mgr' is a valid netmgr.
  */
 
+isc_result_t
+isc_nm_listentls(isc_nm_t *mgr, isc_nmiface_t *iface,
+		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
+		 isc_ssl_ctx_t *sslctx, isc_nmsocket_t **sockp);
+
+isc_result_t
+isc_nm_tlsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+		  isc_nm_cb_t cb, void *cbarg, isc_ssl_ctx_t *ctx,
+		  unsigned int timeout, size_t extrahandlesize);
+
 void
 isc_nm_maxudp(isc_nm_t *mgr, uint32_t maxudp);
 /*%<
@@ -428,9 +451,13 @@ isc_result_t
 isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize);
-/*%
- * Establish a DNS client connection over a TCP socket, bound to the
- * address 'local', and connected to the address 'peer'.
+isc_result_t
+isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
+		     size_t extrahandlesize);
+/*%<
+ * Establish a DNS client connection via a TCP or TLS connection, bound to
+ * the address 'local' and connected to the address 'peer'.
  *
  * When the connection is complete or has timed out, call 'cb' with
  * argument 'cbarg'. Allocate 'extrahandlesize' additional bytes along
@@ -441,3 +468,7 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
  * The connected socket can only be accessed via the handle passed to
  * 'cb'.
  */
+
+isc_result_t
+isc_nm_tls_create_server_ctx(const char *keyfile, const char *certfile,
+			     isc_ssl_ctx_t **ctxp);
