@@ -31,6 +31,9 @@ Manual Pages
 .. include:: ../../bin//dnssec/dnssec-importkey.rst
 .. include:: ../../bin//dnssec/dnssec-signzone.rst
 .. include:: ../../bin//dnssec/dnssec-dsfromkey.rst
+.. include:: ../../bin//python/dnssec-checkds.rst
+.. include:: ../../bin//python/dnssec-coverage.rst
+.. include:: ../../bin//python/dnssec-keymgr.rst
 .. include:: ../../bin//plugins/filter-aaaa.rst
 .. include:: ../../bin//confgen/ddns-confgen.rst
 .. include:: ../../bin//confgen/rndc-confgen.rst
