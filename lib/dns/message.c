@@ -23,6 +23,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
+#include <isc/utf8.h>
 #include <isc/util.h>
 
 #include <dns/dnssec.h>
@@ -126,6 +127,32 @@ static const char *opcodetext[] = { "QUERY",	  "IQUERY",	"STATUS",
 				    "RESERVED9",  "RESERVED10", "RESERVED11",
 				    "RESERVED12", "RESERVED13", "RESERVED14",
 				    "RESERVED15" };
+
+static const char *edetext[] = { "Other",
+				 "Unsupported DNSKEY Algorithm",
+				 "Unsupported DS Digest Type",
+				 "Stale Answer",
+				 "Forged Answer",
+				 "DNSSEC Indeterminate",
+				 "DNSSEC Bogus",
+				 "Signature Expired",
+				 "Signature Not Yet Valid",
+				 "DNSKEY Missing",
+				 "RRSIGs Missing",
+				 "No Zone Key Bit Set",
+				 "NSEC Missing",
+				 "Cached Error",
+				 "Not Ready",
+				 "Blocked",
+				 "Censored",
+				 "Filtered",
+				 "Prohibited",
+				 "Stale NXDOMAIN Answer",
+				 "Not Authoritative",
+				 "Not Supported",
+				 "No Reachable Authority",
+				 "Network Error",
+				 "Invalid Data" };
 
 /*%
  * "helper" type, which consists of a block of some type, and is linkable.
@@ -3590,7 +3617,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 		 * Print EDNS info, if any.
 		 *
 		 * WARNING: The option contents may be malformed as
-		 * dig +ednsopt=value:<content> does not validity
+		 * dig +ednsopt=value:<content> does not perform validity
 		 * checking.
 		 */
 		dns_rdata_init(&rdata);
@@ -4004,6 +4031,36 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, "\n");
 					continue;
 				}
+			} else if (optcode == DNS_OPT_EDE) {
+				ADD_STRING(target, "; EDE:");
+				if (optlen >= 2U) {
+					uint16_t ede;
+					ede = isc_buffer_getuint16(&optbuf);
+					snprintf(buf, sizeof(buf), " %u", ede);
+					ADD_STRING(target, buf);
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+					if (ede < ARRAY_SIZE(edetext)) {
+						ADD_STRING(target, " (");
+						ADD_STRING(target,
+							   edetext[ede]);
+						ADD_STRING(target, ")");
+					}
+					optlen -= 2;
+					if (optlen != 0) {
+						ADD_STRING(target, ":");
+					}
+				} else if (optlen == 1U) {
+					/* Malformed */
+					optdata = isc_buffer_current(&optbuf);
+					snprintf(buf, sizeof(buf),
+						 " %02x (\"%c\")\n", optdata[0],
+						 isprint(optdata[0])
+							 ? optdata[0]
+							 : '.');
+					isc_buffer_forward(&optbuf, optlen);
+					ADD_STRING(target, buf);
+					continue;
+				}
 			} else if (optcode == DNS_OPT_CLIENT_TAG) {
 				uint16_t id;
 				ADD_STRING(target, "; CLIENT-TAG:");
@@ -4034,23 +4091,31 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 
 			if (optlen != 0) {
 				int i;
+				bool utf8ok = false;
 
 				ADD_STRING(target, " ");
 
 				optdata = isc_buffer_current(&optbuf);
-				for (i = 0; i < optlen; i++) {
-					const char *sep;
-					switch (optcode) {
-					case DNS_OPT_COOKIE:
-						sep = "";
-						break;
-					default:
-						sep = " ";
-						break;
+				if (optcode == DNS_OPT_EDE) {
+					utf8ok = isc_utf8_valid(optdata,
+								optlen);
+				}
+				if (!utf8ok) {
+					for (i = 0; i < optlen; i++) {
+						const char *sep;
+						switch (optcode) {
+						case DNS_OPT_COOKIE:
+							sep = "";
+							break;
+						default:
+							sep = " ";
+							break;
+						}
+						snprintf(buf, sizeof(buf),
+							 "%02x%s", optdata[i],
+							 sep);
+						ADD_STRING(target, buf);
 					}
-					snprintf(buf, sizeof(buf), "%02x%s",
-						 optdata[i], sep);
-					ADD_STRING(target, buf);
 				}
 
 				isc_buffer_forward(&optbuf, optlen);
@@ -4087,9 +4152,13 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 
 				/*
 				 * For non-COOKIE options, add a printable
-				 * version
+				 * version.
 				 */
-				ADD_STRING(target, "(\"");
+				if (optcode != DNS_OPT_EDE) {
+					ADD_STRING(target, "(\"");
+				} else {
+					ADD_STRING(target, "(");
+				}
 				if (isc_buffer_availablelength(target) < optlen)
 				{
 					return (ISC_R_NOSPACE);
@@ -4098,11 +4167,18 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					if (isprint(optdata[i])) {
 						isc_buffer_putmem(
 							target, &optdata[i], 1);
+					} else if (utf8ok && optdata[i] > 127) {
+						isc_buffer_putmem(
+							target, &optdata[i], 1);
 					} else {
 						isc_buffer_putstr(target, ".");
 					}
 				}
-				ADD_STRING(target, "\")");
+				if (optcode != DNS_OPT_EDE) {
+					ADD_STRING(target, "\")");
+				} else {
+					ADD_STRING(target, ")");
+				}
 			}
 			ADD_STRING(target, "\n");
 		}

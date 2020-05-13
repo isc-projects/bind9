@@ -569,7 +569,8 @@ if [ -x "$DIG" ] ; then
   echo_i "checking ednsopt LLQ prints as expected ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +ednsopt=llq:0001000200001234567812345678fefefefe +qr a.example > dig.out.test$n 2>&1 || ret=1
-  grep 'LLQ: Version: 1, Opcode: 2, Error: 0, Identifier: 1311768465173141112, Lifetime: 4278124286$' dig.out.test$n > /dev/null || ret=1
+  pat='LLQ: Version: 1, Opcode: 2, Error: 0, Identifier: 1311768465173141112, Lifetime: 4278124286$'
+  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -664,6 +665,51 @@ if [ -x "$DIG" ] ; then
   status=$((status+ret))
 
   n=$((n+1))
+  echo_i "check that Extended DNS Error 0 is printed correctly ($n)"
+  # First defined EDE code, additional text "foo".
+  dig_with_opts @10.53.0.3 +ednsopt=ede:0000666f6f a.example +qr > dig.out.test$n 2>&1 || ret=1
+  pat='^; EDE: 0 (Other): (foo)$'
+  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that Extended DNS Error 24 is printed correctly ($n)"
+  # Last defined EDE code, no additional text.
+  dig_with_opts @10.53.0.3 +ednsopt=ede:0018 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  pat='^; EDE: 24 (Invalid Data)$'
+  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that Extended DNS Error 25 is printed correctly ($n)"
+  # First undefined EDE code, additional text "foo".
+  dig_with_opts @10.53.0.3 +ednsopt=ede:0019666f6f a.example +qr > dig.out.test$n 2>&1 || ret=1
+  pat='^; EDE: 25: (foo)$'
+  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that invalid Extended DNS Error (length 0) is printed ($n)"
+  # EDE payload is too short
+  dig_with_opts @10.53.0.3 +ednsopt=ede a.example +qr > dig.out.test$n 2>&1 || ret=1
+  pat='^; EDE:$'
+  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that invalid Extended DNS Error (length 1) is printed ($n)"
+  # EDE payload is too short
+  dig_with_opts @10.53.0.3 +ednsopt=ede:00 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  pat='^; EDE: 00 (".")$'
+  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
   echo_i "check that dig handles malformed option '+ednsopt=:' gracefully ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +ednsopt=: a.example > dig.out.test$n 2>&1 && ret=1
@@ -687,7 +733,8 @@ if [ -x "$DIG" ] ; then
   echo_i "check that dig -q -m works ($n)"
   ret=0
   dig_with_opts @10.53.0.3 -q -m > dig.out.test$n 2>&1
-  grep '^;-m\..*IN.*A$' dig.out.test$n > /dev/null || ret=1
+  pat='^;-m\..*IN.*A$'
+  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
   grep "Dump of all outstanding memory allocations" dig.out.test$n > /dev/null && ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
@@ -781,7 +828,8 @@ if [ -x "$DIG" ] ; then
   echo_i "check that dig +short +expandaaaa works ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +short +expandaaaa AAAA ns2.example > dig.out.test$n 2>&1 || ret=1
-  grep '^fd92:7065:0b8e:ffff:0000:0000:0000:0002$' dig.out.test$n > /dev/null || ret=1
+  pat='^fd92:7065:0b8e:ffff:0000:0000:0000:0002$'
+  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
