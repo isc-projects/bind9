@@ -708,6 +708,65 @@ if [ -x "$DIG" ] ; then
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
+  if [ $HAS_PYYAML -ne 0 ] ; then
+    n=$((n+1))
+    echo_i "check that +yaml Extended DNS Error 0 is printed correctly ($n)"
+    # First defined EDE code, additional text "foo".
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=ede:0000666f6f a.example +qr > dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE INFO-CODE > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
+    [ "$value" = "0 (Other)" ] || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE EXTRA-TEXT > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
+    [ "$value" = "foo" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    n=$((n+1))
+    echo_i "check that +yaml Extended DNS Error 24 is printed correctly ($n)"
+    # Last defined EDE code, no additional text.
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=ede:0018 a.example +qr > dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE INFO-CODE > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
+    [ "$value" = "24 (Invalid Data)" ] || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE EXTRA-TEXT > yamlget.out.test$n 2>&1 && ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    n=$((n+1))
+    echo_i "check that +yaml Extended DNS Error 25 is printed correctly ($n)"
+    # First undefined EDE code, additional text "foo".
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=ede:0019666f6f a.example +qr > dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE INFO-CODE > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
+    [ "$value" = "25" ] || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE EXTRA-TEXT > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
+    [ "$value" = "foo" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    n=$((n+1))
+    echo_i "check that invalid Extended DNS Error (length 0) is printed ($n)"
+    # EDE payload is too short
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=ede a.example +qr > dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
+    [ "$value" = "None" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    n=$((n+1))
+    echo_i "check that invalid +yaml Extended DNS Error (length 1) is printed ($n)"
+    # EDE payload is too short
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=ede:00 a.example +qr > dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
+    [ "$value" = '00 (".")' ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+  fi
+
   n=$((n+1))
   echo_i "check that dig handles malformed option '+ednsopt=:' gracefully ($n)"
   ret=0
