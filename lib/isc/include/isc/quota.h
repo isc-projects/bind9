@@ -120,11 +120,13 @@ isc_quota_attach_cb(isc_quota_t *quota, isc_quota_t **p, isc_quota_cb_t *cb);
  *
  * Like isc_quota_attach(), but if there's no quota left then cb->cb_func will
  * be called when we are attached to quota.
- * Note: It's the callee responsibility to make sure that we don't end up with
- * extremely huge number of callbacks waiting - making it easy to create a
- * resource exhaustion attack. For example in case of TCP listening we simply
- * don't accept new connections - so the number of callbacks waiting in the
- * queue is limited by listen() backlog.
+ *
+ * Note: It's the caller's responsibility to make sure that we don't end up
+ * with a huge number of callbacks waiting, making it easy to create a
+ * resource exhaustion attack. For example, in the case of TCP listening,
+ * we simply don't accept new connections when the quota is exceeded, so
+ * the number of callbacks waiting in the queue will be limited by the
+ * listen() backlog.
  *
  * Returns:
  * \li	#ISC_R_SUCCESS		Success
