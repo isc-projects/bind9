@@ -47,6 +47,11 @@ typedef enum {
 	dns_ssumatchtype_dlz = 16 /* intentionally higher than _max */
 } dns_ssumatchtype_t;
 
+typedef struct dns_ssuruletype {
+	dns_rdatatype_t type; /* type allowed */
+	unsigned int	max;  /* maximum number of records allowed. */
+} dns_ssuruletype_t;
+
 isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
 /*%<
@@ -103,7 +108,7 @@ isc_result_t
 dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
-		     dns_rdatatype_t *types);
+		     dns_ssuruletype_t *types);
 /*%<
  *	Adds a new rule to a simple-secure-update rule table.  The rule
  *	either grants or denies update privileges of an identity (or set of
@@ -136,7 +141,7 @@ bool
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
 			bool tcp, const dns_aclenv_t *env, dns_rdatatype_t type,
-			const dst_key_t *key);
+			const dst_key_t *key, const dns_ssurule_t **rulep);
 /*%<
  *	Checks that the attempted update of (name, type) is allowed according
  *	to the rules specified in the simple-secure-update rule table.  If
@@ -180,18 +185,31 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 /*% Accessor functions to extract rule components */
 bool
 dns_ssurule_isgrant(const dns_ssurule_t *rule);
+
 /*% Accessor functions to extract rule components */
 dns_name_t *
 dns_ssurule_identity(const dns_ssurule_t *rule);
+
 /*% Accessor functions to extract rule components */
 unsigned int
 dns_ssurule_matchtype(const dns_ssurule_t *rule);
+
 /*% Accessor functions to extract rule components */
 dns_name_t *
 dns_ssurule_name(const dns_ssurule_t *rule);
+
 /*% Accessor functions to extract rule components */
 unsigned int
-dns_ssurule_types(const dns_ssurule_t *rule, dns_rdatatype_t **types);
+dns_ssurule_types(const dns_ssurule_t *rule, dns_ssuruletype_t **types);
+
+unsigned int
+dns_ssurule_max(const dns_ssurule_t *rule, dns_rdatatype_t type);
+/*%<
+ * Returns the maximum number of records configured for type `type`.
+ * If no maximum has been configured for `type` but one has been
+ * configured for ANY, return that value instead. Otherwise, return
+ * zero, which implies "unlimited".
+ */
 
 isc_result_t
 dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule);

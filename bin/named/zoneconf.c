@@ -237,7 +237,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		dns_ssumatchtype_t mtype = dns_ssumatchtype_name;
 		dns_fixedname_t fname, fident;
 		isc_buffer_t b;
-		dns_rdatatype_t *types;
+		dns_ssuruletype_t *types;
 		unsigned int i, n;
 
 		str = cfg_obj_asstring(mode);
@@ -290,7 +290,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		if (n == 0) {
 			types = NULL;
 		} else {
-			types = isc_mem_get(mctx, n * sizeof(dns_rdatatype_t));
+			types = isc_mem_get(mctx, n * sizeof(*types));
 		}
 
 		i = 0;
@@ -298,22 +298,43 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		     element2 = cfg_list_next(element2))
 		{
 			const cfg_obj_t *typeobj;
+			const char *bracket;
 			isc_textregion_t r;
+			unsigned long max = 0;
 
 			INSIST(i < n);
 
 			typeobj = cfg_listelt_value(element2);
 			str = cfg_obj_asstring(typeobj);
 			DE_CONST(str, r.base);
-			r.length = strlen(str);
 
-			result = dns_rdatatype_fromtext(&types[i++], &r);
+			bracket = strchr(str, '(' /*)*/);
+			if (bracket != NULL) {
+				char *end = NULL;
+				r.length = bracket - str;
+				max = strtoul(bracket + 1, &end, 10);
+				if (max > 0xffff || end[0] != /*(*/ ')' ||
+				    end[1] != 0) {
+					cfg_obj_log(identity, named_g_lctx,
+						    ISC_LOG_ERROR,
+						    "'%s' is not a valid count",
+						    bracket);
+					isc_mem_put(mctx, types,
+						    n * sizeof(*types));
+					goto cleanup;
+				}
+			} else {
+				r.length = strlen(str);
+			}
+			types[i].max = max;
+
+			result = dns_rdatatype_fromtext(&types[i++].type, &r);
 			if (result != ISC_R_SUCCESS) {
 				cfg_obj_log(identity, named_g_lctx,
 					    ISC_LOG_ERROR,
-					    "'%s' is not a valid type", str);
-				isc_mem_put(mctx, types,
-					    n * sizeof(dns_rdatatype_t));
+					    "'%.*s' is not a valid type",
+					    (int)r.length, str);
+				isc_mem_put(mctx, types, n * sizeof(types));
 				goto cleanup;
 			}
 		}
@@ -323,7 +344,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			table, grant, dns_fixedname_name(&fident), mtype,
 			dns_fixedname_name(&fname), n, types);
 		if (types != NULL) {
-			isc_mem_put(mctx, types, n * sizeof(dns_rdatatype_t));
+			isc_mem_put(mctx, types, n * sizeof(*types));
 		}
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
@@ -336,7 +357,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	 * update-policy { grant <session-keyname> zonesub any; };
 	 */
 	if (autoddns) {
-		dns_rdatatype_t any = dns_rdatatype_any;
+		dns_ssuruletype_t any = { dns_rdatatype_any, 0 };
 
 		if (named_g_server->session_keyname == NULL) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,

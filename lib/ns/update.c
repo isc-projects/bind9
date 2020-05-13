@@ -753,6 +753,17 @@ cleanup_node:
 typedef bool
 rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
 
+static isc_result_t
+count_action(void *data, rr_t *rr) {
+	unsigned int *ui = (unsigned int *)data;
+
+	UNUSED(rr);
+
+	(*ui)++;
+
+	return (ISC_R_SUCCESS);
+}
+
 /*%
  * Helper function for rrset_exists().
  */
@@ -899,8 +910,9 @@ typedef struct {
 
 static isc_result_t
 ssu_checkrule(void *data, dns_rdataset_t *rrset) {
-	ssu_check_t *ssuinfo = data;
 	bool result;
+	const dns_ssurule_t *rule = NULL;
+	ssu_check_t *ssuinfo = data;
 
 	/*
 	 * If we're deleting all records, it's ok to delete RRSIG and NSEC even
@@ -910,9 +922,10 @@ ssu_checkrule(void *data, dns_rdataset_t *rrset) {
 	    rrset->type == dns_rdatatype_nsec) {
 		return (ISC_R_SUCCESS);
 	}
-	result = dns_ssutable_checkrules(
-		ssuinfo->table, ssuinfo->signer, ssuinfo->name, ssuinfo->addr,
-		ssuinfo->tcp, ssuinfo->aclenv, rrset->type, ssuinfo->key);
+	result = dns_ssutable_checkrules(ssuinfo->table, ssuinfo->signer,
+					 ssuinfo->name, ssuinfo->addr,
+					 ssuinfo->tcp, ssuinfo->aclenv,
+					 rrset->type, ssuinfo->key, &rule);
 	return (result == true ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
@@ -2565,6 +2578,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	uint64_t records;
 	dns_aclenv_t *env =
 		ns_interfacemgr_getaclenv(client->manager->interface->mgr);
+	size_t ruleslen = 0;
+	size_t rule;
+	const dns_ssurule_t **rules = NULL;
 
 	INSIST(event->ev_type == DNS_EVENT_UPDATE);
 
@@ -2739,15 +2755,24 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Perform the Update Section Prescan.
 	 */
+	if (ssutable != NULL) {
+		ruleslen = request->counts[DNS_SECTION_UPDATE];
+		rules = isc_mem_get(mctx, sizeof(*rules) * ruleslen);
+		memset(rules, 0, sizeof(*rules) * ruleslen);
+	}
 
-	for (result = dns_message_firstname(request, DNS_SECTION_UPDATE);
+	for (rule = 0,
+	    result = dns_message_firstname(request, DNS_SECTION_UPDATE);
 	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
+	     rule++, result = dns_message_nextname(request, DNS_SECTION_UPDATE))
 	{
 		dns_name_t *name = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
+
+		INSIST(ssutable == NULL || rule < ruleslen);
+
 		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass, &name,
 			       &rdata, &covers, &ttl, &update_class);
 
@@ -2820,7 +2845,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				if (!dns_ssutable_checkrules(
 					    ssutable, client->signer, name,
 					    &netaddr, TCPCLIENT(client), env,
-					    rdata.type, tsigkey))
+					    rdata.type, tsigkey, &rules[rule]))
 				{
 					FAILC(DNS_R_REFUSED, "rejected by "
 							     "secure update");
@@ -2847,9 +2872,10 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	options = dns_zone_getoptions(zone);
-	for (result = dns_message_firstname(request, DNS_SECTION_UPDATE);
+	for (rule = 0,
+	    result = dns_message_firstname(request, DNS_SECTION_UPDATE);
 	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
+	     rule++, result = dns_message_nextname(request, DNS_SECTION_UPDATE))
 	{
 		dns_name_t *name = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -2857,10 +2883,14 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		dns_rdataclass_t update_class;
 		bool flag;
 
+		INSIST(ssutable == NULL || rule < ruleslen);
+
 		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass, &name,
 			       &rdata, &covers, &ttl, &update_class);
 
 		if (update_class == zoneclass) {
+			unsigned int max = 0;
+
 			/*
 			 * RFC1123 doesn't allow MF and MD in master zones.
 			 */
@@ -2983,6 +3013,24 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						   "reducing TTL to the "
 						   "configured max-zone-ttl %d",
 						   maxttl);
+				}
+			}
+
+			if (rules != NULL && rules[rule] != NULL) {
+				max = dns_ssurule_max(rules[rule], rdata.type);
+			}
+			if (max != 0) {
+				unsigned int count = 0;
+				CHECK(foreach_rr(db, ver, name, rdata.type,
+						 covers, count_action, &count));
+				if (count >= max) {
+					update_log(client, zone,
+						   LOGLEVEL_PROTOCOL,
+						   "attempt to add more "
+						   "records than permitted by "
+						   "policy max=%u",
+						   max);
+					continue;
 				}
 			}
 
@@ -3418,6 +3466,10 @@ common:
 
 	if (db != NULL) {
 		dns_db_detach(&db);
+	}
+
+	if (rules != NULL) {
+		isc_mem_put(mctx, rules, sizeof(*rules) * ruleslen);
 	}
 
 	if (ssutable != NULL) {

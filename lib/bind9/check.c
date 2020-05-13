@@ -45,6 +45,7 @@
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
+#include <dns/result.h>
 #include <dns/rrl.h>
 #include <dns/secalg.h>
 #include <dns/ssu.h>
@@ -1850,15 +1851,35 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		     element2 = cfg_list_next(element2))
 		{
 			const cfg_obj_t *typeobj;
+			const char *bracket;
 
 			typeobj = cfg_listelt_value(element2);
 			DE_CONST(cfg_obj_asstring(typeobj), r.base);
-			r.length = strlen(r.base);
+
+			bracket = strchr(r.base, '(' /*)*/);
+			if (bracket != NULL) {
+				char *end = NULL;
+				unsigned long max;
+
+				r.length = bracket - r.base;
+				max = strtoul(bracket + 1, &end, 10);
+				if (max > 0xffff || end[0] != /*(*/ ')' ||
+				    end[1] != 0) {
+					cfg_obj_log(typeobj, logctx,
+						    ISC_LOG_ERROR,
+						    "'%s' is not a valid count",
+						    bracket);
+					result = DNS_R_SYNTAX;
+				}
+			} else {
+				r.length = strlen(r.base);
+			}
 
 			tresult = dns_rdatatype_fromtext(&type, &r);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(typeobj, logctx, ISC_LOG_ERROR,
-					    "'%s' is not a valid type", r.base);
+					    "'%.*s' is not a valid type",
+					    (int)r.length, r.base);
 				result = tresult;
 			}
 		}
