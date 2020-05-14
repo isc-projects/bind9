@@ -1,3 +1,6 @@
+5422.	[bug]		When using dnssec-policy, print correct keytiming
+			metadata. [GL #1843]
+
 5421.	[bug]		Fixed a race that could cause named to crash when
 			looking up the nodename of an RBT node if the tree
 			was modified. [GL #1857]
