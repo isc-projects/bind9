@@ -132,3 +132,8 @@ Bug Fixes
 -  Fix a bug in dnssec-policy keymgr where the check if a key has a
    successor would return a false positive if any other key in the
    keyring has a successor. [GL #1845]
+
+-  With dnssec-policy, when creating a successor key, the goal state of
+   the current active key (the predecessor) was not changed and thus was
+   never is removed from the zone. [GL #1846]
+

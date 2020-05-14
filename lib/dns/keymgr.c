@@ -1476,6 +1476,19 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		prepub = keymgr_prepublication_time(active_key, kasp, lifetime,
 						    now);
 		if (prepub == 0 || prepub > now) {
+			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+				dst_key_format(active_key->key, keystr,
+					       sizeof(keystr));
+				isc_log_write(
+					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
+					"keymgr: new successor needed for "
+					"DNSKEY %s (%s) (policy %s) in %u "
+					"seconds",
+					keystr, keymgr_keyrole(active_key->key),
+					dns_kasp_getname(kasp), (prepub - now));
+			}
+
 			/* No need to start rollover now. */
 			if (*nexttime == 0 || prepub < *nexttime) {
 				*nexttime = prepub;
@@ -1485,6 +1498,17 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 
 		if (keymgr_key_has_successor(active_key, keyring)) {
 			/* Key already has successor. */
+			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+				dst_key_format(active_key->key, keystr,
+					       sizeof(keystr));
+				isc_log_write(
+					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
+					"keymgr: key DNSKEY %s (%s) (policy "
+					"%s) already has successor",
+					keystr, keymgr_keyrole(active_key->key),
+					dns_kasp_getname(kasp));
+			}
 			return (ISC_R_SUCCESS);
 		}
 
@@ -1583,6 +1607,11 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		dst_key_settime(new_key->key, DST_TIME_PUBLISH, prepub);
 		dst_key_settime(new_key->key, DST_TIME_ACTIVATE, active);
 		keymgr_settime_syncpublish(new_key, kasp, false);
+
+		/*
+		 * Retire predecessor.
+		 */
+		dst_key_setstate(active_key->key, DST_KEY_GOAL, HIDDEN);
 	}
 
 	/* This key wants to be present. */
