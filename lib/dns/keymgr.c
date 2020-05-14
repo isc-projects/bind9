@@ -287,6 +287,10 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 	/*
 	 * Publish successor 'prepub' time before the 'retire' time of 'key'.
 	 */
+	if (prepub > retire) {
+		/* We should have already prepublished the new key. */
+		return (now);
+	}
 	return (retire - prepub);
 }
 
