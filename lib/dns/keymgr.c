@@ -633,11 +633,16 @@ keymgr_key_exists_with_state(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
  * Check if a key has a successor.
  */
 static bool
-keymgr_key_has_successor(dns_dnsseckey_t *key, dns_dnsseckeylist_t *keyring) {
-	/* Don't worry about key states. */
-	dst_key_state_t na[4] = { NA, NA, NA, NA };
-	return (keymgr_key_exists_with_state(keyring, key, DST_KEY_DNSKEY, NA,
-					     na, na, true, true));
+keymgr_key_has_successor(dns_dnsseckey_t *predecessor,
+			 dns_dnsseckeylist_t *keyring) {
+	for (dns_dnsseckey_t *successor = ISC_LIST_HEAD(*keyring);
+	     successor != NULL; successor = ISC_LIST_NEXT(successor, link))
+	{
+		if (keymgr_key_is_successor(predecessor->key, successor->key)) {
+			return (true);
+		}
+	}
+	return (false);
 }
 
 /*

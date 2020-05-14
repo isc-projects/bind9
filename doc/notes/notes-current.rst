@@ -40,7 +40,11 @@ Feature Changes
 Bug Fixes
 ---------
 
-- ``named`` could crash with an assertion failure if the name of a database node
-    was looked up while the database was being modified. [GL #1857]
-- Missing mutex and conditional destruction in netmgr code leads to a memory
-  leak on BSD systems. [GL #1893].
+-  ``named`` could crash with an assertion failure if the name of a
+   database node was looked up while the database was being modified.
+   [GL #1857]
+-  Missing mutex and conditional destruction in netmgr code leads to a memory
+   leak on BSD systems. [GL #1893].
+-  Fix a bug in dnssec-policy keymgr where the check if a key has a
+   successor would return a false positive if any other key in the
+   keyring has a successor. [GL #1845]
