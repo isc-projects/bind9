@@ -481,8 +481,6 @@ docs:
     - apt -yqqq install texlive-full texlive-xetex latexmk xindy
   script:
     - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k maintainer-clean V=1
-    - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
   needs:

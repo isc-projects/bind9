@@ -8,7 +8,7 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. higlight: console
+.. highlight: console
 
 named.conf - configuration file for **named**
 ---------------------------------------------

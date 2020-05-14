@@ -37,7 +37,6 @@
   	key-directory <quoted_string>;
   	masterfile-format ( map | raw | text );
   	masterfile-style ( full | relative );
-  	max-ixfr-ratio ( unlimited | <percentage> );
   	max-journal-size ( default | unlimited | <sizeval> );
   	max-records <integer>;
   	max-transfer-idle-out <integer>;

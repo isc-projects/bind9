@@ -8,7 +8,7 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. higlight: console
+.. highlight: console
 
 named.conf - configuration file for **named**
 ---------------------------------------------
@@ -296,7 +296,6 @@ OPTIONS
   	max-cache-size ( default | unlimited | sizeval | percentage );
   	max-cache-ttl duration;
   	max-clients-per-query integer;
-  	max-ixfr-ratio ( unlimited | percentage );
   	max-journal-size ( default | unlimited | sizeval );
   	max-ncache-ttl duration;
   	max-records integer;
@@ -388,11 +387,10 @@ OPTIONS
   	    nsdname-enable boolean ]; ... } [ add-soa boolean ] [
   	    break-dnssec boolean ] [ max-policy-ttl duration ] [
   	    min-update-interval duration ] [ min-ns-dots integer ] [
-  	    nsip-wait-recurse boolean ] [ nsdname-wait-recurse boolean
-  	    ] [ qname-wait-recurse boolean ] [ recursive-only boolean ]
-  	    [ nsip-enable boolean ] [ nsdname-enable boolean ] [
-  	    dnsrps-enable boolean ] [ dnsrps-options { unspecified-text
-  	    } ];
+  	    nsip-wait-recurse boolean ] [ qname-wait-recurse boolean ]
+  	    [ recursive-only boolean ] [ nsip-enable boolean ] [
+  	    nsdname-enable boolean ] [ dnsrps-enable boolean ] [
+  	    dnsrps-options { unspecified-text } ];
   	root-delegation-only [ exclude { string; ... } ];
   	root-key-sentinel boolean;
   	rrset-order { [ class string ] [ type string ] [ name
@@ -653,7 +651,6 @@ VIEW
   	max-cache-size ( default | unlimited | sizeval | percentage );
   	max-cache-ttl duration;
   	max-clients-per-query integer;
-  	max-ixfr-ratio ( unlimited | percentage );
   	max-journal-size ( default | unlimited | sizeval );
   	max-ncache-ttl duration;
   	max-records integer;
@@ -736,11 +733,10 @@ VIEW
   	    nsdname-enable boolean ]; ... } [ add-soa boolean ] [
   	    break-dnssec boolean ] [ max-policy-ttl duration ] [
   	    min-update-interval duration ] [ min-ns-dots integer ] [
-  	    nsip-wait-recurse boolean ] [ nsdname-wait-recurse boolean
-  	    ] [ qname-wait-recurse boolean ] [ recursive-only boolean ]
-  	    [ nsip-enable boolean ] [ nsdname-enable boolean ] [
-  	    dnsrps-enable boolean ] [ dnsrps-options { unspecified-text
-  	    } ];
+  	    nsip-wait-recurse boolean ] [ qname-wait-recurse boolean ]
+  	    [ recursive-only boolean ] [ nsip-enable boolean ] [
+  	    nsdname-enable boolean ] [ dnsrps-enable boolean ] [
+  	    dnsrps-options { unspecified-text } ];
   	root-delegation-only [ exclude { string; ... } ];
   	root-key-sentinel boolean;
   	rrset-order { [ class string ] [ type string ] [ name
@@ -862,7 +858,6 @@ VIEW
   		masters [ port integer ] [ dscp integer ] { ( masters
   		    | ipv4_address [ port integer ] | ipv6_address [
   		    port integer ] ) [ key string ]; ... };
-  		max-ixfr-ratio ( unlimited | percentage );
   		max-journal-size ( default | unlimited | sizeval );
   		max-records integer;
   		max-refresh-time integer;
@@ -965,7 +960,6 @@ ZONE
   	masters [ port integer ] [ dscp integer ] { ( masters |
   	    ipv4_address [ port integer ] | ipv6_address [ port
   	    integer ] ) [ key string ]; ... };
-  	max-ixfr-ratio ( unlimited | percentage );
   	max-journal-size ( default | unlimited | sizeval );
   	max-records integer;
   	max-refresh-time integer;
