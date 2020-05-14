@@ -1441,6 +1441,174 @@ keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	}
 }
 
+static isc_result_t
+keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
+		    dns_dnsseckeylist_t *keyring, dns_dnsseckeylist_t *newkeys,
+		    const dns_name_t *origin, dns_rdataclass_t rdclass,
+		    dns_kasp_t *kasp, uint32_t lifetime, isc_stdtime_t now,
+		    isc_stdtime_t *nexttime, isc_mem_t *mctx) {
+	char keystr[DST_KEY_FORMATSIZE];
+	isc_stdtime_t retire = 0, active = 0, prepub = 0;
+	dns_dnsseckey_t *new_key = NULL;
+	dns_dnsseckey_t *candidate = NULL;
+	dst_key_t *dst_key = NULL;
+
+	/* Do we need to create a successor for the active key? */
+	if (active_key != NULL) {
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+			dst_key_format(active_key->key, keystr, sizeof(keystr));
+			isc_log_write(
+				dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
+				"keymgr: DNSKEY %s (%s) is active in policy %s",
+				keystr, keymgr_keyrole(active_key->key),
+				dns_kasp_getname(kasp));
+		}
+
+		/*
+		 * Calculate when the successor needs to be published
+		 * in the zone.
+		 */
+		prepub = keymgr_prepublication_time(active_key, kasp, lifetime,
+						    now);
+		if (prepub == 0 || prepub > now) {
+			/* No need to start rollover now. */
+			if (*nexttime == 0 || prepub < *nexttime) {
+				*nexttime = prepub;
+			}
+			return (ISC_R_SUCCESS);
+		}
+
+		if (keymgr_key_has_successor(active_key, keyring)) {
+			/* Key already has successor. */
+			return (ISC_R_SUCCESS);
+		}
+
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+			dst_key_format(active_key->key, keystr, sizeof(keystr));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
+				      "keymgr: need successor for DNSKEY %s "
+				      "(%s) (policy %s)",
+				      keystr, keymgr_keyrole(active_key->key),
+				      dns_kasp_getname(kasp));
+		}
+	} else if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+		char namestr[DNS_NAME_FORMATSIZE];
+		dns_name_format(origin, namestr, sizeof(namestr));
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
+			      "keymgr: no active key found for %s (policy %s)",
+			      namestr, dns_kasp_getname(kasp));
+	}
+
+	/* It is time to do key rollover, we need a new key. */
+
+	/*
+	 * Check if there is a key available in pool because keys
+	 * may have been pregenerated with dnssec-keygen.
+	 */
+	for (candidate = ISC_LIST_HEAD(*keyring); candidate != NULL;
+	     candidate = ISC_LIST_NEXT(candidate, link))
+	{
+		if (keymgr_dnsseckey_kaspkey_match(candidate, kaspkey) &&
+		    dst_key_is_unused(candidate->key))
+		{
+			/* Found a candidate in keyring. */
+			break;
+		}
+	}
+
+	if (candidate == NULL) {
+		/* No key available in keyring, create a new one. */
+		isc_result_t result = keymgr_createkey(kaspkey, origin, rdclass,
+						       mctx, keyring, &dst_key);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		dst_key_setttl(dst_key, dns_kasp_dnskeyttl(kasp));
+		dst_key_settime(dst_key, DST_TIME_CREATED, now);
+		result = dns_dnsseckey_create(mctx, &dst_key, &new_key);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		keymgr_key_init(new_key, kasp, now);
+	} else {
+		new_key = candidate;
+	}
+	dst_key_setnum(new_key->key, DST_NUM_LIFETIME, lifetime);
+
+	/* Got a key. */
+	if (active_key == NULL) {
+		/*
+		 * If there is no active key found yet for this kasp
+		 * key configuration, immediately make this key active.
+		 */
+		dst_key_settime(new_key->key, DST_TIME_PUBLISH, now);
+		dst_key_settime(new_key->key, DST_TIME_ACTIVATE, now);
+		keymgr_settime_syncpublish(new_key, kasp, true);
+		active = now;
+	} else {
+		/*
+		 * This is a successor.  Mark the relationship.
+		 */
+		isc_stdtime_t created;
+		(void)dst_key_gettime(new_key->key, DST_TIME_CREATED, &created);
+
+		dst_key_setnum(new_key->key, DST_NUM_PREDECESSOR,
+			       dst_key_id(active_key->key));
+		dst_key_setnum(active_key->key, DST_NUM_SUCCESSOR,
+			       dst_key_id(new_key->key));
+		(void)dst_key_gettime(active_key->key, DST_TIME_INACTIVE,
+				      &retire);
+		active = retire;
+
+		/*
+		 * If prepublication time and/or retire time are
+		 * in the past (before the new key was created), use
+		 * creation time as published and active time,
+		 * effectively immediately making the key active.
+		 */
+		if (prepub < created) {
+			active += (created - prepub);
+			prepub = created;
+		}
+		if (active < created) {
+			active = created;
+		}
+		dst_key_settime(new_key->key, DST_TIME_PUBLISH, prepub);
+		dst_key_settime(new_key->key, DST_TIME_ACTIVATE, active);
+		keymgr_settime_syncpublish(new_key, kasp, false);
+	}
+
+	/* This key wants to be present. */
+	dst_key_setstate(new_key->key, DST_KEY_GOAL, OMNIPRESENT);
+
+	/* Do we need to set retire time? */
+	if (lifetime > 0) {
+		dst_key_settime(new_key->key, DST_TIME_INACTIVE,
+				(active + lifetime));
+		keymgr_settime_remove(new_key, kasp);
+	}
+
+	/* Append dnsseckey to list of new keys. */
+	dns_dnssec_get_hints(new_key, now);
+	new_key->source = dns_keysource_repository;
+	INSIST(!new_key->legacy);
+	if (candidate == NULL) {
+		ISC_LIST_APPEND(*newkeys, new_key, link);
+	}
+
+	/* Logging. */
+	dst_key_format(new_key->key, keystr, sizeof(keystr));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+		      ISC_LOG_INFO, "keymgr: DNSKEY %s (%s) %s for policy %s",
+		      keystr, keymgr_keyrole(new_key->key),
+		      (candidate != NULL) ? "selected" : "created",
+		      dns_kasp_getname(kasp));
+	return (ISC_R_SUCCESS);
+}
+
 /*
  * Examine 'keys' and match 'kasp' policy.
  *
@@ -1453,9 +1621,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_dnsseckeylist_t newkeys;
 	dns_kasp_key_t *kkey;
-	dns_dnsseckey_t *candidate = NULL;
 	dns_dnsseckey_t *newkey = NULL;
-	dst_key_t *dst_key = NULL;
 	isc_dir_t dir;
 	bool dir_open = false;
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
@@ -1465,6 +1631,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	REQUIRE(keyring != NULL);
 
 	ISC_LIST_INIT(newkeys);
+
 	isc_dir_init(&dir);
 	if (directory == NULL) {
 		directory = ".";
@@ -1525,7 +1692,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 	     kkey = ISC_LIST_NEXT(kkey, link))
 	{
-		isc_stdtime_t retire = 0, active = 0, prepub = 0;
 		uint32_t lifetime = dns_kasp_key_lifetime(kkey);
 		dns_dnsseckey_t *active_key = NULL;
 
@@ -1602,163 +1768,10 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			}
 		}
 
-		/* Do we need to create a successor for the active key? */
-		if (active_key != NULL) {
-			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
-				dst_key_format(active_key->key, keystr,
-					       sizeof(keystr));
-				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
-					"keymgr: DNSKEY %s (%s) is active in "
-					"policy %s",
-					keystr, keymgr_keyrole(active_key->key),
-					dns_kasp_getname(kasp));
-			}
-
-			/*
-			 * Calculate when the successor needs to be published
-			 * in the zone.
-			 */
-			prepub = keymgr_prepublication_time(active_key, kasp,
-							    lifetime, now);
-			if (prepub == 0 || prepub > now) {
-				/* No need to start rollover now. */
-				if (*nexttime == 0 || prepub < *nexttime) {
-					*nexttime = prepub;
-				}
-				continue;
-			}
-			if (keymgr_key_has_successor(active_key, keyring)) {
-				/* Key already has successor. */
-				continue;
-			}
-
-			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
-				dst_key_format(active_key->key, keystr,
-					       sizeof(keystr));
-				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
-					"keymgr: need successor for "
-					"DNSKEY %s (%s) (policy %s)",
-					keystr, keymgr_keyrole(active_key->key),
-					dns_kasp_getname(kasp));
-			}
-		} else if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
-			char namestr[DNS_NAME_FORMATSIZE];
-			dns_name_format(origin, namestr, sizeof(namestr));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
-				      "keymgr: no active key found for %s "
-				      "(policy %s)",
-				      namestr, dns_kasp_getname(kasp));
-		}
-
-		/* It is time to do key rollover, we need a new key. */
-
-		/*
-		 * Check if there is a key available in pool because keys
-		 * may have been pregenerated with dnssec-keygen.
-		 */
-		for (candidate = ISC_LIST_HEAD(*keyring); candidate != NULL;
-		     candidate = ISC_LIST_NEXT(candidate, link))
-		{
-			if (keymgr_dnsseckey_kaspkey_match(candidate, kkey) &&
-			    dst_key_is_unused(candidate->key))
-			{
-				/* Found a candidate in keyring. */
-				break;
-			}
-		}
-
-		if (candidate == NULL) {
-			/* No key available in keyring, create a new one. */
-			RETERR(keymgr_createkey(kkey, origin, rdclass, mctx,
-						keyring, &dst_key));
-			dst_key_setttl(dst_key, dns_kasp_dnskeyttl(kasp));
-			dst_key_settime(dst_key, DST_TIME_CREATED, now);
-			RETERR(dns_dnsseckey_create(mctx, &dst_key, &newkey));
-			keymgr_key_init(newkey, kasp, now);
-		} else {
-			newkey = candidate;
-		}
-		dst_key_setnum(newkey->key, DST_NUM_LIFETIME, lifetime);
-
-		/* Got a key. */
-		if (active_key == NULL) {
-			/*
-			 * If there is no active key found yet for this kasp
-			 * key configuration, immediately make this key active.
-			 */
-			dst_key_settime(newkey->key, DST_TIME_PUBLISH, now);
-			dst_key_settime(newkey->key, DST_TIME_ACTIVATE, now);
-			keymgr_settime_syncpublish(newkey, kasp, true);
-			active = now;
-		} else {
-			/*
-			 * This is a successor.  Mark the relationship.
-			 */
-			isc_stdtime_t created;
-			(void)dst_key_gettime(newkey->key, DST_TIME_CREATED,
-					      &created);
-
-			dst_key_setnum(newkey->key, DST_NUM_PREDECESSOR,
-				       dst_key_id(active_key->key));
-			dst_key_setnum(active_key->key, DST_NUM_SUCCESSOR,
-				       dst_key_id(newkey->key));
-			(void)dst_key_gettime(active_key->key,
-					      DST_TIME_INACTIVE, &retire);
-			active = retire;
-
-			/*
-			 * If prepublication time and/or retire time are
-			 * in the past (before the new key was created), use
-			 * creation time as published and active time,
-			 * effectively immediately making the key active.
-			 */
-			if (prepub < created) {
-				active += (created - prepub);
-				prepub = created;
-			}
-			if (active < created) {
-				active = created;
-			}
-			dst_key_settime(newkey->key, DST_TIME_PUBLISH, prepub);
-			dst_key_settime(newkey->key, DST_TIME_ACTIVATE, active);
-			keymgr_settime_syncpublish(newkey, kasp, false);
-		}
-
-		/* This key wants to be present. */
-		dst_key_setstate(newkey->key, DST_KEY_GOAL, OMNIPRESENT);
-
-		/* Do we need to set retire time? */
-		if (lifetime > 0) {
-			dst_key_settime(newkey->key, DST_TIME_INACTIVE,
-					(active + lifetime));
-			keymgr_settime_remove(newkey, kasp);
-		}
-
-		/* Append dnsseckey to list of new keys. */
-		dns_dnssec_get_hints(newkey, now);
-		newkey->source = dns_keysource_repository;
-		INSIST(!newkey->legacy);
-		if (candidate == NULL) {
-			ISC_LIST_APPEND(newkeys, newkey, link);
-		}
-
-		/* Logging. */
-		dst_key_format(newkey->key, keystr, sizeof(keystr));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
-			      "keymgr: DNSKEY %s (%s) %s for policy %s", keystr,
-			      keymgr_keyrole(newkey->key),
-			      (candidate != NULL) ? "selected" : "created",
-			      dns_kasp_getname(kasp));
-
-		/* Onwards to next kasp key configuration. */
-		candidate = NULL;
-		newkey = NULL;
+		/* See if this key requires a rollover. */
+		RETERR(keymgr_key_rollover(kkey, active_key, keyring, &newkeys,
+					   origin, rdclass, kasp, lifetime, now,
+					   nexttime, mctx));
 	}
 
 	/* Walked all kasp key configurations.  Append new keys. */
@@ -1784,7 +1797,6 @@ failure:
 		isc_dir_close(&dir);
 	}
 
-	INSIST(newkey == NULL);
 	if (result != ISC_R_SUCCESS) {
 		while ((newkey = ISC_LIST_HEAD(newkeys)) != NULL) {
 			ISC_LIST_UNLINK(newkeys, newkey, link);
