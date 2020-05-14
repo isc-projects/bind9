@@ -1378,6 +1378,8 @@
 ./doc/dev/unexpected				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019,2020
 ./doc/doxygen/Doxyfile.in			X	2006,2017,2018,2019,2020
 ./doc/doxygen/doxygen-input-filter.in		PERL	2006,2007,2012,2016,2018,2019,2020
+./doc/doxygen/isc-footer.html			HTML	2020
+./doc/doxygen/isc-header.html			HTML	2020
 ./doc/doxygen/mainpage				X	2006,2018,2019,2020
 ./doc/man/arpaname.rst				RST	2020
 ./doc/man/conf.py				PYTHON	2020
