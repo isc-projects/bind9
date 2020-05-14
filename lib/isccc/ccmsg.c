@@ -49,12 +49,12 @@ recv_nonce(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	isccc_ccmsg_t *ccmsg = arg;
 	isc_result_t result;
 
+	INSIST(VALID_CCMSG(ccmsg));
+
 	if (eresult == ISC_R_CANCELED || eresult == ISC_R_EOF) {
 		ccmsg->result = eresult;
 		goto done;
 	}
-
-	INSIST(VALID_CCMSG(ccmsg));
 
 	if (region == NULL && eresult == ISC_R_SUCCESS) {
 		ccmsg->result = ISC_R_EOF;
@@ -116,12 +116,12 @@ recv_message(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	isccc_ccmsg_t *ccmsg = arg;
 	size_t size;
 
+	INSIST(VALID_CCMSG(ccmsg));
+
 	if (eresult == ISC_R_CANCELED || eresult == ISC_R_EOF) {
 		ccmsg->result = eresult;
 		goto done;
 	}
-
-	INSIST(VALID_CCMSG(ccmsg));
 
 	if (region == NULL && eresult == ISC_R_SUCCESS) {
 		ccmsg->result = ISC_R_EOF;

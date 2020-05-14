@@ -27,6 +27,7 @@
 #include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
+#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/result.h>
@@ -70,9 +71,17 @@ struct controlconnection {
 	isccc_ccmsg_t ccmsg;
 	bool ccmsg_valid;
 	bool sending;
-	isc_buffer_t *buffer;
 	controllistener_t *listener;
+	isccc_sexpr_t *ctrl;
+	isc_buffer_t *buffer;
+	isc_buffer_t *text;
+	isccc_sexpr_t *request;
+	isccc_sexpr_t *response;
+	uint32_t alg;
+	isccc_region_t secret;
 	uint32_t nonce;
+	isc_stdtime_t now;
+	isc_result_t result;
 	ISC_LINK(controlconnection_t) link;
 };
 
@@ -206,16 +215,18 @@ static void
 control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	controlconnection_t *conn = (controlconnection_t *)arg;
 	controllistener_t *listener = conn->listener;
+	isc_sockaddr_t peeraddr = isc_nmhandle_peeraddr(handle);
 
 	REQUIRE(conn->sending);
 
 	conn->sending = false;
 
+	isc_nmhandle_unref(handle);
+
 	if (result == ISC_R_CANCELED) {
 		return;
 	} else if (result != ISC_R_SUCCESS) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_t peeraddr = isc_nmhandle_peeraddr(handle);
 
 		isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -247,178 +258,50 @@ log_invalid(isccc_ccmsg_t *ccmsg, isc_result_t result) {
 }
 
 static void
-control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
+control_respond(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	controlconnection_t *conn = (controlconnection_t *)arg;
-	controllistener_t *listener = NULL;
-	controlkey_t *key = NULL;
-	isccc_sexpr_t *request = NULL;
-	isccc_sexpr_t *response = NULL;
-	uint32_t algorithm;
-	isccc_region_t secret;
-	isc_stdtime_t now;
+	controllistener_t *listener = conn->listener;
+	isccc_sexpr_t *data = NULL;
 	isc_buffer_t b;
 	isc_region_t r;
-	isc_buffer_t *text = NULL;
-	isc_result_t eresult;
-	isccc_sexpr_t *_ctrl = NULL;
-	isccc_time_t sent;
-	isccc_time_t exp;
-	uint32_t nonce;
-	isccc_sexpr_t *data = NULL;
 
-	listener = conn->listener;
-	algorithm = DST_ALG_UNKNOWN;
-	secret.rstart = NULL;
-	text = NULL;
-
-	/* Is the server shutting down? */
-	if (listener->controls->shuttingdown) {
-		goto cleanup;
-	}
-
+	result = isccc_cc_createresponse(conn->request, conn->now,
+					 conn->now + 60, &conn->response);
 	if (result != ISC_R_SUCCESS) {
-		if (result != ISC_R_CANCELED && result != ISC_R_EOF) {
-			log_invalid(&conn->ccmsg, result);
-		}
-
 		goto cleanup;
 	}
 
-	for (key = ISC_LIST_HEAD(listener->keys); key != NULL;
-	     key = ISC_LIST_NEXT(key, link))
-	{
-		isccc_region_t ccregion;
-
-		ccregion.rstart = isc_buffer_base(conn->ccmsg.buffer);
-		ccregion.rend = isc_buffer_used(conn->ccmsg.buffer);
-		secret.rstart = isc_mem_get(listener->mctx, key->secret.length);
-		memmove(secret.rstart, key->secret.base, key->secret.length);
-		secret.rend = secret.rstart + key->secret.length;
-		algorithm = key->algorithm;
-		result = isccc_cc_fromwire(&ccregion, &request, algorithm,
-					   &secret);
-		if (result == ISC_R_SUCCESS) {
-			break;
-		}
-		isc_mem_put(listener->mctx, secret.rstart, REGION_SIZE(secret));
-		if (result != ISCCC_R_BADAUTH) {
-			log_invalid(&conn->ccmsg, result);
+	data = isccc_alist_lookup(conn->response, "_data");
+	if (data != NULL) {
+		if (isccc_cc_defineuint32(data, "result", conn->result) == NULL)
+		{
 			goto cleanup;
 		}
 	}
 
-	if (key == NULL) {
-		log_invalid(&conn->ccmsg, ISCCC_R_BADAUTH);
-		goto cleanup;
-	}
-
-	/* We shouldn't be getting a reply. */
-	if (isccc_cc_isreply(request)) {
-		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
-		goto cleanup_request;
-	}
-
-	isc_stdtime_get(&now);
-
-	/*
-	 * Limit exposure to replay attacks.
-	 */
-	_ctrl = isccc_alist_lookup(request, "_ctrl");
-	if (!isccc_alist_alistp(_ctrl)) {
-		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
-		goto cleanup_request;
-	}
-
-	if (isccc_cc_lookupuint32(_ctrl, "_tim", &sent) == ISC_R_SUCCESS) {
-		if ((sent + CLOCKSKEW) < now || (sent - CLOCKSKEW) > now) {
-			log_invalid(&conn->ccmsg, ISCCC_R_CLOCKSKEW);
-			goto cleanup_request;
-		}
-	} else {
-		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
-		goto cleanup_request;
-	}
-
-	/*
-	 * Expire messages that are too old.
-	 */
-	if (isccc_cc_lookupuint32(_ctrl, "_exp", &exp) == ISC_R_SUCCESS &&
-	    now > exp) {
-		log_invalid(&conn->ccmsg, ISCCC_R_EXPIRED);
-		goto cleanup_request;
-	}
-
-	/*
-	 * Duplicate suppression (required for UDP).
-	 */
-	isccc_cc_cleansymtab(listener->controls->symtab, now);
-	result = isccc_cc_checkdup(listener->controls->symtab, request, now);
-	if (result != ISC_R_SUCCESS) {
-		if (result == ISC_R_EXISTS) {
-			result = ISCCC_R_DUPLICATE;
-		}
-		log_invalid(&conn->ccmsg, result);
-		goto cleanup_request;
-	}
-
-	if (conn->nonce != 0 &&
-	    (isccc_cc_lookupuint32(_ctrl, "_nonce", &nonce) != ISC_R_SUCCESS ||
-	     conn->nonce != nonce))
-	{
-		log_invalid(&conn->ccmsg, ISCCC_R_BADAUTH);
-		goto cleanup_request;
-	}
-
-	isc_buffer_allocate(listener->mctx, &text, 2 * 2048);
-
-	/*
-	 * Establish nonce.
-	 */
-	if (conn->nonce == 0) {
-		while (conn->nonce == 0) {
-			isc_nonce_buf(&conn->nonce, sizeof(conn->nonce));
-		}
-		eresult = ISC_R_SUCCESS;
-	} else {
-		eresult = named_control_docommand(request, listener->readonly,
-						  &text);
-	}
-
-	result = isccc_cc_createresponse(request, now, now + 60, &response);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_request;
-	}
-
-	data = isccc_alist_lookup(response, "_data");
-	if (data != NULL) {
-		if (isccc_cc_defineuint32(data, "result", eresult) == NULL) {
-			goto cleanup_response;
-		}
-	}
-
-	if (eresult != ISC_R_SUCCESS) {
+	if (conn->result != ISC_R_SUCCESS) {
 		if (data != NULL) {
-			const char *estr = isc_result_totext(eresult);
+			const char *estr = isc_result_totext(conn->result);
 			if (isccc_cc_definestring(data, "err", estr) == NULL) {
-				goto cleanup_response;
+				goto cleanup;
 			}
 		}
 	}
 
-	if (isc_buffer_usedlength(text) > 0) {
+	if (isc_buffer_usedlength(conn->text) > 0) {
 		if (data != NULL) {
-			char *str = (char *)isc_buffer_base(text);
+			char *str = (char *)isc_buffer_base(conn->text);
 			if (isccc_cc_definestring(data, "text", str) == NULL) {
-				goto cleanup_response;
+				goto cleanup;
 			}
 		}
 	}
 
-	_ctrl = isccc_alist_lookup(response, "_ctrl");
-	if (_ctrl == NULL ||
-	    isccc_cc_defineuint32(_ctrl, "_nonce", conn->nonce) == NULL)
+	conn->ctrl = isccc_alist_lookup(conn->response, "_ctrl");
+	if (conn->ctrl == NULL ||
+	    isccc_cc_defineuint32(conn->ctrl, "_nonce", conn->nonce) == NULL)
 	{
-		goto cleanup_response;
+		goto cleanup;
 	}
 
 	if (conn->buffer == NULL) {
@@ -429,9 +312,10 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	/* Skip the length field (4 bytes) */
 	isc_buffer_add(conn->buffer, 4);
 
-	result = isccc_cc_towire(response, &conn->buffer, algorithm, &secret);
+	result = isccc_cc_towire(conn->response, &conn->buffer, conn->alg,
+				 &conn->secret);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_response;
+		goto cleanup;
 	}
 
 	isc_buffer_init(&b, conn->buffer->base, 4);
@@ -440,30 +324,203 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	r.base = conn->buffer->base;
 	r.length = conn->buffer->used;
 
+	isc_nmhandle_ref(handle);
+	conn->sending = true;
 	result = isc_nm_send(handle, &r, control_senddone, conn);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_response;
-	}
-	conn->sending = true;
-
-	isc_mem_put(listener->mctx, secret.rstart, REGION_SIZE(secret));
-	isccc_sexpr_free(&request);
-	isccc_sexpr_free(&response);
-	isc_buffer_free(&text);
-	return;
-
-cleanup_response:
-	isccc_sexpr_free(&response);
-
-cleanup_request:
-	isccc_sexpr_free(&request);
-	isc_mem_put(listener->mctx, secret.rstart, REGION_SIZE(secret));
-	if (text != NULL) {
-		isc_buffer_free(&text);
+		isc_nmhandle_unref(handle);
+		conn->sending = false;
+		goto cleanup;
 	}
 
 cleanup:
+	if (conn->response != NULL) {
+		isccc_sexpr_free(&conn->response);
+	}
+	if (conn->request != NULL) {
+		isccc_sexpr_free(&conn->request);
+	}
+
+	if (conn->secret.rstart != NULL) {
+		isc_mem_put(listener->mctx, conn->secret.rstart,
+			    REGION_SIZE(conn->secret));
+	}
+	if (conn->text != NULL) {
+		isc_buffer_free(&conn->text);
+	}
+}
+
+static void
+control_command(isc_task_t *task, isc_event_t *event) {
+	controlconnection_t *conn = event->ev_arg;
+	controllistener_t *listener = conn->listener;
+
+	UNUSED(task);
+
+	conn->result = named_control_docommand(conn->request,
+					       listener->readonly, &conn->text);
+	control_respond(conn->handle, conn->result, conn);
+	isc_nmhandle_unref(conn->handle);
+	isc_event_free(&event);
+}
+
+static void
+control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
+	controlconnection_t *conn = (controlconnection_t *)arg;
+	controllistener_t *listener = conn->listener;
+	controlkey_t *key = NULL;
+	isc_event_t *event = NULL;
+	isccc_time_t sent;
+	isccc_time_t exp;
+	uint32_t nonce;
+
 	conn->ccmsg_valid = false;
+
+	/* Is the server shutting down? */
+	if (listener->controls->shuttingdown) {
+		return;
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_CANCELED && result != ISC_R_EOF) {
+			log_invalid(&conn->ccmsg, result);
+		}
+
+		return;
+	}
+
+	for (key = ISC_LIST_HEAD(listener->keys); key != NULL;
+	     key = ISC_LIST_NEXT(key, link))
+	{
+		isccc_region_t ccregion;
+
+		ccregion.rstart = isc_buffer_base(conn->ccmsg.buffer);
+		ccregion.rend = isc_buffer_used(conn->ccmsg.buffer);
+		conn->secret.rstart = isc_mem_get(listener->mctx,
+						  key->secret.length);
+		memmove(conn->secret.rstart, key->secret.base,
+			key->secret.length);
+		conn->secret.rend = conn->secret.rstart + key->secret.length;
+		conn->alg = key->algorithm;
+		result = isccc_cc_fromwire(&ccregion, &conn->request, conn->alg,
+					   &conn->secret);
+		if (result == ISC_R_SUCCESS) {
+			break;
+		}
+		isc_mem_put(listener->mctx, conn->secret.rstart,
+			    REGION_SIZE(conn->secret));
+		if (result != ISCCC_R_BADAUTH) {
+			log_invalid(&conn->ccmsg, result);
+			return;
+		}
+	}
+
+	if (key == NULL) {
+		log_invalid(&conn->ccmsg, ISCCC_R_BADAUTH);
+		goto cleanup;
+	}
+
+	/* We shouldn't be getting a reply. */
+	if (isccc_cc_isreply(conn->request)) {
+		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
+		goto cleanup;
+	}
+
+	isc_stdtime_get(&conn->now);
+
+	/*
+	 * Limit exposure to replay attacks.
+	 */
+	conn->ctrl = isccc_alist_lookup(conn->request, "_ctrl");
+	if (!isccc_alist_alistp(conn->ctrl)) {
+		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
+		goto cleanup;
+	}
+
+	if (isccc_cc_lookupuint32(conn->ctrl, "_tim", &sent) == ISC_R_SUCCESS) {
+		if ((sent + CLOCKSKEW) < conn->now ||
+		    (sent - CLOCKSKEW) > conn->now) {
+			log_invalid(&conn->ccmsg, ISCCC_R_CLOCKSKEW);
+			goto cleanup;
+		}
+	} else {
+		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
+		goto cleanup;
+	}
+
+	/*
+	 * Expire messages that are too old.
+	 */
+	if (isccc_cc_lookupuint32(conn->ctrl, "_exp", &exp) == ISC_R_SUCCESS &&
+	    conn->now > exp)
+	{
+		log_invalid(&conn->ccmsg, ISCCC_R_EXPIRED);
+		goto cleanup;
+	}
+
+	/*
+	 * Duplicate suppression (required for UDP).
+	 */
+	isccc_cc_cleansymtab(listener->controls->symtab, conn->now);
+	result = isccc_cc_checkdup(listener->controls->symtab, conn->request,
+				   conn->now);
+	if (result != ISC_R_SUCCESS) {
+		if (result == ISC_R_EXISTS) {
+			result = ISCCC_R_DUPLICATE;
+		}
+		log_invalid(&conn->ccmsg, result);
+		goto cleanup;
+	}
+
+	if (conn->nonce != 0 &&
+	    (isccc_cc_lookupuint32(conn->ctrl, "_nonce", &nonce) !=
+		     ISC_R_SUCCESS ||
+	     conn->nonce != nonce))
+	{
+		log_invalid(&conn->ccmsg, ISCCC_R_BADAUTH);
+		goto cleanup;
+	}
+
+	isc_buffer_allocate(listener->mctx, &conn->text, 2 * 2048);
+
+	conn->ccmsg_valid = true;
+
+	if (conn->nonce == 0) {
+		/*
+		 * Establish nonce.
+		 */
+		while (conn->nonce == 0) {
+			isc_nonce_buf(&conn->nonce, sizeof(conn->nonce));
+		}
+		conn->result = ISC_R_SUCCESS;
+		control_respond(handle, result, conn);
+		return;
+	}
+
+	/*
+	 * Trigger the command.
+	 */
+	isc_nmhandle_ref(handle);
+	event = isc_event_allocate(listener->mctx, conn, NAMED_EVENT_COMMAND,
+				   control_command, conn, sizeof(isc_event_t));
+	isc_task_send(named_g_server->task, &event);
+	return;
+
+cleanup:
+	if (conn->response != NULL) {
+		isccc_sexpr_free(&conn->response);
+	}
+	if (conn->request != NULL) {
+		isccc_sexpr_free(&conn->request);
+	}
+
+	if (conn->secret.rstart != NULL) {
+		isc_mem_put(listener->mctx, conn->secret.rstart,
+			    REGION_SIZE(conn->secret));
+	}
+	if (conn->text != NULL) {
+		isc_buffer_free(&conn->text);
+	}
 }
 
 static void
@@ -524,7 +581,8 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 
 	*conn = (controlconnection_t){ .handle = handle,
 				       .listener = listener,
-				       .ccmsg_valid = true };
+				       .ccmsg_valid = true,
+				       .alg = DST_ALG_UNKNOWN };
 
 	isccc_ccmsg_init(listener->mctx, handle, &conn->ccmsg);
 

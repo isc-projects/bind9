@@ -9936,14 +9936,6 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 				     &server->in_roothints),
 		   "setting up root hints");
 
-	isc_mutex_init(&server->reload_event_lock);
-
-	server->reload_event = isc_event_allocate(
-		named_g_mctx, server, NAMED_EVENT_RELOAD, named_server_reload,
-		server, sizeof(isc_event_t));
-	CHECKFATAL(server->reload_event == NULL ? ISC_R_NOMEMORY
-						: ISC_R_SUCCESS,
-		   "allocating reload event");
 	server->reload_status = NAMED_RELOAD_IN_PROGRESS;
 
 	/*
@@ -10112,9 +10104,6 @@ named_server_destroy(named_server_t **serverp) {
 	}
 
 	dst_lib_destroy();
-
-	isc_event_free(&server->reload_event);
-	isc_mutex_destroy(&server->reload_event_lock);
 
 	INSIST(ISC_LIST_EMPTY(server->kasplist));
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
@@ -10293,7 +10282,7 @@ cleanup:
  */
 static void
 named_server_reload(isc_task_t *task, isc_event_t *event) {
-	named_server_t *server = (named_server_t *)event->ev_arg;
+	named_server_t *server = (named_server_t *)event->ev_sender;
 
 	INSIST(task == server->task);
 	UNUSED(task);
@@ -10303,19 +10292,15 @@ named_server_reload(isc_task_t *task, isc_event_t *event) {
 		      "received SIGHUP signal to reload zones");
 	(void)reload(server);
 
-	LOCK(&server->reload_event_lock);
-	INSIST(server->reload_event == NULL);
-	server->reload_event = event;
-	UNLOCK(&server->reload_event_lock);
+	isc_event_free(&event);
 }
 
 void
 named_server_reloadwanted(named_server_t *server) {
-	LOCK(&server->reload_event_lock);
-	if (server->reload_event != NULL) {
-		isc_task_send(server->task, &server->reload_event);
-	}
-	UNLOCK(&server->reload_event_lock);
+	isc_event_t *event = isc_event_allocate(
+		named_g_mctx, server, NAMED_EVENT_RELOAD, named_server_reload,
+		NULL, sizeof(isc_event_t));
+	isc_task_send(server->task, &event);
 }
 
 void
