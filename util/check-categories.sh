@@ -7,12 +7,20 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-list1=`grep LOGCATEGORY lib/*/include/*/*.h bin/named/include/named/*.h |
-grep "#define.*(&" |
-sed -e 's/.*LOGCATEGORY_\([A-Z_]*\).*/\1/' -e 's/^RRL$/rate-limit/' |
-tr '[A-Z]' '[a-z]' |
-tr _ - | sed 's/^tat$/trust-anchor-telemetry/' | sort -u`
-list2=`sed -n 's;.*<para><command>\(.*\)</command></para>;\1;p' doc/arm/logging-categories.xml | tr '[A-Z]' '[a-z]' | sort -u`
+list1=$(
+	grep LOGCATEGORY lib/*/include/*/*.h bin/named/include/named/*.h |
+	grep "#define.*(&" |
+	sed -e 's/.*LOGCATEGORY_\([A-Z_]*\).*/\1/' -e 's/^RRL$/rate-limit/' |
+	tr '[A-Z]' '[a-z]' |
+	tr _ - |
+	sed 's/^tat$/trust-anchor-telemetry/' |
+	sort -u
+)
+list2=$(
+	awk '$1 == "|" && $3 == "|" && $NF == "|" && $2 ~ /^``.*``$/ { print $2 }' doc/arm/logging-categories.rst |
+	sed 's/``//g' |
+	sort -u
+)
 status=0
 for i in $list1
 do
