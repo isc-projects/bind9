@@ -1,3 +1,7 @@
+5423.	[bug]		Fix a bug in keymgr_key_has_successor: it would
+			return a false positive if any other key in the
+			keyring has a successor. [GL #1845]
+
 5422.	[bug]		When using dnssec-policy, print correct keytiming
 			metadata. [GL #1843]
 

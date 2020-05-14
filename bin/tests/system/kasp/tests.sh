@@ -2533,6 +2533,7 @@ set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "no"
 # Key states.
+set_keystate "KEY2" "GOAL"         "hidden"
 set_keystate "KEY3" "GOAL"         "omnipresent"
 set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY3" "STATE_ZRRSIG" "hidden"
@@ -2570,7 +2571,6 @@ set_server "ns3" "10.53.0.3"
 # ZSK (KEY2) no longer is actively signing, RRSIG state in UNRETENTIVE.
 # New ZSK (KEY3) is now actively signing, RRSIG state in RUMOURED.
 set_zonesigning  "KEY2" "no"
-set_keystate     "KEY2" "GOAL" "hidden"
 set_keystate     "KEY2" "STATE_ZRRSIG" "unretentive"
 set_zonesigning  "KEY3" "yes"
 set_keystate     "KEY3" "STATE_DNSKEY" "omnipresent"
@@ -2749,6 +2749,7 @@ set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY3" "yes"
 set_zonesigning  "KEY3" "no"
 # Key states.
+set_keystate "KEY1" "GOAL"         "hidden"
 set_keystate "KEY3" "GOAL"         "omnipresent"
 set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY3" "STATE_KRRSIG" "rumoured"
@@ -2792,7 +2793,6 @@ set_zone "step3.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "3" "7200"
 set_server "ns3" "10.53.0.3"
 # KSK (KEY1) DS will be removed, so it is UNRETENTIVE.
-set_keystate "KEY1" "GOAL"         "hidden"
 set_keystate "KEY1" "STATE_DS"     "unretentive"
 # New KSK (KEY3) has its DS submitted.
 set_keystate "KEY3" "STATE_DNSKEY" "omnipresent"
@@ -2978,6 +2978,7 @@ set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
 # Key states.
+set_keystate "KEY1" "GOAL"         "hidden"
 set_keystate "KEY2" "GOAL"         "omnipresent"
 set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY2" "STATE_KRRSIG" "rumoured"
@@ -3019,7 +3020,6 @@ set_server "ns3" "10.53.0.3"
 set_zonesigning  "KEY1" "no"
 set_zonesigning  "KEY2" "yes"
 # CSK (KEY1) DS and ZRRSIG will be removed, so it is UNRETENTIVE.
-set_keystate "KEY1" "GOAL"         "hidden"
 set_keystate "KEY1" "STATE_ZRRSIG" "unretentive"
 set_keystate "KEY1" "STATE_DS"     "unretentive"
 # New CSK (KEY2) has its DS submitted, and is signing, so the DS and ZRRSIG
@@ -3277,6 +3277,7 @@ set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
 # Key states.
+set_keystate "KEY1" "GOAL"         "hidden"
 set_keystate "KEY2" "GOAL"         "omnipresent"
 set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY2" "STATE_KRRSIG" "rumoured"
@@ -3315,7 +3316,6 @@ set_policy "csk-roll2" "2" "3600"
 set_server "ns3" "10.53.0.3"
 # CSK (KEY1) DS and ZRRSIG will be removed, so it is UNRETENTIVE.
 set_zonesigning  "KEY1" "no"
-set_keystate     "KEY1" "GOAL"         "hidden"
 set_keystate     "KEY1" "STATE_ZRRSIG" "unretentive"
 set_keystate     "KEY1" "STATE_DS"     "unretentive"
 # New CSK (KEY2) has its DS submitted, and is signing, so the DS and ZRRSIG
