@@ -1339,11 +1339,6 @@
 ./doc/arm/logging-categories.rst		RST	2020
 ./doc/arm/managed-keys.rst			RST	2020
 ./doc/arm/manpages.rst				RST	2020
-./doc/arm/notes-9.16.0.xml			SGML	2020
-./doc/arm/notes-9.16.1.xml			SGML	2020
-./doc/arm/notes-9.16.2.xml			SGML	2020
-./doc/arm/notes-9.16.3.xml			SGML	2020
-./doc/arm/notes-9.16.4.xml			SGML	2020
 ./doc/arm/notes.rst				RST	2020
 ./doc/arm/pkcs11.rst				RST	2020
 ./doc/arm/plugins.rst				RST	2020
@@ -1442,6 +1437,11 @@
 ./doc/misc/sort-options.pl			PERL	2007,2012,2016,2018,2019,2020
 ./doc/misc/static-stub.zoneopt			X	2018,2019,2020
 ./doc/misc/stub.zoneopt				X	2018,2019,2020
+./doc/notes/notes-9.16.0.rst			RST	2020
+./doc/notes/notes-9.16.1.rst			RST	2020
+./doc/notes/notes-9.16.2.rst			RST	2020
+./doc/notes/notes-9.16.3.rst			RST	2020
+./doc/notes/notes-current.rst			RST	2020
 ./docutil/HTML_COPYRIGHT			X	2001,2004,2016,2018,2019,2020
 ./docutil/MAN_COPYRIGHT				X	2001,2004,2016,2018,2019,2020
 ./docutil/patch-db2latex-duplicate-template-bug	X	2007,2018,2019,2020
