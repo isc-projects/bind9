@@ -1,3 +1,8 @@
+5419.	[func]		"dig +qid=<num>" sets the query ID to an arbitrary
+			value. "configure --enable-singletrace" allows
+			trace logging of a single query when QID is set to 0.
+			[GL #1851]
+
 5418.	[bug]		delv failed to parse deprecated trusted-keys style
 			trust anchors. [GL #1860]
 

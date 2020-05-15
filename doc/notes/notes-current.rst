@@ -97,6 +97,9 @@ Feature Changes
    consistency. Log messages are emitted for streams with inconsistent
    message IDs. [GL #1674]
 
+-  ``dig +qid=<num>`` allows the user to specify a particular query ID
+   for testing purposes. [GL #1851]
+
 Bug Fixes
 ~~~~~~~~~
 
