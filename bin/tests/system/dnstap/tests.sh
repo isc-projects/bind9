@@ -44,11 +44,11 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 # both the 'a.example/A' lookup and the './NS' lookup to ns1
-# need tocomplete before reopening/rolling for the counts to
+# need to complete before reopening/rolling for the counts to
 # be correct.
 
 $DIG $DIGOPTS @10.53.0.3 a.example > dig.out
-wait_for_log 20 "(./NS): query_reset" ns1/named.run || true
+wait_for_log 20 "(.): reset client" ns1/named.run || true
 
 # check three different dnstap reopen/roll methods:
 # ns1: dnstap-reopen; ns2: dnstap -reopen; ns3: dnstap -roll
