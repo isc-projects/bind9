@@ -1374,7 +1374,8 @@ abi-check:
     - util/api-checker.sh . refbind
   artifacts:
     paths:
-      - "*.html"
+      - "*-lib*.html"
+      - "*-lib*.txt"
       - "abi-*.dump"
     expire_in: "1 week"
   only:
