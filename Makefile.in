@@ -96,22 +96,22 @@ test-force:
 
 README: README.md
 	${PANDOC} --email-obfuscation=none -s --metadata title="README" -f markdown-smart -t html README.md | \
-		${W3M} -dump -cols 75 -O ascii -T text/html | \
+		${W3M} -dump -cols 75 -O utf-8 -T text/html | \
 		sed -e '$${/^$$/d;}' > $@
 
 HISTORY: HISTORY.md
 	${PANDOC} --email-obfuscation=none -s --metadata title="HISTORY" -f markdown-smart -t html HISTORY.md | \
-		${W3M} -dump -cols 75 -O ascii -T text/html | \
+		${W3M} -dump -cols 75 -O utf-8 -T text/html | \
 		sed -e '$${/^$$/d;}' > $@
 
 OPTIONS: OPTIONS.md
 	${PANDOC} --email-obfuscation=none -s --metadata title="OPTIONS" -f markdown-smart -t html OPTIONS.md | \
-		${W3M} -dump -cols 75 -O ascii -T text/html | \
+		${W3M} -dump -cols 75 -O utf-8 -T text/html | \
 		sed -e '$${/^$$/d;}' > $@
 
 CONTRIBUTING: CONTRIBUTING.md
 	${PANDOC} --email-obfuscation=none -s --metadata title="CONTRIBUTING" -f markdown-smart -t html CONTRIBUTING.md | \
-		${W3M} -dump -cols 75 -O ascii -T text/html | \
+		${W3M} -dump -cols 75 -O utf-8 -T text/html | \
 		sed -e '$${/^$$/d;}' > $@
 
 unit::
