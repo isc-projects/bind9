@@ -230,22 +230,22 @@ set_keytime() {
 # $3: Value
 # $4: Additional time.
 set_addkeytime() {
-	# Convert "%Y%m%d%H%M%S" format to epoch seconds.
-	_date=$(echo "$3" | awk '
-		{print substr($1,1,8)}')
-	_time=$(echo "$3" | awk '
-		BEGIN {OFS=":"}
-		{print substr($1,9,2), substr($1,11,2), substr($1,13,2)}')
-
-	# Add additional time.
-	_plus=$4
-	echo_i "addkey_time: $1 $2 $3 $4: $_date $_time $_plus"
-
-
-	_epoch=$(date -u -d "$_date $_time" +"%s")
-	_epoch=$((_epoch+_plus))
-
-	key_set "$1" "$2" $(date -u -d @$_epoch +%Y%m%d%H%M%S)
+	if [ -x "$PYTHON" ]; then
+		# Convert "%Y%m%d%H%M%S" format to epoch seconds.
+		# Then, add the additional time (can be negative).
+		_value=$3
+		_plus=$4
+		$PYTHON > python.out.$ZONE.$1.$2 <<EOF
+from datetime import datetime
+from datetime import timedelta
+_now = datetime.strptime("$_value", "%Y%m%d%H%M%S")
+_delta = timedelta(seconds=$_plus)
+_then = _now + _delta
+print(_then.strftime("%Y%m%d%H%M%S"));
+EOF
+		# Set the expected timing metadata.
+		key_set "$1" "$2" $(cat python.out.$ZONE.$1.$2)
+	fi
 }
 
 # Set key state metadata. Set to "none" to unset.
@@ -523,17 +523,21 @@ check_timingmetadata() {
 }
 
 check_keytimes() {
-	if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		check_timingmetadata "KEY1"
-	fi
-	if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		check_timingmetadata "KEY2"
-	fi
-	if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-		check_timingmetadata "KEY3"
-	fi
-	if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
-		check_timingmetadata "KEY4"
+	# The script relies on Python to set keytimes.
+	if [ -x "$PYTHON" ]; then
+
+		if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
+			check_timingmetadata "KEY1"
+		fi
+		if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
+			check_timingmetadata "KEY2"
+		fi
+		if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
+			check_timingmetadata "KEY3"
+		fi
+		if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
+			check_timingmetadata "KEY4"
+		fi
 	fi
 }
 
@@ -2461,14 +2465,14 @@ rollover_predecessor_keytimes() {
 	_addtime=$1
 
 	_created=$(key_get KEY1 CREATED)
-	set_addkeytime      "KEY1" "PUBLISHED"   "${_created}" "${_addtime}"
-	set_addkeytime      "KEY1" "SYNCPUBLISH" "${_created}" "${_addtime}"
-	set_addkeytime      "KEY1" "ACTIVE"      "${_created}" "${_addtime}"
+	set_addkeytime  "KEY1" "PUBLISHED"   "${_created}" "${_addtime}"
+	set_addkeytime  "KEY1" "SYNCPUBLISH" "${_created}" "${_addtime}"
+	set_addkeytime  "KEY1" "ACTIVE"      "${_created}" "${_addtime}"
 	[ "$Lksk" == 0 ] || set_retired_removed "KEY1" "${Lksk}" "${IretKSK}"
 
 	_created=$(key_get KEY2 CREATED)
-	set_addkeytime      "KEY2" "PUBLISHED"   "${_created}" "${_addtime}"
-	set_addkeytime      "KEY2" "ACTIVE"      "${_created}" "${_addtime}"
+	set_addkeytime  "KEY2" "PUBLISHED"   "${_created}" "${_addtime}"
+	set_addkeytime  "KEY2" "ACTIVE"      "${_created}" "${_addtime}"
 	[ "$Lzsk" == 0 ] || set_retired_removed "KEY2" "${Lzsk}" "${IretZSK}"
 }
 
@@ -3232,10 +3236,6 @@ set_keylifetime  "KEY1" "16070400"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
-# Key timings.
-set_keytime  "KEY1" "PUBLISHED"    "yes"
-set_keytime  "KEY1" "ACTIVE"       "yes"
-set_keytime  "KEY1" "RETIRED"      "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
 set_keystate "KEY1" "GOAL"         "omnipresent"
 set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
@@ -3276,10 +3276,6 @@ set_keylifetime  "KEY2" "16070400"
 set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
-# Key timings.
-set_keytime  "KEY2" "PUBLISHED"    "yes"
-set_keytime  "KEY2" "ACTIVE"       "yes"
-set_keytime  "KEY2" "RETIRED"      "yes"
 # Key states.
 set_keystate "KEY2" "GOAL"         "omnipresent"
 set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
@@ -3956,11 +3952,9 @@ set_server "ns6" "10.53.0.6"
 init_migration_nomatch_alglen
 
 key_set      "KEY1" "LEGACY"  "no"
-set_keytime  "KEY1" "RETIRED" "yes"
 set_keystate "KEY1" "GOAL"    "hidden"
 
 key_set      "KEY2" "LEGACY"  "no"
-set_keytime  "KEY2" "RETIRED" "yes"
 set_keystate "KEY2" "GOAL"    "hidden"
 
 set_keyrole      "KEY3" "ksk"
