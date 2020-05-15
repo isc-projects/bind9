@@ -133,10 +133,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
   <<: *linux_amd64
 
-.ubuntu-bionic-amd64: &ubuntu_bionic_amd64_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-amd64"
-  <<: *linux_amd64
-
 .ubuntu-focal-amd64: &ubuntu_focal_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-focal-amd64"
   <<: *linux_amd64
@@ -864,30 +860,6 @@ unit:gcc:xenial:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:xenial:amd64
-      artifacts: true
-
-# Jobs for regular GCC builds on Ubuntu 18.04 Bionic Beaver (amd64)
-
-gcc:bionic:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *ubuntu_bionic_amd64_image
-  <<: *build_job
-
-system:gcc:bionic:amd64:
-  <<: *ubuntu_bionic_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:bionic:amd64
-      artifacts: true
-
-unit:gcc:bionic:amd64:
-  <<: *ubuntu_bionic_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:bionic:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Ubuntu 20.04 Focal Fossa (amd64)
