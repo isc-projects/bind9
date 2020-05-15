@@ -344,6 +344,7 @@ isc_log_registermodules
 isc_log_setcontext
 isc_log_setdebuglevel
 isc_log_setduplicateinterval
+isc_log_setforcelog
 isc_log_settag
 isc_log_usechannel
 isc_log_vwrite

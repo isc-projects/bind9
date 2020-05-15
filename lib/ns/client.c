@@ -17,6 +17,7 @@
 #include <isc/formatcheck.h>
 #include <isc/fuzz.h>
 #include <isc/hmac.h>
+#include <isc/log.h>
 #include <isc/mutex.h>
 #include <isc/nonce.h>
 #include <isc/once.h>
@@ -1596,6 +1597,10 @@ ns__client_reset_cb(void *client0) {
 
 	client->state = NS_CLIENTSTATE_READY;
 	INSIST(client->recursionquota == NULL);
+
+#ifdef WANT_SINGLETRACE
+	isc_log_setforcelog(false);
+#endif /* WANT_SINGLETRACE */
 }
 
 void
@@ -1786,6 +1791,12 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 		isc_task_unpause(client->task);
 		return;
 	}
+
+#ifdef WANT_SINGLETRACE
+	if (id == 0) {
+		isc_log_setforcelog(true);
+	}
+#endif /* WANT_SINGLETRACE */
 
 	/*
 	 * The client object handles requests, not responses.
