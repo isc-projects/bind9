@@ -1,3 +1,6 @@
+5413.	[test]		Address race in autosign system test that lead to
+			test failures. [GL #1852]
+
 5412.	[bug]		'provide-ixfr no;' fail to return up-to-date responses
 			when the serial was greater than or equal to the
 			current serial. [GL #1714]
