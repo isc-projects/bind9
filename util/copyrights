@@ -929,7 +929,6 @@
 ./bin/tests/system/win32/pipequeries.vcxproj.filters.in	X	2016,2018,2019,2020
 ./bin/tests/system/win32/pipequeries.vcxproj.in	X	2016,2017,2018,2019,2020
 ./bin/tests/system/win32/pipequeries.vcxproj.user	X	2016,2018,2019,2020
-./bin/tests/system/wire_test.c			C	2020
 ./bin/tests/system/xfer/ans5/badkeydata		X	2011,2018,2019,2020
 ./bin/tests/system/xfer/ans5/badmessageid	X	2020
 ./bin/tests/system/xfer/ans5/goodaxfr		X	2011,2018,2019,2020
@@ -981,6 +980,7 @@
 ./bin/tests/win32/timer_test.vcxproj.filters.in	X	2013,2015,2018,2019,2020
 ./bin/tests/win32/timer_test.vcxproj.in		X	2013,2015,2016,2017,2018,2019,2020
 ./bin/tests/win32/timer_test.vcxproj.user	X	2013,2018,2019,2020
+./bin/tests/wire_test.c				C	1999,2000,2001,2004,2005,2007,2015,2016,2018,2019,2020
 ./bin/tools/arpaname.c				C	2009,2015,2016,2018,2019,2020
 ./bin/tools/arpaname.rst			RST	2020
 ./bin/tools/dnstap-read.c			C	2015,2016,2017,2018,2019,2020
