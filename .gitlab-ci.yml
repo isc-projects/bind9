@@ -358,6 +358,7 @@ stages:
     - export GCC_VERSION=$(gcc --version | sed -n 's/.*\([0-9]\+\)\.[0-9]\+\.[0-9]\+.*/\1/p')
     - sed -i "/gcc\",/a\"-DCPPCHECK\", \"-D__STDC__\", \"-D__GNUC__=${GCC_VERSION}\"," compile_commands.json
     - *run_cppcheck
+  after_script:
     - *cppcheck_report_html
   artifacts:
     paths:
