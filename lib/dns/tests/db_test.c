@@ -211,7 +211,7 @@ dns_dbfind_staleok_test(void **state) {
 		count = 0;
 		do {
 			count++;
-			assert_in_range(count, 0, 20); /* loop sanity */
+			assert_in_range(count, 1, 21); /* loop sanity */
 			assert_int_equal(rdataset.attributes &
 						 DNS_RDATASETATTR_STALE,
 					 0);
