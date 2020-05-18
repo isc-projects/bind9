@@ -67,7 +67,7 @@ done
 
 $DIG $DIGOPTS @10.53.0.1 nil. TXT | grep 'initial AXFR' >/dev/null || {
     echo_i "failed"
-    status=1
+    status=`expr $status + 1`
 }
 
 n=`expr $n + 1`
@@ -100,7 +100,7 @@ sleep 2
 
 $DIG $DIGOPTS @10.53.0.1 nil. TXT | grep 'successful IXFR' >/dev/null || {
     echo_i "failed"
-    status=1
+    status=`expr $status + 1`
 }
 
 n=`expr $n + 1`
@@ -135,7 +135,7 @@ sleep 2
 
 $DIG $DIGOPTS @10.53.0.1 nil. TXT | grep 'fallback AXFR' >/dev/null || {
     echo_i "failed"
-    status=1
+    status=`expr $status + 1`
 }
 
 n=`expr $n + 1`
@@ -196,7 +196,7 @@ done
 if [ $INCR -ne 1 ]
 then
     echo_i "failed to get incremental response"
-    status=1
+    status=`expr $status + 1`
 fi
 
 n=`expr $n + 1`
@@ -243,7 +243,7 @@ then
     echo_ic "failed to get nonincremental response in 2nd AXFR test"
 
     echo_i "failed"
-    status=1
+    status=`expr $status + 1`
 else
     echo_ic "success: AXFR it was"
 fi
@@ -284,7 +284,7 @@ then
     echo_ic "failed to get incremental response in 2nd IXFR test"
 
     echo_i "failed"
-    status=1
+    status=`expr $status + 1`
 else
     echo_ic "success: IXFR it was"
 fi
@@ -298,9 +298,9 @@ $DIG -p ${PORT} ixfr=0 large @10.53.0.3 > dig.out.test$n
 kill $sub
 )
 lines=`grep hostmaster.large dig.out.test$n | wc -l`
-test ${lines:-0} -eq 2 || { echo_i "failed"; status=1; }
+test ${lines:-0} -eq 2 || { echo_i "failed"; status=`expr $status + 1`; }
 messages=`sed -n 's/^;;.*messages \([0-9]*\),.*/\1/p' dig.out.test$n`
-test ${messages:-0} -gt 1 || { echo_i "failed"; status=1; }
+test ${messages:-0} -gt 1 || { echo_i "failed"; status=`expr $status + 1`; }
 
 n=`expr $n + 1`
 echo_i "test 'dig +notcp ixfr=<value>' vs 'dig ixfr=<value> +notcp' vs 'dig ixfr=<value>' ($n)"
@@ -310,13 +310,13 @@ $DIG $DIGOPTS +notcp ixfr=1 test @10.53.0.4 > dig.out1.test$n || ret=1
 $DIG $DIGOPTS ixfr=1 +notcp test @10.53.0.4 > dig.out2.test$n || ret=1
 digcomp dig.out1.test$n dig.out2.test$n || ret=1
 awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1.test$n || ret=1
-awk '$4 == "SOA" { if ($7 == 4) exit(0); else exit(1);}' dig.out1.test$n || ret=1
+awk '$4 == "SOA" { if ($7 == 3) exit(0); else exit(1);}' dig.out1.test$n || ret=1
 # Should be incremental transfer.
 $DIG $DIGOPTS ixfr=1 test @10.53.0.4 > dig.out3.test$n || ret=1
 awk '$4 == "SOA" { soacnt++} END { if (soacnt == 6) exit(0); else exit(1);}' dig.out3.test$n || ret=1
 if [ ${ret} != 0 ]; then
 	echo_i "failed"
-	status=1
+	status=`expr $status + 1`
 fi
 
 # wait for slave to transfer zone
@@ -333,18 +333,43 @@ do
 done
 
 n=`expr $n + 1`
-echo_i "test 'provide-ixfr no;' ($n)"
+echo_i "test 'provide-ixfr no;' (serial < current) ($n)"
 ret=0
+nextpart ns5/named.run > /dev/null
 # Should be "AXFR style" response
 $DIG $DIGOPTS ixfr=1 test @10.53.0.5 > dig.out1.test$n || ret=1
 # Should be "switch to TCP" response
 $DIG $DIGOPTS ixfr=1 +notcp test @10.53.0.5 > dig.out2.test$n || ret=1
 awk '$4 == "SOA" { soacnt++} END {if (soacnt == 2) exit(0); else exit(1);}' dig.out1.test$n || ret=1
 awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out2.test$n || ret=1
-if [ ${ret} != 0 ]; then
-	echo_i "failed"
-	status=1
-fi
+msg="IXFR delta response disabled due to 'provide-ixfr no;' being set"
+nextpart ns5/named.run | grep "$msg" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "test 'provide-ixfr no;' (serial = current) ($n)"
+ret=0
+# Should be "AXFR style" response
+$DIG $DIGOPTS ixfr=3 test @10.53.0.5 > dig.out1.test$n || ret=1
+# Should be "switch to TCP" response
+$DIG $DIGOPTS ixfr=3 +notcp test @10.53.0.5 > dig.out2.test$n || ret=1
+awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1.test$n || ret=1
+awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out2.test$n || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "test 'provide-ixfr no;' (serial > current) ($n)"
+ret=0
+# Should be "AXFR style" response
+$DIG $DIGOPTS ixfr=4 test @10.53.0.5 > dig.out1.test$n || ret=1
+# Should be "switch to TCP" response
+$DIG $DIGOPTS ixfr=4 +notcp test @10.53.0.5 > dig.out2.test$n || ret=1
+awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1.test$n || ret=1
+awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out2.test$n || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
