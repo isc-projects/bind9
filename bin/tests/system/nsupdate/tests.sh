@@ -843,14 +843,11 @@ size=`$PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->siz
 [ "$size" -gt 6000 ] || ret=1
 sleep 1
 $RNDCCMD 10.53.0.1 sync maxjournal.test
-for i in 1 2 3 4 5 6
-do
-    sleep 1
+check_size_lt_5000() (
     size=`$PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->size);' ns1/maxjournal.db.jnl`
-    [ "$size" -lt 5000 ] && break
-done
-size=`$PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->size);' ns1/maxjournal.db.jnl`
-[ "$size" -lt 5000 ] || ret=1
+    [ "$size" -lt 5000 ]
+)
+retry_quiet 20 check_size_lt_5000 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=`expr $n + 1`
