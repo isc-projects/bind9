@@ -22,7 +22,7 @@ PDFOBJS = Bv9ARM.pdf notes.pdf
 NOTESXML = notes-download.xml notes-eol.xml notes-intro.xml notes-license.xml \
 	   notes-numbering.xml notes-platforms.xml notes-thankyou.xml \
 	   notes-9.16.0.xml notes-9.16.1.xml notes-9.16.2.xml notes-9.16.3.xml \
-	   notes.xml
+	   notes-9.16.4.xml notes.xml
 
 doc man:: ${MANOBJS} ${TXTOBJS} ${PDFOBJS}
 
