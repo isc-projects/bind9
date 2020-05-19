@@ -19,6 +19,8 @@
 			in server-addresses statements due to an uninitialized
 			DSCP value. [GL #1812]
 
+	--- 9.11.19 released ---
+
 5404.	[bug]		'named-checkconf -z' could incorrectly indicate
 			success if errors were found in one view but not in a
 			subsequent one. [GL #1807]
@@ -27,11 +29,22 @@
 			quote (") in its name was added with 'rndc addzone'.
 			[GL #1695]
 
+5395.	[security]	Further limit the number of queries that can be
+			triggered from a request.  Root and TLD servers
+			are no longer exempt from max-recursion-queries.
+			Fetches for missing name server address records
+			are limited to 4 for any domain. (CVE-2020-8616)
+			[GL #1388]
+
 5394.	[cleanup]	Named formerly attempted to change the effective UID and
 			GID in named_os_openfile(), which could trigger a
 			spurious log message if they were already set to the
 			desired values. This has been fixed. [GL #1042]
 			[GL #1090]
+
+5390.	[security]	Replaying a TSIG BADTIME response as a request could
+			trigger an assertion failure. (CVE-2020-8617)
+			[GL #1703]
 
 5387.	[func]		Warn about AXFR streams with inconsistent message IDs.
 			[GL #1674]

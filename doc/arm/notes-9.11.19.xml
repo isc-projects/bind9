@@ -15,7 +15,20 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          To prevent exhaustion of server resources by a maliciously configured
+          domain, the number of recursive queries that can be triggered by a
+          request before aborting recursion has been further limited. Root and
+          top-level domain servers are no longer exempt from the
+          <command>max-recursion-queries</command> limit. Fetches for missing
+          name server address records are limited to 4 for any domain. This
+          issue was disclosed in CVE-2020-8616. [GL #1388]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Replaying a TSIG BADTIME response as a request could
+          trigger an assertion failure. This was disclosed in
+          CVE-2020-8617. [GL #1703]
         </para>
       </listitem>
     </itemizedlist>
@@ -46,10 +59,11 @@
       </listitem>
       <listitem>
         <para>
-          When <command>named-checkconf</command> was run, it would sometimes
-          incorrectly set its exit code. It reflected only the status of the
-          last view found; any errors found for other configured views were not
-          reported. Thanks to Graham Clinch. [GL #1807]
+          When <command>named-checkconf -z</command> was run, it would sometimes
+          incorrectly set its exit code. It reflected the status of the last
+          view found; if zone-loading errors were found in earlier configured
+          views but not in the last one, the exit code indicated success.
+          Thanks to Graham Clinch. [GL #1807]
         </para>
       </listitem>
       <listitem>

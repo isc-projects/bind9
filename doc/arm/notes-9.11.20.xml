@@ -37,7 +37,7 @@
         <para>
           <command>dig</command> and other tools can now print the Extended
           DNS Error (EDE) option when it appears in a request or response.
-          [GL #1834]
+          [GL #1835]
         </para>
       </listitem>
     </itemizedlist>

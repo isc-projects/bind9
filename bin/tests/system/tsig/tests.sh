@@ -218,5 +218,14 @@ if [ $ret -eq 1 ] ; then
 	echo "I: failed"; status=1
 fi
 
+echo_i "check that a 'BADTIME' response with 'QR=0' is handled as a request"
+ret=0
+$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp < badtime > /dev/null
+$DIG -p ${PORT} @10.53.0.1 version.bind txt ch > dig.out.verify || ret=1
+grep "status: NOERROR" dig.out.verify > /dev/null || ret=1
+if [ $ret -eq 1 ] ; then
+    echo_i "failed"; status=1
+fi
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
