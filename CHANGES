@@ -1,8 +1,11 @@
+5415.	[test]		Address race in dnssec system test that led to
+			test failures. [GL #1852]
+
 5414.	[test]		Adjust time allowed for journal truncation to occur
 			in nsupdate system test to avoid test failure.
 			[GL #1855]
 
-5413.	[test]		Address race in autosign system test that lead to
+5413.	[test]		Address race in autosign system test that led to
 			test failures. [GL #1852]
 
 5412.	[bug]		'provide-ixfr no;' fail to return up-to-date responses
