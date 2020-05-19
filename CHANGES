@@ -71,7 +71,12 @@
 			UV_UDP_RECVMMSG flag to enable recvmmsg() support in
 			libuv. [GL #1797]
 
-5395.	[placeholder]
+5395.	[security]	Further limit the number of queries that can be
+			triggered from a request.  Root and TLD servers
+			are no longer exempt from max-recursion-queries.
+			Fetches for missing name server address records
+			are limited to 4 for any domain. (CVE-2020-8616)
+			[GL #1388]
 
 5394.	[cleanup]	Named formerly attempted to change the effective UID and
 			GID in named_os_openfile(), which could trigger a
@@ -91,7 +96,9 @@
 			from the Git repository, run "autoreconf -fi" first.
 			[GL #4]
 
-5390.	[placeholder]
+5390.	[security]	Replaying a TSIG BADTIME response as a request could
+			trigger an assertion failure. (CVE-2020-8617)
+			[GL #1703]
 
 5389.	[bug]		Finish PKCS#11 code cleanup, fix a couple of smaller
 			bugs and use PKCS#11 v3.0 EdDSA macros and constants.
