@@ -562,6 +562,8 @@ rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 		 dns_message_t *msg);
 static void
 free_gluetable(rbtdb_version_t *version);
+static isc_result_t
+nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
 
 static dns_rdatasetmethods_t rdataset_methods = { rdataset_disassociate,
 						  rdataset_first,
@@ -6666,9 +6668,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	name = dns_fixedname_initname(&fixed);
-	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-	dns_rbt_fullnamefromnode(rbtnode, name);
-	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	nodefullname(db, node, name);
 	dns_rdataset_getownercase(rdataset, name);
 
 	newheader = (rdatasetheader_t *)region.base;
@@ -6866,8 +6866,6 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(rbtversion != NULL && rbtversion->rbtdb == rbtdb);
 
-	dns_rbt_fullnamefromnode(rbtnode, nodename);
-
 	if (rbtdb->common.methods == &zone_methods) {
 		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 		REQUIRE(((rbtnode->nsec == DNS_RBT_NSEC_NSEC3 &&
@@ -6878,6 +6876,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			  rdataset->covers != dns_rdatatype_nsec3)));
 		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 	}
+
+	nodefullname(db, node, nodename);
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
 					    &region, sizeof(rdatasetheader_t));
@@ -7114,13 +7114,12 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->last_used = 0;
 	newheader->node = rbtnode;
 
+	nodefullname(db, node, nodename);
+
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_write);
-
-	dns_rbt_fullnamefromnode(rbtnode, nodename);
 	result = add32(rbtdb, rbtnode, nodename, rbtversion, newheader,
 		       DNS_DBADD_FORCE, false, NULL, 0);
-
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		    isc_rwlocktype_write);
 
@@ -7230,12 +7229,6 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	REQUIRE(rdataset->rdclass == rbtdb->common.rdclass);
 
 	/*
-	 * This routine does no node locking.  See comments in
-	 * 'load' below for more information on loading and
-	 * locking.
-	 */
-
-	/*
 	 * SOA records are only allowed at top of zone.
 	 */
 	if (rdataset->type == dns_rdatatype_soa && !IS_CACHE(rbtdb) &&
@@ -7286,9 +7279,6 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 		return (result);
 	}
 	if (result == ISC_R_SUCCESS) {
-		dns_name_t foundname;
-		dns_name_init(&foundname, NULL);
-		dns_rbt_namefromnode(node, &foundname);
 		node->locknum = node->hashval % rbtdb->node_lock_count;
 	}
 
@@ -7325,10 +7315,8 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	}
 
 	NODE_LOCK(&rbtdb->node_locks[node->locknum].lock, isc_rwlocktype_write);
-
 	result = add32(rbtdb, node, name, rbtdb->current_version, newheader,
 		       DNS_DBADD_MERGE, true, NULL, 0);
-
 	NODE_UNLOCK(&rbtdb->node_locks[node->locknum].lock,
 		    isc_rwlocktype_write);
 
