@@ -2670,13 +2670,16 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "clear signing records ($n)"
-$RNDCCMD 10.53.0.3 signing -clear all update-nsec3.example > /dev/null || ret=1
-sleep 1
-$RNDCCMD 10.53.0.3 signing -list update-nsec3.example 2>&1 > signing.out
-grep "No signing records found" signing.out > /dev/null 2>&1 || {
-        ret=1
-        sed 's/^/ns3 /' signing.out | cat_i
+$RNDCCMD 10.53.0.3 signing -clear all update-nsec3.example > /dev/null 2>&1 || ret=1
+check_no_signing_record_found() {
+  $RNDCCMD 10.53.0.3 signing -list update-nsec3.example > signing.out 2>&1
+  grep -q "No signing records found" signing.out || {
+    sed 's/^/ns3 /' signing.out | cat_i
+    return 1
+  }
+  return 0
 }
+retry_quiet 5 check_no_signing_record_found || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
