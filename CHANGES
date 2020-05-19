@@ -1,3 +1,16 @@
+	--- 9.14.12 released ---
+
+5395.	[security]	Further limit the number of queries that can be
+			triggered from a request.  Root and TLD servers
+			are no longer exempt from max-recursion-queries.
+			Fetches for missing name server address records
+			are limited to 4 for any domain. (CVE-2020-8616)
+			[GL #1388]
+
+5390.	[security]	Replaying a TSIG BADTIME response as a request could
+			trigger an assertion failure. (CVE-2020-8617)
+			[GL #1703]
+
 5376.	[bug]		Fix ineffective DNS rebinding protection when BIND is
 			configured as a forwarding DNS server. Thanks to Tobias
 			Klein. [GL #1574]
