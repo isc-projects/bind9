@@ -205,6 +205,10 @@ struct dns_adbfind {
  *      lame for this query.
  */
 #define DNS_ADBFIND_OVERQUOTA 0x00000400
+/*%
+ *	Don't perform a fetch even if there are no address records available.
+ */
+#define DNS_ADBFIND_NOFETCH 0x00000800
 
 /*%
  * The answers to queries come back as a list of these.

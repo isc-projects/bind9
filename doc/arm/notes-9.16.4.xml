@@ -9,9 +9,9 @@
  - information regarding copyright ownership.
 -->
 
-<section xml:id="relnotes-9.16.3"><info><title>Notes for BIND 9.16.3</title></info>
+<section xml:id="relnotes-9.16.4"><info><title>Notes for BIND 9.16.4</title></info>
 
-  <section xml:id="relnotes-9.16.3-security"><info><title>Security Fixes</title></info>
+  <section xml:id="relnotes-9.16.4-security"><info><title>Security Fixes</title></info>
     <itemizedlist>
       <listitem>
         <para>
@@ -21,7 +21,7 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes-9.16.3-known"><info><title>Known Issues</title></info>
+  <section xml:id="relnotes-9.16.4-known"><info><title>Known Issues</title></info>
     <itemizedlist>
       <listitem>
         <para>
@@ -31,19 +31,19 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes-9.16.3-changes"><info><title>Feature Changes</title></info>
+  <section xml:id="relnotes-9.16.4-changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
         <para>
           <command>dig</command> and other tools can now print the Extended
           DNS Error (EDE) option when it appears in a request or response.
-          [GL #1834]
+          [GL #1835]
         </para>
       </listitem>
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes-9.16.3-bugs"><info><title>Bug Fixes</title></info>
+  <section xml:id="relnotes-9.16.4-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
         <para>
