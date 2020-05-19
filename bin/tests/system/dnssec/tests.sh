@@ -2650,12 +2650,15 @@ status=$((status+ret))
 
 echo_i "clear signing records ($n)"
 { rndccmd 10.53.0.3 signing -clear all update-nsec3.example > /dev/null; } 2>&1 || ret=1
-sleep 1
-{ rndccmd 10.53.0.3 signing -list update-nsec3.example > signing.out; } 2>&1
-grep -q "No signing records found" signing.out || {
-        ret=1
-        sed 's/^/ns3 /' signing.out | cat_i
+check_no_signing_record_found() {
+  { rndccmd 10.53.0.3 signing -list update-nsec3.example > signing.out; } 2>&1
+  grep -q "No signing records found" signing.out || {
+    sed 's/^/ns3 /' signing.out | cat_i
+    return 1
+  }
+  return 0
 }
+retry_quiet 5 check_no_signing_record_found || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
