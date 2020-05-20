@@ -183,6 +183,7 @@ libdns_la_SOURCES =			\
 	ecs.c				\
 	fixedname.c			\
 	forward.c			\
+	gssapictx.c			\
 	hmac_link.c			\
 	ipkeylist.c			\
 	iptable.c			\
@@ -253,11 +254,7 @@ libdns_la_SOURCES =			\
 
 if HAVE_GSSAPI
 libdns_la_SOURCES +=			\
-	gssapi_link.c			\
-	gssapictx.c
-else !HAVE_GSSAPI
-libdns_la_SOURCES +=			\
-	gssapictx-dummy.c
+	gssapi_link.c
 endif
 
 if HAVE_PKCS11

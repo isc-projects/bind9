@@ -354,6 +354,15 @@ typedef __int64 off_t;
 /* Define to 1 if you have the `uv_import' function. */
 @HAVE_UV_IMPORT@
 
+/* GSSAPI Related defines */
+@HAVE_GSSAPI@
+@HAVE_GSSAPI_H@
+@HAVE_GSSAPI_GSSAPI_H@
+@HAVE_GSSAPI_KRB5_H@
+@HAVE_GSSAPI_GSSAPI_KRB5_H@
+@HAVE_KRB5_H@
+@HAVE_KRB5_KRB5_H@
+
 /*
  * Define to nothing if C supports flexible array members, and to 1 if it does
  * not. That way, with a declaration like `struct s { int n; double
