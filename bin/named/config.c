@@ -352,6 +352,10 @@ named_checknames_get(const cfg_obj_t **maps, const char *which,
 	const cfg_obj_t *value;
 	int i;
 
+	REQUIRE(maps != NULL);
+	REQUIRE(which != NULL);
+	REQUIRE(obj != NULL && *obj == NULL);
+
 	for (i = 0;; i++) {
 		if (maps[i] == NULL) {
 			return (ISC_R_NOTFOUND);
