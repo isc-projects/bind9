@@ -1160,6 +1160,39 @@ system:clang:openbsd6.6:amd64:
     - schedules
     - web
 
+# Jobs for Visual Studio 2017 builds on Windows (amd64)
+
+msvc:windows:amd64:
+  <<: *windows_build_job
+  <<: *default_triggering_rules
+  variables:
+    VSCONF: Release
+
+system:msvc:windows:amd64:
+  <<: *windows_system_test_job
+  variables:
+    VSCONF: Release
+  needs:
+    - job: msvc:windows:amd64
+      artifacts: true
+
+msvc-debug:windows:amd64:
+  <<: *windows_build_job
+  variables:
+    VSCONF: Debug
+  only:
+    - schedules
+    - tags
+    - web
+
+system:msvc-debug:windows:amd64:
+  <<: *windows_system_test_job
+  variables:
+    VSCONF: Debug
+  needs:
+    - job: msvc-debug:windows:amd64
+      artifacts: true
+
 # Job producing a release tarball
 
 release:
