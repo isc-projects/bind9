@@ -1,3 +1,6 @@
+5418.	[bug]		delv failed to parse deprecated trusted-keys style
+			trust anchors. [GL #1860]
+
 5415.	[test]		Address race in dnssec system test that led to
 			test failures. [GL #1852]
 
