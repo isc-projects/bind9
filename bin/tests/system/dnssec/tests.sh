@@ -205,6 +205,15 @@ if [ -x ${DELV} ] ; then
    n=$((n+1))
    test "$ret" -eq 0 || echo_i "failed"
    status=$((status+ret))
+
+   ret=0
+   echo_i "checking positive validation NSEC using dns_client (trusted-keys) ($n)"
+   "$DELV" -a ns1/trusted.keys -p "$PORT" @10.53.0.4 a a.example > delv.out$n || ret=1
+   grep "a.example..*10.0.0.1" delv.out$n > /dev/null || ret=1
+   grep "a.example..*.RRSIG.A [0-9][0-9]* 2 300 .*" delv.out$n > /dev/null || ret=1
+   n=$((n+1))
+   test "$ret" -eq 0 || echo_i "failed"
+   status=$((status+ret))
 fi
 
 echo_i "checking positive validation NSEC3 ($n)"
