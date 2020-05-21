@@ -79,9 +79,9 @@ def zone_mtime(zonedir, name):
 
 
 def zone_keyid(nameserver, zone, key):
-    with open(f'{nameserver}/{zone}.{key}.id') as f:
+    with open('{}/{}.{}.id'.format(nameserver, zone, key)) as f:
         keyid = f.read().strip()
-        print(f'{zone}-{key} ID: {keyid}')
+        print('{}-{} ID: {}'.format(zone, key, keyid))
     return keyid
 
 
