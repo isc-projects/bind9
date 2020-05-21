@@ -430,8 +430,6 @@ flake8:
   needs:
     - job: autoreconf
       artifacts: true
-  before_script:
-    - pip3 install flake8
   script:
     - *configure
     - flake8 --max-line-length=80 $(git ls-files '*.py' | grep -v 'ans\.py')
@@ -446,10 +444,9 @@ pylint:
     - job: autoreconf
       artifacts: true
   before_script:
-    - pip3 install pylint
-    - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
   script:
     - *configure
+    - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -v 'ans\.py' | grep -v 'contrib/queryperf/')
   only:
     - merge_requests
