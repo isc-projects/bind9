@@ -563,7 +563,6 @@ sub ac_init {
     my $package_version_extra;
     my $package_description;
     my $package_srcid;
-    my $package_builder = "msvc";
     my $mapapi;
 
     open V, "..\\configure.ac" || die $!;
@@ -630,8 +629,6 @@ sub ac_init {
     $configdefh{'PACKAGE_VERSION'} = "\"$package_version\"";
     $configdefh{'PACKAGE_STRING'} = "\"$package_name $package_version\"";
     $configdefh{'MAPAPI'} = $mapapi;
-
-    $configdefh{'PACKAGE_BUILDER'} = $package_builder;
 }
 
 ac_init();
@@ -1088,7 +1085,7 @@ print F << 'EOF';
 int
 main(void)
 {
-        printf("%d\n", _MSC_VER);
+        printf("%d", _MSC_VER);
         return(0);
 }
 EOF
@@ -1102,10 +1099,12 @@ if (grep { -f and -x } ".\\mscver.exe") {
 if ($verbose) {
     print "_MSC_VER == $msc_ver\n";
 }
-if ($msc_ver < 1600) {
+if ($msc_ver < 1910) {
     print STDERR "too old version of C++ compiler/Visual Studio\n";
     exit 1;
 }
+
+$configdefh{'PACKAGE_BUILDER'} = "\"MSVC $msc_ver\"";
 
 # gen single threaded for < VS 2005
 
