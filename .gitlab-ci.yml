@@ -199,7 +199,6 @@ stages:
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
-    - pip3 install pytest requests || pip install pytest requests || true
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
@@ -257,7 +256,6 @@ stages:
   before_script:
     - *setup_interfaces
     - *setup_softhsm
-    - pip3 install pytest requests || pip install pytest requests || true
   script:
     - cd bin/tests/system
     - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1 || make -j${TEST_PARALLEL_JOBS:-1} -k recheck V=1
@@ -429,8 +427,6 @@ flake8:
   needs:
     - job: autoreconf
       artifacts: true
-  before_script:
-    - pip3 install flake8
   script:
     - *configure
     - flake8 --max-line-length=80 $(git ls-files '*.py' | grep -v 'ans\.py')
@@ -444,12 +440,9 @@ pylint:
   needs:
     - job: autoreconf
       artifacts: true
-  before_script:
-    - pip3 install pylint
-    - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
-    - pip3 install pytest requests || pip install pytest requests
   script:
     - *configure
+    - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -v 'ans\.py')
   only:
     - merge_requests
@@ -478,8 +471,6 @@ docs:
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
-    - pip3 install pytest requests || pip install pytest requests || true
-    - pip3 install sphinx sphinx_rtd_theme || pip install sphinx sphinx_rtd_theme
     - apt -yqqq update
     - apt -yqqq dist-upgrade
     - apt -yqqq install texlive-full texlive-xetex latexmk xindy
