@@ -1,3 +1,5 @@
+5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
+
 5433.	[test]		Resolver system test for change #5395
 			(max-recursion-queries) failed on system without
 			IPv6 suport. [GL #1873]
