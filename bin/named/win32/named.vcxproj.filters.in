@@ -62,6 +62,9 @@
     <ClCompile Include="..\tsigconf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\xsl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\zoneconf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -112,6 +115,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xsl_p.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\zoneconf.h">
