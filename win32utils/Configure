@@ -14,7 +14,9 @@
 # This script builds nmake and visual studio build files
 #
 
-require 5.000;
+require 5.18.0;
+no warnings 'experimental::smartmatch';
+
 use strict;
 use File::Spec;
 use Cwd;
@@ -173,7 +175,18 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
 
 my %configdefh;
 
-my @substdefh = ("PACKAGE_CONFIGARGS",
+my @substdefh = ("PACKAGE_VERSION_MAJOR",
+                 "PACKAGE_VERSION_MINOR",
+                 "PACKAGE_VERSION_PATCH",
+                 "PACKAGE_VERSION_EXTRA",
+                 "PACKAGE_VERSION",
+                 "PACKAGE_NAME",
+                 "PACKAGE_DESCRIPTION",
+                 "PACKAGE_SRCID",
+                 "PACKAGE_CONFIGARGS",
+                 "PACKAGE_BUILDER",
+                 "PACKAGE_STRING",
+                 "MAPAPI",
                  "DNS_RDATASET_FIXED",
                  "HAVE_GEOIP2",
                  "HAVE_GSSAPI",
@@ -280,7 +293,7 @@ my @substdll = ("COMERR_DLL",
 # variables
 
 my %configvar = (
-	"TOOLS_VERSION" => "4.0",
+        "TOOLS_VERSION" => "4.0",
 );
 
 my @substvar = ("BIND9_VERSION",
@@ -569,44 +582,91 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
 # Standard configure variable
 $configvar{"EXEEXT"} = ".exe";
 
-# get the version information
+# Mimic AC_INIT() from autoconf by loading values from configure.ac
 
-my %Versions;
+sub ac_init {
+    my $package_name;
+    my $package_bugreport;
+    my $package_url;
+    my $package_version;
+    my $package_version_major;
+    my $package_version_minor;
+    my $package_version_patch;
+    my $package_version_extra;
+    my $package_description;
+    my $package_srcid;
+    my $package_builder = "msvc";
+    my $mapapi;
 
-sub getversion {
-    my $data;
-    my $name;
-    my $value;
-    my $version;
-
-    open V, "..\\version" || die $!;
+    open V, "..\\configure.ac" || die $!;
     while (<V>) {
         chomp;
-        ($data) = split(/\#/);
-        if ($data) {
-            ($name, $value) = split(/=/, $data);
-            ($name) = split(/\s+/, $name);
-            if ($name eq 'PRODUCT' || $name eq 'DESCRIPTION') {
-                ($value) =~ s/^["\s]+//;
-                ($value) =~ s/["\s]+$//;
-            } else {
-                ($value) = split(/\s+/, $value);
-            }
-            $Versions{$name} = $value;
+        if (/^AC_INIT\(\[(.*?)\],\s*bind_PKG_VERSION,\s*\[(.*?)\],\s*\[(.*?)\],\s*\[(.*?)\]\)$/) {
+	    $package_name = $1;
+	    $package_bugreport = $2;
+	    $package_url = $4;
+        } elsif (/m4_define\(\[bind_VERSION_MAJOR\],\s*(.*?)\)/) {
+	    $package_version_major = $1;
+        } elsif (/m4_define\(\[bind_VERSION_MINOR\],\s*(.*?)\)/) {
+	    $package_version_minor = $1;
+        } elsif (/m4_define\(\[bind_VERSION_PATCH\],\s*(.*?)\)/) {
+	    $package_version_patch = $1;
+        } elsif (/m4_define\(\[bind_VERSION_EXTRA\],\s*(.*?)\)/) {
+	    $package_version_extra = $1;
+        } elsif (/m4_define\(\[bind_DESCRIPTION\],\s*\[(.*?)\]\)/) {
+	    $package_description = $1;
+        } elsif (/AC_DEFINE\(\[MAPAPI\],\s*\[(.*?)\],\s*\[.*?\]\)/) {
+	    $mapapi = $1;
         }
     }
     close V;
 
-    $version = "$Versions{'MAJORVER'}.$Versions{'MINORVER'}";
-    if ($Versions{'PATCHVER'} ne "") {
-        $version = "$version.$Versions{'PATCHVER'}";
+    $package_version = "${package_version_major}.${package_version_minor}.${package_version_patch}${package_version_extra}";
+
+    my $srcid_fn = "..\\srcid";
+
+    if (-f $srcid_fn) {
+        open(my $fh, '<', $srcid_fn) or die "cannot open file $srcid_fn";
+        {
+            local $/;
+            $package_srcid = <$fh>;
+        }
+	close($fh);
+    } elsif (-d "..\\.git") {
+        $package_srcid = substr(`git rev-list --max-count=1 HEAD`, 0, 7);
+    } else {
+        $package_srcid = "";
     }
-    $version = "$version$Versions{'RELEASETYPE'}$Versions{'RELEASEVER'}";
-    $version = "$version$Versions{'EXTENSIONS'}";
-    $configvar{"BIND9_VERSION"} = "$version";
+    chomp($package_srcid);
+
+    if (length($package_srcid) == 0) {
+        $package_srcid = "unset_id";
+    }
+    if ($verbose) {
+        print "BIND SRCID: $package_srcid\n";
+    }
+
+    # Now define those in config.h
+
+    $configdefh{'PACKAGE_NAME'} = "\"$package_name\"";
+    $configdefh{'PACKAGE_BUGREPORT'} = "\"$package_bugreport\"";
+    $configdefh{'PACKAGE_URL'} = "\"$package_url\"";
+
+    $configdefh{'PACKAGE_VERSION_MAJOR'} = "\"$package_version_major\"";
+    $configdefh{'PACKAGE_VERSION_MINOR'} = "\"$package_version_minor\"";
+    $configdefh{'PACKAGE_VERSION_PATCH'} = "\"$package_version_patch\"";
+    $configdefh{'PACKAGE_VERSION_EXTRA'} = "\"$package_version_extra\"";
+    $configdefh{'PACKAGE_DESCRIPTION'} = "\" $package_description\"";
+    $configdefh{'PACKAGE_SRCID'} = "\"$package_srcid\"";
+
+    $configdefh{'PACKAGE_VERSION'} = "\"$package_version\"";
+    $configdefh{'PACKAGE_STRING'} = "\"$package_name $package_version\"";
+    $configdefh{'MAPAPI'} = $mapapi;
+
+    $configdefh{'PACKAGE_BUILDER'} = $package_builder;
 }
 
-getversion();
+ac_init();
 
 # append seen args to CONFIGARGS define
 
@@ -1381,7 +1441,7 @@ if ($use_openssl eq "yes") {
         if (scalar(@dirlist) != 1) {
             die "find more than one OpenSSL libcrypto-*.dll DLL candidate\n";
         }
-        $openssl_dll = File::Spec->catdir($openssl_path, "@dirlist[0]");
+        $openssl_dll = File::Spec->catdir($openssl_path, "$dirlist[0]");
     }
 
     $cryptolib = "openssl";
@@ -1623,32 +1683,32 @@ if ($use_gssapi eq "no") {
     if ($verbose) {
         print "checking for gssapi directory at \"$gssapi_path\"\n";
     }
-    $configcond{"GEOIP"} = 1;
+    $configcond{"GSSAPI"} = 1;
     $configdefh{"HAVE_GSSAPI"} = 1;
     if (-f File::Spec->catfile($gssapi_path, "include",
                                 "gssapi", "gssapi.h")) {
-	$configdefh{"HAVE_GSSAPI_GSSAPI_H"} = 1;
+        $configdefh{"HAVE_GSSAPI_GSSAPI_H"} = 1;
     } elsif (-f File::Spec->catfile($gssapi_path, "include",
                                 "gssapi", "gssapi.h")) {
-	$configdefh{"HAVE_GSSAPI_H"} = 1;
+        $configdefh{"HAVE_GSSAPI_H"} = 1;
     } else {
-	die "can't find gssapi.h include\n";
+        die "can't find gssapi.h include\n";
     }
     if (-f File::Spec->catfile($gssapi_path, "include",
                                 "gssapi", "gssapi_krb5.h")) {
-	$configdefh{"HAVE_GSSAPI_GSSAPI_KRB5_H"} = 1;
+        $configdefh{"HAVE_GSSAPI_GSSAPI_KRB5_H"} = 1;
     } elsif (-f File::Spec->catfile($gssapi_path, "include",
-				      "gssapi_krb5.h")) {
-	$configdefh{"HAVE_GSSAPI_KRB5_H"} = 1;
+                                      "gssapi_krb5.h")) {
+        $configdefh{"HAVE_GSSAPI_KRB5_H"} = 1;
     } else {
         die "can't find gssapi_krb5.h include\n";
     }
     if (-f File::Spec->catfile($gssapi_path, "include",
                                 "krb5", "krb5.h")) {
-	$configdefh{"HAVE_KRB5_KRB5_H"} = 1;
+        $configdefh{"HAVE_KRB5_KRB5_H"} = 1;
     } elsif (-f File::Spec->catfile($gssapi_path, "include",
                                 "krb5", "krb5.h")) {
-	$configdefh{"HAVE_KRB5_H"} = 1;
+        $configdefh{"HAVE_KRB5_H"} = 1;
     } else {
         die "can't find krb5.h include\n";
     }
@@ -2345,193 +2405,6 @@ sub setupproject {
     close F;
 }
 
-# make versions.h
-
-sub makeversion {
-    # List of directories with version files
-
-    my @dirlist = ("isc", "dns", "ns", "isccc", "isccfg", "bind9", "irs");
-    my %LibMacros = (
-        "bind9"   => "LIBBIND9_EXPORTS",
-        "dns"     => "LIBDNS_EXPORTS",
-        "irs"     => "LIBIRS_EXPORTS",
-        "isc"     => "LIBISC_EXPORTS",
-        "isccc"   => "LIBISCCC_EXPORTS",
-        "isccfg"  => "LIBISCCFG_EXPORTS",
-        "ns"      => "LIBNS_EXPORTS");
-    my @VersionNames = ("LIBINTERFACE", "LIBREVISION", "LIBAGE");
-    my $Version;
-    my %ApiVersions;
-    my $Mapapi;
-    my $versionfile = "versions.h";
-    my $versionpath = "..\\$versionfile";
-
-    my $data;
-    my $name;
-    my $value;
-
-    # And the mapapi one
-
-    open M, "..\\lib\\dns\\mapapi" || die $!;
-    while (<M>) {
-        chomp;
-        ($data) = split(/\#/);
-        if ($data) {
-            ($name, $value) = split(/=/, $data);
-            ($name) = split(/\s+/, $name);
-            if ($name eq 'MAPAPI') {
-                ($value) =~ s/^["\s]+//;
-                ($value) =~ s/["\s]+$//;
-            } else {
-                ($value) = split(/\s+/, $value);
-            }
-            $Mapapi = $value;
-        }
-    }
-    close M;
-
-    # Now set up the output version file
-
-    my $ThisDate = scalar localtime();
-    open O, ">$versionpath" ||
-        die "Can't open output file $versionpath: $!\n";
-
-    # Standard Header
-
-    print O '/*
- * Copyright (C) 2001  Internet Systems Consortium, Inc. ("ISC")
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
-
-';
-
-    print O "/*\n";
-    print O " * $versionfile.";
-    print O "  Generated automatically by Configure.pl.\n";
-    print O " * Date generated: $ThisDate\n";
-    print O " */\n\n";
-
-    print O '
-#ifndef  VERSIONS_H
-#define VERSIONS_H 1
-
-';
-
-    $Version = "$Versions{'MAJORVER'}.$Versions{'MINORVER'}";
-    if ($Versions{'PATCHVER'} ne "") {
-        $Version = "$Version.$Versions{'PATCHVER'}";
-    }
-    $Version = "$Version$Versions{'RELEASETYPE'}$Versions{'RELEASEVER'}";
-    $Version = "$Version$Versions{'EXTENSIONS'}";
-    if ($verbose) {
-        print "BIND Version: $Version\n";
-    }
-
-    print O "#define VERSION \"$Version\"\n";
-    print O "#define PRODUCT \"$Versions{'PRODUCT'}\"\n\n";
-    print O "#define DESCRIPTION \"$Versions{'DESCRIPTION'}\"\n\n";
-    print O
-        "#define MAJOR \"$Versions{'MAJORVER'}.$Versions{'MINORVER'}\"\n\n";
-    print O "#define MAPAPI \"$Mapapi\"\n\n";
-
-    my $dir;
-    my $apifile;
-    foreach $dir (@dirlist) {
-        $apifile = "..\\lib\\$dir\\api";
-        open A, $apifile || die $!;
-        while (<A>) {
-            chomp;
-            ($data) = split(/\#/);
-            if ($data) {
-                ($name, $value) = split(/=/, $data);
-                $name =~ s/\s+//;
-                $value =~ s/\s+//;
-                $ApiVersions{$name} = $value;
-            }
-        }
-        close A;
-
-        print O "\n#ifdef $LibMacros{$dir}\n";
-        foreach $name (@VersionNames) {
-            print O "#define $name\t$ApiVersions{$name}\n";
-        }
-        print O "#endif\n\n";
-    }
-
-    print O "#endif /* VERSIONS_H */\n";
-    close O;
-}
-
-# make srcid.h
-
-sub makesrcid {
-    my $data;
-    my $name;
-    my $value;
-    my $srcid = "unset_id";
-
-    open SOUT, ">..\\srcid.h" || die "cannot open srcid.h: $!\n";
-    if (open (SIN, "..\\srcid")) {
-      LOOP: while (<SIN>) {
-          chomp;
-          ($data) = split(/\#/);
-          if ($data) {
-              ($name, $value) = split(/=/, $data);
-              ($name) = split(/\s+/, $name);
-              ($value) = split(/\s+/, $value);
-              next LOOP if ($name != "SRCID");
-              $srcid = $value;
-          }
-        }
-        close SIN;
-    }
-
-    if ($srcid eq "unset_id" and -d "..\\.git") {
-        $data = `git rev-list --max-count=1 HEAD`;
-        if (length($data) > 0) {
-            $srcid = substr($data, 0, 7);
-        }
-    }
-
-    # Now set up the output version file
-
-    my $ThisDate = scalar localtime();
-
-    # Standard Header
-
-    print SOUT '/*
- * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
-
-';
-
-    print SOUT "/*\n";
-    print SOUT " * srcid.h";
-    print SOUT " * Generated automatically by Configure.pl.\n";
-    print SOUT " * Date generated: $ThisDate\n";
-    print SOUT " */\n\n";
-
-    print SOUT '
-#ifndef  SRCID_H
-#define SRCID_H 1
-';
-
-    if ($verbose) {
-        print "BIND SRCID: $srcid\n";
-    }
-
-    print SOUT "#define SRCID\t\"$srcid\"\n";
-    print SOUT "#endif /* SRCID_H */\n";
-    close SOUT;
-}
-
 # Build install files
 
 sub makeinstallfile {
@@ -2739,10 +2612,6 @@ if (($want_win32 eq "yes") || ($want_x64 eq "yes")) {
         setupproject($file);
     }
 
-    makeversion();
-
-    makesrcid();
-
     makeinstallfile();
 
     print "Configured.\n";
@@ -2754,7 +2623,6 @@ exit 0;
 
 # Notes: Unix configure.in options
 #  --enable-developer partially supported
-#  --enable-newstats (9.9/9.9sub only)
 #  --enable-native-pkcs11 supported
 #  --enable-openssl-version-check included without a way to disable it
 #  --enable-openssl-hash supported

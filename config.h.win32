@@ -61,6 +61,20 @@
 #error Minimum Visual Studio version is 2017 or higher
 #endif
 
+/* Setup package versions */
+@PACKAGE_VERSION_MAJOR@
+@PACKAGE_VERSION_MINOR@
+@PACKAGE_VERSION_PATCH@
+@PACKAGE_VERSION_EXTRA@
+@PACKAGE_VERSION@
+@PACKAGE_NAME@
+@PACKAGE_DESCRIPTION@
+@PACKAGE_SRCID@
+@PACKAGE_CONFIGARGS@
+@PACKAGE_BUILDER@
+@PACKAGE_STRING@
+@MAPAPI@
+
 /* Define if you have the ANSI C header files.  */
 #define STDC_HEADERS 1
 
@@ -209,8 +223,6 @@ typedef __int64 off_t;
 /*
  * Set up the Version Information
  */
-#include <versions.h>
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -379,5 +391,4 @@ typedef __int64 off_t;
 #define strlen(x)	(unsigned int) strlen(x)
 #endif
 
-/* Get SRCID */
-#include "srcid.h"
+/* Hey Emacs, this is -*- c -*- file! */
