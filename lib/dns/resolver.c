@@ -4407,6 +4407,15 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 				      fctx->now, findoptions, true, true,
 				      &fctx->nameservers, NULL);
 
+	/*
+	 * DNS_R_NXDOMAIN here means we have not loaded the root zone mirror
+	 * yet - but DNS_R_NXDOMAIN is not a valid return value when doing
+	 * recursion, we need to patch it.
+	 */
+	if (result == DNS_R_NXDOMAIN) {
+		result = DNS_R_SERVFAIL;
+	}
+
 	if (result != ISC_R_SUCCESS) {
 		fctx_done(fctx, result, __LINE__);
 		goto cleanup;
