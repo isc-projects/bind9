@@ -378,8 +378,8 @@ struct fetchctx {
 	unsigned int			valfail;
 	bool				timeout;
 	dns_adbaddrinfo_t 		*addrinfo;
-	const isc_sockaddr_t		*client;
 	unsigned int			depth;
+	char clientstr[ISC_SOCKADDR_FORMATSIZE];
 };
 
 #define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
@@ -4409,7 +4409,12 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->rand_bits = 0;
 	fctx->timeout = false;
 	fctx->addrinfo = NULL;
-	fctx->client = client;
+	if (client != NULL) {
+		isc_sockaddr_format(client, fctx->clientstr,
+				    sizeof(fctx->clientstr));
+	} else {
+		strlcpy(fctx->clientstr, "<unknown>", sizeof(fctx->clientstr));
+	}
 	fctx->ns_ttl = 0;
 	fctx->ns_ttl_ok = false;
 
@@ -4670,8 +4675,6 @@ log_lame(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 static inline void
 log_formerr(fetchctx_t *fctx, const char *format, ...) {
 	char nsbuf[ISC_SOCKADDR_FORMATSIZE];
-	char clbuf[ISC_SOCKADDR_FORMATSIZE];
-	const char *clmsg = "";
 	char msgbuf[2048];
 	va_list args;
 
@@ -4681,17 +4684,10 @@ log_formerr(fetchctx_t *fctx, const char *format, ...) {
 
 	isc_sockaddr_format(&fctx->addrinfo->sockaddr, nsbuf, sizeof(nsbuf));
 
-	if (fctx->client != NULL) {
-		clmsg = " for client ";
-		isc_sockaddr_format(fctx->client, clbuf, sizeof(clbuf));
-	} else {
-		clbuf[0] = '\0';
-	}
-
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
-		      "DNS format error from %s resolving %s%s%s: %s",
-		      nsbuf, fctx->info, clmsg, clbuf, msgbuf);
+		      "DNS format error from %s resolving %s for %s: %s",
+		      nsbuf, fctx->info, fctx->clientstr, msgbuf);
 }
 
 static isc_result_t
