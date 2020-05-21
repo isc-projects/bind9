@@ -471,9 +471,6 @@ docs:
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
-    - apt -yqqq update
-    - apt -yqqq dist-upgrade
-    - apt -yqqq install texlive-full texlive-xetex latexmk xindy
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k maintainer-clean V=1
