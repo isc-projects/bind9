@@ -149,6 +149,179 @@
   <ItemGroup>
     <ResourceCompile Include="BINDInstall.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\bin\check\win32\checkconf.vcxproj">
+      <Project>{03A96113-CB14-43AA-AEB2-48950E3915C5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\check\win32\checktool.vcxproj">
+      <Project>{2C1F7096-C5B5-48D4-846F-A7ACA454335D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\check\win32\checkzone.vcxproj">
+      <Project>{66028555-7DD5-4016-B601-9EF9A1EE8BFA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\confgen\win32\confgentool.vcxproj">
+      <Project>{64964B03-4815-41F0-9057-E766A94AF197}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\confgen\win32\ddnsconfgen.vcxproj">
+      <Project>{1EA4FC64-F33B-4A50-970A-EA052BBE9CF1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\confgen\win32\rndcconfgen.vcxproj">
+      <Project>{1E2C1635-3093-4D59-80E7-4743AC10F22F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\delv\win32\delv.vcxproj">
+      <Project>{BE172EFE-C1DC-4812-BFB9-8C5F8ADB7E9F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dig\win32\dig.vcxproj">
+      <Project>{F938F9B8-D395-4A40-BEC7-0122D289C692}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dig\win32\dighost.vcxproj">
+      <Project>{140DE800-E552-43CC-B0C7-A33A92E368CA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dig\win32\host.vcxproj">
+      <Project>{BA1048A8-6961-4A20-BE12-08BE20611C9D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dig\win32\nslookup.vcxproj">
+      <Project>{C15A6E1A-94CE-4686-99F9-6BC5FD623EB5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\cds.vcxproj">
+      <Project>{0EB1727E-2BBD-47A6-AD12-418F9DEB0531}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\dnssectool.vcxproj">
+      <Project>{2CB7DC75-023B-4AA3-AF3A-AE5046A4EE70}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\dsfromkey.vcxproj">
+      <Project>{6E6297F4-69D7-4533-85E1-BD17C30017C8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\importkey.vcxproj">
+      <Project>{AB6690A0-055E-458f-BAC5-BF38BCC5834F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\keyfromlabel.vcxproj">
+      <Project>{17455DC6-5FBB-47C3-8F44-7DB574A188D3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\keygen.vcxproj">
+      <Project>{0BF11E21-168C-4CAA-B784-429D126BBAE5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\revoke.vcxproj">
+      <Project>{D171F185-D3C2-4463-9CF3-ED1D0B1D6832}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\settime.vcxproj">
+      <Project>{03FB7588-C5A7-4572-968F-14F1206BC69C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\signzone.vcxproj">
+      <Project>{205ED8A9-2E4C-41CC-9385-F3613402AA90}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dnssec\win32\verify.vcxproj">
+      <Project>{FD653434-F1A8-44A9-85B2-A7468491DA6D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\named\win32\named.vcxproj">
+      <Project>{723C65DA-A96C-4BA3-A34E-44F11CA346F9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\nsupdate\win32\nsupdate.vcxproj">
+      <Project>{C41266C7-E27E-4D60-9815-82D3B32BF82F}</Project>
+    </ProjectReference>
+@IF PKCS11
+    <ProjectReference Include="..\..\..\bin\pkcs11\win32\pk11destroy.vcxproj">
+      <Project>{5B3137E5-7E1F-49AA-8810-A09AA417D326}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\pkcs11\win32\pk11keygen.vcxproj">
+      <Project>{5042D371-0402-4FA3-A52A-769708694422}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\pkcs11\win32\pk11list.vcxproj">
+      <Project>{C663B088-F7BC-4C8C-8D06-A76636EED651}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\pkcs11\win32\pk11tokens.vcxproj">
+      <Project>{403FD4B1-A4F9-4159-9013-5860E3A4417D}</Project>
+    </ProjectReference>
+@END PKCS11
+    <ProjectReference Include="..\..\..\bin\rndc\win32\rndc.vcxproj">
+      <Project>{39721F26-8B80-4AA9-9826-2AEF7322C3D5}</Project>
+    </ProjectReference>
+@IF STESTS
+    <ProjectReference Include="..\..\..\bin\tests\system\win32\bigkey.vcxproj">
+      <Project>{61F9D673-EB5C-47A5-8907-24E034C75EF8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tests\system\win32\feature-test.vcxproj">
+      <Project>{63A921F6-1200-4723-828A-98960127B73D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tests\system\win32\gencheck.vcxproj">
+      <Project>{764DBE24-C8B3-46E8-BE73-196431353A5D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tests\system\win32\keycreate.vcxproj">
+      <Project>{4F9A0F6F-366D-4483-B131-793832840508}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tests\system\win32\keydelete.vcxproj">
+      <Project>{85ADFF2A-BE31-4B8D-9089-9AD56CE78D7E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tests\system\win32\makejournal.vcxproj">
+      <Project>{31715139-2C27-47D2-8394-71B71A8AC3D5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tests\system\win32\pipequeries.vcxproj">
+      <Project>{E1478F40-786C-4738-8E99-E7A71DD98661}</Project>
+    </ProjectReference>
+@END STESTS
+    <ProjectReference Include="..\..\..\bin\tools\win32\arpaname.vcxproj">
+      <Project>{91E60FDA-E48C-4DA0-92A2-97F963348E00}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tools\win32\journalprint.vcxproj">
+      <Project>{B19042CE-D3D9-469B-BCD2-C3140150939A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tools\win32\mdig.vcxproj">
+      <Project>{3115091C-8135-481F-9757-F013A26255E0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tools\win32\nsec3hash.vcxproj">
+      <Project>{4EE91023-94C3-48C0-B71C-5333B726C2EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\tools\win32\rrchecker.vcxproj">
+      <Project>{98743A7C-6AF8-467f-9911-FA69C451AF2B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\bind9\win32\libbind9.vcxproj">
+      <Project>{E741C10B-B075-4206-9596-46765B665E03}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\dns\win32\gen.vcxproj">
+      <Project>{A3F71D12-F38A-4C77-8D87-8E8854CA74A1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\dns\win32\libdns.vcxproj">
+      <Project>{5FEBFD4E-CCB0-48B9-B733-E15EEB85C16A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\irs\win32\libirs.vcxproj">
+      <Project>{A4F29CEB-7644-4A7F-BE9E-02B6A90E4919}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\isc\win32\libisc.vcxproj">
+      <Project>{3840E563-D180-4761-AA9C-E6155F02EAFF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\isccc\win32\libisccc.vcxproj">
+      <Project>{B556705F-1920-4400-878A-B259D3556047}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\isccfg\win32\libisccfg.vcxproj">
+      <Project>{B2DFA58C-6347-478E-81E8-01E06999D4F1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\ns\win32\libns.vcxproj">
+      <Project>{82ACD33C-E75F-45B8-BB6D-42643A10D7EE}</Project>
+    </ProjectReference>
+@IF SAMPLES
+    <ProjectReference Include="..\..\..\lib\samples\win32\async.vcxproj">
+      <Project>{9FC33CA3-CE4A-4EDF-BA99-EECA4B81AD06}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\samples\win32\gai.vcxproj">
+      <Project>{D42B8670-8DF6-4D90-90F7-DB5FB845AFAE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\samples\win32\nsprobe.vcxproj">
+      <Project>{CB2A29F6-E73B-40AB-8AC4-2C1AAE7280BD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\samples\win32\request.vcxproj">
+      <Project>{FF440E85-7450-439C-82EE-04C464512D0E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\samples\win32\resolve.vcxproj">
+      <Project>{F66D8B7E-721D-4602-99AD-820D19AD1313}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\samples\win32\update.vcxproj">
+      <Project>{05682E12-523F-4DAE-8E6D-ADFDBC308AFD}</Project>
+    </ProjectReference>
+@END SAMPLES
+    <ProjectReference Include="..\..\..\lib\win32\bindevt\bindevt.vcxproj">
+      <Project>{0D745CD9-FC3B-49DC-99BE-1E6DF85593F0}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

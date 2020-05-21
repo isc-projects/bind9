@@ -113,6 +113,26 @@
   <ItemGroup>
     <ClCompile Include="..\host.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\lib\isc\win32\libisc.vcxproj">
+      <Project>{3840E563-D180-4761-AA9C-E6155F02EAFF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\dns\win32\libdns.vcxproj">
+      <Project>{5FEBFD4E-CCB0-48B9-B733-E15EEB85C16A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\isccfg\win32\libisccfg.vcxproj">
+      <Project>{B2DFA58C-6347-478E-81E8-01E06999D4F1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\irs\win32\libirs.vcxproj">
+      <Project>{A4F29CEB-7644-4A7F-BE9E-02B6A90E4919}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\bind9\win32\libbind9.vcxproj">
+      <Project>{E741C10B-B075-4206-9596-46765B665E03}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\bin\dig\win32\dighost.vcxproj">
+      <Project>{140DE800-E552-43CC-B0C7-A33A92E368CA}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
