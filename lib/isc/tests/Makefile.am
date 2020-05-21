@@ -65,3 +65,5 @@ random_test_LDADD =	\
 	-lm
 
 unit-local: check
+
+LOG_COMPILER = $(builddir)/../../unit-test-driver.sh

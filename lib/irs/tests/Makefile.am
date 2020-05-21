@@ -15,3 +15,5 @@ check_PROGRAMS = \
 TESTS = $(check_PROGRAMS)
 
 unit-local: check
+
+LOG_COMPILER = $(builddir)/../../unit-test-driver.sh

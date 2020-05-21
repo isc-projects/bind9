@@ -45,3 +45,5 @@ query_test_LDFLAGS =			\
 endif
 
 unit-local: check
+
+LOG_COMPILER = $(builddir)/../../unit-test-driver.sh
