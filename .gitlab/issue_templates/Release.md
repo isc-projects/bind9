@@ -63,10 +63,11 @@
  - [ ] ***(Marketing)*** Update [Wikipedia entry for BIND](https://en.wikipedia.org/wiki/BIND).
  - [ ] ***(Marketing)*** Write blog article (if a major release).
  - [ ] ***(QA)*** Ensure all new tags are annotated and signed.
- - [ ] ***(SwEng)*** Push tags for the published releases to the public repository.
  - [ ] ***(SwEng)*** Merge the automatically prepared `prep 9.X.Y` commit which updates `version` and documentation on the release branch into the relevant maintenance branch (`v9_X`).
- - [ ] ***(QA)*** For each maintained branch, update the `BIND_BASELINE_VERSION` variable for the `abi-check:sid:amd64` job in `.gitlab-ci.yml` to the latest published BIND version tag for a given branch.
+ - [ ] ***(SwEng)*** Push tags for the published releases to the public repository.
+ - [ ] ***(QA)*** For each maintained branch, update the `BIND_BASELINE_VERSION` variable for the `abi-check` job in `.gitlab-ci.yml` to the latest published BIND version tag for a given branch.
  - [ ] ***(QA)*** Prepare empty release notes for the next set of releases.
+ - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Flake8, PyLint) by modifying the relevant `Dockerfile`.
 
 [^1]: If not, use the time remaining until the tagging deadline to ensure all outstanding issues are either resolved or moved to a different milestone.
 
