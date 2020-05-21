@@ -42,13 +42,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|@PLATFORM@'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\..\..\Build\$(Configuration)\</OutDir>
+    <OutDir>..\..\..\..\Build\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
     <IntDirSharingDetected>None</IntDirSharingDetected>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|@PLATFORM@'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\..\Build\$(Configuration)\</OutDir>
+    <OutDir>..\..\..\..\Build\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
     <IntDirSharingDetected>None</IntDirSharingDetected>
   </PropertyGroup>
@@ -66,15 +66,15 @@
       <ObjectFileName>.\$(Configuration)\</ObjectFileName>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
-      <ForcedIncludeFiles>..\..\..\config.h</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\..\lib\isc\win32;..\..\..\lib\isc\win32\include;..\..\..\lib\isc\include;..\..\..\lib\dns\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>..\..\..\..\config.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>.\;..\..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\..\..\lib\isc\win32;..\..\..\..\lib\isc\win32\include;..\..\..\..\lib\isc\include;..\..\..\..\lib\dns\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>..\..\..\lib\isc\win32\$(Configuration);..\..\..\lib\dns\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>..\..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>..\..\..\..\lib\isc\win32\$(Configuration);..\..\..\..\lib\dns\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>@OPENSSL_LIB@libisc.lib;libdns.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -95,8 +95,8 @@
       <AssemblerListingLocation>.\$(Configuration)\</AssemblerListingLocation>
       <ObjectFileName>.\$(Configuration)\</ObjectFileName>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <ForcedIncludeFiles>..\..\..\config.h</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\..\lib\isc\win32;..\..\..\lib\isc\win32\include;..\..\..\lib\isc\include;..\..\..\lib\dns\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>..\..\..\..\config.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>.\;..\..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\..\..\lib\isc\win32;..\..\..\..\lib\isc\win32\include;..\..\..\..\lib\isc\include;..\..\..\..\lib\dns\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -104,9 +104,9 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <OutputFile>..\..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>..\..\..\lib\isc\win32\$(Configuration);..\..\..\lib\dns\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\lib\isc\win32\$(Configuration);..\..\..\..\lib\dns\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>@OPENSSL_LIB@libisc.lib;libdns.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
