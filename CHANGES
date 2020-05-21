@@ -1,3 +1,5 @@
+5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
+
 5431.	[func]		Reject DS records at the zone apex when loading
 			master files. Log but otherwise ignore attempts to
 			add DS records at the zone apex via UPDATE. [GL #1798]
