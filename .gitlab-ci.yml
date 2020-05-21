@@ -238,6 +238,7 @@ stages:
   artifacts:
     untracked: true
     expire_in: "1 day"
+    when: always
 
 .setup_interfaces: &setup_interfaces |
     if [ "$(id -u)" -eq "0" ]; then
