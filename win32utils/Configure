@@ -2405,6 +2405,18 @@ sub setupproject {
     close F;
 }
 
+# Make bind.keys.h
+# Keep this in sync with util/bindkeys.pl
+
+sub makebindkeysh {
+    my $bindkeysh = `perl.exe ..\\util\\bindkeys.pl ..\\bind.keys`;
+    die "Failed to generate bind.keys.h!\n" unless (length($bindkeysh));
+
+    open(my $fout, ">" . "..\\bind.keys.h") || die $!;
+    print $fout $bindkeysh;
+    close($fout);
+}
+
 # Build install files
 
 sub makeinstallfile {
@@ -2613,6 +2625,8 @@ if (($want_win32 eq "yes") || ($want_x64 eq "yes")) {
     }
 
     makeinstallfile();
+
+    makebindkeysh();
 
     print "Configured.\n";
 } else {
