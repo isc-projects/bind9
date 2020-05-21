@@ -19,7 +19,7 @@
 #define lt_dlsym(h, s) GetProcAddress(h, s)
 #define lt_dlclose(h)  FreeLibrary(h)
 
-_Thread_local LPSTR __dlerror_message[1024] = { 0 };
+__declspec(thread) LPSTR __dlerror_message[1024] = { 0 };
 
 static const char *
 lt_dlerror(void) {

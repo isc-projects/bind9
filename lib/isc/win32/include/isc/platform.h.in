@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_PLATFORM_H
-#define ISC_PLATFORM_H 1
+#pragma once
 
 /*****
  ***** Platform-dependent defines.
@@ -33,6 +32,10 @@
 #if _MSC_VER < 1914
 typedef uint32_t socklen_t;
 #endif
+
+#ifndef thread_local
+#define thread_local __declspec(thread)
+#endif /* thread_local */
 
 /*
  * Limits
@@ -97,5 +100,3 @@ typedef uint32_t socklen_t;
 #else
 #define LIBTESTS_EXTERNAL_DATA __declspec(dllimport)
 #endif
-
-#endif /* ISC_PLATFORM_H */
