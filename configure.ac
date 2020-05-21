@@ -280,7 +280,7 @@ AM_CONDITIONAL([HAVE_PERLMOD_TIME_HIRES],
 AM_PATH_PYTHON([3.4], [], [:])
 AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != ":"])
 
-AC_PATH_PROGS([PYTEST], [pytest-3 pytest pytest-pypy], [])
+AC_PATH_PROGS([PYTEST], [pytest-3 py.test-3 pytest pytest-pypy], [])
 AS_IF([test -z "$PYTEST"],
       [AC_MSG_WARN([pytest not found, some system tests will be skipped])])
 AC_SUBST([PYTEST])
