@@ -240,7 +240,7 @@ server.
    ``rndc`` without any options, it will display a usage message as
    follows:
 
-   rndc [-c config][-s server][-p port][-y key] command [command...]
+   ``rndc [-c config][-s server][-p port][-y key] command [command...]``
 
    See :ref:`man_rndc` for details of the available ``rndc``
    commands.
