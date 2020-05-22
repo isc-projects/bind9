@@ -20,7 +20,7 @@ libconfgen_la_SOURCES =		\
 	util.c			\
 	unix/os.c
 
-sbin_PROGRAMS = rndc-confgen ddns-confgen
+sbin_PROGRAMS = ddns-confgen rndc-confgen
 
 install-exec-hook:
 	ln -f $(DESTDIR)$(sbindir)/ddns-confgen \

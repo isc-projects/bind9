@@ -14,7 +14,7 @@ LDADD =				\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)
 
-sbin_PROGRAMS = \
+bin_PROGRAMS = \
 	dnssec-cds		\
 	dnssec-dsfromkey	\
 	dnssec-importkey	\

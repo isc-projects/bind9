@@ -16,10 +16,9 @@ trap "/bin/rm -rf ${dir}" 0
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=@bindir@
-sbindir=@sbindir@
 
 dig=${bindir}/dig
-checkzone=${sbindir}/named-checkzone
+checkzone=${bindir}/named-checkzone
 nsupdate=${bindir}/nsupdate
 
 case $# in
