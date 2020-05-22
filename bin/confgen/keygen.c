@@ -198,5 +198,4 @@ write_key_file(const char *keyfile, const char *user, const char *keyname,
 	if (fclose(fd)) {
 		fatal("fclose(%s) failed\n", keyfile);
 	}
-	fprintf(stderr, "wrote key file \"%s\"\n", keyfile);
 }
