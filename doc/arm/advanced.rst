@@ -696,7 +696,7 @@ The default is ``auto`` unless BIND is built with
 ``configure --disable-auto-validation``, in which case the default is
 ``yes``.
 
-The keys specified in ``trust-anchors`` copies of DNSKEY RRs for zones that are
+The keys specified in ``trust-anchors`` are copies of DNSKEY RRs for zones that are
 used to form the first link in the cryptographic chain of trust. Keys configured
 with the keyword ``static-key`` or ``static-ds`` are loaded directly into the
 table of trust anchors, and can only be changed by altering the
