@@ -292,6 +292,13 @@ keyfile_to_dskeys() {
     echo "};"
 }
 
+# keyfile_to_trusted_keys: convert key data contained in the keyfile(s)
+# provided to a "trust-keys" section suitable for including in a
+# resolver's configuration file
+keyfile_to_trusted_keys() {
+    keyfile_to_keys "trusted-keys" "" $*
+}
+
 # keyfile_to_static_keys: convert key data contained in the keyfile(s)
 # provided to a *static-key* "trust-anchors" section suitable for including in
 # a resolver's configuration file
