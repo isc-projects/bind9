@@ -1111,6 +1111,7 @@
 ./contrib/scripts/named-bootconf.sh		SH.PORTION	1999,2000,2001,2004,2006,2007,2012,2014,2016,2018,2019,2020
 ./contrib/scripts/nanny.pl			PERL	2000,2001,2004,2007,2012,2014,2016,2018,2019,2020
 ./contrib/scripts/zone-edit.sh.in		SH	2010,2012,2014,2016,2018,2019,2020
+./dangerfile.py					PYTHON	2020
 ./doc/arm/advanced.rst				RST	2020
 ./doc/arm/catz.rst				RST	2020
 ./doc/arm/conf.py				PYTHON	2020
