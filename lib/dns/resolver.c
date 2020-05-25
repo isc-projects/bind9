@@ -2588,6 +2588,15 @@ resquery_send(resquery_t *query) {
 		isc_sockaddr_t *sockaddr = &query->addrinfo->sockaddr;
 		struct tried *tried;
 
+		/*
+		 * If this is the first timeout for this server in this fetch
+		 * context, try setting EDNS UDP buffer size to the largest UDP
+		 * response size we have seen from this server so far.
+		 *
+		 * If this server has already timed out twice or more in this
+		 * fetch context, force setting the advertised UDP buffer size
+		 * to 512 bytes.
+		 */
 		if ((tried = triededns(fctx, sockaddr)) != NULL) {
 			if (tried->count == 1U) {
 				hint = dns_adb_getudpsize(fctx->adb,
@@ -2613,9 +2622,17 @@ resquery_send(resquery_t *query) {
 			unsigned char cookie[64];
 			uint16_t padding = 0;
 
-			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
-			    (query->options & DNS_FETCHOPT_EDNS512) == 0)
-			{
+			/*
+			 * If we ever received an EDNS response from this
+			 * server, initialize 'udpsize' with a value between
+			 * 512 and 4096, based on any potential EDNS timeouts
+			 * observed for this particular server in the past and
+			 * the total number of query timeouts observed for this
+			 * fetch context so far.  Clamp 'udpsize' to the global
+			 * 'edns-udp-size' value (if unset, the latter defaults
+			 * to 4096 bytes).
+			 */
+			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0) {
 				udpsize = dns_adb_probesize(fctx->adb,
 							    query->addrinfo,
 							    fctx->timeouts);
@@ -2633,13 +2650,6 @@ resquery_send(resquery_t *query) {
 			}
 
 			/*
-			 * Was the size forced to 512 in the configuration?
-			 */
-			if (udpsize == 512U) {
-				query->options |= DNS_FETCHOPT_EDNS512;
-			}
-
-			/*
 			 * We have talked to this server before.
 			 */
 			if (hint != 0U) {
@@ -2647,10 +2657,13 @@ resquery_send(resquery_t *query) {
 			}
 
 			/*
-			 * We know nothing about the peer's capabilities
-			 * so start with minimal EDNS UDP size.
+			 * If we have not received any responses from this
+			 * server before or if this server has already timed
+			 * out twice or more in this fetch context, use an EDNS
+			 * UDP buffer size of 512 bytes.
 			 */
-			if (udpsize == 0U) {
+			if (udpsize == 0U ||
+			    (query->options & DNS_FETCHOPT_EDNS512) != 0) {
 				udpsize = 512;
 			}
 
