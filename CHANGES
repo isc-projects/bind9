@@ -1,3 +1,6 @@
+5418.	[bug]		delv failed to parse deprecated trusted-keys style
+			trust anchors. [GL #1860]
+
 5417.	[cleanup]	The code determining the advertised UDP buffer size in
 			outgoing EDNS queries has been refactored to improve its
 			clarity. [GL #1868]
