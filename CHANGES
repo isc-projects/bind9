@@ -1,3 +1,7 @@
+5417.	[cleanup]	The code determining the advertised UDP buffer size in
+			outgoing EDNS queries has been refactored to improve its
+			clarity. [GL #1868]
+
 5416.	[bug]		Fix a lock order inversion in unix/socket.c. [GL #1859]
 
 5415.	[test]		Address race in dnssec system test that led to
