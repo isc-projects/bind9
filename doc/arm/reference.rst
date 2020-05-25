@@ -3401,16 +3401,26 @@ Tuning
    buffer size of 512, as this has the greatest chance of success on the
    first try.
 
-   If the initial query is successful with EDNS advertising a buffer size of
-   512, then ``named`` will advertise progressively larger buffer sizes on
-   successive queries, until responses begin timing out or ``edns-udp-size`` is
-   reached.
+   If the initial query is successful with EDNS advertising a buffer
+   size of 512, then ``named`` will switch to advertising a buffer size
+   of 4096 bytes (unless ``edns-udp-size`` is lower, in which case the
+   latter will be used).
 
-   The default buffer sizes used by ``named`` are 512, 1232, 1432, and
-   4096, but never exceeding ``edns-udp-size``. (The values 1232 and
-   1432 are chosen to allow for an IPv4/IPv6 encapsulated UDP message to
-   be sent without fragmentation at the minimum MTU sizes for Ethernet
-   and IPv6 networks.)
+   Query timeouts observed for any given server will affect the buffer
+   size advertised in queries sent to that server.  Depending on
+   observed packet dropping patterns, the advertised buffer size will be
+   lowered to 1432 bytes, 1232 bytes, 512 bytes, or the size of the
+   largest UDP response ever received from a given server, and then
+   clamped to the ``<512, edns-udp-size>`` range.  Per-server EDNS
+   statistics are only retained in memory for the lifetime of a given
+   server's ADB entry.
+
+   (The values 1232 and 1432 are chosen to allow for an IPv4/IPv6
+   encapsulated UDP message to be sent without fragmentation at the
+   minimum MTU sizes for Ethernet and IPv6 networks.)
+
+   Any server-specific ``edns-udp-size`` setting has precedence over all
+   the above rules.
 
 ``max-udp-size``
    Sets the maximum EDNS UDP message size ``named`` will send in bytes.
