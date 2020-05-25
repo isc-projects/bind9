@@ -2614,6 +2614,7 @@ resquery_send(resquery_t *query) {
 	 */
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
+			uint16_t peerudpsize = 0;
 			unsigned int version = DNS_EDNS_VERSION;
 			unsigned int flags = query->addrinfo->flags;
 			bool reqnsid = res->view->requestnsid;
@@ -2641,14 +2642,6 @@ resquery_send(resquery_t *query) {
 				}
 			}
 
-			if (peer != NULL) {
-				(void)dns_peer_getudpsize(peer, &udpsize);
-			}
-
-			if (udpsize == 0U && res->udpsize == 512U) {
-				udpsize = 512;
-			}
-
 			/*
 			 * We have talked to this server before.
 			 */
@@ -2665,6 +2658,17 @@ resquery_send(resquery_t *query) {
 			if (udpsize == 0U ||
 			    (query->options & DNS_FETCHOPT_EDNS512) != 0) {
 				udpsize = 512;
+			}
+
+			/*
+			 * If a fixed EDNS UDP buffer size is configured for
+			 * this server, make sure we obey that.
+			 */
+			if (peer != NULL) {
+				(void)dns_peer_getudpsize(peer, &peerudpsize);
+				if (peerudpsize != 0) {
+					udpsize = peerudpsize;
+				}
 			}
 
 			if ((flags & DNS_FETCHOPT_EDNSVERSIONSET) != 0) {

@@ -3412,6 +3412,9 @@ Tuning
    be sent without fragmentation at the minimum MTU sizes for Ethernet
    and IPv6 networks.)
 
+   Any server-specific ``edns-udp-size`` setting has precedence over all
+   the above rules.
+
 ``max-udp-size``
    Sets the maximum EDNS UDP message size ``named`` will send in bytes.
    Valid values are 512 to 4096 (values outside this range will be
