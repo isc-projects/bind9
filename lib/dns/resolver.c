@@ -370,12 +370,6 @@ struct fetchctx {
 	unsigned int nqueries; /* Bucket lock. */
 
 	/*%
-	 * The reason to print when logging a successful
-	 * response to a query.
-	 */
-	const char *reason;
-
-	/*%
 	 * Random numbers to use for mixing up server addresses.
 	 */
 	uint32_t rand_buf;
@@ -1748,25 +1742,6 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 	}
 }
 
-static inline void
-log_edns(fetchctx_t *fctx) {
-	char domainbuf[DNS_NAME_FORMATSIZE];
-
-	if (fctx->reason == NULL) {
-		return;
-	}
-
-	/*
-	 * We do not know if fctx->domain is the actual domain the record
-	 * lives in or a parent domain so we have a '?' after it.
-	 */
-	dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "success resolving '%s' (in '%s'?) after %s", fctx->info,
-		      domainbuf, fctx->reason);
-}
-
 static void
 fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 	dns_resolver_t *res;
@@ -1780,10 +1755,6 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 	res = fctx->res;
 
 	if (result == ISC_R_SUCCESS) {
-		/*%
-		 * Log any deferred EDNS timeout messages.
-		 */
-		log_edns(fctx);
 		no_response = true;
 		if (fctx->qmin_warning != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
@@ -1799,7 +1770,6 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 	}
 
 	fctx->qmin_warning = ISC_R_SUCCESS;
-	fctx->reason = NULL;
 
 	fctx_stopqueries(fctx, no_response, age_untried);
 
@@ -2624,8 +2594,6 @@ resquery_send(resquery_t *query) {
 							  query->addrinfo);
 			} else if (tried->count >= 2U) {
 				query->options |= DNS_FETCHOPT_EDNS512;
-				fctx->reason = "reducing the advertised EDNS "
-					       "UDP packet size to 512 octets";
 			}
 		}
 	}
@@ -4583,7 +4551,6 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	inc_stats(fctx->res, dns_resstatscounter_querytimeout);
 
 	if (event->ev_type == ISC_TIMEREVENT_LIFE) {
-		fctx->reason = NULL;
 		fctx_done(fctx, ISC_R_TIMEDOUT, __LINE__);
 	} else {
 		isc_result_t result;
@@ -4996,7 +4963,6 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	atomic_init(&fctx->attributes, 0);
 	fctx->spilled = false;
 	fctx->nqueries = 0;
-	fctx->reason = NULL;
 	fctx->rand_buf = 0;
 	fctx->rand_bits = 0;
 	fctx->timeout = false;
