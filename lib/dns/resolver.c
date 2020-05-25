@@ -2643,7 +2643,12 @@ resquery_send(resquery_t *query) {
 			}
 
 			/*
-			 * We have talked to this server before.
+			 * This server timed out for the first time in this
+			 * fetch context and we received a response from it
+			 * before (either in this fetch context or in a
+			 * different one).  Set 'udpsize' to the size of the
+			 * largest UDP response we have received from this
+			 * server so far.
 			 */
 			if (hint != 0U) {
 				udpsize = hint;
