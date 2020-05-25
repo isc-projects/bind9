@@ -76,7 +76,7 @@ TESTS +=		\
 	rpzrecurse
 endif HAVE_PERLMOD_NET_DNS
 
-TESTS += 			\
+TESTS +=			\
 	acl			\
 	additional		\
 	addzone			\
@@ -107,7 +107,7 @@ TESTS += 			\
 	geoip2			\
 	glue			\
 	idna			\
-	include-multiplecfg 	\
+	include-multiplecfg	\
 	inline			\
 	integrity		\
 	kasp			\
@@ -134,6 +134,7 @@ TESTS += 			\
 	rrsetorder		\
 	rsabigexponent		\
 	runtime			\
+	shutdown		\
 	sfcache			\
 	smartsign		\
 	sortlist		\
