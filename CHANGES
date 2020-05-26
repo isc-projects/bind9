@@ -1,3 +1,7 @@
+5433.	[test]		Resolver system test for change #5395
+			(max-recursion-queries) failed on system without
+			IPv6 suport. [GL #1873]
+
 5428.	[bug]		Cleanup GSSAPI resources in nsupdate only after taskmgr
 			has been destroyed. Thanks to Petr Menšík. [GL !3316]
 
