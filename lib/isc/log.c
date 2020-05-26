@@ -31,6 +31,7 @@
 #include <isc/stat.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
+#include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
@@ -44,6 +45,8 @@
 #define WRLOCK(lp)   RWLOCK(lp, isc_rwlocktype_write);
 #define RDUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_read);
 #define WRUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_write);
+
+static thread_local bool forcelog = false;
 
 /*
  * XXXDCL make dynamic?
@@ -1453,6 +1456,9 @@ isc_log_wouldlog(isc_log_t *lctx, int level) {
 	if (lctx == NULL) {
 		return (false);
 	}
+	if (forcelog) {
+		return (true);
+	}
 
 	int highest_level = atomic_load_acquire(&lctx->highest_level);
 	if (level <= highest_level) {
@@ -1484,6 +1490,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	bool printcategory, printmodule, printlevel, buffered;
 	isc_logchannel_t *channel;
 	isc_logchannellist_t *category_channels;
+	int_fast32_t dlevel;
 	isc_result_t result;
 
 	REQUIRE(lctx == NULL || VALID_CONTEXT(lctx));
@@ -1566,18 +1573,20 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		channel = category_channels->channel;
 		category_channels = ISC_LIST_NEXT(category_channels, link);
 
-		int_fast32_t dlevel = atomic_load_acquire(&lctx->debug_level);
-		if (((channel->flags & ISC_LOG_DEBUGONLY) != 0) && dlevel == 0)
-		{
-			continue;
-		}
-
-		if (channel->level == ISC_LOG_DYNAMIC) {
-			if (dlevel < level) {
+		if (!forcelog) {
+			dlevel = atomic_load_acquire(&lctx->debug_level);
+			if (((channel->flags & ISC_LOG_DEBUGONLY) != 0) &&
+			    dlevel == 0) {
 				continue;
 			}
-		} else if (channel->level < level) {
-			continue;
+
+			if (channel->level == ISC_LOG_DYNAMIC) {
+				if (dlevel < level) {
+					continue;
+				}
+			} else if (channel->level < level) {
+				continue;
+			}
 		}
 
 		if ((channel->flags & ISC_LOG_PRINTTIME) != 0 &&
@@ -1861,4 +1870,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 unlock:
 	UNLOCK(&lctx->lock);
 	RDUNLOCK(&lctx->lcfg_rwl);
+}
+
+void
+isc_log_setforcelog(bool v) {
+	forcelog = v;
 }

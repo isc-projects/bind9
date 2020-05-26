@@ -268,8 +268,11 @@ configure command line.  By default, fixed rrset-order is disabled to
 reduce memory footprint.
 
 The `--enable-querytrace` option causes `named` to log every step of
-processing every query. This should only be enabled when debugging, because
-it has a significant negative impact on query performance.
+processing every query.  The `--enable-singletrace` option turns on the
+same verbose tracing, but allows an individual query to be separately
+traced by setting its query ID to 0.  These options should only be enabled
+when debugging, because they have a significant negative impact on query
+performance.
 
 `make install` will install `named` and the various BIND 9 libraries.  By
 default, installation is into /usr/local, but this can be changed with the

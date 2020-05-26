@@ -60,6 +60,8 @@
 #define MAXPORT 0xffff
 /*% Max serial number */
 #define MAXSERIAL 0xffffffff
+/*% Max query ID */
+#define MAXQID 0xffff
 
 /*% Default TCP Timeout */
 #define TCP_TIMEOUT 10
@@ -108,9 +110,10 @@ struct dig_lookup {
 		tcp_keepalive, header_only, ednsneg, mapped,
 		print_unknown_format, multiline, nottl, noclass, onesoa,
 		use_usec, nocrypto, ttlunits, idnin, idnout, expandaaaa, qr,
-		accept_reply_unexpected_src; /*%  print replies from
+		accept_reply_unexpected_src, /*%  print replies from
 					      * unexpected
 					      *   sources. */
+		setqid;			     /*% use a speciied query ID */
 	char textname[MXNAME];		     /*% Name we're going to be
 					      * looking up */
 	char cmdline[MXNAME];
@@ -157,6 +160,7 @@ struct dig_lookup {
 	dns_opcode_t opcode;
 	int rrcomments;
 	unsigned int eoferr;
+	uint16_t qid;
 };
 
 /*% The dig_query structure */

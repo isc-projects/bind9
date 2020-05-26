@@ -677,6 +677,8 @@ make_empty_lookup(void) {
 	looknew->tcflag = false;
 	looknew->print_unknown_format = false;
 	looknew->zflag = false;
+	looknew->setqid = false;
+	looknew->qid = 0;
 	looknew->ns_search_only = false;
 	looknew->origin = NULL;
 	looknew->tsigctx = NULL;
@@ -820,6 +822,8 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->tcflag = lookold->tcflag;
 	looknew->print_unknown_format = lookold->print_unknown_format;
 	looknew->zflag = lookold->zflag;
+	looknew->setqid = lookold->setqid;
+	looknew->qid = lookold->qid;
 	looknew->ns_search_only = lookold->ns_search_only;
 	looknew->tcp_mode = lookold->tcp_mode;
 	looknew->tcp_mode_set = lookold->tcp_mode_set;
@@ -2296,6 +2300,11 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->zflag) {
 		debug("Z query");
 		lookup->sendmsg->flags |= 0x0040U;
+	}
+
+	if (lookup->setqid) {
+		debug("set QID");
+		lookup->sendmsg->id = lookup->qid;
 	}
 
 	dns_message_addname(lookup->sendmsg, lookup->name,

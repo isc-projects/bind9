@@ -841,6 +841,14 @@ isc_logfile_roll(isc_logfile_t *file);
  *\li	file is not NULL.
  */
 
+void
+isc_log_setforcelog(bool v);
+/*%<
+ * Turn forced logging on/off for the current thread. This can be used to
+ * temporarily increase the debug level to maximum for the duration of
+ * a single task event.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_LOG_H */
