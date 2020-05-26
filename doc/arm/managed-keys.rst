@@ -45,49 +45,49 @@ zone with one of them; this is the "active" KSK. All KSKs which do not
 sign the zone are "stand-by" keys.
 
 Any validating resolver which is configured to use the active KSK as an
-RFC 5011-managed trust anchor will take note of the stand-by KSKs in the
-zone's DNSKEY RRset, and store them for future reference. The resolver
-will recheck the zone periodically, and after 30 days, if the new key is
-still there, then the key will be accepted by the resolver as a valid
+RFC 5011-managed trust anchor takes note of the stand-by KSKs in the
+zone's DNSKEY RRset, and stores them for future reference. The resolver
+rechecks the zone periodically; after 30 days, if the new key is
+still there, the key is accepted by the resolver as a valid
 trust anchor for the zone. Any time after this 30-day acceptance timer
 has completed, the active KSK can be revoked, and the zone can be
 "rolled over" to the newly accepted key.
 
 The easiest way to place a stand-by key in a zone is to use the "smart
 signing" features of ``dnssec-keygen`` and ``dnssec-signzone``. If a key
-with a publication date in the past, but an activation date which is
-unset or in the future, " ``dnssec-signzone -S``" will include the
-DNSKEY record in the zone, but will not sign with it:
+exists with a publication date in the past, but an activation date which is
+unset or in the future, " ``dnssec-signzone -S``" includes the
+DNSKEY record in the zone but does not sign with it:
 
 ::
 
    $ dnssec-keygen -K keys -f KSK -P now -A now+2y example.net
    $ dnssec-signzone -S -K keys example.net
 
-To revoke a key, the new command ``dnssec-revoke`` has been added. This
-adds the REVOKED bit to the key flags and re-generates the ``K*.key``
+To revoke a key, the command ``dnssec-revoke`` has been added. This
+adds the REVOKED bit to the key flags and regenerates the ``K*.key``
 and ``K*.private`` files.
 
 After revoking the active key, the zone must be signed with both the
-revoked KSK and the new active KSK. (Smart signing takes care of this
-automatically.)
+revoked KSK and the new active KSK. Smart signing takes care of this
+automatically.
 
 Once a key has been revoked and used to sign the DNSKEY RRset in which
-it appears, that key will never again be accepted as a valid trust
+it appears, that key is never again accepted as a valid trust
 anchor by the resolver. However, validation can proceed using the new
-active key (which had been accepted by the resolver when it was a
-stand-by key).
+active key, which was accepted by the resolver when it was a
+stand-by key.
 
 See :rfc:`5011` for more details on key rollover scenarios.
 
-When a key has been revoked, its key ID changes, increasing by 128, and
+When a key has been revoked, its key ID changes, increasing by 128 and
 wrapping around at 65535. So, for example, the key
 "``Kexample.com.+005+10000``" becomes "``Kexample.com.+005+10128``".
 
-If two keys have IDs exactly 128 apart, and one is revoked, then the two
+If two keys have IDs exactly 128 apart and one is revoked, the two
 key IDs will collide, causing several problems. To prevent this,
-``dnssec-keygen`` will not generate a new key if another key is present
-which may collide. This checking will only occur if the new keys are
+``dnssec-keygen`` does not generate a new key if another key is present
+which may collide. This checking only occurs if the new keys are
 written to the same directory which holds all other keys in use for that
 zone.
 
