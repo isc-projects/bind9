@@ -1463,7 +1463,7 @@ consistent(isc_socket_t *sock) {
 		socket_log(__LINE__, sock, NULL, CREATION,
 			   "SOCKET INCONSISTENT: %s", crash_reason);
 		sock_dump(sock);
-		INSIST(crash == false);
+		INSIST(!crash);
 	}
 }
 

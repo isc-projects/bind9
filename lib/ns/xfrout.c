@@ -1691,11 +1691,11 @@ xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	(void)isc_timer_touch(xfr->client->timer);
 #endif /* if 0 */
 
-	if (xfr->shuttingdown == true) {
+	if (xfr->shuttingdown) {
 		xfrout_maybe_destroy(xfr);
 	} else if (result != ISC_R_SUCCESS) {
 		xfrout_fail(xfr, result, "send");
-	} else if (xfr->end_of_stream == false) {
+	} else if (!xfr->end_of_stream) {
 		sendstream(xfr);
 	} else {
 		/* End of zone transfer stream. */
@@ -1735,7 +1735,7 @@ xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, const char *msg) {
 
 static void
 xfrout_maybe_destroy(xfrout_ctx_t *xfr) {
-	INSIST(xfr->shuttingdown == true);
+	INSIST(xfr->shuttingdown);
 #if 0
 	if (xfr->sends > 0) {
 		/*

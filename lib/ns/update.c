@@ -280,7 +280,7 @@ update_log(ns_client_t *client, dns_zone_t *zone, int level, const char *fmt,
 		return;
 	}
 
-	if (isc_log_wouldlog(ns_lctx, level) == false) {
+	if (!isc_log_wouldlog(ns_lctx, level)) {
 		return;
 	}
 
@@ -910,9 +910,9 @@ typedef struct {
 
 static isc_result_t
 ssu_checkrule(void *data, dns_rdataset_t *rrset) {
-	bool result;
 	const dns_ssurule_t *rule = NULL;
 	ssu_check_t *ssuinfo = data;
+	bool rule_ok;
 
 	/*
 	 * If we're deleting all records, it's ok to delete RRSIG and NSEC even
@@ -922,11 +922,12 @@ ssu_checkrule(void *data, dns_rdataset_t *rrset) {
 	    rrset->type == dns_rdatatype_nsec) {
 		return (ISC_R_SUCCESS);
 	}
-	result = dns_ssutable_checkrules(ssuinfo->table, ssuinfo->signer,
-					 ssuinfo->name, ssuinfo->addr,
-					 ssuinfo->tcp, ssuinfo->aclenv,
-					 rrset->type, ssuinfo->key, &rule);
-	return (result == true ? ISC_R_SUCCESS : ISC_R_FAILURE);
+
+	rule_ok = dns_ssutable_checkrules(ssuinfo->table, ssuinfo->signer,
+					  ssuinfo->name, ssuinfo->addr,
+					  ssuinfo->tcp, ssuinfo->aclenv,
+					  rrset->type, ssuinfo->key, &rule);
+	return (rule_ok ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
 static bool

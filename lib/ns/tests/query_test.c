@@ -94,8 +94,7 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 
 	REQUIRE(test != NULL);
 	REQUIRE(test->id.description != NULL);
-	REQUIRE(test->cache_entry_present == true ||
-		test->cache_entry_flags == 0);
+	REQUIRE(test->cache_entry_present || test->cache_entry_flags == 0);
 
 	/*
 	 * Interrupt execution if ns_query_done() is called.

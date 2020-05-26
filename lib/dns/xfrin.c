@@ -1615,7 +1615,7 @@ xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
 	   const char *fmt, ...) {
 	va_list ap;
 
-	if (isc_log_wouldlog(dns_lctx, level) == false) {
+	if (!isc_log_wouldlog(dns_lctx, level)) {
 		return;
 	}
 
@@ -1633,7 +1633,7 @@ xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...) {
 	va_list ap;
 	char zonetext[DNS_NAME_MAXTEXT + 32];
 
-	if (isc_log_wouldlog(dns_lctx, level) == false) {
+	if (!isc_log_wouldlog(dns_lctx, level)) {
 		return;
 	}
 

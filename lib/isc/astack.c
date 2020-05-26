@@ -43,7 +43,7 @@ isc_astack_new(isc_mem_t *mctx, size_t size) {
 
 bool
 isc_astack_trypush(isc_astack_t *stack, void *obj) {
-	if (isc_mutex_trylock(&stack->lock) == false) {
+	if (!isc_mutex_trylock(&stack->lock)) {
 		if (stack->pos >= stack->size) {
 			UNLOCK(&stack->lock);
 			return (false);

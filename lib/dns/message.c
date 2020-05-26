@@ -1652,8 +1652,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			}
 			free_name = free_rdataset = false;
 		}
-		INSIST(free_name == false);
-		INSIST(free_rdataset == false);
+		INSIST(!free_name);
+		INSIST(!free_rdataset);
 	}
 
 	/*
@@ -1806,7 +1806,7 @@ truncated:
 	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		return (DNS_R_RECOVERABLE);
 	}
-	if (seen_problem == true) {
+	if (seen_problem) {
 		return (DNS_R_RECOVERABLE);
 	}
 	return (ISC_R_SUCCESS);

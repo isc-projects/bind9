@@ -3272,7 +3272,7 @@ dns_dispatch_getnext(dns_dispentry_t *resp, dns_dispatchevent_t **sockevent) {
 
 	LOCK(&disp->lock);
 
-	REQUIRE(resp->item_out == true);
+	REQUIRE(resp->item_out);
 	resp->item_out = false;
 
 	if (ev->buffer.base != NULL) {
@@ -3379,7 +3379,7 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 	}
 
 	if (ev != NULL) {
-		REQUIRE(res->item_out == true);
+		REQUIRE(res->item_out);
 		res->item_out = false;
 		if (ev->buffer.base != NULL) {
 			free_buffer(disp, ev->buffer.base, ev->buffer.length);

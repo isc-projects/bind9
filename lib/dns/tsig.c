@@ -144,7 +144,7 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char creatorstr[DNS_NAME_FORMATSIZE];
 
-	if (isc_log_wouldlog(dns_lctx, level) == false) {
+	if (!isc_log_wouldlog(dns_lctx, level)) {
 		return;
 	}
 	if (key != NULL) {

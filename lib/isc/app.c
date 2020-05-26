@@ -233,8 +233,8 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	REQUIRE(main_thread == GetCurrentThread());
 #endif /* ifdef WIN32 */
 
-	if (atomic_compare_exchange_strong_acq_rel(
-		    &ctx->running, &(bool){ false }, true) == true)
+	if (atomic_compare_exchange_strong_acq_rel(&ctx->running,
+						   &(bool){ false }, true))
 	{
 		/*
 		 * Post any on-run events (in FIFO order).
@@ -266,7 +266,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	 * simply be made pending and we will get it when we call
 	 * sigwait().
 	 */
-	while (atomic_load_acquire(&ctx->want_shutdown) == false) {
+	while (!atomic_load_acquire(&ctx->want_shutdown)) {
 #ifdef WIN32
 		DWORD dwWaitResult = WaitForMultipleObjects(
 			NUM_EVENTS, ctx->hEvents, FALSE, INFINITE);
@@ -360,8 +360,8 @@ isc_result_t
 isc_app_run(void) {
 	isc_result_t result;
 
-	REQUIRE(atomic_compare_exchange_strong_acq_rel(
-			&is_running, &(bool){ false }, true) == true);
+	REQUIRE(atomic_compare_exchange_strong_acq_rel(&is_running,
+						       &(bool){ false }, true));
 	result = isc_app_ctxrun(&isc_g_appctx);
 	atomic_store_release(&is_running, false);
 
@@ -424,7 +424,7 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	/*
 	 * Don't send the reload signal if we're shutting down.
 	 */
-	if (atomic_load_acquire(&ctx->shutdown_requested) == false) {
+	if (!atomic_load_acquire(&ctx->shutdown_requested)) {
 #ifdef WIN32
 		SetEvent(ctx->hEvents[RELOAD_EVENT]);
 #else  /* WIN32 */

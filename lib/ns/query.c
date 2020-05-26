@@ -5910,7 +5910,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		sigrdataset = NULL;
 	}
 
-	if (client->query.timerset == false) {
+	if (!client->query.timerset) {
 		ns_client_settimeout(client, 60);
 	}
 
@@ -10906,7 +10906,7 @@ ns_query_done(query_ctx_t *qctx) {
 	query_glueanswer(qctx);
 
 	if (qctx->client->message->rcode == dns_rcode_nxdomain &&
-	    qctx->view->auth_nxdomain == true)
+	    qctx->view->auth_nxdomain)
 	{
 		qctx->client->message->flags |= DNS_MESSAGEFLAG_AA;
 	}
