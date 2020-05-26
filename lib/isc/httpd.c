@@ -1041,7 +1041,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 
 	isc_httpd_addheader(httpd, "Server: libisc", NULL);
 
-	if (is_compressed == true) {
+	if (is_compressed) {
 		isc_httpd_addheader(httpd, "Content-Encoding", "deflate");
 		isc_httpd_addheaderuint(
 			httpd, "Content-Length",

@@ -41,7 +41,7 @@ static isc_refcount_t references;
 
 static void
 initialize(void) {
-	REQUIRE(initialize_done == false);
+	REQUIRE(!initialize_done);
 
 	isc_mem_create(&ns_g_mctx);
 

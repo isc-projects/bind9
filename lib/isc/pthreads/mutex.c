@@ -92,7 +92,7 @@ isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line) {
 
 	RUNTIME_CHECK(pthread_mutex_lock(&statslock) == 0);
 
-	if (stats_init == false) {
+	if (!stats_init) {
 		stats_init = true;
 	}
 

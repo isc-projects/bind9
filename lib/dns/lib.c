@@ -48,7 +48,7 @@ static void
 initialize(void) {
 	isc_result_t result;
 
-	REQUIRE(initialize_done == false);
+	REQUIRE(!initialize_done);
 
 	isc_refcount_init(&references, 0);
 

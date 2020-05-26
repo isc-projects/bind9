@@ -815,7 +815,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 
 			dst_key_free(&key);
 		}
-	} while (conflict == true);
+	} while (conflict);
 
 	if (conflict) {
 		fatal("cannot generate a null key due to possible key ID "
