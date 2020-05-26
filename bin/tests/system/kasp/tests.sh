@@ -801,37 +801,32 @@ status=$((status+ret))
 #
 # named
 #
-#
-#  The NSEC record at the apex of the zone and its RRSIG records are
-#  added as part of the last step in signing a zone.  We wait for the
-#  NSEC records to appear before proceeding with a counter to prevent
-#  infinite loops if there is a error.
-#
+
+# The NSEC record at the apex of the zone and its RRSIG records are
+# added as part of the last step in signing a zone.  We wait for the
+# NSEC records to appear before proceeding with a counter to prevent
+# infinite loops if there is an error.
 n=$((n+1))
 echo_i "waiting for kasp signing changes to take effect ($n)"
-i=0
-while [ $i -lt 30 ]
-do
-	ret=0
+
+_wait_for_done_apexnsec() {
 	while read -r zone
 	do
-		dig_with_opts "$zone" @10.53.0.3 nsec > "dig.out.ns3.test$n.$zone" || ret=1
-		grep "NS SOA" "dig.out.ns3.test$n.$zone" > /dev/null || ret=1
-		grep "$zone\..*IN.*RRSIG" "dig.out.ns3.test$n.$zone" > /dev/null || ret=1
+		dig_with_opts "$zone" @10.53.0.3 nsec > "dig.out.ns3.test$n.$zone" || return 1
+		grep "NS SOA" "dig.out.ns3.test$n.$zone" > /dev/null || return 1
+		grep "$zone\..*IN.*RRSIG" "dig.out.ns3.test$n.$zone" > /dev/null || return 1
 	done < ns3/zones
 
 	while read -r zone
 	do
-		dig_with_opts "$zone" @10.53.0.6 nsec > "dig.out.ns6.test$n.$zone" || ret=1
-		grep "NS SOA" "dig.out.ns6.test$n.$zone" > /dev/null || ret=1
-		grep "$zone\..*IN.*RRSIG" "dig.out.ns6.test$n.$zone" > /dev/null || ret=1
+		dig_with_opts "$zone" @10.53.0.6 nsec > "dig.out.ns6.test$n.$zone" || return 1
+		grep "NS SOA" "dig.out.ns6.test$n.$zone" > /dev/null || return 1
+		grep "$zone\..*IN.*RRSIG" "dig.out.ns6.test$n.$zone" > /dev/null || return 1
 	done < ns6/zones
 
-	i=$((i+1))
-	if [ $ret = 0 ]; then break; fi
-	echo_i "waiting ... ($i)"
-	sleep 1
-done
+	return 0
+}
+retry_quiet 30 _wait_for_done_apexnsec || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -1606,29 +1601,22 @@ echo_i "check that we correctly sign the zone after IXFR for zone ${ZONE} ($n)"
 ret=0
 cp ns2/secondary.kasp.db.in2 ns2/secondary.kasp.db
 rndccmd 10.53.0.2 reload "$ZONE" > /dev/null || log_error "rndc reload zone ${ZONE} failed"
-_log=0
-i=0
-while [ $i -lt 5 ]
-do
+
+_wait_for_done_subdomains() {
 	ret=0
-
-	dig_with_opts "a.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n.a" || log_error "dig a.${ZONE} A failed"
-	grep "status: NOERROR" "dig.out.$DIR.test$n.a" > /dev/null || log_error "mismatch status in DNS response"
-	grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.11" "dig.out.$DIR.test$n.a" > /dev/null || log_error "missing a.${ZONE} A record in response"
+	dig_with_opts "a.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n.a" || return 1
+	grep "status: NOERROR" "dig.out.$DIR.test$n.a" > /dev/null || return 1
+	grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.11" "dig.out.$DIR.test$n.a" > /dev/null || return 1
 	check_signatures $_qtype "dig.out.$DIR.test$n.a" "ZSK"
+	if [ $ret -gt 0 ]; then return $ret; fi
 
-	dig_with_opts "d.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n.d" || log_error "dig d.${ZONE} A failed"
-	grep "status: NOERROR" "dig.out.$DIR.test$n.d" > /dev/null || log_error "mismatch status in DNS response"
-	grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.4" "dig.out.$DIR.test$n.d" > /dev/null || log_error "missing d.${ZONE} A record in response"
-	lines=$(get_keys_which_signed A "dig.out.$DIR.test$n.d" | wc -l)
+	dig_with_opts "d.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n.d" || return 1
+	grep "status: NOERROR" "dig.out.$DIR.test$n.d" > /dev/null || return 1
+	grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.4" "dig.out.$DIR.test$n.d" > /dev/null || return 1
 	check_signatures $_qtype "dig.out.$DIR.test$n.d" "ZSK"
-
-	i=$((i+1))
-	if [ $ret = 0 ]; then break; fi
-	echo_i "waiting ... ($i)"
-	sleep 1
-done
-_log=1
+	return $ret
+}
+retry_quiet 5 _wait_for_done_subdomains || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -3757,29 +3745,20 @@ now="$(TZ=UTC date +%s)"
 time_passed=$((now-start_time))
 echo_i "${time_passed} seconds passed between start of tests and reconfig"
 
-#  The NSEC record at the apex of the zone and its RRSIG records are
-#  added as part of the last step in signing a zone.  We wait for the
-#  NSEC records to appear before proceeding with a counter to prevent
-#  infinite loops if there is a error.
-#
-n=$((n+1))
-echo_i "waiting for reconfig signing changes to take effect ($n)"
-i=0
-while [ $i -lt 30 ]
-do
-	ret=0
+# The NSEC record at the apex of the zone and its RRSIG records are
+# added as part of the last step in signing a zone.  We wait for the
+# NSEC records to appear before proceeding with a counter to prevent
+# infinite loops if there is a error. Make sure the zone is signed
+# with the new algorithm.
+_wait_for_done_reconfig() {
 	while read -r zone
 	do
-		dig_with_opts "$zone" @10.53.0.6 nsec > "dig.out.ns6.test$n.$zone" || ret=1
-		grep "NS SOA" "dig.out.ns6.test$n.$zone" > /dev/null || ret=1
-		grep "$zone\..*IN.*RRSIG" "dig.out.ns6.test$n.$zone" > /dev/null || ret=1
+		dig_with_opts "$zone" @10.53.0.6 nsec > "dig.out.ns6.test$n.$zone" || return 1
+		grep "NS SOA" "dig.out.ns6.test$n.$zone" > /dev/null || return 1
+		grep "$zone\..*IN.*RRSIG.*NSEC" "dig.out.ns6.test$n.$zone" > /dev/null || return 1
 	done < ns6/zones.2
-
-	i=$((i+1))
-	if [ $ret = 0 ]; then break; fi
-	echo_i "waiting ... ($i)"
-	sleep 1
-done
+}
+retry_quiet 30 _wait_for_done_reconfig || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
