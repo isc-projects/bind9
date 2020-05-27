@@ -20,10 +20,10 @@
 
 .. _dyndb-info:
 
-DynDB (Dynamic Database)
+Dynamic Database (DynDB)
 ------------------------
 
-DynDB is an extension to BIND 9 which, like DLZ (see
+Dynamic Database, or DynDB, is an extension to BIND 9 which, like DLZ (see
 :ref:`dlz-info`), allows zone data to be retrieved from an external
 database. Unlike DLZ, a DynDB module provides a full-featured BIND zone
 database interface. Where DLZ translates DNS queries into real-time
@@ -34,7 +34,7 @@ providing the same performance and functionality as zones served
 natively by BIND.
 
 A DynDB module supporting LDAP has been created by Red Hat and is
-available from https://fedorahosted.org/bind-dyndb-ldap/.
+available from https://pagure.io/bind-dyndb-ldap.
 
 A sample DynDB module for testing and developer guidance is included
 with the BIND source code, in the directory
@@ -57,18 +57,18 @@ The file ``driver.so`` is a DynDB module which implements the full DNS
 database API. Multiple ``dyndb`` statements can be specified, to load
 different drivers or multiple instances of the same driver. Zones
 provided by a DynDB module are added to the view's zone table, and are
-treated as normal authoritative zones when BIND is responding to
+treated as normal authoritative zones when BIND responds to
 queries. Zone configuration is handled internally by the DynDB module.
 
 The parameters are passed as an opaque string to the DynDB module's
-initialization routine. Configuration syntax will differ depending on
+initialization routine. Configuration syntax differs depending on
 the driver.
 
 Sample DynDB Module
 ~~~~~~~~~~~~~~~~~~~
 
-For guidance in implementation of DynDB modules, the directory
-``bin/tests/system/dyndb/driver``. contains a basic DynDB module. The
+For guidance in the implementation of DynDB modules, the directory
+``bin/tests/system/dyndb/driver`` contains a basic DynDB module. The
 example sets up two zones, whose names are passed to the module as
 arguments in the ``dyndb`` statement:
 
@@ -78,7 +78,7 @@ arguments in the ``dyndb`` statement:
 
 
 In the above example, the module is configured to create a zone
-"example.nil", which can answer queries and AXFR requests, and accept
+"example.nil" which can answer queries and AXFR requests and accept
 DDNS updates. At runtime, prior to any updates, the zone contains an
 SOA, NS, and a single A record at the apex:
 
@@ -91,8 +91,8 @@ SOA, NS, and a single A record at the apex:
     example.nil.  86400    IN      A       127.0.0.1
 
 
-When the zone is updated dynamically, the DynDB module will determine
+When the zone is updated dynamically, the DynDB module determines
 whether the updated RR is an address (i.e., type A or AAAA) and if so,
-it will automatically update the corresponding PTR record in a reverse
-zone. (Updates are not stored permanently; all updates are lost when the
-server is restarted.)
+it automatically updates the corresponding PTR record in a reverse
+zone. Note that updates are not stored permanently; all updates are lost when the
+server is restarted.
