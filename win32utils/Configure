@@ -19,13 +19,15 @@ no warnings 'experimental::smartmatch';
 
 use strict;
 use File::Spec;
-use Cwd;
 
 # files to configure
 
 my $configfile = "..\\config.h";
 my $platformfile = "..\\lib\\isc\\win32\\include\\isc\\platform.h";
-my $confshfile = "..\\bin\\tests\\system\\conf.sh";
+my @confshlist = ("..\\bin\\tests\\system\\conf.sh",
+		  "..\\bin\\tests\\system\\run.sh",
+		  "..\\bin\\tests\\system\\start.sh",
+		  "..\\bin\\tests\\system\\stop.sh");
 
 my @filelist = ("..\\lib\\dns\\win32\\libdns.def",
                 "..\\lib\\isc\\win32\\libisc.def");
@@ -214,7 +216,15 @@ my @substtest = ("CRYPTO",
                  "JSONSTATS",
                  "NZD_TOOLS",
                  "XMLSTATS",
-                 "ZLIB"),
+                 "ZLIB",
+		 "builddir",
+		 "srcdir",
+		 "abs_builddir",
+		 "abs_srcdir",
+		 "top_builddir",
+		 "top_srcdir",
+		 "abs_top_builddir",
+		 "abs_top_srcdir");
 
 # includes
 
@@ -286,7 +296,7 @@ my @substvar = ("BIND9_VERSION",
                 "PYTHON",
                 "TOOLS_VERSION",
                 "VCREDIST_PATH",
-                "WINDOWS_TARGET_PLATFORM_VERSION"),
+                "WINDOWS_TARGET_PLATFORM_VERSION");
 
 # defines
 
@@ -313,6 +323,13 @@ my @substcond = ("ATOMIC",
                  "ZLIB");
 
 my @allcond = (@substcond, "NOTYET", "NOLONGER");
+
+# paths
+
+my $top_builddir = File::Spec->updir();
+my $top_srcdir = File::Spec->updir();
+my $abs_top_builddir = File::Spec->rel2abs($top_builddir);
+my $abs_top_srcdir = File::Spec->rel2abs($top_srcdir);
 
 # arguments
 
@@ -549,6 +566,13 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
 }
 # Standard configure variable
 $configvar{"EXEEXT"} = ".exe";
+
+$configtest{"builddir"} = kw(".");
+$configtest{"srcdir"} = kw(".");
+$configtest{"abs_top_builddir"} = kw($abs_top_builddir);
+$configtest{"abs_top_builddir"} =~ s/\\/\\\\/g;
+$configtest{"abs_top_srcdir"} = kw($abs_top_srcdir);
+$configtest{"abs_top_srcdir"} =~ s/\\/\\\\/g;
 
 # Mimic AC_INIT() from autoconf by loading values from configure.ac
 
@@ -871,7 +895,10 @@ if ($want_clean eq "yes") {
 
     unlink($configfile);
     unlink($platformfile);
-    unlink($confshfile);
+
+    foreach $file (@confshlist) {
+	unlink($file);
+    }
 
     foreach $file (@filelist) {
         unlink($file);
@@ -1009,40 +1036,40 @@ if ($vcredist_path eq " --infer-- ") {
 
     my @vcpaths = {};
     push(@vcpaths, $ENV{"VCRedistPath"}) if ($ENV{"VCRedistPath"} ne "");
-    push(@vcpaths, File::Spec->catfile( cwd(), "..", ".." ));
+    push(@vcpaths, File::Spec->catdir( File::Spec->curdir(), "..", ".." ));
 
     if ($ENV{"FrameworkSDKDir"} ne "" && $want_win32 eq "yes") {
-        push(@vcpaths, File::Spec->catfile($ENV{"FrameworkSDKDir"},
+        push(@vcpaths, File::Spec->catdir($ENV{"FrameworkSDKDir"},
                                            "BootStrapper", "Packages",
                                            "vcredist_x86"));
     } elsif ($ENV{"FrameworkSDKDir"} ne "" && $want_x64 eq "yes") {
-        push(@vcpaths, File::Spec->catfile($ENV{"FrameworkSDKDir"},
+        push(@vcpaths, File::Spec->catdir($ENV{"FrameworkSDKDir"},
                                            "BootStrapper", "Packages",
                                            "vcredist_x64"));
     }
 
     if ($ENV{"WindowsSDKDir"} ne "" && $want_win32 eq "yes") {
-        push(@vcpaths, File::Spec->catfile($ENV{"WindowsSDKDir"},
+        push(@vcpaths, File::Spec->catdir($ENV{"WindowsSDKDir"},
                                            "BootStrapper", "Packages",
                                            "vcredist_x86"));
     } elsif ($ENV{"WindowsSDKDir"} ne "" && $want_x64 eq "yes") {
-        push(@vcpaths, File::Spec->catfile($ENV{"WindowsSDKDir"},
+        push(@vcpaths, File::Spec->catdir($ENV{"WindowsSDKDir"},
                                            "BootStrapper", "Packages",
                                            "vcredist_x64"));
     }
 
     if ($ENV{"WindowsSDKDir_old"} ne "" && $want_win32 eq "yes") {
-        push(@vcpaths, File::Spec->catfile($ENV{"WindowsSDKDir_old"},
+        push(@vcpaths, File::Spec->catdir($ENV{"WindowsSDKDir_old"},
                                            "BootStrapper", "Packages",
                                            "vcredist_x86"));
     } elsif ($ENV{"WindowsSDKDir_old"} ne "" && $want_x64 eq "yes") {
-        push(@vcpaths, File::Spec->catfile($ENV{"WindowsSDKDir_old"},
+        push(@vcpaths, File::Spec->catdir($ENV{"WindowsSDKDir_old"},
                                            "BootStrapper", "Packages",
                                            "vcredist_x64"));
     }
 
     if ($ENV{"VCINSTALLDIR"}) {
-        push(@vcpaths, File::Spec->catfile($ENV{"VCINSTALLDIR"},
+        push(@vcpaths, File::Spec->catdir($ENV{"VCINSTALLDIR"},
                                            "redist", "1033"));
     }
 
@@ -1259,7 +1286,7 @@ if ($use_libuv eq "auto") {
     foreach $file (sort {uc($b) cmp uc($a)} @dirlist) {
         if (-f File::Spec->catfile($libuv_path,
                                    $file,
-                                   "include\\uv.h")) {
+                                   "include", "uv.h")) {
             $libuv_path = File::Spec->catdir($libuv_path, $file);
             $use_libuv = "yes";
             last;
@@ -1286,7 +1313,7 @@ if ($use_libuv eq "yes") {
     }
     my $libuv_new = 0;
     if (!-f File::Spec->catfile($libuv_path,
-                                "include\\uv.h")) {
+                                "include", "uv.h")) {
         die "can't find libuv uv.h include\n";
     }
     my $libuv_inc = File::Spec->catdir($libuv_path, "include");
@@ -2084,45 +2111,70 @@ sub setupplatformh {
 
 sub setupconfsh {
     my $line;
-    my @Lines;
+    my @lines;
     my $val;
+    my $confshvolume;
+    my $confshdirectory;
+    my $confshbasefile;
 
-    open F, $confshfile . ".win32" || die $!;
-    @Lines = <F>;
-    close F;
+    foreach my $confshfile (@confshlist) {
+	my $confshfilein;
+	if (-f $confshfile . ".win32") {
+	    $confshfilein = $confshfile . ".win32";
+	} else {
+	    $confshfilein = $confshfile . ".in";
+	}
+	open(my $fin, "<" . $confshfilein) || die $!;
 
-    foreach $line (@Lines) {
-        chomp $line;
-        while ($line =~ /@([^@]+)\@/) {
-            if ($1 ~~ @substtest) {
-                if (defined($configtest{$1})) {
-                    $val = kw($configtest{$1});
-                    $line = "$`$val$'";
-                } else {
-                    $line = "$`$'";
-                }
-            } elsif ($1 ~~ @substvar) {
-                if (defined($configvar{$1})) {
-                    $val = kw($configvar{$1});
-                    $line = "$`$val$'";
-                } else {
-                    $line = "$`$'";
-                }
-            }  else {
-                die "unknown control $& in $confshfile.win32\n";
-            }
-        }
-    }
+	($confshvolume, $confshdirectory, $confshbasefile) = File::Spec->splitpath($confshfile);
 
-    open F, ">" . $confshfile || die $!;
-    if ($verbose) {
-        print "Setting up $confshfile\n";
+	@lines = <$fin>;
+	close($fin);
+
+	foreach $line (@lines) {
+	    chomp $line;
+	    while ($line =~ /@([^@]+)\@/) {
+		if ($1 ~~ @substtest) {
+		    if (defined($configtest{$1})) {
+			$val = kw($configtest{$1});
+		    } elsif ($1 eq "abs_builddir") {
+			$val = kw(File::Spec->rel2abs($confshdirectory, File::Spec->curdir()));
+			$val =~ s/\\/\\\\/g;
+		    } elsif ($1 eq "abs_srcdir") {
+			$val = kw(File::Spec->rel2abs($confshdirectory, File::Spec->curdir()));
+			$val =~ s/\\/\\\\/g;
+		    } elsif ($1 eq "top_builddir") {
+			$val = kw(File::Spec->abs2rel($top_builddir, $confshdirectory));
+			$val =~ s/\\/\\\\/g;
+		    } elsif ($1 eq "top_srcdir") {
+			$val = kw(File::Spec->abs2rel($top_srcdir, $confshdirectory));
+			$val =~ s/\\/\\\\/g;
+		    } else {
+			$val = "";
+		    }
+		} elsif ($1 ~~ @substvar) {
+		    if (defined($configvar{$1})) {
+			$val = kw($configvar{$1});
+		    } else {
+			$val = "";
+		    }
+		}  else {
+		    die "unknown control $& in $confshfilein\n";
+		}
+		$line = "$`$val$'";
+	    }
+	}
+
+	open(my $fout, ">" . $confshfile) || die $!;
+	if ($verbose) {
+	    print "Setting up $confshfile\n";
+	}
+	binmode($fout);
+	foreach $line (@lines) {
+	    print $fout $line . "\n";
+	}
+	close($fout);
     }
-    binmode(F);
-    foreach $line (@Lines) {
-        print F $line . "\n";
-    }
-    close F;
 }
 
 # setup a file with %configcond stack and %config{var,defd,inc,lib,dll,test}
