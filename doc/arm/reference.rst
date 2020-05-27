@@ -3264,7 +3264,7 @@ Tuning
    If stale answers are enabled, ``max-stale-ttl`` sets the maximum time
    for which the server retains records past their normal expiry to
    return them as stale records, when the servers for those records are
-   not reachable. The default is 1 week. The minimum allowed is 1
+   not reachable. The default is 12 hours. The minimum allowed is 1
    second; a value of 0 is updated silently to 1 second.
 
    For stale answers to be returned, they must be enabled, either in the

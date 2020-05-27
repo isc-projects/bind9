@@ -21,6 +21,8 @@ waitfile () {
     done
 }
 
+max_stale_ttl=$(sed -ne 's,^[[:space:]]*max-stale-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/named/config.c)
+
 status=0
 n=0
 
@@ -723,7 +725,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: off (stale-answer-ttl=1 max-stale-ttl=604800)' rndc.out.test$n > /dev/null || ret=1
+grep "_default: off (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl)" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -804,7 +806,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (rndc) (stale-answer-ttl=1 max-stale-ttl=604800)' rndc.out.test$n > /dev/null || ret=1
+grep "_default: on (rndc) (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl)" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -951,7 +953,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.4 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: off (stale-answer-ttl=1 max-stale-ttl=604800)' rndc.out.test$n > /dev/null || ret=1
+grep "_default: off (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl)" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
