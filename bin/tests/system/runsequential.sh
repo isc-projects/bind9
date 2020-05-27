@@ -17,9 +17,9 @@
 #
 
 SYSTEMTESTTOP=.
-. $SYSTEMTESTTOP/conf.sh
+. "$SYSTEMTESTTOP/conf.sh"
 
 for d in $SEQUENTIALDIRS
 do
-    $SHELL run.sh "${@}" $d 2>&1 | tee test.output.$d
+    $SHELL run.sh "${@}" "$d" 2>&1 | tee "test.output.$d"
 done

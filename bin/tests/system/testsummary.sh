@@ -25,17 +25,18 @@
 # 1 - one or more tests failed
 
 SYSTEMTESTTOP=.
-. $SYSTEMTESTTOP/conf.sh
+. "$SYSTEMTESTTOP/conf.sh"
 
 keepfile=0
 
 while getopts "n" flag; do
     case $flag in
 	n) keepfile=1 ;;
+	*) exit 1 ;;
     esac
 done
 
-if [ `ls test.output.* 2> /dev/null | wc -l` -eq 0 ]; then
+if [ "$(find . -name 'test.output.*' 2>/dev/null | wc -l)" -eq 0 ]; then
     echowarn "I:No 'test.output.*' files were found."
     echowarn "I:Printing summary from pre-existing 'systests.output'."
 else
@@ -45,37 +46,42 @@ else
     fi
 fi
 
+if [ ! -f systests.output ]; then
+    echowarn "I:No 'systests.output' file found."
+    exit 1
+fi
+
 status=0
 echoinfo "I:System test result summary:"
-echoinfo "`grep 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/'`"
+echoinfo "$(grep 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/')"
 
-FAILED_TESTS=`grep 'R:[a-z0-9_-][a-z0-9_-]*:FAIL' systests.output | cut -d':' -f2 | sort | sed -e 's/^/I:      /'`
+FAILED_TESTS=$(grep 'R:[a-z0-9_-][a-z0-9_-]*:FAIL' systests.output | cut -d':' -f2 | sort | sed -e 's/^/I:      /')
 if [ -n "${FAILED_TESTS}" ]; then
 	echoinfo "I:The following system tests failed:"
 	echoinfo "${FAILED_TESTS}"
 	status=1
 fi
 
-CRASHED_TESTS=`find . -name 'core*' -or -name '*.core' | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /'`
+CRASHED_TESTS=$(find . -name 'core*' -or -name '*.core' | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /')
 if [ -n "${CRASHED_TESTS}" ]; then
 	echoinfo "I:Core dumps were found for the following system tests:"
 	echoinfo "${CRASHED_TESTS}"
 fi
 
-ASSERTION_FAILED_TESTS=`find . -name named.run | xargs grep "assertion failure" | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /'`
+ASSERTION_FAILED_TESTS=$(find . -name named.run -print0 | xargs -0 grep "assertion failure" | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /')
 if [ -n "${ASSERTION_FAILED_TESTS}" ]; then
 	echoinfo "I:Assertion failures were detected for the following system tests:"
 	echoinfo "${ASSERTION_FAILED_TESTS}"
 fi
 
-TSAN_REPORT_TESTS=`find . -name 'tsan.*' | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /'`
+TSAN_REPORT_TESTS=$(find . -name 'tsan.*' | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /')
 if [ -n "${TSAN_REPORT_TESTS}" ]; then
 	echoinfo "I:ThreadSanitizer reported issues for the following system tests:"
 	echoinfo "${TSAN_REPORT_TESTS}"
 fi
 
-RESULTS_FOUND=`grep -c 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output`
-TESTS_RUN=`echo "${SUBDIRS}" | wc -w`
+RESULTS_FOUND=$(grep -c 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output)
+TESTS_RUN=$(echo "${SUBDIRS}" | wc -w)
 if [ "${RESULTS_FOUND}" -ne "${TESTS_RUN}" ]; then
 	echofail "I:Found ${RESULTS_FOUND} test results, but ${TESTS_RUN} tests were run"
 	status=1

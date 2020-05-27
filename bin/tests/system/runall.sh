@@ -25,7 +25,7 @@
 #               run sequentially on that platform.)
 
 SYSTEMTESTTOP=.
-. $SYSTEMTESTTOP/conf.sh
+. "$SYSTEMTESTTOP/conf.sh"
 
 usage="Usage: ./runall.sh [-c] [-n] [numprocesses]"
 
@@ -36,22 +36,23 @@ SYSTEMTEST_NO_CLEAN=${SYSTEMTEST_NO_CLEAN:-0}
 
 # Handle command line switches if present.
 
-while getopts "cn" flag; do
+while getopts "cn-" flag; do
     case "$flag" in
         c) SYSTEMTEST_FORCE_COLOR=1 ;;
         n) SYSTEMTEST_NO_CLEAN=1 ;;
+	-) break;;
+	*) exit 1;;
     esac
 done
 export NOCLEAN
-shift `expr $OPTIND - 1`
+shift $((OPTIND-1))
 
 # Obtain number of processes to use.
 
 if [ $# -eq 0 ]; then
     numproc=1
 elif [ $# -eq 1 ]; then
-    test "$1" -eq "$1" > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if [ "$1" -ne "$1" ] 2>&1; then
         # Value passed is not numeric
         echo "$usage" >&2
         exit 1
@@ -72,14 +73,14 @@ status=0
 if [ "$NOPARALLEL" = "" ]; then
     if [ "$CYGWIN" = "" ]; then
         # Running on Unix, use "make" to run tests in parallel.
-        make -j $numproc check
+        make -j "$numproc" check
         status=$?
     else
         # Running on Windows: Cygwin "make" is available, but isn't being
         # used for the build. So we create a special makefile for the purpose
         # of parallel execution of system tests, and use that.
         $SHELL parallel.sh > parallel.mk
-        make -f parallel.mk -j $numproc check
+        make -f parallel.mk -j "$numproc" check
         $SHELL ./runsequential.sh
         $SHELL ./testsummary.sh || status=1
     fi
@@ -95,11 +96,15 @@ else
 	EOF
         exit 1
     }
-    {
+    (
+	status=0
         for testdir in $SUBDIRS; do
-            $SHELL run.sh $testdir || status=1
+            $SHELL run.sh -r "$testdir" || status=1
         done
-    } 2>&1 | tee "systests.output"
+	echo "$status" > systests.status
+    ) 2>&1 | tee "systests.output"
+    read -r status < systests.status
+    rm systests.status
 fi
 
-exit $status
+exit "$status"
