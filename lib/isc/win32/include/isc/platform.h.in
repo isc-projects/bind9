@@ -41,6 +41,7 @@ typedef uint32_t socklen_t;
  * Limits
  */
 
+#include <stdlib.h>
 #ifndef NAME_MAX
 #define NAME_MAX _MAX_FNAME
 #endif

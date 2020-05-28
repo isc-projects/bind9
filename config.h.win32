@@ -242,9 +242,9 @@ typedef __int64 off_t;
 #include <io.h>
 #define isatty	_isatty
 
-#ifndef _WINSOCKAPI_
-#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
-#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1 /* Prevent inclusion of winsock.h in windows.h */
+#endif /* WIN32_LEAN_AND_MEAN */
 
 /*
  * Make the number of available sockets large
