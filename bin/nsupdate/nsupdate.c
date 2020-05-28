@@ -192,6 +192,7 @@ static unsigned int udp_timeout = 3;
 static unsigned int udp_retries = 3;
 static dns_rdataclass_t defaultclass = dns_rdataclass_in;
 static dns_rdataclass_t zoneclass = dns_rdataclass_none;
+static isc_mutex_t answer_lock;
 static dns_message_t *answer = NULL;
 static uint32_t default_ttl = 0;
 static bool default_ttl_set = false;
@@ -1038,15 +1039,18 @@ setup_system(void) {
 				       dispatchv4, dispatchv6, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
 
-	if (keystr != NULL)
+	if (keystr != NULL) {
 		setup_keystr();
-	else if (local_only) {
+	} else if (local_only) {
 		result = read_sessionkey(gmctx, glctx);
 		if (result != ISC_R_SUCCESS)
 			fatal("can't read key from %s: %s\n",
 			      keyfile, isc_result_totext(result));
-	} else if (keyfile != NULL)
+	} else if (keyfile != NULL) {
 		setup_keyfile(gmctx, glctx);
+	}
+
+	isc_mutex_init(&answer_lock);
 }
 
 static int
@@ -2177,8 +2181,11 @@ do_next_command(char *cmdline) {
 		return (STATUS_MORE);
 	}
 	if (strcasecmp(word, "answer") == 0) {
-		if (answer != NULL)
+		LOCK(&answer_lock);
+		if (answer != NULL) {
 			show_message(stdout, answer, "Answer:");
+		}
+		UNLOCK(&answer_lock);
 		return (STATUS_MORE);
 	}
 	if (strcasecmp(word, "key") == 0) {
@@ -2378,6 +2385,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
+	LOCK(&answer_lock);
 	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &answer);
 	check_result(result, "dns_message_create");
 	result = dns_request_getresponse(request, answer,
@@ -2426,8 +2434,10 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 				(int)isc_buffer_usedlength(&b), buf);
 		}
 	}
-	if (debugging)
+	if (debugging) {
 		show_message(stderr, answer, "\nReply from update query:");
+	}
+	UNLOCK(&answer_lock);
 
  done:
 	dns_request_destroy(&request);
@@ -3162,8 +3172,11 @@ start_update(void) {
 
 	ddebug("start_update()");
 
-	if (answer != NULL)
+	LOCK(&answer_lock);
+	if (answer != NULL) {
 		dns_message_destroy(&answer);
+	}
+	UNLOCK(&answer_lock);
 
 	/*
 	 * If we have both the zone and the servers we have enough information
@@ -3241,8 +3254,11 @@ static void
 cleanup(void) {
 	ddebug("cleanup()");
 
-	if (answer != NULL)
+	LOCK(&answer_lock);
+	if (answer != NULL) {
 		dns_message_destroy(&answer);
+	}
+	UNLOCK(&answer_lock);
 
 #ifdef GSSAPI
 	if (tsigkey != NULL) {
@@ -3297,6 +3313,8 @@ cleanup(void) {
 	if (memdebugging)
 		isc_mem_stats(gmctx, stderr);
 	isc_mem_destroy(&gmctx);
+
+	isc_mutex_destroy(&answer_lock);
 }
 
 static void
