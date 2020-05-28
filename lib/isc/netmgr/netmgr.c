@@ -771,6 +771,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 	}
 
 	isc_astack_destroy(sock->inactivereqs);
+	sock->magic = 0;
 
 	isc_mem_free(sock->mgr->mctx, sock->ah_frees);
 	isc_mem_free(sock->mgr->mctx, sock->ah_handles);
