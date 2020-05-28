@@ -3061,7 +3061,7 @@ typedef struct {
 	dns_rdata_t rdata;
 	size_t size;
 	isc_mem_t *mctx;
-	unsigned char data[FLEXIBLE_ARRAY_MEMBER];
+	unsigned char data[];
 } dns_client_updaterec_t;
 
 isc_result_t

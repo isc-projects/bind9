@@ -328,7 +328,6 @@ AX_TLS([AS_IF([test "$ac_cv_tls" != "thread_local"],
 AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
-AC_C_FLEXIBLE_ARRAY_MEMBER
 
 #
 # Check for yield support on ARM processors

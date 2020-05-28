@@ -375,17 +375,6 @@ typedef __int64 off_t;
 @HAVE_KRB5_H@
 @HAVE_KRB5_KRB5_H@
 
-/*
- * Define to nothing if C supports flexible array members, and to 1 if it does
- * not. That way, with a declaration like `struct s { int n; double
- * d[FLEXIBLE_ARRAY_MEMBER]; };', the struct hack can be used with pre-C99
- * compilers. When computing the size of such an object, don't use 'sizeof
- * (struct s)' as it overestimates the size. Use 'offsetof (struct s, d)'
- * instead. Don't use 'offsetof (struct s, d[0])', as this doesn't work with
- * MSVC and with C++ compilers.
- */
-#define FLEXIBLE_ARRAY_MEMBER /**/
-
 /* Avoid warnings with strlen() */
 #ifdef _WIN64
 #define strlen(x)	(unsigned int) strlen(x)
