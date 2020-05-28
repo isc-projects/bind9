@@ -121,3 +121,6 @@ Bug Fixes
 -  When built without LMDB support, ``named`` failed to restart after a
    zone with a double quote (") in its name was added with ``rndc
    addzone``. Thanks to Alberto Fernández. [GL #1695]
+
+-  Missing mutex and conditional destruction in netmgr code leads to a
+   memory leak on *BSD systems. [GL #1893]

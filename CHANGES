@@ -1,3 +1,6 @@
+5420.	[bug]		Add missing isc_{mutex,conditional}_destroy calls
+			that caused a memory leak on FreeBSD. [GL #1893]
+
 5419.	[func]		"dig +qid=<num>" sets the query ID to an arbitrary
 			value. "configure --enable-singletrace" allows
 			trace logging of a single query when QID is set to 0.
