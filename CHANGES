@@ -1,3 +1,7 @@
+5421.	[bug]		Fixed a race that could cause named to crash when
+			looking up the nodename of an RBT node if the tree
+			was modified. [GL #1857]
+
 5420.	[bug]		Add missing isc_{mutex,conditional}_destroy calls
 			that caused a memory leak on FreeBSD. [GL #1893]
 
