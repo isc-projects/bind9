@@ -276,6 +276,9 @@ nm_destroy(isc_nm_t **mgr0) {
 
 		isc_queue_destroy(worker->ievents);
 		isc_queue_destroy(worker->ievents_prio);
+		isc_mutex_destroy(&worker->lock);
+		isc_condition_destroy(&worker->cond);
+
 		isc_mem_put(mgr->mctx, worker->recvbuf,
 			    ISC_NETMGR_RECVBUF_SIZE);
 		isc_thread_join(worker->thread, NULL);
@@ -768,9 +771,12 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 	}
 
 	isc_astack_destroy(sock->inactivereqs);
+	sock->magic = 0;
 
 	isc_mem_free(sock->mgr->mctx, sock->ah_frees);
 	isc_mem_free(sock->mgr->mctx, sock->ah_handles);
+	isc_mutex_destroy(&sock->lock);
+	isc_condition_destroy(&sock->cond);
 
 	if (dofree) {
 		isc_nm_t *mgr = sock->mgr;
