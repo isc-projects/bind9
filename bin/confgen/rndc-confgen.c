@@ -76,6 +76,7 @@ Usage:\n\
   -c keyfile:	 specify an alternate key file (requires -a)\n\
   -k keyname:	 the name as it will be used  in named.conf and rndc.conf\n\
   -p port:	 the port named will listen on and rndc will connect to\n\
+  -q:		 suppress printing written key path\n\
   -s addr:	 the address to which rndc should connect\n\
   -t chrootdir:	 write a keyfile in chrootdir as well (requires -a)\n\
   -u user:	 set the keyfile owner to \"user\" (requires -a)\n",
@@ -104,6 +105,7 @@ main(int argc, char **argv) {
 	char *chrootdir = NULL;
 	char *user = NULL;
 	bool keyonly = false;
+	bool quiet = false;
 	int len;
 
 	keydef = keyfile = RNDC_KEYFILE;
@@ -163,6 +165,9 @@ main(int argc, char **argv) {
 				fatal("port '%s' out of range",
 				      isc_commandline_argument);
 			}
+			break;
+		case 'q':
+			quiet = true;
 			break;
 		case 'r':
 			fatal("The -r option has been deprecated.");
@@ -227,6 +232,9 @@ main(int argc, char **argv) {
 	if (keyonly) {
 		write_key_file(keyfile, chrootdir == NULL ? user : NULL,
 			       keyname, &key_txtbuffer, alg);
+		if (!quiet) {
+			printf("wrote key file \"%s\"\n", keyfile);
+		}
 
 		if (chrootdir != NULL) {
 			char *buf;
@@ -236,6 +244,9 @@ main(int argc, char **argv) {
 				 (*keyfile != '/') ? "/" : "", keyfile);
 
 			write_key_file(buf, user, keyname, &key_txtbuffer, alg);
+			if (!quiet) {
+				printf("wrote key file \"%s\"\n", buf);
+			}
 			isc_mem_put(mctx, buf, len);
 		}
 	} else {

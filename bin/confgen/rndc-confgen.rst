@@ -86,6 +86,9 @@ Arguments
    Specifies the command channel port where ``named`` listens for
    connections from ``rndc``. The default is 953.
 
+**-q**
+   Omits printing written path in automatic configuration mode.
+
 **-s** address
    Specifies the IP address where ``named`` listens for command channel
    connections from ``rndc``. The default is the loopback address
