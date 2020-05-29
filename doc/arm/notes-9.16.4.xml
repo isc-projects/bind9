@@ -46,8 +46,10 @@
   <section xml:id="relnotes-9.16.4-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
-        <para>
-          None.
+	<para>
+	  <command>named</command> could crash with an assertion failure
+	  if the name of a database node was looked up while the database
+	  was being modified. [GL #1857]
         </para>
       </listitem>
     </itemizedlist>

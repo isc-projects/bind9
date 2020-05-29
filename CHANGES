@@ -1,3 +1,7 @@
+5421.	[bug]		Fixed a race that could cause named to crash when
+			looking up the nodename of an RBT node if the tree
+			was modified. [GL #1857]
+
 5418.	[bug]		delv failed to parse deprecated trusted-keys style
 			trust anchors. [GL #1860]
 
