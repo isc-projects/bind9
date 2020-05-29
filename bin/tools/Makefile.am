@@ -17,12 +17,16 @@ sbin_PROGRAMS =			\
 	named-journalprint	\
 	nsec3hash
 
+arpaname_LDADD =		\
+	$(LIBISC_LIBS)
+
 mdig_CPPFLAGS =			\
 	$(AM_CPPFLAGS)		\
 	$(LIBBIND9_CFLAGS)
 
-mdig_LDADD =		\
-	$(LDADD)	\
+mdig_LDADD =			\
+	$(LIBISC_LIBS)		\
+	$(LIBDNS_LIBS)		\
 	$(LIBBIND9_LIBS)
 
 if HAVE_DNSTAP
@@ -35,7 +39,8 @@ dnstap_read_CPPFLAGS =		\
 	-I$(top_builddir)/lib/dns
 
 dnstap_read_LDADD =		\
-	$(LDADD)		\
+	$(LIBISC_LIBS)		\
+	$(LIBDNS_LIBS)		\
 	$(DNSTAP_LIBS)
 endif
 
@@ -48,7 +53,8 @@ named_nzd2nzf_CFLAGS =		\
 	$(LMDB_CFLAGS)
 
 named_nzd2nzf_LDADD =		\
-	$(LDADD)		\
+	$(LIBISC_LIBS)		\
+	$(LIBDNS_LIBS)		\
 	$(LMDB_LIBS)
 
 endif

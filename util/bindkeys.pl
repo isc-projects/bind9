@@ -12,20 +12,15 @@
 use strict;
 use warnings;
 
-my $lines;
-while (<>) {
+print "#pragma once\n";
+print "#define TRUST_ANCHORS \"\\\n";
+
+my $fn = shift or die "Usage: $0 FILENAME\n";
+open(my $fh, '<', $fn) or die "cannot open file $ARGV[1]\n";
+while (<$fh>) {
     chomp;
-    if (/\/\* .Id:.* \*\//) {
-	next;
-    }
     s/\"/\\\"/g;
-    s/$/\\n\\/;
-    $lines .= $_ . "\n";
+    print $_ . "\\n\\\n";
 }
-
-my $mkey = "#define TRUST_ANCHORS \\\n\t\"\\\n" . $lines . "\"\n";
-
-print "#ifndef BIND_KEYS_H\n";
-print "#define BIND_KEYS_H 1\n";
-print $mkey;
-print "#endif /* BIND_KEYS_H */\n";
+close($fh);
+print "\"\n";

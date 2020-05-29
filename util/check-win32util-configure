@@ -10,10 +10,9 @@
 status=0
 find */*/win32 win32utils -name \*.in |
 sed -e '/\/Makefile.in$/d' \
-    -e 's/\//\\\\\\\\/g' \
     -e 's/.in$/"/' \
-    -e 's/^/"..\\\\\\\\/' \
-    -e 's/"..\\\\\\\\win32utils\\\\\\\\/"/' |
+    -e 's/^/"..\//' \
+    -e 's/"..\/win32utils\//"/' |
 while read f
 do
 	if grep -F "$f" win32utils/Configure > /dev/null

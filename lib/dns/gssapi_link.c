@@ -365,5 +365,3 @@ dst__gssapi_init(dst_func_t **funcp) {
 	}
 	return (ISC_R_SUCCESS);
 }
-
-/*! \file */

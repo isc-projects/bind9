@@ -104,6 +104,20 @@
       <OutputFile>.\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\lib\isc\win32\libisc.vcxproj">
+      <Project>{3840E563-D180-4761-AA9C-E6155F02EAFF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\dns\win32\libdns.vcxproj">
+      <Project>{5FEBFD4E-CCB0-48B9-B733-E15EEB85C16A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\ns\win32\libns.vcxproj">
+      <Project>{82ACD33C-E75F-45B8-BB6D-42643A10D7EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\isccfg\win32\libisccfg.vcxproj">
+      <Project>{B2DFA58C-6347-478E-81E8-01E06999D4F1}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -61,6 +61,20 @@
 #error Minimum Visual Studio version is 2017 or higher
 #endif
 
+/* Setup package versions */
+@PACKAGE_VERSION_MAJOR@
+@PACKAGE_VERSION_MINOR@
+@PACKAGE_VERSION_PATCH@
+@PACKAGE_VERSION_EXTRA@
+@PACKAGE_VERSION@
+@PACKAGE_NAME@
+@PACKAGE_DESCRIPTION@
+@PACKAGE_SRCID@
+@PACKAGE_CONFIGARGS@
+@PACKAGE_BUILDER@
+@PACKAGE_STRING@
+@MAPAPI@
+
 /* Define if you have the ANSI C header files.  */
 #define STDC_HEADERS 1
 
@@ -209,8 +223,6 @@ typedef __int64 off_t;
 /*
  * Set up the Version Information
  */
-#include <versions.h>
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -230,9 +242,9 @@ typedef __int64 off_t;
 #include <io.h>
 #define isatty	_isatty
 
-#ifndef _WINSOCKAPI_
-#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
-#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1 /* Prevent inclusion of winsock.h in windows.h */
+#endif /* WIN32_LEAN_AND_MEAN */
 
 /*
  * Make the number of available sockets large
@@ -354,21 +366,18 @@ typedef __int64 off_t;
 /* Define to 1 if you have the `uv_import' function. */
 @HAVE_UV_IMPORT@
 
-/*
- * Define to nothing if C supports flexible array members, and to 1 if it does
- * not. That way, with a declaration like `struct s { int n; double
- * d[FLEXIBLE_ARRAY_MEMBER]; };', the struct hack can be used with pre-C99
- * compilers. When computing the size of such an object, don't use 'sizeof
- * (struct s)' as it overestimates the size. Use 'offsetof (struct s, d)'
- * instead. Don't use 'offsetof (struct s, d[0])', as this doesn't work with
- * MSVC and with C++ compilers.
- */
-#define FLEXIBLE_ARRAY_MEMBER /**/
+/* GSSAPI Related defines */
+@HAVE_GSSAPI@
+@HAVE_GSSAPI_H@
+@HAVE_GSSAPI_GSSAPI_H@
+@HAVE_GSSAPI_KRB5_H@
+@HAVE_GSSAPI_GSSAPI_KRB5_H@
+@HAVE_KRB5_H@
+@HAVE_KRB5_KRB5_H@
 
 /* Avoid warnings with strlen() */
 #ifdef _WIN64
 #define strlen(x)	(unsigned int) strlen(x)
 #endif
 
-/* Get SRCID */
-#include "srcid.h"
+/* Hey Emacs, this is -*- c -*- file! */

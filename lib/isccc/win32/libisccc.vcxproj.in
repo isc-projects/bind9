@@ -140,6 +140,11 @@
     <ClInclude Include="..\include\isccc\types.h" />
     <ClInclude Include="..\include\isccc\util.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\lib\isc\win32\libisc.vcxproj">
+      <Project>{3840E563-D180-4761-AA9C-E6155F02EAFF}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

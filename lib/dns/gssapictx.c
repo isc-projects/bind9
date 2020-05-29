@@ -61,6 +61,8 @@
 
 #include "dst_internal.h"
 
+#if HAVE_GSSAPI
+
 #ifndef GSS_KRB5_MECHANISM
 static unsigned char krb5_mech_oid_bytes[] = { 0x2a, 0x86, 0x48, 0x86, 0xf7,
 					       0x12, 0x01, 0x02, 0x02 };
@@ -831,6 +833,98 @@ gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
 	return (buf);
 }
 
+#else
+
+isc_result_t
+dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
+		       gss_cred_id_t *cred) {
+	REQUIRE(cred != NULL && *cred == NULL);
+
+	UNUSED(name);
+	UNUSED(initiate);
+	UNUSED(cred);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+bool
+dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
+				    const dns_name_t *name,
+				    const dns_name_t *realm, bool subdomain) {
+	UNUSED(signer);
+	UNUSED(name);
+	UNUSED(realm);
+	UNUSED(subdomain);
+
+	return (false);
+}
+
+bool
+dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
+				  const dns_name_t *name,
+				  const dns_name_t *realm, bool subdomain) {
+	UNUSED(signer);
+	UNUSED(name);
+	UNUSED(realm);
+	UNUSED(subdomain);
+
+	return (false);
+}
+
+isc_result_t
+dst_gssapi_releasecred(gss_cred_id_t *cred) {
+	UNUSED(cred);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
+		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
+		   isc_mem_t *mctx, char **err_message) {
+	UNUSED(name);
+	UNUSED(intoken);
+	UNUSED(outtoken);
+	UNUSED(gssctx);
+	UNUSED(mctx);
+	UNUSED(err_message);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dst_gssapi_acceptctx(gss_cred_id_t cred, const char *gssapi_keytab,
+		     isc_region_t *intoken, isc_buffer_t **outtoken,
+		     gss_ctx_id_t *ctxout, dns_name_t *principal,
+		     isc_mem_t *mctx) {
+	UNUSED(cred);
+	UNUSED(gssapi_keytab);
+	UNUSED(intoken);
+	UNUSED(outtoken);
+	UNUSED(ctxout);
+	UNUSED(principal);
+	UNUSED(mctx);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dst_gssapi_deletectx(isc_mem_t *mctx, gss_ctx_id_t *gssctx) {
+	UNUSED(mctx);
+	UNUSED(gssctx);
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+char *
+gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
+	snprintf(buf, buflen, "GSSAPI error: Major = %u, Minor = %u.", major,
+		 minor);
+
+	return (buf);
+}
+
+#endif
+
 void
 gss_log(int level, const char *fmt, ...) {
 	va_list ap;
@@ -840,5 +934,3 @@ gss_log(int level, const char *fmt, ...) {
 		       ISC_LOG_DEBUG(level), fmt, ap);
 	va_end(ap);
 }
-
-/*! \file */

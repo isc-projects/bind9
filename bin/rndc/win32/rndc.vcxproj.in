@@ -75,7 +75,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$(Configuration);..\..\..\lib\isc\win32\$(Configuration);..\..\..\lib\dns\win32\$(Configuration);..\..\..\lib\isccfg\win32\$(Configuration);..\..\..\lib\isccc\win32\$(Configuration);..\..\..\lib\bind9\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>@OPENSSL_LIB@util.lib;libisc.lib;libdns.lib;libisccfg.lib;libisccc.lib;libbind9.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>@OPENSSL_LIB@libisc.lib;libdns.lib;libisccfg.lib;libisccc.lib;libbind9.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|@PLATFORM@'">
@@ -107,7 +107,7 @@
       <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <AdditionalLibraryDirectories>$(Configuration);..\..\..\lib\isc\win32\$(Configuration);..\..\..\lib\dns\win32\$(Configuration);..\..\..\lib\isccfg\win32\$(Configuration);..\..\..\lib\isccc\win32\$(Configuration);..\..\..\lib\bind9\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>@OPENSSL_LIB@util.lib;libisc.lib;libdns.lib;libisccfg.lib;libisccc.lib;libbind9.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>@OPENSSL_LIB@libisc.lib;libdns.lib;libisccfg.lib;libisccc.lib;libbind9.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -115,6 +115,24 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\rndc.c" />
+    <ClCompile Include="..\util.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\lib\isc\win32\libisc.vcxproj">
+      <Project>{3840E563-D180-4761-AA9C-E6155F02EAFF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\dns\win32\libdns.vcxproj">
+      <Project>{5FEBFD4E-CCB0-48B9-B733-E15EEB85C16A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\isccc\win32\libisccc.vcxproj">
+      <Project>{B556705F-1920-4400-878A-B259D3556047}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\isccfg\win32\libisccfg.vcxproj">
+      <Project>{B2DFA58C-6347-478E-81E8-01E06999D4F1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\lib\bind9\win32\libbind9.vcxproj">
+      <Project>{E741C10B-B075-4206-9596-46765B665E03}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

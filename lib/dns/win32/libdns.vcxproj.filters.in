@@ -284,9 +284,11 @@
     <ClCompile Include="..\dst_result.c">
       <Filter>Dst Source Files</Filter>
     </ClCompile>
+@IF GSSAPI
     <ClCompile Include="..\gssapi_link.c">
       <Filter>Dst Source Files</Filter>
     </ClCompile>
+@END GSSAPI
     <ClCompile Include="..\gssapictx.c">
       <Filter>Dst Source Files</Filter>
     </ClCompile>
@@ -325,9 +327,6 @@
       <Filter>Dst Source Files</Filter>
     </ClCompile>
 @END PKCS11
-    <ClCompile Include="..\spnego.c">
-      <Filter>Dst Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code.h">
@@ -655,8 +654,5 @@
       <Filter>Dst Header Files</Filter>
     </ClInclude>
 @END PKCS11
-    <ClInclude Include="..\spnego.h">
-      <Filter>Dst Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

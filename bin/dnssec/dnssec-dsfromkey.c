@@ -331,7 +331,7 @@ usage(void) {
 	fprintf(stderr, "    %s [options] -f zonefile [zonename]\n\n", program);
 	fprintf(stderr, "    %s [options] -s dnsname\n\n", program);
 	fprintf(stderr, "    %s [-h|-V]\n\n", program);
-	fprintf(stderr, "Version: %s\n", VERSION);
+	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "Options:\n"
 			"    -1: digest algorithm SHA-1\n"
 			"    -2: digest algorithm SHA-256\n"

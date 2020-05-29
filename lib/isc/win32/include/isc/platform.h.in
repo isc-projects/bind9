@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_PLATFORM_H
-#define ISC_PLATFORM_H 1
+#pragma once
 
 /*****
  ***** Platform-dependent defines.
@@ -34,10 +33,15 @@
 typedef uint32_t socklen_t;
 #endif
 
+#ifndef thread_local
+#define thread_local __declspec(thread)
+#endif /* thread_local */
+
 /*
  * Limits
  */
 
+#include <stdlib.h>
 #ifndef NAME_MAX
 #define NAME_MAX _MAX_FNAME
 #endif
@@ -97,5 +101,3 @@ typedef uint32_t socklen_t;
 #else
 #define LIBTESTS_EXTERNAL_DATA __declspec(dllimport)
 #endif
-
-#endif /* ISC_PLATFORM_H */
