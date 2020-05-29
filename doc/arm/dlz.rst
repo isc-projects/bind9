@@ -17,18 +17,18 @@
 
 .. _dlz-info:
 
-DLZ (Dynamically Loadable Zones)
+Dynamically Loadable Zones (DLZ)
 --------------------------------
 
-DLZ (Dynamically Loadable Zones) is an extension to BIND 9 that allows
+Dynamically Loadable Zones (DLZ) are an extension to BIND 9 that allows
 zone data to be retrieved directly from an external database. There is
 no required format or schema. DLZ drivers exist for several different
-database backends including PostgreSQL, MySQL, and LDAP and can be
+database backends, including PostgreSQL, MySQL, and LDAP, and can be
 written for any other.
 
 Historically, DLZ drivers had to be statically linked with the ``named``
 binary and were turned on via a configure option at compile time (for
-example, ``"configure --with-dlz-ldap"``). Currently, the drivers
+example, ``configure --with-dlz-ldap``). The drivers
 provided in the BIND 9 tarball in ``contrib/dlz/drivers`` are still
 linked this way.
 
@@ -40,15 +40,15 @@ options are no longer necessary when using these dynamically linkable
 drivers, but are still needed for the older drivers in
 ``contrib/dlz/drivers``.
 
-When the DLZ module provides data to ``named``, it does so in text
-format. The response is converted to DNS wire format by ``named``. This
+The DLZ module provides data to ``named`` in text
+format, which is then converted to DNS wire format by ``named``. This
 conversion, and the lack of any internal caching, places significant
 limits on the query performance of DLZ modules. Consequently, DLZ is not
 recommended for use on high-volume servers. However, it can be used in a
-hidden master configuration, with slaves retrieving zone updates via
-AXFR. (Note, however, that DLZ has no built-in support for DNS notify;
-slaves are not automatically informed of changes to the zones in the
-database.)
+hidden primary (master) configuration, with secondaries retrieving zone updates via
+AXFR. Note, however, that DLZ has no built-in support for DNS notify;
+secondary servers are not automatically informed of changes to the zones in the
+database.
 
 Configuring DLZ
 ~~~~~~~~~~~~~~~
@@ -66,20 +66,20 @@ A DLZ database is configured with a ``dlz`` statement in ``named.conf``:
 This specifies a DLZ module to search when answering queries; the module
 is implemented in ``driver.so`` and is loaded at runtime by the dlopen
 DLZ driver. Multiple ``dlz`` statements can be specified; when answering
-a query, all DLZ modules with ``search`` set to ``yes`` will be queried
-to find out if they contain an answer for the query name; the best
-available answer will be returned to the client.
+a query, all DLZ modules with ``search`` set to ``yes`` are queried
+to see whether they contain an answer for the query name. The best
+available answer is returned to the client.
 
 The ``search`` option in the above example can be omitted, because
 ``yes`` is the default value.
 
-If ``search`` is set to ``no``, then this DLZ module is *not* searched
+If ``search`` is set to ``no``, this DLZ module is *not* searched
 for the best match when a query is received. Instead, zones in this DLZ
-must be separately specified in a zone statement. This allows you to
-configure a zone normally using standard zone option semantics, but
-specify a different database back-end for storage of the zone's data.
+must be separately specified in a zone statement. This allows users to
+configure a zone normally using standard zone-option semantics, but
+specify a different database backend for storage of the zone's data.
 For example, to implement NXDOMAIN redirection using a DLZ module for
-back-end storage of redirection rules:
+backend storage of redirection rules:
 
 ::
 
@@ -97,9 +97,9 @@ back-end storage of redirection rules:
 Sample DLZ Driver
 ~~~~~~~~~~~~~~~~~
 
-For guidance in implementation of DLZ modules, the directory
-``contrib/dlz/example`` contains a basic dynamically-linkable DLZ
-module--i.e., one which can be loaded at runtime by the "dlopen" DLZ
+For guidance in the implementation of DLZ modules, the directory
+``contrib/dlz/example`` contains a basic dynamically linkable DLZ
+module - i.e., one which can be loaded at runtime by the "dlopen" DLZ
 driver. The example sets up a single zone, whose name is passed to the
 module as an argument in the ``dlz`` statement:
 
@@ -111,7 +111,7 @@ module as an argument in the ``dlz`` statement:
 
 
 In the above example, the module is configured to create a zone
-"example.nil", which can answer queries and AXFR requests, and accept
+"example.nil", which can answer queries and AXFR requests and accept
 DDNS updates. At runtime, prior to any updates, the zone contains an
 SOA, NS, and a single A record at the apex:
 
@@ -124,11 +124,11 @@ SOA, NS, and a single A record at the apex:
     example.nil.  1800    IN      A       10.53.0.1
 
 
-The sample driver is capable of retrieving information about the
-querying client, and altering its response on the basis of this
+The sample driver can retrieve information about the
+querying client and alter its response on the basis of this
 information. To demonstrate this feature, the example driver responds to
 queries for "source-addr.``zonename``>/TXT" with the source address of
-the query. Note, however, that this record will \*not\* be included in
+the query. Note, however, that this record will *not* be included in
 AXFR or ANY responses. Normally, this feature would be used to alter
 responses in some other fashion, e.g., by providing different address
 records for a particular name depending on the network from which the
@@ -137,4 +137,4 @@ query arrived.
 Documentation of the DLZ module API can be found in
 ``contrib/dlz/example/README``. This directory also contains the header
 file ``dlz_minimal.h``, which defines the API and should be included by
-any dynamically-linkable DLZ module.
+any dynamically linkable DLZ module.
