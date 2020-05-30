@@ -2,6 +2,9 @@
 			looking up the nodename of an RBT node if the tree
 			was modified. [GL #1857]
 
+5420.	[bug]		Add missing isc_{mutex,conditional}_destroy calls
+			that caused a memory leak on FreeBSD. [GL #1893]
+
 5418.	[bug]		delv failed to parse deprecated trusted-keys style
 			trust anchors. [GL #1860]
 

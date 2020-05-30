@@ -10087,6 +10087,7 @@ named_server_destroy(named_server_t **serverp) {
 	dst_lib_destroy();
 
 	isc_event_free(&server->reload_event);
+	isc_mutex_destroy(&server->reload_event_lock);
 
 	INSIST(ISC_LIST_EMPTY(server->kasplist));
 	INSIST(ISC_LIST_EMPTY(server->viewlist));

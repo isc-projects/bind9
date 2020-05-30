@@ -1356,9 +1356,12 @@ static void
 manager_free(isc__taskmgr_t *manager) {
 	for (unsigned int i = 0; i < manager->workers; i++) {
 		isc_mutex_destroy(&manager->queues[i].lock);
+		isc_condition_destroy(&manager->queues[i].work_available);
 	}
 	isc_mutex_destroy(&manager->lock);
+	isc_mutex_destroy(&manager->excl_lock);
 	isc_mutex_destroy(&manager->halt_lock);
+	isc_condition_destroy(&manager->halt_cond);
 	isc_mem_put(manager->mctx, manager->queues,
 		    manager->workers * sizeof(isc__taskqueue_t));
 	manager->common.impmagic = 0;
