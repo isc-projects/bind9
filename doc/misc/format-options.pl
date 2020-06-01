@@ -9,6 +9,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+use Getopt::Long;
+
+my $strip_not_configured = '';
+
+GetOptions ('strip-not-configured' => \$strip_not_configured);
+
 print <<END;
 
 This is a summary of the named.conf options supported by
@@ -24,6 +30,7 @@ while (<>) {
 	m!^( *)!;
 	my $indent = $1;
 	my $comment = "";
+	$line =~ s! // not configured!! if $strip_not_configured;
 	if ( $line =~ m!//.*! ) {
 		$comment = $&;
 		$line =~ s!//.*!!;

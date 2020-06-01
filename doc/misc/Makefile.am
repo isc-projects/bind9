@@ -58,7 +58,7 @@ options: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar | $(PERL) $(srcdir)/sort-options.pl | $(PERL) $(srcdir)/format-options.pl > $@
 
 options.active: cfg_test
-	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar --active | $(PERL) $(srcdir)/sort-options.pl | $(PERL) $(srcdir)/format-options.pl > $@
+	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar --active | $(PERL) $(srcdir)/sort-options.pl | $(PERL) $(srcdir)/format-options.pl --strip-not-configured > $@
 
 master.zoneopt: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar master --active > $@
