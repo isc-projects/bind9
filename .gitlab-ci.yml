@@ -1146,22 +1146,22 @@ unit:clang:freebsd12.1:amd64:
     - job: clang:freebsd12.1:amd64
       artifacts: true
 
-# Jobs for Clang builds on OpenBSD 6.6 (amd64)
+# Jobs for Clang builds on OpenBSD 6.7 (amd64)
 
-clang:openbsd6.6:amd64:
+clang:openbsd6.7:amd64:
   variables:
     CC: clang
     USER: gitlab-runner
   <<: *openbsd_amd64
   <<: *build_job
 
-system:clang:openbsd6.6:amd64:
+system:clang:openbsd6.7:amd64:
   <<: *openbsd_amd64
   <<: *system_test_job
   variables:
     USER: gitlab-runner
   needs:
-    - job: clang:openbsd6.6:amd64
+    - job: clang:openbsd6.7:amd64
       artifacts: true
   only:
     - schedules
