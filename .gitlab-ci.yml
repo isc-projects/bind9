@@ -73,8 +73,8 @@ stages:
 
 # Alpine Linux
 
-.alpine-3.11-amd64: &alpine_3_11_amd64_image
-  image: "$CI_REGISTRY_IMAGE:alpine-3.11-amd64"
+.alpine-3.12-amd64: &alpine_3_12_amd64_image
+  image: "$CI_REGISTRY_IMAGE:alpine-3.12-amd64"
   <<: *linux_amd64
 
 # CentOS
@@ -507,28 +507,28 @@ push:docs:
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
-# Jobs for regular GCC builds on Alpine Linux 3.11 (amd64)
+# Jobs for regular GCC builds on Alpine Linux 3.12 (amd64)
 
-gcc:alpine3.11:amd64:
+gcc:alpine3.12:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-dnstap"
-  <<: *alpine_3_11_amd64_image
+  <<: *alpine_3_12_amd64_image
   <<: *build_job
 
-system:gcc:alpine3.11:amd64:
-  <<: *alpine_3_11_amd64_image
+system:gcc:alpine3.12:amd64:
+  <<: *alpine_3_12_amd64_image
   <<: *system_test_job
   needs:
-    - job: gcc:alpine3.11:amd64
+    - job: gcc:alpine3.12:amd64
       artifacts: true
 
-unit:gcc:alpine3.11:amd64:
-  <<: *alpine_3_11_amd64_image
+unit:gcc:alpine3.12:amd64:
+  <<: *alpine_3_12_amd64_image
   <<: *unit_test_job
   needs:
-    - job: gcc:alpine3.11:amd64
+    - job: gcc:alpine3.12:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on CentOS 6 (amd64)
