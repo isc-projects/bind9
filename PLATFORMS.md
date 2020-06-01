@@ -50,7 +50,7 @@ following systems:
 * Fedora 32
 * Red Hat Enterprise Linux / CentOS 7, 8
 * FreeBSD 11.3, 12.1
-* OpenBSD 6.6
+* OpenBSD 6.7
 * Alpine Linux
 
 The amd64, i386, armhf and arm64 CPU architectures are all fully supported.
