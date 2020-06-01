@@ -56,6 +56,10 @@ while (<CHANGES>) {
 	       \.conf\.in$ |    # configuration files
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
 	       doc/(draft|expired|rfc)/ |	# imported
+	       \.*in$ |         # the generated documentation doesn't really need copyright
+	       grammar\.rst$ |  # -"-
+	       zoneopt\.rst$ |  # -"-
+	       zoneopt$      |  # -"-
 	       \.txt$		# text files don't really need copyright
 	     %x);
 
@@ -86,9 +90,12 @@ while (<CHANGES>) {
 	} elsif ($base =~ /\.sh$/) {
 	    $file_types{$_} = "SH";
 	} elsif ($base =~ /\.docbook$/ ||
-		 $base =~ /.xsl$/ ||
-		 $base =~ /.xml$/) {
+		 $base =~ /\.xsl$/ ||
+		 $base =~ /\.xml$/) {
 	    $file_types{$_} = "SGML";
+	} elsif ($base =~ /\.rst$/ ||
+		 $base =~ /\.inc$/) {
+	    $file_types{$_} = "RST";
 	} elsif ($base =~ /doc\/arm\/.*\.html$/) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.(sty|pdf|eps)$/) {

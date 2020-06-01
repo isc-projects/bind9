@@ -45,12 +45,6 @@ SRCS=		rndc.c
 
 TARGETS =	rndc@EXEEXT@
 
-MANPAGES =	rndc.8 rndc.conf.5
-
-HTMLPAGES =	rndc.html rndc.conf.html
-
-MANOBJS =	${MANPAGES} ${HTMLPAGES}
-
 @BIND9_MAKE_RULES@
 
 rndc.@O@: rndc.c
@@ -65,24 +59,13 @@ rndc@EXEEXT@: rndc.@O@ util.@O@ ${RNDCDEPLIBS}
 	export LIBS0="${ISCCFGLIBS} ${ISCCCLIBS} ${BIND9LIBS} ${DNSLIBS} ${ISCLIBS}"; \
 	${FINALBUILDCMD}
 
-doc man:: ${MANOBJS}
-
-docclean manclean maintainer-clean::
-	rm -f ${MANOBJS}
-
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
 
 install:: rndc@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} rndc@EXEEXT@ ${DESTDIR}${sbindir}
-	${INSTALL_DATA} ${srcdir}/rndc.8 ${DESTDIR}${mandir}/man8
-	${INSTALL_DATA} ${srcdir}/rndc.conf.5 ${DESTDIR}${mandir}/man5
 
 uninstall::
-	rm -f ${DESTDIR}${mandir}/man5/rndc.conf.5
-	rm -f ${DESTDIR}${mandir}/man8/rndc.8
 	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${sbindir}/rndc@EXEEXT@
 
 clean distclean maintainer-clean::

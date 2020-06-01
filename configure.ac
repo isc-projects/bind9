@@ -48,6 +48,7 @@ AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AX_POSIX_SHELL
+AC_PROG_MKDIR_P
 
 AC_SUBST(STD_CINCLUDES)
 AC_SUBST(STD_CDEFINES)
@@ -873,6 +874,7 @@ AC_SUBST([OPENSSL_LIBS])
 
 PKCS11_TOOLS=
 PKCS11_TEST=
+PKCS11_MANS=
 #
 # was --enable-native-pkcs11 specified?
 #
@@ -886,6 +888,7 @@ AS_CASE([$enable_native_pkcs11],
 	[no],[AC_MSG_RESULT([no])],
 	[yes],[PKCS11_TOOLS=pkcs11
 	       PKCS11_TEST=pkcs11
+	       PKCS11_MANS='${pkcs11_man8_MANS}'
 	       CRYPTO=pkcs11
 	       AS_IF([$use_threads],
 		     [:],
@@ -895,6 +898,7 @@ AS_CASE([$enable_native_pkcs11],
 	      ])
 AC_SUBST([PKCS11_TEST])
 AC_SUBST([PKCS11_TOOLS])
+AC_SUBST([PKCS11_MANS])
 
 AC_SUBST([CRYPTO])
 AS_CASE([$CRYPTO],
@@ -2049,51 +2053,50 @@ esac
 #
 
 #
-# Look for TeX.
+# The following sections deal with tools used for formatting
+# the documentation.  They are all optional, unless you are
+# a developer editing the documentation source.
 #
 
-AC_PATH_PROGS(LATEX, latex, latex)
-AC_SUBST(LATEX)
+#
+# Look for sphinx-build
+#
+AC_ARG_VAR([SPHINX_BUILD], [path to sphinx-build binary used to build the documentation])
+AC_PATH_PROG([SPHINX_BUILD], [sphinx-build], [:])
+AM_CONDITIONAL([HAVE_SPHINX_BUILD], [test "$SPHINX_BUILD" != ":"])
 
-AC_PATH_PROGS(PDFLATEX, pdflatex, pdflatex)
-AC_SUBST(PDFLATEX)
-
-AC_PATH_PROGS(DBLATEX, dblatex, dblatex)
-AC_SUBST(DBLATEX)
+AC_PATH_PROG([XELATEX], [xelatex], [:])
+AC_PATH_PROG([LATEXMK], [latexmk], [:])
+AM_CONDITIONAL([HAVE_XELATEX], [test "$XELATEX" != ":" && test "$LATEXMK" != ":"])
 
 #
-# Look for w3m
+# Pull release date from CHANGES file last modification date
+# for reproducible builds
 #
+release_date=`date -r CHANGES +%Y-%m-%d`
+AC_SUBST([RELEASE_DATE], $release_date)
 
-AC_PATH_PROGS(W3M, w3m, w3m)
-AC_SUBST(W3M)
-
-#
-# Look for pandoc
-#
-AC_PATH_PROG(PANDOC, pandoc, pandoc)
-AC_SUBST(PANDOC)
-
-
-#
-# Look for xsltproc (libxslt)
-#
-
-AC_PATH_PROG(XSLTPROC, xsltproc, xsltproc)
-AC_SUBST(XSLTPROC)
-
-#
-# Look for xmllint (libxml2)
-#
-
-AC_PATH_PROG(XMLLINT, xmllint, xmllint)
-AC_SUBST(XMLLINT)
+# Don't build the documentation if the sphinx-build is not present
+PDFTARGET=
+HTMLTARGET=
+MANSRCS=
+AS_IF([test -n "$SPHINX_BUILD"],[
+	  MANSRCS='$(MANPAGES_IN)'
+	  HTMLTARGET='html dirhtml'
+	  AC_PATH_PROGS([PDFLATEX], [pdflatex], [])
+	  AC_PATH_PROGS([LATEXMK], [latexmk], [])
+	  AS_IF([test -n "$PDFLATEX" && test -n "$LATEXMK"],[
+		    PDFTARGET='pdf'
+		])
+      ])
+AC_SUBST([HTMLTARGET])
+AC_SUBST([PDFTARGET])
+AC_SUBST([MANSRCS])
 
 #
 # Look for Doxygen
 #
-
-AC_PATH_PROG(DOXYGEN, doxygen, doxygen)
+AC_PATH_PROGS([DOXYGEN], [doxygen])
 AC_SUBST(DOXYGEN)
 
 #
@@ -2102,76 +2105,6 @@ AC_SUBST(DOXYGEN)
 
 AC_PATH_PROG(CURL, curl, curl)
 AC_SUBST(CURL)
-
-#
-# Subroutine for searching for an ordinary file (e.g., a stylesheet)
-# in a number of directories:
-#
-#   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
-#
-# If the file FILENAME is found in one of the DIRECTORIES, the shell
-# variable VARIABLE is defined to its absolute pathname.  Otherwise,
-# it is set to FILENAME, with no directory prefix (that's not terribly
-# useful, but looks less confusing in substitutions than leaving it
-# empty).  The variable VARIABLE will be substituted into output files.
-#
-
-AC_DEFUN([NOM_PATH_FILE], [
-$1=""
-AC_MSG_CHECKING(for $2)
-for d in $3
-do
-	f=$d/$2
-	if test -f $f
-	then
-		$1=$f
-		AC_MSG_RESULT($f)
-		break
-	fi
-done
-if test "X[$]$1" = "X"
-then
-	AC_MSG_RESULT("not found");
-	$1=$2
-fi
-AC_SUBST($1)
-])
-
-#
-# Look for Docbook-XSL stylesheets.  Location probably varies by system.
-# If it's not explicitly specified, guess where it might be found, based on
-# where SGML stuff lives on some systems (FreeBSD is the only one we're sure
-# of at the moment).
-#
-AC_MSG_CHECKING(for Docbook-XSL path)
-AC_ARG_WITH(docbook-xsl,
-	    AS_HELP_STRING([--with-docbook-xsl[=PATH]],
-			   [specify path for Docbook-XSL stylesheets]),
-   docbook_path="$withval", docbook_path="auto")
-case "$docbook_path" in
-auto)
-	AC_MSG_RESULT(auto)
-	docbook_xsl_trees="/usr/pkg/share/xsl/docbook /usr/local/share/xsl/docbook-ns /usr/local/share/xsl/docbook /usr/share/xsl/docbook /usr/share/sgml/docbook/xsl-stylesheets /opt/local/share/xsl/docbook-xsl /opt/local/share/xsl/docbook-xsl-nons /usr/share/xml/docbook/stylesheet/docbook-xsl"
-	;;
-*)
-	docbook_xsl_trees="$withval"
-	AC_MSG_RESULT($docbook_xsl_trees)
-	;;
-esac
-
-#
-# Look for stylesheets we need.
-#
-
-NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_HTML, html/docbook.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_XHTML, xhtml/docbook.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_MAN, manpages/docbook.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_HTML, html/chunk.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_XHTML, xhtml/chunk.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_HTML, html/chunktoc.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_XHTML, xhtml/chunktoc.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_HTML, html/maketoc.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_XHTML, xhtml/maketoc.xsl, $docbook_xsl_trees)
 
 #
 # IDN support using libidn2
@@ -2868,20 +2801,11 @@ AC_CONFIG_FILES([
 	contrib/scripts/zone-edit.sh
 	doc/Makefile
 	doc/arm/Makefile
-	doc/arm/noteversion.xml
-	doc/arm/pkgversion.xml
-	doc/arm/releaseinfo.xml
 	doc/doxygen/Doxyfile
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-input-filter
+	doc/man/Makefile
 	doc/misc/Makefile
-	doc/tex/Makefile
-	doc/tex/armstyle.sty
-	doc/xsl/Makefile
-	doc/xsl/isc-docbook-chunk.xsl
-	doc/xsl/isc-docbook-html.xsl
-	doc/xsl/isc-manpage.xsl
-	doc/xsl/isc-notes-html.xsl
 	fuzz/Makefile
 	lib/Makefile
 	lib/bind9/Makefile

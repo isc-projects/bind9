@@ -117,12 +117,6 @@ SRCS =		builtin.c config.c control.c \
 		tkeyconf.c tsigconf.c zoneconf.c \
 		${DLZDRIVER_SRCS} ${DBDRIVER_SRCS}
 
-MANPAGES =	named.8 named.conf.5
-
-HTMLPAGES =	named.html named.conf.html
-
-MANOBJS =	${MANPAGES} ${HTMLPAGES}
-
 @BIND9_MAKE_RULES@
 
 main.@O@: main.c
@@ -156,11 +150,6 @@ named@EXEEXT@: ${OBJS} ${DEPLIBS}
 	export BASEOBJS="${OBJS} ${UOBJS}"; \
 	${FINALBUILDCMD}
 
-doc man:: ${MANOBJS}
-
-docclean manclean maintainer-clean::
-	rm -f ${MANOBJS}
-
 clean distclean maintainer-clean::
 	rm -f ${TARGETS} ${OBJS}
 
@@ -174,17 +163,11 @@ statschannel.@O@: bind9.xsl.h
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
 install:: named@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named@EXEEXT@ ${DESTDIR}${sbindir}
-	${INSTALL_DATA} ${srcdir}/named.8 ${DESTDIR}${mandir}/man8
-	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
 
 uninstall::
-	rm -f ${DESTDIR}${mandir}/man5/named.conf.5
-	rm -f ${DESTDIR}${mandir}/man8/named.8
 	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${sbindir}/named@EXEEXT@
 
 @DLZ_DRIVER_RULES@
