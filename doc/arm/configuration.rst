@@ -67,8 +67,8 @@ An Authoritative-only Name Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This sample configuration is for an authoritative-only server that is
-the master server for "``example.com``" and a slave for the subdomain
-"``eng.example.com``".
+the primary (master) server for ``example.com`` and a secondary (slave) server for the subdomain
+``eng.example.com``.
 
 ::
 
@@ -117,7 +117,7 @@ Load Balancing
 A primitive form of load balancing can be achieved in the DNS by using
 multiple records (such as multiple A records) for one name.
 
-For example, if you have three HTTP servers with network addresses of
+For example, assuming three HTTP servers with network addresses of
 10.0.0.1, 10.0.0.2 and 10.0.0.3, a set of records such as the following
 means that clients will connect to each machine one third of the time:
 
@@ -131,14 +131,14 @@ means that clients will connect to each machine one third of the time:
 |           | 600  |   IN     |   A      |   10.0.0.3                 |
 +-----------+------+----------+----------+----------------------------+
 
-When a resolver queries for these records, BIND will rotate them and
-respond to the query with the records in a different order. In the
-example above, clients will randomly receive records in the order 1, 2,
-3; 2, 3, 1; and 3, 1, 2. Most clients will use the first record returned
+When a resolver queries for these records, BIND rotates them and
+responds to the query with the records in a different order. In the
+example above, clients randomly receive records in the order 1, 2,
+3; 2, 3, 1; and 3, 1, 2. Most clients use the first record returned
 and discard the rest.
 
 For more detail on ordering responses, check the ``rrset-order``
-sub-statement in the ``options`` statement, see :ref:`rrset_ordering`.
+sub-statement in the ``options`` statement; see :ref:`rrset_ordering`.
 
 .. _ns_operations:
 
@@ -150,7 +150,7 @@ Name Server Operations
 Tools for Use With the Name Server Daemon
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section describes several indispensable diagnostic, administrative
+This section describes several indispensable diagnostic, administrative, 
 and monitoring tools available to the system administrator for
 controlling and debugging the name server daemon.
 
@@ -159,7 +159,7 @@ controlling and debugging the name server daemon.
 Diagnostic Tools
 ^^^^^^^^^^^^^^^^
 
-The ``dig``, ``host``, and ``nslookup`` programs are all command line
+The ``dig``, ``host``, and ``nslookup`` programs are all command-line
 tools for manually querying name servers. They differ in style and
 output format.
 
@@ -198,7 +198,7 @@ output format.
    ``nslookup [-option][ [host-to-find]|[-[server]] ]``
 
    Interactive mode is entered when no arguments are given (the default
-   name server will be used) or when the first argument is a hyphen
+   name server is used) or when the first argument is a hyphen
    (``-``) and the second argument is the host name or Internet address of
    a name server.
 
@@ -231,13 +231,13 @@ server.
    ``named-checkzone [-djqvD][-c class][-o output][-t directory][-w directory][-k (ignore|warn|fail)][-n (ignore|warn|fail)][-W (ignore|warn)] zone [filename]``
 
 ``named-compilezone``
-   Similar to ``named-checkzone,`` but it always dumps the zone content
+   This tool is similar to ``named-checkzone,`` but it always dumps the zone content
    to a specified file (typically in a different format).
 
 ``rndc``
    The remote name daemon control (``rndc``) program allows the system
-   administrator to control the operation of a name server. If you run
-   ``rndc`` without any options, it will display a usage message as
+   administrator to control the operation of a name server. If ``rndc`` is run
+   without any options, it will display a usage message as
    follows:
 
    ``rndc [-c config][-s server][-p port][-y key] command [command...]``
@@ -257,8 +257,8 @@ server.
    described in :ref:`controls_statement_definition_and_usage`.
 
    The format of the configuration file is similar to that of
-   ``named.conf``, but limited to only four statements, the ``options``,
-   ``key``, ``server`` and ``include`` statements. These statements are
+   ``named.conf``, but is limited to only four statements: the ``options``,
+   ``key``, ``server``, and ``include`` statements. These statements are
    what associate the secret keys to the servers with which they are
    meant to be shared. The order of statements is not significant.
 
@@ -278,9 +278,9 @@ server.
    be hierarchical; thus, a string like "``rndc_key``" is a valid name.
    The ``key`` statement has two clauses: ``algorithm`` and ``secret``.
    While the configuration parser will accept any string as the argument
-   to algorithm, currently only the strings "``hmac-md5``",
-   "``hmac-sha1``", "``hmac-sha224``", "``hmac-sha256``",
-   "``hmac-sha384``" and "``hmac-sha512``" have any meaning. The secret
+   to the algorithm, currently only the strings ``hmac-md5``,
+   ``hmac-sha1``, ``hmac-sha224``, ``hmac-sha256``,
+   ``hmac-sha384``, and ``hmac-sha512`` have any meaning. The secret
    is a Base64 encoded string as specified in :rfc:`3548`.
 
    The ``server`` statement associates a key defined using the ``key``
@@ -304,13 +304,13 @@ server.
            default-key    rndc_key;
       };
 
-   This file, if installed as ``/etc/rndc.conf``, would allow the
+   This file, if installed as ``/etc/rndc.conf``, allows the
    command:
 
    ``$ rndc reload``
 
    to connect to 127.0.0.1 port 953 and cause the name server to reload,
-   if a name server on the local machine were running with following
+   if a name server on the local machine is running with the following
    controls statements:
 
    ::
@@ -320,12 +320,12 @@ server.
               allow { localhost; } keys { rndc_key; };
       };
 
-   and it had an identical key statement for ``rndc_key``.
+   and it has an identical key statement for ``rndc_key``.
 
-   Running the ``rndc-confgen`` program will conveniently create a
-   ``rndc.conf`` file for you, and also display the corresponding
-   ``controls`` statement that you need to add to ``named.conf``.
-   Alternatively, you can run ``rndc-confgen -a`` to set up a
+   Running the ``rndc-confgen`` program conveniently creates a
+   ``rndc.conf`` file, and also displays the corresponding
+   ``controls`` statement needed to add to ``named.conf``.
+   Alternatively, it is possible to run ``rndc-confgen -a`` to set up a
    ``rndc.key`` file and not modify ``named.conf`` at all.
 
 Signals
