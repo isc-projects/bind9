@@ -421,6 +421,14 @@ coccinelle:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
+danger:
+  <<: *precheck_job
+  needs: []
+  script:
+    - danger-python ci -f
+  only:
+    - merge_requests
+
 flake8:
   <<: *default_triggering_rules
   <<: *base_image
@@ -430,7 +438,7 @@ flake8:
       artifacts: true
   script:
     - *configure
-    - flake8 --max-line-length=80 $(git ls-files '*.py' | grep -v 'ans\.py')
+    - flake8 --max-line-length=80 $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py)')
   only:
     - merge_requests
 
@@ -444,7 +452,7 @@ pylint:
   script:
     - *configure
     - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -v 'ans\.py')
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py)')
   only:
     - merge_requests
 
