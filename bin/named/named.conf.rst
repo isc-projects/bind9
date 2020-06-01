@@ -1,4 +1,4 @@
-.. higlight: console
+.. highlight: console
 
 named.conf - configuration file for **named**
 ---------------------------------------------

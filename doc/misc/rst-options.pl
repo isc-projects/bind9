@@ -25,7 +25,7 @@ my $FILE = shift;
 open (FH, "<", $FILE) or die "Can't open $FILE";
 
 print <<END;
-.. higlight: console
+.. highlight: console
 
 named.conf - configuration file for **named**
 ---------------------------------------------
