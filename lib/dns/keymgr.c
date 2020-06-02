@@ -89,11 +89,94 @@ keymgr_keyrole(dst_key_t *key) {
 }
 
 /*
+ * Set the remove time on key given its retire time.
+ *
+ */
+static void
+keymgr_settime_remove(dns_dnsseckey_t *key, dns_kasp_t *kasp) {
+	isc_stdtime_t retire = 0, remove = 0, ksk_remove = 0, zsk_remove = 0;
+	bool zsk = false, ksk = false;
+	isc_result_t ret;
+
+	REQUIRE(key != NULL);
+	REQUIRE(key->key != NULL);
+
+	ret = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
+	if (ret != ISC_R_SUCCESS) {
+		return;
+	}
+
+	ret = dst_key_getbool(key->key, DST_BOOL_ZSK, &zsk);
+	if (ret == ISC_R_SUCCESS && zsk) {
+		/* ZSK: Iret = Dsgn + Dprp + TTLsig */
+		zsk_remove = retire + dns_kasp_zonemaxttl(kasp) +
+			     dns_kasp_zonepropagationdelay(kasp) +
+			     dns_kasp_retiresafety(kasp) +
+			     dns_kasp_signdelay(kasp);
+	}
+	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
+	if (ret == ISC_R_SUCCESS && ksk) {
+		/* KSK: Iret = DprpP + TTLds */
+		ksk_remove = retire + dns_kasp_dsttl(kasp) +
+			     dns_kasp_parentpropagationdelay(kasp) +
+			     dns_kasp_retiresafety(kasp);
+	}
+	if (zsk && ksk) {
+		ksk_remove += dns_kasp_parentregistrationdelay(kasp);
+	}
+
+	remove = ksk_remove > zsk_remove ? ksk_remove : zsk_remove;
+	dst_key_settime(key->key, DST_TIME_DELETE, remove);
+}
+
+/*
+ * Set the SyncPublish time (when the DS may be submitted to the parent)
+ *
+ */
+static void
+keymgr_settime_syncpublish(dns_dnsseckey_t *key, dns_kasp_t *kasp, bool first) {
+	isc_stdtime_t published, syncpublish;
+	bool ksk = false;
+	isc_result_t ret;
+
+	REQUIRE(key != NULL);
+	REQUIRE(key->key != NULL);
+
+	ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &published);
+	if (ret != ISC_R_SUCCESS) {
+		return;
+	}
+
+	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
+	if (ret != ISC_R_SUCCESS || !ksk) {
+		return;
+	}
+
+	syncpublish = published + dst_key_getttl(key->key) +
+		      dns_kasp_zonepropagationdelay(kasp) +
+		      dns_kasp_publishsafety(kasp);
+	if (first) {
+		/* Also need to wait until the signatures are omnipresent. */
+		isc_stdtime_t zrrsig_present;
+		zrrsig_present = published + dns_kasp_zonemaxttl(kasp) +
+				 dns_kasp_zonepropagationdelay(kasp) +
+				 dns_kasp_publishsafety(kasp);
+		if (zrrsig_present > syncpublish) {
+			syncpublish = zrrsig_present;
+		}
+	}
+	dst_key_settime(key->key, DST_TIME_SYNCPUBLISH, syncpublish);
+}
+
+/*
  * Calculate prepublication time of a successor key of 'key'.
  * This function can have side effects:
- * If the lifetime is not set, it will be set now.
- * If there should be a retire time and it is not set, it will be set now.
- * If there is no active time set, which would be super weird, set it now.
+ * 1. If there is no active time set, which would be super weird, set it now.
+ * 2. If there is no published time set, also super weird, set it now.
+ * 3. If there is no syncpublished time set, set it now.
+ * 4. If the lifetime is not set, it will be set now.
+ * 5. If there should be a retire time and it is not set, it will be set now.
+ * 6. The removed time is adjusted accordingly.
  *
  * This returns when the successor key needs to be published in the zone.
  * A special value of 0 means there is no need for a successor.
@@ -104,40 +187,80 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 			   uint32_t lifetime, isc_stdtime_t now) {
 	isc_result_t ret;
 	isc_stdtime_t active, retire, pub, prepub;
-	bool ksk = false;
+	bool zsk = false, ksk = false;
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->key != NULL);
 
 	active = 0;
+	pub = 0;
 	retire = 0;
+
+	/*
+	 * An active key must have publish and activate timing
+	 * metadata.
+	 */
+	ret = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
+	if (ret != ISC_R_SUCCESS) {
+		/* Super weird, but if it happens, set it to now. */
+		dst_key_settime(key->key, DST_TIME_ACTIVATE, now);
+		active = now;
+	}
+	ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &pub);
+	if (ret != ISC_R_SUCCESS) {
+		/* Super weird, but if it happens, set it to now. */
+		dst_key_settime(key->key, DST_TIME_PUBLISH, now);
+		pub = now;
+	}
+
+	/*
+	 * Calculate prepublication time.
+	 */
 	prepub = dst_key_getttl(key->key) + dns_kasp_publishsafety(kasp) +
 		 dns_kasp_zonepropagationdelay(kasp);
 	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
 	if (ret == ISC_R_SUCCESS && ksk) {
-		/* Add registration delay to the prepublication time. */
+		isc_stdtime_t syncpub;
+
+		/*
+		 * Set PublishCDS if not set.
+		 */
+		ret = dst_key_gettime(key->key, DST_TIME_SYNCPUBLISH, &syncpub);
+		if (ret != ISC_R_SUCCESS) {
+			uint32_t tag;
+			isc_stdtime_t syncpub1, syncpub2;
+
+			syncpub1 = pub + prepub;
+			syncpub2 = 0;
+			ret = dst_key_getnum(key->key, DST_NUM_PREDECESSOR,
+					     &tag);
+			if (ret != ISC_R_SUCCESS) {
+				/*
+				 * No predecessor, wait for zone to be
+				 * completely signed.
+				 */
+				syncpub2 = pub + dns_kasp_zonemaxttl(kasp) +
+					   dns_kasp_publishsafety(kasp) +
+					   dns_kasp_zonepropagationdelay(kasp);
+			}
+
+			syncpub = syncpub1 > syncpub2 ? syncpub1 : syncpub2;
+			dst_key_settime(key->key, DST_TIME_SYNCPUBLISH,
+					syncpub);
+		}
+	}
+
+	(void)dst_key_getbool(key->key, DST_BOOL_ZSK, &zsk);
+	if (!zsk && ksk) {
+		/*
+		 * Include registration delay in prepublication time.
+		 */
 		prepub += dns_kasp_parentregistrationdelay(kasp);
 	}
 
 	ret = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
 	if (ret != ISC_R_SUCCESS) {
 		uint32_t klifetime = 0;
-		/*
-		 * An active key must have publish and activate timing
-		 * metadata.
-		 */
-		ret = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
-		if (ret != ISC_R_SUCCESS) {
-			/* Super weird, but if it happens, set it to now. */
-			dst_key_settime(key->key, DST_TIME_ACTIVATE, now);
-			active = now;
-		}
-		ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &pub);
-		if (ret != ISC_R_SUCCESS) {
-			/* Super weird, but if it happens, set it to now. */
-			dst_key_settime(key->key, DST_TIME_PUBLISH, now);
-			pub = now;
-		}
 
 		ret = dst_key_getnum(key->key, DST_NUM_LIFETIME, &klifetime);
 		if (ret != ISC_R_SUCCESS) {
@@ -157,14 +280,21 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 	}
 
 	/*
+	 * Update remove time.
+	 */
+	keymgr_settime_remove(key, kasp);
+
+	/*
 	 * Publish successor 'prepub' time before the 'retire' time of 'key'.
 	 */
 	return (retire - prepub);
 }
 
 static void
-keymgr_key_retire(dns_dnsseckey_t *key, isc_stdtime_t now) {
+keymgr_key_retire(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	char keystr[DST_KEY_FORMATSIZE];
+	isc_result_t ret;
+	isc_stdtime_t retire;
 	dst_key_state_t s;
 	bool ksk, zsk;
 
@@ -172,8 +302,12 @@ keymgr_key_retire(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	REQUIRE(key->key != NULL);
 
 	/* This key wants to retire and hide in a corner. */
-	dst_key_settime(key->key, DST_TIME_INACTIVE, now);
+	ret = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
+	if (ret != ISC_R_SUCCESS || (retire > now)) {
+		dst_key_settime(key->key, DST_TIME_INACTIVE, now);
+	}
 	dst_key_setstate(key->key, DST_KEY_GOAL, HIDDEN);
+	keymgr_settime_remove(key, kasp);
 
 	/* This key may not have key states set yet. Pretend as if they are
 	 * in the OMNIPRESENT state.
@@ -1013,11 +1147,16 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 				   dns_kasp_retiresafety(kasp);
 			/*
 			 * Only add the sign delay Dsgn if there is an actual
-			 * predecessor key.
+			 * predecessor or successor key.
 			 */
-			uint32_t pre;
-			if (dst_key_getnum(key->key, DST_NUM_PREDECESSOR,
-					   &pre) == ISC_R_SUCCESS) {
+			uint32_t tag;
+			ret = dst_key_getnum(key->key, DST_NUM_PREDECESSOR,
+					     &tag);
+			if (ret != ISC_R_SUCCESS) {
+				ret = dst_key_getnum(key->key,
+						     DST_NUM_SUCCESSOR, &tag);
+			}
+			if (ret == ISC_R_SUCCESS) {
 				nexttime += dns_kasp_signdelay(kasp);
 			}
 			break;
@@ -1373,7 +1512,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 
 		/* No match, so retire unwanted retire key. */
 		if (!found_match) {
-			keymgr_key_retire(dkey, now);
+			keymgr_key_retire(dkey, kasp, now);
 		}
 	}
 
@@ -1428,7 +1567,8 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 						 * the kasp key configuration.
 						 * Retire excess keys in use.
 						 */
-						keymgr_key_retire(dkey, now);
+						keymgr_key_retire(dkey, kasp,
+								  now);
 					}
 					continue;
 				}
@@ -1537,8 +1677,8 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			keymgr_key_init(newkey, kasp, now);
 		} else {
 			newkey = candidate;
-			dst_key_setnum(newkey->key, DST_NUM_LIFETIME, lifetime);
 		}
+		dst_key_setnum(newkey->key, DST_NUM_LIFETIME, lifetime);
 
 		/* Got a key. */
 		if (active_key == NULL) {
@@ -1548,30 +1688,50 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			 */
 			dst_key_settime(newkey->key, DST_TIME_PUBLISH, now);
 			dst_key_settime(newkey->key, DST_TIME_ACTIVATE, now);
+			keymgr_settime_syncpublish(newkey, kasp, true);
 			active = now;
 		} else {
 			/*
 			 * This is a successor.  Mark the relationship.
 			 */
+			isc_stdtime_t created;
+			(void)dst_key_gettime(newkey->key, DST_TIME_CREATED,
+					      &created);
+
 			dst_key_setnum(newkey->key, DST_NUM_PREDECESSOR,
 				       dst_key_id(active_key->key));
 			dst_key_setnum(active_key->key, DST_NUM_SUCCESSOR,
 				       dst_key_id(newkey->key));
 			(void)dst_key_gettime(active_key->key,
 					      DST_TIME_INACTIVE, &retire);
-			dst_key_settime(newkey->key, DST_TIME_PUBLISH, prepub);
-			dst_key_settime(newkey->key, DST_TIME_ACTIVATE, retire);
 			active = retire;
+
+			/*
+			 * If prepublication time and/or retire time are
+			 * in the past (before the new key was created), use
+			 * creation time as published and active time,
+			 * effectively immediately making the key active.
+			 */
+			if (prepub < created) {
+				active += (created - prepub);
+				prepub = created;
+			}
+			if (active < created) {
+				active = created;
+			}
+			dst_key_settime(newkey->key, DST_TIME_PUBLISH, prepub);
+			dst_key_settime(newkey->key, DST_TIME_ACTIVATE, active);
+			keymgr_settime_syncpublish(newkey, kasp, false);
 		}
 
 		/* This key wants to be present. */
 		dst_key_setstate(newkey->key, DST_KEY_GOAL, OMNIPRESENT);
 
 		/* Do we need to set retire time? */
-		(void)dst_key_getnum(newkey->key, DST_NUM_LIFETIME, &lifetime);
 		if (lifetime > 0) {
 			dst_key_settime(newkey->key, DST_TIME_INACTIVE,
 					(active + lifetime));
+			keymgr_settime_remove(newkey, kasp);
 		}
 
 		/* Append dnsseckey to list of new keys. */
