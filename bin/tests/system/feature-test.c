@@ -40,7 +40,6 @@ usage(void) {
 	fprintf(stderr, "	--enable-dnsrps\n");
 	fprintf(stderr, "	--gethostname\n");
 	fprintf(stderr, "	--gssapi\n");
-	fprintf(stderr, "	--have-dlopen\n");
 	fprintf(stderr, "	--have-geoip2\n");
 	fprintf(stderr, "	--have-libxml2\n");
 	fprintf(stderr, "	--ipv6only=no\n");
@@ -108,10 +107,6 @@ main(int argc, char **argv) {
 #else  /* HAVE_GSSAPI */
 		return (1);
 #endif /* HAVE_GSSAPI */
-	}
-
-	if (strcmp(argv[1], "--have-dlopen") == 0) {
-		return (0);
 	}
 
 	if (strcmp(argv[1], "--have-geoip2") == 0) {
