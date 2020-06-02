@@ -11,7 +11,8 @@
 			whether a record would fit into a TCP message buffer.
 			(CVE-2020-8618) [GL #1850]
 
-5435.	[placeholder]
+5435.	[tests]		Add RFC 4592 responses examples to the wildcard system
+			test. [GL #1718]
 
 5434.	[security]	It was possible to trigger an INSIST in
 			lib/dns/rbtdb.c:new_reference() with a particular zone
