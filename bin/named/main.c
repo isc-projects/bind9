@@ -355,11 +355,12 @@ save_command_line(int argc, char *argv[]) {
 		*dst++ = ' ';
 
 		while (*src != '\0' && dst < eob) {
-			if (isalnum(*src) || *src == ',' || *src == '-' ||
-			    *src == '_' || *src == '.' || *src == '/')
+			if (isalnum(*(unsigned char *)src) || *src == ',' ||
+			    *src == '-' || *src == '_' || *src == '.' ||
+			    *src == '/')
 			{
 				*dst++ = *src++;
-			} else if (isprint(*src)) {
+			} else if (isprint(*(unsigned char *)src)) {
 				if (dst + 2 >= eob) {
 					goto add_ellipsis;
 				}
