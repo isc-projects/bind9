@@ -1,3 +1,12 @@
+5424.	[bug]		With kasp, when creating a successor key, the goal
+			state of the current active key (predecessor) was not
+			changed and thus was never is removed from the zone.
+			[GL #1846]
+
+5423.	[bug]		Fix a bug in keymgr_key_has_successor: it would
+			return a false positive if any other key in the
+			keyring has a successor. [GL #1845]
+
 5422.	[bug]		When using dnssec-policy, print correct keytiming
 			metadata. [GL #1843]
 
