@@ -28,6 +28,10 @@ Security Fixes
 -  It was possible to trigger an assertion when attempting to fill an
    oversized TCP buffer. This was disclosed in CVE-2020-8618. [GL #1850]
 
+-  It was possible to trigger an INSIST failure when a zone with an
+   interior wildcard label was queried in a certain pattern. This was
+   disclosed in CVE-2020-8619. [GL #1111] [GL #1718]
+
 Known Issues
 ~~~~~~~~~~~~
 
