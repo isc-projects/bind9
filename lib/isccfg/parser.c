@@ -1287,7 +1287,7 @@ parse_duration(cfg_parser_t *pctx, cfg_obj_t **ret) {
 
 	duration.unlimited = false;
 
-	if (toupper(TOKEN_STRING(pctx)[0]) == 'P') {
+	if (toupper((unsigned char)TOKEN_STRING(pctx)[0]) == 'P') {
 		result = duration_fromtext(&pctx->token.value.as_textregion,
 					   &duration);
 		duration.iso8601 = true;
