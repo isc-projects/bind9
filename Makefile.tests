@@ -3,7 +3,7 @@
 
 AM_CPPFLAGS +=					\
 	$(CMOCKA_CFLAGS)			\
-	-DTESTS=\"$(abs_srcdir)\"		\
+	-DTESTS_DIR=\"$(abs_srcdir)\"		\
 	-DNAMED_PLUGINDIR=\"$(libdir)/named\"
 
 LDADD =			\
