@@ -21,7 +21,7 @@ def added_lines(target_branch, paths):
                                     '--'] + paths)
     added_lines = []
     for line in diff.splitlines():
-        if line.startswith(b'+'):
+        if line.startswith(b'+') and not line.startswith(b'+++'):
             added_lines.append(line)
     return added_lines
 
