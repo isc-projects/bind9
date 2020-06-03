@@ -41,38 +41,38 @@ containing the now-revoked key.
 Options
 ~~~~~~~
 
-**-h**
-   Emit usage message and exit.
+``-h``
+   This option emits a usage message and exits.
 
-**-K** directory
-   Sets the directory in which the key files are to reside.
+``-K directory``
+   This option sets the directory in which the key files are to reside.
 
-**-r**
-   After writing the new keyset files remove the original keyset files.
+``-r``
+   This option indicates to remove the original keyset files after writing the new keyset files.
 
-**-v** level
-   Sets the debugging level.
+``-v level``
+   This option sets the debugging level.
 
-**-V**
-   Prints version information.
+``-V``
+   This option prints version information.
 
-**-E** engine
-   Specifies the cryptographic hardware to use, when applicable.
+``-E engine``
+   This option specifies the cryptographic hardware to use, when applicable.
 
-   When BIND is built with OpenSSL PKCS#11 support, this defaults to the
-   string "pkcs11", which identifies an OpenSSL engine that can drive a
+   When BIND 9 is built with OpenSSL PKCS#11 support, this defaults to the
+   string ``pkcs11``, which identifies an OpenSSL engine that can drive a
    cryptographic accelerator or hardware service module. When BIND is
-   built with native PKCS#11 cryptography (--enable-native-pkcs11), it
+   built with native PKCS#11 cryptography (``--enable-native-pkcs11``), it
    defaults to the path of the PKCS#11 provider library specified via
-   "--with-pkcs11".
+   ``--with-pkcs11``.
 
-**-f**
-   Force overwrite: Causes ``dnssec-revoke`` to write the new key pair
+``-f``
+   This option indicates a forced overwrite and causes ``dnssec-revoke`` to write the new key pair,
    even if a file already exists matching the algorithm and key ID of
    the revoked key.
 
-**-R**
-   Print the key tag of the key with the REVOKE bit set but do not
+``-R``
+   This option prints the key tag of the key with the REVOKE bit set, but does not
    revoke the key.
 
 See Also
