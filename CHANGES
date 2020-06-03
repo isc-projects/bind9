@@ -40,6 +40,10 @@
 			when the serial was greater than or equal to the
 			current serial. [GL #1714]
 
+5411.	[cleanup]	Refactoring of TCP accept code to use a single accept()
+			and pass the accepted socket to child threads for
+			processing. [GL !3320]
+
 5409.	[performance]	When looking up NSEC3 data in a zone database, skip
 			the check for empty non-terminal nodes; the NSEC3
 			tree doesn't have any. [GL #1834]
