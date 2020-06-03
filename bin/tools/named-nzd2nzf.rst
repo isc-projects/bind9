@@ -43,8 +43,8 @@ version of BIND to an older version.
 Arguments
 ~~~~~~~~~
 
-filename
-   The name of the ``.nzd`` file whose contents should be printed.
+``filename``
+   This is the name of the ``.nzd`` file whose contents should be printed.
 
 See Also
 ~~~~~~~~
