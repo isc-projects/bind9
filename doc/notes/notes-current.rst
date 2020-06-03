@@ -37,6 +37,9 @@ Feature Changes
 
 .. _relnotes-9.16.4-bugs:
 
+-  The default value of ``max-stale-ttl`` has changed from 1 week to
+   12 hours. [GL #1877]
+
 Bug Fixes
 ---------
 
@@ -52,4 +55,3 @@ Bug Fixes
 -  With dnssec-policy, when creating a successor key, the goal state of
    the current active key (the predecessor) was not changed and thus was
    never is removed from the zone. [GL #1846]
-

@@ -1,3 +1,6 @@
+5425.	[func]		The default value of "max-stale-ttl" has been change
+			from 1 week to 12 hours. [GL #1877]
+
 5424.	[bug]		With kasp, when creating a successor key, the goal
 			state of the current active key (predecessor) was not
 			changed and thus was never is removed from the zone.
