@@ -16,9 +16,9 @@ import re
 def added_lines(target_branch, paths):
     import subprocess
     subprocess.check_output(['/usr/bin/git', 'fetch', '--depth', '1', 'origin',
-                             f'{target_branch}:{target_branch}'])
-    diff = subprocess.check_output(['/usr/bin/git', 'diff',
-                                    f'{target_branch}..', '--'] + paths)
+                             target_branch])
+    diff = subprocess.check_output(['/usr/bin/git', 'diff', 'FETCH_HEAD..',
+                                    '--'] + paths)
     added_lines = []
     for line in diff.splitlines():
         if line.startswith(b'+'):
