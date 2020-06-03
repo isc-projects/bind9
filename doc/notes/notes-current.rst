@@ -100,6 +100,9 @@ Feature Changes
 -  ``dig +qid=<num>`` allows the user to specify a particular query ID
    for testing purposes. [GL #1851]
 
+-  The default value of ``max-stale-ttl`` has changed from 1 week to
+   12 hours.
+
 Bug Fixes
 ~~~~~~~~~
 
