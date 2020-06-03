@@ -18,15 +18,15 @@ Troubleshooting
 Common Problems
 ---------------
 
-It's not working; how can I figure out what's wrong?
+It's Not Working; How Can I Figure Out What's Wrong?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The best solution to solving installation and configuration issues is to
-take preventative measures by setting up logging files beforehand. The
-log files provide a source of hints and information that can be used to
-figure out what went wrong and how to fix the problem.
+The best solution to installation and configuration issues is to
+take preventive measures by setting up logging files beforehand. The
+log files provide hints and information that can be used to
+identify anything that went wrong and fix the problem.
 
-EDNS compliance issues
+EDNS Compliance Issues
 ~~~~~~~~~~~~~~~~~~~~~~
 
 EDNS (Extended DNS) is a standard that was first specified in 1999. It
@@ -39,9 +39,9 @@ situation, retrying queries in different ways and eventually falling
 back to plain DNS queries without EDNS.
 
 Such workarounds cause unnecessary resolution delays, increase code
-complexity, and prevent deployment of new DNS features. As of February
-2019, all major DNS software vendors have agreed to remove these
-workarounds; see https://dnsflagday.net for further details. This change
+complexity, and prevent deployment of new DNS features. In February
+2019, all major DNS software vendors removed these
+workarounds; see https://dnsflagday.net/2019 for further details. This change
 was implemented in BIND as of release 9.14.0.
 
 As a result, some domains may be non-resolvable without manual
@@ -70,37 +70,37 @@ them to upgrade their broken DNS servers.
 Incrementing and Changing the Serial Number
 -------------------------------------------
 
-Zone serial numbers are just numbers — they aren't date related. A lot
-of people set them to a number that represents a date, usually of the
-form YYYYMMDDRR. Occasionally they will make a mistake and set them to a
-"date in the future" then try to correct them by setting them to the
-"current date". This causes problems because serial numbers are used to
-indicate that a zone has been updated. If the serial number on the slave
-server is lower than the serial number on the master, the slave server
-will attempt to update its copy of the zone.
+Zone serial numbers are just numbers — they are not date related. However, many
+people set them to a number that represents a date, usually of the
+form YYYYMMDDRR. Occasionally they will make a mistake and set the serial number to a
+date in the future, then try to correct it by setting it to the
+current date. This causes problems because serial numbers are used to
+indicate that a zone has been updated. If the serial number on the secondary
+server is lower than the serial number on the primary, the secondary server
+attempts to update its copy of the zone.
 
-Setting the serial number to a lower number on the master server than
-the slave server means that the slave will not perform updates to its
+Setting the serial number to a lower number on the primary server than the one
+on the secondary server means that the secondary will not perform updates to its
 copy of the zone.
 
 The solution to this is to add 2147483647 (2^31-1) to the number, reload
-the zone and make sure all slaves have updated to the new zone serial
-number, then reset the number to what you want it to be, and reload the
+the zone and make sure all secondaries have updated to the new zone serial
+number, then reset it to the desired number and reload the
 zone again.
 
 .. _more_help:
 
 Where Can I Get Help?
 ---------------------
-The BIND-users mailing list at lists.isc.org is an excellent resource for
-peer user support. In addition, ISC maintains a library of helpful articles
+The BIND-users mailing list, at https://lists.isc.org/mailman/listinfo/bind-users, is an excellent resource for
+peer user support. In addition, ISC maintains a Knowledgebase of helpful articles
 at https://kb.isc.org.
 
-The Internet Systems Consortium (ISC) offers annual support agreements
-for BIND, ISC DHCP and Kea. Four levels of premium support are available.
-Each level includes advance security notifications. The higher levels include
-greater service level agreements (SLAs), and increased priority on bug fixes
-and non-funded feature requests.
+Internet Systems Consortium (ISC) offers annual support agreements
+for BIND 9, ISC DHCP and Kea DHCP. 
+All paid support contracts include advance security notifications; some levels include
+service level agreements (SLAs), premium software features, and increased priority on bug fixes
+and feature requests.
 
-To discuss arrangements for support, contact info@isc.org or visit the
-ISC web page at https://www.isc.org/support/ to read more.
+Please contact info@isc.org or visit
+https://www.isc.org/contact/ for more information.
