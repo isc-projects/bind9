@@ -177,7 +177,6 @@ stages:
 
 .configure: &configure |
     ${CONFIGURE} \
-    --disable-maintainer-mode \
     --enable-developer \
     --with-randomdev=/dev/urandom \
     --with-libtool \
@@ -185,7 +184,7 @@ stages:
     --disable-static \
     --with-cmocka \
     --with-libxml2 \
-    --with-json \
+    --with-libjson \
     --prefix=$HOME/.local \
     --without-make-clean \
     $EXTRA_CONFIGURE \
