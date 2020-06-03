@@ -1,3 +1,6 @@
+5426.	[bug]		Don't fail when setting SO_INCOMING_CPU on the socket
+			fails. [GL #1911]
+
 5425.	[func]		The default value of "max-stale-ttl" has been change
 			from 1 week to 12 hours. [GL #1877]
 
