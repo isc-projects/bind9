@@ -101,7 +101,7 @@ Feature Changes
    for testing purposes. [GL #1851]
 
 -  The default value of ``max-stale-ttl`` has changed from 1 week to
-   12 hours.
+   12 hours. [GL #1877]
 
 Bug Fixes
 ~~~~~~~~~
