@@ -115,9 +115,12 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 #endif
 
 #ifdef SO_INCOMING_CPU
-		res = setsockopt(csock->fd, SOL_SOCKET, SO_INCOMING_CPU,
+		/* We don't check for the result, because SO_INCOMING_CPU can be
+		 * available without the setter on Linux kernel version 4.4, and
+		 * setting SO_INCOMING_CPU is just an optimization.
+		 */
+		(void)setsockopt(csock->fd, SOL_SOCKET, SO_INCOMING_CPU,
 				 &(int){ 1 }, sizeof(int));
-		RUNTIME_CHECK(res == 0);
 #endif
 		ievent = isc__nm_get_ievent(mgr, netievent_udplisten);
 		ievent->sock = csock;
