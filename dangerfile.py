@@ -16,12 +16,12 @@ import re
 def added_lines(target_branch, paths):
     import subprocess
     subprocess.check_output(['/usr/bin/git', 'fetch', '--depth', '1', 'origin',
-                             f'{target_branch}:{target_branch}'])
-    diff = subprocess.check_output(['/usr/bin/git', 'diff',
-                                    f'{target_branch}..', '--'] + paths)
+                             target_branch])
+    diff = subprocess.check_output(['/usr/bin/git', 'diff', 'FETCH_HEAD..',
+                                    '--'] + paths)
     added_lines = []
     for line in diff.splitlines():
-        if line.startswith(b'+'):
+        if line.startswith(b'+') and not line.startswith(b'+++'):
             added_lines.append(line)
     return added_lines
 
@@ -46,7 +46,9 @@ target_branch = danger.gitlab.mr.target_branch
 #
 #     * The length of the subject line exceeds 72 characters.
 #
-#     * There is no log message present (i.e. commit only has a subject).
+#     * There is no log message present (i.e. commit only has a subject) and the
+#       subject line does not contain any of the following strings: "fixup! ",
+#       " CHANGES ", " release note".
 #
 #     * Any line of the log message is longer than 72 characters.  This rule is
 #       not evaluated for lines starting with four spaces, which allows long
@@ -67,7 +69,10 @@ for commit in danger.git.commits:
         )
     if len(message_lines) > 1 and message_lines[1]:
         fail(f'No empty line after subject for commit {commit.sha}.')
-    if len(message_lines) < 3 and not subject.startswith('fixup! '):
+    if (len(message_lines) < 3 and
+            'fixup! ' not in subject and
+            ' CHANGES ' not in subject and
+            ' release note' not in subject):
         warn(f'Please write a log message for commit {commit.sha}.')
     for line in message_lines[2:]:
         if len(line) > 72 and not line.startswith('    '):
