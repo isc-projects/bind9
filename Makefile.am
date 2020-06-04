@@ -11,3 +11,14 @@ bind.keys.h: bind.keys Makefile
 dist_sysconf_DATA = bind.keys
 
 .PHONY: doc
+
+EXTRA_DIST = 			\
+	util/bindkeys.pl	\
+	contrib			\
+	CHANGES			\
+	COPYRIGHT		\
+	LICENSE			\
+	*.md
+
+dist-hook:
+	find $(distdir) -type f -name .gitignore -delete

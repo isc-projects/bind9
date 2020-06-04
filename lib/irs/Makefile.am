@@ -29,3 +29,5 @@ libirs_la_LDFLAGS =		\
 if HAVE_CMOCKA
 SUBDIRS = tests
 endif
+
+EXTRA_DIST = api

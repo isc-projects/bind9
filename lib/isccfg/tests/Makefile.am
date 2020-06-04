@@ -11,7 +11,8 @@ LDADD +=			\
 	$(LIBDNS_LIBS)		\
 	$(LIBISCCFG_LIBS)
 
-check_PROGRAMS = \
+check_PROGRAMS =	\
+	duration_test	\
 	parser_test
 
 TESTS = $(check_PROGRAMS)

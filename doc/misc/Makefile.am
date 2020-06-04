@@ -51,7 +51,14 @@ BUILT_SOURCES =				\
 	managed-keys.grammar.rst	\
 	trusted-keys.grammar.rst
 
-EXTRA_DIST = $(BUILT_SOURCES)
+EXTRA_DIST = 			\
+	$(BUILT_SOURCES)	\
+	format-options.pl	\
+	rst-grammars.pl		\
+	rst-options.pl		\
+	rst-zoneopt.pl		\
+	sort-options.pl
+
 MAINTAINERCLEANFILES = $(BUILT_SOURCES)
 
 options: cfg_test

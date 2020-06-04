@@ -14,6 +14,13 @@ sample_la_SOURCES =	\
 	lock.c		\
 	log.c		\
 	syncptr.c	\
-	zone.c
+	zone.c		\
+	db.h		\
+	instance.h	\
+	lock.h		\
+	log.h		\
+	syncptr.h	\
+	util.h		\
+	zone.h
 
 sample_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
