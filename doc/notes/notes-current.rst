@@ -54,6 +54,11 @@ Feature Changes
        option ``max-stale-ttl 1w;`` to named.conf to keep the previous behavior
        of named.
 
+-  listen-on-v6 { any; } creates separate sockets for all interfaces,
+   while previously it created one socket on systems conforming to
+   :rfc:`3493` and :rfc:`3542`, this change was introduced in 9.16.0
+   but accudently ommited from documentation.
+
 Bug Fixes
 ---------
 
