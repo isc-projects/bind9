@@ -476,7 +476,7 @@ tarball-create:
   only:
     - tags
 
-# Jobs for doc builds on Debian Sid (amd64)
+# Jobs for doc builds on Debian 10 "buster" (amd64)
 
 docs:
   <<: *release_branch_triggering_rules
@@ -613,7 +613,7 @@ unit:gcc:centos8:amd64:
     - job: gcc:centos8:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Debian 9 Stretch (amd64)
+# Jobs for regular GCC builds on Debian 9 "stretch" (amd64)
 
 gcc:stretch:amd64:
   variables:
@@ -636,7 +636,7 @@ unit:gcc:stretch:amd64:
     - job: gcc:stretch:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Debian 10 Buster (amd64)
+# Jobs for regular GCC builds on Debian 10 "buster" (amd64)
 
 gcc:buster:amd64:
   variables:
@@ -659,7 +659,7 @@ unit:gcc:buster:amd64:
     - job: gcc:buster:amd64
       artifacts: true
 
-# Jobs for scan-build builds on Debian Buster (amd64)
+# Jobs for scan-build builds on Debian 10 "buster" (amd64)
 
 .scan_build: &scan_build |
   ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)" \
@@ -690,7 +690,7 @@ scan-build:
     expire_in: "1 day"
     when: on_failure
 
-# Jobs for regular GCC builds on Debian Sid (amd64)
+# Jobs for regular GCC builds on Debian "sid" (amd64)
 # Also tests configration option: --without-lmdb.
 
 gcc:sid:amd64:
@@ -720,7 +720,7 @@ cppcheck:
   <<: *base_image
   <<: *cppcheck_job
 
-# Job for out-of-tree GCC build on Debian Sid (amd64)
+# Job for out-of-tree GCC build on Debian "sid" (amd64)
 # Also tests configration option: --with-lmdb.
 
 gcc:out-of-tree:
@@ -734,7 +734,7 @@ gcc:out-of-tree:
   <<: *base_image
   <<: *build_job
 
-# Jobs for tarball GCC builds on Debian Sid (amd64)
+# Jobs for tarball GCC builds on Debian 10 "buster" (amd64)
 
 gcc:tarball:
   variables:
@@ -776,7 +776,7 @@ unit:gcc:tarball:
   only:
     - tags
 
-# Jobs for regular GCC builds on Debian Sid (arm64)
+# Jobs for regular GCC builds on Debian "sid" (arm64)
 
 gcc:sid:arm64:
   variables:
@@ -800,7 +800,7 @@ unit:gcc:sid:arm64:
     - job: gcc:sid:arm64
       artifacts: true
 
-# Jobs for regular GCC builds on Debian Sid (i386)
+# Jobs for regular GCC builds on Debian "sid" (i386)
 
 gcc:sid:i386:
   variables:
@@ -920,7 +920,7 @@ unit:gcc:bionic:amd64:
     - job: gcc:bionic:amd64
       artifacts: true
 
-# Jobs for builds with ASAN enabled
+# Jobs for ASAN builds on Debian 10 "buster" (amd64)
 
 gcc:asan:
   variables:
@@ -976,7 +976,7 @@ unit:clang:asan:
     - job: clang:asan
       artifacts: true
 
-# Jobs for builds with TSAN enabled
+# Jobs for TSAN builds on Debian 10 "buster" (amd64)
 
 gcc:tsan:
   <<: *base_image
@@ -1032,7 +1032,8 @@ unit:clang:tsan:
     - job: clang:tsan
       artifacts: true
 
-# Jobs for mutex-based atomics on Debian SID (amd64)
+# Jobs for builds with mutex-based atomics on Debian 10 "buster" (amd64)
+
 gcc:mutexatomics:
   variables:
     CC: gcc
@@ -1055,7 +1056,7 @@ unit:gcc:mutexatomics:
     - job: gcc:mutexatomics
       artifacts: true
 
-# Jobs for Clang builds on Debian Buster (amd64)
+# Jobs for Clang builds on Debian 10 "buster" (amd64)
 
 clang:buster:amd64:
   variables:
@@ -1079,7 +1080,7 @@ unit:clang:buster:amd64:
     - job: clang:buster:amd64
       artifacts: true
 
-# Jobs for PKCS#11-enabled GCC builds on Debian Sid (amd64)
+# Jobs for PKCS#11-enabled GCC builds on Debian "sid" (amd64)
 
 gcc:pkcs11:
   variables:
