@@ -2443,26 +2443,6 @@ ports on which the server listens for incoming queries sent using
 IPv6. If not specified, the server listens on port 53 on all IPv6
 interfaces.
 
-When
-
-::
-
-   { any; }
-
-is specified as the ``address_match_list`` for the ``listen-on-v6``
-option, the server does not bind a separate socket to each IPv6
-interface address as it does for IPv4, if the operating system has enough
-API support for IPv6 (specifically if it conforms to :rfc:`3493` and
-:rfc:`3542`). Instead, it listens on the IPv6 wildcard address. If the system
-only has incomplete API support for IPv6, however, the behavior is the
-same as that for IPv4.
-
-A list of particular IPv6 addresses can also be specified, in which case
-the server listens on a separate socket for each specified address,
-regardless of whether the desired API is supported by the system. IPv4
-addresses specified in ``listen-on-v6`` are ignored, with a logged
-warning.
-
 Multiple ``listen-on-v6`` options can be used. For example,
 
 ::

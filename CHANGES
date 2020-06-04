@@ -1,3 +1,7 @@
+5430.	[doc]		Update docs - with netmgr we're creating separate
+			socket for each IPv6 interface, just as with IPv4.
+			[GL #1782]
+
 5428.	[bug]		Cleanup GSSAPI resources in nsupdate only after taskmgr
 			has been destroyed. Thanks to Petr Menšík. [GL !3316]
 
