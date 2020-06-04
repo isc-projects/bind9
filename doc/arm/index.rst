@@ -32,6 +32,5 @@ BIND 9 Administrator Reference Manual
    notes
    history
    general
-   libdns
    manpages
 
