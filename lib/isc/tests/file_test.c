@@ -57,7 +57,7 @@ isc_file_sanitize_test(void **state) {
 
 	UNUSED(state);
 
-	assert_return_code(chdir(TESTS), 0);
+	assert_return_code(chdir(TESTS_DIR), 0);
 
 	result = isc_file_sanitize("testdata/file", NAME, "test", buf, 1024);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -93,7 +93,7 @@ isc_file_template_test(void **state) {
 
 	UNUSED(state);
 
-	assert_return_code(chdir(TESTS), 0);
+	assert_return_code(chdir(TESTS_DIR), 0);
 
 	result = isc_file_template("/absolute/path", "file-XXXXXXXX", buf,
 				   sizeof(buf));

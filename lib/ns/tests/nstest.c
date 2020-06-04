@@ -315,7 +315,7 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 	 * that access test data files must first chdir to the proper
 	 * location.
 	 */
-	if (chdir(TESTS) == -1) {
+	if (chdir(TESTS_DIR) == -1) {
 		CHECK(ISC_R_FAILURE);
 	}
 

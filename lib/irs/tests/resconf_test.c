@@ -39,7 +39,7 @@ setup_test(void) {
 	 * that access test data files must first chdir to the proper
 	 * location.
 	 */
-	assert_return_code(chdir(TESTS), 0);
+	assert_return_code(chdir(TESTS_DIR), 0);
 }
 
 /* test irs_resconf_load() */
