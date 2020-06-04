@@ -848,30 +848,6 @@ unit:gcc:tumbleweed:amd64:
     - job: gcc:tumbleweed:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Fedora 31 (amd64)
-
-gcc:fedora31:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O1"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *fedora_31_amd64_image
-  <<: *build_job
-
-system:gcc:fedora31:amd64:
-  <<: *fedora_31_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:fedora31:amd64
-      artifacts: true
-
-unit:gcc:fedora31:amd64:
-  <<: *fedora_31_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:fedora31:amd64
-      artifacts: true
-
 # Jobs for regular GCC builds on Ubuntu 16.04 Xenial Xerus (amd64)
 
 gcc:xenial:amd64:
@@ -1102,6 +1078,30 @@ unit:gcc:pkcs11:
   <<: *unit_test_job
   needs:
     - job: gcc:pkcs11
+      artifacts: true
+
+# Jobs for PKCS#11-enabled GCC builds on Fedora 31 (amd64)
+
+gcc:fedora31:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -O1"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-native-pkcs11 --with-pkcs11=/usr/lib64/pkcs11/libsofthsm2.so"
+  <<: *fedora_31_amd64_image
+  <<: *build_job
+
+system:gcc:fedora31:amd64:
+  <<: *fedora_31_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:fedora31:amd64
+      artifacts: true
+
+unit:gcc:fedora31:amd64:
+  <<: *fedora_31_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:fedora31:amd64
       artifacts: true
 
 # Jobs for Clang builds on FreeBSD 11.3 (amd64)
