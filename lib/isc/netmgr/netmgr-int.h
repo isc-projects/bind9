@@ -616,6 +616,19 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
  */
 
 void
+isc__nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target);
+/*%<
+ * Attach to a socket, increasing refcount
+ */
+
+void
+isc__nmsocket_detach(isc_nmsocket_t **socketp);
+/*%<
+ * Detach from socket, decreasing refcount and possibly destroying the
+ * socket if it's no longer referenced.
+ */
+
+void
 isc__nmsocket_prep_destroy(isc_nmsocket_t *sock);
 /*%<
  * Market 'sock' as inactive, close it if necessary, and destroy it

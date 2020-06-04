@@ -468,7 +468,7 @@ isc_nm_tcp_settimeouts
 isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
-isc_nmsocket_detach
+isc_nmsocket_close
 isc__nm_acquire_interlocked
 isc__nm_drop_interlocked
 isc__nm_acquire_interlocked_force

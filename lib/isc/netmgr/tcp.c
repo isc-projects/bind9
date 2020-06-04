@@ -209,7 +209,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
 		return (ISC_R_SUCCESS);
 	} else {
 		isc_result_t result = nsock->result;
-		isc_nmsocket_detach(&nsock);
+		isc__nmsocket_detach(&nsock);
 		return (result);
 	}
 }
@@ -379,14 +379,14 @@ isc__nm_async_tcpchildaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 		goto error;
 	}
 
-	isc_nmsocket_attach(ssock, &csock->server);
+	isc__nmsocket_attach(ssock, &csock->server);
 
 	handle = isc__nmhandle_get(csock, NULL, &local);
 
 	INSIST(ssock->rcb.accept != NULL);
 	csock->read_timeout = ssock->mgr->init;
 	ssock->rcb.accept(handle, ISC_R_SUCCESS, ssock->rcbarg);
-	isc_nmsocket_detach(&csock);
+	isc__nmsocket_detach(&csock);
 	return;
 
 error:
@@ -405,7 +405,7 @@ error:
 	/*
 	 * Detach the socket properly to make sure uv_close() is called.
 	 */
-	isc_nmsocket_detach(&csock);
+	isc__nmsocket_detach(&csock);
 }
 
 void
@@ -416,7 +416,7 @@ isc__nm_tcp_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(!isc__nm_in_netthread());
 
 	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpstop);
-	isc_nmsocket_attach(sock, &ievent->sock);
+	isc__nmsocket_attach(sock, &ievent->sock);
 	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 			       (isc__netievent_t *)ievent);
 }
@@ -462,7 +462,7 @@ tcp_listenclose_cb(uv_handle_t *handle) {
 	sock->pquota = NULL;
 	UNLOCK(&sock->lock);
 
-	isc_nmsocket_detach(&sock);
+	isc__nmsocket_detach(&sock);
 }
 
 static void
@@ -697,7 +697,7 @@ isc__nm_async_tcpaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 	/*
 	 * The socket was attached just before we called isc_quota_attach_cb().
 	 */
-	isc_nmsocket_detach(&ievent->sock);
+	isc__nmsocket_detach(&ievent->sock);
 }
 
 /*
@@ -741,7 +741,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 		 * we need to - but we risk a race then.)
 		 */
 		isc_nmsocket_t *tsock = NULL;
-		isc_nmsocket_attach(ssock, &tsock);
+		isc__nmsocket_attach(ssock, &tsock);
 		result = isc_quota_attach_cb(ssock->pquota, &quota,
 					     &ssock->quotacb);
 		if (result == ISC_R_QUOTA) {
@@ -754,7 +754,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 		 * We're under quota, so there's no need to wait;
 		 * Detach the socket.
 		 */
-		isc_nmsocket_detach(&tsock);
+		isc__nmsocket_detach(&tsock);
 	}
 
 	isc__nm_incstats(ssock->mgr, ssock->statsindex[STATID_ACCEPT]);
@@ -915,7 +915,7 @@ timer_close_cb(uv_handle_t *uvhandle) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 
-	isc_nmsocket_detach(&sock->server);
+	isc__nmsocket_detach(&sock->server);
 	uv_close(&sock->uv_handle.handle, tcp_close_cb);
 }
 
@@ -933,7 +933,7 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 	} else {
 		if (sock->server != NULL) {
-			isc_nmsocket_detach(&sock->server);
+			isc__nmsocket_detach(&sock->server);
 		}
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
 	}
