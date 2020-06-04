@@ -122,6 +122,11 @@ Feature Changes
    ``rndc``, ``rndc-confgen``, and ``tsig-confgen`` were left in
    ``$sbindir``. [GL #1724]
 
+-  listen-on-v6 { any; } creates separate sockets for all interfaces,
+   while previously it created one socket on systems conforming to
+   :rfc:`3493` and :rfc:`3542`, this change was introduced in 9.16.0
+   but accudently ommited from documentation.
+
 Bug Fixes
 ~~~~~~~~~
 
