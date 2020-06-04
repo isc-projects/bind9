@@ -1,3 +1,7 @@
+5430.	[doc]		Update docs - with netmgr we're creating separate
+			socket for each IPv6 interface, just as with IPv4.
+			[GL #1782]
+
 5429.	[cleanup]	Move BIND binaries which are neither daemons nor
 			administrative programs to $bindir. [GL #1724]
 
