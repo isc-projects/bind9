@@ -1,3 +1,6 @@
+5428.	[bug]		Cleanup GSSAPI resources in nsupdate only after taskmgr
+			has been destroyed. Thanks to Petr Menšík. [GL !3316]
+
 5426.	[bug]		Don't fail when setting SO_INCOMING_CPU on the socket
 			fails. [GL #1911]
 
