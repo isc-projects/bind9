@@ -37,15 +37,15 @@ Description
 ``pkcs11-tokens`` lists the PKCS#11 available tokens with defaults from
 the slot/token scan performed at application initialization.
 
-Arguments
-~~~~~~~~~
+Options
+~~~~~~~
 
-**-m** module
-   Specify the PKCS#11 provider module. This must be the full path to a
+``-m module``
+   This option specifies the PKCS#11 provider module. This must be the full path to a
    shared library object implementing the PKCS#11 API for the device.
 
-**-v**
-   Make the PKCS#11 libisc initialization verbose.
+``-v``
+   This option makes the PKCS#11 libisc initialization verbose.
 
 See Also
 ~~~~~~~~

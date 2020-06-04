@@ -104,7 +104,7 @@ Options
    operations without any need for an operator to manually enter a PIN.
    Note: Making the HSM's PIN accessible in this manner may reduce the
    security advantage of using an HSM; use caution
-   when using this feature.
+   with this feature.
 
 ``-n nametype``
    This option specifies the owner type of the key. The value of ``nametype`` must
