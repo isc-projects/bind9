@@ -12512,9 +12512,8 @@ example.com. NS ns2.example.net.
 	      A pre-defined <command>update-policy</command> rule can be
 	      switched on with the command
 	      <command>update-policy local;</command>.
-	      Using this in a zone causes
-	      <command>named</command> to generate a TSIG session key
-	      when starting up and store it in a file; this key can then
+	      <command>named</command> automatically generates a TSIG session
+	      key when starting and stores it in a file; this key can then
 	      be used by local clients to update the zone while
 	      <command>named</command> is running.
 	      By default, the session key is stored in the file
