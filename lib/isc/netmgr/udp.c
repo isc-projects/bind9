@@ -152,7 +152,8 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 #endif
 	uv_udp_init_ex(&worker->loop, &sock->uv_handle.udp, uv_init_flags);
 	uv_handle_set_data(&sock->uv_handle.handle, NULL);
-	isc_nmsocket_attach(sock, (isc_nmsocket_t **)&sock->uv_handle.udp.data);
+	isc__nmsocket_attach(sock,
+			     (isc_nmsocket_t **)&sock->uv_handle.udp.data);
 
 	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
 	if (r == 0) {
@@ -186,7 +187,7 @@ udp_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	atomic_store(&sock->closed, true);
 
-	isc_nmsocket_detach((isc_nmsocket_t **)&sock->uv_handle.udp.data);
+	isc__nmsocket_detach((isc_nmsocket_t **)&sock->uv_handle.udp.data);
 }
 
 static void

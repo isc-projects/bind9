@@ -57,26 +57,13 @@ isc_nm_closedown(isc_nm_t *mgr);
 int
 isc_nm_tid(void);
 
-/*
- * isc_nm_freehandle frees a handle, releasing resources
- */
 void
-isc_nm_freehandle(isc_nmhandle_t *handle);
-
-void
-isc_nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target);
+isc_nmsocket_close(isc_nmsocket_t **sockp);
 /*%<
- * isc_nmsocket_attach attaches to a socket, increasing refcount
- */
-
-void
-isc_nmsocket_close(isc_nmsocket_t *sock);
-
-void
-isc_nmsocket_detach(isc_nmsocket_t **socketp);
-/*%<
- * isc_nmsocket_detach detaches from socket, decreasing refcount
- * and possibly destroying the socket if it's no longer referenced.
+ * isc_nmsocket_close() detaches a listening socket that was
+ * created by isc_nm_listenudp(), isc_nm_listentcp(), or
+ * isc_nm_listentcpdns(). Once there are no remaining child
+ * sockets with active handles, the socket will be closed.
  */
 
 void

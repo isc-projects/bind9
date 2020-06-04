@@ -686,7 +686,7 @@ isc__nmsocket_active(isc_nmsocket_t *sock) {
 }
 
 void
-isc_nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target) {
+isc__nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(target != NULL && *target == NULL);
 
@@ -878,7 +878,7 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock) {
 }
 
 void
-isc_nmsocket_detach(isc_nmsocket_t **sockp) {
+isc__nmsocket_detach(isc_nmsocket_t **sockp) {
 	REQUIRE(sockp != NULL && *sockp != NULL);
 	REQUIRE(VALID_NMSOCK(*sockp));
 
@@ -899,6 +899,17 @@ isc_nmsocket_detach(isc_nmsocket_t **sockp) {
 	if (isc_refcount_decrement(&rsock->references) == 1) {
 		isc__nmsocket_prep_destroy(rsock);
 	}
+}
+
+void
+isc_nmsocket_close(isc_nmsocket_t **sockp) {
+	REQUIRE(sockp != NULL);
+	REQUIRE(VALID_NMSOCK(*sockp));
+	REQUIRE((*sockp)->type == isc_nm_udplistener ||
+		(*sockp)->type == isc_nm_tcplistener ||
+		(*sockp)->type == isc_nm_tcpdnslistener);
+
+	isc__nmsocket_detach(sockp);
 }
 
 void
@@ -1171,7 +1182,7 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	 * be deleted by another thread while we're deactivating the
 	 * handle.
 	 */
-	isc_nmsocket_attach(sock, &tmp);
+	isc__nmsocket_attach(sock, &tmp);
 	nmhandle_deactivate(sock, handle);
 
 	/*
@@ -1189,13 +1200,13 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 			 * The socket will be finally detached by the closecb
 			 * event handler.
 			 */
-			isc_nmsocket_attach(sock, &event->sock);
+			isc__nmsocket_attach(sock, &event->sock);
 			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 					       (isc__netievent_t *)event);
 		}
 	}
 
-	isc_nmsocket_detach(&tmp);
+	isc__nmsocket_detach(&tmp);
 }
 
 void *
@@ -1262,7 +1273,7 @@ isc__nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock) {
 
 	*req = (isc__nm_uvreq_t){ .magic = 0 };
 	req->uv_req.req.data = req;
-	isc_nmsocket_attach(sock, &req->sock);
+	isc__nmsocket_attach(sock, &req->sock);
 	req->magic = UVREQ_MAGIC;
 
 	return (req);
@@ -1299,7 +1310,7 @@ isc__nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock) {
 		isc_nmhandle_unref(handle);
 	}
 
-	isc_nmsocket_detach(&sock);
+	isc__nmsocket_detach(&sock);
 }
 
 isc_result_t
@@ -1388,7 +1399,7 @@ isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ev0) {
 	UNUSED(worker);
 
 	ievent->sock->closehandle_cb(ievent->sock);
-	isc_nmsocket_detach(&ievent->sock);
+	isc__nmsocket_detach(&ievent->sock);
 }
 
 static void
