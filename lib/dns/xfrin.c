@@ -1313,6 +1313,61 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	}
 
 	/*
+	 * The question section should exist for SOA and in the first
+	 * message of a AXFR or IXFR response.  The question section
+	 * may exist in the 2nd and subsequent messages in a AXFR or
+	 * IXFR response.  If the question section exists it should
+	 * match the question that was sent.
+	 */
+	if (msg->counts[DNS_SECTION_QUESTION] > 1) {
+		xfrin_log(xfr, ISC_LOG_DEBUG(3), "too many questions (%u)",
+			  msg->counts[DNS_SECTION_QUESTION]);
+		result = DNS_R_FORMERR;
+		goto failure;
+	}
+
+	if ((xfr->state == XFRST_SOAQUERY || xfr->state == XFRST_INITIALSOA) &&
+	    msg->counts[DNS_SECTION_QUESTION] != 1)
+	{
+		xfrin_log(xfr, ISC_LOG_DEBUG(3), "missing question section");
+		result = DNS_R_FORMERR;
+		goto failure;
+	}
+
+	for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(msg, DNS_SECTION_QUESTION))
+	{
+		dns_rdataset_t *rds;
+
+		name = NULL;
+		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
+		if (!dns_name_equal(name, &xfr->name)) {
+			result = DNS_R_FORMERR;
+			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+				  "question name mismatch");
+			goto failure;
+		}
+		rds = ISC_LIST_HEAD(name->list);
+		INSIST(rds != NULL);
+		if (rds->type != xfr->reqtype) {
+			result = DNS_R_FORMERR;
+			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+				  "question type mismatch");
+			goto failure;
+		}
+		if (rds->rdclass != xfr->rdclass) {
+			result = DNS_R_FORMERR;
+			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+				  "question class mismatch");
+			goto failure;
+		}
+	}
+	if (result != ISC_R_NOMORE) {
+		goto failure;
+	}
+
+	/*
 	 * Does the server know about IXFR?  If it doesn't we will get
 	 * a message with a empty answer section or a potentially a CNAME /
 	 * DNAME, the later is handled by xfr_rr() which will return FORMERR

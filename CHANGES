@@ -1,3 +1,6 @@
+5432.	[bug]		Check the question section when processing AXFR, IXFR
+			and SOA replies when transfer a zone in. [GL #1683]
+
 5431.	[func]		Reject DS records at the zone apex when loading
 			master files. Log but otherwise ignore attempts to
 			add DS records at the zone apex via UPDATE. [GL #1798]
