@@ -1,8 +1,8 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "PKCS11-TOKENS" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
+.TH "NAMED-NZD2NZF" "1" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
 .SH NAME
-pkcs11-tokens \- list PKCS#11 available tokens
+named-nzd2nzf \- convert an NZD database to NZF text format
 .
 .nr rst2man-indent-level 0
 .
@@ -32,24 +32,23 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH SYNOPSIS
 .sp
-\fBpkcs11\-tokens\fP [\fB\-m\fP module] [\fB\-v\fP]
+\fBnamed\-nzd2nzf\fP {filename}
 .SH DESCRIPTION
 .sp
-\fBpkcs11\-tokens\fP lists the PKCS#11 available tokens with defaults from
-the slot/token scan performed at application initialization.
+\fBnamed\-nzd2nzf\fP converts an NZD database to NZF format and prints it
+to standard output. This can be used to review the configuration of
+zones that were added to \fBnamed\fP via \fBrndc addzone\fP\&. It can also be
+used to restore the old file format when rolling back from a newer
+version of BIND to an older version.
 .SH ARGUMENTS
 .INDENT 0.0
 .TP
-\fB\-m\fP module
-Specify the PKCS#11 provider module. This must be the full path to a
-shared library object implementing the PKCS#11 API for the device.
-.TP
-\fB\-v\fP
-Make the PKCS#11 libisc initialization verbose.
+.B filename
+The name of the \fB\&.nzd\fP file whose contents should be printed.
 .UNINDENT
 .SH SEE ALSO
 .sp
-\fBpkcs11\-destroy(8)\fP, \fBpkcs11\-keygen(8)\fP, \fBpkcs11\-list(8)\fP
+BIND 9 Administrator Reference Manual.
 .SH AUTHOR
 Internet Systems Consortium
 .SH COPYRIGHT

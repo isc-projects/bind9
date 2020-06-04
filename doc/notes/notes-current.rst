@@ -103,6 +103,11 @@ Feature Changes
 -  The default value of ``max-stale-ttl`` has changed from 1 week to
    12 hours. [GL #1877]
 
+-  BIND binaries which are neither daemons nor administrative programs
+   were moved to ``$bindir``. Only ``ddns-confgen``, ``named``,
+   ``rndc``, ``rndc-confgen``, and ``tsig-confgen`` were left in
+   ``$sbindir``. [GL #1724]
+
 Bug Fixes
 ~~~~~~~~~
 

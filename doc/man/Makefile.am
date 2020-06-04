@@ -50,31 +50,31 @@ man_MANS =				\
 	named.conf.5			\
 	rndc.conf.5			\
 	ddns-confgen.8			\
-	dnssec-cds.8			\
-	dnssec-dsfromkey.8		\
-	dnssec-importkey.8		\
-	dnssec-keyfromlabel.8		\
-	dnssec-keygen.8			\
-	dnssec-revoke.8			\
-	dnssec-settime.8		\
-	dnssec-signzone.8		\
-	dnssec-verify.8			\
+	dnssec-cds.1			\
+	dnssec-dsfromkey.1		\
+	dnssec-importkey.1		\
+	dnssec-keyfromlabel.1		\
+	dnssec-keygen.1			\
+	dnssec-revoke.1			\
+	dnssec-settime.1		\
+	dnssec-signzone.1		\
+	dnssec-verify.1			\
 	filter-aaaa.8			\
-	named-checkconf.8		\
-	named-checkzone.8		\
-	named-journalprint.8		\
-	named-nzd2nzf.8			\
+	named-checkconf.1		\
+	named-checkzone.1		\
+	named-journalprint.1		\
+	named-nzd2nzf.1			\
 	named.8				\
-	nsec3hash.8			\
+	nsec3hash.1			\
 	rndc-confgen.8			\
 	rndc.8
 
 if HAVE_PKCS11
 man_MANS +=				\
-	pkcs11-destroy.8		\
-	pkcs11-keygen.8			\
-	pkcs11-list.8			\
-	pkcs11-tokens.8
+	pkcs11-destroy.1		\
+	pkcs11-keygen.1			\
+	pkcs11-list.1			\
+	pkcs11-tokens.1
 endif HAVE_PKCS11
 
 MANPAGES_IN =				\

@@ -10,11 +10,9 @@ LDADD =				\
 
 bin_PROGRAMS =			\
 	arpaname		\
-	named-rrchecker		\
-	mdig
-
-sbin_PROGRAMS =			\
+	mdig			\
 	named-journalprint	\
+	named-rrchecker		\
 	nsec3hash
 
 arpaname_LDADD =		\
@@ -45,7 +43,7 @@ dnstap_read_LDADD =		\
 endif
 
 if HAVE_LMDB
-sbin_PROGRAMS +=			\
+bin_PROGRAMS +=			\
 	named-nzd2nzf
 
 named_nzd2nzf_CFLAGS =		\

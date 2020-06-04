@@ -24,11 +24,11 @@ LDADD =				\
 	$(LIBISCCFG_LIBS)	\
 	$(LIBBIND9_LIBS)
 
-sbin_PROGRAMS = named-checkconf named-checkzone
+bin_PROGRAMS = named-checkconf named-checkzone
 
 install-exec-hook:
-	ln -f $(DESTDIR)$(sbindir)/named-checkzone \
-	      $(DESTDIR)$(sbindir)/named-compilezone
+	ln -f $(DESTDIR)$(bindir)/named-checkzone \
+	      $(DESTDIR)$(bindir)/named-compilezone
 
 uninstall-hook:
-	-rm -f $(DESTDIR)$(sbindir)/named-compilezone
+	-rm -f $(DESTDIR)$(bindir)/named-compilezone
