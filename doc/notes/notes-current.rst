@@ -100,8 +100,22 @@ Feature Changes
 -  ``dig +qid=<num>`` allows the user to specify a particular query ID
    for testing purposes. [GL #1851]
 
--  The default value of ``max-stale-ttl`` has changed from 1 week to
-   12 hours. [GL #1877]
+-  The default value of ``max-stale-ttl`` has changed from 1 week to 12 hours.
+   This option controls how long named retains expired RRsets in cache as a
+   potential mitigation mechanism, should there be a problem with one or more
+   domains.  Note that cache content retention is independent of whether or not
+   stale answers will be used in response to client queries
+   (``stale-answer-enable yes|no`` and ``rndc serve-stale on|off``).  Serving of
+   stale answers when the authoritative servers are not responding must be
+   explicitly enabled, whereas the retention of expired cache content takes
+   place automatically on all versions of BIND that have this feature available.
+   [GL #1877]
+
+   .. warning:
+       This change may be significant for administrators who expect that stale
+       cache content will be automatically retained for up to 1 week.  Add
+       option ``max-stale-ttl 1w;`` to named.conf to keep the previous behavior
+       of named.
 
 -  BIND binaries which are neither daemons nor administrative programs
    were moved to ``$bindir``. Only ``ddns-confgen``, ``named``,
@@ -144,4 +158,3 @@ Bug Fixes
 -  With dnssec-policy, when creating a successor key, the goal state of
    the current active key (the predecessor) was not changed and thus was
    never is removed from the zone. [GL #1846]
-
