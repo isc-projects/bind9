@@ -1336,7 +1336,6 @@
 ./doc/arm/index.rst				RST	2020
 ./doc/arm/introduction.rst			RST	2020
 ./doc/arm/isc-logo.pdf				X	2005,2010,2018,2019,2020
-./doc/arm/libdns.rst				RST	2020
 ./doc/arm/logging-categories.rst		RST	2020
 ./doc/arm/managed-keys.rst			RST	2020
 ./doc/arm/manpages.rst				RST	2020
