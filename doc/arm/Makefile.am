@@ -21,7 +21,6 @@ EXTRA_DIST =				\
 	index.rst			\
 	introduction.rst		\
 	key.grammar.rst			\
-	libdns.rst			\
 	logging-categories.rst		\
 	logging.grammar.rst		\
 	managed-keys.grammar.rst	\
