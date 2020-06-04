@@ -1053,7 +1053,7 @@ unit:clang:buster:amd64:
 
 # Jobs for PKCS#11-enabled GCC builds on Debian "sid" (amd64)
 
-gcc:pkcs11:
+gcc:softhsm2.4:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
@@ -1061,23 +1061,23 @@ gcc:pkcs11:
   <<: *base_image
   <<: *build_job
 
-system:gcc:pkcs11:
+system:gcc:softhsm2.4:
   <<: *base_image
   <<: *system_test_job
   needs:
-    - job: gcc:pkcs11
+    - job: gcc:softhsm2.4
       artifacts: true
 
-unit:gcc:pkcs11:
+unit:gcc:softhsm2.4:
   <<: *base_image
   <<: *unit_test_job
   needs:
-    - job: gcc:pkcs11
+    - job: gcc:softhsm2.4
       artifacts: true
 
 # Jobs for PKCS#11-enabled GCC builds on Fedora 31 (amd64)
 
-gcc:fedora31:amd64:
+gcc:softhsm2.6:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O1"
@@ -1085,18 +1085,18 @@ gcc:fedora31:amd64:
   <<: *fedora_31_amd64_image
   <<: *build_job
 
-system:gcc:fedora31:amd64:
+system:gcc:softhsm2.6:
   <<: *fedora_31_amd64_image
   <<: *system_test_job
   needs:
-    - job: gcc:fedora31:amd64
+    - job: gcc:softhsm2.6
       artifacts: true
 
-unit:gcc:fedora31:amd64:
+unit:gcc:softhsm2.6:
   <<: *fedora_31_amd64_image
   <<: *unit_test_job
   needs:
-    - job: gcc:fedora31:amd64
+    - job: gcc:softhsm2.6
       artifacts: true
 
 # Jobs for Clang builds on FreeBSD 11.3 (amd64)
