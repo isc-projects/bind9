@@ -43,7 +43,7 @@ Options
 ~~~~~~~
 
 ``-m``
-   This indicates trace memory allocations, and is used for debugging memory leaks.
+   This option indicates trace memory allocations, and is used for debugging memory leaks.
 
 ``-p``
    This option prints the text form of the DNS
@@ -54,7 +54,7 @@ Options
    of the DNS message that was encapsulated in the ``dnstap`` frame, after printing the ``dnstap`` data.
 
 ``-y``
-   This prints ``dnstap`` data in a detailed YAML format.
+   This option prints ``dnstap`` data in a detailed YAML format.
 
 See Also
 ~~~~~~~~
