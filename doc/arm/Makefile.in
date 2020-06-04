@@ -62,7 +62,6 @@ pdf:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) "$(SPHINXBUILDDIR)"/latex
 	make -C "$(SPHINXBUILDDIR)"/latex
 	cp "$(SPHINXBUILDDIR)"/latex/Bv9ARM.pdf "${builddir}"
-	cp "$(SPHINXBUILDDIR)"/latex/notes.pdf "${builddir}"
 
 .PHONY: help Makefile doc pdf man
 
@@ -85,4 +84,4 @@ uninstall::
 
 clean docclean manclean maintainer-clean::
 	rm -rf $(SPHINXBUILDDIR)
-	rm -f notes.pdf Bv9ARM.pdf
+	rm -f Bv9ARM.pdf
