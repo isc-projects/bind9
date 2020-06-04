@@ -1,3 +1,6 @@
+5428.	[bug]		Cleanup GSSAPI resources in nsupdate only after taskmgr
+			has been destroyed. Thanks to Petr Menšík. [GL !3316]
+
 5427.	[bug]		Fix regression in address/prefix length checking
 			that should have been warning instead of error
 			in the BIND 9.11 release. [GL #1849]
