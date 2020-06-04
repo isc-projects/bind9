@@ -750,6 +750,10 @@ doshutdown(void) {
 
 static void
 maybeshutdown(void) {
+	/* when called from getinput, doshutdown might be already finished */
+	if (requestmgr == NULL)
+		return;
+
 	ddebug("Shutting down request manager");
 	dns_requestmgr_shutdown(requestmgr);
 
@@ -3027,6 +3031,8 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	isc_sockaddr_t *srcaddr;
 
 	debug("send_gssrequest");
+	REQUIRE(destaddr != NULL);
+
 	reqinfo = isc_mem_get(gmctx, sizeof(nsu_gssinfo_t));
 	reqinfo->msg = msg;
 	reqinfo->addr = destaddr;
@@ -3318,20 +3324,6 @@ cleanup(void) {
 		ddebug("Detaching GSS-TSIG keyring");
 		dns_tsigkeyring_detach(&gssring);
 	}
-	if (kserver != NULL) {
-		isc_mem_put(gmctx, kserver, sizeof(isc_sockaddr_t));
-		kserver = NULL;
-	}
-	if (realm != NULL) {
-		isc_mem_free(gmctx, realm);
-		realm = NULL;
-	}
-	if (dns_name_dynamic(&tmpzonename)) {
-		dns_name_free(&tmpzonename, gmctx);
-	}
-	if (dns_name_dynamic(&restart_master)) {
-		dns_name_free(&restart_master, gmctx);
-	}
 #endif /* ifdef GSSAPI */
 
 	if (sig0key != NULL) {
@@ -3349,6 +3341,26 @@ cleanup(void) {
 
 	ddebug("Shutting down timer manager");
 	isc_timermgr_destroy(&timermgr);
+
+#ifdef GSSAPI
+	/*
+	 * Cleanup GSSAPI resources after taskmgr has been destroyed.
+	 */
+	if (kserver != NULL) {
+		isc_mem_put(gmctx, kserver, sizeof(isc_sockaddr_t));
+		kserver = NULL;
+	}
+	if (realm != NULL) {
+		isc_mem_free(gmctx, realm);
+		realm = NULL;
+	}
+	if (dns_name_dynamic(&tmpzonename)) {
+		dns_name_free(&tmpzonename, gmctx);
+	}
+	if (dns_name_dynamic(&restart_master)) {
+		dns_name_free(&restart_master, gmctx);
+	}
+#endif /* ifdef GSSAPI */
 
 	ddebug("Removing log context");
 	isc_log_destroy(&glctx);
