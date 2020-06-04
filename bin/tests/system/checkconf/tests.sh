@@ -387,6 +387,15 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check that invalid address/prefix length generates a warning ($n)"
+ret=0
+$CHECKCONF warn-address-prefix-length-mismatch.conf > checkconf.out$n 2>/dev/null || ret=1
+LINES=$(grep -c "address/prefix length mismatch" < checkconf.out$n) || ret=1
+[ "$LINES" -eq 8 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check that 'dnssec-lookaside . trust-anchor dlv.example.com;' doesn't generates a warning ($n)"
 ret=0
 $CHECKCONF good-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
