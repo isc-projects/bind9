@@ -1,3 +1,5 @@
+5433.	[placeholder]
+
 5432.	[bug]		Check the question section when processing AXFR, IXFR
 			and SOA replies when transfer a zone in. [GL #1683]
 
