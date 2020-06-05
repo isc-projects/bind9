@@ -76,6 +76,8 @@
 		var = _u.v;            \
 	} while (0)
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
 /*%
  * Use this in translation units that would otherwise be empty, to
  * suppress compiler warnings.
