@@ -3517,6 +3517,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 	uint16_t optcode, optlen;
 	unsigned char *optdata;
 	unsigned int saveindent = dns_master_indent;
+	unsigned int optindent;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
@@ -3579,7 +3580,10 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 
 		isc_buffer_init(&optbuf, rdata.data, rdata.length);
 		isc_buffer_add(&optbuf, rdata.length);
+		optindent = dns_master_indent;
 		while (isc_buffer_remaininglength(&optbuf) != 0) {
+			bool extra_text = false;
+			dns_master_indent = optindent;
 			INSIST(isc_buffer_remaininglength(&optbuf) >= 4U);
 			optcode = isc_buffer_getuint16(&optbuf);
 			optlen = isc_buffer_getuint16(&optbuf);
@@ -3659,6 +3663,33 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 					ADD_STRING(target, "\n");
 					continue;
 				}
+			} else if (optcode == DNS_OPT_EDE) {
+				INDENT(style);
+				ADD_STRING(target, "EDE");
+				if (optlen >= 2U) {
+					uint16_t ede;
+					ADD_STRING(target, ":\n");
+					dns_master_indent++;
+					INDENT(style);
+					ADD_STRING(target, "INFO-CODE:");
+					ede = isc_buffer_getuint16(&optbuf);
+					snprintf(buf, sizeof(buf), " %u", ede);
+					ADD_STRING(target, buf);
+					if (ede < ARRAY_SIZE(edetext)) {
+						ADD_STRING(target, " (");
+						ADD_STRING(target,
+							   edetext[ede]);
+						ADD_STRING(target, ")");
+					}
+					ADD_STRING(target, "\n");
+					optlen -= 2;
+					if (optlen != 0) {
+						INDENT(style);
+						ADD_STRING(target,
+							   "EXTRA-TEXT");
+						extra_text = true;
+					}
+				}
 			} else if (optcode == DNS_OPT_CLIENT_TAG) {
 				uint16_t id;
 				INDENT(style);
@@ -3695,22 +3726,31 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 
 			if (optlen != 0) {
 				int i;
+				bool utf8ok = false;
+
 				ADD_STRING(target, ": ");
 
 				optdata = isc_buffer_current(&optbuf);
-				for (i = 0; i < optlen; i++) {
-					const char *sep;
-					switch (optcode) {
-					case DNS_OPT_COOKIE:
-						sep = "";
-						break;
-					default:
-						sep = " ";
-						break;
+				if (extra_text) {
+					utf8ok = isc_utf8_valid(optdata,
+								optlen);
+				}
+				if (!utf8ok) {
+					for (i = 0; i < optlen; i++) {
+						const char *sep;
+						switch (optcode) {
+						case DNS_OPT_COOKIE:
+							sep = "";
+							break;
+						default:
+							sep = " ";
+							break;
+						}
+						snprintf(buf, sizeof(buf),
+							 "%02x%s", optdata[i],
+							 sep);
+						ADD_STRING(target, buf);
 					}
-					snprintf(buf, sizeof(buf), "%02x%s",
-						 optdata[i], sep);
-					ADD_STRING(target, buf);
 				}
 
 				isc_buffer_forward(&optbuf, optlen);
@@ -3746,24 +3786,34 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 				 * For non-COOKIE options, add a printable
 				 * version
 				 */
-				ADD_STRING(target, "(\"");
+				if (!extra_text) {
+					ADD_STRING(target, "(\"");
+				} else {
+					ADD_STRING(target, "\"");
+				}
 				if (isc_buffer_availablelength(target) < optlen)
 				{
 					result = ISC_R_NOSPACE;
 					goto cleanup;
 				}
 				for (i = 0; i < optlen; i++) {
-					if (isprint(optdata[i]))
-						isc_buffer_putmem(target,
-								  &optdata[i],
-								  1);
-					else
+					if (isprint(optdata[i]) ||
+					    (utf8ok && optdata[i] > 127)) {
+						isc_buffer_putmem(
+							target, &optdata[i], 1);
+					} else {
 						isc_buffer_putstr(target, ".");
+					}
 				}
-				ADD_STRING(target, "\")");
+				if (!extra_text) {
+					ADD_STRING(target, "\")");
+				} else {
+					ADD_STRING(target, "\"");
+				}
 			}
 			ADD_STRING(target, "\n");
 		}
+		dns_master_indent = optindent;
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	case DNS_PSEUDOSECTION_TSIG:
@@ -3950,7 +4000,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					ede = isc_buffer_getuint16(&optbuf);
 					snprintf(buf, sizeof(buf), ": %u", ede);
 					ADD_STRING(target, buf);
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 					if (ede < ARRAY_SIZE(edetext)) {
 						ADD_STRING(target, " (");
 						ADD_STRING(target,
@@ -4070,10 +4119,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				if (isc_buffer_availablelength(target) < optlen)
 					return (ISC_R_NOSPACE);
 				for (i = 0; i < optlen; i++) {
-					if (isprint(optdata[i])) {
-						isc_buffer_putmem(
-							target, &optdata[i], 1);
-					} else if (utf8ok && optdata[i] > 127) {
+					if (isprint(optdata[i]) ||
+					    (utf8ok && optdata[i] > 127)) {
 						isc_buffer_putmem(
 							target, &optdata[i], 1);
 					} else {
