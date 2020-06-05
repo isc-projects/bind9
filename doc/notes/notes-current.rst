@@ -25,6 +25,9 @@ Security Fixes
 -  Replaying a TSIG BADTIME response as a request could trigger an
    assertion failure. This was disclosed in CVE-2020-8617. [GL #1703]
 
+-  It was possible to trigger an assertion when attempting to fill an
+   oversized TCP buffer. This was disclosed in CVE-2020-8618. [GL #1850]
+
 Known Issues
 ~~~~~~~~~~~~
 
