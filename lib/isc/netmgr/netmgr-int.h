@@ -405,6 +405,7 @@ struct isc_nmsocket {
 	int nchildren;
 	isc_nmiface_t *iface;
 	isc_nmhandle_t *tcphandle;
+	isc_nmhandle_t *outerhandle;
 
 	/*% Extra data allocated at the end of each isc_nmhandle_t */
 	size_t extrahandlesize;
@@ -589,6 +590,9 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
  *
  * If 'local' is not NULL, set the handle's local address to 'local',
  * otherwise set it to 'sock->iface->addr'.
+ *
+ * 'sock' will be attached to 'handle->sock'. The caller may need
+ * to detach the socket afterward.
  */
 
 isc__nm_uvreq_t *

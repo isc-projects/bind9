@@ -128,14 +128,15 @@ static void
 tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	isc__nm_uvreq_t *req = (isc__nm_uvreq_t *)uvreq->data;
 	isc_nmsocket_t *sock = NULL;
+
 	sock = uv_handle_get_data((uv_handle_t *)uvreq->handle);
 
 	REQUIRE(VALID_UVREQ(req));
 
 	if (status == 0) {
 		isc_result_t result;
-		isc_nmhandle_t *handle = NULL;
 		struct sockaddr_storage ss;
+		isc_nmhandle_t *handle = NULL;
 
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
 		uv_tcp_getpeername(&sock->uv_handle.tcp, (struct sockaddr *)&ss,
@@ -146,6 +147,19 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 
 		handle = isc__nmhandle_get(sock, NULL, NULL);
 		req->cb.connect(handle, ISC_R_SUCCESS, req->cbarg);
+
+		isc__nm_uvreq_put(&req, sock);
+
+		/*
+		 * The sock is now attached to the handle.
+		 */
+		isc__nmsocket_detach(&sock);
+
+		/*
+		 * If the connect callback wants to hold on to the handle,
+		 * it needs to attach to it.
+		 */
+		isc_nmhandle_unref(handle);
 	} else {
 		/*
 		 * TODO:
@@ -154,9 +168,8 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		isc__nm_incstats(sock->mgr,
 				 sock->statsindex[STATID_CONNECTFAIL]);
 		req->cb.connect(NULL, isc__nm_uverr2result(status), req->cbarg);
+		isc__nm_uvreq_put(&req, sock);
 	}
-
-	isc__nm_uvreq_put(&req, sock);
 }
 
 isc_result_t
@@ -170,8 +183,8 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
 
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
 	isc__nmsocket_init(nsock, mgr, isc_nm_tcplistener, iface);
-	nsock->rcb.accept = cb;
-	nsock->rcbarg = cbarg;
+	nsock->accept_cb.accept = cb;
+	nsock->accept_cbarg = cbarg;
 	nsock->extrahandlesize = extrahandlesize;
 	nsock->backlog = backlog;
 	nsock->result = ISC_R_SUCCESS;
@@ -383,10 +396,20 @@ isc__nm_async_tcpchildaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	handle = isc__nmhandle_get(csock, NULL, &local);
 
-	INSIST(ssock->rcb.accept != NULL);
+	INSIST(ssock->accept_cb.accept != NULL);
 	csock->read_timeout = ssock->mgr->init;
-	ssock->rcb.accept(handle, ISC_R_SUCCESS, ssock->rcbarg);
+	ssock->accept_cb.accept(handle, ISC_R_SUCCESS, ssock->accept_cbarg);
+
+	/*
+	 * csock is now attached to the handle.
+	 */
 	isc__nmsocket_detach(&csock);
+
+	/*
+	 * If the accept callback wants to hold on to the handle,
+	 * it needs to attach to it.
+	 */
+	isc_nmhandle_unref(handle);
 	return;
 
 error:
@@ -915,7 +938,9 @@ timer_close_cb(uv_handle_t *uvhandle) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 
-	isc__nmsocket_detach(&sock->server);
+	if (sock->server != NULL) {
+		isc__nmsocket_detach(&sock->server);
+	}
 	uv_close(&sock->uv_handle.handle, tcp_close_cb);
 }
 

@@ -736,9 +736,15 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 		isc__nm_decstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 	}
 
-	if (sock->tcphandle != NULL) {
-		isc_nmhandle_unref(sock->tcphandle);
-		sock->tcphandle = NULL;
+	sock->tcphandle = NULL;
+
+	if (sock->outerhandle != NULL) {
+		isc_nmhandle_unref(sock->outerhandle);
+		sock->outerhandle = NULL;
+	}
+
+	if (sock->outer != NULL) {
+		isc__nmsocket_detach(&sock->outer);
 	}
 
 	while ((handle = isc_astack_pop(sock->inactivehandles)) != NULL) {
@@ -1050,7 +1056,8 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		isc_refcount_increment0(&handle->references);
 	}
 
-	handle->sock = sock;
+	isc__nmsocket_attach(sock, &handle->sock);
+
 	if (peer != NULL) {
 		memcpy(&handle->peer, peer, sizeof(isc_sockaddr_t));
 	} else {
@@ -1160,7 +1167,7 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 
 void
 isc_nmhandle_unref(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock = NULL, *tmp = NULL;
+	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 
@@ -1182,7 +1189,6 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	 * be deleted by another thread while we're deactivating the
 	 * handle.
 	 */
-	isc__nmsocket_attach(sock, &tmp);
 	nmhandle_deactivate(sock, handle);
 
 	/*
@@ -1206,7 +1212,7 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		}
 	}
 
-	isc__nmsocket_detach(&tmp);
+	isc__nmsocket_detach(&sock);
 }
 
 void *
