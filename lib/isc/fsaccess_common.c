@@ -16,18 +16,11 @@
 #include <stdbool.h>
 
 #include <isc/fsaccess.h>
-#include <isc/print.h>
 #include <isc/result.h>
+#include <isc/types.h>
 #include <isc/util.h>
 
-/*!
- * Shorthand.  Maybe ISC__FSACCESS_PERMISSIONBITS should not even be in
- * <isc/fsaccess.h>.  Could check consistency with sizeof(isc_fsaccess_t)
- * and the number of bits in each function.
- */
-#define STEP  (ISC__FSACCESS_PERMISSIONBITS)
-#define GROUP (STEP)
-#define OTHER (STEP * 2)
+#include "fsaccess_common_p.h"
 
 void
 isc_fsaccess_add(int trustee, int permission, isc_fsaccess_t *access) {
@@ -65,8 +58,8 @@ isc_fsaccess_remove(int trustee, int permission, isc_fsaccess_t *access) {
 	}
 }
 
-static isc_result_t
-check_bad_bits(isc_fsaccess_t access, bool is_dir) {
+isc_result_t
+isc__fsaccess_check_bad_bits(isc_fsaccess_t access, bool is_dir) {
 	isc_fsaccess_t bits;
 
 	/*

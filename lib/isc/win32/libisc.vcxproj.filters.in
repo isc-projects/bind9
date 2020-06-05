@@ -349,6 +349,9 @@
     <ClInclude Include="..\entropy_private.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\fsaccess_common_p.h">
+      <Filter>Win32 Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\openssl_shim.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
@@ -486,6 +489,9 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\entropy.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fsaccess_common.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\hash.c">
