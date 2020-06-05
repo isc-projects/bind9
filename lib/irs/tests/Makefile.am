@@ -16,4 +16,6 @@ TESTS = $(check_PROGRAMS)
 
 unit-local: check
 
+EXTRA_DIST = testdata
+
 LOG_COMPILER = $(builddir)/../../unit-test-driver.sh

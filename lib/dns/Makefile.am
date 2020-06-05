@@ -25,7 +25,11 @@ gen_SOURCES = gen.c gen-unix.h
 gen_CPPFLAGS =			\
 	$(AM_CPPFLAGS)
 
-EXTRA_DIST = gen-win32.h
+EXTRA_DIST = 		\
+	api		\
+	dnstap.proto	\
+	gen-win32.h	\
+	rdata/*
 
 include/dns/enumtype.h: gen Makefile
 	mkdir -p include/dns

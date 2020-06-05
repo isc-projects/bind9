@@ -18,6 +18,7 @@ MANPAGES_RST =				\
 	dnstap-read.rst			\
 	filter-aaaa.rst			\
 	host.rst			\
+	index.rst			\
 	mdig.rst			\
 	named-checkconf.rst		\
 	named-checkzone.rst		\
@@ -35,7 +36,41 @@ MANPAGES_RST =				\
 	pkcs11-tokens.rst		\
 	rndc-confgen.rst		\
 	rndc.conf.rst			\
-	rndc.rst
+	rndc.rst			\
+	../../bin/check/named-checkconf.rst \
+	../../bin/check/named-checkzone.rst \
+	../../bin/confgen/ddns-confgen.rst \
+	../../bin/confgen/rndc-confgen.rst \
+	../../bin/delv/delv.rst \
+	../../bin/dig/dig.rst \
+	../../bin/dig/host.rst \
+	../../bin/dig/nslookup.rst \
+	../../bin/dnssec/dnssec-cds.rst \
+	../../bin/dnssec/dnssec-dsfromkey.rst \
+	../../bin/dnssec/dnssec-importkey.rst \
+	../../bin/dnssec/dnssec-keyfromlabel.rst \
+	../../bin/dnssec/dnssec-keygen.rst \
+	../../bin/dnssec/dnssec-revoke.rst \
+	../../bin/dnssec/dnssec-settime.rst \
+	../../bin/dnssec/dnssec-signzone.rst \
+	../../bin/dnssec/dnssec-verify.rst \
+	../../bin/named/named.rst \
+	../../bin/nsupdate/nsupdate.rst \
+	../../bin/pkcs11/pkcs11-destroy.rst \
+	../../bin/pkcs11/pkcs11-keygen.rst \
+	../../bin/pkcs11/pkcs11-list.rst \
+	../../bin/pkcs11/pkcs11-tokens.rst \
+	../../bin/plugins/filter-aaaa.rst \
+	../../bin/rndc/rndc.conf.rst \
+	../../bin/rndc/rndc.rst \
+	../../bin/tools/arpaname.rst \
+	../../bin/tools/dnstap-read.rst \
+	../../bin/tools/mdig.rst \
+	../../bin/tools/named-journalprint.rst \
+	../../bin/tools/named-nzd2nzf.rst \
+	../../bin/tools/named-rrchecker.rst \
+	../../bin/tools/nsec3hash.rst
+
 
 man_MANS =				\
 	arpaname.1			\

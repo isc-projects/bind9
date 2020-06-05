@@ -1,5 +1,14 @@
 include $(top_srcdir)/Makefile.top
 
+EXTRA_DIST = .
+
+# Source tarballs must not contain configure/build artifacts.
+dist-hook:
+	git clean -n -x -d | \
+	        grep -v "Makefile.in$$" | \
+	        sed -n "s|^Would remove \(.*\)|$(distdir)/\1|p" | \
+	        xargs -I{} rm -rf "{}"
+
 SUBDIRS = dyndb/driver dlzexternal/driver
 
 AM_CPPFLAGS +=			\

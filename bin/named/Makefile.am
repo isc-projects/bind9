@@ -37,6 +37,8 @@ nodist_named_SOURCES = xsl.c
 BUILT_SOURCES = xsl.c
 CLEANFILES = xsl.c
 
+EXTRA_DIST = bind9.xsl
+
 xsl.c: bind9.xsl Makefile
 	(echo 'const char xslmsg[] =' &&	\
 	 $(SED)	-e 's,\",\\\",g'		\
@@ -61,6 +63,7 @@ named_SOURCES =				\
 	zoneconf.c			\
 	unix/dlz_dlopen_driver.c	\
 	unix/os.c			\
+	include/dlz/dlz_dlopen_driver.h	\
 	include/named/builtin.h		\
 	include/named/config.h		\
 	include/named/control.h		\

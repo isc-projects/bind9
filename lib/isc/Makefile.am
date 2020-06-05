@@ -94,6 +94,7 @@ libisc_la_HEADERS =			\
 	pthreads/include/isc/mutex.h	\
 	pthreads/include/isc/once.h	\
 	pthreads/include/isc/thread.h	\
+	unix/errno2result.h		\
 	unix/include/isc/align.h	\
 	unix/include/isc/dir.h		\
 	unix/include/isc/netdb.h	\
@@ -163,6 +164,7 @@ libisc_la_SOURCES =		\
 	entropy.c		\
 	error.c			\
 	event.c			\
+	fsaccess_common.c	\
 	glob.c			\
 	hash.c			\
 	hp.c			\
@@ -211,6 +213,7 @@ libisc_la_SOURCES =		\
 	pthreads/mutex.c	\
 	pthreads/thread.c	\
 	entropy_private.h	\
+	fsaccess_common_p.h	\
 	mem_p.h			\
 	task_p.h		\
 	timer_p.h
@@ -250,3 +253,5 @@ endif HAVE_LIBXML2
 if HAVE_CMOCKA
 SUBDIRS = tests
 endif
+
+EXTRA_DIST = api

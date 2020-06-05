@@ -1,49 +1,49 @@
 include $(top_srcdir)/Makefile.top
 include $(top_srcdir)/Makefile.docs
 
-EXTRA_DIST =				\
-	conf.py				\
-	acl.grammar.rst			\
-	advanced.rst			\
-	catz.rst			\
-	configuration.rst		\
-	controls.grammar.rst		\
-	delegation-only.zoneopt.rst	\
-	dlz.rst				\
-	dnssec-keys.grammar.rst		\
-	dnssec.rst			\
-	dyndb.rst			\
-	forward.zoneopt.rst		\
-	general.rst			\
-	hint.zoneopt.rst		\
-	history.rst			\
-	in-view.zoneopt.rst		\
-	index.rst			\
-	introduction.rst		\
-	key.grammar.rst			\
-	logging-categories.rst		\
-	logging.grammar.rst		\
-	managed-keys.grammar.rst	\
-	managed-keys.rst		\
-	manpages.rst			\
-	master.zoneopt.rst		\
-	masters.grammar.rst		\
-	mirror.zoneopt.rst		\
-	notes.rst			\
-	options.grammar.rst		\
-	pkcs11.rst			\
-	plugins.rst			\
-	redirect.zoneopt.rst		\
-	reference.rst			\
-	requirements.rst		\
-	security.rst			\
-	server.grammar.rst		\
-	slave.zoneopt.rst		\
-	static-stub.zoneopt.rst		\
-	statistics-channels.grammar.rst	\
-	stub.zoneopt.rst		\
-	troubleshooting.rst		\
-	trusted-keys.grammar.rst
+EXTRA_DIST =					\
+	conf.py					\
+	advanced.rst				\
+	catz.rst				\
+	configuration.rst			\
+	dlz.rst					\
+	dnssec.rst				\
+	dyndb.rst				\
+	general.rst				\
+	history.rst				\
+	index.rst				\
+	introduction.rst			\
+	logging-categories.rst			\
+	managed-keys.rst			\
+	manpages.rst				\
+	notes.rst				\
+	pkcs11.rst				\
+	plugins.rst				\
+	reference.rst				\
+	requirements.rst			\
+	security.rst				\
+	troubleshooting.rst			\
+	../misc/acl.grammar.rst			\
+	../misc/controls.grammar.rst		\
+	../misc/delegation-only.zoneopt.rst	\
+	../misc/forward.zoneopt.rst		\
+	../misc/hint.zoneopt.rst		\
+	../misc/in-view.zoneopt.rst		\
+	../misc/key.grammar.rst			\
+	../misc/logging.grammar.rst		\
+	../misc/managed-keys.grammar.rst	\
+	../misc/master.zoneopt.rst		\
+	../misc/masters.grammar.rst		\
+	../misc/mirror.zoneopt.rst		\
+	../misc/options.grammar.rst		\
+	../misc/redirect.zoneopt.rst		\
+	../misc/server.grammar.rst		\
+	../misc/slave.zoneopt.rst		\
+	../misc/static-stub.zoneopt.rst		\
+	../misc/statistics-channels.grammar.rst	\
+	../misc/stub.zoneopt.rst		\
+	../misc/trusted-keys.grammar.rst	\
+	../notes/*.rst
 
 html-local:
 	$(AM_V_SPHINX)$(SPHINX_BUILD) -b html -d $(SPHINXBUILDDIR)/doctrees $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/html
@@ -66,7 +66,7 @@ epub:
 
 install-epub:
 	$(INSTALL) -d $(DESTDIR)/$(docdir)
-	$(INSTALL_DATA) $(SPHINXBUILDDIR)/epub/KnotDNS.epub $(DESTDIR)/$(docdir)/
+	$(INSTALL_DATA) $(SPHINXBUILDDIR)/epub/*.epub $(DESTDIR)/$(docdir)/
 
 if HAVE_XELATEX
 pdf-local:

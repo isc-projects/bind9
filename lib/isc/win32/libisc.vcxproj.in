@@ -353,6 +353,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="include\isc\time.h" />
     <ClInclude Include="include\isc\win32os.h" />
     <ClInclude Include="..\entropy_private.h" />
+    <ClInclude Include="..\fsaccess_common_p.h" />
     <ClInclude Include="..\openssl_shim.h" />
     <ClInclude Include="syslog.h" />
     <ClInclude Include="unistd.h" />
@@ -375,6 +376,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\entropy.c" />
     <ClCompile Include="..\error.c" />
     <ClCompile Include="..\event.c" />
+    <ClCompile Include="..\fsaccess_common.c" />
     <ClCompile Include="..\glob.c" />
     <ClCompile Include="..\hash.c" />
     <ClCompile Include="..\heap.c" />

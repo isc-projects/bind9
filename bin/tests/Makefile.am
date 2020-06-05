@@ -11,3 +11,5 @@ AM_CPPFLAGS +=			\
 LDADD =				\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)
+
+EXTRA_DIST = prepare-softhsm2.sh

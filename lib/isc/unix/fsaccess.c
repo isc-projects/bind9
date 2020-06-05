@@ -12,15 +12,14 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 
+#include <isc/fsaccess.h>
+#include <isc/result.h>
+#include <isc/types.h>
+#include <isc/util.h>
+
+#include "../fsaccess_common_p.h"
 #include "errno2result.h"
-
-/*! \file
- * \brief
- * The OS-independent part of the API is in lib/isc.
- */
-#include "../fsaccess.c"
 
 isc_result_t
 isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
@@ -40,7 +39,7 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 		return (ISC_R_INVALIDFILE);
 	}
 
-	result = check_bad_bits(access, is_dir);
+	result = isc__fsaccess_check_bad_bits(access, is_dir);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

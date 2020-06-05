@@ -27,15 +27,14 @@
 #include <sys/types.h>
 
 #include <isc/file.h>
+#include <isc/fsaccess.h>
+#include <isc/result.h>
 #include <isc/stat.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
+#include "../fsaccess_common_p.h"
 #include "errno2result.h"
-
-/*
- * The OS-independent part of the API is in lib/isc.
- */
-#include "../fsaccess.c"
 
 /* Store the user account name locally */
 static char username[255] = "\0";
@@ -323,7 +322,7 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 		return (ISC_R_INVALIDFILE);
 	}
 
-	result = check_bad_bits(access, is_dir);
+	result = isc__fsaccess_check_bad_bits(access, is_dir);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
