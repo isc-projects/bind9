@@ -47,7 +47,8 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+	  Fix a data race in resolver.c:formerr() that could lead to assertion
+	  failure. [GL #1808]
         </para>
       </listitem>
     </itemizedlist>
