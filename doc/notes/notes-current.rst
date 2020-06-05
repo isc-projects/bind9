@@ -22,6 +22,9 @@ Security Fixes
 
 .. _relnotes-9.16.4-known:
 
+-  It was possible to trigger an assertion when attempting to fill an
+   oversized TCP buffer. This was disclosed in CVE-2020-8618. [GL #1850]
+
 Known Issues
 ------------
 
