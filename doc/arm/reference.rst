@@ -5574,8 +5574,8 @@ configuration error to specify both ``allow-update`` and
 ``update-policy`` at the same time.
 
 A pre-defined ``update-policy`` rule can be switched on with the command
-``update-policy local;``. Using this in a zone causes ``named`` to
-generate a TSIG session key when starting and store it in a file;
+``update-policy local;``. ``named`` automatically
+generates a TSIG session key when starting and stores it in a file;
 this key can then be used by local clients to update the zone while
 ``named`` is running. By default, the session key is stored in the file
 ``/var/run/named/session.key``, the key name is "local-ddns", and the
