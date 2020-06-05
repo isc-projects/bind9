@@ -1,3 +1,5 @@
+5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
+
 5436.	[placeholder]
 
 5435.	[placeholder]
