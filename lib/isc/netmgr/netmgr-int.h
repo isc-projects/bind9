@@ -715,7 +715,14 @@ isc__nm_tcp_resumeread(isc_nmsocket_t *sock);
 void
 isc__nm_tcp_shutdown(isc_nmsocket_t *sock);
 /*%<
- * Called on shutdown to close and clean up a listening TCP socket.
+ * Called during the shutdown process to close and clean up connected
+ * sockets.
+ */
+
+void
+isc__nm_tcp_cancelread(isc_nmsocket_t *sock);
+/*%<
+ * Stop reading on a connected socket.
  */
 
 void

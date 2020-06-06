@@ -1079,3 +1079,15 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 		sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
 	}
 }
+
+void
+isc__nm_tcp_cancelread(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	if (sock->type == isc_nm_tcpsocket && sock->tcphandle != NULL &&
+	    sock->rcb.recv != NULL)
+	{
+		sock->rcb.recv(sock->tcphandle, ISC_R_CANCELED, NULL,
+			       sock->rcbarg);
+	}
+}

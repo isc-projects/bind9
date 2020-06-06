@@ -1348,9 +1348,24 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	}
 }
 
+void
+isc_nm_cancelread(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	switch (handle->sock->type) {
+	case isc_nm_tcpsocket:
+		isc__nm_tcp_cancelread(handle->sock);
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
 isc_result_t
 isc_nm_pauseread(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
+
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
 		return (isc__nm_tcp_pauseread(sock));
@@ -1363,6 +1378,7 @@ isc_nm_pauseread(isc_nmsocket_t *sock) {
 isc_result_t
 isc_nm_resumeread(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
+
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
 		return (isc__nm_tcp_resumeread(sock));
@@ -1375,6 +1391,7 @@ isc_nm_resumeread(isc_nmsocket_t *sock) {
 void
 isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
+
 	switch (sock->type) {
 	case isc_nm_udplistener:
 		isc__nm_udp_stoplistening(sock);

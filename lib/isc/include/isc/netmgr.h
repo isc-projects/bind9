@@ -192,6 +192,17 @@ isc_nm_pauseread(isc_nmsocket_t *sock);
  * Pause reading on this socket, while still remembering the callback.
  */
 
+void
+isc_nm_cancelread(isc_nmhandle_t *handle);
+/*%<
+ * Cancel reading on a connected socket. Calls the read/recv callback on
+ * active handles with a result code of ISC_R_CANCELED.
+ *
+ * Requires:
+ * \li	'sock' is a valid netmgr socket
+ * \li	...for which a read/recv callback has been defined.
+ */
+
 isc_result_t
 isc_nm_resumeread(isc_nmsocket_t *sock);
 /*%<
