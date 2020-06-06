@@ -79,3 +79,6 @@ Bug Fixes
 -  With dnssec-policy, when creating a successor key, the goal state of
    the current active key (the predecessor) was not changed and thus was
    never is removed from the zone. [GL #1846]
+
+-  Fix a data race in resolver.c:formerr() that could lead to assertion
+   failure. [GL #1808]
