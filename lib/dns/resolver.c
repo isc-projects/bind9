@@ -4996,7 +4996,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		isc_sockaddr_format(client, fctx->clientstr,
 				    sizeof(fctx->clientstr));
 	} else {
-		memmove(fctx->clientstr, "<unknown>", sizeof("<unknown"));
+		strlcpy(fctx->clientstr, "<unknown>", sizeof(fctx->clientstr));
 	}
 	fctx->ns_ttl = 0;
 	fctx->ns_ttl_ok = false;
