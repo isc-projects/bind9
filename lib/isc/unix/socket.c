@@ -2793,6 +2793,7 @@ internal_accept(isc__socket_t *sock) {
 	dev = ISC_LIST_HEAD(sock->accept_list);
 	if (dev == NULL) {
 		unwatch_fd(thread, sock->fd, SELECT_POKE_ACCEPT);
+		UNLOCK(&sock->lock);
 		return;
 	}
 
@@ -2922,6 +2923,12 @@ internal_accept(isc__socket_t *sock) {
 	}
 
 	/*
+	 * We need to unlock sock->lock now to be able to lock manager->lock
+	 * without risking a deadlock with xmlstats.
+	 */
+	UNLOCK(&sock->lock);
+
+	/*
 	 * -1 means the new socket didn't happen.
 	 */
 	if (fd != -1) {
@@ -3010,6 +3017,7 @@ internal_accept(isc__socket_t *sock) {
 
 soft_error:
 	watch_fd(thread, sock->fd, SELECT_POKE_ACCEPT);
+	UNLOCK(&sock->lock);
 
 	inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
 	return;
@@ -3066,6 +3074,7 @@ finish:
 		unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
 			   SELECT_POKE_READ);
 	}
+	UNLOCK(&sock->lock);
 }
 
 static void
@@ -3105,6 +3114,7 @@ finish:
 		unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
 			   SELECT_POKE_WRITE);
 	}
+	UNLOCK(&sock->lock);
 }
 
 /*
@@ -3135,6 +3145,7 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable, bool writeable) {
 	}
 
 	LOCK(&sock->lock);
+
 	if (sock->fd < 0) {
 		/*
 		 * Sock is being closed - the final external reference
@@ -3143,9 +3154,12 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable, bool writeable) {
 		 * thread->fdlock[lockid] or sock->lock that we're holding.
 		 * Just release the locks and bail.
 		 */
-		goto unlock;
+		UNLOCK(&sock->lock);
+		UNLOCK(&thread->fdlock[lockid]);
+		return;
 	}
 
+	REQUIRE(readable || writeable);
 	if (readable) {
 		if (sock->listener) {
 			internal_accept(sock);
@@ -3162,9 +3176,9 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable, bool writeable) {
 		}
 	}
 
-unlock:
-	UNLOCK(&sock->lock);
+	/* sock->lock is unlocked in internal_* function */
 	UNLOCK(&thread->fdlock[lockid]);
+
 	/*
 	 * Socket destruction might be pending, it will resume
 	 * after releasing fdlock and sock->lock.
@@ -4938,6 +4952,7 @@ internal_connect(isc__socket_t *sock) {
 finish:
 	unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
 		   SELECT_POKE_CONNECT);
+	UNLOCK(&sock->lock);
 }
 
 isc_result_t
