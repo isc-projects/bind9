@@ -75,6 +75,10 @@ master_doc = 'index'
 #
 html_theme = 'sphinx_rtd_theme'
 
+# -- Options for EPUB output -------------------------------------------------
+
+epub_basename = 'Bv9ARM'
+
 # -- Options for LaTeX output ------------------------------------------------
 latex_engine = 'xelatex'
 
