@@ -2746,6 +2746,7 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 	nmnode = NULL;
 	result = dns_rbt_findnode(rpzs->rbt, trig_name, NULL, &nmnode, &chain,
 				  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+
 	switch (result) {
 	case ISC_R_SUCCESS:
 		nm_data = nmnode->data;
@@ -2760,7 +2761,42 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 
 	case DNS_R_PARTIALMATCH:
 		i = chain.level_matches;
-		while (i >= 0 && (nmnode = chain.levels[i]) != NULL) {
+		nmnode = chain.levels[chain.level_matches];
+
+		/*
+		 * Whenever an exact match is found by dns_rbt_findnode(),
+		 * the highest level node in the chain will not be put into
+		 * chain->levels[] array, but instead the chain->end
+		 * pointer will be adjusted to point to that node.
+		 *
+		 * Suppose we have the following entries in a rpz zone:
+		 *   example.com     CNAME rpz-passthru.
+		 *   *.example.com   CNAME rpz-passthru.
+		 *
+		 * A query for www.example.com would result in the
+		 * following chain object returned by dns_rbt_findnode():
+		 *   chain->level_count = 2
+		 *   chain->level_matches = 2
+		 *   chain->levels[0] = .
+		 *   chain->levels[1] = example.com
+		 *   chain->levels[2] = NULL
+		 *   chain->end = www
+		 *
+		 * Since exact matches only care for testing rpz set bits,
+		 * we need to test for rpz wild bits through iterating the
+		 * nodechain, and that includes testing the rpz wild bits
+		 * in the highest level node found. In the case of an exact
+		 * match, chain->levels[chain->level_matches] will be NULL,
+		 * to address that we must use chain->end as the start
+		 * point, then iterate over the remaining levels in the
+		 * chain.
+		 */
+		if (nmnode == NULL) {
+			--i;
+			nmnode = chain.end;
+		}
+
+		while (nmnode != NULL) {
 			nm_data = nmnode->data;
 			if (nm_data != NULL) {
 				if (rpz_type == DNS_RPZ_TYPE_QNAME) {
@@ -2769,7 +2805,13 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 					found_zbits |= nm_data->wild.ns;
 				}
 			}
-			i--;
+
+			if (i >= 0) {
+				nmnode = chain.levels[i];
+				--i;
+			} else {
+				break;
+			}
 		}
 		break;
 
