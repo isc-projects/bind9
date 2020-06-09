@@ -648,14 +648,13 @@ typedef struct {
 	dns_db_t *db;
 	dns_dbversion_t *ver;
 	isc_quota_t *quota;
-	rrstream_t *stream;    /* The XFR RR stream */
-	bool question_added;   /* QUESTION section sent? */
-	bool end_of_stream;    /* EOS has been reached */
-	isc_buffer_t buf;      /* Buffer for message owner
-				* names and rdatas */
-	isc_buffer_t txlenbuf; /* Transmit length buffer */
-	isc_buffer_t txbuf;    /* Transmit message buffer */
-	size_t cbytes;	       /* Length of current message */
+	rrstream_t *stream;  /* The XFR RR stream */
+	bool question_added; /* QUESTION section sent? */
+	bool end_of_stream;  /* EOS has been reached */
+	isc_buffer_t buf;    /* Buffer for message owner
+			      * names and rdatas */
+	isc_buffer_t txbuf;  /* Transmit message buffer */
+	size_t cbytes;	     /* Length of current message */
 	void *txmem;
 	unsigned int txmemlen;
 	dns_tsigkey_t *tsigkey; /* Key used to create TSIG */
@@ -1237,12 +1236,11 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 
 	/*
 	 * Allocate another temporary buffer for the compressed
-	 * response message and its TCP length prefix.
+	 * response message.
 	 */
-	len = 2 + 65535;
+	len = NS_CLIENT_TCP_BUFFER_SIZE;
 	mem = isc_mem_get(mctx, len);
-	isc_buffer_init(&xfr->txlenbuf, mem, 2);
-	isc_buffer_init(&xfr->txbuf, (char *)mem + 2, len - 2);
+	isc_buffer_init(&xfr->txbuf, (char *)mem, len);
 	xfr->txmem = mem;
 	xfr->txmemlen = len;
 
@@ -1292,7 +1290,6 @@ sendstream(xfrout_ctx_t *xfr) {
 	int n_rrs;
 
 	isc_buffer_clear(&xfr->buf);
-	isc_buffer_clear(&xfr->txlenbuf);
 	isc_buffer_clear(&xfr->txbuf);
 
 	is_tcp = ((xfr->client->attributes & NS_CLIENTATTR_TCP) != 0);
