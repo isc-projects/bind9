@@ -22,3 +22,4 @@ EXTRA_DIST = 			\
 
 dist-hook:
 	find $(distdir) -type f -name .gitignore -delete
+	git rev-parse --short HEAD | cut -b1-7 > $(distdir)/srcid

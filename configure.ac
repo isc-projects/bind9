@@ -17,7 +17,7 @@ m4_define([bind_VERSION_MINOR], 17)dnl
 m4_define([bind_VERSION_PATCH], 1)dnl
 m4_define([bind_VERSION_EXTRA], -dev)dnl
 m4_define([bind_DESCRIPTION], [(Development Release)])dnl
-m4_define([bind_SRCID], [m4_esyscmd_s([if test -f srcid; then cat srcid; else git rev-parse --short HEAD 2>/dev/null; fi])])dnl
+m4_define([bind_SRCID], [m4_esyscmd_s([git rev-parse --short HEAD | cut -b1-7])])dnl
 m4_define([bind_PKG_VERSION], [[bind_VERSION_MAJOR.bind_VERSION_MINOR.bind_VERSION_PATCH]bind_VERSION_EXTRA])dnl
 
 #
