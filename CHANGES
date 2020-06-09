@@ -2,7 +2,9 @@
 
 5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
 
-5436.	[placeholder]
+5436.	[security]	It was possible to trigger an INSIST when determining
+			whether a record would fit into a TCP message buffer.
+			(CVE-2020-8618) [GL #1850]
 
 5435.	[placeholder]
 
