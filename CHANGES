@@ -1,5 +1,10 @@
 5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
 
+5434.	[security]	It was possible to trigger an INSIST in
+			lib/dns/rbtdb.c:new_reference() with a particular zone
+			content and query patterns. (CVE-2020-8619) [GL #1111]
+			[GL #1718]
+
 5433.	[test]		Resolver system test for change #5395
 			(max-recursion-queries) failed on system without
 			IPv6 suport. [GL #1873]
