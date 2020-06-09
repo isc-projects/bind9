@@ -1212,10 +1212,37 @@ release:
   <<: *base_image
   stage: release
   script:
+    - export BIND_DIRECTORY="$(basename "$(find . -name "bind-*.tar.*" -printf "%f")" ".tar.${TARBALL_EXTENSION}")"
+    # Remove redundant files and system test utilities from Windows build artifacts
+    - find Build/Release/ -name "*.pdb" -print -delete
+    - find Build/Debug/ \( -name "*.bsc" -o -name "*.idb" \) -print -delete
+    - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
+    # Create Windows zips
+    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" | tee Build/Release/SHA256 Build/Debug/SHA256
+    - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
+    - ( cd Build/Debug; zip "../../BIND${BIND_DIRECTORY#bind-}.debug.x64.zip" * )
+    # Prepare release tarball contents (tarballs + zips + documentation)
+    - mkdir -p release/doc/arm
+    - pushd release
+    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
+    - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
+    - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README.md,srcid} .
+    - rm -rf "${BIND_DIRECTORY}"
+    - mv "../doc/arm/_build/html" doc/arm/
+    - mv "../doc/arm/_build/latex/Bv9ARM.pdf" doc/arm/
+    - mv "../doc/arm/_build/epub/Bv9ARM.epub" doc/arm/
+    - echo '<!DOCTYPE HTML><html lang="en"><meta http-equiv="refresh" content="0; url=doc/arm/html/notes.html"><title>Redirect</title></html>' > "RELEASE-NOTES-${BIND_DIRECTORY}.html"
+    - popd
     # Create release tarball
     - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
   needs:
     - job: tarball-create
+      artifacts: true
+    - job: msvc:windows:amd64
+      artifacts: true
+    - job: msvc-debug:windows:amd64
+      artifacts: true
+    - job: docs
       artifacts: true
   only:
     - tags
