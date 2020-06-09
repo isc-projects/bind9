@@ -1258,11 +1258,10 @@ release:
     - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
     - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
     - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
-    - mv "${BIND_DIRECTORY}"/doc/arm/{Bv9ARM{*.html,.pdf},man.*,notes.{html,pdf,txt}} doc/arm/
     - rm -rf "${BIND_DIRECTORY}"
-    - cp doc/arm/notes.html "RELEASE-NOTES-${BIND_DIRECTORY}.html"
-    - cp doc/arm/notes.pdf "RELEASE-NOTES-${BIND_DIRECTORY}.pdf"
-    - cp doc/arm/notes.txt "RELEASE-NOTES-${BIND_DIRECTORY}.txt"
+    - mv "../doc/arm/_build/html" doc/arm/
+    - mv "../doc/arm/_build/latex/Bv9ARM.pdf" doc/arm/
+    - echo '<!DOCTYPE HTML><html lang="en"><meta http-equiv="refresh" content="0; url=doc/arm/html/notes.html"><title>Redirect</title></html>' > "RELEASE-NOTES-${BIND_DIRECTORY}.html"
     - popd
     # Create release tarball
     - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
@@ -1272,6 +1271,8 @@ release:
     - job: msvc:windows:amd64
       artifacts: true
     - job: msvc-debug:windows:amd64
+      artifacts: true
+    - job: docs
       artifacts: true
   only:
     - tags
