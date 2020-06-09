@@ -21,6 +21,10 @@ srcdir=@abs_srcdir@
 . ${builddir}/conf.sh
 
 SYSTEMTESTTOP="$(cd -P -- "${builddir}" && pwd -P)"
+if [ "$CYGWIN" ]; then
+	SYSTEMTESTTOP="$(cygpath -m "${SYSTEMTESTTOP}")"
+fi
+
 export SYSTEMTESTTOP
 export builddir
 export srcdir

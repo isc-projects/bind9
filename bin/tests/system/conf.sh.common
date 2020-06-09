@@ -63,7 +63,6 @@ cacheclean
 case
 catz
 cds
-chain
 checkconf
 checknames
 checkzone
@@ -71,17 +70,14 @@ cookie
 database
 digdelv
 dlz
-dlzexternal
 dns64
 dscp
 dsdigest
-dyndb
 ecdsa
 eddsa
 ednscompliance
 emptyzones
 fetchlimit
-filter-aaaa
 formerr
 forward
 geoip2
@@ -104,11 +100,8 @@ names
 notify
 nslookup
 nsupdate
-nzd2nzf
 padding
 pending
-pipelined
-qmin
 reclimit
 redirect
 resolver
@@ -129,7 +122,6 @@ statistics
 statschannel
 stub
 synthfromdnssec
-tcp
 tkey
 tools
 tsig
