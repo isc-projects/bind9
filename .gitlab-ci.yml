@@ -28,7 +28,6 @@ variables:
   ASAN_OPTIONS_COMMON: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
   TSAN_OPTIONS_COMMON: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER"
 
-  TARBALL_COMPRESSOR: xz
   TARBALL_EXTENSION: xz
 
   AM_COLOR_TESTS: always
@@ -464,10 +463,11 @@ tarball-create:
   <<: *base_image
   script:
     - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1} all V=1
     - make -j${BUILD_PARALLEL_JOBS:-1} dist V=1
   artifacts:
     paths:
-      - bind-*.tar.*
+      - bind-*.tar.${TARBALL_EXTENSION}
   needs:
     - job: autoreconf
       artifacts: true
