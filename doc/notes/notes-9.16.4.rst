@@ -24,6 +24,11 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
+-  Documentation was converted from DocBook to reStructuredText. The
+   BIND 9 ARM is now generated using Sphinx and published on `Read the
+   Docs`_. Release notes are no longer available as a separate document
+   accompanying a release. [GL #83]
+
 -  ``named`` and ``named-checkzone`` now reject master zones that
    have a DS RRset at the zone apex.  Attempts to add DS records
    at the zone apex via UPDATE will be logged but otherwise ignored.
@@ -77,3 +82,5 @@ Bug Fixes
 -  With dnssec-policy, when creating a successor key, the goal state of
    the current active key (the predecessor) was not changed and thus was
    never is removed from the zone. [GL #1846]
+
+.. _Read the Docs: https://bind9.readthedocs.io/
