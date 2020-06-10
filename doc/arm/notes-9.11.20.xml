@@ -78,6 +78,13 @@
           DSCP value. This has been fixed. [GL #1812]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          The ARM has been updated to indicate that the TSIG session key is
+          generated when named starts, regardless of whether it is needed.
+          [GL #1842]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
