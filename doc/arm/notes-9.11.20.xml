@@ -60,6 +60,13 @@
           to the current serial number. [GL #1714]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          <command>named-checkconf -p</command> could include spurious text in
+          <command>server-addresses</command> statements due to an uninitialized
+          DSCP value. This has been fixed. [GL #1812]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
