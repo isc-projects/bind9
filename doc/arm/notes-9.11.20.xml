@@ -49,6 +49,17 @@
     <itemizedlist>
       <listitem>
         <para>
+          When fully updating the NSEC3 chain for a large zone via IXFR, a
+          temporary loss of performance could be experienced on the secondary
+          server when answering queries for nonexistent data that required
+          DNSSEC proof of non-existence (in other words, queries that required
+          the server to find and to return NSEC3 data). The unnecessary
+          processing step that was causing this delay has now been removed.
+          [GL #1834]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
 	  Fix a data race in resolver.c:formerr() that could lead to assertion
 	  failure. [GL #1808]
         </para>
