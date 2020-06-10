@@ -23,22 +23,12 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes-9.11.20-known"><info><title>Known Issues</title></info>
+  <section xml:id="relnotes-9.11.20-new"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
         <para>
-	  None
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.20-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          <command>dig</command> and other tools can now print the Extended
-          DNS Error (EDE) option when it appears in a request or response.
+          <command>dig</command> and other tools can now print the Extended DNS
+          Error (EDE) option when it appears in a request or a response.
           [GL #1835]
         </para>
       </listitem>
@@ -60,8 +50,8 @@
       </listitem>
       <listitem>
         <para>
-	  Fix a data race in resolver.c:formerr() that could lead to assertion
-	  failure. [GL #1808]
+          A data race in <filename>lib/dns/resolver.c:log_formerr()</filename>
+          that could lead to an assertion failure was fixed. [GL #1808]
         </para>
       </listitem>
       <listitem>
