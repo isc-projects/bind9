@@ -3,6 +3,8 @@
 5439.	[bug]		The dsset returned by dns_keynode_dsset() was not
 			thread safe. [GL #1926]
 
+	--- 9.17.2 released ---
+
 5438.	[bug]		Fix a race in TCP accepting code. [GL #1930]
 
 5437.	[bug]		Fix a data race in lib/dns/resolver.c:log_formerr().
