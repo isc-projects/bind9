@@ -1,22 +1,23 @@
 5440.	[test]		Properly handle missing kyua. [GL #1950]
 
-5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
+5437.	[bug]		Fix a data race in lib/dns/resolver.c:log_formerr().
+			[GL #1808]
 
 5434.	[security]	It was possible to trigger an INSIST in
 			lib/dns/rbtdb.c:new_reference() with a particular zone
 			content and query patterns. (CVE-2020-8619) [GL #1111]
 			[GL #1718]
 
-5433.	[test]		Resolver system test for change #5395
-			(max-recursion-queries) failed on system without
-			IPv6 suport. [GL #1873]
+5433.	[test]		Prevent the resolver system test for change #5395
+			(max-recursion-queries) from failing on systems without
+			IPv6 support. [GL #1873]
 
-5428.	[bug]		Cleanup GSSAPI resources in nsupdate only after taskmgr
+5428.	[bug]		Clean up GSSAPI resources in nsupdate only after taskmgr
 			has been destroyed. Thanks to Petr Menšík. [GL !3316]
 
-5427.	[bug]		Fix regression in address/prefix length checking
-			that should have been warning instead of error
-			in the BIND 9.11 release. [GL #1849]
+5427.	[bug]		Fix a regression in address/prefix length checking that
+			should have been a warning instead of an error.
+			[GL #1849]
 
 5415.	[test]		Address race in dnssec system test that led to
 			test failures. [GL #1852]
@@ -24,20 +25,20 @@
 5413.	[test]		Address race in autosign system test that led to
 			test failures. [GL #1852]
 
-5412.	[bug]		'provide-ixfr no;' fail to return up-to-date responses
+5412.	[bug]		'provide-ixfr no;' failed to return up-to-date responses
 			when the serial was greater than or equal to the
 			current serial. [GL #1714]
 
-5409.	[performance]	When looking up NSEC3 data in a zone database, skip
-			the check for empty non-terminal nodes; the NSEC3
-			tree doesn't have any. [GL #1834]
+5409.	[performance]	When looking up NSEC3 data in a zone database, skip the
+			check for empty non-terminal nodes; the NSEC3 tree does
+			not have any. [GL #1834]
 
 5408.	[protocol]	Print Extended DNS Errors if present in OPT record.
 			[GL #1835]
 
-5405.	[bug]		'named-checkconf -p' could include spurious text
-			in server-addresses statements due to an uninitialized
-			DSCP value. [GL #1812]
+5405.	[bug]		'named-checkconf -p' could include spurious text in
+			server-addresses statements due to an uninitialized DSCP
+			value. [GL #1812]
 
 	--- 9.11.19 released ---
 
