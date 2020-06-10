@@ -8,37 +8,24 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. _relnotes-9.16.3:
-
 Notes for BIND 9.16.3
-=====================
-
-.. _relnotes-9.16.3-security:
-
-Security Fixes
---------------
-
--  None.
-
-.. _relnotes-9.16.3-known:
+---------------------
 
 Known Issues
-------------
+~~~~~~~~~~~~
 
--  BIND crashes on startup when linked against libuv 1.36. This issue is
-   related to recvmmsg() support in libuv which was first included in
-   libuv 1.35. The problem was addressed in libuv 1.37, but the relevant
-   libuv code change requires a special flag to be set during library
-   initialization in order for recvmmsg() support to be enabled. This
-   BIND release sets that special flag when required, so recvmmsg()
-   support is now enabled when BIND is compiled against either libuv
-   1.35 or libuv >= 1.37; libuv 1.36 is still not usable with BIND. [GL
-   #1761] [GL #1797]
-
-.. _relnotes-9.16.3-changes:
+-  BIND crashes on startup when linked against libuv 1.36. This issue
+   is related to ``recvmmsg()`` support in libuv, which was first
+   included in libuv 1.35. The problem was addressed in libuv 1.37, but
+   the relevant libuv code change requires a special flag to be set
+   during library initialization in order for ``recvmmsg()`` support to
+   be enabled. This BIND release sets that special flag when required,
+   so ``recvmmsg()`` support is now enabled when BIND is compiled
+   against either libuv 1.35 or libuv 1.37+; libuv 1.36 is still not
+   usable with BIND. [GL #1761] [GL #1797]
 
 Feature Changes
----------------
+~~~~~~~~~~~~~~~
 
 -  BIND 9 no longer sets receive/send buffer sizes for UDP sockets,
    relying on system defaults instead. [GL #1713]
@@ -68,18 +55,16 @@ Feature Changes
    zones, the exported timers also include expire and refresh times.
    Contributed by Paul Frieden, Verizon Media. [GL #1232]
 
-.. _relnotes-9.16.3-bugs:
-
 Bug Fixes
----------
+~~~~~~~~~
 
 -  A bug in dnstap initialization could prevent some dnstap data from
    being logged, especially on recursive resolvers. [GL #1795]
 
 -  When running on a system with support for Linux capabilities,
    ``named`` drops root privileges very soon after system startup. This
-   was causing a spurious log message, "unable to set effective uid to
-   0: Operation not permitted", which has now been silenced. [GL #1042]
+   was causing a spurious log message, ``unable to set effective uid to
+   0: Operation not permitted``, which has now been silenced. [GL #1042]
    [GL #1090]
 
 -  When ``named-checkconf`` was run, it would sometimes incorrectly set
