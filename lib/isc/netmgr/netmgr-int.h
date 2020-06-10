@@ -117,12 +117,10 @@ struct isc_nmiface {
 
 typedef enum isc__netievent_type {
 	netievent_udpsend,
-	netievent_udprecv,
 	netievent_udpstop,
 
 	netievent_tcpconnect,
 	netievent_tcpsend,
-	netievent_tcprecv,
 	netievent_tcpstartread,
 	netievent_tcppauseread,
 	netievent_tcpchildaccept,
@@ -130,8 +128,8 @@ typedef enum isc__netievent_type {
 	netievent_tcpstop,
 	netievent_tcpclose,
 
-	netievent_tcpdnsclose,
 	netievent_tcpdnssend,
+	netievent_tcpdnsclose,
 
 	netievent_closecb,
 	netievent_shutdown,
@@ -146,19 +144,11 @@ typedef enum isc__netievent_type {
 	netievent_tcplisten,
 } isc__netievent_type;
 
-/*
- * We have to split it because we can read and write on a socket
- * simultaneously.
- */
 typedef union {
 	isc_nm_recv_cb_t recv;
+	isc_nm_cb_t connect;
 	isc_nm_accept_cb_t accept;
 } isc__nm_readcb_t;
-
-typedef union {
-	isc_nm_cb_t send;
-	isc_nm_cb_t connect;
-} isc__nm_writecb_t;
 
 typedef union {
 	isc_nm_recv_cb_t recv;
@@ -209,10 +199,10 @@ typedef isc__netievent__socket_t isc__netievent_udplisten_t;
 typedef isc__netievent__socket_t isc__netievent_udpstop_t;
 typedef isc__netievent__socket_t isc__netievent_tcpstop_t;
 typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
-typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
 typedef isc__netievent__socket_t isc__netievent_closecb_t;
+typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
 
 typedef struct isc__netievent__socket_req {
 	isc__netievent_type type;
@@ -333,7 +323,7 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tcpsocket,
 	isc_nm_tcplistener,
 	isc_nm_tcpdnslistener,
-	isc_nm_tcpdnssocket
+	isc_nm_tcpdnssocket,
 } isc_nmsocket_type;
 
 /*%
@@ -403,7 +393,7 @@ struct isc_nmsocket {
 	isc_nmsocket_t *children;
 	int nchildren;
 	isc_nmiface_t *iface;
-	isc_nmhandle_t *tcphandle;
+	isc_nmhandle_t *statichandle;
 	isc_nmhandle_t *outerhandle;
 
 	/*% Extra data allocated at the end of each isc_nmhandle_t */
@@ -445,7 +435,12 @@ struct isc_nmsocket {
 	isc_refcount_t references;
 
 	/*%
-	 * TCPDNS socket has been set not to pipeliine.
+	 * Established an outgoing connection, as client not server.
+	 */
+	atomic_bool client;
+
+	/*%
+	 * TCPDNS socket has been set not to pipeline.
 	 */
 	atomic_bool sequential;
 
@@ -686,6 +681,9 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 
 isc_result_t
 isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
+/*
+ * Back-end implementation of isc_nm_read() for TCP handles.
+ */
 
 void
 isc__nm_tcp_close(isc_nmsocket_t *sock);
@@ -713,9 +711,9 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_tcp_cancelread(isc_nmsocket_t *sock);
+isc__nm_tcp_cancelread(isc_nmhandle_t *handle);
 /*%<
- * Stop reading on a connected socket.
+ * Stop reading on a connected TCP handle.
  */
 
 void

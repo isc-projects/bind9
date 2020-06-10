@@ -591,6 +591,7 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 			uv_stop(&worker->loop);
 			isc_mempool_put(worker->mgr->evpool, ievent);
 			return;
+
 		case netievent_udplisten:
 			isc__nm_async_udplisten(worker, ievent);
 			break;
@@ -600,6 +601,7 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_udpsend:
 			isc__nm_async_udpsend(worker, ievent);
 			break;
+
 		case netievent_tcpconnect:
 			isc__nm_async_tcpconnect(worker, ievent);
 			break;
@@ -630,9 +632,11 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcpclose:
 			isc__nm_async_tcpclose(worker, ievent);
 			break;
+
 		case netievent_tcpdnsclose:
 			isc__nm_async_tcpdnsclose(worker, ievent);
 			break;
+
 		case netievent_closecb:
 			isc__nm_async_closecb(worker, ievent);
 			break;
@@ -739,7 +743,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 		isc__nm_decstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 	}
 
-	sock->tcphandle = NULL;
+	sock->statichandle = NULL;
 
 	if (sock->outerhandle != NULL) {
 		isc_nmhandle_unref(sock->outerhandle);
@@ -833,7 +837,7 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 		}
 	}
 
-	if (active_handles == 0 || sock->tcphandle != NULL) {
+	if (active_handles == 0 || sock->statichandle != NULL) {
 		destroy = true;
 	}
 
@@ -1051,7 +1055,7 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	if (handle == NULL) {
 		handle = alloc_handle(sock);
 	} else {
-		isc_refcount_increment0(&handle->references);
+		isc_refcount_init(&handle->references, 1);
 		INSIST(VALID_NMHANDLE(handle));
 	}
 
@@ -1099,9 +1103,11 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	handle->ah_pos = pos;
 	UNLOCK(&sock->lock);
 
-	if (sock->type == isc_nm_tcpsocket) {
-		INSIST(sock->tcphandle == NULL);
-		sock->tcphandle = handle;
+	if (sock->type == isc_nm_tcpsocket ||
+	    (sock->type == isc_nm_udpsocket && atomic_load(&sock->client)))
+	{
+		INSIST(sock->statichandle == NULL);
+		sock->statichandle = handle;
 	}
 
 	return (handle);
@@ -1206,6 +1212,10 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 					       (isc__netievent_t *)event);
 		}
+	}
+
+	if (handle == sock->statichandle) {
+		sock->statichandle = NULL;
 	}
 
 	isc__nmsocket_detach(&sock);
@@ -1353,7 +1363,7 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 
 	switch (handle->sock->type) {
 	case isc_nm_tcpsocket:
-		isc__nm_tcp_cancelread(handle->sock);
+		isc__nm_tcp_cancelread(handle);
 		break;
 	default:
 		INSIST(0);
