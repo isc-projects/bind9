@@ -36,15 +36,13 @@ Known Issues
 ~~~~~~~~~~~~
 
 -  In this release, the build system has been significantly changed (see
-   below), and there is a number of unresolved issues to be aware of
-   when using a development release. Please refer to `GitLab issue #4`_
-   for a list of not yet resolved issues that will be fixed in the
-   following releases. [GL #4]
-
-.. _GitLab issue #4: https://gitlab.isc.org/isc-projects/bind9/-/issues/4
+   below) and there are several unresolved issues to be aware of when
+   using a development release. Please refer to `GitLab issue #4`_ for a
+   list of not-yet-resolved issues that will be fixed in future
+   releases. [GL #4]
 
 -  BIND crashes on startup when linked against libuv 1.36. This issue
-   is related to ``recvmmsg()`` support in libuv which was first
+   is related to ``recvmmsg()`` support in libuv, which was first
    included in libuv 1.35. The problem was addressed in libuv 1.37, but
    the relevant libuv code change requires a special flag to be set
    during library initialization in order for ``recvmmsg()`` support to
@@ -68,22 +66,23 @@ New Features
    Docs`_. Release notes are no longer available as a separate document
    accompanying a release. [GL #83]
 
--  ``named`` and ``named-checkzone`` now reject master zones that
-   have a DS RRset at the zone apex.  Attempts to add DS records
-   at the zone apex via UPDATE will be logged but otherwise ignored.
-   DS records belong in the parent zone, not at the zone apex. [GL #1798]
+-  ``named`` and ``named-checkzone`` now reject master zones that have a
+   DS RRset at the zone apex. Attempts to add DS records at the zone
+   apex via UPDATE will be logged but otherwise ignored. DS records
+   belong in the parent zone, not at the zone apex. [GL #1798]
 
--  Per-type record count limits can now be specified in ``update-policy``
-   statements, to limit the number of records of a particular type
-   that can be added to a domain name via dynamic update. [GL #1657]
+-  Per-type record count limits can now be specified in
+   ``update-policy`` statements, to limit the number of records of a
+   particular type that can be added to a domain name via dynamic
+   update. [GL #1657]
 
 -  ``dig`` and other tools can now print the Extended DNS Error (EDE)
-   option when it appears in a request or response. [GL #1834]
+   option when it appears in a request or a response. [GL #1835]
 
 -  ``dig +qid=<num>`` allows the user to specify a particular query ID
    for testing purposes. [GL #1851]
 
--  Added a new logging category ``rpz-passthru`` which allows RPZ
+-  A new logging category, ``rpz-passthru``, was added, which allows RPZ
    passthru actions to be logged into a separate channel. [GL #54]
 
 -  Zone timers are now exported via statistics channel. For primary
@@ -94,22 +93,22 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
--  The default value of ``max-stale-ttl`` has changed from 1 week to 12 hours.
-   This option controls how long named retains expired RRsets in cache as a
-   potential mitigation mechanism, should there be a problem with one or more
-   domains.  Note that cache content retention is independent of whether or not
-   stale answers will be used in response to client queries
-   (``stale-answer-enable yes|no`` and ``rndc serve-stale on|off``).  Serving of
-   stale answers when the authoritative servers are not responding must be
-   explicitly enabled, whereas the retention of expired cache content takes
-   place automatically on all versions of BIND that have this feature available.
-   [GL #1877]
+-  The default value of ``max-stale-ttl`` has changed from 1 week to 12
+   hours. This option controls how long ``named`` retains expired RRsets
+   in cache as a potential mitigation mechanism, should there be a
+   problem with one or more domains. Note that cache content retention
+   is independent of whether stale answers are used in response to
+   client queries (``stale-answer-enable yes|no`` and ``rndc serve-stale
+   on|off``). Serving of stale answers when the authoritative servers
+   are not responding must be explicitly enabled, whereas the retention
+   of expired cache content takes place automatically on all versions of
+   BIND 9 that have this feature available. [GL #1877]
 
-   .. warning:
-       This change may be significant for administrators who expect that stale
-       cache content will be automatically retained for up to 1 week.  Add
-       option ``max-stale-ttl 1w;`` to named.conf to keep the previous behavior
-       of named.
+   .. warning::
+       This change may be significant for administrators who expect that
+       stale cache content will be automatically retained for up to 1
+       week. Add option ``max-stale-ttl 1w;`` to ``named.conf`` to keep
+       the previous behavior of ``named``.
 
 -  BIND 9 no longer sets receive/send buffer sizes for UDP sockets,
    relying on system defaults instead. [GL #1713]
@@ -117,15 +116,16 @@ Feature Changes
 -  The default rwlock implementation has been changed back to the native
    BIND 9 rwlock implementation. [GL #1753]
 
--  BIND binaries which are neither daemons nor administrative programs
+-  BIND 9 binaries which are neither daemons nor administrative programs
    were moved to ``$bindir``. Only ``ddns-confgen``, ``named``,
    ``rndc``, ``rndc-confgen``, and ``tsig-confgen`` were left in
    ``$sbindir``. [GL #1724]
 
--  listen-on-v6 { any; } creates separate sockets for all interfaces,
-   while previously it created one socket on systems conforming to
-   :rfc:`3493` and :rfc:`3542`, this change was introduced in 9.16.0
-   but accudently ommited from documentation.
+-  ``listen-on-v6 { any; }`` creates a separate socket for each
+   interface. Previously, just one socket was created on systems
+   conforming to :rfc:`3493` and :rfc:`3542`. This change was introduced
+   in BIND 9.16.0, but it was accidentally omitted from documentation.
+   [GL #1782]
 
 -  The native PKCS#11 EdDSA implementation has been updated to PKCS#11
    v3.0 and thus made operational again. Contributed by Aaron Thompson.
@@ -144,7 +144,7 @@ Feature Changes
    consistency. Log messages are emitted for streams with inconsistent
    message IDs. [GL #1674]
 
--  The question section is now checked when processing AXFR, IXFR
+-  The question section is now checked when processing AXFR, IXFR,
    and SOA replies while transferring a zone in. [GL #1683]
 
 Bug Fixes
@@ -164,18 +164,19 @@ Bug Fixes
 
 -  When running on a system with support for Linux capabilities,
    ``named`` drops root privileges very soon after system startup. This
-   was causing a spurious log message, *unable to set effective uid to
-   0: Operation not permitted*, which has now been silenced. [GL #1042]
+   was causing a spurious log message, ``unable to set effective uid to
+   0: Operation not permitted``, which has now been silenced. [GL #1042]
    [GL #1090]
 
 -  A possible deadlock in ``lib/isc/unix/socket.c`` was fixed.
    [GL #1859]
 
--  Missing mutex and conditional destruction in netmgr code leads to a
-   memory leak on BSD systems. [GL #1893]
+-  Previously, ``named`` did not destroy some mutexes and conditional
+   variables in netmgr code, which caused a memory leak on FreeBSD. This
+   has been fixed. [GL #1893]
 
--  Fix a data race in resolver.c:formerr() that could lead to assertion
-   failure. [GL #1808]
+-  A data race in ``lib/dns/resolver.c:log_formerr()`` that could lead
+   to an assertion failure was fixed. [GL #1808]
 
 -  Previously, ``provide-ixfr no;`` failed to return up-to-date
    responses when the serial number was greater than or equal to the
@@ -184,13 +185,13 @@ Bug Fixes
 -  A bug in dnstap initialization could prevent some dnstap data from
    being logged, especially on recursive resolvers. [GL #1795]
 
--  Fix a bug in dnssec-policy keymgr where the check if a key has a
-   successor would return a false positive if any other key in the
-   keyring has a successor. [GL #1845]
+-  A bug in dnssec-policy keymgr was fixed, where the check for the
+   existence of a given key's successor would incorrectly return
+   ``true`` if any other key in the keyring had a successor. [GL #1845]
 
--  With dnssec-policy, when creating a successor key, the goal state of
-   the current active key (the predecessor) was not changed and thus was
-   never is removed from the zone. [GL #1846]
+-  With dnssec-policy, when creating a successor key, the "goal" state
+   of the current active key (the predecessor) was not changed and thus
+   never removed from the zone. [GL #1846]
 
 -  When ``named-checkconf -z`` was run, it would sometimes incorrectly
    set its exit code. It reflected the status of the last view found; if
@@ -210,4 +211,5 @@ Bug Fixes
    generated when named starts, regardless of whether it is needed.
    [GL #1842]
 
+.. _GitLab issue #4: https://gitlab.isc.org/isc-projects/bind9/-/issues/4
 .. _Read the Docs: https://bind9.readthedocs.io/
