@@ -1,3 +1,5 @@
+	--- 9.16.4 released ---
+
 5438.	[bug]		Fix a race in TCP accepting code. [GL #1930]
 
 5437.	[bug]		Fix a data race in lib/dns/resolver.c:log_formerr().
