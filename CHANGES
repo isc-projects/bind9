@@ -1,6 +1,7 @@
 5438.	[bug]		Fix a race in TCP accepting code. [GL #1930]
 
-5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
+5437.	[bug]		Fix a data race in lib/dns/resolver.c:log_formerr().
+			[GL #1808]
 
 5436.	[security]	It was possible to trigger an INSIST when determining
 			whether a record would fit into a TCP message buffer.
@@ -18,42 +19,42 @@
 			master files. Log but otherwise ignore attempts to
 			add DS records at the zone apex via UPDATE. [GL #1798]
 
-5430.	[doc]		Update docs - with netmgr we're creating separate
-			socket for each IPv6 interface, just as with IPv4.
+5430.	[doc]		Update docs - with netmgr, a separate listening socket
+			is created for each IPv6 interface (just as with IPv4).
 			[GL #1782]
 
-5428.	[bug]		Cleanup GSSAPI resources in nsupdate only after taskmgr
+5428.	[bug]		Clean up GSSAPI resources in nsupdate only after taskmgr
 			has been destroyed. Thanks to Petr Menšík. [GL !3316]
 
-5426.	[bug]		Don't fail when setting SO_INCOMING_CPU on the socket
+5426.	[bug]		Don't abort() when setting SO_INCOMING_CPU on the socket
 			fails. [GL #1911]
 
-5425.	[func]		The default value of "max-stale-ttl" has been change
+5425.	[func]		The default value of "max-stale-ttl" has been changed
 			from 1 week to 12 hours. [GL #1877]
 
-5424.	[bug]		With kasp, when creating a successor key, the goal
+5424.	[bug]		With KASP, when creating a successor key, the "goal"
 			state of the current active key (predecessor) was not
-			changed and thus was never is removed from the zone.
-			[GL #1846]
+			changed and thus never removed from the zone. [GL #1846]
 
-5423.	[bug]		Fix a bug in keymgr_key_has_successor: it would
-			return a false positive if any other key in the
-			keyring has a successor. [GL #1845]
+5423.	[bug]		Fix a bug in keymgr_key_has_successor(): it incorrectly
+			returned true if any other key in the keyring had a
+			successor. [GL #1845]
 
-5422.	[bug]		When using dnssec-policy, print correct keytiming
+5422.	[bug]		When using dnssec-policy, print correct key timing
 			metadata. [GL #1843]
 
-5421.	[bug]		Fixed a race that could cause named to crash when
-			looking up the nodename of an RBT node if the tree
-			was modified. [GL #1857]
+5421.	[bug]		Fix a race that could cause named to crash when looking
+			up the nodename of an RBT node if the tree was modified.
+			[GL #1857]
 
-5420.	[bug]		Add missing isc_{mutex,conditional}_destroy calls
+5420.	[bug]		Add missing isc_{mutex,conditional}_destroy() calls
 			that caused a memory leak on FreeBSD. [GL #1893]
 
-5418.	[bug]		delv failed to parse deprecated trusted-keys style
+5418.	[bug]		delv failed to parse deprecated trusted-keys-style
 			trust anchors. [GL #1860]
 
-5416.	[bug]		Fix a lock order inversion in unix/socket.c. [GL #1859]
+5416.	[bug]		Fix a lock order inversion in lib/isc/unix/socket.c.
+			[GL #1859]
 
 5415.	[test]		Address race in dnssec system test that led to
 			test failures. [GL #1852]
@@ -65,28 +66,27 @@
 5413.	[test]		Address race in autosign system test that led to
 			test failures. [GL #1852]
 
-5412.	[bug]		'provide-ixfr no;' fail to return up-to-date responses
+5412.	[bug]		'provide-ixfr no;' failed to return up-to-date responses
 			when the serial was greater than or equal to the
 			current serial. [GL #1714]
 
-5411.	[cleanup]	Refactoring of TCP accept code to use a single accept()
-			and pass the accepted socket to child threads for
-			processing. [GL !3320]
+5411.	[cleanup]	TCP accept code has been refactored to use a single
+			accept() and pass the accepted socket to child threads
+			for processing. [GL !3320]
 
-5409.	[performance]	When looking up NSEC3 data in a zone database, skip
-			the check for empty non-terminal nodes; the NSEC3
-			tree doesn't have any. [GL #1834]
+5409.	[performance]	When looking up NSEC3 data in a zone database, skip the
+			check for empty non-terminal nodes; the NSEC3 tree does
+			not have any. [GL #1834]
 
 5408.	[protocol]	Print Extended DNS Errors if present in OPT record.
 			[GL #1835]
 
-5407.	[func]		The zone timers are now exported to the statistics
-			channel.  Thanks to Paul Frieden, Verizon Media.
-			[GL #1232]
+5407.	[func]		Zone timers are now exported via statistics channel.
+			Thanks to Paul Frieden, Verizon Media. [GL #1232]
 
-5405.	[bug]		'named-checkconf -p' could include spurious text
-			in server-addresses statements due to an uninitialized
-			DSCP value. [GL #1812]
+5405.	[bug]		'named-checkconf -p' could include spurious text in
+			server-addresses statements due to an uninitialized DSCP
+			value. [GL #1812]
 
 	--- 9.16.3 released ---
 
