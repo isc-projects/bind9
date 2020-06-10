@@ -1,3 +1,5 @@
+5438.	[bug]		Fix a race in TCP accepting code. [GL #1930]
+
 5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
 
 5436.	[placeholder]
