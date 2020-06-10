@@ -4032,7 +4032,7 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	/*
 	 * If the keynode has no trust anchor set, we shouldn't be here.
 	 */
-	if (dns_keynode_dsset(keynode) == NULL) {
+	if (!dns_keynode_dsset(keynode, NULL)) {
 		return (ISC_R_FAILURE);
 	}
 
@@ -4431,7 +4431,7 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	/*
 	 * If the keynode has no trust anchor set, return.
 	 */
-	if (dns_keynode_dsset(keynode) == NULL) {
+	if (!dns_keynode_dsset(keynode, NULL)) {
 		return;
 	}
 
@@ -9979,7 +9979,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	bool free_needed;
 	dns_keynode_t *keynode = NULL;
 	dns_rdataset_t *dnskeys = NULL, *dnskeysigs = NULL;
-	dns_rdataset_t *keydataset = NULL, *dsset = NULL;
+	dns_rdataset_t *keydataset = NULL, dsset;
 
 	UNUSED(task);
 	INSIST(event != NULL && event->ev_type == DNS_EVENT_FETCHDONE);
@@ -10065,7 +10065,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * If the keynode has a DS trust anchor, use it for verification.
 	 */
-	if ((dsset = dns_keynode_dsset(keynode)) != NULL) {
+	dns_rdataset_init(&dsset);
+	if (dns_keynode_dsset(keynode, &dsset)) {
 		for (result = dns_rdataset_first(dnskeysigs);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(dnskeysigs))
@@ -10078,15 +10079,15 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			result = dns_rdata_tostruct(&sigrr, &sig, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-			for (tresult = dns_rdataset_first(dsset);
+			for (tresult = dns_rdataset_first(&dsset);
 			     tresult == ISC_R_SUCCESS;
-			     tresult = dns_rdataset_next(dsset))
+			     tresult = dns_rdataset_next(&dsset))
 			{
 				dns_rdata_t dsrdata = DNS_RDATA_INIT;
 				dns_rdata_ds_t ds;
 
 				dns_rdata_reset(&dsrdata);
-				dns_rdataset_current(dsset, &dsrdata);
+				dns_rdataset_current(&dsset, &dsrdata);
 				tresult = dns_rdata_tostruct(&dsrdata, &ds,
 							     NULL);
 				RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
@@ -10133,6 +10134,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				break;
 			}
 		}
+		dns_rdataset_disassociate(&dsset);
 	}
 
 anchors_done:

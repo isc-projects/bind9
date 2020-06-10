@@ -152,6 +152,9 @@ expire_rdatasets(dns_validator_t *val) {
  */
 static void
 disassociate_rdatasets(dns_validator_t *val) {
+	if (dns_rdataset_isassociated(&val->fdsset)) {
+		dns_rdataset_disassociate(&val->fdsset);
+	}
 	if (dns_rdataset_isassociated(&val->frdataset)) {
 		dns_rdataset_disassociate(&val->frdataset);
 	}
@@ -1779,10 +1782,11 @@ validate_dnskey(dns_validator_t *val) {
 		result = dns_keytable_find(val->keytable, val->event->name,
 					   &keynode);
 		if (result == ISC_R_SUCCESS) {
-			val->dsset = dns_keynode_dsset(keynode);
-			if (val->dsset == NULL) {
+			if (!dns_keynode_dsset(keynode, &val->fdsset)) {
 				dns_keytable_detachkeynode(val->keytable,
 							   &keynode);
+			} else {
+				val->dsset = &val->fdsset;
 			}
 		}
 	}
@@ -1834,7 +1838,8 @@ validate_dnskey(dns_validator_t *val) {
 
 	if (val->dsset->trust < dns_trust_secure) {
 		INSIST(keynode == NULL);
-		return (markanswer(val, "validate_dnskey (2)", "insecure DS"));
+		result = markanswer(val, "validate_dnskey (2)", "insecure DS");
+		goto cleanup;
 	}
 
 	/*
@@ -1949,6 +1954,10 @@ validate_dnskey(dns_validator_t *val) {
 	}
 
 cleanup:
+	if (val->dsset == &val->fdsset) {
+		val->dsset = NULL;
+		dns_rdataset_disassociate(&val->fdsset);
+	}
 	if (keynode != NULL) {
 		val->dsset = NULL;
 		dns_keytable_detachkeynode(val->keytable, &keynode);
@@ -3113,6 +3122,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	}
 
 	val->mustbesecure = dns_resolver_getmustbesecure(view->resolver, name);
+	dns_rdataset_init(&val->fdsset);
 	dns_rdataset_init(&val->frdataset);
 	dns_rdataset_init(&val->fsigrdataset);
 	dns_fixedname_init(&val->wild);
