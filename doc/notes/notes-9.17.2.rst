@@ -166,6 +166,10 @@ Bug Fixes
 -  Fix a data race in resolver.c:formerr() that could lead to assertion
    failure. [GL #1808]
 
+-  Previously, ``provide-ixfr no;`` failed to return up-to-date
+   responses when the serial number was greater than or equal to the
+   current serial number. [GL #1714]
+
 -  A bug in dnstap initialization could prevent some dnstap data from
    being logged, especially on recursive resolvers. [GL #1795]
 
