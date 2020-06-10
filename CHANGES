@@ -1,6 +1,7 @@
 5438.	[bug]		Fix a race in TCP accepting code. [GL #1930]
 
-5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
+5437.	[bug]		Fix a data race in lib/dns/resolver.c:log_formerr().
+			[GL #1808]
 
 5436.	[security]	It was possible to trigger an INSIST when determining
 			whether a record would fit into a TCP message buffer.
@@ -16,63 +17,64 @@
 
 5433.	[placeholder]
 
-5432.	[bug]		Check the question section when processing AXFR, IXFR
-			and SOA replies when transfer a zone in. [GL #1683]
+5432.	[bug]		Check the question section when processing AXFR, IXFR,
+			and SOA replies when transferring a zone in. [GL #1683]
 
 5431.	[func]		Reject DS records at the zone apex when loading
 			master files. Log but otherwise ignore attempts to
 			add DS records at the zone apex via UPDATE. [GL #1798]
 
-5430.	[doc]		Update docs - with netmgr we're creating separate
-			socket for each IPv6 interface, just as with IPv4.
+5430.	[doc]		Update docs - with netmgr, a separate listening socket
+			is created for each IPv6 interface (just as with IPv4).
 			[GL #1782]
 
 5429.	[cleanup]	Move BIND binaries which are neither daemons nor
 			administrative programs to $bindir. [GL #1724]
 
-5428.	[bug]		Cleanup GSSAPI resources in nsupdate only after taskmgr
+5428.	[bug]		Clean up GSSAPI resources in nsupdate only after taskmgr
 			has been destroyed. Thanks to Petr Menšík. [GL !3316]
 
 5427.	[placeholder]
 
-5426.	[bug]		Don't fail when setting SO_INCOMING_CPU on the socket
+5426.	[bug]		Don't abort() when setting SO_INCOMING_CPU on the socket
 			fails. [GL #1911]
 
-5425.	[func]		The default value of "max-stale-ttl" has been change
+5425.	[func]		The default value of "max-stale-ttl" has been changed
 			from 1 week to 12 hours. [GL #1877]
 
-5424.	[bug]		With kasp, when creating a successor key, the goal
+5424.	[bug]		With KASP, when creating a successor key, the "goal"
 			state of the current active key (predecessor) was not
-			changed and thus was never is removed from the zone.
-			[GL #1846]
+			changed and thus never removed from the zone. [GL #1846]
 
-5423.	[bug]		Fix a bug in keymgr_key_has_successor: it would
-			return a false positive if any other key in the
-			keyring has a successor. [GL #1845]
+5423.	[bug]		Fix a bug in keymgr_key_has_successor(): it incorrectly
+			returned true if any other key in the keyring had a
+			successor. [GL #1845]
 
-5422.	[bug]		When using dnssec-policy, print correct keytiming
+5422.	[bug]		When using dnssec-policy, print correct key timing
 			metadata. [GL #1843]
 
-5421.	[bug]		Fixed a race that could cause named to crash when
-			looking up the nodename of an RBT node if the tree
-			was modified. [GL #1857]
+5421.	[bug]		Fix a race that could cause named to crash when looking
+			up the nodename of an RBT node if the tree was modified.
+			[GL #1857]
 
-5420.	[bug]		Add missing isc_{mutex,conditional}_destroy calls
+5420.	[bug]		Add missing isc_{mutex,conditional}_destroy() calls
 			that caused a memory leak on FreeBSD. [GL #1893]
 
-5419.	[func]		"dig +qid=<num>" sets the query ID to an arbitrary
-			value. "configure --enable-singletrace" allows
-			trace logging of a single query when QID is set to 0.
-			[GL #1851]
+5419.	[func]		Add new dig command line option, "+qid=<num>", which
+			allows the query ID to be set to an arbitrary value.
+			Add a new ./configure option, --enable-singletrace,
+			which allows trace logging of a single query when QID is
+			set to 0. [GL #1851]
 
-5418.	[bug]		delv failed to parse deprecated trusted-keys style
+5418.	[bug]		delv failed to parse deprecated trusted-keys-style
 			trust anchors. [GL #1860]
 
 5417.	[cleanup]	The code determining the advertised UDP buffer size in
 			outgoing EDNS queries has been refactored to improve its
 			clarity. [GL #1868]
 
-5416.	[bug]		Fix a lock order inversion in unix/socket.c. [GL #1859]
+5416.	[bug]		Fix a lock order inversion in lib/isc/unix/socket.c.
+			[GL #1859]
 
 5415.	[test]		Address race in dnssec system test that led to
 			test failures. [GL #1852]
@@ -84,22 +86,21 @@
 5413.	[test]		Address race in autosign system test that led to
 			test failures. [GL #1852]
 
-5412.	[bug]		'provide-ixfr no;' fail to return up-to-date responses
+5412.	[bug]		'provide-ixfr no;' failed to return up-to-date responses
 			when the serial was greater than or equal to the
 			current serial. [GL #1714]
 
-5411.	[cleanup]	Refactoring of TCP accept code to use a single accept()
-			and pass the accepted socket to child threads for
-			processing. [GL !3320]
+5411.	[cleanup]	TCP accept code has been refactored to use a single
+			accept() and pass the accepted socket to child threads
+			for processing. [GL !3320]
 
-5410.	[func]		Add the ability to specify per-type record count
-			limits in an "update-policy" statement, which
-			are enforced when adding records via UPDATE.
-			[GL #1657]
+5410.	[func]		Add the ability to specify per-type record count limits,
+			which are enforced when adding records via UPDATE, in an
+			"update-policy" statement. [GL #1657]
 
-5409.	[performance]	When looking up NSEC3 data in a zone database, skip
-			the check for empty non-terminal nodes; the NSEC3
-			tree doesn't have any. [GL #1834]
+5409.	[performance]	When looking up NSEC3 data in a zone database, skip the
+			check for empty non-terminal nodes; the NSEC3 tree does
+			not have any. [GL #1834]
 
 5408.	[protocol]	Print Extended DNS Errors if present in OPT record.
 			[GL #1835]
@@ -107,13 +108,13 @@
 5407.	[func]		Zone timers are now exported via statistics channel.
 			Thanks to Paul Frieden, Verizon Media. [GL #1232]
 
-5406.	[func]		Added a new logging category, "rpz-passthru". It allows
-			RPZ passthru actions to be logged into a separate
-			channel. [GL #54]
+5406.	[func]		Add a new logging category, "rpz-passthru", which allows
+			RPZ passthru actions to be logged in a separate channel.
+			[GL #54]
 
-5405.	[bug]		'named-checkconf -p' could include spurious text
-			in server-addresses statements due to an uninitialized
-			DSCP value. [GL #1812]
+5405.	[bug]		'named-checkconf -p' could include spurious text in
+			server-addresses statements due to an uninitialized DSCP
+			value. [GL #1812]
 
 5404.	[bug]		'named-checkconf -z' could incorrectly indicate
 			success if errors were found in one view but not in a
