@@ -53,6 +53,13 @@
 	  failure. [GL #1808]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          Previously, <command>provide-ixfr no;</command> failed to return
+          up-to-date responses when the serial number was greater than or equal
+          to the current serial number. [GL #1714]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
