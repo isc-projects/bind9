@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.11.19</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.11.20</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -71,6 +71,80 @@
   </p>
 </div>
 
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.20"></a>Notes for BIND 9.11.20</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.20-security"></a>Security Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          It was possible to trigger an INSIST failure when a zone with an
+          interior wildcard label was queried in a certain pattern. This was
+          disclosed in CVE-2020-8619. [GL #1111] [GL #1718]
+        </p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.20-new"></a>New Features</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+          <span class="command"><strong>dig</strong></span> and other tools can now print the Extended DNS
+          Error (EDE) option when it appears in a request or a response.
+          [GL #1835]
+        </p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.20-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          When fully updating the NSEC3 chain for a large zone via IXFR, a
+          temporary loss of performance could be experienced on the secondary
+          server when answering queries for nonexistent data that required
+          DNSSEC proof of non-existence (in other words, queries that required
+          the server to find and to return NSEC3 data). The unnecessary
+          processing step that was causing this delay has now been removed.
+          [GL #1834]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          A data race in <code class="filename">lib/dns/resolver.c:log_formerr()</code>
+          that could lead to an assertion failure was fixed. [GL #1808]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          Previously, <span class="command"><strong>provide-ixfr no;</strong></span> failed to return
+          up-to-date responses when the serial number was greater than or equal
+          to the current serial number. [GL #1714]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          <span class="command"><strong>named-checkconf -p</strong></span> could include spurious text in
+          <span class="command"><strong>server-addresses</strong></span> statements due to an uninitialized
+          DSCP value. This has been fixed. [GL #1812]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          The ARM has been updated to indicate that the TSIG session key is
+          generated when named starts, regardless of whether it is needed.
+          [GL #1842]
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+</div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.19"></a>Notes for BIND 9.11.19</h3></div></div></div>
