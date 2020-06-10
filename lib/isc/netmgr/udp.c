@@ -80,7 +80,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		csock->rcb.recv = cb;
 		csock->rcbarg = cbarg;
 		csock->fd = socket(family, SOCK_DGRAM, 0);
-		INSIST(csock->fd >= 0);
+		RUNTIME_CHECK(csock->fd >= 0);
 
 		/*
 		 * This is SO_REUSE**** hell:
@@ -223,7 +223,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 static void
-udp_close_cb(uv_handle_t *handle) {
+udp_stop_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	atomic_store(&sock->closed, true);
 
@@ -236,7 +236,7 @@ stop_udp_child(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	uv_udp_recv_stop(&sock->uv_handle.udp);
-	uv_close((uv_handle_t *)&sock->uv_handle.udp, udp_close_cb);
+	uv_close((uv_handle_t *)&sock->uv_handle.udp, udp_stop_cb);
 
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CLOSE]);
 
@@ -395,7 +395,11 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	result = isc_sockaddr_fromsockaddr(&sockaddr, addr);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	nmhandle = isc__nmhandle_get(sock, &sockaddr, NULL);
+	if (!atomic_load(&sock->connected)) {
+		nmhandle = isc__nmhandle_get(sock, &sockaddr, NULL);
+	} else {
+		nmhandle = sock->statichandle;
+	}
 	region.base = (unsigned char *)buf->base;
 	region.length = nrecv;
 
@@ -425,13 +429,13 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 isc_result_t
 isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		 void *cbarg) {
-	isc_nmsocket_t *psock = NULL, *rsock = NULL;
 	isc_nmsocket_t *sock = handle->sock;
+	isc_nmsocket_t *psock = NULL, *rsock = sock;
 	isc_sockaddr_t *peer = &handle->peer;
 	isc__netievent_udpsend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
-	int ntid;
 	uint32_t maxudp = atomic_load(&sock->mgr->maxudp);
+	int ntid;
 
 	/*
 	 * We're simulating a firewall blocking UDP packets bigger than
@@ -446,12 +450,12 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		return (ISC_R_SUCCESS);
 	}
 
-	if (sock->type == isc_nm_udpsocket) {
+	if (sock->type == isc_nm_udpsocket && !atomic_load(&sock->client)) {
 		INSIST(sock->parent != NULL);
 		psock = sock->parent;
 	} else if (sock->type == isc_nm_udplistener) {
 		psock = sock;
-	} else {
+	} else if (!atomic_load(&sock->client)) {
 		INSIST(0);
 		ISC_UNREACHABLE();
 	}
@@ -467,13 +471,16 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	 */
 	if (isc__nm_in_netthread()) {
 		ntid = isc_nm_tid();
-	} else if (sock->type == isc_nm_udpsocket) {
+	} else if (sock->type == isc_nm_udpsocket &&
+		   !atomic_load(&sock->client)) {
 		ntid = sock->tid;
 	} else {
 		ntid = (int)isc_random_uniform(sock->nchildren);
 	}
 
-	rsock = &psock->children[ntid];
+	if (psock != NULL) {
+		rsock = &psock->children[ntid];
+	}
 
 	uvreq = isc__nm_uvreq_get(sock->mgr, sock);
 	uvreq->uvbuf.base = (char *)region->base;
@@ -553,6 +560,7 @@ udp_send_cb(uv_udp_send_t *req, int status) {
 static isc_result_t
 udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 		isc_sockaddr_t *peer) {
+	const struct sockaddr *sa = NULL;
 	int rv;
 
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -561,9 +569,11 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	if (!isc__nmsocket_active(sock)) {
 		return (ISC_R_CANCELED);
 	}
+
 	isc_nmhandle_ref(req->handle);
+	sa = atomic_load(&sock->connected) ? NULL : &peer->type.sa;
 	rv = uv_udp_send(&req->uv_req.udp_send, &sock->uv_handle.udp,
-			 &req->uvbuf, 1, &peer->type.sa, udp_send_cb);
+			 &req->uvbuf, 1, sa, udp_send_cb);
 	if (rv < 0) {
 		isc__nm_incstats(req->sock->mgr,
 				 req->sock->statsindex[STATID_SENDFAIL]);

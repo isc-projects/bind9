@@ -82,7 +82,9 @@ alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 static void
 timer_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = (isc_nmsocket_t *)uv_handle_get_data(handle);
-	INSIST(VALID_NMSOCK(sock));
+
+	REQUIRE(VALID_NMSOCK(sock));
+
 	atomic_store(&sock->closed, true);
 	tcpdns_close_direct(sock);
 }
@@ -94,7 +96,8 @@ dnstcp_readtimeout(uv_timer_t *timer) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	/* Close the TCP connection, it's closing should fire 'our' closing */
+
+	/* Close the TCP connection; its closure should fire ours. */
 	isc_nmhandle_unref(sock->outerhandle);
 	sock->outerhandle = NULL;
 }
@@ -187,8 +190,15 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 	 */
 	len = dnslen(dnssock->buf);
 	if (len <= dnssock->buf_len - 2) {
-		isc_nmhandle_t *dnshandle = isc__nmhandle_get(dnssock, NULL,
-							      NULL);
+		isc_nmhandle_t *dnshandle;
+		if (atomic_load(&dnssock->client) &&
+		    dnssock->statichandle != NULL) {
+			dnshandle = dnssock->statichandle;
+			isc_nmhandle_ref(dnshandle);
+		} else {
+			dnshandle = isc__nmhandle_get(dnssock, NULL, NULL);
+		}
+
 		isc_nmsocket_t *listener = dnssock->listener;
 
 		if (listener != NULL && listener->rcb.recv != NULL) {
@@ -197,6 +207,20 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 				&(isc_region_t){ .base = dnssock->buf + 2,
 						 .length = len },
 				listener->rcbarg);
+		} else if (dnssock->rcb.recv != NULL) {
+			isc_nm_recv_cb_t cb = dnssock->rcb.recv;
+			void *cbarg = dnssock->rcbarg;
+
+			/*
+			 * We need to clear the read callback *before*
+			 * calling it, because it might make another
+			 * call to isc_nm_read() and set up a new callback.
+			 */
+			isc__nmsocket_clearcb(dnssock);
+			cb(dnshandle, ISC_R_SUCCESS,
+			   &(isc_region_t){ .base = dnssock->buf + 2,
+					    .length = len },
+			   cbarg);
 		}
 
 		len += 2;
@@ -227,11 +251,12 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	REQUIRE(VALID_NMSOCK(dnssock));
 	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(dnssock->tid == isc_nm_tid());
 
 	if (region == NULL || eresult != ISC_R_SUCCESS) {
 		/* Connection closed */
-		isc_nmhandle_unref(handle);
+		if (eresult != ISC_R_CANCELED) {
+			isc_nmhandle_unref(handle);
+		}
 		dnssock->result = eresult;
 		if (dnssock->self != NULL) {
 			isc__nmsocket_detach(&dnssock->self);
@@ -277,11 +302,14 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 			uv_timer_stop(&dnssock->timer);
 		}
 
-		if (atomic_load(&dnssock->sequential)) {
+		if (atomic_load(&dnssock->sequential) ||
+		    dnssock->rcb.recv == NULL) {
 			/*
-			 * We're in sequential mode and we processed
-			 * one packet, so we're done until the next read
-			 * completes.
+			 * Two reasons we might want to pause here:
+			 * - If we're in sequential mode and we've received
+			 *   a whole packet, so we're done until it's been
+			 *   processed;
+			 * - If we no longer have a read callback.
 			 */
 			isc_nm_pauseread(dnssock->outerhandle);
 			done = true;
@@ -314,7 +342,6 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		    void *cbarg, isc_nm_accept_cb_t accept_cb,
 		    void *accept_cbarg, size_t extrahandlesize, int backlog,
 		    isc_quota_t *quota, isc_nmsocket_t **sockp) {
-	/* A 'wrapper' socket object with outer set to true TCP socket */
 	isc_nmsocket_t *dnslistensock = isc_mem_get(mgr->mctx,
 						    sizeof(*dnslistensock));
 	isc_result_t result;
@@ -328,7 +355,11 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	dnslistensock->accept_cbarg = accept_cbarg;
 	dnslistensock->extrahandlesize = extrahandlesize;
 
-	/* We set dnslistensock->outer to a true listening socket */
+	/*
+	 * dnslistensock will be a DNS 'wrapper' around a connected
+	 * stream. We set dnslistensock->outer to a socket listening
+	 * for a TCP connection.
+	 */
 	result = isc_nm_listentcp(mgr, iface, dnslisten_acceptcb, dnslistensock,
 				  extrahandlesize, backlog, quota,
 				  &dnslistensock->outer);
@@ -495,8 +526,7 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 		r.base = (unsigned char *)req->uvbuf.base;
 		r.length = req->uvbuf.len;
-		result = isc__nm_tcp_send(sock->outerhandle, &r, tcpdnssend_cb,
-					  req);
+		result = isc_nm_send(sock->outerhandle, &r, tcpdnssend_cb, req);
 	}
 
 	if (result != ISC_R_SUCCESS) {
@@ -538,8 +568,8 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		r.base = (unsigned char *)uvreq->uvbuf.base;
 		r.length = uvreq->uvbuf.len;
 
-		return (isc__nm_tcp_send(sock->outerhandle, &r, tcpdnssend_cb,
-					 uvreq));
+		return (isc_nm_send(sock->outerhandle, &r, tcpdnssend_cb,
+				    uvreq));
 	} else {
 		isc__netievent_tcpdnssend_t *ievent = NULL;
 
