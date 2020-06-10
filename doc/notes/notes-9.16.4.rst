@@ -77,6 +77,9 @@ Bug Fixes
    database node was looked up while the database was being modified.
    [GL #1857]
 
+-  A possible deadlock in ``lib/isc/unix/socket.c`` was fixed.
+   [GL #1859]
+
 -  Missing mutex and conditional destruction in netmgr code leads to a memory
    leak on BSD systems. [GL #1893].
 
