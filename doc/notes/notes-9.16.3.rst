@@ -8,22 +8,11 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. _relnotes-9.16.3:
-
 Notes for BIND 9.16.3
-=====================
-
-.. _relnotes-9.16.3-security:
-
-Security Fixes
---------------
-
--  None.
-
-.. _relnotes-9.16.3-known:
+---------------------
 
 Known Issues
-------------
+~~~~~~~~~~~~
 
 -  BIND crashes on startup when linked against libuv 1.36. This issue is
    related to recvmmsg() support in libuv which was first included in
@@ -35,10 +24,8 @@ Known Issues
    1.35 or libuv >= 1.37; libuv 1.36 is still not usable with BIND. [GL
    #1761] [GL #1797]
 
-.. _relnotes-9.16.3-changes:
-
 Feature Changes
----------------
+~~~~~~~~~~~~~~~
 
 -  BIND 9 no longer sets receive/send buffer sizes for UDP sockets,
    relying on system defaults instead. [GL #1713]
@@ -68,10 +55,8 @@ Feature Changes
    zones, the exported timers also include expire and refresh times.
    Contributed by Paul Frieden, Verizon Media. [GL #1232]
 
-.. _relnotes-9.16.3-bugs:
-
 Bug Fixes
----------
+~~~~~~~~~
 
 -  A bug in dnstap initialization could prevent some dnstap data from
    being logged, especially on recursive resolvers. [GL #1795]

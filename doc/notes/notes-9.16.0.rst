@@ -8,18 +8,14 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. _relnotes-9.16.0:
-
 Notes for BIND 9.16.0
-=====================
+---------------------
 
 *Note: this section only lists changes from BIND 9.14 (the previous
 stable branch of BIND).*
 
-.. _relnotes-9.16.0-new:
-
 New Features
-------------
+~~~~~~~~~~~~
 
 -  A new asynchronous network communications system based on ``libuv``
    is now used by ``named`` for listening for incoming requests and
@@ -72,10 +68,8 @@ New Features
 
 -  Statistics channel groups can now be toggled. [GL #1030]
 
-.. _relnotes-9.16.0-changes:
-
 Feature Changes
----------------
+~~~~~~~~~~~~~~~
 
 -  When static and managed DNSSEC keys were both configured for the same
    name, or when a static key was used to configure a trust anchor for
@@ -138,10 +132,8 @@ Feature Changes
    Autoconf's defaults of ``$prefix/etc`` and ``$prefix/var`` are
    respected. [GL #658]
 
-.. _relnotes-9.16.0-removed:
-
 Removed Features
-----------------
+~~~~~~~~~~~~~~~~
 
 -  The ``dnssec-enable`` option has been obsoleted and no longer has any
    effect. DNSSEC responses are always enabled if signatures and other

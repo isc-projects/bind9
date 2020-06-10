@@ -8,19 +8,11 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. _relnotes-9.16.4:
-
 Notes for BIND 9.16.4
-=====================
-
-.. _relnotes-9.16.4-security:
+---------------------
 
 Security Fixes
---------------
-
--  None.
-
-.. _relnotes-9.16.4-known:
+~~~~~~~~~~~~~~
 
 -  It was possible to trigger an assertion when attempting to fill an
    oversized TCP buffer. This was disclosed in CVE-2020-8618. [GL #1850]
@@ -29,25 +21,19 @@ Security Fixes
    interior wildcard label was queried in a certain pattern. This was
    disclosed in CVE-2020-8619. [GL #1111] [GL #1718]
 
-Known Issues
-------------
-
--  None
-
-.. _relnotes-9.16.4-changes:
+New Features
+~~~~~~~~~~~~
 
 -  ``named`` and ``named-checkzone`` now reject master zones that
    have a DS RRset at the zone apex.  Attempts to add DS records
    at the zone apex via UPDATE will be logged but otherwise ignored.
    DS records belong in the parent zone, not at the zone apex. [GL #1798]
 
-Feature Changes
----------------
-
 -  ``dig`` and other tools can now print the Extended DNS Error (EDE)
    option when it appears in a request or response. [GL #1834]
 
-.. _relnotes-9.16.4-bugs:
+Feature Changes
+~~~~~~~~~~~~~~~
 
 -  The default value of ``max-stale-ttl`` has changed from 1 week to 12 hours.
    This option controls how long named retains expired RRsets in cache as a
@@ -72,13 +58,15 @@ Feature Changes
    but accudently ommited from documentation.
 
 Bug Fixes
----------
+~~~~~~~~~
 
 -  ``named`` could crash with an assertion failure if the name of a
    database node was looked up while the database was being modified.
    [GL #1857]
+
 -  Missing mutex and conditional destruction in netmgr code leads to a memory
    leak on BSD systems. [GL #1893].
+
 -  Fix a bug in dnssec-policy keymgr where the check if a key has a
    successor would return a false positive if any other key in the
    keyring has a successor. [GL #1845]

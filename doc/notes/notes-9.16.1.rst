@@ -8,15 +8,11 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. _relnotes-9.16.1:
-
 Notes for BIND 9.16.1
-=====================
-
-.. _relnotes-9.16.1-known:
+---------------------
 
 Known Issues
-------------
+~~~~~~~~~~~~
 
 -  UDP network ports used for listening can no longer simultaneously be
    used for sending traffic. An example configuration which triggers
@@ -27,10 +23,8 @@ Known Issues
    dispatch for reserved port") on some of them. There are currently no
    plans to make such a combination of settings work again.
 
-.. _relnotes-9.16.1-changes:
-
 Feature Changes
----------------
+~~~~~~~~~~~~~~~
 
 -  The system-provided POSIX Threads read-write lock implementation is
    now used by default instead of the native BIND 9 implementation.
@@ -43,10 +37,8 @@ Feature Changes
    BIND 9 with ``--disable-pthread-rwlock`` until a fixed version of
    glibc is available. [GL !3125]
 
-.. _relnotes-9.16.1-bugs:
-
 Bug Fixes
----------
+~~~~~~~~~
 
 -  Fixed re-signing issues with inline zones which resulted in records
    being re-signed late or not at all.
