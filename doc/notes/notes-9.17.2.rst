@@ -63,6 +63,11 @@ New Features
    first. Extra attention is also needed when using non-standard
    ``./configure`` options. [GL #4]
 
+-  Documentation was converted from DocBook to reStructuredText. The
+   BIND 9 ARM is now generated using Sphinx and published on `Read the
+   Docs`_. Release notes are no longer available as a separate document
+   accompanying a release. [GL #83]
+
 -  ``named`` and ``named-checkzone`` now reject master zones that
    have a DS RRset at the zone apex.  Attempts to add DS records
    at the zone apex via UPDATE will be logged but otherwise ignored.
@@ -181,3 +186,5 @@ Bug Fixes
 -  When built without LMDB support, ``named`` failed to restart after a
    zone with a double quote (") in its name was added with ``rndc
    addzone``. Thanks to Alberto Fernández. [GL #1695]
+
+.. _Read the Docs: https://bind9.readthedocs.io/
