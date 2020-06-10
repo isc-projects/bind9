@@ -1,3 +1,5 @@
+	--- 9.11.20 released ---
+
 5437.	[bug]		Fix a data race in lib/dns/resolver.c:log_formerr().
 			[GL #1808]
 
