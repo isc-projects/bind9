@@ -119,8 +119,6 @@ quota_release(isc_quota_t *quota) {
 		UNLOCK(&quota->cblock);
 		if (cb != NULL) {
 			cb->cb_func(quota, cb->data);
-			cb->cb_func = NULL;
-			cb->data = NULL;
 			return;
 		}
 	}
