@@ -1,3 +1,6 @@
+5442.	[func]		Add support for outgoing TCP connections in netmgr.
+			[GL #1958]
+
 5441.	[placeholder]
 
 5440.	[placeholder]
