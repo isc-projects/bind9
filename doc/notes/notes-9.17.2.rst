@@ -168,6 +168,9 @@ Bug Fixes
    0: Operation not permitted*, which has now been silenced. [GL #1042]
    [GL #1090]
 
+-  A possible deadlock in ``lib/isc/unix/socket.c`` was fixed.
+   [GL #1859]
+
 -  Missing mutex and conditional destruction in netmgr code leads to a
    memory leak on BSD systems. [GL #1893]
 
