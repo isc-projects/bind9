@@ -23,22 +23,12 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes-9.11.20-known"><info><title>Known Issues</title></info>
+  <section xml:id="relnotes-9.11.20-new"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
         <para>
-	  None
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.20-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          <command>dig</command> and other tools can now print the Extended
-          DNS Error (EDE) option when it appears in a request or response.
+          <command>dig</command> and other tools can now print the Extended DNS
+          Error (EDE) option when it appears in a request or a response.
           [GL #1835]
         </para>
       </listitem>
@@ -49,8 +39,40 @@
     <itemizedlist>
       <listitem>
         <para>
-	  Fix a data race in resolver.c:formerr() that could lead to assertion
-	  failure. [GL #1808]
+          When fully updating the NSEC3 chain for a large zone via IXFR, a
+          temporary loss of performance could be experienced on the secondary
+          server when answering queries for nonexistent data that required
+          DNSSEC proof of non-existence (in other words, queries that required
+          the server to find and to return NSEC3 data). The unnecessary
+          processing step that was causing this delay has now been removed.
+          [GL #1834]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A data race in <filename>lib/dns/resolver.c:log_formerr()</filename>
+          that could lead to an assertion failure was fixed. [GL #1808]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Previously, <command>provide-ixfr no;</command> failed to return
+          up-to-date responses when the serial number was greater than or equal
+          to the current serial number. [GL #1714]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named-checkconf -p</command> could include spurious text in
+          <command>server-addresses</command> statements due to an uninitialized
+          DSCP value. This has been fixed. [GL #1812]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The ARM has been updated to indicate that the TSIG session key is
+          generated when named starts, regardless of whether it is needed.
+          [GL #1842]
         </para>
       </listitem>
     </itemizedlist>
