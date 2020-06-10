@@ -65,6 +65,14 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+-  When fully updating the NSEC3 chain for a large zone via IXFR, a
+   temporary loss of performance could be experienced on the secondary
+   server when answering queries for nonexistent data that required
+   DNSSEC proof of non-existence (in other words, queries that required
+   the server to find and to return NSEC3 data). The unnecessary
+   processing step that was causing this delay has now been removed.
+   [GL #1834]
+
 -  ``named`` could crash with an assertion failure if the name of a
    database node was looked up while the database was being modified.
    [GL #1857]
