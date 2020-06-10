@@ -203,4 +203,8 @@ Bug Fixes
    zone with a double quote (") in its name was added with ``rndc
    addzone``. Thanks to Alberto Fernández. [GL #1695]
 
+-  The ARM has been updated to indicate that the TSIG session key is
+   generated when named starts, regardless of whether it is needed.
+   [GL #1842]
+
 .. _Read the Docs: https://bind9.readthedocs.io/
