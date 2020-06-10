@@ -187,6 +187,10 @@ Bug Fixes
    the last one, the exit code indicated success. Thanks to Graham
    Clinch. [GL #1807]
 
+- ``named-checkconf -p`` could include spurious text in
+  ``server-addresses`` statements due to an uninitialized DSCP value.
+  This has been fixed. [GL #1812]
+
 -  When built without LMDB support, ``named`` failed to restart after a
    zone with a double quote (") in its name was added with ``rndc
    addzone``. Thanks to Alberto Fernández. [GL #1695]
