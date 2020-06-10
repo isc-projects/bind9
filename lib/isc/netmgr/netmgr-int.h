@@ -371,6 +371,8 @@ struct isc_nmsocket {
 	isc_nmsocket_t *parent;
 	/*% Listener socket this connection was accepted on */
 	isc_nmsocket_t *listener;
+	/*% Self, for self-contained unreferenced sockets (tcpdns) */
+	isc_nmsocket_t *self;
 
 	/*%
 	 * quota is the TCP client, attached when a TCP connection

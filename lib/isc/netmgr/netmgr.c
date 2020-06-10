@@ -1184,11 +1184,6 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		handle->doreset(handle->opaque);
 	}
 
-	/*
-	 * Temporarily reference the socket to ensure that it can't
-	 * be deleted by another thread while we're deactivating the
-	 * handle.
-	 */
 	nmhandle_deactivate(sock, handle);
 
 	/*

@@ -511,7 +511,9 @@ readtimeout_cb(uv_timer_t *handle) {
 	if (sock->quota) {
 		isc_quota_detach(&sock->quota);
 	}
-	sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
+	if (sock->rcb.recv != NULL) {
+		sock->rcb.recv(sock->tcphandle, NULL, sock->rcbarg);
+	}
 }
 
 isc_result_t
