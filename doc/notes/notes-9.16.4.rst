@@ -99,4 +99,8 @@ Bug Fixes
   ``server-addresses`` statements due to an uninitialized DSCP value.
   This has been fixed. [GL #1812]
 
+-  The ARM has been updated to indicate that the TSIG session key is
+   generated when named starts, regardless of whether it is needed.
+   [GL #1842]
+
 .. _Read the Docs: https://bind9.readthedocs.io/
