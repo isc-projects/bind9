@@ -87,4 +87,8 @@ Bug Fixes
    the current active key (the predecessor) was not changed and thus was
    never is removed from the zone. [GL #1846]
 
+- ``named-checkconf -p`` could include spurious text in
+  ``server-addresses`` statements due to an uninitialized DSCP value.
+  This has been fixed. [GL #1812]
+
 .. _Read the Docs: https://bind9.readthedocs.io/
