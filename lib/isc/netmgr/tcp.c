@@ -73,6 +73,9 @@ tcp_listenclose_cb(uv_handle_t *handle);
 static isc_result_t
 accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota);
 
+static void
+quota_accept_cb(isc_quota_t *quota, void *sock0);
+
 static int
 tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	isc__networker_t *worker = NULL;
@@ -179,6 +182,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
 		 */
 		nsock->pquota = quota;
 	}
+	isc_quota_cb_init(&nsock->quotacb, quota_accept_cb, nsock);
 
 	ievent = isc__nm_get_ievent(mgr, netievent_tcplisten);
 	ievent->sock = nsock;
@@ -733,12 +737,11 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 		 * We need to attach to ssock, because it might be queued
 		 * waiting for a TCP quota slot.  If so, then we'll detach it
 		 * later when the connection is accepted. (XXX: This may be
-		 * suboptimal, it might be better to attach unless
-		 * we need to.)
+		 * suboptimal, it might be better not to attach unless
+		 * we need to - but we risk a race then.)
 		 */
 		isc_nmsocket_t *tsock = NULL;
 		isc_nmsocket_attach(ssock, &tsock);
-		isc_quota_cb_init(&ssock->quotacb, quota_accept_cb, tsock);
 		result = isc_quota_attach_cb(ssock->pquota, &quota,
 					     &ssock->quotacb);
 		if (result == ISC_R_QUOTA) {
@@ -749,9 +752,8 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 		/*
 		 * We're under quota, so there's no need to wait;
-		 * clear the quota callback and and detach the socket.
+		 * Detach the socket.
 		 */
-		isc_quota_cb_init(&ssock->quotacb, NULL, NULL);
 		isc_nmsocket_detach(&tsock);
 	}
 
