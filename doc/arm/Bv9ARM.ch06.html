@@ -10359,9 +10359,8 @@ example.com. NS ns2.example.net.
               A pre-defined <span class="command"><strong>update-policy</strong></span> rule can be
               switched on with the command
               <span class="command"><strong>update-policy local;</strong></span>.
-              Using this in a zone causes
-              <span class="command"><strong>named</strong></span> to generate a TSIG session key
-              when starting up and store it in a file; this key can then
+              <span class="command"><strong>named</strong></span> automatically generates a TSIG session
+              key when starting and stores it in a file; this key can then
               be used by local clients to update the zone while
               <span class="command"><strong>named</strong></span> is running.
               By default, the session key is stored in the file
@@ -14721,6 +14720,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.19 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.20 (Extended Support Version)</p>
 </body>
 </html>
