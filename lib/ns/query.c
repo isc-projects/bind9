@@ -6649,7 +6649,7 @@ static bool
 has_ta(query_ctx_t *qctx) {
 	dns_keytable_t *keytable = NULL;
 	dns_keynode_t *keynode = NULL;
-	dns_rdataset_t *dsset = NULL;
+	dns_rdataset_t dsset;
 	dns_keytag_t sentinel = qctx->client->query.root_key_sentinel_keyid;
 	isc_result_t result;
 
@@ -6667,23 +6667,27 @@ has_ta(query_ctx_t *qctx) {
 		return (false);
 	}
 
-	if ((dsset = dns_keynode_dsset(keynode)) != NULL) {
-		for (result = dns_rdataset_first(dsset);
-		     result == ISC_R_SUCCESS; result = dns_rdataset_next(dsset))
+	dns_rdataset_init(&dsset);
+	if (dns_keynode_dsset(keynode, &dsset)) {
+		for (result = dns_rdataset_first(&dsset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&dsset))
 		{
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdata_ds_t ds;
 
 			dns_rdata_reset(&rdata);
-			dns_rdataset_current(dsset, &rdata);
+			dns_rdataset_current(&dsset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &ds, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (ds.key_tag == sentinel) {
 				dns_keytable_detachkeynode(keytable, &keynode);
 				dns_keytable_detach(&keytable);
+				dns_rdataset_disassociate(&dsset);
 				return (true);
 			}
 		}
+		dns_rdataset_disassociate(&dsset);
 	}
 
 	if (keynode != NULL) {

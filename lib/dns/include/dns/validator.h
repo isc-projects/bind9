@@ -137,6 +137,7 @@ struct dns_validator {
 	dns_rdataset_t *      currentset;
 	dns_rdataset_t *      keyset;
 	dns_rdataset_t *      dsset;
+	dns_rdataset_t	      fdsset;
 	dns_rdataset_t	      frdataset;
 	dns_rdataset_t	      fsigrdataset;
 	dns_fixedname_t	      fname;
