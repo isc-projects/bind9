@@ -75,6 +75,10 @@ Bug Fixes
 -  Fix a data race in resolver.c:formerr() that could lead to assertion
    failure. [GL #1808]
 
+-  Previously, ``provide-ixfr no;`` failed to return up-to-date
+   responses when the serial number was greater than or equal to the
+   current serial number. [GL #1714]
+
 -  Fix a bug in dnssec-policy keymgr where the check if a key has a
    successor would return a false positive if any other key in the
    keyring has a successor. [GL #1845]
