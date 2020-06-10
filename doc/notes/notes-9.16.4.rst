@@ -67,6 +67,9 @@ Bug Fixes
 -  Missing mutex and conditional destruction in netmgr code leads to a memory
    leak on BSD systems. [GL #1893].
 
+-  Fix a data race in resolver.c:formerr() that could lead to assertion
+   failure. [GL #1808]
+
 -  Fix a bug in dnssec-policy keymgr where the check if a key has a
    successor would return a false positive if any other key in the
    keyring has a successor. [GL #1845]
@@ -74,6 +77,3 @@ Bug Fixes
 -  With dnssec-policy, when creating a successor key, the goal state of
    the current active key (the predecessor) was not changed and thus was
    never is removed from the zone. [GL #1846]
-
--  Fix a data race in resolver.c:formerr() that could lead to assertion
-   failure. [GL #1808]
