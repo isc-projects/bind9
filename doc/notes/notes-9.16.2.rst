@@ -8,24 +8,18 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. _relnotes-9.16.2:
-
 Notes for BIND 9.16.2
-=====================
-
-.. _relnotes-9.16.2-security:
+---------------------
 
 Security Fixes
---------------
+~~~~~~~~~~~~~~
 
 -  DNS rebinding protection was ineffective when BIND 9 is configured as
    a forwarding DNS server. Found and responsibly reported by Tobias
    Klein. [GL #1574]
 
-.. _relnotes-9.16.2-known:
-
 Known Issues
-------------
+~~~~~~~~~~~~
 
 -  We have received reports that in some circumstances, receipt of an
    IXFR can cause the processing of queries to slow significantly. Some
@@ -35,19 +29,15 @@ Known Issues
    used in the hash calculation). These are being investigated. [GL
    #1685]
 
-.. _relnotes-9.16.2-changes:
-
 Feature Changes
----------------
+~~~~~~~~~~~~~~~
 
 -  The previous DNSSEC sign statistics used lots of memory. The number
    of keys to track is reduced to four per zone, which should be enough
    for 99% of all signed zones. [GL #1179]
 
-.. _relnotes-9.16.2-bugs:
-
 Bug Fixes
----------
+~~~~~~~~~
 
 -  When an RPZ policy zone was updated via zone transfer and a large
    number of records was deleted, ``named`` could become nonresponsive
