@@ -127,7 +127,6 @@ struct dns_validator {
 	dns_validator_t *     subvalidator;
 	dns_validator_t *     parent;
 	dns_keytable_t *      keytable;
-	dns_keynode_t *	      keynode;
 	dst_key_t *	      key;
 	dns_rdata_rrsig_t *   siginfo;
 	isc_task_t *	      task;
@@ -137,6 +136,7 @@ struct dns_validator {
 	dns_rdataset_t *      currentset;
 	dns_rdataset_t *      keyset;
 	dns_rdataset_t *      dsset;
+	dns_rdataset_t	      fdsset;
 	dns_rdataset_t	      frdataset;
 	dns_rdataset_t	      fsigrdataset;
 	dns_fixedname_t	      fname;

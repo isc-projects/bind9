@@ -82,3 +82,6 @@ Bug Fixes
 
 -  Fix a data race in resolver.c:formerr() that could lead to assertion
    failure. [GL #1808]
+
+-  The dsset returned by dns_keynode_dsset() was not thread safe.  This
+   could result in a INSIST being triggered. [GL #1926]
