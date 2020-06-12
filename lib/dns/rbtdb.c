@@ -145,7 +145,7 @@ typedef uint64_t                    rbtdb_serial_t;
 #define acache_callback acache_callback64
 #define acache_cancelentry acache_cancelentry64
 #define activeempty activeempty64
-#define activeemtpynode activeemtpynode64
+#define activeemptynode activeemptynode64
 #define add32 add64
 #define add_changed add_changed64
 #define add_empty_wildcards add_empty_wildcards64
