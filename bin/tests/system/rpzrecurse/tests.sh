@@ -485,6 +485,21 @@ for mode in native dnsrps; do
   }
 
   t=`expr $t + 1`
+  echo_i "testing wildcard passthru before explicit drop (${t})"
+  add_test_marker 10.53.0.2
+  run_server wildcard4
+  $DIG $DIGOPTS example.com a @10.53.0.2 -p ${PORT} > dig.out.${t}.1
+  grep "status: NOERROR" dig.out.${t}.1 > /dev/null || {
+    echo_i "test ${t} failed"
+    status=1
+  }
+  $DIG $DIGOPTS www.example.com a @10.53.0.2 -p ${PORT} > dig.out.${t}.2
+  grep "status: NOERROR" dig.out.${t}.2 > /dev/null || {
+    echo_i "test ${t} failed"
+    status=1
+  }
+  
+  t=`expr $t + 1`
   echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' ($t)"
   add_test_marker 10.53.0.2
   echo_i "timing 'nsip-wait-recurse yes' (default)"
