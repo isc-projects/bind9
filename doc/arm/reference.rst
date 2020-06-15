@@ -6067,11 +6067,11 @@ records if the machine has more than one name. For example, in the
 Other Zone File Directives
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Master File Format was initially defined in :rfc:`1035` and has
-subsequently been extended. While the Master File Format itself is
-class-independent, all records in a master file must be of the same class.
+The DNS "master file" format was initially defined in :rfc:`1035` and has
+subsequently been extended. While the format itself is class-independent,
+all records in a zone file must be of the same class.
 
-Master File Directives include ``$ORIGIN``, ``$INCLUDE``, and ``$TTL.``
+Master file directives include ``$ORIGIN``, ``$INCLUDE``, and ``$TTL.``
 
 .. _atsign:
 
