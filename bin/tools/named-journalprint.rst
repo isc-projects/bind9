@@ -46,7 +46,7 @@ appending the extension ``.jnl`` to the name of the corresponding zone
 file.
 
 ``named-journalprint`` converts the contents of a given journal file
-into a human-readable text format. Each line begins with "add" or "del",
+into a human-readable text format. Each line begins with ``add`` or ``del``,
 to indicate whether the record was added or deleted, and continues with
 the resource record in master-file format.
 

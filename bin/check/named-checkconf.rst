@@ -56,7 +56,7 @@ Options
 
 **-l**
    List all the configured zones. Each line of output contains the zone
-   name, class (e.g. IN), view, and type (e.g. master or slave).
+   name, class (e.g. IN), view, and type (e.g. primary or secondary).
 
 **-c**
    Check "core" configuration only. This suppresses the loading of
@@ -82,12 +82,12 @@ Options
    When printing the configuration files in canonical form, obscure
    shared secrets by replacing them with strings of question marks
    ('?'). This allows the contents of ``named.conf`` and related files
-   to be shared MDASH for example, when submitting bug reports MDASH
+   to be shared - for example, when submitting bug reports -
    without compromising private data. This option cannot be used without
    ``-p``.
 
 **-z**
-   Perform a test load of all master zones found in ``named.conf``.
+   Perform a test load of all zones of type ``primary`` found in ``named.conf``.
 
 filename
    The name of the configuration file to be checked. If not specified,
