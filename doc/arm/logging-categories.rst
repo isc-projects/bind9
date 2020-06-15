@@ -96,7 +96,7 @@
     Information about errors in response policy zone files, rewritten responses, and, at the highest ``debug`` levels, mere rewriting attempts.
 
 ``rpz-passthru``
-    Information about RPZ PASSTHRU policy activity. This category allows whitelist policy activity to be logged into a dedicated channel.
+    Information about RPZ PASSTHRU policy activity. This category allows pre-approved policy activity to be logged into a dedicated channel.
 
 ``security``
     Approval and denial of requests.
