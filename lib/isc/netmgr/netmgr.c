@@ -1156,6 +1156,8 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	if (isc_refcount_decrement(&handle->references) > 1) {
 		return;
 	}
+	/* We need an acquire memory barrier here */
+	(void)isc_refcount_current(&handle->references);
 
 	sock = handle->sock;
 	handle->sock = NULL;
