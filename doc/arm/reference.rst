@@ -3779,7 +3779,7 @@ Response Policy Zone (RPZ) Rewriting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 BIND 9 includes a limited mechanism to modify DNS responses for requests
-analogous to email anti-spam DNS blacklists. Responses can be changed to
+analogous to email anti-spam DNS rejection lists. Responses can be changed to
 deny the existence of domains (NXDOMAIN), deny the existence of IP
 addresses for domains (NODATA), or contain other IP addresses or data.
 
@@ -3910,12 +3910,12 @@ be used with any type of trigger to force the use of TCP for responses
 with owner names in a zone.
 
 ``PASSTHRU``
-   The whitelist policy is specified by a CNAME whose target is
+   The policy is specified by a CNAME whose target is
    ``rpz-passthru``. It causes the response to not be rewritten and is
    most often used to "poke holes" in policies for CIDR blocks.
 
 ``DROP``
-   The blacklist policy is specified by a CNAME whose target is
+   The policy is specified by a CNAME whose target is
    ``rpz-drop``. It causes the response to be discarded. Nothing is sent
    to the DNS client.
 
@@ -4076,7 +4076,7 @@ with this zone file:
    ns.domain.com.rpz-nsdname   CNAME   .
    48.zz.2.2001.rpz-nsip       CNAME   .
 
-   ; blacklist and whitelist some DNS clients
+   ; disapprove and approve some DNS clients
    112.zz.2001.rpz-client-ip    CNAME   rpz-drop.
    8.0.0.0.127.rpz-client-ip    CNAME   rpz-drop.
 
@@ -4165,7 +4165,7 @@ identical regardless of query type. They are limited by
 ``nxdomains-per-second`` (default ``responses-per-second``). This
 controls some attacks using random names, but can be relaxed or turned
 off (set to 0) on servers that expect many legitimate NXDOMAIN
-responses, such as from anti-spam blacklists. Referrals or delegations
+responses, such as from anti-spam rejection lists. Referrals or delegations
 to the server of a given domain are identical and are limited by
 ``referrals-per-second`` (default ``responses-per-second``).
 
