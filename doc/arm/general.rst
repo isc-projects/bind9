@@ -150,8 +150,13 @@ November 2000.
 :rfc:`3110` - D. Eastlake, 3rd. *RSA/SHA-1 SIGs and RSA KEYs in the Domain Name
 System (DNS).* May 2001.
 
+:rfc:`3225` - D. Conrad. *Indicating Resolver Support of DNSSEC.* December 2001.
+
 :rfc:`3226` - O. Gudmundsson. *DNSSEC and IPv6 A6 Aware Server/Resolver
 Message Size Requirements.* December 2001.
+
+:rfc:`3492` - A. Costello. *Punycode: A Bootstring Encoding of Unicode for
+Internationalized Domain Names in Applications (IDNA).* March 2003.
 
 :rfc:`3597` - A. Gustafsson. *Handling of Unknown DNS Resource Record (RR) Types.*
 September 2003.
@@ -159,11 +164,6 @@ September 2003.
 :rfc:`3645` - S. Kwan, P. Garg, J. Gilroy, L. Esibov, J. Westhead, and R. Hall. *Generic
 Security Service Algorithm for Secret Key Transaction Authentication for
 DNS (GSS-TSIG).* October 2003.
-
-:rfc:`3225` - D. Conrad. *Indicating Resolver Support of DNSSEC.* December 2001.
-
-:rfc:`3492` - A. Costello. *Punycode: A Bootstring Encoding of Unicode for
-Internationalized Domain Names in Applications (IDNA).* March 2003.
 
 :rfc:`4025` - M. Richardson. *A Method for Storing IPsec Keying Material in
 DNS.* March 2005.
