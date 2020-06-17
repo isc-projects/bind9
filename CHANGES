@@ -1,3 +1,5 @@
+5440.	[test]		Properly handle missing kyua. [GL #1950]
+
 5439.	[bug]		The dsset returned by dns_keynode_dsset() was not
 			thread safe. [GL #1926]
 
