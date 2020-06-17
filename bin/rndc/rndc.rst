@@ -162,6 +162,10 @@ Currently supported commands are:
 
    See also ``rndc addzone`` and ``rndc modzone``.
 
+``dnssec`` [**-status** *zone* [*class* [*view*]]
+   Show the DNSSEC signing state for the specified zone.  Requires the
+   zone to have a "dnssec-policy".
+
 ``dnstap`` ( **-reopen** | **-roll** [*number*] )
    Close and re-open DNSTAP output files. ``rndc dnstap -reopen`` allows
    the output file to be renamed externally, so that :manpage:`named(8)` can
