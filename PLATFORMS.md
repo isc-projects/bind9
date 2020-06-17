@@ -49,7 +49,7 @@ following systems:
 * Ubuntu LTS 16.04, 20.04
 * Fedora 32
 * Red Hat Enterprise Linux / CentOS 7, 8
-* FreeBSD 11.3, 12.1
+* FreeBSD 11.4, 12.1
 * OpenBSD 6.7
 * Alpine Linux 3.12
 
