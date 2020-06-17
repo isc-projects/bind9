@@ -2149,16 +2149,14 @@ AC_ARG_WITH([cmocka],
 AS_CASE([$with_cmocka],
 	[no],[],
 	[detect],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
-				    [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])
-				     UNITTESTS=tests],[with_cmocka=no])],
+				    [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])],
+				    [with_cmocka=no])],
 	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
-				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])])
-	                          UNITTESTS=tests],
+				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])])],
 	[AC_MSG_ERROR([Use PKG_CONFIG_PATH to specify path to CMocka library])]
        )
 AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
-AC_SUBST(UNITTESTS)
 
 #
 # Check for kyua execution engine if CMocka was requested
@@ -2168,9 +2166,10 @@ AC_ARG_VAR([KYUA], [path to kyua execution engine])
 AS_IF([test "$with_cmocka" != "no"],
       [AC_PATH_PROGS([KYUA], [kyua], [])
        AS_IF([test -z "$KYUA"],
-            [AC_MSG_WARN([kyua test execution engine not found])])])
-
+             [AC_MSG_WARN([kyua test execution engine not found])],
+             [UNITTESTS=tests])])
 AC_SUBST([KYUA])
+AC_SUBST([UNITTESTS])
 
 #
 # Check for -Wl,--wrap= support

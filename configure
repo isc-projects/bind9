@@ -672,8 +672,8 @@ BIND9_TOP_BUILDDIR
 WRAP_NAME
 WRAP_INTERPOSE
 LD_WRAP_TESTS
-KYUA
 UNITTESTS
+KYUA
 CMOCKA_LIBS
 CMOCKA_CFLAGS
 LIBIDN2_LDFLAGS
@@ -21684,7 +21684,6 @@ $as_echo "yes" >&6; }
 
 $as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
-				     UNITTESTS=tests
 fi ;; #(
   yes) :
 
@@ -21779,13 +21778,11 @@ $as_echo "yes" >&6; }
 
 $as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
-fi
-	                          UNITTESTS=tests ;; #(
+fi ;; #(
   *) :
     as_fn_error $? "Use PKG_CONFIG_PATH to specify path to CMocka library" "$LINENO" 5
         ;;
 esac
-
 
 
 
@@ -21843,6 +21840,8 @@ done
        if test -z "$KYUA"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: kyua test execution engine not found" >&5
 $as_echo "$as_me: WARNING: kyua test execution engine not found" >&2;}
+else
+  UNITTESTS=tests
 fi
 fi
 
