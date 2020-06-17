@@ -61,6 +61,7 @@
 #define NAMED_COMMAND_SHOWZONE	   "showzone"
 #define NAMED_COMMAND_SYNC	   "sync"
 #define NAMED_COMMAND_SIGNING	   "signing"
+#define NAMED_COMMAND_DNSSEC	   "dnssec"
 #define NAMED_COMMAND_ZONESTATUS   "zonestatus"
 #define NAMED_COMMAND_NTA	   "nta"
 #define NAMED_COMMAND_TESTGEN	   "testgen"

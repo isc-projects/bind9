@@ -209,6 +209,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		result = named_server_changezone(named_g_server, cmdline, text);
 	} else if (command_compare(command, NAMED_COMMAND_DELZONE)) {
 		result = named_server_delzone(named_g_server, lex, text);
+	} else if (command_compare(command, NAMED_COMMAND_DNSSEC)) {
+		result = named_server_dnssec(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_DNSTAP) ||
 		   command_compare(command, NAMED_COMMAND_DNSTAPREOPEN))
 	{
