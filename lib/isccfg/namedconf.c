@@ -2812,7 +2812,8 @@ static cfg_type_t cfg_type_dialuptype = { "dialuptype",	     parse_dialup_type,
 					  cfg_print_ustring, doc_dialup_type,
 					  &cfg_rep_string,   dialup_enums };
 
-static const char *notify_enums[] = { "explicit", "master-only", NULL };
+static const char *notify_enums[] = { "explicit", "master-only", "primary-only",
+				      NULL };
 static isc_result_t
 parse_notify_type(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));

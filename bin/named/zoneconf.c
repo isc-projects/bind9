@@ -1271,10 +1271,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				notifytype = dns_notifytype_no;
 			}
 		} else {
-			const char *notifystr = cfg_obj_asstring(obj);
-			if (strcasecmp(notifystr, "explicit") == 0) {
+			const char *str = cfg_obj_asstring(obj);
+			if (strcasecmp(str, "explicit") == 0) {
 				notifytype = dns_notifytype_explicit;
-			} else if (strcasecmp(notifystr, "master-only") == 0) {
+			} else if (strcasecmp(str, "master-only") == 0 ||
+				   strcasecmp(str, "primary-only") == 0)
+			{
 				notifytype = dns_notifytype_masteronly;
 			} else {
 				INSIST(0);
