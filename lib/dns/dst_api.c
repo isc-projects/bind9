@@ -1906,7 +1906,6 @@ printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 	isc_result_t result;
 	char output[26]; /* Minimum buffer as per ctime_r() specification. */
 	isc_stdtime_t when;
-	time_t t;
 	char utc[sizeof("YYYYMMDDHHSSMM")];
 	isc_buffer_t b;
 	isc_region_t r;
@@ -1916,18 +1915,7 @@ printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 		return;
 	}
 
-	/* time_t and isc_stdtime_t might be different sizes */
-	t = when;
-#ifdef WIN32
-	if (ctime_s(output, sizeof(output), &t) != 0) {
-		goto error;
-	}
-#else  /* ifdef WIN32 */
-	if (ctime_r(&t, output) == NULL) {
-		goto error;
-	}
-#endif /* ifdef WIN32 */
-
+	isc_stdtime_tostring(when, output, sizeof(output));
 	isc_buffer_init(&b, utc, sizeof(utc));
 	result = dns_time32_totext(when, &b);
 	if (result != ISC_R_SUCCESS) {
