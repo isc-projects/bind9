@@ -1,3 +1,9 @@
+5456.	[func]		Added "primaries" as a synonym for "masters" in
+			named.conf, and "primary-only" as a synonym for
+			"master-only" in the parameters to "notify",
+			in order to bring terminology up to date with
+			RFC 8499. [GL #1948]
+
 5455.	[bug]		`named` could crash when cleaning dead nodes
 			in lib/dns/rbtdb.c that have been reused meanwhile.
 			[GL #1968]
