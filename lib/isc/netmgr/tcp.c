@@ -243,9 +243,10 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 }
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
-		 void *cbarg, size_t extrahandlesize, int backlog,
-		 isc_quota_t *quota, isc_nmsocket_t **sockp) {
+isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
+		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
+		 isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *nsock = NULL;
 	isc__netievent_tcplisten_t *ievent = NULL;
 
@@ -253,8 +254,8 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
 
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
 	isc__nmsocket_init(nsock, mgr, isc_nm_tcplistener, iface);
-	nsock->accept_cb.accept = cb;
-	nsock->accept_cbarg = cbarg;
+	nsock->accept_cb.accept = accept_cb;
+	nsock->accept_cbarg = accept_cbarg;
 	nsock->extrahandlesize = extrahandlesize;
 	nsock->backlog = backlog;
 	nsock->result = ISC_R_SUCCESS;
