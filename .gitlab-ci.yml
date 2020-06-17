@@ -156,7 +156,7 @@ stages:
     - tags
     - web
     - schedules
-    - master@isc-projects/bind9
+    - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
 .precheck: &precheck_job
@@ -511,9 +511,9 @@ push:docs:
     - job: docs
       artifacts: false
   script:
-    - curl -X POST -F token=$GITLAB_PAGES_DOCS_TRIGGER_TOKEN -F ref=master $GITLAB_PAGES_DOCS_TRIGGER_URL
+    - curl -X POST -F token=$GITLAB_PAGES_DOCS_TRIGGER_TOKEN -F ref=main $GITLAB_PAGES_DOCS_TRIGGER_URL
   only:
-    - master@isc-projects/bind9
+    - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
 # Jobs for regular GCC builds on Alpine Linux 3.11 (amd64)
@@ -1398,5 +1398,5 @@ abi-check:
       - "abi-*.dump"
     expire_in: "1 week"
   only:
-    - master@isc-projects/bind9
+    - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
