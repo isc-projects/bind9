@@ -4797,7 +4797,6 @@ AS_CASE([$with_cmocka],
 	[yes],[
             PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
 			      [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])])
-            UNITTESTS=tests
             ],
 	[*],[
 	    save_CFLAGS="$CFLAGS"
@@ -4816,14 +4815,12 @@ AS_CASE([$with_cmocka],
 			   [
 			       CMOCKA_CFLAGS="-Iwith_cmocka/include"
 			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
-                               UNITTESTS=tests
 			       AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])
 			   ],
 			   [AC_MSG_ERROR([cmocka unit testing framework not found in $with_cmocka path])])
 	    ])
 AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
-AC_SUBST(UNITTESTS)
 
 #
 # Check for kyua execution engine if CMocka was requested
@@ -4833,9 +4830,10 @@ AC_ARG_VAR([KYUA], [path to kyua execution engine])
 AS_IF([test "$with_cmocka" != "no"],
       [AC_PATH_PROGS([KYUA], [kyua], [])
        AS_IF([test -z "$KYUA"],
-            [AC_MSG_WARN([kyua test execution engine not found])])])
-
+             [AC_MSG_WARN([kyua test execution engine not found])],
+             [UNITTESTS=tests])])
 AC_SUBST([KYUA])
+AC_SUBST([UNITTESTS])
 
 #
 # Check for -Wl,--wrap= support

@@ -678,8 +678,8 @@ BIND9_ISCCC_BUILDINCLUDE
 BIND9_ISC_BUILDINCLUDE
 BIND9_TOP_BUILDDIR
 LD_WRAP_TESTS
-KYUA
 UNITTESTS
+KYUA
 CMOCKA_LIBS
 CMOCKA_CFLAGS
 LIBIDN2_LIBS
@@ -23767,7 +23767,6 @@ $as_echo "yes" >&6; }
 $as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
 fi
-            UNITTESTS=tests
              ;; #(
   *) :
 
@@ -23849,7 +23848,6 @@ if test "$ac_res" != no; then :
 
 			       CMOCKA_CFLAGS="-Iwith_cmocka/include"
 			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
-                               UNITTESTS=tests
 
 $as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
@@ -23862,7 +23860,6 @@ fi
   *) :
      ;;
 esac
-
 
 
 
@@ -23920,6 +23917,8 @@ done
        if test -z "$KYUA"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: kyua test execution engine not found" >&5
 $as_echo "$as_me: WARNING: kyua test execution engine not found" >&2;}
+else
+  UNITTESTS=tests
 fi
 fi
 

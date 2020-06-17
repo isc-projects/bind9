@@ -1,3 +1,5 @@
+5440.	[test]		Properly handle missing kyua. [GL #1950]
+
 5437.	[bug]		Fix a data race in resolver log_formerr. [GL #1808]
 
 5433.	[test]		Resolver system test for change #5395
