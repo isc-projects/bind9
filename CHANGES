@@ -1,3 +1,5 @@
+5445.	[cleanup]	Disable and disallow static linking. [GL #1933]
+
 5444.	[bug]		'rndc dnstap -roll <value>' was not limiting the
 			number of saved files to <value>. [GL !3728]
 
