@@ -1093,30 +1093,32 @@ unit:gcc:pkcs11:
     - job: gcc:pkcs11
       artifacts: true
 
-# Jobs for Clang builds on FreeBSD 11.3 (amd64)
+# Jobs for Clang builds on FreeBSD 11.4 (amd64)
 
-clang:freebsd11.3:amd64:
+clang:freebsd11.4:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
     USER: gitlab-runner
+    # Temporarily disable LMDB support [GL #1976]
+    EXTRA_CONFIGURE: "--without-lmdb"
   <<: *freebsd_amd64
   <<: *build_job
 
-system:clang:freebsd11.3:amd64:
+system:clang:freebsd11.4:amd64:
   <<: *freebsd_amd64
   <<: *system_test_job
   variables:
     USER: gitlab-runner
     TEST_PARALLEL_JOBS: 4
   needs:
-    - job: clang:freebsd11.3:amd64
+    - job: clang:freebsd11.4:amd64
       artifacts: true
 
-unit:clang:freebsd11.3:amd64:
+unit:clang:freebsd11.4:amd64:
   <<: *freebsd_amd64
   <<: *unit_test_job
   needs:
-    - job: clang:freebsd11.3:amd64
+    - job: clang:freebsd11.4:amd64
       artifacts: true
 
 # Jobs for Clang builds on FreeBSD 12.1 (amd64)
@@ -1124,7 +1126,8 @@ unit:clang:freebsd11.3:amd64:
 clang:freebsd12.1:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-dnstap"
+    # Temporarily disable LMDB support [GL #1976]
+    EXTRA_CONFIGURE: "--enable-dnstap --without-lmdb"
     USER: gitlab-runner
   <<: *freebsd_amd64
   <<: *build_job
