@@ -467,7 +467,7 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 
 	result = isc_nm_listentcpdns(
 		ifp->mgr->nm, (isc_nmiface_t *)&ifp->addr, ns__client_request,
-		ifp, ns__client_tcpconn, ifp->mgr->sctx, sizeof(ns_client_t),
+		ifp, ns__client_tcpconn, ifp, sizeof(ns_client_t),
 		ifp->mgr->backlog, &ifp->mgr->sctx->tcpquota,
 		&ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {
@@ -481,7 +481,12 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	 * this is necessary because we are adding to the TCP quota just
 	 * by listening.
 	 */
-	ns__client_tcpconn(NULL, ISC_R_SUCCESS, ifp->mgr->sctx);
+	result = ns__client_tcpconn(NULL, ISC_R_SUCCESS, ifp);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "connecting TCP socket: %s",
+			      isc_result_totext(result));
+	}
 
 #if 0
 #ifndef ISC_ALLOW_MAPPED
@@ -1265,6 +1270,13 @@ ns_interfacemgr_listeningon(ns_interfacemgr_t *mgr,
 	UNLOCK(&mgr->lock);
 
 	return (result);
+}
+
+ns_server_t *
+ns_interfacemgr_getserver(ns_interfacemgr_t *mgr) {
+	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+
+	return (mgr->sctx);
 }
 
 ns_interface_t *

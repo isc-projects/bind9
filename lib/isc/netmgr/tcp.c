@@ -160,9 +160,10 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 }
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
-		 void *cbarg, size_t extrahandlesize, int backlog,
-		 isc_quota_t *quota, isc_nmsocket_t **sockp) {
+isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
+		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
+		 isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *nsock = NULL;
 	isc__netievent_tcplisten_t *ievent = NULL;
 
@@ -170,8 +171,8 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
 
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
 	isc__nmsocket_init(nsock, mgr, isc_nm_tcplistener, iface);
-	nsock->rcb.accept = cb;
-	nsock->rcbarg = cbarg;
+	nsock->accept_cb.accept = accept_cb;
+	nsock->accept_cbarg = accept_cbarg;
 	nsock->extrahandlesize = extrahandlesize;
 	nsock->backlog = backlog;
 	nsock->result = ISC_R_SUCCESS;
@@ -383,9 +384,9 @@ isc__nm_async_tcpchildaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	handle = isc__nmhandle_get(csock, NULL, &local);
 
-	INSIST(ssock->rcb.accept != NULL);
+	INSIST(ssock->accept_cb.accept != NULL);
 	csock->read_timeout = ssock->mgr->init;
-	ssock->rcb.accept(handle, ISC_R_SUCCESS, ssock->rcbarg);
+	ssock->accept_cb.accept(handle, ISC_R_SUCCESS, ssock->accept_cbarg);
 	isc_nmsocket_detach(&csock);
 	return;
 

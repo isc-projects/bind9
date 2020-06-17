@@ -475,7 +475,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg);
  * (Not intended for use outside this module and associated tests.)
  */
 
-void
+isc_result_t
 ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg);
 
 /*%<
