@@ -30,7 +30,7 @@ OPTIONS_FILES =				\
 	dnssec-policy.grammar.rst	\
 	key.grammar.rst			\
 	logging.grammar.rst		\
-	masters.grammar.rst		\
+	primaries.grammar.rst		\
 	options.grammar.rst		\
 	server.grammar.rst		\
 	statistics-channels.grammar.rst	\
@@ -150,8 +150,8 @@ key.grammar.rst: options.active
 logging.grammar.rst: options.active
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active logging > $@
 
-masters.grammar.rst: options.active
-	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active masters > $@
+primaries.grammar.rst: options.active
+	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active primaries > $@
 
 options.grammar.rst: options.active
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active options > $@

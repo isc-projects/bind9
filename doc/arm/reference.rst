@@ -29,8 +29,8 @@ file documentation:
     ``address_match_list``
         A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or ``acl_name`` elements, see :ref:`address_match_lists`.
 
-    ``masters_list``
-        A named list of one or more ``ip_addr`` with optional ``key_id`` and/or ``ip_port``. A ``masters_list`` may include other ``masters_lists``.
+    ``primaries_list``
+        A named list of one or more ``ip_addr`` with optional ``key_id`` and/or ``ip_port``. A ``primaries_list`` may include other ``primaries_lists``.
 
     ``domain_name``
         A quoted string which is used as a DNS name, for example "``my.test.domain``".
@@ -272,10 +272,13 @@ The following statements are supported:
         Specifies what the server logs, and where the log messages are sent.
 
     ``masters``
-        Defines a named masters list for inclusion in stub and secondary zones' ``masters`` or ``also-notify`` lists.
+        Synonym for ``primaries``.
 
     ``options``
         Controls global server configuration options and sets defaults for other statements.
+
+    ``primaries``
+        Defines a named list of servers for inclusion in stub and secondary zones' ``primaries`` or ``also-notify`` lists. (Note: this is a synonym for the original keyword ``masters``, which can still be used, but is no longer the preferred terminology.)
 
     ``server``
         Sets certain configuration options on a per-server basis.
@@ -837,21 +840,23 @@ At ``debug`` level 4 or higher, the detailed context information logged at
 ``debug`` level 2 is logged for errors other than SERVFAIL and for negative
 responses such as NXDOMAIN.
 
-.. _masters_grammar:
+.. _primaries_grammar:
 
-``masters`` Statement Grammar
+``primaries`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: ../misc/masters.grammar.rst
+.. include:: ../misc/primaries.grammar.rst
 
-.. _masters_statement:
+.. _primaries_statement:
 
-``masters`` Statement Definition and Usage
+``primaries`` Statement Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``masters`` lists allow for a common set of masters to be easily used by
-multiple stub and secondary zones in their ``masters`` or ``also-notify``
-lists.
+``primaries`` lists allow for a common set of primary servers  to be easily
+used by multiple stub and secondary zones in their ``primaries`` or
+``also-notify`` lists. (Note: ``primaries`` is a synonym for the original
+keyword ``masters``, which can still be used, but is no longer the
+preferred terminology.)
 
 .. _options_grammar:
 
@@ -1721,15 +1726,16 @@ Boolean Options
    sections. The default is ``no``.
 
 ``notify``
-   If ``yes`` (the default), DNS NOTIFY messages are sent when a zone
-   the server is authoritative for changes; see :ref:`notify`.
+   If set to ``yes`` (the default), DNS NOTIFY messages are sent when a
+   zone the server is authoritative for changes; see :ref:`notify`.
    The messages are sent to the servers listed in the zone's NS records
    (except the primary server identified in the SOA MNAME field), and to
    any servers listed in the ``also-notify`` option.
 
-   If ``master-only``, notifies are only sent for primary zones. If
-   ``explicit``, notifies are sent only to servers explicitly listed
-   using ``also-notify``. If ``no``, no notifies are sent.
+   If set to ``primary-only`` (or the older keyword ``master-only``),
+   notifies are only sent for primary zones. If set to ``explicit``,
+   notifies are sent only to servers explicitly listed using
+   ``also-notify``. If set to ``no``, no notifies are sent.
 
    The ``notify`` option may also be specified in the ``zone``
    statement, in which case it overrides the ``options notify``
@@ -2240,7 +2246,7 @@ for details on how to specify IP address lists.
    global value is overridden.
 
    If not specified, the default is to process NOTIFY messages only from
-   the configured ``masters`` for the zone. ``allow-notify`` can be used
+   the configured ``primaries`` for the zone. ``allow-notify`` can be used
    to expand the list of permitted hosts, not to reduce it.
 
 ``allow-query``
@@ -2559,7 +2565,7 @@ options apply to zone transfers.
    than the default of 53. An optional TSIG key can also be specified
    with each address to cause the notify messages to be signed; this can
    be useful when sending notifies to multiple views. In place of
-   explicit addresses, one or more named ``masters`` lists can be used.
+   explicit addresses, one or more named ``primaries`` lists can be used.
 
    If an ``also-notify`` list is given in a ``zone`` statement, it
    overrides the ``options also-notify`` statement. When a
@@ -2700,7 +2706,7 @@ options apply to zone transfers.
 ``notify-source``
    ``notify-source`` determines which local source address, and
    optionally UDP port, is used to send NOTIFY messages. This
-   address must appear in the secondary server's ``masters`` zone clause or
+   address must appear in the secondary server's ``primaries`` zone clause or
    in an ``allow-notify`` clause. This statement sets the
    ``notify-source`` for all zones, but can be overridden on a per-zone
    or per-view basis by including a ``notify-source`` statement within
@@ -5061,10 +5067,10 @@ it is an ``in-view`` configuration. Its acceptable values include:
 
 ``secondary``
     A secondary zone is a replica of a primary zone. Type ``slave`` is a
-    synonym for ``secondary``. The ``masters`` list specifies one or more IP
+    synonym for ``secondary``. The ``primaries`` list specifies one or more IP
     addresses of primary servers that the secondary contacts to update
-    its copy of the zone.  Masters list elements can
-    also be names of other masters lists.  By default,
+    its copy of the zone.  Primaires list elements can
+    also be names of other primaries lists.  By default,
     transfers are made from port 53 on the servers;
     this can be changed for all servers by specifying
     a port number before the list of IP addresses,
@@ -5139,7 +5145,7 @@ it is an ``in-view`` configuration. Its acceptable values include:
 
    Mirroring a zone other than root
    requires an explicit list of primary servers to be provided using the
-   ``masters`` option (see :ref:`masters_grammar` for details), and a
+   ``primaries`` option (see :ref:`primaries_grammar` for details), and a
    key-signing key (KSK) for the specified zone to be explicitly configured as a
    trust anchor.
 
@@ -5231,7 +5237,7 @@ it is an ``in-view`` configuration. Its acceptable values include:
    Note that the redirect zone supports all possible types; it is not
    limited to A and AAAA records.
 
-   If a redirect zone is configured with a ``masters`` option, then it is
+   If a redirect zone is configured with a ``primaries`` option, then it is
    transferred in as if it were a secondary zone. Otherwise, it is loaded from a
    file as if it were a primary zone.
 
@@ -5374,9 +5380,9 @@ Zone Options
 
 ``file``
    This sets the zone's filename. In ``primary``, ``hint``, and ``redirect``
-   zones which do not have ``masters`` defined, zone data is loaded from
+   zones which do not have ``primaries`` defined, zone data is loaded from
    this file. In ``secondary``, ``mirror``, ``stub``, and ``redirect`` zones
-   which do have ``masters`` defined, zone data is retrieved from
+   which do have ``primaries`` defined, zone data is retrieved from
    another server and saved in this file. This option is not applicable
    to other zone types.
 

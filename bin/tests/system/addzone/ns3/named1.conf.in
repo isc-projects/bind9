@@ -30,6 +30,6 @@ zone "." {
 	file "redirect.db";
 };
 
-masters "testmaster" {
+primaries "testmaster" {
 	192.5.5.241;
 };

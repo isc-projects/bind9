@@ -69,8 +69,8 @@ managed-keys { <string> ( static-key
     <integer> <quoted_string>; ... }; // may occur multiple times, deprecated
 
 masters <string> [ port <integer> ] [ dscp
-    <integer> ] { ( <masters> | <ipv4_address> [
-    port <integer> ] | <ipv6_address> [ port
+    <integer> ] { ( <primaries> | <ipv4_address>
+    [ port <integer> ] | <ipv6_address> [ port
     <integer> ] ) [ key <string> ]; ... }; // may occur multiple times
 
 options {
@@ -90,7 +90,7 @@ options {
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
-        also-notify [ port <integer> ] [ dscp <integer> ] { ( <masters> |
+        also-notify [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
@@ -108,7 +108,7 @@ options {
         blackhole { <address_match_element>; ... };
         cache-file <quoted_string>;
         catalog-zones { zone <string> [ default-masters [ port <integer> ]
-            [ dscp <integer> ] { ( <masters> | <ipv4_address> [ port
+            [ dscp <integer> ] { ( <primaries> | <ipv4_address> [ port
             <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
             <string> ]; ... } ] [ zone-directory <quoted_string> ] [
             in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
@@ -166,13 +166,16 @@ options {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder | resolver | update ) [
-            ( query | response ) ]; ... };
-        dnstap-identity ( <quoted_string> | none | hostname );
-        dnstap-output ( file | unix ) <quoted_string> [ size ( unlimited |
-            <size> ) ] [ versions ( unlimited | <integer> ) ] [ suffix (
-            increment | timestamp ) ];
-        dnstap-version ( <quoted_string> | none );
+        dnstap { ( all | auth | client | forwarder |
+            resolver | update ) [ ( query | response ) ];
+            ... }; // not configured
+        dnstap-identity ( <quoted_string> | none |
+            hostname ); // not configured
+        dnstap-output ( file | unix ) <quoted_string> [
+            size ( unlimited | <size> ) ] [ versions (
+            unlimited | <integer> ) ] [ suffix ( increment
+            | timestamp ) ]; // not configured
+        dnstap-version ( <quoted_string> | none ); // not configured
         dscp <integer>;
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
@@ -196,13 +199,13 @@ options {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
-        fstrm-set-buffer-hint <integer>;
-        fstrm-set-flush-timeout <integer>;
-        fstrm-set-input-queue-size <integer>;
-        fstrm-set-output-notify-threshold <integer>;
-        fstrm-set-output-queue-model ( mpsc | spsc );
-        fstrm-set-output-queue-size <integer>;
-        fstrm-set-reopen-interval <duration>;
+        fstrm-set-buffer-hint <integer>; // not configured
+        fstrm-set-flush-timeout <integer>; // not configured
+        fstrm-set-input-queue-size <integer>; // not configured
+        fstrm-set-output-notify-threshold <integer>; // not configured
+        fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
+        fstrm-set-output-queue-size <integer>; // not configured
+        fstrm-set-reopen-interval <duration>; // not configured
         geoip-directory ( <quoted_string> | none );
         geoip-use-ecs <boolean>; // obsolete
         glue-cache <boolean>;
@@ -411,6 +414,11 @@ options {
 plugin ( query ) <string> [ { <unspecified-text>
     } ]; // may occur multiple times
 
+primaries <string> [ port <integer> ] [ dscp
+    <integer> ] { ( <primaries> | <ipv4_address>
+    [ port <integer> ] | <ipv6_address> [ port
+    <integer> ] ) [ key <string> ]; ... }; // may occur multiple times
+
 server <netprefix> {
         bogus <boolean>;
         edns <boolean>;
@@ -479,7 +487,7 @@ view <string> [ <class> ] {
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
-        also-notify [ port <integer> ] [ dscp <integer> ] { ( <masters> |
+        also-notify [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
@@ -491,7 +499,7 @@ view <string> [ <class> ] {
         auto-dnssec ( allow | maintain | off );
         cache-file <quoted_string>;
         catalog-zones { zone <string> [ default-masters [ port <integer> ]
-            [ dscp <integer> ] { ( <masters> | <ipv4_address> [ port
+            [ dscp <integer> ] { ( <primaries> | <ipv4_address> [ port
             <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
             <string> ]; ... } ] [ zone-directory <quoted_string> ] [
             in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
@@ -547,8 +555,9 @@ view <string> [ <class> ] {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder | resolver | update ) [
-            ( query | response ) ]; ... };
+        dnstap { ( all | auth | client | forwarder |
+            resolver | update ) [ ( query | response ) ];
+            ... }; // not configured
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
             <integer> ] [ dscp <integer> ] | <ipv6_address> [ port
@@ -775,7 +784,7 @@ view <string> [ <class> ] {
                 allow-update { <address_match_element>; ... };
                 allow-update-forwarding { <address_match_element>; ... };
                 also-notify [ port <integer> ] [ dscp <integer> ] { (
-                    <masters> | <ipv4_address> [ port <integer> ] |
+                    <primaries> | <ipv4_address> [ port <integer> ] |
                     <ipv6_address> [ port <integer> ] ) [ key <string> ];
                     ... };
                 alt-transfer-source ( <ipv4_address> | * ) [ port (
@@ -818,9 +827,10 @@ view <string> [ <class> ] {
                 maintain-ixfr-base <boolean>; // ancient
                 masterfile-format ( map | raw | text );
                 masterfile-style ( full | relative );
-                masters [ port <integer> ] [ dscp <integer> ] { ( <masters>
-                    | <ipv4_address> [ port <integer> ] | <ipv6_address> [
-                    port <integer> ] ) [ key <string> ]; ... };
+                masters [ port <integer> ] [ dscp <integer> ] { (
+                    <primaries> | <ipv4_address> [ port <integer> ] |
+                    <ipv6_address> [ port <integer> ] ) [ key <string> ];
+                    ... };
                 max-ixfr-log-size ( default | unlimited |
                     <sizeval> ); // ancient
                 max-ixfr-ratio ( unlimited | <percentage> );
@@ -844,6 +854,10 @@ view <string> [ <class> ] {
                     | * ) ] [ dscp <integer> ];
                 notify-to-soa <boolean>;
                 nsec3-test-zone <boolean>; // test only
+                primaries [ port <integer> ] [ dscp <integer> ] { (
+                    <primaries> | <ipv4_address> [ port <integer> ] |
+                    <ipv6_address> [ port <integer> ] ) [ key <string> ];
+                    ... };
                 pubkey <integer> <integer> <integer>
                     <quoted_string>; // ancient
                 request-expire <boolean>;
@@ -883,7 +897,7 @@ zone <string> [ <class> ] {
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
-        also-notify [ port <integer> ] [ dscp <integer> ] { ( <masters> |
+        also-notify [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
@@ -924,7 +938,7 @@ zone <string> [ <class> ] {
         maintain-ixfr-base <boolean>; // ancient
         masterfile-format ( map | raw | text );
         masterfile-style ( full | relative );
-        masters [ port <integer> ] [ dscp <integer> ] { ( <masters> |
+        masters [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // ancient
@@ -949,6 +963,9 @@ zone <string> [ <class> ] {
             [ dscp <integer> ];
         notify-to-soa <boolean>;
         nsec3-test-zone <boolean>; // test only
+        primaries [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
+            <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
+            <integer> ] ) [ key <string> ]; ... };
         pubkey <integer> <integer> <integer> <quoted_string>; // ancient
         request-expire <boolean>;
         request-ixfr <boolean>;

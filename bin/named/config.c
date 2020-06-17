@@ -302,7 +302,7 @@ view \"_bind\" chaos {\n\
 
 			    "# END MANAGED KEYS\n\
 \n\
-masters " DEFAULT_IANA_ROOT_ZONE_MASTERS " {\n\
+primaries " DEFAULT_IANA_ROOT_ZONE_PRIMARIES " {\n\
 	2001:500:84::b;		# b.root-servers.net\n\
 	2001:500:2f::f;		# f.root-servers.net\n\
 	2001:7fd::1;		# k.root-servers.net\n\
@@ -567,17 +567,21 @@ named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 }
 
 isc_result_t
-named_config_getmastersdef(const cfg_obj_t *cctx, const char *name,
-			   const cfg_obj_t **ret) {
+named_config_getprimariesdef(const cfg_obj_t *cctx, const char *name,
+			     const cfg_obj_t **ret) {
 	isc_result_t result;
-	const cfg_obj_t *masters = NULL;
+	const cfg_obj_t *primaries = NULL;
 	const cfg_listelt_t *elt;
 
-	result = cfg_map_get(cctx, "masters", &masters);
+	result = cfg_map_get(cctx, "primaries", &primaries);
+	if (result != ISC_R_SUCCESS) {
+		result = cfg_map_get(cctx, "masters", &primaries);
+	}
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	for (elt = cfg_list_first(masters); elt != NULL;
+
+	for (elt = cfg_list_first(primaries); elt != NULL;
 	     elt = cfg_list_next(elt)) {
 		const cfg_obj_t *list;
 		const char *listname;
@@ -678,7 +682,7 @@ resume:
 		isc_buffer_t b;
 
 		addr = cfg_tuple_get(cfg_listelt_value(element),
-				     "masterselement");
+				     "primarieselement");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
 
 		if (!cfg_obj_issockaddr(addr)) {
@@ -710,11 +714,11 @@ resume:
 			if (j < l) {
 				continue;
 			}
-			tresult = named_config_getmastersdef(config, listname,
-							     &list);
+			tresult = named_config_getprimariesdef(config, listname,
+							       &list);
 			if (tresult == ISC_R_NOTFOUND) {
 				cfg_obj_log(addr, named_g_lctx, ISC_LOG_ERROR,
-					    "masters \"%s\" not found",
+					    "primaries \"%s\" not found",
 					    listname);
 
 				result = tresult;

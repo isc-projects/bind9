@@ -60,7 +60,7 @@ zone "tsigzone" {
 zone "slave" {
 	type slave;
 	file "slave.db";
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 	masterfile-format text;
 };
 
@@ -68,5 +68,5 @@ zone "mapped" {
 	type slave;
 	file "mapped.db";
 	masterfile-format text;
-	masters { 10.53.0.100; };
+	primaries { 10.53.0.100; };
 };

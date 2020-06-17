@@ -25,14 +25,14 @@ zone "example" {
 	type slave;
 	file "example.bk";
 	allow-update-forwarding { any; };
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 };
 
 zone "example2" {
 	type slave;
 	file "example2.bk";
 	allow-update-forwarding { any; };
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 };
 
 zone "nomaster" {
@@ -40,5 +40,5 @@ zone "nomaster" {
 	file "nomaster1.db";
 	allow-update-forwarding { any; };
 	masterfile-format text;
-	masters { 10.53.0.4; };
+	primaries { 10.53.0.4; };
 };

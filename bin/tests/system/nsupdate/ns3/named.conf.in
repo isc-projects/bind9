@@ -44,7 +44,7 @@ zone "dnskey.test" {
 
 zone "many.test" {
 	type slave;
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 	allow-update-forwarding { any; };
 	file "many.test.bk";
 };

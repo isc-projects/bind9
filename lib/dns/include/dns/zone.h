@@ -58,10 +58,11 @@ typedef enum {
 	DNS_ZONEOPT_NOMERGE = 1 << 2,	    /*%< don't merge journal */
 	DNS_ZONEOPT_CHECKNS = 1 << 3,	    /*%< check if NS's are addresses */
 	DNS_ZONEOPT_FATALNS = 1 << 4,	    /*%< DNS_ZONEOPT_CHECKNS is fatal */
-	DNS_ZONEOPT_MULTIMASTER = 1 << 5, /*%< this zone has multiple masters */
-	DNS_ZONEOPT_USEALTXFRSRC = 1 << 6,   /*%< use alternate transfer sources
-					      */
-	DNS_ZONEOPT_CHECKNAMES = 1 << 7,     /*%< check-names */
+	DNS_ZONEOPT_MULTIMASTER = 1 << 5,   /*%< this zone has multiple
+						 primaries */
+	DNS_ZONEOPT_USEALTXFRSRC = 1 << 6,  /*%< use alternate transfer sources
+					     */
+	DNS_ZONEOPT_CHECKNAMES = 1 << 7,    /*%< check-names */
 	DNS_ZONEOPT_CHECKNAMESFAIL = 1 << 8, /*%< fatal check-name failures */
 	DNS_ZONEOPT_CHECKWILDCARD = 1 << 9, /*%< check for internal wildcards */
 	DNS_ZONEOPT_CHECKMX = 1 << 10,	    /*%< check-mx */
@@ -623,24 +624,24 @@ dns_zone_maintenance(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setmasters(dns_zone_t *zone, const isc_sockaddr_t *masters,
-		    uint32_t count);
+dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
+		      uint32_t count);
 isc_result_t
-dns_zone_setmasterswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
-			    dns_name_t **keynames, uint32_t count);
+dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *primaries,
+			      dns_name_t **keynames, uint32_t count);
 /*%<
  *	Set the list of master servers for the zone.
  *
  * Require:
  *\li	'zone' to be a valid zone.
- *\li	'masters' array of isc_sockaddr_t with port set or NULL.
- *\li	'count' the number of masters.
+ *\li	'primaries' array of isc_sockaddr_t with port set or NULL.
+ *\li	'count' the number of primaries.
  *\li      'keynames' array of dns_name_t's for tsig keys or NULL.
  *
- *  \li    dns_zone_setmasters() is just a wrapper to setmasterswithkeys(),
+ *  \li    dns_zone_setprimaries() is just a wrapper to setprimarieswithkeys(),
  *      passing NULL in the keynames field.
  *
- * \li	If 'masters' is NULL then 'count' must be zero.
+ * \li	If 'primaries' is NULL then 'count' must be zero.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
@@ -1550,7 +1551,7 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 		       dns_updatecallback_t callback, void *callback_arg);
 /*%<
  * Forward 'msg' to each master in turn until we get an answer or we
- * have exhausted the list of masters. 'callback' will be called with
+ * have exhausted the list of primaries. 'callback' will be called with
  * ISC_R_SUCCESS if we get an answer and the returned message will be
  * passed as 'answer_message', otherwise a non ISC_R_SUCCESS result code
  * will be passed and answer_message will be NULL.  The callback function

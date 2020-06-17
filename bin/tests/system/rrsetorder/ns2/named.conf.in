@@ -31,6 +31,6 @@ options {
 
 zone "." {
 	type slave;
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 	file "root.bk";
 };

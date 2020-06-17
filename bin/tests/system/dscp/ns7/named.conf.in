@@ -30,5 +30,5 @@ zone "." {
 	transfer-source 10.53.0.7 dscp 46;
 	notify-source 10.53.0.7 dscp 46;
 	alt-transfer-source 10.53.0.7 dscp 46;
-	masters { 10.53.0.4; };
+	primaries { 10.53.0.4; };
 };

@@ -42,7 +42,7 @@ zone "." {
 
 zone "example" {
 	type slave;
-	masters { 10.53.0.2; };
+	primaries { 10.53.0.2; };
 	file "example.bk";
 };
 
@@ -174,7 +174,7 @@ zone "multiple.example" {
 
 zone "rfc2335.example" {
 	type slave;
-	masters { 10.53.0.2; };
+	primaries { 10.53.0.2; };
 	file "rfc2335.example.bk";
 };
 
@@ -247,7 +247,7 @@ zone "split-smart.example" {
 zone "nsec3chain-test" {
 	type slave;
 	file "nsec3chain-test.bk";
-	masters { 10.53.0.2; };
+	primaries { 10.53.0.2; };
 };
 
 zone "expiring.example" {

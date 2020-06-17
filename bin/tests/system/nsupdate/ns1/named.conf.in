@@ -69,7 +69,7 @@ zone "other.nil" {
 	allow-transfer { any; };
 };
 
-masters othermasters {
+primaries others {
 	10.53.0.2 port @PORT@;
 	10.53.0.2 port @PORT@ key altkey;
 };
@@ -81,7 +81,7 @@ zone "update.nil" {
 	check-mx fail;
 	allow-update { any; };
 	allow-transfer { any; };
-	also-notify { othermasters; };
+	also-notify { others; };
 };
 
 zone "unixtime.nil" {

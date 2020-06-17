@@ -82,7 +82,7 @@ zone "dnssec-keygen.kasp" {
 /* A secondary zone with dnssec-policy. */
 zone "secondary.kasp" {
 	type secondary;
-	masters { 10.53.0.2; };
+	primaries { 10.53.0.2; };
 	file "secondary.kasp.db";
 	dnssec-policy "rsasha1";
 };

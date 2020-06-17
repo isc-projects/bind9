@@ -65,11 +65,11 @@ view auth {
 
 	zone secure.example {
 		type slave;
-		masters { 10.53.0.3; };
+		primaries { 10.53.0.3; };
 	};
 
 	zone insecure.secure.example {
 		type slave;
-		masters { 10.53.0.2; };
+		primaries { 10.53.0.2; };
 	};
 };
