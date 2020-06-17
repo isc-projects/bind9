@@ -40,6 +40,8 @@ information about the installation and care of the Internet Systems
 Consortium (ISC) BIND version 9 software package for system
 administrators.
 
+This manual covers BIND version |release|.
+
 .. _organization:
 
 Organization of This Document
