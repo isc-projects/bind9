@@ -42,26 +42,26 @@ zone "master" {
 zone "slave" {
 	type slave;
 	notify no;
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 	file "slave.bk";
 };
 
 zone "edns-expire" {
 	type slave;
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 	file "edns-expire.bk";
 };
 
 zone "axfr-too-big" {
 	type slave;
 	max-records 30;
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 	file "axfr-too-big.bk";
 };
 
 zone "ixfr-too-big" {
 	type slave;
 	max-records 30;
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 	file "ixfr-too-big.bk";
 };

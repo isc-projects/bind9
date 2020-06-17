@@ -43,9 +43,9 @@ zone "example" {
 	also-notify { /* empty */ };
 };
 
-masters noport { 10.53.0.4; };
+primaries noport { 10.53.0.4; };
 
-masters x21 port @EXTRAPORT1@ { noport; };
+primaries x21 port @EXTRAPORT1@ { noport; };
 
 zone x1 { type master; file "generic.db"; also-notify { 10.53.0.3; }; };
 zone x2 { type master; file "generic.db"; also-notify { 10.53.0.3; }; };

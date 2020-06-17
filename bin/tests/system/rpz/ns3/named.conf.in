@@ -103,7 +103,7 @@ zone "bl-drop."		{type master; file "bl-drop.db";
 zone "bl-tcp-only."	{type master; file "bl-tcp-only.db";
 				allow-update {any;};};
 
-zone "bl.tld2."		{type slave; file "bl.tld2.db"; masters {10.53.0.2;};
+zone "bl.tld2."		{type slave; file "bl.tld2.db"; primaries {10.53.0.2;};
 				request-ixfr no; masterfile-format text;};
 
 zone "crash1.tld2"	{type master; file "crash1"; notify no;};
@@ -124,6 +124,6 @@ zone "mixed-case-rpz." {
 zone "fast-expire." {
 	type secondary;
 	file "fast-expire.db";
-	masters { 10.53.0.5; };
+	primaries { 10.53.0.5; };
 	notify no;
 };

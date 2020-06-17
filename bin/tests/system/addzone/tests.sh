@@ -687,7 +687,7 @@ status=`expr $status + $ret`
 
 echo_i "check delzone after reconfig failure ($n)"
 ret=0
-$RNDCCMD 10.53.0.3 addzone 'inlineslave.example. IN { type slave; file "inlineslave.db"; masterfile-format text; masters { testmaster; }; };' > /dev/null 2>&1 || ret=1
+$RNDCCMD 10.53.0.3 addzone 'inlineslave.example. IN { type slave; file "inlineslave.db"; masterfile-format text; primaries { testmaster; }; };' > /dev/null 2>&1 || ret=1
 copy_setports ns3/named2.conf.in ns3/named.conf
 rndc_reconfig ns3 10.53.0.3
 $RNDCCMD 10.53.0.3 delzone inlineslave.example > /dev/null 2>&1 || ret=1

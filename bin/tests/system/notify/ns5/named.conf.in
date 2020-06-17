@@ -50,7 +50,7 @@ view "b" {
 	match-clients { key "b"; };
 	zone "x21" {
 		type slave;
-		masters { 10.53.0.5 key "a"; };
+		primaries { 10.53.0.5 key "a"; };
 		file "x21.bk-b";
 		notify no;
 	};
@@ -60,7 +60,7 @@ view "c" {
 	match-clients { key "c"; };
 	zone "x21" {
 		type slave;
-		masters { 10.53.0.5 key "a"; };
+		primaries { 10.53.0.5 key "a"; };
 		file "x21.bk-c";
 		notify no;
 	};

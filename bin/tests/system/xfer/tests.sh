@@ -186,7 +186,7 @@ if test $tmp != 0 ; then echo_i "failed"; fi
 status=$((status+tmp))
 
 n=$((n+1))
-echo_i "testing ixfr-from-differences master; (slave zone) ($n)"
+echo_i "testing ixfr-from-differences master; (secondary zone) ($n)"
 tmp=0
 
 $DIG $DIGOPTS slave. \
@@ -207,7 +207,7 @@ if test $tmp != 0 ; then echo_i "failed"; fi
 status=$((status+tmp))
 
 n=$((n+1))
-echo_i "testing ixfr-from-differences slave; (master zone) ($n)"
+echo_i "testing ixfr-from-differences secondary; (secondary zone) ($n)"
 tmp=0
 
 # ns7 has a journal iff it generates an IXFR.
@@ -218,7 +218,7 @@ if test $tmp != 0 ; then echo_i "failed"; fi
 status=$((status+tmp))
 
 n=$((n+1))
-echo_i "testing ixfr-from-differences slave; (slave zone) ($n)"
+echo_i "testing ixfr-from-differences secondary; (secondary zone) ($n)"
 tmp=0
 
 $DIG $DIGOPTS slave. \
@@ -259,11 +259,11 @@ $SENDCMD < ans5/goodaxfr
 
 # Initially, ns4 is not authoritative for anything.
 # Now that ans is up and running with the right data, we make ns4
-# a slave for nil.
+# a secondary for nil.
 
 cat <<EOF >>ns4/named.conf
 zone "nil" {
-	type slave;
+	type secondary;
 	file "nil.db";
 	masters { 10.53.0.5 key tsig_key; };
 };

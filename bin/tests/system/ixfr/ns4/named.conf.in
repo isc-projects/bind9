@@ -36,12 +36,12 @@ view "primary" {
 	zone "test" IN {
 		type slave;
 		file "mytest.db";
-		masters { 10.53.0.3; };
+		primaries { 10.53.0.3; };
 	};
 	zone "sub.test" IN {
 		type slave;
 		file "subtest.db";
 		request-ixfr no;
-		masters { 10.53.0.3; };
+		primaries { 10.53.0.3; };
 	};
 };

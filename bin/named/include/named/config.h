@@ -21,7 +21,7 @@
 
 #include <isccfg/cfg.h>
 
-#define DEFAULT_IANA_ROOT_ZONE_MASTERS "_default_iana_root_zone_masters"
+#define DEFAULT_IANA_ROOT_ZONE_PRIMARIES "_default_iana_root_zone_primaries"
 
 isc_result_t
 named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf);
@@ -59,8 +59,8 @@ named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 		       isc_dscp_t **dscpsp, uint32_t count);
 
 isc_result_t
-named_config_getmastersdef(const cfg_obj_t *cctx, const char *name,
-			   const cfg_obj_t **ret);
+named_config_getprimariesdef(const cfg_obj_t *cctx, const char *name,
+			     const cfg_obj_t **ret);
 
 isc_result_t
 named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,

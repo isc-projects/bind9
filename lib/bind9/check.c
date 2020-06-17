@@ -1658,17 +1658,21 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 }
 
 static isc_result_t
-get_masters_def(const cfg_obj_t *cctx, const char *name,
-		const cfg_obj_t **ret) {
+get_primaries_def(const cfg_obj_t *cctx, const char *name,
+		  const cfg_obj_t **ret) {
 	isc_result_t result;
-	const cfg_obj_t *masters = NULL;
+	const cfg_obj_t *primaries = NULL;
 	const cfg_listelt_t *elt;
 
-	result = cfg_map_get(cctx, "masters", &masters);
+	result = cfg_map_get(cctx, "primaries", &primaries);
+	if (result != ISC_R_SUCCESS) {
+		result = cfg_map_get(cctx, "masters", &primaries);
+	}
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	for (elt = cfg_list_first(masters); elt != NULL;
+
+	for (elt = cfg_list_first(primaries); elt != NULL;
 	     elt = cfg_list_next(elt)) {
 		const cfg_obj_t *list;
 		const char *listname;
@@ -1685,8 +1689,8 @@ get_masters_def(const cfg_obj_t *cctx, const char *name,
 }
 
 static isc_result_t
-validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
-		 uint32_t *countp, isc_log_t *logctx, isc_mem_t *mctx) {
+validate_primaries(const cfg_obj_t *obj, const cfg_obj_t *config,
+		   uint32_t *countp, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	uint32_t count = 0;
@@ -1713,8 +1717,8 @@ resume:
 		const cfg_obj_t *addr;
 		const cfg_obj_t *key;
 
-		addr = cfg_tuple_get(cfg_listelt_value(element), "masterselemen"
-								 "t");
+		addr = cfg_tuple_get(cfg_listelt_value(element),
+				     "primarieselement");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
 
 		if (cfg_obj_issockaddr(addr)) {
@@ -1736,13 +1740,13 @@ resume:
 		if (tresult == ISC_R_EXISTS) {
 			continue;
 		}
-		tresult = get_masters_def(config, listname, &obj);
+		tresult = get_primaries_def(config, listname, &obj);
 		if (tresult != ISC_R_SUCCESS) {
 			if (result == ISC_R_SUCCESS) {
 				result = tresult;
 			}
 			cfg_obj_log(addr, logctx, ISC_LOG_ERROR,
-				    "unable to find masters list '%s'",
+				    "unable to find primaries list '%s'",
 				    listname);
 			continue;
 		}
@@ -2447,8 +2451,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 		if (tresult == ISC_R_SUCCESS && donotify) {
 			uint32_t count;
-			tresult = validate_masters(obj, config, &count, logctx,
-						   mctx);
+			tresult = validate_primaries(obj, config, &count,
+						     logctx, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
 			{
 				result = tresult;
@@ -2457,7 +2461,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Slave, mirror, and stub zones must have a "masters" field, with one
+	 * Slave, mirror, and stub zones must have a "primaries" field, with one
 	 * exception: when mirroring the root zone, a default, built-in master
 	 * server list is used in the absence of one explicitly specified.
 	 */
@@ -2466,22 +2470,39 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	     !dns_name_equal(zname, dns_rootname)))
 	{
 		obj = NULL;
-		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
+		(void)cfg_map_get(zoptions, "primaries", &obj);
+		if (obj == NULL) {
+			/* If "primaries" was unset, check for "masters" */
+			(void)cfg_map_get(zoptions, "masters", &obj);
+		} else {
+			const cfg_obj_t *obj2 = NULL;
+
+			/* ...bug if it was set, "masters" must not be. */
+			(void)cfg_map_get(zoptions, "masters", &obj2);
+			if (obj2 != NULL) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "'primaries' and 'masters' cannot "
+					    "both be used in the same zone");
+				result = ISC_R_FAILURE;
+			}
+		}
+		if (obj == NULL) {
 			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
-				    "zone '%s': missing 'masters' entry",
+				    "zone '%s': missing 'primaries' entry",
 				    znamestr);
 			result = ISC_R_FAILURE;
 		} else {
 			uint32_t count;
-			tresult = validate_masters(obj, config, &count, logctx,
-						   mctx);
+			tresult = validate_primaries(obj, config, &count,
+						     logctx, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
 			{
 				result = tresult;
 			}
 			if (tresult == ISC_R_SUCCESS && count == 0) {
 				cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
-					    "zone '%s': empty 'masters' entry",
+					    "zone '%s': "
+					    "empty 'primaries' entry",
 					    znamestr);
 				result = ISC_R_FAILURE;
 			}

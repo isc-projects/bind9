@@ -114,7 +114,7 @@ setup(const char *zonename, const char *filename, const char *classname) {
 	dns_zone_setclass(zone, rdclass);
 
 	if (zonetype == dns_zone_slave) {
-		dns_zone_setmasters(zone, &addr, 1);
+		dns_zone_setprimaries(zone, &addr, 1);
 	}
 
 	result = dns_zone_load(zone, false);

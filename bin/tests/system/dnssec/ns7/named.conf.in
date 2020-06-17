@@ -32,31 +32,31 @@ zone "." {
 
 zone "nsec3.example" {
 	type slave;
-	masters { 10.53.0.3; };
+	primaries { 10.53.0.3; };
 	file "nsec3.example.bk";
 };
 
 zone "optout.example" {
 	type slave;
-	masters { 10.53.0.3; };
+	primaries { 10.53.0.3; };
 	file "optout.example.bk";
 };
 
 zone "nsec3-unknown.example" {
 	type slave;
-	masters { 10.53.0.3; };
+	primaries { 10.53.0.3; };
 	file "nsec3-unknown.example.bk";
 };
 
 zone "optout-unknown.example" {
 	type slave;
-	masters { 10.53.0.3; };
+	primaries { 10.53.0.3; };
 	file "optout-unknown.example.bk";
 };
 
 zone "multiple.example" {
 	type slave;
-	masters { 10.53.0.3; };
+	primaries { 10.53.0.3; };
 	file "multiple.example.bk";
 };
 

@@ -7,7 +7,7 @@
   	allow-query-on { <address_match_element>; ... };
   	allow-transfer { <address_match_element>; ... };
   	allow-update-forwarding { <address_match_element>; ... };
-  	also-notify [ port <integer> ] [ dscp <integer> ] { ( <masters> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
+  	also-notify [ port <integer> ] [ dscp <integer> ] { ( <primaries> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
   	alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	auto-dnssec ( allow | maintain | off );
@@ -29,7 +29,7 @@
   	key-directory <quoted_string>;
   	masterfile-format ( map | raw | text );
   	masterfile-style ( full | relative );
-  	masters [ port <integer> ] [ dscp <integer> ] { ( <masters> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
+  	masters [ port <integer> ] [ dscp <integer> ] { ( <primaries> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
   	max-journal-size ( default | unlimited | <sizeval> );
   	max-records <integer>;
   	max-refresh-time <integer>;
@@ -46,6 +46,7 @@
   	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	notify-to-soa <boolean>;
+  	primaries [ port <integer> ] [ dscp <integer> ] { ( <primaries> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
   	request-expire <boolean>;
   	request-ixfr <boolean>;
   	sig-signing-nodes <integer>;

@@ -24,11 +24,11 @@ options {
 zone "example" {
 	type slave;
 	file "example.bk";
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 };
 
 zone "example2" {
 	type slave;
 	file "example2.bk";
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 };
