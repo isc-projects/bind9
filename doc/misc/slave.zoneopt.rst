@@ -41,7 +41,7 @@
   	min-refresh-time <integer>;
   	min-retry-time <integer>;
   	multi-master <boolean>;
-  	notify ( explicit | master-only | <boolean> );
+  	notify ( explicit | master-only | primary-only | <boolean> );
   	notify-delay <integer>;
   	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];

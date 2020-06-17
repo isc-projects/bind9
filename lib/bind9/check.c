@@ -2427,9 +2427,11 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			if (cfg_obj_isboolean(obj)) {
 				donotify = cfg_obj_asboolean(obj);
 			} else {
-				const char *notifystr = cfg_obj_asstring(obj);
+				const char *str = cfg_obj_asstring(obj);
 				if (ztype != CFG_ZONE_MASTER &&
-				    strcasecmp(notifystr, "master-only") == 0) {
+				    (strcasecmp(str, "master-only") == 0 ||
+				     strcasecmp(str, "primary-only") == 0))
+				{
 					donotify = false;
 				}
 			}

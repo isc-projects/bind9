@@ -171,7 +171,7 @@
   	new-zones-directory <quoted_string>;
   	no-case-compress { <address_match_element>; ... };
   	nocookie-udp-size <integer>;
-  	notify ( explicit | master-only | <boolean> );
+  	notify ( explicit | master-only | primary-only | <boolean> );
   	notify-delay <integer>;
   	notify-rate <integer>;
   	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [

@@ -325,7 +325,7 @@ OPTIONS
   	new-zones-directory quoted_string;
   	no-case-compress { address_match_element; ... };
   	nocookie-udp-size integer;
-  	notify ( explicit | master-only | boolean );
+  	notify ( explicit | master-only | primary-only | boolean );
   	notify-delay integer;
   	notify-rate integer;
   	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [
@@ -689,7 +689,7 @@ VIEW
   	new-zones-directory quoted_string;
   	no-case-compress { address_match_element; ... };
   	nocookie-udp-size integer;
-  	notify ( explicit | master-only | boolean );
+  	notify ( explicit | master-only | primary-only | boolean );
   	notify-delay integer;
   	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [
   	    dscp integer ];
@@ -885,7 +885,7 @@ VIEW
   		min-refresh-time integer;
   		min-retry-time integer;
   		multi-master boolean;
-  		notify ( explicit | master-only | boolean );
+  		notify ( explicit | master-only | primary-only | boolean );
   		notify-delay integer;
   		notify-source ( ipv4_address | * ) [ port ( integer | *
   		    ) ] [ dscp integer ];
@@ -991,7 +991,7 @@ ZONE
   	min-refresh-time integer;
   	min-retry-time integer;
   	multi-master boolean;
-  	notify ( explicit | master-only | boolean );
+  	notify ( explicit | master-only | primary-only | boolean );
   	notify-delay integer;
   	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [
   	    dscp integer ];
