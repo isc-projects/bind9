@@ -828,7 +828,6 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	dns_rdataset_t sigrdataset;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
-	int i;
 
 	dns_rdataset_init(&sigrdataset);
 	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, &rdsiter);
@@ -853,7 +852,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		zoneverify_log_error(vctx, "No signatures for %s/%s", namebuf,
 				     typebuf);
-		for (i = 0; i < 256; i++) {
+		for (size_t i = 0; i < ARRAY_SIZE(set_algorithms); i++) {
 			if (vctx->act_algorithms[i] != 0) {
 				vctx->bad_algorithms[i] = 1;
 			}
@@ -895,10 +894,10 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	result = ISC_R_SUCCESS;
 
 	if (memcmp(set_algorithms, vctx->act_algorithms,
-		   sizeof(set_algorithms))) {
+		   sizeof(set_algorithms)) != 0) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
-		for (i = 0; i < 256; i++) {
+		for (size_t i = 0; i < ARRAY_SIZE(set_algorithms); i++) {
 			if ((vctx->act_algorithms[i] != 0) &&
 			    (set_algorithms[i] == 0)) {
 				dns_secalg_format(i, algbuf, sizeof(algbuf));
@@ -939,6 +938,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 				     isc_result_totext(result));
 		return (result);
 	}
+
 	result = dns_rdatasetiter_first(rdsiter);
 	dns_rdataset_init(&rdataset);
 	while (result == ISC_R_SUCCESS) {
@@ -1670,11 +1670,10 @@ determine_active_algorithms(vctx_t *vctx, bool ignore_kskflag,
 			    bool keyset_kskonly,
 			    void (*report)(const char *, ...)) {
 	char algbuf[DNS_SECALG_FORMATSIZE];
-	int i;
 
 	report("Verifying the zone using the following algorithms:");
 
-	for (i = 0; i < 256; i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(vctx->act_algorithms); i++) {
 		if (ignore_kskflag) {
 			vctx->act_algorithms[i] = (vctx->ksk_algorithms[i] !=
 							   0 ||
@@ -1696,7 +1695,7 @@ determine_active_algorithms(vctx_t *vctx, bool ignore_kskflag,
 		return;
 	}
 
-	for (i = 0; i < 256; i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(vctx->ksk_algorithms); i++) {
 		/*
 		 * The counts should both be zero or both be non-zero.  Mark
 		 * the algorithm as bad if this is not met.
@@ -1942,9 +1941,8 @@ static isc_result_t
 check_bad_algorithms(const vctx_t *vctx, void (*report)(const char *, ...)) {
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	bool first = true;
-	int i;
 
-	for (i = 0; i < 256; i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(vctx->bad_algorithms); i++) {
 		if (vctx->bad_algorithms[i] == 0) {
 			continue;
 		}
@@ -1968,10 +1966,9 @@ static void
 print_summary(const vctx_t *vctx, bool keyset_kskonly,
 	      void (*report)(const char *, ...)) {
 	char algbuf[DNS_SECALG_FORMATSIZE];
-	int i;
 
 	report("Zone fully signed:");
-	for (i = 0; i < 256; i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(vctx->ksk_algorithms); i++) {
 		if ((vctx->ksk_algorithms[i] == 0) &&
 		    (vctx->standby_ksk[i] == 0) &&
 		    (vctx->revoked_ksk[i] == 0) &&
