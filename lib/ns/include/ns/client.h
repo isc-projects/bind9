@@ -81,7 +81,7 @@
  *** Types
  ***/
 
-#define NS_CLIENT_TCP_BUFFER_SIZE  (65535 + 2)
+#define NS_CLIENT_TCP_BUFFER_SIZE  65535
 #define NS_CLIENT_SEND_BUFFER_SIZE 4096
 
 /*!

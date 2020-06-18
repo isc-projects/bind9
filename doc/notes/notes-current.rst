@@ -8,36 +8,34 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-.. _relnotes-9.16.5:
-
 Notes for BIND 9.16.5
-=====================
-
-.. _relnotes-9.16.5-security:
+---------------------
 
 Security Fixes
---------------
+~~~~~~~~~~~~~~
 
 - None.
-
-.. _relnotes-9.16.5-known:
 
 Known Issues
-------------
-
-- None
-
-.. _relnotes-9.16.5-changes:
-
-Feature Changes
----------------
+~~~~~~~~~~~~
 
 - None.
 
-.. _relnotes-9.16.5-bugs:
+New Features
+~~~~~~~~~~~~
+
+- None.
+
+Feature Changes
+~~~~~~~~~~~~~~~
+
+- None.
 
 Bug Fixes
----------
+~~~~~~~~~
+
+- The DS set returned by ``dns_keynode_dsset()`` was not thread-safe.
+  This could result in an INSIST being triggered. [GL #1926]
 
 - Properly handle missing ``kyua`` command so that ``make check`` does
   not fail unexpectedly when CMocka is installed, but Kyua is not.
