@@ -24,4 +24,5 @@ rm -f ns*/managed-keys.bind
 rm -f ns*/*.mkeys
 rm -f ns*/zones ns*/*.db.infile
 rm -f *.created published.test* retired.test*
+rm -f rndc.dnssec.status.out.*
 rm -f python.out.*
