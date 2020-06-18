@@ -1,3 +1,5 @@
+5451.	[func]		Add 'rndc dnssec -status' command. [GL #1612]
+
 5450.	[placeholder]
 
 5449.	[bug]		Fix a socket shutdown race in netmgr udp. [GL #1938]
