@@ -149,7 +149,7 @@ static isc_result_t
 str_totext(const char *source, isc_buffer_t *target);
 
 static isc_result_t
-inet_totext(int af, isc_region_t *src, isc_buffer_t *target);
+inet_totext(int af, uint32_t flags, isc_region_t *src, isc_buffer_t *target);
 
 static bool
 buffer_empty(isc_buffer_t *source);
@@ -1725,7 +1725,7 @@ str_totext(const char *source, isc_buffer_t *target) {
 }
 
 static isc_result_t
-inet_totext(int af, isc_region_t *src, isc_buffer_t *target) {
+inet_totext(int af, uint32_t flags, isc_region_t *src, isc_buffer_t *target) {
 	char tmpbuf[64];
 
 	/* Note - inet_ntop doesn't do size checking on its input. */
@@ -1734,6 +1734,22 @@ inet_totext(int af, isc_region_t *src, isc_buffer_t *target) {
 	if (strlen(tmpbuf) > isc_buffer_availablelength(target))
 		return (ISC_R_NOSPACE);
 	isc_buffer_putstr(target, tmpbuf);
+
+	/*
+	 * An IPv6 address ending in "::" breaks YAML
+	 * parsing, so append 0 in that case.
+	 */
+	if (af == AF_INET6 && (flags & DNS_STYLEFLAG_YAML) != 0) {
+		isc_textregion_t tr;
+		isc_buffer_usedregion(target, (isc_region_t *)&tr);
+		if (tr.base[tr.length - 1] == ':') {
+			if (isc_buffer_availablelength(target) == 0) {
+				return (ISC_R_NOSPACE);
+			}
+			isc_buffer_putmem(target, "0", 1);
+		}
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
