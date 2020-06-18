@@ -1358,6 +1358,7 @@ abi-check:
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
     - cd refbind/
+    - autoreconf -fi
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - cd ..
