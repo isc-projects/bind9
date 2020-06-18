@@ -126,7 +126,7 @@ totext_in_a6(ARGS_TOTEXT) {
 		addr[octets] &= mask;
 		ar.base = addr;
 		ar.length = sizeof(addr);
-		RETERR(inet_totext(AF_INET6, &ar, target));
+		RETERR(inet_totext(AF_INET6, tctx->flags, &ar, target));
 		isc_region_consume(&sr, 16 - octets);
 	}
 
