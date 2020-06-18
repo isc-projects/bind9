@@ -310,17 +310,17 @@ check_no_rrsig(const vctx_t *vctx, const dns_rdataset_t *rdataset,
 		if (sigrdataset.type == dns_rdatatype_rrsig &&
 		    sigrdataset.covers == rdataset->type)
 		{
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			dns_rdatatype_format(rdataset->type, typebuf,
+					     sizeof(typebuf));
+			zoneverify_log_error(
+				vctx,
+				"Warning: Found unexpected signatures "
+				"for %s/%s",
+				namebuf, typebuf);
 			break;
 		}
 		dns_rdataset_disassociate(&sigrdataset);
-	}
-	if (result == ISC_R_SUCCESS) {
-		dns_name_format(name, namebuf, sizeof(namebuf));
-		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
-		zoneverify_log_error(vctx,
-				     "Warning: Found unexpected signatures "
-				     "for %s/%s",
-				     namebuf, typebuf);
 	}
 	if (dns_rdataset_isassociated(&sigrdataset)) {
 		dns_rdataset_disassociate(&sigrdataset);
