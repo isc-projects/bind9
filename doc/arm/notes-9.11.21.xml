@@ -25,7 +25,7 @@
     <itemizedlist>
       <listitem>
         <para>
-	  None
+          None.
         </para>
       </listitem>
     </itemizedlist>
@@ -35,7 +35,7 @@
     <itemizedlist>
       <listitem>
         <para>
-	  None
+          None.
         </para>
       </listitem>
     </itemizedlist>
@@ -45,9 +45,9 @@
     <itemizedlist>
       <listitem>
         <para>
-	  Properly handle missing <command>kyua</command> command so that
-	  <command>make check</command> does not fail unexpectedly when CMocka
-	  is installed, but Kyua is not. [GL #1950]
+          Properly handle missing <command>kyua</command> command so that
+          <command>make check</command> does not fail unexpectedly when CMocka
+          is installed, but Kyua is not. [GL #1950]
         </para>
       </listitem>
     </itemizedlist>
