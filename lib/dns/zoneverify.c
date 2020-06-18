@@ -424,6 +424,40 @@ record_nsec3(const vctx_t *vctx, const unsigned char *rawhash,
 	return (result);
 }
 
+/*
+ * Check whether any NSEC3 within 'rdataset' matches the parameters in
+ * 'nsec3param'.
+ */
+static isc_result_t
+find_nsec3_match(const dns_rdata_nsec3param_t *nsec3param,
+		 dns_rdataset_t *rdataset, size_t rhsize,
+		 dns_rdata_nsec3_t *nsec3_match) {
+	isc_result_t result;
+
+	/*
+	 * Find matching NSEC3 record.
+	 */
+	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(rdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, nsec3_match, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (nsec3_match->hash == nsec3param->hash &&
+		    nsec3_match->next_length == rhsize &&
+		    nsec3_match->iterations == nsec3param->iterations &&
+		    nsec3_match->salt_length == nsec3param->salt_length &&
+		    memcmp(nsec3_match->salt, nsec3param->salt,
+			   nsec3param->salt_length) == 0)
+		{
+			return (ISC_R_SUCCESS);
+		}
+	}
+
+	return (result);
+}
+
 static isc_result_t
 match_nsec3(const vctx_t *vctx, const dns_name_t *name,
 	    const dns_rdata_nsec3param_t *nsec3param, dns_rdataset_t *rdataset,
@@ -436,26 +470,7 @@ match_nsec3(const vctx_t *vctx, const dns_name_t *name,
 	isc_result_t result;
 	unsigned int len;
 
-	/*
-	 * Find matching NSEC3 record.
-	 */
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
-		dns_rdata_t rdata = DNS_RDATA_INIT;
-		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		if (nsec3.hash == nsec3param->hash &&
-		    nsec3.next_length == rhsize &&
-		    nsec3.iterations == nsec3param->iterations &&
-		    nsec3.salt_length == nsec3param->salt_length &&
-		    memcmp(nsec3.salt, nsec3param->salt,
-			   nsec3param->salt_length) == 0)
-		{
-			break;
-		}
-	}
+	result = find_nsec3_match(nsec3param, rdataset, rhsize, &nsec3);
 	if (result != ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		zoneverify_log_error(vctx, "Missing NSEC3 record for %s",
