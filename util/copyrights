@@ -1444,6 +1444,7 @@
 ./doc/notes/notes-9.16.2.rst			RST	2020
 ./doc/notes/notes-9.16.3.rst			RST	2020
 ./doc/notes/notes-9.16.4.rst			RST	2020
+./doc/notes/notes-current.rst			RST	2020
 ./docutil/HTML_COPYRIGHT			X	2001,2004,2016,2018,2019,2020
 ./docutil/MAN_COPYRIGHT				X	2001,2004,2016,2018,2019,2020
 ./docutil/patch-db2latex-duplicate-template-bug	X	2007,2018,2019,2020
