@@ -1,6 +1,8 @@
 5452.	[bug]		The "blackhole" ACL was accidentally disabled with
 			respect to client queries. [GL #1936]
 
+5451.	[func]		Add 'rndc dnssec -status' command. [GL #1612]
+
 5449.	[bug]		Fix a socket shutdown race in netmgr udp. [GL #1938]
 
 5448.	[bug]		Fix a race condition in isc__nm_tcpdns_send().

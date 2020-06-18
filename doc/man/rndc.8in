@@ -164,7 +164,7 @@ See also \fBrndc addzone\fP and \fBrndc modzone\fP\&.
 .TP
 \fBdnssec\fP [\fB\-status\fP \fIzone\fP [\fIclass\fP [\fIview\fP]]
 Show the DNSSEC signing state for the specified zone.  Requires the
-zone to have a \fBdnssec-policy\fP.
+zone to have a "dnssec\-policy".
 .TP
 \fBdnstap\fP ( \fB\-reopen\fP | \fB\-roll\fP [\fInumber\fP] )
 Close and re\-open DNSTAP output files. \fBrndc dnstap \-reopen\fP allows
