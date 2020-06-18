@@ -218,7 +218,7 @@ totext_in_wks(ARGS_TOTEXT) {
 	REQUIRE(rdata->length >= 5);
 
 	dns_rdata_toregion(rdata, &sr);
-	RETERR(inet_totext(AF_INET, &sr, target));
+	RETERR(inet_totext(AF_INET, tctx->flags, &sr, target));
 	isc_region_consume(&sr, 4);
 
 	proto = uint8_fromregion(&sr);

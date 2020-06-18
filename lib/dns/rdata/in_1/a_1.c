@@ -59,7 +59,7 @@ totext_in_a(ARGS_TOTEXT) {
 	UNUSED(tctx);
 
 	dns_rdata_toregion(rdata, &region);
-	return (inet_totext(AF_INET, &region, target));
+	return (inet_totext(AF_INET, tctx->flags, &region, target));
 }
 
 static inline isc_result_t

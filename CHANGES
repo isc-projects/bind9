@@ -1,3 +1,8 @@
+5447.	[bug]		IPv6 addresses ending in "::" could break YAML
+			parsing. A "0" is now appended to such addresses
+			in YAML output from dig, mdig, delv, and dnstap-read.
+			[GL #1952]
+
 5446.	[bug]		The validator could fail to accept a properly signed
 			RRset if an unsupported algorithm appeared earlier in
 			the DNSKEY RRset than a supported algorithm.  It could

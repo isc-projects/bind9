@@ -75,7 +75,7 @@ totext_in_aaaa(ARGS_TOTEXT) {
 		return (str_totext(buf, target));
 	}
 	dns_rdata_toregion(rdata, &region);
-	return (inet_totext(AF_INET6, &region, target));
+	return (inet_totext(AF_INET6, tctx->flags, &region, target));
 }
 
 static inline isc_result_t
