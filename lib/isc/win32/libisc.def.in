@@ -449,6 +449,7 @@ isc_nmhandle_peeraddr
 isc_nmhandle_ref
 isc_nmhandle_setdata
 isc_nmhandle_unref
+isc_nm_cancelread
 isc_nm_closedown
 isc_nm_destroy
 isc_nm_detach
@@ -459,12 +460,13 @@ isc_nm_send
 isc_nm_setstats
 isc_nm_start
 isc_nm_stoplistening
+isc_nm_tcpconnect
 isc_nm_tcp_gettimeouts
 isc_nm_tcp_settimeouts
 isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
-isc_nmsocket_detach
+isc_nmsocket_close
 isc__nm_acquire_interlocked
 isc__nm_drop_interlocked
 isc__nm_acquire_interlocked_force

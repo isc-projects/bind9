@@ -96,8 +96,7 @@ struct isc_nmhandle {
 	 * the socket.
 	 */
 	isc_nmsocket_t *sock;
-	size_t ah_pos; /* Position in the socket's
-			* 'active handles' array */
+	size_t ah_pos; /* Position in the socket's 'active handles' array */
 
 	/*
 	 * The handle is 'inflight' if netmgr is not currently processing
@@ -141,6 +140,7 @@ typedef enum isc__netievent_type {
 	netievent_closecb,
 	netievent_shutdown,
 	netievent_stop,
+
 	netievent_prio = 0xff, /* event type values higher than this
 				* will be treated as high-priority
 				* events, which can be processed
@@ -371,6 +371,8 @@ struct isc_nmsocket {
 	isc_nmsocket_t *parent;
 	/*% Listener socket this connection was accepted on */
 	isc_nmsocket_t *listener;
+	/*% Self, for self-contained unreferenced sockets (tcpdns) */
+	isc_nmsocket_t *self;
 
 	/*%
 	 * quota is the TCP client, attached when a TCP connection
@@ -405,6 +407,7 @@ struct isc_nmsocket {
 	int nchildren;
 	isc_nmiface_t *iface;
 	isc_nmhandle_t *tcphandle;
+	isc_nmhandle_t *outerhandle;
 
 	/*% Extra data allocated at the end of each isc_nmhandle_t */
 	size_t extrahandlesize;
@@ -440,6 +443,8 @@ struct isc_nmsocket {
 	atomic_bool closed;
 	atomic_bool listening;
 	atomic_bool listen_error;
+	atomic_bool connected;
+	atomic_bool connect_error;
 	isc_refcount_t references;
 
 	/*%
@@ -589,6 +594,9 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
  *
  * If 'local' is not NULL, set the handle's local address to 'local',
  * otherwise set it to 'sock->iface->addr'.
+ *
+ * 'sock' will be attached to 'handle->sock'. The caller may need
+ * to detach the socket afterward.
  */
 
 isc__nm_uvreq_t *
@@ -613,6 +621,19 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 /*%<
  * Initialize socket 'sock', attach it to 'mgr', and set it to type 'type'
  * and its interface to 'iface'.
+ */
+
+void
+isc__nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target);
+/*%<
+ * Attach to a socket, increasing refcount
+ */
+
+void
+isc__nmsocket_detach(isc_nmsocket_t **socketp);
+/*%<
+ * Detach from socket, decreasing refcount and possibly destroying the
+ * socket if it's no longer referenced.
  */
 
 void
@@ -694,7 +715,14 @@ isc__nm_tcp_resumeread(isc_nmsocket_t *sock);
 void
 isc__nm_tcp_shutdown(isc_nmsocket_t *sock);
 /*%<
- * Called on shutdown to close and clean up a listening TCP socket.
+ * Called during the shutdown process to close and clean up connected
+ * sockets.
+ */
+
+void
+isc__nm_tcp_cancelread(isc_nmsocket_t *sock);
+/*%<
+ * Stop reading on a connected socket.
  */
 
 void

@@ -468,7 +468,8 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
  */
 
 void
-ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg);
+ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
+		   isc_region_t *region, void *arg);
 
 /*%<
  * Handle client requests.

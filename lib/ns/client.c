@@ -1620,7 +1620,8 @@ ns__client_put_cb(void *client0) {
  * or tcpmsg (TCP case).
  */
 void
-ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
+ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
+		   isc_region_t *region, void *arg) {
 	ns_client_t *client;
 	bool newclient = false;
 	ns_clientmgr_t *mgr;
@@ -1643,6 +1644,8 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	dns_dtmsgtype_t dtmsgtype;
 #endif /* ifdef HAVE_DNSTAP */
 	ifp = (ns_interface_t *)arg;
+
+	UNUSED(eresult);
 
 	mgr = ifp->clientmgr;
 	if (mgr == NULL) {

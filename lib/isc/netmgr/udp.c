@@ -152,7 +152,8 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 #endif
 	uv_udp_init_ex(&worker->loop, &sock->uv_handle.udp, uv_init_flags);
 	uv_handle_set_data(&sock->uv_handle.handle, NULL);
-	isc_nmsocket_attach(sock, (isc_nmsocket_t **)&sock->uv_handle.udp.data);
+	isc__nmsocket_attach(sock,
+			     (isc_nmsocket_t **)&sock->uv_handle.udp.data);
 
 	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
 	if (r == 0) {
@@ -186,7 +187,7 @@ udp_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	atomic_store(&sock->closed, true);
 
-	isc_nmsocket_detach((isc_nmsocket_t **)&sock->uv_handle.udp.data);
+	isc__nmsocket_detach((isc_nmsocket_t **)&sock->uv_handle.udp.data);
 }
 
 static void
@@ -316,12 +317,17 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_result_t result;
 	isc_nmhandle_t *nmhandle = NULL;
 	isc_sockaddr_t sockaddr;
-	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
+	isc_nmsocket_t *sock = NULL;
 	isc_region_t region;
 	uint32_t maxudp;
 	bool free_buf = true;
 
-	REQUIRE(VALID_NMSOCK(sock));
+	/*
+	 * Even though destruction of the socket can only happen from the
+	 * network thread that we're in, we still attach to the socket here
+	 * to ensure it won't be destroyed by the recv callback.
+	 */
+	isc__nmsocket_attach(uv_handle_get_data((uv_handle_t *)handle), &sock);
 
 #ifdef UV_UDP_MMSG_CHUNK
 	free_buf = ((flags & UV_UDP_MMSG_CHUNK) == 0);
@@ -337,6 +343,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 		if (free_buf) {
 			isc__nm_free_uvbuf(sock, buf);
 		}
+		isc__nmsocket_detach(&sock);
 		return;
 	}
 
@@ -346,6 +353,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	 */
 	maxudp = atomic_load(&sock->mgr->maxudp);
 	if (maxudp != 0 && (uint32_t)nrecv > maxudp) {
+		isc__nmsocket_detach(&sock);
 		return;
 	}
 
@@ -356,10 +364,15 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	region.length = nrecv;
 
 	INSIST(sock->rcb.recv != NULL);
-	sock->rcb.recv(nmhandle, &region, sock->rcbarg);
+	sock->rcb.recv(nmhandle, ISC_R_SUCCESS, &region, sock->rcbarg);
 	if (free_buf) {
 		isc__nm_free_uvbuf(sock, buf);
 	}
+
+	/*
+	 * The sock is now attached to the handle, we can detach our ref.
+	 */
+	isc__nmsocket_detach(&sock);
 
 	/*
 	 * If the recv callback wants to hold on to the handle,
