@@ -830,10 +830,13 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 	if (active_handles == 0 || sock->tcphandle != NULL) {
 		destroy = true;
 	}
-	UNLOCK(&sock->lock);
 
 	if (destroy) {
+		atomic_store(&sock->destroying, true);
+		UNLOCK(&sock->lock);
 		nmsocket_cleanup(sock, true);
+	} else {
+		UNLOCK(&sock->lock);
 	}
 }
 

@@ -209,19 +209,6 @@ static void
 stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_udplistener);
 
-	/*
-	 * Socket is already closing; there's nothing to do.
-	 */
-	if (!isc__nmsocket_active(sock)) {
-		return;
-	}
-
-	/*
-	 * Mark it inactive now so that all sends will be ignored
-	 * and we won't try to stop listening again.
-	 */
-	atomic_store(&sock->active, false);
-
 	for (int i = 0; i < sock->nchildren; i++) {
 		isc__netievent_udpstop_t *event = NULL;
 
@@ -254,6 +241,18 @@ isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(!isc__nm_in_netthread());
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_udplistener);
+
+	/*
+	 * Socket is already closing; there's nothing to do.
+	 */
+	if (!isc__nmsocket_active(sock)) {
+		return;
+	}
+	/*
+	 * Mark it inactive now so that all sends will be ignored
+	 * and we won't try to stop listening again.
+	 */
+	atomic_store(&sock->active, false);
 
 	/*
 	 * If the manager is interlocked, re-enqueue this as an asynchronous
@@ -330,22 +329,20 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 #endif
 
 	/*
-	 * If addr == NULL that's the end of stream - we can
-	 * free the buffer and bail.
+	 * Three reasons to return now without processing:
+	 * - If addr == NULL that's the end of stream - we can
+	 *   free the buffer and bail.
+	 * - If we're simulating a firewall blocking UDP packets
+	 *   bigger than 'maxudp' bytes for testing purposes.
+	 * - If the socket is no longer active.
 	 */
-	if (addr == NULL) {
+	maxudp = atomic_load(&sock->mgr->maxudp);
+	if ((addr == NULL) || (maxudp != 0 && (uint32_t)nrecv > maxudp) ||
+	    (!isc__nmsocket_active(sock)))
+	{
 		if (free_buf) {
 			isc__nm_free_uvbuf(sock, buf);
 		}
-		return;
-	}
-
-	/*
-	 * Simulate a firewall blocking UDP packets bigger than
-	 * 'maxudp' bytes.
-	 */
-	maxudp = atomic_load(&sock->mgr->maxudp);
-	if (maxudp != 0 && (uint32_t)nrecv > maxudp) {
 		return;
 	}
 
@@ -385,7 +382,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	uint32_t maxudp = atomic_load(&sock->mgr->maxudp);
 
 	/*
-	 * Simulate a firewall blocking UDP packets bigger than
+	 * We're simulating a firewall blocking UDP packets bigger than
 	 * 'maxudp' bytes, for testing purposes.
 	 *
 	 * The client would ordinarily have unreferenced the handle
@@ -509,6 +506,9 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_udpsocket);
 
+	if (!isc__nmsocket_active(sock)) {
+		return (ISC_R_CANCELED);
+	}
 	isc_nmhandle_ref(req->handle);
 	rv = uv_udp_send(&req->uv_req.udp_send, &sock->uv_handle.udp,
 			 &req->uvbuf, 1, &peer->type.sa, udp_send_cb);
