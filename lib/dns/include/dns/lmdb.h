@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
+
 #include <lmdb.h>
 /*
  * MDB_NOTLS is used to prevent problems after configuration is reloaded, due
@@ -24,5 +26,4 @@
  * writes to be performed using mmap().
  */
 #define DNS_LMDB_FLAGS (DNS_LMDB_COMMON_FLAGS | MDB_WRITEMAP)
-
 #endif /* __OpenBSD__ */
