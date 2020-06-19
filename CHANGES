@@ -1,3 +1,6 @@
+5448.	[bug]		Fix a race condition in isc__nm_tcpdns_send().
+			[GL #1937]
+
 5447.	[bug]		IPv6 addresses ending in "::" could break YAML
 			parsing. A "0" is now appended to such addresses
 			in YAML output from dig, mdig, delv, and dnstap-read.
