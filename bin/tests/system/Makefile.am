@@ -64,7 +64,19 @@ tkey_keydelete_LDADD =		\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
 
-TESTS = 			\
+TESTS =
+
+if HAVE_PERLMOD_TIME_HIRES
+TESTS += serve-stale
+endif HAVE_PERLMOD_TIME_HIRES
+
+if HAVE_PERLMOD_NET_DNS
+TESTS +=		\
+	dnssec		\
+	rpzrecurse
+endif HAVE_PERLMOD_NET_DNS
+
+TESTS += 			\
 	acl			\
 	additional		\
 	addzone			\
@@ -158,13 +170,11 @@ if HAVE_PERLMOD_NET_DNS
 
 TESTS +=		\
 	digdelv		\
-	dnssec		\
 	fetchlimit	\
 	forward		\
 	ixfr		\
 	nsupdate	\
 	resolver	\
-	rpzrecurse	\
 	statistics	\
 	upforwd		\
 	zero
@@ -180,10 +190,6 @@ endif HAVE_PERLMOD_FILE_FETCH
 if HAVE_PERLMOD_DIGEST_HMAC
 TESTS += xfer
 endif HAVE_PERLMOD_DIGEST_HMAC
-
-if HAVE_PERLMOD_TIME_HIRES
-TESTS += serve-stale
-endif HAVE_PERLMOD_TIME_HIRES
 
 if HAVE_PERLMOD_NET_DNS_NAMESERVER
 TESTS += reclimit
