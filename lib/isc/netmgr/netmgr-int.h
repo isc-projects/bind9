@@ -98,14 +98,6 @@ struct isc_nmhandle {
 	isc_nmsocket_t *sock;
 	size_t ah_pos; /* Position in the socket's 'active handles' array */
 
-	/*
-	 * The handle is 'inflight' if netmgr is not currently processing
-	 * it in any way - it might mean that e.g. a recursive resolution
-	 * is happening. For an inflight handle we must wait for the
-	 * calling code to finish before we can free it.
-	 */
-	atomic_bool inflight;
-
 	isc_sockaddr_t peer;
 	isc_sockaddr_t local;
 	isc_nm_opaquecb_t doreset; /* reset extra callback, external */
@@ -648,6 +640,12 @@ isc__nmsocket_active(isc_nmsocket_t *sock);
 /*%<
  * Determine whether 'sock' is active by checking 'sock->active'
  * or, for child sockets, 'sock->parent->active'.
+ */
+
+void
+isc__nmsocket_clearcb(isc_nmsocket_t *sock);
+/*%<
+ * Clear the recv and accept callbacks in 'sock'.
  */
 
 void

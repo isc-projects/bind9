@@ -988,6 +988,16 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 }
 
 void
+isc__nmsocket_clearcb(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	sock->rcb.recv = NULL;
+	sock->rcbarg = NULL;
+	sock->accept_cb.accept = NULL;
+	sock->accept_cbarg = NULL;
+}
+
+void
 isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	isc__networker_t *worker = NULL;

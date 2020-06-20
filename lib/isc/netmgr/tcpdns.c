@@ -231,6 +231,11 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 		if (dnssock->self != NULL) {
 			isc__nmsocket_detach(&dnssock->self);
 		}
+		isc__nmsocket_clearcb(dnssock);
+		if (dnssock->outerhandle != NULL) {
+			isc_nmhandle_unref(dnssock->outerhandle);
+			dnssock->outerhandle = NULL;
+		}
 		return;
 	}
 
@@ -340,8 +345,7 @@ isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
 
 	atomic_store(&sock->listening, false);
 	atomic_store(&sock->closed, true);
-	sock->rcb.recv = NULL;
-	sock->rcbarg = NULL;
+	isc__nmsocket_clearcb(sock);
 
 	if (sock->outer != NULL) {
 		isc__nm_tcp_stoplistening(sock->outer);
@@ -431,7 +435,11 @@ resume_processing(void *arg) {
 			}
 			isc_nmhandle_unref(handle);
 		} else if (sock->outerhandle != NULL) {
-			isc_nm_resumeread(sock->outerhandle->sock);
+			result = isc_nm_resumeread(sock->outerhandle->sock);
+			if (result != ISC_R_SUCCESS) {
+				isc_nmhandle_unref(sock->outerhandle);
+				sock->outerhandle = NULL;
+			}
 		}
 
 		return;
@@ -524,7 +532,9 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	/* We don't need atomics here, it's all in single network thread */
-	if (sock->timer_initialized) {
+	if (sock->self != NULL) {
+		isc__nmsocket_detach(&sock->self);
+	} else if (sock->timer_initialized) {
 		/*
 		 * We need to fire the timer callback to clean it up,
 		 * it will then call us again (via detach) so that we
@@ -533,15 +543,13 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 		sock->timer_initialized = false;
 		uv_timer_stop(&sock->timer);
 		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
-	} else if (sock->self != NULL) {
-		isc__nmsocket_detach(&sock->self);
 	} else {
 		/*
 		 * At this point we're certain that there are no external
 		 * references, we can close everything.
 		 */
 		if (sock->outerhandle != NULL) {
-			sock->outerhandle->sock->rcb.recv = NULL;
+			isc__nmsocket_clearcb(sock->outerhandle->sock);
 			isc_nmhandle_unref(sock->outerhandle);
 			sock->outerhandle = NULL;
 		}

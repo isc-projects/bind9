@@ -584,6 +584,7 @@ readtimeout_cb(uv_timer_t *handle) {
 	if (sock->rcb.recv != NULL) {
 		sock->rcb.recv(sock->tcphandle, ISC_R_TIMEDOUT, NULL,
 			       sock->rcbarg);
+		isc__nmsocket_clearcb(sock);
 	}
 }
 
@@ -682,7 +683,9 @@ isc__nm_tcp_resumeread(isc_nmsocket_t *sock) {
 	isc__netievent_startread_t *ievent = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->rcb.recv != NULL);
+	if (sock->rcb.recv == NULL) {
+		return (ISC_R_CANCELED);
+	}
 
 	if (!atomic_load(&sock->readpaused)) {
 		return (ISC_R_SUCCESS);
@@ -744,6 +747,7 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	if (sock->rcb.recv != NULL) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_RECVFAIL]);
 		sock->rcb.recv(sock->tcphandle, ISC_R_EOF, NULL, sock->rcbarg);
+		isc__nmsocket_clearcb(sock);
 	}
 
 	/*
@@ -1080,6 +1084,7 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	{
 		sock->rcb.recv(sock->tcphandle, ISC_R_CANCELED, NULL,
 			       sock->rcbarg);
+		isc__nmsocket_clearcb(sock);
 	}
 }
 
@@ -1092,5 +1097,6 @@ isc__nm_tcp_cancelread(isc_nmsocket_t *sock) {
 	{
 		sock->rcb.recv(sock->tcphandle, ISC_R_CANCELED, NULL,
 			       sock->rcbarg);
+		isc__nmsocket_clearcb(sock);
 	}
 }
