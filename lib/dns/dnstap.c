@@ -337,7 +337,7 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 		fstrm_iothr_destroy(&env->iothr);
 	}
 
-	if (roll != 0) {
+	if (roll == 0) {
 		roll = env->rolls;
 	}
 
@@ -349,7 +349,7 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 		char *filename = isc_mem_strdup(env->mctx, env->path);
 		file.name = filename;
 		file.stream = NULL;
-		file.versions = roll != 0 ? roll : env->rolls;
+		file.versions = roll;
 		file.maximum_size = 0;
 		file.maximum_reached = false;
 		file.suffix = env->suffix;
