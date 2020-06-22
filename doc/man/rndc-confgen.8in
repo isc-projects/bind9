@@ -86,6 +86,9 @@ valid domain name. The default is \fBrndc\-key\fP\&.
 Specifies the command channel port where \fBnamed\fP listens for
 connections from \fBrndc\fP\&. The default is 953.
 .TP
+\fB\-q\fP
+Omits printing written path in automatic configuration mode.
+.TP
 \fB\-s\fP address
 Specifies the IP address where \fBnamed\fP listens for command channel
 connections from \fBrndc\fP\&. The default is the loopback address
