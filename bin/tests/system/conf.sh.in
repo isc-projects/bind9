@@ -516,6 +516,22 @@ retry_quiet() {
 	_retry "$@"
 }
 
+# _repeat: keep running command up to $1 times, unless it fails
+_repeat() (
+    __retries="${1}"
+    shift
+    while :; do
+        if ! "$@"; then
+            return 1
+        fi
+        __retries=$((__retries-1))
+        if [ "${__retries}" -le 0 ]; then
+            break
+        fi
+    done
+    return 0
+)
+
 # rndc_dumpdb: call "rndc dumpdb [...]" and wait until it completes
 #
 # The first argument is the name server instance to send the command to, in the
