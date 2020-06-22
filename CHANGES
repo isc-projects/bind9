@@ -1,3 +1,7 @@
+5443.	[bug]		The "primary" and "secondary" keywords, when used
+			as parameters for "check-names", were not
+			processed correctly and were being ignored. [GL #1949]
+
 5441.	[bug]		${LMDB_CFLAGS} missing from make/includes.in
 			[GL #1955]
 
