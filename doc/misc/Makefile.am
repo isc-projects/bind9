@@ -62,7 +62,7 @@ EXTRA_DIST = 			\
 MAINTAINERCLEANFILES = $(BUILT_SOURCES)
 
 options: cfg_test
-	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar | $(PERL) $(srcdir)/sort-options.pl | $(PERL) $(srcdir)/format-options.pl > $@
+	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar | $(PERL) $(srcdir)/sort-options.pl | $(PERL) $(srcdir)/format-options.pl --strip-not-configured > $@
 
 options.active: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar --active | $(PERL) $(srcdir)/sort-options.pl | $(PERL) $(srcdir)/format-options.pl --strip-not-configured > $@
