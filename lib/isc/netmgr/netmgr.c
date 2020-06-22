@@ -621,6 +621,9 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcpsend:
 			isc__nm_async_tcpsend(worker, ievent);
 			break;
+		case netievent_tcpdnssend:
+			isc__nm_async_tcpdnssend(worker, ievent);
+			break;
 		case netievent_tcpstop:
 			isc__nm_async_tcpstop(worker, ievent);
 			break;
