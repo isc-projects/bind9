@@ -152,8 +152,8 @@ options {
         dns64-contact <string>;
         dns64-server <string>;
         dnskey-sig-validity <integer>;
-        dnsrps-enable <boolean>; // not configured
-        dnsrps-options { <unspecified-text> }; // not configured
+        dnsrps-enable <boolean>;
+        dnsrps-options { <unspecified-text> };
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>; // obsolete
@@ -533,8 +533,8 @@ view <string> [ <class> ] {
         dns64-contact <string>;
         dns64-server <string>;
         dnskey-sig-validity <integer>;
-        dnsrps-enable <boolean>; // not configured
-        dnsrps-options { <unspecified-text> }; // not configured
+        dnsrps-enable <boolean>;
+        dnsrps-options { <unspecified-text> };
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>; // obsolete
