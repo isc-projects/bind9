@@ -1,3 +1,7 @@
+5443.	[bug]		The "primary" and "secondary" keywords, when used
+			as parameters for "check-names", were not
+			processed correctly and were being ignored. [GL #1949]
+
 5442.	[func]		Add support for outgoing TCP connections in netmgr.
 			[GL #1958]
 
