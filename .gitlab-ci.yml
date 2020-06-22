@@ -484,9 +484,6 @@ docs:
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
   script:
     - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k maintainer-clean V=1
-    - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
   needs:
     - job: autoreconf

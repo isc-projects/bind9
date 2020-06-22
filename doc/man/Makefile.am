@@ -120,12 +120,8 @@ EXTRA_DIST =				\
 	$(MANPAGES_RST)			\
 	$(MANPAGES_IN)
 
-MAINTAINERCLEANFILES =			\
-	$(MANPAGES_IN)
-
 CLEANFILES =				\
-	$(man_MANS)			\
-	manpages.stamp
+	$(man_MANS)
 
 #
 # Build rules for pre-generated manpages
@@ -151,6 +147,14 @@ man: Makefile $(man_MANS)
 
 clean-local::
 	-rm -rf $(SPHINXBUILDDIR)
+
+if MAINTAINER_MODE
+
+CLEANFILES +=				\
+	manpages.stamp
+
+MAINTAINERCLEANFILES =			\
+	$(MANPAGES_IN)
 
 #
 # Build rules for generating pre-generated manpages
@@ -196,5 +200,4 @@ $(MANPAGES_IN): manpages.stamp
         fi
 endif HAVE_SPHINX_BUILD
 
-maintainerclean-local:
-	-$(RM)
+endif MAINTAINER_MODE
