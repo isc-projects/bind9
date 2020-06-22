@@ -10819,7 +10819,7 @@ zone_maintenance(dns_zone_t *zone) {
 	const char me[] = "zone_maintenance";
 	isc_time_t now;
 	isc_result_t result;
-	bool dumping, load_pending;
+	bool dumping, load_pending, viewok;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	ENTER;
@@ -10842,7 +10842,10 @@ zone_maintenance(dns_zone_t *zone) {
 	 * adb or resolver will be NULL, and we had better not try
 	 * to do further maintenance on it.
 	 */
-	if (zone->view == NULL || zone->view->adb == NULL) {
+	LOCK_ZONE(zone);
+	viewok = (zone->view != NULL && zone->view->adb != NULL);
+	UNLOCK_ZONE(zone);
+	if (!viewok) {
 		return;
 	}
 
