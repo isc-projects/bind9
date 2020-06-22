@@ -2041,7 +2041,7 @@ Boolean Options
    This option is used to restrict the character set and syntax of
    certain domain names in master files and/or DNS responses received
    from the network. The default varies according to usage area. For
-   ``master`` zones the default is ``fail``. For ``slave`` zones the
+   ``primary`` zones the default is ``fail``. For ``secondary`` zones the
    default is ``warn``. For answers received from the network
    (``response``), the default is ``ignore``.
 

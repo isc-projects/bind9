@@ -36,3 +36,7 @@ Bug Fixes
 
 - The DS set returned by ``dns_keynode_dsset()`` was not thread-safe.
   This could result in an INSIST being triggered. [GL #1926]
+
+- The ``primary`` and ``secondary`` keywords, when used as parameters for
+  ``check-names``, were not processed correctly and were being ignored.
+  [GL #1949]
