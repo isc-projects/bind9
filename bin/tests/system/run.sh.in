@@ -131,17 +131,13 @@ start_servers() {
     fi
 }
 
-stop_servers_failed() {
-    echoinfo "I:$systest:stopping servers failed"
-    echofail "R:$systest:FAIL"
-    echoend  "E:$systest:$(date_with_args)"
-    exit 1
-}
-
 stop_servers() {
     if $stopservers; then
         echoinfo "I:$systest:stopping servers"
-        $PERL stop.pl "$systest" || stop_servers_failed
+        if ! $PERL stop.pl "$systest"; then
+            echoinfo "I:$systest:stopping servers failed"
+            return 1
+        fi
     fi
 }
 
@@ -217,7 +213,7 @@ if [ -r "$systest/tests.sh" ]; then
     ( cd "$systest" && $SHELL tests.sh "$@" )
     status=$?
     run=$((run+1))
-    stop_servers
+    stop_servers || status=1
 fi
 
 if [ -n "$PYTEST" ]; then
@@ -232,7 +228,7 @@ if [ -n "$PYTEST" ]; then
 	    test_status=$(cat "$systest/$test.status")
 	fi
 	status=$((status+test_status))
-	stop_servers
+	stop_servers || status=1
     done
 else
     echoinfo "I:$systest:pytest not installed, skipping python tests"
@@ -258,6 +254,7 @@ else
     assertion_failures=$(find "$systest/" -name named.run -print0 | xargs -0 grep "assertion failure" | wc -l)
     sanitizer_summaries=$(find "$systest/" -name 'tsan.*' | wc -l)
     if [ -n "$core_dumps" ]; then
+        status=1
         echoinfo "I:$systest:Test claims success despite crashes: $core_dumps"
         echofail "R:$systest:FAIL"
         # Do not clean up - we need the evidence.
@@ -274,12 +271,14 @@ else
 		echoinfo "D:$systest:backtrace from $coredump end"
 	done
     elif [ "$assertion_failures" -ne 0 ]; then
+        status=1
 	SYSTESTDIR="$systest"
         echoinfo "I:$systest:Test claims success despite $assertion_failures assertion failure(s)"
 	find "$systest/" -name 'tsan.*' -print0 | xargs -0 grep "SUMMARY: " | sort -u | cat_d
         echofail "R:$systest:FAIL"
         # Do not clean up - we need the evidence.
     elif [ "$sanitizer_summaries" -ne 0 ]; then
+        status=1
         echoinfo "I:$systest:Test claims success despite $sanitizer_summaries sanitizer reports(s)"
         echofail "R:$systest:FAIL"
     else
