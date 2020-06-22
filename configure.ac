@@ -64,9 +64,9 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 #
-# Enable maintainer mode by default, but allow to disable it in the CI
+# Enable maintainer mode by default only when building from git repository
 #
-AM_MAINTAINER_MODE([enable])
+AM_MAINTAINER_MODE([m4_ifset([bind_SRCID],[enable],[disable])])
 
 # Set the library versions
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
