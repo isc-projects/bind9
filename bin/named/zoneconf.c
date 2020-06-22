@@ -730,22 +730,27 @@ strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp, char ***argvp) {
 static void
 checknames(dns_zonetype_t ztype, const cfg_obj_t **maps,
 	   const cfg_obj_t **objp) {
-	const char *zone = NULL;
 	isc_result_t result;
 
 	switch (ztype) {
 	case dns_zone_slave:
 	case dns_zone_mirror:
-		zone = "slave";
+		result = named_checknames_get(maps, "secondary", objp);
+		if (result != ISC_R_SUCCESS) {
+			result = named_checknames_get(maps, "slave", objp);
+		}
 		break;
 	case dns_zone_master:
-		zone = "master";
+		result = named_checknames_get(maps, "primary", objp);
+		if (result != ISC_R_SUCCESS) {
+			result = named_checknames_get(maps, "master", objp);
+		}
 		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
 	}
-	result = named_checknames_get(maps, zone, objp);
+
 	INSIST(result == ISC_R_SUCCESS && objp != NULL && *objp != NULL);
 }
 

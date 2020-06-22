@@ -40,3 +40,7 @@ Bug Fixes
 - Properly handle missing ``kyua`` command so that ``make check`` does
   not fail unexpectedly when CMocka is installed, but Kyua is not.
   [GL #1950]
+
+- The ``primary`` and ``secondary`` keywords, when used as parameters for
+  ``check-names``, were not processed correctly and were being ignored.
+  [GL #1949]
