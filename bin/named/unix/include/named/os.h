@@ -73,7 +73,7 @@ named_os_tzset(void);
 void
 named_os_started(void);
 
-char *
+const char *
 named_os_uname(void);
 
 #endif /* NAMED_OS_H */
