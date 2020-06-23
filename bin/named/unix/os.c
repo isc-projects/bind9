@@ -903,8 +903,12 @@ named_os_tzset(void) {
 #endif /* ifdef HAVE_TZSET */
 }
 
-static char unamebuf[BUFSIZ];
-static char *unamep = NULL;
+#ifdef HAVE_UNAME
+static char unamebuf[sizeof(struct utsname)];
+#else
+static const char unamebuf[] = { "unknown architecture" };
+#endif
+static const char *unamep = NULL;
 
 static void
 getuname(void) {
@@ -919,13 +923,11 @@ getuname(void) {
 
 	snprintf(unamebuf, sizeof(unamebuf), "%s %s %s %s", uts.sysname,
 		 uts.machine, uts.release, uts.version);
-#else  /* ifdef HAVE_UNAME */
-	snprintf(unamebuf, sizeof(unamebuf), "unknown architecture");
 #endif /* ifdef HAVE_UNAME */
 	unamep = unamebuf;
 }
 
-char *
+const char *
 named_os_uname(void) {
 	if (unamep == NULL) {
 		getuname();
