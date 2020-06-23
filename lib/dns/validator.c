@@ -1229,26 +1229,25 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 		INSIST(val->key == NULL);
 		result = dst_key_fromdns(&siginfo->signer, rdata.rdclass, &b,
 					 val->view->mctx, &val->key);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
-		if (siginfo->algorithm ==
-		    (dns_secalg_t)dst_key_alg(val->key) &&
-		    siginfo->keyid ==
-		    (dns_keytag_t)dst_key_id(val->key) &&
-		    dst_key_iszonekey(val->key))
-		{
-			if (foundold)
-				/*
-				 * This is the key we're looking for.
-				 */
-				return (ISC_R_SUCCESS);
-			else if (dst_key_compare(oldkey, val->key) == true)
+		if (result == ISC_R_SUCCESS) {
+			if (siginfo->algorithm ==
+				    (dns_secalg_t)dst_key_alg(val->key) &&
+			    siginfo->keyid ==
+				    (dns_keytag_t)dst_key_id(val->key) &&
+			    dst_key_iszonekey(val->key))
 			{
-				foundold = true;
-				dst_key_free(&oldkey);
+				if (foundold) {
+					/*
+					 * This is the key we're looking for.
+					 */
+					return (ISC_R_SUCCESS);
+				} else if (dst_key_compare(oldkey, val->key)) {
+					foundold = true;
+					dst_key_free(&oldkey);
+				}
 			}
+			dst_key_free(&val->key);
 		}
-		dst_key_free(&val->key);
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);
 	} while (result == ISC_R_SUCCESS);
