@@ -48,3 +48,8 @@ Bug Fixes
 
 - 'rndc dnstap -roll <value>' was not limiting the number of saved
   files to <value>. [GL !3728]
+
+- The validator could fail to accept a properly signed RRset if an
+  unsupported algorithm appeared earlier in the DNSKEY RRset than a
+  supported algorithm.  It could also stop if it detected a malformed
+  public key. [GL #1689]
