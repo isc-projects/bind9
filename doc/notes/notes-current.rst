@@ -59,3 +59,6 @@ Bug Fixes
   client queries. Blocked IP addresses were not used for upstream
   queries but queries from those addresses could still be answered.
   [GL #1936]
+
+- ``named`` would crash on shutdown when new ``rndc`` connection is received at
+  the same time as shutting down. [GL #1747]
