@@ -40,3 +40,6 @@ Bug Fixes
 - The ``primary`` and ``secondary`` keywords, when used as parameters for
   ``check-names``, were not processed correctly and were being ignored.
   [GL #1949]
+
+- 'rndc dnstap -roll <value>' was not limiting the number of saved
+  files to <value>. [GL !3728]
