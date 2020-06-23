@@ -119,7 +119,10 @@ AX_POSIX_SHELL
 AC_PROG_MKDIR_P
 
 # Initialize libtool
-LT_INIT([dlopen])
+LT_INIT([disable-static dlopen pic-only])
+
+AS_IF([test $enable_static != "no"],
+      [AC_MSG_ERROR([Static linking is not supported as it disables dlopen() and certain security features (e.g. RELRO, ASLR)])])
 
 LT_CONFIG_LTDL_DIR([libltdl])
 LTDL_INIT([recursive])

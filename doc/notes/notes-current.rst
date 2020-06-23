@@ -29,7 +29,12 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Disable and disallow static linking of BIND 9 binaries and libraries
+  as BIND 9 modules require ``dlopen()`` support and static linking also
+  prevents using security features like read-only relocations (RELRO) or
+  address space layout randomization (ASLR) which are important for
+  programs that interact with the network and process arbitrary user
+  input. [GL #1933]
 
 Bug Fixes
 ~~~~~~~~~
