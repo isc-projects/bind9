@@ -70,7 +70,7 @@ ns_os_tzset(void);
 void
 ns_os_started(void);
 
-char *
+const char *
 ns_os_uname(void);
 
 #endif /* NS_OS_H */

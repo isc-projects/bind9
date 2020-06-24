@@ -392,7 +392,7 @@ ns_os_started(void) {
 }
 
 static char unamebuf[BUFSIZ];
-static char *unamep = NULL;
+static const char *unamep = NULL;
 
 static void
 getuname(void) {
@@ -461,9 +461,10 @@ getuname(void) {
  * GetVersionEx() returns 6.2 (aka Windows 8.1) since it was obsoleted
  * so we had to switch to the recommended way to get the Windows version.
  */
-char *
+const char *
 ns_os_uname(void) {
-	if (unamep == NULL)
+	if (unamep == NULL) {
 		getuname();
+	}
 	return (unamep);
 }
