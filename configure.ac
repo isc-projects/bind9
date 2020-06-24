@@ -110,7 +110,7 @@ AC_PROG_MAKE_SET
 # Checks for programs.
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR]) # call AM_PROG_AR only if available
 
-AC_PROG_LIBTOOL
+AC_PATH_PROG([LIBTOOL], [libtool])
 AS_IF([test -z "$LIBTOOL"],
       [AC_MSG_ERROR([The libtool script could not be found.])])
 AC_PROG_INSTALL
