@@ -250,35 +250,38 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 
 	*target = NULL;
 
-	if (radix->head == NULL) {
+	node = radix->head;
+
+	if (node == NULL) {
 		return (ISC_R_NOTFOUND);
 	}
 
-	node = radix->head;
 	addr = isc_prefix_touchar(prefix);
 	bitlen = prefix->bitlen;
 
-	while (node->bit < bitlen) {
-		if (node->prefix)
+	while (node != NULL && node->bit < bitlen) {
+		if (node->prefix) {
 			stack[cnt++] = node;
+		}
 
 		if (BIT_TEST(addr[node->bit >> 3], 0x80 >> (node->bit & 0x07)))
+		{
 			node = node->r;
-		else
+		} else {
 			node = node->l;
-
-		if (node == NULL)
-			break;
+		}
 	}
 
-	if (node && node->prefix)
+	if (node != NULL && node->prefix) {
 		stack[cnt++] = node;
+	}
 
 	while (cnt-- > 0) {
 		node = stack[cnt];
 
-		if (prefix->bitlen < node->bit)
+		if (prefix->bitlen < node->bit) {
 			continue;
+		}
 
 		if (_comp_with_mask(isc_prefix_tochar(node->prefix),
 				    isc_prefix_tochar(prefix),
