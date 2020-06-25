@@ -182,4 +182,13 @@ zone "corp" {
 	file "corp.db";
 };
 
+zone "hours-vs-days" {
+	type master;
+	file "hours-vs-days.db.signed";
+	auto-dnssec maintain;
+	/* validity 500 days, resign in 499 days */
+	sig-validity-interval 500 499;
+	allow-update { any; };
+};
+
 include "trusted.conf";
