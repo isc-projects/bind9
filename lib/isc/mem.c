@@ -445,6 +445,7 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	if (ctx->basic_blocks == NULL) {
 		more_basic_blocks(ctx);
 	}
+	INSIST(ctx->basic_blocks != NULL);
 
 	total_size = ctx->mem_target;
 	tmp = ctx->basic_blocks;
@@ -516,6 +517,7 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 	if (ctx->freelists[new_size] == NULL) {
 		more_frags(ctx, new_size);
 	}
+	INSIST(ctx->freelists[new_size] != NULL);
 
 	/*
 	 * The free list uses the "rounded-up" size "new_size".
