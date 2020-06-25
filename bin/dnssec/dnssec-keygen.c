@@ -1180,10 +1180,12 @@ main(int argc, char **argv) {
 	}
 
 	if (ctx.predecessor == NULL && ctx.policy == NULL) {
+		/* cppcheck-suppress nullPointerRedundantCheck */
 		if (algname == NULL) {
 			fatal("no algorithm specified");
 		}
 		r.base = algname;
+		/* cppcheck-suppress nullPointerRedundantCheck */
 		r.length = strlen(algname);
 		ret = dns_secalg_fromtext(&ctx.alg, &r);
 		if (ret != ISC_R_SUCCESS) {

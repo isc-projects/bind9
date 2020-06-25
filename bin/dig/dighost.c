@@ -1494,6 +1494,7 @@ save_opt(dig_lookup_t *lookup, char *code, char *value) {
 	if (lookup->ednsopts == NULL) {
 		cloneopts(lookup, NULL);
 	}
+	INSIST(lookup->ednsopts != NULL);
 
 	if (lookup->ednsopts[lookup->ednsoptscnt].value != NULL) {
 		isc_mem_free(mctx, lookup->ednsopts[lookup->ednsoptscnt].value);

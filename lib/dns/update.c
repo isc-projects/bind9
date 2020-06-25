@@ -2183,7 +2183,7 @@ failure:
 		dst_key_free(&state->zone_keys[i]);
 	}
 
-	if (state != &mystate && state != NULL) {
+	if (state != &mystate) {
 		*statep = NULL;
 		state->magic = 0;
 		isc_mem_put(diff->mctx, state, sizeof(*state));

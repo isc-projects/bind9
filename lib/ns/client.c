@@ -1365,7 +1365,9 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 
 		if ((addrlen % 8) != 0) {
 			uint8_t bits = ~0U << (8 - (addrlen % 8));
+			/* cppcheck-suppress objectIndex */
 			bits &= paddr[addrbytes - 1];
+			/* cppcheck-suppress objectIndex */
 			if (bits != paddr[addrbytes - 1]) {
 				return (DNS_R_OPTERR);
 			}
