@@ -50,6 +50,14 @@
           is installed, but Kyua is not. [GL #1950]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          The validator could fail to accept a properly signed RRset
+          if an unsupported algorithm appeared earlier in the DNSKEY
+          RRset than a supported algorithm.  It could also stop if
+          it detected a malformed public key. [GL #1689]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
