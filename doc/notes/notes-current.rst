@@ -92,3 +92,7 @@ Bug Fixes
 
 - ``named`` could crash when cleaning dead nodes in ``lib/dns/rbtdb.c`` that
   have been reused meanwhile.  [GL #1968]
+
+- The introduction of KASP support broke whether the second field
+  of sig-validity-interval was treated as days or hours. (Thanks to
+  Tony Finch.) [GL !3735]
