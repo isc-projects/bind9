@@ -3545,6 +3545,13 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+# TODO: test case for GL #1689.
+# If we allow the dnssec tools to use deprecated algorithms (such as RSAMD5)
+# we could write a test that signs a zone with supported and unsupported
+# algorithm, apply a fixed rrset order such that the unsupported algorithm
+# precedes the supported one in the DNSKEY RRset, and verify the result still
+# validates succesfully.
+
 echo_i "check that a lone non matching CDNSKEY record is rejected ($n)"
 ret=0
 (
