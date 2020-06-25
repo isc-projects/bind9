@@ -308,3 +308,11 @@ sed 's/DNSKEY/CDNSKEY/' "$key1.key" > "$key1.cdnskey"
 cat "$infile" "$key1.key" "$key2.key" "$key1.cdnskey" "$key1.cds" > "$zonefile"
 # Don't sign, let auto-dnssec maintain do it.
 mv $zonefile "$zonefile.signed"
+
+zone=hours-vs-days
+infile=hours-vs-days.db.in
+zonefile=hours-vs-days.db
+key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
+key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+$SETTIME -P sync now "$key1" > /dev/null
+cat "$infile" > "$zonefile.signed"
