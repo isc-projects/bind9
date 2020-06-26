@@ -164,12 +164,12 @@ totext_ipseckey(ARGS_TOTEXT) {
 		break;
 
 	case 1:
-		RETERR(inet_totext(AF_INET, &region, target));
+		RETERR(inet_totext(AF_INET, tctx->flags, &region, target));
 		isc_region_consume(&region, 4);
 		break;
 
 	case 2:
-		RETERR(inet_totext(AF_INET6, &region, target));
+		RETERR(inet_totext(AF_INET6, tctx->flags, &region, target));
 		isc_region_consume(&region, 16);
 		break;
 

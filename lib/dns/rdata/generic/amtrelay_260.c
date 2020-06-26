@@ -164,10 +164,10 @@ totext_amtrelay(ARGS_TOTEXT) {
 	case 0:
 		break;
 	case 1:
-		return (inet_totext(AF_INET, &region, target));
+		return (inet_totext(AF_INET, tctx->flags, &region, target));
 
 	case 2:
-		return (inet_totext(AF_INET6, &region, target));
+		return (inet_totext(AF_INET6, tctx->flags, &region, target));
 
 	case 3:
 		dns_name_init(&name, NULL);
