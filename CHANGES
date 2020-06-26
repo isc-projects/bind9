@@ -1,3 +1,5 @@
+5449.	[bug]		Fix a socket shutdown race in netmgr udp. [GL #1938]
+
 5448.	[bug]		Fix a race condition in isc__nm_tcpdns_send().
 			[GL #1937]
 
