@@ -567,35 +567,44 @@ named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 	}
 }
 
+static isc_result_t
+getprimariesdef(const cfg_obj_t *cctx, const char *list, const char *name,
+		const cfg_obj_t **ret) {
+	isc_result_t result;
+	const cfg_obj_t *obj = NULL;
+	const cfg_listelt_t *elt;
+
+	REQUIRE(cctx != NULL);
+	REQUIRE(name != NULL);
+	REQUIRE(ret != NULL && *ret == NULL);
+
+	result = cfg_map_get(cctx, list, &obj);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	elt = cfg_list_first(obj);
+	while (elt != NULL) {
+		obj = cfg_listelt_value(elt);
+		if (strcasecmp(cfg_obj_asstring(cfg_tuple_get(obj, "name")),
+			       name) == 0) {
+			*ret = obj;
+			return (ISC_R_SUCCESS);
+		}
+		elt = cfg_list_next(elt);
+	}
+	return (ISC_R_NOTFOUND);
+}
+
 isc_result_t
 named_config_getprimariesdef(const cfg_obj_t *cctx, const char *name,
 			     const cfg_obj_t **ret) {
 	isc_result_t result;
-	const cfg_obj_t *primaries = NULL;
-	const cfg_listelt_t *elt;
 
-	result = cfg_map_get(cctx, "primaries", &primaries);
+	result = getprimariesdef(cctx, "primaries", name, ret);
 	if (result != ISC_R_SUCCESS) {
-		result = cfg_map_get(cctx, "masters", &primaries);
+		result = getprimariesdef(cctx, "masters", name, ret);
 	}
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
-	for (elt = cfg_list_first(primaries); elt != NULL;
-	     elt = cfg_list_next(elt)) {
-		const cfg_obj_t *list;
-		const char *listname;
-
-		list = cfg_listelt_value(elt);
-		listname = cfg_obj_asstring(cfg_tuple_get(list, "name"));
-
-		if (strcasecmp(listname, name) == 0) {
-			*ret = list;
-			return (ISC_R_SUCCESS);
-		}
-	}
-	return (ISC_R_NOTFOUND);
+	return (result);
 }
 
 isc_result_t
@@ -715,6 +724,7 @@ resume:
 			if (j < l) {
 				continue;
 			}
+			list = NULL;
 			tresult = named_config_getprimariesdef(config, listname,
 							       &list);
 			if (tresult == ISC_R_NOTFOUND) {
