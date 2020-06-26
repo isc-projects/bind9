@@ -263,7 +263,7 @@ do
         # Expected queries = 2 * number of NS records, up to a maximum of 10.
         expected=`expr 2 \* $nscount`
         if [ $expected -gt 10 ]; then expected=10; fi
-        if ! testsock6; then expected=`expr $expected / 2`; fi
+        half=`expr $expected / 2`
         # Work out the queries made by checking statistics on the target before and after the test
         $RNDCCMD 10.53.0.6 stats || ret=1
         initial_count=`awk '/responses sent/ {print $1}' ns6/named.stats`
@@ -274,8 +274,8 @@ do
         mv ns6/named.stats ns6/named.stats.final.${nscount}.${n}
         # Check number of queries during the test is as expected
         actual=`expr $final_count - $initial_count`
-        if [ $actual -ne $expected ]; then
-                echo_i "query count error: $nscount NS records: expected queries $expected, actual $actual"
+        if [ $actual -ne $expected ] && [ $actual -ne $half ]; then
+                echo_i "query count error: $nscount NS records: expected queries $expected or $half (no IPv6), actual $actual"
                 ret=1
         fi
 done
