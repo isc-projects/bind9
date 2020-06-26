@@ -98,14 +98,6 @@ struct isc_nmhandle {
 	isc_nmsocket_t *sock;
 	size_t ah_pos; /* Position in the socket's 'active handles' array */
 
-	/*
-	 * The handle is 'inflight' if netmgr is not currently processing
-	 * it in any way - it might mean that e.g. a recursive resolution
-	 * is happening. For an inflight handle we must wait for the
-	 * calling code to finish before we can free it.
-	 */
-	atomic_bool inflight;
-
 	isc_sockaddr_t peer;
 	isc_sockaddr_t local;
 	isc_nm_opaquecb_t doreset; /* reset extra callback, external */
@@ -135,7 +127,9 @@ typedef enum isc__netievent_type {
 	netievent_tcpaccept,
 	netievent_tcpstop,
 	netievent_tcpclose,
+
 	netievent_tcpdnsclose,
+	netievent_tcpdnssend,
 
 	netievent_closecb,
 	netievent_shutdown,
@@ -227,6 +221,7 @@ typedef struct isc__netievent__socket_req {
 typedef isc__netievent__socket_req_t isc__netievent_tcpconnect_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcplisten_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcpsend_t;
+typedef isc__netievent__socket_req_t isc__netievent_tcpdnssend_t;
 
 typedef struct isc__netievent__socket_streaminfo_quota {
 	isc__netievent_type type;
@@ -651,6 +646,12 @@ isc__nmsocket_active(isc_nmsocket_t *sock);
  */
 
 void
+isc__nmsocket_clearcb(isc_nmsocket_t *sock);
+/*%<
+ * Clear the recv and accept callbacks in 'sock'.
+ */
+
+void
 isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Issue a 'handle closed' callback on the socket.
@@ -773,6 +774,9 @@ isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock);
 
 void
 isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__)

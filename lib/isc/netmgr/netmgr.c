@@ -621,6 +621,9 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcpsend:
 			isc__nm_async_tcpsend(worker, ievent);
 			break;
+		case netievent_tcpdnssend:
+			isc__nm_async_tcpdnssend(worker, ievent);
+			break;
 		case netievent_tcpstop:
 			isc__nm_async_tcpstop(worker, ievent);
 			break;
@@ -833,10 +836,13 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 	if (active_handles == 0 || sock->tcphandle != NULL) {
 		destroy = true;
 	}
-	UNLOCK(&sock->lock);
 
 	if (destroy) {
+		atomic_store(&sock->destroying, true);
+		UNLOCK(&sock->lock);
 		nmsocket_cleanup(sock, true);
+	} else {
+		UNLOCK(&sock->lock);
 	}
 }
 
@@ -985,6 +991,16 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	atomic_init(&sock->readpaused, false);
 
 	sock->magic = NMSOCK_MAGIC;
+}
+
+void
+isc__nmsocket_clearcb(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	sock->rcb.recv = NULL;
+	sock->rcbarg = NULL;
+	sock->accept_cb.accept = NULL;
+	sock->accept_cbarg = NULL;
 }
 
 void
