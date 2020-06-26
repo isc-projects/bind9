@@ -73,7 +73,7 @@ totext_l32(ARGS_TOTEXT) {
 
 	RETERR(str_totext(" ", target));
 
-	return (inet_totext(AF_INET, &region, target));
+	return (inet_totext(AF_INET, tctx->flags, &region, target));
 }
 
 static inline isc_result_t

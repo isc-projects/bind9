@@ -907,6 +907,16 @@ if [ -x "$DIG" ] ; then
     [ "$value" = "ns2.example. IN ANY" ] || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
+
+    n=$((n+1))
+    echo_i "check dig +yaml output of an IPv6 address ending in zeroes ($n)"
+    ret=0
+    dig_with_opts +qr +yaml @10.53.0.3 aaaa d.example > dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 1 message response_message_data ANSWER_SECTION 0 > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
+    [ "$value" = "d.example. 300 IN AAAA fd92:7065:b8e:ffff::0" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
   fi
 
   n=$((n+1))
