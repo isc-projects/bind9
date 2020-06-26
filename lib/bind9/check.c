@@ -1664,35 +1664,133 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	return (result);
 }
 
+/*
+ * Check "primaries" style list.
+ */
 static isc_result_t
-get_primaries_def(const cfg_obj_t *cctx, const char *name,
-		  const cfg_obj_t **ret) {
-	isc_result_t result;
-	const cfg_obj_t *primaries = NULL;
+bind9_check_primarylist(const cfg_obj_t *cctx, const char *list,
+			isc_log_t *logctx, isc_symtab_t *symtab,
+			isc_mem_t *mctx) {
+	isc_symvalue_t symvalue;
+	isc_result_t result, tresult;
+	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt;
 
-	result = cfg_map_get(cctx, "primaries", &primaries);
+	result = cfg_map_get(cctx, list, &obj);
 	if (result != ISC_R_SUCCESS) {
-		result = cfg_map_get(cctx, "masters", &primaries);
+		return (ISC_R_SUCCESS);
 	}
+
+	elt = cfg_list_first(obj);
+	while (elt != NULL) {
+		char *tmp;
+		const char *name;
+
+		obj = cfg_listelt_value(elt);
+		name = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+
+		tmp = isc_mem_strdup(mctx, name);
+		symvalue.as_cpointer = obj;
+		tresult = isc_symtab_define(symtab, tmp, 1, symvalue,
+					    isc_symexists_reject);
+		if (tresult == ISC_R_EXISTS) {
+			const char *file = NULL;
+			unsigned int line;
+
+			RUNTIME_CHECK(
+				isc_symtab_lookup(symtab, tmp, 1, &symvalue) ==
+				ISC_R_SUCCESS);
+			file = cfg_obj_file(symvalue.as_cpointer);
+			line = cfg_obj_line(symvalue.as_cpointer);
+
+			if (file == NULL) {
+				file = "<unknown file>";
+			}
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "primaries list '%s' is duplicated: "
+				    "also defined at %s:%u",
+				    name, file, line);
+			isc_mem_free(mctx, tmp);
+			result = tresult;
+			break;
+		} else if (tresult != ISC_R_SUCCESS) {
+			isc_mem_free(mctx, tmp);
+			result = tresult;
+			break;
+		}
+
+		elt = cfg_list_next(elt);
+	}
+	return (result);
+}
+
+/*
+ * Check primaries lists for duplicates.
+ */
+static isc_result_t
+bind9_check_primarylists(const cfg_obj_t *cctx, isc_log_t *logctx,
+			 isc_mem_t *mctx) {
+	isc_result_t result, tresult;
+	isc_symtab_t *symtab = NULL;
+
+	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	tresult = bind9_check_primarylist(cctx, "primaries", logctx, symtab,
+					  mctx);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
+	tresult = bind9_check_primarylist(cctx, "masters", logctx, symtab,
+					  mctx);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
+	isc_symtab_destroy(&symtab);
+	return (result);
+}
+
+static isc_result_t
+get_primaries(const cfg_obj_t *cctx, const char *list, const char *name,
+	      const cfg_obj_t **ret) {
+	isc_result_t result;
+	const cfg_obj_t *obj = NULL;
+	const cfg_listelt_t *elt = NULL;
+
+	result = cfg_map_get(cctx, list, &obj);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
-	for (elt = cfg_list_first(primaries); elt != NULL;
-	     elt = cfg_list_next(elt)) {
-		const cfg_obj_t *list;
+	elt = cfg_list_first(obj);
+	while (elt != NULL) {
 		const char *listname;
 
-		list = cfg_listelt_value(elt);
-		listname = cfg_obj_asstring(cfg_tuple_get(list, "name"));
+		obj = cfg_listelt_value(elt);
+		listname = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
 
 		if (strcasecmp(listname, name) == 0) {
-			*ret = list;
+			*ret = obj;
 			return (ISC_R_SUCCESS);
 		}
+
+		elt = cfg_list_next(elt);
 	}
+
 	return (ISC_R_NOTFOUND);
+}
+
+static isc_result_t
+get_primaries_def(const cfg_obj_t *cctx, const char *name,
+		  const cfg_obj_t **ret) {
+	isc_result_t result;
+
+	result = get_primaries(cctx, "primaries", name, ret);
+	if (result != ISC_R_SUCCESS) {
+		result = get_primaries(cctx, "masters", name, ret);
+	}
+	return (result);
 }
 
 static isc_result_t
@@ -4778,6 +4876,10 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 	}
 
 	if (bind9_check_controls(config, logctx, mctx) != ISC_R_SUCCESS) {
+		result = ISC_R_FAILURE;
+	}
+
+	if (bind9_check_primarylists(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 
