@@ -763,8 +763,8 @@ test_dnstap_roll() (
     ns="$2"
     n="$3"
     $RNDCCMD -s "${ip}" dnstap -roll "${n}" | sed "s/^/${ns} /" | cat_i &&
-    files=$(find . -name "${ns}/dnstap.out.*" | wc -l) &&
-    test "$files" -le "${n}"
+    files=$(find "$ns" -name "dnstap.out.[0-9]" | wc -l) &&
+    test "$files" -le "${n}" && test "$files" -ge "1"
 )
 
 echo_i "checking 'rndc -roll <value>' (no versions)"
