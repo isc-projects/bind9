@@ -70,6 +70,7 @@
 #define DNS_KEYALG_INDIRECT	252
 #define DNS_KEYALG_PRIVATEDNS	253
 #define DNS_KEYALG_PRIVATEOID	254 /*%< Key begins with OID giving alg */
+#define DNS_KEYALG_MAX		255
 
 /* Protocol values  */
 #define DNS_KEYPROTO_RESERVED 0
