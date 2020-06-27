@@ -1486,18 +1486,18 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 		    dns_dnssec_signs(keyrdata, vctx->origin, &vctx->soaset,
 				     &vctx->soasigs, false, vctx->mctx))
 		{
-			if (active_keys[dnskey->algorithm] != 255) {
+			if (active_keys[dnskey->algorithm] != DNS_KEYALG_MAX) {
 				active_keys[dnskey->algorithm]++;
 			}
 		} else {
-			if (standby_keys[dnskey->algorithm] != 255) {
+			if (standby_keys[dnskey->algorithm] != DNS_KEYALG_MAX) {
 				standby_keys[dnskey->algorithm]++;
 			}
 		}
 		return;
 	}
 
-	if (active_keys[dnskey->algorithm] != 255) {
+	if (active_keys[dnskey->algorithm] != DNS_KEYALG_MAX) {
 		active_keys[dnskey->algorithm]++;
 	}
 
@@ -1637,11 +1637,13 @@ check_dnskey(vctx_t *vctx) {
 				return (ISC_R_FAILURE);
 			}
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
-			    vctx->revoked_ksk[dnskey.algorithm] != 255)
+			    vctx->revoked_ksk[dnskey.algorithm] !=
+				    DNS_KEYALG_MAX)
 			{
 				vctx->revoked_ksk[dnskey.algorithm]++;
 			} else if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0 &&
-				   vctx->revoked_zsk[dnskey.algorithm] != 255)
+				   vctx->revoked_zsk[dnskey.algorithm] !=
+					   DNS_KEYALG_MAX)
 			{
 				vctx->revoked_zsk[dnskey.algorithm]++;
 			}
