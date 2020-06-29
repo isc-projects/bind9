@@ -483,6 +483,22 @@ retry_quiet() {
 	_retry "$@"
 }
 
+# _repeat: keep running command up to $1 times, unless it fails
+_repeat() (
+    __retries="${1}"
+    shift
+    while :; do
+	if ! "$@"; then
+	    return 1
+	fi
+	__retries=$((__retries-1))
+	if [ "${__retries}" -le 0 ]; then
+	    break
+	fi
+    done
+    return 0
+)
+
 rndc_reload() {
     echo_i "`$RNDC -c ../common/rndc.conf -s $2 -p ${CONTROLPORT} reload $3 2>&1 | sed 's/^/'$1' /'`"
     # reloading single zone is synchronous, if we're reloading whole server

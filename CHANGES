@@ -14,6 +14,9 @@
 			also stop if it detected a malformed public key.
 			[GL #1689]
 
+5444.	[bug]		'rndc dnstap -roll <value>' was not limiting the
+			number of saved files to <value>. [GL !3728]
+
 5443.	[bug]		The "primary" and "secondary" keywords, when used
 			as parameters for "check-names", were not
 			processed correctly and were being ignored. [GL #1949]
