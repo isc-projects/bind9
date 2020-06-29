@@ -24,6 +24,7 @@
 .. _man_rndc.conf:
 
 rndc.conf - rndc configuration file
+-----------------------------------
 
 Synopsis
 ~~~~~~~~
