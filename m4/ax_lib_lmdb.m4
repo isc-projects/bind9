@@ -37,22 +37,21 @@ AC_DEFUN([AX_LIB_LMDB],
 		[AC_MSG_RESULT([yes])
 		 LMDB_CFLAGS="-I$1/include"
 		 LMDB_LIBS="-L$1/lib"
-		 saved_CFLAGS="$CFLAGS"
-		 saved_LIBS="$LIBS"
+		 AX_SAVE_FLAGS([lmdb])
 		 CFLAGS="$CFLAGS $LMDB_CFLAGS"
 		 LIBS="$LIBS $LMDB_LIBS"
 		 AC_SEARCH_LIBS([mdb_env_create], [lmdb],
 				[LMDB_LIBS="$LMDB_LIBS $ac_cv_search_mdb_env_create"
 				 AC_SUBST([LMDB_CFLAGS])
 				 AC_SUBST([LMDB_LDFLAGS])
+				 AX_RESTORE_FLAGS([lmdb])
 				 $2
 				],
 				[AC_MSG_RESULT([no])
 				 LMDB_CFLAGS=""
 				 LMDB_LIBS=""
+				 AX_RESTORE_FLAGS([lmdb])
 				 $3
 				])
-		 CFLAGS="$saved_CFLAGS"
-		 LIBS="$saved_LIBS"
 		],
 		[AC_MSG_RESULT([no])])])
