@@ -6237,7 +6237,7 @@ file, conversion to ``text`` format is recommended.
 .. _statistics:
 
 BIND 9 Statistics
-----------------
+-----------------
 
 BIND 9 maintains lots of statistics information and provides several
 interfaces for users to access those statistics. The available
