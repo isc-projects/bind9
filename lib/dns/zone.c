@@ -19591,7 +19591,7 @@ zone_rekey(dns_zone_t *zone) {
 
 		/*
 		 * Clear fullsign flag, if it was set, so we don't do
-		 * another full signing next time
+		 * another full signing next time.
 		 */
 		DNS_ZONEKEY_CLROPTION(zone, DNS_ZONEKEY_FULLSIGN);
 
@@ -19708,6 +19708,19 @@ zone_rekey(dns_zone_t *zone) {
 		dnssec_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
 	}
 	UNLOCK_ZONE(zone);
+
+	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+		for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
+		     key = ISC_LIST_NEXT(key, link)) {
+			/* This debug log is used in the kasp system test */
+			char algbuf[DNS_SECALG_FORMATSIZE];
+			dns_secalg_format(dst_key_alg(key->key), algbuf,
+					  sizeof(algbuf));
+			dnssec_log(zone, ISC_LOG_DEBUG(3),
+				   "zone_rekey done: key %d/%s",
+				   dst_key_id(key->key), algbuf);
+		}
+	}
 
 	result = ISC_R_SUCCESS;
 
