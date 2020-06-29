@@ -195,9 +195,10 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 isc_result_t
 isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, size_t extrahandlesize) {
-	isc_nmsocket_t *nsock = NULL;
+	isc_nmsocket_t *nsock = NULL, *tmp = NULL;
 	isc__netievent_tcpconnect_t *ievent = NULL;
 	isc__nm_uvreq_t *req = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(VALID_NM(mgr));
 
@@ -214,6 +215,12 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	ievent = isc__nm_get_ievent(mgr, netievent_tcpconnect);
 	ievent->sock = nsock;
 	ievent->req = req;
+
+	/*
+	 * Async callbacks can dereference the socket in the meantime,
+	 * we need to hold an additional reference to it.
+	 */
+	isc__nmsocket_attach(nsock, &tmp);
 
 	if (isc__nm_in_netthread()) {
 		nsock->tid = isc_nm_tid();
@@ -234,12 +241,13 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	}
 
 	if (nsock->result != ISC_R_SUCCESS) {
-		isc_result_t result = nsock->result;
+		result = nsock->result;
 		isc__nmsocket_detach(&nsock);
-		return (result);
 	}
 
-	return (ISC_R_SUCCESS);
+	isc__nmsocket_detach(&tmp);
+
+	return (result);
 }
 
 isc_result_t
