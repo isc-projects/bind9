@@ -42,6 +42,16 @@ LIBDNS_CFLAGS = \
 LIBDNS_LIBS = \
 	$(top_builddir)/lib/dns/libdns.la
 
+if HAVE_DNSTAP
+LIBDNS_CFLAGS +=					\
+	$(DNSTAP_CFLAGS)
+endif HAVE_DNSTAP
+
+if HAVE_LMDB
+LIBDNS_CFLAGS +=					\
+	$(LMDB_CFLAGS)
+endif HAVE_LMDB
+
 LIBNS_CFLAGS = \
 	-I$(top_srcdir)/lib/ns/include
 
