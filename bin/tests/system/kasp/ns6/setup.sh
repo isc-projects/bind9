@@ -19,7 +19,6 @@ setup() {
 	echo_i "setting up zone: $zone"
 	zonefile="${zone}.db"
 	infile="${zone}.db.infile"
-	echo "$zone" >> zones.2
 }
 
 private_type_record() {
@@ -47,8 +46,8 @@ zsktimes="-P now -A now"
 KSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.2)
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
-private_type_record $zone 5 "$KSK" >> "$infile"
-private_type_record $zone 5 "$ZSK" >> "$infile"
+private_type_record $zone 13 "$KSK" >> "$infile"
+private_type_record $zone 13 "$ZSK" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Set up a zone with auto-dnssec maintain to migrate to dnssec-policy, but this
