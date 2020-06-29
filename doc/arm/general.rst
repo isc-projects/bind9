@@ -533,7 +533,7 @@ RFCs No Longer Supported in BIND 9
 (DNS).* March 1999.
 
 Notes
-^^^^^
+~~~~~
 
 [1] Queries to zones that have failed to load return SERVFAIL rather
 than a non-authoritative response. This is considered a feature.
@@ -576,7 +576,7 @@ server is under attack or there is stale/bogus authoritative data.
 
 [12] Updating of parent zones is not yet implemented.
 
-[13] ``named` does not currently encrypt DNS requests, so the PAD option
+[13] ``named`` does not currently encrypt DNS requests, so the PAD option
 is accepted but not returned in responses.
 
 [14] Section 4 is ignored.
