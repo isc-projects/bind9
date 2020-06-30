@@ -52,3 +52,8 @@ Bug Fixes
   unsupported algorithm appeared earlier in the DNSKEY RRset than a
   supported algorithm.  It could also stop if it detected a malformed
   public key. [GL #1689]
+
+- The ``blackhole`` ACL was inadvertently disabled with respect to
+  client queries. Blocked IP addresses were not used for upstream
+  queries but queries from those addresses could still be answered.
+  [GL #1936]
