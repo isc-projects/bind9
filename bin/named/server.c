@@ -59,6 +59,7 @@
 #include <dns/dlz.h>
 #include <dns/dns64.h>
 #include <dns/dnsrps.h>
+#include <dns/dnssec.h>
 #include <dns/dyndb.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
@@ -66,6 +67,7 @@
 #include <dns/geoip.h>
 #include <dns/journal.h>
 #include <dns/kasp.h>
+#include <dns/keymgr.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
 #include <dns/lib.h>
@@ -14456,6 +14458,83 @@ cleanup:
 	if (db != NULL) {
 		dns_db_detach(&db);
 	}
+	if (zone != NULL) {
+		dns_zone_detach(&zone);
+	}
+
+	return (result);
+}
+
+isc_result_t
+named_server_dnssec(named_server_t *server, isc_lex_t *lex,
+		    isc_buffer_t **text) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_zone_t *zone = NULL;
+	dns_kasp_t *kasp = NULL;
+	dns_dnsseckeylist_t keys;
+	dns_dnsseckey_t *key;
+	const char *ptr;
+	/* variables for -status */
+	char output[BUFSIZ];
+	isc_stdtime_t now;
+	isc_time_t timenow;
+	const char *dir;
+
+	/* Skip the command name. */
+	ptr = next_token(lex, text);
+	if (ptr == NULL) {
+		return (ISC_R_UNEXPECTEDEND);
+	}
+
+	/* Find out what we are to do. */
+	ptr = next_token(lex, text);
+	if (ptr == NULL) {
+		return (ISC_R_UNEXPECTEDEND);
+	}
+
+	if (strcasecmp(ptr, "-status") != 0) {
+		return (DNS_R_SYNTAX);
+	}
+
+	ISC_LIST_INIT(keys);
+
+	CHECK(zone_from_args(server, lex, NULL, &zone, NULL, text, false));
+	if (zone == NULL) {
+		CHECK(ISC_R_UNEXPECTEDEND);
+	}
+
+	kasp = dns_zone_getkasp(zone);
+	if (kasp == NULL) {
+		CHECK(putstr(text, "zone does not have dnssec-policy"));
+		CHECK(putnull(text));
+		goto cleanup;
+	}
+
+	/* -status */
+	TIME_NOW(&timenow);
+	now = isc_time_seconds(&timenow);
+	dir = dns_zone_getkeydirectory(zone);
+	LOCK(&kasp->lock);
+	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone), dir, now,
+					     dns_zone_getmctx(zone), &keys);
+	UNLOCK(&kasp->lock);
+
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+		goto cleanup;
+	}
+	LOCK(&kasp->lock);
+	dns_keymgr_status(kasp, &keys, now, &output[0], sizeof(output));
+	UNLOCK(&kasp->lock);
+	CHECK(putstr(text, output));
+	CHECK(putnull(text));
+
+cleanup:
+	while (!ISC_LIST_EMPTY(keys)) {
+		key = ISC_LIST_HEAD(keys);
+		ISC_LIST_UNLINK(keys, key, link);
+		dns_dnsseckey_destroy(dns_zone_getmctx(zone), &key);
+	}
+
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
 	}
