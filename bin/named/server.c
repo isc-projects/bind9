@@ -7269,10 +7269,10 @@ removed(dns_zone_t *zone, void *uap) {
 
 	switch (dns_zone_gettype(zone)) {
 	case dns_zone_master:
-		type = "master";
+		type = "primary";
 		break;
 	case dns_zone_slave:
-		type = "slave";
+		type = "secondary";
 		break;
 	case dns_zone_mirror:
 		type = "mirror";
@@ -14630,10 +14630,10 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 
 	switch (zonetype) {
 	case dns_zone_master:
-		type = "master";
+		type = "primary";
 		break;
 	case dns_zone_slave:
-		type = "slave";
+		type = "secondary";
 		break;
 	case dns_zone_mirror:
 		type = "mirror";
