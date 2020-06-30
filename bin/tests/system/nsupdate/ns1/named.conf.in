@@ -40,7 +40,7 @@ key altkey {
 include "ddns.key";
 
 zone "example.nil" {
-	type master;
+	type primary;
 	file "example.db";
 	check-integrity no;
 	check-mx ignore;
@@ -51,7 +51,7 @@ zone "example.nil" {
 };
 
 zone "max-ttl.nil" {
-	type master;
+	type primary;
 	file "max-ttl.db";
 	max-zone-ttl 300;
 	check-integrity no;
@@ -60,7 +60,7 @@ zone "max-ttl.nil" {
 };
 
 zone "other.nil" {
-	type master;
+	type primary;
 	file "other.db";
 	check-integrity no;
 	check-mx warn;
@@ -75,7 +75,7 @@ primaries others {
 };
 
 zone "update.nil" {
-	type master;
+	type primary;
 	file "update.db";
 	check-integrity no;
 	check-mx fail;
@@ -85,7 +85,7 @@ zone "update.nil" {
 };
 
 zone "unixtime.nil" {
-	type master;
+	type primary;
 	file "unixtime.db";
 	check-integrity no;
 	allow-update { any; };
@@ -94,7 +94,7 @@ zone "unixtime.nil" {
 };
 
 zone "yyyymmddvv.nil" {
-	type master;
+	type primary;
 	file "yyyymmddvv.db";
 	check-integrity no;
 	allow-update { any; };
@@ -110,7 +110,7 @@ include "sha384.key";
 include "sha512.key";
 
 zone "keytests.nil" {
-	type master;
+	type primary;
 	file "keytests.db";
 	update-policy {
 	    grant md5-key name md5.keytests.nil. ANY;
@@ -123,19 +123,19 @@ zone "keytests.nil" {
 };
 
 zone "many.test" {
-	type master;
+	type primary;
 	allow-update { any; };
 	file "many.test.db";
 };
 
 zone "sample" {
-	type master;
+	type primary;
 	allow-update { any; };
 	file "sample.db";
 };
 
 zone "maxjournal.test" {
-	type master;
+	type primary;
 	allow-update { any; };
 	file "maxjournal.db";
 	max-journal-size default;

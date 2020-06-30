@@ -579,7 +579,7 @@ EOF
   nochange a4-4.tld2				# 15 PASSTHRU
   nxdomain c2.crash2.tld3			# 16 assert in rbtdb.c
   addr 127.0.0.17 "a4-4.tld2 -b $ns1"		# 17 client-IP address trigger
-  nxdomain a7-1.tld2				# 18 slave policy zone (RT34450)
+  nxdomain a7-1.tld2				# 18 secondary policy zone (RT34450)
   # updating an response zone policy
   cp ns2/blv2.tld2.db.in ns2/bl.tld2.db
   rndc_reload ns2 $ns2 bl.tld2
@@ -590,7 +590,7 @@ EOF
   cp ns2/blv3.tld2.db.in ns2/bl.tld2.db
   rndc_reload ns2 $ns2 bl.tld2
   ck_soa 3 bl.tld2 $ns3
-  nxdomain a7-1.tld2				# 20 slave policy zone (RT34450)
+  nxdomain a7-1.tld2				# 20 secondary policy zone (RT34450)
   end_group
   ckstats $ns3 test2 ns3 12
 
@@ -778,7 +778,7 @@ EOF
     done
   fi
 
-  # reconfigure the ns5 master server without the fast-exire zone, so
+  # reconfigure the ns5 primary server without the fast-exire zone, so
   # it can't be refreshed on ns3, and will expire in 5 seconds.
   cat /dev/null > ns5/expire.conf
   rndc_reconfig ns5 10.53.0.5
@@ -834,7 +834,7 @@ EOF
   t=`expr $t + 1`
   echo_i "checking rpz updates/transfers with parent nodes added after children (${t})"
   # regression test for RT #36272: the success condition
-  # is the slave server not crashing.
+  # is the secondary server not crashing.
   for i in 1 2 3 4 5; do
     nsd $ns5 add example.com.policy1. '*.example.com.policy1.'
     nsd $ns5 delete example.com.policy1. '*.example.com.policy1.'

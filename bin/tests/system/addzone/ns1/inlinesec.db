@@ -7,7 +7,7 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-$ORIGIN inlineslave.example.
+$ORIGIN inlinesec.example.
 $TTL 300	; 5 minutes
 @                       IN SOA	mname1. . (
 				1          ; serial

@@ -1359,11 +1359,11 @@ status=`expr $status + $ret`
 echo_i "test turning on auto-dnssec during reconfig ($n)"
 ret=0
 # first create a zone that doesn't have auto-dnssec
-($RNDCCMD 10.53.0.3 addzone reconf.example '{ type master; file "reconf.example.db"; };' 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
+($RNDCCMD 10.53.0.3 addzone reconf.example '{ type primary; file "reconf.example.db"; };' 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
 rekey_calls=`grep "zone reconf.example.*next key event" ns3/named.run | wc -l`
 [ "$rekey_calls" -eq 0 ] || ret=1
 # ...then we add auto-dnssec and reconfigure
-($RNDCCMD 10.53.0.3 modzone reconf.example '{ type master; file "reconf.example.db"; allow-update { any; }; auto-dnssec maintain; };' 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
+($RNDCCMD 10.53.0.3 modzone reconf.example '{ type primary; file "reconf.example.db"; allow-update { any; }; auto-dnssec maintain; };' 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
 rndc_reconfig ns3 10.53.0.3
 for i in 0 1 2 3 4 5 6 7 8 9; do
     lret=0

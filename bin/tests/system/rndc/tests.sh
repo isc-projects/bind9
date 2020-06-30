@@ -587,7 +587,7 @@ echo_i "test 'rndc reconfig' with loading of a large zone ($n)"
 ret=0
 cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns6/named.run`
 cp ns6/named.conf ns6/named.conf.save
-echo "zone \"huge.zone\" { type master; file \"huge.zone.db\"; };" >> ns6/named.conf
+echo "zone \"huge.zone\" { type primary; file \"huge.zone.db\"; };" >> ns6/named.conf
 echo_i "reloading config"
 $RNDCCMD 10.53.0.6 reconfig > rndc.out.1.test$n 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi

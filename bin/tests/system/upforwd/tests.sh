@@ -9,9 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# ns1 = stealth master
-# ns2 = slave with update forwarding disabled; not currently used
-# ns3 = slave with update forwarding enabled
+# ns1 = stealth primary
+# ns2 = secondary with update forwarding disabled; not currently used
+# ns3 = secondary with update forwarding enabled
 
 . $SYSTEMTESTTOP/conf.sh
 
@@ -36,20 +36,20 @@ done
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 
-echo_i "fetching master copy of zone before update ($n)"
+echo_i "fetching primary copy of zone before update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.1 axfr > dig.out.ns1 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 
-echo_i "fetching slave 1 copy of zone before update ($n)"
+echo_i "fetching secondary 1 copy of zone before update ($n)"
 $DIG $DIGOPTS example.\
 	@10.53.0.2 axfr > dig.out.ns2 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 
-echo_i "fetching slave 2 copy of zone before update ($n)"
+echo_i "fetching secondary 2 copy of zone before update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.3 axfr > dig.out.ns3 || ret=1
@@ -77,20 +77,20 @@ n=`expr $n + 1`
 echo_i "sleeping 15 seconds for server to incorporate changes"
 sleep 15
 
-echo_i "fetching master copy of zone after update ($n)"
+echo_i "fetching primary copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.1 axfr > dig.out.ns1 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 
-echo_i "fetching slave 1 copy of zone after update ($n)"
+echo_i "fetching secondary 1 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.2 axfr > dig.out.ns2 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
-echo_i "fetching slave 2 copy of zone after update ($n)"
+echo_i "fetching secondary 2 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.3 axfr > dig.out.ns3 || ret=1
@@ -124,20 +124,20 @@ n=`expr $n + 1`
 echo_i "sleeping 15 seconds for server to incorporate changes"
 sleep 15
 
-echo_i "fetching master copy of zone after update ($n)"
+echo_i "fetching primary copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.1 axfr > dig.out.ns1 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
-echo_i "fetching slave 1 copy of zone after update ($n)"
+echo_i "fetching secondary 1 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.2 axfr > dig.out.ns2 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 
-echo_i "fetching slave 2 copy of zone after update ($n)"
+echo_i "fetching secondary 2 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.3 axfr > dig.out.ns3 || ret=1
@@ -151,7 +151,7 @@ digcomp knowngood.after2 dig.out.ns3 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 
-echo_i "checking update forwarding to dead master ($n)"
+echo_i "checking update forwarding to dead primary ($n)"
 count=0
 ret=0
 while [ $count -lt 5 -a $ret -eq 0 ]

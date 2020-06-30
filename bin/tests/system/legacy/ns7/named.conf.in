@@ -22,6 +22,6 @@ options {
 };
 
 zone "edns512-notcp" {
-	type master;
+	type primary;
 	file "edns512-notcp.db.signed";
 };

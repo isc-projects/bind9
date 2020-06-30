@@ -82,6 +82,6 @@ key "sha512-trunc" {
 };
 
 zone "example.nil" {
-	type master;
+	type primary;
 	file "example.db";
 };

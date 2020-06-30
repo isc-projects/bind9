@@ -35,12 +35,12 @@ view "primary" {
 	ixfr-from-differences yes;
 	request-ixfr yes;
 	zone "test" IN {
-		type slave;
+		type secondary;
 		file "mytest.db";
 		primaries { 10.53.0.3; };
 	};
 	zone "sub.test" IN {
-		type slave;
+		type secondary;
 		file "subtest.db";
 		request-ixfr no;
 		primaries { 10.53.0.3; };

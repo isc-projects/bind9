@@ -25,7 +25,7 @@ options {
 };
 
 zone "." {
-	type slave;
+	type secondary;
 	file "root.bk";
 	transfer-source 10.53.0.7 dscp 46;
 	notify-source 10.53.0.7 dscp 46;

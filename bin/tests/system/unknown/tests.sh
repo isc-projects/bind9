@@ -120,7 +120,7 @@ do
 	status=`expr $status + $ret`
 done
 
-echo_i "checking large unknown record loading on master"
+echo_i "checking large unknown record loading on primary"
 for try in 0 1 2 3 4 5 6 7 8 9; do
     ret=0
     $DIG $DIGOPTS @10.53.0.1 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo_i "dig failed" ; }
@@ -131,7 +131,7 @@ done
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo_i "checking large unknown record loading on slave"
+echo_i "checking large unknown record loading on secondary"
 for try in 0 1 2 3 4 5 6 7 8 9; do
     ret=0
     $DIG $DIGOPTS @10.53.0.2 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo_i "dig failed" ; }
@@ -142,13 +142,13 @@ done
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo_i "stop and restart slave"
+echo_i "stop and restart secondary"
 $PERL $SYSTEMTESTTOP/stop.pl unknown ns2
 start_server --noclean --restart --port ${PORT} unknown ns2
 
 # server may be answering queries before zones are loaded,
 # so retry a few times if this query fails
-echo_i "checking large unknown record loading on slave"
+echo_i "checking large unknown record loading on secondary"
 for try in 0 1 2 3 4 5 6 7 8 9; do
     ret=0
     $DIG $DIGOPTS @10.53.0.2 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo_i "dig failed" ; }
@@ -159,20 +159,20 @@ done
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo_i "checking large unknown record loading on inline slave"
+echo_i "checking large unknown record loading on inline secondary"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo_i "dig failed" ; }
 $DIFF large.out dig.out > /dev/null || { ret=1 ; echo_i "$DIFF failed"; }
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo_i "stop and restart inline slave"
+echo_i "stop and restart inline secondary"
 $PERL $SYSTEMTESTTOP/stop.pl unknown ns3
 start_server --noclean --restart --port ${PORT} unknown ns3
 
 # server may be answering queries before zones are loaded,
 # so retry a few times if this query fails
-echo_i "checking large unknown record loading on inline slave"
+echo_i "checking large unknown record loading on inline secondary"
 for try in 0 1 2 3 4 5 6 7 8 9; do
     ret=0
     $DIG $DIGOPTS @10.53.0.3 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo_i "dig failed" ; }

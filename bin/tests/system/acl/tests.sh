@@ -168,7 +168,7 @@ status=`expr $status + $ret`
 echo_i "testing allow-transfer ACLs against ns3 (no existing zones)"
 
 echo_i "calling addzone example.com on ns3"
-$RNDCCMD 10.53.0.3 addzone 'example.com {type master; file "example.db"; }; '
+$RNDCCMD 10.53.0.3 addzone 'example.com {type primary; file "example.db"; }; '
 sleep 1
 
 t=`expr $t + 1`
@@ -197,7 +197,7 @@ status=`expr $status + $ret`
 echo_i "testing allow-transfer ACLs against ns4 (1 pre-existing zone)"
 
 echo_i "calling addzone example.com on ns4"
-$RNDCCMD 10.53.0.4 addzone 'example.com {type master; file "example.db"; }; '
+$RNDCCMD 10.53.0.4 addzone 'example.com {type primary; file "example.db"; }; '
 sleep 1
 
 t=`expr $t + 1`
