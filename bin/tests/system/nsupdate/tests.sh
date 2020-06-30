@@ -363,7 +363,7 @@ digcomp dig.out.ns1 dig.out.ns1.after || ret=1
 echo_i "begin RT #482 regression test"
 
 ret=0
-echo_i "update master"
+echo_i "update primary"
 $NSUPDATE -k ns1/ddns.key <<END > /dev/null || ret=1
 server 10.53.0.1 ${PORT}
 update add updated2.example.nil. 600 A 10.10.10.2
@@ -376,17 +376,17 @@ END
 sleep 5
 
 if [ ! "$CYGWIN" ]; then
-    echo_i "SIGHUP slave"
+    echo_i "SIGHUP secondary"
     $KILL -HUP `cat ns2/named.pid`
 else
-    echo_i "reload slave"
+    echo_i "reload secondary"
     rndc_reload ns2 10.53.0.2
 fi
 
 sleep 5
 
 ret=0
-echo_i "update master again"
+echo_i "update primary again"
 $NSUPDATE -k ns1/ddns.key <<END > /dev/null || ret=1
 server 10.53.0.1 ${PORT}
 update add updated3.example.nil. 600 A 10.10.10.3
@@ -399,10 +399,10 @@ END
 sleep 5
 
 if [ ! "$CYGWIN" ]; then
-    echo_i "SIGHUP slave again"
+    echo_i "SIGHUP secondary again"
     $KILL -HUP `cat ns2/named.pid`
 else
-    echo_i "reload slave again"
+    echo_i "reload secondary again"
     rndc_reload ns2 10.53.0.2
 fi
 
@@ -509,7 +509,7 @@ if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $ret + $status`; fi
 
 
 ret=0
-echo_i "testing that rndc stop updates the master file"
+echo_i "testing that rndc stop updates the file"
 $NSUPDATE -k ns1/ddns.key <<END > /dev/null || ret=1
 server 10.53.0.1 ${PORT}
 update add updated4.example.nil. 600 A 10.10.10.3
@@ -520,7 +520,7 @@ $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} nsupdate ns1
 sleep 3
 # Removing the journal file and restarting the server means
 # that the data served by the new server process are exactly
-# those dumped to the master file by "rndc stop".
+# those dumped to the file by "rndc stop".
 rm -f ns1/*jnl
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} nsupdate ns1
 for try in 0 1 2 3 4 5 6 7 8 9; do
@@ -1005,7 +1005,7 @@ grep "records in zone (4) exceeds max-records (3)" ns3/named.run > /dev/null || 
 
 n=`expr $n + 1`
 ret=0
-echo_i "check whether valid addresses are used for master failover ($n)"
+echo_i "check whether valid addresses are used for primary failover ($n)"
 $NSUPDATE -t 1 <<END > nsupdate.out-$n 2>&1 && ret=1
 server 10.53.0.4 ${PORT}
 zone unreachable.

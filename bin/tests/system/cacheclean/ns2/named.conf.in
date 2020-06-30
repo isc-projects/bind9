@@ -43,6 +43,6 @@ zone "flushtest.example" {
 };
 
 zone "expire-test" {
-	type slave;
+	type secondary;
 	primaries { 10.53.0.1; };
 };

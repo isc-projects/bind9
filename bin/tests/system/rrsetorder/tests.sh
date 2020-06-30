@@ -31,7 +31,7 @@ fi
 #
 #
 if $test_fixed; then
-    echo_i "Checking order fixed (master)"
+    echo_i "Checking order fixed (primary)"
     ret=0
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
@@ -41,7 +41,7 @@ if $test_fixed; then
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
 else
-    echo_i "Checking order fixed behaves as cyclic when disabled (master)"
+    echo_i "Checking order fixed behaves as cyclic when disabled (primary)"
     ret=0
     matches=0
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
@@ -68,7 +68,7 @@ fi
 #
 #
 #
-echo_i "Checking order cyclic (master + additional)"
+echo_i "Checking order cyclic (primary + additional)"
 ret=0
 matches=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
@@ -94,7 +94,7 @@ status=`expr $status + $ret`
 #
 #
 #
-echo_i "Checking order cyclic (master)"
+echo_i "Checking order cyclic (primary)"
 ret=0
 matches=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
@@ -116,7 +116,7 @@ $DIFF dig.out.2 dig.out.3 >/dev/null && ret=1
 if [ $matches -ne 16 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
-echo_i "Checking order random (master)"
+echo_i "Checking order random (primary)"
 ret=0
 for i in $GOOD_RANDOM
 do
@@ -162,7 +162,7 @@ status=`expr $status + $ret`
 #
 #
 if $test_fixed; then
-    echo_i "Checking order fixed (slave)"
+    echo_i "Checking order fixed (secondary)"
     ret=0
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
@@ -176,7 +176,7 @@ fi
 #
 #
 #
-echo_i "Checking order cyclic (slave + additional)"
+echo_i "Checking order cyclic (secondary + additional)"
 ret=0
 matches=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
@@ -202,7 +202,7 @@ status=`expr $status + $ret`
 #
 #
 #
-echo_i "Checking order cyclic (slave)"
+echo_i "Checking order cyclic (secondary)"
 ret=0
 matches=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
@@ -225,7 +225,7 @@ if [ $matches -ne 16 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "Checking order random (slave)"
+echo_i "Checking order random (secondary)"
 ret=0
 for i in $GOOD_RANDOM
 do
@@ -267,11 +267,11 @@ done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "Shutting down slave"
+echo_i "Shutting down secondary"
 
 (cd ..; $SHELL stop.sh rrsetorder ns2 )
 
-echo_i "Checking for slave's on disk copy of zone"
+echo_i "Checking for secondary's on disk copy of zone"
 
 if [ ! -f ns2/root.bk ]
 then
@@ -279,7 +279,7 @@ then
 	status=`expr $status + 1`
 fi
 
-echo_i "Re-starting slave"
+echo_i "Re-starting secondary"
 
 $PERL $SYSTEMTESTTOP/start.pl --noclean --port ${PORT} rrsetorder ns2
 
@@ -287,7 +287,7 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --port ${PORT} rrsetorder ns2
 #
 #
 if $test_fixed; then
-    echo_i "Checking order fixed (slave loaded from disk)"
+    echo_i "Checking order fixed (secondary loaded from disk)"
     ret=0
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
@@ -301,7 +301,7 @@ fi
 #
 #
 #
-echo_i "Checking order cyclic (slave + additional, loaded from disk)"
+echo_i "Checking order cyclic (secondary + additional, loaded from disk)"
 ret=0
 matches=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
@@ -327,7 +327,7 @@ status=`expr $status + $ret`
 #
 #
 #
-echo_i "Checking order cyclic (slave loaded from disk)"
+echo_i "Checking order cyclic (secondary loaded from disk)"
 ret=0
 matches=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
@@ -350,7 +350,7 @@ if [ $matches -ne 16 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "Checking order random (slave loaded from disk)"
+echo_i "Checking order random (secondary loaded from disk)"
 ret=0
 for i in $GOOD_RANDOM
 do

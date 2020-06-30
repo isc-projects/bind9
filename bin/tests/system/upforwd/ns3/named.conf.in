@@ -32,21 +32,21 @@ controls {
 };
 
 zone "example" {
-	type slave;
+	type secondary;
 	file "example.bk";
 	allow-update-forwarding { any; };
 	primaries { 10.53.0.1; };
 };
 
 zone "example2" {
-	type slave;
+	type secondary;
 	file "example2.bk";
 	allow-update-forwarding { any; };
 	primaries { 10.53.0.1; };
 };
 
 zone "nomaster" {
-	type slave;
+	type secondary;
 	file "nomaster1.db";
 	allow-update-forwarding { any; };
 	masterfile-format text;

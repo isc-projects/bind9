@@ -12,10 +12,10 @@
 #
 # Set up a test zone
 #
-# Usage: genzone.sh master-server-number slave-server-number...
+# Usage: genzone.sh master-server-number secondary-server-number...
 #
 # e.g., "genzone.sh 2 3 4" means ns2 is the master and ns3, ns4
-# are slaves.
+# are secondaries.
 #
 
 master="$1"

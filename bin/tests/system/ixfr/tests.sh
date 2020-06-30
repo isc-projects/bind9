@@ -46,13 +46,13 @@ sleep 1
 
 # Initially, ns1 is not authoritative for anything (see setup.sh).
 # Now that ans is up and running with the right data, we make it
-# a slave for nil.
+# a secondary for nil.
 
 cat <<EOF >>ns1/named.conf
 zone "nil" {
-	type slave;
+	type secondary;
 	file "myftp.db";
-	masters { 10.53.0.2; };
+	primaries { 10.53.0.2; };
 };
 EOF
 
@@ -140,19 +140,19 @@ $DIG $DIGOPTS @10.53.0.1 nil. TXT | grep 'fallback AXFR' >/dev/null || {
 
 n=$((n+1))
 echo_i "testing ixfr-from-differences option ($n)"
-# ns3 is master; ns4 is slave
+# ns3 is primary; ns4 is secondary
 $CHECKZONE test. ns3/mytest.db > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
     echo_i "named-checkzone returned failure on ns3/mytest.db"
 fi
-# modify the master
-#echo_i "digging against master: "
+# modify the primary
+#echo_i "digging against primary: "
 #$DIG $DIGOPTS @10.53.0.3 a host1.test.
-#echo_i "digging against slave: "
+#echo_i "digging against secondary: "
 #$DIG $DIGOPTS @10.53.0.4 a host1.test.
 
-# wait for slave to be stable
+# wait for secondary to be stable
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out.test$n
@@ -160,11 +160,11 @@ do
 	sleep 1
 done
 
-# modify the master
+# modify the primary
 cp ns3/mytest1.db ns3/mytest.db
 $RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
-#wait for master to reload load
+#wait for primary to reload load
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG $DIGOPTS +tcp @10.53.0.3 SOA test > dig.out.test$n
@@ -172,7 +172,7 @@ do
 	sleep 1
 done
 
-#wait for slave to transfer zone
+#wait for secondary to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out.test$n
@@ -185,7 +185,7 @@ do
 	sleep 1
 done
 
-# slave should have gotten notify and updated
+# secondary should have gotten notify and updated
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
@@ -210,7 +210,7 @@ echo_ic "this result should be AXFR"
 cp ns3/subtest1.db ns3/subtest.db # change to sub.test zone, should be AXFR
 $RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
-#wait for master to reload zone
+#wait for primary to reload zone
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG $DIGOPTS +tcp @10.53.0.3 SOA sub.test > dig.out.test$n
@@ -218,7 +218,7 @@ do
 	sleep 1
 done
 
-#wait for slave to transfer zone
+#wait for secondary to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA sub.test > dig.out.test$n
@@ -252,7 +252,7 @@ echo_ic "this result should be IXFR"
 cp ns3/mytest2.db ns3/mytest.db # change to test zone, should be IXFR
 $RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
-# wait for master to reload zone
+# wait for primary to reload zone
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG +tcp -p 5300 @10.53.0.3 SOA test > dig.out.test$n
@@ -260,7 +260,7 @@ do
 	sleep 1
 done
 
-# wait for slave to transfer zone
+# wait for secondary to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out.test$n
@@ -319,7 +319,7 @@ if [ ${ret} != 0 ]; then
 	status=1
 fi
 
-# wait for slave to transfer zone
+# wait for secondary to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
 do
 	$DIG $DIGOPTS +tcp @10.53.0.5 SOA test > dig.out.test$n

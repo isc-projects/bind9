@@ -34,15 +34,15 @@ zone "." {
 	file "../../common/root.hint";
 };
 
-zone "master2" {
+zone "primary2" {
 	type primary;
-	file "master2.db";
+	file "primary2.db";
 };
 
-zone "slave" {
+zone "secondary" {
 	type secondary;
 	primaries { 10.53.0.1; };
-	file "slave.bk";
+	file "sec.bk";
 };
 
 zone "edns-expire" {

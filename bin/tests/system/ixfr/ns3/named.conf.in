@@ -35,15 +35,15 @@ view "primary" {
 	ixfr-from-differences yes;
 	request-ixfr yes;
 	zone "test" IN {
-		type master;
+		type primary;
 		file "mytest.db";
 	};
 	zone "sub.test" IN {
-		type master;
+		type primary;
 		file "subtest.db";
 	};
 	zone "large" IN {
-		type master;
+		type primary;
 		file "large.db";
 	};
 };

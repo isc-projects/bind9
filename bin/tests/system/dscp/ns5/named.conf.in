@@ -25,7 +25,7 @@ options {
 };
 
 zone "." {
-	type slave;
+	type secondary;
 	file "root.bk";
 	primaries { 10.53.0.4; };
 };
