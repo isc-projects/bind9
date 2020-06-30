@@ -1915,15 +1915,16 @@ cleanup_dead_nodes(dns_rbtdb_t *rbtdb, int bucketnum) {
 		ISC_LIST_UNLINK(rbtdb->deadnodes[bucketnum], node, deadlink);
 
 		/*
-		 * Since we're holding a tree write lock, it should be
-		 * impossible for this node to be referenced by others.
-		 *
-		 * decrement_reference may not have tested node->down, as
-		 * the tree_lock was not held, before adding the node to
-		 * deadnodes so we test it here.
+		 * We might have reactivated this node without a tree write
+		 * lock, so we couldn't remove this node from deadnodes then
+		 * and we have to do it now.
 		 */
-		INSIST(isc_refcount_current(&node->references) == 0 &&
-		       node->data == NULL);
+		if (isc_refcount_current(&node->references) != 0 ||
+		    node->data != NULL) {
+			node = ISC_LIST_HEAD(rbtdb->deadnodes[bucketnum]);
+			count--;
+			continue;
+		}
 
 		if (is_leaf(node) && rbtdb->task != NULL) {
 			send_to_prune_tree(rbtdb, node, isc_rwlocktype_write);
