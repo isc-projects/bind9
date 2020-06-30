@@ -49,7 +49,7 @@ status=`expr $status + $ret`
 # be correct.
 
 $DIG $DIGOPTS @10.53.0.3 a.example > dig.out
-wait_for_log 20 "(./NS): query_reset" ns1/named.run || true
+wait_for_log 20 "(.): endrequest" ns1/named.run || true
 
 # check three different dnstap reopen/roll methods:
 # ns1: dnstap-reopen; ns2: dnstap -reopen; ns3: dnstap -roll
@@ -611,5 +611,21 @@ lines=`$DNSTAPREAD -y large-answer.fstrm | grep -c "opcode: QUERY"`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+test_dnstap_roll() (
+    ip="$1"
+    ns="$2"
+    n="$3"
+    $RNDCCMD -s "${ip}" dnstap -roll "${n}" | sed "s/^/${ns} /" | cat_i &&
+    files=$(find "${ns}" -name "dnstap.out.[0-9]" | wc -l) &&
+    test "$files" -le "${n}" && test "$files" -ge "1"
+)
+
+echo_i "checking 'rndc -roll <value>'"
+ret=0
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} dnstap ns2
+_repeat 5 test_dnstap_roll 10.53.0.2 ns2 3 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 echo_i "exit status: $status"
-[ $status -eq 0 ] || exit 1
+[ "$status" -eq 0 ] || exit 1

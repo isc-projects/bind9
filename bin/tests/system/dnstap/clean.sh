@@ -22,4 +22,6 @@ rm -f ns*/dnstap.out
 rm -f ns*/dnstap.out.save
 rm -f ns*/dnstap.out.save.?
 rm -f ns*/named.lock
+rm -f ns2/dnstap.out.*
+rm -f ns3/dnstap.out.*
 rm -f ydump.out
