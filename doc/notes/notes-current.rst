@@ -29,7 +29,9 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- New ``rndc`` command ``rndc dnssec -status`` that shows the current
+  DNSSEC policy and keys in use, the key states and rollover status.
+  [GL #1612]
 
 Bug Fixes
 ~~~~~~~~~

@@ -49,3 +49,18 @@ isc_stdtime_get(isc_stdtime_t *t) {
 
 	*t = (isc_stdtime_t)ts.tv_sec;
 }
+
+void
+isc_stdtime_tostring(isc_stdtime_t t, char *out, size_t outlen) {
+	time_t when;
+
+	REQUIRE(out != NULL);
+	REQUIRE(outlen >= 26);
+
+	UNUSED(outlen);
+
+	/* time_t and isc_stdtime_t might be different sizes */
+	when = t;
+	INSIST((ctime_r(&when, out) != NULL));
+	*(out + strlen(out) - 1) = '\0';
+}

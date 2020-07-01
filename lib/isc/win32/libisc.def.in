@@ -606,6 +606,7 @@ isc_stdio_sync
 isc_stdio_tell
 isc_stdio_write
 isc_stdtime_get
+isc_stdtime_tostring
 isc_string_strerror_r
 isc_symtab_count
 isc_symtab_create

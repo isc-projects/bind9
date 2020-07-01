@@ -51,6 +51,23 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
  *\li		On error, keypool is unchanged
  */
 
+void
+dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
+		  isc_stdtime_t now, char *out, size_t out_len);
+/*%<
+ * Retrieve the status of given 'kasp' policy and keys in the
+ * 'keyring' and store the printable output in the 'out' buffer.
+ *
+ *	Requires:
+ *\li		'kasp' is not NULL.
+ *\li		'keyring' is not NULL.
+ *\li		'out' is not NULL.
+ *
+ *	Returns:
+ *\li		Printable status in 'out'.
+ *
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_KEYMGR_H */
