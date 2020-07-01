@@ -150,7 +150,7 @@ typedef enum isc__netievent_type {
  */
 typedef union {
 	isc_nm_recv_cb_t recv;
-	isc_nm_cb_t accept;
+	isc_nm_accept_cb_t accept;
 } isc__nm_readcb_t;
 
 typedef union {
@@ -160,7 +160,7 @@ typedef union {
 
 typedef union {
 	isc_nm_recv_cb_t recv;
-	isc_nm_cb_t accept;
+	isc_nm_accept_cb_t accept;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
 } isc__nm_cb_t;

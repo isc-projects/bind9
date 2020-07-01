@@ -1,3 +1,6 @@
+5452.	[bug]		The "blackhole" ACL was accidentally disabled with
+			respect to client queries. [GL #1936]
+
 5451.	[func]		Add 'rndc dnssec -status' command. [GL #1612]
 
 5450.	[placeholder]
