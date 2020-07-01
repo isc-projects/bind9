@@ -458,8 +458,10 @@ isc_nm_closedown
 isc_nm_destroy
 isc_nm_detach
 isc_nm_listentcpdns
+isc_nm_listentcp
 isc_nm_listenudp
 isc_nm_maxudp
+isc_nm_read
 isc_nm_send
 isc_nm_setstats
 isc_nm_start
