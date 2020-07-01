@@ -245,6 +245,8 @@ install:: installdirs
 	for m in $(man1_MANS); do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man1/; done
 	for m in $(man5_MANS); do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man5/; done
 	for m in $(man8_MANS); do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man8/; done
+	( cd ${DESTDIR}${mandir}/man8/; rm -f named-compilezone.8; ${LINK_PROGRAM} named-checkzone.8 named-compilezone.8 )
+	( cd ${DESTDIR}${mandir}/man8/; rm -f tsig-keygen.8; ${LINK_PROGRAM} ddns-confgen.8 tsig-keygen.8 )
 	for m in @DNSTAP_MANS@; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man1/; done
 	for m in @NZD_MANS@; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man8/; done
 	for m in @PKCS11_MANS@; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man8/; done
@@ -253,6 +255,8 @@ uninstall::
 	for m in $(man1_MANS); do rm -f ${DESTDIR}${mandir}/man1/$$m; done
 	for m in $(man5_MANS); do rm -f ${DESTDIR}${mandir}/man5/$$m; done
 	for m in $(man8_MANS); do rm -f ${DESTDIR}${mandir}/man8/$$m; done
+	rm -f ${DESTDIR}${mandir}/man8/named-compilezone.8
+	rm -f ${DESTDIR}${mandir}/man8/tsig-keygen.8
 	for m in @DNSTAP_MANS@; do rm -f ${DESTDIR}${mandir}/man1/$$m; done
 	for m in @NZD_MANS@; do rm -f ${DESTDIR}${mandir}/man8/$$m; done
 	for m in @PKCS11_MANS@; do rm -f ${DESTDIR}${mandir}/man8/$$m; done
