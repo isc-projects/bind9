@@ -1,3 +1,7 @@
+5455.	[bug]		`named` could crash when cleaning dead nodes
+			in lib/dns/rbtdb.c that have been reused meanwhile.
+			[GL #1968]
+
 5447.	[bug]		IPv6 addresses ending in "::" could break YAML
 			parsing. A "0" is now appended to such addresses
 			in YAML output from dnstap-read. [GL #1952]
