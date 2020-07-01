@@ -98,7 +98,7 @@ dnstcp_readtimeout(uv_timer_t *timer) {
 /*
  * Accept callback for TCP-DNS connection.
  */
-static void
+static isc_result_t
 dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *dnslistensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *dnssock = NULL;
@@ -106,14 +106,16 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(VALID_NMSOCK(dnslistensock));
 	REQUIRE(dnslistensock->type == isc_nm_tcpdnslistener);
 
-	/* If accept() was unnsuccessful we can't do anything */
 	if (result != ISC_R_SUCCESS) {
-		return;
+		return (result);
 	}
 
 	if (dnslistensock->accept_cb.accept != NULL) {
-		dnslistensock->accept_cb.accept(handle, ISC_R_SUCCESS,
-						dnslistensock->accept_cbarg);
+		result = dnslistensock->accept_cb.accept(
+			handle, ISC_R_SUCCESS, dnslistensock->accept_cbarg);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
 	}
 
 	/* We need to create a 'wrapper' dnssocket for this connection */
@@ -137,6 +139,8 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		       dnssock->read_timeout, 0);
 
 	isc_nm_read(handle, dnslisten_readcb, dnssock);
+
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -283,9 +287,9 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
  */
 isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
-		    void *cbarg, isc_nm_cb_t accept_cb, void *accept_cbarg,
-		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		    isc_nmsocket_t **sockp) {
+		    void *cbarg, isc_nm_accept_cb_t accept_cb,
+		    void *accept_cbarg, size_t extrahandlesize, int backlog,
+		    isc_quota_t *quota, isc_nmsocket_t **sockp) {
 	/* A 'wrapper' socket object with outer set to true TCP socket */
 	isc_nmsocket_t *dnslistensock = isc_mem_get(mgr->mctx,
 						    sizeof(*dnslistensock));
