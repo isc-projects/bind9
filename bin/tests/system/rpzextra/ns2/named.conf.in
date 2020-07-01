@@ -20,13 +20,13 @@ options {
 };
 
 zone "allowed" {
-    type master;
+    type primary;
 	file "allowed.db";
 	allow-transfer { none; };
 };
 
 zone "baddomain" {
-    type master;
+    type primary;
     file "baddomain.db";
     allow-transfer { none; };
 };

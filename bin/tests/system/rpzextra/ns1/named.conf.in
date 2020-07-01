@@ -47,7 +47,7 @@ logging {
 };
 
 zone "rpz.local" {
-    type master;
+    type primary;
     file "rpz.local.db";
     allow-transfer { none; };
     allow-query { localhost; };

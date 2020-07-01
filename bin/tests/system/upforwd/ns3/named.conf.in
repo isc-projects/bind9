@@ -22,23 +22,23 @@ options {
 };
 
 zone "example" {
-	type slave;
+	type secondary;
 	file "example.bk";
 	allow-update-forwarding { any; };
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 };
 
 zone "example2" {
-	type slave;
+	type secondary;
 	file "example2.bk";
 	allow-update-forwarding { any; };
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 };
 
 zone "nomaster" {
-	type slave;
+	type secondary;
 	file "nomaster1.db";
 	allow-update-forwarding { any; };
 	masterfile-format text;
-	masters { 10.53.0.4; };
+	primaries { 10.53.0.4; };
 };

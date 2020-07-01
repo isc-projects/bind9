@@ -45,9 +45,9 @@
 # In zone, with view set to none, zone set to any
 # In zone, with view set to any, zone set to none
 #
-# zone types of master, slave and stub can be tested in parallel by using
-# multiple instances (ns2 as master, ns3 as slave, ns4 as stub) and querying
-# as necessary.
+# zone types of primary, secondary and stub can be tested in parallel by
+# using multiple instances (ns2 as primary, ns3 as secondary, ns4 as stub)
+# and querying as necessary.
 #
 
 . $SYSTEMTESTTOP/conf.sh

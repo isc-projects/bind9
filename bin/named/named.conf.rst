@@ -134,8 +134,8 @@ MASTERS
 ::
 
   masters string [ port integer ] [ dscp
-      integer ] { ( masters | ipv4_address [
-      port integer ] | ipv6_address [ port
+      integer ] { ( primaries | ipv4_address
+      [ port integer ] | ipv6_address [ port
       integer ] ) [ key string ]; ... };
 
 OPTIONS
@@ -155,7 +155,7 @@ OPTIONS
   	allow-transfer { address_match_element; ... };
   	allow-update { address_match_element; ... };
   	allow-update-forwarding { address_match_element; ... };
-  	also-notify [ port integer ] [ dscp integer ] { ( masters |
+  	also-notify [ port integer ] [ dscp integer ] { ( primaries |
   	    ipv4_address [ port integer ] | ipv6_address [ port
   	    integer ] ) [ key string ]; ... };
   	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * )
@@ -173,7 +173,7 @@ OPTIONS
   	blackhole { address_match_element; ... };
   	cache-file quoted_string;
   	catalog-zones { zone string [ default-masters [ port integer ]
-  	    [ dscp integer ] { ( masters | ipv4_address [ port
+  	    [ dscp integer ] { ( primaries | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
   	    string ]; ... } ] [ zone-directory quoted_string ] [
   	    in-memory boolean ] [ min-update-interval duration ]; ... };
@@ -312,7 +312,7 @@ OPTIONS
   	new-zones-directory quoted_string;
   	no-case-compress { address_match_element; ... };
   	nocookie-udp-size integer;
-  	notify ( explicit | master-only | boolean );
+  	notify ( explicit | master-only | primary-only | boolean );
   	notify-delay integer;
   	notify-rate integer;
   	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [
@@ -445,6 +445,16 @@ PLUGIN
   plugin ( query ) string [ { unspecified-text
       } ];
 
+PRIMARIES
+^^^^^^^^^
+
+::
+
+  primaries string [ port integer ] [ dscp
+      integer ] { ( primaries | ipv4_address
+      [ port integer ] | ipv6_address [ port
+      integer ] ) [ key string ]; ... };
+
 SERVER
 ^^^^^^
 
@@ -533,7 +543,7 @@ VIEW
   	allow-transfer { address_match_element; ... };
   	allow-update { address_match_element; ... };
   	allow-update-forwarding { address_match_element; ... };
-  	also-notify [ port integer ] [ dscp integer ] { ( masters |
+  	also-notify [ port integer ] [ dscp integer ] { ( primaries |
   	    ipv4_address [ port integer ] | ipv6_address [ port
   	    integer ] ) [ key string ]; ... };
   	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * )
@@ -545,7 +555,7 @@ VIEW
   	auto-dnssec ( allow | maintain | off );
   	cache-file quoted_string;
   	catalog-zones { zone string [ default-masters [ port integer ]
-  	    [ dscp integer ] { ( masters | ipv4_address [ port
+  	    [ dscp integer ] { ( primaries | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
   	    string ]; ... } ] [ zone-directory quoted_string ] [
   	    in-memory boolean ] [ min-update-interval duration ]; ... };
@@ -665,7 +675,7 @@ VIEW
   	new-zones-directory quoted_string;
   	no-case-compress { address_match_element; ... };
   	nocookie-udp-size integer;
-  	notify ( explicit | master-only | boolean );
+  	notify ( explicit | master-only | primary-only | boolean );
   	notify-delay integer;
   	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [
   	    dscp integer ];
@@ -805,7 +815,7 @@ VIEW
   		allow-update { address_match_element; ... };
   		allow-update-forwarding { address_match_element; ... };
   		also-notify [ port integer ] [ dscp integer ] { (
-  		    masters | ipv4_address [ port integer ] |
+  		    primaries | ipv4_address [ port integer ] |
   		    ipv6_address [ port integer ] ) [ key string ];
   		    ... };
   		alt-transfer-source ( ipv4_address | * ) [ port (
@@ -845,9 +855,10 @@ VIEW
   		key-directory quoted_string;
   		masterfile-format ( map | raw | text );
   		masterfile-style ( full | relative );
-  		masters [ port integer ] [ dscp integer ] { ( masters
-  		    | ipv4_address [ port integer ] | ipv6_address [
-  		    port integer ] ) [ key string ]; ... };
+  		masters [ port integer ] [ dscp integer ] { (
+  		    primaries | ipv4_address [ port integer ] |
+  		    ipv6_address [ port integer ] ) [ key string ];
+  		    ... };
   		max-ixfr-ratio ( unlimited | percentage );
   		max-journal-size ( default | unlimited | sizeval );
   		max-records integer;
@@ -861,13 +872,17 @@ VIEW
   		min-refresh-time integer;
   		min-retry-time integer;
   		multi-master boolean;
-  		notify ( explicit | master-only | boolean );
+  		notify ( explicit | master-only | primary-only | boolean );
   		notify-delay integer;
   		notify-source ( ipv4_address | * ) [ port ( integer | *
   		    ) ] [ dscp integer ];
   		notify-source-v6 ( ipv6_address | * ) [ port ( integer
   		    | * ) ] [ dscp integer ];
   		notify-to-soa boolean;
+  		primaries [ port integer ] [ dscp integer ] { (
+  		    primaries | ipv4_address [ port integer ] |
+  		    ipv6_address [ port integer ] ) [ key string ];
+  		    ... };
   		request-expire boolean;
   		request-ixfr boolean;
   		serial-update-method ( date | increment | unixtime );
@@ -910,7 +925,7 @@ ZONE
   	allow-transfer { address_match_element; ... };
   	allow-update { address_match_element; ... };
   	allow-update-forwarding { address_match_element; ... };
-  	also-notify [ port integer ] [ dscp integer ] { ( masters |
+  	also-notify [ port integer ] [ dscp integer ] { ( primaries |
   	    ipv4_address [ port integer ] | ipv6_address [ port
   	    integer ] ) [ key string ]; ... };
   	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * )
@@ -948,7 +963,7 @@ ZONE
   	key-directory quoted_string;
   	masterfile-format ( map | raw | text );
   	masterfile-style ( full | relative );
-  	masters [ port integer ] [ dscp integer ] { ( masters |
+  	masters [ port integer ] [ dscp integer ] { ( primaries |
   	    ipv4_address [ port integer ] | ipv6_address [ port
   	    integer ] ) [ key string ]; ... };
   	max-ixfr-ratio ( unlimited | percentage );
@@ -964,13 +979,16 @@ ZONE
   	min-refresh-time integer;
   	min-retry-time integer;
   	multi-master boolean;
-  	notify ( explicit | master-only | boolean );
+  	notify ( explicit | master-only | primary-only | boolean );
   	notify-delay integer;
   	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [
   	    dscp integer ];
   	notify-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ]
   	    [ dscp integer ];
   	notify-to-soa boolean;
+  	primaries [ port integer ] [ dscp integer ] { ( primaries |
+  	    ipv4_address [ port integer ] | ipv6_address [ port
+  	    integer ] ) [ key string ]; ... };
   	request-expire boolean;
   	request-ixfr boolean;
   	serial-update-method ( date | increment | unixtime );

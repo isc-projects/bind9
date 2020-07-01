@@ -56,13 +56,13 @@ sleep 1
 
 # Initially, ns1 is not authoritative for anything (see setup.sh).
 # Now that ans is up and running with the right data, we make it
-# a slave for nil.
+# a secondary for nil.
 
 cat <<EOF >>ns1/named.conf
 zone "nil" {
-	type slave;
+	type secondary;
 	file "myftp.db";
-	masters { 10.53.0.2; };
+	primaries { 10.53.0.2; };
 };
 EOF
 
@@ -144,7 +144,7 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "testing ixfr-from-differences option ($n)"
-# ns3 is master; ns4 is slave
+# ns3 is primary; ns4 is secondary
 $CHECKZONE test. ns3/mytest.db > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
@@ -155,14 +155,14 @@ retry_quiet 10 wait_for_serial 10.53.0.4 test. 1 dig.out.test$n || ret=1
 
 nextpart ns4/named.run > /dev/null
 
-# modify the master
+# modify the primary
 cp ns3/mytest1.db ns3/mytest.db
 $RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
-# wait for master to reload
+# wait for primary to reload
 retry_quiet 10 wait_for_serial 10.53.0.3 test. 2 dig.out.test$n || ret=1
 
-# wait for slave to reload
+# wait for secondary to reload
 tret=0
 retry_quiet 5 wait_for_serial 10.53.0.4 test. 2 dig.out.test$n || tret=1
 if [ $tret -eq 1 ]; then
@@ -187,10 +187,10 @@ cp ns3/subtest1.db ns3/subtest.db # change to sub.test zone, should be AXFR
 nextpart ns4/named.run > /dev/null
 $RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
-# wait for master to reload
+# wait for primary to reload
 retry_quiet 10 wait_for_serial 10.53.0.3 sub.test. 3 dig.out.test$n || ret=1
 
-# wait for slave to reload
+# wait for secondary to reload
 tret=0
 retry_quiet 5 wait_for_serial 10.53.0.4 sub.test. 3 dig.out.test$n || tret=1
 if [ $tret -eq 1 ]; then
@@ -210,10 +210,10 @@ cp ns3/mytest2.db ns3/mytest.db # change to test zone, should be IXFR
 nextpart ns4/named.run > /dev/null
 $RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
-# wait for master to reload
+# wait for primary to reload
 retry_quiet 10 wait_for_serial 10.53.0.3 test. 3 dig.out.test$n || ret=1
 
-# wait for slave to reload
+# wait for secondary to reload
 tret=0
 retry_quiet 5 wait_for_serial 10.53.0.4 test. 3 dig.out.test$n || tret=1
 if [ $tret -eq 1 ]; then
@@ -258,7 +258,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 # make sure ns5 has transfered the zone
-# wait for slave to reload
+# wait for secondary to reload
 tret=0
 retry_quiet 5 wait_for_serial 10.53.0.5 test. 4 dig.out.test$n || tret=1
 if [ $tret -eq 1 ]; then
@@ -346,7 +346,7 @@ nextpart ns4/named.run > /dev/null
 cp ns3/mytest3.db ns3/mytest.db # change to test zone, too big for IXFR
 $RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
-# wait for slave to reload
+# wait for secondary to reload
 tret=0
 retry_quiet 5 wait_for_serial 10.53.0.4 test. 4 dig.out.test$n || tret=1
 if [ $tret -eq 1 ]; then
