@@ -877,10 +877,10 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock) {
 		switch (sock->type) {
 		case isc_nm_tcpsocket:
 			isc__nm_tcp_close(sock);
-			break;
+			return;
 		case isc_nm_tcpdnssocket:
 			isc__nm_tcpdns_close(sock);
-			break;
+			return;
 		default:
 			break;
 		}
@@ -1068,8 +1068,8 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	if (handle == NULL) {
 		handle = alloc_handle(sock);
 	} else {
-		INSIST(VALID_NMHANDLE(handle));
 		isc_refcount_increment0(&handle->references);
+		INSIST(VALID_NMHANDLE(handle));
 	}
 
 	isc__nmsocket_attach(sock, &handle->sock);
