@@ -1379,8 +1379,10 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 }
 
 isc_result_t
-isc_nm_pauseread(isc_nmsocket_t *sock) {
-	REQUIRE(VALID_NMSOCK(sock));
+isc_nm_pauseread(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	isc_nmsocket_t *sock = handle->sock;
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
@@ -1392,8 +1394,10 @@ isc_nm_pauseread(isc_nmsocket_t *sock) {
 }
 
 isc_result_t
-isc_nm_resumeread(isc_nmsocket_t *sock) {
-	REQUIRE(VALID_NMSOCK(sock));
+isc_nm_resumeread(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	isc_nmsocket_t *sock = handle->sock;
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
