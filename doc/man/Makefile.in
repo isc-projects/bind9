@@ -48,7 +48,6 @@ man8_MANS =			\
 	named-checkconf.8	\
 	named-checkzone.8	\
 	named-journalprint.8	\
-	named-nzd2nzf.8		\
 	named.8			\
 	nsec3hash.8		\
 	rndc-confgen.8		\
@@ -135,6 +134,9 @@ MANPAGES_IN = \
 dnstap_man1_MANS =		\
 	dnstap-read.1
 
+nzd_man8_MANS =			\
+	named-nzd2nzf.8
+
 pkcs11_man8_MANS =		\
 	pkcs11-destroy.8	\
 	pkcs11-keygen.8		\
@@ -174,7 +176,7 @@ man_SPHINXOPTS =				\
 all: man
 	@:
 
-man:: ootsetup $(man1_MANS) $(man5_MANS) $(man8_MANS) @DNSTAP_MANS@ @PKCS11_MANS@
+man:: ootsetup $(man1_MANS) $(man5_MANS) $(man8_MANS) @DNSTAP_MANS@ @NZD_MANS@ @PKCS11_MANS@
 
 doc:: @HTMLTARGET@ @PDFTARGET@
 
@@ -222,6 +224,11 @@ $(dnstap_man1_MANS): @MANSRCS@
 		$(man_SUBST) $${m}in > $$m; \
 	done
 
+$(nzd_man8_MANS): @MANSRCS@
+	for m in $(nzd_man8_MANS); do \
+		$(man_SUBST) $${m}in > $$m; \
+	done
+
 $(pkcs11_man8_MANS): @MANSRCS@
 	for m in $(pkcs11_man8_MANS); do \
 		$(man_SUBST) $${m}in > $$m; \
@@ -239,6 +246,7 @@ install:: installdirs
 	for m in $(man5_MANS); do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man5/; done
 	for m in $(man8_MANS); do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man8/; done
 	for m in @DNSTAP_MANS@; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man1/; done
+	for m in @NZD_MANS@; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man8/; done
 	for m in @PKCS11_MANS@; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man8/; done
 
 uninstall::
@@ -246,6 +254,7 @@ uninstall::
 	for m in $(man5_MANS); do rm -f ${DESTDIR}${mandir}/man5/$$m; done
 	for m in $(man8_MANS); do rm -f ${DESTDIR}${mandir}/man8/$$m; done
 	for m in @DNSTAP_MANS@; do rm -f ${DESTDIR}${mandir}/man1/$$m; done
+	for m in @NZD_MANS@; do rm -f ${DESTDIR}${mandir}/man8/$$m; done
 	for m in @PKCS11_MANS@; do rm -f ${DESTDIR}${mandir}/man8/$$m; done
 
 docclean manclean maintainer-clean::
@@ -253,4 +262,4 @@ docclean manclean maintainer-clean::
 
 clean::
 	-rm -rf $(SPHINXBUILDDIR)
-	-rm -f $(man1_MANS) $(man5_MANS) $(man8_MANS) @DNSTAP_MANS@ @PKCS11_MANS@
+	-rm -f $(man1_MANS) $(man5_MANS) $(man8_MANS) @DNSTAP_MANS@ @NZD_MANS@ @PKCS11_MANS@
