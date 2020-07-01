@@ -30,9 +30,10 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-rndc.conf \- rndc configuration file
+.SH SYNOPSIS
 .sp
 \fBrndc.conf\fP
+.SH DESCRIPTION
 .sp
 \fBrndc.conf\fP is the configuration file for \fBrndc\fP, the BIND 9 name
 server control utility. This file has a similar structure and syntax to
@@ -89,6 +90,7 @@ key, or the \fBmmencode\fP program, also known as \fBmimencode\fP, can be
 used to generate a base\-64 string from known input. \fBmmencode\fP does
 not ship with BIND 9 but is available on many systems. See the EXAMPLE
 section for sample command lines for each.
+.SH EXAMPLE
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -176,12 +178,14 @@ will be written to the standard output. Commented\-out \fBkey\fP and
 To generate a base\-64 secret with \fBmmencode\fP:
 .sp
 \fBecho "known plaintext for a secret" | mmencode\fP
+.SH NAME SERVER CONFIGURATION
 .sp
 The name server must be configured to accept rndc connections and to
 recognize the key specified in the \fBrndc.conf\fP file, using the
 controls statement in \fBnamed.conf\fP\&. See the sections on the
 \fBcontrols\fP statement in the BIND 9 Administrator Reference Manual for
 details.
+.SH SEE ALSO
 .sp
 \fBrndc(8)\fP, \fBrndc\-confgen(8)\fP, \fBmmencode(1)\fP, BIND 9 Administrator Reference Manual.
 .SH AUTHOR
