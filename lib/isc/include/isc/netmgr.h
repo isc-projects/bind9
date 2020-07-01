@@ -12,17 +12,19 @@
 #pragma once
 
 #include <isc/mem.h>
+#include <isc/region.h>
 #include <isc/result.h>
 #include <isc/types.h>
 
+/*
+ * Replacement for isc_sockettype_t provided by socket.h.
+ */
 typedef enum {
-	NMEV_READ,
-	NMEV_WRITE,
-	NMEV_ACCEPT,
-	NMEV_CONNECTED,
-	NMEV_CANCELLED,
-	NMEV_SHUTDOWN
-} isc_nm_eventtype;
+	isc_socktype_tcp = 1,
+	isc_socktype_udp = 2,
+	isc_socktype_unix = 3,
+	isc_socktype_raw = 4
+} isc_socktype_t;
 
 typedef void (*isc_nm_recv_cb_t)(isc_nmhandle_t *handle, isc_result_t eresult,
 				 isc_region_t *region, void *cbarg);
