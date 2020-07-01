@@ -1,3 +1,7 @@
+5455.	[bug]		`named` could crash when cleaning dead nodes
+			in lib/dns/rbtdb.c that have been reused meanwhile.
+			[GL #1968]
+
 5454.	[bug]		Address a startup crash happening when server is
 			under load and root zone is not yet loaded. [GL #1862]
 

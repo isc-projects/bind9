@@ -65,3 +65,6 @@ Bug Fixes
 
 - Fix assertion failure when server is under load and root zone is not yet
   loaded. [GL #1862]
+
+- ``named`` could crash when cleaning dead nodes in ``lib/dns/rbtdb.c`` that
+  have been reused meanwhile.  [GL #1968]
