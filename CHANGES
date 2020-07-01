@@ -1,3 +1,7 @@
+5453.	[bug]		`named` would crash on shutdown when new `rndc`
+			connection is received at the same time as
+			shutting down. [GL #1747]
+
 5452.	[bug]		The "blackhole" ACL was accidentally disabled with
 			respect to client queries. [GL #1936]
 
