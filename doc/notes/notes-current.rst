@@ -62,3 +62,6 @@ Bug Fixes
 
 - ``named`` would crash on shutdown when new ``rndc`` connection is received at
   the same time as shutting down. [GL #1747]
+
+- Fix assertion failure when server is under load and root zone is not yet
+  loaded. [GL #1862]
