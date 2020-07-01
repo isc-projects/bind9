@@ -40,79 +40,8 @@
 #define VALID_CCMSG(foo) ISC_MAGIC_VALID(foo, CCMSG_MAGIC)
 
 static void
-recv_message(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
-	     void *arg);
-
-static void
-recv_nonce(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
-	   void *arg) {
-	isccc_ccmsg_t *ccmsg = arg;
-	isc_result_t result;
-
-	INSIST(VALID_CCMSG(ccmsg));
-
-	if (eresult == ISC_R_CANCELED || eresult == ISC_R_EOF) {
-		ccmsg->result = eresult;
-		goto done;
-	}
-
-	if (region == NULL && eresult == ISC_R_SUCCESS) {
-		ccmsg->result = ISC_R_EOF;
-		goto done;
-	} else if (eresult != ISC_R_SUCCESS) {
-		ccmsg->result = eresult;
-		goto done;
-	} else {
-		ccmsg->result = eresult;
-	}
-
-	if (region->length < sizeof(uint32_t)) {
-		ccmsg->result = ISC_R_UNEXPECTEDEND;
-		goto done;
-	}
-
-	ccmsg->size = ntohl(*(uint32_t *)region->base);
-	if (ccmsg->size == 0) {
-		ccmsg->result = ISC_R_UNEXPECTEDEND;
-		goto done;
-	}
-	if (ccmsg->size > ccmsg->maxsize) {
-		ccmsg->result = ISC_R_RANGE;
-		goto done;
-	}
-
-	isc_region_consume(region, sizeof(uint32_t));
-	isc_buffer_allocate(ccmsg->mctx, &ccmsg->buffer, ccmsg->size);
-
-	/*
-	 * If there's more of the message waiting, pass it to
-	 * recv_message() directly.
-	 */
-	if (region->length != 0) {
-		recv_message(handle, ISC_R_SUCCESS, region, ccmsg);
-		return;
-	}
-
-	/*
-	 * Otherwise, continue reading and handle it in
-	 * recv_message().
-	 */
-	result = isc_nm_read(handle, recv_message, ccmsg);
-	if (result == ISC_R_SUCCESS) {
-		return;
-	}
-
-	ccmsg->result = result;
-
-done:
-	ccmsg->cb(handle, ccmsg->result, ccmsg->cbarg);
-	isc_nmhandle_unref(handle);
-}
-
-static void
-recv_message(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
-	     void *arg) {
-	isc_result_t result;
+recv_data(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
+	  void *arg) {
 	isccc_ccmsg_t *ccmsg = arg;
 	size_t size;
 
@@ -121,9 +50,7 @@ recv_message(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	if (eresult == ISC_R_CANCELED || eresult == ISC_R_EOF) {
 		ccmsg->result = eresult;
 		goto done;
-	}
-
-	if (region == NULL && eresult == ISC_R_SUCCESS) {
+	} else if (region == NULL && eresult == ISC_R_SUCCESS) {
 		ccmsg->result = ISC_R_EOF;
 		goto done;
 	} else if (eresult != ISC_R_SUCCESS) {
@@ -133,10 +60,37 @@ recv_message(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		ccmsg->result = eresult;
 	}
 
-	if (region->length == 0) {
-		ccmsg->result = ISC_R_UNEXPECTEDEND;
-		goto done;
+	if (!ccmsg->length_received) {
+		if (region->length < sizeof(uint32_t)) {
+			ccmsg->result = ISC_R_UNEXPECTEDEND;
+			goto done;
+		}
+
+		ccmsg->size = ntohl(*(uint32_t *)region->base);
+
+		if (ccmsg->size == 0) {
+			ccmsg->result = ISC_R_UNEXPECTEDEND;
+			goto done;
+		}
+		if (ccmsg->size > ccmsg->maxsize) {
+			ccmsg->result = ISC_R_RANGE;
+			goto done;
+		}
+
+		isc_region_consume(region, sizeof(uint32_t));
+		isc_buffer_allocate(ccmsg->mctx, &ccmsg->buffer, ccmsg->size);
+
+		ccmsg->length_received = true;
 	}
+
+	/*
+	 * If there's no more data, wait for more
+	 */
+	if (region->length == 0) {
+		return;
+	}
+
+	/* We have some data in the buffer, read it */
 
 	size = ISC_MIN(isc_buffer_availablelength(ccmsg->buffer),
 		       region->length);
@@ -148,14 +102,11 @@ recv_message(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		goto done;
 	}
 
-	result = isc_nm_read(handle, recv_message, ccmsg);
-	if (result == ISC_R_SUCCESS) {
-		return;
-	}
-
-	ccmsg->result = result;
+	/* Wait for more data to come */
+	return;
 
 done:
+	isc_nm_pauseread(handle);
 	ccmsg->cb(handle, ccmsg->result, ccmsg->cbarg);
 	isc_nmhandle_unref(handle);
 }
@@ -196,10 +147,19 @@ isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_nm_cb_t cb, void *cbarg) {
 	ccmsg->cb = cb;
 	ccmsg->cbarg = cbarg;
 	ccmsg->result = ISC_R_UNEXPECTED; /* unknown right now */
+	ccmsg->length_received = false;
 
 	isc_nmhandle_ref(ccmsg->handle);
-	result = isc_nm_read(ccmsg->handle, recv_nonce, ccmsg);
-	if (result != ISC_R_SUCCESS) {
+	if (ccmsg->reading) {
+		result = isc_nm_resumeread(ccmsg->handle);
+	} else {
+		result = isc_nm_read(ccmsg->handle, recv_data, ccmsg);
+		ccmsg->reading = true;
+	}
+	if (result == ISC_R_CANCELED) {
+		ccmsg->reading = false;
+	} else if (result != ISC_R_SUCCESS) {
+		ccmsg->reading = false;
 		isc_nmhandle_unref(ccmsg->handle);
 	}
 
@@ -210,7 +170,9 @@ void
 isccc_ccmsg_cancelread(isccc_ccmsg_t *ccmsg) {
 	REQUIRE(VALID_CCMSG(ccmsg));
 
-	isc_nm_cancelread(ccmsg->handle);
+	if (ccmsg->reading) {
+		isc_nm_cancelread(ccmsg->handle);
+	}
 }
 
 void
