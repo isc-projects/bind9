@@ -60,6 +60,8 @@ AC_SUBST(BACKTRACECFLAGS)
 PKG_PROG_PKG_CONFIG
 
 # Warn if the user specified libbind, which is now deprecated
+#
+# [pairwise: skip]
 AC_ARG_ENABLE(libbind, AS_HELP_STRING([--enable-libbind], [deprecated]))
 
 case "$enable_libbind" in
@@ -71,6 +73,7 @@ It is available from http://www.isc.org as a separate download.])
 		;;
 esac
 
+# [pairwise: --enable-buffer-useinline, --disable-buffer-useinline]
 AC_ARG_ENABLE(buffer_useinline, AS_HELP_STRING([--enable-buffer-useinline],
 	      [define ISC_BUFFER_USEINLINE when compiling [[default=yes]]]),
 	      if test yes = "${enable}"
@@ -80,14 +83,17 @@ AC_ARG_ENABLE(buffer_useinline, AS_HELP_STRING([--enable-buffer-useinline],
 	      fi,
 	      AC_DEFINE([ISC_BUFFER_USEINLINE], [1]))
 
+# [pairwise: --enable-warn-shadow, --disable-warn-shadow]
 AC_ARG_ENABLE(warn_shadow,
 	      AS_HELP_STRING([--enable-warn-shadow],
 			     [turn on -Wshadow when compiling]))
 
+# [pairwise: --enable-warn-error, --disable-warn-error]
 AC_ARG_ENABLE(warn_error,
 	      AS_HELP_STRING([--enable-warn-error],
 			    [turn on -Werror when compiling]))
 
+# [pairwise: --enable-developer, --disable-developer]
 AC_ARG_ENABLE(developer,
 	      AS_HELP_STRING([--enable-developer],
 			     [enable developer build settings]))
@@ -109,7 +115,10 @@ yes)
 esac
 AC_SUBST(XTARGETS)
 
-# American Fuzzy Lop
+# American Fuzzy Lop is not included in pairwise testing as fuzzing
+# tools are not present in the relevant Docker image.
+#
+# [pairwise: skip]
 AC_ARG_ENABLE(afl,
 	      AS_HELP_STRING([--enable-afl],
 			     [enable American Fuzzy Lop test harness
@@ -123,8 +132,11 @@ yes)
 esac
 
 
-#libseccomp sandboxing
 AC_CHECK_FUNCS(getrandom)
+
+# libseccomp sandboxing
+#
+# [pairwise: --enable-seccomp, --disable-seccomp]
 AC_ARG_ENABLE(seccomp,
 	      AS_HELP_STRING([--enable-seccomp],
 			     [enable support for libseccomp system call
@@ -264,10 +276,13 @@ default_with_python="python python3 python3.7 python3.6 python3.5 python3.4 pyth
 
 AC_ARG_VAR([PYTHON], [path to python executable])
 
+# [pairwise: --with-python, --without-python]
 AC_ARG_WITH([python],
 	    AS_HELP_STRING([--with-python=PATH],
 			   [specify path to Python interpreter]),
 	    [], [with_python=$default_with_python])
+
+# [pairwise: skip]
 AC_ARG_WITH([python-install-dir],
 	    AS_HELP_STRING([--with-python-install-dir=PATH],
 			   [installation directory for Python modules]),
@@ -609,6 +624,7 @@ AC_SUBST(ISC_PLATFORM_HAVELIFCONF)
 #
 # check if we have kqueue
 #
+# [pairwise: --enable-kqueue, --disable-kqueue]
 AC_ARG_ENABLE(kqueue,
 	      AS_HELP_STRING([--enable-kqueue],
 			     [use BSD kqueue when available [default=yes]]),
@@ -635,6 +651,7 @@ AC_SUBST(ISC_PLATFORM_HAVEKQUEUE)
 # check if we have epoll.  Linux kernel 2.4 has epoll_create() which fails,
 # so we need to try running the code, not just test its existence.
 #
+# [pairwise: --enable-epoll, --disable-epoll]
 AC_ARG_ENABLE(epoll,
 	      AS_HELP_STRING([--enable-epoll],
 			     [use Linux epoll when available [default=auto]]),
@@ -669,6 +686,7 @@ AC_SUBST(ISC_PLATFORM_HAVEEPOLL)
 #
 # check if we support /dev/poll
 #
+# [pairwise: --enable-devpoll, --disable-devpoll]
 AC_ARG_ENABLE(devpoll,
 	      AS_HELP_STRING([--enable-devpoll],
 			     [use /dev/poll when available [default=yes]]),
@@ -736,6 +754,8 @@ AC_C_BIGENDIAN
 # GeoIP support?
 #
 geoip2_default="no"
+
+# [pairwise: --with-geoip --without-geoip2, --without-geoip --with-geoip2=auto, --without-geoip --with-geoip2=yes, --without-geoip --without-geoip2]
 AC_ARG_WITH(geoip,
 	    AS_HELP_STRING([--with-geoip=PATH],
 			   [Build with legacy GeoIP support (yes|no|path)]),
@@ -744,6 +764,8 @@ AC_ARG_WITH(geoip,
                             geoip2_default="no"
                            ],
                            [use_geoip="no"])
+
+# [pairwise: skip]
 AC_ARG_WITH([geoip2],
 	    [AS_HELP_STRING([--with-geoip2=PATH],
 			    [Build with MaxMind GeoIP2 support (auto|yes|no|path) [default=no]])],
@@ -880,6 +902,8 @@ AC_SUBST(GEOIPLINKSRCS)
 AC_SUBST(GEOIPLINKOBJS)
 
 AC_MSG_CHECKING(for GSSAPI library)
+
+# [pairwise: --with-gssapi=yes, --with-gssapi=auto, --without-gssapi]
 AC_ARG_WITH(gssapi,
 	    AS_HELP_STRING([--with-gssapi=[PATH|[/path/]krb5-config]],
 			   [Specify path for system-supplied GSSAPI
@@ -1163,6 +1187,8 @@ AC_SUBST(DNS_CRYPTO_LIBS)
 # was --with-randomdev specified?
 #
 AC_MSG_CHECKING(for random device)
+
+# [pairwise: skip]
 AC_ARG_WITH(randomdev,
 	    AS_HELP_STRING([--with-randomdev=PATH],
 			   [Specify path for random device]),
@@ -1298,6 +1324,7 @@ then
 	AC_CHECK_FUNC(pthread_attr_setstacksize,
 		      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
 
+	# [pairwise: --with-locktype=adaptive, --with-locktype=standard]
 	AC_ARG_WITH(locktype,
 		    AS_HELP_STRING([--with-locktype=ARG],
 				   [Specify mutex lock type
@@ -1415,6 +1442,8 @@ ISC_THREAD_DIR=$thread_dir
 AC_SUBST(ISC_THREAD_DIR)
 
 AC_MSG_CHECKING(for libtool)
+
+# [pairwise: --with-libtool, --without-libtool]
 AC_ARG_WITH(libtool, AS_HELP_STRING([--with-libtool], [use GNU libtool]),
 	    use_libtool="$withval", use_libtool="no")
 
@@ -1460,6 +1489,7 @@ AC_SUBST(INSTALL_LIBRARY)
 # was --enable-native-pkcs11 specified?
 #  (note it implies both --without-openssl and --with-pkcs11)
 #
+# [pairwise: --enable-native-pkcs11, --disable-native-pkcs11]
 AC_ARG_ENABLE(native-pkcs11,
 	      AS_HELP_STRING([--enable-native-pkcs11],
 			     [use native PKCS11 for all crypto [default=no]]),
@@ -1468,6 +1498,7 @@ AC_ARG_ENABLE(native-pkcs11,
 #
 # was --with-openssl specified?
 #
+# [pairwise: --with-openssl --enable-openssl-hash, --with-openssl --disable-openssl-hash, --without-openssl]
 AC_ARG_WITH(openssl,
 	    AS_HELP_STRING([--with-openssl[=PATH]],
 			   [Build with OpenSSL [yes|no|path].
@@ -1477,6 +1508,7 @@ AC_ARG_WITH(openssl,
 #
 # was --with-pkcs11 specified?
 #
+# [pairwise: skip]
 AC_ARG_WITH(pkcs11,
 	    AS_HELP_STRING([--with-pkcs11[=PATH]],
 			   [Build with PKCS11 support [yes|no|path]
@@ -1486,19 +1518,34 @@ AC_ARG_WITH(pkcs11,
 #
 # were --with-ecdsa, --with-gost, --with-eddsa, --with-aes specified
 #
+
+# [pairwise: --with-ecdsa, --without-ecdsa]
 AC_ARG_WITH(ecdsa, AS_HELP_STRING([--with-ecdsa], [Crypto ECDSA]),
 	    with_ecdsa="$withval", with_ecdsa="auto")
+
+# GOST is not included in pairwise testing as it is not supported by the
+# OpenSSL version present in the relevant Docker image.
+#
+# [pairwise: skip]
 AC_ARG_WITH(gost,
 	    AS_HELP_STRING([--with-gost], [Crypto GOST [yes|no|raw|asn1].]),
 	    with_gost="$withval", with_gost="auto")
+
+# EdDSA is not included in pairwise testing as it is not supported by
+# the SoftHSM version present in the relevant Docker image.
+#
+# [pairwise: skip]
 AC_ARG_WITH(eddsa, AS_HELP_STRING([--with-eddsa], [Crypto EDDSA [yes|all|no].]),
 	    with_eddsa="$withval", with_eddsa="auto")
+
+# [pairwise: --with-aes, --without-aes]
 AC_ARG_WITH(aes, AS_HELP_STRING([--with-aes], [Crypto AES]),
 	    with_aes="$withval", with_aes="yes")
 
 #
 # was --enable-openssl-hash specified?
 #
+# [pairwise: skip]
 AC_ARG_ENABLE(openssl-hash,
 	      AS_HELP_STRING([--enable-openssl-hash],
 			     [use OpenSSL for hash functions [default=no]]),
@@ -2033,6 +2080,7 @@ AC_SUBST(ISC_PLATFORM_WANTAES)
 #
 # Choose Client Cookie algorithm
 #
+# [pairwise: skip]
 AC_ARG_WITH([cc-alg],
 	    [AS_HELP_STRING([--with-cc-alg=ALG], [deprecated])],
 	    [:], [with_cc_alg="siphash24"])
@@ -2326,6 +2374,8 @@ fi
 # was --with-lmdb specified?
 #
 AC_MSG_CHECKING(for lmdb library)
+
+# [pairwise: --with-lmdb=auto, --with-lmdb=yes, --without-lmdb]
 AC_ARG_WITH(lmdb,
 	    AS_HELP_STRING([--with-lmdb[=PATH]],
 			   [build with LMDB library [yes|no|path]]),
@@ -2393,6 +2443,7 @@ AC_SUBST(NZDTARGETS)
 #
 # was --with-libxml2 specified?
 #
+# [pairwise: --with-libxml2=auto, --with-libxml2=yes, --without-libxml2]
 AC_ARG_WITH([libxml2],
 	    [AS_HELP_STRING([--with-libxml2[=PATH]],
 			   [build with libxml2 library (auto|yes|no|path) [default=auto]])],
@@ -2430,6 +2481,8 @@ AC_SUBST([XMLSTATS])
 # was --with-libjson specified?
 #
 AC_MSG_CHECKING(for json library)
+
+# [pairwise: --with-libjson=auto, --with-libjson=yes, --without-libjson]
 AC_ARG_WITH(libjson,
 	    AS_HELP_STRING([--with-libjson[=PATH]],
 			   [build with libjson0 library [yes|no|path]]),
@@ -2511,6 +2564,8 @@ AC_SUBST(JSONSTATS)
 # was --with-zlib specified?
 #
 AC_MSG_CHECKING(for zlib library)
+
+# [pairwise: --with-zlib=auto, --with-zlib=yes, --without-zlib]
 AC_ARG_WITH(zlib,
 	    AS_HELP_STRING([--with-zlib[=PATH]],
 			   [build with zlib for HTTP compression
@@ -2601,6 +2656,7 @@ fi
 #
 # Large File
 #
+# [pairwise: --enable-largefile, --disable-largefile]
 AC_ARG_ENABLE(largefile,
 	      AS_HELP_STRING([--enable-largefile], [64-bit file support]),
 	      want_largefile="yes", want_largefile="no")
@@ -2753,6 +2809,11 @@ esac
 # Purify support
 #
 AC_MSG_CHECKING(whether to use purify)
+
+# Purify is not included in pairwise testing as that tool is not present
+# in the relevant Docker image.
+#
+# [pairwise: skip]
 AC_ARG_WITH(purify,
 	    AS_HELP_STRING([--with-purify[=PATH]], [use Rational purify]),
 	    use_purify="$withval", use_purify="no")
@@ -2795,6 +2856,12 @@ AC_SUBST(PURIFY)
 # Google/Great Performance Tools CPU Profiler
 #
 AC_MSG_CHECKING(whether to use gperftools profiler)
+
+# Google/Great Performance Tools CPU Profiler is not included in
+# pairwise testing as that tool is not present in the relevant Docker
+# image.
+#
+# [pairwise: skip]
 AC_ARG_WITH(gperftools-profiler,
 	    AS_HELP_STRING([--with-gperftools-profiler],
 			   [use gperftools CPU profiler]),
@@ -2816,6 +2883,7 @@ esac
 # enable/disable dumping stack backtrace.  Also check if the system supports
 # glibc-compatible backtrace() function.
 #
+# [pairwise: --enable-backtrace, --disable-backtrace]
 AC_ARG_ENABLE(backtrace,
 	      AS_HELP_STRING([--enable-backtrace],
 			     [log stack backtrace on abort [default=yes]]),
@@ -2833,6 +2901,7 @@ yes)
 esac
 AC_SUBST(ISC_PLATFORM_USEBACKTRACE)
 
+# [pairwise: --enable-symtable, --disable-symtable]
 AC_ARG_ENABLE(symtable,
 	      AS_HELP_STRING([--enable-symtable],
 			     [use internal symbol table for backtrace
@@ -2901,6 +2970,7 @@ AC_SUBST(BIND9_CO_RULE)
 #
 # IPv6
 #
+# [pairwise: --enable-ipv6, --disable-ipv6]
 AC_ARG_ENABLE(ipv6,
 	      AS_HELP_STRING([--enable-ipv6], [use IPv6 [default=autodetect]]))
 
@@ -2932,6 +3002,11 @@ AC_TRY_COMPILE([
 # This is done before other IPv6 linking tests to LIBS is properly set.
 #
 AC_MSG_CHECKING(for Kame IPv6 support)
+
+# Kame is not included in pairwise testing as it is not present in the
+# relevant Docker image.
+#
+# [pairwise: skip]
 AC_ARG_WITH(kame,
 	    AS_HELP_STRING([--with-kame[=PATH]],
 			   [use Kame IPv6 [default path /usr/local/v6]]),
@@ -3282,7 +3357,7 @@ AC_SUBST(ISC_PLATFORM_NEEDPORTT)
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
 # comment in lib/isc/unix/socket.c).
 #
-
+# [pairwise: --enable-tcp-fastopen, --disable-tcp-fastopen]
 AC_ARG_ENABLE(tcp_fastopen,
 	      AS_HELP_STRING([--disable-tcp-fastopen],
 		     [disable TCP Fast Open support [default=autodetect]]))
@@ -3491,6 +3566,7 @@ AC_SUBST(ISC_LWRES_GETADDRINFOPROTO)
 AC_SUBST(ISC_LWRES_GETNAMEINFOPROTO)
 AC_SUBST(ISC_IRS_GETNAMEINFOSOCKLEN)
 
+# [pairwise: --enable-getifaddrs, --disable-getifaddrs]
 AC_ARG_ENABLE(getifaddrs,
 	      AS_HELP_STRING([--enable-getifaddrs],
 			     [enable the use of getifaddrs() [yes|no].]),
@@ -3584,6 +3660,8 @@ AC_CHECK_FUNC(strcasestr,
 AC_SUBST(ISC_PLATFORM_NEEDSTRCASESTR)
 
 AC_SUBST(READLINE_LIB)
+
+# [pairwise: --with-readline=auto, --with-readline=yes, --without-readline]
 AC_ARG_WITH(readline,
 	    AS_HELP_STRING([--with-readline[=LIBSPEC]],
 			   [specify readline library [default auto]]),
@@ -3710,6 +3788,7 @@ AC_CHECK_FUNC(strerror, AC_DEFINE(HAVE_STRERROR))
 #
 # Use our own SPNEGO implementation?
 #
+# [pairwise: --enable-isc-spnego, --disable-isc-spnego]
 AC_ARG_ENABLE(isc-spnego,
 	      AS_HELP_STRING([--disable-isc-spnego],
 			     [use SPNEGO from GSSAPI library]))
@@ -3739,6 +3818,8 @@ AC_SUBST(DST_EXTRA_SRCS)
 #
 # Note it is very recommended to *not* disable chroot(),
 # this is only because chroot() was made obsolete by Posix.
+#
+# [pairwise: --enable-chroot, --disable-chroot]
 AC_ARG_ENABLE(chroot, AS_HELP_STRING([--disable-chroot], [disable chroot]))
 case "$enable_chroot" in
 	yes|'')
@@ -3747,6 +3828,8 @@ case "$enable_chroot" in
 	no)
 		;;
 esac
+
+# [pairwise: --enable-linux-caps, --disable-linux-caps]
 AC_ARG_ENABLE(linux-caps,
 	      AS_HELP_STRING([--disable-linux-caps],
 			     [disable linux capabilities]))
@@ -3851,6 +3934,8 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
 ],[AC_MSG_ERROR(this cannot happen)])
 ],[AC_MSG_ERROR(this cannot happen)])
 ],[
+
+# [pairwise: skip]
 AC_ARG_WITH(rlimtype, , rlimtype="$withval", rlimtype="long long int")
 ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE $rlimtype"
 AC_MSG_RESULT(cannot determine type of rlim_cur when cross compiling - assuming $rlimtype)])
@@ -4029,6 +4114,7 @@ AC_TRY_COMPILE([
 	 have_stdatomic=no
 	 ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"])
 
+# [pairwise: --enable-atomic, --disable-atomic]
 AC_ARG_ENABLE(atomic,
 	      AS_HELP_STRING([--enable-atomic],
 			     [enable machine specific atomic operations [default=autodetect]]),
@@ -4350,6 +4436,7 @@ AC_SUBST(ISC_PLATFORM_BUSYWAITNOP)
 #
 # Activate "rrset-order fixed" or not?
 #
+# [pairwise: --enable-fixed-rrset, --disable-fixed-rrset]
 AC_ARG_ENABLE(fixed-rrset,
 	      AS_HELP_STRING([--enable-fixed-rrset],
 			     [enable fixed rrset ordering [default=no]]),
@@ -4368,6 +4455,7 @@ esac
 #
 # Enable response policy rewriting using NS IP addresses
 #
+# [pairwise: --enable-rpz-nsip, --disable-rpz-nsip]
 AC_ARG_ENABLE(rpz-nsip,
 	      AS_HELP_STRING([--disable-rpz-nsip],
 			     [disable rpz nsip rules [default=enabled]]),
@@ -4386,6 +4474,7 @@ esac
 #
 # Enable response policy rewriting using NS name
 #
+# [pairwise: --enable-rpz-nsdname, --disable-rpz-nsdname]
 AC_ARG_ENABLE(rpz-nsdname,
 	      AS_HELP_STRING([--disable-rpz-nsdname],
 			     [disable rpz nsdname rules [default=enabled]]),
@@ -4404,6 +4493,7 @@ esac
 #
 # Activate "filter-aaaa-on-v4/v6" or not?
 #
+# [pairwise: --enable-filter-aaaa, --disable-filter-aaaa]
 AC_ARG_ENABLE(filter-aaaa,
 	[  --enable-filter-aaaa    enable filtering of AAAA records [[default=no]]],
 			enable_filter="$enableval",
@@ -4422,6 +4512,7 @@ esac
 #
 # Activate dnstap?
 #
+# [pairwise: --enable-dnstap, --disable-dnstap]
 AC_ARG_ENABLE(dnstap,
 	      AS_HELP_STRING([--enable-dnstap],
 			     [enable dnstap support
@@ -4436,6 +4527,8 @@ if test "x$use_dnstap" != "xno"; then
 	if ! $use_threads; then
 		AC_MSG_ERROR([Dnstap requires threads.])
 	fi
+
+	# [pairwise: skip]
 	AC_ARG_WITH([protobuf-c],
 		    AS_HELP_STRING([--with-protobuf-c=path],
 				   [Path where protobuf-c is installed,
@@ -4469,6 +4562,8 @@ if test "x$use_dnstap" != "xno"; then
 	if test -z "$PROTOC_C"; then
 		AC_MSG_ERROR([The protoc-c program was not found.])
 	fi
+
+	# [pairwise: skip]
 	AC_ARG_WITH([libfstrm], AS_HELP_STRING([--with-libfstrm=path],
 		    [Path where libfstrm is installed, for dnstap]), [
 	    CFLAGS="$CFLAGS -I$withval/include"
@@ -4622,6 +4717,8 @@ AC_SUBST($1)
 # of at the moment).
 #
 AC_MSG_CHECKING(for Docbook-XSL path)
+
+# [pairwise: skip]
 AC_ARG_WITH(docbook-xsl,
 	    AS_HELP_STRING([--with-docbook-xsl[=PATH]],
 			   [specify path for Docbook-XSL stylesheets]),
@@ -4654,6 +4751,10 @@ NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_XHTML, xhtml/maketoc.xsl, $docbook_xsl_trees)
 #
 # IDN support using idnkit
 #
+# idnkit is not included in pairwise testing as it is not present in the
+# relevant Docker image.
+#
+# [pairwise: skip]
 AC_ARG_WITH(idnkit,
 	    AS_HELP_STRING([--with-idnkit[=PATH]],
 			   [enable IDN support using idnkit [yes|no|path]]),
@@ -4675,6 +4776,8 @@ esac
 
 iconvinc=
 iconvlib=
+
+# [pairwise: --with-libiconv, --without-libiconv]
 AC_ARG_WITH(libiconv,
 	    AS_HELP_STRING([--with-libiconv[=IPREFIX]],
 			   [GNU libiconv are in IPREFIX [default PREFIX]]),
@@ -4695,6 +4798,7 @@ no)
 	;;
 esac
 
+# [pairwise: --with-iconv, --without-iconv]
 AC_ARG_WITH(iconv,
 	    AS_HELP_STRING([--with-iconv[=LIBSPEC]],
 			   [specify iconv library [default -liconv]]),
@@ -4708,6 +4812,7 @@ yes)
 	;;
 esac
 
+# [pairwise: skip]
 AC_ARG_WITH(idnlib,
 	    AS_HELP_STRING([--with-idnlib=ARG], [specify libidnkit]),
 	    idnlib="$withval", idnlib="no")
@@ -4734,6 +4839,8 @@ AC_SUBST(IDNKIT_LIBS)
 LIBIDN2_CFLAGS=
 LIBIDN2_LDFLAGS=
 LIBIDN2_LIBS=
+
+# [pairwise: --with-libidn2=yes, --without-libidn2]
 AC_ARG_WITH(libidn2,
 	AS_HELP_STRING([--with-libidn2[=PATH]], [enable IDN support using GNU libidn2 [yes|no|path]]),
 	use_libidn2="$withval", use_libidn2="no")
@@ -4787,7 +4894,7 @@ fi
 #
 # Check whether to build with cmocka unit testing framework
 #
-
+# [pairwise: --with-cmocka, --without-cmocka]
 AC_ARG_WITH([cmocka],
 	    [AS_HELP_STRING([--with-cmocka=no],[enable cmocka based tests (default is no)])],
 	    [:],[with_cmocka=no])
@@ -4866,6 +4973,7 @@ AC_CHECK_FUNCS(setlocale)
 #
 # was --with-tuning specified?
 #
+# [pairwise: --with-tuning=large, --without-tuning]
 AC_ARG_WITH(tuning,
 	    AS_HELP_STRING([--with-tuning=ARG],
 			   [Specify server tuning (large or default)]),
@@ -4890,6 +4998,7 @@ esac
 #
 # was --enable-querytrace specified?
 #
+# [pairwise: --enable-querytrace, --disable-querytrace]
 AC_ARG_ENABLE(querytrace,
 	      AS_HELP_STRING([--enable-querytrace],
 			     [enable very verbose query trace logging
@@ -5042,6 +5151,7 @@ SO_LD=""
 SO_TARGETS=""
 SO_STRIP="cat"
 
+# [pairwise: --with-dlopen, --without-dlopen]
 AC_ARG_WITH([dlopen],
 	    AS_HELP_STRING([--with-dlopen=ARG],
 			   [support dynamically loadable DLZ drivers]),
@@ -5464,6 +5574,7 @@ AC_OUTPUT
 #
 # Now that the Makefiles exist we can ensure that everything is rebuilt.
 #
+# [pairwise: --with-make-clean, --without-make-clean]
 AC_ARG_WITH(make-clean,
 	    AS_HELP_STRING([--with-make-clean],
 			   [run "make clean" at end of configure [yes|no]]),
@@ -5482,6 +5593,7 @@ yes)
 	;;
 esac
 
+# [pairwise: --enable-full-report, --disable-full-report]
 AC_ARG_ENABLE(full-report,
 	      AS_HELP_STRING([--enable-full-report],
 			     [report values of all configure options]))
