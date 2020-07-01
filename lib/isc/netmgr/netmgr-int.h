@@ -79,8 +79,10 @@ typedef struct isc__networker {
  * connections we have peer address here, so both TCP and UDP can be
  * handled with a simple send-like function
  */
-#define NMHANDLE_MAGIC	  ISC_MAGIC('N', 'M', 'H', 'D')
-#define VALID_NMHANDLE(t) ISC_MAGIC_VALID(t, NMHANDLE_MAGIC)
+#define NMHANDLE_MAGIC ISC_MAGIC('N', 'M', 'H', 'D')
+#define VALID_NMHANDLE(t)                      \
+	(ISC_MAGIC_VALID(t, NMHANDLE_MAGIC) && \
+	 atomic_load(&(t)->references) > 0)
 
 typedef void (*isc__nm_closecb)(isc_nmhandle_t *);
 
