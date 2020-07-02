@@ -37,7 +37,7 @@ identifier is the address of an individual interface on a given network;
 in IPv6, addresses belong to interfaces rather than to machines.
 
 The subnetting capability of IPv6 is much more flexible than that of
-IPv4: subnetting can be carried out on bit boundaries, in much the same
+IPv4; subnetting can be carried out on bit boundaries, in much the same
 way as Classless InterDomain Routing (CIDR), and the DNS PTR
 representation ("nibble" format) makes setting up reverse zones easier.
 
@@ -45,7 +45,7 @@ The interface identifier must be unique on the local link, and is
 usually generated automatically by the IPv6 implementation, although it
 is usually possible to override the default setting if necessary. A
 typical IPv6 address might look like:
-``2001:db8:201:9:a00:20ff:fe81:2b32``
+``2001:db8:201:9:a00:20ff:fe81:2b32``.
 
 IPv6 address specifications often contain long strings of zeros, so the
 architects have included a shorthand for specifying them. The double
@@ -72,7 +72,7 @@ Specification documents for the Internet protocol suite, including the
 DNS, are published as part of the Request for Comments (RFCs) series of
 technical notes. The standards themselves are defined by the Internet
 Engineering Task Force (IETF) and the Internet Engineering Steering
-Group (IESG). RFCs can be viewed online at: https://datatracker.ietf.org/doc/.
+Group (IESG). RFCs can be viewed online at: https://datatracker.ietf.org/doc/ .
 
 Some of these RFCs, though DNS-related, are not concerned with implementing
 software.

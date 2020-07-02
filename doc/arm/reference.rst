@@ -5099,10 +5099,10 @@ Zone Types
 ^^^^^^^^^^
 
 The ``type`` keyword is required for the ``zone`` configuration unless
-it is an ``in-view`` configuration. Its acceptable values include:
+it is an ``in-view`` configuration. Its acceptable values are:
 ``primary`` (or ``master``), ``secondary`` (or ``slave``), ``mirror``,
-``delegation-only``, ``forward``, ``hint``, ``redirect``,
-``static-stub``, and ``stub``.
+``hint``, ``stub``, ``static-stub``, ``forward``, ``redirect``,
+or ``delegation-only``.
 
 ``primary``
    A primary zone has a master copy of the data for the zone and is able
@@ -5113,7 +5113,7 @@ it is an ``in-view`` configuration. Its acceptable values include:
     A secondary zone is a replica of a primary zone. Type ``slave`` is a
     synonym for ``secondary``. The ``primaries`` list specifies one or more IP
     addresses of primary servers that the secondary contacts to update
-    its copy of the zone.  Primaires list elements can
+    its copy of the zone.  Primaries list elements can
     also be names of other primaries lists.  By default,
     transfers are made from port 53 on the servers;
     this can be changed for all servers by specifying
@@ -5160,12 +5160,11 @@ it is an ``in-view`` configuration. Its acceptable values include:
    servers for the IANA root zone is built into ``named`` and thus its mirroring
    can be enabled using the following configuration:
 
+    ::
 
-      ::
-
-         zone "." {
-              type mirror;
-         };
+        zone "." {
+             type mirror;
+        };
 
    Mirroring a zone other than root
    requires an explicit list of primary servers to be provided using the
@@ -5176,9 +5175,8 @@ it is an ``in-view`` configuration. Its acceptable values include:
    To make mirror zone contents persist between ``named`` restarts, use the
    :ref:`file <file-option>` option.
 
-
    When configuring NOTIFY for a mirror zone, only ``notify no;`` and ``notify
-   explicit;`` can be used at the zone level.  Using any other ``notify``
+   explicit;`` can be used at the zone level; any other ``notify``
    setting at the zone level is a configuration error. Using any other
    ``notify`` setting at the ``options`` or ``view`` level causes that
    setting to be overridden with ``notify explicit;`` for the mirror zone.  The
@@ -5189,7 +5187,7 @@ it is an ``in-view`` configuration. Its acceptable values include:
    enabled using :ref:`allow-transfer <allow-transfer-access>`.
 
    .. note::
-      Using this zone type with any zone other than the root zone should
+      Use of this zone type with any zone other than the root should
       be considered *experimental* and may cause performance issues, especially
       for zones which are large and/or frequently updated.
 
@@ -5209,11 +5207,12 @@ it is an ``in-view`` configuration. Its acceptable values include:
    Stub zones can be used to eliminate the need for a glue NS record in a parent
    zone, at the expense of maintaining a stub zone entry and a set of name
    server addresses in ``named.conf``. This usage is not recommended for
-   new configurations, and BIND 9 supports it only in a limited way. If a BIND 9 primary, serving a parent zone, has child stub
+   new configurations, and BIND 9 supports it only in a limited way. If a BIND 9
+   primary, serving a parent zone, has child stub
    zones configured, all the secondary servers for the parent zone also need to
    have the same child stub zones configured.
 
-   Stub zones can also be used as a way of forcing the resolution of a given
+   Stub zones can also be used as a way to force the resolution of a given
    domain to use a particular set of authoritative servers. For example, the
    caching name servers on a private network using :rfc:`1918` addressing may be
    configured with stub zones for ``10.in-addr.arpa`` to use a set of
@@ -5224,7 +5223,7 @@ it is an ``in-view`` configuration. Its acceptable values include:
    exceptions: the zone data is statically configured, rather than
    transferred from a primary server; and when recursion is necessary for a query
    that matches a static-stub zone, the locally configured data (name server
-   names and glue addresses) are always used, even if different authoritative
+   names and glue addresses) is always used, even if different authoritative
    information is cached.
 
    Zone data is configured via the ``server-addresses`` and ``server-names``
@@ -5254,7 +5253,7 @@ it is an ``in-view`` configuration. Its acceptable values include:
    for the domain, canceling the effects of any forwarders in the ``options``
    statement. Thus, to use this type of zone to change the
    behavior of the global ``forward`` option (that is, "forward first" to,
-   then "forward only", or vice versa), but using the same servers as set
+   then "forward only", or vice versa), but use the same servers as set
    globally, re-specify the global forwarders.
 
 ``redirect``
@@ -5269,8 +5268,8 @@ it is an ``in-view`` configuration. Its acceptable values include:
    To redirect all NXDOMAIN responses to 100.100.100.2 and
    2001:ffff:ffff::100.100.100.2, configure a type ``redirect`` zone
    named ".", with the zone file containing wildcard records that point to
-   the desired addresses: ``"*. IN A 100.100.100.2"`` and
-   ``"*. IN AAAA 2001:ffff:ffff::100.100.100.2"``.
+   the desired addresses: ``*. IN A 100.100.100.2`` and
+   ``*. IN AAAA 2001:ffff:ffff::100.100.100.2``.
 
    As another example, to redirect all Spanish names (under .ES), use similar entries
    but with the names ``*.ES.`` instead of ``*.``. To redirect all commercial
@@ -5301,6 +5300,17 @@ it is an ``in-view`` configuration. Its acceptable values include:
    ``delegation-only`` has no effect on answers received from forwarders.
 
    See caveats in :ref:`root-delegation-only <root-delegation-only>`.
+
+``in-view``
+   When using multiple views, a ``primary`` or ``secondary`` zone configured
+   in one view can be referenced in a subsequent view. This allows both views
+   to use the same zone without the overhead of loading it more than once. This
+   is configured using a ``zone`` statement, with an ``in-view`` option
+   specifying the view in which the zone is defined. A ``zone`` statement
+   containing ``in-view`` does not need to specify a type, since that is part
+   of the zone definition in the other view.
+
+   See :ref:`multiple_views` for more information.
 
 Class
 ^^^^^
@@ -5358,7 +5368,7 @@ Zone Options
    This option is used to restrict the character set and syntax of
    certain domain names in primary files and/or DNS responses received
    from the network. The default varies according to zone type. For
-   ``primary`` zones the default is ``fail``. For ``secondary`` zones the
+   ``primary`` zones the default is ``fail``; for ``secondary`` zones the
    default is ``warn``. It is not implemented for ``hint`` zones.
 
 ``check-mx``
@@ -5395,14 +5405,14 @@ Zone Options
    See the description of ``try-tcp-refresh`` in :ref:`boolean_options`.
 
 ``database``
-   This specifies the type of database to be used for storing the zone data.
+   This specifies the type of database to be used to store the zone data.
    The string following the ``database`` keyword is interpreted as a
    list of whitespace-delimited words. The first word identifies the
    database type, and any subsequent words are passed as arguments to
    the database to be interpreted in a way specific to the database
    type.
 
-   The default is ``"rbt"``, BIND 9's native in-memory red-black tree
+   The default is ``rbt``, BIND 9's native in-memory red-black tree
    database. This database does not take arguments.
 
    Other values are possible if additional database drivers have been
@@ -5500,15 +5510,15 @@ Zone Options
    2001:db8::1234.
 
 ``server-names``
-   This is only meaningful for static-stub zones. This is a list of domain names
+   This option is only meaningful for static-stub zones. This is a list of domain names
    of name servers that act as authoritative servers of the static-stub
    zone. These names are resolved to IP addresses when ``named``
-   needs to send queries to these servers. To make this supplemental
-   resolution successful, these names must not be a subdomain of the
+   needs to send queries to these servers. For this supplemental
+   resolution to be successful, these names must not be a subdomain of the
    origin name of the static-stub zone. That is, when "example.net" is the
    origin of a static-stub zone, "ns.example" and "master.example.com"
    can be specified in the ``server-names`` option, but "ns.example.net"
-   cannot, and is rejected by the configuration parser.
+   cannot; it is rejected by the configuration parser.
 
    A non-empty list for this option internally configures the apex
    NS RR with the specified names. For example, if "example.com" is
@@ -5561,7 +5571,7 @@ Zone Options
 ``notify-source-v6``
    See the description of ``notify-source-v6`` in :ref:`zone_transfers`.
 
-``min-refresh-time``; \ ``max-refresh-time``; \ ``min-retry-time``; \ ``max-retry-time``
+``min-refresh-time``; ``max-refresh-time``; ``min-retry-time``; ``max-retry-time``
    See the descriptions in :ref:`tuning`.
 
 ``ixfr-from-differences``
@@ -5580,7 +5590,7 @@ Zone Options
 
 ``inline-signing``
    If ``yes``, this enables "bump in the wire" signing of a zone, where
-   a unsigned zone is transferred in or loaded from disk and a signed
+   an unsigned zone is transferred in or loaded from disk and a signed
    version of the zone is served with, possibly, a different serial
    number. This behavior is disabled by default.
 
@@ -5670,7 +5680,7 @@ field), and the type of the record to be updated matches the ``types``
 field. Details for each rule type are described below.
 
 The ``identity`` field must be set to a fully qualified domain name. In
-most cases, this represensts the name of the TSIG or SIG(0) key that
+most cases, this represents the name of the TSIG or SIG(0) key that
 must be used to sign the update request. If the specified name is a
 wildcard, it is subject to DNS wildcard expansion, and the rule may
 apply to multiple identities. When a TKEY exchange has been used to
@@ -5679,38 +5689,38 @@ TKEY exchange is used as the identity of the shared secret. Some
 rule types use identities matching the client's Kerberos principal (e.g,
 ``"host/machine@REALM"``) or Windows realm (``machine$@REALM``).
 
-The name field also specifies a fully qualified domain name. This often
+The ``name`` field also specifies a fully qualified domain name. This often
 represents the name of the record to be updated. Interpretation of this
 field is dependent on rule type.
 
-If no types are explicitly specified, then a rule matches all types
+If no ``types`` are explicitly specified, then a rule matches all types
 except RRSIG, NS, SOA, NSEC, and NSEC3. Types may be specified by name,
 including ``ANY``; ANY matches all types except NSEC and NSEC3, which can
 never be updated. Note that when an attempt is made to delete all
 records associated with a name, the rules are checked for each existing
 record type.
 
-The ruletype field has 16 values: ``name``, ``subdomain``, ``wildcard``,
-``self``, ``selfsub``, ``selfwild``, ``krb5-self``, ``ms-self``,
-``krb5-selfsub``, ``ms-selfsub``, ``krb5-subdomain``, ``ms-subdomain``,
-``tcp-self``, ``6to4-self``, ``zonesub``, and ``external``.
+The ruletype field has 16 values: ``name``, ``subdomain``, ``zonesub``, ``wildcard``,
+``self``, ``selfsub``, ``selfwild``, ``ms-self``, ``ms-selfsub``, ``ms-subdomain``,
+``krb5-self``, ``krb5-selfsub``, ``krb5-subdomain``,
+``tcp-self``, ``6to4-self``, and ``external``.
 
 ``name``
-    With exact-match semantics, this rule matches when the name being updated is identical to the contents of the name field.
+    With exact-match semantics, this rule matches when the name being updated is identical to the contents of the ``name`` field.
 
 ``subdomain``
-    This rule matches when the name being updated is a subdomain of, or identical to, the contents of the name field.
+    This rule matches when the name being updated is a subdomain of, or identical to, the contents of the ``name`` field.
 
 ``zonesub``
     This rule is similar to subdomain, except that it matches when the name being updated is a subdomain of the zone in which the ``update-policy`` statement appears. This obviates the need to type the zone name twice, and enables the use of a standard ``update-policy`` statement in multiple zones without modification.
-    When this rule is used, the name field is omitted.
+    When this rule is used, the ``name`` field is omitted.
 
 ``wildcard``
-    The name field is subject to DNS wildcard expansion, and this rule matches when the name being updated is a valid expansion of the wildcard.
+    The ``name`` field is subject to DNS wildcard expansion, and this rule matches when the name being updated is a valid expansion of the wildcard.
 
 ``self``
-    This rule matches when the name of the record being updated matches the contents of the identity field. The name field is ignored. To avoid confusion, it is recommended that this field be set to the same value as the identity field or to "."
-    The ``self`` rule type is most useful when allowing one key per name to update, where the key has the same name as the record to be updated. In this case, the identity field can be specified as ``*`` (asterisk).
+    This rule matches when the name of the record being updated matches the contents of the ``identity`` field. The ``name`` field is ignored. To avoid confusion, it is recommended that this field be set to the same value as the ``identity`` field or to "."
+    The ``self`` rule type is most useful when allowing one key per name to update, where the key has the same name as the record to be updated. In this case, the ``identity`` field can be specified as ``*`` (asterisk).
 
 ``selfsub``
     This rule is similar to ``self``, except that subdomains of ``self`` can also be updated.
@@ -5721,9 +5731,9 @@ The ruletype field has 16 values: ``name``, ``subdomain``, ``wildcard``,
 ``ms-self``
     When a client sends an UPDATE using a Windows machine principal (for example, ``machine$@REALM``), this rule allows records with the absolute name of ``machine.REALM`` to be updated.
 
-    The realm to be matched is specified in the identity field.
+    The realm to be matched is specified in the ``identity`` field.
 
-    The name field has no effect on this rule; it should be set to "." as a placeholder.
+    The ``name`` field has no effect on this rule; it should be set to "." as a placeholder.
 
     For example, ``grant EXAMPLE.COM ms-self . A AAAA`` allows any machine with a valid principal in the realm ``EXAMPLE.COM`` to update its own address records.
 
@@ -5733,18 +5743,18 @@ The ruletype field has 16 values: ``name``, ``subdomain``, ``wildcard``,
 ``ms-subdomain``
     When a client sends an UPDATE using a Windows machine principal (for example, ``machine$@REALM``), this rule allows any machine in the specified realm to update any record in the zone or in a specified subdomain of the zone.
 
-    The realm to be matched is specified in the identity field.
+    The realm to be matched is specified in the ``identity`` field.
 
-    The name field specifies the subdomain that may be updated. If set to "." or any other name at or above the zone apex, any name in the zone can be updated.
+    The ``name`` field specifies the subdomain that may be updated. If set to "." or any other name at or above the zone apex, any name in the zone can be updated.
 
     For example, if ``update-policy`` for the zone "example.com" includes ``grant EXAMPLE.COM ms-subdomain hosts.example.com. AA AAAA``, any machine with a valid principal in the realm ``EXAMPLE.COM`` is able to update address records at or below ``hosts.example.com``.
 
 ``krb5-self``
-    When a client sends an UPDATE using a Kerberos machine principal (for example, ``host/machine@REALM``), this rule allows records with the absolute name of ``machine`` to be updated, provided it has been authenticated by REALM. This is similar but not identical to ``ms-self``, due to the ``machine`` part of the Kerberos principal being an absolute name instead of a unqualified name.
+    When a client sends an UPDATE using a Kerberos machine principal (for example, ``host/machine@REALM``), this rule allows records with the absolute name of ``machine`` to be updated, provided it has been authenticated by REALM. This is similar but not identical to ``ms-self``, due to the ``machine`` part of the Kerberos principal being an absolute name instead of an unqualified name.
 
-    The realm to be matched is specified in the identity field.
+    The realm to be matched is specified in the ``identity`` field.
 
-    The name field has no effect on this rule; it should be set to "." as a placeholder.
+    The ``name`` field has no effect on this rule; it should be set to "." as a placeholder.
 
     For example, ``grant EXAMPLE.COM krb5-self . A AAAA`` allows any machine with a valid principal in the realm ``EXAMPLE.COM`` to update its own address records.
 
@@ -5755,7 +5765,7 @@ The ruletype field has 16 values: ``name``, ``subdomain``, ``wildcard``,
     This rule is identical to ``ms-subdomain``, except that it works with Kerberos machine principals (i.e., ``host/machine@REALM``) rather than Windows machine principals.
 
 ``tcp-self``
-    This rule allows updates that have been sent via TCP and for which the standard mapping from the client's IP address into the ``in-addr.arpa`` and ``ip6.arpa`` namespaces match the name to be updated. The ``identity`` field must match that name. The ``name`` field should be set to ".". Note that, since identity is based on the client's IP address, it is not necessary for update request messages to be signed.
+    This rule allows updates that have been sent via TCP and for which the standard mapping from the client's IP address into the ``in-addr.arpa`` and ``ip6.arpa`` namespaces matches the name to be updated. The ``identity`` field must match that name. The ``name`` field should be set to ".". Note that, since identity is based on the client's IP address, it is not necessary for update request messages to be signed.
 
     .. note::
         It is theoretically possible to spoof these TCP sessions.
@@ -5773,7 +5783,7 @@ The ruletype field has 16 values: ``name``, ``subdomain``, ``wildcard``,
 ``external``
     This rule allows ``named`` to defer the decision of whether to allow a given update to an external daemon.
 
-    The method of communicating with the daemon is specified in the identity field, the format of which is "``local:``\ path", where "path" is the location of a Unix-domain socket. (Currently, "local" is the only supported mechanism.)
+    The method of communicating with the daemon is specified in the ``identity`` field, the format of which is "``local:``\ path", where "path" is the location of a Unix-domain socket. (Currently, "local" is the only supported mechanism.)
 
     Requests to the external daemon are sent over the Unix-domain socket as datagrams with the following format:
 
@@ -5793,7 +5803,7 @@ The ruletype field has 16 values: ``name``, ``subdomain``, ``wildcard``,
 
 .. _multiple_views:
 
-Multiple views
+Multiple Views
 ^^^^^^^^^^^^^^
 
 When multiple views are in use, a zone may be referenced by more than
@@ -5801,7 +5811,7 @@ one of them. Often, the views contain different zones with the same
 name, allowing different clients to receive different answers for the
 same queries. At times, however, it is desirable for multiple views to
 contain identical zones. The ``in-view`` zone option provides an
-efficient way to do this: it allows a view to reference a zone that was
+efficient way to do this; it allows a view to reference a zone that was
 defined in a previously configured view. For example:
 
 ::
@@ -5810,7 +5820,7 @@ defined in a previously configured view. For example:
        match-clients { 10/8; };
 
        zone example.com {
-       type master;
+       type primary;
        file "example-external.db";
        };
    };
@@ -5831,9 +5841,9 @@ other options, with the exception of ``forward`` and ``forwarders``.
 (These options control the behavior of the containing view, rather than
 change the zone object itself.)
 
-Zone level ACLs (e.g., allow-query, allow-transfer), and other
+Zone-level ACLs (e.g., allow-query, allow-transfer), and other
 configuration details of the zone, are all set in the view the referenced
-zone is defined in. Care needs to be taken to ensure that ACLs are wide
+zone is defined in. Be careful to ensure that ACLs are wide
 enough for all views referencing the zone.
 
 An ``in-view`` zone cannot be used as a response policy zone.
@@ -5879,7 +5889,7 @@ TTL
     The time-to-live of the RR. This field is a 32-bit integer in units of seconds, and is primarily used by resolvers when they cache RRs. The TTL describes how long a RR can be cached before it should be discarded.
 
 class
-    An encoded 16-bit value that identifies a protocol family or instance of a protocol.
+    An encoded 16-bit value that identifies a protocol family or an instance of a protocol.
 
 RDATA
     The resource data. The format of the data is type- and sometimes class-specific.
@@ -5907,7 +5917,7 @@ being described.
 
 The TTL field is a time limit on how long an RR can be
 kept in a cache. This limit does not apply to authoritative data in
-zones; it is also timed out, but by the refreshing policies for the
+zones; that also times out, but follows the refreshing policies for the
 zone. The TTL is assigned by the administrator for the zone where the
 data originates. While short TTLs can be used to minimize caching, and a
 zero TTL prohibits caching, the realities of Internet performance
@@ -5922,7 +5932,7 @@ binary strings and domain names. The domain names are frequently used as
 
 .. _rr_text:
 
-Textual expression of RRs
+Textual Expression of RRs
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 RRs are represented in binary form in the packets of the DNS protocol,
@@ -5969,7 +5979,7 @@ format to contain a 32-bit Internet address.
 The above example shows six RRs, with two RRs at each of three domain
 names.
 
-Here's another possible example:
+Here is another possible example:
 
  +----------------------+---------------+-------------------------------+
  | ``XX.LCS.MIT.EDU.``  | ``IN A``      | ``10.0.0.44``                 |
@@ -6002,7 +6012,7 @@ falls back to the next largest priority. Priority numbers do not
 have any absolute meaning; they are relevant only respective to other
 MX records for that domain name. The domain name given is the machine to
 which the mail is delivered. It *must* have an associated address
-record (A or AAAA) — CNAME is not sufficient.
+record (A or AAAA); CNAME is not sufficient.
 
 For a given domain, if there is both a CNAME record and an MX record,
 the MX record is in error and is ignored. Instead, the mail is
@@ -6022,7 +6032,7 @@ CNAME. For example:
  +------------------------+--------+--------+--------------+------------------------+
 
 Mail delivery is attempted to ``mail.example.com`` and
-``mail2.example.com`` (in any order); if neither of those succeed,
+``mail2.example.com`` (in any order); if neither of those succeeds,
 delivery to ``mail.backup.org`` is attempted.
 
 .. _Setting_TTLs:
@@ -6030,10 +6040,10 @@ delivery to ``mail.backup.org`` is attempted.
 Setting TTLs
 ~~~~~~~~~~~~
 
-The time-to-live of the RR field is a 32-bit integer represented in
+The time-to-live (TTL) of the RR field is a 32-bit integer represented in
 units of seconds, and is primarily used by resolvers when they cache
-RRs. The TTL describes how long a RR can be cached before it should be
-discarded. The following three types of TTL are currently used in a zone
+RRs. The TTL describes how long an RR can be cached before it should be
+discarded. The following three types of TTLs are currently used in a zone
 file.
 
 SOA
@@ -6108,7 +6118,7 @@ Syntax: ``$ORIGIN`` domain-name [comment]
 
 ``$ORIGIN`` sets the domain name that is appended to any
 unqualified records. When a zone is first read, there is an implicit
-``$ORIGIN`` <``zone_name``>\ ``.``, followed by a trailing dot. The
+``$ORIGIN`` <``zone_name``>``.``; note the trailing dot. The
 current ``$ORIGIN`` is appended to the domain specified in the
 ``$ORIGIN`` argument if it is not absolute.
 
@@ -6152,21 +6162,21 @@ The ``$TTL`` Directive
 
 Syntax: ``$TTL`` default-ttl [comment]
 
-This sets the default Time To Live (TTL) for subsequent records with undefined
+This sets the default Time-To-Live (TTL) for subsequent records with undefined
 TTLs. Valid TTLs are of the range 0-2147483647 seconds.
 
 ``$TTL`` is defined in :rfc:`2308`.
 
 .. _generate_directive:
 
-BIND Master File Extension: the ``$GENERATE`` Directive
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BIND Primary File Extension: the ``$GENERATE`` Directive
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Syntax: ``$GENERATE`` range lhs [ttl] [class] type rhs [comment]
 
 ``$GENERATE`` is used to create a series of resource records that only
 differ from each other by an iterator. ``$GENERATE`` can be used to
-easily generate the sets of records required to support sub /24 reverse
+easily generate the sets of records required to support sub-/24 reverse
 delegations described in :rfc:`2317`.
 
 ::
@@ -6216,7 +6226,7 @@ is equivalent to
 ``owner``
     This describes the owner name of the resource records to be created. Any single ``$`` (dollar sign) symbols within the ``owner`` string are replaced by the iterator value. To get a ``$`` in the output, escape the ``$`` using a backslash ``\``, e.g., ``\$``. The ``$`` may optionally be followed by modifiers which change the offset from the iterator, field width, and base.
 
-    Modifiers are introduced by a ``{`` (left brace) immediately following the ``$`` as in  ``${offset[,width[,base]]}``. For example, ``${-20,3,d}`` subtracts 20 from the current value and prints the result as a decimal in a zero-padded field of width 3. Available output forms are decimal (``d``), octal (``o``), hexadecimal (``x`` or ``X`` for uppercase), and nibble (``n`` or ``N`` for uppercase).
+    Modifiers are introduced by a ``{`` (left brace) immediately following the ``$``, as in  ``${offset[,width[,base]]}``. For example, ``${-20,3,d}`` subtracts 20 from the current value and prints the result as a decimal in a zero-padded field of width 3. Available output forms are decimal (``d``), octal (``o``), hexadecimal (``x`` or ``X`` for uppercase), and nibble (``n`` or ``N`` for uppercase).
 
     The default modifier is ``${0,0,d}``. If the ``owner`` is not absolute, the current ``$ORIGIN`` is appended to the name.
 
@@ -6323,9 +6333,9 @@ Cache DB RRsets
    nonexistent.  Counters named for RR types indicate the number of active
    RRsets for each type in the cache database.
 
-   If an RR type name is preceded by an exclamation mark (!), it represents the
+   If an RR type name is preceded by an exclamation point (!), it represents the
    number of records in the cache which indicate that the type does not exist
-   for a particular name (this is also known as "NXRRSET").  If an RR type name
+   for a particular name; this is also known as "NXRRSET". If an RR type name
    is preceded by a hash mark (#), it represents the number of RRsets for this
    type that are present in the cache but whose TTLs have expired; these RRsets
    may only be used if stale answers are enabled.  If an RR type name is
@@ -6346,7 +6356,7 @@ view name is omitted when the server is not configured with explicit
 views.
 
 There are currently two user interfaces to get access to the statistics.
-One is in the plain text format dumped to the file specified by the
+One is in plain-text format, dumped to the file specified by the
 ``statistics-file`` configuration option; the other is remotely
 accessible via a statistics channel when the ``statistics-channels``
 statement is specified in the configuration file (see :ref:`statschannels`.)
@@ -6545,16 +6555,16 @@ Zone Maintenance Statistics Counters
     This indicates the number of IPv6 SOA queries sent.
 
 ``AXFRReqv4``
-    This indicates the requested IPv4 AXFR.
+    This indicates the number of requested IPv4 AXFRs.
 
 ``AXFRReqv6``
-    This indicates the requested IPv6 AXFR.
+    This indicates the number of requested IPv6 AXFRs.
 
 ``IXFRReqv4``
-    This indicates the requested IPv4 IXFR.
+    This indicates the number of requested IPv4 IXFRs.
 
 ``IXFRReqv6``
-    This indicates the requested IPv6 IXFR.
+    This indicates the number of requested IPv6 IXFRs.
 
 ``XfrSuccess``
     This indicates the number of successful zone transfer requests.
