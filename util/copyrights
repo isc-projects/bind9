@@ -963,6 +963,7 @@
 ./bin/tests/system/sfcache/tests.sh		SH	2014,2016,2017,2018,2019,2020
 ./bin/tests/system/shutdown/clean.sh		SH	2020
 ./bin/tests/system/shutdown/conftest.py		PYTHON	2020
+./bin/tests/system/shutdown/prereq.sh		SH	2020
 ./bin/tests/system/shutdown/setup.sh		SH	2020
 ./bin/tests/system/shutdown/tests-shutdown.py	PYTHON-BIN	2020
 ./bin/tests/system/smartsign/clean.sh		SH	2010,2012,2014,2016,2018,2019,2020
