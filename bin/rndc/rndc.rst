@@ -150,7 +150,7 @@ Currently supported commands are:
    If the ``-clean`` argument is specified, the zone's master file (and
    journal file, if any) will be deleted along with the zone. Without
    the ``-clean`` option, zone files must be cleaned up by hand. (If the
-   zone is of type "slave" or "stub", the files needing to be cleaned up
+   zone is of type ``secondary`` or ``stub``, the files needing to be cleaned up
    will be reported in the output of the ``rndc delzone`` command.)
 
    If the zone was originally added via ``rndc addzone``, then it will
@@ -372,7 +372,7 @@ Currently supported commands are:
    Reload the given zone.
 
 ``retransfer`` *zone* [*class* [*view*]]
-   Retransfer the given slave zone from the master server.
+   Retransfer the given secondary zone from the primary server.
 
    If the zone is configured to use ``inline-signing``, the signed
    version of the zone is discarded; after the retransfer of the
@@ -459,7 +459,7 @@ Currently supported commands are:
 
    Currently, the only defined value for hash algorithm is ``1``,
    representing SHA-1. The ``flags`` may be set to ``0`` or ``1``,
-   depending on whether you wish to set the opt-out bit in the NSEC3
+   depending on whether the opt-out bit should be set in the NSEC3
    chain. ``iterations`` defines the number of additional times to apply
    the algorithm when generating an NSEC3 hash. The ``salt`` is a string
    of data expressed in hexadecimal, a hyphen (`-') if no salt is to be
@@ -562,7 +562,7 @@ Currently supported commands are:
 ``rndc`` commands that specify zone names, such as ``reload``,
 ``retransfer`` or ``zonestatus``, can be ambiguous when applied to zones
 of type ``redirect``. Redirect zones are always called ".", and can be
-confused with zones of type ``hint`` or with slaved copies of the root
+confused with zones of type ``hint`` or with secondary copies of the root
 zone. To specify a redirect zone, use the special zone name
 ``-redirect``, without a trailing period. (With a trailing period, this
 would specify a zone called "-redirect".)
