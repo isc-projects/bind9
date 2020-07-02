@@ -134,7 +134,6 @@ TESTS +=			\
 	rrsetorder		\
 	rsabigexponent		\
 	runtime			\
-	shutdown		\
 	sfcache			\
 	smartsign		\
 	sortlist		\
@@ -210,16 +209,16 @@ TESTS += chain
 endif HAVE_PERLMOD_NET_DNS_NAMESERVER
 endif HAVE_PERLMOD_NET_DNS
 
+if HAVE_PYTEST
+TESTS += rpzextra shutdown
+endif
+
 endif HAVE_PYMOD_DNS
 
 endif HAVE_PYTHON
 
 if HAVE_PKCS11
 TESTS += pkcs11
-endif
-
-if HAVE_PYTEST
-TESTS += rpzextra
 endif
 
 else !HAVE_PERL
