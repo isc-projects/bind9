@@ -1371,8 +1371,8 @@ set_keytimes_algorithm_policy() {
 
 	# Second ZSK (KEY3).
 	created=$(key_get KEY3 CREATED)
-	set_keytime    "KEY3" "PUBLISHED" "${published}"
-	set_keytime    "KEY3" "ACTIVE"    "${published}"
+	set_keytime    "KEY3" "PUBLISHED" "${created}"
+	set_keytime    "KEY3" "ACTIVE"    "${created}"
 	# Key was pregenerated.
 	if [ "$1" == "pregenerated" ]; then
 		keyfile=$(key_get KEY3 BASEFILE)
