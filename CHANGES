@@ -1,3 +1,7 @@
+5458.	[bug]		Prevent a theoretically possible NULL dereference caused
+			by a data race between zone_maintenance() and
+			dns_zone_setview_helper(). [GL #1627]
+
 5457.	[placeholder]
 
 5456.	[func]		Added "primaries" as a synonym for "masters" in
