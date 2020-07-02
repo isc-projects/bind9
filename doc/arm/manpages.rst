@@ -35,6 +35,7 @@ Manual Pages
 .. include:: ../../bin/tools/named-journalprint.rst
 .. include:: ../../bin/tools/named-nzd2nzf.rst
 .. include:: ../../bin/tools/named-rrchecker.rst
+.. include:: ../../bin/named/named.conf.rst
 .. include:: ../../bin/named/named.rst
 .. include:: ../../bin/tools/nsec3hash.rst
 .. include:: ../../bin/dig/nslookup.rst
