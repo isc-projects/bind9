@@ -1177,7 +1177,8 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 						memmove(&to_keep[i + 1],
 							&to_keep[i],
 							sizeof(to_keep[0]) *
-							(versions - i - 1));
+								(versions - i -
+								 1));
 						to_keep[i] = version;
 					}
 				}
