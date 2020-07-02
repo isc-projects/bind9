@@ -132,6 +132,32 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	return (ISC_R_SUCCESS);
 }
 
+/*%<
+ * Allocator for UDP recv operations. Limited to size 20 * (2^16 + 2),
+ * which allows enough space for recvmmsg() to get multiple messages at
+ * a time.
+ *
+ * Note this doesn't actually allocate anything, it just assigns the
+ * worker's receive buffer to a socket, and marks it as "in use".
+ */
+static void
+udp_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+	isc__networker_t *worker = NULL;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_udpsocket);
+	REQUIRE(isc__nm_in_netthread());
+	REQUIRE(size <= ISC_NETMGR_RECVBUF_SIZE);
+
+	worker = &sock->mgr->workers[sock->tid];
+	INSIST(!worker->recvbuf_inuse);
+
+	buf->base = worker->recvbuf;
+	buf->len = ISC_NETMGR_RECVBUF_SIZE;
+	worker->recvbuf_inuse = true;
+}
+
 /*
  * handle 'udplisten' async call - start listening on a socket.
  */
@@ -193,7 +219,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	uv_send_buffer_size(&sock->uv_handle.handle,
 			    &(int){ ISC_SEND_BUFFER_SIZE });
 #endif
-	uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb, udp_recv_cb);
+	uv_udp_recv_start(&sock->uv_handle.udp, udp_alloc_cb, udp_recv_cb);
 }
 
 static void
