@@ -334,7 +334,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 					    ISC_LOG_ERROR,
 					    "'%.*s' is not a valid type",
 					    (int)r.length, str);
-				isc_mem_put(mctx, types, n * sizeof(types));
+				isc_mem_put(mctx, types, n * sizeof(*types));
 				goto cleanup;
 			}
 		}
