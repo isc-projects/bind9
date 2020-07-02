@@ -31,7 +31,6 @@ ARPANAME=$TOP_BUILDDIR/bin/tools/arpaname
 CDS=$TOP_BUILDDIR/bin/dnssec/dnssec-cds
 CHECKCONF=$TOP_BUILDDIR/bin/check/named-checkconf
 CHECKZONE=$TOP_BUILDDIR/bin/check/named-checkzone
-DDNSCONFGEN=$TOP_BUILDDIR/bin/confgen/ddns-confgen
 DELV=$TOP_BUILDDIR/bin/delv/delv
 DIG=$TOP_BUILDDIR/bin/dig/dig
 DNSTAPREAD=$TOP_BUILDDIR/bin/tools/dnstap-read

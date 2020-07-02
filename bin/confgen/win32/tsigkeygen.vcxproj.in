@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1EA4FC64-F33B-4A50-970A-EA052BBE9CF1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ddnsconfgen</RootNamespace>
+    <RootNamespace>tsigkeygen</RootNamespace>
     @WINDOWS_TARGET_PLATFORM_VERSION@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -45,14 +45,14 @@
     <OutDir>..\..\..\Build\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
     <IntDirSharingDetected>None</IntDirSharingDetected>
-    <TargetName>ddns-confgen</TargetName>
+    <TargetName>tsig-keygen</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|@PLATFORM@'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\..\..\Build\$(Configuration)\</OutDir>
     <IntDir>.\$(Configuration)\</IntDir>
     <IntDirSharingDetected>None</IntDirSharingDetected>
-    <TargetName>ddns-confgen</TargetName>
+    <TargetName>tsig-keygen</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|@PLATFORM@'">
     <ClCompile>
@@ -81,8 +81,8 @@
     </Link>
     <PostBuildEvent>
       <Command>cd ..\..\..\Build\$(Configuration)
-copy /Y ddns-confgen.exe tsig-keygen.exe
-copy /Y ddns-confgen.ilk tsig-keygen.ilk
+copy /Y tsig-keygen.exe ddns-confgen.exe
+copy /Y tsig-keygen.ilk ddns-confgen.ilk
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -119,12 +119,12 @@ copy /Y ddns-confgen.ilk tsig-keygen.ilk
     </Link>
     <PostBuildEvent>
       <Command>cd ..\..\..\Build\$(Configuration)
-copy /Y ddns-confgen.exe tsig-keygen.exe
+copy /Y tsig-keygen.exe ddns-confgen.exe
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\ddns-confgen.c" />
+    <ClCompile Include="..\tsig-keygen.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\lib\isc\win32\libisc.vcxproj">

@@ -53,14 +53,14 @@ ns1.update.nil.         A       10.53.0.2
 ns2.update.nil.		AAAA	::1
 EOF
 
-$DDNSCONFGEN -q -z example.nil > ns1/ddns.key
+$TSIGKEYGEN ddns-key.example.nil > ns1/ddns.key
 
-$DDNSCONFGEN -q -a hmac-md5 -k md5-key -z keytests.nil > ns1/md5.key
-$DDNSCONFGEN -q -a hmac-sha1 -k sha1-key -z keytests.nil > ns1/sha1.key
-$DDNSCONFGEN -q -a hmac-sha224 -k sha224-key -z keytests.nil > ns1/sha224.key
-$DDNSCONFGEN -q -a hmac-sha256 -k sha256-key -z keytests.nil > ns1/sha256.key
-$DDNSCONFGEN -q -a hmac-sha384 -k sha384-key -z keytests.nil > ns1/sha384.key
-$DDNSCONFGEN -q -a hmac-sha512 -k sha512-key -z keytests.nil > ns1/sha512.key
+$TSIGKEYGEN -a hmac-md5 md5-key > ns1/md5.key
+$TSIGKEYGEN -a hmac-sha1 sha1-key > ns1/sha1.key
+$TSIGKEYGEN -a hmac-sha224 sha224-key > ns1/sha224.key
+$TSIGKEYGEN -a hmac-sha256 sha256-key > ns1/sha256.key
+$TSIGKEYGEN -a hmac-sha384 sha384-key > ns1/sha384.key
+$TSIGKEYGEN -a hmac-sha512 sha512-key > ns1/sha512.key
 
 (cd ns3; $SHELL -e sign.sh)
 

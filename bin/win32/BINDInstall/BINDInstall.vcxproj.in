@@ -162,7 +162,7 @@
     <ProjectReference Include="..\..\..\bin\confgen\win32\confgentool.vcxproj">
       <Project>{64964B03-4815-41F0-9057-E766A94AF197}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\bin\confgen\win32\ddnsconfgen.vcxproj">
+    <ProjectReference Include="..\..\..\bin\confgen\win32\tsigkeygen.vcxproj">
       <Project>{1EA4FC64-F33B-4A50-970A-EA052BBE9CF1}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\bin\confgen\win32\rndcconfgen.vcxproj">

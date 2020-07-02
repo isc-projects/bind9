@@ -3,7 +3,6 @@ include $(top_srcdir)/Makefile.docs
 
 MANPAGES_RST =				\
 	arpaname.rst			\
-	ddns-confgen.rst		\
 	delv.rst			\
 	dig.rst				\
 	dnssec-cds.rst			\
@@ -37,10 +36,11 @@ MANPAGES_RST =				\
 	rndc-confgen.rst		\
 	rndc.conf.rst			\
 	rndc.rst			\
+	tsig-keygen.rst			\
 	../../bin/check/named-checkconf.rst \
 	../../bin/check/named-checkzone.rst \
-	../../bin/confgen/ddns-confgen.rst \
 	../../bin/confgen/rndc-confgen.rst \
+	../../bin/confgen/tsig-keygen.rst \
 	../../bin/delv/delv.rst \
 	../../bin/dig/dig.rst \
 	../../bin/dig/host.rst \
@@ -84,7 +84,6 @@ man_MANS =				\
 	nsupdate.1			\
 	named.conf.5			\
 	rndc.conf.5			\
-	ddns-confgen.8			\
 	dnssec-cds.1			\
 	dnssec-dsfromkey.1		\
 	dnssec-importkey.1		\
@@ -102,7 +101,8 @@ man_MANS =				\
 	named.8				\
 	nsec3hash.1			\
 	rndc-confgen.8			\
-	rndc.8
+	rndc.8				\
+	tsig-keygen.8
 
 if HAVE_PKCS11
 man_MANS +=				\

@@ -11,7 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\ddns-confgen.c">
+    <ClCompile Include="..\tsig-keygen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

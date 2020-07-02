@@ -20,11 +20,11 @@ libconfgen_la_SOURCES =		\
 	util.c			\
 	unix/os.c
 
-sbin_PROGRAMS = ddns-confgen rndc-confgen
+sbin_PROGRAMS = tsig-keygen rndc-confgen
 
 install-exec-hook:
-	ln -f $(DESTDIR)$(sbindir)/ddns-confgen \
-	      $(DESTDIR)$(sbindir)/tsig-confgen
+	ln -f $(DESTDIR)$(sbindir)/tsig-keygen \
+	      $(DESTDIR)$(sbindir)/ddns-confgen
 
 uninstall-hook:
-	-rm -f $(DESTDIR)$(sbindir)/tsig-confgen
+	-rm -f $(DESTDIR)$(sbindir)/ddns-confgen
