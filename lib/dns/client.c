@@ -1407,10 +1407,8 @@ cleanup:
 	if (sigrdataset != NULL) {
 		putrdataset(client->mctx, &sigrdataset);
 	}
-	if (rctx != NULL) {
-		isc_mutex_destroy(&rctx->lock);
-		isc_mem_put(mctx, rctx, sizeof(*rctx));
-	}
+	isc_mutex_destroy(&rctx->lock);
+	isc_mem_put(mctx, rctx, sizeof(*rctx));
 	isc_event_free(ISC_EVENT_PTR(&event));
 	isc_task_detach(&tclone);
 	dns_view_detach(&view);
