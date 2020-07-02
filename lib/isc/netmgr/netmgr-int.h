@@ -561,16 +561,6 @@ isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event);
  */
 
 void
-isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf);
-/*%<
- * Allocator for recv operations.
- *
- * Note that as currently implemented, this doesn't actually
- * allocate anything, it just assigns the the isc__networker's UDP
- * receive buffer to a socket, and marks it as "in use".
- */
-
-void
 isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf);
 /*%<
  * Free a buffer allocated for a receive operation.
