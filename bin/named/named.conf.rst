@@ -10,7 +10,7 @@
 
 .. highlight: console
 
-named.conf - configuration file for ``named``
+named.conf - configuration file for **named**
 ---------------------------------------------
 
 Synopsis
@@ -22,13 +22,13 @@ Description
 ~~~~~~~~~~~
 
 ``named.conf`` is the configuration file for ``named``. Statements are
-enclosed in braces (``[ ]``) and terminated with a semi-colon (``;``). Clauses in the
+enclosed in braces and terminated with a semi-colon. Clauses in the
 statements are also semi-colon terminated.  The usual comment styles are
 supported:
 
 C style: /\* \*/
 
-C++ style: // to end of line
+ C++ style: // to end of line
 
 Unix style: # to end of line
 
