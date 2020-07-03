@@ -33,9 +33,9 @@ EXTRA_DIST =					\
 	../misc/logging.grammar.rst		\
 	../misc/managed-keys.grammar.rst	\
 	../misc/master.zoneopt.rst		\
-	../misc/masters.grammar.rst		\
 	../misc/mirror.zoneopt.rst		\
 	../misc/options.grammar.rst		\
+	../misc/primaries.grammar.rst		\
 	../misc/redirect.zoneopt.rst		\
 	../misc/server.grammar.rst		\
 	../misc/slave.zoneopt.rst		\
