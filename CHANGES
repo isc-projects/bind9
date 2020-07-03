@@ -59,23 +59,21 @@
 
 5456.	[func]		Added "primaries" as a synonym for "masters" in
 			named.conf, and "primary-only" as a synonym for
-			"master-only" in the parameters to "notify",
-			in order to bring terminology up to date with
-			RFC 8499. [GL #1948]
+			"master-only" in the parameters to "notify", to bring
+			terminology up-to-date with RFC 8499. [GL #1948]
 
-5455.	[bug]		`named` could crash when cleaning dead nodes
-			in lib/dns/rbtdb.c that have been reused meanwhile.
-			[GL #1968]
+5455.	[bug]		named could crash when cleaning dead nodes in
+			lib/dns/rbtdb.c that were being reused. [GL #1968]
 
-5454.	[bug]		Address a startup crash happening when server is
-			under load and root zone is not yet loaded. [GL #1862]
+5454.	[bug]		Address a startup crash that occurred when the server
+			was under load and the root zone had not yet been
+			loaded. [GL #1862]
 
-5453.	[bug]		`named` would crash on shutdown when new `rndc`
-			connection is received at the same time as
-			shutting down. [GL #1747]
+5453.	[bug]		named crashed on shutdown when a new rndc connection was
+			received during shutdown. [GL #1747]
 
-5452.	[bug]		The "blackhole" ACL was accidentally disabled with
-			respect to client queries. [GL #1936]
+5452.	[bug]		The "blackhole" ACL was accidentally disabled for client
+			queries. [GL #1936]
 
 5451.	[func]		Add 'rndc dnssec -status' command. [GL #1612]
 
@@ -93,14 +91,14 @@
 
 5446.	[bug]		The validator could fail to accept a properly signed
 			RRset if an unsupported algorithm appeared earlier in
-			the DNSKEY RRset than a supported algorithm.  It could
+			the DNSKEY RRset than a supported algorithm. It could
 			also stop if it detected a malformed public key.
 			[GL #1689]
 
 5445.	[cleanup]	Disable and disallow static linking. [GL #1933]
 
-5444.	[bug]		'rndc dnstap -roll <value>' was not limiting the
-			number of saved files to <value>. [GL !3728]
+5444.	[bug]		'rndc dnstap -roll <value>' did not limit the number of
+			saved files to <value>. [GL !3728]
 
 5443.	[bug]		The "primary" and "secondary" keywords, when used
 			as parameters for "check-names", were not
@@ -113,8 +111,8 @@
 
 5440.	[placeholder]
 
-5439.	[bug]		The dsset returned by dns_keynode_dsset() was not
-			thread safe. [GL #1926]
+5439.	[bug]		The DS RRset returned by dns_keynode_dsset() was used in
+			a non-thread-safe manner. [GL #1926]
 
 	--- 9.17.2 released ---
 
