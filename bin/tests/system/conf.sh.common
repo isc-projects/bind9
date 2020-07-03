@@ -61,7 +61,7 @@ PARALLEL_COMMON="dnssec rpzrecurse serve-stale \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip2 glue idna inline integrity ixfr \
-	kasp keepalive legacy limits \
+	keepalive legacy limits \
 	masterfile masterformat metadata mirror mkeys \
 	names notify nslookup nsupdate nzd2nzf \
 	padding pending pipelined qmin \
