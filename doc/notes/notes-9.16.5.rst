@@ -26,6 +26,10 @@ Bug Fixes
   send a response over the closing connection triggered an assertion
   failure in the function ``isc__nm_tcpdns_send()``. [GL #1937]
 
+- A race condition could occur when ``named`` attempted to use a UDP
+  interface that was shutting down. This triggered an assertion failure
+  in ``uv__udp_finish_close()``. [GL #1938]
+
 - The DS RRset returned by ``dns_keynode_dsset()`` was used in a
   non-thread-safe manner. This could result in an INSIST being
   triggered. [GL #1926]
