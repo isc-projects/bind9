@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.20
+Release Notes for BIND Version 9.11.21
 
 Introduction
 
@@ -35,6 +35,21 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.21
+
+Bug Fixes
+
+  • named could crash when cleaning dead nodes in lib/dns/rbtdb.c that
+    were being reused. [GL #1968]
+
+  • Properly handle missing kyua command so that make check does not fail
+    unexpectedly when CMocka is installed, but Kyua is not. [GL #1950]
+
+  • The validator could fail to accept a properly signed RRset if an
+    unsupported algorithm appeared earlier in the DNSKEY RRset than a
+    supported algorithm. It could also stop if it detected a malformed
+    public key. [GL #1689]
 
 Notes for BIND 9.11.20
 
