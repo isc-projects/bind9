@@ -14475,7 +14475,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	dns_dnsseckey_t *key;
 	const char *ptr;
 	/* variables for -status */
-	char output[BUFSIZ];
+	char output[4096];
 	isc_stdtime_t now;
 	isc_time_t timenow;
 	const char *dir;
