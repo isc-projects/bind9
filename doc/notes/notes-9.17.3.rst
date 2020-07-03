@@ -18,6 +18,9 @@ New Features
   policy and keys in use, the key states, and rollover status.
   [GL #1612]
 
+- Added support in the network manager for initiating outgoing TCP
+  connections. [GL #1958]
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
