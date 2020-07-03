@@ -30,6 +30,15 @@ Bug Fixes
   interface that was shutting down. This triggered an assertion failure
   in ``uv__udp_finish_close()``. [GL #1938]
 
+- Fix assertion failure when server was under load and root zone had not
+  yet been loaded. [GL #1862]
+
+- ``named`` could crash when cleaning dead nodes in ``lib/dns/rbtdb.c``
+  that were being reused. [GL #1968]
+
+- ``named`` crashed on shutdown when a new ``rndc`` connection was
+  received during shutdown. This has been fixed. [GL #1747]
+
 - The DS RRset returned by ``dns_keynode_dsset()`` was used in a
   non-thread-safe manner. This could result in an INSIST being
   triggered. [GL #1926]
@@ -53,12 +62,3 @@ Bug Fixes
 - The ``blackhole`` ACL was inadvertently disabled for client queries.
   Blocked IP addresses were not used for upstream queries but queries
   from those addresses could still be answered. [GL #1936]
-
-- ``named`` crashed on shutdown when a new ``rndc`` connection was
-  received during shutdown. This has been fixed. [GL #1747]
-
-- Fix assertion failure when server was under load and root zone had not
-  yet been loaded. [GL #1862]
-
-- ``named`` could crash when cleaning dead nodes in ``lib/dns/rbtdb.c``
-  that were being reused. [GL #1968]
