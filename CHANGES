@@ -23,6 +23,8 @@
 			statistics.  Convert the header attributes to use atomic
 			operations. [GL #1475]
 
+	--- 9.16.5 released ---
+
 5458.	[bug]		Prevent a theoretically possible NULL dereference caused
 			by a data race between zone_maintenance() and
 			dns_zone_setview_helper(). [GL #1627]

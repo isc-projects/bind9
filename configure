@@ -17993,6 +17993,7 @@ fi
 
 
 
+
 #
 # was --with-libxml2 specified?
 #
@@ -20854,6 +20855,7 @@ $as_echo "#define HAVE_DNSTAP 1" >>confdefs.h
 	DNSTAPTARGETS='${DNSTAPTARGETS}'
 	DNSTAP_MANS='${dnstap_man1_MANS}'
 fi
+
 
 
 
