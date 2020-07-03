@@ -330,7 +330,6 @@ control_respond(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	if (result != ISC_R_SUCCESS) {
 		isc_nmhandle_unref(handle);
 		conn->sending = false;
-		goto cleanup;
 	}
 
 cleanup:
@@ -357,9 +356,16 @@ control_command(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
+	/*
+	 * An extra ref and two unrefs are needed here to
+	 * ensure the handle isn't cleaned up if we're running
+	 * an "rndc stop" command.
+	 */
+	isc_nmhandle_ref(conn->handle);
 	conn->result = named_control_docommand(conn->request,
 					       listener->readonly, &conn->text);
 	control_respond(conn->handle, conn->result, conn);
+	isc_nmhandle_unref(conn->handle);
 	isc_nmhandle_unref(conn->handle);
 	isc_event_free(&event);
 }
@@ -382,7 +388,14 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		if (result != ISC_R_CANCELED && result != ISC_R_EOF) {
+		if (result == ISC_R_CANCELED) {
+			/*
+			 * Don't bother with any more scheduled command events.
+			 */
+			listener->controls->shuttingdown = true;
+			isc_task_purge(named_g_server->task, NULL,
+				       NAMED_EVENT_COMMAND, NULL);
+		} else if (result != ISC_R_EOF) {
 			log_invalid(&conn->ccmsg, result);
 		}
 
