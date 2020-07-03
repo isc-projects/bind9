@@ -11,38 +11,15 @@
 
 <section xml:id="relnotes-9.11.21"><info><title>Notes for BIND 9.11.21</title></info>
 
-  <section xml:id="relnotes-9.11.21-security"><info><title>Security Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.21-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.21-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes-9.11.21-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
+      <listitem>
+        <para>
+          <command>named</command> could crash when cleaning dead nodes in
+          <filename>lib/dns/rbtdb.c</filename> that were being reused.
+          [GL #1968]
+        </para>
+      </listitem>
       <listitem>
         <para>
           Properly handle missing <command>kyua</command> command so that
@@ -52,17 +29,11 @@
       </listitem>
       <listitem>
         <para>
-          The validator could fail to accept a properly signed RRset
-          if an unsupported algorithm appeared earlier in the DNSKEY
-          RRset than a supported algorithm.  It could also stop if
-          it detected a malformed public key. [GL #1689]
+          The validator could fail to accept a properly signed RRset if an
+          unsupported algorithm appeared earlier in the DNSKEY RRset than a
+          supported algorithm. It could also stop if it detected a malformed
+          public key. [GL #1689]
         </para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could crash when cleaning dead nodes in
-	  lib/dns/rbtdb.c that have been reused meanwhile. [GL #1968]
-	</para>
       </listitem>
     </itemizedlist>
   </section>
