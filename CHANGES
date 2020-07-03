@@ -11,17 +11,17 @@
 			by a data race between zone_maintenance() and
 			dns_zone_setview_helper(). [GL #1627]
 
-5455.	[bug]		`named` could crash when cleaning dead nodes
-			in lib/dns/rbtdb.c that have been reused meanwhile.
-			[GL #1968]
+5455.	[bug]		named could crash when cleaning dead nodes in
+			lib/dns/rbtdb.c that were being reused. [GL #1968]
 
 5447.	[bug]		IPv6 addresses ending in "::" could break YAML
 			parsing. A "0" is now appended to such addresses
-			in YAML output from dnstap-read. [GL #1952]
+			in YAML output from dig, mdig, delv, and dnstap-read.
+			[GL #1952]
 
 5446.	[bug]		The validator could fail to accept a properly signed
 			RRset if an unsupported algorithm appeared earlier in
-			the DNSKEY RRset than a supported algorithm.  It could
+			the DNSKEY RRset than a supported algorithm. It could
 			also stop if it detected a malformed public key.
 			[GL #1689]
 
