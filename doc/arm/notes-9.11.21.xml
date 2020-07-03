@@ -15,6 +15,13 @@
     <itemizedlist>
       <listitem>
         <para>
+          <command>named</command> could crash when cleaning dead nodes in
+          <filename>lib/dns/rbtdb.c</filename> that were being reused.
+          [GL #1968]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           Properly handle missing <command>kyua</command> command so that
           <command>make check</command> does not fail unexpectedly when CMocka
           is installed, but Kyua is not. [GL #1950]
@@ -26,13 +33,6 @@
           unsupported algorithm appeared earlier in the DNSKEY RRset than a
           supported algorithm. It could also stop if it detected a malformed
           public key. [GL #1689]
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          <command>named</command> could crash when cleaning dead nodes in
-          <filename>lib/dns/rbtdb.c</filename> that were being reused.
-          [GL #1968]
         </para>
       </listitem>
     </itemizedlist>
