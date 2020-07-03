@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.11.20</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.11.21</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -71,6 +71,40 @@
   </p>
 </div>
 
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.21"></a>Notes for BIND 9.11.21</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.21-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          <span class="command"><strong>named</strong></span> could crash when cleaning dead nodes in
+          <code class="filename">lib/dns/rbtdb.c</code> that were being reused.
+          [GL #1968]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          Properly handle missing <span class="command"><strong>kyua</strong></span> command so that
+          <span class="command"><strong>make check</strong></span> does not fail unexpectedly when CMocka
+          is installed, but Kyua is not. [GL #1950]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          The validator could fail to accept a properly signed RRset if an
+          unsupported algorithm appeared earlier in the DNSKEY RRset than a
+          supported algorithm. It could also stop if it detected a malformed
+          public key. [GL #1689]
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+</div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.20"></a>Notes for BIND 9.11.20</h3></div></div></div>
