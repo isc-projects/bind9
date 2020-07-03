@@ -38,6 +38,11 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- A race condition could occur if a TCP socket connection was closed
+  while ``named`` was waiting for a recursive response. The attempt to
+  send a response over the closing connection triggered an assertion
+  failure in the function ``isc__nm_tcpdns_send()``. [GL #1937]
+
 - The DS RRset returned by ``dns_keynode_dsset()`` was used in a
   non-thread-safe manner. This could result in an INSIST being
   triggered. [GL #1926]
