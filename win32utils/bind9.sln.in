@@ -92,7 +92,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "confgentool", "..\bin\confg
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rndcconfgen", "..\bin\confgen\win32\rndcconfgen.vcxproj", "{1E2C1635-3093-4D59-80E7-4743AC10F22F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ddnsconfgen", "..\bin\confgen\win32\ddnsconfgen.vcxproj", "{1EA4FC64-F33B-4A50-970A-EA052BBE9CF1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tsigkeygen", "..\bin\confgen\win32\tsigkeygen.vcxproj", "{1EA4FC64-F33B-4A50-970A-EA052BBE9CF1}"
 EndProject
 @IF PKCS11
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pk11keygen", "..\bin\pkcs11\win32\pk11keygen.vcxproj", "{5042D371-0402-4FA3-A52A-769708694422}"

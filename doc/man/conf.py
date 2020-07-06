@@ -60,7 +60,6 @@ master_doc = 'index'
 # pylint: disable=line-too-long
 man_pages = [
     ('arpaname', 'arpaname', 'translate IP addresses to the corresponding ARPA names', author, 1),
-    ('ddns-confgen', 'ddns-confgen', 'ddns key generation tool', author, 8),
     ('delv', 'delv', 'DNS lookup and validation utility', author, 1),
     ('dig', 'dig', 'DNS lookup utility', author, 1),
     ('dnssec-cds', 'dnssec-cds', 'change DS records for a child zone based on CDS/CDNSKEY', author, 1),
@@ -93,4 +92,5 @@ man_pages = [
     ('rndc-confgen', 'rndc-confgen', 'rndc key generation tool', author, 8),
     ('rndc.conf', 'rndc.conf', 'rndc configuration file', author, 5),
     ('rndc', 'rndc', 'name server control utility', author, 8),
+    ('tsig-keygen', 'tsig-keygen', 'TSIG key generation tool', author, 8),
     ]

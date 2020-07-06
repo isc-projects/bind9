@@ -1,3 +1,8 @@
+5460.	[cleanup]	tsig-keygen was previously an alias for
+			ddns-confgen and was documented in the ddns-confgen
+			man page. This has been reversed; tsig-keygen is
+			now the primary name. [GL #1998]
+
 5459.	[bug]		Bad isc_mem_put() size when an invalid type was
 			specified in a update-policy rule. [GL #1990]
 

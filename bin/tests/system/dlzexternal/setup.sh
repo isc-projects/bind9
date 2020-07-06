@@ -11,6 +11,6 @@
 
 . $SYSTEMTESTTOP/conf.sh
 
-$DDNSCONFGEN -q -z example.nil > ns1/ddns.key
+$TSIGKEYGEN ddns-key.example.nil > ns1/ddns.key
 
 copy_setports ns1/named.conf.in ns1/named.conf

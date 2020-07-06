@@ -1120,7 +1120,7 @@ zone string [ class ] {
 \fB/etc/named.conf\fP
 .SH SEE ALSO
 .sp
-\fBddns\-confgen(8)\fP, \fBnamed(8)\fP, \fBnamed\-checkconf(8)\fP, \fBrndc(8)\fP, \fBrndc\-confgen(8)\fP, BIND 9 Administrator Reference Manual.
+\fBtsig\-keygen(8)\fP, \fBnamed(8)\fP, \fBnamed\-checkconf(8)\fP, \fBrndc(8)\fP, \fBrndc\-confgen(8)\fP, BIND 9 Administrator Reference Manual.
 .SH AUTHOR
 Internet Systems Consortium
 .SH COPYRIGHT

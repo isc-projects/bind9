@@ -12,9 +12,8 @@
 /*! \file */
 
 /**
- * ddns-confgen generates configuration files for dynamic DNS. It can
- * be used as a convenient alternative to writing the ddns.key file
- * and the corresponding key and update-policy statements in named.conf.
+ * tsig-keygen generates TSIG keys that can be used in named configuration
+ * files for dynamic DNS.
  */
 
 #include <stdarg.h>

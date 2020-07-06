@@ -21,10 +21,10 @@
 
 .. highlight: console
 
-.. _man_ddns-confgen:
+.. _man_tsig-keygen:
 
-ddns-confgen - ddns key generation tool
----------------------------------------
+tsig-keygen, ddns-confgen - TSIG key generation tool
+----------------------------------------------------
 
 Synopsis
 ~~~~~~~~
@@ -37,15 +37,16 @@ Description
 
 ``tsig-keygen`` and ``ddns-confgen`` are invocation methods for a
 utility that generates keys for use in TSIG signing. The resulting keys
-can be used, for example, to secure dynamic DNS updates to a zone or for
+can be used, for example, to secure dynamic DNS updates to a zone, or for
 the ``rndc`` command channel.
 
 When run as ``tsig-keygen``, a domain name can be specified on the
 command line to be used as the name of the generated key. If no
 name is specified, the default is ``tsig-key``.
 
-When run as ``ddns-confgen``, the generated key is accompanied by
-configuration text and instructions that can be used with ``nsupdate``
+When run as ``ddns-confgen``, the key name can specified using ``-k``
+parameter and defaults to ``ddns-key``. The generated key is accompanied
+by configuration text and instructions that can be used with ``nsupdate``
 and ``named`` when setting up dynamic DNS, including an example
 ``update-policy`` statement. (This usage is similar to the ``rndc-confgen``
 command for setting up command-channel security.)
@@ -60,20 +61,20 @@ Options
 ~~~~~~~
 
 ``-a algorithm``
-   This option specifies the algorithm to use for the TSIG key. Available choices
-   are: hmac-md5, hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384, and
-   hmac-sha512. The default is hmac-sha256. Options are
+   This option specifies the algorithm to use for the TSIG key. Available
+   choices are: hmac-md5, hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384,
+   and hmac-sha512. The default is hmac-sha256. Options are
    case-insensitive, and the "hmac-" prefix may be omitted.
 
 ``-h``
    This option prints a short summary of options and arguments.
 
 ``-k keyname``
-   This option specifies the key name of the DDNS authentication key. The default is
-   ``ddns-key`` when neither the ``-s`` nor ``-z`` option is specified;
-   otherwise, the default is ``ddns-key`` as a separate label followed
-   by the argument of the option, e.g., ``ddns-key.example.com.`` The
-   key name must have the format of a valid domain name, consisting of
+   This option specifies the key name of the DDNS authentication key. The
+   default is ``ddns-key`` when neither the ``-s`` nor ``-z`` option is
+   specified; otherwise, the default is ``ddns-key`` as a separate label
+   followed by the argument of the option, e.g., ``ddns-key.example.com.``
+   The key name must have the format of a valid domain name, consisting of
    letters, digits, hyphens, and periods.
 
 ``-q`` (``ddns-confgen`` only)
@@ -82,13 +83,12 @@ Options
    ``tsig-keygen``.
 
 ``-s name`` (``ddns-confgen`` only)
-   This option generates a configuration example to allow
-   dynamic updates of a single hostname. The example ``named.conf`` text
-   shows how to set an update policy for the specified name using the
-   "name" nametype. The default key name is ``ddns-key.name``. Note that the
-   "self" nametype cannot be used, since the name to be updated may
-   differ from the key name. This option cannot be used with the ``-z``
-   option.
+   This option generates a configuration example to allow dynamic updates
+   of a single hostname. The example ``named.conf`` text shows how to set
+   an update policy for the specified name using the "name" nametype. The
+   default key name is ``ddns-key.name``. Note that the "self" nametype
+   cannot be used, since the name to be updated may differ from the key
+   name. This option cannot be used with the ``-z`` option.
 
 ``-z zone`` (``ddns-confgen`` only)
    This option generates a configuration example to allow
