@@ -1,3 +1,6 @@
+5459.	[bug]		Bad isc_mem_put() size when an invalid type was
+			specified in a update-policy rule. [GL #1990]
+
 5458.	[bug]		Prevent a theoretically possible NULL dereference caused
 			by a data race between zone_maintenance() and
 			dns_zone_setview_helper(). [GL #1627]
