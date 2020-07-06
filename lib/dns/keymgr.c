@@ -75,9 +75,16 @@ static const char *keystatestrings[4] = { "HIDDEN", "RUMOURED", "OMNIPRESENT",
  */
 static const char *
 keymgr_keyrole(dst_key_t *key) {
-	bool ksk, zsk;
-	dst_key_getbool(key, DST_BOOL_KSK, &ksk);
-	dst_key_getbool(key, DST_BOOL_ZSK, &zsk);
+	bool ksk = false, zsk = false;
+	isc_result_t ret;
+	ret = dst_key_getbool(key, DST_BOOL_KSK, &ksk);
+	if (ret != ISC_R_SUCCESS) {
+		return ("UNKNOWN");
+	}
+	ret = dst_key_getbool(key, DST_BOOL_ZSK, &zsk);
+	if (ret != ISC_R_SUCCESS) {
+		return ("UNKNOWN");
+	}
 	if (ksk && zsk) {
 		return ("CSK");
 	} else if (ksk) {
@@ -250,6 +257,11 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 		}
 	}
 
+	/*
+	 * Not sure what to do when dst_key_getbool() fails here.  Extending
+	 * the prepublication time anyway is arguably the safest thing to do,
+	 * so ignore the result code.
+	 */
 	(void)dst_key_getbool(key->key, DST_BOOL_ZSK, &zsk);
 	if (!zsk && ksk) {
 		/*
@@ -300,7 +312,7 @@ keymgr_key_retire(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	isc_result_t ret;
 	isc_stdtime_t retire;
 	dst_key_state_t s;
-	bool ksk, zsk;
+	bool ksk = false, zsk = false;
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->key != NULL);
@@ -321,8 +333,8 @@ keymgr_key_retire(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 		dst_key_settime(key->key, DST_TIME_DNSKEY, now);
 	}
 
-	(void)dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
-	if (ksk) {
+	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
+	if (ret == ISC_R_SUCCESS && ksk) {
 		if (dst_key_getstate(key->key, DST_KEY_KRRSIG, &s) !=
 		    ISC_R_SUCCESS) {
 			dst_key_setstate(key->key, DST_KEY_KRRSIG, OMNIPRESENT);
@@ -334,8 +346,8 @@ keymgr_key_retire(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 			dst_key_settime(key->key, DST_TIME_DS, now);
 		}
 	}
-	(void)dst_key_getbool(key->key, DST_BOOL_ZSK, &zsk);
-	if (zsk) {
+	ret = dst_key_getbool(key->key, DST_BOOL_ZSK, &zsk);
+	if (ret == ISC_R_SUCCESS && zsk) {
 		if (dst_key_getstate(key->key, DST_KEY_ZRRSIG, &s) !=
 		    ISC_R_SUCCESS) {
 			dst_key_setstate(key->key, DST_KEY_ZRRSIG, OMNIPRESENT);
@@ -1995,14 +2007,13 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	{
 		char algstr[DNS_NAME_FORMATSIZE];
 		bool ksk = false, zsk = false;
+		isc_result_t ret;
 
 		if (dst_key_is_unused(dkey->key)) {
 			continue;
 		}
 
 		// key data
-		dst_key_getbool(dkey->key, DST_BOOL_KSK, &ksk);
-		dst_key_getbool(dkey->key, DST_BOOL_ZSK, &zsk);
 		dns_secalg_format((dns_secalg_t)dst_key_alg(dkey->key), algstr,
 				  sizeof(algstr));
 		isc_buffer_printf(&buf, "\nkey: %d (%s), %s\n",
@@ -2015,12 +2026,14 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 			       DST_TIME_PUBLISH);
 
 		// signing status
-		if (ksk) {
+		ret = dst_key_getbool(dkey->key, DST_BOOL_KSK, &ksk);
+		if (ret == ISC_R_SUCCESS && ksk) {
 			keytime_status(dkey->key, now, &buf,
 				       "  key signing:    ", DST_KEY_KRRSIG,
 				       DST_TIME_PUBLISH);
 		}
-		if (zsk) {
+		ret = dst_key_getbool(dkey->key, DST_BOOL_ZSK, &zsk);
+		if (ret == ISC_R_SUCCESS && zsk) {
 			keytime_status(dkey->key, now, &buf,
 				       "  zone signing:   ", DST_KEY_ZRRSIG,
 				       DST_TIME_ACTIVATE);
