@@ -3074,7 +3074,6 @@ finish:
 		unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
 			   SELECT_POKE_READ);
 	}
-	UNLOCK(&sock->lock);
 }
 
 static void
@@ -3114,7 +3113,6 @@ finish:
 		unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
 			   SELECT_POKE_WRITE);
 	}
-	UNLOCK(&sock->lock);
 }
 
 /*
@@ -3160,14 +3158,6 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable, bool writeable) {
 	}
 
 	REQUIRE(readable || writeable);
-	if (readable) {
-		if (sock->listener) {
-			internal_accept(sock);
-		} else {
-			internal_recv(sock);
-		}
-	}
-
 	if (writeable) {
 		if (sock->connecting) {
 			internal_connect(sock);
@@ -3176,7 +3166,17 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable, bool writeable) {
 		}
 	}
 
-	/* sock->lock is unlocked in internal_* function */
+	if (readable) {
+		if (sock->listener) {
+			internal_accept(sock); /* unlocks sock */
+		} else {
+			internal_recv(sock);
+			UNLOCK(&sock->lock);
+		}
+	} else {
+		UNLOCK(&sock->lock);
+	}
+
 	UNLOCK(&thread->fdlock[lockid]);
 
 	/*
@@ -4952,7 +4952,6 @@ internal_connect(isc__socket_t *sock) {
 finish:
 	unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
 		   SELECT_POKE_CONNECT);
-	UNLOCK(&sock->lock);
 }
 
 isc_result_t
