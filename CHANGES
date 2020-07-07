@@ -1,3 +1,6 @@
+5468.	[bug]		Address potential double unlock in process_fd().
+			[GL #2005]
+
 5467.	[func]		The control channel and the rndc utility have been
 			updated to use the new network manager. To support
 			this, the network manager was updated to enable
