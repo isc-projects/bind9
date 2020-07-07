@@ -5,6 +5,7 @@ MANPAGES_RST =				\
 	arpaname.rst			\
 	delv.rst			\
 	dig.rst				\
+	ddns-confgen.rst		\
 	dnssec-cds.rst			\
 	dnssec-dsfromkey.rst		\
 	dnssec-importkey.rst		\
