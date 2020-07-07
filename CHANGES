@@ -1,3 +1,6 @@
+5463.	[bug]		Address potential NULL pointer dereference on out of
+			memory in dnstap.c. [GL #2010]
+
 5462.	[bug]		Move LMDB locking from LMDB itself to named. [GL #1976]
 
 5458.	[bug]		Prevent a theoretically possible NULL dereference caused
