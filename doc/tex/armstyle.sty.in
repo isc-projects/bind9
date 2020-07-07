@@ -89,7 +89,9 @@
     % trim enough for it to fit on the page, and we do not trim
     % so much that we clip out part of the graphic itself.
     % This seems to work, anyway.
-    \includegraphics[trim=400 150 400 0,clip,scale=2.5]{isc-logo.pdf}
+    % trim=left bottom right top
+    %\includegraphics[trim=400 150 400 0,clip,scale=2.5]{isc-logo.pdf} % old logo
+    \includegraphics[trim=175 320 200 200,clip]{isc-logo.pdf}
   \end{center}\par
   \newpage
   \thispagestyle{empty}
