@@ -1299,8 +1299,9 @@ unsigned int
 dns_rdatatype_attributes(dns_rdatatype_t type)
 {
 	RDATATYPE_ATTRIBUTE_SW
-	if (type >= (dns_rdatatype_t)128 && type < (dns_rdatatype_t)255)
+	if (type >= (dns_rdatatype_t)128 && type <= (dns_rdatatype_t)255) {
 		return (DNS_RDATATYPEATTR_UNKNOWN | DNS_RDATATYPEATTR_META);
+	}
 	return (DNS_RDATATYPEATTR_UNKNOWN);
 }
 
