@@ -1,3 +1,8 @@
+5461.	[bug]		The header STALE attribute was not being updated with
+			the write lock being held leading to incorrect
+			statistics.  Convert the header attributes to use atomic
+			operations. [GL #1475]
+
 5460.	[cleanup]	tsig-keygen was previously an alias for
 			ddns-confgen and was documented in the ddns-confgen
 			man page. This has been reversed; tsig-keygen is
