@@ -5679,6 +5679,15 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 		isc_quota_detach(&client->recursionquota);
 		ns_stats_decrement(client->sctx->nsstats,
 				   ns_statscounter_recursclients);
+	} else if (client->attributes & NS_CLIENTATTR_RECURSING) {
+		client->attributes &= ~NS_CLIENTATTR_RECURSING;
+		/*
+		 * Detached from recursionquota via prefetch_done(),
+		 * but need to decrement recursive client stats here anyway,
+		 * since it was incremented in ns_query_recurse().
+		 */
+		ns_stats_decrement(client->sctx->nsstats,
+				   ns_statscounter_recursclients);
 	}
 
 	LOCK(&client->manager->reclock);
@@ -5827,6 +5836,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA) {
 			ns_stats_increment(client->sctx->nsstats,
 					   ns_statscounter_recursclients);
+			client->attributes |= NS_CLIENTATTR_RECURSING;
 		}
 
 		if (result == ISC_R_SOFTQUOTA) {
@@ -5880,6 +5890,18 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		}
 
 		ns_client_recursing(client);
+	} else if ((client->attributes & NS_CLIENTATTR_RECURSING) == 0) {
+		client->attributes |= NS_CLIENTATTR_RECURSING;
+		/*
+		 * query_prefetch() attached first to client->recursionquota,
+		 * but we must check if NS_CLIENTATTR_RECURSING attribute is
+		 * on, if not then turn it on and increment recursing clients
+		 * stats counter only once. The attribute is also checked in
+		 * fetch_callback() to know if a matching decrement to this
+		 * counter should be applied.
+		 */
+		ns_stats_increment(client->sctx->nsstats,
+				   ns_statscounter_recursclients);
 	}
 
 	/*
