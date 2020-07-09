@@ -7583,7 +7583,14 @@ load_configuration(const char *filename, ns_server_t *server,
 
 		result = cfg_parse_file(bindkeys_parser, server->bindkeysfile,
 					&cfg_type_bindkeys, &bindkeys);
-		CHECK(result);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "unable to parse '%s' error '%s'; using "
+				      "built-in keys instead",
+				      server->bindkeysfile,
+				      isc_result_totext(result));
+		}
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
