@@ -13,10 +13,11 @@
 
 #include <config.h>
 
-#include <isc/string.h>
 #include <isc/net.h>
 #include <isc/netscope.h>
 #include <isc/result.h>
+#include <isc/string.h>
+#include <isc/util.h>
 
 isc_result_t
 isc_netscope_pton(int af, char *scopename, void *addr, uint32_t *zoneid) {
@@ -24,9 +25,13 @@ isc_netscope_pton(int af, char *scopename, void *addr, uint32_t *zoneid) {
 #ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
 	unsigned int ifid;
 	struct in6_addr *in6;
-#endif
-	uint32_t zone;
+#endif /* ifdef HAVE_IF_NAMETOINDEX */
+	uint32_t zone = 0;
 	uint64_t llz;
+
+#ifndef HAVE_IF_NAMETOINDEX
+	UNUSED(addr);
+#endif
 
 	/* at this moment, we only support AF_INET6 */
 	if (af != AF_INET6)
