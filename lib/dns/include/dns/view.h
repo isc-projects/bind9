@@ -251,12 +251,7 @@ struct dns_view {
 
 #ifdef HAVE_LMDB
 #include <lmdb.h>
-/*
- * MDB_NOTLS is used to prevent problems after configuration is reloaded, due
- * to the way LMDB's use of thread-local storage (TLS) interacts with the BIND9
- * thread model.
- */
-#define DNS_LMDB_COMMON_FLAGS (MDB_CREATE | MDB_NOSUBDIR | MDB_NOTLS)
+#define DNS_LMDB_COMMON_FLAGS (MDB_CREATE | MDB_NOSUBDIR | MDB_NOLOCK)
 #ifndef __OpenBSD__
 #define DNS_LMDB_FLAGS (DNS_LMDB_COMMON_FLAGS)
 #else /* __OpenBSD__ */
