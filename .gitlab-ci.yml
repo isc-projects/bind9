@@ -1101,8 +1101,6 @@ clang:freebsd11.4:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
     USER: gitlab-runner
-    # Temporarily disable LMDB support [GL #1976]
-    EXTRA_CONFIGURE: "--without-lmdb"
   <<: *freebsd_amd64
   <<: *build_job
 
@@ -1128,8 +1126,7 @@ unit:clang:freebsd11.4:amd64:
 clang:freebsd12.1:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    # Temporarily disable LMDB support [GL #1976]
-    EXTRA_CONFIGURE: "--enable-dnstap --without-lmdb"
+    EXTRA_CONFIGURE: "--enable-dnstap"
     USER: gitlab-runner
   <<: *freebsd_amd64
   <<: *build_job
