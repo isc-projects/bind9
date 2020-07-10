@@ -20,6 +20,15 @@ Security Fixes
   ISC would like to thank Emanuel Almeida of Cisco Systems, Inc. for
   bringing this vulnerability to our attention. [GL #1996]
 
+- ``named`` could crash after failing an assertion check in certain
+  query resolution scenarios where QNAME minimization and forwarding
+  were both enabled. To prevent such crashes, QNAME minimization is now
+  always disabled for a given query resolution process, if forwarders
+  are used at any point. This was disclosed in CVE-2020-8621.
+
+  ISC would like to thank Joseph Gullo for bringing this vulnerability
+  to our attention. [GL #1997]
+
 Known Issues
 ~~~~~~~~~~~~
 

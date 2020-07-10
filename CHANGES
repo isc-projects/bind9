@@ -10,6 +10,10 @@
 			system, but the Duplicate Address Detection (DAD)
 			mechanism had not yet finished. [GL #2038]
 
+5479.	[security]	named could crash in certain query resolution scenarios
+			where QNAME minimization and forwarding were both
+			enabled. (CVE-2020-8621) [GL #1997]
+
 5478.	[security]	It was possible to trigger an assertion failure by
 			sending a specially crafted large TCP DNS message.
 			(CVE-2020-8620) [GL #1996]
