@@ -4013,6 +4013,15 @@ fctx_nextaddress(fetchctx_t *fctx) {
 			addrinfo->flags |= FCTX_ADDRINFO_MARK;
 			fctx->find = NULL;
 			fctx->forwarding = true;
+
+			/*
+			 * QNAME minimization is disabled when
+			 * forwarding, and has to remain disabled if
+			 * we switch back to normal recursion; otherwise
+			 * forwarding could leave us in an inconsistent
+			 * state.
+			 */
+			fctx->minimized = false;
 			return (addrinfo);
 		}
 	}
