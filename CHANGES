@@ -16,7 +16,9 @@
 
 5480.	[placeholder]
 
-5479.	[placeholder]
+5479.	[security]	named could crash in certain query resolution scenarios
+			where QNAME minimization and forwarding were both
+			enabled. (CVE-2020-8621) [GL #1997]
 
 5478.	[security]	It was possible to trigger an assertion failure by
 			sending a specially crafted large TCP DNS message.
