@@ -444,9 +444,10 @@
 ./bin/tests/system/formerr/setup.sh		SH	2018,2019,2020
 ./bin/tests/system/formerr/tests.sh		SH	2013,2015,2016,2018,2019,2020
 ./bin/tests/system/formerr/twoquestions		X	2013,2018,2019,2020
-./bin/tests/system/forward/ans6/startme		X	2019,2020
+./bin/tests/system/forward/ans6/ans.pl		PERL	2020
 ./bin/tests/system/forward/clean.sh		SH	2000,2001,2004,2007,2012,2014,2015,2016,2018,2019,2020
 ./bin/tests/system/forward/ns1/example.db	X	2000,2001,2018,2019
+./bin/tests/system/forward/ns1/sign.sh		SH	2020
 ./bin/tests/system/forward/ns2/example.db	X	2000,2001,2018,2019
 ./bin/tests/system/forward/setup.sh		SH	2018,2019,2020
 ./bin/tests/system/forward/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014,2016,2018,2019,2020
