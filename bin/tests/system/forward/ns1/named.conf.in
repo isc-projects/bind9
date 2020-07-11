@@ -23,7 +23,7 @@ options {
 
 zone "." {
 	type master;
-	file "root.db";
+	file "root.db.signed";
 };
 
 zone "example1." {
