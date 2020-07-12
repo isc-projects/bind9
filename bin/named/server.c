@@ -6789,6 +6789,8 @@ count_newzones(dns_view_t *view, ns_cfgctx_t *nzcfg, int *num_zonesp) {
 
 	REQUIRE(num_zonesp != NULL);
 
+	LOCK(&view->new_zone_lock);
+
 	CHECK(migrate_nzf(view));
 
 	isc_log_write(ns_g_lctx,
@@ -6796,8 +6798,6 @@ count_newzones(dns_view_t *view, ns_cfgctx_t *nzcfg, int *num_zonesp) {
 		      ISC_LOG_INFO, "loading NZD zone count from '%s' "
 		      "for view '%s'",
 		      view->new_zone_db, view->name);
-
-	LOCK(&view->new_zone_lock);
 
 	CHECK(nzd_count(view, &n));
 
@@ -12006,6 +12006,10 @@ nzd_count(dns_view_t *view, int *countp) {
 	return (result);
 }
 
+/*
+ * Migrate zone configuration from an NZF file to an NZD database.
+ * Caller must hold view->new_zone_lock.
+ */
 static isc_result_t
 migrate_nzf(dns_view_t *view) {
 	isc_result_t result;
@@ -12020,8 +12024,6 @@ migrate_nzf(dns_view_t *view) {
 	MDB_dbi dbi;
 	MDB_val key, data;
 	ns_dzarg_t dzarg;
-
-	LOCK(&view->new_zone_lock);
 
 	/*
 	 * If NZF file doesn't exist, or NZD DB exists and already
@@ -12165,8 +12167,6 @@ migrate_nzf(dns_view_t *view) {
 	} else {
 		result = nzd_close(&txn, commit);
 	}
-
-	UNLOCK(&view->new_zone_lock);
 
 	if (text != NULL) {
 		isc_buffer_free(&text);
