@@ -49,6 +49,14 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- Addressed an error in recursive clients stats reporting.
+  There were occasions when an incoming query could trigger a prefetch for
+  some eligible rrset, and if the prefetch code were executed before recursion,
+  no increment in recursive clients stats would take place. Conversely,
+  when processing the answers, if the recursion code were executed before the
+  prefetch, the same counter would be decremented without a matching increment.
+  [GL #1719]
+
 - The DS set returned by ``dns_keynode_dsset()`` was not thread-safe.
   This could result in an INSIST being triggered. [GL #1926]
 
