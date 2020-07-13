@@ -1,3 +1,6 @@
+5469.	[port]		illumos: SEC is defined in <sys/time.h> which
+			conflicted with our use of SEC. [GL #1993]
+
 5468.	[bug]		Address potential double unlock in process_fd().
 			[GL #2005]
 
