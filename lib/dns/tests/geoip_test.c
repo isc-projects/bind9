@@ -181,8 +181,10 @@ do_lookup_string(const char *addr, dns_geoip_subtype_t subtype,
 	dns_geoip_elem_t elt;
 	struct in_addr in4;
 	isc_netaddr_t na;
+	int n;
 
-	inet_pton(AF_INET, addr, &in4);
+	n = inet_pton(AF_INET, addr, &in4);
+	assert_int_equal(n, 1);
 	isc_netaddr_fromin(&na, &in4);
 
 	elt.subtype = subtype;
@@ -197,8 +199,10 @@ do_lookup_string_v6(const char *addr, dns_geoip_subtype_t subtype,
 	dns_geoip_elem_t elt;
 	struct in6_addr in6;
 	isc_netaddr_t na;
+	int n;
 
-	inet_pton(AF_INET6, addr, &in6);
+	n = inet_pton(AF_INET6, addr, &in6);
+	assert_int_equal(n, 1);
 	isc_netaddr_fromin6(&na, &in6);
 
 	elt.subtype = subtype;
