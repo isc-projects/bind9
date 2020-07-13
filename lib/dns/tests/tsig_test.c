@@ -317,6 +317,7 @@ tsig_tcp_test(void **state) {
 	 */
 	isc_buffer_allocate(dt_mctx, &buf, 65535);
 	render(buf, DNS_MESSAGEFLAG_QR, key, &querytsig, &tsigout, NULL);
+	assert_non_null(tsigout);
 
 	/*
 	 * Process response message 1.
