@@ -1,3 +1,7 @@
+5465.	[func]		Fallback to built in trust-anchors, managed-keys, or
+			trusted-keys if the bindkeys-file (bind.keys) cannot
+			be parsed. [GL #1235]
+
 5463.	[bug]		Address potential NULL pointer dereference on out of
 			memory in dnstap.c. [GL #2010]
 
