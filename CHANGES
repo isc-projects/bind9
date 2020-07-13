@@ -1,3 +1,6 @@
+5468.	[bug]		Address potential double unlock in process_fd().
+			[GL #2005]
+
 5465.	[func]		Fallback to built in trust-anchors, managed-keys, or
 			trusted-keys if the bindkeys-file (bind.keys) cannot
 			be parsed. [GL #1235]
