@@ -283,7 +283,7 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 			 * one packet, so we're done until the next read
 			 * completes.
 			 */
-			isc_nm_pauseread(dnssock->outerhandle->sock);
+			isc_nm_pauseread(dnssock->outerhandle);
 			done = true;
 		} else {
 			/*
@@ -295,7 +295,7 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 			 */
 			if (atomic_load(&dnssock->ah) >=
 			    TCPDNS_CLIENTS_PER_CONN) {
-				isc_nm_pauseread(dnssock->outerhandle->sock);
+				isc_nm_pauseread(dnssock->outerhandle);
 				done = true;
 			}
 		}
@@ -376,7 +376,7 @@ isc_nm_tcpdns_sequential(isc_nmhandle_t *handle) {
 	 * closehandle_cb callback, called whenever a handle
 	 * is released.
 	 */
-	isc_nm_pauseread(handle->sock->outerhandle->sock);
+	isc_nm_pauseread(handle->sock->outerhandle);
 	atomic_store(&handle->sock->sequential, true);
 }
 
@@ -431,7 +431,7 @@ resume_processing(void *arg) {
 			}
 			isc_nmhandle_unref(handle);
 		} else if (sock->outerhandle != NULL) {
-			result = isc_nm_resumeread(sock->outerhandle->sock);
+			result = isc_nm_resumeread(sock->outerhandle);
 			if (result != ISC_R_SUCCESS) {
 				isc_nmhandle_unref(sock->outerhandle);
 				sock->outerhandle = NULL;
@@ -454,7 +454,7 @@ resume_processing(void *arg) {
 			 * Nothing in the buffer; resume reading.
 			 */
 			if (sock->outerhandle != NULL) {
-				isc_nm_resumeread(sock->outerhandle->sock);
+				isc_nm_resumeread(sock->outerhandle);
 			}
 
 			break;

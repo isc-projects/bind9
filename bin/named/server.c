@@ -9936,14 +9936,6 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 				     &server->in_roothints),
 		   "setting up root hints");
 
-	isc_mutex_init(&server->reload_event_lock);
-
-	server->reload_event = isc_event_allocate(
-		named_g_mctx, server, NAMED_EVENT_RELOAD, named_server_reload,
-		server, sizeof(isc_event_t));
-	CHECKFATAL(server->reload_event == NULL ? ISC_R_NOMEMORY
-						: ISC_R_SUCCESS,
-		   "allocating reload event");
 	server->reload_status = NAMED_RELOAD_IN_PROGRESS;
 
 	/*
@@ -10112,9 +10104,6 @@ named_server_destroy(named_server_t **serverp) {
 	}
 
 	dst_lib_destroy();
-
-	isc_event_free(&server->reload_event);
-	isc_mutex_destroy(&server->reload_event_lock);
 
 	INSIST(ISC_LIST_EMPTY(server->kasplist));
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
@@ -10293,7 +10282,7 @@ cleanup:
  */
 static void
 named_server_reload(isc_task_t *task, isc_event_t *event) {
-	named_server_t *server = (named_server_t *)event->ev_arg;
+	named_server_t *server = (named_server_t *)event->ev_sender;
 
 	INSIST(task == server->task);
 	UNUSED(task);
@@ -10303,19 +10292,15 @@ named_server_reload(isc_task_t *task, isc_event_t *event) {
 		      "received SIGHUP signal to reload zones");
 	(void)reload(server);
 
-	LOCK(&server->reload_event_lock);
-	INSIST(server->reload_event == NULL);
-	server->reload_event = event;
-	UNLOCK(&server->reload_event_lock);
+	isc_event_free(&event);
 }
 
 void
 named_server_reloadwanted(named_server_t *server) {
-	LOCK(&server->reload_event_lock);
-	if (server->reload_event != NULL) {
-		isc_task_send(server->task, &server->reload_event);
-	}
-	UNLOCK(&server->reload_event_lock);
+	isc_event_t *event = isc_event_allocate(
+		named_g_mctx, server, NAMED_EVENT_RELOAD, named_server_reload,
+		NULL, sizeof(isc_event_t));
+	isc_task_send(server->task, &event);
 }
 
 void
@@ -12086,12 +12071,10 @@ cleanup:
 
 isc_result_t
 named_server_tsiglist(named_server_t *server, isc_buffer_t **text) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_view_t *view;
 	unsigned int foundkeys = 0;
 
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
@@ -12100,7 +12083,6 @@ named_server_tsiglist(named_server_t *server, isc_buffer_t **text) {
 				       &foundkeys);
 		RWUNLOCK(&view->statickeys->lock, isc_rwlocktype_read);
 		if (result != ISC_R_SUCCESS) {
-			isc_task_endexclusive(server->task);
 			return (result);
 		}
 		RWLOCK(&view->dynamickeys->lock, isc_rwlocktype_read);
@@ -12108,11 +12090,9 @@ named_server_tsiglist(named_server_t *server, isc_buffer_t **text) {
 				       &foundkeys);
 		RWUNLOCK(&view->dynamickeys->lock, isc_rwlocktype_read);
 		if (result != ISC_R_SUCCESS) {
-			isc_task_endexclusive(server->task);
 			return (result);
 		}
 	}
-	isc_task_endexclusive(server->task);
 
 	if (foundkeys == 0) {
 		CHECK(putstr(text, "no tsig keys found."));
@@ -14161,7 +14141,6 @@ named_server_showzone(named_server_t *server, isc_lex_t *lex,
 	dns_view_t *view = NULL;
 	dns_zone_t *zone = NULL;
 	ns_cfgctx_t *cfg = NULL;
-	bool exclusive = false;
 #ifdef HAVE_LMDB
 	cfg_obj_t *nzconfig = NULL;
 #endif /* HAVE_LMDB */
@@ -14185,10 +14164,6 @@ named_server_showzone(named_server_t *server, isc_lex_t *lex,
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
-
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	exclusive = true;
 
 	if (!added) {
 		/* Find the view statement */
@@ -14247,9 +14222,6 @@ cleanup:
 #endif /* HAVE_LMDB */
 	if (isc_buffer_usedlength(*text) > 0) {
 		(void)putnull(text);
-	}
-	if (exclusive) {
-		isc_task_endexclusive(server->task);
 	}
 
 	return (result);

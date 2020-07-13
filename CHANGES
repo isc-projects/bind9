@@ -1,3 +1,15 @@
+5467.	[func]		The control channel and the rndc utility have been
+			updated to use the new network manager. To support
+			this, the network manager was updated to enable
+			wthe initiation of client TCP connections. Its
+			internal reference counting has been refactored.
+
+			Note: As side effects of this change, rndc cannot
+			currently be used with UNIX-domain sockets, and its
+			default timeout has changed from 60 seconds to 30.
+			These will be addressed in a future release.
+			[GL #1759]
+
 5466.	[bug]		Addressed an error in recursive clients stats reporting.
 			[GL #1719]
 

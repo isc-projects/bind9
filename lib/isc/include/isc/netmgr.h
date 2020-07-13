@@ -204,9 +204,12 @@ isc_result_t
 isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 
 isc_result_t
-isc_nm_pauseread(isc_nmsocket_t *sock);
+isc_nm_pauseread(isc_nmhandle_t *handle);
 /*%<
- * Pause reading on this socket, while still remembering the callback.
+ * Pause reading on this handle's socket, but remember the callback.
+ *
+ * Requires:
+ * \li	'handle' is a valid netmgr handle.
  */
 
 void
@@ -221,13 +224,13 @@ isc_nm_cancelread(isc_nmhandle_t *handle);
  */
 
 isc_result_t
-isc_nm_resumeread(isc_nmsocket_t *sock);
+isc_nm_resumeread(isc_nmhandle_t *handle);
 /*%<
- * Resume reading from socket.
+ * Resume reading on the handle's socket.
  *
  * Requires:
- * \li	'sock' is a valid netmgr socket
- * \li	...for which a read/recv callback has been defined.
+ * \li	'handle' is a valid netmgr handle.
+ * \li	...for a socket with a defined read/recv callback.
  */
 
 isc_result_t
