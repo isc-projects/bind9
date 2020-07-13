@@ -1573,7 +1573,8 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		obj = NULL;
 	}
 	if (obj != NULL) {
-		enum { MAS = 1, PRI = 2, SLA = 4, SEC = 8 } values = 0;
+		/* Note: SEC is defined in <sys/time.h> on some platforms. */
+		enum { MAS = 1, PRI = 2, SLA = 4, SCN = 8 } values = 0;
 		for (const cfg_listelt_t *el = cfg_list_first(obj); el != NULL;
 		     el = cfg_list_next(el))
 		{
@@ -1601,7 +1602,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				}
 				values |= MAS;
 			} else if (strcasecmp(keyword, "secondary") == 0) {
-				if ((values & SEC) == SEC) {
+				if ((values & SCN) == SCN) {
 					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 						    "'check-names secondary' "
 						    "duplicated");
@@ -1609,7 +1610,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 						result = ISC_R_FAILURE;
 					}
 				}
-				values |= SEC;
+				values |= SCN;
 			} else if (strcasecmp(keyword, "slave") == 0) {
 				if ((values & SLA) == SLA) {
 					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
@@ -1632,7 +1633,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			}
 		}
 
-		if ((values & (SEC | SLA)) == (SEC | SLA)) {
+		if ((values & (SCN | SLA)) == (SCN | SLA)) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'check-names' cannot take both "
 				    "'secondary' and 'slave'");
