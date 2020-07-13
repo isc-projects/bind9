@@ -895,7 +895,9 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, isc_mem_t *mctx,
 	handle = NULL;
 
  cleanup:
-	if (result != ISC_R_SUCCESS && handle->reader != NULL) {
+	if (result != ISC_R_SUCCESS &&
+	    handle != NULL && handle->reader != NULL)
+	{
 		fstrm_reader_destroy(&handle->reader);
 		handle->reader = NULL;
 	}
