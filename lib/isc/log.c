@@ -1156,10 +1156,13 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 	}
 
 	if (versions > 0) {
+		if (versions > ISC_LOG_MAX_VERSIONS) {
+			versions = ISC_LOG_MAX_VERSIONS;
+		}
 		/*
 		 * First we fill 'to_keep' structure using insertion sort
 		 */
-		memset(to_keep, 0, versions * sizeof(long long));
+		memset(to_keep, 0, sizeof(to_keep));
 		while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
 			if (dir.entry.length > bnamelen &&
 			    strncmp(dir.entry.name, bname, bnamelen) == 0 &&
@@ -1176,9 +1179,9 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 					if (i < versions) {
 						memmove(&to_keep[i + 1],
 							&to_keep[i],
-							sizeof(long long) *
-									versions -
-								i - 1);
+							sizeof(to_keep[0]) *
+								(versions - i -
+								 1));
 						to_keep[i] = version;
 					}
 				}
