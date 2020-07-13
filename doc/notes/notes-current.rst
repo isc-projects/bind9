@@ -33,6 +33,9 @@ New Features
   restoring UNIX-domain socket support or by formally declaring them
   to be obsolete in the control channel. [GL #1759]
 
+- Statistics channels have also been updated to use the new BIND network
+  manager API. [GL #2022]
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
