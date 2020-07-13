@@ -8378,7 +8378,14 @@ load_configuration(const char *filename, named_server_t *server,
 
 		result = cfg_parse_file(bindkeys_parser, server->bindkeysfile,
 					&cfg_type_bindkeys, &bindkeys);
-		CHECK(result);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "unable to parse '%s' error '%s'; using "
+				      "built-in keys instead",
+				      server->bindkeysfile,
+				      isc_result_totext(result));
+		}
 	} else {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
