@@ -1,3 +1,7 @@
+5471.	[bug]		The introduction of KASP support broke whether the
+			second field of sig-validity-interval was treated as
+			days or hours. (Thanks to Tony Finch.) [GL !3735]
+
 5469.	[port]		illumos: SEC is defined in <sys/time.h> which
 			conflicted with our use of SEC. [GL #1993]
 

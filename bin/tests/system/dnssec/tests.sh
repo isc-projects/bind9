@@ -4253,5 +4253,16 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "checking sig-validity-interval second field hours vs days ($n)"
+ret=0
+# zone configured with 'sig-validity-interval 500 499;'
+# 499 days in the future w/ a 20 minute runtime to now allowance
+min=$(TZ=UTC $PERL -e '@lt=localtime(time() + 499*3600*24 - 20*60); printf "%.4d%0.2d%0.2d%0.2d%0.2d%0.2d\n",$lt[5]+1900,$lt[4]+1,$lt[3],$lt[2],$lt[1],$lt[0];')
+dig_with_opts @10.53.0.2 hours-vs-days AXFR > dig.out.ns2.test$n
+awk -v min=$min '$4 == "RRSIG" { if ($9 < min) { exit(1); } }' dig.out.ns2.test$n || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
