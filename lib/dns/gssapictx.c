@@ -678,6 +678,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred, const char *gssapi_keytab,
 	}
 
 	if (gssapi_keytab != NULL) {
+#if HAVE_GSSAPI_GSSAPI_KRB5_H || HAVE_GSSAPI_KRB5_H || defined(WIN32)
 		gret = gsskrb5_register_acceptor_identity(gssapi_keytab);
 		if (gret != GSS_S_COMPLETE) {
 			gss_log(3,
@@ -687,6 +688,27 @@ dst_gssapi_acceptctx(gss_cred_id_t cred, const char *gssapi_keytab,
 				gss_error_tostring(gret, 0, buf, sizeof(buf)));
 			return (DNS_R_INVALIDTKEY);
 		}
+#else
+		/*
+		 * Minimize memory leakage by only setting KRB5_KTNAME
+		 * if it needs to change.
+		 */
+		const char *old = getenv("KRB5_KTNAME");
+		if (old == NULL || strcmp(old, gssapi_keytab) != 0) {
+			size_t size;
+			char *kt;
+
+			size = strlen(gssapi_keytab) + 13;
+			kt = malloc(size);
+			if (kt == NULL) {
+				return (ISC_R_NOMEMORY);
+			}
+			snprintf(kt, size, "KRB5_KTNAME=%s", gssapi_keytab);
+			if (putenv(kt) != 0) {
+				return (ISC_R_NOMEMORY);
+			}
+		}
+#endif
 	}
 
 	log_cred(cred);
