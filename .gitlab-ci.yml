@@ -187,13 +187,10 @@ stages:
     ${CONFIGURE} \
     --disable-maintainer-mode \
     --enable-developer \
-    --with-libtool \
     --with-cmocka \
     --with-libxml2 \
     --with-json-c \
     --prefix=$HOME/.local \
-    --without-make-clean \
-    --with-python=python3 \
     $EXTRA_CONFIGURE \
     || cat config.log
 
@@ -545,7 +542,7 @@ gcc:centos6:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error --without-python"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
   <<: *centos_centos6_amd64_image
   <<: *build_job
 
@@ -804,7 +801,7 @@ gcc:sid:i386:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-python"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_i386_image
   <<: *build_job
 
@@ -828,7 +825,7 @@ gcc:tumbleweed:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --with-python --with-gssapi=/usr/lib/mit/bin/krb5-config"
+    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr/lib/mit/bin/krb5-config"
   <<: *tumbleweed_latest_amd64_image
   <<: *build_job
 
@@ -1036,7 +1033,6 @@ clang:buster:amd64:
   variables:
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
-    EXTRA_CONFIGURE: "--with-python=python3"
   <<: *debian_buster_amd64_image
   <<: *build_job
 
@@ -1323,13 +1319,13 @@ respdiff:
     BIND_BASELINE_VERSION: v9_11_3
   script:
     - autoreconf -fi
-    - ./configure --without-make-clean
+    - ./configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
     - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
     - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
     - cd refbind/
-    - ./configure --without-make-clean
+    - ./configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - cd ../bind-qa/bind9/respdiff
     - bash respdiff.sh -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}/refbind" "${CI_PROJECT_DIR}"
