@@ -1401,7 +1401,7 @@ setup_libs(void) {
 	}
 
 	isc_mem_create(&mctx);
-	isc_mem_setname(mctx, "dig", NULL);
+	isc_mem_setname(mctx, "dig");
 
 	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_setcontext(lctx);

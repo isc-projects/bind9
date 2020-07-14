@@ -1563,7 +1563,7 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_mem_create(&named_g_mctx);
-	isc_mem_setname(named_g_mctx, "main", NULL);
+	isc_mem_setname(named_g_mctx, "main");
 
 	setup();
 

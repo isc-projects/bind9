@@ -4617,9 +4617,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			 * memory.
 			 */
 			isc_mem_create(&cmctx);
-			isc_mem_setname(cmctx, "cache", NULL);
+			isc_mem_setname(cmctx, "cache");
 			isc_mem_create(&hmctx);
-			isc_mem_setname(hmctx, "cache_heap", NULL);
+			isc_mem_setname(hmctx, "cache_heap");
 			CHECK(dns_cache_create(cmctx, hmctx, named_g_taskmgr,
 					       named_g_timermgr, view->rdclass,
 					       cachename, "rbt", 0, NULL,

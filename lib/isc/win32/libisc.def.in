@@ -368,7 +368,6 @@ isc_mem_create
 isc_mem_destroy
 isc_mem_detach
 isc_mem_getname
-isc_mem_gettag
 isc_mem_inuse
 isc_mem_isovermem
 isc_mem_maxinuse

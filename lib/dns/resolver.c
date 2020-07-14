@@ -10409,7 +10409,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		 * enabling threads because it will be require more memory.
 		 */
 		isc_mem_create(&res->buckets[i].mctx);
-		isc_mem_setname(res->buckets[i].mctx, name, NULL);
+		isc_mem_setname(res->buckets[i].mctx, name);
 		isc_task_setname(res->buckets[i].task, name, res);
 		ISC_LIST_INIT(res->buckets[i].fctxs);
 		atomic_init(&res->buckets[i].exiting, false);

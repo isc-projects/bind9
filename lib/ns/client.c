@@ -2506,7 +2506,7 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	for (i = 0; i < npools; i++) {
 		manager->mctxpool[i] = NULL;
 		isc_mem_create(&manager->mctxpool[i]);
-		isc_mem_setname(manager->mctxpool[i], "client", NULL);
+		isc_mem_setname(manager->mctxpool[i], "client");
 	}
 
 	manager->magic = MANAGER_MAGIC;
