@@ -42,9 +42,7 @@ stages:
 
 ### Runner Tag Templates
 
-# Note: BSD runners extract the operating system version to use from job name
-
-.freebsd-amd64: &freebsd_amd64
+.libvirt-amd64: &libvirt_amd64
   tags:
     - libvirt
     - amd64
@@ -63,11 +61,6 @@ stages:
   tags:
     - linux
     - i386
-
-.openbsd-amd64: &openbsd_amd64
-  tags:
-    - libvirt
-    - amd64
 
 ### Docker Image Templates
 
@@ -140,6 +133,20 @@ stages:
 
 .base: &base_image
   <<: *debian_buster_amd64_image
+
+### QCOW2 Image Templates
+
+.freebsd-11-amd64: &freebsd_11_amd64_image
+  image: "freebsd-11.4-x86_64"
+  <<: *libvirt_amd64
+
+.freebsd-12-amd64: &freebsd_12_amd64_image
+  image: "freebsd-12.1-x86_64"
+  <<: *libvirt_amd64
+
+.openbsd-amd64: &openbsd_amd64_image
+  image: "openbsd-6.7-x86_64"
+  <<: *libvirt_amd64
 
 ### Job Templates
 
@@ -1103,75 +1110,75 @@ unit:gcc:softhsm2.6:
     - job: gcc:softhsm2.6
       artifacts: true
 
-# Jobs for Clang builds on FreeBSD 11.4 (amd64)
+# Jobs for Clang builds on FreeBSD 11 (amd64)
 
-clang:freebsd11.4:amd64:
+clang:freebsd11:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
     USER: gitlab-runner
-  <<: *freebsd_amd64
+  <<: *freebsd_11_amd64_image
   <<: *build_job
 
-system:clang:freebsd11.4:amd64:
-  <<: *freebsd_amd64
+system:clang:freebsd11:amd64:
+  <<: *freebsd_11_amd64_image
   <<: *system_test_job
   variables:
     USER: gitlab-runner
     TEST_PARALLEL_JOBS: 4
   needs:
-    - job: clang:freebsd11.4:amd64
+    - job: clang:freebsd11:amd64
       artifacts: true
 
-unit:clang:freebsd11.4:amd64:
-  <<: *freebsd_amd64
+unit:clang:freebsd11:amd64:
+  <<: *freebsd_11_amd64_image
   <<: *unit_test_job
   needs:
-    - job: clang:freebsd11.4:amd64
+    - job: clang:freebsd11:amd64
       artifacts: true
 
-# Jobs for Clang builds on FreeBSD 12.1 (amd64)
+# Jobs for Clang builds on FreeBSD 12 (amd64)
 
-clang:freebsd12.1:amd64:
+clang:freebsd12:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-dnstap"
     USER: gitlab-runner
-  <<: *freebsd_amd64
+  <<: *freebsd_12_amd64_image
   <<: *build_job
 
-system:clang:freebsd12.1:amd64:
-  <<: *freebsd_amd64
+system:clang:freebsd12:amd64:
+  <<: *freebsd_12_amd64_image
   <<: *system_test_job
   variables:
     USER: gitlab-runner
     TEST_PARALLEL_JOBS: 4
   needs:
-    - job: clang:freebsd12.1:amd64
+    - job: clang:freebsd12:amd64
       artifacts: true
 
-unit:clang:freebsd12.1:amd64:
-  <<: *freebsd_amd64
+unit:clang:freebsd12:amd64:
+  <<: *freebsd_12_amd64_image
   <<: *unit_test_job
   needs:
-    - job: clang:freebsd12.1:amd64
+    - job: clang:freebsd12:amd64
       artifacts: true
 
-# Jobs for Clang builds on OpenBSD 6.7 (amd64)
+# Jobs for Clang builds on OpenBSD (amd64)
 
-clang:openbsd6.7:amd64:
+clang:openbsd:amd64:
   variables:
     CC: clang
     USER: gitlab-runner
-  <<: *openbsd_amd64
+  <<: *openbsd_amd64_image
   <<: *build_job
 
-system:clang:openbsd6.7:amd64:
-  <<: *openbsd_amd64
+system:clang:openbsd:amd64:
+  <<: *openbsd_amd64_image
   <<: *system_test_job
   variables:
     USER: gitlab-runner
   needs:
-    - job: clang:openbsd6.7:amd64
+    - job: clang:openbsd:amd64
       artifacts: true
   only:
     - schedules
