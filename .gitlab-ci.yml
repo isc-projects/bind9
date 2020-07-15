@@ -1377,7 +1377,7 @@ abi-check:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    BIND_BASELINE_VERSION: v9_11_20
+    BIND_BASELINE_VERSION: v9_11_21
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
