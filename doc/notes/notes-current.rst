@@ -29,6 +29,13 @@ Security Fixes
   ISC would like to thank Joseph Gullo for bringing this vulnerability
   to our attention. [GL #1997]
 
+- It was possible to trigger an assertion failure when verifying the
+  response to a TSIG-signed request. This was disclosed in
+  CVE-2020-8622.
+
+  ISC would like to thank Dave Feldman, Jeff Warren, and Joel Cunningham
+  of Oracle for bringing this vulnerability to our attention. [GL #2028]
+
 Known Issues
 ~~~~~~~~~~~~
 
