@@ -22,6 +22,10 @@
 			derived from the client query processing timeout
 			configured for a resolver. [GL #2024]
 
+5476.	[security]	It was possible to trigger an assertion failure when
+			verifying the response to a TSIG-signed request.
+			(CVE-2020-8622) [GL #2028]
+
 5475.	[bug]		Fix RPZ wildcard passthru ignored when a rejection
 			would overwrite a passthru action matching some
 			rule in a previously loaded passthru rpz zone.
