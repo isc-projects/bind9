@@ -60,6 +60,7 @@ information about each release, source code, and pre-compiled versions
 for Microsoft Windows operating systems.
 
 .. include:: ../notes/notes-current.rst
+.. include:: ../notes/notes-9.16.5.rst
 .. include:: ../notes/notes-9.16.4.rst
 .. include:: ../notes/notes-9.16.3.rst
 .. include:: ../notes/notes-9.16.2.rst
