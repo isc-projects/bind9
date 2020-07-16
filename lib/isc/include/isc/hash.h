@@ -29,9 +29,12 @@ isc_hash_get_initializer(void);
 void
 isc_hash_set_initializer(const void *initializer);
 
+#define isc_hash_function isc_hash64
+
+uint32_t
+isc_hash32(const void *data, const size_t length, const bool case_sensitive);
 uint64_t
-isc_hash_function(const void *data, const size_t length,
-		  const bool case_sensitive);
+isc_hash64(const void *data, const size_t length, const bool case_sensitive);
 /*!<
  * \brief Calculate a hash over data.
  *
@@ -41,7 +44,7 @@ isc_hash_function(const void *data, const size_t length,
  * process using this library is run, but will have uniform
  * distribution.
  *
- * isc_hash_function() calculates the hash from start to end over the
+ * isc_hash_32/64() calculates the hash from start to end over the
  * input data.
  *
  * 'data' is the data to be hashed.
@@ -52,9 +55,8 @@ isc_hash_function(const void *data, const size_t length,
  * case_sensitive values.  It should typically be false if the hash key
  * is a DNS name.
  *
- * WARNING: In case of case insensitive input, the input buffer cannot
- * be longer than 1024, which should be fine, as it is only used for
- * DNS names.
+ * Returns:
+ * \li 32 or 64-bit hash value
  */
 
 ISC_LANG_ENDDECLS
