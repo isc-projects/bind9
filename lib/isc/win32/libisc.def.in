@@ -551,6 +551,7 @@ isc_serial_gt
 isc_serial_le
 isc_serial_lt
 isc_serial_ne
+isc_halfsiphash24
 isc_siphash24
 isc_sockaddr_any
 isc_sockaddr_any6
