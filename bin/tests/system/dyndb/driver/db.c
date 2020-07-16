@@ -589,7 +589,8 @@ static dns_dbmethods_t sampledb_methods = {
 	NULL, /* getsize */
 	NULL, /* setservestalettl */
 	NULL, /* getservestalettl */
-	NULL  /* setgluecachestats */
+	NULL, /* setgluecachestats */
+	NULL  /* adjusthashsize */
 };
 
 /* Auxiliary driver functions. */
