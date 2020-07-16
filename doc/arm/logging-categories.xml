@@ -31,8 +31,8 @@
 	</entry>
 	<entry colname="2">
 	  <para>
-	    Logs nameservers that are skipped due to them being
-	    a CNAME rather than A / AAAA records.
+	    Name servers that are skipped for being
+	    a CNAME rather than A/AAAA records.
 	  </para>
 	</entry>
       </row>
@@ -64,7 +64,7 @@
 	</entry>
 	<entry colname="2">
 	  <para>
-	    The default category defines the logging
+	    Logging
 	    options for those categories where no specific
 	    configuration has been
 	    defined.
@@ -77,11 +77,11 @@
 	</entry>
 	<entry colname="2">
 	  <para>
-	    Delegation only.  Logs queries that have been
+	    Queries that have been
 	    forced to NXDOMAIN as the result of a
 	    delegation-only zone or a
 	    <command>delegation-only</command> in a
-	    forward, hint or stub zone declaration.
+	    forward, hint, or stub zone declaration.
 	  </para>
 	</entry>
       </row>
@@ -124,7 +124,7 @@
 	  <para>
 	    Log queries that have been forced to use plain
 	    DNS due to timeouts.  This is often due to
-	    the remote servers not being RFC 1034 compliant
+	    the remote servers not being RFC 1034-compliant
 	    (not always returning FORMERR or similar to
 	    EDNS queries and other extensions to the DNS
 	    when they are not understood).  In other words, this is
@@ -141,11 +141,11 @@
 	  </para>
 	  <para>
 	    Note: eventually <command>named</command> will have to stop
-	    treating such timeouts as due to RFC 1034 non
-	    compliance and start treating it as plain
+	    treating such timeouts as due to RFC 1034
+		non-compliance and start treating it as plain
 	    packet loss.  Falsely classifying packet
-	    loss as due to RFC 1034 non compliance impacts
-	    on DNSSEC validation which requires EDNS for
+	    loss as due to RFC 1034 non-compliance impacts
+	    DNSSEC validation, which requires EDNS for
 	    the DNSSEC records to be returned.
 	  </para>
 	</entry>
@@ -156,8 +156,8 @@
 	</entry>
 	<entry colname="2">
 	  <para>
-	    The catch-all. Many things still aren't
-	    classified into categories, and they all end up here.
+	    Catch-all for many things that still are not
+	    classified into categories.
 	  </para>
 	</entry>
       </row>
@@ -167,8 +167,8 @@
 	</entry>
 	<entry colname="2">
 	  <para>
-	    Lame servers.  These are misconfigurations
-	    in remote servers, discovered by BIND 9 when trying to
+	    Misconfigurations
+	    in remote servers, discovered by <acronym>BIND</acronym> 9 when trying to
 	    query those servers during resolution.
 	  </para>
 	</entry>
@@ -199,11 +199,11 @@
 	</entry>
 	<entry colname="2">
 	  <para>
-	    Specify where queries should be logged to.
+	    Location where queries should be logged.
 	  </para>
 	  <para>
-	    At startup, specifying the category <command>queries</command> will also
-	    enable query logging unless <command>querylog</command> option has been
+	    At startup, specifying the category <command>queries</command> also
+	    enables query logging unless <command>querylog</command> option has been
 	    specified.
 	  </para>
 
@@ -212,16 +212,16 @@
 	    identifier in @0x&lt;hexadecimal-number&gt;
 	    format. Next, it reports the client's IP
 	    address and port number, and the query name,
-	    class and type.  Next, it reports whether the
+	    class, and type.  Next, it reports whether the
 	    Recursion Desired flag was set (+ if set, -
-	    if not set), if the query was signed (S),
-	    EDNS was in used along with the EDNS version
-	    number (E(#)), if TCP was used (T), if DO
-	    (DNSSEC Ok) was set (D), if CD (Checking
-	    Disabled) was set (C), if a valid DNS Server
-	    COOKIE was received (V), or if a DNS COOKIE
+	    if not set), whether the query was signed (S),
+	    whether EDNS was in use along with the EDNS version
+	    number (E(#)), whether TCP was used (T), whether DO
+	    (DNSSEC Ok) was set (D), whether CD (Checking
+	    Disabled) was set (C), whether a valid DNS Server
+	    COOKIE was received (V), and whether a DNS COOKIE
 	    option without a valid Server COOKIE was
-	    present (K).  After this the destination
+	    present (K).  After this, the destination
 	    address the query was sent to is reported.
 	  </para>
 
@@ -232,10 +232,10 @@
 	    <computeroutput>client ::1#62537 (www.example.net): query: www.example.net IN AAAA -SE</computeroutput>
 	  </para>
 	  <para>
-	    (The first part of this log message, showing the
+	    The first part of this log message, showing the
 	    client address/port number and query name, is
 	    repeated in all subsequent log messages related
-	    to the same query.)
+	    to the same query.
 	  </para>
 	</entry>
       </row>
@@ -262,12 +262,12 @@
 	    These messages include a hash value of the domain name
 	    of the response and the name itself,
 	    except when there is insufficient memory to record
-	    the name for the final notice
+	    the name for the final notice.
 	    The final notice is normally delayed until about one
-	    minute after rate limit stops.
+	    minute after rate limiting stops.
 	    A lack of memory can hurry the final notice,
-	    in which case it starts with an asterisk (*).
-	    Various internal events are logged at debug 1 level
+	    which is indicated by an initial asterisk (*).
+	    Various internal events are logged at debug level 1
 	    and higher.
 	  </para>
 	  <para>
@@ -295,7 +295,7 @@
 	<entry colname="2">
 	  <para>
 	    Information about errors in response policy zone files,
-	    rewritten responses, and at the highest
+	    rewritten responses, and, at the highest
 	    <command>debug</command> levels, mere rewriting
 	    attempts.
 	  </para>
@@ -317,7 +317,7 @@
 	</entry>
 	<entry colname="2">
 	  <para>
-	    Logs queries that have been terminated, either by dropping
+	    Queries that have been terminated, either by dropping
 	    or responding with SERVFAIL, as a result of a fetchlimit
 	    quota being exceeded.
 	  </para>
@@ -329,7 +329,7 @@
 	</entry>
 	<entry colname="2">
 	  <para>
-	    Logs trust-anchor-telemetry requests received by named.
+	    Trust-anchor-telemetry requests received by <command>named</command>.
 	  </para>
 	</entry>
       </row>
@@ -340,9 +340,9 @@
 	<entry colname="2">
 	  <para>
 	    Messages that <command>named</command> was unable to determine the
-	    class of or for which there was no matching <command>view</command>.
-	    A one line summary is also logged to the <command>client</command> category.
-	    This category is best sent to a file or stderr, by
+	    class of, or for which there was no matching <command>view</command>.
+	    A one-line summary is also logged to the <command>client</command> category.
+	    This category is best sent to a file or stderr; by
 	    default it is sent to
 	    the <command>null</command> channel.
 	  </para>
