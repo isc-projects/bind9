@@ -956,6 +956,7 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 		 * time, or replacing other limits).
 		 */
 		isc_mem_setwater(cache->mctx, water, cache, hiwater, lowater);
+		dns_db_adjusthashsize(cache->db, size);
 	}
 }
 

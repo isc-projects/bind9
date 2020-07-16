@@ -169,6 +169,7 @@ dns_compress_setmethods
 dns_compress_setsensitive
 dns_counter_fromtext
 dns_db_addrdataset
+dns_db_adjusthashsize
 dns_db_allrdatasets
 dns_db_attach
 dns_db_attachnode
@@ -752,6 +753,7 @@ dns_private_chains
 dns_private_totext
 dns_rbt_addname
 dns_rbt_addnode
+dns_rbt_adjusthashsize
 dns_rbt_create
 dns_rbt_deletename
 dns_rbt_deletenode

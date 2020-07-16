@@ -179,6 +179,7 @@ typedef struct dns_dbmethods {
 	isc_result_t (*setservestalettl)(dns_db_t *db, dns_ttl_t ttl);
 	isc_result_t (*getservestalettl)(dns_db_t *db, dns_ttl_t *ttl);
 	isc_result_t (*setgluecachestats)(dns_db_t *db, isc_stats_t *stats);
+	isc_result_t (*adjusthashsize)(dns_db_t *db, size_t size);
 } dns_dbmethods_t;
 
 typedef isc_result_t (*dns_dbcreatefunc_t)(isc_mem_t *	     mctx,
@@ -1361,6 +1362,23 @@ dns_db_hashsize(dns_db_t *db);
  * Returns:
  * \li	The number of buckets in the database's hash table, or
  *      0 if not implemented.
+ */
+
+isc_result_t
+dns_db_adjusthashsize(dns_db_t *db, size_t size);
+/*%<
+ * For database implementations using a hash table, adjust
+ * the size of the hash table to store objects with size
+ * memory footprint.
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database.
+ * \li  'size' is maximum memory footprint of the database
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS	The registration succeeded
+ * \li	#ISC_R_NOMEMORY	Out of memory
  */
 
 void

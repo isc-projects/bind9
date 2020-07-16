@@ -954,7 +954,7 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 				(void)dns_rdatatype_totext(e->key.s.qtype, &lb);
 			}
 		}
-		snprintf(strbuf, sizeof(strbuf), "  (%08x)",
+		snprintf(strbuf, sizeof(strbuf), "  (%08" PRIx32 ")",
 			 e->key.s.qname_hash);
 		add_log_str(&lb, strbuf, strlen(strbuf));
 	}
