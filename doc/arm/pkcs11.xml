@@ -12,10 +12,10 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="pkcs11"><info><title>PKCS#11 (Cryptoki) support</title></info>
+<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="pkcs11"><info><title>PKCS#11 (Cryptoki) Support</title></info>
 
   <para>
-    PKCS#11 (Public Key Cryptography Standard #11) defines a
+    Public Key Cryptography Standard #11 (PKCS#11) defines a
     platform-independent API for the control of hardware security
     modules (HSMs) and other cryptographic support devices.
   </para>

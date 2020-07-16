@@ -10,10 +10,10 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="dyndb-info"><info><title>DynDB (Dynamic Database)</title></info>
+<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="dyndb-info"><info><title>Dynamic Database (DynDB)</title></info>
 
   <para>
-    DynDB is an extension to BIND 9 which, like DLZ
+    Dynamic Database, or DynDB, is an extension to BIND 9 which, like DLZ
     (see <xref linkend="dlz-info"/>), allows zone data to be
     retrieved from an external database.  Unlike DLZ, a DynDB module
     provides a full-featured BIND zone database interface.  Where
@@ -27,7 +27,7 @@
   <para>
     A DynDB module supporting LDAP has been created by Red Hat
     and is available from
-    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://fedorahosted.org/bind-dyndb-ldap/">https://fedorahosted.org/bind-dyndb-ldap/</link>.
+    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://pagure.io/bind-dyndb-ldap">https://pagure.io/bind-dyndb-ldap</link>.
   </para>
   <para>
     A sample DynDB module for testing and developer guidance
@@ -53,20 +53,20 @@
       different drivers or multiple instances of the same driver.
       Zones provided by a DynDB module are added to the view's zone
       table, and are treated as normal authoritative zones when BIND
-      is responding to queries.  Zone configuration is handled internally
+      responds to queries.  Zone configuration is handled internally
       by the DynDB module.
     </para>
     <para>
       The <replaceable>parameters</replaceable> are passed as an opaque
       string to the DynDB module's initialization routine. Configuration
-      syntax will differ depending on the driver.
+      syntax differs depending on the driver.
     </para>
   </section>
   <section><info><title>Sample DynDB Module</title></info>
 
     <para>
-      For guidance in implementation of DynDB modules, the directory
-      <filename>bin/tests/system/dyndb/driver</filename>.
+      For guidance in the implementation of DynDB modules, the directory
+      <filename>bin/tests/system/dyndb/driver</filename>
       contains a basic DynDB module.
       The example sets up two zones, whose names are passed
       to the module as arguments in the <command>dyndb</command>
@@ -76,7 +76,7 @@
     dyndb sample "sample.so" { example.nil. arpa. };
     </screen>
     <para>
-      In the above example, the module is configured to create a zone
+      In the above example, the module is configured to create a zone,
       "example.nil", which can answer queries and AXFR requests, and
       accept DDNS updates.  At runtime, prior to any updates, the zone
       contains an SOA, NS, and a single A record at the apex:
@@ -89,11 +89,11 @@
  example.nil.  86400    IN      A       127.0.0.1
     </screen>
     <para>
-      When the zone is updated dynamically, the DynDB module will determine
-      whether the updated RR is an address (i.e., type A or AAAA) and if
-      so, it will automatically update the corresponding PTR record in a
-      reverse zone.  (Updates are not stored permanently; all updates are
-      lost when the server is restarted.)
+      When the zone is updated dynamically, the DynDB module determines
+      whether the updated RR is an address (i.e., type A or AAAA); if
+      so, it automatically updates the corresponding PTR record in a
+      reverse zone.  Note that updates are not stored permanently; all updates are
+      lost when the server is restarted.
     </para>
   </section>
 </section>
