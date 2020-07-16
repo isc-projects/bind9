@@ -393,6 +393,7 @@ isc_nm_closedown(isc_nm_t *mgr) {
 void
 isc_nm_destroy(isc_nm_t **mgr0) {
 	isc_nm_t *mgr = NULL;
+	int counter = 0;
 
 	REQUIRE(mgr0 != NULL);
 	REQUIRE(VALID_NM(*mgr0));
@@ -407,7 +408,7 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 	/*
 	 * Wait for the manager to be dereferenced elsewhere.
 	 */
-	while (isc_refcount_current(&mgr->references) > 1) {
+	while (isc_refcount_current(&mgr->references) > 1 && counter++ < 1000) {
 		/*
 		 * Sometimes libuv gets stuck, pausing and unpausing
 		 * netmgr goes over all events in async queue for all
@@ -422,6 +423,8 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 		usleep(10000);
 #endif /* ifdef WIN32 */
 	}
+
+	INSIST(counter <= 1000);
 
 	/*
 	 * Detach final reference.
