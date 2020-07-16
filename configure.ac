@@ -650,19 +650,6 @@ AC_COMPILE_IFELSE(
      AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])])
 
-AC_MSG_CHECKING([for SipHash support])
-AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <openssl/evp.h>
-		       #include <openssl/opensslv.h>]],
-		     [[#if OPENSSL_VERSION_NUMBER < 0x10101010L
-		       #error OpenSSL >= 1.1.1a required for working SipHash initialization
-		       #endif
-		       EVP_PKEY *key = EVP_PKEY_new_raw_private_key(
-			   EVP_PKEY_SIPHASH, NULL, NULL, 0);]])],
-    [AC_DEFINE([HAVE_OPENSSL_SIPHASH], [1], [define if OpenSSL supports SipHash])
-     AC_MSG_RESULT([yes])],
-    [AC_MSG_RESULT([no])])
-
 #
 # Check for OpenSSL SHA-1 support
 #
