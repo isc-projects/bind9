@@ -291,13 +291,8 @@ isc_ht_iter_delcurrent_next
 isc_ht_iter_destroy
 isc_ht_iter_first
 isc_ht_iter_next
-isc_httpd_addheader
-isc_httpd_addheaderuint
-isc_httpd_endheaders
-isc_httpd_response
 isc_httpd_setfinishhook
 isc_httpdmgr_addurl
-isc_httpdmgr_addurl2
 isc_httpdmgr_create
 isc_httpdmgr_shutdown
 isc_interfaceiter_create
