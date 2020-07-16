@@ -18,44 +18,6 @@
 #include <isc/util.h>
 
 /*
- * Creation of EVP_MD_CTX and EVP_PKEY is quite expensive, until
- * we fix the code to reuse the context and key we'll use our own
- * implementation of siphash.
- */
-#if 0 /* HAVE_OPENSSL_SIPHASH */
-#include <openssl/evp.h>
-
-void
-isc_siphash24(const uint8_t*k,const uint8_t*in,const size_t inlen,uint8_t*out)
-{
-	REQUIRE(k != NULL);
-	REQUIRE(out != NULL);
-	size_t outlen = 8;
-	EVP_PKEY_CTX*pctx = NULL;
-
-	EVP_MD_CTX*mctx = EVP_MD_CTX_new();
-	EVP_PKEY*key = EVP_PKEY_new_raw_private_key(EVP_PKEY_SIPHASH,NULL,
-						    k,16);
-	RUNTIME_CHECK(mctx != NULL);
-	RUNTIME_CHECK(key != NULL);
-
-	RUNTIME_CHECK(EVP_DigestSignInit(mctx,&pctx,NULL,NULL,key) == 1);
-	RUNTIME_CHECK(EVP_PKEY_CTX_ctrl(pctx,EVP_PKEY_SIPHASH,
-					EVP_PKEY_OP_SIGNCTX,
-					EVP_PKEY_CTRL_SET_DIGEST_SIZE,outlen,
-					NULL) == 1);
-	RUNTIME_CHECK(EVP_DigestSignUpdate(mctx,in,inlen) == 1);
-	RUNTIME_CHECK(EVP_DigestSignFinal(mctx,out,&outlen) == 1);
-
-	ENSURE(outlen == 8);
-
-	EVP_PKEY_free(key);
-	EVP_MD_CTX_free(mctx);
-}
-
-#else /* HAVE_OPENSSL_SIPHASH */
-
-/*
  * The implementation is based on SipHash reference C implementation by
  *
  * Copyright (c) 2012-2016 Jean-Philippe Aumasson
@@ -185,4 +147,3 @@ isc_siphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 
 	U64TO8_LE(out, b);
 }
-#endif /* HAVE_OPENSSL_SIPHASH */
