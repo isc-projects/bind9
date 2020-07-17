@@ -35,6 +35,8 @@ New Features
   parameters to an ``http`` statement. The defaults are 300 and 100
   respectively. :gl:`#2809`
 
+- Add support for HTTPS and SVCB record types. :gl:`#1132`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
