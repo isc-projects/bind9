@@ -30,6 +30,8 @@ New Features
 
 - None.
 
+- Add support for HTTPS and SVCB record types. :gl:`#1132`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
