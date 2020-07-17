@@ -141,23 +141,21 @@ static inline isc_result_t
 fromtext_tlsa(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_tlsa);
 
-	return (generic_fromtext_tlsa(rdclass, type, lexer, origin, options,
-				      target, callbacks));
+	return (generic_fromtext_tlsa(CALL_FROMTEXT));
 }
 
 static inline isc_result_t
 totext_tlsa(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_tlsa);
 
-	return (generic_totext_tlsa(rdata, tctx, target));
+	return (generic_totext_tlsa(CALL_TOTEXT));
 }
 
 static inline isc_result_t
 fromwire_tlsa(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_tlsa);
 
-	return (generic_fromwire_tlsa(rdclass, type, source, dctx, options,
-				      target));
+	return (generic_fromwire_tlsa(CALL_FROMWIRE));
 }
 
 static inline isc_result_t
@@ -259,7 +257,7 @@ static inline isc_result_t
 fromstruct_tlsa(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_tlsa);
 
-	return (generic_fromstruct_tlsa(rdclass, type, source, target));
+	return (generic_fromstruct_tlsa(CALL_FROMSTRUCT));
 }
 
 static inline isc_result_t
@@ -273,7 +271,7 @@ tostruct_tlsa(ARGS_TOSTRUCT) {
 	tlsa->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&tlsa->common, link);
 
-	return (generic_tostruct_tlsa(rdata, target, mctx));
+	return (generic_tostruct_tlsa(CALL_TOSTRUCT));
 }
 
 static inline void
