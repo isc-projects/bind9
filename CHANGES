@@ -1,3 +1,11 @@
+5473.	[func]		The rbt hashtable implementation has been changed
+			to use faster hash-function (HalfSipHash2-4) and
+			uses Fibonacci hashing for better distribution.
+			Setting the max-cache-size now preallocates fixed
+			size hashtable, so the rehashing doesn't cause
+			resolution brownouts when growing the hashtable.
+			[GL #1775]
+
 5472.	[func]		The statistics channel has been updated to use the
 			new network manager. [GL #2022]
 
