@@ -29,7 +29,12 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- BIND's cache database implementation has been updated to use a faster
+  hash-function with better distribution.  In addition, the effective
+  max-cache-size (configured explicitly, defaulting to a value based on system
+  memory or set to 'unlimited') now pre-allocates fixed size hash tables. This
+  prevents interruption to query resolution when the hash tables need to be
+  increased in size. [GL #1775]
 
 Bug Fixes
 ~~~~~~~~~
