@@ -132,17 +132,15 @@ start_servers() {
     fi
 }
 
-stop_servers_failed() {
-    echoinfo "I:$systest:stopping servers failed"
-    echofail "R:$systest:FAIL"
-    echoend  "E:$systest:$(date_with_args)"
-    exit 1
-}
-
 stop_servers() {
     if $stopservers; then
         echoinfo "I:$systest:stopping servers"
-        $PERL stop.pl "$systest" || stop_servers_failed
+        if ! $PERL stop.pl "$systest"; then
+            echoinfo "I:$systest:stopping servers failed"
+            echofail "R:$systest:FAIL"
+            echoend  "E:$systest:$(date_with_args)"
+            exit 1
+        fi
     fi
 }
 
@@ -278,13 +276,13 @@ else
 			       "$binary"
 		echoinfo "D:$systest:backtrace from $coredump end"
 	done
-    elif [ $assertion_failures -ne 0 ]; then
+    elif [ "$assertion_failures" -ne 0 ]; then
 	SYSTESTDIR="$systest"
         echoinfo "I:$systest:Test claims success despite $assertion_failures assertion failure(s)"
 	grep "SUMMARY: " $(find $systest/ -name 'tsan.*') | sort -u | cat_d
         echofail "R:$systest:FAIL"
         # Do not clean up - we need the evidence.
-    elif [ $sanitizer_summaries -ne 0 ]; then
+    elif [ "$sanitizer_summaries" -ne 0 ]; then
         echoinfo "I:$systest:Test claims success despite $sanitizer_summaries sanitizer reports(s)"
         echofail "R:$systest:FAIL"
     else
