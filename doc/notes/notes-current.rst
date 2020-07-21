@@ -42,3 +42,12 @@ Bug Fixes
 - The introduction of KASP support broke whether the second field
   of sig-validity-interval was treated as days or hours. (Thanks to
   Tony Finch.) [GL !3735]
+
+- The IPv6 Duplicate Address Detection (DAD) mechanism could cause the operating
+  system to report the new IPv6 addresses to the applications via the
+  getifaddrs() API in a tentative (DAD not yet finished) or duplicate (DAD
+  failed) state. Such addresses cannot be bound by an application, and named
+  failed to listen on IPv6 addresses after the DAD mechanism finished. It is
+  possible to work around the issue by setting the IP_FREEBIND option on the
+  socket and trying to bind() to the IPv6 address again if the first bind() call
+  fails with EADDRNOTAVAIL. [GL #2038]
