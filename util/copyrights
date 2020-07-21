@@ -820,6 +820,7 @@
 ./bin/tests/system/pipelined/refb		X	2014,2015,2018,2019,2020
 ./bin/tests/system/pipelined/setup.sh		SH	2014,2015,2016,2017,2018,2019,2020
 ./bin/tests/system/pipelined/tests.sh		SH	2014,2015,2016,2017,2018,2019,2020
+./bin/tests/system/pkcs11/2037-pk11_numbits-crash-test.pkt	X	2020
 ./bin/tests/system/pkcs11/clean.sh		SH	2010,2012,2014,2016,2017,2018,2019,2020
 ./bin/tests/system/pkcs11/setup.sh		SH	2010,2012,2013,2014,2016,2017,2018,2019,2020
 ./bin/tests/system/pkcs11/tests.sh		SH	2010,2012,2014,2016,2017,2018,2019,2020
