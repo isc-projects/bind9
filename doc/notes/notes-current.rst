@@ -36,6 +36,14 @@ Security Fixes
   ISC would like to thank Dave Feldman, Jeff Warren, and Joel Cunningham
   of Oracle for bringing this vulnerability to our attention. [GL #2028]
 
+- When BIND 9 was compiled with native PKCS#11 support, it was possible
+  to trigger an assertion failure in code determining the number of bits
+  in the PKCS#11 RSA public key with a specially crafted packet. This
+  was disclosed in CVE-2020-8623.
+
+  ISC would like to thank Lyu Chiy for bringing this vulnerability to
+  our attention. [GL #2037]
+
 Known Issues
 ~~~~~~~~~~~~
 
