@@ -821,3 +821,9 @@ isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid);
 /*%<
  * Decrement socket-related statistics counters.
  */
+
+isc_result_t
+isc__nm_socket_freebind(const uv_handle_t *handle);
+/*%<
+ * Set the IP_FREEBIND (or equivalent) socket option on the uv_handle
+ */
