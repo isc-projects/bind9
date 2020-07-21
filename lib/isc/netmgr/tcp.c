@@ -249,6 +249,19 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	r = uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa,
 			flags);
+	if (r == UV_EADDRNOTAVAIL &&
+	    isc__nm_socket_freebind(&sock->uv_handle.handle) == ISC_R_SUCCESS)
+	{
+		/*
+		 * Retry binding with IP_FREEBIND (or equivalent option) if the
+		 * address is not available. This helps with IPv6 tentative
+		 * addresses which are reported by the route socket, although
+		 * named is not yet able to properly bind to them.
+		 */
+		r = uv_tcp_bind(&sock->uv_handle.tcp,
+				&sock->iface->addr.type.sa, flags);
+	}
+
 	if (r != 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
