@@ -7,7 +7,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 cp ns1/root.db.in ns1/root.db
 

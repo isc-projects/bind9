@@ -25,12 +25,6 @@ if [ "$(id -u)" -eq "0" ] && [ "@DEVELOPER_MODE@" != "yes" ]; then
 	exit 1
 fi
 
-SYSTEMTESTTOP="$(cd -P -- "${builddir}" && pwd -P)"
-if [ "$CYGWIN" ]; then
-	SYSTEMTESTTOP="$(cygpath -m "${SYSTEMTESTTOP}")"
-fi
-
-export SYSTEMTESTTOP
 export builddir
 export srcdir
 
@@ -97,6 +91,12 @@ if [ "${srcdir}" != "${builddir}" ]; then
     if [ ! -d common ] || [ ! -r common/.prepared ]; then
 	cp -a "${srcdir}/common" "${builddir}"
     fi
+    # Some tests require additional files to work for out-of-tree test runs.
+    for file in ckdnsrps.sh digcomp.pl ditch.pl packet.pl start.pl stop.pl; do
+        if [ ! -r "${file}" ]; then
+            cp -a "${srcdir}/${file}" "${builddir}"
+        fi
+    done
     if [ ! -d "$systest" ] || [ ! -r "$systest/.prepared" ]; then
 	mkdir -p "${builddir}/$systest"
 	cp -a "${srcdir}/$systest" "${builddir}/"

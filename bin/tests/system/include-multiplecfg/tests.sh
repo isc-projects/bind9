@@ -12,7 +12,7 @@
 # Test of include statement with glob expression.
 
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noadd +nostats -p ${PORT}"
 

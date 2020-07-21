@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 n=0
@@ -17,7 +17,7 @@ n=0
 rm -f dig.out.*
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd -p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 for conf in conf/good*.conf
 do

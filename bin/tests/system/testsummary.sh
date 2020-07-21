@@ -24,8 +24,7 @@
 # 0 - no tests failed
 # 1 - one or more tests failed
 
-SYSTEMTESTTOP=.
-. "$SYSTEMTESTTOP/conf.sh"
+. ./conf.sh
 
 keepfile=0
 

@@ -15,7 +15,7 @@ newid=`expr "0000${newid}" : '.*\(.....\)$'`
 badid=`expr \( ${oldid} + 7777 \) % 65536`
 badid=`expr "0000${badid}" : '.*\(.....\)$'`
 
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 zone=example.
 infile=example.db.in

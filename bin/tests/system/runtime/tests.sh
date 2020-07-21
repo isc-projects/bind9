@@ -10,11 +10,11 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 set -e
 
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 kill_named() {
 	pidfile="${1}"

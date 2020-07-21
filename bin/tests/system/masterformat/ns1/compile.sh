@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../../conf.sh
 
 $CHECKZONE -D -F raw -o example.db.raw example \
         example.db > /dev/null 2>&1

@@ -12,14 +12,14 @@
 set -e
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 dig_with_opts() {
 	"$DIG" -p "${PORT}" "$@"
 }
 
 rndccmd() (
-	"$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "${CONTROLPORT}" -s "$@"
+	"$RNDC" -c ../common/rndc.conf -p "${CONTROLPORT}" -s "$@"
 )
 
 _wait_for_message() (

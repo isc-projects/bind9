@@ -9,10 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp +dnssec -p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 wait_for_serial() (
     $DIG $DIGOPTS "@$1" "$2" SOA > "$4"
@@ -1340,7 +1340,7 @@ check_done_signing () (
 retry_quiet 10 check_done_signing || ret=1
 # Halt rather than stopping the server to prevent the file from being
 # flushed upon shutdown since we specifically want to avoid it.
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
+$PERL ../stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
 start_server --noclean --restart --port ${PORT} inline ns3
 # At this point, the raw zone journal will not have a source serial set.  Upon
@@ -1349,7 +1349,7 @@ start_server --noclean --restart --port ${PORT} inline ns3
 # return delayedkeys/SOA as the next node to resign, so we restart the server
 # once again; with the raw zone journal now having a source serial set,
 # receive_secure_serial() should refrain from introducing any zone changes.
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
+$PERL ../stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
 nextpart ns3/named.run > /dev/null
 start_server --noclean --restart --port ${PORT} inline ns3

@@ -12,7 +12,7 @@
 set -e
 
 #shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 dig_with_opts() (
 	"$DIG" +tcp +noadd +nosea +nostat +nocmd +dnssec -p "${PORT}" "$@"
@@ -23,7 +23,7 @@ delv_with_opts() (
 )
 
 rndccmd() (
-	"$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "${CONTROLPORT}" -s "$@"
+	"$RNDC" -c ../common/rndc.conf -p "${CONTROLPORT}" -s "$@"
 )
 
 mkeys_reconfig_on() (

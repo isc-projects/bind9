@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 n=1

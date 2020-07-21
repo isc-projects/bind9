@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 
@@ -143,7 +143,7 @@ done
 status=`expr $status + $ret`
 
 echo_i "stop and restart secondary"
-$PERL $SYSTEMTESTTOP/stop.pl unknown ns2
+$PERL ../stop.pl unknown ns2
 start_server --noclean --restart --port ${PORT} unknown ns2
 
 # server may be answering queries before zones are loaded,
@@ -167,7 +167,7 @@ $DIFF large.out dig.out > /dev/null || { ret=1 ; echo_i "$DIFF failed"; }
 status=`expr $status + $ret`
 
 echo_i "stop and restart inline secondary"
-$PERL $SYSTEMTESTTOP/stop.pl unknown ns3
+$PERL ../stop.pl unknown ns3
 start_server --noclean --restart --port ${PORT} unknown ns3
 
 # server may be answering queries before zones are loaded,

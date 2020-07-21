@@ -9,10 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="-p ${PORT} -b 10.53.0.1 +dnssec +time=2 +tries=1 +multi"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 # Wait until the transfer of the given zone to ns3 either completes
 # successfully or is aborted by a verification failure or a REFUSED response

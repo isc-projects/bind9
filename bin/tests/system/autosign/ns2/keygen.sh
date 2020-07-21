@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 # Have the child generate subdomain keys and pass DS sets to us.
 ( cd ../ns3 && $SHELL keygen.sh )

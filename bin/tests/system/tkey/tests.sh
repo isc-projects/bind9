@@ -11,7 +11,7 @@
 
 set -e
 
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 dig_with_opts() {
 	"$DIG" @10.53.0.1 -p "$PORT" "$@"

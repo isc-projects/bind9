@@ -9,10 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 status=0
 n=0
@@ -465,7 +465,7 @@ echo_i "test mapped zone with out of zone data ($n)"
 tmp=0
 $DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.1.test$n
 grep "status: NOERROR," dig.out.1.test$n > /dev/null || tmp=1
-$PERL $SYSTEMTESTTOP/stop.pl xfer ns3
+$PERL ../stop.pl xfer ns3
 start_server --noclean --restart --port ${PORT} xfer ns3
 check_mapped () {
 	$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.2.test$n

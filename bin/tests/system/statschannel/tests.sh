@@ -10,10 +10,10 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 DIGCMD="$DIG @10.53.0.2 -p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 if [ ! "$HAVEJSONSTATS" ]
 then

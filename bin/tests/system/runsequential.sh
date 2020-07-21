@@ -16,8 +16,7 @@
 # is the only one running on an IP address.
 #
 
-SYSTEMTESTTOP=.
-. "$SYSTEMTESTTOP/conf.sh"
+. ./conf.sh
 
 for d in $SEQUENTIALDIRS
 do

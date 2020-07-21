@@ -9,10 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="-p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 #
 # Uncomment when creating credential cache files.
@@ -515,7 +515,7 @@ update add updated4.example.nil. 600 A 10.10.10.3
 send
 END
 sleep 3
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} nsupdate ns1
+$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} nsupdate ns1
 sleep 3
 # Removing the journal file and restarting the server means
 # that the data served by the new server process are exactly

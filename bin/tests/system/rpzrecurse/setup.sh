@@ -13,7 +13,7 @@
 
 set -e
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 USAGE="$0: [-DNx]"
 DEBUG=

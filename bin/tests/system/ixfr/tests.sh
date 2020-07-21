@@ -15,7 +15,7 @@
 #          in the log file - need a better approach <sdm> - until then,
 #          if you add any tests above that point, you will break the test.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 wait_for_serial() (
     $DIG $DIGOPTS "@$1" "$2" SOA > "$4"

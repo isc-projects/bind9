@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 for zone in example01.com example02.com example03.com example04.com \
 	    example05.com example06.com example07.com example08.com \

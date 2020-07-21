@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 start_time="$(TZ=UTC date +%s)"
 status=0
@@ -136,7 +136,7 @@ dig_with_opts() {
 
 # RNDC.
 rndccmd() {
-	"$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "$CONTROLPORT" -s "$@"
+	"$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
 # Print IDs of keys used for generating RRSIG records for RRsets of type $1

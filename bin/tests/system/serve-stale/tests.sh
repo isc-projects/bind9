@@ -9,9 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 # wait up to ten seconds to ensure that a file has been written
 waitfile () {
@@ -1037,7 +1037,7 @@ status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
 echo_i "stop ns4"
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns4
+$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns4
 
 # Load the cache as if it was five minutes (RBTDB_VIRTUAL) older.
 # Since max-stale-ttl defaults to a week, we need to adjust the date by

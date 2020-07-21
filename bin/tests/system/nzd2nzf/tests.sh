@@ -7,14 +7,14 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 dig_with_opts() {
     "$DIG" -p "${PORT}" "$@"
 }
 
 rndccmd() {
-    "$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "${CONTROLPORT}" -s "$@"
+    "$RNDC" -c ../common/rndc.conf -p "${CONTROLPORT}" -s "$@"
 }
 
 status=0
@@ -43,7 +43,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "stopping ns1"
-$PERL $SYSTEMTESTTOP/stop.pl nzd2nzf ns1
+$PERL ../stop.pl nzd2nzf ns1
 
 n=$((n+1))
 echo_i "dumping _default.nzd to _default.nzf ($n)"

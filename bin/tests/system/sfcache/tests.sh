@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 set -e
 
@@ -24,7 +24,7 @@ dig_with_opts() {
 }
 
 rndc_with_opts() {
-    "$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "$CONTROLPORT" -s "$@"
+    "$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
 echo_i "checking DNSSEC SERVFAIL is cached ($n)"

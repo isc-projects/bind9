@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 if ! $FEATURETEST --with-dlz-filesystem; then
         echo_i "DLZ filesystem driver not supported"

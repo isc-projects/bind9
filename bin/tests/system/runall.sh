@@ -24,8 +24,7 @@
 #               (This is ignored when running on Windows as the tests are always
 #               run sequentially on that platform.)
 
-SYSTEMTESTTOP=.
-. "$SYSTEMTESTTOP/conf.sh"
+. ./conf.sh
 
 usage="Usage: ./runall.sh [-c] [-n] [numprocesses]"
 

@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 zone=nsec3param.test.
 infile=nsec3param.test.db.in

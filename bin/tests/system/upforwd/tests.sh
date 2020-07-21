@@ -13,7 +13,7 @@
 # ns2 = secondary with update forwarding disabled; not currently used
 # ns3 = secondary with update forwarding enabled
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
 

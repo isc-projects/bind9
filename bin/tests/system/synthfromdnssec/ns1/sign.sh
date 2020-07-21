@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../../conf.sh
 
 zone=example
 infile=example.db.in
