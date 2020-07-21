@@ -831,6 +831,17 @@ dns_db_hashsize(dns_db_t *db) {
 	return ((db->methods->hashsize)(db));
 }
 
+isc_result_t
+dns_db_adjusthashsize(dns_db_t *db, size_t size) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	if (db->methods->adjusthashsize != NULL) {
+		return ((db->methods->adjusthashsize)(db, size));
+	}
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
 void
 dns_db_settask(dns_db_t *db, isc_task_t *task) {
 	REQUIRE(DNS_DB_VALID(db));

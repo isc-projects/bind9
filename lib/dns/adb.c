@@ -756,7 +756,8 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
 	isc_mutex_t *newnamelocks = NULL;
 	isc_result_t result;
 	unsigned int *newname_refcnt = NULL;
-	unsigned int i, n, bucket;
+	unsigned int i, n;
+	unsigned int bucket;
 
 	adb = ev->ev_arg;
 	INSIST(DNS_ADB_VALID(adb));
@@ -4838,7 +4839,7 @@ void
 dns_adb_flushname(dns_adb_t *adb, const dns_name_t *name) {
 	dns_adbname_t *adbname;
 	dns_adbname_t *nextname;
-	int bucket;
+	unsigned int bucket;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(name != NULL);

@@ -285,7 +285,8 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 		  dns_rdatatype_t type, uint32_t *flagp, isc_time_t *now) {
 	dns_bcentry_t *bad, *prev, *next;
 	bool answer = false;
-	unsigned int i, hash;
+	unsigned int i;
+	unsigned int hash;
 
 	REQUIRE(VALID_BADCACHE(bc));
 	REQUIRE(name != NULL);
@@ -385,7 +386,7 @@ dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name) {
 	dns_bcentry_t *bad, *prev, *next;
 	isc_result_t result;
 	isc_time_t now;
-	unsigned int i;
+	unsigned int hash;
 
 	REQUIRE(VALID_BADCACHE(bc));
 	REQUIRE(name != NULL);
@@ -396,16 +397,16 @@ dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name) {
 	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&now);
 	}
-	i = dns_name_hash(name, false) % bc->size;
-	LOCK(&bc->tlocks[i]);
+	hash = dns_name_hash(name, false) % bc->size;
+	LOCK(&bc->tlocks[hash]);
 	prev = NULL;
-	for (bad = bc->table[i]; bad != NULL; bad = next) {
+	for (bad = bc->table[hash]; bad != NULL; bad = next) {
 		int n;
 		next = bad->next;
 		n = isc_time_compare(&bad->expire, &now);
 		if (n < 0 || dns_name_equal(name, &bad->name)) {
 			if (prev == NULL) {
-				bc->table[i] = bad->next;
+				bc->table[hash] = bad->next;
 			} else {
 				prev->next = bad->next;
 			}
@@ -417,7 +418,7 @@ dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name) {
 			prev = bad;
 		}
 	}
-	UNLOCK(&bc->tlocks[i]);
+	UNLOCK(&bc->tlocks[hash]);
 
 	RWUNLOCK(&bc->lock, isc_rwlocktype_read);
 }
