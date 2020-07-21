@@ -65,3 +65,8 @@ zone "test2.example.net" {
      type master;
      file "test2.example.net.db";
 };
+
+zone "example.com" {
+     type master;
+     file "example.com.db";
+};

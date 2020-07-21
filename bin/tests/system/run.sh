@@ -230,6 +230,8 @@ elif [ "$assertion_failures" -ne 0 ]; then
 elif [ "$sanitizer_summaries" -ne 0 ]; then
     echoinfo "I:$systest:$sanitizer_summaries sanitizer report(s) found"
     echofail "R:$systest:FAIL"
+elif [ "$status" != 0 ]; then
+    echofail "R:$systest:FAIL"
 else
     echopass "R:$systest:PASS"
     if $clean; then
