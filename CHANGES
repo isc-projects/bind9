@@ -1,4 +1,7 @@
-5481.	[placeholder]
+5481.	[bug]		BIND 9 would fail to bind to IPv6 addresses in a
+			tentative state when a new IPv6 address was added to the
+			system, but the Duplicate Address Detection (DAD)
+			mechanism had not yet finished. [GL #2038]
 
 5480.	[placeholder]
 
