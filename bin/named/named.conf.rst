@@ -401,6 +401,7 @@ OPTIONS
   	stacksize ( default | unlimited | sizeval );
   	stale-answer-enable boolean;
   	stale-answer-ttl duration;
+  	stale-cache-enable boolean;
   	startup-notify-rate integer;
   	statistics-file quoted_string;
   	synth-from-dnssec boolean;
@@ -785,6 +786,7 @@ VIEW
   	sortlist { address_match_element; ... };
   	stale-answer-enable boolean;
   	stale-answer-ttl duration;
+  	stale-cache-enable boolean;
   	synth-from-dnssec boolean;
   	transfer-format ( many-answers | one-answer );
   	transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [

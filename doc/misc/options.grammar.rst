@@ -258,6 +258,7 @@
   	stacksize ( default | unlimited | <sizeval> );
   	stale-answer-enable <boolean>;
   	stale-answer-ttl <duration>;
+  	stale-cache-enable <boolean>;
   	startup-notify-rate <integer>;
   	statistics-file <quoted_string>;
   	synth-from-dnssec <boolean>;

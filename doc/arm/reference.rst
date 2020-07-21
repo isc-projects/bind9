@@ -1815,9 +1815,9 @@ Boolean Options
    The default is ``yes``.
 
 ``stale-answer-enable``
-   If ``yes``, enable the returning of "stale" cached answers when the name servers
-   for a zone are not answering. The default is not to return stale
-   answers.
+   If ``yes``, enable the returning of "stale" cached answers when the name
+   servers for a zone are not answering and the ``stale-cache-enable`` option is
+   also enabled. The default is not to return stale answers.
 
    Stale answers can also be enabled or disabled at runtime via
    ``rndc serve-stale on`` or ``rndc serve-stale off``; these override
@@ -1830,6 +1830,9 @@ Boolean Options
 
    Information about stale answers is logged under the ``serve-stale``
    log category.
+
+``stale-cache-enable``
+   If ``yes``, enable the retaining of "stale" cached answers.  Default ``no``.
 
 ``nocookie-udp-size``
    This sets the maximum size of UDP responses that are sent to queries
@@ -3246,15 +3249,20 @@ Tuning
    (such as NS and glue AAAA/A records) in the resolution process.
 
 ``max-stale-ttl``
-   If stale answers are enabled, ``max-stale-ttl`` sets the maximum time
+   If retaining stale RRsets in cache is enabled, and returning of stale cached
+   answers is also enabled, ``max-stale-ttl`` sets the maximum time
    for which the server retains records past their normal expiry to
    return them as stale records, when the servers for those records are
    not reachable. The default is 12 hours. The minimum allowed is 1
    second; a value of 0 is updated silently to 1 second.
 
-   For stale answers to be returned, they must be enabled, either in the
-   configuration file using ``stale-answer-enable`` or via
-   ``rndc serve-stale on``.
+   For stale answers to be returned, the retaining of them in cache must be
+   enabled via the configuration option ``stale-cache-enable``, and returning
+   cached answers must be enabled, either in the configuration file using the
+   ``stale-answer-enable`` option or by calling ``rndc serve-stale on``.
+
+   When ``stale-cache-enable`` is set to ``no``, setting the ``max-stale-ttl``
+   has no effect, the value of ``max-cache-ttl`` will be ``0`` in such case.
 
 ``resolver-nonbackoff-tries``
    This specifies how many retries occur before exponential backoff kicks in. The
