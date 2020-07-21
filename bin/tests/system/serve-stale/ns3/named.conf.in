@@ -28,7 +28,7 @@ options {
 	listen-on-v6 { none; };
 	recursion yes;
 	dump-file "named_dump3.db";
-	// This configuration has no serve-stale options set.
+	stale-cache-enable yes;
 };
 
 zone "." {

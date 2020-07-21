@@ -862,7 +862,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 #
-# Now test server with serve-stale disabled.
+# Now test server with serve-stale answers disabled.
 #
 echo_i "test server with serve-stale disabled"
 
@@ -876,7 +876,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "prime cache longttl.example (serve-stale disabled) ($n)"
+echo_i "prime cache longttl.example (serve-stale answers disabled) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.4 longttl.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
@@ -885,7 +885,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "prime cache data.example (serve-stale disabled) ($n)"
+echo_i "prime cache data.example (serve-stale answers disabled) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.4 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
@@ -895,7 +895,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "prime cache othertype.example (serve-stale disabled) ($n)"
+echo_i "prime cache othertype.example (serve-stale answers disabled) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.4 othertype.example CAA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
@@ -905,7 +905,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "prime cache nodata.example (serve-stale disabled) ($n)"
+echo_i "prime cache nodata.example (serve-stale answers disabled) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.4 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
@@ -915,7 +915,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "prime cache nxdomain.example (serve-stale disabled) ($n)"
+echo_i "prime cache nxdomain.example (serve-stale answers disabled) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.4 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
@@ -925,7 +925,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "verify prime cache statistics (serve-stale disabled) ($n)"
+echo_i "verify prime cache statistics (serve-stale answers disabled) ($n)"
 ret=0
 rm -f ns4/named.stats
 $RNDCCMD 10.53.0.4 stats > /dev/null 2>&1
@@ -973,7 +973,7 @@ waitfile dig.out.test$((n+3))
 waitfile dig.out.test$((n+4))
 
 n=$((n+1))
-echo_i "check fail of data.example (serve-stale disabled) ($n)"
+echo_i "check fail of data.example (serve-stale answers disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
@@ -981,7 +981,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "check fail of othertype.example (serve-stale disabled) ($n)"
+echo_i "check fail of othertype.example (serve-stale answers disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
@@ -989,7 +989,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "check fail of nodata.example (serve-stale disabled) ($n)"
+echo_i "check fail of nodata.example (serve-stale answers disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
@@ -997,7 +997,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "check fail of nxdomain.example (serve-stale disabled) ($n)"
+echo_i "check fail of nxdomain.example (serve-stale answers disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
@@ -1005,7 +1005,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "verify stale cache statistics (serve-stale disabled) ($n)"
+echo_i "verify stale cache statistics (serve-stale answers disabled) ($n)"
 ret=0
 rm -f ns4/named.stats
 $RNDCCMD 10.53.0.4 stats > /dev/null 2>&1
@@ -1025,7 +1025,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 
 # Dump the cache.
 n=$((n+1))
-echo_i "dump the cache (serve-stale disabled) ($n)"
+echo_i "dump the cache (serve-stale answers disabled) ($n)"
 ret=0
 $RNDCCMD 10.53.0.4 dumpdb -cache > rndc.out.test$n 2>&1 || ret=1
 done=0
@@ -1050,7 +1050,7 @@ LASTWEEK=`TZ=UTC perl -e 'my $now = time();
         printf("%04d%02d%02d%02d%02d%02d", $y+1900, $mo+1, $d, $h, $m, $s);'`
 
 n=$((n+1))
-echo_i "mock the cache date to $LASTWEEK (serve-stale disabled) ($n)"
+echo_i "mock the cache date to $LASTWEEK (serve-stale answers disabled) ($n)"
 ret=0
 sed -E "s/DATE [0-9]{14}/DATE $LASTWEEK/g" ns4/named_dump4.db > ns4/named_dumpdb4.db.out || ret=1
 cp ns4/named_dumpdb4.db.out ns4/named_dumpdb4.db
@@ -1061,7 +1061,7 @@ echo_i "start ns4"
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} serve-stale ns4
 
 n=$((n+1))
-echo_i "verify ancient cache statistics (serve-stale disabled) ($n)"
+echo_i "verify ancient cache statistics (serve-stale answers disabled) ($n)"
 ret=0
 rm -f ns4/named.stats
 $RNDCCMD 10.53.0.4 stats #> /dev/null 2>&1
