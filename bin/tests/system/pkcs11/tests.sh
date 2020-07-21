@@ -137,5 +137,10 @@ echo_i "Checking if all supported algorithms were tested"
 [ "$n" -eq "$(wc -l < supported)" ] || ret=1
 test_done
 
+echo_i "Checking for assertion failure in pk11_numbits()"
+$PERL ../packet.pl -a "10.53.0.1" -p "$PORT" -t udp 2037-pk11_numbits-crash-test.pkt
+dig_with_opts @10.53.0.1 version.bind. CH TXT > dig.out.pk11_numbits || ret=1
+test_done
+
 echo_i "exit status: $status"
 [ "$status" -eq 0 ] || exit 1
