@@ -10116,7 +10116,7 @@ named_server_destroy(named_server_t **serverp) {
 
 static void
 fatal(named_server_t *server, const char *msg, isc_result_t result) {
-	if (server != NULL) {
+	if (server != NULL && server->task != NULL) {
 		/*
 		 * Prevent races between the OpenSSL on_exit registered
 		 * function and any other OpenSSL calls from other tasks
