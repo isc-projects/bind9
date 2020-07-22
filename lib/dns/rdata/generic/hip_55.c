@@ -160,7 +160,9 @@ totext_hip(ARGS_TOTEXT) {
 	region.length = key_len;
 	RETERR(isc_base64_totext(&region, 1, "", target));
 	region.length = length - key_len;
-	RETERR(str_totext(tctx->linebreak, target));
+	if (region.length > 0) {
+		RETERR(str_totext(tctx->linebreak, target));
+	}
 
 	/*
 	 * Rendezvous Servers.
@@ -261,8 +263,6 @@ fromstruct_hip(ARGS_FROMSTRUCT) {
 	REQUIRE(((dns_rdata_hip_t *)source)->hit != NULL);
 	REQUIRE(((dns_rdata_hip_t *)source)->key_len > 0);
 	REQUIRE(((dns_rdata_hip_t *)source)->key != NULL);
-	REQUIRE(((dns_rdata_hip_t *)source)->servers == NULL);
-	REQUIRE(((dns_rdata_hip_t *)source)->servers_len == 0);
 	REQUIRE((((dns_rdata_hip_t *)source)->servers == NULL &&
 		 ((dns_rdata_hip_t *)source)->servers_len == 0) ||
 		(((dns_rdata_hip_t *)source)->servers != NULL &&
@@ -436,7 +436,7 @@ dns_rdata_hip_next(dns_rdata_hip_t *hip) {
 	dns_name_fromregion(&name, &region);
 	hip->offset += name.length;
 	INSIST(hip->offset <= hip->servers_len);
-	return (ISC_R_SUCCESS);
+	return (hip->offset < hip->servers_len ? ISC_R_SUCCESS : ISC_R_NOMORE);
 }
 
 void
