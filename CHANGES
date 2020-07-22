@@ -1,3 +1,6 @@
+5474.	[bug]		dns_rdata_hip_next() failed to return ISC_R_NOMORE
+			when it should have. [GL !3880]
+
 5465.	[func]		Fallback to built in trust-anchors, managed-keys, or
 			trusted-keys if the bindkeys-file (bind.keys) cannot
 			be parsed. [GL #1235]
