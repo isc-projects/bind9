@@ -467,6 +467,7 @@ pylint:
 tarball-create:
   stage: precheck
   <<: *base_image
+  <<: *default_triggering_rules
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} all V=1
@@ -477,8 +478,6 @@ tarball-create:
   needs:
     - job: autoreconf
       artifacts: true
-  only:
-    - tags
 
 # Jobs for doc builds on Debian 10 "buster" (amd64)
 
