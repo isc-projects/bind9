@@ -77,18 +77,20 @@ _teardown(void **state) {
  * An array of these structures is passed to check_text_ok().
  */
 typedef struct text_ok {
-	const char *text_in;		/* text passed to fromtext_*() */
-	const char *text_out;		/* text expected from totext_*();
-					   NULL indicates text_in is invalid */
+	const char *text_in;  /* text passed to fromtext_*() */
+	const char *text_out; /* text expected from totext_*();
+			       * NULL indicates text_in is invalid */
+	unsigned int loop;
 } text_ok_t;
 
 /*
  * An array of these structures is passed to check_wire_ok().
  */
 typedef struct wire_ok {
-	unsigned char data[512];	/* RDATA in wire format */
-	size_t len;			/* octets of data to parse */
-	bool ok;			/* is this RDATA valid? */
+	unsigned char data[512]; /* RDATA in wire format */
+	size_t len;		 /* octets of data to parse */
+	bool ok;		 /* is this RDATA valid? */
+	unsigned int loop;
 } wire_ok_t;
 
 #define COMPARE(r1, r2, answer) \
@@ -97,26 +99,42 @@ typedef struct wire_ok {
 	{ NULL, NULL, 0, __LINE__ }
 
 #define TEXT_VALID_CHANGED(data_in, data_out) \
-				{ data_in, data_out }
-#define TEXT_VALID(data)	{ data, data }
-#define TEXT_INVALID(data)	{ data, NULL }
-#define TEXT_SENTINEL()		TEXT_INVALID(NULL)
+	{                                     \
+		data_in, data_out, 0          \
+	}
+#define TEXT_VALID(data)      \
+	{                     \
+		data, data, 0 \
+	}
+#define TEXT_VALID_LOOP(loop, data) \
+	{                           \
+		data, data, loop    \
+	}
+#define TEXT_VALID_LOOPCHG(loop, data_in, data_out) \
+	{                                           \
+		data_in, data_out, loop             \
+	}
+#define TEXT_INVALID(data)    \
+	{                     \
+		data, NULL, 0 \
+	}
+#define TEXT_SENTINEL() TEXT_INVALID(NULL)
 
-#define VARGC(...)		(sizeof((unsigned char[]){ __VA_ARGS__ }))
-#define WIRE_TEST(ok, ...)	{					      \
-					{ __VA_ARGS__ }, VARGC(__VA_ARGS__),  \
-					ok				      \
-				}
-#define WIRE_VALID(...)		WIRE_TEST(true, __VA_ARGS__)
+#define VARGC(...) (sizeof((unsigned char[]){ __VA_ARGS__ }))
+#define WIRE_TEST(ok, loop, ...)                              \
+	{                                                     \
+		{ __VA_ARGS__ }, VARGC(__VA_ARGS__), ok, loop \
+	}
+#define WIRE_VALID(...)		   WIRE_TEST(true, 0, __VA_ARGS__)
+#define WIRE_VALID_LOOP(loop, ...) WIRE_TEST(true, loop, __VA_ARGS__)
 /*
  * WIRE_INVALID() test cases must always have at least one octet specified to
  * distinguish them from WIRE_SENTINEL().  Use the 'empty_ok' parameter passed
  * to check_wire_ok() for indicating whether empty RDATA is allowed for a given
  * RR type or not.
  */
-#define WIRE_INVALID(FIRST, ...) \
-				WIRE_TEST(false, FIRST, __VA_ARGS__)
-#define WIRE_SENTINEL()		WIRE_TEST(false)
+#define WIRE_INVALID(FIRST, ...) WIRE_TEST(false, 0, FIRST, __VA_ARGS__)
+#define WIRE_SENTINEL()		 WIRE_TEST(false, 0)
 
 /*
  * Call dns_rdata_fromwire() for data in 'src', which is 'srclen' octets in
@@ -248,13 +266,15 @@ rdata_checknames(dns_rdata_t *rdata) {
  * check_text_ok_single() and check_wire_ok_single().
  */
 static void
-check_struct_conversions(dns_rdata_t *rdata, size_t structsize) {
+check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
+			 unsigned int loop) {
 	dns_rdataclass_t rdclass = rdata->rdclass;
 	dns_rdatatype_t type = rdata->type;
 	isc_result_t result;
 	isc_buffer_t target;
 	void *rdata_struct;
 	char buf[1024];
+	unsigned int count = 0;
 
 	rdata_struct = isc_mem_allocate(mctx, structsize);
 	assert_non_null(rdata_struct);
@@ -279,6 +299,29 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize) {
 	assert_int_equal(isc_buffer_usedlength(&target), rdata->length);
 
 	assert_memory_equal(buf, rdata->data, rdata->length);
+
+	/*
+	 * Check that one can walk hip rendezvous servers.
+	 */
+	switch (type) {
+	case dns_rdatatype_hip: {
+		dns_rdata_hip_t *hip = rdata_struct;
+
+		for (result = dns_rdata_hip_first(hip); result == ISC_R_SUCCESS;
+		     result = dns_rdata_hip_next(hip))
+		{
+			dns_name_t name;
+			dns_name_init(&name, NULL);
+			dns_rdata_hip_current(hip, &name);
+			assert_int_not_equal(dns_name_countlabels(&name), 0);
+			assert_true(dns_name_isabsolute(&name));
+			count++;
+		}
+		assert_int_equal(result, ISC_R_NOMORE);
+		assert_int_equal(count, loop);
+		break;
+	}
+	}
 
 	isc_mem_free(mctx, rdata_struct);
 }
@@ -379,7 +422,7 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 * Perform two-way conversion checks between uncompressed wire form and
 	 * type-specific struct.
 	 */
-	check_struct_conversions(&rdata, structsize);
+	check_struct_conversions(&rdata, structsize, text_ok->loop);
 }
 
 /*
@@ -519,7 +562,7 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 	 *   - uncompressed wire form and text form,
 	 *   - uncompressed wire form and multi-line text form.
 	 */
-	check_struct_conversions(&rdata, structsize);
+	check_struct_conversions(&rdata, structsize, wire_ok->loop);
 	if (!dns_rdatatype_ismeta(rdata.type)) {
 		check_text_conversions(&rdata);
 		check_multiline_text_conversions(&rdata);
@@ -573,11 +616,9 @@ check_text_ok(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
  * for given RR class and type behaves as expected.
  */
 static void
-check_wire_ok(const wire_ok_t *wire_ok, bool empty_ok,
-	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	      size_t structsize)
-{
-	wire_ok_t empty_wire = WIRE_TEST(empty_ok);
+check_wire_ok(const wire_ok_t *wire_ok, bool empty_ok, dns_rdataclass_t rdclass,
+	      dns_rdatatype_t type, size_t structsize) {
+	wire_ok_t empty_wire = WIRE_TEST(empty_ok, 0);
 	size_t i;
 
 	/*
@@ -1852,10 +1893,37 @@ eid(void **state) {
  */
 static void
 hip(void **state) {
-	unsigned char hipwire[DNS_RDATA_MAXLENGTH] = {
-				    0x01, 0x00, 0x00, 0x01, 0x00, 0x00,
-				    0x04, 0x41, 0x42, 0x43, 0x44, 0x00 };
-	unsigned char buf[1024*1024];
+	text_ok_t text_ok[] = {
+		/* RFC 8005 examples. */
+		TEXT_VALID_LOOP(0, "2 200100107B1A74DF365639CC39F1D578 "
+				   "AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cI"
+				   "vM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbW"
+				   "Iy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+b"
+				   "SRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWx"
+				   "Z48AWkskmdHaVDP4BcelrTI3rMXdXF5D"),
+		TEXT_VALID_LOOP(1, "2 200100107B1A74DF365639CC39F1D578 "
+				   "AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cI"
+				   "vM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbW"
+				   "Iy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+b"
+				   "SRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWx"
+				   "Z48AWkskmdHaVDP4BcelrTI3rMXdXF5D "
+				   "rvs1.example.com."),
+		TEXT_VALID_LOOP(2, "2 200100107B1A74DF365639CC39F1D578 "
+				   "AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cI"
+				   "vM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbW"
+				   "Iy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+b"
+				   "SRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWx"
+				   "Z48AWkskmdHaVDP4BcelrTI3rMXdXF5D "
+				   "rvs1.example.com. rvs2.example.com."),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	unsigned char hipwire[DNS_RDATA_MAXLENGTH] = { 0x01, 0x00, 0x00, 0x01,
+						       0x00, 0x00, 0x04, 0x41,
+						       0x42, 0x43, 0x44, 0x00 };
+	unsigned char buf[1024 * 1024];
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	size_t i;
@@ -1873,6 +1941,8 @@ hip(void **state) {
 	result = wire_to_rdata(hipwire, sizeof(hipwire), dns_rdataclass_in,
 			       dns_rdatatype_hip, buf, sizeof(buf), &rdata);
 	assert_int_equal(result, DNS_R_FORMERR);
+	check_text_ok(text_ok, dns_rdataclass_in, dns_rdatatype_hip,
+		      sizeof(dns_rdata_hip_t));
 }
 
 /*
