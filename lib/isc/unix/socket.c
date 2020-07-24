@@ -4245,9 +4245,10 @@ isc_socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 	if (stat(sockaddr->type.sunix.sun_path, &sb) < 0) {
 		switch (errno) {
 		case ENOENT:
-			if (active) /* We exited cleanly last time */
+			if (active) { /* We exited cleanly last time */
 				break;
-			/* intentional falltrough */
+			}
+			/* FALLTHROUGH */
 		default:
 			strerror_r(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
