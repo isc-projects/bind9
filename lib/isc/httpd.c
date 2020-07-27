@@ -652,7 +652,7 @@ new_httpd(isc_httpdmgr_t *httpdmgr, isc_nmhandle_t *handle) {
 	isc_buffer_initnull(&httpd->compbuffer);
 	isc_buffer_clear(&httpd->compbuffer);
 
-	isc_buffer_invalidate(&httpd->bodybuffer);
+	isc_buffer_initnull(&httpd->bodybuffer);
 
 	ISC_LINK_INIT(httpd, link);
 
