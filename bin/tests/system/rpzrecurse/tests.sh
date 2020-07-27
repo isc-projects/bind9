@@ -390,5 +390,19 @@ if test $p1 -le $p2; then ret=1; fi
 if test $ret != 0; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+t=`expr $t + 1`
+echo_i "testing wildcard passthru before explicit drop (${t})"
+run_server wildcard4
+$DIG $DIGOPTS example.com a @10.53.0.2 -p ${PORT} > dig.out.${t}.1
+grep "status: NOERROR" dig.out.${t}.1 > /dev/null || {
+	echo_i "test ${t} failed"
+	status=1
+}
+$DIG $DIGOPTS www.example.com a @10.53.0.2 -p ${PORT} > dig.out.${t}.2
+grep "status: NOERROR" dig.out.${t}.2 > /dev/null || {
+	echo_i "test ${t} failed"
+	status=1
+}
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

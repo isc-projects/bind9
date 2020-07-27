@@ -2084,6 +2084,7 @@
 ./bin/tests/system/rpzrecurse/clean.sh		SH	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns1/db.l0		ZONE	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns1/db.l1.l0	ZONE	2015,2016,2018,2019,2020
+./bin/tests/system/rpzrecurse/ns1/example.com.db	ZONE	2020
 ./bin/tests/system/rpzrecurse/ns1/example.db	ZONE	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns1/named.conf.in	CONF-C	2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns1/root.db	ZONE	2015,2016,2018,2019,2020
@@ -2092,9 +2093,11 @@
 ./bin/tests/system/rpzrecurse/ns2/db.clientip1	ZONE	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns2/db.clientip2	ZONE	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns2/db.clientip21	ZONE	2016,2018,2019,2020
+./bin/tests/system/rpzrecurse/ns2/db.given	ZONE	2020
 ./bin/tests/system/rpzrecurse/ns2/db.log1	ZONE	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns2/db.log2	ZONE	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns2/db.log3	ZONE	2015,2016,2018,2019,2020
+./bin/tests/system/rpzrecurse/ns2/db.passthru	ZONE	2020
 ./bin/tests/system/rpzrecurse/ns2/db.wildcard1	ZONE	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns2/db.wildcard2a	ZONE	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns2/db.wildcard2b	ZONE	2015,2016,2018,2019,2020
@@ -2107,6 +2110,7 @@
 ./bin/tests/system/rpzrecurse/ns2/named.wildcard1.conf	CONF-C	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns2/named.wildcard2.conf	CONF-C	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns2/named.wildcard3.conf	CONF-C	2015,2016,2018,2019,2020
+./bin/tests/system/rpzrecurse/ns2/named.wildcard4.conf	CONF-C	2020
 ./bin/tests/system/rpzrecurse/ns2/root.hint	ZONE	2015,2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns3/example.db	ZONE	2016,2018,2019,2020
 ./bin/tests/system/rpzrecurse/ns3/named1.conf.in	CONF-C	2016,2018,2019,2020
