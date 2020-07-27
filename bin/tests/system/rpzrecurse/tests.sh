@@ -473,6 +473,21 @@ for mode in native dnsrps; do
     status=1
   }
 
+  t=`expr $t + 1`
+  echo_i "testing wildcard passthru before explicit drop (${t})"
+  add_test_marker 10.53.0.2
+  run_server wildcard4
+  $DIG $DIGOPTS example.com a @10.53.0.2 -p ${PORT} > dig.out.${t}.1
+  grep "status: NOERROR" dig.out.${t}.1 > /dev/null || {
+    echo_i "test ${t} failed"
+    status=1
+  }
+  $DIG $DIGOPTS www.example.com a @10.53.0.2 -p ${PORT} > dig.out.${t}.2
+  grep "status: NOERROR" dig.out.${t}.2 > /dev/null || {
+    echo_i "test ${t} failed"
+    status=1
+  }
+
   if [ "$mode" = "native" ]; then
     # Check for invalid prefix length error
     t=`expr $t + 1`

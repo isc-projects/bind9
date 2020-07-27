@@ -1,3 +1,8 @@
+5475.	[bug]		Fix RPZ wildcard passthru ignored when a rejection
+			would overwrite a passthru action matching some
+			rule in a previously loaded passthru rpz zone.
+			[GL #1619]
+
 5474.	[bug]		dns_rdata_hip_next() failed to return ISC_R_NOMORE
 			when it should have. [GL !3880]
 
