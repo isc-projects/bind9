@@ -215,7 +215,7 @@ grep "unknown algorithm" keygen.out3 > /dev/null || ret=1
 
 echo_i "check that a 'BADTIME' response with 'QR=0' is handled as a request"
 ret=0
-$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp < badtime > /dev/null
+$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp < badtime > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.0.1 version.bind txt ch > dig.out.verify || ret=1
 grep "status: NOERROR" dig.out.verify > /dev/null || ret=1
 if [ $ret -eq 1 ] ; then
