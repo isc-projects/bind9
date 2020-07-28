@@ -404,6 +404,7 @@ misc:
     - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
     - sh util/check-win32util-configure
     - sh util/check-categories.sh
+    - if git grep SYSTEMTESTTOP -- ':!.gitlab-ci.yml'; then echo 'Please use relative paths instead of $SYSTEMTESTTOP.'; exit 1; fi
   needs: []
   artifacts:
     paths:
