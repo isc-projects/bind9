@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <uv.h>
 
 #include <isc/app.h>
 #include <isc/attributes.h>
@@ -525,6 +526,9 @@ printversion(bool verbose) {
 	printf("linked to OpenSSL version: %s\n",
 	       SSLeay_version(SSLEAY_VERSION));
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+	printf("compiled with libuv version: %d.%d.%d\n", UV_VERSION_MAJOR,
+	       UV_VERSION_MINOR, UV_VERSION_PATCH);
+	printf("linked to libuv version: %s\n", uv_version_string());
 #ifdef HAVE_LIBXML2
 	printf("compiled with libxml2 version: %s\n", LIBXML_DOTTED_VERSION);
 	printf("linked to libxml2 version: %s\n", xmlParserVersion);
