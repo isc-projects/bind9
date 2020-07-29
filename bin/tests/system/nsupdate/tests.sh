@@ -641,6 +641,31 @@ fi
 
 n=`expr $n + 1`
 ret=0
+echo_i "check that 'update-policy subdomain' is properly enforced ($n)"
+# "restricted.example.nil" matches "grant ... subdomain restricted.example.nil"
+# and thus this UPDATE should succeed.
+$NSUPDATE -d <<END > nsupdate.out1-$n 2>&1 || ret=1
+server 10.53.0.1 ${PORT}
+key restricted.example.nil 1234abcd8765
+update add restricted.example.nil 0 IN TXT everywhere.
+send
+END
+$DIG $DIGOPTS +tcp @10.53.0.1 restricted.example.nil TXT > dig.out.1.test$n || ret=1
+grep "TXT.*everywhere" dig.out.1.test$n > /dev/null || ret=1
+# "example.nil" does not match "grant ... subdomain restricted.example.nil" and
+# thus this UPDATE should fail.
+$NSUPDATE -d <<END > nsupdate.out2-$n 2>&1 && ret=1
+server 10.53.0.1 ${PORT}
+key restricted.example.nil 1234abcd8765
+update add example.nil 0 IN TXT everywhere.
+send
+END
+$DIG $DIGOPTS +tcp @10.53.0.1 example.nil TXT > dig.out.2.test$n || ret=1
+grep "TXT.*everywhere" dig.out.2.test$n > /dev/null && ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=`expr $n + 1`
+ret=0
 echo_i "check that changes to the DNSKEY RRset TTL do not have side effects ($n)"
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
         @10.53.0.3 dnskey | \
