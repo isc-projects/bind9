@@ -772,7 +772,6 @@ addlookup(char *opt) {
 	lookup->recurse = recurse;
 	lookup->aaonly = aaonly;
 	lookup->retries = tries;
-	lookup->udpsize = 0;
 	lookup->setqid = false;
 	lookup->qid = 0;
 	lookup->comments = comments;
