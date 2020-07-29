@@ -570,12 +570,14 @@
 	  <term><option>+bufsize=B</option></term>
 	  <listitem>
 	    <para>
-	      Set the UDP message buffer size advertised using EDNS0
-	      to <parameter>B</parameter> bytes.  The maximum and
-	      minimum sizes of this buffer are 65535 and 0 respectively.
-	      Values outside this range are rounded up or down
-	      appropriately.  Values other than zero will cause a
-	      EDNS query to be sent.
+              This option sets the UDP message buffer size advertised
+              using EDNS0 to <parameter>B</parameter> bytes.  The
+              maximum and minimum sizes of this buffer are 65535
+              and 0, respectively.  <literal>+bufsize=0</literal>
+              disables EDNS (use <literal>+bufsize=0 +edns</literal>
+              to send a EDNS messages with a advertised size of 0
+              bytes). <literal>+bufsize</literal> restores the
+              default buffer size.
 	    </para>
 	  </listitem>
 	</varlistentry>
