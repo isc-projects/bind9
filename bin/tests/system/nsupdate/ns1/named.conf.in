@@ -36,6 +36,11 @@ key altkey {
 	secret "1234abcd8765";
 };
 
+key restricted.example.nil {
+	algorithm hmac-md5;
+	secret "1234abcd8765";
+};
+
 include "ddns.key";
 
 zone "example.nil" {
@@ -45,6 +50,7 @@ zone "example.nil" {
 	check-mx ignore;
 	update-policy {
 		grant ddns-key.example.nil subdomain example.nil ANY;
+		grant restricted.example.nil subdomain restricted.example.nil ANY;
 	};
 	allow-transfer { any; };
 };
