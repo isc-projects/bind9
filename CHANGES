@@ -1,3 +1,6 @@
+5497.	[bug]		dig +bufsize=0 failed to disable EDNS as a side
+			effect. [GL #2054]
+
 5496.	[bug]		The rate limiter needs to hold a reference to its task.
 			[GL #2081]
 

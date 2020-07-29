@@ -667,7 +667,7 @@ make_empty_lookup(void) {
 	looknew->idnin = false;
 	looknew->idnout = false;
 #endif /* HAVE_LIBIDN2 */
-	looknew->udpsize = 0;
+	looknew->udpsize = -1;
 	looknew->edns = -1;
 	looknew->recurse = true;
 	looknew->aaonly = false;
@@ -2366,11 +2366,11 @@ setup_lookup(dig_lookup_t *lookup) {
 		 * and DNS_EDNSOPTIONS set by other arguments
 		 * (+nsid, +cookie, etc).
 		 */
-		if (lookup->udpsize == 0) {
-			lookup->udpsize = 4096;
+		if (lookup->udpsize < 0) {
+			lookup->udpsize = DEFAULT_EDNS_BUFSIZE;
 		}
 		if (lookup->edns < 0) {
-			lookup->edns = 0;
+			lookup->edns = DEFAULT_EDNS_VERSION;
 		}
 
 		if (lookup->nsid) {
