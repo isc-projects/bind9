@@ -1,3 +1,7 @@
+5477.	[bug]		The idle timeout for connected TCP sockets is now
+			derived from the client query processing timeout
+			configured for a resolver. [GL #2024]
+
 5475.	[bug]		Fix RPZ wildcard passthru ignored when a rejection
 			would overwrite a passthru action matching some
 			rule in a previously loaded passthru rpz zone.
