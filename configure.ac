@@ -159,7 +159,8 @@ AC_ARG_ENABLE([developer],
 			      [enable developer build settings])])
 
 AS_IF([test "$enable_developer" = "yes"],
-      [STD_CPPFLAGS="$STD_CPPFLAGS -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
+      [DEVELOPER_MODE=yes
+       STD_CPPFLAGS="$STD_CPPFLAGS -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
        test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
        test "${enable_querytrace+set}" = set || enable_querytrace=yes
        test "${with_cmocka+set}" = set || with_cmocka=yes
@@ -168,6 +169,7 @@ AS_IF([test "$enable_developer" = "yes"],
        test "${enable_warn_error+set}" = set || enable_warn_error=yes
        ])
 
+AC_SUBST([DEVELOPER_MODE])
 AC_SUBST([STD_CFLAGS])
 AC_SUBST([STD_CPPFLAGS])
 
