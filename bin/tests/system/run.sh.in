@@ -20,6 +20,11 @@ srcdir=@abs_srcdir@
 # shellcheck source=conf.sh
 . ${builddir}/conf.sh
 
+if [ "$(id -u)" -eq "0" ] && [ "@DEVELOPER_MODE@" != "yes" ]; then
+	echofail "Refusing to run test as root. Build with --enable-developer to override." >&2
+	exit 1
+fi
+
 SYSTEMTESTTOP="$(cd -P -- "${builddir}" && pwd -P)"
 if [ "$CYGWIN" ]; then
 	SYSTEMTESTTOP="$(cygpath -m "${SYSTEMTESTTOP}")"

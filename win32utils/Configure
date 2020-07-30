@@ -211,6 +211,7 @@ my @substdefp = ();
 my %configtest;
 
 my @substtest = ("CRYPTO",
+                 "DEVELOPER_MODE",
                  "DNSTAP",
                  "FSTRM_CAPTURE",
                  "JSONSTATS",
@@ -722,6 +723,7 @@ sub myenable {
 # enable-developer expansion now
 
 if ($enable_developer eq "yes") {
+    $configtest{"DEVELOPER_MODE"} = "yes";
     $configdefh{"ISC_LIST_CHECKINIT"} = 1;
     $enable_querytrace = "yes";
     # no atf on WIN32
