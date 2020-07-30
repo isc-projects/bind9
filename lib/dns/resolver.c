@@ -3022,12 +3022,15 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 		case ISC_R_SUCCESS:
 
 			/*
-			 * Extend the idle timer for TCP.  20 seconds
-			 * should be long enough for a TCP connection to be
-			 * established, a single DNS request to be sent,
-			 * and the response received.
+			 * Extend the idle timer for TCP.  Half of
+			 * "resolver-query-timeout" will hopefully be long
+			 * enough for a TCP connection to be established, a
+			 * single DNS request to be sent, and the response
+			 * received.
 			 */
-			isc_interval_set(&interval, 20, 0);
+			isc_interval_set(&interval,
+					 fctx->res->query_timeout / 1000 / 2,
+					 0);
 			result = fctx_startidletimer(query->fctx, &interval);
 			if (result != ISC_R_SUCCESS) {
 				FCTXTRACE("query canceled: idle timer failed; "
