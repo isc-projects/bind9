@@ -208,9 +208,6 @@ installed:
 
 To see a full list of configuration options, run `configure --help`.
 
-To build shared libraries, specify `--with-libtool` on the `configure`
-command line.
-
 For the server to support DNSSEC, you need to build it with crypto support.
 To use OpenSSL, you should have OpenSSL 1.0.2e or newer installed. If the
 OpenSSL library is installed in a nonstandard location, specify the prefix
