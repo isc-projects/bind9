@@ -10,6 +10,14 @@
 5474.	[bug]		dns_rdata_hip_next() failed to return ISC_R_NOMORE
 			when it should have. [GL !3880]
 
+5473.	[func]		The rbt hashtable implementation has been changed
+			to use faster hash-function (HalfSipHash2-4) and
+			uses Fibonacci hashing for better distribution.
+			Setting the max-cache-size now preallocates fixed
+			size hashtable, so the rehashing doesn't cause
+			resolution brownouts when growing the hashtable.
+			[GL #1775]
+
 5471.	[bug]		The introduction of KASP support broke whether the
 			second field of sig-validity-interval was treated as
 			days or hours. (Thanks to Tony Finch.) [GL !3735]

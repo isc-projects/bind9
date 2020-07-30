@@ -684,6 +684,17 @@ dns_rbt_hashsize(dns_rbt_t *rbt);
  * \li  rbt is a valid rbt manager.
  */
 
+isc_result_t
+dns_rbt_adjusthashsize(dns_rbt_t *rbt, size_t size);
+/*%<
+ * Adjust the number of buckets in the 'rbt' hash table, according to the
+ * expected maximum size of the rbt database.
+ *
+ * Requires:
+ * \li  rbt is a valid rbt manager.
+ * \li  size is expected maximum memory footprint of rbt.
+ */
+
 void
 dns_rbt_destroy(dns_rbt_t **rbtp);
 isc_result_t
