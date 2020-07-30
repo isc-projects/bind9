@@ -11,7 +11,7 @@
 
 # tests for TSIG-GSS updates
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 n=1

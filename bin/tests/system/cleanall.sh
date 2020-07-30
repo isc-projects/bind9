@@ -13,8 +13,7 @@
 # Clean up after system tests.
 #
 
-SYSTEMTESTTOP=.
-. $SYSTEMTESTTOP/conf.sh
+. ./conf.sh
 
 
 find . -type f \( \
@@ -25,7 +24,7 @@ find . -type f \( \
 
 status=0
 
-rm -f $SYSTEMTESTTOP/random.data
+rm -f ../random.data
 
 for d in $SUBDIRS
 do

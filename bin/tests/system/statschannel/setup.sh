@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 for conf in ns*/named.conf.in; do
     copy_setports "$conf" "$(dirname "$conf")/$(basename "$conf" .in)"

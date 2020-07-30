@@ -374,7 +374,7 @@ a run of the full test suite (e.g. the tests are started with "runall.sh").
 
 3.  Each script should start with the following lines:
 
-    . $SYSTEMTESTTOP/conf.sh
+    . ../conf.sh
 
 "conf.sh" defines a series of environment variables together with functions
 useful for the test scripts. (conf.sh.win32 is the Windows equivalent of this

@@ -9,10 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="-p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 #
 # Uncomment when creating credential cache files.
@@ -244,7 +244,7 @@ n=`expr $n + 1`
 ret=0
 echo_i "check that TYPE=0 update is handled ($n)"
 echo "a0e4280000010000000100000000060001c00c000000fe000000000000" |
-$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp > /dev/null
+$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp > /dev/null || ret=1
 $DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 > dig.out.ns1.$n
 grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
@@ -253,7 +253,7 @@ n=`expr $n + 1`
 ret=0
 echo_i "check that TYPE=0 additional data is handled ($n)"
 echo "a0e4280000010000000000010000060001c00c000000fe000000000000" |
-$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp > /dev/null
+$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp > /dev/null || ret=1
 $DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 > dig.out.ns1.$n
 grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
@@ -262,7 +262,7 @@ n=`expr $n + 1`
 ret=0
 echo_i "check that update to undefined class is handled ($n)"
 echo "a0e4280000010001000000000000060101c00c000000fe000000000000" |
-$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp > /dev/null
+$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp > /dev/null || ret=1
 $DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 > dig.out.ns1.$n
 grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
@@ -515,7 +515,7 @@ update add updated4.example.nil. 600 A 10.10.10.3
 send
 END
 sleep 3
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} nsupdate ns1
+$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} nsupdate ns1
 sleep 3
 # Removing the journal file and restarting the server means
 # that the data served by the new server process are exactly

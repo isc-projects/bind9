@@ -12,7 +12,7 @@
 set -e
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 count_rrsigs() (
     grep -c "IN[[:space:]]*RRSIG" "$@" || true

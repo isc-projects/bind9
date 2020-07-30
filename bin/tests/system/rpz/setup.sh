@@ -13,7 +13,7 @@
 
 set -e
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 QPERF=`$SHELL qperf.sh`
 
@@ -57,7 +57,7 @@ copy_setports dnsrpzd.conf.in dnsrpzd.conf
 # decide whether to test DNSRPS
 # Note that dnsrps.conf and dnsrps-slave.conf are included in named.conf
 # and differ from dnsrpz.conf which is used by dnsrpzd.
-$SHELL ../rpz/ckdnsrps.sh -A $TEST_DNSRPS $DEBUG
+$SHELL ../ckdnsrps.sh -A $TEST_DNSRPS $DEBUG
 test -z "`grep 'dnsrps-enable yes' dnsrps.conf`" && TEST_DNSRPS=
 
 # set up test policy zones.

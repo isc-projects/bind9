@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 set -e
 
@@ -36,7 +36,7 @@ delv_with_opts() {
 }
 
 rndccmd() {
-    "$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "$CONTROLPORT" -s "$@"
+    "$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
 # TODO: Move loadkeys_on to conf.sh.common
@@ -3806,7 +3806,7 @@ ret=0
 dig_with_opts . dnskey +ednsopt=KEY-TAG:fffe +ednsopt=KEY-TAG:fffd @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep "trust-anchor-telemetry './IN' from .* 65534" ns1/named.run > /dev/null || ret=1
 grep "trust-anchor-telemetry './IN' from .* 65533" ns1/named.run > /dev/null && ret=1
-$PERL $SYSTEMTESTTOP/stop.pl dnssec ns1 || ret=1
+$PERL ../stop.pl dnssec ns1 || ret=1
 nextpart ns1/named.run > /dev/null
 start_server --noclean --restart --port ${PORT} dnssec ns1 || ret=1
 n=$(($n+1))

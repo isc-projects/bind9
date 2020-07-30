@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="-p ${PORT} +tries=1 +time=2"
 
@@ -252,7 +252,7 @@ fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} legacy ns1
+$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} legacy ns1
 copy_setports ns1/named2.conf.in ns1/named.conf
 start_server --noclean --restart --port ${PORT} legacy ns1
 

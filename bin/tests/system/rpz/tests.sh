@@ -14,7 +14,7 @@
 # touch dnsrps-off to not test with DNSRPS
 # touch dnsrps-only to not test with classic RPZ
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 ns=10.53.0
 ns1=$ns.1		# root, defining the others
@@ -60,7 +60,7 @@ comment () {
 }
 
 DNSRPSCMD=./dnsrps
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 if test -x $DNSRPSCMD; then
     # speed up the many delays for dnsrpzd by waiting only 0.1 seconds
@@ -320,7 +320,7 @@ ckresult () {
     elif grep "flags:.* aa .*ad;" $DIGNM; then
 	setret "'dig $1' AD set;"
     fi
-    if $PERL $SYSTEMTESTTOP/digcomp.pl $DIGNM $2 >/dev/null; then
+    if $PERL ../digcomp.pl $DIGNM $2 >/dev/null; then
 	NEED_TCP=`echo "$1" | sed -n -e 's/[Tt][Cc][Pp].*/TCP/p'`
 	RESULT_TCP=`sed -n -e 's/.*Truncated, retrying in TCP.*/TCP/p' $DIGNM`
 	if test "$NEED_TCP" != "$RESULT_TCP"; then
@@ -467,7 +467,7 @@ for mode in native dnsrps; do
       continue
     fi
     echo_i "attempting to configure servers with DNSRPS..."
-    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz
+    $PERL ../stop.pl --use-rndc --port ${CONTROLPORT} rpz
     $SHELL ./setup.sh -N -D $DEBUG
     for server in ns*; do
       resetstats $server
@@ -785,7 +785,7 @@ EOF
 
   # restart the main test RPZ server to see if that creates a core file
   if test -z "$HAVE_CORE"; then
-    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+    $PERL ../stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
     restart 3 "rebuild-bl-rpz"
     HAVE_CORE=`find ns* -name '*core*' -print`
     test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"
@@ -805,11 +805,11 @@ EOF
     # restart the main test RPZ server with a bad zone.
     t=`expr $t + 1`
     echo_i "checking that ns3 with broken rpz does not crash (${t})"
-    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+    $PERL ../stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
     cp ns3/broken.db.in ns3/bl.db
     restart 3 # do not rebuild rpz zones
     nocrash a3-1.tld2 -tA
-    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+    $PERL ../stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
     restart 3 "rebuild-bl-rpz"
 
     # reload a RPZ zone that is now deliberately broken.

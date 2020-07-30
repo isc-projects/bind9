@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 $SHELL clean.sh
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 3 >ns2/example.db

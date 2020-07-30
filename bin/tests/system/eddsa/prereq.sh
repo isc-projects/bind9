@@ -11,7 +11,7 @@
 
 set -e
 
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 if ! $SHELL ../testcrypto.sh eddsa; then
 	exit 1

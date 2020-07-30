@@ -11,7 +11,7 @@
 
 set -e
 
-. "$SYSTEMTESTTOP/conf.sh"
+. ../../conf.sh
 
 keyname=$($KEYGEN -T KEY -a DH -b 768 -n host server)
 keyid=$(keyfile_to_key_id "$keyname")

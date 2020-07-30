@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns5/named.conf.in ns5/named.conf

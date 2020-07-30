@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 1 6 7 >ns1/sec.db
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 1 6 7 >ns1/edns-expire.db

@@ -8,7 +8,7 @@
 # information regarding copyright ownership.
 
 #shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 dig_with_opts() (
 	"$DIG" -p "$PORT" "$@"

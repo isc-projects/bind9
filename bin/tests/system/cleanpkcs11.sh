@@ -9,6 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 [ -x "$TOP_BUILDDIR/bin/pkcs11/pkcs11-destroy" ] && $PK11DEL -w0 > /dev/null 2>&1

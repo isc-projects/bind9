@@ -11,7 +11,7 @@
 
 set -e
 
-. "$SYSTEMTESTTOP/conf.sh"
+. ../../conf.sh
 
 zone=.
 infile=root.db.in

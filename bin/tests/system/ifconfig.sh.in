@@ -20,9 +20,9 @@
 #       fd92:7065:b8e:ff::{1..2}
 #
 
-top_builddir=@abs_top_builddir@
+top_srcdir=@abs_top_srcdir@
 
-sys=$($SHELL "$top_builddir/config.guess")
+sys=$($SHELL "$top_srcdir/config.guess")
 
 use_ip=
 case "$sys" in

@@ -12,7 +12,7 @@
 set -eu
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 echo_i "Generating keys for Native PKCS#11" >&2
 
@@ -63,7 +63,7 @@ for algbits in rsasha256:2048 rsasha512:2048 ecdsap256sha256:256 ecdsap384sha384
     bits=$(echo "$algbits" | cut -f 2 -d :)
     zone="$alg.example"
     zonefile="ns1/$alg.example.db"
-    if $SHELL "$SYSTEMTESTTOP/testcrypto.sh" "$alg"; then
+    if $SHELL ../testcrypto.sh "$alg"; then
 	echo "$alg" >> supported
 	algs="$algs$alg "
 

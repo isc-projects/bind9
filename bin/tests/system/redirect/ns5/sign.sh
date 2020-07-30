@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 # We sign the zone here and move the signed zone to ns6.
 # The ns5 server actually does not serve this zone but

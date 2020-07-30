@@ -11,7 +11,7 @@
 
 set -eu
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 touch empty
 

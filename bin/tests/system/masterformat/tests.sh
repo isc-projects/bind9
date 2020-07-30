@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 status=0
 n=1
@@ -88,7 +88,7 @@ dig_with_opts() {
 }
 
 rndccmd() {
-    "$RNDC" -c "$SYSTEMTESTTOP/common/rndc.conf" -p "${CONTROLPORT}" -s "$@"
+    "$RNDC" -c ../common/rndc.conf -p "${CONTROLPORT}" -s "$@"
 }
 
 status=0
@@ -234,7 +234,7 @@ grep "added text" "dig.out.dynamic1.ns3.test$n" > /dev/null 2>&1 || ret=1
 dig_with_opts +comm @10.53.0.3 added.dynamic txt > "dig.out.dynamic2.ns3.test$n"
 grep "NXDOMAIN" "dig.out.dynamic2.ns3.test$n" > /dev/null 2>&1 || ret=1
 # using "rndc halt" ensures that we don't dump the zone file
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} rndc ns3
+$PERL ../stop.pl --use-rndc --halt --port ${CONTROLPORT} masterformat ns3
 restart
 check_added_text() {
 	dig_with_opts @10.53.0.3 newtext.dynamic txt > "dig.out.dynamic3.ns3.test$n" || return 1
@@ -259,7 +259,7 @@ END
 dig_with_opts @10.53.0.3 moretext.dynamic txt > "dig.out.dynamic1.ns3.test$n"
 grep "more text" "dig.out.dynamic1.ns3.test$n" > /dev/null 2>&1 || ret=1
 # using "rndc stop" will cause the zone file to flush before shutdown
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rndc ns3
+$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} masterformat ns3
 rm ns3/*.jnl
 restart
 #shellcheck disable=SC2034

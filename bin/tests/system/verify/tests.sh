@@ -7,7 +7,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 failed () {
 	cat verify.out.$n | sed 's/^/D:/';
 	echo_i "failed";

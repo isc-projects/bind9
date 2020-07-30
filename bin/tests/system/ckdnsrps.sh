@@ -17,7 +17,7 @@ set -e
 #	and differ from dnsrpz.conf which is used by dnsrpzd.
 
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DNSRPS_CMD=../rpz/dnsrps
 

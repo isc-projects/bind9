@@ -13,7 +13,7 @@
 
 set -e
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 USAGE="$0: [-DNx]"
 DEBUG=
@@ -63,7 +63,7 @@ do
 done
 
 # decide whether to test DNSRPS
-$SHELL ../rpz/ckdnsrps.sh $TEST_DNSRPS $DEBUG
+$SHELL ../ckdnsrps.sh $TEST_DNSRPS $DEBUG
 test -z "`grep 'dnsrps-enable yes' dnsrps.conf`" && TEST_DNSRPS=
 
 CWD=`pwd`

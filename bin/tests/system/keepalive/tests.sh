@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="-p ${PORT}"
 RNDCCMD="$RNDC  -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT}"

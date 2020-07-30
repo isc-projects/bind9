@@ -13,8 +13,7 @@
 # Run a system test.
 #
 
-SYSTEMTESTTOP=.
-. $SYSTEMTESTTOP/conf.sh
+. ./conf.sh
 
 test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
 

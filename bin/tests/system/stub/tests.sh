@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp -p ${PORT}"
 
@@ -52,7 +52,7 @@ digcomp knowngood.dig.out.rec dig.out.ns3 || ret=1
 
 [ $pass = 1 ] && {
 	echo_i "stopping stub server"
-	$PERL $SYSTEMTESTTOP/stop.pl stub ns3
+	$PERL ../stop.pl stub ns3
 
 	echo_i "re-starting stub server"
 	start_server --noclean --restart --port ${PORT} stub ns3
