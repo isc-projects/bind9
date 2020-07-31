@@ -53,7 +53,7 @@ U="UNRETENTIVE"
 for zn in default rsasha1 dnssec-keygen some-keys legacy-keys pregenerated \
 	  rumoured rsasha1-nsec3 rsasha256 rsasha512 ecdsa256 ecdsa384 \
 	  dynamic dynamic-inline-signing inline-signing \
-	  inherit unlimited
+	  checkds-ksk checkds-doubleksk checkds-csk inherit unlimited
 do
 	setup "${zn}.kasp"
 	cp template.db.in "$zonefile"
