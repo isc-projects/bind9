@@ -9665,7 +9665,7 @@ load_zones(named_server_t *server, bool init, bool reconfig) {
 		isc_refcount_increment(&zl->refs);
 		result = dns_view_asyncload(view, reconfig, view_loaded, zl);
 		if (result != ISC_R_SUCCESS) {
-			(void)isc_refcount_decrement(&zl->refs);
+			isc_refcount_decrement1(&zl->refs);
 			goto cleanup;
 		}
 	}

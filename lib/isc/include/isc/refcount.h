@@ -133,4 +133,22 @@ isc_refcount_decrement(isc_refcount_t *target) {
 	})
 #endif /* _MSC_VER */
 
+#define isc_refcount_decrementz(target)                               \
+	do {                                                          \
+		uint_fast32_t _refs = isc_refcount_decrement(target); \
+		ISC_INSIST(_refs == 1);                               \
+	} while (0)
+
+#define isc_refcount_decrement1(target)                               \
+	do {                                                          \
+		uint_fast32_t _refs = isc_refcount_decrement(target); \
+		ISC_INSIST(_refs > 1);                                \
+	} while (0)
+
+#define isc_refcount_decrement0(target)                               \
+	do {                                                          \
+		uint_fast32_t _refs = isc_refcount_decrement(target); \
+		ISC_INSIST(_refs > 0);                                \
+	} while (0)
+
 ISC_LANG_ENDDECLS

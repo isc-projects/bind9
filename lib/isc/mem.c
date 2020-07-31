@@ -1015,7 +1015,7 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 		print_active(ctx, stderr);
 	}
 #else  /* if ISC_MEM_TRACKLINES */
-	isc_refcount_decrement(&ctx->references);
+	isc_refcount_decrementz(&ctx->references);
 #endif /* if ISC_MEM_TRACKLINES */
 	isc_refcount_destroy(&ctx->references);
 	destroy(ctx);
