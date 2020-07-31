@@ -24,18 +24,15 @@
 ISC_LANG_BEGINDECLS
 
 int
+LLVMFuzzerInitialize(int *argc __attribute__((unused)),
+		     char ***argv __attribute__((unused)));
+
+int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 
-static isc_mem_t *mctx = NULL;
-
-static void __attribute__((constructor)) init(void) {
-	isc_mem_create(&mctx);
-	RUNTIME_CHECK(dst_lib_init(mctx, NULL) == ISC_R_SUCCESS);
-}
-
-static void __attribute__((destructor)) deinit(void) {
-	dst_lib_destroy();
-	isc_mem_destroy(&mctx);
-}
+#define CHECK(x)                    \
+	if ((x) != ISC_R_SUCCESS) { \
+		return 0;           \
+	}
 
 ISC_LANG_ENDDECLS

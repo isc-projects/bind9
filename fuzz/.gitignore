@@ -1,4 +1,6 @@
 /*.dSYM/
-dns_name_fromtext_target
-dns_rdata_fromwire_text
 /*.out/
+/dns_name_fromtext_target
+/dns_rdata_fromwire_text
+/isc_lex_getmastertoken
+/isc_lex_gettoken

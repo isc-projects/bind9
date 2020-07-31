@@ -13,20 +13,25 @@
 #include <stdint.h>
 
 #include <isc/buffer.h>
+#include <isc/lex.h>
+#include <isc/mem.h>
 #include <isc/util.h>
-
-#include <dns/fixedname.h>
-#include <dns/name.h>
 
 #include "fuzz.h"
 
 static isc_mem_t *mctx = NULL;
+static isc_lex_t *lex = NULL;
 
 int
 LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 		     char ***argv __attribute__((unused))) {
+	isc_result_t result;
+
 	isc_mem_create(&mctx);
-	RUNTIME_CHECK(dst_lib_init(mctx, NULL) == ISC_R_SUCCESS);
+
+	result = isc_lex_create(mctx, 1024, &lex);
+	REQUIRE(result == ISC_R_SUCCESS);
+
 	return (0);
 }
 
@@ -34,20 +39,17 @@ int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_t buf;
 	isc_result_t result;
-	dns_fixedname_t origin;
-
-	if (size < 5) {
-		return (0);
-	}
-
-	dns_fixedname_init(&origin);
 
 	isc_buffer_constinit(&buf, data, size);
 	isc_buffer_add(&buf, size);
 	isc_buffer_setactive(&buf, size);
 
-	result = dns_name_fromtext(dns_fixedname_name(&origin), &buf,
-				   dns_rootname, 0, NULL);
-	UNUSED(result);
+	CHECK(isc_lex_openbuffer(lex, &buf));
+
+	do {
+		isc_token_t token;
+		result = isc_lex_gettoken(lex, 0, &token);
+	} while (result == ISC_R_SUCCESS);
+
 	return (0);
 }

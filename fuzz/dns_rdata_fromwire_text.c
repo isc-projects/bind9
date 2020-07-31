@@ -26,11 +26,7 @@
 #include <dns/rdata.h>
 #include <dns/rdatatype.h>
 
-#define CHECK(x)                                     \
-	({                                           \
-		if ((result = (x)) != ISC_R_SUCCESS) \
-			goto done;                   \
-	})
+#include "fuzz.h"
 
 /*
  * Fuzz input to dns_rdata_fromwire(). Then convert the result
@@ -38,8 +34,28 @@
  * format again, checking for consistency throughout the sequence.
  */
 
+static isc_mem_t *mctx = NULL;
+static isc_lex_t *lex = NULL;
+
 int
-LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
+LLVMFuzzerInitialize(int *argc __attribute__((unused)),
+		     char ***argv __attribute__((unused))) {
+	isc_lexspecials_t specials;
+
+	isc_mem_create(&mctx);
+	RUNTIME_CHECK(dst_lib_init(mctx, NULL) == ISC_R_SUCCESS);
+	CHECK(isc_lex_create(mctx, 64, &lex));
+
+	memset(specials, 0, sizeof(specials));
+	specials[0] = 1;
+	specials['('] = 1;
+	specials[')'] = 1;
+	specials['"'] = 1;
+	isc_lex_setspecials(lex, specials);
+	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
+
+	return (0);
+}
 
 static void
 nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
@@ -62,9 +78,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 		    rdata3 = DNS_RDATA_INIT;
 	dns_rdatacallbacks_t callbacks;
 	isc_buffer_t source, target;
-	isc_lex_t *lex = NULL;
-	isc_lexspecials_t specials;
-	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	unsigned char fromtext[1024];
 	unsigned char fromwire[1024];
@@ -73,7 +86,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	unsigned int types = 1, flags, t;
 
 	if (size < 2) {
-		goto done;
+		return (0);
 	}
 
 	/*
@@ -99,17 +112,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	size--;
 	rdclass = classlist[(*data++) % classes];
 	size--;
-
-	isc_mem_create(&mctx);
-
-	CHECK(isc_lex_create(mctx, 64, &lex));
-	memset(specials, 0, sizeof(specials));
-	specials[0] = 1;
-	specials['('] = 1;
-	specials[')'] = 1;
-	specials['"'] = 1;
-	isc_lex_setspecials(lex, specials);
-	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
 	dns_rdatacallbacks_init(&callbacks);
 	callbacks.warn = callbacks.error = nullmsg;
@@ -184,12 +186,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	assert(target.used == size);
 	assert(!memcmp(target.base, data, size));
 
-done:
-	if (lex != NULL) {
-		isc_lex_destroy(&lex);
-	}
-	if (lex != NULL) {
-		isc_mem_detach(&mctx);
-	}
 	return (0);
 }

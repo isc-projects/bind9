@@ -93,6 +93,8 @@ main(int argc, char **argv) {
 	char corpusdir[PATH_MAX];
 	const char *target = strrchr(argv[0], '/');
 
+	(void)LLVMFuzzerInitialize(&argc, &argv);
+
 	UNUSED(argc);
 	UNUSED(argv);
 
@@ -115,8 +117,7 @@ main(int argc, char **argv) {
 	int ret;
 	unsigned char buf[64 * 1024];
 
-	UNUSED(argc);
-	UNUSED(argv);
+	(void)LLVMFuzzerInitialize(&argc, &argv);
 
 #ifdef __AFL_LOOP
 	while (__AFL_LOOP(10000)) { /* only works with afl-clang-fast */
