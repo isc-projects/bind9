@@ -258,9 +258,6 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 	dns_kasp_setparentpropagationdelay(
 		kasp, get_duration(maps, "parent-propagation-delay",
 				   DNS_KASP_PARENT_PROPDELAY));
-	dns_kasp_setparentregistrationdelay(
-		kasp, get_duration(maps, "parent-registration-delay",
-				   DNS_KASP_PARENT_REGDELAY));
 
 	/* TODO: Rest of the configuration */
 

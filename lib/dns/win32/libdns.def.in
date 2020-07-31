@@ -447,13 +447,11 @@ dns_kasp_key_zsk
 dns_kasp_keylist_empty
 dns_kasp_keys
 dns_kasp_parentpropagationdelay
-dns_kasp_parentregistrationdelay
 dns_kasp_publishsafety
 dns_kasp_retiresafety
 dns_kasp_setdnskeyttl
 dns_kasp_setdsttl
 dns_kasp_setparentpropagationdelay
-dns_kasp_setparentregistrationdelay
 dns_kasp_setpublishsafety
 dns_kasp_setretiresafety
 dns_kasp_setsigrefresh
