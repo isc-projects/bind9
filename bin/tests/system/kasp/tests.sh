@@ -961,35 +961,6 @@ check_dnssecstatus() {
 	status=$((status+ret))
 }
 
-_loadkeys_on() {
-	_server=$1
-	_dir=$2
-	_zone=$3
-
-	nextpart $_dir/named.run > /dev/null
-	rndccmd $_server loadkeys $_zone in $_view > rndc.dnssec.loadkeys.out.$_zone.$n
-	wait_for_log 20 "zone ${_zone}/IN (signed): next key event" $_dir/named.run || return 1
-}
-
-# Tell named that the DS for the key in given zone has been seen in the
-# parent (this does not actually has to be true, we just issue the command
-# to make named believe it can continue with the rollover).
-rndc_checkds() {
-	_server=$1
-	_dir=$2
-	_keyid=$3
-	_when=$4
-	_what=$5
-	_zone=$6
-	_view=$7
-
-	echo_i "calling checkds $_what key ${_keyid} zone ${_zone} ($n)"
-
-	rndccmd $_server dnssec -checkds -key $_keyid -when $_when $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (key ${_keyid} when ${_when} what ${_what}) zone ${_zone} failed"
-	_loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
-}
-
-
 # Check if RRset of type $1 in file $2 is signed with the right keys.
 # The right keys are the ones that expect a signature and matches the role $3.
 check_signatures() {
@@ -1200,6 +1171,42 @@ check_subdomain() {
 	check_signatures $_qtype "dig.out.$DIR.test$n" "ZSK"
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
+}
+
+#
+# rndc dnssec -checkds
+#
+_loadkeys_on() {
+	_server=$1
+	_dir=$2
+	_zone=$3
+
+	nextpart $_dir/named.run > /dev/null
+	rndccmd $_server loadkeys $_zone in $_view > rndc.dnssec.loadkeys.out.$_zone.$n
+	wait_for_log 20 "zone ${_zone}/IN (signed): next key event" $_dir/named.run || return 1
+}
+
+# Tell named that the DS for the key in given zone has been seen in the
+# parent (this does not actually has to be true, we just issue the command
+# to make named believe it can continue with the rollover).
+rndc_checkds() {
+	_server=$1
+	_dir=$2
+	_keyid=$3
+	_when=$4
+	_what=$5
+	_zone=$6
+	_view=$7
+
+	echo_i "calling checkds $_what key ${_keyid} zone ${_zone} ($n)"
+
+	if [ "${_keyid}" = "-" ]; then
+		rndccmd $_server dnssec -checkds -when $_when $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (key ${_keyid} when ${_when} what ${_what}) zone ${_zone} failed"
+	else
+		rndccmd $_server dnssec -checkds -key $_keyid -when $_when $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (key ${_keyid} when ${_when} what ${_what}) zone ${_zone} failed"
+	fi
+
+	_loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
 }
 
 #
