@@ -2653,7 +2653,7 @@ exit 0;
 #  --enable-openssl-hash supported
 #  --enable-threads included without a way to disable it
 #  --enable-backtrace backtrace included without a way to disable it
-#  --enable-symtable incompatible with DLLs (or libtool)
+#  --enable-symtable incompatible with DLLs
 #  --enable-ipv6 included without a way to disable it
 #  --enable-atomic supported (renamed to intrinsic)
 #  --enable-fixed-rrset supported
@@ -2675,7 +2675,6 @@ exit 0;
 #  --with-zlib supported
 #  --with-purify not supported (package available on WIN32 but for free?)
 #  --with-gperftools-profiler not supported (package not available on WIN32)
-#  --with-libtool not supported on WIN32 (never)
 #  --with-locktype not supported on WIN32 (not yet available on WIN32)
 #  --with-readline supported
 #  --with-protobuf-c not supported (no reason to until libfstrm is ready)
