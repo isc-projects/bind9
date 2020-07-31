@@ -1,3 +1,10 @@
+5743.	[func]		Add finer-grained "update-policy" rules,
+			"krb5-subdomain-self-rhs" and "ms-subdomain-self-rhs",
+			which restrict SRV and PTR record changes, allowing
+			only records whose content matches the machine name
+			embedded in the Kerberos principal making the change.
+			[GL #481]
+
 5742.	[func]		ISC_LIKELY() and ISC_UNLIKELY() macros have been
 			removed. [GL #2952]
 
