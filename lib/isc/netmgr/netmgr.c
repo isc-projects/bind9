@@ -1474,3 +1474,54 @@ isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
 		isc_stats_decrement(mgr->stats, counterid);
 	}
 }
+
+#define setsockopt_on(socket, level, name) \
+	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
+
+isc_result_t
+isc__nm_socket_freebind(const uv_handle_t *handle) {
+	/*
+	 * Set the IP_FREEBIND (or equivalent option) on the uv_handle.
+	 */
+	isc_result_t result = ISC_R_SUCCESS;
+	uv_os_fd_t fd;
+	if (uv_fileno(handle, &fd) != 0) {
+		return (ISC_R_FAILURE);
+	}
+#ifdef IP_FREEBIND
+	if (setsockopt_on(fd, IPPROTO_IP, IP_FREEBIND) == -1) {
+		return (ISC_R_FAILURE);
+	}
+#elif defined(IP_BINDANY) || defined(IPV6_BINDANY)
+	struct sockaddr_in sockfd;
+
+	if (getsockname(fd, (struct sockaddr *)&sockfd,
+			&(socklen_t){ sizeof(sockfd) }) == -1)
+	{
+		return (ISC_R_FAILURE);
+	}
+#if defined(IP_BINDANY)
+	if (sockfd.sin_family == AF_INET) {
+		if (setsockopt_on(fd, IPPROTO_IP, IP_BINDANY) == -1) {
+			return (ISC_R_FAILURE);
+		}
+	}
+#endif
+#if defined(IPV6_BINDANY)
+	if (sockfd.sin_family == AF_INET6) {
+		if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_BINDANY) == -1) {
+			return (ISC_R_FAILURE);
+		}
+	}
+#endif
+#elif defined(SO_BINDANY)
+	if (setsockopt_on(fd, SOL_SOCKET, SO_BINDANY) == -1) {
+		return (ISC_R_FAILURE);
+	}
+#else
+	UNUSED(handle);
+	UNUSED(fd);
+	result = ISC_R_NOTIMPLEMENTED;
+#endif
+	return (result);
+}
