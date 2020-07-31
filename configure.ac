@@ -212,13 +212,18 @@ AS_CASE([$enable_fuzzing],
 	  AC_MSG_RESULT([using AFL])
 	  AC_DEFINE([ENABLE_AFL], [1],
 		    [Define to enable American Fuzzy Lop test harness])
-	  CFLAGS="$CFLAGS -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1"
-	  LIBS="$LIBS -lpthread"],
+	  STD_CFLAGS="$STD_CFLAGS -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1"
+	  FUZZ_LOG_COMPILER="afl.sh"],
 	[libfuzzer],[
 	  AC_MSG_RESULT([using libFuzzer])
-	  CFLAGS="$CFLAGS -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1 -fsanitize=fuzzer,address,undefined"
-	  LDFLAGS="$LDFLAGS -fsanitize=fuzzer,address,undefined"],
+	  STD_CFLAGS="$STD_CFLAGS -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1 -fsanitize=fuzzer-no-link,address,undefined"
+	  LDFLAGS="$LDFLAGS -fsanitize=address,undefined"
+	  FUZZ_LDFLAGS="-fsanitize=fuzzer,address,undefined"
+	  FUZZ_LOG_COMPILER="libfuzzer.sh"],
 	[*],[AC_MSG_ERROR([You need to explicitly select the fuzzer])])
+AM_CONDITIONAL([HAVE_FUZZ_LOG_COMPILER], [test -n "$FUZZ_LOG_COMPILER"])
+AC_SUBST([FUZZ_LOG_COMPILER])
+AC_SUBST([FUZZ_LDFLAGS])
 
 AS_IF([test "$enable_fuzzing" = "afl"],
       [AC_MSG_CHECKING("for AFL enabled compiler")
@@ -1671,6 +1676,10 @@ AC_CONFIG_FILES([bin/tests/system/start.sh],
 		[chmod +x bin/tests/system/start.sh])
 AC_CONFIG_FILES([bin/tests/system/stop.sh],
 		[chmod +x bin/tests/system/stop.sh])
+
+# Fuzz Tests
+
+AC_CONFIG_FILES([fuzz/Makefile])
 
 # Misc
 

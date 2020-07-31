@@ -1,6 +1,6 @@
 include $(top_srcdir)/Makefile.top
 
-SUBDIRS = . libltdl lib doc bin
+SUBDIRS = . libltdl lib doc bin fuzz
 
 BUILT_SOURCES = bind.keys.h
 CLEANFILES = bind.keys.h
