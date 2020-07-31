@@ -21,3 +21,4 @@ rm -f ns*/named.lock
 rm -f Kexample.net.*
 rm -f keygen.out?
 rm -f ns*/managed-keys.bind*
+rm -f packet.out
