@@ -133,7 +133,8 @@ typedef enum dst_key_state {
 #define DST_TIME_ZRRSIG	     10
 #define DST_TIME_KRRSIG	     11
 #define DST_TIME_DS	     12
-#define DST_MAX_TIMES	     12
+#define DST_TIME_DSDELETE    13
+#define DST_MAX_TIMES	     13
 
 /* Numeric metadata definitions */
 #define DST_NUM_PREDECESSOR 0

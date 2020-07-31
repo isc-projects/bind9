@@ -470,6 +470,8 @@ dns_kasplist_find
 dns_keydata_fromdnskey
 dns_keydata_todnskey
 dns_keyflags_fromtext
+dns_keymgr_checkds
+dns_keymgr_checkds_id
 dns_keymgr_run
 dns_keymgr_status
 dns_keynode_dsset

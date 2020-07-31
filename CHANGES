@@ -1,3 +1,7 @@
+5486.	[func]		Add 'rndc dnssec -checkds' command to tell named
+			that the DS record has been published in the parent.
+			[GL #1613]
+
 5485.	[placeholder]
 
 5484.	[func]		Expire the 0 TTL RRSet quickly rather using them for
