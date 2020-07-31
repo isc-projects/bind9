@@ -162,9 +162,20 @@ back. To remove it permanently, it must also be removed from
 .sp
 See also \fBrndc addzone\fP and \fBrndc modzone\fP\&.
 .TP
-\fBdnssec\fP [\fB\-status\fP \fIzone\fP [\fIclass\fP [\fIview\fP]]
-Show the DNSSEC signing state for the specified zone.  Requires the
-zone to have a "dnssec\-policy".
+\fBdnssec\fP ( \fB\-status\fP | \fB\-checkds\fP [\fB\-key\fP \fIid\fP] [\fB\-when\fP \fItime\fP] ( \fIpublished\fP | \fIwithdrawn\fP )) \fIzone\fP [\fIclass\fP [\fIview\fP]]
+This command allows you to interact with the "dnssec\-policy" of a given
+zone.
+.sp
+\fBrndc dnssec \-status\fP show the DNSSEC signing state for the specified
+zone.
+.sp
+\fBrndc dnssec \-checkds\fP will let \fBnamed\fP know that the DS for the given
+key has been seen published into or withdrawn from the parent.  This is
+required in order to complete a KSK rollover.  If the \fB\-key id\fP argument
+is specified, look for the key with the given identifier, otherwise if there
+is only one key acting as a KSK in the zone, assume the DS of that key.
+The time that the DS has been published or withdrawn is set to now, unless
+otherwise specified with the argument \fB\-when time\fP\&.
 .TP
 \fBdnstap\fP ( \fB\-reopen\fP | \fB\-roll\fP [\fInumber\fP] )
 Close and re\-open DNSTAP output files. \fBrndc dnstap \-reopen\fP allows

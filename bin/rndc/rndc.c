@@ -104,6 +104,11 @@ command is one of the following:\n\
 		Add zone to given view. Requires allow-new-zones option.\n\
   delzone [-clean] zone [class [view]]\n\
 		Removes zone from given view.\n\
+  dnssec -checkds [-key id] [-when time] (published|withdrawn) zone [class [view]]\n\
+		Mark the DS record for the KSK of the given zone as seen\n\
+		in the parent.  If the zone has multiple KSKs, select a\n\
+		specific key by providing the keytag with -key id.\n\
+		Requires the zone to have a dnssec-policy.\n\
   dnssec -status zone [class [view]]\n\
 		Show the DNSSEC signing state for the specified zone.\n\
 		Requires the zone to have a dnssec-policy.\n\

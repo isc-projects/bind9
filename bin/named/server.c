@@ -88,6 +88,7 @@
 #include <dns/secalg.h>
 #include <dns/soa.h>
 #include <dns/stats.h>
+#include <dns/time.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
 #include <dns/ttl.h>
@@ -14527,6 +14528,23 @@ cleanup:
 	return (result);
 }
 
+static inline bool
+argcheck(char *cmd, const char *full) {
+	size_t l;
+
+	if (cmd == NULL || cmd[0] != '-') {
+		return (false);
+	}
+
+	cmd++;
+	l = strlen(cmd);
+	if (l > strlen(full) || strncasecmp(cmd, full, l) != 0) {
+		return (false);
+	}
+
+	return (true);
+}
+
 isc_result_t
 named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		    isc_buffer_t **text) {
@@ -14535,11 +14553,16 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	dns_kasp_t *kasp = NULL;
 	dns_dnsseckeylist_t keys;
 	dns_dnsseckey_t *key;
-	const char *ptr;
+	char *ptr;
+	const char *msg = NULL;
+	/* variables for -checkds */
+	bool checkds = false, dspublish = false, use_keyid = false;
+	dns_keytag_t keyid = 0;
 	/* variables for -status */
+	bool status = false;
 	char output[4096];
-	isc_stdtime_t now;
-	isc_time_t timenow;
+	isc_stdtime_t now, when;
+	isc_time_t timenow, timewhen;
 	const char *dir;
 
 	/* Skip the command name. */
@@ -14554,43 +14577,163 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		return (ISC_R_UNEXPECTEDEND);
 	}
 
-	if (strcasecmp(ptr, "-status") != 0) {
-		return (DNS_R_SYNTAX);
-	}
+	/* Initialize current time and key list. */
+	TIME_NOW(&timenow);
+	now = isc_time_seconds(&timenow);
+	when = now;
 
 	ISC_LIST_INIT(keys);
 
+	if (strcasecmp(ptr, "-status") == 0) {
+		status = true;
+	} else if (strcasecmp(ptr, "-checkds") == 0) {
+		checkds = true;
+
+		/* Check for options */
+		for (;;) {
+			ptr = next_token(lex, text);
+			if (ptr == NULL) {
+				msg = "Bad format";
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			if (argcheck(ptr, "key")) {
+				uint16_t id;
+				ptr = next_token(lex, text);
+				if (ptr == NULL) {
+					msg = "No key identifier specified";
+					CHECK(ISC_R_UNEXPECTEDEND);
+				}
+				CHECK(isc_parse_uint16(&id, ptr, 10));
+				keyid = (dns_keytag_t)id;
+				use_keyid = true;
+				continue;
+			} else if (argcheck(ptr, "when")) {
+				uint32_t tw;
+				ptr = next_token(lex, text);
+				if (ptr == NULL) {
+					msg = "No time specified";
+					CHECK(ISC_R_UNEXPECTEDEND);
+				}
+				CHECK(dns_time32_fromtext(ptr, &tw));
+				when = (isc_stdtime_t)tw;
+				continue;
+			} else if (ptr[0] == '-') {
+				msg = "Unknown option";
+				CHECK(DNS_R_SYNTAX);
+			} else {
+				/*
+				 * No arguments provided, so we must be
+				 * parsing "published|withdrawn".
+				 */
+				if (strcasecmp(ptr, "publish") == 0) {
+					dspublish = true;
+				} else if (strcasecmp(ptr, "withdraw") != 0) {
+					CHECK(DNS_R_SYNTAX);
+				}
+			}
+			break;
+		}
+	} else {
+		CHECK(DNS_R_SYNTAX);
+	}
+
+	/* Get zone. */
 	CHECK(zone_from_args(server, lex, NULL, &zone, NULL, text, false));
 	if (zone == NULL) {
+		msg = "Zone not found";
 		CHECK(ISC_R_UNEXPECTEDEND);
 	}
 
+	/* Trailing garbage? */
+	ptr = next_token(lex, text);
+	if (ptr != NULL) {
+		msg = "Too many arguments";
+		CHECK(DNS_R_SYNTAX);
+	}
+
+	/* Get dnssec-policy. */
 	kasp = dns_zone_getkasp(zone);
 	if (kasp == NULL) {
-		CHECK(putstr(text, "zone does not have dnssec-policy"));
-		CHECK(putnull(text));
+		msg = "Zone does not have dnssec-policy";
 		goto cleanup;
 	}
 
-	/* -status */
-	TIME_NOW(&timenow);
-	now = isc_time_seconds(&timenow);
+	/* Get DNSSEC keys. */
 	dir = dns_zone_getkeydirectory(zone);
 	LOCK(&kasp->lock);
 	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone), dir, now,
 					     dns_zone_getmctx(zone), &keys);
 	UNLOCK(&kasp->lock);
-
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		goto cleanup;
 	}
-	LOCK(&kasp->lock);
-	dns_keymgr_status(kasp, &keys, now, &output[0], sizeof(output));
-	UNLOCK(&kasp->lock);
-	CHECK(putstr(text, output));
+
+	if (status) {
+		/*
+		 * Output the DNSSEC status of the key and signing policy.
+		 */
+		LOCK(&kasp->lock);
+		dns_keymgr_status(kasp, &keys, now, &output[0], sizeof(output));
+		UNLOCK(&kasp->lock);
+		CHECK(putstr(text, output));
+	} else if (checkds) {
+		/*
+		 * Mark DS record has been seen, so it may move to the
+		 * rumoured state.
+		 */
+		char whenbuf[80];
+		isc_time_set(&timewhen, when, 0);
+		isc_time_formattimestamp(&timewhen, whenbuf, sizeof(whenbuf));
+
+		LOCK(&kasp->lock);
+		if (use_keyid) {
+			result = dns_keymgr_checkds_id(kasp, &keys, dir, when,
+						       dspublish, keyid);
+		} else {
+			result = dns_keymgr_checkds(kasp, &keys, dir, when,
+						    dspublish);
+		}
+		UNLOCK(&kasp->lock);
+
+		switch (result) {
+		case ISC_R_SUCCESS:
+			if (use_keyid) {
+				char tagbuf[6];
+				snprintf(tagbuf, sizeof(tagbuf), "%u", keyid);
+				CHECK(putstr(text, "KSK "));
+				CHECK(putstr(text, tagbuf));
+				CHECK(putstr(text, ": "));
+			}
+			CHECK(putstr(text, "Marked DS as "));
+			if (dspublish) {
+				CHECK(putstr(text, "published "));
+			} else {
+				CHECK(putstr(text, "withdrawn "));
+			}
+			CHECK(putstr(text, "since "));
+			CHECK(putstr(text, whenbuf));
+			break;
+		case ISC_R_NOTFOUND:
+			CHECK(putstr(text, "No matching KSK found"));
+			break;
+		case ISC_R_FAILURE:
+			CHECK(putstr(text,
+				     "Error: multiple possible KSKs found, "
+				     "retry command with -key id"));
+			break;
+		default:
+			CHECK(putstr(text, "Error executing checkds command"));
+			break;
+		}
+	}
 	CHECK(putnull(text));
 
 cleanup:
+	if (msg != NULL) {
+		(void)putstr(text, msg);
+		(void)putnull(text);
+	}
+
 	while (!ISC_LIST_EMPTY(keys)) {
 		key = ISC_LIST_HEAD(keys);
 		ISC_LIST_UNLINK(keys, key, link);
@@ -14933,23 +15076,6 @@ cleanup:
 		dns_zone_detach(&zone);
 	}
 	return (result);
-}
-
-static inline bool
-argcheck(char *cmd, const char *full) {
-	size_t l;
-
-	if (cmd == NULL || cmd[0] != '-') {
-		return (false);
-	}
-
-	cmd++;
-	l = strlen(cmd);
-	if (l > strlen(full) || strncasecmp(cmd, full, l) != 0) {
-		return (false);
-	}
-
-	return (true);
 }
 
 isc_result_t
