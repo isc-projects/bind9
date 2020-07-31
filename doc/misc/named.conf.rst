@@ -78,7 +78,6 @@ DNSSEC-POLICY
   	max-zone-ttl duration;
   	parent-ds-ttl duration;
   	parent-propagation-delay duration;
-  	parent-registration-delay duration;
   	publish-safety duration;
   	retire-safety duration;
   	signatures-refresh duration;

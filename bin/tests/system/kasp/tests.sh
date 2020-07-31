@@ -3958,12 +3958,12 @@ check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # The KSK is immediately published and activated.
 # -P     : now-3900s
-# -P sync: now-24h
+# -P sync: now-3h
 # -A     : now-3900s
 created=$(key_get KEY1 CREATED)
 set_addkeytime "KEY1" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY1" "ACTIVE"      "${created}" -3900
-set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -86400
+set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -10800
 # The ZSK is immediately published and activated.
 # -P: now-12h
 # -A: now-12h
@@ -4021,12 +4021,12 @@ check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # The KSK is immediately published and activated.
 # -P     : now-3900s
-# -P sync: now-24h
+# -P sync: now-3h
 # -A     : now-3900s
 created=$(key_get KEY1 CREATED)
 set_addkeytime "KEY1" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY1" "ACTIVE"      "${created}" -3900
-set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -86400
+set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -10800
 # The ZSK is immediately published and activated.
 # -P: now-12h
 # -A: now-12h
@@ -4177,7 +4177,7 @@ check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # KSK must be retired since it no longer matches the policy.
 # -P     : now-3900s
-# -P sync: now-24h
+# -P sync: now-3h
 # -A     : now-3900s
 # The key is removed after the retire interval:
 # IretKSK = TTLds + DprpP + retire_safety.
@@ -4189,7 +4189,7 @@ IretKSK=14400
 created=$(key_get KEY1 CREATED)
 set_addkeytime "KEY1" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY1" "ACTIVE"      "${created}" -3900
-set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -86400
+set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -10800
 keyfile=$(key_get KEY1 BASEFILE)
 grep "; Inactive:" "${keyfile}.key" > retired.test${n}.ksk
 retired=$(awk '{print $3}' < retired.test${n}.ksk)
@@ -4294,7 +4294,7 @@ check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # KSK must be retired since it no longer matches the policy.
 # -P     : now-3900s
-# -P sync: now-24h
+# -P sync: now-3h
 # -A     : now-3900s
 # The key is removed after the retire interval:
 # IretKSK = TTLds + DprpP + retire_safety.
@@ -4306,7 +4306,7 @@ IretKSK=14400
 created=$(key_get KEY1 CREATED)
 set_addkeytime "KEY1" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY1" "ACTIVE"      "${created}" -3900
-set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -86400
+set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -10800
 keyfile=$(key_get KEY1 BASEFILE)
 grep "; Inactive:" "${keyfile}.key" > retired.test${n}.ksk
 retired=$(awk '{print $3}' < retired.test${n}.ksk)
