@@ -1702,7 +1702,6 @@ report() {
 
     # these lines are only printed if run with --enable-full-report
     if test "yes" = "$enable_full_report"; then
-	test -z "$PYTHON" || echo "    Python tools (--with-python)"
 	test -z "$LIBXML2_LIBS" || echo "    XML statistics (--with-libxml2)"
 	test -z "$JSON_C_LIBS" || echo "    JSON statistics (--with-json-c): $JSON_C_CFLAGS $JSON_C_LIBS"
 	test -z "$ZLIB_LIBS" || echo "    HTTP zlib compression (--with-zlib)"
@@ -1774,7 +1773,6 @@ report() {
 
     test "no" = "$with_cmocka" && echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
-    test -z "$PYTHON" && echo "    Python tools (--with-python)"
     test -z "$LIBXML2_LIBS" && echo "    XML statistics (--with-libxml2)"
     test -z "$JSON_C_LIBS" && echo "    JSON statistics (--with-json-c)"
     test -z "$ZLIB_LIBS" && echo "    HTTP zlib compression (--with-zlib)"
