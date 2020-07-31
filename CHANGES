@@ -1,3 +1,5 @@
+5478.	[placeholder]
+
 5477.	[bug]		The idle timeout for connected TCP sockets is now
 			derived from the client query processing timeout
 			configured for a resolver. [GL #2024]
