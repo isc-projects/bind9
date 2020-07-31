@@ -10,6 +10,10 @@
 			system, but the Duplicate Address Detection (DAD)
 			mechanism had not yet finished. [GL #2038]
 
+5478.	[security]	It was possible to trigger an assertion failure by
+			sending a specially crafted large TCP DNS message.
+			(CVE-2020-8620) [GL #1996]
+
 5477.	[bug]		The idle timeout for connected TCP sockets is now
 			derived from the client query processing timeout
 			configured for a resolver. [GL #2024]
