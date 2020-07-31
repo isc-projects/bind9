@@ -18,7 +18,9 @@
 
 5479.	[placeholder]
 
-5478.	[placeholder]
+5478.	[security]	It was possible to trigger an assertion failure by
+			sending a specially crafted large TCP DNS message.
+			(CVE-2020-8620) [GL #1996]
 
 5477.	[bug]		The idle timeout for connected TCP sockets is now
 			derived from the client query processing timeout
