@@ -1925,8 +1925,7 @@ printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 	}
 
 	isc_buffer_usedregion(&b, &r);
-	fprintf(stream, "%s: %.*s (%.*s)\n", tag, (int)r.length, r.base,
-		(int)strlen(output) - 1, output);
+	fprintf(stream, "%s: %.*s (%s)\n", tag, (int)r.length, r.base, output);
 	return;
 
 error:
