@@ -314,10 +314,10 @@ cleanup_dynkeys:
 	}
 
 cleanup_weakrefs:
-	isc_refcount_decrement(&view->weakrefs);
+	isc_refcount_decrementz(&view->weakrefs);
 	isc_refcount_destroy(&view->weakrefs);
 
-	isc_refcount_decrement(&view->references);
+	isc_refcount_decrementz(&view->references);
 	isc_refcount_destroy(&view->references);
 
 	if (view->fwdtable != NULL) {

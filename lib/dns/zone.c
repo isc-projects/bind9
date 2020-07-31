@@ -1146,7 +1146,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	return (ISC_R_SUCCESS);
 
 free_refs:
-	isc_refcount_decrement(&zone->erefs);
+	isc_refcount_decrement0(&zone->erefs);
 	isc_refcount_destroy(&zone->erefs);
 	isc_refcount_destroy(&zone->irefs);
 

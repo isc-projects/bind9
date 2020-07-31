@@ -555,7 +555,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		result = isc_task_onshutdown(cleaner->task,
 					     cleaner_shutdown_action, cache);
 		if (result != ISC_R_SUCCESS) {
-			isc_refcount_decrement(&cleaner->cache->live_tasks);
+			isc_refcount_decrement0(&cleaner->cache->live_tasks);
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "cache cleaner: "
 					 "isc_task_onshutdown() failed: %s",
@@ -1020,7 +1020,7 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	/* Make sure we don't reschedule anymore. */
 	(void)isc_task_purge(task, NULL, DNS_EVENT_CACHECLEAN, NULL);
 
-	INSIST(isc_refcount_decrement(&cache->live_tasks) == 1);
+	isc_refcount_decrementz(&cache->live_tasks);
 
 	cache_free(cache);
 }
