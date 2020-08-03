@@ -61,7 +61,7 @@ if [ -n "${FAILED_TESTS}" ]; then
 	status=1
 fi
 
-CRASHED_TESTS=$(find . -name 'core*' -or -name '*.core' | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /')
+CRASHED_TESTS=$(find . \( -name 'core' -or -name 'core.*' -or -name '*.core' \) ! -name '*.txt' | cut -d'/' -f2 | sort -u | sed -e 's/^/I:      /')
 if [ -n "${CRASHED_TESTS}" ]; then
 	echoinfo "I:Core dumps were found for the following system tests:"
 	echoinfo "${CRASHED_TESTS}"
