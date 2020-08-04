@@ -2045,6 +2045,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "stale-answer-enable", &cfg_type_boolean, 0 },
 	{ "stale-answer-ttl", &cfg_type_duration, 0 },
+	{ "stale-cache-enable", &cfg_type_boolean, 0 },
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "synth-from-dnssec", &cfg_type_boolean, 0 },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_ANCIENT },

@@ -365,6 +365,7 @@ options {
         stacksize ( default | unlimited | <sizeval> );
         stale-answer-enable <boolean>;
         stale-answer-ttl <duration>;
+        stale-cache-enable <boolean>;
         startup-notify-rate <integer>;
         statistics-file <quoted_string>;
         statistics-interval <integer>; // ancient
@@ -747,6 +748,7 @@ view <string> [ <class> ] {
         sortlist { <address_match_element>; ... };
         stale-answer-enable <boolean>;
         stale-answer-ttl <duration>;
+        stale-cache-enable <boolean>;
         suppress-initial-notify <boolean>; // not yet implemented
         synth-from-dnssec <boolean>;
         topology { <address_match_element>; ... }; // ancient

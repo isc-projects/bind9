@@ -36,6 +36,9 @@ New Features
 - Statistics channels have also been updated to use the new BIND network
   manager API. [GL #2022]
 
+- A new configuration option ``stale-cache-enable`` has been introduced to
+  enable or disable the keeping of stale answers in cache. [GL #1712]
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -45,6 +48,11 @@ Feature Changes
   memory or set to 'unlimited') now pre-allocates fixed size hash tables. This
   prevents interruption to query resolution when the hash tables need to be
   increased in size. [GL #1775]
+
+- Keeping stale answers in cache has been disabled by default.
+
+- The resource records received with 0 TTL are no longer kept in the cache
+  to be used for stale answers. [GL #1829]
 
 Bug Fixes
 ~~~~~~~~~

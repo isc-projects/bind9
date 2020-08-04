@@ -3895,7 +3895,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	uint32_t max_cache_size_percent = 0;
 	size_t max_adb_size;
 	uint32_t lame_ttl, fail_ttl;
-	uint32_t max_stale_ttl;
+	uint32_t max_stale_ttl = 0;
 	dns_tsig_keyring_t *ring = NULL;
 	dns_view_t *pview = NULL; /* Production view */
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
@@ -4358,9 +4358,18 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	view->synthfromdnssec = cfg_obj_asboolean(obj);
 
 	obj = NULL;
-	result = named_config_get(maps, "max-stale-ttl", &obj);
+	result = named_config_get(maps, "stale-cache-enable", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	max_stale_ttl = ISC_MAX(cfg_obj_asduration(obj), 1);
+	if (cfg_obj_asboolean(obj)) {
+		obj = NULL;
+		result = named_config_get(maps, "max-stale-ttl", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		max_stale_ttl = ISC_MAX(cfg_obj_asduration(obj), 1);
+	}
+	/*
+	 * If 'stale-cache-enable' is false, max_stale_ttl is set to 0,
+	 * meaning keeping stale RRsets in cache is disabled.
+	 */
 
 	obj = NULL;
 	result = named_config_get(maps, "stale-answer-enable", &obj);

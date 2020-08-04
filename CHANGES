@@ -1,3 +1,10 @@
+5484.	[func]		Expire the 0 TTL RRSet quickly rather using them for
+			stale answers. [GL #1829]
+
+5483.	[func]		Keeping "stale" answers in cache has been disabled by
+			default and can be re-enabled with a new configuration
+			option "stale-cache-enable". [GL #1712]
+
 5482.	[bug]		BIND 9 would fail to bind to IPv6 addresses in a
 			tentative state when a new IPv6 address was added to the
 			system, but the Duplicate Address Detection (DAD)
