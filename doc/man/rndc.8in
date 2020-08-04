@@ -161,7 +161,7 @@ recreated. To remove it permanently, it must also be removed from
 .sp
 See also \fBrndc addzone\fP and \fBrndc modzone\fP\&.
 .TP
-\fBdnssec\fP ( \fB\-status\fP | \fB\-checkds\fP [\fB\-key\fP \fIid\fP] [\fB\-when\fP \fItime\fP] ( \fIpublished\fP | \fIwithdrawn\fP )) \fIzone\fP [\fIclass\fP [\fIview\fP]]
+\fBdnssec\fP ( \fB\-status\fP | \fB\-checkds\fP [\fB\-key\fP \fIid\fP [\fB\-alg\fP \fIalgorithm\fP]] [\fB\-when\fP \fItime\fP] ( \fIpublished\fP | \fIwithdrawn\fP )) \fIzone\fP [\fIclass\fP [\fIview\fP]]
 This command allows you to interact with the "dnssec\-policy" of a given
 zone.
 .sp
@@ -172,9 +172,10 @@ zone.
 key has been seen published into or withdrawn from the parent.  This is
 required in order to complete a KSK rollover.  If the \fB\-key id\fP argument
 is specified, look for the key with the given identifier, otherwise if there
-is only one key acting as a KSK in the zone, assume the DS of that key.
-The time that the DS has been published or withdrawn is set to now, unless
-otherwise specified with the argument \fB\-when time\fP\&.
+is only one key acting as a KSK in the zone, assume the DS of that key (if
+there are multiple keys with the same tag, use \fB\-alg algorithm\fP to
+select the correct algorithm).  The time that the DS has been published or
+withdrawn is set to now, unless otherwise specified with the argument \fB\-when time\fP\&.
 .TP
 \fBdnstap\fP ( \fB\-reopen\fP | \fB\-roll\fP [\fInumber\fP] )
 This command closes and re\-opens DNSTAP output files. \fBrndc dnstap \-reopen\fP allows

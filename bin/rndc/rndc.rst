@@ -161,7 +161,7 @@ Currently supported commands are:
 
    See also ``rndc addzone`` and ``rndc modzone``.
 
-``dnssec`` ( **-status** | **-checkds** [**-key** *id*] [**-when** *time*] ( *published* | *withdrawn* )) *zone* [*class* [*view*]]
+``dnssec`` ( **-status** | **-checkds** [**-key** *id* [**-alg** *algorithm*]] [**-when** *time*] ( *published* | *withdrawn* )) *zone* [*class* [*view*]]
    This command allows you to interact with the "dnssec-policy" of a given
    zone.
 
@@ -172,9 +172,10 @@ Currently supported commands are:
    key has been seen published into or withdrawn from the parent.  This is
    required in order to complete a KSK rollover.  If the ``-key id`` argument
    is specified, look for the key with the given identifier, otherwise if there
-   is only one key acting as a KSK in the zone, assume the DS of that key.
-   The time that the DS has been published or withdrawn is set to now, unless
-   otherwise specified with the argument ``-when time``.
+   is only one key acting as a KSK in the zone, assume the DS of that key (if
+   there are multiple keys with the same tag, use ``-alg algorithm`` to
+   select the correct algorithm).  The time that the DS has been published or
+   withdrawn is set to now, unless otherwise specified with the argument ``-when time``.
 
 ``dnstap`` ( **-reopen** | **-roll** [*number*] )
    This command closes and re-opens DNSTAP output files. ``rndc dnstap -reopen`` allows

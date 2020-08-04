@@ -1873,7 +1873,7 @@ failure:
 static isc_result_t
 keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	       const char *directory, isc_stdtime_t now, bool dspublish,
-	       dns_keytag_t id, bool check_id) {
+	       dns_keytag_t id, unsigned int alg, bool check_id) {
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
 	isc_dir_t dir;
 	isc_result_t result;
@@ -1891,6 +1891,9 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		ret = dst_key_getbool(dkey->key, DST_BOOL_KSK, &ksk);
 		if (ret == ISC_R_SUCCESS && ksk) {
 			if (check_id && dst_key_id(dkey->key) != id) {
+				continue;
+			}
+			if (alg > 0 && dst_key_alg(dkey->key) != alg) {
 				continue;
 			}
 
@@ -1935,16 +1938,16 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 isc_result_t
 dns_keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		   const char *directory, isc_stdtime_t now, bool dspublish) {
-	return (keymgr_checkds(kasp, keyring, directory, now, dspublish, 0,
+	return (keymgr_checkds(kasp, keyring, directory, now, dspublish, 0, 0,
 			       false));
 }
 
 isc_result_t
 dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		      const char *directory, isc_stdtime_t now, bool dspublish,
-		      dns_keytag_t id) {
+		      dns_keytag_t id, unsigned int alg) {
 	return (keymgr_checkds(kasp, keyring, directory, now, dspublish, id,
-			       true));
+			       alg, true));
 }
 
 static void
