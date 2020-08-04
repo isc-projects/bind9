@@ -57,12 +57,13 @@ dns_keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 isc_result_t
 dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		      const char *directory, isc_stdtime_t now, bool dspublish,
-		      dns_keytag_t id);
+		      dns_keytag_t id, unsigned int algorithm);
 /*%<
  * Check DS for one key in 'keyring'. The key must have the KSK role.
  * If 'dspublish' is set to true, set the DS Publish time to 'now'.
  * If 'dspublish' is set to false, set the DS Removed time to 'now'.
  * If a specific key 'id' is given it must match the keytag.
+ * If the 'algorithm' is non-zero, it must match the key's algorithm.
  * The result is stored in the key state file.
  *
  *	Requires:

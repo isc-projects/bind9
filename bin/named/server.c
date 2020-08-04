@@ -14558,6 +14558,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	/* variables for -checkds */
 	bool checkds = false, dspublish = false, use_keyid = false;
 	dns_keytag_t keyid = 0;
+	uint8_t algorithm = 0;
 	/* variables for -status */
 	bool status = false;
 	char output[4096];
@@ -14595,8 +14596,23 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 			if (ptr == NULL) {
 				msg = "Bad format";
 				CHECK(ISC_R_UNEXPECTEDEND);
-			}
-			if (argcheck(ptr, "key")) {
+			} else if (argcheck(ptr, "alg")) {
+				isc_consttextregion_t alg;
+				ptr = next_token(lex, text);
+				if (ptr == NULL) {
+					msg = "No key algorithm specified";
+					CHECK(ISC_R_UNEXPECTEDEND);
+				}
+				alg.base = ptr;
+				alg.length = strlen(alg.base);
+				result = dns_secalg_fromtext(
+					&algorithm, (isc_textregion_t *)&alg);
+				if (result != ISC_R_SUCCESS) {
+					msg = "Bad algorithm";
+					CHECK(DNS_R_SYNTAX);
+				}
+				continue;
+			} else if (argcheck(ptr, "key")) {
 				uint16_t id;
 				ptr = next_token(lex, text);
 				if (ptr == NULL) {
@@ -14625,13 +14641,18 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 				 * No arguments provided, so we must be
 				 * parsing "published|withdrawn".
 				 */
-				if (strcasecmp(ptr, "publish") == 0) {
+				if (strcasecmp(ptr, "published") == 0) {
 					dspublish = true;
-				} else if (strcasecmp(ptr, "withdraw") != 0) {
+				} else if (strcasecmp(ptr, "withdrawn") != 0) {
 					CHECK(DNS_R_SYNTAX);
 				}
 			}
 			break;
+		}
+
+		if (algorithm > 0 && !use_keyid) {
+			msg = "Key id is required when setting algorithm";
+			CHECK(DNS_R_SYNTAX);
 		}
 	} else {
 		CHECK(DNS_R_SYNTAX);
@@ -14688,7 +14709,8 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		LOCK(&kasp->lock);
 		if (use_keyid) {
 			result = dns_keymgr_checkds_id(kasp, &keys, dir, when,
-						       dspublish, keyid);
+						       dspublish, keyid,
+						       (unsigned int)algorithm);
 		} else {
 			result = dns_keymgr_checkds(kasp, &keys, dir, when,
 						    dspublish);

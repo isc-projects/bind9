@@ -1478,6 +1478,22 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 n=$((n+1))
+echo_i "checkds published does not set DSPublish for zone $ZONE (wrong algorithm) ($n)"
+rndccmd "$SERVER" dnssec -checkds -key $(key_get KEY1 ID) -alg 8 "published" "$ZONE" > rndc.dnssec.checkds.out.$ZONE.$n
+grep "DSPublish:" "${basefile1}.state" > /dev/null && log_error "DSPublish incorrectly set in ${basefile1}"
+grep "DSPublish:" "${basefile2}.state" > /dev/null && log_error "DSPublish incorrectly set in ${basefile2}"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checkds withdrawn does not set DSRemoved for zone $ZONE (wrong algorithm) ($n)"
+rndccmd "$SERVER" dnssec -checkds -key $(key_get KEY1 ID) -alg RSASHA256 "withdrawn" "$ZONE" > rndc.dnssec.checkds.out.$ZONE.$n
+grep "DSRemoved:" "${basefile1}.state" > /dev/null && log_error "DSRemoved incorrectly set in ${basefile1}"
+grep "DSRemoved:" "${basefile2}.state" > /dev/null && log_error "DSRemoved incorrectly set in ${basefile2}"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+n=$((n+1))
 echo_i "checkds published -key correctly sets DSPublish for key $(key_get KEY1 ID) zone $ZONE (multiple KSK) ($n)"
 rndc_checkds "$SERVER" "$DIR" $(key_get KEY1 ID) "20190102121314" "published" "$ZONE"
 grep "DSPublish: 20190102121314" "${basefile1}.state" > /dev/null || log_error "DSPublish not set in ${basefile1}"
