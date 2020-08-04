@@ -1047,6 +1047,7 @@
 ./bin/tests/system/tools/clean.sh		SH	2017,2018,2019,2020
 ./bin/tests/system/tools/setup.sh		SH	2019,2020
 ./bin/tests/system/tools/tests.sh		SH	2017,2018,2019,2020
+./bin/tests/system/tsig/badlocation		X	2020
 ./bin/tests/system/tsig/badtime			X	2020
 ./bin/tests/system/tsig/clean.sh		SH	2005,2006,2007,2012,2014,2016,2018,2019,2020
 ./bin/tests/system/tsig/setup.sh		SH	2016,2017,2018,2019,2020
