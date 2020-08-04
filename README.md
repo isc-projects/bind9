@@ -185,9 +185,8 @@ command:
 Building on macOS assumes that the "Command Tools for Xcode" are installed.
 These can be downloaded from
 [https://developer.apple.com/download/more/](https://developer.apple.com/download/more/)
-or, if you have Xcode already installed, you can run
-`xcode-select--install`. (Note that an Apple ID may be required to access the download
-page.)
+or, if you have Xcode already installed, you can run `xcode-select --install`.
+(Note that an Apple ID may be required to access the download page.)
 
 #### <a name="dependencies"> Dependencies
 
