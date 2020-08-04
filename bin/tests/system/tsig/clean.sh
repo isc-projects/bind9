@@ -20,3 +20,4 @@ rm -f */named.run
 rm -f ns*/named.lock
 rm -f Kexample.net.+163+*
 rm -f keygen.out?
+rm -f packet.out

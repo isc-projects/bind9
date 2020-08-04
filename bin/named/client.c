@@ -2685,7 +2685,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "message parsing failed: %s",
 			      isc_result_totext(result));
-		if (result == ISC_R_NOSPACE) {
+		if (result == ISC_R_NOSPACE || result == DNS_R_BADTSIG) {
 			result = DNS_R_FORMERR;
 		}
 		ns_client_error(client, result);
