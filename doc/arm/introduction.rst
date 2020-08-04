@@ -269,14 +269,26 @@ recursive lookup itself. Instead, it can *forward* some or all of the
 queries that it cannot satisfy from its cache to another caching name
 server, commonly referred to as a *forwarder*.
 
-There may be one or more forwarders, and they are queried in turn until
-the list is exhausted or an answer is found. Forwarders are typically
-used when it is undesirable for all the servers at a given site to interact
-directly with the rest of the Internet's servers. A typical scenario
-involves internal DNS servers and an Internet firewall.
-Servers unable to pass packets through the firewall forward their requests to the
-server that can, and that server queries the Internet DNS
-servers on the internal servers' behalf.
+Forwarders are typically used when an administrator does not wish for
+all the servers at a given site to interact directly with the rest of
+the Internet. For example, a common scenario is when multiple internal
+DNS servers are behind an Internet firewall. Servers behind the firewall
+forward their requests to the server with external access, which queries
+Internet DNS servers on the internal servers' behalf.
+
+Another scenario (largely now superseded by Response Policy Zones) is to
+send queries first to a custom server for RBL processing before
+forwarding them to the wider Internet.
+
+There may be one or more forwarders in a given setup. The order in which
+the forwarders are listed in ``named.conf`` does not determine the
+sequence in which they are queried; rather, ``named`` uses the response
+times from previous queries to select the server that is likely to
+respond the most quickly. A server that has not yet been queried is
+given an initial small random response time to ensure that it is tried
+at least once. Dynamic adjustment of the recorded response times ensures
+that all forwarders are queried, even those with slower response times.
+This permits changes in behavior based on server responsiveness.
 
 .. _multi_role:
 
