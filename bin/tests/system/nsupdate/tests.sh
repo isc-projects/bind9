@@ -428,7 +428,7 @@ EOF
 # this also proves that the server is still running.
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocmd +norec example.\
 	@10.53.0.3 nsec3param > dig.out.ns3.$n || ret=1
-grep "ANSWER: 0" dig.out.ns3.$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.ns3.$n > /dev/null || ret=1
 grep "flags:[^;]* aa[ ;]" dig.out.ns3.$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
@@ -443,7 +443,7 @@ EOF
 
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocmd +norec nsec3param.test.\
         @10.53.0.3 nsec3param > dig.out.ns3.$n || ret=1
-grep "ANSWER: 1" dig.out.ns3.$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns3.$n > /dev/null || ret=1
 grep "3600.*NSEC3PARAM" dig.out.ns3.$n > /dev/null || ret=1
 grep "flags:[^;]* aa[ ;]" dig.out.ns3.$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
@@ -460,7 +460,7 @@ EOF
 _ret=1
 for i in 0 1 2 3 4 5 6 7 8 9; do
 	$DIG $DIGOPTS +tcp +norec +time=1 +tries=1 @10.53.0.3 nsec3param.test. NSEC3PARAM > dig.out.ns3.$n || _ret=1
-	if grep "ANSWER: 2" dig.out.ns3.$n > /dev/null; then
+	if grep "ANSWER: 2," dig.out.ns3.$n > /dev/null; then
 		_ret=0
 		break
 	fi
@@ -485,7 +485,7 @@ EOF
 _ret=1
 for i in 0 1 2 3 4 5 6 7 8 9; do
 	$DIG $DIGOPTS +tcp +norec +time=1 +tries=1 @10.53.0.3 nsec3param.test. NSEC3PARAM > dig.out.ns3.$n || _ret=1
-	if grep "ANSWER: 1" dig.out.ns3.$n > /dev/null; then
+	if grep "ANSWER: 1," dig.out.ns3.$n > /dev/null; then
 		_ret=0
 		break
 	fi
@@ -654,6 +654,33 @@ send
 END
 $DIG $DIGOPTS +tcp @10.53.0.1 example.nil TXT > dig.out.2.test$n || ret=1
 grep "TXT.*everywhere" dig.out.2.test$n > /dev/null && ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo_i "check that 'update-policy zonesub' is properly enforced ($n)"
+# grant zonesub-key.example.nil zonesub TXT;
+# the A record update should be rejected as it is not in the type list
+$NSUPDATE -d <<END > nsupdate.out1-$n 2>&1 && ret=1
+server 10.53.0.1 ${PORT}
+key zonesub-key.example.nil 1234subk8765
+update add zonesub.example.nil 0 IN A 1.2.3.4
+send
+END
+$DIG $DIGOPTS +tcp @10.53.0.1 zonesub.example.nil A > dig.out.1.test$n || ret=1
+grep "status: REFUSED" nsupdate.out1-$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.1.test$n > /dev/null || ret=1
+# the TXT record update should be accepted as it is in the type list
+$NSUPDATE -d <<END > nsupdate.out2-$n 2>&1 || ret=1
+server 10.53.0.1 ${PORT}
+key zonesub-key.example.nil 1234subk8765
+update add zonesub.example.nil 0 IN TXT everywhere.
+send
+END
+$DIG $DIGOPTS +tcp @10.53.0.1 zonesub.example.nil TXT > dig.out.2.test$n || ret=1
+grep "status: REFUSED" nsupdate.out2-$n > /dev/null && ret=1
+grep "ANSWER: 1," dig.out.2.test$n > /dev/null || ret=1
+grep "TXT.*everywhere" dig.out.2.test$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=`expr $n + 1`

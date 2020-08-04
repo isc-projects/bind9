@@ -41,6 +41,11 @@ key restricted.example.nil {
 	secret "1234abcd8765";
 };
 
+key zonesub-key.example.nil {
+	algorithm hmac-md5;
+	secret "1234subk8765";
+};
+
 include "ddns.key";
 
 zone "example.nil" {
@@ -49,6 +54,7 @@ zone "example.nil" {
 	check-integrity no;
 	check-mx ignore;
 	update-policy {
+		grant zonesub-key.example.nil zonesub TXT;
 		grant ddns-key.example.nil subdomain example.nil ANY;
 		grant restricted.example.nil subdomain restricted.example.nil ANY;
 	};
