@@ -195,7 +195,7 @@ options {\n\
 #	sortlist <none>\n\
 	stale-answer-enable false;\n\
 	stale-answer-ttl 1; /* 1 second */\n\
-	stale-cache-enable false;\n\
+	stale-cache-enable true;\n\
 	synth-from-dnssec no;\n\
 #	topology <none>\n\
 	transfer-format many-answers;\n\

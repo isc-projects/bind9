@@ -1837,7 +1837,7 @@ Boolean Options
    log category.
 
 ``stale-cache-enable``
-   If ``yes``, enable the retaining of "stale" cached answers.  Default ``no``.
+   If ``yes``, enable the retaining of "stale" cached answers.  Default ``yes``.
 
 ``nocookie-udp-size``
    This sets the maximum size of UDP responses that are sent to queries

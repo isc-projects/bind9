@@ -29,7 +29,6 @@ options {
 	recursion yes;
 	dump-file "named_dump4.db";
 	stale-answer-enable no;
-	stale-cache-enable yes;
 };
 
 zone "." {

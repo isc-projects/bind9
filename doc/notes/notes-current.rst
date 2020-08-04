@@ -39,8 +39,6 @@ Feature Changes
   prevents interruption to query resolution when the hash tables need to be
   increased in size. [GL #1775]
 
-- Keeping stale answers in cache has been disabled by default.
-
 - The resource records received with 0 TTL are no longer kept in the cache
   to be used for stale answers. [GL #1829]
 
