@@ -1,3 +1,5 @@
+5485.	[placeholder]
+
 5484.	[func]		Expire the 0 TTL RRSet quickly rather using them for
 			stale answers. [GL #1829]
 
