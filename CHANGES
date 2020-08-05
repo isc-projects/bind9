@@ -1,3 +1,7 @@
+5476.	[security]	It was possible to trigger an assertion failure when
+			verifying the response to a TSIG-signed request.
+			(CVE-2020-8622) [GL #2028]
+
 5474.	[bug]		dns_rdata_hip_next() failed to return ISC_R_NOMORE
 			when it should have. [GL !3880]
 

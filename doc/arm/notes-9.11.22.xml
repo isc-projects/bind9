@@ -15,7 +15,13 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          It was possible to trigger an assertion failure when verifying the
+          response to a TSIG-signed request. This was disclosed in
+          CVE-2020-8622.
+        </para>
+        <para>
+          ISC would like to thank Dave Feldman, Jeff Warren, and Joel Cunningham
+          of Oracle for bringing this vulnerability to our attention. [GL #2028]
         </para>
       </listitem>
     </itemizedlist>
