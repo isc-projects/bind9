@@ -22,6 +22,7 @@ options {
 	recursion no;
 	dnssec-validation no;
 	geoip-directory "../data";
+	max-cache-size 1M;
 };
 
 key rndc_key {
