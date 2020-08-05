@@ -14,7 +14,11 @@ Notes for BIND 9.16.6
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- It was possible to trigger an assertion failure by sending a specially
+  crafted large TCP DNS message. This was disclosed in CVE-2020-8620.
+
+  ISC would like to thank Emanuel Almeida of Cisco Systems, Inc. for
+  bringing this vulnerability to our attention. [GL #1996]
 
 Known Issues
 ~~~~~~~~~~~~
