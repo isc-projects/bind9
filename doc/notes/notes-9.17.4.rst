@@ -53,11 +53,6 @@ Security Fixes
   ISC would like to thank Joop Boonen of credativ GmbH for bringing this
   vulnerability to our attention. [GL #2055]
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
