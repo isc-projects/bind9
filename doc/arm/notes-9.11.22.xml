@@ -36,6 +36,21 @@
           our attention. [GL #2037]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          <command>update-policy</command> rules of type
+          <command>subdomain</command> were incorrectly treated as
+          <command>zonesub</command> rules, which allowed keys used in
+          <command>subdomain</command> rules to update names outside of the
+          specified subdomains. The problem was fixed by making sure
+          <command>subdomain</command> rules are again processed as described in
+          the ARM. This was disclosed in CVE-2020-8624.
+        </para>
+        <para>
+          ISC would like to thank Joop Boonen of credativ GmbH for bringing this
+          vulnerability to our attention. [GL #2055]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
