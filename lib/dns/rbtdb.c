@@ -1631,6 +1631,8 @@ mark_header_stale(dns_rbtdb_t *rbtdb, rdatasetheader_t *header) {
 	uint_least16_t attributes = atomic_load_acquire(&header->attributes);
 	uint_least16_t newattributes = 0;
 
+	INSIST((attributes & RDATASET_ATTR_ZEROTTL) == 0);
+
 	/*
 	 * If we are already stale there is nothing to do.
 	 */
@@ -4523,9 +4525,11 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 		/*
 		 * If this data is in the stale window keep it and if
 		 * DNS_DBFIND_STALEOK is not set we tell the caller to
-		 * skip this record.
+		 * skip this record.  We skip the records with ZEROTTL
+		 * (these records should not be cached anyway).
 		 */
-		if (KEEPSTALE(search->rbtdb) && stale > search->now) {
+		if (!ZEROTTL(header) && KEEPSTALE(search->rbtdb) &&
+		    stale > search->now) {
 			mark_header_stale(search->rbtdb, header);
 			*header_prev = header;
 			return ((search->options & DNS_DBFIND_STALEOK) == 0);

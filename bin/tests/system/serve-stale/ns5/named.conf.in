@@ -15,26 +15,26 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.5 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 options {
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
+	query-source address 10.53.0.5;
+	notify-source 10.53.0.5;
+	transfer-source 10.53.0.5;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
+	listen-on { 10.53.0.5; };
 	listen-on-v6 { none; };
 	recursion yes;
-	max-stale-ttl 20;
-	stale-answer-ttl 3;
+	dump-file "named_dump5.db";
 	stale-answer-enable yes;
-	stale-cache-enable yes;
-	servfail-ttl 0;
+	stale-cache-enable no;
+	max-cache-ttl 24h;
 };
 
 zone "." {
-	type master;
-	file "root.db";
+	type secondary;
+	masters { 10.53.0.1; };
+	file "root.bk";
 };
