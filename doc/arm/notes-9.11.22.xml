@@ -24,6 +24,18 @@
           of Oracle for bringing this vulnerability to our attention. [GL #2028]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          When BIND 9 was compiled with native PKCS#11 support, it was possible
+          to trigger an assertion failure in code determining the number of bits
+          in the PKCS#11 RSA public key with a specially crafted packet. This
+          was disclosed in CVE-2020-8623.
+        </para>
+        <para>
+          ISC would like to thank Lyu Chiy for bringing this vulnerability to
+          our attention. [GL #2037]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 

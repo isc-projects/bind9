@@ -748,6 +748,7 @@ pkcs11dh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	CK_BYTE *prime = NULL, *base = NULL, *pub = NULL;
 	CK_ATTRIBUTE *attr;
 	int special = 0;
+	unsigned int bits;
 	isc_result_t result;
 
 	isc_buffer_remainingregion(data, &r);
@@ -852,7 +853,11 @@ pkcs11dh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	pub = r.base;
 	isc_region_consume(&r, publen);
 
-	key->key_size = pk11_numbits(prime, plen_);
+	result = pk11_numbits(prime, plen_, &bits);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+	key->key_size = bits;
 
 	dh->repr = (CK_ATTRIBUTE *) isc_mem_get(key->mctx, sizeof(*attr) * 3);
 	if (dh->repr == NULL)
@@ -1012,6 +1017,7 @@ pkcs11dh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
+	unsigned int bits;
 	pk11_object_t *dh = NULL;
 	CK_ATTRIBUTE *attr;
 	isc_mem_t *mctx;
@@ -1082,7 +1088,12 @@ pkcs11dh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	attr = pk11_attribute_bytype(dh, CKA_PRIME);
 	INSIST(attr != NULL);
-	key->key_size = pk11_numbits(attr->pValue, attr->ulValueLen);
+
+	ret = pk11_numbits(attr->pValue, attr->ulValueLen, &bits);
+	if (ret != ISC_R_SUCCESS) {
+		goto err;
+	}
+	key->key_size = bits;
 
 	return (ISC_R_SUCCESS);
 

@@ -983,6 +983,7 @@ pkcs11dsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
+	unsigned int bits;
 	pk11_object_t *dsa = NULL;
 	CK_ATTRIBUTE *attr;
 	isc_mem_t *mctx = key->mctx;
@@ -1072,7 +1073,12 @@ pkcs11dsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	attr = pk11_attribute_bytype(dsa, CKA_PRIME);
 	INSIST(attr != NULL);
-	key->key_size = pk11_numbits(attr->pValue, attr->ulValueLen);
+
+	ret = pk11_numbits(attr->pValue, attr->ulValueLen, &bits);
+	if (ret != ISC_R_SUCCESS) {
+		goto err;
+	}
+	key->key_size = bits;
 
 	return (ISC_R_SUCCESS);
 
