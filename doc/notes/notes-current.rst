@@ -127,3 +127,6 @@ Bug Fixes
   around by setting the ``IP_FREEBIND`` option on the socket and trying
   to ``bind()`` to each IPv6 address again if the first ``bind()`` call
   for that address failed with ``EADDRNOTAVAIL``. [GL #2038]
+
+- LMDB locking code was revised to make ``rndc reconfig`` work properly
+  on FreeBSD and with LMDB >= 0.9.26. [GL #1976]
