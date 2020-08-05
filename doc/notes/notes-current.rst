@@ -44,6 +44,15 @@ Security Fixes
   ISC would like to thank Lyu Chiy for bringing this vulnerability to
   our attention. [GL #2037]
 
+- ``update-policy`` rules of type ``subdomain`` were incorrectly treated
+  as ``zonesub`` rules, which allowed keys used in ``subdomain`` rules
+  to update names outside of the specified subdomains. The problem was
+  fixed by making sure ``subdomain`` rules are again processed as
+  described in the ARM. This was disclosed in CVE-2020-8624.
+
+  ISC would like to thank Joop Boonen of credativ GmbH for bringing this
+  vulnerability to our attention. [GL #2055]
+
 Known Issues
 ~~~~~~~~~~~~
 

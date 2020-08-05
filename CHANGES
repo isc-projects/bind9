@@ -10,6 +10,13 @@
 			system, but the Duplicate Address Detection (DAD)
 			mechanism had not yet finished. [GL #2038]
 
+5481.	[security]	"update-policy" rules of type "subdomain" were
+			incorrectly treated as "zonesub" rules, which allowed
+			keys used in "subdomain" rules to update names outside
+			of the specified subdomains. The problem was fixed by
+			making sure "subdomain" rules are again processed as
+			described in the ARM. (CVE-2020-8624) [GL #2055]
+
 5480.	[security]	When BIND 9 was compiled with native PKCS#11 support, it
 			was possible to trigger an assertion failure in code
 			determining the number of bits in the PKCS#11 RSA public
