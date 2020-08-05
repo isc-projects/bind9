@@ -14,7 +14,11 @@
 
 5481.	[placeholder]
 
-5480.	[placeholder]
+5480.	[security]	When BIND 9 was compiled with native PKCS#11 support, it
+			was possible to trigger an assertion failure in code
+			determining the number of bits in the PKCS#11 RSA public
+			key with a specially crafted packet. (CVE-2020-8623)
+			[GL #2037]
 
 5479.	[security]	named could crash in certain query resolution scenarios
 			where QNAME minimization and forwarding were both
