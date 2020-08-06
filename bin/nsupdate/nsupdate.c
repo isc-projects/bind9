@@ -103,6 +103,8 @@
 #elif defined(HAVE_EDITLINE_READLINE_H)
 #include <editline/readline.h>
 #else /* if defined(HAVE_EDIT_READLINE_READLINE_H) */
+/* Prevent deprecated functions being declared. */
+#define _FUNCTION_DEF 1
 #include <readline/history.h>
 #include <readline/readline.h>
 #endif /* if defined(HAVE_EDIT_READLINE_READLINE_H) */
