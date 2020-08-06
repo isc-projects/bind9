@@ -739,6 +739,7 @@ gcc:tarball:
     - job: tarball-create
       artifacts: true
   only:
+    - schedules
     - tags
 
 system:gcc:tarball:
@@ -751,6 +752,7 @@ system:gcc:tarball:
     - job: gcc:tarball
       artifacts: true
   only:
+    - schedules
     - tags
 
 unit:gcc:tarball:
@@ -762,6 +764,7 @@ unit:gcc:tarball:
     - job: gcc:tarball
       artifacts: true
   only:
+    - schedules
     - tags
 
 # Jobs for regular GCC builds on Debian Sid (i386)
