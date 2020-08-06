@@ -279,9 +279,6 @@
 /* define if OpenSSL supports Ed448 */
 #undef HAVE_OPENSSL_ED448
 
-/* define if OpenSSL supports SipHash */
-#undef HAVE_OPENSSL_SIPHASH
-
 /* Define to 1 if you have the `processor_bind' function. */
 #undef HAVE_PROCESSOR_BIND
 

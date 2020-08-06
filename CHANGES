@@ -1,9 +1,11 @@
+	--- 9.16.6 released ---
+
 5484.	[func]		Expire zero TTL records quickly rather than using them
 			for stale answers. [GL #1829]
 
 5483.	[func]		A new configuration option "stale-cache-enable" has been
-			introduced to enable or disable the keeping of stale
-			answers in cache. [GL #1712]
+			introduced to enable or disable keeping stale answers in
+			cache. [GL #1712]
 
 5482.	[bug]		If the Duplicate Address Detection (DAD) mechanism had
 			not yet finished after adding a new IPv6 address to the
