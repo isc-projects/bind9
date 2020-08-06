@@ -54,27 +54,6 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes-9.11.22-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.22-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-
   <section xml:id="relnotes-9.11.22-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
