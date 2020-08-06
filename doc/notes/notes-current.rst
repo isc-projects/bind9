@@ -63,42 +63,50 @@ New Features
 
 - None.
 
-- A new configuration option ``stale-cache-enable`` has been introduced to
-  enable or disable the keeping of stale answers in cache. [GL #1712]
+- A new configuration option ``stale-cache-enable`` has been introduced
+  to enable or disable keeping stale answers in cache. [GL #1712]
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
 - BIND's cache database implementation has been updated to use a faster
-  hash-function with better distribution.  In addition, the effective
-  max-cache-size (configured explicitly, defaulting to a value based on system
-  memory or set to 'unlimited') now pre-allocates fixed size hash tables. This
-  prevents interruption to query resolution when the hash tables need to be
-  increased in size. [GL #1775]
+  hash function with better distribution. In addition, the effective
+  ``max-cache-size`` (configured explicitly, defaulting to a value based
+  on system memory or set to ``unlimited``) now pre-allocates fixed-size
+  hash tables. This prevents interruption to query resolution when the
+  hash table sizes need to be increased. [GL #1775]
 
-- The resource records received with 0 TTL are no longer kept in the cache
+- Resource records received with 0 TTL are no longer kept in the cache
   to be used for stale answers. [GL #1829]
 
 Bug Fixes
 ~~~~~~~~~
 
-- Addressed an error in recursive clients stats reporting.
-  There were occasions when an incoming query could trigger a prefetch for
-  some eligible rrset, and if the prefetch code were executed before recursion,
-  no increment in recursive clients stats would take place. Conversely,
-  when processing the answers, if the recursion code were executed before the
-  prefetch, the same counter would be decremented without a matching increment.
-  [GL #1719]
+- Addressed an error in recursive clients stats reporting which could
+  cause underflow, and even negative statistics. There were occasions
+  when an incoming query could trigger a prefetch for some eligible
+  RRset, and if the prefetch code were executed before recursion, no
+  increment in recursive clients stats would take place. Conversely,
+  when processing the answers, if the recursion code were executed
+  before the prefetch, the same counter would be decremented without a
+  matching increment. [GL #1719]
 
-- The introduction of KASP support broke whether the second field
-  of sig-validity-interval was treated as days or hours. (Thanks to
-  Tony Finch.) [GL !3735]
+- The introduction of KASP support inadvertently caused the second field
+  of ``sig-validity-interval`` to always be calculated in hours, even in
+  cases when it should have been calculated in days. This has been
+  fixed. (Thanks to Tony Finch.) [GL !3735]
 
-- The IPv6 Duplicate Address Detection (DAD) mechanism could cause the operating
-  system to report the new IPv6 addresses to the applications via the
-  getifaddrs() API in a tentative (DAD not yet finished) or duplicate (DAD
-  failed) state. Such addresses cannot be bound by an application, and named
-  failed to listen on IPv6 addresses after the DAD mechanism finished. It is
-  possible to work around the issue by setting the IP_FREEBIND option on the
-  socket and trying to bind() to the IPv6 address again if the first bind() call
-  fails with EADDRNOTAVAIL. [GL #2038]
+- The IPv6 Duplicate Address Detection (DAD) mechanism could
+  inadvertently prevent ``named`` from binding to new IPv6 interfaces,
+  by causing multiple route socket messages to be sent for each IPv6
+  address. ``named`` monitors for new interfaces to ``bind()`` to when
+  it is configured to listen on ``any`` or on a specific range of
+  addresses. New IPv6 interfaces can be in a "tentative" state before
+  they are fully available for use. When DAD is in use, two messages are
+  emitted by the route socket: one when the interface first appears and
+  then a second one when it is fully "up." An attempt by ``named`` to
+  ``bind()`` to the new interface prematurely would fail, causing it
+  thereafter to ignore that address/interface. The problem was worked
+  around by setting the ``IP_FREEBIND`` option on the socket and trying
+  to ``bind()`` to each IPv6 address again if the first ``bind()`` call
+  for that address failed with ``EADDRNOTAVAIL``. [GL #2038]
