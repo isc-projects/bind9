@@ -24,6 +24,7 @@
 
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/platform.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/thread.h>
@@ -74,12 +75,17 @@ typedef struct geoip_state {
 	MMDB_entry_s entry;
 } geoip_state_t;
 
+#ifdef ISC_PLATFORM_USETHREADS
 static isc_mutex_t key_mutex;
 static bool state_key_initialized = false;
 static isc_thread_key_t state_key;
 static isc_once_t mutex_once = ISC_ONCE_INIT;
+#else
+static geoip_state_t *saved_state = NULL;
+#endif
 static isc_mem_t *state_mctx = NULL;
 
+#ifdef ISC_PLATFORM_USETHREADS
 static void
 key_mutex_init(void) {
 	RUNTIME_CHECK(isc_mutex_init(&key_mutex) == ISC_R_SUCCESS);
@@ -131,6 +137,20 @@ state_key_init(void) {
 
 	return (result);
 }
+#else
+static isc_result_t
+state_key_init(void) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	if (state_mctx == NULL) {
+		result = isc_mem_create(0, 0, &state_mctx);
+		isc_mem_setname(state_mctx, "geoip_state", NULL);
+		isc_mem_setdestroycheck(state_mctx, false);
+	}
+
+	return (result);
+}
+#endif
 
 static isc_result_t
 set_state(const MMDB_s *db, const isc_netaddr_t *addr,
@@ -145,17 +165,28 @@ set_state(const MMDB_s *db, const isc_netaddr_t *addr,
 		return (result);
 	}
 
+#ifdef ISC_PLATFORM_USETHREADS
 	state = (geoip_state_t *) isc_thread_key_getspecific(state_key);
+#else
+	state = saved_state;
+#endif
 	if (state == NULL) {
 		state = (geoip_state_t *) isc_mem_get(state_mctx,
 						      sizeof(geoip_state_t));
+		if (state == NULL) {
+			return (ISC_R_NOMEMORY);
+		}
 		memset(state, 0, sizeof(*state));
 
+#ifdef ISC_PLATFORM_USETHREADS
 		result = isc_thread_key_setspecific(state_key, state);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(state_mctx, state, sizeof(geoip_state_t));
 			return (result);
 		}
+#else
+		saved_state = state;
+#endif
 
 		isc_mem_attach(state_mctx, &state->mctx);
 	}
@@ -185,7 +216,11 @@ get_entry_for(MMDB_s * const db, const isc_netaddr_t *addr) {
 		return (NULL);
 	}
 
+#ifdef ISC_PLATFORM_USETHREADS
 	state = (geoip_state_t *) isc_thread_key_getspecific(state_key);
+#else
+	state = saved_state;
+#endif
 	if (state != NULL) {
 		if (db == state->db && isc_netaddr_equal(addr, &state->addr)) {
 			return (state);
@@ -577,6 +612,12 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, uint8_t *scope,
 
 void
 dns_geoip_shutdown(void) {
+#ifndef ISC_PLATFORM_USETHREADS
+	if (saved_state != NULL) {
+		isc_mem_putanddetach(&saved_state->mctx,
+				     saved_state, sizeof(geoip_state_t));
+	}
+#endif
 	if (state_mctx != NULL) {
 		isc_mem_detach(&state_mctx);
 	}
