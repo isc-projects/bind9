@@ -1054,7 +1054,8 @@ setup_system(void) {
 		setup_keyfile(gmctx, glctx);
 	}
 
-	isc_mutex_init(&answer_lock);
+	result = isc_mutex_init(&answer_lock);
+	check_result(result, "isc_mutex_init");
 }
 
 static int

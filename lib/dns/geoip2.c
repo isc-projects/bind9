@@ -82,7 +82,7 @@ static isc_mem_t *state_mctx = NULL;
 
 static void
 key_mutex_init(void) {
-	isc_mutex_init(&key_mutex);
+	RUNTIME_CHECK(isc_mutex_init(&key_mutex) == ISC_R_SUCCESS);
 }
 
 static void
