@@ -46,12 +46,12 @@
 <a name="lightweight_resolver"></a>The Lightweight Resolver Library</h2></div></div></div>
 
       <p>
-        Traditionally applications have been linked with a stub resolver
+        Traditionally, applications have been linked with a stub resolver
         library that sends recursive DNS queries to a local caching name
         server.
       </p>
       <p>
-        IPv6 once introduced new complexity into the resolution process,
+        At first, IPv6 introduced new complexity into the resolution process,
         such as following A6 chains and DNAME records, and simultaneous
         lookup of IPv4 and IPv6 addresses.  Though most of the complexity was
         then removed, these are hard or impossible
@@ -62,7 +62,7 @@
         services to local clients
         using a combination of a lightweight resolver library and a resolver
         daemon process running on the local host.  These communicate using
-        a simple UDP-based protocol, the "lightweight resolver protocol"
+        a simple UDP-based protocol, the "lightweight resolver protocol,"
         that is distinct from and simpler than the full DNS protocol.
       </p>
     </div>
@@ -79,7 +79,7 @@
       </p>
 
       <p>
-        By default, applications using the lightweight resolver library will
+        By default, applications using the lightweight resolver library
         make
         UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.
         The
@@ -89,19 +89,13 @@
       </p>
 
       <p>
-        The daemon currently only looks in the DNS, but in the future
-        it may use other sources such as <code class="filename">/etc/hosts</code>,
-        NIS, etc.
-      </p>
-
-      <p>
         The <span class="command"><strong>lwresd</strong></span> daemon is essentially a
         caching-only name server that responds to requests using the
         lightweight
         resolver protocol rather than the DNS protocol.  Because it needs
         to run on each host, it is designed to require no or minimal
         configuration.
-        Unless configured otherwise, it uses the name servers listed on
+        Unless otherwise instructed, it uses the name servers listed on
         <span class="command"><strong>nameserver</strong></span> lines in <code class="filename">/etc/resolv.conf</code>
         as forwarders, but is also capable of doing the resolution
         autonomously if
@@ -110,7 +104,7 @@
       <p>
         The <span class="command"><strong>lwresd</strong></span> daemon may also be
         configured with a
-        <code class="filename">named.conf</code> style configuration file,
+        <code class="filename">named.conf</code>-style configuration file,
         in
         <code class="filename">/etc/lwresd.conf</code> by default.  A name
         server may also
@@ -119,7 +113,7 @@
       </p>
       <p>
         The number of client queries that the <span class="command"><strong>lwresd</strong></span>
-        daemon is able to serve can be set using the
+        daemon serves can be set using the
         <code class="option">lwres-tasks</code> and <code class="option">lwres-clients</code>
         statements in the configuration.
       </p>
@@ -142,6 +136,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.21 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.22 (Extended Support Version)</p>
 </body>
 </html>

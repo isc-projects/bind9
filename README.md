@@ -359,6 +359,12 @@ vulnerability disclosed in CVE-2020-8619.
 
 BIND 9.11.21 is a maintenance release.
 
+#### BIND 9.11.22
+
+BIND 9.11.22 is a maintenance release, and also addresses the security
+vulnerabilities disclosed in CVE-2020-8622, CVE-2020-8623, and
+CVE-2020-8624.
+
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
