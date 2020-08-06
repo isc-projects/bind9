@@ -53,15 +53,8 @@ Security Fixes
   ISC would like to thank Joop Boonen of credativ GmbH for bringing this
   vulnerability to our attention. [GL #2055]
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
-
-- None.
 
 - A new configuration option ``stale-cache-enable`` has been introduced
   to enable or disable keeping stale answers in cache. [GL #1712]
