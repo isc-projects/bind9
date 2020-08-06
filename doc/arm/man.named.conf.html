@@ -13,8 +13,8 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.ch13.html" title="Manual pages">
-<link rel="prev" href="man.named.html" title="named">
-<link rel="next" href="man.named-checkconf.html" title="named-checkconf">
+<link rel="prev" href="man.named-rrchecker.html" title="named-rrchecker">
+<link rel="next" href="man.named.html" title="named">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
@@ -22,9 +22,9 @@
 <tr><th colspan="3" align="center"><code class="filename">named.conf</code></th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="man.named.html">Prev</a> </td>
+<a accesskey="p" href="man.named-rrchecker.html">Prev</a> </td>
 <th width="60%" align="center">Manual pages</th>
-<td width="20%" align="right"> <a accesskey="n" href="man.named-checkconf.html">Next</a>
+<td width="20%" align="right"> <a accesskey="n" href="man.named.html">Next</a>
 </td>
 </tr>
 </table>
@@ -55,7 +55,7 @@
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.7"></a><h2>DESCRIPTION</h2>
+<a name="id-1.14.28.7"></a><h2>DESCRIPTION</h2>
 
     <p><code class="filename">named.conf</code> is the configuration file
       for
@@ -76,7 +76,7 @@
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.8"></a><h2>ACL</h2>
+<a name="id-1.14.28.8"></a><h2>ACL</h2>
 
     <div class="literallayout"><p><br>
 acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -84,7 +84,7 @@ acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.9"></a><h2>CONTROLS</h2>
+<a name="id-1.14.28.9"></a><h2>CONTROLS</h2>
 
     <div class="literallayout"><p><br>
 controls {<br>
@@ -102,7 +102,7 @@ controls {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.10"></a><h2>DLZ</h2>
+<a name="id-1.14.28.10"></a><h2>DLZ</h2>
 
     <div class="literallayout"><p><br>
 dlz <em class="replaceable"><code>string</code></em> {<br>
@@ -113,7 +113,7 @@ dlz <em class="replaceable"><code>string</code></em> {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.11"></a><h2>DYNDB</h2>
+<a name="id-1.14.28.11"></a><h2>DYNDB</h2>
 
     <div class="literallayout"><p><br>
 dyndb <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>quoted_string</code></em> {<br>
@@ -122,7 +122,7 @@ dyndb <em class="replaceable"><code>string</code></em> <em class="replaceable"><
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.12"></a><h2>KEY</h2>
+<a name="id-1.14.28.12"></a><h2>KEY</h2>
 
     <div class="literallayout"><p><br>
 key <em class="replaceable"><code>string</code></em> {<br>
@@ -133,7 +133,7 @@ key <em class="replaceable"><code>string</code></em> {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.13"></a><h2>LOGGING</h2>
+<a name="id-1.14.28.13"></a><h2>LOGGING</h2>
 
     <div class="literallayout"><p><br>
 logging {<br>
@@ -155,7 +155,7 @@ logging {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.14"></a><h2>LWRES</h2>
+<a name="id-1.14.28.14"></a><h2>LWRES</h2>
 
     <div class="literallayout"><p><br>
 lwres {<br>
@@ -171,7 +171,7 @@ lwres {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.15"></a><h2>MANAGED-KEYS</h2>
+<a name="id-1.14.28.15"></a><h2>MANAGED-KEYS</h2>
 
     <div class="literallayout"><p><br>
 managed-keys { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em><br>
@@ -180,7 +180,7 @@ managed-keys { <em class="replaceable"><code>string</code></em> <em class="repla
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.16"></a><h2>MASTERS</h2>
+<a name="id-1.14.28.16"></a><h2>MASTERS</h2>
 
     <div class="literallayout"><p><br>
 masters <em class="replaceable"><code>string</code></em> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp<br>
@@ -191,7 +191,7 @@ masters <em class="replaceable"><code>string</code></em> [ port <em class="repla
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.17"></a><h2>OPTIONS</h2>
+<a name="id-1.14.28.17"></a><h2>OPTIONS</h2>
 
     <div class="literallayout"><p><br>
 options {<br>
@@ -472,7 +472,7 @@ options {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.18"></a><h2>SERVER</h2>
+<a name="id-1.14.28.18"></a><h2>SERVER</h2>
 
     <div class="literallayout"><p><br>
 server <em class="replaceable"><code>netprefix</code></em> {<br>
@@ -509,7 +509,7 @@ server <em class="replaceable"><code>netprefix</code></em> {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.19"></a><h2>STATISTICS-CHANNELS</h2>
+<a name="id-1.14.28.19"></a><h2>STATISTICS-CHANNELS</h2>
 
     <div class="literallayout"><p><br>
 statistics-channels {<br>
@@ -522,7 +522,7 @@ statistics-channels {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.20"></a><h2>TRUSTED-KEYS</h2>
+<a name="id-1.14.28.20"></a><h2>TRUSTED-KEYS</h2>
 
     <div class="literallayout"><p><br>
 trusted-keys { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
@@ -531,7 +531,7 @@ trusted-keys { <em class="replaceable"><code>string</code></em> <em class="repla
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.21"></a><h2>VIEW</h2>
+<a name="id-1.14.28.21"></a><h2>VIEW</h2>
 
     <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {<br>
@@ -887,7 +887,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.22"></a><h2>ZONE</h2>
+<a name="id-1.14.28.22"></a><h2>ZONE</h2>
 
     <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {<br>
@@ -986,14 +986,14 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.23"></a><h2>FILES</h2>
+<a name="id-1.14.28.23"></a><h2>FILES</h2>
 
     <p><code class="filename">/etc/named.conf</code>
     </p>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.20.24"></a><h2>SEE ALSO</h2>
+<a name="id-1.14.28.24"></a><h2>SEE ALSO</h2>
 
     <p><span class="citerefentry">
 	<span class="refentrytitle">ddns-confgen</span>(8)
@@ -1020,20 +1020,20 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="man.named.html">Prev</a> </td>
+<a accesskey="p" href="man.named-rrchecker.html">Prev</a> </td>
 <td width="20%" align="center"><a accesskey="u" href="Bv9ARM.ch13.html">Up</a></td>
-<td width="40%" align="right"> <a accesskey="n" href="man.named-checkconf.html">Next</a>
+<td width="40%" align="right"> <a accesskey="n" href="man.named.html">Next</a>
 </td>
 </tr>
 <tr>
 <td width="40%" align="left" valign="top">
-<span class="application">named</span> </td>
+<span class="application">named-rrchecker</span> </td>
 <td width="20%" align="center"><a accesskey="h" href="Bv9ARM.html">Home</a></td>
-<td width="40%" align="right" valign="top"> <span class="application">named-checkconf</span>
+<td width="40%" align="right" valign="top"> <span class="application">named</span>
 </td>
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.21 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.22 (Extended Support Version)</p>
 </body>
 </html>

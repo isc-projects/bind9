@@ -1,3 +1,5 @@
+	--- 9.11.22 released ---
+
 5481.	[security]	"update-policy" rules of type "subdomain" were
 			incorrectly treated as "zonesub" rules, which allowed
 			keys used in "subdomain" rules to update names outside
