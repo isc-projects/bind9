@@ -15,19 +15,19 @@
 			verifying the response to a TSIG-signed request.
 			(CVE-2020-8622) [GL #2028]
 
+5475.	[bug]		Wildcard RPZ passthru rules could incorrectly be
+			overridden by other rules that were loaded from RPZ
+			zones which appeared later in the "response-policy"
+			statement. This has been fixed. [GL #1619]
+
 5474.	[bug]		dns_rdata_hip_next() failed to return ISC_R_NOMORE
 			when it should have. [GL !3880]
 
-5466.	[bug]		Fix RPZ wildcard passthru ignored when a rejection
-			file would overwrite a passthru action matching some
-			rule in a previously loaded passthru rpz zone.
-			[GL #1619]
-
-5465.	[func]		Fallback to built in trust-anchors, managed-keys, or
-			trusted-keys if the bindkeys-file (bind.keys) cannot
+5465.	[func]		Added fallback to built-in trust-anchors, managed-keys,
+			or trusted-keys if the bindkeys-file (bind.keys) cannot
 			be parsed. [GL #1235]
 
-5463.	[bug]		Address potential NULL pointer dereference on out of
+5463.	[bug]		Address a potential NULL pointer dereference when out of
 			memory in dnstap.c. [GL #2010]
 
 5462.	[bug]		Move LMDB locking from LMDB itself to named. [GL #1976]
