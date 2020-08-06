@@ -79,7 +79,10 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          Wildcard RPZ passthru rules could incorrectly be overridden by other
+          rules that were loaded from RPZ zones which appeared later in the
+          <command>response-policy</command> statement. This has been fixed.
+          [GL #1619]
         </para>
       </listitem>
     </itemizedlist>
