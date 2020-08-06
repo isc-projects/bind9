@@ -141,7 +141,6 @@ dns_requestmgr_create(isc_mem_t *mctx,
 		      dns_requestmgr_t **requestmgrp)
 {
 	dns_requestmgr_t *requestmgr;
-	isc_socket_t *sock;
 	isc_result_t result;
 	int i;
 	unsigned int dispattr;
@@ -153,7 +152,7 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	REQUIRE(socketmgr != NULL);
 	REQUIRE(taskmgr != NULL);
 	REQUIRE(dispatchmgr != NULL);
-	UNUSED(sock);
+
 	if (dispatchv4 != NULL) {
 		dispattr = dns_dispatch_getattributes(dispatchv4);
 		REQUIRE((dispattr & DNS_DISPATCHATTR_UDP) != 0);
