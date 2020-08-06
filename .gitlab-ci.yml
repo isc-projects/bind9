@@ -1294,6 +1294,7 @@ abi-check:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
     BIND_BASELINE_VERSION: v9_17_3
   script:
     - *configure
