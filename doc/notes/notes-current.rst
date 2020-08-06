@@ -82,6 +82,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- Wildcard RPZ passthru rules could incorrectly be overridden by other
+  rules that were loaded from RPZ zones which appeared later in the
+  ``response-policy`` statement. This has been fixed. [GL #1619]
+
 - Addressed an error in recursive clients stats reporting which could
   cause underflow, and even negative statistics. There were occasions
   when an incoming query could trigger a prefetch for some eligible
