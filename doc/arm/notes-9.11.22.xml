@@ -85,6 +85,12 @@
           [GL #1619]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          LMDB locking code was revised to make <command>rndc reconfig</command>
+          work properly on FreeBSD and with LMDB >= 0.9.26. [GL #1976]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
