@@ -1507,7 +1507,7 @@ spnego_initial(OM_uint32 *minor_status,
 	gss_buffer_desc krb5_output_token = GSS_C_EMPTY_BUFFER;
 	unsigned char *buf = NULL;
 	size_t buf_size;
-	size_t len;
+	size_t len = 0;
 	int ret;
 
 	(void)mech_type;
