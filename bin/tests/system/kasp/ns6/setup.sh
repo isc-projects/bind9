@@ -56,7 +56,7 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # ECDSAP256SHA256 keys.
 setup migrate-nomatch-algnum.kasp
 echo "$zone" >> zones
-Tds="now-24h"    # Time according to dnssec-policy that DS will be OMNIPRESENT
+Tds="now-3h"     # Time according to dnssec-policy that DS will be OMNIPRESENT
 Tkey="now-3900s" # DNSKEY TTL + propagation delay
 Tsig="now-12h"   # Zone's maximum TTL + propagation delay
 ksktimes="-P ${Tkey} -A ${Tkey} -P sync ${Tds}"
@@ -74,7 +74,7 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer
 # dictates 2048 bits RSASHA1 keys.
 setup migrate-nomatch-alglen.kasp
 echo "$zone" >> zones
-Tds="now-24h"    # Time according to dnssec-policy that DS will be OMNIPRESENT
+Tds="now-3h"     # Time according to dnssec-policy that DS will be OMNIPRESENT
 Tkey="now-3900s" # DNSKEY TTL + propagation delay
 Tsig="now-12h"   # Zone's maximum TTL + propagation delay
 ksktimes="-P ${Tkey} -A ${Tkey} -P sync ${Tds}"

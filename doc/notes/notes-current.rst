@@ -24,6 +24,11 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
+- New ``rndc`` command ``rndc dnssec -checkds`` to tell ``named``
+  that a DS record for a given zone or key has been published or withdrawn
+  from the parent. Replaces the time-based ``parent-registration-delay``
+  configuration option. [GL #1613]
+
 - ``rndc`` has been updated to use the new BIND network manager API.
   This change had the side effect of altering the TCP timeout for RNDC
   connections from 60 seconds to the ``tcp-idle-timeout`` value, which

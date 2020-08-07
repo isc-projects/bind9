@@ -161,9 +161,21 @@ Currently supported commands are:
 
    See also ``rndc addzone`` and ``rndc modzone``.
 
-``dnssec`` [**-status** *zone* [*class* [*view*]]
-   Show the DNSSEC signing state for the specified zone.  Requires the
-   zone to have a "dnssec-policy".
+``dnssec`` ( **-status** | **-checkds** [**-key** *id* [**-alg** *algorithm*]] [**-when** *time*] ( *published* | *withdrawn* )) *zone* [*class* [*view*]]
+   This command allows you to interact with the "dnssec-policy" of a given
+   zone.
+
+   ``rndc dnssec -status`` show the DNSSEC signing state for the specified
+   zone.
+
+   ``rndc dnssec -checkds`` will let ``named`` know that the DS for the given
+   key has been seen published into or withdrawn from the parent.  This is
+   required in order to complete a KSK rollover.  If the ``-key id`` argument
+   is specified, look for the key with the given identifier, otherwise if there
+   is only one key acting as a KSK in the zone, assume the DS of that key (if
+   there are multiple keys with the same tag, use ``-alg algorithm`` to
+   select the correct algorithm).  The time that the DS has been published or
+   withdrawn is set to now, unless otherwise specified with the argument ``-when time``.
 
 ``dnstap`` ( **-reopen** | **-roll** [*number*] )
    This command closes and re-opens DNSTAP output files. ``rndc dnstap -reopen`` allows

@@ -86,7 +86,6 @@ struct dns_kasp {
 	/* Parent settings */
 	dns_ttl_t parent_ds_ttl;
 	uint32_t  parent_propagation_delay;
-	uint32_t  parent_registration_delay;
 
 	/* TODO: The rest of the KASP configuration */
 };
@@ -105,7 +104,6 @@ struct dns_kasp {
 #define DNS_KASP_ZONE_MAXTTL	     (86400)
 #define DNS_KASP_ZONE_PROPDELAY	     (300)
 #define DNS_KASP_PARENT_PROPDELAY    (3600)
-#define DNS_KASP_PARENT_REGDELAY     (86400)
 
 /* Key roles */
 #define DNS_KASP_KEY_ROLE_KSK 0x01
@@ -437,30 +435,6 @@ void
 dns_kasp_setparentpropagationdelay(dns_kasp_t *kasp, uint32_t value);
 /*%<
  * Set parent propagation delay.
- *
- * Requires:
- *
- *\li   'kasp' is a valid, thawed kasp.
- */
-
-uint32_t
-dns_kasp_parentregistrationdelay(dns_kasp_t *kasp);
-/*%<
- * Get parent registration delay for submitting new DS.
- *
- * Requires:
- *
- *\li   'kasp' is a valid, frozen kasp.
- *
- * Returns:
- *
- *\li   Parent registration delay.
- */
-
-void
-dns_kasp_setparentregistrationdelay(dns_kasp_t *kasp, uint32_t value);
-/*%<
- * Set parent registration delay.
  *
  * Requires:
  *

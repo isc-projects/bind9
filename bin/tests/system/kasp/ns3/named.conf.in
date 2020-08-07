@@ -45,6 +45,27 @@ zone "default.kasp" {
 	dnssec-policy "default";
 };
 
+/* checkds: Zone with one KSK. */
+zone "checkds-ksk.kasp" {
+	type primary;
+	file "checkds-ksk.kasp.db";
+	dnssec-policy "checkds-ksk";
+};
+
+/* checkds: Zone with two KSKs. */
+zone "checkds-doubleksk.kasp" {
+	type primary;
+	file "checkds-doubleksk.kasp.db";
+	dnssec-policy "checkds-doubleksk";
+};
+
+/* checkds: Zone with one CSK. */
+zone "checkds-csk.kasp" {
+	type primary;
+	file "checkds-csk.kasp.db";
+	dnssec-policy "checkds-csk";
+};
+
 /* Key lifetime unlimited. */
 zone "unlimited.kasp" {
 	type primary;
