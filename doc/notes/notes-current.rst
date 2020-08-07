@@ -24,7 +24,10 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- New ``rndc`` command ``rndc dnssec -checkds`` to tell ``named``
+  that a DS record for a given zone or key has been published or withdrawn
+  from the parent. Replaces the time-based ``parent-registration-delay``
+  configuration option. [GL #1613]
 
 - A new configuration option ``stale-cache-enable`` has been introduced to
   enable or disable the keeping of stale answers in cache. [GL #1712]

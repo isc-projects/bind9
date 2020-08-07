@@ -110,7 +110,9 @@ static const char *timingtags[TIMING_NTAGS] = {
 
 	"DSPublish:",	 "SyncPublish:",  "SyncDelete:",
 
-	"DNSKEYChange:", "ZRRSIGChange:", "KRRSIGChange:", "DSChange:"
+	"DNSKEYChange:", "ZRRSIGChange:", "KRRSIGChange:", "DSChange:",
+
+	"DSRemoved:"
 };
 
 #define KEYSTATES_NTAGS (DST_MAX_KEYSTATES + 1)
@@ -1923,8 +1925,7 @@ printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 	}
 
 	isc_buffer_usedregion(&b, &r);
-	fprintf(stream, "%s: %.*s (%.*s)\n", tag, (int)r.length, r.base,
-		(int)strlen(output) - 1, output);
+	fprintf(stream, "%s: %.*s (%s)\n", tag, (int)r.length, r.base, output);
 	return;
 
 error:
@@ -2009,6 +2010,8 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 		printtime(key, DST_TIME_INACTIVE, "Retired", fp);
 		printtime(key, DST_TIME_REVOKE, "Revoked", fp);
 		printtime(key, DST_TIME_DELETE, "Removed", fp);
+		printtime(key, DST_TIME_DSPUBLISH, "DSPublish", fp);
+		printtime(key, DST_TIME_DSDELETE, "DSRemoved", fp);
 		printtime(key, DST_TIME_SYNCPUBLISH, "PublishCDS", fp);
 		printtime(key, DST_TIME_SYNCDELETE, "DeleteCDS", fp);
 

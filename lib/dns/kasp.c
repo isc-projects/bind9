@@ -57,7 +57,6 @@ dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 
 	kasp->parent_ds_ttl = DNS_KASP_DS_TTL;
 	kasp->parent_propagation_delay = DNS_KASP_PARENT_PROPDELAY;
-	kasp->parent_registration_delay = DNS_KASP_PARENT_REGDELAY;
 
 	/* TODO: The rest of the KASP configuration */
 
@@ -296,22 +295,6 @@ dns_kasp_setparentpropagationdelay(dns_kasp_t *kasp, uint32_t value) {
 	REQUIRE(!kasp->frozen);
 
 	kasp->parent_propagation_delay = value;
-}
-
-uint32_t
-dns_kasp_parentregistrationdelay(dns_kasp_t *kasp) {
-	REQUIRE(DNS_KASP_VALID(kasp));
-	REQUIRE(kasp->frozen);
-
-	return (kasp->parent_registration_delay);
-}
-
-void
-dns_kasp_setparentregistrationdelay(dns_kasp_t *kasp, uint32_t value) {
-	REQUIRE(DNS_KASP_VALID(kasp));
-	REQUIRE(!kasp->frozen);
-
-	kasp->parent_registration_delay = value;
 }
 
 isc_result_t

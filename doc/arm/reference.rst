@@ -4893,12 +4893,6 @@ The following options can be specified in a ``dnssec-policy`` statement:
        is served by all of the parent zone's name servers.
        The default is ``PT1H`` (1 hour).
 
-     ``parent-registration-delay``
-       This is the expected registration delay from the time when a DS
-       RRset change is requested to the time when the DS RRset
-       is updated in the parent zone.  The default is
-       ``P1D`` (1 day).
-
 .. _managed-keys:
 
 ``managed-keys`` Statement Grammar
