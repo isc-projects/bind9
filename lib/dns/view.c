@@ -626,6 +626,9 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		if (view->catzs != NULL) {
 			dns_catz_catzs_detach(&view->catzs);
 		}
+		if (view->ntatable_priv != NULL) {
+			dns_ntatable_shutdown(view->ntatable_priv);
+		}
 		UNLOCK(&view->lock);
 
 		/* Need to detach zones outside view lock */
