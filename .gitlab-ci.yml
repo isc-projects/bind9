@@ -248,7 +248,7 @@ stages:
     - *setup_softhsm
   script:
     - cd bin/tests/system
-    - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1 || make -j${TEST_PARALLEL_JOBS:-1} -k recheck V=1
+    - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
   after_script:
     - cat bin/tests/system/test-suite.log
 
