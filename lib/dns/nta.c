@@ -128,6 +128,7 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		goto cleanup_rbt;
 	}
 
+	ntatable->shuttingdown = false;
 	ntatable->timermgr = timermgr;
 	ntatable->taskmgr = taskmgr;
 
@@ -239,13 +240,14 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 				      NULL, true);
 	}
 	nta_detach(view->mctx, &nta);
+	dns_view_weakdetach(&view);
 }
 
 static void
 checkbogus(isc_task_t *task, isc_event_t *event) {
 	dns_nta_t *nta = event->ev_arg;
 	dns_ntatable_t *ntatable = nta->ntatable;
-	dns_view_t *view = ntatable->view;
+	dns_view_t *view = NULL;
 	isc_result_t result;
 
 	if (nta->fetch != NULL) {
@@ -262,11 +264,13 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	nta_ref(nta);
+	dns_view_weakattach(ntatable->view, &view);
 	result = dns_resolver_createfetch(
 		view->resolver, nta->name, dns_rdatatype_nsec, NULL, NULL, NULL,
 		NULL, 0, DNS_FETCHOPT_NONTA, 0, NULL, task, fetch_done, nta,
 		&nta->rdataset, &nta->sigrdataset, &nta->fetch);
 	if (result != ISC_R_SUCCESS) {
+		dns_view_weakdetach(&view);
 		nta_detach(view->mctx, &nta);
 	}
 }
@@ -330,7 +334,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 isc_result_t
 dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 		 isc_stdtime_t now, uint32_t lifetime) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_nta_t *nta = NULL;
 	dns_rbtnode_t *node;
 	dns_view_t *view;
@@ -339,15 +343,19 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 
 	view = ntatable->view;
 
+	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
+
+	if (ntatable->shuttingdown) {
+		goto unlock;
+	}
+
 	result = nta_create(ntatable, name, &nta);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		goto unlock;
 	}
 
 	nta->expiry = now + lifetime;
 	nta->forced = force;
-
-	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
 	node = NULL;
 	result = dns_rbt_addnode(ntatable->table, name, &node);
@@ -372,6 +380,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 		result = ISC_R_SUCCESS;
 	}
 
+unlock:
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
 	if (nta != NULL) {
@@ -681,4 +690,34 @@ cleanup:
 	} else {
 		return (written ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
 	}
+}
+
+void
+dns_ntatable_shutdown(dns_ntatable_t *ntatable) {
+	isc_result_t result;
+	dns_rbtnode_t *node;
+	dns_rbtnodechain_t chain;
+
+	REQUIRE(VALID_NTATABLE(ntatable));
+
+	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
+	ntatable->shuttingdown = true;
+
+	dns_rbtnodechain_init(&chain);
+	result = dns_rbtnodechain_first(&chain, ntatable->table, NULL, NULL);
+	while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
+		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		if (node->data != NULL) {
+			dns_nta_t *nta = (dns_nta_t *)node->data;
+			if (nta->timer != NULL) {
+				(void)isc_timer_reset(nta->timer,
+						      isc_timertype_inactive,
+						      NULL, NULL, true);
+			}
+		}
+		result = dns_rbtnodechain_next(&chain, NULL, NULL);
+	}
+
+	dns_rbtnodechain_invalidate(&chain);
+	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 }

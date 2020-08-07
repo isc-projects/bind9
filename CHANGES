@@ -1,3 +1,7 @@
+5488.	[bug]		nta needed to have a weak reference on view to prevent
+			the view being deleted while nta tests are being
+			performed. [GL #2067]
+
 5486.	[func]		Add 'rndc dnssec -checkds' command to tell named
 			that the DS record has been published in the parent.
 			[GL #1613]
