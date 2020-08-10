@@ -60,7 +60,7 @@
 #define CHAIN_MAGIC	   ISC_MAGIC('0', '-', '0', '-')
 #define VALID_CHAIN(chain) ISC_MAGIC_VALID(chain, CHAIN_MAGIC)
 
-#define RBT_HASH_MIN_BITS   16
+#define RBT_HASH_MIN_BITS   4
 #define RBT_HASH_MAX_BITS   32
 #define RBT_HASH_OVERCOMMIT 3
 #define RBT_HASH_BUCKETSIZE 4096 /* FIXME: What would be a good value here? */
