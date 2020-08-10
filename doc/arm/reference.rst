@@ -1332,7 +1332,7 @@ default is used.
    If all supported algorithms are disabled, the zones covered by the
    ``disable-algorithms`` setting are treated as insecure.
 
-   Configured trust anchors in ``trusted-anchors`` (or ``managed-keys`` or
+   Configured trust anchors in ``trust-anchors`` (or ``managed-keys`` or
    ``trusted-keys``) that match a disabled algorithm are ignored and treated
    as if they were not configured at all.
 
