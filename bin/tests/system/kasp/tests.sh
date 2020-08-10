@@ -3681,8 +3681,13 @@ dnssec_verify
 # successor signatures.  This is the retire interval: Dsgn plus the
 # maximum zone TTL plus the zone propagation delay plus retire-safety. For the
 # csk-roll2 policy that means: 12h (because 1d validity and refresh within
-# 12 hours) + 1d + 1h + 1h = 38h = 136800 seconds.
-check_next_key_event 136800
+# 12 hours) + 1d + 1h + 1h = 38h = 136800 seconds.  Prevent intermittent false
+# positives on slow platforms by subtracting the number of seconds which
+# passed between key creation and invoking 'rndc dnssec -checkds'.
+now="$(TZ=UTC date +%s)"
+time_passed=$((now-start_time))
+next_time=$((136800-time_passed))
+check_next_key_event $next_time
 
 #
 # Zone: step4.csk-roll2.autosign.
