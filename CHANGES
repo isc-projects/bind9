@@ -1,3 +1,7 @@
+5488.	[bug]		nta needed to have a weak reference on view to prevent
+			the view being deleted while nta tests are being
+			performed. [GL #2067]
+
 5487.	[cleanup]	Update managed keys log messages to be less confusing.
 			[GL #2027]
 
