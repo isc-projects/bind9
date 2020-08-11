@@ -1,3 +1,7 @@
+5488.	[bug]		nta needed to have a weak reference on view to prevent
+			the view being deleted while nta tests are being
+			performed. [GL #2067]
+
 5474.	[bug]		dns_rdata_hip_next() failed to return ISC_R_NOMORE
 			when it should have. [GL !3880]
 
