@@ -54,6 +54,7 @@ struct dns_ntatable {
 	isc_refcount_t references;
 	/* Locked by rwlock. */
 	dns_rbt_t *table;
+	bool	   shuttingdown;
 };
 
 #define NTATABLE_MAGIC	   ISC_MAGIC('N', 'T', 'A', 't')
@@ -203,6 +204,13 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp);
 /*%<
  * Save the NTA table to the file opened as 'fp', for later loading.
  */
+
+void
+dns_ntatable_shutdown(dns_ntatable_t *ntatable);
+/*%<
+ * Cancel future checks to see if NTAs can be removed.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_NTA_H */
