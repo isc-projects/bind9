@@ -10252,9 +10252,9 @@ anchors_done:
 			} else if (keydata.addhd > now) {
 				dnssec_log(zone, ISC_LOG_INFO,
 					   "Pending key %d for zone %s "
-					   "unexpectedly missing "
-					   "restarting 30-day acceptance "
-					   "timer",
+					   "unexpectedly missing from DNSKEY "
+					   "RRset: restarting 30-day "
+					   "acceptance timer",
 					   keytag, namebuf);
 				if (keydata.addhd < now + dns_zone_mkey_month) {
 					keydata.addhd = now +
@@ -10264,16 +10264,18 @@ anchors_done:
 			} else if (keydata.removehd == 0) {
 				dnssec_log(zone, ISC_LOG_INFO,
 					   "Active key %d for zone %s "
-					   "unexpectedly missing",
+					   "unexpectedly missing from DNSKEY "
+					   "RRset",
 					   keytag, namebuf);
 				keydata.refresh = now + dns_zone_mkey_hour;
 			} else if (keydata.removehd <= now) {
 				deletekey = true;
-				dnssec_log(zone, ISC_LOG_INFO,
-					   "Revoked key %d for zone %s "
-					   "missing: deleting from "
-					   "managed keys database",
-					   keytag, namebuf);
+				dnssec_log(
+					zone, ISC_LOG_INFO,
+					"Revoked key %d for zone %s no longer "
+					"present in DNSKEY RRset: deleting "
+					"from managed keys database",
+					keytag, namebuf);
 			} else {
 				keydata.refresh = refresh_time(kfetch, false);
 			}
