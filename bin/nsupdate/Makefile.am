@@ -18,8 +18,12 @@ LDADD =				\
 	$(LIBISCCFG_LIBS)	\
 	$(LIBIRS_LIBS)		\
 	$(LIBBIND9_LIBS)	\
-	$(READLINE_LIB)		\
 	$(GSSAPI_LIBS)		\
 	$(KRB5_LIBS)
+
+if HAVE_READLINE
+LDADD +=			\
+	$(READLINE_LIBS)
+endif
 
 bin_PROGRAMS = nsupdate

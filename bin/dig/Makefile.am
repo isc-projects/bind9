@@ -25,6 +25,10 @@ libdighost_la_SOURCES = \
 
 bin_PROGRAMS = dig host nslookup
 
-nslookup_LDADD =	\
-	$(LDADD)	\
-	$(READLINE_LIB)
+nslookup_LDADD =		\
+	$(LDADD)
+
+if HAVE_READLINE
+nslookup_LDADD +=		\
+	$(READLINE_LIBS)
+endif HAVE_READLINE
