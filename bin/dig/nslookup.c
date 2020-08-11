@@ -49,6 +49,9 @@
 #elif defined(HAVE_READLINE_READLINE_H)
 /* Prevent deprecated functions being declared. */
 #define _FUNCTION_DEF 1
+/* Ensure rl_message() gets prototype. */
+#define USE_VARARGS   1
+#define PREFER_STDARG 1
 #include <readline/readline.h>
 #if defined(HAVE_READLINE_HISTORY_H)
 #include <readline/history.h>
