@@ -121,7 +121,7 @@ AC_PROG_MKDIR_P
 # Initialize libtool
 LT_INIT([disable-static dlopen pic-only])
 
-AS_IF([test $enable_static != "no"],
+AS_IF([test "$enable_static" != "no" && test "$enable_developer" != "yes"],
       [AC_MSG_ERROR([Static linking is not supported as it disables dlopen() and certain security features (e.g. RELRO, ASLR)])])
 
 LT_CONFIG_LTDL_DIR([libltdl])
