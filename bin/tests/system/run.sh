@@ -196,7 +196,7 @@ $PERL stop.pl $systest
 status=`expr $status + $?`
 
 get_core_dumps() {
-    find "$systest/" \( -name 'core*' -or -name '*.core' \) ! -name '*.gz' ! -name '*.txt' | sort
+    find "$systest/" \( -name 'core' -or -name 'core.*' -or -name '*.core' \) ! -name '*.gz' ! -name '*.txt' | sort
 }
 
 core_dumps=$(get_core_dumps | tr '\n' ' ')
