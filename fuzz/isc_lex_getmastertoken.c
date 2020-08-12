@@ -15,6 +15,7 @@
 #include <isc/buffer.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include "fuzz.h"
@@ -46,6 +47,20 @@ int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_t buf;
 	isc_result_t result;
+	isc_tokentype_t expect;
+	bool eol;
+
+	if (size < sizeof(expect) + sizeof(eol)) {
+		return (0);
+	}
+
+	(void)memmove(&expect, data, sizeof(expect));
+	data += sizeof(expect);
+	size -= sizeof(expect);
+
+	(void)memmove(&eol, data, sizeof(eol));
+	data += sizeof(eol);
+	size -= sizeof(eol);
 
 	isc_buffer_constinit(&buf, data, size);
 	isc_buffer_add(&buf, size);
@@ -55,7 +70,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
 	do {
 		isc_token_t token;
-		result = isc_lex_gettoken(lex, 0, &token);
+		result = isc_lex_getmastertoken(lex, &token, expect, eol);
 	} while (result == ISC_R_SUCCESS);
 
 	return (0);
