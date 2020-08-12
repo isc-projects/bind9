@@ -121,7 +121,7 @@ AC_PROG_MKDIR_P
 # Initialize libtool
 LT_INIT([disable-static dlopen pic-only])
 
-AS_IF([test $enable_static != "no"],
+AS_IF([test "$enable_static" != "no" && test "$enable_developer" != "yes"],
       [AC_MSG_ERROR([Static linking is not supported as it disables dlopen() and certain security features (e.g. RELRO, ASLR)])])
 
 LT_CONFIG_LTDL_DIR([libltdl])
@@ -200,7 +200,7 @@ AC_ARG_ENABLE(buffer_useinline,
 	      AC_DEFINE([ISC_BUFFER_USEINLINE], [1]))
 
 AC_ARG_ENABLE([fuzzing],
-	      [AS_HELP_STRING([--enable-fuzzing=<afl|libfuzzer>],
+	      [AS_HELP_STRING([--enable-fuzzing=<afl|libfuzzer|ossfuzz>],
 			      [Enable fuzzing using American Fuzzy Lop or libFuzzer (default=no)])],
 	      [],
 	      [enable_fuzzing=no])
@@ -220,6 +220,9 @@ AS_CASE([$enable_fuzzing],
 	  LDFLAGS="$LDFLAGS -fsanitize=address,undefined"
 	  FUZZ_LDFLAGS="-fsanitize=fuzzer,address,undefined"
 	  FUZZ_LOG_COMPILER="libfuzzer.sh"],
+	[ossfuzz],[
+	    AC_MSG_RESULT([using OSS-Fuzz])
+	    FUZZ_LDFLAGS="$LIB_FUZZING_ENGINE"],
 	[*],[AC_MSG_ERROR([You need to explicitly select the fuzzer])])
 AM_CONDITIONAL([HAVE_FUZZ_LOG_COMPILER], [test -n "$FUZZ_LOG_COMPILER"])
 AC_SUBST([FUZZ_LOG_COMPILER])
