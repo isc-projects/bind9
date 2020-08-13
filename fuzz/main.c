@@ -24,8 +24,6 @@
 
 #include <dirent.h>
 
-bool debug = false;
-
 static void
 test_all_from(const char *dirname) {
 	DIR *dirp;

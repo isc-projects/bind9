@@ -20,6 +20,8 @@
 
 #include "fuzz.h"
 
+bool debug = false;
+
 static isc_mem_t *mctx = NULL;
 
 int

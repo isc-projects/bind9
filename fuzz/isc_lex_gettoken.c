@@ -19,6 +19,8 @@
 
 #include "fuzz.h"
 
+bool debug = false;
+
 static isc_mem_t *mctx = NULL;
 static isc_lex_t *lex = NULL;
 

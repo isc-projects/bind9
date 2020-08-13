@@ -28,6 +28,8 @@
 
 #include "fuzz.h"
 
+bool debug = false;
+
 /*
  * Fuzz input to dns_rdata_fromwire(). Then convert the result
  * to text, back to wire format, to multiline text, and back to wire

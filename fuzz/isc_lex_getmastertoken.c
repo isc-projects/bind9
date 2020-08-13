@@ -20,6 +20,8 @@
 
 #include "fuzz.h"
 
+bool debug = false;
+
 int
 LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 		     char ***argv __attribute__((unused)));
