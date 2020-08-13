@@ -131,9 +131,13 @@ ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 # Run rndc dumpdb, test whether the stale data has correct comment printed.
 # The max-stale-ttl is 3600 seconds, so the comment should say the data is
 # stale for somewhere between 3500-3599 seconds.
+echo_i "check rndc dump stale data.example ($n)"
 rndc_dumpdb ns1 || ret=1
 awk '/; stale/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
     grep "; stale (will be retained for 35.. more seconds) data\.example.*A text record with a 2 second ttl" > /dev/null 2>&1 || ret=1
@@ -1027,15 +1031,9 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 n=$((n+1))
 echo_i "dump the cache (serve-stale answers disabled) ($n)"
 ret=0
-$RNDCCMD 10.53.0.4 dumpdb -cache > rndc.out.test$n 2>&1 || ret=1
-done=0
-for i in 0 1 2 3 4 5 6 7 8 9; do
-	grep '^; Dump complete$' ns4/named_dump4.db > /dev/null 2>&1 && done=1
-	if [ $done != 1 ]; then sleep 1; fi
-done
-if [ $done != 1 ]; then ret=1; fi
-status=$((status+ret))
+rndc_dumpdb ns4 -cache || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
 echo_i "stop ns4"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns4
@@ -1049,11 +1047,10 @@ LASTWEEK=`TZ=UTC perl -e 'my $now = time();
         my ($s, $m, $h, $d, $mo, $y) = (localtime($fiveMinutesAgo))[0, 1, 2, 3, 4, 5];
         printf("%04d%02d%02d%02d%02d%02d", $y+1900, $mo+1, $d, $h, $m, $s);'`
 
-n=$((n+1))
 echo_i "mock the cache date to $LASTWEEK (serve-stale answers disabled) ($n)"
 ret=0
-sed -E "s/DATE [0-9]{14}/DATE $LASTWEEK/g" ns4/named_dump4.db > ns4/named_dumpdb4.db.out || ret=1
-cp ns4/named_dumpdb4.db.out ns4/named_dumpdb4.db
+sed -E "s/DATE [0-9]{14}/DATE $LASTWEEK/g" ns4/named_dump.db.test$n > ns4/named_dump.db.out || ret=1
+cp ns4/named_dump.db.out ns4/named_dump.db
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1229,7 +1226,9 @@ $RNDCCMD 10.53.0.5 stats > /dev/null 2>&1
 [ -f ns5/named.stats ] || ret=1
 cp ns5/named.stats ns5/named.stats.$n
 # Check first 10 lines of Cache DB statistics.  After serve-stale queries,
-# we expect one active TXT (longttl) and the rest to be expired from cache.
+# we expect one active TXT (longttl) and the rest to be expired from cache,
+# but since we keep everything for 5 minutes (RBTDB_VIRTUAL) in the cache
+# after expiry, they still show up in the stats.
 grep -A 10 "++ Cache DB RRsets ++" ns5/named.stats.$n > ns5/named.stats.$n.cachedb || ret=1
 grep -F "1 Others" ns5/named.stats.$n.cachedb > /dev/null || ret=1
 grep -F "2 TXT" ns5/named.stats.$n.cachedb > /dev/null || ret=1
@@ -1264,8 +1263,8 @@ FIVEMINUTESAGO=`TZ=UTC perl -e 'my $now = time();
 n=$((n+1))
 echo_i "mock the cache date to $FIVEMINUTESAGO (serve-stale cache disabled) ($n)"
 ret=0
-sed -E "s/DATE [0-9]{14}/DATE $FIVEMINUTESAGO/g" ns5/named_dump5.db > ns5/named_dumpdb5.db.out || ret=1
-cp ns5/named_dumpdb5.db.out ns5/named_dumpdb5.db
+sed -E "s/DATE [0-9]{14}/DATE $FIVEMINUTESAGO/g" ns5/named_dump.db > ns5/named_dump.db.out || ret=1
+cp ns5/named_dump.db.out ns5/named_dump.db
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
