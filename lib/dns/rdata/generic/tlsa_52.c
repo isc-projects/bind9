@@ -122,8 +122,10 @@ generic_fromwire_tlsa(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &sr);
 
-	if (sr.length < 3)
+	/* Usage(1), Selector(1), Type(1), Data(1+) */
+	if (sr.length < 4) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
