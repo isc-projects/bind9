@@ -215,7 +215,7 @@ base32_decode_char(base32_decode_ctx_t *ctx, int c) {
 			if ((ctx->val[3] & 0x0f) != 0) {
 				return (ISC_R_BADBASE32);
 			}
-			ctx->seen_32 = 3;
+			ctx->seen_32 = 2;
 			break;
 		case 5:
 			if ((ctx->val[4] & 0x01) != 0) {
