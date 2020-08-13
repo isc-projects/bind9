@@ -134,9 +134,11 @@ fromwire_nxt(ARGS_FROMWIRE) {
 	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
 
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length > 0 && (sr.base[0] & 0x80) == 0 &&
-	    ((sr.length > 16) || sr.base[sr.length - 1] == 0))
+	if (sr.length > 0 && ((sr.base[0] & 0x80) != 0 || sr.length > 16 ||
+			      sr.base[sr.length - 1] == 0))
+	{
 		return (DNS_R_BADBITMAP);
+	}
 	RETERR(mem_tobuffer(target, sr.base, sr.length));
 	isc_buffer_forward(source, sr.length);
 	return (ISC_R_SUCCESS);
