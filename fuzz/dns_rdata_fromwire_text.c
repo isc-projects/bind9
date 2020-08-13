@@ -59,13 +59,21 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 
 static void
 nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
+	va_list args;
+
 	UNUSED(cb);
-	UNUSED(fmt);
+
+	if (debug) {
+		va_start(args, fmt);
+		vfprintf(stderr, fmt, args);
+		fprintf(stderr, "\n");
+		va_end(args);
+	}
 }
 
 int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-	char totext[1024];
+	char totext[64 * 1044 * 4];
 	dns_compress_t cctx;
 	dns_decompress_t dctx;
 	dns_rdatatype_t rdtype;
@@ -113,10 +121,15 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	rdclass = classlist[(*data++) % classes];
 	size--;
 
+	if (debug) {
+		fprintf(stderr, "type=%u, class=%u\n", rdtype, rdclass);
+	}
+
 	dns_rdatacallbacks_init(&callbacks);
 	callbacks.warn = callbacks.error = nullmsg;
 
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+	/* Disallow decompression as we are reading a packet */
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
 
 	isc_buffer_constinit(&source, data, size);
 	isc_buffer_add(&source, size);
@@ -129,13 +142,19 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	 */
 	CHECK(dns_rdata_fromwire(&rdata1, rdclass, rdtype, &source, &dctx, 0,
 				 &target));
+	assert(rdata1.length == size);
 
 	/*
 	 * Convert to text from wire.
 	 */
-	isc_buffer_init(&target, totext, sizeof(totext));
+	isc_buffer_init(&target, totext, sizeof(totext) - 1);
 	result = dns_rdata_totext(&rdata1, NULL, &target);
 	assert(result == ISC_R_SUCCESS);
+
+	/*
+	 * Make debugging easier by NUL terminating.
+	 */
+	totext[isc_buffer_usedlength(&target)] = 0;
 
 	/*
 	 * Convert to wire from text.
