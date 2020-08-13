@@ -23,6 +23,8 @@
 
 ISC_LANG_BEGINDECLS
 
+extern bool debug;
+
 int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 
