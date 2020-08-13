@@ -212,7 +212,7 @@ fromwire_nsec3(ARGS_FROMWIRE) {
 	hashlen = sr.base[0];
 	isc_region_consume(&sr, 1);
 
-	if (sr.length < hashlen) {
+	if (hashlen < 1 || sr.length < hashlen) {
 		RETERR(DNS_R_FORMERR);
 	}
 	isc_region_consume(&sr, hashlen);
