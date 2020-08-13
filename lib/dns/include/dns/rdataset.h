@@ -188,6 +188,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_PREFETCH     0x00400000
 #define DNS_RDATASETATTR_CYCLIC	      0x00800000 /*%< Cyclic ordering. */
 #define DNS_RDATASETATTR_STALE	      0x01000000
+#define DNS_RDATASETATTR_ANCIENT      0x02000000
 
 /*%
  * _OMITDNSSEC:
