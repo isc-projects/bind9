@@ -274,6 +274,9 @@ fromwire_sig(ARGS_FROMWIRE) {
 	 * Sig.
 	 */
 	isc_buffer_activeregion(source, &sr);
+	if (sr.length == 0) {
+		return (ISC_R_UNEXPECTEDEND);
+	}
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
