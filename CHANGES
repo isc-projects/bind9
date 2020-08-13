@@ -1,3 +1,11 @@
+5489.	[bug]		Named failed to reject some invalid records resulting
+			in records that, after being printed, could not be
+			loaded or would result in DNSSEC validation failures
+			when re-read from zone files as the wire format
+			differed.  The covered records records are: CERT,
+			IPSECKEY, NSEC3, NSEC3PARAM, NXT, SIG, TLSA, WKS, and
+			X25. [GL !3953]
+
 5488.	[bug]		nta needed to have a weak reference on view to prevent
 			the view being deleted while nta tests are being
 			performed. [GL #2067]

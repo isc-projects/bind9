@@ -169,65 +169,75 @@ base32_decode_char(base32_decode_ctx_t *ctx, int c) {
 	const char *s;
 	unsigned int last;
 
-	if (ctx->seen_end)
+	if (ctx->seen_end) {
 		return (ISC_R_BADBASE32);
-	if ((s = strchr(ctx->base, c)) == NULL)
+	}
+	if ((s = strchr(ctx->base, c)) == NULL) {
 		return (ISC_R_BADBASE32);
+	}
 	last = (unsigned int)(s - ctx->base);
 
 	/*
 	 * Handle lower case.
 	 */
-	if (last > 32)
+	if (last > 32) {
 		last -= 33;
+	}
 
 	/*
 	 * Check that padding is contiguous.
 	 */
-	if (last != 32 && ctx->seen_32 != 0)
+	if (last != 32 && ctx->seen_32 != 0) {
 		return (ISC_R_BADBASE32);
+	}
 
 	/*
 	 * If padding is not permitted flag padding as a error.
 	 */
-	if (last == 32 && !ctx->pad)
+	if (last == 32 && !ctx->pad) {
 		return (ISC_R_BADBASE32);
+	}
 
 	/*
 	 * Check that padding starts at the right place and that
 	 * bits that should be zero are.
 	 * Record how many significant bytes in answer (seen_32).
 	 */
-	if (last == 32 && ctx->seen_32 == 0)
+	if (last == 32 && ctx->seen_32 == 0) {
 		switch (ctx->digits) {
 		case 0:
 		case 1:
 			return (ISC_R_BADBASE32);
 		case 2:
-			if ((ctx->val[1]&0x03) != 0)
+			if ((ctx->val[1]&0x03) != 0) {
 				return (ISC_R_BADBASE32);
+			}
 			ctx->seen_32 = 1;
 			break;
 		case 3:
 			return (ISC_R_BADBASE32);
 		case 4:
-			if ((ctx->val[3]&0x0f) != 0)
+			if ((ctx->val[3]&0x0f) != 0) {
 				return (ISC_R_BADBASE32);
-			ctx->seen_32 = 3;
+			}
+			ctx->seen_32 = 2;
 			break;
 		case 5:
-			if ((ctx->val[4]&0x01) != 0)
+			if ((ctx->val[4]&0x01) != 0) {
 				return (ISC_R_BADBASE32);
+			}
 			ctx->seen_32 = 3;
 			break;
 		case 6:
 			return (ISC_R_BADBASE32);
 		case 7:
-			if ((ctx->val[6]&0x07) != 0)
+			if ((ctx->val[6]&0x07) != 0) {
 				return (ISC_R_BADBASE32);
+			}
 			ctx->seen_32 = 4;
 			break;
 		}
+	}
 
 	/*
 	 * Zero fill pad values.
@@ -249,10 +259,11 @@ base32_decode_char(base32_decode_ctx_t *ctx, int c) {
 		buf[4] = (ctx->val[6]<<5)|(ctx->val[7]);
 		RETERR(mem_tobuffer(ctx->target, buf, n));
 		if (ctx->length >= 0) {
-			if (n > ctx->length)
+			if (n > ctx->length) {
 				return (ISC_R_BADBASE32);
-			else
+			} else {
 				ctx->length -= n;
+			}
 		}
 		ctx->digits = 0;
 	}

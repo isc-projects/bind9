@@ -217,18 +217,23 @@ fromwire_ipseckey(ARGS_FROMWIRE) {
 
 	switch (region.base[1]) {
 	case 0:
+		if (region.length < 4) {
+			return (ISC_R_UNEXPECTEDEND);
+		}
 		isc_buffer_forward(source, region.length);
 		return (mem_tobuffer(target, region.base, region.length));
 
 	case 1:
-		if (region.length < 7)
+		if (region.length < 8) {
 			return (ISC_R_UNEXPECTEDEND);
+		}
 		isc_buffer_forward(source, region.length);
 		return (mem_tobuffer(target, region.base, region.length));
 
 	case 2:
-		if (region.length < 19)
+		if (region.length < 20) {
 			return (ISC_R_UNEXPECTEDEND);
+		}
 		isc_buffer_forward(source, region.length);
 		return (mem_tobuffer(target, region.base, region.length));
 
@@ -238,7 +243,10 @@ fromwire_ipseckey(ARGS_FROMWIRE) {
 		RETERR(dns_name_fromwire(&name, source, dctx, options, target));
 		isc_buffer_activeregion(source, &region);
 		isc_buffer_forward(source, region.length);
-		return(mem_tobuffer(target, region.base, region.length));
+		if (region.length < 1) {
+			return (ISC_R_UNEXPECTEDEND);
+		}
+		return (mem_tobuffer(target, region.base, region.length));
 
 	default:
 		return (ISC_R_NOTIMPLEMENTED);

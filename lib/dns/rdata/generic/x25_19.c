@@ -56,6 +56,7 @@ totext_x25(ARGS_TOTEXT) {
 static inline isc_result_t
 fromwire_x25(ARGS_FROMWIRE) {
 	isc_region_t sr;
+	unsigned int i;
 
 	REQUIRE(type == dns_rdatatype_x25);
 
@@ -65,8 +66,14 @@ fromwire_x25(ARGS_FROMWIRE) {
 	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length < 5)
+	if (sr.length < 5 || sr.base[0] != (sr.length - 1)) {
 		return (DNS_R_FORMERR);
+	}
+	for (i = 1; i < sr.length; i++) {
+		if (sr.base[i] < 0x30 || sr.base[i] > 0x39) {
+			return (DNS_R_FORMERR);
+		}
+	}
 	return (txt_fromwire(source, target));
 }
 

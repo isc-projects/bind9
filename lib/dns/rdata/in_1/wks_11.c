@@ -250,12 +250,18 @@ fromwire_in_wks(ARGS_FROMWIRE) {
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_availableregion(target, &tr);
 
-	if (sr.length < 5)
+	if (sr.length < 5) {
 		return (ISC_R_UNEXPECTEDEND);
-	if (sr.length > 8 * 1024 + 5)
+	}
+	if (sr.length > 8 * 1024 + 5) {
 		return (DNS_R_EXTRADATA);
-	if (tr.length < sr.length)
+	}
+	if (sr.length > 5 && sr.base[sr.length - 1] == 0) {
+		return (DNS_R_FORMERR);
+	}
+	if (tr.length < sr.length) {
 		return (ISC_R_NOSPACE);
+	}
 
 	memmove(tr.base, sr.base, sr.length);
 	isc_buffer_add(target, sr.length);
