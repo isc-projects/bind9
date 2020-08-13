@@ -110,6 +110,9 @@ typedef struct dns_master_style dns_master_style_t;
 /*% Print ECS cache entries as comments (reserved for future use). */
 #define DNS_STYLEFLAG_ECSCACHE 0x100000000ULL
 
+/*% Print expired cache entries. */
+#define DNS_STYLEFLAG_EXPIRED 0x200000000ULL
+
 ISC_LANG_BEGINDECLS
 
 /***
@@ -144,6 +147,13 @@ LIBDNS_EXTERNAL_DATA extern const dns_master_style_t
  * values on each record line and never uses $ORIGIN or relative names.
  */
 LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_cache;
+
+/*%
+ * A master style format designed for cache files.  The same as above but
+ * this also prints expired entries.
+ */
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t
+	dns_master_style_cache_with_expired;
 
 /*%
  * A master style that prints name, ttl, class, type, and value on
