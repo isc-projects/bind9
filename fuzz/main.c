@@ -24,6 +24,8 @@
 
 #include <dirent.h>
 
+bool debug = false;
+
 static void
 test_all_from(const char *dirname) {
 	DIR *dirp;
@@ -97,6 +99,10 @@ main(int argc, char **argv) {
 
 	UNUSED(argc);
 	UNUSED(argv);
+
+	if (argc != 1) {
+		debug = true;
+	}
 
 	target = (target != NULL) ? target + 1 : argv[0];
 	if (strncmp(target, "lt-", 3) == 0) {

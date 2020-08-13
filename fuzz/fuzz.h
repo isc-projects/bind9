@@ -23,6 +23,8 @@
 
 ISC_LANG_BEGINDECLS
 
+extern bool debug;
+
 int
 LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 		     char ***argv __attribute__((unused)));
