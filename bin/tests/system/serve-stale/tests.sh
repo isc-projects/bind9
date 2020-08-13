@@ -1240,20 +1240,45 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 n=$((n+1))
 echo_i "dump the cache (serve-stale cache disabled) ($n)"
 ret=0
-$RNDCCMD 10.53.0.5 dumpdb -cache > rndc.out.test$n 2>&1 || ret=1
-done=0
-for i in 0 1 2 3 4 5 6 7 8 9; do
-	grep '^; Dump complete$' ns5/named_dump5.db > /dev/null 2>&1 && done=1
-	if [ $done != 1 ]; then sleep 1; fi
-done
-if [ $done != 1 ]; then ret=1; fi
-status=$((status+ret))
+rndc_dumpdb ns5 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+# Check that expired records are not dumped.
+ret=0
+grep "; expired (awaiting cleanup)" ns5/named_dump.db.test$n && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Dump the cache including expired entries.
+n=$((n+1))
+echo_i "dump the cache including expired entries (serve-stale cache disabled) ($n)"
+ret=0
+rndc_dumpdb ns5 -expired || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Check that expired records are dumped.
+echo_i "check rndc dump expired data.example ($n)"
+ret=0
+awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n |
+    grep "; expired (awaiting cleanup) data\.example\..*A text record with a 2 second ttl" > /dev/null 2>&1 || ret=1
+awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n |
+    grep "; expired (awaiting cleanup) nodata\.example\." > /dev/null 2>&1 || ret=1
+awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n |
+    grep "; expired (awaiting cleanup) nxdomain\.example\." > /dev/null 2>&1 || ret=1
+awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n |
+    grep "; expired (awaiting cleanup) othertype\.example\." > /dev/null 2>&1 || ret=1
+# Also make sure the not expired data does not have an expired comment.
+awk '/; answer/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n |
+    grep "; answer longttl\.example.*A text record with a 600 second ttl" > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
 echo_i "stop ns5"
 $PERL ../stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns5
 
 # Load the cache as if it was five minutes (RBTDB_VIRTUAL) older.
+cp ns5/named_dump.db.test$n ns5/named_dump.db
 FIVEMINUTESAGO=`TZ=UTC perl -e 'my $now = time();
         my $fiveMinutesAgo = 300;
         my ($s, $m, $h, $d, $mo, $y) = (localtime($fiveMinutesAgo))[0, 1, 2, 3, 4, 5];
