@@ -61,9 +61,9 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	data += sizeof(expect);
 	size -= sizeof(expect);
 
-	(void)memmove(&eol, data, sizeof(eol));
-	data += sizeof(eol);
-	size -= sizeof(eol);
+	eol = *data != 0;
+	data += 1;
+	size -= 1;
 
 	isc_buffer_constinit(&buf, data, size);
 	isc_buffer_add(&buf, size);
