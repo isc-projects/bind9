@@ -125,7 +125,7 @@ fromwire_cert(ARGS_FROMWIRE) {
 	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length < 5) {
+	if (sr.length < 6) {
 		return (ISC_R_UNEXPECTEDEND);
 	}
 
