@@ -268,6 +268,9 @@ fromwire_in_wks(ARGS_FROMWIRE) {
 	if (sr.length > 8 * 1024 + 5) {
 		return (DNS_R_EXTRADATA);
 	}
+	if (sr.length > 5 && sr.base[sr.length - 1] == 0) {
+		return (DNS_R_FORMERR);
+	}
 	if (tr.length < sr.length) {
 		return (ISC_R_NOSPACE);
 	}

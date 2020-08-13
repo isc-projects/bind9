@@ -1,6 +1,8 @@
 *.sln.in eol=crlf
 *.vcxproj.* eol=crlf
 
+/fuzz/dns_rdata_fromwire_text.in/input-* -text
+
 .gitignore			 export-ignore
 /conftools			 export-ignore
 /doc/design			 export-ignore
