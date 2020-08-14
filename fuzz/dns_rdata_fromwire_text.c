@@ -95,7 +95,11 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	unsigned int classes = (sizeof(classlist) / sizeof(classlist[0]));
 	unsigned int types = 1, flags, t;
 
-	if (size < 2) {
+	/*
+	 * First 2 bytes are used to select type and class.
+	 * dns_rdata_fromwire() only accepts input up to 2^16-1 octets.
+	 */
+	if (size < 2 || size > 0xffff + 2) {
 		return (0);
 	}
 
