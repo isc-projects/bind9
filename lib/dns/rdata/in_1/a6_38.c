@@ -173,7 +173,9 @@ fromwire_in_a6(ARGS_FROMWIRE) {
 		if (sr.length < octets)
 			return (ISC_R_UNEXPECTEDEND);
 		mask = 0xff >> (prefixlen % 8);
-		sr.base[0] &= mask;	/* Ensure pad bits are zero. */
+		if ((sr.base[0] & ~mask) != 0) {
+			return (DNS_R_FORMERR);
+		}
 		RETERR(mem_tobuffer(target, sr.base, octets));
 		isc_buffer_forward(source, octets);
 	}
