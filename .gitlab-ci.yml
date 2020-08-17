@@ -1315,3 +1315,37 @@ abi-check:
   only:
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
+
+gcov:
+  <<: *base_image
+  stage: build
+  needs:
+    - job: autoreconf
+      artifacts: true
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+  script:
+    - *configure
+    - *setup_interfaces
+    - *setup_softhsm
+    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
+    - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1 || true
+    - make -C bin/tests/system -j${TEST_PARALLEL_JOBS:-1} -k check V=1 || cat bin/tests/system/test-suite.log
+    # *.gcno and *.gcda files generated for shared library objects are created
+    # in directories in which gcovr is unable to process them properly
+    # (.../.libs/...).  Move such *.gcno and *.gcda files one level higher.
+    - find . -regex ".*/\.libs/.*\.\(gcda\|gcno\)" -execdir mv "{}" .. \;
+    # Help gcovr process the nasty tricks in lib/dns/code.h, where we include C
+    # source files from lib/dns/rdata/*/, using an even nastier trick.
+    - find lib/dns/rdata/* -name "*.c" -execdir cp -f "{}" ../../ \;
+    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --html-details -o coverage.html
+    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' -o coverage.txt
+    - tail -n 3 coverage.txt
+  artifacts:
+    paths:
+      - coverage*.html
+  only:
+    - main@isc-projects/bind9
+    - /^v9_[1-9][0-9]$/@isc-projects/bind9
