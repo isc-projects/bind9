@@ -294,6 +294,9 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 	 * Sig.
 	 */
 	isc_buffer_activeregion(source, &sr);
+	if (sr.length < 1) {
+		return (DNS_R_FORMERR);
+	}
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
