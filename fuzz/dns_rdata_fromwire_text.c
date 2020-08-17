@@ -166,6 +166,9 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_init(&target, fromtext, sizeof(fromtext));
 	result = dns_rdata_fromtext(&rdata2, rdclass, rdtype, lex, dns_rootname,
 				    0, mctx, &target, &callbacks);
+	if (debug && result != ISC_R_SUCCESS) {
+		fprintf(stderr, "'%s'\n", totext);
+	}
 	assert(result == ISC_R_SUCCESS);
 	assert(rdata2.length == size);
 	assert(!memcmp(rdata2.data, data, size));
