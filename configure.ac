@@ -987,7 +987,7 @@ AC_ARG_WITH([readline],
 
 AS_CASE([$with_readline],
 	[no],[],
-	[auto],
+	[auto|yes],
 	[PKG_CHECK_MODULES([READLINE], [libedit],
 			   [AC_DEFINE([HAVE_READLINE_LIBEDIT], [1], [Build with libedit support])],
 			   [PKG_CHECK_MODULES([READLINE], [editline],
