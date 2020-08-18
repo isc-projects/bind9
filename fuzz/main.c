@@ -25,6 +25,48 @@
 #include <dirent.h>
 
 static void
+test_one_file(const char *filename) {
+	int fd;
+	struct stat st;
+	char *data;
+	ssize_t n;
+
+	if ((fd = open(filename, O_RDONLY)) == -1) {
+		fprintf(stderr, "Failed to open %s: %s\n", filename,
+			strerror(errno));
+		return;
+	}
+
+	if (fstat(fd, &st) != 0) {
+		fprintf(stderr, "Failed to stat %s: %s\n", filename,
+			strerror(errno));
+		goto closefd;
+	}
+
+	data = malloc(st.st_size);
+	n = read(fd, data, st.st_size);
+	if (n == st.st_size) {
+		printf("testing %zd bytes from %s\n", n, filename);
+		fflush(stdout);
+		LLVMFuzzerTestOneInput((const uint8_t *)data, n);
+		fflush(stderr);
+	} else {
+		if (n < 0) {
+			fprintf(stderr,
+				"Failed to read %zd bytes from %s: %s\n",
+				(ssize_t)st.st_size, filename, strerror(errno));
+		} else {
+			fprintf(stderr,
+				"Failed to read %zd bytes from %s, got %zd\n",
+				(ssize_t)st.st_size, filename, n);
+		}
+	}
+	free(data);
+closefd:
+	close(fd);
+}
+
+static void
 test_all_from(const char *dirname) {
 	DIR *dirp;
 	struct dirent *dp;
@@ -36,53 +78,13 @@ test_all_from(const char *dirname) {
 
 	while ((dp = readdir(dirp)) != NULL) {
 		char filename[strlen(dirname) + strlen(dp->d_name) + 2];
-		int fd;
-		struct stat st;
-		char *data;
-		ssize_t n;
 
 		if (dp->d_name[0] == '.') {
 			continue;
 		}
 		snprintf(filename, sizeof(filename), "%s/%s", dirname,
 			 dp->d_name);
-
-		if ((fd = open(filename, O_RDONLY)) == -1) {
-			fprintf(stderr, "Failed to open %s: %s\n", filename,
-				strerror(errno));
-			continue;
-		}
-
-		if (fstat(fd, &st) != 0) {
-			fprintf(stderr, "Failed to stat %s: %s\n", filename,
-				strerror(errno));
-			goto closefd;
-		}
-
-		data = malloc(st.st_size);
-		n = read(fd, data, st.st_size);
-		if (n == st.st_size) {
-			printf("testing %zd bytes from %s\n", n, filename);
-			fflush(stdout);
-			LLVMFuzzerTestOneInput((const uint8_t *)data, n);
-			fflush(stderr);
-		} else {
-			if (n < 0) {
-				fprintf(stderr,
-					"Failed to read %zd bytes from %s: "
-					"%s\n",
-					(ssize_t)st.st_size, filename,
-					strerror(errno));
-			} else {
-				fprintf(stderr,
-					"Failed to read %zd bytes from %s"
-					", got %zd\n",
-					(ssize_t)st.st_size, filename, n);
-			}
-		}
-		free(data);
-	closefd:
-		close(fd);
+		test_one_file(filename);
 	}
 
 	closedir(dirp);
@@ -95,11 +97,20 @@ main(int argc, char **argv) {
 
 	(void)LLVMFuzzerInitialize(&argc, &argv);
 
-	UNUSED(argc);
-	UNUSED(argv);
-
-	if (argc != 1) {
+	if (argv[1] != NULL && strcmp(argv[1], "-d") == 0) {
 		debug = true;
+		argv++;
+		argc--;
+	}
+
+	if (argv[1] != NULL) {
+		while (argv[1] != NULL) {
+			test_one_file(argv[1]);
+			argv++;
+			argc--;
+		}
+		POST(argc);
+		return (0);
 	}
 
 	target = (target != NULL) ? target + 1 : argv[0];

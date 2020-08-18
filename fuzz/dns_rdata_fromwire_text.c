@@ -95,7 +95,11 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	unsigned int classes = (sizeof(classlist) / sizeof(classlist[0]));
 	unsigned int types = 1, flags, t;
 
-	if (size < 2) {
+	/*
+	 * First 2 bytes are used to select type and class.
+	 * dns_rdata_fromwire() only accepts input up to 2^16-1 octets.
+	 */
+	if (size < 2 || size > 0xffff + 2) {
 		return (0);
 	}
 
@@ -168,6 +172,9 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_init(&target, fromtext, sizeof(fromtext));
 	result = dns_rdata_fromtext(&rdata2, rdclass, rdtype, lex, dns_rootname,
 				    0, mctx, &target, &callbacks);
+	if (debug && result != ISC_R_SUCCESS) {
+		fprintf(stderr, "'%s'\n", totext);
+	}
 	assert(result == ISC_R_SUCCESS);
 	assert(rdata2.length == size);
 	assert(!memcmp(rdata2.data, data, size));
@@ -199,7 +206,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	 * Convert rdata back to wire.
 	 */
 	CHECK(dns_compress_init(&cctx, -1, mctx));
-	dns_compress_setsensitive(&cctx, true);
+	dns_compress_disable(&cctx);
 	isc_buffer_init(&target, towire, sizeof(towire));
 	result = dns_rdata_towire(&rdata1, &cctx, &target);
 	dns_compress_invalidate(&cctx);
