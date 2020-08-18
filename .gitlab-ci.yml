@@ -473,6 +473,7 @@ tarball-create:
     paths:
       - bind-*.tar.${TARBALL_EXTENSION}
   only:
+    - schedules
     - tags
 
 # Jobs for doc builds on Debian Sid (amd64)
