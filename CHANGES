@@ -1,3 +1,6 @@
+5490.	[func]		Refactor the readline support to use pkg-config and
+			add support for editline library. [GL !3942]
+
 5489.	[bug]		Named failed to reject some invalid records resulting
 			in records that, after being printed, could not be
 			loaded or would result in DNSSEC validation failures

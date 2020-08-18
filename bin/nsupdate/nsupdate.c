@@ -36,6 +36,7 @@
 #include <isc/portset.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/readline.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
@@ -93,25 +94,6 @@
 #endif /* HAVE_GSSAPI */
 
 #include <bind9/getaddresses.h>
-
-#if defined(HAVE_READLINE)
-#if defined(HAVE_EDIT_READLINE_READLINE_H)
-#include <edit/readline/readline.h>
-#if defined(HAVE_EDIT_READLINE_HISTORY_H)
-#include <edit/readline/history.h>
-#endif /* if defined(HAVE_EDIT_READLINE_HISTORY_H) */
-#elif defined(HAVE_EDITLINE_READLINE_H)
-#include <editline/readline.h>
-#else /* if defined(HAVE_EDIT_READLINE_READLINE_H) */
-/* Prevent deprecated functions being declared. */
-#define _FUNCTION_DEF 1
-/* Ensure rl_message() gets prototype. */
-#define USE_VARARGS   1
-#define PREFER_STDARG 1
-#include <readline/history.h>
-#include <readline/readline.h>
-#endif /* if defined(HAVE_EDIT_READLINE_READLINE_H) */
-#endif /* if defined(HAVE_READLINE) */
 
 #define MAXCMD	     (128 * 1024)
 #define MAXWIRE	     (64 * 1024)
@@ -2295,20 +2277,14 @@ static uint16_t
 get_next_command(void) {
 	uint16_t result = STATUS_QUIT;
 	char cmdlinebuf[MAXCMD];
-	char *cmdline;
+	char *cmdline = NULL, *ptr = NULL;
 
 	isc_app_block();
 	if (interactive) {
-#ifdef HAVE_READLINE
-		cmdline = readline("> ");
-		if (cmdline != NULL) {
-			add_history(cmdline);
+		cmdline = ptr = readline("> ");
+		if (ptr != NULL && *ptr != 0) {
+			add_history(ptr);
 		}
-#else  /* ifdef HAVE_READLINE */
-		fprintf(stdout, "> ");
-		fflush(stdout);
-		cmdline = fgets(cmdlinebuf, MAXCMD, input);
-#endif /* ifdef HAVE_READLINE */
 	} else {
 		cmdline = fgets(cmdlinebuf, MAXCMD, input);
 	}
@@ -2324,11 +2300,10 @@ get_next_command(void) {
 		(void)nsu_strsep(&tmp, "\r\n");
 		result = do_next_command(cmdline);
 	}
-#ifdef HAVE_READLINE
-	if (interactive) {
-		free(cmdline);
+	if (ptr != NULL) {
+		free(ptr);
 	}
-#endif /* ifdef HAVE_READLINE */
+
 	return (result);
 }
 

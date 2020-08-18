@@ -33,6 +33,11 @@ LIBISC_CFLAGS +=					\
 	$(LIBXML2_CFLAGS)
 endif HAVE_LIBXML2
 
+if HAVE_READLINE
+LIBISC_CFLAGS +=					\
+	$(READLINE_CFLAGS)
+endif HAVE_READLINE
+
 LIBISC_LIBS = $(top_builddir)/lib/isc/libisc.la
 
 LIBDNS_CFLAGS = \
