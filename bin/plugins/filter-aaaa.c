@@ -162,7 +162,7 @@ install_hooks(ns_hooktable_t *hooktable, isc_mem_t *mctx,
 		.action_data = inst,
 	};
 
-	ns_hook_add(hooktable, mctx, -NS_QUERY_QCTX_INITIALIZED, &filter_init);
+	ns_hook_add(hooktable, mctx, NS_QUERY_QCTX_INITIALIZED, &filter_init);
 	ns_hook_add(hooktable, mctx, NS_QUERY_RESPOND_BEGIN, &filter_respbegin);
 	ns_hook_add(hooktable, mctx, NS_QUERY_RESPOND_ANY_FOUND,
 		    &filter_respanyfound);
