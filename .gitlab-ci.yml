@@ -471,6 +471,7 @@ tarball-create:
     paths:
       - bind-*.tar.${TARBALL_EXTENSION}
   only:
+    - schedules
     - tags
 
 # Jobs for doc builds on Debian 10 "buster" (amd64)
