@@ -1777,7 +1777,8 @@ inet_totext(int af, uint32_t flags, isc_region_t *src, isc_buffer_t *target) {
 			if (isc_buffer_availablelength(target) == 0) {
 				return (ISC_R_NOSPACE);
 			}
-			isc_buffer_putmem(target, "0", 1);
+			isc_buffer_putmem(target, (const unsigned char *)"0",
+					  1);
 		}
 	}
 
