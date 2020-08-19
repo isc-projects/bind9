@@ -2073,6 +2073,63 @@ key(void **state) {
 }
 
 /*
+ * LOC tests.
+ */
+static void
+loc(void **state) {
+	text_ok_t text_ok[] = {
+		TEXT_VALID_CHANGED("0 N 0 E 0", "0 0 0.000 N 0 0 0.000 E 0.00m "
+						"1m 10000m 10m"),
+		TEXT_VALID_CHANGED("0 S 0 W 0", "0 0 0.000 N 0 0 0.000 E 0.00m "
+						"1m 10000m 10m"),
+		TEXT_VALID_CHANGED("0 0 N 0 0 E 0", "0 0 0.000 N 0 0 0.000 E "
+						    "0.00m 1m 10000m 10m"),
+		TEXT_VALID_CHANGED("0 0 0 N 0 0 0 E 0",
+				   "0 0 0.000 N 0 0 0.000 E 0.00m 1m 10000m "
+				   "10m"),
+		TEXT_VALID_CHANGED("0 0 0 N 0 0 0 E 0",
+				   "0 0 0.000 N 0 0 0.000 E 0.00m 1m 10000m "
+				   "10m"),
+		TEXT_VALID_CHANGED("0 0 0. N 0 0 0. E 0",
+				   "0 0 0.000 N 0 0 0.000 E 0.00m 1m 10000m "
+				   "10m"),
+		TEXT_VALID_CHANGED("0 0 .0 N 0 0 .0 E 0",
+				   "0 0 0.000 N 0 0 0.000 E 0.00m 1m 10000m "
+				   "10m"),
+		TEXT_INVALID("0 0 . N 0 0 0. E 0"),
+		TEXT_INVALID("0 0 0. N 0 0 . E 0"),
+		TEXT_INVALID("0 0 0. N 0 0 0. E m"),
+		TEXT_INVALID("0 0 0. N 0 0 0. E 0 ."),
+		TEXT_INVALID("0 0 0. N 0 0 0. E 0 m"),
+		TEXT_INVALID("0 0 0. N 0 0 0. E 0 0 ."),
+		TEXT_INVALID("0 0 0. N 0 0 0. E 0 0 m"),
+		TEXT_INVALID("0 0 0. N 0 0 0. E 0 0 0 ."),
+		TEXT_INVALID("0 0 0. N 0 0 0. E 0 0 0 m"),
+		TEXT_VALID_CHANGED("90 N 180 E 0", "90 0 0.000 N 180 0 0.000 E "
+						   "0.00m 1m 10000m 10m"),
+		TEXT_INVALID("90 1 N 180 E 0"),
+		TEXT_INVALID("90 0 1 N 180 E 0"),
+		TEXT_INVALID("90 N 180 1 E 0"),
+		TEXT_INVALID("90 N 180 0 1 E 0"),
+		TEXT_VALID_CHANGED("90 S 180 W 0", "90 0 0.000 S 180 0 0.000 W "
+						   "0.00m 1m 10000m 10m"),
+		TEXT_INVALID("90 1 S 180 W 0"),
+		TEXT_INVALID("90 0 1 S 180 W 0"),
+		TEXT_INVALID("90 S 180 1 W 0"),
+		TEXT_INVALID("90 S 180 0 1 W 0"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+
+	UNUSED(state);
+
+	check_rdata(text_ok, 0, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_loc, sizeof(dns_rdata_loc_t));
+}
+
+/*
  * http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt
  *
  * The RDATA portion of both the NIMLOC and EID records contains
@@ -2680,6 +2737,7 @@ main(int argc, char **argv) {
 		cmocka_unit_test_setup_teardown(hip, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(isdn, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(key, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(loc, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(nimloc, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(nsec, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(nsec3, _setup, _teardown),
