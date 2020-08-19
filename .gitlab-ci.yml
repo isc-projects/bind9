@@ -272,6 +272,7 @@ stages:
     - cd bin/tests/system
     - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
   after_script:
+    - test -d bind-* && cd bind-*
     - cat bin/tests/system/test-suite.log
 
 .system_test: &system_test_job
