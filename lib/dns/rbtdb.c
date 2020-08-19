@@ -10049,7 +10049,10 @@ free_gluetable(rbtdb_version_t *version) {
 	RWUNLOCK(&version->glue_rwlock, isc_rwlocktype_write);
 }
 
-static bool
+/*%
+ * Write lock (version->glue_rwlock) must be held.
+ */
+static void
 rehash_gluetable(rbtdb_version_t *version) {
 	size_t oldsize, i;
 	rbtdb_glue_table_node_t **oldtable;
@@ -10059,7 +10062,7 @@ rehash_gluetable(rbtdb_version_t *version) {
 
 	if (ISC_LIKELY(version->glue_table_nodecount <
 		       (version->glue_table_size * 3U))) {
-		return (false);
+		return;
 	}
 
 	oldsize = version->glue_table_size;
@@ -10077,7 +10080,7 @@ rehash_gluetable(rbtdb_version_t *version) {
 	if (ISC_UNLIKELY(version->glue_table == NULL)) {
 		version->glue_table = oldtable;
 		version->glue_table_size = oldsize;
-		return (false);
+		return;
 	}
 
 	for (i = 0; i < version->glue_table_size; i++) {
@@ -10105,8 +10108,6 @@ rehash_gluetable(rbtdb_version_t *version) {
 		      "resized glue table from %" PRIu64 " to "
 		      "%" PRIu64,
 		      (uint64_t)oldsize, (uint64_t)version->glue_table_size);
-
-	return (true);
 }
 
 static isc_result_t
@@ -10233,6 +10234,7 @@ rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 	rbtdb_glue_t *ge;
 	rbtdb_glue_additionaldata_ctx_t ctx;
 	isc_result_t result;
+	uint64_t hash;
 
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 	REQUIRE(rbtdb == rbtversion->rbtdb);
@@ -10250,8 +10252,7 @@ rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 	 * the node pointer is a fixed value that won't change for a DB
 	 * version and can be compared directly.
 	 */
-	idx = isc_hash_function(&node, sizeof(node), true) %
-	      rbtversion->glue_table_size;
+	hash = isc_hash_function(&node, sizeof(node), true);
 
 restart:
 	/*
@@ -10259,6 +10260,8 @@ restart:
 	 * in the glue table.
 	 */
 	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_read);
+
+	idx = hash % rbtversion->glue_table_size;
 
 	for (cur = rbtversion->glue_table[idx]; cur != NULL; cur = cur->next) {
 		if (cur->node == node) {
@@ -10423,10 +10426,8 @@ no_glue:
 
 	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_write);
 
-	if (ISC_UNLIKELY(rehash_gluetable(rbtversion))) {
-		idx = isc_hash_function(&node, sizeof(node), true) %
-		      rbtversion->glue_table_size;
-	}
+	rehash_gluetable(rbtversion);
+	idx = hash % rbtversion->glue_table_size;
 
 	(void)dns_rdataset_additionaldata(rdataset, glue_nsdname_cb, &ctx);
 
