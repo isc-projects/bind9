@@ -1,3 +1,6 @@
+5491.	[bug]		rbtversion->glue_table_size could be read without the
+			appropriate lock being held. [GL #2080]
+
 5489.	[bug]		Named failed to reject some invalid records resulting
 			in records that, after being printed, could not be
 			loaded or would result in DNSSEC validation failures
