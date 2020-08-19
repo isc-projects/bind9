@@ -1,3 +1,6 @@
+5496.	[bug]		The rate limiter needs to hold a reference to its task.
+			[GL #2081]
+
 5492.	[bug]		Tighten LOC parsing to reject period and/or m as a
 			value.  Correct handling of negative altitudes which
 			are not whole metres.  [GL #2074]
