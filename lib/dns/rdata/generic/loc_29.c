@@ -39,6 +39,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	unsigned long latitude;
 	unsigned long longitude;
 	unsigned long altitude;
+	bool ok;
 
 	REQUIRE(type == dns_rdatatype_loc);
 
@@ -106,6 +107,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (s1 < 0 || s1 > 59) {
 		RETTOK(ISC_R_RANGE);
 	}
+	ok = e != DNS_AS_STR(token);
 	if (*e == '.') {
 		const char *l;
 		e++;
@@ -116,6 +118,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			if ((tmp = decvalue(*e++)) < 0) {
 				RETTOK(DNS_R_SYNTAX);
 			}
+			ok = true;
 			s1 *= 10;
 			s1 += tmp;
 		}
@@ -142,6 +145,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 		}
 	} else {
 		s1 *= 1000;
+	}
+	if (!ok) {
+		RETTOK(DNS_R_SYNTAX);
 	}
 	if (d1 == 90 && s1 != 0) {
 		RETTOK(ISC_R_RANGE);
@@ -210,6 +216,7 @@ getlong:
 	if (s2 < 0 || s2 > 59) {
 		RETTOK(ISC_R_RANGE);
 	}
+	ok = e != DNS_AS_STR(token);
 	if (*e == '.') {
 		const char *l;
 		e++;
@@ -220,6 +227,7 @@ getlong:
 			if ((tmp = decvalue(*e++)) < 0) {
 				RETTOK(DNS_R_SYNTAX);
 			}
+			ok = true;
 			s2 *= 10;
 			s2 += tmp;
 		}
@@ -246,6 +254,9 @@ getlong:
 		}
 	} else {
 		s2 *= 1000;
+	}
+	if (!ok) {
+		RETTOK(DNS_R_SYNTAX);
 	}
 	if (d2 == 180 && s2 != 0) {
 		RETTOK(ISC_R_RANGE);
@@ -277,6 +288,7 @@ getalt:
 		RETTOK(ISC_R_RANGE);
 	}
 	cm = 0;
+	ok = e != DNS_AS_STR(token);
 	if (*e == '.') {
 		e++;
 		for (i = 0; i < 2; i++) {
@@ -286,6 +298,7 @@ getalt:
 			if ((tmp = decvalue(*e++)) < 0) {
 				return (DNS_R_SYNTAX);
 			}
+			ok = true;
 			cm *= 10;
 			if (m < 0) {
 				cm -= tmp;
@@ -299,7 +312,7 @@ getalt:
 	if (*e == 'm') {
 		e++;
 	}
-	if (*e != 0) {
+	if (!ok || *e != 0) {
 		RETTOK(DNS_R_SYNTAX);
 	}
 	if (m == -100000 && cm != 0) {
@@ -333,6 +346,7 @@ getalt:
 		RETTOK(ISC_R_RANGE);
 	}
 	cm = 0;
+	ok = e != DNS_AS_STR(token);
 	if (*e == '.') {
 		e++;
 		for (i = 0; i < 2; i++) {
@@ -342,6 +356,7 @@ getalt:
 			if ((tmp = decvalue(*e++)) < 0) {
 				RETTOK(DNS_R_SYNTAX);
 			}
+			ok = true;
 			cm *= 10;
 			cm += tmp;
 		}
@@ -351,7 +366,7 @@ getalt:
 	if (*e == 'm') {
 		e++;
 	}
-	if (*e != 0) {
+	if (!ok || *e != 0) {
 		RETTOK(DNS_R_SYNTAX);
 	}
 	/*
@@ -394,6 +409,7 @@ getalt:
 		RETTOK(ISC_R_RANGE);
 	}
 	cm = 0;
+	ok = e != DNS_AS_STR(token);
 	if (*e == '.') {
 		e++;
 		for (i = 0; i < 2; i++) {
@@ -403,6 +419,7 @@ getalt:
 			if ((tmp = decvalue(*e++)) < 0) {
 				RETTOK(DNS_R_SYNTAX);
 			}
+			ok = true;
 			cm *= 10;
 			cm += tmp;
 		}
@@ -412,7 +429,7 @@ getalt:
 	if (*e == 'm') {
 		e++;
 	}
-	if (*e != 0) {
+	if (!ok || *e != 0) {
 		RETTOK(DNS_R_SYNTAX);
 	}
 	/*
@@ -453,6 +470,7 @@ getalt:
 		RETTOK(ISC_R_RANGE);
 	}
 	cm = 0;
+	ok = e != DNS_AS_STR(token);
 	if (*e == '.') {
 		e++;
 		for (i = 0; i < 2; i++) {
@@ -462,6 +480,7 @@ getalt:
 			if ((tmp = decvalue(*e++)) < 0) {
 				RETTOK(DNS_R_SYNTAX);
 			}
+			ok = true;
 			cm *= 10;
 			cm += tmp;
 		}
@@ -471,7 +490,7 @@ getalt:
 	if (*e == 'm') {
 		e++;
 	}
-	if (*e != 0) {
+	if (!ok || *e != 0) {
 		RETTOK(DNS_R_SYNTAX);
 	}
 	/*
