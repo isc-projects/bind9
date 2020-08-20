@@ -2303,9 +2303,14 @@ dns_zone_asyncload2(dns_zone_t *zone, dns_zt_zoneloaded_t done, void * arg,
 
 bool
 dns__zone_loadpending(dns_zone_t *zone) {
+	bool result;
+
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING));
+	LOCK_ZONE(zone);
+	result = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING) != 0;
+	UNLOCK_ZONE(zone);
+	return (result);
 }
 
 isc_result_t
