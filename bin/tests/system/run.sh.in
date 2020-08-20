@@ -70,7 +70,7 @@ if ! $do_run; then
     if [ "$baseport" -eq 0 ]; then
 	log_flags="$log_flags -p 5300"
     fi
-    env - PATH="$PATH" ${LD_LIBRARY_PATH:+"LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"} TESTS="$*" TEST_SUITE_LOG=run.log LOG_DRIVER_FLAGS="--verbose yes --color-tests yes" LOG_FLAGS="$log_flags" make -e check
+    env - SLOT="$SLOT" SOFTHSM2_CONF="$SOFTHSM2_CONF" PATH="$PATH" ${LD_LIBRARY_PATH:+"LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"} TESTS="$*" TEST_SUITE_LOG=run.log LOG_DRIVER_FLAGS="--verbose yes --color-tests yes" LOG_FLAGS="$log_flags" make -e check
     exit $?
 fi
 

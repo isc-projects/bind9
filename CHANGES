@@ -20,73 +20,94 @@
 			that the DS record has been published in the parent.
 			[GL #1613]
 
+	--- 9.17.4 released ---
+
 5485.	[placeholder]
 
-5484.	[func]		Expire the 0 TTL RRSet quickly rather using them for
-			stale answers. [GL #1829]
+5484.	[func]		Expire zero TTL records quickly rather than using them
+			for stale answers. [GL #1829]
 
 5483.	[func]		Keeping "stale" answers in cache has been disabled by
 			default and can be re-enabled with a new configuration
 			option "stale-cache-enable". [GL #1712]
 
-5482.	[bug]		BIND 9 would fail to bind to IPv6 addresses in a
-			tentative state when a new IPv6 address was added to the
-			system, but the Duplicate Address Detection (DAD)
-			mechanism had not yet finished. [GL #2038]
+5482.	[bug]		If the Duplicate Address Detection (DAD) mechanism had
+			not yet finished after adding a new IPv6 address to the
+			system, BIND 9 would fail to bind to IPv6 addresses in a
+			tentative state. [GL #2038]
 
-5481.	[placeholder]
+5481.	[security]	"update-policy" rules of type "subdomain" were
+			incorrectly treated as "zonesub" rules, which allowed
+			keys used in "subdomain" rules to update names outside
+			of the specified subdomains. The problem was fixed by
+			making sure "subdomain" rules are again processed as
+			described in the ARM. (CVE-2020-8624) [GL #2055]
 
-5480.	[placeholder]
+5480.	[security]	When BIND 9 was compiled with native PKCS#11 support, it
+			was possible to trigger an assertion failure in code
+			determining the number of bits in the PKCS#11 RSA public
+			key with a specially crafted packet. (CVE-2020-8623)
+			[GL #2037]
 
-5479.	[placeholder]
+5479.	[security]	named could crash in certain query resolution scenarios
+			where QNAME minimization and forwarding were both
+			enabled. (CVE-2020-8621) [GL #1997]
 
-5478.	[placeholder]
+5478.	[security]	It was possible to trigger an assertion failure by
+			sending a specially crafted large TCP DNS message.
+			(CVE-2020-8620) [GL #1996]
 
-5477.	[bug]		The idle timeout for connected TCP sockets is now
-			derived from the client query processing timeout
-			configured for a resolver. [GL #2024]
+5477.	[bug]		The idle timeout for connected TCP sockets, which was
+			previously set to a high fixed value, is now derived
+			from the client query processing timeout configured for
+			a resolver. [GL #2024]
 
-5476.	[placeholder]
+5476.	[security]	It was possible to trigger an assertion failure when
+			verifying the response to a TSIG-signed request.
+			(CVE-2020-8622) [GL #2028]
 
-5475.	[bug]		Fix RPZ wildcard passthru ignored when a rejection
-			would overwrite a passthru action matching some
-			rule in a previously loaded passthru rpz zone.
-			[GL #1619]
+5475.	[bug]		Wildcard RPZ passthru rules could incorrectly be
+			overridden by other rules that were loaded from RPZ
+			zones which appeared later in the "response-policy"
+			statement. This has been fixed. [GL #1619]
 
 5474.	[bug]		dns_rdata_hip_next() failed to return ISC_R_NOMORE
 			when it should have. [GL !3880]
 
-5473.	[func]		The rbt hashtable implementation has been changed
-			to use faster hash-function (HalfSipHash2-4) and
-			uses Fibonacci hashing for better distribution.
-			Setting the max-cache-size now preallocates fixed
-			size hashtable, so the rehashing doesn't cause
-			resolution brownouts when growing the hashtable.
-			[GL #1775]
+5473.	[func]		The RBT hash table implementation has been changed
+			to use a faster hash function (HalfSipHash2-4) and
+			Fibonacci hashing for better distribution. Setting
+			"max-cache-size" now preallocates a fixed-size hash
+			table so that rehashing does not cause resolution
+			brownouts while the hash table is grown. [GL #1775]
 
 5472.	[func]		The statistics channel has been updated to use the
 			new network manager. [GL #2022]
 
-5471.	[bug]		The introduction of KASP support broke whether the
-			second field of sig-validity-interval was treated as
-			days or hours. (Thanks to Tony Finch.) [GL !3735]
+5471.	[bug]		The introduction of KASP support inadvertently caused
+			the second field of "sig-validity-interval" to always be
+			calculated in hours, even in cases when it should have
+			been calculated in days. This has been fixed. (Thanks to
+			Tony Finch.) [GL !3735]
 
-5470.	[port]		illumos: only call gsskrb5_register_acceptor_identity
-			if we have gssapi_krb5.h. [GL #1995]
+5470.	[port]		gsskrb5_register_acceptor_identity() is now only called
+			if gssapi_krb5.h is present. [GL #1995]
 
-5469.	[port]		illumos: SEC is defined in <sys/time.h> which
-			conflicted with our use of SEC. [GL #1993]
+5469.	[port]		On illumos, a constant called SEC is already defined in
+			<sys/time.h>, which conflicts with an identically named
+			constant in libbind9. This conflict has been resolved.
+			[GL #1993]
 
-5468.	[bug]		Address potential double unlock in process_fd().
+5468.	[bug]		Addressed potential double unlock in process_fd().
 			[GL #2005]
 
 5467.	[func]		The control channel and the rndc utility have been
 			updated to use the new network manager. To support
 			this, the network manager was updated to enable
-			wthe initiation of client TCP connections. Its
+			the initiation of client TCP connections. Its
 			internal reference counting has been refactored.
 
-			Note: As side effects of this change, rndc cannot
+			Note: As a side effect of this change, rndc cannot
 			currently be used with UNIX-domain sockets, and its
 			default timeout has changed from 60 seconds to 30.
 			These will be addressed in a future release.
@@ -95,30 +116,30 @@
 5466.	[bug]		Addressed an error in recursive clients stats reporting.
 			[GL #1719]
 
-5465.	[func]		Fallback to built in trust-anchors, managed-keys, or
-			trusted-keys if the bindkeys-file (bind.keys) cannot
+5465.	[func]		Added fallback to built-in trust-anchors, managed-keys,
+			or trusted-keys if the bindkeys-file (bind.keys) cannot
 			be parsed. [GL #1235]
 
-5464.	[bug]		Specifying saving more than 128 files when rolling
-			dnstap / log files would cause buffer overflow.
-			[GL #1989]
+5464.	[bug]		Requesting more than 128 files to be saved when rolling
+			dnstap log files caused a buffer overflow. This has been
+			fixed. [GL #1989]
 
 5463.	[placeholder]
 
 5462.	[bug]		Move LMDB locking from LMDB itself to named. [GL #1976]
 
-5461.	[bug]		The header STALE attribute was not being updated with
-			the write lock being held leading to incorrect
-			statistics.  Convert the header attributes to use atomic
-			operations. [GL #1475]
+5461.	[bug]		The STALE rdataset header attribute was updated while
+			the write lock was not being held, leading to incorrect
+			statistics. The header attributes are now converted to
+			use atomic operations. [GL #1475]
 
 5460.	[cleanup]	tsig-keygen was previously an alias for
 			ddns-confgen and was documented in the ddns-confgen
 			man page. This has been reversed; tsig-keygen is
 			now the primary name. [GL #1998]
 
-5459.	[bug]		Bad isc_mem_put() size when an invalid type was
-			specified in a update-policy rule. [GL #1990]
+5459.	[bug]		Fixed bad isc_mem_put() size when an invalid type was
+			specified in an "update-policy" rule. [GL #1990]
 
 	--- 9.17.3 released ---
 

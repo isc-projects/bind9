@@ -252,7 +252,8 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		str = cfg_obj_asstring(matchtype);
 		CHECK(dns_ssu_mtypefromstring(str, &mtype));
-		if (mtype == dns_ssumatchtype_subdomain) {
+		if (mtype == dns_ssumatchtype_subdomain &&
+		    strcasecmp(str, "zonesub") == 0) {
 			usezone = true;
 		}
 

@@ -15,6 +15,7 @@ LDADD =					\
 
 check_LTLIBRARIES = libfuzzmain.la
 libfuzzmain_la_SOURCES =		\
+	fuzz.h				\
 	main.c
 
 check_PROGRAMS =			\
