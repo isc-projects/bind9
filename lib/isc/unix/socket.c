@@ -957,14 +957,17 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	uint32_t oldevents;
 	int ret;
 	int op;
+	int lockid = FDLOCK_ID(fd);
 
 	oldevents = manager->epoll_events[fd];
+	LOCK(&manager->fdlock[lockid]);
 	if (msg == SELECT_POKE_READ)
 		manager->epoll_events[fd] |= EPOLLIN;
 	else
 		manager->epoll_events[fd] |= EPOLLOUT;
 
 	event.events = manager->epoll_events[fd];
+	UNLOCK(&manager->fdlock[lockid]);
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 
@@ -1036,13 +1039,15 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	struct epoll_event event;
 	int ret;
 	int op;
+	int lockid = FDLOCK_ID(fd);
 
+	LOCK(&manager->fdlock[lockid]);
 	if (msg == SELECT_POKE_READ)
 		manager->epoll_events[fd] &= ~(EPOLLIN);
 	else
 		manager->epoll_events[fd] &= ~(EPOLLOUT);
-
 	event.events = manager->epoll_events[fd];
+	UNLOCK(&manager->fdlock[lockid]);
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 
