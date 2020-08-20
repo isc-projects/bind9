@@ -44,15 +44,13 @@
 static bool verbose = false;
 
 static isc_mutex_t lock;
+#ifdef ISC_PLATFORM_USETHREADS
 static isc_condition_t cv;
+#endif
 
 int counter = 0;
 static int active[10];
 static bool done = false;
-
-#ifdef ISC_PLATFORM_USETHREADS
-static isc_condition_t cv;
-#endif
 
 static int
 _setup(void **state) {
@@ -182,26 +180,34 @@ all_events(void **state) {
 				   set, &a, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(a, 0);
+	UNLOCK(&lock);
 	isc_task_send(task, &event);
 
 	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST,
 				   set, &b, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(b, 0);
+	UNLOCK(&lock);
 	isc_task_send(task, &event);
 
+	LOCK(&lock);
 	while ((a == 0 || b == 0) && i++ < 5000) {
+		UNLOCK(&lock);
 #ifndef ISC_PLATFORM_USETHREADS
-		while (isc__taskmgr_ready(taskmgr))
+			while (isc__taskmgr_ready(taskmgr))
 			isc__taskmgr_dispatch(taskmgr);
 #endif
 		isc_test_nap(1000);
+		LOCK(&lock);
 	}
 
 	assert_int_not_equal(a, 0);
 	assert_int_not_equal(b, 0);
+	UNLOCK(&lock);
 
 	isc_task_destroy(&task);
 	assert_null(task);
@@ -245,7 +251,9 @@ privileged_events(void **state) {
 				   set, &a, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(a, 0);
+	UNLOCK(&lock);
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
@@ -253,7 +261,9 @@ privileged_events(void **state) {
 				   set, &b, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(b, 0);
+	UNLOCK(&lock);
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
@@ -261,7 +271,9 @@ privileged_events(void **state) {
 				   set, &c, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(c, 0);
+	UNLOCK(&lock);
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
@@ -269,7 +281,9 @@ privileged_events(void **state) {
 				   set, &d, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(d, 0);
+	UNLOCK(&lock);
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
@@ -277,7 +291,9 @@ privileged_events(void **state) {
 				   set, &e, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(e, 0);
+	UNLOCK(&lock);
 	isc_task_send(task2, &event);
 
 	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
@@ -289,12 +305,15 @@ privileged_events(void **state) {
 #endif
 
 	/* We're waiting for *all* variables to be set */
+	LOCK(&lock);
 	while ((a == 0 || b == 0 || c == 0 || d == 0 || e == 0) && i++ < 5000) {
+		UNLOCK(&lock);
 #ifndef ISC_PLATFORM_USETHREADS
 		while (isc__taskmgr_ready(taskmgr))
 			isc__taskmgr_dispatch(taskmgr);
 #endif
 		isc_test_nap(1000);
+		LOCK(&lock);
 	}
 
 	/*
@@ -311,6 +330,7 @@ privileged_events(void **state) {
 	assert_true(e >= 4);
 
 	assert_int_equal(counter, 6);
+	UNLOCK(&lock);
 
 	isc_task_setprivilege(task1, false);
 	assert_false(isc_task_privilege(task1));
@@ -364,7 +384,9 @@ privilege_drop(void **state) {
 				   set_and_drop, &a, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(a, -1);
+	UNLOCK(&lock);
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
@@ -372,7 +394,9 @@ privilege_drop(void **state) {
 				   set_and_drop, &b, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(b, -1);
+	UNLOCK(&lock);
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
@@ -380,7 +404,9 @@ privilege_drop(void **state) {
 				   set_and_drop, &c, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(c, -1);
+	UNLOCK(&lock);
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
@@ -388,7 +414,9 @@ privilege_drop(void **state) {
 				   set_and_drop, &d, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(d, -1);
+	UNLOCK(&lock);
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
@@ -396,7 +424,9 @@ privilege_drop(void **state) {
 				   set_and_drop, &e, sizeof (isc_event_t));
 	assert_non_null(event);
 
+	LOCK(&lock);
 	assert_int_equal(e, -1);
+	UNLOCK(&lock);
 	isc_task_send(task2, &event);
 
 	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
@@ -408,13 +438,16 @@ privilege_drop(void **state) {
 #endif
 
 	/* We're waiting for all variables to be set. */
+	LOCK(&lock);
 	while ((a == -1 || b == -1 || c == -1 || d == -1 || e == -1) &&
 	       i++ < 5000) {
+		UNLOCK(&lock);
 #ifndef ISC_PLATFORM_USETHREADS
 		while (isc__taskmgr_ready(taskmgr))
 			isc__taskmgr_dispatch(taskmgr);
 #endif
 		isc_test_nap(1000);
+		LOCK(&lock);
 	}
 
 	/*
@@ -432,6 +465,7 @@ privilege_drop(void **state) {
 
 	/* ...but all five of them did run. */
 	assert_int_equal(counter, 6);
+	UNLOCK(&lock);
 
 	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
 
@@ -624,7 +658,9 @@ exclusive_cb(isc_task_t *task, isc_event_t *event) {
 		}
 
 		isc_task_endexclusive(task);
+		LOCK(&lock);
 		done = true;
+		UNLOCK(&lock);
 	} else {
 		active[taskno]++;
 		(void) spin(10000000);
@@ -635,12 +671,14 @@ exclusive_cb(isc_task_t *task, isc_event_t *event) {
 		print_message("# task exit %d\n", taskno);
 	}
 
+	LOCK(&lock);
 	if (done) {
 		isc_mem_put(event->ev_destroy_arg, event->ev_arg, sizeof (int));
 		isc_event_free(&event);
 	} else {
 		isc_task_send(task, &event);
 	}
+	UNLOCK(&lock);
 }
 
 static void
@@ -745,6 +783,9 @@ manytasks(void **state) {
 			      (unsigned long)ntasks);
 	}
 
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
 	result = isc_condition_init(&cv);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -766,10 +807,14 @@ manytasks(void **state) {
 	while (!done) {
 		WAIT(&cv, &lock);
 	}
+	UNLOCK(&lock);
 
 	isc_taskmgr_destroy(&taskmgr);
 	isc_mem_destroy(&mctx);
 	isc_condition_destroy(&cv);
+
+	result = isc_mutex_destroy(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 /*
@@ -787,9 +832,11 @@ static void
 sd_sde1(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
+	LOCK(&lock);
 	assert_int_equal(nevents, 256);
 	assert_int_equal(nsdevents, 1);
 	++nsdevents;
+	UNLOCK(&lock);
 
 	if (verbose) {
 		print_message("# shutdown 1\n");
@@ -797,16 +844,20 @@ sd_sde1(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
+	LOCK(&lock);
 	all_done = true;
+	UNLOCK(&lock);
 }
 
 static void
 sd_sde2(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
+	LOCK(&lock);
 	assert_int_equal(nevents, 256);
 	assert_int_equal(nsdevents, 0);
 	++nsdevents;
+	UNLOCK(&lock);
 
 	if (verbose) {
 		print_message("# shutdown 2\n");
@@ -855,11 +906,10 @@ shutdown(void **state) {
 
 	UNUSED(state);
 
+	LOCK(&lock);
 	nevents = nsdevents = 0;
 	event_type = 3;
 	ready = false;
-
-	LOCK(&lock);
 
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -901,11 +951,15 @@ shutdown(void **state) {
 	SIGNAL(&cv);
 	UNLOCK(&lock);
 
+	LOCK(&lock);
 	while (!all_done) {
+		UNLOCK(&lock);
 		isc_test_nap(1000);
+		LOCK(&lock);
 	}
 
 	assert_int_equal(nsdevents, 2);
+	UNLOCK(&lock);
 }
 
 /*
@@ -944,13 +998,12 @@ post_shutdown(void **state) {
 
 	UNUSED(state);
 
+	LOCK(&lock);
 	done = false;
 	event_type = 4;
 
 	result = isc_condition_init(&cv);
 	assert_int_equal(result, ISC_R_SUCCESS);
-
-	LOCK(&lock);
 
 	task = NULL;
 	result = isc_task_create(taskmgr, 0, &task);
@@ -1039,6 +1092,7 @@ pg_event2(isc_task_t *task, isc_event_t *event) {
 		tag_match = true;
 	}
 
+	LOCK(&lock);
 	if (sender_match && type_match && tag_match) {
 		if ((event->ev_attributes & ISC_EVENTATTR_NOPURGE) != 0) {
 			if (verbose) {
@@ -1058,6 +1112,7 @@ pg_event2(isc_task_t *task, isc_event_t *event) {
 	} else {
 		++eventcnt;
 	}
+	UNLOCK(&lock);
 
 	isc_event_free(&event);
 }
@@ -1085,9 +1140,11 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 	int sender_cnt, type_cnt, tag_cnt, event_cnt, i;
 	int purged = 0;
 
+	LOCK(&lock);
 	started = false;
 	done = false;
 	eventcnt = 0;
+	UNLOCK(&lock);
 
 	result = isc_condition_init(&cv);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -1357,7 +1414,9 @@ static void
 pge_event2(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
+	LOCK(&lock);
 	++eventcnt;
+	UNLOCK(&lock);
 	isc_event_free(&event);
 }
 
@@ -1385,9 +1444,11 @@ try_purgeevent(bool purgeable) {
 	isc_time_t now;
 	isc_interval_t interval;
 
+	LOCK(&lock);
 	started = false;
 	done = false;
 	eventcnt = 0;
+	UNLOCK(&lock);
 
 	result = isc_condition_init(&cv);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -1431,12 +1492,14 @@ try_purgeevent(bool purgeable) {
 	SIGNAL(&cv);
 
 	isc_task_shutdown(task);
+	UNLOCK(&lock);
 
 	isc_interval_set(&interval, 5, 0);
 
 	/*
 	 * Wait for shutdown processing to complete.
 	 */
+	LOCK(&lock);
 	while (!done) {
 		result = isc_time_nowplusinterval(&now, &interval);
 		assert_int_equal(result, ISC_R_SUCCESS);
@@ -1448,7 +1511,9 @@ try_purgeevent(bool purgeable) {
 
 	isc_task_detach(&task);
 
+	LOCK(&lock);
 	assert_int_equal(eventcnt, (purgeable ? 0 : 1));
+	UNLOCK(&lock);
 }
 
 /*
