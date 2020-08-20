@@ -340,6 +340,12 @@ dispatch_getnext(void **state) {
 	 */
 	dns_dispatch_detach(&dispatch);
 	dns_dispatchmgr_destroy(&dispatchmgr);
+
+	/*
+	 * Destroy the mutex.
+	 */
+	result = isc_mutex_destroy(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 int
