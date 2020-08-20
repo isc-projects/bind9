@@ -532,6 +532,30 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	return (ISC_R_SUCCESS);
 }
 
+/*%<
+ * Allocator for TCP read operations. Limited to size 2^16.
+ *
+ * Note this doesn't actually allocate anything, it just assigns the
+ * worker's receive buffer to a socket, and marks it as "in use".
+ */
+static void
+tcp_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+	isc__networker_t *worker = NULL;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+	REQUIRE(isc__nm_in_netthread());
+	REQUIRE(size <= 65536);
+
+	worker = &sock->mgr->workers[sock->tid];
+	INSIST(!worker->recvbuf_inuse);
+
+	buf->base = worker->recvbuf;
+	buf->len = size;
+	worker->recvbuf_inuse = true;
+}
+
 void
 isc__nm_async_tcp_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_startread_t *ievent = (isc__netievent_startread_t *)ev0;
@@ -549,7 +573,7 @@ isc__nm_async_tcp_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 			       0);
 	}
 
-	r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb, read_cb);
+	r = uv_read_start(&sock->uv_handle.stream, tcp_alloc_cb, read_cb);
 	if (r != 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_RECVFAIL]);
 	}

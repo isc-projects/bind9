@@ -977,23 +977,6 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 }
 
 void
-isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-	isc__networker_t *worker = NULL;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(isc__nm_in_netthread());
-	REQUIRE(size <= ISC_NETMGR_RECVBUF_SIZE);
-
-	worker = &sock->mgr->workers[sock->tid];
-	INSIST(!worker->recvbuf_inuse);
-
-	buf->base = worker->recvbuf;
-	worker->recvbuf_inuse = true;
-	buf->len = ISC_NETMGR_RECVBUF_SIZE;
-}
-
-void
 isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf) {
 	isc__networker_t *worker = NULL;
 
@@ -1005,7 +988,7 @@ isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf) {
 	worker = &sock->mgr->workers[sock->tid];
 
 	REQUIRE(worker->recvbuf_inuse);
-	if (buf->base > worker->recvbuf &&
+	if (sock->type == isc_nm_udpsocket && buf->base > worker->recvbuf &&
 	    buf->base <= worker->recvbuf + ISC_NETMGR_RECVBUF_SIZE)
 	{
 		/* Can happen in case of out-of-order recvmmsg in libuv1.36 */
