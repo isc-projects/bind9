@@ -324,7 +324,9 @@ dispatch_getnext(void **state) {
 	result = isc_app_run();
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	LOCK(&lock);
 	assert_int_equal(responses, 2);
+	UNLOCK(&lock);
 
 	/*
 	 * Shutdown nameserver.
