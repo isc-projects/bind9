@@ -15,38 +15,59 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          It was possible to trigger an assertion failure when verifying the
+          response to a TSIG-signed request. This was disclosed in
+          CVE-2020-8622.
+        </para>
+        <para>
+          ISC would like to thank Dave Feldman, Jeff Warren, and Joel Cunningham
+          of Oracle for bringing this vulnerability to our attention. [GL #2028]
         </para>
       </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.22-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
       <listitem>
         <para>
-          None.
+          When BIND 9 was compiled with native PKCS#11 support, it was possible
+          to trigger an assertion failure in code determining the number of bits
+          in the PKCS#11 RSA public key with a specially crafted packet. This
+          was disclosed in CVE-2020-8623.
+        </para>
+        <para>
+          ISC would like to thank Lyu Chiy for bringing this vulnerability to
+          our attention. [GL #2037]
         </para>
       </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.22-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
       <listitem>
         <para>
-          None.
+          <command>update-policy</command> rules of type
+          <command>subdomain</command> were incorrectly treated as
+          <command>zonesub</command> rules, which allowed keys used in
+          <command>subdomain</command> rules to update names outside of the
+          specified subdomains. The problem was fixed by making sure
+          <command>subdomain</command> rules are again processed as described in
+          the ARM. This was disclosed in CVE-2020-8624.
+        </para>
+        <para>
+          ISC would like to thank Joop Boonen of credativ GmbH for bringing this
+          vulnerability to our attention. [GL #2055]
         </para>
       </listitem>
     </itemizedlist>
   </section>
-
 
   <section xml:id="relnotes-9.11.22-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          Wildcard RPZ passthru rules could incorrectly be overridden by other
+          rules that were loaded from RPZ zones which appeared later in the
+          <command>response-policy</command> statement. This has been fixed.
+          [GL #1619]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          LMDB locking code was revised to make <command>rndc reconfig</command>
+          work properly on FreeBSD and with LMDB >= 0.9.26. [GL #1976]
         </para>
       </listitem>
     </itemizedlist>

@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.21
+Release Notes for BIND Version 9.11.22
 
 Introduction
 
@@ -35,6 +35,43 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.22
+
+Security Fixes
+
+  • It was possible to trigger an assertion failure when verifying the
+    response to a TSIG-signed request. This was disclosed in
+    CVE-2020-8622.
+
+    ISC would like to thank Dave Feldman, Jeff Warren, and Joel Cunningham
+    of Oracle for bringing this vulnerability to our attention. [GL #2028]
+
+  • When BIND 9 was compiled with native PKCS#11 support, it was possible
+    to trigger an assertion failure in code determining the number of bits
+    in the PKCS#11 RSA public key with a specially crafted packet. This
+    was disclosed in CVE-2020-8623.
+
+    ISC would like to thank Lyu Chiy for bringing this vulnerability to
+    our attention. [GL #2037]
+
+  • update-policy rules of type subdomain were incorrectly treated as
+    zonesub rules, which allowed keys used in subdomain rules to update
+    names outside of the specified subdomains. The problem was fixed by
+    making sure subdomain rules are again processed as described in the
+    ARM. This was disclosed in CVE-2020-8624.
+
+    ISC would like to thank Joop Boonen of credativ GmbH for bringing this
+    vulnerability to our attention. [GL #2055]
+
+Bug Fixes
+
+  • Wildcard RPZ passthru rules could incorrectly be overridden by other
+    rules that were loaded from RPZ zones which appeared later in the
+    response-policy statement. This has been fixed. [GL #1619]
+
+  • LMDB locking code was revised to make rndc reconfig work properly on
+    FreeBSD and with LMDB >= 0.9.26. [GL #1976]
 
 Notes for BIND 9.11.21
 

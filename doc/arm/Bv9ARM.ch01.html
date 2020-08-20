@@ -247,9 +247,9 @@
 <a name="dns_overview"></a>The Domain Name System (<acronym class="acronym">DNS</acronym>)</h2></div></div></div>
 
       <p>
-        The purpose of this document is to explain the installation
+        This document explains the installation
         and upkeep of the <acronym class="acronym">BIND</acronym> (Berkeley Internet
-        Name Domain) software package, and we
+        Name Domain) software package. We
         begin by reviewing the fundamentals of the Domain Name System
         (<acronym class="acronym">DNS</acronym>) as they relate to <acronym class="acronym">BIND</acronym>.
       </p>
@@ -308,7 +308,7 @@
         <p>
           For administrative purposes, the name space is partitioned into
           areas called <span class="emphasis"><em>zones</em></span>, each starting at a node and
-          extending down to the leaf nodes or to nodes where other zones
+          extending down to the "leaf" nodes or to nodes where other zones
           start.
           The data for each zone is stored in a <span class="emphasis"><em>name server</em></span>, which answers queries about the zone using the
           <span class="emphasis"><em>DNS protocol</em></span>.
@@ -368,7 +368,7 @@
           <span class="emphasis"><em>terminal</em></span>, that is, has no
           <span class="emphasis"><em>subdomains</em></span>.  Every subdomain is a domain and
           every domain except the root is also a subdomain. The terminology is
-          not intuitive and we suggest that you read RFCs 1033, 1034 and 1035
+          not intuitive and we suggest reading RFCs 1033, 1034, and 1035
           to
           gain a complete understanding of this difficult and subtle
           topic.
@@ -377,12 +377,12 @@
         <p>
           Though <acronym class="acronym">BIND</acronym> is called a "domain name
           server",
-          it deals primarily in terms of zones. The master and slave
+          it deals primarily in terms of zones. The "primary" and "secondary"
           declarations in the <code class="filename">named.conf</code> file
           specify
-          zones, not domains. When you ask some other site if it is willing to
-          be a slave server for your <span class="emphasis"><em>domain</em></span>, you are
-          actually asking for slave service for some collection of zones.
+          zones, not domains. When BIND asks some other site if it is willing to
+          be a secondary server for a <span class="emphasis"><em>domain</em></span>, it is
+          actually asking for secondary service for some collection of <span class="emphasis"><em>zones</em></span>.
         </p>
       </div>
 
@@ -408,12 +408,13 @@
 
         <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="primary_master"></a>The Primary Master</h4></div></div></div>
+<a name="primary_master"></a>The Primary Server</h4></div></div></div>
 
           <p>
-            The authoritative server where the master copy of the zone
+            The authoritative server where the main copy of the zone
             data is maintained is called the
-            <span class="emphasis"><em>primary master</em></span> server, or simply the
+            <span class="emphasis"><em>primary</em></span> (or
+            <span class="command"><strong>master</strong></span>) server, or simply the
             <span class="emphasis"><em>primary</em></span>.  Typically it loads the zone
             contents from some local file edited by humans or perhaps
             generated mechanically from some other local file which is
@@ -423,7 +424,7 @@
           </p>
 
           <p>
-            In some cases, however, the master file may not be edited
+            In some cases, however, the zone file may not be edited
             by humans at all, but may instead be the result of
             <span class="emphasis"><em>dynamic update</em></span> operations.
           </p>
@@ -431,22 +432,23 @@
 
         <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="slave_server"></a>Slave Servers</h4></div></div></div>
+<a name="slave_server"></a>Secondary Servers</h4></div></div></div>
 
           <p>
-            The other authoritative servers, the <span class="emphasis"><em>slave</em></span>
-            servers (also known as <span class="emphasis"><em>secondary</em></span> servers)
-            load the zone contents from another server using a replication
+            The other authoritative servers, called the
+            <span class="emphasis"><em>secondary</em></span>
+            (or <span class="command"><strong>slave</strong></span>) servers, load the zone
+            contents from another server using a replication
             process known as a <span class="emphasis"><em>zone transfer</em></span>.
-            Typically the data are transferred directly from the primary
+            Typically the data is transferred directly from the primary
             master, but it is also possible to transfer it from another
-            slave.  In other words, a slave server may itself act as a
-            master to a subordinate slave server.
+            secondary.  In other words, a secondary server may itself act as a
+            primary to a subordinate secondary server.
           </p>
           <p>
-            Periodically, the slave server must send a refresh query to
+            Periodically, the secondary server must send a refresh query to
             determine whether the zone contents have been updated. This
-            is done by sending a query for the zone's SOA record and
+            is done by sending a query for the zone's Start of Authority (SOA) record and
             checking whether the SERIAL field has been updated; if so,
             a new transfer request is initiated. The timing of these
             refresh queries is controlled by the SOA REFRESH and RETRY
@@ -459,8 +461,8 @@
           <p>
             If the zone data cannot be updated within the time specified
             by the SOA EXPIRE option (up to a hard-coded maximum of
-            24 weeks) then the slave zone expires and will no longer
-            respond to queries.
+            24 weeks), the secondary zone expires and no longer
+            responds to queries.
           </p>
         </div>
 
@@ -469,15 +471,14 @@
 <a name="stealth_server"></a>Stealth Servers</h4></div></div></div>
 
           <p>
-            Usually all of the zone's authoritative servers are listed in
+            Usually, all of the zone's authoritative servers are listed in
             NS records in the parent zone.  These NS records constitute
             a <span class="emphasis"><em>delegation</em></span> of the zone from the parent.
             The authoritative servers are also listed in the zone file itself,
             at the <span class="emphasis"><em>top level</em></span> or <span class="emphasis"><em>apex</em></span>
-            of the zone.  You can list servers in the zone's top-level NS
-            records that are not in the parent's NS delegation, but you cannot
-            list servers in the parent's delegation that are not present at
-            the zone's top level.
+            of the zone.  Servers that are not in the parent's NS delegation can be listed in the zone's top-level NS
+            records, but servers that are not present at
+            the zone's top level cannot be listed in the parent's delegation.
           </p>
 
           <p>
@@ -485,7 +486,7 @@
             authoritative for a zone but is not listed in that zone's NS
             records.  Stealth servers can be used for keeping a local copy of
             a
-            zone to speed up access to the zone's records or to make sure that
+            zone, to speed up access to the zone's records, or to make sure that
             the
             zone is available even if all the "official" servers for the zone
             are
@@ -493,11 +494,10 @@
           </p>
 
           <p>
-            A configuration where the primary master server itself is a
+            A configuration where the primary server itself is a
             stealth server is often referred to as a "hidden primary"
             configuration.  One use for this configuration is when the primary
-            master
-            is behind a firewall and therefore unable to communicate directly
+            is behind a firewall and is therefore unable to communicate directly
             with the outside world.
           </p>
 
@@ -534,7 +534,7 @@
         <p>
           The length of time for which a record may be retained in
           the cache of a caching name server is controlled by the
-          Time To Live (TTL) field associated with each resource record.
+          Time-To-Live (TTL) field associated with each resource record.
         </p>
 
         <div class="section">
@@ -551,18 +551,35 @@
           </p>
 
           <p>
-            There may be one or more forwarders,
-            and they are queried in turn until the list is exhausted or an
-            answer
-            is found. Forwarders are typically used when you do not
-            wish all the servers at a given site to interact directly with the
-            rest of
-            the Internet servers. A typical scenario would involve a number
-            of internal <acronym class="acronym">DNS</acronym> servers and an
-            Internet firewall. Servers unable
-            to pass packets through the firewall would forward to the server
-            that can do it, and that server would query the Internet <acronym class="acronym">DNS</acronym> servers
-            on the internal server's behalf.
+            Forwarders are typically used when an administrator does not
+            wish for all the servers at a given site to interact
+            directly with the rest of the Internet. For example, a
+            common scenario is when multiple internal DNS servers are
+            behind an Internet firewall. Servers behind the firewall
+            forward their requests to the server with external access,
+            which queries Internet DNS servers on the internal servers'
+            behalf.
+          </p>
+
+          <p>
+            Another scenario (largely now superseded by Response Policy
+            Zones) is to send queries first to a custom server for RBL
+            processing before forwarding them to the wider Internet.
+          </p>
+
+          <p>
+            There may be one or more forwarders in a given setup. The
+            order in which the forwarders are listed in
+            <code class="filename">named.conf</code> does not determine the
+            sequence in which they are queried; rather,
+            <span class="command"><strong>named</strong></span> uses the response times from
+            previous queries to select the server that is likely to
+            respond the most quickly. A server that has not yet been
+            queried is given an initial small random response time to
+            ensure that it is tried at least once. Dynamic adjustment of
+            the recorded response times ensures that all forwarders are
+            queried, even those with slower response times.  This
+            permits changes in behavior based on server responsiveness.
           </p>
         </div>
 
@@ -575,7 +592,7 @@
         <p>
           The <acronym class="acronym">BIND</acronym> name server can
           simultaneously act as
-          a master for some zones, a slave for other zones, and as a caching
+          a primary for some zones, a secondary for other zones, and a caching
           (recursive) server for a set of local clients.
         </p>
 
@@ -616,6 +633,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.21 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.22 (Extended Support Version)</p>
 </body>
 </html>

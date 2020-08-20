@@ -962,13 +962,15 @@ pk11_get_best_token(pk11_optype_t optype) {
 	return (token->slotid);
 }
 
-unsigned int
-pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt) {
+isc_result_t
+pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt, unsigned int *bits) {
 	unsigned int bitcnt, i;
 	CK_BYTE top;
 
-	if (bytecnt == 0)
-		return (0);
+	if (bytecnt == 0) {
+		*bits = 0;
+		return (ISC_R_SUCCESS);
+	}
 	bitcnt = bytecnt * 8;
 	for (i = 0; i < bytecnt; i++) {
 		top = data[i];
@@ -976,26 +978,41 @@ pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt) {
 			bitcnt -= 8;
 			continue;
 		}
-		if (top & 0x80)
-			return (bitcnt);
-		if (top & 0x40)
-			return (bitcnt - 1);
-		if (top & 0x20)
-			return (bitcnt - 2);
-		if (top & 0x10)
-			return (bitcnt - 3);
-		if (top & 0x08)
-			return (bitcnt - 4);
-		if (top & 0x04)
-			return (bitcnt - 5);
-		if (top & 0x02)
-			return (bitcnt - 6);
-		if (top & 0x01)
-			return (bitcnt - 7);
+		if (top & 0x80) {
+			*bits = bitcnt;
+			return (ISC_R_SUCCESS);
+		}
+		if (top & 0x40) {
+			*bits = bitcnt - 1;
+			return (ISC_R_SUCCESS);
+		}
+		if (top & 0x20) {
+			*bits = bitcnt - 2;
+			return (ISC_R_SUCCESS);
+		}
+		if (top & 0x10) {
+			*bits = bitcnt - 3;
+			return (ISC_R_SUCCESS);
+		}
+		if (top & 0x08) {
+			*bits = bitcnt - 4;
+			return (ISC_R_SUCCESS);
+		}
+		if (top & 0x04) {
+			*bits = bitcnt - 5;
+			return (ISC_R_SUCCESS);
+		}
+		if (top & 0x02) {
+			*bits = bitcnt - 6;
+			return (ISC_R_SUCCESS);
+		}
+		if (top & 0x01) {
+			*bits = bitcnt - 7;
+			return (ISC_R_SUCCESS);
+		}
 		break;
 	}
-	INSIST(0);
-	ISC_UNREACHABLE();
+	return (ISC_R_RANGE);
 }
 
 CK_ATTRIBUTE *
