@@ -77,6 +77,37 @@ dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
  *
  */
 
+isc_result_t
+dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
+		    const char *directory, isc_stdtime_t now,
+		    isc_stdtime_t when, dns_keytag_t id,
+		    unsigned int algorithm);
+/*%<
+ * Rollover key with given 'id'. If the 'algorithm' is non-zero, it must
+ * match the key's algorithm. The changes are stored in the key state file.
+ *
+ * A rollover means adjusting the key metadata so that keymgr will start the
+ * actual rollover on the next run. Update the 'inactive' time and adjust
+ * key lifetime to match the 'when' to rollover time.
+ *
+ * The 'when' time may be in the past. In that case keymgr will roll the
+ * key as soon as possible.
+ *
+ * The 'when' time may be in the future. This may extend the lifetime,
+ * overriding the default lifetime from the policy.
+ *
+ *	Requires:
+ *\li		'kasp' is not NULL.
+ *\li		'keyring' is not NULL.
+ *
+ *	Returns:
+ *\li		#ISC_R_SUCCESS (No error).
+ *\li		#ISC_R_FAILURE (More than one matching keys found).
+ *\li		#ISC_R_NOTFOUND (No matching keys found).
+ *\li		#ISC_R_UNEXPECTED (Key is not active).
+ *
+ */
+
 void
 dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		  isc_stdtime_t now, char *out, size_t out_len);
