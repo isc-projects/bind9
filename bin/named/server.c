@@ -8725,8 +8725,8 @@ static isc_result_t
 view_loaded(void *arg) {
 	isc_result_t result;
 	ns_zoneload_t *zl = (ns_zoneload_t *) arg;
-	ns_server_t *server = zl->server;
-	bool reconfig = zl->reconfig;
+	ns_server_t *server;
+	bool reconfig;
 	unsigned int refs;
 
 
@@ -8741,6 +8741,9 @@ view_loaded(void *arg) {
 	isc_refcount_decrement(&zl->refs, &refs);
 	if (refs != 0)
 		return (ISC_R_SUCCESS);
+
+	server = zl->server;
+	reconfig = zl->reconfig;
 
 	isc_refcount_destroy(&zl->refs);
 	isc_mem_put(server->mctx, zl, sizeof (*zl));
