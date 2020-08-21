@@ -743,8 +743,12 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 			return (ISC_R_RELOAD);
 		}
 
-		if (ctx->want_shutdown && ctx->blocked)
+		LOCK(&ctx->lock);
+		if (ctx->want_shutdown && ctx->blocked) {
+			UNLOCK(&ctx->lock);
 			exit(1);
+		}
+		UNLOCK(&ctx->lock);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -930,10 +934,14 @@ isc__app_block(void) {
 #ifdef ISC_PLATFORM_USETHREADS
 	sigset_t sset;
 #endif /* ISC_PLATFORM_USETHREADS */
+
+	LOCK(&isc_g_appctx.lock);
+
 	REQUIRE(isc_g_appctx.running);
 	REQUIRE(!isc_g_appctx.blocked);
 
 	isc_g_appctx.blocked = true;
+	UNLOCK(&isc_g_appctx.lock);
 #ifdef ISC_PLATFORM_USETHREADS
 	blockedthread = pthread_self();
 	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
@@ -949,10 +957,13 @@ isc__app_unblock(void) {
 	sigset_t sset;
 #endif /* ISC_PLATFORM_USETHREADS */
 
+	LOCK(&isc_g_appctx.lock);
+
 	REQUIRE(isc_g_appctx.running);
 	REQUIRE(isc_g_appctx.blocked);
 
 	isc_g_appctx.blocked = false;
+	UNLOCK(&isc_g_appctx.lock);
 
 #ifdef ISC_PLATFORM_USETHREADS
 	REQUIRE(blockedthread == pthread_self());
