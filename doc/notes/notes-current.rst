@@ -26,6 +26,9 @@ New Features
 
 - None.
 
+- Add a new ``rndc`` command, ``rndc dnssec -rollover``, which triggers
+  a manual rollover for a specific key. [GL #1749]
+
 - New ``rndc`` command ``rndc dumpdb -expired`` that dumps the cache database
   to the dump-file including expired RRsets that are awaiting cleanup, for
   diagnostic purposes. [GL #1870]
@@ -34,6 +37,7 @@ Removed Features
 ~~~~~~~~~~~~~~~~
 
 - None.
+
 
 Feature Changes
 ~~~~~~~~~~~~~~~

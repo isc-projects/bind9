@@ -1,3 +1,6 @@
+5515.	[func]		Add 'rndc dnssec -rollover' command to trigger a
+			manual rollover for a specific key. [GL #1749]
+
 5514.	[bug]		Fix KASP expected key size for Ed25519 and Ed448.
 			[GL #2171]
 

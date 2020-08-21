@@ -1201,7 +1201,7 @@ check_cdslog() {
 }
 
 #
-# rndc dnssec -checkds
+# Utility to call after 'rndc dnssec -checkds|-rollover'.
 #
 _loadkeys_on() {
 	_server=$1
@@ -1240,6 +1240,31 @@ rndc_checkds() {
 	rndccmd $_server dnssec -checkds $_keycmd $_whencmd $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (${_keycmd} ${_whencmd} ${_what} zone ${_zone} failed"
 
 	_loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
+}
+
+# Tell named to schedule a key rollover.
+rndc_rollover() {
+	_server=$1
+	_dir=$2
+	_keyid=$3
+	_when=$4
+	_zone=$5
+	_view=$6
+
+	n=$((n+1))
+	echo_i "calling rndc dnssec -rollover key ${_keyid} zone ${_zone} ($n)"
+	ret=0
+
+	if [ "${_when}" = "now" ]; then
+		rndccmd $_server dnssec -rollover -key $_keyid $_zone in $_view > rndc.dnssec.rollover.out.$_zone.$n || log_error "rndc dnssec -rollover (key ${_keyid} when ${_when}) zone ${_zone} failed"
+	else
+		rndccmd $_server dnssec -rollover -key $_keyid -when $_when $_zone in $_view > rndc.dnssec.rollover.out.$_zone.$n || log_error "rndc dnssec -rollover (key ${_keyid} when ${_when}) zone ${_zone} failed"
+	fi
+
+	_loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
+
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
 }
 
 #
@@ -2654,6 +2679,128 @@ status=$((status+ret))
 
 # Clear TSIG.
 TSIG=""
+
+#
+# Testing manual rollover.
+#
+set_zone "manual-rollover.kasp"
+set_policy "manual-rollover" "2" "3600"
+set_server "ns3" "10.53.0.3"
+key_clear "KEY1"
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+# Key properties.
+set_keyrole      "KEY1" "ksk"
+set_keylifetime  "KEY1" "0"
+set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY1" "yes"
+set_zonesigning  "KEY1" "no"
+
+set_keyrole      "KEY2" "zsk"
+set_keylifetime  "KEY2" "0"
+set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY2" "no"
+set_zonesigning  "KEY2" "yes"
+# During set up everything was set to OMNIPRESENT.
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+
+# The first keys were published and activated a day ago.
+created=$(key_get KEY1 CREATED)
+set_addkeytime "KEY1" "PUBLISHED"   "${created}" -86400
+set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -86400
+set_addkeytime "KEY1" "ACTIVE"      "${created}" -86400
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "PUBLISHED"   "${created}" -86400
+set_addkeytime "KEY2" "ACTIVE"      "${created}" -86400
+# Key lifetimes are unlimited, so not setting RETIRED and REMOVED.
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
+# Schedule KSK rollover in six months (15552000 seconds).
+active=$(key_get KEY1 ACTIVE)
+set_addkeytime  "KEY1" "RETIRED" "${active}" 15552000
+retired=$(key_get KEY1 RETIRED)
+rndc_rollover "$SERVER" "$DIR" $(key_get KEY1 ID) "${retired}" "$ZONE"
+# Rollover starts in six months, but lifetime is set to six months plus
+# prepublication duration = 15552000 + 7500 = 15559500 seconds.
+set_keylifetime  "KEY1" "15559500"
+set_addkeytime  "KEY1" "RETIRED" "${active}" 15559500
+retired=$(key_get KEY1 RETIRED)
+# Retire interval of this policy is 26h (93600 seconds).
+set_addkeytime  "KEY1" "REMOVED" "${retired}" 93600
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
+# Schedule KSK rollover now.
+set_policy "manual-rollover" "3" "3600"
+set_keystate "KEY1" "GOAL" "hidden"
+# This key was activated one day agao, so lifetime is set to 1d plus
+# prepublication duration (7500 seconds) = 93900 seconds.
+set_keylifetime  "KEY1" "93900"
+created=$(key_get KEY1 CREATED)
+set_keytime  "KEY1" "RETIRED" "${created}"
+rndc_rollover "$SERVER" "$DIR" $(key_get KEY1 ID) "${created}" "$ZONE"
+# New key is introduced.
+set_keyrole      "KEY3" "ksk"
+set_keylifetime  "KEY3" "0"
+set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY3" "yes"
+set_zonesigning  "KEY3" "no"
+
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY3" "STATE_DS"     "hidden"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+# Schedule ZSK rollover now.
+set_policy "manual-rollover" "4" "3600"
+set_keystate "KEY2" "GOAL" "hidden"
+# This key was activated one day agao, so lifetime is set to 1d plus
+# prepublication duration (7500 seconds) = 93900 seconds.
+set_keylifetime  "KEY2" "93900"
+created=$(key_get KEY2 CREATED)
+set_keytime  "KEY2" "RETIRED" "${created}"
+rndc_rollover "$SERVER" "$DIR" $(key_get KEY2 ID) "${created}" "$ZONE"
+# New key is introduced.
+set_keyrole      "KEY4" "zsk"
+set_keylifetime  "KEY4" "0"
+set_keyalgorithm "KEY4" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY4" "no"
+set_zonesigning  "KEY4" "no" # not yet, first prepublish DNSKEY.
+
+set_keystate "KEY4" "GOAL"         "omnipresent"
+set_keystate "KEY4" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY4" "STATE_ZRRSIG" "hidden"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
 
 #
 # Testing DNSSEC introduction.

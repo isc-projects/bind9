@@ -117,6 +117,9 @@ command is one of the following:\n\
 		specific key by providing the keytag with -key id and\n\
 		optionally the key's algorithm with -alg algorithm.\n\
 		Requires the zone to have a dnssec-policy.\n\
+  dnssec -rollover -key id [-alg algorithm] [-when time] zone [class [view]]\n\
+		Rollover key with id of the given zone. Requires the zone\n\
+		to have a dnssec-policy.\n\
   dnssec -status zone [class [view]]\n\
 		Show the DNSSEC signing state for the specified zone.\n\
 		Requires the zone to have a dnssec-policy.\n\
