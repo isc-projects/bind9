@@ -296,9 +296,13 @@ dns_zt_asyncload2(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg,
 	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
 
 	INSIST(zt->loads_pending == 0);
+	/*
+	 * Prevent loads_pending going to zero while kicking off the loads.
+	 */
+	zt->loads_pending++;
 	result = dns_zt_apply2(zt, false, NULL, asyncload, &params);
 
-	pending = zt->loads_pending;
+	pending = --zt->loads_pending;
 	if (pending != 0) {
 		zt->loaddone = alldone;
 		zt->loaddone_arg = arg;
