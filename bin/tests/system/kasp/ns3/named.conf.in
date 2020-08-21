@@ -73,6 +73,13 @@ zone "unlimited.kasp" {
 	dnssec-policy "unlimited";
 };
 
+/* Manual rollover. */
+zone "manual-rollover.kasp" {
+	type primary;
+	file "manual-rollover.kasp.db";
+	dnssec-policy "manual-rollover";
+};
+
 /* A master zone with dnssec-policy, no keys created. */
 zone "rsasha1.kasp" {
 	type master;

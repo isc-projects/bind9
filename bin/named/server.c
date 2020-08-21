@@ -14611,10 +14611,14 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	dns_kasp_t *kasp = NULL;
 	dns_dnsseckeylist_t keys;
 	dns_dnsseckey_t *key;
-	char *ptr;
+	char *ptr, *zonetext = NULL;
 	const char *msg = NULL;
 	/* variables for -checkds */
-	bool checkds = false, dspublish = false, use_keyid = false;
+	bool checkds = false, dspublish = false;
+	/* variables for -rollover */
+	bool rollover = false;
+	/* variables for -key */
+	bool use_keyid = false;
 	dns_keytag_t keyid = 0;
 	uint8_t algorithm = 0;
 	/* variables for -status */
@@ -14645,9 +14649,15 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 
 	if (strcasecmp(ptr, "-status") == 0) {
 		status = true;
+	} else if (strcasecmp(ptr, "-rollover") == 0) {
+		rollover = true;
 	} else if (strcasecmp(ptr, "-checkds") == 0) {
 		checkds = true;
+	} else {
+		CHECK(DNS_R_SYNTAX);
+	}
 
+	if (rollover || checkds) {
 		/* Check for options */
 		for (;;) {
 			ptr = next_token(lex, text);
@@ -14694,7 +14704,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 			} else if (ptr[0] == '-') {
 				msg = "Unknown option";
 				CHECK(DNS_R_SYNTAX);
-			} else {
+			} else if (checkds) {
 				/*
 				 * No arguments provided, so we must be
 				 * parsing "published|withdrawn".
@@ -14704,20 +14714,29 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 				} else if (strcasecmp(ptr, "withdrawn") != 0) {
 					CHECK(DNS_R_SYNTAX);
 				}
+			} else if (rollover) {
+				/*
+				 * No arguments provided, so we must be
+				 * parsing the zone.
+				 */
+				zonetext = ptr;
 			}
 			break;
+		}
+
+		if (rollover && !use_keyid) {
+			msg = "Key id is required when scheduling rollover";
+			CHECK(DNS_R_SYNTAX);
 		}
 
 		if (algorithm > 0 && !use_keyid) {
 			msg = "Key id is required when setting algorithm";
 			CHECK(DNS_R_SYNTAX);
 		}
-	} else {
-		CHECK(DNS_R_SYNTAX);
 	}
 
 	/* Get zone. */
-	CHECK(zone_from_args(server, lex, NULL, &zone, NULL, text, false));
+	CHECK(zone_from_args(server, lex, zonetext, &zone, NULL, text, false));
 	if (zone == NULL) {
 		msg = "Zone not found";
 		CHECK(ISC_R_UNEXPECTEDEND);
@@ -14766,11 +14785,11 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 
 		LOCK(&kasp->lock);
 		if (use_keyid) {
-			result = dns_keymgr_checkds_id(kasp, &keys, dir, when,
-						       dspublish, keyid,
+			result = dns_keymgr_checkds_id(kasp, &keys, dir, now,
+						       when, dspublish, keyid,
 						       (unsigned int)algorithm);
 		} else {
-			result = dns_keymgr_checkds(kasp, &keys, dir, when,
+			result = dns_keymgr_checkds(kasp, &keys, dir, now, when,
 						    dspublish);
 		}
 		UNLOCK(&kasp->lock);
@@ -14803,6 +14822,48 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 			break;
 		default:
 			CHECK(putstr(text, "Error executing checkds command"));
+			break;
+		}
+	} else if (rollover) {
+		/*
+		 * Manually rollover a key.
+		 */
+		char whenbuf[80];
+		isc_time_set(&timewhen, when, 0);
+		isc_time_formattimestamp(&timewhen, whenbuf, sizeof(whenbuf));
+
+		LOCK(&kasp->lock);
+		result = dns_keymgr_rollover(kasp, &keys, dir, now, when, keyid,
+					     (unsigned int)algorithm);
+		UNLOCK(&kasp->lock);
+
+		switch (result) {
+		case ISC_R_SUCCESS:
+			if (use_keyid) {
+				char tagbuf[6];
+				snprintf(tagbuf, sizeof(tagbuf), "%u", keyid);
+				CHECK(putstr(text, "Key "));
+				CHECK(putstr(text, tagbuf));
+				CHECK(putstr(text, ": "));
+			}
+			CHECK(putstr(text, "Rollover scheduled on "));
+			CHECK(putstr(text, whenbuf));
+			break;
+		case ISC_R_NOTFOUND:
+			CHECK(putstr(text, "No matching keyfound"));
+			break;
+		case ISC_R_FAILURE:
+			CHECK(putstr(text,
+				     "Error: multiple possible keys found, "
+				     "retry command with -alg algorithm"));
+			break;
+		case ISC_R_UNEXPECTED:
+			CHECK(putstr(text,
+				     "Error: key is not active and cannot "
+				     "be rolled at this time"));
+			break;
+		default:
+			CHECK(putstr(text, "Error executing rollover command"));
 			break;
 		}
 	}
