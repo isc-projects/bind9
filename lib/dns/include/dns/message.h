@@ -263,6 +263,8 @@ struct dns_message {
 
 	dns_rdatasetorderfunc_t		order;
 	const void *			order_arg;
+
+	dns_indent_t			indent;
 };
 
 struct dns_ednsopt {
