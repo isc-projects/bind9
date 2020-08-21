@@ -241,7 +241,11 @@ struct ns_clientmgr {
 #define NS_CLIENT_DROPPORT 1
 #endif
 
+#ifdef NS_CLIENT_NCRSTDATOMIC
+_Atomic(unsigned int) ns_client_requests;
+#else
 unsigned int ns_client_requests;
+#endif
 
 static void client_read(ns_client_t *client);
 static void client_accept(ns_client_t *client);
@@ -2477,7 +2481,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 				       NS_CLIENTSTATE_READING :
 				       NS_CLIENTSTATE_READY));
 
-	ns_client_requests++;
+	ncr_inc(ns_client_requests);
 
 	if (event->ev_type == ISC_SOCKEVENT_RECVDONE) {
 		INSIST(!TCP_CLIENT(client));

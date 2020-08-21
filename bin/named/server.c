@@ -6354,7 +6354,7 @@ tat_timer_tick(isc_task_t *task, isc_event_t *event) {
 static void
 pps_timer_tick(isc_task_t *task, isc_event_t *event) {
 	static unsigned int oldrequests = 0;
-	unsigned int requests = ns_client_requests;
+	unsigned int requests = ncr_load(ns_client_requests);
 
 	UNUSED(task);
 	isc_event_free(&event);
