@@ -5175,7 +5175,6 @@ socket_send(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 	    unsigned int flags)
 {
 	int io_state;
-	bool have_lock = false;
 	isc_task_t *ntask = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -5201,12 +5200,10 @@ socket_send(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 		}
 	}
 
-	if (sock->type == isc_sockettype_udp)
+	LOCK(&sock->lock);
+	if (sock->type == isc_sockettype_udp) {
 		io_state = doio_send(sock, dev);
-	else {
-		LOCK(&sock->lock);
-		have_lock = true;
-
+	} else {
 		if (ISC_LIST_EMPTY(sock->send_list))
 			io_state = doio_send(sock, dev);
 		else
@@ -5222,11 +5219,6 @@ socket_send(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 		if ((flags & ISC_SOCKFLAG_NORETRY) == 0) {
 			isc_task_attach(task, &ntask);
 			dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
-
-			if (!have_lock) {
-				LOCK(&sock->lock);
-				have_lock = true;
-			}
 
 			/*
 			 * Enqueue the request.  If the socket was previously
@@ -5257,8 +5249,7 @@ socket_send(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 		break;
 	}
 
-	if (have_lock)
-		UNLOCK(&sock->lock);
+	UNLOCK(&sock->lock);
 
 	return (result);
 }
@@ -5291,7 +5282,9 @@ isc__socket_sendto(isc_socket_t *sock0, isc_region_t *region,
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
+	LOCK(&sock->lock);
 	INSIST(sock->bound);
+	UNLOCK(&sock->lock);
 
 	dev = allocate_socketevent(manager->mctx, sock,
 				   ISC_SOCKEVENT_SENDDONE, action, arg);
