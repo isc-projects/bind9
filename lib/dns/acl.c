@@ -565,10 +565,11 @@ dns_acl_detach(dns_acl_t **aclp) {
 
 	REQUIRE(DNS_ACL_VALID(acl));
 
+	*aclp = NULL;
+
 	isc_refcount_decrement(&acl->refcount, &refs);
 	if (refs == 0)
 		destroy(acl);
-	*aclp = NULL;
 }
 
 
