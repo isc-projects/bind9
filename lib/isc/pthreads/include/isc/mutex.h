@@ -128,11 +128,10 @@ isc_mutex_unlock_profile(isc_mutex_t *mp, const char * _file, int _line);
 
 void
 isc_mutex_statsprofile(FILE *fp);
+#endif /* ISC_MUTEX_PROFILE */
 
 isc_result_t
 isc_mutex_init_errcheck(isc_mutex_t *mp);
-
-#endif /* ISC_MUTEX_PROFILE */
 
 ISC_LANG_ENDDECLS
 #endif /* ISC_MUTEX_H */
