@@ -362,9 +362,11 @@ destroy(dns_view_t *view) {
 	dns_dlzdb_t *dlzdb;
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
+	LOCK(&view->lock);
 	REQUIRE(RESSHUTDOWN(view));
 	REQUIRE(ADBSHUTDOWN(view));
 	REQUIRE(REQSHUTDOWN(view));
+	UNLOCK(&view->lock);
 
 	isc_refcount_destroy(&view->references);
 	isc_refcount_destroy(&view->weakrefs);
