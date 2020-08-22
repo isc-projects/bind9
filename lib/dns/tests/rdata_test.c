@@ -2117,6 +2117,11 @@ loc(void **state) {
 		TEXT_INVALID("90 0 1 S 180 W 0"),
 		TEXT_INVALID("90 S 180 1 W 0"),
 		TEXT_INVALID("90 S 180 0 1 W 0"),
+		TEXT_VALID("0 0 0.000 N 0 0 0.000 E -0.95m 1m 10000m 10m"),
+		TEXT_VALID("0 0 0.000 N 0 0 0.000 E -0.05m 1m 10000m 10m"),
+		TEXT_VALID("0 0 0.000 N 0 0 0.000 E -100000.00m 1m 10000m 10m"),
+		TEXT_VALID("0 0 0.000 N 0 0 0.000 E 42849672.95m 1m 10000m "
+			   "10m"),
 		/*
 		 * Sentinel.
 		 */
