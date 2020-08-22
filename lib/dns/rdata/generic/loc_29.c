@@ -27,6 +27,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	unsigned char version;
 	bool east = false;
 	bool north = false;
+	bool negative = false;
 	long tmp;
 	long m;
 	long cm;
@@ -280,6 +281,9 @@ getalt:
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
+	if (DNS_AS_STR(token)[0] == '-') {
+		negative = true;
+	}
 	m = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm') {
 		RETTOK(DNS_R_SYNTAX);
@@ -324,6 +328,9 @@ getalt:
 	/*
 	 * Adjust base.
 	 */
+	if (m < 0 || negative) {
+		cm = -cm;
+	}
 	altitude = m + 100000;
 	altitude *= 100;
 	altitude += cm;
