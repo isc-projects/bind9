@@ -797,6 +797,7 @@ manytasks(void **state) {
 			      (unsigned long)ntasks);
 	}
 
+	isc_mutex_init(&lock);
 	isc_condition_init(&cv);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
@@ -821,6 +822,7 @@ manytasks(void **state) {
 	isc_taskmgr_destroy(&taskmgr);
 	isc_mem_destroy(&mctx);
 	isc_condition_destroy(&cv);
+	isc_mutex_destroy(&lock);
 }
 
 /*
