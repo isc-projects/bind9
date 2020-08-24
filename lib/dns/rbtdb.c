@@ -3322,7 +3322,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	rdataset->private2 = node;
 	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
-	rdataset->count = header->count++;
+	rdataset->count = isc_atomic_xadd((int32_t*)&header->count, 1);
 	if (rdataset->count == UINT32_MAX)
 		rdataset->count = 0;
 
