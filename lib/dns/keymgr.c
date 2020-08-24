@@ -2181,7 +2181,7 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	}
 
 	result = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS || active > now) {
 		return (ISC_R_UNEXPECTED);
 	}
 
