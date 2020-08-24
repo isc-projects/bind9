@@ -306,8 +306,8 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp);
  */
 
 typedef isc_result_t
-			dns_dlz_writeablezone_t(dns_view_t *view, dns_dlzdb_t *dlzdb,
-						const char *zone_name);
+dns_dlz_writeablezone_t(dns_view_t *view, dns_dlzdb_t *dlzdb,
+			const char *zone_name);
 dns_dlz_writeablezone_t dns_dlz_writeablezone;
 /*%<
  * creates a writeable DLZ zone. Must be called from within the

@@ -88,7 +88,7 @@ struct dns__rrl_key {
 	dns_rdatatype_t qtype;
 	uint8_t		qclass;
 	unsigned int	rtype : 4; /* dns_rrl_rtype_t */
-	unsigned int	ipv6 : 1;
+	unsigned int	ipv6  : 1;
 };
 union dns_rrl_key {
 	struct dns__rrl_key s;

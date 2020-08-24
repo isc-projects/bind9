@@ -983,13 +983,15 @@ named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp) {
 
 struct keyalgorithms {
 	const char *str;
-	enum { hmacnone,
-	       hmacmd5,
-	       hmacsha1,
-	       hmacsha224,
-	       hmacsha256,
-	       hmacsha384,
-	       hmacsha512 } hmac;
+	enum {
+		hmacnone,
+		hmacmd5,
+		hmacsha1,
+		hmacsha224,
+		hmacsha256,
+		hmacsha384,
+		hmacsha512
+	} hmac;
 	unsigned int type;
 	uint16_t size;
 } algorithms[] = { { "hmac-md5", hmacmd5, DST_ALG_HMACMD5, 128 },

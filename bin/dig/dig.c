@@ -678,8 +678,9 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	}
 	debug("printmessage(%s %s %s)", headers ? "headers" : "noheaders",
 	      query->lookup->comments ? "comments" : "nocomments",
-	      short_form ? "short_form"
-			 : dns64prefix ? "dns64prefix_form" : "long_form");
+	      short_form    ? "short_form"
+	      : dns64prefix ? "dns64prefix_form"
+			    : "long_form");
 
 	flags = 0;
 	if (!headers) {

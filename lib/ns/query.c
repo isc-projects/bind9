@@ -11416,7 +11416,9 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 		      TCP(client) ? "T" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
 		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "",
-		      HAVECOOKIE(client) ? "V" : WANTCOOKIE(client) ? "K" : "",
+		      HAVECOOKIE(client)   ? "V"
+		      : WANTCOOKIE(client) ? "K"
+					   : "",
 		      onbuf, ecsbuf);
 }
 

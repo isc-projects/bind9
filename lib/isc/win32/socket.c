@@ -173,13 +173,14 @@ typedef isc_event_t intev_t;
 /*
  * Socket State
  */
-enum { SOCK_INITIALIZED, /* Socket Initialized */
-       SOCK_OPEN,	 /* Socket opened but nothing yet to do */
-       SOCK_DATA,	 /* Socket sending or receiving data */
-       SOCK_LISTEN,	 /* TCP Socket listening for connects */
-       SOCK_ACCEPT,	 /* TCP socket is waiting to accept */
-       SOCK_CONNECT,	 /* TCP Socket connecting */
-       SOCK_CLOSED,	 /* Socket has been closed */
+enum {
+	SOCK_INITIALIZED, /* Socket Initialized */
+	SOCK_OPEN,	  /* Socket opened but nothing yet to do */
+	SOCK_DATA,	  /* Socket sending or receiving data */
+	SOCK_LISTEN,	  /* TCP Socket listening for connects */
+	SOCK_ACCEPT,	  /* TCP socket is waiting to accept */
+	SOCK_CONNECT,	  /* TCP Socket connecting */
+	SOCK_CLOSED,	  /* Socket has been closed */
 };
 
 #define SOCKET_MAGIC	ISC_MAGIC('I', 'O', 'i', 'o')
@@ -272,7 +273,7 @@ struct isc_socket {
 	unsigned int listener : 1,		    /* listener socket */
 		connected : 1, pending_connect : 1, /* connect
 						     * pending */
-		bound : 1,			    /* bound to local addr */
+		bound  : 1,			    /* bound to local addr */
 		dupped : 1;	     /* created by isc_socket_dup() */
 	unsigned int pending_iocp;   /* Should equal the counters below.
 				      * Debug. */

@@ -1473,14 +1473,16 @@ struct dns_update_state {
 	isc_stdtime_t inception, expire, soaexpire, keyexpire;
 	dns_ttl_t nsecttl;
 	bool check_ksk, keyset_kskonly, build_nsec3;
-	enum { sign_updates,
-	       remove_orphaned,
-	       build_chain,
-	       process_nsec,
-	       sign_nsec,
-	       update_nsec3,
-	       process_nsec3,
-	       sign_nsec3 } state;
+	enum {
+		sign_updates,
+		remove_orphaned,
+		build_chain,
+		process_nsec,
+		sign_nsec,
+		update_nsec3,
+		process_nsec3,
+		sign_nsec3
+	} state;
 };
 
 static uint32_t
