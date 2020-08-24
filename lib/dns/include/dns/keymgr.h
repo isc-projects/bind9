@@ -53,11 +53,13 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 
 isc_result_t
 dns_keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		   const char *directory, isc_stdtime_t now, bool dspublish);
+		   const char *directory, isc_stdtime_t now, isc_stdtime_t when,
+		   bool dspublish);
 isc_result_t
 dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		      const char *directory, isc_stdtime_t now, bool dspublish,
-		      dns_keytag_t id, unsigned int algorithm);
+		      const char *directory, isc_stdtime_t now,
+		      isc_stdtime_t when, bool dspublish, dns_keytag_t id,
+		      unsigned int algorithm);
 /*%<
  * Check DS for one key in 'keyring'. The key must have the KSK role.
  * If 'dspublish' is set to true, set the DS Publish time to 'now'.
