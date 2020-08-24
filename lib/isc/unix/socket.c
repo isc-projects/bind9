@@ -354,7 +354,7 @@ struct isc__socket {
 	unsigned int listener : 1,	       /* listener socket */
 		connected : 1, connecting : 1, /* connect pending
 						* */
-		bound : 1,		       /* bound to local addr */
+		bound  : 1,		       /* bound to local addr */
 		dupped : 1, active : 1,	       /* currently active */
 		pktdscp : 1;		       /* per packet dscp */
 
@@ -483,17 +483,19 @@ setdscp(isc__socket_t *sock, isc_dscp_t dscp);
 /*%
  * Shortcut index arrays to get access to statistics counters.
  */
-enum { STATID_OPEN = 0,
-       STATID_OPENFAIL = 1,
-       STATID_CLOSE = 2,
-       STATID_BINDFAIL = 3,
-       STATID_CONNECTFAIL = 4,
-       STATID_CONNECT = 5,
-       STATID_ACCEPTFAIL = 6,
-       STATID_ACCEPT = 7,
-       STATID_SENDFAIL = 8,
-       STATID_RECVFAIL = 9,
-       STATID_ACTIVE = 10 };
+enum {
+	STATID_OPEN = 0,
+	STATID_OPENFAIL = 1,
+	STATID_CLOSE = 2,
+	STATID_BINDFAIL = 3,
+	STATID_CONNECTFAIL = 4,
+	STATID_CONNECT = 5,
+	STATID_ACCEPTFAIL = 6,
+	STATID_ACCEPT = 7,
+	STATID_SENDFAIL = 8,
+	STATID_RECVFAIL = 9,
+	STATID_ACTIVE = 10
+};
 static const isc_statscounter_t udp4statsindex[] = {
 	isc_sockstatscounter_udp4open,
 	isc_sockstatscounter_udp4openfail,

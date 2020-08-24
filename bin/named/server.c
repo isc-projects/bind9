@@ -676,11 +676,13 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 	dns_name_t *name = NULL;
 	isc_buffer_t namebuf;
 	const char *atstr = NULL;
-	enum { INIT_DNSKEY,
-	       STATIC_DNSKEY,
-	       INIT_DS,
-	       STATIC_DS,
-	       TRUSTED } anchortype;
+	enum {
+		INIT_DNSKEY,
+		STATIC_DNSKEY,
+		INIT_DS,
+		STATIC_DS,
+		TRUSTED
+	} anchortype;
 
 	REQUIRE(namestrp != NULL && *namestrp == NULL);
 	REQUIRE(ds != NULL);
@@ -6778,8 +6780,7 @@ adjust_interfaces(named_server_t *server, isc_mem_t *mctx) {
 		for (view = ISC_LIST_HEAD(server->viewlist);
 		     view != NULL && view != zoneview;
 		     view = ISC_LIST_NEXT(view, link))
-		{
-		}
+		{}
 		if (view == NULL) {
 			continue;
 		}

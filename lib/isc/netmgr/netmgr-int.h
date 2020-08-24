@@ -358,17 +358,19 @@ typedef enum isc_nmsocket_type {
 /*%
  * Index into socket stat counter arrays.
  */
-enum { STATID_OPEN = 0,
-       STATID_OPENFAIL = 1,
-       STATID_CLOSE = 2,
-       STATID_BINDFAIL = 3,
-       STATID_CONNECTFAIL = 4,
-       STATID_CONNECT = 5,
-       STATID_ACCEPTFAIL = 6,
-       STATID_ACCEPT = 7,
-       STATID_SENDFAIL = 8,
-       STATID_RECVFAIL = 9,
-       STATID_ACTIVE = 10 };
+enum {
+	STATID_OPEN = 0,
+	STATID_OPENFAIL = 1,
+	STATID_CLOSE = 2,
+	STATID_BINDFAIL = 3,
+	STATID_CONNECTFAIL = 4,
+	STATID_CONNECT = 5,
+	STATID_ACCEPTFAIL = 6,
+	STATID_ACCEPT = 7,
+	STATID_SENDFAIL = 8,
+	STATID_RECVFAIL = 9,
+	STATID_ACTIVE = 10
+};
 
 struct isc_nmsocket {
 	/*% Unlocked, RO */

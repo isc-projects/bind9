@@ -98,10 +98,9 @@ main(int argc, char **argv) {
 
 	fprintf(stderr, "EXPECT:\n%s%d%s%s%s",
 		"8 lines to stderr (first 4 numbered, #3 repeated)\n",
-		file_versions == 0 || file_versions == ISC_LOG_ROLLNEVER
-			? 1
-			: file_versions > 0 ? file_versions + 1
-					    : FILE_VERSIONS + 1,
+		file_versions == 0 || file_versions == ISC_LOG_ROLLNEVER ? 1
+		: file_versions > 0 ? file_versions + 1
+				    : FILE_VERSIONS + 1,
 		" " TEST_FILE " files, and\n", "2 lines to syslog\n",
 		"lines ending with exclamation marks are errors\n\n");
 

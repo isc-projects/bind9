@@ -222,18 +222,18 @@ struct dns_message {
 	dns_rdataset_t *tsig;
 
 	int	     state;
-	unsigned int from_to_wire : 2;
-	unsigned int header_ok : 1;
-	unsigned int question_ok : 1;
+	unsigned int from_to_wire     : 2;
+	unsigned int header_ok	      : 1;
+	unsigned int question_ok      : 1;
 	unsigned int tcp_continuation : 1;
-	unsigned int verified_sig : 1;
+	unsigned int verified_sig     : 1;
 	unsigned int verify_attempted : 1;
-	unsigned int free_query : 1;
-	unsigned int free_saved : 1;
-	unsigned int cc_ok : 1;
-	unsigned int cc_bad : 1;
-	unsigned int tkey : 1;
-	unsigned int rdclass_set : 1;
+	unsigned int free_query	      : 1;
+	unsigned int free_saved	      : 1;
+	unsigned int cc_ok	      : 1;
+	unsigned int cc_bad	      : 1;
+	unsigned int tkey	      : 1;
+	unsigned int rdclass_set      : 1;
 
 	unsigned int opt_reserved;
 	unsigned int sig_reserved;
