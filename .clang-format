@@ -11,6 +11,7 @@ BraceWrapping:
   AfterFunction:   false # should also be MultiLine, but not yet supported
   AfterExternBlock: false
   BeforeElse:      false
+  BeforeWhile:     false
   IndentBraces:    false
   SplitEmptyFunction: true
 AllowShortIfStatementsOnASingleLine: false
@@ -19,6 +20,7 @@ AlwaysBreakAfterReturnType: All
 Cpp11BracedListStyle: false
 ColumnLimit: 80
 AlignAfterOpenBracket: Align
+AlignConsecutiveBitFields: true
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: true
 AlignTrailingComments: true
@@ -62,6 +64,7 @@ IncludeCategories:
     Priority:        1
   - Regex:           '.*'
     Priority:        0
+IndentExternBlock: NoIndent
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 1
 PenaltyBreakAssignment: 30
