@@ -1864,8 +1864,9 @@ failure:
 
 static isc_result_t
 keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-	       const char *directory, isc_stdtime_t now, bool dspublish,
-	       dns_keytag_t id, unsigned int alg, bool check_id) {
+	       const char *directory, isc_stdtime_t now, isc_stdtime_t when,
+	       bool dspublish, dns_keytag_t id, unsigned int alg,
+	       bool check_id) {
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
 	isc_dir_t dir;
 	isc_result_t result;
@@ -1905,9 +1906,9 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	}
 
 	if (dspublish) {
-		dst_key_settime(ksk_key->key, DST_TIME_DSPUBLISH, now);
+		dst_key_settime(ksk_key->key, DST_TIME_DSPUBLISH, when);
 	} else {
-		dst_key_settime(ksk_key->key, DST_TIME_DSDELETE, now);
+		dst_key_settime(ksk_key->key, DST_TIME_DSDELETE, when);
 	}
 
 	/* Store key state and update hints. */
@@ -1929,17 +1930,19 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 
 isc_result_t
 dns_keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		   const char *directory, isc_stdtime_t now, bool dspublish) {
-	return (keymgr_checkds(kasp, keyring, directory, now, dspublish, 0, 0,
-			       false));
+		   const char *directory, isc_stdtime_t now, isc_stdtime_t when,
+		   bool dspublish) {
+	return (keymgr_checkds(kasp, keyring, directory, now, when, dspublish,
+			       0, 0, false));
 }
 
 isc_result_t
 dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		      const char *directory, isc_stdtime_t now, bool dspublish,
-		      dns_keytag_t id, unsigned int alg) {
-	return (keymgr_checkds(kasp, keyring, directory, now, dspublish, id,
-			       alg, true));
+		      const char *directory, isc_stdtime_t now,
+		      isc_stdtime_t when, bool dspublish, dns_keytag_t id,
+		      unsigned int alg) {
+	return (keymgr_checkds(kasp, keyring, directory, now, when, dspublish,
+			       id, alg, true));
 }
 
 static void

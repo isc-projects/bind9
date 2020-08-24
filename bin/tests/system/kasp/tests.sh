@@ -1237,10 +1237,16 @@ rndc_checkds() {
 		_whencmd="-when ${_when}"
 	fi
 
-	echo_i "calling checkds ${_keycmd} ${_whencmd} ${_what} zone ${_zone} ($n)"
+	n=$((n+1))
+	echo_i "calling rndc dnssec -checkds ${_keycmd} ${_whencmd} ${_what} zone ${_zone} ($n)"
+	ret=0
+
 	rndccmd $_server dnssec -checkds $_keycmd $_whencmd $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (${_keycmd} ${_whencmd} ${_what} zone ${_zone} failed"
 
 	_loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
+
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
 }
 
 # Tell named to schedule a key rollover.
@@ -1252,15 +1258,16 @@ rndc_rollover() {
 	_zone=$5
 	_view=$6
 
+	_whencmd=""
+	if [ "${_when}" != "now" ]; then
+		_whencmd="-when ${_when}"
+	fi
+
 	n=$((n+1))
-	echo_i "calling rndc dnssec -rollover key ${_keyid} zone ${_zone} ($n)"
+	echo_i "calling rndc dnssec -rollover key ${_keyid} ${_whencmd} zone ${_zone} ($n)"
 	ret=0
 
-	if [ "${_when}" = "now" ]; then
-		rndccmd $_server dnssec -rollover -key $_keyid $_zone in $_view > rndc.dnssec.rollover.out.$_zone.$n || log_error "rndc dnssec -rollover (key ${_keyid} when ${_when}) zone ${_zone} failed"
-	else
-		rndccmd $_server dnssec -rollover -key $_keyid -when $_when $_zone in $_view > rndc.dnssec.rollover.out.$_zone.$n || log_error "rndc dnssec -rollover (key ${_keyid} when ${_when}) zone ${_zone} failed"
-	fi
+	rndccmd $_server dnssec -rollover -key $_keyid $_whencmd $_zone in $_view > rndc.dnssec.rollover.out.$_zone.$n || log_error "rndc dnssec -rollover (key ${_keyid} when ${_when}) zone ${_zone} failed"
 
 	_loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
 
