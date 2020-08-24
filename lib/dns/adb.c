@@ -2826,9 +2826,8 @@ dns_adb_detach(dns_adb_t **adbx) {
 	adb = *adbx;
 	*adbx = NULL;
 
-	INSIST(adb->erefcnt > 0);
-
 	LOCK(&adb->reflock);
+	INSIST(adb->erefcnt > 0);
 	adb->erefcnt--;
 	need_exit_check = (adb->erefcnt == 0 && adb->irefcnt == 0);
 	UNLOCK(&adb->reflock);
