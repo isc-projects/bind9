@@ -31,6 +31,12 @@ variables:
 
   AM_COLOR_TESTS: always
 
+  WITHOUT_READLINE: "--without-readline"
+  WITH_READLINE: "--with-readline"
+  WITH_READLINE_EDITLINE: "--with-readline=editline"
+  WITH_READLINE_LIBEDIT: "--with-readline=libedit"
+  WITH_READLINE_READLINE: "--with-readline=readline"
+
 stages:
   - autoconf
   - precheck
@@ -181,6 +187,21 @@ stages:
     $EXTRA_CONFIGURE \
     || cat config.log
 
+.check_readline_setup: &check_readline_setup |
+    if [[ -n "${WITHOUT_READLINE}" ]]; then \
+      ! grep "^#define HAVE_READLINE" config.h; \
+    elif [[ -n "${WITH_READLINE}" ]]; then \
+      grep -e "^#define HAVE_READLINE_READLINE" \
+           -e "^#define HAVE_READLINE_LIBEDIT" \
+           -e "^#define HAVE_READLINE_EDITLINE" config.h; \
+    elif [[ -n "${WITH_READLINE_EDITLINE}" ]]; then \
+      grep "^#define HAVE_READLINE_EDITLINE" config.h; \
+    elif [[ -n "${WITH_READLINE_LIBEDIT}" ]]; then \
+      grep "^#define HAVE_READLINE_LIBEDIT" config.h; \
+    elif [[ -n "${WITH_READLINE_READLINE}" ]]; then \
+      grep "^#define HAVE_READLINE_READLINE" config.h; \
+    fi
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
@@ -189,6 +210,7 @@ stages:
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
   script:
     - *configure
+    - *check_readline_setup
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
     - test -z "${RUN_MAKE_INSTALL}" || sh util/check-make-install
@@ -505,7 +527,7 @@ gcc:alpine3.12:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-dnstap"
+    EXTRA_CONFIGURE: "--enable-dnstap ${WITHOUT_READLINE}"
   <<: *alpine_3_12_amd64_image
   <<: *build_job
 
@@ -600,6 +622,7 @@ gcc:buster:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "${WITH_READLINE_LIBEDIT}"
   <<: *debian_buster_amd64_image
   <<: *build_job
 
@@ -767,7 +790,7 @@ gcc:tumbleweed:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr/lib/mit/bin/krb5-config"
+    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr/lib/mit/bin/krb5-config ${WITH_READLINE_READLINE}"
   <<: *tumbleweed_latest_amd64_image
   <<: *build_job
 
@@ -1045,6 +1068,7 @@ unit:gcc:softhsm2.6:
 clang:freebsd11:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "${WITH_READLINE}"
     USER: gitlab-runner
   <<: *freebsd_11_amd64_image
   <<: *build_job
@@ -1071,7 +1095,7 @@ unit:clang:freebsd11:amd64:
 clang:freebsd12:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-dnstap"
+    EXTRA_CONFIGURE: "--enable-dnstap ${WITH_READLINE_EDITLINE}"
     USER: gitlab-runner
   <<: *freebsd_12_amd64_image
   <<: *build_job
