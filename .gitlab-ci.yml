@@ -476,8 +476,12 @@ tarball-create:
   <<: *base_image
   <<: *default_triggering_rules
   script:
-    - *configure
+    - ./configure --enable-maintainer-mode
+    - make maintainer-clean
+    - autoreconf -fi
+    - ./configure --enable-maintainer-mode
     - make -j${BUILD_PARALLEL_JOBS:-1} all V=1
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - make -j${BUILD_PARALLEL_JOBS:-1} dist V=1
   artifacts:
     paths:
