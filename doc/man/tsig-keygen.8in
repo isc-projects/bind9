@@ -32,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH SYNOPSIS
 .sp
-\fBtsig\-keygen\fP [\fB\-a\fP algorithm] [\fB\-h\fP] [\fB\-r\fP randomfile] [\fB\-s\fP name]
+\fBtsig\-keygen\fP [\fB\-a\fP algorithm] [\fB\-h\fP] [\fB\-r\fP randomfile] [name]
 .sp
 \fBddns\-confgen\fP [\fB\-a\fP algorithm] [\fB\-h\fP] [\fB\-k\fP keyname] [\fB\-q\fP] [\fB\-r\fP randomfile] [\fB\-s\fP name] [\fB\-z\fP zone]
 .SH DESCRIPTION
