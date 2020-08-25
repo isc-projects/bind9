@@ -132,7 +132,10 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 		if (plen >= isc_buffer_availablelength(target))
 			return (ISC_R_NOSPACE);
 
-		isc_buffer_putmem(target, sockaddr->type.sunix.sun_path, plen);
+		isc_buffer_putmem(
+			target,
+			(const unsigned char *)sockaddr->type.sunix.sun_path,
+			plen);
 
 		/*
 		 * Null terminate after used region.
