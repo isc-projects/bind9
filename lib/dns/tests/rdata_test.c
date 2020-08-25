@@ -2096,6 +2096,8 @@ loc(void **state) {
 		TEXT_VALID_CHANGED("0 0 .0 N 0 0 .0 E 0",
 				   "0 0 0.000 N 0 0 0.000 E 0.00m 1m 10000m "
 				   "10m"),
+		TEXT_INVALID("0 North 0 East 0"),
+		TEXT_INVALID("0 South 0 West 0"),
 		TEXT_INVALID("0 0 . N 0 0 0. E 0"),
 		TEXT_INVALID("0 0 0. N 0 0 . E 0"),
 		TEXT_INVALID("0 0 0. N 0 0 0. E m"),
