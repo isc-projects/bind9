@@ -1239,6 +1239,7 @@
 ./docutil/patch-db2latex-nested-param-bug	X	2007,2018,2019,2020
 ./docutil/patch-db2latex-xsltproc-title-bug	X	2007,2018,2019,2020
 ./fuzz/afl.sh					SH	2020
+./fuzz/dns_message_parse.c			C	2020
 ./fuzz/dns_name_fromtext_target.c		C	2018,2019,2020
 ./fuzz/dns_rdata_fromwire_text.c		C	2019,2020
 ./fuzz/fuzz.h					C	2018,2019,2020
