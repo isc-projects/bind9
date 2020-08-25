@@ -118,7 +118,7 @@ isc_refcount_increment(isc_refcount_t *target) {
 static inline uint_fast32_t
 isc_refcount_decrement(isc_refcount_t *target) {
 	uint_fast32_t __v;
-	__v = (uint_fast32_t)atomic_fetch_sub_release(target, 1);
+	__v = (uint_fast32_t)atomic_fetch_sub_acq_rel(target, 1);
 	INSIST(__v > 0);
 	return (__v);
 }
@@ -127,7 +127,7 @@ isc_refcount_decrement(isc_refcount_t *target) {
 	({                                                 \
 		/* cppcheck-suppress shadowVariable */     \
 		uint_fast32_t __v;                         \
-		__v = atomic_fetch_sub_release(target, 1); \
+		__v = atomic_fetch_sub_acq_rel(target, 1); \
 		INSIST(__v > 0);                           \
 		__v;                                       \
 	})
