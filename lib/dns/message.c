@@ -2318,10 +2318,11 @@ dns_message_renderend(dns_message_t *msg) {
 		dns_message_renderrelease(msg, msg->opt_reserved);
 		msg->opt_reserved = 0;
 		/*
-		 * Set the extended rcode.
+		 * Set the extended rcode.  Cast msg->rcode to dns_ttl_t
+		 * so that we do a unsigned shift.
 		 */
 		msg->opt->ttl &= ~DNS_MESSAGE_EDNSRCODE_MASK;
-		msg->opt->ttl |= ((msg->rcode << 20) &
+		msg->opt->ttl |= (((dns_ttl_t)(msg->rcode) << 20) &
 				  DNS_MESSAGE_EDNSRCODE_MASK);
 		/*
 		 * Render.
