@@ -10658,8 +10658,10 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 			fctx->qmin_labels = 17;
 		} else if (fctx->qmin_labels < 19) {
 			fctx->qmin_labels = 19;
-		} else if (fctx->qmin_labels > 19) {
+		} else if (fctx->qmin_labels < 35) {
 			fctx->qmin_labels = 35;
+		} else {
+			fctx->qmin_labels = nlabels;
 		}
 	} else if (fctx->qmin_labels > DNS_QMIN_MAXLABELS) {
 		fctx->qmin_labels = DNS_MAX_LABELS + 1;
