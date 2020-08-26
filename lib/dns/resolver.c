@@ -1894,7 +1894,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		query->connects++;
 		QTRACE("connecting via TCP");
 	} else {
-		if (dns_adbentry_overquota(addrinfo->entry))
+		if (dns_adbentry_overquota(fctx->adb, addrinfo->entry))
 			goto cleanup_dispatch;
 
 		/* Inform the ADB that we're starting a UDP fetch */
@@ -3809,7 +3809,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	addrinfo = fctx_nextaddress(fctx);
 
 	/* Try to find an address that isn't over quota */
-	while (addrinfo != NULL && dns_adbentry_overquota(addrinfo->entry))
+	while (addrinfo != NULL && dns_adbentry_overquota(fctx->adb, addrinfo->entry))
 		addrinfo = fctx_nextaddress(fctx);
 
 	if (addrinfo == NULL) {
@@ -3835,7 +3835,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		addrinfo = fctx_nextaddress(fctx);
 
 		while (addrinfo != NULL &&
-		       dns_adbentry_overquota(addrinfo->entry))
+		       dns_adbentry_overquota(fctx->adb, addrinfo->entry))
 			addrinfo = fctx_nextaddress(fctx);
 
 		/*

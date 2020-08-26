@@ -4791,10 +4791,18 @@ dns_adb_setquota(dns_adb_t *adb, uint32_t quota, uint32_t freq,
 }
 
 bool
-dns_adbentry_overquota(dns_adbentry_t *entry) {
+dns_adbentry_overquota(dns_adb_t *adb, dns_adbentry_t *entry) {
+	int bucket;
 	bool block;
+
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
+
+	bucket = entry->lock_bucket;
+
+	LOCK(&adb->entrylocks[bucket]);
 	block = (entry->quota != 0 && entry->active >= entry->quota);
+	UNLOCK(&adb->entrylocks[bucket]);
+
 	return (block);
 }
 
