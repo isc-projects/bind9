@@ -967,12 +967,18 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 		manager->epoll_events[fd] |= EPOLLOUT;
 
 	event.events = manager->epoll_events[fd];
-	UNLOCK(&manager->fdlock[lockid]);
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 
 	op = (oldevents == 0U) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+	if (manager->fds[fd] != NULL) {
+		LOCK(&manager->fds[fd]->lock);
+	}
 	ret = epoll_ctl(manager->epoll_fd, op, fd, &event);
+	if (manager->fds[fd] != NULL) {
+		UNLOCK(&manager->fds[fd]->lock);
+	}
+	UNLOCK(&manager->fdlock[lockid]);
 	if (ret == -1) {
 		if (errno == EEXIST)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
