@@ -231,6 +231,9 @@ getdata(dns_rbtnode_t *node, file_header_t *header) {
 #define IS_ROOT(node)	   ((node)->is_root)
 #define FINDCALLBACK(node) ((node)->find_callback)
 
+#define WANTEMPTYDATA_OR_DATA(options, node) \
+	((options & DNS_RBTFIND_EMPTYDATA) != 0 || DATA(node) != NULL)
+
 /*%
  * Structure elements from the rbtdb.c, not
  * used as part of the rbt.c algorithms.
@@ -1703,8 +1706,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 				/*
 				 * This might be the closest enclosing name.
 				 */
-				if ((options & DNS_RBTFIND_EMPTYDATA) != 0 ||
-				    DATA(current) != NULL) {
+				if (WANTEMPTYDATA_OR_DATA(options, current)) {
 					*node = current;
 				}
 
@@ -1776,7 +1778,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	 * ISC_R_SUCCESS to indicate an exact match.
 	 */
 	if (current != NULL && (options & DNS_RBTFIND_NOEXACT) == 0 &&
-	    ((options & DNS_RBTFIND_EMPTYDATA) != 0 || DATA(current) != NULL))
+	    WANTEMPTYDATA_OR_DATA(options, current))
 	{
 		/*
 		 * Found an exact match.
@@ -2011,9 +2013,7 @@ dns_rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
 	result = dns_rbt_findnode(rbt, name, foundname, &node, NULL, options,
 				  NULL, NULL);
 
-	if (node != NULL &&
-	    (DATA(node) != NULL || (options & DNS_RBTFIND_EMPTYDATA) != 0))
-	{
+	if (node != NULL && WANTEMPTYDATA_OR_DATA(options, node)) {
 		*data = DATA(node);
 	} else {
 		result = ISC_R_NOTFOUND;
@@ -2881,7 +2881,7 @@ deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, bool unhash,
 			dns_rbtnode_t *node = root;
 			root = PARENT(root);
 
-			if (DATA(node) != NULL && rbt->data_deleter != NULL) {
+			if (rbt->data_deleter != NULL && DATA(node) != NULL) {
 				rbt->data_deleter(DATA(node), rbt->deleter_arg);
 			}
 			if (unhash) {
