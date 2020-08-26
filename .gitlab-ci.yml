@@ -794,7 +794,7 @@ gcc:tumbleweed:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr/lib/mit/bin/krb5-config ${WITH_READLINE_READLINE}"
+    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_READLINE}"
   <<: *tumbleweed_latest_amd64_image
   <<: *build_job
 
