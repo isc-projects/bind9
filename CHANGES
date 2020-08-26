@@ -1,3 +1,7 @@
+5492.	[bug]		Tighten LOC parsing to reject period and/or m as a
+			value.  Correct handling of negative altitudes which
+			are not whole metres.  [GL #2074]
+
 5489.	[bug]		Named failed to reject some invalid records resulting
 			in records that, after being printed, could not be
 			loaded or would result in DNSSEC validation failures
