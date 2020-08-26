@@ -184,6 +184,18 @@ which ar resides, or set AR in the environment with the full path to ar.
 esac
 
 #
+# Look for w3m
+#
+AC_PATH_PROGS(W3M, w3m, w3m)
+AC_SUBST(W3M)
+
+#
+# Look for pandoc
+#
+AC_PATH_PROG(PANDOC, pandoc, pandoc)
+AC_SUBST(PANDOC)
+
+#
 # Perl is optional; it is used only by some of the system test scripts.
 # Note: the backtrace feature (see below) uses perl to build the symbol table,
 # but it still compiles without perl, in which case an empty table will be used.
