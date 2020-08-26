@@ -1,3 +1,6 @@
+5494.	[bug]		Silence the EPROTO syslog message on older systems.
+			[GL #1928]
+
 5493.	[bug]		Fix off-by-one error when calculating new hashtable
 			size. [GL #2104]
 
