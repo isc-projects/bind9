@@ -3457,18 +3457,16 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 			adb, adb->erefcnt, adb->irefcnt,
 			isc_mempool_getallocated(adb->nhmp));
 
-	for (i = 0; i < adb->nnames; i++)
-		LOCK(&adb->namelocks[i]);
-	for (i = 0; i < adb->nentries; i++)
-		LOCK(&adb->entrylocks[i]);
-
 	/*
 	 * Dump the names
 	 */
 	for (i = 0; i < adb->nnames; i++) {
+		LOCK(&adb->namelocks[i]);
 		name = ISC_LIST_HEAD(adb->names[i]);
-		if (name == NULL)
+		if (name == NULL) {
+			UNLOCK(&adb->namelocks[i]);
 			continue;
+		}
 		if (debug)
 			fprintf(f, "; bucket %u\n", i);
 		for (;
@@ -3506,26 +3504,21 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 				print_find_list(f, name);
 			}
 		}
+		UNLOCK(&adb->namelocks[i]);
 	}
 
 	fprintf(f, ";\n; Unassociated entries\n;\n");
 
 	for (i = 0; i < adb->nentries; i++) {
+		LOCK(&adb->entrylocks[i]);
 		entry = ISC_LIST_HEAD(adb->entries[i]);
 		while (entry != NULL) {
 			if (entry->nh == 0)
 				dump_entry(f, adb, entry, debug, now);
 			entry = ISC_LIST_NEXT(entry, plink);
 		}
-	}
-
-	/*
-	 * Unlock everything
-	 */
-	for (i = 0; i < adb->nentries; i++)
 		UNLOCK(&adb->entrylocks[i]);
-	for (i = 0; i < adb->nnames; i++)
-		UNLOCK(&adb->namelocks[i]);
+	}
 }
 
 static void
@@ -3644,6 +3637,7 @@ print_namehook_list(FILE *f, const char *legend,
 		    dns_adb_t *adb, dns_adbnamehooklist_t *list,
 		    bool debug, isc_stdtime_t now)
 {
+	int addr_bucket = DNS_ADB_INVALIDBUCKET;
 	dns_adbnamehook_t *nh;
 
 	for (nh = ISC_LIST_HEAD(*list);
@@ -3652,7 +3646,18 @@ print_namehook_list(FILE *f, const char *legend,
 	{
 		if (debug)
 			fprintf(f, ";\tHook(%s) %p\n", legend, nh);
+		if (addr_bucket != nh->entry->lock_bucket) {
+			if (addr_bucket != DNS_ADB_INVALIDBUCKET) {
+				UNLOCK(&adb->entrylocks[addr_bucket]);
+			}
+			addr_bucket = nh->entry->lock_bucket;
+			INSIST(addr_bucket != DNS_ADB_INVALIDBUCKET);
+			LOCK(&adb->entrylocks[addr_bucket]);
+		}
 		dump_entry(f, adb, nh->entry, debug, now);
+	}
+	if (addr_bucket != DNS_ADB_INVALIDBUCKET) {
+		UNLOCK(&adb->entrylocks[addr_bucket]);
 	}
 }
 
