@@ -75,9 +75,30 @@ typedef struct geoip_state {
 	MMDB_entry_s entry;
 } geoip_state_t;
 
+#if defined(ISC_PLATFORM_HAVESTDATOMIC)
+#if defined(__cplusplus)
+#include <isc/stdatomic.h>
+#else
+#include <stdatomic.h>
+#endif
+#endif
+
 #ifdef ISC_PLATFORM_USETHREADS
 static isc_mutex_t key_mutex;
-static bool state_key_initialized = false;
+#if defined(ISC_PLATFORM_HAVESTDATOMIC)
+static _Atomic(int32_t)		state_key_initialized = 0;
+#define GEOIP2_LOAD(x)		atomic_load(&(x))
+#define GEOIP2_STORE(x, v)	atomic_store(&(x), v)
+#else
+static int32_t			state_key_initialized = 0;
+#if defined(ISC_PLATFORM_HAVEXADD)
+#define GEOIP2_LOAD(x)		isc_atomic_xadd(&(x), 0)
+#define GEOIP2_STORE(x, v)	isc_atomic_store(&(x), v)
+#else
+#define GEOIP2_LOAD(x)		(x)
+#define GEOIP2_STORE(x, v)	(x) = (v)
+#endif
+#endif
 static isc_thread_key_t state_key;
 static isc_once_t mutex_once = ISC_ONCE_INIT;
 #else
@@ -110,9 +131,9 @@ state_key_init(void) {
 		return (result);
 	}
 
-	if (!state_key_initialized) {
+	if (!GEOIP2_LOAD(state_key_initialized)) {
 		LOCK(&key_mutex);
-		if (!state_key_initialized) {
+		if (!GEOIP2_LOAD(state_key_initialized)) {
 			int ret;
 
 			if (state_mctx == NULL) {
@@ -126,7 +147,7 @@ state_key_init(void) {
 
 			ret = isc_thread_key_create(&state_key, free_state);
 			if (ret == 0) {
-				state_key_initialized = true;
+				GEOIP2_STORE(state_key_initialized, 1);
 			} else {
 				result = ISC_R_FAILURE;
 			}
