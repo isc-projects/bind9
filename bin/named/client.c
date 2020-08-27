@@ -850,8 +850,7 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 		client->shutdown_arg = NULL;
 	}
 
-	if (ISC_QLINK_LINKED(client, ilink))
-		ISC_QUEUE_UNLINK(client->manager->inactive, client, ilink);
+	ISC_QUEUE_UNLINKIFLINKED(client->manager->inactive, client, ilink);
 
 	client->newstate = NS_CLIENTSTATE_FREED;
 	client->needshutdown = false;
