@@ -880,9 +880,13 @@ ns_lwresd_shutdown(void) {
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
 
+	LOCK(&listeners_lock);
 	while (!ISC_LIST_EMPTY(listeners)) {
 		listener = ISC_LIST_HEAD(listeners);
 		ISC_LIST_UNLINK(listeners, listener, link);
+		UNLOCK(&listeners_lock);
 		ns_lwreslistener_detach(&listener);
+		LOCK(&listeners_lock);
 	}
+	UNLOCK(&listeners_lock);
 }
