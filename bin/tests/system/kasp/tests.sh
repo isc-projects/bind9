@@ -1173,6 +1173,26 @@ check_subdomain() {
 	status=$((status+ret))
 }
 
+# Check if "CDS/CDNSKEY Published" is logged.
+check_cdslog() {
+	_dir=$1
+	_zone=$2
+	_key=$3
+
+	_alg=$(key_get $_key ALG_STR)
+	_id=$(key_get $_key ID)
+
+	n=$((n+1))
+	echo_i "check CDS/CDNSKEY publication is logged in ${_dir}/named.run for key ${_zone}/${_alg}/${_id} ($n)"
+	ret=0
+
+	grep "CDS for key ${_zone}/${_alg}/${_id} is now published" "${_dir}/named.run" > /dev/null || ret=1
+	grep "CDNSKEY for key ${_zone}/${_alg}/${_id} is now published" "${_dir}/named.run" > /dev/null || ret=1
+
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+}
+
 #
 # rndc dnssec -checkds
 #
@@ -2721,6 +2741,8 @@ check_keytimes
 check_apex
 check_subdomain
 dnssec_verify
+# Check that CDS publication is logged.
+check_cdslog "$DIR" "$ZONE" KEY1
 
 # The DS can be introduced. We ignore any parent registration delay, so set
 # the DS publish time to now.
@@ -3151,6 +3173,8 @@ set_keystate "KEY3" "STATE_DS"     "rumoured"
 # Various signing policy checks.
 check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+# Check that CDS publication is logged.
+check_cdslog "$DIR" "$ZONE" KEY3
 
 # Set expected key times:
 # - The old keys were activated 60 days ago (5184000 seconds).
@@ -3396,6 +3420,8 @@ set_keystate "KEY2" "STATE_DS"     "rumoured"
 # Various signing policy checks.
 check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+# Check that CDS publication is logged.
+check_cdslog "$DIR" "$ZONE" KEY2
 
 # Set expected key times:
 # - This key was activated 186 days ago (16070400 seconds).
@@ -3714,6 +3740,8 @@ set_keystate     "KEY2" "STATE_DS" "rumoured"
 # Various signing policy checks.
 check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+# Check that CDS publication is logged.
+check_cdslog "$DIR" "$ZONE" KEY2
 
 # Set expected key times:
 # - This key was activated 186 days ago (16070400 seconds).
@@ -4679,6 +4707,8 @@ set_keystate "KEY3" "STATE_DS"     "rumoured"
 check_keys
 wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+# Check that CDS publication is logged.
+check_cdslog "$DIR" "$ZONE" KEY3
 
 # Set expected key times:
 # - The old keys were activated 9 hours ago (32400 seconds).
@@ -5038,6 +5068,8 @@ set_keystate "KEY2" "STATE_DS"     "rumoured"
 check_keys
 wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+# Check that CDS publication is logged.
+check_cdslog "$DIR" "$ZONE" KEY2
 
 # Set expected key times:
 # - The old key was activated 9 hours ago (32400 seconds).
