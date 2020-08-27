@@ -1,3 +1,5 @@
+5499.	[func]		Add '-P ds' and '-D ds' arguments to dnssec-settime.
+
 5498.	[test]		The --with-gperftools-profiler configure option was
 			removed. [GL !4045]
 
