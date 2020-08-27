@@ -17528,9 +17528,13 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 	case DNS_ZONESTATE_SOAQUERY:
 		for (zone = ISC_LIST_HEAD(zmgr->zones);
 		     zone != NULL;
-		     zone = ISC_LIST_NEXT(zone, link))
-			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH))
+		     zone = ISC_LIST_NEXT(zone, link)) {
+			LOCK_ZONE(zone);
+			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
 				count++;
+			}
+			UNLOCK_ZONE(zone);
+		}
 		break;
 	case DNS_ZONESTATE_ANY:
 		for (zone = ISC_LIST_HEAD(zmgr->zones);
