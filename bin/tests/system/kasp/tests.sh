@@ -2701,8 +2701,9 @@ check_next_key_event 43800
 set_zone "step3.enable-dnssec.autosign"
 set_policy "enable-dnssec" "1" "300"
 set_server "ns3" "10.53.0.3"
-# All signatures should be omnipresent.
+# All signatures should be omnipresent, so the DS can be submitted.
 set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "rumoured"
 
 # Various signing policy checks.
 check_keys
@@ -2723,7 +2724,6 @@ dnssec_verify
 
 # The DS can be introduced. We ignore any parent registration delay, so set
 # the DS publish time to now.
-set_keystate "KEY1" "STATE_DS" "rumoured"
 rndc_checkds "$SERVER" "$DIR" KEY1 "now" "published" "$ZONE"
 # Next key event is when the DS can move to the OMNIPRESENT state.  This occurs
 # when the parent propagation delay have passed, plus the DS TTL and retire
@@ -3144,6 +3144,9 @@ set_server "ns3" "10.53.0.3"
 # Check keys before we tell named that we saw the DS has been replaced.
 set_keystate "KEY3" "STATE_DNSKEY" "omnipresent"
 set_keystate "KEY3" "STATE_KRRSIG" "omnipresent"
+# The old DS (KEY1) can be withdrawn and the new DS (KEY3) can be introduced.
+set_keystate "KEY1" "STATE_DS"     "unretentive"
+set_keystate "KEY3" "STATE_DS"     "rumoured"
 
 # Various signing policy checks.
 check_keys
@@ -3167,9 +3170,6 @@ check_apex
 check_subdomain
 dnssec_verify
 
-# The old DS (KEY1) can be withdrawn and the new DS (KEY3) can be introduced.
-set_keystate "KEY1" "STATE_DS"     "unretentive"
-set_keystate "KEY3" "STATE_DS"     "rumoured"
 # We ignore any parent registration delay, so set the DS publish time to now.
 rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
 rndc_checkds "$SERVER" "$DIR" KEY3 "now" "published"  "$ZONE"
@@ -3389,6 +3389,9 @@ set_keystate "KEY1" "STATE_ZRRSIG" "unretentive"
 set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
 set_keystate "KEY2" "STATE_KRRSIG" "omnipresent"
 set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+# The old DS (KEY1) can be withdrawn and the new DS (KEY2) can be introduced.
+set_keystate "KEY1" "STATE_DS"     "unretentive"
+set_keystate "KEY2" "STATE_DS"     "rumoured"
 
 # Various signing policy checks.
 check_keys
@@ -3419,9 +3422,6 @@ set_zonesigning  "KEY1" "no"
 set_zonesigning  "KEY2" "yes"
 dnssec_verify
 
-# The old DS (KEY1) can be withdrawn and the new DS (KEY2) can be introduced.
-set_keystate "KEY1" "STATE_DS"     "unretentive"
-set_keystate "KEY2" "STATE_DS"     "rumoured"
 # We ignore any parent registration delay, so set the DS publish time to now.
 rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
 rndc_checkds "$SERVER" "$DIR" KEY2 "now" "published"  "$ZONE"
@@ -3707,6 +3707,9 @@ set_zonesigning  "KEY2" "yes"
 set_keystate     "KEY2" "STATE_DNSKEY" "omnipresent"
 set_keystate     "KEY2" "STATE_KRRSIG" "omnipresent"
 set_keystate     "KEY2" "STATE_ZRRSIG" "rumoured"
+# The old DS (KEY1) can be withdrawn and the new DS (KEY2) can be introduced.
+set_keystate     "KEY1" "STATE_DS" "unretentive"
+set_keystate     "KEY2" "STATE_DS" "rumoured"
 
 # Various signing policy checks.
 check_keys
@@ -3737,9 +3740,6 @@ set_zonesigning  "KEY1" "no"
 set_zonesigning  "KEY2" "yes"
 dnssec_verify
 
-# The old DS (KEY1) can be withdrawn and the new DS (KEY2) can be introduced.
-set_keystate     "KEY1" "STATE_DS" "unretentive"
-set_keystate     "KEY2" "STATE_DS" "rumoured"
 # We ignore any parent registration delay, so set the DS publish time to now.
 rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
 rndc_checkds "$SERVER" "$DIR" KEY2 "now" "published" "$ZONE"
@@ -4710,9 +4710,6 @@ check_apex
 check_subdomain
 dnssec_verify
 
-# It is time to swap the DS.
-set_keystate "KEY1" "STATE_DS"     "unretentive"
-set_keystate "KEY3" "STATE_DS"     "rumoured"
 # Tell named we "saw" the parent swap the DS and see if the next key event is
 # scheduled at the correct time.
 rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
@@ -5033,6 +5030,9 @@ set_server "ns6" "10.53.0.6"
 # The ECDSAP256SHA256 key is introducing. The DNSKEY RRset and all signatures
 # are now omnipresent, so the DS can be introduced.
 set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+# The old DS (KEY1) can be withdrawn and the new DS (KEY2) can be introduced.
+set_keystate "KEY1" "STATE_DS"     "unretentive"
+set_keystate "KEY2" "STATE_DS"     "rumoured"
 
 # Various signing policy checks.
 check_keys
@@ -5060,9 +5060,6 @@ check_apex
 check_subdomain
 dnssec_verify
 
-# The old DS (KEY1) can be withdrawn and the new DS (KEY2) can be introduced.
-set_keystate "KEY1" "STATE_DS"     "unretentive"
-set_keystate "KEY2" "STATE_DS"     "rumoured"
 # We ignore any parent registration delay, so set the DS publish time to now.
 rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
 rndc_checkds "$SERVER" "$DIR" KEY2 "now" "published" "$ZONE"

@@ -1,3 +1,6 @@
+5500.	[bug]		Fix (non-)publication of CDS and CDNSKEY records.
+			[GL #2103]
+
 5499.	[func]		Add '-P ds' and '-D ds' arguments to dnssec-settime.
 
 5497.	[bug]		dig +bufsize=0 failed to disable EDNS as a side
