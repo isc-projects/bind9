@@ -93,12 +93,8 @@
 	do { \
 		bool headlocked = false; \
 		ISC_QLINK_INSIST(!ISC_QLINK_LINKED(elt, link)); \
-		if ((queue).head == NULL) { \
-			LOCK(&(queue).headlock); \
-			headlocked = true; \
-		} \
 		LOCK(&(queue).taillock); \
-		if ((queue).tail == NULL && !headlocked) { \
+		if ((queue).tail == NULL) { \
 			UNLOCK(&(queue).taillock); \
 			LOCK(&(queue).headlock); \
 			LOCK(&(queue).taillock); \
