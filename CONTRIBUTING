@@ -98,8 +98,8 @@ and effectively and we respect and acknowledge responsible reporters.
 ISC's Security Vulnerability Disclosure Policy is documented at https://
 kb.isc.org/article/AA-00861/0.
 
-If you have a crash, you may want to consult ?What to do if your BIND or
-DHCP server has crashed.?
+If you have a crash, you may want to consult ‘What to do if your BIND or
+DHCP server has crashed.’
 
 Contributing code
 
@@ -137,12 +137,12 @@ we're busy with other work, it may take us a long time to get to it.
 
 To ensure your patch is acted on as promptly as possible, please:
 
-  * Try to adhere to the BIND 9 coding style.
-  * Run make check to ensure your change hasn't caused any functional
+  • Try to adhere to the BIND 9 coding style.
+  • Run make check to ensure your change hasn't caused any functional
     regressions.
-  * Document your work, both in the patch itself and in the accompanying
+  • Document your work, both in the patch itself and in the accompanying
     email.
-  * In patches that make non-trivial functional changes, include system
+  • In patches that make non-trivial functional changes, include system
     tests if possible; when introducing or substantially altering a
     library API, include unit tests. See Testing for more information.
 
@@ -161,12 +161,12 @@ Documentation
 All functional changes should be documented. There are three types of
 documentation in the BIND source tree:
 
-  * Man pages are kept alongside the source code for the commands they
+  • Man pages are kept alongside the source code for the commands they
     document, in files ending in .docbook; for example, the named man page
     is bin/named/named.docbook.
-  * The BIND 9 Administrator Reference Manual is mostly in doc/arm/
+  • The BIND 9 Administrator Reference Manual is mostly in doc/arm/
     Bv9ARM-book.xml, plus a few other XML files that are included in it.
-  * API documentation is in the header file describing the API, in
+  • API documentation is in the header file describing the API, in
     Doxygen-formatted comments.
 
 It is not necessary to edit any documentation files other than these; all
