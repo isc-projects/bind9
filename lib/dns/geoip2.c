@@ -192,8 +192,10 @@ set_state(const MMDB_s *db, const isc_netaddr_t *addr,
 	state = saved_state;
 #endif
 	if (state == NULL) {
+		LOCK(&key_mutex);
 		state = (geoip_state_t *) isc_mem_get(state_mctx,
 						      sizeof(geoip_state_t));
+		UNLOCK(&key_mutex);
 		if (state == NULL) {
 			return (ISC_R_NOMEMORY);
 		}
@@ -202,14 +204,18 @@ set_state(const MMDB_s *db, const isc_netaddr_t *addr,
 #ifdef ISC_PLATFORM_USETHREADS
 		result = isc_thread_key_setspecific(state_key, state);
 		if (result != ISC_R_SUCCESS) {
+			LOCK(&key_mutex);
 			isc_mem_put(state_mctx, state, sizeof(geoip_state_t));
+			UNLOCK(&key_mutex);
 			return (result);
 		}
 #else
 		saved_state = state;
 #endif
 
+		LOCK(&key_mutex);
 		isc_mem_attach(state_mctx, &state->mctx);
+		UNLOCK(&key_mutex);
 	}
 
 	state->db = db;
