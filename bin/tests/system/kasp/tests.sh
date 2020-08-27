@@ -1191,18 +1191,25 @@ _loadkeys_on() {
 rndc_checkds() {
 	_server=$1
 	_dir=$2
-	_keyid=$3
+	_key=$3
 	_when=$4
 	_what=$5
 	_zone=$6
 	_view=$7
 
-	echo_i "calling checkds $_what key ${_keyid} zone ${_zone} ($n)"
-	if [ "${_keyid}" = "-" ]; then
-		rndccmd $_server dnssec -checkds -when $_when $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (key ${_keyid} when ${_when} what ${_what}) zone ${_zone} failed"
-	else
-		rndccmd $_server dnssec -checkds -key $_keyid -when $_when $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (key ${_keyid} when ${_when} what ${_what}) zone ${_zone} failed"
+	_keycmd=""
+	if [ "${_key}" != "-" ]; then
+		_keyid=$(key_get $_key ID)
+		_keycmd="-key ${_keyid}"
 	fi
+
+	_whencmd=""
+	if [ "${_when}" != "now" ]; then
+		_whencmd="-when ${_when}"
+	fi
+
+	echo_i "calling checkds ${_keycmd} ${_whencmd} ${_what} zone ${_zone} ($n)"
+	rndccmd $_server dnssec -checkds $_keycmd $_whencmd $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (${_keycmd} ${_whencmd} ${_what} zone ${_zone} failed"
 
 	_loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
 }
@@ -1493,7 +1500,7 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "checkds published -key correctly sets DSPublish for key $(key_get KEY1 ID) zone $ZONE (multiple KSK) ($n)"
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY1 ID) "20190102121314" "published" "$ZONE"
+rndc_checkds "$SERVER" "$DIR" KEY1 "20190102121314" "published" "$ZONE"
 grep "DSPublish: 20190102121314" "${basefile1}.state" > /dev/null || log_error "DSPublish not set in ${basefile1}"
 grep "DSPublish:" "${basefile2}.state" > /dev/null && log_error "DSPublish incorrectly set in ${basefile2}"
 test "$ret" -eq 0 || echo_i "failed"
@@ -1501,7 +1508,7 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "checkds withdrawn -key correctly sets DSRemoved for key $(key_get KEY2 ID) zone $ZONE (multiple KSK) ($n)"
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY2 ID) "20200102121314" "withdrawn" "$ZONE"
+rndc_checkds "$SERVER" "$DIR" KEY2 "20200102121314" "withdrawn" "$ZONE"
 grep "DSRemoved: 20200102121314" "${basefile2}.state" > /dev/null || log_error "DSRemoved not set in ${basefile2}"
 grep "DSRemoved:" "${basefile1}.state" > /dev/null && log_error "DSPublish incorrectly set in ${basefile1}"
 test "$ret" -eq 0 || echo_i "failed"
@@ -2714,9 +2721,9 @@ check_subdomain
 dnssec_verify
 
 # The DS can be introduced. We ignore any parent registration delay, so set
-# the DS publish time to now ($created).
+# the DS publish time to now.
 set_keystate "KEY1" "STATE_DS" "rumoured"
-rndc_checkds "$SERVER" "$DIR" KEY1 "${created}" "published" "$ZONE"
+rndc_checkds "$SERVER" "$DIR" KEY1 "now" "published" "$ZONE"
 # Next key event is when the DS can move to the OMNIPRESENT state.  This occurs
 # when the parent propagation delay have passed, plus the DS TTL and retire
 # safety delay:  1h + 2h + 20m = 3h20m = 12000 seconds
@@ -3162,10 +3169,9 @@ dnssec_verify
 # The old DS (KEY1) can be withdrawn and the new DS (KEY3) can be introduced.
 set_keystate "KEY1" "STATE_DS"     "unretentive"
 set_keystate "KEY3" "STATE_DS"     "rumoured"
-# We ignore any parent registration delay, so set the DS publish time to now
-# ($created).
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY1 ID) "${created}" "withdrawn" "$ZONE"
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY3 ID) "${created}" "published"  "$ZONE"
+# We ignore any parent registration delay, so set the DS publish time to now.
+rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
+rndc_checkds "$SERVER" "$DIR" KEY3 "now" "published"  "$ZONE"
 # Next key event is when the predecessor DS has been replaced with the
 # successor DS and enough time has passed such that the all validators that
 # have this DS RRset cached only know about the successor DS.  This is the
@@ -3415,10 +3421,9 @@ dnssec_verify
 # The old DS (KEY1) can be withdrawn and the new DS (KEY2) can be introduced.
 set_keystate "KEY1" "STATE_DS"     "unretentive"
 set_keystate "KEY2" "STATE_DS"     "rumoured"
-# We ignore any parent registration delay, so set the DS publish time to now
-# ($created).
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY1 ID) "${created}" "withdrawn" "$ZONE"
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY2 ID) "${created}" "published"  "$ZONE"
+# We ignore any parent registration delay, so set the DS publish time to now.
+rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
+rndc_checkds "$SERVER" "$DIR" KEY2 "now" "published"  "$ZONE"
 # Next key event is when the predecessor DS has been replaced with the
 # successor DS and enough time has passed such that the all validators that
 # have this DS RRset cached only know about the successor DS.  This is the
@@ -3734,10 +3739,9 @@ dnssec_verify
 # The old DS (KEY1) can be withdrawn and the new DS (KEY2) can be introduced.
 set_keystate     "KEY1" "STATE_DS" "unretentive"
 set_keystate     "KEY2" "STATE_DS" "rumoured"
-# We ignore any parent registration delay, so set the DS publish time to now
-# ($created).
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY1 ID) "${created}" "withdrawn" "$ZONE"
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY2 ID) "${created}" "published"  "$ZONE"
+# We ignore any parent registration delay, so set the DS publish time to now.
+rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
+rndc_checkds "$SERVER" "$DIR" KEY2 "now" "published" "$ZONE"
 # Next key event is when the predecessor ZRRSIG records have been replaced
 # with that of the successor and enough time has passed such that the all
 # validators that have such signed RRsets in cache only know about the
@@ -4710,8 +4714,8 @@ set_keystate "KEY1" "STATE_DS"     "unretentive"
 set_keystate "KEY3" "STATE_DS"     "rumoured"
 # Tell named we "saw" the parent swap the DS and see if the next key event is
 # scheduled at the correct time.
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY1 ID) "${created}" "withdrawn" "$ZONE"
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY3 ID) "${created}" "published"  "$ZONE"
+rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
+rndc_checkds "$SERVER" "$DIR" KEY3 "now" "published"  "$ZONE"
 # Next key event is when the DS becomes OMNIPRESENT. This happens after the
 # parent propagation delay, retire safety delay, and DS TTL:
 # 1h + 2h + 2h = 5h = 18000 seconds.
@@ -5058,10 +5062,9 @@ dnssec_verify
 # The old DS (KEY1) can be withdrawn and the new DS (KEY2) can be introduced.
 set_keystate "KEY1" "STATE_DS"     "unretentive"
 set_keystate "KEY2" "STATE_DS"     "rumoured"
-# We ignore any parent registration delay, so set the DS publish time to now
-# ($created).
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY1 ID) "${created}" "withdrawn" "$ZONE"
-rndc_checkds "$SERVER" "$DIR" $(key_get KEY2 ID) "${created}" "published"  "$ZONE"
+# We ignore any parent registration delay, so set the DS publish time to now.
+rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
+rndc_checkds "$SERVER" "$DIR" KEY2 "now" "published" "$ZONE"
 # Next key event is when the DS becomes OMNIPRESENT. This happens after the
 # parent propagation delay, retire safety delay, and DS TTL:
 # 1h + 2h + 2h = 5h = 18000 seconds.
