@@ -10931,9 +10931,11 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 		     server->log_queries ? "ON" : "OFF");
 	CHECK(putstr(text, line));
 
+	LOCK(&server->recursionquota.lock);
 	snprintf(line, sizeof(line), "recursive clients: %d/%d/%d\n",
 		     server->recursionquota.used, server->recursionquota.soft,
 		     server->recursionquota.max);
+	UNLOCK(&server->recursionquota.lock);
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "tcp clients: %d/%d\n",
