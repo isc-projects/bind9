@@ -232,7 +232,7 @@ TcotN="now-55800s"
 TsbmN="now-12000s"
 keytimes="-P ${TpubN} -P sync ${TsbmN} -A ${TpubN}"
 CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $keytimes $zone 2> keygen.out.$zone.1)
-$SETTIME -s -g $O -k $O $TcotN -r $O $TcotN -d $R $TsbmN -z $O $TsbmN "$CSK" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -P ds $TsbmN -k $O $TcotN -r $O $TcotN -d $R $TsbmN -z $O $TsbmN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone 13 "$CSK" >> "$infile"
 $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
@@ -639,8 +639,8 @@ zsktimes="-P ${TactN}  -A ${TactN}"
 KSK1=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $newtimes $zone 2> keygen.out.$zone.2)
 ZSK=$($KEYGEN  -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.3)
-$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 "$KSK2" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 -D ds $TsbmN1 "$KSK1" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 -P ds $TsbmN1 "$KSK2" > settime.out.$zone.2 2>&1
 $SETTIME -s -g $O -k $O $TactN  -z $O $TactN                "$ZSK"  > settime.out.$zone.3 2>&1
 # Set key rollover relationship.
 key_successor $KSK1 $KSK2
@@ -822,8 +822,8 @@ csktimes="-P ${TactN}  -P sync ${TactN}  -A ${TactN}  -I ${TretN}  -D ${TremN}"
 newtimes="-P ${TpubN1} -P sync ${TsbmN1} -A ${TactN1} -I ${TretN1} -D ${TremN1}"
 CSK1=$($KEYGEN -k csk-roll -l policies/autosign.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll -l policies/autosign.conf $newtimes $zone 2> keygen.out.$zone.2)
-$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 -z $U $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 -z $R $TsbmN1 "$CSK2" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 -z $U $TsbmN1 -D ds $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 -z $R $TsbmN1 -P ds $TsbmN1 "$CSK2" > settime.out.$zone.2 2>&1
 # Set key rollover relationship.
 key_successor $CSK1 $CSK2
 # Sign zone.
@@ -1080,8 +1080,8 @@ csktimes="-P ${TactN}  -P sync ${TactN}  -A ${TactN}  -I ${TretN}  -D ${TremN}"
 newtimes="-P ${TpubN1} -P sync ${TsbmN1} -A ${TactN1} -I ${TretN1} -D ${TremN1}"
 CSK1=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $newtimes $zone 2> keygen.out.$zone.2)
-$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 -z $U $TretN  "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 -z $R $TactN1 "$CSK2" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -z $U $TretN  -d $U $TsbmN1 -D ds $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -z $R $TactN1 -d $R $TsbmN1 -P ds $TsbmN1 "$CSK2" > settime.out.$zone.2 2>&1
 # Set key rollover relationship.
 key_successor $CSK1 $CSK2
 # Sign zone.
@@ -1116,8 +1116,8 @@ csktimes="-P ${TactN}  -P sync ${TactN}  -A ${TactN}  -I ${TretN}  -D ${TremN}"
 newtimes="-P ${TpubN1} -P sync ${TsbmN1} -A ${TactN1} -I ${TretN1} -D ${TremN1}"
 CSK1=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $newtimes $zone 2> keygen.out.$zone.2)
-$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 -z $H now-133h "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 -z $O now-133h "$CSK2" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -z $H now-133h -d $U $TsbmN1 -D ds $TsbmN1 "$CSK1" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $TsbmN1 -r $O $TsbmN1 -z $O now-133h -d $R $TsbmN1 -P ds $TsbmN1 "$CSK2" > settime.out.$zone.2 2>&1
 # Set key rollover relationship.
 key_successor $CSK1 $CSK2
 # Sign zone.

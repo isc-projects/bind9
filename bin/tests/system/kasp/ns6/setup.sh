@@ -185,10 +185,10 @@ KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.
 ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
 KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
 ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
-$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TactN1 "$KSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $H -k $O $TactN  -z $O $TactN                "$ZSK1" > settime.out.$zone.2 2>&1
-$SETTIME -s -g $O -k $O $TpubN1 -r $O $TpubN1 -d $R $TactN1 "$KSK2" > settime.out.$zone.3 2>&1
-$SETTIME -s -g $O -k $O $TpubN1 -z $R $TpubN1               "$ZSK2" > settime.out.$zone.4 2>&1
+$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TactN1 -D ds $TactN1 "$KSK1" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $H -k $O $TactN  -z $O $TactN                              "$ZSK1" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $O -k $O $TpubN1 -r $O $TpubN1 -d $R $TactN1 -P ds $TactN1 "$KSK2" > settime.out.$zone.3 2>&1
+$SETTIME -s -g $O -k $O $TpubN1 -z $R $TpubN1                             "$ZSK2" > settime.out.$zone.4 2>&1
 # Fake lifetime of old algorithm keys.
 echo "Lifetime: 0" >> "${KSK1}.state"
 echo "Lifetime: 0" >> "${ZSK1}.state"
@@ -334,8 +334,8 @@ csktimes="-P ${TactN}  -A ${TactN} -P sync ${TactN} -I ${TretN}"
 newtimes="-P ${TpubN1} -A ${TpubN1}"
 CSK1=$($KEYGEN -k csk-algoroll -l policies/csk1.conf $csktimes $zone 2> keygen.out.$zone.1)
 CSK2=$($KEYGEN -k csk-algoroll -l policies/csk2.conf $newtimes $zone 2> keygen.out.$zone.2)
-$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -z $O $TactN  -d $U $TactN1 "$CSK1" > settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $TactN1 -r $O $TactN1 -z $O $TsubN1 -d $R $TsubN1 "$CSK2" > settime.out.$zone.2 2>&1
+$SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -z $O $TactN  -d $U $TactN1 -D ds $TactN1 "$CSK1" > settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $TactN1 -r $O $TactN1 -z $O $TsubN1 -d $R $TsubN1 -P ds $TsubN1 "$CSK2" > settime.out.$zone.2 2>&1
 # Fake lifetime of old algorithm keys.
 echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
