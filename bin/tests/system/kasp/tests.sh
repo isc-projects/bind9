@@ -1549,14 +1549,14 @@ basefile=$(key_get KEY1 BASEFILE)
 n=$((n+1))
 echo_i "checkds publish correctly sets DSPublish for zone $ZONE ($n)"
 rndc_checkds "$SERVER" "$DIR" "-" "20190102121314" "published" "$ZONE"
-grep "DSPublish: 20190102121314" "${basefile}.state" || log_error "DSPublish not set in ${basefile}"
+grep "DSPublish: 20190102121314" "${basefile}.state" > /dev/null || log_error "DSPublish not set in ${basefile}"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 n=$((n+1))
 echo_i "checkds withdraw correctly sets DSRemoved for zone $ZONE ($n)"
 rndc_checkds "$SERVER" "$DIR" "-" "20200102121314" "withdrawn" "$ZONE"
-grep "DSRemoved: 20200102121314" "${basefile}.state" || log_error "DSRemoved not set in ${basefile}"
+grep "DSRemoved: 20200102121314" "${basefile}.state" > /dev/null || log_error "DSRemoved not set in ${basefile}"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
