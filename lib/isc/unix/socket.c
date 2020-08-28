@@ -1526,6 +1526,16 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
 		SOFT_OR_HARD(EHOSTDOWN, ISC_R_HOSTDOWN);
 		SOFT_OR_HARD(ENOBUFS, ISC_R_NORESOURCES);
+		/*
+		 * Older operating systems may still return EPROTO in some
+		 * situations, for example when receiving ICMP/ICMPv6 errors.
+		 * A real life scenario is when ICMPv6 returns code 5 or 6.
+		 * These codes are introduced in RFC 4443 from March 2006,
+		 * and the document obsoletes RFC 1885. But unfortunately not
+		 * all operating systems have caught up with the new standard
+		 * (in 2020) and thus a generic protocol error is returned.
+		 */
+		SOFT_OR_HARD(EPROTO, ISC_R_HOSTUNREACH);
 		/* Should never get this one but it was seen. */
 #ifdef ENOPROTOOPT
 		SOFT_OR_HARD(ENOPROTOOPT, ISC_R_HOSTUNREACH);

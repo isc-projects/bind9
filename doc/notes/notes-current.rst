@@ -40,3 +40,8 @@ Bug Fixes
 - In rare circumstances, named would exit with assertion failure when the number
   of nodes stored in the red-black-tree exceeds the maximum allowed size of the
   internal hashtable.  [GL #2104]
+
+- Silence spurious system log messages for EPROTO(71) error code that has been
+  seen on older operating systems where unhandled ICMPv6 errors result in a
+  generic protocol error being returned instead of the more specific error code.
+  [GL #1928]
