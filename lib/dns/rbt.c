@@ -2331,10 +2331,9 @@ inithash(dns_rbt_t *rbt) {
 
 static uint32_t
 rehash_bits(dns_rbt_t *rbt, size_t newcount) {
-	uint32_t oldbits = rbt->hashbits;
-	uint32_t newbits = oldbits;
+	uint32_t newbits = rbt->hashbits;
 
-	while (newcount >= HASHSIZE(newbits) && newbits <= rbt->maxhashbits) {
+	while (newcount >= HASHSIZE(newbits) && newbits < rbt->maxhashbits) {
 		newbits += 1;
 	}
 
@@ -2381,7 +2380,7 @@ rehash(dns_rbt_t *rbt, uint32_t newbits) {
 static void
 maybe_rehash(dns_rbt_t *rbt, size_t newcount) {
 	uint32_t newbits = rehash_bits(rbt, newcount);
-	if (rbt->hashbits < newbits && newbits <= RBT_HASH_MAX_BITS) {
+	if (rbt->hashbits < newbits && newbits <= rbt->maxhashbits) {
 		rehash(rbt, newbits);
 	}
 }
