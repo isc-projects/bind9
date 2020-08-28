@@ -3856,6 +3856,22 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 	*managerp = NULL;
 }
 
+/*
+ * ISC_QUEUE_POP is deliberately not tsan safe to avoid aquiring
+ * the taillock every time ISC_QUEUE_POP is called.
+ * Isolate ISC_QUEUE_POP from tsan analysis.
+ */
+ISC_NO_SANITIZE_THREAD static ns_client_t *
+queue_pop(ns_clientmgr_t *manager)
+{
+	ns_client_t *client = NULL;
+
+	if (!ns_g_clienttest) {
+		ISC_QUEUE_POP(manager->inactive, ilink, client);
+	}
+	return (client);
+}
+
 static isc_result_t
 get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	   dns_dispatch_t *disp, bool tcp)
@@ -3875,8 +3891,9 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	 * if that fails, make a new one.
 	 */
 	client = NULL;
-	if (!ns_g_clienttest)
-		ISC_QUEUE_POP(manager->inactive, ilink, client);
+	if (!ns_g_clienttest) {
+		client = queue_pop(manager);
+	}
 
 	if (client != NULL)
 		MTRACE("recycle");
@@ -3944,8 +3961,9 @@ get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *sock,
 	 * if that fails, make a new one.
 	 */
 	client = NULL;
-	if (!ns_g_clienttest)
-		ISC_QUEUE_POP(manager->inactive, ilink, client);
+	if (!ns_g_clienttest) {
+		client = queue_pop(manager);
+	}
 
 	if (client != NULL)
 		MTRACE("recycle");
