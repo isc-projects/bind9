@@ -1,3 +1,6 @@
+5493.	[bug]		Fix off-by-one error when calculating new hashtable
+			size. [GL #2104]
+
 5492.	[bug]		Tighten LOC parsing to reject period and/or m as a
 			value.  Correct handling of negative altitudes which
 			are not whole metres.  [GL #2074]
