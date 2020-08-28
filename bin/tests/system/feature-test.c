@@ -49,6 +49,7 @@ usage() {
 	fprintf(stderr, "\t--ipv6only=no\n");
 	fprintf(stderr, "\t--rpz-nsdname\n");
 	fprintf(stderr, "\t--rpz-nsip\n");
+	fprintf(stderr, "\t--tsan\n");
 	fprintf(stderr, "\t--with-dlz-filesystem\n");
 	fprintf(stderr, "\t--with-idn\n");
 	fprintf(stderr, "\t--with-lmdb\n");
@@ -186,6 +187,19 @@ main(int argc, char **argv) {
 
 	if (strcmp(argv[1], "--rpz-nsip") == 0) {
 #ifdef ENABLE_RPZ_NSIP
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--tsan") == 0) {
+#if defined(__has_feature)
+#if __has_feature(thread_sanitizer)
+		return (0);
+#endif
+#endif
+#if __SANITIZE_THREAD__
 		return (0);
 #else
 		return (1);
