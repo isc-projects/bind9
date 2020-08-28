@@ -43,6 +43,7 @@ usage(void) {
 	fprintf(stderr, "\t--have-geoip2\n");
 	fprintf(stderr, "\t--have-libxml2\n");
 	fprintf(stderr, "\t--ipv6only=no\n");
+	fprintf(stderr, "\t--tsan\n");
 	fprintf(stderr, "\t--with-dlz-filesystem\n");
 	fprintf(stderr, "\t--with-idn\n");
 	fprintf(stderr, "\t--with-lmdb\n");
@@ -123,6 +124,19 @@ main(int argc, char **argv) {
 #else  /* ifdef HAVE_LIBXML2 */
 		return (1);
 #endif /* ifdef HAVE_LIBXML2 */
+	}
+
+	if (strcmp(argv[1], "--tsan") == 0) {
+#if defined(__has_feature)
+#if __has_feature(thread_sanitizer)
+		return (0);
+#endif
+#endif
+#if __SANITIZE_THREAD__
+		return (0);
+#else
+		return (1);
+#endif
 	}
 
 	if (strcmp(argv[1], "--ipv6only=no") == 0) {
