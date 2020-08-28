@@ -37,4 +37,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- In rare circumstances, named would exit with assertion failure when the number
+  of nodes stored in the red-black-tree exceeds the maximum allowed size of the
+  internal hashtable.  [GL #2104]
