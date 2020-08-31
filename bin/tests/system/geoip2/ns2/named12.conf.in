@@ -27,7 +27,6 @@ options {
 	dnssec-validation no;
 	geoip-directory "../data";
 	blackhole { blocking; };
-	max-cache-size 1M;
 };
 
 key rndc_key {
