@@ -83,5 +83,12 @@ END
     status=`expr $status + $count`
 done
 
-echo "I:exit status: $status"
-[ $status -eq 0 ] || exit 1
+echo_i "Checking for assertion failure in pk11_numbits()"
+ret=0
+$PERL ../packet.pl -a "10.53.0.1" -p "$PORT" -t udp 2037-pk11_numbits-crash-test.pkt || ret=1
+$DIG $DIGOPTS @10.53.0.1 version.bind. CH TXT > dig.out.pk11_numbits || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "exit status: $status"
+[ "$status" -eq 0 ] || exit 1
