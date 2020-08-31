@@ -29,3 +29,6 @@ ns.example3		A	10.53.0.1
 
 example7		NS	ns.example7
 ns.example7		A	10.53.0.2
+
+tld			NS	ns.tld
+ns.tld			A	10.53.0.2
