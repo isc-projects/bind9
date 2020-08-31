@@ -35,14 +35,16 @@ nextpart ns3/named.run > /dev/null
 rndc_reload ns2 10.53.0.2
 rndc_reload ns3 10.53.0.3
 
-echo_i "wait for reload"
-a=0 b=0
-for i in 1 2 3 4 5 6 7 8 9 0; do
-        nextpart ns2/named.run | grep "all zones loaded" > /dev/null && a=1
-        nextpart ns3/named.run | grep "all zones loaded" > /dev/null && b=1
-        [ $a -eq 1 -a $b -eq 1 ] && break
-        sleep 1
-done
+echo_i "wait for reload to complete"
+ret=0
+_check_reload() (
+  nextpartpeek ns2/named.run | grep "all zones loaded" > /dev/null && \
+  nextpartpeek ns3/named.run | grep "all zones loaded" > /dev/null && \
+  nextpartpeek ns3/named.run | grep "zone_dump: zone example/IN: enter" > /dev/null
+)
+retry_quiet 10 _check_reload || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "fetching a.example from ns2's 10.53.0.4, source address 10.53.0.4"
 $DIG $DIGOPTS -b 10.53.0.4 a.example. @10.53.0.4 any > dig.out.ns4.2 || status=1
