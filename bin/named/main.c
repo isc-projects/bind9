@@ -650,6 +650,8 @@ parse_T_opt(char *option) {
 		named_g_nosyslog = true;
 	} else if (!strcmp(option, "notcp")) {
 		notcp = true;
+	} else if (!strncmp(option, "maxcachesize=", 13)) {
+		named_g_maxcachesize = atoi(option + 13);
 	} else if (!strcmp(option, "maxudp512")) {
 		maxudp = 512;
 	} else if (!strcmp(option, "maxudp1460")) {
