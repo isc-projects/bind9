@@ -45,3 +45,13 @@ Bug Fixes
   seen on older operating systems where unhandled ICMPv6 errors result in a
   generic protocol error being returned instead of the more specific error code.
   [GL #1928]
+
+- With query minimization enabled, named failed to resolve ip6.arpa. names
+  that had more labels before the IPv6 part. For example, when named
+  implemented query minimization on a name like
+  ``A.B.1.2.3.4.(...).ip6.arpa.``, it stopped at the left-most IPv6 label, i.e.
+  ``1.2.3.4.(...).ip6.arpa.`` without considering the extra labels ``A.B``.
+  That caused a query loop when resolving the name: if named received
+  NXDOMAIN answers, then the same query was repeatedly sent until the number
+  of queries sent reached the value in the ``max-recursion-queries``
+  configuration option. [GL #1847]

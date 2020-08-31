@@ -1,3 +1,7 @@
+5495.	[bug]		With query minimization enabled, named failed to
+			resolve ip6.arpa. names that had more labels after the
+			IPv6 part. [GL #1847]
+
 5494.	[bug]		Silence the EPROTO syslog message on older systems.
 			[GL #1928]
 
