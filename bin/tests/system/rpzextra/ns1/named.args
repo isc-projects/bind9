@@ -1,1 +1,1 @@
- -m record,size,mctx -c named.conf -d 99 -D rpzextra-ns1 -X named.lock -U 4
+ -m record,size,mctx -c named.conf -d 99 -D rpzextra-ns1 -X named.lock -U 4 -T maxcachesize=2097152

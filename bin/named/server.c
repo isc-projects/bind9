@@ -4114,7 +4114,16 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	obj = NULL;
 	result = named_config_get(maps, "max-cache-size", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	if (cfg_obj_isstring(obj)) {
+	/*
+	 * If "-T maxcachesize=..." is in effect, it overrides any other
+	 * "max-cache-size" setting found in configuration, either implicit or
+	 * explicit.  For simplicity, the value passed to that command line
+	 * option is always treated as the number of bytes to set
+	 * "max-cache-size" to.
+	 */
+	if (named_g_maxcachesize != 0) {
+		max_cache_size = named_g_maxcachesize;
+	} else if (cfg_obj_isstring(obj)) {
 		str = cfg_obj_asstring(obj);
 		INSIST(strcasecmp(str, "unlimited") == 0);
 		max_cache_size = 0;
