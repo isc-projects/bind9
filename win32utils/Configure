@@ -2674,7 +2674,6 @@ exit 0;
 #  --with-json-c not supported on WIN32 (package not available on WIN32)
 #  --with-zlib supported
 #  --with-purify not supported (package available on WIN32 but for free?)
-#  --with-gperftools-profiler not supported (package not available on WIN32)
 #  --with-locktype not supported on WIN32 (not yet available on WIN32)
 #  --with-readline supported
 #  --with-protobuf-c not supported (no reason to until libfstrm is ready)

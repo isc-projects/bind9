@@ -903,27 +903,6 @@ AC_SUBST([ZLIB_CFLAGS])
 AC_SUBST([ZLIB_LIBS])
 
 #
-# Google/Great Performance Tools CPU Profiler
-#
-AC_MSG_CHECKING(whether to use gperftools profiler)
-AC_ARG_WITH(gperftools-profiler,
-	    AS_HELP_STRING([--with-gperftools-profiler],
-			   [use gperftools CPU profiler]),
-	    use_profiler="$withval", use_profiler="no")
-
-case $use_profiler in
-	yes)
-		AC_MSG_RESULT(yes)
-		AC_DEFINE([HAVE_GPERFTOOLS_PROFILER], 1,
-		[Define to use gperftools CPU profiler.])
-		LIBS="$LIBS -lprofiler"
-		;;
-	*)
-		AC_MSG_RESULT(no)
-		;;
-esac
-
-#
 # Check if the system supports glibc-compatible backtrace() function.
 #
 AC_CHECK_HEADERS([execinfo.h],
