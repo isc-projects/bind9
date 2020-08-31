@@ -1031,6 +1031,7 @@
 ./bin/tests/system/synthfromdnssec/setup.sh	SH	2017,2018,2019,2020
 ./bin/tests/system/synthfromdnssec/tests.sh	SH	2017,2018,2019,2020
 ./bin/tests/system/system-test-driver.sh	X	2019,2020
+./bin/tests/system/tcp/1996-alloc_dnsbuf-crash-test.pkt	X	2020
 ./bin/tests/system/tcp/ans6/ans.py		PYTHON	2019,2020
 ./bin/tests/system/tcp/clean.sh			SH	2014,2016,2018,2019,2020
 ./bin/tests/system/tcp/prereq.sh		SH	2019,2020
