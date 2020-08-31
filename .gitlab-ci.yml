@@ -290,10 +290,7 @@ stages:
     - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
   artifacts:
     expire_in: "1 day"
-    paths:
-      - bin/tests/system/*/tsan.*
-      - bin/tests/system/*/*/tsan.*
-      - tsan/
+    untracked: true
     when: on_failure
 
 .kyua_report: &kyua_report_html |
