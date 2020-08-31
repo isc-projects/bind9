@@ -1457,7 +1457,7 @@ isc_log_open(isc_logchannel_t *channel) {
 	return (result);
 }
 
-bool
+ISC_NO_SANITIZE_THREAD bool
 isc_log_wouldlog(isc_log_t *lctx, int level) {
 	/*
 	 * Try to avoid locking the mutex for messages which can't
