@@ -152,7 +152,7 @@ typedef struct isc_refcount {
 		unsigned int *_tmp = (unsigned int *)(tp);	\
 		int32_t prev;				\
 		prev = atomic_fetch_sub_explicit		\
-			(&(rp)->refs, 1, memory_order_relaxed); \
+			(&(rp)->refs, 1, memory_order_acq_rel); \
 		ISC_REQUIRE(prev > 0);				\
 		if (_tmp != NULL)				\
 			*_tmp = prev - 1;			\
