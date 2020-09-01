@@ -109,6 +109,7 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 {
 	isc_result_t result;
 	isc_task_t *task = NULL;
+
 	isc_time_settoepoch(&endtime);
 	eventcnt = 0;
 
@@ -159,6 +160,7 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 	isc_interval_t interval;
 	isc_eventtype_t expected_event_type;
 
+	LOCK(&mx);
 	++eventcnt;
 
 	if (verbose) {
@@ -199,6 +201,7 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 		isc_timer_detach(&timer);
 		isc_task_shutdown(task);
 	}
+	UNLOCK(&mx);
 
 	isc_event_free(&event);
 }
@@ -256,11 +259,13 @@ test_idle(isc_task_t *task, isc_event_t *event) {
 	isc_time_t llim;
 	isc_interval_t interval;
 
+	LOCK(&mx);
 	++eventcnt;
 
 	if (verbose) {
 		print_message("# tick %d\n", eventcnt);
 	}
+	UNLOCK(&mx);
 
 	result = isc_time_now(&now);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -320,6 +325,7 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 	isc_time_t expires;
 	isc_interval_t interval;
 
+	LOCK(&mx);
 	++eventcnt;
 
 	if (verbose) {
@@ -368,6 +374,7 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 		isc_timer_detach(&timer);
 		isc_task_shutdown(task);
 	}
+	UNLOCK(&mx);
 
 	isc_event_free(&event);
 }
@@ -426,6 +433,7 @@ tick_event(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
+	LOCK(&mx);
 	++eventcnt;
 	if (verbose) {
 		print_message("# tick_event %d\n", eventcnt);
@@ -444,6 +452,7 @@ tick_event(isc_task_t *task, isc_event_t *event) {
 
 		isc_task_shutdown(task);
 	}
+	UNLOCK(&mx);
 
 	isc_event_free(&event);
 }
@@ -561,9 +570,9 @@ purge(void **state) {
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
-	UNLOCK(&mx);
-
 	assert_int_equal(eventcnt, 1);
+
+	UNLOCK(&mx);
 
 	isc_timer_detach(&tickertimer);
 	isc_timer_detach(&oncetimer);
