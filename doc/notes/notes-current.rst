@@ -55,6 +55,8 @@ Feature Changes
   needs to be changed when operator wants to change the default EDNS buffer
   size. [GL #2250]
 
+- ``ipv4only.arpa`` is now served when ``dns64`` is configured. [GL #385]
+
 Bug Fixes
 ~~~~~~~~~
 
