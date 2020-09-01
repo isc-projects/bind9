@@ -31,7 +31,7 @@
 # Note that we do not wait for a response for the server.  This is simply
 # a way of injecting arbitrary packets to test server resposnes.
 #
-# Usage: packet.pl [-a <address>] [-p <port>] [-t (udp|tcp)] [-r <repeats>] [filename]
+# Usage: packet.pl [-a <address>] [-d] [-p <port>] [-t (udp|tcp)] [-r <repeats>] [filename]
 #
 # If not specified, address defaults to 127.0.0.1, port to 53, protocol
 # to udp, and file to stdin.
@@ -46,12 +46,12 @@ use IO::File;
 use IO::Socket;
 
 sub usage {
-    print ("Usage: packet.pl [-a address] [-p port] [-t (tcp|udp)] [-r <repeats>] [file]\n");
+    print ("Usage: packet.pl [-a address] [-d] [-p port] [-t (tcp|udp)] [-r <repeats>] [file]\n");
     exit 1;
 }
 
 my %options={};
-getopts("a:p:t:r:", \%options);
+getopts("a:dp:t:r:", \%options);
 
 my $addr = "127.0.0.1";
 $addr = $options{a} if defined $options{a};
@@ -103,5 +103,38 @@ while ($repeats > 0) {
 }
 
 print ("sent $bytes bytes to $addr:$port\n");
+if (defined $options{d}) {
+	use Net::DNS;
+	use Net::DNS::Packet;
+
+	my $rin;
+	my $rout;
+	$rin = '';
+        vec($rin, fileno($sock), 1) = 1;
+	select($rout = $rin, undef, undef, 1);
+	if (vec($rout, fileno($sock), 1)) {{
+                my $buf;
+		if ($proto eq "udp") {
+			$sock->recv($buf, 512);
+		} else {
+			my $n = $sock->sysread($buf, 2);
+			last unless $n == 2;
+			my $len = unpack("n", $buf);
+			$n = $sock->sysread($buf, $len);
+			last unless $n == $len;
+		}
+
+		my $response;
+		if ($Net::DNS::VERSION > 0.68) {
+			$response = new Net::DNS::Packet(\$buf, 0);
+			$@ and die $@;
+		} else {
+			my $err;
+			($response, $err) = new Net::DNS::Packet(\$buf, 0);
+			$err and die $err;
+		}
+		$response->print;
+	}}
+}
 $sock->close;
 close $file;
