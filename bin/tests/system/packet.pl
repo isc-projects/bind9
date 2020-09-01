@@ -14,7 +14,7 @@
 # the standard input, in the form of a series of bytes in hexadecimal.
 # Whitespace is ignored, as is anything following a '#' symbol.
 #
-# For example, the following input would generate normal query for 
+# For example, the following input would generate normal query for
 # isc.org/NS/IN":
 #
 #     # QID:
@@ -31,7 +31,7 @@
 # Note that we do not wait for a response for the server.  This is simply
 # a way of injecting arbitrary packets to test server resposnes.
 #
-# Usage: packet.pl [-a <address>] [-p <port>] [-t (udp|tcp)] [filename]
+# Usage: packet.pl [-a <address>] [-p <port>] [-t (udp|tcp)] [-r <repeats>] [filename]
 #
 # If not specified, address defaults to 127.0.0.1, port to 53, protocol
 # to udp, and file to stdin.
@@ -46,12 +46,12 @@ use IO::File;
 use IO::Socket;
 
 sub usage {
-    print ("Usage: packet.pl [-a address] [-p port] [-t (tcp|udp)] -d [file]\n");
+    print ("Usage: packet.pl [-a address] [-p port] [-t (tcp|udp)] [-r <repeats>] [file]\n");
     exit 1;
 }
 
 my %options={};
-getopts("a:dp:t:", \%options);
+getopts("a:p:t:r:", \%options);
 
 my $addr = "127.0.0.1";
 $addr = $options{a} if defined $options{a};
@@ -62,6 +62,9 @@ $port = $options{p} if defined $options{p};
 my $proto = "udp";
 $proto = lc $options{t} if defined $options{t};
 usage if ($proto !~ /^(udp|tcp)$/);
+
+my $repeats = 1;
+$repeats = $options{r} if defined $options{r};
 
 my $file = "STDIN";
 if (@ARGV >= 1) {
@@ -82,52 +85,23 @@ my $data = pack("H*", $input);
 my $len = length $data;
 
 my $output = unpack("H*", $data);
-print ("sending: $output\n");
+print ("sending $repeats time(s): $output\n");
 
 my $sock = IO::Socket::INET->new(PeerAddr => $addr, PeerPort => $port,
 				 Proto => $proto,) or die "$!";
 
 my $bytes;
-if ($proto eq "udp") {
-    $bytes = $sock->send($data);
-} else {
-    $bytes = $sock->syswrite(pack("n", $len), 2);
-    $bytes += $sock->syswrite($data, $len);
+while ($repeats > 0) {
+    if ($proto eq "udp") {
+	$bytes = $sock->send($data);
+    } else {
+	$bytes = $sock->syswrite(pack("n", $len), 2);
+	$bytes += $sock->syswrite($data, $len);
+    }
+
+    $repeats = $repeats - 1;
 }
 
 print ("sent $bytes bytes to $addr:$port\n");
-if (defined $options{d}) {
-	use Net::DNS;
-	use Net::DNS::Packet;
-
-	my $rin;
-	my $rout;
-	$rin = '';
-        vec($rin, fileno($sock), 1) = 1;
-	select($rout = $rin, undef, undef, 1);
-	if (vec($rout, fileno($sock), 1)) {{
-                my $buf;
-		if ($proto eq "udp") {
-			$sock->recv($buf, 512);
-		} else {
-			my $n = $sock->sysread($buf, 2);
-			last unless $n == 2;
-			my $len = unpack("n", $buf);
-			$n = $sock->sysread($buf, $len);
-			last unless $n == $len;
-		}
-
-		my $response;
-		if ($Net::DNS::VERSION > 0.68) {
-			$response = new Net::DNS::Packet(\$buf, 0);
-			$@ and die $@;
-		} else {
-			my $err;
-			($response, $err) = new Net::DNS::Packet(\$buf, 0);
-			$err and die $err;
-		}
-		$response->print;
-	}}
-}
 $sock->close;
 close $file;
