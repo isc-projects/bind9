@@ -1,3 +1,6 @@
+5498.	[test]		The --with-gperftools-profiler configure option was
+			removed. [GL !4045]
+
 5497.	[placeholder]
 
 5496.	[bug]		The rate limiter needs to hold a reference to its task.
