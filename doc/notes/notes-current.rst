@@ -29,6 +29,14 @@ New Features
   from the parent. Replaces the time-based ``parent-registration-delay``
   configuration option. [GL #1613]
 
+Removed Features
+~~~~~~~~~~~~~~~~
+
+- The ``--with-gperftools-profiler`` ``configure`` option was removed.
+  To use the gperftools profiler, the ``HAVE_GPERFTOOLS_PROFILER`` macro
+  now needs to be manually set in ``CFLAGS`` and ``-lprofiler`` needs to
+  be present in ``LDFLAGS``. [GL !4045]
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
