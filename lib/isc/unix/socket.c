@@ -715,7 +715,6 @@ watch_fd(isc__socketthread_t *thread, int fd, int msg) {
 	return (result);
 #elif defined(USE_DEVPOLL)
 	struct pollfd pfd;
-	int lockid = FDLOCK_ID(fd);
 
 	memset(&pfd, 0, sizeof(pfd));
 	if (msg == SELECT_POKE_READ) {
@@ -891,7 +890,6 @@ wakeup_socket(isc__socketthread_t *thread, int fd, int msg) {
 		UNLOCK(&thread->fdlock[lockid]);
 		return;
 	}
-	UNLOCK(&thread->fdlock[lockid]);
 
 	/*
 	 * Set requested bit.
@@ -908,6 +906,7 @@ wakeup_socket(isc__socketthread_t *thread, int fd, int msg) {
 			      "failed to start watching FD (%d): %s", fd,
 			      isc_result_totext(result));
 	}
+	UNLOCK(&thread->fdlock[lockid]);
 }
 
 /*
