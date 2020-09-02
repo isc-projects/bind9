@@ -955,15 +955,10 @@ keymgr_have_rrsig(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
  * 2. Double-KSK rollover method (in case of a KSK)
  *    - First introduce the DNSKEY record, as well as the KRRSIG records.
  *    - Only if the DNSKEY record is OMNIPRESENT, suggest to introduce the DS.
- *
- * Also check the DS Publish or Delete times, to see if the DS record
- * already reached the parent.
  */
 static bool
 keymgr_policy_approval(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
-		       int type, dst_key_state_t next, isc_stdtime_t now) {
-	isc_result_t ret;
-	isc_stdtime_t dstime;
+		       int type, dst_key_state_t next) {
 	dst_key_state_t dnskeystate = HIDDEN;
 	dst_key_state_t ksk_present[4] = { OMNIPRESENT, NA, OMNIPRESENT,
 					   OMNIPRESENT };
@@ -975,7 +970,7 @@ keymgr_policy_approval(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 	dst_key_state_t ksk_retired[4] = { UNRETENTIVE, NA, NA, OMNIPRESENT };
 	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
 
-	if (next != RUMOURED && next != UNRETENTIVE) {
+	if (next != RUMOURED) {
 		/*
 		 * Local policy only adds an extra barrier on transitions to
 		 * the RUMOURED and UNRETENTIVE states.
@@ -988,9 +983,6 @@ keymgr_policy_approval(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		/* No restrictions. */
 		return (true);
 	case DST_KEY_ZRRSIG:
-		if (next != RUMOURED) {
-			return (true);
-		}
 		/* Make sure the DNSKEY record is OMNIPRESENT. */
 		(void)dst_key_getstate(key->key, DST_KEY_DNSKEY, &dnskeystate);
 		if (dnskeystate == OMNIPRESENT) {
@@ -1011,35 +1003,13 @@ keymgr_policy_approval(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 				  keyring, key, type, next, ksk_retired,
 				  ksk_rumoured, true, true)));
 	case DST_KEY_KRRSIG:
-		if (next != RUMOURED) {
-			return (true);
-		}
 		/* Only introduce if the DNSKEY is also introduced. */
 		(void)dst_key_getstate(key->key, DST_KEY_DNSKEY, &dnskeystate);
 		return (dnskeystate != HIDDEN);
 	case DST_KEY_DS:
-		if (next == RUMOURED) {
-			/* Make sure the DNSKEY record is OMNIPRESENT. */
-			(void)dst_key_getstate(key->key, DST_KEY_DNSKEY,
-					       &dnskeystate);
-			if (dnskeystate != OMNIPRESENT) {
-				return (false);
-			}
-			/* Make sure DS has been seen in the parent. */
-			ret = dst_key_gettime(key->key, DST_TIME_DSPUBLISH,
-					      &dstime);
-			if (ret != ISC_R_SUCCESS || dstime > now) {
-				return (false);
-			}
-		} else if (next == UNRETENTIVE) {
-			/* Make sure DS has been withdrawn from the parent. */
-			ret = dst_key_gettime(key->key, DST_TIME_DSDELETE,
-					      &dstime);
-			if (ret != ISC_R_SUCCESS || dstime > now) {
-				return (false);
-			}
-		}
-		return (true);
+		/* Make sure the DNSKEY record is OMNIPRESENT. */
+		(void)dst_key_getstate(key->key, DST_KEY_DNSKEY, &dnskeystate);
+		return (dnskeystate == OMNIPRESENT);
 	default:
 		return (false);
 	}
@@ -1110,7 +1080,7 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 		       dst_key_state_t next_state, dns_kasp_t *kasp,
 		       isc_stdtime_t now, isc_stdtime_t *when) {
 	isc_result_t ret;
-	isc_stdtime_t lastchange, nexttime = now;
+	isc_stdtime_t lastchange, dstime, nexttime = now;
 
 	/*
 	 * No need to wait if we move things into an uncertain state.
@@ -1208,30 +1178,52 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 		break;
 	case DST_KEY_DS:
 		switch (next_state) {
+		/*
+		 * RFC 7583: The successor DS record is published in
+		 * the parent zone and after the registration delay
+		 * (Dreg), the time taken after the DS record has been
+		 * submitted to the parent zone manager for it to be
+		 * placed in the zone.  Key N (the predecessor) must
+		 * remain in the zone until any caches that contain a
+		 * copy of the DS RRset have a copy containing the new
+		 * DS record. This interval is the retire interval
+		 * (Iret), given by:
+		 *
+		 *      Iret = DprpP + TTLds
+		 *
+		 * This translates to:
+		 *
+		 *      parent-propagation-delay + parent-ds-ttl.
+		 *
+		 * We will also add the retire-safety interval.
+		 */
 		case OMNIPRESENT:
+			/* Make sure DS has been seen in the parent. */
+			ret = dst_key_gettime(key->key, DST_TIME_DSPUBLISH,
+					      &dstime);
+			if (ret != ISC_R_SUCCESS || dstime > now) {
+				/* Not yet, try again in an hour. */
+				nexttime = now + 3600;
+			} else {
+				nexttime =
+					dstime + dns_kasp_dsttl(kasp) +
+					dns_kasp_parentpropagationdelay(kasp) +
+					dns_kasp_retiresafety(kasp);
+			}
+			break;
 		case HIDDEN:
-			/*
-			 * RFC 7583: The successor DS record is published in
-			 * the parent zone and after the registration delay
-			 * (Dreg), the time taken after the DS record has been
-			 * submitted to the parent zone manager for it to be
-			 * placed in the zone.  Key N (the predecessor) must
-			 * remain in the zone until any caches that contain a
-			 * copy of the DS RRset have a copy containing the new
-			 * DS record. This interval is the retire interval
-			 * (Iret), given by:
-			 *
-			 *      Iret = DprpP + TTLds
-			 *
-			 * This translates to:
-			 *
-			 *      parent-propagation-delay + parent-ds-ttl.
-			 *
-			 * We will also add the retire-safety interval.
-			 */
-			nexttime = lastchange + dns_kasp_dsttl(kasp) +
-				   dns_kasp_parentpropagationdelay(kasp) +
-				   dns_kasp_retiresafety(kasp);
+			/* Make sure DS has been withdrawn from the parent. */
+			ret = dst_key_gettime(key->key, DST_TIME_DSDELETE,
+					      &dstime);
+			if (ret != ISC_R_SUCCESS || dstime > now) {
+				/* Not yet, try again in an hour. */
+				nexttime = now + 3600;
+			} else {
+				nexttime =
+					dstime + dns_kasp_dsttl(kasp) +
+					dns_kasp_parentpropagationdelay(kasp) +
+					dns_kasp_retiresafety(kasp);
+			}
 			break;
 		default:
 			nexttime = now;
@@ -1319,7 +1311,7 @@ transition:
 
 			/* Is the transition allowed according to policy? */
 			if (!keymgr_policy_approval(keyring, dkey, i,
-						    next_state, now)) {
+						    next_state)) {
 				/* No, please respect rollover methods. */
 				isc_log_write(
 					dns_lctx, DNS_LOGCATEGORY_DNSSEC,

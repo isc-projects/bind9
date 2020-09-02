@@ -29,7 +29,7 @@ dnssec-settime: set the key timing metadata for a DNSSEC key
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-settime` [**-f**] [**-K** directory] [**-L** ttl] [**-P** date/offset] [**-P** sync date/offset] [**-A** date/offset] [**-R** date/offset] [**-I** date/offset] [**-D** date/offset] [**-D** sync date/offset] [**-S** key] [**-i** interval] [**-h**] [**-V**] [**-v** level] [**-E** engine] {keyfile} [**-s**] [**-g** state] [**-d** state date/offset] [**-k** state date/offset] [**-r** state date/offset] [**-z** state date/offset]
+:program:`dnssec-settime` [**-f**] [**-K** directory] [**-L** ttl] [**-P** date/offset] [**-P** ds date/offset] [**-P** sync date/offset] [**-A** date/offset] [**-R** date/offset] [**-I** date/offset] [**-D** date/offset] [**-D** ds date/offset] [**-D** sync date/offset] [**-S** key] [**-i** interval] [**-h**] [**-V**] [**-v** level] [**-E** engine] {keyfile} [**-s**] [**-g** state] [**-d** state date/offset] [**-k** state date/offset] [**-r** state date/offset] [**-z** state date/offset]
 
 Description
 ~~~~~~~~~~~
@@ -126,6 +126,10 @@ unset a date, use 'none' or 'never'.
    that date, the key will be included in the zone but will not be used
    to sign it.
 
+**-P** ds date/offset
+   Sets the date on which DS records that match this key have been
+   seen in the parent zone.
+
 **-P** sync date/offset
    Sets the date on which CDS and CDNSKEY records that match this key
    are to be published to the zone.
@@ -148,6 +152,10 @@ unset a date, use 'none' or 'never'.
    Sets the date on which the key is to be deleted. After that date, the
    key will no longer be included in the zone. (It may remain in the key
    repository, however.)
+
+**-D** ds date/offset
+   Sets the date on which the DS records that match this key have
+   been seen removed from the parent zone.
 
 **-D** sync date/offset
    Sets the date on which the CDS and CDNSKEY records that match this
@@ -213,15 +221,16 @@ associated with a key.
 **-u**
    Print times in UNIX epoch format.
 
-**-p** C/P/Psync/A/R/I/D/Dsync/all
-   Print a specific metadata value or set of metadata values. The ``-p``
-   option may be followed by one or more of the following letters or
-   strings to indicate which value or values to print: ``C`` for the
-   creation date, ``P`` for the publication date, ``Psync`` for the CDS
-   and CDNSKEY publication date, ``A`` for the activation date, ``R``
-   for the revocation date, ``I`` for the inactivation date, ``D`` for
-   the deletion date, and ``Dsync`` for the CDS and CDNSKEY deletion
-   date To print all of the metadata, use ``-p all``.
+**-p** C/P/Pds/Psync/A/R/I/D/Dds/Dsync/all
+   Prints a specific metadata value or set of metadata values. The ``-p``
+   option may be followed by one or more of the following letters or strings
+   to indicate which value or values to print: ``C`` for the creation date,
+   ``P`` for the publication date, ``Pds` for the DS publication date,
+   ``Psync`` for the CDS and CDNSKEY publication date, ``A`` for the
+   activation date, ``R`` for the revocation date, ``I`` for the inactivation
+   date, ``D`` for the deletion date, ``Dds`` for the DS deletion date,
+   and ``Dsync`` for the CDS and CDNSKEY deletion date. To print all of the
+   metadata, use ``all``.
 
 See Also
 ~~~~~~~~
