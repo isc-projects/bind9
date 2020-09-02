@@ -611,7 +611,7 @@ n=`expr $n + 1`
 echo_i "wait for the zones to be loaded ($n)"
 ret=1
 try=0
-while test $try -lt 100
+while test $try -lt 180
 do
     sleep 1
     sed -n "$cur,"'$p' < ns6/named.run | grep "any newly configured zones are now loaded" > /dev/null && {
