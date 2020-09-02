@@ -185,7 +185,7 @@ help(void) {
 	       "                 +[no]besteffort     (Try to parse even "
 	       "illegal "
 	       "messages)\n"
-	       "                 +bufsize=###        (Set EDNS0 Max UDP packet "
+	       "                 +bufsize[=###]      (Set EDNS0 Max UDP packet "
 	       "size)\n"
 	       "                 +[no]cdflag         (Set checking disabled "
 	       "flag in query)\n"
@@ -1047,11 +1047,12 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 			break;
 		case 'u': /* bufsize */
 			FULLCHECK("bufsize");
-			if (value == NULL) {
-				goto need_value;
-			}
 			if (!state) {
 				goto invalid_option;
+			}
+			if (value == NULL) {
+				lookup->udpsize = DEFAULT_EDNS_BUFSIZE;
+				break;
 			}
 			result = parse_uint(&num, value, COMMSIZE,
 					    "buffer size");
@@ -1099,7 +1100,7 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 			case 'o': /* cookie */
 				FULLCHECK("cookie");
 				if (state && lookup->edns == -1) {
-					lookup->edns = 0;
+					lookup->edns = DEFAULT_EDNS_VERSION;
 				}
 				lookup->sendcookie = state;
 				if (value != NULL) {
@@ -1138,7 +1139,7 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 			FULLCHECK("dnssec");
 		dnssec:
 			if (state && lookup->edns == -1) {
-				lookup->edns = 0;
+				lookup->edns = DEFAULT_EDNS_VERSION;
 			}
 			lookup->dnssec = state;
 			break;
@@ -1190,7 +1191,8 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 							break;
 						}
 						if (value == NULL) {
-							lookup->edns = 0;
+							lookup->edns =
+								DEFAULT_EDNS_VERSION;
 							break;
 						}
 						result = parse_uint(&num, value,
@@ -1405,7 +1407,7 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 			case 'i': /* nsid */
 				FULLCHECK("nsid");
 				if (state && lookup->edns == -1) {
-					lookup->edns = 0;
+					lookup->edns = DEFAULT_EDNS_VERSION;
 				}
 				lookup->nsid = state;
 				break;
@@ -1475,7 +1477,7 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 	case 'p':
 		FULLCHECK("padding");
 		if (state && lookup->edns == -1) {
-			lookup->edns = 0;
+			lookup->edns = DEFAULT_EDNS_VERSION;
 		}
 		if (value == NULL) {
 			goto need_value;
@@ -1661,7 +1663,7 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 				break;
 			}
 			if (lookup->edns == -1) {
-				lookup->edns = 0;
+				lookup->edns = DEFAULT_EDNS_VERSION;
 			}
 			if (lookup->ecs_addr != NULL) {
 				isc_mem_free(mctx, lookup->ecs_addr);
@@ -2276,7 +2278,7 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 		debug("making new lookup");
 		default_lookup = make_empty_lookup();
 		default_lookup->adflag = true;
-		default_lookup->edns = 0;
+		default_lookup->edns = DEFAULT_EDNS_VERSION;
 		default_lookup->sendcookie = true;
 
 #ifndef NOPOSIX

@@ -251,12 +251,10 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    This option attempts to display the contents of messages which are malformed. The
    default is to not display malformed answers.
 
-``+bufsize=B``
-   This option sets the UDP message buffer size advertised using EDNS0 to ``B``
-   bytes. The maximum and minimum sizes of this buffer are 65535 and 0,
-   respectively. Values outside this range are rounded up or down
-   appropriately. Values other than zero cause an EDNS query to be
-   sent.
+``+bufsize[=B]``
+   This option sets the UDP message buffer size advertised using EDNS0 to
+   ``B`` bytes.  The maximum and minimum sizes of this buffer are 65535 and
+   0, respectively.  ``+bufsize`` restores the default buffer size.
 
 ``+[no]cdflag``
    This option sets [or does not set] the CD (checking disabled) bit in the query. This

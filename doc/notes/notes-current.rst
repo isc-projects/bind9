@@ -42,7 +42,11 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Previously, using ``dig +bufsize=0`` had the side effect of disabling EDNS,
+  and there was no way to test the remote server's behavior when it had received
+  a packet with EDNS0 buffer size set to ``0``. This is no longer the case;
+  ``dig +bufsize=0`` now sends a DNS message with EDNS version 0 and buffer size
+  set to ``0``. To disable EDNS, use ``dig +noedns``. [GL #2054]
 
 Bug Fixes
 ~~~~~~~~~
