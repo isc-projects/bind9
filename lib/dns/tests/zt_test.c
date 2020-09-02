@@ -28,6 +28,7 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
+#include <isc/mutex.h>
 #include <isc/print.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -40,6 +41,8 @@
 #include <dns/zt.h>
 
 #include "dnstest.h"
+
+static isc_mutex_t done_lock;
 
 struct args {
 	void *arg1;
@@ -86,7 +89,9 @@ load_done(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 	UNUSED(zone);
 	UNUSED(task);
 
+	LOCK(&done_lock);
 	*done = true;
+	UNLOCK(&done_lock);
 	isc_app_shutdown();
 	return (ISC_R_SUCCESS);
 }
@@ -95,7 +100,9 @@ static isc_result_t
 all_done(void *arg) {
 	bool *done = (bool *) arg;
 
+	LOCK(&done_lock);
 	*done = true;
+	UNLOCK(&done_lock);
 	isc_app_shutdown();
 	return (ISC_R_SUCCESS);
 }
@@ -171,6 +178,9 @@ asyncload_zone(void **state) {
 
 	UNUSED(state);
 
+	result = isc_mutex_init(&done_lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
 	result = dns_test_makezone("foo", &zone, NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -183,7 +193,9 @@ asyncload_zone(void **state) {
 	assert_non_null(view->zonetable);
 
 	assert_false(dns__zone_loadpending(zone));
+	LOCK(&done_lock);
 	assert_false(done);
+	UNLOCK(&done_lock);
 	zonefile = fopen("./zone.data", "wb");
 	assert_non_null(zonefile);
 	origfile = fopen("./testdata/zt/zone1.db", "r+b");
@@ -203,7 +215,9 @@ asyncload_zone(void **state) {
 	isc_app_run();
 	while (dns__zone_loadpending(zone) && i++ < 5000)
 		dns_test_nap(1000);
+	LOCK(&done_lock);
 	assert_true(done);
+	UNLOCK(&done_lock);
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -225,7 +239,9 @@ asyncload_zone(void **state) {
 
 	while (dns__zone_loadpending(zone) && i++ < 5000)
 		dns_test_nap(1000);
+	LOCK(&done_lock);
 	assert_true(done);
+	UNLOCK(&done_lock);
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -241,7 +257,9 @@ asyncload_zone(void **state) {
 
 	while (dns__zone_loadpending(zone) && i++ < 5000)
 		dns_test_nap(1000);
+	LOCK(&done_lock);
 	assert_true(done);
+	UNLOCK(&done_lock);
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -255,6 +273,9 @@ asyncload_zone(void **state) {
 
 	dns_zone_detach(&zone);
 	dns_view_detach(&view);
+
+	result = isc_mutex_destroy(&done_lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 /* asynchronous zone table load */
@@ -270,6 +291,9 @@ asyncload_zt(void **state) {
 	struct args args;
 
 	UNUSED(state);
+
+	result = isc_mutex_init(&done_lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_test_makezone("foo", &zone1, NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -299,16 +323,23 @@ asyncload_zt(void **state) {
 
 	assert_false(dns__zone_loadpending(zone1));
 	assert_false(dns__zone_loadpending(zone2));
+	LOCK(&done_lock);
 	assert_false(done);
+	UNLOCK(&done_lock);
 
 	args.arg1 = zt;
 	args.arg2 = &done;
 	isc_app_onrun(mctx, maintask, start_zt_asyncload, &args);
 
 	isc_app_run();
-	while (!done && i++ < 5000)
+	LOCK(&done_lock);
+	while (!done && i++ < 5000) {
+		UNLOCK(&done_lock);
 		dns_test_nap(1000);
+		LOCK(&done_lock);
+	}
 	assert_true(done);
+	UNLOCK(&done_lock);
 
 	/* Both zones should now be loaded; test them */
 	result = dns_zone_getdb(zone1, &db);
@@ -332,6 +363,9 @@ asyncload_zt(void **state) {
 	dns_zone_detach(&zone2);
 	dns_zone_detach(&zone3);
 	dns_view_detach(&view);
+
+	result = isc_mutex_destroy(&done_lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 int

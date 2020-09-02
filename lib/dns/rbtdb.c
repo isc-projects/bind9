@@ -6839,7 +6839,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		newheader->attributes |= RDATASET_ATTR_ZEROTTL;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = init_count++;
+	newheader->count = isc_atomic_xadd((int32_t*)&init_count, 1);
 	newheader->trust = rdataset->trust;
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
@@ -7035,7 +7035,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->trust = 0;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = init_count++;
+	newheader->count = isc_atomic_xadd((int32_t*)&init_count, 1);
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
 	newheader->last_used = 0;
@@ -7481,7 +7481,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->serial = 1;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = init_count++;
+	newheader->count = isc_atomic_xadd((int32_t*)&init_count, 1);
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
 	newheader->last_used = 0;
