@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. ../../conf.sh
+. "$SYSTEMTESTTOP/conf.sh"
 
 set -e
 
