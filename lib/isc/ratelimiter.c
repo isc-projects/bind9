@@ -252,11 +252,14 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	(void)isc_timer_reset(rl->timer, isc_timertype_inactive,
 			      NULL, NULL, false);
 	while ((ev = ISC_LIST_HEAD(rl->pending)) != NULL) {
+		task = ev->ev_sender;
 		ISC_LIST_UNLINK(rl->pending, ev, ev_ratelink);
 		ev->ev_attributes |= ISC_EVENTATTR_CANCELED;
 		task = ev->ev_sender;
 		isc_task_send(task, &ev);
 	}
+	task = NULL;
+	isc_task_attach(rl->task, &task);
 	isc_timer_detach(&rl->timer);
 
 	/*
@@ -276,6 +279,7 @@ ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	isc_ratelimiter_detach(&rl);
+	isc_task_detach(&task);
 }
 
 static void
