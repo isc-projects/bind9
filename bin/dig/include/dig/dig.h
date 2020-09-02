@@ -68,6 +68,10 @@
 #define SERVER_TIMEOUT 1
 
 #define LOOKUP_LIMIT 64
+
+#define DEFAULT_EDNS_VERSION 0
+#define DEFAULT_EDNS_BUFSIZE 4096
+
 /*%
  * Lookup_limit is just a limiter, keeping too many lookups from being
  * created.  It's job is mainly to prevent the program from running away
@@ -137,7 +141,7 @@ struct dig_lookup {
 	dig_query_t *	  xfr_q;
 	uint32_t	  retries;
 	int		  nsfound;
-	uint16_t	  udpsize;
+	int16_t		  udpsize;
 	int16_t		  edns;
 	int16_t		  padding;
 	uint32_t	  ixfr_serial;
