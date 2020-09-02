@@ -22,9 +22,9 @@
 #include <unistd.h>
 
 #define UNIT_TESTING
-#include <cmocka.h>
 
 #include <isc/atomic.h>
+#include <isc/cmocka.h>
 #include <isc/commandline.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
@@ -1549,10 +1549,22 @@ main(int argc, char **argv) {
 		cmocka_unit_test_setup_teardown(task_exclusive, _setup4,
 						_teardown),
 	};
+	struct CMUnitTest selected[sizeof(tests) / sizeof(tests[0])];
 	int c;
 
-	while ((c = isc_commandline_parse(argc, argv, "v")) != -1) {
+	memset(selected, 0, sizeof(selected));
+
+	while ((c = isc_commandline_parse(argc, argv, "t:v")) != -1) {
 		switch (c) {
+		case 't':
+			if (!cmocka_add_test_byname(
+				    tests, isc_commandline_argument, selected))
+			{
+				fprintf(stderr, "unknown test '%s'\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
 		case 'v':
 			verbose = true;
 			break;
@@ -1561,7 +1573,11 @@ main(int argc, char **argv) {
 		}
 	}
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	if (selected[0].name != NULL) {
+		return (cmocka_run_group_tests(selected, NULL, NULL));
+	} else {
+		return (cmocka_run_group_tests(tests, NULL, NULL));
+	}
 }
 
 #else /* HAVE_CMOCKA */
