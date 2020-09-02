@@ -846,7 +846,7 @@ make_empty_lookup(void) {
 	looknew->rdclass_sigchaseset = false;
 #endif
 #endif
-	looknew->udpsize = 0;
+	looknew->udpsize = -1;
 	looknew->edns = -1;
 	looknew->recurse = true;
 	looknew->aaonly = false;
@@ -2641,10 +2641,12 @@ setup_lookup(dig_lookup_t *lookup) {
 		unsigned int flags;
 		unsigned int i = 0;
 
-		if (lookup->udpsize == 0)
-			lookup->udpsize = 4096;
-		if (lookup->edns < 0)
-			lookup->edns = 0;
+		if (lookup->udpsize < 0) {
+			lookup->udpsize = DEFAULT_EDNS_BUFSIZE;
+		}
+		if (lookup->edns < 0) {
+			lookup->edns = DEFAULT_EDNS_VERSION;
+		}
 
 		if (lookup->nsid) {
 			INSIST(i < MAXOPTS);

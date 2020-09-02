@@ -173,7 +173,7 @@ help(void) {
 "                 +[no]authority      (Control display of authority section)\n"
 "                 +[no]badcookie      (Retry BADCOOKIE responses)\n"
 "                 +[no]besteffort     (Try to parse even illegal messages)\n"
-"                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
+"                 +bufsize[=###]      (Set EDNS0 Max UDP packet size)\n"
 "                 +[no]cdflag         (Set checking disabled flag in query)\n"
 "                 +[no]class          (Control display of class in records)\n"
 "                 +[no]cmd            (Control display of command line -\n"
@@ -895,15 +895,21 @@ plus_option(const char *option, bool is_batchfile,
 			break;
 		case 'u':/* bufsize */
 			FULLCHECK("bufsize");
-			if (value == NULL)
-				goto need_value;
-			if (!state)
+			if (!state) {
 				goto invalid_option;
+			}
+			if (value == NULL) {
+				lookup->udpsize = DEFAULT_EDNS_BUFSIZE;
+				break;
+			}
 			result = parse_uint(&num, value, COMMSIZE,
 					    "buffer size");
 			if (result != ISC_R_SUCCESS)
 				fatal("Couldn't parse buffer size");
 			lookup->udpsize = num;
+			if (lookup->udpsize == 0) {
+				lookup->edns = -1;
+			}
 			break;
 		default:
 			goto invalid_option;
@@ -941,8 +947,9 @@ plus_option(const char *option, bool is_batchfile,
 				break;
 			case 'o': /* cookie */
 				FULLCHECK("cookie");
-				if (state && lookup->edns == -1)
-					lookup->edns = 0;
+				if (state && lookup->edns == -1) {
+					lookup->edns = DEFAULT_EDNS_VERSION;
+				}
 				lookup->sendcookie = state;
 				if (value != NULL) {
 					n = strlcpy(hexcookie, value,
@@ -975,8 +982,9 @@ plus_option(const char *option, bool is_batchfile,
 			break;
 		case 'n': /* dnssec */
 			FULLCHECK("dnssec");
-			if (state && lookup->edns == -1)
-				lookup->edns = 0;
+			if (state && lookup->edns == -1) {
+				lookup->edns = DEFAULT_EDNS_VERSION;
+			}
 			lookup->dnssec = state;
 			break;
 		case 'o': /* domain */
@@ -1019,7 +1027,8 @@ plus_option(const char *option, bool is_batchfile,
 							break;
 						}
 						if (value == NULL) {
-							lookup->edns = 0;
+							lookup->edns =
+								DEFAULT_EDNS_VERSION;
 							break;
 						}
 						result = parse_uint(&num,
@@ -1180,8 +1189,9 @@ plus_option(const char *option, bool is_batchfile,
 			switch (cmd[2]) {
 			case 'i': /* nsid */
 				FULLCHECK("nsid");
-				if (state && lookup->edns == -1)
-					lookup->edns = 0;
+				if (state && lookup->edns == -1) {
+					lookup->edns = DEFAULT_EDNS_VERSION;
+				}
 				lookup->nsid = state;
 				break;
 			case 's': /* nssearch */
@@ -1385,8 +1395,9 @@ plus_option(const char *option, bool is_batchfile,
 				}
 				break;
 			}
-			if (lookup->edns == -1)
-				lookup->edns = 0;
+			if (lookup->edns == -1) {
+				lookup->edns = DEFAULT_EDNS_VERSION;
+			}
 			if (lookup->ecs_addr != NULL) {
 				isc_mem_free(mctx, lookup->ecs_addr);
 				lookup->ecs_addr = NULL;
@@ -1926,7 +1937,7 @@ parse_args(bool is_batchfile, bool config_only,
 		debug("making new lookup");
 		default_lookup = make_empty_lookup();
 		default_lookup->adflag = true;
-		default_lookup->edns = 0;
+		default_lookup->edns = DEFAULT_EDNS_VERSION;
 		default_lookup->sendcookie = true;
 
 #ifndef NOPOSIX

@@ -649,8 +649,34 @@ ret=0
   pat='^;-m\..*IN.*A$'
   tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
   grep "Dump of all outstanding memory allocations" dig.out.test$n > /dev/null && ret=1
-  if [ $ret != 0 ]; then echo_i "failed"; fi
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
+
+  n=$((n+1))
+  echo_i "check that dig +bufsize=0 disables EDNS ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 a.example +bufsize=0 +qr > dig.out.test$n 2>&1 || ret=1
+  grep "EDNS:" dig.out.test$n > /dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=$((n+1))
+  echo_i "check that dig +bufsize=0 +edns sends EDNS with bufsize of 0 ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 a.example +bufsize=0 +edns +qr > dig.out.test$n 2>&1 || ret=1
+  grep -E 'EDNS:.* udp: 0\r{0,1}$' dig.out.test$n > /dev/null|| ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=$((n+1))
+  echo_i "check that dig +bufsize restores default bufsize ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 a.example +bufsize=0 +bufsize +qr > dig.out.test$n 2>&1 || ret=1
+  lines=`grep "EDNS:.* udp: 4096" dig.out.test$n | wc -l`
+  test $lines -eq 2 || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi
