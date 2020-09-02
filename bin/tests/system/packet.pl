@@ -90,51 +90,58 @@ print ("sending $repeats time(s): $output\n");
 my $sock = IO::Socket::INET->new(PeerAddr => $addr, PeerPort => $port,
 				 Proto => $proto,) or die "$!";
 
-my $bytes;
+STDOUT->autoflush(1);
+
+my $bytes = 0;
 while ($repeats > 0) {
     if ($proto eq "udp") {
-	$bytes = $sock->send($data);
+	$bytes += $sock->send($data);
     } else {
-	$bytes = $sock->syswrite(pack("n", $len), 2);
+	$bytes += $sock->syswrite(pack("n", $len), 2);
 	$bytes += $sock->syswrite($data, $len);
     }
 
     $repeats = $repeats - 1;
-}
 
-print ("sent $bytes bytes to $addr:$port\n");
-if (defined $options{d}) {
-	use Net::DNS;
-	use Net::DNS::Packet;
+    if ($repeats % 100 == 0) {
+	print ".";
+    }
 
-	my $rin;
-	my $rout;
-	$rin = '';
-        vec($rin, fileno($sock), 1) = 1;
-	select($rout = $rin, undef, undef, 1);
-	if (vec($rout, fileno($sock), 1)) {{
-                my $buf;
-		if ($proto eq "udp") {
-			$sock->recv($buf, 512);
-		} else {
-			my $n = $sock->sysread($buf, 2);
-			last unless $n == 2;
-			my $len = unpack("n", $buf);
-			$n = $sock->sysread($buf, $len);
-			last unless $n == $len;
-		}
+    my $rin;
+    my $rout;
+    $rin = '';
+    vec($rin, fileno($sock), 1) = 1;
+    select($rout = $rin, undef, undef, 1);
+    if (vec($rout, fileno($sock), 1)) {
+	my $buf;
 
-		my $response;
-		if ($Net::DNS::VERSION > 0.68) {
-			$response = new Net::DNS::Packet(\$buf, 0);
-			$@ and die $@;
-		} else {
-			my $err;
-			($response, $err) = new Net::DNS::Packet(\$buf, 0);
-			$err and die $err;
-		}
-		$response->print;
-	}}
+	if ($proto eq "udp") {
+	    $sock->recv($buf, 512);
+	} else {
+	    my $n = $sock->sysread($buf, 2);
+	    last unless $n == 2;
+	    my $len = unpack("n", $buf);
+	    $n = $sock->sysread($buf, $len);
+	    last unless $n == $len;
+	}
+
+	if (defined $options{d}) {
+	    use Net::DNS;
+	    use Net::DNS::Packet;
+
+	    my $response;
+	    if ($Net::DNS::VERSION > 0.68) {
+		$response = new Net::DNS::Packet(\$buf, 0);
+		$@ and die $@;
+	    } else {
+		my $err;
+		($response, $err) = new Net::DNS::Packet(\$buf, 0);
+		$err and die $err;
+	    }
+	    $response->print;
+	}
+    }
 }
 $sock->close;
 close $file;
+print ("sent $bytes bytes to $addr:$port\n");
