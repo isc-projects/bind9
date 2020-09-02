@@ -1984,14 +1984,27 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		cds_sha256.type = dns_rdatatype_cds;
 
 		if (syncpublish(key->key, now)) {
+			char keystr[DST_KEY_FORMATSIZE];
+			dst_key_format(key->key, keystr, sizeof(keystr));
+
 			if (!dns_rdataset_isassociated(cdnskey) ||
 			    !exists(cdnskey, &cdnskeyrdata)) {
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_INFO,
+					      "CDS for key %s is now published",
+					      keystr);
 				RETERR(addrdata(&cdnskeyrdata, diff, origin,
 						ttl, mctx));
 			}
 			/* Only publish SHA-256 (SHA-1 is deprecated) */
 			if (!dns_rdataset_isassociated(cds) ||
 			    !exists(cds, &cds_sha256)) {
+				isc_log_write(
+					dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
+					"CDNSKEY for key %s is now published",
+					keystr);
 				RETERR(addrdata(&cds_sha256, diff, origin, ttl,
 						mctx));
 			}

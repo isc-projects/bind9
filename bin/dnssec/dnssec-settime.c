@@ -75,6 +75,8 @@ usage(void) {
 	fprintf(stderr, "Timing options:\n");
 	fprintf(stderr, "    -P date/[+-]offset/none: set/unset key "
 			"publication date\n");
+	fprintf(stderr, "    -P ds date/[+-]offset/none: set/unset "
+			"DS publication date\n");
 	fprintf(stderr, "    -P sync date/[+-]offset/none: set/unset "
 			"CDS and CDNSKEY publication date\n");
 	fprintf(stderr, "    -A date/[+-]offset/none: set/unset key "
@@ -85,6 +87,8 @@ usage(void) {
 			"inactivation date\n");
 	fprintf(stderr, "    -D date/[+-]offset/none: set/unset key "
 			"deletion date\n");
+	fprintf(stderr, "    -D ds date/[+-]offset/none: set/unset "
+			"DS deletion date\n");
 	fprintf(stderr, "    -D sync date/[+-]offset/none: set/unset "
 			"CDS and CDNSKEY deletion date\n");
 	fprintf(stderr, "    -S <key>: generate a successor to an existing "
@@ -243,6 +247,10 @@ main(int argc, char **argv) {
 	bool unsetsyncadd = false, setsyncadd = false;
 	bool unsetsyncdel = false, setsyncdel = false;
 	bool printsyncadd = false, printsyncdel = false;
+	isc_stdtime_t dsadd = 0, dsdel = 0;
+	bool unsetdsadd = false, setdsadd = false;
+	bool unsetdsdel = false, setdsdel = false;
+	bool printdsadd = false, printdsdel = false;
 
 	options = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE;
 
@@ -288,6 +296,18 @@ main(int argc, char **argv) {
 				syncdel = strtotime(isc_commandline_argument,
 						    now, now, &setsyncdel);
 				unsetsyncdel = !setsyncdel;
+				break;
+			}
+			/* -Dds ? */
+			if (isoptarg("ds", argv, usage)) {
+				if (unsetdsdel || setdsdel) {
+					fatal("-D ds specified more than once");
+				}
+
+				changed = true;
+				dsdel = strtotime(isc_commandline_argument, now,
+						  now, &setdsdel);
+				unsetdsdel = !setdsdel;
 				break;
 			}
 			/* -Ddnskey ? */
@@ -394,6 +414,19 @@ main(int argc, char **argv) {
 				unsetsyncadd = !setsyncadd;
 				break;
 			}
+			/* -Pds ? */
+			if (isoptarg("ds", argv, usage)) {
+				if (unsetdsadd || setdsadd) {
+					fatal("-P ds specified more than once");
+				}
+
+				changed = true;
+				dsadd = strtotime(isc_commandline_argument, now,
+						  now, &setdsadd);
+				unsetdsadd = !setdsadd;
+				break;
+			}
+			/* -Pdnskey ? */
 			(void)isoptarg("dnskey", argv, usage);
 			if (setpub || unsetpub) {
 				fatal("-P specified more than once");
@@ -415,6 +448,8 @@ main(int argc, char **argv) {
 				printdel = true;
 				printsyncadd = true;
 				printsyncdel = true;
+				printdsadd = true;
+				printdsdel = true;
 				break;
 			}
 
@@ -432,6 +467,11 @@ main(int argc, char **argv) {
 						printsyncdel = true;
 						break;
 					}
+					if (!strncmp(p, "ds", 2)) {
+						p += 2;
+						printdsdel = true;
+						break;
+					}
 					printdel = true;
 					break;
 				case 'I':
@@ -441,6 +481,11 @@ main(int argc, char **argv) {
 					if (!strncmp(p, "sync", 4)) {
 						p += 4;
 						printsyncadd = true;
+						break;
+					}
+					if (!strncmp(p, "ds", 2)) {
+						p += 2;
+						printdsadd = true;
 						break;
 					}
 					printpub = true;
@@ -777,6 +822,18 @@ main(int argc, char **argv) {
 		dst_key_unsettime(key, DST_TIME_SYNCDELETE);
 	}
 
+	if (setdsadd) {
+		dst_key_settime(key, DST_TIME_DSPUBLISH, dsadd);
+	} else if (unsetdsadd) {
+		dst_key_unsettime(key, DST_TIME_DSPUBLISH);
+	}
+
+	if (setdsdel) {
+		dst_key_settime(key, DST_TIME_DSDELETE, dsdel);
+	} else if (unsetdsdel) {
+		dst_key_unsettime(key, DST_TIME_DSDELETE);
+	}
+
 	if (setttl) {
 		dst_key_setttl(key, ttl);
 	}
@@ -892,6 +949,14 @@ main(int argc, char **argv) {
 	if (printsyncdel) {
 		printtime(key, DST_TIME_SYNCDELETE, "SYNC Delete", epoch,
 			  stdout);
+	}
+
+	if (printdsadd) {
+		printtime(key, DST_TIME_DSPUBLISH, "DS Publish", epoch, stdout);
+	}
+
+	if (printdsdel) {
+		printtime(key, DST_TIME_DSDELETE, "DS Delete", epoch, stdout);
 	}
 
 	if (changed) {

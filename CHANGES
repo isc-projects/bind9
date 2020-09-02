@@ -1,3 +1,10 @@
+5501.	[func]		Log CDS/CDNSKEY publication. [GL #1748]
+
+5500.	[bug]		Fix (non-)publication of CDS and CDNSKEY records.
+			[GL #2103]
+
+5499.	[func]		Add '-P ds' and '-D ds' arguments to dnssec-settime.
+
 5498.	[test]		The --with-gperftools-profiler configure option was
 			removed. [GL !4045]
 

@@ -29,6 +29,8 @@ New Features
   from the parent. Replaces the time-based ``parent-registration-delay``
   configuration option. [GL #1613]
 
+- Log when ``named`` adds a CDS/CDNSKEY to the zone. [GL #1748]
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
