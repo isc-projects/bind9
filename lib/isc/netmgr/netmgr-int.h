@@ -50,6 +50,20 @@
 #endif
 
 /*
+ * Define NETMGR_TRACE to activate tracing of handles and sockets.
+ * This will impair performance but enables us to quickly determine,
+ * if netmgr resources haven't been cleaned up on shutdown, which ones
+ * are still in use.
+ */
+#ifdef NETMGR_TRACE
+#define TRACE_SIZE 8
+
+void
+isc__nm_dump_active(isc_nm_t *nm);
+
+#endif
+
+/*
  * Single network event loop worker.
  */
 typedef struct isc__networker {
@@ -104,6 +118,11 @@ struct isc_nmhandle {
 	isc_sockaddr_t local;
 	isc_nm_opaquecb_t doreset; /* reset extra callback, external */
 	isc_nm_opaquecb_t dofree;  /* free extra callback, external */
+#ifdef NETMGR_TRACE
+	void *backtrace[TRACE_SIZE];
+	int backtrace_size;
+	LINK(isc_nmhandle_t) active_link;
+#endif
 	void *opaque;
 	char extra[];
 };
@@ -308,6 +327,10 @@ struct isc_nm {
 	uint32_t idle;
 	uint32_t keepalive;
 	uint32_t advertised;
+
+#ifdef NETMGR_TRACE
+	ISC_LIST(isc_nmsocket_t) active_sockets;
+#endif
 };
 
 typedef enum isc_nmsocket_type {
@@ -524,6 +547,12 @@ struct isc_nmsocket {
 
 	isc_nm_accept_cb_t accept_cb;
 	void *accept_cbarg;
+#ifdef NETMGR_TRACE
+	void *backtrace[TRACE_SIZE];
+	int backtrace_size;
+	LINK(isc_nmsocket_t) active_link;
+	ISC_LIST(isc_nmhandle_t) active_handles;
+#endif
 };
 
 bool
