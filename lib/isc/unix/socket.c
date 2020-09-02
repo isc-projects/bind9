@@ -890,7 +890,6 @@ wakeup_socket(isc__socketthread_t *thread, int fd, int msg) {
 		UNLOCK(&thread->fdlock[lockid]);
 		return;
 	}
-	UNLOCK(&thread->fdlock[lockid]);
 
 	/*
 	 * Set requested bit.
@@ -907,6 +906,7 @@ wakeup_socket(isc__socketthread_t *thread, int fd, int msg) {
 			      "failed to start watching FD (%d): %s", fd,
 			      isc_result_totext(result));
 	}
+	UNLOCK(&thread->fdlock[lockid]);
 }
 
 /*
