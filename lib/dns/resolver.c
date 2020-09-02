@@ -5122,7 +5122,14 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 
 	log_ns_ttl(fctx, "fctx_create");
 
-	INSIST(dns_name_issubdomain(&fctx->name, &fctx->domain));
+	if (!dns_name_issubdomain(&fctx->name, &fctx->domain)) {
+		dns_name_format(&fctx->domain, buf, sizeof(buf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "'%s' is not subdomain of '%s'", fctx->info,
+				 buf);
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_fcount;
+	}
 
 	fctx->qmessage = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
