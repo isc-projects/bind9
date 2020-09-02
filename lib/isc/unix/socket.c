@@ -957,14 +957,17 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	uint32_t oldevents;
 	int ret;
 	int op;
+	int lockid = FDLOCK_ID(fd);
 
 	oldevents = manager->epoll_events[fd];
+	LOCK(&manager->fdlock[lockid]);
 	if (msg == SELECT_POKE_READ)
 		manager->epoll_events[fd] |= EPOLLIN;
 	else
 		manager->epoll_events[fd] |= EPOLLOUT;
 
 	event.events = manager->epoll_events[fd];
+	UNLOCK(&manager->fdlock[lockid]);
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 
@@ -1036,13 +1039,15 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	struct epoll_event event;
 	int ret;
 	int op;
+	int lockid = FDLOCK_ID(fd);
 
+	LOCK(&manager->fdlock[lockid]);
 	if (msg == SELECT_POKE_READ)
 		manager->epoll_events[fd] &= ~(EPOLLIN);
 	else
 		manager->epoll_events[fd] &= ~(EPOLLOUT);
-
 	event.events = manager->epoll_events[fd];
+	UNLOCK(&manager->fdlock[lockid]);
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 
@@ -1121,9 +1126,10 @@ wakeup_socket(isc__socketmgr_t *manager, int fd, int msg) {
 	INSIST(fd >= 0 && fd < (int)manager->maxsocks);
 
 	if (msg == SELECT_POKE_CLOSE) {
-		/* No one should be updating fdstate, so no need to lock it */
+		LOCK(&manager->fdlock[lockid]);
 		INSIST(manager->fdstate[fd] == CLOSE_PENDING);
 		manager->fdstate[fd] = CLOSED;
+		UNLOCK(&manager->fdlock[lockid]);
 		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
 		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
 		(void)close(fd);
