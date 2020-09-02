@@ -92,6 +92,8 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	return (ISC_R_SUCCESS);
 
 free_mutex:
+	isc_refcount_decrementz(&rl->references);
+	isc_refcount_destroy(&rl->references);
 	isc_mutex_destroy(&rl->lock);
 	isc_mem_put(mctx, rl, sizeof(*rl));
 	return (result);
@@ -237,6 +239,7 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 void
 isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	isc_event_t *ev;
+	isc_task_t *task;
 
 	REQUIRE(rl != NULL);
 
@@ -245,11 +248,13 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	(void)isc_timer_reset(rl->timer, isc_timertype_inactive, NULL, NULL,
 			      false);
 	while ((ev = ISC_LIST_HEAD(rl->pending)) != NULL) {
-		isc_task_t *task = ev->ev_sender;
+		task = ev->ev_sender;
 		ISC_LIST_UNLINK(rl->pending, ev, ev_ratelink);
 		ev->ev_attributes |= ISC_EVENTATTR_CANCELED;
 		isc_task_send(task, &ev);
 	}
+	task = NULL;
+	isc_task_attach(rl->task, &task);
 	isc_timer_detach(&rl->timer);
 
 	/*
@@ -269,10 +274,12 @@ ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	isc_ratelimiter_detach(&rl);
+	isc_task_detach(&task);
 }
 
 static void
 ratelimiter_free(isc_ratelimiter_t *rl) {
+	isc_refcount_destroy(&rl->references);
 	isc_mutex_destroy(&rl->lock);
 	isc_mem_put(rl->mctx, rl, sizeof(*rl));
 }
