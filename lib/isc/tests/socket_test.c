@@ -27,6 +27,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/mutex.h>
 #include <isc/platform.h>
 #include <isc/socket.h>
 #include <isc/print.h>
@@ -40,6 +41,7 @@ static unsigned int recv_dscp_value;
 static bool recv_trunc;
 isc_socket_t *s1 = NULL, *s2 = NULL, *s3 = NULL;
 isc_task_t *test_task = NULL;
+static isc_mutex_t lock;
 
 /*
  * Helper functions
@@ -87,8 +89,10 @@ typedef struct {
 
 static void
 completion_init(completion_t *completion) {
+	LOCK(&lock);
 	completion->done = false;
 	completion->socket = NULL;
+	UNLOCK(&lock);
 }
 
 static void
@@ -98,11 +102,13 @@ accept_done(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
+	LOCK(&lock);
 	completion->result = nevent->result;
 	completion->done = true;
 	if (completion->result == ISC_R_SUCCESS) {
 		completion->socket = nevent->newsocket;
 	}
+	UNLOCK(&lock);
 
 	isc_event_free(&event);
 }
@@ -114,6 +120,7 @@ event_done(isc_task_t *task, isc_event_t *event) {
 	completion_t *completion = event->ev_arg;
 	UNUSED(task);
 
+	LOCK(&lock);
 	switch (event->ev_type) {
 	case ISC_SOCKEVENT_RECVDONE:
 	case ISC_SOCKEVENT_SENDDONE:
@@ -135,22 +142,30 @@ event_done(isc_task_t *task, isc_event_t *event) {
 		assert_false(true);
 	}
 	completion->done = true;
+	UNLOCK(&lock);
 	isc_event_free(&event);
 }
 
 static isc_result_t
 waitfor(completion_t *completion) {
 	int i = 0;
+
+	LOCK(&lock);
 	while (!completion->done && i++ < 5000) {
+		UNLOCK(&lock);
+
 #ifndef ISC_PLATFORM_USETHREADS
 		while (isc__taskmgr_ready(taskmgr))
 			isc__taskmgr_dispatch(taskmgr);
 #endif
 		isc_test_nap(1000);
+		LOCK(&lock);
 	}
 	if (completion->done) {
+		UNLOCK(&lock);
 		return (ISC_R_SUCCESS);
 	}
+	UNLOCK(&lock);
 	return (ISC_R_FAILURE);
 }
 
@@ -176,12 +191,17 @@ static isc_result_t
 waitfor2(completion_t *c1, completion_t *c2) {
 	int i = 0;
 
+	LOCK(&lock);
 	while (!(c1->done && c2->done) && i++ < 5000) {
+		UNLOCK(&lock);
 		waitbody();
+		LOCK(&lock);
 	}
 	if (c1->done && c2->done) {
+		UNLOCK(&lock);
 		return (ISC_R_SUCCESS);
 	}
+	UNLOCK(&lock);
 	return (ISC_R_FAILURE);
 }
 
@@ -200,6 +220,9 @@ udp_sendto_test(void **state)  {
 	isc_region_t r;
 
 	UNUSED(state);
+
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");
 	isc_sockaddr_fromin(&addr1, &in, 0);
@@ -245,6 +268,9 @@ udp_sendto_test(void **state)  {
 	assert_true(completion.done);
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
+
+	result = isc_mutex_destroy(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 /* Test UDP sendto/recv with duplicated socket */
@@ -258,6 +284,9 @@ udp_dup_test(void **state) {
 	isc_region_t r;
 
 	UNUSED(state);
+
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");
 	isc_sockaddr_fromin(&addr1, &in, 0);
@@ -328,6 +357,9 @@ udp_dup_test(void **state) {
 	assert_true(completion.done);
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "World");
+
+	result = isc_mutex_destroy(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 /* Test UDP sendto/recv (IPv4) */
@@ -343,6 +375,8 @@ udp_dscp_v4_test(void **state) {
 
 	UNUSED(state);
 
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");
 	isc_sockaddr_fromin(&addr1, &in, 0);
@@ -412,6 +446,9 @@ udp_dscp_v4_test(void **state) {
 	} else {
 		assert_false(recv_dscp);
 	}
+
+	result = isc_mutex_destroy(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 #if defined(ISC_PLATFORM_HAVEIPV6) && defined(WANT_IPV6)
@@ -429,6 +466,8 @@ udp_dscp_v6_test(void **state) {
 
 	UNUSED(state);
 
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	n = inet_pton(AF_INET6, "::1", &in6.s6_addr);
 	assert_true(n == 1);
@@ -498,6 +537,9 @@ udp_dscp_v6_test(void **state) {
 	} else {
 		assert_false(recv_dscp);
 	}
+
+	result = isc_mutex_destroy(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 #endif
 
@@ -513,6 +555,8 @@ tcp_dscp_v4_test(void **state) {
 
 	UNUSED(state);
 
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");
 	isc_sockaddr_fromin(&addr1, &in, 0);
@@ -584,6 +628,9 @@ tcp_dscp_v4_test(void **state) {
 	} else {
 		assert_false(recv_dscp);
 	}
+
+	result = isc_mutex_destroy(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 #if defined(ISC_PLATFORM_HAVEIPV6) && defined(WANT_IPV6)
@@ -600,6 +647,8 @@ tcp_dscp_v6_test(void **state) {
 
 	UNUSED(state);
 
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	n = inet_pton(AF_INET6, "::1", &in6.s6_addr);
 	assert_true(n == 1);
@@ -678,6 +727,9 @@ tcp_dscp_v6_test(void **state) {
 	} else {
 		assert_false(recv_dscp);
 	}
+
+	result = isc_mutex_destroy(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 #endif
 
@@ -726,6 +778,9 @@ udp_trunc_test(void **state) {
 	isc_socketevent_t *socketevent;
 
 	UNUSED(state);
+
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");
 	isc_sockaddr_fromin(&addr1, &in, 0);
@@ -814,6 +869,9 @@ udp_trunc_test(void **state) {
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
 	assert_true(recv_trunc);
+
+	result = isc_mutex_destroy(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 /*
