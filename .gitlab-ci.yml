@@ -1227,6 +1227,8 @@ release:
     - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
     # Create Windows zips
     - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" | tee Build/Release/SHA256 Build/Debug/SHA256
+    - cp "doc/arm/_build/latex/Bv9ARM.pdf" Build/Release/
+    - cp "doc/arm/_build/latex/Bv9ARM.pdf" Build/Debug/
     - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
     - ( cd Build/Debug; zip "../../BIND${BIND_DIRECTORY#bind-}.debug.x64.zip" * )
     # Prepare release tarball contents (tarballs + zips + documentation)
