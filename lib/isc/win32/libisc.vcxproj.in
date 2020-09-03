@@ -90,6 +90,13 @@
 if NOT Exist ..\Build mkdir ..\Build
 if NOT Exist ..\Build\Debug mkdir ..\Build\Debug
 
+echo Copying documentation.
+
+copy ..\*.md ..\Build\Debug
+copy ..\CHANGES* ..\Build\Debug
+copy ..\COPYRIGHT ..\Build\Debug
+copy ..\LICENSE ..\Build\Debug
+
 echo Copying COPYRIGHT notice.
 
 copy ..\COPYRIGHT ..\Build\Debug
@@ -186,6 +193,13 @@ copy InstallFiles ..\Build\Debug\
 
 if NOT Exist ..\Build mkdir ..\Build
 if NOT Exist ..\Build\Release mkdir ..\Build\Release
+
+echo Copying documentation.
+
+copy ..\*.md ..\Build\Release
+copy ..\CHANGES* ..\Build\Release
+copy ..\COPYRIGHT ..\Build\Release
+copy ..\LICENSE ..\Build\Release
 
 echo Copying the OpenSSL DLL and LICENSE.
 
