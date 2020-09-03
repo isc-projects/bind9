@@ -5924,10 +5924,10 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		}
 	}
 
-	NODE_UNLOCK(lock, locktype);
-
-	if (found == NULL)
+	if (found == NULL) {
+		NODE_UNLOCK(lock, locktype);
 		return (ISC_R_NOTFOUND);
+	}
 
 	if (NEGATIVE(found)) {
 		/*
@@ -5938,6 +5938,8 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		else
 			result = DNS_R_NCACHENXRRSET;
 	}
+
+	NODE_UNLOCK(lock, locktype);
 
 	update_cachestats(rbtdb, result);
 
