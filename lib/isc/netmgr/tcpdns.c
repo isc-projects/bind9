@@ -98,8 +98,7 @@ dnstcp_readtimeout(uv_timer_t *timer) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	/* Close the TCP connection; its closure should fire ours. */
-	isc_nmhandle_unref(sock->outerhandle);
-	sock->outerhandle = NULL;
+	isc_nmhandle_detach(&sock->outerhandle);
 }
 
 /*
@@ -109,6 +108,7 @@ static isc_result_t
 dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *dnslistensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *dnssock = NULL;
+	isc_nmhandle_t *readhandle = NULL;
 
 	REQUIRE(VALID_NMSOCK(dnslistensock));
 	REQUIRE(dnslistensock->type == isc_nm_tcpdnslistener);
@@ -135,8 +135,7 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	isc__nmsocket_attach(dnssock, &dnssock->self);
 
-	dnssock->outerhandle = handle;
-	isc_nmhandle_ref(dnssock->outerhandle);
+	isc_nmhandle_attach(handle, &dnssock->outerhandle);
 
 	dnssock->peer = handle->sock->peer;
 	dnssock->read_timeout = handle->sock->mgr->init;
@@ -150,10 +149,15 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	uv_timer_start(&dnssock->timer, dnstcp_readtimeout,
 		       dnssock->read_timeout, 0);
 
-	isc_nmhandle_ref(handle);
-	result = isc_nm_read(handle, dnslisten_readcb, dnssock);
+	/*
+	 * Add a reference to handle to keep it from being freed by
+	 * the caller. It will be detached in dnslisted_readcb() when
+	 * the connection is closed or there is no more data to be read.
+	 */
+	isc_nmhandle_attach(handle, &readhandle);
+	result = isc_nm_read(readhandle, dnslisten_readcb, dnssock);
 	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_unref(handle);
+		isc_nmhandle_detach(&readhandle);
 	}
 	isc__nmsocket_detach(&dnssock);
 
@@ -190,17 +194,17 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 	 */
 	len = dnslen(dnssock->buf);
 	if (len <= dnssock->buf_len - 2) {
-		isc_nmhandle_t *dnshandle;
+		isc_nmhandle_t *dnshandle = NULL;
+		isc_nmsocket_t *listener = NULL;
+
 		if (atomic_load(&dnssock->client) &&
 		    dnssock->statichandle != NULL) {
-			dnshandle = dnssock->statichandle;
-			isc_nmhandle_ref(dnshandle);
+			isc_nmhandle_attach(dnssock->statichandle, &dnshandle);
 		} else {
 			dnshandle = isc__nmhandle_get(dnssock, NULL, NULL);
 		}
 
-		isc_nmsocket_t *listener = dnssock->listener;
-
+		listener = dnssock->listener;
 		if (listener != NULL && listener->rcb.recv != NULL) {
 			listener->rcb.recv(
 				dnshandle, ISC_R_SUCCESS,
@@ -238,8 +242,8 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 }
 
 /*
- * We've got a read on our underlying socket, need to check if we have
- * a complete DNS packet and, if so - call the callback
+ * We've got a read on our underlying socket. Check whether
+ * we have a complete DNS packet and, if so, call the callback.
  */
 static void
 dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
@@ -254,18 +258,15 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	if (region == NULL || eresult != ISC_R_SUCCESS) {
 		/* Connection closed */
-		if (eresult != ISC_R_CANCELED) {
-			isc_nmhandle_unref(handle);
-		}
 		dnssock->result = eresult;
 		if (dnssock->self != NULL) {
 			isc__nmsocket_detach(&dnssock->self);
 		}
 		isc__nmsocket_clearcb(dnssock);
 		if (dnssock->outerhandle != NULL) {
-			isc_nmhandle_unref(dnssock->outerhandle);
-			dnssock->outerhandle = NULL;
+			isc_nmhandle_detach(&dnssock->outerhandle);
 		}
+		isc_nmhandle_detach(&handle);
 		return;
 	}
 
@@ -305,11 +306,11 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 		if (atomic_load(&dnssock->sequential) ||
 		    dnssock->rcb.recv == NULL) {
 			/*
-			 * Two reasons we might want to pause here:
-			 * - If we're in sequential mode and we've received
+			 * There are two reasons we might want to pause here:
+			 * - We're in sequential mode and we've received
 			 *   a whole packet, so we're done until it's been
-			 *   processed;
-			 * - If we no longer have a read callback.
+			 *   processed; or
+			 * - We no longer have a read callback.
 			 */
 			isc_nm_pauseread(dnssock->outerhandle);
 			done = true;
@@ -328,7 +329,7 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 			}
 		}
 
-		isc_nmhandle_unref(dnshandle);
+		isc_nmhandle_detach(&dnshandle);
 	} while (!done);
 }
 
@@ -460,12 +461,11 @@ resume_processing(void *arg) {
 			if (sock->timer_initialized) {
 				uv_timer_stop(&sock->timer);
 			}
-			isc_nmhandle_unref(handle);
+			isc_nmhandle_detach(&handle);
 		} else if (sock->outerhandle != NULL) {
 			result = isc_nm_resumeread(sock->outerhandle);
 			if (result != ISC_R_SUCCESS) {
-				isc_nmhandle_unref(sock->outerhandle);
-				sock->outerhandle = NULL;
+				isc_nmhandle_detach(&sock->outerhandle);
 			}
 		}
 
@@ -495,7 +495,7 @@ resume_processing(void *arg) {
 			uv_timer_stop(&sock->timer);
 		}
 		atomic_store(&sock->outerhandle->sock->processing, true);
-		isc_nmhandle_unref(dnshandle);
+		isc_nmhandle_detach(&dnshandle);
 	} while (atomic_load(&sock->ah) < TCPDNS_CLIENTS_PER_CONN);
 }
 
@@ -508,6 +508,7 @@ tcpdnssend_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	req->cb.send(req->handle, result, req->cbarg);
 	isc_mem_put(req->sock->mgr->mctx, req->uvbuf.base, req->uvbuf.len);
 	isc__nm_uvreq_put(&req, req->handle->sock);
+	isc_nmhandle_detach(&handle);
 }
 
 void
@@ -522,11 +523,16 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	result = ISC_R_NOTCONNECTED;
 	if (atomic_load(&sock->active) && sock->outerhandle != NULL) {
+		isc_nmhandle_t *sendhandle = NULL;
 		isc_region_t r;
 
 		r.base = (unsigned char *)req->uvbuf.base;
 		r.length = req->uvbuf.len;
-		result = isc_nm_send(sock->outerhandle, &r, tcpdnssend_cb, req);
+		isc_nmhandle_attach(sock->outerhandle, &sendhandle);
+		result = isc_nm_send(sendhandle, &r, tcpdnssend_cb, req);
+		if (result != ISC_R_SUCCESS) {
+			isc_nmhandle_detach(&sendhandle);
+		}
 	}
 
 	if (result != ISC_R_SUCCESS) {
@@ -552,8 +558,7 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 
 	uvreq = isc__nm_uvreq_get(sock->mgr, sock);
-	uvreq->handle = handle;
-	isc_nmhandle_ref(uvreq->handle);
+	isc_nmhandle_attach(handle, &uvreq->handle);
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
 
@@ -563,13 +568,20 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	memmove(uvreq->uvbuf.base + 2, region->base, region->length);
 
 	if (sock->tid == isc_nm_tid()) {
+		isc_result_t result;
+		isc_nmhandle_t *sendhandle = NULL;
 		isc_region_t r;
 
 		r.base = (unsigned char *)uvreq->uvbuf.base;
 		r.length = uvreq->uvbuf.len;
 
-		return (isc_nm_send(sock->outerhandle, &r, tcpdnssend_cb,
-				    uvreq));
+		isc_nmhandle_attach(sock->outerhandle, &sendhandle);
+		result = isc_nm_send(sock->outerhandle, &r, tcpdnssend_cb,
+				     uvreq);
+		if (result != ISC_R_SUCCESS) {
+			isc_nmhandle_detach(&sendhandle);
+		}
+		return (result);
 	} else {
 		isc__netievent_tcpdnssend_t *ievent = NULL;
 
@@ -609,8 +621,7 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 		 */
 		if (sock->outerhandle != NULL) {
 			isc__nmsocket_clearcb(sock->outerhandle->sock);
-			isc_nmhandle_unref(sock->outerhandle);
-			sock->outerhandle = NULL;
+			isc_nmhandle_detach(&sock->outerhandle);
 		}
 		if (sock->listener != NULL) {
 			isc__nmsocket_detach(&sock->listener);

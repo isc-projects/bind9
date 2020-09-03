@@ -183,14 +183,19 @@ struct ns_client {
 	isc_task_t *	 task;
 	dns_view_t *	 view;
 	dns_dispatch_t * dispatch;
-	isc_nmhandle_t * handle;
-	unsigned char *	 tcpbuf;
-	dns_message_t *	 message;
-	unsigned char *	 sendbuf;
-	dns_rdataset_t * opt;
-	uint16_t	 udpsize;
-	uint16_t	 extflags;
-	int16_t		 ednsversion; /* -1 noedns */
+	isc_nmhandle_t * handle;      /* Permanent pointer to handle */
+	isc_nmhandle_t * sendhandle;  /* Waiting for send callback */
+	isc_nmhandle_t * reqhandle;   /* Waiting for request callback
+					 (query, update, notify) */
+	isc_nmhandle_t *fetchhandle;  /* Waiting for recursive fetch */
+	isc_nmhandle_t *updatehandle; /* Waiting for update callback */
+	unsigned char * tcpbuf;
+	dns_message_t * message;
+	unsigned char * sendbuf;
+	dns_rdataset_t *opt;
+	uint16_t	udpsize;
+	uint16_t	extflags;
+	int16_t		ednsversion; /* -1 noedns */
 	void (*cleanup)(ns_client_t *);
 	void (*shutdown)(void *arg, isc_result_t result);
 	void *	      shutdown_arg;

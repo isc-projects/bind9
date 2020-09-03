@@ -108,7 +108,6 @@ recv_data(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 done:
 	isc_nm_pauseread(handle);
 	ccmsg->cb(handle, ccmsg->result, ccmsg->cbarg);
-	isc_nmhandle_unref(handle);
 }
 
 void
@@ -149,18 +148,14 @@ isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_nm_cb_t cb, void *cbarg) {
 	ccmsg->result = ISC_R_UNEXPECTED; /* unknown right now */
 	ccmsg->length_received = false;
 
-	isc_nmhandle_ref(ccmsg->handle);
 	if (ccmsg->reading) {
 		result = isc_nm_resumeread(ccmsg->handle);
 	} else {
 		result = isc_nm_read(ccmsg->handle, recv_data, ccmsg);
 		ccmsg->reading = true;
 	}
-	if (result == ISC_R_CANCELED) {
+	if (result != ISC_R_SUCCESS) {
 		ccmsg->reading = false;
-	} else if (result != ISC_R_SUCCESS) {
-		ccmsg->reading = false;
-		isc_nmhandle_unref(ccmsg->handle);
 	}
 
 	return (result);
@@ -172,6 +167,7 @@ isccc_ccmsg_cancelread(isccc_ccmsg_t *ccmsg) {
 
 	if (ccmsg->reading) {
 		isc_nm_cancelread(ccmsg->handle);
+		ccmsg->reading = false;
 	}
 }
 

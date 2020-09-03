@@ -436,15 +436,15 @@ isc_netaddr_setzone
 isc_netaddr_totext
 isc_netaddr_unspec
 isc_netscope_pton
+isc_nmhandle_attach
+isc_nmhandle_detach
 isc_nmhandle_getdata
 isc_nmhandle_getextra
 isc_nmhandle_is_stream
 isc_nmhandle_netmgr
 isc_nmhandle_localaddr
 isc_nmhandle_peeraddr
-isc_nmhandle_ref
 isc_nmhandle_setdata
-isc_nmhandle_unref
 isc_nm_cancelread
 isc_nm_closedown
 isc_nm_destroy

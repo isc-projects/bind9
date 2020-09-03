@@ -32,7 +32,8 @@ notify_test_SOURCES =	\
 
 notify_test_LDFLAGS =			\
 	$(LDFLAGS)			\
-	-Wl,--wrap=isc_nmhandle_unref
+	-Wl,--wrap=isc_nmhandle_attach	\
+	-Wl,--wrap=isc_nmhandle_detach
 
 query_test_SOURCES =	\
 	query_test.c	\
@@ -40,7 +41,7 @@ query_test_SOURCES =	\
 
 query_test_LDFLAGS =			\
 	$(LDFLAGS)			\
-	-Wl,--wrap=isc_nmhandle_unref
+	-Wl,--wrap=isc_nmhandle_detach
 
 endif
 

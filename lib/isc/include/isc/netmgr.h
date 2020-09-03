@@ -110,9 +110,9 @@ isc_nmsocket_close(isc_nmsocket_t **sockp);
  */
 
 void
-isc_nmhandle_ref(isc_nmhandle_t *handle);
+isc_nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **dest);
 void
-isc_nmhandle_unref(isc_nmhandle_t *handle);
+isc_nmhandle_detach(isc_nmhandle_t **handlep);
 /*%<
  * Increment/decrement the reference counter in a netmgr handle,
  * but (unlike the attach/detach functions) do not change the pointer
