@@ -21,6 +21,10 @@
 5505.	[bug]		Updating contents of a mixed-case RPZ could cause some
 			rules to be ignored. [GL #2169]
 
+5503.	[bug]		Cleaned up reference counting of network manager
+			handles, now using isc_nmhandle_attach() and _detach()
+			instead of _ref() and _unref(). [GL #2122]
+
 	--- 9.16.7 released ---
 
 5501.	[func]		Log CDS/CDNSKEY publication. [GL #1748]
