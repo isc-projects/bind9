@@ -71,3 +71,8 @@ Bug Fixes
   same query was repeatedly sent until the number of queries sent
   reached the value of the ``max-recursion-queries`` configuration
   option. [GL #1847]
+
+- Parsing of LOC records was made more strict by rejecting a sole period
+  (``.``) and/or ``m`` as a value. These changes prevent zone files
+  using such values from being loaded. Handling of negative altitudes
+  which are not integers was also corrected. [GL #2074]
