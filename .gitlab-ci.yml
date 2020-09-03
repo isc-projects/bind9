@@ -1398,6 +1398,7 @@ gcov:
     - cp contrib/dlz/drivers/dlz_drivers.c contrib/dlz/drivers/dlz_filesystem_driver.c contrib/dlz/drivers/sdlz_helper.c bin/named/
     # The same reasoning applies for some libisc source files.
     - cp lib/isc/app_api.c lib/isc/socket_api.c lib/isc/unix/
+    - cp lib/isc/x86_64/include/isc/atomic.h lib/dns/
     - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --html-details -o coverage.html
     - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' -o coverage.txt
     - tail -n 3 coverage.txt
