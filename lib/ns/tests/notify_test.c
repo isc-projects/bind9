@@ -86,6 +86,7 @@ static void
 notify_start(void **state) {
 	isc_result_t result;
 	ns_client_t *client = NULL;
+	isc_nmhandle_t *handle = NULL;
 	dns_message_t *nmsg = NULL;
 	unsigned char ndata[4096];
 	isc_buffer_t nbuf;
@@ -129,13 +130,16 @@ notify_start(void **state) {
 	client->message = nmsg;
 	nmsg = NULL;
 	client->sendcb = check_response;
-	ns_notify_start(client);
+	ns_notify_start(client, client->handle);
 
 	/*
 	 * Clean up
 	 */
 	ns_test_cleanup_zone();
-	isc_nmhandle_unref(client->handle);
+
+	handle = client->handle;
+	isc_nmhandle_detach(&client->handle);
+	isc_nmhandle_detach(&handle);
 }
 #endif /* if defined(USE_LIBTOOL) || LD_WRAP */
 

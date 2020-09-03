@@ -16,7 +16,6 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/stats.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -34,7 +33,6 @@
 #include <dns/rriterator.h>
 #include <dns/soa.h>
 #include <dns/stats.h>
-#include <dns/timer.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -1160,7 +1158,7 @@ failure:
 			      NS_LOGMODULE_XFER_OUT, ISC_LOG_DEBUG(3),
 			      "zone transfer setup failed");
 		ns_client_error(client, result);
-		isc_nmhandle_unref(client->handle);
+		isc_nmhandle_detach(&client->reqhandle);
 	}
 }
 
@@ -1243,11 +1241,6 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	isc_buffer_init(&xfr->txbuf, (char *)mem, len);
 	xfr->txmem = mem;
 	xfr->txmemlen = len;
-
-#if 0
-	CHECK(dns_timer_setidle(xfr->client->timer,
-				maxtime,idletime,false));
-#endif /* if 0 */
 
 	/*
 	 * Register a shutdown callback with the client, so that we
@@ -1540,15 +1533,17 @@ sendstream(xfrout_ctx_t *xfr) {
 		xfrout_log(xfr, ISC_LOG_DEBUG(8),
 			   "sending TCP message of %d bytes", used.length);
 
-		CHECK(isc_nm_send(xfr->client->handle, &used, xfrout_senddone,
-				  xfr));
+		isc_nmhandle_attach(xfr->client->handle,
+				    &xfr->client->sendhandle);
+		CHECK(isc_nm_send(xfr->client->sendhandle, &used,
+				  xfrout_senddone, xfr));
 		xfr->sends++;
 		xfr->cbytes = used.length;
 	} else {
 		xfrout_log(xfr, ISC_LOG_DEBUG(8), "sending IXFR UDP response");
 		ns_client_send(xfr->client);
 		xfr->stream->methods->pause(xfr->stream);
-		isc_nmhandle_unref(xfr->client->handle);
+		isc_nmhandle_detach(&xfr->client->reqhandle);
 		xfrout_ctx_destroy(&xfr);
 		return;
 	}
@@ -1589,6 +1584,10 @@ failure:
 
 	if (result == ISC_R_SUCCESS) {
 		return;
+	}
+
+	if (xfr->client->sendhandle != NULL) {
+		isc_nmhandle_detach(&xfr->client->sendhandle);
 	}
 
 	xfrout_fail(xfr, result, "sending zone data");
@@ -1643,6 +1642,8 @@ xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	xfr->sends--;
 	INSIST(xfr->sends == 0);
 
+	isc_nmhandle_detach(&xfr->client->sendhandle);
+
 	/*
 	 * Update transfer statistics if sending succeeded, accounting for the
 	 * two-byte TCP length prefix included in the number of bytes sent.
@@ -1651,10 +1652,6 @@ xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		xfr->stats.nmsg++;
 		xfr->stats.nbytes += xfr->cbytes;
 	}
-
-#if 0
-	(void)isc_timer_touch(xfr->client->timer);
-#endif /* if 0 */
 
 	if (xfr->shuttingdown) {
 		xfrout_maybe_destroy(xfr);
@@ -1683,9 +1680,12 @@ xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 			   xfr->stats.nbytes, (unsigned int)(msecs / 1000),
 			   (unsigned int)(msecs % 1000), (unsigned int)persec);
 
+		/*
+		 * We're done, unreference the handle and destroy the xfr
+		 * context.
+		 */
+		isc_nmhandle_detach(&xfr->client->reqhandle);
 		xfrout_ctx_destroy(&xfr);
-		/* We're done, unreference the handle */
-		isc_nmhandle_unref(handle);
 	}
 }
 
@@ -1699,23 +1699,11 @@ xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, const char *msg) {
 
 static void
 xfrout_maybe_destroy(xfrout_ctx_t *xfr) {
-	INSIST(xfr->shuttingdown);
-#if 0
-	if (xfr->sends > 0) {
-		/*
-		 * If we are currently sending, cancel it and wait for
-		 * cancel event before destroying the context.
-		 */
-		isc_socket_cancel(xfr->client->tcpsocket,xfr->client->task,
-				  ISC_SOCKCANCEL_SEND);
-	} else {
-#endif /* if 0 */
+	REQUIRE(xfr->shuttingdown);
+
 	ns_client_drop(xfr->client, ISC_R_CANCELED);
-	isc_nmhandle_unref(xfr->client->handle);
+	isc_nmhandle_detach(&xfr->client->reqhandle);
 	xfrout_ctx_destroy(&xfr);
-#if 0
-}
-#endif /* if 0 */
 }
 
 static void

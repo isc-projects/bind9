@@ -78,11 +78,13 @@ atomic_uint_fast32_t client_refs[32];
 atomic_uintptr_t client_addrs[32];
 
 void
-__wrap_isc_nmhandle_unref(isc_nmhandle_t *handle);
+__wrap_isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp);
+void
+__wrap_isc_nmhandle_detach(isc_nmhandle_t **handlep);
 
 void
-__wrap_isc_nmhandle_unref(isc_nmhandle_t *handle) {
-	ns_client_t *client = (ns_client_t *)handle;
+__wrap_isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
+	ns_client_t *client = (ns_client_t *)source;
 	int i;
 
 	for (i = 0; i < 32; i++) {
@@ -90,7 +92,29 @@ __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle) {
 			break;
 		}
 	}
-	REQUIRE(i < 32);
+	INSIST(i < 32);
+	INSIST(atomic_load(&client_refs[i]) > 0);
+
+	atomic_fetch_add(&client_refs[i], 1);
+
+	*targetp = source;
+	return;
+}
+
+void
+__wrap_isc_nmhandle_detach(isc_nmhandle_t **handlep) {
+	isc_nmhandle_t *handle = *handlep;
+	ns_client_t *client = (ns_client_t *)handle;
+	int i;
+
+	*handlep = NULL;
+
+	for (i = 0; i < 32; i++) {
+		if (atomic_load(&client_addrs[i]) == (uintptr_t)client) {
+			break;
+		}
+	}
+	INSIST(i < 32);
 
 	if (atomic_fetch_sub(&client_refs[i], 1) == 1) {
 		dns_view_detach(&client->view);
@@ -99,13 +123,18 @@ __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		ns__client_put_cb(client);
 		isc_mem_put(mctx, client, sizeof(ns_client_t));
 	}
+
 	return;
 }
 
 #ifdef USE_LIBTOOL
 void
-isc_nmhandle_unref(isc_nmhandle_t *handle) {
-	__wrap_isc_nmhandle_unref(handle);
+isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
+	__wrap_isc_nmhandle_attach(source, targetp);
+}
+void
+isc_nmhandle_detach(isc_nmhandle_t **handle) {
+	__wrap_isc_nmhandle_detach(handle);
 }
 #endif /* USE_LIBTOOL */
 
@@ -747,10 +776,12 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	saved_hook_table = ns__hook_table;
 	ns__hook_table = query_hooks;
 
-	ns_query_start(client);
+	ns_query_start(client, client->handle);
 
 	ns__hook_table = saved_hook_table;
 	ns_hooktable_free(mctx, (void **)&query_hooks);
+
+	isc_nmhandle_detach(&client->reqhandle);
 
 	if (*qctxp == NULL) {
 		return (ISC_R_NOMEMORY);
@@ -764,6 +795,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 		    query_ctx_t **qctxp) {
 	ns_client_t *client = NULL;
 	isc_result_t result;
+	isc_nmhandle_t *handle = NULL;
 
 	REQUIRE(params != NULL);
 	REQUIRE(params->qname != NULL);
@@ -814,10 +846,12 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	}
 
 	/*
-	 * Reference count for "client" is now at 2, so decrement it in order
-	 * for it to drop to zero when "qctx" gets destroyed.
+	 * The reference count for "client" is now at 2, so we need to
+	 * decrement it in order for it to drop to zero when "qctx" gets
+	 * destroyed.
 	 */
-	isc_nmhandle_unref(client->handle);
+	handle = client->handle;
+	isc_nmhandle_detach(&handle);
 
 	return (ISC_R_SUCCESS);
 
@@ -826,7 +860,7 @@ detach_query:
 detach_view:
 	dns_view_detach(&client->view);
 detach_client:
-	isc_nmhandle_unref(client->handle);
+	isc_nmhandle_detach(&client->handle);
 
 	return (result);
 }
@@ -848,7 +882,7 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 		dns_db_detach(&qctx->db);
 	}
 	if (qctx->client != NULL) {
-		isc_nmhandle_unref(qctx->client->handle);
+		isc_nmhandle_detach(&qctx->client->handle);
 	}
 
 	isc_mem_put(mctx, qctx, sizeof(*qctx));

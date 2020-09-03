@@ -550,7 +550,7 @@ query_send(ns_client_t *client) {
 
 	inc_stats(client, counter);
 	ns_client_send(client);
-	isc_nmhandle_unref(client->handle);
+	isc_nmhandle_detach(&client->reqhandle);
 }
 
 static void
@@ -577,7 +577,7 @@ query_error(ns_client_t *client, isc_result_t result, int line) {
 	log_queryerror(client, result, line, loglevel);
 
 	ns_client_error(client, result);
-	isc_nmhandle_unref(client->handle);
+	isc_nmhandle_detach(&client->reqhandle);
 }
 
 static void
@@ -590,7 +590,7 @@ query_next(ns_client_t *client, isc_result_t result) {
 		inc_stats(client, ns_statscounter_failure);
 	}
 	ns_client_drop(client, result);
-	isc_nmhandle_unref(client->handle);
+	isc_nmhandle_detach(&client->reqhandle);
 }
 
 static inline void
@@ -2471,7 +2471,7 @@ prefetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	free_devent(client, &event, &devent);
-	isc_nmhandle_unref(client->handle);
+	isc_nmhandle_detach(&client->fetchhandle);
 }
 
 static void
@@ -2514,7 +2514,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		peeraddr = NULL;
 	}
 
-	isc_nmhandle_ref(client->handle);
+	isc_nmhandle_attach(client->handle, &client->fetchhandle);
 	options = client->query.fetchoptions | DNS_FETCHOPT_PREFETCH;
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, rdataset->type, NULL, NULL, NULL,
@@ -2523,7 +2523,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		&client->query.prefetch);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_putrdataset(client, &tmprdataset);
-		isc_nmhandle_unref(client->handle);
+		isc_nmhandle_detach(&client->fetchhandle);
 	}
 
 	dns_rdataset_clearprefetch(rdataset);
@@ -2728,7 +2728,7 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 	}
 
 	options = client->query.fetchoptions;
-	isc_nmhandle_ref(client->handle);
+	isc_nmhandle_attach(client->handle, &client->fetchhandle);
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, type, NULL, NULL, NULL, peeraddr,
 		client->message->id, options, 0, NULL, client->task,
@@ -2736,7 +2736,7 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 		&client->query.prefetch);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_putrdataset(client, &tmprdataset);
-		isc_nmhandle_unref(client->handle);
+		isc_nmhandle_detach(&client->fetchhandle);
 	}
 }
 
@@ -5702,6 +5702,8 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	}
 	UNLOCK(&client->manager->reclock);
 
+	isc_nmhandle_detach(&client->fetchhandle);
+
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
 	client->state = NS_CLIENTSTATE_WORKING;
 
@@ -5763,7 +5765,6 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	dns_resolver_destroyfetch(&fetch);
-	isc_nmhandle_unref(client->handle);
 }
 
 /*%
@@ -5956,14 +5957,14 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		peeraddr = &client->peeraddr;
 	}
 
-	isc_nmhandle_ref(client->handle);
+	isc_nmhandle_attach(client->handle, &client->fetchhandle);
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, qtype, qdomain, nameservers,
 		NULL, peeraddr, client->message->id, client->query.fetchoptions,
 		0, NULL, client->task, fetch_callback, client, rdataset,
 		sigrdataset, &client->query.fetch);
 	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_unref(client->handle);
+		isc_nmhandle_detach(&client->fetchhandle);
 		ns_client_putrdataset(client, &rdataset);
 		if (sigrdataset != NULL) {
 			ns_client_putrdataset(client, &sigrdataset);
@@ -11124,7 +11125,7 @@ log_queryerror(ns_client_t *client, isc_result_t result, int line, int level) {
 }
 
 void
-ns_query_start(ns_client_t *client) {
+ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	isc_result_t result;
 	dns_message_t *message;
 	dns_rdataset_t *rdataset;
@@ -11133,6 +11134,11 @@ ns_query_start(ns_client_t *client) {
 	unsigned int saved_flags;
 
 	REQUIRE(NS_CLIENT_VALID(client));
+
+	/*
+	 * Attach to the request handle
+	 */
+	isc_nmhandle_attach(handle, &client->reqhandle);
 
 	message = client->message;
 	saved_extflags = client->extflags;

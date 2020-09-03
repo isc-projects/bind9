@@ -746,8 +746,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 	sock->statichandle = NULL;
 
 	if (sock->outerhandle != NULL) {
-		isc_nmhandle_unref(sock->outerhandle);
-		sock->outerhandle = NULL;
+		isc_nmhandle_detach(&sock->outerhandle);
 	}
 
 	if (sock->outer != NULL) {
@@ -1107,6 +1106,13 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	    (sock->type == isc_nm_udpsocket && atomic_load(&sock->client)))
 	{
 		INSIST(sock->statichandle == NULL);
+
+		/*
+		 * statichandle must be assigned, not attached;
+		 * otherwise, if a handle was detached elsewhere
+		 * it could never reach 0 references, and the
+		 * handle and socket would never be freed.
+		 */
 		sock->statichandle = handle;
 	}
 
@@ -1114,10 +1120,12 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 }
 
 void
-isc_nmhandle_ref(isc_nmhandle_t *handle) {
+isc_nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **handlep) {
 	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(handlep != NULL && *handlep == NULL);
 
 	isc_refcount_increment(&handle->references);
+	*handlep = handle;
 }
 
 bool
@@ -1173,14 +1181,20 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 }
 
 void
-isc_nmhandle_unref(isc_nmhandle_t *handle) {
+isc_nmhandle_detach(isc_nmhandle_t **handlep) {
 	isc_nmsocket_t *sock = NULL;
+	isc_nmhandle_t *handle = NULL;
 
-	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(handlep != NULL);
+	REQUIRE(VALID_NMHANDLE(*handlep));
+
+	handle = *handlep;
+	*handlep = NULL;
 
 	if (isc_refcount_decrement(&handle->references) > 1) {
 		return;
 	}
+
 	/* We need an acquire memory barrier here */
 	(void)isc_refcount_current(&handle->references);
 
@@ -1215,6 +1229,7 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	}
 
 	if (handle == sock->statichandle) {
+		/* statichandle is assigned, not attached. */
 		sock->statichandle = NULL;
 	}
 
@@ -1319,7 +1334,7 @@ isc__nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock) {
 	}
 
 	if (handle != NULL) {
-		isc_nmhandle_unref(handle);
+		isc_nmhandle_detach(&handle);
 	}
 
 	isc__nmsocket_detach(&sock);

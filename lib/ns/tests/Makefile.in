@@ -15,7 +15,7 @@ VERSION=@BIND9_VERSION@
 
 @BIND9_MAKE_INCLUDES@
 
-WRAP_OPTIONS =	-Wl,--wrap=isc_nmhandle_unref
+WRAP_OPTIONS =	-Wl,--wrap=isc_nmhandle_detach -Wl,--wrap=isc_nmhandle_attach
 
 CINCLUDES =	-I. -Iinclude ${NS_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
 		${OPENSSL_CFLAGS} \
