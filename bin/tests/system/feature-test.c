@@ -37,21 +37,21 @@ static void
 usage() {
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
-	fprintf(stderr, "	--edns-version\n");
-	fprintf(stderr, "	--enable-filter-aaaa\n");
-	fprintf(stderr, "	--gethostname\n");
-	fprintf(stderr, "	--gssapi\n");
-	fprintf(stderr, "       --have-aes\n");
-	fprintf(stderr, "	--have-dlopen\n");
-	fprintf(stderr, "	--have-geoip\n");
-	fprintf(stderr, "	--have-geoip2\n");
-	fprintf(stderr, "	--have-libxml2\n");
-	fprintf(stderr, "	--ipv6only=no\n");
-	fprintf(stderr, "	--rpz-nsdname\n");
-	fprintf(stderr, "	--rpz-nsip\n");
-	fprintf(stderr, "	--with-idn\n");
-	fprintf(stderr, "	--with-lmdb\n");
-	fprintf(stderr, "	--with-dlz-filesystem\n");
+	fprintf(stderr, "\t--edns-version\n");
+	fprintf(stderr, "\t--enable-filter-aaaa\n");
+	fprintf(stderr, "\t--gethostname\n");
+	fprintf(stderr, "\t--gssapi\n");
+	fprintf(stderr, "\t--have-aes\n");
+	fprintf(stderr, "\t--have-dlopen\n");
+	fprintf(stderr, "\t--have-geoip2\n");
+	fprintf(stderr, "\t--have-geoip\n");
+	fprintf(stderr, "\t--have-libxml2\n");
+	fprintf(stderr, "\t--ipv6only=no\n");
+	fprintf(stderr, "\t--rpz-nsdname\n");
+	fprintf(stderr, "\t--rpz-nsip\n");
+	fprintf(stderr, "\t--with-dlz-filesystem\n");
+	fprintf(stderr, "\t--with-idn\n");
+	fprintf(stderr, "\t--with-lmdb\n");
 }
 
 int
@@ -61,14 +61,6 @@ main(int argc, char **argv) {
 		return (1);
 	}
 
-	if (strcmp(argv[1], "--enable-filter-aaaa") == 0) {
-#ifdef ALLOW_FILTER_AAAA
-		return (0);
-#else
-		return (1);
-#endif
-	}
-
 	if (strcmp(argv[1], "--edns-version") == 0) {
 #ifdef DNS_EDNS_VERSION
 		printf("%d\n", DNS_EDNS_VERSION);
@@ -76,6 +68,14 @@ main(int argc, char **argv) {
 		printf("0\n");
 #endif
 		return (0);
+	}
+
+	if (strcmp(argv[1], "--enable-filter-aaaa") == 0) {
+#ifdef ALLOW_FILTER_AAAA
+		return (0);
+#else
+		return (1);
+#endif
 	}
 
 	if (strcmp(argv[1], "--gethostname") == 0) {
@@ -155,46 +155,6 @@ main(int argc, char **argv) {
 #endif
 	}
 
-	if (strcmp(argv[1], "--rpz-nsip") == 0) {
-#ifdef ENABLE_RPZ_NSIP
-		return (0);
-#else
-		return (1);
-#endif
-	}
-
-	if (strcmp(argv[1], "--rpz-nsdname") == 0) {
-#ifdef ENABLE_RPZ_NSDNAME
-		return (0);
-#else
-		return (1);
-#endif
-	}
-
-	if (strcmp(argv[1], "--with-idn") == 0) {
-#ifdef WITH_LIBIDN2
-		return (0);
-#else
-		return (1);
-#endif
-	}
-
-	if (strcmp(argv[1], "--with-lmdb") == 0) {
-#ifdef HAVE_LMDB
-		return (0);
-#else
-		return (1);
-#endif
-	}
-
-	if (strcmp(argv[1], "--with-dlz-filesystem") == 0) {
-#ifdef DLZ_FILESYSTEM
-		return (0);
-#else
-		return (1);
-#endif
-	}
-
 	if (strcmp(argv[1], "--ipv6only=no") == 0) {
 #ifdef WIN32
 		return (0);
@@ -216,12 +176,44 @@ main(int argc, char **argv) {
 #endif
 	}
 
-	if (strcmp(argv[1], "--rpz-log-qtype-qclass") == 0) {
-#ifdef RPZ_LOG_QTYPE_QCLASS
+	if (strcmp(argv[1], "--rpz-nsdname") == 0) {
+#ifdef ENABLE_RPZ_NSDNAME
 		return (0);
 #else
 		return (1);
 #endif
+	}
+
+	if (strcmp(argv[1], "--rpz-nsip") == 0) {
+#ifdef ENABLE_RPZ_NSIP
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--with-dlz-filesystem") == 0) {
+#ifdef DLZ_FILESYSTEM
+		return (0);
+#else  /* ifdef DLZ_FILESYSTEM */
+		return (1);
+#endif /* ifdef DLZ_FILESYSTEM */
+	}
+
+	if (strcmp(argv[1], "--with-idn") == 0) {
+#ifdef HAVE_LIBIDN2
+		return (0);
+#else  /* ifdef HAVE_LIBIDN2 */
+		return (1);
+#endif /* ifdef HAVE_LIBIDN2 */
+	}
+
+	if (strcmp(argv[1], "--with-lmdb") == 0) {
+#ifdef HAVE_LMDB
+		return (0);
+#else  /* ifdef HAVE_LMDB */
+		return (1);
+#endif /* ifdef HAVE_LMDB */
 	}
 
 	fprintf(stderr, "unknown arg: %s\n", argv[1]);
