@@ -3145,7 +3145,12 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 		rdataset->stale_ttl =
 			(rbtdb->serve_stale_ttl + header->rdh_ttl) - now;
 		rdataset->ttl = 0;
+	} else if (header->rdh_ttl < now) {
+		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;
+		rdataset->stale_ttl = 0;
+		rdataset->ttl = 0;
 	}
+
 	rdataset->private1 = rbtdb;
 	rdataset->private2 = node;
 	raw = (unsigned char *)header + sizeof(*header);
