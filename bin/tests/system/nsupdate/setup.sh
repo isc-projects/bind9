@@ -80,5 +80,6 @@ cp -f ns8/in-addr.db.in ns8/in-addr.db
 cp -f ns8/example.com.db.in ns8/example.com.db
 cp -f ns9/in-addr.db.in ns9/in-addr.db
 cp -f ns9/example.com.db.in ns9/example.com.db
+cp -f ns9/example.com.db.in ns9/denyname.example.db
 cp -f ns10/in-addr.db.in ns10/in-addr.db
 cp -f ns10/example.com.db.in ns10/example.com.db
