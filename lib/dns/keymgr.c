@@ -1894,7 +1894,7 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 				/*
 				 * Only checkds for one key at a time.
 				 */
-				return (ISC_R_FAILURE);
+				return (DNS_R_TOOMANYKEYS);
 			}
 
 			ksk_key = dkey;
@@ -1902,7 +1902,7 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	}
 
 	if (ksk_key == NULL) {
-		return (ISC_R_NOTFOUND);
+		return (DNS_R_NOKEYMATCH);
 	}
 
 	if (dspublish) {
@@ -1918,7 +1918,7 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	}
 	result = isc_dir_open(&dir, directory);
 	if (result != ISC_R_SUCCESS) {
-		return result;
+		return (result);
 	}
 
 	dns_dnssec_get_hints(ksk_key, now);
@@ -2174,18 +2174,18 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 			/*
 			 * Only rollover for one key at a time.
 			 */
-			return (ISC_R_FAILURE);
+			return (DNS_R_TOOMANYKEYS);
 		}
 		key = dkey;
 	}
 
 	if (key == NULL) {
-		return (ISC_R_NOTFOUND);
+		return (DNS_R_NOKEYMATCH);
 	}
 
 	result = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
 	if (result != ISC_R_SUCCESS || active > now) {
-		return (ISC_R_UNEXPECTED);
+		return (DNS_R_KEYNOTACTIVE);
 	}
 
 	result = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
@@ -2218,7 +2218,7 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	}
 	result = isc_dir_open(&dir, directory);
 	if (result != ISC_R_SUCCESS) {
-		return result;
+		return (result);
 	}
 
 	dns_dnssec_get_hints(key, now);

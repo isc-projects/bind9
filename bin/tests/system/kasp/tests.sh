@@ -2814,7 +2814,7 @@ n=$((n+1))
 echo_i "check that rndc dnssec -rollover fails if key is inactive ($n)"
 ret=0
 rndccmd "$SERVER" dnssec -rollover -key $(key_get KEY4 ID) "$ZONE" > rndc.dnssec.rollover.out.$ZONE.$n
-grep "key is not active and cannot be rolled" rndc.dnssec.rollover.out.$ZONE.$n > /dev/null || log_error "bad error message"
+grep "key is not actively signing" rndc.dnssec.rollover.out.$ZONE.$n > /dev/null || log_error "bad error message"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 

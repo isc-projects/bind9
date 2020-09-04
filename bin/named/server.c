@@ -14766,6 +14766,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		char whenbuf[80];
 		isc_time_set(&timewhen, when, 0);
 		isc_time_formattimestamp(&timewhen, whenbuf, sizeof(whenbuf));
+		isc_result_t ret;
 
 		LOCK(&kasp->lock);
 		if (use_keyid) {
@@ -14796,16 +14797,16 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 			CHECK(putstr(text, "since "));
 			CHECK(putstr(text, whenbuf));
 			break;
-		case ISC_R_NOTFOUND:
-			CHECK(putstr(text, "No matching KSK found"));
-			break;
-		case ISC_R_FAILURE:
+		case DNS_R_TOOMANYKEYS:
 			CHECK(putstr(text,
-				     "Error: multiple possible KSKs found, "
+				     "Error: multiple possible keys found, "
 				     "retry command with -key id"));
 			break;
 		default:
-			CHECK(putstr(text, "Error executing checkds command"));
+			ret = result;
+			CHECK(putstr(text,
+				     "Error executing checkds command: "));
+			CHECK(putstr(text, isc_result_totext(ret)));
 			break;
 		}
 	} else if (rollover) {
@@ -14815,6 +14816,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		char whenbuf[80];
 		isc_time_set(&timewhen, when, 0);
 		isc_time_formattimestamp(&timewhen, whenbuf, sizeof(whenbuf));
+		isc_result_t ret;
 
 		LOCK(&kasp->lock);
 		result = dns_keymgr_rollover(kasp, &keys, dir, now, when, keyid,
@@ -14833,21 +14835,16 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 			CHECK(putstr(text, "Rollover scheduled on "));
 			CHECK(putstr(text, whenbuf));
 			break;
-		case ISC_R_NOTFOUND:
-			CHECK(putstr(text, "No matching keyfound"));
-			break;
-		case ISC_R_FAILURE:
+		case DNS_R_TOOMANYKEYS:
 			CHECK(putstr(text,
 				     "Error: multiple possible keys found, "
 				     "retry command with -alg algorithm"));
 			break;
-		case ISC_R_UNEXPECTED:
-			CHECK(putstr(text,
-				     "Error: key is not active and cannot "
-				     "be rolled at this time"));
-			break;
 		default:
-			CHECK(putstr(text, "Error executing rollover command"));
+			ret = result;
+			CHECK(putstr(text,
+				     "Error executing rollover command: "));
+			CHECK(putstr(text, isc_result_totext(ret)));
 			break;
 		}
 	}
