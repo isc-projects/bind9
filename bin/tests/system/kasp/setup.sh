@@ -33,6 +33,13 @@ if $SHELL ../testcrypto.sh ed448; then
 	echo "yes" > ed448-supported.file
 fi
 
+copy_setports ns3/policies/autosign.conf.in ns3/policies/autosign.conf
+copy_setports ns3/policies/kasp.conf.in ns3/policies/kasp.conf
+
+copy_setports ns6/policies/csk1.conf.in ns6/policies/csk1.conf
+copy_setports ns6/policies/csk2.conf.in ns6/policies/csk2.conf
+copy_setports ns6/policies/kasp.conf.in ns6/policies/kasp.conf
+
 # Setup zones
 (
 	cd ns2
