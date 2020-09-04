@@ -8645,6 +8645,8 @@ zone_sign(dns_zone_t *zone) {
 
 	while (signing != NULL && nodes-- > 0 && signatures > 0) {
 		bool has_alg = false;
+
+		dns_dbiterator_pause(signing->dbiterator);
 		nextsigning = ISC_LIST_NEXT(signing, link);
 
 		ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
