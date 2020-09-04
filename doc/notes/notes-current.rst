@@ -58,3 +58,8 @@ Bug Fixes
   (``.``) and/or ``m`` as a value. These changes prevent zone files
   using such values from being loaded. Handling of negative altitudes
   which are not integers was also corrected. [GL #2074]
+
+- Several problems found by `OSS-Fuzz`_ were fixed. (None of these are
+  security issues.) [GL !3953] [GL !3975]
+
+.. _OSS-Fuzz: https://github.com/google/oss-fuzz
