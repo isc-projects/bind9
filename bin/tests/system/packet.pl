@@ -33,10 +33,15 @@
 #
 # Usage: packet.pl [-a <address>] [-d] [-p <port>] [-t (udp|tcp)] [-r <repeats>] [filename]
 #
+# Options:
+# -a <address>:  specify address (XXX: no IPv6 support yet)
+# -p <port>:     specify port
+# -t <protocol>: specify UDP or TCP
+# -r <num>:      send packet <num> times
+# -d:            dump response packets
+#
 # If not specified, address defaults to 127.0.0.1, port to 53, protocol
 # to udp, and file to stdin.
-#
-# XXX: Doesn't support IPv6 yet
 
 require 5.006.001;
 
@@ -88,6 +93,7 @@ my $output = unpack("H*", $data);
 print ("sending $repeats time(s): $output\n");
 
 my $sock = IO::Socket::INET->new(PeerAddr => $addr, PeerPort => $port,
+				 Blocking => 0,
 				 Proto => $proto,) or die "$!";
 
 STDOUT->autoflush(1);
@@ -103,45 +109,48 @@ while ($repeats > 0) {
 
     $repeats = $repeats - 1;
 
-    if ($repeats % 100 == 0) {
+    if ($repeats % 1000 == 0) {
 	print ".";
     }
+}
 
-    my $rin;
-    my $rout;
-    $rin = '';
-    vec($rin, fileno($sock), 1) = 1;
-    select($rout = $rin, undef, undef, 1);
-    if (vec($rout, fileno($sock), 1)) {
-	my $buf;
+$sock->shutdown(SHUT_WR);
 
-	if ($proto eq "udp") {
-	    $sock->recv($buf, 512);
+my $rin;
+my $rout;
+$rin = '';
+vec($rin, fileno($sock), 1) = 1;
+select($rout = $rin, undef, undef, 1);
+if (vec($rout, fileno($sock), 1)) {
+    my $buf;
+
+    if ($proto eq "udp") {
+	$sock->recv($buf, 512);
+    } else {
+	my $n = $sock->sysread($buf, 2);
+	last unless $n == 2;
+	my $len = unpack("n", $buf);
+	$n = $sock->sysread($buf, $len);
+	last unless $n == $len;
+    }
+
+    if (defined $options{d}) {
+	use Net::DNS;
+	use Net::DNS::Packet;
+
+	my $response;
+	if ($Net::DNS::VERSION > 0.68) {
+	    $response = new Net::DNS::Packet(\$buf, 0);
+	    $@ and die $@;
 	} else {
-	    my $n = $sock->sysread($buf, 2);
-	    last unless $n == 2;
-	    my $len = unpack("n", $buf);
-	    $n = $sock->sysread($buf, $len);
-	    last unless $n == $len;
+	    my $err;
+	    ($response, $err) = new Net::DNS::Packet(\$buf, 0);
+	    $err and die $err;
 	}
-
-	if (defined $options{d}) {
-	    use Net::DNS;
-	    use Net::DNS::Packet;
-
-	    my $response;
-	    if ($Net::DNS::VERSION > 0.68) {
-		$response = new Net::DNS::Packet(\$buf, 0);
-		$@ and die $@;
-	    } else {
-		my $err;
-		($response, $err) = new Net::DNS::Packet(\$buf, 0);
-		$err and die $err;
-	    }
-	    $response->print;
-	}
+	$response->print;
     }
 }
+
 $sock->close;
 close $file;
-print ("sent $bytes bytes to $addr:$port\n");
+print ("\nsent $bytes bytes to $addr:$port\n");
