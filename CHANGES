@@ -6,6 +6,8 @@
 			handles, now using isc_nmhandle_attach() and _detach()
 			instead of _ref() and _unref(). [GL #2122]
 
+	--- 9.17.5 released ---
+
 5502.	[func]		'dig +bufsize=0' no longer disables EDNS. [GL #2054]
 
 5501.	[func]		Log CDS/CDNSKEY publication. [GL #1748]
