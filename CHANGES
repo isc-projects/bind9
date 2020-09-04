@@ -1,3 +1,5 @@
+	--- 9.17.5 released ---
+
 5502.	[func]		'dig +bufsize=0' no longer disables EDNS. [GL #2054]
 
 5501.	[func]		Log CDS/CDNSKEY publication. [GL #1748]
