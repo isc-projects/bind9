@@ -16028,6 +16028,8 @@ copy_non_dnssec_records(dns_zone_t *zone, dns_db_t *db, dns_db_t *version,
 		return (ISC_R_SUCCESS);
 	}
 
+	dns_dbiterator_pause(dbiterator);
+
 	result = dns_db_findnode(db, name, true, &node);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
