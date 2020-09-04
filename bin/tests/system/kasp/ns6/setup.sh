@@ -43,11 +43,11 @@ setup migrate.kasp
 echo "$zone" >> zones
 ksktimes="-P now -A now -P sync now"
 zsktimes="-P now -A now"
-KSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
-ZSK=$($KEYGEN -a ECDSAP256SHA256 -L 7200        $zsktimes $zone 2> keygen.out.$zone.2)
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 7200 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 7200        $zsktimes $zone 2> keygen.out.$zone.2)
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
-private_type_record $zone 13 "$KSK" >> "$infile"
-private_type_record $zone 13 "$ZSK" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Set up a zone with auto-dnssec maintain to migrate to dnssec-policy, but this
@@ -120,10 +120,10 @@ ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I now"
 zsk1times="-P ${TactN}  -A ${TactN}                    -I now"
 ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
 zsk2times="-P ${TpubN1} -A ${TpubN1}"
-KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
-ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
-KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
-ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
+KSK1=$($KEYGEN -a RSASHA1            -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
+ZSK1=$($KEYGEN -a RSASHA1            -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
+KSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
+ZSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
 $SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $O $TactN  "$KSK1" > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $O $TactN  -z $O $TactN                "$ZSK1" > settime.out.$zone.2 2>&1
 $SETTIME -s -g $O -k $R $TpubN1 -r $R $TpubN1 -d $H $TpubN1 "$KSK2" > settime.out.$zone.3 2>&1
@@ -134,8 +134,8 @@ echo "Lifetime: 0" >> "${ZSK1}.state"
 cat template.db.in "${KSK1}.key" "${ZSK1}.key" "${KSK2}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 5  "$KSK1" >> "$infile"
 private_type_record $zone 5  "$ZSK1" >> "$infile"
-private_type_record $zone 13 "$KSK2" >> "$infile"
-private_type_record $zone 13 "$ZSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Step 3:
@@ -150,10 +150,10 @@ ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I ${TretN}"
 zsk1times="-P ${TactN}  -A ${TactN}                    -I ${TretN}"
 ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
 zsk2times="-P ${TpubN1} -A ${TpubN1}"
-KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
-ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
-KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
-ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
+KSK1=$($KEYGEN -a RSASHA1            -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
+ZSK1=$($KEYGEN -a RSASHA1            -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
+KSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
+ZSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
 $SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $O $TactN  "$KSK1" > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $O $TactN  -z $O $TactN                "$ZSK1" > settime.out.$zone.2 2>&1
 $SETTIME -s -g $O -k $O $TpubN1 -r $O $TpubN1 -d $H $TpubN1 "$KSK2" > settime.out.$zone.3 2>&1
@@ -164,8 +164,8 @@ echo "Lifetime: 0" >> "${ZSK1}.state"
 cat template.db.in "${KSK1}.key" "${ZSK1}.key" "${KSK2}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 5  "$KSK1" >> "$infile"
 private_type_record $zone 5  "$ZSK1" >> "$infile"
-private_type_record $zone 13 "$KSK2" >> "$infile"
-private_type_record $zone 13 "$ZSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Step 4:
@@ -181,10 +181,10 @@ ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I ${TretN}"
 zsk1times="-P ${TactN}  -A ${TactN}                    -I ${TretN}"
 ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
 zsk2times="-P ${TpubN1} -A ${TpubN1}"
-KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
-ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
-KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
-ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
+KSK1=$($KEYGEN -a RSASHA1            -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
+ZSK1=$($KEYGEN -a RSASHA1            -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
+KSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
+ZSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
 $SETTIME -s -g $H -k $O $TactN  -r $O $TactN  -d $U $TactN1 -D ds $TactN1 "$KSK1" > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $O $TactN  -z $O $TactN                              "$ZSK1" > settime.out.$zone.2 2>&1
 $SETTIME -s -g $O -k $O $TpubN1 -r $O $TpubN1 -d $R $TactN1 -P ds $TactN1 "$KSK2" > settime.out.$zone.3 2>&1
@@ -195,8 +195,8 @@ echo "Lifetime: 0" >> "${ZSK1}.state"
 cat template.db.in "${KSK1}.key" "${ZSK1}.key" "${KSK2}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 5  "$KSK1" >> "$infile"
 private_type_record $zone 5  "$ZSK1" >> "$infile"
-private_type_record $zone 13 "$KSK2" >> "$infile"
-private_type_record $zone 13 "$ZSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Step 5:
@@ -213,10 +213,10 @@ ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I ${TretN}"
 zsk1times="-P ${TactN}  -A ${TactN}                    -I ${TretN}"
 ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
 zsk2times="-P ${TpubN1} -A ${TpubN1}"
-KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
-ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
-KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
-ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
+KSK1=$($KEYGEN -a RSASHA1            -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
+ZSK1=$($KEYGEN -a RSASHA1            -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
+KSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
+ZSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
 $SETTIME -s -g $H -k $U $TremN  -r $U $TremN  -d $H $TactN1 "$KSK1" > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $U $TremN  -z $U $TremN                "$ZSK1" > settime.out.$zone.2 2>&1
 $SETTIME -s -g $O -k $O $TpubN1 -r $O $TpubN1 -d $O $TactN1 "$KSK2" > settime.out.$zone.3 2>&1
@@ -227,8 +227,8 @@ echo "Lifetime: 0" >> "${ZSK1}.state"
 cat template.db.in "${KSK1}.key" "${ZSK1}.key" "${KSK2}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 5  "$KSK1" >> "$infile"
 private_type_record $zone 5  "$ZSK1" >> "$infile"
-private_type_record $zone 13 "$KSK2" >> "$infile"
-private_type_record $zone 13 "$ZSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Step 6:
@@ -246,10 +246,10 @@ ksk1times="-P ${TactN}  -A ${TactN}  -P sync ${TactN}  -I ${TretN}"
 zsk1times="-P ${TactN}  -A ${TactN}                    -I ${TretN}"
 ksk2times="-P ${TpubN1} -A ${TpubN1} -P sync ${TsbmN1}"
 zsk2times="-P ${TpubN1} -A ${TpubN1}"
-KSK1=$($KEYGEN -a RSASHA1         -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
-ZSK1=$($KEYGEN -a RSASHA1         -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
-KSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
-ZSK2=$($KEYGEN -a ECDSAP256SHA256 -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
+KSK1=$($KEYGEN -a RSASHA1            -L 3600 -f KSK $ksk1times $zone 2> keygen.out.$zone.1)
+ZSK1=$($KEYGEN -a RSASHA1            -L 3600        $zsk1times $zone 2> keygen.out.$zone.2)
+KSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $ksk2times $zone 2> keygen.out.$zone.3)
+ZSK2=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600        $zsk2times $zone 2> keygen.out.$zone.4)
 $SETTIME -s -g $H -k $H $TremN  -r $U $TdeaN  -d $H $TactN1 "$KSK1" > settime.out.$zone.1 2>&1
 $SETTIME -s -g $H -k $H $TremN  -z $U $TdeaN                "$ZSK1" > settime.out.$zone.2 2>&1
 $SETTIME -s -g $O -k $O $TpubN1 -r $O $TpubN1 -d $O $TactN1 "$KSK2" > settime.out.$zone.3 2>&1
@@ -260,8 +260,8 @@ echo "Lifetime: 0" >> "${ZSK1}.state"
 cat template.db.in "${KSK1}.key" "${ZSK1}.key" "${KSK2}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone 5  "$KSK1" >> "$infile"
 private_type_record $zone 5  "$ZSK1" >> "$infile"
-private_type_record $zone 13 "$KSK2" >> "$infile"
-private_type_record $zone 13 "$ZSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 #
@@ -297,7 +297,7 @@ $SETTIME -s -g $O -k $R $TpubN1 -r $R $TpubN1 -z $R $TpubN1 -d $H $TpubN1 "$CSK2
 echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
-private_type_record $zone 13 "$CSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
 $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Step 3:
@@ -318,7 +318,7 @@ $SETTIME -s -g $O -k $O $TactN1 -r $O $TactN1 -z $R $TpubN1 -d $H $TpubN1 "$CSK2
 echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
-private_type_record $zone 13 "$CSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
 $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Step 4:
@@ -340,7 +340,7 @@ $SETTIME -s -g $O -k $O $TactN1 -r $O $TactN1 -z $O $TsubN1 -d $R $TsubN1 -P ds 
 echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
-private_type_record $zone 13 "$CSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
 $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Step 5:
@@ -363,7 +363,7 @@ $SETTIME -s -g $O -k $O $TactN1 -r $O $TactN1 -z $O $TsubN1 -d $O $TremN  "$CSK2
 echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
-private_type_record $zone 13 "$CSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
 $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
 # Step 6:
@@ -387,5 +387,5 @@ $SETTIME -s -g $O -k $O $TactN1 -r $O $TactN1 -z $O $TsubN1 -d $O $TactN1 "$CSK2
 echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
-private_type_record $zone 13 "$CSK2" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
 $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1

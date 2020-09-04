@@ -18,8 +18,8 @@ dnssec-policy "autosign" {
 	dnskey-ttl 300;
 
 	keys {
-		ksk key-directory lifetime P2Y algorithm 13;
-		zsk key-directory lifetime P1Y algorithm 13;
+		ksk key-directory lifetime P2Y algorithm @DEFAULT_ALGORITHM@;
+		zsk key-directory lifetime P1Y algorithm @DEFAULT_ALGORITHM@;
 	};
 };
 
@@ -39,7 +39,7 @@ dnssec-policy "enable-dnssec" {
 	parent-ds-ttl 2h;
 
 	keys {
-		csk lifetime unlimited algorithm 13;
+		csk lifetime unlimited algorithm @DEFAULT_ALGORITHM_NUMBER@;
 	};
 };
 
@@ -54,8 +54,8 @@ dnssec-policy "zsk-prepub" {
 	retire-safety P2D;
 
 	keys {
-		ksk key-directory lifetime P2Y  algorithm 13;
-		zsk key-directory lifetime P30D algorithm 13;
+		ksk key-directory lifetime P2Y  algorithm @DEFAULT_ALGORITHM@;
+		zsk key-directory lifetime P30D algorithm @DEFAULT_ALGORITHM@;
 	};
 
 	zone-propagation-delay PT1H;
@@ -73,8 +73,8 @@ dnssec-policy "ksk-doubleksk" {
 	retire-safety P2D;
 
 	keys {
-		ksk key-directory lifetime P60D algorithm 13;
-		zsk key-directory lifetime P1Y  algorithm 13;
+		ksk key-directory lifetime P60D algorithm @DEFAULT_ALGORITHM@;
+		zsk key-directory lifetime P1Y  algorithm @DEFAULT_ALGORITHM@;
 	};
 
 	zone-propagation-delay PT1H;
@@ -95,7 +95,7 @@ dnssec-policy "csk-roll" {
 	retire-safety 2h;
 
 	keys {
-		csk key-directory lifetime P6M algorithm 13;
+		csk key-directory lifetime P6M algorithm @DEFAULT_ALGORITHM@;
 	};
 
 	zone-propagation-delay 1h;
@@ -116,7 +116,7 @@ dnssec-policy "csk-roll2" {
 	retire-safety 1h;
 
 	keys {
-		csk key-directory lifetime P6M algorithm 13;
+		csk key-directory lifetime P6M algorithm @DEFAULT_ALGORITHM@;
 	};
 
 	zone-propagation-delay PT1H;

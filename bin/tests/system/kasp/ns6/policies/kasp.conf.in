@@ -51,8 +51,8 @@ dnssec-policy "migrate" {
 	dnskey-ttl 7200;
 
 	keys {
-		ksk key-directory lifetime unlimited algorithm ECDSAP256SHA256;
-		zsk key-directory lifetime P60D algorithm ECDSAP256SHA256;
+		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk key-directory lifetime P60D algorithm @DEFAULT_ALGORITHM@;
 	};
 };
 

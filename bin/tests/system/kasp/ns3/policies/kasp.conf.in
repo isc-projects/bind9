@@ -13,7 +13,7 @@ dnssec-policy "unlimited" {
 	dnskey-ttl 1234;
 
 	keys {
-		csk key-directory lifetime unlimited algorithm 13;
+		csk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 	};
 };
 
@@ -21,8 +21,8 @@ dnssec-policy "manual-rollover" {
 	dnskey-ttl 3600;
 
 	keys {
-		ksk key-directory lifetime unlimited algorithm 13;
-		zsk key-directory lifetime unlimited algorithm 13;
+		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 	};
 };
 
@@ -90,8 +90,8 @@ dnssec-policy "checkds-ksk" {
 	dnskey-ttl 303;
 
 	keys {
-		ksk key-directory lifetime unlimited algorithm 13;
-		zsk key-directory lifetime unlimited algorithm 13;
+		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 	};
 };
 
@@ -99,9 +99,9 @@ dnssec-policy "checkds-doubleksk" {
 	dnskey-ttl 303;
 
 	keys {
-		ksk key-directory lifetime unlimited algorithm 13;
-		ksk key-directory lifetime unlimited algorithm 13;
-		zsk key-directory lifetime unlimited algorithm 13;
+		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 	};
 };
 
@@ -109,6 +109,6 @@ dnssec-policy "checkds-csk" {
 	dnskey-ttl 303;
 
 	keys {
-		csk key-directory lifetime unlimited algorithm 13;
+		csk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 	};
 };
