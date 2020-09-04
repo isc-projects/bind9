@@ -1,3 +1,5 @@
+	--- 9.16.7 released ---
+
 5501.	[func]		Log CDS/CDNSKEY publication. [GL #1748]
 
 5500.	[bug]		Fix (non-)publication of CDS and CDNSKEY records.
