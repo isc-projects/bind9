@@ -8461,6 +8461,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 	first = true;
 	buildnsecchain = false;
 	while (nsec3chain != NULL && nodes-- > 0 && signatures > 0) {
+		dns_dbiterator_pause(nsec3chain->dbiterator);
+
 		LOCK_ZONE(zone);
 		nextnsec3chain = ISC_LIST_NEXT(nsec3chain, link);
 		UNLOCK_ZONE(zone);
