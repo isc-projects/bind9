@@ -46,8 +46,9 @@ building communities that are welcoming and inclusive: environments where people
 are encouraged to share ideas, treat each other with respect, and collaborate
 towards the best solutions. To reinforce our commitment, ISC
 has adopted a slightly modified version of the Django
-[Code of Conduct](https://gitlab.isc.org/isc-projects/bind9/-/blob/master/CODE_OF_CONDUCT.md) for the BIND 9 project, as well as for the conduct of our
-developers throughout the industry.
+[Code of Conduct](https://gitlab.isc.org/isc-projects/bind9/-/blob/main/CODE_OF_CONDUCT.md)
+for the BIND 9 project, as well as for the conduct of our developers throughout
+the industry.
 
 ### <a name="access"></a>Access to source code
 
@@ -80,7 +81,7 @@ Whenever a branch is ready for publication, a tag is placed of the
 form `v9_X_Y`.  The 9.12.0 release, for instance, is tagged as `v9_12_0`.
 
 The branch in which the next major release is being developed is called
-`master`.
+`main`.
 
 ### <a name="bugs"></a>Reporting bugs
 
@@ -100,6 +101,7 @@ use credentials from an existing account at GitHub, GitLab, Google,
 Twitter, or Facebook.
 
 ### Reporting possible security issues
+
 If you think you may be seeing a potential security vulnerability in BIND
 (for example, a crash with REQUIRE, INSIST, or ASSERT failure), please
 report it immediately by emailing to security-officer@isc.org. Plain-text
@@ -111,7 +113,8 @@ Do not discuss undisclosed security vulnerabilities on any public mailing list.
 ISC has a long history of handling reported vulnerabilities promptly and
 effectively and we respect and acknowledge responsible reporters.
 
-ISC's Security Vulnerability Disclosure Policy is documented at [https://kb.isc.org/docs/aa-00861](https://kb.isc.org/docs/aa-00861).
+ISC's Security Vulnerability Disclosure Policy is documented at
+[https://kb.isc.org/docs/aa-00861](https://kb.isc.org/docs/aa-00861).
 
 If you have a crash, you may want to consult
 ["What to do if your BIND or DHCP server has crashed."](https://kb.isc.org/docs/aa-00340)
@@ -120,7 +123,8 @@ If you have a crash, you may want to consult
 
 BIND is licensed under the
 [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/).
-Earlier versions (BIND 9.10 and earlier) were licensed under the [ISC License](https://www.isc.org/licenses/)
+Earlier versions (BIND 9.10 and earlier) were licensed under the
+[ISC License](https://www.isc.org/licenses/)
 
 ISC does not require an explicit copyright assignment for patch
 contributions.  However, by submitting a patch to ISC, you implicitly
@@ -136,7 +140,7 @@ Patches for BIND may be submitted directly via merge requests in
 repository for BIND.
 
 Patches can also be submitted as diffs against a specific version of
-BIND -- preferably the current top of the `master` branch.  Diffs may
+BIND -- preferably the current top of the `main` branch.  Diffs may
 be generated using either `git format-patch` or `git diff`.
 
 Those wanting to write code for BIND may be interested in the
@@ -184,7 +188,8 @@ of documentation in the BIND source tree:
   they document, in files ending in `.rst`: for example, the
   `named` man page is `bin/named/named.rst`.
 * The *BIND 9 Administrator Reference Manual* is in the .rst files in
-  `doc/arm/`; the PDF and HTML versions are automatically generated from the `.rst` files.
+  `doc/arm/`; the PDF and HTML versions are automatically generated from
+  the `.rst` files.
 * API documentation is in the header file describing the API, in
   Doxygen-formatted comments.
 
