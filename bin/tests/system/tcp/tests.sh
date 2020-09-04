@@ -187,13 +187,9 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking that BIND 9 doesn't crash on long TCP messages ($n)"
 ret=0
-if [ -z "$CI" ]; then
-    $PERL ../packet.pl -a "10.53.0.1" -p "${PORT}" -t tcp -r 300000 1996-alloc_dnsbuf-crash-test.pkt || ret=1
-    dig_with_opts +tcp @10.53.0.1 txt.example > dig.out.test$n || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-else
-    echo_i "skipped";
-fi
+{ $PERL ../packet.pl -a "10.53.0.1" -p "${PORT}" -t tcp -r 300000 1996-alloc_dnsbuf-crash-test.pkt || ret=1 ; } | cat_i
+dig_with_opts +tcp @10.53.0.1 txt.example > dig.out.test$n || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 echo_i "exit status: $status"
