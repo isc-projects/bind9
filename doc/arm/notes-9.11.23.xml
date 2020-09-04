@@ -11,51 +11,23 @@
 
 <section xml:id="relnotes-9.11.23"><info><title>Notes for BIND 9.11.23</title></info>
 
-  <section xml:id="relnotes-9.11.23-security"><info><title>Security Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.23-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.23-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.23-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes-9.11.23-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          Parsing of LOC records was made more strict by rejecting a sole period
+          (<userinput>.</userinput>) and/or <userinput>m</userinput> as a value.
+          These changes prevent zone files using such values from being loaded.
+          Handling of negative altitudes which are not integers was also
+          corrected. [GL #2074]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Several problems found by <link
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="https://github.com/google/oss-fuzz">OSS-Fuzz</link> were
+          fixed. (None of these are security issues.) [GL !3953] [GL !3975]
         </para>
       </listitem>
     </itemizedlist>
