@@ -72,7 +72,7 @@ Whenever a branch is ready for publication, a tag will be placed of the
 form `v9_X_Y`.  The 9.12.0 release, for instance, is tagged as `v9_12_0`.
 
 The branch in which the next major release is being developed is called
-`master`.
+`main`.
 
 ### <a name="bugs"></a>Reporting bugs
 
@@ -92,6 +92,7 @@ use credentials from an existing account at GitHub, GitLab, Google,
 Twitter, or Facebook.
 
 ### Reporting possible security issues
+
 If you think you may be seeing a potential security vulnerability in BIND
 (for example, a crash with REQUIRE, INSIST, or ASSERT failure), please
 report it immediately by emailing to security-officer@isc.org. Plain-text
@@ -103,7 +104,8 @@ Do not discuss undisclosed security vulnerabilities on any public mailing list.
 ISC has a long history of handling reported vulnerabilities promptly and
 effectively and we respect and acknowledge responsible reporters.
 
-ISC's Security Vulnerability Disclosure Policy is documented at [https://kb.isc.org/article/AA-00861/0](https://kb.isc.org/article/AA-00861/0).
+ISC's Security Vulnerability Disclosure Policy is documented at
+[https://kb.isc.org/docs/aa-00861](https://kb.isc.org/docs/aa-00861).
 
 If you have a crash, you may want to consult
 [‘What to do if your BIND or DHCP server has crashed.’](https://kb.isc.org/article/AA-00340/89/What-to-do-if-your-BIND-or-DHCP-server-has-crashed.html)
@@ -112,7 +114,8 @@ If you have a crash, you may want to consult
 
 BIND is licensed under the
 [Mozilla Public License 2.0](http://www.isc.org/downloads/software-support-policy/isc-license/).
-Earier versions (BIND 9.10 and earlier) were licensed under the [ISC License](http://www.isc.org/downloads/software-support-policy/isc-license/)
+Earlier versions (BIND 9.10 and earlier) were licensed under the
+[ISC License](https://www.isc.org/licenses/)
 
 ISC does not require an explicit copyright assignment for patch
 contributions.  However, by submitting a patch to ISC, you implicitly
@@ -128,7 +131,7 @@ Patches for BIND may be submitted directly via merge requests in
 repository for BIND.
 
 Patches can also be submitted as diffs against a specific version of
-BIND -- preferably the current top of the `master` branch.  Diffs may
+BIND -- preferably the current top of the `main` branch.  Diffs may
 be generated using either `git format-patch` or `git diff`.
 
 Those wanting to write code for BIND may be interested in the
