@@ -63,7 +63,7 @@ Whenever a branch is ready for publication, a tag will be placed of the
 form v9_X_Y. The 9.12.0 release, for instance, is tagged as v9_12_0.
 
 The branch in which the next major release is being developed is called
-master.
+main.
 
 Reporting bugs
 
@@ -95,15 +95,15 @@ Do not discuss undisclosed security vulnerabilities on any public mailing
 list. ISC has a long history of handling reported vulnerabilities promptly
 and effectively and we respect and acknowledge responsible reporters.
 
-ISC's Security Vulnerability Disclosure Policy is documented at https://
-kb.isc.org/article/AA-00861/0.
+ISC's Security Vulnerability Disclosure Policy is documented at
+https://kb.isc.org/docs/aa-00861.
 
 If you have a crash, you may want to consult ‘What to do if your BIND or
 DHCP server has crashed.’
 
 Contributing code
 
-BIND is licensed under the Mozilla Public License 2.0. Earier versions
+BIND is licensed under the Mozilla Public License 2.0. Earlier versions
 (BIND 9.10 and earlier) were licensed under the ISC License
 
 ISC does not require an explicit copyright assignment for patch
@@ -119,7 +119,7 @@ Patches for BIND may be submitted directly via merge requests in ISC's
 Gitlab source repository for BIND.
 
 Patches can also be submitted as diffs against a specific version of BIND
--- preferably the current top of the master branch. Diffs may be generated
+-- preferably the current top of the main branch. Diffs may be generated
 using either git format-patch or git diff.
 
 Those wanting to write code for BIND may be interested in the developer
