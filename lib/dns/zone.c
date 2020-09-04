@@ -4344,9 +4344,14 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 			goto failure;
 		}
 
-		if (rdataset->type != dns_rdatatype_keydata)
+		if (rdataset->type != dns_rdatatype_keydata) {
 			continue;
-
+		}
+		/*
+		 * Release db wrlock to prevent LOR reports against
+		 * dns_keytable_forall() call below.
+		 */
+		dns_rriterator_pause(&rrit);
 		result = dns_keytable_find(sr, rrname, &keynode);
 		if ((result != ISC_R_SUCCESS &&
 		     result != DNS_R_PARTIALMATCH) ||
