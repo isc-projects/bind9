@@ -62,6 +62,14 @@
           corrected. [GL #2074]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          Several problems found by <link
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="https://github.com/google/oss-fuzz">OSS-Fuzz</link> were
+          fixed. (None of these are security issues.) [GL !3953] [GL !3975]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
