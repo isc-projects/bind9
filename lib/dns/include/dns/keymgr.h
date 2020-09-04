@@ -74,8 +74,8 @@ dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
  *
  *	Returns:
  *\li		#ISC_R_SUCCESS (No error).
- *\li		#ISC_R_FAILURE (More than one matching KSK found).
- *\li		#ISC_R_NOTFOUND (No matching KSK found).
+ *\li		#DNS_R_NOKEYMATCH (No matching keys found).
+ *\li		#DNS_R_TOOMANYKEYS (More than one matching keys found).
  *
  */
 
@@ -104,9 +104,9 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
  *
  *	Returns:
  *\li		#ISC_R_SUCCESS (No error).
- *\li		#ISC_R_FAILURE (More than one matching keys found).
- *\li		#ISC_R_NOTFOUND (No matching keys found).
- *\li		#ISC_R_UNEXPECTED (Key is not active).
+ *\li		#DNS_R_NOKEYMATCH (No matching keys found).
+ *\li		#DNS_R_TOOMANYKEYS (More than one matching keys found).
+ *\li		#DNS_R_KEYNOTACTIVE (Key is not active).
  *
  */
 
