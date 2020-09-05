@@ -612,6 +612,9 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 			more = false;
 			break;
 
+		case netievent_udpconnect:
+			isc__nm_async_udpconnect(worker, ievent);
+			break;
 		case netievent_udplisten:
 			isc__nm_async_udplisten(worker, ievent);
 			break;
@@ -620,6 +623,15 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 			break;
 		case netievent_udpsend:
 			isc__nm_async_udpsend(worker, ievent);
+			break;
+		case netievent_udpread:
+			isc__nm_async_udpread(worker, ievent);
+			break;
+		case netievent_udpcancel:
+			isc__nm_async_udpcancel(worker, ievent);
+			break;
+		case netievent_udpclose:
+			isc__nm_async_udpclose(worker, ievent);
 			break;
 
 		case netievent_tcpconnect:
@@ -649,12 +661,21 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcpstop:
 			isc__nm_async_tcpstop(worker, ievent);
 			break;
+		case netievent_tcpcancel:
+			isc__nm_async_tcpcancel(worker, ievent);
+			break;
 		case netievent_tcpclose:
 			isc__nm_async_tcpclose(worker, ievent);
 			break;
 
+		case netievent_tcpdnscancel:
+			isc__nm_async_tcpdnscancel(worker, ievent);
+			break;
 		case netievent_tcpdnsclose:
 			isc__nm_async_tcpdnsclose(worker, ievent);
+			break;
+		case netievent_tcpdnsread:
+			isc__nm_async_tcpdnsread(worker, ievent);
 			break;
 		case netievent_tcpdnsstop:
 			isc__nm_async_tcpdnsstop(worker, ievent);
@@ -934,6 +955,9 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock) {
 	 */
 	if (!atomic_load(&sock->closed)) {
 		switch (sock->type) {
+		case isc_nm_udpsocket:
+			isc__nm_udp_close(sock);
+			return;
 		case isc_nm_tcpsocket:
 			isc__nm_tcp_close(sock);
 			return;
@@ -1471,8 +1495,14 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	switch (handle->sock->type) {
+	case isc_nm_udpsocket:
+		isc__nm_udp_read(handle, cb, cbarg);
+		break;
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_read(handle, cb, cbarg);
+		break;
+	case isc_nm_tcpdnssocket:
+		isc__nm_tcpdns_read(handle, cb, cbarg);
 		break;
 	default:
 		INSIST(0);
@@ -1485,8 +1515,14 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	switch (handle->sock->type) {
+	case isc_nm_udpsocket:
+		isc__nm_udp_cancelread(handle);
+		break;
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_cancelread(handle);
+		break;
+	case isc_nm_tcpdnssocket:
+		isc__nm_tcpdns_cancelread(handle);
 		break;
 	default:
 		INSIST(0);

@@ -469,11 +469,13 @@ isc_nm_setstats
 isc_nm_start
 isc_nm_stoplistening
 isc_nm_tcpconnect
+isc_nm_tcpdnsconnect
 isc_nm_tcp_gettimeouts
 isc_nm_tcp_settimeouts
 isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
+isc_nm_udpconnect
 isc_nmsocket_close
 isc__nm_acquire_interlocked
 isc__nm_drop_interlocked

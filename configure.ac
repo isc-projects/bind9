@@ -707,7 +707,7 @@ CFLAGS="$CFLAGS $LIBUV_CFLAGS"
 LIBS="$LDFLAGS $LIBUV_LIBS"
 # Those functions are only provided in newer versions of libuv, we'll be emulating them
 # for now
-AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import])
+AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import uv_udp_connect uv_translate_sys_error])
 AX_RESTORE_FLAGS([libuv])
 
 #

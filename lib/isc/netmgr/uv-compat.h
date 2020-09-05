@@ -79,3 +79,19 @@ isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info);
  */
 
 #endif
+
+#ifdef HAVE_UV_UDP_CONNECT
+#define isc_uv_udp_connect uv_udp_connect
+#else
+
+int
+isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr);
+/*%<
+ * Associate the UDP handle to a remote address and port, so every message sent
+ * by this handle is automatically sent to that destination.
+ *
+ * NOTE: This is just a limited shim for uv_udp_connect() as it requires the
+ * handle to be bound.
+ */
+
+#endif
