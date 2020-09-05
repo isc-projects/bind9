@@ -603,7 +603,7 @@ rndc_startconnect(isc_sockaddr_t *addr) {
 	DO("create connection",
 	   isc_nm_tcpconnect(netmgr, (isc_nmiface_t *)local,
 			     (isc_nmiface_t *)addr, rndc_connected, &rndc_ccmsg,
-			     0));
+			     10000, 0));
 }
 
 static void

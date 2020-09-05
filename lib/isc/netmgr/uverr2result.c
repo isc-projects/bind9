@@ -79,6 +79,8 @@ isc___nm_uverr2result(int uverr, bool dolog, const char *file,
 		return (ISC_R_ADDRNOTAVAIL);
 	case UV_ECONNREFUSED:
 		return (ISC_R_CONNREFUSED);
+	case UV_ECANCELED:
+		return (ISC_R_CANCELED);
 	default:
 		if (dolog) {
 			UNEXPECTED_ERROR(file, line,
