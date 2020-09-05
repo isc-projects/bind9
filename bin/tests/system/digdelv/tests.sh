@@ -82,7 +82,7 @@ if [ -x "$NSLOOKUP" -a $checkupdate -eq 1 ] ; then
   n=$((n+1))
   echo_i "check nslookup handles UPDATE response ($n)"
   ret=0
-  "$NSLOOKUP" -q=CNAME "-port=$PORT" foo.bar 10.53.0.7 > nslookup.out.test$n 2>&1 && ret=1
+  "$NSLOOKUP" -q=CNAME -timeout=1 "-port=$PORT" foo.bar 10.53.0.7 > nslookup.out.test$n 2>&1 && ret=1
   grep "Opcode mismatch" nslookup.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
@@ -94,7 +94,7 @@ if [ -x "$HOST" -a $checkupdate -eq 1 ] ; then
   n=$((n+1))
   echo_i "check host handles UPDATE response ($n)"
   ret=0
-  "$HOST" -t CNAME -p $PORT foo.bar 10.53.0.7 > host.out.test$n 2>&1 && ret=1
+  "$HOST" -W 1 -t CNAME -p $PORT foo.bar 10.53.0.7 > host.out.test$n 2>&1 && ret=1
   grep "Opcode mismatch" host.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
@@ -108,7 +108,7 @@ if [ -x "$DIG" ] ; then
     n=$((n+1))
     echo_i "check dig handles UPDATE response ($n)"
     ret=0
-    dig_with_opts @10.53.0.7 cname foo.bar > dig.out.test$n 2>&1 && ret=1
+    dig_with_opts @10.53.0.7 +tries=1 +timeout=1 cname foo.bar > dig.out.test$n 2>&1 && ret=1
     grep "Opcode mismatch" dig.out.test$n > /dev/null || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -922,7 +922,7 @@ if [ -x "$DIG" ] ; then
   n=$((n+1))
   echo_i "check that dig +unexpected works ($n)"
   ret=0
-  dig_with_opts @10.53.0.6 +unexpected a a.example > dig.out.test$n || ret=1
+  dig_with_opts @10.53.0.6 +tries=1 +time=2 +unexpected a a.example > dig.out.test$n || ret=1
   grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
   grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
