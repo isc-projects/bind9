@@ -1630,7 +1630,7 @@ dns_zone_getkeydirectory(dns_zone_t *zone);
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
-		   dns_zonemgr_t **zmgrp);
+		   isc_nm_t *netmgr, dns_zonemgr_t **zmgrp);
 /*%<
  * Create a zone manager.  Note: the zone manager will not be able to
  * manage any zones until dns_zonemgr_setsize() has been run.

@@ -10050,7 +10050,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_taskmgr,
 				      named_g_timermgr, named_g_socketmgr,
-				      &server->zonemgr),
+				      named_g_nm, &server->zonemgr),
 		   "dns_zonemgr_create");
 	CHECKFATAL(dns_zonemgr_setsize(server->zonemgr, 1000), "dns_zonemgr_"
 							       "setsize");
