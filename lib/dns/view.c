@@ -599,12 +599,21 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
 
 		LOCK(&view->lock);
-		if (!RESSHUTDOWN(view))
+		if (!RESSHUTDOWN(view)) {
+			UNLOCK(&view->lock);
 			dns_resolver_shutdown(view->resolver);
-		if (!ADBSHUTDOWN(view))
+			LOCK(&view->lock);
+		}
+		if (!ADBSHUTDOWN(view)) {
+			UNLOCK(&view->lock);
 			dns_adb_shutdown(view->adb);
-		if (!REQSHUTDOWN(view))
+			LOCK(&view->lock);
+		}
+		if (!REQSHUTDOWN(view)) {
+			UNLOCK(&view->lock);
 			dns_requestmgr_shutdown(view->requestmgr);
+			LOCK(&view->lock);
+		}
 		if (view->acache != NULL)
 			dns_acache_shutdown(view->acache);
 		if (view->zonetable != NULL) {
