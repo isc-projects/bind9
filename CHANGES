@@ -1,3 +1,5 @@
+	--- 9.11.23 released ---
+
 5497.	[bug]		'dig +bufsize=0' failed to disable EDNS. [GL #2054]
 
 5496.	[bug]		Address a TSAN report by ensuring each rate limiter
