@@ -796,7 +796,9 @@ manytasks(void **state) {
 	result = isc_taskmgr_create(mctx, 4, 0, &taskmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	LOCK(&lock);
 	done = false;
+	UNLOCK(&lock);
 
 	event = isc_event_allocate(mctx, (void *)1, 1, maxtask_cb,
 				   (void *)ntasks, sizeof(*event));
