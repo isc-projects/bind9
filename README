@@ -348,6 +348,10 @@ BIND 9.11.22 is a maintenance release, and also addresses the security
 vulnerabilities disclosed in CVE-2020-8622, CVE-2020-8623, and
 CVE-2020-8624.
 
+BIND 9.11.23
+
+BIND 9.11.23 is a maintenance release.
+
 Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
@@ -611,7 +615,9 @@ Acknowledgments
 
   • This product includes software developed by the OpenSSL Project for
     use in the OpenSSL Toolkit. http://www.OpenSSL.org/
+
   • This product includes cryptographic software written by Eric Young
     (eay@cryptsoft.com)
+
   • This product includes software written by Tim Hudson
     (tjh@cryptsoft.com)

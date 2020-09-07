@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.11.22</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.11.23</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -71,6 +71,33 @@
   </p>
 </div>
 
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.23"></a>Notes for BIND 9.11.23</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.23-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          Parsing of LOC records was made more strict by rejecting a sole period
+          (<strong class="userinput"><code>.</code></strong>) and/or <strong class="userinput"><code>m</code></strong> as a value.
+          These changes prevent zone files using such values from being loaded.
+          Handling of negative altitudes which are not integers was also
+          corrected. [GL #2074]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          Several problems found by <a class="link" href="https://github.com/google/oss-fuzz" target="_top">OSS-Fuzz</a> were
+          fixed. (None of these are security issues.) [GL !3953] [GL !3975]
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+</div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.22"></a>Notes for BIND 9.11.22</h3></div></div></div>
