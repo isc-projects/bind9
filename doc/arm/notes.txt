@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.22
+Release Notes for BIND Version 9.11.23
 
 Introduction
 
@@ -35,6 +35,18 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.23
+
+Bug Fixes
+
+  • Parsing of LOC records was made more strict by rejecting a sole period
+    (.) and/or m as a value. These changes prevent zone files using such
+    values from being loaded. Handling of negative altitudes which are not
+    integers was also corrected. [GL #2074]
+
+  • Several problems found by OSS-Fuzz were fixed. (None of these are
+    security issues.) [GL !3953] [GL !3975]
 
 Notes for BIND 9.11.22
 
