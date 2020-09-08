@@ -8625,12 +8625,12 @@ zone_nsec3chain(dns_zone_t *zone) {
 				goto same_removechain;
 			}
 			if (result == ISC_R_NOMORE) {
+				dns_dbiterator_pause(nsec3chain->dbiterator);
 				LOCK_ZONE(zone);
 				ISC_LIST_UNLINK(zone->nsec3chain, nsec3chain,
 						link);
 				UNLOCK_ZONE(zone);
 				ISC_LIST_APPEND(cleanup, nsec3chain, link);
-				dns_dbiterator_pause(nsec3chain->dbiterator);
 				result = fixup_nsec3param(
 					db, version, nsec3chain, false,
 					privatetype, &param_diff);
