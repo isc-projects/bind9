@@ -7975,6 +7975,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 				     "buildnsecchain = %u\n", buildnsecchain);
 
 		dns_dbiterator_current(nsec3chain->dbiterator, &node, name);
+		dns_dbiterator_pause(nsec3chain->dbiterator);
 		delegation = false;
 
 		if (!buildnsecchain) {
@@ -10005,6 +10006,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 
 			/* Removal timer expired? */
 			if (kd.removehd != 0 && kd.removehd < now) {
+				dns_rriterator_pause(&rrit);
 				CHECK(update_one_rr(db, ver, &diff,
 						    DNS_DIFFOP_DEL, name, ttl,
 						    &rdata));
@@ -10019,12 +10021,15 @@ zone_refreshkeys(dns_zone_t *zone) {
 			if (timer > kd.refresh)
 				timer = kd.refresh;
 
+			dns_rriterator_pause(&rrit);
 			set_refreshkeytimer(zone, &kd, now, false);
 			timerset = true;
 		}
 
 		if (timer > now)
 			continue;
+
+		dns_rriterator_pause(&rrit);
 
 		kfetch = isc_mem_get(zone->mctx, sizeof(dns_keyfetch_t));
 		if (kfetch == NULL) {
