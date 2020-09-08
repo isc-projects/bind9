@@ -19,6 +19,7 @@
 #include <isc/event.h>
 #include <isc/file.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
 #include <isc/nonce.h>
@@ -106,6 +107,7 @@ struct named_controls {
 	named_server_t *server;
 	controllistenerlist_t listeners;
 	bool shuttingdown;
+	isc_mutex_t symtab_lock;
 	isccc_symtab_t *symtab;
 };
 
@@ -440,8 +442,10 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Duplicate suppression (required for UDP).
 	 */
+	LOCK(&listener->controls->symtab_lock);
 	isccc_cc_cleansymtab(listener->controls->symtab, now);
 	result = isccc_cc_checkdup(listener->controls->symtab, request, now);
+	UNLOCK(&listener->controls->symtab_lock);
 	if (result != ISC_R_SUCCESS) {
 		if (result == ISC_R_EXISTS) {
 			result = ISCCC_R_DUPLICATE;
@@ -1522,15 +1526,19 @@ named_controls_create(named_server_t *server, named_controls_t **ctrlsp) {
 	isc_result_t result;
 	named_controls_t *controls = isc_mem_get(mctx, sizeof(*controls));
 
-	if (controls == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-	controls->server = server;
+	*controls = (named_controls_t){
+		.server = server,
+	};
+
 	ISC_LIST_INIT(controls->listeners);
-	controls->shuttingdown = false;
-	controls->symtab = NULL;
+
+	isc_mutex_init(&controls->symtab_lock);
+	LOCK(&controls->symtab_lock);
 	result = isccc_cc_createsymtab(&controls->symtab);
+	UNLOCK(&controls->symtab_lock);
+
 	if (result != ISC_R_SUCCESS) {
+		isc_mutex_destroy(&controls->symtab_lock);
 		isc_mem_put(server->mctx, controls, sizeof(*controls));
 		return (result);
 	}
@@ -1545,6 +1553,9 @@ named_controls_destroy(named_controls_t **ctrlsp) {
 
 	REQUIRE(ISC_LIST_EMPTY(controls->listeners));
 
+	LOCK(&controls->symtab_lock);
 	isccc_symtab_destroy(&controls->symtab);
+	UNLOCK(&controls->symtab_lock);
+	isc_mutex_destroy(&controls->symtab_lock);
 	isc_mem_put(controls->server->mctx, controls, sizeof(*controls));
 }
