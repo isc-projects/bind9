@@ -920,33 +920,6 @@ if [ -x "$DIG" ] ; then
   fi
 
   n=$((n+1))
-  echo_i "check that dig +unexpected works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.6 +tries=1 +time=2 +unexpected a a.example > dig.out.test$n || ret=1
-  grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
-  grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status+ret))
-
-  n=$((n+1))
-  echo_i "check that dig +nounexpected works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.6 +nounexpected +tries=1 +time=2 a a.example > dig.out.test$n && ret=1
-  grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
-  grep "status: NOERROR" < dig.out.test$n > /dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status+ret))
-
-  n=$((n+1))
-  echo_i "check that dig default for +[no]unexpected (+nounexpected) works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.6 +tries=1 +time=2 a a.example > dig.out.test$n && ret=1
-  grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
-  grep "status: NOERROR" < dig.out.test$n > /dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status+ret))
-
-  n=$((n+1))
   echo_i "check that dig +bufsize=0 just sets the buffer size to 0 ($n)"
   ret=0
   dig_with_opts @10.53.0.3 a.example +bufsize=0 +qr > dig.out.test$n 2>&1 || ret=1

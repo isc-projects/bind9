@@ -296,9 +296,6 @@ help(void) {
 	       "in records)\n"
 	       "                 +[no]ttlunits       (Display TTLs in "
 	       "human-readable units)\n"
-	       "                 +[no]unexpected     (Print replies from "
-	       "unexpected sources\n"
-	       "                                      default=off)\n"
 	       "                 +[no]unknownformat  (Print RDATA in RFC 3597 "
 	       "\"unknown\" "
 	       "format)\n"
@@ -1807,7 +1804,8 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 			switch (cmd[2]) {
 			case 'e':
 				FULLCHECK("unexpected");
-				lookup->accept_reply_unexpected_src = state;
+				fprintf(stderr, ";; +unexpected option "
+						"is deprecated");
 				break;
 			case 'k':
 				FULLCHECK("unknownformat");

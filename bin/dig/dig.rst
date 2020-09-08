@@ -549,11 +549,6 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    units of ``s``, ``m``, ``h``, ``d``, and ``w``, representing seconds, minutes,
    hours, days, and weeks. This implies ``+ttlid``.
 
-``+[no]unexpected``
-   This option accepts [or does not accept] answers from unexpected sources.  By default, ``dig``
-   will not accept a reply from a source other than the one to which it sent the
-   query.
-
 ``+[no]unknownformat``
    This option prints all RDATA in unknown RR type presentation format (:rfc:`3597`).
    The default is to print RDATA for known types in the type's

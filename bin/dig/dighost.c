@@ -650,7 +650,6 @@ make_empty_lookup(void) {
 	looknew->ttlunits = false;
 	looknew->expandaaaa = false;
 	looknew->qr = false;
-	looknew->accept_reply_unexpected_src = false;
 #ifdef HAVE_LIBIDN2
 	looknew->idnin = isatty(1) ? (getenv("IDN_DISABLE") == NULL) : false;
 	looknew->idnout = looknew->idnin;
@@ -799,8 +798,6 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->ttlunits = lookold->ttlunits;
 	looknew->expandaaaa = lookold->expandaaaa;
 	looknew->qr = lookold->qr;
-	looknew->accept_reply_unexpected_src =
-		lookold->accept_reply_unexpected_src;
 	looknew->idnin = lookold->idnin;
 	looknew->idnout = lookold->idnout;
 	looknew->udpsize = lookold->udpsize;
@@ -3627,43 +3624,6 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	isc_buffer_add(&b, region->length);
 
 	peer = isc_nmhandle_peeraddr(handle);
-	if (!l->tcp_mode &&
-	    !isc_sockaddr_compare(&peer, &query->sockaddr,
-				  ISC_SOCKADDR_CMPADDR | ISC_SOCKADDR_CMPPORT |
-					  ISC_SOCKADDR_CMPSCOPE |
-					  ISC_SOCKADDR_CMPSCOPEZERO))
-	{
-		char buf1[ISC_SOCKADDR_FORMATSIZE];
-		char buf2[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_t any;
-
-		if (isc_sockaddr_pf(&query->sockaddr) == AF_INET) {
-			isc_sockaddr_any(&any);
-		} else {
-			isc_sockaddr_any6(&any);
-		}
-
-		/*
-		 * We don't expect a match when the packet is
-		 * sent to 0.0.0.0, :: or to a multicast addresses.
-		 * XXXMPA broadcast needs to be handled here as well.
-		 */
-		if ((!isc_sockaddr_eqaddr(&query->sockaddr, &any) &&
-		     !isc_sockaddr_ismulticast(&query->sockaddr)) ||
-		    isc_sockaddr_getport(&query->sockaddr) !=
-			    isc_sockaddr_getport(&peer))
-		{
-			isc_sockaddr_format(&peer, buf1, sizeof(buf1));
-			isc_sockaddr_format(&query->sockaddr, buf2,
-					    sizeof(buf2));
-			dighost_warning("reply from unexpected source: %s,"
-					" expected %s\n",
-					buf1, buf2);
-			if (!l->accept_reply_unexpected_src) {
-				match = false;
-			}
-		}
-	}
 
 	result = dns_message_peekheader(&b, &id, &msgflags);
 	if (result != ISC_R_SUCCESS || l->sendmsg->id != id) {

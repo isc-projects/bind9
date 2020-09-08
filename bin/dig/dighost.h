@@ -114,12 +114,9 @@ struct dig_lookup {
 		tcp_keepalive, header_only, ednsneg, mapped,
 		print_unknown_format, multiline, nottl, noclass, onesoa,
 		use_usec, nocrypto, ttlunits, idnin, idnout, expandaaaa, qr,
-		accept_reply_unexpected_src, /*%  print replies from
-					      * unexpected
-					      *   sources. */
-		setqid;			     /*% use a speciied query ID */
-	char textname[MXNAME];		     /*% Name we're going to be
-					      * looking up */
+		setqid;	       /*% use a specified query ID */
+	char textname[MXNAME]; /*% Name we're going to be
+				* looking up */
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;
 	dns_rdatatype_t qrdtype;
