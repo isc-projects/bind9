@@ -55,6 +55,44 @@ sub usage {
     exit 1;
 }
 
+my $sock;
+my $proto;
+
+sub dumppacket {
+    use Net::DNS;
+    use Net::DNS::Packet;
+
+    my $rin;
+    my $rout;
+    $rin = '';
+    vec($rin, fileno($sock), 1) = 1;
+    select($rout = $rin, undef, undef, 1);
+    if (vec($rout, fileno($sock), 1)) {
+        my $buf;
+
+        if ($proto eq "udp") {
+            $sock->recv($buf, 512);
+        } else {
+            my $n = $sock->sysread($buf, 2);
+            return unless $n == 2;
+            my $len = unpack("n", $buf);
+            $n = $sock->sysread($buf, $len);
+            return unless $n == $len;
+        }
+
+        my $response;
+        if ($Net::DNS::VERSION > 0.68) {
+            $response = new Net::DNS::Packet(\$buf, 0);
+            $@ and die $@;
+        } else {
+            my $err;
+            ($response, $err) = new Net::DNS::Packet(\$buf, 0);
+            $err and die $err;
+        }
+        $response->print;
+    }
+}
+
 my %options={};
 getopts("a:dp:t:r:", \%options);
 
@@ -64,7 +102,7 @@ $addr = $options{a} if defined $options{a};
 my $port = 53;
 $port = $options{p} if defined $options{p};
 
-my $proto = "udp";
+$proto = "udp";
 $proto = lc $options{t} if defined $options{t};
 usage if ($proto !~ /^(udp|tcp)$/);
 
@@ -92,7 +130,7 @@ my $len = length $data;
 my $output = unpack("H*", $data);
 print ("sending $repeats time(s): $output\n");
 
-my $sock = IO::Socket::INET->new(PeerAddr => $addr, PeerPort => $port,
+$sock = IO::Socket::INET->new(PeerAddr => $addr, PeerPort => $port,
 				 Blocking => 0,
 				 Proto => $proto,) or die "$!";
 
@@ -115,40 +153,8 @@ while ($repeats > 0) {
 }
 
 $sock->shutdown(SHUT_WR);
-
-my $rin;
-my $rout;
-$rin = '';
-vec($rin, fileno($sock), 1) = 1;
-select($rout = $rin, undef, undef, 1);
-if (vec($rout, fileno($sock), 1)) {
-    my $buf;
-
-    if ($proto eq "udp") {
-	$sock->recv($buf, 512);
-    } else {
-	my $n = $sock->sysread($buf, 2);
-	last unless $n == 2;
-	my $len = unpack("n", $buf);
-	$n = $sock->sysread($buf, $len);
-	last unless $n == $len;
-    }
-
-    if (defined $options{d}) {
-	use Net::DNS;
-	use Net::DNS::Packet;
-
-	my $response;
-	if ($Net::DNS::VERSION > 0.68) {
-	    $response = new Net::DNS::Packet(\$buf, 0);
-	    $@ and die $@;
-	} else {
-	    my $err;
-	    ($response, $err) = new Net::DNS::Packet(\$buf, 0);
-	    $err and die $err;
-	}
-	$response->print;
-    }
+if (defined $options{d}) {
+    dumppacket;
 }
 
 $sock->close;
