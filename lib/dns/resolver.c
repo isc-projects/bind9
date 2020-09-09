@@ -8940,7 +8940,7 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	count = res->spillat;
-	LOCK(&res->spill_lock);
+	UNLOCK(&res->spill_lock);
 	UNLOCK(&res->lock);
 	if (logit)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
