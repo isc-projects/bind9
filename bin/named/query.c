@@ -4291,15 +4291,15 @@ log_quota(ns_client_t *client, isc_stdtime_t *last, isc_stdtime_t now,
 	isc_stdtime_t old = last_load(last);
 	if (now > old || (old + 1) > now) {
 		if (last_cmpxchg(last, &old, now)) {
-			LOCK(&client->recursionquota->lock);
+			LOCK(&ns_g_server->recursionquota.lock);
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 					      NS_LOGMODULE_QUERY,
 					      ISC_LOG_WARNING, fmt,
-					      client->recursionquota->used,
-					      client->recursionquota->soft,
-					      client->recursionquota->max,
+					      ns_g_server->recursionquota.used,
+					      ns_g_server->recursionquota.soft,
+					      ns_g_server->recursionquota.max,
 					      tail);
-			UNLOCK(&client->recursionquota->lock);
+			UNLOCK(&ns_g_server->recursionquota.lock);
 		}
 	}
 }
