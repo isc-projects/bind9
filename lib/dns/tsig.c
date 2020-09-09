@@ -19,11 +19,12 @@
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/serial.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
-#include <isc/util.h>
 #include <isc/time.h>
+#include <isc/util.h>
 
 #include <pk11/site.h>
 
@@ -829,12 +830,11 @@ dns_tsigkey_detach(dns_tsigkey_t **keyp) {
 	REQUIRE(VALID_TSIG_KEY(*keyp));
 
 	key = *keyp;
-	isc_refcount_decrement(&key->refs, &refs);
+	*keyp = NULL;
 
+	isc_refcount_decrement(&key->refs, &refs);
 	if (refs == 0)
 		tsigkey_free(key);
-
-	*keyp = NULL;
 }
 
 void

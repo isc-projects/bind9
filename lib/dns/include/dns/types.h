@@ -385,6 +385,11 @@ typedef enum {
 	dns_updatemethod_date
 } dns_updatemethod_t;
 
+typedef struct {
+	const char *string;
+	size_t      count;
+} dns_indent_t;
+
 /*
  * Functions.
  */

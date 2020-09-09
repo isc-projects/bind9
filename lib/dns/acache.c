@@ -174,9 +174,24 @@ struct acache_cleaner {
 };
 
 struct dns_acachestats {
+#ifdef ACACHE_HAVESTDATOMIC
+	_Atomic(unsigned int)		hits;
+	_Atomic(unsigned int)		queries;
+	_Atomic(unsigned int)		misses;
+#define ACACHE_INC(x)	atomic_fetch_add(&(x), 1)
+#define ACACHE_LOAD(x)  atomic_load(&(x))
+#else
 	unsigned int			hits;
 	unsigned int			queries;
 	unsigned int			misses;
+#if defined(ISC_PLATFORM_HAVEXADD)
+#define ACACHE_INC(x) isc_atomic_xadd((int32_t*)&(x), 1)
+#define ACACHE_LOAD(x) isc_atomic_xadd((int32_t*)&(x), 0)
+#else
+#define ACACHE_INC(x) ((x)++)
+#define ACACHE_LOAD(x) (x)
+#endif
+#endif
 	unsigned int			adds;
 	unsigned int			deleted;
 	unsigned int			cleaned;
@@ -716,8 +731,9 @@ end_cleaning(acache_cleaner_t *cleaner, isc_event_t *event) {
 		      "cleaned=%d cleaner_runs=%d overmem=%d "
 		      "overmem_nocreates=%d nomem=%d",
 		      acache,
-		      acache->stats.hits, acache->stats.misses,
-		      acache->stats.queries,
+		      ACACHE_LOAD(acache->stats.hits),
+		      ACACHE_LOAD(acache->stats.misses),
+		      ACACHE_LOAD(acache->stats.queries),
 		      acache->stats.adds, acache->stats.deleted,
 		      acache->stats.cleaned, acache->stats.cleaner_runs,
 		      acache->stats.overmem, acache->stats.overmem_nocreates,
@@ -1181,8 +1197,8 @@ dns_acache_attach(dns_acache_t *source, dns_acache_t **targetp) {
 
 void
 dns_acache_countquerymiss(dns_acache_t *acache) {
-	acache->stats.misses++; 	/* XXXSK danger: unlocked! */
-	acache->stats.queries++;	/* XXXSK danger: unlocked! */
+	ACACHE_INC(acache->stats.misses);
+	ACACHE_INC(acache->stats.queries);
 }
 
 void
@@ -1529,8 +1545,8 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 		}
 	}
 
-	entry->acache->stats.hits++; /* XXXMLG danger: unlocked! */
-	entry->acache->stats.queries++;
+	ACACHE_INC(entry->acache->stats.hits);
+	ACACHE_INC(entry->acache->stats.queries);
 
 	ACACHE_UNLOCK(&acache->entrylocks[locknum], isc_rwlocktype_read);
 

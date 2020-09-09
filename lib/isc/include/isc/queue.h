@@ -93,12 +93,8 @@
 	do { \
 		bool headlocked = false; \
 		ISC_QLINK_INSIST(!ISC_QLINK_LINKED(elt, link)); \
-		if ((queue).head == NULL) { \
-			LOCK(&(queue).headlock); \
-			headlocked = true; \
-		} \
 		LOCK(&(queue).taillock); \
-		if ((queue).tail == NULL && !headlocked) { \
+		if ((queue).tail == NULL) { \
 			UNLOCK(&(queue).taillock); \
 			LOCK(&(queue).headlock); \
 			LOCK(&(queue).taillock); \
@@ -153,6 +149,25 @@
 			(queue).tail = (elt)->link.prev; \
 		else \
 			(elt)->link.next->link.prev = (elt)->link.prev; \
+		UNLOCK(&(queue).taillock); \
+		UNLOCK(&(queue).headlock); \
+		(elt)->link.next = (elt)->link.prev = (void *)(-1); \
+	} while(0)
+
+#define ISC_QUEUE_UNLINKIFLINKED(queue, elt, link) \
+	do { \
+		LOCK(&(queue).headlock); \
+		LOCK(&(queue).taillock); \
+		if (ISC_QLINK_LINKED(elt, link)) { \
+			if ((elt)->link.prev == NULL) \
+				(queue).head = (elt)->link.next; \
+			else \
+				(elt)->link.prev->link.next = (elt)->link.next; \
+			if ((elt)->link.next == NULL) \
+				(queue).tail = (elt)->link.prev; \
+			else \
+				(elt)->link.next->link.prev = (elt)->link.prev; \
+		} \
 		UNLOCK(&(queue).taillock); \
 		UNLOCK(&(queue).headlock); \
 		(elt)->link.next = (elt)->link.prev = (void *)(-1); \

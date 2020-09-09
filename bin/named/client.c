@@ -241,7 +241,11 @@ struct ns_clientmgr {
 #define NS_CLIENT_DROPPORT 1
 #endif
 
+#ifdef NS_CLIENT_NCRSTDATOMIC
+_Atomic(unsigned int) ns_client_requests;
+#else
 unsigned int ns_client_requests;
+#endif
 
 static void client_read(ns_client_t *client);
 static void client_accept(ns_client_t *client);
@@ -846,8 +850,7 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 		client->shutdown_arg = NULL;
 	}
 
-	if (ISC_QLINK_LINKED(client, ilink))
-		ISC_QUEUE_UNLINK(client->manager->inactive, client, ilink);
+	ISC_QUEUE_UNLINKIFLINKED(client->manager->inactive, client, ilink);
 
 	client->newstate = NS_CLIENTSTATE_FREED;
 	client->needshutdown = false;
@@ -2477,7 +2480,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 				       NS_CLIENTSTATE_READING :
 				       NS_CLIENTSTATE_READY));
 
-	ns_client_requests++;
+	ncr_inc(ns_client_requests);
 
 	if (event->ev_type == ISC_SOCKEVENT_RECVDONE) {
 		INSIST(!TCP_CLIENT(client));
@@ -3853,6 +3856,22 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 	*managerp = NULL;
 }
 
+/*
+ * ISC_QUEUE_POP is deliberately not tsan safe to avoid aquiring
+ * the taillock every time ISC_QUEUE_POP is called.
+ * Isolate ISC_QUEUE_POP from tsan analysis.
+ */
+ISC_NO_SANITIZE_THREAD static ns_client_t *
+queue_pop(ns_clientmgr_t *manager)
+{
+	ns_client_t *client = NULL;
+
+	if (!ns_g_clienttest) {
+		ISC_QUEUE_POP(manager->inactive, ilink, client);
+	}
+	return (client);
+}
+
 static isc_result_t
 get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	   dns_dispatch_t *disp, bool tcp)
@@ -3872,8 +3891,9 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	 * if that fails, make a new one.
 	 */
 	client = NULL;
-	if (!ns_g_clienttest)
-		ISC_QUEUE_POP(manager->inactive, ilink, client);
+	if (!ns_g_clienttest) {
+		client = queue_pop(manager);
+	}
 
 	if (client != NULL)
 		MTRACE("recycle");
@@ -3941,8 +3961,9 @@ get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *sock,
 	 * if that fails, make a new one.
 	 */
 	client = NULL;
-	if (!ns_g_clienttest)
-		ISC_QUEUE_POP(manager->inactive, ilink, client);
+	if (!ns_g_clienttest) {
+		client = queue_pop(manager);
+	}
 
 	if (client != NULL)
 		MTRACE("recycle");

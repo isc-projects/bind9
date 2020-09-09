@@ -467,7 +467,7 @@ struct dns_resolver {
 	isc_mutex_t			lock;
 	isc_mutex_t			nlock;
 	isc_mutex_t			primelock;
-	isc_mutex_t			zspill_lock;
+	isc_mutex_t			spill_lock;
 	dns_rdataclass_t		rdclass;
 	isc_socketmgr_t *		socketmgr;
 	isc_timermgr_t *		timermgr;
@@ -1301,9 +1301,9 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	} else {
 		unsigned int spill;
 
-		LOCK(&fctx->res->zspill_lock);
+		LOCK(&fctx->res->spill_lock);
 		spill = fctx->res->zspill;
-		UNLOCK(&fctx->res->zspill_lock);
+		UNLOCK(&fctx->res->spill_lock);
 
 		if (!force && spill != 0 && counter->count >= spill) {
 			counter->dropped++;
@@ -1414,10 +1414,10 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 		count++;
 	}
 
+	LOCK(&fctx->res->spill_lock);
 	if ((fctx->attributes & FCTX_ATTR_HAVEANSWER) != 0 &&
 	    fctx->spilled &&
 	    (count < fctx->res->spillatmax || fctx->res->spillatmax == 0)) {
-		LOCK(&fctx->res->lock);
 		if (count == fctx->res->spillat && !fctx->res->exiting) {
 			old_spillat = fctx->res->spillat;
 			fctx->res->spillat += 5;
@@ -1434,13 +1434,13 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 						 &i, true);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		}
-		UNLOCK(&fctx->res->lock);
 		if (logit)
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
 				      "clients-per-query increased to %u",
 				      new_spillat);
 	}
+	UNLOCK(&fctx->res->spill_lock);
 }
 
 static inline void
@@ -1894,7 +1894,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		query->connects++;
 		QTRACE("connecting via TCP");
 	} else {
-		if (dns_adbentry_overquota(addrinfo->entry))
+		if (dns_adbentry_overquota(fctx->adb, addrinfo->entry))
 			goto cleanup_dispatch;
 
 		/* Inform the ADB that we're starting a UDP fetch */
@@ -3809,7 +3809,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	addrinfo = fctx_nextaddress(fctx);
 
 	/* Try to find an address that isn't over quota */
-	while (addrinfo != NULL && dns_adbentry_overquota(addrinfo->entry))
+	while (addrinfo != NULL && dns_adbentry_overquota(fctx->adb, addrinfo->entry))
 		addrinfo = fctx_nextaddress(fctx);
 
 	if (addrinfo == NULL) {
@@ -3835,7 +3835,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		addrinfo = fctx_nextaddress(fctx);
 
 		while (addrinfo != NULL &&
-		       dns_adbentry_overquota(addrinfo->entry))
+		       dns_adbentry_overquota(fctx->adb, addrinfo->entry))
 			addrinfo = fctx_nextaddress(fctx);
 
 		/*
@@ -4908,6 +4908,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	ISC_LIST_UNLINK(fctx->validators, vevent->validator, link);
 	fctx->validator = NULL;
+	UNLOCK(&res->buckets[bucketnum].lock);
 
 	/*
 	 * Destroy the validator early so that we can
@@ -4918,6 +4919,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	negative = (vevent->rdataset == NULL);
 
+	LOCK(&res->buckets[bucketnum].lock);
 	sentresponse = ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0);
 
 	/*
@@ -8834,7 +8836,7 @@ destroy(dns_resolver_t *res) {
 
 	INSIST(res->nfctx == 0);
 
-	DESTROYLOCK(&res->zspill_lock);
+	DESTROYLOCK(&res->spill_lock);
 	DESTROYLOCK(&res->primelock);
 	DESTROYLOCK(&res->nlock);
 	DESTROYLOCK(&res->lock);
@@ -8926,6 +8928,7 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&res->lock);
 	INSIST(!res->exiting);
+	LOCK(&res->spill_lock);
 	if (res->spillat > res->spillatmin) {
 		res->spillat--;
 		logit = true;
@@ -8937,6 +8940,7 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	count = res->spillat;
+	LOCK(&res->spill_lock);
 	UNLOCK(&res->lock);
 	if (logit)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
@@ -9111,14 +9115,14 @@ dns_resolver_create(dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_nlock;
 
-	result = isc_mutex_init(&res->zspill_lock);
+	result = isc_mutex_init(&res->spill_lock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_primelock;
 
 	task = NULL;
 	result = isc_task_create(taskmgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_zspill_lock;
+		goto cleanup_spill_lock;
 	isc_task_setname(task, "resolver_task", NULL);
 
 	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
@@ -9126,7 +9130,7 @@ dns_resolver_create(dns_view_t *view,
 				  &res->spillattimer);
 	isc_task_detach(&task);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_zspill_lock;
+		goto cleanup_spill_lock;
 
 #if USE_ALGLOCK
 	result = isc_rwlock_init(&res->alglock, 0, 0);
@@ -9159,8 +9163,8 @@ dns_resolver_create(dns_view_t *view,
 	isc_timer_detach(&res->spillattimer);
 #endif
 
- cleanup_zspill_lock:
-	DESTROYLOCK(&res->zspill_lock);
+ cleanup_spill_lock:
+	DESTROYLOCK(&res->spill_lock);
 
  cleanup_primelock:
 	DESTROYLOCK(&res->primelock);
@@ -9576,10 +9580,10 @@ dns_resolver_createfetch3(dns_resolver_t *res, dns_name_t *name,
 
 	bucketnum = dns_name_fullhash(name, false) % res->nbuckets;
 
-	LOCK(&res->lock);
+	LOCK(&res->spill_lock);
 	spillat = res->spillat;
 	spillatmin = res->spillatmin;
-	UNLOCK(&res->lock);
+	UNLOCK(&res->spill_lock);
 	LOCK(&res->buckets[bucketnum].lock);
 
 	if (res->buckets[bucketnum].exiting) {
@@ -10277,14 +10281,14 @@ dns_resolver_getclientsperquery(dns_resolver_t *resolver, uint32_t *cur,
 {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	LOCK(&resolver->lock);
+	LOCK(&resolver->spill_lock);
 	if (cur != NULL)
 		*cur = resolver->spillat;
 	if (min != NULL)
 		*min = resolver->spillatmin;
 	if (max != NULL)
 		*max = resolver->spillatmax;
-	UNLOCK(&resolver->lock);
+	UNLOCK(&resolver->spill_lock);
 }
 
 void
@@ -10293,10 +10297,10 @@ dns_resolver_setclientsperquery(dns_resolver_t *resolver, uint32_t min,
 {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	LOCK(&resolver->lock);
+	LOCK(&resolver->spill_lock);
 	resolver->spillatmin = resolver->spillat = min;
 	resolver->spillatmax = max;
-	UNLOCK(&resolver->lock);
+	UNLOCK(&resolver->spill_lock);
 }
 
 void
@@ -10304,9 +10308,9 @@ dns_resolver_setfetchesperzone(dns_resolver_t *resolver, uint32_t clients)
 {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	LOCK(&resolver->zspill_lock);
+	LOCK(&resolver->spill_lock);
 	resolver->zspill = clients;
-	UNLOCK(&resolver->zspill_lock);
+	UNLOCK(&resolver->spill_lock);
 }
 
 

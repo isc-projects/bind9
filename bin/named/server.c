@@ -6354,7 +6354,7 @@ tat_timer_tick(isc_task_t *task, isc_event_t *event) {
 static void
 pps_timer_tick(isc_task_t *task, isc_event_t *event) {
 	static unsigned int oldrequests = 0;
-	unsigned int requests = ns_client_requests;
+	unsigned int requests = ncr_load(ns_client_requests);
 
 	UNUSED(task);
 	isc_event_free(&event);
@@ -8725,8 +8725,8 @@ static isc_result_t
 view_loaded(void *arg) {
 	isc_result_t result;
 	ns_zoneload_t *zl = (ns_zoneload_t *) arg;
-	ns_server_t *server = zl->server;
-	bool reconfig = zl->reconfig;
+	ns_server_t *server;
+	bool reconfig;
 	unsigned int refs;
 
 
@@ -8741,6 +8741,9 @@ view_loaded(void *arg) {
 	isc_refcount_decrement(&zl->refs, &refs);
 	if (refs != 0)
 		return (ISC_R_SUCCESS);
+
+	server = zl->server;
+	reconfig = zl->reconfig;
 
 	isc_refcount_destroy(&zl->refs);
 	isc_mem_put(server->mctx, zl, sizeof (*zl));
@@ -10928,9 +10931,11 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 		     server->log_queries ? "ON" : "OFF");
 	CHECK(putstr(text, line));
 
+	LOCK(&server->recursionquota.lock);
 	snprintf(line, sizeof(line), "recursive clients: %d/%d/%d\n",
 		     server->recursionquota.used, server->recursionquota.soft,
 		     server->recursionquota.max);
+	UNLOCK(&server->recursionquota.lock);
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "tcp clients: %d/%d\n",

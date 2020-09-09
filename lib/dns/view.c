@@ -362,9 +362,11 @@ destroy(dns_view_t *view) {
 	dns_dlzdb_t *dlzdb;
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
+	LOCK(&view->lock);
 	REQUIRE(RESSHUTDOWN(view));
 	REQUIRE(ADBSHUTDOWN(view));
 	REQUIRE(REQSHUTDOWN(view));
+	UNLOCK(&view->lock);
 
 	isc_refcount_destroy(&view->references);
 	isc_refcount_destroy(&view->weakrefs);
@@ -2375,25 +2377,37 @@ dns_view_loadnta(dns_view_t *view) {
 
 void
 dns_view_setviewcommit(dns_view_t *view) {
+	dns_zone_t *redirect = NULL, *managed_keys = NULL;
+
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	LOCK(&view->lock);
 
 	if (view->redirect != NULL) {
-		dns_zone_setviewcommit(view->redirect);
+		dns_zone_attach(view->redirect, &redirect);
 	}
 	if (view->managed_keys != NULL) {
-		dns_zone_setviewcommit(view->managed_keys);
+		dns_zone_attach(view->managed_keys, &managed_keys);
 	}
 	if (view->zonetable != NULL) {
 		dns_zt_setviewcommit(view->zonetable);
 	}
 
 	UNLOCK(&view->lock);
+
+	if (redirect != NULL) {
+		dns_zone_setviewcommit(redirect);
+		dns_zone_detach(&redirect);
+	}
+	if (managed_keys != NULL) {
+		dns_zone_setviewcommit(managed_keys);
+		dns_zone_detach(&managed_keys);
+	}
 }
 
 void
 dns_view_setviewrevert(dns_view_t *view) {
+	dns_zone_t *redirect = NULL, *managed_keys = NULL;
 	dns_zt_t *zonetable;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -2404,14 +2418,22 @@ dns_view_setviewrevert(dns_view_t *view) {
 	 */
 	LOCK(&view->lock);
 	if (view->redirect != NULL) {
-		dns_zone_setviewrevert(view->redirect);
+		dns_zone_attach(view->redirect, &redirect);
 	}
 	if (view->managed_keys != NULL) {
-		dns_zone_setviewrevert(view->managed_keys);
+		dns_zone_attach(view->managed_keys, &managed_keys);
 	}
 	zonetable = view->zonetable;
 	UNLOCK(&view->lock);
 
+	if (redirect != NULL) {
+		dns_zone_setviewrevert(redirect);
+		dns_zone_detach(&redirect);
+	}
+	if (managed_keys != NULL) {
+		dns_zone_setviewrevert(managed_keys);
+		dns_zone_detach(&managed_keys);
+	}
 	if (zonetable != NULL) {
 		dns_zt_setviewrevert(zonetable);
 	}

@@ -59,9 +59,10 @@
 
 #include <isc/buffer.h>
 #include <isc/magic.h>
-#include <isc/stdtime.h>
-#include <isc/quota.h>
+#include <isc/platform.h>
 #include <isc/queue.h>
+#include <isc/quota.h>
+#include <isc/stdtime.h>
 
 #include <dns/db.h>
 #include <dns/fixedname.h>
@@ -119,10 +120,10 @@ struct ns_client {
 	isc_socket_t *		tcpsocket;
 	unsigned char *		tcpbuf;
 	dns_tcpmsg_t		tcpmsg;
-	bool		tcpmsg_valid;
+	bool			tcpmsg_valid;
 	isc_timer_t *		timer;
 	isc_timer_t *		delaytimer;
-	bool 		timerset;
+	bool 			timerset;
 	dns_message_t *		message;
 	isc_socketevent_t *	sendevent;
 	isc_socketevent_t *	recvevent;
@@ -130,7 +131,7 @@ struct ns_client {
 	dns_rdataset_t *	opt;
 	uint16_t		udpsize;
 	uint16_t		extflags;
-	int16_t		ednsversion;	/* -1 noedns */
+	int16_t			ednsversion;	/* -1 noedns */
 	void			(*next)(ns_client_t *);
 	void			(*shutdown)(void *arg, isc_result_t result);
 	void 			*shutdown_arg;
@@ -146,7 +147,7 @@ struct ns_client {
 	ns_interface_t		*interface;
 
 	isc_sockaddr_t		peeraddr;
-	bool		peeraddr_valid;
+	bool			peeraddr_valid;
 	isc_netaddr_t		destaddr;
 	isc_sockaddr_t		destsockaddr;
 
@@ -213,9 +214,25 @@ typedef ISC_LIST(ns_client_t) client_list_t;
  */
 #define NS_FAILCACHE_CD		0x01
 
-
-
+#if defined(ISC_PLATFORM_HAVESTDATOMIC)
+#if defined(__cplusplus)
+#include <isc/stdatomic.h>
+#else
+#include <stdatomic.h>
+#endif
+#define ncr_inc(x) atomic_fetch_add(&(x), (1))
+#define ncr_load(x) atomic_load(&(x))
+#define NS_CLIENT_NCRSTDATOMIC 1
+extern _Atomic(unsigned int) ns_client_requests;
+#elif defined(ISC_PLATFORM_HAVEXADD)
+#define ncr_inc(x) isc_atomic_xadd((int *)&(x), 1);
+#define ncr_load(x) isc_atomic_xadd((int *)&(x), 0);
 extern unsigned int ns_client_requests;
+#else
+#define ncr_inc(x) ((x)++)
+#define ncr_load(x) (x)
+extern unsigned int ns_client_requests;
+#endif
 
 /***
  *** Functions

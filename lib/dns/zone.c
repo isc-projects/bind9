@@ -10138,7 +10138,7 @@ zone_maintenance(dns_zone_t *zone) {
 	const char me[] = "zone_maintenance";
 	isc_time_t now;
 	isc_result_t result;
-	bool dumping, load_pending, viewok;
+	bool dumping, load_pending, viewok, start_refresh;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	ENTER;
@@ -10202,9 +10202,16 @@ zone_maintenance(dns_zone_t *zone) {
 		/* FALLTHROUGH */
 	case dns_zone_slave:
 	case dns_zone_stub:
+		start_refresh = false;
+		LOCK_ZONE(zone);
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH) &&
-		    isc_time_compare(&now, &zone->refreshtime) >= 0)
+		    isc_time_compare(&now, &zone->refreshtime) >= 0) {
+			start_refresh = true;
+		}
+		UNLOCK_ZONE(zone);
+		if (start_refresh) {
 			dns_zone_refresh(zone);
+		}
 		break;
 	default:
 		break;
@@ -17528,9 +17535,13 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 	case DNS_ZONESTATE_SOAQUERY:
 		for (zone = ISC_LIST_HEAD(zmgr->zones);
 		     zone != NULL;
-		     zone = ISC_LIST_NEXT(zone, link))
-			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH))
+		     zone = ISC_LIST_NEXT(zone, link)) {
+			LOCK_ZONE(zone);
+			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
 				count++;
+			}
+			UNLOCK_ZONE(zone);
+		}
 		break;
 	case DNS_ZONESTATE_ANY:
 		for (zone = ISC_LIST_HEAD(zmgr->zones);

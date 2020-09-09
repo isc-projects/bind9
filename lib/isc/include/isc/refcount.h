@@ -123,7 +123,7 @@ typedef struct isc_refcount {
 
 #define isc_refcount_current(rp)					\
 	((unsigned int)(atomic_load_explicit(&(rp)->refs,		\
-					     memory_order_relaxed)))
+					     memory_order_acquire)))
 #define isc_refcount_destroy(rp) ISC_REQUIRE(isc_refcount_current(rp) == 0)
 
 #define isc_refcount_increment0(rp, tp)				\

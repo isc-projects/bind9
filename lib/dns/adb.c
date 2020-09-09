@@ -2826,9 +2826,8 @@ dns_adb_detach(dns_adb_t **adbx) {
 	adb = *adbx;
 	*adbx = NULL;
 
-	INSIST(adb->erefcnt > 0);
-
 	LOCK(&adb->reflock);
+	INSIST(adb->erefcnt > 0);
 	adb->erefcnt--;
 	need_exit_check = (adb->erefcnt == 0 && adb->irefcnt == 0);
 	UNLOCK(&adb->reflock);
@@ -3458,18 +3457,16 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 			adb, adb->erefcnt, adb->irefcnt,
 			isc_mempool_getallocated(adb->nhmp));
 
-	for (i = 0; i < adb->nnames; i++)
-		LOCK(&adb->namelocks[i]);
-	for (i = 0; i < adb->nentries; i++)
-		LOCK(&adb->entrylocks[i]);
-
 	/*
 	 * Dump the names
 	 */
 	for (i = 0; i < adb->nnames; i++) {
+		LOCK(&adb->namelocks[i]);
 		name = ISC_LIST_HEAD(adb->names[i]);
-		if (name == NULL)
+		if (name == NULL) {
+			UNLOCK(&adb->namelocks[i]);
 			continue;
+		}
 		if (debug)
 			fprintf(f, "; bucket %u\n", i);
 		for (;
@@ -3507,26 +3504,21 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 				print_find_list(f, name);
 			}
 		}
+		UNLOCK(&adb->namelocks[i]);
 	}
 
 	fprintf(f, ";\n; Unassociated entries\n;\n");
 
 	for (i = 0; i < adb->nentries; i++) {
+		LOCK(&adb->entrylocks[i]);
 		entry = ISC_LIST_HEAD(adb->entries[i]);
 		while (entry != NULL) {
 			if (entry->nh == 0)
 				dump_entry(f, adb, entry, debug, now);
 			entry = ISC_LIST_NEXT(entry, plink);
 		}
-	}
-
-	/*
-	 * Unlock everything
-	 */
-	for (i = 0; i < adb->nentries; i++)
 		UNLOCK(&adb->entrylocks[i]);
-	for (i = 0; i < adb->nnames; i++)
-		UNLOCK(&adb->namelocks[i]);
+	}
 }
 
 static void
@@ -3645,6 +3637,7 @@ print_namehook_list(FILE *f, const char *legend,
 		    dns_adb_t *adb, dns_adbnamehooklist_t *list,
 		    bool debug, isc_stdtime_t now)
 {
+	int addr_bucket = DNS_ADB_INVALIDBUCKET;
 	dns_adbnamehook_t *nh;
 
 	for (nh = ISC_LIST_HEAD(*list);
@@ -3653,7 +3646,18 @@ print_namehook_list(FILE *f, const char *legend,
 	{
 		if (debug)
 			fprintf(f, ";\tHook(%s) %p\n", legend, nh);
+		if (addr_bucket != nh->entry->lock_bucket) {
+			if (addr_bucket != DNS_ADB_INVALIDBUCKET) {
+				UNLOCK(&adb->entrylocks[addr_bucket]);
+			}
+			addr_bucket = nh->entry->lock_bucket;
+			INSIST(addr_bucket != DNS_ADB_INVALIDBUCKET);
+			LOCK(&adb->entrylocks[addr_bucket]);
+		}
 		dump_entry(f, adb, nh->entry, debug, now);
+	}
+	if (addr_bucket != DNS_ADB_INVALIDBUCKET) {
+		UNLOCK(&adb->entrylocks[addr_bucket]);
 	}
 }
 
@@ -4792,10 +4796,18 @@ dns_adb_setquota(dns_adb_t *adb, uint32_t quota, uint32_t freq,
 }
 
 bool
-dns_adbentry_overquota(dns_adbentry_t *entry) {
+dns_adbentry_overquota(dns_adb_t *adb, dns_adbentry_t *entry) {
+	int bucket;
 	bool block;
+
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
+
+	bucket = entry->lock_bucket;
+
+	LOCK(&adb->entrylocks[bucket]);
 	block = (entry->quota != 0 && entry->active >= entry->quota);
+	UNLOCK(&adb->entrylocks[bucket]);
+
 	return (block);
 }
 

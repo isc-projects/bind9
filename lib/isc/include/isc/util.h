@@ -221,6 +221,17 @@
 #define __SANITIZE_ADDRESS__ 1
 #endif
 
+/* GCC defines __SANITIZE_THREAD__, so reuse the macro for clang */
+#if __has_feature(thread_sanitizer)
+#define __SANITIZE_THREAD__ 1
+#endif
+
+#if __SANITIZE_THREAD__
+#define ISC_NO_SANITIZE_THREAD __attribute__((no_sanitize("thread")))
+#else /* if __SANITIZE_THREAD__ */
+#define ISC_NO_SANITIZE_THREAD
+#endif /* if __SANITIZE_THREAD__ */
+
 #ifdef UNIT_TESTING
 extern void mock_assert(const int result, const char* const expression,
 			const char * const file, const int line);

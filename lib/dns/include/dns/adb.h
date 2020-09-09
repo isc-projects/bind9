@@ -815,7 +815,7 @@ dns_adb_setquota(dns_adb_t *adb, uint32_t quota, uint32_t freq,
  */
 
 bool
-dns_adbentry_overquota(dns_adbentry_t *entry);
+dns_adbentry_overquota(dns_adb_t *adb, dns_adbentry_t *entry);
 /*%<
  * Returns true if the specified ADB has too many active fetches.
  *

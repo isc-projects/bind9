@@ -77,9 +77,15 @@ isc_counter_increment(isc_counter_t *counter) {
 
 unsigned int
 isc_counter_used(isc_counter_t *counter) {
+	unsigned int used;
+
 	REQUIRE(VALID_COUNTER(counter));
 
-	return (counter->used);
+	LOCK(&counter->lock);
+	used = counter->used;
+	UNLOCK(&counter->lock);
+
+	return (used);
 }
 
 void
