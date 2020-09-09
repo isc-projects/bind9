@@ -69,7 +69,7 @@ Whenever a branch is ready for publication, a tag is placed of the form
 v9_X_Y. The 9.12.0 release, for instance, is tagged as v9_12_0.
 
 The branch in which the next major release is being developed is called
-master.
+main.
 
 Reporting bugs
 
@@ -125,7 +125,7 @@ Patches for BIND may be submitted directly via merge requests in ISC's
 GitLab source repository for BIND.
 
 Patches can also be submitted as diffs against a specific version of BIND
--- preferably the current top of the master branch. Diffs may be generated
+-- preferably the current top of the main branch. Diffs may be generated
 using either git format-patch or git diff.
 
 Those wanting to write code for BIND may be interested in the developer

@@ -263,12 +263,12 @@ received.
 Attempt to display the contents of messages which are malformed. The
 default is to not display malformed answers.
 .TP
-.B \fB+bufsize=B\fP
-Set the UDP message buffer size advertised using EDNS0 to \fBB\fP
-bytes. The maximum and minimum sizes of this buffer are 65535 and 0
-respectively. Values outside this range are rounded up or down
-appropriately. Values other than zero will cause a EDNS query to be
-sent.
+.B \fB+bufsize[=B]\fP
+This option sets the UDP message buffer size advertised using EDNS0
+to \fBB\fP bytes.  The maximum and minimum sizes of this buffer are
+65535 and 0, respectively.  \fB+bufsize=0\fP disables EDNS (use
+\fB+bufsize=0 +edns\fP to send a EDNS messages with a advertised size
+of 0 bytes). \fB+bufsize\fP restores the default buffer size.
 .TP
 .B \fB+[no]cdflag\fP
 Set [do not set] the CD (checking disabled) bit in the query. This
