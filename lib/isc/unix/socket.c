@@ -3773,13 +3773,11 @@ cleanup_thread(isc_mem_t *mctx, isc__socketthread_t *thread) {
 	isc_mem_put(thread->manager->mctx, thread->fdstate,
 		    thread->manager->maxsocks * sizeof(int));
 
-	if (thread->fdlock != NULL) {
-		for (i = 0; i < FDLOCK_COUNT; i++) {
-			isc_mutex_destroy(&thread->fdlock[i]);
-		}
-		isc_mem_put(thread->manager->mctx, thread->fdlock,
-			    FDLOCK_COUNT * sizeof(isc_mutex_t));
+	for (i = 0; i < FDLOCK_COUNT; i++) {
+		isc_mutex_destroy(&thread->fdlock[i]);
 	}
+	isc_mem_put(thread->manager->mctx, thread->fdlock,
+		    FDLOCK_COUNT * sizeof(isc_mutex_t));
 }
 
 isc_result_t
