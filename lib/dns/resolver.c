@@ -5565,6 +5565,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	ISC_LIST_UNLINK(fctx->validators, vevent->validator, link);
 	fctx->validator = NULL;
+	UNLOCK(&res->buckets[bucketnum].lock);
 
 	/*
 	 * Destroy the validator early so that we can
@@ -5580,6 +5581,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	negative = (vevent->rdataset == NULL);
 
+	LOCK(&res->buckets[bucketnum].lock);
 	sentresponse = ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0);
 
 	/*

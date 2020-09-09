@@ -9584,8 +9584,6 @@ static isc_result_t
 view_loaded(void *arg) {
 	isc_result_t result;
 	ns_zoneload_t *zl = (ns_zoneload_t *)arg;
-	named_server_t *server = zl->server;
-	bool reconfig = zl->reconfig;
 
 	/*
 	 * Force zone maintenance.  Do this after loading
@@ -9596,6 +9594,9 @@ view_loaded(void *arg) {
 	 * know when all views are finished.
 	 */
 	if (isc_refcount_decrement(&zl->refs) == 1) {
+		named_server_t *server = zl->server;
+		bool reconfig = zl->reconfig;
+
 		isc_refcount_destroy(&zl->refs);
 		isc_mem_put(server->mctx, zl, sizeof(*zl));
 

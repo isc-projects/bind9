@@ -210,9 +210,9 @@
 #endif /* if __has_feature(thread_sanitizer) */
 
 #if __SANITIZE_THREAD__
-#define ISC_NO_SANITIZE __attribute__((no_sanitize("thread")))
+#define ISC_NO_SANITIZE_THREAD __attribute__((no_sanitize("thread")))
 #else /* if __SANITIZE_THREAD__ */
-#define ISC_NO_SANITIZE
+#define ISC_NO_SANITIZE_THREAD
 #endif /* if __SANITIZE_THREAD__ */
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6)
