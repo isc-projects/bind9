@@ -26,6 +26,10 @@ New Features
 
 - None.
 
+- New ``rndc`` command ``rndc dumpdb -expired`` that dumps the cache database
+  to the dump-file including expired RRsets that are awaiting cleanup, for
+  diagnostic purposes. [GL #1870]
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

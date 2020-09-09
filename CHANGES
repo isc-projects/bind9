@@ -1,3 +1,7 @@
+5508.	[func]		Added new parameter "-expired" for "rndc dumpdb" that
+			also prints expired RRsets (awaiting cleanup) to the
+			dump file. [GL #1870]
+
 5507.	[bug]		Named could compute incorrect SIG(0) responses.
 			[GL #2109]
 
