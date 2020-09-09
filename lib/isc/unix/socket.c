@@ -4972,12 +4972,10 @@ isc__socketmgr_destroy(isc_socketmgr_t **managerp) {
 	if (manager->stats != NULL)
 		isc_stats_detach(&manager->stats);
 
-	if (manager->fdlock != NULL) {
-		for (i = 0; i < FDLOCK_COUNT; i++)
-			DESTROYLOCK(&manager->fdlock[i]);
-		isc_mem_put(manager->mctx, manager->fdlock,
-			    FDLOCK_COUNT * sizeof(isc_mutex_t));
-	}
+	for (i = 0; i < FDLOCK_COUNT; i++)
+		DESTROYLOCK(&manager->fdlock[i]);
+	isc_mem_put(manager->mctx, manager->fdlock,
+		    FDLOCK_COUNT * sizeof(isc_mutex_t));
 	DESTROYLOCK(&manager->lock);
 	manager->common.magic = 0;
 	manager->common.impmagic = 0;
