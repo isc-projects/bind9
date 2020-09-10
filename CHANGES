@@ -1,3 +1,7 @@
+5518.	[bug]		Fix stub zone not transferring nameserver addresses
+			from masters configured with 'minimal-responses yes'.
+			[GL #1736]
+
 5517.	[bug]		Handle 'UV_EOF' differently and don't contribute it to
 			the RECVFAIL statistic count. [GL #2208]
 
