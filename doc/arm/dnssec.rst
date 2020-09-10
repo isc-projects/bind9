@@ -26,13 +26,15 @@ DNSSEC, Dynamic Zones, and Automatic Signing
 Converting From Insecure to Secure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Changing a zone from insecure to secure can be done in two ways: using a
-dynamic DNS update, or via the ``auto-dnssec`` zone option.
+Changing a zone from insecure to secure can be done in three ways: using a
+dynamic DNS update, or via the ``auto-dnssec`` zone option, or set a
+DNSSEC policy for the zone with ``dnssec-policy``.
 
 For either method, ``named`` must be configured so that it can see
 the ``K*`` files which contain the public and private parts of the keys
 that are used to sign the zone. These files are generated
-by ``dnssec-keygen``, and they should be placed in the
+by ``dnssec-keygen`` (or created when needed by ``named`` if
+``dnssec-policy`` is used). Keys should be placed in the
 key-directory, as specified in ``named.conf``:
 
 ::
@@ -48,6 +50,18 @@ If one KSK and one ZSK DNSKEY key have been generated, this
 configuration causes all records in the zone to be signed with the
 ZSK, and the DNSKEY RRset to be signed with the KSK. An NSEC
 chain is generated as part of the initial signing process.
+
+With ``dnssec-policy you specify what keys should be KSK and/or ZSK.
+If you want a key to sign all records with a key you will need to
+specify a CSK. For example:
+
+::
+
+        dnssec-policy csk {
+	    keys {
+                csk lifetime unlimited algorithm 13;
+            };
+	};
 
 Dynamic DNS Update Method
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,9 +107,9 @@ other updates are possible as well.
 Fully Automatic Zone Signing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To enable automatic signing, add the ``auto-dnssec`` option to the zone
-statement in ``named.conf``. ``auto-dnssec`` has two possible arguments:
-``allow`` or ``maintain``.
+To enable automatic signing, you can set a ``dnssec-policy``, or add the
+``auto-dnssec`` option to the zone statement in ``named.conf``.
+``auto-dnssec`` has two possible arguments: ``allow`` or ``maintain``.
 
 With ``auto-dnssec allow``, ``named`` can search the key directory for
 keys matching the zone, insert them into the zone, and use them to sign
@@ -106,6 +120,11 @@ the zone. It does so only when it receives an
 automatically adjusts the zone's DNSKEY records on a schedule according to
 the keys' timing metadata. (See :ref:`man_dnssec-keygen` and
 :ref:`man_dnssec-settime` for more information.)
+
+``dnssec-policy`` is like ``auto-dnssec maintain``, but will also automatically
+create new keys when necessary. Also any configuration related to DNSSEC
+signing is retrieved from the policy (ignoring existing DNSSEC ``named.conf``
+options).
 
 ``named`` periodically searches the key directory for keys matching
 the zone; if the keys' metadata indicates that any change should be
@@ -233,6 +252,8 @@ To do this, an NSEC3PARAM record must be added. When the
 conversion is complete, the NSEC chain is removed and the
 NSEC3PARAM record has a zero flag field. The NSEC3 chain is
 generated before the NSEC chain is destroyed.
+
+NSEC3 is not supported yet with ``dnssec-policy``.
 
 Converting From NSEC3 to NSEC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
