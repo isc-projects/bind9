@@ -1,3 +1,8 @@
+5528.	[func]		Convert "dig", "host" and "nslookup" to use the
+			network manager. As a side effect of this change,
+			"dig +unexpected" no longer works, and has been
+			disabled. [GL #2140]
+
 5527.	[bug]		There was a NULL pointer dereference if the creation
 			of the fetch to determine if a negative trust anchor
 			was still valid failed. [GL #2244]
