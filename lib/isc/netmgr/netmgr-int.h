@@ -50,6 +50,20 @@
 #endif
 
 /*
+ * Define NETMGR_TRACE to activate tracing of handles and sockets.
+ * This will impair performance but enables us to quickly determine,
+ * if netmgr resources haven't been cleaned up on shutdown, which ones
+ * are still in use.
+ */
+#ifdef NETMGR_TRACE
+#define TRACE_SIZE 8
+
+void
+isc__nm_dump_active(isc_nm_t *nm);
+
+#endif
+
+/*
  * Single network event loop worker.
  */
 typedef struct isc__networker {
@@ -104,6 +118,11 @@ struct isc_nmhandle {
 	isc_sockaddr_t local;
 	isc_nm_opaquecb_t doreset; /* reset extra callback, external */
 	isc_nm_opaquecb_t dofree;  /* free extra callback, external */
+#ifdef NETMGR_TRACE
+	void *backtrace[TRACE_SIZE];
+	int backtrace_size;
+	LINK(isc_nmhandle_t) active_link;
+#endif
 	void *opaque;
 	char extra[];
 };
@@ -117,12 +136,10 @@ struct isc_nmiface {
 
 typedef enum isc__netievent_type {
 	netievent_udpsend,
-	netievent_udprecv,
 	netievent_udpstop,
 
 	netievent_tcpconnect,
 	netievent_tcpsend,
-	netievent_tcprecv,
 	netievent_tcpstartread,
 	netievent_tcppauseread,
 	netievent_tcpchildaccept,
@@ -130,8 +147,8 @@ typedef enum isc__netievent_type {
 	netievent_tcpstop,
 	netievent_tcpclose,
 
-	netievent_tcpdnsclose,
 	netievent_tcpdnssend,
+	netievent_tcpdnsclose,
 
 	netievent_closecb,
 	netievent_shutdown,
@@ -146,23 +163,8 @@ typedef enum isc__netievent_type {
 	netievent_tcplisten,
 } isc__netievent_type;
 
-/*
- * We have to split it because we can read and write on a socket
- * simultaneously.
- */
 typedef union {
 	isc_nm_recv_cb_t recv;
-	isc_nm_accept_cb_t accept;
-} isc__nm_readcb_t;
-
-typedef union {
-	isc_nm_cb_t send;
-	isc_nm_cb_t connect;
-} isc__nm_writecb_t;
-
-typedef union {
-	isc_nm_recv_cb_t recv;
-	isc_nm_accept_cb_t accept;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
 } isc__nm_cb_t;
@@ -209,10 +211,10 @@ typedef isc__netievent__socket_t isc__netievent_udplisten_t;
 typedef isc__netievent__socket_t isc__netievent_udpstop_t;
 typedef isc__netievent__socket_t isc__netievent_tcpstop_t;
 typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
-typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
 typedef isc__netievent__socket_t isc__netievent_closecb_t;
+typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
 
 typedef struct isc__netievent__socket_req {
 	isc__netievent_type type;
@@ -325,6 +327,10 @@ struct isc_nm {
 	uint32_t idle;
 	uint32_t keepalive;
 	uint32_t advertised;
+
+#ifdef NETMGR_TRACE
+	ISC_LIST(isc_nmsocket_t) active_sockets;
+#endif
 };
 
 typedef enum isc_nmsocket_type {
@@ -333,7 +339,7 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tcpsocket,
 	isc_nm_tcplistener,
 	isc_nm_tcpdnslistener,
-	isc_nm_tcpdnssocket
+	isc_nm_tcpdnssocket,
 } isc_nmsocket_type;
 
 /*%
@@ -403,7 +409,7 @@ struct isc_nmsocket {
 	isc_nmsocket_t *children;
 	int nchildren;
 	isc_nmiface_t *iface;
-	isc_nmhandle_t *tcphandle;
+	isc_nmhandle_t *statichandle;
 	isc_nmhandle_t *outerhandle;
 
 	/*% Extra data allocated at the end of each isc_nmhandle_t */
@@ -445,7 +451,12 @@ struct isc_nmsocket {
 	isc_refcount_t references;
 
 	/*%
-	 * TCPDNS socket has been set not to pipeliine.
+	 * Established an outgoing connection, as client not server.
+	 */
+	atomic_bool client;
+
+	/*%
+	 * TCPDNS socket has been set not to pipeline.
 	 */
 	atomic_bool sequential;
 
@@ -531,11 +542,17 @@ struct isc_nmsocket {
 	 */
 	isc_nm_opaquecb_t closehandle_cb;
 
-	isc__nm_readcb_t rcb;
-	void *rcbarg;
+	isc_nm_recv_cb_t recv_cb;
+	void *recv_cbarg;
 
-	isc__nm_cb_t accept_cb;
+	isc_nm_accept_cb_t accept_cb;
 	void *accept_cbarg;
+#ifdef NETMGR_TRACE
+	void *backtrace[TRACE_SIZE];
+	int backtrace_size;
+	LINK(isc_nmsocket_t) active_link;
+	ISC_LIST(isc_nmhandle_t) active_handles;
+#endif
 };
 
 bool
@@ -686,6 +703,9 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 
 isc_result_t
 isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
+/*
+ * Back-end implementation of isc_nm_read() for TCP handles.
+ */
 
 void
 isc__nm_tcp_close(isc_nmsocket_t *sock);
@@ -713,9 +733,9 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_tcp_cancelread(isc_nmsocket_t *sock);
+isc__nm_tcp_cancelread(isc_nmhandle_t *handle);
 /*%<
- * Stop reading on a connected socket.
+ * Stop reading on a connected TCP handle.
  */
 
 void

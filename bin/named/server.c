@@ -14866,14 +14866,15 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 
 	/* Serial number */
 	result = dns_zone_getserial(mayberaw, &serial);
-	/* XXXWPK TODO this is to mirror old behavior with dns_zone_getserial */
+
+	/* This is to mirror old behavior with dns_zone_getserial */
 	if (result != ISC_R_SUCCESS) {
 		serial = 0;
 	}
+
 	snprintf(serbuf, sizeof(serbuf), "%u", serial);
 	if (hasraw) {
 		result = dns_zone_getserial(zone, &signed_serial);
-		/* XXXWPK TODO ut supra */
 		if (result != ISC_R_SUCCESS) {
 			serial = 0;
 		}

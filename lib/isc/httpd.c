@@ -75,7 +75,10 @@ struct isc_httpd {
 	isc_httpdmgr_t *mgr; /*%< our parent */
 	ISC_LINK(isc_httpd_t) link;
 
-	isc_nmhandle_t *handle;
+	isc_nmhandle_t *handle;	    /* Permanent pointer to handle */
+	isc_nmhandle_t *readhandle; /* Waiting for a read callback */
+	isc_nmhandle_t *sendhandle; /* Waiting for a send callback */
+
 	state_t state;
 	int flags;
 
@@ -636,6 +639,7 @@ new_httpd(isc_httpdmgr_t *httpdmgr, isc_nmhandle_t *handle) {
 
 	if (httpd->handle == NULL) {
 		isc_nmhandle_setdata(handle, httpd, httpd_reset, httpd_put);
+		httpd->handle = handle;
 	} else {
 		INSIST(httpd->handle == handle);
 	}
@@ -663,10 +667,10 @@ new_httpd(isc_httpdmgr_t *httpdmgr, isc_nmhandle_t *handle) {
 	ISC_LIST_APPEND(httpdmgr->running, httpd, link);
 	UNLOCK(&httpdmgr->lock);
 
-	isc_nmhandle_ref(handle);
+	isc_nmhandle_attach(handle, &httpd->readhandle);
 	result = isc_nm_read(handle, httpd_request, httpdmgr);
 	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_unref(handle);
+		isc_nmhandle_detach(&httpd->readhandle);
 	}
 
 	return (result);
@@ -849,7 +853,7 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	REQUIRE(httpd->state == RECV);
 
 	if (eresult != ISC_R_SUCCESS) {
-		goto done;
+		goto cleanup_readhandle;
 	}
 
 	result = process_request(httpd, region);
@@ -858,9 +862,9 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			/* don't unref, continue reading */
 			return;
 		}
-		goto done;
+		goto cleanup_readhandle;
 	} else if (result != ISC_R_SUCCESS) {
-		goto done;
+		goto cleanup_readhandle;
 	}
 
 	isc_buffer_initnull(&httpd->bodybuffer);
@@ -958,18 +962,18 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_nm_pauseread(handle);
 	httpd->state = SEND;
 
-	isc_nmhandle_ref(handle);
+	isc_nmhandle_attach(handle, &httpd->sendhandle);
 	result = isc_nm_send(handle, &r, httpd_senddone, httpd);
 	if (result != ISC_R_SUCCESS) {
-		isc_nm_resumeread(handle);
-		isc_nmhandle_unref(handle);
+		isc_nmhandle_detach(&httpd->sendhandle);
 
 		httpd->state = RECV;
+		isc_nm_resumeread(handle);
 	}
 
 	return;
-done:
-	isc_nmhandle_unref(handle);
+cleanup_readhandle:
+	isc_nmhandle_detach(&httpd->readhandle);
 }
 
 void
@@ -990,7 +994,7 @@ isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
 
 	httpd = ISC_LIST_HEAD(httpdmgr->running);
 	while (httpd != NULL) {
-		isc_nmhandle_unref(httpd->handle);
+		isc_nm_cancelread(httpd->readhandle);
 		httpd = ISC_LIST_NEXT(httpd, link);
 	}
 	UNLOCK(&httpdmgr->lock);
@@ -1137,9 +1141,10 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		return;
 	}
 
+	isc_nmhandle_detach(&httpd->sendhandle);
+
 	httpd->state = RECV;
 	isc_nm_resumeread(handle);
-	isc_nmhandle_unref(handle);
 }
 
 isc_result_t

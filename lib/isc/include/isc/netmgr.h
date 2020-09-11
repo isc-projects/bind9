@@ -110,9 +110,9 @@ isc_nmsocket_close(isc_nmsocket_t **sockp);
  */
 
 void
-isc_nmhandle_ref(isc_nmhandle_t *handle);
+isc_nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **dest);
 void
-isc_nmhandle_unref(isc_nmhandle_t *handle);
+isc_nmhandle_detach(isc_nmhandle_t **handlep);
 /*%<
  * Increment/decrement the reference counter in a netmgr handle,
  * but (unlike the attach/detach functions) do not change the pointer
@@ -176,8 +176,8 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
  * as its argument.
  *
  * When handles are allocated for the socket, 'extrasize' additional bytes
- * will be allocated along with the handle for an associated object
- * (typically ns_client).
+ * can be allocated along with the handle for an associated object, which
+ * can then be freed automatically when the handle is destroyed.
  */
 
 void
@@ -196,12 +196,17 @@ isc_nm_pause(isc_nm_t *mgr);
 void
 isc_nm_resume(isc_nm_t *mgr);
 /*%<
- * Resume paused processing. It will return immediately
- * after signalling workers to resume.
+ * Resume paused processing. It will return immediately after signalling
+ * workers to resume.
  */
 
 isc_result_t
 isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
+/*
+ * Begin (or continue) reading on the socket associated with 'handle', and
+ * update its recv callback to 'cb', which will be called as soon as there
+ * is data to process.
+ */
 
 isc_result_t
 isc_nm_pauseread(isc_nmhandle_t *handle);

@@ -26,15 +26,22 @@
 #include <ns/client.h>
 
 /*
- * This overrides calls to isc_nmhandle_unref(), sending them to
- * __wrap_isc_nmhandle_unref(), when libtool is in use and LD_WRAP
- * can't be used.
+ * This overrides calls to isc_nmhandle_attach/detach(), sending them to
+ * __wrap_isc_nmhandle_attach/detach() instead, when libtool is in use
+ * and LD_WRAP can't be used.
  */
 
+void
+__wrap_isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp);
 extern void
-__wrap_isc_nmhandle_unref(isc_nmhandle_t *handle);
+__wrap_isc_nmhandle_detach(isc_nmhandle_t **handlep);
 
 void
-isc_nmhandle_unref(isc_nmhandle_t *handle) {
-	__wrap_isc_nmhandle_unref(handle);
+isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
+	__wrap_isc_nmhandle_attach(source, targetp);
+}
+
+void
+isc_nmhandle_detach(isc_nmhandle_t **handlep) {
+	__wrap_isc_nmhandle_detach(handlep);
 }
