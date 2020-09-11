@@ -59,9 +59,9 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 				      mgr->nworkers * sizeof(*nsock));
 	memset(nsock->children, 0, mgr->nworkers * sizeof(*nsock));
 
-	INSIST(nsock->rcb.recv == NULL && nsock->rcbarg == NULL);
-	nsock->rcb.recv = cb;
-	nsock->rcbarg = cbarg;
+	INSIST(nsock->recv_cb == NULL && nsock->recv_cbarg == NULL);
+	nsock->recv_cb = cb;
+	nsock->recv_cbarg = cbarg;
 	nsock->extrahandlesize = extrahandlesize;
 
 	for (size_t i = 0; i < mgr->nworkers; i++) {
@@ -76,9 +76,9 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		csock->tid = i;
 		csock->extrahandlesize = extrahandlesize;
 
-		INSIST(csock->rcb.recv == NULL && csock->rcbarg == NULL);
-		csock->rcb.recv = cb;
-		csock->rcbarg = cbarg;
+		INSIST(csock->recv_cb == NULL && csock->recv_cbarg == NULL);
+		csock->recv_cb = cb;
+		csock->recv_cbarg = cbarg;
 		csock->fd = socket(family, SOCK_DGRAM, 0);
 		RUNTIME_CHECK(csock->fd >= 0);
 
@@ -360,6 +360,8 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_region_t region;
 	uint32_t maxudp;
 	bool free_buf = true;
+	isc_nm_recv_cb_t cb;
+	void *cbarg;
 
 	/*
 	 * Even though destruction of the socket can only happen from the
@@ -399,8 +401,18 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	region.base = (unsigned char *)buf->base;
 	region.length = nrecv;
 
-	INSIST(sock->rcb.recv != NULL);
-	sock->rcb.recv(nmhandle, ISC_R_SUCCESS, &region, sock->rcbarg);
+	/*
+	 * In tcp.c and tcpdns.c, this would need to be locked
+	 * by sock->lock because callbacks may be set to NULL
+	 * unexpectedly when the connection drops, but that isn't
+	 * a factor in the UDP case.
+	 */
+	INSIST(sock->recv_cb != NULL);
+	cb = sock->recv_cb;
+	cbarg = sock->recv_cbarg;
+
+	cb(nmhandle, ISC_R_SUCCESS, &region, cbarg);
+
 	if (free_buf) {
 		isc__nm_free_uvbuf(sock, buf);
 	}

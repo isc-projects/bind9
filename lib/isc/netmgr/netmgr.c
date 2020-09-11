@@ -1000,9 +1000,9 @@ void
 isc__nmsocket_clearcb(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
-	sock->rcb.recv = NULL;
-	sock->rcbarg = NULL;
-	sock->accept_cb.accept = NULL;
+	sock->recv_cb = NULL;
+	sock->recv_cbarg = NULL;
+	sock->accept_cb = NULL;
 	sock->accept_cbarg = NULL;
 }
 

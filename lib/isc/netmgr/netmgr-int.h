@@ -146,13 +146,6 @@ typedef enum isc__netievent_type {
 
 typedef union {
 	isc_nm_recv_cb_t recv;
-	isc_nm_cb_t connect;
-	isc_nm_accept_cb_t accept;
-} isc__nm_readcb_t;
-
-typedef union {
-	isc_nm_recv_cb_t recv;
-	isc_nm_accept_cb_t accept;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
 } isc__nm_cb_t;
@@ -526,10 +519,10 @@ struct isc_nmsocket {
 	 */
 	isc_nm_opaquecb_t closehandle_cb;
 
-	isc__nm_readcb_t rcb;
-	void *rcbarg;
+	isc_nm_recv_cb_t recv_cb;
+	void *recv_cbarg;
 
-	isc__nm_cb_t accept_cb;
+	isc_nm_accept_cb_t accept_cb;
 	void *accept_cbarg;
 };
 

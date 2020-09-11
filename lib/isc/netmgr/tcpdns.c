@@ -109,6 +109,8 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *dnslistensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *dnssock = NULL;
 	isc_nmhandle_t *readhandle = NULL;
+	isc_nm_accept_cb_t accept_cb;
+	void *accept_cbarg;
 
 	REQUIRE(VALID_NMSOCK(dnslistensock));
 	REQUIRE(dnslistensock->type == isc_nm_tcpdnslistener);
@@ -117,9 +119,13 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		return (result);
 	}
 
-	if (dnslistensock->accept_cb.accept != NULL) {
-		result = dnslistensock->accept_cb.accept(
-			handle, ISC_R_SUCCESS, dnslistensock->accept_cbarg);
+	LOCK(&dnslistensock->lock);
+	accept_cb = dnslistensock->accept_cb;
+	accept_cbarg = dnslistensock->accept_cbarg;
+	UNLOCK(&dnslistensock->lock);
+
+	if (accept_cb != NULL) {
+		result = accept_cb(handle, ISC_R_SUCCESS, accept_cbarg);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -196,6 +202,8 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 	if (len <= dnssock->buf_len - 2) {
 		isc_nmhandle_t *dnshandle = NULL;
 		isc_nmsocket_t *listener = NULL;
+		isc_nm_recv_cb_t cb = NULL;
+		void *cbarg = NULL;
 
 		if (atomic_load(&dnssock->client) &&
 		    dnssock->statichandle != NULL) {
@@ -205,22 +213,25 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 		}
 
 		listener = dnssock->listener;
-		if (listener != NULL && listener->rcb.recv != NULL) {
-			listener->rcb.recv(
-				dnshandle, ISC_R_SUCCESS,
-				&(isc_region_t){ .base = dnssock->buf + 2,
-						 .length = len },
-				listener->rcbarg);
-		} else if (dnssock->rcb.recv != NULL) {
-			isc_nm_recv_cb_t cb = dnssock->rcb.recv;
-			void *cbarg = dnssock->rcbarg;
-
+		if (listener != NULL) {
+			LOCK(&listener->lock);
+			cb = listener->recv_cb;
+			cbarg = listener->recv_cbarg;
+			UNLOCK(&listener->lock);
+		} else if (dnssock->recv_cb != NULL) {
+			LOCK(&dnssock->lock);
+			cb = dnssock->recv_cb;
+			cbarg = dnssock->recv_cbarg;
 			/*
 			 * We need to clear the read callback *before*
 			 * calling it, because it might make another
 			 * call to isc_nm_read() and set up a new callback.
 			 */
 			isc__nmsocket_clearcb(dnssock);
+			UNLOCK(&dnssock->lock);
+		}
+
+		if (cb != NULL) {
 			cb(dnshandle, ISC_R_SUCCESS,
 			   &(isc_region_t){ .base = dnssock->buf + 2,
 					    .length = len },
@@ -303,8 +314,10 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 			uv_timer_stop(&dnssock->timer);
 		}
 
+		LOCK(&dnssock->lock);
 		if (atomic_load(&dnssock->sequential) ||
-		    dnssock->rcb.recv == NULL) {
+		    dnssock->recv_cb == NULL) {
+			UNLOCK(&dnssock->lock);
 			/*
 			 * There are two reasons we might want to pause here:
 			 * - We're in sequential mode and we've received
@@ -315,6 +328,7 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 			isc_nm_pauseread(dnssock->outerhandle);
 			done = true;
 		} else {
+			UNLOCK(&dnssock->lock);
 			/*
 			 * We're pipelining, so we now resume processing
 			 * packets until the clients-per-connection limit
@@ -350,10 +364,12 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	REQUIRE(VALID_NM(mgr));
 
 	isc__nmsocket_init(dnslistensock, mgr, isc_nm_tcpdnslistener, iface);
-	dnslistensock->rcb.recv = cb;
-	dnslistensock->rcbarg = cbarg;
-	dnslistensock->accept_cb.accept = accept_cb;
+	LOCK(&dnslistensock->lock);
+	dnslistensock->recv_cb = cb;
+	dnslistensock->recv_cbarg = cbarg;
+	dnslistensock->accept_cb = accept_cb;
 	dnslistensock->accept_cbarg = accept_cbarg;
+	UNLOCK(&dnslistensock->lock);
 	dnslistensock->extrahandlesize = extrahandlesize;
 
 	/*
