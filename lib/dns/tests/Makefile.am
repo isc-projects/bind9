@@ -59,15 +59,15 @@ CLEANFILES = $(EXTRA_master_test_DEPENDENCIES)
 
 testdata/master/master12.data: testdata/master/master12.data.in
 	mkdir -p testdata/master
-	$(PERL) -w $(srcdir)/mkraw.pl < testdata/master/master12.data.in > $@
+	$(PERL) -w $(srcdir)/mkraw.pl < $(srcdir)/testdata/master/master12.data.in > $@
 
 testdata/master/master13.data: testdata/master/master13.data.in
 	mkdir -p testdata/master
-	$(PERL) -w $(srcdir)/mkraw.pl < testdata/master/master13.data.in > $@
+	$(PERL) -w $(srcdir)/mkraw.pl < $(srcdir)/testdata/master/master13.data.in > $@
 
 testdata/master/master14.data: testdata/master/master14.data.in
 	mkdir -p testdata/master
-	$(PERL) -w $(srcdir)/mkraw.pl < testdata/master/master14.data.in > $@
+	$(PERL) -w $(srcdir)/mkraw.pl < $(srcdir)/testdata/master/master14.data.in > $@
 
 endif
 
