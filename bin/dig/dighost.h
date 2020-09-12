@@ -388,32 +388,38 @@ setup_text_key(void);
  * Routines exported from dig.c for use by dig for iOS
  */
 
-/*%<
+/*%
  * Call once only to set up libraries, parse global
  * parameters and initial command line query parameters
  */
 void
 dig_setup(int argc, char **argv);
 
-/*%<
+/*%
  * Call to supply new parameters for the next lookup
  */
 void
 dig_query_setup(bool, bool, int argc, char **argv);
 
-/*%<
+/*%
  * set the main application event cycle running
  */
 void
 dig_startup(void);
 
-/*%<
+/*%
  * Initiates the next lookup cycle
  */
 void
 dig_query_start(void);
 
-/*%<
+/*%
+ * Activate/deactivate IDN filtering of output.
+ */
+void
+dig_idnsetup(dig_lookup_t *lookup, bool active);
+
+/*%
  * Cleans up the application
  */
 void

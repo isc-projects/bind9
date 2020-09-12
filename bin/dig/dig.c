@@ -552,6 +552,8 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 	UNUSED(msgbuf);
 
+	dig_idnsetup(query->lookup, true);
+
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (yaml) {
 		msg->indent.string = "  ";
@@ -912,6 +914,9 @@ repopulate_buffer:
 	if (style != NULL) {
 		dns_master_styledestroy(&style, mctx);
 	}
+
+	dig_idnsetup(query->lookup, false);
+
 	return (result);
 }
 

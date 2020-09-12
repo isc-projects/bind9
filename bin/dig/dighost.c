@@ -2117,10 +2117,6 @@ setup_lookup(dig_lookup_t *lookup) {
 
 #ifdef HAVE_LIBIDN2
 	char idn_origin[MXNAME], idn_textname[MXNAME];
-
-	result = dns_name_settotextfilter(lookup->idnout ? idn_output_filter
-							 : NULL);
-	check_result(result, "dns_name_settotextfilter");
 #endif /* HAVE_LIBIDN2 */
 
 	INSIST(!free_now);
@@ -4234,10 +4230,6 @@ cancel_all(void) {
  */
 void
 destroy_libs(void) {
-#ifdef HAVE_LIBIDN2
-	isc_result_t result;
-#endif /* HAVE_LIBIDN2 */
-
 	if (keep != NULL) {
 		isc_nmhandle_detach(&keep);
 	}
@@ -4274,11 +4266,6 @@ destroy_libs(void) {
 	flush_server_list();
 
 	clear_searchlist();
-
-#ifdef HAVE_LIBIDN2
-	result = dns_name_settotextfilter(NULL);
-	check_result(result, "dns_name_settotextfilter");
-#endif /* HAVE_LIBIDN2 */
 
 	if (commctx != NULL) {
 		debug("freeing commctx");
@@ -4476,3 +4463,17 @@ idn_ace_to_locale(const char *src, char **dst) {
 	*dst = local_src;
 }
 #endif /* HAVE_LIBIDN2 */
+
+void
+dig_idnsetup(dig_lookup_t *lookup, bool active) {
+#ifdef HAVE_LIBIDN2
+	isc_result_t result;
+	result = dns_name_settotextfilter(
+		(active && lookup->idnout) ? idn_output_filter : NULL);
+	check_result(result, "dns_name_settotextfilter");
+#else
+	UNUSED(lookup);
+	UNUSED(active);
+	return;
+#endif /* HAVE_LIBIDN2 */
+}
