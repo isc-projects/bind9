@@ -3,7 +3,7 @@
    
    This Source Code Form is subject to the terms of the Mozilla Public
    License, v. 2.0. If a copy of the MPL was not distributed with this
-   file, You can obtain one at http://mozilla.org/MPL/2.0/.
+   file, you can obtain one at https://mozilla.org/MPL/2.0/.
    
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
@@ -87,7 +87,7 @@ Building SoftHSMv2
 
 SoftHSMv2, the latest development version of SoftHSM, is available from
 https://github.com/opendnssec/SoftHSMv2. It is a software library
-developed by the OpenDNSSEC project (http://www.opendnssec.org) which
+developed by the OpenDNSSEC project (https://www.opendnssec.org) which
 provides a PKCS#11 interface to a virtual HSM, implemented in the form
 of a SQLite3 database on the local filesystem. It provides less security
 than a true HSM, but it allows you to experiment with native PKCS#11
