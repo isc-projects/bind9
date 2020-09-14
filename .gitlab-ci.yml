@@ -341,7 +341,6 @@ stages:
 
 .unit_test_tsan: &unit_test_tsan_job
   <<: *unit_test_common
-  allow_failure: true
   after_script:
     - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
   artifacts:
