@@ -107,6 +107,8 @@ __wrap_isc_nmhandle_detach(isc_nmhandle_t **handlep) {
 	ns_client_t *client = (ns_client_t *)handle;
 	int i;
 
+	*handlep = NULL;
+
 	for (i = 0; i < 32; i++) {
 		if (atomic_load(&client_addrs[i]) == (uintptr_t)client) {
 			break;
@@ -122,7 +124,6 @@ __wrap_isc_nmhandle_detach(isc_nmhandle_t **handlep) {
 		isc_mem_put(mctx, client, sizeof(ns_client_t));
 	}
 
-	*handlep = NULL;
 	return;
 }
 
