@@ -921,9 +921,11 @@ remove_nodes(dns_rbt_t *mytree, char **names,
 
 		isc_mem_free(mctx, names[node]);
 
-		names[node] = names[*names_count - 1];
-		names[*names_count - 1] = NULL;
-		*names_count -= 1;
+		if (*names_count > 0) {
+			names[node] = names[*names_count - 1];
+			names[*names_count - 1] = NULL;
+			*names_count -= 1;
+		}
 	}
 }
 
@@ -971,6 +973,7 @@ rbt_insert_and_remove(void **state) {
 	char *names[1024];
 	size_t names_count;
 	int i;
+	isc_time_t start, now;
 
 	UNUSED(state);
 
@@ -987,8 +990,11 @@ rbt_insert_and_remove(void **state) {
 	memset(names, 0, sizeof(names));
 	names_count = 0;
 
-	/* Repeat the insert/remove test some 4096 times */
-	for (i = 0; i < 4096; i++) {
+	/* Repeat the insert/remove test for some 4096 times or 180 seconds. */
+	result = isc_time_now(&start);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	now = start;
+	for (i = 0; i < 4096 && isc_time_microdiff(&now, &start) < 180000000; i++) {
 		uint32_t num_names;
 		isc_random_get(&num_names);
 
@@ -1012,6 +1018,8 @@ rbt_insert_and_remove(void **state) {
 
 		remove_nodes(mytree, names, &names_count, num_names);
 		check_tree(mytree, names, names_count);
+		result = isc_time_now(&now);
+		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
 	/* Remove the rest of the nodes */
