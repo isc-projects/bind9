@@ -479,11 +479,6 @@ docs:
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
-    - pip3 install pytest requests || pip install pytest requests || true
-    - pip3 install sphinx sphinx_rtd_theme || pip install sphinx sphinx_rtd_theme
-    - apt -yqqq update
-    - apt -yqqq dist-upgrade
-    - apt -yqqq install texlive-full texlive-xetex latexmk xindy
   script:
     - *configure
     - make maintainer-clean
