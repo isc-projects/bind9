@@ -3,13 +3,11 @@
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
  *
  * See the COPYRIGHT file distributed with this work for additional
  * information regarding copyright ownership.
  */
-
-/* $Id: lwconfig.c,v 1.7 2007/12/14 01:40:42 marka Exp $ */
 
 /*
  * We do this so that we may incorporate everything in the main routines

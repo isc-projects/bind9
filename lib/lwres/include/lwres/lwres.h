@@ -3,13 +3,11 @@
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
  *
  * See the COPYRIGHT file distributed with this work for additional
  * information regarding copyright ownership.
  */
-
-/* $Id: lwres.h,v 1.57 2007/06/19 23:47:23 tbox Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
