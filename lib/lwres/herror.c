@@ -3,7 +3,7 @@
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
  *
  * See the COPYRIGHT file distributed with this work for additional
  * information regarding copyright ownership.
@@ -58,12 +58,6 @@
 \li   #NO_DATA: No address associated with name
 
  */
-
-#if defined(LIBC_SCCS) && !defined(lint)
-static const char sccsid[] = "@(#)herror.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] =
-	"$Id$";
-#endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
 

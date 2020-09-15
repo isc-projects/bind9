@@ -1,6 +1,6 @@
 Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 
-See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+See COPYRIGHT in the source root or https://isc.org/copyright.html for terms.
 
 Some systems (Linux, FreeBSD, OS X/macOS and Windows 10) support
 the TCP Fast Open (RFC 7413) mechanism in their recent versions.
