@@ -18,6 +18,7 @@
 
 #include <isc/buffer.h>
 #include <isc/netaddr.h>
+#include <isc/task.h>
 #include <isc/types.h>
 
 #include <dns/rdataset.h>
@@ -66,6 +67,7 @@ struct ns_query {
 	isc_mutex_t	 fetchlock;
 	dns_fetch_t *	 fetch;
 	dns_fetch_t *	 prefetch;
+	ns_hookasync_t * hookactx;
 	dns_rpz_st_t *	 rpz_st;
 	isc_bufferlist_t namebufs;
 	ISC_LIST(ns_dbversion_t) activeversions;
@@ -174,6 +176,15 @@ struct query_ctx {
 	int	     line;   /* line to report error */
 };
 
+typedef isc_result_t (*ns_query_starthookasync_t)(
+	query_ctx_t *qctx, isc_mem_t *mctx, void *arg, isc_task_t *task,
+	isc_taskaction_t action, void *evarg, ns_hookasync_t **ctxp);
+
+/*
+ * The following functions are expected to be used only within query.c
+ * and query modules.
+ */
+
 isc_result_t
 ns_query_done(query_ctx_t *qctx);
 /*%<
@@ -195,6 +206,34 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
  * the event callback set to fetch_callback(). Afterward we terminate
  * this phase of the query, and resume with a new query context when
  * recursion completes.
+ */
+
+isc_result_t
+ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
+		   void *arg);
+/*%<
+ * Prepare the client for an asynchronous hook action, then call the
+ * specified 'runasync' function to start an asynchronous process running
+ * in the background.  This function works similarly to ns_query_recurse(),
+ * but is expected to be called from a query hook action to support
+ * asynchronous event handling in a hook. A typical use case would be for
+ * a plugin to initiate recursion, but it may also be used to carry out
+ * other time-consuming tasks without blocking the caller or the worker
+ * thread.
+ *
+ * The calling plugin action must pass 'qctx' as passed from the query
+ * module.
+ *
+ * Once a plugin action calls this function, the ownership of 'qctx' is
+ * essentially transferred to the query module. Regardless of the return
+ * value of this function, the hook must not use 'qctx' anymore.
+ *
+ * This function must not be called after ns_query_recurse() is called,
+ * until the fetch is completed, as it needs resources that
+ * ns_query_recurse() would also use.
+ *
+ * See hooks.h for details about how 'runasync' is supposed to work, and
+ * other aspects of hook-triggered asynchronous event handling.
  */
 
 isc_result_t

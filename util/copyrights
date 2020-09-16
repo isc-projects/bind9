@@ -2095,6 +2095,7 @@
 ./lib/ns/client.c				C	2017,2018,2019,2020
 ./lib/ns/hooks.c				C	2018,2019,2020
 ./lib/ns/include/ns/client.h			C	2017,2018,2019,2020
+./lib/ns/include/ns/events.h			C	2020
 ./lib/ns/include/ns/hooks.h			C	2017,2018,2019,2020
 ./lib/ns/include/ns/interfacemgr.h		C	2017,2018,2019,2020
 ./lib/ns/include/ns/lib.h			C	2017,2018,2019,2020

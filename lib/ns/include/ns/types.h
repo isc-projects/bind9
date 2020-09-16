@@ -25,6 +25,7 @@ typedef struct ns_interfacemgr ns_interfacemgr_t;
 typedef struct ns_query	       ns_query_t;
 typedef struct ns_server       ns_server_t;
 typedef struct ns_stats	       ns_stats_t;
+typedef struct ns_hookasync    ns_hookasync_t;
 
 typedef enum { ns_cookiealg_aes, ns_cookiealg_siphash24 } ns_cookiealg_t;
 

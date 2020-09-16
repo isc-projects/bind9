@@ -117,6 +117,7 @@ isc_nmhandle_detach(isc_nmhandle_t **handlep) {
 		ns__client_reset_cb(client);
 		ns__client_put_cb(client);
 		isc_mem_put(mctx, client, sizeof(ns_client_t));
+		atomic_store(&client_addrs[i], (uintptr_t)NULL);
 	}
 
 	return;

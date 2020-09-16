@@ -60,6 +60,7 @@
 #include <dns/zt.h>
 
 #include <ns/client.h>
+#include <ns/events.h>
 #include <ns/hooks.h>
 #include <ns/interfacemgr.h>
 #include <ns/log.h>
@@ -182,14 +183,15 @@ client_trace(ns_client_t *client, int level, const char *message) {
 #define SFCACHE_CDFLAG 0x1
 
 /*
- * These have the same semantics as:
+ * SAVE and RESTORE have the same semantics as:
  *
- * 	foo_attach(b, a);
+ * 	foo_attach(b, &a);
  *	foo_detach(&b);
  *
  * without the locking and magic testing.
  *
- * We use SAVE and RESTORE as that shows the operation being performed.
+ * We use the names SAVE and RESTORE to show the operation being performed,
+ * even though the two macros are identical.
  */
 #define SAVE(a, b)                 \
 	do {                       \
@@ -222,6 +224,12 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 static void
 log_noexistnodata(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
+
+static isc_result_t
+query_addanswer(query_ctx_t *qctx);
+
+static isc_result_t
+query_prepare_delegation_response(query_ctx_t *qctx);
 
 /*
  * Return the hooktable in use with 'qctx', or if there isn't one
@@ -624,6 +632,10 @@ ns_query_cancel(ns_client_t *client) {
 		dns_resolver_cancelfetch(client->query.fetch);
 
 		client->query.fetch = NULL;
+	}
+	if (client->query.hookactx != NULL) {
+		client->query.hookactx->cancel(client->query.hookactx);
+		client->query.hookactx = NULL;
 	}
 	UNLOCK(&client->query.fetchlock);
 }
@@ -5159,6 +5171,52 @@ qctx_destroy(query_ctx_t *qctx) {
 	dns_view_detach(&qctx->view);
 }
 
+/*
+ * Call SAVE but set 'a' to NULL first so as not to assert.
+ */
+#define INITANDSAVE(a, b)   \
+	do {                \
+		a = NULL;   \
+		SAVE(a, b); \
+	} while (0)
+
+/*
+ * "save" qctx data from 'src' to 'tgt'.
+ * It essentially moves ownership of the data from src to tgt, so the former
+ * becomes unusable except for final cleanup (such as by qctx_destroy).
+ * Note: this function doesn't attach to the client's handle.  It's the caller's
+ * responsibility to do it if it's necessary.
+ */
+static void
+qctx_save(query_ctx_t *src, query_ctx_t *tgt) {
+	/* First copy all fields in a straightforward way */
+	*tgt = *src;
+
+	/* Then "move" pointers (except client and view) */
+	INITANDSAVE(tgt->dbuf, src->dbuf);
+	INITANDSAVE(tgt->fname, src->fname);
+	INITANDSAVE(tgt->tname, src->tname);
+	INITANDSAVE(tgt->rdataset, src->rdataset);
+	INITANDSAVE(tgt->sigrdataset, src->sigrdataset);
+	INITANDSAVE(tgt->noqname, src->noqname);
+	INITANDSAVE(tgt->event, src->event);
+	INITANDSAVE(tgt->db, src->db);
+	INITANDSAVE(tgt->version, src->version);
+	INITANDSAVE(tgt->node, src->node);
+	INITANDSAVE(tgt->zdb, src->zdb);
+	INITANDSAVE(tgt->znode, src->znode);
+	INITANDSAVE(tgt->zfname, src->zfname);
+	INITANDSAVE(tgt->zversion, src->zversion);
+	INITANDSAVE(tgt->zrdataset, src->zrdataset);
+	INITANDSAVE(tgt->zsigrdataset, src->zsigrdataset);
+	INITANDSAVE(tgt->rpz_st, src->rpz_st);
+	INITANDSAVE(tgt->zone, src->zone);
+
+	/* View has to stay in 'src' for qctx_destroy. */
+	tgt->view = NULL;
+	dns_view_attach(src->view, &tgt->view);
+}
+
 /*%
  * Log detailed information about the query immediately after
  * the client request or a return from recursion.
@@ -6251,6 +6309,212 @@ query_resume(query_ctx_t *qctx) {
 	return (query_gotanswer(qctx, result));
 
 cleanup:
+	return (result);
+}
+
+static void
+query_hookresume(isc_task_t *task, isc_event_t *event) {
+	ns_hook_resevent_t *rev = (ns_hook_resevent_t *)event;
+	ns_hookasync_t *hctx = NULL;
+	ns_client_t *client = rev->ev_arg;
+	query_ctx_t *qctx = rev->saved_qctx;
+	bool canceled;
+
+	CTRACE(ISC_LOG_DEBUG(3), "query_hookresume");
+
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(task == client->task);
+	REQUIRE(event->ev_type == NS_EVENT_HOOKASYNCDONE);
+
+	LOCK(&client->query.fetchlock);
+	if (client->query.hookactx != NULL) {
+		INSIST(rev->ctx == client->query.hookactx);
+		client->query.hookactx = NULL;
+		canceled = false;
+		isc_stdtime_get(&client->now);
+	} else {
+		canceled = true;
+	}
+	UNLOCK(&client->query.fetchlock);
+	SAVE(hctx, rev->ctx);
+
+	if (client->recursionquota != NULL) {
+		isc_quota_detach(&client->recursionquota);
+		ns_stats_decrement(client->sctx->nsstats,
+				   ns_statscounter_recursclients);
+	}
+
+	LOCK(&client->manager->reclock);
+	if (ISC_LINK_LINKED(client, rlink)) {
+		ISC_LIST_UNLINK(client->manager->recursing, client, rlink);
+	}
+	UNLOCK(&client->manager->reclock);
+	client->state = NS_CLIENTSTATE_WORKING;
+
+	if (canceled) {
+		/*
+		 * Note: unlike fetch_callback, this function doesn't bother
+		 * to check the 'shutdown' condition, as that doesn't seem to
+		 * happen in the latest implementation.
+		 */
+		query_error(client, DNS_R_SERVFAIL, __LINE__);
+
+		/*
+		 * There's no other place to free/release any data maintained
+		 * in qctx.  We need to do it here to prevent leak.
+		 */
+		qctx_clean(qctx);
+		qctx_freedata(qctx);
+
+		/*
+		 * As we're almost done with this client, make sure any internal
+		 * resource for hooks will be released (if necessary) via the
+		 * QCTX_DESTROYED hook.
+		 */
+		qctx->detach_client = true;
+	} else {
+		switch (rev->hookpoint) {
+		case NS_QUERY_SETUP:
+			(void)query_setup(client, qctx->qtype);
+			break;
+		case NS_QUERY_START_BEGIN:
+			(void)ns__query_start(qctx);
+			break;
+		case NS_QUERY_LOOKUP_BEGIN:
+			(void)query_lookup(qctx);
+			break;
+		case NS_QUERY_RESUME_BEGIN:
+		case NS_QUERY_RESUME_RESTORED:
+			(void)query_resume(qctx);
+			break;
+		case NS_QUERY_GOT_ANSWER_BEGIN:
+			(void)query_gotanswer(qctx, rev->origresult);
+			break;
+		case NS_QUERY_RESPOND_ANY_BEGIN:
+			(void)query_respond_any(qctx);
+			break;
+		case NS_QUERY_ADDANSWER_BEGIN:
+			(void)query_addanswer(qctx);
+			break;
+		case NS_QUERY_NOTFOUND_BEGIN:
+			(void)query_notfound(qctx);
+			break;
+		case NS_QUERY_PREP_DELEGATION_BEGIN:
+			(void)query_prepare_delegation_response(qctx);
+			break;
+		case NS_QUERY_ZONE_DELEGATION_BEGIN:
+			(void)query_zone_delegation(qctx);
+			break;
+		case NS_QUERY_DELEGATION_BEGIN:
+			(void)query_delegation(qctx);
+			break;
+		case NS_QUERY_DELEGATION_RECURSE_BEGIN:
+			(void)query_delegation_recurse(qctx);
+			break;
+		case NS_QUERY_NODATA_BEGIN:
+			(void)query_nodata(qctx, rev->origresult);
+			break;
+		case NS_QUERY_NXDOMAIN_BEGIN:
+			(void)query_nxdomain(qctx, rev->origresult);
+			break;
+		case NS_QUERY_NCACHE_BEGIN:
+			(void)query_ncache(qctx, rev->origresult);
+			break;
+		case NS_QUERY_CNAME_BEGIN:
+			(void)query_cname(qctx);
+			break;
+		case NS_QUERY_DNAME_BEGIN:
+			(void)query_dname(qctx);
+			break;
+		case NS_QUERY_RESPOND_BEGIN:
+			(void)query_respond(qctx);
+			break;
+		case NS_QUERY_PREP_RESPONSE_BEGIN:
+			(void)query_prepresponse(qctx);
+			break;
+		case NS_QUERY_DONE_BEGIN:
+		case NS_QUERY_DONE_SEND:
+			(void)ns_query_done(qctx);
+			break;
+
+		/* Not all hookpoints can use recursion.  Catch violations */
+		case NS_QUERY_RESPOND_ANY_FOUND: /* due to side effect */
+		case NS_QUERY_NOTFOUND_RECURSE:	 /* in recursion */
+		case NS_QUERY_ZEROTTL_RECURSE:	 /* in recursion */
+		default:			 /* catch-all just in case */
+			INSIST(false);
+		}
+	}
+
+	hctx->destroy(&hctx);
+	qctx_destroy(qctx);
+	isc_mem_put(client->mctx, qctx, sizeof(*qctx));
+	isc_event_free(&event);
+	isc_nmhandle_detach(&client->fetchhandle);
+}
+
+isc_result_t
+ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
+		   void *arg) {
+	isc_result_t result;
+	ns_client_t *client = qctx->client;
+	query_ctx_t *saved_qctx = NULL;
+
+	CTRACE(ISC_LOG_DEBUG(3), "ns_query_hookasync");
+
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(client->query.hookactx == NULL);
+	REQUIRE(client->query.fetch == NULL);
+
+	result = check_recursionquota(client);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	saved_qctx = isc_mem_get(client->mctx, sizeof(*saved_qctx));
+	qctx_save(qctx, saved_qctx);
+	result = runasync(saved_qctx, client->mctx, arg, client->task,
+			  query_hookresume, client, &client->query.hookactx);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	/*
+	 * Typically the runasync() function will trigger recursion, but
+	 * there is no need to set NS_QUERYATTR_RECURSING. The calling hook
+	 * is expected to return NS_HOOK_RETURN, and the RECURSING
+	 * attribute won't be checked anywhere.
+	 *
+	 * Hook-based asynchronous processing cannot coincide with normal
+	 * recursion, so we can safely use fetchhandle here.  Unlike in
+	 * ns_query_recurse(), we attach to the handle only if 'runasync'
+	 * succeeds. It should be safe since we're either in the client
+	 * task or pausing it.
+	 */
+	isc_nmhandle_attach(client->handle, &client->fetchhandle);
+	return (ISC_R_SUCCESS);
+
+cleanup:
+	/*
+	 * If we fail, send SERVFAIL now.  It may be better to let the caller
+	 * decide what to do on failure of this function, but hooks don't have
+	 * access to query_error().
+	 */
+	query_error(client, DNS_R_SERVFAIL, __LINE__);
+
+	/*
+	 * Free all resource related to the query and set detach_client,
+	 * similar to the cancel case of query_hookresume; the callers will
+	 * simply return on failure of this function, so there's no other
+	 * place for this to prevent leak.
+	 */
+	if (saved_qctx != NULL) {
+		qctx_clean(saved_qctx);
+		qctx_freedata(saved_qctx);
+		qctx_destroy(saved_qctx);
+		isc_mem_put(client->mctx, saved_qctx, sizeof(*saved_qctx));
+	}
+	qctx->detach_client = true;
 	return (result);
 }
 
