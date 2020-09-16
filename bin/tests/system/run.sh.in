@@ -149,7 +149,7 @@ stop_servers() {
 echostart "S:$systest:$(date_with_args)"
 echoinfo  "T:$systest:1:A"
 echoinfo  "A:$systest:System test $systest"
-echoinfo  "I:$systest:PORTS:${PORT},${TLSPORT},${EXTRAPORT1},${EXTRAPORT2},${EXTRAPORT3},${EXTRAPORT4},${EXTRAPORT5},${EXTRAPORT6},${EXTRAPORT7},${EXTRAPORT8},${CONTROLPORT}"
+echoinfo  "I:$systest:PORTS:${PORT},${TLSPORT},${HTTPSPORT},${EXTRAPORT1},${EXTRAPORT2},${EXTRAPORT3},${EXTRAPORT4},${EXTRAPORT5},${EXTRAPORT6},${EXTRAPORT7},${EXTRAPORT8},${CONTROLPORT}"
 
 $PERL ${srcdir}/testsock.pl -p "$PORT"  || {
     echowarn "I:$systest:Network interface aliases not set up.  Skipping test."

@@ -52,6 +52,13 @@ New Features
   an optional ``tls`` option which specifies either a previously configured
   ``tls`` statement or ``ephemeral``. [GL #2392]
 
+- ``named`` now has initial support for DNS-over-HTTP(S). Both
+  encrypted (via TLS) and unencrypted HTTP/2 connections are supported.
+  The latter are mostly there for debugging/troubleshooting
+  purposes and for the means of encryption offloading to third-party
+  software (as might be desirable in some environments to aid in TLS
+  certificates management).  [GL !4566]
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

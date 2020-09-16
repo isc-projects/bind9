@@ -82,6 +82,7 @@ done
 
 echo "export PORT=$(get_port "$baseport")"
 echo "export TLSPORT=$(get_port)"
+echo "export HTTPSPORT=$(get_port)"
 echo "export EXTRAPORT1=$(get_port)"
 echo "export EXTRAPORT2=$(get_port)"
 echo "export EXTRAPORT3=$(get_port)"

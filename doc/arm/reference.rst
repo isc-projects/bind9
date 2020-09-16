@@ -1078,6 +1078,14 @@ default is used.
    the default is the ``named`` working directory.  See :ref:`acl`
    for details about ``geoip`` ACLs.
 
+.. _https_endpoint:
+
+``https-endpoint``
+   This configures a DNS-over-HTTPS (DoH) service endpoint. It takes a
+   string which specifies the endpoint URL path, and an ``https-server``
+   parameter specifying the server name of an HTTPS listener. (See
+   :ref:`Link title <https_server>`.)
+
 ``key-directory``
    This is the directory where the public and private DNSSEC key files should be
    found when performing a dynamic update of secure zones, if different
@@ -2436,6 +2444,8 @@ Interfaces
 
 The interfaces and ports that the server answers queries from may be
 specified using the ``listen-on`` and ``listen-on-v6`` options.
+specified using the ``listen-on`` and ``listen-on-v6`` options, as
+well as the ``https-server`` option for HTTPS queries.
 
 ``listen-on`` takes an optional port, an optional TLS configuration
 identifier, and an ``address_match_list`` of IPv4 addresses. (IPv6
@@ -2487,6 +2497,15 @@ To instruct the server not to listen on any IPv6 addresses, use:
 ::
 
    listen-on-v6 { none; };
+
+.. _https_server:
+
+``https-server`` takes a server name, an optional port, a TLS
+configuration identifier, and an ``address_match_list`` of both IPv4 and
+IPv6 addresses.  This sets up an HTTPS responder using the key and
+certificate specified in the referenced ``tls`` statement.  The endpoint
+for incoming HTTPS queries must be specified using the ``https-endpoint``
+option (see :ref:`Link title <https_endpoint>`).
 
 .. _query_address:
 

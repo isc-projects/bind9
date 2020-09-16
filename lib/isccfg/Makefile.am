@@ -7,17 +7,21 @@ libisccfg_la_HEADERS =			\
 	include/isccfg/aclconf.h	\
 	include/isccfg/cfg.h		\
 	include/isccfg/grammar.h	\
+	include/isccfg/httpconf.h	\
 	include/isccfg/kaspconf.h	\
 	include/isccfg/log.h		\
-	include/isccfg/namedconf.h
+	include/isccfg/namedconf.h	\
+	include/isccfg/tlsconf.h
 
 libisccfg_la_SOURCES =			\
 	$(libisccfg_la_HEADERS)		\
 	aclconf.c			\
+	httpconf.c			\
 	dnsconf.c			\
 	kaspconf.c			\
 	log.c				\
 	namedconf.c			\
+	tlsconf.c			\
 	parser.c
 
 libisccfg_la_CPPFLAGS =			\
