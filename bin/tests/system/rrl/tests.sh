@@ -81,7 +81,7 @@ burst () {
         eval BURST_DOM="$BURST_DOM_BASE"
         DOMS="$DOMS $BURST_DOM"
     done
-    ARGS="+nocookie +continue +time=1 +tries=1 -p ${PORT} $* @$ns2 $DOMS"
+    ARGS="+burst +nocookie +continue +time=1 +tries=1 -p ${PORT} $* @$ns2 $DOMS"
     $MDIG $ARGS 2>&1 |                                                  \
         tr -d '\r' |                                                    \
         tee -a full-$FILENAME |                                         \
@@ -93,7 +93,7 @@ burst () {
 		-e 's/;; .* status: NOERROR.*/NOERROR/p'		\
 		-e 's/;; .* status: SERVFAIL.*/SERVFAIL/p'		\
 		-e 's/response failed with timed out.*/drop/p'		\
-		-e 's/;; communications error to.*/drop/p' >> $FILENAME
+		-e 's/;; communications error to.*/drop/p' >> $FILENAME &
     QNUM=`expr $QNUM + $BURST_LIMIT`
 }
 
@@ -105,6 +105,8 @@ range () {
 #   $1=domain  $2=IP address  $3=# of IP addresses  $4=TC  $5=drop
 #	$6=NXDOMAIN  $7=SERVFAIL or other errors
 ck_result() {
+    # wait to the background mdig calls to complete.
+    wait
     BAD=no
     ADDRS=`egrep "^$2$" mdig.out-$1				2>/dev/null | wc -l`
     # count simple truncated and truncated NXDOMAIN as TC

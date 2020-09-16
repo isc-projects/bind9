@@ -122,6 +122,9 @@ The global query options are:
    Attempt to display the contents of messages which are malformed. The
    default is to not display malformed answers.
 
+``+burst``
+   This option delays queries until the start of the next second.
+
 ``+[no]cl``
    Display [do not display] the CLASS when printing the record.
 
