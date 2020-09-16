@@ -1,24 +1,24 @@
-5497.	[bug]		dig +bufsize=0 failed to disable EDNS as a side
-			effect. [GL #2054]
+	--- 9.11.23 released ---
 
-5496.	[bug]		The rate limiter needs to hold a reference to its task.
-			[GL #2081]
+5497.	[bug]		'dig +bufsize=0' failed to disable EDNS. [GL #2054]
 
-5492.	[bug]		Tighten LOC parsing to reject period and/or m as a
-			value.  Correct handling of negative altitudes which
-			are not whole metres.  [GL #2074]
+5496.	[bug]		Address a TSAN report by ensuring each rate limiter
+			object holds a reference to its task. [GL #2081]
 
-5489.	[bug]		Named failed to reject some invalid records resulting
-			in records that, after being printed, could not be
-			loaded or would result in DNSSEC validation failures
-			when re-read from zone files as the wire format
-			differed.  The covered records records are: CERT,
+5492.	[bug]		Tighten LOC parsing to reject a period (".") and/or "m"
+			as a value. Fix handling of negative altitudes which are
+			not whole meters. [GL #2074]
+
+5489.	[bug]		Named erroneously accepted certain invalid resource
+			records that were incorrectly processed after
+			subsequently being written to disk and loaded back, as
+			the wire format differed. Such records include: CERT,
 			IPSECKEY, NSEC3, NSEC3PARAM, NXT, SIG, TLSA, WKS, and
 			X25. [GL !3953]
 
-5488.	[bug]		nta needed to have a weak reference on view to prevent
-			the view being deleted while nta tests are being
-			performed. [GL #2067]
+5488.	[bug]		NTA code needed to have a weak reference on its
+			associated view to prevent the latter from being deleted
+			while NTA tests were being performed. [GL #2067]
 
 	--- 9.11.22 released ---
 
