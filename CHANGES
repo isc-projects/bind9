@@ -1,3 +1,7 @@
+5504.	[func]		The "glue-cache" option has been marked as deprecated.
+			The glue cache feature will be permanently enabled in a
+			future release. [GL #2146]
+
 5503.	[bug]		Cleaned up reference counting of network manager
 			handles, now using isc_nmhandle_attach() and _detach()
 			instead of _ref() and _unref(). [GL #2122]
