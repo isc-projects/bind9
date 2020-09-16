@@ -126,10 +126,10 @@
   	key-directory <quoted_string>;
   	lame-ttl <duration>;
   	listen-on [ port <integer> ] [ dscp
-  	    <integer> ] {
+  	    <integer> ] [ tls <string> ] {
   	    <address_match_element>; ... };
   	listen-on-v6 [ port <integer> ] [ dscp
-  	    <integer> ] {
+  	    <integer> ] [ tls <string> ] {
   	    <address_match_element>; ... };
   	lmdb-mapsize <sizeval>;
   	lock-file ( <quoted_string> | none );

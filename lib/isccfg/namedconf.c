@@ -111,6 +111,7 @@ static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_optional_keyref;
 static cfg_type_t cfg_type_optional_port;
 static cfg_type_t cfg_type_optional_uint32;
+static cfg_type_t cfg_type_optional_tls;
 static cfg_type_t cfg_type_options;
 static cfg_type_t cfg_type_portiplist;
 static cfg_type_t cfg_type_printtime;
@@ -127,6 +128,7 @@ static cfg_type_t cfg_type_sizeval;
 static cfg_type_t cfg_type_sockaddr4wild;
 static cfg_type_t cfg_type_sockaddr6wild;
 static cfg_type_t cfg_type_statschannels;
+static cfg_type_t cfg_type_tlsconf;
 static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_zone;
@@ -148,6 +150,7 @@ static cfg_type_t cfg_type_tkey_dhkey = { "tkey-dhkey",	   cfg_parse_tuple,
 static cfg_tuplefielddef_t listenon_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
 	{ "dscp", &cfg_type_optional_dscp, 0 },
+	{ "tls", &cfg_type_optional_tls, 0 },
 	{ "acl", &cfg_type_bracketed_aml, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -1073,6 +1076,7 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "primaries", &cfg_type_primaries, CFG_CLAUSEFLAG_MULTI },
 	{ "statistics-channels", &cfg_type_statschannels,
 	  CFG_CLAUSEFLAG_MULTI },
+	{ "tls", &cfg_type_tlsconf, CFG_CLAUSEFLAG_MULTI },
 	{ "view", &cfg_type_view, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
@@ -1134,7 +1138,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "dnstap-output", &cfg_type_dnstapoutput, 0 },
 	{ "dnstap-identity", &cfg_type_serverid, 0 },
 	{ "dnstap-version", &cfg_type_qstringornone, 0 },
-#else  /* ifdef HAVE_DNSTAP */
+#else /* ifdef HAVE_DNSTAP */
 	{ "dnstap-output", &cfg_type_dnstapoutput,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "dnstap-identity", &cfg_type_serverid, CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1154,7 +1158,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "fstrm-set-output-queue-model", &cfg_type_fstrm_model, 0 },
 	{ "fstrm-set-output-queue-size", &cfg_type_uint32, 0 },
 	{ "fstrm-set-reopen-interval", &cfg_type_duration, 0 },
-#else  /* ifdef HAVE_DNSTAP */
+#else /* ifdef HAVE_DNSTAP */
 	{ "fstrm-set-buffer-hint", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "fstrm-set-flush-timeout", &cfg_type_uint32,
@@ -1172,7 +1176,7 @@ static cfg_clausedef_t options_clauses[] = {
 #endif /* HAVE_DNSTAP */
 #if defined(HAVE_GEOIP2)
 	{ "geoip-directory", &cfg_type_qstringornone, 0 },
-#else  /* if defined(HAVE_GEOIP2) */
+#else /* if defined(HAVE_GEOIP2) */
 	{ "geoip-directory", &cfg_type_qstringornone,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_GEOIP2 */
@@ -1745,7 +1749,7 @@ static cfg_tuplefielddef_t rpz_fields[] = {
 #ifdef USE_DNSRPS
 	{ "dnsrps-enable", &cfg_type_boolean, 0 },
 	{ "dnsrps-options", &cfg_type_bracketed_text, 0 },
-#else  /* ifdef USE_DNSRPS */
+#else /* ifdef USE_DNSRPS */
 	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "dnsrps-options", &cfg_type_bracketed_text,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1954,7 +1958,7 @@ static cfg_clausedef_t view_clauses[] = {
 #ifdef USE_DNSRPS
 	{ "dnsrps-enable", &cfg_type_boolean, 0 },
 	{ "dnsrps-options", &cfg_type_bracketed_text, 0 },
-#else  /* ifdef USE_DNSRPS */
+#else /* ifdef USE_DNSRPS */
 	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "dnsrps-options", &cfg_type_bracketed_text,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1968,7 +1972,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "dnssec-validation", &cfg_type_boolorauto, 0 },
 #ifdef HAVE_DNSTAP
 	{ "dnstap", &cfg_type_dnstap, 0 },
-#else  /* ifdef HAVE_DNSTAP */
+#else /* ifdef HAVE_DNSTAP */
 	{ "dnstap", &cfg_type_dnstap, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_DNSTAP */
 	{ "dual-stack-servers", &cfg_type_nameportiplist, 0 },
@@ -1988,7 +1992,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "lame-ttl", &cfg_type_duration, 0 },
 #ifdef HAVE_LMDB
 	{ "lmdb-mapsize", &cfg_type_sizeval, 0 },
-#else  /* ifdef HAVE_LMDB */
+#else /* ifdef HAVE_LMDB */
 	{ "lmdb-mapsize", &cfg_type_sizeval, CFG_CLAUSEFLAG_NOOP },
 #endif /* ifdef HAVE_LMDB */
 	{ "max-acache-size", &cfg_type_sizenodefault, CFG_CLAUSEFLAG_OBSOLETE },
@@ -3808,3 +3812,34 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 	pctx.indent--;
 	cfg_print_cstr(&pctx, "};\n");
 }
+
+/*%
+ * "tls" and related statement syntax.
+ */
+static cfg_type_t cfg_type_sslprotos = {
+	"sslprotos",	  cfg_parse_spacelist, cfg_print_spacelist,
+	cfg_doc_terminal, &cfg_rep_list,       &cfg_type_astring
+};
+
+static cfg_clausedef_t tls_clauses[] = {
+	{ "key-file", &cfg_type_qstring, 0 },
+	{ "cert-file", &cfg_type_qstring, 0 },
+	{ "dh-param", &cfg_type_qstring, CFG_CLAUSEFLAG_NOTIMP },
+	{ "protocols", &cfg_type_sslprotos, CFG_CLAUSEFLAG_NOTIMP },
+	{ "ciphers", &cfg_type_astring, CFG_CLAUSEFLAG_NOTIMP },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_clausedef_t *tls_clausesets[] = { tls_clauses, NULL };
+static cfg_type_t cfg_type_tlsconf = { "tlsconf",     cfg_parse_named_map,
+				       cfg_print_map, cfg_doc_map,
+				       &cfg_rep_map,  tls_clausesets };
+
+static keyword_type_t tls_kw = { "tls", &cfg_type_astring };
+static cfg_type_t cfg_type_optional_tls = {
+	"tlsoptional",	       parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_string,		&tls_kw
+};
+static cfg_type_t cfg_type_tls = { "tls",	    parse_keyvalue,
+				   print_keyvalue,  doc_keyvalue,
+				   &cfg_rep_string, &tls_kw };

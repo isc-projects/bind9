@@ -331,10 +331,10 @@ options {
       key\-directory quoted_string;
       lame\-ttl duration;
       listen\-on [ port integer ] [ dscp
-          integer ] {
+          integer ] [ tls string ] {
           address_match_element; ... };
       listen\-on\-v6 [ port integer ] [ dscp
-          integer ] {
+          integer ] [ tls string ] {
           address_match_element; ... };
       lmdb\-mapsize sizeval;
       lock\-file ( quoted_string | none );
@@ -582,6 +582,20 @@ statistics\-channels {
           * ) [ port ( integer | * ) ] [
           allow { address_match_element; ...
           } ];
+};
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS TLS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+tls string {
+      cert\-file quoted_string;
+      key\-file quoted_string;
 };
 .ft P
 .fi

@@ -196,10 +196,10 @@ options {
         key-directory <quoted_string>;
         lame-ttl <duration>;
         listen-on [ port <integer> ] [ dscp
-            <integer> ] {
+            <integer> ] [ tls <string> ] {
             <address_match_element>; ... }; // may occur multiple times
         listen-on-v6 [ port <integer> ] [ dscp
-            <integer> ] {
+            <integer> ] [ tls <string> ] {
             <address_match_element>; ... }; // may occur multiple times
         lmdb-mapsize <sizeval>;
         lock-file ( <quoted_string> | none );
@@ -411,6 +411,14 @@ statistics-channels {
             * ) [ port ( <integer> | * ) ] [
             allow { <address_match_element>; ...
             } ]; // may occur multiple times
+}; // may occur multiple times
+
+tls <string> {
+        cert-file <quoted_string>;
+        ciphers <string>; // not implemented
+        dh-param <quoted_string>; // not implemented
+        key-file <quoted_string>;
+        protocols <sslprotos>; // not implemented
 }; // may occur multiple times
 
 trust-anchors { <string> ( static-key |
