@@ -6,6 +6,8 @@
 			handles, now using isc_nmhandle_attach() and _detach()
 			instead of _ref() and _unref(). [GL #2122]
 
+	--- 9.17.5 released ---
+
 5502.	[func]		'dig +bufsize=0' no longer disables EDNS. [GL #2054]
 
 5501.	[func]		Log CDS/CDNSKEY publication. [GL #1748]
@@ -14,53 +16,53 @@
 			[GL #2103]
 
 5499.	[func]		Add '-P ds' and '-D ds' arguments to dnssec-settime.
+			[GL #1748]
 
 5498.	[test]		The --with-gperftools-profiler configure option was
 			removed. [GL !4045]
 
 5497.	[placeholder]
 
-5496.	[bug]		The rate limiter needs to hold a reference to its task.
-			[GL #2081]
+5496.	[bug]		Address a TSAN report by ensuring each rate limiter
+			object holds a reference to its task. [GL #2081]
 
 5495.	[bug]		With query minimization enabled, named failed to
-			resolve ip6.arpa. names that had more labels after the
-			IPv6 part. [GL #1847]
+			resolve ip6.arpa. names that had extra labels to the
+			left of the IPv6 part. [GL #1847]
 
 5494.	[bug]		Silence the EPROTO syslog message on older systems.
 			[GL #1928]
 
-5493.	[bug]		Fix off-by-one error when calculating new hashtable
+5493.	[bug]		Fix off-by-one error when calculating new hash table
 			size. [GL #2104]
 
-5492.	[bug]		Tighten LOC parsing to reject period and/or m as a
-			value.  Correct handling of negative altitudes which
-			are not whole metres.  [GL #2074]
+5492.	[bug]		Tighten LOC parsing to reject a period (".") and/or "m"
+			as a value. Fix handling of negative altitudes which are
+			not whole meters. [GL #2074]
 
 5491.	[bug]		rbtversion->glue_table_size could be read without the
 			appropriate lock being held. [GL #2080]
 
-5490.	[func]		Refactor the readline support to use pkg-config and
-			add support for editline library. [GL !3942]
+5490.	[func]		Refactor readline support to use pkg-config and add
+			support for the editline library. [GL !3942]
 
-5489.	[bug]		Named failed to reject some invalid records resulting
-			in records that, after being printed, could not be
-			loaded or would result in DNSSEC validation failures
-			when re-read from zone files as the wire format
-			differed.  The covered records records are: CERT,
+5489.	[bug]		Named erroneously accepted certain invalid resource
+			records that were incorrectly processed after
+			subsequently being written to disk and loaded back, as
+			the wire format differed. Such records include: CERT,
 			IPSECKEY, NSEC3, NSEC3PARAM, NXT, SIG, TLSA, WKS, and
 			X25. [GL !3953]
 
-5488.	[bug]		nta needed to have a weak reference on view to prevent
-			the view being deleted while nta tests are being
-			performed. [GL #2067]
+5488.	[bug]		NTA code needed to have a weak reference on its
+			associated view to prevent the latter from being deleted
+			while NTA tests were being performed. [GL #2067]
 
 5487.	[cleanup]	Update managed keys log messages to be less confusing.
 			[GL #2027]
 
-5486.	[func]		Add 'rndc dnssec -checkds' command to tell named
-			that the DS record has been published in the parent.
-			[GL #1613]
+5486.	[func]		Add 'rndc dnssec -checkds' command, which signals to
+			named that the DS record for a given zone or key has
+			been updated in the parent zone. [GL #1613]
 
 	--- 9.17.4 released ---
 
