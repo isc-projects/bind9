@@ -39,6 +39,10 @@ Removed Features
   now needs to be manually set in ``CFLAGS`` and ``-lprofiler`` needs to
   be present in ``LDFLAGS``. [GL !4045]
 
+- The ``glue-cache`` *option* has been marked as deprected. The glue
+  cache *feature* still works and will be permanently *enabled* in a
+  future release. [GL #2146]
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 

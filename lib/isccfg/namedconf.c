@@ -1983,7 +1983,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "filter-aaaa", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "filter-aaaa-on-v4", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "filter-aaaa-on-v6", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "glue-cache", &cfg_type_boolean, 0 },
+	{ "glue-cache", &cfg_type_boolean, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_duration, 0 },
 #ifdef HAVE_LMDB

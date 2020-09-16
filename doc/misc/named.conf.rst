@@ -270,7 +270,7 @@ OPTIONS
   	fstrm-set-output-queue-size integer;
   	fstrm-set-reopen-interval duration;
   	geoip-directory ( quoted_string | none );
-  	glue-cache boolean;
+  	glue-cache boolean;, deprecated
   	heartbeat-interval integer;
   	hostname ( quoted_string | none );
   	inline-signing boolean;
@@ -627,7 +627,7 @@ VIEW
   	forward ( first | only );
   	forwarders [ port integer ] [ dscp integer ] { ( ipv4_address
   	    | ipv6_address ) [ port integer ] [ dscp integer ]; ... };
-  	glue-cache boolean;
+  	glue-cache boolean;, deprecated
   	inline-signing boolean;
   	ixfr-from-differences ( primary | master | secondary | slave |
   	    boolean );

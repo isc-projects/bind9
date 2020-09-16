@@ -205,7 +205,7 @@ options {
         fstrm-set-reopen-interval <duration>;
         geoip-directory ( <quoted_string> | none );
         geoip-use-ecs <boolean>; // obsolete
-        glue-cache <boolean>;
+        glue-cache <boolean>; // deprecated
         has-old-clients <boolean>; // ancient
         heartbeat-interval <integer>;
         host-statistics <boolean>; // ancient
@@ -575,7 +575,7 @@ view <string> [ <class> ] {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
-        glue-cache <boolean>;
+        glue-cache <boolean>; // deprecated
         inline-signing <boolean>;
         ixfr-from-differences ( primary | master | secondary | slave |
             <boolean> );

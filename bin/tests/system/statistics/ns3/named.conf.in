@@ -23,7 +23,6 @@ options {
 	notify yes;
 	qname-minimization disabled;
 	zone-statistics yes;
-	glue-cache yes;
 };
 
 statistics-channels {
