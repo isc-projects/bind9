@@ -1710,6 +1710,9 @@ Boolean Options
    performance at the cost of increased memory usage for the zone. To avoid
    this, set it to ``no``.
 
+   .. note:: This option is deprecated and its use is discouraged. The
+      glue cache will be permanently *enabled* in a future release.
+
 ``minimal-any``
    If set to ``yes``, the server replies with only one of
    the RRsets for the query name, and its covering RRSIGs if any,

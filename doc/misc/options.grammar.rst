@@ -115,7 +115,7 @@
   	fstrm-set-output-queue-size <integer>;
   	fstrm-set-reopen-interval <duration>;
   	geoip-directory ( <quoted_string> | none );
-  	glue-cache <boolean>;
+  	glue-cache <boolean>; // deprecated
   	heartbeat-interval <integer>;
   	hostname ( <quoted_string> | none );
   	inline-signing <boolean>;
