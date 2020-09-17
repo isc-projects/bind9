@@ -65,7 +65,9 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+	  <command>named</command> would report invalid memory size when running
+	  in an environment that doesn't properly report number of available
+	  memory pages or pagesize.  [GL #2166] None.
         </para>
       </listitem>
     </itemizedlist>

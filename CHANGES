@@ -1,3 +1,6 @@
+5506.	[bug]		Properly handle failed sysconf() calls, so we don't
+			report invalid memory size. [GL #2166]
+
 	--- 9.11.23 released ---
 
 5497.	[bug]		'dig +bufsize=0' failed to disable EDNS. [GL #2054]
