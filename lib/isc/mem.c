@@ -1539,7 +1539,7 @@ isc_mem_setwater(isc_mem_t *ctx0, isc_mem_water_t water, void *water_arg,
 	}
 }
 
-bool
+ISC_NO_SANITIZE_THREAD bool
 isc_mem_isovermem(isc_mem_t *ctx0) {
 	REQUIRE(VALID_CONTEXT(ctx0));
 
