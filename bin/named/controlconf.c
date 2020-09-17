@@ -383,8 +383,8 @@ control_command(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	if (listener->controls->shuttingdown) {
-		isc_nmhandle_detach(&conn->cmdhandle);
 		conn_cleanup(conn);
+		isc_nmhandle_detach(&conn->cmdhandle);
 		goto done;
 	}
 
