@@ -1,3 +1,6 @@
+5506.	[bug]		Properly handle failed sysconf() calls, so we don't
+			report invalid memory size. [GL #2166]
+
 5505.	[bug]		Updating contents of a mixed-case RPZ could cause some
 			rules to be ignored. [GL #2169]
 

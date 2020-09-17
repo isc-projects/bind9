@@ -42,3 +42,7 @@ Bug Fixes
 - Updating contents of an RPZ zone which contained names spelled using
   varying letter case could cause some processing rules in that RPZ zone
   to be erroneously ignored. [GL #2169]
+
+- `named` would report invalid memory size when running in an environment
+  that doesn't properly report number of available memory pages or pagesize.
+  [GL #2166]
