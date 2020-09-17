@@ -1834,7 +1834,7 @@ isc__mem_setwater(isc_mem_t *ctx0, isc_mem_water_t water, void *water_arg,
 		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
 }
 
-bool
+ISC_NO_SANITIZE_THREAD bool
 isc__mem_isovermem(isc_mem_t *ctx0) {
 	isc__mem_t *ctx;
 
