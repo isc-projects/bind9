@@ -371,8 +371,10 @@ control_respond(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	}
 
 	return;
+
 cleanup:
 	conn_cleanup(conn);
+	isc_nmhandle_detach(&conn->cmdhandle);
 }
 
 static void
