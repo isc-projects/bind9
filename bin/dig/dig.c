@@ -336,13 +336,22 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	}
 
 	if (query->lookup->stats) {
+		const char *proto;
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		if (query->lookup->use_usec) {
 			printf(";; Query time: %ld usec\n", (long)diff);
 		} else {
 			printf(";; Query time: %ld msec\n", (long)diff / 1000);
 		}
-		printf(";; SERVER: %s(%s)\n", fromtext, query->servname);
+		if (query->lookup->tls_mode) {
+			proto = "TLS";
+		} else if (query->lookup->tcp_mode) {
+			proto = "TCP";
+		} else {
+			proto = "UDP";
+		}
+		printf(";; SERVER: %s(%s) (%s)\n", fromtext, query->servname,
+		       proto);
 		time(&tnow);
 		(void)localtime_r(&tnow, &tmnow);
 
