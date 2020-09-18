@@ -5889,6 +5889,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 			return (result);
 		}
 
+		dns_message_clonebuffer(client->message);
 		ns_client_recursing(client);
 	} else if ((client->attributes & NS_CLIENTATTR_RECURSING) == 0) {
 		client->attributes |= NS_CLIENTATTR_RECURSING;
