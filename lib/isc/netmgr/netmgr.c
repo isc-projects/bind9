@@ -1040,6 +1040,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 void
 isc__nmsocket_clearcb(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(!isc__nm_in_netthread() || sock->tid == isc_nm_tid());
 
 	sock->recv_cb = NULL;
 	sock->recv_cbarg = NULL;

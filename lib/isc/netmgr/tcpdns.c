@@ -119,10 +119,8 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		return (result);
 	}
 
-	LOCK(&dnslistensock->lock);
 	accept_cb = dnslistensock->accept_cb;
 	accept_cbarg = dnslistensock->accept_cbarg;
-	UNLOCK(&dnslistensock->lock);
 
 	if (accept_cb != NULL) {
 		result = accept_cb(handle, ISC_R_SUCCESS, accept_cbarg);
@@ -184,6 +182,7 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 	size_t len;
 
 	REQUIRE(VALID_NMSOCK(dnssock));
+	REQUIRE(dnssock->tid == isc_nm_tid());
 	REQUIRE(handlep != NULL && *handlep == NULL);
 
 	/*
@@ -214,12 +213,9 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 
 		listener = dnssock->listener;
 		if (listener != NULL) {
-			LOCK(&listener->lock);
 			cb = listener->recv_cb;
 			cbarg = listener->recv_cbarg;
-			UNLOCK(&listener->lock);
 		} else if (dnssock->recv_cb != NULL) {
-			LOCK(&dnssock->lock);
 			cb = dnssock->recv_cb;
 			cbarg = dnssock->recv_cbarg;
 			/*
@@ -228,7 +224,6 @@ processbuffer(isc_nmsocket_t *dnssock, isc_nmhandle_t **handlep) {
 			 * call to isc_nm_read() and set up a new callback.
 			 */
 			isc__nmsocket_clearcb(dnssock);
-			UNLOCK(&dnssock->lock);
 		}
 
 		if (cb != NULL) {
@@ -265,6 +260,7 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 	size_t len;
 
 	REQUIRE(VALID_NMSOCK(dnssock));
+	REQUIRE(dnssock->tid == isc_nm_tid());
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	if (region == NULL || eresult != ISC_R_SUCCESS) {
@@ -314,10 +310,8 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 			uv_timer_stop(&dnssock->timer);
 		}
 
-		LOCK(&dnssock->lock);
 		if (atomic_load(&dnssock->sequential) ||
 		    dnssock->recv_cb == NULL) {
-			UNLOCK(&dnssock->lock);
 			/*
 			 * There are two reasons we might want to pause here:
 			 * - We're in sequential mode and we've received
@@ -328,7 +322,6 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 			isc_nm_pauseread(dnssock->outerhandle);
 			done = true;
 		} else {
-			UNLOCK(&dnssock->lock);
 			/*
 			 * We're pipelining, so we now resume processing
 			 * packets until the clients-per-connection limit
@@ -364,12 +357,10 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	REQUIRE(VALID_NM(mgr));
 
 	isc__nmsocket_init(dnslistensock, mgr, isc_nm_tcpdnslistener, iface);
-	LOCK(&dnslistensock->lock);
 	dnslistensock->recv_cb = cb;
 	dnslistensock->recv_cbarg = cbarg;
 	dnslistensock->accept_cb = accept_cb;
 	dnslistensock->accept_cbarg = accept_cbarg;
-	UNLOCK(&dnslistensock->lock);
 	dnslistensock->extrahandlesize = extrahandlesize;
 
 	/*
@@ -558,6 +549,7 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(worker->id == sock->tid);
+	REQUIRE(sock->tid == isc_nm_tid());
 
 	result = ISC_R_NOTCONNECTED;
 	if (atomic_load(&sock->active) && sock->outerhandle != NULL) {
