@@ -379,12 +379,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	region.base = (unsigned char *)buf->base;
 	region.length = nrecv;
 
-	/*
-	 * In tcp.c and tcpdns.c, this would need to be locked
-	 * by sock->lock because callbacks may be set to NULL
-	 * unexpectedly when the connection drops, but that isn't
-	 * a factor in the UDP case.
-	 */
+	INSIST(sock->tid == isc_nm_tid());
 	INSIST(sock->recv_cb != NULL);
 	cb = sock->recv_cb;
 	cbarg = sock->recv_cbarg;
