@@ -1666,6 +1666,7 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		if (sigresult != ISC_R_SUCCESS) {
 			FAIL(sigresult);
 		}
+		dns_message_clonebuffer(client->message);
 		CHECK(send_update_event(client, zone));
 		break;
 	case dns_zone_slave:
