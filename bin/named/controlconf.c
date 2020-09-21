@@ -109,7 +109,7 @@ struct controllistener {
 struct named_controls {
 	named_server_t *server;
 	controllistenerlist_t listeners;
-	bool shuttingdown;
+	atomic_bool shuttingdown;
 	isc_mutex_t symtab_lock;
 	isccc_symtab_t *symtab;
 };
@@ -225,7 +225,9 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	conn->sending = false;
 
-	if (listener->controls->shuttingdown || result == ISC_R_CANCELED) {
+	if (atomic_load_acquire(&listener->controls->shuttingdown) ||
+	    result == ISC_R_CANCELED)
+	{
 		goto cleanup_sendhandle;
 	} else if (result != ISC_R_SUCCESS) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
@@ -386,7 +388,7 @@ control_command(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	if (listener->controls->shuttingdown) {
+	if (atomic_load_acquire(&listener->controls->shuttingdown)) {
 		conn_cleanup(conn);
 		isc_nmhandle_detach(&conn->cmdhandle);
 		goto done;
@@ -413,13 +415,14 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	conn->reading = false;
 
 	/* Is the server shutting down? */
-	if (listener->controls->shuttingdown) {
+	if (atomic_load_acquire(&listener->controls->shuttingdown)) {
 		goto cleanup_readhandle;
 	}
 
 	if (result != ISC_R_SUCCESS) {
 		if (result == ISC_R_CANCELED) {
-			listener->controls->shuttingdown = true;
+			atomic_store_release(&listener->controls->shuttingdown,
+					     true);
 		} else if (result != ISC_R_EOF) {
 			log_invalid(&conn->ccmsg, result);
 		}
@@ -711,7 +714,7 @@ controls_shutdown(named_controls_t *controls) {
 void
 named_controls_shutdown(named_controls_t *controls) {
 	controls_shutdown(controls);
-	controls->shuttingdown = true;
+	atomic_store_release(&controls->shuttingdown, true);
 }
 
 static isc_result_t
