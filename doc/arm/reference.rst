@@ -1538,8 +1538,8 @@ default is used.
    If ``full``, the server collects statistical data on all zones,
    unless specifically turned off on a per-zone basis by specifying
    ``zone-statistics terse`` or ``zone-statistics none`` in the ``zone``
-   statement. These include, for example, DNSSEC signing operations
-   and the number of authoritative answers per query type.  The
+   statement. The statistical data includes, for example, DNSSEC signing
+   operations and the number of authoritative answers per query type. The
    default is ``terse``, providing minimal statistics on zones
    (including name and current serial number, but not query type
    counters).
