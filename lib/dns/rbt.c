@@ -2637,7 +2637,8 @@ deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 		 */
 		child = LEFT(item);
 	} else {
-		dns_rbtnode_t holder, *tmp = &holder;
+		dns_rbtnode_t *saved_parent, *saved_right;
+		int saved_color;
 
 		/*
 		 * This node has two children, so it cannot be directly
@@ -2673,7 +2674,9 @@ deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 		 * information, which will be needed when linking up
 		 * delete to the successor's old location.
 		 */
-		memmove(tmp, successor, sizeof(dns_rbtnode_t));
+		saved_parent = PARENT(successor);
+		saved_right = RIGHT(successor);
+		saved_color = COLOR(successor);
 
 		if (IS_ROOT(item)) {
 			*rootp = successor;
@@ -2699,28 +2702,27 @@ deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 
 		/*
 		 * Now relink the node to be deleted into the
-		 * successor's previous tree location.  PARENT(tmp)
-		 * is the successor's original parent.
+		 * successor's previous tree location.
 		 */
 		INSIST(!IS_ROOT(item));
 
-		if (PARENT(tmp) == item) {
+		if (saved_parent == item) {
 			/*
 			 * Node being deleted was successor's parent.
 			 */
 			RIGHT(successor) = item;
 			PARENT(item) = successor;
 		} else {
-			LEFT(PARENT(tmp)) = item;
-			PARENT(item) = PARENT(tmp);
+			LEFT(saved_parent) = item;
+			PARENT(item) = saved_parent;
 		}
 
 		/*
 		 * Original location of successor node has no left.
 		 */
 		LEFT(item) = NULL;
-		RIGHT(item) = RIGHT(tmp);
-		COLOR(item) = COLOR(tmp);
+		RIGHT(item) = saved_right;
+		COLOR(item) = saved_color;
 	}
 
 	/*
