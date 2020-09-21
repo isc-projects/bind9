@@ -1602,7 +1602,7 @@ failure:
 	}
 
 	if (tcpmsg != NULL) {
-		dns_message_destroy(&tcpmsg);
+		dns_message_detach(&tcpmsg);
 	}
 
 	if (cleanup_cctx) {

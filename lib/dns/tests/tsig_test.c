@@ -262,7 +262,7 @@ render(isc_buffer_t *buf, unsigned flags, dns_tsigkey_t *key,
 	}
 
 	dns_compress_invalidate(&cctx);
-	dns_message_destroy(&msg);
+	dns_message_detach(&msg);
 }
 
 /*
@@ -353,7 +353,7 @@ tsig_tcp_test(void **state) {
 	tsigctx = msg->tsigctx;
 	msg->tsigctx = NULL;
 	isc_buffer_free(&buf);
-	dns_message_destroy(&msg);
+	dns_message_detach(&msg);
 
 	result = dst_context_create(key->key, dt_mctx, DNS_LOGCATEGORY_DNSSEC,
 				    false, 0, &outctx);
@@ -410,7 +410,7 @@ tsig_tcp_test(void **state) {
 	tsigctx = msg->tsigctx;
 	msg->tsigctx = NULL;
 	isc_buffer_free(&buf);
-	dns_message_destroy(&msg);
+	dns_message_detach(&msg);
 
 	/*
 	 * Create response message 3.
@@ -461,7 +461,7 @@ tsig_tcp_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_free(&buf);
-	dns_message_destroy(&msg);
+	dns_message_detach(&msg);
 
 	if (outctx != NULL) {
 		dst_context_destroy(&outctx);

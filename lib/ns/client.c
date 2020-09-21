@@ -1581,7 +1581,7 @@ ns__client_put_cb(void *client0) {
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
 
-	dns_message_destroy(&client->message);
+	dns_message_detach(&client->message);
 
 	/*
 	 * Detaching the task must be done after unlinking from
@@ -2342,7 +2342,7 @@ cleanup:
 	}
 
 	if (client->message != NULL) {
-		dns_message_destroy(&client->message);
+		dns_message_detach(&client->message);
 	}
 
 	if (client->task != NULL) {

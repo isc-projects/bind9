@@ -1893,7 +1893,7 @@ static void
 update_sendevent(updatectx_t *uctx, isc_result_t result) {
 	isc_task_t *task;
 
-	dns_message_destroy(&uctx->updatemsg);
+	dns_message_detach(&uctx->updatemsg);
 	if (uctx->tsigkey != NULL) {
 		dns_tsigkey_detach(&uctx->tsigkey);
 	}
@@ -1950,7 +1950,7 @@ update_done(isc_task_t *task, isc_event_t *event) {
 
 out:
 	if (answer != NULL) {
-		dns_message_destroy(&answer);
+		dns_message_detach(&answer);
 	}
 	isc_event_free(&event);
 
@@ -2282,7 +2282,7 @@ receive_soa(isc_task_t *task, isc_event_t *event) {
 		dns_request_t *newrequest = NULL;
 
 		/* Retry SOA request without TSIG */
-		dns_message_destroy(&rcvmsg);
+		dns_message_detach(&rcvmsg);
 		dns_message_renderreset(uctx->soaquery);
 		reqoptions = 0;
 		if (uctx->want_tcp) {
@@ -2397,14 +2397,14 @@ out:
 	}
 
 	if (!droplabel || result != ISC_R_SUCCESS) {
-		dns_message_destroy(&uctx->soaquery);
+		dns_message_detach(&uctx->soaquery);
 		LOCK(&uctx->lock);
 		dns_request_destroy(&uctx->soareq);
 		UNLOCK(&uctx->lock);
 	}
 
 	if (rcvmsg != NULL) {
-		dns_message_destroy(&rcvmsg);
+		dns_message_detach(&rcvmsg);
 	}
 
 	if (result != ISC_R_SUCCESS) {
@@ -2466,7 +2466,7 @@ fail:
 	if (name != NULL) {
 		dns_message_puttempname(soaquery, &name);
 	}
-	dns_message_destroy(&soaquery);
+	dns_message_detach(&soaquery);
 
 	return (result);
 }
@@ -2956,7 +2956,7 @@ fail:
 		UNLOCK(&client->lock);
 	}
 	if (uctx->updatemsg != NULL) {
-		dns_message_destroy(&uctx->updatemsg);
+		dns_message_detach(&uctx->updatemsg);
 	}
 	while ((sa = ISC_LIST_HEAD(uctx->servers)) != NULL) {
 		ISC_LIST_UNLINK(uctx->servers, sa, link);

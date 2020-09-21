@@ -417,7 +417,7 @@ cleanup:
 		dns_dt_close(&handle);
 	}
 	if (message != NULL) {
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 	}
 	if (b != NULL) {
 		isc_buffer_free(&b);

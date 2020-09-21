@@ -1187,7 +1187,7 @@ failure:
 		dns_message_puttemprdataset(msg, &qrdataset);
 	}
 	if (msg != NULL) {
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	}
 	if (soatuple != NULL) {
 		dns_difftuple_free(&soatuple);
@@ -1304,7 +1304,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "got %s, retrying with AXFR",
 			  isc_result_totext(result));
 	try_axfr:
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 		xfrin_reset(xfr);
 		xfr->reqtype = dns_rdatatype_soa;
 		xfr->state = XFRST_SOAQUERY;
@@ -1464,7 +1464,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	xfr->tsigctx = msg->tsigctx;
 	msg->tsigctx = NULL;
 
-	dns_message_destroy(&msg);
+	dns_message_detach(&msg);
 
 	switch (xfr->state) {
 	case XFRST_GOTSOA:
@@ -1510,7 +1510,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 failure:
 	if (msg != NULL) {
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	}
 	if (result != ISC_R_SUCCESS) {
 		xfrin_fail(xfr, result, "failed while receiving responses");

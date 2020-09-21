@@ -78,7 +78,7 @@ check_response(isc_buffer_t *buf) {
 
 	assert_int_equal(message->rcode, dns_rcode_noerror);
 
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 }
 
 /* test ns_notify_start() */
@@ -126,7 +126,7 @@ notify_start(void **state) {
 	 * handler.
 	 */
 	if (client->message != NULL) {
-		dns_message_destroy(&client->message);
+		dns_message_detach(&client->message);
 	}
 	client->message = nmsg;
 	nmsg = NULL;

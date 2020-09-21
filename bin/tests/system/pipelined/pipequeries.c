@@ -114,8 +114,8 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	       (char *)isc_buffer_base(&outbuf));
 	fflush(stdout);
 
-	dns_message_destroy(&query);
-	dns_message_destroy(&response);
+	dns_message_detach(&query);
+	dns_message_detach(&response);
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
 
