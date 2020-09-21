@@ -627,7 +627,6 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
 
 		isc_refcount_destroy(&view->references);
-		LOCK(&view->lock);
 		if (!RESSHUTDOWN(view)) {
 			dns_resolver_shutdown(view->resolver);
 		}
@@ -637,6 +636,7 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		if (!REQSHUTDOWN(view)) {
 			dns_requestmgr_shutdown(view->requestmgr);
 		}
+		LOCK(&view->lock);
 		if (view->zonetable != NULL) {
 			if (view->flush) {
 				dns_zt_flushanddetach(&view->zonetable);
