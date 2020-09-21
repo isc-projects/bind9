@@ -32,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH SYNOPSIS
 .sp
-\fBdnssec\-settime\fP [\fB\-f\fP] [\fB\-K\fP directory] [\fB\-L\fP ttl] [\fB\-P\fP date/offset] [\fB\-P\fP sync date/offset] [\fB\-A\fP date/offset] [\fB\-R\fP date/offset] [\fB\-I\fP date/offset] [\fB\-D\fP date/offset] [\fB\-D\fP sync date/offset] [\fB\-S\fP key] [\fB\-i\fP interval] [\fB\-h\fP] [\fB\-V\fP] [\fB\-v\fP level] [\fB\-E\fP engine] {keyfile} [\fB\-s\fP] [\fB\-g\fP state] [\fB\-d\fP state date/offset] [\fB\-k\fP state date/offset] [\fB\-r\fP state date/offset] [\fB\-z\fP state date/offset]
+\fBdnssec\-settime\fP [\fB\-f\fP] [\fB\-K\fP directory] [\fB\-L\fP ttl] [\fB\-P\fP date/offset] [\fB\-P\fP ds date/offset] [\fB\-P\fP sync date/offset] [\fB\-A\fP date/offset] [\fB\-R\fP date/offset] [\fB\-I\fP date/offset] [\fB\-D\fP date/offset] [\fB\-D\fP ds date/offset] [\fB\-D\fP sync date/offset] [\fB\-S\fP key] [\fB\-i\fP interval] [\fB\-h\fP] [\fB\-V\fP] [\fB\-v\fP level] [\fB\-E\fP engine] {keyfile} [\fB\-s\fP] [\fB\-g\fP state] [\fB\-d\fP state date/offset] [\fB\-k\fP state date/offset] [\fB\-r\fP state date/offset] [\fB\-z\fP state date/offset]
 .SH DESCRIPTION
 .sp
 \fBdnssec\-settime\fP reads a DNSSEC private key file and sets the key
@@ -126,6 +126,10 @@ Sets the date on which a key is to be published to the zone. After
 that date, the key will be included in the zone but will not be used
 to sign it.
 .TP
+\fB\-P\fP ds date/offset
+Sets the date on which DS records that match this key have been
+seen in the parent zone.
+.TP
 \fB\-P\fP sync date/offset
 Sets the date on which CDS and CDNSKEY records that match this key
 are to be published to the zone.
@@ -148,6 +152,10 @@ sign it.
 Sets the date on which the key is to be deleted. After that date, the
 key will no longer be included in the zone. (It may remain in the key
 repository, however.)
+.TP
+\fB\-D\fP ds date/offset
+Sets the date on which the DS records that match this key have
+been seen removed from the parent zone.
 .TP
 \fB\-D\fP sync date/offset
 Sets the date on which the CDS and CDNSKEY records that match this
@@ -216,15 +224,16 @@ associated with a key.
 \fB\-u\fP
 Print times in UNIX epoch format.
 .TP
-\fB\-p\fP C/P/Psync/A/R/I/D/Dsync/all
-Print a specific metadata value or set of metadata values. The \fB\-p\fP
-option may be followed by one or more of the following letters or
-strings to indicate which value or values to print: \fBC\fP for the
-creation date, \fBP\fP for the publication date, \fBPsync\fP for the CDS
-and CDNSKEY publication date, \fBA\fP for the activation date, \fBR\fP
-for the revocation date, \fBI\fP for the inactivation date, \fBD\fP for
-the deletion date, and \fBDsync\fP for the CDS and CDNSKEY deletion
-date To print all of the metadata, use \fB\-p all\fP\&.
+\fB\-p\fP C/P/Pds/Psync/A/R/I/D/Dds/Dsync/all
+Prints a specific metadata value or set of metadata values. The \fB\-p\fP
+option may be followed by one or more of the following letters or strings
+to indicate which value or values to print: \fBC\fP for the creation date,
+\fBP\fP for the publication date, \fBPds\(ga for the DS publication date,
+\(ga\(gaPsync\fP for the CDS and CDNSKEY publication date, \fBA\fP for the
+activation date, \fBR\fP for the revocation date, \fBI\fP for the inactivation
+date, \fBD\fP for the deletion date, \fBDds\fP for the DS deletion date,
+and \fBDsync\fP for the CDS and CDNSKEY deletion date. To print all of the
+metadata, use \fBall\fP\&.
 .UNINDENT
 .SH SEE ALSO
 .sp

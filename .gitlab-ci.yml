@@ -479,15 +479,14 @@ docs:
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
-    - pip3 install pytest requests || pip install pytest requests || true
-    - pip3 install sphinx sphinx_rtd_theme || pip install sphinx sphinx_rtd_theme
-    - apt -yqqq update
-    - apt -yqqq dist-upgrade
-    - apt -yqqq install texlive-full texlive-xetex latexmk xindy
   script:
     - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
+    - make maintainer-clean
+    - autoreconf -fi
+    - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1} all V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} doc V=1
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | grep -v -F -e aclocal.m4 -e configure -e ltmain.sh -e m4/ | wc -l)" -gt "0"; then git status --short; exit 1; fi
   needs:
     - job: autoreconf
       artifacts: true
