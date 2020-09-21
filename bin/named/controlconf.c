@@ -94,7 +94,6 @@ struct controllistener {
 	isc_sockaddr_t address;
 	isc_nmsocket_t *sock;
 	dns_acl_t *acl;
-	bool listening;
 	bool exiting;
 	controlkeylist_t keys;
 	controlconnectionlist_t connections;
@@ -144,7 +143,6 @@ free_controlkeylist(controlkeylist_t *keylist, isc_mem_t *mctx) {
 static void
 free_listener(controllistener_t *listener) {
 	INSIST(listener->exiting);
-	INSIST(!listener->listening);
 	INSIST(ISC_LIST_EMPTY(listener->connections));
 
 	if (listener->sock != NULL) {
@@ -162,9 +160,7 @@ free_listener(controllistener_t *listener) {
 
 static void
 maybe_free_listener(controllistener_t *listener) {
-	if (listener->exiting && !listener->listening &&
-	    ISC_LIST_EMPTY(listener->connections))
-	{
+	if (listener->exiting && ISC_LIST_EMPTY(listener->connections)) {
 		free_listener(listener);
 	}
 }
@@ -188,7 +184,6 @@ shutdown_listener(controllistener_t *listener) {
 		}
 #endif
 		listener->exiting = true;
-		listener->listening = false;
 	}
 
 	isc_nm_stoplistening(listener->sock);
@@ -255,8 +250,6 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 		return;
 	}
-
-	listener->listening = true;
 
 	return;
 
@@ -659,8 +652,6 @@ static isc_result_t
 control_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	controllistener_t *listener = arg;
 	isc_sockaddr_t peeraddr;
-
-	listener->listening = false;
 
 	if (result != ISC_R_SUCCESS) {
 		if (result == ISC_R_CANCELED) {
@@ -1204,7 +1195,6 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 			       control_newconn, listener,
 			       sizeof(controlconnection_t), 5, NULL,
 			       &listener->sock));
-	listener->listening = true;
 #if 0
 	/* XXX: no unix socket support yet */
 	if (type == isc_socktype_unix) {
