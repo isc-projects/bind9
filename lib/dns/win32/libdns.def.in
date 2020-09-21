@@ -524,12 +524,13 @@ dns_master_stylecreate
 dns_master_styledestroy
 dns_master_styleflags
 dns_message_addname
+dns_message_attach
 dns_message_buildopt
 dns_message_checksig
 dns_message_clonebuffer
 dns_message_create
 dns_message_currentname
-dns_message_destroy
+dns_message_detach
 dns_message_find
 dns_message_findname
 dns_message_findtype

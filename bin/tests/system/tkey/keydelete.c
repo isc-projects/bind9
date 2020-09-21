@@ -95,8 +95,8 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	result = dns_tkey_processdeleteresponse(query, response, ring);
 	CHECK("dns_tkey_processdhresponse", result);
 
-	dns_message_destroy(&query);
-	dns_message_destroy(&response);
+	dns_message_detach(&query);
+	dns_message_detach(&response);
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
 	isc_app_shutdown();

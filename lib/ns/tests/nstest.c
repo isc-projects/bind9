@@ -664,7 +664,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	 * Destroy the created message as it was rendered into "querybuf" and
 	 * the latter is all we are going to need from now on.
 	 */
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 
 	/*
 	 * Parse the rendered query, storing results in client->message.
@@ -677,7 +677,7 @@ put_name:
 put_rdataset:
 	dns_message_puttemprdataset(message, &qrdataset);
 destroy_message:
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 
 	return (result);
 }
@@ -813,7 +813,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	 */
 	result = create_qctx_for_client(client, qctxp);
 	if (result != ISC_R_SUCCESS) {
-		goto destroy_query;
+		goto detach_query;
 	}
 
 	/*
@@ -824,8 +824,8 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 
 	return (ISC_R_SUCCESS);
 
-destroy_query:
-	dns_message_destroy(&client->message);
+detach_query:
+	dns_message_detach(&client->message);
 detach_view:
 	dns_view_detach(&client->view);
 detach_client:

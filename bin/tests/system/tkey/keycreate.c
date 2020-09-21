@@ -116,8 +116,8 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	result = dst_key_tofile(tsigkey->key, type, "");
 	CHECK("dst_key_tofile", result);
 
-	dns_message_destroy(&query);
-	dns_message_destroy(&response);
+	dns_message_detach(&query);
+	dns_message_detach(&response);
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
 	isc_app_shutdown();
