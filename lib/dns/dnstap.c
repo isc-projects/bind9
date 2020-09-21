@@ -1041,7 +1041,7 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 	result = dns_message_parse(d->msg, &b, 0);
 	if (result != ISC_R_SUCCESS) {
 		if (result != DNS_R_RECOVERABLE)
-			dns_message_destroy(&d->msg);
+			dns_message_detach(&d->msg);
 		result = ISC_R_SUCCESS;
 	}
 
@@ -1248,7 +1248,7 @@ dns_dtdata_free(dns_dtdata_t **dp) {
 	d = *dp;
 
 	if (d->msg != NULL)
-		dns_message_destroy(&d->msg);
+		dns_message_detach(&d->msg);
 	if (d->frame != NULL)
 		dnstap__dnstap__free_unpacked(d->frame, NULL);
 

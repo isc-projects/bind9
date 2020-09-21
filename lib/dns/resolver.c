@@ -3966,8 +3966,8 @@ fctx_destroy(fetchctx_t *fctx) {
 	isc_counter_detach(&fctx->qc);
 	fcount_decr(fctx);
 	isc_timer_detach(&fctx->timer);
-	dns_message_destroy(&fctx->rmessage);
-	dns_message_destroy(&fctx->qmessage);
+	dns_message_detach(&fctx->rmessage);
+	dns_message_detach(&fctx->qmessage);
 	if (dns_name_countlabels(&fctx->domain) > 0)
 		dns_name_free(&fctx->domain, fctx->mctx);
 	if (dns_rdataset_isassociated(&fctx->nameservers))
@@ -4578,10 +4578,10 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	return (ISC_R_SUCCESS);
 
  cleanup_rmessage:
-	dns_message_destroy(&fctx->rmessage);
+	dns_message_detach(&fctx->rmessage);
 
  cleanup_qmessage:
-	dns_message_destroy(&fctx->qmessage);
+	dns_message_detach(&fctx->qmessage);
 
  cleanup_fcount:
 	fcount_decr(fctx);

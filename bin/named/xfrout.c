@@ -1580,7 +1580,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	}
 
 	if (tcpmsg != NULL)
-		dns_message_destroy(&tcpmsg);
+		dns_message_detach(&tcpmsg);
 
 	if (cleanup_cctx)
 		dns_compress_invalidate(&cctx);

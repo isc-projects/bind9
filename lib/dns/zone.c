@@ -11338,7 +11338,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
  cleanup_message:
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
  cleanup:
 	UNLOCK_ZONE(notify->zone);
 	isc_event_free(&event);
@@ -11887,7 +11887,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 	dns_db_detach(&stub->db);
 
-	dns_message_destroy(&msg);
+	dns_message_detach(&msg);
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
 
@@ -11909,7 +11909,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	if (stub->db != NULL)
 		dns_db_detach(&stub->db);
 	if (msg != NULL)
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
 	/*
@@ -11956,7 +11956,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
  same_master:
 	if (msg != NULL)
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
 	ns_query(zone, NULL, stub);
@@ -12352,7 +12352,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			ns_query(zone, rdataset, NULL);
 		}
 		if (msg != NULL)
-			dns_message_destroy(&msg);
+			dns_message_detach(&msg);
 	} else if (isc_serial_eq(soa.serial, oldserial)) {
 		isc_time_t expiretime;
 		uint32_t expire;
@@ -12387,12 +12387,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 	if (msg != NULL)
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	goto detach;
 
  next_master:
 	if (msg != NULL)
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
 	/*
@@ -12444,7 +12444,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 
  same_master:
 	if (msg != NULL)
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
 	queue_soa_query(zone);
@@ -12541,7 +12541,7 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
 	if (qrdataset != NULL)
 		dns_message_puttemprdataset(message, &qrdataset);
 	if (message != NULL)
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 	return (result);
 }
 
@@ -12751,7 +12751,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 	if (message != NULL)
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 	if (cancel)
 		cancel_refresh(zone);
 	isc_event_free(&event);
@@ -12762,7 +12762,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
  skip_master:
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 	/*
 	 * Skip to next failed / untried master.
 	 */
@@ -12983,7 +12983,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			      dns_result_totext(result));
 		goto cleanup;
 	}
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 	goto unlock;
 
  cleanup:
@@ -13000,7 +13000,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		isc_mem_put(stub->mctx, stub, sizeof(*stub));
 	}
 	if (message != NULL)
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
  unlock:
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
@@ -13436,7 +13436,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 		dns_message_puttempname(message, &tempname);
 	if (temprdataset != NULL)
 		dns_message_puttemprdataset(message, &temprdataset);
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 	return (result);
 }
 
@@ -14251,7 +14251,7 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 		notify_destroy(notify, false);
 	}
 	if (message != NULL)
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 }
 
 struct secure_event {
@@ -16247,7 +16247,7 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 
  next_master:
 	if (msg != NULL)
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	isc_event_free(&event);
 	forward->which++;
 	dns_request_destroy(&forward->request);

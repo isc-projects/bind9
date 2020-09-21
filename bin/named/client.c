@@ -758,7 +758,7 @@ exit_check(ns_client_t *client) {
 			client->keytag_len = 0;
 		}
 
-		dns_message_destroy(&client->message);
+		dns_message_detach(&client->message);
 
 		/*
 		 * Detaching the task must be done after unlinking from
@@ -3375,7 +3375,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->magic = 0;
 
  cleanup_message:
-	dns_message_destroy(&client->message);
+	dns_message_detach(&client->message);
 
  cleanup_timer:
 	isc_timer_detach(&client->timer);
