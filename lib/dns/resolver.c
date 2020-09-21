@@ -825,8 +825,8 @@ static isc_result_t
 rctx_answer_none(respctx_t *rctx);
 
 static void
-rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
-		isc_result_t result);
+rctx_nextserver(respctx_t *rctx, dns_message_t *message,
+		dns_adbaddrinfo_t *addrinfo, isc_result_t result);
 
 static void
 rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo);
@@ -835,7 +835,8 @@ static void
 rctx_next(respctx_t *rctx);
 
 static void
-rctx_chaseds(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo, isc_result_t result);
+rctx_chaseds(respctx_t *rctx, dns_message_t *message,
+	     dns_adbaddrinfo_t *addrinfo, isc_result_t result);
 
 static void
 rctx_done(respctx_t *rctx, isc_result_t result);
@@ -900,7 +901,8 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 
 	valarg->fctx = fctx;
 	valarg->addrinfo = addrinfo;
-	valarg->message = message;
+	valarg->message = NULL;
+	dns_message_attach(message, &valarg->message);
 
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		valoptions |= DNS_VALIDATOR_DEFER;
@@ -919,6 +921,7 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 		}
 		ISC_LIST_APPEND(fctx->validators, validator, link);
 	} else {
+		dns_message_detach(&valarg->message);
 		isc_mem_put(fctx->mctx, valarg, sizeof(*valarg));
 	}
 	return (result);
@@ -5550,14 +5553,14 @@ validated(isc_task_t *task, isc_event_t *event) {
 	uint32_t bucketnum;
 	dns_fixedname_t fwild;
 	dns_name_t *wild = NULL;
-	dns_message_t *message;
+	dns_message_t *message = NULL;
 
 	UNUSED(task); /* for now */
 
 	REQUIRE(event->ev_type == DNS_EVENT_VALIDATORDONE);
 	valarg = event->ev_arg;
-	message = valarg->message;
 	fctx = valarg->fctx;
+	dns_message_attach(valarg->message, &message);
 
 	REQUIRE(VALID_FCTX(fctx));
 	res = fctx->res;
@@ -5586,6 +5589,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 				wild);
 	}
 	dns_validator_destroy(&vevent->validator);
+	dns_message_detach(&valarg->message);
 	isc_mem_put(fctx->mctx, valarg, sizeof(*valarg));
 
 	negative = (vevent->rdataset == NULL);
@@ -5731,6 +5735,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 			fctx_try(fctx, true, true); /* Locks bucket. */
 		}
 
+		dns_message_detach(&message);
 		return;
 	}
 
@@ -9522,8 +9527,8 @@ again:
  * useful to try another one.
  */
 static void
-rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
-		isc_result_t result) {
+rctx_nextserver(respctx_t *rctx, dns_message_t *message,
+		dns_adbaddrinfo_t *addrinfo, isc_result_t result) {
 	fetchctx_t *fctx = rctx->fctx;
 
 	if (result == DNS_R_FORMERR) {
@@ -9534,8 +9539,8 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 		 * Add this server to the list of bad servers for
 		 * this fctx.
 		 */
-		add_bad(fctx, rctx->query->rmessage, addrinfo,
-			rctx->broken_server, rctx->broken_type);
+		add_bad(fctx, message, addrinfo, rctx->broken_server,
+			rctx->broken_type);
 	}
 
 	if (rctx->get_nameservers) {
@@ -9662,13 +9667,12 @@ rctx_next(respctx_t *rctx) {
  * Look up the parent zone's NS records so that DS records can be fetched.
  */
 static void
-rctx_chaseds(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
-	     isc_result_t result) {
+rctx_chaseds(respctx_t *rctx, dns_message_t *message,
+	     dns_adbaddrinfo_t *addrinfo, isc_result_t result) {
 	fetchctx_t *fctx = rctx->fctx;
 	unsigned int n;
 
-	add_bad(fctx, rctx->query->rmessage, addrinfo, result,
-		rctx->broken_type);
+	add_bad(fctx, message, addrinfo, result, rctx->broken_type);
 	fctx_cancelqueries(fctx, true, false);
 	fctx_cleanupfinds(fctx);
 	fctx_cleanupforwaddrs(fctx);
@@ -9708,6 +9712,14 @@ rctx_done(respctx_t *rctx, isc_result_t result) {
 	resquery_t *query = rctx->query;
 	fetchctx_t *fctx = rctx->fctx;
 	dns_adbaddrinfo_t *addrinfo = query->addrinfo;
+	/*
+	 * Need to attach to the message until the scope
+	 * of this function ends, since there are many places
+	 * where te message is used and/or may be destroyed
+	 * before this function ends.
+	 */
+	dns_message_t *message = NULL;
+	dns_message_attach(query->rmessage, &message);
 
 	FCTXTRACE4("query canceled in response(); ",
 		   rctx->no_response ? "no response" : "responding", result);
@@ -9736,13 +9748,13 @@ rctx_done(respctx_t *rctx, isc_result_t result) {
 #endif /* ifdef ENABLE_AFL */
 		if (rctx->next_server)
 	{
-		rctx_nextserver(rctx, addrinfo, result);
+		rctx_nextserver(rctx, message, addrinfo, result);
 	} else if (rctx->resend) {
 		rctx_resend(rctx, addrinfo);
 	} else if (rctx->nextitem) {
 		rctx_next(rctx);
 	} else if (result == DNS_R_CHASEDSSERVERS) {
-		rctx_chaseds(rctx, addrinfo, result);
+		rctx_chaseds(rctx, message, addrinfo, result);
 	} else if (result == ISC_R_SUCCESS && !HAVE_ANSWER(fctx)) {
 		/*
 		 * All has gone well so far, but we are waiting for the
@@ -9764,6 +9776,8 @@ rctx_done(respctx_t *rctx, isc_result_t result) {
 		 */
 		fctx_done(fctx, result, __LINE__);
 	}
+
+	dns_message_detach(&message);
 }
 
 /*
