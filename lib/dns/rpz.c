@@ -2008,6 +2008,7 @@ update_quantum(isc_task_t *task, isc_event_t *event) {
 			continue;
 		}
 
+		dns_name_downcase(name, name, NULL);
 		result = isc_ht_add(rpz->newnodes, name->ndata, name->length,
 				    rpz);
 		if (result != ISC_R_SUCCESS) {

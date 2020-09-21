@@ -824,6 +824,24 @@ EOF
     # ensure previous RPZ rules still apply.
     $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.after
     grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.after > /dev/null || setret "failed"
+
+    t=`expr $t + 1`
+    echo_i "checking reload of a mixed-case RPZ zone (${t})"
+    # First, a sanity check: the A6-2.TLD2.mixed-case-rpz RPZ record should
+    # cause a6-2.tld2 NOERROR answers to be rewritten to NXDOMAIN answers.
+    $DIG -p ${PORT} @$ns3 a6-2.tld2. A > dig.out.$t.before
+    grep "status: NXDOMAIN" dig.out.$t.before >/dev/null || setret "failed"
+    # Add a sibling name (a6-1.tld2.mixed-case-rpz, with "tld2" in lowercase
+    # rather than uppercase) before A6-2.TLD.mixed-case-rpz.
+    nextpart ns3/named.run > /dev/null
+    cp ns3/mixed-case-rpz-2.db.in ns3/mixed-case-rpz.db
+    rndc_reload ns3 $ns3 mixed-case-rpz
+    wait_for_log 20 "rpz: mixed-case-rpz: reload done" ns3/named.run
+    # a6-2.tld2 NOERROR answers should still be rewritten to NXDOMAIN answers.
+    # (The bug we try to trigger here caused a6-2.tld2.mixed-case-rpz to be
+    # erroneously removed from the summary RPZ database after reload.)
+    $DIG -p ${PORT} @$ns3 a6-2.tld2. A > dig.out.$t.after
+    grep "status: NXDOMAIN" dig.out.$t.after >/dev/null || setret "failed"
   fi
 
   t=`expr $t + 1`
