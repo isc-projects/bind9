@@ -111,7 +111,7 @@ recvdone(isc_task_t *task, isc_event_t *event) {
 	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
 	       (char *)isc_buffer_base(&outbuf));
 
-	dns_message_destroy(&response);
+	dns_message_detach(&response);
 	isc_event_free(&event);
 
 	isc_app_shutdown();
@@ -186,7 +186,7 @@ buildquery(void) {
 	inr.length = sizeof(rdata);
 	result = isc_socket_recv(s, &inr, 1, task1, recvdone, NULL);
 	CHECK("isc_socket_recv", result);
-	dns_message_destroy(&query);
+	dns_message_detach(&query);
 }
 
 int

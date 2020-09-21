@@ -157,12 +157,12 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	CHECK("dns_request_getresponse", result2);
 
 	if (response != NULL) {
-		dns_message_destroy(&response);
+		dns_message_detach(&response);
 	}
 
 end:
 	if (query != NULL) {
-		dns_message_destroy(&query);
+		dns_message_detach(&query);
 	}
 
 	if (reqev->request != NULL) {
@@ -255,7 +255,7 @@ end:
 		dns_message_puttemprdataset(message, &qrdataset);
 	}
 	if (message != NULL) {
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 	}
 }
 
@@ -321,11 +321,11 @@ initctx2(isc_task_t *task, isc_event_t *event) {
 		tsigkey = NULL;
 	}
 
-	dns_message_destroy(&response);
+	dns_message_detach(&response);
 
 end:
 	if (query != NULL) {
-		dns_message_destroy(&query);
+		dns_message_detach(&query);
 	}
 
 	if (reqev->request != NULL) {
