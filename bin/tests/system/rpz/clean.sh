@@ -31,6 +31,7 @@ rm -f ns*/*.key ns*/*.private
 rm -f ns2/tld2s.db ns2/bl.tld2.db
 rm -f ns3/bl*.db ns3/fast-expire.db ns*/empty.db
 rm -f ns3/manual-update-rpz.db
+rm -f ns3/mixed-case-rpz.db
 rm -f ns5/example.db ns5/bl.db ns5/fast-expire.db ns5/expire.conf
 rm -f ns8/manual-update-rpz.db
 rm -f */policy2.db
