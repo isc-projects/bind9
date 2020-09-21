@@ -1,3 +1,6 @@
+5505.	[bug]		Updating contents of a mixed-case RPZ could cause some
+			rules to be ignored. [GL #2169]
+
 5504.	[func]		The "glue-cache" option has been marked as deprecated.
 			The glue cache feature will be permanently enabled in a
 			future release. [GL #2146]
