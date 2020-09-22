@@ -9676,7 +9676,7 @@ view_loaded(void *arg) {
 			      "FIPS mode is %s",
 			      FIPS_mode() ? "enabled" : "disabled");
 #endif /* ifdef HAVE_FIPS_MODE */
-		server->reload_status = NAMED_RELOAD_DONE;
+		atomic_store(&server->reload_status, NAMED_RELOAD_DONE);
 
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
@@ -10013,7 +10013,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	CHECKFATAL(server->reload_event == NULL ? ISC_R_NOMEMORY
 						: ISC_R_SUCCESS,
 		   "allocating reload event");
-	server->reload_status = NAMED_RELOAD_IN_PROGRESS;
+	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
@@ -10329,7 +10329,7 @@ loadconfig(named_server_t *server) {
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "reloading configuration failed: %s",
 			      isc_result_totext(result));
-		server->reload_status = NAMED_RELOAD_FAILED;
+		atomic_store(&server->reload_status, NAMED_RELOAD_FAILED);
 	}
 
 	return (result);
@@ -10338,7 +10338,9 @@ loadconfig(named_server_t *server) {
 static isc_result_t
 reload(named_server_t *server) {
 	isc_result_t result;
-	server->reload_status = NAMED_RELOAD_IN_PROGRESS;
+
+	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
+
 	CHECK(loadconfig(server));
 
 	result = load_zones(server, false, false);
@@ -10351,7 +10353,7 @@ reload(named_server_t *server) {
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "reloading zones failed: %s",
 			      isc_result_totext(result));
-		server->reload_status = NAMED_RELOAD_FAILED;
+		atomic_store(&server->reload_status, NAMED_RELOAD_FAILED);
 	}
 cleanup:
 	return (result);
@@ -10701,7 +10703,7 @@ named_server_reloadcommand(named_server_t *server, isc_lex_t *lex,
 isc_result_t
 named_server_reconfigcommand(named_server_t *server) {
 	isc_result_t result;
-	server->reload_status = NAMED_RELOAD_IN_PROGRESS;
+	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
 
 	CHECK(loadconfig(server));
 
@@ -10715,7 +10717,7 @@ named_server_reconfigcommand(named_server_t *server) {
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "loading new zones failed: %s",
 			      isc_result_totext(result));
-		server->reload_status = NAMED_RELOAD_FAILED;
+		atomic_store(&server->reload_status, NAMED_RELOAD_FAILED);
 	}
 cleanup:
 	return (result);
@@ -11823,6 +11825,7 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	char boottime[ISC_FORMATHTTPTIMESTAMP_SIZE];
 	char configtime[ISC_FORMATHTTPTIMESTAMP_SIZE];
 	char line[1024], hostname[256];
+	named_reload_t reload_status;
 
 	if (named_g_server->version_set) {
 		ob = " (";
@@ -11926,9 +11929,10 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 						ns_statscounter_tcphighwater));
 	CHECK(putstr(text, line));
 
-	if (server->reload_status != NAMED_RELOAD_DONE) {
+	reload_status = atomic_load(&server->reload_status);
+	if (reload_status != NAMED_RELOAD_DONE) {
 		snprintf(line, sizeof(line), "reload/reconfig %s\n",
-			 (server->reload_status == NAMED_RELOAD_FAILED
+			 (reload_status == NAMED_RELOAD_FAILED
 				  ? "failed"
 				  : "in progress"));
 		CHECK(putstr(text, line));
