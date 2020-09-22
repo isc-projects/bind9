@@ -1414,3 +1414,23 @@ gcov:
   only:
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
+
+# Pairwise testing of ./configure options
+
+pairwise:
+  <<: *base_image
+  stage: build
+  needs:
+    - job: autoreconf
+      artifacts: true
+  script:
+      - util/pairwise-testing.sh
+  artifacts:
+    paths:
+      - pairwise-commands.txt
+      - pairwise-model.txt
+      - pairwise-output.*.txt
+    when: on_failure
+  only:
+    variables:
+      - $PAIRWISE_TESTING
