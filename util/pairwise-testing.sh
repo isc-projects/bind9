@@ -23,10 +23,10 @@ while read -r -a configure_switches; do
 	runid=${RANDOM}
 	mkdir "pairwise-${runid}"
 	cd "pairwise-${runid}"
-	echo "${configure_switches[@]}" > "../pairwise-output.${runid}.txt"
-	../configure "${configure_switches[@]}" 2>&1 | tee -a "../pairwise-output.${runid}.txt"
+	echo "${configure_switches[@]}" | tee "../pairwise-output.${runid}.txt"
+	../configure "${configure_switches[@]}" >> "../pairwise-output.${runid}.txt" 2>&1
 	grep -F "WARNING: unrecognized options:" "../pairwise-output.${runid}.txt" && exit 1
-	make "-j${BUILD_PARALLEL_JOBS:-1}" all 2>&1 | tee -a "../pairwise-output.${runid}.txt"
+	make "-j${BUILD_PARALLEL_JOBS:-1}" all >> "../pairwise-output.${runid}.txt" 2>&1
 	cd ..
 	rm -rf "pairwise-${runid}" "pairwise-output.${runid}.txt"
 done < pairwise-commands.txt
