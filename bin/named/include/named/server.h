@@ -34,6 +34,7 @@
 #define NS_EVENT_RELOAD		(NS_EVENTCLASS + 0)
 #define NS_EVENT_CLIENTCONTROL	(NS_EVENTCLASS + 1)
 #define NS_EVENT_DELZONE	(NS_EVENTCLASS + 2)
+#define NS_EVENT_TATSEND	(NS_EVENTCLASS + 3)
 
 /*%
  * Name server state.  Better here than in lots of separate global variables.
