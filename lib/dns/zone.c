@@ -2468,6 +2468,7 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_dbversion_t *version = NULL;
 	dns_masterrawheader_t rawdata;
+	dns_db_t *db = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	INSIST(task == zone->task);
@@ -2483,9 +2484,12 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 	INSIST(zone != zone->raw);
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL) {
+		dns_db_attach(zone->db, &db);
+	}
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (db != NULL) {
 		const dns_master_style_t *output_style;
-
-		dns_db_currentversion(zone->db, &version);
+		dns_db_currentversion(db, &version);
 		dns_master_initrawheader(&rawdata);
 		if (inline_secure(zone))
 			get_raw_serial(zone->raw, &rawdata);
@@ -2495,15 +2499,18 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 			output_style = zone->masterstyle;
 		else
 			output_style = &dns_master_style_default;
-		result = dns_master_dumpinc3(zone->mctx, zone->db, version,
+		result = dns_master_dumpinc3(zone->mctx, db, version,
 					     output_style, zone->masterfile,
 					     zone->task, dump_done, zone,
 					     &zone->dctx, zone->masterformat,
 					     &rawdata);
-		dns_db_closeversion(zone->db, &version, false);
-	} else
+		dns_db_closeversion(db, &version, false);
+	} else {
 		result = ISC_R_CANCELED;
-	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	}
+	if (db != NULL) {
+		dns_db_detach(&db);
+	}
 	UNLOCK_ZONE(zone);
 	if (result != DNS_R_CONTINUE)
 		goto fail;
