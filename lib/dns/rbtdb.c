@@ -3146,7 +3146,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 		rdataset->ttl = 0;
 	} else if (header->rdh_ttl < now) {
 		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;
-		rdataset->stale_ttl = 0;
+		rdataset->stale_ttl = header->rdh_ttl;
 		rdataset->ttl = 0;
 	}
 
