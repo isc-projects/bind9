@@ -1533,8 +1533,10 @@ default is used.
    If ``full``, the server collects statistical data on all zones,
    unless specifically turned off on a per-zone basis by specifying
    ``zone-statistics terse`` or ``zone-statistics none`` in the ``zone``
-   statement. The default is ``terse``, providing minimal statistics on
-   zones (including name and current serial number, but not query type
+   statement. The statistical data includes, for example, DNSSEC signing
+   operations and the number of authoritative answers per query type. The
+   default is ``terse``, providing minimal statistics on zones
+   (including name and current serial number, but not query type
    counters).
 
    These statistics may be accessed via the ``statistics-channel`` or
@@ -1885,7 +1887,7 @@ Boolean Options
 ``trust-anchor-telemetry``
    This causes ``named`` to send specially formed queries once per day to
    domains for which trust anchors have been configured via, e.g.,
-   ``dnssec-keys`` or ``dnssec-validation auto``.
+   ``trust-anchors`` or ``dnssec-validation auto``.
 
    The query name used for these queries has the form
    ``_ta-xxxx(-xxxx)(...).<domain>``, where each "xxxx" is a group of four
@@ -4654,7 +4656,7 @@ not used to validate answers; it is superseded by the key or keys stored
 in the managed-keys database.
 
 The next time ``named`` runs after an ``initial-key`` or ``initial-ds`` has been *removed*
-from the ``dnssec-keys`` statement (or changed to a ``static-key`` or ``static-ds``), the
+from the ``trust-anchors`` statement (or changed to a ``static-key`` or ``static-ds``), the
 corresponding zone is removed from the managed-keys database, and
 :rfc:`5011` key maintenance is no longer used for that domain.
 
