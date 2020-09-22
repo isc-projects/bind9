@@ -6893,9 +6893,12 @@ heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
 typedef struct {
 	isc_mem_t *mctx;
 	isc_task_t *task;
+	dns_fetch_t *fetch;
+	dns_view_t *view;
+	dns_fixedname_t tatname;
+	dns_fixedname_t keyname;
 	dns_rdataset_t rdataset;
 	dns_rdataset_t sigrdataset;
-	dns_fetch_t *fetch;
 } ns_tat_t;
 
 static int
@@ -6916,9 +6919,10 @@ tat_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	ns_tat_t *tat;
 
-	UNUSED(task);
 	INSIST(event != NULL && event->ev_type == DNS_EVENT_FETCHDONE);
 	INSIST(event->ev_arg != NULL);
+
+	UNUSED(task);
 
 	tat = event->ev_arg;
 	devent = (dns_fetchevent_t *)event;
@@ -6938,6 +6942,7 @@ tat_done(isc_task_t *task, isc_event_t *event) {
 	if (dns_rdataset_isassociated(&tat->sigrdataset)) {
 		dns_rdataset_disassociate(&tat->sigrdataset);
 	}
+	dns_view_detach(&tat->view);
 	isc_task_detach(&tat->task);
 	isc_mem_putanddetach(&tat->mctx, tat, sizeof(*tat));
 }
@@ -7021,46 +7026,31 @@ get_tat_qname(dns_name_t *target, dns_name_t *keyname, dns_keynode_t *keynode) {
 }
 
 static void
-dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
-      void *arg) {
-	struct dotat_arg *dotat_arg = arg;
+tat_send(isc_task_t *task, isc_event_t *event) {
+	ns_tat_t *tat;
 	char namebuf[DNS_NAME_FORMATSIZE];
-	dns_fixedname_t fixed, fdomain;
-	dns_name_t *tatname, *domain;
+	dns_fixedname_t fdomain;
+	dns_name_t *domain;
 	dns_rdataset_t nameservers;
 	isc_result_t result;
-	dns_view_t *view;
-	isc_task_t *task;
-	ns_tat_t *tat;
+	dns_name_t *keyname;
+	dns_name_t *tatname;
 
-	REQUIRE(keytable != NULL);
-	REQUIRE(keynode != NULL);
-	REQUIRE(dotat_arg != NULL);
+	INSIST(event != NULL && event->ev_type == NAMED_EVENT_TATSEND);
+	INSIST(event->ev_arg != NULL);
 
-	view = dotat_arg->view;
-	task = dotat_arg->task;
+	UNUSED(task);
 
-	tatname = dns_fixedname_initname(&fixed);
-	result = get_tat_qname(tatname, keyname, keynode);
-	if (result != ISC_R_SUCCESS) {
-		return;
-	}
+	tat = event->ev_arg;
+
+	keyname = dns_fixedname_name(&tat->keyname);
+	tatname = dns_fixedname_name(&tat->tatname);
 
 	dns_name_format(tatname, namebuf, sizeof(namebuf));
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 		      "%s: sending trust-anchor-telemetry query '%s/NULL'",
-		      view->name, namebuf);
-
-	tat = isc_mem_get(dotat_arg->view->mctx, sizeof(*tat));
-
-	tat->mctx = NULL;
-	tat->task = NULL;
-	tat->fetch = NULL;
-	dns_rdataset_init(&tat->rdataset);
-	dns_rdataset_init(&tat->sigrdataset);
-	isc_mem_attach(dotat_arg->view->mctx, &tat->mctx);
-	isc_task_attach(task, &tat->task);
+		      tat->view->name, namebuf);
 
 	/*
 	 * TAT queries should be sent to the authoritative servers for a given
@@ -7085,14 +7075,14 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
 	 */
 	domain = dns_fixedname_initname(&fdomain);
 	dns_rdataset_init(&nameservers);
-	result = dns_view_findzonecut(view, keyname, domain, NULL, 0, 0, true,
-				      true, &nameservers, NULL);
+	result = dns_view_findzonecut(tat->view, keyname, domain, NULL, 0, 0,
+				      true, true, &nameservers, NULL);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_resolver_createfetch(
-			view->resolver, tatname, dns_rdatatype_null, domain,
-			&nameservers, NULL, NULL, 0, 0, 0, NULL, tat->task,
-			tat_done, tat, &tat->rdataset, &tat->sigrdataset,
-			&tat->fetch);
+			tat->view->resolver, tatname, dns_rdatatype_null,
+			domain, &nameservers, NULL, NULL, 0, 0, 0, NULL,
+			tat->task, tat_done, tat, &tat->rdataset,
+			&tat->sigrdataset, &tat->fetch);
 	}
 
 	/*
@@ -7111,9 +7101,66 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
 	}
 
 	if (result != ISC_R_SUCCESS) {
+		dns_view_detach(&tat->view);
 		isc_task_detach(&tat->task);
 		isc_mem_putanddetach(&tat->mctx, tat, sizeof(*tat));
 	}
+	isc_event_free(&event);
+}
+
+static void
+dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
+      void *arg) {
+	struct dotat_arg *dotat_arg = arg;
+	isc_result_t result;
+	dns_view_t *view;
+	isc_task_t *task;
+	ns_tat_t *tat;
+	isc_event_t *event;
+
+	REQUIRE(keytable != NULL);
+	REQUIRE(keynode != NULL);
+	REQUIRE(dotat_arg != NULL);
+
+	view = dotat_arg->view;
+	task = dotat_arg->task;
+
+	tat = isc_mem_get(dotat_arg->view->mctx, sizeof(*tat));
+
+	tat->fetch = NULL;
+	tat->mctx = NULL;
+	tat->task = NULL;
+	tat->view = NULL;
+	dns_rdataset_init(&tat->rdataset);
+	dns_rdataset_init(&tat->sigrdataset);
+	dns_name_copynf(keyname, dns_fixedname_initname(&tat->keyname));
+	result = get_tat_qname(dns_fixedname_initname(&tat->tatname), keyname,
+			       keynode);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(dotat_arg->view->mctx, tat, sizeof(*tat));
+		return;
+	}
+	isc_mem_attach(dotat_arg->view->mctx, &tat->mctx);
+	isc_task_attach(task, &tat->task);
+	dns_view_attach(view, &tat->view);
+
+	/*
+	 * We don't want to be holding the keytable lock when calling
+	 * dns_view_findzonecut() as it creates a lock order loop so
+	 * call dns_view_findzonecut() in a event handler.
+	 *
+	 * zone->lock (dns_zone_setviewcommit) while holding view->lock
+	 * (dns_view_setviewcommit)
+	 *
+	 * keytable->lock (dns_keytable_find) while holding zone->lock
+	 * (zone_asyncload)
+	 *
+	 * view->lock (dns_view_findzonecut) while holding keytable->lock
+	 * (dns_keytable_forall)
+	 */
+	event = isc_event_allocate(tat->mctx, keytable, NAMED_EVENT_TATSEND,
+				   tat_send, tat, sizeof(isc_event_t));
+	isc_task_send(task, &event);
 }
 
 static void
