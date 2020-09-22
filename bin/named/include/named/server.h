@@ -38,6 +38,8 @@
 #define NAMED_EVENTCLASS    ISC_EVENTCLASS(0x4E43)
 #define NAMED_EVENT_RELOAD  (NAMED_EVENTCLASS + 0)
 #define NAMED_EVENT_DELZONE (NAMED_EVENTCLASS + 1)
+#define NAMED_EVENT_COMMAND (NAMED_EVENTCLASS + 2)
+#define NAMED_EVENT_TATSEND (NAMED_EVENTCLASS + 3)
 
 /*%
  * Name server state.  Better here than in lots of separate global variables.
