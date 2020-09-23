@@ -243,6 +243,7 @@ struct dumpcontext {
 	bool dumpzones;
 	bool dumpadb;
 	bool dumpbad;
+	bool dumpexpired;
 	bool dumpfail;
 	FILE *fp;
 	ISC_LIST(struct viewlistentry) viewlist;
@@ -11052,7 +11053,11 @@ resume:
 			dns_cache_getname(dctx->view->view->cache));
 	} else if (dctx->zone == NULL && dctx->cache == NULL && dctx->dumpcache)
 	{
-		style = &dns_master_style_cache;
+		if (dctx->dumpexpired) {
+			style = &dns_master_style_cache_with_expired;
+		} else {
+			style = &dns_master_style_cache;
+		}
 		/* start cache dump */
 		if (dctx->view->view->cachedb != NULL) {
 			dns_db_attach(dctx->view->view->cachedb, &dctx->cache);
@@ -11186,6 +11191,7 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 	dctx->dumpcache = true;
 	dctx->dumpadb = true;
 	dctx->dumpbad = true;
+	dctx->dumpexpired = false;
 	dctx->dumpfail = true;
 	dctx->dumpzones = false;
 	dctx->fp = NULL;
@@ -11215,6 +11221,10 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 		ptr = next_token(lex, NULL);
 	} else if (ptr != NULL && strcmp(ptr, "-cache") == 0) {
 		/* this is the default */
+		ptr = next_token(lex, NULL);
+	} else if (ptr != NULL && strcmp(ptr, "-expired") == 0) {
+		/* this is the same as -cache but includes expired data */
+		dctx->dumpexpired = true;
 		ptr = next_token(lex, NULL);
 	} else if (ptr != NULL && strcmp(ptr, "-zones") == 0) {
 		/* only dump zones, suppress caches */

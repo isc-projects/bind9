@@ -3144,7 +3144,12 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 		rdataset->stale_ttl =
 			(rbtdb->serve_stale_ttl + header->rdh_ttl) - now;
 		rdataset->ttl = 0;
+	} else if (header->rdh_ttl < now) {
+		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;
+		rdataset->stale_ttl = header->rdh_ttl;
+		rdataset->ttl = 0;
 	}
+
 	rdataset->private1 = rbtdb;
 	rdataset->private2 = node;
 	raw = (unsigned char *)header + sizeof(*header);
@@ -9125,13 +9130,13 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 				 *
 				 * Note: unlike everywhere else, we
 				 * check for now > header->rdh_ttl instead
-				 * of now >= header->rdh_ttl.  This allows
-				 * ANY and RRSIG queries for 0 TTL
-				 * rdatasets to work.
+				 * of ">=".  This allows ANY and RRSIG
+				 *  queries for 0 TTL rdatasets to work.
 				 */
 				if (NONEXISTENT(header) ||
 				    (now != 0 &&
-				     now > header->rdh_ttl +
+				     (now - RBTDB_VIRTUAL) >
+					     header->rdh_ttl +
 						     rbtdb->serve_stale_ttl))
 				{
 					header = NULL;
@@ -9209,12 +9214,13 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 					 *
 					 * Note: unlike everywhere else, we
 					 * check for now > header->ttl instead
-					 * of now >= header->ttl.  This allows
-					 * ANY and RRSIG queries for 0 TTL
-					 * rdatasets to work.
+					 * of ">=".  This allows ANY and RRSIG
+					 * queries for 0 TTL rdatasets to work.
 					 */
 					if (NONEXISTENT(header) ||
-					    (now != 0 && now > header->rdh_ttl))
+					    (now != 0 &&
+					     (now - RBTDB_VIRTUAL) >
+						     header->rdh_ttl))
 					{
 						header = NULL;
 					}
