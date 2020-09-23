@@ -204,6 +204,11 @@
 #define RECV_BUFFER_SIZE 4096 /* XXXRTH  Constant. */
 
 /*%
+ * Default EDNS0 buffer size
+ */
+#define DEFAULT_EDNS_BUFSIZE 1232
+
+/*%
  * This defines the maximum number of timeouts we will permit before we
  * disable EDNS0 on the query.
  */
@@ -316,7 +321,6 @@ struct fetchctx {
 	dns_fwdpolicy_t fwdpolicy;
 	isc_sockaddrlist_t bad;
 	ISC_LIST(struct tried) edns;
-	ISC_LIST(struct tried) edns512;
 	isc_sockaddrlist_t bad_edns;
 	dns_validator_t *validator;
 	ISC_LIST(dns_validator_t) validators;
@@ -1215,7 +1219,7 @@ update_edns_stats(resquery_t *query) {
 	}
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
-		dns_adb_ednsto(fctx->adb, query->addrinfo, query->udpsize);
+		dns_adb_ednsto(fctx->adb, query->addrinfo);
 	} else {
 		dns_adb_timeout(fctx->adb, query->addrinfo);
 	}
@@ -2321,38 +2325,6 @@ add_triededns(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	ISC_LIST_INITANDAPPEND(fctx->edns, tried, link);
 }
 
-static struct tried *
-triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
-	struct tried *tried;
-
-	for (tried = ISC_LIST_HEAD(fctx->edns512); tried != NULL;
-	     tried = ISC_LIST_NEXT(tried, link))
-	{
-		if (isc_sockaddr_equal(&tried->addr, address)) {
-			return (tried);
-		}
-	}
-
-	return (NULL);
-}
-
-static void
-add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
-	struct tried *tried;
-
-	tried = triededns512(fctx, address);
-	if (tried != NULL) {
-		tried->count++;
-		return;
-	}
-
-	tried = isc_mem_get(fctx->mctx, sizeof(*tried));
-
-	tried->addr = *address;
-	tried->count = 1;
-	ISC_LIST_INITANDAPPEND(fctx->edns512, tried, link);
-}
-
 static inline size_t
 addr2buf(void *buf, const size_t bufsize, const isc_sockaddr_t *sockaddr) {
 	isc_netaddr_t netaddr;
@@ -2607,15 +2579,14 @@ resquery_send(resquery_t *query) {
 		 * response size we have seen from this server so far.
 		 *
 		 * If this server has already timed out twice or more in this
-		 * fetch context, force setting the advertised UDP buffer size
-		 * to 512 bytes.
+		 * fetch context, force TCP.
 		 */
 		if ((tried = triededns(fctx, sockaddr)) != NULL) {
 			if (tried->count == 1U) {
 				hint = dns_adb_getudpsize(fctx->adb,
 							  query->addrinfo);
 			} else if (tried->count >= 2U) {
-				query->options |= DNS_FETCHOPT_EDNS512;
+				query->options |= DNS_FETCHOPT_TCP;
 			}
 		}
 	}
@@ -2637,23 +2608,10 @@ resquery_send(resquery_t *query) {
 			uint16_t padding = 0;
 
 			/*
-			 * If we ever received an EDNS response from this
-			 * server, initialize 'udpsize' with a value between
-			 * 512 and 4096, based on any potential EDNS timeouts
-			 * observed for this particular server in the past and
-			 * the total number of query timeouts observed for this
-			 * fetch context so far.  Clamp 'udpsize' to the global
-			 * 'edns-udp-size' value (if unset, the latter defaults
-			 * to 4096 bytes).
+			 * Set the default UDP size to what was configured as
+			 * 'edns-buffer-size'
 			 */
-			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0) {
-				udpsize = dns_adb_probesize(fctx->adb,
-							    query->addrinfo,
-							    fctx->timeouts);
-				if (udpsize > res->udpsize) {
-					udpsize = res->udpsize;
-				}
-			}
+			udpsize = res->udpsize;
 
 			/*
 			 * This server timed out for the first time in this
@@ -2665,17 +2623,6 @@ resquery_send(resquery_t *query) {
 			 */
 			if (hint != 0U) {
 				udpsize = hint;
-			}
-
-			/*
-			 * If we have not received any responses from this
-			 * server before or if this server has already timed
-			 * out twice or more in this fetch context, use an EDNS
-			 * UDP buffer size of 512 bytes.
-			 */
-			if (udpsize == 0U ||
-			    (query->options & DNS_FETCHOPT_EDNS512) != 0) {
-				udpsize = 512;
 			}
 
 			/*
@@ -2805,13 +2752,7 @@ resquery_send(resquery_t *query) {
 		goto cleanup_message;
 	}
 
-	if (udpsize > 512U) {
-		add_triededns(fctx, &query->addrinfo->sockaddr);
-	}
-
-	if (udpsize == 512U) {
-		add_triededns512(fctx, &query->addrinfo->sockaddr);
-	}
+	add_triededns(fctx, &query->addrinfo->sockaddr);
 
 	/*
 	 * Clear CD if EDNS is not in use.
@@ -3101,17 +3042,10 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			isc_socket_detach(&query->tcpsocket);
 			/*
 			 * Do not query this server again in this fetch context
-			 * if we already tried reducing the advertised EDNS UDP
-			 * payload size to 512 bytes and the server is
-			 * unavailable over TCP.  This prevents query loops
-			 * lasting until the fetch context restart limit is
-			 * reached when attempting to get answers whose size
-			 * exceeds 512 bytes from broken servers.
+			 * if the server is unavailable over TCP.
 			 */
-			if ((query->options & DNS_FETCHOPT_EDNS512) != 0) {
-				add_bad(fctx, query->rmessage, query->addrinfo,
-					sevent->result, badns_unreachable);
-			}
+			add_bad(fctx, query->rmessage, query->addrinfo,
+				sevent->result, badns_unreachable);
 			fctx_cancelquery(&query, NULL, NULL, true, false);
 			retry = true;
 			break;
@@ -4556,13 +4490,6 @@ fctx_destroy(fetchctx_t *fctx) {
 		isc_mem_put(fctx->mctx, tried, sizeof(*tried));
 	}
 
-	for (tried = ISC_LIST_HEAD(fctx->edns512); tried != NULL;
-	     tried = ISC_LIST_HEAD(fctx->edns512))
-	{
-		ISC_LIST_UNLINK(fctx->edns512, tried, link);
-		isc_mem_put(fctx->mctx, tried, sizeof(*tried));
-	}
-
 	for (sa = ISC_LIST_HEAD(fctx->bad_edns); sa != NULL; sa = next_sa) {
 		next_sa = ISC_LIST_NEXT(sa, link);
 		ISC_LIST_UNLINK(fctx->bad_edns, sa, link);
@@ -4993,7 +4920,6 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->fwdpolicy = dns_fwdpolicy_none;
 	ISC_LIST_INIT(fctx->bad);
 	ISC_LIST_INIT(fctx->edns);
-	ISC_LIST_INIT(fctx->edns512);
 	ISC_LIST_INIT(fctx->bad_edns);
 	ISC_LIST_INIT(fctx->validators);
 	fctx->validator = NULL;
@@ -10190,7 +10116,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	res->options = options;
 	res->lame_ttl = 0;
 	ISC_LIST_INIT(res->alternates);
-	res->udpsize = RECV_BUFFER_SIZE;
+	res->udpsize = DEFAULT_EDNS_BUFSIZE;
 	res->algorithms = NULL;
 	res->digests = NULL;
 	res->badcache = NULL;

@@ -249,20 +249,13 @@ struct dns_adbentry {
 	unsigned char plain;
 	unsigned char plainto;
 	unsigned char edns;
-	unsigned char to4096; /* Our max. */
+	unsigned char ednsto;
 
 	uint8_t mode;
 	atomic_uint_fast32_t quota;
 	atomic_uint_fast32_t active;
 	double atr;
 
-	/*
-	 * Allow for encapsulated IPv4/IPv6 UDP packet over ethernet.
-	 * Ethernet 1500 - IP(20) - IP6(40) - UDP(8) = 1432.
-	 */
-	unsigned char to1432; /* Ethernet */
-	unsigned char to1232; /* IPv6 nofrag */
-	unsigned char to512;  /* plain DNS */
 	isc_sockaddr_t sockaddr;
 	unsigned char *cookie;
 	uint16_t cookielen;
@@ -1893,14 +1886,11 @@ new_adbentry(dns_adb_t *adb) {
 	e->flags = 0;
 	e->udpsize = 0;
 	e->edns = 0;
+	e->ednsto = 0;
 	e->completed = 0;
 	e->timeouts = 0;
 	e->plain = 0;
 	e->plainto = 0;
-	e->to4096 = 0;
-	e->to1432 = 0;
-	e->to1232 = 0;
-	e->to512 = 0;
 	e->cookie = NULL;
 	e->cookielen = 0;
 	e->srtt = (isc_random_uniform(0x1f)) + 1;
@@ -3529,8 +3519,7 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 	dns_adbentry_t *entry;
 
 	fprintf(f, ";\n; Address database dump\n;\n");
-	fprintf(f, "; [edns success/4096 timeout/1432 timeout/1232 timeout/"
-		   "512 timeout]\n");
+	fprintf(f, "; [edns success/timeout]\n");
 	fprintf(f, "; [plain success/timeout]\n;\n");
 	if (debug) {
 		LOCK(&adb->reflock);
@@ -3656,11 +3645,10 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry, bool debug,
 	}
 
 	fprintf(f,
-		";\t%s [srtt %u] [flags %08x] [edns %u/%u/%u/%u/%u] "
+		";\t%s [srtt %u] [flags %08x] [edns %u/%u] "
 		"[plain %u/%u]",
-		addrbuf, entry->srtt, entry->flags, entry->edns, entry->to4096,
-		entry->to1432, entry->to1232, entry->to512, entry->plain,
-		entry->plainto);
+		addrbuf, entry->srtt, entry->flags, entry->edns, entry->ednsto,
+		entry->plain, entry->plainto);
 	if (entry->udpsize != 0U) {
 		fprintf(f, " [udpsize %u]", entry->udpsize);
 	}
@@ -4437,41 +4425,6 @@ maybe_adjust_quota(dns_adb_t *adb, dns_adbaddrinfo_t *addr, bool timeout) {
 }
 
 #define EDNSTOS 3U
-bool
-dns_adb_noedns(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
-	int bucket;
-	bool noedns = false;
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-
-	bucket = addr->entry->lock_bucket;
-	LOCK(&adb->entrylocks[bucket]);
-
-	if (addr->entry->edns == 0U &&
-	    (addr->entry->plain > EDNSTOS || addr->entry->to4096 > EDNSTOS))
-	{
-		if (((addr->entry->plain + addr->entry->to4096) & 0x3f) != 0) {
-			noedns = true;
-		} else {
-			/*
-			 * Increment plain so we don't get stuck.
-			 */
-			addr->entry->plain++;
-			if (addr->entry->plain == 0xff) {
-				addr->entry->edns >>= 1;
-				addr->entry->to4096 >>= 1;
-				addr->entry->to1432 >>= 1;
-				addr->entry->to1232 >>= 1;
-				addr->entry->to512 >>= 1;
-				addr->entry->plain >>= 1;
-				addr->entry->plainto >>= 1;
-			}
-		}
-	}
-	UNLOCK(&adb->entrylocks[bucket]);
-	return (noedns);
-}
 
 void
 dns_adb_plainresponse(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
@@ -4488,10 +4441,7 @@ dns_adb_plainresponse(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 	addr->entry->plain++;
 	if (addr->entry->plain == 0xff) {
 		addr->entry->edns >>= 1;
-		addr->entry->to4096 >>= 1;
-		addr->entry->to1432 >>= 1;
-		addr->entry->to1232 >>= 1;
-		addr->entry->to512 >>= 1;
+		addr->entry->ednsto >>= 1;
 		addr->entry->plain >>= 1;
 		addr->entry->plainto >>= 1;
 	}
@@ -4510,25 +4460,10 @@ dns_adb_timeout(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 
 	maybe_adjust_quota(adb, addr, true);
 
-	/*
-	 * If we have not had a successful query then clear all
-	 * edns timeout information.
-	 */
-	if (addr->entry->edns == 0 && addr->entry->plain == 0) {
-		addr->entry->to512 = 0;
-		addr->entry->to1232 = 0;
-		addr->entry->to1432 = 0;
-		addr->entry->to4096 = 0;
-	} else {
-		addr->entry->to512 >>= 1;
-		addr->entry->to1232 >>= 1;
-		addr->entry->to1432 >>= 1;
-		addr->entry->to4096 >>= 1;
-	}
-
 	addr->entry->plainto++;
 	if (addr->entry->plainto == 0xff) {
 		addr->entry->edns >>= 1;
+		addr->entry->ednsto >>= 1;
 		addr->entry->plain >>= 1;
 		addr->entry->plainto >>= 1;
 	}
@@ -4536,7 +4471,7 @@ dns_adb_timeout(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 }
 
 void
-dns_adb_ednsto(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int size) {
+dns_adb_ednsto(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 	int bucket;
 
 	REQUIRE(DNS_ADB_VALID(adb));
@@ -4547,36 +4482,10 @@ dns_adb_ednsto(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int size) {
 
 	maybe_adjust_quota(adb, addr, true);
 
-	if (size <= 512U) {
-		if (addr->entry->to512 <= EDNSTOS) {
-			addr->entry->to512++;
-			addr->entry->to1232++;
-			addr->entry->to1432++;
-			addr->entry->to4096++;
-		}
-	} else if (size <= 1232U) {
-		if (addr->entry->to1232 <= EDNSTOS) {
-			addr->entry->to1232++;
-			addr->entry->to1432++;
-			addr->entry->to4096++;
-		}
-	} else if (size <= 1432U) {
-		if (addr->entry->to1432 <= EDNSTOS) {
-			addr->entry->to1432++;
-			addr->entry->to4096++;
-		}
-	} else {
-		if (addr->entry->to4096 <= EDNSTOS) {
-			addr->entry->to4096++;
-		}
-	}
-
-	if (addr->entry->to4096 == 0xff) {
+	addr->entry->ednsto++;
+	if (addr->entry->ednsto == 0xff) {
 		addr->entry->edns >>= 1;
-		addr->entry->to4096 >>= 1;
-		addr->entry->to1432 >>= 1;
-		addr->entry->to1232 >>= 1;
-		addr->entry->to512 >>= 1;
+		addr->entry->ednsto >>= 1;
 		addr->entry->plain >>= 1;
 		addr->entry->plainto >>= 1;
 	}
@@ -4604,10 +4513,7 @@ dns_adb_setudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int size) {
 	addr->entry->edns++;
 	if (addr->entry->edns == 0xff) {
 		addr->entry->edns >>= 1;
-		addr->entry->to4096 >>= 1;
-		addr->entry->to1432 >>= 1;
-		addr->entry->to1232 >>= 1;
-		addr->entry->to512 >>= 1;
+		addr->entry->ednsto >>= 1;
 		addr->entry->plain >>= 1;
 		addr->entry->plainto >>= 1;
 	}
@@ -4625,38 +4531,6 @@ dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 	size = addr->entry->udpsize;
-	UNLOCK(&adb->entrylocks[bucket]);
-
-	return (size);
-}
-
-unsigned int
-dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups) {
-	int bucket;
-	unsigned int size;
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-
-	bucket = addr->entry->lock_bucket;
-	LOCK(&adb->entrylocks[bucket]);
-	if (addr->entry->to1232 > EDNSTOS || lookups >= 2) {
-		size = 512;
-	} else if (addr->entry->to1432 > EDNSTOS || lookups >= 1) {
-		size = 1232;
-	} else if (addr->entry->to4096 > EDNSTOS) {
-		size = 1432;
-	} else {
-		size = 4096;
-	}
-	/*
-	 * Don't shrink probe size below what we have seen due to multiple
-	 * lookups.
-	 */
-	if (lookups > 0 && size < addr->entry->udpsize &&
-	    addr->entry->udpsize < 4096) {
-		size = addr->entry->udpsize;
-	}
 	UNLOCK(&adb->entrylocks[bucket]);
 
 	return (size);

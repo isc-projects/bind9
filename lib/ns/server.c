@@ -87,7 +87,7 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpoutstats6,
 				    dns_sizecounter_out_max));
 
-	sctx->udpsize = 4096;
+	sctx->udpsize = 1232;
 	sctx->transfer_tcp_message_size = 20480;
 
 	sctx->fuzztype = isc_fuzz_none;

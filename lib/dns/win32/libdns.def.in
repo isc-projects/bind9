@@ -49,9 +49,7 @@ dns_adb_freeaddrinfo
 dns_adb_getcookie
 dns_adb_getudpsize
 dns_adb_marklame
-dns_adb_noedns
 dns_adb_plainresponse
-dns_adb_probesize
 dns_adb_setadbsize
 dns_adb_setcookie
 dns_adb_setquota

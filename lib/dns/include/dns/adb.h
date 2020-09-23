@@ -606,19 +606,6 @@ dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
  *\li	addr be valid.
  */
 
-unsigned int
-dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups);
-/*%
- * Return suggested EDNS UDP size based on observed responses / failures.
- * 'lookups' is the number of times the current lookup has been attempted.
- *
- * Requires:
- *
- *\li	adb be valid.
- *
- *\li	addr be valid.
- */
-
 void
 dns_adb_plainresponse(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
 /*%
@@ -644,22 +631,9 @@ dns_adb_timeout(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
  */
 
 void
-dns_adb_ednsto(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int size);
+dns_adb_ednsto(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
 /*%
- * Record a failed EDNS UDP response and the advertised EDNS UDP buffer size
- * used.
- *
- * Requires:
- *
- *\li	adb be valid.
- *
- *\li	addr be valid.
- */
-
-bool
-dns_adb_noedns(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
-/*%
- * Return whether EDNS should be disabled for this server.
+ * Record a EDNS UDP query failed.
  *
  * Requires:
  *

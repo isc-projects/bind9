@@ -1842,7 +1842,7 @@ Boolean Options
 ``nocookie-udp-size``
    This sets the maximum size of UDP responses that are sent to queries
    without a valid server COOKIE. A value below 128 is silently
-   raised to 128. The default value is 4096, but the ``max-udp-size``
+   raised to 128. The default value is 1232, but the ``max-udp-size``
    option may further limit the response size.
 
 ``sit-secret``
@@ -3399,7 +3399,7 @@ Tuning
    the size of packets received from authoritative servers in response
    to recursive queries. Valid values are 512 to 4096; values outside
    this range are silently adjusted to the nearest value within it.
-   The default value is 4096.
+   The default value is 1232.
 
    The usual reason for setting ``edns-udp-size`` to a non-default value
    is to get UDP answers to pass through broken firewalls that block
@@ -3407,26 +3407,12 @@ Tuning
    512 bytes.
 
    When ``named`` first queries a remote server, it advertises a UDP
-   buffer size of 512, as this has the greatest chance of success on the
-   first try.
+   buffer size of 1232.
 
-   If the initial query is successful with EDNS advertising a buffer
-   size of 512, then ``named`` switches to advertising a buffer size
-   of 4096 bytes (unless ``edns-udp-size`` is lower, in which case the
-   latter will be used).
-
-   Query timeouts observed for any given server affect the buffer
-   size advertised in queries sent to that server.  Depending on
-   observed packet dropping patterns, the advertised buffer size is
-   lowered to 1432 bytes, 1232 bytes, 512 bytes, or the size of the
-   largest UDP response ever received from a given server, and then
-   clamped to the ``<512, edns-udp-size>`` range.  Per-server EDNS
-   statistics are only retained in memory for the lifetime of a given
-   server's ADB entry.
-
-   (The values 1232 and 1432 are chosen to allow for an
-   IPv4-/IPv6-encapsulated UDP message to be sent without fragmentation at the
-   minimum MTU sizes for Ethernet and IPv6 networks.)
+   Query timeouts observed for any given server affect the buffer size
+   advertised in queries sent to that server.  Depending on observed packet
+   dropping patterns, the query is retried over TCP.  Per-server EDNS statistics
+   are only retained in memory for the lifetime of a given server's ADB entry.
 
    Any server-specific ``edns-udp-size`` setting has precedence over all
    the above rules.
@@ -3435,7 +3421,7 @@ Tuning
    This sets the maximum EDNS UDP message size that ``named`` sends, in bytes.
    Valid values are 512 to 4096; values outside this range are
    silently adjusted to the nearest value within it. The default value
-   is 4096.
+   is 1232.
 
    This value applies to responses sent by a server; to set the
    advertised buffer size in queries, see ``edns-udp-size``.

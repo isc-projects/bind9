@@ -59,7 +59,7 @@ options {\n\
 #	directory <none>\n\
 	dnssec-policy \"none\";\n\
 	dump-file \"named_dump.db\";\n\
-	edns-udp-size 4096;\n\
+	edns-udp-size 1232;\n\
 #	fake-iquery <obsolete>;\n"
 #ifndef WIN32
 			    "	files unlimited;\n"
@@ -83,11 +83,11 @@ options {\n\
 	match-mapped-addresses no;\n\
 	max-ixfr-ratio 100%;\n\
 	max-rsa-exponent-size 0; /* no limit */\n\
-	max-udp-size 4096;\n\
+	max-udp-size 1232;\n\
 	memstatistics-file \"named.memstats\";\n\
 #	multiple-cnames <obsolete>;\n\
 #	named-xfer <obsolete>;\n\
-	nocookie-udp-size 4096;\n\
+	nocookie-udp-size 1232;\n\
 	notify-rate 20;\n\
 	nta-lifetime 3600;\n\
 	nta-recheck 300;\n\
