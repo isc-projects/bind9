@@ -1886,7 +1886,7 @@ Boolean Options
    without a valid server COOKIE. A value below 128 is silently
    raised to 128. The default value is 4096, but the ``max-udp-size``
    option may further limit the response size as the default for
-   ``max-udp-size`` is 1232.
+   ``max-udp-size`` is 4096.
 
 ``sit-secret``
    This experimental option is obsolete.
