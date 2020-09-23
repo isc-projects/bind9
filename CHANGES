@@ -1,3 +1,6 @@
+5507.	[bug]		Named could compute incorrect SIG(0) responses.
+			[GL #2109]
+
 5506.	[bug]		Properly handle failed sysconf() calls, so we don't
 			report invalid memory size. [GL #2166]
 

@@ -1486,6 +1486,16 @@ dns_message_setpadding(dns_message_t *msg, uint16_t padding);
  * \li	msg be a valid message.
  */
 
+void
+dns_message_clonebuffer(dns_message_t *msg);
+/*%<
+ * Clone the query or saved buffers if they where not cloned
+ * when parsing.
+ *
+ * Requires:
+ * \li   msg be a valid message.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_MESSAGE_H */
