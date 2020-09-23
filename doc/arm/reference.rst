@@ -1844,7 +1844,7 @@ Boolean Options
 ``nocookie-udp-size``
    This sets the maximum size of UDP responses that are sent to queries
    without a valid server COOKIE. A value below 128 is silently
-   raised to 128. The default value is 4096, but the ``max-udp-size``
+   raised to 128. The default value is 1232, but the ``max-udp-size``
    option may further limit the response size.
 
 ``sit-secret``
@@ -3401,7 +3401,7 @@ Tuning
    the size of packets received from authoritative servers in response
    to recursive queries. Valid values are 512 to 4096; values outside
    this range are silently adjusted to the nearest value within it.
-   The default value is 4096.
+   The default value is 1232.
 
    The usual reason for setting ``edns-udp-size`` to a non-default value
    is to get UDP answers to pass through broken firewalls that block
@@ -3427,7 +3427,7 @@ Tuning
    This sets the maximum EDNS UDP message size that ``named`` sends in bytes.
    Valid values are 512 to 4096; values outside this range are
    silently adjusted to the nearest value within it. The default value
-   is 4096.
+   is 1232.
 
    This value applies to responses sent by a server; to set the
    advertised buffer size in queries, see ``edns-udp-size``.
