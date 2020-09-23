@@ -153,6 +153,7 @@ typedef enum isc__netievent_type {
 	netievent_closecb,
 	netievent_shutdown,
 	netievent_stop,
+	netievent_pause,
 
 	netievent_prio = 0xff, /* event type values higher than this
 				* will be treated as high-priority
@@ -161,6 +162,7 @@ typedef enum isc__netievent_type {
 				*/
 	netievent_udplisten,
 	netievent_tcplisten,
+	netievent_resume,
 } isc__netievent_type;
 
 typedef union {
@@ -297,10 +299,9 @@ struct isc_nm {
 	isc_mempool_t *evpool;
 	isc_mutex_t evlock;
 
-	atomic_uint_fast32_t workers_running;
-	atomic_uint_fast32_t workers_paused;
+	uint_fast32_t workers_running;
+	uint_fast32_t workers_paused;
 	atomic_uint_fast32_t maxudp;
-	atomic_bool paused;
 
 	/*
 	 * Active connections are being closed and new connections are
