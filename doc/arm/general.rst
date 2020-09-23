@@ -410,7 +410,7 @@ September 2004.
 :rfc:`7793` - M. Andrews. *Adding 100.64.0.0/10 Prefixes to the IPv4
 Locally-Served DNS Zones Registry.* May 2016.
 
-:rfc:`8096` - M. Andrews and R. Bellis. *A Common Operational Problem in DNS
+:rfc:`8906` - M. Andrews and R. Bellis. *A Common Operational Problem in DNS
 Servers: Failure to Communicate.* September 2020.
 
 Historic RFCs
