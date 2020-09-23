@@ -16,4 +16,10 @@ $FEATURETEST --have-dlopen ||  {
         echo_i "dlopen() not supported - skipping filter-aaaa test"
         exit 255
 }
+
+$FEATURETEST --tsan && {
+        echo_i "TSAN - skipping dlzexternal test"
+        exit 255
+}
+
 exit 0
