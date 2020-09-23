@@ -703,7 +703,13 @@ watch_fd(isc__socketthread_t *thread, int fd, int msg) {
 	event.data.fd = fd;
 
 	op = (oldevents == 0U) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+	if (thread->fds[fd] != NULL) {
+		LOCK(&thread->fds[fd]->lock);
+	}
 	ret = epoll_ctl(thread->epoll_fd, op, fd, &event);
+	if (thread->fds[fd] != NULL) {
+		UNLOCK(&thread->fds[fd]->lock);
+	}
 	if (ret == -1) {
 		if (errno == EEXIST) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
