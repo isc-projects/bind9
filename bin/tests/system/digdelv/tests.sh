@@ -958,8 +958,10 @@ if [ -x "$DIG" ] ; then
   echo_i "check that dig +bufsize restores default bufsize ($n)"
   ret=0
   dig_with_opts @10.53.0.3 a.example +bufsize=0 +bufsize +qr > dig.out.test$n 2>&1 || ret=1
-  lines=`grep "EDNS:.* udp: 4096" dig.out.test$n | wc -l`
-  test $lines -eq 2 || ret=1
+  lines1232=`grep "EDNS:.* udp: 1232" dig.out.test$n | wc -l`
+  lines4096=`grep "EDNS:.* udp: 4096" dig.out.test$n | wc -l`
+  test $lines1232 -eq 1 || ret=1
+  test $lines4096 -eq 1 || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
