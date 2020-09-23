@@ -4749,3 +4749,21 @@ dns_message_setpadding(dns_message_t *msg, uint16_t padding) {
 	}
 	msg->padding = padding;
 }
+
+void
+dns_message_clonebuffer(dns_message_t *msg) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+
+	if (msg->free_saved == 0 && msg->saved.base != NULL) {
+		msg->saved.base =
+			memmove(isc_mem_get(msg->mctx, msg->saved.length),
+				msg->saved.base, msg->saved.length);
+		msg->free_saved = 1;
+	}
+	if (msg->free_query == 0 && msg->query.base != NULL) {
+		msg->query.base =
+			memmove(isc_mem_get(msg->mctx, msg->query.length),
+				msg->query.base, msg->query.length);
+		msg->free_query = 1;
+	}
+}
