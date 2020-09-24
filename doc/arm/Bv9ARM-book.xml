@@ -16782,6 +16782,17 @@ allow-query { !{ !10/8; any; }; key example; };
 		  Network Services</title>
 		<pubdate>October 1997</pubdate>
 	      </biblioentry>
+              <biblioentry>
+                <abbrev>RFC8906</abbrev>
+                <authorgroup>
+		  <author><personname><surname>Andrews</surname><firstname>M.</firstname></personname></author>
+		  <author><personname><surname>Bellis</surname><firstname>R.</firstname></personname></author>
+                </authorgroup>
+                <title>
+                  A Common Operational Problem in DNS Servers: Failure to Communicate
+                </title>
+                <pubdate>September 2020</pubdate>
+              </biblioentry>
 	    </bibliodiv>
 	    <bibliodiv><title>Internationalized Domain Names</title>
 
