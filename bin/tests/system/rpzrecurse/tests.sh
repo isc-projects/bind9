@@ -502,7 +502,7 @@ for mode in native dnsrps; do
 
   t=`expr $t + 1`
   echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' ($t)"
-  add_test_marker 10.53.0.2
+  add_test_marker 10.53.0.2 10.53.0.3
   echo_i "timing 'nsip-wait-recurse yes' (default)"
   ret=0
   t1=`$PERL -e 'print time()."\n";'`
@@ -533,7 +533,7 @@ for mode in native dnsrps; do
 
   t=`expr $t + 1`
   echo_i "checking 'nsdname-wait-recurse no' is faster than 'nsdname-wait-recurse yes' ($t)"
-  add_test_marker 10.53.0.2
+  add_test_marker 10.53.0.2 10.53.0.3
   echo_i "timing 'nsdname-wait-recurse yes' (default)"
   ret=0
   t1=`$PERL -e 'print time()."\n";'`
