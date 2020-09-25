@@ -2020,8 +2020,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 	query = isc_mem_get(fctx->mctx, sizeof(*query));
 	query->rmessage = NULL;
-	result = dns_message_create(fctx->mctx, DNS_MESSAGE_INTENTPARSE,
-				    &query->rmessage);
+	dns_message_create(fctx->mctx, DNS_MESSAGE_INTENTPARSE,
+			   &query->rmessage);
 	query->mctx = fctx->mctx;
 	query->options = options;
 	query->attributes = 0;
@@ -5130,12 +5130,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	}
 
 	fctx->qmessage = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
-				    &fctx->qmessage);
-
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_fcount;
-	}
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &fctx->qmessage);
 
 	/*
 	 * Compute an expiration time for the entire fetch.

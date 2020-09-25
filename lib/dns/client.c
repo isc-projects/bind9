@@ -1936,11 +1936,7 @@ update_done(isc_task_t *task, isc_event_t *event) {
 		goto out;
 	}
 
-	result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE,
-				    &answer);
-	if (result != ISC_R_SUCCESS) {
-		goto out;
-	}
+	dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE, &answer);
 	uctx->state = dns_clientupdatestate_done;
 	result = dns_request_getresponse(request, answer,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
@@ -2270,11 +2266,8 @@ receive_soa(isc_task_t *task, isc_event_t *event) {
 		goto out;
 	}
 
-	result = dns_message_create(uctx->client->mctx, DNS_MESSAGE_INTENTPARSE,
-				    &rcvmsg);
-	if (result != ISC_R_SUCCESS) {
-		goto out;
-	}
+	dns_message_create(uctx->client->mctx, DNS_MESSAGE_INTENTPARSE,
+			   &rcvmsg);
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 
@@ -2421,12 +2414,8 @@ request_soa(updatectx_t *uctx) {
 	unsigned int reqoptions;
 
 	if (soaquery == NULL) {
-		result = dns_message_create(uctx->client->mctx,
-					    DNS_MESSAGE_INTENTRENDER,
-					    &soaquery);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+		dns_message_create(uctx->client->mctx, DNS_MESSAGE_INTENTRENDER,
+				   &soaquery);
 	}
 	soaquery->flags |= DNS_MESSAGEFLAG_RD;
 	result = dns_message_gettempname(soaquery, &name);
@@ -2878,11 +2867,8 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	}
 
 	/* Make update message */
-	result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTRENDER,
-				    &uctx->updatemsg);
-	if (result != ISC_R_SUCCESS) {
-		goto fail;
-	}
+	dns_message_create(client->mctx, DNS_MESSAGE_INTENTRENDER,
+			   &uctx->updatemsg);
 	uctx->updatemsg->opcode = dns_opcode_update;
 
 	if (prerequisites != NULL) {

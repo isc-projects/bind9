@@ -209,8 +209,7 @@ render(isc_buffer_t *buf, unsigned flags, dns_tsigkey_t *key,
 	dns_compress_t cctx;
 	isc_result_t result;
 
-	result = dns_message_create(dt_mctx, DNS_MESSAGE_INTENTRENDER, &msg);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_create(dt_mctx, DNS_MESSAGE_INTENTRENDER, &msg);
 	assert_non_null(msg);
 
 	msg->id = 50;
@@ -322,8 +321,7 @@ tsig_tcp_test(void **state) {
 	/*
 	 * Process response message 1.
 	 */
-	result = dns_message_create(dt_mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_create(dt_mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	assert_non_null(msg);
 
 	result = dns_message_settsigkey(msg, key);
@@ -377,8 +375,7 @@ tsig_tcp_test(void **state) {
 	/*
 	 * Process response message 2.
 	 */
-	result = dns_message_create(dt_mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_create(dt_mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	assert_non_null(msg);
 
 	msg->tcp_continuation = 1;
@@ -424,8 +421,7 @@ tsig_tcp_test(void **state) {
 	/*
 	 * Process response message 3.
 	 */
-	result = dns_message_create(dt_mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_create(dt_mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	assert_non_null(msg);
 
 	msg->tcp_continuation = 1;

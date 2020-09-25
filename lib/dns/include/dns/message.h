@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_MESSAGE_H
-#define DNS_MESSAGE_H 1
+#pragma once
 
 /***
  ***	Imports
@@ -203,8 +202,8 @@ struct dns_sortlist_arg {
 
 struct dns_message {
 	/* public from here down */
-	unsigned int magic;
-	isc_refcount_t	  refcount;
+	unsigned int   magic;
+	isc_refcount_t refcount;
 
 	dns_messageid_t	 id;
 	unsigned int	 flags;
@@ -295,7 +294,7 @@ struct dns_ednsopt {
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp);
 
 /*%<
@@ -1506,5 +1505,3 @@ dns_message_clonebuffer(dns_message_t *msg);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_MESSAGE_H */
