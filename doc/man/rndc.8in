@@ -187,7 +187,7 @@ output file has ".0" appended to its name; the previous most recent
 output file is moved to ".1", and so on. If number is specified, then
 the number of backup log files is limited to that number.
 .TP
-\fBdumpdb\fP [\fB\-all\fP | \fB\-cache\fP | \fB\-zones\fP | \fB\-adb\fP | \fB\-bad\fP | \fB\-fail\fP] [\fIview ...\fP]
+\fBdumpdb\fP [\fB\-all\fP | \fB\-cache\fP | \fB\-zones\fP | \fB\-adb\fP | \fB\-bad\fP | \fB\-expired\fP | \fB\-fail\fP] [\fIview ...\fP]
 Dump the server\(aqs caches (default) and/or zones to the dump file for
 the specified views. If no view is specified, all views are dumped.
 (See the \fBdump\-file\fP option in the BIND 9 Administrator Reference

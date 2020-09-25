@@ -187,7 +187,7 @@ Currently supported commands are:
    output file is moved to ".1", and so on. If number is specified, then
    the number of backup log files is limited to that number.
 
-``dumpdb`` [**-all** | **-cache** | **-zones** | **-adb** | **-bad** | **-fail**] [*view ...*]
+``dumpdb`` [**-all** | **-cache** | **-zones** | **-adb** | **-bad** | **-expired** | **-fail**] [*view ...*]
    Dump the server's caches (default) and/or zones to the dump file for
    the specified views. If no view is specified, all views are dumped.
    (See the ``dump-file`` option in the BIND 9 Administrator Reference
