@@ -1,3 +1,6 @@
+5509.	[bug]		filter-aaaa: named crashed upon shutdown if it was in
+			the process of recursing for A RRsets. [GL #1040]
+
 5508.	[func]		Added new parameter "-expired" for "rndc dumpdb" that
 			also prints expired RRsets (awaiting cleanup) to the
 			dump file. [GL #1870]
