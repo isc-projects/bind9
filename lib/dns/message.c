@@ -714,7 +714,7 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 	return (26 + r1.length + r2.length + x + otherlen);
 }
 
-isc_result_t
+void
 dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 	dns_message_t *m;
 	isc_buffer_t *dynbuf;
@@ -727,11 +727,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 		intent == DNS_MESSAGE_INTENTRENDER);
 
 	m = isc_mem_get(mctx, sizeof(dns_message_t));
-
-	/*
-	 * No allocations until further notice.  Just initialize all lists
-	 * and other members that are freed in the cleanup phase here.
-	 */
 
 	m->magic = DNS_MESSAGE_MAGIC;
 	m->from_to_wire = intent;
@@ -754,10 +749,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 	ISC_LIST_INIT(m->freerdata);
 	ISC_LIST_INIT(m->freerdatalist);
 
-	/*
-	 * Ok, it is safe to allocate (and then "goto cleanup" if failure)
-	 */
-
 	isc_mempool_create(m->mctx, sizeof(dns_name_t), &m->namepool);
 	isc_mempool_setfillcount(m->namepool, NAME_COUNT);
 	isc_mempool_setfreemax(m->namepool, NAME_COUNT);
@@ -777,7 +768,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 	isc_refcount_init(&m->refcount, 1);
 
 	*msgp = m;
-	return (ISC_R_SUCCESS);
 }
 
 void

@@ -2101,9 +2101,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	debug("setup_lookup(%p)", lookup);
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
-				    &lookup->sendmsg);
-	check_result(result, "dns_message_create");
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &lookup->sendmsg);
 
 	if (lookup->new_search) {
 		debug("resetting lookup counter.");
@@ -3766,8 +3764,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		goto udp_mismatch;
 	}
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	check_result(result, "dns_message_create");
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 
 	if (tsigkey != NULL) {
 		if (l->querysig == NULL) {

@@ -359,16 +359,12 @@ nsu_strsep(char **stringp, const char *delim) {
 
 static void
 reset_system(void) {
-	isc_result_t result;
-
 	ddebug("reset_system()");
 	/* If the update message is still around, destroy it */
 	if (updatemsg != NULL) {
 		dns_message_reset(updatemsg, DNS_MESSAGE_INTENTRENDER);
 	} else {
-		result = dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER,
-					    &updatemsg);
-		check_result(result, "dns_message_create");
+		dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &updatemsg);
 	}
 	updatemsg->opcode = dns_opcode_update;
 	if (usegsstsig) {
@@ -2429,8 +2425,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	}
 
 	LOCK(&answer_lock);
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &answer);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &answer);
 	result = dns_request_getresponse(request, answer,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	switch (result) {
@@ -2622,8 +2617,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	reqev = NULL;
 
 	ddebug("About to create rcvmsg");
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	if (result == DNS_R_TSIGERRORSET && servers != NULL) {
@@ -2993,11 +2987,7 @@ start_gssrequest(dns_name_t *master) {
 	keyname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 
 	rmsg = NULL;
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &rmsg);
-	if (result != ISC_R_SUCCESS) {
-		fatal("dns_message_create failed: %s",
-		      isc_result_totext(result));
-	}
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &rmsg);
 
 	/* Build first request. */
 	context = GSS_C_NO_CONTEXT;
@@ -3123,8 +3113,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	reqev = NULL;
 
 	ddebug("recvgss creating rcvmsg");
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
@@ -3249,8 +3238,7 @@ start_update(void) {
 		return;
 	}
 
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &soaquery);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &soaquery);
 
 	if (default_servers) {
 		soaquery->flags |= DNS_MESSAGEFLAG_RD;

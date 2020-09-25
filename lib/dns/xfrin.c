@@ -1110,7 +1110,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	dns_name_t *msgsoaname = NULL;
 
 	/* Create the request message */
-	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg));
+	dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg);
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 
 	/* Create a name for the question section. */
@@ -1262,7 +1262,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	CHECK(isc_timer_touch(xfr->timer));
 
-	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg));
+	dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 	CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));

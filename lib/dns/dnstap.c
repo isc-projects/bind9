@@ -1143,7 +1143,7 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 
 	isc_buffer_init(&b, d->msgdata.base, d->msgdata.length);
 	isc_buffer_add(&b, d->msgdata.length);
-	CHECK(dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &d->msg));
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &d->msg);
 	result = dns_message_parse(d->msg, &b, 0);
 	if (result != ISC_R_SUCCESS) {
 		if (result != DNS_R_RECOVERABLE) {

@@ -67,8 +67,7 @@ check_response(isc_buffer_t *buf) {
 	char rcodebuf[20];
 	isc_buffer_t b;
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 
 	result = dns_message_parse(message, buf, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -115,8 +114,7 @@ notify_start(void **state) {
 	isc_buffer_init(&nbuf, ndata, nsize);
 	isc_buffer_add(&nbuf, nsize);
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &nmsg);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &nmsg);
 
 	result = dns_message_parse(nmsg, &nbuf, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);

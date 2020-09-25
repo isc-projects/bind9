@@ -190,15 +190,8 @@ main(int argc, char *argv[]) {
 	rmessage = NULL;
 
 	isc_mem_create(&mctx);
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &qmessage);
-	if (result == ISC_R_SUCCESS) {
-		result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
-					    &rmessage);
-	}
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to create messages\n");
-		exit(1);
-	}
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &qmessage);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rmessage);
 
 	/* Initialize the nameserver address */
 	memset(&hints, 0, sizeof(hints));
