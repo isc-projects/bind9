@@ -1489,7 +1489,7 @@ AC_SUBST(INSTALL_LIBRARY)
 # was --enable-native-pkcs11 specified?
 #  (note it implies both --without-openssl and --with-pkcs11)
 #
-# [pairwise: --enable-native-pkcs11, --disable-native-pkcs11]
+# [pairwise: --enable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --without-dlopen]
 AC_ARG_ENABLE(native-pkcs11,
 	      AS_HELP_STRING([--enable-native-pkcs11],
 			     [use native PKCS11 for all crypto [default=no]]),
@@ -5151,7 +5151,7 @@ SO_LD=""
 SO_TARGETS=""
 SO_STRIP="cat"
 
-# [pairwise: --with-dlopen, --without-dlopen]
+# [pairwise: skip]
 AC_ARG_WITH([dlopen],
 	    AS_HELP_STRING([--with-dlopen=ARG],
 			   [support dynamically loadable DLZ drivers]),
@@ -5244,6 +5244,9 @@ AS_IF([test "$with_dlopen" = "yes"],
 			[Define to allow building of objects for dlopen().])
 	     ])
       ])
+
+AS_IF([test "$with_dlopen" = "no" -a "$want_native_pkcs11" = "yes"],
+      [AC_MSG_ERROR([PKCS11 requires dlopen() support])])
 
 CFLAGS="$CFLAGS $SO_CFLAGS"
 
