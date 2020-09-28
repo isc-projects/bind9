@@ -294,21 +294,36 @@ elif [ "$sanitizer_summaries" -ne 0 ]; then
     echoinfo "I:$systest:$sanitizer_summaries sanitizer report(s) found"
 fi
 
+print_outstanding_files() {
+    if test -d ${srcdir}/../../../.git; then
+        git status -su --ignored "${systest}" 2>/dev/null | \
+        sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
+            -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
+            -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
+    fi
+}
+
+print_outstanding_files_oot() {
+    if test -d ${srcdir}/../../../.git; then
+        git -C "${srcdir}/${systest}" ls-files | sed "s|^|${systest}/|" > gitfiles.txt
+        find "${systest}/" -type f ! -name .prepared ! -name Makefile > testfiles.txt
+        grep -F -x -v -f gitfiles.txt testfiles.txt
+        rm -f gitfiles.txt testfiles.txt
+    fi
+}
+
 if [ $status -ne 0 ]; then
     echofail "R:$systest:FAIL"
 else
     echopass "R:$systest:PASS"
     if $clean; then
-       ( cd "${systest}" && $SHELL clean.sh "$@" )
-       if [ "${srcdir}" != "${builddir}" ]; then
-           rm -rf "./${systest}" ## FIXME (this also removes compiled binaries)
-       fi
-       if test -d ${srcdir}/../../../.git; then
-           git status -su --ignored "${systest}" 2>/dev/null | \
-           sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
-           -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
-           -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
-       fi
+        ( cd "${systest}" && $SHELL clean.sh "$@" )
+        if [ "${srcdir}" = "${builddir}" ]; then
+            print_outstanding_files
+        else
+            print_outstanding_files_oot | xargs rm -f
+            find "${systest}/" \( -type d -empty \) -delete 2>/dev/null
+        fi
     fi
 fi
 
