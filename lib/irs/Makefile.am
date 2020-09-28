@@ -23,6 +23,7 @@ libirs_la_LIBADD =		\
 	$(LIBISCCFG_LIBS)
 
 libirs_la_LDFLAGS =		\
+	$(AM_LDFLAGS)		\
 	$(libirs_VERSION_INFO)
 
 

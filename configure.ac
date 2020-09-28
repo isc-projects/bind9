@@ -150,6 +150,10 @@ AX_CHECK_COMPILE_FLAG([-Werror -fno-delete-null-pointer-checks],
 AX_CHECK_COMPILE_FLAG([-fdiagnostics-show-option],
 		      [STD_CFLAGS="$STD_CFLAGS -fdiagnostics-show-option"])
 
+host_macos=no
+AS_CASE([$host],[*-darwin*],[host_macos=yes])
+AM_CONDITIONAL([HOST_MACOS], [test "$host_macos" = "yes"])
+
 #
 # Change defaults for developers if not explicity set.
 # Needs to be before the option is tested.
@@ -1353,44 +1357,6 @@ AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
 
 AM_CONDITIONAL([HAVE_CMOCKA], [test "$with_cmocka" = "yes"])
-
-#
-# Check for -Wl,--wrap= support
-#
-
-LD_WRAP_TESTS=false
-AC_MSG_CHECKING([for linker support for --wrap option])
-AX_SAVE_FLAGS([wrap])
-LDFLAGS="-Wl,--wrap,exit"
-AC_RUN_IFELSE(
-    [AC_LANG_PROGRAM([[#include <stdlib.h>
-		       void __real_exit (int status);
-		       void __wrap_exit (int status) { __real_exit (0); }
-		      ]],
-		     [[exit (1);]])],
-    [LD_WRAP_TESTS=true
-     AC_MSG_RESULT([yes])],
-    [AC_MSG_RESULT([no])])
-AX_RESTORE_FLAGS([wrap])
-
-AM_CONDITIONAL([HAVE_LD_WRAP], [test "$LD_WRAP_TESTS" = "true"])
-
-WRAP_INTERPOSE=
-AC_MSG_CHECKING([for linker support for '-z interpose' option])
-AX_SAVE_FLAGS([interpose])
-LDFLAGS="-Wl,-z,interpose"
-AC_LINK_IFELSE(
-    [AC_LANG_PROGRAM([],[])],
-    [WRAP_INTERPOSE="-Wl,-z,interpose"
-     AC_MSG_RESULT([yes])],
-    [AC_MSG_RESULT([no])])
-AX_RESTORE_FLAGS([interpose])
-
-AC_SUBST([WRAP_INTERPOSE])
-
-WRAP_NAME=''
-AS_CASE([$host],[*-darwin*],[WRAP_NAME='${WRAP_NAME}'])
-AC_SUBST([WRAP_NAME])
 
 #
 # Check for i18n

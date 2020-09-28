@@ -227,6 +227,7 @@ libisc_la_CPPFLAGS =		\
 	$(ZLIB_CFLAGS)
 
 libisc_la_LDFLAGS =		\
+	$(AM_LDFLAGS)		\
 	$(libisc_VERSION_INFO)
 
 libisc_la_LIBADD =		\

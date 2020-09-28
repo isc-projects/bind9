@@ -287,6 +287,7 @@ libdns_la_CPPFLAGS =		\
 	$(LIBLTDL_CFLAGS)
 
 libdns_la_LDFLAGS =		\
+	$(AM_LDFLAGS)		\
 	$(libdns_VERSION_INFO)
 
 libdns_la_LIBADD =		\

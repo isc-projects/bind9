@@ -11,6 +11,13 @@ AM_CPPFLAGS =					\
 	-include $(top_builddir)/config.h	\
 	-I$(srcdir)/include
 
+AM_LDFLAGS =
+
+if HOST_MACOS
+AM_LDFLAGS +=					\
+	-Wl,-flat_namespace
+endif HOST_MACOS
+
 if HAVE_GSSAPI
 AM_CPPFLAGS +=					\
 	$(GSSAPI_CFLAGS)
