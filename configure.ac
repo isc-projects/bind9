@@ -382,7 +382,8 @@ AS_CASE([$host],
 		  [LDFLAGS="$LDFLAGS -zrelax=transtls"
 		   AC_MSG_WARN([When using GNU C Compiler on Solaris, -zrelax=transtls linker flag is used to fix bug in Thread Local Storage])
 		  ])
-	])
+	],
+	[*-darwin*],[LDFLAGS="$LDFLAGS -Wl,-flat_namespace"])
 
 #
 # CCNOOPT defaults to -O0 on gcc and disables optimization when is last

@@ -13629,6 +13629,8 @@ $as_echo "$as_me: WARNING: When using GNU C Compiler on Solaris, -zrelax=transtl
 
 fi
 	 ;; #(
+  *-darwin*) :
+    LDFLAGS="$LDFLAGS -Wl,-flat_namespace" ;; #(
   *) :
      ;;
 esac
