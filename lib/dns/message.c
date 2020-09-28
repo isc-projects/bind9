@@ -526,13 +526,13 @@ msgresetsigs(dns_message_t *msg, bool replying) {
 		INSIST(dns_rdataset_isassociated(msg->sig0));
 		dns_rdataset_disassociate(msg->sig0);
 		isc_mempool_put(msg->rdspool, msg->sig0);
-		if (msg->sig0name != NULL) {
-			if (dns_name_dynamic(msg->sig0name)) {
-				dns_name_free(msg->sig0name, msg->mctx);
-			}
-			isc_mempool_put(msg->namepool, msg->sig0name);
-		}
 		msg->sig0 = NULL;
+	}
+	if (msg->sig0name != NULL) {
+		if (dns_name_dynamic(msg->sig0name)) {
+			dns_name_free(msg->sig0name, msg->mctx);
+		}
+		isc_mempool_put(msg->namepool, msg->sig0name);
 		msg->sig0name = NULL;
 	}
 }
@@ -2429,6 +2429,9 @@ dns_message_renderreset(dns_message_t *msg) {
 	if (msg->tsig != NULL) {
 		dns_rdataset_disassociate(msg->tsig);
 		dns_message_puttemprdataset(msg, &msg->tsig);
+	}
+	if (msg->sig0name != NULL) {
+		dns_message_puttempname(msg, &msg->sig0name);
 	}
 	if (msg->sig0 != NULL) {
 		dns_rdataset_disassociate(msg->sig0);
