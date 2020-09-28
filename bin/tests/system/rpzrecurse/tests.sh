@@ -502,7 +502,7 @@ for mode in native dnsrps; do
 
   t=`expr $t + 1`
   echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' ($t)"
-  add_test_marker 10.53.0.2
+  add_test_marker 10.53.0.2 10.53.0.3
   echo_i "timing 'nsip-wait-recurse yes' (default)"
   ret=0
   t1=`$PERL -e 'print time()."\n";'`
@@ -513,7 +513,9 @@ for mode in native dnsrps; do
 
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
   copy_setports ns3/named2.conf.in ns3/named.conf
+  nextpart ns3/named.run > /dev/null
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
+  wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
   echo_i "timing 'nsip-wait-recurse no'"
   t3=`$PERL -e 'print time()."\n";'`
@@ -529,11 +531,13 @@ for mode in native dnsrps; do
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
   # restore original named.conf
   copy_setports ns3/named1.conf.in ns3/named.conf
+  nextpart ns3/named.run > /dev/null
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
+  wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
   t=`expr $t + 1`
   echo_i "checking 'nsdname-wait-recurse no' is faster than 'nsdname-wait-recurse yes' ($t)"
-  add_test_marker 10.53.0.2
+  add_test_marker 10.53.0.2 10.53.0.3
   echo_i "timing 'nsdname-wait-recurse yes' (default)"
   ret=0
   t1=`$PERL -e 'print time()."\n";'`
@@ -544,7 +548,9 @@ for mode in native dnsrps; do
 
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
   copy_setports ns3/named3.conf.in ns3/named.conf
+  nextpart ns3/named.run > /dev/null
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
+  wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
   echo_i "timing 'nsdname-wait-recurse no'"
   t3=`$PERL -e 'print time()."\n";'`
