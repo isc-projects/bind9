@@ -1557,6 +1557,7 @@ openssldirs="/usr /usr/local /usr/local/ssl /opt/local /usr/pkg /usr/sfw"
 if test "yes" = "$want_native_pkcs11"
 then
 	use_openssl="native_pkcs11"
+	want_openssl_hash="no"
 	AC_MSG_RESULT(use of native PKCS11 instead)
 fi
 
