@@ -2396,7 +2396,6 @@
 ./lib/ns/tests/plugin_test.c			C	2019,2020
 ./lib/ns/tests/query_test.c			C	2017,2018,2019,2020
 ./lib/ns/tests/testdata/notify/notify1.msg	X	2017,2018,2019,2020
-./lib/ns/tests/wrap.c				C	2019,2020
 ./lib/ns/update.c				C	2017,2018,2019,2020
 ./lib/ns/version.c				C	2017,2018,2019,2020
 ./lib/ns/win32/DLLMain.c			C	2017,2018,2019,2020

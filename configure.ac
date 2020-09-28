@@ -382,7 +382,8 @@ AS_CASE([$host],
 		  [LDFLAGS="$LDFLAGS -zrelax=transtls"
 		   AC_MSG_WARN([When using GNU C Compiler on Solaris, -zrelax=transtls linker flag is used to fix bug in Thread Local Storage])
 		  ])
-	])
+	],
+	[*-darwin*],[LDFLAGS="$LDFLAGS -Wl,-flat_namespace"])
 
 #
 # CCNOOPT defaults to -O0 on gcc and disables optimization when is last
@@ -2259,23 +2260,6 @@ AC_LINK_IFELSE(
 AX_RESTORE_FLAGS([wrap])
 
 AC_SUBST([LD_WRAP_TESTS])
-
-WRAP_INTERPOSE=
-AC_MSG_CHECKING([for linker support for '-z interpose' option])
-AX_SAVE_FLAGS([interpose])
-LDFLAGS="-Wl,-z,interpose"
-AC_LINK_IFELSE(
-    [AC_LANG_PROGRAM([],[])],
-    [WRAP_INTERPOSE="-Wl,-z,interpose"
-     AC_MSG_RESULT([yes])],
-    [AC_MSG_RESULT([no])])
-AX_RESTORE_FLAGS([interpose])
-
-AC_SUBST([WRAP_INTERPOSE])
-
-WRAP_NAME=''
-AS_CASE([$host],[*-darwin*],[WRAP_NAME='${WRAP_NAME}'])
-AC_SUBST([WRAP_NAME])
 
 #
 # Check for i18n

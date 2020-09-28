@@ -102,6 +102,13 @@ __wrap_isc_nmhandle_unref(isc_nmhandle_t *handle) {
 	return;
 }
 
+#ifdef USE_LIBTOOL
+void
+isc_nmhandle_unref(isc_nmhandle_t *handle) {
+	__wrap_isc_nmhandle_unref(handle);
+}
+#endif /* USE_LIBTOOL */
+
 /*
  * Logging categories: this needs to match the list in lib/ns/log.c.
  */
