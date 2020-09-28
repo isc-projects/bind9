@@ -32,6 +32,7 @@ libisccfg_la_LIBADD =	\
 	$(LIBDNS_LIBS)
 
 libisccfg_la_LDFLAGS =		\
+	$(AM_LDFLAGS)		\
 	$(libisccfg_VERSION_INFO)
 
 if HAVE_CMOCKA

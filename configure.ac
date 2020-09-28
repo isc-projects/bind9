@@ -150,6 +150,10 @@ AX_CHECK_COMPILE_FLAG([-Werror -fno-delete-null-pointer-checks],
 AX_CHECK_COMPILE_FLAG([-fdiagnostics-show-option],
 		      [STD_CFLAGS="$STD_CFLAGS -fdiagnostics-show-option"])
 
+host_macos=no
+AS_CASE([$host],[*-darwin*],[host_macos=yes])
+AM_CONDITIONAL([HOST_MACOS], [test "$host_macos" = "yes"])
+
 #
 # Change defaults for developers if not explicity set.
 # Needs to be before the option is tested.

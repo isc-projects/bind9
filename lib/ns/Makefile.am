@@ -51,6 +51,7 @@ libns_la_LIBADD =	\
 	$(LIBDNS_LIBS)
 
 libns_la_LDFLAGS =		\
+	$(AM_LDFLAGS)		\
 	$(libns_VERSION_INFO)
 
 if HAVE_CMOCKA

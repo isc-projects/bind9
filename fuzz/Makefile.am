@@ -5,7 +5,7 @@ AM_CPPFLAGS +=				\
 	$(LIBDNS_CFLAGS)		\
 	-DFUZZDIR=\"$(abs_srcdir)\"
 
-AM_LDFLAGS =				\
+AM_LDFLAGS +=				\
 	$(FUZZ_LDFLAGS)
 
 LDADD =					\

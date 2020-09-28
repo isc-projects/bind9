@@ -27,6 +27,7 @@ libbind9_la_LIBADD =		\
 	$(LIBISCCFG_LIBS)
 
 libbind9_la_LDFLAGS =		\
+	$(AM_LDFLAGS)		\
 	$(libbind9_VERSION_INFO)
 
 EXTRA_DIST = api

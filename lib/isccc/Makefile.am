@@ -35,6 +35,7 @@ libisccc_la_LIBADD =	\
 	$(LIBISC_LIBS)
 
 libisccc_la_LDFLAGS =		\
+	$(AM_LDFLAGS)		\
 	$(libisccc_VERSION_INFO)
 
 if HAVE_CMOCKA
