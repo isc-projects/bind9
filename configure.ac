@@ -904,7 +904,7 @@ PKCS11_MANS=
 #
 # was --enable-native-pkcs11 specified?
 #
-# [pairwise: --enable-native-pkcs11, --disable-native-pkcs11]
+# [pairwise: --enable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --without-dlopen]
 AC_ARG_ENABLE(native-pkcs11,
 	      AS_HELP_STRING([--enable-native-pkcs11],
 			     [use native PKCS11 for public-key crypto [default=no]]),
@@ -2451,7 +2451,7 @@ SO_LD=""
 SO_TARGETS=""
 SO_STRIP="cat"
 
-# [pairwise: --with-dlopen, --without-dlopen]
+# [pairwise: skip]
 AC_ARG_WITH([dlopen],
 	    AS_HELP_STRING([--with-dlopen=ARG],
 			   [support dynamically loadable DLZ and DYNDB drivers]),
@@ -2541,6 +2541,9 @@ AS_IF([test "$with_dlopen" = "yes"],
 			[Define to allow building of objects for dlopen().])
 	     ])
       ])
+
+AS_IF([test "$with_dlopen" = "no" -a "$enable_native_pkcs11" = "yes"],
+      [AC_MSG_ERROR([PKCS11 requires dlopen() support])])
 
 CFLAGS="$CFLAGS $SO_CFLAGS"
 

@@ -22660,6 +22660,10 @@ fi
 
 fi
 
+if test "$with_dlopen" = "no" -a "$enable_native_pkcs11" = "yes"; then :
+  as_fn_error $? "PKCS11 requires dlopen() support" "$LINENO" 5
+fi
+
 CFLAGS="$CFLAGS $SO_CFLAGS"
 
 
