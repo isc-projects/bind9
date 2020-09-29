@@ -1491,7 +1491,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			covers = dns_rdata_covers(rdata);
 			if (covers == 0) {
 				if (sectionid != DNS_SECTION_ADDITIONAL ||
-				    count != msg->counts[sectionid] - 1)
+				    count != msg->counts[sectionid] - 1 ||
+				    !dns_name_equal(name, dns_rootname))
 				{
 					DO_ERROR(DNS_R_BADSIG0);
 				} else {
