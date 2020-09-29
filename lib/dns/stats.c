@@ -71,14 +71,14 @@ typedef enum {
  *     S = 2 (0b10) means Ancient
  *
  * Since a counter cannot be stale and ancient at the same time, we
- * treat S = 0x11 as a special case to deal with NXDOMAIN counters.
+ * treat S = 0b11 as a special case to deal with NXDOMAIN counters.
  */
 #define RDTYPECOUNTER_STALE    (1 << 9)
 #define RDTYPECOUNTER_ANCIENT  (1 << 10)
 #define RDTYPECOUNTER_NXDOMAIN ((1 << 9) | (1 << 10))
 
 /*
- * S = 0x11 indicates an NXDOMAIN counter and in this case the RRtype
+ * S = 0b11 indicates an NXDOMAIN counter and in this case the RRtype
  * field signals the expiry of this cached item:
  *
  *     RRType = 0 (0b00) means Active
