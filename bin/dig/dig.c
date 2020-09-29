@@ -666,15 +666,25 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 		if (!isc_time_isepoch(&query->time_sent)) {
 			char tbuf[100];
-			isc_time_formatISO8601ms(&query->time_sent, tbuf,
-						 sizeof(tbuf));
+			if (query->lookup->use_usec) {
+				isc_time_formatISO8601us(&query->time_sent,
+							 tbuf, sizeof(tbuf));
+			} else {
+				isc_time_formatISO8601ms(&query->time_sent,
+							 tbuf, sizeof(tbuf));
+			}
 			printf("    query_time: !!timestamp %s\n", tbuf);
 		}
 
 		if (!isquery && !isc_time_isepoch(&query->time_recv)) {
 			char tbuf[100];
-			isc_time_formatISO8601ms(&query->time_recv, tbuf,
-						 sizeof(tbuf));
+			if (query->lookup->use_usec) {
+				isc_time_formatISO8601us(&query->time_recv,
+							 tbuf, sizeof(tbuf));
+			} else {
+				isc_time_formatISO8601ms(&query->time_recv,
+							 tbuf, sizeof(tbuf));
+			}
 			printf("    response_time: !!timestamp %s\n", tbuf);
 		}
 
