@@ -210,8 +210,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 
 	parseflags |= DNS_MESSAGEPARSE_PRESERVEORDER;
 	if (besteffort) {
@@ -534,10 +533,10 @@ cleanup:
 		dns_master_styledestroy(&style, mctx);
 	}
 	if (query != NULL) {
-		dns_message_destroy(&query);
+		dns_message_detach(&query);
 	}
 	if (response != NULL) {
-		dns_message_destroy(&response);
+		dns_message_detach(&response);
 	}
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
@@ -594,8 +593,7 @@ sendquery(struct query *query, isc_task_t *task) {
 	CHECK("dns_name_fromtext", result);
 
 	message = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_query;
 	if (query->recurse) {

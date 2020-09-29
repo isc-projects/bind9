@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_MESSAGE_H
-#define DNS_MESSAGE_H 1
+#pragma once
 
 /***
  ***	Imports
@@ -21,6 +20,7 @@
 
 #include <isc/lang.h>
 #include <isc/magic.h>
+#include <isc/refcount.h>
 
 #include <dns/compress.h>
 #include <dns/masterdump.h>
@@ -202,7 +202,8 @@ struct dns_sortlist_arg {
 
 struct dns_message {
 	/* public from here down */
-	unsigned int magic;
+	unsigned int   magic;
+	isc_refcount_t refcount;
 
 	dns_messageid_t	 id;
 	unsigned int	 flags;
@@ -293,7 +294,7 @@ struct dns_ednsopt {
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp);
 
 /*%<
@@ -324,8 +325,8 @@ dns_message_reset(dns_message_t *msg, unsigned int intent);
 /*%<
  * Reset a message structure to default state.  All internal lists are freed
  * or reset to a default state as well.  This is simply a more efficient
- * way to call dns_message_destroy() followed by dns_message_allocate(),
- * since it avoid many memory allocations.
+ * way to call dns_message_detach() (assuming last reference is hold),
+ * followed by dns_message_create(), since it avoid many memory allocations.
  *
  * If any data loanouts (buffers, names, rdatas, etc) were requested,
  * the caller must no longer use them after this call.
@@ -340,16 +341,23 @@ dns_message_reset(dns_message_t *msg, unsigned int intent);
  */
 
 void
-dns_message_destroy(dns_message_t **msgp);
+dns_message_attach(dns_message_t *source, dns_message_t **target);
 /*%<
- * Destroy all state in the message.
+ * Attach to message 'source'.
  *
  * Requires:
+ *\li	'source' to be a valid message.
+ *\li	'target' to be non NULL and '*target' to be NULL.
+ */
+
+void
+dns_message_detach(dns_message_t **messagep);
+/*%<
+ * Detach *messagep from its message.
+ * list.
  *
- *\li	'msgp' be valid.
- *
- * Ensures:
- *\li	'*msgp' == NULL
+ * Requires:
+ *\li	'*messagep' to be a valid message.
  */
 
 isc_result_t
@@ -1497,5 +1505,3 @@ dns_message_clonebuffer(dns_message_t *msg);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_MESSAGE_H */

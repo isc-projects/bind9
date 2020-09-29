@@ -539,7 +539,7 @@ msgresetsigs(dns_message_t *msg, bool replying) {
 
 /*
  * Free all but one (or everything) for this message.  This is used by
- * both dns_message_reset() and dns_message_destroy().
+ * both dns_message_reset() and dns__message_destroy().
  */
 static void
 msgreset(dns_message_t *msg, bool everything) {
@@ -714,7 +714,7 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 	return (26 + r1.length + r2.length + x + otherlen);
 }
 
-isc_result_t
+void
 dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 	dns_message_t *m;
 	isc_buffer_t *dynbuf;
@@ -727,11 +727,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 		intent == DNS_MESSAGE_INTENTRENDER);
 
 	m = isc_mem_get(mctx, sizeof(dns_message_t));
-
-	/*
-	 * No allocations until further notice.  Just initialize all lists
-	 * and other members that are freed in the cleanup phase here.
-	 */
 
 	m->magic = DNS_MESSAGE_MAGIC;
 	m->from_to_wire = intent;
@@ -754,10 +749,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 	ISC_LIST_INIT(m->freerdata);
 	ISC_LIST_INIT(m->freerdatalist);
 
-	/*
-	 * Ok, it is safe to allocate (and then "goto cleanup" if failure)
-	 */
-
 	isc_mempool_create(m->mctx, sizeof(dns_name_t), &m->namepool);
 	isc_mempool_setfillcount(m->namepool, NAME_COUNT);
 	isc_mempool_setfreemax(m->namepool, NAME_COUNT);
@@ -774,8 +765,9 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 
 	m->cctx = NULL;
 
+	isc_refcount_init(&m->refcount, 1);
+
 	*msgp = m;
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -788,21 +780,36 @@ dns_message_reset(dns_message_t *msg, unsigned int intent) {
 	msg->from_to_wire = intent;
 }
 
-void
-dns_message_destroy(dns_message_t **msgp) {
-	dns_message_t *msg;
-
-	REQUIRE(msgp != NULL);
-	REQUIRE(DNS_MESSAGE_VALID(*msgp));
-
-	msg = *msgp;
-	*msgp = NULL;
+static void
+dns__message_destroy(dns_message_t *msg) {
+	REQUIRE(msg != NULL);
+	REQUIRE(DNS_MESSAGE_VALID(msg));
 
 	msgreset(msg, true);
 	isc_mempool_destroy(&msg->namepool);
 	isc_mempool_destroy(&msg->rdspool);
+	isc_refcount_destroy(&msg->refcount);
 	msg->magic = 0;
 	isc_mem_putanddetach(&msg->mctx, msg, sizeof(dns_message_t));
+}
+
+void
+dns_message_attach(dns_message_t *source, dns_message_t **target) {
+	REQUIRE(DNS_MESSAGE_VALID(source));
+
+	isc_refcount_increment(&source->refcount);
+	*target = source;
+}
+
+void
+dns_message_detach(dns_message_t **messagep) {
+	REQUIRE(messagep != NULL && DNS_MESSAGE_VALID(*messagep));
+	dns_message_t *msg = *messagep;
+	*messagep = NULL;
+
+	if (isc_refcount_decrement(&msg->refcount) == 1) {
+		dns__message_destroy(msg);
+	}
 }
 
 static isc_result_t

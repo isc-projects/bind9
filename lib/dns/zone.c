@@ -12182,7 +12182,7 @@ cleanup_key:
 		dns_tsigkey_detach(&key);
 	}
 cleanup_message:
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 cleanup:
 	UNLOCK_ZONE(notify->zone);
 	isc_event_free(&event);
@@ -12639,10 +12639,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	if (result != ISC_R_SUCCESS) {
-		goto next_master;
-	}
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 
 	result = dns_request_getresponse(revent->request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
@@ -12761,7 +12758,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 	dns_db_detach(&stub->db);
 
-	dns_message_destroy(&msg);
+	dns_message_detach(&msg);
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
 
@@ -12786,7 +12783,7 @@ next_master:
 		dns_db_detach(&stub->db);
 	}
 	if (msg != NULL) {
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	}
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
@@ -12840,7 +12837,7 @@ next_master:
 
 same_master:
 	if (msg != NULL) {
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	}
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
@@ -13044,10 +13041,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	if (result != ISC_R_SUCCESS) {
-		goto next_master;
-	}
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	result = dns_request_getresponse(revent->request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_INFO,
@@ -13266,7 +13260,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			ns_query(zone, rdataset, NULL);
 		}
 		if (msg != NULL) {
-			dns_message_destroy(&msg);
+			dns_message_detach(&msg);
 		}
 	} else if (isc_serial_eq(soa.serial, oldserial)) {
 		isc_time_t expiretime;
@@ -13305,13 +13299,13 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 	if (msg != NULL) {
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	}
 	goto detach;
 
 next_master:
 	if (msg != NULL) {
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	}
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
@@ -13370,7 +13364,7 @@ requeue:
 
 same_master:
 	if (msg != NULL) {
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	}
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
@@ -13430,11 +13424,7 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
 	dns_rdataset_t *qrdataset = NULL;
 	isc_result_t result;
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
-				    &message);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_query;
 	message->rdclass = zone->rdclass;
@@ -13469,7 +13459,7 @@ cleanup:
 		dns_message_puttemprdataset(message, &qrdataset);
 	}
 	if (message != NULL) {
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 	}
 	return (result);
 }
@@ -13699,7 +13689,7 @@ cleanup:
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 	}
 	if (message != NULL) {
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 	}
 	if (cancel) {
 		cancel_refresh(zone);
@@ -13713,7 +13703,7 @@ skip_master:
 	if (key != NULL) {
 		dns_tsigkey_detach(&key);
 	}
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 	/*
 	 * Skip to next failed / untried master.
 	 */
@@ -13941,7 +13931,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			      dns_result_totext(result));
 		goto cleanup;
 	}
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 	goto unlock;
 
 cleanup:
@@ -13958,7 +13948,7 @@ cleanup:
 	}
 	isc_mem_put(stub->mctx, stub, sizeof(*stub));
 	if (message != NULL) {
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 	}
 unlock:
 	if (key != NULL) {
@@ -14313,11 +14303,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(messagep != NULL && *messagep == NULL);
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
-				    &message);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_notify;
 	message->flags |= DNS_MESSAGEFLAG_AA;
@@ -14453,7 +14439,7 @@ cleanup:
 	if (temprdataset != NULL) {
 		dns_message_puttemprdataset(message, &temprdataset);
 	}
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 	return (result);
 }
 
@@ -15245,12 +15231,10 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 
 	isc_buffer_init(&buf, rcode, sizeof(rcode));
 	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
+	dns_message_create(notify->zone->mctx, DNS_MESSAGE_INTENTPARSE,
+			   &message);
 
 	result = revent->result;
-	if (result == ISC_R_SUCCESS) {
-		result = dns_message_create(notify->zone->mctx,
-					    DNS_MESSAGE_INTENTPARSE, &message);
-	}
 	if (result == ISC_R_SUCCESS) {
 		result =
 			dns_request_getresponse(revent->request, message,
@@ -15274,7 +15258,7 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	 * the soa if we see a formerr and had sent a SOA.
 	 */
 	isc_event_free(&event);
-	if (message != NULL && message->rcode == dns_rcode_formerr &&
+	if (message->rcode == dns_rcode_formerr &&
 	    (notify->flags & DNS_NOTIFY_NOSOA) == 0)
 	{
 		bool startup;
@@ -15293,9 +15277,7 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 		}
 		notify_destroy(notify, false);
 	}
-	if (message != NULL) {
-		dns_message_destroy(&message);
-	}
+	dns_message_detach(&message);
 }
 
 struct secure_event {
@@ -17259,10 +17241,7 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	if (result != ISC_R_SUCCESS) {
-		goto next_master;
-	}
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 
 	result = dns_request_getresponse(revent->request, msg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER |
@@ -17327,7 +17306,7 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 
 next_master:
 	if (msg != NULL) {
-		dns_message_destroy(&msg);
+		dns_message_detach(&msg);
 	}
 	isc_event_free(&event);
 	forward->which++;

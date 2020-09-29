@@ -47,10 +47,7 @@ parse_message(isc_buffer_t *input, dns_message_t **messagep) {
 	isc_result_t result;
 	dns_message_t *message = NULL;
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 
 	result = dns_message_parse(message, input, DNS_MESSAGEPARSE_BESTEFFORT);
 	if (result == DNS_R_RECOVERABLE) {
@@ -60,7 +57,7 @@ parse_message(isc_buffer_t *input, dns_message_t **messagep) {
 	if (result == ISC_R_SUCCESS && messagep != NULL) {
 		*messagep = message;
 	} else {
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 	}
 
 	return (result);
@@ -128,7 +125,7 @@ render_message(dns_message_t **messagep) {
 
 	message->from_to_wire = DNS_MESSAGE_INTENTPARSE;
 
-	dns_message_destroy(messagep);
+	dns_message_detach(messagep);
 
 	result = parse_message(&buffer, messagep);
 
@@ -171,7 +168,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
 cleanup:
 	if (message != NULL) {
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 	}
 
 	return (0);

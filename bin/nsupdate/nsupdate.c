@@ -350,16 +350,12 @@ nsu_strsep(char **stringp, const char *delim) {
 
 static void
 reset_system(void) {
-	isc_result_t result;
-
 	ddebug("reset_system()");
 	/* If the update message is still around, destroy it */
 	if (updatemsg != NULL) {
 		dns_message_reset(updatemsg, DNS_MESSAGE_INTENTRENDER);
 	} else {
-		result = dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER,
-					    &updatemsg);
-		check_result(result, "dns_message_create");
+		dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &updatemsg);
 	}
 	updatemsg->opcode = dns_opcode_update;
 	if (usegsstsig) {
@@ -720,7 +716,7 @@ doshutdown(void) {
 	}
 
 	if (updatemsg != NULL) {
-		dns_message_destroy(&updatemsg);
+		dns_message_detach(&updatemsg);
 	}
 
 	if (is_dst_up) {
@@ -2413,8 +2409,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	}
 
 	LOCK(&answer_lock);
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &answer);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &answer);
 	result = dns_request_getresponse(request, answer,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	switch (result) {
@@ -2580,7 +2575,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 
 	if (shuttingdown) {
 		dns_request_destroy(&request);
-		dns_message_destroy(&soaquery);
+		dns_message_detach(&soaquery);
 		isc_mem_put(gmctx, reqinfo, sizeof(nsu_requestinfo_t));
 		isc_event_free(&event);
 		maybeshutdown();
@@ -2606,12 +2601,11 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	reqev = NULL;
 
 	ddebug("About to create rcvmsg");
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	if (result == DNS_R_TSIGERRORSET && servers != NULL) {
-		dns_message_destroy(&rcvmsg);
+		dns_message_detach(&rcvmsg);
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
 		reqinfo = isc_mem_get(gmctx, sizeof(nsu_requestinfo_t));
@@ -2650,9 +2644,9 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(userzone, namebuf, sizeof(namebuf));
 		error("specified zone '%s' does not exist (NXDOMAIN)", namebuf);
-		dns_message_destroy(&rcvmsg);
+		dns_message_detach(&rcvmsg);
 		dns_request_destroy(&request);
-		dns_message_destroy(&soaquery);
+		dns_message_detach(&soaquery);
 		ddebug("Out of recvsoa");
 		done_update();
 		seenerror = true;
@@ -2786,11 +2780,11 @@ lookforsoa:
 	setzoneclass(dns_rdataclass_none);
 #endif /* HAVE_GSSAPI */
 
-	dns_message_destroy(&soaquery);
+	dns_message_detach(&soaquery);
 	dns_request_destroy(&request);
 
 out:
-	dns_message_destroy(&rcvmsg);
+	dns_message_detach(&rcvmsg);
 	ddebug("Out of recvsoa");
 	return;
 
@@ -2977,11 +2971,7 @@ start_gssrequest(dns_name_t *master) {
 	keyname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 
 	rmsg = NULL;
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &rmsg);
-	if (result != ISC_R_SUCCESS) {
-		fatal("dns_message_create failed: %s",
-		      isc_result_totext(result));
-	}
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &rmsg);
 
 	/* Build first request. */
 	context = GSS_C_NO_CONTEXT;
@@ -3003,7 +2993,7 @@ start_gssrequest(dns_name_t *master) {
 
 failure:
 	if (rmsg != NULL) {
-		dns_message_destroy(&rmsg);
+		dns_message_detach(&rmsg);
 	}
 	if (err_message != NULL) {
 		isc_mem_free(gmctx, err_message);
@@ -3078,7 +3068,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 
 	if (shuttingdown) {
 		dns_request_destroy(&request);
-		dns_message_destroy(&tsigquery);
+		dns_message_detach(&tsigquery);
 		isc_mem_put(gmctx, reqinfo, sizeof(nsu_gssinfo_t));
 		isc_event_free(&event);
 		maybeshutdown();
@@ -3089,7 +3079,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
 		if (!next_master("recvgss", addr, eresult)) {
-			dns_message_destroy(&tsigquery);
+			dns_message_detach(&tsigquery);
 			failed_gssrequest();
 		} else {
 			dns_message_renderreset(tsigquery);
@@ -3107,8 +3097,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	reqev = NULL;
 
 	ddebug("recvgss creating rcvmsg");
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
@@ -3149,7 +3138,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 				       &err_message);
 	switch (result) {
 	case DNS_R_CONTINUE:
-		dns_message_destroy(&rcvmsg);
+		dns_message_detach(&rcvmsg);
 		dns_request_destroy(&request);
 		send_gssrequest(kserver, tsigquery, &request, context);
 		ddebug("Out of recvgss");
@@ -3196,9 +3185,9 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 
 done:
 	dns_request_destroy(&request);
-	dns_message_destroy(&tsigquery);
+	dns_message_detach(&tsigquery);
 
-	dns_message_destroy(&rcvmsg);
+	dns_message_detach(&rcvmsg);
 	ddebug("Out of recvgss");
 }
 #endif /* HAVE_GSSAPI */
@@ -3217,7 +3206,7 @@ start_update(void) {
 
 	LOCK(&answer_lock);
 	if (answer != NULL) {
-		dns_message_destroy(&answer);
+		dns_message_detach(&answer);
 	}
 	UNLOCK(&answer_lock);
 
@@ -3233,8 +3222,7 @@ start_update(void) {
 		return;
 	}
 
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &soaquery);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &soaquery);
 
 	if (default_servers) {
 		soaquery->flags |= DNS_MESSAGEFLAG_RD;
@@ -3262,7 +3250,7 @@ start_update(void) {
 			dns_message_puttempname(soaquery, &name);
 			dns_rdataset_disassociate(rdataset);
 			dns_message_puttemprdataset(soaquery, &rdataset);
-			dns_message_destroy(&soaquery);
+			dns_message_detach(&soaquery);
 			done_update();
 			return;
 		}
@@ -3300,7 +3288,7 @@ cleanup(void) {
 
 	LOCK(&answer_lock);
 	if (answer != NULL) {
-		dns_message_destroy(&answer);
+		dns_message_detach(&answer);
 	}
 	UNLOCK(&answer_lock);
 

@@ -1581,7 +1581,7 @@ ns__client_put_cb(void *client0) {
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
 
-	dns_message_destroy(&client->message);
+	dns_message_detach(&client->message);
 
 	/*
 	 * Detaching the task must be done after unlinking from
@@ -2277,12 +2277,8 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		ns_server_attach(mgr->sctx, &client->sctx);
 		get_clienttask(mgr, &client->task);
 
-		result = dns_message_create(client->mctx,
-					    DNS_MESSAGE_INTENTPARSE,
-					    &client->message);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE,
+				   &client->message);
 
 		client->sendbuf = isc_mem_get(client->mctx,
 					      NS_CLIENT_SEND_BUFFER_SIZE);
@@ -2342,7 +2338,7 @@ cleanup:
 	}
 
 	if (client->message != NULL) {
-		dns_message_destroy(&client->message);
+		dns_message_detach(&client->message);
 	}
 
 	if (client->task != NULL) {

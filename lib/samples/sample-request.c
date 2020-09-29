@@ -113,7 +113,7 @@ cleanup:
 	if (qrdataset != NULL) {
 		dns_message_puttemprdataset(message, &qrdataset);
 	}
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 	return (result);
 }
 
@@ -191,15 +191,8 @@ main(int argc, char *argv[]) {
 	rmessage = NULL;
 
 	isc_mem_create(&mctx);
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &qmessage);
-	if (result == ISC_R_SUCCESS) {
-		result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
-					    &rmessage);
-	}
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to create messages\n");
-		exit(1);
-	}
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &qmessage);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rmessage);
 
 	/* Initialize the nameserver address */
 	memset(&hints, 0, sizeof(hints));
@@ -246,8 +239,8 @@ main(int argc, char *argv[]) {
 	isc_buffer_free(&outputbuf);
 
 	/* Cleanup */
-	dns_message_destroy(&qmessage);
-	dns_message_destroy(&rmessage);
+	dns_message_detach(&qmessage);
+	dns_message_detach(&rmessage);
 	isc_mem_destroy(&mctx);
 	dns_client_destroy(&client);
 	dns_lib_shutdown();

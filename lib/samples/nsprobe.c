@@ -1170,17 +1170,10 @@ main(int argc, char *argv[]) {
 		probes[i].reqid = NULL;
 
 		probes[i].qmessage = NULL;
-		result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
-					    &probes[i].qmessage);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_message_create(mctx,
-						    DNS_MESSAGE_INTENTPARSE,
-						    &probes[i].rmessage);
-		}
-		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "initialization failure\n");
-			exit(1);
-		}
+		dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
+				   &probes[i].qmessage);
+		dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
+				   &probes[i].rmessage);
 	}
 	for (i = 0; i < MAX_PROBES; i++) {
 		result = probe_domain(&probes[i]);
@@ -1228,8 +1221,8 @@ main(int argc, char *argv[]) {
 
 	/* Cleanup */
 	for (i = 0; i < MAX_PROBES; i++) {
-		dns_message_destroy(&probes[i].qmessage);
-		dns_message_destroy(&probes[i].rmessage);
+		dns_message_detach(&probes[i].qmessage);
+		dns_message_detach(&probes[i].rmessage);
 	}
 	isc_task_detach(&probe_task);
 	dns_client_destroy(&client);

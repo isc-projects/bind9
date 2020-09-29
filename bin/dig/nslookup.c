@@ -935,7 +935,7 @@ flush_lookup_list(void) {
 			isc_mem_free(mctx, sp);
 		}
 		if (l->sendmsg != NULL) {
-			dns_message_destroy(&l->sendmsg);
+			dns_message_detach(&l->sendmsg);
 		}
 		lp = l;
 		l = ISC_LIST_NEXT(l, link);
