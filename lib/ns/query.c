@@ -1679,7 +1679,9 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	 * If we want only minimal responses and are here, then it must
 	 * be for glue.
 	 */
-	if (qctx->view->minimalresponses == dns_minimal_yes) {
+	if (qctx->view->minimalresponses == dns_minimal_yes &&
+	    client->query.qtype != dns_rdatatype_ns)
+	{
 		goto try_glue;
 	}
 
@@ -11280,6 +11282,12 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	{
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
+	} else if (qtype == dns_rdatatype_ns) {
+		/*
+		 * Always turn on additional records for NS queries.
+		 */
+		client->query.attributes &= ~(NS_QUERYATTR_NOAUTHORITY |
+					      NS_QUERYATTR_NOADDITIONAL);
 	}
 
 	/*
