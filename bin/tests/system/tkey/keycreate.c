@@ -86,8 +86,7 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	query = reqev->ev_arg;
 
 	response = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 
 	result = dns_request_getresponse(reqev->request, response,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
@@ -116,8 +115,8 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	result = dst_key_tofile(tsigkey->key, type, "");
 	CHECK("dst_key_tofile", result);
 
-	dns_message_destroy(&query);
-	dns_message_destroy(&response);
+	dns_message_detach(&query);
+	dns_message_detach(&response);
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
 	isc_app_shutdown();
@@ -174,8 +173,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	CHECK("dns_tsigkey_create", result);
 
 	query = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
 
 	result = dns_tkey_builddhquery(query, ourkey,
 				       dns_fixedname_name(&ownername),

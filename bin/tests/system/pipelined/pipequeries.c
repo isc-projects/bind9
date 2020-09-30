@@ -87,8 +87,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	query = reqev->ev_arg;
 
 	response = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 
 	result = dns_request_getresponse(reqev->request, response,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
@@ -114,8 +113,8 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	       (char *)isc_buffer_base(&outbuf));
 	fflush(stdout);
 
-	dns_message_destroy(&query);
-	dns_message_destroy(&response);
+	dns_message_detach(&query);
+	dns_message_detach(&response);
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
 
@@ -152,8 +151,7 @@ sendquery(isc_task_t *task) {
 	CHECK("dns_name_fromtext", result);
 
 	message = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_query;
 	message->flags |= DNS_MESSAGEFLAG_RD;

@@ -3531,7 +3531,7 @@ forward_done(isc_task_t *task, isc_event_t *event) {
 	INSIST(client->nupdates > 0);
 	client->nupdates--;
 	ns_client_sendraw(client, uev->answer);
-	dns_message_destroy(&uev->answer);
+	dns_message_detach(&uev->answer);
 	isc_event_free(&event);
 	isc_nmhandle_unref(client->handle);
 }

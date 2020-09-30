@@ -50,3 +50,6 @@ Bug Fixes
 - `named` would report invalid memory size when running in an environment
   that doesn't properly report number of available memory pages or pagesize.
   [GL #2166]
+
+- `named` would exit with assertion failure REQUIRE(msg->state == (-1)) in
+  message.c due to a possible data race. [GL #2124]

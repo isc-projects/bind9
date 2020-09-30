@@ -1309,8 +1309,8 @@ sendstream(xfrout_ctx_t *xfr) {
 		 * message.
 		 */
 
-		CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER,
-					 &tcpmsg));
+		dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER,
+				   &tcpmsg);
 		msg = tcpmsg;
 
 		msg->id = xfr->id;
@@ -1575,7 +1575,7 @@ failure:
 	}
 
 	if (tcpmsg != NULL) {
-		dns_message_destroy(&tcpmsg);
+		dns_message_detach(&tcpmsg);
 	}
 
 	if (cleanup_cctx) {

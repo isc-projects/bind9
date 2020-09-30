@@ -100,8 +100,7 @@ recvdone(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_add(&source, sevent->n);
 
 	response = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 	result = dns_message_parse(response, &source, 0);
 	CHECK("dns_message_parse", result);
 
@@ -111,7 +110,7 @@ recvdone(isc_task_t *task, isc_event_t *event) {
 	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
 	       (char *)isc_buffer_base(&outbuf));
 
-	dns_message_destroy(&response);
+	dns_message_detach(&response);
 	isc_event_free(&event);
 
 	isc_app_shutdown();
@@ -131,8 +130,7 @@ buildquery(void) {
 	dns_compress_t cctx;
 
 	query = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
 	result = dns_message_setsig0key(query, key);
 	CHECK("dns_message_setsig0key", result);
 
@@ -186,7 +184,7 @@ buildquery(void) {
 	inr.length = sizeof(rdata);
 	result = isc_socket_recv(s, &inr, 1, task1, recvdone, NULL);
 	CHECK("isc_socket_recv", result);
-	dns_message_destroy(&query);
+	dns_message_detach(&query);
 }
 
 int
