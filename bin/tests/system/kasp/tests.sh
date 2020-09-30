@@ -610,7 +610,7 @@ dnssec_verify()
 # Wait for the zone to be signed.
 # The apex NSEC record indicates that it is signed.
 _wait_for_nsec() {
-	dig_with_opts "@${SERVER}" -y "$TSIG" "$ZONE" NSEC > "dig.out.nsec.test$n" || return 1
+	dig_with_opts "@${SERVER}" "$ZONE" NSEC > "dig.out.nsec.test$n" || return 1
 	grep "NS SOA" "dig.out.nsec.test$n" > /dev/null || return 1
 	grep "${ZONE}\..*IN.*RRSIG" "dig.out.nsec.test$n" > /dev/null || return 1
 	return 0
