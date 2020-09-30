@@ -82,7 +82,7 @@ struct named_server {
 	uint32_t interface_interval;
 	uint32_t heartbeat_interval;
 
-	named_reload_t reload_status;
+	atomic_int reload_status;
 
 	bool flushonshutdown;
 
