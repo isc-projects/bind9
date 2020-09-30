@@ -430,6 +430,26 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 }
 
 void
+isc_time_formatISO8601Lus(const isc_time_t *t, char *buf, unsigned int len) {
+	time_t now;
+	unsigned int flen;
+	struct tm tm;
+
+	REQUIRE(t != NULL);
+	INSIST(t->nanoseconds < NS_PER_S);
+	REQUIRE(buf != NULL);
+	REQUIRE(len > 0);
+
+	now = (time_t)t->seconds;
+	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime_r(&now, &tm));
+	INSIST(flen < len);
+	if (flen > 0U && len - flen >= 6) {
+		snprintf(buf + flen, len - flen, ".%06u",
+			 t->nanoseconds / NS_PER_US);
+	}
+}
+
+void
 isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
@@ -463,6 +483,27 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
 		flen -= 1; /* rewind one character (Z) */
 		snprintf(buf + flen, len - flen, ".%03uZ",
 			 t->nanoseconds / NS_PER_MS);
+	}
+}
+
+void
+isc_time_formatISO8601us(const isc_time_t *t, char *buf, unsigned int len) {
+	time_t now;
+	unsigned int flen;
+	struct tm tm;
+
+	REQUIRE(t != NULL);
+	INSIST(t->nanoseconds < NS_PER_S);
+	REQUIRE(buf != NULL);
+	REQUIRE(len > 0);
+
+	now = (time_t)t->seconds;
+	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime_r(&now, &tm));
+	INSIST(flen < len);
+	if (flen > 0U && len - flen >= 5) {
+		flen -= 1; /* rewind one character (Z) */
+		snprintf(buf + flen, len - flen, ".%06uZ",
+			 t->nanoseconds / NS_PER_US);
 	}
 }
 
