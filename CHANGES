@@ -1,3 +1,6 @@
+5514.	[bug]		Fix KASP expected key size for Ed25519 and Ed448.
+			[GL #2171]
+
 5513.	[doc]		The ARM section describing the "rrset-order" statement
 			was rewritten to make it unambiguous and up-to-date with
 			the source code. [GL #2139]
