@@ -82,9 +82,9 @@ struct named_server {
 	uint32_t interface_interval;
 	uint32_t heartbeat_interval;
 
-	isc_mutex_t    reload_event_lock;
-	isc_event_t *  reload_event;
-	named_reload_t reload_status;
+	isc_mutex_t  reload_event_lock;
+	isc_event_t *reload_event;
+	atomic_int   reload_status;
 
 	bool flushonshutdown;
 
