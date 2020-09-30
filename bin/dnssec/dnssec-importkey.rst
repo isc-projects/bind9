@@ -37,8 +37,8 @@ Description
 ~~~~~~~~~~~
 
 ``dnssec-importkey`` reads a public DNSKEY record and generates a pair
-of .key/.private files. The DNSKEY record may be read from an existing
-.key file, in which case a corresponding .private file will be
+of .key/.private files. The DNSKEY record may be read from an
+existing .key file, in which case a corresponding .private file will be
 generated, or it may be read from any other file or from the standard
 input, in which case both .key and .private files will be generated.
 
