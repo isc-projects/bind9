@@ -669,8 +669,6 @@ BIND9_ISCCFG_BUILDINCLUDE
 BIND9_ISCCC_BUILDINCLUDE
 BIND9_ISC_BUILDINCLUDE
 BIND9_TOP_BUILDDIR
-WRAP_NAME
-WRAP_INTERPOSE
 LD_WRAP_TESTS
 UNITTESTS
 KYUA
@@ -12270,6 +12268,7 @@ if test -z "$PKG_CONFIG"; then :
   as_fn_error $? "The pkg-config script could not be found or is too old." "$LINENO" 5
 fi
 
+# [pairwise: --enable-buffer-useinline, --disable-buffer-useinline]
 # Check whether --enable-buffer_useinline was given.
 if test "${enable_buffer_useinline+set}" = set; then :
   enableval=$enable_buffer_useinline; if test yes = "${enable}"
@@ -12284,18 +12283,21 @@ else
 fi
 
 
+# [pairwise: --enable-warn-shadow, --disable-warn-shadow]
 # Check whether --enable-warn_shadow was given.
 if test "${enable_warn_shadow+set}" = set; then :
   enableval=$enable_warn_shadow;
 fi
 
 
+# [pairwise: --enable-warn-error, --disable-warn-error]
 # Check whether --enable-warn_error was given.
 if test "${enable_warn_error+set}" = set; then :
   enableval=$enable_warn_error;
 fi
 
 
+# [pairwise: --enable-developer, --disable-developer]
 # Check whether --enable-developer was given.
 if test "${enable_developer+set}" = set; then :
   enableval=$enable_developer;
@@ -12318,6 +12320,10 @@ if test "$enable_developer" = "yes"; then :
 fi
 
 
+# Fuzzing is not included in pairwise testing as fuzzing tools are
+# not present in the relevant Docker image.
+#
+# [pairwise: skip]
 # Check whether --enable-fuzzing was given.
 if test "${enable_fuzzing+set}" = set; then :
   enableval=$enable_fuzzing;
@@ -12380,6 +12386,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 fi
 
+# [pairwise: --enable-mutex-atomics, --disable-mutex-atomics]
 # Check whether --enable-mutex_atomics was given.
 if test "${enable_mutex_atomics+set}" = set; then :
   enableval=$enable_mutex_atomics;
@@ -12644,6 +12651,7 @@ default_with_python="python python3 python3.7 python3.6 python3.5 python3.4 pyth
 
 
 
+# [pairwise: --with-python, --without-python]
 
 # Check whether --with-python was given.
 if test "${with_python+set}" = set; then :
@@ -12652,6 +12660,8 @@ else
   with_python=$default_with_python
 fi
 
+
+# [pairwise: skip]
 
 # Check whether --with-python-install-dir was given.
 if test "${with_python_install_dir+set}" = set; then :
@@ -14358,6 +14368,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 #
 # check if we have kqueue
 #
+# [pairwise: --enable-kqueue, --disable-kqueue]
 # Check whether --enable-kqueue was given.
 if test "${enable_kqueue+set}" = set; then :
   enableval=$enable_kqueue;
@@ -14384,6 +14395,7 @@ fi
 # check if we have epoll.  Linux kernel 2.4 has epoll_create() which fails,
 # so we need to try running the code, not just test its existence.
 #
+# [pairwise: --enable-epoll, --disable-epoll]
 # Check whether --enable-epoll was given.
 if test "${enable_epoll+set}" = set; then :
   enableval=$enable_epoll;
@@ -14409,6 +14421,7 @@ fi
 #
 # check if we support /dev/poll
 #
+# [pairwise: --enable-devpoll, --disable-devpoll]
 # Check whether --enable-devpoll was given.
 if test "${enable_devpoll+set}" = set; then :
   enableval=$enable_devpoll;
@@ -14665,6 +14678,7 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 #
 # Should be on by default if libmaxminddb exists.
 #
+# [pairwise: skip]
 
 # Check whether --with-geoip2 was given.
 if test "${with_geoip2+set}" = set; then :
@@ -14675,6 +14689,7 @@ else
 fi
 
 
+# [pairwise: --enable-geoip --with-maxminddb=auto, --enable-geoip --with-maxminddb=yes, --disable-geoip]
 # Check whether --enable-geoip was given.
 if test "${enable_geoip+set}" = set; then :
   enableval=$enable_geoip;
@@ -14683,6 +14698,7 @@ else
 fi
 
 
+# [pairwise: skip]
 
 # Check whether --with-maxminddb was given.
 if test "${with_maxminddb+set}" = set; then :
@@ -15800,6 +15816,7 @@ fi
 done
 
 
+# [pairwise: --with-locktype=adaptive, --with-locktype=standard]
 
 # Check whether --with-locktype was given.
 if test "${with_locktype+set}" = set; then :
@@ -16252,6 +16269,8 @@ done
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libtool" >&5
 $as_echo_n "checking for libtool... " >&6; }
 
+# [pairwise: --with-libtool, --without-libtool]
+
 # Check whether --with-libtool was given.
 if test "${with_libtool+set}" = set; then :
   withval=$with_libtool; use_libtool="$withval"
@@ -16302,6 +16321,7 @@ esac
 #
 # Do we want to use pthread rwlock?
 #
+# [pairwise: --enable-pthread-rwlock, --disable-pthread-rwlock]
 # Check whether --enable-pthread_rwlock was given.
 if test "${enable_pthread_rwlock+set}" = set; then :
   enableval=$enable_pthread_rwlock;
@@ -17127,6 +17147,10 @@ done
 #
 # Check whether FIPS mode is available and whether we should enable it
 #
+# FIPS is not included in pairwise testing as the relevant Docker image
+# does not support FIPS mode.
+#
+# [pairwise: skip]
 # Check whether --enable-fips-mode was given.
 if test "${enable_fips_mode+set}" = set; then :
   enableval=$enable_fips_mode;
@@ -17227,6 +17251,7 @@ PKCS11_MANS=
 #
 # was --enable-native-pkcs11 specified?
 #
+# [pairwise: --enable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --without-dlopen]
 # Check whether --enable-native-pkcs11 was given.
 if test "${enable_native_pkcs11+set}" = set; then :
   enableval=$enable_native_pkcs11; :
@@ -17290,6 +17315,7 @@ esac
 #
 # was --with-pkcs11 specified?
 #
+# [pairwise: skip]
 
 # Check whether --with-pkcs11 was given.
 if test "${with_pkcs11+set}" = set; then :
@@ -17376,6 +17402,8 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSSAPI library" >&5
 $as_echo_n "checking for GSSAPI library... " >&6; }
+
+# [pairwise: --with-gssapi=yes, --with-gssapi=auto, --without-gssapi]
 
 # Check whether --with-gssapi was given.
 if test "${with_gssapi+set}" = set; then :
@@ -17804,6 +17832,8 @@ DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lmdb library" >&5
 $as_echo_n "checking for lmdb library... " >&6; }
 
+# [pairwise: --with-lmdb=auto, --with-lmdb=yes, --without-lmdb]
+
 # Check whether --with-lmdb was given.
 if test "${with_lmdb+set}" = set; then :
   withval=$with_lmdb; use_lmdb="$withval"
@@ -18063,6 +18093,7 @@ fi
 #
 # was --with-libxml2 specified?
 #
+# [pairwise: --with-libxml2=auto, --with-libxml2=yes, --without-libxml2]
 
 # Check whether --with-libxml2 was given.
 if test "${with_libxml2+set}" = set; then :
@@ -18250,6 +18281,7 @@ esac
 #
 # DEPRECATED
 #
+# [pairwise: skip]
 
 # Check whether --with-libjson was given.
 if test "${with_libjson+set}" = set; then :
@@ -18263,6 +18295,7 @@ fi
 #
 # was --with-json-c specified?
 #
+# [pairwise: --with-json-c=detect, --with-json-c=yes, --without-json-c]
 
 # Check whether --with-json-c was given.
 if test "${with_json_c+set}" = set; then :
@@ -18451,6 +18484,7 @@ esac
 
 
 
+# [pairwise: --with-zlib=auto, --with-zlib=yes, --without-zlib]
 
 # Check whether --with-zlib was given.
 if test "${with_zlib+set}" = set; then :
@@ -18979,6 +19013,11 @@ esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use purify" >&5
 $as_echo_n "checking whether to use purify... " >&6; }
 
+# Purify is not included in pairwise testing as that tool is not present
+# in the relevant Docker image.
+#
+# [pairwise: skip]
+
 # Check whether --with-purify was given.
 if test "${with_purify+set}" = set; then :
   withval=$with_purify; use_purify="$withval"
@@ -19069,6 +19108,12 @@ esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use gperftools profiler" >&5
 $as_echo_n "checking whether to use gperftools profiler... " >&6; }
 
+# Google/Great Performance Tools CPU Profiler is not included in
+# pairwise testing as that tool is not present in the relevant Docker
+# image.
+#
+# [pairwise: skip]
+
 # Check whether --with-gperftools-profiler was given.
 if test "${with_gperftools_profiler+set}" = set; then :
   withval=$with_gperftools_profiler; use_profiler="$withval"
@@ -19096,6 +19141,7 @@ esac
 # enable/disable dumping stack backtrace.  Also check if the system supports
 # glibc-compatible backtrace() function.
 #
+# [pairwise: --enable-backtrace, --disable-backtrace]
 # Check whether --enable-backtrace was given.
 if test "${enable_backtrace+set}" = set; then :
   enableval=$enable_backtrace;
@@ -19130,6 +19176,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 fi
 
+# [pairwise: --enable-symtable, --disable-symtable]
 # Check whether --enable-symtable was given.
 if test "${enable_symtable+set}" = set; then :
   enableval=$enable_symtable; want_symtable="$enableval"
@@ -19243,7 +19290,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
 # comment in lib/isc/unix/socket.c).
 #
-
+# [pairwise: --enable-tcp-fastopen, --disable-tcp-fastopen]
 # Check whether --enable-tcp_fastopen was given.
 if test "${enable_tcp_fastopen+set}" = set; then :
   enableval=$enable_tcp_fastopen;
@@ -19275,6 +19322,8 @@ done
 
 
 
+
+# [pairwise: --with-readline=auto, --with-readline=yes, --without-readline]
 
 # Check whether --with-readline was given.
 if test "${with_readline+set}" = set; then :
@@ -19419,6 +19468,7 @@ fi
 #
 # Use our own SPNEGO implementation?
 #
+# [pairwise: --enable-isc-spnego, --disable-isc-spnego]
 # Check whether --enable-isc-spnego was given.
 if test "${enable_isc_spnego+set}" = set; then :
   enableval=$enable_isc_spnego;
@@ -19452,6 +19502,8 @@ fi
 #
 # Note it is very recommended to *not* disable chroot(),
 # this is only because chroot() was made obsolete by Posix.
+#
+# [pairwise: --enable-chroot, --disable-chroot]
 # Check whether --enable-chroot was given.
 if test "${enable_chroot+set}" = set; then :
   enableval=$enable_chroot;
@@ -19478,6 +19530,8 @@ esac
 LIBCAP_LIBS=""
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable Linux capabilities" >&5
 $as_echo_n "checking whether to enable Linux capabilities... " >&6; }
+
+# [pairwise: --enable-linux-caps, --disable-linux-caps]
 # Check whether --enable-linux-caps was given.
 if test "${enable_linux_caps+set}" = set; then :
   enableval=$enable_linux_caps;
@@ -20365,6 +20419,7 @@ fi
 #
 # Activate "rrset-order fixed" or not?
 #
+# [pairwise: --enable-fixed-rrset, --disable-fixed-rrset]
 # Check whether --enable-fixed-rrset was given.
 if test "${enable_fixed_rrset+set}" = set; then :
   enableval=$enable_fixed_rrset; enable_fixed="$enableval"
@@ -20387,6 +20442,7 @@ esac
 #
 # Activate dnstap?
 #
+# [pairwise: --enable-dnstap, --disable-dnstap]
 # Check whether --enable-dnstap was given.
 if test "${enable_dnstap+set}" = set; then :
   enableval=$enable_dnstap; use_dnstap=$enableval
@@ -20400,6 +20456,8 @@ DNSTAPSRCS=
 DNSTAPOBJS=
 DNSTAPTARGETS=
 if test "x$use_dnstap" != "xno"; then
+
+	# [pairwise: skip]
 
 # Check whether --with-protobuf-c was given.
 if test "${with_protobuf_c+set}" = set; then :
@@ -20518,6 +20576,8 @@ fi
 	if test -z "$PROTOC_C"; then
 		as_fn_error $? "The protoc-c program was not found." "$LINENO" 5
 	fi
+
+	# [pairwise: skip]
 
 # Check whether --with-libfstrm was given.
 if test "${with_libfstrm+set}" = set; then :
@@ -21340,6 +21400,8 @@ LIBIDN2_CFLAGS=
 LIBIDN2_LDFLAGS=
 LIBIDN2_LIBS=
 
+# [pairwise: --with-libidn2=yes, --without-libidn2]
+
 # Check whether --with-libidn2 was given.
 if test "${with_libidn2+set}" = set; then :
   withval=$with_libidn2; with_libidn2="$withval"
@@ -21658,7 +21720,7 @@ esac
 #
 # Check whether to build with cmocka unit testing framework
 #
-
+# [pairwise: --with-cmocka=detect, --with-cmocka=yes, --without-cmocka]
 
 # Check whether --with-cmocka was given.
 if test "${with_cmocka+set}" = set; then :
@@ -22068,166 +22130,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 
-WRAP_INTERPOSE=
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker support for '-z interpose' option" >&5
-$as_echo_n "checking for linker support for '-z interpose' option... " >&6; }
-
-
-  CCASFLAGS_interpose_ax_save_flags=$CCASFLAGS
-
-
-
-  CFLAGS_interpose_ax_save_flags=$CFLAGS
-
-
-
-  CPPFLAGS_interpose_ax_save_flags=$CPPFLAGS
-
-
-
-  CXXFLAGS_interpose_ax_save_flags=$CXXFLAGS
-
-
-
-  ERLCFLAGS_interpose_ax_save_flags=$ERLCFLAGS
-
-
-
-  FCFLAGS_interpose_ax_save_flags=$FCFLAGS
-
-
-
-  FCLIBS_interpose_ax_save_flags=$FCLIBS
-
-
-
-  FFLAGS_interpose_ax_save_flags=$FFLAGS
-
-
-
-  FLIBS_interpose_ax_save_flags=$FLIBS
-
-
-
-  GCJFLAGS_interpose_ax_save_flags=$GCJFLAGS
-
-
-
-  JAVACFLAGS_interpose_ax_save_flags=$JAVACFLAGS
-
-
-
-  LDFLAGS_interpose_ax_save_flags=$LDFLAGS
-
-
-
-  LIBS_interpose_ax_save_flags=$LIBS
-
-
-
-  OBJCFLAGS_interpose_ax_save_flags=$OBJCFLAGS
-
-
-
-  OBJCXXFLAGS_interpose_ax_save_flags=$OBJCXXFLAGS
-
-
-
-  UPCFLAGS_interpose_ax_save_flags=$UPCFLAGS
-
-
-
-  VALAFLAGS_interpose_ax_save_flags=$VALAFLAGS
-
-
-
-LDFLAGS="-Wl,-z,interpose"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  WRAP_INTERPOSE="-Wl,-z,interpose"
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-  CCASFLAGS=$CCASFLAGS_interpose_ax_save_flags
-
-
-  CFLAGS=$CFLAGS_interpose_ax_save_flags
-
-
-  CPPFLAGS=$CPPFLAGS_interpose_ax_save_flags
-
-
-  CXXFLAGS=$CXXFLAGS_interpose_ax_save_flags
-
-
-  ERLCFLAGS=$ERLCFLAGS_interpose_ax_save_flags
-
-
-  FCFLAGS=$FCFLAGS_interpose_ax_save_flags
-
-
-  FCLIBS=$FCLIBS_interpose_ax_save_flags
-
-
-  FFLAGS=$FFLAGS_interpose_ax_save_flags
-
-
-  FLIBS=$FLIBS_interpose_ax_save_flags
-
-
-  GCJFLAGS=$GCJFLAGS_interpose_ax_save_flags
-
-
-  JAVACFLAGS=$JAVACFLAGS_interpose_ax_save_flags
-
-
-  LDFLAGS=$LDFLAGS_interpose_ax_save_flags
-
-
-  LIBS=$LIBS_interpose_ax_save_flags
-
-
-  OBJCFLAGS=$OBJCFLAGS_interpose_ax_save_flags
-
-
-  OBJCXXFLAGS=$OBJCXXFLAGS_interpose_ax_save_flags
-
-
-  UPCFLAGS=$UPCFLAGS_interpose_ax_save_flags
-
-
-  VALAFLAGS=$VALAFLAGS_interpose_ax_save_flags
-
-
-
-
-
-
-WRAP_NAME=''
-case $host in #(
-  *-darwin*) :
-    WRAP_NAME='${WRAP_NAME}' ;; #(
-  *) :
-     ;;
-esac
-
-
 #
 # Check for i18n
 #
@@ -22258,6 +22160,7 @@ done
 #
 # was --with-tuning specified?
 #
+# [pairwise: --with-tuning=small, --without-tuning]
 
 # Check whether --with-tuning was given.
 if test "${with_tuning+set}" = set; then :
@@ -22282,6 +22185,7 @@ esac
 #
 # was --enable-querytrace specified?
 #
+# [pairwise: --enable-querytrace, --disable-querytrace]
 # Check whether --enable-querytrace was given.
 if test "${enable_querytrace+set}" = set; then :
   enableval=$enable_querytrace; want_querytrace="$enableval"
@@ -22312,7 +22216,10 @@ esac
 #
 # Was --disable-auto-validation specified?
 #
+
 validation_default=auto
+
+# [pairwise: --enable-auto-validation, --disable-auto-validation]
 # Check whether --enable-auto-validation was given.
 if test "${enable_auto_validation+set}" = set; then :
   enableval=$enable_auto_validation; :
@@ -22461,6 +22368,7 @@ SO_LD=""
 SO_TARGETS=""
 SO_STRIP="cat"
 
+# [pairwise: skip]
 
 # Check whether --with-dlopen was given.
 if test "${with_dlopen+set}" = set; then :
@@ -22715,6 +22623,10 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+# DNSRPS is not included in pairwise testing as the librpz library is not
+# present in the relevant Docker image.
+#
+# [pairwise: skip]
 # Check whether --enable-dnsrps-dl was given.
 if test "${enable_dnsrps_dl+set}" = set; then :
   enableval=$enable_dnsrps_dl; enable_librpz_dl="$enableval"
@@ -22727,6 +22639,7 @@ if test "$enable_librpz_dl" = "yes" -a "$with_dlopen" = "no"; then :
   as_fn_error $? "DNS Response Policy Service delayed link requires dlopen to be enabled" "$LINENO" 5
 fi
 
+# [pairwise: skip]
 
 # Check whether --with-dnsrps-libname was given.
 if test "${with_dnsrps_libname+set}" = set; then :
@@ -22735,6 +22648,8 @@ else
   librpz_name="librpz.so"
 fi
 
+
+# [pairwise: skip]
 
 # Check whether --with-dnsrps-dir was given.
 if test "${with_dnsrps_dir+set}" = set; then :
@@ -22823,6 +22738,7 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+# [pairwise: skip]
 # Check whether --enable-dnsrps was given.
 if test "${enable_dnsrps+set}" = set; then :
   enableval=$enable_dnsrps; enable_dnsrps=$enableval
@@ -26208,6 +26124,7 @@ fi
 #
 # Now that the Makefiles exist we can ensure that everything is rebuilt.
 #
+# [pairwise: --with-make-clean, --without-make-clean]
 
 # Check whether --with-make-clean was given.
 if test "${with_make_clean+set}" = set; then :
@@ -26230,6 +26147,7 @@ yes)
 	;;
 esac
 
+# [pairwise: --enable-full-report, --disable-full-report]
 # Check whether --enable-full-report was given.
 if test "${enable_full_report+set}" = set; then :
   enableval=$enable_full_report;
