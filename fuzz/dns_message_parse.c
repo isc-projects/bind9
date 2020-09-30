@@ -80,6 +80,11 @@ print_message(dns_message_t *message) {
 		}
 	} while (result == ISC_R_NOSPACE);
 
+	if (debug) {
+		fprintf(stderr, "%.*s\n", (int)isc_buffer_usedlength(&buffer),
+			output);
+	}
+
 	return (result);
 }
 
