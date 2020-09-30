@@ -59,6 +59,18 @@ do
 	cp template.db.in "$zonefile"
 done
 
+if [ -f ../ed25519-supported.file ]; then
+	setup "ed25519.kasp"
+	cp template.db.in "$zonefile"
+	cat ed25519.conf >> named.conf
+fi
+
+if [ -f ../ed448-supported.file ]; then
+	setup "ed448.kasp"
+	cp template.db.in "$zonefile"
+	cat ed448.conf >> named.conf
+fi
+
 # Set up zone that stays unsigned.
 zone="unsigned.kasp"
 echo_i "setting up zone: $zone"

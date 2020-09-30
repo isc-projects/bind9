@@ -2042,7 +2042,49 @@ check_apex
 check_subdomain
 dnssec_verify
 
-# TODO: ED25519 and ED448.
+#
+# Zone: ed25519.kasp.
+#
+if [ -f ed25519-supported.file ]; then
+	set_zone "ed25519.kasp"
+	set_policy "ed25519" "3" "1234"
+	set_server "ns3" "10.53.0.3"
+	# Key properties.
+	set_keyalgorithm "KEY1" "15" "ED25519" "256"
+	set_keyalgorithm "KEY2" "15" "ED25519" "256"
+	set_keyalgorithm "KEY3" "15" "ED25519" "256"
+	# Key timings and states same as above.
+
+	check_keys
+	check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+	set_keytimes_algorithm_policy
+	check_keytimes
+	check_apex
+	check_subdomain
+	dnssec_verify
+fi
+
+#
+# Zone: ed448.kasp.
+#
+if [ -f ed448-supported.file ]; then
+	set_zone "ed448.kasp"
+	set_policy "ed448" "3" "1234"
+	set_server "ns3" "10.53.0.3"
+	# Key properties.
+	set_keyalgorithm "KEY1" "16" "ED448" "456"
+	set_keyalgorithm "KEY2" "16" "ED448" "456"
+	set_keyalgorithm "KEY3" "16" "ED448" "456"
+	# Key timings and states same as above.
+
+	check_keys
+	check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+	set_keytimes_algorithm_policy
+	check_keytimes
+	check_apex
+	check_subdomain
+	dnssec_verify
+fi
 
 # Set key times for 'autosign' policy.
 set_keytimes_autosign_policy() {

@@ -26,3 +26,4 @@ rm -f ns*/zones ns*/*.db.infile
 rm -f *.created published.test* retired.test*
 rm -f rndc.dnssec.*.out.*
 rm -f python.out.*
+rm -f *-supported.file

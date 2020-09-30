@@ -24,6 +24,14 @@ copy_setports ns4/named.conf.in ns4/named.conf
 copy_setports ns5/named.conf.in ns5/named.conf
 copy_setports ns6/named.conf.in ns6/named.conf
 
+if $SHELL ../testcrypto.sh ed25519; then
+	echo "yes" > ed25519-supported.file
+fi
+
+if $SHELL ../testcrypto.sh ed448; then
+	echo "yes" > ed448-supported.file
+fi
+
 # Setup zones
 (
 	cd ns2
