@@ -1,3 +1,7 @@
+5510.	[bug]		Implement the attach/detach semantics for dns_message_t
+			to fix a data race in accessing already destroyed
+			fctx->rmessage. [GL #2124]
+
 5506.	[bug]		Properly handle failed sysconf() calls, so we don't
 			report invalid memory size. [GL #2166]
 

@@ -9,7 +9,7 @@ static char xslmsg[] =
 	" -\n"
 	" - This Source Code Form is subject to the terms of the Mozilla Public\n"
 	" - License, v. 2.0. If a copy of the MPL was not distributed with this\n"
-	" - file, You can obtain one at http://mozilla.org/MPL/2.0/.\n"
+	" - file, you can obtain one at https://mozilla.org/MPL/2.0/.\n"
 	" -\n"
 	" - See the COPYRIGHT file distributed with this work for additional\n"
 	" - information regarding copyright ownership.\n"

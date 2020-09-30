@@ -67,9 +67,16 @@
         <para>
 	  <command>named</command> would report invalid memory size when running
 	  in an environment that doesn't properly report number of available
-	  memory pages or pagesize.  [GL #2166] None.
+	  memory pages or pagesize.  [GL #2166]
         </para>
       </listitem>
+      <listtitem>
+	<para>
+	  <command>named</command> would exit with assertion failure
+	  <command>REQUIRE(msg->state == (-1))</command> in message.c due to a
+	  possible data race. [GL #2124]
+	</para>
+      </listtitem>
     </itemizedlist>
   </section>
 

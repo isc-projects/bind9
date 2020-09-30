@@ -983,7 +983,7 @@ flush_lookup_list(void) {
 
 		}
 		if (l->sendmsg != NULL)
-			dns_message_destroy(&l->sendmsg);
+			dns_message_detach(&l->sendmsg);
 		lp = l;
 		l = ISC_LIST_NEXT(l, link);
 		ISC_LIST_DEQUEUE(lookup_list, lp, link);

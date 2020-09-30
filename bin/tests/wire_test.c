@@ -328,7 +328,7 @@ process_message(isc_buffer_t *source) {
 		dns_compress_invalidate(&cctx);
 
 		message->from_to_wire = DNS_MESSAGE_INTENTPARSE;
-		dns_message_destroy(&message);
+		dns_message_detach(&message);
 
 		printf("Message rendered.\n");
 		if (printmemstats)
@@ -344,5 +344,5 @@ process_message(isc_buffer_t *source) {
 		result = printmessage(message);
 		CHECKRESULT(result, "printmessage() failed");
 	}
-	dns_message_destroy(&message);
+	dns_message_detach(&message);
 }

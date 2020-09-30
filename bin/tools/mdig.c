@@ -478,9 +478,9 @@ cleanup:
 	if (style != NULL)
 		dns_master_styledestroy(&style, mctx);
 	if (query != NULL)
-		dns_message_destroy(&query);
+		dns_message_detach(&query);
 	if (response != NULL)
-		dns_message_destroy(&response);
+		dns_message_detach(&response);
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
 

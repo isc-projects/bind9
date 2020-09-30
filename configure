@@ -3,7 +3,7 @@
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 #  -----------------------------------------------------------------------------
 #
@@ -979,6 +979,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1153,6 +1154,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1405,6 +1407,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1542,7 +1553,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1695,6 +1706,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -5080,7 +5092,7 @@ linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
-netbsd*)
+netbsd* | netbsdelf*-gnu)
   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
     lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
   else
@@ -5986,11 +5998,8 @@ _LT_EOF
   test $ac_status = 0; }; then
     # Now try to grab the symbols.
     nlist=conftest.nm
-    if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$NM conftest.$ac_objext \| "$lt_cv_sys_global_symbol_pipe" \> $nlist\""; } >&5
-  (eval $NM conftest.$ac_objext \| "$lt_cv_sys_global_symbol_pipe" \> $nlist) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && test -s "$nlist"; then
+    $ECHO "$as_me:$LINENO: $NM conftest.$ac_objext | $lt_cv_sys_global_symbol_pipe > $nlist" >&5
+    if eval "$NM" conftest.$ac_objext \| "$lt_cv_sys_global_symbol_pipe" \> $nlist 2>&5 && test -s "$nlist"; then
       # Try sorting and uniquifying the output.
       if sort "$nlist" | uniq > "$nlist"T; then
 	mv -f "$nlist"T "$nlist"
@@ -8815,6 +8824,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
   openbsd* | bitrig*)
     with_gnu_ld=no
     ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs=no
+    ;;
   esac
 
   ld_shlibs=yes
@@ -9069,7 +9081,7 @@ _LT_EOF
       fi
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
 	wlarc=
@@ -9739,6 +9751,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
 	if test yes = "$lt_cv_irix_exported_symbol"; then
           archive_expsym_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations $wl-exports_file $wl$export_symbols -o $lib'
 	fi
+	link_all_deplibs=no
       else
 	archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -o $lib'
 	archive_expsym_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -exports_file $export_symbols -o $lib'
@@ -9760,7 +9773,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
       esac
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
       else
@@ -10873,6 +10886,18 @@ fi
   # people can always --disable-shared, the test was removed, and we
   # assume the GNU/Linux dynamic linker is in use.
   dynamic_linker='GNU/Linux ld.so'
+  ;;
+
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
   ;;
 
 netbsd*)
@@ -12120,6 +12145,8 @@ $as_echo "no" >&6; }
 fi
 
 # Warn if the user specified libbind, which is now deprecated
+#
+# [pairwise: skip]
 # Check whether --enable-libbind was given.
 if test "${enable_libbind+set}" = set; then :
   enableval=$enable_libbind;
@@ -12135,6 +12162,7 @@ It is available from http://www.isc.org as a separate download." "$LINENO" 5
 		;;
 esac
 
+# [pairwise: --enable-buffer-useinline, --disable-buffer-useinline]
 # Check whether --enable-buffer_useinline was given.
 if test "${enable_buffer_useinline+set}" = set; then :
   enableval=$enable_buffer_useinline; if test yes = "${enable}"
@@ -12149,18 +12177,21 @@ else
 fi
 
 
+# [pairwise: --enable-warn-shadow, --disable-warn-shadow]
 # Check whether --enable-warn_shadow was given.
 if test "${enable_warn_shadow+set}" = set; then :
   enableval=$enable_warn_shadow;
 fi
 
 
+# [pairwise: --enable-warn-error, --disable-warn-error]
 # Check whether --enable-warn_error was given.
 if test "${enable_warn_error+set}" = set; then :
   enableval=$enable_warn_error;
 fi
 
 
+# [pairwise: --enable-developer, --disable-developer]
 # Check whether --enable-developer was given.
 if test "${enable_developer+set}" = set; then :
   enableval=$enable_developer;
@@ -12184,7 +12215,10 @@ yes)
 esac
 
 
-# American Fuzzy Lop
+# American Fuzzy Lop is not included in pairwise testing as fuzzing
+# tools are not present in the relevant Docker image.
+#
+# [pairwise: skip]
 # Check whether --enable-afl was given.
 if test "${enable_afl+set}" = set; then :
   enableval=$enable_afl;
@@ -12199,7 +12233,6 @@ yes)
 esac
 
 
-#libseccomp sandboxing
 for ac_func in getrandom
 do :
   ac_fn_c_check_func "$LINENO" "getrandom" "ac_cv_func_getrandom"
@@ -12211,6 +12244,10 @@ _ACEOF
 fi
 done
 
+
+# libseccomp sandboxing
+#
+# [pairwise: --enable-seccomp, --disable-seccomp]
 # Check whether --enable-seccomp was given.
 if test "${enable_seccomp+set}" = set; then :
   enableval=$enable_seccomp;
@@ -12554,6 +12591,7 @@ default_with_python="python python3 python3.7 python3.6 python3.5 python3.4 pyth
 
 
 
+# [pairwise: --with-python, --without-python]
 
 # Check whether --with-python was given.
 if test "${with_python+set}" = set; then :
@@ -12562,6 +12600,8 @@ else
   with_python=$default_with_python
 fi
 
+
+# [pairwise: skip]
 
 # Check whether --with-python-install-dir was given.
 if test "${with_python_install_dir+set}" = set; then :
@@ -14251,6 +14291,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 #
 # check if we have kqueue
 #
+# [pairwise: --enable-kqueue, --disable-kqueue]
 # Check whether --enable-kqueue was given.
 if test "${enable_kqueue+set}" = set; then :
   enableval=$enable_kqueue; want_kqueue="$enableval"
@@ -14286,6 +14327,7 @@ esac
 # check if we have epoll.  Linux kernel 2.4 has epoll_create() which fails,
 # so we need to try running the code, not just test its existence.
 #
+# [pairwise: --enable-epoll, --disable-epoll]
 # Check whether --enable-epoll was given.
 if test "${enable_epoll+set}" = set; then :
   enableval=$enable_epoll; want_epoll="$enableval"
@@ -14339,6 +14381,7 @@ esac
 #
 # check if we support /dev/poll
 #
+# [pairwise: --enable-devpoll, --disable-devpoll]
 # Check whether --enable-devpoll was given.
 if test "${enable_devpoll+set}" = set; then :
   enableval=$enable_devpoll; want_devpoll="$enableval"
@@ -14661,6 +14704,8 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 #
 geoip2_default="no"
 
+# [pairwise: --with-geoip --without-geoip2, --without-geoip --with-geoip2=auto, --without-geoip --with-geoip2=yes, --without-geoip --without-geoip2]
+
 # Check whether --with-geoip was given.
 if test "${with_geoip+set}" = set; then :
   withval=$with_geoip;
@@ -14671,6 +14716,8 @@ else
   use_geoip="no"
 fi
 
+
+# [pairwise: skip]
 
 # Check whether --with-geoip2 was given.
 if test "${with_geoip2+set}" = set; then :
@@ -14693,8 +14740,8 @@ case $with_geoip2 in #(
   auto) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmaxminddb" >&5
-$as_echo_n "checking for libmaxminddb... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MAXMINDDB" >&5
+$as_echo_n "checking for MAXMINDDB... " >&6; }
 
 if test -n "$MAXMINDDB_CFLAGS"; then
     pkg_cv_MAXMINDDB_CFLAGS="$MAXMINDDB_CFLAGS"
@@ -14734,7 +14781,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -14752,7 +14799,7 @@ fi
 
 	:
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	:
 else
@@ -14793,8 +14840,8 @@ fi ;; #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmaxminddb" >&5
-$as_echo_n "checking for libmaxminddb... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MAXMINDDB" >&5
+$as_echo_n "checking for MAXMINDDB... " >&6; }
 
 if test -n "$MAXMINDDB_CFLAGS"; then
     pkg_cv_MAXMINDDB_CFLAGS="$MAXMINDDB_CFLAGS"
@@ -14834,7 +14881,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -14861,7 +14908,7 @@ Alternatively, you may set the environment variables MAXMINDDB_CFLAGS
 and MAXMINDDB_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -15362,6 +15409,8 @@ esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSSAPI library" >&5
 $as_echo_n "checking for GSSAPI library... " >&6; }
 
+# [pairwise: --with-gssapi=yes, --with-gssapi=auto, --without-gssapi]
+
 # Check whether --with-gssapi was given.
 if test "${with_gssapi+set}" = set; then :
   withval=$with_gssapi; use_gssapi="$withval"
@@ -15788,6 +15837,8 @@ DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS $DNS_CRYPTO_LIBS"
 #
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for random device" >&5
 $as_echo_n "checking for random device... " >&6; }
+
+# [pairwise: skip]
 
 # Check whether --with-randomdev was given.
 if test "${with_randomdev+set}" = set; then :
@@ -16678,6 +16729,7 @@ if test "x$ac_cv_func_pthread_attr_setstacksize" = xyes; then :
 fi
 
 
+	# [pairwise: --with-locktype=adaptive, --with-locktype=standard]
 
 # Check whether --with-locktype was given.
 if test "${with_locktype+set}" = set; then :
@@ -16963,6 +17015,8 @@ ISC_THREAD_DIR=$thread_dir
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libtool" >&5
 $as_echo_n "checking for libtool... " >&6; }
 
+# [pairwise: --with-libtool, --without-libtool]
+
 # Check whether --with-libtool was given.
 if test "${with_libtool+set}" = set; then :
   withval=$with_libtool; use_libtool="$withval"
@@ -17015,6 +17069,7 @@ esac
 # was --enable-native-pkcs11 specified?
 #  (note it implies both --without-openssl and --with-pkcs11)
 #
+# [pairwise: --enable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --without-dlopen]
 # Check whether --enable-native-pkcs11 was given.
 if test "${enable_native_pkcs11+set}" = set; then :
   enableval=$enable_native_pkcs11; want_native_pkcs11="$enableval"
@@ -17026,6 +17081,7 @@ fi
 #
 # was --with-openssl specified?
 #
+# [pairwise: --with-openssl --enable-openssl-hash, --with-openssl --disable-openssl-hash, --without-openssl]
 
 # Check whether --with-openssl was given.
 if test "${with_openssl+set}" = set; then :
@@ -17038,6 +17094,7 @@ fi
 #
 # was --with-pkcs11 specified?
 #
+# [pairwise: skip]
 
 # Check whether --with-pkcs11 was given.
 if test "${with_pkcs11+set}" = set; then :
@@ -17051,6 +17108,8 @@ fi
 # were --with-ecdsa, --with-gost, --with-eddsa, --with-aes specified
 #
 
+# [pairwise: --with-ecdsa, --without-ecdsa]
+
 # Check whether --with-ecdsa was given.
 if test "${with_ecdsa+set}" = set; then :
   withval=$with_ecdsa; with_ecdsa="$withval"
@@ -17058,6 +17117,11 @@ else
   with_ecdsa="auto"
 fi
 
+
+# GOST is not included in pairwise testing as it is not supported by the
+# OpenSSL version present in the relevant Docker image.
+#
+# [pairwise: skip]
 
 # Check whether --with-gost was given.
 if test "${with_gost+set}" = set; then :
@@ -17067,6 +17131,11 @@ else
 fi
 
 
+# EdDSA is not included in pairwise testing as it is not supported by
+# the SoftHSM version present in the relevant Docker image.
+#
+# [pairwise: skip]
+
 # Check whether --with-eddsa was given.
 if test "${with_eddsa+set}" = set; then :
   withval=$with_eddsa; with_eddsa="$withval"
@@ -17074,6 +17143,8 @@ else
   with_eddsa="auto"
 fi
 
+
+# [pairwise: --with-aes, --without-aes]
 
 # Check whether --with-aes was given.
 if test "${with_aes+set}" = set; then :
@@ -17086,6 +17157,7 @@ fi
 #
 # was --enable-openssl-hash specified?
 #
+# [pairwise: skip]
 # Check whether --enable-openssl-hash was given.
 if test "${enable_openssl_hash+set}" = set; then :
   enableval=$enable_openssl_hash; want_openssl_hash="$enableval"
@@ -17810,6 +17882,7 @@ fi
 #
 # Choose Client Cookie algorithm
 #
+# [pairwise: skip]
 
 # Check whether --with-cc-alg was given.
 if test "${with_cc_alg+set}" = set; then :
@@ -18218,6 +18291,8 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lmdb library" >&5
 $as_echo_n "checking for lmdb library... " >&6; }
 
+# [pairwise: --with-lmdb=auto, --with-lmdb=yes, --without-lmdb]
+
 # Check whether --with-lmdb was given.
 if test "${with_lmdb+set}" = set; then :
   withval=$with_lmdb; use_lmdb="$withval"
@@ -18348,6 +18423,7 @@ fi
 #
 # was --with-libxml2 specified?
 #
+# [pairwise: --with-libxml2=auto, --with-libxml2=yes, --without-libxml2]
 
 # Check whether --with-libxml2 was given.
 if test "${with_libxml2+set}" = set; then :
@@ -18365,8 +18441,8 @@ case $with_libxml2 in #(
   auto) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 >= 2.6.0" >&5
-$as_echo_n "checking for libxml-2.0 >= 2.6.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBXML2" >&5
+$as_echo_n "checking for LIBXML2... " >&6; }
 
 if test -n "$LIBXML2_CFLAGS"; then
     pkg_cv_LIBXML2_CFLAGS="$LIBXML2_CFLAGS"
@@ -18406,7 +18482,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18424,7 +18500,7 @@ fi
 
 	:
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	:
 else
@@ -18437,8 +18513,8 @@ fi ;; #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 >= 2.6.0" >&5
-$as_echo_n "checking for libxml-2.0 >= 2.6.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBXML2" >&5
+$as_echo_n "checking for LIBXML2... " >&6; }
 
 if test -n "$LIBXML2_CFLAGS"; then
     pkg_cv_LIBXML2_CFLAGS="$LIBXML2_CFLAGS"
@@ -18478,7 +18554,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18505,7 +18581,7 @@ Alternatively, you may set the environment variables LIBXML2_CFLAGS
 and LIBXML2_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -18578,6 +18654,8 @@ fi
 #
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for json library" >&5
 $as_echo_n "checking for json library... " >&6; }
+
+# [pairwise: --with-libjson=auto, --with-libjson=yes, --without-libjson]
 
 # Check whether --with-libjson was given.
 if test "${with_libjson+set}" = set; then :
@@ -18726,6 +18804,8 @@ fi
 #
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for zlib library" >&5
 $as_echo_n "checking for zlib library... " >&6; }
+
+# [pairwise: --with-zlib=auto, --with-zlib=yes, --without-zlib]
 
 # Check whether --with-zlib was given.
 if test "${with_zlib+set}" = set; then :
@@ -18936,6 +19016,7 @@ fi
 #
 # Large File
 #
+# [pairwise: --enable-largefile, --disable-largefile]
 # Check whether --enable-largefile was given.
 if test "${enable_largefile+set}" = set; then :
   enableval=$enable_largefile; want_largefile="yes"
@@ -19225,6 +19306,11 @@ esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use purify" >&5
 $as_echo_n "checking whether to use purify... " >&6; }
 
+# Purify is not included in pairwise testing as that tool is not present
+# in the relevant Docker image.
+#
+# [pairwise: skip]
+
 # Check whether --with-purify was given.
 if test "${with_purify+set}" = set; then :
   withval=$with_purify; use_purify="$withval"
@@ -19315,6 +19401,12 @@ esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use gperftools profiler" >&5
 $as_echo_n "checking whether to use gperftools profiler... " >&6; }
 
+# Google/Great Performance Tools CPU Profiler is not included in
+# pairwise testing as that tool is not present in the relevant Docker
+# image.
+#
+# [pairwise: skip]
+
 # Check whether --with-gperftools-profiler was given.
 if test "${with_gperftools_profiler+set}" = set; then :
   withval=$with_gperftools_profiler; use_profiler="$withval"
@@ -19342,6 +19434,7 @@ esac
 # enable/disable dumping stack backtrace.  Also check if the system supports
 # glibc-compatible backtrace() function.
 #
+# [pairwise: --enable-backtrace, --disable-backtrace]
 # Check whether --enable-backtrace was given.
 if test "${enable_backtrace+set}" = set; then :
   enableval=$enable_backtrace; want_backtrace="$enableval"
@@ -19377,6 +19470,7 @@ rm -f core conftest.err conftest.$ac_objext \
 esac
 
 
+# [pairwise: --enable-symtable, --disable-symtable]
 # Check whether --enable-symtable was given.
 if test "${enable_symtable+set}" = set; then :
   enableval=$enable_symtable; want_symtable="$enableval"
@@ -19449,6 +19543,7 @@ BIND9_CO_RULE=".c.$O:"
 #
 # IPv6
 #
+# [pairwise: --enable-ipv6, --disable-ipv6]
 # Check whether --enable-ipv6 was given.
 if test "${enable_ipv6+set}" = set; then :
   enableval=$enable_ipv6;
@@ -19501,6 +19596,11 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 #
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Kame IPv6 support" >&5
 $as_echo_n "checking for Kame IPv6 support... " >&6; }
+
+# Kame is not included in pairwise testing as it is not present in the
+# relevant Docker image.
+#
+# [pairwise: skip]
 
 # Check whether --with-kame was given.
 if test "${with_kame+set}" = set; then :
@@ -20071,7 +20171,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
 # comment in lib/isc/unix/socket.c).
 #
-
+# [pairwise: --enable-tcp-fastopen, --disable-tcp-fastopen]
 # Check whether --enable-tcp_fastopen was given.
 if test "${enable_tcp_fastopen+set}" = set; then :
   enableval=$enable_tcp_fastopen;
@@ -20532,6 +20632,7 @@ fi
 
 
 
+# [pairwise: --enable-getifaddrs, --disable-getifaddrs]
 # Check whether --enable-getifaddrs was given.
 if test "${enable_getifaddrs+set}" = set; then :
   enableval=$enable_getifaddrs; want_getifaddrs="$enableval"
@@ -20690,6 +20791,8 @@ fi
 
 
 
+
+# [pairwise: --with-readline=auto, --with-readline=yes, --without-readline]
 
 # Check whether --with-readline was given.
 if test "${with_readline+set}" = set; then :
@@ -20940,6 +21043,7 @@ fi
 #
 # Use our own SPNEGO implementation?
 #
+# [pairwise: --enable-isc-spnego, --disable-isc-spnego]
 # Check whether --enable-isc-spnego was given.
 if test "${enable_isc_spnego+set}" = set; then :
   enableval=$enable_isc_spnego;
@@ -20973,6 +21077,8 @@ fi
 #
 # Note it is very recommended to *not* disable chroot(),
 # this is only because chroot() was made obsolete by Posix.
+#
+# [pairwise: --enable-chroot, --disable-chroot]
 # Check whether --enable-chroot was given.
 if test "${enable_chroot+set}" = set; then :
   enableval=$enable_chroot;
@@ -20995,6 +21101,8 @@ done
 	no)
 		;;
 esac
+
+# [pairwise: --enable-linux-caps, --disable-linux-caps]
 # Check whether --enable-linux-caps was given.
 if test "${enable_linux_caps+set}" = set; then :
   enableval=$enable_linux_caps;
@@ -21232,6 +21340,8 @@ $as_echo "no" >&6; }
 $as_echo_n "checking type of rlim_cur... " >&6; }
 if test "$cross_compiling" = yes; then :
 
+
+# [pairwise: skip]
 
 # Check whether --with-rlimtype was given.
 if test "${with_rlimtype+set}" = set; then :
@@ -21641,6 +21751,7 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+# [pairwise: --enable-atomic, --disable-atomic]
 # Check whether --enable-atomic was given.
 if test "${enable_atomic+set}" = set; then :
   enableval=$enable_atomic; enable_atomic="$enableval"
@@ -22244,6 +22355,7 @@ fi
 #
 # Activate "rrset-order fixed" or not?
 #
+# [pairwise: --enable-fixed-rrset, --disable-fixed-rrset]
 # Check whether --enable-fixed-rrset was given.
 if test "${enable_fixed_rrset+set}" = set; then :
   enableval=$enable_fixed_rrset; enable_fixed="$enableval"
@@ -22266,6 +22378,7 @@ esac
 #
 # Enable response policy rewriting using NS IP addresses
 #
+# [pairwise: --enable-rpz-nsip, --disable-rpz-nsip]
 # Check whether --enable-rpz-nsip was given.
 if test "${enable_rpz_nsip+set}" = set; then :
   enableval=$enable_rpz_nsip; enable_nsip="$enableval"
@@ -22288,6 +22401,7 @@ esac
 #
 # Enable response policy rewriting using NS name
 #
+# [pairwise: --enable-rpz-nsdname, --disable-rpz-nsdname]
 # Check whether --enable-rpz-nsdname was given.
 if test "${enable_rpz_nsdname+set}" = set; then :
   enableval=$enable_rpz_nsdname; enable_nsdname="$enableval"
@@ -22310,6 +22424,7 @@ esac
 #
 # Activate "filter-aaaa-on-v4/v6" or not?
 #
+# [pairwise: --enable-filter-aaaa, --disable-filter-aaaa]
 # Check whether --enable-filter-aaaa was given.
 if test "${enable_filter_aaaa+set}" = set; then :
   enableval=$enable_filter_aaaa; enable_filter="$enableval"
@@ -22332,6 +22447,7 @@ esac
 #
 # Activate dnstap?
 #
+# [pairwise: --enable-dnstap, --disable-dnstap]
 # Check whether --enable-dnstap was given.
 if test "${enable_dnstap+set}" = set; then :
   enableval=$enable_dnstap; use_dnstap=$enableval
@@ -22348,6 +22464,8 @@ if test "x$use_dnstap" != "xno"; then
 	if ! $use_threads; then
 		as_fn_error $? "Dnstap requires threads." "$LINENO" 5
 	fi
+
+	# [pairwise: skip]
 
 # Check whether --with-protobuf-c was given.
 if test "${with_protobuf_c+set}" = set; then :
@@ -22462,6 +22580,8 @@ fi
 	if test -z "$PROTOC_C"; then
 		as_fn_error $? "The protoc-c program was not found." "$LINENO" 5
 	fi
+
+	# [pairwise: skip]
 
 # Check whether --with-libfstrm was given.
 if test "${with_libfstrm+set}" = set; then :
@@ -23182,6 +23302,8 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Docbook-XSL path" >&5
 $as_echo_n "checking for Docbook-XSL path... " >&6; }
 
+# [pairwise: skip]
+
 # Check whether --with-docbook-xsl was given.
 if test "${with_docbook_xsl+set}" = set; then :
   withval=$with_docbook_xsl; docbook_path="$withval"
@@ -23417,6 +23539,10 @@ fi
 #
 # IDN support using idnkit
 #
+# idnkit is not included in pairwise testing as it is not present in the
+# relevant Docker image.
+#
+# [pairwise: skip]
 
 # Check whether --with-idnkit was given.
 if test "${with_idnkit+set}" = set; then :
@@ -23443,6 +23569,8 @@ esac
 iconvinc=
 iconvlib=
 
+# [pairwise: --with-libiconv, --without-libiconv]
+
 # Check whether --with-libiconv was given.
 if test "${with_libiconv+set}" = set; then :
   withval=$with_libiconv; use_libiconv="$withval"
@@ -23466,6 +23594,7 @@ no)
 	;;
 esac
 
+# [pairwise: --with-iconv, --without-iconv]
 
 # Check whether --with-iconv was given.
 if test "${with_iconv+set}" = set; then :
@@ -23481,6 +23610,7 @@ yes)
 	;;
 esac
 
+# [pairwise: skip]
 
 # Check whether --with-idnlib was given.
 if test "${with_idnlib+set}" = set; then :
@@ -23514,6 +23644,8 @@ fi
 LIBIDN2_CFLAGS=
 LIBIDN2_LDFLAGS=
 LIBIDN2_LIBS=
+
+# [pairwise: --with-libidn2=yes, --without-libidn2]
 
 # Check whether --with-libidn2 was given.
 if test "${with_libidn2+set}" = set; then :
@@ -23660,7 +23792,7 @@ fi
 #
 # Check whether to build with cmocka unit testing framework
 #
-
+# [pairwise: --with-cmocka, --without-cmocka]
 
 # Check whether --with-cmocka was given.
 if test "${with_cmocka+set}" = set; then :
@@ -23677,8 +23809,8 @@ case $with_cmocka in #(
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
-$as_echo_n "checking for cmocka >= 1.0.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for CMOCKA" >&5
+$as_echo_n "checking for CMOCKA... " >&6; }
 
 if test -n "$CMOCKA_CFLAGS"; then
     pkg_cv_CMOCKA_CFLAGS="$CMOCKA_CFLAGS"
@@ -23718,7 +23850,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -23745,7 +23877,7 @@ Alternatively, you may set the environment variables CMOCKA_CFLAGS
 and CMOCKA_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -23996,6 +24128,7 @@ done
 #
 # was --with-tuning specified?
 #
+# [pairwise: --with-tuning=large, --without-tuning]
 
 # Check whether --with-tuning was given.
 if test "${with_tuning+set}" = set; then :
@@ -24028,6 +24161,7 @@ esac
 #
 # was --enable-querytrace specified?
 #
+# [pairwise: --enable-querytrace, --disable-querytrace]
 # Check whether --enable-querytrace was given.
 if test "${enable_querytrace+set}" = set; then :
   enableval=$enable_querytrace; want_querytrace="$enableval"
@@ -24187,6 +24321,7 @@ SO_LD=""
 SO_TARGETS=""
 SO_STRIP="cat"
 
+# [pairwise: skip]
 
 # Check whether --with-dlopen was given.
 if test "${with_dlopen+set}" = set; then :
@@ -27200,7 +27335,6 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
     cat <<_LT_EOF >> "$cfgfile"
 #! $SHELL
 # Generated automatically by $as_me ($PACKAGE) $VERSION
-# Libtool was configured on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.
@@ -27771,6 +27905,7 @@ fi
 #
 # Now that the Makefiles exist we can ensure that everything is rebuilt.
 #
+# [pairwise: --with-make-clean, --without-make-clean]
 
 # Check whether --with-make-clean was given.
 if test "${with_make_clean+set}" = set; then :
@@ -27793,6 +27928,7 @@ yes)
 	;;
 esac
 
+# [pairwise: --enable-full-report, --disable-full-report]
 # Check whether --enable-full-report was given.
 if test "${enable_full_report+set}" = set; then :
   enableval=$enable_full_report;
