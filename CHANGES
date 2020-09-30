@@ -1,3 +1,6 @@
+5511.	[bug]		'dig -u +yaml' failed to display timestamps to the
+			microsecond. [GL #2190]
+
 5510.	[bug]		Implement the attach/detach semantics for dns_message_t
 			to fix a data race in accessing already destroyed
 			fctx->rmessage. [GL #2124]
