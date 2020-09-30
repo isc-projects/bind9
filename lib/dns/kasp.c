@@ -414,10 +414,10 @@ dns_kasp_key_size(dns_kasp_key_t *key) {
 		size = 384;
 		break;
 	case DNS_KEYALG_ED25519:
-		size = 32;
+		size = 256;
 		break;
 	case DNS_KEYALG_ED448:
-		size = 57;
+		size = 456;
 		break;
 	default:
 		/* unsupported */
