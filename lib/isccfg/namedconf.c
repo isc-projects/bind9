@@ -1201,6 +1201,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "notify-rate", &cfg_type_uint32, 0 },
 	{ "pid-file", &cfg_type_qstringornone, 0 },
 	{ "port", &cfg_type_uint32, 0 },
+	{ "dot-port", &cfg_type_uint32, 0 },
 	{ "querylog", &cfg_type_boolean, 0 },
 	{ "random-device", &cfg_type_qstringornone, 0 },
 	{ "recursing-file", &cfg_type_qstring, 0 },

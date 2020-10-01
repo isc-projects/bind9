@@ -232,7 +232,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 					      NAMED_LOGMODULE_MAIN,
 					      ISC_LOG_CRITICAL, "%s", strs[i]);
 			}
-#else  /* HAVE_BACKTRACE_SYMBOLS */
+#else /* HAVE_BACKTRACE_SYMBOLS */
 			for (int i = 0; i < nframes; i++) {
 				isc_log_write(
 					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -521,8 +521,8 @@ printversion(bool verbose) {
 	printf("linked to OpenSSL version: %s\n",
 	       OpenSSL_version(OPENSSL_VERSION));
 
-#else  /* if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= \
-	* 0x10100000L */
+#else /* if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= \
+       * 0x10100000L */
 	printf("linked to OpenSSL version: %s\n",
 	       SSLeay_version(SSLEAY_VERSION));
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
@@ -789,11 +789,13 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'p':
 			port = parse_int(isc_commandline_argument, "port");
-			if (port < 1 || port > 65535) {
+			if (port < 1 || port > 64735) {
 				named_main_earlyfatal("port '%s' out of range",
 						      isc_commandline_argument);
 			}
 			named_g_port = port;
+			/* XXXWPK have a separate option for that. */
+			named_g_dot_port = port + 800;
 			break;
 		case 's':
 			/* XXXRTH temporary syntax */
@@ -887,7 +889,7 @@ create_managers(void) {
 		named_g_cpus, named_g_cpus == 1 ? "" : "s");
 #ifdef WIN32
 	named_g_udpdisp = 1;
-#else  /* ifdef WIN32 */
+#else /* ifdef WIN32 */
 	if (named_g_udpdisp == 0) {
 		named_g_udpdisp = named_g_cpus_detected;
 	}
@@ -1107,8 +1109,8 @@ setup(void) {
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "linked to OpenSSL version: %s",
 		      OpenSSL_version(OPENSSL_VERSION));
-#else  /* if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= \
-	* 0x10100000L */
+#else /* if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= \
+       * 0x10100000L */
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "linked to OpenSSL version: %s",

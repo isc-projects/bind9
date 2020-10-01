@@ -231,6 +231,7 @@ OPTIONS
   	    size ) ] [ versions ( unlimited | integer ) ] [ suffix (
   	    increment | timestamp ) ];
   	dnstap-version ( quoted_string | none );
+  	dot-port integer;
   	dscp integer;
   	dual-stack-servers [ port integer ] { ( quoted_string [ port
   	    integer ] [ dscp integer ] | ipv4_address [ port

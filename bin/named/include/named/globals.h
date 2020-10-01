@@ -72,6 +72,7 @@ EXTERN const char *named_g_srcid       INIT(PACKAGE_SRCID);
 EXTERN const char *named_g_configargs  INIT(PACKAGE_CONFIGARGS);
 EXTERN const char *named_g_builder     INIT(PACKAGE_BUILDER);
 EXTERN in_port_t named_g_port	       INIT(0);
+EXTERN in_port_t named_g_dot_port      INIT(0);
 EXTERN isc_dscp_t named_g_dscp	       INIT(-1);
 
 EXTERN named_server_t *named_g_server INIT(NULL);
@@ -128,7 +129,7 @@ EXTERN bool named_g_forcelock		   INIT(false);
 #if NAMED_RUN_PID_DIR
 EXTERN const char *named_g_defaultpidfile INIT(NAMED_LOCALSTATEDIR "/run/named/"
 								   "named.pid");
-#else  /* if NAMED_RUN_PID_DIR */
+#else /* if NAMED_RUN_PID_DIR */
 EXTERN const char *named_g_defaultpidfile INIT(NAMED_LOCALSTATEDIR "/run/"
 								   "named.pid");
 #endif /* if NAMED_RUN_PID_DIR */

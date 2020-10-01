@@ -93,6 +93,7 @@ options {\n\
 	nta-recheck 300;\n\
 #	pid-file \"" NAMED_LOCALSTATEDIR "/run/named/named.pid\"; \n\
 	port 53;\n\
+	dot-port 853;\n\
 	prefetch 2 9;\n\
 	recursing-file \"named.recursing\";\n\
 	recursive-clients 1000;\n\
@@ -497,7 +498,7 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 	} else if (defport != 0) {
 		port = defport;
 	} else {
-		result = named_config_getport(config, &port);
+		result = named_config_getport(config, "port", &port);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -644,7 +645,7 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	/*
 	 * Get system defaults.
 	 */
-	result = named_config_getport(config, &port);
+	result = named_config_getport(config, "port", &port);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -925,7 +926,8 @@ cleanup:
 }
 
 isc_result_t
-named_config_getport(const cfg_obj_t *config, in_port_t *portp) {
+named_config_getport(const cfg_obj_t *config, const char *type,
+		     in_port_t *portp) {
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *portobj = NULL;
@@ -940,7 +942,7 @@ named_config_getport(const cfg_obj_t *config, in_port_t *portp) {
 	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
 
-	result = named_config_get(maps, "port", &portobj);
+	result = named_config_get(maps, type, &portobj);
 	INSIST(result == ISC_R_SUCCESS);
 	if (cfg_obj_asuint32(portobj) >= UINT16_MAX) {
 		cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
@@ -980,13 +982,15 @@ named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp) {
 
 struct keyalgorithms {
 	const char *str;
-	enum { hmacnone,
-	       hmacmd5,
-	       hmacsha1,
-	       hmacsha224,
-	       hmacsha256,
-	       hmacsha384,
-	       hmacsha512 } hmac;
+	enum {
+		hmacnone,
+		hmacmd5,
+		hmacsha1,
+		hmacsha224,
+		hmacsha256,
+		hmacsha384,
+		hmacsha512
+	} hmac;
 	unsigned int type;
 	uint16_t size;
 } algorithms[] = { { "hmac-md5", hmacmd5, DST_ALG_HMACMD5, 128 },

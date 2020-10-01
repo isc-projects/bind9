@@ -465,7 +465,7 @@ nzd_close(MDB_txn **txnp, bool commit);
 
 static isc_result_t
 nzd_count(dns_view_t *view, int *countp);
-#else  /* ifdef HAVE_LMDB */
+#else /* ifdef HAVE_LMDB */
 static isc_result_t
 nzf_append(dns_view_t *view, const cfg_obj_t *zconfig);
 #endif /* ifdef HAVE_LMDB */
@@ -674,11 +674,13 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 	dns_name_t *name = NULL;
 	isc_buffer_t namebuf;
 	const char *atstr = NULL;
-	enum { INIT_DNSKEY,
-	       STATIC_DNSKEY,
-	       INIT_DS,
-	       STATIC_DS,
-	       TRUSTED } anchortype;
+	enum {
+		INIT_DNSKEY,
+		STATIC_DNSKEY,
+		INIT_DS,
+		STATIC_DS,
+		TRUSTED
+	} anchortype;
 
 	REQUIRE(namestrp != NULL && *namestrp == NULL);
 	REQUIRE(ds != NULL);
@@ -1388,7 +1390,7 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	if (!strcasecmp(str, "fixed")) {
 #if DNS_RDATASET_FIXED
 		mode = DNS_RDATASETATTR_FIXEDORDER;
-#else  /* if DNS_RDATASET_FIXED */
+#else /* if DNS_RDATASET_FIXED */
 		mode = DNS_RDATASETATTR_CYCLIC;
 #endif /* DNS_RDATASET_FIXED */
 	} else if (!strcasecmp(str, "random")) {
@@ -2475,7 +2477,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 			    " without `./configure --enable-dnsrps`");
 		return (ISC_R_FAILURE);
 	}
-#else  /* ifndef USE_DNSRPS */
+#else /* ifndef USE_DNSRPS */
 	if (dnsrps_enabled) {
 		if (librpz == NULL) {
 			cfg_obj_log(rpz_obj, named_g_lctx, DNS_RPZ_ERROR_LEVEL,
@@ -3962,7 +3964,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Set the view's port number for outgoing queries.
 	 */
-	CHECKM(named_config_getport(config, &port), "port");
+	CHECKM(named_config_getport(config, "port", &port), "port");
 	dns_view_setdstport(view, port);
 
 	/*
@@ -5762,7 +5764,7 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 	/*
 	 * Determine which port to send requests to.
 	 */
-	CHECKM(named_config_getport(config, &port), "port");
+	CHECKM(named_config_getport(config, "port", &port), "port");
 
 	if (alternates != NULL) {
 		portobj = cfg_tuple_get(alternates, "port");
@@ -5850,7 +5852,7 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 	/*
 	 * Determine which port to send forwarded requests to.
 	 */
-	CHECKM(named_config_getport(config, &port), "port");
+	CHECKM(named_config_getport(config, "port", &port), "port");
 
 	if (forwarders != NULL) {
 		portobj = cfg_tuple_get(forwarders, "port");
@@ -6735,7 +6737,8 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
 		}
 
 		result = ns_listenelt_create(mctx, isc_sockaddr_getport(addr),
-					     dscp, src_acl, &lelt);
+					     dscp, src_acl, false, NULL, NULL,
+					     &lelt);
 		if (result != ISC_R_SUCCESS) {
 			goto clean;
 		}
@@ -6822,8 +6825,7 @@ adjust_interfaces(named_server_t *server, isc_mem_t *mctx) {
 		for (view = ISC_LIST_HEAD(server->viewlist);
 		     view != NULL && view != zoneview;
 		     view = ISC_LIST_NEXT(view, link))
-		{
-		}
+		{}
 		if (view == NULL) {
 			continue;
 		}
@@ -7752,7 +7754,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			return (ISC_R_FAILURE);
 		}
 	}
-#else  /* ifdef HAVE_LMDB */
+#else /* ifdef HAVE_LMDB */
 	UNUSED(obj);
 #endif /* HAVE_LMDB */
 
@@ -8799,7 +8801,8 @@ load_configuration(const char *filename, named_server_t *server,
 	if (named_g_port != 0) {
 		listen_port = named_g_port;
 	} else {
-		CHECKM(named_config_getport(config, &listen_port), "port");
+		CHECKM(named_config_getport(config, "port", &listen_port),
+		       "port");
 	}
 
 	/*
@@ -9774,7 +9777,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 #if defined(HAVE_GEOIP2)
 	geoip = named_g_geoip;
-#else  /* if defined(HAVE_GEOIP2) */
+#else /* if defined(HAVE_GEOIP2) */
 	geoip = NULL;
 #endif /* if defined(HAVE_GEOIP2) */
 
@@ -10860,20 +10863,67 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
 			uint16_t family, ns_listenelt_t **target) {
 	isc_result_t result;
-	const cfg_obj_t *portobj, *dscpobj;
+	const cfg_obj_t *tlsobj, *portobj, *dscpobj;
 	in_port_t port;
 	isc_dscp_t dscp = -1;
+	const char *key = NULL, *cert = NULL;
+	bool tls = false;
 	ns_listenelt_t *delt = NULL;
 	REQUIRE(target != NULL && *target == NULL);
 
+	/* XXXWPK TODO be more verbose on failures. */
+	tlsobj = cfg_tuple_get(listener, "tls");
+	if (tlsobj != NULL && cfg_obj_isstring(tlsobj)) {
+		const cfg_obj_t *tlsconfigs = NULL;
+		const cfg_listelt_t *element;
+		(void)cfg_map_get(config, "tls", &tlsconfigs);
+		for (element = cfg_list_first(tlsconfigs); element != NULL;
+		     element = cfg_list_next(element))
+		{
+			cfg_obj_t *tconfig = cfg_listelt_value(element);
+			const cfg_obj_t *name = cfg_map_getname(tconfig);
+			if (!strcmp(cfg_obj_asstring(name),
+				    cfg_obj_asstring(tlsobj))) {
+				tls = true;
+				const cfg_obj_t *keyo = NULL, *certo = NULL;
+				(void)cfg_map_get(tconfig, "key-file", &keyo);
+				if (keyo == NULL) {
+					return (ISC_R_FAILURE);
+				}
+				(void)cfg_map_get(tconfig, "cert-file", &certo);
+				if (certo == NULL) {
+					return (ISC_R_FAILURE);
+				}
+				key = cfg_obj_asstring(keyo);
+				cert = cfg_obj_asstring(certo);
+				break;
+			}
+		}
+		if (!tls) {
+			return (ISC_R_FAILURE);
+		}
+	}
 	portobj = cfg_tuple_get(listener, "port");
 	if (!cfg_obj_isuint32(portobj)) {
-		if (named_g_port != 0) {
-			port = named_g_port;
+		if (tls) {
+			if (named_g_dot_port != 0) {
+				port = named_g_dot_port;
+			} else {
+				result = named_config_getport(
+					config, "dot-port", &port);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
+			}
 		} else {
-			result = named_config_getport(config, &port);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
+			if (named_g_port != 0) {
+				port = named_g_port;
+			} else {
+				result = named_config_getport(config, "port",
+							      &port);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
 			}
 		}
 	} else {
@@ -10899,7 +10949,8 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	}
 
-	result = ns_listenelt_create(mctx, port, dscp, NULL, &delt);
+	result = ns_listenelt_create(mctx, port, dscp, NULL, tls, key, cert,
+				     &delt);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -13330,7 +13381,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 #ifndef HAVE_LMDB
 	FILE *fp = NULL;
 	bool cleanup_config = false;
-#else  /* HAVE_LMDB */
+#else /* HAVE_LMDB */
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
 
@@ -13371,7 +13422,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 
 	(void)isc_stdio_close(fp);
 	fp = NULL;
-#else  /* HAVE_LMDB */
+#else /* HAVE_LMDB */
 	/* Make sure we can open the NZD database */
 	result = nzd_writable(view);
 	if (result != ISC_R_SUCCESS) {
@@ -13469,7 +13520,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	/* Save the new zone configuration into the NZD */
 	CHECK(nzd_open(view, 0, &txn, &dbi));
 	CHECK(nzd_save(&txn, dbi, zone, zoneobj));
-#else  /* ifdef HAVE_LMDB */
+#else /* ifdef HAVE_LMDB */
 	/* Append the zone configuration to the NZF */
 	result = nzf_append(view, zoneobj);
 #endif /* HAVE_LMDB */
@@ -13485,7 +13536,7 @@ cleanup:
 					  cfg->nzf_config, name, NULL);
 		RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 	}
-#else  /* HAVE_LMDB */
+#else /* HAVE_LMDB */
 	if (txn != NULL) {
 		(void)nzd_close(&txn, false);
 	}
@@ -13510,7 +13561,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 #ifndef HAVE_LMDB
 	FILE *fp = NULL;
 	cfg_obj_t *z;
-#else  /* HAVE_LMDB */
+#else /* HAVE_LMDB */
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
 	LOCK(&view->new_zone_lock);
@@ -13558,7 +13609,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	}
 	(void)isc_stdio_close(fp);
 	fp = NULL;
-#else  /* HAVE_LMDB */
+#else /* HAVE_LMDB */
 	/* Make sure we can open the NZD database */
 	result = nzd_writable(view);
 	if (result != ISC_R_SUCCESS) {
@@ -13679,7 +13730,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 #ifdef HAVE_LMDB
 		CHECK(nzd_open(view, 0, &txn, &dbi));
 		CHECK(nzd_save(&txn, dbi, zone, zoneobj));
-#else  /* ifdef HAVE_LMDB */
+#else /* ifdef HAVE_LMDB */
 		result = nzf_append(view, zoneobj);
 		if (result != ISC_R_SUCCESS) {
 			TCHECK(putstr(text, "\nNew zone config not saved: "));
@@ -13707,7 +13758,7 @@ cleanup:
 	if (fp != NULL) {
 		(void)isc_stdio_close(fp);
 	}
-#else  /* HAVE_LMDB */
+#else /* HAVE_LMDB */
 	if (txn != NULL) {
 		(void)nzd_close(&txn, false);
 	}
@@ -13752,7 +13803,7 @@ named_server_changezone(named_server_t *server, char *command,
 	/* Are we accepting new zones in this view? */
 #ifdef HAVE_LMDB
 	if (view->new_zone_db == NULL)
-#else  /* ifdef HAVE_LMDB */
+#else /* ifdef HAVE_LMDB */
 	if (view->new_zone_file == NULL)
 #endif /* HAVE_LMDB */
 	{
@@ -13898,7 +13949,7 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 			(void)nzd_close(&txn, false);
 		}
 		UNLOCK(&view->new_zone_lock);
-#else  /* ifdef HAVE_LMDB */
+#else /* ifdef HAVE_LMDB */
 		result = delete_zoneconf(view, cfg->add_parser, cfg->nzf_config,
 					 dns_zone_getorigin(zone),
 					 nzf_writeconf);
@@ -14267,7 +14318,7 @@ named_server_showzone(named_server_t *server, isc_lex_t *lex,
 		zconfig = find_name_in_list_from_map(cfg->nzf_config, "zone",
 						     zonename, redirect);
 	}
-#else  /* HAVE_LMDB */
+#else /* HAVE_LMDB */
 	if (zconfig == NULL) {
 		const cfg_obj_t *zlist = NULL;
 		CHECK(get_newzone_config(view, zonename, &nzconfig));
@@ -15935,7 +15986,7 @@ named_server_dnstap(named_server_t *server, isc_lex_t *lex,
 
 	result = dns_dt_reopen(server->dtenv, backups);
 	return (result);
-#else  /* ifdef HAVE_DNSTAP */
+#else /* ifdef HAVE_DNSTAP */
 	UNUSED(server);
 	UNUSED(lex);
 	UNUSED(text);
