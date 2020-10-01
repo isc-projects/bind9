@@ -22,9 +22,9 @@
 #include <unistd.h>
 
 #define UNIT_TESTING
-#include <cmocka.h>
 
 #include <isc/atomic.h>
+#include <isc/cmocka.h>
 #include <isc/commandline.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
@@ -1528,31 +1528,52 @@ purgeevent_notpurge(void **state) {
 int
 main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(create_task, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(shutdown, _setup4, _teardown),
 		cmocka_unit_test(manytasks),
 		cmocka_unit_test_setup_teardown(all_events, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(basic, _setup2, _teardown),
-		cmocka_unit_test_setup_teardown(privileged_events, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(privilege_drop, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(task_exclusive, _setup4,
+		cmocka_unit_test_setup_teardown(create_task, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(pause_unpause, _setup,
 						_teardown),
 		cmocka_unit_test_setup_teardown(post_shutdown, _setup2,
 						_teardown),
+		cmocka_unit_test_setup_teardown(privilege_drop, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(privileged_events, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(purge, _setup2, _teardown),
-		cmocka_unit_test_setup_teardown(purgerange, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(purgeevent, _setup2, _teardown),
 		cmocka_unit_test_setup_teardown(purgeevent_notpurge, _setup,
 						_teardown),
-		cmocka_unit_test_setup_teardown(pause_unpause, _setup,
+		cmocka_unit_test_setup_teardown(purgerange, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(shutdown, _setup4, _teardown),
+		cmocka_unit_test_setup_teardown(task_exclusive, _setup4,
 						_teardown),
 	};
+	struct CMUnitTest selected[sizeof(tests) / sizeof(tests[0])];
+	size_t i;
 	int c;
 
-	while ((c = isc_commandline_parse(argc, argv, "v")) != -1) {
+	memset(selected, 0, sizeof(selected));
+
+	while ((c = isc_commandline_parse(argc, argv, "lt:v")) != -1) {
 		switch (c) {
+		case 'l':
+			for (i = 0; i < (sizeof(tests) / sizeof(tests[0])); i++)
+			{
+				if (tests[i].name != NULL) {
+					fprintf(stdout, "%s\n", tests[i].name);
+				}
+			}
+			return (0);
+		case 't':
+			if (!cmocka_add_test_byname(
+				    tests, isc_commandline_argument, selected))
+			{
+				fprintf(stderr, "unknown test '%s'\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
 		case 'v':
 			verbose = true;
 			break;
@@ -1561,7 +1582,11 @@ main(int argc, char **argv) {
 		}
 	}
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	if (selected[0].name != NULL) {
+		return (cmocka_run_group_tests(selected, NULL, NULL));
+	} else {
+		return (cmocka_run_group_tests(tests, NULL, NULL));
+	}
 }
 
 #else /* HAVE_CMOCKA */
