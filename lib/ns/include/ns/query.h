@@ -209,7 +209,7 @@ void
 ns_query_free(ns_client_t *client);
 
 void
-ns_query_start(ns_client_t *client);
+ns_query_start(ns_client_t *client, isc_nmhandle_t *handle);
 
 void
 ns_query_cancel(ns_client_t *client);

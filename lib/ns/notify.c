@@ -54,7 +54,7 @@ respond(ns_client_t *client, isc_result_t result) {
 	}
 	if (msg_result != ISC_R_SUCCESS) {
 		ns_client_drop(client, msg_result);
-		isc_nmhandle_unref(client->handle);
+		isc_nmhandle_detach(&client->reqhandle);
 		return;
 	}
 	message->rcode = rcode;
@@ -65,11 +65,11 @@ respond(ns_client_t *client, isc_result_t result) {
 	}
 
 	ns_client_send(client);
-	isc_nmhandle_unref(client->handle);
+	isc_nmhandle_detach(&client->reqhandle);
 }
 
 void
-ns_notify_start(ns_client_t *client) {
+ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	dns_message_t *request = client->message;
 	isc_result_t result;
 	dns_name_t *zonename;
@@ -78,6 +78,11 @@ ns_notify_start(ns_client_t *client) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char tsigbuf[DNS_NAME_FORMATSIZE * 2 + sizeof(": TSIG '' ()")];
 	dns_tsigkey_t *tsigkey;
+
+	/*
+	 * Attach to the request handle
+	 */
+	isc_nmhandle_attach(handle, &client->reqhandle);
 
 	/*
 	 * Interpret the question section.

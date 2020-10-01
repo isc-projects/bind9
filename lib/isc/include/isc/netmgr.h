@@ -12,30 +12,32 @@
 #pragma once
 
 #include <isc/mem.h>
+#include <isc/region.h>
 #include <isc/result.h>
 #include <isc/types.h>
 
+/*
+ * Replacement for isc_sockettype_t provided by socket.h.
+ */
 typedef enum {
-	NMEV_READ,
-	NMEV_WRITE,
-	NMEV_ACCEPT,
-	NMEV_CONNECTED,
-	NMEV_CANCELLED,
-	NMEV_SHUTDOWN
-} isc_nm_eventtype;
+	isc_socktype_tcp = 1,
+	isc_socktype_udp = 2,
+	isc_socktype_unix = 3,
+	isc_socktype_raw = 4
+} isc_socktype_t;
 
-typedef void (*isc_nm_recv_cb_t)(isc_nmhandle_t *handle, isc_region_t *region,
-				 void *cbarg);
+typedef void (*isc_nm_recv_cb_t)(isc_nmhandle_t *handle, isc_result_t eresult,
+				 isc_region_t *region, void *cbarg);
 /*%<
  * Callback function to be used when receiving a packet.
  *
  * 'handle' the handle that can be used to send back the answer.
- * 'region' contains the received data. It will be freed after
- *          return by caller.
+ * 'eresult' the result of the event.
+ * 'region' contains the received data, if any. It will be freed
+ *          after return by caller.
  * 'cbarg'  the callback argument passed to isc_nm_listenudp(),
  *          isc_nm_listentcpdns(), or isc_nm_read().
  */
-
 typedef isc_result_t (*isc_nm_accept_cb_t)(isc_nmhandle_t *handle,
 					   isc_result_t result, void *cbarg);
 /*%<
@@ -98,32 +100,19 @@ isc_nm_closedown(isc_nm_t *mgr);
 int
 isc_nm_tid(void);
 
-/*
- * isc_nm_freehandle frees a handle, releasing resources
- */
 void
-isc_nm_freehandle(isc_nmhandle_t *handle);
-
-void
-isc_nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target);
+isc_nmsocket_close(isc_nmsocket_t **sockp);
 /*%<
- * isc_nmsocket_attach attaches to a socket, increasing refcount
+ * isc_nmsocket_close() detaches a listening socket that was
+ * created by isc_nm_listenudp(), isc_nm_listentcp(), or
+ * isc_nm_listentcpdns(). Once there are no remaining child
+ * sockets with active handles, the socket will be closed.
  */
 
 void
-isc_nmsocket_close(isc_nmsocket_t *sock);
-
+isc_nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **dest);
 void
-isc_nmsocket_detach(isc_nmsocket_t **socketp);
-/*%<
- * isc_nmsocket_detach detaches from socket, decreasing refcount
- * and possibly destroying the socket if it's no longer referenced.
- */
-
-void
-isc_nmhandle_ref(isc_nmhandle_t *handle);
-void
-isc_nmhandle_unref(isc_nmhandle_t *handle);
+isc_nmhandle_detach(isc_nmhandle_t **handlep);
 /*%<
  * Increment/decrement the reference counter in a netmgr handle,
  * but (unlike the attach/detach functions) do not change the pointer
@@ -187,8 +176,8 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
  * as its argument.
  *
  * When handles are allocated for the socket, 'extrasize' additional bytes
- * will be allocated along with the handle for an associated object
- * (typically ns_client).
+ * can be allocated along with the handle for an associated object, which
+ * can then be freed automatically when the handle is destroyed.
  */
 
 void
@@ -207,27 +196,46 @@ isc_nm_pause(isc_nm_t *mgr);
 void
 isc_nm_resume(isc_nm_t *mgr);
 /*%<
- * Resume paused processing. It will return immediately
- * after signalling workers to resume.
+ * Resume paused processing. It will return immediately after signalling
+ * workers to resume.
  */
 
 isc_result_t
 isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
-
-isc_result_t
-isc_nm_pauseread(isc_nmsocket_t *sock);
-/*%<
- * Pause reading on this socket, while still remembering the callback.
+/*
+ * Begin (or continue) reading on the socket associated with 'handle', and
+ * update its recv callback to 'cb', which will be called as soon as there
+ * is data to process.
  */
 
 isc_result_t
-isc_nm_resumeread(isc_nmsocket_t *sock);
+isc_nm_pauseread(isc_nmhandle_t *handle);
 /*%<
- * Resume reading from socket.
+ * Pause reading on this handle's socket, but remember the callback.
+ *
+ * Requires:
+ * \li	'handle' is a valid netmgr handle.
+ */
+
+void
+isc_nm_cancelread(isc_nmhandle_t *handle);
+/*%<
+ * Cancel reading on a connected socket. Calls the read/recv callback on
+ * active handles with a result code of ISC_R_CANCELED.
  *
  * Requires:
  * \li	'sock' is a valid netmgr socket
  * \li	...for which a read/recv callback has been defined.
+ */
+
+isc_result_t
+isc_nm_resumeread(isc_nmhandle_t *handle);
+/*%<
+ * Resume reading on the handle's socket.
+ *
+ * Requires:
+ * \li	'handle' is a valid netmgr handle.
+ * \li	...for a socket with a defined read/recv callback.
  */
 
 isc_result_t
@@ -265,6 +273,21 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
  * NOTE: This is currently only called inside isc_nm_listentcpdns(), which
  * creates a 'wrapper' socket that sends and receives DNS messages
  * prepended with a two-byte length field, and handles buffering.
+ */
+
+isc_result_t
+isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+		  isc_nm_cb_t cb, void *cbarg, size_t extrahandlesize);
+/*%<
+ * Create a socket using netmgr 'mgr', bind it to the address 'local',
+ * and connect it to the address 'peer'.
+ *
+ * When the connection is complete, call 'cb' with argument 'cbarg'.
+ * Allocate 'extrahandlesize' additional bytes along with the handle to use
+ * for an associated object.
+ *
+ * The connected socket can only be accessed via the handle passed to
+ * 'cb'.
  */
 
 isc_result_t

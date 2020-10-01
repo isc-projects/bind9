@@ -2246,11 +2246,11 @@ AC_SUBST([UNITTESTS])
 LD_WRAP_TESTS=false
 AC_MSG_CHECKING([for linker support for --wrap option])
 AX_SAVE_FLAGS([wrap])
-LDFLAGS="-Wl,-wrap,exit"
-AC_LINK_IFELSE(
+LDFLAGS="-Wl,--wrap,exit"
+AC_RUN_IFELSE(
     [AC_LANG_PROGRAM([[#include <stdlib.h>
 		       void __real_exit (int status);
-		       void __wrap_exit (int status) { __real_exit (status); }
+		       void __wrap_exit (int status) { __real_exit (0); }
 		      ]],
 		     [[exit (1);]])],
     [LD_WRAP_TESTS=true
