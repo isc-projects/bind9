@@ -96,6 +96,7 @@ struct controllistener {
 	dns_acl_t *acl;
 	bool exiting;
 	controlkeylist_t keys;
+	isc_mutex_t connections_lock;
 	controlconnectionlist_t connections;
 	isc_socktype_t type;
 	uint32_t perm;
@@ -154,14 +155,19 @@ free_listener(controllistener_t *listener) {
 	if (listener->acl != NULL) {
 		dns_acl_detach(&listener->acl);
 	}
+	isc_mutex_destroy(&listener->connections_lock);
 
 	isc_mem_putanddetach(&listener->mctx, listener, sizeof(*listener));
 }
 
 static void
 maybe_free_listener(controllistener_t *listener) {
+	LOCK(&listener->connections_lock);
 	if (listener->exiting && ISC_LIST_EMPTY(listener->connections)) {
+		UNLOCK(&listener->connections_lock);
 		free_listener(listener);
+	} else {
+		UNLOCK(&listener->connections_lock);
 	}
 }
 
@@ -571,7 +577,9 @@ conn_reset(void *arg) {
 		return;
 	}
 
+	LOCK(&listener->connections_lock);
 	ISC_LIST_UNLINK(listener->connections, conn, link);
+	UNLOCK(&listener->connections_lock);
 #ifdef ENABLE_AFL
 	if (named_g_fuzz_type == isc_fuzz_rndc) {
 		named_fuzz_notify();
@@ -629,7 +637,9 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 		goto cleanup;
 	}
 
+	LOCK(&listener->connections_lock);
 	ISC_LIST_APPEND(listener->connections, conn, link);
+	UNLOCK(&listener->connections_lock);
 	return (ISC_R_SUCCESS);
 
 cleanup:
@@ -1129,6 +1139,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 					 .address = *addr,
 					 .type = type };
 	isc_mem_attach(mctx, &listener->mctx);
+	isc_mutex_init(&listener->connections_lock);
 	ISC_LINK_INIT(listener, link);
 	ISC_LIST_INIT(listener->keys);
 	ISC_LIST_INIT(listener->connections);
