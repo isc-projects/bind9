@@ -16,6 +16,7 @@ libisc_la_HEADERS =			\
 	include/isc/bind9.h		\
 	include/isc/buffer.h		\
 	include/isc/bufferlist.h	\
+	include/isc/cmocka.h		\
 	include/isc/commandline.h	\
 	include/isc/counter.h		\
 	include/isc/crc64.h		\
