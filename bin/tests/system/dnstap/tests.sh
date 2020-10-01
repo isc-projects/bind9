@@ -17,6 +17,24 @@ RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
 
 status=0
 
+# dnstap_data_ready <fstrm_capture_PID> <capture_file> <min_file_size>
+# Flushes capture_file and checks wheter its size is >= min_file_size.
+dnstap_data_ready() {
+	# Process id of running fstrm_capture.
+	fstrm_capture_pid=$1
+	# Output file provided to fstrm_capture via -w switch.
+	capture_file=$2
+	# Minimum expected file size.
+	min_size_expected=$3
+
+	kill -HUP $fstrm_capture_pid
+	file_size=`wc -c < "$capture_file" | tr -d ' '`
+	if [ $file_size -lt $min_size_expected ]; then
+		return 1
+	fi
+}
+
+
 for bad in bad-*.conf
 do
 	ret=0
@@ -431,6 +449,7 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 
 	echo_i "checking unix socket message counts"
 	sleep 2
+	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 470
 	kill $fstrm_capture_pid
 	wait
 	udp4=`$DNSTAPREAD dnstap.out | grep "UDP " | wc -l`
@@ -520,6 +539,7 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 
 	echo_i "checking reopened unix socket message counts"
 	sleep 2
+	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 270
 	kill $fstrm_capture_pid
 	wait
 	udp4=`$DNSTAPREAD dnstap.out | grep "UDP " | wc -l`
