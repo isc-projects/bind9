@@ -1617,6 +1617,7 @@ ns__client_put_cb(void *client0) {
 void
 ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	ns_client_t *client;
+	bool newclient = false;
 	ns_clientmgr_t *mgr;
 	ns_interface_t *ifp;
 	isc_result_t result;
@@ -1713,22 +1714,28 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	}
 #endif /* if NS_CLIENT_DROPPORT */
 
-	env = ns_interfacemgr_getaclenv(client->manager->interface->mgr);
-	if (client->sctx->blackholeacl != NULL &&
-	    (dns_acl_match(&netaddr, NULL, client->sctx->blackholeacl, env,
-			   &match, NULL) == ISC_R_SUCCESS) &&
-	    match > 0)
-	{
-		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
-			      "dropped request: blackholed peer");
-		isc_task_unpause(client->task);
-		return;
-	}
-
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT,
 		      ISC_LOG_DEBUG(3), "%s request",
 		      TCP_CLIENT(client) ? "TCP" : "UDP");
+
+	/*
+	 * Check the blackhole ACL for UDP only, since TCP is done in
+	 * client_newconn.
+	 */
+	env = ns_interfacemgr_getaclenv(client->manager->interface->mgr);
+	if (newclient) {
+		if (client->sctx->blackholeacl != NULL &&
+		    (dns_acl_match(&netaddr, NULL, client->sctx->blackholeacl,
+				   env, &match, NULL) == ISC_R_SUCCESS) &&
+		    match > 0)
+		{
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+				      "blackholed UDP datagram");
+			isc_task_unpause(client->task);
+			return;
+		}
+	}
 
 	result = dns_message_peekheader(buffer, &id, &flags);
 	if (result != ISC_R_SUCCESS) {
@@ -2190,36 +2197,17 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 	isc_task_unpause(client->task);
 }
 
-isc_result_t
+void
 ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
-	ns_interface_t *ifp = (ns_interface_t *)arg;
-	dns_aclenv_t *env = ns_interfacemgr_getaclenv(ifp->mgr);
-	ns_server_t *sctx = ns_interfacemgr_getserver(ifp->mgr);
+	ns_server_t *sctx = (ns_server_t *)arg;
 	unsigned int tcpquota;
-	isc_sockaddr_t peeraddr;
-	isc_netaddr_t netaddr;
-	int match;
 
+	UNUSED(handle);
 	UNUSED(result);
-
-	if (handle != NULL) {
-		peeraddr = isc_nmhandle_peeraddr(handle);
-		isc_netaddr_fromsockaddr(&netaddr, &peeraddr);
-
-		if (sctx->blackholeacl != NULL &&
-		    (dns_acl_match(&netaddr, NULL, sctx->blackholeacl, env,
-				   &match, NULL) == ISC_R_SUCCESS) &&
-		    match > 0)
-		{
-			return (ISC_R_CONNREFUSED);
-		}
-	}
 
 	tcpquota = isc_quota_getused(&sctx->tcpquota);
 	ns_stats_update_if_greater(sctx->nsstats, ns_statscounter_tcphighwater,
 				   tcpquota);
-
-	return (ISC_R_SUCCESS);
 }
 
 static void

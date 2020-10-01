@@ -160,10 +160,9 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 }
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
-		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		 isc_nmsocket_t **sockp) {
+isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
+		 void *cbarg, size_t extrahandlesize, int backlog,
+		 isc_quota_t *quota, isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *nsock = NULL;
 	isc__netievent_tcplisten_t *ievent = NULL;
 
@@ -171,8 +170,8 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
 	isc__nmsocket_init(nsock, mgr, isc_nm_tcplistener, iface);
-	nsock->accept_cb.accept = accept_cb;
-	nsock->accept_cbarg = accept_cbarg;
+	nsock->rcb.accept = cb;
+	nsock->rcbarg = cbarg;
 	nsock->extrahandlesize = extrahandlesize;
 	nsock->backlog = backlog;
 	nsock->result = ISC_R_SUCCESS;
@@ -249,19 +248,6 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	r = uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa,
 			flags);
-	if (r == UV_EADDRNOTAVAIL &&
-	    isc__nm_socket_freebind(&sock->uv_handle.handle) == ISC_R_SUCCESS)
-	{
-		/*
-		 * Retry binding with IP_FREEBIND (or equivalent option) if the
-		 * address is not available. This helps with IPv6 tentative
-		 * addresses which are reported by the route socket, although
-		 * named is not yet able to properly bind to them.
-		 */
-		r = uv_tcp_bind(&sock->uv_handle.tcp,
-				&sock->iface->addr.type.sa, flags);
-	}
-
 	if (r != 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
@@ -397,9 +383,9 @@ isc__nm_async_tcpchildaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	handle = isc__nmhandle_get(csock, NULL, &local);
 
-	INSIST(ssock->accept_cb.accept != NULL);
+	INSIST(ssock->rcb.accept != NULL);
 	csock->read_timeout = ssock->mgr->init;
-	ssock->accept_cb.accept(handle, ISC_R_SUCCESS, ssock->accept_cbarg);
+	ssock->rcb.accept(handle, ISC_R_SUCCESS, ssock->rcbarg);
 	isc_nmsocket_detach(&csock);
 	return;
 
@@ -532,30 +518,6 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	return (ISC_R_SUCCESS);
 }
 
-/*%<
- * Allocator for TCP read operations. Limited to size 2^16.
- *
- * Note this doesn't actually allocate anything, it just assigns the
- * worker's receive buffer to a socket, and marks it as "in use".
- */
-static void
-tcp_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-	isc__networker_t *worker = NULL;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-	REQUIRE(isc__nm_in_netthread());
-	REQUIRE(size <= 65536);
-
-	worker = &sock->mgr->workers[sock->tid];
-	INSIST(!worker->recvbuf_inuse);
-
-	buf->base = worker->recvbuf;
-	buf->len = size;
-	worker->recvbuf_inuse = true;
-}
-
 void
 isc__nm_async_tcp_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_startread_t *ievent = (isc__netievent_startread_t *)ev0;
@@ -573,7 +535,7 @@ isc__nm_async_tcp_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 			       0);
 	}
 
-	r = uv_read_start(&sock->uv_handle.stream, tcp_alloc_cb, read_cb);
+	r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb, read_cb);
 	if (r != 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_RECVFAIL]);
 	}

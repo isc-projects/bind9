@@ -132,32 +132,6 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	return (ISC_R_SUCCESS);
 }
 
-/*%<
- * Allocator for UDP recv operations. Limited to size 20 * (2^16 + 2),
- * which allows enough space for recvmmsg() to get multiple messages at
- * a time.
- *
- * Note this doesn't actually allocate anything, it just assigns the
- * worker's receive buffer to a socket, and marks it as "in use".
- */
-static void
-udp_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-	isc__networker_t *worker = NULL;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_udpsocket);
-	REQUIRE(isc__nm_in_netthread());
-	REQUIRE(size <= ISC_NETMGR_RECVBUF_SIZE);
-
-	worker = &sock->mgr->workers[sock->tid];
-	INSIST(!worker->recvbuf_inuse);
-
-	buf->base = worker->recvbuf;
-	buf->len = ISC_NETMGR_RECVBUF_SIZE;
-	worker->recvbuf_inuse = true;
-}
-
 /*
  * handle 'udplisten' async call - start listening on a socket.
  */
@@ -193,20 +167,6 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	r = uv_udp_bind(&sock->uv_handle.udp,
 			&sock->parent->iface->addr.type.sa, uv_bind_flags);
-	if (r == UV_EADDRNOTAVAIL &&
-	    isc__nm_socket_freebind(&sock->uv_handle.handle) == ISC_R_SUCCESS)
-	{
-		/*
-		 * Retry binding with IP_FREEBIND (or equivalent option) if the
-		 * address is not available. This helps with IPv6 tentative
-		 * addresses which are reported by the route socket, although
-		 * named is not yet able to properly bind to them.
-		 */
-		r = uv_udp_bind(&sock->uv_handle.udp,
-				&sock->parent->iface->addr.type.sa,
-				uv_bind_flags);
-	}
-
 	if (r < 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
 	}
@@ -218,7 +178,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	uv_send_buffer_size(&sock->uv_handle.handle,
 			    &(int){ ISC_SEND_BUFFER_SIZE });
 #endif
-	uv_udp_recv_start(&sock->uv_handle.udp, udp_alloc_cb, udp_recv_cb);
+	uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb, udp_recv_cb);
 }
 
 static void
@@ -248,6 +208,19 @@ stop_udp_child(isc_nmsocket_t *sock) {
 static void
 stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_udplistener);
+
+	/*
+	 * Socket is already closing; there's nothing to do.
+	 */
+	if (!isc__nmsocket_active(sock)) {
+		return;
+	}
+
+	/*
+	 * Mark it inactive now so that all sends will be ignored
+	 * and we won't try to stop listening again.
+	 */
+	atomic_store(&sock->active, false);
 
 	for (int i = 0; i < sock->nchildren; i++) {
 		isc__netievent_udpstop_t *event = NULL;
@@ -281,18 +254,6 @@ isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(!isc__nm_in_netthread());
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_udplistener);
-
-	/*
-	 * Socket is already closing; there's nothing to do.
-	 */
-	if (!isc__nmsocket_active(sock)) {
-		return;
-	}
-	/*
-	 * Mark it inactive now so that all sends will be ignored
-	 * and we won't try to stop listening again.
-	 */
-	atomic_store(&sock->active, false);
 
 	/*
 	 * If the manager is interlocked, re-enqueue this as an asynchronous
@@ -369,20 +330,22 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 #endif
 
 	/*
-	 * Three reasons to return now without processing:
-	 * - If addr == NULL that's the end of stream - we can
-	 *   free the buffer and bail.
-	 * - If we're simulating a firewall blocking UDP packets
-	 *   bigger than 'maxudp' bytes for testing purposes.
-	 * - If the socket is no longer active.
+	 * If addr == NULL that's the end of stream - we can
+	 * free the buffer and bail.
 	 */
-	maxudp = atomic_load(&sock->mgr->maxudp);
-	if ((addr == NULL) || (maxudp != 0 && (uint32_t)nrecv > maxudp) ||
-	    (!isc__nmsocket_active(sock)))
-	{
+	if (addr == NULL) {
 		if (free_buf) {
 			isc__nm_free_uvbuf(sock, buf);
 		}
+		return;
+	}
+
+	/*
+	 * Simulate a firewall blocking UDP packets bigger than
+	 * 'maxudp' bytes.
+	 */
+	maxudp = atomic_load(&sock->mgr->maxudp);
+	if (maxudp != 0 && (uint32_t)nrecv > maxudp) {
 		return;
 	}
 
@@ -422,7 +385,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	uint32_t maxudp = atomic_load(&sock->mgr->maxudp);
 
 	/*
-	 * We're simulating a firewall blocking UDP packets bigger than
+	 * Simulate a firewall blocking UDP packets bigger than
 	 * 'maxudp' bytes, for testing purposes.
 	 *
 	 * The client would ordinarily have unreferenced the handle
@@ -546,9 +509,6 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_udpsocket);
 
-	if (!isc__nmsocket_active(sock)) {
-		return (ISC_R_CANCELED);
-	}
 	isc_nmhandle_ref(req->handle);
 	rv = uv_udp_send(&req->uv_req.udp_send, &sock->uv_handle.udp,
 			 &req->uvbuf, 1, &peer->type.sa, udp_send_cb);

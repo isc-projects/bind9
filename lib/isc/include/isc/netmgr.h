@@ -24,47 +24,6 @@ typedef enum {
 	NMEV_SHUTDOWN
 } isc_nm_eventtype;
 
-typedef void (*isc_nm_recv_cb_t)(isc_nmhandle_t *handle, isc_region_t *region,
-				 void *cbarg);
-/*%<
- * Callback function to be used when receiving a packet.
- *
- * 'handle' the handle that can be used to send back the answer.
- * 'region' contains the received data. It will be freed after
- *          return by caller.
- * 'cbarg'  the callback argument passed to isc_nm_listenudp(),
- *          isc_nm_listentcpdns(), or isc_nm_read().
- */
-
-typedef isc_result_t (*isc_nm_accept_cb_t)(isc_nmhandle_t *handle,
-					   isc_result_t result, void *cbarg);
-/*%<
- * Callback function to be used when accepting a connection. (This differs
- * from isc_nm_cb_t below in that it returns a result code.)
- *
- * 'handle' the handle that can be used to send back the answer.
- * 'eresult' the result of the event.
- * 'cbarg'  the callback argument passed to isc_nm_listentcp() or
- * isc_nm_listentcpdns().
- */
-
-typedef void (*isc_nm_cb_t)(isc_nmhandle_t *handle, isc_result_t result,
-			    void *cbarg);
-/*%<
- * Callback function for other network completion events (send, connect).
- *
- * 'handle' the handle on which the event took place.
- * 'eresult' the result of the event.
- * 'cbarg'  the callback argument passed to isc_nm_send(),
- *          isc_nm_tcp_connect(), or isc_nm_listentcp()
- */
-
-typedef void (*isc_nm_opaquecb_t)(void *arg);
-/*%<
- * Opaque callback function, used for isc_nmhandle 'reset' and 'free'
- * callbacks.
- */
-
 isc_nm_t *
 isc_nm_start(isc_mem_t *mctx, uint32_t workers);
 /*%<
@@ -143,6 +102,8 @@ isc_nmhandle_getdata(isc_nmhandle_t *handle);
 void *
 isc_nmhandle_getextra(isc_nmhandle_t *handle);
 
+typedef void (*isc_nm_opaquecb_t)(void *arg);
+
 bool
 isc_nmhandle_is_stream(isc_nmhandle_t *handle);
 
@@ -172,6 +133,30 @@ isc_nm_t *
 isc_nmhandle_netmgr(isc_nmhandle_t *handle);
 /*%<
  * Return a pointer to the netmgr object for the given handle.
+ */
+
+typedef void (*isc_nm_recv_cb_t)(isc_nmhandle_t *handle, isc_region_t *region,
+				 void *cbarg);
+/*%<
+ * Callback function to be used when receiving a packet.
+ *
+ * 'handle' the handle that can be used to send back the answer.
+ * 'region' contains the received data. It will be freed after
+ *          return by caller.
+ * 'cbarg'  the callback argument passed to isc_nm_listenudp(),
+ *          isc_nm_listentcpdns(), or isc_nm_read().
+ */
+
+typedef void (*isc_nm_cb_t)(isc_nmhandle_t *handle, isc_result_t result,
+			    void *cbarg);
+/*%<
+ * Callback function for other network completion events (send, connect,
+ * accept).
+ *
+ * 'handle' the handle on which the event took place.
+ * 'result' the result of the event.
+ * 'cbarg'  the callback argument passed to isc_nm_send(),
+ *          isc_nm_tcp_connect(), or isc_nm_listentcp()
  */
 
 isc_result_t
@@ -242,10 +227,9 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
  */
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
-		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		 isc_nmsocket_t **sockp);
+isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_cb_t cb,
+		 void *cbarg, size_t extrahandlesize, int backlog,
+		 isc_quota_t *quota, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for raw messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -253,8 +237,8 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
  * On success, 'sockp' will be updated to contain a new listening TCP
  * socket.
  *
- * When connection is accepted on the socket, 'accept_cb' will be called with
- * 'accept_cbarg' as its argument. The callback is expected to start a read.
+ * When a message is received on the socket, 'cb' will be called with 'cbarg'
+ * as its argument.
  *
  * When handles are allocated for the socket, 'extrasize' additional bytes
  * will be allocated along with the handle for an associated object.
@@ -269,9 +253,9 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 
 isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
-		    void *cbarg, isc_nm_accept_cb_t accept_cb,
-		    void *accept_cbarg, size_t extrahandlesize, int backlog,
-		    isc_quota_t *quota, isc_nmsocket_t **sockp);
+		    void *cbarg, isc_nm_cb_t accept_cb, void *accept_cbarg,
+		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
+		    isc_nmsocket_t **sockp);
 /*%<
  * Start listening for DNS messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -285,7 +269,7 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
  * When a complete DNS message is received on the socket, 'cb' will be
  * called with 'cbarg' as its argument.
  *
- * When a new TCPDNS connection is accepted, 'accept_cb' will be called
+ * When a new TCP connection is accepted, 'accept_cb' will be called
  * with 'accept_cbarg' as its argument.
  *
  * When handles are allocated for the socket, 'extrasize' additional bytes

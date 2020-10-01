@@ -136,9 +136,7 @@ typedef enum isc__netievent_type {
 	netievent_tcpaccept,
 	netievent_tcpstop,
 	netievent_tcpclose,
-
 	netievent_tcpdnsclose,
-	netievent_tcpdnssend,
 
 	netievent_closecb,
 	netievent_shutdown,
@@ -158,7 +156,7 @@ typedef enum isc__netievent_type {
  */
 typedef union {
 	isc_nm_recv_cb_t recv;
-	isc_nm_accept_cb_t accept;
+	isc_nm_cb_t accept;
 } isc__nm_readcb_t;
 
 typedef union {
@@ -168,7 +166,7 @@ typedef union {
 
 typedef union {
 	isc_nm_recv_cb_t recv;
-	isc_nm_accept_cb_t accept;
+	isc_nm_cb_t accept;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
 } isc__nm_cb_t;
@@ -229,7 +227,6 @@ typedef struct isc__netievent__socket_req {
 typedef isc__netievent__socket_req_t isc__netievent_tcpconnect_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcplisten_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcpsend_t;
-typedef isc__netievent__socket_req_t isc__netievent_tcpdnssend_t;
 
 typedef struct isc__netievent__socket_streaminfo_quota {
 	isc__netievent_type type;
@@ -561,6 +558,16 @@ isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event);
  */
 
 void
+isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf);
+/*%<
+ * Allocator for recv operations.
+ *
+ * Note that as currently implemented, this doesn't actually
+ * allocate anything, it just assigns the the isc__networker's UDP
+ * receive buffer to a socket, and marks it as "in use".
+ */
+
+void
 isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf);
 /*%<
  * Free a buffer allocated for a receive operation.
@@ -739,9 +746,6 @@ isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock);
 void
 isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
 
-void
-isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
-
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__)
 isc_result_t
@@ -782,10 +786,4 @@ void
 isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid);
 /*%<
  * Decrement socket-related statistics counters.
- */
-
-isc_result_t
-isc__nm_socket_freebind(const uv_handle_t *handle);
-/*%<
- * Set the IP_FREEBIND (or equivalent) socket option on the uv_handle
  */

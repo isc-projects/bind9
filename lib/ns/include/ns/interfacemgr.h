@@ -197,12 +197,6 @@ ns_interfacemgr_dumprecursing(FILE *f, ns_interfacemgr_t *mgr);
 bool
 ns_interfacemgr_listeningon(ns_interfacemgr_t *mgr, const isc_sockaddr_t *addr);
 
-ns_server_t *
-ns_interfacemgr_getserver(ns_interfacemgr_t *mgr);
-/*%<
- * Returns the ns_server object associated with the interface manager.
- */
-
 ns_interface_t *
 ns__interfacemgr_getif(ns_interfacemgr_t *mgr);
 ns_interface_t *
