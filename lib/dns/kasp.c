@@ -394,7 +394,7 @@ dns_kasp_key_size(dns_kasp_key_t *key) {
 	case DNS_KEYALG_NSEC3RSASHA1:
 	case DNS_KEYALG_RSASHA256:
 	case DNS_KEYALG_RSASHA512:
-		min = DNS_KEYALG_RSASHA512 ? 1024 : 512;
+		min = (key->algorithm == DNS_KEYALG_RSASHA512) ? 1024 : 512;
 		if (key->length > -1) {
 			size = (unsigned int)key->length;
 			if (size < min) {
