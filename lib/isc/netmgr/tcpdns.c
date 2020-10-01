@@ -471,6 +471,7 @@ isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 			break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 		isc__nmsocket_detach(&sock->outer);
 	}
