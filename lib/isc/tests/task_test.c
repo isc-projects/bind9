@@ -25,8 +25,8 @@
 #include <unistd.h>
 
 #define UNIT_TESTING
-#include <cmocka.h>
 
+#include <isc/cmocka.h>
 #include <isc/commandline.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
@@ -1571,10 +1571,31 @@ main(int argc, char **argv) {
 						_setup, _teardown),
 #endif
 	};
+	struct CMUnitTest selected[sizeof(tests) / sizeof(tests[0])];
+	size_t i;
 	int c;
 
-	while ((c = isc_commandline_parse(argc, argv, "v")) != -1) {
+	memset(selected, 0, sizeof(selected));
+
+	while ((c = isc_commandline_parse(argc, argv, "lt:v")) != -1) {
 		switch (c) {
+		case 'l':
+			for (i = 0; i < (sizeof(tests) / sizeof(tests[0])); i++)
+			{
+				if (tests[i].name != NULL) {
+					fprintf(stdout, "%s\n", tests[i].name);
+				}
+			}
+			return (0);
+		case 't':
+			if (!cmocka_add_test_byname(
+				    tests, isc_commandline_argument, selected))
+			{
+				fprintf(stderr, "unknown test '%s'\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
 		case 'v':
 			verbose = true;
 			break;
@@ -1583,8 +1604,11 @@ main(int argc, char **argv) {
 		}
 	}
 
-
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	if (selected[0].name != NULL) {
+		return (cmocka_run_group_tests(selected, NULL, NULL));
+	} else {
+		return (cmocka_run_group_tests(tests, NULL, NULL));
+	}
 }
 
 #else /* HAVE_CMOCKA */

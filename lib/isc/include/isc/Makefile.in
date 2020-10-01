@@ -19,7 +19,7 @@ VERSION=@BIND9_VERSION@
 # install target below.
 #
 HEADERS =	aes.h app.h assertions.h boolean.h backtrace.h base32.h base64.h \
-		bind9.h buffer.h bufferlist.h commandline.h \
+		bind9.h buffer.h bufferlist.h cmocka.h commandline.h \
 		counter.h crc64.h deprecated.h entropy.h errno.h \
 		endian.h error.h event.h eventclass.h file.h formatcheck.h \
 		fsaccess.h hash.h heap.h hex.h hmacmd5.h hmacsha.h \

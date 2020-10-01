@@ -24,8 +24,9 @@
 #include <unistd.h>
 
 #define UNIT_TESTING
-#include <cmocka.h>
 
+#include <isc/cmocka.h>
+#include <isc/commandline.h>
 #include <isc/hex.h>
 #include <isc/lex.h>
 #include <isc/print.h>
@@ -2757,14 +2758,46 @@ main(int argc, char **argv) {
 		cmocka_unit_test_setup_teardown(atparent, NULL, NULL),
 		cmocka_unit_test_setup_teardown(iszonecutauth, NULL, NULL),
 	};
+	struct CMUnitTest selected[sizeof(tests) / sizeof(tests[0])];
+	size_t i;
+	int c;
 
-	UNUSED(argv);
+	memset(selected, 0, sizeof(selected));
 
-	if (argc > 1) {
-		debug = true;
+	while ((c = isc_commandline_parse(argc, argv, "dlt:")) != -1) {
+		switch (c) {
+		case 'd':
+			debug = true;
+			break;
+		case 'l':
+			for (i = 0; i < (sizeof(tests) / sizeof(tests[0])); i++)
+			{
+				if (tests[i].name != NULL) {
+					fprintf(stdout, "%s\n", tests[i].name);
+				}
+			}
+			return (0);
+		case 't':
+			if (!cmocka_add_test_byname(
+				    tests, isc_commandline_argument, selected))
+			{
+				fprintf(stderr, "unknown test '%s'\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
+		default:
+			break;
+		}
 	}
 
-	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
+	if (selected[0].name != NULL) {
+		return (cmocka_run_group_tests(tests, dns_test_init,
+					       dns_test_final));
+	} else {
+		return (cmocka_run_group_tests(tests, dns_test_init,
+					       dns_test_final));
+	}
 }
 
 #else /* HAVE_CMOCKA */
