@@ -3139,58 +3139,104 @@ are not sorted.
 RRset Ordering
 ^^^^^^^^^^^^^^
 
-When multiple records are returned in an answer, it may be useful to
-configure the order of the records placed into the response. The
-``rrset-order`` statement permits configuration of the ordering of the
-records in a multiple-record response. See also the ``sortlist``
-statement, :ref:`the_sortlist_statement`.
+.. note::
 
-An ``order_spec`` is defined as follows:
+    While alternating the order of records in a DNS response between
+    subsequent queries is a known load distribution technique, certain
+    caveats apply (mostly stemming from caching) which usually make it a
+    suboptimal choice for load balancing purposes when used on its own.
 
-[class *class_name*] [type *type_name*] [name "*domain_name*"] order *ordering*
+The ``rrset-order`` statement permits configuration of the ordering of
+the records in a multiple-record response. See also:
+:ref:`the_sortlist_statement`.
 
-If no class is specified, the default is ``ANY``. If no type is
-specified, the default is ``ANY``. If no name is specified, the default
-is ``*`` (asterisk).
+Each rule in an ``rrset-order`` statement is defined as follows:
+
+::
+
+    [class <class_name>] [type <type_name>] [name "<domain_name>"] order <ordering>
+
+The default qualifiers for each rule are:
+
+  - If no ``class`` is specified, the default is ``ANY``.
+  - If no ``type`` is specified, the default is ``ANY``.
+  - If no ``name`` is specified, the default is ``*`` (asterisk).
+
+``<domain_name>`` only matches the name itself, not any of its
+subdomains.  To make a rule match all subdomains of a given name, a
+wildcard name (``*.<domain_name>``) must be used.  Note that
+``*.<domain_name>`` does *not* match ``<domain_name>`` itself; to
+specify RRset ordering for a name and all of its subdomains, two
+separate rules must be defined: one for ``<domain_name>`` and one for
+``*.<domain_name>``.
 
 The legal values for ``ordering`` are:
 
 ``fixed``
-    Records are returned in the order they are defined in the zone file. This option is only available if BIND is configured with ``--enable-fixed-rrset`` at compile time.
+    Records are returned in the order they are defined in the zone file.
+
+.. note::
+
+    The ``fixed`` option is only available if BIND is configured with
+    ``--enable-fixed-rrset`` at compile time.
 
 ``random``
     Records are returned in a random order.
 
 ``cyclic``
-    Records are returned in a cyclic round-robin order, rotating by one record per query. If BIND is configured with ``--enable-fixed-rrset`` at compile time, the initial ordering of the RRset matches the one specified in the zone file; otherwise the initial ordering is indeterminate.
+    Records are returned in a cyclic round-robin order, rotating by one
+    record per query.
 
 ``none``
-    Records are returned in whatever order they were retrieved from the database. This order is indeterminate, but remains consistent as long as the database is not modified. When no ordering is specified, this is the default.
+    Records are returned in the order they were retrieved from the
+    database. This order is indeterminate, but remains consistent as
+    long as the database is not modified.
 
-For example:
+The default RRset order used depends on whether any ``rrset-order``
+statements are present in the configuration file used by ``named``:
+
+  - If no ``rrset-order`` statement is present in the configuration
+    file, the implicit default is to return all records in ``random``
+    order.
+
+  - If any ``rrset-order`` statements are present in the configuration
+    file, but no ordering rule specified in these statements matches a
+    given RRset, the default order for that RRset is ``none``.
+
+Note that if multiple ``rrset-order`` statements are present in the
+configuration file (at both the ``options`` and ``view`` levels), they
+are *not* combined; instead, the more-specific one (``view``) replaces
+the less-specific one (``options``).
+
+If multiple rules within a single ``rrset-order`` statement match a
+given RRset, the first matching rule is applied.
+
+Example:
 
 ::
 
-   rrset-order {
-      class IN type A name "host.example.com" order random;
-      order cyclic;
-   };
+    rrset-order {
+        type A name "foo.isc.org" order random;
+        type AAAA name "foo.isc.org" order cyclic;
+        name "bar.isc.org" order fixed;
+        name "*.bar.isc.org" order random;
+        name "*.baz.isc.org" order cyclic;
+    };
 
-causes any responses for type A records in class IN, that have
-``host.example.com`` as a suffix, to always be returned in random
-order. All other records are returned in cyclic order.
+With the above configuration, the following RRset ordering is used:
 
-If multiple ``rrset-order`` statements appear, they are not combined;
-the last one applies.
-
-By default, records are returned in ``random`` order.
-
-.. note::
-
-   "Fixed" ordering of the ``rrset-order`` statement by default is not
-   currently supported in BIND 9. Fixed ordering can be enabled at
-   compile time by specifying "--enable-fixed-rrset" on the "configure"
-   command line.
+===================    ========    ===========
+QNAME                  QTYPE       RRset Order
+===================    ========    ===========
+``foo.isc.org``        ``A``       ``random``
+``foo.isc.org``        ``AAAA``    ``cyclic``
+``foo.isc.org``        ``TXT``     ``none``
+``sub.foo.isc.org``    all         ``none``
+``bar.isc.org``        all         ``fixed``
+``sub.bar.isc.org``    all         ``random``
+``baz.isc.org``        all         ``none``
+``sub.baz.isc.org``    all         ``cyclic``
+===================    ========    ===========
 
 .. _tuning:
 
