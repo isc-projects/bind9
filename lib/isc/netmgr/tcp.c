@@ -536,12 +536,11 @@ error:
 
 void
 isc__nm_tcp_stoplistening(isc_nmsocket_t *sock) {
-	isc__netievent_tcpstop_t *ievent = NULL;
-
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(!isc__nm_in_netthread());
+	REQUIRE(sock->type == isc_nm_tcplistener);
 
-	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpstop);
+	isc__netievent_tcpstop_t *ievent =
+		isc__nm_get_ievent(sock->mgr, netievent_tcpstop);
 	isc__nmsocket_attach(sock, &ievent->sock);
 	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 			       (isc__netievent_t *)ievent);

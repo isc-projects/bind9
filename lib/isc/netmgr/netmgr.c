@@ -648,6 +648,9 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcpdnsclose:
 			isc__nm_async_tcpdnsclose(worker, ievent);
 			break;
+		case netievent_tcpdnsstop:
+			isc__nm_async_tcpdnsstop(worker, ievent);
+			break;
 
 		case netievent_closecb:
 			isc__nm_async_closecb(worker, ievent);
