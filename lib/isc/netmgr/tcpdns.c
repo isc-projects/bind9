@@ -392,18 +392,40 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 }
 
 void
-isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
+isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_tcpstop_t *ievent = (isc__netievent_tcpdnsstop_t *)ev0;
+	isc_nmsocket_t *sock = ievent->sock;
+
+	UNUSED(worker);
+
+	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcpdnslistener);
+	REQUIRE(sock->tid == isc_nm_tid());
 
 	atomic_store(&sock->listening, false);
 	atomic_store(&sock->closed, true);
+
 	isc__nmsocket_clearcb(sock);
 
 	if (sock->outer != NULL) {
 		isc__nm_tcp_stoplistening(sock->outer);
 		isc__nmsocket_detach(&sock->outer);
 	}
+
+	isc__nmsocket_detach(&sock);
+}
+
+void
+isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tcpdnslistener);
+
+	isc__netievent_tcpdnsstop_t *ievent =
+		isc__nm_get_ievent(sock->mgr, netievent_tcpdnsstop);
+	isc__nmsocket_attach(sock, &ievent->sock);
+	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+			       (isc__netievent_t *)ievent);
 }
 
 void

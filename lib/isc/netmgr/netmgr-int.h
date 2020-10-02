@@ -149,6 +149,7 @@ typedef enum isc__netievent_type {
 
 	netievent_tcpdnssend,
 	netievent_tcpdnsclose,
+	netievent_tcpdnsstop,
 
 	netievent_closecb,
 	netievent_shutdown,
@@ -217,6 +218,7 @@ typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
 typedef isc__netievent__socket_t isc__netievent_closecb_t;
 typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
+typedef isc__netievent__socket_t isc__netievent_tcpdnsstop_t;
 
 typedef struct isc__netievent__socket_req {
 	isc__netievent_type type;
@@ -787,9 +789,10 @@ isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock);
 
 void
 isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
-
 void
 isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
+void
+isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__)
