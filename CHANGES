@@ -1,3 +1,11 @@
+5513.	[doc]		The ARM section describing the "rrset-order" statement
+			was rewritten to make it unambiguous and up-to-date with
+			the source code. [GL #2139]
+
+5512.	[bug]		"rrset-order" rules using "order none" were causing
+			named to crash despite named-checkconf treating them as
+			valid. [GL #2139]
+
 5511.	[bug]		'dig -u +yaml' failed to display timestamps to the
 			microsecond. [GL #2190]
 
