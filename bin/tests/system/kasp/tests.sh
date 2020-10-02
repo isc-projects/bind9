@@ -127,6 +127,7 @@ key_clear "KEY4"
 
 # Call dig with default options.
 dig_with_opts() {
+
 	if [ -n "$TSIG" ]; then
 		"$DIG" +tcp +noadd +nosea +nostat +nocmd +dnssec -p "$PORT" -y "$TSIG" "$@"
 	else
@@ -609,7 +610,7 @@ dnssec_verify()
 # Wait for the zone to be signed.
 # The apex NSEC record indicates that it is signed.
 _wait_for_nsec() {
-	dig_with_opts "@${SERVER}" -y "$TSIG" "$ZONE" NSEC > "dig.out.nsec.test$n" || return 1
+	dig_with_opts "@${SERVER}" "$ZONE" NSEC > "dig.out.nsec.test$n" || return 1
 	grep "NS SOA" "dig.out.nsec.test$n" > /dev/null || return 1
 	grep "${ZONE}\..*IN.*RRSIG" "dig.out.nsec.test$n" > /dev/null || return 1
 	return 0
@@ -831,23 +832,30 @@ status=$((status+ret))
 
 next_key_event_threshold=$((next_key_event_threshold+i))
 
+check_numkeys() {
+	_numkeys=$(get_keyids "$1" "$2" | wc -l)
+	test "$_numkeys" -eq "$NUM_KEYS" || return 1
+	return 0
+}
+
 # Check keys for a configured zone. This verifies:
 # 1. The right number of keys exist in the key pool ($1).
 # 2. The right number of keys is active. Checks KEY1, KEY2, KEY3, and KEY4.
 #
 # It is expected that KEY1, KEY2, KEY3, and KEY4 arrays are set correctly.
 # Found key identifiers are stored in the right key array.
-check_keys()
-{
+check_keys() {
 	n=$((n+1))
 	echo_i "check keys are created for zone ${ZONE} ($n)"
 	ret=0
 
 	echo_i "check number of keys for zone ${ZONE} in dir ${DIR} ($n)"
-	_numkeys=$(get_keyids "$DIR" "$ZONE" | wc -l)
-	test "$_numkeys" -eq "$NUM_KEYS" || log_error "bad number ($_numkeys) of key files for zone $ZONE (expected $NUM_KEYS)"
-	test "$ret" -eq 0 || echo_i "failed"
-	status=$((status+ret))
+	retry_quiet 10 check_numkeys "$DIR" "$ZONE" "$NUM_KEYS" || ret=1
+	if [ $ret -ne 0 ]; then
+		_numkeys=$(get_keyids "$1" "$2" | wc -l)
+		log_error "bad number of key files ($_numkeys) for zone $ZONE (expected $NUM_KEYS)"
+		status=$((status+ret))
+	fi
 
 	# Temporarily don't log errors because we are searching multiple files.
 	_log=0
@@ -2041,7 +2049,49 @@ check_apex
 check_subdomain
 dnssec_verify
 
-# TODO: ED25519 and ED448.
+#
+# Zone: ed25519.kasp.
+#
+if [ -f ed25519-supported.file ]; then
+	set_zone "ed25519.kasp"
+	set_policy "ed25519" "3" "1234"
+	set_server "ns3" "10.53.0.3"
+	# Key properties.
+	set_keyalgorithm "KEY1" "15" "ED25519" "256"
+	set_keyalgorithm "KEY2" "15" "ED25519" "256"
+	set_keyalgorithm "KEY3" "15" "ED25519" "256"
+	# Key timings and states same as above.
+
+	check_keys
+	check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+	set_keytimes_algorithm_policy
+	check_keytimes
+	check_apex
+	check_subdomain
+	dnssec_verify
+fi
+
+#
+# Zone: ed448.kasp.
+#
+if [ -f ed448-supported.file ]; then
+	set_zone "ed448.kasp"
+	set_policy "ed448" "3" "1234"
+	set_server "ns3" "10.53.0.3"
+	# Key properties.
+	set_keyalgorithm "KEY1" "16" "ED448" "456"
+	set_keyalgorithm "KEY2" "16" "ED448" "456"
+	set_keyalgorithm "KEY3" "16" "ED448" "456"
+	# Key timings and states same as above.
+
+	check_keys
+	check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+	set_keytimes_algorithm_policy
+	check_keytimes
+	check_apex
+	check_subdomain
+	dnssec_verify
+fi
 
 # Set key times for 'autosign' policy.
 set_keytimes_autosign_policy() {
@@ -5228,6 +5278,231 @@ dnssec_verify
 # Next key event is never since we established the policy and the keys have
 # an unlimited lifetime.  Fallback to the default loadkeys interval.
 check_next_key_event 3600
+
+#
+# Testing good migration with views.
+#
+init_view_migration() {
+	key_clear        "KEY1"
+	key_set          "KEY1" "LEGACY" "yes"
+	set_keyrole      "KEY1" "ksk"
+	set_keylifetime  "KEY1" "0"
+	set_keysigning   "KEY1" "yes"
+	set_zonesigning  "KEY1" "no"
+
+	key_clear        "KEY2"
+	key_set          "KEY2" "LEGACY" "yes"
+	set_keyrole      "KEY2" "zsk"
+	set_keylifetime  "KEY2" "0"
+	set_keysigning   "KEY2" "no"
+	set_zonesigning  "KEY2" "yes"
+
+	key_clear        "KEY3"
+	key_clear        "KEY4"
+
+	set_keystate "KEY1" "GOAL"         "omnipresent"
+	set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+	set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+	set_keystate "KEY1" "STATE_DS"     "rumoured"
+
+	set_keystate "KEY2" "GOAL"         "omnipresent"
+	set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+	set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+}
+
+set_keytimes_view_migration() {
+	# Key is six months in use.
+	created=$(key_get KEY1 CREATED)
+	set_addkeytime "KEY1" "PUBLISHED"   "${created}" -16070400
+	set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -16070400
+	set_addkeytime "KEY1" "ACTIVE"      "${created}" -16070400
+	created=$(key_get KEY2 CREATED)
+	set_addkeytime "KEY2" "PUBLISHED"   "${created}" -16070400
+	set_addkeytime "KEY2" "ACTIVE"      "${created}" -16070400
+}
+
+# Zone view.rsasha256.kasp (external)
+set_zone "view-rsasha256.kasp"
+set_policy "rsasha256" "2" "21600"
+set_server "ns7" "10.53.0.7"
+init_view_migration
+set_keyalgorithm "KEY1" "8" "RSASHA256" "2048"
+set_keyalgorithm "KEY2" "8" "RSASHA256" "1024"
+TSIG="hmac-sha1:external:$VIEW1"
+wait_for_nsec
+# Make sure the zone is signed with legacy keys.
+check_keys
+set_keytimes_view_migration
+check_keytimes
+dnssec_verify
+
+n=$((n+1))
+# check subdomain
+echo_i "check TXT $ZONE (view ext) rrset is signed correctly ($n)"
+ret=0
+dig_with_opts "view.${ZONE}" "@${SERVER}" TXT > "dig.out.$DIR.test$n.txt" || log_error "dig view.${ZONE} TXT failed"
+grep "status: NOERROR" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "mismatch status in DNS response"
+grep "view.${ZONE}\..*${DEFAULT_TTL}.*IN.*TXT.*external" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "missing view.${ZONE} TXT record in response"
+check_signatures TXT "dig.out.$DIR.test$n.txt" "ZSK"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Remember legacy key tags.
+_migrate_ext8_ksk=$(key_get KEY1 ID)
+_migrate_ext8_zsk=$(key_get KEY2 ID)
+
+# Zone view.rsasha256.kasp (internal)
+set_zone "view-rsasha256.kasp"
+set_policy "rsasha256" "2" "21600"
+set_server "ns7" "10.53.0.7"
+init_view_migration
+set_keyalgorithm "KEY1" "8" "RSASHA256" "2048"
+set_keyalgorithm "KEY2" "8" "RSASHA256" "1024"
+TSIG="hmac-sha1:internal:$VIEW2"
+wait_for_nsec
+# Make sure the zone is signed with legacy keys.
+check_keys
+set_keytimes_view_migration
+check_keytimes
+dnssec_verify
+
+n=$((n+1))
+# check subdomain
+echo_i "check TXT $ZONE (view int) rrset is signed correctly ($n)"
+ret=0
+dig_with_opts "view.${ZONE}" "@${SERVER}" TXT > "dig.out.$DIR.test$n.txt" || log_error "dig view.${ZONE} TXT failed"
+grep "status: NOERROR" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "mismatch status in DNS response"
+grep "view.${ZONE}\..*${DEFAULT_TTL}.*IN.*TXT.*internal" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "missing view.${ZONE} TXT record in response"
+check_signatures TXT "dig.out.$DIR.test$n.txt" "ZSK"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Remember legacy key tags.
+_migrate_int8_ksk=$(key_get KEY1 ID)
+_migrate_int8_zsk=$(key_get KEY2 ID)
+
+# Reconfig dnssec-policy.
+echo_i "reconfig to switch to dnssec-policy"
+copy_setports ns7/named2.conf.in ns7/named.conf
+rndc_reconfig ns7 10.53.0.7
+
+# Calculate time passed to correctly check for next key events.
+now="$(TZ=UTC date +%s)"
+time_passed=$((now-start_time))
+echo_i "${time_passed} seconds passed between start of tests and reconfig"
+
+#
+# Testing migration (RSASHA256, views).
+#
+set_zone "view-rsasha256.kasp"
+set_policy "rsasha256" "3" "21600"
+set_server "ns7" "10.53.0.7"
+init_migration_match
+set_keyalgorithm "KEY1" "8" "RSASHA256" "2048"
+set_keyalgorithm "KEY2" "8" "RSASHA256" "1024"
+# Key properties, timings and metadata should be the same as legacy keys above.
+# However, because the keys have a lifetime, kasp will set the retired time.
+key_set          "KEY1" "LEGACY" "no"
+set_keylifetime  "KEY1" "31536000"
+set_keystate     "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate     "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate     "KEY1" "STATE_DS"     "omnipresent"
+
+key_set          "KEY2" "LEGACY" "no"
+set_keylifetime  "KEY2" "8035200"
+set_keystate     "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate     "KEY2" "STATE_ZRRSIG" "omnipresent"
+# The ZSK needs to be replaced.
+set_keystate     "KEY2" "GOAL" "hidden"
+set_keystate     "KEY3" "GOAL" "omnipresent"
+set_keyrole      "KEY3" "zsk"
+set_keylifetime  "KEY3" "8035200"
+set_keyalgorithm "KEY3" "8" "RSASHA256" "1024"
+set_keysigning   "KEY3" "no"
+set_zonesigning  "KEY3" "no" # not yet
+set_keystate     "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate     "KEY3" "STATE_ZRRSIG" "hidden"
+
+# Various signing policy checks (external).
+TSIG="hmac-sha1:external:$VIEW1"
+check_keys
+wait_for_done_signing
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "external-view"
+set_keytimes_view_migration
+
+# Set expected key times:
+published=$(key_get KEY1 PUBLISHED)
+set_keytime "KEY1" "ACTIVE"      "${published}"
+set_keytime "KEY1" "SYNCPUBLISH" "${published}"
+# Lifetime: 1 year (8035200 seconds)
+active=$(key_get KEY1 ACTIVE)
+set_addkeytime "KEY1" "RETIRED" "${active}"  "31536000"
+# Retire interval:
+# DS TTL:                  1d
+# Parent zone propagation: 3h
+# Retire safety:           1h
+# Total:                   100800 seconds
+retired=$(key_get KEY1 RETIRED)
+set_addkeytime "KEY1" "REMOVED" "${retired}" "100800"
+
+published=$(key_get KEY2 PUBLISHED)
+set_keytime "KEY2" "ACTIVE" "${published}"
+# Lifetime: 3 months (8035200 seconds)
+active=$(key_get KEY2 ACTIVE)
+set_addkeytime "KEY2" "RETIRED" "${active}" "8035200"
+# Retire interval:
+# Sign delay:             9d (14-5)
+# Max zone TTL:           1d
+# Retire safety:          1h
+# Zone propagation delay: 300s
+# Total:                  867900 seconds
+retired=$(key_get KEY2 RETIRED)
+set_addkeytime "KEY2" "REMOVED" "${retired}" "867900"
+
+created=$(key_get KEY3 CREATED)
+set_keytime    "KEY3" "PUBLISHED" "${created}"
+# Publication interval:
+# DNSKEY TTL:             6h
+# Publish safety:         1h
+# Zone propagation delay: 300s
+# Total:                  25500 seconds
+set_addkeytime "KEY3" "ACTIVE" "${created}" "25500"
+# Lifetime: 3 months (8035200 seconds)
+active=$(key_get KEY3 ACTIVE)
+set_addkeytime "KEY3" "RETIRED" "${active}" "8035200"
+# Retire interval:
+# Sign delay:             9d (14-5)
+# Max zone TTL:           1d
+# Retire safety:          1h
+# Zone propagation delay: 300s
+# Total:                  867900 seconds
+retired=$(key_get KEY3 RETIRED)
+set_addkeytime "KEY3" "REMOVED" "${retired}" "867900"
+
+# Continue signing policy checks.
+check_keytimes
+check_apex
+dnssec_verify
+
+# Various signing policy checks (external).
+TSIG="hmac-sha1:internal:$VIEW2"
+check_keys
+wait_for_done_signing
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "internal-view"
+set_keytimes_view_migration
+check_keytimes
+check_apex
+dnssec_verify
+
+# Check key tags, should be the same.
+n=$((n+1))
+echo_i "check that of zone ${ZONE} migration to dnssec-policy uses the same keys ($n)"
+ret=0
+[ $_migrate_ext8_ksk == $_migrate_int8_ksk ] || log_error "mismatch ksk tag"
+[ $_migrate_ext8_zsk == $_migrate_int8_zsk ] || log_error "mismatch zsk tag"
+[ $_migrate_ext8_ksk == $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_migrate_ext8_zsk == $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
