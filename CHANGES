@@ -1,3 +1,7 @@
+5513.	[doc]		The ARM section describing the "rrset-order" statement
+			was rewritten to make it unambiguous and up-to-date with
+			the source code. [GL #2139]
+
 5510.	[bug]		Implement the attach/detach semantics for dns_message_t
 			to fix a data race in accessing already destroyed
 			fctx->rmessage. [GL #2124]
