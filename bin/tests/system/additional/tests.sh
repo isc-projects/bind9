@@ -226,7 +226,7 @@ dotests() {
     $DIG $DIGOPTS -t NS rt.example @10.53.0.1 > dig.out.$n || ret=1
     case $minimal in
     yes)
-      grep 'ADDITIONAL: 1' dig.out.$n > /dev/null || ret=1
+      grep 'ADDITIONAL: 2' dig.out.$n > /dev/null || ret=1
       ;;
     no)
       grep 'ADDITIONAL: 2' dig.out.$n > /dev/null || ret=1
