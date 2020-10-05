@@ -73,7 +73,7 @@
 #define LOOKUP_LIMIT 64
 
 #define DEFAULT_EDNS_VERSION 0
-#define DEFAULT_EDNS_BUFSIZE 4096
+#define DEFAULT_EDNS_BUFSIZE 1232
 
 /*%
  * Lookup_limit is just a limiter, keeping too many lookups from being

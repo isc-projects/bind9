@@ -1,3 +1,8 @@
+5516.	[func]		The default EDNS buffer size has been changed from 4096
+			to 1232, the EDNS buffer size probing has been removed
+			and ``named`` now sets the DON'T FRAGMENT flag on
+			outgoing UDP packets. [GL #2183]
+
 5515.	[func]		Add 'rndc dnssec -rollover' command to trigger a
 			manual rollover for a specific key. [GL #1749]
 
