@@ -66,7 +66,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 
 	for (size_t i = 0; i < mgr->nworkers; i++) {
 		isc_result_t result;
-		uint16_t family = iface->addr.type.sa.sa_family;
+		sa_family_t sa_family = iface->addr.type.sa.sa_family;
 
 		isc__netievent_udplisten_t *ievent = NULL;
 		isc_nmsocket_t *csock = &nsock->children[i];
@@ -79,7 +79,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		INSIST(csock->recv_cb == NULL && csock->recv_cbarg == NULL);
 		csock->recv_cb = cb;
 		csock->recv_cbarg = cbarg;
-		csock->fd = socket(family, SOCK_DGRAM, 0);
+		csock->fd = socket(sa_family, SOCK_DGRAM, 0);
 		RUNTIME_CHECK(csock->fd >= 0);
 
 		result = isc__nm_socket_reuse(csock->fd);
@@ -95,6 +95,8 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		 * setting SO_INCOMING_CPU is just an optimization.
 		 */
 		(void)isc__nm_socket_incoming_cpu(csock->fd);
+
+		(void)isc__nm_socket_dontfrag(csock->fd, sa_family);
 
 		ievent = isc__nm_get_ievent(mgr, netievent_udplisten);
 		ievent->sock = csock;
