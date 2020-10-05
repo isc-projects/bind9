@@ -1625,10 +1625,66 @@ isc__nm_socket_freebind(const uv_handle_t *handle) {
 	}
 #else
 	UNUSED(handle);
-	UNUSED(fd);
 	result = ISC_R_NOTIMPLEMENTED;
 #endif
 	return (result);
+}
+
+isc_result_t
+isc__nm_socket_reuseport(uv_os_fd_t fd) {
+	/*
+	 * This is SO_REUSE**** hell:
+	 *
+	 * Generally, the SO_REUSEADDR socket option allows reuse of
+	 * local addresses.  On Windows, it also allows a socket to
+	 * forcibly bind to a port in use by another socket.
+	 *
+	 * On Linux, SO_REUSEPORT socket option allows sockets to be
+	 * bound to an identical socket address. For UDP sockets, the
+	 * use of this option can provide better distribution of
+	 * incoming datagrams to multiple processes (or threads) as
+	 * compared to the traditional technique of having multiple
+	 * processes compete to receive datagrams on the same socket.
+	 *
+	 * On FreeBSD 12+, the same thing is achieved with SO_REUSEPORT_LB.
+	 *
+	 */
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
+#if defined(SO_REUSEADDR)
+	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEADDR) == -1) {
+		return (ISC_R_FAILURE);
+	} else {
+		result = ISC_R_SUCCESS;
+	}
+#endif
+#if defined(SO_REUSEPORT_LB)
+	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT_LB) == -1) {
+		return (ISC_R_FAILURE);
+	} else {
+		result = ISC_R_SUCCESS;
+	}
+#elif defined(SO_REUSEPORT)
+	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT) == -1) {
+		return (ISC_R_FAILURE);
+	} else {
+		result = ISC_R_SUCCESS;
+	}
+#endif
+	return (result);
+}
+
+isc_result_t
+isc__nm_socket_incoming_cpu(uv_os_fd_t fd) {
+#ifdef SO_INCOMING_CPU
+	if (setsockopt_on(fd, SOL_SOCKET, SO_INCOMING_CPU) == -1) {
+		return (ISC_R_FAILURE);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+#else
+	UNUSED(fd);
+#endif
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 #ifdef NETMGR_TRACE
