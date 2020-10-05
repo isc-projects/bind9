@@ -1687,6 +1687,54 @@ isc__nm_socket_incoming_cpu(uv_os_fd_t fd) {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
+isc_result_t
+isc__nm_socket_dontfrag(uv_os_fd_t fd, sa_family_t sa_family) {
+	/*
+	 * Set the Don't Fragment flag on IP packets
+	 */
+	if (sa_family == AF_INET6) {
+#if defined(IPV6_DONTFRAG)
+		if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_DONTFRAG) == -1) {
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#elif defined(IPV6_MTU_DISCOVER)
+		if (setsockopt(fd, IPPROTO_IPV6, IPV6_MTU_DISCOVER,
+			       &(int){ IP_PMTUDISC_DO }, sizeof(int)) == -1)
+		{
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#else
+		UNUSED(fd);
+#endif
+	} else if (sa_family == AF_INET) {
+#if defined(IP_DONTFRAG)
+		if (setsockopt_on(fd, IPPROTO_IP, IP_DONTFRAG) == -1) {
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#elif defined(IP_MTU_DISCOVER)
+		if (setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER,
+			       &(int){ IP_PMTUDISC_DO }, sizeof(int)) == -1)
+		{
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#else
+		UNUSED(fd);
+#endif
+	} else {
+		return (ISC_R_FAMILYNOSUPPORT);
+	}
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr
