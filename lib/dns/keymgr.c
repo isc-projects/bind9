@@ -1864,8 +1864,9 @@ failure:
 
 static isc_result_t
 keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-	       const char *directory, isc_stdtime_t now, bool dspublish,
-	       dns_keytag_t id, unsigned int alg, bool check_id) {
+	       const char *directory, isc_stdtime_t now, isc_stdtime_t when,
+	       bool dspublish, dns_keytag_t id, unsigned int alg,
+	       bool check_id) {
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
 	isc_dir_t dir;
 	isc_result_t result;
@@ -1893,7 +1894,7 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 				/*
 				 * Only checkds for one key at a time.
 				 */
-				return (ISC_R_FAILURE);
+				return (DNS_R_TOOMANYKEYS);
 			}
 
 			ksk_key = dkey;
@@ -1901,13 +1902,13 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	}
 
 	if (ksk_key == NULL) {
-		return (ISC_R_NOTFOUND);
+		return (DNS_R_NOKEYMATCH);
 	}
 
 	if (dspublish) {
-		dst_key_settime(ksk_key->key, DST_TIME_DSPUBLISH, now);
+		dst_key_settime(ksk_key->key, DST_TIME_DSPUBLISH, when);
 	} else {
-		dst_key_settime(ksk_key->key, DST_TIME_DSDELETE, now);
+		dst_key_settime(ksk_key->key, DST_TIME_DSDELETE, when);
 	}
 
 	/* Store key state and update hints. */
@@ -1917,7 +1918,7 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	}
 	result = isc_dir_open(&dir, directory);
 	if (result != ISC_R_SUCCESS) {
-		return result;
+		return (result);
 	}
 
 	dns_dnssec_get_hints(ksk_key, now);
@@ -1929,17 +1930,19 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 
 isc_result_t
 dns_keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		   const char *directory, isc_stdtime_t now, bool dspublish) {
-	return (keymgr_checkds(kasp, keyring, directory, now, dspublish, 0, 0,
-			       false));
+		   const char *directory, isc_stdtime_t now, isc_stdtime_t when,
+		   bool dspublish) {
+	return (keymgr_checkds(kasp, keyring, directory, now, when, dspublish,
+			       0, 0, false));
 }
 
 isc_result_t
 dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		      const char *directory, isc_stdtime_t now, bool dspublish,
-		      dns_keytag_t id, unsigned int alg) {
-	return (keymgr_checkds(kasp, keyring, directory, now, dspublish, id,
-			       alg, true));
+		      const char *directory, isc_stdtime_t now,
+		      isc_stdtime_t when, bool dspublish, dns_keytag_t id,
+		      unsigned int alg) {
+	return (keymgr_checkds(kasp, keyring, directory, now, when, dspublish,
+			       id, alg, true));
 }
 
 static void
@@ -2142,4 +2145,85 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		keystate_status(dkey->key, &buf,
 				"key rrsig:      ", DST_KEY_KRRSIG);
 	}
+}
+
+isc_result_t
+dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
+		    const char *directory, isc_stdtime_t now,
+		    isc_stdtime_t when, dns_keytag_t id,
+		    unsigned int algorithm) {
+	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
+	isc_dir_t dir;
+	isc_result_t result;
+	dns_dnsseckey_t *key = NULL;
+	isc_stdtime_t active, retire, prepub;
+
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(keyring != NULL);
+
+	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
+	     dkey = ISC_LIST_NEXT(dkey, link))
+	{
+		if (dst_key_id(dkey->key) != id) {
+			continue;
+		}
+		if (algorithm > 0 && dst_key_alg(dkey->key) != algorithm) {
+			continue;
+		}
+		if (key != NULL) {
+			/*
+			 * Only rollover for one key at a time.
+			 */
+			return (DNS_R_TOOMANYKEYS);
+		}
+		key = dkey;
+	}
+
+	if (key == NULL) {
+		return (DNS_R_NOKEYMATCH);
+	}
+
+	result = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
+	if (result != ISC_R_SUCCESS || active > now) {
+		return (DNS_R_KEYNOTACTIVE);
+	}
+
+	result = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
+	if (result != ISC_R_SUCCESS) {
+		/**
+		 * Default to as if this key was not scheduled to
+		 * become retired, as if it had unlimited lifetime.
+		 */
+		retire = 0;
+	}
+
+	/**
+	 * Usually when is set to now, which is before the scheduled
+	 * prepublication time, meaning we reduce the lifetime of the
+	 * key. But in some cases, the lifetime can also be extended.
+	 * We accept it, but we can return an error here if that
+	 * turns out to be unintuitive behavior.
+	 */
+	prepub = dst_key_getttl(key->key) + dns_kasp_publishsafety(kasp) +
+		 dns_kasp_zonepropagationdelay(kasp);
+	retire = when + prepub;
+
+	dst_key_settime(key->key, DST_TIME_INACTIVE, retire);
+	dst_key_setnum(key->key, DST_NUM_LIFETIME, (retire - active));
+
+	/* Store key state and update hints. */
+	isc_dir_init(&dir);
+	if (directory == NULL) {
+		directory = ".";
+	}
+	result = isc_dir_open(&dir, directory);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	dns_dnssec_get_hints(key, now);
+	result = dst_key_tofile(key->key, options, directory);
+	isc_dir_close(&dir);
+
+	return (result);
 }

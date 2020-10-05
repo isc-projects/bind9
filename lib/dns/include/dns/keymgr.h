@@ -53,11 +53,13 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 
 isc_result_t
 dns_keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		   const char *directory, isc_stdtime_t now, bool dspublish);
+		   const char *directory, isc_stdtime_t now, isc_stdtime_t when,
+		   bool dspublish);
 isc_result_t
 dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		      const char *directory, isc_stdtime_t now, bool dspublish,
-		      dns_keytag_t id, unsigned int algorithm);
+		      const char *directory, isc_stdtime_t now,
+		      isc_stdtime_t when, bool dspublish, dns_keytag_t id,
+		      unsigned int algorithm);
 /*%<
  * Check DS for one key in 'keyring'. The key must have the KSK role.
  * If 'dspublish' is set to true, set the DS Publish time to 'now'.
@@ -72,8 +74,39 @@ dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
  *
  *	Returns:
  *\li		#ISC_R_SUCCESS (No error).
- *\li		#ISC_R_FAILURE (More than one matching KSK found).
- *\li		#ISC_R_NOTFOUND (No matching KSK found).
+ *\li		#DNS_R_NOKEYMATCH (No matching keys found).
+ *\li		#DNS_R_TOOMANYKEYS (More than one matching keys found).
+ *
+ */
+
+isc_result_t
+dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
+		    const char *directory, isc_stdtime_t now,
+		    isc_stdtime_t when, dns_keytag_t id,
+		    unsigned int algorithm);
+/*%<
+ * Rollover key with given 'id'. If the 'algorithm' is non-zero, it must
+ * match the key's algorithm. The changes are stored in the key state file.
+ *
+ * A rollover means adjusting the key metadata so that keymgr will start the
+ * actual rollover on the next run. Update the 'inactive' time and adjust
+ * key lifetime to match the 'when' to rollover time.
+ *
+ * The 'when' time may be in the past. In that case keymgr will roll the
+ * key as soon as possible.
+ *
+ * The 'when' time may be in the future. This may extend the lifetime,
+ * overriding the default lifetime from the policy.
+ *
+ *	Requires:
+ *\li		'kasp' is not NULL.
+ *\li		'keyring' is not NULL.
+ *
+ *	Returns:
+ *\li		#ISC_R_SUCCESS (No error).
+ *\li		#DNS_R_NOKEYMATCH (No matching keys found).
+ *\li		#DNS_R_TOOMANYKEYS (More than one matching keys found).
+ *\li		#DNS_R_KEYNOTACTIVE (Key is not active).
  *
  */
 
