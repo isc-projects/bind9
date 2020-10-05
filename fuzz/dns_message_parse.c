@@ -31,7 +31,7 @@ bool debug = false;
 static isc_mem_t *mctx = NULL;
 static uint8_t *output = NULL;
 static size_t output_len = 1024;
-static uint8_t *render_buf[64 * 1024];
+static uint8_t render_buf[64 * 1024 - 1];
 
 int
 LLVMFuzzerInitialize(int *argc __attribute__((unused)),
@@ -103,7 +103,7 @@ render_message(dns_message_t **messagep) {
 	isc_buffer_t buffer;
 	dns_compress_t cctx;
 
-	isc_buffer_constinit(&buffer, render_buf, sizeof(render_buf));
+	isc_buffer_init(&buffer, render_buf, sizeof(render_buf));
 
 	message->from_to_wire = DNS_MESSAGE_INTENTRENDER;
 	for (size_t i = 0; i < DNS_SECTION_MAX; i++) {
