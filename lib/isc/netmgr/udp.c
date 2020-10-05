@@ -137,6 +137,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_nmsocket_t *sock = ievent->sock;
 	int r, uv_bind_flags = 0;
 	int uv_init_flags = 0;
+	sa_family_t sa_family;
 
 	REQUIRE(sock->type == isc_nm_udpsocket);
 	REQUIRE(sock->iface != NULL);
@@ -158,14 +159,15 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
 	}
 
-	if (sock->iface->addr.type.sa.sa_family == AF_INET6) {
+	sa_family = sock->iface->addr.type.sa.sa_family;
+	if (sa_family == AF_INET6) {
 		uv_bind_flags |= UV_UDP_IPV6ONLY;
 	}
 
 	r = uv_udp_bind(&sock->uv_handle.udp,
 			&sock->parent->iface->addr.type.sa, uv_bind_flags);
 	if (r == UV_EADDRNOTAVAIL &&
-	    isc__nm_socket_freebind(&sock->uv_handle.handle) == ISC_R_SUCCESS)
+	    isc__nm_socket_freebind(sock->fd, sa_family) == ISC_R_SUCCESS)
 	{
 		/*
 		 * Retry binding with IP_FREEBIND (or equivalent option) if the
