@@ -319,7 +319,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	struct sockaddr_storage sname;
 	int r, flags = 0, snamelen = sizeof(sname);
 	sa_family_t sa_family;
-	uv_os_fd_t fd;
+	uv_os_sock_t fd;
 
 	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(sock->type == isc_nm_tcplistener);
@@ -344,7 +344,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa,
 			flags);
 	if (r == UV_EADDRNOTAVAIL &&
-	    uv_fileno(&sock->uv_handle.handle, &fd) == 0 &&
+	    uv_fileno(&sock->uv_handle.handle, (uv_os_fd_t *)&fd) == 0 &&
 	    isc__nm_socket_freebind(fd, sa_family) == ISC_R_SUCCESS)
 	{
 		/*

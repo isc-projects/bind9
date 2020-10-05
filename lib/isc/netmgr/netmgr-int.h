@@ -834,25 +834,25 @@ isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid);
  */
 
 isc_result_t
-isc__nm_socket_freebind(uv_os_fd_t fd, sa_family_t sa_family);
+isc__nm_socket_freebind(uv_os_sock_t fd, sa_family_t sa_family);
 /*%<
  * Set the IP_FREEBIND (or equivalent) socket option on the uv_handle
  */
 
 isc_result_t
-isc__nm_socket_reuseport(uv_os_fd_t fd);
+isc__nm_socket_reuseport(uv_os_sock_t fd);
 /*%<
  * Set the SO_REUSEPORT (or equivalent) socket option on the fd
  */
 
 isc_result_t
-isc__nm_socket_incoming_cpu(uv_os_fd_t fd);
+isc__nm_socket_incoming_cpu(uv_os_sock_t fd);
 /*%<
  * Set the SO_INCOMING_CPU socket option on the fd if available
  */
 
 isc_result_t
-isc__nm_socket_dontfrag(uv_os_fd_t fd, sa_family_t sa_family);
+isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family);
 /*%<
  * Set the SO_IP_DONTFRAG (or equivalent) socket option of the fd if available
  */
