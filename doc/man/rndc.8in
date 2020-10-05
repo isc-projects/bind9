@@ -161,12 +161,28 @@ recreated. To remove it permanently, it must also be removed from
 .sp
 See also \fBrndc addzone\fP and \fBrndc modzone\fP\&.
 .TP
-\fBdnssec\fP ( \fB\-status\fP | \fB\-checkds\fP [\fB\-key\fP \fIid\fP [\fB\-alg\fP \fIalgorithm\fP]] [\fB\-when\fP \fItime\fP] ( \fIpublished\fP | \fIwithdrawn\fP )) \fIzone\fP [\fIclass\fP [\fIview\fP]]
+\fBdnssec\fP ( \fB\-status\fP |
+.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
+.INDENT 3.5
+\fB\-rollover\fP \fB\-key\fP id [\fB\-alg\fP \fIalgorithm\fP] [\fB\-when\fP \fItime\fP] |
+\fB\-checkds\fP [\fB\-key\fP \fIid\fP [\fB\-alg\fP \fIalgorithm\fP]] [\fB\-when\fP \fItime\fP] ( \fIpublished\fP | \fIwithdrawn\fP )
+.UNINDENT
+.UNINDENT
+.sp
+) \fIzone\fP [\fIclass\fP [\fIview\fP]]
+.UNINDENT
+.UNINDENT
+.sp
 This command allows you to interact with the "dnssec\-policy" of a given
 zone.
 .sp
 \fBrndc dnssec \-status\fP show the DNSSEC signing state for the specified
 zone.
+.sp
+\fBrndc dnssec \-rollover\fP allows you to schedule key rollover for a
+specific key (overriding the original key lifetime).
 .sp
 \fBrndc dnssec \-checkds\fP will let \fBnamed\fP know that the DS for the given
 key has been seen published into or withdrawn from the parent.  This is

@@ -161,12 +161,18 @@ Currently supported commands are:
 
    See also ``rndc addzone`` and ``rndc modzone``.
 
-``dnssec`` ( **-status** | **-checkds** [**-key** *id* [**-alg** *algorithm*]] [**-when** *time*] ( *published* | *withdrawn* )) *zone* [*class* [*view*]]
+``dnssec`` ( **-status** |
+             **-rollover** **-key** id [**-alg** *algorithm*] [**-when** *time*] |
+             **-checkds** [**-key** *id* [**-alg** *algorithm*]] [**-when** *time*] ( *published* | *withdrawn* )
+           ) *zone* [*class* [*view*]]
    This command allows you to interact with the "dnssec-policy" of a given
    zone.
 
    ``rndc dnssec -status`` show the DNSSEC signing state for the specified
    zone.
+
+   ``rndc dnssec -rollover`` allows you to schedule key rollover for a
+   specific key (overriding the original key lifetime).
 
    ``rndc dnssec -checkds`` will let ``named`` know that the DS for the given
    key has been seen published into or withdrawn from the parent.  This is

@@ -16,6 +16,7 @@ rm -f ./K*.private ./K*.key ./K*.state ./K*.cmp
 rm -rf ./keys/
 rm -f dig.out* rrsig.out.* keyevent.out.*
 rm -f ns*/named.conf ns*/named.memstats ns*/named.run*
+rm -f ns*/policies/*.conf
 rm -f ns*/*.jnl ns*/*.jbk
 rm -f ns*/K*.private ns*/K*.key ns*/K*.state
 rm -f ns*/dsset-* ns*/*.db ns*/*.db.signed
