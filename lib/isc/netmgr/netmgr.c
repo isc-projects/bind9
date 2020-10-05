@@ -1584,7 +1584,7 @@ isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
 	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
 
 isc_result_t
-isc__nm_socket_freebind(uv_os_fd_t fd, sa_family_t sa_family) {
+isc__nm_socket_freebind(uv_os_sock_t fd, sa_family_t sa_family) {
 	/*
 	 * Set the IP_FREEBIND (or equivalent option) on the uv_handle.
 	 */
@@ -1625,7 +1625,7 @@ isc__nm_socket_freebind(uv_os_fd_t fd, sa_family_t sa_family) {
 }
 
 isc_result_t
-isc__nm_socket_reuseport(uv_os_fd_t fd) {
+isc__nm_socket_reuseport(uv_os_sock_t fd) {
 	/*
 	 * This is SO_REUSE**** hell:
 	 *
@@ -1668,7 +1668,7 @@ isc__nm_socket_reuseport(uv_os_fd_t fd) {
 }
 
 isc_result_t
-isc__nm_socket_incoming_cpu(uv_os_fd_t fd) {
+isc__nm_socket_incoming_cpu(uv_os_sock_t fd) {
 #ifdef SO_INCOMING_CPU
 	if (setsockopt_on(fd, SOL_SOCKET, SO_INCOMING_CPU) == -1) {
 		return (ISC_R_FAILURE);
@@ -1682,7 +1682,7 @@ isc__nm_socket_incoming_cpu(uv_os_fd_t fd) {
 }
 
 isc_result_t
-isc__nm_socket_dontfrag(uv_os_fd_t fd, sa_family_t sa_family) {
+isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family) {
 	/*
 	 * Set the Don't Fragment flag on IP packets
 	 */
