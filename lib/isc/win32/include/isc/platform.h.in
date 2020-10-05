@@ -66,6 +66,8 @@ typedef uint32_t socklen_t;
 
 #undef MSG_TRUNC
 
+typedef uint16_t sa_family_t;
+
 /*
  * Define if the platform has <sys/un.h>.
  */

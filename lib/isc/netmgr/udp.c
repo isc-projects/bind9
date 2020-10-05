@@ -65,8 +65,8 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	nsock->extrahandlesize = extrahandlesize;
 
 	for (size_t i = 0; i < mgr->nworkers; i++) {
+		isc_result_t result;
 		uint16_t family = iface->addr.type.sa.sa_family;
-		int res = 0;
 
 		isc__netievent_udplisten_t *ievent = NULL;
 		isc_nmsocket_t *csock = &nsock->children[i];
@@ -82,46 +82,20 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		csock->fd = socket(family, SOCK_DGRAM, 0);
 		RUNTIME_CHECK(csock->fd >= 0);
 
-		/*
-		 * This is SO_REUSE**** hell:
-		 *
-		 * Generally, the SO_REUSEADDR socket option allows reuse of
-		 * local addresses.  On Windows, it also allows a socket to
-		 * forcibly bind to a port in use by another socket.
-		 *
-		 * On Linux, SO_REUSEPORT socket option allows sockets to be
-		 * bound to an identical socket address. For UDP sockets, the
-		 * use of this option can provide better distribution of
-		 * incoming datagrams to multiple processes (or threads) as
-		 * compared to the traditional technique of having multiple
-		 * processes compete to receive datagrams on the same socket.
-		 *
-		 * On FreeBSD, the same thing is achieved with SO_REUSEPORT_LB.
-		 *
-		 */
-#if defined(SO_REUSEADDR)
-		res = setsockopt(csock->fd, SOL_SOCKET, SO_REUSEADDR,
-				 &(int){ 1 }, sizeof(int));
-		RUNTIME_CHECK(res == 0);
-#endif
-#if defined(SO_REUSEPORT_LB)
-		res = setsockopt(csock->fd, SOL_SOCKET, SO_REUSEPORT_LB,
-				 &(int){ 1 }, sizeof(int));
-		RUNTIME_CHECK(res == 0);
-#elif defined(SO_REUSEPORT)
-		res = setsockopt(csock->fd, SOL_SOCKET, SO_REUSEPORT,
-				 &(int){ 1 }, sizeof(int));
-		RUNTIME_CHECK(res == 0);
-#endif
+		result = isc__nm_socket_reuse(csock->fd);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS ||
+			      result == ISC_R_NOTIMPLEMENTED);
 
-#ifdef SO_INCOMING_CPU
+		result = isc__nm_socket_reuse_lb(csock->fd);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS ||
+			      result == ISC_R_NOTIMPLEMENTED);
+
 		/* We don't check for the result, because SO_INCOMING_CPU can be
 		 * available without the setter on Linux kernel version 4.4, and
 		 * setting SO_INCOMING_CPU is just an optimization.
 		 */
-		(void)setsockopt(csock->fd, SOL_SOCKET, SO_INCOMING_CPU,
-				 &(int){ 1 }, sizeof(int));
-#endif
+		(void)isc__nm_socket_incoming_cpu(csock->fd);
+
 		ievent = isc__nm_get_ievent(mgr, netievent_udplisten);
 		ievent->sock = csock;
 		isc__nm_enqueue_ievent(&mgr->workers[i],
@@ -167,6 +141,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_nmsocket_t *sock = ievent->sock;
 	int r, uv_bind_flags = 0;
 	int uv_init_flags = 0;
+	sa_family_t sa_family;
 
 	REQUIRE(sock->type == isc_nm_udpsocket);
 	REQUIRE(sock->iface != NULL);
@@ -188,14 +163,15 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
 	}
 
-	if (sock->iface->addr.type.sa.sa_family == AF_INET6) {
+	sa_family = sock->iface->addr.type.sa.sa_family;
+	if (sa_family == AF_INET6) {
 		uv_bind_flags |= UV_UDP_IPV6ONLY;
 	}
 
 	r = uv_udp_bind(&sock->uv_handle.udp,
 			&sock->parent->iface->addr.type.sa, uv_bind_flags);
 	if (r == UV_EADDRNOTAVAIL &&
-	    isc__nm_socket_freebind(&sock->uv_handle.handle) == ISC_R_SUCCESS)
+	    isc__nm_socket_freebind(sock->fd, sa_family) == ISC_R_SUCCESS)
 	{
 		/*
 		 * Retry binding with IP_FREEBIND (or equivalent option) if the
