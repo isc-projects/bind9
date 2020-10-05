@@ -318,6 +318,8 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_nmsocket_t *sock = ievent->sock;
 	struct sockaddr_storage sname;
 	int r, flags = 0, snamelen = sizeof(sname);
+	sa_family_t sa_family;
+	uv_os_fd_t fd;
 
 	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(sock->type == isc_nm_tcplistener);
@@ -334,14 +336,16 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPEN]);
 
-	if (sock->iface->addr.type.sa.sa_family == AF_INET6) {
+	sa_family = sock->iface->addr.type.sa.sa_family;
+	if (sa_family == AF_INET6) {
 		flags = UV_TCP_IPV6ONLY;
 	}
 
 	r = uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa,
 			flags);
 	if (r == UV_EADDRNOTAVAIL &&
-	    isc__nm_socket_freebind(&sock->uv_handle.handle) == ISC_R_SUCCESS)
+	    uv_fileno(&sock->uv_handle.handle, &fd) == 0 &&
+	    isc__nm_socket_freebind(fd, sa_family) == ISC_R_SUCCESS)
 	{
 		/*
 		 * Retry binding with IP_FREEBIND (or equivalent option) if the
