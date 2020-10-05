@@ -1584,51 +1584,169 @@ isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
 	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
 
 isc_result_t
-isc__nm_socket_freebind(const uv_handle_t *handle) {
+isc__nm_socket_freebind(uv_os_sock_t fd, sa_family_t sa_family) {
 	/*
 	 * Set the IP_FREEBIND (or equivalent option) on the uv_handle.
 	 */
-	isc_result_t result = ISC_R_SUCCESS;
-	uv_os_fd_t fd;
-	if (uv_fileno(handle, &fd) != 0) {
-		return (ISC_R_FAILURE);
-	}
 #ifdef IP_FREEBIND
+	UNUSED(sa_family);
 	if (setsockopt_on(fd, IPPROTO_IP, IP_FREEBIND) == -1) {
 		return (ISC_R_FAILURE);
 	}
+	return (ISC_R_SUCCESS);
 #elif defined(IP_BINDANY) || defined(IPV6_BINDANY)
-	struct sockaddr_in sockfd;
-
-	if (getsockname(fd, (struct sockaddr *)&sockfd,
-			&(socklen_t){ sizeof(sockfd) }) == -1)
-	{
-		return (ISC_R_FAILURE);
-	}
+	if (sa_family == AF_INET) {
 #if defined(IP_BINDANY)
-	if (sockfd.sin_family == AF_INET) {
 		if (setsockopt_on(fd, IPPROTO_IP, IP_BINDANY) == -1) {
 			return (ISC_R_FAILURE);
 		}
-	}
+		return (ISC_R_SUCCESS);
 #endif
+	} else if (sa_family == AF_INET6) {
 #if defined(IPV6_BINDANY)
-	if (sockfd.sin_family == AF_INET6) {
 		if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_BINDANY) == -1) {
 			return (ISC_R_FAILURE);
 		}
-	}
+		return (ISC_R_SUCCESS);
 #endif
+	}
+	return (ISC_R_NOTIMPLEMENTED);
 #elif defined(SO_BINDANY)
+	UNUSED(sa_family);
 	if (setsockopt_on(fd, SOL_SOCKET, SO_BINDANY) == -1) {
 		return (ISC_R_FAILURE);
 	}
+	return (ISC_R_SUCCESS);
 #else
-	UNUSED(handle);
 	UNUSED(fd);
-	result = ISC_R_NOTIMPLEMENTED;
+	UNUSED(sa_family);
+	return (ISC_R_NOTIMPLEMENTED);
 #endif
-	return (result);
+}
+
+isc_result_t
+isc__nm_socket_reuse(uv_os_sock_t fd) {
+	/*
+	 * Generally, the SO_REUSEADDR socket option allows reuse of
+	 * local addresses.
+	 *
+	 * On the BSDs, SO_REUSEPORT implies SO_REUSEADDR but with some
+	 * additional refinements for programs that use multicast.
+	 *
+	 * On Linux, SO_REUSEPORT has different semantics: it _shares_ the port
+	 * rather than steal it from the current listener, so we don't use it
+	 * here, but rather in isc__nm_socket_reuse_lb().
+	 *
+	 * On Windows, it also allows a socket to forcibly bind to a port in use
+	 * by another socket.
+	 */
+
+#if defined(SO_REUSEPORT) && !defined(__linux__)
+	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT) == -1) {
+		return (ISC_R_FAILURE);
+	}
+	return (ISC_R_SUCCESS);
+#elif defined(SO_REUSEADDR)
+	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEADDR) == -1) {
+		return (ISC_R_FAILURE);
+	}
+	return (ISC_R_SUCCESS);
+#else
+	UNUSED(fd);
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
+}
+
+isc_result_t
+isc__nm_socket_reuse_lb(uv_os_sock_t fd) {
+	/*
+	 * On FreeBSD 12+, SO_REUSEPORT_LB socket option allows sockets to be
+	 * bound to an identical socket address. For UDP sockets, the use of
+	 * this option can provide better distribution of incoming datagrams to
+	 * multiple processes (or threads) as compared to the traditional
+	 * technique of having multiple processes compete to receive datagrams
+	 * on the same socket.
+	 *
+	 * On Linux, the same thing is achieved simply with SO_REUSEPORT.
+	 */
+#if defined(SO_REUSEPORT_LB)
+	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT_LB) == -1) {
+		return (ISC_R_FAILURE);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+#elif defined(SO_REUSEPORT) && defined(__linux__)
+	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT) == -1) {
+		return (ISC_R_FAILURE);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+#else
+	UNUSED(fd);
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
+}
+
+isc_result_t
+isc__nm_socket_incoming_cpu(uv_os_sock_t fd) {
+#ifdef SO_INCOMING_CPU
+	if (setsockopt_on(fd, SOL_SOCKET, SO_INCOMING_CPU) == -1) {
+		return (ISC_R_FAILURE);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+#else
+	UNUSED(fd);
+#endif
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family) {
+	/*
+	 * Set the Don't Fragment flag on IP packets
+	 */
+	if (sa_family == AF_INET6) {
+#if defined(IPV6_DONTFRAG)
+		if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_DONTFRAG) == -1) {
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#elif defined(IPV6_MTU_DISCOVER)
+		if (setsockopt(fd, IPPROTO_IPV6, IPV6_MTU_DISCOVER,
+			       &(int){ IP_PMTUDISC_DO }, sizeof(int)) == -1)
+		{
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#else
+		UNUSED(fd);
+#endif
+	} else if (sa_family == AF_INET) {
+#if defined(IP_DONTFRAG)
+		if (setsockopt_on(fd, IPPROTO_IP, IP_DONTFRAG) == -1) {
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#elif defined(IP_MTU_DISCOVER)
+		if (setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER,
+			       &(int){ IP_PMTUDISC_DO }, sizeof(int)) == -1)
+		{
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#else
+		UNUSED(fd);
+#endif
+	} else {
+		return (ISC_R_FAMILYNOSUPPORT);
+	}
+
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 #ifdef NETMGR_TRACE
