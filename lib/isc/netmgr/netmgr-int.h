@@ -838,3 +838,15 @@ isc__nm_socket_freebind(const uv_handle_t *handle);
 /*%<
  * Set the IP_FREEBIND (or equivalent) socket option on the uv_handle
  */
+
+isc_result_t
+isc__nm_socket_reuseport(uv_os_fd_t fd);
+/*%<
+ * Set the SO_REUSEPORT (or equivalent) socket option on the fd
+ */
+
+isc_result_t
+isc__nm_socket_incoming_cpu(uv_os_fd_t fd);
+/*%<
+ * Set the SO_INCOMING_CPU socket option on the fd if available
+ */
