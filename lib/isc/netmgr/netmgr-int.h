@@ -840,9 +840,15 @@ isc__nm_socket_freebind(uv_os_sock_t fd, sa_family_t sa_family);
  */
 
 isc_result_t
-isc__nm_socket_reuseport(uv_os_sock_t fd);
+isc__nm_socket_reuse(uv_os_sock_t fd);
 /*%<
- * Set the SO_REUSEPORT (or equivalent) socket option on the fd
+ * Set the SO_REUSEADDR or SO_REUSEPORT (or equivalent) socket option on the fd
+ */
+
+isc_result_t
+isc__nm_socket_reuse_lb(uv_os_sock_t fd);
+/*%<
+ * Set the SO_REUSEPORT_LB (or equivalent) socket option on the fd
  */
 
 isc_result_t

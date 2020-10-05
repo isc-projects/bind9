@@ -1625,46 +1625,66 @@ isc__nm_socket_freebind(uv_os_sock_t fd, sa_family_t sa_family) {
 }
 
 isc_result_t
-isc__nm_socket_reuseport(uv_os_sock_t fd) {
+isc__nm_socket_reuse(uv_os_sock_t fd) {
 	/*
-	 * This is SO_REUSE**** hell:
-	 *
 	 * Generally, the SO_REUSEADDR socket option allows reuse of
-	 * local addresses.  On Windows, it also allows a socket to
-	 * forcibly bind to a port in use by another socket.
+	 * local addresses.
 	 *
-	 * On Linux, SO_REUSEPORT socket option allows sockets to be
-	 * bound to an identical socket address. For UDP sockets, the
-	 * use of this option can provide better distribution of
-	 * incoming datagrams to multiple processes (or threads) as
-	 * compared to the traditional technique of having multiple
-	 * processes compete to receive datagrams on the same socket.
+	 * On the BSDs, SO_REUSEPORT implies SO_REUSEADDR but with some
+	 * additional refinements for programs that use multicast.
 	 *
-	 * On FreeBSD 12+, the same thing is achieved with SO_REUSEPORT_LB.
+	 * On Linux, SO_REUSEPORT has different semantics: it _shares_ the port
+	 * rather than steal it from the current listener, so we don't use it
+	 * here, but rather in isc__nm_socket_reuse_lb().
 	 *
+	 * On Windows, it also allows a socket to forcibly bind to a port in use
+	 * by another socket.
 	 */
-	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-#if defined(SO_REUSEADDR)
+
+#if defined(SO_REUSEPORT) && !defined(__linux__)
+	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT) == -1) {
+		return (ISC_R_FAILURE);
+	}
+	return (ISC_R_SUCCESS);
+#elif defined(SO_REUSEADDR)
 	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEADDR) == -1) {
 		return (ISC_R_FAILURE);
-	} else {
-		result = ISC_R_SUCCESS;
 	}
+	return (ISC_R_SUCCESS);
+#else
+	UNUSED(fd);
+	return (ISC_R_NOTIMPLEMENTED);
 #endif
+}
+
+isc_result_t
+isc__nm_socket_reuse_lb(uv_os_sock_t fd) {
+	/*
+	 * On FreeBSD 12+, SO_REUSEPORT_LB socket option allows sockets to be
+	 * bound to an identical socket address. For UDP sockets, the use of
+	 * this option can provide better distribution of incoming datagrams to
+	 * multiple processes (or threads) as compared to the traditional
+	 * technique of having multiple processes compete to receive datagrams
+	 * on the same socket.
+	 *
+	 * On Linux, the same thing is achieved simply with SO_REUSEPORT.
+	 */
 #if defined(SO_REUSEPORT_LB)
 	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT_LB) == -1) {
 		return (ISC_R_FAILURE);
 	} else {
-		result = ISC_R_SUCCESS;
+		return (ISC_R_SUCCESS);
 	}
-#elif defined(SO_REUSEPORT)
+#elif defined(SO_REUSEPORT) && defined(__linux__)
 	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT) == -1) {
 		return (ISC_R_FAILURE);
 	} else {
-		result = ISC_R_SUCCESS;
+		return (ISC_R_SUCCESS);
 	}
+#else
+	UNUSED(fd);
+	return (ISC_R_NOTIMPLEMENTED);
 #endif
-	return (result);
 }
 
 isc_result_t
