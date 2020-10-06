@@ -162,10 +162,7 @@ Currently supported commands are:
 
    See also ``rndc addzone`` and ``rndc modzone``.
 
-``dnssec`` ( **-status** |
-             **-rollover** **-key** id [**-alg** *algorithm*] [**-when** *time*] |
-             **-checkds** [**-key** *id* [**-alg** *algorithm*]] [**-when** *time*] ( *published* | *withdrawn* )
-           ) *zone* [*class* [*view*]]
+``dnssec`` ( **-status** | **-rollover** **-key** id [**-alg** *algorithm*] [**-when** *time*] | **-checkds** [**-key** *id* [**-alg** *algorithm*]] [**-when** *time*] ( *published* | *withdrawn* )) *zone* [*class* [*view*]]
    This command allows you to interact with the "dnssec-policy" of a given
    zone.
 

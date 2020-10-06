@@ -162,20 +162,7 @@ back. To remove it permanently, it must also be removed from
 .sp
 See also \fBrndc addzone\fP and \fBrndc modzone\fP\&.
 .TP
-\fBdnssec\fP ( \fB\-status\fP |
-.INDENT 7.0
-.INDENT 3.5
-.INDENT 0.0
-.INDENT 3.5
-\fB\-rollover\fP \fB\-key\fP id [\fB\-alg\fP \fIalgorithm\fP] [\fB\-when\fP \fItime\fP] |
-\fB\-checkds\fP [\fB\-key\fP \fIid\fP [\fB\-alg\fP \fIalgorithm\fP]] [\fB\-when\fP \fItime\fP] ( \fIpublished\fP | \fIwithdrawn\fP )
-.UNINDENT
-.UNINDENT
-.sp
-) \fIzone\fP [\fIclass\fP [\fIview\fP]]
-.UNINDENT
-.UNINDENT
-.sp
+\fBdnssec\fP ( \fB\-status\fP | \fB\-rollover\fP \fB\-key\fP id [\fB\-alg\fP \fIalgorithm\fP] [\fB\-when\fP \fItime\fP] | \fB\-checkds\fP [\fB\-key\fP \fIid\fP [\fB\-alg\fP \fIalgorithm\fP]] [\fB\-when\fP \fItime\fP] ( \fIpublished\fP | \fIwithdrawn\fP )) \fIzone\fP [\fIclass\fP [\fIview\fP]]
 This command allows you to interact with the "dnssec\-policy" of a given
 zone.
 .sp
