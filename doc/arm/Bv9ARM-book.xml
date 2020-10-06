@@ -6211,7 +6211,7 @@ options {
 		  This sets the maximum size of UDP responses that are
 		  sent to queries without a valid server COOKIE. A value
 		  below 128 is silently raised to 128. The default
-		  value is 4096, but the <command>max-udp-size</command>
+		  value is 1232, but the <command>max-udp-size</command>
 		  option may further limit the response size.
 		</para>
 	      </listitem>
@@ -9136,7 +9136,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  authoritative servers in response to recursive queries.
 		  Valid values are 512 to 4096; values outside this range
 		  are silently adjusted to the nearest value within
-		  it.  The default value is 4096.
+		  it.  The default value is 1232.
 		</para>
 		<para>
 		  The usual reason for setting
@@ -9188,7 +9188,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  <command>named</command> sends, in bytes.
 		  Valid values are 512 to 4096; values outside this
 		  range are silently adjusted to the nearest
-		  value within it.  The default value is 4096.
+		  value within it.  The default value is 1232.
 		</para>
 		<para>
 		  This value applies to responses sent by a server; to
