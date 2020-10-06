@@ -136,7 +136,7 @@ status=`expr $status + $ret`
 
 echo_i "checking warning about permissions change on key with dnssec-settime ($n)"
 uname=`uname -o 2> /dev/null`
-if [ Cygwin == "$uname"  ]; then
+if [ Cygwin = "$uname"  ]; then
 	echo_i "Cygwin detected, skipping"
 else
 	ret=0
