@@ -13417,9 +13417,7 @@ cleanup:
 	if (qrdataset != NULL) {
 		dns_message_puttemprdataset(message, &qrdataset);
 	}
-	if (message != NULL) {
-		dns_message_detach(&message);
-	}
+	dns_message_detach(&message);
 	return (result);
 }
 
