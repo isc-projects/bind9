@@ -291,14 +291,17 @@ if [ -n "$core_dumps" ]; then
         echoinfo "D:$systest:core dump $coredump archived as $coredump.gz"
         gzip -1 "${coredump}"
     done
+    status=$((status+1))
 elif [ "$assertion_failures" -ne 0 ]; then
     SYSTESTDIR="$systest"
     echoinfo "I:$systest:$assertion_failures assertion failure(s) found"
     find "$systest/" -name 'tsan.*' -print0 | xargs -0 grep "SUMMARY: " | sort -u | cat_d
     echofail "R:$systest:FAIL"
+    status=$((status+1))
 elif [ "$sanitizer_summaries" -ne 0 ]; then
     echoinfo "I:$systest:$sanitizer_summaries sanitizer report(s) found"
     echofail "R:$systest:FAIL"
+    status=$((status+1))
 elif [ "$status" -ne 0 ]; then
     echofail "R:$systest:FAIL"
 else
