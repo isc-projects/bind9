@@ -92,7 +92,7 @@ print_message(dns_message_t *message) {
 	{                                 \
 		r = (f);                  \
 		if (r != ISC_R_SUCCESS) { \
-			return (r);       \
+			goto cleanup;     \
 		}                         \
 	}
 
@@ -110,7 +110,10 @@ render_message(dns_message_t **messagep) {
 		message->counts[i] = 0;
 	}
 
-	CHECKRESULT(result, dns_compress_init(&cctx, -1, mctx));
+	result = dns_compress_init(&cctx, -1, mctx);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 	CHECKRESULT(result, dns_message_renderbegin(message, &cctx, &buffer));
 
 	CHECKRESULT(result, dns_message_rendersection(message,
@@ -134,6 +137,10 @@ render_message(dns_message_t **messagep) {
 
 	result = parse_message(&buffer, messagep);
 
+	return (result);
+
+cleanup:
+	dns_compress_invalidate(&cctx);
 	return (result);
 }
 
