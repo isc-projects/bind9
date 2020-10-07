@@ -95,6 +95,7 @@ struct controllistener {
 	isc_nmsocket_t *sock;
 	dns_acl_t *acl;
 	bool exiting;
+	isc_refcount_t refs;
 	controlkeylist_t keys;
 	isc_mutex_t connections_lock;
 	controlconnectionlist_t connections;
@@ -146,6 +147,8 @@ free_listener(controllistener_t *listener) {
 	INSIST(listener->exiting);
 	INSIST(ISC_LIST_EMPTY(listener->connections));
 
+	isc_refcount_destroy(&listener->refs);
+
 	if (listener->sock != NULL) {
 		isc_nmsocket_close(&listener->sock);
 	}
@@ -162,12 +165,8 @@ free_listener(controllistener_t *listener) {
 
 static void
 maybe_free_listener(controllistener_t *listener) {
-	LOCK(&listener->connections_lock);
-	if (listener->exiting && ISC_LIST_EMPTY(listener->connections)) {
-		UNLOCK(&listener->connections_lock);
+	if (isc_refcount_decrement(&listener->refs) == 1) {
 		free_listener(listener);
-	} else {
-		UNLOCK(&listener->connections_lock);
 	}
 }
 
@@ -249,11 +248,8 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	result = isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage,
 					 conn);
 	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&conn->readhandle);
 		conn->reading = false;
-
-		maybe_free_listener(listener);
-
+		isc_nmhandle_detach(&conn->readhandle);
 		return;
 	}
 
@@ -597,7 +593,6 @@ conn_put(void *arg) {
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
 		      "freeing control connection");
-
 	maybe_free_listener(listener);
 }
 
@@ -613,6 +608,7 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
 			      "allocate new control connection");
 		isc_nmhandle_setdata(handle, conn, conn_reset, conn_put);
+		isc_refcount_increment(&listener->refs);
 	}
 
 	*conn = (controlconnection_t){ .listener = listener,
@@ -624,7 +620,9 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 	/* Set a 32 KiB upper limit on incoming message. */
 	isccc_ccmsg_setmaxsize(&conn->ccmsg, 32768);
 
-	ISC_LINK_INIT(conn, link);
+	LOCK(&listener->connections_lock);
+	ISC_LIST_INITANDAPPEND(listener->connections, conn, link);
+	UNLOCK(&listener->connections_lock);
 
 	isc_nmhandle_attach(handle, &conn->readhandle);
 	conn->reading = true;
@@ -637,19 +635,12 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 		goto cleanup;
 	}
 
-	LOCK(&listener->connections_lock);
-	ISC_LIST_APPEND(listener->connections, conn, link);
-	UNLOCK(&listener->connections_lock);
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (conn->buffer != NULL) {
-		isc_buffer_free(&conn->buffer);
-	}
-
-	isccc_ccmsg_invalidate(&conn->ccmsg);
-
-	isc_mem_put(listener->mctx, conn, sizeof(*conn));
+	/*
+	 * conn_reset() handles the cleanup.
+	 */
 #ifdef ENABLE_AFL
 	if (named_g_fuzz_type == isc_fuzz_rndc) {
 		named_fuzz_notify();
@@ -1143,6 +1134,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	ISC_LINK_INIT(listener, link);
 	ISC_LIST_INIT(listener->keys);
 	ISC_LIST_INIT(listener->connections);
+	isc_refcount_init(&listener->refs, 1);
 
 	/*
 	 * Make the ACL.
@@ -1228,6 +1220,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 
 cleanup:
 	if (listener != NULL) {
+		isc_refcount_decrement(&listener->refs);
 		listener->exiting = true;
 		free_listener(listener);
 	}
