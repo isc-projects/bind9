@@ -1,3 +1,6 @@
+5529.	[func]		The network manager API is now used by named
+			to send zone transfer requests. [GL #2016]
+
 5528.	[func]		Convert "dig", "host" and "nslookup" to use the
 			network manager. As a side effect of this change,
 			"dig +unexpected" no longer works, and has been

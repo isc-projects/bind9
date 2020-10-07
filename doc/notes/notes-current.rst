@@ -34,7 +34,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The network manager API is now used by ``named`` to send zone transfer
+  requests. [GL #2016]
 
 - The ``dig``, ``host``, and ``nslookup`` tools have been converted to
   use the new network manager API rather than the older ISC socket API.
