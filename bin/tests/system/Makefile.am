@@ -110,7 +110,6 @@ TESTS +=			\
 	include-multiplecfg	\
 	inline			\
 	integrity		\
-	kasp			\
 	keepalive		\
 	legacy			\
 	limits			\
@@ -198,7 +197,7 @@ endif HAVE_PERLMOD_NET_DNS_NAMESERVER
 endif HAVE_PERLMOD_NET_DNS
 
 if HAVE_PYTHON
-TESTS += tcp pipelined
+TESTS += kasp tcp pipelined
 
 if HAVE_PYMOD_DNS
 TESTS += qmin

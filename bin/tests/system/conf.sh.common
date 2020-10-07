@@ -87,7 +87,6 @@ include-multiplecfg
 inline
 integrity
 ixfr
-kasp
 keepalive
 legacy
 limits
