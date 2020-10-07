@@ -638,6 +638,7 @@
 ./bin/tests/system/kasp/ns5/setup.sh		SH	2019,2020
 ./bin/tests/system/kasp/ns6/setup.sh		SH	2020
 ./bin/tests/system/kasp/ns7/setup.sh		SH	2020
+./bin/tests/system/kasp/prereq.sh		SH	2020
 ./bin/tests/system/kasp/setup.sh		SH	2019,2020
 ./bin/tests/system/kasp/tests.sh		SH	2019,2020
 ./bin/tests/system/keepalive/clean.sh		SH	2017,2018,2019,2020
