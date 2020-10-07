@@ -47,6 +47,7 @@ usage() {
 	fprintf(stderr, "\t--have-geoip\n");
 	fprintf(stderr, "\t--have-libxml2\n");
 	fprintf(stderr, "\t--ipv6only=no\n");
+	fprintf(stderr, "\t--rpz-log-qtype-qclass\n");
 	fprintf(stderr, "\t--rpz-nsdname\n");
 	fprintf(stderr, "\t--rpz-nsip\n");
 	fprintf(stderr, "\t--tsan\n");
@@ -172,6 +173,14 @@ main(int argc, char **argv) {
 			close(s);
 		}
 		return ((n == 0 && v6only == 0) ? 0 : 1);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--rpz-log-qtype-qclass") == 0) {
+#ifdef RPZ_LOG_QTYPE_QCLASS
+		return (0);
 #else
 		return (1);
 #endif
