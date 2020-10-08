@@ -8815,6 +8815,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		FCTXTRACE("nextitem");
 		inc_stats(fctx->res, dns_resstatscounter_nextitem);
 		INSIST(query->dispentry != NULL);
+		dns_message_reset(query->rmessage, DNS_MESSAGE_INTENTPARSE);
 		result = dns_dispatch_getnext(query->dispentry, &devent);
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result, __LINE__);
