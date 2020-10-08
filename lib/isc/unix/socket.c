@@ -2018,7 +2018,6 @@ set_sndbuf(void) {
 	socklen_t len;
 
 	fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-#if defined(ISC_PLATFORM_HAVEIPV6)
 	if (fd == -1) {
 		switch (errno) {
 		case EPROTONOSUPPORT:
@@ -2033,7 +2032,6 @@ set_sndbuf(void) {
 			break;
 		}
 	}
-#endif /* if defined(ISC_PLATFORM_HAVEIPV6) */
 	if (fd == -1) {
 		return;
 	}
@@ -2348,8 +2346,6 @@ again:
 #endif /* IPV6_RECVPKTINFO */
 #endif /* defined(USE_CMSG) */
 
-		set_ip_dontfrag(sock);
-
 #if defined(SET_RCVBUF)
 		optlen = sizeof(size);
 		if (getsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF, (void *)&size,
@@ -2415,6 +2411,8 @@ again:
 	}
 #endif /* ifdef IP_RECVTOS */
 #endif /* defined(USE_CMSG) || defined(SET_RCVBUF) || defined(SET_SNDBUF) */
+
+	set_ip_dontfrag(sock);
 
 setup_done:
 	inc_stats(manager->stats, sock->statsindex[STATID_OPEN]);
