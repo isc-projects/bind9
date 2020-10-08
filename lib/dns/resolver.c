@@ -9565,6 +9565,7 @@ rctx_next(respctx_t *rctx) {
 	FCTXTRACE("nextitem");
 	inc_stats(rctx->fctx->res, dns_resstatscounter_nextitem);
 	INSIST(rctx->query->dispentry != NULL);
+	dns_message_reset(rctx->query->rmessage, DNS_MESSAGE_INTENTPARSE);
 	result = dns_dispatch_getnext(rctx->query->dispentry, &rctx->devent);
 	if (result != ISC_R_SUCCESS) {
 		fctx_done(rctx->fctx, result, __LINE__);
