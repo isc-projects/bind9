@@ -2020,7 +2020,6 @@ set_sndbuf(void) {
 	socklen_t len;
 
 	fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-#if defined(ISC_PLATFORM_HAVEIPV6)
 	if (fd == -1) {
 		switch (errno) {
 		case EPROTONOSUPPORT:
@@ -2035,7 +2034,6 @@ set_sndbuf(void) {
 			break;
 		}
 	}
-#endif /* if defined(ISC_PLATFORM_HAVEIPV6) */
 	if (fd == -1) {
 		return;
 	}
