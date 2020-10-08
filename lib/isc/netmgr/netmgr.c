@@ -648,6 +648,9 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcpdnsclose:
 			isc__nm_async_tcpdnsclose(worker, ievent);
 			break;
+		case netievent_tcpdnsstop:
+			isc__nm_async_tcpdnsstop(worker, ievent);
+			break;
 
 		case netievent_closecb:
 			isc__nm_async_closecb(worker, ievent);
@@ -1037,6 +1040,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 void
 isc__nmsocket_clearcb(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(!isc__nm_in_netthread() || sock->tid == isc_nm_tid());
 
 	sock->recv_cb = NULL;
 	sock->recv_cbarg = NULL;
