@@ -248,17 +248,21 @@ removed after the update request completes.
 Converting From NSEC to NSEC3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To do this, an NSEC3PARAM record must be added. When the
-conversion is complete, the NSEC chain is removed and the
-NSEC3PARAM record has a zero flag field. The NSEC3 chain is
-generated before the NSEC chain is destroyed.
+Add a ``nsec3param`` option to your ``dnssec-policy`` and
+run ``rndc reconfig``.
 
-NSEC3 is not yet supported with ``dnssec-policy``.
+Or use ``nsupdate`` to add an NSEC3PARAM record.
+
+In both cases, the NSEC3 chain is generated and the NSEC3PARAM record is
+added before the NSEC chain is destroyed.
 
 Converting From NSEC3 to NSEC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To do this, use ``nsupdate`` to remove all NSEC3PARAM records with a
+To do this, remove the ``nsec3param`` option from the ``dnssec-policy`` and
+run ``rndc reconfig``.
+
+Or use ``nsupdate`` to remove all NSEC3PARAM records with a
 zero flag field. The NSEC chain is generated before the NSEC3 chain
 is removed.
 

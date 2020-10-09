@@ -126,10 +126,9 @@ dnssec-policy "nsec3" {
     signatures-validity P14D;
     signatures-validity-dnskey P14D;
 
-    // Denial of existence
-    denial-type nsec3;
-    nsec3-param ttl 0 hash algorithm 1 iterations 5 optout;
-    nsec3-salt length 8 resalt P100D;
+    // Denial of existence (default NSEC)
+    nsec3param iterations 5 optout no salt "-";
+    nsec3-resalt P100D;
 
     // Keys
     dnskey-ttl 3600;
