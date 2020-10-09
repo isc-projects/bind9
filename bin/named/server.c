@@ -10874,29 +10874,37 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	/* XXXWPK TODO be more verbose on failures. */
 	tlsobj = cfg_tuple_get(listener, "tls");
 	if (tlsobj != NULL && cfg_obj_isstring(tlsobj)) {
-		const cfg_obj_t *tlsconfigs = NULL;
-		const cfg_listelt_t *element;
-		(void)cfg_map_get(config, "tls", &tlsconfigs);
-		for (element = cfg_list_first(tlsconfigs); element != NULL;
-		     element = cfg_list_next(element))
-		{
-			cfg_obj_t *tconfig = cfg_listelt_value(element);
-			const cfg_obj_t *name = cfg_map_getname(tconfig);
-			if (!strcmp(cfg_obj_asstring(name),
-				    cfg_obj_asstring(tlsobj))) {
-				tls = true;
-				const cfg_obj_t *keyo = NULL, *certo = NULL;
-				(void)cfg_map_get(tconfig, "key-file", &keyo);
-				if (keyo == NULL) {
-					return (ISC_R_FAILURE);
+		if (!strcmp(cfg_obj_asstring(tlsobj), "ephemeral")) {
+			tls = true;
+		} else {
+			const cfg_obj_t *tlsconfigs = NULL;
+			const cfg_listelt_t *element;
+			(void)cfg_map_get(config, "tls", &tlsconfigs);
+			for (element = cfg_list_first(tlsconfigs);
+			     element != NULL; element = cfg_list_next(element))
+			{
+				cfg_obj_t *tconfig = cfg_listelt_value(element);
+				const cfg_obj_t *name =
+					cfg_map_getname(tconfig);
+				if (!strcmp(cfg_obj_asstring(name),
+					    cfg_obj_asstring(tlsobj))) {
+					tls = true;
+					const cfg_obj_t *keyo = NULL,
+							*certo = NULL;
+					(void)cfg_map_get(tconfig, "key-file",
+							  &keyo);
+					if (keyo == NULL) {
+						return (ISC_R_FAILURE);
+					}
+					(void)cfg_map_get(tconfig, "cert-file",
+							  &certo);
+					if (certo == NULL) {
+						return (ISC_R_FAILURE);
+					}
+					key = cfg_obj_asstring(keyo);
+					cert = cfg_obj_asstring(certo);
+					break;
 				}
-				(void)cfg_map_get(tconfig, "cert-file", &certo);
-				if (certo == NULL) {
-					return (ISC_R_FAILURE);
-				}
-				key = cfg_obj_asstring(keyo);
-				cert = cfg_obj_asstring(certo);
-				break;
 			}
 		}
 		if (!tls) {
