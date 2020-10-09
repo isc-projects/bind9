@@ -4955,6 +4955,18 @@ The following options can be specified in a ``dnssec-policy`` statement:
        A ``max-zone-ttl`` of zero is treated as if
        the default value were in use.
 
+     ``nsec3param``
+       Use NSEC3 instead of NSEC, and optionally set the NSEC3 parameters.
+
+       Here is an example (for illustration purposes only) of
+       a ``nsec3`` configuration:
+
+       ::
+
+          nsec3param ttl 0 iterations 5 optout no salt "-";
+
+       The default is to use NSEC.
+
      ``zone-propagation-delay``
        This is the expected propagation delay from the time when a zone
        is first updated to the time when the new version of the
