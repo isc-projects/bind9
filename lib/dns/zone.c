@@ -17504,7 +17504,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 
 	CHECK(dns_xfrin_create(zone, xfrtype, &masteraddr, &sourceaddr, dscp,
 			       zone->tsigkey, zone->mctx, zone->zmgr->netmgr,
-			       zone->task, zone_xfrdone, &zone->xfr));
+			       zone_xfrdone, &zone->xfr));
 	LOCK_ZONE(zone);
 	if (xfrtype == dns_rdatatype_axfr) {
 		if (isc_sockaddr_pf(&masteraddr) == PF_INET) {

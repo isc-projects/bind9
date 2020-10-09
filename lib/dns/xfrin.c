@@ -15,10 +15,10 @@
 #include <stdbool.h>
 
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -96,7 +96,6 @@ struct dns_xfrin_ctx {
 
 	isc_refcount_t refs;
 
-	isc_task_t *task;
 	isc_nm_t *netmgr;
 
 	isc_refcount_t connects; /*%< Connect in progress */
@@ -187,8 +186,8 @@ struct dns_xfrin_ctx {
  */
 
 static void
-xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_task_t *task,
-	     isc_nm_t *netmgr, dns_name_t *zonename, dns_rdataclass_t rdclass,
+xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
+	     dns_name_t *zonename, dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *masteraddr,
 	     const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey, dns_xfrin_ctx_t **xfrp);
@@ -654,8 +653,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 const isc_sockaddr_t *masteraddr,
 		 const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 		 dns_tsigkey_t *tsigkey, isc_mem_t *mctx, isc_nm_t *netmgr,
-		 isc_task_t *task, dns_xfrindone_t done,
-		 dns_xfrin_ctx_t **xfrp) {
+		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp) {
 	dns_name_t *zonename = dns_zone_getorigin(zone);
 	dns_xfrin_ctx_t *xfr = NULL;
 	isc_result_t result;
@@ -670,9 +668,8 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		REQUIRE(db != NULL);
 	}
 
-	xfrin_create(mctx, zone, db, task, netmgr, zonename,
-		     dns_zone_getclass(zone), xfrtype, masteraddr, sourceaddr,
-		     dscp, tsigkey, &xfr);
+	xfrin_create(mctx, zone, db, netmgr, zonename, dns_zone_getclass(zone),
+		     xfrtype, masteraddr, sourceaddr, dscp, tsigkey, &xfr);
 
 	if (db != NULL) {
 		xfr->zone_had_db = true;
@@ -753,6 +750,7 @@ xfrin_cancelio(dns_xfrin_ctx_t *xfr) {
 	if (xfr->readhandle == NULL) {
 		return;
 	}
+
 	isc_nm_cancelread(xfr->readhandle);
 	isc_nmhandle_detach(&xfr->readhandle);
 }
@@ -819,8 +817,8 @@ xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 }
 
 static void
-xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_task_t *task,
-	     isc_nm_t *netmgr, dns_name_t *zonename, dns_rdataclass_t rdclass,
+xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
+	     dns_name_t *zonename, dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *masteraddr,
 	     const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey, dns_xfrin_ctx_t **xfrp) {
@@ -839,7 +837,6 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_task_t *task,
 
 	isc_mem_attach(mctx, &xfr->mctx);
 	dns_zone_iattach(zone, &xfr->zone);
-	isc_task_attach(task, &xfr->task);
 	dns_name_init(&xfr->name, NULL);
 
 	if (db != NULL) {
@@ -1507,10 +1504,6 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 	}
 	if (xfr->sendhandle != NULL) {
 		isc_nmhandle_detach(&xfr->sendhandle);
-	}
-
-	if (xfr->task != NULL) {
-		isc_task_detach(&xfr->task);
 	}
 
 	if (xfr->tsigkey != NULL) {
