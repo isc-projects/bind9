@@ -707,6 +707,19 @@ isc_nm_tls_create_server_ctx(const char *keyfile, const char *certfile,
 	INSIST(*ctxp == NULL);
 	int rv;
 	unsigned long err;
+	bool ephemeral = (keyfile == NULL && certfile == NULL);
+	X509 *cert = NULL;
+	EVP_PKEY *pkey = NULL;
+	BIGNUM *bn = NULL;
+	RSA *rsa = NULL;
+
+	if (ephemeral) {
+		INSIST(keyfile == NULL);
+		INSIST(certfile == NULL);
+	} else {
+		INSIST(keyfile != NULL);
+		INSIST(certfile != NULL);
+	}
 
 #ifdef HAVE_TLS_SERVER_METHOD
 	const SSL_METHOD *method = TLS_server_method();
@@ -716,13 +729,84 @@ isc_nm_tls_create_server_ctx(const char *keyfile, const char *certfile,
 
 	SSL_CTX *ctx = SSL_CTX_new(method);
 	RUNTIME_CHECK(ctx != NULL);
-	rv = SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM);
-	if (rv != 1) {
-		goto ssl_error;
-	}
-	rv = SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM);
-	if (rv != 1) {
-		goto ssl_error;
+	if (ephemeral) {
+		rsa = RSA_new();
+		if (rsa == NULL) {
+			goto ssl_error;
+		}
+		bn = BN_new();
+		if (bn == NULL) {
+			goto ssl_error;
+		}
+		BN_set_word(bn, RSA_F4);
+		rv = RSA_generate_key_ex(rsa, 4096, bn, NULL);
+		if (rv != 1) {
+			goto ssl_error;
+		}
+		cert = X509_new();
+		if (cert == NULL) {
+			goto ssl_error;
+		}
+		pkey = EVP_PKEY_new();
+		if (pkey == NULL) {
+			goto ssl_error;
+		}
+
+		/*
+		 * EVP_PKEY_assign_*() set the referenced key to key however
+		 * these use the supplied key internally and so key will be
+		 * freed when the parent pkey is freed.
+		 */
+		EVP_PKEY_assign(pkey, EVP_PKEY_RSA, rsa);
+		rsa = NULL;
+		ASN1_INTEGER_set(X509_get_serialNumber(cert), 1);
+
+		X509_gmtime_adj(X509_get_notBefore(cert), 0);
+		/*
+		 * We set the vailidy for 10 years.
+		 */
+		X509_gmtime_adj(X509_get_notAfter(cert), 3650 * 24 * 3600);
+
+		X509_set_pubkey(cert, pkey);
+
+		X509_NAME *name = X509_get_subject_name(cert);
+
+		X509_NAME_add_entry_by_txt(name, "C", MBSTRING_ASC,
+					   (const unsigned char *)"AQ", -1, -1,
+					   0);
+		X509_NAME_add_entry_by_txt(
+			name, "O", MBSTRING_ASC,
+			(const unsigned char *)"BIND9 ephemeral certificate",
+			-1, -1, 0);
+		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
+					   (const unsigned char *)"bind9.local",
+					   -1, -1, 0);
+
+		X509_set_issuer_name(cert, name);
+		X509_sign(cert, pkey, EVP_sha256());
+		rv = SSL_CTX_use_certificate(ctx, cert);
+		if (rv != 1) {
+			goto ssl_error;
+		}
+		rv = SSL_CTX_use_PrivateKey(ctx, pkey);
+		if (rv != 1) {
+			goto ssl_error;
+		}
+
+		X509_free(cert);
+		EVP_PKEY_free(pkey);
+		BN_free(bn);
+	} else {
+		rv = SSL_CTX_use_certificate_file(ctx, certfile,
+						  SSL_FILETYPE_PEM);
+		if (rv != 1) {
+			goto ssl_error;
+		}
+		rv = SSL_CTX_use_PrivateKey_file(ctx, keyfile,
+						 SSL_FILETYPE_PEM);
+		if (rv != 1) {
+			goto ssl_error;
+		}
 	}
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
@@ -734,7 +818,22 @@ ssl_error:
 	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
 		      ISC_LOG_ERROR, "Error initializing TLS context: %s",
 		      errbuf);
-	SSL_CTX_free(ctx);
+	if (ctx != NULL) {
+		SSL_CTX_free(ctx);
+	}
+	if (cert != NULL) {
+		X509_free(cert);
+	}
+	if (pkey != NULL) {
+		EVP_PKEY_free(pkey);
+	}
+	if (bn != NULL) {
+		BN_free(bn);
+	}
+	if (rsa != NULL) {
+		RSA_free(rsa);
+	}
+
 	return (ISC_R_TLSERROR);
 }
 
