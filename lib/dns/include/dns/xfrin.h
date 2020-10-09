@@ -48,9 +48,9 @@ isc_result_t
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 const isc_sockaddr_t *masteraddr,
 		 const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
-		 dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
-		 isc_timermgr_t *timermgr, isc_nm_t *netmgr, isc_task_t *task,
-		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp);
+		 dns_tsigkey_t *tsigkey, isc_mem_t *mctx, isc_nm_t *netmgr,
+		 isc_task_t *task, dns_xfrindone_t done,
+		 dns_xfrin_ctx_t **xfrp);
 /*%<
  * Attempt to start an incoming zone transfer of 'zone'
  * from 'masteraddr', creating a dns_xfrin_ctx_t object to
