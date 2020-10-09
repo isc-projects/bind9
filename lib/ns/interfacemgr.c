@@ -550,6 +550,7 @@ cleanup_interface:
 	LOCK(&ifp->mgr->lock);
 	ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
 	UNLOCK(&ifp->mgr->lock);
+	ns_interface_shutdown(ifp);
 	ns_interface_detach(&ifp);
 	return (result);
 }
