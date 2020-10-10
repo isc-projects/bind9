@@ -80,7 +80,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>@OPENSSL_LIB@@LIBUV_LIB@@LIBXML2_LIB@@ZLIB_LIB@ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>@OPENSSL_LIBCRYPTO@@OPENSSL_LIBSSL@@LIBUV_LIB@@LIBXML2_LIB@@ZLIB_LIB@ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
       <ImportLibrary>.\$(Configuration)\$(ProjectName).lib</ImportLibrary>
     </Link>
@@ -103,7 +103,8 @@ copy ..\COPYRIGHT ..\Build\Debug
 
 echo Copying the OpenSSL DLL and LICENSE.
 
-copy @OPENSSL_DLL@ ..\Build\Debug\
+copy @OPENSSL_DLLCRYPTO@ ..\Build\Debug\
+copy @OPENSSL_DLLSSL@ ..\Build\Debug\
 copy @OPENSSL_PATH@\LICENSE ..\Build\Debug\OpenSSL-LICENSE
 
 echo Copying libuv DLL.
@@ -183,7 +184,7 @@ copy InstallFiles ..\Build\Debug\
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>@OPENSSL_LIB@@LIBUV_LIB@@LIBXML2_LIB@@ZLIB_LIB@ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>@OPENSSL_LIBCRYPTO@@OPENSSL_LIBSSL@@LIBUV_LIB@@LIBXML2_LIB@@ZLIB_LIB@ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
       <ImportLibrary>.\$(Configuration)\$(ProjectName).lib</ImportLibrary>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -203,7 +204,8 @@ copy ..\LICENSE ..\Build\Release
 
 echo Copying the OpenSSL DLL and LICENSE.
 
-copy @OPENSSL_DLL@ ..\Build\Release\
+copy @OPENSSL_DLLCRYPTO@ ..\Build\Release\
+copy @OPENSSL_DLLSSL@ ..\Build\Release\
 copy @OPENSSL_PATH@\LICENSE ..\Build\Release\OpenSSL-LICENSE
 
 echo Copying libuv DLL.
