@@ -11,16 +11,6 @@
 Notes for BIND 9.17.6
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -37,7 +27,6 @@ Removed Features
 - The ``glue-cache`` *option* has been marked as deprecated. The glue
   cache *feature* still works and will be permanently *enabled* in a
   future release. [GL #2146]
-
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -73,6 +62,3 @@ Bug Fixes
 - Updating contents of an RPZ zone which contained names spelled using
   varying letter case could cause some processing rules in that RPZ zone
   to be erroneously ignored. [GL #2169]
-
-- Handle `UV_EOF` differently such that it is not treated as a `TCP4RecvErr` or
-  `TCP6RecvErr`. [GL #2208]
