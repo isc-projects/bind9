@@ -58,10 +58,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Updating contents of an RPZ zone which contained names spelled using
-  varying letter case could cause some processing rules in that RPZ zone
-  to be erroneously ignored. [GL #2169]
-
 - ``named`` reported an invalid memory size when running in an
   environment that did not properly report the number of available
   memory pages and/or the size of each memory page. [GL #2166]
@@ -73,3 +69,7 @@ Bug Fixes
 - ``named`` erroneously performed continuous key rollovers for KASP
   policies that used algorithm Ed25519 or Ed448 due to a mismatch
   between created key size and expected key size. [GL #2171]
+
+- Updating contents of an RPZ zone which contained names spelled using
+  varying letter case could cause some processing rules in that RPZ zone
+  to be erroneously ignored. [GL #2169]
