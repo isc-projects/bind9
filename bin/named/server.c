@@ -10914,11 +10914,11 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	portobj = cfg_tuple_get(listener, "port");
 	if (!cfg_obj_isuint32(portobj)) {
 		if (tls) {
-			if (named_g_dot_port != 0) {
-				port = named_g_dot_port;
+			if (named_g_tlsport != 0) {
+				port = named_g_tlsport;
 			} else {
 				result = named_config_getport(
-					config, "dot-port", &port);
+					config, "tls-port", &port);
 				if (result != ISC_R_SUCCESS) {
 					return (result);
 				}

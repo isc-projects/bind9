@@ -704,9 +704,39 @@ parse_T_opt(char *option) {
 }
 
 static void
+parse_port(char *arg) {
+	enum { DNSPORT, TLSPORT } ptype = DNSPORT;
+	char *value = arg;
+	int port;
+
+	if (strncmp(arg, "dns=", 4) == 0) {
+		value = arg + 4;
+	} else if (strncmp(arg, "tls=", 4) == 0) {
+		value = arg + 4;
+		ptype = TLSPORT;
+	}
+
+	port = parse_int(value, "port");
+	if (port < 1 || port > 65535) {
+		named_main_earlyfatal("port '%s' out of range", value);
+	}
+
+	switch (ptype) {
+	case DNSPORT:
+		named_g_port = port;
+		break;
+	case TLSPORT:
+		named_g_tlsport = port;
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
+static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
-	int port;
 	const char *p;
 
 	save_command_line(argc, argv);
@@ -788,14 +818,7 @@ parse_command_line(int argc, char *argv[]) {
 			}
 			break;
 		case 'p':
-			port = parse_int(isc_commandline_argument, "port");
-			if (port < 1 || port > 64735) {
-				named_main_earlyfatal("port '%s' out of range",
-						      isc_commandline_argument);
-			}
-			named_g_port = port;
-			/* XXXWPK have a separate option for that. */
-			named_g_dot_port = port + 800;
+			parse_port(isc_commandline_argument);
 			break;
 		case 's':
 			/* XXXRTH temporary syntax */

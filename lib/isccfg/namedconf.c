@@ -1201,7 +1201,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "notify-rate", &cfg_type_uint32, 0 },
 	{ "pid-file", &cfg_type_qstringornone, 0 },
 	{ "port", &cfg_type_uint32, 0 },
-	{ "dot-port", &cfg_type_uint32, 0 },
+	{ "tls-port", &cfg_type_uint32, 0 },
 	{ "querylog", &cfg_type_boolean, 0 },
 	{ "random-device", &cfg_type_qstringornone, 0 },
 	{ "recursing-file", &cfg_type_qstring, 0 },
@@ -3841,6 +3841,3 @@ static cfg_type_t cfg_type_optional_tls = {
 	"tlsoptional",	       parse_optional_keyvalue, print_keyvalue,
 	doc_optional_keyvalue, &cfg_rep_string,		&tls_kw
 };
-static cfg_type_t cfg_type_tls = { "tls",	    parse_keyvalue,
-				   print_keyvalue,  doc_keyvalue,
-				   &cfg_rep_string, &tls_kw };

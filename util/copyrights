@@ -363,6 +363,9 @@
 ./bin/tests/system/dnstap/setup.sh		SH	2018,2019,2020
 ./bin/tests/system/dnstap/tests.sh		SH	2015,2016,2017,2018,2019,2020
 ./bin/tests/system/dnstap/ydump.py		PYTHON	2016,2017,2018,2019,2020
+./bin/tests/system/dot/clean.sh			SH	2020
+./bin/tests/system/dot/setup.sh			SH	2020
+./bin/tests/system/dot/tests.sh			SH	2020
 ./bin/tests/system/dscp/clean.sh		SH	2013,2014,2015,2016,2018,2019,2020
 ./bin/tests/system/dscp/ns1/named.args		X	2013,2014,2018,2019,2020
 ./bin/tests/system/dscp/ns2/named.args		X	2013,2014,2018,2019,2020

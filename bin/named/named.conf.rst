@@ -231,7 +231,6 @@ OPTIONS
   	    size ) ] [ versions ( unlimited | integer ) ] [ suffix (
   	    increment | timestamp ) ];
   	dnstap-version ( quoted_string | none );
-  	dot-port integer;
   	dscp integer;
   	dual-stack-servers [ port integer ] { ( quoted_string [ port
   	    integer ] [ dscp integer ] | ipv4_address [ port
@@ -415,6 +414,7 @@ OPTIONS
   	tkey-domain quoted_string;
   	tkey-gssapi-credential quoted_string;
   	tkey-gssapi-keytab quoted_string;
+  	tls-port integer;
   	transfer-format ( many-answers | one-answer );
   	transfer-message-size integer;
   	transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [
