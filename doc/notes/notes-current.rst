@@ -34,7 +34,9 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- The ``glue-cache`` *option* has been marked as deprecated. The glue
+  cache *feature* still works and will be permanently *enabled* in a
+  future release. [GL #2146]
 
 
 Feature Changes
