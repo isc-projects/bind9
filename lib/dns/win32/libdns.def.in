@@ -280,10 +280,8 @@ dns_dispatch_starttcp
 dns_dispatchmgr_create
 dns_dispatchmgr_destroy
 dns_dispatchmgr_getblackhole
-dns_dispatchmgr_getblackportlist
 dns_dispatchmgr_setavailports
 dns_dispatchmgr_setblackhole
-dns_dispatchmgr_setblackportlist
 dns_dispatchmgr_setstats
 dns_dispatchset_cancelall
 dns_dispatchset_create
@@ -733,12 +731,6 @@ dns_peerlist_currpeer
 dns_peerlist_detach
 dns_peerlist_new
 dns_peerlist_peerbyaddr
-dns_portlist_add
-dns_portlist_attach
-dns_portlist_create
-dns_portlist_detach
-dns_portlist_match
-dns_portlist_remove
 dns_private_chains
 dns_private_totext
 dns_rbt_addname

@@ -196,25 +196,6 @@ dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr);
  *\li	A pointer to the current blackhole list, or NULL.
  */
 
-void
-dns_dispatchmgr_setblackportlist(dns_dispatchmgr_t *mgr,
-				 dns_portlist_t *   portlist);
-/*%<
- * This function is deprecated.  Use dns_dispatchmgr_setavailports() instead.
- *
- * Requires:
- *\li	mgr is a valid dispatchmgr
- */
-
-dns_portlist_t *
-dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr);
-/*%<
- * This function is deprecated and always returns NULL.
- *
- * Requires:
- *\li	mgr is a valid dispatchmgr
- */
-
 isc_result_t
 dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 			      isc_portset_t *v6portset);

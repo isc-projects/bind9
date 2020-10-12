@@ -116,7 +116,6 @@ typedef unsigned char		  dns_offsets_t[128];
 typedef struct dns_order	  dns_order_t;
 typedef struct dns_peer		  dns_peer_t;
 typedef struct dns_peerlist	  dns_peerlist_t;
-typedef struct dns_portlist	  dns_portlist_t;
 typedef struct dns_rbt		  dns_rbt_t;
 typedef uint16_t		  dns_rcode_t;
 typedef struct dns_rdata	  dns_rdata_t;

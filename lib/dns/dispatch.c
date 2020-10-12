@@ -34,7 +34,6 @@
 #include <dns/events.h>
 #include <dns/log.h>
 #include <dns/message.h>
-#include <dns/portlist.h>
 #include <dns/stats.h>
 #include <dns/tcpmsg.h>
 #include <dns/types.h>
@@ -61,7 +60,6 @@ struct dns_dispatchmgr {
 	unsigned int magic;
 	isc_mem_t *mctx;
 	dns_acl_t *blackhole;
-	dns_portlist_t *portlist;
 	isc_stats_t *stats;
 
 	/* Locked by "lock". */
@@ -1899,22 +1897,6 @@ dns_acl_t *
 dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	return (mgr->blackhole);
-}
-
-void
-dns_dispatchmgr_setblackportlist(dns_dispatchmgr_t *mgr,
-				 dns_portlist_t *portlist) {
-	REQUIRE(VALID_DISPATCHMGR(mgr));
-	UNUSED(portlist);
-
-	/* This function is deprecated: use dns_dispatchmgr_setavailports(). */
-	return;
-}
-
-dns_portlist_t *
-dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr) {
-	REQUIRE(VALID_DISPATCHMGR(mgr));
-	return (NULL); /* this function is deprecated */
 }
 
 isc_result_t

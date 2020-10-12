@@ -158,9 +158,6 @@
     <ClCompile Include="..\peer.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\portlist.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\private.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -497,9 +494,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\peer.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dns\portlist.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\private.h">

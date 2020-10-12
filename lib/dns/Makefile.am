@@ -105,7 +105,6 @@ libdns_la_HEADERS =			\
 	include/dns/opcode.h		\
 	include/dns/order.h		\
 	include/dns/peer.h		\
-	include/dns/portlist.h		\
 	include/dns/private.h		\
 	include/dns/rbt.h		\
 	include/dns/rcode.h		\
@@ -211,7 +210,6 @@ libdns_la_SOURCES =			\
 	order.c				\
 	peer.c				\
 	private.c			\
-	portlist.c			\
 	rbt.c				\
 	rbtdb.h				\
 	rbtdb.c				\
