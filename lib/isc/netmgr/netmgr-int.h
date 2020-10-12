@@ -164,6 +164,7 @@ typedef enum isc__netievent_type {
 	netievent_udplisten,
 	netievent_tcplisten,
 	netievent_resume,
+	netievent_detach,
 } isc__netievent_type;
 
 typedef union {
@@ -246,6 +247,8 @@ typedef struct isc__netievent__socket_handle {
 	isc_nmsocket_t *sock;
 	isc_nmhandle_t *handle;
 } isc__netievent__socket_handle_t;
+
+typedef isc__netievent__socket_handle_t isc__netievent_detach_t;
 
 typedef struct isc__netievent__socket_quota {
 	isc__netievent_type type;
