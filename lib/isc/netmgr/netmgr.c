@@ -145,6 +145,11 @@ static void
 isc__nm_async_pausecb(isc__networker_t *worker, isc__netievent_t *ev0);
 static void
 isc__nm_async_resumecb(isc__networker_t *worker, isc__netievent_t *ev0);
+static void
+isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0);
+
+static void
+nmhandle_detach_cb(isc_nmhandle_t **handlep);
 
 int
 isc_nm_tid(void) {
@@ -654,6 +659,9 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 
 		case netievent_closecb:
 			isc__nm_async_closecb(worker, ievent);
+			break;
+		case netievent_detach:
+			isc__nm_async_detach(worker, ievent);
 			break;
 		case netievent_shutdown:
 			isc__nm_async_shutdown(worker, ievent);
@@ -1247,6 +1255,30 @@ isc_nmhandle_detach(isc_nmhandle_t **handlep) {
 	handle = *handlep;
 	*handlep = NULL;
 
+	sock = handle->sock;
+	if (sock->tid == isc_nm_tid()) {
+		nmhandle_detach_cb(&handle);
+	} else {
+		isc__netievent_detach_t *event =
+			isc__nm_get_ievent(sock->mgr, netievent_detach);
+		event->handle = handle; /* implict attach */
+		isc__nmsocket_attach(sock, &event->sock);
+		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+				       (isc__netievent_t *)event);
+	}
+}
+
+static void
+nmhandle_detach_cb(isc_nmhandle_t **handlep) {
+	isc_nmsocket_t *sock = NULL;
+	isc_nmhandle_t *handle = NULL;
+
+	REQUIRE(handlep != NULL);
+	REQUIRE(VALID_NMHANDLE(*handlep));
+
+	handle = *handlep;
+	*handlep = NULL;
+
 	if (isc_refcount_decrement(&handle->references) > 1) {
 		return;
 	}
@@ -1504,6 +1536,20 @@ isc__nm_async_closecb(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	ievent->sock->closehandle_cb(ievent->sock);
 	isc__nmsocket_detach(&ievent->sock);
+}
+
+void
+isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_detach_t *ievent = (isc__netievent_detach_t *)ev0;
+
+	REQUIRE(VALID_NMSOCK(ievent->sock));
+	REQUIRE(ievent->sock->tid == isc_nm_tid());
+	REQUIRE(ievent->handle != NULL);
+
+	UNUSED(worker);
+
+	isc__nmsocket_detach(&ievent->sock);
+	nmhandle_detach_cb(&ievent->handle);
 }
 
 static void
