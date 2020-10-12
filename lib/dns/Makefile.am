@@ -64,7 +64,6 @@ libdns_la_HEADERS =			\
 	include/dns/compress.h		\
 	include/dns/db.h		\
 	include/dns/dbiterator.h	\
-	include/dns/dbtable.h		\
 	include/dns/diff.h		\
 	include/dns/dispatch.h		\
 	include/dns/dlz.h		\
@@ -168,7 +167,6 @@ libdns_la_SOURCES =			\
 	compress.c			\
 	db.c				\
 	dbiterator.c			\
-	dbtable.c			\
 	diff.c				\
 	dispatch.c			\
 	dlz.c				\

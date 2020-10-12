@@ -240,15 +240,6 @@ dns_dbiterator_pause
 dns_dbiterator_prev
 dns_dbiterator_seek
 dns_dbiterator_setcleanmode
-dns_dbtable_add
-dns_dbtable_adddefault
-dns_dbtable_attach
-dns_dbtable_create
-dns_dbtable_detach
-dns_dbtable_find
-dns_dbtable_getdefault
-dns_dbtable_remove
-dns_dbtable_removedefault
 dns_decompress_edns
 dns_decompress_getmethods
 dns_decompress_init

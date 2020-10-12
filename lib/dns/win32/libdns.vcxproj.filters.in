@@ -63,9 +63,6 @@
     <ClCompile Include="..\dbiterator.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\dbtable.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\diff.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -378,9 +375,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\dbiterator.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dns\dbtable.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\diff.h">

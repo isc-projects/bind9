@@ -130,7 +130,6 @@
     <ClCompile Include="..\compress.c" />
     <ClCompile Include="..\db.c" />
     <ClCompile Include="..\dbiterator.c" />
-    <ClCompile Include="..\dbtable.c" />
     <ClCompile Include="..\diff.c" />
     <ClCompile Include="..\dispatch.c" />
     <ClCompile Include="..\dlz.c" />
@@ -246,7 +245,6 @@
     <ClInclude Include="..\include\dns\compress.h" />
     <ClInclude Include="..\include\dns\db.h" />
     <ClInclude Include="..\include\dns\dbiterator.h" />
-    <ClInclude Include="..\include\dns\dbtable.h" />
     <ClInclude Include="..\include\dns\diff.h" />
     <ClInclude Include="..\include\dns\dispatch.h" />
     <ClInclude Include="..\include\dns\dlz.h" />
