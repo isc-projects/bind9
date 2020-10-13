@@ -3172,7 +3172,7 @@ specify RRset ordering for a name and all of its subdomains, two
 separate rules must be defined: one for ``<domain_name>`` and one for
 ``*.<domain_name>``.
 
-The legal values for ``ordering`` are:
+The legal values for ``<ordering>`` are:
 
 ``fixed``
     Records are returned in the order they are defined in the zone file.
