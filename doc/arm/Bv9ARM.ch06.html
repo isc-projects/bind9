@@ -4330,7 +4330,7 @@ options {
                   This sets the maximum size of UDP responses that are
                   sent to queries without a valid server COOKIE. A value
                   below 128 is silently raised to 128. The default
-                  value is 4096, but the <span class="command"><strong>max-udp-size</strong></span>
+                  value is 1232, but the <span class="command"><strong>max-udp-size</strong></span>
                   option may further limit the response size.
                 </p>
               </dd>
@@ -6583,116 +6583,197 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <div class="titlepage"><div><div><h4 class="title">
 <a name="rrset_ordering"></a>RRset Ordering</h4></div></div></div>
 
-          <p>
-            When multiple records are returned in an answer, it may be
-            useful to configure the order of the records placed into the
-            response.
-            The <span class="command"><strong>rrset-order</strong></span> statement permits
-            configuration
-            of the ordering of the records in a multiple-record response.
-            See also the <span class="command"><strong>sortlist</strong></span> statement,
-            <a class="xref" href="Bv9ARM.ch06.html#the_sortlist_statement" title="The sortlist Statement">the section called &#8220;The <span class="command"><strong>sortlist</strong></span> Statement&#8221;</a>.
-          </p>
-
-          <p>
-            An <span class="command"><strong>order_spec</strong></span> is defined as
-            follows:
-          </p>
-          <p>
-            [<span class="optional">class <em class="replaceable"><code>class_name</code></em></span>]
-            [<span class="optional">type <em class="replaceable"><code>type_name</code></em></span>]
-            [<span class="optional">name <em class="replaceable"><code>"domain_name"</code></em></span>]
-            order <em class="replaceable"><code>ordering</code></em>
-          </p>
-          <p>
-            If no class is specified, the default is <span class="command"><strong>ANY</strong></span>.
-            If no type is specified, the default is <span class="command"><strong>ANY</strong></span>.
-            If no name is specified, the default is "<span class="command"><strong>*</strong></span>" (asterisk).
-          </p>
-          <p>
-            The legal values for <span class="command"><strong>ordering</strong></span> are:
-          </p>
-          <div class="informaltable">
-            <table border="1">
-<colgroup>
-<col width="0.750in" class="1">
-<col width="3.750in" class="2">
-</colgroup>
-<tbody>
-<tr>
-<td>
-                    <p><span class="command"><strong>fixed</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      Records are returned in the order they
-                      are defined in the zone file.
-                    </p>
-                  </td>
-</tr>
-<tr>
-<td>
-                    <p><span class="command"><strong>random</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      Records are returned in a random order.
-                    </p>
-                  </td>
-</tr>
-<tr>
-<td>
-                    <p><span class="command"><strong>cyclic</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      Records are returned in a cyclic round-robin order, rotating by one record per query.
-                    </p>
-                    <p>
-                      If <acronym class="acronym">BIND</acronym> is configured with the
-                      "--enable-fixed-rrset" option at compile time,
-                      the initial ordering of the RRset matches the
-                      one specified in the zone file.
-                    </p>
-                  </td>
-</tr>
-</tbody>
-</table>
+          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Note</h3>
+            <p>
+              While alternating the order of records in a DNS response between
+              subsequent queries is a known load distribution technique, certain
+              caveats apply (mostly stemming from caching) which usually make it
+              a suboptimal choice for load balancing purposes when used on its
+              own.
+            </p>
           </div>
-          <p>
-            For example:
-          </p>
-
-<pre class="programlisting">rrset-order {
-   class IN type A name "host.example.com" order random;
-   order cyclic;
-};
-</pre>
 
           <p>
-            causes any responses for type A records in class IN, that
-            have "<code class="literal">host.example.com</code>" as a
-            suffix, to always be returned
-            in random order. All other records are returned in cyclic order.
+            The <span class="command"><strong>rrset-order</strong></span> statement permits configuration
+            of the ordering of the records in a multiple-record response.  See
+            also: <a class="xref" href="Bv9ARM.ch06.html#the_sortlist_statement" title="The sortlist Statement">the section called &#8220;The <span class="command"><strong>sortlist</strong></span> Statement&#8221;</a>.
           </p>
+
           <p>
-            If multiple <span class="command"><strong>rrset-order</strong></span> statements
-            appear, they are not combined; the last one applies.
+            Each rule in an <span class="command"><strong>rrset-order</strong></span> statement is defined
+            as follows:
           </p>
+
+          <p>
+            [<span class="optional">class <em class="replaceable"><code>&lt;class_name&gt;</code></em></span>]
+            [<span class="optional">type <em class="replaceable"><code>&lt;type_name&gt;</code></em></span>]
+            [<span class="optional">name <em class="replaceable"><code>"&lt;domain_name&gt;"</code></em></span>]
+            order <em class="replaceable"><code>&lt;ordering&gt;</code></em>
+          </p>
+
+          <p>
+            The default qualifiers for each rule are:
+            </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                If no <span class="command"><strong>class</strong></span> is specified, the default is
+                <span class="command"><strong>ANY</strong></span>.
+              </li>
+<li class="listitem">
+                If no <span class="command"><strong>type</strong></span> is specified, the default is
+                <span class="command"><strong>ANY</strong></span>.
+              </li>
+<li class="listitem">
+                If no <span class="command"><strong>name</strong></span> is specified, the default is
+                <span class="command"><strong>*</strong></span> (asterisk).
+              </li>
+</ul></div>
+<p>
+          </p>
+
+          <p>
+            <em class="replaceable"><code>&lt;domain_name&gt;</code></em> only matches the name
+            itself, not any of its subdomains.  To make a rule match all
+            subdomains of a given name, a wildcard name
+            (<em class="replaceable"><code>*.&lt;domain_name&gt;</code></em>) must be used.
+            Note that <em class="replaceable"><code>*.&lt;domain_name&gt;</code></em> does
+            <span class="emphasis"><em>not</em></span> match
+            <em class="replaceable"><code>&lt;domain_name&gt;</code></em> itself; to specify
+            RRset ordering for a name and all of its subdomains, two separate
+            rules must be defined: one for
+            <em class="replaceable"><code>&lt;domain_name&gt;</code></em> and one for
+            <em class="replaceable"><code>*.&lt;domain_name&gt;</code></em>.
+          </p>
+
+          <p>
+            The legal values for <em class="replaceable"><code>&lt;ordering&gt;</code></em>
+            are:
+          </p>
+
+          <div class="variablelist"><dl class="variablelist">
+<dt><span class="term"><span class="command"><strong>fixed</strong></span></span></dt>
+<dd>
+                <p>
+                  Records are returned in the order they are defined in the zone
+                  file.
+                </p>
+                <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Note</h3>
+                  <p>
+                    The <span class="command"><strong>fixed</strong></span> option is only available if
+                    BIND is configured with
+                    <span class="command"><strong>--enable-fixed-rrset</strong></span> at compile time.
+                  </p>
+                </div>
+              </dd>
+<dt><span class="term"><span class="command"><strong>random</strong></span></span></dt>
+<dd>
+                <p>
+                  Records are returned in a random order.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>cyclic</strong></span></span></dt>
+<dd>
+                <p>
+                  Records are returned in a cyclic round-robin order, rotating
+                  by one record per query.
+                </p>
+              </dd>
+</dl></div>
+
           <p>
             By default, records are returned in random order.
           </p>
 
-          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>
-            <p>
-              In this release of <acronym class="acronym">BIND</acronym> 9, the
-              <span class="command"><strong>rrset-order</strong></span> statement does not support
-              "fixed" ordering by default.  Fixed ordering can be enabled
-              at compile time by specifying "--enable-fixed-rrset" on
-              the "configure" command line.
-            </p>
+          <p>
+            Note that if multiple <span class="command"><strong>rrset-order</strong></span> statements are
+            present in the configuration file (at both the
+            <span class="command"><strong>options</strong></span> and <span class="command"><strong>view</strong></span> levels), they
+            are <span class="emphasis"><em>not</em></span> combined; instead, the more-specific
+            one (<span class="command"><strong>view</strong></span>) replaces the less-specific one
+            (<span class="command"><strong>options</strong></span>).
+          </p>
+
+          <p>
+            If multiple rules within a single <span class="command"><strong>rrset-order</strong></span>
+            statement match a given RRset, the first matching rule is applied.
+          </p>
+
+          <p>
+            Example:
+          </p>
+
+<pre class="programlisting">rrset-order {
+    type A name "foo.isc.org" order random;
+    type AAAA name "foo.isc.org" order cyclic;
+    name "bar.isc.org" order fixed;
+    name "*.bar.isc.org" order random;
+    name "*.baz.isc.org" order cyclic;
+};
+</pre>
+
+          <p>
+            With the above configuration, the following RRset ordering is used:
+          </p>
+
+          <div class="informaltable">
+            <table border="1">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th><p>QNAME</p></th>
+<th><p>QTYPE</p></th>
+<th><p>RRset Order</p></th>
+</tr></thead>
+<tbody>
+<tr>
+<td><p><strong class="userinput"><code>foo.isc.org</code></strong></p></td>
+<td><p><strong class="userinput"><code>A</code></strong></p></td>
+<td><p><span class="command"><strong>random</strong></span></p></td>
+</tr>
+<tr>
+<td><p><strong class="userinput"><code>foo.isc.org</code></strong></p></td>
+<td><p><strong class="userinput"><code>AAAA</code></strong></p></td>
+<td><p><span class="command"><strong>cyclic</strong></span></p></td>
+</tr>
+<tr>
+<td><p><strong class="userinput"><code>foo.isc.org</code></strong></p></td>
+<td><p><strong class="userinput"><code>TXT</code></strong></p></td>
+<td><p><span class="command"><strong>random</strong></span></p></td>
+</tr>
+<tr>
+<td><p><strong class="userinput"><code>sub.foo.isc.org</code></strong></p></td>
+<td><p>all</p></td>
+<td><p><span class="command"><strong>random</strong></span></p></td>
+</tr>
+<tr>
+<td><p><strong class="userinput"><code>bar.isc.org</code></strong></p></td>
+<td><p>all</p></td>
+<td><p><span class="command"><strong>fixed</strong></span></p></td>
+</tr>
+<tr>
+<td><p><strong class="userinput"><code>sub.bar.isc.org</code></strong></p></td>
+<td><p>all</p></td>
+<td><p><span class="command"><strong>random</strong></span></p></td>
+</tr>
+<tr>
+<td><p><strong class="userinput"><code>baz.isc.org</code></strong></p></td>
+<td><p>all</p></td>
+<td><p><span class="command"><strong>random</strong></span></p></td>
+</tr>
+<tr>
+<td><p><strong class="userinput"><code>sub.baz.isc.org</code></strong></p></td>
+<td><p>all</p></td>
+<td><p><span class="command"><strong>cyclic</strong></span></p></td>
+</tr>
+</tbody>
+</table>
           </div>
+
         </div>
 
         <div class="section">
@@ -6882,7 +6963,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   authoritative servers in response to recursive queries.
                   Valid values are 512 to 4096; values outside this range
                   are silently adjusted to the nearest value within
-                  it.  The default value is 4096.
+                  it.  The default value is 1232.
                 </p>
                 <p>
                   The usual reason for setting
@@ -6931,7 +7012,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   <span class="command"><strong>named</strong></span> sends, in bytes.
                   Valid values are 512 to 4096; values outside this
                   range are silently adjusted to the nearest
-                  value within it.  The default value is 4096.
+                  value within it.  The default value is 1232.
                 </p>
                 <p>
                   This value applies to responses sent by a server; to
@@ -13666,6 +13747,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.23 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.24 (Extended Support Version)</p>
 </body>
 </html>
