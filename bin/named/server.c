@@ -14317,6 +14317,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 		     isc_buffer_t **text) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_zone_t *zone = NULL;
+	dns_kasp_t *kasp = NULL;
 	dns_name_t *origin;
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
@@ -14432,6 +14433,14 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 	CHECK(zone_from_args(server, lex, NULL, &zone, NULL, text, false));
 	if (zone == NULL) {
 		CHECK(ISC_R_UNEXPECTEDEND);
+	}
+
+	kasp = dns_zone_getkasp(zone);
+	if (kasp != NULL) {
+		(void)putstr(text, "zone uses dnssec-policy, use rndc dnssec "
+				   "command instead");
+		(void)putnull(text);
+		goto cleanup;
 	}
 
 	if (clear) {
