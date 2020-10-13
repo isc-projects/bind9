@@ -1560,7 +1560,23 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		bool allow = false, maint = false;
 		bool sigvalinsecs;
 
-		if (kasp) {
+		if (kasp != NULL) {
+			if (dns_kasp_nsec3(kasp)) {
+				result = dns_zone_setnsec3param(
+					zone, 1, dns_kasp_nsec3flags(kasp),
+					dns_kasp_nsec3iter(kasp),
+					dns_kasp_nsec3saltlen(kasp),
+					dns_kasp_nsec3salt(kasp), true);
+			} else {
+				unsigned char *salt;
+				DE_CONST("-", salt);
+				result = dns_zone_setnsec3param(zone, 0, 0, 0,
+								0, salt, true);
+			}
+			INSIST(result == ISC_R_SUCCESS);
+		}
+
+		if (kasp != NULL) {
 			seconds = (uint32_t)dns_kasp_sigvalidity_dnskey(kasp);
 		} else {
 			obj = NULL;
@@ -1571,7 +1587,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		}
 		dns_zone_setkeyvalidityinterval(zone, seconds);
 
-		if (kasp) {
+		if (kasp != NULL) {
 			seconds = (uint32_t)dns_kasp_sigvalidity(kasp);
 			dns_zone_setsigvalidityinterval(zone, seconds);
 			seconds = (uint32_t)dns_kasp_sigrefresh(kasp);

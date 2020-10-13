@@ -9260,12 +9260,16 @@ zone_sign(dns_zone_t *zone) {
 						   DNS_ZONEOPT_DNSKEYKSKONLY);
 
 	/* Determine which type of chain to build */
-	CHECK(dns_private_chains(db, version, zone->privatetype, &build_nsec,
-				 &build_nsec3));
-
-	/* If neither chain is found, default to NSEC */
-	if (!build_nsec && !build_nsec3) {
-		build_nsec = true;
+	if (kasp != NULL) {
+		build_nsec3 = dns_kasp_nsec3(kasp);
+		build_nsec = !build_nsec3;
+	} else {
+		CHECK(dns_private_chains(db, version, zone->privatetype,
+					 &build_nsec, &build_nsec3));
+		/* If neither chain is found, default to NSEC */
+		if (!build_nsec && !build_nsec3) {
+			build_nsec = true;
+		}
 	}
 
 	while (signing != NULL && nodes-- > 0 && signatures > 0) {
@@ -21097,6 +21101,7 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 	if (hash == 0) {
 		np->length = 0;
 		np->nsec = true;
+		dnssec_log(zone, ISC_LOG_DEBUG(3), "setnsec3param:nsec");
 	} else {
 		param.common.rdclass = zone->rdclass;
 		param.common.rdtype = dns_rdatatype_nsec3param;
@@ -21115,6 +21120,31 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 					 np->data, sizeof(np->data));
 		np->length = prdata.length;
 		np->nsec = false;
+
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			unsigned char text[255 * 2 + 1];
+			isc_buffer_t buf;
+			isc_result_t ret;
+			isc_region_t r;
+
+			r.base = salt;
+			r.length = (unsigned int)saltlen;
+			if (saltlen > 0) {
+				isc_buffer_init(&buf, text, sizeof(text));
+				ret = isc_hex_totext(&r, 2, "", &buf);
+				if (ret == ISC_R_SUCCESS) {
+					text[saltlen * 2] = 0;
+				} else {
+					text[0] = 0;
+				}
+			} else {
+				text[0] = '-';
+				text[1] = 0;
+			}
+			dnssec_log(zone, ISC_LOG_DEBUG(3),
+				   "setnsec3param:nsec3 %u %u %u %s", hash,
+				   flags, iter, text);
+		}
 	}
 
 	/*
