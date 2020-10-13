@@ -55,16 +55,17 @@
     <itemizedlist>
       <listitem>
         <para>
-	  [DNS Flag Day 2020]: The default EDNS buffer size has been changed
-	  from 4096 to 1232.  According to the measurements done by multiple
-	  parties this should not be causing any operational problems as most of
-	  the Internet "core" is able to cope with IP message sizes between
-	  1400-1500 bytes, the 1232 size was picked as a conservative minimal
-	  number that could be changed by the DNS operator to a estimated path
-	  MTU minus the estimated header space. In practice, the smallest MTU
-	  witnessed in the operational DNS community is 1500 octets, the
-	  Ethernet maximum payload size, so a a useful default for maximum
-	  DNS/UDP payload size on reliable networks would be 1400. [GL #2183]
+           DNS Flag Day 2020: The default EDNS buffer size has been changed from
+           4096 to 1232 bytes. According to measurements done by multiple
+           parties, this should not cause any operational problems as most of
+           the Internet "core" is able to cope with IP message sizes between
+           1400-1500 bytes; the 1232 size was picked as a conservative minimal
+           number that could be changed by the DNS operator to an estimated path
+           MTU minus the estimated header space. In practice, the smallest MTU
+           witnessed in the operational DNS community is 1500 octets, the
+           maximum Ethernet payload size, so a useful default for maximum
+           DNS/UDP payload size on reliable networks would be 1400 bytes.
+           [GL #2183]
         </para>
       </listitem>
     </itemizedlist>
@@ -74,18 +75,19 @@
     <itemizedlist>
       <listitem>
         <para>
-	  <command>named</command> would report invalid memory size when running
-	  in an environment that doesn't properly report number of available
-	  memory pages or pagesize.  [GL #2166]
+          <command>named</command> reported an invalid memory size when running
+          in an environment that did not properly report the number of available
+          memory pages and/or the size of each memory page. [GL #2166]
         </para>
       </listitem>
-      <listtitem>
-	<para>
-	  <command>named</command> would exit with assertion failure
-	  <command>REQUIRE(msg->state == (-1))</command> in message.c due to a
-	  possible data race. [GL #2124]
-	</para>
-      </listtitem>
+      <listitem>
+        <para>
+          With multiple forwarders configured, <command>named</command> could
+          fail the <code>REQUIRE(msg->state == (-1))</code> assertion in
+          <filename>lib/dns/message.c</filename>, causing it to crash. This has
+          been fixed. [GL #2124]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
