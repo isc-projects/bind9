@@ -63,7 +63,7 @@ PARALLEL_COMMON="dnssec rpzrecurse serve-stale \
 	geoip2 glue idna inline integrity ixfr \
 	kasp keepalive legacy limits \
 	masterfile masterformat metadata mirror mkeys \
-	names notify nslookup nsupdate nzd2nzf \
+	names notify nsec3 nslookup nsupdate nzd2nzf \
 	padding pending pipelined qmin \
 	reclimit redirect resolver rndc rootkeysentinel rpz \
 	rrchecker rrl rrsetorder rsabigexponent runtime \

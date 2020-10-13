@@ -50,6 +50,14 @@ struct dns_kasp_key {
 	uint8_t	 role;
 };
 
+struct dns_kasp_nsec3param {
+	unsigned char salt[255];
+	uint8_t	      saltlen;
+	uint8_t	      algorithm;
+	uint8_t	      iterations;
+	bool	      optout;
+};
+
 /* Stores a DNSSEC policy */
 struct dns_kasp {
 	unsigned int magic;
@@ -75,6 +83,10 @@ struct dns_kasp {
 	dns_kasp_keylist_t keys;
 	dns_ttl_t	   dnskey_ttl;
 
+	/* Configuration: Denial of existence */
+	bool		      nsec3;
+	dns_kasp_nsec3param_t nsec3param;
+
 	/* Configuration: Timings */
 	uint32_t publish_safety;
 	uint32_t retire_safety;
@@ -86,8 +98,6 @@ struct dns_kasp {
 	/* Parent settings */
 	dns_ttl_t parent_ds_ttl;
 	uint32_t  parent_propagation_delay;
-
-	/* TODO: The rest of the KASP configuration */
 };
 
 #define DNS_KASP_MAGIC	     ISC_MAGIC('K', 'A', 'S', 'P')
@@ -601,6 +611,94 @@ dns_kasp_key_zsk(dns_kasp_key_t *key);
  *
  *\li  True, if the key role has DNS_KASP_KEY_ROLE_ZSK set.
  *\li  False, otherwise.
+ *
+ */
+
+bool
+dns_kasp_nsec3(dns_kasp_t *kasp);
+/*%<
+ * Return true if NSEC3 chain should be used.
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, frozen kasp.
+ *
+ */
+
+uint8_t
+dns_kasp_nsec3iter(dns_kasp_t *kasp);
+/*%<
+ * The number of NSEC3 iterations to use.
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, frozen kasp.
+ *\li  'kasp->nsec3' is true.
+ *
+ */
+
+uint8_t
+dns_kasp_nsec3flags(dns_kasp_t *kasp);
+/*%<
+ * The NSEC3 flags field value.
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, frozen kasp.
+ *\li  'kasp->nsec3' is true.
+ *
+ */
+
+uint8_t
+dns_kasp_nsec3saltlen(dns_kasp_t *kasp);
+/*%<
+ * The NSEC3 salt length.
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, frozen kasp.
+ *\li  'kasp->nsec3' is true.
+ *
+ */
+
+unsigned char *
+dns_kasp_nsec3salt(dns_kasp_t *kasp);
+/*%<
+ * The NSEC3 salt used.
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, frozen kasp.
+ *\li  'kasp->nsec3' is true.
+ *
+ */
+
+void
+dns_kasp_setnsec3(dns_kasp_t *kasp, bool nsec3);
+/*%<
+ * Set to use NSEC3 if 'nsec3' is 'true', otherwise policy will use NSEC.
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, unfrozen kasp.
+ *
+ */
+
+isc_result_t
+dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
+		       const char *salt);
+/*%<
+ * Set the desired NSEC3 parameters.
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, unfrozen kasp.
+ *\li  'kasp->nsec3' is true.
+ *
+ * Returns:
+ *
+ *\li  ISC_R_SUCCESS, if NSEC3 parameters are set.
+ *\li  Error, if isc_hex_decodestring() fails.
  *
  */
 
