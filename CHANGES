@@ -5,6 +5,8 @@
 5517.	[bug]		Handle 'UV_EOF' differently and don't contribute it to
 			the RECVFAIL statistic count. [GL #2208]
 
+	--- 9.16.8 released ---
+
 5516.	[func]		The default EDNS buffer size has been changed from 4096
 			to 1232 bytes. [GL #2183]
 
