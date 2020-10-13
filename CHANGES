@@ -1,3 +1,5 @@
+	--- 9.16.8 released ---
+
 5516.	[func]		The default EDNS buffer size has been changed from 4096
 			to 1232 bytes. [GL #2183]
 
