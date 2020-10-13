@@ -166,16 +166,46 @@ cleanup:
 }
 
 static isc_result_t
-cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp) {
+cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
+			  isc_log_t *logctx) {
+	dns_kasp_key_t *kkey;
+	unsigned int min_keysize = 4096;
 	const cfg_obj_t *obj = NULL;
 	const char *salt = NULL;
-	uint8_t iter = DEFAULT_NSEC3PARAM_ITER;
+	uint32_t iter = DEFAULT_NSEC3PARAM_ITER;
 	bool optout = false;
+	isc_result_t ret = ISC_R_SUCCESS;
 
 	/* How many iterations. */
 	obj = cfg_tuple_get(config, "iterations");
 	if (cfg_obj_isuint32(obj)) {
 		iter = cfg_obj_asuint32(obj);
+	}
+	dns_kasp_freeze(kasp);
+	for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
+	     kkey = ISC_LIST_NEXT(kkey, link))
+	{
+		unsigned int keysize = dns_kasp_key_size(kkey);
+		if (keysize < min_keysize) {
+			min_keysize = keysize;
+		}
+	}
+	dns_kasp_thaw(kasp);
+	/* See RFC 5155 Section 10.3 for iteration limits. */
+	if (min_keysize <= 1024 && iter > 150) {
+		ret = DNS_R_NSEC3ITERRANGE;
+	} else if (min_keysize <= 2048 && iter > 500) {
+		ret = DNS_R_NSEC3ITERRANGE;
+	} else if (min_keysize <= 4096 && iter > 2500) {
+		ret = DNS_R_NSEC3ITERRANGE;
+	}
+
+	if (ret == DNS_R_NSEC3ITERRANGE) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "dnssec-policy: nsec3 iterations value %u "
+			    "out of range",
+			    iter);
+		return (ret);
 	}
 
 	/* Opt-out? */
@@ -190,7 +220,12 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp) {
 		salt = cfg_obj_asstring(obj);
 	}
 
-	return dns_kasp_setnsec3param(kasp, iter, optout, salt);
+	ret = dns_kasp_setnsec3param(kasp, iter, optout, salt);
+	if (ret != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "dnssec-policy: bad nsec3 salt %s", salt);
+	}
+	return (ret);
 }
 
 isc_result_t
@@ -282,7 +317,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 		dns_kasp_setnsec3(kasp, false);
 	} else {
 		dns_kasp_setnsec3(kasp, true);
-		result = cfg_nsec3param_fromconfig(nsec3, kasp);
+		result = cfg_nsec3param_fromconfig(nsec3, kasp, logctx);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
