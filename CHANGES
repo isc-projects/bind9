@@ -6,10 +6,10 @@
 			the RECVFAIL statistic count. [GL #2208]
 
 5516.	[func]		The default EDNS buffer size has been changed from 4096
-			to 1232. [GL #2183]
+			to 1232 bytes. [GL #2183]
 
-5515.	[func]		Add 'rndc dnssec -rollover' command to trigger a
-			manual rollover for a specific key. [GL #1749]
+5515.	[func]		Add 'rndc dnssec -rollover' command to trigger a manual
+			rollover for a specific key. [GL #1749]
 
 5514.	[bug]		Fix KASP expected key size for Ed25519 and Ed448.
 			[GL #2171]
@@ -26,7 +26,7 @@
 			microsecond. [GL #2190]
 
 5510.	[bug]		Implement the attach/detach semantics for dns_message_t
-			to fix a data race in accessing already destroyed
+			to fix a data race in accessing an already-destroyed
 			fctx->rmessage. [GL #2124]
 
 5509.	[bug]		filter-aaaa: named crashed upon shutdown if it was in
