@@ -11,46 +11,6 @@
 
 <section xml:id="relnotes-9.11.24"><info><title>Notes for BIND 9.11.24</title></info>
 
-  <section xml:id="relnotes-9.11.24-security"><info><title>Security Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.24-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.24-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.24-removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes-9.11.24-changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
