@@ -11,16 +11,6 @@
 Notes for BIND 9.16.8
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -30,12 +20,6 @@ New Features
 - Add a new ``rndc`` command, ``rndc dumpdb -expired``, which dumps the
   cache database, including expired RRsets that are awaiting cleanup, to
   the ``dump-file`` for diagnostic purposes. [GL #1870]
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 
 Feature Changes
 ~~~~~~~~~~~~~~~
