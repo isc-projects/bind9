@@ -19,7 +19,6 @@
 
 #include <isc/attributes.h>
 #include <isc/buffer.h>
-#include <isc/bufferlist.h>
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/list.h>

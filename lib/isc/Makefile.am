@@ -15,7 +15,6 @@ libisc_la_HEADERS =			\
 	include/isc/base64.h		\
 	include/isc/bind9.h		\
 	include/isc/buffer.h		\
-	include/isc/bufferlist.h	\
 	include/isc/cmocka.h		\
 	include/isc/commandline.h	\
 	include/isc/counter.h		\
@@ -159,7 +158,6 @@ libisc_la_SOURCES =		\
 	base64.c		\
 	bind9.c			\
 	buffer.c		\
-	bufferlist.c		\
 	commandline.c		\
 	counter.c		\
 	crc64.c			\

@@ -266,7 +266,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\bind9.h" />
     <ClInclude Include="..\include\isc\boolean.h" />
     <ClInclude Include="..\include\isc\buffer.h" />
-    <ClInclude Include="..\include\isc\bufferlist.h" />
     <ClInclude Include="..\include\isc\commandline.h" />
     <ClInclude Include="..\include\isc\counter.h" />
     <ClInclude Include="..\include\isc\crc64.h" />
@@ -383,7 +382,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\base64.c" />
     <ClCompile Include="..\bind9.c" />
     <ClCompile Include="..\buffer.c" />
-    <ClCompile Include="..\bufferlist.c" />
     <ClCompile Include="..\commandline.c" />
     <ClCompile Include="..\counter.c" />
     <ClCompile Include="..\crc64.c" />
