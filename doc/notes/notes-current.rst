@@ -36,6 +36,10 @@ Feature Changes
 
 - None.
 
+- Add NSEC3 support for zones that manage their DNSSEC with the `dnssec-policy`
+  configuration. A new option 'nsec3param' can be used to set the desired
+  NSEC3 parameters. [GL #1620].
+
 Bug Fixes
 ~~~~~~~~~
 

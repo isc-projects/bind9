@@ -1,3 +1,8 @@
+5538.	[func]		Add NSEC3 support for zones that manage DNSSEC with
+			the 'dnssec-policy' configuration. A new option
+			'nsec3param' can be used to set the NSEC3 parameters.
+			[GL #1620]
+
 5534.	[bug]		The synthesised CNAME from a DNAME was incorrectly
 			followed when the QTYPE was CNAME or ANY. [GL #2280]
 
