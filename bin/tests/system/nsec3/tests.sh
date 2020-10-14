@@ -184,6 +184,19 @@ echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
+# Zone: nsec3-to-optout.kasp.
+set_zone_policy "nsec3-to-optout.kasp" "nsec3"
+echo_i "initial check zone ${ZONE}"
+check_nsec3
+dnssec_verify
+
+# Zone: nsec3-from-optout.kasp.
+set_zone_policy "nsec3-from-optout.kasp" "optout"
+set_nsec3param "1" "5" "-"
+echo_i "initial check zone ${ZONE}"
+check_nsec3
+dnssec_verify
+
 # Zone: nsec3-other.kasp.
 set_zone_policy "nsec3-other.kasp" "nsec3-other"
 set_nsec3param "1" "11" "DEADBEEF"
@@ -224,6 +237,20 @@ echo_i "check zone ${ZONE} after reconfig"
 check_nsec
 dnssec_verify
 
+# Zone: nsec3-to-optout.kasp. (reconfigured)
+set_zone_policy "nsec3-to-optout.kasp" "optout"
+set_nsec3param "1" "5" "-"
+echo_i "check zone ${ZONE} after reconfig"
+check_nsec3
+dnssec_verify
+
+# Zone: nsec3-from-optout.kasp. (reconfigured)
+set_zone_policy "nsec3-from-optout.kasp" "nsec3"
+set_nsec3param "0" "5" "-"
+echo_i "check zone ${ZONE} after reconfig"
+check_nsec3
+dnssec_verify
+
 # Zone: nsec3-other.kasp. (same)
 set_zone_policy "nsec3-other.kasp" "nsec3-other"
 set_nsec3param "1" "11" "DEADBEEF"
@@ -231,7 +258,7 @@ echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
 
-# Using rndc signing -nsec3param
+# Using rndc signing -nsec3param (should fail)
 set_zone_policy "nsec3-change.kasp" "nsec3-other"
 echo_i "use rndc signing -nsec3param ${ZONE} to change NSEC3 settings"
 rndccmd $SERVER signing -nsec3param 1 1 12 ffff $ZONE > rndc.signing.test$n.$ZONE || log_error "failed to call rndc signing -nsec3param $ZONE"
@@ -241,4 +268,3 @@ dnssec_verify
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
-

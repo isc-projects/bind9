@@ -22,7 +22,8 @@ setup() {
 	cp template.db.in "$zonefile"
 }
 
-for zn in nsec-to-nsec3 nsec3 nsec3-other nsec3-change nsec3-to-nsec
+for zn in nsec-to-nsec3 nsec3 nsec3-other nsec3-change nsec3-to-nsec \
+	  nsec3-to-optout nsec3-from-optout
 do
 	setup "${zn}.kasp"
 done

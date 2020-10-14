@@ -20,6 +20,10 @@ dnssec-policy "nsec3" {
 	nsec3param;
 };
 
+dnssec-policy "optout" {
+	nsec3param optout yes;
+};
+
 dnssec-policy "nsec3-other" {
 	nsec3param iterations 11 optout yes salt "deadbeef";
 };
@@ -71,6 +75,20 @@ zone "nsec3-change.kasp" {
 	type primary;
 	file "nsec3-change.kasp.db";
 	dnssec-policy "nsec3";
+};
+
+/* The zone will be reconfigured to use opt-out. */
+zone "nsec3-to-optout.kasp" {
+	type primary;
+	file "nsec3-to-optout.kasp.db";
+	dnssec-policy "nsec3";
+};
+
+/* The zone will be reconfigured to disable opt-out. */
+zone "nsec3-from-optout.kasp" {
+	type primary;
+	file "nsec3-from-optout.kasp.db";
+	dnssec-policy "optout";
 };
 
 /* The zone starts with NSEC3, but will be reconfigured to use NSEC. */
