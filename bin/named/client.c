@@ -247,6 +247,18 @@ _Atomic(unsigned int) ns_client_requests;
 unsigned int ns_client_requests;
 #endif
 
+#ifdef NS_CLIENT_NEED_NCR_INC
+ISC_NO_SANITIZE_THREAD void
+ns_client_ncr_inc(void) {
+	ns_client_requests++;
+}
+
+ISC_NO_SANITIZE_THREAD unsigned int
+ns_client_ncr_load(void) {
+	return (ns_client_requests);
+}
+#endif
+
 static void client_read(ns_client_t *client);
 static void client_accept(ns_client_t *client);
 static void client_udprecv(ns_client_t *client);
