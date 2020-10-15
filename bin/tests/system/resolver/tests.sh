@@ -10,7 +10,6 @@
 # information regarding copyright ownership.
 
 . ../conf.sh
-echo .
 
 DIGOPTS="-p ${PORT}"
 RESOLVOPTS="-p ${PORT}"

@@ -65,8 +65,8 @@ then
     rm -f Kfoo*
 else
     if test $quiet -eq 0; then
-        echo "I:This test requires support for $msg" >&2
-        echo "I:configure with --with-openssl, or --enable-native-pkcs11" \
+        echo_i "This test requires support for $msg" >&2
+        echo_i "configure with --with-openssl, or --enable-native-pkcs11" \
             "--with-pkcs11" >&2
     fi
     exit 255
