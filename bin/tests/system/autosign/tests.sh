@@ -78,16 +78,16 @@ checkjitter () {
 	_expiretimes=$(freq "$_file" | awk '{print $1}')
 
 	_count=0
-	# Check if we have at least 5 days
+	# Check if we have at least 4 days
 	# This number has been tuned for `sig-validity-interval 10 2`, as
-	# 1. 1. signature expiration dates should be spread out across at most 8 (10-2) days
+	# 1 signature expiration dates should be spread out across at most 8 (10-2) days
 	# 2. we remove first and last day to remove frequency outlier, we are left with 6 (8-2) days
-	# 3. we subtract one more day to allow test pass on day boundaries, etc. leaving us with 5 (6-1) days
+	# 3. we subtract two more days to allow test pass on day boundaries, etc. leaving us with 4 (6-2)
 	for _num in $_expiretimes
 	do
 		_count=$((_count+1))
 	done
-	if [ "$_count" -lt 5 ]; then
+	if [ "$_count" -lt 4 ]; then
 		echo_i "error: not enough categories"
 		return 1
 	fi
