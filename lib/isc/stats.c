@@ -215,6 +215,11 @@ isc_stats_ncounters(isc_stats_t *stats) {
 	return (stats->ncounters);
 }
 
+/*
+ * Inline the code if we can use atomic operations.
+ */
+#if defined(ISC_PLATFORM_HAVESTDATOMIC) || defined(ISC_STATS_HAVEATOMICQ) || \
+    defined(ISC_STATS_USEMULTIFIELDS)
 static inline void
 incrementcounter(isc_stats_t *stats, int counter) {
 #if ISC_PLATFORM_HAVESTDATOMIC
@@ -235,8 +240,6 @@ incrementcounter(isc_stats_t *stats, int counter) {
 	if (prev == (int32_t)0xffffffff) {
 		isc_atomic_xadd((int32_t *)&stats->counters[counter].hi, 1);
 	}
-#else
-	stats->counters[counter]++;
 #endif
 }
 
@@ -254,10 +257,19 @@ decrementcounter(isc_stats_t *stats, int counter) {
 		(void)isc_atomic_xadd((int32_t *)&stats->counters[counter].hi,
 				      -1);
 	}
-#else
-	stats->counters[counter]--;
 #endif
 }
+#else
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE void
+incrementcounter(isc_stats_t *stats, int counter) {
+	stats->counters[counter]++;
+}
+
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE void
+decrementcounter(isc_stats_t *stats, int counter) {
+	stats->counters[counter]--;
+}
+#endif
 
 static inline uint64_t
 getcounter(isc_stats_t *stats, const int counter) {
