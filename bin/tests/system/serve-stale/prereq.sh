@@ -18,24 +18,24 @@ then
     then
         :
     else
-        echo "I:Net::DNS versions 0.69 to 0.74 have bugs that cause this test to fail: please update." >&2
+        echo_i "Net::DNS versions 0.69 to 0.74 have bugs that cause this test to fail: please update." >&2
         exit 1
     fi
 else
-    echo "I:This test requires the Net::DNS library." >&2
+    echo_i "This test requires the Net::DNS library." >&2
     exit 1
 fi
 if $PERL -e 'use Net::DNS::Nameserver;' 2>/dev/null
 then
 	:
 else
-	echo "I:This test requires the Net::DNS::Nameserver library." >&2
+	echo_i "This test requires the Net::DNS::Nameserver library." >&2
 	exit 1
 fi
 if $PERL -e 'use Time::HiRes;' 2>/dev/null
 then
 	:
 else
-	echo "I:This test requires the Time::HiRes library." >&2
+	echo_i "This test requires the Time::HiRes library." >&2
 	exit 1
 fi

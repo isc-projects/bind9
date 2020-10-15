@@ -379,26 +379,26 @@ mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
 # four keys listed
 count=$(grep -c "keyid: " rndc.out.1.$n) || true
-[ "$count" -eq 4 ] || { echo "keyid: count ($count) != 4"; ret=1; }
+[ "$count" -eq 4 ] || { echo_i "keyid: count ($count) != 4"; ret=1; }
 # one revoked
 count=$(grep -c "trust revoked" rndc.out.1.$n) || true
-[ "$count" -eq 1 ] || { echo "trust revoked count ($count) != 1"; ret=1; }
+[ "$count" -eq 1 ] || { echo_i "trust revoked count ($count) != 1"; ret=1; }
 # two pending
 count=$(grep -c "trust pending" rndc.out.1.$n) || true
-[ "$count" -eq 2 ] || { echo "trust pending count ($count) != 2"; ret=1; }
+[ "$count" -eq 2 ] || { echo_i "trust pending count ($count) != 2"; ret=1; }
 $SETTIME -R now -K ns1 "$standby3" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.2.$n 2>&1 || ret=1
 # now three keys listed
 count=$(grep -c "keyid: " rndc.out.2.$n) || true
-[ "$count" -eq 3 ] || { echo "keyid: count ($count) != 3"; ret=1; }
+[ "$count" -eq 3 ] || { echo_i "keyid: count ($count) != 3"; ret=1; }
 # one revoked
 count=$(grep -c "trust revoked" rndc.out.2.$n) || true
-[ "$count" -eq 1 ] || { echo "trust revoked count ($count) != 1"; ret=1; }
+[ "$count" -eq 1 ] || { echo_i "trust revoked count ($count) != 1"; ret=1; }
 # one pending
 count=$(grep -c "trust pending" rndc.out.2.$n) || true
-[ "$count" -eq 1 ] || { echo "trust pending count ($count) != 1"; ret=1; }
+[ "$count" -eq 1 ] || { echo_i "trust pending count ($count) != 1"; ret=1; }
 $SETTIME -D now -K ns1 "$standby3" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -514,18 +514,18 @@ mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
 # one key listed
 count=$(grep -c "keyid: " rndc.out.$n) || true
-[ "$count" -eq 1 ] || { echo "'keyid:' count ($count) != 1"; ret=1; }
+[ "$count" -eq 1 ] || { echo_i "'keyid:' count ($count) != 1"; ret=1; }
 # it's the original key id
 count=$(grep -c "keyid: $originalid" rndc.out.$n) || true
-[ "$count" -eq 1 ] || { echo "'keyid: $originalid' count ($count) != 1"; ret=1; }
+[ "$count" -eq 1 ] || { echo_i "'keyid: $originalid' count ($count) != 1"; ret=1; }
 # not revoked
 count=$(grep -c "REVOKE" rndc.out.$n) || true
-[ "$count" -eq 0 ] || { echo "'REVOKE' count ($count) != 0"; ret=1; }
+[ "$count" -eq 0 ] || { echo_i "'REVOKE' count ($count) != 0"; ret=1; }
 # trust is still current
 count=$(grep -c "trust" rndc.out.$n) || true
-[ "$count" -eq 1 ] || { echo "'trust' count != 1"; ret=1; }
+[ "$count" -eq 1 ] || { echo_i "'trust' count != 1"; ret=1; }
 count=$(grep -c "trusted since" rndc.out.$n) || true
-[ "$count" -eq 1 ] || { echo "'trusted since' count != 1"; ret=1; }
+[ "$count" -eq 1 ] || { echo_i "'trusted since' count != 1"; ret=1; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

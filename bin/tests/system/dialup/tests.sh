@@ -21,7 +21,7 @@ DIGOPTS="+norec +tcp +noadd +nosea +nostat +noquest +nocmd -p 5300"
 # Check the example. domain
 
 $DIG $DIGOPTS example. @10.53.0.1 soa > dig.out.ns1.test || ret=1
-echo "I:checking that first zone transfer worked"
+echo_i "checking that first zone transfer worked"
 ret=0
 try=0
 while test $try -lt 120
@@ -36,11 +36,11 @@ do
 		break;
 	fi
 done
-echo "I:try $try"
-if [ $ret != 0 ]; then echo "I:failed"; fi
+echo_i "try $try"
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that second zone transfer worked"
+echo_i "checking that second zone transfer worked"
 ret=0
 try=0
 while test $try -lt 120
@@ -55,9 +55,9 @@ do
 		break;
 	fi
 done
-echo "I:try $try"
-if [ $ret != 0 ]; then echo "I:failed"; fi
+echo_i "try $try"
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
