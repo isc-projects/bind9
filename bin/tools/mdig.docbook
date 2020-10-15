@@ -241,6 +241,13 @@
         </varlistentry>
 
         <varlistentry>
+          <term><option>+burst</option></term>
+          <listitem>
+            This option delays queries until the start of the next second.
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
           <term><option>+[no]cl</option></term>
           <listitem>
             <para>
