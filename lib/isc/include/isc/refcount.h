@@ -211,7 +211,7 @@ typedef struct isc_refcount {
 		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
 	} while (0)
 
-#define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
+unsigned int isc_refcount_current(isc_refcount_t *rp);
 
 /*%
  * Increments the reference count, returning the new value in
