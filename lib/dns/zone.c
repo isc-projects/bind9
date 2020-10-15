@@ -10462,15 +10462,17 @@ dns_zone_refresh(dns_zone_t *zone) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
+	LOCK_ZONE(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+		UNLOCK_ZONE(zone);
 		return;
+	}
 
 	/*
 	 * Set DNS_ZONEFLG_REFRESH so that there is only one refresh operation
 	 * in progress at a time.
 	 */
 
-	LOCK_ZONE(zone);
 	oldflags = zone->flags;
 	if (zone->masterscnt == 0) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOMASTERS);
