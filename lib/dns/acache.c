@@ -178,6 +178,8 @@ struct dns_acachestats {
 	_Atomic(unsigned int)		hits;
 	_Atomic(unsigned int)		queries;
 	_Atomic(unsigned int)		misses;
+#define ACACHE_STATSLOCK(x) (void)0
+#define ACACHE_STATSUNLOCK(x) (void)0
 #define ACACHE_INC(x)	atomic_fetch_add(&(x), 1)
 #define ACACHE_LOAD(x)  atomic_load(&(x))
 #else
@@ -185,9 +187,15 @@ struct dns_acachestats {
 	unsigned int			queries;
 	unsigned int			misses;
 #if defined(ISC_PLATFORM_HAVEXADD)
+#define ACACHE_STATSLOCK(x) (void)0
+#define ACACHE_STATSUNLOCK(x) (void)0
 #define ACACHE_INC(x) isc_atomic_xadd((int32_t*)&(x), 1)
 #define ACACHE_LOAD(x) isc_atomic_xadd((int32_t*)&(x), 0)
 #else
+	isc_mutex_t			lock;
+#define ISC_HAVE_STATSLOCK
+#define ACACHE_STATSLOCK(l)	LOCK(l)
+#define ACACHE_STATSUNLOCK(l)	UNLOCK(l)
 #define ACACHE_INC(x) ((x)++)
 #define ACACHE_LOAD(x) (x)
 #endif
@@ -487,6 +495,10 @@ destroy(dns_acache_t *acache) {
 
 	DESTROYLOCK(&acache->cleaner.lock);
 
+#ifdef ISC_HAVE_STATSLOCK
+	DESTROYLOCK(&acache->stats.lock);
+#endif
+
 	DESTROYLOCK(&acache->lock);
 	acache->magic = 0;
 
@@ -724,6 +736,7 @@ end_cleaning(acache_cleaner_t *cleaner, isc_event_t *event) {
 	acache->stats.cleaned += cleaner->ncleaned;
 	acache->stats.cleaner_runs++;
 
+	ACACHE_STATSLOCK(&acache->stats.lock);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ACACHE,
 		      ISC_LOG_NOTICE,
 		      "acache %p stats: hits=%d misses=%d queries=%d "
@@ -739,6 +752,7 @@ end_cleaning(acache_cleaner_t *cleaner, isc_event_t *event) {
 		      acache->stats.overmem, acache->stats.overmem_nocreates,
 		      acache->stats.nomem);
 	reset_stats(acache);
+	ACACHE_STATSUNLOCK(&acache->stats.lock);
 
 	isc_stdtime_get(&cleaner->last_cleanup_time);
 
@@ -1105,6 +1119,17 @@ dns_acache_create(dns_acache_t **acachep, isc_mem_t *mctx,
 		return (result);
 	}
 
+#ifdef ISC_HAVE_STATSLOCK
+	result = isc_mutex_init(&acache->stats.lock);
+	if (result != ISC_R_SUCCESS) {
+		DESTROYLOCK(&acache->lock);
+		isc_refcount_decrement(&acache->refs, NULL);
+		isc_refcount_destroy(&acache->refs);
+		isc_mem_put(mctx, acache, sizeof(*acache));
+		return (result);
+	}
+#endif
+
 	acache->mctx = NULL;
 	isc_mem_attach(mctx, &acache->mctx);
 	ISC_LIST_INIT(acache->entries);
@@ -1167,6 +1192,9 @@ dns_acache_create(dns_acache_t **acachep, isc_mem_t *mctx,
  cleanup:
 	if (acache->task != NULL)
 		isc_task_detach(&acache->task);
+#ifdef ISC_HAVE_STATSLOCK
+	DESTROYLOCK(&acache->stats.lock);
+#endif
 	DESTROYLOCK(&acache->lock);
 	isc_refcount_decrement(&acache->refs, NULL);
 	isc_refcount_destroy(&acache->refs);
@@ -1197,8 +1225,10 @@ dns_acache_attach(dns_acache_t *source, dns_acache_t **targetp) {
 
 void
 dns_acache_countquerymiss(dns_acache_t *acache) {
+	ACACHE_STATSLOCK(&acache->stats.lock);
 	ACACHE_INC(acache->stats.misses);
 	ACACHE_INC(acache->stats.queries);
+	ACACHE_STATSUNLOCK(&acache->stats.lock);
 }
 
 void
@@ -1545,8 +1575,10 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 		}
 	}
 
+	ACACHE_STATSLOCK(&entry->acache->stats.lock);
 	ACACHE_INC(entry->acache->stats.hits);
 	ACACHE_INC(entry->acache->stats.queries);
+	ACACHE_STATSUNLOCK(&entry->acache->stats.lock);
 
 	ACACHE_UNLOCK(&acache->entrylocks[locknum], isc_rwlocktype_read);
 
