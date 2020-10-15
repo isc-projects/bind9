@@ -15,7 +15,7 @@ SYSTEMTESTTOP=..
 common_options="-D lwresd-lwresd1 -X lwresd.lock -m record,size,mctx -T clienttest -d 99 -g -U 4 -i lwresd.pid -P 9210 -p 5300"
 
 status=0
-echo "I:waiting for nameserver to load"
+echo_i "waiting for nameserver to load"
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	ret=0
@@ -29,10 +29,10 @@ do
 	test $ret = 0 && break
 	sleep 1
 done
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:using resolv.conf"
+echo_i "using resolv.conf"
 ret=0
 for i in 0 1 2 3 4 5 6 7 8 9
 do
@@ -41,7 +41,7 @@ do
 done
 $LWTEST || ret=1
 if [ $ret != 0 ]; then
-	echo "I:failed"
+	echo_i "failed"
 fi
 status=`expr $status + $ret`
 
@@ -51,7 +51,7 @@ mv lwresd1/lwresd.run lwresd1/lwresd.run.resolv
 
 $PERL $SYSTEMTESTTOP/start.pl --restart lwresd lwresd1 -- "-c lwresd.conf $common_options"
 
-echo "I:using lwresd.conf"
+echo_i "using lwresd.conf"
 ret=0
 for i in 0 1 2 3 4 5 6 7 8 9
 do
@@ -60,7 +60,7 @@ do
 done
 $LWTEST || ret=1
 if [ $ret != 0 ]; then
-	echo "I:failed"
+	echo_i "failed"
 fi
 status=`expr $status + $ret`
 
@@ -70,7 +70,7 @@ mv lwresd1/lwresd.run lwresd1/lwresd.run.lwresd
 
 $PERL $SYSTEMTESTTOP/start.pl --restart lwresd lwresd1 -- "-c nosearch.conf $common_options"
 
-echo "I:using nosearch.conf"
+echo_i "using nosearch.conf"
 ret=0
 for i in 0 1 2 3 4 5 6 7 8 9
 do
@@ -79,9 +79,9 @@ do
 done
 $LWTEST -nosearch || ret=1
 if [ $ret != 0 ]; then
-	echo "I:failed"
+	echo_i "failed"
 fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

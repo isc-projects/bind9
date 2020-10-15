@@ -17,7 +17,7 @@ $FEATURETEST --rpz-nsdname || ret=1
 $FEATURETEST --rpz-nsip || ret=1
 
 if [ $ret != 0 ]; then
-    echo "I:This test requires NSIP AND NSDNAME support in RPZ." >&2
+    echo_i "This test requires NSIP AND NSDNAME support in RPZ." >&2
     exit 1
 fi
 
@@ -27,6 +27,6 @@ if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
     :
 else
-    echo "I:This test requires the Net::DNS library." >&2
+    echo_i "This test requires the Net::DNS library." >&2
     exit 1
 fi

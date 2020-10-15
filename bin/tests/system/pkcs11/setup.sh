@@ -12,7 +12,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-echo "I:(Native PKCS#11)" >&2
+echo_i "(Native PKCS#11)" >&2
 ecxfail=0
 
 $SHELL ../testcrypto.sh -q eddsa || ecxfail=1

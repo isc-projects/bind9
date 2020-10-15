@@ -61,8 +61,8 @@ then
     rm -f Kfoo*
 else
     if test $quiet -eq 0; then
-        echo "I:This test requires support for $msg1" >&2
-        echo "I:configure with $msg2" >&2
+        echo_i "This test requires support for $msg1" >&2
+        echo_i "configure with $msg2" >&2
     fi
     exit 255
 fi

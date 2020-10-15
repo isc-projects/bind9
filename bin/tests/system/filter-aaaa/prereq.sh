@@ -13,7 +13,7 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 $FEATURETEST --enable-filter-aaaa || {
-    echo "I:This test requires --enable-filter-aaaa at compile time." >&2
+    echo_i "This test requires --enable-filter-aaaa at compile time." >&2
     exit 255
 }
 exit 0

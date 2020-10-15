@@ -12,5 +12,5 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-echo "I:(PKCS#11 via OpenSSL)" >&2
+echo_i "(PKCS#11 via OpenSSL)" >&2
 exec $SHELL ../testcrypto.sh rsa
