@@ -3861,7 +3861,7 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
  * the taillock every time ISC_QUEUE_POP is called.
  * Isolate ISC_QUEUE_POP from tsan analysis.
  */
-ISC_NO_SANITIZE_THREAD static ns_client_t *
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE ns_client_t *
 queue_pop(ns_clientmgr_t *manager)
 {
 	ns_client_t *client = NULL;

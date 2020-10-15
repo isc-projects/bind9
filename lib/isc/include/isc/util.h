@@ -227,9 +227,11 @@
 #endif
 
 #if __SANITIZE_THREAD__
-#define ISC_NO_SANITIZE_THREAD __attribute__((no_sanitize("thread")))
+#define ISC_NO_SANITIZE_THREAD __attribute__((no_sanitize("thread"))) __attribute__((noinline))
+#define ISC_NO_SANITIZE_INLINE
 #else /* if __SANITIZE_THREAD__ */
 #define ISC_NO_SANITIZE_THREAD
+#define ISC_NO_SANITIZE_INLINE inline
 #endif /* if __SANITIZE_THREAD__ */
 
 #ifdef UNIT_TESTING
