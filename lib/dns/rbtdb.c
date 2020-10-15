@@ -1041,6 +1041,18 @@ hexdump(const char *desc, unsigned char *data, size_t size) {
 #define DNS_RDATASET_COUNT 0
 #endif /* DNS_RDATASET_FIXED */
 
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE unsigned int
+get_init_count(void) {
+	unsigned int value = DNS_RBTDB_INC(init_count);
+	return (value);
+}
+
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE unsigned int
+get_header_count(rdatasetheader_t *header) {
+	unsigned int value = DNS_RBTDB_INC(header->count);
+	return (value);
+}
+
 /*
  * DB Routines
  */
@@ -3347,7 +3359,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	rdataset->private2 = node;
 	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
-	rdataset->count = DNS_RBTDB_INC(header->count);
+	rdataset->count = get_header_count(header);
 	if (rdataset->count == UINT32_MAX)
 		rdataset->count = 0;
 
@@ -6865,7 +6877,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		newheader->attributes |= RDATASET_ATTR_ZEROTTL;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = DNS_RBTDB_INC(init_count);
+	newheader->count = get_init_count();
 	newheader->trust = rdataset->trust;
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
@@ -7061,7 +7073,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->trust = 0;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = DNS_RBTDB_INC(init_count);
+	newheader->count = get_init_count();
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
 	newheader->last_used = 0;
@@ -7507,7 +7519,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->serial = 1;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = DNS_RBTDB_INC(init_count);
+	newheader->count = get_init_count();
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
 	newheader->last_used = 0;
