@@ -66,6 +66,6 @@ Bug Fixes
 - `named` would exit with assertion failure REQUIRE(msg->state == (-1)) in
   message.c due to a possible data race. [GL #2124]
 
-- `named` would start continous rollovers for policies that algorithms
+- `named` would start continuous rollovers for policies that algorithms
   Ed25519 or Ed448 due to a mismatch in created key size and expected key size.
   [GL #2171]
