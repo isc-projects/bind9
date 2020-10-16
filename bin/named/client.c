@@ -711,6 +711,19 @@ exit_check(ns_client_t *client) {
 			if (!ns_g_clienttest && manager != NULL &&
 			    !manager->exiting)
 			{
+				/*
+				 * We are placing client on manager->inactive
+				 * locklessly and it may be picked up by a
+				 * different thread leading to TSAN errors.
+				 * The LOCK/UNLOCK will cause outstanding
+				 * writes to the client structure to be
+				 * flushed.
+				 *
+				 * queue_pop() prevents TSAN errors from
+				 * changes made by ISC_QUEUE_PUSH.
+				 */
+				LOCK(&client->query.fetchlock);
+				UNLOCK(&client->query.fetchlock);
 				ISC_QUEUE_PUSH(manager->inactive, client,
 					       ilink);
 			}
