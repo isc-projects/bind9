@@ -178,6 +178,8 @@ typedef struct dns_dbmethods {
 				uint64_t *records, uint64_t *bytes);
 	isc_result_t (*setservestalettl)(dns_db_t *db, dns_ttl_t ttl);
 	isc_result_t (*getservestalettl)(dns_db_t *db, dns_ttl_t *ttl);
+	isc_result_t (*setservestalerefresh)(dns_db_t *db, uint32_t interval);
+	isc_result_t (*getservestalerefresh)(dns_db_t *db, uint32_t *interval);
 	isc_result_t (*setgluecachestats)(dns_db_t *db, isc_stats_t *stats);
 	isc_result_t (*adjusthashsize)(dns_db_t *db, size_t size);
 } dns_dbmethods_t;
@@ -238,6 +240,7 @@ struct dns_dbonupdatelistener {
 #define DNS_DBFIND_ADDITIONALOK 0x0100
 #define DNS_DBFIND_NOZONECUT	0x0200
 #define DNS_DBFIND_STALEOK	0x0400
+#define DNS_DBFIND_STALEENABLED 0x0800
 /*@}*/
 
 /*@{*/
@@ -1695,6 +1698,39 @@ dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl);
  * Requires:
  * \li	'db' is a valid cache database.
  * \li	'ttl' is the number of seconds to retain data past its normal expiry.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTIMPLEMENTED - Not supported by this DB implementation.
+ */
+
+isc_result_t
+dns_db_setservestalerefresh(dns_db_t *db, uint32_t interval);
+/*%<
+ * Sets the length of time to wait before attempting to refresh a rrset
+ * if a previous attempt in doing so has failed.
+ * During this time window if stale rrset are available in cache they
+ * will be directly returned to client.
+ *
+ * Requires:
+ * \li	'db' is a valid cache database.
+ * \li	'interval' is number of seconds before attempting to refresh data.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTIMPLEMENTED - Not supported by this DB implementation.
+ */
+
+isc_result_t
+dns_db_getservestalerefresh(dns_db_t *db, uint32_t *interval);
+/*%<
+ * Gets the length of time in which stale answers are directly returned from
+ * cache before attempting to refresh them, in case a previous attempt in
+ * doing so has failed.
+ *
+ * Requires:
+ * \li	'db' is a valid cache database.
+ * \li	'interval' is number of seconds before attempting to refresh data.
  *
  * Returns:
  * \li	#ISC_R_SUCCESS

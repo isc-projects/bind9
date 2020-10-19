@@ -1090,6 +1090,28 @@ dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl) {
 }
 
 isc_result_t
+dns_db_setservestalerefresh(dns_db_t *db, uint32_t interval) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
+
+	if (db->methods->setservestalerefresh != NULL) {
+		return ((db->methods->setservestalerefresh)(db, interval));
+	}
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dns_db_getservestalerefresh(dns_db_t *db, uint32_t *interval) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
+
+	if (db->methods->getservestalerefresh != NULL) {
+		return ((db->methods->getservestalerefresh)(db, interval));
+	}
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
 dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 	REQUIRE(dns_db_iszone(db));
 	REQUIRE(stats != NULL);
