@@ -529,6 +529,14 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking named-checkconf kasp nsec3 algorithm errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-nsec3-alg.conf > checkconf.out$n 2>&1 && ret=1
+grep "dnssec-policy: cannot use nsec3 with algorithm 'RSASHA1'" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking named-checkconf kasp key errors ($n)"
 ret=0
 $CHECKCONF kasp-bad-keylen.conf > checkconf.out$n 2>&1 && ret=1

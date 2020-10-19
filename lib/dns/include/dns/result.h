@@ -160,8 +160,9 @@
 #define DNS_R_KEYNOTACTIVE	(ISC_RESULTCLASS_DNS + 122)
 #define DNS_R_NSEC3ITERRANGE	(ISC_RESULTCLASS_DNS + 123)
 #define DNS_R_NSEC3BADSALT	(ISC_RESULTCLASS_DNS + 124)
+#define DNS_R_NSEC3BADALG	(ISC_RESULTCLASS_DNS + 125)
 
-#define DNS_R_NRESULTS 125 /*%< Number of results */
+#define DNS_R_NRESULTS 126 /*%< Number of results */
 
 /*
  * DNS wire format rcodes.
