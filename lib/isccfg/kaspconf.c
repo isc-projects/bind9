@@ -173,6 +173,7 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	const cfg_obj_t *obj = NULL;
 	const char *salt = NULL;
 	uint32_t iter = DEFAULT_NSEC3PARAM_ITER;
+	uint32_t badalg = 0;
 	bool optout = false;
 	isc_result_t ret = ISC_R_SUCCESS;
 
@@ -186,11 +187,31 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	     kkey = ISC_LIST_NEXT(kkey, link))
 	{
 		unsigned int keysize = dns_kasp_key_size(kkey);
+		uint32_t keyalg = dns_kasp_key_algorithm(kkey);
+
 		if (keysize < min_keysize) {
 			min_keysize = keysize;
 		}
+
+		/* NSEC3 cannot be used with certain key algorithms. */
+		if (keyalg == DNS_KEYALG_RSAMD5 || keyalg == DNS_KEYALG_DH ||
+		    keyalg == DNS_KEYALG_DSA || keyalg == DNS_KEYALG_RSASHA1)
+		{
+			badalg = keyalg;
+		}
 	}
 	dns_kasp_thaw(kasp);
+
+	if (badalg > 0) {
+		char algstr[DNS_SECALG_FORMATSIZE];
+		dns_secalg_format((dns_secalg_t)badalg, algstr, sizeof(algstr));
+		cfg_obj_log(
+			obj, logctx, ISC_LOG_ERROR,
+			"dnssec-policy: cannot use nsec3 with algorithm '%s'",
+			algstr);
+		return (DNS_R_NSEC3BADALG);
+	}
+
 	/* See RFC 5155 Section 10.3 for iteration limits. */
 	if (min_keysize <= 1024 && iter > 150) {
 		ret = DNS_R_NSEC3ITERRANGE;
