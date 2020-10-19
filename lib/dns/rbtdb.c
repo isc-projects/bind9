@@ -205,6 +205,7 @@ typedef struct rdatasetheader {
 	rbtdb_rdatatype_t type;
 	atomic_uint_least16_t attributes;
 	dns_trust_t trust;
+	isc_stdtime_t last_refresh_fail_ts;
 	struct noqname *noqname;
 	struct noqname *closest;
 	unsigned int is_mmapped : 1;
@@ -487,6 +488,13 @@ struct dns_rbtdb {
 	 * normal TTL expiry.
 	 */
 	dns_ttl_t serve_stale_ttl;
+
+	/*
+	 * The time after a failed lookup, where stale answers from cache
+	 * may be used directly in a DNS response without attempting a
+	 * new iterative lookup.
+	 */
+	uint32_t serve_stale_refresh;
 
 	/*
 	 * This is a linked list used to implement the LRU cache.  There will
@@ -4547,6 +4555,27 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 		    stale > search->now) {
 			mark_header_stale(search->rbtdb, header);
 			*header_prev = header;
+			/*
+			 * If DNS_DBFIND_STALEOK is set then it means we failed
+			 * to resolve the name during recursion, in this case we
+			 * mark the time in which the refresh failed.
+			 */
+			if ((search->options & DNS_DBFIND_STALEOK) != 0) {
+				header->last_refresh_fail_ts = search->now;
+			} else if ((search->options &
+				    DNS_DBFIND_STALEENABLED) != 0 &&
+				   search->now <
+					   (header->last_refresh_fail_ts +
+					    search->rbtdb->serve_stale_refresh))
+			{
+				/*
+				 * If we are within interval between last
+				 * refresh failure time + 'stale-refresh-time',
+				 * then don't skip this stale entry but use it
+				 * instead.
+				 */
+				return (false);
+			}
 			return ((search->options & DNS_DBFIND_STALEOK) == 0);
 		}
 
@@ -8379,6 +8408,29 @@ getservestalettl(dns_db_t *db, dns_ttl_t *ttl) {
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
+setservestalerefresh(dns_db_t *db, uint32_t interval) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(IS_CACHE(rbtdb));
+
+	/* currently no bounds checking.  0 means disable. */
+	rbtdb->serve_stale_refresh = interval;
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+getservestalerefresh(dns_db_t *db, uint32_t *interval) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(IS_CACHE(rbtdb));
+
+	*interval = rbtdb->serve_stale_refresh;
+	return (ISC_R_SUCCESS);
+}
+
 static dns_dbmethods_t zone_methods = { attach,
 					detach,
 					beginload,
@@ -8426,6 +8478,8 @@ static dns_dbmethods_t zone_methods = { attach,
 					getsize,
 					NULL, /* setservestalettl */
 					NULL, /* getservestalettl */
+					NULL, /* setservestalerefresh */
+					NULL, /* getservestalerefresh */
 					setgluecachestats,
 					adjusthashsize };
 
@@ -8476,6 +8530,8 @@ static dns_dbmethods_t cache_methods = { attach,
 					 NULL, /* getsize */
 					 setservestalettl,
 					 getservestalettl,
+					 setservestalerefresh,
+					 getservestalerefresh,
 					 NULL,
 					 adjusthashsize };
 

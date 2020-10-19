@@ -999,6 +999,13 @@ dns_cache_getservestalettl(dns_cache_t *cache) {
 	return (result == ISC_R_SUCCESS ? ttl : 0);
 }
 
+void
+dns_cache_setservestalerefresh(dns_cache_t *cache, uint32_t interval) {
+	REQUIRE(VALID_CACHE(cache));
+
+	(void)dns_db_setservestalerefresh(cache->db, interval);
+}
+
 /*
  * The cleaner task is shutting down; do the necessary cleanup.
  */
