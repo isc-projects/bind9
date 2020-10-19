@@ -42,12 +42,12 @@ offer support on a "best effort" basis for some.
 
 ### Regularly tested platforms
 
-As of Jul 2020, BIND 9.17 is fully supported and regularly tested on the
+As of Nov 2020, BIND 9.17 is fully supported and regularly tested on the
 following systems:
 
 * Debian 9, 10
 * Ubuntu LTS 16.04, 20.04
-* Fedora 32
+* Fedora 33
 * Red Hat Enterprise Linux / CentOS 7, 8
 * FreeBSD 11.4, 12.1
 * OpenBSD 6.7
