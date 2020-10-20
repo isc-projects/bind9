@@ -776,7 +776,7 @@ AC_CHECK_FUNCS([TLS_server_method TLS_client_method])
 # FIPS is not included in pairwise testing as the relevant Docker image
 # does not support FIPS mode.
 #
-# [pairwise: skip]
+# [pairwise: --enable-fips-mode, --disable-fips-mode]
 AC_ARG_ENABLE([fips-mode],
 	      [AS_HELP_STRING([--enable-fips-mode],
 			      [enable FIPS mode in OpenSSL library [default=no]])],
