@@ -36,6 +36,11 @@ feature_test_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
 	$(LIBDNS_CFLAGS)
 
+feature_test_LDADD =		\
+	$(LDADD)		\
+	$(LIBDNS_LIBS)		\
+	$(OPENSSL_LIBS)
+
 makejournal_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
 	$(LIBDNS_CFLAGS)

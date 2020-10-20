@@ -17,6 +17,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <isc/fips.h>
 #include <isc/md.h>
 #include <isc/net.h>
 #include <isc/util.h>
@@ -33,6 +34,7 @@ usage(void) {
 	fprintf(stderr, "\t--enable-querytrace\n");
 	fprintf(stderr, "\t--gethostname\n");
 	fprintf(stderr, "\t--gssapi\n");
+	fprintf(stderr, "\t--have-fips-mode\n");
 	fprintf(stderr, "\t--have-geoip2\n");
 	fprintf(stderr, "\t--have-json-c\n");
 	fprintf(stderr, "\t--have-libxml2\n");
@@ -105,6 +107,14 @@ main(int argc, char **argv) {
 #else  /* HAVE_GSSAPI */
 		return (1);
 #endif /* HAVE_GSSAPI */
+	}
+
+	if (strcmp(argv[1], "--have-fips-mode") == 0) {
+#if defined(ENABLE_FIPS_MODE)
+		return (0);
+#else
+		return (isc_fips_mode() ? 0 : 1);
+#endif
 	}
 
 	if (strcmp(argv[1], "--have-geoip2") == 0) {
