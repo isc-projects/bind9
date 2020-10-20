@@ -135,12 +135,15 @@ isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 	if (r != 0) {
 		/* We need to issue callbacks ourselves */
 		tcp_connect_cb(&req->uv_req.connect, r);
-		goto done;
+		LOCK(&sock->lock);
+		SIGNAL(&sock->cond);
+		UNLOCK(&sock->lock);
+		isc__nmsocket_detach(&sock);
+		return;
 	}
 
 	atomic_store(&sock->connected, true);
 
-done:
 	LOCK(&sock->lock);
 	SIGNAL(&sock->cond);
 	UNLOCK(&sock->lock);
@@ -161,6 +164,7 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	if (status != 0) {
 		req->cb.connect(NULL, isc__nm_uverr2result(status), req->cbarg);
 		isc__nm_uvreq_put(&req, sock);
+		isc__nmsocket_detach(&sock);
 		return;
 	}
 
@@ -243,7 +247,6 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 
 	if (nsock->result != ISC_R_SUCCESS) {
 		result = nsock->result;
-		isc__nmsocket_detach(&nsock);
 	}
 
 	isc__nmsocket_detach(&tmp);
