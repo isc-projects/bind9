@@ -471,6 +471,10 @@ grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+# keep track of time so we can access these rrset later,
+# when we expect them to become ancient.
+t1=`$PERL -e 'print time()'`
+
 n=$((n+1))
 echo_i "prime cache othertype.example (low max-stale-ttl) ($n)"
 ret=0
@@ -593,6 +597,20 @@ grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
+
+# retrieve max-stale-ttl value,
+interval_to_ancient=`grep 'max-stale-ttl' ns1/named2.conf.in  | awk '{ print $2 }' | tr -d ';'`
+# we add 2 seconds to it since this is the ttl value of the records being tested.
+interval_to_ancient=$((interval_to_ancient + 2))
+t2=`$PERL -e 'print time()'`
+elapsed=$((t2 - t1))
+
+# if elapsed time so far is less than max-stale-ttl + 2 seconds,
+# then we sleep enough to ensure that we'll ask for ancient rrsets
+# in the next queries.
+if [ $elapsed -lt $interval_to_ancient ]; then
+    sleep $((interval_to_ancient - elapsed))
+fi
 
 echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
