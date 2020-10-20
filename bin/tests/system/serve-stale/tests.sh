@@ -12,15 +12,6 @@
 . ../conf.sh
 
 RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
-
-# wait up to 11 seconds to ensure that a file has been written
-waitfile () {
-    for try in 0 1 2 3 4 5 6 7 8 9 10; do
-        [ -s "$1" ] && break
-        sleep 1
-    done
-}
-
 DIG="$DIG +time=11"
 
 max_stale_ttl=$(sed -ne 's,^[[:space:]]*max-stale-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/named/config.c)
@@ -120,11 +111,7 @@ $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check stale data.example ($n)"
@@ -215,11 +202,7 @@ $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check stale data.example (serve-stale off) ($n)"
@@ -270,11 +253,7 @@ $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check stale data.example (serve-stale on) ($n)"
@@ -340,11 +319,7 @@ $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check stale data.example (serve-stale reset) ($n)"
@@ -536,11 +511,7 @@ $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check stale data.example (low max-stale-ttl) ($n)"
@@ -618,11 +589,7 @@ $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check ancient data.example (low max-stale-ttl) ($n)"
@@ -735,10 +702,7 @@ status=$((status+ret))
 
 # Step 7.
 echo_i "sending query for test $((n+1))"
-$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
-
-# ensure the file has been written before proceeding
-waitfile dig.out.test$((n+1))
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1))
 
 # Step 8.
 n=$((n+1))
@@ -855,11 +819,7 @@ $DIG -p ${PORT} @10.53.0.3 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check fail of data.example (max-stale-ttl default) ($n)"
@@ -936,11 +896,7 @@ $DIG -p ${PORT} @10.53.0.3 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check data.example (max-stale-ttl default) ($n)"
@@ -1083,11 +1039,7 @@ $DIG -p ${PORT} @10.53.0.4 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.4 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.4 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check fail of data.example (serve-stale answers disabled) ($n)"
@@ -1293,11 +1245,7 @@ $DIG -p ${PORT} @10.53.0.5 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.5 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.5 nxdomain.example TXT > dig.out.test$((n+4))
 
-# ensure all files have been written before proceeding
-waitfile dig.out.test$((n+1))
-waitfile dig.out.test$((n+2))
-waitfile dig.out.test$((n+3))
-waitfile dig.out.test$((n+4))
+wait
 
 n=$((n+1))
 echo_i "check fail of data.example (serve-stale cache disabled) ($n)"
