@@ -67,3 +67,6 @@ Bug Fixes
 - `named` would start continous rollovers for policies that algorithms
   Ed25519 or Ed448 due to a mismatch in created key size and expected key size.
   [GL #2171]
+
+- Handle `UV_EOF` differently such that it is not treated as a `TCP4RecvErr` or
+  `TCP6RecvErr`. [GL #2208]

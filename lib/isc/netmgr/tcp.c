@@ -803,8 +803,10 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	 * This might happen if the inner socket is closing.  It means that
 	 * it's detached, so the socket will be closed.
 	 */
-	if (cb != NULL) {
+	if (nread != UV_EOF) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_RECVFAIL]);
+	}
+	if (cb != NULL) {
 		isc__nmsocket_clearcb(sock);
 		cb(sock->statichandle, ISC_R_EOF, NULL, cbarg);
 	}
