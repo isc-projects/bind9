@@ -1092,6 +1092,11 @@ tcp_close_cb(uv_handle_t *uvhandle) {
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CLOSE]);
 	atomic_store(&sock->closed, true);
 	atomic_store(&sock->connected, false);
+
+	if (sock->server != NULL) {
+		isc__nmsocket_detach(&sock->server);
+	}
+
 	isc__nmsocket_prep_destroy(sock);
 }
 
@@ -1101,9 +1106,6 @@ timer_close_cb(uv_handle_t *uvhandle) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 
-	if (sock->server != NULL) {
-		isc__nmsocket_detach(&sock->server);
-	}
 	uv_close(&sock->uv_handle.handle, tcp_close_cb);
 }
 
@@ -1123,9 +1125,6 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		uv_timer_stop(&sock->timer);
 		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 	} else {
-		if (sock->server != NULL) {
-			isc__nmsocket_detach(&sock->server);
-		}
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
 	}
 }
