@@ -197,6 +197,9 @@ dl_load_symbol(dlopen_data_t *cd, const char *symbol, bool mandatory) {
 	return (ptr);
 }
 
+static void
+dlopen_dlz_destroy(void *driverarg, void *dbdata);
+
 /*
  * Called at startup for each dlopen zone in named.conf
  */
@@ -324,15 +327,8 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 failed:
 	dlopen_log(ISC_LOG_ERROR, "dlz_dlopen of '%s' failed", dlzname);
 
-	isc_mem_free(mctx, cd->dl_path);
-	isc_mem_free(mctx, cd->dlzname);
+	dlopen_dlz_destroy(NULL, cd);
 
-	isc_mutex_destroy(&cd->lock);
-	if (cd->dl_handle) {
-		(void)lt_dlclose(cd->dl_handle);
-	}
-	isc_mem_put(mctx, cd, sizeof(*cd));
-	isc_mem_destroy(&mctx);
 	return (result);
 }
 
@@ -342,7 +338,6 @@ failed:
 static void
 dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 	dlopen_data_t *cd = (dlopen_data_t *)dbdata;
-	isc_mem_t *mctx;
 
 	UNUSED(driverarg);
 
@@ -352,22 +347,13 @@ dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 		MAYBE_UNLOCK(cd);
 	}
 
-	if (cd->dl_path) {
-		isc_mem_free(cd->mctx, cd->dl_path);
-	}
-	if (cd->dlzname) {
-		isc_mem_free(cd->mctx, cd->dlzname);
-	}
-
 	if (cd->dl_handle) {
 		lt_dlclose(cd->dl_handle);
 	}
-
 	isc_mutex_destroy(&cd->lock);
-
-	mctx = cd->mctx;
-	isc_mem_put(mctx, cd, sizeof(*cd));
-	isc_mem_destroy(&mctx);
+	isc_mem_free(cd->mctx, cd->dl_path);
+	isc_mem_free(cd->mctx, cd->dlzname);
+	isc_mem_putanddetach(&cd->mctx, cd, sizeof(*cd));
 }
 
 /*
