@@ -93,9 +93,3 @@ LIBBIND9_CFLAGS = \
 
 LIBBIND9_LIBS = \
 	$(top_builddir)/lib/bind9/libbind9.la
-
-LIBLTDL_CFLAGS = \
-	-I$(top_srcdir)/libltdl
-
-LIBLTDL_LIBS = \
-	$(top_builddir)/libltdl/libltdlc.la

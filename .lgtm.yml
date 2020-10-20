@@ -29,7 +29,6 @@ path_classifiers:
     - "**/*.5"
     - "**/*.8"
 queries:
-  - exclude: libltdl/
   - exclude: fuzz/
   - exclude: "bin/tests/system/*/ans*/*.py"
   - exclude: cpp/use-of-goto

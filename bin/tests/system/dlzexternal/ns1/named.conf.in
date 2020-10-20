@@ -35,29 +35,29 @@ controls {
 };
 
 dlz "example one" {
-	database "dlopen ../driver/dlzexternal.la example.nil";
+	database "dlopen ../driver/.libs/dlzexternal.so example.nil";
 };
 
 dlz "example two" {
-	database "dlopen ../driver/dlzexternal.la alternate.nil";
+	database "dlopen ../driver/.libs/dlzexternal.so alternate.nil";
 };
 
 dlz "example three" {
-	database "dlopen ../driver/dlzexternal.la example.org";
+	database "dlopen ../driver/.libs/dlzexternal.so example.org";
 };
 
 dlz "unsearched1" {
-	database "dlopen ../driver/dlzexternal.la other.nil";
+	database "dlopen ../driver/.libs/dlzexternal.so other.nil";
 	search no;
 };
 
 dlz "unsearched2" {
-	database "dlopen ../driver/dlzexternal.la zone.nil";
+	database "dlopen ../driver/.libs/dlzexternal.so zone.nil";
 	search no;
 };
 
 dlz redzone {
-	database "dlopen ../driver/dlzexternal.la .";
+	database "dlopen ../driver/.libs/dlzexternal.so .";
 	search no;
 };
 

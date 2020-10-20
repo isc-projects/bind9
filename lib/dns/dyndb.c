@@ -9,8 +9,8 @@
  * information regarding copyright ownership.
  */
 
-#include <ltdl.h>
 #include <string.h>
+#include <uv.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -38,7 +38,7 @@
 typedef struct dyndb_implementation dyndb_implementation_t;
 struct dyndb_implementation {
 	isc_mem_t *mctx;
-	void *handle;
+	uv_lib_t handle;
 	dns_dyndb_register_t *register_func;
 	dns_dyndb_destroy_t *destroy_func;
 	char *name;
@@ -79,16 +79,17 @@ impfind(const char *name) {
 }
 
 static isc_result_t
-load_symbol(lt_dlhandle handle, const char *filename, const char *symbol_name,
+load_symbol(uv_lib_t *handle, const char *filename, const char *symbol_name,
 	    void **symbolp) {
 	void *symbol;
+	int r;
 
 	REQUIRE(handle != NULL);
 	REQUIRE(symbolp != NULL && *symbolp == NULL);
 
-	symbol = lt_dlsym(handle, symbol_name);
-	if (symbol == NULL) {
-		const char *errmsg = lt_dlerror();
+	r = uv_dlsym(handle, symbol_name, &symbol);
+	if (r != 0) {
+		const char *errmsg = uv_dlerror(handle);
 		if (errmsg == NULL) {
 			errmsg = "returned function pointer is NULL";
 		}
@@ -115,6 +116,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 	dyndb_implementation_t *imp = NULL;
 	dns_dyndb_version_t *version_func = NULL;
 	int version;
+	int r;
 
 	REQUIRE(impp != NULL && *impp == NULL);
 
@@ -130,13 +132,9 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 
 	INIT_LINK(imp, link);
 
-	if (lt_dlinit() != 0) {
-		CHECK(ISC_R_FAILURE);
-	}
-
-	imp->handle = lt_dlopen(filename);
-	if (imp->handle == NULL) {
-		const char *errmsg = lt_dlerror();
+	r = uv_dlopen(filename, &imp->handle);
+	if (r != 0) {
+		const char *errmsg = uv_dlerror(&imp->handle);
 		if (errmsg == NULL) {
 			errmsg = "unknown error";
 		}
@@ -148,7 +146,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 		CHECK(ISC_R_FAILURE);
 	}
 
-	CHECK(load_symbol(imp->handle, filename, "dyndb_version",
+	CHECK(load_symbol(&imp->handle, filename, "dyndb_version",
 			  (void **)&version_func));
 
 	version = version_func(NULL);
@@ -162,9 +160,9 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 		CHECK(ISC_R_FAILURE);
 	}
 
-	CHECK(load_symbol(imp->handle, filename, "dyndb_init",
+	CHECK(load_symbol(&imp->handle, filename, "dyndb_init",
 			  (void **)&imp->register_func));
-	CHECK(load_symbol(imp->handle, filename, "dyndb_destroy",
+	CHECK(load_symbol(&imp->handle, filename, "dyndb_destroy",
 			  (void **)&imp->destroy_func));
 
 	*impp = imp;
@@ -196,9 +194,7 @@ unload_library(dyndb_implementation_t **impp) {
 	 * This is a resource leak, but there is nothing we can currently do
 	 * about it due to how configuration loading/reloading is designed.
 	 */
-	if (imp->handle != NULL) {
-		(void)lt_dlclose(imp->handle);
-	}
+	/* uv_dlclose(&imp->handle); */
 	isc_mem_free(imp->mctx, imp->name);
 	isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
 }

@@ -10,11 +10,11 @@
  */
 
 #include <inttypes.h>
-#include <ltdl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <uv.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -34,7 +34,7 @@ typedef struct dlopen_data {
 	isc_mem_t *mctx;
 	char *dl_path;
 	char *dlzname;
-	void *dl_handle;
+	uv_lib_t dl_handle;
 	void *dbdata;
 	unsigned int flags;
 	isc_mutex_t lock;
@@ -180,9 +180,10 @@ dlopen_dlz_lookup(const char *zone, const char *name, void *driverarg,
  */
 static void *
 dl_load_symbol(dlopen_data_t *cd, const char *symbol, bool mandatory) {
-	void *ptr = lt_dlsym((lt_dlhandle)cd->dl_handle, symbol);
-	if (ptr == NULL) {
-		const char *errmsg = lt_dlerror();
+	void *ptr = NULL;
+	int r = uv_dlsym(&cd->dl_handle, symbol, &ptr);
+	if (r != 0) {
+		const char *errmsg = uv_dlerror(&cd->dl_handle);
 		if (errmsg == NULL) {
 			errmsg = "returned function pointer is NULL";
 		}
@@ -209,6 +210,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	dlopen_data_t *cd;
 	isc_mem_t *mctx = NULL;
 	isc_result_t result = ISC_R_FAILURE;
+	int r;
 
 	UNUSED(driverarg);
 
@@ -217,10 +219,6 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 			   "dlz_dlopen driver for '%s' needs a path to "
 			   "the shared library",
 			   dlzname);
-		return (ISC_R_FAILURE);
-	}
-
-	if (lt_dlinit() != 0) {
 		return (ISC_R_FAILURE);
 	}
 
@@ -236,9 +234,9 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* Initialize the lock */
 	isc_mutex_init(&cd->lock);
 
-	cd->dl_handle = lt_dlopenext(cd->dl_path);
-	if (cd->dl_handle == NULL) {
-		const char *errmsg = lt_dlerror();
+	r = uv_dlopen(cd->dl_path, &cd->dl_handle);
+	if (r != 0) {
+		const char *errmsg = uv_dlerror(&cd->dl_handle);
 		if (errmsg == NULL) {
 			errmsg = "unknown error";
 		}
@@ -347,9 +345,7 @@ dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 		MAYBE_UNLOCK(cd);
 	}
 
-	if (cd->dl_handle) {
-		lt_dlclose(cd->dl_handle);
-	}
+	uv_dlclose(&cd->dl_handle);
 	isc_mutex_destroy(&cd->lock);
 	isc_mem_free(cd->mctx, cd->dl_path);
 	isc_mem_free(cd->mctx, cd->dlzname);

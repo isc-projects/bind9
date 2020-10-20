@@ -41,14 +41,15 @@ libns_la_SOURCES =		\
 
 libns_la_CPPFLAGS =				\
 	$(AM_CPPFLAGS)				\
-	$(LIBISC_CFLAGS)			\
 	$(LIBDNS_CFLAGS)			\
+	$(LIBISC_CFLAGS)			\
 	$(LIBNS_CFLAGS)				\
-	$(LIBLTDL_CFLAGS)
+	$(LIBUV_CFLAGS)
 
 libns_la_LIBADD =	\
+	$(LIBDNS_LIBS)	\
 	$(LIBISC_LIBS)	\
-	$(LIBDNS_LIBS)
+	$(LIBUV_LIBS)
 
 libns_la_LDFLAGS =		\
 	$(AM_LDFLAGS)		\
