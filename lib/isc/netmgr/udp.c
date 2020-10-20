@@ -473,9 +473,14 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	if (isc_nm_tid() == rsock->tid) {
 		/*
 		 * If we're in the same thread as the socket we can send the
-		 * data directly
+		 * data directly, but we need to emulate returning the error via
+		 * the callback, not directly to keep the API.
 		 */
-		return (udp_send_direct(rsock, uvreq, peer));
+		isc_result_t result = udp_send_direct(rsock, uvreq, peer);
+		if (result != ISC_R_SUCCESS) {
+			uvreq->cb.send(uvreq->handle, result, uvreq->cbarg);
+			isc__nm_uvreq_put(&uvreq, sock);
+		}
 	} else {
 		/*
 		 * We need to create an event and pass it using async channel
@@ -487,8 +492,9 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 
 		isc__nm_enqueue_ievent(&sock->mgr->workers[rsock->tid],
 				       (isc__netievent_t *)ievent);
-		return (ISC_R_SUCCESS);
 	}
+
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -496,16 +502,19 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
  */
 void
 isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc_result_t result;
 	isc__netievent_udpsend_t *ievent = (isc__netievent_udpsend_t *)ev0;
+	isc_nmsocket_t *sock = ievent->sock;
+	isc__nm_uvreq_t *uvreq = ievent->req;
 
-	REQUIRE(worker->id == ievent->sock->tid);
+	REQUIRE(sock->type == isc_nm_udpsocket);
+	REQUIRE(worker->id == sock->tid);
 
-	if (isc__nmsocket_active(ievent->sock)) {
-		udp_send_direct(ievent->sock, ievent->req, &ievent->peer);
-	} else {
-		ievent->req->cb.send(ievent->req->handle, ISC_R_CANCELED,
-				     ievent->req->cbarg);
-		isc__nm_uvreq_put(&ievent->req, ievent->req->sock);
+	result = udp_send_direct(sock, uvreq, &ievent->peer);
+	if (result != ISC_R_SUCCESS) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
+		uvreq->cb.send(uvreq->handle, result, uvreq->cbarg);
+		isc__nm_uvreq_put(&uvreq, sock);
 	}
 }
 
@@ -513,14 +522,14 @@ static void
 udp_send_cb(uv_udp_send_t *req, int status) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc__nm_uvreq_t *uvreq = (isc__nm_uvreq_t *)req->data;
+	isc_nmsocket_t *sock = uvreq->sock;
 
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
 	if (status < 0) {
 		result = isc__nm_uverr2result(status);
-		isc__nm_incstats(uvreq->sock->mgr,
-				 uvreq->sock->statsindex[STATID_SENDFAIL]);
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
 	}
 
 	uvreq->cb.send(uvreq->handle, result, uvreq->cbarg);
@@ -535,8 +544,10 @@ static isc_result_t
 udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 		isc_sockaddr_t *peer) {
 	const struct sockaddr *sa = NULL;
-	int rv;
+	int r;
 
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_udpsocket);
 
@@ -545,12 +556,10 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	}
 
 	sa = atomic_load(&sock->connected) ? NULL : &peer->type.sa;
-	rv = uv_udp_send(&req->uv_req.udp_send, &sock->uv_handle.udp,
-			 &req->uvbuf, 1, sa, udp_send_cb);
-	if (rv < 0) {
-		isc__nm_incstats(req->sock->mgr,
-				 req->sock->statsindex[STATID_SENDFAIL]);
-		return (isc__nm_uverr2result(rv));
+	r = uv_udp_send(&req->uv_req.udp_send, &sock->uv_handle.udp,
+			&req->uvbuf, 1, sa, udp_send_cb);
+	if (r < 0) {
+		return (isc__nm_uverr2result(r));
 	}
 
 	return (ISC_R_SUCCESS);
