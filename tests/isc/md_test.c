@@ -17,13 +17,14 @@
 #include <stddef.h>
 #include <string.h>
 
-/* For FIPS_mode() */
+/* Needs to be included before <cmocka.h> */
 #include <openssl/crypto.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
 
 #include <isc/buffer.h>
+#include <isc/fips.h>
 #include <isc/hex.h>
 #include <isc/md.h>
 #include <isc/region.h>
@@ -117,8 +118,10 @@ ISC_RUN_TEST_IMPL(isc_md_init) {
 
 	assert_int_equal(isc_md_init(md, NULL), ISC_R_NOTIMPLEMENTED);
 
-	assert_int_equal(isc_md_init(md, ISC_MD_MD5), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
+	if (!isc_fips_mode()) {
+		assert_int_equal(isc_md_init(md, ISC_MD_MD5), ISC_R_SUCCESS);
+		assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
+	}
 
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA1), ISC_R_SUCCESS);
 	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
@@ -193,6 +196,12 @@ ISC_RUN_TEST_IMPL(isc_md_final) {
 
 ISC_RUN_TEST_IMPL(isc_md_md5) {
 	isc_md_t *md = *state;
+
+	if (isc_fips_mode()) {
+		skip();
+		return;
+	}
+
 	isc_md_test(md, ISC_MD_MD5, NULL, 0, NULL, 0);
 	isc_md_test(md, ISC_MD_MD5, TEST_INPUT(""),
 		    "D41D8CD98F00B204E9800998ECF8427E", 1);
