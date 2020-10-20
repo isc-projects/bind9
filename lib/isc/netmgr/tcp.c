@@ -1115,6 +1115,9 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 	if (sock->quota != NULL) {
 		isc_quota_detach(&sock->quota);
 	}
+
+	uv_read_stop((uv_stream_t *)&sock->uv_handle.handle);
+
 	if (sock->timer_initialized) {
 		sock->timer_initialized = false;
 		uv_timer_stop(&sock->timer);
