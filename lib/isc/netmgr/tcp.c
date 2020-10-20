@@ -16,6 +16,7 @@
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
+#include <isc/errno.h>
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -933,7 +934,9 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	if (r != 0) {
 		result = isc__nm_uverr2result(r);
 		uv_close((uv_handle_t *)uvstream, free_uvtcpt);
-		isc_quota_detach(&quota);
+		if (quota != NULL) {
+			isc_quota_detach(&quota);
+		}
 		return (result);
 	}
 
@@ -942,6 +945,17 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	event = isc__nm_get_ievent(ssock->mgr, netievent_tcpchildaccept);
 
 	/* Duplicate the server socket */
+	r = isc_uv_export((uv_stream_t *)uvstream, &event->streaminfo);
+	if (r != 0) {
+		result = isc_errno_toresult(errno);
+		uv_close((uv_handle_t *)uvstream, free_uvtcpt);
+		if (quota != NULL) {
+			isc_quota_detach(&quota);
+		}
+		isc__nm_put_ievent(ssock->mgr, event);
+		return (result);
+	}
+
 	isc_nmsocket_t *csock = isc_mem_get(ssock->mgr->mctx,
 					    sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(csock, ssock->mgr, isc_nm_tcpsocket, ssock->iface);
@@ -953,9 +967,6 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	event->sock = csock;
 	event->quota = quota;
-
-	r = isc_uv_export((uv_stream_t *)uvstream, &event->streaminfo);
-	RUNTIME_CHECK(r == 0);
 
 	uv_close((uv_handle_t *)uvstream, free_uvtcpt);
 
