@@ -245,14 +245,7 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isc_nmhandle_detach(&conn->sendhandle);
 
-	result = isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage,
-					 conn);
-	if (result != ISC_R_SUCCESS) {
-		conn->reading = false;
-		isc_nmhandle_detach(&conn->readhandle);
-		return;
-	}
-
+	isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage, conn);
 	return;
 
 cleanup_sendhandle:
@@ -363,11 +356,7 @@ control_respond(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isc_nmhandle_detach(&conn->cmdhandle);
 
-	result = isc_nm_send(conn->sendhandle, &r, control_senddone, conn);
-	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&conn->sendhandle);
-		conn->sending = false;
-	}
+	isc_nm_send(conn->sendhandle, &r, control_senddone, conn);
 
 	return;
 
@@ -596,10 +585,9 @@ conn_put(void *arg) {
 	maybe_free_listener(listener);
 }
 
-static isc_result_t
+static void
 newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 	controlconnection_t *conn = NULL;
-	isc_result_t result;
 
 	conn = isc_nmhandle_getdata(handle);
 	if (conn == NULL) {
@@ -627,26 +615,7 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 	isc_nmhandle_attach(handle, &conn->readhandle);
 	conn->reading = true;
 
-	result = isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage,
-					 conn);
-	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&conn->readhandle);
-		conn->reading = false;
-		goto cleanup;
-	}
-
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	/*
-	 * conn_reset() handles the cleanup.
-	 */
-#ifdef ENABLE_AFL
-	if (named_g_fuzz_type == isc_fuzz_rndc) {
-		named_fuzz_notify();
-	}
-#endif /* ifdef ENABLE_AFL */
-	return (result);
+	isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage, conn);
 }
 
 static isc_result_t
@@ -672,17 +641,7 @@ control_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		return (ISC_R_FAILURE);
 	}
 
-	result = newconnection(listener, handle);
-	if (result != ISC_R_SUCCESS) {
-		char socktext[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
-			      "dropped command channel from %s: %s", socktext,
-			      isc_result_totext(result));
-		return (result);
-	}
-
+	newconnection(listener, handle);
 	return (ISC_R_SUCCESS);
 }
 

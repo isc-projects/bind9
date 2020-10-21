@@ -87,7 +87,7 @@ isccc_ccmsg_setmaxsize(isccc_ccmsg_t *ccmsg, unsigned int maxsize);
  *\li	512 <= "maxsize" <= 4294967296
  */
 
-isc_result_t
+void
 isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_nm_cb_t cb, void *cbarg);
 /*%
  * Schedule an event to be delivered when a command channel message is
@@ -96,11 +96,6 @@ isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_nm_cb_t cb, void *cbarg);
  * Requires:
  *
  *\li	"ccmsg" be valid.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS		-- no error
- *\li	Anything that the isc_nm_read() call can return.
  *
  * Notes:
  *

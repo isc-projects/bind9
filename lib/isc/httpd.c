@@ -623,9 +623,8 @@ httpd_put(void *arg) {
 #endif /* ENABLE_AFL */
 }
 
-static isc_result_t
+static void
 new_httpd(isc_httpdmgr_t *httpdmgr, isc_nmhandle_t *handle) {
-	isc_result_t result;
 	isc_httpd_t *httpd = NULL;
 	char *headerdata = NULL;
 
@@ -668,12 +667,7 @@ new_httpd(isc_httpdmgr_t *httpdmgr, isc_nmhandle_t *handle) {
 	UNLOCK(&httpdmgr->lock);
 
 	isc_nmhandle_attach(handle, &httpd->readhandle);
-	result = isc_nm_read(handle, httpd_request, httpdmgr);
-	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&httpd->readhandle);
-	}
-
-	return (result);
+	isc_nm_read(handle, httpd_request, httpdmgr);
 }
 
 static isc_result_t
@@ -699,7 +693,9 @@ httpd_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		return (ISC_R_FAILURE);
 	}
 
-	return (new_httpd(httpdmgr, handle));
+	new_httpd(httpdmgr, handle);
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -963,13 +959,7 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	httpd->state = SEND;
 
 	isc_nmhandle_attach(handle, &httpd->sendhandle);
-	result = isc_nm_send(handle, &r, httpd_senddone, httpd);
-	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&httpd->sendhandle);
-
-		httpd->state = RECV;
-		isc_nm_resumeread(handle);
-	}
+	isc_nm_send(handle, &r, httpd_senddone, httpd);
 
 	return;
 cleanup_readhandle:
@@ -1137,11 +1127,11 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		}
 	}
 
+	isc_nmhandle_detach(&httpd->sendhandle);
+
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}
-
-	isc_nmhandle_detach(&httpd->sendhandle);
 
 	httpd->state = RECV;
 	isc_nm_resumeread(handle);

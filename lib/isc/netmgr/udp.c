@@ -407,7 +407,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
  * a proper sibling/child socket so that we won't have to jump to another
  * thread.
  */
-isc_result_t
+void
 isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		 void *cbarg) {
 	isc_nmsocket_t *sock = handle->sock;
@@ -417,6 +417,12 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	isc__nm_uvreq_t *uvreq = NULL;
 	uint32_t maxudp = atomic_load(&sock->mgr->maxudp);
 	int ntid;
+
+	if (!isc__nmsocket_active(sock)) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
+		cb(handle, ISC_R_CANCELED, cbarg);
+		return;
+	}
 
 	/*
 	 * We're simulating a firewall blocking UDP packets bigger than
@@ -428,7 +434,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	 */
 	if (maxudp != 0 && region->length > maxudp) {
 		isc_nmhandle_detach(&handle);
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	if (sock->type == isc_nm_udpsocket && !atomic_load(&sock->client)) {
@@ -439,10 +445,6 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	} else if (!atomic_load(&sock->client)) {
 		INSIST(0);
 		ISC_UNREACHABLE();
-	}
-
-	if (!isc__nmsocket_active(sock)) {
-		return (ISC_R_CANCELED);
 	}
 
 	/*
@@ -474,12 +476,14 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 
 	if (isc_nm_tid() == rsock->tid) {
 		/*
-		 * If we're in the same thread as the socket we can send the
-		 * data directly, but we need to emulate returning the error via
-		 * the callback, not directly to keep the API.
+		 * If we're in the same thread as the socket we can send
+		 * the data directly, but we still need to return errors
+		 * via the callback for API consistency.
 		 */
 		isc_result_t result = udp_send_direct(rsock, uvreq, peer);
 		if (result != ISC_R_SUCCESS) {
+			isc__nm_incstats(rsock->mgr,
+					 rsock->statsindex[STATID_SENDFAIL]);
 			uvreq->cb.send(uvreq->handle, result, uvreq->cbarg);
 			isc__nm_uvreq_put(&uvreq, sock);
 		}
@@ -495,8 +499,6 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		isc__nm_enqueue_ievent(&sock->mgr->workers[rsock->tid],
 				       (isc__netievent_t *)ievent);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 /*
