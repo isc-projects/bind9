@@ -1,3 +1,7 @@
+5519.	[cleanup]	Unused source code was removed: lib/dns/dbtable.c,
+			lib/dns/portlist.c, lib/isc/bufferlist.c, and code
+			related to those files. [GL #2060]
+
 5518.	[bug]		Fix stub zone not transferring nameserver addresses
 			from masters configured with 'minimal-responses yes'.
 			[GL #1736]
