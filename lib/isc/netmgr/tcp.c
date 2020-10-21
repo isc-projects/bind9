@@ -517,9 +517,17 @@ error:
 	if (sock->quota != NULL) {
 		isc_quota_detach(&sock->quota);
 	}
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
-		      ISC_LOG_ERROR, "Accepting TCP connection failed: %s",
-		      isc_result_totext(result));
+
+	switch (result) {
+	case ISC_R_NOTCONNECTED:
+		/* IGNORE: The client disconnected before we could accept */
+		break;
+	default:
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+			      "Accepting TCP connection failed: %s",
+			      isc_result_totext(result));
+	}
 
 	/*
 	 * Detach the socket properly to make sure uv_close() is called.
