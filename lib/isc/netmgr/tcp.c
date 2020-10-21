@@ -1006,7 +1006,13 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		 * If we're in the same thread as the socket we can send the
 		 * data directly
 		 */
-		return (tcp_send_direct(sock, uvreq));
+		isc_result_t result = tcp_send_direct(sock, uvreq);
+		if (result != ISC_R_SUCCESS) {
+			isc__nm_incstats(sock->mgr,
+					 sock->statsindex[STATID_SENDFAIL]);
+			uvreq->cb.send(uvreq->handle, result, uvreq->cbarg);
+			isc__nm_uvreq_put(&uvreq, sock);
+		}
 	} else {
 		/*
 		 * We need to create an event and pass it using async channel
@@ -1014,32 +1020,28 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpsend);
 		ievent->sock = sock;
 		ievent->req = uvreq;
+
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
-		return (ISC_R_SUCCESS);
 	}
-
-	return (ISC_R_UNEXPECTED);
+	return (ISC_R_SUCCESS);
 }
 
 static void
 tcp_send_cb(uv_write_t *req, int status) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc__nm_uvreq_t *uvreq = (isc__nm_uvreq_t *)req->data;
-	isc_nmsocket_t *sock = NULL;
+	isc_nmsocket_t *sock = uvreq->sock;
 
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
 	if (status < 0) {
 		result = isc__nm_uverr2result(status);
-		isc__nm_incstats(uvreq->sock->mgr,
-				 uvreq->sock->statsindex[STATID_SENDFAIL]);
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
 	}
 
 	uvreq->cb.send(uvreq->handle, result, uvreq->cbarg);
-
-	sock = uvreq->handle->sock;
 	isc__nm_uvreq_put(&uvreq, sock);
 }
 
@@ -1050,18 +1052,17 @@ void
 isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_result_t result;
 	isc__netievent_tcpsend_t *ievent = (isc__netievent_tcpsend_t *)ev0;
+	isc_nmsocket_t *sock = ievent->sock;
+	isc__nm_uvreq_t *uvreq = ievent->req;
 
+	REQUIRE(sock->type == isc_nm_tcpsocket);
 	REQUIRE(worker->id == ievent->sock->tid);
 
-	if (!atomic_load(&ievent->sock->active)) {
-		return;
-	}
-
-	result = tcp_send_direct(ievent->sock, ievent->req);
+	result = tcp_send_direct(sock, uvreq);
 	if (result != ISC_R_SUCCESS) {
-		ievent->req->cb.send(ievent->req->handle, result,
-				     ievent->req->cbarg);
-		isc__nm_uvreq_put(&ievent->req, ievent->req->handle->sock);
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
+		uvreq->cb.send(uvreq->handle, result, uvreq->cbarg);
+		isc__nm_uvreq_put(&uvreq, sock);
 	}
 }
 
@@ -1069,12 +1070,18 @@ static isc_result_t
 tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	int r;
 
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_tcpsocket);
+
+	if (!isc__nmsocket_active(sock)) {
+		return (ISC_R_CANCELED);
+	}
+
 	r = uv_write(&req->uv_req.write, &sock->uv_handle.stream, &req->uvbuf,
 		     1, tcp_send_cb);
 	if (r < 0) {
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
 		req->cb.send(NULL, isc__nm_uverr2result(r), req->cbarg);
 		isc__nm_uvreq_put(&req, sock);
 		return (isc__nm_uverr2result(r));
