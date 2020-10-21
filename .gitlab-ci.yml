@@ -1159,6 +1159,15 @@ system:clang:openbsd:amd64:
     - schedules
     - web
 
+unit:clang:openbsd:amd64:
+  <<: *openbsd_amd64_image
+  <<: *unit_test_job
+  variables:
+    USER: gitlab-runner
+  needs:
+    - job: clang:openbsd:amd64
+      artifacts: true
+
 # Jobs for Visual Studio 2017 builds on Windows (amd64)
 
 msvc:windows:amd64:
