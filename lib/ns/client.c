@@ -322,20 +322,15 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 	*datap = data;
 }
 
-static isc_result_t
+static void
 client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
-	isc_result_t result;
 	isc_region_t r;
 
 	REQUIRE(client->sendhandle == NULL);
 
 	isc_buffer_usedregion(buffer, &r);
 	isc_nmhandle_attach(client->handle, &client->sendhandle);
-	result = isc_nm_send(client->handle, &r, client_senddone, client);
-	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&client->sendhandle);
-	}
-	return (result);
+	isc_nm_send(client->handle, &r, client_senddone, client);
 }
 
 void
@@ -374,11 +369,9 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	r.base[0] = (client->message->id >> 8) & 0xff;
 	r.base[1] = client->message->id & 0xff;
 
-	result = client_sendpkg(client, &buffer);
-	if (result == ISC_R_SUCCESS) {
-		return;
-	}
+	client_sendpkg(client, &buffer);
 
+	return;
 done:
 	if (client->tcpbuf != NULL) {
 		isc_mem_put(client->mctx, client->tcpbuf,
@@ -454,7 +447,7 @@ ns_client_send(ns_client_t *client) {
 		result = ns_client_addopt(client, client->message,
 					  &client->opt);
 		if (result != ISC_R_SUCCESS) {
-			goto done;
+			goto cleanup;
 		}
 	}
 
@@ -462,7 +455,7 @@ ns_client_send(ns_client_t *client) {
 
 	result = dns_compress_init(&cctx, -1, client->mctx);
 	if (result != ISC_R_SUCCESS) {
-		goto done;
+		goto cleanup;
 	}
 	if (client->peeraddr_valid && client->view != NULL) {
 		isc_netaddr_t netaddr;
@@ -488,7 +481,7 @@ ns_client_send(ns_client_t *client) {
 
 	result = dns_message_renderbegin(client->message, &cctx, &buffer);
 	if (result != ISC_R_SUCCESS) {
-		goto done;
+		goto cleanup;
 	}
 
 	if (client->opt != NULL) {
@@ -496,7 +489,7 @@ ns_client_send(ns_client_t *client) {
 		opt_included = true;
 		client->opt = NULL;
 		if (result != ISC_R_SUCCESS) {
-			goto done;
+			goto cleanup;
 		}
 	}
 	result = dns_message_rendersection(client->message,
@@ -506,7 +499,7 @@ ns_client_send(ns_client_t *client) {
 		goto renderend;
 	}
 	if (result != ISC_R_SUCCESS) {
-		goto done;
+		goto cleanup;
 	}
 	/*
 	 * Stop after the question if TC was set for rate limiting.
@@ -522,7 +515,7 @@ ns_client_send(ns_client_t *client) {
 		goto renderend;
 	}
 	if (result != ISC_R_SUCCESS) {
-		goto done;
+		goto cleanup;
 	}
 	result = dns_message_rendersection(
 		client->message, DNS_SECTION_AUTHORITY,
@@ -532,18 +525,18 @@ ns_client_send(ns_client_t *client) {
 		goto renderend;
 	}
 	if (result != ISC_R_SUCCESS) {
-		goto done;
+		goto cleanup;
 	}
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_ADDITIONAL,
 					   preferred_glue | render_opts);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE) {
-		goto done;
+		goto cleanup;
 	}
 renderend:
 	result = dns_message_renderend(client->message);
 	if (result != ISC_R_SUCCESS) {
-		goto done;
+		goto cleanup;
 	}
 
 #ifdef HAVE_DNSTAP
@@ -551,13 +544,14 @@ renderend:
 	if (((client->message->flags & DNS_MESSAGEFLAG_AA) != 0) &&
 	    (client->query.authzone != NULL))
 	{
+		isc_result_t eresult;
 		isc_buffer_t b;
 		dns_name_t *zo = dns_zone_getorigin(client->query.authzone);
 
 		isc_buffer_init(&b, zone, sizeof(zone));
 		dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
-		result = dns_name_towire(zo, &cctx, &b);
-		if (result == ISC_R_SUCCESS) {
+		eresult = dns_name_towire(zo, &cctx, &b);
+		if (eresult == ISC_R_SUCCESS) {
 			isc_buffer_usedregion(&b, &zr);
 		}
 	}
@@ -573,7 +567,6 @@ renderend:
 
 	if (cleanup_cctx) {
 		dns_compress_invalidate(&cctx);
-		cleanup_cctx = false;
 	}
 
 	if (client->sendcb != NULL) {
@@ -590,7 +583,7 @@ renderend:
 
 		respsize = isc_buffer_usedlength(&buffer);
 
-		result = client_sendpkg(client, &buffer);
+		client_sendpkg(client, &buffer);
 
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
@@ -620,7 +613,7 @@ renderend:
 
 		respsize = isc_buffer_usedlength(&buffer);
 
-		result = client_sendpkg(client, &buffer);
+		client_sendpkg(client, &buffer);
 
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
@@ -659,11 +652,9 @@ renderend:
 				   ns_statscounter_truncatedresp);
 	}
 
-	if (result == ISC_R_SUCCESS) {
-		return;
-	}
+	return;
 
-done:
+cleanup:
 	if (client->tcpbuf != NULL) {
 		isc_mem_put(client->mctx, client->tcpbuf,
 			    NS_CLIENT_TCP_BUFFER_SIZE);

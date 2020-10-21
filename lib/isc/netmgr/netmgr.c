@@ -429,6 +429,9 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 #endif /* ifdef WIN32 */
 	}
 
+#ifdef NETMGR_TRACE
+	isc__nm_dump_active(mgr);
+#endif
 	INSIST(references == 1);
 
 	/*
@@ -1428,7 +1431,7 @@ isc__nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock) {
 	isc__nmsocket_detach(&sock);
 }
 
-isc_result_t
+void
 isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	    void *cbarg) {
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -1436,24 +1439,28 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	switch (handle->sock->type) {
 	case isc_nm_udpsocket:
 	case isc_nm_udplistener:
-		return (isc__nm_udp_send(handle, region, cb, cbarg));
+		isc__nm_udp_send(handle, region, cb, cbarg);
+		break;
 	case isc_nm_tcpsocket:
-		return (isc__nm_tcp_send(handle, region, cb, cbarg));
+		isc__nm_tcp_send(handle, region, cb, cbarg);
+		break;
 	case isc_nm_tcpdnssocket:
-		return (isc__nm_tcpdns_send(handle, region, cb, cbarg));
+		isc__nm_tcpdns_send(handle, region, cb, cbarg);
+		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
 	}
 }
 
-isc_result_t
+void
 isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	switch (handle->sock->type) {
 	case isc_nm_tcpsocket:
-		return (isc__nm_tcp_read(handle, cb, cbarg));
+		isc__nm_tcp_read(handle, cb, cbarg);
+		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -1489,7 +1496,7 @@ isc_nm_pauseread(isc_nmhandle_t *handle) {
 	}
 }
 
-isc_result_t
+void
 isc_nm_resumeread(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
@@ -1497,7 +1504,8 @@ isc_nm_resumeread(isc_nmhandle_t *handle) {
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
-		return (isc__nm_tcp_resumeread(sock));
+		isc__nm_tcp_resumeread(sock);
+		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -1838,7 +1846,8 @@ nmhandle_dump(isc_nmhandle_t *handle) {
 
 static void
 nmsocket_dump(isc_nmsocket_t *sock) {
-	isc_nmhandle_t *handle;
+	isc_nmhandle_t *handle = NULL;
+
 	LOCK(&sock->lock);
 	fprintf(stderr, "\n=================\n");
 	fprintf(stderr, "Active socket %p, type %s, refs %lu\n", sock,
@@ -1850,25 +1859,37 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 	backtrace_symbols_fd(sock->backtrace, sock->backtrace_size,
 			     STDERR_FILENO);
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Active handles:\n");
+
 	for (handle = ISC_LIST_HEAD(sock->active_handles); handle != NULL;
 	     handle = ISC_LIST_NEXT(handle, active_link))
 	{
+		static bool first = true;
+		if (first) {
+			fprintf(stderr, "Active handles:\n");
+			first = false;
+		}
 		nmhandle_dump(handle);
 	}
+
 	fprintf(stderr, "\n");
 	UNLOCK(&sock->lock);
 }
 
 void
 isc__nm_dump_active(isc_nm_t *nm) {
-	isc_nmsocket_t *sock;
+	isc_nmsocket_t *sock = NULL;
+
 	REQUIRE(VALID_NM(nm));
+
 	LOCK(&nm->lock);
-	fprintf(stderr, "Outstanding sockets\n");
 	for (sock = ISC_LIST_HEAD(nm->active_sockets); sock != NULL;
 	     sock = ISC_LIST_NEXT(sock, active_link))
 	{
+		static bool first = true;
+		if (first) {
+			fprintf(stderr, "Outstanding sockets\n");
+			first = false;
+		}
 		nmsocket_dump(sock);
 	}
 	UNLOCK(&nm->lock);

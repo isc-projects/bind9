@@ -1535,8 +1535,8 @@ sendstream(xfrout_ctx_t *xfr) {
 
 		isc_nmhandle_attach(xfr->client->handle,
 				    &xfr->client->sendhandle);
-		CHECK(isc_nm_send(xfr->client->sendhandle, &used,
-				  xfrout_senddone, xfr));
+		isc_nm_send(xfr->client->sendhandle, &used, xfrout_senddone,
+			    xfr);
 		xfr->sends++;
 		xfr->cbytes = used.length;
 	} else {
