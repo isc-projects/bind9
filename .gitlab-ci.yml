@@ -1314,7 +1314,7 @@ respdiff:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    BIND_BASELINE_VERSION: v9_11_3
+    BIND_BASELINE_VERSION: v9_11_24
   script:
     - autoreconf -fi
     - ./configure
@@ -1351,7 +1351,7 @@ abi-check:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
-    BIND_BASELINE_VERSION: v9_17_5
+    BIND_BASELINE_VERSION: v9_17_6
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
