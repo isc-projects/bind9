@@ -722,17 +722,17 @@ isc__nm_async_tcp_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 }
 
-isc_result_t
+void
 isc__nm_tcp_pauseread(isc_nmsocket_t *sock) {
 	isc__netievent_pauseread_t *ievent = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
 
-	if (atomic_load(&sock->readpaused)) {
-		return (ISC_R_SUCCESS);
+	if (!atomic_compare_exchange_strong(&sock->readpaused, &(bool){ false },
+					    true)) {
+		return;
 	}
 
-	atomic_store(&sock->readpaused, true);
 	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcppauseread);
 	ievent->sock = sock;
 
@@ -745,7 +745,7 @@ isc__nm_tcp_pauseread(isc_nmsocket_t *sock) {
 				       (isc__netievent_t *)ievent);
 	}
 
-	return (ISC_R_SUCCESS);
+	return;
 }
 
 void
@@ -778,11 +778,10 @@ isc__nm_tcp_resumeread(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	if (!atomic_load(&sock->readpaused)) {
+	if (!atomic_compare_exchange_strong(&sock->readpaused, &(bool){ true },
+					    false)) {
 		return;
 	}
-
-	atomic_store(&sock->readpaused, false);
 
 	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpstartread);
 	ievent->sock = sock;
@@ -903,9 +902,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	REQUIRE(VALID_NMSOCK(ssock));
 
-	if (!atomic_load_relaxed(&ssock->active) ||
-	    atomic_load_relaxed(&ssock->mgr->closing))
-	{
+	if (!isc__nmsocket_active(ssock) || atomic_load(&ssock->mgr->closing)) {
 		/* We're closing, bail */
 		if (quota != NULL) {
 			isc_quota_detach(&quota);
@@ -1197,11 +1194,13 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	if (!isc__nmsocket_active(sock)) {
+	/*
+	 * If the socket is active, mark it inactive and
+	 * continue. If it isn't active, stop now.
+	 */
+	if (!isc__nmsocket_deactivate(sock)) {
 		return;
 	}
-
-	atomic_store(&sock->active, false);
 
 	if (sock->type == isc_nm_tcpsocket && sock->statichandle != NULL) {
 		failed_read_cb(sock, ISC_R_CANCELED);

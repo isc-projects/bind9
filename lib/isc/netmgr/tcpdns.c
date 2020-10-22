@@ -544,7 +544,7 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(worker->id == sock->tid);
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	if (atomic_load(&sock->active) && sock->outerhandle != NULL) {
+	if (isc__nmsocket_active(sock) && sock->outerhandle != NULL) {
 		isc_nmhandle_t *sendhandle = NULL;
 		isc_region_t r;
 

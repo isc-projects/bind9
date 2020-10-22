@@ -731,6 +731,19 @@ isc__nmsocket_active(isc_nmsocket_t *sock) {
 	return (atomic_load(&sock->active));
 }
 
+bool
+isc__nmsocket_deactivate(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	if (sock->parent != NULL) {
+		return (atomic_compare_exchange_strong(&sock->parent->active,
+						       &(bool){ true }, false));
+	}
+
+	return (atomic_compare_exchange_strong(&sock->active, &(bool){ true },
+					       false));
+}
+
 void
 isc__nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target) {
 	REQUIRE(VALID_NMSOCK(sock));
@@ -1380,7 +1393,7 @@ isc__nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(VALID_NMSOCK(sock));
 
-	if (sock != NULL && atomic_load(&sock->active)) {
+	if (sock != NULL && isc__nmsocket_active(sock)) {
 		/* Try to reuse one */
 		req = isc_astack_pop(sock->inactivereqs);
 	}
@@ -1419,7 +1432,7 @@ isc__nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock) {
 	handle = req->handle;
 	req->handle = NULL;
 
-	if (!atomic_load(&sock->active) ||
+	if (!isc__nmsocket_active(sock) ||
 	    !isc_astack_trypush(sock->inactivereqs, req)) {
 		isc_mempool_put(sock->mgr->reqpool, req);
 	}
@@ -1481,7 +1494,7 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 	}
 }
 
-isc_result_t
+void
 isc_nm_pauseread(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
@@ -1489,7 +1502,8 @@ isc_nm_pauseread(isc_nmhandle_t *handle) {
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
-		return (isc__nm_tcp_pauseread(sock));
+		isc__nm_tcp_pauseread(sock);
+		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

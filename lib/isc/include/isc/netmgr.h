@@ -208,7 +208,7 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
  * is data to process.
  */
 
-isc_result_t
+void
 isc_nm_pauseread(isc_nmhandle_t *handle);
 /*%<
  * Pause reading on this handle's socket, but remember the callback.
