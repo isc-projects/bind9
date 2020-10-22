@@ -1,3 +1,7 @@
+5520.	[bug]		Fixed a number of shutdown races, reference counting
+			errors, and spurious log messages that could occur
+			in the network manager. [GL #2221]
+
 5518.	[bug]		Fix stub zone not transferring nameserver addresses
 			from masters configured with 'minimal-responses yes'.
 			[GL #1736]
