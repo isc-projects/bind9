@@ -133,10 +133,8 @@ isccc_ccmsg_setmaxsize(isccc_ccmsg_t *ccmsg, unsigned int maxsize) {
 	ccmsg->maxsize = maxsize;
 }
 
-isc_result_t
+void
 isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_nm_cb_t cb, void *cbarg) {
-	isc_result_t result;
-
 	REQUIRE(VALID_CCMSG(ccmsg));
 
 	if (ccmsg->buffer != NULL) {
@@ -149,16 +147,11 @@ isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_nm_cb_t cb, void *cbarg) {
 	ccmsg->length_received = false;
 
 	if (ccmsg->reading) {
-		result = isc_nm_resumeread(ccmsg->handle);
+		isc_nm_resumeread(ccmsg->handle);
 	} else {
-		result = isc_nm_read(ccmsg->handle, recv_data, ccmsg);
+		isc_nm_read(ccmsg->handle, recv_data, ccmsg);
 		ccmsg->reading = true;
 	}
-	if (result != ISC_R_SUCCESS) {
-		ccmsg->reading = false;
-	}
-
-	return (result);
 }
 
 void

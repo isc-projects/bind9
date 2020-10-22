@@ -402,13 +402,14 @@ static void
 rndc_recvnonce(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isccc_ccmsg_t *ccmsg = (isccc_ccmsg_t *)arg;
 	isccc_sexpr_t *response = NULL;
-	isccc_sexpr_t *_ctrl;
+	isc_nmhandle_t *sendhandle = NULL;
+	isccc_sexpr_t *_ctrl = NULL;
 	isccc_region_t source;
 	uint32_t nonce;
 	isccc_sexpr_t *request = NULL;
 	isccc_time_t now;
 	isc_region_t r;
-	isccc_sexpr_t *data;
+	isccc_sexpr_t *data = NULL;
 	isc_buffer_t b;
 
 	REQUIRE(ccmsg != NULL);
@@ -484,13 +485,11 @@ rndc_recvnonce(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isc_nmhandle_attach(handle, &recvdone_handle);
 	atomic_fetch_add_relaxed(&recvs, 1);
-	DO("schedule recv",
-	   isccc_ccmsg_readmessage(ccmsg, rndc_recvdone, ccmsg));
+	isccc_ccmsg_readmessage(ccmsg, rndc_recvdone, ccmsg);
 
-	isc_nmhandle_t *sendhandle = NULL;
 	isc_nmhandle_attach(handle, &sendhandle);
 	atomic_fetch_add_relaxed(&sends, 1);
-	DO("send message", isc_nm_send(handle, &r, rndc_senddone, sendhandle));
+	isc_nm_send(handle, &r, rndc_senddone, sendhandle);
 
 	REQUIRE(recvnonce_handle == handle);
 	isc_nmhandle_detach(&recvnonce_handle);
@@ -506,11 +505,12 @@ rndc_connected(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isccc_ccmsg_t *ccmsg = (isccc_ccmsg_t *)arg;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isccc_sexpr_t *request = NULL;
-	isccc_sexpr_t *data;
+	isccc_sexpr_t *data = NULL;
 	isccc_time_t now;
 	isc_region_t r;
 	isc_buffer_t b;
 	isc_nmhandle_t *connhandle = NULL;
+	isc_nmhandle_t *sendhandle = NULL;
 
 	REQUIRE(ccmsg != NULL);
 
@@ -560,13 +560,11 @@ rndc_connected(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isc_nmhandle_attach(handle, &recvnonce_handle);
 	atomic_fetch_add_relaxed(&recvs, 1);
-	DO("schedule recv",
-	   isccc_ccmsg_readmessage(ccmsg, rndc_recvnonce, ccmsg));
+	isccc_ccmsg_readmessage(ccmsg, rndc_recvnonce, ccmsg);
 
-	isc_nmhandle_t *sendhandle = NULL;
 	isc_nmhandle_attach(handle, &sendhandle);
 	atomic_fetch_add_relaxed(&sends, 1);
-	DO("send message", isc_nm_send(handle, &r, rndc_senddone, sendhandle));
+	isc_nm_send(handle, &r, rndc_senddone, sendhandle);
 
 	isc_nmhandle_detach(&connhandle);
 	atomic_fetch_sub_release(&connects, 1);
