@@ -262,16 +262,12 @@ isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_udplistener);
 
 	/*
-	 * Socket is already closing; there's nothing to do.
+	 * If the socket is active, mark it inactive and
+	 * continue. If it isn't active, stop now.
 	 */
-	if (!isc__nmsocket_active(sock)) {
+	if (!isc__nmsocket_deactivate(sock)) {
 		return;
 	}
-	/*
-	 * Mark it inactive now so that all sends will be ignored
-	 * and we won't try to stop listening again.
-	 */
-	atomic_store(&sock->active, false);
 
 	/*
 	 * If the manager is interlocked, re-enqueue this as an asynchronous

@@ -660,6 +660,18 @@ isc__nmsocket_active(isc_nmsocket_t *sock);
  * or, for child sockets, 'sock->parent->active'.
  */
 
+bool
+isc__nmsocket_deactivate(isc_nmsocket_t *sock);
+/*%<
+ * @brief Deactivate active socket
+ *
+ * Atomically deactive the socket by setting @p sock->active or, for child
+ * sockets, @p sock->parent->active to @c false
+ *
+ * @param[in] sock - valid nmsocket
+ * @return @c false if the socket was already inactive, @c true otherwise
+ */
+
 void
 isc__nmsocket_clearcb(isc_nmsocket_t *sock);
 /*%<
@@ -718,7 +730,7 @@ isc__nm_tcp_close(isc_nmsocket_t *sock);
 /*%<
  * Close a TCP socket.
  */
-isc_result_t
+void
 isc__nm_tcp_pauseread(isc_nmsocket_t *sock);
 /*%<
  * Pause reading on this socket, while still remembering the callback.
