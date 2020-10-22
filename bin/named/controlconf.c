@@ -14,6 +14,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/event.h>
@@ -225,6 +226,11 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	conn->sending = false;
 
+	if (conn->result == ISC_R_SHUTTINGDOWN) {
+		isc_app_shutdown();
+		goto cleanup_sendhandle;
+	}
+
 	if (atomic_load_acquire(&listener->controls->shuttingdown) ||
 	    result == ISC_R_CANCELED)
 	{
@@ -284,12 +290,12 @@ conn_cleanup(controlconnection_t *conn) {
 }
 
 static void
-control_respond(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
-	controlconnection_t *conn = (controlconnection_t *)arg;
+control_respond(isc_nmhandle_t *handle, controlconnection_t *conn) {
 	controllistener_t *listener = conn->listener;
 	isccc_sexpr_t *data = NULL;
 	isc_buffer_t b;
 	isc_region_t r;
+	isc_result_t result;
 
 	result = isccc_cc_createresponse(conn->request, conn->now,
 					 conn->now + 60, &conn->response);
@@ -297,17 +303,22 @@ control_respond(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		goto cleanup;
 	}
 
+	if (conn->result == ISC_R_SHUTTINGDOWN) {
+		result = ISC_R_SUCCESS;
+	} else {
+		result = conn->result;
+	}
+
 	data = isccc_alist_lookup(conn->response, "_data");
 	if (data != NULL) {
-		if (isccc_cc_defineuint32(data, "result", conn->result) == NULL)
-		{
+		if (isccc_cc_defineuint32(data, "result", result) == NULL) {
 			goto cleanup;
 		}
 	}
 
-	if (conn->result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		if (data != NULL) {
-			const char *estr = isc_result_totext(conn->result);
+			const char *estr = isc_result_totext(result);
 			if (isccc_cc_definestring(data, "err", estr) == NULL) {
 				goto cleanup;
 			}
@@ -380,7 +391,7 @@ control_command(isc_task_t *task, isc_event_t *event) {
 
 	conn->result = named_control_docommand(conn->request,
 					       listener->readonly, &conn->text);
-	control_respond(conn->cmdhandle, conn->result, conn);
+	control_respond(conn->cmdhandle, conn);
 
 done:
 	isc_event_free(&event);
@@ -521,7 +532,7 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 			isc_nonce_buf(&conn->nonce, sizeof(conn->nonce));
 		}
 		conn->result = ISC_R_SUCCESS;
-		control_respond(handle, result, conn);
+		control_respond(handle, conn);
 		return;
 	}
 
