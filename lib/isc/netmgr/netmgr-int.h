@@ -660,6 +660,18 @@ isc__nmsocket_active(isc_nmsocket_t *sock);
  * or, for child sockets, 'sock->parent->active'.
  */
 
+bool
+isc__nmsocket_deactivate(isc_nmsocket_t *sock);
+/*%<
+ * @brief Deactivate active socket
+ *
+ * Atomically deactive the socket by setting @p sock->active or, for child
+ * sockets, @p sock->parent->active to @c false
+ *
+ * @param[in] sock - valid nmsocket
+ * @return @c false if the socket was already inactive, @c true otherwise
+ */
+
 void
 isc__nmsocket_clearcb(isc_nmsocket_t *sock);
 /*%<
@@ -679,7 +691,7 @@ isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0);
  * close on them.
  */
 
-isc_result_t
+void
 isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		 void *cbarg);
 /*%<
@@ -700,14 +712,14 @@ isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0);
  * Callback handlers for asynchronous UDP events (listen, stoplisten, send).
  */
 
-isc_result_t
+void
 isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		 void *cbarg);
 /*%<
  * Back-end implementation of isc_nm_send() for TCP handles.
  */
 
-isc_result_t
+void
 isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 /*
  * Back-end implementation of isc_nm_read() for TCP handles.
@@ -718,13 +730,13 @@ isc__nm_tcp_close(isc_nmsocket_t *sock);
 /*%<
  * Close a TCP socket.
  */
-isc_result_t
+void
 isc__nm_tcp_pauseread(isc_nmsocket_t *sock);
 /*%<
  * Pause reading on this socket, while still remembering the callback.
  */
 
-isc_result_t
+void
 isc__nm_tcp_resumeread(isc_nmsocket_t *sock);
 /*%<
  * Resume reading from socket.
@@ -774,7 +786,7 @@ isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0);
  * stoplisten, send, read, pause, close).
  */
 
-isc_result_t
+void
 isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
 /*%<

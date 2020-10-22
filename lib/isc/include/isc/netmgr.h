@@ -200,7 +200,7 @@ isc_nm_resume(isc_nm_t *mgr);
  * workers to resume.
  */
 
-isc_result_t
+void
 isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 /*
  * Begin (or continue) reading on the socket associated with 'handle', and
@@ -208,7 +208,7 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
  * is data to process.
  */
 
-isc_result_t
+void
 isc_nm_pauseread(isc_nmhandle_t *handle);
 /*%<
  * Pause reading on this handle's socket, but remember the callback.
@@ -228,7 +228,7 @@ isc_nm_cancelread(isc_nmhandle_t *handle);
  * \li	...for which a read/recv callback has been defined.
  */
 
-isc_result_t
+void
 isc_nm_resumeread(isc_nmhandle_t *handle);
 /*%<
  * Resume reading on the handle's socket.
@@ -238,7 +238,7 @@ isc_nm_resumeread(isc_nmhandle_t *handle);
  * \li	...for a socket with a defined read/recv callback.
  */
 
-isc_result_t
+void
 isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	    void *cbarg);
 /*%<
