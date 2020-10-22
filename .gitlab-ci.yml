@@ -1019,6 +1019,29 @@ unit:gcc:mutexatomics:
     - job: gcc:mutexatomics
       artifacts: true
 
+# Jobs for builds without atomics
+
+gcc:noatomics:
+  variables:
+    CC: gcc
+    EXTRA_CONFIGURE: "--disable-atomic"
+  <<: *base_image
+  <<: *build_job
+
+system:gcc:noatomics:
+  <<: *base_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:noatomics
+      artifacts: true
+
+unit:gcc:noatomics:
+  <<: *base_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:noatomics
+      artifacts: true
+
 # Jobs for Clang builds on Debian Buster (amd64)
 
 clang:buster:amd64:
