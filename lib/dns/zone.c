@@ -488,7 +488,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_DIALNOTIFY	0x00020000U
 #define DNS_ZONEFLG_DIALREFRESH	0x00040000U
 #define DNS_ZONEFLG_SHUTDOWN	0x00080000U
-#define DNS_ZONEFLAG_NOIXFR	0x00100000U	/*%< IXFR failed, force AXFR */
+#define DNS_ZONEFLG_NOIXFR	0x00100000U	/*%< IXFR failed, force AXFR */
 #define DNS_ZONEFLG_FLUSH	0x00200000U
 #define DNS_ZONEFLG_NOEDNS	0x00400000U
 #define DNS_ZONEFLG_USEALTXFRSRC 0x00800000U
@@ -15642,7 +15642,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 	case DNS_R_BADIXFR:
 		/* Force retry with AXFR. */
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLAG_NOIXFR);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOIXFR);
 		goto same_master;
 
 	case DNS_R_TOOMANYRECORDS:
@@ -15970,13 +15970,13 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			     "forced reload, requesting AXFR of "
 			     "initial version from %s", master);
 		xfrtype = dns_rdatatype_axfr;
-	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLAG_NOIXFR)) {
+	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOIXFR)) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "retrying with AXFR from %s due to "
 			     "previous IXFR failure", master);
 		xfrtype = dns_rdatatype_axfr;
 		LOCK_ZONE(zone);
-		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLAG_NOIXFR);
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOIXFR);
 		UNLOCK_ZONE(zone);
 	} else {
 		bool use_ixfr = true;
