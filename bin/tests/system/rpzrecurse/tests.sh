@@ -258,7 +258,7 @@ for mode in native dnsrps; do
     echo_i "adding an NSDNAME policy"
     cp ns2/db.6a.00.policy.local ns2/saved.policy.local
     cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /' | cat_i
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     t=`expr $t + 1`
@@ -268,7 +268,7 @@ for mode in native dnsrps; do
     sleep 1
     echo_i "removing the NSDNAME policy"
     cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /' | cat_i
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     echo_i "resuming authority server"
@@ -310,7 +310,7 @@ for mode in native dnsrps; do
     fi
     echo_i "adding an NSDNAME policy"
     cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /' | cat_i
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     t=`expr $t + 1`

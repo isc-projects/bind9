@@ -87,7 +87,7 @@ ret=0
 one=`$DIG $SHORTOPTS -b 10.53.0.2 @10.53.0.2 b.clone a`
 two=`$DIG $SHORTOPTS -b 10.53.0.4 @10.53.0.2 b.clone a`
 if [ "$one" != "$two" ]; then
-        echo "'$one' does not match '$two'"
+        echo_i "'$one' does not match '$two'"
         ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -99,18 +99,18 @@ one=`$DIG $SHORTOPTS -b 10.53.0.2 @10.53.0.2 child.clone txt`
 two=`$DIG $SHORTOPTS -b 10.53.0.4 @10.53.0.2 child.clone txt`
 three=`$DIG $SHORTOPTS @10.53.0.3 child.clone txt`
 four=`$DIG $SHORTOPTS @10.53.0.5 child.clone txt`
-echo "$three" | grep NS3 > /dev/null || { ret=1; echo "expected response from NS3 got '$three'"; }
-echo "$four" | grep NS5 > /dev/null || { ret=1; echo "expected response from NS5 got '$four'"; }
+echo "$three" | grep NS3 > /dev/null || { ret=1; echo_i "expected response from NS3 got '$three'"; }
+echo "$four" | grep NS5 > /dev/null || { ret=1; echo_i "expected response from NS5 got '$four'"; }
 if [ "$one" = "$two" ]; then
-        echo "'$one' matches '$two'"
+        echo_i "'$one' matches '$two'"
         ret=1
 fi
 if [ "$one" != "$three" ]; then
-        echo "'$one' does not match '$three'"
+        echo_i "'$one' does not match '$three'"
         ret=1
 fi
 if [ "$two" != "$four" ]; then
-        echo "'$two' does not match '$four'"
+        echo_i "'$two' does not match '$four'"
         ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi

@@ -9,9 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-echo mkeys_beg
 . ../conf.sh
-echo mkeys_end
 
 copy_setports ns1/named1.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf

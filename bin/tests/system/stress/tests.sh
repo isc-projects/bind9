@@ -26,11 +26,11 @@ do
        $PERL update.pl -s 10.53.0.2 -p 5300 zone00000$i.example. &
 done
 
-echo "I:waiting for background processes to finish"
+echo_i "waiting for background processes to finish"
 wait
 
-echo "I:killing reload loop"
+echo_i "killing reload loop"
 kill `cat reload.pid`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
