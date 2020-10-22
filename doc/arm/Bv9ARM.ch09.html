@@ -36,11 +36,12 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.23</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.24</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.24">Notes for BIND 9.11.24</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.23">Notes for BIND 9.11.23</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.22">Notes for BIND 9.11.22</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.21">Notes for BIND 9.11.21</a></span></dt>
@@ -72,7 +73,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.23</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.24</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -128,6 +129,53 @@
   </p>
 </div>
 
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.24"></a>Notes for BIND 9.11.24</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.24-changes"></a>Feature Changes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+        <p>
+           DNS Flag Day 2020: The default EDNS buffer size has been changed from
+           4096 to 1232 bytes. According to measurements done by multiple
+           parties, this should not cause any operational problems as most of
+           the Internet "core" is able to cope with IP message sizes between
+           1400-1500 bytes; the 1232 size was picked as a conservative minimal
+           number that could be changed by the DNS operator to an estimated path
+           MTU minus the estimated header space. In practice, the smallest MTU
+           witnessed in the operational DNS community is 1500 octets, the
+           maximum Ethernet payload size, so a useful default for maximum
+           DNS/UDP payload size on reliable networks would be 1400 bytes.
+           [GL #2183]
+        </p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.24-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          <span class="command"><strong>named</strong></span> reported an invalid memory size when running
+          in an environment that did not properly report the number of available
+          memory pages and/or the size of each memory page. [GL #2166]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          With multiple forwarders configured, <span class="command"><strong>named</strong></span> could
+          fail the <code class="code">REQUIRE(msg-&gt;state == (-1))</code> assertion in
+          <code class="filename">lib/dns/message.c</code>, causing it to crash. This has
+          been fixed. [GL #2124]
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+</div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.23"></a>Notes for BIND 9.11.23</h3></div></div></div>
@@ -2392,6 +2440,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.23 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.24 (Extended Support Version)</p>
 </body>
 </html>

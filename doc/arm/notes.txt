@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.23
+Release Notes for BIND Version 9.11.24
 
 Introduction
 
@@ -35,6 +35,31 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.24
+
+Feature Changes
+
+  • DNS Flag Day 2020: The default EDNS buffer size has been changed from
+    4096 to 1232 bytes. According to measurements done by multiple
+    parties, this should not cause any operational problems as most of the
+    Internet "core" is able to cope with IP message sizes between
+    1400-1500 bytes; the 1232 size was picked as a conservative minimal
+    number that could be changed by the DNS operator to an estimated path
+    MTU minus the estimated header space. In practice, the smallest MTU
+    witnessed in the operational DNS community is 1500 octets, the maximum
+    Ethernet payload size, so a useful default for maximum DNS/UDP payload
+    size on reliable networks would be 1400 bytes. [GL #2183]
+
+Bug Fixes
+
+  • named reported an invalid memory size when running in an environment
+    that did not properly report the number of available memory pages and/
+    or the size of each memory page. [GL #2166]
+
+  • With multiple forwarders configured, named could fail the REQUIRE
+    (msg->state == (-1)) assertion in lib/dns/message.c, causing it to
+    crash. This has been fixed. [GL #2124]
 
 Notes for BIND 9.11.23
 

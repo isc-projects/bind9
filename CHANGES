@@ -1,12 +1,14 @@
+	--- 9.11.24 released ---
+
 5516.	[func]		The default EDNS buffer size has been changed from 4096
-			to 1232. [GL #2183]
+			to 1232 bytes. [GL #2183]
 
 5513.	[doc]		The ARM section describing the "rrset-order" statement
 			was rewritten to make it unambiguous and up-to-date with
 			the source code. [GL #2139]
 
 5510.	[bug]		Implement the attach/detach semantics for dns_message_t
-			to fix a data race in accessing already destroyed
+			to fix a data race in accessing an already-destroyed
 			fctx->rmessage. [GL #2124]
 
 5506.	[bug]		Properly handle failed sysconf() calls, so we don't
