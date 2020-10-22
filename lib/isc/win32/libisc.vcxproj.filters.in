@@ -59,9 +59,6 @@
     <ClInclude Include="..\include\isc\buffer.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\bufferlist.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\commandline.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -468,9 +465,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\buffer.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\bufferlist.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\commandline.c">

@@ -161,8 +161,6 @@ isc_buffer_putdecint
 isc_buffer_reinit
 isc_buffer_reserve
 isc_buffer_setautorealloc
-isc_bufferlist_availablecount
-isc_bufferlist_usedcount
 isc_commandline_parse
 isc_commandline_strtoargv
 isc_condition_broadcast

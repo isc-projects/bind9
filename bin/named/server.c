@@ -76,7 +76,6 @@
 #include <dns/nta.h>
 #include <dns/order.h>
 #include <dns/peer.h>
-#include <dns/portlist.h>
 #include <dns/private.h>
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>

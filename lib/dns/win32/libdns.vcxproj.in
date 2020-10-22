@@ -130,7 +130,6 @@
     <ClCompile Include="..\compress.c" />
     <ClCompile Include="..\db.c" />
     <ClCompile Include="..\dbiterator.c" />
-    <ClCompile Include="..\dbtable.c" />
     <ClCompile Include="..\diff.c" />
     <ClCompile Include="..\dispatch.c" />
     <ClCompile Include="..\dlz.c" />
@@ -184,7 +183,6 @@
     <ClCompile Include="..\pkcs11eddsa_link.c" />
     <ClCompile Include="..\pkcs11rsa_link.c" />
 @END PKCS11
-    <ClCompile Include="..\portlist.c" />
     <ClCompile Include="..\private.c" />
     <ClCompile Include="..\rbt.c" />
     <ClCompile Include="..\rbtdb.c" />
@@ -246,7 +244,6 @@
     <ClInclude Include="..\include\dns\compress.h" />
     <ClInclude Include="..\include\dns\db.h" />
     <ClInclude Include="..\include\dns\dbiterator.h" />
-    <ClInclude Include="..\include\dns\dbtable.h" />
     <ClInclude Include="..\include\dns\diff.h" />
     <ClInclude Include="..\include\dns\dispatch.h" />
     <ClInclude Include="..\include\dns\dlz.h" />
@@ -289,7 +286,6 @@
     <ClInclude Include="..\include\dns\opcode.h" />
     <ClInclude Include="..\include\dns\order.h" />
     <ClInclude Include="..\include\dns\peer.h" />
-    <ClInclude Include="..\include\dns\portlist.h" />
     <ClInclude Include="..\include\dns\private.h" />
     <ClInclude Include="..\include\dns\rbt.h" />
     <ClInclude Include="..\include\dns\rcode.h" />
