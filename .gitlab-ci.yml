@@ -1314,7 +1314,7 @@ respdiff:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    BIND_BASELINE_VERSION: v9_11_3
+    BIND_BASELINE_VERSION: v9_11_24
   script:
     - autoreconf -fi
     - ./configure
