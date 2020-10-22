@@ -173,9 +173,9 @@ do
     rm -f $k1.private 
     mv $k1.key a-file
     $IMPORTKEY -P now -D now+3600 -f a-file $zone > /dev/null 2>&1 ||
-        ( echo "importkey failed: $alg"; rm -f $checkfile )
+        ( echo_i "importkey failed: $alg"; rm -f $checkfile )
     rm -f $k2.private 
     mv $k2.key a-file
     $IMPORTKEY -f a-file $zone > /dev/null 2>&1 ||
-        ( echo "importkey failed: $alg"; rm -f $checkfile )
+        ( echo_i "importkey failed: $alg"; rm -f $checkfile )
 done

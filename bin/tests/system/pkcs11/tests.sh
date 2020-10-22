@@ -33,19 +33,19 @@ fi
 
 for alg in $algs; do
     zonefile=ns1/$alg.example.db 
-    echo "I:testing PKCS#11 key generation ($alg)"
+    echo_i "testing PKCS#11 key generation ($alg)"
     count=`$PK11LIST | grep robie-$alg-ksk | wc -l`
-    if [ $count != 2 ]; then echo "I:failed"; status=1; fi
+    if [ $count != 2 ]; then echo_i "failed"; status=1; fi
 
-    echo "I:testing offline signing with PKCS#11 keys ($alg)"
+    echo_i "testing offline signing with PKCS#11 keys ($alg)"
 
     count=`grep RRSIG $zonefile.signed | wc -l`
-    if [ $count != 12 ]; then echo "I:failed"; status=1; fi
+    if [ $count != 12 ]; then echo_i "failed"; status=1; fi
 
-    echo "I:testing inline signing with PKCS#11 keys ($alg)"
+    echo_i "testing inline signing with PKCS#11 keys ($alg)"
 
     $DIG $DIGOPTS ns.$alg.example. @10.53.0.1 a > dig.out.$alg.0 || ret=1
-    if [ $ret != 0 ]; then echo "I:failed"; fi
+    if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
     count0=`grep RRSIG dig.out.$alg.0 | wc -l`
 
@@ -57,16 +57,16 @@ update add `grep -v ';' ns1/${alg}.key`
 send
 END
 
-    echo "I:waiting 20 seconds for key changes to take effect"
+    echo_i "waiting 20 seconds for key changes to take effect"
     sleep 20
 
     $DIG $DIGOPTS ns.$alg.example. @10.53.0.1 a > dig.out.$alg || ret=1
-    if [ $ret != 0 ]; then echo "I:failed"; fi
+    if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
     count=`grep RRSIG dig.out.$alg | wc -l`
-    if [ $count -le $count0 ]; then echo "I:failed"; status=1; fi
+    if [ $count -le $count0 ]; then echo_i "failed"; status=1; fi
 
-    echo "I:testing PKCS#11 key destroy ($alg)"
+    echo_i "testing PKCS#11 key destroy ($alg)"
     ret=0
     $PK11DEL -l robie-$alg-ksk -w0 > /dev/null 2>&1 || ret=1
     $PK11DEL -l robie-$alg-zsk1 -w0 > /dev/null 2>&1 || ret=1
@@ -76,10 +76,10 @@ END
 	ecx) id=06 ;;
     esac
     $PK11DEL -i $id -w0 > /dev/null 2>&1 || ret=1
-    if [ $ret != 0 ]; then echo "I:failed"; fi
+    if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
     count=`$PK11LIST | grep robie-$alg | wc -l`
-    if [ $count != 0 ]; then echo "I:failed"; fi
+    if [ $count != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $count`
 done
 
