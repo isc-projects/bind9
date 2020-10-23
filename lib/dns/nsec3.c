@@ -16,8 +16,8 @@
 #include <isc/buffer.h>
 #include <isc/hex.h>
 #include <isc/iterated_hash.h>
-#include <isc/log.h>
 #include <isc/md.h>
+#include <isc/nonce.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -27,6 +27,7 @@
 #include <dns/dbiterator.h>
 #include <dns/diff.h>
 #include <dns/fixedname.h>
+#include <dns/log.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/rdata.h>
@@ -224,6 +225,33 @@ dns_nsec3_typepresent(dns_rdata_t *rdata, dns_rdatatype_t type) {
 	}
 	dns_rdata_freestruct(&nsec3);
 	return (present);
+}
+
+isc_result_t
+dns_nsec3_generate_salt(unsigned char *salt, size_t saltlen) {
+	unsigned char text[255 * 2 + 1];
+	isc_region_t r;
+	isc_buffer_t buf;
+	isc_result_t result;
+
+	if (saltlen > 255U) {
+		return (ISC_R_RANGE);
+	}
+
+	isc_nonce_buf(salt, saltlen);
+
+	r.base = salt;
+	r.length = (unsigned int)saltlen;
+
+	isc_buffer_init(&buf, text, sizeof(text));
+	result = isc_hex_totext(&r, 2, "", &buf);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	text[saltlen * 2] = 0;
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+		      ISC_LOG_INFO, "generated salt: %s", text);
+
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

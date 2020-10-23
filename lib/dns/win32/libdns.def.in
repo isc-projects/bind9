@@ -645,6 +645,7 @@ dns_nsec3_buildrdata
 dns_nsec3_delnsec3
 dns_nsec3_delnsec3s
 dns_nsec3_delnsec3sx
+dns_nsec3_generate_salt
 dns_nsec3_hashlength
 dns_nsec3_hashname
 dns_nsec3_maxiterations

@@ -73,6 +73,12 @@ dns_nsec3_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
  */
 
 isc_result_t
+dns_nsec3_generate_salt(unsigned char *salt, size_t saltlen);
+/*%
+ * Generate a salt with the given salt length.
+ */
+
+isc_result_t
 dns_nsec3_hashname(dns_fixedname_t *result,
 		   unsigned char    rethash[NSEC3_MAX_HASH_LENGTH],
 		   size_t *hash_length, const dns_name_t *name,
