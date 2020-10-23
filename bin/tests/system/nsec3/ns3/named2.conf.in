@@ -25,7 +25,7 @@ dnssec-policy "optout" {
 };
 
 dnssec-policy "nsec3-other" {
-	nsec3param iterations 11 optout yes salt "deadbeef";
+	nsec3param iterations 11 optout yes salt-length 0;
 };
 
 options {

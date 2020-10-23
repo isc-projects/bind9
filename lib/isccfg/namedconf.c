@@ -583,17 +583,16 @@ static cfg_type_t cfg_type_nsec3optout = {
 	&cfg_rep_boolean, &nsec3optout_kw
 };
 
-static keyword_type_t nsec3salt_kw = { "salt", &cfg_type_sstring };
+static keyword_type_t nsec3salt_kw = { "salt-length", &cfg_type_uint32 };
 static cfg_type_t cfg_type_nsec3salt = {
-	"salt",		 parse_optional_keyvalue,
-	print_keyvalue,	 doc_optional_keyvalue,
-	&cfg_rep_string, &nsec3salt_kw
+	"salt-length",	       parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_uint32,		&nsec3salt_kw
 };
 
 static cfg_tuplefielddef_t nsec3param_fields[] = {
 	{ "iterations", &cfg_type_nsec3iter, 0 },
 	{ "optout", &cfg_type_nsec3optout, 0 },
-	{ "salt", &cfg_type_nsec3salt, 0 },
+	{ "salt-length", &cfg_type_nsec3salt, 0 },
 	{ NULL, NULL, 0 }
 };
 

@@ -51,11 +51,10 @@ struct dns_kasp_key {
 };
 
 struct dns_kasp_nsec3param {
-	unsigned char salt[255];
-	uint8_t	      saltlen;
-	uint8_t	      algorithm;
-	uint8_t	      iterations;
-	bool	      optout;
+	uint8_t saltlen;
+	uint8_t algorithm;
+	uint8_t iterations;
+	bool	optout;
 };
 
 /* Stores a DNSSEC policy */
@@ -661,18 +660,6 @@ dns_kasp_nsec3saltlen(dns_kasp_t *kasp);
  *
  */
 
-unsigned char *
-dns_kasp_nsec3salt(dns_kasp_t *kasp);
-/*%<
- * The NSEC3 salt used.
- *
- * Requires:
- *
- *\li  'kasp' is a valid, frozen kasp.
- *\li  'kasp->nsec3' is true.
- *
- */
-
 void
 dns_kasp_setnsec3(dns_kasp_t *kasp, bool nsec3);
 /*%<
@@ -684,9 +671,9 @@ dns_kasp_setnsec3(dns_kasp_t *kasp, bool nsec3);
  *
  */
 
-isc_result_t
+void
 dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
-		       const char *salt);
+		       uint8_t saltlen);
 /*%<
  * Set the desired NSEC3 parameters.
  *
@@ -694,11 +681,6 @@ dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
  *
  *\li  'kasp' is a valid, unfrozen kasp.
  *\li  'kasp->nsec3' is true.
- *
- * Returns:
- *
- *\li  ISC_R_SUCCESS, if NSEC3 parameters are set.
- *\li  Error, if isc_hex_decodestring() fails.
  *
  */
 
