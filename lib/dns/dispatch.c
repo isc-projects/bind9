@@ -599,34 +599,22 @@ new_portentry(dns_dispatch_t *disp, in_port_t port) {
 }
 
 /*%
- * The caller must not hold the qid->lock.
+ * The caller must hold the qid->lock.
  */
 static void
 deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 	dispportentry_t *portentry = *portentryp;
-	dns_qid_t *qid;
+	*portentryp = NULL;
 
 	REQUIRE(disp->port_table != NULL);
 	REQUIRE(portentry != NULL && portentry->refs > 0);
 
-	qid = DNS_QID(disp);
-	LOCK(&qid->lock);
-	portentry->refs--;
-
-	if (portentry->refs == 0) {
+	if (--portentry->refs == 0) {
 		ISC_LIST_UNLINK(disp->port_table[portentry->port %
 						 DNS_DISPATCH_PORTTABLESIZE],
 				portentry, link);
 		isc_mempool_put(disp->portpool, portentry);
 	}
-
-	/*
-	 * Set '*portentryp' to NULL inside the lock so that
-	 * dispsock->portentry does not change in socket_search.
-	 */
-	*portentryp = NULL;
-
-	UNLOCK(&qid->lock);
 }
 
 /*%
@@ -764,9 +752,9 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	if (result == ISC_R_SUCCESS) {
 		dispsock->socket = sock;
 		dispsock->host = *dest;
-		dispsock->portentry = portentry;
 		dispsock->bucket = bucket;
 		LOCK(&qid->lock);
+		dispsock->portentry = portentry;
 		ISC_LIST_APPEND(qid->sock_table[bucket], dispsock, blink);
 		UNLOCK(&qid->lock);
 		*dispsockp = dispsock;
@@ -791,7 +779,7 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 static void
 destroy_dispsocket(dns_dispatch_t *disp, dispsocket_t **dispsockp) {
 	dispsocket_t *dispsock;
-	dns_qid_t *qid;
+	dns_qid_t *qid = DNS_QID(disp);
 
 	/*
 	 * The dispatch must be locked.
@@ -803,19 +791,24 @@ destroy_dispsocket(dns_dispatch_t *disp, dispsocket_t **dispsockp) {
 
 	disp->nsockets--;
 	dispsock->magic = 0;
-	if (dispsock->portentry != NULL)
+	if (dispsock->portentry != NULL) {
+		/* socket_search() tests and dereferences portentry. */
+		LOCK(&qid->lock);
 		deref_portentry(disp, &dispsock->portentry);
-	if (dispsock->socket != NULL)
+		UNLOCK(&qid->lock);
+	}
+	if (dispsock->socket != NULL) {
 		isc_socket_detach(&dispsock->socket);
+	}
 	if (ISC_LINK_LINKED(dispsock, blink)) {
-		qid = DNS_QID(disp);
 		LOCK(&qid->lock);
 		ISC_LIST_UNLINK(qid->sock_table[dispsock->bucket], dispsock,
 				blink);
 		UNLOCK(&qid->lock);
 	}
-	if (dispsock->task != NULL)
+	if (dispsock->task != NULL) {
 		isc_task_detach(&dispsock->task);
+	}
 	isc_mempool_put(disp->mgr->spool, dispsock);
 
 	*dispsockp = NULL;
@@ -828,7 +821,7 @@ destroy_dispsocket(dns_dispatch_t *disp, dispsocket_t **dispsockp) {
 static void
 deactivate_dispsocket(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	isc_result_t result;
-	dns_qid_t *qid;
+	dns_qid_t *qid = DNS_QID(disp);
 
 	/*
 	 * The dispatch must be locked.
@@ -840,14 +833,16 @@ deactivate_dispsocket(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	}
 
 	INSIST(dispsock->portentry != NULL);
+	/* socket_search() tests and dereferences portentry. */
+	LOCK(&qid->lock);
 	deref_portentry(disp, &dispsock->portentry);
+	UNLOCK(&qid->lock);
 
 	if (disp->nsockets > DNS_DISPATCH_POOLSOCKS)
 		destroy_dispsocket(disp, &dispsock);
 	else {
 		result = isc_socket_close(dispsock->socket);
 
-		qid = DNS_QID(disp);
 		LOCK(&qid->lock);
 		ISC_LIST_UNLINK(qid->sock_table[dispsock->bucket], dispsock,
 				blink);
