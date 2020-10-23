@@ -22,7 +22,7 @@
 
 top_srcdir=@abs_top_srcdir@
 
-sys=$($SHELL "$top_srcdir/config.guess")
+sys=$(@SHELL@ "$top_srcdir/config.guess")
 
 use_ip=
 case "$sys" in
