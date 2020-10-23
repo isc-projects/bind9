@@ -199,9 +199,9 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking recursive lookup to edns 512 server fails ($n)"
+echo_i "checking recursive lookup to edns 512 server succeeds ($n)"
 ret=0
-resolution_fails edns512. || ret=1
+retry_quiet 3 resolution_succeeds edns512. || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
