@@ -439,7 +439,6 @@ dns_kasp_keys
 dns_kasp_nsec3
 dns_kasp_nsec3flags
 dns_kasp_nsec3iter
-dns_kasp_nsec3salt
 dns_kasp_nsec3saltlen
 dns_kasp_parentpropagationdelay
 dns_kasp_publishsafety
@@ -1165,6 +1164,7 @@ dns_zone_catz_enable
 dns_zone_catz_enable_db
 dns_zone_cdscheck
 dns_zone_checknames
+dns_zone_checknsec3param
 dns_zone_clearforwardacl
 dns_zone_clearnotifyacl
 dns_zone_clearqueryacl

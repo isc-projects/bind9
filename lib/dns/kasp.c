@@ -479,15 +479,6 @@ dns_kasp_nsec3saltlen(dns_kasp_t *kasp) {
 	return (kasp->nsec3param.saltlen);
 }
 
-unsigned char *
-dns_kasp_nsec3salt(dns_kasp_t *kasp) {
-	REQUIRE(kasp != NULL);
-	REQUIRE(kasp->frozen);
-	REQUIRE(kasp->nsec3);
-
-	return kasp->nsec3param.salt;
-}
-
 bool
 dns_kasp_nsec3(dns_kasp_t *kasp) {
 	REQUIRE(kasp != NULL);
@@ -504,27 +495,14 @@ dns_kasp_setnsec3(dns_kasp_t *kasp, bool nsec3) {
 	kasp->nsec3 = nsec3;
 }
 
-isc_result_t
+void
 dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
-		       const char *salt) {
-	isc_buffer_t buf;
-	isc_result_t ret = ISC_R_SUCCESS;
-
+		       uint8_t saltlen) {
 	REQUIRE(kasp != NULL);
 	REQUIRE(!kasp->frozen);
 	REQUIRE(kasp->nsec3);
 
 	kasp->nsec3param.iterations = iter;
 	kasp->nsec3param.optout = optout;
-	kasp->nsec3param.saltlen = 0;
-
-	if (salt != NULL && strcmp(salt, "-") != 0) {
-		isc_buffer_init(&buf, kasp->nsec3param.salt,
-				sizeof(kasp->nsec3param.salt));
-		ret = isc_hex_decodestring(salt, &buf);
-		if (ret == ISC_R_SUCCESS) {
-			kasp->nsec3param.saltlen = isc_buffer_usedlength(&buf);
-		}
-	}
-	return (ret);
+	kasp->nsec3param.saltlen = saltlen;
 }

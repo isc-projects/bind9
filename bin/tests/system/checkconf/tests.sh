@@ -509,14 +509,6 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking named-checkconf kasp nsec3 salt errors ($n)"
-ret=0
-$CHECKCONF kasp-bad-nsec3-salt.conf > checkconf.out$n 2>&1 && ret=1
-grep "dnssec-policy: bad nsec3 salt pepper" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
 echo_i "checking named-checkconf kasp nsec3 iterations errors ($n)"
 ret=0
 $CHECKCONF kasp-bad-nsec3-iter.conf > checkconf.out$n 2>&1 && ret=1

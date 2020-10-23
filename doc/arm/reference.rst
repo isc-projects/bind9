@@ -4958,14 +4958,15 @@ The following options can be specified in a ``dnssec-policy`` statement:
      ``nsec3param``
        Use NSEC3 instead of NSEC, and optionally set the NSEC3 parameters.
 
-       Here is an example (for illustration purposes only) of
-       a ``nsec3`` configuration:
+       Here is an example of an ``nsec3`` configuration:
 
        ::
 
-          nsec3param ttl 0 iterations 5 optout no salt "-";
+          nsec3param iterations 5 optout no salt-length 8;
 
-       The default is to use NSEC.
+       The default is to use NSEC. The ``iterations``, ``optout``
+       and ``salt-length`` parts are optional, but if not set, the
+       values in the example above are the default NSEC3 parameters.
 
      ``zone-propagation-delay``
        This is the expected propagation delay from the time when a zone

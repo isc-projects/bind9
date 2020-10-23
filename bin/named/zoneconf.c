@@ -29,6 +29,7 @@
 #include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/name.h>
+#include <dns/nsec3.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -1561,15 +1562,32 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		bool sigvalinsecs;
 
 		if (kasp != NULL) {
+			unsigned char saltbuf[255];
+			unsigned char *salt;
+			DE_CONST("-", salt);
+
 			if (dns_kasp_nsec3(kasp)) {
-				result = dns_zone_setnsec3param(
+				result = dns_zone_checknsec3param(
 					zone, 1, dns_kasp_nsec3flags(kasp),
 					dns_kasp_nsec3iter(kasp),
-					dns_kasp_nsec3saltlen(kasp),
-					dns_kasp_nsec3salt(kasp), true);
+					dns_kasp_nsec3saltlen(kasp), NULL);
+				if (result != ISC_R_SUCCESS) {
+					if (dns_kasp_nsec3saltlen(kasp) > 0) {
+						RETERR(dns_nsec3_generate_salt(
+							saltbuf,
+							dns_kasp_nsec3saltlen(
+								kasp)));
+						salt = saltbuf;
+					}
+					result = dns_zone_setnsec3param(
+						zone, 1,
+						dns_kasp_nsec3flags(kasp),
+						dns_kasp_nsec3iter(kasp),
+						dns_kasp_nsec3saltlen(kasp),
+						salt, true);
+				}
+
 			} else {
-				unsigned char *salt;
-				DE_CONST("-", salt);
 				result = dns_zone_setnsec3param(zone, 0, 0, 0,
 								0, salt, true);
 			}

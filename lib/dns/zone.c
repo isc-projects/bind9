@@ -21053,6 +21053,100 @@ failure:
 }
 
 /*
+ * Check if zone has NSEC3PARAM (and thus a chain) with the right parameters.
+ */
+isc_result_t
+dns_zone_checknsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
+			 uint16_t iter, uint8_t saltlen, unsigned char *salt) {
+	isc_result_t result = ISC_R_UNEXPECTED;
+	dns_dbnode_t *node = NULL;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_rdataset_t rdataset;
+	dns_rdata_nsec3param_t nsec3param;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	UNUSED(flags);
+
+	dns_rdataset_init(&rdataset);
+
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL) {
+		dns_db_attach(zone->db, &db);
+	}
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (db == NULL) {
+		goto cleanup;
+	}
+
+	result = dns_db_findnode(db, &zone->origin, false, &node);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "nsec3param lookup failure: %s",
+			     dns_result_totext(result));
+		goto cleanup;
+	}
+	dns_db_currentversion(db, &version);
+
+	result = dns_db_findrdataset(db, node, version,
+				     dns_rdatatype_nsec3param,
+				     dns_rdatatype_none, 0, &rdataset, NULL);
+	if (result != ISC_R_SUCCESS) {
+		INSIST(!dns_rdataset_isassociated(&rdataset));
+		if (result != ISC_R_NOTFOUND) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "nsec3param lookup failure: %s",
+				     dns_result_totext(result));
+		}
+		goto cleanup;
+	}
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdataset_current(&rdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_rdata_reset(&rdata);
+		if (nsec3param.hash != hash) {
+			continue;
+		}
+		if (nsec3param.iterations != iter) {
+			continue;
+		}
+		if (nsec3param.salt_length != saltlen) {
+			continue;
+		}
+		if (salt != NULL) {
+			if (memcmp(nsec3param.salt, salt, saltlen) != 0) {
+				continue;
+			}
+		}
+		/* Found a match. */
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+	INSIST(result != ISC_R_SUCCESS);
+
+cleanup:
+	if (dns_rdataset_isassociated(&rdataset)) {
+		dns_rdataset_disassociate(&rdataset);
+	}
+	if (node != NULL) {
+		dns_db_detachnode(db, &node);
+	}
+	if (version != NULL) {
+		dns_db_closeversion(db, &version, false);
+	}
+	if (db != NULL) {
+		dns_db_detach(&db);
+	}
+
+	return (result);
+}
+
+/*
  * Called when an "rndc signing -nsec3param ..." command is received.
  *
  * Allocate and prepare an nsec3param_t structure which holds information about

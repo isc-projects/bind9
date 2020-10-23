@@ -29,7 +29,8 @@
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
 
-#define DEFAULT_NSEC3PARAM_ITER 5
+#define DEFAULT_NSEC3PARAM_ITER	   5
+#define DEFAULT_NSEC3PARAM_SALTLEN 8
 
 /*
  * Utility function for getting a configuration option.
@@ -171,8 +172,8 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	dns_kasp_key_t *kkey;
 	unsigned int min_keysize = 4096;
 	const cfg_obj_t *obj = NULL;
-	const char *salt = NULL;
 	uint32_t iter = DEFAULT_NSEC3PARAM_ITER;
+	uint32_t saltlen = DEFAULT_NSEC3PARAM_SALTLEN;
 	uint32_t badalg = 0;
 	bool optout = false;
 	isc_result_t ret = ISC_R_SUCCESS;
@@ -236,17 +237,19 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	}
 
 	/* Salt */
-	obj = cfg_tuple_get(config, "salt");
-	if (cfg_obj_isstring(obj)) {
-		salt = cfg_obj_asstring(obj);
+	obj = cfg_tuple_get(config, "salt-length");
+	if (cfg_obj_isuint32(obj)) {
+		saltlen = cfg_obj_asuint32(obj);
+	}
+	if (saltlen > 0xff) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "dnssec-policy: nsec3 salt length %u too high",
+			    saltlen);
+		return (DNS_R_NSEC3SALTRANGE);
 	}
 
-	ret = dns_kasp_setnsec3param(kasp, iter, optout, salt);
-	if (ret != ISC_R_SUCCESS) {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-			    "dnssec-policy: bad nsec3 salt %s", salt);
-	}
-	return (ret);
+	dns_kasp_setnsec3param(kasp, iter, optout, saltlen);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
