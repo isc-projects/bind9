@@ -14367,34 +14367,6 @@ newzone_cfgctx_destroy(void **cfgp) {
 	*cfgp = NULL;
 }
 
-static isc_result_t
-generate_salt(unsigned char *salt, size_t saltlen) {
-	unsigned char text[512 + 1];
-	isc_region_t r;
-	isc_buffer_t buf;
-	isc_result_t result;
-
-	if (saltlen > 256U) {
-		return (ISC_R_RANGE);
-	}
-
-	isc_nonce_buf(salt, saltlen);
-
-	r.base = salt;
-	r.length = (unsigned int)saltlen;
-
-	isc_buffer_init(&buf, text, sizeof(text));
-	result = isc_hex_totext(&r, 2, "", &buf);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	text[saltlen * 2] = 0;
-
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "generated salt: %s", text);
-
-	return (ISC_R_SUCCESS);
-}
-
 isc_result_t
 named_server_signing(named_server_t *server, isc_lex_t *lex,
 		     isc_buffer_t **text) {
@@ -14467,7 +14439,6 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 				return (ISC_R_UNEXPECTEDEND);
 			}
 			strlcpy(iterbuf, ptr, sizeof(iterbuf));
-
 			n = snprintf(nbuf, sizeof(nbuf), "%s %s %s", hashbuf,
 				     flagbuf, iterbuf);
 			if (n == sizeof(nbuf)) {
@@ -14493,7 +14464,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 				 * configurable.
 				 */
 				saltlen = 8;
-				CHECK(generate_salt(salt, saltlen));
+				CHECK(dns_nsec3_generate_salt(salt, saltlen));
 			} else if (strcmp(ptr, "-") != 0) {
 				isc_buffer_t buf;
 
