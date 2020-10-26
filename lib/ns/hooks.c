@@ -98,14 +98,6 @@ load_symbol(void *handle, const char *modpath, const char *symbol_name,
 	REQUIRE(handle != NULL);
 	REQUIRE(symbolp != NULL && *symbolp == NULL);
 
-	/*
-	 * Clear any pre-existing error conditions before running dlsym().
-	 * (In this case, we expect dlsym() to return non-NULL values
-	 * and will always return an error if it returns NULL, but
-	 * this ensures that we'll report the correct error condition
-	 * if there is one.)
-	 */
-	lt_dlerror();
 	symbol = lt_dlsym(handle, symbol_name);
 	if (symbol == NULL) {
 		const char *errmsg = lt_dlerror();

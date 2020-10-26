@@ -99,7 +99,6 @@ load_symbol(lt_dlhandle handle, const char *filename, const char *symbol_name,
 			      symbol_name, filename, errmsg);
 		return (ISC_R_FAILURE);
 	}
-	(void)lt_dlerror();
 
 	*symbolp = symbol;
 
@@ -131,9 +130,6 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 	if (handle == NULL) {
 		CHECK(ISC_R_FAILURE);
 	}
-
-	/* Clear dlerror */
-	(void)lt_dlerror();
 
 	CHECK(load_symbol(handle, filename, "dyndb_version",
 			  (void **)&version_func));

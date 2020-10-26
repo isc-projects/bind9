@@ -193,8 +193,7 @@ dl_load_symbol(dlopen_data_t *cd, const char *symbol, bool mandatory) {
 				   cd->dl_path, symbol, errmsg);
 		}
 	}
-	/* Cleanup any errors */
-	(void)lt_dlerror();
+
 	return (ptr);
 }
 
@@ -242,8 +241,6 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		result = ISC_R_FAILURE;
 		goto failed;
 	}
-
-	(void)lt_dlerror();
 
 	/* Find the symbols */
 	cd->dlz_version =
