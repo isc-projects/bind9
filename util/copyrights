@@ -2339,6 +2339,9 @@
 ./bin/tests/system/stub/ns2/named.conf.in	CONF-C	2018,2019,2020
 ./bin/tests/system/stub/ns3/example.db		ZONE	2000,2001,2004,2007,2016,2018,2019,2020
 ./bin/tests/system/stub/ns3/named.conf.in	CONF-C	2018,2019,2020
+./bin/tests/system/stub/ns4/example.db		ZONE	2020
+./bin/tests/system/stub/ns4/named.conf.in	CONF-C	2020
+./bin/tests/system/stub/ns5/named.conf.in	CONF-C	2020
 ./bin/tests/system/stub/setup.sh		SH	2018,2019,2020
 ./bin/tests/system/stub/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2016,2018,2019,2020
 ./bin/tests/system/tcp/ans6/ans.py		PYTHON	2019,2020

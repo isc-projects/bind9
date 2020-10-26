@@ -9637,6 +9637,12 @@ ns_query_start(ns_client_t *client) {
 	{
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
+	} else if (qtype == dns_rdatatype_ns) {
+		/*
+		 * Always turn on additional records for NS queries.
+		 */
+		client->query.attributes &= ~(NS_QUERYATTR_NOAUTHORITY |
+					      NS_QUERYATTR_NOADDITIONAL);
 	}
 
 	/*
