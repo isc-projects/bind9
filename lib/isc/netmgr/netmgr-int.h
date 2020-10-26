@@ -422,7 +422,6 @@ struct isc_nmsocket {
 	bool timer_running;
 	uint64_t read_timeout;
 	uint64_t connect_timeout;
-	bool timed_out;
 
 	/*% outer socket is for 'wrapped' sockets - e.g. tcpdns in tcp */
 	isc_nmsocket_t *outer;

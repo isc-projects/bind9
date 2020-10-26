@@ -1612,14 +1612,21 @@ isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 static void
 shutdown_walk_cb(uv_handle_t *handle, void *arg) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	UNUSED(arg);
+
+	if (uv_is_closing(handle)) {
+		return;
+	}
 
 	switch (handle->type) {
 	case UV_UDP:
-		isc__nm_udp_shutdown(uv_handle_get_data(handle));
+		REQUIRE(VALID_NMSOCK(sock));
+		isc__nm_udp_shutdown(sock);
 		break;
 	case UV_TCP:
-		isc__nm_tcp_shutdown(uv_handle_get_data(handle));
+		REQUIRE(VALID_NMSOCK(sock));
+		isc__nm_tcp_shutdown(sock);
 		break;
 	default:
 		break;
