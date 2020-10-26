@@ -605,6 +605,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	int r;
 
 	REQUIRE(isc__nm_in_netthread());
+	REQUIRE(sock->tid == isc_nm_tid());
 
 	worker = &sock->mgr->workers[isc_nm_tid()];
 
@@ -815,6 +816,9 @@ udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	    const struct sockaddr *addr, unsigned flags) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 
+	if (sock->timer_running) {
+		uv_timer_stop(&sock->timer);
+	}
 	udp_recv_cb(handle, nrecv, buf, addr, flags);
 	uv_udp_recv_stop(&sock->uv_handle.udp);
 }
@@ -823,6 +827,9 @@ static void
 failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	isc_nm_recv_cb_t cb;
 	void *cbarg = NULL;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->statichandle != NULL);
 
 	uv_udp_recv_stop(&sock->uv_handle.udp);
 
@@ -959,6 +966,8 @@ void
 isc__nm_udp_close(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_udpsocket);
+
+	REQUIRE(!isc__nmsocket_active(sock));
 
 	if (sock->tid == isc_nm_tid()) {
 		udp_close_direct(sock);
