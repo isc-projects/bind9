@@ -177,6 +177,14 @@ zone "rumoured.kasp" {
 	dnssec-policy "rsasha1";
 };
 
+/* RFC 8901 Multi-signer Model 2. */
+zone "multisigner-model2.kasp" {
+	type primary;
+	file "multisigner-model2.kasp.db";
+	dnssec-policy "multisigner-model2";
+	allow-update { any; };
+};
+
 /*
  * Different algorithms.
  */

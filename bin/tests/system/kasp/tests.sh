@@ -1374,7 +1374,6 @@ retry_quiet 10 update_is_signed || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-
 #
 # Zone: dynamic-inline-signing.kasp
 #
@@ -2686,6 +2685,68 @@ status=$((status+ret))
 
 # Clear TSIG.
 TSIG=""
+
+#
+# Testing RFC 8901 Multi-Signer Model 2.
+#
+set_zone "multisigner-model2.kasp"
+set_policy "multisigner-model2" "2" "3600"
+set_server "ns3" "10.53.0.3"
+key_clear "KEY1"
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+# Key properties.
+set_keyrole      "KEY1" "ksk"
+set_keylifetime  "KEY1" "0"
+set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY1" "yes"
+set_zonesigning  "KEY1" "no"
+
+set_keyrole      "KEY2" "zsk"
+set_keylifetime  "KEY2" "0"
+set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY2" "no"
+set_zonesigning  "KEY2" "yes"
+
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+# Check that the ZSKs from the other provider are published.
+zsks_are_published() {
+	dig_with_opts +short "$ZONE" "@${SERVER}" DNSKEY > "dig.out.$DIR.test$n" || return 1
+	# We should have three ZSKs.
+	lines=$(grep "256 3 13" dig.out.$DIR.test$n | wc -l)
+	test "$lines" -eq 3 || return 1
+	# And one KSK.
+	lines=$(grep "257 3 13" dig.out.$DIR.test$n | wc -l)
+	test "$lines" -eq 1 || return 1
+}
+
+n=$((n+1))
+echo_i "update zone with ZSK from another provider for zone ${ZONE} ($n)"
+ret=0
+(
+echo zone ${ZONE}
+echo server 10.53.0.3 "$PORT"
+echo update add $(cat "${DIR}/${ZONE}.zsk2")
+echo send
+) | $NSUPDATE
+retry_quiet 10 zsks_are_published || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 #
 # Testing manual rollover.
