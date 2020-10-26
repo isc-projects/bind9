@@ -738,6 +738,13 @@ isc__nm_udp_cancelread(isc_nmhandle_t *handle);
  */
 
 void
+isc__nm_udp_shutdown(isc_nmsocket_t *sock);
+/*%<
+ * Called during the shutdown process to close and clean up connected
+ * sockets.
+ */
+
+void
 isc__nm_udp_stoplistening(isc_nmsocket_t *sock);
 
 void

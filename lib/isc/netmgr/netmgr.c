@@ -1615,6 +1615,9 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 	UNUSED(arg);
 
 	switch (handle->type) {
+	case UV_UDP:
+		isc__nm_udp_shutdown(uv_handle_get_data(handle));
+		break;
 	case UV_TCP:
 		isc__nm_tcp_shutdown(uv_handle_get_data(handle));
 		break;
