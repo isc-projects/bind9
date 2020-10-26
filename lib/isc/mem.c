@@ -244,13 +244,15 @@ static void *
 isc___mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG);
 static char *
 isc___mem_strdup(isc_mem_t *mctx, const char *s FLARG);
+static char *
+isc___mem_strndup(isc_mem_t *mctx, const char *s, size_t size FLARG);
 static void
 isc___mem_free(isc_mem_t *ctx, void *ptr FLARG);
 
 static isc_memmethods_t memmethods = {
 	isc___mem_get,	    isc___mem_put,	  isc___mem_putanddetach,
 	isc___mem_allocate, isc___mem_reallocate, isc___mem_strdup,
-	isc___mem_free,
+	isc___mem_strndup,  isc___mem_free,
 };
 
 #if ISC_MEM_TRACKLINES
@@ -1439,6 +1441,29 @@ isc___mem_strdup(isc_mem_t *mctx0, const char *s FLARG) {
 	return (ns);
 }
 
+char *
+isc___mem_strndup(isc_mem_t *mctx0, const char *s, size_t size FLARG) {
+	REQUIRE(VALID_CONTEXT(mctx0));
+	REQUIRE(s != NULL);
+
+	isc__mem_t *mctx = (isc__mem_t *)mctx0;
+	size_t len;
+	char *ns;
+
+	len = strlen(s) + 1;
+	if (len > size) {
+		len = size;
+	}
+
+	ns = isc__mem_allocate((isc_mem_t *)mctx, len FLARG_PASS);
+
+	if (ns != NULL) {
+		strlcpy(ns, s, len);
+	}
+
+	return (ns);
+}
+
 void
 isc_mem_setdestroycheck(isc_mem_t *ctx0, bool flag) {
 	REQUIRE(VALID_CONTEXT(ctx0));
@@ -2465,6 +2490,13 @@ isc__mem_strdup(isc_mem_t *mctx, const char *s FLARG) {
 	REQUIRE(ISCAPI_MCTX_VALID(mctx));
 
 	return (mctx->methods->memstrdup(mctx, s FLARG_PASS));
+}
+
+char *
+isc__mem_strndup(isc_mem_t *mctx, const char *s, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->memstrndup(mctx, s, size FLARG_PASS));
 }
 
 void
