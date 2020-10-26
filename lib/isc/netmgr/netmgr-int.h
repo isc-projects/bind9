@@ -471,6 +471,7 @@ struct isc_nmsocket {
 	atomic_bool connecting;
 	atomic_bool connected;
 	atomic_bool connect_error;
+	atomic_bool reading;
 	isc_refcount_t references;
 
 	/*%
