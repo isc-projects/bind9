@@ -54,7 +54,7 @@ for zn in default rsasha1 dnssec-keygen some-keys legacy-keys pregenerated \
 	  rumoured rsasha1-nsec3 rsasha256 rsasha512 ecdsa256 ecdsa384 \
 	  dynamic dynamic-inline-signing inline-signing \
 	  checkds-ksk checkds-doubleksk checkds-csk inherit unlimited \
-	  manual-rollover
+	  manual-rollover multisigner-model2
 do
 	setup "${zn}.kasp"
 	cp template.db.in "$zonefile"
@@ -94,6 +94,18 @@ $KEYGEN -a RSASHA1 -f KSK  -L 1234 $zone > keygen.out.$zone.2 2>&1
 zone="pregenerated.kasp"
 $KEYGEN -G -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.1 2>&1
 $KEYGEN -G -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.2 2>&1
+
+zone="multisigner-model2.kasp"
+# Import the ZSK sets of the other providers into their DNSKEY RRset.
+ZSK1=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 $zone 2> keygen.out.$zone.1)
+ZSK2=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 $zone 2> keygen.out.$zone.2)
+# ZSK1 will be added to the unsigned zonefile.
+cat "../${ZSK1}.key" | grep -v ";.*" >> "${zone}.db"
+cat "../${ZSK1}.key" | grep -v ";.*" > "${zone}.zsk1"
+rm -f "../${ZSK1}.*"
+# ZSK2 will be used with a Dynamic Update.
+cat "../${ZSK2}.key" | grep -v ";.*" > "${zone}.zsk2"
+rm -f "../${ZSK2}.*"
 
 zone="rumoured.kasp"
 Tpub="now"
