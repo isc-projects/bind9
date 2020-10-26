@@ -37,12 +37,15 @@ variables:
   WITH_READLINE_LIBEDIT: "--with-readline=libedit"
   WITH_READLINE_READLINE: "--with-readline=readline"
 
+  BIND_INSTALL_PATH: "${CI_PROJECT_DIR}/.local"
+
 stages:
   - autoconf
   - precheck
   - build
   - unit
   - system
+  - performance
   - docs
   - push
   - postcheck
@@ -64,6 +67,27 @@ stages:
   tags:
     - linux
     - i386
+
+.linux-stress-amd64: &linux_stress_amd64
+  tags:
+    - amd64
+    - aws
+    - linux-stress
+    - stress
+
+.linux-stress-arm64: &linux_stress_arm64
+  tags:
+    - aarch64
+    - aws
+    - linux-stress
+    - stress
+
+.freebsd-stress-amd64: &freebsd_stress_amd64
+  tags:
+    - amd64
+    - aws
+    - bsd-stress
+    - stress
 
 ### Docker Image Templates
 
@@ -112,6 +136,10 @@ stages:
 .fedora-32-amd64: &fedora_32_amd64_image
   image: "$CI_REGISTRY_IMAGE:fedora-32-amd64"
   <<: *linux_amd64
+
+.fedora-32-arm64: &fedora_32_arm64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-32-arm64"
+  <<: *linux_stress_arm64
 
 # Ubuntu
 
@@ -183,7 +211,7 @@ stages:
     --with-cmocka \
     --with-libxml2 \
     --with-json-c \
-    --prefix=$HOME/.local \
+    --prefix="${BIND_INSTALL_PATH}" \
     $EXTRA_CONFIGURE \
     || cat config.log
 
@@ -1352,6 +1380,101 @@ respdiff:
     untracked: true
     expire_in: "1 day"
     when: on_failure
+
+# "Stress" tests
+
+.stress: &stress_job
+  stage: performance
+  script:
+    - *configure
+    - *setup_interfaces
+    - *setup_softhsm
+    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
+    - make install
+    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
+    - cd bind-qa/bind9/stress
+    - DIG="${BIND_INSTALL_PATH}/bin/dig" WORKSPACE="${CI_PROJECT_DIR}" bash stress.sh
+  needs:
+    - job: autoreconf
+      artifacts: true
+  only:
+    - schedules
+    - tags
+  artifacts:
+    untracked: true
+    expire_in: "1 day"
+    when: always
+  timeout: 2h
+
+stress:authoritative:fedora:32:amd64:
+  <<: *fedora_32_amd64_image
+  <<: *linux_stress_amd64
+  <<: *stress_job
+  variables:
+    CC: gcc
+    FLAME: /usr/bin/flame
+    MODE: authoritative
+    RATE: 10000
+    RUN_TIME: 1
+
+stress:recursive:fedora:32:amd64:
+  <<: *fedora_32_amd64_image
+  <<: *linux_stress_amd64
+  <<: *stress_job
+  variables:
+    CC: gcc
+    FLAME: /usr/bin/flame
+    MODE: recursive
+    RATE: 10000
+    RUN_TIME: 1
+
+stress:authoritative:fedora:32:arm64:
+  <<: *fedora_32_arm64_image
+  <<: *linux_stress_arm64
+  <<: *stress_job
+  variables:
+    CC: gcc
+    FLAME: /usr/bin/flame
+    MODE: authoritative
+    RATE: 10000
+    RUN_TIME: 1
+
+stress:recursive:fedora:32:arm64:
+  <<: *fedora_32_arm64_image
+  <<: *linux_stress_arm64
+  <<: *stress_job
+  variables:
+    CC: gcc
+    FLAME: /usr/bin/flame
+    MODE: recursive
+    RATE: 10000
+    RUN_TIME: 1
+
+stress:authoritative:freebsd12:
+  <<: *freebsd_12_amd64_image
+  <<: *freebsd_stress_amd64
+  <<: *stress_job
+  variables:
+    CC: clang
+    FLAME: /usr/local/bin/flame
+    MODE: authoritative
+    RATE: 10000
+    RUN_TIME: 1
+  # See: https://gitlab.isc.org/isc-projects/bind9/-/issues/1941
+  allow_failure: true
+
+stress:recursive:freebsd12:
+  <<: *freebsd_12_amd64_image
+  <<: *freebsd_stress_amd64
+  <<: *stress_job
+  variables:
+    CC: clang
+    FLAME: /usr/local/bin/flame
+    MODE: recursive
+    RATE: 10000
+    RUN_TIME: 1
+  # See: https://gitlab.isc.org/isc-projects/bind9/-/issues/1941
+  allow_failure: true
 
 # ABI check
 
