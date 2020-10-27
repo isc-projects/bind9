@@ -208,7 +208,7 @@ restart () {
 	fi
     fi
     rm -f ns$1/*.jnl
-    if [ "$2" == "rebuild-bl-rpz" ]; then
+    if [ "$2" = "rebuild-bl-rpz" ]; then
         if test -f ns$1/base.db; then
 	    for NM in ns$1/bl*.db; do
 	        cp -f ns$1/base.db $NM
