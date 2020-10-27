@@ -289,6 +289,13 @@ stages:
     expire_in: "1 day"
     when: on_failure
 
+.system_test_gcov: &system_test_gcov_job
+  <<: *system_test_common
+  artifacts:
+    untracked: true
+    expire_in: "1 day"
+    when: always
+
 .system_test_tsan: &system_test_tsan_job
   <<: *system_test_common
   allow_failure: true
@@ -346,6 +353,13 @@ stages:
     untracked: true
     expire_in: "1 day"
     when: on_failure
+
+.unit_test_gcov: &unit_test_gcov_job
+  <<: *unit_test_common
+  artifacts:
+    untracked: true
+    expire_in: "1 day"
+    when: always
 
 .unit_test_tsan: &unit_test_tsan_job
   <<: *unit_test_common
@@ -662,20 +676,22 @@ unit:gcc:stretch:amd64:
 gcc:buster:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
+    CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
+    LDFLAGS: "--coverage"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
   <<: *debian_buster_amd64_image
   <<: *build_job
 
 system:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
-  <<: *system_test_job
+  <<: *system_test_gcov_job
   needs:
-    - job: gcc:buster:amd64
+    - job: unit:gcc:buster:amd64
       artifacts: true
 
 unit:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
-  <<: *unit_test_job
+  <<: *unit_test_gcov_job
   needs:
     - job: gcc:buster:amd64
       artifacts: true
@@ -1502,22 +1518,12 @@ abi-check:
 
 gcov:
   <<: *base_image
-  stage: build
+  <<: *default_triggering_rules
+  stage: postcheck
   needs:
-    - job: autoreconf
+    - job: system:gcc:buster:amd64
       artifacts: true
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
-    LDFLAGS: "--coverage"
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
   script:
-    - *configure
-    - *setup_interfaces
-    - *setup_softhsm
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
-    - make -k unit || true
-    - make -C bin/tests/system -j${TEST_PARALLEL_JOBS:-1} -k test V=1 || true
     # *.gcno and *.gcda files generated for shared library objects are created
     # in directories in which gcovr is unable to process them properly
     # (.../.libs/...).  Move such *.gcno and *.gcda files one level higher.
@@ -1528,15 +1534,20 @@ gcov:
     # These drivers are built into bin/named/named in a way which trips up
     # gcovr.  Copy them to where gcovr expects them.
     - cp contrib/dlz/drivers/dlz_drivers.c contrib/dlz/drivers/dlz_filesystem_driver.c contrib/dlz/drivers/sdlz_helper.c bin/named/
+    # Generate XML file in the Cobertura XML format suitable for use by GitLab
+    # for the purpose of displaying code coverage information in the diff view
+    # of a given merge request.
+    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --xml -o coverage.xml
     - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --html-details -o coverage.html
     - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' -o coverage.txt
     - tail -n 3 coverage.txt
   artifacts:
     paths:
       - coverage*.html
-  only:
-    - main@isc-projects/bind9
-    - /^v9_[1-9][0-9]$/@isc-projects/bind9
+      - coverage.txt
+      - coverage.xml
+    reports:
+      cobertura: coverage.xml
 
 # Pairwise testing of ./configure options
 
