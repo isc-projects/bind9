@@ -14411,6 +14411,10 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 				 */
 				saltlen = 8;
 				CHECK(dns_nsec3_generate_salt(salt, saltlen));
+				dns_nsec3_log_salt(
+					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+					NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+					salt, saltlen, "generated salt:");
 			} else if (strcmp(ptr, "-") != 0) {
 				isc_buffer_t buf;
 
