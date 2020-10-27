@@ -596,9 +596,16 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 
 		r.base = (unsigned char *)uvreq->uvbuf.base;
 		r.length = uvreq->uvbuf.len;
-
-		isc_nmhandle_attach(sock->outerhandle, &sendhandle);
-		isc_nm_send(sock->outerhandle, &r, tcpdnssend_cb, uvreq);
+		if (sock->outerhandle != NULL) {
+			isc_nmhandle_attach(sock->outerhandle, &sendhandle);
+			isc_nm_send(sock->outerhandle, &r, tcpdnssend_cb,
+				    uvreq);
+		} else {
+			cb(handle, ISC_R_CANCELED, cbarg);
+			isc_mem_put(sock->mgr->mctx, uvreq->uvbuf.base,
+				    uvreq->uvbuf.len);
+			isc__nm_uvreq_put(&uvreq, sock);
+		}
 	} else {
 		isc__netievent_tcpdnssend_t *ievent = NULL;
 
