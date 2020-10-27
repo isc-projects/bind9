@@ -39,6 +39,9 @@ variables:
 
   BIND_INSTALL_PATH: "${CI_PROJECT_DIR}/.local"
 
+  # In multithreaded unit tests, abort on the first failure
+  CMOCKA_TEST_ABORT: 1
+
 stages:
   - autoconf
   - precheck

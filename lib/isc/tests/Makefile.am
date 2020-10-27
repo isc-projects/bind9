@@ -29,6 +29,7 @@ check_PROGRAMS =	\
 	md_test		\
 	mem_test	\
 	netaddr_test	\
+	netmgr_test \
 	parse_test	\
 	pool_test	\
 	quota_test	\
@@ -67,6 +68,14 @@ md_test_LDADD =		\
 random_test_LDADD =	\
 	$(LDADD)	\
 	-lm
+
+netmgr_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(LIBUV_CFLAGS)
+
+netmgr_test_LDADD =	\
+	$(LDADD)	\
+	$(LIBUV_LIBS)
 
 unit-local: check
 
