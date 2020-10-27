@@ -339,7 +339,7 @@ dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 
 	UNUSED(driverarg);
 
-	if (cd->dlz_destroy) {
+	if (cd->dlz_destroy && cd->dbdata) {
 		MAYBE_LOCK(cd);
 		cd->dlz_destroy(cd->dbdata);
 		MAYBE_UNLOCK(cd);
