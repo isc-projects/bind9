@@ -1,3 +1,5 @@
+5522.	[bug]		Fix a race/NULL dereference in TCPDNS. [GL #2227]
+
 5520.	[bug]		Fixed a number of shutdown races, reference counting
 			errors, and spurious log messages that could occur
 			in the network manager. [GL #2221]
