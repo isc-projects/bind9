@@ -1,3 +1,5 @@
+5522.	[bug]		Fix a race/NULL dereference in TCPDNS. [GL #2227]
+
 5521.	[func]		All use of libltdl was dropped.  libuv's shared library
 			handling interface is now used instead. [GL !4278]
 

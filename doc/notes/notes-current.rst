@@ -41,3 +41,6 @@ Bug Fixes
 
 - Handle `UV_EOF` differently such that it is not treated as a `TCP4RecvErr` or
   `TCP6RecvErr`. [GL #2208]
+
+- ``named`` could crash with an assertion failure if a TCP connection is closed
+  while the request is still processing. [GL #2227]
