@@ -1578,6 +1578,15 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 							dns_kasp_nsec3saltlen(
 								kasp)));
 						salt = saltbuf;
+
+						dns_nsec3_log_salt(
+							named_g_lctx,
+							NAMED_LOGCATEGORY_GENERAL,
+							NAMED_LOGMODULE_SERVER,
+							ISC_LOG_INFO, salt,
+							dns_kasp_nsec3saltlen(
+								kasp),
+							"generated salt:");
 					}
 					result = dns_zone_setnsec3param(
 						zone, 1,

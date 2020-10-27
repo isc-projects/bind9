@@ -16,6 +16,7 @@
 
 #include <isc/iterated_hash.h>
 #include <isc/lang.h>
+#include <isc/log.h>
 
 #include <dns/db.h>
 #include <dns/diff.h>
@@ -74,8 +75,16 @@ dns_nsec3_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
 
 isc_result_t
 dns_nsec3_generate_salt(unsigned char *salt, size_t saltlen);
-/*%
+/*%<
  * Generate a salt with the given salt length.
+ */
+
+void
+dns_nsec3_log_salt(isc_log_t *lctx, isc_logcategory_t *category,
+		   isc_logmodule_t *module, int level, unsigned char *salt,
+		   size_t saltlen, const char *fmt, ...);
+/*%<
+ * Utility to log the salt.
  */
 
 isc_result_t
