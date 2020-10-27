@@ -473,7 +473,7 @@ struct isc_nmsocket {
 	atomic_bool connecting;
 	atomic_bool connected;
 	atomic_bool connect_error;
-	atomic_bool reading;
+	bool accepting;
 	isc_refcount_t references;
 
 	/*%
@@ -721,7 +721,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
  * Back-end implementation of isc_nm_send() for UDP handles.
  */
 
-isc_result_t
+void
 isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 /*
  * Back-end implementation of isc_nm_read() for UDP handles.

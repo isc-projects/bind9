@@ -1913,8 +1913,8 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 	fprintf(stderr, "Active socket %p, type %s, refs %lu\n", sock,
 		nmsocket_type_totext(sock->type),
 		isc_refcount_current(&sock->references));
-	fprintf(stderr, "Parent %p, listener %p\n", sock->parent,
-		sock->listener);
+	fprintf(stderr, "Parent %p, listener %p, server %p\n", sock->parent,
+		sock->listener, sock->server);
 	fprintf(stderr, "Created by:\n");
 	backtrace_symbols_fd(sock->backtrace, sock->backtrace_size,
 			     STDERR_FILENO);

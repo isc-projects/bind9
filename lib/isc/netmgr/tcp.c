@@ -78,6 +78,42 @@ static void
 quota_accept_cb(isc_quota_t *quota, void *sock0);
 
 static void
+failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult);
+
+static void
+failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
+	/*
+	 * Detach the quota early to make room for other connections;
+	 * otherwise it'd be detached later asynchronously, and clog
+	 * the quota unnecessarily.
+	 */
+	if (sock->quota != NULL) {
+		isc_quota_detach(&sock->quota);
+	}
+
+	if (!sock->accepting) {
+		return;
+	}
+	sock->accepting = false;
+
+	switch (eresult) {
+	case ISC_R_NOTCONNECTED:
+		/* IGNORE: The client disconnected before we could accept */
+		break;
+	default:
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+			      "Accepting TCP connection failed: %s",
+			      isc_result_totext(eresult));
+	}
+
+	/*
+	 * Detach the socket properly to make sure uv_close() is called.
+	 */
+	isc__nmsocket_detach(&sock);
+}
+
+static void
 failed_connect_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
 	isc__nm_uvreq_t *req;
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -87,10 +123,11 @@ failed_connect_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
 		sock->timer_running = false;
 	}
 
-	if (!sock->connecting) {
+	if (!atomic_load(&sock->connecting)) {
 		return;
 	}
-	sock->connecting = false;
+
+	atomic_store(&sock->connecting, false);
 
 	req = uv_handle_get_data((uv_handle_t *)&sock->timer);
 
@@ -131,7 +168,7 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		sock->timer_initialized = true;
 	}
 
-	sock->connecting = true;
+	atomic_store(&sock->connecting, true);
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
 	if (r != 0) {
@@ -225,10 +262,11 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		sock->timer_running = false;
 	}
 
-	if (!sock->connecting) {
+	if (!atomic_load(&sock->connecting)) {
 		return;
 	}
-	sock->connecting = false;
+
+	atomic_store(&sock->connecting, false);
 
 	REQUIRE(VALID_UVREQ(req));
 
@@ -514,6 +552,23 @@ isc__nm_async_tcpchildaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(sock->tid == isc_nm_tid());
 
+	if (!sock->accepting) {
+		return;
+	}
+
+	/* Socket was closed midflight by isc__nm_tcp_shutdown() */
+	if (!isc__nmsocket_active(sock)) {
+		failed_accept_cb(sock, ISC_R_CANCELED);
+		return;
+	}
+
+	INSIST(sock->server != NULL);
+
+	if (!isc__nmsocket_active(sock->server)) {
+		failed_accept_cb(sock, ISC_R_CANCELED);
+		return;
+	}
+
 	sock->quota = ievent->quota;
 	ievent->quota = NULL;
 
@@ -553,6 +608,7 @@ isc__nm_async_tcpchildaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
+	sock->accepting = false;
 
 	handle = isc__nmhandle_get(sock, NULL, &local);
 
@@ -576,30 +632,7 @@ isc__nm_async_tcpchildaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 	return;
 
 error:
-	/*
-	 * Detach the quota early to make room for other connections;
-	 * otherwise it'd be detached later asynchronously, and clog
-	 * the quota unnecessarily.
-	 */
-	if (sock->quota != NULL) {
-		isc_quota_detach(&sock->quota);
-	}
-
-	switch (result) {
-	case ISC_R_NOTCONNECTED:
-		/* IGNORE: The client disconnected before we could accept */
-		break;
-	default:
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
-			      "Accepting TCP connection failed: %s",
-			      isc_result_totext(result));
-	}
-
-	/*
-	 * Detach the socket properly to make sure uv_close() is called.
-	 */
-	isc__nmsocket_detach(&sock);
+	failed_accept_cb(sock, result);
 }
 
 void
@@ -666,8 +699,6 @@ failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->statichandle != NULL);
 
-	uv_read_stop(&sock->uv_handle.stream);
-
 	if (sock->timer_initialized) {
 		uv_timer_stop(&sock->timer);
 		sock->timer_running = false;
@@ -676,6 +707,8 @@ failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	if (sock->quota) {
 		isc_quota_detach(&sock->quota);
 	}
+
+	uv_read_stop(&sock->uv_handle.stream);
 
 	cb = sock->recv_cb;
 	cbarg = sock->recv_cbarg;
@@ -699,6 +732,7 @@ readtimeout_cb(uv_timer_t *handle) {
 	 */
 	if (atomic_load(&sock->processing)) {
 		uv_timer_start(handle, readtimeout_cb, sock->read_timeout, 0);
+		sock->timer_running = true;
 		return;
 	}
 
@@ -718,6 +752,18 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 
 	if (!isc__nmsocket_active(sock)) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_RECVFAIL]);
+		cb(handle, ISC_R_CANCELED, NULL, cbarg);
+		return;
+	}
+
+	if (sock->server != NULL && !isc__nmsocket_active(sock->server)) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
+		cb(handle, ISC_R_CANCELED, NULL, cbarg);
+		return;
+	}
+
+	if (atomic_load(&sock->mgr->closing)) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
 		cb(handle, ISC_R_CANCELED, NULL, cbarg);
 		return;
 	}
@@ -773,6 +819,21 @@ isc__nm_async_tcp_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	int r;
 
 	REQUIRE(worker->id == isc_nm_tid());
+
+	if (!isc__nmsocket_active(sock)) {
+		failed_read_cb(sock, ISC_R_CANCELED);
+		return;
+	}
+
+	if (sock->server != NULL && !isc__nmsocket_active(sock->server)) {
+		failed_read_cb(sock, ISC_R_CANCELED);
+		return;
+	}
+
+	if (atomic_load(&sock->mgr->closing)) {
+		failed_read_cb(sock, ISC_R_CANCELED);
+		return;
+	}
 
 	r = uv_read_start(&sock->uv_handle.stream, tcp_alloc_cb, read_cb);
 	if (r != 0) {
@@ -894,6 +955,7 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 			/* The timer will be updated */
 			uv_timer_start(&sock->timer, readtimeout_cb,
 				       sock->read_timeout, 0);
+			sock->timer_running = true;
 		}
 	} else {
 		/*
@@ -1053,6 +1115,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	isc__nmsocket_attach(ssock, &csock->server);
 	csock->accept_cb = ssock->accept_cb;
 	csock->accept_cbarg = ssock->accept_cbarg;
+	csock->accepting = true;
 
 	event->sock = csock;
 	event->quota = quota;
@@ -1081,6 +1144,18 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	REQUIRE(sock->type == isc_nm_tcpsocket);
 
 	if (!isc__nmsocket_active(sock)) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
+		cb(handle, ISC_R_CANCELED, cbarg);
+		return;
+	}
+
+	if (sock->server != NULL && !isc__nmsocket_active(sock->server)) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
+		cb(handle, ISC_R_CANCELED, cbarg);
+		return;
+	}
+
+	if (atomic_load(&sock->mgr->closing)) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
 		cb(handle, ISC_R_CANCELED, cbarg);
 		return;
@@ -1170,6 +1245,12 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	REQUIRE(sock->type == isc_nm_tcpsocket);
 
 	if (!isc__nmsocket_active(sock)) {
+		return (ISC_R_CANCELED);
+	}
+	if (sock->server != NULL && !isc__nmsocket_active(sock->server)) {
+		return (ISC_R_CANCELED);
+	}
+	if (atomic_load(&sock->mgr->closing)) {
 		return (ISC_R_CANCELED);
 	}
 
@@ -1269,6 +1350,15 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
+	if (sock->type != isc_nm_tcpsocket) {
+		return;
+	}
+
+	if (atomic_load(&sock->connecting)) {
+		failed_connect_cb(sock, ISC_R_CANCELED);
+		return;
+	}
+
 	/*
 	 * If the socket is active, mark it inactive and
 	 * continue. If it isn't active, stop now.
@@ -1277,12 +1367,12 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	if (sock->connecting) {
-		failed_connect_cb(sock, ISC_R_CANCELED);
+	if (sock->accepting) {
+		failed_accept_cb(sock, ISC_R_CANCELED);
 		return;
 	}
 
-	if (sock->type == isc_nm_tcpsocket && sock->statichandle != NULL) {
+	if (sock->statichandle != NULL) {
 		failed_read_cb(sock, ISC_R_CANCELED);
 	}
 }
@@ -1296,6 +1386,7 @@ isc__nm_tcp_cancelread(isc_nmhandle_t *handle) {
 
 	sock = handle->sock;
 
+	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcpsocket);
 
 	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpcancel);
