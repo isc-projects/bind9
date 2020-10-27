@@ -5662,10 +5662,10 @@ dnssec_verify
 n=$((n+1))
 echo_i "check that of zone ${ZONE} migration to dnssec-policy uses the same keys ($n)"
 ret=0
-[ $_migrate_ext8_ksk == $_migrate_int8_ksk ] || log_error "mismatch ksk tag"
-[ $_migrate_ext8_zsk == $_migrate_int8_zsk ] || log_error "mismatch zsk tag"
-[ $_migrate_ext8_ksk == $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
-[ $_migrate_ext8_zsk == $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+[ $_migrate_ext8_ksk = $_migrate_int8_ksk ] || log_error "mismatch ksk tag"
+[ $_migrate_ext8_zsk = $_migrate_int8_zsk ] || log_error "mismatch zsk tag"
+[ $_migrate_ext8_ksk = $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_migrate_ext8_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
 status=$((status+ret))
 
 echo_i "exit status: $status"
