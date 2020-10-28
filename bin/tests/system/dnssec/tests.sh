@@ -4024,5 +4024,15 @@ n=`expr $n + 1`
 test "$ret" -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
 
+echo_i "checking validation succeeds during transition to signed ($n)"
+ret=0
+dig_with_opts @10.53.0.4 inprogress A > dig.out.ns4.test$n || ret=1
+grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
+grep 'A.10\.53\.0\.10' dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
