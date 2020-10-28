@@ -14,6 +14,20 @@
 
 set -e
 
+if test -n "$PYTHON"
+then
+    if $PYTHON -c "import dns" 2> /dev/null
+    then
+        :
+    else
+        echo_i "This test requires the dnspython module." >&2
+        exit 1
+    fi
+else
+    echo_i "This test requires Python and the dnspython module." >&2
+    exit 1
+fi
+
 if "$PERL" -e 'use Net::DNS;' 2>/dev/null
 then
     # shellcheck disable=SC2016
