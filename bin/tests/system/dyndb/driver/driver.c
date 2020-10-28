@@ -33,10 +33,6 @@
 
 /* aliases for the exported symbols */
 
-#define dyndb_init    sample_LTX_dyndb_init
-#define dyndb_destroy sample_LTX_dyndb_destroy
-#define dyndb_version sample_LTX_dyndb_version
-
 dns_dyndb_destroy_t dyndb_destroy;
 dns_dyndb_register_t dyndb_init;
 dns_dyndb_version_t dyndb_version;

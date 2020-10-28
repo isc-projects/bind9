@@ -32,21 +32,6 @@
 
 /* aliases for exported symbols */
 
-#define dlz_version	 dlzexternal_LTX_dlz_version
-#define dlz_create	 dlzexternal_LTX_dlz_create
-#define dlz_destroy	 dlzexternal_LTX_dlz_destroy
-#define dlz_findzonedb	 dlzexternal_LTX_dlz_findzonedb
-#define dlz_lookup	 dlzexternal_LTX_dlz_lookup
-#define dlz_allowzonexfr dlzexternal_LTX_dlz_allowzonexfr
-#define dlz_allnodes	 dlzexternal_LTX_dlz_allnodes
-#define dlz_newversion	 dlzexternal_LTX_dlz_newversion
-#define dlz_closeversion dlzexternal_LTX_dlz_closeversion
-#define dlz_configure	 dlzexternal_LTX_dlz_configure
-#define dlz_ssumatch	 dlzexternal_LTX_dlz_ssumatch
-#define dlz_addrdataset	 dlzexternal_LTX_dlz_addrdataset
-#define dlz_sbrdataset	 dlzexternal_LTX_dlz_sbrdataset
-#define dlz_delrdataset	 dlzexternal_LTX_dlz_delrdataset
-
 dlz_dlopen_version_t dlz_version;
 dlz_dlopen_create_t dlz_create;
 dlz_dlopen_destroy_t dlz_destroy;

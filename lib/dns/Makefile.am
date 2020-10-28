@@ -25,7 +25,7 @@ gen_SOURCES = gen.c gen-unix.h
 gen_CPPFLAGS =			\
 	$(AM_CPPFLAGS)
 
-EXTRA_DIST = 		\
+EXTRA_DIST =		\
 	api		\
 	dnstap.proto	\
 	gen-win32.h	\
@@ -277,10 +277,10 @@ endif
 
 libdns_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
-	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)	\
-	$(OPENSSL_CFLAGS)	\
-	$(LIBLTDL_CFLAGS)
+	$(LIBISC_CFLAGS)	\
+	$(LIBUV_CFLAGS)		\
+	$(OPENSSL_CFLAGS)
 
 libdns_la_LDFLAGS =		\
 	$(AM_LDFLAGS)		\
@@ -288,6 +288,7 @@ libdns_la_LDFLAGS =		\
 
 libdns_la_LIBADD =		\
 	$(LIBISC_LIBS)		\
+	$(LIBUV_LIBS)		\
 	$(OPENSSL_LIBS)
 
 if HAVE_JSON_C

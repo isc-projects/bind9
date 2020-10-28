@@ -201,7 +201,6 @@ installed:
     autoconf (includes autoreconf)
     automake
     libtool
-    libltdl-dev (Debian) / libtool-ltdl-dev (Fedora/CentOS) / libltdl (FreeBSD)
 
 #### <a name="opts"/> Compile-time options
 

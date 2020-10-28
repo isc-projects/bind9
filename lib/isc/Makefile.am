@@ -230,7 +230,6 @@ libisc_la_LDFLAGS =		\
 	$(libisc_VERSION_INFO)
 
 libisc_la_LIBADD =		\
-	$(LIBLTDL_LIBS)		\
 	$(LIBUV_LIBS)		\
 	$(OPENSSL_LIBS)		\
 	$(ZLIB_LIBS)

@@ -1527,9 +1527,9 @@ gcov:
     # Generate XML file in the Cobertura XML format suitable for use by GitLab
     # for the purpose of displaying code coverage information in the diff view
     # of a given merge request.
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --xml -o coverage.xml
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --html-details -o coverage.html
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' -o coverage.txt
+    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc  --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --xml -o coverage.xml
+    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc  --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --html-details -o coverage.html
+    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc  --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' -o coverage.txt
     - tail -n 3 coverage.txt
   artifacts:
     paths:

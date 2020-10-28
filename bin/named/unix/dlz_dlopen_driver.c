@@ -10,11 +10,11 @@
  */
 
 #include <inttypes.h>
-#include <ltdl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <uv.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -34,7 +34,7 @@ typedef struct dlopen_data {
 	isc_mem_t *mctx;
 	char *dl_path;
 	char *dlzname;
-	void *dl_handle;
+	uv_lib_t dl_handle;
 	void *dbdata;
 	unsigned int flags;
 	isc_mutex_t lock;
@@ -180,9 +180,10 @@ dlopen_dlz_lookup(const char *zone, const char *name, void *driverarg,
  */
 static void *
 dl_load_symbol(dlopen_data_t *cd, const char *symbol, bool mandatory) {
-	void *ptr = lt_dlsym((lt_dlhandle)cd->dl_handle, symbol);
-	if (ptr == NULL) {
-		const char *errmsg = lt_dlerror();
+	void *ptr = NULL;
+	int r = uv_dlsym(&cd->dl_handle, symbol, &ptr);
+	if (r != 0) {
+		const char *errmsg = uv_dlerror(&cd->dl_handle);
 		if (errmsg == NULL) {
 			errmsg = "returned function pointer is NULL";
 		}
@@ -193,10 +194,12 @@ dl_load_symbol(dlopen_data_t *cd, const char *symbol, bool mandatory) {
 				   cd->dl_path, symbol, errmsg);
 		}
 	}
-	/* Cleanup any errors */
-	(void)lt_dlerror();
+
 	return (ptr);
 }
+
+static void
+dlopen_dlz_destroy(void *driverarg, void *dbdata);
 
 /*
  * Called at startup for each dlopen zone in named.conf
@@ -207,6 +210,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	dlopen_data_t *cd;
 	isc_mem_t *mctx = NULL;
 	isc_result_t result = ISC_R_FAILURE;
+	int r;
 
 	UNUSED(driverarg);
 
@@ -215,10 +219,6 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 			   "dlz_dlopen driver for '%s' needs a path to "
 			   "the shared library",
 			   dlzname);
-		return (ISC_R_FAILURE);
-	}
-
-	if (lt_dlinit() != 0) {
 		return (ISC_R_FAILURE);
 	}
 
@@ -234,16 +234,18 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* Initialize the lock */
 	isc_mutex_init(&cd->lock);
 
-	cd->dl_handle = lt_dlopenext(cd->dl_path);
-	if (cd->dl_handle == NULL) {
+	r = uv_dlopen(cd->dl_path, &cd->dl_handle);
+	if (r != 0) {
+		const char *errmsg = uv_dlerror(&cd->dl_handle);
+		if (errmsg == NULL) {
+			errmsg = "unknown error";
+		}
 		dlopen_log(ISC_LOG_ERROR,
 			   "dlz_dlopen failed to open library '%s': %s",
-			   cd->dl_path, lt_dlerror());
+			   cd->dl_path, errmsg);
 		result = ISC_R_FAILURE;
 		goto failed;
 	}
-
-	(void)lt_dlerror();
 
 	/* Find the symbols */
 	cd->dlz_version =
@@ -323,15 +325,8 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 failed:
 	dlopen_log(ISC_LOG_ERROR, "dlz_dlopen of '%s' failed", dlzname);
 
-	isc_mem_free(mctx, cd->dl_path);
-	isc_mem_free(mctx, cd->dlzname);
+	dlopen_dlz_destroy(NULL, cd);
 
-	isc_mutex_destroy(&cd->lock);
-	if (cd->dl_handle) {
-		(void)lt_dlclose(cd->dl_handle);
-	}
-	isc_mem_put(mctx, cd, sizeof(*cd));
-	isc_mem_destroy(&mctx);
 	return (result);
 }
 
@@ -341,32 +336,20 @@ failed:
 static void
 dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 	dlopen_data_t *cd = (dlopen_data_t *)dbdata;
-	isc_mem_t *mctx;
 
 	UNUSED(driverarg);
 
-	if (cd->dlz_destroy) {
+	if (cd->dlz_destroy && cd->dbdata) {
 		MAYBE_LOCK(cd);
 		cd->dlz_destroy(cd->dbdata);
 		MAYBE_UNLOCK(cd);
 	}
 
-	if (cd->dl_path) {
-		isc_mem_free(cd->mctx, cd->dl_path);
-	}
-	if (cd->dlzname) {
-		isc_mem_free(cd->mctx, cd->dlzname);
-	}
-
-	if (cd->dl_handle) {
-		lt_dlclose(cd->dl_handle);
-	}
-
+	uv_dlclose(&cd->dl_handle);
 	isc_mutex_destroy(&cd->lock);
-
-	mctx = cd->mctx;
-	isc_mem_put(mctx, cd, sizeof(*cd));
-	isc_mem_destroy(&mctx);
+	isc_mem_free(cd->mctx, cd->dl_path);
+	isc_mem_free(cd->mctx, cd->dlzname);
+	isc_mem_putanddetach(&cd->mctx, cd, sizeof(*cd));
 }
 
 /*

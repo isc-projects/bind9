@@ -13,11 +13,6 @@
 
 /* aliases for the exported symbols */
 
-#define plugin_destroy	filter_aaaa_LTX_plugin_destroy
-#define plugin_register filter_aaaa_LTX_plugin_register
-#define plugin_version	filter_aaaa_LTX_plugin_version
-#define plugin_check	filter_aaaa_LTX_plugin_check
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include <string.h>
