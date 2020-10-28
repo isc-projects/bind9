@@ -919,7 +919,7 @@ if [ -x ${DELV} ] ; then
    ret=0
    echo_i "checking that validation fails when key record is missing using dns_client ($n)"
    $DELV $DELVOPTS +cd @10.53.0.4 a a.b.keyless.example > delv.out$n 2>&1 || ret=1
-   grep "resolution failed: broken trust chain" delv.out$n > /dev/null || ret=1
+   grep "resolution failed: no valid DS" delv.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo_i "failed"; fi
    status=`expr $status + $ret`
@@ -4026,13 +4026,13 @@ status=`expr $status + $ret`
 
 echo_i "checking validation succeeds during transition to signed ($n)"
 ret=0
-dig_with_opts @10.53.0.4 inprogress A > dig.out.ns4.test$n || ret=1
+$DIG $DIGOPTS @10.53.0.4 inprogress A > dig.out.ns4.test$n || ret=1
 grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
 grep 'A.10\.53\.0\.10' dig.out.ns4.test$n >/dev/null || ret=1
-n=$((n+1))
+n=`expr $n + 1`
 test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
+status=`expr $status + $ret`
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
