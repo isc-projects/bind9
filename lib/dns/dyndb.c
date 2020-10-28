@@ -95,7 +95,7 @@ load_symbol(lt_dlhandle handle, const char *filename, const char *symbol_name,
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
 			      "failed to lookup symbol %s in "
-			      "dyndb module '%s': %s",
+			      "DynDB module '%s': %s",
 			      symbol_name, filename, errmsg);
 		return (ISC_R_FAILURE);
 	}
@@ -128,6 +128,15 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 
 	handle = lt_dlopen(filename);
 	if (handle == NULL) {
+		const char *errmsg = lt_dlerror();
+		if (errmsg == NULL) {
+			errmsg = "unknown error";
+		}
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
+			      "failed to dlopen() DynDB instance '%s' driver "
+			      "'%s': %s",
+			      instname, filename, errmsg);
 		CHECK(ISC_R_FAILURE);
 	}
 

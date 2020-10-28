@@ -235,9 +235,13 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	cd->dl_handle = lt_dlopenext(cd->dl_path);
 	if (cd->dl_handle == NULL) {
+		const char *errmsg = lt_dlerror();
+		if (errmsg == NULL) {
+			errmsg = "unknown error";
+		}
 		dlopen_log(ISC_LOG_ERROR,
 			   "dlz_dlopen failed to open library '%s': %s",
-			   cd->dl_path, lt_dlerror());
+			   cd->dl_path, errmsg);
 		result = ISC_R_FAILURE;
 		goto failed;
 	}
