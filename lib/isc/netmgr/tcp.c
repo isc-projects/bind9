@@ -454,10 +454,38 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		flags = UV_TCP_IPV6ONLY;
 	}
 
-	r = uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa,
-			flags);
+	uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa, flags);
+	r = uv_fileno(&sock->uv_handle.handle, (uv_os_fd_t *)&fd);
+	if (r != 0) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
+		uv_close(&sock->uv_handle.handle, tcp_close_cb);
+		atomic_store(&sock->result, isc__nm_uverr2result(r));
+		atomic_store(&sock->listen_error, true);
+		goto done;
+	}
+
+	/*
+	 * uv_tcp_bind() uses a delayed error, initially returning
+	 * success even if bind() fails. By calling uv_tcp_getsockname()
+	 * here we can find out whether the bind() call was successful.
+	 */
+	r = uv_tcp_getsockname(&sock->uv_handle.tcp, (struct sockaddr *)&sname,
+			       &snamelen);
+
+	if (r == UV_EADDRINUSE && isc__nm_socket_reuse(fd) == ISC_R_SUCCESS &&
+	    isc__nm_socket_reuse_lb(fd) == ISC_R_SUCCESS)
+	{
+		/*
+		 * Retry bind() with REUSEADDR/REUSEPORT if the address
+		 * was in use.
+		 */
+		uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa,
+			    flags);
+		r = uv_tcp_getsockname(&sock->uv_handle.tcp,
+				       (struct sockaddr *)&sname, &snamelen);
+	}
+
 	if (r == UV_EADDRNOTAVAIL &&
-	    uv_fileno(&sock->uv_handle.handle, (uv_os_fd_t *)&fd) == 0 &&
 	    isc__nm_socket_freebind(fd, sa_family) == ISC_R_SUCCESS)
 	{
 		/*
@@ -466,8 +494,10 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		 * addresses which are reported by the route socket, although
 		 * named is not yet able to properly bind to them.
 		 */
-		r = uv_tcp_bind(&sock->uv_handle.tcp,
-				&sock->iface->addr.type.sa, flags);
+		uv_tcp_bind(&sock->uv_handle.tcp, &sock->iface->addr.type.sa,
+			    flags);
+		r = uv_tcp_getsockname(&sock->uv_handle.tcp,
+				       (struct sockaddr *)&sname, &snamelen);
 	}
 
 	if (r != 0) {
