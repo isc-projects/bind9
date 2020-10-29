@@ -201,6 +201,7 @@ typedef struct isc__nm_uvreq {
 	uv_pipe_t ipc;	      /* used for sending socket
 			       * uv_handles to other threads */
 	union {
+		uv_handle_t handle;
 		uv_req_t req;
 		uv_getaddrinfo_t getaddrinfo;
 		uv_getnameinfo_t getnameinfo;
@@ -465,6 +466,7 @@ struct isc_nmsocket {
 	 * If active==false but closed==false, that means the socket
 	 * is closing.
 	 */
+	atomic_bool closing;
 	atomic_bool closed;
 	atomic_bool listening;
 	atomic_bool listen_error;
