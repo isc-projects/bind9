@@ -254,6 +254,7 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)uvreq->handle);
 	struct sockaddr_storage ss;
 	isc_nmhandle_t *handle = NULL;
+	int r;
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -274,11 +275,16 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		return;
 	}
 
+	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
+	r = uv_tcp_getpeername(&sock->uv_handle.tcp, (struct sockaddr *)&ss,
+			       &(int){ sizeof(ss) });
+	if (r != 0) {
+		failed_connect_cb(sock, req, isc__nm_uverr2result(status));
+		return;
+	}
+
 	atomic_store(&sock->connecting, false);
 
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
-	uv_tcp_getpeername(&sock->uv_handle.tcp, (struct sockaddr *)&ss,
-			   &(int){ sizeof(ss) });
 	result = isc_sockaddr_fromsockaddr(&sock->peer, (struct sockaddr *)&ss);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
