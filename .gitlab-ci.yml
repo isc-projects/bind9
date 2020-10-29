@@ -160,7 +160,7 @@ stages:
   <<: *libvirt_amd64
 
 .freebsd-12-amd64: &freebsd_12_amd64_image
-  image: "freebsd-12.1-x86_64"
+  image: "freebsd-12.2-x86_64"
   <<: *libvirt_amd64
 
 .openbsd-amd64: &openbsd_amd64_image
