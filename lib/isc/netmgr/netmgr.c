@@ -1081,6 +1081,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	atomic_init(&sock->overlimit, false);
 	atomic_init(&sock->processing, false);
 	atomic_init(&sock->readpaused, false);
+	atomic_init(&sock->closing, false);
 
 	sock->magic = NMSOCK_MAGIC;
 }
@@ -1094,6 +1095,8 @@ isc__nmsocket_clearcb(isc_nmsocket_t *sock) {
 	sock->recv_cbarg = NULL;
 	sock->accept_cb = NULL;
 	sock->accept_cbarg = NULL;
+	sock->connect_cb = NULL;
+	sock->connect_cbarg = NULL;
 }
 
 void
