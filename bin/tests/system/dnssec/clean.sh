@@ -20,6 +20,7 @@ rm -f ./*/named.secroots
 rm -f ./*/tmp* ./*/*.jnl ./*/*.bk ./*/*.jbk
 rm -f ./*/trusted.conf ./*/managed.conf ./*/revoked.conf
 rm -f ./Kexample.* ./Kkeygen* ./keygen*.err
+rm -f ./ans10/query.log ./ans10/ans.run
 rm -f ./canonical?.*
 rm -f ./delv.out*
 rm -f ./delve.out*

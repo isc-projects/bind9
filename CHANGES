@@ -1,3 +1,8 @@
+5523.	[bug]		The initial lookup of a zone transitioning to/from
+			the signed state could fail if the DNSKEY RRset was
+			not found.  Subsequent lookups would succeed.
+			[GL #2236]
+
 5522.	[bug]		Fix a race/NULL dereference in TCPDNS. [GL #2227]
 
 5520.	[bug]		Fixed a number of shutdown races, reference counting
