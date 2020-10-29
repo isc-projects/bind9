@@ -316,22 +316,25 @@ clean_result () {
 # $2=other dig output file
 ckresult () {
     #ckalive "$1" "server crashed by 'dig $1'" || return 1
+    expr "$1" : 'TCP ' > /dev/null && tcp=1 || tcp=0
+    digarg=${1#TCP }
+
     if grep "flags:.* aa .*ad;" $DIGNM; then
-	setret "'dig $1' AA and AD set;"
+	setret "'dig $digarg' AA and AD set;"
     elif grep "flags:.* aa .*ad;" $DIGNM; then
-	setret "'dig $1' AD set;"
+	setret "'dig $digarg' AD set;"
     fi
+
     if $PERL $SYSTEMTESTTOP/digcomp.pl $DIGNM $2 >/dev/null; then
-	NEED_TCP=`echo "$1" | sed -n -e 's/[Tt][Cc][Pp].*/TCP/p'`
-	RESULT_TCP=`sed -n -e 's/.*Truncated, retrying in TCP.*/TCP/p' $DIGNM`
-	if test "$NEED_TCP" != "$RESULT_TCP"; then
-	    setret "'dig $1' wrong; no or unexpected truncation in $DIGNM"
+	grep -q 'Truncated, retrying in TCP' $DIGNM && trunc=1 || trunc=0
+	if [ "$tcp" -ne "$trunc" ]; then
+	    setret "'dig $digarg' wrong; no or unexpected truncation in $DIGNM"
 	    return 1
 	fi
 	clean_result ${DIGNM}*
 	return 0
     fi
-    setret "'dig $1' wrong; diff $DIGNM $2"
+    setret "'dig $digarg' wrong; diff $DIGNM $2"
     return 1
 }
 
@@ -526,7 +529,7 @@ for mode in native dnsrps; do
   nochange a0-1.tld2s srv +auth +dnssec		# 30 no write for DNSSEC and no record
   nxdomain a0-1.tld2s srv +nodnssec		# 31
   drop a3-8.tld2 any				# 32 drop
-  nochange tcp a3-9.tld2			# 33 tcp-only
+  nochange TCP a3-9.tld2			# 33 tcp-only
   here x.servfail <<'EOF'			# 34 qname-wait-recurse yes
     ;; status: SERVFAIL, x
 EOF
