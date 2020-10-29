@@ -129,12 +129,12 @@ stages:
 
 # Fedora
 
-.fedora-32-amd64: &fedora_32_amd64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-32-amd64"
+.fedora-33-amd64: &fedora_33_amd64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-33-amd64"
   <<: *linux_amd64
 
-.fedora-32-arm64: &fedora_32_arm64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-32-arm64"
+.fedora-33-arm64: &fedora_33_arm64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-33-arm64"
   <<: *linux_stress_arm64
 
 # Ubuntu
@@ -1096,25 +1096,25 @@ unit:gcc:softhsm2.4:
     - job: gcc:softhsm2.4
       artifacts: true
 
-# Jobs for PKCS#11-enabled GCC builds on Fedora 32 (amd64)
+# Jobs for PKCS#11-enabled GCC builds on Fedora 33 (amd64)
 
 gcc:softhsm2.6:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O1"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-native-pkcs11 --with-pkcs11=/usr/lib64/pkcs11/libsofthsm2.so"
-  <<: *fedora_32_amd64_image
+  <<: *fedora_33_amd64_image
   <<: *build_job
 
 system:gcc:softhsm2.6:
-  <<: *fedora_32_amd64_image
+  <<: *fedora_33_amd64_image
   <<: *system_test_job
   needs:
     - job: gcc:softhsm2.6
       artifacts: true
 
 unit:gcc:softhsm2.6:
-  <<: *fedora_32_amd64_image
+  <<: *fedora_33_amd64_image
   <<: *unit_test_job
   needs:
     - job: gcc:softhsm2.6
@@ -1414,8 +1414,8 @@ respdiff:
     when: always
   timeout: 2h
 
-stress:authoritative:fedora:32:amd64:
-  <<: *fedora_32_amd64_image
+stress:authoritative:fedora:33:amd64:
+  <<: *fedora_33_amd64_image
   <<: *linux_stress_amd64
   <<: *stress_job
   variables:
@@ -1425,8 +1425,8 @@ stress:authoritative:fedora:32:amd64:
     RATE: 10000
     RUN_TIME: 1
 
-stress:recursive:fedora:32:amd64:
-  <<: *fedora_32_amd64_image
+stress:recursive:fedora:33:amd64:
+  <<: *fedora_33_amd64_image
   <<: *linux_stress_amd64
   <<: *stress_job
   variables:
@@ -1436,8 +1436,8 @@ stress:recursive:fedora:32:amd64:
     RATE: 10000
     RUN_TIME: 1
 
-stress:authoritative:fedora:32:arm64:
-  <<: *fedora_32_arm64_image
+stress:authoritative:fedora:33:arm64:
+  <<: *fedora_33_arm64_image
   <<: *linux_stress_arm64
   <<: *stress_job
   variables:
@@ -1447,8 +1447,8 @@ stress:authoritative:fedora:32:arm64:
     RATE: 10000
     RUN_TIME: 1
 
-stress:recursive:fedora:32:arm64:
-  <<: *fedora_32_arm64_image
+stress:recursive:fedora:33:arm64:
+  <<: *fedora_33_arm64_image
   <<: *linux_stress_arm64
   <<: *stress_job
   variables:
