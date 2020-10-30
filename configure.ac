@@ -2894,7 +2894,10 @@ yes)
 	ISC_PLATFORM_USEBACKTRACE="#define ISC_PLATFORM_USEBACKTRACE 1"
 	AC_TRY_LINK([#include <execinfo.h>],
 	[return (backtrace((void **)0, 0));],
-	[AC_DEFINE([HAVE_LIBCTRACE], [], [if system have backtrace function])],)
+	[AC_DEFINE([HAVE_LIBCTRACE], [], [if system have backtrace function])],
+	[AC_TRY_LINK([#include <stddef.h>],
+		     [return _Unwind_Backtrace(NULL, NULL);],
+		     [AC_DEFINE([HAVE_UNWIND_BACKTRACE], [1], [define if the compiler supports _Unwind_Backtrace()])])])
 	;;
 *)
 	ISC_PLATFORM_USEBACKTRACE="#undef ISC_PLATFORM_USEBACKTRACE"

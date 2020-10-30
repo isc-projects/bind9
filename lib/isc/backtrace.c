@@ -43,7 +43,7 @@
  */
 #ifdef HAVE_LIBCTRACE
 #define BACKTRACE_LIBC
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__ia64__))
+#elif defined(HAVE_UNWIND_BACKTRACE)
 #define BACKTRACE_GCC
 #elif defined(WIN32)
 #define BACKTRACE_WIN32
