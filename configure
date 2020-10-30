@@ -19170,6 +19170,27 @@ if ac_fn_c_try_link "$LINENO"; then :
 
 $as_echo "#define HAVE_LIBCTRACE 1" >>confdefs.h
 
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stddef.h>
+int
+main ()
+{
+return _Unwind_Backtrace(NULL, NULL);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+
+$as_echo "#define HAVE_UNWIND_BACKTRACE 1" >>confdefs.h
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
 
 fi
 rm -f core conftest.err conftest.$ac_objext \

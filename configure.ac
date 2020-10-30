@@ -1547,7 +1547,14 @@ AS_IF([test "$enable_backtrace" = "yes"],
 	    [[#include <execinfo.h>]],
 	    [[return (backtrace((void **)0, 0));]]
 	  )],
-	 [AC_DEFINE([HAVE_LIBCTRACE], [1], [define if system have backtrace function])]
+	 [AC_DEFINE([HAVE_LIBCTRACE], [1], [define if system have backtrace function])],
+	 [AC_LINK_IFELSE(
+	    [AC_LANG_PROGRAM(
+	       [[#include <stddef.h>]],
+	       [[return _Unwind_Backtrace(NULL, NULL);]]
+	     )],
+	    [AC_DEFINE([HAVE_UNWIND_BACKTRACE], [1], [define if the compiler supports _Unwind_Backtrace()])]
+	  )]
        )])
 
 # [pairwise: --enable-symtable, --disable-symtable]
