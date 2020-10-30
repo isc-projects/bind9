@@ -40,7 +40,7 @@
  */
 #ifdef HAVE_LIBCTRACE
 #define BACKTRACE_LIBC
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__ia64__))
+#elif defined(HAVE_UNWIND_BACKTRACE)
 #define BACKTRACE_GCC
 #elif defined(WIN32)
 #define BACKTRACE_WIN32
@@ -138,7 +138,9 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes) {
 #ifdef __x86_64__
 static unsigned long
 getrbp(void) {
-	__asm("movq %rbp, %rax\n");
+	unsigned long rbp;
+	__asm("movq %%rbp, %0\n" : "=r"(rbp));
+	return rbp;
 }
 #endif /* ifdef __x86_64__ */
 
