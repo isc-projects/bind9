@@ -1938,6 +1938,7 @@
 ./lib/isc/tests/md_test.c			C	2018,2019,2020
 ./lib/isc/tests/mem_test.c			C	2015,2016,2017,2018,2019,2020
 ./lib/isc/tests/netaddr_test.c			C	2016,2018,2019,2020
+./lib/isc/tests/netmgr_test.c			C	2020
 ./lib/isc/tests/parse_test.c			C	2012,2013,2016,2018,2019,2020
 ./lib/isc/tests/pool_test.c			C	2013,2016,2018,2019,2020
 ./lib/isc/tests/quota_test.c			C	2020

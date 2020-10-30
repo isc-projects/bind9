@@ -1,3 +1,7 @@
+5524.	[func]		Added functionality to the network manager to
+			support outgoing DNS queries in addition to
+			incoming ones. [GL #2235]
+
 5523.	[bug]		The initial lookup of a zone transitioning to/from
 			the signed state could fail if the DNSKEY RRset was
 			not found.  Subsequent lookups would succeed.

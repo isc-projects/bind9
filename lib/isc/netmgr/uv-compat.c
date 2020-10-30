@@ -187,3 +187,35 @@ isc_uv_import(uv_stream_t *stream, isc_uv_stream_info_t *info) {
 #endif /* ifdef WIN32 */
 
 #endif /* ifndef HAVE_UV_IMPORT */
+
+#ifndef HAVE_UV_UDP_CONNECT
+int
+isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
+	int err = 0;
+
+	do {
+		int addrlen = (addr->sa_family == AF_INET)
+				      ? sizeof(struct sockaddr_in)
+				      : sizeof(struct sockaddr_in6);
+#ifdef WIN32
+		err = connect(handle->socket, addr, addrlen);
+#else  /* WIN32 */
+		err = connect(handle->io_watcher.fd, addr, addrlen);
+#endif /* WIN32 */
+	} while (err == -1 && errno == EINTR);
+
+	if (err) {
+#ifdef WIN32
+		return (uv_translate_sys_error(err));
+#else /* WIN32 */
+#ifdef HAVE_UV_TRANSLATE_SYS_ERROR
+		return (uv_translate_sys_error(errno));
+#else
+		return (-errno);
+#endif /* HAVE_UV_TRANSLATE_SYS_ERROR */
+#endif /* WIN32 */
+	}
+
+	return (0);
+}
+#endif /* ifndef HAVE_UV_UDP_CONNECT */

@@ -612,6 +612,9 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 			more = false;
 			break;
 
+		case netievent_udpconnect:
+			isc__nm_async_udpconnect(worker, ievent);
+			break;
 		case netievent_udplisten:
 			isc__nm_async_udplisten(worker, ievent);
 			break;
@@ -620,6 +623,15 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 			break;
 		case netievent_udpsend:
 			isc__nm_async_udpsend(worker, ievent);
+			break;
+		case netievent_udpread:
+			isc__nm_async_udpread(worker, ievent);
+			break;
+		case netievent_udpcancel:
+			isc__nm_async_udpcancel(worker, ievent);
+			break;
+		case netievent_udpclose:
+			isc__nm_async_udpclose(worker, ievent);
 			break;
 
 		case netievent_tcpconnect:
@@ -649,12 +661,21 @@ process_queue(isc__networker_t *worker, isc_queue_t *queue) {
 		case netievent_tcpstop:
 			isc__nm_async_tcpstop(worker, ievent);
 			break;
+		case netievent_tcpcancel:
+			isc__nm_async_tcpcancel(worker, ievent);
+			break;
 		case netievent_tcpclose:
 			isc__nm_async_tcpclose(worker, ievent);
 			break;
 
+		case netievent_tcpdnscancel:
+			isc__nm_async_tcpdnscancel(worker, ievent);
+			break;
 		case netievent_tcpdnsclose:
 			isc__nm_async_tcpdnsclose(worker, ievent);
+			break;
+		case netievent_tcpdnsread:
+			isc__nm_async_tcpdnsread(worker, ievent);
 			break;
 		case netievent_tcpdnsstop:
 			isc__nm_async_tcpdnsstop(worker, ievent);
@@ -934,6 +955,9 @@ isc__nmsocket_prep_destroy(isc_nmsocket_t *sock) {
 	 */
 	if (!atomic_load(&sock->closed)) {
 		switch (sock->type) {
+		case isc_nm_udpsocket:
+			isc__nm_udp_close(sock);
+			return;
 		case isc_nm_tcpsocket:
 			isc__nm_tcp_close(sock);
 			return;
@@ -1057,6 +1081,7 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	atomic_init(&sock->overlimit, false);
 	atomic_init(&sock->processing, false);
 	atomic_init(&sock->readpaused, false);
+	atomic_init(&sock->closing, false);
 
 	sock->magic = NMSOCK_MAGIC;
 }
@@ -1070,6 +1095,8 @@ isc__nmsocket_clearcb(isc_nmsocket_t *sock) {
 	sock->recv_cbarg = NULL;
 	sock->accept_cb = NULL;
 	sock->accept_cbarg = NULL;
+	sock->connect_cb = NULL;
+	sock->connect_cbarg = NULL;
 }
 
 void
@@ -1471,8 +1498,14 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	switch (handle->sock->type) {
+	case isc_nm_udpsocket:
+		isc__nm_udp_read(handle, cb, cbarg);
+		break;
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_read(handle, cb, cbarg);
+		break;
+	case isc_nm_tcpdnssocket:
+		isc__nm_tcpdns_read(handle, cb, cbarg);
 		break;
 	default:
 		INSIST(0);
@@ -1485,8 +1518,14 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	switch (handle->sock->type) {
+	case isc_nm_udpsocket:
+		isc__nm_udp_cancelread(handle);
+		break;
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_cancelread(handle);
+		break;
+	case isc_nm_tcpdnssocket:
+		isc__nm_tcpdns_cancelread(handle);
 		break;
 	default:
 		INSIST(0);
@@ -1576,11 +1615,21 @@ isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 static void
 shutdown_walk_cb(uv_handle_t *handle, void *arg) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	UNUSED(arg);
 
+	if (uv_is_closing(handle)) {
+		return;
+	}
+
 	switch (handle->type) {
+	case UV_UDP:
+		REQUIRE(VALID_NMSOCK(sock));
+		isc__nm_udp_shutdown(sock);
+		break;
 	case UV_TCP:
-		isc__nm_tcp_shutdown(uv_handle_get_data(handle));
+		REQUIRE(VALID_NMSOCK(sock));
+		isc__nm_tcp_shutdown(sock);
 		break;
 	default:
 		break;
@@ -1867,8 +1916,8 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 	fprintf(stderr, "Active socket %p, type %s, refs %lu\n", sock,
 		nmsocket_type_totext(sock->type),
 		isc_refcount_current(&sock->references));
-	fprintf(stderr, "Parent %p, listener %p\n", sock->parent,
-		sock->listener);
+	fprintf(stderr, "Parent %p, listener %p, server %p\n", sock->parent,
+		sock->listener, sock->server);
 	fprintf(stderr, "Created by:\n");
 	backtrace_symbols_fd(sock->backtrace, sock->backtrace_size,
 			     STDERR_FILENO);
