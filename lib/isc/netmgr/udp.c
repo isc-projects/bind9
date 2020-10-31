@@ -478,8 +478,8 @@ free:
  * another thread.
  */
 void
-isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
-		 void *cbarg) {
+isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg) {
 	isc_nmsocket_t *sock = handle->sock;
 	isc_nmsocket_t *psock = NULL, *rsock = sock;
 	isc_sockaddr_t *peer = &handle->peer;

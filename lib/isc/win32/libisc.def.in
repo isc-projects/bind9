@@ -448,6 +448,7 @@ isc_nm_cancelread
 isc_nm_closedown
 isc_nm_destroy
 isc_nm_detach
+isc_nm_listenhttps
 isc_nm_listentcpdns
 isc_nm_listentls
 isc_nm_listentlsdns
@@ -708,6 +709,7 @@ isc_tlsctx_createserver
 isc_tlsctx_free
 isc_tm_timegm
 isc_tm_strptime
+isc_url_parse
 isc_utf8_bom
 isc_utf8_valid
 isc_win32os_versioncheck

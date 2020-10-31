@@ -155,6 +155,8 @@ isc__nm_dump_active(isc_nm_t *nm);
 #define isc__nmsocket_prep_destroy(sock) isc___nmsocket_prep_destroy(sock)
 #endif
 
+typedef struct isc_nm_http2_session isc_nm_http2_session_t;
+
 /*
  * Single network event loop worker.
  */
@@ -206,6 +208,8 @@ struct isc_nmhandle {
 	 */
 	isc_nmsocket_t *sock;
 	size_t ah_pos; /* Position in the socket's 'active handles' array */
+
+	isc_nm_http2_session_t *httpsession;
 
 	isc_sockaddr_t peer;
 	isc_sockaddr_t local;
@@ -293,10 +297,21 @@ typedef enum isc__netievent_type {
 
 typedef union {
 	isc_nm_recv_cb_t recv;
+	isc_nm_http_cb_t http;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
 	isc_nm_accept_cb_t accept;
 } isc__nm_cb_t;
+
+typedef struct isc_nm_http2_server_handler isc_nm_http2_server_handler_t;
+
+struct isc_nm_http2_server_handler {
+	char *path;
+	isc_nm_http_cb_t cb;
+	void *cbarg;
+	size_t extrahandlesize;
+	LINK(isc_nm_http2_server_handler_t) link;
+};
 
 /*
  * Wrapper around uv_req_t with 'our' fields in it.  req->data should
@@ -652,7 +667,9 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tlslistener,
 	isc_nm_tlssocket,
 	isc_nm_tlsdnslistener,
-	isc_nm_tlsdnssocket
+	isc_nm_tlsdnssocket,
+	isc_nm_httplistener,
+	isc_nm_httpstream
 } isc_nmsocket_type;
 
 /*%
@@ -684,12 +701,26 @@ typedef struct isc_nmsocket_tls_send_req {
 	isc_region_t data;
 } isc_nmsocket_tls_send_req_t;
 
+typedef struct isc_nmsocket_h2 {
+	isc_nmsocket_t *psock; /* owner of the structure */
+	char *request_path;
+	char *query_data;
+	isc_nm_http2_server_handler_t *handler;
+
+	uint8_t buf[65535];
+	size_t bufsize;
+	size_t bufpos;
+
+	int32_t stream_id;
+	LINK(struct isc_nmsocket_h2) link;
+} isc_nmsocket_h2_t;
 struct isc_nmsocket {
 	/*% Unlocked, RO */
 	int magic;
 	int tid;
 	isc_nmsocket_type type;
 	isc_nm_t *mgr;
+
 	/*% Parent socket for multithreaded listeners */
 	isc_nmsocket_t *parent;
 	/*% Listener socket this connection was accepted on */
@@ -740,6 +771,7 @@ struct isc_nmsocket {
 		ISC_LIST(isc__nm_uvreq_t) sends;
 	} tlsstream;
 
+	isc_nmsocket_h2_t h2;
 	/*%
 	 * quota is the TCP client, attached when a TCP connection
 	 * is established. pquota is a non-attached pointer to the
@@ -941,6 +973,9 @@ struct isc_nmsocket {
 	void *accept_cbarg;
 
 	atomic_int_fast32_t active_child_connections;
+
+	ISC_LIST(isc_nm_http2_server_handler_t) handlers;
+
 #ifdef NETMGR_TRACE
 	void *backtrace[TRACE_SIZE];
 	int backtrace_size;
@@ -1105,8 +1140,8 @@ isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0);
  */
 
 void
-isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
-		 void *cbarg);
+isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg);
 /*%<
  * Back-end implementation of isc_nm_send() for UDP handles.
  */
@@ -1167,8 +1202,8 @@ isc__nm_async_udpclose(isc__networker_t *worker, isc__netievent_t *ev0);
  */
 
 void
-isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
-		 void *cbarg);
+isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg);
 /*%<
  * Back-end implementation of isc_nm_send() for TCP handles.
  */
@@ -1350,6 +1385,10 @@ isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
 
 void
+isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg);
+
+void
 isc__nm_tls_cancelread(isc_nmhandle_t *handle);
 
 /*%<
@@ -1406,10 +1445,6 @@ isc__nm_tlsdns_cancelread(isc_nmhandle_t *handle);
  */
 
 void
-isc__nm_tls_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
-		 void *cbarg);
-
-void
 isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 
 void
@@ -1436,6 +1471,10 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock);
 
 void
 isc__nm_tls_stoplistening(isc_nmsocket_t *sock);
+
+void
+isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		  isc_nm_cb_t cb, void *cbarg);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__, __func__)

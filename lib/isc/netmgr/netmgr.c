@@ -1696,6 +1696,9 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_send(handle, region, cb, cbarg);
 		break;
+	case isc_nm_httpstream:
+		isc__nm_http_send(handle, region, cb, cbarg);
+		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

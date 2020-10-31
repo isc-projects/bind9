@@ -559,11 +559,12 @@ isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc__nm_tls_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
-		 void *cbarg) {
+isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg) {
 	isc__netievent_tlssend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 	isc_nmsocket_t *sock = NULL;
+
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
@@ -875,7 +876,6 @@ isc__nm_async_tlsconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
-
 	return;
 error:
 	tlshandle = isc__nmhandle_get(tlssock, NULL, NULL);

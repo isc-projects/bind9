@@ -138,7 +138,8 @@ const FileData installFiles[] =
 	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libirs.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libeay32.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
-	{"libuv.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+	{"nghttp2.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+	{"uv.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #ifdef HAVE_LIBXML2
 	{"libxml2.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #endif

@@ -285,6 +285,7 @@ stages:
          "with-openssl=C:/OpenSSL"
          "with-libxml2=C:/libxml2"
          "with-libuv=C:/libuv"
+         "with-nghttp2=C:/nghttp2"
          "without-python"
          "with-system-tests"
          x64'
