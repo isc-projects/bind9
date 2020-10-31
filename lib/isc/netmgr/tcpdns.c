@@ -259,6 +259,11 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 	REQUIRE(VALID_NMSOCK(dnssock));
 	REQUIRE(dnssock->tid == isc_nm_tid());
 	REQUIRE(VALID_NMHANDLE(handle));
+	if (eresult == ISC_R_SUCCESS &&
+	    (!isc__nmsocket_active(dnssock) || dnssock->outerhandle == NULL))
+	{
+		eresult = ISC_R_CANCELED;
+	}
 
 	if (region == NULL || eresult != ISC_R_SUCCESS) {
 		/* Connection closed */
