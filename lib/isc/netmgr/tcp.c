@@ -1391,10 +1391,9 @@ isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_nm_tid());
 
 	UNUSED(worker);
-
-	REQUIRE(sock->tid == isc_nm_tid());
 
 	tcp_close_direct(sock);
 }

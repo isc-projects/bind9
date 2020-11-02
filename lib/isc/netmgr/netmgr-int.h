@@ -873,7 +873,7 @@ isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
 
-isc_result_t
+void
 isc__nm_tcpdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 
 void
