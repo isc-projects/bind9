@@ -1,3 +1,8 @@
+5525.	[bug]		Change 5503 inadvertently broke cross-compilation by
+			replacing a call to AC_LINK_IFELSE() with a call to
+			AC_RUN_IFELSE() in configure.ac.  This has been fixed,
+			making cross-compilation possible again. [GL #2237]
+
 5523.	[bug]		The initial lookup of a zone transitioning to/from
 			the signed state could fail if the DNSKEY RRset was
 			not found.  Subsequent lookups would succeed.
