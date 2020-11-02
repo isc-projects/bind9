@@ -51,7 +51,7 @@ SEQUENTIAL_COMMON=""
 # rpzrecurse are scheduled first, in order to get more benefit from
 # parallelism.
 #
-PARALLEL_COMMON="dnssec rpzrecurse serve-stale
+PARALLEL_COMMON="rpzrecurse serve-stale
 acl
 additional
 addzone
