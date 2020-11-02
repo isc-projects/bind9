@@ -1,3 +1,5 @@
+5525.	[placeholder]
+
 5524.	[func]		Added functionality to the network manager to
 			support outgoing DNS queries in addition to
 			incoming ones. [GL #2235]
