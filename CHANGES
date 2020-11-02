@@ -1,3 +1,5 @@
+5526.	[bug]		Fix a race/NULL dereference in TCPDNS read. [GL #2227]
+
 5525.	[placeholder]
 
 5524.	[func]		Added functionality to the network manager to
@@ -9,7 +11,7 @@
 			not found.  Subsequent lookups would succeed.
 			[GL #2236]
 
-5522.	[bug]		Fix a race/NULL dereference in TCPDNS. [GL #2227]
+5522.	[bug]		Fix a race/NULL dereference in TCPDNS send. [GL #2227]
 
 5521.	[func]		All use of libltdl was dropped.  libuv's shared library
 			handling interface is now used instead. [GL !4278]
