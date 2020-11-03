@@ -1,3 +1,7 @@
+5527.	[bug]		There was a NULL pointer dereference if the creation
+			of the fetch to determine if a negative trust anchor
+			was still valid failed. [GL #2244]
+
 5523.	[bug]		The initial lookup of a zone transitioning to/from
 			the signed state could fail if the DNSKEY RRset was
 			not found.  Subsequent lookups would succeed.
