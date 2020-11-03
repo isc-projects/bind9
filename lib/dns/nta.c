@@ -283,8 +283,8 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 					  &nta->sigrdataset,
 					  &nta->fetch);
 	if (result != ISC_R_SUCCESS) {
-		dns_view_weakdetach(&view);
 		nta_detach(view->mctx, &nta);
+		dns_view_weakdetach(&view);
 	}
 }
 
