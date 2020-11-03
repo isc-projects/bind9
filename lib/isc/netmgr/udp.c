@@ -366,6 +366,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	if (addr == NULL) {
 		goto done;
 	}
+
 	/*
 	 * - If we're simulating a firewall blocking UDP packets
 	 *   bigger than 'maxudp' bytes for testing purposes.
@@ -374,6 +375,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	if ((maxudp != 0 && (uint32_t)nrecv > maxudp)) {
 		goto done;
 	}
+
 	/*
 	 * - If the socket is no longer active.
 	 */
@@ -386,6 +388,11 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	cb = sock->recv_cb;
 	cbarg = sock->recv_cbarg;
+
+	if (sock->timer_running) {
+		uv_timer_stop(&sock->timer);
+		sock->timer_running = false;
+	}
 
 	if (atomic_load(&sock->client)) {
 		if (nrecv < 0) {
@@ -846,10 +853,6 @@ udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	    const struct sockaddr *addr, unsigned flags) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 
-	if (sock->timer_running) {
-		uv_timer_stop(&sock->timer);
-		sock->timer_running = false;
-	}
 	udp_recv_cb(handle, nrecv, buf, addr, flags);
 	uv_udp_recv_stop(&sock->uv_handle.udp);
 }
