@@ -750,6 +750,15 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock);
 
 void
 isc__nm_udp_stoplistening(isc_nmsocket_t *sock);
+/*%<
+ * Stop listening on 'sock'.
+ */
+
+void
+isc__nm_udp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+/*%<
+ * Set the recv timeout for the UDP socket associated with 'handle'.
+ */
 
 void
 isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -815,6 +824,15 @@ isc__nm_tcp_cancelread(isc_nmhandle_t *handle);
 
 void
 isc__nm_tcp_stoplistening(isc_nmsocket_t *sock);
+/*%<
+ * Stop listening on 'sock'.
+ */
+
+void
+isc__nm_tcp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+/*%<
+ * Set the read timeout for the TCP socket associated with 'handle'.
+ */
 
 void
 isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -860,6 +878,16 @@ isc__nm_tcpdns_close(isc_nmsocket_t *sock);
 
 void
 isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock);
+/*%<
+ * Stop listening on 'sock'.
+ */
+
+void
+isc__nm_tcpdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+/*%<
+ * Set the read timeout and reset the timer for the TCPDNS socket
+ * associated with 'handle', and the TCP socket it wraps around.
+ */
 
 void
 isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0);

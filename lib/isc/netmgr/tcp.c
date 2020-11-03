@@ -813,6 +813,10 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
 
+	sock->read_timeout = (atomic_load(&sock->keepalive)
+				      ? sock->mgr->keepalive
+				      : sock->mgr->idle);
+
 	ievent = isc__nm_get_ievent(sock->mgr, netievent_tcpstartread);
 	ievent->sock = sock;
 
@@ -885,9 +889,9 @@ isc__nm_async_tcp_startread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	if (sock->read_timeout != 0) {
 		if (!sock->timer_initialized) {
 			uv_timer_init(&worker->loop, &sock->timer);
-			uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 			sock->timer_initialized = true;
 		}
+		uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 		uv_timer_start(&sock->timer, readtimeout_cb, sock->read_timeout,
 			       0);
 		sock->timer_running = true;
@@ -986,10 +990,6 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 		if (cb != NULL) {
 			cb(sock->statichandle, ISC_R_SUCCESS, &region, cbarg);
 		}
-
-		sock->read_timeout = (atomic_load(&sock->keepalive)
-					      ? sock->mgr->keepalive
-					      : sock->mgr->idle);
 
 		if (sock->timer_initialized && sock->read_timeout != 0) {
 			/* The timer will be updated */
@@ -1470,4 +1470,19 @@ isc__nm_async_tcpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	isc_nmhandle_detach(&handle);
+}
+
+void
+isc__nm_tcp_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	sock = handle->sock;
+
+	sock->read_timeout = timeout;
+	if (sock->timer_running) {
+		uv_timer_start(&sock->timer, readtimeout_cb, sock->read_timeout,
+			       0);
+	}
 }
