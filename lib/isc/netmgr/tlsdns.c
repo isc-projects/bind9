@@ -2007,7 +2007,7 @@ isc__nm_async_tlsdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc_nm_tlsdns_keepalive(isc_nmhandle_t *handle, bool value) {
+isc__nm_tlsdns_keepalive(isc_nmhandle_t *handle, bool value) {
 	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));

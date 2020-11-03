@@ -1437,7 +1437,7 @@ isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value) {
+isc__nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value) {
 	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
