@@ -451,6 +451,7 @@ isc_nmhandle_cleartimeout
 isc_nmhandle_getdata
 isc_nmhandle_getextra
 isc_nmhandle_is_stream
+isc_nmhandle_keepalive
 isc_nmhandle_netmgr
 isc_nmhandle_localaddr
 isc_nmhandle_peeraddr
