@@ -1146,3 +1146,18 @@ isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	isc_nmhandle_detach(&handle);
 }
+
+void
+isc__nm_udp_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	sock = handle->sock;
+
+	sock->read_timeout = timeout;
+	if (sock->timer_running) {
+		uv_timer_start(&sock->timer, readtimeout_cb, sock->read_timeout,
+			       0);
+	}
+}

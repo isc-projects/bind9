@@ -1385,6 +1385,26 @@ isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
 	handle->dofree = dofree;
 }
 
+void
+isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	switch (handle->sock->type) {
+	case isc_nm_udpsocket:
+		isc__nm_udp_settimeout(handle, timeout);
+		break;
+	case isc_nm_tcpsocket:
+		isc__nm_tcp_settimeout(handle, timeout);
+		break;
+	case isc_nm_tcpdnssocket:
+		isc__nm_tcpdns_settimeout(handle, timeout);
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
 void *
 isc_nmhandle_getextra(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
