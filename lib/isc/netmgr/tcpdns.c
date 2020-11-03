@@ -1461,7 +1461,7 @@ isc_nm_tcpdns_sequential(isc_nmhandle_t *handle) {
 }
 
 void
-isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value) {
+isc__nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value) {
 	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));

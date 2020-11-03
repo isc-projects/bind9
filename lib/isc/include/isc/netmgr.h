@@ -386,7 +386,7 @@ isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
  * Sets the initial, idle, and keepalive timeout values (in milliseconds) to use
  * for TCP connections, and the timeout value to advertise in responses using
  * the EDNS TCP Keepalive option (which should ordinarily be the same
- * as 'keepalive').
+ * as 'keepalive'), in milliseconds.
  *
  * Requires:
  * \li	'mgr' is a valid netmgr.

@@ -476,7 +476,6 @@ isc_nm_stoplistening
 isc_nm_task_enqueue
 isc_nm_tcpconnect
 isc_nm_tcpdnsconnect
-isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
 isc_nm_udpconnect
