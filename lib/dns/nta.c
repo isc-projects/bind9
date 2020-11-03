@@ -270,8 +270,8 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 		NULL, 0, DNS_FETCHOPT_NONTA, 0, NULL, task, fetch_done, nta,
 		&nta->rdataset, &nta->sigrdataset, &nta->fetch);
 	if (result != ISC_R_SUCCESS) {
-		dns_view_weakdetach(&view);
 		nta_detach(view->mctx, &nta);
+		dns_view_weakdetach(&view);
 	}
 }
 
