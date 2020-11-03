@@ -105,7 +105,6 @@ isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *global_task = NULL;
-isc_timermgr_t *timermgr = NULL;
 isc_nm_t *netmgr = NULL;
 isc_sockaddr_t localaddr;
 isc_refcount_t sendcount = ATOMIC_VAR_INIT(0);
@@ -235,7 +234,7 @@ static void
 start_udp(dig_query_t *query);
 
 static void
-connect_timeout(isc_task_t *task, isc_event_t *event);
+force_next(dig_query_t *query);
 
 static void
 launch_next_query(dig_query_t *query);
@@ -1405,9 +1404,6 @@ setup_libs(void) {
 	check_result(result, "isc_task_create");
 	isc_task_setname(global_task, "dig", NULL);
 
-	result = isc_timermgr_create(mctx, &timermgr);
-	check_result(result, "isc_timermgr_create");
-
 	result = dst_lib_init(mctx, NULL);
 	check_result(result, "dst_lib_init");
 	is_dst_up = true;
@@ -1584,9 +1580,6 @@ clear_query(dig_query_t *query) {
 		isc_nmhandle_detach(&query->sendhandle);
 	}
 
-	if (query->timer != NULL) {
-		isc_timer_detach(&query->timer);
-	}
 	lookup = query->lookup;
 
 	if (lookup->current_query == query) {
@@ -2646,7 +2639,6 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		isc_mem_free(mctx, query);
 	}
 
-	check_if_done();
 	UNLOCK_LOOKUP;
 }
 
@@ -2671,62 +2663,6 @@ cancel_lookup(dig_lookup_t *lookup) {
 	}
 	lookup->pending = false;
 	lookup->retries = 0;
-}
-
-static void
-bringup_timer(dig_query_t *query, unsigned int default_timeout) {
-	dig_lookup_t *l;
-	unsigned int local_timeout;
-	isc_result_t result;
-	REQUIRE(DIG_VALID_QUERY(query));
-
-	debug("bringup_timer()");
-
-	/*
-	 * If the timer already exists, that means we're calling this
-	 * a second time (for a retry).  Don't need to recreate it,
-	 * just reset it.
-	 */
-	l = query->lookup;
-	if (ISC_LINK_LINKED(query, link) && ISC_LIST_NEXT(query, link) != NULL)
-	{
-		local_timeout = SERVER_TIMEOUT;
-	} else {
-		if (timeout == 0) {
-			local_timeout = default_timeout;
-		} else {
-			local_timeout = timeout;
-		}
-	}
-	debug("have local timeout of %d", local_timeout);
-	isc_interval_set(&l->interval, local_timeout, 0);
-	if (query->timer != NULL) {
-		isc_timer_detach(&query->timer);
-	}
-	result = isc_timer_create(timermgr, isc_timertype_once, NULL,
-				  &l->interval, global_task, connect_timeout,
-				  query, &query->timer);
-	check_result(result, "isc_timer_create");
-}
-
-static void
-force_timeout(dig_query_t *query) {
-	isc_event_t *event;
-
-	debug("force_timeout ()");
-	event = isc_event_allocate(mctx, query, ISC_TIMEREVENT_IDLE,
-				   connect_timeout, query, sizeof(isc_event_t));
-	isc_task_send(global_task, &event);
-
-	/*
-	 * The timer may have expired if, for example, get_address() takes
-	 * long time and the timer was running on a different thread.
-	 * We need to cancel the possible timeout event not to confuse
-	 * ourselves due to the duplicate events.
-	 */
-	if (query->timer != NULL) {
-		isc_timer_detach(&query->timer);
-	}
 }
 
 static void
@@ -2756,7 +2692,7 @@ start_tcp(dig_query_t *query) {
 		 * by triggering an immediate 'timeout' (we lie, but the effect
 		 * is the same).
 		 */
-		force_timeout(query);
+		force_next(query);
 		return;
 	}
 
@@ -2878,6 +2814,7 @@ send_udp(dig_query_t *query) {
 static void
 udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dig_query_t *query = (dig_query_t *)arg;
+	int local_timeout = timeout * 1000;
 
 	if (eresult == ISC_R_CANCELED) {
 		return;
@@ -2896,6 +2833,14 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	isc_nmhandle_attach(handle, &query->readhandle);
 	isc_refcount_increment0(&recvcount);
 	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
+
+	if (local_timeout == 0) {
+		local_timeout = UDP_TIMEOUT * 1000;
+	}
+
+	debug("have local timeout of %d", local_timeout);
+	isc_nmhandle_settimeout(handle, local_timeout);
+
 	isc_nm_read(handle, recv_done, query);
 	send_udp(query);
 }
@@ -2928,7 +2873,7 @@ start_udp(dig_query_t *query) {
 	result = get_address(query->servname, port, &query->sockaddr);
 	if (result != ISC_R_SUCCESS) {
 		/* This servname doesn't have an address. */
-		force_timeout(query);
+		force_next(query);
 		return;
 	}
 
@@ -3011,26 +2956,16 @@ try_next_server(dig_lookup_t *lookup) {
 	return (true);
 }
 
-/*%
- * IO timeout handler, used for both connect and recv timeouts.  If
- * retries are still allowed, either resend the UDP packet or queue a
- * new TCP lookup.  Otherwise, cancel the lookup.
- */
 static void
-connect_timeout(isc_task_t *task, isc_event_t *event) {
+force_next(dig_query_t *query) {
 	dig_lookup_t *l = NULL;
-	dig_query_t *query = NULL;
 
-	UNUSED(task);
-	REQUIRE(event->ev_type == ISC_TIMEREVENT_IDLE);
+	REQUIRE(DIG_VALID_QUERY(query));
 
-	debug("connect_timeout()");
+	debug("force_next()");
 
 	LOCK_LOOKUP;
-	query = event->ev_arg;
-	REQUIRE(DIG_VALID_QUERY(query));
 	l = query->lookup;
-	isc_event_free(&event);
 
 	INSIST(!free_now);
 
@@ -3111,7 +3046,8 @@ requeue_or_update_exitcode(dig_lookup_t *lookup) {
  */
 static void
 launch_next_query(dig_query_t *query) {
-	dig_lookup_t *l;
+	int local_timeout = timeout * 1000;
+	dig_lookup_t *l = NULL;
 	isc_region_t r;
 
 	REQUIRE(DIG_VALID_QUERY(query));
@@ -3134,9 +3070,12 @@ launch_next_query(dig_query_t *query) {
 	isc_refcount_increment0(&recvcount);
 	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
 
-	if (query->lookup->tcp_mode) {
-		bringup_timer(query, TCP_TIMEOUT);
+	if (local_timeout == 0) {
+		local_timeout = TCP_TIMEOUT * 1000;
 	}
+
+	debug("have local timeout of %d", local_timeout);
+	isc_nmhandle_settimeout(query->handle, local_timeout);
 
 	isc_nm_read(query->handle, recv_done, query);
 
@@ -3234,7 +3173,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		clear_query(query);
 
 		if (next != NULL) {
-			bringup_timer(next, TCP_TIMEOUT);
 			start_tcp(next);
 		} else {
 			check_next_lookup(l);
@@ -3571,10 +3509,6 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		return;
 	}
 
-	if (l->tcp_mode && query->timer != NULL) {
-		isc_timer_touch(query->timer);
-	}
-
 	if ((!l->pending && !l->ns_search_only) || cancel_now) {
 		debug("no longer pending.  Got %s", isc_result_totext(eresult));
 		query->waiting_connect = false;
@@ -3590,11 +3524,18 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
 
 		if (eresult == ISC_R_TIMEDOUT) {
-			printf("%s", l->cmdline);
-			dighost_error("connection timed out; "
-				      "no servers could be reached\n");
-			if (exitcode < 9) {
-				exitcode = 9;
+			if (l->retries > 1) {
+				debug("making new TCP request, %d tries left",
+				      l->retries);
+				l->retries--;
+				requeue_lookup(l, true);
+			} else {
+				printf("%s", l->cmdline);
+				dighost_error("connection timed out; "
+					      "no servers could be reached\n");
+				if (exitcode < 9) {
+					exitcode = 9;
+				}
 			}
 		} else {
 			dighost_error("communications error to %s: %s\n",
@@ -3939,23 +3880,20 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 			if (timeout == 0) {
 				if (l->tcp_mode) {
-					local_timeout = TCP_TIMEOUT * 4;
+					local_timeout = TCP_TIMEOUT * 4000;
 				} else {
-					local_timeout = UDP_TIMEOUT * 4;
+					local_timeout = UDP_TIMEOUT * 4000;
 				}
 			} else {
 				if (timeout < (INT_MAX / 4)) {
-					local_timeout = timeout * 4;
+					local_timeout = timeout * 4000;
 				} else {
 					local_timeout = INT_MAX;
 				}
 			}
+
 			debug("have local timeout of %d", local_timeout);
-			isc_interval_set(&l->interval, local_timeout, 0);
-			result = isc_timer_reset(query->timer,
-						 isc_timertype_once, NULL,
-						 &l->interval, false);
-			check_result(result, "isc_timer_reset");
+			isc_nmhandle_settimeout(query->handle, local_timeout);
 		}
 	}
 
@@ -4270,10 +4208,6 @@ destroy_libs(void) {
 	if (commctx != NULL) {
 		debug("freeing commctx");
 		isc_mempool_destroy(&commctx);
-	}
-	if (timermgr != NULL) {
-		debug("freeing timermgr");
-		isc_timermgr_destroy(&timermgr);
 	}
 	if (tsigkey != NULL) {
 		debug("freeing key %p", tsigkey);
