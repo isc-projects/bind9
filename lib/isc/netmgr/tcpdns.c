@@ -1442,7 +1442,7 @@ isc__nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value) {
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
-	REQUIRE(handle->sock->type != isc_nm_tcpdnssocket);
+	REQUIRE(handle->sock->type == isc_nm_tcpdnssocket);
 
 	sock = handle->sock;
 

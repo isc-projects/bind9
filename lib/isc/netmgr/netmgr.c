@@ -2365,6 +2365,22 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 	}
 }
 
+void
+isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	switch (handle->sock->type) {
+	case isc_nm_tcpdnssocket:
+		isc__nm_tcpdns_keepalive(handle, value);
+		break;
+	case isc_nm_tlsdnssocket:
+		isc__nm_tlsdns_keepalive(handle, value);
+		break;
+	default:
+		return;
+	}
+}
+
 void *
 isc_nmhandle_getextra(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));

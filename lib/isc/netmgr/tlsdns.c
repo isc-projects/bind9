@@ -2012,7 +2012,7 @@ isc__nm_tlsdns_keepalive(isc_nmhandle_t *handle, bool value) {
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
-	REQUIRE(handle->sock->type != isc_nm_tlsdnssocket);
+	REQUIRE(handle->sock->type == isc_nm_tlsdnssocket);
 
 	sock = handle->sock;
 
