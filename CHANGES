@@ -1,3 +1,7 @@
+5527.	[bug]		There was a NULL pointer dereference if the creation
+			of the fetch to determine if a negative trust anchor
+			was still valid failed. [GL #2244]
+
 5525.	[bug]		Change 5503 inadvertently broke cross-compilation by
 			replacing a call to AC_LINK_IFELSE() with a call to
 			AC_RUN_IFELSE() in configure.ac.  This has been fixed,
