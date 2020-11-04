@@ -1570,40 +1570,46 @@ clear_query(dig_query_t *query) {
 
 	REQUIRE(query != NULL);
 
-	debug("clear_query(%p)", query);
+	debug("debug_query(%p)", query);
 
-	if (query->readhandle != NULL) {
-		isc_nmhandle_detach(&query->readhandle);
-	}
-
-	if (query->sendhandle != NULL) {
-		isc_nmhandle_detach(&query->sendhandle);
-	}
-
-	lookup = query->lookup;
-
-	if (lookup->current_query == query) {
-		lookup->current_query = NULL;
-	}
-
-	if (ISC_LINK_LINKED(query, link)) {
-		ISC_LIST_UNLINK(lookup->q, query, link);
-	}
-	if (ISC_LINK_LINKED(query, clink)) {
-		ISC_LIST_UNLINK(lookup->connecting, query, clink);
-	}
 	INSIST(query->recvspace != NULL);
 
 	isc_mempool_put(commctx, query->recvspace);
 	isc_mempool_put(commctx, query->tmpsendspace);
+}
 
-	if (query->waiting_senddone) {
-		debug("clear_query(): pending free");
-		query->pending_free = true;
-	} else {
-		query->magic = 0;
-		debug("clear_query(): free query");
-		isc_mem_free(mctx, query);
+static void
+destroy_query(dig_query_t *query) {
+	clear_query(query);
+
+	query->magic = 0;
+	isc_mem_free(mctx, query);
+}
+
+static void
+query_attach(dig_query_t *source, dig_query_t **targetp) {
+	REQUIRE(DIG_VALID_QUERY(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	(void)isc_refcount_increment(&source->references);
+
+	*targetp = source;
+}
+
+static void
+query_detach(dig_query_t **queryp) {
+	dig_query_t *query = NULL;
+	dig_lookup_t *lookup = NULL;
+
+	REQUIRE(DIG_VALID_QUERY(*queryp));
+
+	query = *queryp;
+	*queryp = NULL;
+
+	REQUIRE(DIG_VALID_QUERY(*queryp));
+
+	if (isc_refcount_decrement(&query->references) == 1) {
+		destroy_query(query);
 	}
 }
 
@@ -1653,7 +1659,7 @@ destroy_lookup(dig_lookup_t *lookup) {
 	dig_server_t *s;
 	void *ptr;
 
-	debug("destroy");
+	debug("destroy_lookup");
 	s = ISC_LIST_HEAD(lookup->my_server_list);
 	while (s != NULL) {
 		debug("freeing server %p belonging to %p", s, lookup);
@@ -2069,6 +2075,7 @@ new_query(dig_lookup_t *lookup, char *servname, char *userarg) {
 				.warn_id = true,
 				.recvspace = isc_mempool_get(commctx),
 				.tmpsendspace = isc_mempool_get(commctx) };
+
 	if (query->recvspace == NULL) {
 		fatal("memory allocation failure");
 	}
@@ -2591,54 +2598,44 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dig_lookup_t *l = NULL;
 
 	REQUIRE(DIG_VALID_QUERY(query));
+	INSIST(query->sendhandle != NULL);
+	INSIST(handle == query->sendhandle);
 
 	debug("send_done()");
 	isc_refcount_decrement0(&sendcount);
 	debug("sendcount=%" PRIuFAST32, isc_refcount_current(&sendcount));
 
-	/* Could occur on timeout or interrupt */
-	if (query->sendhandle == NULL) {
-		return;
-	}
-
-	INSIST(handle == query->sendhandle);
 	INSIST(!free_now);
 
 	if (eresult == ISC_R_CANCELED) {
-		isc_nmhandle_detach(&query->sendhandle);
-		return;
+		goto done;
 	} else if (eresult != ISC_R_SUCCESS) {
 		if (eresult != ISC_R_CANCELED) {
 			debug("send failed: %s", isc_result_totext(eresult));
 		}
-		isc_nmhandle_detach(&query->sendhandle);
-		return;
+		goto done;
 	}
 
 	LOCK_LOOKUP;
 
-	query->waiting_senddone = false;
 	l = query->lookup;
 
-	if (!query->pending_free && l->ns_search_only && !l->trace_root &&
-	    !l->tcp_mode) {
+	if (l->ns_search_only && !l->trace_root && !l->tcp_mode) {
 		debug("sending next, since searching");
 		next = ISC_LIST_NEXT(query, link);
 		if (next != NULL) {
 			start_udp(next);
-		} else {
-			isc_nmhandle_detach(&query->sendhandle);
 		}
-	} else {
-		isc_nmhandle_detach(&query->sendhandle);
 	}
 
-	if (query->pending_free) {
-		query->magic = 0;
-		debug("senddone: free query");
-		isc_mem_free(mctx, query);
-	}
+	UNLOCK_LOOKUP;
 
+done:
+	isc_nmhandle_detach(&query->sendhandle);
+	query_detach(&query);
+
+	LOCK_LOOKUP;
+	check_if_done();
 	UNLOCK_LOOKUP;
 }
 
@@ -2654,15 +2651,13 @@ cancel_lookup(dig_lookup_t *lookup) {
 	while (query != NULL) {
 		REQUIRE(DIG_VALID_QUERY(query));
 		next = ISC_LIST_NEXT(query, link);
-		if (query->readhandle != NULL) {
-			check_if_done();
-		} else {
-			clear_query(query);
-		}
+		ISC_LIST_DEQUEUE(lookup->q, query, link);
+		query_detach(&query);
 		query = next;
 	}
 	lookup->pending = false;
 	lookup->retries = 0;
+	check_if_done();
 }
 
 static void
@@ -2683,7 +2678,6 @@ start_tcp(dig_query_t *query) {
 	debug("start_tcp(%p)", query);
 
 	l = query->lookup;
-	query->waiting_connect = true;
 	query->lookup->current_query = query;
 	result = get_address(query->servname, port, &query->sockaddr);
 	if (result != ISC_R_SUCCESS) {
@@ -2706,14 +2700,13 @@ start_tcp(dig_query_t *query) {
 		isc_netaddr_format(&netaddr, buf, sizeof(buf));
 		dighost_warning("Skipping mapped address '%s'", buf);
 
-		query->waiting_connect = false;
 		if (ISC_LINK_LINKED(query, link)) {
 			next = ISC_LIST_NEXT(query, link);
 		} else {
 			next = NULL;
 		}
 		l = query->lookup;
-		clear_query(query);
+		query_detach(&query);
 		if (next == NULL) {
 			dighost_warning("No acceptable nameservers");
 			check_next_lookup(l);
@@ -2727,8 +2720,9 @@ start_tcp(dig_query_t *query) {
 
 	if (keep != NULL && isc_sockaddr_equal(&keepaddr, &query->sockaddr)) {
 		query->handle = keep;
-		query->waiting_connect = false;
 		launch_next_query(query);
+		query_detach(&query);
+		return;
 	} else {
 		int local_timeout = timeout * 1000;
 		if (local_timeout == 0) {
@@ -2747,6 +2741,8 @@ start_tcp(dig_query_t *query) {
 				isc_sockaddr_any6(&localaddr);
 			}
 		}
+
+		REQUIRE(query != NULL);
 
 		result = isc_nm_tcpdnsconnect(
 			netmgr, (isc_nmiface_t *)&localaddr,
@@ -2785,18 +2781,18 @@ print_query_size(dig_query_t *query) {
 
 static void
 send_udp(dig_query_t *query) {
+	dig_query_t *sendquery = NULL;
 	isc_region_t r;
+
+	query_attach(query, &sendquery);
 
 	isc_buffer_usedregion(&query->sendbuf, &r);
 	debug("sending a request");
 	TIME_NOW(&query->time_sent);
-	query->waiting_senddone = true;
 
-	if (query->sendhandle == NULL) {
-		isc_nmhandle_attach(query->handle, &query->sendhandle);
-	}
+	isc_nmhandle_attach(query->handle, &query->sendhandle);
 
-	isc_nm_send(query->handle, &r, send_done, query);
+	isc_nm_send(query->handle, &r, send_done, sendquery);
 	isc_refcount_increment0(&sendcount);
 
 	/* XXX qrflag, print_query, etc... */
@@ -2814,17 +2810,22 @@ send_udp(dig_query_t *query) {
 static void
 udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dig_query_t *query = (dig_query_t *)arg;
+	dig_query_t *readquery = NULL;
 	int local_timeout = timeout * 1000;
 
 	if (eresult == ISC_R_CANCELED) {
+		query_detach(&query);
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
 		if (eresult != ISC_R_CANCELED) {
 			debug("udp setup failed: %s",
 			      isc_result_totext(eresult));
 		}
+		query_detach(&query);
 		return;
 	}
+
+	query_attach(query, &readquery);
 
 	debug("recving with lookup=%p, query=%p, handle=%p", query->lookup,
 	      query, query->handle);
@@ -2841,8 +2842,10 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	debug("have local timeout of %d", local_timeout);
 	isc_nmhandle_settimeout(handle, local_timeout);
 
-	isc_nm_read(handle, recv_done, query);
-	send_udp(query);
+	isc_nm_read(handle, recv_done, readquery);
+	send_udp(readquery);
+
+	query_detach(&query);
 }
 
 /*%
@@ -2869,7 +2872,6 @@ start_udp(dig_query_t *query) {
 		return;
 	}
 
-	query->waiting_connect = false;
 	result = get_address(query->servname, port, &query->sockaddr);
 	if (result != ISC_R_SUCCESS) {
 		/* This servname doesn't have an address. */
@@ -2888,7 +2890,7 @@ start_udp(dig_query_t *query) {
 		dighost_warning("Skipping mapped address '%s'", buf);
 		next = ISC_LIST_NEXT(query, link);
 		l = query->lookup;
-		clear_query(query);
+		query_detach(&query);
 		if (next == NULL) {
 			dighost_warning("No acceptable nameservers");
 			check_next_lookup(l);
@@ -2984,7 +2986,7 @@ force_next(dig_query_t *query) {
 		debug("making new TCP request, %d tries left", l->retries);
 		requeue_lookup(l, true);
 		isc_refcount_decrement0(&recvcount);
-		clear_query(query);
+		query_detach(&query);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
@@ -3012,8 +3014,7 @@ force_next(dig_query_t *query) {
 		exitcode = 9;
 	}
 
-	query->waiting_senddone = false;
-	clear_query(query);
+	query_detach(&query);
 	cancel_lookup(l);
 	check_next_lookup(l);
 	UNLOCK_LOOKUP;
@@ -3046,6 +3047,7 @@ requeue_or_update_exitcode(dig_lookup_t *lookup) {
  */
 static void
 launch_next_query(dig_query_t *query) {
+	dig_query_t *readquery = NULL;
 	int local_timeout = timeout * 1000;
 	dig_lookup_t *l = NULL;
 	isc_region_t r;
@@ -3057,16 +3059,13 @@ launch_next_query(dig_query_t *query) {
 
 	if (!query->lookup->pending) {
 		debug("ignoring launch_next_query because !pending");
-		query->waiting_connect = false;
 		l = query->lookup;
-		clear_query(query);
+		query_detach(&query);
 		check_next_lookup(l);
 		return;
 	}
 
-	if (query->readhandle == NULL) {
-		isc_nmhandle_attach(query->handle, &query->readhandle);
-	}
+	isc_nmhandle_attach(query->handle, &query->readhandle);
 	isc_refcount_increment0(&recvcount);
 	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
 
@@ -3077,18 +3076,20 @@ launch_next_query(dig_query_t *query) {
 	debug("have local timeout of %d", local_timeout);
 	isc_nmhandle_settimeout(query->handle, local_timeout);
 
-	isc_nm_read(query->handle, recv_done, query);
+	query_attach(query, &readquery);
+	isc_nm_read(query->handle, recv_done, readquery);
 
 	if (!query->first_soa_rcvd) {
+		dig_query_t *sendquery = NULL;
 		debug("sending a request in launch_next_query");
 		TIME_NOW(&query->time_sent);
-		query->waiting_senddone = true;
+		query_attach(query, &sendquery);
 		isc_buffer_usedregion(&query->sendbuf, &r);
 		if (keep != NULL) {
 			query->handle = keep;
 		}
 		isc_nmhandle_attach(query->handle, &query->sendhandle);
-		isc_nm_send(query->handle, &r, send_done, query);
+		isc_nm_send(query->handle, &r, send_done, sendquery);
 		isc_refcount_increment0(&sendcount);
 		debug("sendcount=%" PRIuFAST32,
 		      isc_refcount_current(&sendcount));
@@ -3104,7 +3105,6 @@ launch_next_query(dig_query_t *query) {
 			}
 		}
 	}
-	query->waiting_connect = false;
 	return;
 }
 
@@ -3128,13 +3128,11 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	LOCK_LOOKUP;
 
-	INSIST(query->waiting_connect);
-
 	if (eresult == ISC_R_CANCELED) {
 		debug("in cancel handler");
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
 		l = query->lookup;
-		clear_query(query);
+		query_detach(&query);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
@@ -3170,7 +3168,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			next = NULL;
 		}
 
-		clear_query(query);
+		query_detach(&query);
 
 		if (next != NULL) {
 			start_tcp(next);
@@ -3178,11 +3176,11 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			check_next_lookup(l);
 		}
 
+		check_if_done();
+
 		UNLOCK_LOOKUP;
 		return;
 	}
-
-	query->waiting_connect = false;
 
 	exitcode = 0;
 
@@ -3197,6 +3195,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 	launch_next_query(query);
+	query_detach(&query);
 	isc_nmhandle_detach(&handle);
 	UNLOCK_LOOKUP;
 }
@@ -3340,6 +3339,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
 	} while (result == ISC_R_SUCCESS);
 	launch_next_query(query);
+	query_detach(&query);
 	return (false);
 doexit:
 	dighost_received(len, peer, query);
@@ -3462,27 +3462,21 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	isc_sockaddr_t peer;
 
 	REQUIRE(DIG_VALID_QUERY(query));
+	INSIST(query->readhandle != NULL);
+	INSIST(handle == query->readhandle);
 	INSIST(!free_now);
 
 	debug("recv_done()");
 
 	if (eresult == ISC_R_CANCELED) {
 		debug("recv_done: cancel");
-		clear_query(query);
+		query_detach(&query);
 		return;
 	}
 
 	LOCK_LOOKUP;
 	isc_refcount_decrement0(&recvcount);
 	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
-
-	/* Could occur on timeout or interrupt */
-	if (query->readhandle == NULL) {
-		UNLOCK_LOOKUP;
-		return;
-	}
-
-	INSIST(handle == query->readhandle);
 
 	TIME_NOW(&query->time_recv);
 
@@ -3497,12 +3491,11 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		newq = new_query(query->lookup, query->servname,
 				 query->userarg);
 
-		ISC_LIST_DEQUEUE(l->q, query, link);
 		ISC_LIST_PREPEND(l->q, newq, link);
 
-		query->waiting_senddone = false;
+		isc_nmhandle_detach(&query->readhandle);
+		query_detach(&query);
 
-		clear_query(query);
 		UNLOCK_LOOKUP;
 
 		start_udp(ISC_LIST_HEAD(l->q));
@@ -3511,9 +3504,9 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 	if ((!l->pending && !l->ns_search_only) || cancel_now) {
 		debug("no longer pending.  Got %s", isc_result_totext(eresult));
-		query->waiting_connect = false;
 
-		clear_query(query);
+		isc_nmhandle_detach(&query->readhandle);
+		query_detach(&query);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
@@ -3550,7 +3543,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			requeue_or_update_exitcode(l);
 		}
 
-		clear_query(query);
+		isc_nmhandle_detach(&query->readhandle);
+		query_detach(&query);
 		cancel_lookup(l);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
@@ -3587,7 +3581,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 						"message");
 			}
 			if (fail) {
-				clear_query(query);
+				isc_nmhandle_detach(&query->readhandle);
+				query_detach(&query);
 				cancel_lookup(l);
 				check_next_lookup(l);
 				UNLOCK_LOOKUP;
@@ -3609,6 +3604,10 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	}
 
 	if (!match) {
+		/*
+		 * We are still attached to query and the query->readhandle is
+		 * also attached
+		 */
 		isc_refcount_increment0(&recvcount);
 		isc_nm_read(handle, recv_done, query);
 		UNLOCK_LOOKUP;
@@ -3653,9 +3652,10 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			       isc_result_totext(result));
 			hex_dump(&b);
 		}
-		query->waiting_connect = false;
 		dns_message_detach(&msg);
-		clear_query(query);
+
+		isc_nmhandle_detach(&query->readhandle);
+		query_detach(&query);
 		cancel_lookup(l);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
@@ -3677,7 +3677,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 				expect, got);
 		dns_message_detach(&msg);
 		if (l->tcp_mode) {
-			clear_query(query);
+			isc_nmhandle_detach(&query->readhandle);
+			query_detach(&query);
 			cancel_lookup(l);
 			check_next_lookup(l);
 		} else {
@@ -3731,7 +3732,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		if (!match) {
 			dns_message_detach(&msg);
 			if (l->tcp_mode) {
-				clear_query(query);
+				isc_nmhandle_detach(&query->readhandle);
+				query_detach(&query);
 				cancel_lookup(l);
 				check_next_lookup(l);
 			} else {
@@ -3757,7 +3759,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			n->rdtype = l->qrdtype;
 		}
 		dns_message_detach(&msg);
-		clear_query(query);
+		isc_nmhandle_detach(&query->readhandle);
+		query_detach(&query);
 		cancel_lookup(l);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
@@ -3776,7 +3779,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			n->rdtype = l->qrdtype;
 		}
 		dns_message_detach(&msg);
-		clear_query(query);
+		isc_nmhandle_detach(&query->readhandle);
+		query_detach(&query);
 		cancel_lookup(l);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
@@ -3800,7 +3804,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 				n->rdtype = l->qrdtype;
 			}
 			dns_message_detach(&msg);
-			clear_query(query);
+			isc_nmhandle_detach(&query->readhandle);
+			query_detach(&query);
 			cancel_lookup(l);
 			check_next_lookup(l);
 			UNLOCK_LOOKUP;
@@ -3839,7 +3844,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 						 ? "SERVFAIL reply"
 						 : "recursion not available",
 					 query->servname);
-			clear_query(query);
+			isc_nmhandle_detach(&query->readhandle);
+			query_detach(&query);
 			check_next_lookup(l);
 			dns_message_detach(&msg);
 			isc_nmhandle_detach(&query->readhandle);
@@ -3971,11 +3977,12 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		debug("still pending.");
 	}
 
+	isc_nmhandle_detach(&query->readhandle);
+
 	if (l->doing_xfr) {
 		if (query != l->xfr_q) {
 			dns_message_detach(&msg);
-			isc_nmhandle_detach(&query->readhandle);
-			query->waiting_connect = false;
+			query_detach(&query);
 			UNLOCK_LOOKUP;
 			return;
 		}
@@ -3985,7 +3992,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		}
 		if (docancel) {
 			dns_message_detach(&msg);
-			clear_query(query);
+			query_detach(&query);
 			cancel_lookup(l);
 			check_next_lookup(l);
 		}
@@ -4003,7 +4010,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			dns_message_detach(&msg);
 			cancel_lookup(l);
 		}
-		clear_query(query);
+		query_detach(&query);
 		check_next_lookup(l);
 	}
 	if (msg != NULL) {
@@ -4129,9 +4136,6 @@ cancel_all(void) {
 	if (current_lookup != NULL) {
 		for (q = ISC_LIST_HEAD(current_lookup->q); q != NULL; q = nq) {
 			nq = ISC_LIST_NEXT(q, link);
-			if (q->waiting_connect) {
-				continue;
-			}
 			debug("canceling pending query %p, belonging to %p", q,
 			      current_lookup);
 			if (q->readhandle != NULL) {
@@ -4139,14 +4143,14 @@ cancel_all(void) {
 				debug("recvcount=%" PRIuFAST32,
 				      isc_refcount_current(&recvcount));
 			}
-			clear_query(q);
+			query_detach(&q);
 		}
 		for (q = ISC_LIST_HEAD(current_lookup->connecting); q != NULL;
 		     q = nq) {
 			nq = ISC_LIST_NEXT(q, clink);
 			debug("canceling connecting query %p, belonging to %p",
 			      q, current_lookup);
-			clear_query(q);
+			query_detach(&q);
 		}
 		try_clear_lookup(current_lookup);
 		current_lookup = NULL;
