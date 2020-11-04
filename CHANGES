@@ -1,3 +1,8 @@
+5533.	[func]		Add "stale-refresh-time" option, a time window that
+			starts after a failed lookup, during which stale rrset
+			will be served directly from cache before a new
+			attempt to refresh it is made. [GL #2066]
+
 5532.	[cleanup]	Unused header files were removed:
 			bin/rndc/include/rndc/os.h, lib/isc/timer_p.h,
 			lib/isccfg/include/isccfg/dnsconf.h and code related
