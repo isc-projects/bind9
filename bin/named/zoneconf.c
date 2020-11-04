@@ -1541,6 +1541,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					dns_kasp_nsec3saltlen(kasp), NULL);
 				if (result != ISC_R_SUCCESS) {
 					if (dns_kasp_nsec3saltlen(kasp) > 0) {
+						char zonetext[DNS_NAME_MAXTEXT +
+							      32];
+						dns_zone_name(zone, zonetext,
+							      sizeof(zonetext));
+
 						RETERR(dns_nsec3_generate_salt(
 							saltbuf,
 							dns_kasp_nsec3saltlen(
@@ -1554,7 +1559,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 							ISC_LOG_INFO, salt,
 							dns_kasp_nsec3saltlen(
 								kasp),
-							"generated salt:");
+							"generated salt for "
+							"zone %s:",
+							zonetext);
 					}
 					result = dns_zone_setnsec3param(
 						zone, 1,
