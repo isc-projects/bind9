@@ -279,7 +279,7 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	r = uv_tcp_getpeername(&sock->uv_handle.tcp, (struct sockaddr *)&ss,
 			       &(int){ sizeof(ss) });
 	if (r != 0) {
-		failed_connect_cb(sock, req, isc__nm_uverr2result(status));
+		failed_connect_cb(sock, req, isc__nm_uverr2result(r));
 		return;
 	}
 
