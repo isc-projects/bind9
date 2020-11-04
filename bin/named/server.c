@@ -14369,6 +14369,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 	bool list = false, clear = false;
 	bool chain = false;
 	bool setserial = false;
+	bool log_salt = false;
 	uint32_t serial = 0;
 	char keystr[DNS_SECALG_FORMATSIZE + 7]; /* <5-digit keyid>/<alg> */
 	unsigned short hash = 0, flags = 0, iter = 0, saltlen = 0;
@@ -14452,10 +14453,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 				 */
 				saltlen = 8;
 				CHECK(dns_nsec3_generate_salt(salt, saltlen));
-				dns_nsec3_log_salt(
-					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-					NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-					salt, saltlen, "generated salt:");
+				log_salt = true;
 			} else if (strcmp(ptr, "-") != 0) {
 				isc_buffer_t buf;
 
@@ -14493,6 +14491,16 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 		(void)putstr(text, "request queued");
 		(void)putnull(text);
 	} else if (chain) {
+		if (log_salt) {
+			char zonetext[DNS_NAME_MAXTEXT + 32];
+			dns_zone_name(zone, zonetext, sizeof(zonetext));
+			dns_nsec3_log_salt(
+				named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				NAMED_LOGMODULE_SERVER, ISC_LOG_INFO, salt,
+				saltlen,
+				"generated salt for zone %s:", zonetext);
+		}
+
 		CHECK(dns_zone_setnsec3param(zone, (uint8_t)hash,
 					     (uint8_t)flags, iter,
 					     (uint8_t)saltlen, salt, true));
