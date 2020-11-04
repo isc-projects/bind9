@@ -1560,17 +1560,20 @@ check_if_done(void) {
 	}
 }
 
+#define clear_query(q) _clear_query(q, __FILE__, __LINE__)
+
 /*%
  * Clear out a query when we're done with it.  WARNING: This routine
  * WILL invalidate the query pointer.
  */
 static void
-clear_query(dig_query_t *query) {
-	dig_lookup_t *lookup;
+_clear_query(dig_query_t *query, const char *file, unsigned int line) {
+	dig_lookup_t *lookup = NULL;
 
 	REQUIRE(query != NULL);
 
-	debug("debug_query(%p)", query);
+	debug("%s:%u:clear_query(%p) = %" PRIuFAST32, file, line, query,
+	      isc_refcount_current(&query->references));
 
 	INSIST(query->recvspace != NULL);
 
@@ -1579,25 +1582,36 @@ clear_query(dig_query_t *query) {
 }
 
 static void
-destroy_query(dig_query_t *query) {
-	clear_query(query);
+_destroy_query(dig_query_t *query, const char *file, unsigned int line) {
+	debug("%s:%u:destroy_query(%p) = %" PRIuFAST32, file, line, query,
+	      isc_refcount_current(&query->references));
+
+	_clear_query(query, file, line);
 
 	query->magic = 0;
 	isc_mem_free(mctx, query);
 }
 
+#define query_attach(s, t) _query_attach(s, t, __FILE__, __LINE__)
+
 static void
-query_attach(dig_query_t *source, dig_query_t **targetp) {
+_query_attach(dig_query_t *source, dig_query_t **targetp, const char *file,
+	      unsigned int line) {
 	REQUIRE(DIG_VALID_QUERY(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	debug("%s:%u:query_attach(%p) = %" PRIuFAST32, file, line, source,
+	      isc_refcount_current(&source->references) + 1);
 
 	(void)isc_refcount_increment(&source->references);
 
 	*targetp = source;
 }
 
+#define query_detach(q) _query_detach(q, __FILE__, __LINE__)
+
 static void
-query_detach(dig_query_t **queryp) {
+_query_detach(dig_query_t **queryp, const char *file, unsigned int line) {
 	dig_query_t *query = NULL;
 	dig_lookup_t *lookup = NULL;
 
@@ -1606,10 +1620,24 @@ query_detach(dig_query_t **queryp) {
 	query = *queryp;
 	*queryp = NULL;
 
-	REQUIRE(DIG_VALID_QUERY(*queryp));
+	lookup = query->lookup;
+
+	if (lookup->current_query == query) {
+		lookup->current_query = NULL;
+	}
+
+	if (ISC_LINK_LINKED(query, link)) {
+		ISC_LIST_UNLINK(lookup->q, query, link);
+	}
+	if (ISC_LINK_LINKED(query, clink)) {
+		ISC_LIST_UNLINK(lookup->connecting, query, clink);
+	}
+
+	debug("%s:%u:query_detach(%p) = %" PRIuFAST32, file, line, query,
+	      isc_refcount_current(&query->references) - 1);
 
 	if (isc_refcount_decrement(&query->references) == 1) {
-		destroy_query(query);
+		_destroy_query(query, file, line);
 	}
 }
 
@@ -2061,8 +2089,11 @@ compute_cookie(unsigned char *clientcookie, size_t len) {
 	memmove(clientcookie, cookie_secret, 8);
 }
 
+#define new_query(l, s, u) _new_query(l, s, u, __FILE__, __LINE__)
+
 static dig_query_t *
-new_query(dig_lookup_t *lookup, char *servname, char *userarg) {
+_new_query(dig_lookup_t *lookup, char *servname, char *userarg,
+	   const char *file, unsigned int line) {
 	dig_query_t *query = NULL;
 
 	query = isc_mem_allocate(mctx, sizeof(dig_query_t));
@@ -2075,6 +2106,9 @@ new_query(dig_lookup_t *lookup, char *servname, char *userarg) {
 				.warn_id = true,
 				.recvspace = isc_mempool_get(commctx),
 				.tmpsendspace = isc_mempool_get(commctx) };
+
+	debug("%s:%u:new_query(%p) = %" PRIuFAST32, file, line, query,
+	      isc_refcount_current(&query->references));
 
 	if (query->recvspace == NULL) {
 		fatal("memory allocation failure");
@@ -2601,7 +2635,9 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	INSIST(query->sendhandle != NULL);
 	INSIST(handle == query->sendhandle);
 
-	debug("send_done()");
+	debug("send_done(%p, %s, %p)", handle, isc_result_totext(eresult),
+	      arg);
+
 	isc_refcount_decrement0(&sendcount);
 	debug("sendcount=%" PRIuFAST32, isc_refcount_current(&sendcount));
 
@@ -3466,7 +3502,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	INSIST(handle == query->readhandle);
 	INSIST(!free_now);
 
-	debug("recv_done()");
+	debug("recv_done(%p, %s, %p, %p)", handle, isc_result_totext(eresult),
+	      region, arg);
 
 	if (eresult == ISC_R_CANCELED) {
 		debug("recv_done: cancel");
@@ -3822,7 +3859,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			l->current_query = NULL;
 		}
 		if (next != NULL) {
-			debug("sending query %p\n", next);
+			debug("sending query %p", next);
 			if (l->tcp_mode) {
 				start_tcp(next);
 			} else {
