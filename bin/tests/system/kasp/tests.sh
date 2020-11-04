@@ -1374,7 +1374,6 @@ retry_quiet 10 update_is_signed || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-
 #
 # Zone: dynamic-inline-signing.kasp
 #
@@ -2168,14 +2167,14 @@ set_server "ns3" "10.53.0.3"
 key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "63072000"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "no"
 
 key_clear        "KEY2"
 set_keyrole      "KEY2" "zsk"
 set_keylifetime  "KEY2" "31536000"
-set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
 
@@ -2335,7 +2334,7 @@ set_server "ns3" "10.53.0.3"
 # The third key is not yet expected to be signing.
 set_keyrole      "KEY3" "zsk"
 set_keylifetime  "KEY3" "31536000"
-set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY3" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "no"
 # The ZSK goal is set to HIDDEN but records stay OMNIPRESENT until the new ZSK
@@ -2688,6 +2687,68 @@ status=$((status+ret))
 TSIG=""
 
 #
+# Testing RFC 8901 Multi-Signer Model 2.
+#
+set_zone "multisigner-model2.kasp"
+set_policy "multisigner-model2" "2" "3600"
+set_server "ns3" "10.53.0.3"
+key_clear "KEY1"
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+# Key properties.
+set_keyrole      "KEY1" "ksk"
+set_keylifetime  "KEY1" "0"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning   "KEY1" "yes"
+set_zonesigning  "KEY1" "no"
+
+set_keyrole      "KEY2" "zsk"
+set_keylifetime  "KEY2" "0"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning   "KEY2" "no"
+set_zonesigning  "KEY2" "yes"
+
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+# Check that the ZSKs from the other provider are published.
+zsks_are_published() {
+	dig_with_opts +short "$ZONE" "@${SERVER}" DNSKEY > "dig.out.$DIR.test$n" || return 1
+	# We should have three ZSKs.
+	lines=$(grep "256 3 13" dig.out.$DIR.test$n | wc -l)
+	test "$lines" -eq 3 || return 1
+	# And one KSK.
+	lines=$(grep "257 3 13" dig.out.$DIR.test$n | wc -l)
+	test "$lines" -eq 1 || return 1
+}
+
+n=$((n+1))
+echo_i "update zone with ZSK from another provider for zone ${ZONE} ($n)"
+ret=0
+(
+echo zone ${ZONE}
+echo server 10.53.0.3 "$PORT"
+echo update add $(cat "${DIR}/${ZONE}.zsk2")
+echo send
+) | $NSUPDATE
+retry_quiet 10 zsks_are_published || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+#
 # Testing manual rollover.
 #
 set_zone "manual-rollover.kasp"
@@ -2700,13 +2761,13 @@ key_clear "KEY4"
 # Key properties.
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "0"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "no"
 
 set_keyrole      "KEY2" "zsk"
 set_keylifetime  "KEY2" "0"
-set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
 # During set up everything was set to OMNIPRESENT.
@@ -2832,7 +2893,7 @@ set_server "ns3" "10.53.0.3"
 key_clear        "KEY1"
 set_keyrole      "KEY1" "csk"
 set_keylifetime  "KEY1" "0"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 # The DNSKEY and signatures are introduced first, the DS remains hidden.
@@ -3046,14 +3107,14 @@ rollover_predecessor_keytimes() {
 key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "${Lksk}"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "no"
 
 key_clear        "KEY2"
 set_keyrole      "KEY2" "zsk"
 set_keylifetime  "KEY2" "${Lzsk}"
-set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
@@ -3095,7 +3156,7 @@ set_server "ns3" "10.53.0.3"
 key_clear        "KEY3"
 set_keyrole      "KEY3" "zsk"
 set_keylifetime  "KEY3" "${Lzsk}"
-set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY3" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY3" "no"
 set_zonesigning  "KEY3" "no"
 # Key states.
@@ -3277,14 +3338,14 @@ set_server "ns3" "10.53.0.3"
 key_clear        "KEY1"
 set_keyrole      "KEY1" "ksk"
 set_keylifetime  "KEY1" "${Lksk}"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "no"
 
 key_clear        "KEY2"
 set_keyrole      "KEY2" "zsk"
 set_keylifetime  "KEY2" "${Lzsk}"
-set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY2" "no"
 set_zonesigning  "KEY2" "yes"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
@@ -3326,7 +3387,7 @@ set_server "ns3" "10.53.0.3"
 key_clear        "KEY3"
 set_keyrole      "KEY3" "ksk"
 set_keylifetime  "KEY3" "${Lksk}"
-set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY3" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY3" "yes"
 set_zonesigning  "KEY3" "no"
 # Key states.
@@ -3531,7 +3592,7 @@ set_server "ns3" "10.53.0.3"
 key_clear        "KEY1"
 set_keyrole      "KEY1" "csk"
 set_keylifetime  "KEY1" "${Lcsk}"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
@@ -3571,7 +3632,7 @@ set_server "ns3" "10.53.0.3"
 key_clear        "KEY2"
 set_keyrole      "KEY2" "csk"
 set_keylifetime  "KEY2" "16070400"
-set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
 # Key states.
@@ -3852,7 +3913,7 @@ set_server "ns3" "10.53.0.3"
 key_clear        "KEY1"
 set_keyrole      "KEY1" "csk"
 set_keylifetime  "KEY1" "16070400"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 # The CSK (KEY1) starts in OMNIPRESENT.
@@ -3893,7 +3954,7 @@ set_server "ns3" "10.53.0.3"
 key_clear        "KEY2"
 set_keyrole      "KEY2" "csk"
 set_keylifetime  "KEY2" "16070400"
-set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "no"
 # Key states.
@@ -4223,7 +4284,7 @@ init_migration_match() {
 	key_set          "KEY1" "LEGACY" "yes"
 	set_keyrole      "KEY1" "ksk"
 	set_keylifetime  "KEY1" "0"
-	set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+	set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 	set_keysigning   "KEY1" "yes"
 	set_zonesigning  "KEY1" "no"
 
@@ -4231,7 +4292,7 @@ init_migration_match() {
 	key_set          "KEY2" "LEGACY" "yes"
 	set_keyrole      "KEY2" "zsk"
 	set_keylifetime  "KEY2" "5184000"
-	set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+	set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 	set_keysigning   "KEY2" "no"
 	set_zonesigning  "KEY2" "yes"
 
@@ -5147,10 +5208,10 @@ set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
 set_keysigning   "KEY1" "yes"
 set_zonesigning  "KEY1" "yes"
 # New ECDSAP256SHA256 key.
-key_clear	 "KEY2"
+key_clear        "KEY2"
 set_keyrole      "KEY2" "csk"
 set_keylifetime  "KEY2" "0"
-set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
 set_keysigning   "KEY2" "yes"
 set_zonesigning  "KEY2" "yes"
 key_clear "KEY3"
