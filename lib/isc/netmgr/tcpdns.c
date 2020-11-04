@@ -736,6 +736,7 @@ tcpdnsconnect_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	void *cbarg = conn->cbarg;
 	size_t extrahandlesize = conn->extrahandlesize;
 	isc_nmsocket_t *dnssock = NULL;
+	isc_nmhandle_t *readhandle = NULL;
 
 	REQUIRE(result != ISC_R_SUCCESS || VALID_NMHANDLE(handle));
 
@@ -758,7 +759,13 @@ tcpdnsconnect_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	dnssock->tid = isc_nm_tid();
 
 	atomic_init(&dnssock->client, true);
-	dnssock->statichandle = isc__nmhandle_get(dnssock, NULL, NULL);
+
+	readhandle = isc__nmhandle_get(dnssock, NULL, NULL);
+
+	INSIST(dnssock->statichandle != NULL);
+	INSIST(dnssock->statichandle == readhandle);
+	INSIST(readhandle->sock == dnssock);
+	INSIST(dnssock->recv_cb == NULL);
 
 	uv_timer_init(&dnssock->mgr->workers[isc_nm_tid()].loop,
 		      &dnssock->timer);
@@ -774,7 +781,11 @@ tcpdnsconnect_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	 * packet.
 	 */
 	isc_nm_read(handle, dnslisten_readcb, dnssock);
-	cb(dnssock->statichandle, ISC_R_SUCCESS, cbarg);
+	cb(readhandle, ISC_R_SUCCESS, cbarg);
+
+	/*
+	 * The sock is now attached to the handle.
+	 */
 	isc__nmsocket_detach(&dnssock);
 }
 

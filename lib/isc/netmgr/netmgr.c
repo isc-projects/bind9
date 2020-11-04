@@ -1206,7 +1206,8 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	UNLOCK(&sock->lock);
 
 	if (sock->type == isc_nm_tcpsocket ||
-	    (sock->type == isc_nm_udpsocket && atomic_load(&sock->client)))
+	    (sock->type == isc_nm_udpsocket && atomic_load(&sock->client)) ||
+	    (sock->type == isc_nm_tcpdnssocket && atomic_load(&sock->client)))
 	{
 		INSIST(sock->statichandle == NULL);
 
