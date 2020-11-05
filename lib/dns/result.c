@@ -174,6 +174,7 @@ static const char *text[DNS_R_NRESULTS] = {
 
 	"cannot use NSEC3 with key algorithm", /*%< 125 DNS_R_NSEC3BADALG */
 	"NSEC3 resalt",			       /*%< 126 DNS_R_NSEC3RESALT */
+	"inconsistent resource record",	       /*%< 127 DNS_R_INCONSISTENTRR */
 };
 
 static const char *ids[DNS_R_NRESULTS] = {
@@ -308,6 +309,7 @@ static const char *ids[DNS_R_NRESULTS] = {
 	"DNS_R_NSEC3SALTRANGE",
 	"DNS_R_NSEC3BADALG",
 	"DNS_R_NSEC3RESALT",
+	"DNS_R_INCONSISTENTRR",
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

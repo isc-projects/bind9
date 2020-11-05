@@ -299,7 +299,8 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
 	assert_memory_equal(buf, rdata->data, rdata->length);
 
 	/*
-	 * Check that one can walk hip rendezvous servers.
+	 * Check that one can walk hip rendezvous servers and
+	 * https/svcb parameters.
 	 */
 	switch (type) {
 	case dns_rdatatype_hip: {
@@ -313,6 +314,38 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
 			dns_rdata_hip_current(hip, &name);
 			assert_int_not_equal(dns_name_countlabels(&name), 0);
 			assert_true(dns_name_isabsolute(&name));
+			count++;
+		}
+		assert_int_equal(result, ISC_R_NOMORE);
+		assert_int_equal(count, loop);
+		break;
+	}
+	case dns_rdatatype_https: {
+		dns_rdata_in_https_t *https = rdata_struct;
+
+		for (result = dns_rdata_in_https_first(https);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdata_in_https_next(https))
+		{
+			isc_region_t region;
+			dns_rdata_in_https_current(https, &region);
+			assert_true(region.length >= 4);
+			count++;
+		}
+		assert_int_equal(result, ISC_R_NOMORE);
+		assert_int_equal(count, loop);
+		break;
+	}
+	case dns_rdatatype_svcb: {
+		dns_rdata_in_svcb_t *svcb = rdata_struct;
+
+		for (result = dns_rdata_in_svcb_first(svcb);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdata_in_svcb_next(svcb))
+		{
+			isc_region_t region;
+			dns_rdata_in_svcb_current(svcb, &region);
+			assert_true(region.length >= 4);
 			count++;
 		}
 		assert_int_equal(result, ISC_R_NOMORE);
@@ -339,6 +372,10 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	isc_result_t result;
 	size_t length = 0;
 
+	if (debug) {
+		fprintf(stdout, "#check_text_ok_single(%s)\n",
+			text_ok->text_in);
+	}
 	/*
 	 * Try converting text form RDATA into uncompressed wire form.
 	 */
@@ -350,7 +387,9 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 */
 	if (text_ok->text_out != NULL) {
 		if (debug && result != ISC_R_SUCCESS) {
-			fprintf(stdout, "#'%s'\n", text_ok->text_in);
+			fprintf(stdout, "# '%s'\n", text_ok->text_in);
+			fprintf(stdout, "# result=%s\n",
+				dns_result_totext(result));
 		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 	} else {
@@ -374,6 +413,18 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 */
 	isc_buffer_init(&target, buf_totext, sizeof(buf_totext));
 	result = dns_rdata_totext(&rdata, NULL, &target);
+	if (result != ISC_R_SUCCESS && debug) {
+		size_t i;
+		fprintf(stdout, "# dns_rdata_totext -> %s",
+			dns_result_totext(result));
+		for (i = 0; i < rdata.length; i++) {
+			if ((i % 16) == 0) {
+				fprintf(stdout, "\n#");
+			}
+			fprintf(stdout, " %02x", rdata.data[i]);
+		}
+		fprintf(stdout, "\n");
+	}
 	assert_int_equal(result, ISC_R_SUCCESS);
 	/*
 	 * Ensure buf_totext is properly NUL terminated as dns_rdata_totext()
@@ -386,6 +437,10 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 			text_ok->text_out);
 	}
 	assert_string_equal(buf_totext, text_ok->text_out);
+
+	if (debug) {
+		fprintf(stdout, "#dns_rdata_totext -> '%s'\n", buf_totext);
+	}
 
 	/*
 	 * Ensure that fromtext_*() output is valid input for fromwire_*().
@@ -463,6 +518,10 @@ check_text_conversions(dns_rdata_t *rdata) {
 	result = dns_test_rdatafromstring(&rdata2, rdata->rdclass, rdata->type,
 					  buf_fromtext, sizeof(buf_fromtext),
 					  buf_totext, false);
+	if (debug && result != ISC_R_SUCCESS) {
+		fprintf(stdout, "# result = %s\n", dns_result_totext(result));
+		fprintf(stdout, "# '%s'\n", buf_fromtext);
+	}
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(rdata2.length, rdata->length);
 	assert_memory_equal(buf_fromtext, rdata->data, rdata->length);
@@ -2412,6 +2471,186 @@ wks(void **state) {
 		    dns_rdatatype_wks, sizeof(dns_rdata_in_wks_t));
 }
 
+static void
+https_svcb(void **state) {
+	/*
+	 * Known keys: mandatory, apln, no-default-alpn, port,
+	 *             ipv4hint, port, ipv6hint.
+	 */
+	text_ok_t text_ok[] = {
+		/* unknown key invalid */
+		TEXT_INVALID("1 . unknown="),
+		/* no domain */
+		TEXT_INVALID("0"),
+		/* minimal record */
+		TEXT_VALID_LOOP(0, "0 ."),
+		/* Alias form requires SvcFieldValue to be empty */
+		TEXT_INVALID("0 . alpn=\"h2\""),
+		/* no "key" prefix */
+		TEXT_INVALID("2 svc.example.net. 0=\"2222\""),
+		/* no key value */
+		TEXT_INVALID("2 svc.example.net. key"),
+		/* no key value */
+		TEXT_INVALID("2 svc.example.net. key=\"2222\""),
+		/* zero pad invalid */
+		TEXT_INVALID("2 svc.example.net. key07=\"2222\""),
+		TEXT_VALID_LOOP(1, "2 svc.example.net. key7=\"2222\""),
+		TEXT_VALID_LOOPCHG(1, "2 svc.example.net. key7=2222",
+				   "2 svc.example.net. key7=\"2222\""),
+		TEXT_VALID_LOOPCHG(1, "2 svc.example.net. alpn=h2",
+				   "2 svc.example.net. alpn=\"h2\""),
+		TEXT_VALID_LOOPCHG(1, "2 svc.example.net. alpn=h3",
+				   "2 svc.example.net. alpn=\"h3\""),
+		/* alpn has 2 sub field "h2" and "h3" */
+		TEXT_VALID_LOOPCHG(1, "2 svc.example.net. alpn=h2,h3",
+				   "2 svc.example.net. alpn=\"h2,h3\""),
+		/* apln has 2 sub fields "h1,h2" and "h3" (comma escaped) */
+		TEXT_VALID_LOOPCHG(1, "2 svc.example.net. alpn=h1\\\\,h2,h3",
+				   "2 svc.example.net. alpn=\"h1\\\\,h2,h3\""),
+		TEXT_VALID_LOOP(1, "2 svc.example.net. port=50"),
+		/* no-default-alpn, alpn is required */
+		TEXT_INVALID("2 svc.example.net. no-default-alpn"),
+		/* no-default-alpn with alpn present */
+		TEXT_VALID_LOOPCHG(
+			2, "2 svc.example.net. no-default-alpn alpn=h2",
+			"2 svc.example.net. alpn=\"h2\" no-default-alpn"),
+		/* empty hint */
+		TEXT_INVALID("2 svc.example.net. ipv4hint="),
+		TEXT_VALID_LOOP(1, "2 svc.example.net. "
+				   "ipv4hint=10.50.0.1,10.50.0.2"),
+		/* empty hint */
+		TEXT_INVALID("2 svc.example.net. ipv6hint="),
+		TEXT_VALID_LOOP(1, "2 svc.example.net. ipv6hint=::1,2002::1"),
+		TEXT_VALID_LOOP(1, "2 svc.example.net. ech=abcdefghijkl"),
+		/* bad base64 */
+		TEXT_INVALID("2 svc.example.net. ech=abcdefghijklm"),
+		TEXT_VALID_LOOP(1, "2 svc.example.net. key7=\"2222\""),
+		/* Out of key order on input (alpn == key1). */
+		TEXT_VALID_LOOPCHG(2,
+				   "2 svc.example.net. key7=\"2222\" alpn=h2",
+				   "2 svc.example.net. alpn=\"h2\" "
+				   "key7=\"2222\""),
+		TEXT_VALID_LOOP(1, "2 svc.example.net. key65535=\"2222\""),
+		TEXT_INVALID("2 svc.example.net. key65536=\"2222\""),
+		TEXT_VALID_LOOP(1, "2 svc.example.net. key10"),
+		TEXT_VALID_LOOPCHG(1, "2 svc.example.net. key11=",
+				   "2 svc.example.net. key11"),
+		TEXT_VALID_LOOPCHG(1, "2 svc.example.net. key12=\"\"",
+				   "2 svc.example.net. key12"),
+		/* empty alpn-id sub fields */
+		TEXT_INVALID("2 svc.example.net. alpn"),
+		TEXT_INVALID("2 svc.example.net. alpn="),
+		TEXT_INVALID("2 svc.example.net. alpn=,h1"),
+		TEXT_INVALID("2 svc.example.net. alpn=h1,"),
+		TEXT_INVALID("2 svc.example.net. alpn=h1,,h2"),
+		/* mandatory */
+		TEXT_VALID_LOOP(2, "2 svc.example.net. mandatory=alpn "
+				   "alpn=\"h2\""),
+		TEXT_VALID_LOOP(3, "2 svc.example.net. mandatory=alpn,port "
+				   "alpn=\"h2\" port=443"),
+		TEXT_VALID_LOOPCHG(3,
+				   "2 svc.example.net. mandatory=port,alpn "
+				   "alpn=\"h2\" port=443",
+				   "2 svc.example.net. mandatory=alpn,port "
+				   "alpn=\"h2\" port=443"),
+		TEXT_INVALID("2 svc.example.net. mandatory=mandatory"),
+		TEXT_INVALID("2 svc.example.net. mandatory=port"),
+		TEXT_INVALID("2 svc.example.net. mandatory=,port port=433"),
+		TEXT_INVALID("2 svc.example.net. mandatory=port, port=433"),
+		TEXT_INVALID("2 svc.example.net. "
+			     "mandatory=alpn,,port alpn=h2 port=433"),
+		/* mandatory w/ unknown key values */
+		TEXT_VALID_LOOP(2, "2 svc.example.net. mandatory=key7 key7"),
+		TEXT_VALID_LOOP(3, "2 svc.example.net. mandatory=key7,key8 "
+				   "key7 key8"),
+		TEXT_VALID_LOOPCHG(
+			3, "2 svc.example.net. mandatory=key8,key7 key7 key8",
+			"2 svc.example.net. mandatory=key7,key8 key7 key8"),
+		TEXT_INVALID("2 svc.example.net. "
+			     "mandatory=key7,key7"),
+		TEXT_INVALID("2 svc.example.net. mandatory=,key7"),
+		TEXT_INVALID("2 svc.example.net. mandatory=key7,"),
+		TEXT_INVALID("2 svc.example.net. "
+			     "mandatory=key7,,key7"),
+		TEXT_SENTINEL()
+
+	};
+	wire_ok_t wire_ok[] = {
+		/*
+		 * Too short
+		 */
+		WIRE_INVALID(0x00, 0x00),
+		/*
+		 * Minimal length record.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00),
+		/*
+		 * Alias with non-empty SvcFieldValue (key7="").
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00),
+		/*
+		 * Bad key7= length (longer than rdata).
+		 */
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01),
+		/*
+		 * Port (0x03) too small (zero and one octets).
+		 */
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00, 0x03, 0x00, 0x00),
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00),
+		/* Valid port */
+		WIRE_VALID_LOOP(1, 0x00, 0x01, 0x00, 0x00, 0x03, 0x00, 0x02,
+				0x00, 0x00),
+		/*
+		 * Port (0x03) too big (three octets).
+		 */
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00, 0x03, 0x00, 0x03, 0x00,
+			     0x00, 0x00),
+		/*
+		 * Duplicate keys.
+		 */
+		WIRE_INVALID(0x01, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00,
+			     0x80, 0x00, 0x00),
+		/*
+		 * Out of order keys.
+		 */
+		WIRE_INVALID(0x01, 0x01, 0x00, 0x00, 0x81, 0x00, 0x00, 0x00,
+			     0x80, 0x00, 0x00),
+		/*
+		 * Empty of mandatory key list.
+		 */
+		WIRE_INVALID(0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00),
+		/*
+		 * "mandatory=mandatory" is invalid
+		 */
+		WIRE_INVALID(0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00,
+			     0x00),
+		/*
+		 * Out of order mandatory key list.
+		 */
+		WIRE_INVALID(0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00,
+			     0x80, 0x00, 0x71, 0x00, 0x71, 0x00, 0x00, 0x00,
+			     0x80, 0x00, 0x00),
+		/*
+		 * Alpn(0x00 0x01) (length 0x00 0x09) "h1,h2" + "h3"
+		 */
+		WIRE_VALID_LOOP(0x01, 0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x09,
+				5, 'h', '1', ',', 'h', '2', 2, 'h', '3'),
+		/*
+		 * Alpn(0x00 0x01) (length 0x00 0x09) "h1\h2" + "h3"
+		 */
+		WIRE_VALID_LOOP(0x01, 0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x09,
+				5, 'h', '1', '\\', 'h', '2', 2, 'h', '3'),
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(state);
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_svcb, sizeof(dns_rdata_in_svcb_t));
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_https, sizeof(dns_rdata_in_https_t));
+}
+
 /*
  * ZONEMD tests.
  *
@@ -2755,18 +2994,18 @@ iszonecutauth(void **state) {
 int
 main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
+		/* types */
 		cmocka_unit_test_setup_teardown(amtrelay, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(apl, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(atma, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(cdnskey, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(csync, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(doa, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(dnskey, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(doa, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(ds, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(eid, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(edns_client_subnet, _setup,
-						_teardown),
 		cmocka_unit_test_setup_teardown(hip, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(https_svcb, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(isdn, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(key, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(loc, _setup, _teardown),
@@ -2774,10 +3013,13 @@ main(int argc, char **argv) {
 		cmocka_unit_test_setup_teardown(nsec, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(nsec3, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(nxt, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(rkey, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(sshfp, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(wks, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(rkey, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(zonemd, _setup, _teardown),
+		/* other tests */
+		cmocka_unit_test_setup_teardown(edns_client_subnet, _setup,
+						_teardown),
 		cmocka_unit_test_setup_teardown(atcname, NULL, NULL),
 		cmocka_unit_test_setup_teardown(atparent, NULL, NULL),
 		cmocka_unit_test_setup_teardown(iszonecutauth, NULL, NULL),
