@@ -1319,14 +1319,14 @@ if ($use_libuv eq "yes") {
         die "can't find libuv uv.h include\n";
     }
     my $libuv_inc = File::Spec->catdir($libuv_path, "include");
-    my $libuv_libdir = File::Spec->catdir($libuv_path, "Release");
-    my $libuv_lib = File::Spec->catfile($libuv_libdir, "libuv.lib");
-    my $libuv_dll = File::Spec->catfile($libuv_libdir, "libuv.dll");
+    my $libuv_libdir = File::Spec->catdir($libuv_path, "build\\Release");
+    my $libuv_lib = File::Spec->catfile($libuv_libdir, "uv.lib");
+    my $libuv_dll = File::Spec->catfile($libuv_libdir, "uv.dll");
     if (!-f $libuv_lib) {
-       die "can't find libuv.lib library\n";
+       die "can't find uv.lib library\n";
     }
     if (!-f $libuv_dll) {
-       die "can't find libuv.dll library\n";
+       die "can't find uv.dll library\n";
     }
     $configvar{"LIBUV_PATH"} = "$libuv_path";
     $configinc{"LIBUV_INC"} = "$libuv_inc";
@@ -2460,7 +2460,7 @@ sub makeinstallfile {
     print LOUT "libdns.dll-BCFT\n";
     print LOUT "libirs.dll-BCFT\n";
     print LOUT "libns.dll-BCFT\n";
-    print LOUT "libuv.dll-BCFT\n";
+    print LOUT "uv.dll-BCFT\n";
     if ($use_openssl eq "yes") {
         my $v;
         my $d;
