@@ -89,12 +89,18 @@ typedef struct dig_server dig_server_t;
 typedef ISC_LIST(dig_server_t) dig_serverlist_t;
 typedef struct dig_searchlist dig_searchlist_t;
 
+#define DIG_LOOKUP_MAGIC ISC_MAGIC('D', 'i', 'g', 'l')
+
+#define DIG_VALID_LOOKUP(x) ISC_MAGIC_VALID((x), DIG_LOOKUP_MAGIC)
+
 #define DIG_QUERY_MAGIC ISC_MAGIC('D', 'i', 'g', 'q')
 
 #define DIG_VALID_QUERY(x) ISC_MAGIC_VALID((x), DIG_QUERY_MAGIC)
 
 /*% The dig_lookup structure */
 struct dig_lookup {
+	unsigned int magic;
+	isc_refcount_t references;
 	bool pending, /*%< Pending a successful answer */
 		waiting_connect, doing_xfr, ns_search_only, /*%< dig
 							     * +nssearch,
