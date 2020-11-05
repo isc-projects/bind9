@@ -141,6 +141,19 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking named-checkconf servestale warnings ($n)"
+ret=0
+$CHECKCONF servestale.stale-refresh-time.0.conf > checkconf.out$n.1 2>&1
+grep "'stale-refresh-time' should either be 0 or otherwise 30 seconds or higher" < checkconf.out$n.1 > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+ret=0
+$CHECKCONF servestale.stale-refresh-time.29.conf > checkconf.out$n.1 2>&1
+grep "'stale-refresh-time' should either be 0 or otherwise 30 seconds or higher" < checkconf.out$n.1 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "range checking fields that do not allow zero ($n)"
 ret=0
 for field in max-retry-time min-retry-time max-refresh-time min-refresh-time; do

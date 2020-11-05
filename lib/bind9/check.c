@@ -1643,6 +1643,17 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		}
 	}
 
+	obj = NULL;
+	(void)cfg_map_get(options, "stale-refresh-time", &obj);
+	if (obj != NULL) {
+		uint32_t refresh_time = cfg_obj_asduration(obj);
+		if (refresh_time > 0 && refresh_time < 30) {
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "'stale-refresh-time' should either be 0 "
+				    "or otherwise 30 seconds or higher");
+		}
+	}
+
 	return (result);
 }
 
