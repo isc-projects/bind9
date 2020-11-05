@@ -753,7 +753,6 @@
 ./bin/tests/system/rrsetorder/dig.out.random.good9	X	2006,2018,2019,2020
 ./bin/tests/system/rrsetorder/setup.sh		SH	2018,2019,2020
 ./bin/tests/system/rrsetorder/tests.sh		SH	2006,2007,2008,2011,2012,2014,2015,2016,2017,2018,2019,2020
-./bin/tests/system/rsabigexponent/bigkey.c	C	2012,2014,2015,2016,2017,2018,2019,2020
 ./bin/tests/system/rsabigexponent/clean.sh	SH	2012,2014,2016,2018,2019,2020
 ./bin/tests/system/rsabigexponent/ns1/sign.sh	SH	2012,2014,2016,2018,2019,2020
 ./bin/tests/system/rsabigexponent/ns2/Xexample.+005+05896.key	X	2012,2018,2019,2020
@@ -916,9 +915,6 @@
 ./bin/tests/system/wildcard/ns1/sign.sh		SH	2012,2013,2014,2016,2018,2019,2020
 ./bin/tests/system/wildcard/setup.sh		SH	2012,2014,2016,2017,2018,2019,2020
 ./bin/tests/system/wildcard/tests.sh		SH	2012,2013,2016,2018,2019,2020
-./bin/tests/system/win32/bigkey.vcxproj.filters.in	X	2016,2018,2019,2020
-./bin/tests/system/win32/bigkey.vcxproj.in	X	2016,2017,2018,2019,2020
-./bin/tests/system/win32/bigkey.vcxproj.user	X	2016,2018,2019,2020
 ./bin/tests/system/win32/feature-test.vcxproj.filters.in	X	2016,2018,2019,2020
 ./bin/tests/system/win32/feature-test.vcxproj.in	X	2016,2017,2018,2019,2020
 ./bin/tests/system/win32/feature-test.vcxproj.user	X	2016,2018,2019,2020

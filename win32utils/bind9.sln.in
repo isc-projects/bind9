@@ -109,8 +109,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "makejournal", "..\bin\tests
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gencheck", "..\bin\tests\system\win32\gencheck.vcxproj", "{764DBE24-C8B3-46E8-BE73-196431353A5D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bigkey", "..\bin\tests\system\win32\bigkey.vcxproj", "{61F9D673-EB5C-47A5-8907-24E034C75EF8}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pipequeries", "..\bin\tests\system\win32\pipequeries.vcxproj", "{E1478F40-786C-4738-8E99-E7A71DD98661}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keycreate", "..\bin\tests\system\win32\keycreate.vcxproj", "{4F9A0F6F-366D-4483-B131-793832840508}"
