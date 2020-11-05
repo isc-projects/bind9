@@ -81,6 +81,11 @@ stages:
     - bsd-stress
     - stress
 
+.windows-amd64: &windows_amd64
+  tags:
+    - windows
+    - amd64
+
 ### Docker Image Templates
 
 # Alpine Linux
@@ -146,6 +151,12 @@ stages:
 .ubuntu-focal-amd64: &ubuntu_focal_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-focal-amd64"
   <<: *linux_amd64
+
+# Windows
+
+.windows-server-2016-amd64: &windows_server_2016_amd64_image
+  image: "$CI_REGISTRY_IMAGE:windows-server-2016-amd64"
+  <<: *windows_amd64
 
 # Base image
 # This is a meta image that is used as a base for non-specific jobs
@@ -236,9 +247,6 @@ stages:
 
 .windows_build: &windows_build_job
   stage: build
-  tags:
-    - windows
-    - amd64
   script:
     - 'Push-Location "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build"'
     - '& cmd.exe /C "vcvarsall.bat x64 & set" | Foreach-Object { if ($_ -match "(.*?)=(.*)") { Set-Item -force -path "Env:\$($matches[1])" -value "$($matches[2])" } }'
@@ -316,9 +324,6 @@ stages:
 
 .windows_system_test: &windows_system_test_job
   stage: system
-  tags:
-    - windows
-    - amd64
   script:
     - 'Push-Location bin/tests/system'
     - '$ifIndex = Get-NetIPInterface -AddressFamily IPv4 -InterfaceMetric 75 | Select-Object -ExpandProperty ifIndex'
@@ -1223,12 +1228,14 @@ unit:nolibtool:sid:amd64:
 # Jobs for Visual Studio 2017 builds on Windows (amd64)
 
 msvc:windows:amd64:
+  <<: *windows_server_2016_amd64_image
   <<: *windows_build_job
   <<: *default_triggering_rules
   variables:
     VSCONF: Release
 
 system:msvc:windows:amd64:
+  <<: *windows_server_2016_amd64_image
   <<: *windows_system_test_job
   variables:
     VSCONF: Release
@@ -1237,6 +1244,7 @@ system:msvc:windows:amd64:
       artifacts: true
 
 msvc-debug:windows:amd64:
+  <<: *windows_server_2016_amd64_image
   <<: *windows_build_job
   variables:
     VSCONF: Debug
@@ -1246,6 +1254,7 @@ msvc-debug:windows:amd64:
     - web
 
 system:msvc-debug:windows:amd64:
+  <<: *windows_server_2016_amd64_image
   <<: *windows_system_test_job
   variables:
     VSCONF: Debug
