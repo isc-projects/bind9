@@ -2897,7 +2897,9 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			debug("udp setup failed: %s",
 			      isc_result_totext(eresult));
 		}
-		query_detach(&query);
+		if (query->tries == 0) {
+			query_detach(&query);
+		}
 		return;
 	}
 
@@ -2933,7 +2935,6 @@ static void
 start_udp(dig_query_t *query) {
 	isc_result_t result;
 	dig_query_t *next = NULL;
-	int i = 0;
 
 	REQUIRE(DIG_VALID_QUERY(query));
 
@@ -2985,6 +2986,7 @@ start_udp(dig_query_t *query) {
 		}
 	}
 
+	query->tries = 3;
 	do {
 		int local_timeout = timeout * 1000;
 		if (local_timeout == 0) {
@@ -2996,11 +2998,11 @@ start_udp(dig_query_t *query) {
 		 * in a spurious transient EADDRINUSE. Try a few more times
 		 * before giving up.
 		 */
-		debug("isc_nm_udpconnect(): try %d", i + 1);
+		debug("isc_nm_udpconnect(): %d tries left", --query->tries);
 		result = isc_nm_udpconnect(netmgr, (isc_nmiface_t *)&localaddr,
 					   (isc_nmiface_t *)&query->sockaddr,
 					   udp_ready, query, local_timeout, 0);
-	} while (result != ISC_R_SUCCESS && i++ < 2);
+	} while (result != ISC_R_SUCCESS && query->tries > 0);
 	check_result(result, "isc_nm_udpconnect");
 }
 
