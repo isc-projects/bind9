@@ -781,7 +781,10 @@ EOF
     done
   fi
 
-  # reconfigure the ns5 primary server without the fast-exire zone, so
+  # Ensure ns3 manages to transfer the fast-expire zone before shutdown.
+  wait_for_log 20 "zone fast-expire/IN: transferred serial 1" ns3/named.run
+
+  # reconfigure the ns5 primary server without the fast-expire zone, so
   # it can't be refreshed on ns3, and will expire in 5 seconds.
   cat /dev/null > ns5/expire.conf
   rndc_reconfig ns5 10.53.0.5
