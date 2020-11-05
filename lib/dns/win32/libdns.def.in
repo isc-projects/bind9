@@ -668,7 +668,6 @@ dns_nsec3_delnsec3sx
 dns_nsec3_generate_salt
 dns_nsec3_hashlength
 dns_nsec3_hashname
-dns_nsec3_log_salt
 dns_nsec3_maxiterations
 dns_nsec3_noexistnodata
 dns_nsec3_supportedhash
@@ -1185,7 +1184,6 @@ dns_zone_catz_enable
 dns_zone_catz_enable_db
 dns_zone_cdscheck
 dns_zone_checknames
-dns_zone_checknsec3param
 dns_zone_clearforwardacl
 dns_zone_clearnotifyacl
 dns_zone_clearqueryacl

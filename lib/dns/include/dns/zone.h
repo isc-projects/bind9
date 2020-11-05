@@ -2342,32 +2342,16 @@ isc_result_t
 dns_zone_keydone(dns_zone_t *zone, const char *data);
 
 isc_result_t
-dns_zone_checknsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
-			 uint16_t iter, uint8_t saltlen, unsigned char *salt);
-/*%
- * Check if the NSEC3 parameters for the zone match the requested parameters.
- *
- * If 'salt' is NULL, a match is found if the salt has the requested length,
- * otherwise the NSEC3 salt must match the requested salt value too.
- *
- * Requires:
- * \li  'zone' to be valid.
- *
- * Returns:
- * \li	ISC_R_SUCCESS, if a match is found.
- * \li  Error, if no match is found, or if the db lookup failed.
- */
-
-isc_result_t
 dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 		       uint16_t iter, uint8_t saltlen, unsigned char *salt,
-		       bool replace);
+		       bool replace, bool resalt);
 /*%
  * Set the NSEC3 parameters for the zone.
  *
  * If 'replace' is true, then the existing NSEC3 chain, if any, will
  * be replaced with the new one.  If 'hash' is zero, then the replacement
- * chain will be NSEC rather than NSEC3.
+ * chain will be NSEC rather than NSEC3. If 'resalt' is true, or if 'salt'
+ * is NULL, generate a new salt with the given salt length.
  *
  * Requires:
  * \li	'zone' to be valid.
