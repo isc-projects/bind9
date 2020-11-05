@@ -1562,50 +1562,15 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		bool sigvalinsecs;
 
 		if (kasp != NULL) {
-			unsigned char saltbuf[255];
-			unsigned char *salt;
-			DE_CONST("-", salt);
-
 			if (dns_kasp_nsec3(kasp)) {
-				result = dns_zone_checknsec3param(
+				result = dns_zone_setnsec3param(
 					zone, 1, dns_kasp_nsec3flags(kasp),
 					dns_kasp_nsec3iter(kasp),
-					dns_kasp_nsec3saltlen(kasp), NULL);
-				if (result != ISC_R_SUCCESS) {
-					if (dns_kasp_nsec3saltlen(kasp) > 0) {
-						char zonetext[DNS_NAME_MAXTEXT +
-							      32];
-						dns_zone_name(zone, zonetext,
-							      sizeof(zonetext));
-
-						RETERR(dns_nsec3_generate_salt(
-							saltbuf,
-							dns_kasp_nsec3saltlen(
-								kasp)));
-						salt = saltbuf;
-
-						dns_nsec3_log_salt(
-							named_g_lctx,
-							NAMED_LOGCATEGORY_GENERAL,
-							NAMED_LOGMODULE_SERVER,
-							ISC_LOG_INFO, salt,
-							dns_kasp_nsec3saltlen(
-								kasp),
-							"generated salt for "
-							"zone %s:",
-							zonetext);
-					}
-					result = dns_zone_setnsec3param(
-						zone, 1,
-						dns_kasp_nsec3flags(kasp),
-						dns_kasp_nsec3iter(kasp),
-						dns_kasp_nsec3saltlen(kasp),
-						salt, true);
-				}
-
+					dns_kasp_nsec3saltlen(kasp), NULL, true,
+					false);
 			} else {
-				result = dns_zone_setnsec3param(zone, 0, 0, 0,
-								0, salt, true);
+				result = dns_zone_setnsec3param(
+					zone, 0, 0, 0, 0, NULL, true, false);
 			}
 			INSIST(result == ISC_R_SUCCESS);
 		}

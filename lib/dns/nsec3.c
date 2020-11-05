@@ -235,41 +235,6 @@ dns_nsec3_generate_salt(unsigned char *salt, size_t saltlen) {
 	return (ISC_R_SUCCESS);
 }
 
-void
-dns_nsec3_log_salt(isc_log_t *lctx, isc_logcategory_t *category,
-		   isc_logmodule_t *module, int level, unsigned char *salt,
-		   size_t saltlen, const char *fmt, ...) {
-	va_list ap;
-
-	char message[4096];
-	unsigned char text[255 * 2 + 1];
-	isc_region_t r;
-	isc_buffer_t buf;
-	isc_result_t result;
-
-	if (!isc_log_wouldlog(dns_lctx, level)) {
-		return;
-	}
-
-	va_start(ap, fmt);
-
-	vsnprintf(message, sizeof(message), fmt, ap);
-
-	r.base = salt;
-	r.length = (unsigned int)saltlen;
-
-	isc_buffer_init(&buf, text, sizeof(text));
-	result = isc_hex_totext(&r, 2, "", &buf);
-	if (result == ISC_R_SUCCESS) {
-		text[saltlen * 2] = 0;
-	} else {
-		text[0] = 0;
-	}
-	isc_log_write(lctx, category, module, level, "%s %s", message, text);
-
-	va_end(ap);
-}
-
 isc_result_t
 dns_nsec3_hashname(dns_fixedname_t *result,
 		   unsigned char rethash[NSEC3_MAX_HASH_LENGTH],

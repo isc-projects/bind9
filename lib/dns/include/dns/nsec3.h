@@ -79,14 +79,6 @@ dns_nsec3_generate_salt(unsigned char *salt, size_t saltlen);
  * Generate a salt with the given salt length.
  */
 
-void
-dns_nsec3_log_salt(isc_log_t *lctx, isc_logcategory_t *category,
-		   isc_logmodule_t *module, int level, unsigned char *salt,
-		   size_t saltlen, const char *fmt, ...);
-/*%<
- * Utility to log the salt.
- */
-
 isc_result_t
 dns_nsec3_hashname(dns_fixedname_t *result,
 		   unsigned char    rethash[NSEC3_MAX_HASH_LENGTH],
