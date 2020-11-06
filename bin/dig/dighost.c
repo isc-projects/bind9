@@ -242,7 +242,7 @@ static void
 launch_next_query(dig_query_t *query);
 
 static void
-check_next_lookup(dig_lookup_t *lookup);
+clear_current_lookup(void);
 
 static bool
 next_origin(dig_lookup_t *oldlookup);
@@ -1797,15 +1797,17 @@ start_lookup(void) {
 
 /*%
  * If we can, clear the current lookup and start the next one running.
- * This calls try_clear_lookup, so may invalidate the lookup pointer.
+ * (Note that while the reference count of current_lookup may be
+ * decremented, current_lookup will not be set to NULL.)
  */
 static void
-check_next_lookup(dig_lookup_t *lookup) {
+clear_current_lookup() {
+	dig_lookup_t *lookup = current_lookup;
+
 	INSIST(!free_now);
+	INSIST(lookup != NULL);
 
-	INSIST(lookup == current_lookup);
-
-	debug("check_next_lookup(%p)", lookup);
+	debug("clear_current_lookup()");
 
 	if (ISC_LIST_HEAD(lookup->q) != NULL) {
 		debug("still have a worker");
@@ -2325,7 +2327,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			     "(%s)",
 			     lookup->textname, isc_result_totext(result));
 #if TARGET_OS_IPHONE
-			check_next_lookup(current_lookup);
+			clear_current_lookup();
 			return (false);
 #else  /* if TARGET_OS_IPHONE */
 			digexit();
@@ -2669,8 +2671,7 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	INSIST(query->sendhandle != NULL);
 	INSIST(handle == query->sendhandle);
 
-	debug("send_done(%p, %s, %p)", handle, isc_result_totext(eresult),
-	      arg);
+	debug("send_done(%p, %s, %p)", handle, isc_result_totext(eresult), arg);
 
 	isc_refcount_decrement0(&sendcount);
 	debug("sendcount=%" PRIuFAST32, isc_refcount_current(&sendcount));
@@ -2700,7 +2701,7 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		lookup_detach(&l);
 
 		if (next == NULL) {
-			check_next_lookup(current_lookup);
+			clear_current_lookup();
 		} else {
 			start_udp(next);
 		}
@@ -2785,7 +2786,7 @@ start_tcp(dig_query_t *query) {
 		query_detach(&query);
 		if (next == NULL) {
 			dighost_warning("No acceptable nameservers");
-			check_next_lookup(current_lookup);
+			clear_current_lookup();
 		} else {
 			start_tcp(next);
 		}
@@ -2970,7 +2971,7 @@ start_udp(dig_query_t *query) {
 		query_detach(&query);
 		if (next == NULL) {
 			dighost_warning("No acceptable nameservers");
-			check_next_lookup(current_lookup);
+			clear_current_lookup();
 		} else {
 			start_udp(next);
 		}
@@ -3066,14 +3067,18 @@ force_next(dig_query_t *query) {
 		requeue_lookup(l, true);
 		lookup_detach(&l);
 		isc_refcount_decrement0(&recvcount);
+		debug("recvcount=%" PRIuFAST32,
+		      isc_refcount_current(&recvcount));
 		query_detach(&query);
-		check_next_lookup(current_lookup);
+		clear_current_lookup();
 		UNLOCK_LOOKUP;
 		return;
 	}
 
 	if (query->readhandle != NULL) {
 		isc_refcount_decrement0(&recvcount);
+		debug("recvcount=%" PRIuFAST32,
+		      isc_refcount_current(&recvcount));
 	}
 
 	if (l->ns_search_only) {
@@ -3097,7 +3102,7 @@ force_next(dig_query_t *query) {
 	query_detach(&query);
 	cancel_lookup(l);
 	lookup_detach(&l);
-	check_next_lookup(current_lookup);
+	clear_current_lookup();
 	UNLOCK_LOOKUP;
 }
 
@@ -3144,7 +3149,7 @@ launch_next_query(dig_query_t *query) {
 		debug("ignoring launch_next_query because !pending");
 		query_detach(&query);
 		lookup_detach(&l);
-		check_next_lookup(current_lookup);
+		clear_current_lookup();
 		return;
 	}
 
@@ -3217,7 +3222,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
 		query_detach(&query);
 		lookup_detach(&l);
-		check_next_lookup(current_lookup);
+		clear_current_lookup();
 		UNLOCK_LOOKUP;
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
@@ -3256,7 +3261,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		if (next != NULL) {
 			start_tcp(next);
 		} else {
-			check_next_lookup(current_lookup);
+			clear_current_lookup();
 		}
 
 		check_if_done();
@@ -3421,6 +3426,7 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 		}
 		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
 	} while (result == ISC_R_SUCCESS);
+	isc_nmhandle_detach(&query->readhandle);
 	launch_next_query(query);
 	query_detach(&query);
 	return (false);
@@ -3537,6 +3543,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	dig_lookup_t *n = NULL;
 	dig_lookup_t *l = NULL;
 	bool docancel = false;
+	bool donext = false;
 	bool match = true;
 	bool done_process_opt = false;
 	unsigned int parseflags;
@@ -3553,19 +3560,18 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	debug("recv_done(%p, %s, %p, %p)", handle, isc_result_totext(eresult),
 	      region, arg);
 
+	LOCK_LOOKUP;
+	lookup_attach(query->lookup, &l);
+
 	if (eresult == ISC_R_CANCELED) {
 		debug("recv_done: cancel");
-		query_detach(&query);
-		return;
+		goto detach_query;
 	}
 
-	LOCK_LOOKUP;
 	isc_refcount_decrement0(&recvcount);
 	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
 
 	TIME_NOW(&query->time_recv);
-
-	lookup_attach(query->lookup, &l);
 
 	if (eresult == ISC_R_TIMEDOUT && !l->tcp_mode && l->retries > 1) {
 		dig_query_t *newq = NULL;
@@ -3577,24 +3583,14 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 		ISC_LIST_PREPEND(l->q, newq, link);
 
-		isc_nmhandle_detach(&query->readhandle);
-		query_detach(&query);
-		UNLOCK_LOOKUP;
-
 		start_udp(ISC_LIST_HEAD(l->q));
-		lookup_detach(&l);
-		return;
+		goto detach_query;
 	}
 
 	if ((!l->pending && !l->ns_search_only) || atomic_load(&cancel_now)) {
 		debug("no longer pending.  Got %s", isc_result_totext(eresult));
 
-		isc_nmhandle_detach(&query->readhandle);
-		query_detach(&query);
-		lookup_detach(&l);
-		check_next_lookup(current_lookup);
-		UNLOCK_LOOKUP;
-		return;
+		goto next_lookup;
 	}
 
 	if (eresult != ISC_R_SUCCESS) {
@@ -3628,13 +3624,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			requeue_or_update_exitcode(l);
 		}
 
-		isc_nmhandle_detach(&query->readhandle);
-		query_detach(&query);
-		cancel_lookup(l);
-		lookup_detach(&l);
-		check_next_lookup(current_lookup);
-		UNLOCK_LOOKUP;
-		return;
+		goto cancel_lookup;
 	}
 
 	isc_buffer_init(&b, region->base, region->length);
@@ -3667,13 +3657,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 						"message");
 			}
 			if (fail) {
-				isc_nmhandle_detach(&query->readhandle);
-				query_detach(&query);
-				cancel_lookup(l);
-				lookup_detach(&l);
-				check_next_lookup(current_lookup);
-				UNLOCK_LOOKUP;
-				return;
+				goto cancel_lookup;
 			}
 			match = true;
 		} else if (result == ISC_R_SUCCESS) {
@@ -3696,10 +3680,10 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		 * also attached
 		 */
 		isc_refcount_increment0(&recvcount);
+		debug("recvcount=%" PRIuFAST32,
+		      isc_refcount_current(&recvcount));
 		isc_nm_read(handle, recv_done, query);
-		lookup_detach(&l);
-		UNLOCK_LOOKUP;
-		return;
+		goto keep_query;
 	}
 
 	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
@@ -3740,15 +3724,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			       isc_result_totext(result));
 			hex_dump(&b);
 		}
-		dns_message_detach(&msg);
-
-		isc_nmhandle_detach(&query->readhandle);
-		query_detach(&query);
-		cancel_lookup(l);
-		lookup_detach(&l);
-		check_next_lookup(current_lookup);
-		UNLOCK_LOOKUP;
-		return;
+		goto cancel_lookup;
 	}
 
 	if (msg->opcode != l->opcode) {
@@ -3766,10 +3742,10 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 				expect, got);
 
 		isc_refcount_increment0(&recvcount);
+		debug("recvcount=%" PRIuFAST32,
+		      isc_refcount_current(&recvcount));
 		isc_nm_read(handle, recv_done, query);
-		lookup_detach(&l);
-		UNLOCK_LOOKUP;
-		return;
+		goto keep_query;
 	}
 
 	if (msg->counts[DNS_SECTION_QUESTION] != 0) {
@@ -3813,21 +3789,19 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		}
 
 		if (!match) {
-			dns_message_detach(&msg);
 			if (l->tcp_mode) {
-				isc_nmhandle_detach(&query->readhandle);
-				query_detach(&query);
-				cancel_lookup(l);
-				lookup_detach(&l);
-				check_next_lookup(current_lookup);
-				UNLOCK_LOOKUP;
-				return;
+				goto cancel_lookup;
 			}
 
+			/*
+			 * We are still attached to query and the
+			 * query->readhandle is also attached
+			 */
 			isc_refcount_increment0(&recvcount);
+			debug("recvcount=%" PRIuFAST32,
+			      isc_refcount_current(&recvcount));
 			isc_nm_read(handle, recv_done, query);
-			UNLOCK_LOOKUP;
-			return;
+			goto keep_query;
 		}
 	}
 
@@ -3844,14 +3818,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		if (l->trace && l->trace_root) {
 			n->rdtype = l->qrdtype;
 		}
-		dns_message_detach(&msg);
-		isc_nmhandle_detach(&query->readhandle);
-		query_detach(&query);
-		cancel_lookup(l);
-		lookup_detach(&l);
-		check_next_lookup(current_lookup);
-		UNLOCK_LOOKUP;
-		return;
+		goto cancel_lookup;
 	}
 
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0 && !l->ignore &&
@@ -3865,14 +3832,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		if (l->trace && l->trace_root) {
 			n->rdtype = l->qrdtype;
 		}
-		dns_message_detach(&msg);
-		isc_nmhandle_detach(&query->readhandle);
-		query_detach(&query);
-		cancel_lookup(l);
-		lookup_detach(&l);
-		check_next_lookup(current_lookup);
-		UNLOCK_LOOKUP;
-		return;
+		goto cancel_lookup;
 	}
 
 	if (msg->rcode == dns_rcode_badcookie && !l->tcp_mode &&
@@ -3891,14 +3851,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			if (l->trace && l->trace_root) {
 				n->rdtype = l->qrdtype;
 			}
-			dns_message_detach(&msg);
-			isc_nmhandle_detach(&query->readhandle);
-			query_detach(&query);
-			cancel_lookup(l);
-			lookup_detach(&l);
-			check_next_lookup(current_lookup);
-			UNLOCK_LOOKUP;
-			return;
+			goto cancel_lookup;
 		}
 		done_process_opt = true;
 	}
@@ -3933,14 +3886,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 						 ? "SERVFAIL reply"
 						 : "recursion not available",
 					 query->servname);
-
-			isc_nmhandle_detach(&query->readhandle);
-			query_detach(&query);
-			lookup_detach(&l);
-			check_next_lookup(current_lookup);
-			dns_message_detach(&msg);
-			UNLOCK_LOOKUP;
-			return;
+			goto next_lookup;
 		}
 	}
 
@@ -4067,29 +4013,23 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		debug("still pending.");
 	}
 
-	isc_nmhandle_detach(&query->readhandle);
-
 	if (l->doing_xfr) {
 		if (query != l->xfr_q) {
-			dns_message_detach(&msg);
-			query_detach(&query);
-			lookup_detach(&l);
-			UNLOCK_LOOKUP;
-			return;
+			goto detach_query;
 		}
 		if (!docancel) {
 			docancel = check_for_more_data(l, query, msg, &peer,
 						       region->length);
 		}
 		if (docancel) {
-			dns_message_detach(&msg);
-			query_detach(&query);
-			cancel_lookup(l);
-			lookup_detach(&l);
-			check_next_lookup(current_lookup);
-			UNLOCK_LOOKUP;
-			return;
+			goto cancel_lookup;
 		}
+		/*
+		 * check_for_more_data() will detach from query->readhandle
+		 * and query on its own, as it needs to reuse the query and
+		 * reattach to the readhandle in launch_next_query().
+		 */
+		goto keep_query;
 	} else {
 		if (msg->rcode == dns_rcode_noerror || l->origin == NULL) {
 			dighost_received(isc_buffer_usedlength(&b), &peer,
@@ -4100,20 +4040,29 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			l->pending = false;
 		}
 		if (!l->ns_search_only || l->trace_root || docancel) {
-			cancel_lookup(l);
+			goto cancel_lookup;
 		}
-		dns_message_detach(&msg);
-		query_detach(&query);
-		lookup_detach(&l);
-		check_next_lookup(current_lookup);
-		UNLOCK_LOOKUP;
-		return;
+		goto next_lookup;
 	}
-
-	dns_message_detach(&msg);
+cancel_lookup:
+	docancel = true;
+next_lookup:
+	donext = true;
+detach_query:
+	isc_nmhandle_detach(&query->readhandle);
+	query_detach(&query);
+	if (docancel) {
+		cancel_lookup(l);
+	}
+keep_query:
+	if (msg != NULL) {
+		dns_message_detach(&msg);
+	}
 	lookup_detach(&l);
+	if (donext) {
+		clear_current_lookup();
+	}
 	UNLOCK_LOOKUP;
-	return;
 }
 
 /*%
