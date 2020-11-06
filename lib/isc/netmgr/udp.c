@@ -841,9 +841,7 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		isc__nm_uvreq_put(&req, sock);
 	}
 
-	if (atomic_load(&sock->result) != ISC_R_SUCCESS) {
-		result = atomic_load(&sock->result);
-	}
+	result = atomic_load(&sock->result);
 
 	isc__nmsocket_detach(&tmp);
 
