@@ -400,7 +400,6 @@ struct fetchctx {
 	unsigned int valfail;
 	bool timeout;
 	dns_adbaddrinfo_t *addrinfo;
-	dns_messageid_t id;
 	unsigned int depth;
 	char clientstr[ISC_SOCKADDR_FORMATSIZE];
 };
@@ -3446,9 +3445,8 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-		      "fctx %p(%s): createfind for %s/%d - %s", fctx,
-		      fctx->info, fctx->clientstr, fctx->id,
-		      isc_result_totext(result));
+		      "fctx %p(%s): createfind for %s - %s", fctx, fctx->info,
+		      fctx->clientstr, isc_result_totext(result));
 
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
