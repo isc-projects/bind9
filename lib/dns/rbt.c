@@ -566,6 +566,9 @@ serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left, uintptr_t right,
 	off_t file_position;
 	unsigned char *node_data = NULL;
 	size_t datasize;
+#ifdef DEBUG
+	dns_name_t nodename;
+#endif /* ifdef DEBUG */
 
 	INSIST(node != NULL);
 
@@ -618,8 +621,10 @@ serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left, uintptr_t right,
 	CHECK(isc_stdio_write(node_data, 1, datasize, file, NULL));
 
 #ifdef DEBUG
+	dns_name_init(&nodename, NULL);
+	NODENAME(node, &nodename);
 	fprintf(stderr, "serialize ");
-	dns_name_print(name, stderr);
+	dns_name_print(&nodename, stderr);
 	fprintf(stderr, "\n");
 	hexdump("node header", (unsigned char *)&temp_node,
 		sizeof(dns_rbtnode_t));
