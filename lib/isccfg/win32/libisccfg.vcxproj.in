@@ -128,7 +128,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\isccfg\aclconf.h" />
-    <ClInclude Include="..\include\isccfg\dnsconf.h" />
     <ClInclude Include="..\include\isccfg\cfg.h" />
     <ClInclude Include="..\include\isccfg\grammar.h" />
     <ClInclude Include="..\include\isccfg\kaspconf.h" />
