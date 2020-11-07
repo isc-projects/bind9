@@ -93,8 +93,8 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		INSIST(csock->recv_cb == NULL && csock->recv_cbarg == NULL);
 		csock->recv_cb = cb;
 		csock->recv_cbarg = cbarg;
-		csock->fd = socket(family, SOCK_DGRAM, 0);
-		RUNTIME_CHECK(csock->fd >= 0);
+		result = isc__nm_socket(sa_family, SOCK_DGRAM, 0, &csock->fd);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		result = isc__nm_socket_reuse(csock->fd);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS ||
@@ -770,12 +770,22 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	isc__netievent_udpconnect_t *event = NULL;
 	isc__nm_uvreq_t *req = NULL;
 	sa_family_t sa_family;
+	uv_os_sock_t fd;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(local != NULL);
 	REQUIRE(peer != NULL);
 
 	sa_family = peer->addr.type.sa.sa_family;
+
+	/*
+	 * The socket() call can fail spuriously on FreeBSD 12, so we need to
+	 * handle the failure early and gracefully.
+	 */
+	result = isc__nm_socket(sa_family, SOCK_DGRAM, 0, &fd);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	sock = isc_mem_get(mgr->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(sock, mgr, isc_nm_udpsocket, local);
@@ -786,10 +796,8 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	sock->read_timeout = timeout;
 	sock->extrahandlesize = extrahandlesize;
 	sock->peer = peer->addr;
+	sock->fd = fd;
 	atomic_init(&sock->client, true);
-
-	sock->fd = socket(sa_family, SOCK_DGRAM, 0);
-	RUNTIME_CHECK(sock->fd >= 0);
 
 	result = isc__nm_socket_reuse(sock->fd);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS ||

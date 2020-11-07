@@ -16,6 +16,7 @@
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
+#include <isc/errno.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -27,6 +28,7 @@
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/stats.h>
+#include <isc/strerr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
@@ -1720,6 +1722,40 @@ isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
 	if (mgr->stats != NULL) {
 		isc_stats_decrement(mgr->stats, counterid);
 	}
+}
+
+isc_result_t
+isc__nm_socket(int domain, int type, int protocol, uv_os_sock_t *sockp) {
+#ifdef WIN32
+	SOCKET sock;
+	sock = socket(domain, type, protocol);
+	if (sock == INVALID_SOCKET) {
+		char strbuf[ISC_STRERRORSIZE];
+		DWORD socket_errno = WSAGetLastError();
+		switch (socket_errno) {
+		case WSAEMFILE:
+		case WSAENOBUFS:
+			return (ISC_R_NORESOURCES);
+
+		case WSAEPROTONOSUPPORT:
+		case WSAEPFNOSUPPORT:
+		case WSAEAFNOSUPPORT:
+			return (ISC_R_FAMILYNOSUPPORT);
+		default:
+			strerror_r(socket_errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "socket() failed: %s", strbuf);
+			return (ISC_R_UNEXPECTED);
+		}
+	}
+#else
+	int sock = socket(domain, type, protocol);
+	if (sock < 0) {
+		return (isc_errno_toresult(errno));
+	}
+#endif
+	*sockp = (uv_os_sock_t)sock;
+	return (ISC_R_SUCCESS);
 }
 
 #define setsockopt_on(socket, level, name) \
