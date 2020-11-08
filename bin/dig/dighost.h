@@ -25,6 +25,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 
@@ -88,12 +89,18 @@ typedef struct dig_server dig_server_t;
 typedef ISC_LIST(dig_server_t) dig_serverlist_t;
 typedef struct dig_searchlist dig_searchlist_t;
 
+#define DIG_LOOKUP_MAGIC ISC_MAGIC('D', 'i', 'g', 'l')
+
+#define DIG_VALID_LOOKUP(x) ISC_MAGIC_VALID((x), DIG_LOOKUP_MAGIC)
+
 #define DIG_QUERY_MAGIC ISC_MAGIC('D', 'i', 'g', 'q')
 
 #define DIG_VALID_QUERY(x) ISC_MAGIC_VALID((x), DIG_QUERY_MAGIC)
 
 /*% The dig_lookup structure */
 struct dig_lookup {
+	unsigned int magic;
+	isc_refcount_t references;
 	bool pending, /*%< Pending a successful answer */
 		waiting_connect, doing_xfr, ns_search_only, /*%< dig
 							     * +nssearch,
@@ -113,12 +120,9 @@ struct dig_lookup {
 		tcp_keepalive, header_only, ednsneg, mapped,
 		print_unknown_format, multiline, nottl, noclass, onesoa,
 		use_usec, nocrypto, ttlunits, idnin, idnout, expandaaaa, qr,
-		accept_reply_unexpected_src, /*%  print replies from
-					      * unexpected
-					      *   sources. */
-		setqid;			     /*% use a speciied query ID */
-	char textname[MXNAME];		     /*% Name we're going to be
-					      * looking up */
+		setqid;	       /*% use a specified query ID */
+	char textname[MXNAME]; /*% Name we're going to be
+				* looking up */
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;
 	dns_rdatatype_t qrdtype;
@@ -170,9 +174,11 @@ struct dig_lookup {
 struct dig_query {
 	unsigned int magic;
 	dig_lookup_t *lookup;
-	bool waiting_connect, pending_free, waiting_senddone, first_pass,
-		first_soa_rcvd, second_rr_rcvd, first_repeat_rcvd, recv_made,
-		warn_id, timedout;
+	bool first_pass;
+	bool first_soa_rcvd;
+	bool second_rr_rcvd;
+	bool first_repeat_rcvd;
+	bool warn_id;
 	uint32_t first_rr_serial;
 	uint32_t second_rr_serial;
 	uint32_t msg_count;
@@ -180,9 +186,12 @@ struct dig_query {
 	bool ixfr_axfr;
 	char *servname;
 	char *userarg;
-	isc_buffer_t recvbuf, lengthbuf, tmpsendbuf, sendbuf;
+	isc_buffer_t sendbuf;
 	char *recvspace, *tmpsendspace, lengthspace[4];
-	isc_socket_t *sock;
+	isc_refcount_t references;
+	isc_nmhandle_t *handle;
+	isc_nmhandle_t *readhandle;
+	isc_nmhandle_t *sendhandle;
 	ISC_LINK(dig_query_t) link;
 	ISC_LINK(dig_query_t) clink;
 	isc_sockaddr_t sockaddr;
@@ -190,6 +199,7 @@ struct dig_query {
 	isc_time_t time_recv;
 	uint64_t byte_count;
 	isc_timer_t *timer;
+	uint8_t tries;
 };
 
 struct dig_server {
@@ -220,11 +230,11 @@ extern bool check_ra, have_ipv4, have_ipv6, specified_source, usesearch,
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
-extern int sendcount;
+extern isc_refcount_t sendcount;
 extern int ndots;
 extern int lookup_counter;
 extern int exitcode;
-extern isc_sockaddr_t bind_address;
+extern isc_sockaddr_t localaddr;
 extern char keynametext[MXNAME];
 extern char keyfile[MXNAME];
 extern char keysecret[MXNAME];
@@ -389,32 +399,38 @@ setup_text_key(void);
  * Routines exported from dig.c for use by dig for iOS
  */
 
-/*%<
+/*%
  * Call once only to set up libraries, parse global
  * parameters and initial command line query parameters
  */
 void
 dig_setup(int argc, char **argv);
 
-/*%<
+/*%
  * Call to supply new parameters for the next lookup
  */
 void
 dig_query_setup(bool, bool, int argc, char **argv);
 
-/*%<
+/*%
  * set the main application event cycle running
  */
 void
 dig_startup(void);
 
-/*%<
+/*%
  * Initiates the next lookup cycle
  */
 void
 dig_query_start(void);
 
-/*%<
+/*%
+ * Activate/deactivate IDN filtering of output.
+ */
+void
+dig_idnsetup(dig_lookup_t *lookup, bool active);
+
+/*%
  * Cleans up the application
  */
 void

@@ -111,8 +111,6 @@ static const char *rtypetext[] = {
 #define N_KNOWN_RRTYPES (sizeof(rtypetext) / sizeof(rtypetext[0]))
 
 static void
-flush_lookup_list(void);
-static void
 getinput(isc_task_t *task, isc_event_t *event);
 
 static char *
@@ -136,7 +134,6 @@ static void
 query_finished(void) {
 	isc_event_t *event = global_event;
 
-	flush_lookup_list();
 	debug("dighost_shutdown()");
 
 	if (!in_use) {
@@ -622,6 +619,8 @@ static void
 setoption(char *opt) {
 	size_t l = strlen(opt);
 
+	debugging = true;
+
 #define CHECKOPT(A, N) \
 	((l >= N) && (l < sizeof(A)) && (strncasecmp(opt, A, l) == 0))
 
@@ -901,46 +900,6 @@ parse_args(int argc, char **argv) {
 				check_ra = false;
 			}
 		}
-	}
-}
-
-static void
-flush_lookup_list(void) {
-	dig_lookup_t *l, *lp;
-	dig_query_t *q, *qp;
-	dig_server_t *s, *sp;
-
-	lookup_counter = 0;
-	l = ISC_LIST_HEAD(lookup_list);
-	while (l != NULL) {
-		q = ISC_LIST_HEAD(l->q);
-		while (q != NULL) {
-			if (q->sock != NULL) {
-				isc_socket_cancel(q->sock, NULL,
-						  ISC_SOCKCANCEL_ALL);
-				isc_socket_detach(&q->sock);
-			}
-			isc_buffer_invalidate(&q->recvbuf);
-			isc_buffer_invalidate(&q->lengthbuf);
-			qp = q;
-			q = ISC_LIST_NEXT(q, link);
-			ISC_LIST_DEQUEUE(l->q, qp, link);
-			isc_mem_free(mctx, qp);
-		}
-		s = ISC_LIST_HEAD(l->my_server_list);
-		while (s != NULL) {
-			sp = s;
-			s = ISC_LIST_NEXT(s, link);
-			ISC_LIST_DEQUEUE(l->my_server_list, sp, link);
-			isc_mem_free(mctx, sp);
-		}
-		if (l->sendmsg != NULL) {
-			dns_message_detach(&l->sendmsg);
-		}
-		lp = l;
-		l = ISC_LIST_NEXT(l, link);
-		ISC_LIST_DEQUEUE(lookup_list, lp, link);
-		isc_mem_free(mctx, lp);
 	}
 }
 

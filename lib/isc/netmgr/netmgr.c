@@ -16,6 +16,7 @@
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
+#include <isc/errno.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -27,6 +28,7 @@
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/stats.h>
+#include <isc/strerr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
@@ -1206,7 +1208,8 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	UNLOCK(&sock->lock);
 
 	if (sock->type == isc_nm_tcpsocket ||
-	    (sock->type == isc_nm_udpsocket && atomic_load(&sock->client)))
+	    (sock->type == isc_nm_udpsocket && atomic_load(&sock->client)) ||
+	    (sock->type == isc_nm_tcpdnssocket && atomic_load(&sock->client)))
 	{
 		INSIST(sock->statichandle == NULL);
 
@@ -1382,6 +1385,26 @@ isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
 	handle->opaque = arg;
 	handle->doreset = doreset;
 	handle->dofree = dofree;
+}
+
+void
+isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	switch (handle->sock->type) {
+	case isc_nm_udpsocket:
+		isc__nm_udp_settimeout(handle, timeout);
+		break;
+	case isc_nm_tcpsocket:
+		isc__nm_tcp_settimeout(handle, timeout);
+		break;
+	case isc_nm_tcpdnssocket:
+		isc__nm_tcpdns_settimeout(handle, timeout);
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
 }
 
 void *
@@ -1699,6 +1722,40 @@ isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
 	if (mgr->stats != NULL) {
 		isc_stats_decrement(mgr->stats, counterid);
 	}
+}
+
+isc_result_t
+isc__nm_socket(int domain, int type, int protocol, uv_os_sock_t *sockp) {
+#ifdef WIN32
+	SOCKET sock;
+	sock = socket(domain, type, protocol);
+	if (sock == INVALID_SOCKET) {
+		char strbuf[ISC_STRERRORSIZE];
+		DWORD socket_errno = WSAGetLastError();
+		switch (socket_errno) {
+		case WSAEMFILE:
+		case WSAENOBUFS:
+			return (ISC_R_NORESOURCES);
+
+		case WSAEPROTONOSUPPORT:
+		case WSAEPFNOSUPPORT:
+		case WSAEAFNOSUPPORT:
+			return (ISC_R_FAMILYNOSUPPORT);
+		default:
+			strerror_r(socket_errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "socket() failed: %s", strbuf);
+			return (ISC_R_UNEXPECTED);
+		}
+	}
+#else
+	int sock = socket(domain, type, protocol);
+	if (sock < 0) {
+		return (isc_errno_toresult(errno));
+	}
+#endif
+	*sockp = (uv_os_sock_t)sock;
+	return (ISC_R_SUCCESS);
 }
 
 #define setsockopt_on(socket, level, name) \

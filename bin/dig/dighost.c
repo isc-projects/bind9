@@ -90,22 +90,16 @@
 #include <pk11/result.h>
 #endif /* if USE_PKCS11 */
 
-#if !defined(NS_INADDRSZ)
-#define NS_INADDRSZ 4
-#endif /* if !defined(NS_INADDRSZ) */
-
-#if !defined(NS_IN6ADDRSZ)
-#define NS_IN6ADDRSZ 16
-#endif /* if !defined(NS_IN6ADDRSZ) */
-
 dig_lookuplist_t lookup_list;
 dig_serverlist_t server_list;
 dig_searchlistlist_t search_list;
 
+static atomic_bool cancel_now = ATOMIC_VAR_INIT(false);
+
 bool check_ra = false, have_ipv4 = false, have_ipv6 = false,
-     specified_source = false, free_now = false, cancel_now = false,
-     usesearch = false, showsearch = false, is_dst_up = false,
-     keep_open = false, verbose = false, yaml = false;
+     specified_source = false, free_now = false, usesearch = false,
+     showsearch = false, is_dst_up = false, keep_open = false, verbose = false,
+     yaml = false;
 in_port_t port = 53;
 unsigned int timeout = 0;
 unsigned int extrabytes;
@@ -113,13 +107,10 @@ isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *global_task = NULL;
-isc_timermgr_t *timermgr = NULL;
-isc_socketmgr_t *socketmgr = NULL;
-isc_sockaddr_t bind_address;
-isc_sockaddr_t bind_any;
-int sendcount = 0;
-int recvcount = 0;
-int sockcount = 0;
+isc_nm_t *netmgr = NULL;
+isc_sockaddr_t localaddr;
+isc_refcount_t sendcount = ATOMIC_VAR_INIT(0);
+isc_refcount_t recvcount = ATOMIC_VAR_INIT(0);
 int ndots = -1;
 int tries = 3;
 int lookup_counter = 0;
@@ -135,7 +126,7 @@ static isc_result_t
 idn_output_filter(isc_buffer_t *buffer, unsigned int used_org);
 #endif /* HAVE_LIBIDN2 */
 
-isc_socket_t *keep = NULL;
+isc_nmhandle_t *keep = NULL;
 isc_sockaddr_t keepaddr;
 
 /*%
@@ -238,19 +229,20 @@ static void
 cancel_lookup(dig_lookup_t *lookup);
 
 static void
-recv_done(isc_task_t *task, isc_event_t *event);
+recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
+	  void *arg);
 
 static void
-send_udp(dig_query_t *query);
+start_udp(dig_query_t *query);
 
 static void
-connect_timeout(isc_task_t *task, isc_event_t *event);
+force_next(dig_query_t *query);
 
 static void
-launch_next_query(dig_query_t *query, bool include_question);
+launch_next_query(dig_query_t *query);
 
 static void
-check_next_lookup(dig_lookup_t *lookup);
+clear_current_lookup(void);
 
 static bool
 next_origin(dig_lookup_t *oldlookup);
@@ -659,7 +651,6 @@ make_empty_lookup(void) {
 	looknew->ttlunits = false;
 	looknew->expandaaaa = false;
 	looknew->qr = false;
-	looknew->accept_reply_unexpected_src = false;
 #ifdef HAVE_LIBIDN2
 	looknew->idnin = isatty(1) ? (getenv("IDN_DISABLE") == NULL) : false;
 	looknew->idnout = looknew->idnin;
@@ -710,6 +701,14 @@ make_empty_lookup(void) {
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->connecting);
 	ISC_LIST_INIT(looknew->my_server_list);
+
+	isc_refcount_init(&looknew->references, 1);
+
+	looknew->magic = DIG_LOOKUP_MAGIC;
+
+	debug("make_empty_lookup() = %p->references = %" PRIuFAST32, looknew,
+	      isc_refcount_current(&looknew->references));
+
 	return (looknew);
 }
 
@@ -761,7 +760,6 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	INSIST(!free_now);
 
 	looknew = make_empty_lookup();
-	INSIST(looknew != NULL);
 	strlcpy(looknew->textname, lookold->textname, MXNAME);
 	strlcpy(looknew->cmdline, lookold->cmdline, MXNAME);
 	looknew->textname[MXNAME - 1] = 0;
@@ -808,8 +806,6 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->ttlunits = lookold->ttlunits;
 	looknew->expandaaaa = lookold->expandaaaa;
 	looknew->qr = lookold->qr;
-	looknew->accept_reply_unexpected_src =
-		lookold->accept_reply_unexpected_src;
 	looknew->idnin = lookold->idnin;
 	looknew->idnout = lookold->idnout;
 	looknew->udpsize = lookold->udpsize;
@@ -855,6 +851,11 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 		clone_server_list(lookold->my_server_list,
 				  &looknew->my_server_list);
 	}
+
+	isc_refcount_init(&looknew->references, 1);
+
+	looknew->magic = DIG_LOOKUP_MAGIC;
+
 	return (looknew);
 }
 
@@ -868,7 +869,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
  */
 dig_lookup_t *
 requeue_lookup(dig_lookup_t *lookold, bool servers) {
-	dig_lookup_t *looknew;
+	dig_lookup_t *looknew = NULL;
 
 	debug("requeue_lookup()");
 
@@ -1408,18 +1409,14 @@ setup_libs(void) {
 
 	isc_log_setdebuglevel(lctx, 0);
 
-	result = isc_taskmgr_create(mctx, 1, 0, NULL, &taskmgr);
+	netmgr = isc_nm_start(mctx, 1);
+
+	result = isc_taskmgr_create(mctx, 1, 0, netmgr, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
 
 	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
 	isc_task_setname(global_task, "dig", NULL);
-
-	result = isc_timermgr_create(mctx, &timermgr);
-	check_result(result, "isc_timermgr_create");
-
-	result = isc_socketmgr_create(mctx, &socketmgr);
-	check_result(result, "isc_socketmgr_create");
 
 	result = dst_lib_init(mctx, NULL);
 	check_result(result, "dst_lib_init");
@@ -1566,111 +1563,40 @@ add_question(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
  */
 static void
 check_if_done(void) {
+	dig_lookup_t *lookup = NULL;
+
 	debug("check_if_done()");
 	debug("list %s", ISC_LIST_EMPTY(lookup_list) ? "empty" : "full");
+
+	lookup = ISC_LIST_HEAD(lookup_list);
+	while (lookup != NULL) {
+		dig_lookup_t *next = NULL;
+		debug("pending lookup %p", lookup);
+		next = ISC_LIST_NEXT(lookup, link);
+		lookup = next;
+	}
+
 	if (ISC_LIST_EMPTY(lookup_list) && current_lookup == NULL &&
-	    sendcount == 0) {
-		INSIST(sockcount == 0);
-		INSIST(recvcount == 0);
+	    isc_refcount_current(&sendcount) == 0)
+	{
+		INSIST(isc_refcount_current(&recvcount) == 0);
 		debug("shutting down");
 		dighost_shutdown();
 	}
 }
 
-/*%
- * Clear out a query when we're done with it.  WARNING: This routine
- * WILL invalidate the query pointer.
- */
 static void
-clear_query(dig_query_t *query) {
-	dig_lookup_t *lookup;
-
-	REQUIRE(query != NULL);
-
-	debug("clear_query(%p)", query);
-
-	if (query->timer != NULL) {
-		isc_timer_detach(&query->timer);
-	}
-	lookup = query->lookup;
-
-	if (lookup->current_query == query) {
-		lookup->current_query = NULL;
-	}
-
-	if (ISC_LINK_LINKED(query, link)) {
-		ISC_LIST_UNLINK(lookup->q, query, link);
-	}
-	if (ISC_LINK_LINKED(query, clink)) {
-		ISC_LIST_UNLINK(lookup->connecting, query, clink);
-	}
-	INSIST(query->recvspace != NULL);
-
-	if (query->sock != NULL) {
-		isc_socket_detach(&query->sock);
-		sockcount--;
-		debug("sockcount=%d", sockcount);
-	}
-	isc_mempool_put(commctx, query->recvspace);
-	isc_mempool_put(commctx, query->tmpsendspace);
-	isc_buffer_invalidate(&query->recvbuf);
-	isc_buffer_invalidate(&query->lengthbuf);
-
-	if (query->waiting_senddone) {
-		query->pending_free = true;
-	} else {
-		query->magic = 0;
-		isc_mem_free(mctx, query);
-	}
-}
-
-/*%
- * Try and clear out a lookup if we're done with it.  Return true if
- * the lookup was successfully cleared.  If true is returned, the
- * lookup pointer has been invalidated.
- */
-static bool
-try_clear_lookup(dig_lookup_t *lookup) {
-	dig_query_t *q;
-
-	REQUIRE(lookup != NULL);
-
-	debug("try_clear_lookup(%p)", lookup);
-
-	if (ISC_LIST_HEAD(lookup->q) != NULL ||
-	    ISC_LIST_HEAD(lookup->connecting) != NULL)
-	{
-		if (debugging) {
-			q = ISC_LIST_HEAD(lookup->q);
-			while (q != NULL) {
-				debug("query to %s still pending", q->servname);
-				q = ISC_LIST_NEXT(q, link);
-			}
-
-			q = ISC_LIST_HEAD(lookup->connecting);
-			while (q != NULL) {
-				debug("query to %s still connecting",
-				      q->servname);
-				q = ISC_LIST_NEXT(q, clink);
-			}
-		}
-		return (false);
-	}
-
-	/*
-	 * At this point, we know there are no queries on the lookup,
-	 * so can make it go away also.
-	 */
-	destroy_lookup(lookup);
-	return (true);
-}
-
-void
-destroy_lookup(dig_lookup_t *lookup) {
+_destroy_lookup(dig_lookup_t *lookup) {
 	dig_server_t *s;
 	void *ptr;
 
-	debug("destroy");
+	debug("destroy_lookup");
+
+	isc_refcount_destroy(&lookup->references);
+
+	REQUIRE(ISC_LIST_EMPTY(lookup->q));
+	REQUIRE(ISC_LIST_EMPTY(lookup->connecting));
+
 	s = ISC_LIST_HEAD(lookup->my_server_list);
 	while (s != NULL) {
 		debug("freeing server %p belonging to %p", s, lookup);
@@ -1712,6 +1638,120 @@ destroy_lookup(dig_lookup_t *lookup) {
 	isc_mem_free(mctx, lookup);
 }
 
+#define lookup_attach(s, t) _lookup_attach(s, t, __FILE__, __LINE__)
+static void
+_lookup_attach(dig_lookup_t *lookup, dig_lookup_t **lookupp, const char *file,
+	       unsigned int line) {
+	REQUIRE(DIG_VALID_LOOKUP(lookup));
+	REQUIRE(lookupp != NULL && *lookupp == NULL);
+
+	debug("%s:%u:lookup_attach(%p) = %" PRIuFAST32, file, line, lookup,
+	      isc_refcount_current(&lookup->references) + 1);
+
+	(void)isc_refcount_increment(&lookup->references);
+
+	*lookupp = lookup;
+}
+
+#define lookup_detach(l) _lookup_detach(l, __FILE__, __LINE__)
+static void
+_lookup_detach(dig_lookup_t **lookupp, const char *file, unsigned int line) {
+	REQUIRE(DIG_VALID_LOOKUP(*lookupp));
+
+	dig_lookup_t *lookup = *lookupp;
+	*lookupp = NULL;
+
+	debug("%s:%u:lookup_detach(%p) = %" PRIuFAST32, file, line, lookup,
+	      isc_refcount_current(&lookup->references) - 1);
+
+	if (isc_refcount_decrement(&lookup->references) == 1) {
+		_destroy_lookup(lookup);
+		if (lookup == current_lookup) {
+			current_lookup = NULL;
+			start_lookup();
+		}
+	}
+}
+
+void
+destroy_lookup(dig_lookup_t *lookup) {
+	REQUIRE(DIG_VALID_LOOKUP(lookup));
+
+	REQUIRE(isc_refcount_decrement(&lookup->references) == 1);
+	_destroy_lookup(lookup);
+}
+
+/*%
+ * Destroy a query when we're done with it.  WARNING: This routine
+ * WILL invalidate the query pointer.
+ */
+static void
+destroy_query(dig_query_t *query, const char *file, unsigned int line) {
+	debug("%s:%u:destroy_query(%p) = %" PRIuFAST32, file, line, query,
+	      isc_refcount_current(&query->references));
+
+	isc_refcount_destroy(&query->references);
+
+	lookup_detach(&query->lookup);
+
+	INSIST(query->recvspace != NULL);
+
+	isc_mempool_put(commctx, query->recvspace);
+	isc_mempool_put(commctx, query->tmpsendspace);
+
+	query->magic = 0;
+	isc_mem_free(mctx, query);
+}
+
+#define query_attach(s, t) _query_attach(s, t, __FILE__, __LINE__)
+
+static void
+_query_attach(dig_query_t *source, dig_query_t **targetp, const char *file,
+	      unsigned int line) {
+	REQUIRE(DIG_VALID_QUERY(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	debug("%s:%u:query_attach(%p) = %" PRIuFAST32, file, line, source,
+	      isc_refcount_current(&source->references) + 1);
+
+	(void)isc_refcount_increment(&source->references);
+
+	*targetp = source;
+}
+
+#define query_detach(q) _query_detach(q, __FILE__, __LINE__)
+
+static void
+_query_detach(dig_query_t **queryp, const char *file, unsigned int line) {
+	dig_query_t *query = NULL;
+	dig_lookup_t *lookup = NULL;
+
+	REQUIRE(DIG_VALID_QUERY(*queryp));
+
+	query = *queryp;
+	*queryp = NULL;
+
+	lookup = query->lookup;
+
+	if (lookup->current_query == query) {
+		query_detach(&lookup->current_query);
+	}
+
+	if (ISC_LINK_LINKED(query, link)) {
+		ISC_LIST_UNLINK(lookup->q, query, link);
+	}
+	if (ISC_LINK_LINKED(query, clink)) {
+		ISC_LIST_UNLINK(lookup->connecting, query, clink);
+	}
+
+	debug("%s:%u:query_detach(%p) = %" PRIuFAST32, file, line, query,
+	      isc_refcount_current(&query->references) - 1);
+
+	if (isc_refcount_decrement(&query->references) == 1) {
+		destroy_query(query, file, line);
+	}
+}
+
 /*%
  * If we can, start the next lookup in the queue running.
  * This assumes that the lookup on the head of the queue hasn't been
@@ -1721,7 +1761,8 @@ destroy_lookup(dig_lookup_t *lookup) {
 void
 start_lookup(void) {
 	debug("start_lookup()");
-	if (cancel_now) {
+
+	if (atomic_load(&cancel_now)) {
 		return;
 	}
 
@@ -1732,15 +1773,22 @@ start_lookup(void) {
 	INSIST(current_lookup == NULL);
 
 	current_lookup = ISC_LIST_HEAD(lookup_list);
+
 	/*
 	 * Put the current lookup somewhere so cancel_all can find it
 	 */
 	if (current_lookup != NULL) {
+		/*
+		 * Formally, we should attach the lookup to the current_lookup
+		 * and detach it from the lookup_list, but it would be one
+		 * attach and one detach.
+		 */
 		ISC_LIST_DEQUEUE(lookup_list, current_lookup, link);
 		if (setup_lookup(current_lookup)) {
 			do_lookup(current_lookup);
 		} else if (next_origin(current_lookup)) {
-			check_next_lookup(current_lookup);
+			lookup_detach(&current_lookup);
+			start_lookup();
 		}
 	} else {
 		check_if_done();
@@ -1749,22 +1797,24 @@ start_lookup(void) {
 
 /*%
  * If we can, clear the current lookup and start the next one running.
- * This calls try_clear_lookup, so may invalidate the lookup pointer.
+ * (Note that while the reference count of current_lookup may be
+ * decremented, current_lookup will not be set to NULL.)
  */
 static void
-check_next_lookup(dig_lookup_t *lookup) {
-	INSIST(!free_now);
+clear_current_lookup() {
+	dig_lookup_t *lookup = current_lookup;
 
-	debug("check_next_lookup(%p)", lookup);
+	INSIST(!free_now);
+	INSIST(lookup != NULL);
+
+	debug("clear_current_lookup()");
 
 	if (ISC_LIST_HEAD(lookup->q) != NULL) {
 		debug("still have a worker");
 		return;
 	}
-	if (try_clear_lookup(lookup)) {
-		current_lookup = NULL;
-		start_lookup();
-	}
+
+	lookup_detach(&lookup);
 }
 
 /*%
@@ -2072,6 +2122,47 @@ compute_cookie(unsigned char *clientcookie, size_t len) {
 	memmove(clientcookie, cookie_secret, 8);
 }
 
+#define new_query(l, s, u) _new_query(l, s, u, __FILE__, __LINE__)
+
+static dig_query_t *
+_new_query(dig_lookup_t *lookup, char *servname, char *userarg,
+	   const char *file, unsigned int line) {
+	dig_query_t *query = NULL;
+
+	query = isc_mem_allocate(mctx, sizeof(dig_query_t));
+	debug("create query %p linked to lookup %p", query, lookup);
+	*query = (dig_query_t){ .sendbuf = lookup->renderbuf,
+				.servname = servname,
+				.userarg = userarg,
+				.first_pass = true,
+				.warn_id = true,
+				.recvspace = isc_mempool_get(commctx),
+				.tmpsendspace = isc_mempool_get(commctx) };
+
+	lookup_attach(lookup, &query->lookup);
+
+	isc_refcount_init(&query->references, 1);
+
+	debug("%s:%u:new_query(%p) = %" PRIuFAST32, file, line, query,
+	      isc_refcount_current(&query->references));
+
+	if (query->recvspace == NULL) {
+		fatal("memory allocation failure");
+	}
+	if (query->tmpsendspace == NULL) {
+		fatal("memory allocation failure");
+	}
+
+	isc_time_settoepoch(&query->time_sent);
+	isc_time_settoepoch(&query->time_recv);
+
+	ISC_LINK_INIT(query, clink);
+	ISC_LINK_INIT(query, link);
+
+	query->magic = DIG_QUERY_MAGIC;
+	return (query);
+}
+
 /*%
  * Setup the supplied lookup structure, making it ready to start sending
  * queries to servers.  Create and initialize the message to be sent as
@@ -2096,10 +2187,6 @@ setup_lookup(dig_lookup_t *lookup) {
 
 #ifdef HAVE_LIBIDN2
 	char idn_origin[MXNAME], idn_textname[MXNAME];
-
-	result = dns_name_settotextfilter(lookup->idnout ? idn_output_filter
-							 : NULL);
-	check_result(result, "dns_name_settotextfilter");
 #endif /* HAVE_LIBIDN2 */
 
 	INSIST(!free_now);
@@ -2240,7 +2327,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			     "(%s)",
 			     lookup->textname, isc_result_totext(result));
 #if TARGET_OS_IPHONE
-			check_next_lookup(current_lookup);
+			clear_current_lookup();
 			return (false);
 #else  /* if TARGET_OS_IPHONE */
 			digexit();
@@ -2425,8 +2512,8 @@ setup_lookup(dig_lookup_t *lookup) {
 			 *
 			 * (For future work: preserve the offset into
 			 * the buffer where the family field is;
-			 * that way we can update it in send_udp()
-			 * or send_tcp_connect() once we know
+			 * that way we can update it in start_udp()
+			 * or start_tcp() once we know
 			 * what it outght to be.)
 			 */
 			switch (sa->sa_family) {
@@ -2563,49 +2650,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	for (serv = ISC_LIST_HEAD(lookup->my_server_list); serv != NULL;
 	     serv = ISC_LIST_NEXT(serv, link))
 	{
-		query = isc_mem_allocate(mctx, sizeof(dig_query_t));
-		debug("create query %p linked to lookup %p", query, lookup);
-		query->lookup = lookup;
-		query->timer = NULL;
-		query->waiting_connect = false;
-		query->waiting_senddone = false;
-		query->pending_free = false;
-		query->recv_made = false;
-		query->first_pass = true;
-		query->first_soa_rcvd = false;
-		query->second_rr_rcvd = false;
-		query->first_repeat_rcvd = false;
-		query->warn_id = true;
-		query->timedout = false;
-		query->first_rr_serial = 0;
-		query->second_rr_serial = 0;
-		query->servname = serv->servername;
-		query->userarg = serv->userarg;
-		query->rr_count = 0;
-		query->msg_count = 0;
-		query->byte_count = 0;
-		query->ixfr_axfr = false;
-		query->sock = NULL;
-		query->recvspace = isc_mempool_get(commctx);
-		query->tmpsendspace = isc_mempool_get(commctx);
-		if (query->recvspace == NULL) {
-			fatal("memory allocation failure");
-		}
-
-		isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
-		isc_buffer_init(&query->lengthbuf, query->lengthspace, 2);
-		isc_buffer_init(&query->tmpsendbuf, query->tmpsendspace,
-				COMMSIZE);
-		query->sendbuf = lookup->renderbuf;
-
-		isc_time_settoepoch(&query->time_sent);
-		isc_time_settoepoch(&query->time_recv);
-
-		ISC_LINK_INIT(query, clink);
-		ISC_LINK_INIT(query, link);
-
-		query->magic = DIG_QUERY_MAGIC;
-
+		query = new_query(lookup, serv->servername, serv->userarg);
 		ISC_LIST_ENQUEUE(lookup->q, query, link);
 	}
 
@@ -2617,50 +2662,64 @@ setup_lookup(dig_lookup_t *lookup) {
  * the query if the send was canceled.
  */
 static void
-send_done(isc_task_t *_task, isc_event_t *event) {
-	dig_query_t *query, *next;
-	dig_lookup_t *l;
+send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+	dig_query_t *query = (dig_query_t *)arg;
+	dig_query_t *next = NULL;
+	dig_lookup_t *l = NULL;
 
-	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(DIG_VALID_QUERY(query));
+	INSIST(query->sendhandle != NULL);
+	INSIST(handle == query->sendhandle);
 
-	UNUSED(_task);
+	debug("send_done(%p, %s, %p)", handle, isc_result_totext(eresult), arg);
+
+	isc_refcount_decrement0(&sendcount);
+	debug("sendcount=%" PRIuFAST32, isc_refcount_current(&sendcount));
+
+	INSIST(!free_now);
 
 	LOCK_LOOKUP;
 
-	debug("send_done()");
-	sendcount--;
-	debug("sendcount=%d", sendcount);
-	INSIST(sendcount >= 0);
+	isc_nmhandle_detach(&query->sendhandle);
 
-	query = event->ev_arg;
-	REQUIRE(DIG_VALID_QUERY(query));
-	query->waiting_senddone = false;
-	l = query->lookup;
+	if (eresult != ISC_R_SUCCESS) {
+		if (eresult != ISC_R_CANCELED) {
+			debug("send failed: %s", isc_result_totext(eresult));
+		}
+		query_detach(&query);
 
-	if (!query->pending_free && l->ns_search_only && !l->trace_root &&
-	    !l->tcp_mode) {
+		UNLOCK_LOOKUP;
+		return;
+	}
+
+	lookup_attach(query->lookup, &l);
+	if (l->ns_search_only && !l->trace_root && !l->tcp_mode) {
 		debug("sending next, since searching");
 		next = ISC_LIST_NEXT(query, link);
-		if (next != NULL) {
-			send_udp(next);
+
+		query_detach(&query);
+		lookup_detach(&l);
+
+		if (next == NULL) {
+			clear_current_lookup();
+		} else {
+			start_udp(next);
 		}
+
+		check_if_done();
+		UNLOCK_LOOKUP;
+		return;
 	}
 
-	isc_event_free(&event);
-
-	if (query->pending_free) {
-		query->magic = 0;
-		isc_mem_free(mctx, query);
-	}
+	query_detach(&query);
+	lookup_detach(&l);
 
 	check_if_done();
 	UNLOCK_LOOKUP;
 }
 
 /*%
- * Cancel a lookup, sending isc_socket_cancel() requests to all outstanding
- * IO sockets.  The cancel handlers should take care of cleaning up the
- * query and lookup structures
+ * Cancel a lookup, sending canceling reads on all existing sockets.
  */
 static void
 cancel_lookup(dig_lookup_t *lookup) {
@@ -2671,94 +2730,32 @@ cancel_lookup(dig_lookup_t *lookup) {
 	while (query != NULL) {
 		REQUIRE(DIG_VALID_QUERY(query));
 		next = ISC_LIST_NEXT(query, link);
-		if (query->sock != NULL) {
-			isc_socket_cancel(query->sock, global_task,
-					  ISC_SOCKCANCEL_ALL);
-			check_if_done();
-		} else {
-			clear_query(query);
-		}
+		ISC_LIST_DEQUEUE(lookup->q, query, link);
+		query_detach(&query);
 		query = next;
 	}
 	lookup->pending = false;
 	lookup->retries = 0;
+	check_if_done();
 }
 
 static void
-bringup_timer(dig_query_t *query, unsigned int default_timeout) {
-	dig_lookup_t *l;
-	unsigned int local_timeout;
-	isc_result_t result;
-	REQUIRE(DIG_VALID_QUERY(query));
-
-	debug("bringup_timer()");
-	/*
-	 * If the timer already exists, that means we're calling this
-	 * a second time (for a retry).  Don't need to recreate it,
-	 * just reset it.
-	 */
-	l = query->lookup;
-	if (ISC_LINK_LINKED(query, link) && ISC_LIST_NEXT(query, link) != NULL)
-	{
-		local_timeout = SERVER_TIMEOUT;
-	} else {
-		if (timeout == 0) {
-			local_timeout = default_timeout;
-		} else {
-			local_timeout = timeout;
-		}
-	}
-	debug("have local timeout of %d", local_timeout);
-	isc_interval_set(&l->interval, local_timeout, 0);
-	if (query->timer != NULL) {
-		isc_timer_detach(&query->timer);
-	}
-	result = isc_timer_create(timermgr, isc_timertype_once, NULL,
-				  &l->interval, global_task, connect_timeout,
-				  query, &query->timer);
-	check_result(result, "isc_timer_create");
-}
-
-static void
-force_timeout(dig_query_t *query) {
-	isc_event_t *event;
-
-	debug("force_timeout ()");
-	event = isc_event_allocate(mctx, query, ISC_TIMEREVENT_IDLE,
-				   connect_timeout, query, sizeof(isc_event_t));
-	isc_task_send(global_task, &event);
-
-	/*
-	 * The timer may have expired if, for example, get_address() takes
-	 * long time and the timer was running on a different thread.
-	 * We need to cancel the possible timeout event not to confuse
-	 * ourselves due to the duplicate events.
-	 */
-	if (query->timer != NULL) {
-		isc_timer_detach(&query->timer);
-	}
-}
-
-static void
-connect_done(isc_task_t *task, isc_event_t *event);
+tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
 
 /*%
- * Unlike send_udp, this can't be called multiple times with the same
+ * Unlike start_udp, this can't be called multiple times with the same
  * query.  When we retry TCP, we requeue the whole lookup, which should
  * start anew.
  */
 static void
-send_tcp_connect(dig_query_t *query) {
+start_tcp(dig_query_t *query) {
 	isc_result_t result;
 	dig_query_t *next;
-	dig_lookup_t *l;
 	REQUIRE(DIG_VALID_QUERY(query));
 
-	debug("send_tcp_connect(%p)", query);
+	debug("start_tcp(%p)", query);
 
-	l = query->lookup;
-	query->waiting_connect = true;
-	query->lookup->current_query = query;
+	query_attach(query, &query->lookup->current_query);
 	result = get_address(query->servname, port, &query->sockaddr);
 	if (result != ISC_R_SUCCESS) {
 		/*
@@ -2766,11 +2763,12 @@ send_tcp_connect(dig_query_t *query) {
 		 * by triggering an immediate 'timeout' (we lie, but the effect
 		 * is the same).
 		 */
-		force_timeout(query);
+		force_next(query);
 		return;
 	}
 
-	if (!l->mapped && isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
+	if (!query->lookup->mapped &&
+	    isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
 	    IN6_IS_ADDR_V4MAPPED(&query->sockaddr.type.sin6.sin6_addr))
 	{
 		isc_netaddr_t netaddr;
@@ -2780,75 +2778,72 @@ send_tcp_connect(dig_query_t *query) {
 		isc_netaddr_format(&netaddr, buf, sizeof(buf));
 		dighost_warning("Skipping mapped address '%s'", buf);
 
-		query->waiting_connect = false;
 		if (ISC_LINK_LINKED(query, link)) {
 			next = ISC_LIST_NEXT(query, link);
 		} else {
 			next = NULL;
 		}
-		l = query->lookup;
-		clear_query(query);
+		query_detach(&query);
 		if (next == NULL) {
 			dighost_warning("No acceptable nameservers");
-			check_next_lookup(l);
-			return;
+			clear_current_lookup();
+		} else {
+			start_tcp(next);
 		}
-		send_tcp_connect(next);
 		return;
 	}
 
-	INSIST(query->sock == NULL);
+	INSIST(query->handle == NULL);
 
 	if (keep != NULL && isc_sockaddr_equal(&keepaddr, &query->sockaddr)) {
-		sockcount++;
-		isc_socket_attach(keep, &query->sock);
-		query->waiting_connect = false;
-		launch_next_query(query, true);
-		goto search;
+		query->handle = keep;
+		launch_next_query(query);
+		query_detach(&query);
+		return;
+	} else {
+		int local_timeout = timeout * 1000;
+		if (local_timeout == 0) {
+			local_timeout = TCP_TIMEOUT * 1000;
+		}
+
+		if (keep != NULL) {
+			isc_nmhandle_detach(&keep);
+		}
+
+		if (!specified_source) {
+			if ((isc_sockaddr_pf(&query->sockaddr) == AF_INET) &&
+			    have_ipv4) {
+				isc_sockaddr_any(&localaddr);
+			} else {
+				isc_sockaddr_any6(&localaddr);
+			}
+		}
+
+		REQUIRE(query != NULL);
+
+		result = isc_nm_tcpdnsconnect(
+			netmgr, (isc_nmiface_t *)&localaddr,
+			(isc_nmiface_t *)&query->sockaddr, tcp_connected, query,
+			local_timeout, 0);
+		check_result(result, "isc_nm_tcpdnsconnect");
+		/* XXX: set DSCP */
 	}
 
-	result = isc_socket_create(socketmgr, isc_sockaddr_pf(&query->sockaddr),
-				   isc_sockettype_tcp, &query->sock);
-	check_result(result, "isc_socket_create");
-	sockcount++;
-	debug("sockcount=%d", sockcount);
-	if (query->lookup->dscp != -1) {
-		isc_socket_dscp(query->sock, query->lookup->dscp);
-	}
-	isc_socket_ipv6only(query->sock, !query->lookup->mapped);
-	if (specified_source) {
-		result = isc_socket_bind(query->sock, &bind_address,
-					 ISC_SOCKET_REUSEADDRESS);
-	} else {
-		if ((isc_sockaddr_pf(&query->sockaddr) == AF_INET) && have_ipv4)
-		{
-			isc_sockaddr_any(&bind_any);
-		} else {
-			isc_sockaddr_any6(&bind_any);
-		}
-		result = isc_socket_bind(query->sock, &bind_any, 0);
-	}
-	check_result(result, "isc_socket_bind");
-	bringup_timer(query, TCP_TIMEOUT);
-	result = isc_socket_connect(query->sock, &query->sockaddr, global_task,
-				    connect_done, query);
-	check_result(result, "isc_socket_connect");
-search:
 	/*
 	 * If we're at the endgame of a nameserver search, we need to
 	 * immediately bring up all the queries.  Do it here.
 	 */
-	if (l->ns_search_only && !l->trace_root) {
+	if (query->lookup->ns_search_only && !query->lookup->trace_root) {
 		debug("sending next, since searching");
 		if (ISC_LINK_LINKED(query, link)) {
 			next = ISC_LIST_NEXT(query, link);
-			ISC_LIST_DEQUEUE(l->q, query, link);
+			ISC_LIST_DEQUEUE(query->lookup->q, query, link);
 		} else {
 			next = NULL;
 		}
-		ISC_LIST_ENQUEUE(l->connecting, query, clink);
+		ISC_LIST_ENQUEUE(query->lookup->connecting, query, clink);
 		if (next != NULL) {
-			send_tcp_connect(next);
+			start_tcp(next);
 		}
 	}
 }
@@ -2861,100 +2856,21 @@ print_query_size(dig_query_t *query) {
 	}
 }
 
-/*%
- * Send a UDP packet to the remote nameserver, possible starting the
- * recv action as well.  Also make sure that the timer is running and
- * is properly reset.
- */
 static void
 send_udp(dig_query_t *query) {
-	dig_lookup_t *l = NULL;
-	isc_result_t result;
-	dig_query_t *next;
+	dig_query_t *sendquery = NULL;
 	isc_region_t r;
-	isc_socketevent_t *sevent;
-	REQUIRE(DIG_VALID_QUERY(query));
 
-	debug("send_udp(%p)", query);
+	query_attach(query, &sendquery);
 
-	l = query->lookup;
-	bringup_timer(query, UDP_TIMEOUT);
-	l->current_query = query;
-	debug("working on lookup %p, query %p", query->lookup, query);
-	if (!query->recv_made) {
-		/* XXX Check the sense of this, need assertion? */
-		query->waiting_connect = false;
-		result = get_address(query->servname, port, &query->sockaddr);
-		if (result != ISC_R_SUCCESS) {
-			/* This servname doesn't have an address. */
-			force_timeout(query);
-			return;
-		}
-
-		if (!l->mapped &&
-		    isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
-		    IN6_IS_ADDR_V4MAPPED(&query->sockaddr.type.sin6.sin6_addr))
-		{
-			isc_netaddr_t netaddr;
-			char buf[ISC_NETADDR_FORMATSIZE];
-
-			isc_netaddr_fromsockaddr(&netaddr, &query->sockaddr);
-			isc_netaddr_format(&netaddr, buf, sizeof(buf));
-			dighost_warning("Skipping mapped address '%s'", buf);
-			next = ISC_LIST_NEXT(query, link);
-			l = query->lookup;
-			clear_query(query);
-			if (next == NULL) {
-				dighost_warning("No acceptable nameservers");
-				check_next_lookup(l);
-			} else {
-				send_udp(next);
-			}
-			return;
-		}
-
-		result = isc_socket_create(socketmgr,
-					   isc_sockaddr_pf(&query->sockaddr),
-					   isc_sockettype_udp, &query->sock);
-		check_result(result, "isc_socket_create");
-		sockcount++;
-		debug("sockcount=%d", sockcount);
-		if (query->lookup->dscp != -1) {
-			isc_socket_dscp(query->sock, query->lookup->dscp);
-		}
-		isc_socket_ipv6only(query->sock, !query->lookup->mapped);
-		if (specified_source) {
-			result = isc_socket_bind(query->sock, &bind_address,
-						 ISC_SOCKET_REUSEADDRESS);
-		} else {
-			isc_sockaddr_anyofpf(&bind_any,
-					     isc_sockaddr_pf(&query->sockaddr));
-			result = isc_socket_bind(query->sock, &bind_any, 0);
-		}
-		check_result(result, "isc_socket_bind");
-
-		query->recv_made = true;
-		isc_buffer_availableregion(&query->recvbuf, &r);
-		debug("recving with lookup=%p, query=%p, sock=%p",
-		      query->lookup, query, query->sock);
-		result = isc_socket_recv(query->sock, &r, 1, global_task,
-					 recv_done, query);
-		check_result(result, "isc_socket_recv");
-		recvcount++;
-		debug("recvcount=%d", recvcount);
-	}
 	isc_buffer_usedregion(&query->sendbuf, &r);
 	debug("sending a request");
 	TIME_NOW(&query->time_sent);
-	INSIST(query->sock != NULL);
-	query->waiting_senddone = true;
-	sevent = isc_socket_socketevent(
-		mctx, query->sock, ISC_SOCKEVENT_SENDDONE, send_done, query);
-	result = isc_socket_sendto2(query->sock, &r, global_task,
-				    &query->sockaddr, NULL, sevent,
-				    ISC_SOCKFLAG_NORETRY);
-	check_result(result, "isc_socket_sendto2");
-	sendcount++;
+
+	isc_nmhandle_attach(query->handle, &query->sendhandle);
+
+	isc_nm_send(query->handle, &r, send_done, sendquery);
+	isc_refcount_increment0(&sendcount);
 
 	/* XXX qrflag, print_query, etc... */
 	if (!ISC_LIST_EMPTY(query->lookup->q) && query->lookup->qr) {
@@ -2966,6 +2882,129 @@ send_udp(dig_query_t *query) {
 			print_query_size(query);
 		}
 	}
+}
+
+static void
+udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+	dig_query_t *query = (dig_query_t *)arg;
+	dig_query_t *readquery = NULL;
+	int local_timeout = timeout * 1000;
+
+	if (eresult == ISC_R_CANCELED) {
+		query_detach(&query);
+		return;
+	} else if (eresult != ISC_R_SUCCESS) {
+		if (eresult != ISC_R_CANCELED) {
+			debug("udp setup failed: %s",
+			      isc_result_totext(eresult));
+		}
+		if (query->tries == 0) {
+			query_detach(&query);
+		}
+		return;
+	}
+
+	query_attach(query, &readquery);
+
+	debug("recving with lookup=%p, query=%p, handle=%p", query->lookup,
+	      query, query->handle);
+
+	query->handle = handle;
+	isc_nmhandle_attach(handle, &query->readhandle);
+	isc_refcount_increment0(&recvcount);
+	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
+
+	if (local_timeout == 0) {
+		local_timeout = UDP_TIMEOUT * 1000;
+	}
+
+	debug("have local timeout of %d", local_timeout);
+	isc_nmhandle_settimeout(handle, local_timeout);
+
+	isc_nm_read(handle, recv_done, readquery);
+	send_udp(readquery);
+
+	query_detach(&query);
+}
+
+/*%
+ * Send a UDP packet to the remote nameserver, possible starting the
+ * recv action as well.  Also make sure that the timer is running and
+ * is properly reset.
+ */
+static void
+start_udp(dig_query_t *query) {
+	isc_result_t result;
+	dig_query_t *next = NULL;
+
+	REQUIRE(DIG_VALID_QUERY(query));
+
+	debug("start_udp(%p)", query);
+
+	query_attach(query, &query->lookup->current_query);
+	debug("working on lookup %p, query %p", query->lookup, query);
+
+	if (query->handle != NULL) {
+		launch_next_query(query);
+		query_detach(&query);
+		return;
+	}
+
+	result = get_address(query->servname, port, &query->sockaddr);
+	if (result != ISC_R_SUCCESS) {
+		/* This servname doesn't have an address. */
+		force_next(query);
+		return;
+	}
+
+	if (!query->lookup->mapped &&
+	    isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
+	    IN6_IS_ADDR_V4MAPPED(&query->sockaddr.type.sin6.sin6_addr))
+	{
+		isc_netaddr_t netaddr;
+		char buf[ISC_NETADDR_FORMATSIZE];
+
+		isc_netaddr_fromsockaddr(&netaddr, &query->sockaddr);
+		isc_netaddr_format(&netaddr, buf, sizeof(buf));
+		dighost_warning("Skipping mapped address '%s'", buf);
+		next = ISC_LIST_NEXT(query, link);
+		query_detach(&query);
+		if (next == NULL) {
+			dighost_warning("No acceptable nameservers");
+			clear_current_lookup();
+		} else {
+			start_udp(next);
+		}
+		return;
+	}
+
+	if (!specified_source) {
+		if ((isc_sockaddr_pf(&query->sockaddr) == AF_INET) && have_ipv4)
+		{
+			isc_sockaddr_any(&localaddr);
+		} else {
+			isc_sockaddr_any6(&localaddr);
+		}
+	}
+
+	query->tries = 3;
+	do {
+		int local_timeout = timeout * 1000;
+		if (local_timeout == 0) {
+			local_timeout = UDP_TIMEOUT * 1000;
+		}
+
+		/*
+		 * On FreeBSD the UDP connect() call sometimes results
+		 * in a spurious transient EADDRINUSE. Try a few more times
+		 * before giving up.
+		 */
+		debug("isc_nm_udpconnect(): %d tries left", --query->tries);
+		result = isc_nm_udpconnect(netmgr, (isc_nmiface_t *)&localaddr,
+					   (isc_nmiface_t *)&query->sockaddr,
+					   udp_ready, query, local_timeout, 0);
+	} while (result != ISC_R_SUCCESS && query->tries > 0);
+	check_result(result, "isc_nm_udpconnect");
 }
 
 /*%
@@ -2990,93 +3029,80 @@ try_next_server(dig_lookup_t *lookup) {
 	debug("trying next server...");
 
 	if (lookup->tcp_mode) {
-		send_tcp_connect(next_query);
+		start_tcp(next_query);
 	} else {
-		send_udp(next_query);
+		start_udp(next_query);
 	}
 
 	return (true);
 }
 
-/*%
- * IO timeout handler, used for both connect and recv timeouts.  If
- * retries are still allowed, either resend the UDP packet or queue a
- * new TCP lookup.  Otherwise, cancel the lookup.
- */
 static void
-connect_timeout(isc_task_t *task, isc_event_t *event) {
+force_next(dig_query_t *query) {
 	dig_lookup_t *l = NULL;
-	dig_query_t *query = NULL;
 
-	UNUSED(task);
-	REQUIRE(event->ev_type == ISC_TIMEREVENT_IDLE);
+	REQUIRE(DIG_VALID_QUERY(query));
 
-	debug("connect_timeout()");
+	debug("force_next()");
 
 	LOCK_LOOKUP;
-	query = event->ev_arg;
-	REQUIRE(DIG_VALID_QUERY(query));
-	l = query->lookup;
-	isc_event_free(&event);
-
 	INSIST(!free_now);
 
-	if (cancel_now) {
+	if (atomic_load(&cancel_now)) {
 		UNLOCK_LOOKUP;
 		return;
 	}
+
+	lookup_attach(query->lookup, &l);
 
 	if (try_next_server(l)) {
-		if (l->tcp_mode) {
-			if (query->sock != NULL) {
-				isc_socket_cancel(query->sock, NULL,
-						  ISC_SOCKCANCEL_ALL);
-			} else {
-				clear_query(query);
-			}
-		}
+		lookup_detach(&l);
 		UNLOCK_LOOKUP;
 		return;
-	}
-
-	if (l->tcp_mode && query->sock != NULL) {
-		query->timedout = true;
-		isc_socket_cancel(query->sock, NULL, ISC_SOCKCANCEL_ALL);
 	}
 
 	if (l->retries > 1) {
-		if (!l->tcp_mode) {
-			l->retries--;
-			debug("resending UDP request to first server");
-			send_udp(ISC_LIST_HEAD(l->q));
-		} else {
-			debug("making new TCP request, %d tries left",
-			      l->retries);
-			l->retries--;
-			requeue_lookup(l, true);
-			cancel_lookup(l);
-			check_next_lookup(l);
-		}
-	} else {
-		if (l->ns_search_only) {
-			isc_netaddr_t netaddr;
-			char buf[ISC_NETADDR_FORMATSIZE];
-
-			isc_netaddr_fromsockaddr(&netaddr, &query->sockaddr);
-			isc_netaddr_format(&netaddr, buf, sizeof(buf));
-
-			dighost_error("no response from %s\n", buf);
-		} else {
-			printf("%s", l->cmdline);
-			dighost_error("connection timed out; "
-				      "no servers could be reached\n");
-		}
-		cancel_lookup(l);
-		check_next_lookup(l);
-		if (exitcode < 9) {
-			exitcode = 9;
-		}
+		l->retries--;
+		debug("making new TCP request, %d tries left", l->retries);
+		requeue_lookup(l, true);
+		lookup_detach(&l);
+		isc_refcount_decrement0(&recvcount);
+		debug("recvcount=%" PRIuFAST32,
+		      isc_refcount_current(&recvcount));
+		query_detach(&query);
+		clear_current_lookup();
+		UNLOCK_LOOKUP;
+		return;
 	}
+
+	if (query->readhandle != NULL) {
+		isc_refcount_decrement0(&recvcount);
+		debug("recvcount=%" PRIuFAST32,
+		      isc_refcount_current(&recvcount));
+	}
+
+	if (l->ns_search_only) {
+		isc_netaddr_t netaddr;
+		char buf[ISC_NETADDR_FORMATSIZE];
+
+		isc_netaddr_fromsockaddr(&netaddr, &query->sockaddr);
+		isc_netaddr_format(&netaddr, buf, sizeof(buf));
+
+		dighost_error("no response from %s\n", buf);
+	} else {
+		printf("%s", l->cmdline);
+		dighost_error("connection timed out; "
+			      "no servers could be reached\n");
+	}
+
+	if (exitcode < 9) {
+		exitcode = 9;
+	}
+
+	query_detach(&query);
+	cancel_lookup(l);
+	lookup_detach(&l);
+	clear_current_lookup();
 	UNLOCK_LOOKUP;
 }
 
@@ -3102,162 +3128,71 @@ requeue_or_update_exitcode(dig_lookup_t *lookup) {
 }
 
 /*%
- * Event handler for the TCP recv which gets the length header of TCP
- * packets.  Start the next recv of length bytes.
- */
-static void
-tcp_length_done(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *sevent;
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-	dig_query_t *query = NULL;
-	dig_lookup_t *l;
-	uint16_t length;
-
-	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
-	INSIST(!free_now);
-
-	UNUSED(task);
-
-	debug("tcp_length_done()");
-
-	LOCK_LOOKUP;
-	sevent = (isc_socketevent_t *)event;
-	query = event->ev_arg;
-	REQUIRE(DIG_VALID_QUERY(query));
-
-	recvcount--;
-	INSIST(recvcount >= 0);
-
-	if (sevent->result == ISC_R_CANCELED) {
-		isc_event_free(&event);
-		l = query->lookup;
-		clear_query(query);
-		check_next_lookup(l);
-		UNLOCK_LOOKUP;
-		return;
-	}
-	if (sevent->result != ISC_R_SUCCESS) {
-		char sockstr[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
-		dighost_error("communications error to %s: %s\n", sockstr,
-			      isc_result_totext(sevent->result));
-		if (keep != NULL) {
-			isc_socket_detach(&keep);
-		}
-		l = query->lookup;
-		isc_socket_detach(&query->sock);
-		sockcount--;
-		debug("sockcount=%d", sockcount);
-		INSIST(sockcount >= 0);
-		if (sevent->result == ISC_R_EOF) {
-			requeue_or_update_exitcode(l);
-		}
-		isc_event_free(&event);
-		clear_query(query);
-		cancel_lookup(l);
-		check_next_lookup(l);
-		UNLOCK_LOOKUP;
-		return;
-	}
-	isc_buffer_init(&b, sevent->region.base, sevent->n);
-	isc_buffer_add(&b, sevent->n);
-	length = isc_buffer_getuint16(&b);
-
-	if (length == 0) {
-		isc_event_free(&event);
-		launch_next_query(query, false);
-		UNLOCK_LOOKUP;
-		return;
-	}
-
-	/*
-	 * Even though the buffer was already init'ed, we need
-	 * to redo it now, to force the length we want.
-	 */
-	isc_buffer_invalidate(&query->recvbuf);
-	isc_buffer_init(&query->recvbuf, query->recvspace, length);
-	isc_buffer_availableregion(&query->recvbuf, &r);
-	debug("recving with lookup=%p, query=%p", query->lookup, query);
-	result = isc_socket_recv(query->sock, &r, length, task, recv_done,
-				 query);
-	check_result(result, "isc_socket_recv");
-	recvcount++;
-	debug("resubmitted recv request with length %d, recvcount=%d", length,
-	      recvcount);
-	isc_event_free(&event);
-	UNLOCK_LOOKUP;
-}
-
-/*%
  * For transfers that involve multiple recvs (XFR's in particular),
  * launch the next recv.
  */
 static void
-launch_next_query(dig_query_t *query, bool include_question) {
-	isc_result_t result;
-	dig_lookup_t *l;
+launch_next_query(dig_query_t *query) {
+	dig_query_t *readquery = NULL;
+	int local_timeout = timeout * 1000;
+	dig_lookup_t *l = NULL;
 	isc_region_t r;
-	REQUIRE(DIG_VALID_QUERY(query));
 
+	REQUIRE(DIG_VALID_QUERY(query));
 	INSIST(!free_now);
 
 	debug("launch_next_query()");
 
-	if (!query->lookup->pending) {
+	lookup_attach(query->lookup, &l);
+
+	if (!l->pending) {
 		debug("ignoring launch_next_query because !pending");
-		isc_socket_detach(&query->sock);
-		sockcount--;
-		debug("sockcount=%d", sockcount);
-		INSIST(sockcount >= 0);
-		query->waiting_connect = false;
-		l = query->lookup;
-		clear_query(query);
-		check_next_lookup(l);
+		query_detach(&query);
+		lookup_detach(&l);
+		clear_current_lookup();
 		return;
 	}
 
-	isc_buffer_clear(&query->lengthbuf);
-	isc_buffer_availableregion(&query->lengthbuf, &r);
-	result = isc_socket_recv(query->sock, &r, 0, global_task,
-				 tcp_length_done, query);
-	check_result(result, "isc_socket_recv");
-	recvcount++;
-	debug("recvcount=%d", recvcount);
+	isc_nmhandle_attach(query->handle, &query->readhandle);
+	isc_refcount_increment0(&recvcount);
+	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
+
+	if (local_timeout == 0) {
+		local_timeout = TCP_TIMEOUT * 1000;
+	}
+
+	debug("have local timeout of %d", local_timeout);
+	isc_nmhandle_settimeout(query->handle, local_timeout);
+
+	query_attach(query, &readquery);
+	isc_nm_read(query->handle, recv_done, readquery);
+
 	if (!query->first_soa_rcvd) {
+		dig_query_t *sendquery = NULL;
 		debug("sending a request in launch_next_query");
 		TIME_NOW(&query->time_sent);
-		query->waiting_senddone = true;
-		isc_buffer_clear(&query->tmpsendbuf);
-		isc_buffer_putuint16(&query->tmpsendbuf,
-				     isc_buffer_usedlength(&query->sendbuf));
-		if (include_question) {
-			isc_buffer_usedregion(&query->sendbuf, &r);
-			isc_buffer_copyregion(&query->tmpsendbuf, &r);
+		query_attach(query, &sendquery);
+		isc_buffer_usedregion(&query->sendbuf, &r);
+		if (keep != NULL) {
+			query->handle = keep;
 		}
-		isc_buffer_usedregion(&query->tmpsendbuf, &r);
-		result = isc_socket_send(query->sock, &r, global_task,
-					 send_done, query);
-		check_result(result, "isc_socket_send");
-		sendcount++;
-		debug("sendcount=%d", sendcount);
+		isc_nmhandle_attach(query->handle, &query->sendhandle);
+		isc_nm_send(query->handle, &r, send_done, sendquery);
+		isc_refcount_increment0(&sendcount);
+		debug("sendcount=%" PRIuFAST32,
+		      isc_refcount_current(&sendcount));
 
 		/* XXX qrflag, print_query, etc... */
-		if (!ISC_LIST_EMPTY(query->lookup->q) && query->lookup->qr) {
+		if (!ISC_LIST_EMPTY(l->q) && l->qr) {
 			extrabytes = 0;
-			dighost_printmessage(ISC_LIST_HEAD(query->lookup->q),
-					     &query->lookup->renderbuf,
-					     query->lookup->sendmsg, true);
-			if (query->lookup->stats) {
+			dighost_printmessage(ISC_LIST_HEAD(l->q), &l->renderbuf,
+					     l->sendmsg, true);
+			if (l->stats) {
 				print_query_size(query);
 			}
 		}
 	}
-	query->waiting_connect = false;
-#if 0
-	check_next_lookup(query->lookup);
-#endif /* if 0 */
+	lookup_detach(&l);
 	return;
 }
 
@@ -3267,98 +3202,89 @@ launch_next_query(dig_query_t *query, bool include_question) {
  * question.
  */
 static void
-connect_done(isc_task_t *task, isc_event_t *event) {
+tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+	dig_query_t *query = (dig_query_t *)arg;
+	dig_query_t *next = NULL;
 	char sockstr[ISC_SOCKADDR_FORMATSIZE];
-	isc_socketevent_t *sevent = NULL;
-	dig_query_t *query = NULL, *next;
-	dig_lookup_t *l;
+	dig_lookup_t *l = NULL;
 
-	UNUSED(task);
-
-	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
+	REQUIRE(DIG_VALID_QUERY(query));
+	REQUIRE(query->handle == NULL);
 	INSIST(!free_now);
 
-	debug("connect_done()");
+	debug("tcp_connected()");
 
 	LOCK_LOOKUP;
-	sevent = (isc_socketevent_t *)event;
-	query = sevent->ev_arg;
-	REQUIRE(DIG_VALID_QUERY(query));
+	lookup_attach(query->lookup, &l);
 
-	INSIST(query->waiting_connect);
-
-	query->waiting_connect = false;
-
-	if (sevent->result == ISC_R_CANCELED) {
+	if (eresult == ISC_R_CANCELED) {
 		debug("in cancel handler");
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
-		if (query->timedout) {
-			dighost_warning("Connection to %s(%s) for %s failed: "
-					"%s.",
-					sockstr, query->servname,
-					query->lookup->textname,
-					isc_result_totext(ISC_R_TIMEDOUT));
-		}
-		isc_socket_detach(&query->sock);
-		INSIST(sockcount > 0);
-		sockcount--;
-		debug("sockcount=%d", sockcount);
-		query->waiting_connect = false;
-		isc_event_free(&event);
-		l = query->lookup;
-		clear_query(query);
-		check_next_lookup(l);
+		query_detach(&query);
+		lookup_detach(&l);
+		clear_current_lookup();
 		UNLOCK_LOOKUP;
 		return;
-	}
-	if (sevent->result != ISC_R_SUCCESS) {
+	} else if (eresult != ISC_R_SUCCESS) {
 		debug("unsuccessful connection: %s",
-		      isc_result_totext(sevent->result));
+		      isc_result_totext(eresult));
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
-		if (sevent->result != ISC_R_CANCELED) {
+		if (eresult != ISC_R_CANCELED) {
 			dighost_warning("Connection to %s(%s) for %s failed: "
 					"%s.",
-					sockstr, query->servname,
-					query->lookup->textname,
-					isc_result_totext(sevent->result));
+					sockstr, query->servname, l->textname,
+					isc_result_totext(eresult));
 		}
-		isc_socket_detach(&query->sock);
-		INSIST(sockcount > 0);
-		sockcount--;
+
 		/* XXX Clean up exitcodes */
 		if (exitcode < 9) {
 			exitcode = 9;
 		}
-		debug("sockcount=%d", sockcount);
-		query->waiting_connect = false;
-		isc_event_free(&event);
-		l = query->lookup;
-		if ((l->current_query != NULL) &&
-		    (ISC_LINK_LINKED(l->current_query, link))) {
+
+		if (l->retries > 1) {
+			debug("making new TCP request, %d tries left",
+			      l->retries);
+			l->retries--;
+			requeue_lookup(l, true);
+			next = NULL;
+		} else if ((l->current_query != NULL) &&
+			   (ISC_LINK_LINKED(l->current_query, link)))
+		{
 			next = ISC_LIST_NEXT(l->current_query, link);
 		} else {
 			next = NULL;
 		}
-		clear_query(query);
+
+		query_detach(&query);
+		lookup_detach(&l);
+
 		if (next != NULL) {
-			bringup_timer(next, TCP_TIMEOUT);
-			send_tcp_connect(next);
+			start_tcp(next);
 		} else {
-			check_next_lookup(l);
+			clear_current_lookup();
 		}
+
+		check_if_done();
 		UNLOCK_LOOKUP;
 		return;
 	}
+
 	exitcode = 0;
+
+	query->handle = handle;
 	if (keep_open) {
-		if (keep != NULL) {
-			isc_socket_detach(&keep);
-		}
-		isc_socket_attach(query->sock, &keep);
 		keepaddr = query->sockaddr;
+		if (keep != NULL) {
+			isc_nmhandle_detach(&keep);
+		}
+
+		isc_nmhandle_attach(handle, &keep);
 	}
-	launch_next_query(query, true);
-	isc_event_free(&event);
+
+	launch_next_query(query);
+	query_detach(&query);
+	isc_nmhandle_detach(&handle);
+	lookup_detach(&l);
 	UNLOCK_LOOKUP;
 }
 
@@ -3369,15 +3295,15 @@ connect_done(isc_task_t *task, isc_event_t *event) {
  * false means more data is on the way, and the recv has been issued.
  */
 static bool
-check_for_more_data(dig_query_t *query, dns_message_t *msg,
-		    isc_socketevent_t *sevent) {
+check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
+		    dns_message_t *msg, isc_sockaddr_t *peer, int len) {
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
-	uint32_t ixfr_serial = query->lookup->ixfr_serial, serial;
+	uint32_t ixfr_serial = lookup->ixfr_serial, serial;
 	isc_result_t result;
-	bool ixfr = query->lookup->rdtype == dns_rdatatype_ixfr;
-	bool axfr = query->lookup->rdtype == dns_rdatatype_axfr;
+	bool ixfr = lookup->rdtype == dns_rdatatype_ixfr;
+	bool axfr = lookup->rdtype == dns_rdatatype_axfr;
 
 	if (ixfr) {
 		axfr = query->ixfr_axfr;
@@ -3395,7 +3321,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	 */
 
 	query->msg_count++;
-	query->byte_count += sevent->n;
+	query->byte_count += len;
 	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	if (result != ISC_R_SUCCESS) {
 		puts("; Transfer failed.");
@@ -3500,10 +3426,12 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		}
 		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
 	} while (result == ISC_R_SUCCESS);
-	launch_next_query(query, false);
+	isc_nmhandle_detach(&query->readhandle);
+	launch_next_query(query);
+	query_detach(&query);
 	return (false);
 doexit:
-	dighost_received(sevent->n, &sevent->address, query);
+	dighost_received(len, peer, query);
 	return (true);
 }
 
@@ -3606,122 +3534,103 @@ ednsvers(dns_rdataset_t *opt) {
  * based on the specifics of the user's request.
  */
 static void
-recv_done(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *sevent = NULL;
-	isc_region_t r;
-	dig_query_t *query = NULL;
+recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
+	  void *arg) {
+	dig_query_t *query = (dig_query_t *)arg;
 	isc_buffer_t b;
 	dns_message_t *msg = NULL;
 	isc_result_t result;
-	dig_lookup_t *n, *l;
+	dig_lookup_t *n = NULL;
+	dig_lookup_t *l = NULL;
 	bool docancel = false;
+	bool donext = false;
 	bool match = true;
 	bool done_process_opt = false;
 	unsigned int parseflags;
 	dns_messageid_t id;
 	unsigned int msgflags;
 	int newedns;
+	isc_sockaddr_t peer;
 
-	UNUSED(task);
+	REQUIRE(DIG_VALID_QUERY(query));
+	INSIST(query->readhandle != NULL);
+	INSIST(handle == query->readhandle);
 	INSIST(!free_now);
 
-	debug("recv_done()");
+	debug("recv_done(%p, %s, %p, %p)", handle, isc_result_totext(eresult),
+	      region, arg);
 
 	LOCK_LOOKUP;
-	recvcount--;
-	debug("recvcount=%d", recvcount);
-	INSIST(recvcount >= 0);
+	lookup_attach(query->lookup, &l);
 
-	query = event->ev_arg;
+	if (eresult == ISC_R_CANCELED) {
+		debug("recv_done: cancel");
+		goto detach_query;
+	}
+
+	isc_refcount_decrement0(&recvcount);
+	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
+
 	TIME_NOW(&query->time_recv);
 
-	l = query->lookup;
+	if (eresult == ISC_R_TIMEDOUT && !l->tcp_mode && l->retries > 1) {
+		dig_query_t *newq = NULL;
 
-	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
-	sevent = (isc_socketevent_t *)event;
+		l->retries--;
+		debug("resending UDP request to first server, %d tries left",
+		      l->retries);
+		newq = new_query(l, query->servname, query->userarg);
 
-	isc_buffer_init(&b, sevent->region.base, sevent->n);
-	isc_buffer_add(&b, sevent->n);
+		ISC_LIST_PREPEND(l->q, newq, link);
 
-	if ((l->tcp_mode) && (query->timer != NULL)) {
-		isc_timer_touch(query->timer);
-	}
-	if ((!l->pending && !l->ns_search_only) || cancel_now) {
-		debug("no longer pending.  Got %s",
-		      isc_result_totext(sevent->result));
-		query->waiting_connect = false;
-
-		isc_event_free(&event);
-		clear_query(query);
-		check_next_lookup(l);
-		UNLOCK_LOOKUP;
-		return;
+		start_udp(ISC_LIST_HEAD(l->q));
+		goto detach_query;
 	}
 
-	if (sevent->result != ISC_R_SUCCESS) {
-		if (sevent->result == ISC_R_CANCELED) {
-			debug("in recv cancel handler");
-			query->waiting_connect = false;
-		} else {
-			dighost_error("communications error: %s\n",
-				      isc_result_totext(sevent->result));
-			if (keep != NULL) {
-				isc_socket_detach(&keep);
+	if ((!l->pending && !l->ns_search_only) || atomic_load(&cancel_now)) {
+		debug("no longer pending.  Got %s", isc_result_totext(eresult));
+
+		goto next_lookup;
+	}
+
+	if (eresult != ISC_R_SUCCESS) {
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
+		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
+
+		if (eresult == ISC_R_TIMEDOUT) {
+			if (l->retries > 1) {
+				debug("making new TCP request, %d tries left",
+				      l->retries);
+				l->retries--;
+				requeue_lookup(l, true);
+			} else {
+				printf("%s", l->cmdline);
+				dighost_error("connection timed out; "
+					      "no servers could be reached\n");
+				if (exitcode < 9) {
+					exitcode = 9;
+				}
 			}
-			isc_socket_detach(&query->sock);
-			sockcount--;
-			debug("sockcount=%d", sockcount);
-			INSIST(sockcount >= 0);
+		} else {
+			dighost_error("communications error to %s: %s\n",
+				      sockstr, isc_result_totext(eresult));
 		}
-		if (sevent->result == ISC_R_EOF) {
+
+		if (keep != NULL) {
+			isc_nmhandle_detach(&keep);
+		}
+
+		if (eresult == ISC_R_EOF) {
 			requeue_or_update_exitcode(l);
 		}
-		isc_event_free(&event);
-		clear_query(query);
-		cancel_lookup(l);
-		check_next_lookup(l);
-		UNLOCK_LOOKUP;
-		return;
+
+		goto cancel_lookup;
 	}
 
-	if (!l->tcp_mode &&
-	    !isc_sockaddr_compare(&sevent->address, &query->sockaddr,
-				  ISC_SOCKADDR_CMPADDR | ISC_SOCKADDR_CMPPORT |
-					  ISC_SOCKADDR_CMPSCOPE |
-					  ISC_SOCKADDR_CMPSCOPEZERO))
-	{
-		char buf1[ISC_SOCKADDR_FORMATSIZE];
-		char buf2[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_t any;
+	isc_buffer_init(&b, region->base, region->length);
+	isc_buffer_add(&b, region->length);
 
-		if (isc_sockaddr_pf(&query->sockaddr) == AF_INET) {
-			isc_sockaddr_any(&any);
-		} else {
-			isc_sockaddr_any6(&any);
-		}
-
-		/*
-		 * We don't expect a match when the packet is
-		 * sent to 0.0.0.0, :: or to a multicast addresses.
-		 * XXXMPA broadcast needs to be handled here as well.
-		 */
-		if ((!isc_sockaddr_eqaddr(&query->sockaddr, &any) &&
-		     !isc_sockaddr_ismulticast(&query->sockaddr)) ||
-		    isc_sockaddr_getport(&query->sockaddr) !=
-			    isc_sockaddr_getport(&sevent->address))
-		{
-			isc_sockaddr_format(&sevent->address, buf1,
-					    sizeof(buf1));
-			isc_sockaddr_format(&query->sockaddr, buf2,
-					    sizeof(buf2));
-			dighost_warning("reply from unexpected source: %s,"
-					" expected %s\n",
-					buf1, buf2);
-			if (!l->accept_reply_unexpected_src) {
-				match = false;
-			}
-		}
-	}
+	peer = isc_nmhandle_peeraddr(handle);
 
 	result = dns_message_peekheader(&b, &id, &msgflags);
 	if (result != ISC_R_SUCCESS || l->sendmsg->id != id) {
@@ -3748,12 +3657,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 						"message");
 			}
 			if (fail) {
-				isc_event_free(&event);
-				clear_query(query);
-				cancel_lookup(l);
-				check_next_lookup(l);
-				UNLOCK_LOOKUP;
-				return;
+				goto cancel_lookup;
 			}
 			match = true;
 		} else if (result == ISC_R_SUCCESS) {
@@ -3771,7 +3675,15 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (!match) {
-		goto udp_mismatch;
+		/*
+		 * We are still attached to query and the query->readhandle is
+		 * also attached
+		 */
+		isc_refcount_increment0(&recvcount);
+		debug("recvcount=%" PRIuFAST32,
+		      isc_refcount_current(&recvcount));
+		isc_nm_read(handle, recv_done, query);
+		goto keep_query;
 	}
 
 	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
@@ -3801,27 +3713,20 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		parseflags |= DNS_MESSAGEPARSE_BESTEFFORT;
 		parseflags |= DNS_MESSAGEPARSE_IGNORETRUNCATION;
 	}
+
 	result = dns_message_parse(msg, &b, parseflags);
 	if (result == DNS_R_RECOVERABLE) {
 		dighost_warning("Warning: Message parser reports malformed "
 				"message packet.");
-		result = ISC_R_SUCCESS;
-	}
-	if (result != ISC_R_SUCCESS) {
+	} else if (result != ISC_R_SUCCESS) {
 		if (!yaml) {
 			printf(";; Got bad packet: %s\n",
 			       isc_result_totext(result));
 			hex_dump(&b);
 		}
-		query->waiting_connect = false;
-		dns_message_detach(&msg);
-		isc_event_free(&event);
-		clear_query(query);
-		cancel_lookup(l);
-		check_next_lookup(l);
-		UNLOCK_LOOKUP;
-		return;
+		goto cancel_lookup;
 	}
+
 	if (msg->opcode != l->opcode) {
 		char expect[20] = { 0 }, got[20] = { 0 };
 
@@ -3836,18 +3741,13 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		dighost_warning("Warning: Opcode mismatch: expected %s, got %s",
 				expect, got);
 
-		dns_message_detach(&msg);
-		if (l->tcp_mode) {
-			isc_event_free(&event);
-			clear_query(query);
-			cancel_lookup(l);
-			check_next_lookup(l);
-			UNLOCK_LOOKUP;
-			return;
-		} else {
-			goto udp_mismatch;
-		}
+		isc_refcount_increment0(&recvcount);
+		debug("recvcount=%" PRIuFAST32,
+		      isc_refcount_current(&recvcount));
+		isc_nm_read(handle, recv_done, query);
+		goto keep_query;
 	}
+
 	if (msg->counts[DNS_SECTION_QUESTION] != 0) {
 		match = true;
 		for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
@@ -3887,20 +3787,24 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				}
 			}
 		}
+
 		if (!match) {
-			dns_message_detach(&msg);
 			if (l->tcp_mode) {
-				isc_event_free(&event);
-				clear_query(query);
-				cancel_lookup(l);
-				check_next_lookup(l);
-				UNLOCK_LOOKUP;
-				return;
-			} else {
-				goto udp_mismatch;
+				goto cancel_lookup;
 			}
+
+			/*
+			 * We are still attached to query and the
+			 * query->readhandle is also attached
+			 */
+			isc_refcount_increment0(&recvcount);
+			debug("recvcount=%" PRIuFAST32,
+			      isc_refcount_current(&recvcount));
+			isc_nm_read(handle, recv_done, query);
+			goto keep_query;
 		}
 	}
+
 	if (msg->rcode == dns_rcode_badvers && msg->opt != NULL &&
 	    (newedns = ednsvers(msg->opt)) < l->edns && l->ednsneg)
 	{
@@ -3914,14 +3818,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (l->trace && l->trace_root) {
 			n->rdtype = l->qrdtype;
 		}
-		dns_message_detach(&msg);
-		isc_event_free(&event);
-		clear_query(query);
-		cancel_lookup(l);
-		check_next_lookup(l);
-		UNLOCK_LOOKUP;
-		return;
+		goto cancel_lookup;
 	}
+
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0 && !l->ignore &&
 	    !l->tcp_mode) {
 		if (l->cookie == NULL && l->sendcookie && msg->opt != NULL) {
@@ -3933,14 +3832,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (l->trace && l->trace_root) {
 			n->rdtype = l->qrdtype;
 		}
-		dns_message_detach(&msg);
-		isc_event_free(&event);
-		clear_query(query);
-		cancel_lookup(l);
-		check_next_lookup(l);
-		UNLOCK_LOOKUP;
-		return;
+		goto cancel_lookup;
 	}
+
 	if (msg->rcode == dns_rcode_badcookie && !l->tcp_mode &&
 	    l->sendcookie && l->badcookie)
 	{
@@ -3957,31 +3851,27 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if (l->trace && l->trace_root) {
 				n->rdtype = l->qrdtype;
 			}
-			dns_message_detach(&msg);
-			isc_event_free(&event);
-			clear_query(query);
-			cancel_lookup(l);
-			check_next_lookup(l);
-			UNLOCK_LOOKUP;
-			return;
+			goto cancel_lookup;
 		}
 		done_process_opt = true;
 	}
+
 	if ((msg->rcode == dns_rcode_servfail && !l->servfail_stops) ||
 	    (check_ra && (msg->flags & DNS_MESSAGEFLAG_RA) == 0 && l->recurse))
 	{
 		dig_query_t *next = ISC_LIST_NEXT(query, link);
 		if (l->current_query == query) {
-			l->current_query = NULL;
+			query_detach(&l->current_query);
 		}
 		if (next != NULL) {
-			debug("sending query %p\n", next);
+			debug("sending query %p", next);
 			if (l->tcp_mode) {
-				send_tcp_connect(next);
+				start_tcp(next);
 			} else {
-				send_udp(next);
+				start_udp(next);
 			}
 		}
+
 		/*
 		 * If our query is at the head of the list and there
 		 * is no next, we're the only one left, so fall
@@ -3996,12 +3886,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 						 ? "SERVFAIL reply"
 						 : "recursion not available",
 					 query->servname);
-			clear_query(query);
-			check_next_lookup(l);
-			dns_message_detach(&msg);
-			isc_event_free(&event);
-			UNLOCK_LOOKUP;
-			return;
+			goto next_lookup;
 		}
 	}
 
@@ -4037,23 +3922,20 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 			if (timeout == 0) {
 				if (l->tcp_mode) {
-					local_timeout = TCP_TIMEOUT * 4;
+					local_timeout = TCP_TIMEOUT * 4000;
 				} else {
-					local_timeout = UDP_TIMEOUT * 4;
+					local_timeout = UDP_TIMEOUT * 4000;
 				}
 			} else {
 				if (timeout < (INT_MAX / 4)) {
-					local_timeout = timeout * 4;
+					local_timeout = timeout * 4000;
 				} else {
 					local_timeout = INT_MAX;
 				}
 			}
+
 			debug("have local timeout of %d", local_timeout);
-			isc_interval_set(&l->interval, local_timeout, 0);
-			result = isc_timer_reset(query->timer,
-						 isc_timertype_once, NULL,
-						 &l->interval, false);
-			check_result(result, "isc_timer_reset");
+			isc_nmhandle_settimeout(query->handle, local_timeout);
 		}
 	}
 
@@ -4069,13 +3951,14 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			process_opt(l, msg);
 		}
 	}
+
 	if (!l->doing_xfr || l->xfr_q == query) {
 		if (msg->rcode == dns_rcode_nxdomain &&
 		    (l->origin != NULL || l->need_search)) {
-			if (!next_origin(query->lookup) || showsearch) {
+			if (!next_origin(l) || showsearch) {
 				dighost_printmessage(query, &b, msg, true);
 				dighost_received(isc_buffer_usedlength(&b),
-						 &sevent->address, query);
+						 &peer, query);
 			}
 		} else if (!l->trace && !l->ns_search_only) {
 			dighost_printmessage(query, &b, msg, true);
@@ -4129,58 +4012,57 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	if (l->pending) {
 		debug("still pending.");
 	}
+
 	if (l->doing_xfr) {
 		if (query != l->xfr_q) {
-			dns_message_detach(&msg);
-			isc_event_free(&event);
-			query->waiting_connect = false;
-			UNLOCK_LOOKUP;
-			return;
+			goto detach_query;
 		}
 		if (!docancel) {
-			docancel = check_for_more_data(query, msg, sevent);
+			docancel = check_for_more_data(l, query, msg, &peer,
+						       region->length);
 		}
 		if (docancel) {
-			dns_message_detach(&msg);
-			clear_query(query);
-			cancel_lookup(l);
-			check_next_lookup(l);
+			goto cancel_lookup;
 		}
+		/*
+		 * check_for_more_data() will detach from query->readhandle
+		 * and query on its own, as it needs to reuse the query and
+		 * reattach to the readhandle in launch_next_query().
+		 */
+		goto keep_query;
 	} else {
 		if (msg->rcode == dns_rcode_noerror || l->origin == NULL) {
-			dighost_received(isc_buffer_usedlength(&b),
-					 &sevent->address, query);
+			dighost_received(isc_buffer_usedlength(&b), &peer,
+					 query);
 		}
 
-		if (!query->lookup->ns_search_only) {
-			query->lookup->pending = false;
+		if (!l->ns_search_only) {
+			l->pending = false;
 		}
-		if (!query->lookup->ns_search_only ||
-		    query->lookup->trace_root || docancel) {
-			dns_message_detach(&msg);
-			cancel_lookup(l);
+		if (!l->ns_search_only || l->trace_root || docancel) {
+			goto cancel_lookup;
 		}
-		clear_query(query);
-		check_next_lookup(l);
+		goto next_lookup;
 	}
+cancel_lookup:
+	docancel = true;
+next_lookup:
+	donext = true;
+detach_query:
+	isc_nmhandle_detach(&query->readhandle);
+	query_detach(&query);
+	if (docancel) {
+		cancel_lookup(l);
+	}
+keep_query:
 	if (msg != NULL) {
 		dns_message_detach(&msg);
 	}
-	isc_event_free(&event);
+	lookup_detach(&l);
+	if (donext) {
+		clear_current_lookup();
+	}
 	UNLOCK_LOOKUP;
-	return;
-
-udp_mismatch:
-	isc_buffer_invalidate(&query->recvbuf);
-	isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
-	isc_buffer_availableregion(&query->recvbuf, &r);
-	result = isc_socket_recv(query->sock, &r, 1, global_task, recv_done,
-				 query);
-	check_result(result, "isc_socket_recv");
-	recvcount++;
-	isc_event_free(&event);
-	UNLOCK_LOOKUP;
-	return;
 }
 
 /*%
@@ -4258,9 +4140,9 @@ do_lookup(dig_lookup_t *lookup) {
 	if (query != NULL) {
 		REQUIRE(DIG_VALID_QUERY(query));
 		if (lookup->tcp_mode) {
-			send_tcp_connect(query);
+			start_tcp(query);
 		} else {
-			send_udp(query);
+			start_udp(query);
 		}
 	}
 }
@@ -4294,37 +4176,33 @@ cancel_all(void) {
 		UNLOCK_LOOKUP;
 		return;
 	}
-	cancel_now = true;
+	atomic_store(&cancel_now, true);
 	if (current_lookup != NULL) {
 		for (q = ISC_LIST_HEAD(current_lookup->q); q != NULL; q = nq) {
 			nq = ISC_LIST_NEXT(q, link);
 			debug("canceling pending query %p, belonging to %p", q,
 			      current_lookup);
-			if (q->sock != NULL) {
-				isc_socket_cancel(q->sock, NULL,
-						  ISC_SOCKCANCEL_ALL);
-			} else {
-				clear_query(q);
+			if (q->readhandle != NULL) {
+				isc_refcount_decrement0(&recvcount);
+				debug("recvcount=%" PRIuFAST32,
+				      isc_refcount_current(&recvcount));
 			}
+			query_detach(&q);
 		}
 		for (q = ISC_LIST_HEAD(current_lookup->connecting); q != NULL;
 		     q = nq) {
 			nq = ISC_LIST_NEXT(q, clink);
 			debug("canceling connecting query %p, belonging to %p",
 			      q, current_lookup);
-			if (q->sock != NULL) {
-				isc_socket_cancel(q->sock, NULL,
-						  ISC_SOCKCANCEL_ALL);
-			} else {
-				clear_query(q);
-			}
+			query_detach(&q);
 		}
+		lookup_detach(&current_lookup);
 	}
 	l = ISC_LIST_HEAD(lookup_list);
 	while (l != NULL) {
 		n = ISC_LIST_NEXT(l, link);
 		ISC_LIST_DEQUEUE(lookup_list, l, link);
-		try_clear_lookup(l);
+		lookup_detach(&l);
 		l = n;
 	}
 	UNLOCK_LOOKUP;
@@ -4336,12 +4214,8 @@ cancel_all(void) {
  */
 void
 destroy_libs(void) {
-#ifdef HAVE_LIBIDN2
-	isc_result_t result;
-#endif /* HAVE_LIBIDN2 */
-
 	if (keep != NULL) {
-		isc_socket_detach(&keep);
+		isc_nmhandle_detach(&keep);
 	}
 	debug("destroy_libs()");
 	if (global_task != NULL) {
@@ -4349,17 +4223,23 @@ destroy_libs(void) {
 		isc_task_detach(&global_task);
 	}
 	/*
-	 * The taskmgr_destroy() call blocks until all events are cleared
-	 * from the task.
+	 * The taskmgr_destroy() and isc_nm_destroy() calls block until
+	 * all events are cleared.
 	 */
 	if (taskmgr != NULL) {
 		debug("freeing taskmgr");
 		isc_taskmgr_destroy(&taskmgr);
 	}
+
+	debug("closing down netmgr");
+	isc_nm_closedown(netmgr);
+
+	debug("destroy netmgr");
+	isc_nm_destroy(&netmgr);
+
 	LOCK_LOOKUP;
-	REQUIRE(sockcount == 0);
-	REQUIRE(recvcount == 0);
-	REQUIRE(sendcount == 0);
+	isc_refcount_destroy(&recvcount);
+	isc_refcount_destroy(&sendcount);
 
 	INSIST(ISC_LIST_HEAD(lookup_list) == NULL);
 	INSIST(current_lookup == NULL);
@@ -4371,22 +4251,9 @@ destroy_libs(void) {
 
 	clear_searchlist();
 
-#ifdef HAVE_LIBIDN2
-	result = dns_name_settotextfilter(NULL);
-	check_result(result, "dns_name_settotextfilter");
-#endif /* HAVE_LIBIDN2 */
-
 	if (commctx != NULL) {
 		debug("freeing commctx");
 		isc_mempool_destroy(&commctx);
-	}
-	if (socketmgr != NULL) {
-		debug("freeing socketmgr");
-		isc_socketmgr_destroy(&socketmgr);
-	}
-	if (timermgr != NULL) {
-		debug("freeing timermgr");
-		isc_timermgr_destroy(&timermgr);
 	}
 	if (tsigkey != NULL) {
 		debug("freeing key %p", tsigkey);
@@ -4576,3 +4443,17 @@ idn_ace_to_locale(const char *src, char **dst) {
 	*dst = local_src;
 }
 #endif /* HAVE_LIBIDN2 */
+
+void
+dig_idnsetup(dig_lookup_t *lookup, bool active) {
+#ifdef HAVE_LIBIDN2
+	isc_result_t result;
+	result = dns_name_settotextfilter(
+		(active && lookup->idnout) ? idn_output_filter : NULL);
+	check_result(result, "dns_name_settotextfilter");
+#else
+	UNUSED(lookup);
+	UNUSED(active);
+	return;
+#endif /* HAVE_LIBIDN2 */
+}

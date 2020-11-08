@@ -135,16 +135,27 @@ isc_nmhandle_getextra(isc_nmhandle_t *handle);
 bool
 isc_nmhandle_is_stream(isc_nmhandle_t *handle);
 
-/*
- * isc_nmhandle_t has a void * opaque field (usually - ns_client_t).
+void
+isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
+		     isc_nm_opaquecb_t doreset, isc_nm_opaquecb_t dofree);
+/*%<
+ * isc_nmhandle_t has a void* opaque field (for example, ns_client_t).
  * We reuse handle and `opaque` can also be reused between calls.
  * This function sets this field and two callbacks:
  * - doreset resets the `opaque` to initial state
  * - dofree frees everything associated with `opaque`
  */
+
 void
-isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
-		     isc_nm_opaquecb_t doreset, isc_nm_opaquecb_t dofree);
+isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+/*%<
+ * Set the read/recv timeout for the socket connected to 'handle'
+ * to 'timeout', and reset the timer.
+ *
+ * When this is called on a 'wrapper' socket handle (for example,
+ * a TCPDNS socket wrapping a TCP connection), the timer is set for
+ * both socket layers.
+ */
 
 isc_sockaddr_t
 isc_nmhandle_peeraddr(isc_nmhandle_t *handle);
@@ -359,9 +370,9 @@ isc_nm_tcpdns_sequential(isc_nmhandle_t *handle);
  */
 
 void
-isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle);
+isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value);
 /*%<
- * Enable keepalive on this connection.
+ * Enable/disable keepalive on this connection by setting it to 'value'.
  *
  * When keepalive is active, we switch to using the keepalive timeout
  * to determine when to close a connection, rather than the idle timeout.

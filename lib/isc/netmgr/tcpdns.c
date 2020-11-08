@@ -470,7 +470,7 @@ isc_nm_tcpdns_sequential(isc_nmhandle_t *handle) {
 }
 
 void
-isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle) {
+isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	if (handle->sock->type != isc_nm_tcpdnssocket ||
@@ -479,8 +479,8 @@ isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle) {
 		return;
 	}
 
-	atomic_store(&handle->sock->keepalive, true);
-	atomic_store(&handle->sock->outerhandle->sock->keepalive, true);
+	atomic_store(&handle->sock->keepalive, value);
+	atomic_store(&handle->sock->outerhandle->sock->keepalive, value);
 }
 
 static void
@@ -736,6 +736,7 @@ tcpdnsconnect_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	void *cbarg = conn->cbarg;
 	size_t extrahandlesize = conn->extrahandlesize;
 	isc_nmsocket_t *dnssock = NULL;
+	isc_nmhandle_t *readhandle = NULL;
 
 	REQUIRE(result != ISC_R_SUCCESS || VALID_NMHANDLE(handle));
 
@@ -758,7 +759,13 @@ tcpdnsconnect_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	dnssock->tid = isc_nm_tid();
 
 	atomic_init(&dnssock->client, true);
-	dnssock->statichandle = isc__nmhandle_get(dnssock, NULL, NULL);
+
+	readhandle = isc__nmhandle_get(dnssock, NULL, NULL);
+
+	INSIST(dnssock->statichandle != NULL);
+	INSIST(dnssock->statichandle == readhandle);
+	INSIST(readhandle->sock == dnssock);
+	INSIST(dnssock->recv_cb == NULL);
 
 	uv_timer_init(&dnssock->mgr->workers[isc_nm_tid()].loop,
 		      &dnssock->timer);
@@ -774,7 +781,11 @@ tcpdnsconnect_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	 * packet.
 	 */
 	isc_nm_read(handle, dnslisten_readcb, dnssock);
-	cb(dnssock->statichandle, ISC_R_SUCCESS, cbarg);
+	cb(readhandle, ISC_R_SUCCESS, cbarg);
+
+	/*
+	 * The sock is now attached to the handle.
+	 */
 	isc__nmsocket_detach(&dnssock);
 }
 
@@ -819,6 +830,10 @@ isc__nm_tcpdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
+
+	sock->read_timeout = (atomic_load(&sock->keepalive)
+				      ? sock->mgr->keepalive
+				      : sock->mgr->idle);
 
 	/*
 	 * Add a reference to the handle to keep it from being freed by
@@ -931,4 +946,23 @@ isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	isc_nmhandle_detach(&handle);
+}
+
+void
+isc__nm_tcpdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	sock = handle->sock;
+
+	if (sock->outerhandle != NULL) {
+		isc__nm_tcp_settimeout(sock->outerhandle, timeout);
+	}
+
+	sock->read_timeout = timeout;
+	if (sock->timer_running) {
+		uv_timer_start(&sock->timer, dnstcp_readtimeout,
+			       sock->read_timeout, 0);
+	}
 }

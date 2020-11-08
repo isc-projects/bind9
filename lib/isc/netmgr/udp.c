@@ -93,8 +93,8 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		INSIST(csock->recv_cb == NULL && csock->recv_cbarg == NULL);
 		csock->recv_cb = cb;
 		csock->recv_cbarg = cbarg;
-		csock->fd = socket(sa_family, SOCK_DGRAM, 0);
-		RUNTIME_CHECK(csock->fd >= 0);
+		result = isc__nm_socket(sa_family, SOCK_DGRAM, 0, &csock->fd);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		result = isc__nm_socket_reuse(csock->fd);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS ||
@@ -368,6 +368,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	if (addr == NULL) {
 		goto done;
 	}
+
 	/*
 	 * - If we're simulating a firewall blocking UDP packets
 	 *   bigger than 'maxudp' bytes for testing purposes.
@@ -376,6 +377,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	if ((maxudp != 0 && (uint32_t)nrecv > maxudp)) {
 		goto done;
 	}
+
 	/*
 	 * - If the socket is no longer active.
 	 */
@@ -388,6 +390,11 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	cb = sock->recv_cb;
 	cbarg = sock->recv_cbarg;
+
+	if (sock->timer_running) {
+		uv_timer_stop(&sock->timer);
+		sock->timer_running = false;
+	}
 
 	if (atomic_load(&sock->client)) {
 		if (nrecv < 0) {
@@ -765,12 +772,22 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	isc__netievent_udpconnect_t *event = NULL;
 	isc__nm_uvreq_t *req = NULL;
 	sa_family_t sa_family;
+	uv_os_sock_t fd;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(local != NULL);
 	REQUIRE(peer != NULL);
 
 	sa_family = peer->addr.type.sa.sa_family;
+
+	/*
+	 * The socket() call can fail spuriously on FreeBSD 12, so we need to
+	 * handle the failure early and gracefully.
+	 */
+	result = isc__nm_socket(sa_family, SOCK_DGRAM, 0, &fd);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	sock = isc_mem_get(mgr->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(sock, mgr, isc_nm_udpsocket, local);
@@ -781,10 +798,8 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	sock->read_timeout = timeout;
 	sock->extrahandlesize = extrahandlesize;
 	sock->peer = peer->addr;
+	sock->fd = fd;
 	atomic_init(&sock->client, true);
-
-	sock->fd = socket(sa_family, SOCK_DGRAM, 0);
-	RUNTIME_CHECK(sock->fd >= 0);
 
 	result = isc__nm_socket_reuse(sock->fd);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS ||
@@ -834,9 +849,7 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		isc__nm_uvreq_put(&req, sock);
 	}
 
-	if (atomic_load(&sock->result) != ISC_R_SUCCESS) {
-		result = atomic_load(&sock->result);
-	}
+	result = atomic_load(&sock->result);
 
 	isc__nmsocket_detach(&tmp);
 
@@ -848,10 +861,6 @@ udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	    const struct sockaddr *addr, unsigned flags) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 
-	if (sock->timer_running) {
-		uv_timer_stop(&sock->timer);
-		sock->timer_running = false;
-	}
 	udp_recv_cb(handle, nrecv, buf, addr, flags);
 	uv_udp_recv_stop(&sock->uv_handle.udp);
 }
@@ -1145,4 +1154,19 @@ isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	isc_nmhandle_detach(&handle);
+}
+
+void
+isc__nm_udp_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	sock = handle->sock;
+
+	sock->read_timeout = timeout;
+	if (sock->timer_running) {
+		uv_timer_start(&sock->timer, readtimeout_cb, sock->read_timeout,
+			       0);
+	}
 }

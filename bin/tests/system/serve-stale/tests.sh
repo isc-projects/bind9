@@ -13,13 +13,15 @@
 
 RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
-# wait up to ten seconds to ensure that a file has been written
+# wait up to 11 seconds to ensure that a file has been written
 waitfile () {
-    for try in 0 1 2 3 4 5 6 7 8 9; do
+    for try in 0 1 2 3 4 5 6 7 8 9 10; do
         [ -s "$1" ] && break
         sleep 1
     done
 }
+
+DIG="$DIG +time=11"
 
 max_stale_ttl=$(sed -ne 's,^[[:space:]]*max-stale-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/named/config.c)
 
