@@ -545,6 +545,7 @@ struct dns_zonemgr {
 	isc_taskmgr_t *taskmgr;
 	isc_timermgr_t *timermgr;
 	isc_socketmgr_t *socketmgr;
+	isc_nm_t *netmgr;
 	isc_taskpool_t *zonetasks;
 	isc_taskpool_t *loadtasks;
 	isc_task_t *task;
@@ -773,6 +774,8 @@ static void
 zone_unload(dns_zone_t *zone);
 static void
 zone_expire(dns_zone_t *zone);
+static void
+zone_refresh(dns_zone_t *zone);
 static void
 zone_iattach(dns_zone_t *source, dns_zone_t **target);
 static void
@@ -10966,11 +10969,13 @@ zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_slave:
 	case dns_zone_mirror:
 	case dns_zone_stub:
+		LOCK_ZONE(zone);
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH) &&
 		    isc_time_compare(&now, &zone->refreshtime) >= 0)
 		{
-			dns_zone_refresh(zone);
+			zone_refresh(zone);
 		}
+		UNLOCK_ZONE(zone);
 		break;
 	default:
 		break;
@@ -11215,14 +11220,15 @@ failure:
 	zone_unload(zone);
 }
 
-void
-dns_zone_refresh(dns_zone_t *zone) {
+static void
+zone_refresh(dns_zone_t *zone) {
 	isc_interval_t i;
 	uint32_t oldflags;
 	unsigned int j;
 	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(LOCKED_ZONE(zone));
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		return;
@@ -11233,7 +11239,6 @@ dns_zone_refresh(dns_zone_t *zone) {
 	 * in progress at a time.
 	 */
 
-	LOCK_ZONE(zone);
 	oldflags = atomic_load(&zone->flags);
 	if (zone->masterscnt == 0) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOMASTERS);
@@ -11241,13 +11246,13 @@ dns_zone_refresh(dns_zone_t *zone) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "cannot refresh: no primaries");
 		}
-		goto unlock;
+		return;
 	}
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
 	if ((oldflags & (DNS_ZONEFLG_REFRESH | DNS_ZONEFLG_LOADING)) != 0) {
-		goto unlock;
+		return;
 	}
 
 	/*
@@ -11279,7 +11284,12 @@ dns_zone_refresh(dns_zone_t *zone) {
 	}
 	/* initiate soa query */
 	queue_soa_query(zone);
-unlock:
+}
+
+void
+dns_zone_refresh(dns_zone_t *zone) {
+	LOCK_ZONE(zone);
+	zone_refresh(zone);
 	UNLOCK_ZONE(zone);
 }
 
@@ -14389,6 +14399,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	 * In task context, no locking required.  See zone_xfrdone().
 	 */
 	if (zone->xfr != NULL) {
+		/* The final detach will happen in zone_xfrdone() */
 		dns_xfrin_shutdown(zone->xfr);
 	}
 
@@ -16882,7 +16893,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	/*
 	 * Obtaining a lock on the zone->secure (see zone_send_secureserial)
 	 * could result in a deadlock due to a LOR so we will spin if we
-	 * can't obtain the both locks.
+	 * can't obtain both locks.
 	 */
 again:
 	LOCK_ZONE(zone);
@@ -17351,8 +17362,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	INSIST(task == zone->task);
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
-		result = ISC_R_CANCELED;
-		goto cleanup;
+		CHECK(ISC_R_CANCELED);
 	}
 
 	TIME_NOW(&now);
@@ -17366,8 +17376,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			      "got_transfer_quota: skipping zone transfer as "
 			      "master %s (source %s) is unreachable (cached)",
 			      master, source);
-		result = ISC_R_CANCELED;
-		goto cleanup;
+		CHECK(ISC_R_CANCELED);
 	}
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
@@ -17482,28 +17491,31 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	}
 	UNLOCK_ZONE(zone);
 	INSIST(isc_sockaddr_pf(&masteraddr) == isc_sockaddr_pf(&sourceaddr));
-	result = dns_xfrin_create(zone, xfrtype, &masteraddr, &sourceaddr, dscp,
-				  zone->tsigkey, zone->mctx,
-				  zone->zmgr->timermgr, zone->zmgr->socketmgr,
-				  zone->task, zone_xfrdone, &zone->xfr);
-	if (result == ISC_R_SUCCESS) {
-		LOCK_ZONE(zone);
-		if (xfrtype == dns_rdatatype_axfr) {
-			if (isc_sockaddr_pf(&masteraddr) == PF_INET) {
-				inc_stats(zone, dns_zonestatscounter_axfrreqv4);
-			} else {
-				inc_stats(zone, dns_zonestatscounter_axfrreqv6);
-			}
-		} else if (xfrtype == dns_rdatatype_ixfr) {
-			if (isc_sockaddr_pf(&masteraddr) == PF_INET) {
-				inc_stats(zone, dns_zonestatscounter_ixfrreqv4);
-			} else {
-				inc_stats(zone, dns_zonestatscounter_ixfrreqv6);
-			}
-		}
-		UNLOCK_ZONE(zone);
+
+	if (zone->xfr != NULL) {
+		dns_xfrin_detach(&zone->xfr);
 	}
-cleanup:
+
+	CHECK(dns_xfrin_create(zone, xfrtype, &masteraddr, &sourceaddr, dscp,
+			       zone->tsigkey, zone->mctx, zone->zmgr->netmgr,
+			       zone_xfrdone, &zone->xfr));
+	LOCK_ZONE(zone);
+	if (xfrtype == dns_rdatatype_axfr) {
+		if (isc_sockaddr_pf(&masteraddr) == PF_INET) {
+			inc_stats(zone, dns_zonestatscounter_axfrreqv4);
+		} else {
+			inc_stats(zone, dns_zonestatscounter_axfrreqv6);
+		}
+	} else if (xfrtype == dns_rdatatype_ixfr) {
+		if (isc_sockaddr_pf(&masteraddr) == PF_INET) {
+			inc_stats(zone, dns_zonestatscounter_ixfrreqv4);
+		} else {
+			inc_stats(zone, dns_zonestatscounter_ixfrreqv6);
+		}
+	}
+	UNLOCK_ZONE(zone);
+
+failure:
 	/*
 	 * Any failure in this function is handled like a failed
 	 * zone transfer.  This ensures that we get removed from
@@ -17789,7 +17801,7 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first) {
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
-		   dns_zonemgr_t **zmgrp) {
+		   isc_nm_t *netmgr, dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
 
@@ -17800,6 +17812,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->taskmgr = taskmgr;
 	zmgr->timermgr = timermgr;
 	zmgr->socketmgr = socketmgr;
+	zmgr->netmgr = netmgr;
 	zmgr->zonetasks = NULL;
 	zmgr->loadtasks = NULL;
 	zmgr->mctxpool = NULL;

@@ -173,7 +173,7 @@ grep "^;" dig.out.ns6.test$n | cat_i
 
 $DIG $DIGOPTS primary. \
 	@10.53.0.3 axfr > dig.out.ns3.test$n || tmp=1
-grep "^;" dig.out.ns3.test$n > /dev/null && cat_i dig.out.ns3.test$n
+grep "^;" dig.out.ns3.test$n > /dev/null && cat_i < dig.out.ns3.test$n
 
 digcomp dig.out.ns6.test$n dig.out.ns3.test$n || tmp=1
 

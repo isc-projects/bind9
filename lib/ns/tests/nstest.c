@@ -459,7 +459,7 @@ ns_test_setupzonemgr(void) {
 	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
 
-	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
+	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr, NULL,
 				    &zonemgr);
 	return (result);
 }
