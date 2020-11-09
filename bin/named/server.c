@@ -10004,7 +10004,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 				     &server->in_roothints),
 		   "setting up root hints");
 
-	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
+	atomic_init(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
