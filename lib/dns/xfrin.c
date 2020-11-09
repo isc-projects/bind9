@@ -937,7 +937,7 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 			TIME_NOW(&now);
 			dns_zonemgr_unreachableadd(zmgr, &xfr->masteraddr,
 						   &xfr->sourceaddr, &now);
-			goto failure;
+			CHECK(result);
 		} else {
 			dns_zonemgr_unreachabledel(zmgr, &xfr->masteraddr,
 						   &xfr->sourceaddr);
@@ -959,9 +959,10 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		  signer);
 
 	CHECK(xfrin_send_request(xfr));
-	isc_nmhandle_detach(&handle);
 
 failure:
+	isc_nmhandle_detach(&handle);
+
 	if (result != ISC_R_SUCCESS && result != ISC_R_SHUTTINGDOWN) {
 		xfrin_fail(xfr, result, "failed to connect");
 	}
