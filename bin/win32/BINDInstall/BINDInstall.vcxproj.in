@@ -237,6 +237,9 @@
       <Project>{39721F26-8B80-4AA9-9826-2AEF7322C3D5}</Project>
     </ProjectReference>
 @IF STESTS
+    <ProjectReference Include="..\..\..\bin\tests\system\win32\bigkey.vcxproj">
+      <Project>{61F9D673-EB5C-47A5-8907-24E034C75EF8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\bin\tests\system\win32\feature-test.vcxproj">
       <Project>{63A921F6-1200-4723-828A-98960127B73D}</Project>
     </ProjectReference>

@@ -694,6 +694,7 @@ copy_setports() {
 # Export command paths
 #
 export ARPANAME
+export BIGKEY
 export CDS
 export CHECKZONE
 export CYGWIN
