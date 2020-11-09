@@ -4921,9 +4921,9 @@ log_ns_ttl(fetchctx_t *fctx, const char *where) {
 static isc_result_t
 fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	    const dns_name_t *domain, dns_rdataset_t *nameservers,
-	    const isc_sockaddr_t *client, unsigned int options,
-	    unsigned int bucketnum, unsigned int depth, isc_counter_t *qc,
-	    fetchctx_t **fctxp) {
+	    const isc_sockaddr_t *client, dns_messageid_t id,
+	    unsigned int options, unsigned int bucketnum, unsigned int depth,
+	    isc_counter_t *qc, fetchctx_t **fctxp) {
 	fetchctx_t *fctx;
 	isc_result_t result;
 	isc_result_t iresult;
@@ -5041,6 +5041,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	} else {
 		strlcpy(fctx->clientstr, "<unknown>", sizeof(fctx->clientstr));
 	}
+	fctx->id = id;
 	fctx->ns_ttl = 0;
 	fctx->ns_ttl_ok = false;
 
@@ -10843,7 +10844,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 
 	if (fctx == NULL) {
 		result = fctx_create(res, name, type, domain, nameservers,
-				     client, options, bucketnum, depth, qc,
+				     client, id, options, bucketnum, depth, qc,
 				     &fctx);
 		if (result != ISC_R_SUCCESS) {
 			goto unlock;
