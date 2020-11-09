@@ -14399,14 +14399,8 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	 * In task context, no locking required.  See zone_xfrdone().
 	 */
 	if (zone->xfr != NULL) {
+		/* The final detach will happen in zone_xfrdone() */
 		dns_xfrin_shutdown(zone->xfr);
-	}
-
-	/*
-	 * In case the shutdown didn't detach the xfr object...
-	 */
-	if (zone->xfr != NULL) {
-		dns_xfrin_detach(&zone->xfr);
 	}
 
 	/* Safe to release the zone now */
