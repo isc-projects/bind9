@@ -17,9 +17,22 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
+RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
 
 status=0
 n=1
+capture_dnstap() {
+	retry_quiet 20 test -f ns3/dnstap.out && mv ns3/dnstap.out dnstap.out.$n
+	$RNDCCMD -s 10.53.0.3 dnstap -reopen
+}
+
+uq_equals_ur() {
+	"$DNSTAPREAD" dnstap.out.$n |
+        awk '$3 == "UQ" { UQ+=1 } $3 == "UR" { UR += 1 } END { print UQ+0, UR+0 }' > dnstapread.out$n
+        read UQ UR < dnstapread.out$n
+	echo_i "UQ=$UQ UR=$UR"
+        test $UQ -eq $UR || return 1
+}
 
 echo_i "waiting for servers to be ready for testing ($n)"
 for i in 1 2 3 4 5 6 7 8 9 10
@@ -111,6 +124,17 @@ grep "forwarding update for zone 'example/IN'" ns3/named.run > /dev/null || ret=
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 
+if $FEATURETEST --enable-dnstap
+then
+	echo_i "checking DNSTAP logging of UPDATE forwarded update replies ($n)"
+	ret=0
+	capture_dnstap
+	uq_equals_ur || ret=1
+	if [ $ret != 0 ] ; then echo_i "failed"; fi
+	status=`expr $status + $ret`
+	n=`expr $n + 1`
+fi
+
 echo_i "updating zone (unsigned) ($n)"
 ret=0
 $NSUPDATE -- - <<EOF || ret=1
@@ -150,6 +174,17 @@ digcomp knowngood.after2 dig.out.ns1 || ret=1
 digcomp knowngood.after2 dig.out.ns2 || ret=1
 digcomp knowngood.after2 dig.out.ns3 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+
+if $FEATURETEST --enable-dnstap
+then
+	echo_i "checking DNSTAP logging of UPDATE forwarded update replies ($n)"
+	ret=0
+	capture_dnstap
+	uq_equals_ur || ret=1
+	if [ $ret != 0 ] ; then echo_i "failed"; fi
+	status=`expr $status + $ret`
+	n=`expr $n + 1`
+fi
 n=`expr $n + 1`
 
 echo_i "checking update forwarding to dead master ($n)"
@@ -173,6 +208,17 @@ done
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 
+if $FEATURETEST --enable-dnstap
+then
+	echo_i "checking DNSTAP logging of UPDATE forwarded update replies ($n)"
+	ret=0
+	capture_dnstap
+	uq_equals_ur && ret=1
+	if [ $ret != 0 ] ; then echo_i "failed"; fi
+	status=`expr $status + $ret`
+	n=`expr $n + 1`
+fi
+
 if test -f keyname
 then
 	echo_i "checking update forwarding to with sig0 ($n)"
@@ -190,6 +236,17 @@ EOF
 	if [ $ret != 0 ] ; then echo_i "failed"; fi
 	status=`expr $status + $ret`
 	n=`expr $n + 1`
+
+	if $FEATURETEST --enable-dnstap
+	then
+		echo_i "checking DNSTAP logging of UPDATE forwarded update replies ($n)"
+		ret=0
+		capture_dnstap
+		uq_equals_ur || ret=1
+		if [ $ret != 0 ] ; then echo_i "failed"; fi
+		status=`expr $status + $ret`
+		n=`expr $n + 1`
+	fi
 fi
 
 echo_i "exit status: $status"
