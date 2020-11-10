@@ -847,12 +847,12 @@ unit:gcc:sid:i386:
     - job: gcc:sid:i386
       artifacts: true
 
-# Jobs for regular GCC builds on openSUSE Tumbleweed (amd64)
+# Jobs for debug GCC builds on openSUSE Tumbleweed (amd64)
 
 gcc:tumbleweed:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
+    CFLAGS: "${CFLAGS_COMMON} -DDEBUG"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *tumbleweed_latest_amd64_image
   <<: *build_job
