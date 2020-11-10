@@ -3709,7 +3709,7 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 			nsecnode = NULL;
 			result = dns_rbt_findnode(
 				search->rbtdb->nsec, target, NULL, &nsecnode,
-				nsecchain, DNS_RBTFIND_NOOPTIONS, NULL, NULL);
+				nsecchain, DNS_RBTFIND_EMPTYDATA, NULL, NULL);
 			if (result == ISC_R_SUCCESS) {
 				/*
 				 * Since this was the first loop, finding the
@@ -3759,7 +3759,7 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 		*nodep = NULL;
 		result = dns_rbt_findnode(search->rbtdb->tree, target, NULL,
 					  nodep, &search->chain,
-					  DNS_RBTFIND_NOOPTIONS, NULL, NULL);
+					  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
 		if (result == ISC_R_SUCCESS) {
 			return (result);
 		}
