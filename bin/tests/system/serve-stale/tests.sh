@@ -182,6 +182,77 @@ grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
+# Test stale-refresh-time when serve-stale is enabled via configuration.
+# Steps for testing stale-refresh-time option (default).
+# 1. Prime cache data.example txt
+# 2. Disable responses from authoritative server.
+# 3. Sleep for TTL duration so rrset TTL expires (2 sec)
+# 4. Query data.example
+# 5. Check if response come from stale rrset (3 sec TTL)
+# 6. Enable responses from authoritative server.
+# 7. Query data.example
+# 8. Check if response come from stale rrset, since the query
+#    is within stale-refresh-time window.
+n=$((n+1))
+echo_i "check 'rndc serve-stale status' ($n)"
+ret=0
+$RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
+grep '_default: on (stale-answer-ttl=4 max-stale-ttl=3600)' rndc.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Step 1-3 done above.
+
+# Step 4.
+n=$((n+1))
+echo_i "sending query for test ($n)"
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
+
+# Step 5.
+echo_i "check stale data.example (stale-refresh-time) ($n)"
+ret=0
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*4.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Step 6.
+n=$((n+1))
+echo_i "enable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt enable > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Step 7.
+echo_i "sending query for test $((n+1))"
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1))
+
+# Step 8.
+n=$((n+1))
+echo_i "check stale data.example comes from cache (stale-refresh-time) ($n)"
+ret=0
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*4.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+#
+# Test disabling serve-stale via rndc.
+#
+n=$((n+1))
+echo_i "disable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 n=$((n+1))
 echo_i "running 'rndc serve-stale off' ($n)"
 ret=0
@@ -715,6 +786,110 @@ ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Steps for testing stale-refresh-time option (disabled).
+# 1. Prime cache data.example txt
+# 2. Disable responses from authoritative server.
+# 3. Sleep for TTL duration so rrset TTL expires (2 sec)
+# 4. Query data.example
+# 5. Check if response come from stale rrset (3 sec TTL)
+# 6. Enable responses from authoritative server.
+# 7. Query data.example
+# 8. Check if response come from stale rrset, since the query
+#    is within stale-refresh-time window.
+n=$((n+1))
+echo_i "updating ns1/named.conf ($n)"
+ret=0
+copy_setports ns1/named3.conf.in ns1/named.conf
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "running 'rndc reload' ($n)"
+ret=0
+rndc_reload ns1 10.53.0.1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check 'rndc serve-stale status' ($n)"
+ret=0
+$RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
+grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=20)' rndc.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "flush cache, enable responses from authoritative server ($n)"
+ret=0
+$RNDCCMD 10.53.0.1 flushtree example > rndc.out.test$n.1 2>&1 || ret=1
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Step 1.
+n=$((n+1))
+echo_i "prime cache data.example (stale-refresh-time disabled) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Step 2.
+n=$((n+1))
+echo_i "disable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Step 3.
+sleep 2
+
+# Step 4.
+n=$((n+1))
+echo_i "sending query for test ($n)"
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
+
+# Step 5.
+echo_i "check stale data.example (stale-refresh-time disabled) ($n)"
+ret=0
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Step 6.
+n=$((n+1))
+echo_i "enable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt enable > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Step 7.
+echo_i "sending query for test $((n+1))"
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1))
+
+# Step 8.
+n=$((n+1))
+echo_i "check stale data.example comes from authoritative (stale-refresh-time disabled) ($n)"
+ret=0
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
