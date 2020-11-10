@@ -869,11 +869,16 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 
 void
 isc__nm_tcpdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
-	isc_nmsocket_t *sock = handle->sock;
+	isc_nmsocket_t *sock = NULL;
 	isc__netievent_tcpdnsread_t *ievent = NULL;
 	isc_nmhandle_t *eventhandle = NULL;
 
-	REQUIRE(handle == sock->statichandle);
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	sock = handle->sock;
+
+	REQUIRE(sock->statichandle == handle);
+	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->recv_cb == NULL);
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->client));

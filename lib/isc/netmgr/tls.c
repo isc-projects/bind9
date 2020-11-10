@@ -58,6 +58,20 @@ tls_close_direct(isc_nmsocket_t *sock);
 static void
 async_tls_do_bio(isc_nmsocket_t *sock);
 
+/*
+ * The socket is closing, outerhandle has been detached, listener is
+ * inactive, or the netmgr is closing: any operation on it should abort
+ * with ISC_R_CANCELED.
+ */
+static bool
+inactive(isc_nmsocket_t *sock) {
+	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
+		sock->outerhandle == NULL ||
+		(sock->listener != NULL &&
+		 !isc__nmsocket_active(sock->listener)) ||
+		atomic_load(&sock->mgr->closing));
+}
+
 static void
 tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	isc_nmsocket_t *sock = (isc_nmsocket_t *)cbarg;
@@ -92,6 +106,11 @@ tls_do_bio(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	/* We will resume read if TLS layer wants us to */
 	isc_nm_pauseread(sock->outerhandle);
+
+	if (inactive(sock)) {
+		result = ISC_R_CANCELED;
+		goto error;
+	}
 
 	if (sock->tls.state == TLS_INIT) {
 		(void)SSL_do_handshake(sock->tls.ssl);
@@ -178,11 +197,10 @@ tls_do_bio(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	if (tls_err == 0) {
+	switch (tls_err) {
+	case 0:
 		return;
-	}
-
-	if (tls_err == SSL_ERROR_WANT_WRITE) {
+	case SSL_ERROR_WANT_WRITE:
 		if (!sock->tls.sending) {
 			/*
 			 * Launch tls_do_bio asynchronously. If we're sending
@@ -192,9 +210,11 @@ tls_do_bio(isc_nmsocket_t *sock) {
 		} else {
 			return;
 		}
-	} else if (tls_err == SSL_ERROR_WANT_READ) {
+		break;
+	case SSL_ERROR_WANT_READ:
 		isc_nm_resumeread(sock->outerhandle);
-	} else if (tls_err != 0) {
+		break;
+	default:
 		result = tls_error_to_result(tls_err);
 		goto error;
 	}
@@ -385,58 +405,71 @@ void
 isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	int rv;
 	isc__netievent_tcpsend_t *ievent = (isc__netievent_tcpsend_t *)ev0;
+	isc_nmsocket_t *sock = ievent->sock;
 	isc__nm_uvreq_t *req = ievent->req;
 	ievent->req = NULL;
 	REQUIRE(VALID_UVREQ(req));
-	REQUIRE(worker->id == ievent->sock->tid);
+	REQUIRE(worker->id == sock->tid);
 
-	if (!atomic_load(&ievent->sock->active)) {
+	if (inactive(sock)) {
+		req->cb.send(req->handle, ISC_R_CANCELED, req->cbarg);
+		isc__nm_uvreq_put(&req, sock);
 		return;
 	}
-	if (!ISC_LIST_EMPTY(ievent->sock->tls.sends)) {
+	if (!ISC_LIST_EMPTY(sock->tls.sends)) {
 		/* We're not the first */
-		ISC_LIST_APPEND(ievent->sock->tls.sends, req, link);
-		tls_do_bio(ievent->sock);
+		ISC_LIST_APPEND(sock->tls.sends, req, link);
+		tls_do_bio(sock);
 		return;
 	}
 
-	rv = SSL_write(ievent->sock->tls.ssl, req->uvbuf.base, req->uvbuf.len);
+	rv = SSL_write(sock->tls.ssl, req->uvbuf.base, req->uvbuf.len);
 	if (rv < 0) {
 		/*
 		 * We might need to read, we might need to write, or the
 		 * TLS socket might be dead - in any case, we need to
 		 * enqueue the uvreq and let the TLS BIO layer do the rest.
 		 */
-		ISC_LIST_APPEND(ievent->sock->tls.sends, req, link);
-		tls_do_bio(ievent->sock);
+		ISC_LIST_APPEND(sock->tls.sends, req, link);
+		tls_do_bio(sock);
 		return;
 	}
 	if (rv != (int)req->uvbuf.len) {
-		ievent->sock->tls.state = TLS_ERROR;
-		async_tls_do_bio(ievent->sock);
+		sock->tls.state = TLS_ERROR;
+		async_tls_do_bio(sock);
 		return;
 	}
-	req->cb.send(ievent->sock->statichandle, ISC_R_SUCCESS, req->cbarg);
-	isc__nm_uvreq_put(&req, ievent->sock);
-	tls_do_bio(ievent->sock);
+	req->cb.send(sock->statichandle, ISC_R_SUCCESS, req->cbarg);
+	isc__nm_uvreq_put(&req, sock);
+	tls_do_bio(sock);
 	return;
 }
 
 void
 isc__nm_tls_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		 void *cbarg) {
-	isc_nmsocket_t *sock = handle->sock;
 	isc__netievent_tcpsend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
+	isc_nmsocket_t *sock = NULL;
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	sock = handle->sock;
 
 	REQUIRE(sock->type == isc_nm_tlssocket);
 
+	if (inactive(sock)) {
+		cb(handle, ISC_R_CANCELED, cbarg);
+		return;
+	}
+
 	uvreq = isc__nm_uvreq_get(sock->mgr, sock);
-	uvreq->uvbuf.base = (char *)region->base;
-	uvreq->uvbuf.len = region->length;
 	isc_nmhandle_attach(handle, &uvreq->handle);
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
+
+	uvreq->uvbuf.base = (char *)region->base;
+	uvreq->uvbuf.len = region->length;
 
 	/*
 	 * We need to create an event and pass it using async channel
@@ -464,7 +497,18 @@ isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	isc__netievent_startread_t *ievent = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	sock = handle->sock;
+
+	REQUIRE(sock->statichandle == handle);
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->recv_cb == NULL);
+	REQUIRE(sock->tid == isc_nm_tid());
+
+	if (inactive(sock)) {
+		cb(handle, ISC_R_NOTCONNECTED, NULL, cbarg);
+		return;
+	}
 
 	sock = handle->sock;
 	sock->recv_cb = cb;
@@ -492,14 +536,20 @@ static void
 timer_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = (isc_nmsocket_t *)uv_handle_get_data(handle);
 	INSIST(VALID_NMSOCK(sock));
-	isc__nmsocket_detach(&sock);
+	tls_close_direct(sock);
 }
 
 static void
 tls_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	/* We don't need atomics here, it's all in single network thread */
+	if (sock->timer_running) {
+		uv_timer_stop(&sock->timer);
+		sock->timer_running = false;
+	}
+
+	/* We don't need atomics here, it's all in single network thread
+	 */
 	if (sock->timer_initialized) {
 		/*
 		 * We need to fire the timer callback to clean it up,
@@ -511,8 +561,8 @@ tls_close_direct(isc_nmsocket_t *sock) {
 		uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 	} else {
 		/*
-		 * At this point we're certain that there are no external
-		 * references, we can close everything.
+		 * At this point we're certain that there are no
+		 * external references, we can close everything.
 		 */
 		if (sock->outerhandle != NULL) {
 			isc_nm_pauseread(sock->outerhandle);
@@ -533,6 +583,7 @@ tls_close_direct(isc_nmsocket_t *sock) {
 			sock->tls.app_bio = NULL;
 		}
 		atomic_store(&sock->closed, true);
+		isc__nmsocket_detach(&sock);
 	}
 }
 
@@ -540,6 +591,11 @@ void
 isc__nm_tls_close(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tlssocket);
+
+	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
+					    true)) {
+		return;
+	}
 
 	if (sock->tid == isc_nm_tid()) {
 		tls_close_direct(sock);
@@ -601,7 +657,8 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	nsock->connect_cbarg = cbarg;
 	nsock->connect_timeout = timeout;
 	nsock->tls.ctx = ctx;
-	/* We need to initialize SSL now to reference SSL_CTX properly */
+	/* We need to initialize SSL now to reference SSL_CTX properly
+	 */
 	nsock->tls.ssl = SSL_new(nsock->tls.ctx);
 	if (nsock->tls.ssl == NULL) {
 		atomic_store(&nsock->closed, true);
@@ -753,9 +810,9 @@ isc_nm_tls_create_server_ctx(const char *keyfile, const char *certfile,
 		}
 
 		/*
-		 * EVP_PKEY_assign_*() set the referenced key to key however
-		 * these use the supplied key internally and so key will be
-		 * freed when the parent pkey is freed.
+		 * EVP_PKEY_assign_*() set the referenced key to key
+		 * however these use the supplied key internally and so
+		 * key will be freed when the parent pkey is freed.
 		 */
 		EVP_PKEY_assign(pkey, EVP_PKEY_RSA, rsa);
 		rsa = NULL;
@@ -776,7 +833,8 @@ isc_nm_tls_create_server_ctx(const char *keyfile, const char *certfile,
 					   0);
 		X509_NAME_add_entry_by_txt(
 			name, "O", MBSTRING_ASC,
-			(const unsigned char *)"BIND9 ephemeral certificate",
+			(const unsigned char *)"BIND9 ephemeral "
+					       "certificate",
 			-1, -1, 0);
 		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
 					   (const unsigned char *)"bind9.local",
