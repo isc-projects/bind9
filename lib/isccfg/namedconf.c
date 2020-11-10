@@ -1138,7 +1138,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "dnstap-output", &cfg_type_dnstapoutput, 0 },
 	{ "dnstap-identity", &cfg_type_serverid, 0 },
 	{ "dnstap-version", &cfg_type_qstringornone, 0 },
-#else /* ifdef HAVE_DNSTAP */
+#else  /* ifdef HAVE_DNSTAP */
 	{ "dnstap-output", &cfg_type_dnstapoutput,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "dnstap-identity", &cfg_type_serverid, CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1158,7 +1158,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "fstrm-set-output-queue-model", &cfg_type_fstrm_model, 0 },
 	{ "fstrm-set-output-queue-size", &cfg_type_uint32, 0 },
 	{ "fstrm-set-reopen-interval", &cfg_type_duration, 0 },
-#else /* ifdef HAVE_DNSTAP */
+#else  /* ifdef HAVE_DNSTAP */
 	{ "fstrm-set-buffer-hint", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "fstrm-set-flush-timeout", &cfg_type_uint32,
@@ -1176,7 +1176,7 @@ static cfg_clausedef_t options_clauses[] = {
 #endif /* HAVE_DNSTAP */
 #if defined(HAVE_GEOIP2)
 	{ "geoip-directory", &cfg_type_qstringornone, 0 },
-#else /* if defined(HAVE_GEOIP2) */
+#else  /* if defined(HAVE_GEOIP2) */
 	{ "geoip-directory", &cfg_type_qstringornone,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_GEOIP2 */
@@ -1750,7 +1750,7 @@ static cfg_tuplefielddef_t rpz_fields[] = {
 #ifdef USE_DNSRPS
 	{ "dnsrps-enable", &cfg_type_boolean, 0 },
 	{ "dnsrps-options", &cfg_type_bracketed_text, 0 },
-#else /* ifdef USE_DNSRPS */
+#else  /* ifdef USE_DNSRPS */
 	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "dnsrps-options", &cfg_type_bracketed_text,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1959,7 +1959,7 @@ static cfg_clausedef_t view_clauses[] = {
 #ifdef USE_DNSRPS
 	{ "dnsrps-enable", &cfg_type_boolean, 0 },
 	{ "dnsrps-options", &cfg_type_bracketed_text, 0 },
-#else /* ifdef USE_DNSRPS */
+#else  /* ifdef USE_DNSRPS */
 	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "dnsrps-options", &cfg_type_bracketed_text,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1973,7 +1973,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "dnssec-validation", &cfg_type_boolorauto, 0 },
 #ifdef HAVE_DNSTAP
 	{ "dnstap", &cfg_type_dnstap, 0 },
-#else /* ifdef HAVE_DNSTAP */
+#else  /* ifdef HAVE_DNSTAP */
 	{ "dnstap", &cfg_type_dnstap, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_DNSTAP */
 	{ "dual-stack-servers", &cfg_type_nameportiplist, 0 },
@@ -1993,7 +1993,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "lame-ttl", &cfg_type_duration, 0 },
 #ifdef HAVE_LMDB
 	{ "lmdb-mapsize", &cfg_type_sizeval, 0 },
-#else /* ifdef HAVE_LMDB */
+#else  /* ifdef HAVE_LMDB */
 	{ "lmdb-mapsize", &cfg_type_sizeval, CFG_CLAUSEFLAG_NOOP },
 #endif /* ifdef HAVE_LMDB */
 	{ "max-acache-size", &cfg_type_sizenodefault, CFG_CLAUSEFLAG_OBSOLETE },

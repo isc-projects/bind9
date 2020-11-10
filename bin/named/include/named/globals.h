@@ -129,7 +129,7 @@ EXTERN bool named_g_forcelock		   INIT(false);
 #if NAMED_RUN_PID_DIR
 EXTERN const char *named_g_defaultpidfile INIT(NAMED_LOCALSTATEDIR "/run/named/"
 								   "named.pid");
-#else /* if NAMED_RUN_PID_DIR */
+#else  /* if NAMED_RUN_PID_DIR */
 EXTERN const char *named_g_defaultpidfile INIT(NAMED_LOCALSTATEDIR "/run/"
 								   "named.pid");
 #endif /* if NAMED_RUN_PID_DIR */
