@@ -62,6 +62,7 @@ TSIGKEYGEN=$TOP_BUILDDIR/bin/confgen/tsig-keygen
 VERIFY=$TOP_BUILDDIR/bin/dnssec/dnssec-verify
 WIRETEST=$TOP_BUILDDIR/bin/tests/wire_test
 
+BIGKEY=$TOP_BUILDDIR/bin/tests/system/rsabigexponent/bigkey
 GENCHECK=$TOP_BUILDDIR/bin/tests/system/rndc/gencheck
 KEYCREATE=$TOP_BUILDDIR/bin/tests/system/tkey/keycreate
 KEYDELETE=$TOP_BUILDDIR/bin/tests/system/tkey/keydelete
