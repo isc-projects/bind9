@@ -28,7 +28,7 @@ options {
 	listen-on-v6 { none; };
 	recursion yes;
 	max-stale-ttl 3600;
-	stale-answer-ttl 2;
+	stale-answer-ttl 4;
 	stale-answer-enable yes;
 	stale-cache-enable yes;
 	servfail-ttl 0;
