@@ -99,7 +99,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (stale-answer-ttl=4 max-stale-ttl=3600)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: on (stale-answer-ttl=4 max-stale-ttl=3600 stale-refresh-time=30)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -196,7 +196,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (stale-answer-ttl=4 max-stale-ttl=3600)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: on (stale-answer-ttl=4 max-stale-ttl=3600 stale-refresh-time=30)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -263,7 +263,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: off (rndc) (stale-answer-ttl=4 max-stale-ttl=3600)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: off (rndc) (stale-answer-ttl=4 max-stale-ttl=3600 stale-refresh-time=30)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -317,7 +317,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (rndc) (stale-answer-ttl=4 max-stale-ttl=3600)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: on (rndc) (stale-answer-ttl=4 max-stale-ttl=3600 stale-refresh-time=30)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -383,7 +383,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (stale-answer-ttl=4 max-stale-ttl=3600)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: on (stale-answer-ttl=4 max-stale-ttl=3600 stale-refresh-time=30)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -442,7 +442,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: off (rndc) (stale-answer-ttl=4 max-stale-ttl=3600)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: off (rndc) (stale-answer-ttl=4 max-stale-ttl=3600 stale-refresh-time=30)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -470,7 +470,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: off (rndc) (stale-answer-ttl=3 max-stale-ttl=20)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: off (rndc) (stale-answer-ttl=3 max-stale-ttl=20 stale-refresh-time=30)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -489,7 +489,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=20)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=20 stale-refresh-time=30)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -722,7 +722,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=20)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=20 stale-refresh-time=30)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -816,7 +816,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=20)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=20 stale-refresh-time=0)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -985,7 +985,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep "_default: off (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl)" rndc.out.test$n > /dev/null || ret=1
+grep "_default: off (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl stale-refresh-time=30)" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1062,7 +1062,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep "_default: on (rndc) (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl)" rndc.out.test$n > /dev/null || ret=1
+grep "_default: on (rndc) (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl stale-refresh-time=30)" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1205,7 +1205,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.4 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep "_default: off (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl)" rndc.out.test$n > /dev/null || ret=1
+grep "_default: off (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl stale-refresh-time=30)" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
