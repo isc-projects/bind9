@@ -1,3 +1,6 @@
+5530.	[bug]		DNSTAP did not capture responses to forwarded
+			UPDATE requests. [GL #2252]
+
 5527.	[bug]		There was a NULL pointer dereference if the creation
 			of the fetch to determine if a negative trust anchor
 			was still valid failed. [GL #2244]

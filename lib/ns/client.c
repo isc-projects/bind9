@@ -369,6 +369,23 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	r.base[0] = (client->message->id >> 8) & 0xff;
 	r.base[1] = client->message->id & 0xff;
 
+#ifdef HAVE_DNSTAP
+	if (client->view != NULL) {
+		bool tcp = TCP_CLIENT(client);
+		dns_dtmsgtype_t dtmsgtype;
+		if (client->message->opcode == dns_opcode_update) {
+			dtmsgtype = DNS_DTTYPE_UR;
+		} else if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0) {
+			dtmsgtype = DNS_DTTYPE_CR;
+		} else {
+			dtmsgtype = DNS_DTTYPE_AR;
+		}
+		dns_dt_send(client->view, dtmsgtype, &client->peeraddr,
+			    &client->destsockaddr, tcp, NULL,
+			    &client->requesttime, NULL, &buffer);
+	}
+#endif
+
 	client_sendpkg(client, &buffer);
 
 	return;

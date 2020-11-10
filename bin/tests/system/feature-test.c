@@ -38,6 +38,7 @@ usage() {
 	fprintf(stderr, "args:\n");
 	fprintf(stderr, "\t--edns-version\n");
 	fprintf(stderr, "\t--enable-dnsrps\n");
+	fprintf(stderr, "\t--enable-dnstap\n");
 	fprintf(stderr, "\t--gethostname\n");
 	fprintf(stderr, "\t--gssapi\n");
 	fprintf(stderr, "\t--have-dlopen\n");
@@ -72,6 +73,14 @@ main(int argc, char **argv) {
 #else  /* ifdef USE_DNSRPS */
 		return (1);
 #endif /* ifdef USE_DNSRPS */
+	}
+
+	if (strcmp(argv[1], "--enable-dnstap") == 0) {
+#ifdef HAVE_DNSTAP
+		return (0);
+#else  /* ifdef HAVE_DNSTAP */
+		return (1);
+#endif /* ifdef HAVE_DNSTAP */
 	}
 
 	if (strcmp(argv[1], "--gethostname") == 0) {
