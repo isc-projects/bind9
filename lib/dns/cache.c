@@ -142,6 +142,7 @@ struct dns_cache {
 	char **db_argv;
 	size_t size;
 	dns_ttl_t serve_stale_ttl;
+	dns_ttl_t serve_stale_refresh;
 	isc_stats_t *stats;
 
 	/* Locked by 'filelock'. */
@@ -1000,10 +1001,25 @@ dns_cache_getservestalettl(dns_cache_t *cache) {
 }
 
 void
-dns_cache_setservestalerefresh(dns_cache_t *cache, uint32_t interval) {
+dns_cache_setservestalerefresh(dns_cache_t *cache, dns_ttl_t interval) {
 	REQUIRE(VALID_CACHE(cache));
 
+	LOCK(&cache->lock);
+	cache->serve_stale_refresh = interval;
+	UNLOCK(&cache->lock);
+
 	(void)dns_db_setservestalerefresh(cache->db, interval);
+}
+
+dns_ttl_t
+dns_cache_getservestalerefresh(dns_cache_t *cache) {
+	isc_result_t result;
+	dns_ttl_t interval;
+
+	REQUIRE(VALID_CACHE(cache));
+
+	result = dns_db_getservestalerefresh(cache->db, &interval);
+	return (result == ISC_R_SUCCESS ? interval : 0);
 }
 
 /*
