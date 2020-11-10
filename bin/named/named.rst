@@ -108,9 +108,13 @@ Options
    present and creates one thread per CPU. If it is unable to determine
    the number of CPUs, a single worker thread is created.
 
-``-p port``
-   This option listens for queries on ``port``. If not specified, the default is
-   port 53.
+``-p value``
+   This option specifies the port(s) on which the server will listen
+   for queries. If ``value`` is of the form ``<portnum>`` or
+   ``dns=<portnum>``, the server will listen for DNS queries on
+   ``portnum``; if not not specified, the default is port 53. If
+   ``value`` is of the form ``tls=<portnum>``, the server will
+   listen for TLS queries on ``portnum``; the default is 853.
 
 ``-s``
    This option writes memory usage statistics to ``stdout`` on exit.

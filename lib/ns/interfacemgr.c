@@ -502,10 +502,48 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	return (result);
 }
 
+/*
+ * XXXWPK we should probably pass a complete object with key, cert, and other
+ * TLS related options.
+ */
+static isc_result_t
+ns_interface_listentls(ns_interface_t *ifp, SSL_CTX *sslctx) {
+	isc_result_t result;
+	SSL_CTX *ctx = NULL;
+
+	result = isc_nm_listentlsdns(
+		ifp->mgr->nm, (isc_nmiface_t *)&ifp->addr, ns__client_request,
+		ifp, ns__client_tcpconn, ifp, sizeof(ns_client_t),
+		ifp->mgr->backlog, &ifp->mgr->sctx->tcpquota, sslctx,
+		&ifp->tcplistensocket);
+
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "creating TLS socket: %s",
+			      isc_result_totext(result));
+		SSL_CTX_free(ctx);
+		return (result);
+	}
+
+	/*
+	 * We call this now to update the tcp-highwater statistic:
+	 * this is necessary because we are adding to the TCP quota just
+	 * by listening.
+	 */
+	result = ns__client_tcpconn(NULL, ISC_R_SUCCESS, ifp);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "updating TCP stats: %s",
+			      isc_result_totext(result));
+	}
+
+	return (result);
+}
+
 static isc_result_t
 ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		   const char *name, ns_interface_t **ifpret, bool accept_tcp,
-		   isc_dscp_t dscp, bool *addr_in_use) {
+		   ns_listenelt_t *elt, bool *addr_in_use) {
 	isc_result_t result;
 	ns_interface_t *ifp = NULL;
 	REQUIRE(ifpret != NULL && *ifpret == NULL);
@@ -516,7 +554,16 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		return (result);
 	}
 
-	ifp->dscp = dscp;
+	ifp->dscp = elt->dscp;
+
+	if (elt->sslctx != NULL) {
+		result = ns_interface_listentls(ifp, elt->sslctx);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_interface;
+		}
+		*ifpret = ifp;
+		return (result);
+	}
 
 	result = ns_interface_listenudp(ifp);
 	if (result != ISC_R_SUCCESS) {
@@ -550,6 +597,7 @@ cleanup_interface:
 	LOCK(&ifp->mgr->lock);
 	ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
 	UNLOCK(&ifp->mgr->lock);
+	ns_interface_shutdown(ifp);
 	ns_interface_detach(&ifp);
 	return (result);
 }
@@ -865,7 +913,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 					      le->port);
 				result = ns_interface_setup(mgr, &listen_addr,
 							    "<any>", &ifp, true,
-							    le->dscp, NULL);
+							    le, NULL);
 				if (result == ISC_R_SUCCESS) {
 					ifp->flags |= NS_INTERFACEFLAG_ANYADDR;
 				} else {
@@ -1087,8 +1135,8 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 
 				result = ns_interface_setup(
 					mgr, &listen_sockaddr, interface.name,
-					&ifp, (adjusting) ? false : true,
-					le->dscp, &addr_in_use);
+					&ifp, (adjusting) ? false : true, le,
+					&addr_in_use);
 
 				tried_listening = true;
 				if (!addr_in_use) {

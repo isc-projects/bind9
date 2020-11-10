@@ -14,6 +14,7 @@
 #include <stdbool.h>
 
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -25,8 +26,10 @@ destroy(ns_listenlist_t *list);
 
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		    dns_acl_t *acl, ns_listenelt_t **target) {
+		    dns_acl_t *acl, bool tls, const char *key, const char *cert,
+		    ns_listenelt_t **target) {
 	ns_listenelt_t *elt = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
 	REQUIRE(target != NULL && *target == NULL);
 	elt = isc_mem_get(mctx, sizeof(*elt));
 	elt->mctx = mctx;
@@ -34,6 +37,13 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 	elt->port = port;
 	elt->dscp = dscp;
 	elt->acl = acl;
+	elt->sslctx = NULL;
+	if (tls) {
+		result = isc_nm_tls_create_server_ctx(key, cert, &elt->sslctx);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+	}
 	*target = elt;
 	return (ISC_R_SUCCESS);
 }
@@ -42,6 +52,10 @@ void
 ns_listenelt_destroy(ns_listenelt_t *elt) {
 	if (elt->acl != NULL) {
 		dns_acl_detach(&elt->acl);
+	}
+	if (elt->sslctx != NULL) {
+		SSL_CTX_free(elt->sslctx);
+		elt->sslctx = NULL;
 	}
 	isc_mem_put(elt->mctx, elt, sizeof(*elt));
 }
@@ -104,7 +118,8 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		goto cleanup;
 	}
 
-	result = ns_listenelt_create(mctx, port, dscp, acl, &elt);
+	result = ns_listenelt_create(mctx, port, dscp, acl, false, NULL, NULL,
+				     &elt);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_acl;
 	}

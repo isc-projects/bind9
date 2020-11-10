@@ -44,12 +44,14 @@ libns_la_CPPFLAGS =				\
 	$(LIBDNS_CFLAGS)			\
 	$(LIBISC_CFLAGS)			\
 	$(LIBNS_CFLAGS)				\
-	$(LIBUV_CFLAGS)
+	$(LIBUV_CFLAGS)				\
+	$(OPENSSL_CFLAGS)
 
 libns_la_LIBADD =	\
 	$(LIBDNS_LIBS)	\
 	$(LIBISC_LIBS)	\
-	$(LIBUV_LIBS)
+	$(LIBUV_LIBS)	\
+	$(OPENSSL_LIBS)
 
 libns_la_LDFLAGS =		\
 	$(AM_LDFLAGS)		\

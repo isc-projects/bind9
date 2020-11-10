@@ -67,7 +67,8 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			     isc_mem_t *mctx, dns_ipkeylist_t *ipkl);
 
 isc_result_t
-named_config_getport(const cfg_obj_t *config, in_port_t *portp);
+named_config_getport(const cfg_obj_t *config, const char *type,
+		     in_port_t *portp);
 
 isc_result_t
 named_config_getkeyalgorithm(const char *str, const dns_name_t **name,

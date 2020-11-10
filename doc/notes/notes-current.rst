@@ -47,6 +47,12 @@ Feature Changes
   before they ever reach ``dig``.  Consequently, the option has been
   removed. [GL #2140]
 
+- Support for DNS over TLS (DoT) has been added to the network manager API, and
+  the support for DoT has been added to the ``dig`` tool and support for
+  listening on TLS port has been added to ``named``.  ``named`` could use a
+  certificate provided by the user or it can generate an ephemeral certificate
+  on startup of the daemon.
+
 Bug Fixes
 ~~~~~~~~~
 

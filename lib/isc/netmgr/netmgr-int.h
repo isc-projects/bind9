@@ -14,6 +14,9 @@
 #include <unistd.h>
 #include <uv.h>
 
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+
 #include <isc/astack.h>
 #include <isc/atomic.h>
 #include <isc/buffer.h>
@@ -158,6 +161,12 @@ typedef enum isc__netievent_type {
 	netievent_tcpdnsclose,
 	netievent_tcpdnsstop,
 
+	netievent_tlsclose,
+	netievent_tlssend,
+	netievent_tlsstartread,
+	netievent_tlsconnect,
+	netievent_tlsdobio,
+
 	netievent_closecb,
 	netievent_shutdown,
 	netievent_stop,
@@ -188,7 +197,8 @@ typedef union {
 #define UVREQ_MAGIC    ISC_MAGIC('N', 'M', 'U', 'R')
 #define VALID_UVREQ(t) ISC_MAGIC_VALID(t, UVREQ_MAGIC)
 
-typedef struct isc__nm_uvreq {
+typedef struct isc__nm_uvreq isc__nm_uvreq_t;
+struct isc__nm_uvreq {
 	int magic;
 	isc_nmsocket_t *sock;
 	isc_nmhandle_t *handle;
@@ -212,7 +222,8 @@ typedef struct isc__nm_uvreq {
 		uv_fs_t fs;
 		uv_work_t work;
 	} uv_req;
-} isc__nm_uvreq_t;
+	ISC_LINK(isc__nm_uvreq_t) link;
+};
 
 typedef struct isc__netievent__socket {
 	isc__netievent_type type;
@@ -224,13 +235,18 @@ typedef isc__netievent__socket_t isc__netievent_udpread_t;
 typedef isc__netievent__socket_t isc__netievent_udpstop_t;
 typedef isc__netievent__socket_t isc__netievent_udpclose_t;
 typedef isc__netievent__socket_t isc__netievent_tcpstop_t;
+
 typedef isc__netievent__socket_t isc__netievent_tcpclose_t;
 typedef isc__netievent__socket_t isc__netievent_startread_t;
 typedef isc__netievent__socket_t isc__netievent_pauseread_t;
 typedef isc__netievent__socket_t isc__netievent_closecb_t;
+
 typedef isc__netievent__socket_t isc__netievent_tcpdnsclose_t;
 typedef isc__netievent__socket_t isc__netievent_tcpdnsread_t;
 typedef isc__netievent__socket_t isc__netievent_tcpdnsstop_t;
+
+typedef isc__netievent__socket_t isc__netievent_tlsclose_t;
+typedef isc__netievent__socket_t isc__netievent_tlsdobio_t;
 
 typedef struct isc__netievent__socket_req {
 	isc__netievent_type type;
@@ -280,6 +296,14 @@ typedef struct isc__netievent_udpsend {
 	isc__nm_uvreq_t *req;
 } isc__netievent_udpsend_t;
 
+typedef struct isc__netievent_tlsconnect {
+	isc__netievent_type type;
+	isc_nmsocket_t *sock;
+	SSL_CTX *ctx;
+	isc_sockaddr_t local; /* local address */
+	isc_sockaddr_t peer;  /* peer address */
+} isc__netievent_tlsconnect_t;
+
 typedef struct isc__netievent {
 	isc__netievent_type type;
 } isc__netievent_t;
@@ -294,6 +318,7 @@ typedef union {
 	isc__netievent_udpsend_t nius;
 	isc__netievent__socket_quota_t nisq;
 	isc__netievent__socket_streaminfo_quota_t nissq;
+	isc__netievent_tlsconnect_t nitc;
 } isc__netievent_storage_t;
 
 /*
@@ -361,6 +386,8 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tcplistener,
 	isc_nm_tcpdnslistener,
 	isc_nm_tcpdnssocket,
+	isc_nm_tlslistener,
+	isc_nm_tlssocket
 } isc_nmsocket_type;
 
 /*%
@@ -397,6 +424,24 @@ struct isc_nmsocket {
 	isc_nmsocket_t *listener;
 	/*% Self, for self-contained unreferenced sockets (tcpdns) */
 	isc_nmsocket_t *self;
+
+	/*% TLS stuff */
+	struct tls {
+		bool server;
+		BIO *app_bio;
+		SSL *ssl;
+		SSL_CTX *ctx;
+		BIO *ssl_bio;
+		enum { TLS_INIT,
+		       TLS_HANDSHAKE,
+		       TLS_IO,
+		       TLS_ERROR,
+		       TLS_CLOSING } state;
+		isc_region_t senddata;
+		bool sending;
+		/* List of active send requests. */
+		ISC_LIST(isc__nm_uvreq_t) sends;
+	} tls;
 
 	/*%
 	 * quota is the TCP client, attached when a TCP connection
@@ -862,6 +907,25 @@ isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0);
  */
 
 void
+isc__nm_async_tlsclose(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tls_startread(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tls_do_bio(isc__networker_t *worker, isc__netievent_t *ev0);
+
+/*%<
+ * Callback handlers for asynchronouse TLS events.
+ */
+
+void
 isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
 /*%<
@@ -907,6 +971,35 @@ isc__nm_tcpdns_cancelread(isc_nmhandle_t *handle);
 /*%<
  * Stop reading on a connected TCPDNS handle.
  */
+
+void
+isc__nm_tls_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
+		 void *cbarg);
+
+void
+isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
+
+void
+isc__nm_tls_close(isc_nmsocket_t *sock);
+/*%<
+ * Close a TLS socket.
+ */
+
+void
+isc__nm_tls_pauseread(isc_nmsocket_t *sock);
+/*%<
+ * Pause reading on this socket, while still remembering the callback.
+ */
+
+void
+isc__nm_tls_resumeread(isc_nmsocket_t *sock);
+/*%<
+ * Resume reading from socket.
+ *
+ */
+
+void
+isc__nm_tls_stoplistening(isc_nmsocket_t *sock);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__)
@@ -984,4 +1077,10 @@ isc_result_t
 isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family);
 /*%<
  * Set the SO_IP_DONTFRAG (or equivalent) socket option of the fd if available
+ */
+
+void
+isc__nm_tls_initialize(void);
+/*%<
+ * Initialize OpenSSL library, idempotent.
  */

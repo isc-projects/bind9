@@ -518,13 +518,18 @@ This option sets [or does not set] the TC (TrunCation) bit in the query. The def
 \fB+notcflag\fP\&. This bit is ignored by the server for QUERY.
 .TP
 .B \fB+[no]tcp\fP
-This option uses [or does not use] TCP when querying name servers. The default behavior
-is to use UDP unless a type \fBany\fP or \fBixfr=N\fP query is requested,
-in which case the default is TCP. AXFR queries always use TCP.
+This option indicates whether to use TCP when querying name servers.
+The default behavior is to use UDP unless a type \fBany\fP or \fBixfr=N\fP
+query is requested, in which case the default is TCP. AXFR queries
+always use TCP.
 .TP
 .B \fB+timeout=T\fP
 This option sets the timeout for a query to \fBT\fP seconds. The default timeout is
 5 seconds. An attempt to set \fBT\fP to less than 1 is silently set to 1.
+.TP
+.B \fB+[no]tls\fP
+This option indicates whether to use DNS over TLS (DoT) when querying
+name servers.
 .TP
 .B \fB+[no]topdown\fP
 This feature is related to \fBdig +sigchase\fP, which is obsolete and

@@ -120,7 +120,8 @@ struct dig_lookup {
 		tcp_keepalive, header_only, ednsneg, mapped,
 		print_unknown_format, multiline, nottl, noclass, onesoa,
 		use_usec, nocrypto, ttlunits, idnin, idnout, expandaaaa, qr,
-		setqid;	       /*% use a specified query ID */
+		setqid,	       /*% use a specified query ID */
+		tls_mode;      /*% connect using TLS */
 	char textname[MXNAME]; /*% Name we're going to be
 				* looking up */
 	char cmdline[MXNAME];
@@ -228,6 +229,7 @@ extern unsigned int extrabytes;
 extern bool check_ra, have_ipv4, have_ipv6, specified_source, usesearch,
 	showsearch, yaml;
 extern in_port_t port;
+extern bool port_set;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
 extern isc_refcount_t sendcount;

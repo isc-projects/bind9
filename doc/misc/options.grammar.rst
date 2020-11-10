@@ -126,10 +126,10 @@
   	key-directory <quoted_string>;
   	lame-ttl <duration>;
   	listen-on [ port <integer> ] [ dscp
-  	    <integer> ] {
+  	    <integer> ] [ tls <string> ] {
   	    <address_match_element>; ... };
   	listen-on-v6 [ port <integer> ] [ dscp
-  	    <integer> ] {
+  	    <integer> ] [ tls <string> ] {
   	    <address_match_element>; ... };
   	lmdb-mapsize <sizeval>;
   	lock-file ( <quoted_string> | none );
@@ -272,6 +272,7 @@
   	tkey-domain <quoted_string>;
   	tkey-gssapi-credential <quoted_string>;
   	tkey-gssapi-keytab <quoted_string>;
+  	tls-port <integer>;
   	transfer-format ( many-answers | one-answer );
   	transfer-message-size <integer>;
   	transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [

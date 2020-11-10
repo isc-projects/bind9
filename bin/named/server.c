@@ -3962,7 +3962,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Set the view's port number for outgoing queries.
 	 */
-	CHECKM(named_config_getport(config, &port), "port");
+	CHECKM(named_config_getport(config, "port", &port), "port");
 	dns_view_setdstport(view, port);
 
 	/*
@@ -5762,7 +5762,7 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 	/*
 	 * Determine which port to send requests to.
 	 */
-	CHECKM(named_config_getport(config, &port), "port");
+	CHECKM(named_config_getport(config, "port", &port), "port");
 
 	if (alternates != NULL) {
 		portobj = cfg_tuple_get(alternates, "port");
@@ -5850,7 +5850,7 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 	/*
 	 * Determine which port to send forwarded requests to.
 	 */
-	CHECKM(named_config_getport(config, &port), "port");
+	CHECKM(named_config_getport(config, "port", &port), "port");
 
 	if (forwarders != NULL) {
 		portobj = cfg_tuple_get(forwarders, "port");
@@ -6735,7 +6735,8 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
 		}
 
 		result = ns_listenelt_create(mctx, isc_sockaddr_getport(addr),
-					     dscp, src_acl, &lelt);
+					     dscp, src_acl, false, NULL, NULL,
+					     &lelt);
 		if (result != ISC_R_SUCCESS) {
 			goto clean;
 		}
@@ -8799,7 +8800,8 @@ load_configuration(const char *filename, named_server_t *server,
 	if (named_g_port != 0) {
 		listen_port = named_g_port;
 	} else {
-		CHECKM(named_config_getport(config, &listen_port), "port");
+		CHECKM(named_config_getport(config, "port", &listen_port),
+		       "port");
 	}
 
 	/*
@@ -10860,20 +10862,75 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
 			uint16_t family, ns_listenelt_t **target) {
 	isc_result_t result;
-	const cfg_obj_t *portobj, *dscpobj;
+	const cfg_obj_t *tlsobj, *portobj, *dscpobj;
 	in_port_t port;
 	isc_dscp_t dscp = -1;
+	const char *key = NULL, *cert = NULL;
+	bool tls = false;
 	ns_listenelt_t *delt = NULL;
 	REQUIRE(target != NULL && *target == NULL);
 
+	/* XXXWPK TODO be more verbose on failures. */
+	tlsobj = cfg_tuple_get(listener, "tls");
+	if (tlsobj != NULL && cfg_obj_isstring(tlsobj)) {
+		if (!strcmp(cfg_obj_asstring(tlsobj), "ephemeral")) {
+			tls = true;
+		} else {
+			const cfg_obj_t *tlsconfigs = NULL;
+			const cfg_listelt_t *element;
+			(void)cfg_map_get(config, "tls", &tlsconfigs);
+			for (element = cfg_list_first(tlsconfigs);
+			     element != NULL; element = cfg_list_next(element))
+			{
+				cfg_obj_t *tconfig = cfg_listelt_value(element);
+				const cfg_obj_t *name =
+					cfg_map_getname(tconfig);
+				if (!strcmp(cfg_obj_asstring(name),
+					    cfg_obj_asstring(tlsobj))) {
+					tls = true;
+					const cfg_obj_t *keyo = NULL,
+							*certo = NULL;
+					(void)cfg_map_get(tconfig, "key-file",
+							  &keyo);
+					if (keyo == NULL) {
+						return (ISC_R_FAILURE);
+					}
+					(void)cfg_map_get(tconfig, "cert-file",
+							  &certo);
+					if (certo == NULL) {
+						return (ISC_R_FAILURE);
+					}
+					key = cfg_obj_asstring(keyo);
+					cert = cfg_obj_asstring(certo);
+					break;
+				}
+			}
+		}
+		if (!tls) {
+			return (ISC_R_FAILURE);
+		}
+	}
 	portobj = cfg_tuple_get(listener, "port");
 	if (!cfg_obj_isuint32(portobj)) {
-		if (named_g_port != 0) {
-			port = named_g_port;
+		if (tls) {
+			if (named_g_tlsport != 0) {
+				port = named_g_tlsport;
+			} else {
+				result = named_config_getport(
+					config, "tls-port", &port);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
+			}
 		} else {
-			result = named_config_getport(config, &port);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
+			if (named_g_port != 0) {
+				port = named_g_port;
+			} else {
+				result = named_config_getport(config, "port",
+							      &port);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
 			}
 		}
 	} else {
@@ -10899,7 +10956,8 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	}
 
-	result = ns_listenelt_create(mctx, port, dscp, NULL, &delt);
+	result = ns_listenelt_create(mctx, port, dscp, NULL, tls, key, cert,
+				     &delt);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

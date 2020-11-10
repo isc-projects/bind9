@@ -287,6 +287,7 @@ help(void) {
 	       "(+[no]tcflag))\n"
 	       "                 +[no]tcp            (TCP mode (+[no]vc))\n"
 	       "                 +timeout=###        (Set query timeout) [5]\n"
+	       "                 +[no]tls            (DNS over TLS mode)\n"
 	       "                 +[no]trace          (Trace delegation down "
 	       "from root "
 	       "[+dnssec])\n"
@@ -335,13 +336,22 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	}
 
 	if (query->lookup->stats) {
+		const char *proto;
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		if (query->lookup->use_usec) {
 			printf(";; Query time: %ld usec\n", (long)diff);
 		} else {
 			printf(";; Query time: %ld msec\n", (long)diff / 1000);
 		}
-		printf(";; SERVER: %s(%s)\n", fromtext, query->servname);
+		if (query->lookup->tls_mode) {
+			proto = "TLS";
+		} else if (query->lookup->tcp_mode) {
+			proto = "TCP";
+		} else {
+			proto = "UDP";
+		}
+		printf(";; SERVER: %s(%s) (%s)\n", fromtext, query->servname,
+		       proto);
 		time(&tnow);
 		(void)localtime_r(&tnow, &tmnow);
 
@@ -1726,6 +1736,13 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 				timeout = 1;
 			}
 			break;
+		case 'l':
+			FULLCHECK("tls");
+			lookup->tls_mode = state;
+			if (!lookup->tcp_mode_set) {
+				lookup->tcp_mode = state;
+			}
+			break;
 		case 'o':
 			FULLCHECK("topdown");
 			fprintf(stderr, ";; +topdown option is deprecated");
@@ -2027,6 +2044,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			fatal("Couldn't parse port number");
 		}
 		port = num;
+		port_set = true;
 		return (value_from_next);
 	case 'q':
 		if (!config_only) {

@@ -506,13 +506,18 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    ``+notcflag``. This bit is ignored by the server for QUERY.
 
 ``+[no]tcp``
-   This option uses [or does not use] TCP when querying name servers. The default behavior
-   is to use UDP unless a type ``any`` or ``ixfr=N`` query is requested,
-   in which case the default is TCP. AXFR queries always use TCP.
+   This option indicates whether to use TCP when querying name servers.
+   The default behavior is to use UDP unless a type ``any`` or ``ixfr=N``
+   query is requested, in which case the default is TCP. AXFR queries
+   always use TCP.
 
 ``+timeout=T``
    This option sets the timeout for a query to ``T`` seconds. The default timeout is
    5 seconds. An attempt to set ``T`` to less than 1 is silently set to 1.
+
+``+[no]tls``
+   This option indicates whether to use DNS over TLS (DoT) when querying
+   name servers.
 
 ``+[no]topdown``
    This feature is related to ``dig +sigchase``, which is obsolete and

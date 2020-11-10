@@ -31,6 +31,8 @@
 
 #include <dns/types.h>
 
+#include <openssl/ssl.h>
+
 /***
  *** Types
  ***/
@@ -43,6 +45,7 @@ struct ns_listenelt {
 	in_port_t  port;
 	isc_dscp_t dscp; /* -1 = not set, 0..63 */
 	dns_acl_t *acl;
+	SSL_CTX *  sslctx;
 	ISC_LINK(ns_listenelt_t) link;
 };
 
@@ -58,7 +61,8 @@ struct ns_listenlist {
 
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		    dns_acl_t *acl, ns_listenelt_t **target);
+		    dns_acl_t *acl, bool tls, const char *key, const char *cert,
+		    ns_listenelt_t **target);
 /*%<
  * Create a listen-on list element.
  */

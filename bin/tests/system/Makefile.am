@@ -174,6 +174,7 @@ TESTS +=		\
 	nsupdate	\
 	resolver	\
 	statistics	\
+	dot		\
 	upforwd		\
 	zero
 
