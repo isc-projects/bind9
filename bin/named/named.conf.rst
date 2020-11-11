@@ -412,6 +412,7 @@ OPTIONS
   	stale-answer-enable boolean;
   	stale-answer-ttl duration;
   	stale-cache-enable boolean;
+  	stale-refresh-time duration;
   	startup-notify-rate integer;
   	statistics-file quoted_string;
   	synth-from-dnssec boolean;
@@ -786,6 +787,7 @@ VIEW
   	stale-answer-enable boolean;
   	stale-answer-ttl duration;
   	stale-cache-enable boolean;
+  	stale-refresh-time duration;
   	synth-from-dnssec boolean;
   	transfer-format ( many-answers | one-answer );
   	transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [
