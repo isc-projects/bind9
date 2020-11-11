@@ -1839,6 +1839,19 @@ Boolean Options
 ``stale-cache-enable``
    If ``yes``, enable the retaining of "stale" cached answers.  Default ``no``.
 
+``stale-refresh-time``
+   If the name servers for a given zone are not answering, this sets the time
+   window for which ``named`` will promptly return "stale" cached answers for
+   that RRSet being requested before a new attempt in contacting the servers
+   is made. For convenience, TTL-style time-unit suffixes may be used to
+   specify the value. It also accepts ISO 8601 duration formats.
+
+   The default ``stale-refresh-time`` is 30 seconds, as RFC 8767 recommends
+   that attempts to refresh to be done no more frequently than every 30
+   seconds. A value of zero disables the feature, meaning that normal
+   resolution will take place first, if that fails only then ``named`` will
+   return "stale" cached answers.
+
 ``nocookie-udp-size``
    This sets the maximum size of UDP responses that are sent to queries
    without a valid server COOKIE. A value below 128 is silently

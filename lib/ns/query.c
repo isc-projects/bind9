@@ -5523,6 +5523,9 @@ query_lookup(query_ctx_t *qctx) {
 	dns_clientinfo_t ci;
 	dns_name_t *rpzqname = NULL;
 	unsigned int dboptions;
+	dns_ttl_t stale_ttl = 0;
+	dns_ttl_t stale_refresh = 0;
+	bool dbfind_stale = false;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_lookup");
 
@@ -5581,6 +5584,22 @@ query_lookup(query_ctx_t *qctx) {
 		dboptions |= DNS_DBFIND_COVERINGNSEC;
 	}
 
+	dns_db_getservestalerefresh(qctx->client->view->cachedb,
+				    &stale_refresh);
+	dns_db_getservestalettl(qctx->client->view->cachedb, &stale_ttl);
+	if (stale_refresh > 0) {
+		if (qctx->client->view->staleanswersok == dns_stale_answer_yes)
+		{
+			dboptions |= DNS_DBFIND_STALEENABLED;
+		} else if (qctx->client->view->staleanswersok ==
+			   dns_stale_answer_conf) {
+			if (qctx->client->view->staleanswersenable &&
+			    stale_ttl > 0) {
+				dboptions |= DNS_DBFIND_STALEENABLED;
+			}
+		}
+	}
+
 	result = dns_db_findext(qctx->db, rpzqname, qctx->version, qctx->type,
 				dboptions, qctx->client->now, &qctx->node,
 				qctx->fname, &cm, &ci, qctx->rdataset,
@@ -5601,9 +5620,27 @@ query_lookup(query_ctx_t *qctx) {
 		dns_cache_updatestats(qctx->view->cache, result);
 	}
 
-	if ((qctx->client->query.dboptions & DNS_DBFIND_STALEOK) != 0) {
+	/*
+	 * If DNS_DBFIND_STALEOK is set this means we are dealing with a
+	 * lookup following a failed lookup and it is okay to serve a stale
+	 * answer. This will start a time window in rbtdb, tracking the last
+	 * time the RRset lookup failed.
+	 *
+	 * A stale answer may also be served if this is a normal lookup,
+	 * the view has enabled serve-stale (DNS_DBFIND_STALE_ENABLED is set),
+	 * and the request is within the stale-refresh-time window. If this
+	 * is the case we have to make sure that the lookup found a stale
+	 * answer, otherwise "fresh" answers are also treated as stale.
+	 */
+	dbfind_stale = ((dboptions & DNS_DBFIND_STALEOK) != 0);
+	if (dbfind_stale != 0 ||
+	    (((dboptions & DNS_DBFIND_STALEENABLED) != 0) &&
+	     STALE(qctx->rdataset)))
+	{
 		char namebuf[DNS_NAME_FORMATSIZE];
 		bool success;
+
+		inc_stats(qctx->client, ns_statscounter_trystale);
 
 		qctx->client->query.dboptions &= ~DNS_DBFIND_STALEOK;
 		if (dns_rdataset_isassociated(qctx->rdataset) &&
@@ -5618,10 +5655,20 @@ query_lookup(query_ctx_t *qctx) {
 
 		dns_name_format(qctx->client->query.qname, namebuf,
 				sizeof(namebuf));
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-			      "%s resolver failure, stale answer %s", namebuf,
-			      success ? "used" : "unavailable");
+		if (dbfind_stale) {
+			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+				      "%s resolver failure, stale answer %s",
+				      namebuf,
+				      success ? "used" : "unavailable");
+		} else {
+			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+				      "%s query within stale refresh time, "
+				      "stale answer %s",
+				      namebuf,
+				      success ? "used" : "unavailable");
+		}
 
 		if (!success) {
 			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
@@ -6833,7 +6880,6 @@ query_usestale(query_ctx_t *qctx) {
 
 	if (staleanswersok) {
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
-		inc_stats(qctx->client, ns_statscounter_trystale);
 		if (qctx->client->query.fetch != NULL) {
 			dns_resolver_destroyfetch(&qctx->client->query.fetch);
 		}
