@@ -24,7 +24,9 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- A new configuration option ``stale-refresh-time`` has been introduced, it
+  allows stale RRset to be served directly from cache for a period of time
+  after a failed lookup, before a new attempt to refresh it is made. [GL #2066]
 
 Removed Features
 ~~~~~~~~~~~~~~~~
