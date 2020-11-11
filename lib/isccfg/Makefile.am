@@ -6,7 +6,6 @@ libisccfg_ladir = $(includedir)/isccfg
 libisccfg_la_HEADERS =			\
 	include/isccfg/aclconf.h	\
 	include/isccfg/cfg.h		\
-	include/isccfg/dnsconf.h	\
 	include/isccfg/grammar.h	\
 	include/isccfg/kaspconf.h	\
 	include/isccfg/log.h		\

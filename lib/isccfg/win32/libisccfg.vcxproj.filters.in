@@ -44,9 +44,6 @@
     <ClInclude Include="..\include\isccfg\aclconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isccfg\dnsconf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isccfg\cfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>

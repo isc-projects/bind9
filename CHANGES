@@ -1,3 +1,8 @@
+5532.	[cleanup]	Unused header files were removed:
+			bin/rndc/include/rndc/os.h, lib/isc/timer_p.h,
+			lib/isccfg/include/isccfg/dnsconf.h and code related
+			to those files. [GL #1913]
+
 5531.	[func]		Add a netmgr TLS layer, enabling server-side DoT
 			support (not yet available), and client-side DoT
 			support in dig with "dig +tls". [GL #1840]

@@ -216,8 +216,7 @@ libisc_la_SOURCES =		\
 	entropy_private.h	\
 	fsaccess_common_p.h	\
 	mem_p.h			\
-	task_p.h		\
-	timer_p.h
+	task_p.h
 
 libisc_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
