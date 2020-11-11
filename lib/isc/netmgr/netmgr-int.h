@@ -172,6 +172,11 @@ typedef enum isc__netievent_type {
 	netievent_stop,
 	netievent_pause,
 
+	netievent_connectcb,
+	netievent_acceptcb,
+	netievent_readcb,
+	netievent_sendcb,
+
 	netievent_prio = 0xff, /* event type values higher than this
 				* will be treated as high-priority
 				* events, which can be processed
@@ -187,6 +192,7 @@ typedef union {
 	isc_nm_recv_cb_t recv;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
+	isc_nm_accept_cb_t accept;
 } isc__nm_cb_t;
 
 /*
@@ -259,6 +265,18 @@ typedef isc__netievent__socket_req_t isc__netievent_tcpconnect_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcplisten_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcpsend_t;
 typedef isc__netievent__socket_req_t isc__netievent_tcpdnssend_t;
+
+typedef struct isc__netievent__socket_req_result {
+	isc__netievent_type type;
+	isc_nmsocket_t *sock;
+	isc__nm_uvreq_t *req;
+	isc_result_t result;
+} isc__netievent__socket_req_result_t;
+
+typedef isc__netievent__socket_req_result_t isc__netievent_connectcb_t;
+typedef isc__netievent__socket_req_result_t isc__netievent_acceptcb_t;
+typedef isc__netievent__socket_req_result_t isc__netievent_readcb_t;
+typedef isc__netievent__socket_req_result_t isc__netievent_sendcb_t;
 
 typedef struct isc__netievent__socket_streaminfo_quota {
 	isc__netievent_type type;
@@ -748,6 +766,48 @@ void
 isc__nmsocket_clearcb(isc_nmsocket_t *sock);
 /*%<
  * Clear the recv and accept callbacks in 'sock'.
+ */
+
+void
+isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
+		  isc_result_t eresult);
+void
+isc__nm_async_connectcb(isc__networker_t *worker, isc__netievent_t *ev0);
+/*%<
+ * Issue a connect callback on the socket, used to call the callback
+ * on failed conditions when the event can't be scheduled on the uv loop.
+ */
+
+void
+isc__nm_acceptcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
+		 isc_result_t eresult);
+void
+isc__nm_async_acceptcb(isc__networker_t *worker, isc__netievent_t *ev0);
+/*%<
+ * Issue a accept callback on the socket, used to call the callback
+ * on failed conditions when the event can't be scheduled on the uv loop.
+ */
+
+void
+isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
+	       isc_result_t eresult);
+void
+isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0);
+
+/*%<
+ * Issue a read callback on the socket, used to call the callback
+ * on failed conditions when the event can't be scheduled on the uv loop.
+ *
+ */
+
+void
+isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
+	       isc_result_t eresult);
+void
+isc__nm_async_sendcb(isc__networker_t *worker, isc__netievent_t *ev0);
+/*%<
+ * Issue a write callback on the socket, used to call the callback
+ * on failed conditions when the event can't be scheduled on the uv loop.
  */
 
 void
