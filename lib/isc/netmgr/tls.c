@@ -79,6 +79,7 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	UNUSED(handle);
 	/*  XXXWPK TODO */
 	UNUSED(eresult);
+
 	isc_mem_put(sock->mgr->mctx, sock->tls.senddata.base,
 		    sock->tls.senddata.length);
 	sock->tls.senddata = (isc_region_t){ NULL, 0 };
@@ -701,7 +702,7 @@ tls_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(VALID_NMSOCK(tlssock));
 
 	if (result != ISC_R_SUCCESS) {
-		tlssock->connect_cb(NULL, result, tlssock->connect_cbarg);
+		tlssock->connect_cb(handle, result, tlssock->connect_cbarg);
 		atomic_store(&tlssock->result, result);
 		atomic_store(&tlssock->connect_error, true);
 		tls_close_direct(tlssock);
@@ -714,7 +715,7 @@ tls_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	result = initialize_tls(tlssock, false);
 	if (result != ISC_R_SUCCESS) {
-		tlssock->connect_cb(NULL, result, tlssock->connect_cbarg);
+		tlssock->connect_cb(handle, result, tlssock->connect_cbarg);
 		atomic_store(&tlssock->result, result);
 		atomic_store(&tlssock->connect_error, true);
 		tls_close_direct(tlssock);
@@ -742,6 +743,7 @@ isc__nm_async_tlsconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 				   tls_connect_cb, tlssock,
 				   tlssock->connect_timeout, 0);
 	if (result != ISC_R_SUCCESS) {
+		/* FIXME: We need to pass valid handle */
 		tlssock->connect_cb(NULL, result, tlssock->connect_cbarg);
 		atomic_store(&tlssock->result, result);
 		atomic_store(&tlssock->connect_error, true);

@@ -787,11 +787,6 @@ tcpdnsconnect_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isc_mem_putanddetach(&conn->mctx, conn, sizeof(*conn));
 
-	if (result != ISC_R_SUCCESS) {
-		cb(NULL, result, cbarg);
-		return;
-	}
-
 	dnssock = isc_mem_get(handle->sock->mgr->mctx, sizeof(*dnssock));
 	isc__nmsocket_init(dnssock, handle->sock->mgr, isc_nm_tcpdnssocket,
 			   handle->sock->iface);
@@ -806,6 +801,13 @@ tcpdnsconnect_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	atomic_init(&dnssock->client, true);
 
 	readhandle = isc__nmhandle_get(dnssock, NULL, NULL);
+
+	if (result != ISC_R_SUCCESS) {
+		cb(readhandle, result, cbarg);
+		isc__nmsocket_detach(&dnssock);
+		isc_nmhandle_detach(&readhandle);
+		return;
+	}
 
 	INSIST(dnssock->statichandle != NULL);
 	INSIST(dnssock->statichandle == readhandle);
@@ -838,20 +840,26 @@ isc_result_t
 isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize) {
-	tcpconnect_t *conn = isc_mem_get(mgr->mctx, sizeof(tcpconnect_t));
+	isc_result_t result = ISC_R_SUCCESS;
+	tcpconnect_t *conn = isc_mem_get(mgr->mctx, sizeof(*conn));
 
 	*conn = (tcpconnect_t){ .cb = cb,
 				.cbarg = cbarg,
 				.extrahandlesize = extrahandlesize };
 	isc_mem_attach(mgr->mctx, &conn->mctx);
-	return (isc_nm_tcpconnect(mgr, local, peer, tcpdnsconnect_cb, conn,
-				  timeout, 0));
+	result = isc_nm_tcpconnect(mgr, local, peer, tcpdnsconnect_cb, conn,
+				   timeout, 0);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_putanddetach(&conn->mctx, conn, sizeof(*conn));
+	}
+	return (result);
 }
 
 isc_result_t
 isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize) {
+	isc_result_t result = ISC_R_SUCCESS;
 	tcpconnect_t *conn = isc_mem_get(mgr->mctx, sizeof(tcpconnect_t));
 	SSL_CTX *ctx = NULL;
 
@@ -861,9 +869,12 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	isc_mem_attach(mgr->mctx, &conn->mctx);
 
 	ctx = SSL_CTX_new(SSLv23_client_method());
-	isc_result_t result = isc_nm_tlsconnect(
-		mgr, local, peer, tcpdnsconnect_cb, conn, ctx, timeout, 0);
+	result = isc_nm_tlsconnect(mgr, local, peer, tcpdnsconnect_cb, conn,
+				   ctx, timeout, 0);
 	SSL_CTX_free(ctx);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_putanddetach(&conn->mctx, conn, sizeof(*conn));
+	}
 	return (result);
 }
 
