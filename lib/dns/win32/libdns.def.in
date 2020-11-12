@@ -84,6 +84,7 @@ dns_cache_flushname
 dns_cache_flushnode
 dns_cache_getcachesize
 dns_cache_getname
+dns_cache_getservestalerefresh
 dns_cache_getservestalettl
 dns_cache_getstats
 dns_cache_load
@@ -95,6 +96,7 @@ dns_cache_renderxml
 @END LIBXML2
 dns_cache_setcachesize
 dns_cache_setfilename
+dns_cache_setservestalerefresh
 dns_cache_setservestalettl
 dns_cache_updatestats
 dns_catz_add_zone
@@ -200,6 +202,7 @@ dns_db_getnsec3parameters
 dns_db_getoriginnode
 dns_db_getrrsetstats
 dns_db_getservestalettl
+dns_db_getservestalerefresh
 dns_db_getsigningtime
 dns_db_getsize
 dns_db_getsoaserial
@@ -225,6 +228,7 @@ dns_db_serialize
 dns_db_setcachestats
 dns_db_setgluecachestats
 dns_db_setservestalettl
+dns_db_setservestalerefresh
 dns_db_setsigningtime
 dns_db_settask
 dns_db_subtractrdataset

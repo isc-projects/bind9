@@ -194,6 +194,7 @@ options {\n\
 	servfail-ttl 1;\n\
 #	sortlist <none>\n\
 	stale-answer-enable false;\n\
+	stale-refresh-time 30; /* 30 seconds */\n\
 	stale-answer-ttl 1; /* 1 second */\n\
 	stale-cache-enable true;\n\
 	synth-from-dnssec no;\n\

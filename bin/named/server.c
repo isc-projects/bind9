@@ -1872,7 +1872,7 @@ cache_reusable(dns_view_t *originview, dns_view_t *view,
 static bool
 cache_sharable(dns_view_t *originview, dns_view_t *view,
 	       bool new_zero_no_soattl, uint64_t new_max_cache_size,
-	       uint32_t new_stale_ttl) {
+	       uint32_t new_stale_ttl, uint32_t new_stale_refresh_time) {
 	/*
 	 * If the cache cannot even reused for the same view, it cannot be
 	 * shared with other views.
@@ -1886,6 +1886,8 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
 	 * the sharing views.
 	 */
 	if (dns_cache_getservestalettl(originview->cache) != new_stale_ttl ||
+	    dns_cache_getservestalerefresh(originview->cache) !=
+		    new_stale_refresh_time ||
 	    dns_cache_getcachesize(originview->cache) != new_max_cache_size)
 	{
 		return (false);
@@ -3895,6 +3897,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	size_t max_adb_size;
 	uint32_t lame_ttl, fail_ttl;
 	uint32_t max_stale_ttl = 0;
+	uint32_t stale_refresh_time = 0;
 	dns_tsig_keyring_t *ring = NULL;
 	dns_view_t *pview = NULL; /* Production view */
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
@@ -4393,6 +4396,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		view->staleanswersok = dns_stale_answer_conf;
 	}
 
+	obj = NULL;
+	result = named_config_get(maps, "stale-refresh-time", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	stale_refresh_time = cfg_obj_asduration(obj);
+
 	/*
 	 * Configure the view's cache.
 	 *
@@ -4427,7 +4435,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	nsc = cachelist_find(cachelist, cachename, view->rdclass);
 	if (nsc != NULL) {
 		if (!cache_sharable(nsc->primaryview, view, zero_no_soattl,
-				    max_cache_size, max_stale_ttl))
+				    max_cache_size, max_stale_ttl,
+				    stale_refresh_time))
 		{
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -4527,6 +4536,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 	dns_cache_setcachesize(cache, max_cache_size);
 	dns_cache_setservestalettl(cache, max_stale_ttl);
+	dns_cache_setservestalerefresh(cache, stale_refresh_time);
 
 	dns_cache_detach(&cache);
 
@@ -16121,6 +16131,7 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		dns_ttl_t stale_ttl = 0;
+		uint32_t stale_refresh = 0;
 		dns_db_t *db = NULL;
 
 		if (classtxt != NULL && rdclass != view->rdclass) {
@@ -16140,6 +16151,7 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 		db = NULL;
 		dns_db_attach(view->cachedb, &db);
 		(void)dns_db_getservestalettl(db, &stale_ttl);
+		(void)dns_db_getservestalerefresh(db, &stale_refresh);
 		dns_db_detach(&db);
 		if (found) {
 			CHECK(putstr(text, "\n"));
@@ -16169,8 +16181,10 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 		}
 		if (stale_ttl > 0) {
 			snprintf(msg, sizeof(msg),
-				 " (stale-answer-ttl=%u max-stale-ttl=%u)",
-				 view->staleanswerttl, stale_ttl);
+				 " (stale-answer-ttl=%u max-stale-ttl=%u "
+				 "stale-refresh-time=%u)",
+				 view->staleanswerttl, stale_ttl,
+				 stale_refresh);
 			CHECK(putstr(text, msg));
 		}
 		found = true;

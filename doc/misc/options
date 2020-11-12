@@ -367,6 +367,7 @@ options {
         stale-answer-enable <boolean>;
         stale-answer-ttl <duration>;
         stale-cache-enable <boolean>;
+        stale-refresh-time <duration>;
         startup-notify-rate <integer>;
         statistics-file <quoted_string>;
         statistics-interval <integer>; // ancient
@@ -744,6 +745,7 @@ view <string> [ <class> ] {
         stale-answer-enable <boolean>;
         stale-answer-ttl <duration>;
         stale-cache-enable <boolean>;
+        stale-refresh-time <duration>;
         suppress-initial-notify <boolean>; // not yet implemented
         synth-from-dnssec <boolean>;
         topology { <address_match_element>; ... }; // ancient

@@ -255,6 +255,28 @@ dns_cache_getservestalettl(dns_cache_t *cache);
  *\li	'cache' to be valid.
  */
 
+void
+dns_cache_setservestalerefresh(dns_cache_t *cache, dns_ttl_t interval);
+/*%<
+ * Sets the length of time to wait before attempting to refresh a rrset
+ * if a previous attempt in doing so has failed.
+ * During this time window if stale rrset are available in cache they
+ * will be directly returned to client.
+ *
+ * Requires:
+ *\li	'cache' to be valid.
+ */
+
+dns_ttl_t
+dns_cache_getservestalerefresh(dns_cache_t *cache);
+/*%<
+ * Gets the 'stale-refresh-time' value, set by a previous call to
+ * 'dns_cache_setservestalerefresh'.
+ *
+ * Requires:
+ *\li	'cache' to be valid.
+ */
+
 isc_result_t
 dns_cache_flush(dns_cache_t *cache);
 /*%<
