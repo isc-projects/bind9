@@ -111,10 +111,22 @@ isc_nmsocket_close(isc_nmsocket_t **sockp);
  * sockets with active handles, the socket will be closed.
  */
 
+#ifdef NETMGR_TRACE
+#define isc_nmhandle_attach(handle, dest) \
+	isc__nmhandle_attach(handle, dest, __FILE__, __LINE__, __func__)
+#define isc_nmhandle_detach(handlep) \
+	isc__nmhandle_detach(handlep, __FILE__, __LINE__, __func__)
+#define FLARG , const char *file, unsigned int line, const char *func
+#else
+#define isc_nmhandle_attach(handle, dest) isc__nmhandle_attach(handle, dest)
+#define isc_nmhandle_detach(handlep)	  isc__nmhandle_detach(handlep)
+#define FLARG
+#endif
+
 void
-isc_nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **dest);
+isc__nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **dest FLARG);
 void
-isc_nmhandle_detach(isc_nmhandle_t **handlep);
+isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG);
 /*%<
  * Increment/decrement the reference counter in a netmgr handle,
  * but (unlike the attach/detach functions) do not change the pointer
@@ -127,6 +139,7 @@ isc_nmhandle_detach(isc_nmhandle_t **handlep);
  * otherwise know that the handle was in use and might free it, along
  * with the client.)
  */
+#undef FLARG
 
 void *
 isc_nmhandle_getdata(isc_nmhandle_t *handle);
@@ -302,9 +315,6 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
  * If 'quota' is not NULL, then the socket is attached to the specified
  * quota. This allows us to enforce TCP client quota limits.
  *
- * NOTE: This is currently only called inside isc_nm_listentcpdns(), which
- * creates a 'wrapper' socket that sends and receives DNS messages
- * prepended with a two-byte length field, and handles buffering.
  */
 
 isc_result_t
@@ -326,10 +336,11 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
  */
 
 isc_result_t
-isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
-		    void *cbarg, isc_nm_accept_cb_t accept_cb,
-		    void *accept_cbarg, size_t extrahandlesize, int backlog,
-		    isc_quota_t *quota, isc_nmsocket_t **sockp);
+isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
+		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
+		    isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
+		    isc_nmsocket_t **sockp);
 /*%<
  * Start listening for DNS messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -391,8 +402,35 @@ isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value);
  */
 
 void
-isc_nm_tcp_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
-		       uint32_t keepalive, uint32_t advertised);
+isc_nm_tlsdns_sequential(isc_nmhandle_t *handle);
+/*%<
+ * Disable pipelining on this connection. Each DNS packet will be only
+ * processed after the previous completes.
+ *
+ * The socket must be unpaused after the query is processed.  This is done
+ * the response is sent, or if we're dropping the query, it will be done
+ * when a handle is fully dereferenced by calling the socket's
+ * closehandle_cb callback.
+ *
+ * Note: This can only be run while a message is being processed; if it is
+ * run before any messages are read, no messages will be read.
+ *
+ * Also note: once this has been set, it cannot be reversed for a given
+ * connection.
+ */
+
+void
+isc_nm_tlsdns_keepalive(isc_nmhandle_t *handle, bool value);
+/*%<
+ * Enable/disable keepalive on this connection by setting it to 'value'.
+ *
+ * When keepalive is active, we switch to using the keepalive timeout
+ * to determine when to close a connection, rather than the idle timeout.
+ */
+
+void
+isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
+		   uint32_t keepalive, uint32_t advertised);
 /*%<
  * Sets the initial, idle, and keepalive timeout values to use for
  * TCP connections, and the timeout value to advertise in responses using
@@ -404,8 +442,8 @@ isc_nm_tcp_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
  */
 
 void
-isc_nm_tcp_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
-		       uint32_t *keepalive, uint32_t *advertised);
+isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
+		   uint32_t *keepalive, uint32_t *advertised);
 /*%<
  * Gets the initial, idle, keepalive, or advertised timeout values,
  * in tenths of seconds.

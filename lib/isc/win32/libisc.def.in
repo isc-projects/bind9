@@ -444,8 +444,8 @@ isc_netaddr_setzone
 isc_netaddr_totext
 isc_netaddr_unspec
 isc_netscope_pton
-isc_nmhandle_attach
-isc_nmhandle_detach
+isc__nmhandle_attach
+isc__nmhandle_detach
 isc_nmhandle_getdata
 isc_nmhandle_getextra
 isc_nmhandle_is_stream
@@ -473,8 +473,8 @@ isc_nm_start
 isc_nm_stoplistening
 isc_nm_tcpconnect
 isc_nm_tcpdnsconnect
-isc_nm_tcp_gettimeouts
-isc_nm_tcp_settimeouts
+isc_nm_gettimeouts
+isc_nm_settimeouts
 isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
