@@ -961,8 +961,6 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	CHECK(xfrin_send_request(xfr));
 
 failure:
-	isc_nmhandle_detach(&handle);
-
 	if (result != ISC_R_SUCCESS && result != ISC_R_SHUTTINGDOWN) {
 		xfrin_fail(xfr, result, "failed to connect");
 	}

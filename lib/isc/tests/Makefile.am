@@ -29,7 +29,6 @@ check_PROGRAMS =	\
 	md_test		\
 	mem_test	\
 	netaddr_test	\
-	netmgr_test \
 	parse_test	\
 	pool_test	\
 	quota_test	\
@@ -44,8 +43,12 @@ check_PROGRAMS =	\
 	symtab_test	\
 	task_test	\
 	taskpool_test	\
+	tcp_test	\
+	tcp_quota_test	\
+	tcpdns_test	\
 	time_test	\
-	timer_test
+	timer_test	\
+	udp_test
 
 TESTS = $(check_PROGRAMS)
 
@@ -69,11 +72,39 @@ random_test_LDADD =	\
 	$(LDADD)	\
 	-lm
 
-netmgr_test_CPPFLAGS =	\
+tcp_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)	\
 	$(LIBUV_CFLAGS)
 
-netmgr_test_LDADD =	\
+tcp_test_LDADD =	\
+	$(LDADD)	\
+	$(LIBUV_LIBS)
+
+tcp_quota_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)		\
+	$(OPENSSL_CFLAGS)	\
+	$(LIBUV_CFLAGS)
+
+tcp_quota_test_LDADD =	\
+	$(LDADD)	\
+	$(LIBUV_LIBS)
+
+tcpdns_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)	\
+	$(LIBUV_CFLAGS)
+
+tcpdns_test_LDADD =	\
+	$(LDADD)	\
+	$(LIBUV_LIBS)
+
+udp_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)	\
+	$(LIBUV_CFLAGS)
+
+udp_test_LDADD =	\
 	$(LDADD)	\
 	$(LIBUV_LIBS)
 

@@ -106,6 +106,9 @@
 	 (list
 	  "--enable=all"
 	  "--suppress=missingIncludeSystem"
+	  "--suppress=nullPointerRedundantCheck"
+	  (concat "--suppressions-list=" (expand-file-name
+			       (concat directory-of-current-dir-locals-file "util/suppressions.txt")))
 	  (concat "-include=" (expand-file-name
 			       (concat directory-of-current-dir-locals-file "config.h")))
 	  )

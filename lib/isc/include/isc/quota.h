@@ -31,6 +31,7 @@
 
 #include <isc/atomic.h>
 #include <isc/lang.h>
+#include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/types.h>
 
@@ -44,6 +45,7 @@ ISC_LANG_BEGINDECLS
 typedef struct isc_quota_cb isc_quota_cb_t;
 typedef void (*isc_quota_cb_func_t)(isc_quota_t *quota, void *data);
 struct isc_quota_cb {
+	int		    magic;
 	isc_quota_cb_func_t cb_func;
 	void *		    data;
 	ISC_LINK(isc_quota_cb_t) link;
@@ -51,6 +53,7 @@ struct isc_quota_cb {
 
 /*% isc_quota structure */
 struct isc_quota {
+	int		     magic;
 	atomic_uint_fast32_t max;
 	atomic_uint_fast32_t used;
 	atomic_uint_fast32_t soft;

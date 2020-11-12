@@ -18,6 +18,7 @@
 #endif /* HAVE_UCHAR_H */
 
 #include <isc/mutex.h>
+#include <isc/util.h>
 
 #if !defined(__has_feature)
 #define __has_feature(x) 0

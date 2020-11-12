@@ -17,6 +17,12 @@
 #include <isc/quota.h>
 #include <isc/util.h>
 
+#define QUOTA_MAGIC    ISC_MAGIC('Q', 'U', 'O', 'T')
+#define VALID_QUOTA(p) ISC_MAGIC_VALID(p, QUOTA_MAGIC)
+
+#define QUOTA_CB_MAGIC	  ISC_MAGIC('Q', 'T', 'C', 'B')
+#define VALID_QUOTA_CB(p) ISC_MAGIC_VALID(p, QUOTA_CB_MAGIC)
+
 void
 isc_quota_init(isc_quota_t *quota, unsigned int max) {
 	atomic_init(&quota->max, max);
@@ -25,10 +31,14 @@ isc_quota_init(isc_quota_t *quota, unsigned int max) {
 	atomic_init(&quota->waiting, 0);
 	ISC_LIST_INIT(quota->cbs);
 	isc_mutex_init(&quota->cblock);
+	quota->magic = QUOTA_MAGIC;
 }
 
 void
 isc_quota_destroy(isc_quota_t *quota) {
+	REQUIRE(VALID_QUOTA(quota));
+	quota->magic = 0;
+
 	INSIST(atomic_load(&quota->used) == 0);
 	INSIST(atomic_load(&quota->waiting) == 0);
 	INSIST(ISC_LIST_EMPTY(quota->cbs));
@@ -40,26 +50,31 @@ isc_quota_destroy(isc_quota_t *quota) {
 
 void
 isc_quota_soft(isc_quota_t *quota, unsigned int soft) {
+	REQUIRE(VALID_QUOTA(quota));
 	atomic_store_release(&quota->soft, soft);
 }
 
 void
 isc_quota_max(isc_quota_t *quota, unsigned int max) {
+	REQUIRE(VALID_QUOTA(quota));
 	atomic_store_release(&quota->max, max);
 }
 
 unsigned int
 isc_quota_getmax(isc_quota_t *quota) {
+	REQUIRE(VALID_QUOTA(quota));
 	return (atomic_load_relaxed(&quota->max));
 }
 
 unsigned int
 isc_quota_getsoft(isc_quota_t *quota) {
+	REQUIRE(VALID_QUOTA(quota));
 	return (atomic_load_relaxed(&quota->soft));
 }
 
 unsigned int
 isc_quota_getused(isc_quota_t *quota) {
+	REQUIRE(VALID_QUOTA(quota));
 	return (atomic_load_relaxed(&quota->used));
 }
 
@@ -140,13 +155,21 @@ doattach(isc_quota_t *quota, isc_quota_t **p) {
 }
 
 isc_result_t
-isc_quota_attach(isc_quota_t *quota, isc_quota_t **p) {
-	return (isc_quota_attach_cb(quota, p, NULL));
+isc_quota_attach(isc_quota_t *quota, isc_quota_t **quotap) {
+	REQUIRE(VALID_QUOTA(quota));
+	REQUIRE(quotap != NULL && *quotap == NULL);
+
+	return (isc_quota_attach_cb(quota, quotap, NULL));
 }
 
 isc_result_t
-isc_quota_attach_cb(isc_quota_t *quota, isc_quota_t **p, isc_quota_cb_t *cb) {
-	isc_result_t result = doattach(quota, p);
+isc_quota_attach_cb(isc_quota_t *quota, isc_quota_t **quotap,
+		    isc_quota_cb_t *cb) {
+	REQUIRE(VALID_QUOTA(quota));
+	REQUIRE(cb == NULL || VALID_QUOTA_CB(cb));
+	REQUIRE(quotap != NULL && *quotap == NULL);
+
+	isc_result_t result = doattach(quota, quotap);
 	if (result == ISC_R_QUOTA && cb != NULL) {
 		LOCK(&quota->cblock);
 		enqueue(quota, cb);
@@ -160,11 +183,14 @@ isc_quota_cb_init(isc_quota_cb_t *cb, isc_quota_cb_func_t cb_func, void *data) {
 	ISC_LINK_INIT(cb, link);
 	cb->cb_func = cb_func;
 	cb->data = data;
+	cb->magic = QUOTA_CB_MAGIC;
 }
 
 void
-isc_quota_detach(isc_quota_t **p) {
-	INSIST(p != NULL && *p != NULL);
-	quota_release(*p);
-	*p = NULL;
+isc_quota_detach(isc_quota_t **quotap) {
+	REQUIRE(quotap != NULL && VALID_QUOTA(*quotap));
+	isc_quota_t *quota = *quotap;
+	*quotap = NULL;
+
+	quota_release(quota);
 }
