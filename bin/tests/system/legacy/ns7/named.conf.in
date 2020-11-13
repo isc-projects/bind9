@@ -21,6 +21,7 @@ options {
 	max-udp-size 4096;
 	edns-udp-size 4096;
 	nocookie-udp-size 4096;
+	answer-cookie no;
 };
 
 zone "edns512-notcp" {
