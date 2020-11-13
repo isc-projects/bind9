@@ -1,3 +1,6 @@
+5539.	[bug]		Tighten handling of missing DNS COOKIE responses over
+			UDP by falling back to TCP. [GL #2275]
+
 5538.	[func]		Add NSEC3 support for zones that manage DNSSEC with
 			the 'dnssec-policy' configuration. A new option
 			'nsec3param' can be used to set the NSEC3 parameters.
