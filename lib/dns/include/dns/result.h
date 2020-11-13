@@ -161,8 +161,9 @@
 #define DNS_R_NSEC3ITERRANGE	(ISC_RESULTCLASS_DNS + 123)
 #define DNS_R_NSEC3SALTRANGE	(ISC_RESULTCLASS_DNS + 124)
 #define DNS_R_NSEC3BADALG	(ISC_RESULTCLASS_DNS + 125)
+#define DNS_R_NSEC3RESALT	(ISC_RESULTCLASS_DNS + 126)
 
-#define DNS_R_NRESULTS 126 /*%< Number of results */
+#define DNS_R_NRESULTS 127 /*%< Number of results */
 
 /*
  * DNS wire format rcodes.

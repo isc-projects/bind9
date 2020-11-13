@@ -1656,6 +1656,7 @@
 ./lib/dns/tests/mkraw.pl			PERL	2011,2012,2016,2018,2019,2020
 ./lib/dns/tests/name_test.c			C	2014,2015,2016,2017,2018,2019,2020
 ./lib/dns/tests/nsec3_test.c			C	2012,2014,2015,2016,2017,2018,2019,2020
+./lib/dns/tests/nsec3param_test.c		C	2020
 ./lib/dns/tests/peer_test.c			C	2014,2016,2018,2019,2020
 ./lib/dns/tests/private_test.c			C	2011,2012,2016,2018,2019,2020
 ./lib/dns/tests/rbt_serialize_test.c		C	2014,2015,2016,2018,2019,2020
