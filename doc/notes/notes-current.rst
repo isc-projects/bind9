@@ -64,6 +64,10 @@ Bug Fixes
 - ``named`` could crash with an assertion failure if a TCP connection
   were closed while a request was still being processed. [GL #2227]
 
+- ``named`` acting as a resolver could incorrectly treat signed zones
+  with no DS record at the parent as bogus. Such zones should be treated
+  as insecure. This has been fixed. [GL #2236]
+
 - A problem obtaining glue records could prevent a stub zone from
   functioning properly, if the authoritative server for the zone were
   configured for minimal responses. [GL #1736]
