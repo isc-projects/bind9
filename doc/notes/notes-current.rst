@@ -26,6 +26,12 @@ New Features
 
 - None.
 
+- Support for DNS over TLS (DoT) has been added: the ``dig`` tool is now
+  able to send DoT queries (``+tls`` option) and ``named`` can handle
+  DoT queries (``listen-on tls ...`` option). ``named`` can use either a
+  certificate provided by the user or an ephemeral certificate generated
+  automatically upon startup. [GL #1840]
+
 - A new configuration option, ``stale-refresh-time``, has been
   introduced. It allows a stale RRset to be served directly from cache
   for a period of time after a failed lookup, before a new attempt to
@@ -39,9 +45,6 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The network manager API is now used by ``named`` to send zone transfer
-  requests. [GL #2016]
-
 - The ``dig``, ``host``, and ``nslookup`` tools have been converted to
   use the new network manager API rather than the older ISC socket API.
 
@@ -52,17 +55,14 @@ Feature Changes
   filtered before they ever reach ``dig``, so the option has been
   removed. [GL #2140]
 
-- Support for DNS over TLS (DoT) has been added: the ``dig`` tool is now
-  able to send DoT queries (``+tls`` option) and ``named`` can handle
-  DoT queries (``listen-on tls ...`` option). ``named`` can use either a
-  certificate provided by the user or an ephemeral certificate generated
-  automatically upon startup. [GL #1840]
+- The network manager API is now used by ``named`` to send zone transfer
+  requests. [GL #2016]
 
 Bug Fixes
 ~~~~~~~~~
 
-- ``UV_EOF`` is no longer treated as a ``TCP4RecvErr`` or a
-  ``TCP6RecvErr``. [GL #2208]
-
 - ``named`` could crash with an assertion failure if a TCP connection
   were closed while a request was still being processed. [GL #2227]
+
+- ``UV_EOF`` is no longer treated as a ``TCP4RecvErr`` or a
+  ``TCP6RecvErr``. [GL #2208]
