@@ -11,16 +11,6 @@
 Notes for BIND 9.16.9
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -28,16 +18,6 @@ New Features
   introduced. It allows a stale RRset to be served directly from cache
   for a period of time after a failed lookup, before a new attempt to
   refresh it is made. [GL #2066]
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
 
 Bug Fixes
 ~~~~~~~~~
