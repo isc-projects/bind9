@@ -9,7 +9,7 @@
 '\" t
 .\"     Title: pkcs11-tokens
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
 .\"      Date: 2014-01-15
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -35,28 +35,30 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-.SH "NAME"
+  .SH "NAME"
 pkcs11-tokens \- list PKCS#11 available tokens
-.SH "SYNOPSIS"
-.HP \w'\fBpkcs11\-tokens\fR\ 'u
-\fBpkcs11\-tokens\fR [\fB\-m\ \fR\fB\fImodule\fR\fR] [\fB\-v\fR]
-.SH "DESCRIPTION"
-.PP
+  .SH "SYNOPSIS"
+    .HP \w'\fBpkcs11\-tokens\fR\ 'u
+      \fBpkcs11\-tokens\fR
+       [\fB\-m\ \fR\fB\fImodule\fR\fR]
+       [\fB\-v\fR]
+  .SH "DESCRIPTION"
+    .PP
 \fBpkcs11\-tokens\fR
 lists the PKCS#11 available tokens with defaults from the slot/token scan performed at application initialization\&.
-.SH "ARGUMENTS"
-.PP
+  .SH "ARGUMENTS"
+      .PP
 \-m \fImodule\fR
 .RS 4
-Specify the PKCS#11 provider module\&. This must be the full path to a shared library object implementing the PKCS#11 API for the device\&.
-.RE
-.PP
+          Specify the PKCS#11 provider module\&. This must be the full path to a shared library object implementing the PKCS#11 API for the device\&.
+      .RE
+      .PP
 \-v
 .RS 4
-Make the PKCS#11 libisc initialization verbose\&.
-.RE
-.SH "SEE ALSO"
-.PP
+          Make the PKCS#11 libisc initialization verbose\&.
+      .RE
+  .SH "SEE ALSO"
+    .PP
 \fBpkcs11-destroy\fR(8),
 \fBpkcs11-keygen\fR(8),
 \fBpkcs11-list\fR(8)

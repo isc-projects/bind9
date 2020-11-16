@@ -9,7 +9,7 @@
 '\" t
 .\"     Title: lwres_getipnode
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -35,30 +35,31 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-.SH "NAME"
+  .SH "NAME"
 lwres_getipnodebyname, lwres_getipnodebyaddr, lwres_freehostent \- lightweight resolver nodename / address translation API
-.SH "SYNOPSIS"
+  .SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/netdb\&.h>
 .fi
 .ft
+.sp
 .HP \w'struct\ hostent\ *\ lwres_getipnodebyname('u
 .BI "struct hostent * lwres_getipnodebyname(const\ char\ *" "name" ", int\ " "af" ", int\ " "flags" ", int\ *" "error_num" ");"
 .HP \w'struct\ hostent\ *\ lwres_getipnodebyaddr('u
 .BI "struct hostent * lwres_getipnodebyaddr(const\ void\ *" "src" ", size_t\ " "len" ", int\ " "af" ", int\ *" "error_num" ");"
 .HP \w'void\ lwres_freehostent('u
 .BI "void lwres_freehostent(struct\ hostent\ *" "he" ");"
-.SH "DESCRIPTION"
-.PP
+  .SH "DESCRIPTION"
+    .PP
 These functions perform thread safe, protocol independent nodename\-to\-address and address\-to\-nodename translation as defined in RFC2553\&.
-.PP
+    .PP
 They use a
 \fBstruct hostent\fR
 which is defined in
 namedb\&.h:
-.PP
+    .PP
 .if n \{\
 .RS 4
 .\}
@@ -75,39 +76,40 @@ struct  hostent {
 .if n \{\
 .RE
 .\}
-.PP
+.sp
+    .PP
 The members of this structure are:
-.PP
+        .PP
 \fBh_name\fR
 .RS 4
-The official (canonical) name of the host\&.
-.RE
-.PP
+            The official (canonical) name of the host\&.
+        .RE
+        .PP
 \fBh_aliases\fR
 .RS 4
-A NULL\-terminated array of alternate names (nicknames) for the host\&.
-.RE
-.PP
+            A NULL\-terminated array of alternate names (nicknames) for the host\&.
+        .RE
+        .PP
 \fBh_addrtype\fR
 .RS 4
-The type of address being returned \- usually
+            The type of address being returned \- usually
 \fBPF_INET\fR
 or
 \fBPF_INET6\fR\&.
-.RE
-.PP
+        .RE
+        .PP
 \fBh_length\fR
 .RS 4
-The length of the address in bytes\&.
-.RE
-.PP
+            The length of the address in bytes\&.
+        .RE
+        .PP
 \fBh_addr_list\fR
 .RS 4
-A
+            A
 \fBNULL\fR
 terminated array of network addresses for the host\&. Host addresses are returned in network byte order\&.
-.RE
-.PP
+        .RE
+    .PP
 \fBlwres_getipnodebyname()\fR
 looks up addresses of protocol family
 \fIaf\fR
@@ -115,35 +117,35 @@ for the hostname
 \fIname\fR\&. The
 \fIflags\fR
 parameter contains ORed flag bits to specify the types of addresses that are searched for, and the types of addresses that are returned\&. The flag bits are:
-.PP
+        .PP
 \fBAI_V4MAPPED\fR
 .RS 4
-This is used with an
+            This is used with an
 \fIaf\fR
 of AF_INET6, and causes IPv4 addresses to be returned as IPv4\-mapped IPv6 addresses\&.
-.RE
-.PP
+        .RE
+        .PP
 \fBAI_ALL\fR
 .RS 4
-This is used with an
+            This is used with an
 \fIaf\fR
 of AF_INET6, and causes all known addresses (IPv6 and IPv4) to be returned\&. If AI_V4MAPPED is also set, the IPv4 addresses are return as mapped IPv6 addresses\&.
-.RE
-.PP
+        .RE
+        .PP
 \fBAI_ADDRCONFIG\fR
 .RS 4
-Only return an IPv6 or IPv4 address if here is an active network interface of that type\&. This is not currently implemented in the BIND 9 lightweight resolver, and the flag is ignored\&.
-.RE
-.PP
+            Only return an IPv6 or IPv4 address if here is an active network interface of that type\&. This is not currently implemented in the BIND 9 lightweight resolver, and the flag is ignored\&.
+        .RE
+        .PP
 \fBAI_DEFAULT\fR
 .RS 4
-This default sets the
+            This default sets the
 \fBAI_V4MAPPED\fR
 and
 \fBAI_ADDRCONFIG\fR
 flag bits\&.
-.RE
-.PP
+        .RE
+    .PP
 \fBlwres_getipnodebyaddr()\fR
 performs a reverse lookup of address
 \fIsrc\fR
@@ -155,7 +157,7 @@ denotes the protocol family, typically
 \fBPF_INET\fR
 or
 \fBPF_INET6\fR\&.
-.PP
+    .PP
 \fBlwres_freehostent()\fR
 releases all the memory associated with the
 \fBstruct hostent\fR
@@ -168,8 +170,8 @@ and
 is freed, as is the memory for the
 \fBhostent\fR
 structure itself\&.
-.SH "RETURN VALUES"
-.PP
+  .SH "RETURN VALUES"
+    .PP
 If an error occurs,
 \fBlwres_getipnodebyname()\fR
 and
@@ -180,31 +182,31 @@ to an appropriate error code and the function returns a
 \fBNULL\fR
 pointer\&. The error codes and their meanings are defined in
 <lwres/netdb\&.h>:
-.PP
+        .PP
 \fBHOST_NOT_FOUND\fR
 .RS 4
-No such host is known\&.
-.RE
-.PP
+            No such host is known\&.
+        .RE
+        .PP
 \fBNO_ADDRESS\fR
 .RS 4
-The server recognised the request and the name but no address is available\&. Another type of request to the name server for the domain might return an answer\&.
-.RE
-.PP
+            The server recognised the request and the name but no address is available\&. Another type of request to the name server for the domain might return an answer\&.
+        .RE
+        .PP
 \fBTRY_AGAIN\fR
 .RS 4
-A temporary and possibly transient error occurred, such as a failure of a server to respond\&. The request may succeed if retried\&.
-.RE
-.PP
+            A temporary and possibly transient error occurred, such as a failure of a server to respond\&. The request may succeed if retried\&.
+        .RE
+        .PP
 \fBNO_RECOVERY\fR
 .RS 4
-An unexpected failure occurred, and retrying the request is pointless\&.
-.RE
-.PP
+            An unexpected failure occurred, and retrying the request is pointless\&.
+        .RE
+    .PP
 \fBlwres_hstrerror\fR(3)
 translates these error codes to suitable error messages\&.
-.SH "SEE ALSO"
-.PP
+  .SH "SEE ALSO"
+    .PP
 \fBRFC2553\fR(),
 \fBlwres\fR(3),
 \fBlwres_gethostent\fR(3),

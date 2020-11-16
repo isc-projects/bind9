@@ -9,7 +9,7 @@
 '\" t
 .\"     Title: lwres_noop
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -35,15 +35,16 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-.SH "NAME"
+  .SH "NAME"
 lwres_nooprequest_render, lwres_noopresponse_render, lwres_nooprequest_parse, lwres_noopresponse_parse, lwres_noopresponse_free, lwres_nooprequest_free \- lightweight resolver no\-op message handling
-.SH "SYNOPSIS"
+  .SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/lwres\&.h>
 .fi
 .ft
+.sp
 .HP \w'lwres_result_t\ lwres_nooprequest_render('u
 .BI "lwres_result_t lwres_nooprequest_render(lwres_context_t\ *" "ctx" ", lwres_nooprequest_t\ *" "req" ", lwres_lwpacket_t\ *" "pkt" ", lwres_buffer_t\ *" "b" ");"
 .HP \w'lwres_result_t\ lwres_noopresponse_render('u
@@ -56,23 +57,23 @@ lwres_nooprequest_render, lwres_noopresponse_render, lwres_nooprequest_parse, lw
 .BI "void lwres_noopresponse_free(lwres_context_t\ *" "ctx" ", lwres_noopresponse_t\ **" "structp" ");"
 .HP \w'void\ lwres_nooprequest_free('u
 .BI "void lwres_nooprequest_free(lwres_context_t\ *" "ctx" ", lwres_nooprequest_t\ **" "structp" ");"
-.SH "DESCRIPTION"
-.PP
+  .SH "DESCRIPTION"
+    .PP
 These are low\-level routines for creating and parsing lightweight resolver no\-op request and response messages\&.
-.PP
+    .PP
 The no\-op message is analogous to a
 \fBping\fR
 packet: a packet is sent to the resolver daemon and is simply echoed back\&. The opcode is intended to allow a client to determine if the server is operational or not\&.
-.PP
+    .PP
 There are four main functions for the no\-op opcode\&. One render function converts a no\-op request structure \(em
 \fBlwres_nooprequest_t\fR
 \(em to the lightweight resolver\*(Aqs canonical format\&. It is complemented by a parse function that converts a packet in this canonical format to a no\-op request structure\&. Another render function converts the no\-op response structure \(em
 \fBlwres_noopresponse_t\fR
 to the canonical format\&. This is complemented by a parse function which converts a packet in canonical format to a no\-op response structure\&.
-.PP
+    .PP
 These structures are defined in
 lwres/lwres\&.h\&. They are shown below\&.
-.PP
+    .PP
 .if n \{\
 .RS 4
 .\}
@@ -82,7 +83,8 @@ lwres/lwres\&.h\&. They are shown below\&.
 .if n \{\
 .RE
 .\}
-.PP
+.sp
+    .PP
 .if n \{\
 .RS 4
 .\}
@@ -95,7 +97,8 @@ typedef struct {
 .if n \{\
 .RE
 .\}
-.PP
+.sp
+    .PP
 .if n \{\
 .RS 4
 .\}
@@ -108,9 +111,10 @@ typedef struct {
 .if n \{\
 .RE
 .\}
-.PP
+.sp
+    .PP
 Although the structures have different types, they are identical\&. This is because the no\-op opcode simply echos whatever data was sent: the response is therefore identical to the request\&.
-.PP
+    .PP
 \fBlwres_nooprequest_render()\fR
 uses resolver context
 \fIctx\fR
@@ -126,7 +130,7 @@ are then appended to the buffer in canonical format\&.
 performs the same task, except it converts a no\-op response structure
 \fBlwres_noopresponse_t\fR
 to the lightweight resolver\*(Aqs canonical format\&.
-.PP
+    .PP
 \fBlwres_nooprequest_parse()\fR
 uses context
 \fIctx\fR
@@ -146,7 +150,7 @@ offers the same semantics as
 except it yields a
 \fBlwres_noopresponse_t\fR
 structure\&.
-.PP
+    .PP
 \fBlwres_noopresponse_free()\fR
 and
 \fBlwres_nooprequest_free()\fR
@@ -158,11 +162,12 @@ or
 \fBlwres_nooprequest_t\fR
 structures referenced via
 \fIstructp\fR\&.
-.SH "RETURN VALUES"
-.PP
+  .SH "RETURN VALUES"
+    .PP
 The no\-op opcode functions
 \fBlwres_nooprequest_render()\fR,
-\fBlwres_noopresponse_render()\fR\fBlwres_nooprequest_parse()\fR
+\fBlwres_noopresponse_render()\fR
+\fBlwres_nooprequest_parse()\fR
 and
 \fBlwres_noopresponse_parse()\fR
 all return
@@ -190,8 +195,8 @@ if
 in the packet header structure
 \fBlwres_lwpacket_t\fR
 indicate that the packet is not a response to an earlier query\&.
-.SH "SEE ALSO"
-.PP
+  .SH "SEE ALSO"
+    .PP
 \fBlwres_packet\fR(3)
 .SH "AUTHOR"
 .PP

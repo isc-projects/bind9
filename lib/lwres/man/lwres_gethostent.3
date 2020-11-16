@@ -9,7 +9,7 @@
 '\" t
 .\"     Title: lwres_gethostent
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -35,15 +35,16 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-.SH "NAME"
+  .SH "NAME"
 lwres_gethostbyname, lwres_gethostbyname2, lwres_gethostbyaddr, lwres_gethostent, lwres_sethostent, lwres_endhostent, lwres_gethostbyname_r, lwres_gethostbyaddr_r, lwres_gethostent_r, lwres_sethostent_r, lwres_endhostent_r \- lightweight resolver get network host entry
-.SH "SYNOPSIS"
+  .SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/netdb\&.h>
 .fi
 .ft
+.sp
 .HP \w'struct\ hostent\ *\ lwres_gethostbyname('u
 .BI "struct hostent * lwres_gethostbyname(const\ char\ *" "name" ");"
 .HP \w'struct\ hostent\ *\ lwres_gethostbyname2('u
@@ -66,15 +67,15 @@ lwres_gethostbyname, lwres_gethostbyname2, lwres_gethostbyaddr, lwres_gethostent
 .BI "void lwres_sethostent_r(int\ " "stayopen" ");"
 .HP \w'void\ lwres_endhostent_r('u
 .BI "void lwres_endhostent_r(void);"
-.SH "DESCRIPTION"
-.PP
+  .SH "DESCRIPTION"
+    .PP
 These functions provide hostname\-to\-address and address\-to\-hostname lookups by means of the lightweight resolver\&. They are similar to the standard
 \fBgethostent\fR(3)
 functions provided by most operating systems\&. They use a
 \fBstruct hostent\fR
 which is usually defined in
 <namedb\&.h>\&.
-.PP
+    .PP
 .if n \{\
 .RS 4
 .\}
@@ -91,44 +92,45 @@ struct  hostent {
 .if n \{\
 .RE
 .\}
-.PP
+.sp
+    .PP
 The members of this structure are:
-.PP
+        .PP
 \fBh_name\fR
 .RS 4
-The official (canonical) name of the host\&.
-.RE
-.PP
+            The official (canonical) name of the host\&.
+        .RE
+        .PP
 \fBh_aliases\fR
 .RS 4
-A NULL\-terminated array of alternate names (nicknames) for the host\&.
-.RE
-.PP
+            A NULL\-terminated array of alternate names (nicknames) for the host\&.
+        .RE
+        .PP
 \fBh_addrtype\fR
 .RS 4
-The type of address being returned \(em
+            The type of address being returned \(em
 \fBPF_INET\fR
 or
 \fBPF_INET6\fR\&.
-.RE
-.PP
+        .RE
+        .PP
 \fBh_length\fR
 .RS 4
-The length of the address in bytes\&.
-.RE
-.PP
+            The length of the address in bytes\&.
+        .RE
+        .PP
 \fBh_addr_list\fR
 .RS 4
-A
+            A
 \fBNULL\fR
 terminated array of network addresses for the host\&. Host addresses are returned in network byte order\&.
-.RE
-.PP
+        .RE
+    .PP
 For backward compatibility with very old software,
 \fBh_addr\fR
 is the first address in
 \fBh_addr_list\&.\fR
-.PP
+    .PP
 \fBlwres_gethostent()\fR,
 \fBlwres_sethostent()\fR,
 \fBlwres_endhostent()\fR,
@@ -139,7 +141,7 @@ and
 provide iteration over the known host entries on systems that provide such functionality through facilities like
 /etc/hosts
 or NIS\&. The lightweight resolver does not currently implement these functions; it only provides them as stub functions that always return failure\&.
-.PP
+    .PP
 \fBlwres_gethostbyname()\fR
 and
 \fBlwres_gethostbyname2()\fR
@@ -161,7 +163,7 @@ is returned if the lookups by
 or
 \fBlwres_gethostbyname2()\fR
 fail\&.
-.PP
+    .PP
 Reverse lookups of addresses are performed by
 \fBlwres_gethostbyaddr()\fR\&.
 \fIaddr\fR
@@ -197,7 +199,7 @@ return
 \fIresbuf\fR, which is a pointer to the
 \fBstruct hostent\fR
 it created\&.
-.PP
+    .PP
 \fBlwres_gethostbyaddr_r()\fR
 is a thread\-safe function that performs a reverse lookup of address
 \fIaddr\fR
@@ -232,8 +234,8 @@ return
 \fIresbuf\fR, which is a pointer to the
 \fBstruct hostent()\fR
 it created\&.
-.SH "RETURN VALUES"
-.PP
+  .SH "RETURN VALUES"
+    .PP
 The functions
 \fBlwres_gethostbyname()\fR,
 \fBlwres_gethostbyname2()\fR,
@@ -243,36 +245,36 @@ return NULL to indicate an error\&. In this case the global variable
 \fBlwres_h_errno\fR
 will contain one of the following error codes defined in
 <lwres/netdb\&.h>:
-.PP
+        .PP
 \fBHOST_NOT_FOUND\fR
 .RS 4
-The host or address was not found\&.
-.RE
-.PP
+            The host or address was not found\&.
+        .RE
+        .PP
 \fBTRY_AGAIN\fR
 .RS 4
-A recoverable error occurred, e\&.g\&., a timeout\&. Retrying the lookup may succeed\&.
-.RE
-.PP
+            A recoverable error occurred, e\&.g\&., a timeout\&. Retrying the lookup may succeed\&.
+        .RE
+        .PP
 \fBNO_RECOVERY\fR
 .RS 4
-A non\-recoverable error occurred\&.
-.RE
-.PP
+            A non\-recoverable error occurred\&.
+        .RE
+        .PP
 \fBNO_DATA\fR
 .RS 4
-The name exists, but has no address information associated with it (or vice versa in the case of a reverse lookup)\&. The code NO_ADDRESS is accepted as a synonym for NO_DATA for backwards compatibility\&.
-.RE
-.PP
+            The name exists, but has no address information associated with it (or vice versa in the case of a reverse lookup)\&. The code NO_ADDRESS is accepted as a synonym for NO_DATA for backwards compatibility\&.
+        .RE
+    .PP
 \fBlwres_hstrerror\fR(3)
 translates these error codes to suitable error messages\&.
-.PP
+    .PP
 \fBlwres_gethostent()\fR
 and
 \fBlwres_gethostent_r()\fR
 always return
 \fBNULL\fR\&.
-.PP
+    .PP
 Successful calls to
 \fBlwres_gethostbyname_r()\fR
 and
@@ -299,13 +301,13 @@ set the global variable
 \fBerrno\fR
 to
 \fBERANGE\fR\&.
-.SH "SEE ALSO"
-.PP
+  .SH "SEE ALSO"
+    .PP
 \fBgethostent\fR(3),
 \fBlwres_getipnode\fR(3),
 \fBlwres_hstrerror\fR(3)
-.SH "BUGS"
-.PP
+  .SH "BUGS"
+    .PP
 \fBlwres_gethostbyname()\fR,
 \fBlwres_gethostbyname2()\fR,
 \fBlwres_gethostbyaddr()\fR
@@ -315,7 +317,7 @@ are not thread safe; they return pointers to static data and provide error codes
 \fBlwres_gethostbyname_r()\fR, and
 \fBlwres_gethostbyaddr_r()\fR
 respectively\&.
-.PP
+    .PP
 The resolver daemon does not currently support any non\-DNS name services such as
 /etc/hosts
 or
