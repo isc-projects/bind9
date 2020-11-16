@@ -11,61 +11,28 @@
 
 <section xml:id="relnotes-9.11.25"><info><title>Notes for BIND 9.11.25</title></info>
 
-  <section xml:id="relnotes-9.11.25-security"><info><title>Security Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.25-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.25-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.25-removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.25-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes-9.11.25-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          <command>named</command> acting as a resolver could incorrectly treat
+          signed zones with no DS record at the parent as bogus. Such zones
+          should be treated as insecure. This has been fixed. [GL #2236]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          After a Negative Trust Anchor (NTA) is added, BIND performs periodic
+          checks to see if it is still necessary. If BIND encountered a failure
+          while creating a query to perform such a check, it attempted to
+          dereference a NULL pointer, resulting in a crash. [GL #2244]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A problem obtaining glue records could prevent a stub zone from
+          functioning properly, if the authoritative server for the zone were
+          configured for minimal responses. [GL #1736]
         </para>
       </listitem>
     </itemizedlist>
