@@ -49,6 +49,11 @@ Bug Fixes
   with no DS record at the parent as bogus. Such zones should be treated
   as insecure. This has been fixed. [GL #2236]
 
+- After a Negative Trust Anchor (NTA) is added, BIND performs periodic
+  checks to see if it is still necessary. If BIND encountered a failure
+  while creating a query to perform such a check, it attempted to
+  dereference a ``NULL`` pointer, resulting in a crash. [GL #2244]
+
 - A problem obtaining glue records could prevent a stub zone from
   functioning properly, if the authoritative server for the zone were
   configured for minimal responses. [GL #1736]
