@@ -10,7 +10,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Appendix A. Release Notes</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
 <link rel="home" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="prev" href="Bv9ARM.ch08.html" title="Chapter 8. Troubleshooting">
@@ -36,11 +36,12 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.24</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.25</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.25">Notes for BIND 9.11.25</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.24">Notes for BIND 9.11.24</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.23">Notes for BIND 9.11.23</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.22">Notes for BIND 9.11.22</a></span></dt>
@@ -73,7 +74,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.24</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.25</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -129,6 +130,40 @@
   </p>
 </div>
 
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.25"></a>Notes for BIND 9.11.25</h3></div></div></div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.25-bugs"></a>Bug Fixes</h4></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+        <p>
+          <span class="command"><strong>named</strong></span> acting as a resolver could incorrectly treat
+          signed zones with no DS record at the parent as bogus. Such zones
+          should be treated as insecure. This has been fixed. [GL #2236]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          After a Negative Trust Anchor (NTA) is added, BIND performs periodic
+          checks to see if it is still necessary. If BIND encountered a failure
+          while creating a query to perform such a check, it attempted to
+          dereference a NULL pointer, resulting in a crash. [GL #2244]
+        </p>
+      </li>
+<li class="listitem">
+        <p>
+          A problem obtaining glue records could prevent a stub zone from
+          functioning properly, if the authoritative server for the zone were
+          configured for minimal responses. [GL #1736]
+        </p>
+      </li>
+</ul></div>
+  </div>
+
+</div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.24"></a>Notes for BIND 9.11.24</h3></div></div></div>
@@ -2440,6 +2475,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.24 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.25 (Extended Support Version)</p>
 </body>
 </html>
