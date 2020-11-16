@@ -64,5 +64,9 @@ Bug Fixes
 - ``named`` could crash with an assertion failure if a TCP connection
   were closed while a request was still being processed. [GL #2227]
 
+- A problem obtaining glue records could prevent a stub zone from
+  functioning properly, if the authoritative server for the zone were
+  configured for minimal responses. [GL #1736]
+
 - ``UV_EOF`` is no longer treated as a ``TCP4RecvErr`` or a
   ``TCP6RecvErr``. [GL #2208]
