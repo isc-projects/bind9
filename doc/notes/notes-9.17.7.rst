@@ -8,23 +8,11 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-Notes for BIND 9.17.6
+Notes for BIND 9.17.7
 ---------------------
-
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
 
 New Features
 ~~~~~~~~~~~~
-
-- None.
 
 - Support for DNS over TLS (DoT) has been added: the ``dig`` tool is now
   able to send DoT queries (``+tls`` option) and ``named`` can handle
@@ -36,11 +24,6 @@ New Features
   introduced. It allows a stale RRset to be served directly from cache
   for a period of time after a failed lookup, before a new attempt to
   refresh it is made. [GL #2066]
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
