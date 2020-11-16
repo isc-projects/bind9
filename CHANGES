@@ -1,37 +1,34 @@
-5533.	[func]		Add "stale-refresh-time" option, a time window that
-			starts after a failed lookup, during which stale rrset
-			will be served directly from cache before a new
-			attempt to refresh it is made. [GL #2066]
+5533.	[func]		Add the "stale-refresh-time" option, a time window that
+			starts after a failed lookup, during which a stale RRset
+			is served directly from cache before a new attempt to
+			refresh it is made. [GL #2066]
 
-5530.	[bug]		DNSTAP did not capture responses to forwarded
-			UPDATE requests. [GL #2252]
+5530.	[bug]		dnstap did not capture responses to forwarded UPDATE
+			requests. [GL #2252]
 
-5527.	[bug]		There was a NULL pointer dereference if the creation
-			of the fetch to determine if a negative trust anchor
-			was still valid failed. [GL #2244]
+5527.	[bug]		A NULL pointer dereference occurred when creating an NTA
+			recheck query failed. [GL #2244]
 
 5525.	[bug]		Change 5503 inadvertently broke cross-compilation by
 			replacing a call to AC_LINK_IFELSE() with a call to
 			AC_RUN_IFELSE() in configure.ac.  This has been fixed,
 			making cross-compilation possible again. [GL #2237]
 
-5523.	[bug]		The initial lookup of a zone transitioning to/from
-			the signed state could fail if the DNSKEY RRset was
-			not found.  Subsequent lookups would succeed.
-			[GL #2236]
+5523.	[bug]		The initial lookup in a zone transitioning to/from a
+			signed state could fail if the DNSKEY RRset was not
+			found. [GL #2236]
 
-5522.	[bug]		Fix a race/NULL dereference in TCPDNS. [GL #2227]
+5522.	[bug]		Fixed a race/NULL dereference in TCPDNS send. [GL #2227]
 
 5520.	[bug]		Fixed a number of shutdown races, reference counting
 			errors, and spurious log messages that could occur
 			in the network manager. [GL #2221]
 
-5518.	[bug]		Fix stub zone not transferring nameserver addresses
-			from masters configured with 'minimal-responses yes'.
-			[GL #1736]
+5518.	[bug]		Stub zones now work correctly with primary servers using
+			"minimal-responses yes". [GL #1736]
 
-5517.	[bug]		Handle 'UV_EOF' differently and don't contribute it to
-			the RECVFAIL statistic count. [GL #2208]
+5517.	[bug]		Do not treat UV_EOF as a TCP4RecvErr or a TCP6RecvErr.
+			[GL #2208]
 
 	--- 9.16.8 released ---
 
