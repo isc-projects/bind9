@@ -1,3 +1,5 @@
+	--- 9.17.7 released ---
+
 5533.	[func]		Add the "stale-refresh-time" option, a time window that
 			starts after a failed lookup, during which a stale RRset
 			is served directly from cache before a new attempt to
