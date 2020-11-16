@@ -24,9 +24,10 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- A new configuration option ``stale-refresh-time`` has been introduced, it
-  allows stale RRset to be served directly from cache for a period of time
-  after a failed lookup, before a new attempt to refresh it is made. [GL #2066]
+- A new configuration option, ``stale-refresh-time``, has been
+  introduced. It allows a stale RRset to be served directly from cache
+  for a period of time after a failed lookup, before a new attempt to
+  refresh it is made. [GL #2066]
 
 - ``dig`` can now report the DNS64 prefixes in use (``+dns64prefix``).
   This is useful when the host on which ``dig`` is run is behind an
@@ -47,18 +48,18 @@ Feature Changes
 - The ``dig``, ``host``, and ``nslookup`` tools have been converted to
   use the new network manager API rather than the older ISC socket API.
 
-  As a side effect of this change, the ``dig +unexpected`` option no longer
-  works.  This could previously be used for diagnosing broken servers or
-  network configurations by listening for replies from servers other than
-  the one that was queried.  With the new API such answers are filtered
-  before they ever reach ``dig``.  Consequently, the option has been
+  As a side effect of this change, the ``dig +unexpected`` option no
+  longer works. This could previously be used to diagnose broken servers
+  or network configurations by listening for replies from servers other
+  than the one that was queried. With the new API, such answers are
+  filtered before they ever reach ``dig``, so the option has been
   removed. [GL #2140]
 
-- Support for DNS over TLS (DoT) has been added to the network manager API, and
-  the support for DoT has been added to the ``dig`` tool and support for
-  listening on TLS port has been added to ``named``.  ``named`` could use a
-  certificate provided by the user or it can generate an ephemeral certificate
-  on startup of the daemon.
+- Support for DNS over TLS (DoT) has been added: the ``dig`` tool is now
+  able to send DoT queries (``+tls`` option) and ``named`` can handle
+  DoT queries (``listen-on tls ...`` option). ``named`` can use either a
+  certificate provided by the user or an ephemeral certificate generated
+  automatically upon startup. [GL #1840]
 
 - Add NSEC3 support for zones that manage their DNSSEC with the `dnssec-policy`
   configuration. A new option 'nsec3param' can be used to set the desired
@@ -67,11 +68,11 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Handle `UV_EOF` differently such that it is not treated as a `TCP4RecvErr` or
-  `TCP6RecvErr`. [GL #2208]
+- ``UV_EOF`` is no longer treated as a ``TCP4RecvErr`` or a
+  ``TCP6RecvErr``. [GL #2208]
 
-- ``named`` could crash with an assertion failure if a TCP connection is closed
-  while the request is still processing. [GL #2227]
+- ``named`` could crash with an assertion failure if a TCP connection
+  were closed while a request was still being processed. [GL #2227]
 
 - The synthesised CNAME from a DNAME was incorrectly followed when the QTYPE
   was CNAME or ANY. [GL #2280]
