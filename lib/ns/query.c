@@ -9897,13 +9897,20 @@ query_dname(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * Switch to the new qname and restart.
+	 * If the original query was not for a CNAME or ANY then follow the
+	 * CNAME.
 	 */
-	ns_client_qnamereplace(qctx->client, qctx->fname);
-	qctx->fname = NULL;
-	qctx->want_restart = true;
-	if (!WANTRECURSION(qctx->client)) {
-		qctx->options |= DNS_GETDB_NOLOG;
+	if (qctx->qtype != dns_rdatatype_cname &&
+	    qctx->qtype != dns_rdatatype_any) {
+		/*
+		 * Switch to the new qname and restart.
+		 */
+		ns_client_qnamereplace(qctx->client, qctx->fname);
+		qctx->fname = NULL;
+		qctx->want_restart = true;
+		if (!WANTRECURSION(qctx->client)) {
+			qctx->options |= DNS_GETDB_NOLOG;
+		}
 	}
 
 	query_addauth(qctx);
