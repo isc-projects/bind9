@@ -46,3 +46,6 @@ Bug Fixes
 
 - ``named`` could crash with an assertion failure if a TCP connection is closed
   while the request is still processing. [GL #2227]
+
+- The synthesised CNAME from a DNAME was incorrectly followed when the QTYPE
+  was CNAME or ANY. [GL #2280]
