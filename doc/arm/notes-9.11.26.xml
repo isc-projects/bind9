@@ -76,8 +76,13 @@
           #2315]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          The synthesised CNAME from a DNAME was incorrectly followed
+          when the QTYPE was CNAME or ANY. [GL #2280]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
 </section>
-

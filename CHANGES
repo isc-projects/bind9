@@ -4,6 +4,9 @@
 5539.	[bug]		Tighten handling of missing DNS COOKIE responses over
 			UDP by falling back to TCP. [GL #2275]
 
+5534.	[bug]		The synthesised CNAME from a DNAME was incorrectly
+			followed when the QTYPE was CNAME or ANY. [GL #2280]
+
 	--- 9.11.25 released ---
 
 5527.	[bug]		A NULL pointer dereference occurred when creating an NTA

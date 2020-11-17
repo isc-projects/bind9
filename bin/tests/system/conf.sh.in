@@ -111,7 +111,7 @@ SEQUENTIALDIRS="ecdsa eddsa gost lwresd @PKCS11_TEST@ tkey"
 # Note: some of the longer-running tests are scheduled first,
 # in order to get more benefit from parallelism.
 PARALLELDIRS="dnssec rpzrecurse \
-	acl additional addzone allow-query autosign \
+	acl additional addzone allow-query auth autosign \
 	builtin cacheclean case catz chain \
 	checkconf checknames checkzone \
 	@CHECKDS@ @COVERAGE@ @KEYMGR@ \

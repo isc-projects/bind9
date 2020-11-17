@@ -8651,13 +8651,21 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		/*
-		 * Switch to the new qname and restart.
+		 * If the original query was not for a CNAME or ANY then
+		 * follow the CNAME.
 		 */
-		ns_client_qnamereplace(client, fname);
-		fname = NULL;
-		want_restart = true;
-		if (!WANTRECURSION(client))
-			options |= DNS_GETDB_NOLOG;
+		if (qtype != dns_rdatatype_cname &&
+		    qtype != dns_rdatatype_any)
+		{
+			/*
+			 * Switch to the new qname and restart.
+			 */
+			ns_client_qnamereplace(client, fname);
+			fname = NULL;
+			want_restart = true;
+			if (!WANTRECURSION(client))
+				options |= DNS_GETDB_NOLOG;
+		}
 		goto addauth;
 	default:
 		/*
