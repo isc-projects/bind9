@@ -101,10 +101,8 @@ typedef struct dig_searchlist dig_searchlist_t;
 struct dig_lookup {
 	unsigned int magic;
 	isc_refcount_t references;
-	bool pending, /*%< Pending a successful answer */
-		waiting_connect, doing_xfr, ns_search_only, /*%< dig
-							     * +nssearch,
-							     * host -C */
+	bool pending,			   /*%< Pending a successful answer */
+		doing_xfr, ns_search_only, /*%< dig +nssearch, host -C */
 		identify, /*%< Append an "on server <foo>" message */
 		identify_previous_line, /*% Prepend a "Nameserver <foo>:"
 					 * message, with newline and tab */
