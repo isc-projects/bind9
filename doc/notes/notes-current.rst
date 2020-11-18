@@ -24,11 +24,14 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
-
 - A new configuration option ``stale-refresh-time`` has been introduced, it
   allows stale RRset to be served directly from cache for a period of time
   after a failed lookup, before a new attempt to refresh it is made. [GL #2066]
+
+- ``dig`` can now report the DNS64 prefixes in use (``+dns64prefix``).
+  This is useful when the host on which ``dig`` is run is behind an
+  IPv6-only link, using DNS64/NAT64 or 464XLAT for IPv4aaS (IPv4 as a
+  Service). [GL #1154]
 
 Removed Features
 ~~~~~~~~~~~~~~~~
