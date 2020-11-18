@@ -128,6 +128,54 @@ grep "a.example.com.*A.*10.53.0.1" dig.out.test$n > /dev/null || ret=1
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check that in-zone CNAME records does not return target data when QTYPE is CNAME (rd=1/ra=1) ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.2 -t cname inzone.example.com > dig.out.test$n || ret=1
+grep 'ANSWER: 1,' dig.out.test$n > /dev/null || ret=1
+grep 'flags: qr aa rd ra;' dig.out.test$n > /dev/null || ret=1
+grep 'inzone\.example\.com\..*CNAME.a\.example\.com\.' dig.out.test$n > /dev/null || ret=1
+grep 'a\.example\.com\..*A.10\.53\.0\.1' dig.out.test$n > /dev/null && ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check that in-zone CNAME records does not return target data when QTYPE is ANY (rd=1/ra=1) ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.2 -t any inzone.example.com > dig.out.test$n || ret=1
+grep 'ANSWER: 1,' dig.out.test$n > /dev/null || ret=1
+grep 'flags: qr aa rd ra;' dig.out.test$n > /dev/null || ret=1
+grep 'inzone\.example\.com\..*CNAME.a\.example\.com\.' dig.out.test$n > /dev/null || ret=1
+grep 'a\.example\.com\..*A.10\.53\.0\.1' dig.out.test$n > /dev/null && ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check that in-zone DNAME records does not return target data when QTYPE is CNAME (rd=1/ra=1) ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.2 -t cname inzone.dname.example.com > dig.out.test$n || ret=1
+grep 'ANSWER: 2,' dig.out.test$n > /dev/null || ret=1
+grep 'flags: qr aa rd ra;' dig.out.test$n > /dev/null || ret=1
+grep 'dname\.example\.com\..*DNAME.example\.com\.' dig.out.test$n > /dev/null || ret=1
+grep 'inzone\.dname\.example\.com\..*CNAME.inzone\.example\.com\.' dig.out.test$n > /dev/null || ret=1
+grep 'inzone\.example\.com\..*CNAME.a\.example\.com\.' dig.out.test$n > /dev/null && ret=1
+grep 'a\.example\.com\..*A.10\.53\.0\.1' dig.out.test$n > /dev/null && ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check that in-zone DNAME records does not return target data when QTYPE is ANY (rd=1/ra=1) ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.2 -t any inzone.dname.example.com > dig.out.test$n || ret=1
+grep 'ANSWER: 2,' dig.out.test$n > /dev/null || ret=1
+grep 'flags: qr aa rd ra;' dig.out.test$n > /dev/null || ret=1
+grep 'dname\.example\.com\..*DNAME.example\.com\.' dig.out.test$n > /dev/null || ret=1
+grep 'inzone\.dname\.example\.com\..*CNAME.inzone\.example\.com\.' dig.out.test$n > /dev/null || ret=1
+grep 'inzone\.example\.com.*CNAME.a\.example\.com\.' dig.out.test$n > /dev/null && ret=1
+grep 'a\.example\.com.*A.10\.53\.0\.1' dig.out.test$n > /dev/null && ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check that CHAOS addresses are compared correctly ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.1 +noall +answer ch test.example.chaos > dig.out.test$n
