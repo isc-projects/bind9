@@ -15,4 +15,6 @@ srcdir=@srcdir@
 # shellcheck source=conf.sh
 . "${builddir}/conf.sh"
 
+export builddir srcdir
+
 $PERL "${srcdir}/stop.pl" "$@"
