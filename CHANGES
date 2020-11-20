@@ -1,3 +1,9 @@
+5537.	[func]		The query plugin mechanism has been extended
+			to support asynchronous operations. For example, a
+			plugin can now trigger recursion and resume
+			processing when it's complete. Thanks to Jinmei
+			Tatuya at Infoblox. [GL #2141]
+
 5536.	[func]		Dig can now report the DNS64 prefixes in use
 			(+dns64prefix). [GL #1154]
 
