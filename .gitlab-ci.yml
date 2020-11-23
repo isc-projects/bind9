@@ -42,6 +42,10 @@ variables:
   # In multithreaded unit tests, abort on the first failure
   CMOCKA_TEST_ABORT: 1
 
+  # Default platforms to run "stress" tests on
+  BIND_STRESS_TEST_OS: linux
+  BIND_STRESS_TEST_ARCH: amd64
+
 stages:
   - autoconf
   - precheck
@@ -1410,9 +1414,6 @@ respdiff:
   needs:
     - job: autoreconf
       artifacts: true
-  only:
-    - schedules
-    - tags
   artifacts:
     untracked: true
     expire_in: "1 day"
@@ -1429,6 +1430,9 @@ stress:authoritative:fedora:33:amd64:
     MODE: authoritative
     RATE: 10000
     RUN_TIME: 1
+  only:
+    variables:
+      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
 stress:recursive:fedora:33:amd64:
   <<: *fedora_33_amd64_image
@@ -1440,6 +1444,9 @@ stress:recursive:fedora:33:amd64:
     MODE: recursive
     RATE: 10000
     RUN_TIME: 1
+  only:
+    variables:
+      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
 stress:authoritative:fedora:33:arm64:
   <<: *fedora_33_arm64_image
@@ -1451,6 +1458,9 @@ stress:authoritative:fedora:33:arm64:
     MODE: authoritative
     RATE: 10000
     RUN_TIME: 1
+  only:
+    variables:
+      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
 
 stress:recursive:fedora:33:arm64:
   <<: *fedora_33_arm64_image
@@ -1462,8 +1472,11 @@ stress:recursive:fedora:33:arm64:
     MODE: recursive
     RATE: 10000
     RUN_TIME: 1
+  only:
+    variables:
+      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
 
-stress:authoritative:freebsd12:
+stress:authoritative:freebsd12:amd64:
   <<: *freebsd_12_amd64_image
   <<: *freebsd_stress_amd64
   <<: *stress_job
@@ -1473,10 +1486,13 @@ stress:authoritative:freebsd12:
     MODE: authoritative
     RATE: 10000
     RUN_TIME: 1
+  only:
+    variables:
+      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
   # See: https://gitlab.isc.org/isc-projects/bind9/-/issues/1941
   allow_failure: true
 
-stress:recursive:freebsd12:
+stress:recursive:freebsd12:amd64:
   <<: *freebsd_12_amd64_image
   <<: *freebsd_stress_amd64
   <<: *stress_job
@@ -1486,6 +1502,9 @@ stress:recursive:freebsd12:
     MODE: recursive
     RATE: 10000
     RUN_TIME: 1
+  only:
+    variables:
+      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
   # See: https://gitlab.isc.org/isc-projects/bind9/-/issues/1941
   allow_failure: true
 
