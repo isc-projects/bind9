@@ -1,3 +1,6 @@
+5535.	[bug]		dig/nslookup/host could crash on shutdown after an
+			interrupt. [GL #2288]
+
 5534.	[bug]		The synthesised CNAME from a DNAME was incorrectly
 			followed when the QTYPE was CNAME or ANY. [GL #2280]
 
