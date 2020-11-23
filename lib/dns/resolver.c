@@ -7714,7 +7714,9 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	/*
 	 * If we have had a server cookie and don't get one retry over
 	 * TCP. This may be a misconfigured anycast server or an attempt
-	 * to send a spoofed response.  Skip if we have a valid tsig.
+	 * to send a spoofed response.  Additionally retry over TCP if
+	 * require-cookie is true and we don't have a got client cookie.
+	 * Skip if we have a valid TSIG.
 	 */
 	if (dns_message_gettsig(query->rmessage, NULL) == NULL &&
 	    !query->rmessage->cc_ok && !query->rmessage->cc_bad &&
@@ -7739,6 +7741,43 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 			rctx.resend = true;
 			rctx_done(&rctx, result);
 			return;
+		} else if (fctx->res->view->peers != NULL) {
+			dns_peer_t *peer = NULL;
+			isc_netaddr_t netaddr;
+			isc_netaddr_fromsockaddr(&netaddr,
+						 &query->addrinfo->sockaddr);
+			result = dns_peerlist_peerbyaddr(fctx->res->view->peers,
+							 &netaddr, &peer);
+			if (result == ISC_R_SUCCESS) {
+				bool required = false;
+				result = dns_peer_getrequirecookie(peer,
+								   &required);
+				if (result == ISC_R_SUCCESS && required) {
+					if (isc_log_wouldlog(dns_lctx,
+							     ISC_LOG_INFO)) {
+						char addrbuf
+							[ISC_SOCKADDR_FORMATSIZE];
+						isc_sockaddr_format(
+							&query->addrinfo
+								 ->sockaddr,
+							addrbuf,
+							sizeof(addrbuf));
+						isc_log_write(
+							dns_lctx,
+							DNS_LOGCATEGORY_RESOLVER,
+							DNS_LOGMODULE_RESOLVER,
+							ISC_LOG_INFO,
+							"missing required "
+							"cookie "
+							"from %s",
+							addrbuf);
+					}
+					rctx.retryopts |= DNS_FETCHOPT_TCP;
+					rctx.resend = true;
+					rctx_done(&rctx, result);
+					return;
+				}
+			}
 		}
 	}
 

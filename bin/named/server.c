@@ -1471,6 +1471,12 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
+	(void)cfg_map_get(cpeer, "require-cookie", &obj);
+	if (obj != NULL) {
+		CHECK(dns_peer_setrequirecookie(peer, cfg_obj_asboolean(obj)));
+	}
+
+	obj = NULL;
 	(void)cfg_map_get(cpeer, "edns", &obj);
 	if (obj != NULL) {
 		CHECK(dns_peer_setsupportedns(peer, cfg_obj_asboolean(obj)));

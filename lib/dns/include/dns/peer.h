@@ -119,6 +119,12 @@ isc_result_t
 dns_peer_getsendcookie(dns_peer_t *peer, bool *retval);
 
 isc_result_t
+dns_peer_setrequirecookie(dns_peer_t *peer, bool newval);
+
+isc_result_t
+dns_peer_getrequirecookie(dns_peer_t *peer, bool *retval);
+
+isc_result_t
 dns_peer_setrequestexpire(dns_peer_t *peer, bool newval);
 
 isc_result_t
