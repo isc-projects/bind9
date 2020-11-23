@@ -12,11 +12,6 @@
 #
 #   This macro takes only one argument, a path to the lmdb headers and library.
 #
-#   This macro calls:
-#
-#     AC_SUBST(LMDB_CFLAGS)
-#     AC_SUBST(LMDB_LDFLAGS)
-#
 # LICENSE
 #
 #   Copyright (c) 2020 Internet Systems Consortium
@@ -42,8 +37,6 @@ AC_DEFUN([AX_LIB_LMDB],
 		 LIBS="$LIBS $LMDB_LIBS"
 		 AC_SEARCH_LIBS([mdb_env_create], [lmdb],
 				[LMDB_LIBS="$LMDB_LIBS $ac_cv_search_mdb_env_create"
-				 AC_SUBST([LMDB_CFLAGS])
-				 AC_SUBST([LMDB_LDFLAGS])
 				 AX_RESTORE_FLAGS([lmdb])
 				 $2
 				],
