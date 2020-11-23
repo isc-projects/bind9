@@ -1456,8 +1456,6 @@ DLZ_DRIVER_LIBS=""
 DLZ_DRIVER_SRCS=""
 DLZ_DRIVER_OBJS=""
 DLZ_SYSTEM_TEST=""
-DLZ_DRIVER_MYSQL_INCLUDES=""
-DLZ_DRIVER_MYSQL_LIBS=""
 
 #
 #
@@ -1560,8 +1558,6 @@ AS_IF([test "$enable_dnsrps" != "no"],[
 # AC_SUBST(DLZ_DRIVER_SRCS)
 # AC_SUBST(DLZ_DRIVER_OBJS)
 # AC_SUBST(DLZ_SYSTEM_TEST)
-# AC_SUBST(DLZ_DRIVER_MYSQL_INCLUDES)
-# AC_SUBST(DLZ_DRIVER_MYSQL_LIBS)
 # AC_SUBST_FILE(DLZ_DRIVER_RULES)
 # this ensures the configure summary report comes out right
 test -z "$with_dlz_bdb" && with_dlz_bdb=no
