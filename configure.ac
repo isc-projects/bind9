@@ -1305,7 +1305,6 @@ AC_SUBST(CURL)
 #
 
 LIBIDN2_CFLAGS=
-LIBIDN2_LDFLAGS=
 LIBIDN2_LIBS=
 
 # [pairwise: --with-libidn2=yes, --without-libidn2]
@@ -1318,20 +1317,18 @@ AS_CASE([$with_libidn2],
 	[no],	[],
 	[*],	[AX_SAVE_FLAGS([libidn2])
 		 LIBIDN2_CFLAGS="-I$with_libidn2/include"
-		 LIBIDN2_LDFLAGS="-L$with_libidn2/lib"
-		 CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
-		 CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
-		 LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
+		 LIBIDN2_LIBS="-L$with_libidn2/lib"
+		 CFLAGS="$CFLAGS $LIBIDN2_CFLAGS"
+		 LIBS="$LIBS $LIBIDN2_LIBS"
 		 AC_CHECK_HEADERS([idn2.h],
 				  [],
 				  [AC_MSG_ERROR([idn2.h not found])])
 		 AC_SEARCH_LIBS([idn2_to_ascii_lz], [idn2],
-				[LIBIDN2_LIBS="$ac_cv_search_idn2_to_ascii_lz"
+				[LIBIDN2_LIBS="$LIBIDN2_LIBS $ac_cv_search_idn2_to_ascii_lz"
 				 AC_DEFINE([HAVE_LIBIDN2], [1], [Define if libidn2 was found])],
 				[AC_MSG_ERROR([libidn2 requested, but not found])])
 		AX_RESTORE_FLAGS([libidn2])])
 AC_SUBST([LIBIDN2_CFLAGS])
-AC_SUBST([LIBIDN2_LDFLAGS])
 AC_SUBST([LIBIDN2_LIBS])
 
 #
