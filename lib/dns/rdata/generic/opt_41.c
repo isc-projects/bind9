@@ -193,6 +193,10 @@ fromwire_opt(ARGS_FROMWIRE) {
 			isc_region_consume(&sregion, length);
 			break;
 		case DNS_OPT_COOKIE:
+			/*
+			 * Client cookie alone has length 8.
+			 * Client + server cookie is 8 + [8..32].
+			 */
 			if (length != 8 && (length < 16 || length > 40)) {
 				return (DNS_R_OPTERR);
 			}
