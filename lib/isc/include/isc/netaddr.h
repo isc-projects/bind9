@@ -40,6 +40,11 @@ struct isc_netaddr {
 	uint32_t zone;
 };
 
+struct isc_netprefix {
+	isc_netaddr_t addr;
+	unsigned int  prefixlen;
+};
+
 bool
 isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b);
 

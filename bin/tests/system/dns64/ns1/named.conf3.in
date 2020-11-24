@@ -11,6 +11,12 @@
 
 // NS1
 
+include "../../common/rndc.key";
+
+controls {
+        inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
+
 acl rfc1918 { 10/8; 192.168/16; 172.16/12; };
 
 options {
@@ -24,14 +30,6 @@ options {
 	allow-recursion { 10.53.0.1; };
 	notify yes;
 	dnssec-validation yes;
-
-	dns64 2001:bbbb::/96 {
-		clients { any; };
-		mapped { !rfc1918; any; };
-		exclude { 2001:eeee::/32; 64:FF9B::/96; ::ffff:0000:0000/96; };
-		suffix ::;
-		recursive-only yes;
-	};
 };
 
 zone "." {
@@ -49,4 +47,7 @@ zone "signed" {
 	file "signed.db.signed";
 };
 
-// include "trusted.conf";
+zone "ipv4only.arpa" {
+	type master;
+	file "ipv4only.arpa.db";
+};

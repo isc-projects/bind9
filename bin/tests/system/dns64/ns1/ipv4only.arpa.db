@@ -1,0 +1,4 @@
+ipv4only.arpa.		3600	IN	SOA	. . 2018112766 7200 3600 604800 3600
+ipv4only.arpa.		3600	IN	NS	.
+ipv4only.arpa.		3600	IN	A	192.0.0.170
+ipv4only.arpa.		3600	IN	A	192.0.0.171

@@ -297,6 +297,9 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 ``+[no]defname``
    This option, which is deprecated, is treated as a synonym for ``+[no]search``.
 
+``+[no]dns64prefix``
+   Lookup IPV4ONLY.ARPA AAAA and print any DNS64 prefixes found.
+
 ``+[no]dnssec``
    This option requests that DNSSEC records be sent by setting the DNSSEC OK (DO) bit in
    the OPT record in the additional section of the query.

@@ -1,3 +1,6 @@
+5536.	[func]		Dig can now report the DNS64 prefixes in use
+			(+dns64prefix). [GL #1154]
+
 5535.	[bug]		dig/nslookup/host could crash on shutdown after an
 			interrupt. [GL #2288]
 

@@ -305,6 +305,7 @@ dns_dns64_aaaaok
 dns_dns64_append
 dns_dns64_create
 dns_dns64_destroy
+dns_dns64_findprefix
 dns_dns64_next
 dns_dns64_unlink
 @IF NOTYET
