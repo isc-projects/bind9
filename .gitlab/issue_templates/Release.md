@@ -6,6 +6,26 @@
 
 **Public Release:**
 
+## Documentation Review Links
+
+**Closed issues assigned to the milestone without a release note:**
+
+ - []()
+ - []()
+ - []()
+
+**Merge requests merged into the milestone without a release note:**
+
+ - []()
+ - []()
+ - []()
+
+**Merge requests merged into the milestone without a `CHANGES` entry:**
+
+ - []()
+ - []()
+ - []()
+
 ## Release Checklist
 
 ### Before the Code Freeze
@@ -21,20 +41,16 @@
 
  - [ ] ***(QA)*** Look for outstanding documentation issues (e.g. `CHANGES` mistakes) and address them if any are found.
  - [ ] ***(QA)*** Ensure release notes are correct, ask Support and Marketing to check them as well.
- - [ ] ***(Support)*** Check release notes, ask QA to correct any mistakes found.
- - [ ] ***(Marketing)*** Check release notes, ask QA to correct any mistakes found.
- - [ ] ***(SwEng)*** Update API files for libraries with new version information.
- - [ ] ***(SwEng)*** Change software version and library versions in `configure.ac` (new major release only).
- - [ ] ***(SwEng)*** Rebuild `configure` using Autoconf on `docs.isc.org`.
- - [ ] ***(SwEng)*** Update `CHANGES`.
- - [ ] ***(SwEng)*** Update `CHANGES.SE` (Subscription Edition only).
- - [ ] ***(SwEng)*** Update `README.md`.
- - [ ] ***(SwEng)*** Update `version`.
- - [ ] ***(SwEng)*** Build documentation on `docs.isc.org`.
- - [ ] ***(QA)*** Check that all the above steps were performed correctly.
+ - [ ] ***(QA)*** Update API files for libraries with new version information.
+ - [ ] ***(QA)*** Change software version and library versions in `configure.ac` (new major release only).
+ - [ ] ***(QA)*** Rebuild `configure` using Autoconf on `docs.isc.org`.
+ - [ ] ***(QA)*** Update `CHANGES`.
+ - [ ] ***(QA)*** Update `CHANGES.SE` (Subscription Edition only).
+ - [ ] ***(QA)*** Update `README.md`.
+ - [ ] ***(QA)*** Update `version`.
+ - [ ] ***(QA)*** Build documentation on `docs.isc.org`.
  - [ ] ***(QA)*** Check that the formatting is correct for text, PDF, and HTML versions of release notes.
- - [ ] ***(SwEng)*** Tag the releases[^2].  (Tags may only be pushed to the public repository for releases which are *not* security releases.)
- - [ ] ***(SwEng)*** If this is the first tag for a release (e.g. beta), create a release branch named `release_v9_X_Y` to allow development to continue on the maintenance branch whilst release engineering continues.
+ - [ ] ***(QA)*** Tag the releases in the private repository (`git tag -s -m "BIND 9.x.y" v9_x_y`).
 
 ### Before the ASN Deadline (for ASN Releases) or the Public Release Date (for Regular Releases)
 
@@ -64,13 +80,11 @@
  - [ ] ***(Marketing)*** Update [Wikipedia entry for BIND](https://en.wikipedia.org/wiki/BIND).
  - [ ] ***(Marketing)*** Write blog article (if a major release).
  - [ ] ***(QA)*** Ensure all new tags are annotated and signed.
- - [ ] ***(SwEng)*** Merge the automatically prepared `prep 9.X.Y` commit which updates `version` and documentation on the release branch into the relevant maintenance branch (`v9_X`).
- - [ ] ***(SwEng)*** Push tags for the published releases to the public repository.
+ - [ ] ***(QA)*** Push tags for the published releases to the public repository.
+ - [ ] ***(QA)*** Merge the automatically prepared `prep 9.x.y` commit which updates `version` and documentation on the release branch into the relevant maintenance branch (`v9_x`).
  - [ ] ***(QA)*** For each maintained branch, update the `BIND_BASELINE_VERSION` variable for the `abi-check` job in `.gitlab-ci.yml` to the latest published BIND version tag for a given branch.
  - [ ] ***(QA)*** Prepare empty release notes for the next set of releases.
  - [ ] ***(QA)*** Sanitize all confidential issues assigned to the release milestone and make them public.
  - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Flake8, PyLint) by modifying the relevant `Dockerfile`.
 
 [^1]: If not, use the time remaining until the tagging deadline to ensure all outstanding issues are either resolved or moved to a different milestone.
-
-[^2]: Preferred command line: `git tag -u <DEVELOPER_KEYID> -a -s -m "BIND 9.X.Y[alphatag]" v9_X_Y[alphatag]`, where `[alphatag]` is an optional string such as `b1`, `rc1`, etc.
