@@ -137,7 +137,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 		snprintf(pbuf, sizeof(pbuf), "%u",
 			 ntohs(sockaddr->type.sin6.sin6_port));
 		break;
-#ifdef ISC_PLAFORM_HAVESYSUNH
+#ifdef ISC_PLATFORM_HAVESYSUNH
 	case AF_UNIX:
 		plen = strlen(sockaddr->type.sunix.sun_path);
 		if (plen >= isc_buffer_availablelength(target)) {
@@ -157,7 +157,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 		avail.base[0] = '\0';
 
 		return (ISC_R_SUCCESS);
-#endif /* ifdef ISC_PLAFORM_HAVESYSUNH */
+#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 	default:
 		return (ISC_R_FAILURE);
 	}
