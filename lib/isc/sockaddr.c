@@ -126,7 +126,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	case AF_INET6:
 		snprintf(pbuf, sizeof(pbuf), "%u", ntohs(sockaddr->type.sin6.sin6_port));
 		break;
-#ifdef ISC_PLAFORM_HAVESYSUNH
+#ifdef ISC_PLATFORM_HAVESYSUNH
 	case AF_UNIX:
 		plen = strlen(sockaddr->type.sunix.sun_path);
 		if (plen >= isc_buffer_availablelength(target))
