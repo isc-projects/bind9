@@ -5642,9 +5642,9 @@ query_lookup(query_ctx_t *qctx) {
 		dboptions |= DNS_DBFIND_COVERINGNSEC;
 	}
 
-	dns_db_getservestalerefresh(qctx->client->view->cachedb,
-				    &stale_refresh);
-	dns_db_getservestalettl(qctx->client->view->cachedb, &stale_ttl);
+	(void)dns_db_getservestalerefresh(qctx->client->view->cachedb,
+					  &stale_refresh);
+	(void)dns_db_getservestalettl(qctx->client->view->cachedb, &stale_ttl);
 	if (stale_refresh > 0) {
 		if (qctx->client->view->staleanswersok == dns_stale_answer_yes)
 		{
