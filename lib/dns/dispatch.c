@@ -1217,15 +1217,16 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 			     "search for response in bucket %d: %s", bucket,
 			     (resp == NULL ? "not found" : "found"));
 
-		if (resp == NULL) {
-			inc_stats(mgr, dns_resstatscounter_mismatch);
-			free_buffer(disp, ev->region.base, ev->region.length);
-			goto unlock;
-		}
 	} else if (resp->id != id ||
 		   !isc_sockaddr_equal(&ev->address, &resp->host)) {
 		dispatch_log(disp, LVL(90),
 			     "response to an exclusive socket doesn't match");
+		inc_stats(mgr, dns_resstatscounter_mismatch);
+		free_buffer(disp, ev->region.base, ev->region.length);
+		goto unlock;
+	}
+
+	if (resp == NULL) {
 		inc_stats(mgr, dns_resstatscounter_mismatch);
 		free_buffer(disp, ev->region.base, ev->region.length);
 		goto unlock;

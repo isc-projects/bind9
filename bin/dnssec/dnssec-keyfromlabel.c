@@ -362,7 +362,6 @@ main(int argc, char **argv) {
 	setup_logging(mctx, &log);
 
 	if (predecessor == NULL) {
-		/* cppcheck-suppress nullPointerRedundantCheck */
 		if (label == NULL) {
 			fatal("the key label was not specified");
 		}
@@ -384,7 +383,6 @@ main(int argc, char **argv) {
 			      isc_result_totext(ret));
 		}
 
-		/* cppcheck-suppress nullPointerRedundantCheck */
 		if (strchr(label, ':') == NULL) {
 			char *l;
 			int len;
@@ -396,13 +394,11 @@ main(int argc, char **argv) {
 			label = l;
 		}
 
-		/* cppcheck-suppress nullPointerRedundantCheck */
 		if (algname == NULL) {
 			fatal("no algorithm specified");
 		}
 
 		r.base = algname;
-		/* cppcheck-suppress nullPointerRedundantCheck */
 		r.length = strlen(algname);
 		ret = dns_secalg_fromtext(&alg, &r);
 		if (ret != ISC_R_SUCCESS) {
