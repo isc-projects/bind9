@@ -82,6 +82,7 @@ ns_plugins_free
 ns_query_cancel
 ns_query_done
 ns_query_free
+ns_query_hookasync
 ns_query_init
 ns_query_recurse
 ns_query_start

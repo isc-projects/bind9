@@ -9,7 +9,7 @@ dist-hook:
 	        sed -n "s|^Would remove \(.*\)|$(distdir)/\1|p" | \
 	        xargs -I{} rm -rf "{}"
 
-SUBDIRS = dyndb/driver dlzexternal/driver
+SUBDIRS = dyndb/driver dlzexternal/driver hooks/driver
 
 AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)
@@ -109,6 +109,7 @@ TESTS +=			\
 	include-multiplecfg	\
 	inline			\
 	integrity		\
+	hooks			\
 	keepalive		\
 	legacy			\
 	limits			\

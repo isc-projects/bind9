@@ -9,6 +9,7 @@ libns_ladir = $(includedir)/ns
 
 libns_la_HEADERS =			\
 	include/ns/client.h		\
+	include/ns/events.h		\
 	include/ns/hooks.h		\
 	include/ns/interfacemgr.h	\
 	include/ns/lib.h		\

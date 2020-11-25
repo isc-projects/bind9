@@ -1633,7 +1633,8 @@ AC_CONFIG_FILES([bin/tests/Makefile
 		 bin/tests/system/Makefile
 		 bin/tests/system/conf.sh
 		 bin/tests/system/dyndb/driver/Makefile
-		 bin/tests/system/dlzexternal/driver/Makefile])
+		 bin/tests/system/dlzexternal/driver/Makefile
+		 bin/tests/system/hooks/driver/Makefile])
 
 AC_CONFIG_FILES([bin/tests/system/ifconfig.sh],
 		[chmod +x bin/tests/system/ifconfig.sh])

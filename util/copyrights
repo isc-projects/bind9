@@ -478,6 +478,10 @@
 ./bin/tests/system/glue/noglue.good		X	2000,2001,2018,2019,2020
 ./bin/tests/system/glue/setup.sh		SH	2001,2004,2007,2012,2016,2018,2019,2020
 ./bin/tests/system/glue/tests.sh		SH	2000,2001,2003,2004,2007,2012,2013,2016,2017,2018,2019,2020
+./bin/tests/system/hooks/clean.sh		SH	2020
+./bin/tests/system/hooks/driver/test-async.c	C	2020
+./bin/tests/system/hooks/setup.sh		SH	2020
+./bin/tests/system/hooks/tests.sh		SH	2020
 ./bin/tests/system/idna/clean.sh		SH	2018,2019,2020
 ./bin/tests/system/idna/setup.sh		SH	2018,2019,2020
 ./bin/tests/system/idna/tests.sh		SH	2018,2019,2020
@@ -2095,6 +2099,7 @@
 ./lib/ns/client.c				C	2017,2018,2019,2020
 ./lib/ns/hooks.c				C	2018,2019,2020
 ./lib/ns/include/ns/client.h			C	2017,2018,2019,2020
+./lib/ns/include/ns/events.h			C	2020
 ./lib/ns/include/ns/hooks.h			C	2017,2018,2019,2020
 ./lib/ns/include/ns/interfacemgr.h		C	2017,2018,2019,2020
 ./lib/ns/include/ns/lib.h			C	2017,2018,2019,2020

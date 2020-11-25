@@ -28,9 +28,8 @@
 #include <dns/acl.h>
 #include <dns/types.h>
 
+#include <ns/events.h>
 #include <ns/types.h>
-
-#define NS_EVENT_CLIENTCONTROL (ISC_EVENTCLASS_NS + 0)
 
 #define NS_SERVER_LOGQUERIES   0x00000001U /*%< log queries */
 #define NS_SERVER_NOAA	       0x00000002U /*%< -T noaa */
