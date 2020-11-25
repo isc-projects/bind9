@@ -630,7 +630,7 @@ load_pubkey_from_engine(EC_KEY *eckey, const char *engine, const char *label) {
 		return (DST_R_NOENGINE);
 	}
 
-	EVP_PKEY *pubkey = ENGINE_load_private_key(ep, label, NULL, NULL);
+	EVP_PKEY *pubkey = ENGINE_load_public_key(ep, label, NULL, NULL);
 	if (pubkey == NULL) {
 		return (dst__openssl_toresult2("ENGINE_load_public_key",
 					       ISC_R_NOTFOUND));
