@@ -43,8 +43,12 @@ extern uint8_t dtype[8];
 
 typedef void(fatalcallback_t)(void);
 
+#ifndef CPPCHECK
 ISC_NORETURN void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+#else /* CPPCHECK */
+#define fatal(...) exit(1)
+#endif
 
 void
 setfatalcallback(fatalcallback_t *callback);
