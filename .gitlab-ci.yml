@@ -396,9 +396,6 @@ stages:
   <<: *default_triggering_rules
   stage: postcheck
   script:
-    # Workaround for cppcheck 2.0 uninitvar false positives triggered by (&var)->field syntax
-    # (see: https://sourceforge.net/p/cppcheck/discussion/general/thread/122153e3c1/)
-    - sed -i '/^#define ISC__BUFFER.*\\$/{s|_b|__b|;N;s|do {|\0 isc_buffer_t *_b = (isc_buffer_t *)__b;|}; /^#define ISC__BUFFER.*REGION.*\\$/{s|_r|__r|;N;s|do {|\0 isc_region_t *_r = (isc_region_t *)__r;|; /USEDREGION/{s|isc_buffer_t|const \0|g}}' lib/isc/include/isc/buffer.h
     - *configure
     - (make -nwk all || true) | compiledb
     - export GCC_VERSION=$(gcc --version | sed -n 's/.* \([0-9]\+\)\.[0-9]\+\.[0-9]\+.*/\1/p')
