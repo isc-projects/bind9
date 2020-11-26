@@ -358,7 +358,7 @@ init_test(void **state) {
 	assert_int_equal(name.length, 0);
 	assert_int_equal(name.labels, 0);
 	assert_int_equal(name.attributes, 0);
-	assert_int_equal(name.offsets, offsets);
+	assert_ptr_equal(name.offsets, offsets);
 	assert_null(name.buffer);
 }
 
@@ -393,7 +393,7 @@ buffer_test(void **state) {
 	isc_buffer_init(&b, buf, BUFSIZ);
 	dns_name_init(&name, NULL);
 	dns_name_setbuffer(&name, &b);
-	assert_int_equal(name.buffer, &b);
+	assert_ptr_equal(name.buffer, &b);
 	assert_true(dns_name_hasbuffer(&name));
 }
 

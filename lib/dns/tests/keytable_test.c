@@ -248,7 +248,7 @@ add_test(void **state) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("null.example"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(keynode, null_keynode); /* should be the same node */
+	assert_ptr_equal(keynode, null_keynode); /* should be the same node */
 	assert_non_null(dns_keynode_key(keynode)); /* now have a key */
 	dns_keytable_detachkeynode(keytable, &null_keynode);
 
@@ -265,7 +265,7 @@ add_test(void **state) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("null.example"),
 					   &null_keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(keynode, null_keynode);
+	assert_ptr_equal(keynode, null_keynode);
 	assert_non_null(dns_keynode_key(keynode));
 	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
 						  &next_keynode),
@@ -394,7 +394,7 @@ find_test(void **state) {
 					   str2name("null.example"),
 					   &keynode),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns_keynode_key(keynode), NULL);
+	assert_null(dns_keynode_key(keynode));
 	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*

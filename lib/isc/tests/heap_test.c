@@ -78,10 +78,10 @@ isc_heap_delete_test(void **state) {
 	assert_int_equal(e1.index, 0);
 
 	isc_heap_destroy(&heap);
-	assert_int_equal(heap, NULL);
+	assert_null(heap);
 
 	isc_mem_detach(&mctx);
-	assert_int_equal(mctx, NULL);
+	assert_null(mctx);
 }
 
 int
