@@ -50,6 +50,7 @@
  - [ ] ***(QA)*** Update `version`.
  - [ ] ***(QA)*** Build documentation on `docs.isc.org`.
  - [ ] ***(QA)*** Check that the formatting is correct for text, PDF, and HTML versions of release notes.
+ - [ ] ***(QA)*** Check that the formatting of the generated man pages is correct.
  - [ ] ***(QA)*** Tag the releases in the private repository (`git tag -s -m "BIND 9.x.y" v9_x_y`).
 
 ### Before the ASN Deadline (for ASN Releases) or the Public Release Date (for Regular Releases)
