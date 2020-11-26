@@ -9219,12 +9219,16 @@ zone_sign(dns_zone_t *zone) {
 						   DNS_ZONEOPT_DNSKEYKSKONLY);
 
 	/* Determine which type of chain to build */
-	CHECK(dns_private_chains(db, version, zone->privatetype, &build_nsec,
-				 &build_nsec3));
-
-	/* If neither chain is found, default to NSEC */
-	if (!build_nsec && !build_nsec3) {
-		build_nsec = true;
+	if (kasp != NULL) {
+		build_nsec3 = dns_kasp_nsec3(kasp);
+		build_nsec = !build_nsec3;
+	} else {
+		CHECK(dns_private_chains(db, version, zone->privatetype,
+					 &build_nsec, &build_nsec3));
+		/* If neither chain is found, default to NSEC */
+		if (!build_nsec && !build_nsec3) {
+			build_nsec = true;
+		}
 	}
 
 	while (signing != NULL && nodes-- > 0 && signatures > 0) {
@@ -20982,8 +20986,177 @@ failure:
 	INSIST(newver == NULL);
 }
 
+static void
+salt2text(unsigned char *salt, uint8_t saltlen, unsigned char *text,
+	  unsigned int textlen) {
+	isc_region_t r;
+	isc_buffer_t buf;
+	isc_result_t result;
+
+	r.base = salt;
+	r.length = (unsigned int)saltlen;
+
+	isc_buffer_init(&buf, text, textlen);
+	result = isc_hex_totext(&r, 2, "", &buf);
+	if (result == ISC_R_SUCCESS) {
+		text[saltlen * 2] = 0;
+	} else {
+		text[0] = 0;
+	}
+}
+
 /*
- * Called when an "rndc signing -nsec3param ..." command is received.
+ * Check if zone has NSEC3PARAM (and thus a chain) with the right parameters.
+ *
+ * If 'salt' is NULL, a match is found if the salt has the requested length,
+ * otherwise the NSEC3 salt must match the requested salt value too.
+ *
+ * Returns  ISC_R_SUCCESS, if a match is found, or an error if no match is
+ * found, or if the db lookup failed.
+ */
+isc_result_t
+dns__zone_lookup_nsec3param(dns_zone_t *zone, dns_rdata_nsec3param_t *lookup,
+			    dns_rdata_nsec3param_t *param,
+			    unsigned char saltbuf[255], bool resalt) {
+	isc_result_t result = ISC_R_UNEXPECTED;
+	dns_dbnode_t *node = NULL;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_rdataset_t rdataset;
+	dns_rdata_nsec3param_t nsec3param;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	dns_rdataset_init(&rdataset);
+
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL) {
+		dns_db_attach(zone->db, &db);
+	}
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (db == NULL) {
+		goto setparam;
+	}
+
+	result = dns_db_findnode(db, &zone->origin, false, &node);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "nsec3param lookup failure: %s",
+			     dns_result_totext(result));
+		goto setparam;
+	}
+	dns_db_currentversion(db, &version);
+
+	result = dns_db_findrdataset(db, node, version,
+				     dns_rdatatype_nsec3param,
+				     dns_rdatatype_none, 0, &rdataset, NULL);
+	if (result != ISC_R_SUCCESS) {
+		INSIST(!dns_rdataset_isassociated(&rdataset));
+		if (result != ISC_R_NOTFOUND) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "nsec3param lookup failure: %s",
+				     dns_result_totext(result));
+		}
+		goto setparam;
+	}
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdataset_current(&rdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_rdata_reset(&rdata);
+
+		/* Check parameters. */
+		if (nsec3param.hash != lookup->hash) {
+			continue;
+		}
+		if (nsec3param.iterations != lookup->iterations) {
+			continue;
+		}
+		if (nsec3param.salt_length != lookup->salt_length) {
+			continue;
+		}
+		if (lookup->salt != NULL) {
+			if (memcmp(nsec3param.salt, lookup->salt,
+				   lookup->salt_length) != 0) {
+				continue;
+			}
+		}
+		/* Found a match. */
+		result = ISC_R_SUCCESS;
+		param->hash = nsec3param.hash;
+		param->flags = nsec3param.flags;
+		param->iterations = nsec3param.iterations;
+		param->salt_length = nsec3param.salt_length;
+		param->salt = nsec3param.salt;
+		break;
+	}
+
+setparam:
+	if (result != ISC_R_SUCCESS) {
+		/* Found no match. */
+		result = ISC_R_NOTFOUND;
+		param->hash = lookup->hash;
+		param->flags = lookup->flags;
+		param->iterations = lookup->iterations;
+		param->salt_length = lookup->salt_length;
+		param->salt = lookup->salt;
+	}
+
+	if (param->salt_length == 0) {
+		DE_CONST("-", param->salt);
+	} else if (resalt || param->salt == NULL) {
+		unsigned char *newsalt;
+		unsigned char salttext[255 * 2 + 1];
+		do {
+			/* Generate a new salt. */
+			result = dns_nsec3_generate_salt(saltbuf,
+							 param->salt_length);
+			if (result != ISC_R_SUCCESS) {
+				break;
+			}
+			newsalt = saltbuf;
+			salt2text(newsalt, param->salt_length, salttext,
+				  sizeof(salttext));
+			dnssec_log(zone, ISC_LOG_INFO, "generated salt: %s",
+				   salttext);
+			/* Check for salt conflict. */
+			if (param->salt != NULL &&
+			    memcmp(newsalt, param->salt, param->salt_length) ==
+				    0)
+			{
+				result = ISC_R_SUCCESS;
+			} else {
+				param->salt = newsalt;
+				result = DNS_R_NSEC3RESALT;
+			}
+		} while (result == ISC_R_SUCCESS);
+
+		INSIST(result != ISC_R_SUCCESS);
+	}
+
+	if (dns_rdataset_isassociated(&rdataset)) {
+		dns_rdataset_disassociate(&rdataset);
+	}
+	if (node != NULL) {
+		dns_db_detachnode(db, &node);
+	}
+	if (version != NULL) {
+		dns_db_closeversion(db, &version, false);
+	}
+	if (db != NULL) {
+		dns_db_detach(&db);
+	}
+
+	return (result);
+}
+
+/*
+ * Called when an "rndc signing -nsec3param ..." command is received, or the
+ * 'dnssec-policy' has changed.
  *
  * Allocate and prepare an nsec3param_t structure which holds information about
  * the NSEC3 changes requested for the zone:
@@ -21004,22 +21177,42 @@ failure:
 isc_result_t
 dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 		       uint16_t iter, uint8_t saltlen, unsigned char *salt,
-		       bool replace) {
+		       bool replace, bool resalt) {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_rdata_nsec3param_t param;
+	dns_rdata_nsec3param_t param, lookup;
 	dns_rdata_t nrdata = DNS_RDATA_INIT;
 	dns_rdata_t prdata = DNS_RDATA_INIT;
 	unsigned char nbuf[DNS_NSEC3PARAM_BUFFERSIZE];
+	unsigned char saltbuf[255];
 	struct np3event *npe;
 	nsec3param_t *np;
 	dns_zone_t *dummy = NULL;
 	isc_buffer_t b;
-	isc_event_t *e;
+	isc_event_t *e = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(salt != NULL);
 
 	LOCK_ZONE(zone);
+
+	/*
+	 * First check if the requested NSEC3 parameters are already set,
+	 * if so, no need to set again.
+	 */
+	if (hash != 0) {
+		lookup.hash = hash;
+		lookup.flags = flags;
+		lookup.iterations = iter;
+		lookup.salt_length = saltlen;
+		lookup.salt = salt;
+		param.salt = NULL;
+		result = dns__zone_lookup_nsec3param(zone, &lookup, &param,
+						     saltbuf, resalt);
+		if (result == ISC_R_SUCCESS) {
+			UNLOCK_ZONE(zone);
+			return (ISC_R_SUCCESS);
+		}
+		INSIST(param.salt != NULL);
+	}
 
 	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_SETNSEC3PARAM,
 			       setnsec3param, zone, sizeof(struct np3event));
@@ -21031,16 +21224,13 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 	if (hash == 0) {
 		np->length = 0;
 		np->nsec = true;
+		dnssec_log(zone, ISC_LOG_DEBUG(3), "setnsec3param:nsec");
 	} else {
 		param.common.rdclass = zone->rdclass;
 		param.common.rdtype = dns_rdatatype_nsec3param;
 		ISC_LINK_INIT(&param.common, link);
 		param.mctx = NULL;
-		param.hash = hash;
-		param.flags = flags;
-		param.iterations = iter;
-		param.salt_length = saltlen;
-		param.salt = salt;
+		/* nsec3 specific param set in dns__zone_lookup_nsec3param() */
 		isc_buffer_init(&b, nbuf, sizeof(nbuf));
 		CHECK(dns_rdata_fromstruct(&nrdata, zone->rdclass,
 					   dns_rdatatype_nsec3param, &param,
@@ -21049,6 +21239,16 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 					 np->data, sizeof(np->data));
 		np->length = prdata.length;
 		np->nsec = false;
+
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			unsigned char salttext[255 * 2 + 1];
+			salt2text(param.salt, param.salt_length, salttext,
+				  sizeof(salttext));
+			dnssec_log(zone, ISC_LOG_DEBUG(3),
+				   "setnsec3param:nsec3 %u %u %u %s",
+				   param.hash, param.flags, param.iterations,
+				   salttext);
+		}
 	}
 
 	/*
@@ -21058,6 +21258,7 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 	 * receive_secure_db() if it ever gets called or simply freed by
 	 * zone_free() otherwise.
 	 */
+
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL) {
 		zone_iattach(zone, &dummy);
@@ -21067,6 +21268,8 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 		e = NULL;
 	}
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+
+	result = ISC_R_SUCCESS;
 
 failure:
 	if (e != NULL) {

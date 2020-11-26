@@ -72,6 +72,7 @@
 #include <dns/lib.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
+#include <dns/nsec3.h>
 #include <dns/nta.h>
 #include <dns/order.h>
 #include <dns/peer.h>
@@ -6082,14 +6083,12 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	dns_zone_t *raw = NULL;	  /* New or reused raw zone */
 	dns_zone_t *dupzone = NULL;
 	const cfg_obj_t *options = NULL;
-	const cfg_obj_t *voptions = NULL;
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *typeobj = NULL;
 	const cfg_obj_t *forwarders = NULL;
 	const cfg_obj_t *forwardtype = NULL;
 	const cfg_obj_t *ixfrfromdiffs = NULL;
 	const cfg_obj_t *only = NULL;
-	const cfg_obj_t *signing = NULL;
 	const cfg_obj_t *viewobj = NULL;
 	isc_result_t result;
 	isc_result_t tresult;
@@ -6108,9 +6107,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	(void)cfg_map_get(config, "options", &options);
 
 	zoptions = cfg_tuple_get(zconfig, "options");
-	if (vconfig != NULL) {
-		voptions = cfg_tuple_get(vconfig, "options");
-	}
 
 	/*
 	 * Get the zone origin as a dns_name_t.
@@ -6372,7 +6368,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		goto cleanup;
 	}
 
-	if (zone != NULL && !named_zone_reusable(zone, zconfig)) {
+	if (zone != NULL &&
+	    !named_zone_reusable(zone, zconfig, vconfig, config)) {
 		dns_zone_detach(&zone);
 	}
 
@@ -6451,62 +6448,10 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			      strcasecmp(ztypestr, "secondary") == 0 ||
 			      strcasecmp(ztypestr, "slave") == 0));
 
-	signing = NULL;
-	inline_signing = (zone_maybe_inline &&
-			  ((cfg_map_get(zoptions, "inline-signing", &signing) ==
-				    ISC_R_SUCCESS &&
-			    cfg_obj_asboolean(signing))));
-
-	/*
-	 * If inline-signing is not set, perhaps implictly through a
-	 * dnssec-policy.  Since automated DNSSEC maintenance requires
-	 * a dynamic zone, or inline-siging to be enabled, check if
-	 * the zone with dnssec-policy allows updates.  If not, enable
-	 * inline-signing.
-	 */
-	signing = NULL;
-	if (zone_maybe_inline && !inline_signing &&
-	    cfg_map_get(zoptions, "dnssec-policy", &signing) == ISC_R_SUCCESS &&
-	    signing != NULL && strcmp(cfg_obj_asstring(signing), "none") != 0)
-	{
-		isc_result_t res;
-		bool zone_is_dynamic = false;
-		const cfg_obj_t *au = NULL;
-		const cfg_obj_t *up = NULL;
-
-		if (cfg_map_get(zoptions, "update-policy", &up) ==
-		    ISC_R_SUCCESS) {
-			zone_is_dynamic = true;
-		} else {
-			res = cfg_map_get(zoptions, "allow-update", &au);
-			if (res != ISC_R_SUCCESS && voptions != NULL) {
-				res = cfg_map_get(voptions, "allow-update",
-						  &au);
-			}
-			if (res != ISC_R_SUCCESS && options != NULL) {
-				res = cfg_map_get(options, "allow-update", &au);
-			}
-			if (res == ISC_R_SUCCESS) {
-				dns_acl_t *acl = NULL;
-				cfg_aclconfctx_t *actx = NULL;
-				res = cfg_acl_fromconfig(au, config,
-							 named_g_lctx, actx,
-							 mctx, 0, &acl);
-				if (res == ISC_R_SUCCESS && acl != NULL &&
-				    !dns_acl_isnone(acl)) {
-					zone_is_dynamic = true;
-				}
-				if (acl != NULL) {
-					dns_acl_detach(&acl);
-				}
-			}
-		}
-
-		if (!zone_is_dynamic) {
-			inline_signing = true;
-		}
+	if (zone_maybe_inline) {
+		inline_signing = named_zone_inlinesigning(zone, zconfig,
+							  vconfig, config);
 	}
-
 	if (inline_signing) {
 		dns_zone_getraw(zone, &raw);
 		if (raw == NULL) {
@@ -14367,39 +14312,12 @@ newzone_cfgctx_destroy(void **cfgp) {
 	*cfgp = NULL;
 }
 
-static isc_result_t
-generate_salt(unsigned char *salt, size_t saltlen) {
-	unsigned char text[512 + 1];
-	isc_region_t r;
-	isc_buffer_t buf;
-	isc_result_t result;
-
-	if (saltlen > 256U) {
-		return (ISC_R_RANGE);
-	}
-
-	isc_nonce_buf(salt, saltlen);
-
-	r.base = salt;
-	r.length = (unsigned int)saltlen;
-
-	isc_buffer_init(&buf, text, sizeof(text));
-	result = isc_hex_totext(&r, 2, "", &buf);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	text[saltlen * 2] = 0;
-
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "generated salt: %s", text);
-
-	return (ISC_R_SUCCESS);
-}
-
 isc_result_t
 named_server_signing(named_server_t *server, isc_lex_t *lex,
 		     isc_buffer_t **text) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_zone_t *zone = NULL;
+	dns_kasp_t *kasp = NULL;
 	dns_name_t *origin;
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
@@ -14410,6 +14328,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 	bool list = false, clear = false;
 	bool chain = false;
 	bool setserial = false;
+	bool resalt = false;
 	uint32_t serial = 0;
 	char keystr[DNS_SECALG_FORMATSIZE + 7]; /* <5-digit keyid>/<alg> */
 	unsigned short hash = 0, flags = 0, iter = 0, saltlen = 0;
@@ -14467,7 +14386,6 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 				return (ISC_R_UNEXPECTEDEND);
 			}
 			strlcpy(iterbuf, ptr, sizeof(iterbuf));
-
 			n = snprintf(nbuf, sizeof(nbuf), "%s %s %s", hashbuf,
 				     flagbuf, iterbuf);
 			if (n == sizeof(nbuf)) {
@@ -14493,7 +14411,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 				 * configurable.
 				 */
 				saltlen = 8;
-				CHECK(generate_salt(salt, saltlen));
+				resalt = true;
 			} else if (strcmp(ptr, "-") != 0) {
 				isc_buffer_t buf;
 
@@ -14518,14 +14436,22 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 		CHECK(ISC_R_UNEXPECTEDEND);
 	}
 
+	kasp = dns_zone_getkasp(zone);
+	if (kasp != NULL) {
+		(void)putstr(text, "zone uses dnssec-policy, use rndc dnssec "
+				   "command instead");
+		(void)putnull(text);
+		goto cleanup;
+	}
+
 	if (clear) {
 		CHECK(dns_zone_keydone(zone, keystr));
 		(void)putstr(text, "request queued");
 		(void)putnull(text);
 	} else if (chain) {
-		CHECK(dns_zone_setnsec3param(zone, (uint8_t)hash,
-					     (uint8_t)flags, iter,
-					     (uint8_t)saltlen, salt, true));
+		CHECK(dns_zone_setnsec3param(
+			zone, (uint8_t)hash, (uint8_t)flags, iter,
+			(uint8_t)saltlen, salt, true, resalt));
 		(void)putstr(text, "nsec3param request queued");
 		(void)putnull(text);
 	} else if (setserial) {

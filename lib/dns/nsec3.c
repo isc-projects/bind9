@@ -16,8 +16,8 @@
 #include <isc/buffer.h>
 #include <isc/hex.h>
 #include <isc/iterated_hash.h>
-#include <isc/log.h>
 #include <isc/md.h>
+#include <isc/nonce.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -224,6 +224,15 @@ dns_nsec3_typepresent(dns_rdata_t *rdata, dns_rdatatype_t type) {
 	}
 	dns_rdata_freestruct(&nsec3);
 	return (present);
+}
+
+isc_result_t
+dns_nsec3_generate_salt(unsigned char *salt, size_t saltlen) {
+	if (saltlen > 255U) {
+		return (ISC_R_RANGE);
+	}
+	isc_nonce_buf(salt, saltlen);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

@@ -568,6 +568,39 @@ static cfg_type_t cfg_type_kaspkey = { "kaspkey",	cfg_parse_tuple,
 				       &cfg_rep_tuple,	kaspkey_fields };
 
 /*%
+ * NSEC3 parameters.
+ */
+static keyword_type_t nsec3iter_kw = { "iterations", &cfg_type_uint32 };
+static cfg_type_t cfg_type_nsec3iter = {
+	"iterations",	       parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_uint32,		&nsec3iter_kw
+};
+
+static keyword_type_t nsec3optout_kw = { "optout", &cfg_type_boolean };
+static cfg_type_t cfg_type_nsec3optout = {
+	"optout",	  parse_optional_keyvalue,
+	print_keyvalue,	  doc_optional_keyvalue,
+	&cfg_rep_boolean, &nsec3optout_kw
+};
+
+static keyword_type_t nsec3salt_kw = { "salt-length", &cfg_type_uint32 };
+static cfg_type_t cfg_type_nsec3salt = {
+	"salt-length",	       parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_uint32,		&nsec3salt_kw
+};
+
+static cfg_tuplefielddef_t nsec3param_fields[] = {
+	{ "iterations", &cfg_type_nsec3iter, 0 },
+	{ "optout", &cfg_type_nsec3optout, 0 },
+	{ "salt-length", &cfg_type_nsec3salt, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_nsec3 = { "nsec3param",    cfg_parse_tuple,
+				     cfg_print_tuple, cfg_doc_tuple,
+				     &cfg_rep_tuple,  nsec3param_fields };
+
+/*%
  * Wild class, type, name.
  */
 static keyword_type_t wild_class_kw = { "class", &cfg_type_ustring };
@@ -2089,6 +2122,7 @@ static cfg_clausedef_t dnssecpolicy_clauses[] = {
 	{ "dnskey-ttl", &cfg_type_duration, 0 },
 	{ "keys", &cfg_type_kaspkeys, 0 },
 	{ "max-zone-ttl", &cfg_type_duration, 0 },
+	{ "nsec3param", &cfg_type_nsec3, 0 },
 	{ "parent-ds-ttl", &cfg_type_duration, 0 },
 	{ "parent-propagation-delay", &cfg_type_duration, 0 },
 	{ "parent-registration-delay", &cfg_type_duration,

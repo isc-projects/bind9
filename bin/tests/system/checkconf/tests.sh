@@ -510,7 +510,35 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking named-checkconf kasp predefined key lengths ($n)"
+echo_i "checking named-checkconf kasp nsec3 iterations errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-nsec3-iter.conf > checkconf.out$n 2>&1 && ret=1
+grep "dnssec-policy: nsec3 iterations value 151 out of range" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: nsec3 iterations value 501 out of range" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: nsec3 iterations value 2501 out of range" < checkconf.out$n > /dev/null || ret=1
+lines=$(wc -l < "checkconf.out$n")
+if [ $lines != 3 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking named-checkconf kasp nsec3 algorithm errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-nsec3-alg.conf > checkconf.out$n 2>&1 && ret=1
+grep "dnssec-policy: cannot use nsec3 with algorithm 'RSASHA1'" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking named-checkconf kasp key errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-keylen.conf > checkconf.out$n 2>&1 && ret=1
+grep "dnssec-policy: key with algorithm rsasha1 has invalid key length 511" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking named-checkconf kasp predefined key length ($n)"
 ret=0
 $CHECKCONF kasp-ignore-keylen.conf > checkconf.out$n 2>&1 || ret=1
 grep "dnssec-policy: key algorithm ecdsa256 has predefined length; ignoring length value 2048" < checkconf.out$n > /dev/null || ret=1
