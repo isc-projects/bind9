@@ -90,7 +90,6 @@ TESTS +=			\
 	checkconf		\
 	checknames		\
 	checkzone		\
-	cookie			\
 	database		\
 	dlz			\
 	dlzexternal		\
@@ -202,7 +201,7 @@ if HAVE_PYTHON
 TESTS += kasp tcp pipelined
 
 if HAVE_PYMOD_DNS
-TESTS += qmin
+TESTS += qmin cookie
 
 if HAVE_PERLMOD_NET_DNS
 TESTS += dnssec

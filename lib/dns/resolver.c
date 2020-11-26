@@ -2358,7 +2358,12 @@ add_serveraddr(uint8_t *buf, const size_t bufsize, const resquery_t *query) {
 	return (addr2buf(buf, bufsize, &query->addrinfo->sockaddr));
 }
 
+/*
+ * Client cookie is 8 octets.
+ * Server cookie is [8..32] octets.
+ */
 #define CLIENT_COOKIE_SIZE 8U
+#define COOKIE_BUFFER_SIZE (8U + 32U)
 
 static void
 compute_cc(const resquery_t *query, uint8_t *cookie, const size_t len) {
@@ -2603,7 +2608,7 @@ resquery_send(resquery_t *query) {
 			bool reqnsid = res->view->requestnsid;
 			bool sendcookie = res->view->sendcookie;
 			bool tcpkeepalive = false;
-			unsigned char cookie[64];
+			unsigned char cookie[COOKIE_BUFFER_SIZE];
 			uint16_t padding = 0;
 
 			/*
@@ -2675,9 +2680,11 @@ resquery_send(resquery_t *query) {
 						fctx->res,
 						dns_resstatscounter_cookieout);
 				} else {
-					compute_cc(query, cookie, 8);
+					compute_cc(query, cookie,
+						   CLIENT_COOKIE_SIZE);
 					ednsopts[ednsopt].value = cookie;
-					ednsopts[ednsopt].length = 8;
+					ednsopts[ednsopt].length =
+						CLIENT_COOKIE_SIZE;
 					inc_stats(
 						fctx->res,
 						dns_resstatscounter_cookienew);
@@ -7627,6 +7634,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_checksig(query->rmessage, fctx->res->view);
 	if (result != ISC_R_SUCCESS) {
 		FCTXTRACE3("signature check failed", result);
+		if (result == DNS_R_UNEXPECTEDTSIG ||
+		    result == DNS_R_EXPECTEDTSIG) {
+			rctx.nextitem = true;
+		}
 		rctx_done(&rctx, result);
 		return;
 	}
@@ -7642,6 +7653,40 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 * INSIST() that the message id is correct (this should also be
 	 * ensured by the dispatch code).
 	 */
+
+	/*
+	 * If we have had a server cookie and don't get one retry over TCP.
+	 * This may be a misconfigured anycast server or an attempt to send
+	 * a spoofed response.  Skip if we have a valid tsig.
+	 */
+	if (dns_message_gettsig(query->rmessage, NULL) == NULL &&
+	    !query->rmessage->cc_ok && !query->rmessage->cc_bad &&
+	    (rctx.retryopts & DNS_FETCHOPT_TCP) == 0)
+	{
+		unsigned char cookie[COOKIE_BUFFER_SIZE];
+		if (dns_adb_getcookie(fctx->adb, query->addrinfo, cookie,
+				      sizeof(cookie)) > CLIENT_COOKIE_SIZE)
+		{
+			if (isc_log_wouldlog(dns_lctx, ISC_LOG_INFO)) {
+				char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+				isc_sockaddr_format(&query->addrinfo->sockaddr,
+						    addrbuf, sizeof(addrbuf));
+				isc_log_write(
+					dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+					DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+					"missing expected cookie from %s",
+					addrbuf);
+			}
+			rctx.retryopts |= DNS_FETCHOPT_TCP;
+			rctx.resend = true;
+			rctx_done(&rctx, result);
+			return;
+		}
+		/*
+		 * XXXMPA When support for DNS COOKIE becomes ubiquitous, fall
+		 * back to TCP for all non-COOKIE responses.
+		 */
+	}
 
 	rctx_edns(&rctx);
 
@@ -8058,7 +8103,7 @@ rctx_opt(respctx_t *rctx) {
 	uint16_t optlen;
 	unsigned char *optvalue;
 	dns_adbaddrinfo_t *addrinfo;
-	unsigned char cookie[8];
+	unsigned char cookie[CLIENT_COOKIE_SIZE];
 	bool seen_cookie = false;
 	bool seen_nsid = false;
 
@@ -8095,8 +8140,10 @@ rctx_opt(respctx_t *rctx) {
 				compute_cc(query, cookie, sizeof(cookie));
 				INSIST(query->rmessage->cc_bad == 0 &&
 				       query->rmessage->cc_ok == 0);
-				if (optlen >= 8U &&
-				    memcmp(cookie, optvalue, 8) == 0) {
+				if (optlen >= CLIENT_COOKIE_SIZE &&
+				    memcmp(cookie, optvalue,
+					   CLIENT_COOKIE_SIZE) == 0)
+				{
 					query->rmessage->cc_ok = 1;
 					inc_stats(fctx->res,
 						  dns_resstatscounter_cookieok);
