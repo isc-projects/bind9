@@ -45,3 +45,6 @@ Bug Fixes
 
 - The synthesised CNAME from a DNAME was incorrectly followed when the QTYPE
   was CNAME or ANY. [GL #2280]
+
+- Tighten handling of missing DNS COOKIE responses over UDP by
+  falling back to TCP. [GL #2275]
