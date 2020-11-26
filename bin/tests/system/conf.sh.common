@@ -97,6 +97,7 @@ mirror
 mkeys
 names
 notify
+nsec3
 nslookup
 nsupdate
 padding

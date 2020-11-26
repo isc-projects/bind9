@@ -41,6 +41,11 @@ dns__zone_updatesigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 		     isc_stdtime_t now, bool check_ksk, bool keyset_kskonly,
 		     dns__zonediff_t *zonediff);
 
+isc_result_t
+dns__zone_lookup_nsec3param(dns_zone_t *zone, dns_rdata_nsec3param_t *lookup,
+			    dns_rdata_nsec3param_t *param,
+			    unsigned char saltbuf[255], bool resalt);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_ZONE_P_H */

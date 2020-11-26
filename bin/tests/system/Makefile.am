@@ -121,6 +121,7 @@ TESTS +=			\
 	mkeys			\
 	names			\
 	notify			\
+	nsec3			\
 	nslookup		\
 	padding			\
 	pending			\

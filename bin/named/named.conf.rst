@@ -66,6 +66,8 @@ DNSSEC-POLICY
   	keys { ( csk | ksk | zsk ) [ ( key-directory ) ] lifetime
   	    duration_or_unlimited algorithm string [ integer ]; ... };
   	max-zone-ttl duration;
+  	nsec3param [ iterations integer ] [ optout boolean ] [
+  	    salt-length integer ];
   	parent-ds-ttl duration;
   	parent-propagation-delay duration;
   	publish-safety duration;

@@ -1,3 +1,10 @@
+5538.	[func]		Add NSEC3 support for zones that manage DNSSEC with
+			the 'dnssec-policy' configuration. A new option
+			'nsec3param' can be used to set the NSEC3 parameters.
+			This now also detects salt collisions, and logs salt
+			generation messages with zone context.
+			[GL #1620]
+
 5537.	[func]		The query plugin mechanism has been extended
 			to support asynchronous operations. For example, a
 			plugin can now trigger recursion and resume

@@ -14,7 +14,9 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/hex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/util.h>
@@ -58,7 +60,7 @@ dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	kasp->parent_ds_ttl = DNS_KASP_DS_TTL;
 	kasp->parent_propagation_delay = DNS_KASP_PARENT_PROPDELAY;
 
-	/* TODO: The rest of the KASP configuration */
+	kasp->nsec3 = false;
 
 	kasp->magic = DNS_KASP_MAGIC;
 	*kaspp = kasp;
@@ -445,4 +447,62 @@ dns_kasp_key_zsk(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
 	return (key->role & DNS_KASP_KEY_ROLE_ZSK);
+}
+
+uint8_t
+dns_kasp_nsec3iter(dns_kasp_t *kasp) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(kasp->frozen);
+	REQUIRE(kasp->nsec3);
+
+	return (kasp->nsec3param.iterations);
+}
+
+uint8_t
+dns_kasp_nsec3flags(dns_kasp_t *kasp) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(kasp->frozen);
+	REQUIRE(kasp->nsec3);
+
+	if (kasp->nsec3param.optout) {
+		return (0x01);
+	}
+	return (0x00);
+}
+
+uint8_t
+dns_kasp_nsec3saltlen(dns_kasp_t *kasp) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(kasp->frozen);
+	REQUIRE(kasp->nsec3);
+
+	return (kasp->nsec3param.saltlen);
+}
+
+bool
+dns_kasp_nsec3(dns_kasp_t *kasp) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(kasp->frozen);
+
+	return kasp->nsec3;
+}
+
+void
+dns_kasp_setnsec3(dns_kasp_t *kasp, bool nsec3) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(!kasp->frozen);
+
+	kasp->nsec3 = nsec3;
+}
+
+void
+dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
+		       uint8_t saltlen) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(!kasp->frozen);
+	REQUIRE(kasp->nsec3);
+
+	kasp->nsec3param.iterations = iter;
+	kasp->nsec3param.optout = optout;
+	kasp->nsec3param.saltlen = saltlen;
 }

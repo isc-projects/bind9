@@ -30,6 +30,7 @@ check_PROGRAMS =		\
 	keytable_test		\
 	name_test		\
 	nsec3_test		\
+	nsec3param_test		\
 	peer_test		\
 	private_test		\
 	rbt_serialize_test	\

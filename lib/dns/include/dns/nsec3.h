@@ -16,6 +16,7 @@
 
 #include <isc/iterated_hash.h>
 #include <isc/lang.h>
+#include <isc/log.h>
 
 #include <dns/db.h>
 #include <dns/diff.h>
@@ -70,6 +71,12 @@ dns_nsec3_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
  *
  * Requires:
  *	'nsec' points to a valid rdataset of type NSEC3
+ */
+
+isc_result_t
+dns_nsec3_generate_salt(unsigned char *salt, size_t saltlen);
+/*%<
+ * Generate a salt with the given salt length.
  */
 
 isc_result_t

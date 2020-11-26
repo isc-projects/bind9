@@ -29,6 +29,9 @@
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
 
+#define DEFAULT_NSEC3PARAM_ITER	   5
+#define DEFAULT_NSEC3PARAM_SALTLEN 8
+
 /*
  * Utility function for getting a configuration option.
  */
@@ -163,6 +166,92 @@ cleanup:
 	return (result);
 }
 
+static isc_result_t
+cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
+			  isc_log_t *logctx) {
+	dns_kasp_key_t *kkey;
+	unsigned int min_keysize = 4096;
+	const cfg_obj_t *obj = NULL;
+	uint32_t iter = DEFAULT_NSEC3PARAM_ITER;
+	uint32_t saltlen = DEFAULT_NSEC3PARAM_SALTLEN;
+	uint32_t badalg = 0;
+	bool optout = false;
+	isc_result_t ret = ISC_R_SUCCESS;
+
+	/* How many iterations. */
+	obj = cfg_tuple_get(config, "iterations");
+	if (cfg_obj_isuint32(obj)) {
+		iter = cfg_obj_asuint32(obj);
+	}
+	dns_kasp_freeze(kasp);
+	for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
+	     kkey = ISC_LIST_NEXT(kkey, link))
+	{
+		unsigned int keysize = dns_kasp_key_size(kkey);
+		uint32_t keyalg = dns_kasp_key_algorithm(kkey);
+
+		if (keysize < min_keysize) {
+			min_keysize = keysize;
+		}
+
+		/* NSEC3 cannot be used with certain key algorithms. */
+		if (keyalg == DNS_KEYALG_RSAMD5 || keyalg == DNS_KEYALG_DH ||
+		    keyalg == DNS_KEYALG_DSA || keyalg == DNS_KEYALG_RSASHA1)
+		{
+			badalg = keyalg;
+		}
+	}
+	dns_kasp_thaw(kasp);
+
+	if (badalg > 0) {
+		char algstr[DNS_SECALG_FORMATSIZE];
+		dns_secalg_format((dns_secalg_t)badalg, algstr, sizeof(algstr));
+		cfg_obj_log(
+			obj, logctx, ISC_LOG_ERROR,
+			"dnssec-policy: cannot use nsec3 with algorithm '%s'",
+			algstr);
+		return (DNS_R_NSEC3BADALG);
+	}
+
+	/* See RFC 5155 Section 10.3 for iteration limits. */
+	if (min_keysize <= 1024 && iter > 150) {
+		ret = DNS_R_NSEC3ITERRANGE;
+	} else if (min_keysize <= 2048 && iter > 500) {
+		ret = DNS_R_NSEC3ITERRANGE;
+	} else if (min_keysize <= 4096 && iter > 2500) {
+		ret = DNS_R_NSEC3ITERRANGE;
+	}
+
+	if (ret == DNS_R_NSEC3ITERRANGE) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "dnssec-policy: nsec3 iterations value %u "
+			    "out of range",
+			    iter);
+		return (ret);
+	}
+
+	/* Opt-out? */
+	obj = cfg_tuple_get(config, "optout");
+	if (cfg_obj_isboolean(obj)) {
+		optout = cfg_obj_asboolean(obj);
+	}
+
+	/* Salt */
+	obj = cfg_tuple_get(config, "salt-length");
+	if (cfg_obj_isuint32(obj)) {
+		saltlen = cfg_obj_asuint32(obj);
+	}
+	if (saltlen > 0xff) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "dnssec-policy: nsec3 salt length %u too high",
+			    saltlen);
+		return (DNS_R_NSEC3SALTRANGE);
+	}
+
+	dns_kasp_setnsec3param(kasp, iter, optout, saltlen);
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 		    dns_kasplist_t *kasplist, dns_kasp_t **kaspp) {
@@ -170,6 +259,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 	const cfg_obj_t *maps[2];
 	const cfg_obj_t *koptions = NULL;
 	const cfg_obj_t *keys = NULL;
+	const cfg_obj_t *nsec3 = NULL;
 	const cfg_listelt_t *element = NULL;
 	const char *kaspname = NULL;
 	dns_kasp_t *kasp = NULL;
@@ -245,6 +335,18 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 	}
 	INSIST(!(dns_kasp_keylist_empty(kasp)));
 
+	/* Configuration: NSEC3 */
+	(void)confget(maps, "nsec3param", &nsec3);
+	if (nsec3 == NULL) {
+		dns_kasp_setnsec3(kasp, false);
+	} else {
+		dns_kasp_setnsec3(kasp, true);
+		result = cfg_nsec3param_fromconfig(nsec3, kasp, logctx);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+	}
+
 	/* Configuration: Zone settings */
 	dns_kasp_setzonemaxttl(
 		kasp, get_duration(maps, "max-zone-ttl", DNS_KASP_ZONE_MAXTTL));
@@ -258,8 +360,6 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 	dns_kasp_setparentpropagationdelay(
 		kasp, get_duration(maps, "parent-propagation-delay",
 				   DNS_KASP_PARENT_PROPDELAY));
-
-	/* TODO: Rest of the configuration */
 
 	/* Append it to the list for future lookups. */
 	ISC_LIST_APPEND(*kasplist, kasp, link);
