@@ -21,8 +21,8 @@ srcdir=@abs_srcdir@
 . ${builddir}/conf.sh
 
 if [ "$(id -u)" -eq "0" ] && [ "@DEVELOPER_MODE@" != "yes" ]; then
-	echofail "Refusing to run test as root. Build with --enable-developer to override." >&2
-	exit 1
+    echofail "Refusing to run test as root. Build with --enable-developer to override." >&2
+    exit 1
 fi
 
 export builddir
@@ -37,46 +37,46 @@ stopservers=true
 baseport=0
 
 if [ "${SYSTEMTEST_NO_CLEAN:-0}" -eq 1 ]; then
-	clean=false
+    clean=false
 else
-	clean=true
+    clean=true
 fi
 
 do_run=false
 log_flags="-r"
 while getopts "sknp:r-:" OPT; do
-	log_flags="$log_flags -$OPT$OPTARG"
-	if [ "$OPT" = "-" ] && [ -n "$OPTARG" ]; then
-		OPT="${OPTARG%%=*}"
-		OPTARG="${OPTARG#$OPT}"
-		OPTARG="${OPTARG#=}"
-	fi
+    log_flags="$log_flags -$OPT$OPTARG"
+    if [ "$OPT" = "-" ] && [ -n "$OPTARG" ]; then
+        OPT="${OPTARG%%=*}"
+        OPTARG="${OPTARG#$OPT}"
+        OPTARG="${OPTARG#=}"
+    fi
 
-	# shellcheck disable=SC2214
-	case "$OPT" in
-		k | keep) stopservers=false ;;
-		n | noclean) clean=false ;;
-		p | port) baseport=$OPTARG ;;
-		r | run) do_run=true ;;
-		s | skip) exit 77 ;;
-		-) break ;;
-		*) echo "invalid option" >&2; exit 1 ;;
-	esac
+    # shellcheck disable=SC2214
+    case "$OPT" in
+        k | keep) stopservers=false ;;
+        n | noclean) clean=false ;;
+        p | port) baseport=$OPTARG ;;
+        r | run) do_run=true ;;
+        s | skip) exit 77 ;;
+        -) break ;;
+        *) echo "invalid option" >&2; exit 1 ;;
+    esac
 done
 
 shift $((OPTIND-1))
 
 if ! $do_run; then
     if [ "$baseport" -eq 0 ]; then
-	log_flags="$log_flags -p 5300"
+        log_flags="$log_flags -p 5300"
     fi
     env - SLOT="$SLOT" SOFTHSM2_CONF="$SOFTHSM2_CONF" PATH="$PATH" ${LD_LIBRARY_PATH:+"LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"} TESTS="$*" TEST_SUITE_LOG=run.log LOG_DRIVER_FLAGS="--verbose yes --color-tests yes" LOG_FLAGS="$log_flags" make -e check
     exit $?
 fi
 
 if [ $# -eq 0 ]; then
-	echofail "Usage: $0 [-k] [-n] [-p <PORT>] test-directory [test-options]" >&2;
-	exit 1
+    echofail "Usage: $0 [-k] [-n] [-p <PORT>] test-directory [test-options]" >&2;
+    exit 1
 fi
 
 systest=$(basename "${1%%/}")
@@ -89,7 +89,7 @@ fi
 
 if [ "${srcdir}" != "${builddir}" ]; then
     if [ ! -d common ] || [ ! -r common/.prepared ]; then
-	cp -a "${srcdir}/common" "${builddir}"
+        cp -a "${srcdir}/common" "${builddir}"
     fi
     # Some tests require additional files to work for out-of-tree test runs.
     for file in ckdnsrps.sh digcomp.pl ditch.pl packet.pl start.pl stop.pl; do
@@ -98,9 +98,9 @@ if [ "${srcdir}" != "${builddir}" ]; then
         fi
     done
     if [ ! -d "$systest" ] || [ ! -r "$systest/.prepared" ]; then
-	mkdir -p "${builddir}/$systest"
-	cp -a "${srcdir}/$systest" "${builddir}/"
-	touch "$systest/.prepared"
+        mkdir -p "${builddir}/$systest"
+        cp -a "${srcdir}/$systest" "${builddir}/"
+        touch "$systest/.prepared"
     fi
 fi
 
@@ -167,9 +167,9 @@ if [ $result -eq 0 ]; then
 else
     echowarn "I:$systest:Prerequisites missing, skipping test."
     if [ $result -eq 255 ]; then
-	echowarn "R:$systest:SKIPPED";
+        echowarn "R:$systest:SKIPPED";
     else
-	echowarn "R:$systest:UNTESTED"
+        echowarn "R:$systest:UNTESTED"
     fi
     echoend "E:$systest:$(date_with_args)"
     exit 0
@@ -191,22 +191,21 @@ fi
 if test -f "$systest/clean.sh"
 then
     if ! ( cd "${systest}" && $SHELL clean.sh "$@" ); then
-	echowarn "I:$systest:clean.sh script failed"
-	echofail "R:$systest:FAIL"
-	echoend  "E:$systest:$(date_with_args)"
-	exit 1
+        echowarn "I:$systest:clean.sh script failed"
+        echofail "R:$systest:FAIL"
+        echoend  "E:$systest:$(date_with_args)"
+        exit 1
     fi
-
 fi
 
 # Set up any dynamically generated test data
 if test -f "$systest/setup.sh"
 then
     if ! ( cd "${systest}" && $SHELL setup.sh "$@" ); then
-	echowarn "I:$systest:setup.sh script failed"
-	echofail "R:$systest:FAIL"
-	echoend  "E:$systest:$(date_with_args)"
-	exit 1
+        echowarn "I:$systest:setup.sh script failed"
+        echofail "R:$systest:FAIL"
+        echoend  "E:$systest:$(date_with_args)"
+        exit 1
     fi
 fi
 
@@ -224,16 +223,16 @@ fi
 if [ -n "$PYTEST" ]; then
     run=$((run+1))
     for test in $(cd "${systest}" && find . -name "tests*.py"); do
-	start_servers
-	rm -f "$systest/$test.status"
-	test_status=0
-	(cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
-	if [ -f "$systest/$test.status" ]; then
-	    echo_i "FAILED"
-	    test_status=$(cat "$systest/$test.status")
-	fi
-	status=$((status+test_status))
-	stop_servers || status=1
+        start_servers
+        rm -f "$systest/$test.status"
+        test_status=0
+        (cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
+        if [ -f "$systest/$test.status" ]; then
+            echo_i "FAILED"
+            test_status=$(cat "$systest/$test.status")
+        fi
+        status=$((status+test_status))
+        stop_servers || status=1
     done
 else
     echoinfo "I:$systest:pytest not installed, skipping python tests"
@@ -276,7 +275,7 @@ if [ -n "$core_dumps" ]; then
                                   -- \
                                   "$binary" 2>/dev/null | sed -n '/^Core was generated by/,$p' | cat_d
         echoinfo "D:$systest:--------------------------------------------------------------------------------"
-        coredump_backtrace=$(basename "${coredump}")-backtrace.txt
+        coredump_backtrace="${coredump}-backtrace.txt"
         echoinfo "D:$systest:full backtrace from $coredump saved in $coredump_backtrace"
         "${top_builddir}/libtool" --mode=execute gdb \
                                   -batch \
