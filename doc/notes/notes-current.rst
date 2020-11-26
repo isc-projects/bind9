@@ -8,8 +8,8 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-Notes for BIND 9.16.9
----------------------
+Notes for BIND 9.16.10
+----------------------
 
 Security Fixes
 ~~~~~~~~~~~~~~
@@ -24,9 +24,7 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- A new configuration option ``stale-refresh-time`` has been introduced, it
-  allows stale RRset to be served directly from cache for a period of time
-  after a failed lookup, before a new attempt to refresh it is made. [GL #2066]
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -40,12 +38,6 @@ Feature Changes
 
 Bug Fixes
 ~~~~~~~~~
-
-- Handle `UV_EOF` differently such that it is not treated as a `TCP4RecvErr` or
-  `TCP6RecvErr`. [GL #2208]
-
-- ``named`` could crash with an assertion failure if a TCP connection is closed
-  while the request is still processing. [GL #2227]
 
 - The synthesised CNAME from a DNAME was incorrectly followed when the QTYPE
   was CNAME or ANY. [GL #2280]
