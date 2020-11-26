@@ -100,6 +100,10 @@ stages:
 
 # CentOS
 
+.centos-centos6-i386: &centos_centos6_i386_image
+  image: "$CI_REGISTRY_IMAGE:centos-centos6-i386"
+  <<: *linux_i386
+
 .centos-centos6-amd64: &centos_centos6_amd64_image
   image: "$CI_REGISTRY_IMAGE:centos-centos6-amd64"
   <<: *linux_amd64
@@ -125,10 +129,6 @@ stages:
 .debian-sid-amd64: &debian_sid_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
   <<: *linux_amd64
-
-.debian-sid-i386: &debian_sid_i386_image
-  image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
-  <<: *linux_i386
 
 # openSUSE Tumbleweed
 
@@ -575,6 +575,30 @@ unit:gcc:alpine3.12:amd64:
     - job: gcc:alpine3.12:amd64
       artifacts: true
 
+# Jobs for regular GCC builds on CentOS 6 (i386)
+
+gcc:centos6:i386:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-python --disable-warn-error"
+  <<: *centos_centos6_i386_image
+  <<: *build_job
+
+system:gcc:centos6:i386:
+  <<: *centos_centos6_i386_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:centos6:i386
+      artifacts: true
+
+unit:gcc:centos6:i386:
+  <<: *centos_centos6_i386_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:centos6:i386
+      artifacts: true
+
 # Jobs for regular GCC builds on CentOS 6 (amd64)
 
 gcc:centos6:amd64:
@@ -815,30 +839,6 @@ unit:gcc:tarball:
   only:
     - schedules
     - tags
-
-# Jobs for regular GCC builds on Debian Sid (i386)
-
-gcc:sid:i386:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-python"
-  <<: *debian_sid_i386_image
-  <<: *build_job
-
-system:gcc:sid:i386:
-  <<: *debian_sid_i386_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:sid:i386
-      artifacts: true
-
-unit:gcc:sid:i386:
-  <<: *debian_sid_i386_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:sid:i386
-      artifacts: true
 
 # Jobs for debug GCC builds on openSUSE Tumbleweed (amd64)
 
