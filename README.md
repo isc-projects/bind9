@@ -162,8 +162,7 @@ To build on a Unix or Linux system, use:
 		$ ./configure
 		$ make
 
-If you're planning on making changes to the BIND 9 source, you should run
-`make depend`.  If you're using Emacs, you might find `make tags` helpful.
+If you're using Emacs, you might find `make tags` helpful.
 
 Several environment variables, which can be set before running `configure`,
 affect compilation.  Significant ones are:

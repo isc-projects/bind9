@@ -20,51 +20,50 @@
 5534.	[bug]		The synthesised CNAME from a DNAME was incorrectly
 			followed when the QTYPE was CNAME or ANY. [GL #2280]
 
-5533.	[func]		Add "stale-refresh-time" option, a time window that
-			starts after a failed lookup, during which stale rrset
-			will be served directly from cache before a new
-			attempt to refresh it is made. [GL #2066]
+	--- 9.17.7 released ---
+
+5533.	[func]		Add the "stale-refresh-time" option, a time window that
+			starts after a failed lookup, during which a stale RRset
+			is served directly from cache before a new attempt to
+			refresh it is made. [GL #2066]
 
 5532.	[cleanup]	Unused header files were removed:
 			bin/rndc/include/rndc/os.h, lib/isc/timer_p.h,
 			lib/isccfg/include/isccfg/dnsconf.h and code related
 			to those files. [GL #1913]
 
-5531.	[func]		Add a netmgr TLS layer, enabling server-side DoT
-			support (not yet available), and client-side DoT
-			support in dig with "dig +tls". [GL #1840]
+5531.	[func]		Add support for DNS over TLS (DoT) to dig and named.
+			[GL #1840]
 
-5530.	[bug]		DNSTAP did not capture responses to forwarded
-			UPDATE requests. [GL #2252]
+5530.	[bug]		dnstap did not capture responses to forwarded UPDATE
+			requests. [GL #2252]
 
-5529.	[func]		The network manager API is now used by named
-			to send zone transfer requests. [GL #2016]
+5529.	[func]		The network manager API is now used by named to send
+			zone transfer requests. [GL #2016]
 
-5528.	[func]		Convert "dig", "host" and "nslookup" to use the
-			network manager. As a side effect of this change,
-			"dig +unexpected" no longer works, and has been
-			disabled. [GL #2140]
+5528.	[func]		Convert dig, host, and nslookup to use the network
+			manager API. As a side effect of this change, "dig
+			+unexpected" no longer works, and has been disabled.
+			[GL #2140]
 
-5527.	[bug]		There was a NULL pointer dereference if the creation
-			of the fetch to determine if a negative trust anchor
-			was still valid failed. [GL #2244]
+5527.	[bug]		A NULL pointer dereference occurred when creating an NTA
+			recheck query failed. [GL #2244]
 
 5526.	[bug]		Fix a race/NULL dereference in TCPDNS read. [GL #2227]
 
 5525.	[placeholder]
 
-5524.	[func]		Added functionality to the network manager to
-			support outgoing DNS queries in addition to
-			incoming ones. [GL #2235]
+5524.	[func]		Added functionality to the network manager to support
+			outgoing DNS queries in addition to incoming ones.
+			[GL #2235]
 
-5523.	[bug]		The initial lookup of a zone transitioning to/from
-			the signed state could fail if the DNSKEY RRset was
-			not found.  Subsequent lookups would succeed.
-			[GL #2236]
+5523.	[bug]		The initial lookup in a zone transitioning to/from a
+			signed state could fail if the DNSKEY RRset was not
+			found. [GL #2236]
 
-5522.	[bug]		Fix a race/NULL dereference in TCPDNS send. [GL #2227]
+5522.	[bug]		Fixed a race/NULL dereference in TCPDNS send. [GL #2227]
 
-5521.	[func]		All use of libltdl was dropped.  libuv's shared library
+5521.	[func]		All use of libltdl was dropped. libuv's shared library
 			handling interface is now used instead. [GL !4278]
 
 5520.	[bug]		Fixed a number of shutdown races, reference counting
@@ -75,12 +74,11 @@
 			lib/dns/portlist.c, lib/isc/bufferlist.c, and code
 			related to those files. [GL #2060]
 
-5518.	[bug]		Fix stub zone not transferring nameserver addresses
-			from masters configured with 'minimal-responses yes'.
-			[GL #1736]
+5518.	[bug]		Stub zones now work correctly with primary servers using
+			"minimal-responses yes". [GL #1736]
 
-5517.	[bug]		Handle 'UV_EOF' differently and don't contribute it to
-			the RECVFAIL statistic count. [GL #2208]
+5517.	[bug]		Do not treat UV_EOF as a TCP4RecvErr or a TCP6RecvErr.
+			[GL #2208]
 
 	--- 9.17.6 released ---
 
