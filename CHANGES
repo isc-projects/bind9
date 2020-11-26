@@ -1,3 +1,6 @@
+5541.	[func]		Adjust the "max-recursion-queries" default from 75 to
+			100. [GL #2305]
+
 5540.	[port]		Fix building with native PKCS#11 support for AEP Keyper.
 			[GL #2315]
 
