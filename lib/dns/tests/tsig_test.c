@@ -532,7 +532,7 @@ test_name(const char *name_string, const dns_name_t *expected) {
 	dns_name_init(&name, NULL);
 	assert_int_equal(dns_name_fromstring(&name, name_string, 0, dt_mctx),
 			 ISC_R_SUCCESS);
-	assert_int_equal(dns__tsig_algnamefromname(&name), expected);
+	assert_ptr_equal(dns__tsig_algnamefromname(&name), expected);
 	dns_name_free(&name, dt_mctx);
 }
 
@@ -552,7 +552,7 @@ algnamefromname_test(void **state) {
 	test_name("gss.microsoft.com", DNS_TSIG_GSSAPIMS_NAME);
 
 	/* try another name that isn't a standard algorithm name */
-	assert_int_equal(dns__tsig_algnamefromname(dns_rootname), NULL);
+	assert_null(dns__tsig_algnamefromname(dns_rootname));
 }
 
 /* Tests the dns__tsig_algallocated function */

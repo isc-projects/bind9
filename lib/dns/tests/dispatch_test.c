@@ -132,10 +132,10 @@ dispatchset_get(void **state) {
 	d4 = dns_dispatchset_get(dset);
 	d5 = dns_dispatchset_get(dset);
 
-	assert_int_equal(d1, d2);
-	assert_int_equal(d2, d3);
-	assert_int_equal(d3, d4);
-	assert_int_equal(d4, d5);
+	assert_ptr_equal(d1, d2);
+	assert_ptr_equal(d2, d3);
+	assert_ptr_equal(d3, d4);
+	assert_ptr_equal(d4, d5);
 
 	reset();
 
@@ -148,11 +148,11 @@ dispatchset_get(void **state) {
 	d4 = dns_dispatchset_get(dset);
 	d5 = dns_dispatchset_get(dset);
 
-	assert_int_equal(d1, d5);
-	assert_true(d1 != d2);
-	assert_true(d2 != d3);
-	assert_true(d3 != d4);
-	assert_true(d4 != d5);
+	assert_ptr_equal(d1, d5);
+	assert_ptr_not_equal(d1, d2);
+	assert_ptr_not_equal(d2, d3);
+	assert_ptr_not_equal(d3, d4);
+	assert_ptr_not_equal(d4, d5);
 
 	reset();
 }
