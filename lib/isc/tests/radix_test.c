@@ -92,7 +92,7 @@ isc_radix_search_test(void **state) {
 	node = NULL;
 	result = isc_radix_search(radix, &node, &prefix);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_int_equal(node->data[0], (void *)2);
+	assert_ptr_equal(node->data[0], (void *)2);
 
 	isc_refcount_destroy(&prefix.refcount);
 
