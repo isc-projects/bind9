@@ -155,7 +155,7 @@ nsec3param_change_test(const nsec3param_change_test_params_t *test) {
 	 */
 	result = dns__zone_lookup_nsec3param(zone, &lookup, &param, saltbuf,
 					     test->resalt);
-
+	assert_int_equal(result, test->expected_result);
 	assert_int_equal(param.hash, expect.hash);
 	assert_int_equal(param.flags, expect.flags);
 	assert_int_equal(param.iterations, expect.iterations);
