@@ -915,6 +915,7 @@
 ./bin/tests/system/common/root.hint		ZONE	2000,2001,2004,2007,2016,2018,2019,2020
 ./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
 ./bin/tests/system/conf.sh.win32		SH	2016,2017,2018,2019,2020
+./bin/tests/system/cookie/ans9/ans.py		PYTHON	2020
 ./bin/tests/system/cookie/bad-cookie-badaes.conf.in	X	2019,2020
 ./bin/tests/system/cookie/bad-cookie-badhex.conf	CONF-C	2014,2015,2016,2018,2019,2020
 ./bin/tests/system/cookie/bad-cookie-badsha1.conf	CONF-C	2017,2018,2019,2020
@@ -943,6 +944,7 @@
 ./bin/tests/system/cookie/ns7/root.db		ZONE	2018,2019,2020
 ./bin/tests/system/cookie/ns8/example.db	ZONE	2018,2019,2020
 ./bin/tests/system/cookie/ns8/named.conf.in	CONF-C	2018,2019,2020
+./bin/tests/system/cookie/prereq.sh		SH	2020
 ./bin/tests/system/cookie/setup.sh		SH	2018,2019,2020
 ./bin/tests/system/cookie/tests.sh		SH	2014,2015,2016,2017,2018,2019,2020
 ./bin/tests/system/coverage/01-ksk-inactive/README	X	2013,2018,2019,2020

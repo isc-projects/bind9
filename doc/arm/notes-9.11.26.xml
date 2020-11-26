@@ -65,7 +65,8 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          Tighten handling of missing DNS COOKIE responses over UDP by
+          falling back to TCP. [GL #2275]
         </para>
       </listitem>
     </itemizedlist>
