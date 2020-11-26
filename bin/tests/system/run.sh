@@ -17,8 +17,8 @@ SYSTEMTESTTOP="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 . $SYSTEMTESTTOP/conf.sh
 
 if [ "$(id -u)" -eq "0" ] && ! ${NAMED} -V | grep -q -F -- "enable-developer"; then
-	echofail "Refusing to run test as root. Build with --enable-developer to override." >&2
-	exit 1
+    echofail "Refusing to run test as root. Build with --enable-developer to override." >&2
+    exit 1
 fi
 
 export SYSTEMTESTTOP
@@ -31,21 +31,21 @@ stopservers=true
 baseport=5300
 
 if [ ${SYSTEMTEST_NO_CLEAN:-0} -eq 1 ]; then
-	clean=false
+    clean=false
 else
-	clean=true
+    clean=true
 fi
 
 while getopts "knp:r-:" flag; do
     case "$flag" in
-	-) case "${OPTARG}" in
+    -) case "${OPTARG}" in
                keep) stopservers=false ;;
                noclean) clean=false ;;
            esac
            ;;
-	k) stopservers=false ;;
-	n) clean=false ;;
-	p) baseport=$OPTARG ;;
+    k) stopservers=false ;;
+    n) clean=false ;;
+    p) baseport=$OPTARG ;;
     esac
 done
 shift `expr $OPTIND - 1`
@@ -198,10 +198,10 @@ fi
 if test -f $systest/clean.sh
 then
     if ! ( cd "${systest}" && $SHELL clean.sh "$@" ); then
-	echowarn "I:$systest:clean.sh script failed"
-	echofail "R:$systest:FAIL"
-	echoend  "E:$systest:$(date_with_args)"
-	exit 1
+    echowarn "I:$systest:clean.sh script failed"
+    echofail "R:$systest:FAIL"
+    echoend  "E:$systest:$(date_with_args)"
+    exit 1
     fi
 fi
 
@@ -209,10 +209,10 @@ fi
 if test -f $systest/setup.sh
 then
     if ! ( cd "${systest}" && $SHELL setup.sh "$@" ); then
-	echowarn "I:$systest:setup.sh script failed"
-	echofail "R:$systest:FAIL"
-	echoend  "E:$systest:$(date_with_args)"
-	exit 1
+    echowarn "I:$systest:setup.sh script failed"
+    echofail "R:$systest:FAIL"
+    echoend  "E:$systest:$(date_with_args)"
+    exit 1
     fi
 fi
 
@@ -230,16 +230,16 @@ fi
 if [ -n "$PYTEST" ]; then
     run=$((run+1))
     for test in $(cd "${systest}" && find . -name "tests*.py"); do
-	start_servers
-	rm -f "$systest/$test.status"
-	test_status=0
-	(cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
-	if [ -f "$systest/$test.status" ]; then
-	    echo_i "FAILED"
-	    test_status=$(cat "$systest/$test.status")
-	fi
-	status=$((status+test_status))
-	stop_servers
+    start_servers
+    rm -f "$systest/$test.status"
+    test_status=0
+    (cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
+    if [ -f "$systest/$test.status" ]; then
+        echo_i "FAILED"
+        test_status=$(cat "$systest/$test.status")
+    fi
+    status=$((status+test_status))
+    stop_servers
     done
 else
     echoinfo "I:$systest:pytest not installed, skipping python tests"
@@ -286,11 +286,11 @@ if [ -n "$core_dumps" ]; then
         coredump_backtrace=$(basename "${coredump}")-backtrace.txt
         echoinfo "D:$systest:full backtrace from $coredump saved in $coredump_backtrace"
         "${TOP}/libtool" --mode=execute gdb \
-        			  -batch \
-        			  -command=run.gdb \
-        			  -core="$coredump" \
-        			  -- \
-        			  "$binary" > "$coredump_backtrace" 2>&1
+                      -batch \
+                      -command=run.gdb \
+                      -core="$coredump" \
+                      -- \
+                      "$binary" > "$coredump_backtrace" 2>&1
         echoinfo "D:$systest:core dump $coredump archived as $coredump.gz"
         gzip -1 "${coredump}"
     done
