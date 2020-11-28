@@ -2518,3 +2518,25 @@ dns_view_setviewrevert(dns_view_t *view) {
 		dns_zt_setviewrevert(zonetable);
 	}
 }
+
+bool
+dns_view_staleanswerenabled(dns_view_t *view) {
+	uint32_t stale_ttl = 0;
+	bool result = false;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (dns_db_getservestalettl(view->cachedb, &stale_ttl) != ISC_R_SUCCESS)
+	{
+		return (false);
+	}
+	if (stale_ttl > 0) {
+		if (view->staleanswersok == dns_stale_answer_yes) {
+			result = true;
+		} else if (view->staleanswersok == dns_stale_answer_conf) {
+			result = view->staleanswersenable;
+		}
+	}
+
+	return (result);
+}

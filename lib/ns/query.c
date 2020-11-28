@@ -5581,7 +5581,6 @@ query_lookup(query_ctx_t *qctx) {
 	dns_clientinfo_t ci;
 	dns_name_t *rpzqname = NULL;
 	unsigned int dboptions;
-	dns_ttl_t stale_ttl = 0;
 	dns_ttl_t stale_refresh = 0;
 	bool dbfind_stale = false;
 
@@ -5644,18 +5643,9 @@ query_lookup(query_ctx_t *qctx) {
 
 	(void)dns_db_getservestalerefresh(qctx->client->view->cachedb,
 					  &stale_refresh);
-	(void)dns_db_getservestalettl(qctx->client->view->cachedb, &stale_ttl);
-	if (stale_refresh > 0) {
-		if (qctx->client->view->staleanswersok == dns_stale_answer_yes)
-		{
-			dboptions |= DNS_DBFIND_STALEENABLED;
-		} else if (qctx->client->view->staleanswersok ==
-			   dns_stale_answer_conf) {
-			if (qctx->client->view->staleanswersenable &&
-			    stale_ttl > 0) {
-				dboptions |= DNS_DBFIND_STALEENABLED;
-			}
-		}
+	if (stale_refresh > 0 &&
+	    dns_view_staleanswerenabled(qctx->client->view)) {
+		dboptions |= DNS_DBFIND_STALEENABLED;
 	}
 
 	result = dns_db_findext(qctx->db, rpzqname, qctx->version, qctx->type,
