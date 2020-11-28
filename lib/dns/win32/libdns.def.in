@@ -1167,6 +1167,7 @@ dns_view_setrootdelonly
 dns_view_setviewcommit
 dns_view_setviewrevert
 dns_view_simplefind
+dns_view_staleanswerenabled
 dns_view_thaw
 dns_view_untrust
 dns_view_weakattach

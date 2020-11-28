@@ -1329,6 +1329,15 @@ dns_view_setviewrevert(dns_view_t *view);
  *\li	'view' to be valid.
  */
 
+bool
+dns_view_staleanswerenabled(dns_view_t *view);
+/*%<
+ * Check if stale answers are enabled for this view.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_VIEW_H */
