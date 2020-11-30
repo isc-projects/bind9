@@ -12,7 +12,7 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.delv">
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="man.delv">
   <info>
     <date>2014-04-23</date>
   </info>

@@ -10,7 +10,7 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<book xmlns:db="http://docbook.org/ns/docbook" version="5.0">
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
   <info>
     <title>BIND 9 Administrator Reference Manual</title>
     <!-- insert copyright start -->

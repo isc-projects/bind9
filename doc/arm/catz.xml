@@ -9,7 +9,7 @@
  - information regarding copyright ownership.
 -->
 
-<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="catz-info"><info><title>Catalog Zones</title></info>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="catz-info"><info><title>Catalog Zones</title></info>
 
   <para>
     A "catalog zone" is a special DNS zone that contains a list of

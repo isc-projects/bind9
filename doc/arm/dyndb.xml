@@ -10,7 +10,7 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="dyndb-info"><info><title>Dynamic Database (DynDB)</title></info>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="dyndb-info"><info><title>Dynamic Database (DynDB)</title></info>
 
   <para>
     Dynamic Database, or DynDB, is an extension to BIND 9 which, like DLZ
