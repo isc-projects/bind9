@@ -12,7 +12,7 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="pkcs11"><info><title>PKCS#11 (Cryptoki) Support</title></info>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pkcs11"><info><title>PKCS#11 (Cryptoki) Support</title></info>
 
   <para>
     Public Key Cryptography Standard #11 (PKCS#11) defines a

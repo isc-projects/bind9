@@ -9,7 +9,7 @@
  - information regarding copyright ownership.
 -->
 
-<refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.dnssec-keymgr">
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="man.dnssec-keymgr">
   <info>
     <date>2016-06-03</date>
   </info>

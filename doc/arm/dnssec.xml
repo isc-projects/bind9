@@ -10,7 +10,7 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="dnssec.dynamic.zones"><info><title>DNSSEC, Dynamic Zones, and Automatic Signing</title></info>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="dnssec.dynamic.zones"><info><title>DNSSEC, Dynamic Zones, and Automatic Signing</title></info>
 
   <section><info><title>Converting from insecure to secure</title></info>
 

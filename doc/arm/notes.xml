@@ -15,7 +15,7 @@
  - information regarding copyright ownership.
 -->
 
-<section xmlns:db="http://docbook.org/ns/docbook" version="5.0"><info/>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0"><info/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-intro.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-download.xml"/>

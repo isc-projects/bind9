@@ -10,7 +10,7 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="rfc5011.support"><info><title>Dynamic Trust Anchor Management</title></info>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="rfc5011.support"><info><title>Dynamic Trust Anchor Management</title></info>
 
   <para>
     BIND is able to maintain DNSSEC trust anchors using RFC 5011 key
