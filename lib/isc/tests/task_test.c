@@ -61,8 +61,10 @@ _setup(void **state) {
 	result = isc_mutex_init(&lock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+#ifdef ISC_PLATFORM_USETHREADS
 	result = isc_condition_init(&cv);
 	assert_int_equal(result, ISC_R_SUCCESS);
+#endif
 
 	result = isc_test_begin(NULL, true, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -79,8 +81,10 @@ _setup2(void **state) {
 	result = isc_mutex_init(&lock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+#ifdef ISC_PLATFORM_USETHREADS
 	result = isc_condition_init(&cv);
 	assert_int_equal(result, ISC_R_SUCCESS);
+#endif
 
 	/* Two worker threads */
 	result = isc_test_begin(NULL, true, 2);
@@ -98,8 +102,10 @@ _setup4(void **state) {
 	result = isc_mutex_init(&lock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+#ifdef ISC_PLATFORM_USETHREADS
 	result = isc_condition_init(&cv);
 	assert_int_equal(result, ISC_R_SUCCESS);
+#endif
 
 	/* Four worker threads */
 	result = isc_test_begin(NULL, true, 4);
@@ -113,7 +119,9 @@ _teardown(void **state) {
 	UNUSED(state);
 
 	isc_test_end();
+#ifdef ISC_PLATFORM_USETHREADS
 	isc_condition_destroy(&cv);
+#endif
 
 	return (0);
 }
