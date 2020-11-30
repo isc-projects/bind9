@@ -69,6 +69,13 @@
           falling back to TCP. [GL #2275]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          Building with native PKCS#11 support for AEP Keyper has
+          been broken since BIND 9.11.22. This has been fixed. [GL
+          #2315]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
