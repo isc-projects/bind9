@@ -1,3 +1,6 @@
+5540.	[port]		Fix building with native PKCS#11 support for AEP Keyper.
+			[GL #2315]
+
 5539.	[bug]		Tighten handling of missing DNS COOKIE responses over
 			UDP by falling back to TCP. [GL #2275]
 

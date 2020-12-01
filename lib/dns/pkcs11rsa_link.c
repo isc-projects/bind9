@@ -336,6 +336,8 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 	for (attr = pk11_attribute_first(rsa); attr != NULL;
 	     attr = pk11_attribute_next(rsa, attr))
 	{
+		unsigned int bits;
+
 		switch (attr->type) {
 		case CKA_MODULUS:
 			INSIST(keyTemplate[5].type == attr->type);
@@ -352,7 +354,6 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 			memmove(keyTemplate[6].pValue, attr->pValue,
 				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
-			unsigned int bits;
 			ret = pk11_numbits(attr->pValue, attr->ulValueLen,
 					   &bits);
 			if (ret != ISC_R_SUCCESS ||
@@ -952,6 +953,9 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 	for (attr = pk11_attribute_first(rsa); attr != NULL;
 	     attr = pk11_attribute_next(rsa, attr))
+	{
+		unsigned int bits;
+
 		switch (attr->type) {
 		case CKA_MODULUS:
 			INSIST(keyTemplate[5].type == attr->type);
@@ -962,7 +966,6 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 			keyTemplate[5].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_PUBLIC_EXPONENT:
-			unsigned int bits;
 			INSIST(keyTemplate[6].type == attr->type);
 			keyTemplate[6].pValue = isc_mem_get(dctx->mctx,
 							    attr->ulValueLen);
@@ -977,6 +980,7 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 			}
 			break;
 		}
+	}
 	pk11_ctx->object = CK_INVALID_HANDLE;
 	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,

@@ -49,3 +49,6 @@ Bug Fixes
 
 - Tighten handling of missing DNS COOKIE responses over UDP by
   falling back to TCP. [GL #2275]
+
+- Building with native PKCS#11 support for AEP Keyper has been broken
+  since BIND 9.17.4. This has been fixed. [GL #2315]
