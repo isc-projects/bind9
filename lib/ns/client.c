@@ -1030,8 +1030,8 @@ no_nsid:
 
 		INSIST(count < DNS_EDNSOPTIONS);
 
-		isc_nm_tcp_gettimeouts(isc_nmhandle_netmgr(client->handle),
-				       NULL, NULL, NULL, &adv);
+		isc_nm_gettimeouts(isc_nmhandle_netmgr(client->handle), NULL,
+				   NULL, NULL, &adv);
 		isc_buffer_init(&buf, advtimo, sizeof(advtimo));
 		isc_buffer_putuint16(&buf, (uint16_t)adv);
 		ednsopts[count].code = DNS_OPT_TCP_KEEPALIVE;
@@ -1644,7 +1644,9 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 #endif /* ifdef HAVE_DNSTAP */
 	ifp = (ns_interface_t *)arg;
 
-	UNUSED(eresult);
+	if (eresult != ISC_R_SUCCESS) {
+		return;
+	}
 
 	mgr = ifp->clientmgr;
 	if (mgr == NULL) {
@@ -2210,7 +2212,9 @@ ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isc_netaddr_t netaddr;
 	int match;
 
-	UNUSED(result);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	if (handle != NULL) {
 		peeraddr = isc_nmhandle_peeraddr(handle);

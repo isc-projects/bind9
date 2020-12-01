@@ -3232,7 +3232,10 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	REQUIRE(DIG_VALID_QUERY(query));
 	REQUIRE(query->handle == NULL);
-	REQUIRE(!free_now);
+	INSIST(!free_now);
+
+	debug("tcp_connected(%p, %s, %p)", handle, isc_result_totext(eresult),
+	      query);
 
 	LOCK_LOOKUP;
 	lookup_attach(query->lookup, &l);
@@ -3303,7 +3306,10 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	launch_next_query(query);
 	query_detach(&query);
-	isc_nmhandle_detach(&handle);
+	if (l->tls_mode) {
+		/* FIXME: This is a accounting bug in TLSDNS */
+		isc_nmhandle_detach(&handle);
+	}
 	lookup_detach(&l);
 	UNLOCK_LOOKUP;
 }

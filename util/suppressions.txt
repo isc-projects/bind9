@@ -1,3 +1,4 @@
 unmatchedSuppression:*
 preprocessorErrorDirective:*
 unknownMacro:*
+nullPointerRedundantCheck:*
