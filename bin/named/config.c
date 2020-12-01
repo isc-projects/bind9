@@ -185,7 +185,7 @@ options {\n\
 	max-clients-per-query 100;\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-recursion-depth 7;\n\
-	max-recursion-queries 75;\n\
+	max-recursion-queries 100;\n\
 	message-compression yes;\n\
 #	min-roots <obsolete>;\n\
 	minimal-any false;\n\
