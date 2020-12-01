@@ -23,6 +23,8 @@
 
 #define UNIT_TESTING
 
+#include <cmocka.h>
+
 #include <isc/atomic.h>
 #include <isc/cmocka.h>
 #include <isc/commandline.h>
