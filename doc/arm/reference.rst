@@ -3500,7 +3500,7 @@ Tuning
 ``max-recursion-queries``
    This sets the maximum number of iterative queries that may be sent while
    servicing a recursive query. If more queries are sent, the recursive
-   query is terminated and returns SERVFAIL. The default is 75.
+   query is terminated and returns SERVFAIL. The default is 100.
 
 ``notify-delay``
    This sets the delay, in seconds, between sending sets of notify messages for a
