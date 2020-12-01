@@ -505,6 +505,7 @@
 ./bin/tests/system/ixfr/ans2/startme		X	2011,2018,2019,2020
 ./bin/tests/system/ixfr/clean.sh		SH	2001,2004,2007,2011,2012,2014,2015,2016,2018,2019,2020
 ./bin/tests/system/ixfr/ixfr-stats.good		X	2019,2020
+./bin/tests/system/ixfr/prereq.sh		SH	2020
 ./bin/tests/system/ixfr/setup.sh		SH	2001,2004,2007,2011,2012,2013,2014,2016,2018,2019,2020
 ./bin/tests/system/ixfr/tests.sh		SH	2001,2004,2007,2011,2012,2014,2016,2018,2019,2020
 ./bin/tests/system/kasp/README			TXT.BRIEF	2019,2020
@@ -961,6 +962,7 @@
 ./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
 ./bin/tests/system/xfer/knowngood.mapped	X	2016,2018,2019,2020
 ./bin/tests/system/xfer/ns4/named.conf.base	X	2011,2013,2016,2018,2019,2020
+./bin/tests/system/xfer/prereq.sh		SH	2020
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011,2012,2013,2014,2015,2016,2018,2019,2020
 ./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012,2013,2014,2015,2016,2018,2019,2020
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2007,2012,2014,2015,2016,2018,2019,2020
@@ -969,6 +971,7 @@
 ./bin/tests/system/xferquota/tests.sh		SH	2000,2001,2004,2007,2012,2016,2018,2019,2020
 ./bin/tests/system/zero/ans5/ans.pl		PERL	2016,2018,2019,2020
 ./bin/tests/system/zero/clean.sh		SH	2013,2014,2015,2016,2018,2019,2020
+./bin/tests/system/zero/prereq.sh		SH	2020
 ./bin/tests/system/zero/setup.sh		SH	2013,2014,2016,2018,2019,2020
 ./bin/tests/system/zero/tests.sh		SH	2013,2016,2017,2018,2019,2020
 ./bin/tests/system/zonechecks/clean.sh		SH	2004,2007,2012,2014,2015,2016,2018,2019,2020
