@@ -1857,8 +1857,9 @@ Boolean Options
 ``nocookie-udp-size``
    This sets the maximum size of UDP responses that are sent to queries
    without a valid server COOKIE. A value below 128 is silently
-   raised to 128. The default value is 1232, but the ``max-udp-size``
-   option may further limit the response size.
+   raised to 128. The default value is 4096, but the ``max-udp-size``
+   option may further limit the response size as the default for
+   ``max-udp-size`` is 1232.
 
 ``sit-secret``
    This experimental option is obsolete.
