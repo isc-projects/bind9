@@ -1,3 +1,6 @@
+5544.	[func]		Restore the default value of nocookie-udp-size to 4096.
+			[GL #2250]
+
 5541.	[func]		Adjust the "max-recursion-queries" default from 75 to
 			100. [GL #2305]
 
