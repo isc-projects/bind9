@@ -6211,8 +6211,9 @@ options {
 		  This sets the maximum size of UDP responses that are
 		  sent to queries without a valid server COOKIE. A value
 		  below 128 is silently raised to 128. The default
-		  value is 1232, but the <command>max-udp-size</command>
-		  option may further limit the response size.
+		  value is 4096, but the <command>max-udp-size</command>
+		  option may further limit the response size as the default
+		  for <command>max-udp-size</command> is 1232.
 		</para>
 	      </listitem>
 	    </varlistentry>
