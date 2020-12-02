@@ -2283,6 +2283,10 @@ isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family) {
 #define TIMEOUT_TYPE	unsigned int
 #define TIMEOUT_DIV	1
 #define TIMEOUT_OPTNAME TCP_USER_TIMEOUT
+#elif defined(TCP_KEEPINIT)
+#define TIMEOUT_TYPE	int
+#define TIMEOUT_DIV	1000
+#define TIMEOUT_OPTNAME TCP_KEEPINIT
 #endif
 
 isc_result_t
