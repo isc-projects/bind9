@@ -12,7 +12,8 @@ check_LTLIBRARIES = libisctest.la
 libisctest_la_SOURCES = 	\
 	../unix/socket_p.h	\
 	isctest.c		\
-	isctest.h
+	isctest.h		\
+	uv_wrap.h
 
 check_PROGRAMS =	\
 	aes_test	\
