@@ -29,6 +29,8 @@ isc_result_t
 isc___nm_uverr2result(int uverr, bool dolog, const char *file,
 		      unsigned int line, const char *func) {
 	switch (uverr) {
+	case 0:
+		return (ISC_R_SUCCESS);
 	case UV_ENOTDIR:
 	case UV_ELOOP:
 	case UV_EINVAL: /* XXX sometimes this is not for files */
