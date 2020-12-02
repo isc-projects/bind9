@@ -1,3 +1,6 @@
+5544.	[func]		Restore the default value of nocookie-udp-size to 4096.
+			[GL #2250]
+
 5543.	[bug]		Restore the UDP performance after the user netmgr
 			callbacks have been made asynchronous. [GL #2320]
 

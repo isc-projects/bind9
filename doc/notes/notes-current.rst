@@ -51,6 +51,14 @@ Feature Changes
   has a higher chance of being exceeded by non-attack queries, which is the
   main reason for increasing its default value. [GL #2305]
 
+- Restore the ``nocookie-udp-size`` default from 1232 to 4096. Normally the
+  EDNS buffer size is configured by ``max-udp-size``, but this configuration
+  option overrides the value, but most people don't and won't realize there's
+  an extra configuration option that needs to be tweaked. By changing the
+  default here, we allow the the ``max-udp-size`` to be the sole option that
+  needs to be changed when operator wants to change the default EDNS buffer
+  size. [GL #2250]
+
 Bug Fixes
 ~~~~~~~~~
 
