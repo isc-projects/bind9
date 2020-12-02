@@ -185,10 +185,49 @@ isc__nm_test_lb_socket(sa_family_t sa_family, int protocol) {
 	return (result == ISC_R_SUCCESS);
 }
 
+#ifdef WIN32
+static void
+isc__nm_winsock_initialize(void) {
+	WORD wVersionRequested = MAKEWORD(2, 2);
+	WSADATA wsaData;
+	int result;
+
+	result = WSAStartup(wVersionRequested, &wsaData);
+	if (result != 0) {
+		char strbuf[ISC_STRERRORSIZE];
+		strerror_r(result, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "WSAStartup() failed with error code %lu: %s",
+				 result, strbuf);
+	}
+
+	/*
+	 * Confirm that the WinSock DLL supports version 2.2.  Note that if the
+	 * DLL supports versions greater than 2.2 in addition to 2.2, it will
+	 * still return 2.2 in wVersion since that is the version we requested.
+	 */
+	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "Unusable WinSock DLL version: %u.%u",
+				 LOBYTE(wsaData.wVersion),
+				 HIBYTE(wsaData.wVersion));
+	}
+}
+
+static void
+isc__nm_winsock_destroy(void) {
+	WSACleanup();
+}
+#endif /* WIN32 */
+
 isc_nm_t *
 isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 	isc_nm_t *mgr = NULL;
 	char name[32];
+
+#ifdef WIN32
+	isc__nm_winsock_initialize();
+#endif /* WIN32 */
 
 	isc__nm_tls_initialize();
 
@@ -352,6 +391,10 @@ nm_destroy(isc_nm_t **mgr0) {
 	isc_mem_put(mgr->mctx, mgr->workers,
 		    mgr->nworkers * sizeof(isc__networker_t));
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
+
+#ifdef WIN32
+	isc__nm_winsock_destroy();
+#endif /* WIN32 */
 }
 
 void
