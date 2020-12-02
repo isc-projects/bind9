@@ -790,9 +790,10 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	sock->recv_cbarg = cbarg;
 	sock->recv_read = true;
 	if (sock->read_timeout == 0) {
-		sock->read_timeout = (atomic_load(&sock->keepalive)
-					      ? sock->mgr->keepalive
-					      : sock->mgr->idle);
+		sock->read_timeout =
+			(atomic_load(&sock->keepalive)
+				 ? atomic_load(&sock->mgr->keepalive)
+				 : atomic_load(&sock->mgr->idle));
 	}
 
 	ievent = isc__nm_get_netievent_tcpstartread(sock->mgr, sock);
@@ -959,9 +960,10 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	req->uvbuf.len = nread;
 
 	if (!atomic_load(&sock->client)) {
-		sock->read_timeout = (atomic_load(&sock->keepalive)
-					      ? sock->mgr->keepalive
-					      : sock->mgr->idle);
+		sock->read_timeout =
+			(atomic_load(&sock->keepalive)
+				 ? atomic_load(&sock->mgr->keepalive)
+				 : atomic_load(&sock->mgr->idle));
 	}
 
 	isc__nm_readcb(sock, req, ISC_R_SUCCESS);
@@ -1100,7 +1102,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	isc__nm_incstats(csock->mgr, csock->statsindex[STATID_ACCEPT]);
 
-	csock->read_timeout = csock->mgr->init;
+	csock->read_timeout = atomic_load(&csock->mgr->init);
 
 	atomic_fetch_add(&ssock->parent->active_child_connections, 1);
 
