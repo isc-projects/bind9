@@ -165,8 +165,10 @@ state_key_init(void) {
 
 	if (state_mctx == NULL) {
 		result = isc_mem_create(0, 0, &state_mctx);
-		isc_mem_setname(state_mctx, "geoip_state", NULL);
-		isc_mem_setdestroycheck(state_mctx, false);
+		if (result == ISC_R_SUCCESS) {
+			isc_mem_setname(state_mctx, "geoip_state", NULL);
+			isc_mem_setdestroycheck(state_mctx, false);
+		}
 	}
 
 	return (result);
