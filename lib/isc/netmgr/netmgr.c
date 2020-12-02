@@ -2053,8 +2053,10 @@ isc__nm_socket(int domain, int type, int protocol, uv_os_sock_t *sockp) {
 			return (ISC_R_FAMILYNOSUPPORT);
 		default:
 			strerror_r(socket_errno, strbuf, sizeof(strbuf));
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "socket() failed: %s", strbuf);
+			UNEXPECTED_ERROR(
+				__FILE__, __LINE__,
+				"socket() failed with error code %lu: %s",
+				socket_errno, strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 	}
