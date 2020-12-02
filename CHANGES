@@ -1,3 +1,6 @@
+5551.	[bug]		Only assign threads to CPUs in the CPU affinity set.
+			Thanks to Ole Bjørn Hessen. [GL #2245]
+
 5550.	[func]		Print a warning when falling back to the "increment" SOA
 			serial method. [GL #2058]
 

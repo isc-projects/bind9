@@ -58,4 +58,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Only assign threads to CPUs in the CPU affinity set, so that ``named`` no
+  longer attempts to run threads on CPUs outside the affinity set. Thanks to
+  Ole Bjørn Hessen. [GL #2245]
