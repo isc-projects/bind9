@@ -156,7 +156,7 @@ dnslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmhandle_attach(handle, &dnssock->outerhandle);
 
 	dnssock->peer = handle->sock->peer;
-	dnssock->read_timeout = handle->sock->mgr->init;
+	dnssock->read_timeout = atomic_load(&handle->sock->mgr->init);
 	dnssock->tid = isc_nm_tid();
 	dnssock->closehandle_cb = resume_processing;
 
@@ -329,8 +329,8 @@ dnslisten_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 	dnssock->buf_len += len;
 
 	dnssock->read_timeout = (atomic_load(&dnssock->keepalive)
-					 ? dnssock->mgr->keepalive
-					 : dnssock->mgr->idle);
+					 ? atomic_load(&dnssock->mgr->keepalive)
+					 : atomic_load(&dnssock->mgr->idle));
 
 	do {
 		isc_result_t result;
@@ -754,7 +754,7 @@ tlsdnsconnect_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isc_nmhandle_attach(handle, &dnssock->outerhandle);
 
 	dnssock->peer = handle->sock->peer;
-	dnssock->read_timeout = handle->sock->mgr->init;
+	dnssock->read_timeout = atomic_load(&handle->sock->mgr->init);
 	dnssock->tid = isc_nm_tid();
 
 	atomic_init(&dnssock->client, true);
@@ -852,8 +852,8 @@ isc__nm_tlsdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	sock->recv_cbarg = cbarg;
 
 	sock->read_timeout = (atomic_load(&sock->keepalive)
-				      ? sock->mgr->keepalive
-				      : sock->mgr->idle);
+				      ? atomic_load(&sock->mgr->keepalive)
+				      : atomic_load(&sock->mgr->idle));
 
 	/*
 	 * Add a reference to the handle to keep it from being freed by
