@@ -1784,13 +1784,15 @@ isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	isc__netievent_connectcb_t *ievent = isc__nm_get_netievent_connectcb(
-		sock->mgr, sock, uvreq, eresult);
-
 	if (eresult == ISC_R_SUCCESS) {
-		isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
-					     (isc__netievent_t *)ievent);
+		isc__netievent_connectcb_t ievent = { .sock = sock,
+						      .req = uvreq,
+						      .result = eresult };
+		isc__nm_async_connectcb(NULL, (isc__netievent_t *)&ievent);
 	} else {
+		isc__netievent_connectcb_t *ievent =
+			isc__nm_get_netievent_connectcb(sock->mgr, sock, uvreq,
+							eresult);
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
 	}
@@ -1823,14 +1825,15 @@ isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	isc__netievent_readcb_t *ievent =
-		isc__nm_get_netievent_readcb(sock->mgr, sock, uvreq, eresult);
-
 	if (eresult == ISC_R_SUCCESS) {
-		REQUIRE(sock->tid == isc_nm_tid());
-		isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
-					     (isc__netievent_t *)ievent);
+		isc__netievent_readcb_t ievent = { .sock = sock,
+						   .req = uvreq,
+						   .result = eresult };
+
+		isc__nm_async_readcb(NULL, (isc__netievent_t *)&ievent);
 	} else {
+		isc__netievent_readcb_t *ievent = isc__nm_get_netievent_readcb(
+			sock->mgr, sock, uvreq, eresult);
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
 	}
@@ -1864,14 +1867,14 @@ isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	isc__netievent_sendcb_t *ievent =
-		isc__nm_get_netievent_sendcb(sock->mgr, sock, uvreq, eresult);
-
 	if (eresult == ISC_R_SUCCESS) {
-		REQUIRE(sock->tid == isc_nm_tid());
-		isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
-					     (isc__netievent_t *)ievent);
+		isc__netievent_sendcb_t ievent = { .sock = sock,
+						   .req = uvreq,
+						   .result = eresult };
+		isc__nm_async_sendcb(NULL, (isc__netievent_t *)&ievent);
 	} else {
+		isc__netievent_sendcb_t *ievent = isc__nm_get_netievent_sendcb(
+			sock->mgr, sock, uvreq, eresult);
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
 	}
