@@ -78,12 +78,12 @@ atomic_uint_fast32_t client_refs[32];
 atomic_uintptr_t client_addrs[32];
 
 void
-__wrap_isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp);
+__wrap_isc__nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp);
 void
-__wrap_isc_nmhandle_detach(isc_nmhandle_t **handlep);
+__wrap_isc__nmhandle_detach(isc_nmhandle_t **handlep);
 
 void
-__wrap_isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
+__wrap_isc__nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
 	ns_client_t *client = (ns_client_t *)source;
 	int i;
 
@@ -102,7 +102,7 @@ __wrap_isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
 }
 
 void
-__wrap_isc_nmhandle_detach(isc_nmhandle_t **handlep) {
+__wrap_isc__nmhandle_detach(isc_nmhandle_t **handlep) {
 	isc_nmhandle_t *handle = *handlep;
 	ns_client_t *client = (ns_client_t *)handle;
 	int i;
@@ -129,12 +129,12 @@ __wrap_isc_nmhandle_detach(isc_nmhandle_t **handlep) {
 
 #ifdef USE_LIBTOOL
 void
-isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
-	__wrap_isc_nmhandle_attach(source, targetp);
+isc__nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
+	__wrap_isc__nmhandle_attach(source, targetp);
 }
 void
-isc_nmhandle_detach(isc_nmhandle_t **handle) {
-	__wrap_isc_nmhandle_detach(handle);
+isc__nmhandle_detach(isc_nmhandle_t **handle) {
+	__wrap_isc__nmhandle_detach(handle);
 }
 #endif /* USE_LIBTOOL */
 
