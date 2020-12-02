@@ -607,10 +607,10 @@ struct isc_nm {
 	 * milliseconds so they can be used directly with the libuv timer,
 	 * but they are configured in tenths of seconds.
 	 */
-	uint32_t init;
-	uint32_t idle;
-	uint32_t keepalive;
-	uint32_t advertised;
+	atomic_uint_fast32_t init;
+	atomic_uint_fast32_t idle;
+	atomic_uint_fast32_t keepalive;
+	atomic_uint_fast32_t advertised;
 
 #ifdef NETMGR_TRACE
 	ISC_LIST(isc_nmsocket_t) active_sockets;

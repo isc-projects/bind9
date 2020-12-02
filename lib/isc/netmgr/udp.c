@@ -454,7 +454,6 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	isc_nmsocket_t *sock = handle->sock;
 	isc_nmsocket_t *psock = NULL, *rsock = sock;
 	isc_sockaddr_t *peer = &handle->peer;
-	isc__netievent_udpsend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 	uint32_t maxudp = atomic_load(&sock->mgr->maxudp);
 	int ntid;
@@ -512,23 +511,14 @@ isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	}
 
 	if (isc_nm_tid() == rsock->tid) {
-		/*
-		 * If we're in the same thread as the socket we can send
-		 * the data directly, but we still need to return errors
-		 * via the callback for API consistency.
-		 */
-		isc_result_t result = udp_send_direct(rsock, uvreq, peer);
-		if (result != ISC_R_SUCCESS) {
-			isc__nm_incstats(rsock->mgr,
-					 rsock->statsindex[STATID_SENDFAIL]);
-			failed_send_cb(rsock, uvreq, result);
-		}
+		isc__netievent_udpsend_t ievent = { .sock = rsock,
+						    .req = uvreq,
+						    .peer = *peer };
+
+		isc__nm_async_udpsend(NULL, (isc__netievent_t *)&ievent);
 	} else {
-		/*
-		 * We need to create an event and pass it using async
-		 * channel
-		 */
-		ievent = isc__nm_get_netievent_udpsend(sock->mgr, rsock);
+		isc__netievent_udpsend_t *ievent =
+			isc__nm_get_netievent_udpsend(sock->mgr, rsock);
 		ievent->peer = *peer;
 		ievent->req = uvreq;
 
@@ -551,7 +541,7 @@ isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	UNUSED(worker);
 
-	if (!isc__nmsocket_active(ievent->sock)) {
+	if (inactive(sock)) {
 		failed_send_cb(sock, uvreq, ISC_R_CANCELED);
 		return;
 	}
@@ -1000,7 +990,6 @@ isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	isc_nmsocket_t *sock = handle->sock;
-	isc__netievent_udpread_t *ievent = NULL;
 
 	REQUIRE(sock->type == isc_nm_udpsocket);
 	REQUIRE(sock->statichandle == handle);
@@ -1011,14 +1000,14 @@ isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	sock->recv_cbarg = cbarg;
 	sock->recv_read = true;
 
-	ievent = isc__nm_get_netievent_udpread(sock->mgr, sock);
-
-	if (sock->reading) {
+	if (!sock->reading && sock->tid == isc_nm_tid()) {
+		isc__netievent_udpread_t ievent = { .sock = sock };
+		isc__nm_async_udpread(NULL, (isc__netievent_t *)&ievent);
+	} else {
+		isc__netievent_udpread_t *ievent =
+			isc__nm_get_netievent_udpread(sock->mgr, sock);
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
-	} else {
-		isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
-					     (isc__netievent_t *)ievent);
 	}
 }
 

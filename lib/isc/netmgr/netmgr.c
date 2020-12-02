@@ -218,10 +218,10 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 	 * Default TCP timeout values.
 	 * May be updated by isc_nm_tcptimeouts().
 	 */
-	mgr->init = 30000;
-	mgr->idle = 30000;
-	mgr->keepalive = 30000;
-	mgr->advertised = 30000;
+	atomic_init(&mgr->init, 30000);
+	atomic_init(&mgr->idle, 30000);
+	atomic_init(&mgr->keepalive, 30000);
+	atomic_init(&mgr->advertised, 30000);
 
 	isc_mutex_init(&mgr->reqlock);
 	isc_mempool_create(mgr->mctx, sizeof(isc__nm_uvreq_t), &mgr->reqpool);
@@ -486,10 +486,10 @@ isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 		   uint32_t keepalive, uint32_t advertised) {
 	REQUIRE(VALID_NM(mgr));
 
-	mgr->init = init * 100;
-	mgr->idle = idle * 100;
-	mgr->keepalive = keepalive * 100;
-	mgr->advertised = advertised * 100;
+	atomic_store(&mgr->init, init * 100);
+	atomic_store(&mgr->idle, idle * 100);
+	atomic_store(&mgr->keepalive, keepalive * 100);
+	atomic_store(&mgr->advertised, advertised * 100);
 }
 
 void
@@ -498,19 +498,19 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 	REQUIRE(VALID_NM(mgr));
 
 	if (initial != NULL) {
-		*initial = mgr->init / 100;
+		*initial = atomic_load(&mgr->init) / 100;
 	}
 
 	if (idle != NULL) {
-		*idle = mgr->idle / 100;
+		*idle = atomic_load(&mgr->idle) / 100;
 	}
 
 	if (keepalive != NULL) {
-		*keepalive = mgr->keepalive / 100;
+		*keepalive = atomic_load(&mgr->keepalive) / 100;
 	}
 
 	if (advertised != NULL) {
-		*advertised = mgr->advertised / 100;
+		*advertised = atomic_load(&mgr->advertised) / 100;
 	}
 }
 
@@ -1784,13 +1784,15 @@ isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	isc__netievent_connectcb_t *ievent = isc__nm_get_netievent_connectcb(
-		sock->mgr, sock, uvreq, eresult);
-
 	if (eresult == ISC_R_SUCCESS) {
-		isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
-					     (isc__netievent_t *)ievent);
+		isc__netievent_connectcb_t ievent = { .sock = sock,
+						      .req = uvreq,
+						      .result = eresult };
+		isc__nm_async_connectcb(NULL, (isc__netievent_t *)&ievent);
 	} else {
+		isc__netievent_connectcb_t *ievent =
+			isc__nm_get_netievent_connectcb(sock->mgr, sock, uvreq,
+							eresult);
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
 	}
@@ -1823,14 +1825,15 @@ isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	isc__netievent_readcb_t *ievent =
-		isc__nm_get_netievent_readcb(sock->mgr, sock, uvreq, eresult);
-
 	if (eresult == ISC_R_SUCCESS) {
-		REQUIRE(sock->tid == isc_nm_tid());
-		isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
-					     (isc__netievent_t *)ievent);
+		isc__netievent_readcb_t ievent = { .sock = sock,
+						   .req = uvreq,
+						   .result = eresult };
+
+		isc__nm_async_readcb(NULL, (isc__netievent_t *)&ievent);
 	} else {
+		isc__netievent_readcb_t *ievent = isc__nm_get_netievent_readcb(
+			sock->mgr, sock, uvreq, eresult);
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
 	}
@@ -1864,14 +1867,14 @@ isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	isc__netievent_sendcb_t *ievent =
-		isc__nm_get_netievent_sendcb(sock->mgr, sock, uvreq, eresult);
-
 	if (eresult == ISC_R_SUCCESS) {
-		REQUIRE(sock->tid == isc_nm_tid());
-		isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
-					     (isc__netievent_t *)ievent);
+		isc__netievent_sendcb_t ievent = { .sock = sock,
+						   .req = uvreq,
+						   .result = eresult };
+		isc__nm_async_sendcb(NULL, (isc__netievent_t *)&ievent);
 	} else {
+		isc__netievent_sendcb_t *ievent = isc__nm_get_netievent_sendcb(
+			sock->mgr, sock, uvreq, eresult);
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
 	}

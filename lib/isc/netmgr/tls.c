@@ -336,7 +336,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc__nmsocket_attach(tlslistensock, &tlssock->listener);
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	tlssock->peer = handle->sock->peer;
-	tlssock->read_timeout = handle->sock->mgr->init;
+	tlssock->read_timeout = atomic_load(&handle->sock->mgr->init);
 	tlssock->tid = isc_nm_tid();
 	tlssock->tls.server = true;
 	tlssock->tls.state = TLS_INIT;

@@ -1,3 +1,6 @@
+5543.	[bug]		Restore the UDP performance after the user netmgr
+			callbacks have been made asynchronous. [GL #2320]
+
 5542.	[bug]		Refactor the netmgr. [GL #1920] [GL #2034] [GL #2061]
 			[GL #2194] [GL #2266] [GL #2283] [GL #2318] [GL #2321]
 			[GL #2221]
