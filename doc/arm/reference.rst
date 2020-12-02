@@ -3585,6 +3585,24 @@ Tuning
    milliseconds to prefer IPv6 name servers. The default is ``50``
    milliseconds.
 
+``tcp-recv-buffer``;  ``udp-recv-buffer``
+   These options control the operating system receiving network buffer sizes for
+   TCP and UDP respectively.  Buffering on the operating system level can
+   prevent packet drops during short spikes, but if the value is set too large
+   it could clog up a running server with outstanding queries that have already
+   timeouted. The default is ``0`` which means to use the operating system
+   default value.  The operating system caps the maximum value that the user can
+   set here.
+
+``tcp-send-buffer``; ``udp-send-buffer``
+   These options control the operating system sending network buffer sizes for
+   TCP and UDP respectively.  Buffering on the operating system level can
+   prevent packet drops during short spikes, but if the value is set too large
+   it could clog up a running server with outstanding queries that have already
+   timeouted. The default is ``0`` which means to use the operating system
+   default value.  The operating system caps the maximum value that the user can
+   set here.
+
 .. _builtin:
 
 Built-in Server Information Zones

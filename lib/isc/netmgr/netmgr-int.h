@@ -709,6 +709,14 @@ struct isc_nm {
 	isc_barrier_t pausing;
 	isc_barrier_t resuming;
 
+	/*
+	 * Socket SO_RCVBUF and SO_SNDBUF values
+	 */
+	atomic_int_fast32_t recv_udp_buffer_size;
+	atomic_int_fast32_t send_udp_buffer_size;
+	atomic_int_fast32_t recv_tcp_buffer_size;
+	atomic_int_fast32_t send_tcp_buffer_size;
+
 #ifdef NETMGR_TRACE
 	ISC_LIST(isc_nmsocket_t) active_sockets;
 #endif
@@ -1767,6 +1775,12 @@ isc_result_t
 isc__nm_socket_tcp_nodelay(uv_os_sock_t fd);
 /*%<
  * Disables Nagle's algorithm on a TCP socket (sets TCP_NODELAY).
+ */
+
+void
+isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle);
+/*%>
+ * Sets the pre-configured network buffers size on the handle.
  */
 
 /*

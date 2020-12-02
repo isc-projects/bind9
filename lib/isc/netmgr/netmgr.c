@@ -616,6 +616,17 @@ isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 }
 
 void
+isc_nm_setnetbuffers(isc_nm_t *mgr, int32_t recv_tcp, int32_t send_tcp,
+		     int32_t recv_udp, int32_t send_udp) {
+	REQUIRE(VALID_NM(mgr));
+
+	atomic_store(&mgr->recv_tcp_buffer_size, recv_tcp);
+	atomic_store(&mgr->send_tcp_buffer_size, send_tcp);
+	atomic_store(&mgr->recv_udp_buffer_size, recv_udp);
+	atomic_store(&mgr->send_udp_buffer_size, send_udp);
+}
+
+void
 isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 		   uint32_t *keepalive, uint32_t *advertised) {
 	REQUIRE(VALID_NM(mgr));
@@ -3139,6 +3150,40 @@ isc__nm_socket_tcp_nodelay(uv_os_sock_t fd) {
 	UNUSED(fd);
 	return (ISC_R_SUCCESS);
 #endif
+}
+
+void
+isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle) {
+	int32_t recv_buffer_size = 0;
+	int32_t send_buffer_size = 0;
+
+	switch (handle->type) {
+	case UV_TCP:
+		recv_buffer_size =
+			atomic_load_relaxed(&nm->recv_tcp_buffer_size);
+		send_buffer_size =
+			atomic_load_relaxed(&nm->send_tcp_buffer_size);
+		break;
+	case UV_UDP:
+		recv_buffer_size =
+			atomic_load_relaxed(&nm->recv_udp_buffer_size);
+		send_buffer_size =
+			atomic_load_relaxed(&nm->send_udp_buffer_size);
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
+	if (recv_buffer_size > 0) {
+		int r = uv_recv_buffer_size(handle, &recv_buffer_size);
+		INSIST(r == 0);
+	}
+
+	if (send_buffer_size > 0) {
+		int r = uv_send_buffer_size(handle, &send_buffer_size);
+		INSIST(r == 0);
+	}
 }
 
 #ifdef NETMGR_TRACE
