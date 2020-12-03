@@ -158,6 +158,7 @@ failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 static isc_result_t
 tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	isc__networker_t *worker = NULL;
+	isc_result_t result = ISC_R_DEFAULT;
 	int r;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -182,7 +183,7 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	if (r != 0) {
 		isc__nm_closesocket(sock->fd);
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
-		goto failure;
+		goto done;
 	}
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPEN]);
 
@@ -191,7 +192,7 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		if (r != 0) {
 			isc__nm_incstats(sock->mgr,
 					 sock->statsindex[STATID_BINDFAIL]);
-			goto failure;
+			goto done;
 		}
 	}
 
@@ -201,20 +202,25 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	if (r != 0) {
 		isc__nm_incstats(sock->mgr,
 				 sock->statsindex[STATID_CONNECTFAIL]);
-		goto failure;
+		goto done;
 	}
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
 
 	atomic_store(&sock->connected, true);
 
-	return (ISC_R_SUCCESS);
+done:
+	result = isc__nm_uverr2result(r);
 
-failure:
-	atomic_store(&sock->active, false);
+	LOCK(&sock->lock);
+	sock->result = result;
+	SIGNAL(&sock->cond);
+	if (!atomic_load(&sock->active)) {
+		WAIT(&sock->scond, &sock->lock);
+	}
+	INSIST(atomic_load(&sock->active));
+	UNLOCK(&sock->lock);
 
-	isc__nm_tcp_close(sock);
-
-	return (isc__nm_uverr2result(r));
+	return (result);
 }
 
 void
@@ -234,21 +240,11 @@ isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	result = tcp_connect_direct(sock, req);
-	if (result == ISC_R_SUCCESS) {
-		atomic_store(&sock->connected, true);
-		/* The connect cb will be executed in tcp_connect_cb() */
-	} else {
+	if (result != ISC_R_SUCCESS) {
+		atomic_store(&sock->active, false);
+		isc__nm_tcp_close(sock);
 		isc__nm_uvreq_put(&req, sock);
 	}
-
-	LOCK(&sock->lock);
-	sock->result = result;
-	SIGNAL(&sock->cond);
-	if (!atomic_load(&sock->active)) {
-		WAIT(&sock->scond, &sock->lock);
-	}
-	INSIST(atomic_load(&sock->active));
-	UNLOCK(&sock->lock);
 
 	/*
 	 * The sock is now attached to the handle.
@@ -334,7 +330,6 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_tcpsocket, local);
 
-	atomic_init(&sock->active, false);
 	sock->extrahandlesize = extrahandlesize;
 	sock->connect_timeout = timeout;
 	sock->result = ISC_R_DEFAULT;
@@ -360,6 +355,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 					 (isc__netievent_t *)ievent);
 		isc__nm_put_netievent_tcpconnect(mgr, ievent);
 	} else {
+		atomic_init(&sock->active, false);
 		sock->tid = isc_random_uniform(mgr->nworkers);
 		isc__nm_enqueue_ievent(&mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
@@ -534,7 +530,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	if (r < 0) {
 		isc__nm_closesocket(sock->fd);
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
-		goto failure;
+		goto done;
 	}
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPEN]);
 
@@ -547,7 +543,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 				&sock->iface->addr.type.sa, flags);
 	if (r < 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
-		goto failure;
+		goto done;
 	}
 #else
 	if (sock->parent->fd == -1) {
@@ -556,7 +552,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		if (r < 0) {
 			isc__nm_incstats(sock->mgr,
 					 sock->statsindex[STATID_BINDFAIL]);
-			goto failure;
+			goto done;
 		}
 		sock->parent->uv_handle.tcp.flags = sock->uv_handle.tcp.flags;
 		sock->parent->fd = sock->fd;
@@ -578,12 +574,12 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 			      "uv_listen failed: %s",
 			      isc_result_totext(isc__nm_uverr2result(r)));
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
-		goto failure;
+		goto done;
 	}
 
 	atomic_store(&sock->listening, true);
 
-failure:
+done:
 	result = isc__nm_uverr2result(r);
 	if (result != ISC_R_SUCCESS) {
 		sock->pquota = NULL;
