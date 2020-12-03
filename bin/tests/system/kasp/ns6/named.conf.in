@@ -64,6 +64,20 @@ zone "migrate-nomatch-alglen.kasp" {
 	update-check-ksk yes;
 };
 
+/* These zones are going insecure. */
+zone "step1.going-insecure.kasp" {
+	type master;
+	file "step1.going-insecure.kasp.db";
+	dnssec-policy "migrate";
+};
+
+zone "step1.going-insecure-dynamic.kasp" {
+	type master;
+	file "step1.going-insecure-dynamic.kasp.db";
+	dnssec-policy "migrate";
+	allow-update { any; };
+};
+
 /* These are alorithm rollover test zones. */
 zone "step1.algorithm-roll.kasp" {
 	type master;
