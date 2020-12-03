@@ -1256,21 +1256,23 @@ rndc_checkds() {
 	_keycmd=""
 	if [ "${_key}" != "-" ]; then
 		_keyid=$(key_get $_key ID)
-		_keycmd="-key ${_keyid}"
+		_keycmd=" -key ${_keyid}"
 	fi
 
 	_whencmd=""
 	if [ "${_when}" != "now" ]; then
-		_whencmd="-when ${_when}"
+		_whencmd=" -when ${_when}"
 	fi
 
 	n=$((n+1))
-	echo_i "calling rndc dnssec -checkds ${_keycmd} ${_whencmd} ${_what} zone ${_zone} ($n)"
+	echo_i "calling rndc dnssec -checkds${_keycmd}${_whencmd} ${_what} zone ${_zone} in ${_view} ($n)"
 	ret=0
 
-	rndccmd $_server dnssec -checkds $_keycmd $_whencmd $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (${_keycmd} ${_whencmd} ${_what} zone ${_zone} failed"
+	rndccmd $_server dnssec -checkds $_keycmd $_whencmd $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds${_keycmd}${_whencmd} ${_what} zone ${_zone} failed"
 
-	_loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
+	if [ "$ret" -eq 0 ]; then
+		 _loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
+	fi
 
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
