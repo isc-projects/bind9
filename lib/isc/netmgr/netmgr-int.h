@@ -720,7 +720,7 @@ struct isc_nmsocket {
 
 	/*% Child sockets for multi-socket setups */
 	isc_nmsocket_t *children;
-	int nchildren;
+	uint_fast32_t nchildren;
 	isc_nmiface_t *iface;
 	isc_nmhandle_t *statichandle;
 	isc_nmhandle_t *outerhandle;

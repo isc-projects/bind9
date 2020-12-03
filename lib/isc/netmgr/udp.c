@@ -132,14 +132,14 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	sock->recv_cbarg = cbarg;
 	sock->extrahandlesize = extrahandlesize;
 	sock->result = ISC_R_DEFAULT;
-	sock->tid = isc_random_uniform(mgr->nworkers);
+	sock->tid = isc_random_uniform(sock->nchildren);
 	sock->fd = -1;
 
 #if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
 	fd = isc__nm_udp_lb_socket(sa_family);
 #endif
 
-	for (size_t i = 0; i < mgr->nworkers; i++) {
+	for (size_t i = 0; i < sock->nchildren; i++) {
 		isc__netievent_udplisten_t *ievent = NULL;
 		isc_nmsocket_t *csock = &sock->children[i];
 
@@ -169,7 +169,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 #endif
 
 	LOCK(&sock->lock);
-	while (sock->rchildren != mgr->nworkers) {
+	while (sock->rchildren != sock->nchildren) {
 		WAIT(&sock->cond, &sock->lock);
 	}
 	result = sock->result;
@@ -179,7 +179,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	INSIST(result != ISC_R_DEFAULT);
 
 	if (result == ISC_R_SUCCESS) {
-		REQUIRE(sock->rchildren == mgr->nworkers);
+		REQUIRE(sock->rchildren == sock->nchildren);
 		*sockp = sock;
 	} else {
 		atomic_store(&sock->active, false);
@@ -1119,7 +1119,7 @@ stop_udp_parent(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_udplistener);
 
-	for (int i = 0; i < sock->nchildren; i++) {
+	for (size_t i = 0; i < sock->nchildren; i++) {
 		isc__netievent_udpstop_t *ievent = NULL;
 		isc_nmsocket_t *csock = &sock->children[i];
 		REQUIRE(VALID_NMSOCK(csock));

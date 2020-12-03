@@ -52,12 +52,16 @@ int
 isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
 		    unsigned int flags) {
 	int r;
-	int fd;
+	uv_os_sock_t fd;
 
 	r = uv_fileno((const uv_handle_t *)handle, (uv_os_fd_t *)&fd);
 	if (r < 0) {
 		return (r);
 	}
+
+#if defined(WIN32)
+	REQUIRE(fd != INVALID_SOCKET);
+#endif
 
 	r = uv_udp_bind(handle, addr, flags);
 	if (r == UV_EADDRNOTAVAIL &&
@@ -104,7 +108,7 @@ int
 isc_uv_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
 		    unsigned int flags) {
 	int r;
-	int fd;
+	uv_os_sock_t fd;
 
 	r = uv_fileno((const uv_handle_t *)handle, (uv_os_fd_t *)&fd);
 	if (r < 0) {
