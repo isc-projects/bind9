@@ -1104,6 +1104,15 @@ dst_key_isexternal(dst_key_t *key);
  */
 
 bool
+dst_key_haskasp(dst_key_t *key);
+/*%<
+ * Check if this key has state (and thus uses KASP).
+ *
+ * Requires:
+ *	'key' to be valid.
+ */
+
+bool
 dst_key_is_unused(dst_key_t *key);
 /*%<
  * Check if this key is unused.

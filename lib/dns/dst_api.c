@@ -649,12 +649,14 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 				   filename, ".state");
 		INSIST(result == ISC_R_SUCCESS);
 
+		key->kasp = false;
 		result = dst_key_read_state(newfilename, mctx, &key);
-		if (result == ISC_R_FILENOTFOUND) {
+		if (result == ISC_R_SUCCESS) {
+			key->kasp = true;
+		} else if (result == ISC_R_FILENOTFOUND) {
 			/* Having no state is valid. */
 			result = ISC_R_SUCCESS;
 		}
-
 		isc_mem_put(mctx, newfilename, newfilenamelen);
 		newfilename = NULL;
 		RETERR(result);
@@ -2600,11 +2602,20 @@ dst_key_goal(dst_key_t *key) {
 	dst_key_state_t state;
 	isc_result_t result;
 
+	REQUIRE(VALID_KEY(key));
+
 	result = dst_key_getstate(key, DST_KEY_GOAL, &state);
 	if (result == ISC_R_SUCCESS) {
 		return (state);
 	}
 	return (DST_KEY_STATE_HIDDEN);
+}
+
+bool
+dst_key_haskasp(dst_key_t *key) {
+	REQUIRE(VALID_KEY(key));
+
+	return (key->kasp);
 }
 
 void
