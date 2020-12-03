@@ -87,6 +87,7 @@ dnssec
 dyndb
 filter-aaaa
 kasp
+legacy
 logfileconfig
 nzd2nzf
 pipelined
