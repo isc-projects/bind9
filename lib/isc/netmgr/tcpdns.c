@@ -1238,6 +1238,7 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 
 	uvreq = isc__nm_uvreq_get(sock->mgr, sock);
+	*(uint16_t *)uvreq->tcplen = htons(region->length);
 	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
 
@@ -1300,8 +1301,7 @@ tcpdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 
 	int r;
-	uint16_t len = htons(req->uvbuf.len);
-	uv_buf_t bufs[2] = { { .base = (char *)&len, .len = 2 },
+	uv_buf_t bufs[2] = { { .base = req->tcplen, .len = 2 },
 			     { .base = req->uvbuf.base,
 			       .len = req->uvbuf.len } };
 
