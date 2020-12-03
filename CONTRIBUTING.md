@@ -39,7 +39,7 @@ anyone can see the source, but only ISC employees have commit access.
 In the past, the source could only be seen once ISC had published
 a release; read access to the source repository was restricted just
 as commit access was.  That has changed, as ISC now provides a
-public git mirror to the BIND source tree (see below).
+public git repository of the BIND source tree (see below).
 
 At ISC, we're committed to
 building communities that are welcoming and inclusive: environments where people
@@ -55,14 +55,12 @@ the industry.
 Public BIND releases are always available from the
 [ISC FTP site](ftp://ftp.isc.org/isc/bind9).
 
-A public-access GIT repository is also available at
-[https://gitlab.isc.org](https://gitlab.isc.org).
-This repository is a mirror, updated several times per day, of the
-source repository maintained by ISC.  It contains all the public release
-branches; upcoming releases can be viewed in their current state at any
-time.  It does *not* contain development branches or unreviewed work in
-progress.  Commits which address security vulnerablilities are withheld
-until after public disclosure.
+A public-access git repository is also available at
+[https://gitlab.isc.org](https://gitlab.isc.org).  This repository
+contains all public release branches. Upcoming releases can be viewed in
+their current state at any time.  Short-lived development branches
+contain unreviewed work in progress.  Commits which address security
+vulnerablilities are withheld until after public disclosure.
 
 You can browse the source online via
 [https://gitlab.isc.org/isc-projects/bind9](https://gitlab.isc.org/isc-projects/bind9)
