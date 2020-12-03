@@ -1469,6 +1469,7 @@ dst_key_getstate
 dst_key_gettime
 dst_key_getttl
 dst_key_goal
+dst_key_haskasp
 dst_key_id
 dst_key_is_active
 dst_key_is_published

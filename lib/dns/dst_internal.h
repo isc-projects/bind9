@@ -123,6 +123,7 @@ struct dst_key {
 	bool keystateset[DST_MAX_KEYSTATES + 1];	  /*%< data
 							   * set? */
 
+	bool kasp;     /*%< key has kasp state */
 	bool inactive; /*%< private key not present as it is
 			* inactive */
 	bool external; /*%< external key */
