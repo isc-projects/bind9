@@ -204,17 +204,17 @@ taskpool_test@EXEEXT@: taskpool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 tcp_test@EXEEXT@: tcp_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
 		${LDFLAGS} -o $@ tcp_test.@O@ isctest.@O@ \
-		${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS} -luv
 
 tcp_quota_test@EXEEXT@: tcp_quota_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
 		${LDFLAGS} -o $@ tcp_quota_test.@O@ isctest.@O@ \
-		${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS} -luv
 
 tcpdns_test@EXEEXT@: tcpdns_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
 		${LDFLAGS} -o $@ tcpdns_test.@O@ isctest.@O@ \
-		${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS} -luv
 
 time_test@EXEEXT@: time_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
@@ -229,7 +229,7 @@ timer_test@EXEEXT@: timer_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 udp_test@EXEEXT@: udp_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
 		${LDFLAGS} -o $@ udp_test.@O@ isctest.@O@ \
-		${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS} -luv
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh
