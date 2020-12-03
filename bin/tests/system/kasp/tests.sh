@@ -961,22 +961,18 @@ check_dnssecstatus() {
 
 	rndccmd $_server dnssec -status $_zone in $_view > rndc.dnssec.status.out.$_zone.$n || log_error "rndc dnssec -status zone ${_zone} failed"
 
-	if [ "$_policy" = "none" ]; then
-		grep "Zone does not have dnssec-policy" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "bad dnssec status for unsigned zone ${_zone}"
-	else
-		grep "dnssec-policy: ${_policy}" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "bad dnssec status for signed zone ${_zone}"
-		if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-			grep "key: $(key_get KEY1 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY1 ID) from dnssec status"
-		fi
-		if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-			grep "key: $(key_get KEY2 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY2 ID) from dnssec status"
-		fi
-		if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-			grep "key: $(key_get KEY3 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY3 ID) from dnssec status"
-		fi
-		if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
-			grep "key: $(key_get KEY4 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY4 ID) from dnssec status"
-		fi
+	grep "dnssec-policy: ${_policy}" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "bad dnssec status for signed zone ${_zone}"
+	if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
+		grep "key: $(key_get KEY1 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY1 ID) from dnssec status"
+	fi
+	if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
+		grep "key: $(key_get KEY2 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY2 ID) from dnssec status"
+	fi
+	if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
+		grep "key: $(key_get KEY3 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY3 ID) from dnssec status"
+	fi
+	if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
+		grep "key: $(key_get KEY4 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY4 ID) from dnssec status"
 	fi
 
 	test "$ret" -eq 0 || echo_i "failed"

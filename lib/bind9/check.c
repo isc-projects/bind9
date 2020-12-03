@@ -1014,9 +1014,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 						continue;
 					}
 
-					ret = cfg_kasp_fromconfig(kconfig, mctx,
-								  logctx, &list,
-								  &kasp);
+					ret = cfg_kasp_fromconfig(kconfig, NULL,
+								  mctx, logctx,
+								  &list, &kasp);
 					if (ret != ISC_R_SUCCESS) {
 						if (result == ISC_R_SUCCESS) {
 							result = ret;
