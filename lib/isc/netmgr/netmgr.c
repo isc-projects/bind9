@@ -160,12 +160,12 @@ static void
 nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG);
 
 int
-isc_nm_tid() {
+isc_nm_tid(void) {
 	return (isc__nm_tid_v);
 }
 
 bool
-isc__nm_in_netthread() {
+isc__nm_in_netthread(void) {
 	return (isc__nm_tid_v >= 0);
 }
 

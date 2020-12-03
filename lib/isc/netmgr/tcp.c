@@ -37,7 +37,7 @@
 static atomic_uint_fast32_t last_tcpquota_log = ATOMIC_VAR_INIT(0);
 
 static bool
-can_log_tcp_quota() {
+can_log_tcp_quota(void) {
 	isc_stdtime_t now, last;
 
 	isc_stdtime_get(&now);
