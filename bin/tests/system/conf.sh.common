@@ -87,7 +87,6 @@ inline
 integrity
 ixfr
 keepalive
-legacy
 limits
 masterfile
 masterformat
