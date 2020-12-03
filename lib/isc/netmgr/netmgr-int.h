@@ -287,6 +287,7 @@ struct isc__nm_uvreq {
 	int magic;
 	isc_nmsocket_t *sock;
 	isc_nmhandle_t *handle;
+	char tcplen[2];	      /* The TCP DNS message length */
 	uv_buf_t uvbuf;	      /* translated isc_region_t, to be
 			       * sent or received */
 	isc_sockaddr_t local; /* local address */
