@@ -9121,18 +9121,25 @@ load_configuration(const char *filename, named_server_t *server,
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		kasp = NULL;
-		CHECK(cfg_kasp_fromconfig(kconfig, named_g_mctx, named_g_lctx,
-					  &kasplist, &kasp));
+		CHECK(cfg_kasp_fromconfig(kconfig, NULL, named_g_mctx,
+					  named_g_lctx, &kasplist, &kasp));
 		INSIST(kasp != NULL);
 		dns_kasp_freeze(kasp);
 		dns_kasp_detach(&kasp);
 	}
 	/*
-	 * Create the default kasp.
+	 * Create the built-in kasp policies ("default", "none").
 	 */
 	kasp = NULL;
-	CHECK(cfg_kasp_fromconfig(NULL, named_g_mctx, named_g_lctx, &kasplist,
-				  &kasp));
+	CHECK(cfg_kasp_fromconfig(NULL, "default", named_g_mctx, named_g_lctx,
+				  &kasplist, &kasp));
+	INSIST(kasp != NULL);
+	dns_kasp_freeze(kasp);
+	dns_kasp_detach(&kasp);
+
+	kasp = NULL;
+	CHECK(cfg_kasp_fromconfig(NULL, "none", named_g_mctx, named_g_lctx,
+				  &kasplist, &kasp));
 	INSIST(kasp != NULL);
 	dns_kasp_freeze(kasp);
 	dns_kasp_detach(&kasp);
@@ -14528,7 +14535,6 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 		     isc_buffer_t **text) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_zone_t *zone = NULL;
-	dns_kasp_t *kasp = NULL;
 	dns_name_t *origin;
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
@@ -14647,8 +14653,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 		CHECK(ISC_R_UNEXPECTEDEND);
 	}
 
-	kasp = dns_zone_getkasp(zone);
-	if (kasp != NULL) {
+	if (dns_zone_use_kasp(zone)) {
 		(void)putstr(text, "zone uses dnssec-policy, use rndc dnssec "
 				   "command instead");
 		(void)putnull(text);
