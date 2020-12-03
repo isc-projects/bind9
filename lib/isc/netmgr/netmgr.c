@@ -913,7 +913,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 		 * We shouldn't be here unless there are no active handles,
 		 * so we can clean up and free the children.
 		 */
-		for (int i = 0; i < sock->nchildren; i++) {
+		for (size_t i = 0; i < sock->nchildren; i++) {
 			if (!atomic_load(&sock->children[i].destroying)) {
 				nmsocket_cleanup(&sock->children[i],
 						 false FLARG_PASS);
@@ -1023,7 +1023,7 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
 
 	active_handles = atomic_load(&sock->ah);
 	if (sock->children != NULL) {
-		for (int i = 0; i < sock->nchildren; i++) {
+		for (size_t i = 0; i < sock->nchildren; i++) {
 			LOCK(&sock->children[i].lock);
 			active_handles += atomic_load(&sock->children[i].ah);
 			UNLOCK(&sock->children[i].lock);
@@ -1065,7 +1065,7 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 	 * so they can be cleaned up too.
 	 */
 	if (sock->children != NULL) {
-		for (int i = 0; i < sock->nchildren; i++) {
+		for (size_t i = 0; i < sock->nchildren; i++) {
 			atomic_store(&sock->children[i].active, false);
 		}
 	}
