@@ -1,3 +1,7 @@
+5545.	[func]		Restore reading of incoming queries by multiple netmgr
+			threads on platforms other than Linux and FreeBSD 12.
+			[GL #2137]
+
 5544.	[func]		Restore the default value of nocookie-udp-size to 4096.
 			[GL #2250]
 

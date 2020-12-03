@@ -9,7 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA && defined(__linux__)
+#if HAVE_CMOCKA
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>

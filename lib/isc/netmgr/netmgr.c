@@ -169,22 +169,6 @@ isc__nm_in_netthread(void) {
 	return (isc__nm_tid_v >= 0);
 }
 
-static bool
-isc__nm_test_lb_socket(sa_family_t sa_family, int protocol) {
-	isc_result_t result;
-	uv_os_sock_t fd = -1;
-
-	result = isc__nm_socket(sa_family, protocol, 0, &fd);
-	REQUIRE(result == ISC_R_SUCCESS);
-
-	result = isc__nm_socket_reuse_lb(fd);
-	REQUIRE(result == ISC_R_SUCCESS || result == ISC_R_NOTIMPLEMENTED);
-
-	isc__nm_closesocket(fd);
-
-	return (result == ISC_R_SUCCESS);
-}
-
 #ifdef WIN32
 static void
 isc__nm_winsock_initialize(void) {
@@ -230,14 +214,6 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 #endif /* WIN32 */
 
 	isc__nm_tls_initialize();
-
-	if (!isc__nm_test_lb_socket(AF_INET, SOCK_DGRAM) ||
-	    !isc__nm_test_lb_socket(AF_INET, SOCK_STREAM) ||
-	    !isc__nm_test_lb_socket(AF_INET6, SOCK_DGRAM) ||
-	    !isc__nm_test_lb_socket(AF_INET6, SOCK_STREAM))
-	{
-		workers = 1;
-	}
 
 	mgr = isc_mem_get(mctx, sizeof(*mgr));
 	*mgr = (isc_nm_t){ .nworkers = workers };
@@ -2307,6 +2283,10 @@ isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family) {
 #define TIMEOUT_TYPE	unsigned int
 #define TIMEOUT_DIV	1
 #define TIMEOUT_OPTNAME TCP_USER_TIMEOUT
+#elif defined(TCP_KEEPINIT)
+#define TIMEOUT_TYPE	int
+#define TIMEOUT_DIV	1000
+#define TIMEOUT_OPTNAME TCP_KEEPINIT
 #endif
 
 isc_result_t

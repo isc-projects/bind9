@@ -19,11 +19,7 @@ Security Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- The ``named`` daemon uses load-balanced sockets to increase performance by
-  distributing the incoming queries among multiple threads.  Currently, the only
-  operating systems that support load-balanced sockets are Linux and FreeBSD 12,
-  thus both UDP and TCP performance is limited to a single-thread on systems
-  without load-balancing socket support. [GL #2137]
+- None.
 
 New Features
 ~~~~~~~~~~~~
@@ -70,3 +66,10 @@ Bug Fixes
 
 - Building with native PKCS#11 support for AEP Keyper has been broken
   since BIND 9.17.4. This has been fixed. [GL #2315]
+
+- The ``named`` daemon uses load-balanced sockets to increase performance by
+  distributing the incoming queries among multiple threads.  Currently, the only
+  operating systems that support load-balanced sockets are Linux and FreeBSD 12,
+  thus both UDP and TCP performance was limited to a single-thread on systems
+  without load-balancing socket support. This has been fixed on all platforms
+  except Windows. [GL #2137]
