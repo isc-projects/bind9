@@ -357,6 +357,25 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      isc_mem_t *mctx);
 /*%<
  * Update the CDS and CDNSKEY RRsets, adding and removing keys as needed.
+ *
+ * Returns:
+ *\li   ISC_R_SUCCESS
+ *\li   Other values indicate error
+ */
+
+isc_result_t
+dns_dnssec_syncdelete(dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
+		      dns_name_t *origin, dns_rdataclass_t zclass,
+		      dns_ttl_t ttl, dns_diff_t *diff, isc_mem_t *mctx,
+		      bool dnssec_insecure);
+/*%<
+ * Add or remove the CDS DELETE record and the CDNSKEY DELETE record.
+ * If 'dnssec_insecure' is true, the DELETE records should be present.
+ * Otherwise, the DELETE records must be removed from the RRsets (if present).
+ *
+ * Returns:
+ *\li   ISC_R_SUCCESS
+ *\li   Other values indicate error
  */
 
 isc_result_t

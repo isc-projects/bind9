@@ -19912,6 +19912,17 @@ zone_rekey(dns_zone_t *zone) {
 			goto failure;
 		}
 
+		result = dns_dnssec_syncdelete(&cdsset, &cdnskeyset,
+					       &zone->origin, zone->rdclass,
+					       ttl, &diff, mctx, insecure);
+		if (result != ISC_R_SUCCESS) {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_rekey:couldn't update CDS/CDNSKEY "
+				   "DELETE records: %s",
+				   isc_result_totext(result));
+			goto failure;
+		}
+
 		/*
 		 * See if any pre-existing keys have newly become active;
 		 * also, see if any new key is for a new algorithm, as in that
