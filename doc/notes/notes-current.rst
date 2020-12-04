@@ -29,6 +29,9 @@ New Features
   NSEC3 salt collisions are automatically prevented during resalting.
   [GL #1620]
 
+- ``dig`` output now includes the transport protocol used (UDP, TCP, or
+  TLS). [GL #1816]
+
 - ``dig`` can now report the DNS64 prefixes in use (``+dns64prefix``).
   This is useful when the host on which ``dig`` is run is behind an
   IPv6-only link, using DNS64/NAT64 or 464XLAT for IPv4aaS (IPv4 as a
