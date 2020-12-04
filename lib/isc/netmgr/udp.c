@@ -106,7 +106,9 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	isc_nmsocket_t *sock = NULL;
 	sa_family_t sa_family = iface->addr.type.sa.sa_family;
 	size_t children_size = 0;
+#if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
 	uv_os_sock_t fd = -1;
+#endif
 
 	REQUIRE(VALID_NM(mgr));
 
@@ -269,7 +271,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		uv_bind_flags |= UV_UDP_IPV6ONLY;
 	}
 
-#if HAVE_SO_REUSEPORT_LB || WIN32
+#if HAVE_SO_REUSEPORT_LB || defined(WIN32)
 	r = isc_uv_udp_freebind(&sock->uv_handle.udp,
 				&sock->parent->iface->addr.type.sa,
 				uv_bind_flags);

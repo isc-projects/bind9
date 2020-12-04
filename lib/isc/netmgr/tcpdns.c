@@ -450,7 +450,9 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 	isc_nmsocket_t *sock = NULL;
 	sa_family_t sa_family = iface->addr.type.sa.sa_family;
 	size_t children_size = 0;
+#if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
 	uv_os_sock_t fd = -1;
+#endif
 
 	REQUIRE(VALID_NM(mgr));
 
