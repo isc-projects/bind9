@@ -45,6 +45,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- The new networking code introduced in BIND 9.16 (netmgr) was
+  overhauled in order to make it more stable, testable, and
+  maintainable. [GL #2321]
+
 - Earlier releases of BIND versions 9.16 and newer required the
   operating system to support load-balanced sockets in order for
   ``named`` to be able to achieve high performance (by distributing
