@@ -11,16 +11,6 @@
 Notes for BIND 9.17.8
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -36,11 +26,6 @@ New Features
   This is useful when the host on which ``dig`` is run is behind an
   IPv6-only link, using DNS64/NAT64 or 464XLAT for IPv4aaS (IPv4 as a
   Service). [GL #1154]
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
