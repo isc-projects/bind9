@@ -24,6 +24,11 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
+- NSEC3 support was added to KASP. A new option for ``dnssec-policy``,
+  ``nsec3param``, can be used to set the desired NSEC3 parameters.
+  NSEC3 salt collisions are automatically prevented during resalting.
+  [GL #1620]
+
 - ``dig`` can now report the DNS64 prefixes in use (``+dns64prefix``).
   This is useful when the host on which ``dig`` is run is behind an
   IPv6-only link, using DNS64/NAT64 or 464XLAT for IPv4aaS (IPv4 as a
@@ -37,10 +42,15 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- NSEC3 support was added to KASP. A new option for ``dnssec-policy``,
-  ``nsec3param``, can be used to set the desired NSEC3 parameters.
-  NSEC3 salt collisions are automatically prevented during resalting.
-  [GL #1620]
+- Earlier releases of BIND versions 9.16 and newer required the
+  operating system to support load-balanced sockets in order for
+  ``named`` to be able to achieve high performance (by distributing
+  incoming queries among multiple threads). However, the only operating
+  systems currently known to support load-balanced sockets are Linux and
+  FreeBSD 12, which means both UDP and TCP performance were limited to a
+  single thread on other systems. As of BIND 9.17.8, ``named`` attempts
+  to distribute incoming queries among multiple threads on systems which
+  lack support for load-balanced sockets (except Windows). [GL #2137]
 
 - The default value of ``max-recursion-queries`` was increased from 75
   to 100. Since the queries sent towards root and TLD servers are now
@@ -69,21 +79,11 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- The CNAME synthesized from a DNAME was incorrectly followed when the
-  QTYPE was CNAME or ANY. [GL #2280]
-
 - Handling of missing DNS COOKIE responses over UDP was tightened by
   falling back to TCP. [GL #2275]
 
+- The CNAME synthesized from a DNAME was incorrectly followed when the
+  QTYPE was CNAME or ANY. [GL #2280]
+
 - Building with native PKCS#11 support for AEP Keyper has been broken
   since BIND 9.17.4. This has been fixed. [GL #2315]
-
-- Earlier releases of BIND versions 9.16 and newer required the
-  operating system to support load-balanced sockets in order for
-  ``named`` to be able to achieve high performance (by distributing
-  incoming queries among multiple threads). However, the only operating
-  systems currently known to support load-balanced sockets are Linux and
-  FreeBSD 12, which means both UDP and TCP performance were limited to a
-  single thread on other systems. As of BIND 9.17.8, ``named`` attempts
-  to distribute incoming queries among multiple threads on systems which
-  lack support for load-balanced sockets (except Windows). [GL #2137]
