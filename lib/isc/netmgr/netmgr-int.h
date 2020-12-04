@@ -53,7 +53,7 @@
 #endif
 
 #if defined(SO_REUSEPORT_LB) || (defined(SO_REUSEPORT) && defined(__linux__))
-#define HAVE_REUSEPORT_LB 1
+#define HAVE_SO_REUSEPORT_LB 1
 #endif
 
 /*
