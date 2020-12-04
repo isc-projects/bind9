@@ -4755,235 +4755,200 @@ can be found, the initializing key is also compiled directly into
 
 .. _dnssec_policy_grammar:
 
+``dnssec-policy`` Statement Grammar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. include:: ../misc/dnssec-policy.grammar.rst
 
 .. _dnssec_policy:
 
-The ``dnssec-policy`` statement defines a key and
-signing policy (KASP) for zones.
+``dnssec-policy`` Statement Definition and Usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A KASP determines how one or more zones are signed
-with DNSSEC. For example, it specifies how often keys should
-roll, which cryptographic algorithms to use, and how often RRSIG
-records need to be refreshed.
+The ``dnssec-policy`` statement defines a key and signing policy (KASP)
+for zones.
 
-Keys are not shared among zones, which means that one set of keys
-per zone is generated even if they have the same policy.
-If multiple views are configured with different versions of the
-same zone, each separate version uses the same set of signing
-keys.
+A KASP determines how one or more zones are signed with DNSSEC.  For
+example, it specifies how often keys should roll, which cryptographic
+algorithms to use, and how often RRSIG records need to be refreshed.
 
-Multiple key and signing policies can be configured.  To
-attach a policy to a zone, add a ``dnssec-policy``
-option to the ``zone`` statement, specifying the
-name of the policy that should be used.
+Keys are not shared among zones, which means that one set of keys per
+zone is generated even if they have the same policy.  If multiple views
+are configured with different versions of the same zone, each separate
+version uses the same set of signing keys.
 
-Key rollover timing is computed for each key according to
-the key lifetime defined in the KASP.  The lifetime may be
-modified by zone TTLs and propagation delays, to
-prevent validation failures.  When a key reaches the end of its
-lifetime,
-``named`` generates and publishes a new key
-automatically, then deactivates the old key and activates the
-new one; finally, the old key is retired according to a computed
-schedule.
+Multiple key and signing policies can be configured.  To attach a policy
+to a zone, add a ``dnssec-policy`` option to the ``zone`` statement,
+specifying the name of the policy that should be used.
 
-Zone-signing key (ZSK) rollovers require no operator input.
-Key-signing key (KSK) and combined-signing key (CSK) rollovers
-require action to be taken to submit a DS record to the parent.
-Rollover timing for KSKs and CSKs is adjusted to take into account
-delays in processing and propagating DS updates.
+Key rollover timing is computed for each key according to the key
+lifetime defined in the KASP.  The lifetime may be modified by zone TTLs
+and propagation delays, to prevent validation failures.  When a key
+reaches the end of its lifetime, ``named`` generates and publishes a new
+key automatically, then deactivates the old key and activates the new
+one; finally, the old key is retired according to a computed schedule.
 
-There are two predefined ``dnssec-policy`` names:
-``none`` and ``default``.
-Setting a zone's policy to
-``none`` is the same as not setting
-``dnssec-policy`` at all; the zone is not
-signed.  Policy ``default`` causes the
-zone to be signed with a single combined-signing key (CSK)
-using algorithm ECDSAP256SHA256; this key has an
-unlimited lifetime. (A verbose copy of this policy
-may be found in the source tree, in the file
-``doc/misc/dnssec-policy.default.conf``.)
+Zone-signing key (ZSK) rollovers require no operator input.  Key-signing
+key (KSK) and combined-signing key (CSK) rollovers require action to be
+taken to submit a DS record to the parent.  Rollover timing for KSKs and
+CSKs is adjusted to take into account delays in processing and
+propagating DS updates.
 
-.. note::
+There are two predefined ``dnssec-policy`` names: ``none`` and
+``default``.  Setting a zone's policy to ``none`` is the same as not
+setting ``dnssec-policy`` at all; the zone is not signed.  Policy
+``default`` causes the zone to be signed with a single combined-signing
+key (CSK) using algorithm ECDSAP256SHA256; this key has an unlimited
+lifetime.  (A verbose copy of this policy may be found in the source
+tree, in the file ``doc/misc/dnssec-policy.default.conf``.)
 
-   The default signing policy may change in future releases.
-   This could require changes to a signing policy
-   when upgrading to a new version of BIND. Check
-   the release notes carefully when upgrading to be informed
-   of such changes. To prevent policy changes on upgrade,
-   use an explicitly defined ``dnssec-policy``,
-   rather than ``default``.
+.. note:: The default signing policy may change in future releases.
+   This could require changes to a signing policy when upgrading to a
+   new version of BIND.  Check the release notes carefully when
+   upgrading to be informed of such changes.  To prevent policy changes
+   on upgrade, use an explicitly defined ``dnssec-policy``, rather than
+   ``default``.
 
-If a ``dnssec-policy`` statement is modified
-and the server restarted or reconfigured, ``named``
-attempts to change the policy smoothly from the old one to
-the new. For example, if the key algorithm is changed, then
-a new key is generated with the new algorithm, and the old
-algorithm is retired when the existing key's lifetime ends.
+If a ``dnssec-policy`` statement is modified and the server restarted or
+reconfigured, ``named`` attempts to change the policy smoothly from the
+old one to the new.  For example, if the key algorithm is changed, then
+a new key is generated with the new algorithm, and the old algorithm is
+retired when the existing key's lifetime ends.
 
-.. note::
-
-  Rolling to a new policy while another key rollover is
-  already in progress is not yet supported, and may result in
-  unexpected behavior.
+.. note:: Rolling to a new policy while another key rollover is already
+   in progress is not yet supported, and may result in unexpected
+   behavior.
 
 The following options can be specified in a ``dnssec-policy`` statement:
 
   ``dnskey-ttl``
-    This indicates the TTL to use when generating DNSKEY resource records. The default is 1
-    hour (3600 seconds).
+    This indicates the TTL to use when generating DNSKEY resource
+    records.  The default is 1 hour (3600 seconds).
 
   ``keys``
     This is a list specifying the algorithms and roles to use when
-    generating keys and signing the zone.
-    Entries in this list do not represent specific
-    DNSSEC keys, which may be changed on a regular basis,
-    but the roles that keys play in the signing policy.
-    For example, configuring a KSK of algorithm RSASHA256 ensures
-    that the DNSKEY RRset always includes a key-signing key
-    for that algorithm.
+    generating keys and signing the zone.  Entries in this list do not
+    represent specific DNSSEC keys, which may be changed on a regular
+    basis, but the roles that keys play in the signing policy.  For
+    example, configuring a KSK of algorithm RSASHA256 ensures that the
+    DNSKEY RRset always includes a key-signing key for that algorithm.
 
-    Here is an example (for illustration purposes only) of
-    some possible entries in a ``keys``
-    list:
+    Here is an example (for illustration purposes only) of some possible
+    entries in a ``keys`` list:
 
     ::
 
         keys {
-               ksk key-directory lifetime unlimited algorithm rsasha1 2048;
-               zsk lifetime P30D algorithm 8;
-               csk lifetime P6MT12H3M15S algorithm ecdsa256;
-	};
+            ksk key-directory lifetime unlimited algorithm rsasha1 2048;
+            zsk lifetime P30D algorithm 8;
+            csk lifetime P6MT12H3M15S algorithm ecdsa256;
+        };
 
-       This example specifies that three keys should be used
-       in the zone. The first token determines which role the
-       key plays in signing RRsets.  If set to
-       ``ksk``, then this is
-       a key-signing key; it has the KSK flag set and
-       is only used to sign DNSKEY, CDS, and CDNSKEY RRsets.
-       If set to ``zsk``, this is
-       a zone-signing key; the KSK flag is unset, and
-       the key signs all RRsets *except*
-       DNSKEY, CDS, and CDNSKEY. If set to
-       ``csk``, the key has the KSK
-       flag set and is used to sign all RRsets.
+    This example specifies that three keys should be used in the zone.
+    The first token determines which role the key plays in signing
+    RRsets.  If set to ``ksk``, then this is a key-signing key; it has
+    the KSK flag set and is only used to sign DNSKEY, CDS, and CDNSKEY
+    RRsets.  If set to ``zsk``, this is a zone-signing key; the KSK flag
+    is unset, and the key signs all RRsets *except* DNSKEY, CDS, and
+    CDNSKEY.  If set to ``csk``, the key has the KSK flag set and is
+    used to sign all RRsets.
 
-       An optional second token determines where the key is
-       stored.  Currently, keys can only be stored in the
-       configured ``key-directory``. This token
-       may be used in the future to store keys in hardware
-       service modules or separate directories.
+    An optional second token determines where the key is stored.
+    Currently, keys can only be stored in the configured
+    ``key-directory``.  This token may be used in the future to store
+    keys in hardware service modules or separate directories.
 
-       The ``lifetime`` parameter specifies how
-       long a key may be used before rolling over.  In the
-       example above, the first key has an unlimited
-       lifetime, the second key may be used for 30 days, and the
-       third key has a rather peculiar lifetime of 6 months,
-       12 hours, 3 minutes, and 15 seconds.  A lifetime of 0
-       seconds is the same as ``unlimited``.
+    The ``lifetime`` parameter specifies how long a key may be used
+    before rolling over.  In the example above, the first key has an
+    unlimited lifetime, the second key may be used for 30 days, and the
+    third key has a rather peculiar lifetime of 6 months, 12 hours, 3
+    minutes, and 15 seconds.  A lifetime of 0 seconds is the same as
+    ``unlimited``.
 
-       Note that the lifetime of a key may be extended if
-       retiring it too soon would cause validation failures.
-       For example, if the key were configured to roll more
-       frequently than its own TTL, its lifetime would
-       automatically be extended to account for this.
+    Note that the lifetime of a key may be extended if retiring it too
+    soon would cause validation failures.  For example, if the key were
+    configured to roll more frequently than its own TTL, its lifetime
+    would automatically be extended to account for this.
 
-       The ``algorithm`` parameter specifies
-       the key's algorithm, expressed either as a string
-       ("rsasha256", "ecdsa384", etc.) or as a decimal number.
-       An optional second parameter specifies the key's size
-       in bits. If it is omitted, as shown in the
-       example for the second and third keys, an appropriate
-       default size for the algorithm is used.
+    The ``algorithm`` parameter specifies the key's algorithm, expressed
+    either as a string ("rsasha256", "ecdsa384", etc.) or as a decimal
+    number.  An optional second parameter specifies the key's size in
+    bits.  If it is omitted, as shown in the example for the second and
+    third keys, an appropriate default size for the algorithm is used.
 
-    ``publish-safety``
-       This is a margin that is added to the pre-publication
-       interval in rollover timing calculations, to give some
-       extra time to cover unforeseen events. This increases
-       the time between when keys are published and when they become active.
-       The default is ``PT1H`` (1 hour).
+  ``publish-safety``
+    This is a margin that is added to the pre-publication interval in
+    rollover timing calculations, to give some extra time to cover
+    unforeseen events.  This increases the time between when keys are
+    published and when they become active.  The default is ``PT1H`` (1
+    hour).
 
-     ``retire-safety``
-       This is a margin that is added to the post-publication interval
-       in rollover timing calculations, to give some extra time
-       to cover unforeseen events. This increases the time a key
-       remains published after it is no longer active.  The
-       default is ``PT1H`` (1 hour).
+  ``retire-safety``
+    This is a margin that is added to the post-publication interval in
+    rollover timing calculations, to give some extra time to cover
+    unforeseen events.  This increases the time a key remains published
+    after it is no longer active.  The default is ``PT1H`` (1 hour).
 
-     ``signatures-refresh``
-       This determines how frequently an RRSIG record needs to be
-       refreshed.  The signature is renewed when the time until
-       the expiration time is less than the specified interval.
-       The default is ``P5D`` (5 days), meaning
-       signatures that expire in 5 days or sooner are
-       refreshed.
+  ``signatures-refresh``
+    This determines how frequently an RRSIG record needs to be
+    refreshed.  The signature is renewed when the time until the
+    expiration time is less than the specified interval.  The default is
+    ``P5D`` (5 days), meaning signatures that expire in 5 days or sooner
+    are refreshed.
 
-     ``signatures-validity``
-       This indicates the validity period of an RRSIG record (subject to
-       inception offset and jitter). The default is
-       ``P2W`` (2 weeks).
+  ``signatures-validity``
+    This indicates the validity period of an RRSIG record (subject to
+    inception offset and jitter).  The default is ``P2W`` (2 weeks).
 
-     ``signatures-validity-dnskey``
-       This is similar to ``signatures-validity``, but for
-       DNSKEY records. The default is ``P2W``
-       (2 weeks).
+  ``signatures-validity-dnskey``
+    This is similar to ``signatures-validity``, but for DNSKEY records.
+    The default is ``P2W`` (2 weeks).
 
-     ``max-zone-ttl``
-       Like the ``max-zone-ttl`` zone option,
-       this specifies the maximum permissible TTL value, in
-       seconds, for the zone. When loading a zone file using
-       a ``masterfile-format`` of
-       ``text`` or ``raw``,
-       any record encountered with a TTL higher than
-       ``max-zone-ttl`` is capped at the
-       maximum permissible TTL value.
+  ``max-zone-ttl``
+    Like the ``max-zone-ttl`` zone option, this specifies the maximum
+    permissible TTL value, in seconds, for the zone.  When loading a
+    zone file using a ``masterfile-format`` of ``text`` or ``raw``, any
+    record encountered with a TTL higher than ``max-zone-ttl`` is capped
+    at the maximum permissible TTL value.
 
-       This is needed in DNSSEC-maintained zones because when
-       rolling to a new DNSKEY, the old key needs to remain
-       available until RRSIG records have expired from caches.
-       The ``max-zone-ttl`` option guarantees that
-       the largest TTL in the zone is no higher than the
-       set value.
+    This is needed in DNSSEC-maintained zones because when rolling to a
+    new DNSKEY, the old key needs to remain available until RRSIG
+    records have expired from caches.  The ``max-zone-ttl`` option
+    guarantees that the largest TTL in the zone is no higher than the
+    set value.
 
-       .. note::
-	  Because ``map``-format files
-	  load directly into memory, this option cannot be
-	  used with them.
+    .. note:: Because ``map``-format files load directly into memory,
+       this option cannot be used with them.
 
-       The default value is ``PT24H`` (24 hours).
-       A ``max-zone-ttl`` of zero is treated as if
-       the default value were in use.
+    The default value is ``PT24H`` (24 hours).  A ``max-zone-ttl`` of
+    zero is treated as if the default value were in use.
 
-     ``nsec3param``
-       Use NSEC3 instead of NSEC, and optionally set the NSEC3 parameters.
+  ``nsec3param``
+    Use NSEC3 instead of NSEC, and optionally set the NSEC3 parameters.
 
-       Here is an example of an ``nsec3`` configuration:
+    Here is an example of an ``nsec3`` configuration:
 
-       ::
+    ::
 
-          nsec3param iterations 5 optout no salt-length 8;
+        nsec3param iterations 5 optout no salt-length 8;
 
-       The default is to use NSEC. The ``iterations``, ``optout``
-       and ``salt-length`` parts are optional, but if not set, the
-       values in the example above are the default NSEC3 parameters.
+    The default is to use NSEC.  The ``iterations``, ``optout`` and
+    ``salt-length`` parts are optional, but if not set, the values in
+    the example above are the default NSEC3 parameters.
 
-     ``zone-propagation-delay``
-       This is the expected propagation delay from the time when a zone
-       is first updated to the time when the new version of the
-       zone is served by all secondary servers.  The default
-       is ``PT5M`` (5 minutes).
+  ``zone-propagation-delay``
+    This is the expected propagation delay from the time when a zone is
+    first updated to the time when the new version of the zone is served
+    by all secondary servers.  The default is ``PT5M`` (5 minutes).
 
-     ``parent-ds-ttl``
-       This is the TTL of the DS RRset that the parent zone uses.  The
-       default is ``P1D`` (1 day).
+  ``parent-ds-ttl``
+    This is the TTL of the DS RRset that the parent zone uses.  The
+    default is ``P1D`` (1 day).
 
-     ``parent-propagation-delay``
-       This is the expected propagation delay from the time when the
-       parent zone is updated to the time when the new version
-       is served by all of the parent zone's name servers.
-       The default is ``PT1H`` (1 hour).
+  ``parent-propagation-delay``
+    This is the expected propagation delay from the time when the parent
+    zone is updated to the time when the new version is served by all of
+    the parent zone's name servers.  The default is ``PT1H`` (1 hour).
 
 .. _managed-keys:
 
