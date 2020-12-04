@@ -11,16 +11,6 @@
 Notes for BIND 9.17.8
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -36,11 +26,6 @@ New Features
   This is useful when the host on which ``dig`` is run is behind an
   IPv6-only link, using DNS64/NAT64 or 464XLAT for IPv4aaS (IPv4 as a
   Service). [GL #1154]
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -73,15 +58,6 @@ Feature Changes
   order to increase the default EDNS buffer size limit.
   ``nocookie-udp-size`` can still be set to a value lower than
   ``max-udp-size``, if desired. [GL #2250]
-
-- ``ipv4only.arpa`` is now served when ``dns64`` is configured. [GL #385]
-
-- When using the ``unixtime`` or ``date`` method to update the SOA
-  serial number, ``named`` and ``dnssec-signzone`` silently fell back to
-  the ``increment`` method to prevent the new serial number from being
-  smaller than the old serial number (using serial number arithmetics).
-  ``dnsssec-signzone`` now prints a warning message, and ``named`` logs
-  a warning, when such a fallback happens. [GL #2058]
 
 Bug Fixes
 ~~~~~~~~~
