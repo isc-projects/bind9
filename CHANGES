@@ -9,6 +9,8 @@
 
 5546.	[placeholder]
 
+	--- 9.17.8 released ---
+
 5545.	[func]		OS support for load-balanced sockets is no longer
 			required to receive incoming queries in multiple netmgr
 			threads. [GL #2137]
