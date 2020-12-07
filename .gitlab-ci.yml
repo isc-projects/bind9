@@ -536,6 +536,7 @@ docs:
     - make -C doc/misc docbook
     - make -C doc/arm Bv9ARM.html
     - qpdf --check doc/arm/Bv9ARM.pdf
+    - find bin/ lib/ isc-config.sh.1 -not -path "bin/tests/*" -name "*.[0-9]" -exec mandoc -T lint -Werror "{}" \;
   needs:
     - job: autoreconf
       artifacts: true
