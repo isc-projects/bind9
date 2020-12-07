@@ -54,7 +54,7 @@ The following are platforms on which BIND is known to build and run. ISC
 makes every effort to fix bugs on these platforms, but may be unable to do
 so quickly due to lack of hardware, less familiarity on the part of
 engineering staff, and other constraints. With the exception of Windows
-Server 2012 R2, none of these are tested regularly by ISC.
+Server 2016, none of these are tested regularly by ISC.
 
   * Windows Server 2012 R2, 2016 / x64
   * Windows 10 / x64
