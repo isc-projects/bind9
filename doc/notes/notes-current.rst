@@ -36,31 +36,33 @@ Feature Changes
 
 - None.
 
-- Add NSEC3 support for zones that manage their DNSSEC with the `dnssec-policy`
-  configuration. A new option 'nsec3param' can be used to set the desired
-  NSEC3 parameters, and will detect collisions when resalting. [GL #1620].
+- NSEC3 support was added to KASP. A new option for ``dnssec-policy``,
+  ``nsec3param``, can be used to set the desired NSEC3 parameters.
+  NSEC3 salt collisions are automatically prevented during resalting.
+  [GL #1620]
 
-- Adjust the ``max-recursion-queries`` default from 75 to 100. Since the
-  queries sent towards root and TLD servers are now included in the
-  count (as a result of the fix for CVE-2020-8616), ``max-recursion-queries``
-  has a higher chance of being exceeded by non-attack queries, which is the
-  main reason for increasing its default value. [GL #2305]
+- The default value of ``max-recursion-queries`` was increased from 75
+  to 100. Since the queries sent towards root and TLD servers are now
+  included in the count (as a result of the fix for CVE-2020-8616),
+  ``max-recursion-queries`` has a higher chance of being exceeded by
+  non-attack queries, which is the main reason for increasing its
+  default value. [GL #2305]
 
-- Restore the ``nocookie-udp-size`` default from 1232 to 4096. Normally the
-  EDNS buffer size is configured by ``max-udp-size``, but this configuration
-  option overrides the value, but most people don't and won't realize there's
-  an extra configuration option that needs to be tweaked. By changing the
-  default here, we allow the the ``max-udp-size`` to be the sole option that
-  needs to be changed when operator wants to change the default EDNS buffer
-  size. [GL #2250]
+- The default value of ``nocookie-udp-size`` was restored back to 4096
+  bytes. Since ``max-udp-size`` is the upper bound for
+  ``nocookie-udp-size``, this change relieves the operator from having
+  to change ``nocookie-udp-size`` together with ``max-udp-size`` in
+  order to increase the default EDNS buffer size limit.
+  ``nocookie-udp-size`` can still be set to a value lower than
+  ``max-udp-size``, if desired. [GL #2250]
 
 Bug Fixes
 ~~~~~~~~~
 
-- The synthesised CNAME from a DNAME was incorrectly followed when the QTYPE
-  was CNAME or ANY. [GL #2280]
+- The CNAME synthesized from a DNAME was incorrectly followed when the
+  QTYPE was CNAME or ANY. [GL #2280]
 
-- Tighten handling of missing DNS COOKIE responses over UDP by
+- Handling of missing DNS COOKIE responses over UDP was tightened by
   falling back to TCP. [GL #2275]
 
 - Building with native PKCS#11 support for AEP Keyper has been broken
