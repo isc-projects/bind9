@@ -89,15 +89,15 @@
       </listitem>
       <listitem>
         <para>
-          Building with native PKCS#11 support for AEP Keyper has been broken
-          since BIND 9.11.22. This has been fixed. [GL #2315]
-          #2315]
+          The CNAME synthesized from a DNAME was incorrectly followed when the
+          QTYPE was CNAME or ANY. [GL #2280]
         </para>
       </listitem>
       <listitem>
         <para>
-          The CNAME synthesized from a DNAME was incorrectly followed when the
-          QTYPE was CNAME or ANY. [GL #2280]
+          Building with native PKCS#11 support for AEP Keyper has been broken
+          since BIND 9.11.22. This has been fixed. [GL #2315]
+          #2315]
         </para>
       </listitem>
     </itemizedlist>
