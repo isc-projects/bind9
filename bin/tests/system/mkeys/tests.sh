@@ -463,7 +463,9 @@ grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-echo_i "reset the root server"
+n=$((n+1))
+echo_i "reset the root server ($n)"
+ret=0
 $SETTIME -D none -R none -K ns1 "$original" > /dev/null
 $SETTIME -D now -K ns1 "$standby1" > /dev/null
 $SETTIME -D now -K ns1 "$standby2" > /dev/null
@@ -471,6 +473,9 @@ $SIGNER -Sg -K ns1 -N unixtime -o . ns1/root.db > /dev/null 2>/dev/null
 copy_setports ns1/named2.conf.in ns1/named.conf
 rm -f ns1/root.db.signed.jnl
 mkeys_reconfig_on 1 || ret=1
+mkeys_reload_on 1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
 echo_i "reinitialize trust anchors"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port "${CONTROLPORT}" mkeys ns2
