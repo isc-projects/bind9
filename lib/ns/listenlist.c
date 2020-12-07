@@ -30,22 +30,57 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		    ns_listenelt_t **target) {
 	ns_listenelt_t *elt = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_tlsctx_t *sslctx = NULL;
+
 	REQUIRE(target != NULL && *target == NULL);
-	elt = isc_mem_get(mctx, sizeof(*elt));
-	elt->mctx = mctx;
-	ISC_LINK_INIT(elt, link);
-	elt->port = port;
-	elt->dscp = dscp;
-	elt->acl = acl;
-	elt->sslctx = NULL;
+
 	if (tls) {
-		result = isc_tlsctx_createserver(key, cert, &elt->sslctx);
+		result = isc_tlsctx_createserver(key, cert, &sslctx);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
 	}
+
+	elt = isc_mem_get(mctx, sizeof(*elt));
+	elt->mctx = mctx;
+	ISC_LINK_INIT(elt, link);
+	elt->port = port;
+	elt->is_http = false;
+	elt->dscp = dscp;
+	elt->acl = acl;
+	elt->sslctx = sslctx;
+	elt->http_endpoints = NULL;
+	elt->http_endpoints_number = 0;
+
 	*target = elt;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
+			 dns_acl_t *acl, const char *key, const char *cert,
+			 char **endpoints, size_t nendpoints,
+			 ns_listenelt_t **target) {
+	isc_result_t result;
+
+	REQUIRE(target != NULL && *target == NULL);
+	REQUIRE(endpoints != NULL && *endpoints != NULL);
+	REQUIRE(nendpoints > 0);
+
+	result = ns_listenelt_create(mctx, http_port, dscp, acl, key != NULL,
+				     key, cert, target);
+	if (result == ISC_R_SUCCESS) {
+		(*target)->is_http = true;
+		(*target)->http_endpoints = endpoints;
+		(*target)->http_endpoints_number = nendpoints;
+	} else {
+		size_t i;
+		for (i = 0; i < nendpoints; i++) {
+			isc_mem_free(mctx, endpoints[i]);
+		}
+		isc_mem_free(mctx, endpoints);
+	}
+	return (result);
 }
 
 void
@@ -55,6 +90,14 @@ ns_listenelt_destroy(ns_listenelt_t *elt) {
 	}
 	if (elt->sslctx != NULL) {
 		isc_tlsctx_free(&elt->sslctx);
+	}
+	if (elt->http_endpoints != NULL) {
+		size_t i;
+		INSIST(elt->http_endpoints_number > 0);
+		for (i = 0; i < elt->http_endpoints_number; i++) {
+			isc_mem_free(elt->mctx, elt->http_endpoints[i]);
+		}
+		isc_mem_free(elt->mctx, elt->http_endpoints);
 	}
 	isc_mem_put(elt->mctx, elt, sizeof(*elt));
 }

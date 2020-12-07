@@ -117,6 +117,8 @@ Options
    listen for TLS queries on ``portnum``; the default is 853.
    If ``value`` is of the form ``https=<portnum>``, the server will
    listen for HTTPS queries on ``portnum``; the default is 443.
+   If ``value`` is of the form ``http=<portnum>``, the server will
+   listen for HTTP queries on ``portnum``; the default is 80.
    
 ``-s``
    This option writes memory usage statistics to ``stdout`` on exit.

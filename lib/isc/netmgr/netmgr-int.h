@@ -30,6 +30,7 @@
 #include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/result.h>
+#include <isc/rwlock.h>
 #include <isc/sockaddr.h>
 #include <isc/stats.h>
 #include <isc/thread.h>
@@ -272,6 +273,10 @@ typedef enum isc__netievent_type {
 	netievent_tlsdnsstop,
 	netievent_tlsdnscycle,
 	netievent_tlsdnsshutdown,
+
+	netievent_httpstop,
+	netievent_httpsend,
+	netievent_httpclose,
 
 	netievent_close,
 	netievent_shutdown,
@@ -701,18 +706,61 @@ typedef struct isc_nmsocket_tls_send_req {
 	isc_region_t data;
 } isc_nmsocket_tls_send_req_t;
 
+typedef enum isc_doh_request_type {
+	ISC_HTTP_REQ_GET,
+	ISC_HTTP_REQ_POST,
+	ISC_HTTP_REQ_UNSUPPORTED
+} isc_http2_request_type_t;
+
+typedef enum isc_http2_scheme_type {
+	ISC_HTTP_SCHEME_HTTP,
+	ISC_HTTP_SCHEME_HTTP_SECURE,
+	ISC_HTTP_SCHEME_UNSUPPORTED
+} isc_http2_scheme_type_t;
+
+typedef struct isc_nm_http_doh_cbarg {
+	isc_nm_recv_cb_t cb;
+	void *cbarg;
+	LINK(struct isc_nm_http_doh_cbarg) link;
+} isc_nm_http_doh_cbarg_t;
+
 typedef struct isc_nmsocket_h2 {
 	isc_nmsocket_t *psock; /* owner of the structure */
 	char *request_path;
 	char *query_data;
+	size_t query_data_len;
+	bool query_too_large;
 	isc_nm_http2_server_handler_t *handler;
 
-	uint8_t buf[65535];
+	uint8_t *buf;
 	size_t bufsize;
 	size_t bufpos;
 
 	int32_t stream_id;
+	isc_nm_http2_session_t *session;
+
+	isc_nmsocket_t *httpserver;
+
+	isc_http2_request_type_t request_type;
+	isc_http2_scheme_type_t request_scheme;
+	size_t content_length;
+	bool content_type_verified;
+	bool accept_type_verified;
+
+	isc_nm_http_cb_t handler_cb;
+	void *handler_cbarg;
 	LINK(struct isc_nmsocket_h2) link;
+
+	ISC_LIST(isc_nm_http2_server_handler_t) handlers;
+	ISC_LIST(isc_nm_http_doh_cbarg_t) handlers_cbargs;
+	isc_rwlock_t handlers_lock;
+
+	char response_content_length_str[128];
+
+	struct isc_nmsocket_h2_connect_data {
+		char *uri;
+		bool post;
+	} connect;
 } isc_nmsocket_h2_t;
 struct isc_nmsocket {
 	/*% Unlocked, RO */
@@ -973,8 +1021,6 @@ struct isc_nmsocket {
 	void *accept_cbarg;
 
 	atomic_int_fast32_t active_child_connections;
-
-	ISC_LIST(isc_nm_http2_server_handler_t) handlers;
 
 #ifdef NETMGR_TRACE
 	void *backtrace[TRACE_SIZE];
@@ -1473,8 +1519,41 @@ void
 isc__nm_tls_stoplistening(isc_nmsocket_t *sock);
 
 void
+isc__nm_http_stoplistening(isc_nmsocket_t *sock);
+
+void
+isc__nm_http_clear_handlers(isc_nmsocket_t *sock);
+
+void
+isc__nm_http_clear_session(isc_nmsocket_t *sock);
+
+void
 isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		  isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_http_close(isc_nmsocket_t *sock);
+
+void
+isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_httpstop(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0);
+
+bool
+isc__nm_parse_doh_query_string(const char *query_string, const char **start,
+			       size_t *len);
+
+char *
+isc__nm_base64url_to_base64(isc_mem_t *mem, const char *base64url,
+			    const size_t base64url_len, size_t *res_len);
+
+char *
+isc__nm_base64_to_base64url(isc_mem_t *mem, const char *base64,
+			    const size_t base64_len, size_t *res_len);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__, __func__)
@@ -1608,6 +1687,10 @@ NETIEVENT_SOCKET_HANDLE_TYPE(tlsdnscancel);
 NETIEVENT_SOCKET_QUOTA_TYPE(tlsdnsaccept);
 NETIEVENT_SOCKET_TYPE(tlsdnscycle);
 
+NETIEVENT_SOCKET_TYPE(httpstop);
+NETIEVENT_SOCKET_REQ_TYPE(httpsend);
+NETIEVENT_SOCKET_TYPE(httpclose);
+
 NETIEVENT_SOCKET_REQ_TYPE(tcpconnect);
 NETIEVENT_SOCKET_REQ_TYPE(tcpsend);
 NETIEVENT_SOCKET_TYPE(tcpstartread);
@@ -1667,6 +1750,10 @@ NETIEVENT_SOCKET_REQ_DECL(tlsdnssend);
 NETIEVENT_SOCKET_HANDLE_DECL(tlsdnscancel);
 NETIEVENT_SOCKET_QUOTA_DECL(tlsdnsaccept);
 NETIEVENT_SOCKET_DECL(tlsdnscycle);
+
+NETIEVENT_SOCKET_DECL(httpstop);
+NETIEVENT_SOCKET_REQ_DECL(httpsend);
+NETIEVENT_SOCKET_DECL(httpclose);
 
 NETIEVENT_SOCKET_REQ_DECL(tcpconnect);
 NETIEVENT_SOCKET_REQ_DECL(tcpsend);

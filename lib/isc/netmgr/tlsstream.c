@@ -510,7 +510,7 @@ isc_nm_listentls(isc_nm_t *mgr, isc_nmiface_t *iface,
 		*sockp = tlssock;
 	}
 
-	return result;
+	return (result);
 }
 
 void

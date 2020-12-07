@@ -507,33 +507,37 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
  */
 
 typedef void (*isc_nm_http_cb_t)(isc_nmhandle_t *handle, isc_result_t eresult,
-				 isc_region_t *postdata, isc_region_t *getdata,
-				 void *cbarg);
+				 isc_region_t *data, void *cbarg);
 /*%<
  * Callback function to be used when receiving an HTTP request.
  *
  * 'handle' the handle that can be used to send back the answer.
  * 'eresult' the result of the event.
- * 'postdata' contains the received POST data, if any. It will be freed
+ * 'data' contains the received data, if any. It will be freed
  *          after return by caller.
- * 'getdata' contains the received GET data (past '?'), if any. It will be
- *	     freed after return by caller.
  * 'cbarg'  the callback argument passed to listen function.
  */
 
 isc_result_t
-isc_nm_doh_request(isc_nm_t *mgr, const char *uri, isc_region_t *message,
-		   isc_nm_recv_cb_t cb, void *cbarg, isc_ssl_ctx_t *ctx);
+isc_nm_http_connect_send_request(isc_nm_t *mgr, const char *uri, bool POST,
+				 isc_region_t *message, isc_nm_recv_cb_t cb,
+				 void *cbarg, isc_tlsctx_t *ctx,
+				 unsigned int timeout);
 
 isc_result_t
-isc_nm_httpsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
-		    const char *uri, isc_nm_cb_t cb, void *cbarg,
-		    unsigned int timeout, size_t extrahandlesize);
+isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+		   const char *uri, bool POST, isc_nm_cb_t cb, void *cbarg,
+		   isc_tlsctx_t *ctx, unsigned int timeout,
+		   size_t extrahandlesize);
 
 isc_result_t
-isc_nm_listenhttps(isc_nm_t *mgr, isc_nmiface_t *iface, int backlog,
-		   isc_quota_t *quota, isc_ssl_ctx_t *ctx,
-		   isc_nmsocket_t **sockp);
+isc_nm_httprequest(isc_nmhandle_t *handle, isc_region_t *region,
+		   isc_nm_recv_cb_t reply_cb, void *cbarg);
+
+isc_result_t
+isc_nm_listenhttp(isc_nm_t *mgr, isc_nmiface_t *iface, int backlog,
+		  isc_quota_t *quota, isc_tlsctx_t *ctx,
+		  isc_nmsocket_t **sockp);
 
 isc_result_t
 isc_nm_http_add_endpoint(isc_nmsocket_t *sock, const char *uri,

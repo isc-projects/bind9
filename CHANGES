@@ -1,3 +1,8 @@
+5576.	[func]		Initial support for DNS-over-HTTP(S). BIND now
+			includes DNS-over-HTTP(S) layer built on top of nghttp2.
+			Both encrypted and unencrypted HTTP/2 connections
+			are supported. [GL !4566]
+
 5575.	[bug]		When migrating to dnssec-policy, BIND considered keys
 			with the "Inactive" and/or "Delete" timing metadata as
 			possible active keys. This has been fixed. [GL #2406]

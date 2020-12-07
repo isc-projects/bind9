@@ -437,6 +437,10 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		goto failure;
 	}
 
+	ifp->tcplistensocket = NULL;
+	ifp->http_listensocket = NULL;
+	ifp->http_secure_listensocket = NULL;
+
 	*ifpret = ifp;
 
 	return (ISC_R_SUCCESS);
@@ -540,6 +544,54 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 }
 
 static isc_result_t
+ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
+			size_t neps) {
+	isc_result_t result;
+	isc_nmsocket_t *sock = NULL;
+	size_t i = 0;
+
+	result = isc_nm_listenhttp(ifp->mgr->nm, (isc_nmiface_t *)&ifp->addr,
+				   ifp->mgr->backlog, &ifp->mgr->sctx->tcpquota,
+				   sslctx, &sock);
+
+	if (result == ISC_R_SUCCESS) {
+		for (i = 0; i < neps; i++) {
+			result = isc_nm_http_add_doh_endpoint(
+				sock, eps[i], ns__client_request, ifp,
+				sizeof(ns_client_t));
+		}
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "creating %s socket: %s",
+			      sslctx ? "HTTPS" : "HTTP",
+			      isc_result_totext(result));
+		return (result);
+	}
+
+	if (sslctx) {
+		ifp->http_secure_listensocket = sock;
+	} else {
+		ifp->http_listensocket = sock;
+	}
+
+	/*
+	 * We call this now to update the tcp-highwater statistic:
+	 * this is necessary because we are adding to the TCP quota just
+	 * by listening.
+	 */
+	result = ns__client_tcpconn(NULL, ISC_R_SUCCESS, ifp);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "updating TCP stats: %s",
+			      isc_result_totext(result));
+	}
+
+	return (result);
+}
+
+static isc_result_t
 ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		   const char *name, ns_interface_t **ifpret, bool accept_tcp,
 		   ns_listenelt_t *elt, bool *addr_in_use) {
@@ -554,6 +606,17 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	}
 
 	ifp->dscp = elt->dscp;
+
+	if (elt->is_http) {
+		result = ns_interface_listenhttp(ifp, elt->sslctx,
+						 elt->http_endpoints,
+						 elt->http_endpoints_number);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_interface;
+		}
+		*ifpret = ifp;
+		return (result);
+	}
 
 	if (elt->sslctx != NULL) {
 		result = ns_interface_listentls(ifp, elt->sslctx);
@@ -610,6 +673,14 @@ ns_interface_shutdown(ns_interface_t *ifp) {
 	if (ifp->tcplistensocket != NULL) {
 		isc_nm_stoplistening(ifp->tcplistensocket);
 		isc_nmsocket_close(&ifp->tcplistensocket);
+	}
+	if (ifp->http_listensocket != NULL) {
+		isc_nm_stoplistening(ifp->http_listensocket);
+		isc_nmsocket_close(&ifp->http_listensocket);
+	}
+	if (ifp->http_secure_listensocket != NULL) {
+		isc_nm_stoplistening(ifp->http_secure_listensocket);
+		isc_nmsocket_close(&ifp->http_secure_listensocket);
 	}
 	if (ifp->clientmgr != NULL) {
 		ns_clientmgr_destroy(&ifp->clientmgr);

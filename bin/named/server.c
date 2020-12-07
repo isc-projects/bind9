@@ -101,8 +101,10 @@
 #include <dst/result.h>
 
 #include <isccfg/grammar.h>
+#include <isccfg/httpconf.h>
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
+#include <isccfg/tlsconf.h>
 
 #include <ns/client.h>
 #include <ns/hooks.h>
@@ -398,13 +400,23 @@ static void
 named_server_reload(isc_task_t *task, isc_event_t *event);
 
 static isc_result_t
+ns_listenelt_from_http(isc_cfg_http_obj_t *http, isc_cfg_tls_obj_t *tls,
+		       in_port_t port, isc_mem_t *mctx,
+		       ns_listenelt_t **target);
+
+static isc_result_t
 ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			uint16_t family, ns_listenelt_t **target);
+			uint16_t family, isc_cfg_http_storage_t *http_servers,
+			isc_cfg_tls_data_storage_t *tls_storage,
+			ns_listenelt_t **target);
+
 static isc_result_t
 ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 			 cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			 uint16_t family, ns_listenlist_t **target);
+			 uint16_t family, isc_cfg_http_storage_t *http_servers,
+			 isc_cfg_tls_data_storage_t *tls_storage,
+			 ns_listenlist_t **target);
 
 static isc_result_t
 configure_forward(const cfg_obj_t *config, dns_view_t *view,
@@ -8505,12 +8517,17 @@ load_configuration(const char *filename, named_server_t *server,
 	unsigned int initial, idle, keepalive, advertised;
 	dns_aclenv_t *env =
 		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
+	isc_cfg_tls_data_storage_t tls_storage;
+	isc_cfg_http_storage_t http_storage;
 
 	ISC_LIST_INIT(kasplist);
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
 	ISC_LIST_INIT(cachelist);
 	ISC_LIST_INIT(altsecrets);
+
+	cfg_tls_storage_init(named_g_mctx, &tls_storage);
+	cfg_http_storage_init(named_g_mctx, &http_storage);
 
 	/* Create the ACL configuration context */
 	if (named_g_aclconfctx != NULL) {
@@ -8572,6 +8589,19 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
+
+	obj = NULL;
+	result = named_config_get(maps, "http-port", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	named_g_httpport = (in_port_t)cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = named_config_get(maps, "https-port", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	named_g_httpsport = (in_port_t)cfg_obj_asuint32(obj);
+
+	CHECK(cfg_tls_storage_load(config, &tls_storage));
+	CHECK(cfg_http_storage_load(config, &http_storage));
 
 	/*
 	 * If bind.keys exists, load it.  If "dnssec-validation auto"
@@ -8991,7 +9021,8 @@ load_configuration(const char *filename, named_server_t *server,
 			/* check return code? */
 			(void)ns_listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET, &listenon);
+				named_g_mctx, AF_INET, &http_storage,
+				&tls_storage, &listenon);
 		} else {
 			/*
 			 * Not specified, use default.
@@ -9019,7 +9050,8 @@ load_configuration(const char *filename, named_server_t *server,
 			/* check return code? */
 			(void)ns_listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET6, &listenon);
+				named_g_mctx, AF_INET6, &http_storage,
+				&tls_storage, &listenon);
 		} else {
 			/*
 			 * Not specified, use default.
@@ -9779,6 +9811,9 @@ cleanup:
 	if (exclusive) {
 		isc_task_endexclusive(server->task);
 	}
+
+	cfg_http_storage_uninit(&http_storage);
+	cfg_tls_storage_uninit(&tls_storage);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
@@ -10987,7 +11022,9 @@ named_server_togglequerylog(named_server_t *server, isc_lex_t *lex) {
 static isc_result_t
 ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 			 cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			 uint16_t family, ns_listenlist_t **target) {
+			 uint16_t family, isc_cfg_http_storage_t *http_servers,
+			 isc_cfg_tls_data_storage_t *tls_storage,
+			 ns_listenlist_t **target) {
 	isc_result_t result;
 	const cfg_listelt_t *element;
 	ns_listenlist_t *dlist = NULL;
@@ -11005,7 +11042,8 @@ ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 		ns_listenelt_t *delt = NULL;
 		const cfg_obj_t *listener = cfg_listelt_value(element);
 		result = ns_listenelt_fromconfig(listener, config, actx, mctx,
-						 family, &delt);
+						 family, http_servers,
+						 tls_storage, &delt);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -11026,14 +11064,18 @@ cleanup:
 static isc_result_t
 ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			uint16_t family, ns_listenelt_t **target) {
+			uint16_t family, isc_cfg_http_storage_t *http_servers,
+			isc_cfg_tls_data_storage_t *tls_storage,
+			ns_listenelt_t **target) {
 	isc_result_t result;
-	const cfg_obj_t *tlsobj, *portobj, *dscpobj;
-	in_port_t port;
+	const cfg_obj_t *tlsobj, *portobj, *dscpobj, *httpobj;
+	in_port_t port = 0;
 	isc_dscp_t dscp = -1;
 	const char *key = NULL, *cert = NULL;
-	bool tls = false;
+	bool tls = false, http = false;
 	ns_listenelt_t *delt = NULL;
+	isc_cfg_http_obj_t *http_server = NULL;
+	isc_cfg_tls_obj_t *tls_cert = NULL;
 	REQUIRE(target != NULL && *target == NULL);
 
 	/* XXXWPK TODO be more verbose on failures. */
@@ -11042,43 +11084,60 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		if (!strcmp(cfg_obj_asstring(tlsobj), "ephemeral")) {
 			tls = true;
 		} else {
-			const cfg_obj_t *tlsconfigs = NULL;
-			const cfg_listelt_t *element;
-			(void)cfg_map_get(config, "tls", &tlsconfigs);
-			for (element = cfg_list_first(tlsconfigs);
-			     element != NULL; element = cfg_list_next(element))
-			{
-				cfg_obj_t *tconfig = cfg_listelt_value(element);
-				const cfg_obj_t *name =
-					cfg_map_getname(tconfig);
-				if (!strcmp(cfg_obj_asstring(name),
-					    cfg_obj_asstring(tlsobj))) {
-					tls = true;
-					const cfg_obj_t *keyo = NULL,
-							*certo = NULL;
-					(void)cfg_map_get(tconfig, "key-file",
-							  &keyo);
-					if (keyo == NULL) {
-						return (ISC_R_FAILURE);
-					}
-					(void)cfg_map_get(tconfig, "cert-file",
-							  &certo);
-					if (certo == NULL) {
-						return (ISC_R_FAILURE);
-					}
-					key = cfg_obj_asstring(keyo);
-					cert = cfg_obj_asstring(certo);
-					break;
-				}
+			tls_cert = cfg_tls_storage_find(
+				cfg_obj_asstring(tlsobj), tls_storage);
+			if (tls_cert != NULL) {
+				tls = true;
+				key = tls_cert->key_file;
+				cert = tls_cert->cert_file;
+				INSIST(key != NULL);
+				INSIST(cert != NULL);
 			}
 		}
 		if (!tls) {
 			return (ISC_R_FAILURE);
 		}
 	}
+	httpobj = cfg_tuple_get(listener, "http");
+	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {
+		if (tls && tls_cert == NULL) {
+			return (ISC_R_FAILURE);
+		}
+		http = true;
+		http_server = cfg_http_find(cfg_obj_asstring(httpobj),
+					    http_servers);
+		if (http_server == NULL) {
+			isc_log_write(
+				named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				"HTTP(S) server \"%s\" is nowhere to be found",
+				cfg_obj_asstring(httpobj));
+			return (ISC_R_FAILURE);
+		}
+	}
 	portobj = cfg_tuple_get(listener, "port");
 	if (!cfg_obj_isuint32(portobj)) {
-		if (tls) {
+		if (http && tls) {
+			if (named_g_httpsport != 0) {
+				port = named_g_httpsport;
+			} else {
+				result = named_config_getport(
+					config, "https-port", &port);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
+			}
+		} else if (http && !tls) {
+			if (named_g_httpport != 0) {
+				port = named_g_port;
+			} else {
+				result = named_config_getport(
+					config, "http-port", &port);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
+			}
+		} else if (tls) {
 			if (named_g_tlsport != 0) {
 				port = named_g_tlsport;
 			} else {
@@ -11122,8 +11181,14 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	}
 
-	result = ns_listenelt_create(mctx, port, dscp, NULL, tls, key, cert,
-				     &delt);
+	if (http) {
+		INSIST(http_server != NULL);
+		result = ns_listenelt_from_http(http_server, tls_cert, port,
+						mctx, &delt);
+	} else {
+		result = ns_listenelt_create(mctx, port, dscp, NULL, tls, key,
+					     cert, &delt);
+	}
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -11137,6 +11202,65 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	}
 	*target = delt;
 	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Create a listen list for HTTP/HTTPS
+ */
+static isc_result_t
+ns_listenelt_from_http(isc_cfg_http_obj_t *http, isc_cfg_tls_obj_t *tls,
+		       in_port_t port, isc_mem_t *mctx,
+		       ns_listenelt_t **target) {
+	isc_result_t result = ISC_R_SUCCESS;
+	ns_listenelt_t *delt = NULL;
+	const char *key = NULL, *cert = NULL;
+	char **http_endpoints = NULL;
+	size_t http_endpoints_number;
+	isc_cfg_http_endpoint_t *ep;
+	size_t i = 0;
+	REQUIRE(target != NULL && *target == NULL);
+
+	if (tls) {
+		INSIST(tls->key_file != NULL);
+		INSIST(tls->cert_file != NULL);
+		key = tls->key_file;
+		cert = tls->cert_file;
+	}
+
+	if (port == 0) {
+		port = tls != NULL ? named_g_httpsport : named_g_httpport;
+	}
+
+	for (ep = ISC_LIST_HEAD(http->endpoints), i = 0; ep != NULL;
+	     ep = ISC_LIST_NEXT(ep, link), i++)
+		;
+
+	INSIST(i > 0);
+
+	http_endpoints_number = i;
+	http_endpoints = isc_mem_allocate(mctx, sizeof(http_endpoints[0]) *
+							http_endpoints_number);
+	for (ep = ISC_LIST_HEAD(http->endpoints), i = 0; ep != NULL;
+	     ep = ISC_LIST_NEXT(ep, link), i++)
+	{
+		http_endpoints[i] = isc_mem_strdup(mctx, ep->path);
+	}
+
+	INSIST(i == http_endpoints_number);
+
+	result = ns_listenelt_create_http(mctx, port, named_g_dscp, NULL, key,
+					  cert, http_endpoints,
+					  http_endpoints_number, &delt);
+
+	if (result != ISC_R_SUCCESS) {
+		if (delt != NULL) {
+			ns_listenelt_destroy(delt);
+		}
+		return result;
+	}
+
+	*target = delt;
+	return (result);
 }
 
 isc_result_t

@@ -48,12 +48,23 @@ TESTS =			\
 	tcp_quota_test	\
 	tcpdns_test	\
 	tlsdns_test	\
+	doh_test	\
 	time_test	\
 	timer_test	\
 	udp_test
 
 check_PROGRAMS =	\
 	$(TESTS)
+
+doh_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(LIBUV_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+doh_test_LDADD =	\
+	$(LDADD)	\
+	$(LIBUV_LIBS)	\
+	$(OPENSSL_LIBS)
 
 hmac_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
@@ -77,8 +88,8 @@ random_test_LDADD =	\
 
 tcp_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
-	$(OPENSSL_CFLAGS)	\
-	$(LIBUV_CFLAGS)
+	$(LIBUV_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
 
 tcp_test_LDADD =	\
 	$(LDADD)	\
@@ -86,8 +97,8 @@ tcp_test_LDADD =	\
 
 tcp_quota_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
-	$(OPENSSL_CFLAGS)	\
-	$(LIBUV_CFLAGS)
+	$(LIBUV_CFLAGS)		\
+	$(OPENSSL_CFLAGS)
 
 tcp_quota_test_LDADD =	\
 	$(LDADD)	\
@@ -95,8 +106,8 @@ tcp_quota_test_LDADD =	\
 
 tcpdns_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
-	$(OPENSSL_CFLAGS)	\
-	$(LIBUV_CFLAGS)
+	$(LIBUV_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
 
 tcpdns_test_LDADD =	\
 	$(LDADD)	\
@@ -104,8 +115,8 @@ tcpdns_test_LDADD =	\
 
 tlsdns_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
-	$(OPENSSL_CFLAGS)	\
-	$(LIBUV_CFLAGS)
+	$(LIBUV_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
 
 tlsdns_test_LDADD =	\
 	$(LDADD)	\
@@ -113,8 +124,8 @@ tlsdns_test_LDADD =	\
 
 udp_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
-	$(OPENSSL_CFLAGS)	\
-	$(LIBUV_CFLAGS)
+	$(LIBUV_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
 
 udp_test_LDADD =	\
 	$(LDADD)	\

@@ -650,7 +650,7 @@ isc_url_parse(const char *buf, size_t buflen, bool is_connect,
 		INSIST(off + len <= buflen);
 
 		v = 0;
-		for (pp = buf + off; pp < end; p++) {
+		for (pp = buf + off; pp < end; pp++) {
 			v *= 10;
 			v += *pp - '0';
 
