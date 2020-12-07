@@ -11,35 +11,16 @@
 Notes for BIND 9.16.10
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
-
-- None.
 
 - NSEC3 support was added to KASP. A new option for ``dnssec-policy``,
   ``nsec3param``, can be used to set the desired NSEC3 parameters.
   NSEC3 salt collisions are automatically prevented during resalting.
   [GL #1620]
 
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
-
-- None.
 
 - The default value of ``max-recursion-queries`` was increased from 75
   to 100. Since the queries sent towards root and TLD servers are now
