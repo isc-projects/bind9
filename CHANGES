@@ -1,5 +1,5 @@
 5553.	[bug]		When reconfiguring named, removing "auto-dnssec"
-			actually did not turn off DNSSEC maintenance.
+			did not actually turn off DNSSEC maintenance.
 			This has been fixed. [GL #2341]
 
 5552.	[func]		When switching to "dnssec-policy none;", named

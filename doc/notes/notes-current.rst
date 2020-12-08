@@ -50,6 +50,5 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Only assign threads to CPUs in the CPU affinity set, so that ``named`` no
-  longer attempts to run threads on CPUs outside the affinity set. Thanks to
-  Ole Bjørn Hessen. [GL #2245]
+- When reconfiguring ``named``, removing ``auto-dnssec`` did actually not turn
+  off DNSSEC maintenance. This has been fixed. [GL #2341]
