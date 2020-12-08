@@ -1977,7 +1977,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "cache-file", &cfg_type_qstring, 0 },
 	{ "catalog-zones", &cfg_type_catz, 0 },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
-	{ "cleaning-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "cleaning-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
 	{ "clients-per-query", &cfg_type_uint32, 0 },
 	{ "deny-answer-addresses", &cfg_type_denyaddresses, 0 },
 	{ "deny-answer-aliases", &cfg_type_denyaliases, 0 },

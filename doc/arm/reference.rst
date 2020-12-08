@@ -3062,9 +3062,6 @@ system.
 Periodic Task Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-``cleaning-interval``
-   This option is obsolete.
-
 ``heartbeat-interval``
    The server performs zone maintenance tasks for all zones marked
    as ``dialup`` whenever this interval expires. The default is 60
