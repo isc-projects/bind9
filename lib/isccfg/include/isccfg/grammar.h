@@ -36,8 +36,7 @@
 #define CFG_CLAUSEFLAG_OBSOLETE 0x00000002
 /* obsolete: #define CFG_CLAUSEFLAG_NOTIMP 0x00000004 */
 /* obsolete: #define CFG_CLAUSEFLAG_NYI 0x00000008 */
-/*% Default value has changed since earlier release */
-#define CFG_CLAUSEFLAG_NEWDEFAULT 0x00000010
+/* obsolete: #define CFG_CLAUSEFLAG_NEWDEFAULT 0x00000010 */
 /*%
  * Clause needs to be interpreted during parsing
  * by calling a callback function, like the

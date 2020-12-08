@@ -1973,7 +1973,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "allow-v6-synthesis", &cfg_type_bracketed_aml,
 	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "attach-cache", &cfg_type_astring, 0 },
-	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },
+	{ "auth-nxdomain", &cfg_type_boolean, 0 },
 	{ "cache-file", &cfg_type_qstring, 0 },
 	{ "catalog-zones", &cfg_type_catz, 0 },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },

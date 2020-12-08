@@ -2471,12 +2471,6 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 			CHECK(ISC_R_FAILURE);
 		}
 
-		/*
-		 * Don't log options with CFG_CLAUSEFLAG_NEWDEFAULT
-		 * set here - we need to log the *lack* of such an option,
-		 * not its presence.
-		 */
-
 		/* See if the clause already has a value; if not create one. */
 		result = isc_symtab_lookup(obj->value.map.symtab, clause->name,
 					   0, &symval);
@@ -2707,7 +2701,6 @@ static struct flagtext {
 	unsigned int flag;
 	const char *text;
 } flagtexts[] = { { CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
-		  { CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
 		  { CFG_CLAUSEFLAG_TESTONLY, "test only" },
 		  { CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
 		  { CFG_CLAUSEFLAG_MULTI, "may occur multiple times" },
