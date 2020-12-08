@@ -35,28 +35,28 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 rndc.conf \- rndc configuration file
-  .SH "SYNOPSIS"
-    .HP \w'\fBrndc\&.conf\fR\ 'u
-      \fBrndc\&.conf\fR
-  .SH "DESCRIPTION"
-    .PP
+.SH "SYNOPSIS"
+.HP \w'\fBrndc\&.conf\fR\ 'u
+\fBrndc\&.conf\fR
+.SH "DESCRIPTION"
+.PP
 rndc\&.conf
 is the configuration file for
 \fBrndc\fR, the BIND 9 name server control utility\&. This file has a similar structure and syntax to
 named\&.conf\&. Statements are enclosed in braces and terminated with a semi\-colon\&. Clauses in the statements are also semi\-colon terminated\&. The usual comment styles are supported:
-    .PP
+.PP
 C style: /* */
-    .PP
+.PP
 C++ style: // to end of line
-    .PP
+.PP
 Unix style: # to end of line
-    .PP
+.PP
 rndc\&.conf
 is much simpler than
 named\&.conf\&. The file uses three statements: an options statement, a server statement and a key statement\&.
-    .PP
+.PP
 The
 \fBoptions\fR
 statement contains five clauses\&. The
@@ -85,7 +85,7 @@ statement, this default port will be used to connect\&. The
 and
 \fBdefault\-source\-address\-v6\fR
 clauses which can be used to set the IPv4 and IPv6 source addresses respectively\&.
-    .PP
+.PP
 After the
 \fBserver\fR
 keyword, the server statement includes a string which is the hostname or address for a name server\&. The statement has three possible clauses:
@@ -99,7 +99,7 @@ clause is supplied these addresses will be used instead of the server name\&. Ea
 or
 \fBsource\-address\-v6\fR
 of supplied then these will be used to specify the IPv4 and IPv6 source addresses respectively\&.
-    .PP
+.PP
 The
 \fBkey\fR
 statement begins with an identifying string, the name of the key\&. The statement has two clauses\&.
@@ -107,7 +107,7 @@ statement begins with an identifying string, the name of the key\&. The statemen
 identifies the authentication algorithm for
 \fBrndc\fR
 to use; currently only HMAC\-MD5 (for compatibility), HMAC\-SHA1, HMAC\-SHA224, HMAC\-SHA256 (default), HMAC\-SHA384 and HMAC\-SHA512 are supported\&. This is followed by a secret clause which contains the base\-64 encoding of the algorithm\*(Aqs authentication key\&. The base\-64 string is enclosed in double quotes\&.
-    .PP
+.PP
 There are two common ways to generate the base\-64 string for the secret\&. The BIND 9 program
 \fBrndc\-confgen\fR
 can be used to generate a random key, or the
@@ -116,8 +116,8 @@ program, also known as
 \fBmimencode\fR, can be used to generate a base\-64 string from known input\&.
 \fBmmencode\fR
 does not ship with BIND 9 but is available on many systems\&. See the EXAMPLE section for sample command lines for each\&.
-  .SH "EXAMPLE"
-    .PP
+.SH "EXAMPLE"
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -130,8 +130,7 @@ does not ship with BIND 9 but is available on many systems\&. See the EXAMPLE se
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -143,8 +142,7 @@ does not ship with BIND 9 but is available on many systems\&. See the EXAMPLE se
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -157,8 +155,7 @@ does not ship with BIND 9 but is available on many systems\&. See the EXAMPLE se
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -171,8 +168,7 @@ does not ship with BIND 9 but is available on many systems\&. See the EXAMPLE se
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -185,23 +181,22 @@ does not ship with BIND 9 but is available on many systems\&. See the EXAMPLE se
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 In the above example,
 \fBrndc\fR
 will by default use the server at localhost (127\&.0\&.0\&.1) and the key called samplekey\&. Commands to the localhost server will use the samplekey key, which must also be defined in the server\*(Aqs configuration file with the same name and secret\&. The key statement indicates that samplekey uses the HMAC\-SHA256 algorithm and its secret clause contains the base\-64 encoding of the HMAC\-SHA256 secret enclosed in double quotes\&.
-    .PP
+.PP
 If
 \fBrndc \-s testserver\fR
 is used then
 \fBrndc\fR
 will connect to server on localhost port 5353 using the key testkey\&.
-    .PP
+.PP
 To generate a random secret with
 \fBrndc\-confgen\fR:
-    .PP
+.PP
 \fBrndc\-confgen\fR
-    .PP
+.PP
 A complete
 rndc\&.conf
 file, including the randomly generated key, will be written to the standard output\&. Commented\-out
@@ -211,21 +206,21 @@ and
 statements for
 named\&.conf
 are also printed\&.
-    .PP
+.PP
 To generate a base\-64 secret with
 \fBmmencode\fR:
-    .PP
+.PP
 \fBecho "known plaintext for a secret" | mmencode\fR
-  .SH "NAME SERVER CONFIGURATION"
-    .PP
+.SH "NAME SERVER CONFIGURATION"
+.PP
 The name server must be configured to accept rndc connections and to recognize the key specified in the
 rndc\&.conf
 file, using the controls statement in
 named\&.conf\&. See the sections on the
 \fBcontrols\fR
 statement in the BIND 9 Administrator Reference Manual for details\&.
-  .SH "SEE ALSO"
-    .PP
+.SH "SEE ALSO"
+.PP
 \fBrndc\fR(8),
 \fBrndc-confgen\fR(8),
 \fBmmencode\fR(1),

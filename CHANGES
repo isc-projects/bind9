@@ -1,3 +1,5 @@
+	--- 9.11.26 released ---
+
 5544.	[func]		Restore the default value of "nocookie-udp-size" to 4096
 			bytes. [GL #2250]
 

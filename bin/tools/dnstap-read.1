@@ -35,17 +35,13 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 dnstap-read \- print dnstap data in human\-readable form
-  .SH "SYNOPSIS"
-    .HP \w'\fBdnstap\-read\fR\ 'u
-      \fBdnstap\-read\fR
-       [\fB\-m\fR]
-       [\fB\-p\fR]
-       [\fB\-y\fR]
-       {\fIfile\fR}
-  .SH "DESCRIPTION"
-    .PP
+.SH "SYNOPSIS"
+.HP \w'\fBdnstap\-read\fR\ 'u
+\fBdnstap\-read\fR [\fB\-m\fR] [\fB\-p\fR] [\fB\-y\fR] {\fIfile\fR}
+.SH "DESCRIPTION"
+.PP
 \fBdnstap\-read\fR
 reads
 \fBdnstap\fR
@@ -54,30 +50,30 @@ data from a specified file and prints it in a human\-readable format\&. By defau
 data is printed in a short summary format, but if the
 \fB\-y\fR
 option is specified, then a longer and more detailed YAML format is used instead\&.
-  .SH "OPTIONS"
-      .PP
+.SH "OPTIONS"
+.PP
 \-m
 .RS 4
-          Trace memory allocations; used for debugging memory leaks\&.
-      .RE
-      .PP
+Trace memory allocations; used for debugging memory leaks\&.
+.RE
+.PP
 \-p
 .RS 4
-          After printing the
+After printing the
 \fBdnstap\fR
 data, print the text form of the DNS message that was encapsulated in the
 \fBdnstap\fR
 frame\&.
-      .RE
-      .PP
+.RE
+.PP
 \-y
 .RS 4
-          Print
+Print
 \fBdnstap\fR
 data in a detailed YAML format\&.
-      .RE
-  .SH "SEE ALSO"
-    .PP
+.RE
+.SH "SEE ALSO"
+.PP
 \fBnamed\fR(8),
 \fBrndc\fR(8),
 BIND 9 Administrator Reference Manual\&.

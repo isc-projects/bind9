@@ -14,61 +14,42 @@
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry">
 <a name="man.named.conf"></a><div class="titlepage"></div>
-  
-  
-
-  
-
-  <div class="refnamediv">
+<div class="refnamediv">
 <h2>Name</h2>
-<p>
-    <code class="filename">named.conf</code>
-     &#8212; configuration file for <span class="command"><strong>named</strong></span>
-  </p>
+<p><code class="filename">named.conf</code> &#8212; configuration file for <span class="command"><strong>named</strong></span></p>
 </div>
-
-  
-
-  <div class="refsynopsisdiv">
+<div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-    <div class="cmdsynopsis"><p>
-      <code class="command">named.conf</code> 
-    </p></div>
-  </div>
-
-  <div class="refsection">
+<div class="cmdsynopsis"><p><code class="command">named.conf</code> </p></div>
+</div>
+<div class="refsection">
 <a name="id-1.7"></a><h2>DESCRIPTION</h2>
-
-    <p><code class="filename">named.conf</code> is the configuration file
+<p><code class="filename">named.conf</code> is the configuration file
       for
       <span class="command"><strong>named</strong></span>.  Statements are enclosed
       in braces and terminated with a semi-colon.  Clauses in
       the statements are also semi-colon terminated.  The usual
       comment styles are supported:
     </p>
-    <p>
+<p>
       C style: /* */
     </p>
-    <p>
+<p>
       C++ style: // to end of line
     </p>
-    <p>
+<p>
       Unix style: # to end of line
     </p>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.8"></a><h2>ACL</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.9"></a><h2>CONTROLS</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 controls {<br>
 	inet ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> |<br>
 	    * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] allow<br>
@@ -81,43 +62,35 @@ controls {<br>
 	    <em class="replaceable"><code>boolean</code></em> ];<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.10"></a><h2>DLZ</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 dlz <em class="replaceable"><code>string</code></em> {<br>
 	database <em class="replaceable"><code>string</code></em>;<br>
 	search <em class="replaceable"><code>boolean</code></em>;<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.11"></a><h2>DYNDB</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 dyndb <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>quoted_string</code></em> {<br>
     <em class="replaceable"><code>unspecified-text</code></em> };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.12"></a><h2>KEY</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 key <em class="replaceable"><code>string</code></em> {<br>
 	algorithm <em class="replaceable"><code>string</code></em>;<br>
 	secret <em class="replaceable"><code>string</code></em>;<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.13"></a><h2>LOGGING</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 logging {<br>
 	category <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
 	channel <em class="replaceable"><code>string</code></em> {<br>
@@ -134,12 +107,10 @@ logging {<br>
 	};<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.14"></a><h2>LWRES</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 lwres {<br>
 	listen-on [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>ipv4_address</code></em><br>
 	    | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ]; ... };<br>
@@ -150,32 +121,26 @@ lwres {<br>
 	view <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ];<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.15"></a><h2>MANAGED-KEYS</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 managed-keys { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em><br>
     <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.16"></a><h2>MASTERS</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 masters <em class="replaceable"><code>string</code></em> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp<br>
     <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [<br>
     port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port<br>
     <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.17"></a><h2>OPTIONS</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 options {<br>
 	acache-cleaning-interval <em class="replaceable"><code>integer</code></em>;<br>
 	acache-enable <em class="replaceable"><code>boolean</code></em>;<br>
@@ -451,12 +416,10 @@ options {<br>
 	zone-statistics ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.18"></a><h2>SERVER</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 server <em class="replaceable"><code>netprefix</code></em> {<br>
 	bogus <em class="replaceable"><code>boolean</code></em>;<br>
 	edns <em class="replaceable"><code>boolean</code></em>;<br>
@@ -488,12 +451,10 @@ server <em class="replaceable"><code>netprefix</code></em> {<br>
 	transfers <em class="replaceable"><code>integer</code></em>;<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.19"></a><h2>STATISTICS-CHANNELS</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 statistics-channels {<br>
 	inet ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> |<br>
 	    * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [<br>
@@ -501,21 +462,17 @@ statistics-channels {<br>
 	    } ];<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.20"></a><h2>TRUSTED-KEYS</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 trusted-keys { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
     <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.21"></a><h2>VIEW</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {<br>
 	acache-cleaning-interval <em class="replaceable"><code>integer</code></em>;<br>
 	acache-enable <em class="replaceable"><code>boolean</code></em>;<br>
@@ -866,12 +823,10 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	zone-statistics ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.22"></a><h2>ZONE</h2>
-
-    <div class="literallayout"><p><br>
+<div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {<br>
 	allow-notify { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-query { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -965,36 +920,21 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	zone-statistics ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );<br>
 };<br>
 </p></div>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.23"></a><h2>FILES</h2>
-
-    <p><code class="filename">/etc/named.conf</code>
+<p><code class="filename">/etc/named.conf</code>
     </p>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.24"></a><h2>SEE ALSO</h2>
-
-    <p><span class="citerefentry">
-	<span class="refentrytitle">ddns-confgen</span>(8)
-      </span>,
-      <span class="citerefentry">
-	<span class="refentrytitle">named</span>(8)
-      </span>,
-      <span class="citerefentry">
-	<span class="refentrytitle">named-checkconf</span>(8)
-      </span>,
-      <span class="citerefentry">
-	<span class="refentrytitle">rndc</span>(8)
-      </span>,
-      <span class="citerefentry">
-	<span class="refentrytitle">rndc-confgen</span>(8)
-      </span>,
+<p><span class="citerefentry"><span class="refentrytitle">ddns-confgen</span>(8)</span>,
+      <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
+      <span class="citerefentry"><span class="refentrytitle">named-checkconf</span>(8)</span>,
+      <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
+      <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>.
     </p>
-  </div>
-
+</div>
 </div></body>
 </html>
