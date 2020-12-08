@@ -255,7 +255,7 @@ The default process\-id file.
 .UNINDENT
 .SH SEE ALSO
 .sp
-\fI\%RFC 1033\fP, \fI\%RFC 1034\fP, \fI\%RFC 1035\fP, \fBnamed\-checkconf(8)\fP, \fBnamed\-checkzone(8)\fP, \fBrndc(8), :manpage:\(ganamed.conf(5)\fP, BIND 9 Administrator Reference Manual.
+\fI\%RFC 1033\fP, \fI\%RFC 1034\fP, \fI\%RFC 1035\fP, \fBnamed\-checkconf(8)\fP, \fBnamed\-checkzone(8)\fP, \fBrndc(8)\fP, \fBnamed.conf(5)\fP, BIND 9 Administrator Reference Manual.
 .SH AUTHOR
 Internet Systems Consortium
 .SH COPYRIGHT
