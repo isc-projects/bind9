@@ -171,7 +171,7 @@ options {\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-recursion-depth 7;\n\
 	max-recursion-queries 100;\n\
-	max-stale-ttl 43200; /* 12 hours */\n\
+	max-stale-ttl 86400; /* 1 day */\n\
 	message-compression yes;\n\
 	min-ncache-ttl 0; /* 0 hours */\n\
 	min-cache-ttl 0; /* 0 seconds */\n\
@@ -197,7 +197,7 @@ options {\n\
 #	sortlist <none>\n\
 	stale-answer-enable false;\n\
 	stale-refresh-time 30; /* 30 seconds */\n\
-	stale-answer-ttl 1; /* 1 second */\n\
+	stale-answer-ttl 30; /* 30 seconds */\n\
 	stale-cache-enable false;\n\
 	synth-from-dnssec no;\n\
 #	topology <none>\n\

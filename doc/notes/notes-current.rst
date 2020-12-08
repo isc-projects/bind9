@@ -42,6 +42,16 @@ Feature Changes
   signal that the entire DS RRset at the parent must be removed, as
   described in RFC 8078. [GL #1750]
 
+- The default value of ``max-stale-ttl`` has been changed from 12 hours to 1
+  day and the default value of ``stale-answer-ttl`` has been changed from 1
+  second to 30 seconds, following RFC 8767 recommendations. [GL #2248]
+
+- Adjust the ``max-recursion-queries`` default from 75 to 100. Since the
+  queries sent towards root and TLD servers are now included in the
+  count (as a result of the fix for CVE-2020-8616), ``max-recursion-queries``
+  has a higher chance of being exceeded by non-attack queries, which is the
+  main reason for increasing its default value. [GL #2305]
+
 - When using the ``unixtime`` or ``date`` method to update the SOA
   serial number, ``named`` and ``dnssec-signzone`` silently fell back to
   the ``increment`` method to prevent the new serial number from being

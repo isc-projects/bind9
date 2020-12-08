@@ -1,3 +1,9 @@
+5560.	[func]		The default value of "max-stale-ttl" has been changed
+			from 12 hours to 1 day and the default value of
+			"stale-answer-ttl" has been changed from 1 second to
+			30 seconds, following RFC 8767 recommendations.
+			[GL #2248]
+
 5559.	[bug]		The --with-maxminddb=PATH form of the build-time option
 			enabling support for libmaxminddb was not working
 			correctly. This has been fixed. [GL #2366]
