@@ -35,24 +35,23 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 lwres_getaddrinfo, lwres_freeaddrinfo \- socket address structure to host and service name
-  .SH "SYNOPSIS"
+.SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/netdb\&.h>
 .fi
 .ft
-.sp
 .HP \w'int\ lwres_getaddrinfo('u
 .BI "int lwres_getaddrinfo(const\ char\ *" "hostname" ", const\ char\ *" "servname" ", const\ struct\ addrinfo\ *" "hints" ", struct\ addrinfo\ **" "res" ");"
 .HP \w'void\ lwres_freeaddrinfo('u
 .BI "void lwres_freeaddrinfo(struct\ addrinfo\ *" "ai" ");"
-    .PP
+.PP
 If the operating system does not provide a
 \fBstruct addrinfo\fR, the following structure is used:
-    .PP
+.PP
 .nf
 struct  addrinfo {
         int             ai_flags;       /* AI_PASSIVE, AI_CANONNAME */
@@ -66,8 +65,8 @@ struct  addrinfo {
 };
 .fi
 .sp
-  .SH "DESCRIPTION"
-    .PP
+.SH "DESCRIPTION"
+.PP
 \fBlwres_getaddrinfo()\fR
 is used to get a list of IP addresses and port numbers for host
 \fIhostname\fR
@@ -85,23 +84,23 @@ is either a host name or a numeric host address string: a dotted decimal IPv4 ad
 \fIservname\fR
 is either a decimal port number or a service name as listed in
 /etc/services\&.
-    .PP
+.PP
 \fIhints\fR
 is an optional pointer to a
 \fBstruct addrinfo\fR\&. This structure can be used to provide hints concerning the type of socket that the caller supports or wishes to use\&. The caller can supply the following structure elements in
 \fI*hints\fR:
-        .PP
+.PP
 \fBai_family\fR
 .RS 4
-            The protocol family that should be used\&. When
+The protocol family that should be used\&. When
 \fBai_family\fR
 is set to
 \fBPF_UNSPEC\fR, it means the caller will accept any protocol family supported by the operating system\&.
-        .RE
-        .PP
+.RE
+.PP
 \fBai_socktype\fR
 .RS 4
-            denotes the type of socket \(em
+denotes the type of socket \(em
 \fBSOCK_STREAM\fR,
 \fBSOCK_DGRAM\fR
 or
@@ -109,18 +108,18 @@ or
 \(em that is wanted\&. When
 \fBai_socktype\fR
 is zero the caller will accept any socket type\&.
-        .RE
-        .PP
+.RE
+.PP
 \fBai_protocol\fR
 .RS 4
-            indicates which transport protocol is wanted: IPPROTO_UDP or IPPROTO_TCP\&. If
+indicates which transport protocol is wanted: IPPROTO_UDP or IPPROTO_TCP\&. If
 \fBai_protocol\fR
 is zero the caller will accept any protocol\&.
-        .RE
-        .PP
+.RE
+.PP
 \fBai_flags\fR
 .RS 4
-            Flag bits\&. If the
+Flag bits\&. If the
 \fBAI_CANONNAME\fR
 bit is set, a successful call to
 \fBlwres_getaddrinfo()\fR
@@ -139,7 +138,7 @@ for an IPv4 address or
 \fBIN6ADDR_ANY_INIT\fR
 for an IPv6 address\&.
 .sp
-            When
+When
 \fBai_flags\fR
 does not set the
 \fBAI_PASSIVE\fR
@@ -158,21 +157,21 @@ pointer and
 is not set in
 \fBai_flags\fR\&.
 .sp
-            If
+If
 \fBai_flags\fR
 is set to
 \fBAI_NUMERICHOST\fR
 it indicates that
 \fIhostname\fR
 should be treated as a numeric string defining an IPv4 or IPv6 address and no name resolution should be attempted\&.
-        .RE
-    .PP
+.RE
+.PP
 All other elements of the
 \fBstruct addrinfo\fR
 passed via
 \fIhints\fR
 must be zero\&.
-    .PP
+.PP
 A
 \fIhints\fR
 of
@@ -182,7 +181,7 @@ is treated as if the caller provided a
 initialized to zero with
 \fBai_family\fRset to
 \fBPF_UNSPEC\fR\&.
-    .PP
+.PP
 After a successful call to
 \fBlwres_getaddrinfo()\fR,
 \fI*res\fR
@@ -207,7 +206,7 @@ structure in the list, the
 \fBai_addr\fR
 member points to a filled\-in socket address structure of length
 \fBai_addrlen\fR\&.
-    .PP
+.PP
 All of the information returned by
 \fBlwres_getaddrinfo()\fR
 is dynamically allocated: the addrinfo structures, and the socket address structures and canonical host name strings pointed to by the
@@ -220,8 +219,8 @@ is a pointer to a
 \fBstruct addrinfo\fR
 created by a call to
 \fBlwres_getaddrinfo()\fR\&.
-  .SH "RETURN VALUES"
-    .PP
+.SH "RETURN VALUES"
+.PP
 \fBlwres_getaddrinfo()\fR
 returns zero on success or one of the error codes listed in
 \fBgai_strerror\fR(3)
@@ -234,8 +233,8 @@ are
 \fBlwres_getaddrinfo()\fR
 returns
 \fBEAI_NONAME\fR\&.
-  .SH "SEE ALSO"
-    .PP
+.SH "SEE ALSO"
+.PP
 \fBlwres\fR(3),
 \fBlwres_getaddrinfo\fR(3),
 \fBlwres_freeaddrinfo\fR(3),

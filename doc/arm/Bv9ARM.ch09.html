@@ -36,11 +36,12 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.25</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.26</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.26">Notes for BIND 9.11.26</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.25">Notes for BIND 9.11.25</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.24">Notes for BIND 9.11.24</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.23">Notes for BIND 9.11.23</a></span></dt>
@@ -72,27 +73,26 @@
 </dl></dd>
 </dl>
 </div>
-      <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.25</h2></div></div></div>
-  
-  <div class="section">
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.26</h2></div></div></div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
-  <p>
+<p>
     BIND 9.11 (Extended Support Version) is a stable branch of BIND.
     This document summarizes significant changes since the last
     production release on that branch.
   </p>
-  <p>
+<p>
     Please see the file <code class="filename">CHANGES</code> for a more
     detailed list of changes and bug fixes.
   </p>
 </div>
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_download"></a>Download</h3></div></div></div>
-  <p>
+<p>
     The latest versions of BIND 9 software can always be found at
     <a class="link" href="https://www.isc.org/download/" target="_top">https://www.isc.org/download/</a>.
     There you will find additional information about each release,
@@ -100,79 +100,115 @@
     operating systems.
   </p>
 </div>
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_license"></a>License Change</h3></div></div></div>
-  <p>
+<p>
     With the release of BIND 9.11.0, ISC changed to the open
     source license for BIND from the ISC license to the Mozilla
     Public License (MPL 2.0).
   </p>
-  <p>
+<p>
     The MPL-2.0 license requires that if you make changes to
     licensed software (e.g. BIND) and distribute them outside
     your organization, that you publish those changes under that
     same license. It does not require that you publish or disclose
     anything other than the changes you made to our software.
   </p>
-  <p>
+<p>
     This requirement will not affect anyone who is using BIND, with
     or without modifications, without redistributing it, nor anyone
     redistributing it without changes. Therefore, this change will be
     without consequence for most individuals and organizations who are
     using BIND.
   </p>
-  <p>
+<p>
     Those unsure whether or not the license change affects their
     use of BIND, or who wish to discuss how to comply with the
     license may contact ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
     https://www.isc.org/mission/contact/</a>.
   </p>
 </div>
-
-  <div class="section">
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.26"></a>Notes for BIND 9.11.26</h3></div></div></div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.26-changes"></a>Feature Changes</h4></div></div></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+          The default value of <span class="command"><strong>max-recursion-queries</strong></span> was
+          increased from 75 to 100. Since the queries sent towards root and TLD
+          servers are now included in the count (as a result of the fix for
+          CVE-2020-8616), <span class="command"><strong>max-recursion-queries</strong></span> has a higher
+          chance of being exceeded by non-attack queries, which is the main
+          reason for increasing its default value. [GL #2305]
+        </p></li>
+<li class="listitem"><p>
+          The default value of <span class="command"><strong>nocookie-udp-size</strong></span> was restored
+          back to 4096 bytes. Since <span class="command"><strong>max-udp-size</strong></span> is the upper
+          bound for <span class="command"><strong>nocookie-udp-size</strong></span>, this change relieves
+          the operator from having to change
+          <span class="command"><strong>nocookie-udp-size</strong></span> together with
+          <span class="command"><strong>max-udp-size</strong></span> in order to increase the default EDNS
+          buffer size limit. <span class="command"><strong>nocookie-udp-size</strong></span> can still be
+          set to a value lower than <span class="command"><strong>max-udp-size</strong></span>, if desired.
+          [GL #2250]
+        </p></li>
+</ul></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.26-bugs"></a>Bug Fixes</h4></div></div></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+          Handling of missing DNS COOKIE responses over UDP was tightened by
+          falling back to TCP. [GL #2275]
+        </p></li>
+<li class="listitem"><p>
+          The CNAME synthesized from a DNAME was incorrectly followed when the
+          QTYPE was CNAME or ANY. [GL #2280]
+        </p></li>
+<li class="listitem"><p>
+          Building with native PKCS#11 support for AEP Keyper has been broken
+          since BIND 9.11.22. This has been fixed. [GL #2315]
+        </p></li>
+</ul></div>
+</div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.25"></a>Notes for BIND 9.11.25</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.25-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> acting as a resolver could incorrectly treat
           signed zones with no DS record at the parent as bogus. Such zones
           should be treated as insecure. This has been fixed. [GL #2236]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           After a Negative Trust Anchor (NTA) is added, BIND performs periodic
           checks to see if it is still necessary. If BIND encountered a failure
           while creating a query to perform such a check, it attempted to
           dereference a NULL pointer, resulting in a crash. [GL #2244]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           A problem obtaining glue records could prevent a stub zone from
           functioning properly, if the authoritative server for the zone were
           configured for minimal responses. [GL #1736]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.24"></a>Notes for BIND 9.11.24</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.24-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
            DNS Flag Day 2020: The default EDNS buffer size has been changed from
            4096 to 1232 bytes. According to measurements done by multiple
            parties, this should not cause any operational problems as most of
@@ -184,93 +220,79 @@
            maximum Ethernet payload size, so a useful default for maximum
            DNS/UDP payload size on reliable networks would be 1400 bytes.
            [GL #2183]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.24-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> reported an invalid memory size when running
           in an environment that did not properly report the number of available
           memory pages and/or the size of each memory page. [GL #2166]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           With multiple forwarders configured, <span class="command"><strong>named</strong></span> could
           fail the <code class="code">REQUIRE(msg-&gt;state == (-1))</code> assertion in
           <code class="filename">lib/dns/message.c</code>, causing it to crash. This has
           been fixed. [GL #2124]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.23"></a>Notes for BIND 9.11.23</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.23-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Parsing of LOC records was made more strict by rejecting a sole period
           (<strong class="userinput"><code>.</code></strong>) and/or <strong class="userinput"><code>m</code></strong> as a value.
           These changes prevent zone files using such values from being loaded.
           Handling of negative altitudes which are not integers was also
           corrected. [GL #2074]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Several problems found by <a class="link" href="https://github.com/google/oss-fuzz" target="_top">OSS-Fuzz</a> were
           fixed. (None of these are security issues.) [GL !3953] [GL !3975]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.22"></a>Notes for BIND 9.11.22</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.22-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-        <p>
+<p>
           It was possible to trigger an assertion failure when verifying the
           response to a TSIG-signed request. This was disclosed in
           CVE-2020-8622.
         </p>
-        <p>
+<p>
           ISC would like to thank Dave Feldman, Jeff Warren, and Joel Cunningham
           of Oracle for bringing this vulnerability to our attention. [GL #2028]
         </p>
-      </li>
+</li>
 <li class="listitem">
-        <p>
+<p>
           When BIND 9 was compiled with native PKCS#11 support, it was possible
           to trigger an assertion failure in code determining the number of bits
           in the PKCS#11 RSA public key with a specially crafted packet. This
           was disclosed in CVE-2020-8623.
         </p>
-        <p>
+<p>
           ISC would like to thank Lyu Chiy for bringing this vulnerability to
           our attention. [GL #2037]
         </p>
-      </li>
+</li>
 <li class="listitem">
-        <p>
+<p>
           <span class="command"><strong>update-policy</strong></span> rules of type
           <span class="command"><strong>subdomain</strong></span> were incorrectly treated as
           <span class="command"><strong>zonesub</strong></span> rules, which allowed keys used in
@@ -279,104 +301,82 @@
           <span class="command"><strong>subdomain</strong></span> rules are again processed as described in
           the ARM. This was disclosed in CVE-2020-8624.
         </p>
-        <p>
+<p>
           ISC would like to thank Joop Boonen of credativ GmbH for bringing this
           vulnerability to our attention. [GL #2055]
         </p>
-      </li>
+</li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.22-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Wildcard RPZ passthru rules could incorrectly be overridden by other
           rules that were loaded from RPZ zones which appeared later in the
           <span class="command"><strong>response-policy</strong></span> statement. This has been fixed.
           [GL #1619]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           LMDB locking code was revised to make <span class="command"><strong>rndc reconfig</strong></span>
           work properly on FreeBSD and with LMDB &gt;= 0.9.26. [GL #1976]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.21"></a>Notes for BIND 9.11.21</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.21-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> could crash when cleaning dead nodes in
           <code class="filename">lib/dns/rbtdb.c</code> that were being reused.
           [GL #1968]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Properly handle missing <span class="command"><strong>kyua</strong></span> command so that
           <span class="command"><strong>make check</strong></span> does not fail unexpectedly when CMocka
           is installed, but Kyua is not. [GL #1950]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The validator could fail to accept a properly signed RRset if an
           unsupported algorithm appeared earlier in the DNSKEY RRset than a
           supported algorithm. It could also stop if it detected a malformed
           public key. [GL #1689]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.20"></a>Notes for BIND 9.11.20</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.20-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           It was possible to trigger an INSIST failure when a zone with an
           interior wildcard label was queried in a certain pattern. This was
           disclosed in CVE-2020-8619. [GL #1111] [GL #1718]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.20-new"></a>New Features</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           <span class="command"><strong>dig</strong></span> and other tools can now print the Extended DNS
           Error (EDE) option when it appears in a request or a response.
           [GL #1835]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.20-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           When fully updating the NSEC3 chain for a large zone via IXFR, a
           temporary loss of performance could be experienced on the secondary
           server when answering queries for nonexistent data that required
@@ -384,49 +384,37 @@
           the server to find and to return NSEC3 data). The unnecessary
           processing step that was causing this delay has now been removed.
           [GL #1834]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           A data race in <code class="filename">lib/dns/resolver.c:log_formerr()</code>
           that could lead to an assertion failure was fixed. [GL #1808]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Previously, <span class="command"><strong>provide-ixfr no;</strong></span> failed to return
           up-to-date responses when the serial number was greater than or equal
           to the current serial number. [GL #1714]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named-checkconf -p</strong></span> could include spurious text in
           <span class="command"><strong>server-addresses</strong></span> statements due to an uninitialized
           DSCP value. This has been fixed. [GL #1812]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The ARM has been updated to indicate that the TSIG session key is
           generated when named starts, regardless of whether it is needed.
           [GL #1842]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.19"></a>Notes for BIND 9.11.19</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.19-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           To prevent exhaustion of server resources by a maliciously configured
           domain, the number of recursive queries that can be triggered by a
           request before aborting recursion has been further limited. Root and
@@ -434,317 +422,246 @@
           <span class="command"><strong>max-recursion-queries</strong></span> limit. Fetches for missing
           name server address records are limited to 4 for any domain. This
           issue was disclosed in CVE-2020-8616. [GL #1388]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Replaying a TSIG BADTIME response as a request could
           trigger an assertion failure. This was disclosed in
           CVE-2020-8617. [GL #1703]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.19-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           Message IDs in inbound AXFR transfers are now checked for consistency.
           Log messages are emitted for streams with inconsistent message IDs.
           [GL #1674]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.19-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           When running on a system with support for Linux capabilities,
           <span class="command"><strong>named</strong></span> drops root privileges very soon after system
           startup. This was causing a spurious log message, "unable to set
           effective uid to 0: Operation not permitted", which has now been
           silenced. [GL #1042] [GL #1090]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           When <span class="command"><strong>named-checkconf -z</strong></span> was run, it would sometimes
           incorrectly set its exit code. It reflected the status of the last
           view found; if zone-loading errors were found in earlier configured
           views but not in the last one, the exit code indicated success.
           Thanks to Graham Clinch. [GL #1807]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           When built without LMDB support, <span class="command"><strong>named</strong></span> failed to
           restart after a zone with a double quote (") in its name was added
           with <span class="command"><strong>rndc addzone</strong></span>. Thanks to Alberto Fernández.
           [GL #1695]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.18"></a>Notes for BIND 9.11.18</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.18-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           DNS rebinding protection was ineffective when BIND 9 is configured as
           a forwarding DNS server. Found and responsibly reported by Tobias
           Klein. [GL #1574]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.18-known"></a>Known Issues</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           We have received reports that in some circumstances, receipt of an
           IXFR can cause the processing of queries to slow significantly. Some
           of these are related to RPZ processing, others appear to occur where
           there are NSEC3-related changes (such as an operator changing the
           NSEC3 salt used in the hash calculation). These are being
           investigated.  [GL #1685]
-        </p>
-      </li></ul></div>
-  </div>
-
+        </p></li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.17"></a>Notes for BIND 9.11.17</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.17-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           The <span class="command"><strong>configure</strong></span> option
           <span class="command"><strong>--with-libxml2</strong></span> now uses
           <span class="command"><strong>pkg-config</strong></span> to detect libxml2 library
           availability.  You will either have to install
           <span class="command"><strong>pkg-config</strong></span> or specify the exact path where
           libxml2 has been installed on your system. [GL #1635]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.17-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           Fixed re-signing issues with inline zones which resulted in
           records being re-signed late or not at all.
-        </p>
-      </li></ul></div>
-  </div>
-
+        </p></li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.16"></a>Notes for BIND 9.11.16</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.16-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           <span class="command"><strong>named</strong></span> crashed when it was queried for a
           nonexistent name in the CHAOS class. [GL #1540]
-        </p>
-      </li></ul></div>
-  </div>
-
+        </p></li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.15"></a>Notes for BIND 9.11.15</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.15-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Fixed a GeoIP2 lookup bug which was triggered when certain
           libmaxminddb versions were used. [GL #1552]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Fixed several possible race conditions discovered by
           ThreadSanitizer.
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.14"></a>Notes for BIND 9.11.14</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.14-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Fixed a bug that caused <span class="command"><strong>named</strong></span> to leak memory
           on reconfiguration when any GeoIP2 database was in use. [GL #1445]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Fixed several possible race conditions discovered by
           ThreadSanitizer.
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.13"></a>Notes for BIND 9.11.13</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.13-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           Set a limit on the number of concurrently served pipelined TCP
           queries. This flaw is disclosed in CVE-2019-6477. [GL #1264]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.13-features"></a>New Features</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           Added a new statistics variable <span class="command"><strong>tcp-highwater</strong></span>
           that reports the maximum number of simultaneous TCP clients BIND
           has handled while running. [GL #1206]
-        </p>
-      </li></ul></div>
-  </div>
-
+        </p></li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.12"></a>Notes for BIND 9.11.12</h3></div></div></div>
-
-  <p>
+<p>
     None.
   </p>
-
 </div>
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.11"></a>Notes for BIND 9.11.11</h3></div></div></div>
-
-  <p>
+<p>
     None.
   </p>
-
 </div>
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.10"></a>Notes for BIND 9.11.10</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.10-features"></a>New Features</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-        <p>
+<p>
           A SipHash 2-4 based DNS Cookie (RFC 7873) algorithm has been added.
           [GL #605]
         </p>
-        <p>
+<p>
           If you are running multiple DNS Servers (different versions of BIND 9
           or DNS server from multiple vendors) responding from the same IP
           address (anycast or load-balancing scenarios), you'll have to make
           sure that all the servers are configured with the same DNS Cookie
           algorithm and same Server Secret for the best performance.
         </p>
-      </li>
-<li class="listitem">
-        <p>
+</li>
+<li class="listitem"><p>
           DS records included in DNS referral messages can now be validated
           and cached immediately, reducing the number of queries needed for
           a DNSSEC validation. [GL #964]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.10-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Interaction between DNS64 and RPZ No Data rule (CNAME *.) could
           cause unexpected results; this has been fixed. [GL #1106]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named-checkconf</strong></span> now checks DNS64 prefixes
           to ensure bits 64-71 are zero. [GL #1159]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named-checkconf</strong></span> could crash during
           configuration if configured to use "geoip continent" ACLs with
           legacy GeoIP. [GL #1163]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named-checkconf</strong></span> now correctly reports a missing
           <span class="command"><strong>dnstap-output</strong></span> option when
           <span class="command"><strong>dnstap</strong></span> is set. [GL #1136]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Handle ETIMEDOUT error on connect() with a non-blocking
           socket. [GL #1133]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.9"></a>Notes for BIND 9.11.9</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.9-features"></a>New Features</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+<p>
           The new GeoIP2 API from MaxMind is now supported when BIND
           is compiled using <span class="command"><strong>configure --with-geoip2</strong></span>.
           The legacy GeoIP API can be used by compiling with
@@ -752,7 +669,7 @@
           the databases for the legacy API are no longer maintained by
           MaxMind.)
         </p>
-        <p>
+<p>
           The default path to the GeoIP2 databases will be set based
           on the location of the <span class="command"><strong>libmaxminddb</strong></span> library;
           for example, if it is in <code class="filename">/usr/local/lib</code>,
@@ -761,7 +678,7 @@
           This value can be overridden in <code class="filename">named.conf</code>
           using the <span class="command"><strong>geoip-directory</strong></span> option.
         </p>
-        <p>
+<p>
           Some <span class="command"><strong>geoip</strong></span> ACL settings that were available with
           legacy GeoIP, including searches for <span class="command"><strong>netspeed</strong></span>,
           <span class="command"><strong>org</strong></span>, and three-letter ISO country codes, will
@@ -771,60 +688,48 @@
           <span class="command"><strong>as</strong></span>. All of the databases support both IPv4
           and IPv6 lookups. [GL #182]
         </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+</li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.9-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           Glue address records were not being returned in responses
           to root priming queries; this has been corrected. [GL #1092]
-        </p>
-      </li></ul></div>
-  </div>
-
+        </p></li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.8"></a>Notes for BIND 9.11.8</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.8-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           A race condition could trigger an assertion failure when
           a large number of incoming packets were being rejected.
           This flaw is disclosed in CVE-2019-6471. [GL #942]
-        </p>
-      </li></ul></div>
-  </div>
-
+        </p></li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.7"></a>Notes for BIND 9.11.7</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.7-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           The TCP client quota set using the <span class="command"><strong>tcp-clients</strong></span>
           option could be exceeded in some cases. This could lead to
           exhaustion of file descriptors. This flaw is disclosed in
           CVE-2018-5743. [GL #615]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.7-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+<p>
           When <span class="command"><strong>trusted-keys</strong></span> and
           <span class="command"><strong>managed-keys</strong></span> are both configured for the
           same name, or when <span class="command"><strong>trusted-keys</strong></span> is used to
@@ -833,26 +738,23 @@
           <code class="literal">auto</code>, automatic RFC 5011 key
           rollovers will fail.
         </p>
-        <p>
+<p>
           This combination of settings was never intended to work,
           but there was no check for it in the parser. This has been
           corrected; a warning is now logged. (In BIND 9.15 and
           higher this error will be fatal.) [GL #868]
         </p>
-      </li></ul></div>
-  </div>
-
+</li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.6"></a>Notes for BIND 9.11.6</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.6-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Code change #4964, intended to prevent double signatures
           when deleting an inactive zone DNSKEY in some situations,
           introduced a new problem during zone processing in which
@@ -863,134 +765,105 @@
           NSEC/NSEC3 chain, but incompletely -- this can result in
           a broken chain, affecting validation of proof of nonexistence
           for records in the zone. [GL #771]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> could crash if it managed a DNSSEC
           security root with <span class="command"><strong>managed-keys</strong></span> and the
           authoritative zone rolled the key to an algorithm not supported
           by BIND 9.  This flaw is disclosed in CVE-2018-5745. [GL #780]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> leaked memory when processing a
           request with multiple Key Tag EDNS options present. ISC
           would like to thank Toshifumi Sakaguchi for bringing this
           to our attention.  This flaw is disclosed in CVE-2018-5744.
           [GL #772]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Zone transfer controls for writable DLZ zones were not
           effective as the <span class="command"><strong>allowzonexfr</strong></span> method was
           not being called for such zones. This flaw is disclosed in
           CVE-2019-6465. [GL #790]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.6-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           When compiled with IDN support, the <span class="command"><strong>dig</strong></span> and the
           <span class="command"><strong>nslookup</strong></span> commands now disable IDN processing when
           the standard output is not a tty (e.g. not used by human).  The command
           line options +idnin and +idnout need to be used to enable IDN
           processing when <span class="command"><strong>dig</strong></span> or <span class="command"><strong>nslookup</strong></span>
           is used from the shell scripts.
-        </p>
-      </li></ul></div>
-  </div>
-
+        </p></li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.5"></a>Notes for BIND 9.11.5</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.5-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           <span class="command"><strong>named</strong></span> could crash during recursive processing
           of DNAME records when <span class="command"><strong>deny-answer-aliases</strong></span> was
           in use. This flaw is disclosed in CVE-2018-5740. [GL #387]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.5-features"></a>New Features</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           Two new update policy rule types have been added
           <span class="command"><strong>krb5-selfsub</strong></span> and <span class="command"><strong>ms-selfsub</strong></span>
           which allow machines with Kerberos principals to update
           the name space at or below the machine names identified
           in the respective principals.
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.5-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           The <span class="command"><strong>rndc nta</strong></span> command could not differentiate
           between views of the same name but different class; this
           has been corrected with the addition of a <span class="command"><strong>-class</strong></span>
           option. [GL #105]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.5-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           When a negative trust anchor was added to multiple views
           using <span class="command"><strong>rndc nta</strong></span>, the text returned via
           <span class="command"><strong>rndc</strong></span> was incorrectly truncated after the
           first line, making it appear that only one NTA had been
           added. This has been fixed. [GL #105]
-        </p>
-      </li></ul></div>
-  </div>
-
+        </p></li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.4"></a>Notes for BIND 9.11.4</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.4-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           When recursion is enabled but the <span class="command"><strong>allow-recursion</strong></span>
           and <span class="command"><strong>allow-query-cache</strong></span> ACLs are not specified, they
           should be limited to local networks, but they were inadvertently set
           to match the default <span class="command"><strong>allow-query</strong></span>, thus allowing
           remote queries. This flaw is disclosed in CVE-2018-5738. [GL #309]
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.4-features"></a>New Features</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> now supports the "root key sentinel"
           mechanism. This enables validating resolvers to indicate
           which trust anchors are configured for the root, so that
@@ -998,16 +871,15 @@
           To disable this feature, add
           <span class="command"><strong>root-key-sentinel no;</strong></span> to
           <code class="filename">named.conf</code>.
-        </p>
-      </li>
+        </p></li>
 <li class="listitem">
-        <p>
+<p>
           Added the ability not to return a DNS COOKIE option when one
           is present in the request.  To prevent a cookie being returned,
           add <span class="command"><strong>answer-cookie no;</strong></span> to
           <code class="filename">named.conf</code>. [GL #173]
         </p>
-        <p>
+<p>
           <span class="command"><strong>answer-cookie no</strong></span> is only intended as a
           temporary measure, for use when <span class="command"><strong>named</strong></span>
           shares an IP address with other servers that do not yet
@@ -1019,106 +891,85 @@
           mechanism, and should not be disabled unless absolutely
           necessary.
         </p>
-      </li>
+</li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.4-removed"></a>Removed Features</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           <span class="command"><strong>named</strong></span> will now log a warning if the old
           BIND now can be compiled against libidn2 library to add
           IDNA2008 support.  Previously BIND only supported IDNA2003
           using (now obsolete) idnkit-1 library.
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.4-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>dig +noidnin</strong></span> can be used to disable IDN
           processing on the input domain name, when BIND is compiled
           with IDN support.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Multiple <span class="command"><strong>cookie-secret</strong></span> clause are now
           supported.  The first <span class="command"><strong>cookie-secret</strong></span> in
           <code class="filename">named.conf</code> is used to generate new
           server cookies.  Any others are used to accept old server
           cookies or those generated by other servers using the
           matching <span class="command"><strong>cookie-secret</strong></span>.
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.4-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> now rejects excessively large
           incremental (IXFR) zone transfers in order to prevent
           possible corruption of journal files which could cause
           <span class="command"><strong>named</strong></span> to abort when loading zones. [GL #339]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>rndc reload</strong></span> could cause <span class="command"><strong>named</strong></span>
           to leak memory if it was invoked before the zone loading actions
           from a previous <span class="command"><strong>rndc reload</strong></span> command were
           completed. [RT #47076]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.3"></a>Notes for BIND 9.11.3</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.3-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Addresses could be referenced after being freed during resolver
           processing, causing an assertion failure. The chances of this
           happening were remote, but the introduction of a delay in
           resolution increased them. This bug is disclosed in
           CVE-2017-3145. [RT #46839]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           update-policy rules that otherwise ignore the name field now
           require that it be set to "." to ensure that any type list
           present is properly interpreted.  If the name field was omitted
           from the rule declaration and a type list was present it wouldn't
           be interpreted as expected.
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.3-removed"></a>Removed Features</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           The ISC DNSSEC Lookaside Validation (DLV) service has
           been shut down; all DLV records in the dlv.isc.org zone
           have been removed.  References to the service have been
@@ -1128,24 +979,19 @@
           Setting <span class="command"><strong>dnssec-lookaside</strong></span> to
           <span class="command"><strong>auto</strong></span> or to use dlv.isc.org as a trust
           anchor results in a warning being issued.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> will now log a warning if the old
           root DNSSEC key is explicitly configured and has not been updated.
           [RT #43670]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="proto_changes"></a>Protocol Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           BIND can now use the Ed25519 and Ed448 Edwards Curve DNSSEC
           signing algorithms described in RFC 8080. Note, however, that
           these algorithms must be supported in OpenSSL;
@@ -1154,25 +1000,20 @@
           <a class="link" href="https://github.com/openssl/openssl" target="_top">
             https://github.com/openssl/openssl</a>.
           [RT #44696]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           When parsing DNS messages, EDNS KEY TAG options are checked
           for correctness. When printing messages (for example, in
           <span class="command"><strong>dig</strong></span>), EDNS KEY TAG options are printed
           in readable format.
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.3-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> will no longer start or accept
           reconfiguration if <span class="command"><strong>managed-keys</strong></span> or
           <span class="command"><strong>dnssec-validation auto</strong></span> are in use and
@@ -1180,280 +1021,216 @@
           <span class="command"><strong>managed-keys-directory</strong></span>, and defaulting
           to the working directory if not specified),
           is not writable by the effective user ID. [RT #46077]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Previously, <span class="command"><strong>update-policy local;</strong></span> accepted
           updates from any source so long as they were signed by the
           locally-generated session key. This has been further restricted;
           updates are now only accepted from locally configured addresses.
           [RT #45492]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.3-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Attempting to validate improperly unsigned CNAME responses
           from secure zones could cause a validator loop. This caused
           a delay in returning SERVFAIL and also increased the chances
           of encountering the crash bug described in CVE-2017-3145.
           [RT #46839]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           When <span class="command"><strong>named</strong></span> was reconfigured, failure of some
           zones to load correctly could leave the system in an inconsistent
           state; while generally harmless, this could lead to a crash later
           when using <span class="command"><strong>rndc addzone</strong></span>.  Reconfiguration changes
           are now fully rolled back in the event of failure. [RT #45841]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Some header files included &lt;isc/util.h&gt; incorrectly as
           it pollutes with namespace with non ISC_ macros and this should
           only be done by explicitly including &lt;isc/util.h&gt;.  This
           has been corrected.  Some code may depend on &lt;isc/util.h&gt;
           being implicitly included via other header files.  Such
           code should explicitly include &lt;isc/util.h&gt;.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Zones created with <span class="command"><strong>rndc addzone</strong></span> could
           temporarily fail to inherit the <span class="command"><strong>allow-transfer</strong></span>
           ACL set in the <span class="command"><strong>options</strong></span> section of
           <code class="filename">named.conf</code>. [RT #46603]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> failed to properly determine whether
           there were active KSK and ZSK keys for an algorithm when
           <span class="command"><strong>update-check-ksk</strong></span> was true (which is the
           default setting). This could leave records unsigned
           when rolling keys. [RT #46743] [RT #46754] [RT #46774]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.2"></a>Notes for BIND 9.11.2</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.2-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           An error in TSIG handling could permit unauthorized zone
           transfers or zone updates. These flaws are disclosed in
           CVE-2017-3142 and CVE-2017-3143. [RT #45383]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The BIND installer on Windows used an unquoted service path,
           which can enable privilege escalation. This flaw is disclosed
           in CVE-2017-3141. [RT #45229]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           With certain RPZ configurations, a response with TTL 0
           could cause <span class="command"><strong>named</strong></span> to go into an infinite
           query loop. This flaw is disclosed in CVE-2017-3140.
           [RT #45181]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.2-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>dig +ednsopt</strong></span> now accepts the names
           for EDNS options in addition to numeric values. For example,
           an EDNS Client-Subnet option could be sent using
           <span class="command"><strong>dig +ednsopt=ecs:...</strong></span>. Thanks to
           John Worley of Secure64 for the contribution. [RT #44461]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Threads in <span class="command"><strong>named</strong></span> are now set to human-readable
           names to assist debugging on operating systems that support that.
           Threads will have names such as "isc-timer", "isc-sockmgr",
           "isc-worker0001", and so on. This will affect the reporting of
           subsidiary thread names in <span class="command"><strong>ps</strong></span> and
           <span class="command"><strong>top</strong></span>, but not the main thread. [RT #43234]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           DiG now warns about .local queries which are reserved for
           Multicast DNS. [RT #44783]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.2-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Fixed a bug that was introduced in an earlier development
           release which caused multi-packet AXFR and IXFR messages to fail
           validation if not all packets contained TSIG records; this
           caused interoperability problems with some other DNS
           implementations. [RT #45509]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Reloading or reconfiguring <span class="command"><strong>named</strong></span> could
           fail on some platforms when LMDB was in use. [RT #45203]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Due to some incorrectly deleted code, when BIND was
           built with LMDB, zones that were deleted via
           <span class="command"><strong>rndc delzone</strong></span> were removed from the
           running server but were not removed from the new zone
           database, so that deletion did not persist after a
           server restart. This has been corrected. [RT #45185]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Semicolons are no longer escaped when printing CAA and
           URI records.  This may break applications that depend on the
           presence of the backslash before the semicolon. [RT #45216]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           AD could be set on truncated answer with no records present
           in the answer and authority sections. [RT #45140]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.1"></a>Notes for BIND 9.11.1</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.1-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>rndc ""</strong></span> could trigger an assertion failure
           in <span class="command"><strong>named</strong></span>. This flaw is disclosed in
           (CVE-2017-3138). [RT #44924]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Some chaining (i.e., type CNAME or DNAME) responses to upstream
           queries could trigger assertion failures. This flaw is disclosed
           in CVE-2017-3137. [RT #44734]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dns64</strong></span> with <span class="command"><strong>break-dnssec yes;</strong></span>
           can result in an assertion failure. This flaw is disclosed in
           CVE-2017-3136. [RT #44653]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           If a server is configured with a response policy zone (RPZ)
           that rewrites an answer with local data, and is also configured
           for DNS64 address mapping, a NULL pointer can be read
           triggering a server crash.  This flaw is disclosed in
           CVE-2017-3135. [RT #44434]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           A coding error in the <code class="option">nxdomain-redirect</code>
           feature could lead to an assertion failure if the redirection
           namespace was served from a local authoritative data source
           such as a local zone or a DLZ instead of via recursive
           lookup. This flaw is disclosed in CVE-2016-9778. [RT #43837]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> could mishandle authority sections
           with missing RRSIGs, triggering an assertion failure. This
           flaw is disclosed in CVE-2016-9444. [RT #43632]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> mishandled some responses where
           covering RRSIG records were returned without the requested
           data, resulting in an assertion failure. This flaw is
           disclosed in CVE-2016-9147. [RT #43548]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> incorrectly tried to cache TKEY
           records which could trigger an assertion failure when there was
           a class mismatch. This flaw is disclosed in CVE-2016-9131.
           [RT #43522]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           It was possible to trigger assertions when processing
           responses containing answers of type DNAME. This flaw is
           disclosed in CVE-2016-8864. [RT #43465]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Added the ability to specify the maximum number of records
           permitted in a zone (<code class="option">max-records #;</code>).
           This provides a mechanism to block overly large zone
           transfers, which is a potential risk with slave zones from
           other parties, as described in CVE-2016-6170.
           [RT #42143]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.1-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           <span class="command"><strong>dnstap</strong></span> now stores both the local and remote
           addresses for all messages, instead of only the remote address.
           The default output format for <span class="command"><strong>dnstap-read</strong></span> has
@@ -1461,104 +1238,79 @@
           address first and the responding address second, separated by
           "-%gt;" or "%lt;-" to indicate in which direction the message
           was sent. [RT #43595]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Expanded and improved the YAML output from
           <span class="command"><strong>dnstap-read -y</strong></span>: it now includes packet
           size and a detailed breakdown of message contents.
           [RT #43622] [RT #43642]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           If an ACL is specified with an address prefix in which the
           prefix length is longer than the address portion (for example,
           192.0.2.1/8), <span class="command"><strong>named</strong></span> will now log a warning.
           In future releases this will be a fatal configuration error.
           [RT #43367]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.1-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           A synthesized CNAME record appearing in a response before the
           associated DNAME could be cached, when it should not have been.
           This was a regression introduced while addressing CVE-2016-8864.
           [RT #44318]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> could deadlock if multiple changes
           to NSEC/NSEC3 parameters for the same zone were being processed
           at the same time. [RT #42770]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> could trigger an assertion when
           sending NOTIFY messages. [RT #44019]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Referencing a nonexistent zone in a <span class="command"><strong>response-policy</strong></span>
           statement could cause an assertion failure during configuration.
           [RT #43787]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>rndc addzone</strong></span> could cause a crash
           when attempting to add a zone with a type other than
           <span class="command"><strong>master</strong></span> or <span class="command"><strong>slave</strong></span>.
           Such zones are now rejected. [RT #43665]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> could hang when encountering log
           file names with large apparent gaps in version number (for
           example, when files exist called "logfile.0", "logfile.1",
           and "logfile.1482954169").  This is now handled correctly.
           [RT #38688]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           If a zone was updated while <span class="command"><strong>named</strong></span> was
           processing a query for nonexistent data, it could return
           out-of-sync NSEC3 records causing potential DNSSEC validation
           failure. [RT #43247]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.1-maint"></a>Maintenance</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           The built-in root hints have been updated to include an
           IPv6 address (2001:500:12::d0d) for G.ROOT-SERVERS.NET.
-        </p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
+        </p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.1-misc"></a>Miscellaneous Notes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
           Authoritative server support for the EDNS Client Subnet option
           (ECS), introduced in BIND 9.11.0, was based on an early version
           of the specification, and is now known to have incompatibilities
@@ -1568,51 +1320,43 @@
           testing purposes but is not recommended for for production use.
           This was not made sufficiently clear in the documentation at
           the time of release.
-        </p>
-      </li></ul></div>
-  </div>
-
+        </p></li></ul></div>
 </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes-9.11.0"></a>Notes for BIND 9.11.0</h3></div></div></div>
-
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.0-security"></a>Security Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           It was possible to trigger a assertion when rendering a
           message using a specially crafted request. This flaw is
           disclosed in CVE-2016-2776. [RT #43139]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
          getrrsetbyname with a non absolute name could trigger an
          infinite recursion bug in lwresd and named with lwres
          configured if when combined with a search list entry the
          resulting name is too long.  This flaw is disclosed in
          CVE-2016-2775. [RT #42694]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.0-features"></a>New Features</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-        <p>
+<p>
           A new method of provisioning secondary servers called
           "Catalog Zones" has been added. This is an implementation of
           <a class="link" href="https://datatracker.ietf.org/doc/draft-muks-dnsop-dns-catalog-zones/" target="_top">
             draft-muks-dnsop-dns-catalog-zones/
           </a>.
         </p>
-        <p>
+<p>
           A catalog zone is a regular DNS zone which contains a list
           of "member zones", along with the configuration options for
           each of those zones.  When a server is configured to use a
@@ -1625,32 +1369,30 @@
           propagated to slaves using the standard AXFR/IXFR update
           mechanism.
         </p>
-        <p>
+<p>
           This feature should be considered experimental. It currently
           supports only basic features; more advanced features such as
           ACLs and TSIG keys are not yet supported. Example catalog
           zone configurations can be found in the Chapter 9 of the
           BIND Administrator Reference Manual.
         </p>
-        <p>
+<p>
           Support for master entries with TSIG keys has been added to catalog
           zones, as well as support for allow-query and allow-transfer.
         </p>
-      </li>
-<li class="listitem">
-        <p>
+</li>
+<li class="listitem"><p>
           Added an <span class="command"><strong>isc.rndc</strong></span> Python module, which allows
           <span class="command"><strong>rndc</strong></span> commands to be sent from Python programs.
-        </p>
-      </li>
+        </p></li>
 <li class="listitem">
-        <p>
+<p>
           Added support for DynDB, a new interface for loading zone data
           from an external database, developed by Red Hat for the FreeIPA
           project.  (Thanks in particular to Adam Tkac and Petr
           Spacek of Red Hat for the contribution.)
         </p>
-        <p>
+<p>
           Unlike the existing DLZ and SDB interfaces, which provide a
           limited subset of database functionality within BIND -
           translating DNS queries into real-time database lookups with
@@ -1658,22 +1400,22 @@
           DNSSEC-signed data - DynDB is able to fully implement
           and extend the database API used natively by BIND.
         </p>
-        <p>
+<p>
           A DynDB module could pre-load data from an external data
           source, then serve it with the same performance and
           functionality as conventional BIND zones, and with the
           ability to take advantage of database features not
           available in BIND, such as multi-master replication.
         </p>
-      </li>
+</li>
 <li class="listitem">
-        <p>
+<p>
           Fetch quotas are now compiled in by default: they
           no longer require BIND to be configured with
           <span class="command"><strong>--enable-fetchlimit</strong></span>, as was the case
           when the feature was introduced in BIND 9.10.3.
         </p>
-        <p>
+<p>
           These quotas limit the queries that are sent by recursive
           resolvers to authoritative servers experiencing denial-of-service
           attacks. They can both reduce the harm done to authoritative
@@ -1681,9 +1423,8 @@
           experienced by recursive servers when they are being used as a
           vehicle for such an attack.
         </p>
-        <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
-<li class="listitem">
-            <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem"><p>
               <code class="option">fetches-per-server</code> limits the number of
               simultaneous queries that can be sent to any single
               authoritative server.  The configured value is a starting
@@ -1691,41 +1432,38 @@
               partially or completely non-responsive. The algorithm used to
               adjust the quota can be configured via the
               <code class="option">fetch-quota-params</code> option.
-            </p>
-          </li>
-<li class="listitem">
-            <p>
+            </p></li>
+<li class="listitem"><p>
               <code class="option">fetches-per-zone</code> limits the number of
               simultaneous queries that can be sent for names within a
               single domain.  (Note: Unlike "fetches-per-server", this
               value is not self-tuning.)
-            </p>
-          </li>
+            </p></li>
 </ul></div>
-        <p>
+<p>
           Statistics counters have also been added to track the number
           of queries affected by these quotas.
         </p>
-      </li>
+</li>
 <li class="listitem">
-        <p>
+<p>
           Added support for <span class="command"><strong>dnstap</strong></span>, a fast,
           flexible method for capturing and logging DNS traffic,
           developed by Robert Edmonds at Farsight Security, Inc.,
           whose assistance is gratefully acknowledged.
         </p>
-        <p>
+<p>
           To enable <span class="command"><strong>dnstap</strong></span> at compile time,
           the <span class="command"><strong>fstrm</strong></span> and <span class="command"><strong>protobuf-c</strong></span>
           libraries must be available, and BIND must be configured with
           <code class="option">--enable-dnstap</code>.
         </p>
-        <p>
+<p>
           A new utility <span class="command"><strong>dnstap-read</strong></span> has been added
           to allow <span class="command"><strong>dnstap</strong></span> data to be presented in
           a human-readable format.
         </p>
-        <p>
+<p>
           <span class="command"><strong>rndc dnstap -roll</strong></span> causes <span class="command"><strong>dnstap</strong></span>
           output files to be rolled like log files -- the most recent output
           file is renamed with a <code class="filename">.0</code> suffix, the next
@@ -1735,18 +1473,18 @@
           argument specifies how many backup log files to retain; if not
           specified or set to 0, there is no limit.
         </p>
-        <p>
+<p>
           <span class="command"><strong>rndc dnstap -reopen</strong></span> simply closes and reopens
           the <span class="command"><strong>dnstap</strong></span> output channel without renaming
           the output file.
         </p>
-        <p>
+<p>
           For more information on <span class="command"><strong>dnstap</strong></span>, see
           <a class="link" href="https://dnstap.info" target="_top">https://dnstap.info</a>.
         </p>
-      </li>
+</li>
 <li class="listitem">
-        <p>
+<p>
           New statistics counters have been added to track traffic
           sizes, as specified in RSSAC002.  Query and response
           message sizes are broken up into ranges of histogram buckets:
@@ -1758,13 +1496,13 @@
           or
           <a class="link" href="http://localhost:8888/json/v1/traffic" target="_top">http://localhost:8888/json/v1/traffic</a>.
         </p>
-        <p>
+<p>
                 Statistics for RSSAC02v3 traffic-volume, traffic-sizes and
                 rcode-volume reporting are now collected.
         </p>
-      </li>
+</li>
 <li class="listitem">
-        <p>
+<p>
           A new DNSSEC key management utility,
           <span class="command"><strong>dnssec-keymgr</strong></span>, has been added. This tool
           is meant to run unattended (e.g., under <span class="command"><strong>cron</strong></span>).
@@ -1778,25 +1516,24 @@
           the configured policy changes, keys are corrected automatically.
           See the <span class="command"><strong>dnssec-keymgr</strong></span> man page for full details.
         </p>
-        <p>
+<p>
           Note: <span class="command"><strong>dnssec-keymgr</strong></span> depends on Python and on
           the Python lex/yacc module, PLY. The other Python-based tools,
           <span class="command"><strong>dnssec-coverage</strong></span> and
           <span class="command"><strong>dnssec-checkds</strong></span>, have been
           refactored and updated as part of this work.
         </p>
-        <p>
+<p>
           <span class="command"><strong>dnssec-keymgr</strong></span> now takes a -r
           <em class="replaceable"><code>randomfile</code></em> option.
         </p>
-        <p>
+<p>
           (Many thanks to Sebastián
           Castro for his assistance in developing this tool at the IETF
           95 Hackathon in Buenos Aires, April 2016.)
         </p>
-      </li>
-<li class="listitem">
-        <p>
+</li>
+<li class="listitem"><p>
           The serial number of a dynamically updatable zone can
           now be set using
           <span class="command"><strong>rndc signing -serial <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>zonename</code></em></strong></span>.
@@ -1804,10 +1541,8 @@
           zones that have been reset.  Setting the serial number to a value
           larger than that on the slaves will trigger an AXFR-style
           transfer.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           When answering recursive queries, SERVFAIL responses can now be
           cached by the server for a limited time; subsequent queries for
           the same query name and type will return another SERVFAIL until
@@ -1816,10 +1551,8 @@
           on recursive servers.  The SERVFAIL cache timeout is controlled
           by <code class="option">servfail-ttl</code>, which defaults to 1 second
           and has an upper limit of 30.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The new <span class="command"><strong>rndc nta</strong></span> command can now be used to
           set a "negative trust anchor" (NTA), disabling DNSSEC validation for
           a specific domain; this can be used when responses from a domain
@@ -1831,112 +1564,80 @@
           <code class="filename">named.conf</code>. When added, NTAs are stored in a
           file (<code class="filename"><em class="replaceable"><code>viewname</code></em>.nta</code>)
           in order to persist across restarts of the <span class="command"><strong>named</strong></span> server.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The EDNS Client Subnet (ECS) option is now supported for
           authoritative servers; if a query contains an ECS option then
           ACLs containing <code class="option">geoip</code> or <code class="option">ecs</code>
           elements can match against the address encoded in the option.
           This can be used to select a view for a query, so that different
           answers can be provided depending on the client network.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The EDNS EXPIRE option has been implemented on the client
           side, allowing a slave server to set the expiration timer
           correctly when transferring zone data from another slave
           server.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           A new <code class="option">masterfile-style</code> zone option controls
           the formatting of text zone files:  When set to
           <code class="literal">full</code>, the zone file will dumped in
           single-line-per-record format.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dig +ednsopt</strong></span> can now be used to set
           arbitrary EDNS options in DNS requests.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dig +ednsflags</strong></span> can now be used to set
           yet-to-be-defined EDNS flags in DNS requests.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dig +[no]ednsnegotiation</strong></span> can now be used enable /
           disable EDNS version negotiation.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dig +header-only</strong></span> can now be used to send
           queries without a question section.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dig +ttlunits</strong></span> causes <span class="command"><strong>dig</strong></span>
           to print TTL values with time-unit suffixes: w, d, h, m, s for
           weeks, days, hours, minutes, and seconds.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dig +zflag</strong></span> can be used to set the last
           unassigned DNS header flag bit.  This bit is normally zero.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dig +dscp=<em class="replaceable"><code>value</code></em></strong></span>
           can now be used to set the DSCP code point in outgoing query
           packets.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dig +mapped</strong></span> can now be used to determine
           if mapped IPv4 addresses can be used.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>nslookup</strong></span> will now look up IPv6 as well
           as IPv4 addresses by default. [RT #40420]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <code class="option">serial-update-method</code> can now be set to
           <code class="literal">date</code>. On update, the serial number will
           be set to the current date in YYYYMMDDNN format.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>dnssec-signzone -N date</strong></span> also sets the serial
           number to YYYYMMDDNN.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named -L <em class="replaceable"><code>filename</code></em></strong></span>
           causes <span class="command"><strong>named</strong></span> to send log messages to the
           specified file by default instead of to the system log.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The rate limiter configured by the
           <code class="option">serial-query-rate</code> option no longer covers
           NOTIFY messages; those are now separately controlled by
@@ -1944,31 +1645,23 @@
           <code class="option">startup-notify-rate</code> (the latter of which
           controls the rate of NOTIFY messages sent when the server
           is first started up or reconfigured).
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The default number of tasks and client objects available
           for serving lightweight resolver queries have been increased,
           and are now configurable via the new <code class="option">lwres-tasks</code>
           and <code class="option">lwres-clients</code> options in
           <code class="filename">named.conf</code>. [RT #35857]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Log output to files can now be buffered by specifying
           <span class="command"><strong>buffered yes;</strong></span> when creating a channel.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>delv +tcp</strong></span> will exclusively use TCP when
           sending queries.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> will now check to see whether
           other name server processes are running before starting up.
           This is implemented in two ways: 1) by refusing to start
@@ -1980,10 +1673,8 @@
           <code class="filename">/var/run/named/named.lock</code>.
           Specifying <code class="literal">none</code> will disable the lock
           file check.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>rndc delzone</strong></span> can now be applied to zones
           which were configured in <code class="filename">named.conf</code>;
           it is no longer restricted to zones which were added by
@@ -1991,22 +1682,17 @@
           this does not edit <code class="filename">named.conf</code>; the zone
           must be removed from the configuration or it will return
           when <span class="command"><strong>named</strong></span> is restarted or reloaded.)
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>rndc modzone</strong></span> can be used to reconfigure
           a zone, using similar syntax to <span class="command"><strong>rndc addzone</strong></span>.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>rndc showzone</strong></span> displays the current
           configuration for a specified zone.
-        </p>
-      </li>
+        </p></li>
 <li class="listitem">
-        <p>
+<p>
           When BIND is built with the <span class="command"><strong>lmdb</strong></span> library
           (Lightning Memory-Mapped Database), <span class="command"><strong>named</strong></span>
           will store the configuration information for zones
@@ -2018,70 +1704,61 @@
           the contents of a database is much faster than rewriting
           a text file.
         </p>
-        <p>
+<p>
           On startup, if <span class="command"><strong>named</strong></span> finds an existing
           NZF file, it will automatically convert it to the new NZD
           database format.
         </p>
-        <p>
+<p>
           To view the contents of an NZD, or to convert an
           NZD back to an NZF file (for example, to revert back
           to an earlier version of BIND which did not support the
           NZD format), use the new command <span class="command"><strong>named-nzd2nzf</strong></span>
           [RT #39837]
         </p>
-      </li>
+</li>
 <li class="listitem">
-        <p>
+<p>
           Added server-side support for pipelined TCP queries.  Clients
           may continue sending queries via TCP while previous queries are
           processed in parallel.  Responses are sent when they are
           ready, not necessarily in the order in which the queries were
           received.
         </p>
-        <p>
+<p>
           To revert to the former behavior for a particular
           client address or range of addresses, specify the address prefix
           in the "keep-response-order" option.  To revert to the former
           behavior for all clients, use "keep-response-order { any; };".
         </p>
-      </li>
-<li class="listitem">
-        <p>
+</li>
+<li class="listitem"><p>
           The new <span class="command"><strong>mdig</strong></span> command is a version of
           <span class="command"><strong>dig</strong></span> that sends multiple pipelined
           queries and then waits for responses, instead of sending one
           query and waiting the response before sending the next. [RT #38261]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           To enable better monitoring and troubleshooting of RFC 5011
           trust anchor management, the new <span class="command"><strong>rndc managed-keys</strong></span>
           can be used to check status of trust anchors or to force keys
           to be refreshed.  Also, the managed-keys data file now has
           easier-to-read comments. [RT #38458]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           An <span class="command"><strong>--enable-querytrace</strong></span> configure switch is
           now available to enable very verbose query trace logging. This
           option can only be set at compile time. This option has a
           negative performance impact and should be used only for
           debugging. [RT #37520]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           A new <span class="command"><strong>tcp-only</strong></span> option can be specified
           in <span class="command"><strong>server</strong></span> statements to force
           <span class="command"><strong>named</strong></span> to connect to the specified
           server via TCP. [RT #37800]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The <span class="command"><strong>nxdomain-redirect</strong></span> option specifies
           a DNS namespace to use for NXDOMAIN redirection. When a
           recursive lookup returns NXDOMAIN, a second lookup is
@@ -2091,25 +1768,19 @@
           queries to other servers. (The older method, using
           a single <span class="command"><strong>type redirect</strong></span> zone, has
           better average performance but is less flexible.) [RT #37989]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The following types have been implemented: CSYNC, NINFO, RKEY,
           SINK, TA, TALINK.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           A new <span class="command"><strong>message-compression</strong></span> option can be
           used to specify whether or not to use name compression when
           answering queries. Setting this to <strong class="userinput"><code>no</code></strong>
           results in larger responses, but reduces CPU consumption and
           may improve throughput.  The default is <strong class="userinput"><code>yes</code></strong>.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           A <span class="command"><strong>read-only</strong></span> option is now available in the
           <span class="command"><strong>controls</strong></span> statement to grant non-destructive
           control channel access. In such cases, a restricted set of
@@ -2118,28 +1789,22 @@
           reconfigure or stop the server. By default, the control channel
           access is <span class="emphasis"><em>not</em></span> restricted to these
           read-only operations. [RT #40498]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           When loading a signed zone, <span class="command"><strong>named</strong></span> will
           now check whether an RRSIG's inception time is in the future,
           and if so, it will regenerate the RRSIG immediately. This helps
           when a system's clock needs to be reset backwards.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The new <span class="command"><strong>minimal-any</strong></span> option reduces the size
           of answers to UDP queries for type ANY by implementing one of
           the strategies in "draft-ietf-dnsop-refuse-any": returning
           a single arbitrarily-selected RRset that matches the query
           name rather than returning all of the matching RRsets.
           Thanks to Tony Finch for the contribution. [RT #41615]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> now provides feedback to the
           owners of zones which have trust anchors configured
           (<span class="command"><strong>trusted-keys</strong></span>,
@@ -2149,61 +1814,50 @@
           configured trust anchors for the zone.  This is controlled
           by <span class="command"><strong>trust-anchor-telemetry</strong></span> and defaults
           to yes.
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.0-changes"></a>Feature Changes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-        <p>
+<p>
           The logging format used for <span class="command"><strong>querylog</strong></span> has been
           altered. It now includes an additional field indicating the
           address in memory of the client object processing the query.
         </p>
-        <p>
+<p>
           The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
           to be disabled in 2017.  A warning is now logged when
           <span class="command"><strong>named</strong></span> is configured to use this service,
           either explicitly or via <code class="option">dnssec-lookaside auto;</code>.
           [RT #42207]
         </p>
-      </li>
-<li class="listitem">
-        <p>
+</li>
+<li class="listitem"><p>
           The timers returned by the statistics channel (indicating current
           time, server boot time, and most recent reconfiguration time) are
           now reported with millisecond accuracy. [RT #40082]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Updated the compiled-in addresses for H.ROOT-SERVERS.NET
           and L.ROOT-SERVERS.NET.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           ACLs containing <span class="command"><strong>geoip asnum</strong></span> elements were
           not correctly matched unless the full organization name was
           specified in the ACL (as in
           <span class="command"><strong>geoip asnum "AS1234 Example, Inc.";</strong></span>).
           They can now match against the AS number alone (as in
           <span class="command"><strong>geoip asnum "AS1234";</strong></span>).
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           When using native PKCS#11 cryptography (i.e.,
           <span class="command"><strong>configure --enable-native-pkcs11</strong></span>) HSM PINs
           of up to 256 characters can now be used.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           NXDOMAIN responses to queries of type DS are now cached separately
           from those for other types. This helps when using "grafted" zones
           of type forward, for which the parent zone does not contain a
@@ -2213,29 +1867,21 @@
           change is only helpful when DNSSEC validation is not enabled.
           "Grafted" zones without a delegation in the parent are not a
           recommended configuration.)
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Update forwarding performance has been improved by allowing
           a single TCP connection to be shared between multiple updates.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           By default, <span class="command"><strong>nsupdate</strong></span> will now check
           the correctness of hostnames when adding records of type
           A, AAAA, MX, SOA, NS, SRV or PTR.  This behavior can be
           disabled with <span class="command"><strong>check-names no</strong></span>.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Added support for OPENPGPKEY type.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The names of the files used to store managed keys and added
           zones for each view are no longer based on the SHA256 hash
           of the view name, except when this is necessary because the
@@ -2248,80 +1894,64 @@
           or <code class="filename">external.nzf</code>).  However, to ensure
           consistent behavior when upgrading, if a file using the old
           name format is found to exist, it will continue to be used.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           "rndc" can now return text output of arbitrary size to
           the caller. (Prior to this, certain commands such as
           "rndc tsig-list" and "rndc zonestatus" could return
           truncated output.)
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Errors reported when running <span class="command"><strong>rndc addzone</strong></span>
           (e.g., when a zone file cannot be loaded) have been clarified
           to make it easier to diagnose problems.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           When encountering an authoritative name server whose name is
           an alias pointing to another name, the resolver treats
           this as an error and skips to the next server. Previously
           this happened silently; now the error will be logged to
           the newly-created "cname" log category.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           If <span class="command"><strong>named</strong></span> is not configured to validate
           answers, then allow fallback to plain DNS on timeout even when
           we know the server supports EDNS.  This will allow the server to
           potentially resolve signed queries when TCP is being
           blocked.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Large inline-signing changes should be less disruptive.
           Signature generation is now done incrementally; the number
           of signatures to be generated in each quantum is controlled
           by "sig-signing-signatures <em class="replaceable"><code>number</code></em>;".
           [RT #37927]
-        </p>
-      </li>
+        </p></li>
 <li class="listitem">
-        <p>
+<p>
           The experimental SIT option (code point 65001) of BIND
           9.10.0 through BIND 9.10.2 has been replaced with the COOKIE
           option (code point 10). It is no longer experimental, and
           is sent by default, by both <span class="command"><strong>named</strong></span> and
           <span class="command"><strong>dig</strong></span>.
         </p>
-        <p>
+<p>
           The SIT-related named.conf options have been marked as
           obsolete, and are otherwise ignored.
         </p>
-      </li>
-<li class="listitem">
-        <p>
+</li>
+<li class="listitem"><p>
           When <span class="command"><strong>dig</strong></span> receives a truncated (TC=1)
           response or a BADCOOKIE response code from a server, it
           will automatically retry the query using the server COOKIE
           that was returned by the server in its initial response.
           [RT #39047]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Retrieving the local port range from net.ipv4.ip_local_port_range
           on Linux is now supported.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           A new <code class="option">nsip-wait-recurse</code> directive has been
           added to RPZ, specifying whether to look up unknown name server
           IP addresses and wait for a response before applying RPZ-NSIP rules.
@@ -2332,131 +1962,105 @@
           be applied on subsequent queries. This improves performance when
           the cache is cold, at the cost of temporary imprecision in applying
           policy directives. [RT #35009]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Within the <code class="option">response-policy</code> option, it is now
           possible to configure RPZ rewrite logging on a per-zone basis
           using the <code class="option">log</code> clause.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           The default preferred glue is now the address type of the
           transport the query was received over.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           On machines with 2 or more processors (CPU), the default value
           for the number of UDP listeners has been changed to the number
           of detected processors minus one.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Zone transfers now use smaller message sizes to improve
           message compression. This results in reduced network usage.
-        </p>
-      </li>
+        </p></li>
 <li class="listitem">
-        <p>
+<p>
           Added support for the AVC resource record type (Application
           Visibility and Control).
         </p>
-        <p>
+<p>
           Changed <span class="command"><strong>rndc reconfig</strong></span> behavior so that newly
           added zones are loaded asynchronously and the loading does not
           block the server.
         </p>
-      </li>
-<li class="listitem">
-        <p>
+</li>
+<li class="listitem"><p>
           <span class="command"><strong>minimal-responses</strong></span> now takes two new
           arguments: <code class="option">no-auth</code> suppresses
           populating the authority section but not the additional
           section; <code class="option">no-auth-recursive</code>
           does the same but only when answering recursive queries.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           At server startup time, the queues for processing
           notify and zone refresh queries are now processed in
           LIFO rather than FIFO order, to speed up
           loading of newly added zones. [RT #42825]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           When answering queries of type MX or SRV, TLSA records for
           the target name are now included in the additional section
           to speed up DANE processing. [RT #42894]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           <span class="command"><strong>named</strong></span> can now use the TCP Fast Open
           mechanism on the server side, if supported by the
           local operating system. [RT #42866]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="relnotes-9.11.0-bugs"></a>Bug Fixes</h4></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-        <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
           Fixed a crash when calling <span class="command"><strong>rndc stats</strong></span> on some
           Windows builds: some Visual Studio compilers generate code that
           crashes when the "%z" printf() format specifier is used. [RT #42380]
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           Windows installs were failing due to triggering UAC without
           the installation binary being signed.
-        </p>
-      </li>
-<li class="listitem">
-        <p>
+        </p></li>
+<li class="listitem"><p>
           A change in the internal binary representation of the RBT database
           node structure enabled a race condition to occur (especially when
           BIND was built with certain compilers or optimizer settings),
           leading to inconsistent database state which caused random
           assertion failures. [RT #42380]
-        </p>
-      </li>
+        </p></li>
 </ul></div>
-  </div>
-
 </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="end_of_life"></a>End of Life</h3></div></div></div>
-  <p>
+<p>
     BIND 9.11 (Extended Support Version) will be supported until at
     least December, 2021.
   </p>
-  <p>
+<p>
     See <a class="link" href="https://kb.isc.org/docs/aa-00896" target="_top">https://kb.isc.org/docs/aa-00896</a>
     for details of ISC's software support policy.
   </p>
 </div>
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_thanks"></a>Thank You</h3></div></div></div>
-  <p>
+<p>
     Thank you to everyone who assisted us in making this release possible.
   </p>
 </div>
 </div>
-    </div>
+</div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
@@ -2475,6 +2079,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.25 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.26 (Extended Support Version)</p>
 </body>
 </html>

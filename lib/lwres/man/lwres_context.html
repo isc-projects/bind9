@@ -14,29 +14,13 @@
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry">
 <a name="id-1"></a><div class="titlepage"></div>
-  
-  
-
-  
-
-  
-
-  <div class="refnamediv">
+<div class="refnamediv">
 <h2>Name</h2>
-<p>
-    lwres_context_create, 
-    lwres_context_destroy, 
-    lwres_context_nextserial, 
-    lwres_context_initserial, 
-    lwres_context_freemem, 
-    lwres_context_allocmem, 
-    lwres_context_sendrecv
-     &#8212; lightweight resolver context management
-  </p>
+<p>lwres_context_create, lwres_context_destroy, lwres_context_nextserial, lwres_context_initserial, lwres_context_freemem, lwres_context_allocmem, lwres_context_sendrecv &#8212; lightweight resolver context management</p>
 </div>
-  <div class="refsynopsisdiv">
+<div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-    <div class="funcsynopsis">
+<div class="funcsynopsis">
 <pre class="funcsynopsisinfo">#include &lt;lwres/lwres.h&gt;</pre>
 <table border="0" class="funcprototype-table" summary="Function synopsis" style="cellspacing: 0; cellpadding: 0;">
 <tr>
@@ -146,12 +130,10 @@ void *
 </table>
 <div class="funcprototype-spacer"> </div>
 </div>
-  </div>
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.7"></a><h2>DESCRIPTION</h2>
-
-
-    <p><code class="function">lwres_context_create()</code>
+<p><code class="function">lwres_context_create()</code>
       creates a <span class="type">lwres_context_t</span> structure for use in
       lightweight resolver operations.  It holds a socket and other
       data needed for communicating with a resolver daemon.  The new
@@ -162,7 +144,7 @@ void *
       is modified to point to the newly created
       <span class="type">lwres_context_t</span>.
     </p>
-    <p>
+<p>
       When the lightweight resolver needs to perform dynamic memory
       allocation, it will call
       <em class="parameter"><code>malloc_function</code></em>
@@ -173,13 +155,9 @@ void *
       and
       <em class="parameter"><code>free_function</code></em>
       are NULL, memory is allocated using
-      <span class="citerefentry">
-        <span class="refentrytitle">malloc</span>(3)
-      </span>.
+      <span class="citerefentry"><span class="refentrytitle">malloc</span>(3)</span>.
       and
-      <span class="citerefentry">
-        <span class="refentrytitle">free</span>(3)
-      </span>.
+      <span class="citerefentry"><span class="refentrytitle">free</span>(3)</span>.
 
       It is not permitted to have a NULL
       <em class="parameter"><code>malloc_function</code></em> and a non-NULL
@@ -191,24 +169,19 @@ void *
       <em class="parameter"><code>arg</code></em> is unused and should be passed as
       NULL.
     </p>
-
-    <p>
+<p>
       Once memory for the structure has been allocated,
       it is initialized using
-      <span class="citerefentry">
-        <span class="refentrytitle">lwres_conf_init</span>(3)
-      </span>
+      <span class="citerefentry"><span class="refentrytitle">lwres_conf_init</span>(3)</span>
       and returned via <em class="parameter"><code>*contextp</code></em>.
     </p>
-
-    <p><code class="function">lwres_context_destroy()</code>
+<p><code class="function">lwres_context_destroy()</code>
       destroys a <span class="type">lwres_context_t</span>, closing its socket.
       <em class="parameter"><code>contextp</code></em> is a pointer to a pointer to the
       context that is to be destroyed.  The pointer will be set to
       NULL when the context has been destroyed.
     </p>
-
-    <p>
+<p>
       The context holds a serial number that is used to identify
       resolver request packets and associate responses with the
       corresponding requests.  This serial number is controlled using
@@ -220,8 +193,7 @@ void *
       <code class="function">lwres_context_nextserial()</code> increments the
       serial number and returns the previous value.
     </p>
-
-    <p>
+<p>
       Memory for a lightweight resolver context is allocated and freed
       using <code class="function">lwres_context_allocmem()</code> and
       <code class="function">lwres_context_freemem()</code>.  These use
@@ -234,8 +206,7 @@ void *
       <em class="parameter"><code>len</code></em> bytes of space starting at location
       <em class="parameter"><code>mem</code></em>.
     </p>
-
-    <p><code class="function">lwres_context_sendrecv()</code>
+<p><code class="function">lwres_context_sendrecv()</code>
       performs I/O for the context <em class="parameter"><code>ctx</code></em>.  Data
       are read and written from the context's socket.  It writes data
       from <em class="parameter"><code>sendbase</code></em> &#8212; typically a
@@ -245,24 +216,21 @@ void *
       written to this receive buffer is returned in
       <em class="parameter"><code>*recvd_len</code></em>.
     </p>
-  </div>
-
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.8"></a><h2>RETURN VALUES</h2>
-
-
-    <p><code class="function">lwres_context_create()</code>
+<p><code class="function">lwres_context_create()</code>
       returns <span class="errorcode">LWRES_R_NOMEMORY</span> if memory for
       the <span class="type">struct lwres_context</span> could not be allocated,
       <span class="errorcode">LWRES_R_SUCCESS</span> otherwise.
     </p>
-    <p>
+<p>
       Successful calls to the memory allocator
       <code class="function">lwres_context_allocmem()</code>
       return a pointer to the start of the allocated space.
       It returns NULL if memory could not be allocated.
     </p>
-    <p><span class="errorcode">LWRES_R_SUCCESS</span>
+<p><span class="errorcode">LWRES_R_SUCCESS</span>
       is returned when
       <code class="function">lwres_context_sendrecv()</code>
       completes successfully.
@@ -273,22 +241,15 @@ void *
       <code class="function">lwres_context_sendrecv()</code>
       times out waiting for a response.
     </p>
-  </div>
-  <div class="refsection">
+</div>
+<div class="refsection">
 <a name="id-1.9"></a><h2>SEE ALSO</h2>
+<p><span class="citerefentry"><span class="refentrytitle">lwres_conf_init</span>(3)</span>,
 
-    <p><span class="citerefentry">
-        <span class="refentrytitle">lwres_conf_init</span>(3)
-      </span>,
+      <span class="citerefentry"><span class="refentrytitle">malloc</span>(3)</span>,
 
-      <span class="citerefentry">
-        <span class="refentrytitle">malloc</span>(3)
-      </span>,
-
-      <span class="citerefentry">
-        <span class="refentrytitle">free</span>(3)
-      </span>.
+      <span class="citerefentry"><span class="refentrytitle">free</span>(3)</span>.
     </p>
-  </div>
+</div>
 </div></body>
 </html>

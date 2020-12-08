@@ -35,16 +35,15 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 lwres_gabnrequest_render, lwres_gabnresponse_render, lwres_gabnrequest_parse, lwres_gabnresponse_parse, lwres_gabnresponse_free, lwres_gabnrequest_free \- lightweight resolver getaddrbyname message handling
-  .SH "SYNOPSIS"
+.SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/lwres\&.h>
 .fi
 .ft
-.sp
 .HP \w'lwres_result_t\ lwres_gabnrequest_render('u
 .BI "lwres_result_t lwres_gabnrequest_render(lwres_context_t\ *" "ctx" ", lwres_gabnrequest_t\ *" "req" ", lwres_lwpacket_t\ *" "pkt" ", lwres_buffer_t\ *" "b" ");"
 .HP \w'lwres_result_t\ lwres_gabnresponse_render('u
@@ -57,19 +56,19 @@ lwres_gabnrequest_render, lwres_gabnresponse_render, lwres_gabnrequest_parse, lw
 .BI "void lwres_gabnresponse_free(lwres_context_t\ *" "ctx" ", lwres_gabnresponse_t\ **" "structp" ");"
 .HP \w'void\ lwres_gabnrequest_free('u
 .BI "void lwres_gabnrequest_free(lwres_context_t\ *" "ctx" ", lwres_gabnrequest_t\ **" "structp" ");"
-  .SH "DESCRIPTION"
-    .PP
+.SH "DESCRIPTION"
+.PP
 These are low\-level routines for creating and parsing lightweight resolver name\-to\-address lookup request and response messages\&.
-    .PP
+.PP
 There are four main functions for the getaddrbyname opcode\&. One render function converts a getaddrbyname request structure \(em
 \fBlwres_gabnrequest_t\fR
 \(em to the lightweight resolver\*(Aqs canonical format\&. It is complemented by a parse function that converts a packet in this canonical format to a getaddrbyname request structure\&. Another render function converts the getaddrbyname response structure \(em
 \fBlwres_gabnresponse_t\fR
 \(em to the canonical format\&. This is complemented by a parse function which converts a packet in canonical format to a getaddrbyname response structure\&.
-    .PP
+.PP
 These structures are defined in
 <lwres/lwres\&.h>\&. They are shown below\&.
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -79,8 +78,7 @@ These structures are defined in
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -91,8 +89,7 @@ typedef LWRES_LIST(lwres_addr_t) lwres_addrlist_t;
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -107,8 +104,7 @@ typedef struct {
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -129,8 +125,7 @@ typedef struct {
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 \fBlwres_gabnrequest_render()\fR
 uses resolver context
 \fIctx\fR
@@ -146,7 +141,7 @@ are then appended to the buffer in canonical format\&.
 performs the same task, except it converts a getaddrbyname response structure
 \fBlwres_gabnresponse_t\fR
 to the lightweight resolver\*(Aqs canonical format\&.
-    .PP
+.PP
 \fBlwres_gabnrequest_parse()\fR
 uses context
 \fIctx\fR
@@ -166,7 +161,7 @@ offers the same semantics as
 except it yields a
 \fBlwres_gabnresponse_t\fR
 structure\&.
-    .PP
+.PP
 \fBlwres_gabnresponse_free()\fR
 and
 \fBlwres_gabnrequest_free()\fR
@@ -178,8 +173,8 @@ or
 \fBlwres_gabnrequest_t\fR
 structures referenced via
 \fIstructp\fR\&. Any memory associated with ancillary buffers and strings for those structures is also discarded\&.
-  .SH "RETURN VALUES"
-    .PP
+.SH "RETURN VALUES"
+.PP
 The getaddrbyname opcode functions
 \fBlwres_gabnrequest_render()\fR,
 \fBlwres_gabnresponse_render()\fR
@@ -211,8 +206,8 @@ if
 in the packet header structure
 \fBlwres_lwpacket_t\fR
 indicate that the packet is not a response to an earlier query\&.
-  .SH "SEE ALSO"
-    .PP
+.SH "SEE ALSO"
+.PP
 \fBlwres_packet\fR(3)
 .SH "AUTHOR"
 .PP
