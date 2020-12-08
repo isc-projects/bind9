@@ -34,7 +34,11 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- ``ipv4only.arpa`` is now served when ``dns64`` is configured. [GL #385]
+- It is now possible to transition a zone from secure to insecure mode
+  without making it bogus in the process: changing to ``dnssec-policy
+  none;`` also causes CDS and CDNSKEY DELETE records to be published, to
+  signal that the entire DS RRset at the parent must be removed, as
+  described in RFC 8078. [GL #1750]
 
 - When using the ``unixtime`` or ``date`` method to update the SOA
   serial number, ``named`` and ``dnssec-signzone`` silently fell back to
