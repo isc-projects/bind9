@@ -404,30 +404,6 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside auto;' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-dlv-auto.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside . trust-anchor dlv.isc.org;' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-dlv-dlv.isc.org.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside . trust-anchor dlv.example.com;' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
 echo_i "check that the 2010 ICANN ROOT KSK without the 2017 ICANN ROOT KSK generates a warning ($n)"
 ret=0
 $CHECKCONF check-root-ksk-2010.conf > checkconf.out$n 2>/dev/null || ret=1

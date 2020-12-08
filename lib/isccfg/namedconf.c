@@ -1857,46 +1857,6 @@ static cfg_clausedef_t *rrl_clausesets[] = { rrl_clauses, NULL };
 static cfg_type_t cfg_type_rrl = { "rate-limit", cfg_parse_map, cfg_print_map,
 				   cfg_doc_map,	 &cfg_rep_map,	rrl_clausesets };
 
-/*%
- * dnssec-lookaside
- */
-
-static void
-print_lookaside(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	const cfg_obj_t *domain = obj->value.tuple[0];
-
-	if (domain->value.string.length == 4 &&
-	    strncmp(domain->value.string.base, "auto", 4) == 0)
-	{
-		cfg_print_cstr(pctx, "auto");
-	} else {
-		cfg_print_tuple(pctx, obj);
-	}
-}
-
-static void
-doc_lookaside(cfg_printer_t *pctx, const cfg_type_t *type) {
-	UNUSED(type);
-	cfg_print_cstr(pctx, "( <string> trust-anchor <string> | auto | no )");
-}
-
-static keyword_type_t trustanchor_kw = { "trust-anchor", &cfg_type_astring };
-
-static cfg_type_t cfg_type_optional_trustanchor = {
-	"optional_trustanchor", parse_optional_keyvalue, print_keyvalue,
-	doc_keyvalue,		&cfg_rep_string,	 &trustanchor_kw
-};
-
-static cfg_tuplefielddef_t lookaside_fields[] = {
-	{ "domain", &cfg_type_astring, 0 },
-	{ "trust-anchor", &cfg_type_optional_trustanchor, 0 },
-	{ NULL, NULL, 0 }
-};
-
-static cfg_type_t cfg_type_lookaside = { "lookaside",	  cfg_parse_tuple,
-					 print_lookaside, doc_lookaside,
-					 &cfg_rep_tuple,  lookaside_fields };
-
 static isc_result_t
 parse_optional_uint32(cfg_parser_t *pctx, const cfg_type_t *type,
 		      cfg_obj_t **ret) {
@@ -1999,8 +1959,7 @@ static cfg_clausedef_t view_clauses[] = {
 #endif /* ifdef USE_DNSRPS */
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
 	{ "dnssec-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "dnssec-lookaside", &cfg_type_lookaside,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
+	{ "dnssec-lookaside", NULL, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ "dnssec-must-be-secure", &cfg_type_mustbesecure,
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-validation", &cfg_type_boolorauto, 0 },
