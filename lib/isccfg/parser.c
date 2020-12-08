@@ -2462,13 +2462,6 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 					   "should be removed ",
 					   clause->name);
 		}
-		if ((clause->flags & CFG_CLAUSEFLAG_NOOP) != 0) {
-			cfg_parser_warning(pctx, 0,
-					   "option '%s' was not "
-					   "enabled at compile time "
-					   "(ignored)",
-					   clause->name);
-		}
 
 		if ((clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0) {
 			cfg_parser_error(pctx, 0,
@@ -2719,7 +2712,6 @@ static struct flagtext {
 		  { CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
 		  { CFG_CLAUSEFLAG_MULTI, "may occur multiple times" },
 		  { CFG_CLAUSEFLAG_EXPERIMENTAL, "experimental" },
-		  { CFG_CLAUSEFLAG_NOOP, "non-operational" },
 		  { CFG_CLAUSEFLAG_DEPRECATED, "deprecated" },
 		  { CFG_CLAUSEFLAG_ANCIENT, "ancient" },
 		  { 0, NULL } };

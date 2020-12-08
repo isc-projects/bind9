@@ -2030,7 +2030,7 @@ static cfg_clausedef_t view_clauses[] = {
 #ifdef HAVE_LMDB
 	{ "lmdb-mapsize", &cfg_type_sizeval, 0 },
 #else  /* ifdef HAVE_LMDB */
-	{ "lmdb-mapsize", &cfg_type_sizeval, CFG_CLAUSEFLAG_NOOP },
+	{ "lmdb-mapsize", &cfg_type_sizeval, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* ifdef HAVE_LMDB */
 	{ "max-acache-size", &cfg_type_sizenodefault, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-cache-size", &cfg_type_sizeorpercent, 0 },

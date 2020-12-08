@@ -50,9 +50,7 @@
 #define CFG_CLAUSEFLAG_NOTCONFIGURED 0x00000080
 /*% A option for a experimental feature. */
 #define CFG_CLAUSEFLAG_EXPERIMENTAL 0x00000100
-/*% A configuration option that is ineffective due to
- * compile time options, but is harmless. */
-#define CFG_CLAUSEFLAG_NOOP 0x00000200
+/* obsolete: #define CFG_CLAUSEFLAG_NOOP 0x00000200 */
 /*% Clause will be obsolete in a future release (logs a warning) */
 #define CFG_CLAUSEFLAG_DEPRECATED 0x00000400
 /*% Clause has been obsolete so long that it's now a fatal error */
