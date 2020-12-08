@@ -29,7 +29,17 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- A number of non-working configuration options that had been marked
+  as obsolete in previous releases have now been removed completely.
+  Using any of the following options is now considered a configuration
+  failure:
+  ``acache-cleaning-interval``, ``acache-enable``, ``additional-from-auth``,
+  ``additional-from-cache``, ``allow-v6-synthesis``, ``cleaning-interval``,
+  ``dnssec-enable``, ``dnssec-lookaside``, ``filter-aaaa``,
+  ``filter-aaaa-on-v4``, ``filter-aaaa-on-v6``, ``geoip-use-ecs``, ``lwres``,
+  ``max-acache-size``, ``nosit-udp-size``, ``queryport-pool-ports``,
+  ``queryport-pool-updateinterval``, ``request-sit``, ``sit-secret``,
+  ``support-ixfr``, ``use-queryport-pool``, ``use-ixfr``. [GL #1086]
 
 Feature Changes
 ~~~~~~~~~~~~~~~

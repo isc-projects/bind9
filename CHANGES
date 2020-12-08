@@ -1,4 +1,7 @@
-5563.	[cleanup]	Clean up the number of clause flags [GL #1086].
+5563.	[cleanup]	Changed several obsolete configuration options to
+			ancient, making them into fatal errors. Also cleaned
+			up the number of clause flags in the configuration
+			parser. [GL #1086]
 
 5562.	[placeholder]
 
