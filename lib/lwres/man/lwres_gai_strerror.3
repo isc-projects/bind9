@@ -35,89 +35,88 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 lwres_gai_strerror \- print suitable error string
-  .SH "SYNOPSIS"
+.SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/netdb\&.h>
 .fi
 .ft
-.sp
 .HP \w'char\ *\ gai_strerror('u
 .BI "char * gai_strerror(int\ " "ecode" ");"
-  .SH "DESCRIPTION"
-    .PP
+.SH "DESCRIPTION"
+.PP
 \fBlwres_gai_strerror()\fR
 returns an error message corresponding to an error code returned by
 \fBgetaddrinfo()\fR\&. The following error codes and their meaning are defined in
 include/lwres/netdb\&.h\&.
-        .PP
+.PP
 \fBEAI_ADDRFAMILY\fR
 .RS 4
-            address family for hostname not supported
-        .RE
-        .PP
+address family for hostname not supported
+.RE
+.PP
 \fBEAI_AGAIN\fR
 .RS 4
-            temporary failure in name resolution
-        .RE
-        .PP
+temporary failure in name resolution
+.RE
+.PP
 \fBEAI_BADFLAGS\fR
 .RS 4
-            invalid value for
+invalid value for
 \fBai_flags\fR
-        .RE
-        .PP
+.RE
+.PP
 \fBEAI_FAIL\fR
 .RS 4
-            non\-recoverable failure in name resolution
-        .RE
-        .PP
+non\-recoverable failure in name resolution
+.RE
+.PP
 \fBEAI_FAMILY\fR
 .RS 4
-            \fBai_family\fR
+\fBai_family\fR
 not supported
-        .RE
-        .PP
+.RE
+.PP
 \fBEAI_MEMORY\fR
 .RS 4
-            memory allocation failure
-        .RE
-        .PP
+memory allocation failure
+.RE
+.PP
 \fBEAI_NODATA\fR
 .RS 4
-            no address associated with hostname
-        .RE
-        .PP
+no address associated with hostname
+.RE
+.PP
 \fBEAI_NONAME\fR
 .RS 4
-            hostname or servname not provided, or not known
-        .RE
-        .PP
+hostname or servname not provided, or not known
+.RE
+.PP
 \fBEAI_SERVICE\fR
 .RS 4
-            servname not supported for
+servname not supported for
 \fBai_socktype\fR
-        .RE
-        .PP
+.RE
+.PP
 \fBEAI_SOCKTYPE\fR
 .RS 4
-            \fBai_socktype\fR
+\fBai_socktype\fR
 not supported
-        .RE
-        .PP
+.RE
+.PP
 \fBEAI_SYSTEM\fR
 .RS 4
-            system error returned in errno
-        .RE
-      The message
+system error returned in errno
+.RE
+The message
 invalid error code
 is returned if
 \fIecode\fR
 is out of range\&.
-    .PP
+.PP
 \fBai_flags\fR,
 \fBai_family\fR
 and
@@ -126,8 +125,8 @@ are elements of the
 \fBstruct addrinfo\fR
 used by
 \fBlwres_getaddrinfo()\fR\&.
-  .SH "SEE ALSO"
-    .PP
+.SH "SEE ALSO"
+.PP
 \fBstrerror\fR(3),
 \fBlwres_getaddrinfo\fR(3),
 \fBgetaddrinfo\fR(3),

@@ -35,24 +35,20 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 named-checkconf \- named configuration file syntax checking tool
-  .SH "SYNOPSIS"
-    .HP \w'\fBnamed\-checkconf\fR\ 'u
-      \fBnamed\-checkconf\fR
-       [\fB\-hjvz\fR]
-       [\fB\-p\fR\ [\fB\-x\fR\ ]]
-       [\fB\-t\ \fR\fB\fIdirectory\fR\fR]
-       {filename}
-  .SH "DESCRIPTION"
-    .PP
+.SH "SYNOPSIS"
+.HP \w'\fBnamed\-checkconf\fR\ 'u
+\fBnamed\-checkconf\fR [\fB\-hjvz\fR] [\fB\-p\fR\ [\fB\-x\fR\ ]] [\fB\-t\ \fR\fB\fIdirectory\fR\fR] {filename}
+.SH "DESCRIPTION"
+.PP
 \fBnamed\-checkconf\fR
 checks the syntax, but not the semantics, of a
 \fBnamed\fR
 configuration file\&. The file is parsed and checked for syntax errors, along with all files included by it\&. If no file is specified,
 /etc/named\&.conf
 is read by default\&.
-    .PP
+.PP
 Note: files that
 \fBnamed\fR
 reads in separate parser contexts, such as
@@ -66,67 +62,67 @@ to fail to run, even if
 was successful\&.
 \fBnamed\-checkconf\fR
 can be run on these files explicitly, however\&.
-  .SH "OPTIONS"
-      .PP
+.SH "OPTIONS"
+.PP
 \-h
 .RS 4
-          Print the usage summary and exit\&.
-      .RE
-      .PP
+Print the usage summary and exit\&.
+.RE
+.PP
 \-j
 .RS 4
-          When loading a zonefile read the journal if it exists\&.
-      .RE
-      .PP
+When loading a zonefile read the journal if it exists\&.
+.RE
+.PP
 \-p
 .RS 4
-          Print out the
+Print out the
 named\&.conf
 and included files in canonical form if no errors were detected\&. See also the
 \fB\-x\fR
 option\&.
-      .RE
-      .PP
+.RE
+.PP
 \-t \fIdirectory\fR
 .RS 4
-          Chroot to
+Chroot to
 directory
 so that include directives in the configuration file are processed as if run by a similarly chrooted
 \fBnamed\fR\&.
-      .RE
-      .PP
+.RE
+.PP
 \-v
 .RS 4
-          Print the version of the
+Print the version of the
 \fBnamed\-checkconf\fR
 program and exit\&.
-      .RE
-      .PP
+.RE
+.PP
 \-x
 .RS 4
-          When printing the configuration files in canonical form, obscure shared secrets by replacing them with strings of question marks (\*(Aq?\*(Aq)\&. This allows the contents of
+When printing the configuration files in canonical form, obscure shared secrets by replacing them with strings of question marks (\*(Aq?\*(Aq)\&. This allows the contents of
 named\&.conf
 and related files to be shared \(em for example, when submitting bug reports \(em without compromising private data\&. This option cannot be used without
 \fB\-p\fR\&.
-      .RE
-      .PP
+.RE
+.PP
 \-z
 .RS 4
-          Perform a test load of all master zones found in
+Perform a test load of all master zones found in
 named\&.conf\&.
-      .RE
-      .PP
+.RE
+.PP
 filename
 .RS 4
-          The name of the configuration file to be checked\&. If not specified, it defaults to
+The name of the configuration file to be checked\&. If not specified, it defaults to
 /etc/named\&.conf\&.
-      .RE
-  .SH "RETURN VALUES"
-    .PP
+.RE
+.SH "RETURN VALUES"
+.PP
 \fBnamed\-checkconf\fR
 returns an exit status of 1 if errors were detected and 0 otherwise\&.
-  .SH "SEE ALSO"
-    .PP
+.SH "SEE ALSO"
+.PP
 \fBnamed\fR(8),
 \fBnamed-checkzone\fR(8),
 BIND 9 Administrator Reference Manual\&.
