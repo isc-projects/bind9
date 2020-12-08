@@ -601,11 +601,13 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	dns_name_t *keyname;
 	isc_result_t result;
 	bool match_root = false;
-	enum { INITIAL_KEY,
-	       STATIC_KEY,
-	       INITIAL_DS,
-	       STATIC_DS,
-	       TRUSTED } anchortype;
+	enum {
+		INITIAL_KEY,
+		STATIC_KEY,
+		INITIAL_DS,
+		STATIC_DS,
+		TRUSTED
+	} anchortype;
 	const cfg_obj_t *obj;
 
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));

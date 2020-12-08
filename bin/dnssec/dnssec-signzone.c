@@ -590,10 +590,10 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 				vbprintf(2, "\trrsig by %s dropped - %s\n",
 					 sigstr,
 					 expired ? "expired"
-						 : rrsig.originalttl != set->ttl
-							   ? "ttl change"
-							   : "failed to "
-							     "verify");
+					 : rrsig.originalttl != set->ttl
+						 ? "ttl change"
+						 : "failed to "
+						   "verify");
 				resign = true;
 			}
 		} else if (!ispublishedkey(key) && remove_orphansigs) {
@@ -611,10 +611,10 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 				vbprintf(2, "\trrsig by %s dropped - %s\n",
 					 sigstr,
 					 expired ? "expired"
-						 : rrsig.originalttl != set->ttl
-							   ? "ttl change"
-							   : "failed to "
-							     "verify");
+					 : rrsig.originalttl != set->ttl
+						 ? "ttl change"
+						 : "failed to "
+						   "verify");
 			}
 		} else if (!expired) {
 			vbprintf(2, "\trrsig by %s retained\n", sigstr);

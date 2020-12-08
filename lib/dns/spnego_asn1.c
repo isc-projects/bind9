@@ -94,13 +94,13 @@ free_MechTypeList(MechTypeList *);
  */
 
 typedef struct ContextFlags {
-	unsigned int delegFlag : 1;
-	unsigned int mutualFlag : 1;
-	unsigned int replayFlag : 1;
+	unsigned int delegFlag	  : 1;
+	unsigned int mutualFlag	  : 1;
+	unsigned int replayFlag	  : 1;
 	unsigned int sequenceFlag : 1;
-	unsigned int anonFlag : 1;
-	unsigned int confFlag : 1;
-	unsigned int integFlag : 1;
+	unsigned int anonFlag	  : 1;
+	unsigned int confFlag	  : 1;
+	unsigned int integFlag	  : 1;
 } ContextFlags;
 
 static int
@@ -145,10 +145,12 @@ free_NegTokenInit(NegTokenInit *);
  */
 
 typedef struct NegTokenResp {
-	enum { accept_completed = 0,
-	       accept_incomplete = 1,
-	       reject = 2,
-	       request_mic = 3 } *
+	enum {
+		accept_completed = 0,
+		accept_incomplete = 1,
+		reject = 2,
+		request_mic = 3
+	} *
 		negState;
 
 	MechType *supportedMech;

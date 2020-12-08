@@ -274,26 +274,29 @@ enum {
 /*%
  * TSIG errors.
  */
-enum { dns_tsigerror_badsig = 16,
-       dns_tsigerror_badkey = 17,
-       dns_tsigerror_badtime = 18,
-       dns_tsigerror_badmode = 19,
-       dns_tsigerror_badname = 20,
-       dns_tsigerror_badalg = 21,
-       dns_tsigerror_badtrunc = 22 };
+enum {
+	dns_tsigerror_badsig = 16,
+	dns_tsigerror_badkey = 17,
+	dns_tsigerror_badtime = 18,
+	dns_tsigerror_badmode = 19,
+	dns_tsigerror_badname = 20,
+	dns_tsigerror_badalg = 21,
+	dns_tsigerror_badtrunc = 22
+};
 
 /*%
  * Opcodes.
  */
-enum { dns_opcode_query = 0,
+enum {
+	dns_opcode_query = 0,
 #define dns_opcode_query ((dns_opcode_t)dns_opcode_query)
-       dns_opcode_iquery = 1,
+	dns_opcode_iquery = 1,
 #define dns_opcode_iquery ((dns_opcode_t)dns_opcode_iquery)
-       dns_opcode_status = 2,
+	dns_opcode_status = 2,
 #define dns_opcode_status ((dns_opcode_t)dns_opcode_status)
-       dns_opcode_notify = 4,
+	dns_opcode_notify = 4,
 #define dns_opcode_notify ((dns_opcode_t)dns_opcode_notify)
-       dns_opcode_update = 5 /* dynamic update */
+	dns_opcode_update = 5 /* dynamic update */
 #define dns_opcode_update ((dns_opcode_t)dns_opcode_update)
 };
 
