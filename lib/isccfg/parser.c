@@ -2448,6 +2448,13 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 					 clause->name);
 			CHECK(ISC_R_FAILURE);
 		}
+		if ((clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0) {
+			cfg_parser_error(pctx, 0,
+					 "option '%s' was not "
+					 "enabled at compile time",
+					 clause->name);
+			CHECK(ISC_R_FAILURE);
+		}
 
 		/* Issue warnings if appropriate */
 		if ((pctx->flags & CFG_PCTX_NODEPRECATED) == 0 &&
@@ -2462,13 +2469,11 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 					   "should be removed ",
 					   clause->name);
 		}
-
-		if ((clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0) {
-			cfg_parser_error(pctx, 0,
-					 "option '%s' was not "
-					 "enabled at compile time",
-					 clause->name);
-			CHECK(ISC_R_FAILURE);
+		if ((clause->flags & CFG_CLAUSEFLAG_EXPERIMENTAL) != 0) {
+			cfg_parser_warning(pctx, 0,
+					   "option '%s' is experimental and "
+					   "subject to change in the future",
+					   clause->name);
 		}
 
 		/* See if the clause already has a value; if not create one. */
