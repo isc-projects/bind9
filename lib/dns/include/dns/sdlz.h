@@ -312,8 +312,8 @@ dns_sdlzunregister(dns_sdlzimplementation_t **sdlzimp);
  */
 
 typedef isc_result_t
-		      dns_sdlz_putnamedrr_t(dns_sdlzallnodes_t *allnodes, const char *name,
-					    const char *type, dns_ttl_t ttl, const char *data);
+dns_sdlz_putnamedrr_t(dns_sdlzallnodes_t *allnodes, const char *name,
+		      const char *type, dns_ttl_t ttl, const char *data);
 dns_sdlz_putnamedrr_t dns_sdlz_putnamedrr;
 
 /*%<
@@ -322,8 +322,8 @@ dns_sdlz_putnamedrr_t dns_sdlz_putnamedrr;
  */
 
 typedef isc_result_t
-		 dns_sdlz_putrr_t(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
-				  const char *data);
+dns_sdlz_putrr_t(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
+		 const char *data);
 dns_sdlz_putrr_t dns_sdlz_putrr;
 /*%<
  * Add a single resource record to the lookup structure to be later
@@ -345,8 +345,8 @@ dns_sdlz_putsoa_t dns_sdlz_putsoa;
  */
 
 typedef isc_result_t
-		 dns_sdlz_setdb_t(dns_dlzdb_t *dlzdatabase, dns_rdataclass_t rdclass,
-				  const dns_name_t *name, dns_db_t **dbp);
+dns_sdlz_setdb_t(dns_dlzdb_t *dlzdatabase, dns_rdataclass_t rdclass,
+		 const dns_name_t *name, dns_db_t **dbp);
 dns_sdlz_setdb_t dns_sdlz_setdb;
 /*%<
  * Create the database pointers for a writeable SDLZ zone

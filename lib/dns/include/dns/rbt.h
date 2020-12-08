@@ -57,10 +57,11 @@ ISC_LANG_BEGINDECLS
  * multiple dns_rbtnode structures will not work.
  */
 typedef struct dns_rbtnode dns_rbtnode_t;
-enum { DNS_RBT_NSEC_NORMAL = 0,	  /* in main tree */
-       DNS_RBT_NSEC_HAS_NSEC = 1, /* also has node in nsec tree */
-       DNS_RBT_NSEC_NSEC = 2,	  /* in nsec tree */
-       DNS_RBT_NSEC_NSEC3 = 3	  /* in nsec3 tree */
+enum {
+	DNS_RBT_NSEC_NORMAL = 0,   /* in main tree */
+	DNS_RBT_NSEC_HAS_NSEC = 1, /* also has node in nsec tree */
+	DNS_RBT_NSEC_NSEC = 2,	   /* in nsec tree */
+	DNS_RBT_NSEC_NSEC3 = 3	   /* in nsec3 tree */
 };
 struct dns_rbtnode {
 #if DNS_RBT_USEMAGIC
@@ -86,24 +87,24 @@ struct dns_rbtnode {
 	 * the unnamed bitfields unless they should also be accessed
 	 * after acquiring the tree lock.
 	 */
-	unsigned int : 0;		/* start of bitfields c/o tree lock */
-	unsigned int is_root : 1;	/*%< range is 0..1 */
-	unsigned int color : 1;		/*%< range is 0..1 */
+	unsigned int		   : 0; /* start of bitfields c/o tree lock */
+	unsigned int is_root	   : 1; /*%< range is 0..1 */
+	unsigned int color	   : 1; /*%< range is 0..1 */
 	unsigned int find_callback : 1; /*%< range is 0..1 */
-	unsigned int attributes : 3;	/*%< range is 0..2 */
-	unsigned int nsec : 2;		/*%< range is 0..3 */
-	unsigned int namelen : 8;	/*%< range is 1..255 */
-	unsigned int offsetlen : 8;	/*%< range is 1..128 */
-	unsigned int oldnamelen : 8;	/*%< range is 1..255 */
+	unsigned int attributes	   : 3; /*%< range is 0..2 */
+	unsigned int nsec	   : 2; /*%< range is 0..3 */
+	unsigned int namelen	   : 8; /*%< range is 1..255 */
+	unsigned int offsetlen	   : 8; /*%< range is 1..128 */
+	unsigned int oldnamelen	   : 8; /*%< range is 1..255 */
 	/*@}*/
 
 	/* flags needed for serialization to file */
-	unsigned int is_mmapped : 1;
+	unsigned int is_mmapped		: 1;
 	unsigned int parent_is_relative : 1;
-	unsigned int left_is_relative : 1;
-	unsigned int right_is_relative : 1;
-	unsigned int down_is_relative : 1;
-	unsigned int data_is_relative : 1;
+	unsigned int left_is_relative	: 1;
+	unsigned int right_is_relative	: 1;
+	unsigned int down_is_relative	: 1;
+	unsigned int data_is_relative	: 1;
 
 	/*
 	 * full name length; set during serialization, and used
@@ -114,7 +115,7 @@ struct dns_rbtnode {
 
 	/* node needs to be cleaned from rpz */
 	unsigned int rpz : 1;
-	unsigned int : 0; /* end of bitfields c/o tree lock */
+	unsigned int	 : 0; /* end of bitfields c/o tree lock */
 
 	/*%
 	 * These are needed for hashing. The 'uppernode' points to the
@@ -156,10 +157,10 @@ struct dns_rbtnode {
 	 * separate region of memory.
 	 */
 	void *data;
-	uint8_t : 0; /* start of bitfields c/o node lock */
+	uint8_t	      : 0; /* start of bitfields c/o node lock */
 	uint8_t dirty : 1;
-	uint8_t wild : 1;
-	uint8_t : 0;		/* end of bitfields c/o node lock */
+	uint8_t wild  : 1;
+	uint8_t	      : 0;	/* end of bitfields c/o node lock */
 	uint16_t       locknum; /* note that this is not in the bitfield */
 	isc_refcount_t references;
 	/*@}*/

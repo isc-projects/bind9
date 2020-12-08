@@ -31,12 +31,14 @@
  */
 int
 isc_regex_validate(const char *c) {
-	enum { none,
-	       parse_bracket,
-	       parse_bound,
-	       parse_ce,
-	       parse_ec,
-	       parse_cc } state = none;
+	enum {
+		none,
+		parse_bracket,
+		parse_bound,
+		parse_ce,
+		parse_ec,
+		parse_cc
+	} state = none;
 	/* Well known character classes. */
 	const char *cc[] = { ":alnum:", ":digit:", ":punct:", ":alpha:",
 			     ":graph:", ":space:", ":blank:", ":lower:",

@@ -118,7 +118,7 @@ struct file_header {
 	 * will be used to tell if we can load the map file or not
 	 */
 	uint32_t ptrsize;
-	unsigned int bigendian : 1;	 /* big or little endian system */
+	unsigned int bigendian	    : 1; /* big or little endian system */
 	unsigned int rdataset_fixed : 1; /* compiled with
 					  * --enable-rrset-fixed
 					  */
